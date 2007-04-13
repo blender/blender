@@ -46,34 +46,31 @@
 
 #define	CHANNELHEIGHT	16
 #define	CHANNELSKIP		2
-#define NAMEWIDTH      144
+#define NAMEWIDTH      164
 #define SLIDERWIDTH    125
 #define ACTWIDTH 		(G.saction->actwidth)
 
 /* Some types for easier type-testing */
-#define ACTTYPE_NONE	0
-#define ACTTYPE_ACHAN	1
-#define ACTTYPE_CONCHAN	2
+#define ACTTYPE_NONE		0
+#define ACTTYPE_ACHAN		1
+#define ACTTYPE_CONCHAN		2
+#define ACTTYPE_ICU			3
+#define ACTTYPE_FILLIPO		4
+#define ACTTYPE_FILLCON		5
 
 /* Macros for easier/more consistant state testing */
 #define VISIBLE_ACHAN(achan) ((achan->flag & ACHAN_HIDDEN)==0)
 #define EDITABLE_ACHAN(achan) ((VISIBLE_ACHAN(achan)) && ((achan->flag & ACHAN_PROTECTED)==0))
 #define EXPANDED_ACHAN(achan) ((VISIBLE_ACHAN(achan)) && (achan->flag & ACHAN_EXPANDED))
 #define SEL_ACHAN(achan) ((achan->flag & ACHAN_SELECTED) || (achan->flag & ACHAN_HILIGHTED))
+#define FILTER_IPO_ACHAN(achan) ((achan->flag & ACHAN_SHOWIPO))
+#define FILTER_CON_ACHAN(achan) ((achan->flag & ACHAN_SHOWCONS))
 
 #define EDITABLE_CONCHAN(conchan) ((conchan->flag & CONSTRAINT_CHANNEL_PROTECTED)==0)
 #define SEL_CONCHAN(conchan) (conchan->flag & CONSTRAINT_CHANNEL_SELECT)
 
-#define CHANNEL_FILTER_LOC		0x00000001	/* Show location keys */
-#define CHANNEL_FILTER_ROT		0x00000002	/* Show rotation keys */
-#define CHANNEL_FILTER_SIZE		0x00000004	/* Show size keys */
-#define CHANNEL_FILTER_CON		0x00000008	/* Show constraint keys */
-#define CHANNEL_FILTER_RGB		0x00000010	/* Show object color keys */
-
-#define CHANNEL_FILTER_CU		0x00010000	/* Show curve keys */
-#define CHANNEL_FILTER_ME		0x00020000	/* Show mesh keys */
-#define CHANNEL_FILTER_LA		0x00040000	/* Show lamp keys */
-
+#define EDITABLE_ICU(icu) ((icu->flag & IPO_PROTECT)==0)
+#define SEL_ICU(icu) (icu->flag & IPO_SELECT)
 
 struct bAction;
 struct bActionChannel;

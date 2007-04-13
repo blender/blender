@@ -60,6 +60,9 @@ char *getname_cam_ei(int nr);
 char *getname_snd_ei(int nr);
 char *getname_fluidsim_ei(int nr);
 
+char *getname_ipocurve(struct IpoCurve *icu);
+int geticon_ipo_blocktype(short blocktype);
+
 struct EditIpo *get_active_editipo(void);
 
 void boundbox_ipocurve(struct IpoCurve *icu);

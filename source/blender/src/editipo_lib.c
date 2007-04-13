@@ -40,6 +40,8 @@
 #include "BKE_ipo.h"
 #include "BKE_utildefines.h"
 
+#include "BIF_resources.h"
+
 #include "BSE_edit.h"
 #include "BSE_editipo_types.h"
 #include "BSE_editipo.h"
@@ -94,6 +96,51 @@ char *ac_ic_names[AC_TOTNAM] = {"LocX", "LocY", "LocZ", "ScaleX", "ScaleY",
 	"ScaleZ", "QuatW", "QuatX", "QuatY", "QuatZ"};
 char *ic_name_empty[1] ={ "" };
 char *fluidsim_ic_names[FLUIDSIM_TOTNAM] = { "Fac-Visc", "Fac-Time",  "GravX","GravY","GravZ",  "VelX","VelY","VelZ", "Active"  };
+
+/* gets the appropriate icon for the given blocktype */
+int geticon_ipo_blocktype(short blocktype)
+{
+	switch (blocktype) {
+		case ID_OB:
+			return ICON_OBJECT;
+		case ID_PO:
+			return ICON_POSE_HLT;
+		case ID_KE:
+			return ICON_EDIT;
+		case ID_MA:
+			return ICON_MATERIAL;
+		case ID_WO:
+			return ICON_WORLD;
+		case ID_CU:
+			return ICON_CURVE;
+		case ID_CA:
+			return ICON_CAMERA;
+		case ID_LA:
+			return ICON_LAMP;
+		case ID_TE:
+			return ICON_TEXTURE;
+		case ID_CO:
+			return ICON_CONSTRAINT;
+		case ID_FLUIDSIM:
+			return ICON_WORLD; // uggh
+		default:
+			return 0; // what about blank icon?
+	}
+}
+
+/* get name of ipo-curve (icu should be valid pointer) */
+char *getname_ipocurve(IpoCurve *icu)
+{
+	switch (icu->blocktype) {
+		case ID_OB:
+			return getname_ob_ei(icu->adrcode, 0); /* dummy 2nd arg */
+		case ID_PO:
+			return getname_ac_ei(icu->adrcode);
+			
+		default: /* fixme - add all of the other types! */
+			return NULL;
+	}
+}
 
 char *getname_ac_ei(int nr) 
 {

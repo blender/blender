@@ -82,6 +82,7 @@
 
 #include "BSE_drawnla.h"
 #include "BSE_drawipo.h"
+#include "BSE_editipo.h"
 #include "BSE_time.h"
 #include "BSE_view.h"
 
@@ -136,7 +137,7 @@ static void meshactionbuts(SpaceAction *saction, Object *ob, Key *key)
 					  XIC,YIC-2,
 					  &(G.saction->flag), 0, 0, 0, 0, 
 					  "Show action window sliders");
-		// no hilite, the winmatrix is not correct later on...
+		/* no hilite, the winmatrix is not correct later on... */
 		uiButSetFlag(but, UI_NO_HILITE);
 
 	}
@@ -147,7 +148,7 @@ static void meshactionbuts(SpaceAction *saction, Object *ob, Key *key)
 					  XIC,YIC-2,
 					  &(G.saction->flag), 0, 0, 0, 0, 
 					  "Hide action window sliders");
-		// no hilite, the winmatrix is not correct later on...
+		/* no hilite, the winmatrix is not correct later on... */
 		uiButSetFlag(but, UI_NO_HILITE);
 					  
 		ACTWIDTH = NAMEWIDTH + SLIDERWIDTH;
@@ -205,12 +206,12 @@ void draw_cfra_action(void)
 	glLineWidth(1.0);
 }
 
-
 /* left hand */
-static void draw_action_channel_names(bAction	*act) 
+static void draw_action_channel_names(bAction *act) 
 {
     bActionChannel *achan;
     bConstraintChannel *conchan;
+	IpoCurve *icu;
     float	x, y;
 
     x = 0.0;
@@ -226,12 +227,10 @@ static void draw_action_channel_names(bAction	*act)
 			glRectf(x,  y-CHANNELHEIGHT/2,  (float)NAMEWIDTH,  y+CHANNELHEIGHT/2);
 			
 			/* draw expand/collapse triangle for action-channel */
-			if (achan->constraintChannels.first) { /* until we get ipo-channels */
-				if (EXPANDED_ACHAN(achan))
-					BIF_icon_draw(x+1, y-CHANNELHEIGHT/2, ICON_TRIA_DOWN);
-				else
-					BIF_icon_draw(x+1, y-CHANNELHEIGHT/2, ICON_TRIA_RIGHT);
-			}
+			if (EXPANDED_ACHAN(achan))
+				BIF_icon_draw(x+1, y-CHANNELHEIGHT/2, ICON_TRIA_DOWN);
+			else
+				BIF_icon_draw(x+1, y-CHANNELHEIGHT/2, ICON_TRIA_RIGHT);
 			
 			/* draw name of action channel */
 			if (SEL_ACHAN(achan))
@@ -249,26 +248,106 @@ static void draw_action_channel_names(bAction	*act)
 			y-=CHANNELHEIGHT+CHANNELSKIP;
 			
 			if (EXPANDED_ACHAN(achan)) {
-				/* Draw constraint channels */
-				for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
-					/* draw backing strip behind constraint channel*/
+				/* Draw IPO-curves show/hide widget */
+				if (achan->ipo) {					
+					/* draw backing strip behind */
 					BIF_ThemeColorShade(TH_HEADER, -20);
 					glRectf(x+7,  y-CHANNELHEIGHT/2,  (float)NAMEWIDTH,  y+CHANNELHEIGHT/2);
 					
-					/* draw name of constraint channel */
-					if (SEL_CONCHAN(conchan))
+					/* draw expand/collapse triangle for showing sub-channels  */
+					if (FILTER_IPO_ACHAN(achan))
+						BIF_icon_draw(x+8, y-CHANNELHEIGHT/2, ICON_TRIA_DOWN);
+					else
+						BIF_icon_draw(x+8, y-CHANNELHEIGHT/2, ICON_TRIA_RIGHT);
+					
+					/* draw icon showing type of ipo-block */
+					BIF_icon_draw(x+24, y-CHANNELHEIGHT/2, geticon_ipo_blocktype(achan->ipo->blocktype));
+					
+					/* draw name of ipo-block */
+					if (SEL_ACHAN(achan))
 						BIF_ThemeColor(TH_TEXT_HI);
 					else
 						BIF_ThemeColor(TH_TEXT);
-					glRasterPos2f(x+18,  y-4);
-					BMF_DrawString(G.font, conchan->name);
-					
-					/* draw 'lock' to indicate if constraint channel is protected */
-					if (EDITABLE_CONCHAN(conchan)==0) 
-						BIF_icon_draw(NAMEWIDTH-16, y-CHANNELHEIGHT/2, ICON_LOCKED);
-					else 
-						BIF_icon_draw(NAMEWIDTH-16, y-CHANNELHEIGHT/2, ICON_UNLOCKED);	
+					glRasterPos2f(x+40,  y-4);
+					BMF_DrawString(G.font, "IPO Curves"); // TODO: make proper naming scheme
+				
 					y-=CHANNELHEIGHT+CHANNELSKIP;
+				
+					/* Draw IPO-curve-channels? */
+					if (FILTER_IPO_ACHAN(achan)) {
+						for (icu=achan->ipo->curve.first; icu; icu=icu->next) {
+							/* draw backing strip behind ipo-curve channel*/
+							BIF_ThemeColorShade(TH_HEADER, -40);
+							glRectf(x+14,  y-CHANNELHEIGHT/2,  (float)NAMEWIDTH,  y+CHANNELHEIGHT/2);
+							
+							/* draw name of ipo-curve channel */
+							if (SEL_ICU(icu))
+								BIF_ThemeColor(TH_TEXT_HI);
+							else
+								BIF_ThemeColor(TH_TEXT);
+							glRasterPos2f(x+24,  y-4);
+							BMF_DrawString(G.font, getname_ipocurve(icu));
+							
+#if 0 /* tempolarily disabled until all ipo-code can support this option */
+							/* draw 'lock' to indicate if ipo-curve channel is protected */
+							if (EDITABLE_ICU(icu)==0) 
+								BIF_icon_draw(NAMEWIDTH-16, y-CHANNELHEIGHT/2, ICON_LOCKED);
+							else 
+								BIF_icon_draw(NAMEWIDTH-16, y-CHANNELHEIGHT/2, ICON_UNLOCKED);	
+#endif
+							y-=CHANNELHEIGHT+CHANNELSKIP;
+						}
+					}
+				}
+
+				/* Draw constraints show/hide widget */
+				if (achan->constraintChannels.first) {
+					/* draw backing strip behind */
+					BIF_ThemeColorShade(TH_HEADER, -20);
+					glRectf(x+7,  y-CHANNELHEIGHT/2,  (float)NAMEWIDTH,  y+CHANNELHEIGHT/2);
+					
+					/* draw expand/collapse triangle for showing sub-channels  */
+					if (FILTER_CON_ACHAN(achan))
+						BIF_icon_draw(x+8, y-CHANNELHEIGHT/2, ICON_TRIA_DOWN);
+					else
+						BIF_icon_draw(x+8, y-CHANNELHEIGHT/2, ICON_TRIA_RIGHT);
+					
+					/* draw constraint icon */
+					BIF_icon_draw(x+24, y-CHANNELHEIGHT/2, ICON_CONSTRAINT);
+					
+					/* draw name of widget */
+					if (SEL_ACHAN(achan))
+						BIF_ThemeColor(TH_TEXT_HI);
+					else
+						BIF_ThemeColor(TH_TEXT);
+					glRasterPos2f(x+40,  y-4);
+					BMF_DrawString(G.font, "Constraints");
+				
+					y-=CHANNELHEIGHT+CHANNELSKIP;
+				
+					/* Draw constraint channels?  */
+					if (FILTER_CON_ACHAN(achan)) {
+						for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
+							/* draw backing strip behind constraint channel*/
+							BIF_ThemeColorShade(TH_HEADER, -40);
+							glRectf(x+14,  y-CHANNELHEIGHT/2,  (float)NAMEWIDTH,  y+CHANNELHEIGHT/2);
+							
+							/* draw name of constraint channel */
+							if (SEL_CONCHAN(conchan))
+								BIF_ThemeColor(TH_TEXT_HI);
+							else
+								BIF_ThemeColor(TH_TEXT);
+							glRasterPos2f(x+25,  y-4);
+							BMF_DrawString(G.font, conchan->name);
+							
+							/* draw 'lock' to indicate if constraint channel is protected */
+							if (EDITABLE_CONCHAN(conchan)==0) 
+								BIF_icon_draw(NAMEWIDTH-16, y-CHANNELHEIGHT/2, ICON_LOCKED);
+							else 
+								BIF_icon_draw(NAMEWIDTH-16, y-CHANNELHEIGHT/2, ICON_UNLOCKED);	
+							y-=CHANNELHEIGHT+CHANNELSKIP;
+						}
+					}
 				}
 			}
 			
@@ -369,17 +448,27 @@ static void draw_channel_names(void)
 int count_action_levels(bAction *act)
 {
 	bActionChannel *achan;
-	int y= 0;
+	int y=0;
 
-	if (!act)
+	if (!act) 
 		return 0;
 
 	for (achan=act->chanbase.first; achan; achan=achan->next) {
 		if(VISIBLE_ACHAN(achan)) {
-			y+= 1;
+			y++;
 			
-			if (EXPANDED_ACHAN(achan))
-				y+= BLI_countlist(&achan->constraintChannels);
+			if (EXPANDED_ACHAN(achan)) {
+				if (achan->constraintChannels.first) {
+					y++;
+					if (FILTER_CON_ACHAN(achan))
+						y += BLI_countlist(&achan->constraintChannels);
+				}
+				else if (achan->ipo) {
+					y++;
+					if (FILTER_IPO_ACHAN(achan))
+						y += BLI_countlist(&achan->ipo->curve);
+				}
+			}
 		}
 	}
 
@@ -417,6 +506,7 @@ static void draw_channel_strips(SpaceAction *saction)
 	bAction	*act;
 	bActionChannel *achan;
 	bConstraintChannel *conchan;
+	IpoCurve *icu;
 	float y, sta, end;
 	int act_start, act_end, dummy;
 	char col1[3], col2[3];
@@ -466,20 +556,48 @@ static void draw_channel_strips(SpaceAction *saction)
 			/*	Increment the step */
 			y-=CHANNELHEIGHT+CHANNELSKIP;
 			
-			/* Draw constraint channels */
+			/* Draw sub channels */
 			if (EXPANDED_ACHAN(achan)) {
-				for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
-					gla2DDrawTranslatePt(di, 1, y, &frame1_x, &channel_y);
-					
-					if (SEL_CONCHAN(conchan)) glColor4ub(col1[0], col1[1], col1[2], 0x22);
-					else glColor4ub(col2[0], col2[1], col2[2], 0x22);
-					glRectf(frame1_x,  channel_y-CHANNELHEIGHT/2+4,  G.v2d->hor.xmax,  channel_y+CHANNELHEIGHT/2-4);
-					
-					if (SEL_CONCHAN(conchan)) glColor4ub(col1[0], col1[1], col1[2], 0x22);
-					else glColor4ub(col2[0], col2[1], col2[2], 0x22);
-					glRectf(act_start,  channel_y-CHANNELHEIGHT/2+4,  act_end,  channel_y+CHANNELHEIGHT/2-4);
-					
+				/* Draw ipo channels */
+				if (achan->ipo) {
 					y-=CHANNELHEIGHT+CHANNELSKIP;
+					
+					if (FILTER_IPO_ACHAN(achan)) {
+						for (icu=achan->ipo->curve.first; icu; icu=icu->next) {
+							gla2DDrawTranslatePt(di, 1, y, &frame1_x, &channel_y);
+							
+							if (SEL_ICU(icu)) glColor4ub(col1[0], col1[1], col1[2], 0x22);
+							else glColor4ub(col2[0], col2[1], col2[2], 0x22);
+							glRectf(frame1_x,  channel_y-CHANNELHEIGHT/2+4,  G.v2d->hor.xmax,  channel_y+CHANNELHEIGHT/2-4);
+							
+							if (SEL_ICU(icu)) glColor4ub(col1[0], col1[1], col1[2], 0x22);
+							else glColor4ub(col2[0], col2[1], col2[2], 0x22);
+							glRectf(act_start,  channel_y-CHANNELHEIGHT/2+4,  act_end,  channel_y+CHANNELHEIGHT/2-4);
+							
+							y-=CHANNELHEIGHT+CHANNELSKIP;
+						}
+					}
+				}
+				
+				/* Draw constraint channels */
+				if (achan->constraintChannels.first) {
+					y-=CHANNELHEIGHT+CHANNELSKIP;
+					
+					if (FILTER_CON_ACHAN(achan)) {
+						for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
+							gla2DDrawTranslatePt(di, 1, y, &frame1_x, &channel_y);
+							
+							if (SEL_CONCHAN(conchan)) glColor4ub(col1[0], col1[1], col1[2], 0x22);
+							else glColor4ub(col2[0], col2[1], col2[2], 0x22);
+							glRectf(frame1_x,  channel_y-CHANNELHEIGHT/2+4,  G.v2d->hor.xmax,  channel_y+CHANNELHEIGHT/2-4);
+							
+							if (SEL_CONCHAN(conchan)) glColor4ub(col1[0], col1[1], col1[2], 0x22);
+							else glColor4ub(col2[0], col2[1], col2[2], 0x22);
+							glRectf(act_start,  channel_y-CHANNELHEIGHT/2+4,  act_end,  channel_y+CHANNELHEIGHT/2-4);
+							
+							y-=CHANNELHEIGHT+CHANNELSKIP;
+						}
+					}
 				}
 			}
 		}
@@ -497,11 +615,30 @@ static void draw_channel_strips(SpaceAction *saction)
 			draw_ipo_channel(di, achan->ipo, y);
 			y-=CHANNELHEIGHT+CHANNELSKIP;
 
-			/* Draw constraint channels */
+			/* Draw sub channels */
 			if (EXPANDED_ACHAN(achan)) {
-				for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
-					draw_ipo_channel(di, conchan->ipo, y);
+				/* Draw ipo curves */
+				if (achan->ipo) {
 					y-=CHANNELHEIGHT+CHANNELSKIP;
+					
+					if (FILTER_IPO_ACHAN(achan)) {
+						for (icu=achan->ipo->curve.first; icu; icu=icu->next) {
+							draw_icu_channel(di, icu, y);
+							y-=CHANNELHEIGHT+CHANNELSKIP;
+						}
+					}
+				}
+				
+				/* Draw constraint channels */
+				if (achan->constraintChannels.first) {
+					y-=CHANNELHEIGHT+CHANNELSKIP;
+					
+					if (FILTER_CON_ACHAN(achan)) {
+						for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
+							draw_ipo_channel(di, conchan->ipo, y);
+							y-=CHANNELHEIGHT+CHANNELSKIP;
+						}
+					}
 				}
 			}
 		}
@@ -639,6 +776,7 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 	uiFreeBlocksWin(&sa->uiblocks, sa->win);
 
 	if (!G.saction->pin) {
+		/* allow more than one active action sometime? */
 		if (OBACT)
 			G.saction->action = OBACT->action;
 		else

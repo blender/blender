@@ -1117,7 +1117,7 @@ int fullselect_ipo_keys(Ipo *ipo)
 	if (!ipo)
 		return tvtot;
 	
-	for (icu=ipo->curve.first; icu; icu=icu->next){
+	for (icu=ipo->curve.first; icu; icu=icu->next) {
 		for (i=0; i<icu->totvert; i++){
 			if (icu->bezt[i].f2 & 1){
 				tvtot+=3;

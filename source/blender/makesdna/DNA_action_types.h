@@ -95,10 +95,10 @@ typedef struct bActionChannel {
 	struct bActionChannel	*next, *prev;
 	struct Ipo				*ipo;
 	ListBase				constraintChannels;
+	
 	int		flag;
 	char	name[32];		/* Channel name */
 	int		reserved1;
-
 } bActionChannel;
 
 typedef struct bAction {
@@ -127,6 +127,8 @@ typedef struct SpaceAction {
 #define ACHAN_HIDDEN	0x00000004
 #define ACHAN_PROTECTED 0x00000008
 #define ACHAN_EXPANDED 	0x00000010
+#define ACHAN_SHOWIPO	0x00000020
+#define ACHAN_SHOWCONS 	0x00000040
 #define ACHAN_MOVED     0x80000000
 
 /* SpaceAction flag */

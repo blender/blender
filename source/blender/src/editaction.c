@@ -96,7 +96,7 @@
 #include "nla.h"
 
 /* Local Function prototypes, are forward needed */
-static void hilight_channel (bAction *act, bActionChannel *chan, short hilight);
+static void hilight_channel (bAction *act, bActionChannel *achan, short select);
 
 /* messy call... */
 static void select_poseelement_by_name (char *name, int select)
@@ -206,7 +206,7 @@ static void meshkey_do_redraw(Key *key)
 void duplicate_meshchannel_keys(Key *key)
 {
 	duplicate_ipo_keys(key->ipo);
-	transform_meshchannel_keys ('g', key);
+	transform_meshchannel_keys('g', key);
 }
 
 void duplicate_actionchannel_keys(void)
@@ -220,11 +220,11 @@ void duplicate_actionchannel_keys(void)
 		return;
 
 	/* Find selected items */
-	for (achan = act->chanbase.first; achan; achan= achan->next){
+	for (achan = act->chanbase.first; achan; achan= achan->next) {
 		if(EDITABLE_ACHAN(achan)) {
 			duplicate_ipo_keys(achan->ipo);
 			
-			if (EXPANDED_ACHAN(achan)) {
+			if (EXPANDED_ACHAN(achan) && FILTER_CON_ACHAN(achan)) {
 				for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
 					if (EDITABLE_CONCHAN(conchan))
 						duplicate_ipo_keys(conchan->ipo);
@@ -236,35 +236,103 @@ void duplicate_actionchannel_keys(void)
 	transform_actionchannel_keys ('g', 0);
 }
 
-static bActionChannel *get_nearest_actionchannel_key (float *index, short *sel, bConstraintChannel **rchan)
+/* helper for get_nearest_[action,mesh]channel_key */
+static IpoCurve *get_nearest_icu_key (IpoCurve *curve, float *selx, short *sel, float xrange[])
 {
-	bAction *act;
-	bActionChannel *achan;
-	IpoCurve *icu;
-	bActionChannel *firstchan=NULL;
-	bConstraintChannel *conchan, *firstconchan=NULL;
-	rctf	rectf;
-	float firstvert=-1, foundx=-1;
-	float ymin, ymax, xmin, xmax;
-	int i;
-	int	foundsel=0;
-	short mval[2];
+	/* try to find first beztriple in bounds that is selected */
+	IpoCurve *icu, *firsticu=NULL;
+    int	     foundsel=0;
+    float    firstvert=-1, foundx=-1;
+	int      i;
 	
-	*index=0;
+	if (curve == NULL)
+		return NULL;
+	
+    /* lets loop through the IpoCurves trying to find the closest bezier */
+	for (icu= curve; icu ; icu= icu->next) {
+		/* loop through the beziers in the curve */
+		for (i=0; i<icu->totvert; i++) {
+			/* Is this bezier in the right area? */
+			if (icu->bezt[i].vec[1][0] > xrange[0] && 
+				icu->bezt[i].vec[1][0] <= xrange[1] ) {
 
-	*rchan=NULL;
-	act= G.saction->action; /* We presume that we are only called during a valid action */
+				/* if no other curves have been picked ... */
+				if (firsticu==NULL) {
+					/* mark this curve/bezier as the first selected */
+					firsticu= icu;
+					firstvert= icu->bezt[i].vec[1][0];
+
+					/* sel = (is the bezier is already selected) ? 1 : 0; */
+					*sel = (icu->bezt[i].f2 & 1);	
+				}
+
+				/* if the bezier is selected ... */
+				if (icu->bezt[i].f2 & 1) { 
+					/* if we haven't found a selected one yet ... */
+					if (!foundsel) {
+						/* record the found x value */
+						foundsel=1;
+						foundx = icu->bezt[i].vec[1][0];
+						
+					}
+				}
+
+				/* if the bezier is unselected and not at the x
+				 * position of a previous found selected bezier ...
+				 */
+				else if (foundsel && icu->bezt[i].vec[1][0] != foundx){
+					/* lets return this found curve/bezier */
+					*sel = 0;
+					*selx= icu->bezt[i].vec[1][0];
+					return icu;
+				}
+			}
+		}
+	}
 	
+    /* return what we've found */
+    *selx=firstvert;
+    return firsticu;
+}
+
+static void *get_nearest_actionchannel_key (float *selx, short *sel, short *ret_type, bActionChannel **par)
+{
+	bAction *act= G.saction->action;
+	bActionChannel *achan;
+	bConstraintChannel *conchan;
+	IpoCurve *icu;
+	rctf rectf;
+	float xmin, xmax, x, y;
+	int clickmin, clickmax;
+	int	wsize;
+	short mval[2];
+		
 	getmouseco_areawin (mval);
 
+	/* action-channel */
+	*par= NULL;
+	
+	if (act == NULL) {
+		*ret_type= ACTTYPE_NONE;
+		return NULL;
+	}
+	
+	/* wsize is the greatest possible height (in pixels) that would be
+	 * needed to draw all of the action channels, ipo-curve channels and constraint
+	 * channels.
+	 */
+	wsize =  count_action_levels(act)*(CHANNELHEIGHT+CHANNELSKIP);
+	wsize += CHANNELHEIGHT/2;
+
+    areamouseco_to_ipoco(G.v2d, mval, &x, &y);
+    clickmin = (int) ((wsize - y) / (CHANNELHEIGHT+CHANNELSKIP));
+	clickmax = clickmin;
+	
 	mval[0]-=7;
 	areamouseco_to_ipoco(G.v2d, mval, &rectf.xmin, &rectf.ymin);
 	mval[0]+=14;
 	areamouseco_to_ipoco(G.v2d, mval, &rectf.xmax, &rectf.ymax);
 
-	ymax = count_action_levels(act) * (CHANNELHEIGHT + CHANNELSKIP);
-	ymax += CHANNELHEIGHT/2;
-	
 	/* if action is mapped in NLA, it returns a correction */
 	if (G.saction->pin==0 && OBACT) {
 		xmin= get_action_frame(OBACT, rectf.xmin);
@@ -275,80 +343,99 @@ static bActionChannel *get_nearest_actionchannel_key (float *index, short *sel, 
 		xmax= rectf.xmax;
 	}
 	
-	*sel=0;
-
-	for (achan=act->chanbase.first; achan; achan= achan->next) {
-		if (VISIBLE_ACHAN(achan)) {
-			/* Check action channel */
-			ymin= ymax-(CHANNELHEIGHT+CHANNELSKIP);
-			if (!((ymax < rectf.ymin) || (ymin > rectf.ymax)) && achan->ipo) {
-				for (icu=achan->ipo->curve.first; icu; icu=icu->next) {
-					for (i=0; i<icu->totvert; i++) {
-						if (icu->bezt[i].vec[1][0] > xmin && icu->bezt[i].vec[1][0] <= xmax ) {
-							if (!firstchan) {
-								firstchan=achan;
-								firstvert=icu->bezt[i].vec[1][0];
-								*sel = icu->bezt[i].f2 & 1;	
-							}
-							
-							if (icu->bezt[i].f2 & 1) { 
-								if (!foundsel) {
-									foundsel=1;
-									foundx = icu->bezt[i].vec[1][0];
-								}
-							}
-							else if (foundsel && icu->bezt[i].vec[1][0] != foundx) {
-								*index=icu->bezt[i].vec[1][0];
-								*sel = 0;
-								return achan;
-							}
-						}
-					}
-				}
-			}
-			ymax=ymin;
-			
-			if (EXPANDED_ACHAN(achan) == 0)
-				continue;
+	if (clickmax < 0) {
+		*ret_type= ACTTYPE_NONE;
+		return NULL;
+	}
+	
+	/* try in action channels */
+	for (achan = act->chanbase.first; achan; achan=achan->next) {
+		if(VISIBLE_ACHAN(achan)) {
+			if (clickmax < 0) 
+				break;
+			if (clickmin <= 0) {
+				/* found level - action channel */
+				icu= get_nearest_icu_key(achan->ipo->curve.first, selx, sel, &xmin);
 				
-			/* Check constraint channels */
-			for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
-				ymin=ymax-(CHANNELHEIGHT+CHANNELSKIP);
-				if (!((ymax < rectf.ymin) || (ymin > rectf.ymax)) && conchan->ipo) {
-					for (icu=conchan->ipo->curve.first; icu; icu=icu->next){
-						for (i=0; i<icu->totvert; i++) {
-							if (icu->bezt[i].vec[1][0] > xmin && icu->bezt[i].vec[1][0] <= xmax ) {
-								if (!firstchan) {
-									firstchan= achan;
-									firstconchan= conchan;
-									firstvert= icu->bezt[i].vec[1][0];
-									*sel = icu->bezt[i].f2 & 1;	
-								}
-								
-								if (icu->bezt[i].f2 & 1) { 
-									if (!foundsel) {
-										foundsel=1;
-										foundx = icu->bezt[i].vec[1][0];
-									}
-								}
-								else if (foundsel && icu->bezt[i].vec[1][0] != foundx) {
-									*index=icu->bezt[i].vec[1][0];
-									*sel = 0;
-									*rchan = conchan;
-									return achan;
-								}
-							}
-						}
+				*ret_type= ACTTYPE_ACHAN;
+				return achan;
+			}
+			--clickmin;
+			--clickmax;
+		}
+		else
+			continue;
+		
+		if (EXPANDED_ACHAN(achan) == 0)
+			continue;
+		
+		/* try in ipo curves */
+		if (achan->ipo) {
+			/* check header first */
+			if (clickmax < 0) 
+				break;
+			if (clickmin <= 0) {
+				/* found level - ipo-curves show/hide */
+				*ret_type= ACTTYPE_NONE;
+				return NULL; 
+			}
+			--clickmin;
+			--clickmax;
+			
+			/* now the ipo-curve channels if they are exposed  */
+			if (FILTER_IPO_ACHAN(achan)) {
+				for (icu= achan->ipo->curve.first; icu; icu=icu->next) {
+					if (clickmax < 0) 
+						break;
+					if (clickmin <= 0) {
+						/* found level - ipo-curve channel */
+						icu= get_nearest_icu_key (icu, selx, sel, &xmin);
+				
+						*ret_type= ACTTYPE_ICU;
+						*par= achan;
+						return icu; 
 					}
+					--clickmin;
+					--clickmax;
 				}
-				ymax=ymin;
 			}
 		}
-	}	
+		
+		/* try in constaint channels */
+		if (achan->constraintChannels.first) {
+			/* check header first */
+			if (clickmax < 0) 
+				break;
+			if (clickmin <= 0) {
+				/* found match - constraints show/hide */
+				*ret_type= ACTTYPE_NONE;
+				return NULL;
+			}
+			--clickmin;
+			--clickmax;
+			
+			/* now the constraint channels if they are exposed  */
+			if (FILTER_CON_ACHAN(achan)) {
+				for (conchan= achan->constraintChannels.first; conchan; conchan=conchan->next) {
+					if (clickmax < 0) 
+						break;
+					if (clickmin <= 0) {
+						/* found match - constraint channel */
+						icu= get_nearest_icu_key(conchan->ipo->curve.first, selx, sel, &xmin);
+						
+						*ret_type= ACTTYPE_CONCHAN;
+						*par= achan;
+						return conchan;
+					}
+					--clickmin;
+					--clickmax;
+				}
+			}
+		}
+	}
 	
-	*rchan = firstconchan;
-	*index=firstvert;
-	return firstchan;
+	*ret_type= ACTTYPE_NONE;
+	return NULL;
 }
 
 static IpoCurve *get_nearest_meshchannel_key (float *index, short *sel)
@@ -383,13 +470,10 @@ static IpoCurve *get_nearest_meshchannel_key (float *index, short *sel)
 	ybase += CHANNELHEIGHT/2;
     *sel=0;
 
-    /* lets loop through the IpoCurves trying to find the closest
-     * bezier
-     */
+    /* lets loop through the IpoCurves trying to find the closest bezier */
 	if (!key->ipo) return NULL;
     for (icu = key->ipo->curve.first; icu ; icu = icu->next) {
-        /* lets not deal with the "speed" Ipo
-         */
+        /* lets not deal with the "speed" Ipo */
         if (!icu->adrcode) continue;
 
         ymax = ybase - (CHANNELHEIGHT+CHANNELSKIP)*(icu->adrcode-1);
@@ -400,12 +484,10 @@ static IpoCurve *get_nearest_meshchannel_key (float *index, short *sel)
          */
         if (!((ymax < rectf.ymin) || (ymin > rectf.ymax))) {
 			
-            /* loop through the beziers in the curve
-             */
+            /* loop through the beziers in the curve */
             for (i=0; i<icu->totvert; i++) {
 
-                /* Is this bezier in the right area?
-                 */
+                /* Is this bezier in the right area? */
                 if (icu->bezt[i].vec[1][0] > rectf.xmin && 
                     icu->bezt[i].vec[1][0] <= rectf.xmax ) {
 
@@ -421,22 +503,19 @@ static IpoCurve *get_nearest_meshchannel_key (float *index, short *sel)
 
                     /* if the bezier is selected ... */
                     if (icu->bezt[i].f2 & 1){ 
-                        /* if we haven't found a selected one yet ...
-                         */
+                        /* if we haven't found a selected one yet ... */
                         if (!foundsel){
-                            /* record the found x value
-                             */
+                            /* record the found x value */
                             foundsel=1;
                             foundx = icu->bezt[i].vec[1][0];
                         }
                     }
 
-                    /* if the bezier is unselected and not at the x
-                     * position of a previous found selected bezier ...
-                     */
+					/* if the bezier is unselected and not at the x
+					 * position of a previous found selected bezier ...
+					 */
                     else if (foundsel && icu->bezt[i].vec[1][0] != foundx){
-                        /* lets return this found curve/bezier
-                         */
+                        /* lets return this found curve/bezier */
                         *index=icu->bezt[i].vec[1][0];
                         *sel = 0;
                         return icu;
@@ -539,11 +618,11 @@ void column_select_actionkeys(bAction *act, int mode)
 	switch (mode) {
 		case 1:
 			/* create a list of all selected keys */
-			for (achan=act->chanbase.first; achan; achan=achan->next){
+			for (achan=act->chanbase.first; achan; achan=achan->next) {
 				if(VISIBLE_ACHAN(achan)) {
 					if (achan->ipo)
 						make_sel_cfra_list(achan->ipo, &elems);
-					if (EXPANDED_ACHAN(achan)) {
+					if (EXPANDED_ACHAN(achan) && FILTER_CON_ACHAN(achan)) {
 						for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
 							if (conchan->ipo)
 								make_sel_cfra_list(conchan->ipo, &elems);
@@ -587,7 +666,7 @@ void column_select_actionkeys(bAction *act, int mode)
 				}
 			}
 			
-			if (EXPANDED_ACHAN(achan) == 0)
+			if (EXPANDED_ACHAN(achan) == 0 || (FILTER_CON_ACHAN(achan)))
 				continue;
 			
 			for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
@@ -619,21 +698,32 @@ static void mouse_action(int selectmode)
 {
 	bAction	*act;
 	bActionChannel *achan;
-	bConstraintChannel *conchan;
+	bConstraintChannel *conchan= NULL;
+	IpoCurve *icu= NULL;
 	TimeMarker *marker;
-	short mval[2], sel;
+	void *act_channel;
+	short sel, act_type;
 	float	selx;
 	
 	act=G.saction->action;
 	if (!act)
 		return;
 
-	getmouseco_areawin (mval);
-
-	achan=get_nearest_actionchannel_key(&selx, &sel, &conchan);
+	act_channel= get_nearest_actionchannel_key(&selx, &sel, &act_type, &achan);
 	marker=find_nearest_marker(1);
-	
-	if (achan) {
+		
+	if (act_channel) {
+		switch (act_type) {
+			case ACTTYPE_ICU:
+				icu= (IpoCurve *)act_channel;
+				break;
+			case ACTTYPE_CONCHAN:
+				conchan= (bConstraintChannel *)act_channel;
+				break;
+			default:
+				achan= (bActionChannel *)act_channel;
+		}
+		
 		if (selectmode == SELECT_REPLACE) {
 			selectmode = SELECT_ADD;
 			
@@ -645,11 +735,12 @@ static void mouse_action(int selectmode)
 			select_poseelement_by_name(achan->name, 2);	/* 2 is activate */
 		}
 		
-		if (conchan)
+		if (icu)
+			select_icu_key(icu, selx, selectmode);
+		else if (conchan)
 			select_ipo_key(conchan->ipo, selx, selectmode);
 		else
 			select_ipo_key(achan->ipo, selx, selectmode);
-
 		
 		std_rmouse_transform(transform_actionchannel_keys);
 		
@@ -714,7 +805,7 @@ static void mouse_mesh_action(int selectmode, Key *key)
     getmouseco_areawin (mval);
     icu = get_nearest_meshchannel_key(&selx, &sel);
 
-    if (icu){
+    if (icu) {
         if (selectmode == SELECT_REPLACE) {
 			/* if we had planned to replace the
 			 * selection, then we will first deselect
@@ -777,23 +868,29 @@ void borderselect_action(void)
 { 
 	rcti rect;
 	rctf rectf;
-	int val, selectmode;		
-	short	mval[2];
+	bAction	*act;
 	bActionChannel *achan;
 	bConstraintChannel *conchan;
-	bAction	*act;
+	IpoCurve *icu;
+	int val, selectmode;
+	int (*select_function)(BezTriple *);
+	short	mval[2];
 	float	ymin, ymax;
-
+	
 	act=G.saction->action;
 
 	if (!act)
 		return;
 
 	if ( (val = get_border(&rect, 3)) ) {
-		if (val == LEFTMOUSE)
+		if (val == LEFTMOUSE) {
 			selectmode = SELECT_ADD;
-		else
+			select_function = select_bezier_add;
+		}
+		else {
 			selectmode = SELECT_SUBTRACT;
+			select_function = select_bezier_subtract;
+		}
 			
 		mval[0]= rect.xmin;
 		mval[1]= rect.ymin+2;
@@ -813,20 +910,49 @@ void borderselect_action(void)
 		
 		for (achan=act->chanbase.first; achan; achan= achan->next) {
 			if(VISIBLE_ACHAN(achan)) {
-				/* Check action */
+				/* Check action channel */
 				ymin=ymax-(CHANNELHEIGHT+CHANNELSKIP);
 				if (!((ymax < rectf.ymin) || (ymin > rectf.ymax)))
 					borderselect_ipo_key(achan->ipo, rectf.xmin, rectf.xmax, selectmode);
 				ymax=ymin;
 					
 				if (EXPANDED_ACHAN(achan)) {
-					/* Check constraints */
-					for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
+					/* check ipo - although the action channel has already been checked, 
+					 * selection may have started below that channel 
+					 */
+					 if (achan->ipo) {
+						/* skip the widget*/
 						ymin= ymax-(CHANNELHEIGHT+CHANNELSKIP);
-						if (!((ymax < rectf.ymin) || (ymin > rectf.ymax)))
-							borderselect_ipo_key(conchan->ipo, rectf.xmin, rectf.xmax, selectmode);
+						ymax= ymin;
 						
-						ymax=ymin;
+						if (FILTER_IPO_ACHAN(achan)) {
+							/* check ipo-curve channels */
+							for (icu=achan->ipo->curve.first; icu; icu=icu->next) {
+								ymin= ymax-(CHANNELHEIGHT+CHANNELSKIP);
+								if (!((ymax < rectf.ymin) || (ymin > rectf.ymax)))
+									borderselect_icu_key(icu, rectf.xmin, rectf.xmax, select_function);
+								
+								ymax=ymin;
+							}	
+						}
+					 }
+					
+					/* Check constraints */
+					if (achan->constraintChannels.first) {
+						/* skip the widget*/
+						ymin= ymax-(CHANNELHEIGHT+CHANNELSKIP);
+						ymax= ymin;
+						
+						/* check constraint channels */
+						if (FILTER_CON_ACHAN(achan)) {
+							for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
+								ymin= ymax-(CHANNELHEIGHT+CHANNELSKIP);
+								if (!((ymax < rectf.ymin) || (ymin > rectf.ymax)))
+									borderselect_ipo_key(conchan->ipo, rectf.xmin, rectf.xmax, selectmode);
+								
+								ymax=ymin;
+							}
+						}
 					}
 				}
 			}
@@ -848,8 +974,7 @@ void borderselect_mesh(Key *key)
 	int 	 selectmode;
 	int      (*select_function)(BezTriple *);
 	IpoCurve *icu;
-
-		
+	
 	if ( (val = get_border(&rect, 3)) ){
 		/* set the selection function based on what
 		 * mouse button had been used in the border
@@ -863,7 +988,7 @@ void borderselect_mesh(Key *key)
 			selectmode = SELECT_SUBTRACT;
 			select_function = select_bezier_subtract;
 		}	
-				
+		
 		/* get the minimum and maximum adrcode numbers
 		 * for the IpoCurves (this is the number that
 		 * relates an IpoCurve to the keyblock it
@@ -980,7 +1105,7 @@ void transform_actionchannel_keys(int mode, int dummy)
 		if (EDITABLE_ACHAN(achan)) {
 			tvtot+=fullselect_ipo_keys(achan->ipo);
 
-			if (EXPANDED_ACHAN(achan)) {
+			if (EXPANDED_ACHAN(achan) && FILTER_CON_ACHAN(achan)) {
 				for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
 					if (EDITABLE_CONCHAN(conchan))
 						tvtot+=fullselect_ipo_keys(conchan->ipo);
@@ -1002,7 +1127,7 @@ void transform_actionchannel_keys(int mode, int dummy)
 		if(EDITABLE_ACHAN(achan)) {
 			tvtot = add_trans_ipo_keys(achan->ipo, tv, tvtot);
 			
-			if (EXPANDED_ACHAN(achan)) {
+			if (EXPANDED_ACHAN(achan) && FILTER_CON_ACHAN(achan)) {
 				for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
 					if (EDITABLE_CONCHAN(conchan))
 						tvtot = add_trans_ipo_keys(conchan->ipo, tv, tvtot);
@@ -1506,12 +1631,12 @@ void deselect_actionchannel_keys (bAction *act, int test, int sel)
 					break;
 				}
 
-				if (EXPANDED_ACHAN(achan) == 0)
+				if ((EXPANDED_ACHAN(achan) == 0) || (FILTER_CON_ACHAN(achan)==0))
 					continue;
 				
 				/* Test the constraint ipos */
 				for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next){
-					if (is_ipo_key_selected(conchan->ipo)){
+					if (is_ipo_key_selected(conchan->ipo)) {
 						sel = 0;
 						break;
 					}
@@ -1524,11 +1649,11 @@ void deselect_actionchannel_keys (bAction *act, int test, int sel)
 	}
 	
 	/* Set the flags */
-	for (achan= act->chanbase.first; achan; achan= achan->next){
+	for (achan= act->chanbase.first; achan; achan= achan->next) {
 		if(VISIBLE_ACHAN(achan)) {
 			set_ipo_key_selection(achan->ipo, sel);
 			
-			if (EXPANDED_ACHAN(achan)) {
+			if (EXPANDED_ACHAN(achan) && FILTER_CON_ACHAN(achan)) {
 				for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next)
 					set_ipo_key_selection(conchan->ipo, sel);
 			}
@@ -1556,6 +1681,7 @@ void deselect_actionchannels (bAction *act, int test)
 {
 	bActionChannel *achan;
 	bConstraintChannel *conchan;
+	IpoCurve *icu;
 	int sel= 1;	
 
 	if (!act)
@@ -1574,10 +1700,21 @@ void deselect_actionchannels (bAction *act, int test)
 				}
 				if (sel) {
 					if (EXPANDED_ACHAN(achan)) {
-						for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
-							if (SEL_CONCHAN(conchan)) {
-								sel= 0;
-								break;
+						if (FILTER_IPO_ACHAN(achan)) {
+							for (icu=achan->ipo->curve.first; icu; icu=icu->next) {
+								if (SEL_ICU(icu)) {
+									sel= 0;
+									break;
+								}
+							}
+
+						}
+						if (FILTER_CON_ACHAN(achan)) {
+							for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
+								if (SEL_CONCHAN(conchan)) {
+									sel= 0;
+									break;
+								}
 							}
 						}
 					}
@@ -1599,11 +1736,21 @@ void deselect_actionchannels (bAction *act, int test)
 				achan->flag &= ~ACHAN_SELECTED;
 
 			if (EXPANDED_ACHAN(achan)) {
-				for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
-					if (sel)
-						conchan->flag |= CONSTRAINT_CHANNEL_SELECT;
-					else
-						conchan->flag &= ~CONSTRAINT_CHANNEL_SELECT;
+				if (FILTER_IPO_ACHAN(achan)) {
+					for (icu=achan->ipo->curve.first; icu; icu=icu->next) {
+						if (sel)
+							icu->flag |= IPO_SELECT;
+						else
+							icu->flag &= ~IPO_SELECT;
+					}
+				}
+				if (FILTER_CON_ACHAN(achan)) {
+					for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
+						if (sel)
+							conchan->flag |= CONSTRAINT_CHANNEL_SELECT;
+						else
+							conchan->flag &= ~CONSTRAINT_CHANNEL_SELECT;
+					}
 				}
 			}
 		}
@@ -1636,8 +1783,7 @@ static void hilight_channel (bAction *act, bActionChannel *achan, short select)
 /* apparently within active object context */
 int select_channel(bAction *act, bActionChannel *achan, int selectmode) 
 {
-	/* Select the channel based on the selection mode
-	 */
+	/* Select the channel based on the selection mode */
 	int flag;
 
 	switch (selectmode) {
@@ -1662,8 +1808,7 @@ int select_channel(bAction *act, bActionChannel *achan, int selectmode)
 static int select_constraint_channel(bAction *act, 
                                      bConstraintChannel *conchan, 
                                      int selectmode) {
-	/* Select the constraint channel based on the selection mode
-	 */
+	/* Select the constraint channel based on the selection mode */
 	int flag;
 
 	switch (selectmode) {
@@ -1682,6 +1827,26 @@ static int select_constraint_channel(bAction *act,
 	return flag;
 }
 
+int select_icu_channel(bAction *act, IpoCurve *icu, int selectmode) 
+{
+	/* Select the channel based on the selection mode */
+	int flag;
+
+	switch (selectmode) {
+	case SELECT_ADD:
+		icu->flag |= IPO_SELECT;
+		break;
+	case SELECT_SUBTRACT:
+		icu->flag &= ~IPO_SELECT;
+		break;
+	case SELECT_INVERT:
+		icu->flag ^= IPO_SELECT;
+		break;
+	}
+	flag = (icu->flag & IPO_SELECT) ? 1 : 0;
+	return flag;
+}
+
 static void borderselect_actionchannels(bAction *act, short *mval,
                                  short *mvalo, int selectmode) 
 {
@@ -1694,6 +1859,7 @@ static void borderselect_actionchannels(bAction *act, short *mval,
 	 */
 	bActionChannel *achan;
 	bConstraintChannel *conchan;
+	IpoCurve *icu;
 	float click, x,y;
 	int   clickmin, clickmax;
 	int	  wsize;
@@ -1769,21 +1935,47 @@ static void borderselect_actionchannels(bAction *act, short *mval,
 		}
 		
 		if (EXPANDED_ACHAN(achan) == 0) {
-			/* cannot search constaint channels */
+			/* cannot search IPO/constaint channels */
 			continue;
 		}
 		
-		/* try in constaint channels */
-		for (conchan= achan->constraintChannels.first; conchan; conchan=conchan->next) {
+		if (achan->ipo) {
+			/* widget */
 			if (clickmax < 0) break;
-			
-			if (clickmin <= 0) {
-				/* constraint channel */
-				select_constraint_channel(act, conchan, selectmode);
-			}
-			
 			--clickmin;
 			--clickmax;
+			
+			for (icu= achan->ipo->curve.first; icu; icu=icu->next) {
+				if (clickmax < 0) break;
+				
+				if (clickmin <= 0) {
+					/* constraint channel */
+					select_icu_channel(act, icu, selectmode);
+				}
+				
+				--clickmin;
+				--clickmax;
+			}
+		}
+		
+		if (achan->constraintChannels.first) {
+			/* widget */
+			if (clickmax < 0) break;
+			--clickmin;
+			--clickmax;
+			
+			/* try in constaint channels */
+			for (conchan= achan->constraintChannels.first; conchan; conchan=conchan->next) {
+				if (clickmax < 0) break;
+				
+				if (clickmin <= 0) {
+					/* constraint channel */
+					select_constraint_channel(act, conchan, selectmode);
+				}
+				
+				--clickmin;
+				--clickmax;
+			}
 		}
 	}
 	
@@ -1817,8 +2009,7 @@ static void mouse_actionchannels (short mval[])
 				}
 				else if (mval[0] <= 17) {
 					/* toggle expand */
-					if (achan->constraintChannels.first)
-						achan->flag ^= ACHAN_EXPANDED;
+					achan->flag ^= ACHAN_EXPANDED;
 				}				
 				else {
 					/* select/deselect achan */		
@@ -1835,6 +2026,32 @@ static void mouse_actionchannels (short mval[])
 				}
 			}
 				break;
+		case ACTTYPE_FILLIPO:
+			{
+				bActionChannel *achan= (bActionChannel *)act_channel;
+				achan->flag ^= ACHAN_SHOWIPO;
+			}
+			break;
+		case ACTTYPE_FILLCON:
+			{
+				bActionChannel *achan= (bActionChannel *)act_channel;
+				achan->flag ^= ACHAN_SHOWCONS;
+			}
+			break;
+		case ACTTYPE_ICU: 
+			{
+				IpoCurve *icu= (IpoCurve *)act_channel;
+				
+				if (mval[0] >= (NAMEWIDTH-16)) {
+					/* toggle protection */
+					icu->flag ^= IPO_PROTECT;
+				}
+				else {
+					/* select/deselect */
+					select_icu_channel(act, icu, SELECT_INVERT);
+				}
+			}
+			break;
 		case ACTTYPE_CONCHAN:
 			{
 				bConstraintChannel *conchan= (bConstraintChannel *)act_channel;
@@ -1888,7 +2105,7 @@ void delete_actionchannel_keys(void)
 			/* Check action channel keys*/
 			delete_ipo_keys(achan->ipo);
 			
-			if (EXPANDED_ACHAN(achan)) {
+			if (EXPANDED_ACHAN(achan) && FILTER_CON_ACHAN(achan)) {
 				/* Delete constraint channel keys */
 				for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
 					if (EDITABLE_CONCHAN(conchan)) 
@@ -2020,12 +2237,22 @@ void clean_actionchannels(bAction *act)
 			if (SEL_ACHAN(achan)) {
 				ipo= achan->ipo;
 				if (ipo) {
-					for (icu= ipo->curve.first; icu; icu= icu->next) 
-						clean_ipo_curve(icu);
+					if (EXPANDED_ACHAN(achan) && FILTER_IPO_ACHAN(achan)) {
+						/* only clean selected ipo-curves */
+						for (icu= ipo->curve.first; icu; icu= icu->next) {
+							if (SEL_ICU(icu) && EDITABLE_ICU(icu)) 
+								clean_ipo_curve(icu);
+						}
+					}
+					else {
+						/* clean all ipo-curves for action channel */
+						for (icu= ipo->curve.first; icu; icu= icu->next) 
+							clean_ipo_curve(icu);
+					}
 				}
 			}
 			
-			if (EXPANDED_ACHAN(achan)) {
+			if (EXPANDED_ACHAN(achan) && FILTER_CON_ACHAN(achan)) {
 				/* clean action channel's constraint channels */
 				for (conchan= achan->constraintChannels.first; conchan; conchan=conchan->next) {
 					if (EDITABLE_CONCHAN(conchan)) {
@@ -2075,7 +2302,7 @@ void sethandles_actionchannel_keys(int code)
 		if (EDITABLE_ACHAN(achan)) {
 			sethandles_ipo_keys(achan->ipo, code);
 			
-			if (EXPANDED_ACHAN(achan)) {
+			if (EXPANDED_ACHAN(achan) && FILTER_CON_ACHAN(achan)) {
 				for (conchan= achan->constraintChannels.first; conchan; conchan= conchan->next) {
 					if (EDITABLE_CONCHAN(conchan))
 						sethandles_ipo_keys(conchan->ipo, code);
@@ -2130,7 +2357,7 @@ void set_ipotype_actionchannels(int ipotype)
 					setipotype_ipo(achan->ipo, ipotype);
 			}
 		
-			if (EXPANDED_ACHAN(achan)) {
+			if (EXPANDED_ACHAN(achan) && FILTER_CON_ACHAN(achan)) {
 				/* constraint channels */
 				for (conchan=achan->constraintChannels.first; conchan; conchan= conchan->next) {
 					if (EDITABLE_CONCHAN(conchan)) {
@@ -2205,7 +2432,7 @@ void set_extendtype_actionchannels(int extendtype)
 				}
 			}
 			
-			if (EXPANDED_ACHAN(achan) == 0)
+			if ((EXPANDED_ACHAN(achan)==0) || (FILTER_CON_ACHAN(achan)==0))
 				continue;
 			
 			/* constraint channels */
@@ -2263,7 +2490,7 @@ static void set_snap_actionchannels(bAction *act, short snaptype)
 				}
 			}
 			
-			if (EXPANDED_ACHAN(achan) == 0)
+			if ((EXPANDED_ACHAN(achan)==0) || (FILTER_CON_ACHAN(achan)==0))
 				continue;
 			
 			/* constraint channels */
@@ -2363,7 +2590,7 @@ static void mirror_actionchannels(bAction *act, short mirror_mode)
 				}
 			}
 			
-			if (EXPANDED_ACHAN(achan) == 0)
+			if ((EXPANDED_ACHAN(achan)==0) || (FILTER_CON_ACHAN(achan)==0))
 				continue;
 			
 			/* constraint channels */
@@ -2510,7 +2737,7 @@ static void select_all_keys_frames(bAction *act, short *mval,
 		if (VISIBLE_ACHAN(achan)) {
 			borderselect_ipo_key(achan->ipo, rectf.xmin, rectf.xmax, selectmode);
 			
-			if (EXPANDED_ACHAN(achan)) {
+			if (EXPANDED_ACHAN(achan) && FILTER_CON_ACHAN(achan)) {
 				for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
 					borderselect_ipo_key(conchan->ipo, rectf.xmin, rectf.xmax, selectmode);
 				}
@@ -2598,7 +2825,7 @@ static void select_all_keys_channels(bAction *act, short *mval,
 			--clickmin;
 			--clickmax;
 			
-			if (EXPANDED_ACHAN(achan) == 0)
+			if ((EXPANDED_ACHAN(achan)==0) || (FILTER_CON_ACHAN(achan)==0))
 				continue;
 				
 			/* Check for click in a constraint */
@@ -2717,10 +2944,12 @@ static void clever_achannel_names(short *mval)
 	void *act_channel;
 	bActionChannel *achan= NULL;
 	bConstraintChannel *conchan= NULL;
+	IpoCurve *icu= NULL;
 	
 	int but=0;
     char str[64];
 	short expand, protect, chantype;
+	//float slidermin, slidermax;
 	
 	/* figure out what is under cursor */
 	act_channel= get_nearest_act_channel(mval, &chantype);
@@ -2735,6 +2964,7 @@ static void clever_achannel_names(short *mval)
 		
 		add_numbut(but++, TEX, "ActChan: ", 0, 24, str, "Name of Action Channel");
 		add_numbut(but++, TOG|SHO, "Expanded", 0, 24, &expand, "Action Channel is Expanded");
+		add_numbut(but++, TOG|SHO, "Protected", 0, 24, &protect, "Channel is Protected");
 	}
 	else if (chantype == ACTTYPE_CONCHAN) {
 		conchan= (bConstraintChannel *)act_channel;
@@ -2743,17 +2973,41 @@ static void clever_achannel_names(short *mval)
 		protect= (conchan->flag & CONSTRAINT_CHANNEL_PROTECTED);
 		
 		add_numbut(but++, TEX, "ConChan: ", 0, 24, str, "Name of Constraint Channel");
+		add_numbut(but++, TOG|SHO, "Protected", 0, 24, &protect, "Channel is Protected");
 	}
+#if 0 /* tempolarily disabled until there is actually something to display  */
+	else if (chantype == ACTTYPE_ICU) {
+		icu= (IpoCurve *)act_channel;
+		
+		strcpy(str, getname_ipocurve(icu));
+		slidermin= icu->ymin; /* ugly hack :) */
+		slidermax= icu->ymax; /* ugly hack :) */
+		protect= (icu->flag & IPO_PROTECT);
+		
+		add_numbut(but++, NUM|FLO, "Slider Min:", -10000, slidermax, &slidermin, 0);
+		add_numbut(but++, NUM|FLO, "Slider Max:", slidermin, 10000, &slidermax, 0);
+		add_numbut(but++, TOG|SHO, "Protected", 0, 24, &protect, "Channel is Protected");
+	}
+#endif
 	else {
 		/* nothing under-cursor */
 		return;
 	}
-	add_numbut(but++, TOG|SHO, "Protected", 0, 24, &protect, "Channel is Protected");
+	
 	
 	/* draw clever-numbut */
     if (do_clever_numbuts(str, but, REDRAW)) {
 		/* restore settings based on type */
-		if (conchan) {
+#if 0 /* tempolarily disabled until further notice */
+		if (icu) {
+			icu->ymin= slidermin; /* ugly hack :) */
+			icu->ymax= slidermax; /* ugly hack :) */
+			
+			if (protect) icu->flag |= IPO_PROTECT;
+			else icu->flag &= ~IPO_PROTECT;
+		}
+#endif
+		/*else */if (conchan) {
 			strcpy(conchan->name, str);
 			
 			if (protect) conchan->flag |= CONSTRAINT_CHANNEL_PROTECTED;
@@ -3320,6 +3574,7 @@ void *get_nearest_act_channel(short mval[], short *ret_type)
 	bAction *act= G.saction->action;
 	bActionChannel *achan;
 	bConstraintChannel *conchan;
+	IpoCurve *icu;
 	
 	float	x,y;
 	int   clickmin, clickmax;
@@ -3349,14 +3604,13 @@ void *get_nearest_act_channel(short mval[], short *ret_type)
 	/* try in action channels */
 	for (achan = act->chanbase.first; achan; achan=achan->next) {
 		if(VISIBLE_ACHAN(achan)) {
-			if (clickmax < 0) break;
-
+			if (clickmax < 0) 
+				break;
 			if (clickmin <= 0) {
 				/* found match - action channel */
 				*ret_type= ACTTYPE_ACHAN;
 				return achan;
 			}
-			
 			--clickmin;
 			--clickmax;
 		}
@@ -3366,18 +3620,62 @@ void *get_nearest_act_channel(short mval[], short *ret_type)
 		if (EXPANDED_ACHAN(achan) == 0)
 			continue;
 		
-		/* try in constaint channels */
-		for (conchan= achan->constraintChannels.first; conchan; conchan=conchan->next) {
-			if (clickmax < 0) break;
-			
+		/* try in ipo curves */
+		if (achan->ipo) {
+			/* check header first */
+			if (clickmax < 0) 
+				break;
 			if (clickmin <= 0) {
-				/* found match - constraint channel */
-				*ret_type= ACTTYPE_CONCHAN;
-				return conchan;
+				/* found match - ipo-curves show/hide */
+				*ret_type= ACTTYPE_FILLIPO;
+				return achan; /* pointer to action-channel is returned in this case */
 			}
-			
 			--clickmin;
 			--clickmax;
+			
+			/* now the ipo-curve channels if they are exposed  */
+			if (FILTER_IPO_ACHAN(achan)) {
+				for (icu= achan->ipo->curve.first; icu; icu=icu->next) {
+					if (clickmax < 0) 
+						break;
+					if (clickmin <= 0) {
+						/* found match - ipo-curve channel */
+						*ret_type= ACTTYPE_ICU;
+						return icu; 
+					}
+					--clickmin;
+					--clickmax;
+				}
+			}
+		}
+		
+		/* try in constaint channels */
+		if (achan->constraintChannels.first) {
+			/* check header first */
+			if (clickmax < 0) 
+				break;
+			if (clickmin <= 0) {
+				/* found match - constraints show/hide */
+				*ret_type= ACTTYPE_FILLCON;
+				return achan; /* pointer to action-channel is returned in this case */
+			}
+			--clickmin;
+			--clickmax;
+			
+			/* now the constraint channels if they are exposed  */
+			if (FILTER_CON_ACHAN(achan)) {
+				for (conchan= achan->constraintChannels.first; conchan; conchan=conchan->next) {
+					if (clickmax < 0) 
+						break;
+					if (clickmin <= 0) {
+						/* found match - constraint channel */
+						*ret_type= ACTTYPE_CONCHAN;
+						return conchan;
+					}
+					--clickmin;
+					--clickmax;
+				}
+			}
 		}
 	}
 	
@@ -3424,7 +3722,7 @@ void markers_selectkeys_between(void)
 				}
 			}
 			
-			if (EXPANDED_ACHAN(achan) == 0)
+			if ((EXPANDED_ACHAN(achan)==0) || (FILTER_CON_ACHAN(achan)==0))
 				continue;
 			
 			for (conchan= achan->constraintChannels.first; conchan; conchan= conchan->next) {
@@ -3784,7 +4082,7 @@ bAction* bake_obIPO_to_action (Object *ob)
 	return result;	
 }
 
-bAction* bake_everything_to_action (Object *ob)
+bAction *bake_everything_to_action (Object *ob)
 {
 	bArmature		*arm;
 	bAction			*result=NULL;
@@ -3800,7 +4098,6 @@ bAction* bake_everything_to_action (Object *ob)
 	arm = get_armature(ob);
 	
 	if (arm) {	
-	
 		oldframe = CFRA;
 		result = add_empty_action("Action");
 		id = (ID *)ob;
