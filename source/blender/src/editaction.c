@@ -303,6 +303,7 @@ static void *get_nearest_actionchannel_key (float *selx, short *sel, short *ret_
 	IpoCurve *icu;
 	rctf rectf;
 	float xmin, xmax, x, y;
+	float xrange[2];
 	int clickmin, clickmax;
 	int	wsize;
 	short mval[2];
@@ -348,6 +349,8 @@ static void *get_nearest_actionchannel_key (float *selx, short *sel, short *ret_
 		return NULL;
 	}
 	
+	xrange[0]= xmin;
+	xrange[1]= xmax;
 	/* try in action channels */
 	for (achan = act->chanbase.first; achan; achan=achan->next) {
 		if(VISIBLE_ACHAN(achan)) {
@@ -355,7 +358,7 @@ static void *get_nearest_actionchannel_key (float *selx, short *sel, short *ret_
 				break;
 			if (clickmin <= 0) {
 				/* found level - action channel */
-				icu= get_nearest_icu_key(achan->ipo->curve.first, selx, sel, &xmin);
+				icu= get_nearest_icu_key(achan->ipo->curve.first, selx, sel, xrange);
 				
 				*ret_type= ACTTYPE_ACHAN;
 				return achan;
@@ -389,7 +392,7 @@ static void *get_nearest_actionchannel_key (float *selx, short *sel, short *ret_
 						break;
 					if (clickmin <= 0) {
 						/* found level - ipo-curve channel */
-						icu= get_nearest_icu_key (icu, selx, sel, &xmin);
+						icu= get_nearest_icu_key (icu, selx, sel, xrange);
 				
 						*ret_type= ACTTYPE_ICU;
 						*par= achan;
@@ -421,7 +424,7 @@ static void *get_nearest_actionchannel_key (float *selx, short *sel, short *ret_
 						break;
 					if (clickmin <= 0) {
 						/* found match - constraint channel */
-						icu= get_nearest_icu_key(conchan->ipo->curve.first, selx, sel, &xmin);
+						icu= get_nearest_icu_key(conchan->ipo->curve.first, selx, sel, xrange);
 						
 						*ret_type= ACTTYPE_CONCHAN;
 						*par= achan;
