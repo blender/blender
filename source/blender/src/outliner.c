@@ -2951,7 +2951,8 @@ static void outliner_draw_tree_element(SpaceOops *soops, TreeElement *te, int st
 					active= 2;
 					if(ob==OBACT) {
 						BIF_GetThemeColorType4ubv(TH_ACTIVE, SPACE_VIEW3D, col);
-						active= 1;
+						/* so black text is drawn when active and not selected */
+						if (ob->flag & SELECT) active= 1;
 					}
 					else BIF_GetThemeColorType4ubv(TH_SELECT, SPACE_VIEW3D, col);
 					col[3]= 100;
@@ -3329,9 +3330,19 @@ static void namebutton_cb(void *tep, void *oldnamep)
 	
 	if(ts && te) {
 		TreeStoreElem *tselem= TREESTORE(te);
-
+		
 		if(tselem->type==0) {
 			test_idbutton(tselem->id->name+2);	// library.c, unique name and alpha sort
+			
+			/* Check the library target exists */
+			if (te->idcode == ID_LI) {
+				char expanded[FILE_MAXDIR + FILE_MAXFILE];
+				BLI_strncpy(expanded, ((Library *)tselem->id)->name, FILE_MAXDIR + FILE_MAXFILE);
+				
+				if (!BLI_exists(expanded)) {
+					error("This path does not exist, correct this before saving");
+				}
+			}
 		}
 		else {
 			switch(tselem->type) {
