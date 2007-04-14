@@ -1305,8 +1305,7 @@ void centerview()	/* like a localview without local! */
 	
 	
 	if(G.obedit) {
-		minmax_verts(min, max);	// ony selected
-		ok= 1;
+		ok = minmax_verts(min, max);	/* only selected */
 	}
 	else if(ob && (ob->flag & OB_POSEMODE)) {
 		if(ob->pose) {
@@ -1330,14 +1329,16 @@ void centerview()	/* like a localview without local! */
 		}
 	}
 	else if (G.f & G_FACESELECT) {
-		minmax_tface(min, max);
-		ok= 1;
+		ok= minmax_tface(min, max);
 	}
 	else {
 		Base *base= FIRSTBASE;
 		while(base) {
 			if TESTBASE(base)  {
 				minmax_object(base->object, min, max);
+				/* account for duplis */
+				minmax_object_duplis(base->object, min, max);
+				
 				ok= 1;
 			}
 			base= base->next;

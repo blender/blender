@@ -1836,7 +1836,7 @@ void toggle_shading(void)
 	}
 }
 
-void minmax_verts(float *min, float *max)
+int minmax_verts(float *min, float *max)
 {
 	TransVert *tv;
 	float centroid[3], vec[3], bmat[3][3];
@@ -1845,7 +1845,7 @@ void minmax_verts(float *min, float *max)
 	tottrans=0;
 	if ELEM5(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE) 
 		make_trans_verts(bmat[0], bmat[1], 0);
-	if(tottrans==0) return;
+	if(tottrans==0) return 0;
 
 	Mat3CpyMat4(bmat, G.obedit->obmat);
 	
@@ -1860,5 +1860,6 @@ void minmax_verts(float *min, float *max)
 	
 	MEM_freeN(transvmain);
 	transvmain= 0;
+	return 1;
 }
 

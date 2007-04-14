@@ -102,6 +102,7 @@ void boundbox_set_from_min_max(struct BoundBox *bb, float min[3], float max[3]);
 struct BoundBox *object_get_boundbox(struct Object *ob);
 void object_boundbox_flag(struct Object *ob, int flag, int set);
 void minmax_object(struct Object *ob, float *min, float *max);
+void minmax_object_duplis(struct Object *ob, float *min, float *max);
 void solve_tracking (struct Object *ob, float targetmat[][4]);
 void solve_constraints (struct Object *ob, short obtype, void *obdata, float ctime);
 

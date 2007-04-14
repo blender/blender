@@ -1980,6 +1980,28 @@ void minmax_object(Object *ob, float *min, float *max)
 	}
 }
 
+/* TODO - use dupli objects bounding boxes */
+void minmax_object_duplis(Object *ob, float *min, float *max)
+{
+	if ((ob->transflag & OB_DUPLI)==0) {
+		return;
+	} else {
+		ListBase *lb;
+		DupliObject *dob;
+		
+		lb= object_duplilist(G.scene, ob);
+		for(dob= lb->first; dob; dob= dob->next) {
+			if(dob->no_draw);
+			else {
+				/* should really use bound box of dup object */
+				DO_MINMAX(dob->mat[3], min, max);
+			}
+		}
+		free_object_duplilist(lb);	/* does restore */
+	}
+}
+
+
 /* proxy rule: lib_object->proxy_from == the one we borrow from, only set temporal and cleared here */
 /*           local_object->proxy      == pointer to library object, saved in files and read */
 

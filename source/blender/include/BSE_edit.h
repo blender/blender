@@ -43,7 +43,7 @@ void mergemenu(void);
 void delete_context_selected(void);
 void duplicate_context_selected(void);
 void toggle_shading(void);
-void minmax_verts(float *min, float *max);
+int minmax_verts(float *min, float *max);
 
 void snap_sel_to_grid(void);
 void snap_sel_to_curs(void);

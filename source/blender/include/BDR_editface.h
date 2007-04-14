@@ -48,7 +48,7 @@ void deselectall_tface(void);
 void selectswap_tface(void);
 void rotate_uv_tface(void);
 void mirror_uv_tface(void);
-void minmax_tface(float *min, float *max);
+int minmax_tface(float *min, float *max);
 void face_select(void);
 void face_borderselect(void);
 void uv_autocalc_tface(void);

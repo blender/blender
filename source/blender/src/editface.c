@@ -911,20 +911,20 @@ void mirror_uv_tface()
 	object_uvs_changed(OBACT);
 }
 
-void minmax_tface(float *min, float *max)
+int minmax_tface(float *min, float *max)
 {
 	Object *ob;
 	Mesh *me;
 	MFace *mf;
 	MTFace *tf;
 	MVert *mv;
-	int a;
+	int a, ok=0;
 	float vec[3], bmat[3][3];
 	
 	ob = OBACT;
-	if (ob==0) return;
+	if (ob==0) return ok;
 	me= get_mesh(ob);
-	if(me==0 || me->mtface==0) return;
+	if(me==0 || me->mtface==0) return ok;
 	
 	Mat3CpyMat4(bmat, ob->obmat);
 
@@ -956,7 +956,9 @@ void minmax_tface(float *min, float *max)
 			VecAddf(vec, vec, ob->obmat[3]);
 			DO_MINMAX(vec, min, max);
 		}
+		ok= 1;
 	}
+	return ok;
 }
 
 #define ME_SEAM_DONE ME_SEAM_LAST		/* reuse this flag */
