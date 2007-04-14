@@ -3497,9 +3497,8 @@ void make_links(short event)
 	Base *base, *nbase, *sbase;
 	Scene *sce = NULL;
 	ID *id;
-	Material ***matarar, ***obmatarar, **matar1, **matar2;
 	int a;
-	short *totcolp, nr=0;
+	short nr=0;
 	char *strp;
 
 	if(!(ob=OBACT)) return;
@@ -3601,52 +3600,10 @@ void make_links(short event)
 				}
 				else if(event==3) {  /* materials */
 					
-					/* only if obt has no material: make arrays */
-					/* from ob to obt! */
-					
-					obmatarar= give_matarar(ob);
-					matarar= give_matarar(obt);
-					totcolp= give_totcolp(obt);
-
-					/* if one of the two is zero: no render-able object */						
-					if( matarar && obmatarar) {
-						
-						/* take care of users! so first a copy of original: */
-
-						if(ob->totcol) {
-							matar1= MEM_dupallocN(ob->mat);
-							matar2= MEM_dupallocN(*obmatarar);
-						}
-						else {
-							matar1= matar2= NULL;
-						}
-						
-						/* remove links from obt */
-						for(a=0; a<obt->totcol; a++) {
-							if(obt->mat[a]) obt->mat[a]->id.us--;
-							if( (*matarar)[a]) (*matarar)[a]->id.us--;
-						}
-						
-						/* free */
-						if(obt->mat) MEM_freeN(obt->mat);
-						if(*matarar) MEM_freeN(*matarar);
-						
-						/* connect a copy */
-						obt->mat= matar1;
-						*matarar= matar2;
-						obt->totcol= ob->totcol;
-						*totcolp= ob->totcol;
-					
-						/* increase users */
-						for(a=0; a<obt->totcol; a++) {
-							if(obt->mat[a]) id_us_plus((ID *)obt->mat[a]);
-							if( (*matarar)[a]) id_us_plus((ID *)(*matarar)[a]);
-						}
-
-						obt->colbits= ob->colbits;
-						
-						/* if amount of material indices changed: */
-						test_object_materials(obt->data);
+					/* new approach, using functions from kernel */
+					for(a=0; a<ob->totcol; a++) {
+						Material *ma= give_current_material(ob, a+1);
+						assign_material(obt, ma, a+1);	/* also works with ma==NULL */
 					}
 				}
 			}
