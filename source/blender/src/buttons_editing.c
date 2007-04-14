@@ -3016,7 +3016,9 @@ static void editing_panel_camera_type(Object *ob, Camera *cam)
 
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_camera_type", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Camera", "Editing", 320, 0, 318, 204)==0) return;
-
+	
+	uiSetButLock(ob->id.lib || cam->id.lib, "Can't edit library data");
+	
 	uiDefBut(block, LABEL, 10, "Lens:", 10, 180, 150, 20, 0, 0.0, 0.0, 0, 0, "");
 	
 	if(cam->type==CAM_ORTHO) {

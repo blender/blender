@@ -237,7 +237,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 
 
 	
-def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OBJECTS, SPLIT_MATERIALS):
+def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP, SPLIT_MATERIALS):
 	'''
 	Takes vert_loc and faces, and seperates into multiple sets of 
 	(verts_loc, faces, unique_materials, dataname)
@@ -246,7 +246,7 @@ def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OBJECTS, SPLI
 	
 	filename = stripExt(stripPath(filepath))
 	
-	if not SPLIT_OBJECTS and not SPLIT_MATERIALS:
+	if not SPLIT_OB_OR_GROUP and not SPLIT_MATERIALS:
 		# use the filename for the object name since we arnt chopping up the mesh.
 		return [(verts_loc, faces, unique_materials, filename)]
 	
@@ -261,11 +261,11 @@ def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OBJECTS, SPLI
 			return key
 	
 	# Return a key that makes the faces unique.
-	if SPLIT_OBJECTS and not SPLIT_MATERIALS:
+	if SPLIT_OB_OR_GROUP and not SPLIT_MATERIALS:
 		def face_key(face):
 			return face[4] # object
 	
-	if not SPLIT_OBJECTS and SPLIT_MATERIALS:
+	if not SPLIT_OB_OR_GROUP and SPLIT_MATERIALS:
 		def face_key(face):
 			return face[2] # material
 	
@@ -293,7 +293,7 @@ def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OBJECTS, SPLI
 				vert_remap= [-1]*len(verts_loc)
 				
 				face_split_dict[key]= (verts_split, faces_split, unique_materials_split, vert_remap)
-			
+			print key
 			oldkey= key
 			
 		face_vert_loc_indicies= face[0]
@@ -320,7 +320,7 @@ def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OBJECTS, SPLI
 	return [(value[0], value[1], value[2], key_to_name(key)) for key, value in face_split_dict.iteritems()]
 
 
-def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, verts_tex, faces, unique_materials, unique_material_images, unique_smooth_groups, dataname):
+def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, verts_tex, faces, unique_materials, unique_material_images, unique_smooth_groups, dataname):
 	'''
 	Takes all the data gathered and generates a mesh, adding the new object to new_objects
 	deals with fgons, sharp edges and assigning materials
@@ -384,7 +384,6 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
 			if has_ngons and len_face_vert_loc_indicies > 4:
 				
 				ngon_face_indices= BPyMesh.ngon(verts_loc, face_vert_loc_indicies)
-				
 				faces.extend(\
 				[(\
 				[face_vert_loc_indicies[ngon[0]], face_vert_loc_indicies[ngon[1]], face_vert_loc_indicies[ngon[2]] ],\
@@ -452,8 +451,8 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
 	
 	for i, face in enumerate(faces):
 		if len(face[0]) < 2:
-			raise "Fooo"
-		if len(face[0])==2:
+			pass #raise "bad face"
+		elif len(face[0])==2:
 			if CREATE_EDGES:
 				edges.append(face[0])
 		else:
@@ -528,7 +527,6 @@ def create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc, v
 	
 	me.calcNormals()
 	
-	scn= Scene.GetCurrent()
 	ob= scn.objects.new(me)
 	new_objects.append(ob)
 
@@ -708,14 +706,18 @@ def load_obj(filepath, CLAMP_SIZE= 0.0, CREATE_FGONS= True, CREATE_SMOOTH_GROUPS
 	
 	
 	# deselect all
-	Scene.GetCurrent().objects.selected = []
+	scn = bpy.scenes.active
+	scn.objects.selected = []
 	new_objects= [] # put new objects here
 	
 	print '\tbuilding geometry...\n\tverts:%i faces:%i materials: %i smoothgroups:%i ...' % ( len(verts_loc), len(faces), len(unique_materials), len(unique_smooth_groups) ),
 	# Split the mesh by objects/materials, may 
-	for verts_loc_split, faces_split, unique_materials_split, dataname in split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OBJECTS, SPLIT_MATERIALS):
+	if SPLIT_OBJECTS or SPLIT_GROUPS:	SPLIT_OB_OR_GROUP = True
+	else:								SPLIT_OB_OR_GROUP = False
+	
+	for verts_loc_split, faces_split, unique_materials_split, dataname in split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP, SPLIT_MATERIALS):
 		# Create meshes from the data
-		create_mesh(new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc_split, verts_tex, faces_split, unique_materials_split, unique_material_images, unique_smooth_groups, dataname)
+		create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_loc_split, verts_tex, faces_split, unique_materials_split, unique_material_images, unique_smooth_groups, dataname)
 	
 	axis_min= [ 1000000000]*3
 	axis_max= [-1000000000]*3
@@ -769,7 +771,7 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
 	('Smooth Groups', CREATE_SMOOTH_GROUPS, 'Surround smooth groups by sharp edges'),\
 	('Create FGons', CREATE_FGONS, 'Import faces with more then 4 verts as fgons.'),\
 	('Lines', CREATE_EDGES, 'Import lines and faces with 2 verts as edges'),\
-	'Seperate objects from obj...',\
+	'Separate objects from obj...',\
 	('Object', SPLIT_OBJECTS, 'Import OBJ Objects into Blender Objects'),\
 	('Group', SPLIT_GROUPS, 'Import OBJ Groups into Blender Objects'),\
 	('Material', SPLIT_MATERIALS, 'Import each material into a seperate mesh (Avoids > 16 per mesh error)'),\

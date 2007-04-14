@@ -2650,6 +2650,7 @@ static void lamp_panel_lamp(Object *ob, Lamp *la)
 	uiDefButF(block, NUM,B_LAMPREDRAW,"Dist:", xco,180,300-xco,20,&la->dist, 0.01, 5000.0*grid, 100, 0, "Sets the distance value at which light intensity is half");
 
 	uiBlockBeginAlign(block);
+	uiSetButLock(la->id.lib!=0, "Can't edit library data");
 	if(la->type==LA_AREA) {
 		//uiDefButS(block, MENU, B_LAMPREDRAW, "Shape %t|Square %x0|Rect %x1|Cube %x2|Box %x3",
 		uiDefButS(block, MENU, B_LAMPREDRAW, "Shape %t|Square %x0|Rect %x1",
