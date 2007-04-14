@@ -44,7 +44,7 @@ selected faces, or all faces.
 
 from Blender import Object, Draw, Window, sys, Mesh, Geometry
 from Blender.Mathutils import CrossVecs, Matrix, Vector, RotationMatrix, DotVecs
-
+import bpy
 from math import cos
 
 DEG_TO_RAD = 0.017453292519943295 # pi/180.0

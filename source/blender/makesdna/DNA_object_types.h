@@ -89,7 +89,6 @@ typedef struct Object {
 	short type, partype;
 	int par1, par2, par3;	/* can be vertexnrs */
 	char parsubstr[32];	/* String describing subobject info */
-	void *pardata;
 	struct Object *parent, *track;
 	/* if ob->proxy (or proxy_group), this object is proxy for object ob->proxy */
 	/* proxy_from is set in target back to the proxy. */
@@ -149,13 +148,13 @@ typedef struct Object {
 	 * For a Sphere, the form factor is by default = 0.4
 	 */
 
-	float formfactor, softtime;		/* softtime temp for softbody, remove it before release! */
+	float formfactor;
 	float rdamping, sizefac;
 	
 	char dt, dtx;
 	char totcol;	/* copy of mesh or curve or meta */
 	char actcol;
-	char empty_drawtype, pad1[3];
+	char empty_drawtype, pad1[7];
 	float empty_drawsize;
 	
 	ScriptLink scriptlink;
