@@ -830,6 +830,15 @@ void calculatePropRatio(TransInfo *t)
 				/* Use rdist for falloff calculations, it is the real distance */
 				td->flag &= ~TD_NOACTION;
 				dist= (t->propsize-td->rdist)/t->propsize;
+				
+				/*
+				 * Clamp to positive numbers.
+				 * Certain corner cases with connectivity and individual centers
+				 * can give values of rdist larger than propsize.
+				 */
+				if (dist < 0.0f)
+					dist = 0.0f;
+				
 				switch(G.scene->prop_mode) {
 				case PROP_SHARP:
 					td->factor= dist*dist;
