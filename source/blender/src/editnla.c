@@ -964,21 +964,21 @@ void transform_nlachannel_keys(int mode, int dummy)
 		/* Check action ipos */
 		if (base->object->action){
 			/* exclude if strip is selected too */
-			for (strip=base->object->nlastrips.first; strip; strip=strip->next){
+			for (strip=base->object->nlastrips.first; strip; strip=strip->next) {
 				if (strip->flag & ACTSTRIP_SELECT)
 					if(strip->act==base->object->action)
 						break;
 			}
 			if(strip==NULL) {
 				
-				for (chan=base->object->action->chanbase.first; chan; chan=chan->next){
+				for (chan=base->object->action->chanbase.first; chan; chan=chan->next) {
 					if (EDITABLE_ACHAN(chan)) {
 						i= fullselect_ipo_keys(chan->ipo);
 						if(i) base->flag |= BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA;
 						tvtot+=i;
 						
 						/* Check action constraint ipos */
-						if (EXPANDED_ACHAN(chan)) {
+						if (EXPANDED_ACHAN(chan) && FILTER_CON_ACHAN(chan)) {
 							for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next) {
 								if (EDITABLE_CONCHAN(conchan))
 									tvtot+=fullselect_ipo_keys(conchan->ipo);
@@ -1034,7 +1034,7 @@ void transform_nlachannel_keys(int mode, int dummy)
 						tvtot=add_trans_ipo_keys(chan->ipo, tv, tvtot);
 
 						/* Manipulate action constraint ipos */
-						if (EXPANDED_ACHAN(chan)) {
+						if (EXPANDED_ACHAN(chan) && FILTER_CON_ACHAN(chan)) {
 							for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next) {
 								if (EDITABLE_CONCHAN(conchan))
 									tvtot=add_trans_ipo_keys(conchan->ipo, tv, tvtot);
