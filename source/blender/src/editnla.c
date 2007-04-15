@@ -62,6 +62,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_nla.h"
+#include "BKE_utildefines.h"
 
 #include "BIF_screen.h"
 #include "BIF_interface.h"
@@ -188,6 +189,7 @@ void synchronize_action_strips(void)
 	bActionStrip *strip;
 	
 	for (base=G.scene->base.first; base; base=base->next) {
+		/* step 1: adjust strip-lengths */
 		for (strip = base->object->nlastrips.last; strip; strip=strip->prev) {
 			if (strip->flag & ACTSTRIP_LOCK_ACTION) {
 				float actstart, actend;
@@ -203,6 +205,153 @@ void synchronize_action_strips(void)
 					strip->actstart= actstart;
 					strip->actend= actend;
 				}
+			}
+		}
+		
+		/* step 2: adjust blendin/out values for each strip if option is turned on */
+		for (strip= base->object->nlastrips.first; strip; strip=strip->next) {
+			if (strip->flag & ACTSTRIP_AUTO_BLENDS) {
+				bActionStrip *prev= strip->prev;
+				bActionStrip *next= strip->next;
+				float pr[2], nr[2];
+				
+				strip->blendin = 0.0f;
+				strip->blendout = 0.0f;
+				
+				/* setup test ranges */
+				if (prev && next) {
+					/* init range for previous strip */
+					pr[0]= prev->start;
+					pr[1]= prev->end;
+					
+					/* init range for next strip */
+					nr[0]= next->start;
+					nr[1]= next->end;
+				}
+				else if (prev) {
+					/* next strip's range is same as previous strip's range  */
+					pr[0] = nr[0] = prev->start;
+					pr[1] = nr[1] = prev->end;
+				}
+				else if (next) {
+					/* previous strip's range is same as next strip's range */
+					pr[0] = nr[0] = next->start;
+					pr[1] = nr[1] = next->end;
+				}
+				else {
+					/* there shouldn't be any more strips to loop through for this operation */
+					break;
+				}
+				
+				/* test various cases */
+				if ( IN_RANGE(pr[1], strip->start, strip->end) && 
+					(IN_RANGE(pr[0], strip->start, strip->end)==0) )
+				{
+					/* previous strip intersects start of current */
+					
+					if ( IN_RANGE(nr[1], strip->start, strip->end) && 
+						(IN_RANGE(nr[0], strip->start, strip->end)==0) )
+					{
+						/* next strip also intersects start of current */
+						if (nr[1] < pr[1])
+							strip->blendin= nr[1] - strip->start;
+						else
+							strip->blendin= pr[1] - strip->start;
+					}
+					else if (IN_RANGE(nr[0], strip->start, strip->end) && 
+							(IN_RANGE(nr[1], strip->start, strip->end)==0))
+					{
+						/* next strip intersects end of current */
+						strip->blendout= strip->end - nr[0];
+						strip->blendin= pr[1] - strip->start;
+					}
+					else {
+						/* only previous strip intersects current */
+						strip->blendin= pr[1] - strip->start;
+					}
+				}
+				else if (IN_RANGE(pr[0], strip->start, strip->end) && 
+						(IN_RANGE(pr[1], strip->start, strip->end)==0) )
+				{
+					/* previous strip intersects end of current */
+					
+					if ( IN_RANGE(nr[0], strip->start, strip->end) && 
+						(IN_RANGE(nr[1], strip->start, strip->end)==0) )
+					{
+						/* next strip also intersects end of current */
+						if (nr[1] > pr[1])
+							strip->blendout= strip->end - nr[0];
+						else
+							strip->blendout= strip->end - pr[0];
+					}
+					else if (IN_RANGE(nr[1], strip->start, strip->end) && 
+							(IN_RANGE(nr[0], strip->start, strip->end)==0))
+					{
+						/* next strip intersects start of current */
+						strip->blendin= nr[1] - strip->start;
+						strip->blendout= strip->end - pr[0];
+					}
+					else {
+						/* only previous strip intersects current */
+						strip->blendout= strip->end - pr[0];
+					}
+				}
+				else if (IN_RANGE(nr[1], strip->start, strip->end) && 
+						(IN_RANGE(nr[0], strip->start, strip->end)==0) )
+				{
+					/* next strip intersects start of current */
+					
+					if ( IN_RANGE(pr[1], strip->start, strip->end) && 
+						(IN_RANGE(pr[0], strip->start, strip->end)==0) )
+					{
+						/* previous strip also intersects start of current */
+						if (pr[1] < nr[1])
+							strip->blendin= pr[1] - strip->start;
+						else
+							strip->blendin= nr[1] - strip->start;
+					}
+					else if (IN_RANGE(pr[0], strip->start, strip->end) && 
+							(IN_RANGE(pr[1], strip->start, strip->end)==0))
+					{
+						/* previous strip intersects end of current */
+						strip->blendout= strip->end - pr[0];
+						strip->blendin= nr[1] - strip->start;
+					}
+					else {
+						/* only next strip intersects current */
+						strip->blendin= nr[1] - strip->start;
+					}
+				}
+				else if (IN_RANGE(nr[0], strip->start, strip->end) && 
+						(IN_RANGE(nr[1], strip->start, strip->end)==0) )
+				{
+					/* next strip intersects end of current */
+					
+					if ( IN_RANGE(pr[0], strip->start, strip->end) && 
+						(IN_RANGE(pr[1], strip->start, strip->end)==0) )
+					{
+						/* previous strip also intersects end of current */
+						if (pr[1] > nr[1])
+							strip->blendout= strip->end - pr[0];
+						else
+							strip->blendout= strip->end - nr[0];
+					}
+					else if (IN_RANGE(pr[1], strip->start, strip->end) && 
+							(IN_RANGE(pr[0], strip->start, strip->end)==0))
+					{
+						/* previous strip intersects start of current */
+						strip->blendin= pr[1] - strip->start;
+						strip->blendout= strip->end - nr[0];
+					}
+					else {
+						/* only next strip intersects current */
+						strip->blendout= strip->end - nr[0];
+					}
+				}
+				
+				/* make sure blending stays in ranges */
+				CLAMP(strip->blendin, 0, (strip->end-strip->start));
+				CLAMP(strip->blendout, 0, (strip->end-strip->start));
 			}
 		}
 	}
@@ -502,6 +651,7 @@ void add_empty_nlablock(void)
 	
 	/* change some settings of the strip - try to avoid bad scaling */
 	if ((EFRA-CFRA) < 100) {
+		strip->flag |= ACTSTRIP_AUTO_BLENDS;
 		strip->flag &= ~ACTSTRIP_LOCK_ACTION;
 		strip->actstart = CFRA;
 		strip->actend = CFRA + 100;
@@ -510,6 +660,7 @@ void add_empty_nlablock(void)
 		strip->end = CFRA + 100;
 	}
 	else {
+		strip->flag |= ACTSTRIP_AUTO_BLENDS;
 		strip->flag &= ~ACTSTRIP_LOCK_ACTION;
 		strip->actstart = CFRA;
 		strip->actend = EFRA;

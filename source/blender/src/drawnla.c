@@ -579,8 +579,18 @@ static void nla_panel_properties(short cntrl)	// NLA_HANDLER_PROPERTIES
 	}
 	
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_NLA_PANEL, "Blendin:",				10,100,145,19, &strip->blendin, 0.0, strip->end-strip->start, 100, 0, "Number of frames of ease-in");
-	uiDefButF(block, NUM, B_NLA_PANEL, "Blendout:",				10,80,145,19, &strip->blendout, 0.0, strip->end-strip->start, 100, 0, "Number of frames of ease-out");
+	uiDefButBitS(block, TOG, ACTSTRIP_AUTO_BLENDS, B_NLA_LOCK, "Auto-Blending", 10,100,145,19, &(strip->flag), 0, 0, 0, 0, "Toggles automatic calculation of blendin/out values");
+	if (strip->flag & ACTSTRIP_AUTO_BLENDS) {
+		char str[32];
+		sprintf(str, "In: %.2f", strip->blendin);
+		uiDefBut(block, LABEL, B_NOP, str,			10,80,77,19, NULL, 0.0, 0.0, 0, 0, "Number of frames of ease-in");
+		sprintf(str, "Out: %.2f", strip->blendout);
+		uiDefBut(block, LABEL, B_NOP, str,			77,80,78,19, NULL, 0.0, 0.0, 0, 0, "Number of frames of ease-out");
+	}
+	else {
+		uiDefButF(block, NUM, B_NLA_PANEL, "In:",	10,80,77,19, &strip->blendin, 0.0, strip->end-strip->start, 100, 0, "Number of frames of ease-in");
+		uiDefButF(block, NUM, B_NLA_PANEL, "Out:",	77,80,78,19, &strip->blendout, 0.0, strip->end-strip->start, 100, 0, "Number of frames of ease-out");
+	}
 	uiDefButBitS(block, TOG, ACTSTRIP_MUTE, B_NLA_PANEL, "Mute", 10,60,145,19, &strip->flag, 0, 0, 0, 0, "Toggles whether the strip contributes to the NLA solution");
 	
 	uiBlockBeginAlign(block);

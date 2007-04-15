@@ -45,10 +45,13 @@ typedef struct bActionModifier {
 	short type, flag;
 	char channel[32];
 	
-	/* path deform modifier */
-	short pad, no_rot_axis;
-	struct Object *ob;
+	/* noise modifier */
+	float noisesize, turbul;
+	short channels;
 	
+	/* path deform modifier */
+	short no_rot_axis;
+	struct Object *ob;	
 } bActionModifier;
 
 #define ACTSTRIP_MOD_DEFORM		0
@@ -94,6 +97,7 @@ typedef struct bActionStrip {
 #define ACTSTRIP_CYCLIC_USEX	0x100
 #define ACTSTRIP_CYCLIC_USEY	0x200
 #define ACTSTRIP_CYCLIC_USEZ	0x400
+#define ACTSTRIP_AUTO_BLENDS	0x800
 
 #endif
 
