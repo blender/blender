@@ -265,7 +265,7 @@ def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP, 
 		def face_key(face):
 			return face[4] # object
 	
-	if not SPLIT_OB_OR_GROUP and SPLIT_MATERIALS:
+	elif not SPLIT_OB_OR_GROUP and SPLIT_MATERIALS:
 		def face_key(face):
 			return face[2] # material
 	
@@ -293,7 +293,7 @@ def split_mesh(verts_loc, faces, unique_materials, filepath, SPLIT_OB_OR_GROUP, 
 				vert_remap= [-1]*len(verts_loc)
 				
 				face_split_dict[key]= (verts_split, faces_split, unique_materials_split, vert_remap)
-			print key
+			
 			oldkey= key
 			
 		face_vert_loc_indicies= face[0]

@@ -36,6 +36,7 @@
 
 // For standard X11 cursors
 #include <X11/cursorfont.h>
+#include <X11/Xatom.h>
 
 // For obscure full screen mode stuuf
 // lifted verbatim from blut.
@@ -163,9 +164,28 @@ GHOST_WindowX11(
 			XChangeProperty(m_display, m_window,
 				atom, atom, 32,
 				PropModeReplace, (unsigned char *) &hints, 4);
-		}		
-	}
+		}
+	} else if (state == GHOST_kWindowStateMaximized) {
+		// With this, xprop should report the following just after launch
+		// _NET_WM_STATE(ATOM) = _NET_WM_STATE_MAXIMIZED_VERT, _NET_WM_STATE_MAXIMIZED_HORZ
+		// After demaximization the right side is empty, though (maybe not the most correct then?)
+		Atom state, atomh, atomv;
 
+		state = XInternAtom(m_display, "_NET_WM_STATE", False);
+		atomh = XInternAtom(m_display, "_NET_WM_STATE_MAXIMIZED_HORZ", False);
+		atomv = XInternAtom(m_display, "_NET_WM_STATE_MAXIMIZED_VERT", False);
+		if (state == None ) {
+			GHOST_PRINT("Atom _NET_WM_STATE requested but not avaliable nor created.\n");
+		} else {
+			XChangeProperty(m_display, m_window,
+				state, XA_ATOM, 32,
+				PropModeAppend, (unsigned char *) &atomh, 1);
+			XChangeProperty(m_display, m_window,
+				state, XA_ATOM, 32,
+				PropModeAppend, (unsigned char *) &atomv, 1);
+		}
+ 	}
+	
 	// Create some hints for the window manager on how
 	// we want this window treated.	
 
