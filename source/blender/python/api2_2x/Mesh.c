@@ -6735,6 +6735,8 @@ static PyObject *Mesh_Tools( BPy_Mesh * self, int type, void **args )
 		mesh_octree_table(G.obedit, NULL, 'e');
 	G.obedit = NULL;
 
+	DAG_object_flush_update(G.scene, object, OB_RECALC_DATA);
+
 	if( attr )
 		return attr;
 
