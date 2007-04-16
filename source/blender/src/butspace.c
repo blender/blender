@@ -698,10 +698,15 @@ void redraw_test_buttons(Object *new)
 /* callback */
 void drawbutspace(ScrArea *sa, void *spacedata)
 {
+	ID *id, *idfrom;
 	SpaceButs *sbuts= sa->spacedata.first;
 	View2D *v2d= &sbuts->v2d;
 	float col[3];
 	int tab, align=0;
+	
+	/* context */
+	buttons_active_id(&id, &idfrom);
+	G.buts->lockpoin= id;
 	
 	myortho2(v2d->cur.xmin, v2d->cur.xmax, v2d->cur.ymin, v2d->cur.ymax);
 

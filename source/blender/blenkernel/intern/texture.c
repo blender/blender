@@ -292,7 +292,7 @@ int do_colorband(ColorBand *coba, float in, float out[4])
 	float fac, mfac, t[4];
 	int a;
 	
-	if(coba->tot==0) return 0;
+	if(coba==NULL || coba->tot==0) return 0;
 	
 	cbd1= coba->data;
 	if(coba->tot==1) {
