@@ -135,6 +135,10 @@ typedef struct EditData {
 	char flip;
 	short mouse[2];
 
+	/* Adjust brush strength along each axis
+	   to adjust for object scaling */
+	float scale[3];
+
 	/* View normals */
 	vec3f up, right, out;
 
@@ -492,9 +496,9 @@ void do_draw_brush(const EditData *e, const ListBase* active_verts)
 	while(node){
 		float *co= me->mvert[node->Index].co;
 		
-		const float val[3]= {co[0]+area_normal.x*node->Fade,
-		                     co[1]+area_normal.y*node->Fade,
-		                     co[2]+area_normal.z*node->Fade};
+		const float val[3]= {co[0]+area_normal.x*node->Fade*e->scale[0],
+		                     co[1]+area_normal.y*node->Fade*e->scale[1],
+		                     co[2]+area_normal.z*node->Fade*e->scale[2]};
 		                     
 		sculpt_clip(e, co, val);
 		
@@ -626,9 +630,9 @@ void do_layer_brush(EditData *e, const ListBase *active_verts)
 			}
 
 			{
-				const float val[3]= {e->layer_store[node->Index].x+area_normal.x * *disp,
-				                     e->layer_store[node->Index].y+area_normal.y * *disp,
-				                     e->layer_store[node->Index].z+area_normal.z * *disp};
+				const float val[3]= {e->layer_store[node->Index].x+area_normal.x * *disp*e->scale[0],
+				                     e->layer_store[node->Index].y+area_normal.y * *disp*e->scale[1],
+				                     e->layer_store[node->Index].z+area_normal.z * *disp*e->scale[2]};
 				sculpt_clip(e, co, val);
 			}
 		}
@@ -651,6 +655,9 @@ void do_inflate_brush(const EditData *e, const ListBase *active_verts)
 		add[1]= no[1]/ 32767.0f;
 		add[2]= no[2]/ 32767.0f;
 		VecMulf(add, node->Fade);
+		add[0]*= e->scale[0];
+		add[1]*= e->scale[1];
+		add[2]*= e->scale[2];
 		VecAddf(add, add, co);
 		
 		sculpt_clip(e, co, add);
@@ -1668,6 +1675,11 @@ void sculpt(void)
 	e.grabdata= NULL;
 	e.layer_disps= NULL;
 	e.layer_store= NULL;
+
+	/* Set scaling adjustment */
+	e.scale[0]= 1.0f / ob->size[0];
+	e.scale[1]= 1.0f / ob->size[1];
+	e.scale[2]= 1.0f / ob->size[2];
 
 	/* Capture original copy */
 	if(sd->draw_flag & SCULPTDRAW_FAST)
