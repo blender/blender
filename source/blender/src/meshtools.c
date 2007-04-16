@@ -465,6 +465,7 @@ static int float_sort(const void *v1, const void *v2)
 	return 0;
 }
 
+
 void sort_faces(void)
 {
 	Object *ob= OBACT;
@@ -472,17 +473,29 @@ void sort_faces(void)
 	CustomDataLayer *layer;
 	int i, *index;
 	short event;
+	float reverse = 1;
 	
 	if(!ob) return;
 	if(G.obedit) return;
 	if(ob->type!=OB_MESH) return;
-	
-	event = pupmenu("Sort Faces by%t|View Axis (back to front)%x1|View Axis (front to back)%x2|Cursor Distance (near to far)%x3|Cursor Distance (far to near)%x4|Selected First%x5|Selected Last%x6|Randomize%x7");
-	if (event==-1) return;
+	if (!G.vd) return;
 	
 	me= ob->data;
 	if(me->totface==0) return;
-
+	
+	event = pupmenu(
+	"Sort Faces (Ctrl to reverse)%t|"
+	"View Axis%x1|"
+	"Cursor Distance%x2|"
+	"Material%x3|"
+	"Selection%x4|"
+	"Randomize%x5");
+	
+	if (event==-1) return;
+	
+	if(G.qual & LR_CTRLKEY)
+		reverse = -1;
+	
 /*	create index list */
 	index = (int *) MEM_mallocN(sizeof(int) * me->totface, "sort faces");
 	for (i = 0; i < me->totface; i++) {
@@ -493,23 +506,22 @@ void sort_faces(void)
 	
 /* sort index list instead of faces itself 
    and apply this permutation to all face layers */
-	if (event == 7) {
+   
+  	if (event == 5) {
 		/* Random */
 		for(i=0; i<me->totface; i++) {
 			face_sort_floats[i] = BLI_frand();
 		}
 		qsort(index, me->totface, sizeof(int), float_sort);		
-	} else { /* event is 1 or 2*/
+	} else {
 		MFace *mf;
 		float vec[3];
 		float mat[4][4];
 		float cur[3];
 		
-		if (!G.vd) return;
-		
-		if (event == 1 || event == 2)
+		if (event == 1)
 			Mat4MulMat4(mat, OBACT->obmat, G.vd->viewmat); /* apply the view matrix to the object matrix */
-		else if (event == 3 || event == 4) { /* sort from cursor */
+		else if (event == 2) { /* sort from cursor */
 			if( G.vd && G.vd->localview ) {
 				VECCOPY(cur, G.vd->cursor);
 			} else {
@@ -522,14 +534,12 @@ void sort_faces(void)
 		mf= me->mface;
 		for(i=0; i<me->totface; i++, mf++) {
 			
-			if (event==5) {
+			if (event==3) {
+				face_sort_floats[i] = ((float)mf->mat_nr)*reverse;
+			} else if (event==4) {
 				/*selected first*/
 				if (mf->flag & ME_FACE_SEL)	face_sort_floats[i] = 0.0;
-				else						face_sort_floats[i] = 1.0;
-			} else if (event==6) {	
-				/*selected last*/
-				if (mf->flag & ME_FACE_SEL)	face_sort_floats[i] = 1.0;
-				else						face_sort_floats[i] = 0.0;
+				else						face_sort_floats[i] = reverse;
 			} else {
 				/* find the faces center */
 				VECADD(vec, (me->mvert+mf->v1)->co, (me->mvert+mf->v2)->co);
@@ -542,17 +552,11 @@ void sort_faces(void)
 					VECMUL(vec, 1.0f/3.0f);
 				} /* done */
 				
-				if (event == 1 || event == 2) { /* sort on view axis */
+				if (event == 1) { /* sort on view axis */
 					Mat4MulVecfl(mat, vec);
-					if (event==2)
-						face_sort_floats[i] = -vec[2]; /* front to back */
-					else
-						face_sort_floats[i] = vec[2]; /* back to front */
+					face_sort_floats[i] = vec[2] * reverse;
 				} else { /* distance from cursor*/
-					if (event==3)
-						face_sort_floats[i] = VecLenf(cur, vec); /* back to front */
-					else if (event==4)
-						face_sort_floats[i] = -VecLenf(cur, vec); /* front to back*/
+					face_sort_floats[i] = VecLenf(cur, vec) * reverse; /* back to front */
 				}
 			}
 		}
@@ -571,6 +575,8 @@ void sort_faces(void)
 	allqueue(REDRAWVIEW3D, 0);
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 }
+
+
 
 /* ********************* MESH VERTEX OCTREE LOOKUP ************* */
 
