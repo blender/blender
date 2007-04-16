@@ -527,8 +527,25 @@ int BIF_read_homefile(int from_memory)
 static void get_autosave_location(char buf[FILE_MAXDIR+FILE_MAXFILE])
 {
 	char pidstr[32];
+	char subdir[9];
+	char savedir[FILE_MAXDIR];
 
 	sprintf(pidstr, "%d.blend", abs(getpid()));
+	
+#ifdef WIN32
+	if (!BLI_exists(U.tempdir)) {
+		BLI_strncpy(subdir, "autosave", sizeof(subdir));
+		BLI_make_file_string("/", savedir, BLI_gethome(), subdir);
+		
+		/* create a new autosave dir
+		 * function already checks for existence or not */
+		BLI_recurdir_fileops(savedir);
+	
+		BLI_make_file_string("/", buf, savedir, pidstr);
+		return;
+	}
+#endif
+	
 	BLI_make_file_string("/", buf, U.tempdir, pidstr);
 }
 
