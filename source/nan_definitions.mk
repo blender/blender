@@ -135,15 +135,19 @@ endif
 	  endif
       else
         ifeq ($(OS),linux)
-         NAN_OPENEXR?=$(shell pkg-config --variable=prefix OpenEXR )
-         NAN_OPENEXR_INC?=$(shell pkg-config --cflags OpenEXR )
-         NAN_OPENEXR_LIBS?=$(addprefix ${NAN_OPENEXR}/lib/lib,$(addsuffix .a,$(shell pkg-config --libs OpenEXR | sed -s "s/-l//g" )))
+		 	ifeq ($(WITH_OPENEXR), true)
+         		NAN_OPENEXR?=$(shell pkg-config --variable=prefix OpenEXR )
+         		NAN_OPENEXR_INC?=$(shell pkg-config --cflags OpenEXR )
+         		NAN_OPENEXR_LIBS?=$(addprefix ${NAN_OPENEXR}/lib/lib,$(addsuffix .a,$(shell pkg-config --libs OpenEXR | sed -s "s/-l//g" )))
+			endif
         else
           export NAN_OPENEXR ?= /usr/local
 	  export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a
         endif
       endif
-      export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/OpenEXR
+		 	ifeq ($(WITH_OPENEXR), true)
+      			export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/OpenEXR
+			endif
 
     endif
   # Platform Dependent settings go below:
