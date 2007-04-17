@@ -32,10 +32,10 @@ $Id$
     installation, version v0.96.1 (http://www.scons.org).
 
     Check from the page
-    http://www.blender.org/cms/Getting_Dependencies.135.0.html that you
-    have all dependencies needed for building Blender. Note that for
-    windows many of these dependencies already come in the lib/windows
-    module from CVS.
+    http://www.blender.org/development/building-blender/getting-dependencies/
+    that you have all dependencies needed for building Blender. Note that for
+    windows many of these dependencies already come in the lib/windows module
+    from CVS.
 
     In the base directory of the sources (from now on called $BLENDERHOME)
     you'll see a file named SConstruct. This is the entry point for the
