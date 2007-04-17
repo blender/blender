@@ -1924,6 +1924,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						hide_unselected_pose_bones();
 					else if (G.qual==LR_ALTKEY)
 						show_all_pose_bones();
+				} else {
+					hookmenu();
 				}
 				break;
 			case IKEY:

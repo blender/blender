@@ -1342,7 +1342,7 @@ static void modifiers_clearHookOffset(void *ob_v, void *md_v)
 	if (hmd->object) {
 		Mat4Invert(hmd->object->imat, hmd->object->obmat);
 		Mat4MulSerie(hmd->parentinv, hmd->object->imat, ob->obmat, NULL, NULL, NULL, NULL, NULL, NULL);
-		BIF_undo_push("Clear hook");
+		BIF_undo_push("Clear hook offset");
 	}
 }
 

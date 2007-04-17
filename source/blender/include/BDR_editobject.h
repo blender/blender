@@ -110,6 +110,7 @@ void auto_timeoffs(void);
 void texspace_edit(void);
 void flip_subdivison(int);
 void mirrormenu(void);
+void hookmenu(void); /* object mode hook menu */
 
 
 void add_hook(void);

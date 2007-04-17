@@ -5384,3 +5384,74 @@ void mirrormenu(void)
 		Mirror(mode); /* separating functionality from interface | call*/
 	}
 }
+
+void hookmenu(void)
+{
+	/* only called in object mode */
+	short event, changed=0;
+	Object *ob;
+	Base *base;
+	ModifierData *md;
+	HookModifierData *hmd;
+	
+	event= pupmenu("Modify Hooks for Selected...%t|Reset Offset%x1|Recenter at Cursor%x2");
+	if (event==-1) return;
+	if (event==2 && !(G.vd)) {
+		error("Cannot perform this operation without a 3d view");
+		return;
+	}
+	
+	for (base= FIRSTBASE; base; base= base->next) {
+		if TESTBASELIB(base) {
+			for (md = base->object->modifiers.first; md; md=md->next) {
+				if (md->type==eModifierType_Hook) {
+					ob = base->object;
+					hmd = (HookModifierData*) md;
+					
+					/*
+					 * Copied from modifiers_cursorHookCenter and
+					 * modifiers_clearHookOffset, should consolidate
+					 * */
+					
+					if (event==1) {
+						if(hmd->object) {
+							Mat4Invert(hmd->object->imat, hmd->object->obmat);
+							Mat4MulSerie(hmd->parentinv, hmd->object->imat, ob->obmat, NULL, NULL, NULL, NULL, NULL, NULL);
+							
+							changed= 1;
+							DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+						}
+					} else {
+						float *curs = give_cursor();
+						float bmat[3][3], imat[3][3];
+						
+						where_is_object(ob);
+					
+						Mat3CpyMat4(bmat, ob->obmat);
+						Mat3Inv(imat, bmat);
+				
+						curs= give_cursor();
+						hmd->cent[0]= curs[0]-ob->obmat[3][0];
+						hmd->cent[1]= curs[1]-ob->obmat[3][1];
+						hmd->cent[2]= curs[2]-ob->obmat[3][2];
+						Mat3MulVecfl(imat, hmd->cent);
+						
+						changed= 1;
+						DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+					} 
+				}
+			}
+		}
+	}
+	
+	if (changed) {
+		if (event==1)
+			BIF_undo_push("Clear hook offset for selected");
+		else if (event==2)
+			BIF_undo_push("Hook cursor center for selected");
+		
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWBUTSEDIT, 0);
+	}	
+}
+
