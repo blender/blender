@@ -122,19 +122,22 @@ static PyObject *NewSeq_internal(ListBase *seqbase, PyObject * args, Scene *sce)
 	
 	if( !PyArg_ParseTuple( args, "Oii", &py_data, &start, &machine ) )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
-			"expects a string for chan/bone name and an int for the frame where to put the new key" );
+			"expect sequence data then 2 ints - (seqdata, start, track)" );
 	
 	seq = alloc_sequence(seqbase, start, machine); /* warning, this sets last */
 	
-	if (PyList_Check(py_data)) {
+	if (PyTuple_Check(py_data)) {
 		/* Image */
 		PyObject *list;
 		char *name;
 		
-		if (!PyArg_ParseTuple( py_data, "sO!", &name, &PyList_Type, &list))
+		if (!PyArg_ParseTuple( py_data, "sO!", &name, &PyList_Type, &list)) {
+			BLI_remlink(seqbase, seq);
+			MEM_freeN(seq);
+			
 			return EXPP_ReturnPyObjError( PyExc_ValueError,
-				"images data needs to be a tuple of a string and a list of images" );
-		
+				"images data needs to be a tuple of a string and a list of images - (path, [filenames...])" );
+		}
 		
 		seq->type= SEQ_IMAGE;
 		
@@ -203,6 +206,7 @@ static PyObject *NewSeq_internal(ListBase *seqbase, PyObject * args, Scene *sce)
 		if(seq->len>0) strip->stripdata= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
 		
 	} else {
+		/* movie, pydata is a path to a movie file */
 		char *name = PyString_AsString ( py_data );
 		if (!name) {
 			/* only free these 2 because other stuff isnt set */
@@ -213,10 +217,9 @@ static PyObject *NewSeq_internal(ListBase *seqbase, PyObject * args, Scene *sce)
 				"expects a string for chan/bone name and an int for the frame where to put the new key" );
 		}
 		
-		/* movie */
 		seq->type= SEQ_MOVIE;
 	}
-	
+	strncpy(seq->name+2, "Untitled", 21);
 	intern_pos_update(seq);
 	return Sequence_CreatePyObject(seq, NULL, sce);
 }
