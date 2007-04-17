@@ -1220,17 +1220,17 @@ static short mixed_bones_object_selectbuffer(unsigned int *buffer, short *mval)
 	short has_bones15=0, has_bones9=0, has_bones5=0;
 	
 	hits15= view3d_opengl_select(buffer, MAXPICKBUF, mval[0]-14, mval[1]-14, mval[0]+14, mval[1]+14);
-	if(hits15) {
+	if(hits15>0) {
 		for(a=0; a<hits15; a++) if(buffer[4*a+3] & 0xFFFF0000) has_bones15= 1;
 		
 		offs= 4*hits15;
 		hits9= view3d_opengl_select(buffer+offs, MAXPICKBUF-offs, mval[0]-9, mval[1]-9, mval[0]+9, mval[1]+9);
-		if(hits9) {
+		if(hits9>0) {
 			for(a=0; a<hits9; a++) if(buffer[offs+4*a+3] & 0xFFFF0000) has_bones9= 1;
 			
 			offs+= 4*hits9;
 			hits5= view3d_opengl_select(buffer+offs, MAXPICKBUF-offs, mval[0]-5, mval[1]-5, mval[0]+5, mval[1]+5);
-			if(hits5) {
+			if(hits5>0) {
 				for(a=0; a<hits5; a++) if(buffer[offs+4*a+3] & 0xFFFF0000) has_bones5= 1;
 			}
 		}
@@ -1249,12 +1249,12 @@ static short mixed_bones_object_selectbuffer(unsigned int *buffer, short *mval)
 			return hits15;
 		}
 		
-		if(hits5) {
+		if(hits5>0) {
 			offs= 4*hits15 + 4*hits9;
 			memcpy(buffer, buffer+offs, 4*offs);
 			return hits5;
 		}
-		if(hits9) {
+		if(hits9>0) {
 			offs= 4*hits15;
 			memcpy(buffer, buffer+offs, 4*offs);
 			return hits9;
@@ -1789,7 +1789,7 @@ void borderselect(void)
 		does it incorrectly.
 		*/
 
-		if (hits) { /* no need to loop if there's no hit */
+		if (hits>0) { /* no need to loop if there's no hit */
 			base= FIRSTBASE;
 			col = vbuffer + 3;
 			while(base && hits) {

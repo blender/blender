@@ -708,7 +708,7 @@ static void *get_nearest_bone (short findunsel)
 	glInitNames();
 	hits= view3d_opengl_select(buffer, MAXPICKBUF, 0, 0, 0, 0);
 
-	if (hits)
+	if (hits>0)
 		return get_bone_from_selectbuffer(BASACT, buffer, hits, findunsel);
 	
 	return NULL;
@@ -951,7 +951,7 @@ static EditBone * get_nearest_editbonepoint (int findunsel, int *selmask)
 		hits= view3d_opengl_select(buffer, MAXPICKBUF, mval[0]-12, mval[1]-12, mval[0]+12, mval[1]+12);
 		
 	/* See if there are any selected bones in this group */
-	if (hits) {
+	if (hits>0) {
 		
 		if(hits==1) {
 			if (!(buffer[3] & BONESEL_NOSEL)) 

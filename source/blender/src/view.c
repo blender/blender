@@ -1026,6 +1026,10 @@ void setcameratoview3d(void)
 }
 
 /* IGLuint-> GLuint*/
+/* Warning: be sure to account for a negative return value
+ *   This is an error, "Too many objects in select buffer"
+ *   and no action should be taken (can crash blender) if this happens
+ */
 short  view3d_opengl_select(unsigned int *buffer, unsigned int bufsize, short x1, short y1, short x2, short y2)
 {
 	rctf rect;
@@ -1113,7 +1117,6 @@ short  view3d_opengl_select(unsigned int *buffer, unsigned int bufsize, short x1
 	
 	glPopName();	/* see above (pushname) */
 	hits= glRenderMode(GL_RENDER);
-	if(hits<0) error("Too many objects in select buffer");
 
 	G.f &= ~G_PICKSEL;
 	setwinmatrixview3d(curarea->winx, curarea->winy, NULL);
@@ -1127,7 +1130,9 @@ short  view3d_opengl_select(unsigned int *buffer, unsigned int bufsize, short x1
 	
 	if(G.vd->flag & V3D_CLIPPING)
 		view3d_clr_clipping();
-
+	
+	if(hits<0) error("Too many objects in select buffer");
+	
 	return hits;
 }
 
