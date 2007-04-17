@@ -101,7 +101,7 @@ void splash(void * data, int datasizei, char * string);
 void screen_delayed_undo_push(char *name);
 void screenmain(void);
 void getdisplaysize(void);
-void setprefsize(int stax, int stay, int sizx, int sizy);
+void setprefsize(int stax, int stay, int sizx, int sizy, int maximized);
 void calc_arearcts(struct ScrArea *sa);
 void resize_screen(int x, int y, int w, int h);
 struct ScrArea *closest_bigger_area(void);

@@ -1564,7 +1564,7 @@ void mainwindow_set_filename_to_title(char *filename)
 
 /* *********  AREAS  ************* */
 
-void setprefsize(int stax, int stay, int sizx, int sizy)
+void setprefsize(int stax, int stay, int sizx, int sizy, int maximized)
 {
 	int scrwidth, scrheight;
 	
@@ -1588,7 +1588,7 @@ void setprefsize(int stax, int stay, int sizx, int sizy)
 	prefsizx= sizx;
 	prefsizy= sizy;
 
-	start_maximized= 0;
+	start_maximized= maximized;
 }
 
 

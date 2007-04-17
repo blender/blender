@@ -268,13 +268,13 @@ int main(int argc, char **argv)
 			
 			winlay_get_screensize(&scr_x, &scr_y); 
 			getMacAvailableBounds(&top, &left, &bottom, &right);
-			setprefsize(left +10,scr_y - bottom +10,right-left -20,bottom - 64);
+			setprefsize(left +10,scr_y - bottom +10,right-left -20,bottom - 64, 0);
 
         } else {
 				winlay_get_screensize(&scr_x, &scr_y);
 
 		/* 40 + 684 + (headers) 22 + 22 = 768, the powerbook screen height */
-		setprefsize(120, 40, 850, 684);
+		setprefsize(120, 40, 850, 684, 0);
         }
     
 		winlay_process_events(0);
@@ -412,7 +412,7 @@ int main(int argc, char **argv)
 					a++;
 					sizy= atoi(argv[a]);
 
-					setprefsize(stax, stay, sizx, sizy);
+					setprefsize(stax, stay, sizx, sizy, 0);
 					break;
 				case 'd':
 					G.f |= G_DEBUG;		/* std output printf's */ 
@@ -434,7 +434,7 @@ int main(int argc, char **argv)
 					 * called with "-p 0 0 xres yres" -- sgefant
 					 */ 
 					winlay_get_screensize(&sizx, &sizy);
-					setprefsize(0, 0, sizx, sizy);
+					setprefsize(0, 0, sizx, sizy, 1);
 					G.windowstate = G_WINDOWSTATE_BORDER;
 					break;
 				case 'W':
