@@ -43,8 +43,8 @@ from Blender import Registry, sys as bsys
 _EXT = '.cfg' # file extension for saved config data
 
 # limits:
-MAX_ITEMS_NUM = 60 # max number of keys per dict and itens per list and tuple
-MAX_STR_LEN = 300 # max string length (remember this is just for config data)
+#MAX_ITEMS_NUM = 60 # max number of keys per dict and itens per list and tuple
+#MAX_STR_LEN = 300 # max string length (remember this is just for config data)
 
 _CFG_DIR = ''
 if Blender.Get('udatadir'):
@@ -61,41 +61,42 @@ if bsys.dirsep == '\\':
 
 _KEYS = [k for k in Registry.Keys() if k[0] != '_']
 
-_ITEMS_NUM = 0
+# _ITEMS_NUM = 0
 
 def _sanitize(o):
 	"Check recursively that all objects are valid, set invalid ones to None"
 
-	global MAX_ITEMS_NUM, MAX_STR_LEN, _ITEMS_NUM
+	# global MAX_ITEMS_NUM, MAX_STR_LEN, _ITEMS_NUM
 
 	valid_types = [int, float, bool, long, type]
 	valid_checked_types = [str, unicode]
 	# Only very simple types are considered valid for configuration data,
-  # functions, methods and Blender objects (use their names instead) aren't.
+	# functions, methods and Blender objects (use their names instead) aren't.
 
 	t = type(o)
 
 	if t == dict:
-		keys = o.keys()
-		len_keys = len(keys)
-		_ITEMS_NUM += len_keys
+		'''
+		_ITEMS_NUM += len(o)
 		if _ITEMS_NUM > MAX_ITEMS_NUM:
 			return None
-		for k in keys:
-			o[k] = _sanitize(o[k])
+		'''
+		for k, v in o.iteritems():
+			o[k] = _sanitize(v)
 	elif t in [list, tuple]:
-		len_seq = len(o)
-		_ITEMS_NUM += len_seq
+		'''
+		_ITEMS_NUM += len(o)
 		if _ITEMS_NUM > MAX_ITEMS_NUM:
 			return None
-		result = []
-		for i in o: result.append(_sanitize(i))
-		return result
+		'''
+		return [_sanitize(i) for i in o]
 	elif t in valid_types:
 		return o
 	elif t in valid_checked_types:
+		'''
 		if len(o) > MAX_STR_LEN:
 			o = o[:MAX_STR_LEN]
+		'''
 		return o
 	else: return None
 
@@ -108,12 +109,12 @@ def _dict_to_str(name, d):
 	
 	if name: l = ['%s = {' % name]
 	else: l = ['{']
-	keys = d.keys()
-	for k in keys:
-		if type(d[k]) == dict:
-			l.append("'%s': %s" % (k, _dict_to_str(None, d[k])))
+	#keys = d.keys()
+	for k,v in d.iteritems(): # .keys()
+		if type(v) == dict:
+			l.append("'%s': %s" % (k, _dict_to_str(None, v)))
 		else:
-			l.append("'%s': %s," % (k, repr(d[k])))
+			l.append("'%s': %s," % (k, repr(v)))
 	if name: l.append('}')
 	else: l.append('},')
 	return "\n".join(l)
@@ -185,7 +186,7 @@ def LoadConfigData (key = None):
 
 	if not key:
 		files = \
-			[bsys.join(_CFG_DIR, f) for f in os.listdir(_CFG_DIR) if f[-4:] == _EXT]
+			[bsys.join(_CFG_DIR, f) for f in os.listdir(_CFG_DIR) if f.endswith(_EXT)]
 	else:
 		files = []
 		fname = bsys.join(_CFG_DIR, "%s%s" % (key, _EXT))
@@ -214,7 +215,7 @@ def RemoveConfigData (key = None):
 
 	if not key:
 		files = \
-			[bsys.join(_CFG_DIR, f) for f in os.listdir(_CFG_DIR) if f[-4:] == _EXT]
+			[bsys.join(_CFG_DIR, f) for f in os.listdir(_CFG_DIR) if f.endswith(_EXT)]
 	else:
 		files = []
 		fname = bsys.join(_CFG_DIR, "%s%s" % (key, _EXT))
@@ -243,8 +244,9 @@ def SaveConfigData (key = None):
 
 	for mainkey in keys:
 		cfgdict = Registry.GetKey(mainkey).copy()
-		for k in cfgdict.keys():
-			if not k or k[0] == '_': cfgdict.pop(k)
+		for k in cfgdict: # .keys()
+			if not k or k[0] == '_':
+				del cfgdict[k]
 
 		if not cfgdict: continue
 
@@ -254,4 +256,3 @@ def SaveConfigData (key = None):
 		if output!='None':
 			f.write(output)
 			f.close()
-
