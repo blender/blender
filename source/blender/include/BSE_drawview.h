@@ -79,7 +79,10 @@ int play_anim(int mode);
 void make_axis_color(char *col, char *col2, char axis);
 
 /* SMOOTHVIEW */
-void smooth_view(struct View3D *v3d, float *ofs, float *quat, float *dist);
+void smooth_view(struct View3D *v3d, float *ofs, float *quat, float *dist, float *lens);
+void smooth_view_to_camera(struct View3D *v3d);
+void view_settings_from_ob(struct Object *ob, float *ofs, float *quat, float *dist, float *lens);
+void object_view_settings(struct Object *ob, float *lens, float *clipsta, float *clipend);
 
 #endif /* BSE_DRAWVIEW_H */
 

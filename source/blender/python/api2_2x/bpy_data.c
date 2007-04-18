@@ -793,8 +793,6 @@ PyTypeObject LibBlockSeq_Type = {
 
 /*-----------------------------BPy module Init())-----------------------------*/
 
-static char M_BPy_Init_doc[] = "The bpy module";
-
 PyObject * Data_Init( void )
 {
 	PyObject *module;

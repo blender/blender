@@ -800,6 +800,31 @@ void viewmove(int mode)
 
 }
 
+/* Gets the lens and clipping values from a camera of lamp type object */
+void object_view_settings(Object *ob, float *lens, float *clipsta, float *clipend)
+{	
+	if (!ob) return;
+	
+	if(ob->type==OB_LAMP ) {
+		Lamp *la = ob->data;
+		if (lens) {
+			float x1, fac;
+			fac= cos( M_PI*la->spotsize/360.0);
+			x1= saacos(fac);
+			*lens= 16.0*fac/sin(x1);
+		}
+		if (clipsta)	*clipsta= la->clipsta;
+		if (clipend)	*clipend= la->clipend;
+	}
+	else if(ob->type==OB_CAMERA) {
+		Camera *cam= ob->data;
+		if (lens)		*lens= cam->lens;
+		if (clipsta)	*clipsta= cam->clipsta;
+		if (clipend)	*clipend= cam->clipend;
+	}
+}
+
+
 int get_view3d_viewplane(int winxi, int winyi, rctf *viewplane, float *clipsta, float *clipend)
 {
 	Camera *cam=NULL;
@@ -812,30 +837,8 @@ int get_view3d_viewplane(int winxi, int winyi, rctf *viewplane, float *clipsta, 
 	*clipsta= G.vd->near;
 	*clipend= G.vd->far;
 
-	if(G.vd->persp==2) {
-		*clipsta= G.vd->near;
-		*clipend= G.vd->far;
-		if(G.vd->camera) {
-			if(G.vd->camera->type==OB_LAMP ) {
-				Lamp *la;
-				
-				la= G.vd->camera->data;
-				fac= cos( M_PI*la->spotsize/360.0);
-				
-				x1= saacos(fac);
-				lens= 16.0*fac/sin(x1);
-		
-				*clipsta= la->clipsta;
-				*clipend= la->clipend;
-			}
-			else if(G.vd->camera->type==OB_CAMERA) {
-				cam= G.vd->camera->data;
-				lens= cam->lens;
-				*clipsta= cam->clipsta;
-				*clipend= cam->clipend;
-			}
-		}
-	}
+	if(G.vd->persp==2)
+		object_view_settings(G.vd->camera, &lens, clipsta, clipend);
 	
 	if(G.vd->persp==0) {
 		if(winx>winy) x1= -G.vd->dist;
@@ -956,7 +959,7 @@ void obmat_to_viewmat(Object *ob, short smooth)
 	if (smooth) {
 		float new_quat[4];
 		Mat3ToQuat(tmat, new_quat);
-		smooth_view(G.vd, NULL, new_quat, NULL);
+		smooth_view(G.vd, NULL, new_quat, NULL, NULL);
 	} else {
 		Mat3ToQuat(tmat, G.vd->viewquat);
 	}
@@ -1380,7 +1383,7 @@ void centerview()	/* like a localview without local! */
 	G.vd->cursor[1]= -new_ofs[1];
 	G.vd->cursor[2]= -new_ofs[2];
 	
-	smooth_view(G.vd, new_ofs, NULL, &new_dist);
+	smooth_view(G.vd, new_ofs, NULL, &new_dist, NULL);
 	
 	scrarea_queue_winredraw(curarea);
 	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
@@ -1496,7 +1499,7 @@ void view3d_home(int center)
 		
 		if(G.vd->persp==2) G.vd->persp= 1;
 		 
-		smooth_view(G.vd, new_ofs, NULL, &new_dist);
+		smooth_view(G.vd, new_ofs, NULL, &new_dist, NULL);
 		
 		scrarea_queue_winredraw(curarea);
 	}
@@ -1525,13 +1528,13 @@ void view3d_align_axis_to_vector(View3D *v3d, int axisidx, float vec[3])
 	v3d->view= 0;
 	if (v3d->persp>=2) v3d->persp= 0; /* switch out of camera mode */
 	
-	smooth_view(v3d, NULL, new_quat, NULL);
+	smooth_view(v3d, NULL, new_quat, NULL, NULL);
 }
 
 
 
 /* SMOOTHVIEW */
-void smooth_view(View3D *v3d, float *ofs, float *quat, float *dist)
+void smooth_view(View3D *v3d, float *ofs, float *quat, float *dist, float *lens)
 {
 	/* View Animation enabled */
 	if (U.smooth_viewtx) {
@@ -1539,6 +1542,7 @@ void smooth_view(View3D *v3d, float *ofs, float *quat, float *dist)
 		char changed = 0;
 		float step = 0.0, step_inv;
 		float orig_dist;
+		float orig_lens;
 		float orig_quat[4];
 		float orig_ofs[3];
 		
@@ -1548,6 +1552,11 @@ void smooth_view(View3D *v3d, float *ofs, float *quat, float *dist)
 		changed = 0; /* zero means no difference */
 		if (dist) {
 			if ((*dist) != v3d->dist)
+				changed = 1;
+		}
+		
+		if (lens) {
+			if ((*lens) != v3d->lens)
 				changed = 1;
 		}
 		
@@ -1574,6 +1583,7 @@ void smooth_view(View3D *v3d, float *ofs, float *quat, float *dist)
 			VECCOPY(orig_ofs,	v3d->ofs);
 			QUATCOPY(orig_quat,	v3d->viewquat);
 			orig_dist =			v3d->dist;
+			orig_lens =			v3d->lens;
 			
 			time_allowed= (float)U.smooth_viewtx / 1000.0;
 			time_current = time_start = PIL_check_seconds_timer();
@@ -1606,12 +1616,15 @@ void smooth_view(View3D *v3d, float *ofs, float *quat, float *dist)
 					for (i=0; i<3; i++)
 						v3d->ofs[i] = ofs[i]*step + orig_ofs[i]*step_inv;
 				
+				
 				if (quat)
 					QuatInterpol(v3d->viewquat, orig_quat, quat, step);
 					
-				if (dist) {
+				if (dist)
 					v3d->dist = ((*dist)*step) + (orig_dist*step_inv);
-				}
+				
+				if (lens)
+					v3d->lens = ((*lens)*step) + (orig_lens*step_inv);
 				
 				/*redraw the view*/
 				scrarea_do_windraw(curarea);
@@ -1630,6 +1643,88 @@ void smooth_view(View3D *v3d, float *ofs, float *quat, float *dist)
 		QUATCOPY(v3d->viewquat, quat);
 	if (dist)
 		v3d->dist = *dist;
+	if (lens)
+		v3d->lens = *lens;
 	
 }
 
+
+
+/* Gets the view trasnformation from a camera
+ * currently dosnt take camzoom into account
+ * 
+ * The dist is not modified for this function, if NULL its assimed zero
+ * */
+void view_settings_from_ob(Object *ob, float *ofs, float *quat, float *dist, float *lens)
+{	
+	float bmat[4][4];
+	float imat[4][4];
+	float tmat[3][3];
+	
+	if (!ob) return;
+	
+	/* Offset */
+	if (ofs) {
+		where_is_object(ob);
+		VECCOPY(ofs, ob->obmat[3]);
+		VecMulf(ofs, -1.0f); /*flip the vector*/
+	}
+	
+	/* Quat */
+	if (quat) {
+		Mat4CpyMat4(bmat, ob->obmat);
+		Mat4Ortho(bmat);
+		Mat4Invert(imat, bmat);
+		Mat3CpyMat4(tmat, imat);
+		Mat3ToQuat(tmat, quat);
+	}
+	
+	if (dist) {
+		float vec[3];
+		Mat3CpyMat4(tmat, ob->obmat);
+		
+		vec[0]= vec[1] = 0.0;
+		vec[2]= -(*dist);
+		Mat3MulVecfl(tmat, vec);
+		VecSubf(ofs, ofs, vec);
+	}
+	
+	/* Lens */
+	if (lens)
+		object_view_settings(ob, lens, NULL, NULL);
+}
+
+/* For use with smooth view
+ * 
+ * the current view is unchanged, blend between the current view and the
+ * camera view
+ * */
+void smooth_view_to_camera(View3D *v3d)
+{
+	if (!U.smooth_viewtx || !v3d->camera || G.vd->persp != 2) {
+		return;
+	} else {
+		Object *ob = v3d->camera;
+		
+		float orig_ofs[3];
+		float orig_dist=v3d->dist;
+		float orig_lens=v3d->lens;
+		float new_dist=0.0;
+		float new_lens=35.0;
+		float new_quat[4];
+		float new_ofs[3];
+		
+		VECCOPY(orig_ofs, v3d->ofs);
+		
+		view_settings_from_ob(ob, new_ofs, new_quat, NULL, &new_lens);
+		
+		G.vd->persp=1;
+		smooth_view(v3d, new_ofs, new_quat, &new_dist, &new_lens);
+		VECCOPY(v3d->ofs, orig_ofs);
+		v3d->lens= orig_lens;
+		v3d->dist = orig_dist; /* restore the dist */
+		
+		v3d->camera = ob;
+		v3d->persp=2;
+	}
+}

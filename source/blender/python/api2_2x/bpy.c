@@ -41,6 +41,7 @@
 #include "DNA_scene_types.h"
 
 #include "Types.h"
+#include "Library.h"
 
 #include "bpy.h"
 #include "bpy_data.h"

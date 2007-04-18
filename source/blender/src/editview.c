@@ -2094,7 +2094,7 @@ void view3d_border_zoom(void)
 		/* zoom in as required, or as far as we can go */
 		new_dist = ((new_dist*scale) >= 0.001*G.vd->grid)? new_dist*scale:0.001*G.vd->grid;
 		
-		smooth_view(G.vd, new_ofs, NULL, &new_dist);
+		smooth_view(G.vd, new_ofs, NULL, &new_dist, NULL);
 		
 	}
 }

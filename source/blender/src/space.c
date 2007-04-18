@@ -1338,7 +1338,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						new_ofs[0]= -curs[0];
 						new_ofs[1]= -curs[1];
 						new_ofs[2]= -curs[2];
-						smooth_view(G.vd, new_ofs, NULL, NULL);
+						smooth_view(G.vd, new_ofs, NULL, NULL, NULL);
 					}
 				}
 				doredraw= 1;
@@ -1743,7 +1743,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						new_ofs[0]= -curs[0];
 						new_ofs[1]= -curs[1];
 						new_ofs[2]= -curs[2];
-						smooth_view(G.vd, new_ofs, NULL, NULL);
+						smooth_view(G.vd, new_ofs, NULL, NULL, NULL);
 					}
 					scrarea_queue_winredraw(curarea);
 				}
