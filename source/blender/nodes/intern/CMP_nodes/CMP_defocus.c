@@ -791,7 +791,10 @@ static void node_composit_exec_defocus(void *data, bNode *node, bNodeStack **in,
 		gamma_correct_compbuf(new, 1);
 		free_compbuf(old);
 	}
-	
+	if(node->exec & NODE_BREAK) {
+		free_compbuf(new);
+		new= NULL;
+	}	
 	out[0]->data = new;
 	if (zbuf_use && (zbuf_use != zbuf)) free_compbuf(zbuf_use);
 }

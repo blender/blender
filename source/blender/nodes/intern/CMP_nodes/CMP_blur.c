@@ -579,7 +579,10 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 		new->yof = img->yof;
 		
 		blur_with_reference(node, new, img, in[1]->data);
-		
+		if(node->exec & NODE_BREAK) {
+			free_compbuf(new);
+			new= NULL;
+		}
 		out[0]->data= new;
 	}
 	else {
@@ -614,6 +617,10 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 			if(nbd->gamma) {
 				gamma_correct_compbuf(new, 1);
 				free_compbuf(gammabuf);
+			}
+			if(node->exec & NODE_BREAK) {
+				free_compbuf(new);
+				new= NULL;
 			}
 		}
 		out[0]->data= new;
