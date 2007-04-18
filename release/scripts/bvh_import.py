@@ -311,7 +311,7 @@ def bvh_node_dict2objects(bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOOP= False):
 	if IMPORT_START_FRAME<1:
 		IMPORT_START_FRAME= 1
 		
-	scn= bpy.scenes.active
+	scn= bpy.data.scenes.active
 	scn.objects.selected = []
 	
 	objects= []
@@ -368,10 +368,10 @@ def bvh_node_dict2armature(bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOOP= False)
 		
 	
 	# Add the new armature, 
-	scn = bpy.scenes.active
+	scn = bpy.data.scenes.active
 	scn.objects.selected = []
 	
-	arm_data= bpy.armatures.new()
+	arm_data= bpy.data.armatures.new()
 	arm_ob = scn.objects.new(arm_data)
 	scn.objects.context = [arm_ob]
 	scn.objects.active = arm_ob
@@ -743,7 +743,7 @@ def main():
 if __name__ == '__main__':
 	main()
 	'''
-	scn = bpy.scenes.active
+	scn = bpy.data.scenes.active
 	for ob in list(scn.objects): scn.objects.unlink(ob)
 	load_bvh_ui('/test.bvh', False)
 	'''

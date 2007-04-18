@@ -827,7 +827,7 @@ def main():
 	global USER_STRETCH_ASPECT
 	global USER_ISLAND_MARGIN
 	
-	objects= bpy.scenes.active.objects
+	objects= bpy.data.scenes.active.objects
 	
 	# we can will tag them later.
 	obList =  [ob for ob in objects.context if ob.type == 'Mesh']
@@ -922,7 +922,7 @@ def main():
 	time1 = sys.time()
 	
 	# Tag as False se we dont operate on teh same mesh twice.
-	bpy.meshes.tag = False 
+	bpy.data.meshes.tag = False 
 	
 	for ob in obList:
 		me = ob.getData(mesh=1)

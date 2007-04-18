@@ -299,7 +299,7 @@ def solidify(me, PREF_THICK, PREF_SKIN_SIDES=True, PREF_REM_ORIG=False, PREF_COL
 
 
 def main():
-	scn = bpy.scenes.active
+	scn = bpy.data.scenes.active
 	ob = scn.objects.active
 	
 	if not ob or ob.type != 'Mesh':

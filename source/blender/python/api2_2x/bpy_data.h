@@ -29,8 +29,8 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#ifndef EXPP_BPYMODULE_H
-#define EXPP_BPYMODULE_H
+#ifndef EXPP_BPYDATA_H
+#define EXPP_BPYDATA_H
 
 #include <Python.h>
 #include "DNA_listBase.h"
@@ -50,6 +50,6 @@ typedef struct {
 } BPy_LibBlockSeq;
 
 
-void M_BPy_Init( void );
+PyObject * Data_Init( void );
 
-#endif				/* EXPP_MAIN_H */
+#endif				/* EXPP_BPYDATA_H */

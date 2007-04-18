@@ -521,7 +521,7 @@ def main():
 	
 	is_editmode = Window.EditMode()
 	if is_editmode: Window.EditMode(0)
-	ob = bpy.scenes.active.objects.active
+	ob = bpy.data.scenes.active.objects.active
 	if ob == None or ob.type != 'Mesh':
 		BPyMessages.Error_NoMeshActive()
 		return

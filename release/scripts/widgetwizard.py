@@ -104,7 +104,7 @@ def delCurve(ipo):
 def verifyIpocurve(ky,index):
 	ipo = ky.ipo
 	if ipo == None:
-		nip = bpy.ipos.new("keyipo", "Key")
+		nip = bpy.data.ipos.new("keyipo", "Key")
 		ky.ipo = nip
 	ipo = ky.ipo
 	if index == 0:
@@ -378,7 +378,7 @@ def setupDrivers(ob,ctrl,type):
 		
 def build(type):
 	global shapes,widmenu,rangename
-	sce = bpy.scenes.active
+	sce = bpy.data.scenes.active
 	ob = sce.objects.active
 	
 	try:
@@ -410,7 +410,7 @@ def build(type):
 #Create the text
 
 def makeText(sce, name):
-	txt = bpy.curves.new(name+'.name', 'Text3d') 
+	txt = bpy.data.curves.new(name+'.name', 'Text3d') 
 	
 	txt.setDrawMode(Text3d.DRAW3D)
 	txt.setAlignment(Text3d.MIDDLE)
@@ -423,7 +423,7 @@ def makeText(sce, name):
 #Create the mesh controller
 
 def makeController(sce, name):
-	me = bpy.meshes.new(name+".ctrl")
+	me = bpy.data.meshes.new(name+".ctrl")
 	ob = sce.objects.new(me)
 	me.verts.extend([\
 		(-0.15,0,    0),\
@@ -438,7 +438,7 @@ def makeController(sce, name):
 
 def makeRange(sce,type,name):
 	#ob.setDrawMode(8)  # Draw Name
-	me = bpy.meshes.new(name)	
+	me = bpy.data.meshes.new(name)	
 	ob = sce.objects.new(me)
 
 	if type == SHAPE1_ONE_ZERO:
@@ -581,7 +581,7 @@ EVENT_BACK 			= 103
 #get the list of shapes from the selected object
 
 def shapeMenuText():
-	ob = bpy.scenes.active.objects.active
+	ob = bpy.data.scenes.active.objects.active
 	if not ob:
 		return ""
 	

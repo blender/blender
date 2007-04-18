@@ -109,7 +109,7 @@ def main():
 		NAME_TEXTURE = NAME_TEXTURE.lower()
 	
 	def activate(ob, scn):
-		bpy.scenes.active = scn
+		bpy.data.scenes.active = scn
 		scn.objects.selected = []
 		scn.Layers = ob.Layers
 		ob.sel = 1
@@ -131,10 +131,10 @@ def main():
 	
 	if NAME_INGROUP:
 		# Best we speed this up.
-		bpy.objects.tag = False
+		bpy.data.objects.tag = False
 		
 		ok = False
-		for group in bpy.groups:
+		for group in bpy.data.groups:
 			if name_cmp(NAME_INGROUP, group.name):
 				for ob in group.objects:
 					ob.tag = True
@@ -143,7 +143,7 @@ def main():
 			Draw.PupMenu('No Objects Found')
 			return
 	
-	for scn in bpy.scenes:
+	for scn in bpy.data.scenes:
 		for ob in scn.objects:
 			if NAME_DATA:
 				if name_cmp(NAME_DATA, ob.getData(1)):
@@ -152,7 +152,7 @@ def main():
 			if NAME_INGROUP:
 				# Crap and slow but not much we can do about that
 				'''
-				for group in bpy.groups:
+				for group in bpy.data.groups:
 					if name_cmp(NAME_INGROUP, group.name):
 						for ob_group in group.objects:
 							if ob == ob_group:

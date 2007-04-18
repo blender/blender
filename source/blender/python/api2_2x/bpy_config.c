@@ -32,8 +32,8 @@
 
 /* python types */
 #include "DNA_userdef_types.h"
-#include "gen_utils.h"
-#include "Config.h"
+#include "../api2_2x/gen_utils.h"
+#include "bpy_config.h"
 
 enum conf_consts {
 	/*string*/

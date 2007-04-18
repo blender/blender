@@ -149,7 +149,7 @@ def read(filename):
 
 	print "This is: %s" % importername
 	print "Importing file:", filename
-	bpy.scenes.active.objects.selected = []
+	bpy.data.scenes.active.objects.selected = []
 	
 	start = Blender.sys.time()
 	file = open(filename, "rb")
@@ -208,7 +208,7 @@ def read_lwob(file, filename):
 	objspec_list = None
 
 	#add default material for orphaned faces, if any
-	surf_list.append({'NAME': "_Orphans", 'g_MAT': bpy.materials.new("_Orphans")})
+	surf_list.append({'NAME': "_Orphans", 'g_MAT': bpy.data.materials.new("_Orphans")})
 
 	#pass 2: effectively generate objects
 	###if DEBUG: print "Pass 1: dry import"
@@ -344,7 +344,7 @@ def read_lwo2(file, filename, typ="LWO2"):
 			lwochunk.skip()
 
 	#add default material for orphaned faces, if any
-	surf_list.append({'NAME': "_Orphans", 'g_MAT': bpy.materials.new("_Orphans")})
+	surf_list.append({'NAME': "_Orphans", 'g_MAT': bpy.data.materials.new("_Orphans")})
 
 	#pass 2: effectively generate objects
 	###if DEBUG: print "Pass 2: now for the hard part"
@@ -1000,7 +1000,7 @@ def read_surfs(lwochunk, surf_list, tag_list):
 		pass
 	
 	#uncomment this if material pre-allocated by read_surf
-	my_dict['g_MAT'] = bpy.materials.new(my_dict['NAME'])
+	my_dict['g_MAT'] = bpy.data.materials.new(my_dict['NAME'])
 	###if DEBUG: print "-> Material pre-allocated."
 	return my_dict
 
@@ -1097,8 +1097,8 @@ def my_create_mesh(clip_list, surf, objspec_list, current_facelist, objname, not
 	#end loop on faces
 	store_edge = 0
 	
-	scn= bpy.scenes.active
-	msh = bpy.meshes.new()
+	scn= bpy.data.scenes.active
+	msh = bpy.data.meshes.new()
 	obj = scn.objects.new(msh)
 	
 	mat = None
@@ -1431,7 +1431,7 @@ def create_blok(surf, mat, clip_list, obj_size, obj_pos):
 			tname += "x" #let's signal when should not be enabled
 		if blok.has_key('CHAN'):
 			tname += blok['CHAN']
-		newtex = bpy.textures.new(tname)
+		newtex = bpy.data.textures.new(tname)
 		newtex.setType('Image')                 # make it anu image texture
 		newtex.image = img
 		#how does it extends beyond borders
@@ -1705,8 +1705,8 @@ for i, _lwo in enumerate(lines):
 		_lwo= _lwo[:-1]
 		print 'Importing', _lwo, '\nNUMBER', i, 'of', len(lines)
 		_lwo_file= _lwo.split('/')[-1].split('\\')[-1]
-		newScn= bpy.scenes.new(_lwo_file)
-		bpy.scenes.active = newScn
+		newScn= bpy.data.scenes.new(_lwo_file)
+		bpy.data.scenes.active = newScn
 		size += ((os.path.getsize(_lwo)/1024.0))/ 1024.0
 		read(_lwo)
 		# Remove objects to save memory?

@@ -12,7 +12,7 @@ def add_mesh_simple(name, verts, edges, faces):
 	faces - list of int triplets/quads
 	'''
 	
-	scn = bpy.scenes.active
+	scn = bpy.data.scenes.active
 	if scn.lib: return
 	ob_act = scn.objects.active
 	
@@ -67,7 +67,7 @@ def add_mesh_simple(name, verts, edges, faces):
 		
 		# Object mode add new
 		
-		me = bpy.meshes.new(name)
+		me = bpy.data.meshes.new(name)
 		me.verts.extend(verts)
 		me.edges.extend(edges)
 		me.faces.extend(faces)
@@ -137,7 +137,7 @@ import bpy
 
 def main():
 	# Add error checking
-	scn = bpy.scenes.active
+	scn = bpy.data.scenes.active
 	ob = scn.objects.active
 	me = ob.getData(mesh=1)
 	

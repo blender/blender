@@ -47,7 +47,7 @@ import bpy
 
 global renameCount
 renameCount = 0
-obsel = bpy.scenes.active.objects.context
+obsel = bpy.data.scenes.active.objects.context
 
 def setDataNameWrapper(ob, newname):
 	if ob.getData(name_only=1) == newname:

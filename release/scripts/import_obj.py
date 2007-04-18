@@ -118,7 +118,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 	#==================================================================================#
 	def load_material_image(blender_material, context_material_name, imagepath, type):
 		
-		texture= bpy.textures.new(type)
+		texture= bpy.data.textures.new(type)
 		texture.setType('Image')
 		
 		# Absolute path - c:\.. etc would work here
@@ -168,7 +168,7 @@ def create_materials(filepath, material_libs, unique_materials, unique_material_
 	
 	#Create new materials
 	for name in unique_materials.iterkeys():
-		unique_materials[name]= bpy.materials.new(name)
+		unique_materials[name]= bpy.data.materials.new(name)
 		
 		unique_material_images[name]= None, False # assign None to all material images to start with, add to later.
 		
@@ -432,7 +432,7 @@ def create_mesh(scn, new_objects, has_ngons, CREATE_FGONS, CREATE_EDGES, verts_l
 	for name, index in material_mapping.iteritems():
 		materials[index]= unique_materials[name]
 	
-	me= bpy.meshes.new(dataname)
+	me= bpy.data.meshes.new(dataname)
 	
 	me.materials= materials[0:16] # make sure the list isnt too big.
 	#me.verts.extend([(0,0,0)]) # dummy vert
@@ -706,7 +706,7 @@ def load_obj(filepath, CLAMP_SIZE= 0.0, CREATE_FGONS= True, CREATE_SMOOTH_GROUPS
 	
 	
 	# deselect all
-	scn = bpy.scenes.active
+	scn = bpy.data.scenes.active
 	scn.objects.selected = []
 	new_objects= [] # put new objects here
 	
@@ -805,7 +805,7 @@ def load_obj_ui(filepath, BATCH_LOAD= False):
 			return
 		
 		for f in files:
-			scn= bpy.scenes.new( stripExt(f) )
+			scn= bpy.data.scenes.new( stripExt(f) )
 			scn.makeCurrent()
 			
 			load_obj(sys.join(filepath, f),\
@@ -870,7 +870,7 @@ else:
 			_obj= _obj[:-1]
 			print 'Importing', _obj, '\nNUMBER', i, 'of', len(lines)
 			_obj_file= _obj.split('/')[-1].split('\\')[-1]
-			newScn= bpy.scenes.new(_obj_file)
+			newScn= bpy.data.scenes.new(_obj_file)
 			newScn.makeCurrent()
 			load_obj(_obj, False)
 

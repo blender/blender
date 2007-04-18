@@ -143,7 +143,7 @@ BOUNDS_3DS= []
 #which shold be more useful.
 
 def createBlenderTexture(material, name, image):
-	texture= bpy.textures.new(name)
+	texture= bpy.data.textures.new(name)
 	texture.setType('Image')
 	texture.image= image
 	material.setTexture(0, texture, Texture.TexCo.UV, Texture.MapTo.COL)
@@ -366,7 +366,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 			myVertMapping = dict( [ (ii, i) for i, ii in enumerate(vertsToUse) ] )
 			
 			tempName= '%s_%s' % (contextObName, matName) # matName may be None.
-			bmesh = bpy.meshes.new(tempName)
+			bmesh = bpy.data.meshes.new(tempName)
 			
 			if matName == None:
 				img= None
@@ -461,7 +461,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 		#is it a material chunk?
 		elif (new_chunk.ID==MATERIAL):
 			#print 'elif (new_chunk.ID==MATERIAL):'
-			contextMaterial= bpy.materials.new('Material')
+			contextMaterial= bpy.data.materials.new('Material')
 		
 		elif (new_chunk.ID==MAT_NAME):
 			#print 'elif (new_chunk.ID==MAT_NAME):'
@@ -520,7 +520,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 			
 		elif (new_chunk.ID==MAT_TEXTURE_MAP):
 			#print 'elif (new_chunk.ID==MAT_TEXTURE_MAP):'
-			new_texture= bpy.textures.new('Diffuse')
+			new_texture= bpy.data.textures.new('Diffuse')
 			new_texture.setType('Image')
 			img = None
 			while (new_chunk.bytes_read<new_chunk.length):
@@ -544,7 +544,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 			
 		elif (new_chunk.ID==MAT_SPECULAR_MAP):
 			#print 'elif (new_chunk.ID==MAT_SPECULAR_MAP):'
-			new_texture= bpy.textures.new('Specular')
+			new_texture= bpy.data.textures.new('Specular')
 			new_texture.setType('Image')
 			img = None
 			while (new_chunk.bytes_read<new_chunk.length):
@@ -566,7 +566,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 	
 		elif (new_chunk.ID==MAT_OPACITY_MAP):
 			#print 'new_texture=Blender.Texture.New('Opacity')'
-			new_texture= bpy.textures.new('Opacity')
+			new_texture= bpy.data.textures.new('Opacity')
 			new_texture.setType('Image')
 			img = None
 			while (new_chunk.bytes_read<new_chunk.length):
@@ -587,7 +587,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 
 		elif (new_chunk.ID==MAT_BUMP_MAP):
 			#print 'elif (new_chunk.ID==MAT_BUMP_MAP):'
-			new_texture= bpy.textures.new('Bump')
+			new_texture= bpy.data.textures.new('Bump')
 			new_texture.setType('Image')
 			img = None
 			while (new_chunk.bytes_read<new_chunk.length):
@@ -624,7 +624,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 			x,y,z=unpack('<3f', temp_data)
 			new_chunk.bytes_read+=STRUCT_SIZE_3FLOAT
 			
-			contextLamp[1]= bpy.lamps.new()
+			contextLamp[1]= bpy.data.lamps.new()
 			contextLamp[0]= SCN_OBJECTS.link(contextLamp[1])
 			contextLamp[0].link(contextLamp[1])
 			##scn.link(contextLamp[0])
@@ -857,7 +857,7 @@ def load_3ds(filename, PREF_UI= True):
 	
 	##IMAGE_SEARCH
 	
-	scn= bpy.scenes.active
+	scn= bpy.data.scenes.active
 	SCN_OBJECTS = scn.objects
 	SCN_OBJECTS.selected = [] # de select all
 	

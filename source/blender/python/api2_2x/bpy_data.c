@@ -30,7 +30,7 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#include "BPyModule.h"
+#include "bpy_data.h"
 
 #include "MEM_guardedalloc.h"	/* for MEM_callocN */
 #include "DNA_space_types.h"	/* SPACE_VIEW3D, SPACE_SEQ */
@@ -88,7 +88,6 @@
 #include "Camera.h"
 #include "Armature.h"
 #include "Lamp.h"
-/*#include " CurNurb.h" do we need this ? */
 #include "Curve.h"
 #include "NMesh.h"
 #include "Mesh.h"
@@ -107,7 +106,7 @@
 #include "Scene.h"
 #include "Library.h"
 
-#include "Config.h" /* config pydata */
+#include "bpy_config.h" /* config pydata */
 
 /* used only for texts.active */
 #include "BIF_screen.h"
@@ -796,7 +795,7 @@ PyTypeObject LibBlockSeq_Type = {
 
 static char M_BPy_Init_doc[] = "The bpy module";
 
-void M_BPy_Init( void )
+PyObject * Data_Init( void )
 {
 	PyObject *module;
 	PyObject *dict;
@@ -806,32 +805,28 @@ void M_BPy_Init( void )
 	PyType_Ready( &Config_Type );
 	
 	/*submodule = Py_InitModule3( "Blender.Main", NULL, M_Main_doc );*/
-	module = Py_InitModule3( "bpy", NULL, M_BPy_Init_doc );
+	module = Py_InitModule3( "bpy.data", NULL, "The bpy.data submodule" );
 	dict = PyModule_GetDict( module );
-
-	PyDict_SetItemString( dict, "libraries", Library_Init(  ) );
 	
 	/* Python Data Types */
-	PyModule_AddObject( module, "scenes", LibBlockSeq_CreatePyObject(NULL, ID_SCE) );
-	PyModule_AddObject( module, "objects", LibBlockSeq_CreatePyObject(NULL, ID_OB) );
-	PyModule_AddObject( module, "meshes", LibBlockSeq_CreatePyObject(NULL, ID_ME) );
-	PyModule_AddObject( module, "curves", LibBlockSeq_CreatePyObject(NULL, ID_CU) );
-	PyModule_AddObject( module, "metaballs", LibBlockSeq_CreatePyObject(NULL, ID_MB) );
-	PyModule_AddObject( module, "materials", LibBlockSeq_CreatePyObject(NULL, ID_MA) );
-	PyModule_AddObject( module, "textures", LibBlockSeq_CreatePyObject(NULL, ID_TE) );
-	PyModule_AddObject( module, "images", LibBlockSeq_CreatePyObject(NULL, ID_IM) );
-	PyModule_AddObject( module, "lattices", LibBlockSeq_CreatePyObject(NULL, ID_LT) );
-	PyModule_AddObject( module, "lamps", LibBlockSeq_CreatePyObject(NULL, ID_LA) );
-	PyModule_AddObject( module, "cameras", LibBlockSeq_CreatePyObject(NULL, ID_CA) );
-	PyModule_AddObject( module, "ipos", LibBlockSeq_CreatePyObject(NULL, ID_IP) );
-	PyModule_AddObject( module, "worlds", LibBlockSeq_CreatePyObject(NULL, ID_WO) );
-	PyModule_AddObject( module, "fonts", LibBlockSeq_CreatePyObject(NULL, ID_VF) );
-	PyModule_AddObject( module, "texts", LibBlockSeq_CreatePyObject(NULL, ID_TXT) );
-	PyModule_AddObject( module, "sounds", LibBlockSeq_CreatePyObject(NULL, ID_SO) );
-	PyModule_AddObject( module, "groups", LibBlockSeq_CreatePyObject(NULL, ID_GR) );
-	PyModule_AddObject( module, "armatures", LibBlockSeq_CreatePyObject(NULL, ID_AR) );
-	PyModule_AddObject( module, "actions", LibBlockSeq_CreatePyObject(NULL, ID_AC) );
-	
-	/* Other Types */
-	PyModule_AddObject( module, "config", Config_CreatePyObject() );
+	PyModule_AddObject( module, "scenes", 	LibBlockSeq_CreatePyObject(NULL, ID_SCE) );
+	PyModule_AddObject( module, "objects",	LibBlockSeq_CreatePyObject(NULL, ID_OB) );
+	PyModule_AddObject( module, "meshes",	LibBlockSeq_CreatePyObject(NULL, ID_ME) );
+	PyModule_AddObject( module, "curves",	LibBlockSeq_CreatePyObject(NULL, ID_CU) );
+	PyModule_AddObject( module, "metaballs",LibBlockSeq_CreatePyObject(NULL, ID_MB) );
+	PyModule_AddObject( module, "materials",LibBlockSeq_CreatePyObject(NULL, ID_MA) );
+	PyModule_AddObject( module, "textures",	LibBlockSeq_CreatePyObject(NULL, ID_TE) );
+	PyModule_AddObject( module, "images",	LibBlockSeq_CreatePyObject(NULL, ID_IM) );
+	PyModule_AddObject( module, "lattices",	LibBlockSeq_CreatePyObject(NULL, ID_LT) );
+	PyModule_AddObject( module, "lamps",	LibBlockSeq_CreatePyObject(NULL, ID_LA) );
+	PyModule_AddObject( module, "cameras",	LibBlockSeq_CreatePyObject(NULL, ID_CA) );
+	PyModule_AddObject( module, "ipos",		LibBlockSeq_CreatePyObject(NULL, ID_IP) );
+	PyModule_AddObject( module, "worlds",	LibBlockSeq_CreatePyObject(NULL, ID_WO) );
+	PyModule_AddObject( module, "fonts",	LibBlockSeq_CreatePyObject(NULL, ID_VF) );
+	PyModule_AddObject( module, "texts",	LibBlockSeq_CreatePyObject(NULL, ID_TXT) );
+	PyModule_AddObject( module, "sounds",	LibBlockSeq_CreatePyObject(NULL, ID_SO) );
+	PyModule_AddObject( module, "groups",	LibBlockSeq_CreatePyObject(NULL, ID_GR) );
+	PyModule_AddObject( module, "armatures",LibBlockSeq_CreatePyObject(NULL, ID_AR) );
+	PyModule_AddObject( module, "actions",	LibBlockSeq_CreatePyObject(NULL, ID_AC) );
+	return module;
 }

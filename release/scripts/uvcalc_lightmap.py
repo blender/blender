@@ -505,7 +505,7 @@ PREF_MARGIN_DIV=		512):
 	Window.RedrawAll()
 
 def main():
-	scn = bpy.scenes.active
+	scn = bpy.data.scenes.active
 	
 	PREF_ACT_ONLY = Draw.Create(1)
 	PREF_SEL_ONLY = Draw.Create(1)

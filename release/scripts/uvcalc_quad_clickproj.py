@@ -75,7 +75,7 @@ def mousedown_wait():
 
 def main():
 	
-	scn = bpy.scenes.active
+	scn = bpy.data.scenes.active
 	ob = scn.objects.active
 	if not ob or ob.type!='Mesh':
 		return

@@ -18,35 +18,24 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ * Inc., 59 Temple Place - Suite 330, Boston, MA	02111-1307, USA.
  *
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Campbell Barton
+ * Contributor(s): Michel Selten, Willian P. Germano
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
 
-#ifndef EXPP_CONFIG_H
-#define EXPP_CONFIG_H
+#ifndef EXPP_BPYMOD_H
+#define EXPP_BPYMOD_H
 
 #include <Python.h>
 
-/* The Main PyType Object defined in Main.c */
-extern PyTypeObject Config_Type;
+extern PyObject *g_bpydict;
+void m_bpy_init( void );
 
-#define BPy_Config_Check(v) \
-    ((v)->ob_type == &Config_Type)
-
-/* Main sequence, iterate on the libdatas listbase*/
-typedef struct {
-	PyObject_VAR_HEAD /* required python macro   */
-} BPy_Config;
-
-PyObject *Config_CreatePyObject();
-
-
-#endif				/* EXPP_CONFIG_H */
+#endif				/* EXPP_BPYMOD_H */

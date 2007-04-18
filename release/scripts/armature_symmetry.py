@@ -248,7 +248,7 @@ def main():
 	User interface function that gets the options and calls armature_symetry()
 	'''
 	
-	scn= bpy.scenes.active
+	scn= bpy.data.scenes.active
 	arm_ob= scn.objects.active
 	
 	if not arm_ob or arm_ob.type!='Armature':

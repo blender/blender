@@ -43,7 +43,7 @@ import bpy
 import BPyMesh
 
 def extend():
-	scn = bpy.scenes.active
+	scn = bpy.data.scenes.active
 	ob = scn.objects.active
 	
 	# print ob, ob.type

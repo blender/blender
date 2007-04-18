@@ -101,7 +101,7 @@ def comprehensiveImageLoad(imagePath, filePath, PLACE_HOLDER= True, RECURSIVE=Tr
 		#if path.endswith('\\') or path.endswith('/'):
 		#	raise 'INVALID PATH'
 		try:
-			img = bpy.images.new(filename=path)
+			img = bpy.data.images.new(filename=path)
 			if VERBOSE: print '\t\tImage loaded "%s"' % path
 			return img
 		except:
@@ -109,7 +109,7 @@ def comprehensiveImageLoad(imagePath, filePath, PLACE_HOLDER= True, RECURSIVE=Tr
 				if sys.exists(path): print '\t\tImage failed loading "%s", mabe its not a format blender can read.' % (path)
 				else: print '\t\tImage not found, making a place holder "%s"' % (path)
 			if PLACE_HOLDER:
-				img= bpy.images.new(stripPath(path),4,4)
+				img= bpy.data.images.new(stripPath(path),4,4)
 				img.filename= path
 				return img #blank image
 			else:
@@ -123,7 +123,7 @@ def comprehensiveImageLoad(imagePath, filePath, PLACE_HOLDER= True, RECURSIVE=Tr
 	imageFileName_lower =  imageFileName.lower() # image path only
 	
 	if VERBOSE: print '\tSearchingExisting Images for "%s"' % imagePath
-	for i in bpy.images:
+	for i in bpy.data.images:
 		if stripPath(i.filename.lower()) == imageFileName_lower:
 			if VERBOSE: print '\t\tUsing existing image.'
 			return i

@@ -55,7 +55,7 @@ def my_mesh_util(me):
 def main():
 	
 	# Gets the current scene, there can be many scenes in 1 blend file.
-	sce = bpy.scenes.active
+	sce = bpy.data.scenes.active
 	
 	# Get the active object, there can only ever be 1
 	# and the active object is always the editmode object.
@@ -91,7 +91,7 @@ if __name__ == '__main__':
 	main()
 '''
 
-new_text = bpy.texts.new('mesh_template.py')
+new_text = bpy.data.texts.new('mesh_template.py')
 new_text.write(script_data)
-bpy.texts.active = new_text
+bpy.data.texts.active = new_text
 Window.RedrawAll()

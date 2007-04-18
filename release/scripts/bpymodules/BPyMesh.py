@@ -385,9 +385,9 @@ def getMeshFromObject(ob, container_mesh=None, apply_modifiers=True, vgroups=Tru
 	'''
 	
 	if not scn:
-		scn= bpy.scenes.active
+		scn= bpy.data.scenes.active
 	if not container_mesh:
-		mesh = bpy.meshes.new(ob.name)	
+		mesh = bpy.data.meshes.new(ob.name)	
 	else:
 		mesh= container_mesh
 		mesh.verts= None

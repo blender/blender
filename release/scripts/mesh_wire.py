@@ -235,7 +235,7 @@ def solid_wire(ob_orig, me_orig, sce, PREF_THICKNESS, PREF_SOLID, PREF_SHARP, PR
 def main():
 	
 	# Gets the current scene, there can be many scenes in 1 blend file.
-	sce = bpy.scenes.active
+	sce = bpy.data.scenes.active
 	
 	# Get the active object, there can only ever be 1
 	# and the active object is always the editmode object.

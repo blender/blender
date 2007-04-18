@@ -174,7 +174,7 @@ def writeCmdData(cmdLineList, type):
 	Draw.PupMenu('%s written' % newText.name)
 
 def insertCmdData(cmdBuffer):
-	texts = list(bpy.texts)
+	texts = list(bpy.data.texts)
 	textNames = [tex.name for tex in texts]
 	if textNames:
 		choice = Draw.PupMenu('|'.join(textNames))

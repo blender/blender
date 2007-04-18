@@ -66,7 +66,7 @@
 #include "api2_2x/Draw.h"
 #include "api2_2x/Object.h"
 #include "api2_2x/Registry.h"
-#include "api2_2x/BPyModule.h" /* for the "bpy" default module */
+#include "api2_2x/bpy.h" /* for the new "bpy" module */
 
 /* for scriptlinks */
 #include "DNA_lamp_types.h"
@@ -81,7 +81,7 @@
  * choose to preserve after they are executed, so user changes can be
  * restored next time the script is used.  Check the Blender.Registry module. 
  */
-//#include "api2_2x/Registry.h"
+/*#include "api2_2x/Registry.h" */
 
 /* for pydrivers (ipo drivers defined by one-line Python expressions) */
 PyObject *bpy_pydriver_Dict = NULL;
@@ -118,7 +118,7 @@ int setup_armature_weakrefs()
 
 static struct _inittab BPy_Inittab_Modules[] = {
 	{"Blender", M_Blender_Init},
-	{"bpy", M_BPy_Init},
+	{"bpy", m_bpy_init},
 	{NULL, NULL}
 };
 

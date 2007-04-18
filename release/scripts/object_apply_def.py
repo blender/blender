@@ -86,7 +86,7 @@ def copy_vgroups(source_ob, target_ob):
 
 
 def apply_deform():
-	scn= bpy.scenes.active
+	scn= bpy.data.scenes.active
 	#Blender.Window.EditMode(0)
 	
 	NAME_LENGTH = 19
