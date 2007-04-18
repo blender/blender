@@ -603,11 +603,21 @@ PyObject *LibraryData_importLibData( BPy_LibraryData *self, char *name,
 	 * be renamed to.
 	 */
 
-	strncpy( newName, name, strlen(name)+1 );
+	if( mode != FILE_LINK ) {
+		ID *id;
+		ListBase *lbarray[MAX_LIBARRAY];
+		int a;
 
-	   	/* for appends, see what new block will be called */
-	if( mode != FILE_LINK )
+		/* tag everything, all untagged data can be made local */
+		a= set_listbasepointers(G.main, lbarray);
+		while( a--)
+			for( id= lbarray[a]->first; id; id= id->next )
+				id->flag |= LIB_APPEND_TAG;
+
+	   	/* see what new block will be called */
+		strncpy( newName, name, strlen(name)+1 );
 		check_for_dupid( wich_libbase(G.main, self->type), NULL, newName );
+	}
 
 	/* import from the libary */
 	BLO_script_library_append( openlib, longFilename, name, self->type, mode,
@@ -619,28 +629,43 @@ PyObject *LibraryData_importLibData( BPy_LibraryData *self, char *name,
 	 */
 	for( lib = G.main->library.first; lib; lib = lib->id.next )
 		if( strcmp( longFilename, lib->name ) == 0 ) {
-			if( mode != FILE_LINK ) {
-				all_local( lib, 0 );
-				lib = NULL;
-			}
+			if( mode != FILE_LINK )
+				all_local( lib, 1 );
 			break;
 		}
 
 	/* done with library; close it */
 	BLO_blendhandle_close( openlib );
 
+	/* this should not happen, but just in case */
+	if( !lib )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"could not library" );
+
 	/* find the base for this type */
 	lb = wich_libbase( G.main, self->type );
 
 	/*
-	 * Search the base for the datablock.  For link, lib points to library,
-	 * otherwise it's NULL. 
+	 * Check for linked data matching the name first.  Even if we are trying
+	 * to append, if the data has already been linked we need to return it
+	 * (it won't be appended from the library).
 	 */
 	for( id = lb->first; id; id = id->next ) {
-		if( id->lib == lib && id->name[2]==newName[0] &&
-				strcmp(id->name+2, newName)==0 )
+		if( id->lib == lib && id->name[2]==name[0] &&
+				strcmp(id->name+2, name)==0 )
 			return GetPyObjectFromID( id );
 	}
+
+	/*
+	 * If we didn't find it, and we're appending, then try searching for the
+	 * new datablock, possibly under a new name.
+	 */
+	if( mode != FILE_LINK )
+		for( id = lb->first; id; id = id->next ) {
+			if( id->lib == NULL && id->name[2]==newName[0] &&
+					strcmp(id->name+2, newName)==0 )
+				return GetPyObjectFromID( id );
+		}
 
 	/* if we get here, something's really wrong */
 	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
