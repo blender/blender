@@ -795,7 +795,7 @@ static int Effect_setStype( BPy_Effect * self, PyObject * args )
 	if( !PyArg_Parse( args, "h", &param ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 						"expected an int as argument" );
-	self->effect->stype |= 1-param;
+	self->effect->stype = param;
 	return 0;
 }
 
