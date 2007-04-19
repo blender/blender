@@ -47,13 +47,15 @@
 #define BSTR_EQ(a, b)	(*(a) == *(b) && !strcmp(a, b))
 
 /* IDPropertyTemplate is a union in DNA_ID.h */
+
+/*local size table.*/
 static char idp_size_table[] = {
-	0, /*strings don't have fixed sizes :)*/
+	1, /*strings*/
 	sizeof(int),
 	sizeof(float),
 	sizeof(float)*3, /*Vector type*/
 	sizeof(float)*16, /*Matrix type, we allocate max 4x4 even if in 3x3 mode*/
-	0, /*arrays don't have a fixed size either :)*/
+	0, /*arrays don't have a fixed size*/
 	sizeof(ListBase), /*Group type*/
 	sizeof(void*)
 };
