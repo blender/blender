@@ -837,8 +837,33 @@ int get_view3d_viewplane(int winxi, int winyi, rctf *viewplane, float *clipsta, 
 	*clipsta= G.vd->near;
 	*clipend= G.vd->far;
 
-	if(G.vd->persp==2)
-		object_view_settings(G.vd->camera, &lens, clipsta, clipend);
+/*	
+ * Cant use this since we need the fac and x1 values set
+ * if(G.vd->persp==2)
+		object_view_settings(G.vd->camera, &lens, &(*clipsta), &(*clipend));*/
+	
+	if(G.vd->persp==2) {
+		if(G.vd->camera) {
+			if(G.vd->camera->type==OB_LAMP ) {
+				Lamp *la;
+				
+				la= G.vd->camera->data;
+				fac= cos( M_PI*la->spotsize/360.0);
+				
+				x1= saacos(fac);
+				lens= 16.0*fac/sin(x1);
+		
+				*clipsta= la->clipsta;
+				*clipend= la->clipend;
+			}
+			else if(G.vd->camera->type==OB_CAMERA) {
+				cam= G.vd->camera->data;
+				lens= cam->lens;
+				*clipsta= cam->clipsta;
+				*clipend= cam->clipend;
+			}
+		}
+	}
 	
 	if(G.vd->persp==0) {
 		if(winx>winy) x1= -G.vd->dist;
