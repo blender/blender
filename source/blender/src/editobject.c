@@ -5455,3 +5455,35 @@ void hookmenu(void)
 	}	
 }
 
+void hide_objects(int select)
+{
+	Base *b;
+	int swap;
+	for(b = G.scene->base.first; b; b=b->next){
+		if(TESTBASE(b)==select){
+			b->flag &= ~SELECT;
+			b->object->restrictflag |= OB_RESTRICT_VIEW;
+			DAG_object_flush_update(G.scene, b->object, OB_RECALC_DATA);
+		}
+	}
+	G.scene->basact = NULL;
+	allqueue(REDRAWVIEW3D,0);
+	allqueue(REDRAWOOPS,0);
+	if(select) BIF_undo_push("Hide Selected Objects");
+	else if(select) BIF_undo_push("Hide Unselected Objects");
+}
+
+void show_objects(void)
+{
+	Base *b;
+	for(b = G.scene->base.first; b; b=b->next){
+		if((b->lay & G.vd->lay) && b->object->restrictflag & OB_RESTRICT_VIEW){
+			b->flag |= SELECT;
+			b->object->restrictflag &= ~OB_RESTRICT_VIEW; 
+			DAG_object_flush_update(G.scene, b->object, OB_RECALC_DATA);
+		}
+	}
+	BIF_undo_push("Unhide Objects");
+	allqueue(REDRAWVIEW3D,0);
+	allqueue(REDRAWOOPS,0);
+}
