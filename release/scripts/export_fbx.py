@@ -1388,51 +1388,74 @@ def write_scene(file):
 	
 	
 	def write_material(matname, mat):
-		file.write('\n	Material: "Material::%s", "" {' % matname)
+		file.write('\n\tMaterial: "Material::%s", "" {' % matname)
 		
 		# Todo, add more material Properties.
 		if mat:
 			mat_cold = tuple(mat.rgbCol)
-			mat_cols = tuple(mat.rgbCol)
-			mat_amb = tuple([c for c in world_amb])
+			mat_cols = tuple(mat.specCol)
+			#mat_colm = tuple(mat.mirCol)
+			mat_colamb = tuple([c for c in world_amb])
+			
+			mat_dif = mat.ref
+			mat_amb = mat.amb
+			mat_hard = (float(mat.hard)-1)/5.10
+			mat_spec = mat.spec/2.0
+			mat_alpha = mat.alpha
+			mat_shadeless = mat.mode & Blender.Material.Modes.SHADELESS
+			if mat_shadeless:
+				mat_shader = 'Lambert'
+			else:
+				if mat.diffuseShader == Blender.Material.Shaders.DIFFUSE_LAMBERT:
+					mat_shader = 'Lambert'
+				else:
+					mat_shader = 'Phong'
 		else:
 			mat_cols = mat_cold = 0.8, 0.8, 0.8
-			mat_amb = 0.0,0.0,0.0
+			mat_colamb = 0.0,0.0,0.0
+			# mat_colm 
+			mat_dif = 1.0
+			mat_amb = 0.5
+			mat_hard = 20.0
+			mat_spec = 0.2
+			mat_alpha = 1.0
+			mat_shadeless = False
+			mat_shader = 'Phong'
 		
-		file.write('''
-		Version: 102
-		ShadingModel: "phong"
-		MultiLayer: 0
-		Properties60:  {
-			Property: "ShadingModel", "KString", "", "Phong"
-			Property: "MultiLayer", "bool", "",0
-			Property: "EmissiveColor", "ColorRGB", "",0,0,0
-			Property: "EmissiveFactor", "double", "",1
-''')
-		file.write('\t\t\tProperty: "AmbientColor", "ColorRGB", "",%.1f,%.1f,%.1f\n' % mat_amb)
-		file.write('\t\t\tProperty: "AmbientFactor", "double", "",1\n')
+		file.write('\n\t\tVersion: 102\n')
+		file.write('\t\tShadingModel: "%s"\n' % mat_shader.lower())
+		file.write('\t\tMultiLayer: 0\n')
+		file.write('\t\tProperties60:  {\n')
+		file.write('\t\t\tProperty: "ShadingModel", "KString", "", "%s"\n' % mat_shader)
+		file.write('\t\t\tProperty: "MultiLayer", "bool", "",0\n')
+		file.write('\t\t\tProperty: "EmissiveColor", "ColorRGB", "",0,0,0\n')
+		file.write('\t\t\tProperty: "EmissiveFactor", "double", "",1\n')
+		
+		file.write('\t\t\tProperty: "AmbientColor", "ColorRGB", "",%.1f,%.1f,%.1f\n' % mat_colamb)
+		file.write('\t\t\tProperty: "AmbientFactor", "double", "",%.1f\n' % mat_amb)
 		file.write('\t\t\tProperty: "DiffuseColor", "ColorRGB", "",%.1f,%.1f,%.1f\n' % mat_cold)
-		file.write('\t\t\tProperty: "DiffuseFactor", "double", "",1\n')
+		file.write('\t\t\tProperty: "DiffuseFactor", "double", "",%.1f\n' % mat_dif)
 		file.write('\t\t\tProperty: "Bump", "Vector3D", "",0,0,0\n')
 		file.write('\t\t\tProperty: "TransparentColor", "ColorRGB", "",1,1,1\n')
 		file.write('\t\t\tProperty: "TransparencyFactor", "double", "",0\n')
-		file.write('\t\t\tProperty: "SpecularColor", "ColorRGB", "",%.1f,%.1f,%.1f' % mat_cols)
-		
-		file.write('''
-			Property: "SpecularFactor", "double", "",1
-			Property: "ShininessExponent", "double", "",80.0
-			Property: "ReflectionColor", "ColorRGB", "",0,0,0
-			Property: "ReflectionFactor", "double", "",1
-			Property: "Emissive", "Vector3D", "",0,0,0
-			Property: "Ambient", "Vector3D", "",0,0,0
-			Property: "Diffuse", "Vector3D", "",0,0.8,0
-			Property: "Specular", "Vector3D", "",0.5,0.5,0.5
-			Property: "Shininess", "double", "",80.0
-			Property: "Opacity", "double", "",1
-			Property: "Reflectivity", "double", "",0
-		}
-	}''')
-	
+		if not mat_shadeless:
+			file.write('\t\t\tProperty: "SpecularColor", "ColorRGB", "",%.1f,%.1f,%.1f\n' % mat_cols)
+			file.write('\t\t\tProperty: "SpecularFactor", "double", "",%.1f\n' % mat_spec)
+			file.write('\t\t\tProperty: "ShininessExponent", "double", "",80.0\n')
+			file.write('\t\t\tProperty: "ReflectionColor", "ColorRGB", "",0,0,0\n')
+			file.write('\t\t\tProperty: "ReflectionFactor", "double", "",1\n')
+		file.write('\t\t\tProperty: "Emissive", "Vector3D", "",0,0,0\n')
+		file.write('\t\t\tProperty: "Ambient", "Vector3D", "",%.1f,%.1f,%.1f\n' % mat_colamb)
+		file.write('\t\t\tProperty: "Diffuse", "Vector3D", "",%.1f,%.1f,%.1f\n' % mat_cold)
+		if not mat_shadeless:
+			file.write('\t\t\tProperty: "Specular", "Vector3D", "",%.1f,%.1f,%.1f\n' % mat_cols)
+			file.write('\t\t\tProperty: "Shininess", "double", "",%.1f\n' % mat_hard)
+		file.write('\t\t\tProperty: "Opacity", "double", "",%.1f\n' % mat_alpha)
+		if not mat_shadeless:
+			file.write('\t\t\tProperty: "Reflectivity", "double", "",0\n')
+
+		file.write('\t\t}\n')
+		file.write('\t}')
 	
 	def write_video(texname, tex):
 		# Same as texture really!
