@@ -5464,16 +5464,16 @@ void hide_objects(int select)
 			base->flag &= ~SELECT;
 			base->object->flag = base->flag;
 			base->object->restrictflag |= OB_RESTRICT_VIEW;
-			DAG_object_flush_update(G.scene, base->object, OB_RECALC_DATA);
 			changed = 1;
 			if (base==BASACT) BASACT= NULL;
 		}
 	}
 	if (changed) {
-		allqueue(REDRAWVIEW3D,0);
-		allqueue(REDRAWOOPS,0);
 		if(select) BIF_undo_push("Hide Selected Objects");
 		else if(select) BIF_undo_push("Hide Unselected Objects");
+		DAG_scene_sort(G.scene);
+		allqueue(REDRAWVIEW3D,0);
+		allqueue(REDRAWOOPS,0);
 	}
 }
 
@@ -5486,12 +5486,12 @@ void show_objects(void)
 			base->flag |= SELECT;
 			base->object->flag = base->flag;
 			base->object->restrictflag &= ~OB_RESTRICT_VIEW; 
-			DAG_object_flush_update(G.scene, base->object, OB_RECALC_DATA);
 			changed = 1;
 		}
 	}
 	if (changed) {
 		BIF_undo_push("Unhide Objects");
+		DAG_scene_sort(G.scene);
 		allqueue(REDRAWVIEW3D,0);
 		allqueue(REDRAWOOPS,0);
 	}

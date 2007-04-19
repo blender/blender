@@ -542,6 +542,7 @@ static PyObject *Image_setPixelF( BPy_Image * self, PyObject * args )
 	pixel[index + 2] = ( char ) ( p[2] * 255.0 );
 	pixel[index + 3] = ( char ) ( p[3] * 255.0 );
 
+	ibuf->userflags |= IB_BITMAPDIRTY;
 	Py_RETURN_NONE;
 }
 
@@ -597,7 +598,8 @@ static PyObject *Image_setPixelI( BPy_Image * self, PyObject * args )
 	pixel[index + 1] = ( char ) p[1];
 	pixel[index + 2] = ( char ) p[2];
 	pixel[index + 3] = ( char ) p[3];
-
+	
+	ibuf->userflags |= IB_BITMAPDIRTY;
 	Py_RETURN_NONE;
 }
 
@@ -671,18 +673,21 @@ static PyObject *Image_unpack( BPy_Image * self, PyObject * args )
 static PyObject *Image_pack( BPy_Image * self )
 {
 	Image *image = self->image;	
-	char expandpath[FILE_MAXDIR + FILE_MAXFILE];
-	BLI_strncpy(expandpath, image->name, FILE_MAXDIR+FILE_MAXFILE);
-	BLI_convertstringcode(expandpath, G.sce, 1);
-
-	if (image->packedfile )
+	ImBuf *ibuf = BKE_image_get_ibuf(image, NULL);
+	
+	if( !ibuf || !ibuf->rect )	/* didn't work */
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "image alredy packed" );
-	if (!BLI_exists(expandpath))
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "image path does not exist" );
-		
-	image->packedfile = newPackedFile(image->name);
+				      "couldn't load image data in Blender" );
+	
+	if (image->packedfile ) { /* RePack? */
+		if (ibuf->userflags & IB_BITMAPDIRTY)
+			BKE_image_memorypack(image);
+	} else { /* Pack for the first time */
+		if (ibuf && (ibuf->userflags & IB_BITMAPDIRTY))
+			BKE_image_memorypack(image);
+		else
+			image->packedfile = newPackedFile(image->name);
+	}
 	Py_RETURN_NONE;
 }
 
