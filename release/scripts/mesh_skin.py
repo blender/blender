@@ -513,8 +513,7 @@ def skin2EdgeLoops(eloop1, eloop2, me, ob, MODE):
 		
 		eloop1.restore() # Add culled back into the list.
 	
-	me.faces.extend(new_faces)
-
+	return new_faces
 
 def main():
 	global CULL_METHOD
@@ -615,18 +614,24 @@ def main():
 		else: # Add closest First
 			edgeOrderedList.insert(0, edgeLoops.pop(bestIdxSoFar) )	 # First
 	
+	faces = []
+	
 	for i in xrange(len(edgeOrderedList)-1):
-		skin2EdgeLoops(edgeOrderedList[i], edgeOrderedList[i+1], me, ob, 0)	
+		faces.extend( skin2EdgeLoops(edgeOrderedList[i], edgeOrderedList[i+1], me, ob, 0) )
 	if choice == 1 and len(edgeOrderedList) > 2: # Loop
-		skin2EdgeLoops(edgeOrderedList[0], edgeOrderedList[-1], me, ob, 0)	
+		faces.extend( skin2EdgeLoops(edgeOrderedList[0], edgeOrderedList[-1], me, ob, 0) )
 	
 	# REMOVE SELECTED FACES.
-	faces= [ f for f in me.faces if f.sel ]
+	MESH_MODE= Blender.Mesh.Mode()
+	if MESH_MODE & Blender.Mesh.SelectModes.EDGE or MESH_MODE & Blender.Mesh.SelectModes.VERTEX: pass
+	elif MESH_MODE & Blender.Mesh.SelectModes.FACE:
+		try: me.faces.delete(1, [ f for f in me.faces if f.sel ])
+		except: pass
 	
-	if faces:
-		me.faces.delete(1, faces)
+	me.faces.extend(faces)
 	
 	print '\nSkin done in %.4f sec.' % (Blender.sys.time()-time1)
+	
 	
 	if is_editmode: Window.EditMode(1)
 
