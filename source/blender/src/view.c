@@ -983,8 +983,29 @@ void obmat_to_viewmat(Object *ob, short smooth)
 	Mat3CpyMat4(tmat, G.vd->viewmat);
 	if (smooth) {
 		float new_quat[4];
-		Mat3ToQuat(tmat, new_quat);
-		smooth_view(G.vd, NULL, new_quat, NULL, NULL);
+		if (G.vd->persp==2 && G.vd->camera) {
+			/* were from a camera view */
+			
+			float orig_ofs[3];
+			float orig_dist= G.vd->dist;
+			float orig_lens= G.vd->lens;
+			VECCOPY(orig_ofs, G.vd->ofs);
+			
+			/* Switch from camera view */
+			Mat3ToQuat(tmat, new_quat);
+			
+			G.vd->persp=1;
+			G.vd->dist= 0.0;
+			
+			view_settings_from_ob(G.vd->camera, G.vd->ofs, NULL, NULL, &G.vd->lens);
+			smooth_view(G.vd, orig_ofs, new_quat, &orig_dist, &orig_lens);
+			
+			G.vd->persp=2; /* just to be polite, not needed */
+			
+		} else {
+			Mat3ToQuat(tmat, new_quat);
+			smooth_view(G.vd, NULL, new_quat, NULL, NULL);
+		}
 	} else {
 		Mat3ToQuat(tmat, G.vd->viewquat);
 	}
@@ -1522,10 +1543,19 @@ void view3d_home(int center)
 			new_dist*= size;
 		}
 		
-		if(G.vd->persp==2) G.vd->persp= 1;
-		 
-		smooth_view(G.vd, new_ofs, NULL, &new_dist, NULL);
-		
+		if (G.vd->persp==2 && G.vd->camera) {
+			/* switch out of camera view */
+			float orig_lens= G.vd->lens;
+			
+			G.vd->persp=1;
+			G.vd->dist= 0.0;
+			view_settings_from_ob(G.vd->camera, G.vd->ofs, NULL, NULL, &G.vd->lens);
+			smooth_view(G.vd, new_ofs, NULL, &new_dist, &orig_lens);
+			
+		} else {
+			if(G.vd->persp>=2) G.vd->persp= 1;
+			smooth_view(G.vd, new_ofs, NULL, &new_dist, NULL);
+		}
 		scrarea_queue_winredraw(curarea);
 	}
 	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
@@ -1535,15 +1565,13 @@ void view3d_home(int center)
 
 void view3d_align_axis_to_vector(View3D *v3d, int axisidx, float vec[3])
 {
-	float alignaxis[3];
+	float alignaxis[3] = {0.0, 0.0, 0.0};
 	float norm[3], axis[3], angle, new_quat[4];
-
-	alignaxis[0]= alignaxis[1]= alignaxis[2]= 0.0;
 
 	if(axisidx > 0) alignaxis[axisidx-1]= 1.0;
 	else alignaxis[-axisidx-1]= -1.0;
 
-	norm[0]= vec[0], norm[1]= vec[1], norm[2]= vec[2];
+	VECCOPY(norm, vec);
 	Normalize(norm);
 
 	angle= acos(Inpf(alignaxis, norm));
@@ -1551,9 +1579,22 @@ void view3d_align_axis_to_vector(View3D *v3d, int axisidx, float vec[3])
 	VecRotToQuat(axis, -angle, new_quat);
 
 	v3d->view= 0;
-	if (v3d->persp>=2) v3d->persp= 0; /* switch out of camera mode */
 	
-	smooth_view(v3d, NULL, new_quat, NULL, NULL);
+	if (v3d->persp==2 && v3d->camera) {
+		/* switch out of camera view */
+		float orig_ofs[3];
+		float orig_dist= v3d->dist;
+		float orig_lens= v3d->lens;
+
+		VECCOPY(orig_ofs, v3d->ofs);
+		G.vd->persp=1;
+		G.vd->dist= 0.0;
+		view_settings_from_ob(v3d->camera, v3d->ofs, NULL, NULL, &v3d->lens);
+		smooth_view(G.vd, orig_ofs, new_quat, &orig_dist, &orig_lens);
+	} else {
+		if (v3d->persp>=2) v3d->persp= 1; /* switch out of camera mode */
+		smooth_view(v3d, NULL, new_quat, NULL, NULL);
+	}
 }
 
 

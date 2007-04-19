@@ -264,7 +264,7 @@ void persptoetsen(unsigned short event)
 
 					G.vd->persp=1;
 					G.vd->dist= 0.0;
-					
+
 					view_settings_from_ob(act_cam_orig, G.vd->ofs, NULL, NULL, &G.vd->lens);
 					
 					smooth_view(G.vd, orig_ofs, NULL, &orig_dist, &orig_lens);

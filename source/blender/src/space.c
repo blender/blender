@@ -2315,7 +2315,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						single_user();
 					}
 				}
-					
+				
 				break;
 			case VKEY:
 				if((G.qual==LR_SHIFTKEY)) {
@@ -2427,12 +2427,12 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if(G.qual==0) {
 					if(ob) {
 						if ((G.obedit) && (G.obedit->type == OB_MESH)) {
-							editmesh_align_view_to_selected(G.vd, 2);
+							editmesh_align_view_to_selected(G.vd, 3);
 						} 
 						else if (G.f & G_FACESELECT) {
 							if(ob->type==OB_MESH) {
 								Mesh *me= ob->data;
-								faceselect_align_view_to_selected(G.vd, me, 2);
+								faceselect_align_view_to_selected(G.vd, me, 3);
 							}
 						}
 						else
