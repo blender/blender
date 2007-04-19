@@ -50,7 +50,7 @@ import Blender
 from Blender import Mesh, Scene, Window, sys, Image, Draw
 import BPyMesh
 import BPyObject
-
+import BPySys
 import BPyMessages
 
 # Returns a tuple - path,extension.
@@ -69,11 +69,6 @@ def fixName(name):
 		return name.replace(' ', '_')
 
 # Used to add the scene name into the filename without using odd chars
-def saneFilechars(name):
-	for ch in ' /\\~!@#$%^&*()+=[];\':",./<>?\t\r\n':
-		name = name.replace(ch, '_')
-	return name
-
 global MTL_DICT
 
 # A Dict of Materials
@@ -615,7 +610,7 @@ def write_ui(filename):
 		orig_frame = Blender.Get('curframe')
 		
 		if EXPORT_ALL_SCENES: # Add scene name into the context_name
-			context_name[1] = '_%s' % saneFilechars(scn.name) # WARNING, its possible that this could cause a collision. we could fix if were feeling parranoied.
+			context_name[1] = '_%s' % BPySys.cleanName(scn.name) # WARNING, its possible that this could cause a collision. we could fix if were feeling parranoied.
 		
 		# Export an animation?
 		if EXPORT_ANIMATION:

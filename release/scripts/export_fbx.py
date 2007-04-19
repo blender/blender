@@ -43,6 +43,7 @@ will be exported as mesh data.
 
 import Blender
 import BPyMesh
+import BPySys
 import BPyMessages
 import time
 from math import degrees
@@ -60,8 +61,7 @@ def sane_name(name, dct):
 	except:		pass
 	
 	orig_name = name
-	for ch in ' /\\~!@#$%^&*()+=[];\':",./<>?\t\r\n':
-		name = name.replace(ch, '_')
+	name = BPySys.cleanName(name)
 	dct[orig_name] = name
 	return name
 

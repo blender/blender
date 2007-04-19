@@ -1414,23 +1414,30 @@ void centerview()	/* like a localview without local! */
 	
 	new_dist = size;
 
-	// correction for window aspect ratio
+	/* correction for window aspect ratio */
 	if(curarea->winy>2 && curarea->winx>2) {
 		size= (float)curarea->winx/(float)curarea->winy;
 		if(size<1.0) size= 1.0/size;
 		new_dist*= size;
 	}
 	
-	if(G.vd->persp>1) {
-		G.vd->persp= 1;
-	}
-	
 	G.vd->cursor[0]= -new_ofs[0];
 	G.vd->cursor[1]= -new_ofs[1];
 	G.vd->cursor[2]= -new_ofs[2];
 	
-	smooth_view(G.vd, new_ofs, NULL, &new_dist, NULL);
-	
+	if (G.vd->persp==2 && G.vd->camera) {
+		float orig_lens= G.vd->lens;
+		
+		G.vd->persp=1;
+		G.vd->dist= 0.0;
+		view_settings_from_ob(G.vd->camera, G.vd->ofs, NULL, NULL, &G.vd->lens);
+		smooth_view(G.vd, new_ofs, NULL, &new_dist, &orig_lens);
+	} else {
+		if(G.vd->persp>=2)
+			G.vd->persp= 1;
+		
+		smooth_view(G.vd, new_ofs, NULL, &new_dist, NULL);
+	}
 	scrarea_queue_winredraw(curarea);
 	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
 
