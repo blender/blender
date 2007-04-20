@@ -138,13 +138,16 @@
 				RelativePath="..\..\..\source\blender\python\api2_2x\Bone.c">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\BPyModule.c">
+				RelativePath="..\..\..\source\blender\python\api2_2x\bpy.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\bpy_config.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\bpy_data.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Camera.c">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\Config.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Constraint.c">
@@ -208,6 +211,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\NMesh.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\Node.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Noise.c">
@@ -347,13 +353,16 @@
 				RelativePath="..\..\..\source\blender\python\api2_2x\Bone.h">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\BPyModule.h">
+				RelativePath="..\..\..\source\blender\python\api2_2x\bpy.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\bpy_config.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\bpy_data.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Camera.h">
-			</File>
-			<File
-				RelativePath="..\..\..\source\blender\python\api2_2x\Config.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Constraint.h">
@@ -371,7 +380,13 @@
 				RelativePath="..\..\..\source\blender\python\api2_2x\gen_library.h">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\Geometry.h">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Group.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\IDProp.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Image.h">
@@ -387,6 +402,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Lattice.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\Library.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Material.h">
@@ -408,6 +426,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\NMesh.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\python\api2_2x\Node.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\python\api2_2x\Object.h">
