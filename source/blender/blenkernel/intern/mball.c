@@ -40,6 +40,7 @@
 #include <math.h>
 #include <stdlib.h>
 #include <ctype.h>
+#include <float.h>
 #include "MEM_guardedalloc.h"
 
 #include "DNA_material_types.h"
@@ -74,7 +75,7 @@
 float thresh= 0.6f;
 int totelem=0;
 MetaElem **mainb;
-octal_tree *metaball_tree;
+octal_tree *metaball_tree = NULL;
 /* Functions */
 
 void unlink_mball(MetaBall *mb)
@@ -1918,7 +1919,7 @@ void free_metaball_octal_node(octal_node *node)
 		if(node->nodes[a]!=NULL) free_metaball_octal_node(node->nodes[a]);
 	}
 	BLI_freelistN(&node->elems);
-	if(node) MEM_freeN(node);
+	MEM_freeN(node);
 }
 
 /* If scene include more then one MetaElem, then octree is used */
@@ -1944,8 +1945,8 @@ void init_metaball_octal_tree(int depth)
 	for(a=0;a<8;a++)
 		node->nodes[a]=NULL;
 
-	node->x_min= node->y_min= node->z_min= 10000000.0;
-	node->x_max= node->y_max= node->z_max= -10000000.0;
+	node->x_min= node->y_min= node->z_min= FLT_MAX;
+	node->x_max= node->y_max= node->z_max= -FLT_MAX;
 
 	/* size of octal tree scene */
 	for(a=0;a<totelem;a++) {
@@ -2008,6 +2009,7 @@ void metaball_polygonize(Object *ob)
 	if(metaball_tree){
 		free_metaball_octal_node(metaball_tree->first);
 		MEM_freeN(metaball_tree);
+		metaball_tree= NULL;
 	}
 
 	/* if scene includes more then one MetaElem, then octal tree optimalisation is used */	
