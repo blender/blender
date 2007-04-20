@@ -1151,10 +1151,10 @@ static char *library_string(void)
 	int nr=0, tot= BLI_countlist(&G.main->library);
 	
 	if(tot==0) return NULL;
-	str= MEM_callocN(tot*(FILE_MAX), "filesel lib menu");
+	str= MEM_callocN(tot*(FILE_MAXDIR+FILE_MAX), "filesel lib menu");
 	
 	for(tot=0, lib= G.main->library.first; lib; lib= lib->id.next, nr++) {
-		tot+= sprintf(str+tot, "%s %%x%d|", lib->name+2, nr);
+		tot+= sprintf(str+tot, "%s %%x%d|", lib->name, nr);
 	}
 	return str;
 }
@@ -2422,8 +2422,7 @@ static void do_library_append(SpaceFile *sfile)
 			all_local(lib, 1);
 			/* important we unset, otherwise these object wont
 			 * link into other scenes from this blend file */
-			flag_all_listbases_ids(LIB_APPEND_TAG, 1);
-			
+			flag_all_listbases_ids(LIB_APPEND_TAG, 0);
 		}
 		
 		DAG_scene_sort(G.scene);
