@@ -604,15 +604,7 @@ PyObject *LibraryData_importLibData( BPy_LibraryData *self, char *name,
 	 */
 
 	if( mode != FILE_LINK ) {
-		ID *id;
-		ListBase *lbarray[MAX_LIBARRAY];
-		int a;
-
-		/* tag everything, all untagged data can be made local */
-		a= set_listbasepointers(G.main, lbarray);
-		while( a--)
-			for( id= lbarray[a]->first; id; id= id->next )
-				id->flag |= LIB_APPEND_TAG;
+		flag_all_listbases_ids(LIB_APPEND_TAG, 1);
 
 	   	/* see what new block will be called */
 		strncpy( newName, name, strlen(name)+1 );
@@ -629,8 +621,12 @@ PyObject *LibraryData_importLibData( BPy_LibraryData *self, char *name,
 	 */
 	for( lib = G.main->library.first; lib; lib = lib->id.next )
 		if( strcmp( longFilename, lib->name ) == 0 ) {
-			if( mode != FILE_LINK )
+			if( mode != FILE_LINK ) {
 				all_local( lib, 1 );
+				/* important we unset, otherwise these object wont
+				 * link into other scenes from this blend file */
+				flag_all_listbases_ids(LIB_APPEND_TAG, 0);
+			}
 			break;
 		}
 

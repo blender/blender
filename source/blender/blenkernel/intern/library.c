@@ -198,6 +198,28 @@ ListBase *wich_libbase(Main *mainlib, short type)
 	return 0;
 }
 
+/* Flag all ids in listbase */
+void flag_listbase_ids(ListBase *lb, short flag, short value)
+{
+	ID *id;
+	if (value) {
+		for(id= lb->first; id; id= id->next) id->flag |= flag;
+	} else {
+		flag = ~flag;
+		for(id= lb->first; id; id= id->next) id->flag &= flag;
+	}
+}
+
+/* Flag all ids in listbase */
+void flag_all_listbases_ids(short flag, short value)
+{
+	ListBase *lbarray[MAX_LIBARRAY];
+	int a;
+	a= set_listbasepointers(G.main, lbarray);
+	while(a--)	flag_listbase_ids(lbarray[a], flag, value);
+}
+
+
 /* note: MAX_LIBARRAY define should match this code */
 int set_listbasepointers(Main *main, ListBase **lb)
 {

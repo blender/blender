@@ -1,6 +1,7 @@
 import Blender
 from Blender.Window import EditMode, GetCursorPos, GetViewQuat
 import bpy
+import BPyMessages
 
 def add_mesh_simple(name, verts, edges, faces):
 	'''
@@ -26,12 +27,16 @@ def add_mesh_simple(name, verts, edges, faces):
 	
 	# We are in mesh editmode
 	if EditMode():
+		me = ob_act.getData(mesh=1)
+		
+		if me.multires:
+			BPyMessages.Error_NoMeshMultiresEdit()
+			return
 		
 		# Add to existing mesh
 		# must exit editmode to modify mesh
 		EditMode(0)
 		
-		me = ob_act.getData(mesh=1)
 		me.sel = False
 		
 		vert_offset = len(me.verts)

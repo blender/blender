@@ -1,5 +1,23 @@
 import Blender
 
+def getObjectArmature(ob):
+	'''
+	This returns the first armature the mesh uses.
+	remember there can be more then 1 armature but most people dont do that.
+	'''
+	arm = ob.parent
+	if arm and arm.type == 'Armature' and ob.parentType == Blender.Object.ParentTypes.ARMATURE:
+		arm
+	
+	for m in ob.modifiers:
+		if m.type== Blender.Modifier.Types.ARMATURE:
+			arm = m[Blender.Modifier.Settings.OBJECT]
+			if arm:
+				return arm
+	
+	return None
+
+
 def getDerivedObjects(ob, PARTICLES= True):
 	'''
 	Takes an objects and returnes a list of (ob, maxrix4x4) pairs

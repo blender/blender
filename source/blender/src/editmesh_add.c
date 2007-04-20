@@ -1183,6 +1183,8 @@ void add_primitiveMesh(int type)
 	if ELEM(curarea->spacetype, SPACE_VIEW3D, SPACE_INFO); else return;
 	if(G.vd==0) return;
 
+	if (G.obedit && G.obedit->type==OB_MESH && multires_test()) return;
+	
 	/* if editmode exists for other type, it exits */
 	check_editmode(OB_MESH);
 	

@@ -70,5 +70,8 @@ void IDnames_to_pupstring(char **str, char *title, char *extraops, struct ListBa
 void IMAnames_to_pupstring(char **str, char *title, char *extraops, struct ListBase *lb, struct ID *link, short *nr);
 void IPOnames_to_pupstring(char **str, char *title, char *extraops, struct ListBase *lb, struct ID* link, short *nr, int blocktype);
 
+void flag_listbase_ids(ListBase *lb, short flag, short value);
+void flag_all_listbases_ids(short flag, short value);
+
 #endif
 

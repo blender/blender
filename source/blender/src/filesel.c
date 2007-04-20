@@ -2395,17 +2395,9 @@ static void do_library_append(SpaceFile *sfile)
 		Object *ob;
 		int idcode = groupname_to_code(group);
 		
-		if((sfile->flag & FILE_LINK)==0) {
+		if((sfile->flag & FILE_LINK)==0)
 			/* tag everything, all untagged data can be made local */
-			ID *id;
-			ListBase *lbarray[MAX_LIBARRAY];
-			int a;
-			
-			a= set_listbasepointers(G.main, lbarray);
-			while(a--) {
-				for(id= lbarray[a]->first; id; id= id->next) id->flag |= LIB_APPEND_TAG;
-			}
-		}
+			flag_all_listbases_ids(LIB_APPEND_TAG, 1);
 		
 		BLO_library_append(sfile, dir, idcode);
 		
@@ -2428,6 +2420,10 @@ static void do_library_append(SpaceFile *sfile)
 		/* make local */
 		if(lib && (sfile->flag & FILE_LINK)==0) {
 			all_local(lib, 1);
+			/* important we unset, otherwise these object wont
+			 * link into other scenes from this blend file */
+			flag_all_listbases_ids(LIB_APPEND_TAG, 1);
+			
 		}
 		
 		DAG_scene_sort(G.scene);
