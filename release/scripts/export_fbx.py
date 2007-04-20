@@ -152,16 +152,37 @@ def write_header(file):
 
 def write_scene(file, sce, world):
 	
-	def write_camera_switch():
+	
+	def write_object_tx(ob, loc):
+		'''
+		We have loc to set the location if non blender objects that have a location
+		'''
+		
+		if not loc:
+			if ob:	loc = tuple(ob.getLocation('worldspace'))
+			else:	loc = 0,0,0
+		
+		file.write('\n\t\t\tProperty: "Lcl Translation", "Lcl Translation", "A+",%.15f,%.15f,%.15f' % loc)
+		
+		if ob:
+			file.write('\n\t\t\tProperty: "Lcl Rotation", "Lcl Rotation", "A+",%.15f,%.15f,%.15f' % tuple([degrees(a) for a in ob.getEuler('worldspace')]))
+			file.write('\n\t\t\tProperty: "Lcl Scaling", "Lcl Scaling", "A+",%.15f,%.15f,%.15f' % tuple(ob.getSize('worldspace')))
+		else:
+			file.write('''
+			Property: "Lcl Rotation", "Lcl Rotation", "A+",0,0,0
+			Property: "Lcl Scaling", "Lcl Scaling", "A+",1,1,1''')
+	
+	def write_object_props(ob=None, loc=None):
+		# if the type is 0 its an empty otherwise its a mesh
+		# only difference at the moment is one has a color
 		file.write('''
-	Model: "Model::Camera Switcher", "CameraSwitcher" {
-		Version: 232
 		Properties60:  {
 			Property: "QuaternionInterpolate", "bool", "",0
-			Property: "Visibility", "Visibility", "A+",0
-			Property: "Lcl Translation", "Lcl Translation", "A+",0,0,0
-			Property: "Lcl Rotation", "Lcl Rotation", "A+",0,0,0
-			Property: "Lcl Scaling", "Lcl Scaling", "A+",1,1,1
+			Property: "Visibility", "Visibility", "A+",1''')
+		
+		write_object_tx(ob, loc)
+		
+		file.write('''
 			Property: "RotationOffset", "Vector3D", "",0,0,0
 			Property: "RotationPivot", "Vector3D", "",0,0,0
 			Property: "ScalingOffset", "Vector3D", "",0,0,0
@@ -222,9 +243,25 @@ def write_scene(file, sce, world):
 			Property: "GeometricScaling", "Vector3D", "",1,1,1
 			Property: "LookAtProperty", "object", ""
 			Property: "UpVectorProperty", "object", ""
-			Property: "Show", "bool", "",0
+			Property: "Show", "bool", "",1
 			Property: "NegativePercentShapeSupport", "bool", "",1
-			Property: "DefaultAttributeIndex", "int", "",0
+			Property: "DefaultAttributeIndex", "int", "",0''')
+		if ob:
+			# Only mesh objects have color 
+			file.write('\n\t\t\tProperty: "Color", "Color", "A",0.8,0.8,0.8')
+			file.write('\n\t\t\tProperty: "Size", "double", "",100')
+			file.write('\n\t\t\tProperty: "Look", "enum", "",1')
+		
+		file.write('\n\t\t}\n')
+	
+	def write_camera_switch():
+		file.write('''
+	Model: "Model::Camera Switcher", "CameraSwitcher" {
+		Version: 232'''
+		
+		write_object_props()
+			
+		file.write('''
 			Property: "Color", "Color", "A",0.8,0.8,0.8
 			Property: "Camera Index", "Integer", "A+",100
 		}
@@ -243,75 +280,8 @@ def write_scene(file, sce, world):
 	def write_camera(name, loc, near, far, proj_type, up):
 		file.write('\n\tModel: "Model::%s", "Camera" {\n' % name )
 		file.write('\t\tVersion: 232\n')
-		file.write('\t\tProperties60:  {\n')
-		file.write('\t\t\tProperty: "QuaternionInterpolate", "bool", "",0\n')
-		file.write('\t\t\tProperty: "Visibility", "Visibility", "A+",0\n')
-		file.write('\t\t\tProperty: "Lcl Translation", "Lcl Translation", "A+",%.6f,%.6f,%.6f\n' % loc)
-		file.write('\t\t\tProperty: "Lcl Rotation", "Lcl Rotation", "A+",0,0,0\n')
-		file.write('\t\t\tProperty: "Lcl Scaling", "Lcl Scaling", "A+",1,1,1\n')
-		file.write('\t\t\tProperty: "RotationOffset", "Vector3D", "",0,0,0\n')
-		file.write('\t\t\tProperty: "RotationPivot", "Vector3D", "",0,0,0\n')
-		file.write('\t\t\tProperty: "ScalingOffset", "Vector3D", "",0,0,0\n')
-		file.write('\t\t\tProperty: "ScalingPivot", "Vector3D", "",0,0,0\n')
-		file.write('\t\t\tProperty: "TranslationActive", "bool", "",0\n')
-		file.write('\t\t\tProperty: "TranslationMin", "Vector3D", "",0,0,0\n')
-		file.write('\t\t\tProperty: "TranslationMax", "Vector3D", "",0,0,0\n')
-		file.write('\t\t\tProperty: "TranslationMinX", "bool", "",0\n')
-		file.write('\t\t\tProperty: "TranslationMinY", "bool", "",0\n')
-		file.write('\t\t\tProperty: "TranslationMinZ", "bool", "",0\n')
-		file.write('\t\t\tProperty: "TranslationMaxX", "bool", "",0\n')
-		file.write('\t\t\tProperty: "TranslationMaxY", "bool", "",0\n')
-		file.write('\t\t\tProperty: "TranslationMaxZ", "bool", "",0\n')
-		file.write('\t\t\tProperty: "RotationOrder", "enum", "",0\n')
-		file.write('\t\t\tProperty: "RotationSpaceForLimitOnly", "bool", "",0\n')
-		file.write('\t\t\tProperty: "AxisLen", "double", "",10\n')
-		file.write('\t\t\tProperty: "PreRotation", "Vector3D", "",0,0,0\n')
-		file.write('\t\t\tProperty: "PostRotation", "Vector3D", "",0,0,0\n')
-		file.write('\t\t\tProperty: "RotationActive", "bool", "",0\n')
-		file.write('\t\t\tProperty: "RotationMin", "Vector3D", "",0,0,0\n')
-		file.write('\t\t\tProperty: "RotationMax", "Vector3D", "",0,0,0\n')
-		file.write('\t\t\tProperty: "RotationMinX", "bool", "",0\n')
-		file.write('\t\t\tProperty: "RotationMinY", "bool", "",0\n')
-		file.write('\t\t\tProperty: "RotationMinZ", "bool", "",0\n')
-		file.write('\t\t\tProperty: "RotationMaxX", "bool", "",0\n')
-		file.write('\t\t\tProperty: "RotationMaxY", "bool", "",0\n')
-		file.write('\t\t\tProperty: "RotationMaxZ", "bool", "",0\n')
-		file.write('\t\t\tProperty: "RotationStiffnessX", "double", "",0\n')
-		file.write('\t\t\tProperty: "RotationStiffnessY", "double", "",0\n')
-		file.write('\t\t\tProperty: "RotationStiffnessZ", "double", "",0\n')
-		file.write('\t\t\tProperty: "MinDampRangeX", "double", "",0\n')
-		file.write('\t\t\tProperty: "MinDampRangeY", "double", "",0\n')
-		file.write('\t\t\tProperty: "MinDampRangeZ", "double", "",0\n')
-		file.write('\t\t\tProperty: "MaxDampRangeX", "double", "",0\n')
-		file.write('\t\t\tProperty: "MaxDampRangeY", "double", "",0\n')
-		file.write('\t\t\tProperty: "MaxDampRangeZ", "double", "",0\n')
-		file.write('\t\t\tProperty: "MinDampStrengthX", "double", "",0\n')
-		file.write('\t\t\tProperty: "MinDampStrengthY", "double", "",0\n')
-		file.write('\t\t\tProperty: "MinDampStrengthZ", "double", "",0\n')
-		file.write('\t\t\tProperty: "MaxDampStrengthX", "double", "",0\n')
-		file.write('\t\t\tProperty: "MaxDampStrengthY", "double", "",0\n')
-		file.write('\t\t\tProperty: "MaxDampStrengthZ", "double", "",0\n')
-		file.write('\t\t\tProperty: "PreferedAngleX", "double", "",0\n')
-		file.write('\t\t\tProperty: "PreferedAngleY", "double", "",0\n')
-		file.write('\t\t\tProperty: "PreferedAngleZ", "double", "",0\n')
-		file.write('\t\t\tProperty: "InheritType", "enum", "",0\n')
-		file.write('\t\t\tProperty: "ScalingActive", "bool", "",0\n')
-		file.write('\t\t\tProperty: "ScalingMin", "Vector3D", "",1,1,1\n')
-		file.write('\t\t\tProperty: "ScalingMax", "Vector3D", "",1,1,1\n')
-		file.write('\t\t\tProperty: "ScalingMinX", "bool", "",0\n')
-		file.write('\t\t\tProperty: "ScalingMinY", "bool", "",0\n')
-		file.write('\t\t\tProperty: "ScalingMinZ", "bool", "",0\n')
-		file.write('\t\t\tProperty: "ScalingMaxX", "bool", "",0\n')
-		file.write('\t\t\tProperty: "ScalingMaxY", "bool", "",0\n')
-		file.write('\t\t\tProperty: "ScalingMaxZ", "bool", "",0\n')
-		file.write('\t\t\tProperty: "GeometricTranslation", "Vector3D", "",0,0,0\n')
-		file.write('\t\t\tProperty: "GeometricRotation", "Vector3D", "",0,0,0\n')
-		file.write('\t\t\tProperty: "GeometricScaling", "Vector3D", "",1,1,1\n')
-		file.write('\t\t\tProperty: "LookAtProperty", "object", ""\n')
-		file.write('\t\t\tProperty: "UpVectorProperty", "object", ""\n')
-		file.write('\t\t\tProperty: "Show", "bool", "",0\n')
-		file.write('\t\t\tProperty: "NegativePercentShapeSupport", "bool", "",1\n')
-		file.write('\t\t\tProperty: "DefaultAttributeIndex", "int", "",0\n')
+		write_object_props(None, loc)
+		
 		file.write('\t\t\tProperty: "Color", "Color", "A",0.8,0.8,0.8\n')
 		file.write('\t\t\tProperty: "Roll", "Roll", "A+",0\n')
 		file.write('\t\t\tProperty: "FieldOfView", "FieldOfView", "A+",40\n')
@@ -399,105 +369,70 @@ def write_scene(file, sce, world):
 	def write_camera_default():
 		# This sucks but to match FBX converter its easier to
 		# write the cameras though they are not needed.
-		write_camera('Producer Perspective', (0,71.3,287.5), 10, 4000, 0, (0,1,0))
-		write_camera('Producer Top', (0,4000,0), 1, 30000, 1, (0,0,-1))
-		write_camera('Producer Bottom', (0,-4000,0), 1, 30000, 1, (0,0,-1))
-		write_camera('Producer Front', (0,0,4000), 1, 30000, 1, (0,1,0))
-		write_camera('Producer Back', (0,0,-4000), 1, 30000, 1, (0,1,0))
-		write_camera('Producer Right', (4000,0,0), 1, 30000, 1, (0,1,0))
-		write_camera('Producer Left', (-4000,0,0), 1, 30000, 1, (0,1,0))
-	
-	def write_object_props(ob):
-		# if the type is 0 its an empty otherwise its a mesh
-		# only difference at the moment is one has a color
-		file.write('''
-		Properties60:  {
-			Property: "QuaternionInterpolate", "bool", "",0
-			Property: "Visibility", "Visibility", "A+",1''')
-		
-		if ob:
-			file.write('\n\t\t\tProperty: "Lcl Translation", "Lcl Translation", "A+",%.15f,%.15f,%.15f' % tuple(ob.getLocation('worldspace')))
-			file.write('\n\t\t\tProperty: "Lcl Rotation", "Lcl Rotation", "A+",%.15f,%.15f,%.15f' % tuple([degrees(a) for a in ob.getEuler('worldspace')]))
-			file.write('\n\t\t\tProperty: "Lcl Scaling", "Lcl Scaling", "A+",%.15f,%.15f,%.15f' % tuple(ob.getSize('worldspace')))
-		else:
-			file.write('''
-			Property: "Lcl Translation", "Lcl Translation", "A+",0,0,0
-			Property: "Lcl Rotation", "Lcl Rotation", "A+",0,0,0
-			Property: "Lcl Scaling", "Lcl Scaling", "A+",1,1,1''')
-		
-		file.write('''
-			Property: "RotationOffset", "Vector3D", "",0,0,0
-			Property: "RotationPivot", "Vector3D", "",0,0,0
-			Property: "ScalingOffset", "Vector3D", "",0,0,0
-			Property: "ScalingPivot", "Vector3D", "",0,0,0
-			Property: "TranslationActive", "bool", "",0
-			Property: "TranslationMin", "Vector3D", "",0,0,0
-			Property: "TranslationMax", "Vector3D", "",0,0,0
-			Property: "TranslationMinX", "bool", "",0
-			Property: "TranslationMinY", "bool", "",0
-			Property: "TranslationMinZ", "bool", "",0
-			Property: "TranslationMaxX", "bool", "",0
-			Property: "TranslationMaxY", "bool", "",0
-			Property: "TranslationMaxZ", "bool", "",0
-			Property: "RotationOrder", "enum", "",0
-			Property: "RotationSpaceForLimitOnly", "bool", "",0
-			Property: "AxisLen", "double", "",10
-			Property: "PreRotation", "Vector3D", "",0,0,0
-			Property: "PostRotation", "Vector3D", "",0,0,0
-			Property: "RotationActive", "bool", "",0
-			Property: "RotationMin", "Vector3D", "",0,0,0
-			Property: "RotationMax", "Vector3D", "",0,0,0
-			Property: "RotationMinX", "bool", "",0
-			Property: "RotationMinY", "bool", "",0
-			Property: "RotationMinZ", "bool", "",0
-			Property: "RotationMaxX", "bool", "",0
-			Property: "RotationMaxY", "bool", "",0
-			Property: "RotationMaxZ", "bool", "",0
-			Property: "RotationStiffnessX", "double", "",0
-			Property: "RotationStiffnessY", "double", "",0
-			Property: "RotationStiffnessZ", "double", "",0
-			Property: "MinDampRangeX", "double", "",0
-			Property: "MinDampRangeY", "double", "",0
-			Property: "MinDampRangeZ", "double", "",0
-			Property: "MaxDampRangeX", "double", "",0
-			Property: "MaxDampRangeY", "double", "",0
-			Property: "MaxDampRangeZ", "double", "",0
-			Property: "MinDampStrengthX", "double", "",0
-			Property: "MinDampStrengthY", "double", "",0
-			Property: "MinDampStrengthZ", "double", "",0
-			Property: "MaxDampStrengthX", "double", "",0
-			Property: "MaxDampStrengthY", "double", "",0
-			Property: "MaxDampStrengthZ", "double", "",0
-			Property: "PreferedAngleX", "double", "",0
-			Property: "PreferedAngleY", "double", "",0
-			Property: "PreferedAngleZ", "double", "",0
-			Property: "InheritType", "enum", "",0
-			Property: "ScalingActive", "bool", "",0
-			Property: "ScalingMin", "Vector3D", "",1,1,1
-			Property: "ScalingMax", "Vector3D", "",1,1,1
-			Property: "ScalingMinX", "bool", "",0
-			Property: "ScalingMinY", "bool", "",0
-			Property: "ScalingMinZ", "bool", "",0
-			Property: "ScalingMaxX", "bool", "",0
-			Property: "ScalingMaxY", "bool", "",0
-			Property: "ScalingMaxZ", "bool", "",0
-			Property: "GeometricTranslation", "Vector3D", "",0,0,0
-			Property: "GeometricRotation", "Vector3D", "",0,0,0
-			Property: "GeometricScaling", "Vector3D", "",1,1,1
-			Property: "LookAtProperty", "object", ""
-			Property: "UpVectorProperty", "object", ""
-			Property: "Show", "bool", "",1
-			Property: "NegativePercentShapeSupport", "bool", "",1
-			Property: "DefaultAttributeIndex", "int", "",0''')
-		if ob:
-			# Only mesh objects have color 
-			file.write('\n\t\t\tProperty: "Color", "Color", "A",0.8,0.8,0.8')
-			file.write('\n\t\t\tProperty: "Size", "double", "",100')
-			file.write('\n\t\t\tProperty: "Look", "enum", "",1')
-		
-		file.write('\n\t\t}\n')
+		write_camera('Producer Perspective',	(0,71.3,287.5), 10, 4000, 0, (0,1,0))
+		write_camera('Producer Top',			(0,4000,0), 1, 30000, 1, (0,0,-1))
+		write_camera('Producer Bottom',			(0,-4000,0), 1, 30000, 1, (0,0,-1))
+		write_camera('Producer Front',			(0,0,4000), 1, 30000, 1, (0,1,0))
+		write_camera('Producer Back',			(0,0,-4000), 1, 30000, 1, (0,1,0))
+		write_camera('Producer Right',			(4000,0,0), 1, 30000, 1, (0,1,0))
+		write_camera('Producer Left',			(-4000,0,0), 1, 30000, 1, (0,1,0))
 	
 	
+	def write_light(ob, name):
+		light = ob.data
+		file.write('\n\tModel: "Model::%s", "Light" {' % name)
+		file.write('\n\t\tVersion: 232')
+		
+		write_object_props(ob)
+		
+		# Why are these values here twice?????? - oh well, follow the holy sdk's output
+		
+		# Blender light types match FBX's, funny coincidence, we just need to
+		# be sure that all unsupported types are made into a point light
+		#ePOINT, 
+		#eDIRECTIONAL
+		#eSPOT
+		light_type = light.type
+		if light_type > 3: light_type = 0
+			
+		file.write('\n\t\t\tProperty: "LightType", "enum", "",%i' % light_type)
+		file.write('\n\t\t\tProperty: "CastLightOnObject", "bool", "",1')
+		file.write('\n\t\t\tProperty: "DrawVolumetricLight", "bool", "",1')
+		file.write('\n\t\t\tProperty: "DrawGroundProjection", "bool", "",1')
+		file.write('\n\t\t\tProperty: "DrawFrontFacingVolumetricLight", "bool", "",0')
+		file.write('\n\t\t\tProperty: "GoboProperty", "object", ""')
+		file.write('\n\t\t\tProperty: "Color", "Color", "A+",1,1,1')
+		file.write('\n\t\t\tProperty: "Intensity", "Intensity", "A+",%.2f' % (light.energy*100))
+		file.write('\n\t\t\tProperty: "Cone angle", "Cone angle", "A+",%.2f' % light.spotSize)
+		file.write('\n\t\t\tProperty: "Fog", "Fog", "A+",50')
+		file.write('\n\t\t\tProperty: "Color", "Color", "A",%.2f,%.2f,%.2f' % tuple(light.col))
+		file.write('\n\t\t\tProperty: "Intensity", "Intensity", "A+",%.2f' % (light.energy*100))
+		file.write('\n\t\t\tProperty: "Cone angle", "Cone angle", "A+",%.2f' % light.spotSize)
+		file.write('\n\t\t\tProperty: "Fog", "Fog", "A+",50')
+		file.write('\n\t\t\tProperty: "LightType", "enum", "",%i' % light_type)
+		file.write('\n\t\t\tProperty: "CastLightOnObject", "bool", "",1')
+		file.write('\n\t\t\tProperty: "DrawGroundProjection", "bool", "",1')
+		file.write('\n\t\t\tProperty: "DrawFrontFacingVolumetricLight", "bool", "",0')
+		file.write('\n\t\t\tProperty: "DrawVolumetricLight", "bool", "",1')
+		file.write('\n\t\t\tProperty: "GoboProperty", "object", ""')
+		file.write('\n\t\t\tProperty: "DecayType", "enum", "",0')
+		file.write('\n\t\t\tProperty: "DecayStart", "double", "",%.2f' % light.dist)
+		file.write('\n\t\t\tProperty: "EnableNearAttenuation", "bool", "",0')
+		file.write('\n\t\t\tProperty: "NearAttenuationStart", "double", "",0')
+		file.write('\n\t\t\tProperty: "NearAttenuationEnd", "double", "",0')
+		file.write('\n\t\t\tProperty: "EnableFarAttenuation", "bool", "",0')
+		file.write('\n\t\t\tProperty: "FarAttenuationStart", "double", "",0')
+		file.write('\n\t\t\tProperty: "FarAttenuationEnd", "double", "",0')
+		file.write('\n\t\t\tProperty: "CastShadows", "bool", "",0')
+		file.write('\n\t\t\tProperty: "ShadowColor", "ColorRGBA", "",0,0,0,1')
+		file.write('\n\t\t}')
+		file.write('\n\t\tMultiLayer: 0')
+		file.write('\n\t\tMultiTake: 0')
+		file.write('\n\t\tShading: Y')
+		file.write('\n\t\tCulling: "CullingOff"')
+		file.write('\n\t\tTypeFlags: "Light"')
+		file.write('\n\t\tGeometryVersion: 124')
+		file.write('\n\t}')
 	
 	# Material Settings
 	if world:
@@ -658,45 +593,54 @@ def write_scene(file, sce, world):
 		Cropping: 0,0,0,0
 	}''')
 	
-	objects = []
+	ob_meshes = []
+	ob_lights = []
 	materials = {}
 	textures = {}
 	armatures = [] # We should export standalone armatures also
 	armatures_totbones = 0 # we need this because each bone is a model
 	for ob in sce.objects.context:
-		if ob.type == 'Mesh':	me = ob.getData(mesh=1)
-		else:					me = BPyMesh.getMeshFromObject(ob)
+		ob_type = ob.type
 		
-		if me:
-			mats = me.materials
-			for mat in mats:
-				# 2.44 use mat.lib too for uniqueness
-				if mat: materials[mat.name] = mat
+		if ob_type == 'Lamp':
+			ob_lights.append((sane_obname(ob), ob))
+		
+		else:
+			if ob_type == 'Mesh':	me = ob.getData(mesh=1)
+			else:					me = BPyMesh.getMeshFromObject(ob)
 			
-			if me.faceUV:
-				uvlayer_orig = me.activeUVLayer
-				for uvlayer in me.getUVLayerNames():
-					me.activeUVLayer = uvlayer
-					for f in me.faces:
-						img = f.image
-						if img: textures[img.name] = img
-					
-					me.activeUVLayer = uvlayer_orig
-			
-			arm = BPyObject.getObjectArmature(ob)
-			
-			if arm:
-				armname = sane_armname(arm)
-				bones = arm.bones.values()
-				armatures_totbones += len(bones)
-				armatures.append((arm, armname, bones))
-			else:
-				armname = None
-			
-			#### me.transform(ob.matrixWorld) # Export real ob coords.
-			#### High Quality, not realy needed for now.
-			#BPyMesh.meshCalcNormals(me) # high quality normals nice for realtime engines.
-			objects.append( (sane_obname(ob), ob, me, mats, arm, armname) )
+			if me:
+				mats = me.materials
+				for mat in mats:
+					# 2.44 use mat.lib too for uniqueness
+					if mat: materials[mat.name] = mat
+				
+				if me.faceUV:
+					uvlayer_orig = me.activeUVLayer
+					for uvlayer in me.getUVLayerNames():
+						me.activeUVLayer = uvlayer
+						for f in me.faces:
+							img = f.image
+							if img: textures[img.name] = img
+						
+						me.activeUVLayer = uvlayer_orig
+				
+				arm = BPyObject.getObjectArmature(ob)
+				
+				if arm:
+					armname = sane_armname(arm)
+					bones = arm.bones.values()
+					armatures_totbones += len(bones)
+					armatures.append((arm, armname, bones))
+				else:
+					armname = None
+				
+				#### me.transform(ob.matrixWorld) # Export real ob coords.
+				#### High Quality, not realy needed for now.
+				#BPyMesh.meshCalcNormals(me) # high quality normals nice for realtime engines.
+				ob_meshes.append( (sane_obname(ob), ob, me, mats, arm, armname) )
+	
+	del ob_type
 	
 	materials = [(sane_matname(mat), mat) for mat in materials.itervalues()]
 	textures = [(sane_texname(img), img) for img in textures.itervalues()]
@@ -729,17 +673,17 @@ def write_scene(file, sce, world):
 
 Definitions:  {
 	Version: 100
-	Count: %i''' % (1+1+camera_count+len(objects)+len(armatures)+armatures_totbones+len(materials)+(len(textures)*2))) # add 1 for the root model 1 for global settings
+	Count: %i''' % (1+1+camera_count+len(ob_meshes)+len(ob_lights)+len(armatures)+armatures_totbones+len(materials)+(len(textures)*2))) # add 1 for the root model 1 for global settings
 	
 	file.write('''
 	ObjectType: "Model" {
 		Count: %i
-	}''' % (1+camera_count+len(objects)+len(armatures)+armatures_totbones)) # add 1 for the root model
+	}''' % (1+camera_count+len(ob_meshes)+len(ob_lights)+len(armatures)+armatures_totbones)) # add 1 for the root model
 	
 	file.write('''
 	ObjectType: "Geometry" {
 		Count: %i
-	}''' % len(objects))
+	}''' % len(ob_meshes))
 	
 	if materials:
 		file.write('''
@@ -778,7 +722,7 @@ Objects:  {''')
 	file.write('''
 	Model: "Model::blend_root", "Null" {
 		Version: 232''')
-	write_object_props(None)
+	write_object_props()
 	file.write(\
 '''		MultiLayer: 0
 		MultiTake: 1
@@ -786,9 +730,12 @@ Objects:  {''')
 		Culling: "CullingOff"
 		TypeFlags: "Null"
 	}''')
-
 	
-	for obname, ob, me, mats, arm, armname in objects:
+	
+	for obname, ob in ob_lights:
+		write_light(ob, obname)
+	
+	for obname, ob, me, mats, arm, armname in ob_meshes:
 		file.write('\n\tModel: "Model::%s", "Mesh" {\n' % sane_obname(ob))
 		file.write('\t\tVersion: 232') # newline is added in write_object_props
 		write_object_props(ob)
@@ -903,9 +850,6 @@ Objects:  {''')
 					i+=1
 				
 				file.write('\n\t\t}')
-		
-		
-		
 		
 		
 		
@@ -1164,8 +1108,10 @@ Relations:  {
 ''')
 
 	file.write('\tModel: "Model::blend_root", "Null" {\n\t}\n')
+	for obname, ob in ob_lights:
+		file.write('\tModel: "Model::%s", "Light" {\n\t}\n' % obname)
 	
-	for obname, ob, me, mats, arm, armname in objects:
+	for obname, ob, me, mats, arm, armname in ob_meshes:
 		file.write('\tModel: "Model::%s", "Mesh" {\n\t}\n' % obname)
 	
 	file.write('''	Model: "Model::Producer Perspective", "Camera" {
@@ -1207,16 +1153,19 @@ Connections:  {
 	# write the fake root node
 	file.write('\tConnect: "OO", "Model::blend_root", "Model::Scene"\n')
 	
-	for obname, ob, me, mats, arm, armname in objects:
+	for obname, ob in ob_lights:
 		file.write('\tConnect: "OO", "Model::%s", "Model::blend_root"\n' % obname)
 	
-	for obname, ob, me, mats, arm, armname in objects:
+	for obname, ob, me, mats, arm, armname in ob_meshes:
+		file.write('\tConnect: "OO", "Model::%s", "Model::blend_root"\n' % obname)
+	
+	for obname, ob, me, mats, arm, armname in ob_meshes:
 		# Connect all materials to all objects, not good form but ok for now.
 		for mat in mats:
 			file.write('	Connect: "OO", "Material::%s", "Model::%s"\n' % (sane_matname(mat), obname))
 	
 	if textures:
-		for obname, ob, me, mats, arm, armname in objects:
+		for obname, ob, me, mats, arm, armname in ob_meshes:
 			for texname, tex in textures:
 				file.write('\tConnect: "OO", "Texture::%s", "Model::%s"\n' % (texname, obname))
 		

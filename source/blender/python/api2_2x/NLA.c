@@ -88,6 +88,8 @@ struct PyMethodDef M_NLA_methods[] = {
 static PyObject *Action_setActive( BPy_Action * self, PyObject * args );
 static PyObject *Action_getFrameNumbers(BPy_Action *self);
 static PyObject *Action_getChannelIpo( BPy_Action * self, PyObject * args );
+static PyObject *Action_getChannelNames( BPy_Action * self );
+static PyObject *Action_renameChannel( BPy_Action * self, PyObject * args );
 static PyObject *Action_verifyChannel( BPy_Action * self, PyObject * args );
 static PyObject *Action_removeChannel( BPy_Action * self, PyObject * args );
 static PyObject *Action_getAllChannelIpos( BPy_Action * self );
@@ -107,6 +109,10 @@ static PyMethodDef BPy_Action_methods[] = {
 	"() - get the frame numbers at which keys have been inserted"},
 	{"getChannelIpo", ( PyCFunction ) Action_getChannelIpo, METH_VARARGS,
 	 "(str) -get the Ipo from a named action channel in this action"},
+	{"getChannelNames", ( PyCFunction ) Action_getChannelNames, METH_NOARGS,
+	 "() -get the channel names for this action"},
+	 {"renameChannel", ( PyCFunction ) Action_renameChannel, METH_VARARGS,
+		 "(from, to) -rename the channel from string to string"},
 	{"verifyChannel", ( PyCFunction ) Action_verifyChannel, METH_VARARGS,
 	 "(str) -verify the channel in this action"},
 	{"removeChannel", ( PyCFunction ) Action_removeChannel, METH_VARARGS,
@@ -281,6 +287,44 @@ static PyObject *Action_getChannelIpo( BPy_Action * self, PyObject * args )
 	}
 
 	return Ipo_CreatePyObject( chan->ipo );
+}
+
+static PyObject *Action_getChannelNames( BPy_Action * self )
+{
+	PyObject *list = PyList_New( BLI_countlist(&(self->action->chanbase)) );
+	bActionChannel *chan = NULL;
+	int index=0;
+	for( chan = self->action->chanbase.first; chan; chan = chan->next ) {
+		PyList_SetItem( list, index, PyString_FromString(chan->name) );
+		index++;
+	}
+	return list;
+}
+
+static PyObject *Action_renameChannel( BPy_Action * self, PyObject * args )
+{
+	char *chanFrom, *chanTo;
+	bActionChannel *chan;
+
+	if( !PyArg_ParseTuple( args, "ss", &chanFrom, &chanTo ) )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+				       "2 strings expected" );
+	
+	chan = get_action_channel( self->action, chanFrom );
+	if( !chan )
+		return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"no channel with that name" );
+	if (strlen(chanTo) > 31)
+		return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"new name greater then 31 characters long" );
+	
+	if (get_action_channel( self->action, chanTo ))
+		return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"channel target name alredy exists" );
+	
+	strcpy(chan->name, chanTo);
+	
+	Py_RETURN_NONE;
 }
 
 /*----------------------------------------------------------------------*/

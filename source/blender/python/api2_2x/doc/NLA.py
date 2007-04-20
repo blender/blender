@@ -109,6 +109,21 @@ class Action:
 		@return: the Ipos for all the channels in the action
 		"""
 
+	def getChannelNames():
+		"""
+		Returns a list of channel names
+		@rtype: list
+		@return: the channel names that match bone and constraint names.
+		"""
+
+	def renameChannel(nameFrom, nameTo):
+		"""
+		rename an existing channel to a new name.
+		
+		if the nameFrom channel dosnt exist or the nameTo exists, an error will be raised.
+		@return: None
+		"""
+
 import id_generics
 Action.__doc__ += id_generics.attributes 
 

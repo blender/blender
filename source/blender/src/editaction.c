@@ -2964,8 +2964,8 @@ static void clever_achannel_names(short *mval)
 		strcpy(str, achan->name);
 		protect= (achan->flag & ACHAN_PROTECTED);
 		expand = (achan->flag & ACHAN_EXPANDED);
-		
-		add_numbut(but++, TEX, "ActChan: ", 0, 24, str, "Name of Action Channel");
+
+		add_numbut(but++, TEX, "ActChan: ", 0, 31, str, "Name of Action Channel");
 		add_numbut(but++, TOG|SHO, "Expanded", 0, 24, &expand, "Action Channel is Expanded");
 		add_numbut(but++, TOG|SHO, "Protected", 0, 24, &protect, "Channel is Protected");
 	}
@@ -2975,7 +2975,7 @@ static void clever_achannel_names(short *mval)
 		strcpy(str, conchan->name);
 		protect= (conchan->flag & CONSTRAINT_CHANNEL_PROTECTED);
 		
-		add_numbut(but++, TEX, "ConChan: ", 0, 24, str, "Name of Constraint Channel");
+		add_numbut(but++, TEX, "ConChan: ", 0, 29, str, "Name of Constraint Channel");
 		add_numbut(but++, TOG|SHO, "Protected", 0, 24, &protect, "Channel is Protected");
 	}
 #if 0 /* tempolarily disabled until there is actually something to display  */
