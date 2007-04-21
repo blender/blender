@@ -926,7 +926,7 @@ void winqreadtimespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case EKEY: /* set end frame */
 			if (G.scene->r.psfra) {
-				if (CFRA > G.scene->r.psfra)
+				if (CFRA < G.scene->r.psfra)
 					G.scene->r.psfra= CFRA;
 				G.scene->r.pefra= CFRA;
 			}				
@@ -954,8 +954,9 @@ void winqreadtimespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case SKEY: /* set start frame */
 			if (G.scene->r.psfra) {
+				if (G.scene->r.pefra < CFRA)
+					G.scene->r.pefra= CFRA;
 				G.scene->r.psfra= CFRA;
-				G.scene->r.pefra= (EFRA > CFRA)? (EFRA):(CFRA);
 			}				
 			else
 				G.scene->r.sfra = CFRA;

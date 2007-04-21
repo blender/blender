@@ -1275,7 +1275,7 @@ void BIF_do_ogl_render(View3D *v3d, int anim)
 		if(BKE_imtype_is_movie(G.scene->r.imtype))
 			mh->start_movie(&G.scene->r, winx, winy);
 		
-		for(CFRA= SFRA; CFRA<=EFRA; CFRA++) {
+		for(CFRA= PSFRA; CFRA<=PEFRA; CFRA++) {
 			/* user event can close window */
 			if(render_win==NULL)
 				break;

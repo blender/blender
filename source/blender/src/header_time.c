@@ -302,8 +302,9 @@ static void do_time_framemenu(void *arg, int event)
 	switch(event) {
 		case 1: /*Set as Start */
 			if (G.scene->r.psfra) {
+				if (G.scene->r.pefra < CFRA)
+					G.scene->r.pefra= CFRA;
 				G.scene->r.psfra= CFRA;
-				G.scene->r.pefra= (EFRA > CFRA)? (EFRA):(CFRA);
 			}				
 			else
 				G.scene->r.sfra = CFRA;
@@ -311,7 +312,7 @@ static void do_time_framemenu(void *arg, int event)
 			break;
 		case 2: /* Set as End */
 			if (G.scene->r.psfra) {
-				if (CFRA > G.scene->r.psfra)
+				if (CFRA < G.scene->r.psfra)
 					G.scene->r.psfra= CFRA;
 				G.scene->r.pefra= CFRA;
 			}				
