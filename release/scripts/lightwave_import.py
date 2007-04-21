@@ -517,6 +517,7 @@ def read_vx(data):
 # === Read uvmapping ===
 # ======================
 def read_vmap(uvcoords_dict, maxvertnum, lwochunk):
+	
 	if maxvertnum == 0:
 		###if DEBUG: print "Found VMAP but no vertexes to map!"
 		return uvcoords_dict
@@ -706,10 +707,10 @@ def read_clip(lwochunk, dir_part):
 		clip_dict['g_IMG'] = None
 		return
 	# ###if DEBUG: print 'test', NAME, BASENAME
-	img = BPyImage.comprehensiveImageLoad(NAME, dir_part, PLACE_HOLDER= False, RECURSIVE= True)
+	img = BPyImage.comprehensiveImageLoad(NAME, dir_part, PLACE_HOLDER= False, RECURSIVE=False)
 	if not img:
 		###if DEBUG: print "***No image %s found: trying LWO file subdir" % NAME
-		img = BPyImage.comprehensiveImageLoad(BASENAME, dir_part, PLACE_HOLDER= False, RECURSIVE= True)
+		img = BPyImage.comprehensiveImageLoad(BASENAME, dir_part, PLACE_HOLDER= False, RECURSIVE=False)
 	
 	###if DEBUG: if not img: print "***No image %s found: giving up" % BASENAME
 	#lucky we are: we have an image
@@ -1161,7 +1162,7 @@ def my_create_mesh(clip_list, surf, objspec_list, current_facelist, objname, not
 		uvcoords_dict_context = uvcoords_dict[surf['UVNAME']]
 		try:	current_uvdict = facesuv_dict[surf['UVNAME']]
 		except:	current_uvdict = None
-	
+		
 	default_uv = Blender.Mathutils.Vector(0,0)
 	def tmp_get_face_uvs(cur_face, i):
 		uvs = []
@@ -1178,7 +1179,11 @@ def my_create_mesh(clip_list, surf, objspec_list, current_facelist, objname, not
 					uvs.append(default_uv)
 		else:
 			for vi in cur_face:
-				uvs.append(uvcoords_dict_context[ vi ])
+				try:
+					uvs.append(uvcoords_dict_context[ vi ])
+				except:
+					###if DEBUG: print '\tWarning, Corrupt UVs'
+					uvs.append(default_uv)
 		
 		return uvs
 	
@@ -1672,15 +1677,15 @@ def main():
 	
 	Blender.Window.FileSelector(read, "Import LWO", '*.lwo')
 
-if __name__=='__main__':
-	main()
+#if __name__=='__main__':
+#	main()
 
 # Cams debugging lwo loader
-"""
+
 TIME= Blender.sys.time()
 import os
 print 'Searching for files'
-os.system('find /fe/ -iname "*.lwo" > /tmp/templwo_list')
+os.system('find /fe/lwo/Objects/ -follow -iname "*.lwo" > /tmp/templwo_list')
 # os.system('find /storage/ -iname "*.lwo" > /tmp/templwo_list')
 print '...Done'
 file= open('/tmp/templwo_list', 'r')
@@ -1701,7 +1706,7 @@ for i, _lwo in enumerate(lines):
 	#if between(i, 525, 550):
 	#if i > 1635:
 	#if i != 1519: # 730
-	if 1:
+	if i>125:
 		_lwo= _lwo[:-1]
 		print 'Importing', _lwo, '\nNUMBER', i, 'of', len(lines)
 		_lwo_file= _lwo.split('/')[-1].split('\\')[-1]
@@ -1720,4 +1725,3 @@ for i, _lwo in enumerate(lines):
 		print 'mb size so far', size
 
 print 'TOTAL TIME: %.6f' % (Blender.sys.time() - TIME)
-"""

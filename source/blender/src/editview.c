@@ -2122,10 +2122,10 @@ void fly(void)
 	moffset[2], /* mouse offset from the views center */
 	tmp_quat[4], /* used for rotating the view */
 	winxf, winyf, /* scale the mouse movement by this value - scales mouse movement to the view size */
-	time_redraw, time_redraw_clamped; /*time how fast it takes for us to redraw, this is so simple scenes dont fly too fast */
+	time_redraw, time_redraw_clamped, time_wheel; /*time how fast it takes for us to redraw, this is so simple scenes dont fly too fast */
 	
-	
-	double time_current, time_lastdraw;
+	/* time_lastwheel is used to accelerate when using the mousewheel a lot */
+	double time_current, time_lastdraw, time_currwheel, time_lastwheel;
 	
 	short val, /* used for toets to see if a buttons pressed */
 	cent_orig[2], /* view center */
@@ -2235,7 +2235,7 @@ void fly(void)
 	winyf= (float)(curarea->winy)-(ymargin*2); 
 	
 	
-	time_lastdraw= PIL_check_seconds_timer();
+	time_lastdraw= time_lastwheel= PIL_check_seconds_timer();
 	
 	G.vd->flag2 |= V3D_FLYMODE; /* so we draw the corner margins */
 	scrarea_do_windraw(curarea);
@@ -2254,11 +2254,24 @@ void fly(void)
 					action= 1; /* Accepted */
 					break;
 				} else if(toets==PADPLUSKEY || toets==EQUALKEY || toets==WHEELUPMOUSE) {
+					time_currwheel= PIL_check_seconds_timer();
+					time_wheel = (float)(time_currwheel - time_lastwheel);
+					time_lastwheel = time_currwheel;
+					/*printf("Wheel %f\n", time_wheel);*/
+					/*Mouse wheel delays range from 0.5==slow to 0.01==fast*/ 
+					time_wheel = 1+ (10 - (20*MIN2(time_wheel, 0.5))); /* 0-0.5 -> 0-5.0 */
+					
 					if (speed<0) speed=0;
-					else speed+= G.vd->grid;
+					else speed+= G.vd->grid * time_wheel;
+					
 				} else if(toets==PADMINUS || toets==MINUSKEY || toets==WHEELDOWNMOUSE) {
+					time_currwheel= PIL_check_seconds_timer();
+					time_wheel = (float)(time_currwheel - time_lastwheel);
+					time_lastwheel = time_currwheel;
+					time_wheel = 1+ (10 - (20*MIN2(time_wheel, 0.5))); /* 0-0.5 -> 0-5.0 */
+					
 					if (speed>0) speed=0;
-					else speed-= G.vd->grid;
+					else speed-= G.vd->grid*time_wheel;
 				
 				} else if (toets==MIDDLEMOUSE) {
 					/* make it so the camera direction dosent follow the view
