@@ -3438,13 +3438,14 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			/* passed on as selection */
 		case RIGHTMOUSE:
-			/* Clicking in the channel area selects the
-			 * channel or constraint channel
-			 */
+			/* Clicking in the channel area */
 			if (mval[0]<NAMEWIDTH) {
-				if(act) {
+				if (act) {
 					/* mouse is over action channels */
-					mouse_actionchannels(mval);
+					if (G.qual & LR_CTRLKEY)
+						clever_achannel_names(mval);
+					else 
+						mouse_actionchannels(mval);
 				}
 				else numbuts_action();
 			}
