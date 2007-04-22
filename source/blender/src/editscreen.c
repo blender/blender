@@ -745,33 +745,58 @@ void splash(void *data, int datasize, char *string)
 static void moveareas(ScrEdge *edge);
 static void joinarea_interactive(ScrArea *area, ScrEdge *onedge);
 static void splitarea_interactive(ScrArea *area, ScrEdge *onedge);
+static ScrArea *test_edge_area(ScrArea *sa, ScrEdge *se);
+static ScrEdge *screen_findedge(bScreen *sc, ScrVert *v1, ScrVert *v2);
+
+static int isjoinable(ScrArea *area, ScrEdge *onedge)
+{
+	struct ScrArea *sa1 = area, *sa2;
+	struct ScrEdge *se;
+	
+	sa1 = test_edge_area(sa1, onedge);
+	if(sa1==0) return 0;
+
+	/* find directions with same edge */
+	sa2= G.curscreen->areabase.first;
+	while(sa2) {
+		if(sa2 != sa1) {
+			se= screen_findedge(G.curscreen, sa2->v1, sa2->v2);
+			if(onedge==se) return 1;
+			se= screen_findedge(G.curscreen, sa2->v2, sa2->v3);
+			if(onedge==se) return 1;
+			se= screen_findedge(G.curscreen, sa2->v3, sa2->v4);
+			if(onedge==se) return 1;
+			se= screen_findedge(G.curscreen, sa2->v4, sa2->v1);
+			if(onedge==se) return 1;
+		}
+		sa2= sa2->next;
+	}
+	
+	return 0;		
+}
 
 static void screen_edge_edit_event(ScrArea *actarea, ScrEdge *actedge, short evt, short val) 
 {
 	if (val) {
 			// don't allow users to edit full screens
-		if (actarea && actarea->full) {
+		if (actarea && actarea->full)
 			return;
-		}
 	
 		if (evt==LEFTMOUSE) {
 			moveareas(actedge);
 		} else if (evt==MIDDLEMOUSE || evt==RIGHTMOUSE) {
 			int edgeop;
-		
-			if (!actarea->headertype) {
-				edgeop= pupmenu("Split Area|Join Areas|Add Header");
-			} else {
-				edgeop= pupmenu("Split Area|Join Areas|No Header");
-			}
-
-			if (edgeop==1) {
-				splitarea_interactive(actarea, actedge);
-			} else if (edgeop==2) {
-				joinarea_interactive(actarea, actedge);
-			} else if (edgeop==3) {
-				scrarea_change_headertype(actarea, actarea->headertype?0:HEADERDOWN);
-			}
+			char str[64] = "Split Area%x1|";
+			
+			if(isjoinable(actarea, actedge))	strcat(str, "Join Areas%x2|");
+			if (actarea->headertype)			strcat(str, "No Header%x3");
+			else								strcat(str, "Add Header%x3");
+			
+			edgeop= pupmenu(str);
+			if      (edgeop==1)	splitarea_interactive(actarea, actedge);
+			else if (edgeop==2)	joinarea_interactive(actarea, actedge);
+			else if (edgeop==3)	scrarea_change_headertype(actarea,
+										actarea->headertype?0:HEADERDOWN);
 		}
 		else blenderqread(evt, val);	// global hotkeys
 	}
