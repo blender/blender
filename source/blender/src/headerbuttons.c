@@ -268,14 +268,14 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 		if ELEM8( id_code, ID_SCE, ID_SCR, ID_MA, ID_TE, ID_WO, ID_IP, ID_AC, ID_BR) extrastr= "ADD NEW %x 32767";
 		else if (id_code==ID_TXT) extrastr= "OPEN NEW %x 32766 |ADD NEW %x 32767";
 		else if (id_code==ID_SO) extrastr= "OPEN NEW %x 32766";
-		
-		uiSetButLock(G.scene->id.lib!=0, "Can't edit library data");
+
+		uiSetButLock(G.scene->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 		if( id_code==ID_SCE || id_code==ID_SCR ) uiClearButLock();
 		
 		if(curarea->spacetype==SPACE_BUTS)
 			uiSetButLock(id_code!=ID_SCR && G.obedit!=0 && G.buts->mainb==CONTEXT_EDITING, "Cannot perform in EditMode");
 		
-		if(parid) uiSetButLock(parid->lib!=0, "Can't edit library data");
+		if(parid) uiSetButLock(parid->lib!=0, ERROR_LIBDATA_MESSAGE);
 
 		if (lb) {
 			if( id_code==ID_IP)
@@ -307,7 +307,7 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 		/* Redalert overrides pin color */
 		if(id->us<=0) uiBlockSetCol(block, TH_REDALERT);
 
-		uiSetButLock(id->lib!=0, "Can't edit library data");
+		uiSetButLock(id->lib!=0, ERROR_LIBDATA_MESSAGE);
 		
 		if(GS(id->name)==ID_SCE) strcpy(str1, "SCE:");
 		else if(GS(id->name)==ID_SCE) strcpy(str1, "SCR:");

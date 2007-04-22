@@ -85,7 +85,7 @@
 #include "butspace.h"
 #include "mydevice.h"
 
-#define TESTBASE_SAFE(base)	((base)->flag & SELECT)
+#define TESTBASE_SAFE(base)	((base)->flag & SELECT && ((base)->object->restrictflag & OB_RESTRICT_VIEW)==0)
 
 
 /* the left hand side with channels only */

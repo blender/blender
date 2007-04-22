@@ -515,7 +515,7 @@ static void do_node_nodemenu(void *arg, int event)
 			break;
 	}
 	
-	if(fromlib==-1) error("Can't edit Library Data");
+	if(fromlib==-1) error_libdata();
 	allqueue(REDRAWNODE, 0);
 }
 

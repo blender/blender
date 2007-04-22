@@ -95,8 +95,8 @@
 #define NOT_YET			0
 
 
-#define TESTBASE(base)	( ((base)->flag & SELECT) && ((base)->lay & G.vd->lay) )
-#define TESTBASELIB(base)	( ((base)->flag & SELECT) && ((base)->lay & G.vd->lay) && ((base)->object->id.lib==0))
+#define TESTBASE(base)	( ((base)->flag & SELECT) && ((base)->lay & G.vd->lay) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0) )
+#define TESTBASELIB(base)	( ((base)->flag & SELECT) && ((base)->lay & G.vd->lay) && ((base)->object->id.lib==0) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0))
 #define BASE_SELECTABLE(base)	 ((base->lay & G.vd->lay) && !(base->object->restrictflag & OB_RESTRICT_SELECT) && !(base->object->restrictflag & OB_RESTRICT_VIEW))
 #define FIRSTBASE		G.scene->base.first
 #define LASTBASE		G.scene->base.last
@@ -440,5 +440,9 @@
 #define VP_MIRROR_X	32
 #define VP_HARD		64
 #define VP_ONLYVGROUP 128
+
+/* Error messages */
+#define ERROR_LIBDATA_MESSAGE "Can't edit external libdata"
+
 
 #endif

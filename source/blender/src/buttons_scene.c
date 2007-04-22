@@ -392,7 +392,7 @@ static void sound_panel_sound(bSound *sound)
 	
 		uiDefBut(block, BUT, B_SOUND_COPY_SOUND, "Copy sound", 220,160,90,20, 0, 0, 0, 0, 0, "Make another copy (duplicate) of the current sound");
 
-		uiSetButLock(sound->id.lib!=0, "Can't edit library data");
+		uiSetButLock(sound->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 		sound_initialize_sample(sound);
 		sample = sound->sample;
 

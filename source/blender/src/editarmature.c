@@ -522,7 +522,11 @@ int join_armature(void)
 	
 	ob= OBACT;
 	if(ob->type!=OB_ARMATURE) return 0;
-	arm= get_armature(ob);
+	if (object_data_is_libdata(ob)) {
+		error_libdata();
+		return 0;
+	}
+	arm= get_armature(ob); 
 	
 	/* Get editbones of active armature to add editbones to */
 	ebbase.first=ebbase.last= NULL;

@@ -1839,6 +1839,10 @@ void do_ipobuts(unsigned short event)
 		if(ei) {
 			if(ei->icu==NULL) {
 				ei->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, ei->adrcode);
+				if (!ei->icu) {
+					error("Could not add a driver to this curve, may be linked data!");
+					break;
+				}
 				ei->flag |= IPO_SELECT;
 				ei->icu->flag= ei->flag;
 			}

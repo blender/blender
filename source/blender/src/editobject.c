@@ -1593,9 +1593,8 @@ void enter_editmode(int wc)
 	ob= base->object;
 	if(ob->data==0) return;
 	
-	id= ob->data;
-	if(id->lib) {
-		error("Can't edit library data");
+	if (object_data_is_libdata(ob)) {
+		error_libdata();
 		return;
 	}
 	
@@ -1604,10 +1603,6 @@ void enter_editmode(int wc)
 	if(ob->type==OB_MESH) {
 		me= get_mesh(ob);
 		if( me==0 ) return;
-		if(me->id.lib) {
-			error("Can't edit library data");
-			return;
-		}
 		if(me->pv) sculptmode_pmv_off(me);
 		ok= 1;
 		G.obedit= ob;
@@ -1618,10 +1613,6 @@ void enter_editmode(int wc)
 	if (ob->type==OB_ARMATURE){
 		arm= base->object->data;
 		if (!arm) return;
-		if (arm->id.lib){
-			error("Can't edit library data");
-			return;
-		}
 		ok=1;
 		G.obedit=ob;
 		make_editArmature();
@@ -2823,7 +2814,7 @@ void flip_subdivison(int level)
 		mode= eModifierMode_Render|eModifierMode_Realtime;
 	
 	for(base= G.scene->base.first; base; base= base->next) {
-		if(TESTBASE(base)) {
+		if(TESTBASELIB(base)) {
 			object_flip_subdivison(base->object, &set, level, mode);
 			if(base->object->dup_group) {
 				GroupObject *go;
@@ -4716,7 +4707,7 @@ void adduplicate(int mode, int dupflag)
 	
 	base= FIRSTBASE;
 	while(base) {
-		if TESTBASELIB(base) {
+		if TESTBASE(base) {
 		
 			ob= base->object;
 			if(ob->flag & OB_POSEMODE) {
@@ -4937,7 +4928,7 @@ void make_duplilist_real()
 	
 	base= FIRSTBASE;
 	while(base) {
-		if TESTBASELIB(base) {
+		if TESTBASE(base) {
 			
 			if(base->object->transflag & OB_DUPLI) {
 				ListBase *lb= object_duplilist(G.scene, base->object);
@@ -5168,7 +5159,7 @@ void set_ob_ipoflags(void)
 	
 	base= FIRSTBASE;
 	while(base) {
-		if TESTBASE(base) {
+		if TESTBASELIB(base) {
 			if(base->object->ipoflag & OB_DRAWKEY) {
 				set= 0;
 				break;
@@ -5179,7 +5170,7 @@ void set_ob_ipoflags(void)
 	
 	base= FIRSTBASE;
 	while(base) {
-		if TESTBASE(base) {
+		if TESTBASELIB(base) {
 			if(set) {
 				base->object->ipoflag |= OB_DRAWKEY;
 				if(base->object->ipo) base->object->ipo->showkey= 1;
@@ -5455,12 +5446,24 @@ void hookmenu(void)
 	}	
 }
 
+/*
+ * Returns true if teh Object data is a from an external blend file (libdata)
+ * */
+int object_data_is_libdata(Object *ob)
+{
+	if (!ob) return 0;
+	if (ob->id.lib) return 1;
+	if (!ob->data) return 0;
+	if (((ID *)ob->data)->lib) return 1;
+	return 0;
+}
+
 void hide_objects(int select)
 {
 	Base *base;
 	int changed = 0;
 	for(base = FIRSTBASE; base; base=base->next){
-		if(TESTBASE(base)==select){
+		if(TESTBASELIB(base)==select){
 			base->flag &= ~SELECT;
 			base->object->flag = base->flag;
 			base->object->restrictflag |= OB_RESTRICT_VIEW;

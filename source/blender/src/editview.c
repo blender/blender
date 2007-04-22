@@ -909,7 +909,10 @@ void deselectall(void)	/* is toggle */
 			break;
 		}
 		/* are there any objects in the view*/
-		if(base->lay & G.vd->lay)
+		if(base->lay & G.vd->lay &&
+		  (base->object->restrictflag & OB_RESTRICT_VIEW)==0 &&
+		  (base->object->restrictflag & OB_RESTRICT_SELECT)==0
+		)
 			ok=1;
 		
 		base= base->next;
@@ -919,7 +922,10 @@ void deselectall(void)	/* is toggle */
 	
 	base= FIRSTBASE;
 	while(base) {
-		if(base->lay & G.vd->lay) {
+		if(base->lay & G.vd->lay &&
+		  (base->object->restrictflag & OB_RESTRICT_VIEW)==0 &&
+		  (base->object->restrictflag & OB_RESTRICT_SELECT)==0
+		) {
 			if(a) 
 				select_base_v3d(base, BA_DESELECT);
 			else 
@@ -943,7 +949,9 @@ void selectswap(void)
 	Base *base;
 
 	for(base= FIRSTBASE; base; base= base->next) {
-		if(base->lay & G.vd->lay) {
+		if(base->lay & G.vd->lay &&
+		  (base->object->restrictflag & OB_RESTRICT_VIEW)==0
+		) {
 			if TESTBASE(base)
 				select_base_v3d(base, BA_DESELECT);
 			else
@@ -968,7 +976,10 @@ void selectall_type(short obtype)
 	
 	base= FIRSTBASE;
 	while(base) {
-		if((base->lay & G.vd->lay) && (base->object->type == obtype)) {
+		if((base->lay & G.vd->lay) &&
+		  (base->object->type == obtype) &&
+		  (base->object->restrictflag & OB_RESTRICT_VIEW)==0
+		) {
 			select_base_v3d(base, BA_SELECT);
 			base->object->flag= base->flag;
 		}
@@ -989,7 +1000,9 @@ void selectall_layer(unsigned int layernum)
 	
 	base= FIRSTBASE;
 	while(base) {
-		if (base->lay == (1<< (layernum -1))) {
+		if(base->lay == (1<< (layernum -1)) &&
+		  (base->object->restrictflag & OB_RESTRICT_VIEW)==0
+		) {
 			select_base_v3d(base, BA_SELECT);
 			base->object->flag= base->flag;
 		}
@@ -1142,7 +1155,8 @@ static void select_all_from_groups(Base *basact)
 			for(go= group->gobject.first; go; go= go->next) {
 				if(deselect) go->ob->flag &= ~SELECT;
 				else {
-					if (!(go->ob->restrictflag & OB_RESTRICT_SELECT))
+					if ((go->ob->restrictflag & OB_RESTRICT_SELECT)==0 &&
+						(go->ob->restrictflag & OB_RESTRICT_VIEW)==0)
 						go->ob->flag |= SELECT;
 				}
 			}
@@ -1169,7 +1183,10 @@ static Base *mouse_select_menu(unsigned int *buffer, int hits, short *mval)
 	char str[32];
 	
 	for(base=FIRSTBASE; base; base= base->next) {
-		if(base->lay & G.vd->lay) {
+		if(base->lay & G.vd->lay &&
+		  (base->object->restrictflag & OB_RESTRICT_SELECT)==0 &&
+		  (base->object->restrictflag & OB_RESTRICT_VIEW)==0
+		) {
 			baseList[baseCount] = NULL;
 			
 			/* two selection methods, the CTRL select uses max dist of 15 */

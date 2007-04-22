@@ -392,10 +392,14 @@ static PyObject *Constraint_insertKey( BPy_Constraint * self, PyObject * arg )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected a float argument" );
 
-	// constraint_active_func(ob_v, con_v);
+	/* constraint_active_func(ob_v, con_v); */
 	get_constraint_ipo_context( ob, actname );
 	icu= verify_ipocurve((ID *)ob, ID_CO, actname, con->name, CO_ENFORCE);
-
+	
+	if (!icu)
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"cannot get a curve from this IPO, may be using libdata" );
+	
 	if( ob->action )
 		insert_vert_ipo( icu, get_action_frame(ob, cfra), con->enforce);
 	else

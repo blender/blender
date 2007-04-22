@@ -1419,16 +1419,12 @@ void set_faceselect()	/* toggle */
 	Mesh *me = 0;
 	
 	if(ob==NULL) return;
-	if(ob->id.lib) {
-		error("Can't edit library data");
+	if(object_data_is_libdata(ob)) {
+		error_libdata();
 		return;
 	}
 	
 	me= get_mesh(ob);
-	if(me && me->id.lib) {
-		error("Can't edit library data");
-		return;
-	}
 	
 	scrarea_queue_headredraw(curarea);
 	
@@ -1517,16 +1513,13 @@ void set_texturepaint() /* toggle */
 	
 	scrarea_queue_headredraw(curarea);
 	if(ob==NULL) return;
-	if(ob->id.lib) {
-		error("Can't edit library data");
+	
+	if (object_data_is_libdata(ob)) {
+		error_libdata();
 		return;
 	}
 
 	me= get_mesh(ob);
-	if(me && me->id.lib) {
-		error("Can't edit library data");
-		return;
-	}
 	
 	if(me)
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);

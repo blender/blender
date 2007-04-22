@@ -2184,7 +2184,7 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 			block= uiNewBlock(&sa->uiblocks, str, UI_EMBOSS, UI_HELV, sa->win);
 			uiBlockSetFlag(block, UI_BLOCK_NO_HILITE);
 			if(snode->id)
-				uiSetButLock(snode->id->lib!=NULL, "Can't edit library data");
+				uiSetButLock(snode->id->lib!=NULL, ERROR_LIBDATA_MESSAGE);
 		}
 	}
 	

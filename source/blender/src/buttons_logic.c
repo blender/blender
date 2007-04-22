@@ -2536,7 +2536,7 @@ void logic_buts(void)
 	ob= OBACT;
 
 	if(ob==0) return;
-	uiSetButLock(ob->id.lib!=0, "Can't edit library data");
+	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 
 	sprintf(name, "buttonswin %d", curarea->win);
 	block= uiNewBlock(&curarea->uiblocks, name, UI_EMBOSS, UI_HELV, curarea->win);
@@ -2622,7 +2622,7 @@ void logic_buts(void)
 	for(a=0; a<count; a++) {
 		ob= (Object *)idar[a];
 		uiClearButLock();
-		uiSetButLock(ob->id.lib!=0, "Can't edit library data");
+		uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 		
 		if( (ob->scavisflag & OB_VIS_SENS) == 0) continue;
 		
@@ -2693,7 +2693,7 @@ void logic_buts(void)
 	for(a=0; a<count; a++) {
 		ob= (Object *)idar[a];
 		uiClearButLock();
-		uiSetButLock(ob->id.lib!=0, "Can't edit library data");
+		uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 		if( (ob->scavisflag & OB_VIS_CONT) == 0) continue;
 
 		/* presume it is only objects for now */
@@ -2761,7 +2761,7 @@ void logic_buts(void)
 	for(a=0; a<count; a++) {
 		ob= (Object *)idar[a];
 		uiClearButLock();
-		uiSetButLock(ob->id.lib!=0, "Can't edit library data");
+		uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 		if( (ob->scavisflag & OB_VIS_ACT) == 0) continue;
 
 		/* presume it is only objects for now */

@@ -1840,7 +1840,9 @@ Ipo *verify_ipo(ID *from, short blocktype, char *actname, char *constname)
 	return NULL;	
 }
 
-/* returns and creates */
+/* returns and creates
+ * Make sure functions check for NULL or they will crash!
+ *  */
 IpoCurve *verify_ipocurve(ID *from, short blocktype, char *actname, char *constname, int adrcode)
 {
 	Ipo *ipo;
@@ -1850,7 +1852,7 @@ IpoCurve *verify_ipocurve(ID *from, short blocktype, char *actname, char *constn
 	/* creates ipo too */
 	ipo= verify_ipo(from, blocktype, actname, constname);
 	
-	if(ipo && ipo->id.lib==NULL) {
+	if(ipo && ipo->id.lib==NULL && from->lib==NULL) {
 		
 		for(icu= ipo->curve.first; icu; icu= icu->next) {
 			if(icu->adrcode==adrcode) break;
@@ -1980,7 +1982,10 @@ void add_vert_ipo(void)
 	if(ei->icu==NULL) {
 		if(G.sipo->from) {
 			ei->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, ei->adrcode);
-			ei->flag |= ei->icu->flag & IPO_AUTO_HORIZ;	/* new curve could have been added, weak... */
+			if (ei->icu)
+				ei->flag |= ei->icu->flag & IPO_AUTO_HORIZ;	/* new curve could have been added, weak... */
+			else
+				error("Cannot create an IPO curve, you may be using libdata");
 		}
 	}
 	if(ei->icu==NULL) return;
@@ -4341,7 +4346,7 @@ void movekey_obipo(int dir)		/* only call external from view3d queue */
 	
 	base= FIRSTBASE;
 	while(base) {
-		if TESTBASE(base) {
+		if TESTBASELIB(base) {
 			ob= base->object;
 			if(ob->ipo && ob->ipo->showkey) {
 				elems.first= elems.last= 0;

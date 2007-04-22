@@ -135,6 +135,11 @@ int join_mesh(void)
 	
 	ob= OBACT;
 	if(!ob || ob->type!=OB_MESH) return 0;
+	
+	if (object_data_is_libdata(ob)) {
+		error_libdata();
+		return 0;
+	}
 
 #ifdef WITH_VERSE
 	/* it isn't allowed to join shared object at verse server

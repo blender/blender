@@ -2200,7 +2200,7 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 	if(!uiNewPanel(curarea, block, "Transform Properties", "View3d", 10, 230, 318, 204))
 		return;
 
-	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
+	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	
 	if(G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT)) {
 		uiBlockSetFlag(block, UI_BLOCK_FRONTBUFFER);	// force old style frontbuffer draw

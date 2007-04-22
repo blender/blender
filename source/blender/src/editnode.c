@@ -2190,7 +2190,7 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	}
 
 	if(fromlib==-1)
-		error("Cannot edit Library Data");
+		error_libdata();
 	if(doredraw)
 		scrarea_queue_winredraw(sa);
 	if(doredraw==2)

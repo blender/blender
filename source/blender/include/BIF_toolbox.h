@@ -43,6 +43,8 @@ void reset_toolbox(void);
 void notice (char *str, ...);
 void error (char *fmt, ...);
 
+void error_libdata (void);
+
 int saveover (char *filename);
 int okee (char *fmt, ...);
 

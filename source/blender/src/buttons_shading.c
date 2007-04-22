@@ -420,7 +420,7 @@ static void texture_panel_plugin(Tex *tex)
 	
 	block= uiNewBlock(&curarea->uiblocks, "texture_panel_plugin", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Plugin", "Texture", 640, 0, 318, 204)==0) return;
-	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
+	uiSetButLock(tex->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 
 	if(tex->plugin && tex->plugin->doit) {
 		
@@ -452,7 +452,7 @@ static void texture_panel_magic(Tex *tex)
 	
 	block= uiNewBlock(&curarea->uiblocks, "texture_panel_magic", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Magic", "Texture", 640, 0, 318, 204)==0) return;
-	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
+	uiSetButLock(tex->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 
 	uiBlockBeginAlign(block);
 	uiDefButS(block, NUM, B_TEXPRV, "Depth:",		10, 90, 150, 19, &tex->noisedepth, 0.0, 10.0, 0, 0, "Sets the depth of the pattern");
@@ -465,7 +465,7 @@ static void texture_panel_blend(Tex *tex)
 	
 	block= uiNewBlock(&curarea->uiblocks, "texture_panel_blend", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Blend", "Texture", 640, 0, 318, 204)==0) return;
-	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
+	uiSetButLock(tex->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 
 	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW, B_TEXPRV, "Lin",		10, 180, 75, 19, &tex->stype, 2.0, 0.0, 0, 0, "Creates a linear progresion"); 
@@ -494,7 +494,7 @@ static void texture_panel_wood(Tex *tex)
 	
 	block= uiNewBlock(&curarea->uiblocks, "texture_panel_wood", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Wood", "Texture", 640, 0, 318, 204)==0) return;
-	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
+	uiSetButLock(tex->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 	
 	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW, B_TEXPRV, "Bands",		10, 180, 75, 18, &tex->stype, 2.0, 0.0, 0, 0, "Uses standard wood texture in bands"); 
@@ -526,7 +526,7 @@ static void texture_panel_stucci(Tex *tex)
 	
 	block= uiNewBlock(&curarea->uiblocks, "texture_panel_stucci", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Stucci", "Texture", 640, 0, 318, 204)==0) return;
-	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
+	uiSetButLock(tex->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 
 	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW, B_TEXPRV, "Plastic",		10, 180, 100, 19, &tex->stype, 2.0, 0.0, 0, 0, "Uses standard stucci");
@@ -555,7 +555,7 @@ static void texture_panel_marble(Tex *tex)
 	
 	block= uiNewBlock(&curarea->uiblocks, "texture_panel_marble", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Marble", "Texture", 640, 0, 318, 204)==0) return;
-	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
+	uiSetButLock(tex->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 	
 	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW, B_TEXPRV, "Soft",			10, 180, 100, 18, &tex->stype, 2.0, 0.0, 0, 0, "Uses soft marble"); 
@@ -588,7 +588,7 @@ static void texture_panel_clouds(Tex *tex)
 	
 	block= uiNewBlock(&curarea->uiblocks, "texture_panel_clouds", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Clouds", "Texture", 640, 0, 318, 204)==0) return;
-	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
+	uiSetButLock(tex->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 
 	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW, B_TEXPRV, "Default",		10, 180, 70, 18, &tex->stype, 2.0, 0.0, 0, 0, "Uses standard noise"); 
@@ -618,7 +618,7 @@ static void texture_panel_musgrave(Tex *tex)
 	
 	block= uiNewBlock(&curarea->uiblocks, "texture_panel_musgrave", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Musgrave", "Texture", 640, 0, 318, 204)==0) return;
-	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
+	uiSetButLock(tex->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 
 	str= "Multifractal %x0|Ridged Multifractal %x1|Hybrid Multifractal %x2|Hetero Terrain %x4|fBm %x3";
 	uiDefButS(block, MENU, B_TEXREDR_PRV, str, 10, 160, 150, 19, &tex->stype, 0.0, 0.0, 0, 0, "Sets Musgrave type");
@@ -653,7 +653,7 @@ static void texture_panel_distnoise(Tex *tex)
 	uiBlock *block;
 	block= uiNewBlock(&curarea->uiblocks, "texture_panel_distnoise", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Distorted Noise", "Texture", 640, 0, 318, 204)==0) return;
-	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
+	uiSetButLock(tex->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 
 	uiBlockBeginAlign(block);
 	/* distortion amount */
@@ -682,7 +682,7 @@ static void texture_panel_voronoi(Tex *tex)
 	uiBlock *block;
 	block= uiNewBlock(&curarea->uiblocks, "texture_panel_voronoi", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Voronoi", "Texture", 640, 0, 318, 204)==0) return;
-	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
+	uiSetButLock(tex->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 
 	/* color types */
 	uiBlockBeginAlign(block);
@@ -1076,7 +1076,7 @@ void uiblock_image_panel(uiBlock *block, Image **ima_pp, ImageUser *iuser,
 	
 	/* the main ima source types */
 	if(ima) {
-		uiSetButLock(ima->id.lib!=NULL, "Can't edit library data");
+		uiSetButLock(ima->id.lib!=NULL, ERROR_LIBDATA_MESSAGE);
 		uiBlockBeginAlign(block);
 		uiBlockSetFunc(block, image_src_change_cb, ima, iuser);
 		uiDefButS(block, ROW, imagechanged, "Still",		10, 180, 60, 20, &ima->source, 0.0, IMA_SRC_FILE, 0, 0, "Single Image file");
@@ -1216,7 +1216,7 @@ static void texture_panel_image_map(Tex *tex)
 	
 	block= uiNewBlock(&curarea->uiblocks, "texture_panel_image_map", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Map Image", "Texture", 640, 0, 318, 204)==0) return;
-	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
+	uiSetButLock(tex->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 
 	/* types */
 	uiBlockBeginAlign(block);
@@ -1281,7 +1281,7 @@ static void texture_panel_envmap(Tex *tex)
 	
 	block= uiNewBlock(&curarea->uiblocks, "texture_panel_envmap", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Envmap", "Texture", 640, 0, 318, 204)==0) return;
-	uiSetButLock(tex->id.lib!=0, "Can't edit library data");
+	uiSetButLock(tex->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 	
 	if(tex->env==NULL) {
 		tex->env= BKE_add_envmap();
@@ -1609,7 +1609,7 @@ static void texture_panel_texture(MTex *mtex, Material *ma, World *wrld, Lamp *l
 		char textypes[512];
 		Tex *tex= (Tex *)id;
 
-		uiSetButLock(tex->id.lib!=0, "Can't edit library data");
+		uiSetButLock(tex->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 		
 		/* newnoise: all texture types as menu, not enough room for more buttons.
 		 * Can widen panel, but looks ugly when other panels overlap it */
@@ -1931,7 +1931,7 @@ static void world_panel_mapto(World *wrld)
 	uiNewPanelTabbed("Texture and Input", "World");
 	if(uiNewPanel(curarea, block, "Map To", "World", 1280, 0, 318, 204)==0) return;
 
-	uiSetButLock(wrld->id.lib!=0, "Can't edit library data");
+	uiSetButLock(wrld->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 
 	mtex= wrld->mtex[ wrld->texact ];
 	if(mtex==NULL) {
@@ -1985,7 +1985,7 @@ static void world_panel_texture(World *wrld)
 	block= uiNewBlock(&curarea->uiblocks, "world_panel_texture", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Texture and Input", "World", 960, 0, 318, 204)==0) return;
 
-	uiSetButLock(wrld->id.lib!=0, "Can't edit library data");
+	uiSetButLock(wrld->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 
 	/* TEX CHANNELS */
 	uiBlockSetCol(block, TH_BUT_NEUTRAL);
@@ -2065,7 +2065,7 @@ static void world_panel_mistaph(World *wrld)
 	block= uiNewBlock(&curarea->uiblocks, "world_panel_mistaph", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Mist / Stars / Physics", "World", 640, 0, 318, 204)==0) return;
 
-	uiSetButLock(wrld->id.lib!=0, "Can't edit library data");
+	uiSetButLock(wrld->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 
 #if GAMEBLENDER == 1
 	uiDefButI(block, MENU, 1, 
@@ -2170,7 +2170,7 @@ static void world_panel_world(World *wrld)
 
 	if(wrld==NULL) return;
 	
-	uiSetButLock(wrld->id.lib!=0, "Can't edit library data");
+	uiSetButLock(wrld->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 	uiBlockSetCol(block, TH_AUTO);
 
 	uiDefButF(block, COL, B_WORLDPRV, "",			10,150,145,19, &wrld->horr, 0, 0, 0, B_COLHOR, "");
@@ -2209,7 +2209,7 @@ static void world_panel_preview(World *wrld)
 	
 	if(wrld==NULL) return;
 
-	uiSetButLock(wrld->id.lib!=0, "Can't edit library data");
+	uiSetButLock(wrld->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 
 	uiBlockSetDrawExtraFunc(block, BIF_previewdraw);
 
@@ -2316,7 +2316,7 @@ static void lamp_panel_mapto(Object *ob, Lamp *la)
 	uiNewPanelTabbed("Texture and Input", "Lamp");
 	if(uiNewPanel(curarea, block, "Map To", "Lamp", 1280, 0, 318, 204)==0) return;
 
-	uiSetButLock(la->id.lib!=0, "Can't edit library data");
+	uiSetButLock(la->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 
 	mtex= la->mtex[ la->texact ];
 	if(mtex==NULL) {
@@ -2363,7 +2363,7 @@ static void lamp_panel_texture(Object *ob, Lamp *la)
 	block= uiNewBlock(&curarea->uiblocks, "lamp_panel_texture", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Texture and Input", "Lamp", 960, 0, 318, 204)==0) return;
 
-	uiSetButLock(la->id.lib!=0, "Can't edit library data");
+	uiSetButLock(la->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 
 	/* TEX CHANNELS */
 	uiBlockSetCol(block, TH_BUT_NEUTRAL);
@@ -2447,7 +2447,7 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 	if(G.vd) grid= G.vd->grid; 
 	if(grid<1.0) grid= 1.0;
 
-	uiSetButLock(la->id.lib!=0, "Can't edit library data");
+	uiSetButLock(la->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 
 	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiBlockBeginAlign(block);
@@ -2553,7 +2553,7 @@ static void lamp_panel_yafray(Object *ob, Lamp *la)
 	/* hemis not used in yafray */
 	if(la->type==LA_HEMI) return;
 	
-	uiSetButLock(la->id.lib!=0, "Can't edit library data");
+	uiSetButLock(la->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 	
 		/* photonlight params */
 	if (la->type==LA_YF_PHOTON) {
@@ -2641,7 +2641,7 @@ static void lamp_panel_lamp(Object *ob, Lamp *la)
 	if(G.vd) grid= G.vd->grid; 
 	if(grid<1.0) grid= 1.0;
 
-	uiSetButLock(la->id.lib!=0, "Can't edit library data");
+	uiSetButLock(la->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 
 	uiBlockSetCol(block, TH_BUT_SETTING2);
 	xco= std_libbuttons(block, 8, 180, 0, NULL, B_LAMPBROWSE, ID_LA, 0, (ID *)la, (ID *)ob, &(G.buts->menunr), B_LAMPALONE, B_LAMPLOCAL, 0, 0, 0);	
@@ -2650,7 +2650,7 @@ static void lamp_panel_lamp(Object *ob, Lamp *la)
 	uiDefButF(block, NUM,B_LAMPREDRAW,"Dist:", xco,180,300-xco,20,&la->dist, 0.01, 5000.0*grid, 100, 0, "Sets the distance value at which light intensity is half");
 
 	uiBlockBeginAlign(block);
-	uiSetButLock(la->id.lib!=0, "Can't edit library data");
+	uiSetButLock(la->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 	if(la->type==LA_AREA) {
 		//uiDefButS(block, MENU, B_LAMPREDRAW, "Shape %t|Square %x0|Rect %x1|Cube %x2|Box %x3",
 		uiDefButS(block, MENU, B_LAMPREDRAW, "Shape %t|Square %x0|Rect %x1",
@@ -2709,7 +2709,7 @@ static void lamp_panel_preview(Object *ob, Lamp *la)
 	block= uiNewBlock(&curarea->uiblocks, "lamp_panel_preview", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Preview", "Lamp", 0, 0, 318, 204)==0) return;
 	
-	uiSetButLock(la->id.lib!=0, "Can't edit library data");
+	uiSetButLock(la->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 
 	uiBlockSetDrawExtraFunc(block, BIF_previewdraw);
 
@@ -2950,7 +2950,7 @@ static void material_panel_map_to(Material *ma, int from_nodes)
 	uiNewPanelTabbed("Texture", "Material");
 	if(uiNewPanel(curarea, block, "Map To", "Material", 1600, 0, 318, 204)==0) return;
 
-	uiSetButLock(ma->id.lib!=NULL, "Can't edit library data");
+	uiSetButLock(ma->id.lib!=NULL, ERROR_LIBDATA_MESSAGE);
 	
 	mtex= ma->mtex[ ma->texact ];
 	if(mtex==NULL) {
@@ -3030,7 +3030,7 @@ static void material_panel_map_input(Object *ob, Material *ma)
 	uiNewPanelTabbed("Texture", "Material");
 	if(uiNewPanel(curarea, block, "Map Input", "Material", 1280, 0, 318, 204)==0) return;
 
-	uiSetButLock(ma->id.lib!=NULL, "Can't edit library data");
+	uiSetButLock(ma->id.lib!=NULL, ERROR_LIBDATA_MESSAGE);
 
 	mtex= ma->mtex[ ma->texact ];
 	if(mtex==NULL) {
@@ -3119,7 +3119,7 @@ static void material_panel_texture(Material *ma)
 	}
 	uiBlockEndAlign(block);
 	
-	uiSetButLock(ma->id.lib!=NULL, "Can't edit library data");
+	uiSetButLock(ma->id.lib!=NULL, ERROR_LIBDATA_MESSAGE);
 	
 	/* SEPTEX */
 	uiBlockSetCol(block, TH_AUTO);
@@ -3182,7 +3182,7 @@ static void material_panel_tramir(Material *ma)
 	uiNewPanelTabbed("Shaders", "Material");
 	if(uiNewPanel(curarea, block, "Mirror Transp", "Material", 640, 0, 318, 204)==0) return;
 
-	uiSetButLock(ma->id.lib!=NULL, "Can't edit library data");
+	uiSetButLock(ma->id.lib!=NULL, ERROR_LIBDATA_MESSAGE);
 	
 	uiDefButBitI(block, TOG, MA_RAYMIRROR, B_MATPRV,"Ray Mirror",210,180,100,20, &(ma->mode), 0, 0, 0, 0, "Enables raytracing for mirror reflection rendering");
 
@@ -3231,7 +3231,7 @@ static void material_panel_tramir_yafray(Material *ma)
 	uiNewPanelTabbed("Shaders", "Material");
 	if(uiNewPanel(curarea, block, "Mirror Transp", "Material", 640, 0, 318, 204)==0) return;
 
-	uiSetButLock(ma->id.lib!=NULL, "Can't edit library data");
+	uiSetButLock(ma->id.lib!=NULL, ERROR_LIBDATA_MESSAGE);
 	
 	/* material preset menu */
 	uiDefBut(block, LABEL, 0, "Mat.Preset", 20, 182, 100, 20, 0, 0.0, 0.0, 0, 0, "");
@@ -3277,7 +3277,7 @@ static void material_panel_shading(Material *ma)
 	block= uiNewBlock(&curarea->uiblocks, "material_panel_shading", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Shaders", "Material", 640, 0, 318, 204)==0) return;
 	
-	uiSetButLock(ma->id.lib!=NULL, "Can't edit library data");
+	uiSetButLock(ma->id.lib!=NULL, ERROR_LIBDATA_MESSAGE);
 	
 	if(ma->mode & MA_HALO) {
 		uiDefButF(block, NUM, B_MATPRV, "HaloSize: ",		10,155,190,18, &(ma->hasize), 0.0, 100.0, 10, 3, "Sets the dimension of the halo");
@@ -3384,7 +3384,7 @@ static void material_panel_ramps(Material *ma)
 	uiNewPanelTabbed("Material", "Material");
 	if(uiNewPanel(curarea, block, "Ramps", "Material", 640, 0, 318, 204)==0) return;
 	
-	uiSetButLock(ma->id.lib!=NULL, "Can't edit library data");
+	uiSetButLock(ma->id.lib!=NULL, ERROR_LIBDATA_MESSAGE);
 	
 	uiBlockBeginAlign(block);
 	uiBlockSetCol(block, TH_BUT_SETTING1);
@@ -3454,7 +3454,7 @@ static void material_panel_material(Material *ma)
 	block= uiNewBlock(&curarea->uiblocks, "material_panel_material", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Material", "Material", 320, 0, 318, 204)==0) return;
 	
-	uiSetButLock(ma->id.lib!=NULL, "Can't edit library data");
+	uiSetButLock(ma->id.lib!=NULL, ERROR_LIBDATA_MESSAGE);
 	uiBlockBeginAlign(block);
 	uiDefIconBut(block, BUT, B_MATCOPY, ICON_COPYUP,	262,200,XIC,YIC, 0, 0, 0, 0, 0, "Copies Material to the buffer");
 	uiDefIconBut(block, BUT, B_MATPASTE, ICON_PASTEUP,	283,200,XIC,YIC, 0, 0, 0, 0, 0, "Pastes Material from the buffer");
@@ -3580,7 +3580,7 @@ static void material_panel_links(Object *ob, Material *ma)
 	uiBlockSetCol(block, TH_BUT_SETTING2);
 	xco= std_libbuttons(block, 10, 160, 0, NULL, B_MATBROWSE, ID_MA, 0, id, idfrom, &(G.buts->menunr), B_MATALONE, B_MATLOCAL, B_MATDELETE, B_AUTOMATNAME, B_KEEPDATA);
 	
-	if(ma) uiSetButLock(ma->id.lib!=NULL, "Can't edit library data");
+	if(ma) uiSetButLock(ma->id.lib!=NULL, ERROR_LIBDATA_MESSAGE);
 	
 	if(ma)
 		uiDefButC(block, TOG, B_MAT_USENODES, "Nodes", xco+5,160,300-xco-5,20, &ma->use_nodes, 0.0f, 0.0f, 0, 0, "");
@@ -3596,7 +3596,7 @@ static void material_panel_links(Object *ob, Material *ma)
 	/* indicate which one is linking a material */
 	if(id) {
 		if(id->lib)
-			uiSetButLock(1, "Can't edit library data");
+			uiSetButLock(1, ERROR_LIBDATA_MESSAGE);
 		else
 			uiClearButLock();
 
@@ -3621,7 +3621,7 @@ static void material_panel_links(Object *ob, Material *ma)
 	uiBlockEndAlign(block);
 	
 	if(ma==NULL) return;
-	uiSetButLock(ma->id.lib!=NULL, "Can't edit library data");
+	uiSetButLock(ma->id.lib!=NULL, ERROR_LIBDATA_MESSAGE);
 
 	/* Active material node */
 	if(ma->use_nodes) {

@@ -803,7 +803,7 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_type", UI_EMBOSS, UI_HELV, curarea->win);
 	if( uiNewPanel(curarea, block, "Mesh", "Editing", 320, 0, 318, 204)==0) return;
-	uiSetButLock(me->id.lib!=0, "Can't edit library data");
+	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 
 	uiBlockBeginAlign(block);
 	uiDefButBitS(block, TOG, ME_AUTOSMOOTH, REDRAWVIEW3D, "Auto Smooth",10,180,170,19, &me->flag, 0, 0, 0, 0, "Treats all set-smoothed faces with angles less than Degr: as 'smooth' during render");
@@ -2057,7 +2057,7 @@ static void editing_panel_modifiers(Object *ob)
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_modifiers", UI_EMBOSS, UI_HELV, curarea->win);
 	if( uiNewPanel(curarea, block, "Modifiers", "Editing", 640, 0, 318, 204)==0) return;
 	
-	uiSetButLock(ob->id.lib!=0, "Can't edit library data");
+	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	uiNewPanelHeight(block, 204);
 
 	uiDefBlockBut(block, modifiers_add_menu, ob, "Add Modifier", 0, 190, 130, 20, "Add a new modifier");
@@ -2110,7 +2110,7 @@ static void editing_panel_shapes(Object *ob)
 	if( uiNewPanel(curarea, block, "Shapes", "Editing", 640, 0, 318, 204)==0) return;
 	
 	/* Todo check data is library here */
-	uiSetButLock(ob->id.lib!=0, "Can't edit library data");
+	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	
 	uiDefBut(block, BUT, B_ADDKEY, "Add Shape Key" ,	10, 180, 150, 20, NULL, 0.0, 0.0, 0, 0, "Add new Shape Key");
 	
@@ -3017,7 +3017,7 @@ static void editing_panel_camera_type(Object *ob, Camera *cam)
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_camera_type", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Camera", "Editing", 320, 0, 318, 204)==0) return;
 	
-	uiSetButLock(ob->id.lib || cam->id.lib, "Can't edit library data");
+	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	
 	uiDefBut(block, LABEL, 10, "Lens:", 10, 180, 150, 20, 0, 0.0, 0.0, 0, 0, "");
 	
@@ -3761,7 +3761,7 @@ static int ob_arm_bone_pchan_lock(Object *ob, bArmature *arm, Bone *bone, bPoseC
 		return 0;
 	if(arm->id.lib) {
 		if(pchan==NULL)
-			uiSetButLock(1, "Can't edit library data");
+			uiSetButLock(1, ERROR_LIBDATA_MESSAGE);
 		else if(ob->proxy && bone->layer & arm->layer_protected) {
 			uiSetButLock(1, "Can't edit protected proxy channel");
 			return 1;
@@ -4389,8 +4389,7 @@ static void editing_panel_links(Object *ob)
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_links", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Link and Materials", "Editing", 0, 0, 318, 204)==0) return;
 	
-	if (ob)
-		uiSetButLock(ob->id.lib!=0, "Can't edit library data");
+	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	
 	buttons_active_id(&id, &idfrom);
 	
@@ -4434,7 +4433,7 @@ static void editing_panel_links(Object *ob)
 		uiBlockSetCol(block, TH_AUTO);
 	}
 	if(ob) {
-		uiSetButLock(ob->id.lib!=0, "Can't edit library data");
+		uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 		but = uiDefBut(block, TEX, B_IDNAME, "OB:",	xco, 180, 454-xco, YIC, ob->id.name+2, 0.0, 21.0, 0, 0, "Active Object name.");
 #ifdef WITH_VERSE
 		if(ob->vnode) uiButSetFunc(but, test_and_send_idbutton_cb, ob, ob->id.name);
@@ -4504,7 +4503,7 @@ static void editing_panel_links(Object *ob)
 		else {
 			ID *id= ob->data;
 			
-			uiSetButLock(id->lib!=0, "Can't edit library data");
+			uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 			
 			uiBlockBeginAlign (block);
 			uiDefBut (block, BUT, B_NEWVGROUP, "New", 143, 90, 70, 21, 0, 0, 0, 0, 0, "Creates a new vertex group");
@@ -4522,7 +4521,7 @@ static void editing_panel_links(Object *ob)
 	else return;
 	
 	id= ob->data;
-	uiSetButLock(id->lib!=NULL, "Cannot edit Library data");
+	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	
 	if(ob->type==OB_MESH) poin= &( ((Mesh *)ob->data)->texflag );
 	else if(ob->type==OB_MBALL) poin= &( ((MetaBall *)ob->data)->texflag );
@@ -5313,9 +5312,7 @@ void editing_panel_mesh_multires()
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_multires", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Multires", "Editing", 500, 0, 318, 204)==0) return;
 	
-	if (ob->id.lib || me->id.lib)
-		uiSetButLock(1, "Can't edit library data");
-	
+	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	
 	if(!me->mr) {
 		but= uiDefBut(block,BUT,B_NOP,"Add Multires", cx,cy,268,19,0,0,0,0,0,"");
@@ -5384,7 +5381,7 @@ void editing_panels()
 
 	ob= OBACT;
 	if(ob==NULL) return;
-	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
+	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	
 	switch(ob->type) {
 	case OB_MESH:

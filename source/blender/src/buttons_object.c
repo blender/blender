@@ -254,7 +254,12 @@ static void add_influence_key_to_constraint_func (void *ob_v, void *con_v)
 
 	/* adds ipo & channels & curve if needed */
 	icu= verify_ipocurve((ID *)ob, ID_CO, actname, con->name, CO_ENFORCE);
-
+	
+	if (!icu) {
+		error("Cannot get a curve from this IPO, may be dealing with linked data");
+		return;
+	}
+	
 	if(ob->action)
 		insert_vert_ipo(icu, get_action_frame(ob, (float)CFRA), con->enforce);
 	else
@@ -1588,7 +1593,7 @@ void softbody_bake(Object *ob)
 	}
 	else {
 		for(base=G.scene->base.first; base; base= base->next) {
-			if(TESTBASE(base)) {
+			if(TESTBASELIB(base)) {
 				if(base->object->soft) {
 					sb= base->object->soft;
 					sfra= MIN2(sfra, sb->sfra);
@@ -1628,7 +1633,7 @@ void softbody_bake(Object *ob)
 			sbObjectToSoftbody(ob);	// free bake
 		else {
 			for(base=G.scene->base.first; base; base= base->next) {
-				if(TESTBASE(base)) {
+				if(TESTBASELIB(base)) {
 					if(base->object->soft) {
 						sbObjectToSoftbody(base->object);	// free bake
 					}
@@ -1646,7 +1651,7 @@ void softbody_bake(Object *ob)
 		ob->softflag &= ~OB_SB_BAKEDO;
 	else {
 		for(base=G.scene->base.first; base; base= base->next)
-			if(TESTBASE(base))
+			if(TESTBASELIB(base))
 				if(base->object->soft)
 					base->object->softflag &= ~OB_SB_BAKEDO;
 	}
@@ -1953,7 +1958,7 @@ static void object_panel_object(Object *ob)
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_object", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Object and Links", "Object", 0, 0, 318, 204)==0) return;
 	
-	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
+	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	
 	/* object name */
 	uiBlockSetCol(block, TH_BUT_SETTING2);
@@ -2020,7 +2025,7 @@ static void object_panel_anim(Object *ob)
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_anim", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Anim settings", "Object", 320, 0, 318, 204)==0) return;
 	
-	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
+	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	
 	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW,B_TRACKBUTS,"TrackX",	24,180,59,19, &ob->trackflag, 12.0, 0.0, 0, 0, "Specify the axis that points to another object");
@@ -2085,7 +2090,7 @@ static void object_panel_draw(Object *ob)
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_draw", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Draw", "Object", 640, 0, 318, 204)==0) return;
 	
-	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
+	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	
 	/* LAYERS */
 	xco= 120;
@@ -2148,7 +2153,7 @@ void object_panel_constraint(char *context)
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_constraint", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Constraints", context, 960, 0, 318, 204)==0) return;
 	
-	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
+	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	
 	/* this is a variable height panel, newpanel doesnt force new size on existing panels */
 	/* so first we make it default height */
@@ -2391,7 +2396,7 @@ static void object_panel_fields(Object *ob)
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_fields", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Fields and Deflection", "Physics", 0, 0, 318, 204)==0) return;
 
-	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
+	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	
 	/* should become button, option? */
 	if(ob->pd==NULL) {
@@ -2504,7 +2509,7 @@ static void object_softbodies_II(Object *ob)
 	uiNewPanelTabbed("Soft Body", "Physics");
 	if(uiNewPanel(curarea, block, "Soft Body Collision", "Physics", 651, 0, 318, 204)==0) return;
 
-	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
+	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 
 	val = modifiers_isSoftbodyEnabled(ob);
 	if(!val) {
@@ -2581,7 +2586,7 @@ static void object_softbodies(Object *ob)
 	block= uiNewBlock(&curarea->uiblocks, "object_softbodies", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Soft Body", "Physics", 640, 0, 318, 204)==0) return;
 
-	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
+	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 
 	val = modifiers_isSoftbodyEnabled(ob);
 	but = uiDefButI(block, TOG, REDRAWBUTSOBJECT, "Soft Body",	10,200,130,20, &val, 0, 0, 0, 0, "Sets object to become soft body");
@@ -2711,7 +2716,7 @@ static void object_panel_particles_motion(Object *ob)
 	uiNewPanelTabbed("Particles ", "Physics");
 	if(uiNewPanel(curarea, block, "Particle Motion", "Physics", 320, 0, 318, 204)==0) return;
 	
-	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
+	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	
 	/* top row */
 	uiBlockBeginAlign(block);
@@ -2775,7 +2780,7 @@ static void object_panel_particles(Object *ob)
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_particles", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Particles ", "Physics", 320, 0, 318, 204)==0) return;
 
-	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
+	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	
 	if (ob->type == OB_MESH) {
 		uiBlockBeginAlign(block);
@@ -2867,7 +2872,7 @@ static void object_panel_fluidsim(Object *ob)
 	block= uiNewBlock(&curarea->uiblocks, "object_fluidsim", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Fluid Simulation", "Physics", 1060, 0, 318, 204)==0) return;
 
-	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
+	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	
 	if(ob->type==OB_MESH) {
 		if(((Mesh *)ob->data)->totvert == 0) {

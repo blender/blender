@@ -2504,6 +2504,11 @@ static PyObject *Object_setConstraintInfluenceForBone( BPy_Object * self,
 	
 	icu = verify_ipocurve((ID *)self->object, ID_CO, boneName, constName,
 			CO_ENFORCE);
+	
+	if (!icu)
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"cannot get a curve from this IPO, may be using libdata" );		
+	
 	insert_vert_ipo(icu, (float)CFRA, influence);
 	self->object->recalc |= OB_RECALC_OB;  
 

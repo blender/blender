@@ -1310,12 +1310,12 @@ void ipo_buttons(void)
 	uiBlockBeginAlign(block);
 	if(curarea->headertype==HEADERTOP) {
 		uiDefIconBut(block, BUT, B_IPOCOPY, ICON_COPYUP,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Copies the selected curves to the buffer");
-		uiSetButLock(G.sipo->ipo && G.sipo->ipo->id.lib, "Can't edit library data");
+		uiSetButLock(G.sipo->ipo && G.sipo->ipo->id.lib, ERROR_LIBDATA_MESSAGE);
 		uiDefIconBut(block, BUT, B_IPOPASTE, ICON_PASTEUP,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Pastes the curves from the buffer");
 	}
 	else {
 		uiDefIconBut(block, BUT, B_IPOCOPY, ICON_COPYDOWN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Copies the selected curves to the buffer");
-		uiSetButLock(G.sipo->ipo && G.sipo->ipo->id.lib, "Can't edit library data");
+		uiSetButLock(G.sipo->ipo && G.sipo->ipo->id.lib, ERROR_LIBDATA_MESSAGE);
 		uiDefIconBut(block, BUT, B_IPOPASTE, ICON_PASTEDOWN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Pastes the curves from the buffer");
 	}
 	uiBlockEndAlign(block);

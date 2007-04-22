@@ -39,6 +39,7 @@
 #include <config.h>
 #endif
 
+#include "blendef.h"
 #include "MEM_guardedalloc.h"
 
 #include "DNA_color_types.h"
@@ -714,7 +715,7 @@ void drawbutspace(ScrArea *sa, void *spacedata)
 	glClearColor(col[0], col[1], col[2], 0.0); 
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	uiSetButLock(G.scene->id.lib!=0, "Can't edit library data");	
+	uiSetButLock(G.scene->id.lib!=0, ERROR_LIBDATA_MESSAGE);	
 	uiFreeBlocksWin(&sa->uiblocks, sa->win);
  
 	/* select the context to be drawn, per contex/tab the actual context is tested */

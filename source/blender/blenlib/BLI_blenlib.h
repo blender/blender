@@ -389,4 +389,3 @@ void BLI_timestr(double time, char *str);
 #endif
 
 #endif
-

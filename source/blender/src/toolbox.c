@@ -236,6 +236,11 @@ void error(char *fmt, ...)
 	va_end(ap);
 }
 
+void error_libdata(void)
+{
+	error(ERROR_LIBDATA_MESSAGE);
+}
+
 int saveover(char *file)
 {
 	int len= strlen(file);

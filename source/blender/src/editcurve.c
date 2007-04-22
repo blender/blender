@@ -3655,6 +3655,11 @@ int join_curve(int type)
 	int a;
 	
 	ob= OBACT;
+	if (object_data_is_libdata(ob)) {
+		error_libdata();
+		return 0;
+	} 
+	
 	if(!G.vd || ob->type!=type) return 0;
 	if(ob->lay & G.vd->lay); else return 0;
 	tempbase.first= tempbase.last= 0;
@@ -3665,7 +3670,7 @@ int join_curve(int type)
 	base= FIRSTBASE;
 	while(base) {
 		nextb= base->next;
-		if TESTBASELIB(base) {
+		if TESTBASE(base) {
 			if(base->object->type==type) {
 				if(base->object != ob) {
 				

@@ -1293,7 +1293,7 @@ static void tree_element_active_object(SpaceOops *soops, TreeElement *te)
 		if(G.qual & LR_SHIFTKEY) {
 			/* swap select */
 			if(base->flag & SELECT) base->flag &= ~SELECT;
-			else base->flag |= SELECT;
+			else if ((base->object->restrictflag & OB_RESTRICT_VIEW)==0) base->flag |= SELECT;
 			base->object->flag= base->flag;
 		}
 		else {
@@ -1303,8 +1303,10 @@ static void tree_element_active_object(SpaceOops *soops, TreeElement *te)
 				b->flag &= ~SELECT;
 				b->object->flag= b->flag;
 			}
-			base->flag |= SELECT;
-			base->object->flag |= SELECT;
+			if ((base->object->restrictflag & OB_RESTRICT_VIEW)==0) {
+				base->flag |= SELECT;
+				base->object->flag |= SELECT;
+			}
 		}
 		set_active_base(base);	/* editview.c */
 		
@@ -1895,7 +1897,7 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 					if(ELEM8(tselem->type, TSE_NLA, TSE_DEFGROUP_BASE, TSE_CONSTRAINT_BASE, TSE_MODIFIER_BASE, TSE_SCRIPT_BASE, TSE_POSE_BASE, TSE_R_LAYER_BASE, TSE_R_PASS)) 
 						error("Cannot edit builtin name");
 					else if(tselem->id->lib)
-						error("Cannot edit Library Data");
+						error_libdata();
 					else {
 						tselem->flag |= TSE_TEXTBUT;
 					}
@@ -2471,7 +2473,7 @@ static void object_select_cb(TreeElement *te, TreeStoreElem *tsep, TreeStoreElem
 	Base *base= (Base *)te->directdata;
 	
 	if(base==NULL) base= object_in_scene((Object *)tselem->id, G.scene);
-	if(base) {
+	if(base && ((base->object->restrictflag & OB_RESTRICT_VIEW)==0)) {
 		base->flag |= SELECT;
 		base->object->flag |= SELECT;
 	}
