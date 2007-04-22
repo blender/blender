@@ -102,8 +102,14 @@ static int roundboxtype= 15;
 
 void uiSetRoundBox(int type)
 {
-	roundboxtype= type;
-	
+	/* Not sure the roundbox function is the best place to change this
+	 * if this is undone, its not that big a deal, only makes curves edges
+	 * square for the  */
+	if (BIF_GetThemeValue(TH_BUT_DRAWTYPE) == TH_MINIMAL)
+		roundboxtype= 0;
+	else
+		roundboxtype= type;
+
 	/* flags to set which corners will become rounded:
 
 	1------2
@@ -204,8 +210,10 @@ void gl_round_box_shade(int mode, float minx, float miny, float maxx, float maxy
 	coldown[1]= color[1]+shadedown; if(coldown[1]<0.0) coldown[1]= 0.0;
 	coldown[2]= color[2]+shadedown; if(coldown[2]<0.0) coldown[2]= 0.0;
 
-	glShadeModel(GL_SMOOTH);
-	glBegin(mode);
+	if (BIF_GetThemeValue(TH_BUT_DRAWTYPE) != TH_MINIMAL) {
+		glShadeModel(GL_SMOOTH);
+		glBegin(mode);
+	}
 
 	/* start with corner right-bottom */
 	if(roundboxtype & 4) {
@@ -350,12 +358,14 @@ void uiRoundBoxEmboss(float minx, float miny, float maxx, float maxy, float rad,
 	//if(active)
 	//	gl_round_box_shade(GL_POLYGON, minx, miny, maxx, maxy, rad, 0.10, -0.05);
 	// else
-	/* shading doesnt work for certain buttons yet (pulldown) need smarter buffer caching (ton) §*/
+	/* shading doesnt work for certain buttons yet (pulldown) need smarter buffer caching (ton) */
 	gl_round_box(GL_POLYGON, minx, miny, maxx, maxy, rad);
 	
 	/* set antialias line */
-	glEnable( GL_LINE_SMOOTH );
-	glEnable( GL_BLEND );
+	if (BIF_GetThemeValue(TH_BUT_DRAWTYPE) != TH_MINIMAL) {
+		glEnable( GL_LINE_SMOOTH );
+		glEnable( GL_BLEND );
+	}
 
 	/* top shade */
 	gl_round_box_topshade(minx+1, miny+1, maxx-1, maxy-1, rad);
@@ -388,8 +398,10 @@ void uiRoundRect(float minx, float miny, float maxx, float maxy, float rad)
 	}
 	
 	/* set antialias line */
-	glEnable( GL_LINE_SMOOTH );
-	glEnable( GL_BLEND );
+	if (BIF_GetThemeValue(TH_BUT_DRAWTYPE) != TH_MINIMAL) {
+		glEnable( GL_LINE_SMOOTH );
+		glEnable( GL_BLEND );
+	}
 
 	gl_round_box(GL_LINE_LOOP, minx, miny, maxx, maxy, rad);
    
@@ -415,9 +427,11 @@ void uiRoundBox(float minx, float miny, float maxx, float maxy, float rad)
 	gl_round_box(GL_POLYGON, minx, miny, maxx, maxy, rad);
 	
 	/* set antialias line */
-	glEnable( GL_LINE_SMOOTH );
-	glEnable( GL_BLEND );
-
+	if (BIF_GetThemeValue(TH_BUT_DRAWTYPE) != TH_MINIMAL) {
+		glEnable( GL_LINE_SMOOTH );
+		glEnable( GL_BLEND );
+	}
+		
 	gl_round_box(GL_LINE_LOOP, minx, miny, maxx, maxy, rad);
    
 	glDisable( GL_BLEND );

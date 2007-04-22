@@ -3678,6 +3678,12 @@ void drawscredge_area(ScrArea *sa)
 	
 	cpack(0x0);
 	
+	/* Simple hack to make sure round corners arntdrawn with the minimal theme,
+	 * Nothing wrong with it IMHO, but just be aware its used so the following
+	 * if's never compare true with HEADERTOP or HEADERDOWN */
+	if (BIF_GetThemeValue(TH_BUT_DRAWTYPE) == TH_MINIMAL)
+		sa->headertype = -sa->headertype;
+	
 	/* right border area */
 	if(sa->headertype==HEADERTOP) sdrawline(x2, y1, x2, y2-SCR_ROUND+1);
 	else if(sa->headertype==HEADERDOWN) sdrawline(x2, y1+SCR_ROUND-1, x2, y2);
@@ -3697,6 +3703,9 @@ void drawscredge_area(ScrArea *sa)
 	if(sa->headertype==HEADERDOWN) sdrawline(x1+SCR_ROUND-3, y1, x2-SCR_ROUND+3, y1);
 	else sdrawline(x1, y1, x2, y1);
 	
+	/* restore real header type */
+	if (BIF_GetThemeValue(TH_BUT_DRAWTYPE) == TH_MINIMAL)
+		sa->headertype = -sa->headertype;
 }
 
 /* ********************************* */
