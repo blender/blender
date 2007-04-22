@@ -221,203 +221,223 @@ Draw.Draw() functions that can be used inside the windowing loop.
 """
 
 def Exit():
-  """
-  Exit the windowing interface.
-  """
+	"""
+	Exit the windowing interface.
+	"""
 
 def BeginAlign():
-  """
-  Buttons after this function will draw aligned (button layout only).
-  """
+	"""
+	Buttons after this function will draw aligned (button layout only).
+	"""
 
 def EndAlign():
-  """
-  Use after BeginAlign() to stop aligning the buttons (button layout only).
-  """
+	"""
+	Use after BeginAlign() to stop aligning the buttons (button layout only).
+	"""
 
+def UIBlock(draw):
+	"""
+	This function creates a popup area where buttons, lebels, sliders etc can be dwarn.
+	
+	@type draw: function
+	@param draw: A function to draw to the popup area, taking no arguments: draw().
+	
+	@note: The size of the popup will expand to fit the bounds of the buttons created in the draw function.
+	@note: Be sure to use the mouse coordinates to position the buttons under the mouse,
+		so the popup dosnt exit as soon as it opens.
+		The coordinates for buttons start 0,0 at the bottom left hand side of the screen.
+	@note: Within this popup, Redraw events and the registered button callback will not work.
+		For buttons to run events, use per button callbacks.
+	@note: OpenGL drawing functions wont work within this popup, for text use L{Label} rather then L{Text}
+	"""
+	
 def Register(draw = None, event = None, button = None):
-  """
-  Register callbacks for windowing.
-  @type draw: function
-  @type event: function
-  @type button: function
-  @param draw: A function to draw the screen, taking no arguments: f().
-  @param event: A function to handle keyboard and mouse input events, taking
-      two arguments: f(evt, val), where:
-       - 'evt' (int) is the event number;
-       - 'val' (int) is the value modifier.  If val = 0, the event refers to a
-       key or mouse button being released.  Otherwise it's a key/button press.
-  @param button: A function to handle Draw Button events, taking one argument:
-      f(evt), where:
-        - 'evt' is the button number (see the I{event} parameter in L{Button}).
-  @note: note that in the example at the beginning of this page Draw.Register
-      is called only once.  It's not necessary to re-register the callbacks,
-      they will stay until Draw.Exit is called.  It's enough to redraw the
-      screen, when a relevant event is caught.
-  @note: only during the B{event} callback: the L{Blender}.ascii variable holds
-      the ASCII integer value (if it exists and is valid) of the current event.
-  """
+	"""
+	Register callbacks for windowing.
+	@type draw: function
+	@type event: function
+	@type button: function
+	@param draw: A function to draw the screen, taking no arguments: draw().
+	@param event: A function to handle keyboard and mouse input events, taking
+		two arguments: f(evt, val), where:
+			- 'evt' (int) is the event number;
+			- 'val' (int) is the value modifier.  If val = 0, the event refers to a
+			key or mouse button being released.  Otherwise it's a key/button press.
+	@param button: A function to handle Draw Button events, taking one argument:
+		f(evt), where:
+			- 'evt' is the button number (see the I{event} parameter in L{Button}).
+	@note: note that in the example at the beginning of this page Draw.Register
+		is called only once.  It's not necessary to re-register the callbacks,
+		they will stay until Draw.Exit is called.  It's enough to redraw the
+		screen, when a relevant event is caught.
+	@note: only during the B{event} callback: the L{Blender}.ascii variable holds
+		the ASCII integer value (if it exists and is valid) of the current event.
+	"""
 
 def Redraw(after = 0):
-  """
-  Queue a redraw event.  Redraw events are buffered so that, regardless of how
-  many events are queued, the window only receives one redraw event.
-  @type after: int
-  @param after: If non-zero, the redraw is processed before other input events.
-  """
+	"""
+	Queue a redraw event.  Redraw events are buffered so that, regardless of how
+	many events are queued, the window only receives one redraw event.
+	@type after: int
+	@param after: If non-zero, the redraw is processed before other input events.
+	"""
 
 def Draw():
-  """
-  Force an immediate redraw.  Forced redraws are not buffered.  In other words,
-  the window is redrawn once every time this function is called.
-  """
+	"""
+	Force an immediate redraw.  Forced redraws are not buffered.  In other words,
+	the window is redrawn once every time this function is called.
+	"""
 
 def Create(value):
-  """
-  Create a default Button object.
-  @type value: int, float, string or 3 floats
-  @param value: The value to store in the button.
-  @rtype: Blender Button
-  @return: The Button created.
-  @note: String values must have less then 400 characters.
-  """
+	"""
+	Create a default Button object.
+	@type value: int, float, string or 3 floats
+	@param value: The value to store in the button.
+	@rtype: Blender Button
+	@return: The Button created.
+	@note: String values must have less then 400 characters.
+	"""
 
-def PushButton(name, event, x, y, width, height, tooltip = None):
-  """
-  Create a new (push) Button object.
-  @type name: string
-  @param name: The string to display on the button.
-  @type event: int
-  @param event: The event number to pass to the button event function when
-      activated.
-  @type x: int
-  @type y: int
-  @param x: The lower left x (horizontal) coordinate of the button.
-  @param y: The lower left y (vertical) coordinate of the button.
-  @type width: int
-  @type height: int
-  @param width: The button width.
-  @param height: The button height.
-  @type tooltip: string
-  @param tooltip: The button's tooltip (the string that appears when the mouse
-      is kept over the button).
-  @note: This function used to be called only "Button".  We added an
-     alternative alias to avoid a name clash with the L{Button} class/type that
-     caused trouble in this documentation's generation.  The old name shouldn't
-     be deprecated, use Button or PushButton (better) at your choice.
-  """
+def PushButton(name, event, x, y, width, height, tooltip = None, callback = None):
+	"""
+	Create a new (push) Button object.
+	@type name: string
+	@param name: The string to display on the button.
+	@type event: int
+	@param event: The event number to pass to the button event function when
+		activated.
+	@type x: int
+	@type y: int
+	@param x: The lower left x (horizontal) coordinate of the button.
+	@param y: The lower left y (vertical) coordinate of the button.
+	@type width: int
+	@type height: int
+	@param width: The button width.
+	@param height: The button height.
+	@type tooltip: string
+	@param tooltip: The button's tooltip (the string that appears when the mouse
+		is kept over the button).
+	@type callback: function
+	@param callback: an optional argument so this button can have its own
+		callback function. the function will run whenever this button is pressed.
+		This function must accept one argument (the event) as an argument.
+	@note: This function used to be called only "Button".  We added an
+		alternative alias to avoid a name clash with the L{Button} class/type that
+		caused trouble in this documentation's generation.  The old name shouldn't
+		be deprecated, use Button or PushButton (better) at your choice.
+	"""
 
 def PupMenu(name, maxrow = None):
-  """
-  Create a pop-up menu.
+	"""
+	Create a pop-up menu.
 
-  The menu options are specified through the 'name' parameter, like with
-  L{Menu}: options are followed by a format code and separated by the '|'
-  character.  Valid format codes are:
-    - %t - The option should be used as the title of the pop-up;
-    - %l - insert a separating line (only works if 'maxrow' isn't given);
-    - %xB{N} - Chosen this option, PupMenu should return the integer B{N}.
+	The menu options are specified through the 'name' parameter, like with
+	L{Menu}: options are followed by a format code and separated by the '|'
+	character.  Valid format codes are:
+		- %t - The option should be used as the title of the pop-up;
+		- %l - insert a separating line (only works if 'maxrow' isn't given);
+		- %xB{N} - Chosen this option, PupMenu should return the integer B{N}.
 
-  Example::
-    name = "OK?%t|QUIT BLENDER"  # if no %xN int is set, indices start from 1
-    result = Draw.PupMenu(name)
-    if result:
-      Draw.PupMenu("Really?%t|Yes|No")
+	Example::
+		name = "OK?%t|QUIT BLENDER"  # if no %xN int is set, indices start from 1
+		result = Draw.PupMenu(name)
+		if result:
+			Draw.PupMenu("Really?%t|Yes|No")
 
-  @type name: string
-  @param name: The format string to define the contents of the button.
-  @type maxrow: int
-  @param maxrow: The maximum number of rows for each column in the pop-up.
-  @rtype: int
-  @return: the chosen entry number or -1 if none was chosen.
-  """
+	@type name: string
+	@param name: The format string to define the contents of the button.
+	@type maxrow: int
+	@param maxrow: The maximum number of rows for each column in the pop-up.
+	@rtype: int
+	@return: the chosen entry number or -1 if none was chosen.
+	"""
 
 def PupIntInput(text, default, min, max):
-  """
-  Create an integer number input pop-up.
+	"""
+	Create an integer number input pop-up.
 
-  This allows python to use Blender's integer number pop-up input.
+	This allows python to use Blender's integer number pop-up input.
 
-  Example::
-    default = 50
-    min = 0
-    max = 100
+	Example::
+		default = 50
+		min = 0
+		max = 100
 
-    msg = "Set this value between 0 and 100"
-    result = Draw.PupIntInput(msg, default, min, max)
-    if result != None:
-      print result
-    else:
-      print 'no user input'
-    
-  @type text: string
-  @param text: The text that is displayed in the pop-up.
-  @type default: int
-  @param default: The value that the pop-up is set to initially.
-  @type min: int
-  @param min: The lowest value the pop-up will allow.
-  @type max: int
-  @param max: The highest value the pop-up will allow.
-  @rtype: int
-  @return: the number chosen or None if none was chosen.
-  """
+		msg = "Set this value between 0 and 100"
+		result = Draw.PupIntInput(msg, default, min, max)
+		if result != None:
+			print result
+		else:
+			print 'no user input'
+
+	@type text: string
+	@param text: The text that is displayed in the pop-up.
+	@type default: int
+	@param default: The value that the pop-up is set to initially.
+	@type min: int
+	@param min: The lowest value the pop-up will allow.
+	@type max: int
+	@param max: The highest value the pop-up will allow.
+	@rtype: int
+	@return: the number chosen or None if none was chosen.
+	"""
 
 def PupFloatInput(text, default, min, max, clickStep, floatLen):
-  """
-  Create a floating point number input pop-up.
-  
-  This allows python to use Blender's floating point pop-up input.
+	"""
+	Create a floating point number input pop-up.
 
-  Example::
-    default = 50
-    min = 0.0
-    max = 10.0
-    clickStep = 100
-    floatLen = 3
+	This allows python to use Blender's floating point pop-up input.
 
-    msg = "Set this value between 0 and 100"
-    result = Draw.PupFloatInput(msg, default, min, max, clickStep, floatLen)
-    if result != None:
-      print result
-    else:
-      print 'no user input'
-    
-  @type text: string
-  @param text: The text that is displayed in the pop-up.
-  @type default: float
-  @param default: The value that the pop-up is set to initially.
-  @type min: float
-  @param min: The lowest value the pop-up will allow.
-  @type max: float
-  @param max: The highest value the pop-up will allow.
-  @type clickStep: int
-  @param clickStep: How much is incremented per user click, 100 will increment 1.0, 10 will increment 0.1 etc.
-  @type floatLen: int
-  @param floatLen: The number of decimal places to display, between 2 and 4.
-  @rtype: float
-  @return: the number chosen or None if none was chosen.
-  """
+	Example::
+		default = 50
+		min = 0.0
+		max = 10.0
+		clickStep = 100
+		floatLen = 3
+
+		msg = "Set this value between 0 and 100"
+		result = Draw.PupFloatInput(msg, default, min, max, clickStep, floatLen)
+		if result != None:
+			print result
+		else:
+			print 'no user input'
+	
+	@type text: string
+	@param text: The text that is displayed in the pop-up.
+	@type default: float
+	@param default: The value that the pop-up is set to initially.
+	@type min: float
+	@param min: The lowest value the pop-up will allow.
+	@type max: float
+	@param max: The highest value the pop-up will allow.
+	@type clickStep: int
+	@param clickStep: How much is incremented per user click, 100 will increment 1.0, 10 will increment 0.1 etc.
+	@type floatLen: int
+	@param floatLen: The number of decimal places to display, between 2 and 4.
+	@rtype: float
+	@return: the number chosen or None if none was chosen.
+	"""
 
 def PupStrInput(text, default, max = 20):
-  """
-  Create a string input pop-up.
-  
-  This allows python to use Blender's string pop-up input.
+	"""
+	Create a string input pop-up.
 
-  Example::
-    Blender.Draw.PupStrInput("Name:", "untitled", 25)
-    
-  @type text: string
-  @param text: The text that is displayed in the pop-up.
-  @type default: string
-  @param default: The value that the pop-up is set to initially.  If it's longer
-      then 'max', it's truncated.
-  @type max: int
-  @param max: The most characters the pop-up input will allow.  If not given
-      it defaults to 20 chars.  It should be in the range [1, 100].
-  @rtype: string
-  @return: The text entered by the user or None if none was chosen.
-  """
+	This allows python to use Blender's string pop-up input.
+
+	Example::
+		Blender.Draw.PupStrInput("Name:", "untitled", 25)
+	
+	@type text: string
+	@param text: The text that is displayed in the pop-up.
+	@type default: string
+	@param default: The value that the pop-up is set to initially.  If it's longer
+		then 'max', it's truncated.
+	@type max: int
+	@param max: The most characters the pop-up input will allow.  If not given
+		it defaults to 20 chars.  It should be in the range [1, 100].
+	@rtype: string
+	@return: The text entered by the user or None if none was chosen.
+	"""
 
 def PupBlock(title, sequence):
 	"""
@@ -463,103 +483,117 @@ def PupBlock(title, sequence):
 	@return: 1 if the pop-up is confirmed, 0 otherwise
 	"""
 
-def Menu(name, event, x, y, width, height, default, tooltip = None):
-  """
-  Create a new Menu Button object.
-  
-  The menu options are specified through the 'name' of the button.  Options are
-  I{followed} by a format code and separated by the '|' (pipe) character.  Valid
-  format codes are:
-    - %t - The option should be used as the title;
-    - %l - Insert a separating line;
-    - %xB{N} - The option should set the integer B{N} in the button value.
+def Menu(name, event, x, y, width, height, default, tooltip = None, callback = None):
+	"""
+	Create a new Menu Button object.
 
-  Example::
-    name = "The Title %t|First Entry %x1|Second Entry %x2|Third Entry %x3"
-    menu = Draw.Menu(name, 2, 60, 120, 200, 40, 3, "Just a test menu.")
-    # note that, since default = 3, the "Third Entry"
-    # will appear as the default choice in the Menu.
+	The menu options are specified through the 'name' of the button.  Options are
+	I{followed} by a format code and separated by the '|' (pipe) character.  Valid
+	format codes are:
+		- %t - The option should be used as the title;
+		- %l - Insert a separating line;
+		- %xB{N} - The option should set the integer B{N} in the button value.
 
-  @type name: string
-  @param name: The format string to define the contents of the button.
-  @type event: int
-  @param event: The event number to pass to the button event function when
-      activated.
-  @type x: int
-  @type y: int
-  @param x: The lower left x (horizontal) coordinate of the button.
-  @param y: The lower left y (vertical) coordinate of the button.
-  @type width: int
-  @type height: int
-  @param width: The button width.
-  @param height: The button height.
-  @type default: int
-  @param default: The number of the option to be selected by default.
-  @type tooltip: string
-  @param tooltip: The button's tooltip (the string that appears when the mouse
-      is kept over the button).
-  @rtype: Blender Button
-  @return: The Button created.
-  """
+	Example::
+		name = "The Title %t|First Entry %x1|Second Entry %x2|Third Entry %x3"
+		menu = Draw.Menu(name, 2, 60, 120, 200, 40, 3, "Just a test menu.")
+		# note that, since default = 3, the "Third Entry"
+		# will appear as the default choice in the Menu.
 
-def Toggle(name, event, x, y, width, height, default, tooltip = None):
-  """
-  Create a new Toggle Button object.
-  @type name: string
-  @param name: The string to display on the button.
-  @type event: int
-  @param event: The event number to pass to the button event function when
-      activated.
-  @type x: int
-  @type y: int
-  @param x: The lower left x (horizontal) coordinate of the button.
-  @param y: The lower left y (vertical) coordinate of the button.
-  @type width: int
-  @type height: int
-  @param width: The button width.
-  @param height: The button height.
-  @type default: int
-  @param default:  The value specifying the default state:
-      (0 for "up", 1 for "down").
-  @type tooltip: string
-  @param tooltip: The button's tooltip (the string that appears when the mouse
-      is kept over the button).
-  @rtype: Blender Button
-  @return: The Button created.
-  """
+	@type name: string
+	@param name: The format string to define the contents of the button.
+	@type event: int
+	@param event: The event number to pass to the button event function when
+		activated.
+	@type x: int
+	@type y: int
+	@param x: The lower left x (horizontal) coordinate of the button.
+	@param y: The lower left y (vertical) coordinate of the button.
+	@type width: int
+	@type height: int
+	@param width: The button width.
+	@param height: The button height.
+	@type default: int
+	@param default: The number of the option to be selected by default.
+	@type tooltip: string
+	@param tooltip: The button's tooltip (the string that appears when the mouse
+		is kept over the button).
+	@type callback: function
+	@param callback: an optional argument so this button can have its own
+		callback function. the function will run whenever this button is pressed.
+		This function must accept one argument (the event) as an argument.
+	@rtype: Blender Button
+	@return: The Button created.
+	"""
+
+def Toggle(name, event, x, y, width, height, default, tooltip = None, callback = None):
+	"""
+	Create a new Toggle Button object.
+	@type name: string
+	@param name: The string to display on the button.
+	@type event: int
+	@param event: The event number to pass to the button event function when
+		activated.
+	@type x: int
+	@type y: int
+	@param x: The lower left x (horizontal) coordinate of the button.
+	@param y: The lower left y (vertical) coordinate of the button.
+	@type width: int
+	@type height: int
+	@param width: The button width.
+	@param height: The button height.
+	@type default: int
+	@param default:  The value specifying the default state:
+		(0 for "up", 1 for "down").
+	@type tooltip: string
+	@param tooltip: The button's tooltip (the string that appears when the mouse
+		is kept over the button).
+	@type callback: function
+	@param callback: an optional argument so this button can have its own
+		callback function. the function will run whenever this button is pressed.
+		This function must accept one argument (the event) as an argument.
+	@rtype: Blender Button
+	@return: The Button created.
+	"""
 
 def Slider(name, event, x, y, width, height, initial, min, max, realtime = 1,
-           tooltip = None):
-  """
-  Create a new Slider Button object.
-  @type name: string
-  @param name: The string to display on the button.
-  @type event: int
-  @param event: The event number to pass to the button event function when
-      activated.
-  @type x: int
-  @type y: int
-  @param x: The lower left x (horizontal) coordinate of the button.
-  @param y: The lower left y (vertical) coordinate of the button.
-  @type width: int
-  @type height: int
-  @param width: The button width.
-  @param height: The button height.
-  @type initial: int or float
-  @type min: int or float
-  @type max: int or float
-  @param initial:  The initial value.
-  @param min:  The minimum value.
-  @param max:  The maximum value.
-  @type realtime: int
-  @param realtime: If non-zero (the default), the slider will emit events as
-      it is edited.
-  @type tooltip: string
-  @param tooltip: The button's tooltip (the string that appears when the mouse
-      is kept over the button).
-  @rtype: Blender Button
-  @return: The Button created.
-  """
+			tooltip = None, callback = None):
+	"""
+	Create a new Slider Button object.
+	@type name: string
+	@param name: The string to display on the button.
+	@type event: int
+	@param event: The event number to pass to the button event function when
+		activated.
+	@type x: int
+	@type y: int
+	@param x: The lower left x (horizontal) coordinate of the button.
+	@param y: The lower left y (vertical) coordinate of the button.
+	@type width: int
+	@type height: int
+	@param width: The button width.
+	@param height: The button height.
+	@type initial: int or float
+	@type min: int or float
+	@type max: int or float
+	@param initial:  The initial value.
+	@param min:  The minimum value.
+	@param max:  The maximum value.
+	@type realtime: int
+	@param realtime: If non-zero (the default), the slider will emit events as
+		it is edited.
+	@type tooltip: string
+	@param tooltip: The button's tooltip (the string that appears when the mouse
+		is kept over the button).
+		
+	@type callback: function
+	@param callback: an optional argument so this button can have its own
+		callback function. the function will run whenever this button is pressed.
+		This function must accept one argument (the event) as an argument.
+	@rtype: Blender Button
+	@return: The Button created.
+	@note: slider callbacks will not work if the realtime setting is enabled.
+	"""
 
 #def Scrollbar(event, x, y, width, height, initial, min, max, realtime = 1,
 #           tooltip = None):
@@ -592,240 +626,254 @@ def Slider(name, event, x, y, width, height, initial, min, max, realtime = 1,
 #  @return: The Button created.
 #  """
 
-def ColorPicker(event, x, y, width, height, initial, tooltip = None):
-  """
-  Create a new Color Picker Button object.
-  @type event: int
-  @param event: The event number to pass to the button event function when
-      activated.
-  @type x: int
-  @type y: int
-  @param x: The lower left x (horizontal) coordinate of the button.
-  @param y: The lower left y (vertical) coordinate of the button.
-  @type width: int
-  @type height: int
-  @param width: The button width.
-  @param height: The button height.
-  @type initial: 3-float tuple
-  @param initial:  The initial color value. All values must be between 0 and 1
-  @type tooltip: string
-  @param tooltip: The button's tooltip (the string that appears when the mouse
-      is kept over the button).
-  @rtype: Blender Button
-  @return: The Button created.
-  @note: The color picker will not work if the Register's event function is None.
-  @note: Using the same button variable with more then 1 button at a time will corrupt memory.
-  """
+def ColorPicker(event, x, y, width, height, initial, tooltip = None, callback = None):
+	"""
+	Create a new Color Picker Button object.
+	@type event: int
+	@param event: The event number to pass to the button event function when
+		activated.
+	@type x: int
+	@type y: int
+	@param x: The lower left x (horizontal) coordinate of the button.
+	@param y: The lower left y (vertical) coordinate of the button.
+	@type width: int
+	@type height: int
+	@param width: The button width.
+	@param height: The button height.
+	@type initial: 3-float tuple
+	@param initial:  The initial color value. All values must be between 0 and 1
+	@type tooltip: string
+	@param tooltip: The button's tooltip (the string that appears when the mouse
+		is kept over the button).
+	@type callback: function
+	@param callback: an optional argument so this button can have its own
+		callback function. the function will run whenever this button is pressed.
+		This function must accept one argument (the event) as an argument.
+	@rtype: Blender Button
+	@return: The Button created.
+	@note: The color picker will not work if the Register's event function is None.
+	@note: Using the same button variable with more then 1 button at a time will corrupt memory.
+	"""
 
-def Normal(event, x, y, width, height, initial, tooltip = None):
-  """
-  Create a new Normal button, this allows you to set a 3d vector by rotating a sphere.
-  @type event: int
-  @param event: The event number to pass to the button event function when
-      activated.
-  @type x: int
-  @type y: int
-  @param x: The lower left x (horizontal) coordinate of the button.
-  @param y: The lower left y (vertical) coordinate of the button.
-  @type width: int
-  @type height: int
-  @param width: The button width - non square normal buttons .
-  @param height: The button height.
-  @type initial: 3-float tuple
-  @param initial:  The initial vector value.
-  @type tooltip: string
-  @param tooltip: The button's tooltip (the string that appears when the mouse
-      is kept over the button).
-  @rtype: Blender Button
-  @return: The Button created.
-  @note: The normal button will not work if the Register's event function is None.
-  @note: Using the same button variable with more then 1 button at a time will corrupt memory.
-  """
+def Normal(event, x, y, width, height, initial, tooltip = None, callback = None):
+	"""
+	Create a new Normal button, this allows you to set a 3d vector by rotating a sphere.
+	@type event: int
+	@param event: The event number to pass to the button event function when
+		activated.
+	@type x: int
+	@type y: int
+	@param x: The lower left x (horizontal) coordinate of the button.
+	@param y: The lower left y (vertical) coordinate of the button.
+	@type width: int
+	@type height: int
+	@param width: The button width - non square normal buttons .
+	@param height: The button height.
+	@type initial: 3-float tuple
+	@param initial:  The initial vector value.
+	@type tooltip: string
+	@param tooltip: The button's tooltip (the string that appears when the mouse
+		is kept over the button).
+	@type callback: function
+	@param callback: an optional argument so this button can have its own
+		callback function. the function will run whenever this button is pressed.
+		This function must accept one argument (the event) as an argument.
+	@rtype: Blender Button
+	@return: The Button created.
+	@note: The normal button will not work if the Register's event function is None.
+	@note: Using the same button variable with more then 1 button at a time will corrupt memory.
+	"""
 
-def Number(name, event, x, y, width, height, initial, min, max, tooltip = None):
-  """
-  Create a new Number Button object.
-  @type name: string
-  @param name: The string to display on the button.
-  @type event: int
-  @param event: The event number to pass to the button event function when
-      activated.
-  @type x: int
-  @type y: int
-  @param x: The lower left x (horizontal) coordinate of the button.
-  @param y: The lower left y (vertical) coordinate of the button.
-  @type width: int
-  @type height: int
-  @param width: The button width.
-  @param height: The button height.
-  @type initial: int or float
-  @type min: int or float
-  @type max: int or float
-  @param initial:  The initial value.
-  @param min:  The minimum value.
-  @param max:  The maximum value.
-  @type tooltip: string
-  @param tooltip: The button's tooltip (the string that appears when the mouse
-      is kept over the button).
-  @rtype: Blender Button
-  @return: The Button created.
+def Number(name, event, x, y, width, height, initial, min, max, tooltip = None, callback = None):
+	"""
+	Create a new Number Button object.
+	@type name: string
+	@param name: The string to display on the button.
+	@type event: int
+	@param event: The event number to pass to the button event function when
+		activated.
+	@type x: int
+	@type y: int
+	@param x: The lower left x (horizontal) coordinate of the button.
+	@param y: The lower left y (vertical) coordinate of the button.
+	@type width: int
+	@type height: int
+	@param width: The button width.
+	@param height: The button height.
+	@type initial: int or float
+	@type min: int or float
+	@type max: int or float
+	@param initial:  The initial value.
+	@param min:  The minimum value.
+	@param max:  The maximum value.
+	@type tooltip: string
+	@param tooltip: The button's tooltip (the string that appears when the mouse
+		is kept over the button).
+	@type callback: function
+	@param callback: an optional argument so this button can have its own
+		callback function. the function will run whenever this button is pressed.
+		This function must accept one argument (the event) as an argument.
+	@rtype: Blender Button
+	@return: The Button created.
 
-  I{B{Example:}}
+	I{B{Example:}}
 
-  This example draws a single floating point value::
-    from Blender import Draw
-    b= Draw.Create(0.0) # Data for floating point button
-    def bevent(evt):
-      print 'My Button event:', evt
-    def gui():
-      global b
-      b= Draw.Number('value: ', 1000, 0,0, 200, 20, b.val, 0,10, 'some text tip')
+	This example draws a single floating point value::
+		from Blender import Draw
+		b= Draw.Create(0.0) # Data for floating point button
+		def bevent(evt):
+			print 'My Button event:', evt
+		def gui():
+			global b
+			b= Draw.Number('value: ', 1000, 0,0, 200, 20, b.val, 0,10, 'some text tip')
 
-    Draw.Register(gui, None, bevent) # we are not going to worry about keyboard and mouse events
-  """
+		Draw.Register(gui, None, bevent) # we are not going to worry about keyboard and mouse events
+	"""
 
 
-def String(name, event, x, y, width, height, initial, length, tooltip = None):
-  """
-  Create a new String Button object.
-  @type name: string
-  @param name: The string to display on the button.
-  @type event: int
-  @param event: The event number to pass to the button event function when
-      activated.
-  @type x: int
-  @type y: int
-  @param x: The lower left x (horizontal) coordinate of the button.
-  @param y: The lower left y (vertical) coordinate of the button.
-  @type width: int
-  @type height: int
-  @param width: The button width.
-  @param height: The button height.
-  @type initial: string
-  @param initial: The string to display initially.
-  @type length: int
-  @param length: The maximum input length.
-  @type tooltip: string
-  @param tooltip: The button's tooltip (the string that appears when the mouse
-      is kept over the button).
-  @rtype: Blender Button
-  @return: The Button created.
-  """
+def String(name, event, x, y, width, height, initial, length, tooltip = None, callback = None):
+	"""
+	Create a new String Button object.
+	@type name: string
+	@param name: The string to display on the button.
+	@type event: int
+	@param event: The event number to pass to the button event function when
+		activated.
+	@type x: int
+	@type y: int
+	@param x: The lower left x (horizontal) coordinate of the button.
+	@param y: The lower left y (vertical) coordinate of the button.
+	@type width: int
+	@type height: int
+	@param width: The button width.
+	@param height: The button height.
+	@type initial: string
+	@param initial: The string to display initially.
+	@type length: int
+	@param length: The maximum input length.
+	@type tooltip: string
+	@param tooltip: The button's tooltip (the string that appears when the mouse
+		is kept over the button).
+	@type callback: function
+	@param callback: an optional argument so this button can have its own
+		callback function. the function will run whenever this button is pressed.
+		This function must accept one argument (the event) as an argument.
+	@rtype: Blender Button
+	@return: The Button created.
+	"""
 
 def GetStringWidth(string, fontsize = 'normal'):
-  """
-  Get the width in pixels of a string.
-  @type string: string
-  @param string: A string.
-  @type fontsize: string
-  @param fontsize: The size of the font: 'large', 'normal', 'small' or 'tiny'.
-  @rtype: int
-  @return: The width of I{string} with the chosen I{fontsize}.
-  """
+	"""
+	Get the width in pixels of a string.
+	@type string: string
+	@param string: A string.
+	@type fontsize: string
+	@param fontsize: The size of the font: 'large', 'normal', 'small' or 'tiny'.
+	@rtype: int
+	@return: The width of I{string} with the chosen I{fontsize}.
+	"""
 
 def Text(string, fontsize = 'normal'):
-  """
-  Draw a string on the screen.
+	"""
+	Draw a string on the screen.
 
-  Text location is set using the OpenGL raster location functions L{BGL.glRasterPos} before the text is drawn.
-  This sets the text location from the lower left corner of the current window.
+	Text location is set using the OpenGL raster location functions L{BGL.glRasterPos} before the text is drawn.
+	This sets the text location from the lower left corner of the current window.
 
-  Text color is set using the OpenGL color functions L{BGL.glColor} before the text is drawn.
-  
-  @type string: string
-  @param string: The text string to draw.
-  @type fontsize: string
-  @param fontsize: The size of the font: 'large', 'normal', 'small' or 'tiny'.
-  @rtype: int
-  @return: The width of I{string} drawn with the chosen I{fontsize}.
-  @note: For drawing text in the 3d view see the workaround in L{BGL.glRasterPos}
-  """
+	Text color is set using the OpenGL color functions L{BGL.glColor} before the text is drawn.
+
+	@type string: string
+	@param string: The text string to draw.
+	@type fontsize: string
+	@param fontsize: The size of the font: 'large', 'normal', 'small' or 'tiny'.
+	@rtype: int
+	@return: The width of I{string} drawn with the chosen I{fontsize}.
+	@note: For drawing text in the 3d view see the workaround in L{BGL.glRasterPos}
+	"""
 
 def Label(string, x, y, w, h):
-  """
-  Draw a text lable on the screen.
-  
-  @type string: string
-  @param string: The text string to draw.
-  @rtype: None
-  @return: None
-  """
+	"""
+	Draw a text lable on the screen.
+
+	@type string: string
+	@param string: The text string to draw.
+	@rtype: None
+	@return: None
+	"""
 
 def Image(image, x, y, zoomx=1.0, zoomy=1.0, clipx=0, clipy=0, clipw=-1, cliph=-1):
-  """
-  Draw an image on the screen.
+	"""
+	Draw an image on the screen.
 
-  The image is drawn at the location specified by the coordinates (x,y).  A
-  pair of optional zoom factors (in horizontal and vertical directions) can
-  be applied to the image as it is drawn, and an additional clipping rectangle
-  can be applied to extract a particular sub-region of the image to draw.
+	The image is drawn at the location specified by the coordinates (x,y).  A
+	pair of optional zoom factors (in horizontal and vertical directions) can
+	be applied to the image as it is drawn, and an additional clipping rectangle
+	can be applied to extract a particular sub-region of the image to draw.
 
-  Note that the clipping rectangle is given in image space coordinates.  In
-  image space, the origin is located at the bottom left, with x coordinates 
-  increasing to the right and y coordinates increasing upwards.  No matter 
-  where the clipping rectangle is placed in image space, the lower-left pixel 
-  drawn on the screen is always placed at the coordinates (x,y).  The
-  clipping rectangle is itself clipped to the dimensions of the image.  If
-  either the width or the height of the clipping rectangle are negative then
-  the corresponding dimension (width or height) is set to include as much of 
-  the image as possible.
-  
-  For drawing images with alpha blending with the background you will need to enable blending as shown in the example.
-  
-  
+	Note that the clipping rectangle is given in image space coordinates.  In
+	image space, the origin is located at the bottom left, with x coordinates 
+	increasing to the right and y coordinates increasing upwards.  No matter 
+	where the clipping rectangle is placed in image space, the lower-left pixel 
+	drawn on the screen is always placed at the coordinates (x,y).  The
+	clipping rectangle is itself clipped to the dimensions of the image.  If
+	either the width or the height of the clipping rectangle are negative then
+	the corresponding dimension (width or height) is set to include as much of 
+	the image as possible.
 
-  Example::
-   import Blender
-   from Blender import BGL, Image, Draw
+	For drawing images with alpha blending with the background you will need to enable blending as shown in the example.
+	
+	Example::
+		import Blender
+		from Blender import BGL, Image, Draw
+		
+		myimage = Image.Load('myimage.png')
+		
+		def gui():
+			BGL.glEnable( BGL.GL_BLEND ) # Only needed for alpha blending images with background.
+			BGL.glBlendFunc(BGL.GL_SRC_ALPHA, BGL.GL_ONE_MINUS_SRC_ALPHA) 
+		
+			Draw.Image(myimage, 50, 50)
+		
+			BGL.glDisable( BGL.GL_BLEND )
+		def event(evt, val):
+			if evt == Draw.ESCKEY:
+				Draw.Exit()
+		
+		Draw.Register(gui, event, None)
 
-   myimage = Image.Load('myimage.png')
-
-   def gui():
-        BGL.glEnable( BGL.GL_BLEND ) # Only needed for alpha blending images with background.
-        BGL.glBlendFunc(BGL.GL_SRC_ALPHA, BGL.GL_ONE_MINUS_SRC_ALPHA) 
-        
-        Draw.Image(myimage, 50, 50)
-        
-        BGL.glDisable( BGL.GL_BLEND )
-   def event(evt, val):
-        if evt == Draw.ESCKEY:
-              Draw.Exit()
-
-   Draw.Register(gui, event, None)
-
-  @type image: Blender.Image
-  @param image: The image to draw.
-  @type x: int
-  @param x: The lower left x (horizontal) position of the origin of the image.
-  @type y: int
-  @param y: The lower left y (vertical) position of the origin of the image.
-  @type zoomx: float
-  @param zoomx: The x (horizontal) zoom factor to use when drawing the image.
-  @type zoomy: float
-  @param zoomy: The y (vertical) zoom factor to use when drawing the image.
-  @type clipx: int
-  @param clipx: The lower left x (horizontal) origin of the clipping rectangle
-                within the image.  A value of 0 indicates the left of the
-                image.
-  @type clipy: int
-  @param clipy: The lower left y (vertical) origin of the clipping rectangle
-                within the image.  A value of 0 indicates the bottom of the
-                image.
-  @type clipw: int
-  @param clipw: The width of the clipping rectangle within the image. If this
-                value is negative then the clipping rectangle includes as much
-                of the image as possible in the x (horizontal) direction.
-  @type cliph: int
-  @param cliph: The height of the clipping rectangle within the image. If this
-                value is negative then the clipping rectangle includes as much
-                of the image as possible in the y (vertical) direction.
-  """
+	@type image: Blender.Image
+	@param image: The image to draw.
+	@type x: int
+	@param x: The lower left x (horizontal) position of the origin of the image.
+	@type y: int
+	@param y: The lower left y (vertical) position of the origin of the image.
+	@type zoomx: float
+	@param zoomx: The x (horizontal) zoom factor to use when drawing the image.
+	@type zoomy: float
+	@param zoomy: The y (vertical) zoom factor to use when drawing the image.
+	@type clipx: int
+	@param clipx: The lower left x (horizontal) origin of the clipping rectangle
+				  within the image.  A value of 0 indicates the left of the
+				  image.
+	@type clipy: int
+	@param clipy: The lower left y (vertical) origin of the clipping rectangle
+				  within the image.  A value of 0 indicates the bottom of the
+				  image.
+	@type clipw: int
+	@param clipw: The width of the clipping rectangle within the image. If this
+				  value is negative then the clipping rectangle includes as much
+				  of the image as possible in the x (horizontal) direction.
+	@type cliph: int
+	@param cliph: The height of the clipping rectangle within the image. If this
+				  value is negative then the clipping rectangle includes as much
+				  of the image as possible in the y (vertical) direction.
+	"""
 
 class Button:
-  """
-  The Button object
-  =================
-    This object represents a button in Blender's GUI.
-  @type val: int or float, string or 3-float tuple (depends on button type).
-  @ivar val: The button's value.
-  """
+	"""
+	The Button object
+	=================
+		This object represents a button in Blender's GUI.
+	@type val: int or float, string or 3-float tuple (depends on button type).
+	@ivar val: The button's value.
+	"""

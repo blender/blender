@@ -70,6 +70,14 @@ current image frame, some images change frame if they are a sequence */
 
 #define ButtonObject_Check(v) ((v)->ob_type == &Button_Type)
 
+#define UI_METHOD_ERRORCHECK \
+	if (check_button_event(&event) == -1)\
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,\
+			"button event argument must be in the range [0, 16382]");\
+	if (callback && !PyCallable_Check(callback))\
+		return EXPP_ReturnPyObjError( PyExc_ValueError,\
+			"callback is not a python function");\
+
 /* pointer to main dictionary defined in Blender.c */
 extern PyObject *g_blenderdict;
 
@@ -98,6 +106,7 @@ static PyObject *Method_Register( PyObject * self, PyObject * args );
 static PyObject *Method_Redraw( PyObject * self, PyObject * args );
 static PyObject *Method_Draw( PyObject * self, PyObject * args );
 static PyObject *Method_Create( PyObject * self, PyObject * args );
+static PyObject *Method_UIBlock( PyObject * self, PyObject * args );
 
 static PyObject *Method_Button( PyObject * self, PyObject * args );
 static PyObject *Method_Menu( PyObject * self, PyObject * args );
@@ -111,8 +120,8 @@ static PyObject *Method_String( PyObject * self, PyObject * args );
 static PyObject *Method_GetStringWidth( PyObject * self, PyObject * args );
 static PyObject *Method_Text( PyObject * self, PyObject * args );
 static PyObject *Method_Label( PyObject * self, PyObject * args );
+/* by Campbell: */
 static PyObject *Method_PupMenu( PyObject * self, PyObject * args );
-/* next Five by Campbell: */
 static PyObject *Method_PupIntInput( PyObject * self, PyObject * args );
 static PyObject *Method_PupFloatInput( PyObject * self, PyObject * args );
 static PyObject *Method_PupStrInput( PyObject * self, PyObject * args );
@@ -126,7 +135,12 @@ static PyObject *Method_PupBlock( PyObject * self, PyObject * args );
 static uiBlock *Get_uiBlock( void );
 static void py_slider_update( void *butv, void *data2_unused );
 
+/* hack to get 1 block for the UIBlock, only ever 1 at a time */
+static uiBlock *uiblock=NULL;
+
 static char Draw_doc[] = "The Blender.Draw submodule";
+
+static char Method_UIBlock_doc[] = "(drawfunc, x,y) - Popup dialog where buttons can be drawn (expemental)";
 
 static char Method_Register_doc[] =
 	"(draw, event, button) - Register callbacks for windowing\n\n\
@@ -354,6 +368,7 @@ static char Method_Exit_doc[] = "() - Exit the windowing interface";
 
 static struct PyMethodDef Draw_methods[] = {
 	MethodDef( Create ),
+	MethodDef( UIBlock ),
 	MethodDef( Button ),
 	MethodDef( Toggle ),
 	MethodDef( Menu ),
@@ -718,6 +733,27 @@ void BPY_spacescript_do_pywin_event( SpaceScript * sc, unsigned short event,
 	}
 }
 
+static void exec_but_callback(PyObject *callback, int event)
+{
+	PyObject *result;
+
+	if (callback==NULL || callback == Py_None)
+		return;
+
+	result = PyObject_CallObject( callback, Py_BuildValue( "(i)", event ) );
+	if (!result) {
+		PyErr_Print(  );
+		error( "Python script error: check console" );
+	}
+	Py_XDECREF( result );
+}
+
+static void set_pycallback(uiBut *ubut, PyObject *callback, int event)
+{
+	if (!callback || !PyCallable_Check(callback)) return;
+	uiButSetFunc(ubut, exec_but_callback, callback, event);
+}
+
 static PyObject *Method_Exit( PyObject * self, PyObject * args )
 {
 	SpaceScript *sc;
@@ -910,14 +946,53 @@ static PyObject *Method_Create( PyObject * self, PyObject * args )
 	return (PyObject*) but;
 }
 
+static PyObject *Method_UIBlock( PyObject * self, PyObject * args )
+{
+	PyObject *val = NULL;
+	PyObject *result = NULL;
+	ListBase listb= {NULL, NULL};
+
+	if ( !PyArg_ParseTuple( args, "O", &val ) || !PyCallable_Check( val ) ) 
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+					      "expected 1 python function and 2 ints" );
+
+	if (uiblock)
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+	      "cannot run more then 1 UIBlock at a time" );
+	
+	mywinset(G.curscreen->mainwin);
+	uiblock= uiNewBlock(&listb, "numbuts", UI_EMBOSS, UI_HELV, G.curscreen->mainwin);
+	
+	uiBlockSetFlag(uiblock, UI_BLOCK_LOOP|UI_BLOCK_REDRAW);
+	result = PyObject_CallObject( val, Py_BuildValue( "()" ) );
+
+	if (!result) {
+		PyErr_Print(  );
+		error( "Python script error: check console" );
+	} else {
+		uiBoundsBlock(uiblock, 5);
+		uiDoBlocks(&listb, 0);
+	}
+	uiFreeBlocks(&listb);
+	uiblock = NULL;
+	
+	Py_XDECREF( result );
+	Py_RETURN_NONE;
+}
+
 static uiBlock *Get_uiBlock( void )
 {
 	char butblock[32];
-
+	/* Global, used now for UIBlock */
+	if (uiblock) {
+		return uiblock;
+	}
+	/* Local */
 	sprintf( butblock, "win %d", curarea->win );
 
 	return uiGetBlock( butblock, curarea );
 }
+
 
 /* We restrict the acceptable event numbers to a proper "free" range
  * according to other spaces in Blender.
@@ -930,36 +1005,10 @@ static int check_button_event(int *event) {
 			(*event > EXPP_BUTTON_EVENTS_MAX)) {
 		return -1;
 	}
-	*event += EXPP_BUTTON_EVENTS_OFFSET;
+	if (uiblock==NULL) /* For UIBlock we need non offset UI elements */
+		*event += EXPP_BUTTON_EVENTS_OFFSET;
 	return 0;
 }
-
-static PyObject *Method_Button( PyObject * self, PyObject * args )
-{
-	uiBlock *block;
-	char *name, *tip = NULL;
-	int event;
-	int x, y, w, h;
-
-	if( !PyArg_ParseTuple( args, "siiiii|s", &name, &event,
-			       &x, &y, &w, &h, &tip ) )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected a string, five ints and optionally another string as arguments" );
-
-	if (check_button_event(&event) == -1)
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-			"button event argument must be in the range [0, 16382]");
-
-	block = Get_uiBlock(  );
-
-	if( block )
-		uiDefBut( block, BUT, event, name, (short)x, (short)y, (short)w, (short)h, 0, 0, 0, 0, 0,
-			  tip );
-
-	return EXPP_incr_ret( Py_None );
-}
-
-
 
 static PyObject *Method_BeginAlign( PyObject * self, PyObject * args )
 {
@@ -981,6 +1030,29 @@ static PyObject *Method_EndAlign( PyObject * self, PyObject * args )
 	return EXPP_incr_ret( Py_None );
 }
 
+static PyObject *Method_Button( PyObject * self, PyObject * args )
+{
+	uiBlock *block;
+	char *name, *tip = NULL;
+	int event;
+	int x, y, w, h;
+	PyObject *callback=NULL;
+
+	if( !PyArg_ParseTuple( args, "siiiii|sO", &name, &event,
+			       &x, &y, &w, &h, &tip, &callback ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected a string, five ints and optionally string and callback arguments" );
+
+	UI_METHOD_ERRORCHECK;
+
+	block = Get_uiBlock(  );
+	if( block ) {
+		uiBut *ubut = uiDefBut( block, BUT, event, name, (short)x, (short)y, (short)w, (short)h, 0, 0, 0, 0, 0, tip );
+		set_pycallback(ubut, callback, event);
+	}
+	return EXPP_incr_ret( Py_None );
+}
+
 static PyObject *Method_Menu( PyObject * self, PyObject * args )
 {
 	uiBlock *block;
@@ -988,25 +1060,25 @@ static PyObject *Method_Menu( PyObject * self, PyObject * args )
 	int event, def;
 	int x, y, w, h;
 	Button *but;
+	PyObject *callback=NULL;
 
-	if( !PyArg_ParseTuple( args, "siiiiii|s", &name, &event,
-			       &x, &y, &w, &h, &def, &tip ) )
+	if( !PyArg_ParseTuple( args, "siiiiii|sO", &name, &event,
+			       &x, &y, &w, &h, &def, &tip, &callback ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected a string, six ints and optionally another string as arguments" );
+					      "expected a string, six ints and optionally string and callback arguments" );
 
-	if (check_button_event(&event) == -1)
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-			"button event argument must be in the range [0, 16382]");
-
+	UI_METHOD_ERRORCHECK;
+	
 	but = newbutton(  );
 	but->type = BINT_TYPE;
 	but->val.asint = def;
 
 	block = Get_uiBlock(  );
-	if( block )
-		uiDefButI( block, MENU, event, name, (short)x, (short)y, (short)w, (short)h,
+	if( block ) {
+		uiBut *ubut = uiDefButI( block, MENU, event, name, (short)x, (short)y, (short)w, (short)h,
 			   &but->val.asint, 0, 0, 0, 0, tip );
-
+		set_pycallback(ubut, callback, event);
+	}
 	return ( PyObject * ) but;
 }
 
@@ -1017,25 +1089,25 @@ static PyObject *Method_Toggle( PyObject * self, PyObject * args )
 	int event;
 	int x, y, w, h, def;
 	Button *but;
+	PyObject *callback=NULL;
 
-	if( !PyArg_ParseTuple( args, "siiiiii|s", &name, &event,
-			       &x, &y, &w, &h, &def, &tip ) )
+	if( !PyArg_ParseTuple( args, "siiiiii|sO", &name, &event,
+			       &x, &y, &w, &h, &def, &tip, &callback ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected a string, six ints and optionally another string as arguments" );
+					      "expected a string, six ints and optionally string and callback arguments" );
 
-	if (check_button_event(&event) == -1)
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-			"button event argument must be in the range [0, 16382]");
-
+	UI_METHOD_ERRORCHECK;
+	
 	but = newbutton(  );
 	but->type = BINT_TYPE;
 	but->val.asint = def;
 
 	block = Get_uiBlock(  );
-	if( block )
-		uiDefButI( block, TOG, event, name, (short)x, (short)y, (short)w, (short)h,
+	if( block ) {
+		uiBut *ubut = uiDefButI( block, TOG, event, name, (short)x, (short)y, (short)w, (short)h,
 			   &but->val.asint, 0, 0, 0, 0, tip );
-
+		set_pycallback(ubut, callback, event);
+	}
 	return ( PyObject * ) but;
 }
 
@@ -1083,18 +1155,17 @@ static PyObject *Method_Slider( PyObject * self, PyObject * args )
 	int x, y, w, h, realtime = 1;
 	Button *but;
 	PyObject *mino, *maxo, *inio;
+	PyObject *callback=NULL;
 
-	if( !PyArg_ParseTuple( args, "siiiiiOOO|is", &name, &event,
+	if( !PyArg_ParseTuple( args, "siiiiiOOO|isO", &name, &event,
 			       &x, &y, &w, &h, &inio, &mino, &maxo, &realtime,
-			       &tip ) )
+			       &tip, &callback ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected a string, five ints, three PyObjects\n\
-			and optionally another int and string as arguments" );
+			and optionally int, string and callback arguments" );
 
-	if (check_button_event(&event) == -1)
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-			"button event argument must be in the range [0, 16382]");
-
+	UI_METHOD_ERRORCHECK;
+	
 	but = newbutton(  );
 
 	if( PyFloat_Check( inio ) ) {
@@ -1134,8 +1205,9 @@ static PyObject *Method_Slider( PyObject * self, PyObject * args )
 					  (short)h, &but->val.asint, (float)min, (float)max, 0, 0,
 					  tip );
 			if( realtime )
-				uiButSetFunc( ubut, py_slider_update, ubut,
-					      NULL );
+				uiButSetFunc( ubut, py_slider_update, ubut, NULL );
+			else
+				set_pycallback(ubut, callback, event);
 		}
 	}
 	return ( PyObject * ) but;
@@ -1150,8 +1222,9 @@ static PyObject *Method_Scrollbar( PyObject * self, PyObject * args )
 	Button *but;
 	PyObject *mino, *maxo, *inio;
 	float ini, min, max;
-
-	if( !PyArg_ParseTuple( args, "iiiiiOOO|is", &event, &x, &y, &w, &h,
+	uiBut *ubut;
+	
+	if( !PyArg_ParseTuple( args, "iiiiiOOO|isO", &event, &x, &y, &w, &h,
 			       &inio, &mino, &maxo, &realtime, &tip ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 			"expected five ints, three PyObjects and optionally\n\
@@ -1163,8 +1236,8 @@ another int and string as arguments" );
 					      "expected numbers for initial, min, and max" );
 
 	if (check_button_event(&event) == -1)
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-			"button event argument must be in the range [0, 16382]");
+	return EXPP_ReturnPyObjError( PyExc_AttributeError,
+		"button event argument must be in the range [0, 16382]");
 
 	but = newbutton(  );
 
@@ -1176,33 +1249,24 @@ another int and string as arguments" );
 	ini = (float)PyFloat_AsDouble( inio );
 	min = (float)PyFloat_AsDouble( mino );
 	max = (float)PyFloat_AsDouble( maxo );
+	
+	block = Get_uiBlock(  );
 
-	if( but->type == BFLOAT_TYPE ) {
-		but->val.asfloat = ini;
-		block = Get_uiBlock(  );
-		if( block ) {
-			uiBut *ubut;
+	if( block ) {
+		if( but->type == BFLOAT_TYPE ) {
+			but->val.asfloat = ini;
 			ubut = uiDefButF( block, SCROLL, event, "", (short)x, (short)y, (short)w, (short)h,
-					  &but->val.asfloat, min, max, 0, 0,
-					  tip );
+					  &but->val.asfloat, min, max, 0, 0, tip );
 			if( realtime )
-				uiButSetFunc( ubut, py_slider_update, ubut,
-					      NULL );
-		}
-	} else {
-		but->val.asint = (int)ini;
-		block = Get_uiBlock(  );
-		if( block ) {
-			uiBut *ubut;
+				uiButSetFunc( ubut, py_slider_update, ubut, NULL );
+		} else {
+			but->val.asint = (int)ini;
 			ubut = uiDefButI( block, SCROLL, event, "", (short)x, (short)y, (short)w, (short)h,
-					  &but->val.asint, min, max, 0, 0,
-					  tip );
+					  &but->val.asint, min, max, 0, 0, tip );
 			if( realtime )
-				uiButSetFunc( ubut, py_slider_update, ubut,
-					      NULL );
+				uiButSetFunc( ubut, py_slider_update, ubut, NULL );
 		}
 	}
-
 	return ( PyObject * ) but;
 }
 
@@ -1216,15 +1280,14 @@ static PyObject *Method_ColorPicker( PyObject * self, PyObject * args )
 	float col[3];
 	int event;
 	short x, y, w, h;
+	PyObject *callback=NULL;
 	
-	if( !PyArg_ParseTuple( args, "ihhhhO!|s", &event,
-			       &x, &y, &w, &h, &PyTuple_Type, &inio, &tip ) )
+	if( !PyArg_ParseTuple( args, "ihhhhO!|sO", &event,
+			       &x, &y, &w, &h, &PyTuple_Type, &inio, &tip, &callback ) )
  		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected five ints, one tuple and optionally a string as arguments." );
+					      "expected five ints, one tuple and optionally string and callback arguments" );
  
- 	if (check_button_event(&event) == -1)
-		return EXPP_ReturnPyObjError( PyExc_ValueError,
- 			"button event argument must be in the range [0, 16382]");
+	UI_METHOD_ERRORCHECK;
  
 	if ( !PyArg_ParseTuple( inio, "fff", col, col+1, col+2 ) )
 		return EXPP_ReturnPyObjError( PyExc_ValueError, USAGE_ERROR);
@@ -1248,6 +1311,7 @@ static PyObject *Method_ColorPicker( PyObject * self, PyObject * args )
 	if( block ) {
 		uiBut *ubut;
 		ubut = uiDefButF( block, COL, event, "", x, y, w, h, but->val.asvec, 0, 0, 0, 0, tip);
+		set_pycallback(ubut, callback, event);
 	}
 
  	return ( PyObject * ) but;
@@ -1265,15 +1329,14 @@ static PyObject *Method_Normal( PyObject * self, PyObject * args )
 	float nor[3];
 	int event;
 	short x, y, w, h;
+	PyObject *callback=NULL;
 	
-	if( !PyArg_ParseTuple( args, "ihhhhO!|s", &event,
-			       &x, &y, &w, &h, &PyTuple_Type, &inio, &tip ) )
+	if( !PyArg_ParseTuple( args, "ihhhhO!|sO", &event,
+			       &x, &y, &w, &h, &PyTuple_Type, &inio, &tip, &callback ) )
  		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected five ints, one tuple and optionally a string as arguments." );
+					      "expected five ints, one tuple and optionally string and callback arguments" );
  
- 	if (check_button_event(&event) == -1)
-		return EXPP_ReturnPyObjError( PyExc_ValueError,
- 			"button event argument must be in the range [0, 16382]");
+	UI_METHOD_ERRORCHECK;
  
 	if ( !PyArg_ParseTuple( inio, "fff", nor, nor+1, nor+2 ) )
 		return EXPP_ReturnPyObjError( PyExc_ValueError, USAGE_ERROR);
@@ -1292,6 +1355,7 @@ static PyObject *Method_Normal( PyObject * self, PyObject * args )
 	if( block ) {
 		uiBut *ubut;
 		ubut = uiDefButF( block, BUT_NORMAL, event, "", x, y, w, h, but->val.asvec, 0.0f, 1.0f, 0, 0, tip);
+		set_pycallback(ubut, callback, event);
 	}
 	
  	return ( PyObject * ) but;
@@ -1305,19 +1369,20 @@ static PyObject *Method_Number( PyObject * self, PyObject * args )
 	int x, y, w, h;
 	Button *but;
 	PyObject *mino, *maxo, *inio;
-
-	if( !PyArg_ParseTuple( args, "siiiiiOOO|s", &name, &event,
-			       &x, &y, &w, &h, &inio, &mino, &maxo, &tip ) )
+	PyObject *callback=NULL;
+	uiBut *ubut= NULL;
+	
+	if( !PyArg_ParseTuple( args, "siiiiiOOO|sO", &name, &event,
+			       &x, &y, &w, &h, &inio, &mino, &maxo, &tip, &callback ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected a string, five ints, three PyObjects and\n\
-			optionally another string as arguments" );
+			optionally string and callback arguments" );
 
-	if (check_button_event(&event) == -1)
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-			"button event argument must be in the range [0, 16382]");
+	UI_METHOD_ERRORCHECK;
 
 	but = newbutton(  );
-
+	block = Get_uiBlock(  );
+	
 	if( PyFloat_Check( inio ) ) {
 		float ini, min, max, range, precission=0;
 
@@ -1337,9 +1402,9 @@ static PyObject *Method_Number( PyObject * self, PyObject * args )
 		but->type = BFLOAT_TYPE;
 		but->val.asfloat = ini;
 
-		block = Get_uiBlock(  );
+		
 		if( block )
-			uiDefButF( block, NUM, event, name, (short)x, (short)y, (short)w, (short)h,
+			ubut= uiDefButF( block, NUM, event, name, (short)x, (short)y, (short)w, (short)h,
 				   &but->val.asfloat, min, max, 10*range, precission, tip );
 	} else {
 		int ini, min, max;
@@ -1351,12 +1416,13 @@ static PyObject *Method_Number( PyObject * self, PyObject * args )
 		but->type = BINT_TYPE;
 		but->val.asint = ini;
 
-		block = Get_uiBlock(  );
 		if( block )
-			uiDefButI( block, NUM, event, name, (short)x, (short)y, (short)w, (short)h,
+			ubut= uiDefButI( block, NUM, event, name, (short)x, (short)y, (short)w, (short)h,
 				   &but->val.asint, (float)min, (float)max, 0, 0, tip );
 	}
-
+	
+	if (ubut) set_pycallback(ubut, callback, event);
+	
 	return ( PyObject * ) but;
 }
 
@@ -1368,16 +1434,15 @@ static PyObject *Method_String( PyObject * self, PyObject * args )
 	int event;
 	int x, y, w, h, len, real_len = 0;
 	Button *but;
+	PyObject *callback=NULL;
 
-	if( !PyArg_ParseTuple( args, "siiiiisi|s", &info_arg, &event,
-			&x, &y, &w, &h, &newstr, &len, &tip ) )
+	if( !PyArg_ParseTuple( args, "siiiiisi|sO", &info_arg, &event,
+			&x, &y, &w, &h, &newstr, &len, &tip, &callback ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 			"expected a string, five ints, a string, an int and\n\
-	optionally another string as arguments" );
+	optionally string and callback arguments" );
 
-	if (check_button_event(&event) == -1)
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-			"button event argument must be in the range [0, 16382]");
+	UI_METHOD_ERRORCHECK;
 
 	if (len > (UI_MAX_DRAW_STR - 1))
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
@@ -1398,10 +1463,11 @@ static PyObject *Method_String( PyObject * self, PyObject * args )
 	else info_str = info_arg;
 
 	block = Get_uiBlock(  );
-	if( block )
-		uiDefBut( block, TEX, event, info_str, (short)x, (short)y, (short)w, (short)h,
+	if( block ) {
+		uiBut *ubut = uiDefBut( block, TEX, event, info_str, (short)x, (short)y, (short)w, (short)h,
 			  but->val.asstr, 0, (float)len, 0, 0, tip );
-
+		set_pycallback(ubut, callback, event);
+	}
 	return ( PyObject * ) but;
 }
 
