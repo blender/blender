@@ -244,7 +244,7 @@ class Bone:
 	@ivar head: This Bone's "head" ending position when in rest state.
 		Keys are:
 			 - 'ARMATURESPACE' - this head position in relation to the armature
-			 - 'BONESPACE' - the head position in relation to itself 
+			 - 'BONESPACE' - the head position in relation to itself.
 	@type head: Dictionary
 	@ivar tail: This Bone's "tail" ending position when in rest state.
 		Keys are:

@@ -155,7 +155,7 @@ class PoseBone:
 		This object gives access to PoseBone-specific data in Blender. 
 	@ivar name: The name of this PoseBone.
 	@type name: String
-	@ivar loc: The change in location for this PoseBone.
+	@ivar loc: The change in location for this PoseBone. this is the equivilent of bone.getLoc() in the old 2.3x python api.
 	@type loc: Vector object
 	@ivar size: The change in size for this PoseBone (no change is 1,1,1)
 	@type size: Vector object

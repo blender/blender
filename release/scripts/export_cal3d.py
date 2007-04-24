@@ -1004,8 +1004,8 @@ def export_cal3d(filename):
 	if len(animation.tracks) < 2:
 		Blender.Draw.PupMenu('Warning, the armature has less then 2 tracks, file may not load in Cal3d')
 
-import os
+# import os
 if __name__ == '__main__':
-	#Blender.Window.FileSelector(export_cal3d, "Cal3D Export", Blender.Get('filename').replace('.blend', '.cfg'))
-	export_cal3d('/test' + '.cfg')
-	os.system('cd /; wine /cal3d_miniviewer.exe /test.cfg')
+	Blender.Window.FileSelector(export_cal3d, "Cal3D Export", Blender.Get('filename').replace('.blend', '.cfg'))
+	#export_cal3d('/test' + '.cfg')
+	#os.system('cd /; wine /cal3d_miniviewer.exe /test.cfg')
