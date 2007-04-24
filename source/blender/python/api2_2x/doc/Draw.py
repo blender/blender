@@ -204,14 +204,14 @@ have been caused by an ignored return value from one of the button types.  To
 avoid this, assign created buttons return values to B{global} variables,
 instead of ignoring them.  Examples::
 
-  # avoid this, it can cause memory leaks:
-  Draw.Toggle(...)
-  Draw.Number(...)
-  Draw.String(...)
-  # this is correct -- assuming the variables are globals:
-  my_toggle_button = Draw.Toggle(...)
-  my_int_button = Draw.Number(...)
-  my_str_button = Draw.String(...)
+	# avoid this, it can cause memory leaks:
+	Draw.Toggle(...)
+	Draw.Number(...)
+	Draw.String(...)
+	# this is correct -- assuming the variables are globals:
+	my_toggle_button = Draw.Toggle(...)
+	my_int_button = Draw.Number(...)
+	my_str_button = Draw.String(...)
 
 
 @warn: Inside the windowing loop (after Draw.Register() has been executed and
@@ -320,7 +320,7 @@ def PushButton(name, event, x, y, width, height, tooltip = None, callback = None
 	@type callback: function
 	@param callback: an optional argument so this button can have its own
 		callback function. the function will run whenever this button is pressed.
-		This function must accept one argument (the event) as an argument.
+		This function must accept 2 arguments (event, val).
 	@note: This function used to be called only "Button".  We added an
 		alternative alias to avoid a name clash with the L{Button} class/type that
 		caused trouble in this documentation's generation.  The old name shouldn't
@@ -521,7 +521,7 @@ def Menu(name, event, x, y, width, height, default, tooltip = None, callback = N
 	@type callback: function
 	@param callback: an optional argument so this button can have its own
 		callback function. the function will run whenever this button is pressed.
-		This function must accept one argument (the event) as an argument.
+		This function must accept 2 arguments (event, val).
 	@rtype: Blender Button
 	@return: The Button created.
 	"""
@@ -551,7 +551,7 @@ def Toggle(name, event, x, y, width, height, default, tooltip = None, callback =
 	@type callback: function
 	@param callback: an optional argument so this button can have its own
 		callback function. the function will run whenever this button is pressed.
-		This function must accept one argument (the event) as an argument.
+		This function must accept 2 arguments (event, val).
 	@rtype: Blender Button
 	@return: The Button created.
 	"""
@@ -589,7 +589,7 @@ def Slider(name, event, x, y, width, height, initial, min, max, realtime = 1,
 	@type callback: function
 	@param callback: an optional argument so this button can have its own
 		callback function. the function will run whenever this button is pressed.
-		This function must accept one argument (the event) as an argument.
+		This function must accept 2 arguments (event, val).
 	@rtype: Blender Button
 	@return: The Button created.
 	@note: slider callbacks will not work if the realtime setting is enabled.
@@ -648,7 +648,7 @@ def ColorPicker(event, x, y, width, height, initial, tooltip = None, callback = 
 	@type callback: function
 	@param callback: an optional argument so this button can have its own
 		callback function. the function will run whenever this button is pressed.
-		This function must accept one argument (the event) as an argument.
+		This function must accept 2 arguments (event, val).
 	@rtype: Blender Button
 	@return: The Button created.
 	@note: The color picker will not work if the Register's event function is None.
@@ -677,7 +677,7 @@ def Normal(event, x, y, width, height, initial, tooltip = None, callback = None)
 	@type callback: function
 	@param callback: an optional argument so this button can have its own
 		callback function. the function will run whenever this button is pressed.
-		This function must accept one argument (the event) as an argument.
+		This function must accept 2 arguments (event, val).
 	@rtype: Blender Button
 	@return: The Button created.
 	@note: The normal button will not work if the Register's event function is None.
@@ -712,7 +712,7 @@ def Number(name, event, x, y, width, height, initial, min, max, tooltip = None, 
 	@type callback: function
 	@param callback: an optional argument so this button can have its own
 		callback function. the function will run whenever this button is pressed.
-		This function must accept one argument (the event) as an argument.
+		This function must accept 2 arguments (event, val).
 	@rtype: Blender Button
 	@return: The Button created.
 
@@ -757,7 +757,7 @@ def String(name, event, x, y, width, height, initial, length, tooltip = None, ca
 	@type callback: function
 	@param callback: an optional argument so this button can have its own
 		callback function. the function will run whenever this button is pressed.
-		This function must accept one argument (the event) as an argument.
+		This function must accept 2 arguments (event, val).
 	@rtype: Blender Button
 	@return: The Button created.
 	"""

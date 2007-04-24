@@ -910,16 +910,12 @@ static PyObject *Bone_hasChildren(BPy_Bone *self)
 //-------------------------Bone.getAllChildren()
 static PyObject *Bone_getAllChildren(BPy_Bone *self)
 {
-	PyObject *list = NULL;
+	PyObject *list = PyList_New(0);
 
-	if (self->bone->childbase.first){
-		list = PyList_New(0);
+	if (self->bone->childbase.first)
 		if (!PyBone_ChildrenAsList(list, &self->bone->childbase))
 			return NULL;
-		return EXPP_incr_ret(list);
-	}else{
-		return EXPP_incr_ret(Py_None);
-	}
+	EXPP_incr_ret(list);
 }
 //------------------ATTRIBUTE IMPLEMENTATIONS-----------------------------
 //------------------------Bone.name (get)
@@ -1077,12 +1073,11 @@ static int Bone_setParent(BPy_Bone *self, PyObject *value, void *closure)
 //------------------------Bone.children (get)
 static PyObject *Bone_getChildren(BPy_Bone *self, void *closure)
 {
-	PyObject *list = NULL;
+	PyObject *list = PyList_New(0);
 	Bone *bone = NULL;
 	PyObject *py_bone = NULL;
 
 	if (self->bone->childbase.first){
-		list = PyList_New(0);
 		for (bone = self->bone->childbase.first; bone; bone = bone->next){
 			py_bone = PyBone_FromBone(bone);
 			if (py_bone == NULL)
@@ -1091,11 +1086,9 @@ static PyObject *Bone_getChildren(BPy_Bone *self, void *closure)
 				goto RuntimeError;
 			}
 		}
-		return EXPP_incr_ret(list);
-	}else{
-		return EXPP_incr_ret(Py_None);
 	}
-
+	return EXPP_incr_ret(list);
+	
 RuntimeError:
 	return EXPP_objError(PyExc_RuntimeError, "%s%s", 
 		sBoneError, "Internal error trying to wrap blender bones!");

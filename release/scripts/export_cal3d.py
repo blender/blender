@@ -293,10 +293,115 @@ class Cal3DMaterial:
 
 
 class Cal3DMesh:
-	def __init__(self, name):
-		self.name      = name
+	def __init__(self, ob, blend_mesh):
+		self.name      = ob.name
 		self.submeshes = []
-		self.next_submesh_id = 0
+		
+		matrix = ob.matrixWorld
+		#if BASE_MATRIX:
+		#	matrix = matrix_multiply(BASE_MATRIX, matrix)
+		
+		faces = list(blend_mesh.faces)
+		while faces:
+			image          = faces[0].image
+			image_filename = image and image.filename
+			material       = MATERIALS.get(image_filename) or Cal3DMaterial(image_filename)
+			outputuv       = len(material.maps_filenames) > 0
+			
+			# TODO add material color support here
+			submesh = Cal3DSubMesh(self, material, len(self.submeshes))
+			self.submeshes.append(submesh)
+			vertices = {}
+			for face in faces[:]:
+				if (face.image and face.image.filename) == image_filename:
+					faces.remove(face)
+					
+					if not face.smooth:
+						normal = face.no * matrix
+						normal.normalize()
+						
+					face_vertices = []
+					face_v = face.v
+					for i, blend_vert in enumerate(face_v):
+						vertex = vertices.get(blend_vert.index)
+						if not vertex:
+							#coord  = blend_vert.co * matrix
+							coord  = blend_vert.co
+							if face.smooth:
+								#normal = blend_vert.no * matrix
+								normal = blend_vert.no
+								#normal.normalize()
+							
+							vertex  = vertices[blend_vert.index] = Cal3DVertex(coord, normal, len(submesh.vertices))
+							submesh.vertices.append(vertex)
+
+							influences = blend_mesh.getVertexInfluences(blend_vert.index)
+							# should this really be a warning? (well currently enabled,
+							# because blender has some bugs where it doesn't return
+							# influences in python api though they are set, and because
+							# cal3d<=0.9.1 had bugs where objects without influences
+							# aren't drawn.
+							if not influences:
+								print 'A vertex of object "%s" has no influences.\n(This occurs on objects placed in an invisible layer, you can fix it by using a single layer)' % ob.name
+							
+							# sum of influences is not always 1.0 in Blender ?!?!
+							sum = 0.0
+							for bone_name, weight in influences:
+								sum += weight
+							
+							for bone_name, weight in influences:
+								if bone_name not in BONES:
+									print 'Couldnt find bone "%s" which influences object "%s"' % (bone_name, ob.name)
+									continue
+								if weight:
+									vertex.influences.append(Influence(BONES[bone_name], weight / sum))
+								
+						elif not face.smooth:
+							# We cannot share vertex for non-smooth faces, since Cal3D does not
+							# support vertex sharing for 2 vertices with different normals.
+							# => we must clone the vertex.
+							
+							old_vertex = vertex
+							vertex = Cal3DVertex(vertex.loc, normal, len(submesh.vertices))
+							submesh.vertices.append(vertex)
+							
+							vertex.cloned_from = old_vertex
+							vertex.influences = old_vertex.influences
+							old_vertex.clones.append(vertex)
+							
+						if blend_mesh.faceUV:
+							uv = [face.uv[i][0], 1.0 - face.uv[i][1]]
+							if not vertex.maps:
+								if outputuv: vertex.maps.append(Map(*uv))
+							elif (vertex.maps[0].u != uv[0]) or (vertex.maps[0].v != uv[1]):
+								# This vertex can be shared for Blender, but not for Cal3D !!!
+								# Cal3D does not support vertex sharing for 2 vertices with
+								# different UV texture coodinates.
+								# => we must clone the vertex.
+								
+								for clone in vertex.clones:
+									if (clone.maps[0].u == uv[0]) and (clone.maps[0].v == uv[1]):
+										vertex = clone
+										break
+								else: # Not yet cloned...
+									old_vertex = vertex
+									vertex = Cal3DVertex(vertex.loc, vertex.normal, len(submesh.vertices))
+									submesh.vertices.append(vertex)
+									
+									vertex.cloned_from = old_vertex
+									vertex.influences = old_vertex.influences
+									if outputuv: vertex.maps.append(Map(*uv))
+									old_vertex.clones.append(vertex)
+						
+						face_vertices.append(vertex)
+						
+					# Split faces with more than 3 vertices
+					for i in xrange(1, len(face.v) - 1):
+						submesh.faces.append(Face(face_vertices[0], face_vertices[i], face_vertices[i + 1]))
+			
+			# Computes LODs info
+			if LODS:
+				submesh.compute_lods()
 	
 	def writeCal3D(self, file):
 		file.write('<?xml version="1.0"?>\n')
@@ -307,19 +412,13 @@ class Cal3DMesh:
 		file.write('</MESH>\n')
 
 class Cal3DSubMesh:
-	def __init__(self, mesh, material):
+	def __init__(self, mesh, material, id):
 		self.material   = material
 		self.vertices   = []
 		self.faces      = []
 		self.nb_lodsteps = 0
 		self.springs    = []
-		
-		self.next_vertex_id = 0
-		
-		self.mesh = mesh
-		self.id = mesh.next_submesh_id
-		mesh.next_submesh_id += 1
-		mesh.submeshes.append(self)
+		self.id = id
 		
 	def compute_lods(self):
 		"""Computes LODs info for Cal3D (there's no Blender related stuff here)."""
@@ -550,18 +649,18 @@ BONES = {}
 POSEBONES= {}
 class Cal3DBone(object):
 	__slots__ = 'head', 'tail', 'name', 'cal3d_parent', 'loc', 'rot', 'children', 'matrix', 'lloc', 'lrot', 'id'
-	def __init__(self, skeleton, blen_bone, arm_matrix, cal3d_parent=None):
+	def __init__(self, skeleton, blend_bone, arm_matrix, cal3d_parent=None):
 		
 		# def treat_bone(b, parent = None):
-		head = blen_bone.head['BONESPACE']
-		tail = blen_bone.tail['BONESPACE']
+		head = blend_bone.head['BONESPACE']
+		tail = blend_bone.tail['BONESPACE']
 		#print parent.rot
 		# Turns the Blender's head-tail-roll notation into a quaternion
-		#quat = matrix2quaternion(blender_bone2matrix(head, tail, blen_bone.roll['BONESPACE']))
-		quat = matrix2quaternion(blen_bone.matrix['BONESPACE'].copy().resize4x4())
+		#quat = matrix2quaternion(blender_bone2matrix(head, tail, blend_bone.roll['BONESPACE']))
+		quat = matrix2quaternion(blend_bone.matrix['BONESPACE'].copy().resize4x4())
 		
 		# Pose location
-		ploc = POSEBONES[blen_bone.name].loc
+		ploc = POSEBONES[blend_bone.name].loc
 		
 		if cal3d_parent:
 			# Compute the translation from the parent bone's head to the child
@@ -573,7 +672,7 @@ class Cal3DBone(object):
 			parent_invert_transform = matrix_invert(quaternion2matrix(cal3d_parent.rot))
 			parent_head = vector_by_matrix_3x3(cal3d_parent.head, parent_invert_transform)
 			parent_tail = vector_by_matrix_3x3(cal3d_parent.tail, parent_invert_transform)
-			ploc = vector_add(ploc, blen_bone.head['BONESPACE'])
+			ploc = vector_add(ploc, blend_bone.head['BONESPACE'])
 			
 			# EDIT!!! FIX BONE OFFSET BE CAREFULL OF THIS PART!!! ??
 			#diff = vector_by_matrix_3x3(head, parent_invert_transform)
@@ -584,7 +683,7 @@ class Cal3DBone(object):
 			# hmm this should be handled by the IPos, but isn't for non-animated
 			# bones which are transformed in the pose mode...
 			#loc = vector_add(ploc, parentheadtotail)
-			#rot = quaternion_multiply(blender2cal3dquat(blen_bone.getQuat()), quat)
+			#rot = quaternion_multiply(blender2cal3dquat(blend_bone.getQuat()), quat)
 			loc = parentheadtotail
 			rot = quat
 			
@@ -594,8 +693,8 @@ class Cal3DBone(object):
 			tail = point_by_matrix(tail, arm_matrix)
 			quat = matrix2quaternion(matrix_multiply(arm_matrix, quaternion2matrix(quat))) # Probably not optimal
 			
-			# loc = vector_add(head, blen_bone.getLoc())
-			# rot = quaternion_multiply(blender2cal3dquat(blen_bone.getQuat()), quat)
+			# loc = vector_add(head, blend_bone.getLoc())
+			# rot = quaternion_multiply(blender2cal3dquat(blend_bone.getQuat()), quat)
 			loc = head 
 			rot = quat
 			
@@ -603,7 +702,7 @@ class Cal3DBone(object):
 		self.tail = tail
 		
 		self.cal3d_parent = cal3d_parent
-		self.name   = blen_bone.name
+		self.name   = blend_bone.name
 		self.loc = loc
 		self.rot = rot
 		self.children = []
@@ -622,9 +721,9 @@ class Cal3DBone(object):
 		skeleton.bones.append(self)
 		BONES[self.name] = self
 		
-		if not blen_bone.hasChildren():	return
-		for blen_child in blen_bone.children:
-			self.children.append(Cal3DBone(skeleton, blen_child, arm_matrix, self))
+		if not blend_bone.hasChildren():	return
+		for blend_child in blend_bone.children:
+			self.children.append(Cal3DBone(skeleton, blend_child, arm_matrix, self))
 		
 
 	def writeCal3D(self, file):
@@ -732,143 +831,33 @@ def export_cal3d(filename):
 
 	Cal3DBone(skeleton, best_armature_root(blender_armature.getData()), blender_armature.matrixWorld)
 	
-
-	
 	# ---- Export Mesh data ---------------------------------------------------
-	
 	meshes = []
 	
 	for ob in scene.objects.context:
 		if ob.type != 'Mesh':		continue
-		bmesh = ob.getData(mesh=1)
-		BPyMesh.meshCalcNormals(bmesh)
+		blend_mesh = ob.getData(mesh=1)
+		BPyMesh.meshCalcNormals(blend_mesh)
 		
-		if not bmesh.faces:			continue
-		mesh = Cal3DMesh(bmesh.name)
-		mesh_name = ob.name
-		meshes.append(mesh)
+		if not blend_mesh.faces:			continue
+		meshes.append( Cal3DMesh(ob, blend_mesh) )
 		
-		matrix = ob.matrixWorld
-		#if BASE_MATRIX:
-		#	matrix = matrix_multiply(BASE_MATRIX, matrix)
-			
-		faces = list(bmesh.faces)
-		while faces:
-			image          = faces[0].image
-			image_filename = image and image.filename
-			material       = MATERIALS.get(image_filename) or Cal3DMaterial(image_filename)
-			outputuv       = len(material.maps_filenames) > 0
-			
-			# TODO add material color support here
-			submesh  = Cal3DSubMesh(mesh, material)
-			vertices = {}
-			for face in faces[:]:
-				if (face.image and face.image.filename) == image_filename:
-					faces.remove(face)
-					
-					if not face.smooth:
-						normal = face.no * matrix
-						normal.normalize()
-						
-					face_vertices = []
-					face_v = face.v
-					for i, blen_vert in enumerate(face_v):
-						vertex = vertices.get(blen_vert.index)
-						if not vertex:
-							#coord  = blen_vert.co * matrix
-							coord  = blen_vert.co
-							if face.smooth:
-								#normal = blen_vert.no * matrix
-								normal = blen_vert.no
-								#normal.normalize()
-							
-							vertex  = vertices[blen_vert.index] = Cal3DVertex(coord, normal, len(submesh.vertices))
-							submesh.vertices.append(vertex)
-
-							influences = bmesh.getVertexInfluences(blen_vert.index)
-							# should this really be a warning? (well currently enabled,
-							# because blender has some bugs where it doesn't return
-							# influences in python api though they are set, and because
-							# cal3d<=0.9.1 had bugs where objects without influences
-							# aren't drawn.
-							if not influences:
-								print 'A vertex of object "%s" has no influences.\n(This occurs on objects placed in an invisible layer, you can fix it by using a single layer)' % ob.name
-							
-							# sum of influences is not always 1.0 in Blender ?!?!
-							sum = 0.0
-							for bone_name, weight in influences:
-								sum += weight
-							
-							for bone_name, weight in influences:
-								if bone_name not in BONES:
-									print 'Couldnt find bone "%s" which influences object "%s"' % (bone_name, ob.name)
-									continue
-								if weight:
-									vertex.influences.append(Influence(BONES[bone_name], weight / sum))
-								
-						elif not face.smooth:
-							# We cannot share vertex for non-smooth faces, since Cal3D does not
-							# support vertex sharing for 2 vertices with different normals.
-							# => we must clone the vertex.
-							
-							old_vertex = vertex
-							vertex = Cal3DVertex(vertex.loc, normal, len(submesh.vertices))
-							submesh.vertices.append(vertex)
-							
-							vertex.cloned_from = old_vertex
-							vertex.influences = old_vertex.influences
-							old_vertex.clones.append(vertex)
-							
-						if bmesh.faceUV:
-							uv = [face.uv[i][0], 1.0 - face.uv[i][1]]
-							if not vertex.maps:
-								if outputuv: vertex.maps.append(Map(*uv))
-							elif (vertex.maps[0].u != uv[0]) or (vertex.maps[0].v != uv[1]):
-								# This vertex can be shared for Blender, but not for Cal3D !!!
-								# Cal3D does not support vertex sharing for 2 vertices with
-								# different UV texture coodinates.
-								# => we must clone the vertex.
-								
-								for clone in vertex.clones:
-									if (clone.maps[0].u == uv[0]) and (clone.maps[0].v == uv[1]):
-										vertex = clone
-										break
-								else: # Not yet cloned...
-									old_vertex = vertex
-									vertex = Cal3DVertex(vertex.loc, vertex.normal, len(submesh.vertices))
-									submesh.vertices.append(vertex)
-									
-									vertex.cloned_from = old_vertex
-									vertex.influences = old_vertex.influences
-									if outputuv: vertex.maps.append(Map(*uv))
-									old_vertex.clones.append(vertex)
-						
-						face_vertices.append(vertex)
-						
-					# Split faces with more than 3 vertices
-					for i in xrange(1, len(face.v) - 1):
-						submesh.faces.append(Face(face_vertices[0], face_vertices[i], face_vertices[i + 1]))
-			
-			# Computes LODs info
-			if LODS:
-				submesh.compute_lods()
-			
 	# ---- Export animations --------------------------------------------------
 	ANIMATIONS = {}
 	SUPPORTED_IPOS = "QuatW", "QuatX", "QuatY", "QuatZ", "LocX", "LocY", "LocZ"
-	for a in Blender.Armature.NLA.GetActions().iteritems():
-		#for blen_action in [blender_armature.action]:
+	for animation_name, blend_action in Blender.Armature.NLA.GetActions().iteritems():
+		#for blend_action in [blender_armature.action]:
 		#animation_name = a[0]
-		animation_name = blen_action.name
+		#animation_name = blend_action.name
 		animation = Cal3DAnimation(animation_name)
 		animation.duration = 0.0
 		
 		
 		# All tracks need to have at least 1 keyframe.
 		# bones without any keys crash the viewer so we need to find the location for a dummy keyframe.
-		blen_action_ipos = blen_action.getAllChannelIpos()
+		blend_action_ipos = blend_action.getAllChannelIpos()
 		start_frame = 300000 # largest frame
-		for bone_name, ipo in blen_action_ipos.iteritems():
+		for bone_name, ipo in blend_action_ipos.iteritems():
 			if ipo:
 				for curve in ipo:
 					if curve.name in SUPPORTED_IPOS:
@@ -882,14 +871,14 @@ def export_cal3d(filename):
 		
 		# Now we mau have some bones with no channels, easiest to add their names and an empty list here
 		# this way they are exported with dummy keyfraames at teh first used frame
-		blen_action_ipos_items = blen_action_ipos.items()
-		action_bone_names = [name for name, ipo in blen_action_ipos_items]
+		blend_action_ipos_items = blend_action_ipos.items()
+		action_bone_names = [name for name, ipo in blend_action_ipos_items]
 		for bone_name in BONES: # iterkeys
 			if bone_name not in action_bone_names:
-				blen_action_ipos_items.append( (bone_name, []) )
+				blend_action_ipos_items.append( (bone_name, []) )
 		
 		
-		for bone_name, ipo in blen_action_ipos_items:
+		for bone_name, ipo in blend_action_ipos_items:
 			if bone_name not in BONES:
 				print "\tNo Bone '" + bone_name + "' in (from Animation '" + animation_name + "') ?!?"
 				continue
@@ -943,10 +932,7 @@ def export_cal3d(filename):
 				rot = tuple(rot)
 				Cal3DKeyFrame(track, cal3dtime, loc, rot)
 				
-				
-				
 				Cal3DKeyFrame(track, cal3dtime, loc, rot)
-				#Cal3DKeyFrame(track, cal3dtime, (0,0,0), (0,0,0,0))
 				
 		if animation.duration <= 0:
 			print "Ignoring Animation '" + animation_name + "': duration is 0.\n"
@@ -1004,7 +990,7 @@ def export_cal3d(filename):
 	if len(animation.tracks) < 2:
 		Blender.Draw.PupMenu('Warning, the armature has less then 2 tracks, file may not load in Cal3d')
 
-# import os
+#import os
 if __name__ == '__main__':
 	Blender.Window.FileSelector(export_cal3d, "Cal3D Export", Blender.Get('filename').replace('.blend', '.cfg'))
 	#export_cal3d('/test' + '.cfg')

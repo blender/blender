@@ -39,6 +39,7 @@
 #include "BLI_dynamiclist.h"
 #include "BLI_blenlib.h"
 
+#include "BIF_screen.h"
 #include "BIF_verse.h"
 
 #include "BKE_global.h"	

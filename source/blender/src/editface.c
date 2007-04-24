@@ -95,6 +95,7 @@
 #include "BSE_trans_types.h"
 
 #include "BDR_unwrapper.h"
+#include "BDR_editobject.h"
 
 #include "BPY_extern.h"
 #include "BPY_menus.h"

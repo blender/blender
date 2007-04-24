@@ -45,7 +45,9 @@
 #include "BKE_image.h"
 #include "BKE_object.h"
 #include "BKE_main.h"
+#include "BKE_utildefines.h"
 #include "BIF_gl.h"
+#include "BIF_mywindow.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_interface.h"
@@ -733,14 +735,66 @@ void BPY_spacescript_do_pywin_event( SpaceScript * sc, unsigned short event,
 	}
 }
 
-static void exec_but_callback(PyObject *callback, int event)
+static void exec_but_callback(PyObject *callback, uiBut *but)
 {
 	PyObject *result;
-
+	PyObject * pyvalue;
+	PyObject *arg = PyTuple_New( 2 );
+	
+	double value = ui_get_but_val(but);
+	
 	if (callback==NULL || callback == Py_None)
 		return;
-
-	result = PyObject_CallObject( callback, Py_BuildValue( "(i)", event ) );
+	
+	/* Button types support
+	case MENU:	
+	case TEX:
+	case TOG:
+	case NUMSLI:
+	case NUM:
+	case COL:
+	case BUT_NORMAL:
+	case BUT */
+	switch (but->type) {
+	case TEX:
+		/*printf("TEX\n");*/
+		pyvalue = PyString_FromString( (char *)but->poin );
+		break;
+	case NUM:
+	case NUMSLI:
+	case TOG:
+	case MENU:
+		if (but->pointype==FLO) {
+			/*printf("FLO\n");*/
+			pyvalue = PyFloat_FromDouble( (float)value );
+		} else if (but->pointype==INT) {
+			/*printf("INT\n");*/
+			pyvalue = PyInt_FromLong( (int)value );
+		} else if (but->pointype==SHO) {
+			/*printf("SHO\n");*/
+			pyvalue = PyInt_FromLong( (short)value );
+		}	
+		break;
+	case COL:
+	case BUT_NORMAL:
+	{
+		float vec[3];
+		VECCOPY(vec, (float *)but->poin);
+		pyvalue = Py_BuildValue("(fff)", vec[0], vec[1], vec[2]);
+		break;
+	}
+	case BUT:
+		pyvalue = Py_None;
+		break;
+	default:
+		pyvalue = Py_None;
+		printf("Error, no button type matched.");
+	}
+	
+	PyTuple_SetItem( arg, 0, PyInt_FromLong(but->retval - EXPP_BUTTON_EVENTS_OFFSET) );
+	PyTuple_SetItem( arg, 1, pyvalue );
+	
+	result = PyObject_CallObject( callback, arg );
 	if (!result) {
 		PyErr_Print(  );
 		error( "Python script error: check console" );
@@ -748,10 +802,10 @@ static void exec_but_callback(PyObject *callback, int event)
 	Py_XDECREF( result );
 }
 
-static void set_pycallback(uiBut *ubut, PyObject *callback, int event)
+static void set_pycallback(uiBut *ubut, PyObject *callback)
 {
 	if (!callback || !PyCallable_Check(callback)) return;
-	uiButSetFunc(ubut, exec_but_callback, callback, event);
+	uiButSetFunc(ubut, exec_but_callback, callback, ubut);
 }
 
 static PyObject *Method_Exit( PyObject * self, PyObject * args )
@@ -764,7 +818,7 @@ static PyObject *Method_Exit( PyObject * self, PyObject * args )
 	if( curarea->spacetype == SPACE_SCRIPT )
 		sc = curarea->spacedata.first;
 	else
-		return EXPP_incr_ret( Py_None );
+		Py_RETURN_NONE;
 
 	if( !PyArg_ParseTuple( args, "" ) )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
@@ -777,7 +831,7 @@ static PyObject *Method_Exit( PyObject * self, PyObject * args )
 	/* remove our lock to the current namespace */
 	script->flags &= ~SCRIPT_GUI;
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 /* Method_Register (Draw.Register) registers callbacks for drawing, events
@@ -805,7 +859,7 @@ static PyObject *Method_Register( PyObject * self, PyObject * args )
 		newbuttonc = NULL;
 
 	if( !( newdrawc || neweventc || newbuttonc ) )
-		return EXPP_incr_ret( Py_None );
+		Py_RETURN_NONE;
 
 	startspace = curarea->spacetype;
 
@@ -865,7 +919,7 @@ static PyObject *Method_Register( PyObject * self, PyObject * args )
 
 	scrarea_queue_redraw( sc->area );
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static PyObject *Method_Redraw( PyObject * self, PyObject * args )
@@ -881,7 +935,7 @@ static PyObject *Method_Redraw( PyObject * self, PyObject * args )
 	else
 		scrarea_queue_winredraw( curarea );
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static PyObject *Method_Draw( PyObject * self, PyObject * args )
@@ -889,7 +943,7 @@ static PyObject *Method_Draw( PyObject * self, PyObject * args )
 	/*@ If forced drawing is disable queue a redraw event instead */
 	if( EXPP_disable_force_draw ) {
 		scrarea_queue_winredraw( curarea );
-		return EXPP_incr_ret( Py_None );
+		Py_RETURN_NONE;
 	}
 
 	if( !PyArg_ParseTuple( args, "" ) )
@@ -900,7 +954,7 @@ static PyObject *Method_Draw( PyObject * self, PyObject * args )
 
 	screen_swapbuffers(  );
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static PyObject *Method_Create( PyObject * self, PyObject * args )
@@ -1017,7 +1071,7 @@ static PyObject *Method_BeginAlign( PyObject * self, PyObject * args )
 	if (block)
 		uiBlockBeginAlign(block);
 	
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static PyObject *Method_EndAlign( PyObject * self, PyObject * args )
@@ -1027,7 +1081,7 @@ static PyObject *Method_EndAlign( PyObject * self, PyObject * args )
 	if (block)
 		uiBlockEndAlign(block);
 	
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static PyObject *Method_Button( PyObject * self, PyObject * args )
@@ -1048,9 +1102,9 @@ static PyObject *Method_Button( PyObject * self, PyObject * args )
 	block = Get_uiBlock(  );
 	if( block ) {
 		uiBut *ubut = uiDefBut( block, BUT, event, name, (short)x, (short)y, (short)w, (short)h, 0, 0, 0, 0, 0, tip );
-		set_pycallback(ubut, callback, event);
+		set_pycallback(ubut, callback);
 	}
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static PyObject *Method_Menu( PyObject * self, PyObject * args )
@@ -1077,7 +1131,7 @@ static PyObject *Method_Menu( PyObject * self, PyObject * args )
 	if( block ) {
 		uiBut *ubut = uiDefButI( block, MENU, event, name, (short)x, (short)y, (short)w, (short)h,
 			   &but->val.asint, 0, 0, 0, 0, tip );
-		set_pycallback(ubut, callback, event);
+		set_pycallback(ubut, callback);
 	}
 	return ( PyObject * ) but;
 }
@@ -1106,7 +1160,7 @@ static PyObject *Method_Toggle( PyObject * self, PyObject * args )
 	if( block ) {
 		uiBut *ubut = uiDefButI( block, TOG, event, name, (short)x, (short)y, (short)w, (short)h,
 			   &but->val.asint, 0, 0, 0, 0, tip );
-		set_pycallback(ubut, callback, event);
+		set_pycallback(ubut, callback);
 	}
 	return ( PyObject * ) but;
 }
@@ -1185,8 +1239,9 @@ static PyObject *Method_Slider( PyObject * self, PyObject * args )
 					  (short)h, &but->val.asfloat, min, max, 0, 0,
 					  tip );
 			if( realtime )
-				uiButSetFunc( ubut, py_slider_update, ubut,
-					      NULL );
+				uiButSetFunc( ubut, py_slider_update, ubut, NULL );
+			else
+				set_pycallback(ubut, callback);
 		}
 	} else {
 		int ini, min, max;
@@ -1207,7 +1262,7 @@ static PyObject *Method_Slider( PyObject * self, PyObject * args )
 			if( realtime )
 				uiButSetFunc( ubut, py_slider_update, ubut, NULL );
 			else
-				set_pycallback(ubut, callback, event);
+				set_pycallback(ubut, callback);
 		}
 	}
 	return ( PyObject * ) but;
@@ -1311,7 +1366,7 @@ static PyObject *Method_ColorPicker( PyObject * self, PyObject * args )
 	if( block ) {
 		uiBut *ubut;
 		ubut = uiDefButF( block, COL, event, "", x, y, w, h, but->val.asvec, 0, 0, 0, 0, tip);
-		set_pycallback(ubut, callback, event);
+		set_pycallback(ubut, callback);
 	}
 
  	return ( PyObject * ) but;
@@ -1355,7 +1410,7 @@ static PyObject *Method_Normal( PyObject * self, PyObject * args )
 	if( block ) {
 		uiBut *ubut;
 		ubut = uiDefButF( block, BUT_NORMAL, event, "", x, y, w, h, but->val.asvec, 0.0f, 1.0f, 0, 0, tip);
-		set_pycallback(ubut, callback, event);
+		set_pycallback(ubut, callback);
 	}
 	
  	return ( PyObject * ) but;
@@ -1421,7 +1476,7 @@ static PyObject *Method_Number( PyObject * self, PyObject * args )
 				   &but->val.asint, (float)min, (float)max, 0, 0, tip );
 	}
 	
-	if (ubut) set_pycallback(ubut, callback, event);
+	if (ubut) set_pycallback(ubut, callback);
 	
 	return ( PyObject * ) but;
 }
@@ -1466,7 +1521,7 @@ static PyObject *Method_String( PyObject * self, PyObject * args )
 	if( block ) {
 		uiBut *ubut = uiDefBut( block, TEX, event, info_str, (short)x, (short)y, (short)w, (short)h,
 			  but->val.asstr, 0, (float)len, 0, 0, tip );
-		set_pycallback(ubut, callback, event);
+		set_pycallback(ubut, callback);
 	}
 	return ( PyObject * ) but;
 }
