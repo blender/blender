@@ -195,7 +195,7 @@ int arraysize(char *astr, int len);
 /**
  * Determine how many bytes are needed for each struct.
  */ 
-int calculate_structlens(void);
+static int calculate_structlens(int);
 
 /**
  * Construct the DNA.c file
@@ -649,7 +649,7 @@ int arraysize(char *astr, int len)
 	return mul;
 }
 
-int calculate_structlens(void)
+static int calculate_structlens(int firststruct)
 {
 	int a, b, len, alphalen, unknown= nr_structs, lastunknown, structtype, type, mul, namelen;
 	short *sp, *structpoin;
@@ -711,6 +711,12 @@ int calculate_structlens(void)
 						/* has the name an extra length? (array) */
 						mul= 1;
 						if( cp[namelen-1]==']') mul= arraysize(cp, namelen);
+						
+						/* struct alignment */
+						if(type >= firststruct) {
+							if(sizeof(void *)==8 && (len % 8) )
+								printf("Align struct error: %s %s\n", types[structtype],cp);
+						}
 						
 						/* 2-4 aligned/ */
 						if(typelens[type]>3 && (len % 4) ) {
@@ -893,7 +899,7 @@ int make_structDNA(char *baseDirectory, FILE *file)
 	}
 	if (debugSDNA) printf("\tFinished scanning %d headers.\n", i); 
 
-	if (calculate_structlens()) {
+	if (calculate_structlens(firststruct)) {
 		// error
 		return(1);
 	}

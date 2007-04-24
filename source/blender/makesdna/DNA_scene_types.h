@@ -335,11 +335,11 @@ typedef struct ToolSettings {
 
 	short pad2;
 	
+	/* Image Paint (8 byte aligned please!) */
+	struct ImagePaintSettings imapaint;
+	
 	/* Select Group Threshold */
 	float select_thresh;
-
-	/* Image Paint */
-	struct ImagePaintSettings imapaint;
 	
 	/* IPO-Editor */
 	float clean_thresh;
