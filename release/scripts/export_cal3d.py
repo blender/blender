@@ -103,7 +103,8 @@ import sys, os, os.path, struct, math, string
 import Blender
 import BPyMesh
 import BPySys
-
+import BPyArmature
+import BPyObject
 
 
 def best_armature_root(armature):
@@ -184,7 +185,7 @@ def matrix2quaternion(m):
 		0.5 * s,
 		])
 	q.normalize()
-	print q
+	#print q
 	return q
 
 def vector_by_matrix_3x3(p, m):
@@ -260,7 +261,8 @@ BASE_MATRIX = None
 CAL3D_VERSION = 910
 MATERIALS = {}
 
-class Cal3DMaterial:
+class Cal3DMaterial(object):
+	__slots__ = 'amb', 'diff', 'spec', 'shininess', 'maps_filenames', 'id'
 	def __init__(self, map_filename = None):
 		self.amb  = (255,255,255,255)
 		self.diff = (255,255,255,255)
@@ -292,12 +294,14 @@ class Cal3DMaterial:
 		file.write('</MATERIAL>\n')
 
 
-class Cal3DMesh:
+class Cal3DMesh(object):
+	__slots__ = 'name', 'submeshes'
 	def __init__(self, ob, blend_mesh):
 		self.name      = ob.name
 		self.submeshes = []
 		
 		matrix = ob.matrixWorld
+		matrix_no = matrix.copy().rotationPart()
 		#if BASE_MATRIX:
 		#	matrix = matrix_multiply(BASE_MATRIX, matrix)
 		
@@ -317,7 +321,7 @@ class Cal3DMesh:
 					faces.remove(face)
 					
 					if not face.smooth:
-						normal = face.no * matrix
+						normal = face.no * matrix_no
 						normal.normalize()
 						
 					face_vertices = []
@@ -325,12 +329,11 @@ class Cal3DMesh:
 					for i, blend_vert in enumerate(face_v):
 						vertex = vertices.get(blend_vert.index)
 						if not vertex:
-							#coord  = blend_vert.co * matrix
-							coord  = blend_vert.co
+							coord  = blend_vert.co * matrix
+							
 							if face.smooth:
-								#normal = blend_vert.no * matrix
-								normal = blend_vert.no
-								#normal.normalize()
+								normal = blend_vert.no * matrix_no
+								normal.normalize()
 							
 							vertex  = vertices[blend_vert.index] = Cal3DVertex(coord, normal, len(submesh.vertices))
 							submesh.vertices.append(vertex)
@@ -354,7 +357,7 @@ class Cal3DMesh:
 									print 'Couldnt find bone "%s" which influences object "%s"' % (bone_name, ob.name)
 									continue
 								if weight:
-									vertex.influences.append(Influence(BONES[bone_name], weight / sum))
+									vertex.influences.append(Cal3DInfluence(BONES[bone_name], weight / sum))
 								
 						elif not face.smooth:
 							# We cannot share vertex for non-smooth faces, since Cal3D does not
@@ -372,7 +375,7 @@ class Cal3DMesh:
 						if blend_mesh.faceUV:
 							uv = [face.uv[i][0], 1.0 - face.uv[i][1]]
 							if not vertex.maps:
-								if outputuv: vertex.maps.append(Map(*uv))
+								if outputuv: vertex.maps.append(Cal3DMap(*uv))
 							elif (vertex.maps[0].u != uv[0]) or (vertex.maps[0].v != uv[1]):
 								# This vertex can be shared for Blender, but not for Cal3D !!!
 								# Cal3D does not support vertex sharing for 2 vertices with
@@ -390,14 +393,14 @@ class Cal3DMesh:
 									
 									vertex.cloned_from = old_vertex
 									vertex.influences = old_vertex.influences
-									if outputuv: vertex.maps.append(Map(*uv))
+									if outputuv: vertex.maps.append(Cal3DMap(*uv))
 									old_vertex.clones.append(vertex)
 						
 						face_vertices.append(vertex)
 						
 					# Split faces with more than 3 vertices
 					for i in xrange(1, len(face.v) - 1):
-						submesh.faces.append(Face(face_vertices[0], face_vertices[i], face_vertices[i + 1]))
+						submesh.faces.append(Cal3DFace(face_vertices[0], face_vertices[i], face_vertices[i + 1]))
 			
 			# Computes LODs info
 			if LODS:
@@ -411,7 +414,8 @@ class Cal3DMesh:
 			submesh.writeCal3D(file)
 		file.write('</MESH>\n')
 
-class Cal3DSubMesh:
+class Cal3DSubMesh(object):
+	__slots__ = 'material', 'vertices', 'faces', 'nb_lodsteps', 'springs', 'id'
 	def __init__(self, mesh, material, id):
 		self.material   = material
 		self.vertices   = []
@@ -419,7 +423,7 @@ class Cal3DSubMesh:
 		self.nb_lodsteps = 0
 		self.springs    = []
 		self.id = id
-		
+	
 	def compute_lods(self):
 		"""Computes LODs info for Cal3D (there's no Blender related stuff here)."""
 		
@@ -486,7 +490,7 @@ class Cal3DSubMesh:
 						
 					clone.face_collapse_count = 0
 					new_vertices.append(clone)
-
+	
 				# HACK -- all faces get collapsed with v1 (and no faces are collapsed with v1's
 				# clones). This is why we add v1 in new_vertices after v1's clones.
 				# This hack has no other incidence that consuming a little few memory for the
@@ -534,20 +538,8 @@ class Cal3DSubMesh:
 		
 		file.write('\t</SUBMESH>\n')
 
-class Cal3DVertex:
-	"""
-	__slots__ =\
-	'loc',# vertex location, worldspace
-	'normal',# vertex normal, worldspace
-	'collapse_to',# ?
-	'face_collapse_count',# ?
-	'maps',# uv coords, must support Multi UV's eventually
-	'influences',# Bone influences
-	'weight',# ?
-	'cloned_from',# ?
-	'clones',# ?
-	'id'# index
-	"""
+class Cal3DVertex(object):
+	__slots__ = 'loc','normal','collapse_to','face_collapse_count','maps','influences','weight','cloned_from','clones','id'
 	def __init__(self, loc, normal, id):
 		self.loc    = loc
 		self.normal = normal
@@ -588,7 +580,7 @@ class Cal3DVertex:
 		file.write('\t\t</VERTEX>\n')
 
 
-class Map(object):
+class Cal3DMap(object):
 	__slots__ = 'u', 'v'
 	def __init__(self, u, v):
 		self.u = u
@@ -597,7 +589,7 @@ class Map(object):
 	def writeCal3D(self, file):
 		file.write('\t\t\t<TEXCOORD>%.6f %.6f</TEXCOORD>\n' % (self.u, self.v))
 
-class Influence(object):
+class Cal3DInfluence(object):
 	__slots__ = 'bone', 'weight'
 	def __init__(self, bone, weight):
 		self.bone   = bone
@@ -607,7 +599,7 @@ class Influence(object):
 		file.write('\t\t\t<INFLUENCE ID="%i">%.6f</INFLUENCE>\n' % \
 					 (self.bone.id, self.weight))
 
-class Spring(object):
+class Cal3DSpring(object):
 	__slots__ = 'vertex1', 'vertex2', 'spring_coefficient', 'idlelength'
 	def __init__(self, vertex1, vertex2):
 		self.vertex1 = vertex1
@@ -619,7 +611,7 @@ class Spring(object):
 		file.write('\t\t<SPRING VERTEXID="%i %i" COEF="%.6f" LENGTH="%.6f"/>\n' % \
 					 (self.vertex1.id, self.vertex2.id, self.spring_coefficient, self.idlelength))
 
-class Face(object):
+class Cal3DFace(object):
 	__slots__ = 'vertex1', 'vertex2', 'vertex3', 'can_collapse',
 	def __init__(self, vertex1, vertex2, vertex3):
 		self.vertex1 = vertex1
@@ -648,13 +640,13 @@ class Cal3DSkeleton(object):
 BONES = {}
 POSEBONES= {}
 class Cal3DBone(object):
-	__slots__ = 'head', 'tail', 'name', 'cal3d_parent', 'loc', 'rot', 'children', 'matrix', 'lloc', 'lrot', 'id'
+	__slots__ = 'head', 'tail', 'name', 'cal3d_parent', 'loc', 'quat', 'children', 'matrix', 'lloc', 'lquat', 'id'
 	def __init__(self, skeleton, blend_bone, arm_matrix, cal3d_parent=None):
 		
 		# def treat_bone(b, parent = None):
 		head = blend_bone.head['BONESPACE']
 		tail = blend_bone.tail['BONESPACE']
-		#print parent.rot
+		#print parent.quat
 		# Turns the Blender's head-tail-roll notation into a quaternion
 		#quat = matrix2quaternion(blender_bone2matrix(head, tail, blend_bone.roll['BONESPACE']))
 		quat = matrix2quaternion(blend_bone.matrix['BONESPACE'].copy().resize4x4())
@@ -669,7 +661,7 @@ class Cal3DBone(object):
 			# but parent_tail and parent_head must be converted from the parent's parent
 			# system coordinate into the parent system coordinate.
 			
-			parent_invert_transform = matrix_invert(quaternion2matrix(cal3d_parent.rot))
+			parent_invert_transform = matrix_invert(quaternion2matrix(cal3d_parent.quat))
 			parent_head = vector_by_matrix_3x3(cal3d_parent.head, parent_invert_transform)
 			parent_tail = vector_by_matrix_3x3(cal3d_parent.tail, parent_invert_transform)
 			ploc = vector_add(ploc, blend_bone.head['BONESPACE'])
@@ -682,21 +674,15 @@ class Cal3DBone(object):
 			parentheadtotail = vector_sub(parent_tail, parent_head)
 			# hmm this should be handled by the IPos, but isn't for non-animated
 			# bones which are transformed in the pose mode...
-			#loc = vector_add(ploc, parentheadtotail)
-			#rot = quaternion_multiply(blender2cal3dquat(blend_bone.getQuat()), quat)
 			loc = parentheadtotail
-			rot = quat
 			
 		else:
 			# Apply the armature's matrix to the root bones
 			head = point_by_matrix(head, arm_matrix)
 			tail = point_by_matrix(tail, arm_matrix)
-			quat = matrix2quaternion(matrix_multiply(arm_matrix, quaternion2matrix(quat))) # Probably not optimal
 			
-			# loc = vector_add(head, blend_bone.getLoc())
-			# rot = quaternion_multiply(blender2cal3dquat(blend_bone.getQuat()), quat)
 			loc = head 
-			rot = quat
+			quat = matrix2quaternion(matrix_multiply(arm_matrix, quaternion2matrix(quat))) # Probably not optimal
 			
 		self.head = head
 		self.tail = tail
@@ -704,18 +690,18 @@ class Cal3DBone(object):
 		self.cal3d_parent = cal3d_parent
 		self.name   = blend_bone.name
 		self.loc = loc
-		self.rot = rot
+		self.quat = quat
 		self.children = []
 		
-		self.matrix = matrix_translate(quaternion2matrix(rot), loc)
+		self.matrix = matrix_translate(quaternion2matrix(quat), loc)
 		if cal3d_parent:
 			self.matrix = matrix_multiply(cal3d_parent.matrix, self.matrix)
 		
-		# lloc and lrot are the bone => model space transformation (translation and rotation).
+		# lloc and lquat are the bone => model space transformation (translation and rotation).
 		# They are probably specific to Cal3D.
 		m = matrix_invert(self.matrix)
 		self.lloc = m[3][0], m[3][1], m[3][2]
-		self.lrot = matrix2quaternion(m)
+		self.lquat = matrix2quaternion(m)
 		
 		self.id = len(skeleton.bones)
 		skeleton.bones.append(self)
@@ -733,11 +719,11 @@ class Cal3DBone(object):
 		file.write('\t\t<TRANSLATION>%.6f %.6f %.6f</TRANSLATION>\n' % \
 				 (self.loc[0], self.loc[1], self.loc[2]))
 		file.write('\t\t<ROTATION>%.6f %.6f %.6f %.6f</ROTATION>\n' % \
-				 (self.rot[0], self.rot[1], self.rot[2], -self.rot[3]))
+				 (self.quat[0], self.quat[1], self.quat[2], -self.quat[3]))
 		file.write('\t\t<LOCALTRANSLATION>%.6f %.6f %.6f</LOCALTRANSLATION>\n' % \
 				 (self.lloc[0], self.lloc[1], self.lloc[2]))
 		file.write('\t\t<LOCALROTATION>%.6f %.6f %.6f %.6f</LOCALROTATION>\n' % \
-				 (self.lrot[0], self.lrot[1], self.lrot[2], -self.lrot[3]))
+				 (self.lquat[0], self.lquat[1], self.lquat[2], -self.lquat[3]))
 		if self.cal3d_parent:
 			file.write('\t\t<PARENTID>%i</PARENTID>\n' % self.cal3d_parent.id)
 		else:
@@ -765,28 +751,25 @@ class Cal3DAnimation:
 		
 		file.write('</ANIMATION>\n')
 
-class Cal3DTrack:
+class Cal3DTrack(object):
+	__slots__ = 'bone', 'keyframes'
 	def __init__(self, bone):
 		self.bone      = bone
 		self.keyframes = []
 
 	def writeCal3D(self, file):
-		file.write('\t<TRACK BONEID="%i" NUMKEYFRAMES="%i">\n' % \
+		file.write('\t<TRACK BONEID="%i" NUMKEYFRAMES="%i">\n' %
 				(self.bone.id, len(self.keyframes)))
-		
 		for item in self.keyframes:
 			item.writeCal3D(file)
-		
 		file.write('\t</TRACK>\n')
 
-class Cal3DKeyFrame:
-	def __init__(self, track, time, loc, rot):
+class Cal3DKeyFrame(object):
+	__slots__ = 'time', 'loc', 'quat'
+	def __init__(self, time, loc, quat):
 		self.time = time
 		self.loc  = loc
-		self.rot  = rot
-		
-		self.track = track
-		track.keyframes.append(self)
+		self.quat = quat
 	
 	def writeCal3D(self, file):
 		file.write('\t\t<KEYFRAME TIME="%.6f">\n' % self.time)
@@ -794,10 +777,10 @@ class Cal3DKeyFrame:
 				 (self.loc[0], self.loc[1], self.loc[2]))
 		# We need to negate quaternion W value, but why ?
 		file.write('\t\t\t<ROTATION>%.6f %.6f %.6f %.6f</ROTATION>\n' % \
-				 (self.rot[0], self.rot[1], self.rot[2], -self.rot[3]))
+				 (self.quat[0], self.quat[1], self.quat[2], -self.quat[3]))
 		file.write('\t\t</KEYFRAME>\n')
 
-def export_cal3d(filename):
+def export_cal3d(filename, PREF_SCALE=0.1, PREF_BAKE_MOTION = True, PREF_ACT_ACTION_ONLY=True):
 	if not filename.endswith('.cfg'):
 		filename += '.cfg'
 	
@@ -811,19 +794,26 @@ def export_cal3d(filename):
 	#if EXPORT_FOR_SOYA:
 	#	global BASE_MATRIX
 	#	BASE_MATRIX = matrix_rotate_x(-math.pi / 2.0)
-		
 	# Get the scene
+	
 	scene = Blender.Scene.GetCurrent()
 	
-	# ---- Export skeleton (=armature) ----------------------------------------
-
+	# ---- Export skeleton (armature) ----------------------------------------
+	
 	skeleton = Cal3DSkeleton()
 	blender_armature = [ob for ob in scene.objects.context if ob.type == 'Armature']
 	if len(blender_armature) > 1:	print "Found multiple armatures! using ",armatures[0].name
 	if blender_armature: blender_armature = blender_armature[0]
 	else:
-		Blender.Draw.PupMenu('Aborting%t|No Armature in selection')
-		return
+		# Try find a meshes armature
+		for ob in scene.objects.context:
+			blender_armature = BPyObject.getObjectArmature(ob)
+			if blender_armature:
+				break
+		
+		if not blender_armature:
+			Blender.Draw.PupMenu('Aborting%t|No Armature in selection')
+			return
 
 	# we need pose bone locations
 	for pbone in blender_armature.getPose().bones.values():
@@ -833,7 +823,6 @@ def export_cal3d(filename):
 	
 	# ---- Export Mesh data ---------------------------------------------------
 	meshes = []
-	
 	for ob in scene.objects.context:
 		if ob.type != 'Mesh':		continue
 		blend_mesh = ob.getData(mesh=1)
@@ -841,44 +830,47 @@ def export_cal3d(filename):
 		
 		if not blend_mesh.faces:			continue
 		meshes.append( Cal3DMesh(ob, blend_mesh) )
-		
+	
 	# ---- Export animations --------------------------------------------------
-	ANIMATIONS = {}
+	backup_action = blender_armature.action
+	
+	ANIMATIONS = []
 	SUPPORTED_IPOS = "QuatW", "QuatX", "QuatY", "QuatZ", "LocX", "LocY", "LocZ"
-	for animation_name, blend_action in Blender.Armature.NLA.GetActions().iteritems():
-		#for blend_action in [blender_armature.action]:
-		#animation_name = a[0]
-		#animation_name = blend_action.name
+	
+	if PREF_ACT_ACTION_ONLY:	action_items = [(blender_armature.action.name, blender_armature.action)]
+	else:						action_items = Blender.Armature.NLA.GetActions().iteritems()
+	
+	for animation_name, blend_action in action_items:
+		
+		# get frame range
+		_frames = blend_action.getFrameNumbers()
+		action_start=	min(_frames);
+		action_end=		max(_frames);
+		del _frames
+		
+		if PREF_BAKE_MOTION:
+			# We need to set the action active if we are getting baked data
+			blend_action.setActive(blender_armature)
+			pose_data = BPyArmature.getBakedPoseData(blender_armature, action_start, action_end)
+			
+			# Fake, all we need is bone names
+			blend_action_ipos_items = [(pbone, True) for pbone in POSEBONES.iterkeys()]
+		else:
+			# real (bone_name, ipo) pairs
+			blend_action_ipos_items = blend_action.getAllChannelIpos().items()
+		
+			# Now we mau have some bones with no channels, easiest to add their names and an empty list here
+			# this way they are exported with dummy keyfraames at teh first used frame
+			action_bone_names = [name for name, ipo in blend_action_ipos_items]
+			for bone_name in BONES: # iterkeys
+				if bone_name not in action_bone_names:
+					blend_action_ipos_items.append( (bone_name, []) )
+		
 		animation = Cal3DAnimation(animation_name)
 		animation.duration = 0.0
 		
-		
-		# All tracks need to have at least 1 keyframe.
-		# bones without any keys crash the viewer so we need to find the location for a dummy keyframe.
-		blend_action_ipos = blend_action.getAllChannelIpos()
-		start_frame = 300000 # largest frame
-		for bone_name, ipo in blend_action_ipos.iteritems():
-			if ipo:
-				for curve in ipo:
-					if curve.name in SUPPORTED_IPOS:
-						for p in curve.bezierPoints:
-							start_frame = min(start_frame, p.pt[0])
-		
-		# Write all dummy keyframes, find bones with no actions
-		if start_frame == 300000:
-			pass # BAD STUFF NO IPOS
-		
-		
-		# Now we mau have some bones with no channels, easiest to add their names and an empty list here
-		# this way they are exported with dummy keyfraames at teh first used frame
-		blend_action_ipos_items = blend_action_ipos.items()
-		action_bone_names = [name for name, ipo in blend_action_ipos_items]
-		for bone_name in BONES: # iterkeys
-			if bone_name not in action_bone_names:
-				blend_action_ipos_items.append( (bone_name, []) )
-		
-		
 		for bone_name, ipo in blend_action_ipos_items:
+			# Baked bones may have no IPO's width motion still
 			if bone_name not in BONES:
 				print "\tNo Bone '" + bone_name + "' in (from Animation '" + animation_name + "') ?!?"
 				continue
@@ -889,61 +881,93 @@ def export_cal3d(filename):
 			bone = BONES[bone_name]
 			track = animation.tracks[bone_name] = Cal3DTrack(bone)
 			
-			#run 1: we need to find all time values where we need to produce keyframes
-			times = set()
-			for curve in ipo:
-				curve_name = curve.name
-				if curve_name in SUPPORTED_IPOS:
-					for p in curve.bezierPoints:
-						times.add( p.pt[0] )
+			if PREF_BAKE_MOTION:
+				for i in xrange(action_end - action_start):
+					cal3dtime = i / 25.0 # assume 25FPS by default
+					
+					if cal3dtime > animation.duration:
+						animation.duration = cal3dtime
+					
+					#print pose_data[i][bone_name], i
+					loc, quat = pose_data[i][bone_name]
+					if bone_name == 'top':
+						print 'myquat', quat
+					#print 'rot', quat
+					
+					
+					loc = vector_by_matrix_3x3(loc, bone.matrix)
+					loc = vector_add(bone.loc, loc)
+					quat = quaternion_multiply(quat, bone.quat)
+					quat = Quaternion(quat)
+					
+					quat.normalize()
+					quat = tuple(quat)
+					
+					track.keyframes.append( Cal3DKeyFrame(cal3dtime, loc, quat) )
 			
-			times = list(times)
-			times.sort()
-			
-			# Incase we have no keys here or ipo==None
-			if not times:
-				times.append(start_frame)
-
-			# run2: now create keyframes
-			for time in times:
-				cal3dtime = (time-1) / 25.0 # assume 25FPS by default
-				if cal3dtime > animation.duration:
-					animation.duration = cal3dtime
-				trans = Vector(0,0,0)
-				quat  = Quaternion()
-				
+			else:
+				#run 1: we need to find all time values where we need to produce keyframes
+				times = set()
 				for curve in ipo:
-					val = curve.evaluate(time)
-					# val = 0.0 
-					curve_name= curve.name
-					if   curve_name == "LocX":  trans[0] = val
-					elif curve_name == "LocY":  trans[1] = val
-					elif curve_name == "LocZ":  trans[2] = val
-					elif curve_name == "QuatW": quat[3]  = val
-					elif curve_name == "QuatX": quat[0]  = val
-					elif curve_name == "QuatY": quat[1]  = val
-					elif curve_name == "QuatZ": quat[2]  = val
+					curve_name = curve.name
+					if curve_name in SUPPORTED_IPOS:
+						for p in curve.bezierPoints:
+							times.add( p.pt[0] )
 				
-				transt = vector_by_matrix_3x3(trans, bone.matrix)
-				loc = vector_add(bone.loc, transt)
-				rot = quaternion_multiply(quat, bone.rot)
-				rot = Quaternion(rot)
-				rot.normalize()
-				rot = tuple(rot)
-				Cal3DKeyFrame(track, cal3dtime, loc, rot)
+				times = list(times)
+				times.sort()
 				
-				Cal3DKeyFrame(track, cal3dtime, loc, rot)
+				# Incase we have no keys here or ipo==None
+				if not times: times.append(action_start)
+
+				# run2: now create keyframes
+				for time in times:
+					cal3dtime = (time-1) / 25.0 # assume 25FPS by default
+					if cal3dtime > animation.duration:
+						animation.duration = cal3dtime
+					
+					trans = Vector()
+					quat  = Quaternion()
+					
+					for curve in ipo:
+						val = curve.evaluate(time)
+						# val = 0.0 
+						curve_name= curve.name
+						if   curve_name == "LocX":  trans[0] = val
+						elif curve_name == "LocY":  trans[1] = val
+						elif curve_name == "LocZ":  trans[2] = val
+						elif curve_name == "QuatW": quat[3]  = val
+						elif curve_name == "QuatX": quat[0]  = val
+						elif curve_name == "QuatY": quat[1]  = val
+						elif curve_name == "QuatZ": quat[2]  = val
+					
+					transt = vector_by_matrix_3x3(trans, bone.matrix)
+					loc = vector_add(bone.loc, transt)
+					quat = quaternion_multiply(quat, bone.quat)
+					quat = Quaternion(quat)
+					
+					quat.normalize()
+					quat = tuple(quat)
+					
+					track.keyframes.append( Cal3DKeyFrame(cal3dtime, loc, quat) )
+				
 				
 		if animation.duration <= 0:
 			print "Ignoring Animation '" + animation_name + "': duration is 0.\n"
 			continue
-		ANIMATIONS[animation_name] = animation
+	
+	# Restore the original armature
+	backup_action.setActive(blender_armature)
+	
+	
+	# ----------------------------
+	ANIMATIONS.append(animation)
 	
 	
 	cfg = open((filename), "wb")
 	cfg.write('# Cal3D model exported from Blender with export_cal3d.py\n')
 
-	if SCALE != 1.0:	cfg.write('scale=%.6f\n' % SCALE)
+	if SCALE != 1.0:	cfg.write('scale=%.6f\n' % PREF_SCALE)
 	
 	fname = file_only_noext + '.xsf'
 	file = open( base_only +  fname, "wb")
@@ -952,7 +976,7 @@ def export_cal3d(filename):
 	
 	cfg.write('skeleton=%s\n' % fname)
 	
-	for animation in ANIMATIONS.itervalues():
+	for animation in ANIMATIONS:
 		if not animation.name.startswith('_'):
 			if animation.duration > 0.1: # Cal3D does not support animation with only one state
 				fname = new_name(animation.name, '.xaf')
@@ -990,8 +1014,28 @@ def export_cal3d(filename):
 	if len(animation.tracks) < 2:
 		Blender.Draw.PupMenu('Warning, the armature has less then 2 tracks, file may not load in Cal3d')
 
+
+
+def export_cal3d_ui(filename):
+	
+	PREF_SCALE= Blender.Draw.Create(1.0)
+	PREF_BAKE_MOTION = Blender.Draw.Create(1)
+	PREF_ACT_ACTION_ONLY= Blender.Draw.Create(1)
+	
+	block = [\
+	('Scale: ', PREF_SCALE, 0.01, 100, "The scale to set in the Cal3d .cfg file"),\
+	('Baked Motion', PREF_BAKE_MOTION, 'use final pose position instead of ipo keyframes (IK and constraint support)'),\
+	('Active Action', PREF_ACT_ACTION_ONLY, 'Only export the active action applied to this armature, otherwise export all'),\
+	]
+	
+	if not Blender.Draw.PupBlock("Cal3D Options", block):
+		return
+	
+	export_cal3d(filename, 1.0/PREF_SCALE.val, PREF_BAKE_MOTION.val, PREF_ACT_ACTION_ONLY.val)
+
+
 #import os
 if __name__ == '__main__':
-	Blender.Window.FileSelector(export_cal3d, "Cal3D Export", Blender.Get('filename').replace('.blend', '.cfg'))
+	Blender.Window.FileSelector(export_cal3d_ui, "Cal3D Export", Blender.Get('filename').replace('.blend', '.cfg'))
 	#export_cal3d('/test' + '.cfg')
 	#os.system('cd /; wine /cal3d_miniviewer.exe /test.cfg')

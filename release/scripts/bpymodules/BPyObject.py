@@ -5,6 +5,9 @@ def getObjectArmature(ob):
 	This returns the first armature the mesh uses.
 	remember there can be more then 1 armature but most people dont do that.
 	'''
+	if ob.type != 'Mesh':
+		return None
+	
 	arm = ob.parent
 	if arm and arm.type == 'Armature' and ob.parentType == Blender.Object.ParentTypes.ARMATURE:
 		arm
