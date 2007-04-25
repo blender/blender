@@ -2519,7 +2519,7 @@ static void filesel_select_objects(SpaceFile *sfile)
 			
 			ob= (Object *)sfile->filelist[a].poin;
 			
-			if(ob) {
+			if(ob && (ob->flag & OB_RESTRICT_VIEW)==0) {
 				if(sfile->filelist[a].flags & ACTIVE) ob->flag |= SELECT;
 				else ob->flag &= ~SELECT;
 			}
@@ -2561,7 +2561,7 @@ static void active_file_object(SpaceFile *sfile)
 			
 			ob= (Object *)sfile->filelist[sfile->act].poin;
 			
-			if(ob) {
+			if(ob && (ob->flag & OB_RESTRICT_VIEW)==0) {
 				set_active_object(ob);
 				if(BASACT && BASACT->object==ob) {
 					BASACT->flag |= SELECT;

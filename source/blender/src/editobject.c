@@ -5477,6 +5477,7 @@ void hide_objects(int select)
 		DAG_scene_sort(G.scene);
 		allqueue(REDRAWVIEW3D,0);
 		allqueue(REDRAWOOPS,0);
+		countall();
 	}
 }
 
@@ -5497,5 +5498,6 @@ void show_objects(void)
 		DAG_scene_sort(G.scene);
 		allqueue(REDRAWVIEW3D,0);
 		allqueue(REDRAWOOPS,0);
+		countall();
 	}
 }

@@ -103,8 +103,10 @@ static void oops_to_select_objects(void)
 		if(oops->hide==0) {	
 			if(oops->type==ID_OB) {
 				ob= (Object *)oops->id;
-				if(oops->flag & SELECT) ob->flag |= SELECT;
-				else ob->flag &= ~SELECT;
+				if ((ob->flag & OB_RESTRICT_VIEW)==0) {
+					if(oops->flag & SELECT) ob->flag |= SELECT;
+					else ob->flag &= ~SELECT;
+				}
 			}
 		}
 		oops= oops->next;

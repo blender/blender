@@ -699,7 +699,7 @@ static short select_parent(void)	/* Makes parent active and de-selected OBACT */
 		if(base==startbase) break;
 	}
 	/* can be NULL if parent in other scene */
-	if(basact) {
+	if(basact && BASE_SELECTABLE(basact)) {
 		oldbasact = BASACT;
 		BASACT = basact;
 		basact->flag |= SELECT;		

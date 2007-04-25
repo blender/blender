@@ -1183,10 +1183,7 @@ static Base *mouse_select_menu(unsigned int *buffer, int hits, short *mval)
 	char str[32];
 	
 	for(base=FIRSTBASE; base; base= base->next) {
-		if(base->lay & G.vd->lay &&
-		  (base->object->restrictflag & OB_RESTRICT_SELECT)==0 &&
-		  (base->object->restrictflag & OB_RESTRICT_VIEW)==0
-		) {
+		if BASE_SELECTABLE(base) {
 			baseList[baseCount] = NULL;
 			
 			/* two selection methods, the CTRL select uses max dist of 15 */
@@ -1304,9 +1301,7 @@ void mouse_select(void)
 		else {
 			base= startbase;
 			while(base) {
-				
-				if(base->lay & G.vd->lay) {
-					
+				if BASE_SELECTABLE(base) {
 					project_short(base->object->obmat[3], &base->sx);
 					
 					temp= abs(base->sx -mval[0]) + abs(base->sy -mval[1]);
@@ -1453,7 +1448,7 @@ void mouse_select(void)
 			select_base_v3d(basact, BA_SELECT);
 		}
 		/* also prevent making it active on mouse selection */
-		else if (!(basact->object->restrictflag & OB_RESTRICT_SELECT)) {
+		else if BASE_SELECTABLE(basact) {
 
 			oldbasact= BASACT;
 			BASACT= basact;
