@@ -433,28 +433,29 @@ class Cal3DSubMesh(object):
 		self.springs    = []
 		self.id = id
 	
-	def getVertex(self, blend_mesh, blend_index, loc, normal, maps):		
+	def getVertex(self, blend_mesh, blend_index, loc, normal, maps):
+		
 		index_map = self.vert_mapping.get(blend_index)
+		
 		if index_map == None:
-			self.vert_mapping[blend_index] = self.vert_count
 			vertex = Cal3DVertex(loc, normal, maps, blend_mesh.getVertexInfluences(blend_index))
 			self.vertices.append([vertex])
+			self.vert_mapping[blend_index] = len(self.vert_mapping)
 			self.vert_count +=1
 			return vertex
 		else:
 			vertex_list = self.vertices[index_map]
 			
 			for v in vertex_list:
-				#print "TEST", v.normal, normal 
 				if	v.normal == normal and\
 					v.maps == maps:
-						# print "reuseing"
-						return v
+						return v # reusing
 			
 			# No match, add a new vert
 			# Use the first verts influences
-			vertex = Cal3DVertex(coord, normal, uv, vertex_list[0].influences)
+			vertex = Cal3DVertex(loc, normal, maps, vertex_list[0].influences)
 			vertex_list.append(vertex)
+			# self.vert_mapping[blend_index] = len(self.vert_mapping)
 			self.vert_count +=1
 			return vertex
 		
@@ -554,11 +555,7 @@ class Cal3DSubMesh(object):
 		self.faces = new_faces
 		
 		print "LODs computed : %s vertices can be removed (from a total of %s)." % (self.nb_lodsteps, len(self.vertices))
-		
-	def rename_vertices(self, new_vertices):
-		"""Rename (change ID) of all vertices, such as self.vertices == new_vertices."""
-		for i in xrange(len(new_vertices)): new_vertices[i].id = i
-		self.vertices = new_vertices
+	
 	
 	def writeCal3D(self, file, matrix, matrix_normal):
 		
@@ -597,28 +594,35 @@ class Cal3DVertex(object):
 		
 		self.id = -1
 		
-		self.influences = []
-		# should this really be a warning? (well currently enabled,
-		# because blender has some bugs where it doesn't return
-		# influences in python api though they are set, and because
-		# cal3d<=0.9.1 had bugs where objects without influences
-		# aren't drawn.
-		#if not blend_influences:
-		#	print 'A vertex of object "%s" has no influences.\n(This occurs on objects placed in an invisible layer, you can fix it by using a single layer)' % ob.name
-		
-		# sum of influences is not always 1.0 in Blender ?!?!
-		sum = 0.0
-		for bone_name, weight in blend_influences:
-			sum += weight
-		
-		for bone_name, weight in blend_influences:
-			bone = BONES.get(bone_name)
-			if not bone: # keys
-				# print 'Couldnt find bone "%s" which influences object "%s"' % (bone_name, ob.name)
-				continue
+		if len(blend_influences) == 0 or isinstance(blend_influences[0], Cal3DInfluence): 
+			# This is a copy from another vert
+			self.influences = blend_influences
+		else:
+			# Pass the blender influences
 			
-			if weight:
-				self.influences.append(Cal3DInfluence(BONES[bone_name], weight / sum))
+			self.influences = []
+			# should this really be a warning? (well currently enabled,
+			# because blender has some bugs where it doesn't return
+			# influences in python api though they are set, and because
+			# cal3d<=0.9.1 had bugs where objects without influences
+			# aren't drawn.
+			#if not blend_influences:
+			#	print 'A vertex of object "%s" has no influences.\n(This occurs on objects placed in an invisible layer, you can fix it by using a single layer)' % ob.name
+			
+			# sum of influences is not always 1.0 in Blender ?!?!
+			sum = 0.0
+			
+			for bone_name, weight in blend_influences:
+				sum += weight
+			
+			for bone_name, weight in blend_influences:
+				bone = BONES.get(bone_name)
+				if not bone: # keys
+					# print 'Couldnt find bone "%s" which influences object "%s"' % (bone_name, ob.name)
+					continue
+				
+				if weight:
+					self.influences.append(Cal3DInfluence(bone, weight / sum))
 	
 	
 	def writeCal3D(self, file, matrix, matrix_normal):
@@ -838,7 +842,7 @@ class Cal3DKeyFrame(object):
 				 (self.quat[0], self.quat[1], self.quat[2], -self.quat[3]))
 		file.write('\t\t</KEYFRAME>\n')
 
-def export_cal3d(filename, PREF_SCALE=0.1, PREF_BAKE_MOTION = True, PREF_ACT_ACTION_ONLY=True):
+def export_cal3d(filename, PREF_SCALE=0.1, PREF_BAKE_MOTION = True, PREF_ACT_ACTION_ONLY=True, PREF_SCENE_FRAMES=False):
 	if not filename.endswith('.cfg'):
 		filename += '.cfg'
 	
@@ -892,7 +896,7 @@ def export_cal3d(filename, PREF_SCALE=0.1, PREF_BAKE_MOTION = True, PREF_ACT_ACT
 	backup_action = blender_armature.action
 	
 	ANIMATIONS = []
-	SUPPORTED_IPOS = "QuatW", "QuatX", "QuatY", "QuatZ", "LocX", "LocY", "LocZ"
+	SUPPORTED_IPOS = 'QuatW', 'QuatX', 'QuatY', 'QuatZ', 'LocX', 'LocY', 'LocZ'
 	
 	if PREF_ACT_ACTION_ONLY:	action_items = [(blender_armature.action.name, blender_armature.action)]
 	else:						action_items = Blender.Armature.NLA.GetActions().iteritems()
@@ -900,10 +904,14 @@ def export_cal3d(filename, PREF_SCALE=0.1, PREF_BAKE_MOTION = True, PREF_ACT_ACT
 	for animation_name, blend_action in action_items:
 		
 		# get frame range
-		_frames = blend_action.getFrameNumbers()
-		action_start=	min(_frames);
-		action_end=		max(_frames);
-		del _frames
+		if PREF_SCENE_FRAMES:
+			action_start=	Blender.Get('staframe')
+			action_end=		Blender.Get('endframe')
+		else:
+			_frames = blend_action.getFrameNumbers()
+			action_start=	min(_frames);
+			action_end=		max(_frames);
+			del _frames
 		
 		if PREF_BAKE_MOTION:
 			# We need to set the action active if we are getting baked data
@@ -947,10 +955,6 @@ def export_cal3d(filename, PREF_SCALE=0.1, PREF_BAKE_MOTION = True, PREF_ACT_ACT
 					
 					#print pose_data[i][bone_name], i
 					loc, quat = pose_data[i][bone_name]
-					if bone_name == 'top':
-						print 'myquat', quat
-					#print 'rot', quat
-					
 					
 					loc = vector_by_matrix_3x3(loc, bone.matrix)
 					loc = vector_add(bone.loc, loc)
@@ -1076,23 +1080,26 @@ def export_cal3d_ui(filename):
 	PREF_SCALE= Blender.Draw.Create(1.0)
 	PREF_BAKE_MOTION = Blender.Draw.Create(1)
 	PREF_ACT_ACTION_ONLY= Blender.Draw.Create(1)
+	PREF_SCENE_FRAMES= Blender.Draw.Create(0)
 	
 	block = [\
 	('Scale: ', PREF_SCALE, 0.01, 100, "The scale to set in the Cal3d .cfg file (unsupported by soya)"),\
 	('Baked Motion', PREF_BAKE_MOTION, 'use final pose position instead of ipo keyframes (IK and constraint support)'),\
-	('Active Action', PREF_ACT_ACTION_ONLY, 'Only export the active action applied to this armature, otherwise export all'),\
+	('Active Action', PREF_ACT_ACTION_ONLY, 'Only export action applied to this armature, else export all actions.'),\
+	('Scene Frames', PREF_SCENE_FRAMES, 'Use scene frame range, else the actions start/end'),\
 	]
 	
 	if not Blender.Draw.PupBlock("Cal3D Options", block):
 		return
 	
 	Blender.Window.WaitCursor(1)
-	export_cal3d(filename, 1.0/PREF_SCALE.val, PREF_BAKE_MOTION.val, PREF_ACT_ACTION_ONLY.val)
+	export_cal3d(filename, 1.0/PREF_SCALE.val, PREF_BAKE_MOTION.val, PREF_ACT_ACTION_ONLY.val, PREF_SCENE_FRAMES.val)
 	Blender.Window.WaitCursor(0)
 
 
-# import os
+#import os
 if __name__ == '__main__':
 	Blender.Window.FileSelector(export_cal3d_ui, "Cal3D Export", Blender.Get('filename').replace('.blend', '.cfg'))
 	#export_cal3d('/test' + '.cfg')
+	#export_cal3d_ui('/test' + '.cfg')
 	#os.system('cd /; wine /cal3d_miniviewer.exe /test.cfg')
