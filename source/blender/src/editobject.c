@@ -2814,7 +2814,7 @@ void flip_subdivison(int level)
 		mode= eModifierMode_Render|eModifierMode_Realtime;
 	
 	for(base= G.scene->base.first; base; base= base->next) {
-		if(TESTBASELIB(base)) {
+		if(((level==-1) && (TESTBASE(base))) || (TESTBASELIB(base))) {
 			object_flip_subdivison(base->object, &set, level, mode);
 			if(base->object->dup_group) {
 				GroupObject *go;
