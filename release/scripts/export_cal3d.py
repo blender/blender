@@ -448,7 +448,7 @@ class Cal3DSubMesh(object):
 				#print "TEST", v.normal, normal 
 				if	v.normal == normal and\
 					v.maps == maps:
-						print "reuseing"
+						# print "reuseing"
 						return v
 			
 			# No match, add a new vert
@@ -1091,8 +1091,8 @@ def export_cal3d_ui(filename):
 	Blender.Window.WaitCursor(0)
 
 
-import os
+# import os
 if __name__ == '__main__':
-	#Blender.Window.FileSelector(export_cal3d_ui, "Cal3D Export", Blender.Get('filename').replace('.blend', '.cfg'))
-	export_cal3d('/test' + '.cfg')
-	os.system('cd /; wine /cal3d_miniviewer.exe /test.cfg')
+	Blender.Window.FileSelector(export_cal3d_ui, "Cal3D Export", Blender.Get('filename').replace('.blend', '.cfg'))
+	#export_cal3d('/test' + '.cfg')
+	#os.system('cd /; wine /cal3d_miniviewer.exe /test.cfg')
