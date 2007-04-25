@@ -1167,6 +1167,11 @@ static PyObject *Object_getAction( BPy_Object * self )
 	Py_RETURN_NONE;
 }
 
+static int Object_setAction( BPy_Object * self, PyObject * value )
+{
+	return GenericLib_assignData(value, (void **) &self->object->action, 0, 1, ID_AC, 0);
+}
+
 static PyObject *Object_evaluatePose(BPy_Object *self, PyObject *args)
 {
 	int frame = 1;
@@ -1326,9 +1331,7 @@ static PyObject *Object_getMaterials( BPy_Object * self, PyObject * args )
 
 static PyObject *Object_getParent( BPy_Object * self )
 {
-	if( self->object->parent )
-		return Object_CreatePyObject( self->object->parent );
-	Py_RETURN_NONE;
+	return Object_CreatePyObject( self->object->parent );
 }
 
 static PyObject *Object_getParentBoneName( BPy_Object * self )
@@ -1404,9 +1407,7 @@ static PyObject *Object_getTimeOffset( BPy_Object * self )
 
 static PyObject *Object_getTracked( BPy_Object * self )
 {
-	if( self->object->track )
-		return Object_CreatePyObject( self->object->track );
-	Py_RETURN_NONE;
+	return Object_CreatePyObject( self->object->track );
 }
 
 static PyObject *Object_getType( BPy_Object * self )
@@ -4746,7 +4747,7 @@ static PyGetSetDef BPy_Object_getseters[] = {
 	 "The bounding box of this object",
 	 NULL},
 	{"action",
-	 (getter)Object_getAction, (setter)NULL,
+	 (getter)Object_getAction, (setter)Object_setAction,
 	 "The action associated with this object (if defined)",
 	 NULL},
 	{"game_properties",

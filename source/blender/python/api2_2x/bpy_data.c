@@ -502,18 +502,18 @@ PyObject *LibBlockSeq_new(BPy_LibBlockSeq *self, PyObject * args, PyObject *kwd)
 	}
 	
 	switch (self->type) {
-	case ID_SCE:
-		id = (ID *)add_scene( name );
+	case ID_SCE: 
+		id = (ID *)add_scene( name?name:"Scene" );
 		user_count = 1;
 		break;
 	case ID_OB:
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 			"Add objects through the scenes objects iterator" );
 	case ID_ME:
-		id = (ID *)add_mesh__internal( name );
+		id = (ID *)add_mesh__internal( name?name:"Mesh" );
 		break;
 	case ID_CU:
-		id = (ID *)add_curve( name, data_code );
+		id = (ID *)add_curve( name?name:"Curve", data_code );
 		if (data_code==OB_FONT) {
 			Text3d *text3d = (Text3d *)id;
 			text3d->vfont= get_builtin_font();
@@ -527,17 +527,17 @@ PyObject *LibBlockSeq_new(BPy_LibBlockSeq *self, PyObject * args, PyObject *kwd)
 		} /*else { CURVE - Dont need to do anything } */
 		break;
 	case ID_MB:
-		id = (ID *)add_mball( name );
+		id = (ID *)add_mball( name?name:"MBall" );
 		break;
 	case ID_MA:
-		id = (ID *)add_material( name );
+		id = (ID *)add_material( name?name:"Material" );
 		break;
 	case ID_TE:
-		id = (ID *)add_texture( name );
+		id = (ID *)add_texture( name?name:"Texture" );
 		break;
 	case ID_IM: 
 	{
-		id = (ID *)BKE_add_image_size(img_width, img_height, name, 0);
+		id = (ID *)BKE_add_image_size(img_width, img_height, name?name:"Image", 0);
 		if( !id )
 			return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
 				"couldn't create PyObject Image_Type" ) );
@@ -545,39 +545,39 @@ PyObject *LibBlockSeq_new(BPy_LibBlockSeq *self, PyObject * args, PyObject *kwd)
 		break;
 	}
 	case ID_LT:
-		id = (ID *)add_lattice( name );
+		id = (ID *)add_lattice( name?name:"Lattice" );
 		break;
 	case ID_LA:
-		id = (ID *)add_lamp( name );
+		id = (ID *)add_lamp( name?name:"Lamp" );
 		break;
 	case ID_CA:
-		id = (ID *)add_camera( name );
+		id = (ID *)add_camera( name?name:"Camera" );
 		break;
 	case ID_IP:
-		id = (ID *)add_ipo( name, data_code );
+		id = (ID *)add_ipo( name?name:"Ipo", data_code );
 		break;
 	case ID_WO:
-		id = (ID *)add_world( name );
+		id = (ID *)add_world( name?name:"World" );
 		break;
 	case ID_VF:
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 			"Cannot create new fonts, use the load() function to load from a file" );
 	case ID_TXT:
-		id = (ID *)add_empty_text( name );
+		id = (ID *)add_empty_text( name?name:"Text" );
 		user_count = 1;
 		break;
 	case ID_SO:
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 			"Cannot create new sounds, use the load() function to load from a file" );
 	case ID_GR:	
-		id = (ID *)add_group( name );
+		id = (ID *)add_group( name?name:"Group" );
 		user_count = 1;
 		break;
 	case ID_AR:
-		id = (ID *)add_armature( name );
+		id = (ID *)add_armature( name?name:"Armature" );
 		break;
 	case ID_AC:
-		id = (ID *)add_empty_action( name );
+		id = (ID *)add_empty_action( name?name:"Action" );
 		user_count = 1;
 		break;
 	}

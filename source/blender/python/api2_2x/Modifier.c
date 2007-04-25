@@ -267,32 +267,6 @@ PyTypeObject Modifier_Type = {
 	NULL
 };
 
-/*
-static int Modifier_set_object__internal(BPy_Modifier *self, PyObject *value, Object *ob, short type, short assign_self)
-{
-	Object *ob_new=NULL;
-	if (value == Py_None) {
-		ob = NULL;
-	} else if (BPy_Object_Check( value )) {
-		ob = ((( BPy_Object * )value)->object);
-		if( type != -1 && ob_new->type != type) {
-			return EXPP_ReturnIntError( PyExc_TypeError, 
-				"this object is not a supported type" );
-		}
-		
-		if( !assign_self && ob == self->object )
-			return EXPP_ReturnIntError( PyExc_TypeError,
-				"Cannot assign the object to its self" );
-		*ob = *ob_new;
-	} else {
-		return EXPP_ReturnIntError( PyExc_TypeError,
-			"Expected an Object or None value" );
-	}
-	
-	return 0;	
-}
-*/
-
 /*****************************************************************************/
 /* Python BPy_Modifier methods:                                              */
 /*****************************************************************************/

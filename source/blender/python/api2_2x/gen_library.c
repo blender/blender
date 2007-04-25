@@ -181,7 +181,7 @@ short GenericLib_getType(PyObject * pydata)
 	//~ if (BPy_Sound_Check(pydata))	return ID_SO;
 	if (BPy_Group_Check(pydata))	return ID_GR;
 	//~ if (BPy_Armature_Check(pydata))	return ID_AR;
-	//~ if (BPy_Action_Check(pydata))	return ID_AC;
+	if (BPy_Action_Check(pydata))	return ID_AC;
 	
 	return -1;
 }
@@ -211,14 +211,17 @@ short GenericLib_getType(PyObject * pydata)
  */
 int GenericLib_assignData(PyObject *value, void **data, void **ndata, short refcount, short type, short subtype)
 {
-	ID *id=NULL;
+	ID *id= NULL;
 	
-	if (*data && ndata && *data == *ndata) {
-		return EXPP_ReturnIntError( PyExc_TypeError,
-			"Cannot set this data to its self" );
-		
+	if (*data) {
 		id = ((ID*)*data);
+		
+		if (ndata && *data == *ndata) {
+			return EXPP_ReturnIntError( PyExc_TypeError,
+				"Cannot set this data to its self" );
+		}
 	}
+	
 	if (value == Py_None) {
 		*data = NULL;
 		if (refcount && id) id->us--;

@@ -472,7 +472,6 @@ class Object:
 		L{action strips<NLA.ActionStrip>} for the object.  Read-only.
 	@type actionStrips: BPy_ActionStrips
 	@ivar action: The action associated with this object (if defined).
-		Read-only.
 	@type action: L{Action<NLA.Action>} or None
 	@ivar oopsLoc: Object's (X,Y) OOPs location.  Returns None if object
 		is not found in list.
