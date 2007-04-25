@@ -126,7 +126,8 @@ static IpoCurve *get_key_icu(Ipo *ipo, int keynum)
     return NULL;
 }
 
-static BezTriple *get_bezt_icu_time(IpoCurve *icu, float *frame, float *val) {
+BezTriple *get_bezt_icu_time(IpoCurve *icu, float *frame, float *val) 
+{
 	/* this function tries to find a bezier that is within
 	 * 0.25 time units from the specified frame. If there
 	 * are more than one such beziers, it returns the

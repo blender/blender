@@ -63,6 +63,7 @@
 #include "BKE_action.h"
 #include "BKE_ipo.h"
 #include "BKE_global.h"
+#include "BKE_utildefines.h"
 
 /* Everything from source (BIF, BDR, BSE) ------------------------------ */ 
 
@@ -91,7 +92,7 @@
 #include "blendef.h"
 #include "mydevice.h"
 
-
+/* sliders for shapekeys */
 static void meshactionbuts(SpaceAction *saction, Object *ob, Key *key)
 {
 	int           i;
@@ -116,8 +117,7 @@ static void meshactionbuts(SpaceAction *saction, Object *ob, Key *key)
                        UI_EMBOSS, UI_HELV, curarea->win);
 
 	x = NAMEWIDTH + 1;
-    y = key->totkey*(CHANNELHEIGHT+CHANNELSKIP) 
-	  + CHANNELHEIGHT/2  - G.v2d->cur.ymin;
+    y = key->totkey*(CHANNELHEIGHT+CHANNELSKIP) + CHANNELHEIGHT/2  - G.v2d->cur.ymin;
 
 	/* make the little 'open the sliders' widget */
     BIF_ThemeColor(TH_FACE); // this slot was open...
@@ -170,6 +170,169 @@ static void meshactionbuts(SpaceAction *saction, Object *ob, Key *key)
 	}
 	uiDrawBlock(block);
 
+}
+
+static void icu_slider_func(void *voidicu, void *voidignore) 
+{
+	/* the callback for the icu sliders ... copies the
+	 * value from the icu->curval into a bezier at the
+	 * right frame on the right ipo curve (creating both the
+	 * ipo curve and the bezier if needed).
+	 */
+	IpoCurve  *icu= voidicu;
+	BezTriple *bezt=NULL;
+	float cfra, icuval;
+
+	cfra = frame_to_float(CFRA);
+	if (G.saction->pin==0 && OBACT)
+		cfra= get_action_frame(OBACT, cfra);
+	
+	/* if the ipocurve exists, try to get a bezier
+	 * for this frame
+	 */
+	bezt = get_bezt_icu_time(icu, &cfra, &icuval);
+
+	/* create the bezier triple if one doesn't exist,
+	 * otherwise modify it's value
+	 */
+	if (!bezt) {
+		insert_vert_ipo(icu, cfra, icu->curval);
+	}
+	else {
+		bezt->vec[1][1] = icu->curval;
+	}
+
+	/* make sure the Ipo's are properly process and
+	 * redraw as necessary
+	 */
+	sort_time_ipocurve(icu);
+	testhandles_ipocurve(icu);
+	
+	allqueue (REDRAWVIEW3D, 0);
+	allqueue (REDRAWACTION, 0);
+	allqueue (REDRAWNLA, 0);
+	allqueue (REDRAWIPO, 0);
+	allspace(REMAKEIPO, 0);
+}
+
+static void make_icu_slider(uiBlock *block, IpoCurve *icu,
+					 int x, int y, int w, int h, char *tip)
+{
+	/* create a slider for the ipo-curve*/
+	uiBut *but;
+	
+	if(icu==NULL) return;
+	
+	if (IS_EQ(icu->slide_max, icu->slide_min)) {
+		if (IS_EQ(icu->ymax, icu->ymin)) {
+			if (icu->blocktype == ID_CO) {
+				/* hack for constraints (and maybe a few others) */
+				icu->slide_min= 0.0;
+				icu->slide_max= 1.0;
+			}
+			else {
+				icu->slide_min= -100;
+				icu->slide_max= 100;
+			}
+		}
+		else {
+			icu->slide_min= icu->ymin;
+			icu->slide_max= icu->ymax;
+		}
+	}
+	if (icu->slide_min >= icu->slide_max) {
+		SWAP(float, icu->slide_min, icu->slide_max);
+	}
+
+	but=uiDefButF(block, NUMSLI, REDRAWVIEW3D, "",
+				  x, y , w, h,
+				  &(icu->curval), icu->slide_min, icu->slide_max, 
+				  10, 2, tip);
+	
+	uiButSetFunc(but, icu_slider_func, icu, NULL);
+	
+	// no hilite, the winmatrix is not correct later on...
+	uiButSetFlag(but, UI_NO_HILITE);
+}
+
+/* sliders for ipo-curves of active action-channel */
+static void action_icu_buts(SpaceAction *saction)
+{
+	bAction *act= saction->action;
+	bActionChannel *achan;
+	bConstraintChannel *conchan;
+	IpoCurve *icu;
+	char          str[64];
+	float	        x, y;
+	uiBlock       *block;
+
+	/* lets make the action sliders */
+
+	/* reset the damn myortho2 or the sliders won't draw/redraw
+	 * correctly *grumble*
+	 */
+	mywinset(curarea->win);
+	myortho2(-0.375, curarea->winx-0.375, G.v2d->cur.ymin, G.v2d->cur.ymax);
+	
+    sprintf(str, "actionbuttonswin %d", curarea->win);
+    block= uiNewBlock (&curarea->uiblocks, str, 
+                       UI_EMBOSS, UI_HELV, curarea->win);
+
+	x = NAMEWIDTH + 1;
+    y = count_action_levels(act)*(CHANNELHEIGHT+CHANNELSKIP);
+	
+	uiBlockSetEmboss(block, UI_EMBOSSN);
+
+	if (G.saction->flag & SACTION_SLIDERS) {
+		/* sliders are open so draw them */
+		
+		/* draw backdrop first */
+		BIF_ThemeColor(TH_FACE); // change this color... it's ugly
+		glRects(NAMEWIDTH,  G.v2d->cur.ymin,  NAMEWIDTH+SLIDERWIDTH,  G.v2d->cur.ymax);
+		
+		uiBlockSetEmboss(block, UI_EMBOSS);
+		for (achan=act->chanbase.first; achan; achan= achan->next) {
+			if(VISIBLE_ACHAN(achan)) {
+				y-=CHANNELHEIGHT+CHANNELSKIP;
+				
+				if (EXPANDED_ACHAN(achan)) {					
+					if (achan->ipo) {
+						y-=CHANNELHEIGHT+CHANNELSKIP;
+						
+						if (FILTER_IPO_ACHAN(achan)) {
+							for (icu= achan->ipo->curve.first; icu; icu=icu->next) {
+								if (achan->flag & ACHAN_HILIGHTED) {
+									make_icu_slider(block, icu,
+													x, y, SLIDERWIDTH-2, CHANNELHEIGHT-2, 
+													"Slider to control current value of IPO-Curve");
+								}
+								
+								y-=CHANNELHEIGHT+CHANNELSKIP;
+							}
+						}
+					}
+					
+					if (achan->constraintChannels.first) {
+						y-=CHANNELHEIGHT+CHANNELSKIP;
+						
+						if (FILTER_CON_ACHAN(achan)) {
+							for (conchan= achan->constraintChannels.first; conchan; conchan=conchan->next) {
+								if ((achan->flag & ACHAN_HILIGHTED) && EDITABLE_CONCHAN(conchan)) {
+									icu= (IpoCurve *)conchan->ipo->curve.first;
+									make_icu_slider(block, icu,
+													x, y, SLIDERWIDTH-2, CHANNELHEIGHT-2, 
+													"Slider to control current value of Constraint Channel");
+								}
+								
+								y-=CHANNELHEIGHT+CHANNELSKIP;
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	uiDrawBlock(block);
 }
 
 void draw_cfra_action(void)
@@ -681,16 +844,14 @@ static void draw_mesh_strips(SpaceAction *saction, Key *key)
 	ybase = key->totkey*(CHANNELHEIGHT+CHANNELSKIP);
 
 	for (icu = key->ipo->curve.first; icu ; icu = icu->next) {
-
 		int frame1_x, channel_y;
-
-		/* lets not deal with the "speed" Ipo
-		 */
+		
+		/* lets not deal with the "speed" Ipo */
 		if (icu->adrcode==0) continue;
-
+		
 		y = ybase	- (CHANNELHEIGHT+CHANNELSKIP)*(icu->adrcode-1);
 		gla2DDrawTranslatePt(di, 1, y, &frame1_x, &channel_y);
-
+			
 		/* all frames that have a frame number less than one
 		 * get a desaturated orange background
 		 */
@@ -699,15 +860,13 @@ static void draw_mesh_strips(SpaceAction *saction, Key *key)
 		glRectf(0,        channel_y-CHANNELHEIGHT/2,  
 				frame1_x, channel_y+CHANNELHEIGHT/2);
 
-		/* frames one and higher get a saturated orange background
-		 */
+		/* frames one and higher get a saturated orange background */
 		glColor4ub(col2[0], col2[1], col2[2], 0x44);
 		glRectf(frame1_x,         channel_y-CHANNELHEIGHT/2,  
 				G.v2d->hor.xmax,  channel_y+CHANNELHEIGHT/2);
 		glDisable(GL_BLEND);
 
-		/* draw the little squares
-		 */
+		/* draw the keyframes */
 		draw_icu_channel(di, icu, y); 
 	}
 
@@ -765,6 +924,7 @@ static void action_blockhandlers(ScrArea *sa)
 void drawactionspace(ScrArea *sa, void *spacedata)
 {
 	short ofsx = 0, ofsy = 0;
+	bAction *act;
 	Key *key;
 	float col[3];
 	short maxymin;
@@ -783,6 +943,7 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 			G.saction->action=NULL;
 	}
 	key = get_action_mesh_key();
+	act= G.saction->action;
 
 	/* Damn I hate hunting to find my rvk's because
 	 * they have scrolled off of the screen ... this
@@ -801,8 +962,10 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 	 * is set to an appropriate value based on whether sliders
 	 * are showing of not
 	 */
-	if (key && (G.saction->flag & SACTION_SLIDERS)) ACTWIDTH = NAMEWIDTH + SLIDERWIDTH;
-	else ACTWIDTH = NAMEWIDTH;
+	if (((key)||(act)) && (G.saction->flag & SACTION_SLIDERS)) 
+		ACTWIDTH = NAMEWIDTH + SLIDERWIDTH;
+	else 
+		ACTWIDTH = NAMEWIDTH;
 
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) ;
 
@@ -882,11 +1045,14 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 		draw_channel_names();
 
 		if(sa->winx > 50 + NAMEWIDTH + SLIDERWIDTH) {
-			if ( key ) {
+			if (key) {
 				/* if there is a mesh with rvk's selected,
 				 * then draw the key frames in the action window
 				 */
 				meshactionbuts(G.saction, OBACT, key);
+			}
+			else if (act) {
+				action_icu_buts(G.saction);
 			}
 		}
 	}

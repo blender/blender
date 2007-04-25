@@ -2952,7 +2952,7 @@ static void clever_achannel_names(short *mval)
 	int but=0;
     char str[64];
 	short expand, protect, chantype;
-	//float slidermin, slidermax;
+	float slidermin, slidermax;
 	
 	/* figure out what is under cursor */
 	act_channel= get_nearest_act_channel(mval, &chantype);
@@ -2978,20 +2978,30 @@ static void clever_achannel_names(short *mval)
 		add_numbut(but++, TEX, "ConChan: ", 0, 29, str, "Name of Constraint Channel");
 		add_numbut(but++, TOG|SHO, "Protected", 0, 24, &protect, "Channel is Protected");
 	}
-#if 0 /* tempolarily disabled until there is actually something to display  */
 	else if (chantype == ACTTYPE_ICU) {
 		icu= (IpoCurve *)act_channel;
 		
 		strcpy(str, getname_ipocurve(icu));
-		slidermin= icu->ymin; /* ugly hack :) */
-		slidermax= icu->ymax; /* ugly hack :) */
-		protect= (icu->flag & IPO_PROTECT);
+		
+		if (IS_EQ(icu->slide_max, icu->slide_min)) {
+			if (IS_EQ(icu->ymax, icu->ymin)) {
+				icu->slide_min= -100.0;
+				icu->slide_max= 100.0;
+			}
+			else {
+				icu->slide_min= icu->ymin;
+				icu->slide_max= icu->ymax;
+			}
+		}
+		slidermin= icu->slide_min;
+		slidermax= icu->slide_max;
+		
+		//protect= (icu->flag & IPO_PROTECT);
 		
 		add_numbut(but++, NUM|FLO, "Slider Min:", -10000, slidermax, &slidermin, 0);
 		add_numbut(but++, NUM|FLO, "Slider Max:", slidermin, 10000, &slidermax, 0);
-		add_numbut(but++, TOG|SHO, "Protected", 0, 24, &protect, "Channel is Protected");
+		//add_numbut(but++, TOG|SHO, "Protected", 0, 24, &protect, "Channel is Protected");
 	}
-#endif
 	else {
 		/* nothing under-cursor */
 		return;
@@ -3001,16 +3011,14 @@ static void clever_achannel_names(short *mval)
 	/* draw clever-numbut */
     if (do_clever_numbuts(str, but, REDRAW)) {
 		/* restore settings based on type */
-#if 0 /* tempolarily disabled until further notice */
 		if (icu) {
-			icu->ymin= slidermin; /* ugly hack :) */
-			icu->ymax= slidermax; /* ugly hack :) */
+			icu->slide_min= slidermin;
+			icu->slide_max= slidermax;
 			
-			if (protect) icu->flag |= IPO_PROTECT;
-			else icu->flag &= ~IPO_PROTECT;
+			//if (protect) icu->flag |= IPO_PROTECT;
+			//else icu->flag &= ~IPO_PROTECT;
 		}
-#endif
-		/*else */if (conchan) {
+		else if (conchan) {
 			strcpy(conchan->name, str);
 			
 			if (protect) conchan->flag |= CONSTRAINT_CHANNEL_PROTECTED;

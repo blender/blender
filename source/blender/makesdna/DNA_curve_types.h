@@ -196,21 +196,22 @@ typedef struct IpoDriver {
 typedef struct IpoCurve {
 	struct IpoCurve *next,  *prev;
 	
-	struct BPoint *bp;
-	struct BezTriple *bezt;
+	struct BPoint *bp;					/* are these even used anywhere? */
+	struct BezTriple *bezt;				/* array of BezTriples (sizeof(BezTriple)*totvert. i.e.  keyframes  */
 
-	rctf maxrct, totrct;
+	rctf maxrct, totrct;				/* bounding boxes */
 
-	short blocktype, adrcode, vartype;
-	short totvert;
-	short ipo, extrap;
-	short flag, rt;
-	float ymin, ymax;
-	unsigned int bitmask;
+	short blocktype, adrcode, vartype;	/* blocktype= ipo-blocktype; adrcode= type of ipo-curve; vartype= 'format' of data */
+	short totvert;						/* total number of BezTriples (i.e. keyframes) on curve */
+	short ipo, extrap;					/* interpolation and extrapolation modes  */
+	short flag, rt;						/* flag= settings; rt= ??? */
+	float ymin, ymax;					/* minimum/maximum y-extents for curve */
+	unsigned int bitmask;				/* ??? */
 	
-	float curval;
+	float slide_min, slide_max;			/* minimum/maximum values for sliders (in action editor) */
+	float curval;						/* value of ipo-curve for current frame */
 	
-	IpoDriver *driver;
+	IpoDriver *driver;					/* pointer to ipo-driver for this curve */
 	
 } IpoCurve;
 

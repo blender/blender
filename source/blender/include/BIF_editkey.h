@@ -40,6 +40,8 @@ struct Object;
 struct Lattice;
 struct Curve;
 struct uiBlock;
+struct BezTriple;
+struct IpoCurve;
 
 void mesh_to_key(struct Mesh *me, struct KeyBlock *kb);
 void key_to_mesh(struct KeyBlock *kb, struct Mesh *me);
@@ -60,6 +62,9 @@ void move_keys(struct Object *ob);
 
 void make_rvk_slider(struct uiBlock *block, struct Object *ob, int keynum,
 							int x, int y, int w, int h, char *tip);
-
+							
+// FIXME: move me somewhere else 
+struct BezTriple *get_bezt_icu_time(struct IpoCurve *icu, float *frame, float *val); 
+							
 #endif
 
