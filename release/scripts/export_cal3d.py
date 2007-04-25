@@ -89,7 +89,6 @@ example. The parameters are the same as below.
 LODS = 0
 
 # Scale the model (not supported by Soya).
-SCALE = 0.04
 
 # See also BASE_MATRIX below, if you want to rotate/scale/translate the model at
 # the exportation.
@@ -99,13 +98,13 @@ SCALE = 0.04
 # The script should be quite re-useable for writing another Blender animation exporter.
 # Most of the hell of it is to deal with Blender's head-tail-roll bone's definition.
 
-import sys, os, os.path, struct, math, string
+import math
 import Blender
 import BPyMesh
 import BPySys
 import BPyArmature
 import BPyObject
-
+import bpy
 
 def best_armature_root(armature):
 	'''
@@ -259,25 +258,35 @@ BASE_MATRIX = None
 # Cal3D data structures
 
 CAL3D_VERSION = 910
-MATERIALS = {}
+MATERIALS = {} # keys are (mat.name, img.name)
 
 class Cal3DMaterial(object):
 	__slots__ = 'amb', 'diff', 'spec', 'shininess', 'maps_filenames', 'id'
-	def __init__(self, map_filename = None):
-		self.amb  = (255,255,255,255)
-		self.diff = (255,255,255,255)
-		self.spec = (255,255,255,255)
-		self.shininess = 1.0
+	def __init__(self, blend_world, blend_material, blend_images):
 		
-		if map_filename:
-			map_filename = map_filename.split('\\')[-1].split('/')[-1]
-			self.maps_filenames = [map_filename]
+		# Material Settings
+		if blend_world:		amb = [ int(c*255) for c in blend_world.amb ]
+		else:				amb = [0,0,0] # Default value
+		
+		if blend_material:
+			self.amb  = tuple([int(c*blend_material.amb) for c in amb] + [255])
+			self.diff = tuple([int(c*255) for c in blend_material.rgbCol] + [int(blend_material.alpha*255)])
+			self.spec = tuple([int(c*255) for c in blend_material.rgbCol] + [int(blend_material.alpha*255)])
+			self.shininess = (float(blend_material.hard)-1)/5.10
 		else:
-			self.maps_filenames = []
+			self.amb  = tuple(amb + [255])
+			self.diff = (255,255,255,255)
+			self.spec = (255,255,255,255)
+			self.shininess = 1.0
+		
+		self.maps_filenames = []
+		for image in blend_images:
+			if image:
+				self.maps_filenames.append( image.filename.split('\\')[-1].split('/')[-1] )
 		
 		self.id = len(MATERIALS)
-		MATERIALS[map_filename] = self
-		
+		MATERIALS[blend_material, blend_images] = self
+	
 	# new xml format
 	def writeCal3D(self, file):
 		file.write('<?xml version="1.0"?>\n')
@@ -286,143 +295,169 @@ class Cal3DMaterial(object):
 		file.write('\t<AMBIENT>%i %i %i %i</AMBIENT>\n' % self.amb)
 		file.write('\t<DIFFUSE>%i %i %i %i</DIFFUSE>\n' % self.diff)
 		file.write('\t<SPECULAR>%i %i %i %i</SPECULAR>\n' % self.spec)
-		file.write('\t<SHININESS>%i</SHININESS>\n' % self.shininess)
+		file.write('\t<SHININESS>%.6f</SHININESS>\n' % self.shininess)
 		
 		for map_filename in self.maps_filenames:
 			file.write('\t<MAP>%s</MAP>\n' % map_filename)
-			
+		
 		file.write('</MATERIAL>\n')
 
 
 class Cal3DMesh(object):
-	__slots__ = 'name', 'submeshes'
-	def __init__(self, ob, blend_mesh):
+	__slots__ = 'name', 'submeshes', 'matrix', 'matrix_normal'
+	def __init__(self, ob, blend_mesh, blend_world):
 		self.name      = ob.name
 		self.submeshes = []
 		
-		matrix = ob.matrixWorld
-		matrix_no = matrix.copy().rotationPart()
+		BPyMesh.meshCalcNormals(blend_mesh)
+		
+		self.matrix = ob.matrixWorld
+		self.matrix_normal = self.matrix.copy().rotationPart()
+		
 		#if BASE_MATRIX:
 		#	matrix = matrix_multiply(BASE_MATRIX, matrix)
 		
-		faces = list(blend_mesh.faces)
-		while faces:
-			image          = faces[0].image
-			image_filename = image and image.filename
-			material       = MATERIALS.get(image_filename) or Cal3DMaterial(image_filename)
-			outputuv       = len(material.maps_filenames) > 0
+		face_groups = {}
+		blend_materials = blend_mesh.materials
+		uvlayers = ()
+		mat = None # incase we have no materials
+		if blend_mesh.faceUV:
+			uvlayers = blend_mesh.getUVLayerNames()
+			if len(uvlayers) == 1:
+				for f in blend_mesh.faces:
+					image =						(f.image,) # bit in a tuple so we can match multi UV code
+					if blend_materials:	mat =	blend_materials[f.mat] # if no materials, mat will always be None
+					face_groups.setdefault( (mat,image), (mat,image,[]) )[2].append( f )
+			else:
+				# Multi UV's
+				face_multi_images = [[] for i in xrange(len(blend_mesh.faces))]
+				face_multi_uvs = [[[] for i in xrange(len(f))  ] for f in blend_mesh.faces]
+				for uvlayer in uvlayers:
+					blend_mesh.activeUVLayer = uvlayer
+					for i, f in enumerate(blend_mesh.faces):
+						face_multi_images[i].append(f.image)
+						if f.image:
+							for j, uv in enumerate(f.uv):
+								face_multi_uvs[i][j].append( tuple(uv) )
+				
+				# Convert UV's to tuples so they can be compared with eachother
+				# when creating new verts
+				for fuv in face_multi_uvs:
+					for i, uv in enumerate(fuv):
+						fuv[i] = tuple(uv)
+				
+				for i, f in enumerate(blend_mesh.faces):
+					image =						tuple(face_multi_images[i])
+					if blend_materials: mat =	blend_materials[f.mat]
+					face_groups.setdefault( (mat,image), (mat,image,[]) )[2].append( f )
+		else:
+			# No UV's
+			for f in blend_mesh.faces:
+				if blend_materials: mat =	blend_materials[f.mat]
+				face_groups.setdefault( (mat,()), (mat,(),[]) )[2].append( f )
+		
+		for blend_material, blend_images, faces in face_groups.itervalues():
 			
-			# TODO add material color support here
+			try:		material = MATERIALS[blend_material, blend_images]
+			except:		material = MATERIALS[blend_material, blend_images] = Cal3DMaterial(blend_world, blend_material, blend_images)
+			
 			submesh = Cal3DSubMesh(self, material, len(self.submeshes))
 			self.submeshes.append(submesh)
-			vertices = {}
-			for face in faces[:]:
-				if (face.image and face.image.filename) == image_filename:
-					faces.remove(face)
-					
-					if not face.smooth:
-						normal = face.no * matrix_no
-						normal.normalize()
-						
-					face_vertices = []
-					face_v = face.v
-					for i, blend_vert in enumerate(face_v):
-						vertex = vertices.get(blend_vert.index)
-						if not vertex:
-							coord  = blend_vert.co * matrix
-							
-							if face.smooth:
-								normal = blend_vert.no * matrix_no
-								normal.normalize()
-							
-							vertex  = vertices[blend_vert.index] = Cal3DVertex(coord, normal, len(submesh.vertices))
-							submesh.vertices.append(vertex)
-
-							influences = blend_mesh.getVertexInfluences(blend_vert.index)
-							# should this really be a warning? (well currently enabled,
-							# because blender has some bugs where it doesn't return
-							# influences in python api though they are set, and because
-							# cal3d<=0.9.1 had bugs where objects without influences
-							# aren't drawn.
-							if not influences:
-								print 'A vertex of object "%s" has no influences.\n(This occurs on objects placed in an invisible layer, you can fix it by using a single layer)' % ob.name
-							
-							# sum of influences is not always 1.0 in Blender ?!?!
-							sum = 0.0
-							for bone_name, weight in influences:
-								sum += weight
-							
-							for bone_name, weight in influences:
-								if bone_name not in BONES:
-									print 'Couldnt find bone "%s" which influences object "%s"' % (bone_name, ob.name)
-									continue
-								if weight:
-									vertex.influences.append(Cal3DInfluence(BONES[bone_name], weight / sum))
-								
-						elif not face.smooth:
-							# We cannot share vertex for non-smooth faces, since Cal3D does not
-							# support vertex sharing for 2 vertices with different normals.
-							# => we must clone the vertex.
-							
-							old_vertex = vertex
-							vertex = Cal3DVertex(vertex.loc, normal, len(submesh.vertices))
-							submesh.vertices.append(vertex)
-							
-							vertex.cloned_from = old_vertex
-							vertex.influences = old_vertex.influences
-							old_vertex.clones.append(vertex)
-							
-						if blend_mesh.faceUV:
-							uv = [face.uv[i][0], 1.0 - face.uv[i][1]]
-							if not vertex.maps:
-								if outputuv: vertex.maps.append(Cal3DMap(*uv))
-							elif (vertex.maps[0].u != uv[0]) or (vertex.maps[0].v != uv[1]):
-								# This vertex can be shared for Blender, but not for Cal3D !!!
-								# Cal3D does not support vertex sharing for 2 vertices with
-								# different UV texture coodinates.
-								# => we must clone the vertex.
-								
-								for clone in vertex.clones:
-									if (clone.maps[0].u == uv[0]) and (clone.maps[0].v == uv[1]):
-										vertex = clone
-										break
-								else: # Not yet cloned...
-									old_vertex = vertex
-									vertex = Cal3DVertex(vertex.loc, vertex.normal, len(submesh.vertices))
-									submesh.vertices.append(vertex)
-									
-									vertex.cloned_from = old_vertex
-									vertex.influences = old_vertex.influences
-									if outputuv: vertex.maps.append(Cal3DMap(*uv))
-									old_vertex.clones.append(vertex)
-						
-						face_vertices.append(vertex)
-						
-					# Split faces with more than 3 vertices
-					for i in xrange(1, len(face.v) - 1):
-						submesh.faces.append(Cal3DFace(face_vertices[0], face_vertices[i], face_vertices[i + 1]))
 			
-			# Computes LODs info
-			if LODS:
-				submesh.compute_lods()
+			# Check weather we need to write UVs, dont do it if theres no image
+			# Multilayer UV's have alredy checked that they have images when 
+			# building face_multi_uvs
+			if len(uvlayers) == 1:
+				if blend_images == (None,):
+					write_single_layer_uvs = False
+				else:
+					write_single_layer_uvs = True
+			
+			
+			for face in faces:
+				
+				if not face.smooth:
+					normal = face.no
+				
+				face_vertices = []
+				face_v = face.v
+				
+				
+				if len(uvlayers)>1:
+					for i, blend_vert in enumerate(face_v):
+						if face.smooth:		normal = blend_vert.no
+						vertex = submesh.getVertex(blend_mesh, blend_vert.index, blend_vert.co, normal, face_multi_uvs[face.index][i])
+						face_vertices.append(vertex)
+				
+				elif len(uvlayers)==1:
+					if write_single_layer_uvs:
+						face_uv = face.uv
+					
+					for i, blend_vert in enumerate(face_v):
+						if face.smooth:		normal = blend_vert.no
+						if write_single_layer_uvs:	uvs = (tuple(face_uv[i]),)
+						else:						uvs = ()
+						
+						vertex = submesh.getVertex(blend_mesh, blend_vert.index, blend_vert.co, normal, uvs )	
+						face_vertices.append(vertex)
+				else:
+					# No UVs
+					for i, blend_vert in enumerate(face_v):
+						if face.smooth:		normal = blend_vert.no
+						vertex = submesh.getVertex(blend_mesh, blend_vert.index, blend_vert.co, normal, () )
+						face_vertices.append(vertex)
+				
+				
+				# Split faces with more than 3 vertices
+				for i in xrange(1, len(face) - 1):
+					submesh.faces.append(Cal3DFace(face_vertices[0], face_vertices[i], face_vertices[i + 1]))
 	
 	def writeCal3D(self, file):
 		file.write('<?xml version="1.0"?>\n')
 		file.write('<HEADER MAGIC="XMF" VERSION="%i"/>\n' % CAL3D_VERSION)
 		file.write('<MESH NUMSUBMESH="%i">\n' % len(self.submeshes))
 		for submesh in self.submeshes:
-			submesh.writeCal3D(file)
+			submesh.writeCal3D(file, self.matrix, self.matrix_normal)
 		file.write('</MESH>\n')
 
+
 class Cal3DSubMesh(object):
-	__slots__ = 'material', 'vertices', 'faces', 'nb_lodsteps', 'springs', 'id'
+	__slots__ = 'material', 'vertices', 'vert_mapping', 'vert_count', 'faces', 'nb_lodsteps', 'springs', 'id'
 	def __init__(self, mesh, material, id):
 		self.material   = material
 		self.vertices   = []
+		self.vert_mapping = {} # map original indicies to local
+		self.vert_count = 0
 		self.faces      = []
 		self.nb_lodsteps = 0
 		self.springs    = []
 		self.id = id
+	
+	def getVertex(self, blend_mesh, blend_index, loc, normal, maps):		
+		index_map = self.vert_mapping.get(blend_index)
+		if index_map == None:
+			self.vert_mapping[blend_index] = self.vert_count
+			vertex = Cal3DVertex(loc, normal, maps, blend_mesh.getVertexInfluences(blend_index))
+			self.vertices.append([vertex])
+			self.vert_count +=1
+			return vertex
+		else:
+			vertex_list = self.vertices[index_map]
+			
+			for v in vertex_list:
+				#print "TEST", v.normal, normal 
+				if	v.normal == normal and\
+					v.maps == maps:
+						print "reuseing"
+						return v
+			
+			# No match, add a new vert
+			# Use the first verts influences
+			vertex = Cal3DVertex(coord, normal, uv, vertex_list[0].influences)
+			vertex_list.append(vertex)
+			self.vert_count +=1
+			return vertex
+		
 	
 	def compute_lods(self):
 		"""Computes LODs info for Cal3D (there's no Blender related stuff here)."""
@@ -525,52 +560,85 @@ class Cal3DSubMesh(object):
 		for i in xrange(len(new_vertices)): new_vertices[i].id = i
 		self.vertices = new_vertices
 	
-	def writeCal3D(self, file):
+	def writeCal3D(self, file, matrix, matrix_normal):
+		
 		file.write('\t<SUBMESH NUMVERTICES="%i" NUMFACES="%i" MATERIAL="%i" ' % \
-				(len(self.vertices), len(self.faces), self.material.id))
+				(self.vert_count, len(self.faces), self.material.id))
 		file.write('NUMLODSTEPS="%i" NUMSPRINGS="%i" NUMTEXCOORDS="%i">\n' % \
 				 (self.nb_lodsteps, len(self.springs),
 				 len(self.material.maps_filenames)))
 		
-		for item in self.vertices:	item.writeCal3D(file)
-		for item in self.springs:	item.writeCal3D(file)
-		for item in self.faces:		item.writeCal3D(file)
+		i = 0
+		for v in self.vertices:
+			for item in v:
+				item.id = i
+				item.writeCal3D(file, matrix, matrix_normal)
+				i += 1
+		
+		for item in self.springs:
+			item.writeCal3D(file)
+		for item in self.faces:
+			item.writeCal3D(file)
 		
 		file.write('\t</SUBMESH>\n')
 
 class Cal3DVertex(object):
 	__slots__ = 'loc','normal','collapse_to','face_collapse_count','maps','influences','weight','cloned_from','clones','id'
-	def __init__(self, loc, normal, id):
+	def __init__(self, loc, normal, maps, blend_influences):
 		self.loc    = loc
 		self.normal = normal
 		self.collapse_to         = None
 		self.face_collapse_count = 0
-		self.maps       = []
-		self.influences = []
+		self.maps       = maps
 		self.weight = None
 		
 		self.cloned_from = None
 		self.clones      = []
 		
-		self.id = id
+		self.id = -1
+		
+		self.influences = []
+		# should this really be a warning? (well currently enabled,
+		# because blender has some bugs where it doesn't return
+		# influences in python api though they are set, and because
+		# cal3d<=0.9.1 had bugs where objects without influences
+		# aren't drawn.
+		#if not blend_influences:
+		#	print 'A vertex of object "%s" has no influences.\n(This occurs on objects placed in an invisible layer, you can fix it by using a single layer)' % ob.name
+		
+		# sum of influences is not always 1.0 in Blender ?!?!
+		sum = 0.0
+		for bone_name, weight in blend_influences:
+			sum += weight
+		
+		for bone_name, weight in blend_influences:
+			bone = BONES.get(bone_name)
+			if not bone: # keys
+				# print 'Couldnt find bone "%s" which influences object "%s"' % (bone_name, ob.name)
+				continue
+			
+			if weight:
+				self.influences.append(Cal3DInfluence(BONES[bone_name], weight / sum))
 	
-	def writeCal3D(self, file):
+	
+	def writeCal3D(self, file, matrix, matrix_normal):
 		if self.collapse_to:
 			collapse_id = self.collapse_to.id
 		else:
 			collapse_id = -1
 		file.write('\t\t<VERTEX ID="%i" NUMINFLUENCES="%i">\n' % \
 				(self.id, len(self.influences)))
-		file.write('\t\t\t<POS>%.6f %.6f %.6f</POS>\n' % (self.loc[0], self.loc[1], self.loc[2]))
-		file.write('\t\t\t<NORM>%.6f %.6f %.6f</NORM>\n' % \
-				 (self.normal[0], self.normal[1], self.normal[2]))
+		file.write('\t\t\t<POS>%.6f %.6f %.6f</POS>\n' % tuple(self.loc*matrix))
+		file.write('\t\t\t<NORM>%.6f %.6f %.6f</NORM>\n' % tuple( (self.normal*matrix_normal).normalize() ))
 		if collapse_id != -1:
 			file.write('\t\t\t<COLLAPSEID>%i</COLLAPSEID>\n' % collapse_id)
 			file.write('\t\t\t<COLLAPSECOUNT>%i</COLLAPSECOUNT>\n' % \
 					 self.face_collapse_count)
 		
-		for item in self.maps:
-			item.writeCal3D(file)
+		for uv in self.maps:
+			# we cant have more UV's then our materials image maps
+			# check for this
+			file.write('\t\t\t<TEXCOORD>%.6f %.6f</TEXCOORD>\n' % uv)
 		
 		for item in self.influences:
 			item.writeCal3D(file)
@@ -578,16 +646,6 @@ class Cal3DVertex(object):
 		if self.weight != None:
 			file.write('\t\t\t<PHYSIQUE>%.6f</PHYSIQUE>\n' % len(self.weight))
 		file.write('\t\t</VERTEX>\n')
-
-
-class Cal3DMap(object):
-	__slots__ = 'u', 'v'
-	def __init__(self, u, v):
-		self.u = u
-		self.v = v
-
-	def writeCal3D(self, file):
-		file.write('\t\t\t<TEXCOORD>%.6f %.6f</TEXCOORD>\n' % (self.u, self.v))
 
 class Cal3DInfluence(object):
 	__slots__ = 'bone', 'weight'
@@ -794,19 +852,19 @@ def export_cal3d(filename, PREF_SCALE=0.1, PREF_BAKE_MOTION = True, PREF_ACT_ACT
 	#if EXPORT_FOR_SOYA:
 	#	global BASE_MATRIX
 	#	BASE_MATRIX = matrix_rotate_x(-math.pi / 2.0)
-	# Get the scene
+	# Get the sce
 	
-	scene = Blender.Scene.GetCurrent()
-	
+	sce = bpy.data.scenes.active
+	blend_world = sce.world
 	# ---- Export skeleton (armature) ----------------------------------------
 	
 	skeleton = Cal3DSkeleton()
-	blender_armature = [ob for ob in scene.objects.context if ob.type == 'Armature']
+	blender_armature = [ob for ob in sce.objects.context if ob.type == 'Armature']
 	if len(blender_armature) > 1:	print "Found multiple armatures! using ",armatures[0].name
 	if blender_armature: blender_armature = blender_armature[0]
 	else:
 		# Try find a meshes armature
-		for ob in scene.objects.context:
+		for ob in sce.objects.context:
 			blender_armature = BPyObject.getObjectArmature(ob)
 			if blender_armature:
 				break
@@ -823,13 +881,12 @@ def export_cal3d(filename, PREF_SCALE=0.1, PREF_BAKE_MOTION = True, PREF_ACT_ACT
 	
 	# ---- Export Mesh data ---------------------------------------------------
 	meshes = []
-	for ob in scene.objects.context:
+	for ob in sce.objects.context:
 		if ob.type != 'Mesh':		continue
 		blend_mesh = ob.getData(mesh=1)
-		BPyMesh.meshCalcNormals(blend_mesh)
 		
 		if not blend_mesh.faces:			continue
-		meshes.append( Cal3DMesh(ob, blend_mesh) )
+		meshes.append( Cal3DMesh(ob, blend_mesh, blend_world) )
 	
 	# ---- Export animations --------------------------------------------------
 	backup_action = blender_armature.action
@@ -967,7 +1024,7 @@ def export_cal3d(filename, PREF_SCALE=0.1, PREF_BAKE_MOTION = True, PREF_ACT_ACT
 	cfg = open((filename), "wb")
 	cfg.write('# Cal3D model exported from Blender with export_cal3d.py\n')
 
-	if SCALE != 1.0:	cfg.write('scale=%.6f\n' % PREF_SCALE)
+	if PREF_SCALE != 1.0:	cfg.write('scale=%.6f\n' % PREF_SCALE)
 	
 	fname = file_only_noext + '.xsf'
 	file = open( base_only +  fname, "wb")
@@ -997,10 +1054,8 @@ def export_cal3d(filename, PREF_SCALE=0.1, PREF_BAKE_MOTION = True, PREF_ACT_ACT
 	materials = MATERIALS.values()
 	materials.sort(key = lambda a: a.id)
 	for material in materials:
-		if material.maps_filenames:
-			fname = new_name(material.maps_filenames[0].split('\\')[-1].split('/')[-1], '.xrf')
-		else:
-			fname = new_name('plain', '.xrf')
+		# Just number materials, its less trouble
+		fname = new_name(str(material.id), '.xrf')
 		
 		file = open(base_only + fname, "wb")
 		material.writeCal3D(file)
@@ -1023,7 +1078,7 @@ def export_cal3d_ui(filename):
 	PREF_ACT_ACTION_ONLY= Blender.Draw.Create(1)
 	
 	block = [\
-	('Scale: ', PREF_SCALE, 0.01, 100, "The scale to set in the Cal3d .cfg file"),\
+	('Scale: ', PREF_SCALE, 0.01, 100, "The scale to set in the Cal3d .cfg file (unsupported by soya)"),\
 	('Baked Motion', PREF_BAKE_MOTION, 'use final pose position instead of ipo keyframes (IK and constraint support)'),\
 	('Active Action', PREF_ACT_ACTION_ONLY, 'Only export the active action applied to this armature, otherwise export all'),\
 	]
@@ -1031,11 +1086,13 @@ def export_cal3d_ui(filename):
 	if not Blender.Draw.PupBlock("Cal3D Options", block):
 		return
 	
+	Blender.Window.WaitCursor(1)
 	export_cal3d(filename, 1.0/PREF_SCALE.val, PREF_BAKE_MOTION.val, PREF_ACT_ACTION_ONLY.val)
+	Blender.Window.WaitCursor(0)
 
 
-#import os
+import os
 if __name__ == '__main__':
-	Blender.Window.FileSelector(export_cal3d_ui, "Cal3D Export", Blender.Get('filename').replace('.blend', '.cfg'))
-	#export_cal3d('/test' + '.cfg')
-	#os.system('cd /; wine /cal3d_miniviewer.exe /test.cfg')
+	#Blender.Window.FileSelector(export_cal3d_ui, "Cal3D Export", Blender.Get('filename').replace('.blend', '.cfg'))
+	export_cal3d('/test' + '.cfg')
+	os.system('cd /; wine /cal3d_miniviewer.exe /test.cfg')
