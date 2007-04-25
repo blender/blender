@@ -1455,7 +1455,13 @@ static void render_static_particle_system(Render *re, Object *ob, PartEff *paf)
 					if(har) har->lay= ob->lay;
 				}
 				else {	/* generate pixel sized hair strand */
-					static_particle_strand(re, ob, ma, orco, vec, vec1, (ctime-pa->time)/(mtime-pa->time), first);
+					float strandco= 1.0f;
+					
+					/* last strand, texco to end */
+					if(ctime + paf->staticstep < mtime)
+						strandco= (ctime-pa->time)/(mtime-pa->time);
+					
+					static_particle_strand(re, ob, ma, orco, vec, vec1, strandco, first);
 				}
 			}
 			
