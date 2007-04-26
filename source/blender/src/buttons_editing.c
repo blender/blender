@@ -3027,7 +3027,7 @@ static void editing_panel_camera_type(Object *ob, Camera *cam)
 	} else {
 		if(cam->flag & CAM_ANGLETOGGLE) {
 			but= uiDefButF(block, NUM,REDRAWVIEW3D, "Lens:",
-					  10, 160, 130, 20, &cam->angle, 1.0, 250.0, 100, 0, "Specify the lens of the camera in degrees");		
+					  10, 160, 130, 20, &cam->angle, 7.323871, 172.847331, 100, 0, "Specify the lens of the camera in degrees");		
 			uiButSetFunc(but,do_angletolensconversion_cb, &cam->lens, &cam->angle);
 		}
 		else {

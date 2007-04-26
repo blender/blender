@@ -986,11 +986,14 @@ static void drawviewborder(void)
 	y2= viewborder.ymax;
 
 	/* passepartout, specified in camera edit buttons */
-	if (ca && (ca->flag & CAM_SHOWPASSEPARTOUT)) {
-		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-		glEnable(GL_BLEND);
-		glColor4f(0, 0, 0, ca->passepartalpha);
-		
+	if (ca && (ca->flag & CAM_SHOWPASSEPARTOUT) && ca->passepartalpha > 0.000001) {
+		if (ca->passepartalpha == 1.0) {
+			glColor3f(0, 0, 0);
+		} else {
+			glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+			glEnable(GL_BLEND);
+			glColor4f(0, 0, 0, ca->passepartalpha);
+		}
 		if (x1 > 0.0)
 			glRectf(0.0, (float)curarea->winy, x1, 0.0);
 		if (x2 < (float)curarea->winx)

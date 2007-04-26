@@ -47,7 +47,7 @@ import bpy
 
 global renameCount
 renameCount = 0
-obsel = bpy.data.scenes.active.objects.context
+obsel = [ob for ob in bpy.data.scenes.active.objects.context if not ob.lib]
 
 def setDataNameWrapper(ob, newname):
 	if ob.getData(name_only=1) == newname:
@@ -55,7 +55,7 @@ def setDataNameWrapper(ob, newname):
 	
 	data= ob.getData(mesh=1)
 	
-	if data:
+	if data and not data.lib:
 		data.name= newname
 		return True
 	return False
@@ -71,7 +71,7 @@ def main():
 				return # Alredy the same name, dont bother.
 			
 			data = ob.getData(mesh=1) # use mesh so we dont have to update the nmesh.
-			if data:
+			if data and not data.lib:
 				data.name = ob.name
 	
 	

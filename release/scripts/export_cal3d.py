@@ -1,6 +1,6 @@
 #!BPY
 """
-Name: 'Cal3D XML'
+Name: 'Cal3D XML (.cfg)...'
 Blender: 243
 Group: 'Export'
 Tip: 'Export armature/bone/mesh/action data to the Cal3D format.'
@@ -25,7 +25,7 @@ Tip: 'Export armature/bone/mesh/action data to the Cal3D format.'
 # Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
 
-__version__ = '0.12'
+__version__ = '0.9f'
 __author__  = 'Jean-Baptiste, Jiba, Lamy, Campbell Barton (Ideasman42)'
 __email__   = ['Authors email, jibalamy:free*fr']
 __url__     = ['Soya3ds homepage, http://home.gna.org/oomadness/en/soya/', 'Cal3d, http://cal3d.sourceforge.net']
@@ -461,9 +461,9 @@ class Cal3DSubMesh(object):
 		
 	
 	def compute_lods(self):
-		"""Computes LODs info for Cal3D (there's no Blender related stuff here)."""
+		'''Computes LODs info for Cal3D (there's no Blender related stuff here).'''
 		
-		print "Start LODs computation..."
+		print 'Start LODs computation...'
 		vertex2faces = {}
 		for face in self.faces:
 			for vertex in (face.vertex1, face.vertex2, face.vertex3):
@@ -554,7 +554,7 @@ class Cal3DSubMesh(object):
 		new_faces.reverse() # Cal3D want LODed faces at the end
 		self.faces = new_faces
 		
-		print "LODs computed : %s vertices can be removed (from a total of %s)." % (self.nb_lodsteps, len(self.vertices))
+		print 'LODs computed : %s vertices can be removed (from a total of %s).' % (self.nb_lodsteps, len(self.vertices))
 	
 	
 	def writeCal3D(self, file, matrix, matrix_normal):
@@ -937,7 +937,7 @@ def export_cal3d(filename, PREF_SCALE=0.1, PREF_BAKE_MOTION = True, PREF_ACT_ACT
 		for bone_name, ipo in blend_action_ipos_items:
 			# Baked bones may have no IPO's width motion still
 			if bone_name not in BONES:
-				print "\tNo Bone '" + bone_name + "' in (from Animation '" + animation_name + "') ?!?"
+				print '\tNo Bone "' + bone_name + '" in (from Animation "' + animation_name + '") ?!?'
 				continue
 			
 			# So we can loop without errors
@@ -994,13 +994,13 @@ def export_cal3d(filename, PREF_SCALE=0.1, PREF_BAKE_MOTION = True, PREF_ACT_ACT
 						val = curve.evaluate(time)
 						# val = 0.0 
 						curve_name= curve.name
-						if   curve_name == "LocX":  trans[0] = val
-						elif curve_name == "LocY":  trans[1] = val
-						elif curve_name == "LocZ":  trans[2] = val
-						elif curve_name == "QuatW": quat[3]  = val
-						elif curve_name == "QuatX": quat[0]  = val
-						elif curve_name == "QuatY": quat[1]  = val
-						elif curve_name == "QuatZ": quat[2]  = val
+						if   curve_name == 'LocX':  trans[0] = val
+						elif curve_name == 'LocY':  trans[1] = val
+						elif curve_name == 'LocZ':  trans[2] = val
+						elif curve_name == 'QuatW': quat[3]  = val
+						elif curve_name == 'QuatX': quat[0]  = val
+						elif curve_name == 'QuatY': quat[1]  = val
+						elif curve_name == 'QuatZ': quat[2]  = val
 					
 					transt = vector_by_matrix_3x3(trans, bone.matrix)
 					loc = vector_add(bone.loc, transt)
@@ -1011,10 +1011,10 @@ def export_cal3d(filename, PREF_SCALE=0.1, PREF_BAKE_MOTION = True, PREF_ACT_ACT
 					quat = tuple(quat)
 					
 					track.keyframes.append( Cal3DKeyFrame(cal3dtime, loc, quat) )
-				
-				
+		
+		
 		if animation.duration <= 0:
-			print "Ignoring Animation '" + animation_name + "': duration is 0.\n"
+			print 'Ignoring Animation "' + animation_name + '": duration is 0.\n'
 			continue
 	
 	# Restore the original armature
@@ -1025,13 +1025,13 @@ def export_cal3d(filename, PREF_SCALE=0.1, PREF_BAKE_MOTION = True, PREF_ACT_ACT
 	ANIMATIONS.append(animation)
 	
 	
-	cfg = open((filename), "wb")
+	cfg = open((filename), 'wb')
 	cfg.write('# Cal3D model exported from Blender with export_cal3d.py\n')
 
 	if PREF_SCALE != 1.0:	cfg.write('scale=%.6f\n' % PREF_SCALE)
 	
 	fname = file_only_noext + '.xsf'
-	file = open( base_only +  fname, "wb")
+	file = open( base_only +  fname, 'wb')
 	skeleton.writeCal3D(file)
 	file.close()
 	
@@ -1041,7 +1041,7 @@ def export_cal3d(filename, PREF_SCALE=0.1, PREF_BAKE_MOTION = True, PREF_ACT_ACT
 		if not animation.name.startswith('_'):
 			if animation.duration > 0.1: # Cal3D does not support animation with only one state
 				fname = new_name(animation.name, '.xaf')
-				file = open(base_only + fname, "wb")
+				file = open(base_only + fname, 'wb')
 				animation.writeCal3D(file)
 				file.close()
 				cfg.write('animation=%s\n' % fname)
@@ -1049,7 +1049,7 @@ def export_cal3d(filename, PREF_SCALE=0.1, PREF_BAKE_MOTION = True, PREF_ACT_ACT
 	for mesh in meshes:
 		if not mesh.name.startswith('_'):
 			fname = new_name(mesh.name, '.xmf')
-			file = open(base_only + fname, "wb")
+			file = open(base_only + fname, 'wb')
 			mesh.writeCal3D(file)
 			file.close()
 			
@@ -1061,7 +1061,7 @@ def export_cal3d(filename, PREF_SCALE=0.1, PREF_BAKE_MOTION = True, PREF_ACT_ACT
 		# Just number materials, its less trouble
 		fname = new_name(str(material.id), '.xrf')
 		
-		file = open(base_only + fname, "wb")
+		file = open(base_only + fname, 'wb')
 		material.writeCal3D(file)
 		file.close()
 		
@@ -1074,7 +1074,6 @@ def export_cal3d(filename, PREF_SCALE=0.1, PREF_BAKE_MOTION = True, PREF_ACT_ACT
 		Blender.Draw.PupMenu('Warning, the armature has less then 2 tracks, file may not load in Cal3d')
 
 
-
 def export_cal3d_ui(filename):
 	
 	PREF_SCALE= Blender.Draw.Create(1.0)
@@ -1083,13 +1082,13 @@ def export_cal3d_ui(filename):
 	PREF_SCENE_FRAMES= Blender.Draw.Create(0)
 	
 	block = [\
-	('Scale: ', PREF_SCALE, 0.01, 100, "The scale to set in the Cal3d .cfg file (unsupported by soya)"),\
+	('Scale: ', PREF_SCALE, 0.01, 100, 'The scale to set in the Cal3d .cfg file (unsupported by soya)'),\
 	('Baked Motion', PREF_BAKE_MOTION, 'use final pose position instead of ipo keyframes (IK and constraint support)'),\
 	('Active Action', PREF_ACT_ACTION_ONLY, 'Only export action applied to this armature, else export all actions.'),\
 	('Scene Frames', PREF_SCENE_FRAMES, 'Use scene frame range, else the actions start/end'),\
 	]
 	
-	if not Blender.Draw.PupBlock("Cal3D Options", block):
+	if not Blender.Draw.PupBlock('Cal3D Options', block):
 		return
 	
 	Blender.Window.WaitCursor(1)
@@ -1099,7 +1098,7 @@ def export_cal3d_ui(filename):
 
 #import os
 if __name__ == '__main__':
-	Blender.Window.FileSelector(export_cal3d_ui, "Cal3D Export", Blender.Get('filename').replace('.blend', '.cfg'))
+	Blender.Window.FileSelector(export_cal3d_ui, 'Cal3D Export', Blender.Get('filename').replace('.blend', '.cfg'))
 	#export_cal3d('/test' + '.cfg')
 	#export_cal3d_ui('/test' + '.cfg')
 	#os.system('cd /; wine /cal3d_miniviewer.exe /test.cfg')
