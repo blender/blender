@@ -1782,7 +1782,14 @@ void borderselect(void)
 		unsigned int *vbuffer=NULL; /* selection buffer	*/
 		unsigned int *col;			/* color in buffer	*/
 		short selecting = 0;
-
+		Object *ob= OBACT;
+		int bone_only;
+		
+		if((ob) && (ob->flag & OB_POSEMODE))
+			bone_only= 1;
+		else
+			bone_only= 0;
+		
 		if (val==LEFTMOUSE)
 			selecting = 1;
 		
@@ -1822,7 +1829,7 @@ void borderselect(void)
 								}
 							}
 						}
-						else {
+						else if(!bone_only) {
 							if (selecting)
 								select_base_v3d(base, BA_SELECT);
 							else
