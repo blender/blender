@@ -279,6 +279,7 @@ void count_displist(ListBase *lb, int *totvert, int *totface)
 /* ***************************** shade displist. note colors now are in rgb(a) order ******************** */
 
 /* create default shade input... save cpu cycles with ugly global */
+/* XXXX bad code warning: local ShadeInput initialize... */
 static ShadeInput shi;
 static void init_fastshade_shadeinput(void)
 {
@@ -286,6 +287,7 @@ static void init_fastshade_shadeinput(void)
 	shi.lay= G.scene->lay;
 	shi.view[2]= -1.0f;
 	shi.passflag= SCE_PASS_COMBINED;
+	shi.combinedflag= -1;
 }
 
 static Render *fastshade_get_render(void)
