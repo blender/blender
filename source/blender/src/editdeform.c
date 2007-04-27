@@ -772,60 +772,6 @@ void remove_verts_defgroup (int allverts)
 	}
 }
 
-void unique_vertexgroup_name (bDeformGroup *dg, Object *ob)
-{
-	bDeformGroup *curdef;
-	int number;
-	int exists = 0;
-	char tempname[64];
-	char *dot;
-	
-	if (!ob)
-		return;
-		
-	/* See if we are given an empty string */
-	if (dg->name[0] == '\0') {
-		/* give it default name first */
-		strcpy (dg->name, "Group");
-	}	
-		
-	/* See if we even need to do this */
-	for (curdef = ob->defbase.first; curdef; curdef=curdef->next){
-		if (dg!=curdef){
-			if (!strcmp(curdef->name, dg->name)){
-				exists = 1;
-				break;
-			}
-		}
-	}
-	
-	if (!exists)
-		return;
-
-	/*	Strip off the suffix */
-	dot=strchr(dg->name, '.');
-	if (dot)
-		*dot=0;
-	
-	for (number = 1; number <=999; number++){
-		sprintf (tempname, "%s.%03d", dg->name, number);
-		
-		exists = 0;
-		for (curdef=ob->defbase.first; curdef; curdef=curdef->next){
-			if (dg!=curdef){
-				if (!strcmp (curdef->name, tempname)){
-					exists = 1;
-					break;
-				}
-			}
-		}
-		if (!exists){
-			BLI_strncpy (dg->name, tempname, 32);
-			return;
-		}
-	}	
-}
-
 void vertexgroup_select_by_name(Object *ob, char *name)
 {
 	bDeformGroup *curdef;

@@ -43,7 +43,6 @@ struct MDeformVert;
 struct MDeformWeight;
 struct bDeformGroup;
 
-void unique_vertexgroup_name (struct bDeformGroup *dg, struct Object *ob);
 struct bDeformGroup *add_defgroup_name (struct Object *ob, char *name);
 void add_defgroup (struct Object *ob);
 void del_defgroup_in_object_mode ( Object *ob );

@@ -80,6 +80,7 @@
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
 #include "BKE_colortools.h"
+#include "BKE_deform.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_key.h"

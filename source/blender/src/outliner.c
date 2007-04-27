@@ -59,6 +59,7 @@
 #include "BLI_blenlib.h"
 
 #include "BKE_constraint.h"
+#include "BKE_deform.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_group.h"

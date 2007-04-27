@@ -6369,10 +6369,22 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 	if(main->versionfile <= 243) {
+		Object *ob= main->object.first;
 		Camera *cam = main->camera.first;
 		
 		for(; cam; cam= cam->id.next) {
 			cam->angle= 360.0f * atan(16.0f/cam->lens) / M_PI;
+		}
+		
+		for(; ob; ob= ob->id.next) {
+			bDeformGroup *curdef;
+			
+			for(curdef= ob->defbase.first; curdef; curdef=curdef->next) {
+				/* replace an empty-string name with unique name */
+				if (curdef->name[0] == '\0') {
+					unique_vertexgroup_name(curdef, ob);
+				}
+			}
 		}
 	}
 
