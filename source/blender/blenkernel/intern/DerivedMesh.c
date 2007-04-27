@@ -1019,7 +1019,8 @@ typedef struct {
 	struct VNode *vnode;
 	struct VLayer *vertex_layer;
 	struct VLayer *polygon_layer;
-	float (*verts)[3];
+	struct ListBase *edges;
+	float (*vertexCos)[3];
 } VDerivedMesh;
 
 /* this function set up border points of verse mesh bounding box */
@@ -1034,7 +1035,7 @@ static void vDM_getMinMax(DerivedMesh *dm, float min_r[3], float max_r[3])
 
 	if(vdm->vertex_layer->dl.da.count > 0) {
 		while(vvert) {
-			DO_MINMAX(vdm->verts ? vvert->cos : vvert->co, min_r, max_r);
+			DO_MINMAX(vdm->vertexCos ? vvert->cos : vvert->co, min_r, max_r);
 			vvert = vvert->next;
 		}
 	}
@@ -1055,7 +1056,9 @@ static int vDM_getNumVerts(DerivedMesh *dm)
 /* this function return number of 'fake' edges */
 static int vDM_getNumEdges(DerivedMesh *dm)
 {
-	return 0;
+	VDerivedMesh *vdm = (VDerivedMesh*)dm;
+
+	return BLI_countlist(vdm->edges);
 }
 
 /* this function returns number of polygons in polygon layer */
@@ -1071,10 +1074,13 @@ static int vDM_getNumFaces(DerivedMesh *dm)
  * but it return 'indexth' vertex of dynamic list */
 void vDM_getVert(DerivedMesh *dm, int index, MVert *vert_r)
 {
-	VerseVert *vvert = ((VDerivedMesh*)dm)->vertex_layer->dl.lb.first;
+	VDerivedMesh *vdm = (VDerivedMesh*)dm;
+	struct VerseVert *vvert;
 	int i;
 
-	for(i=0 ; i<index; i++) vvert = vvert->next;
+	if(!vdm->vertex_layer) return;
+
+	for(vvert = vdm->vertex_layer->dl.lb.first, i=0 ; i<index; i++) vvert = vvert->next;
 
 	if(vvert) {
 		VECCOPY(vert_r->co, vvert->co);
@@ -1089,25 +1095,59 @@ void vDM_getVert(DerivedMesh *dm, int index, MVert *vert_r)
 	}
 }
 
-/* dummy function, because verse mesh doesn't store edges */
+/* this function returns fake verse edge */
 void vDM_getEdge(DerivedMesh *dm, int index, MEdge *edge_r)
 {
-	edge_r->flag = 0;
-	edge_r->crease = 0;
-	edge_r->v1 = 0;
-	edge_r->v2 = 0;
+	VDerivedMesh *vdm = (VDerivedMesh*)dm;
+	struct VerseEdge *vedge;
+	struct VLayer *vert_vlayer = vdm->vertex_layer;
+	struct VerseVert *vvert;
+	int j;
+
+	if(!vdm->vertex_layer || !vdm->edges) return;
+
+	if(vdm->edges->first) {
+		struct VerseVert *vvert1, *vvert2;
+
+		/* store vert indices in tmp union */
+		for(vvert = vdm->vertex_layer->dl.lb.first, j = 0; vvert; vvert = vvert->next, j++)
+			vvert->tmp.index = j;
+
+		for(vedge = vdm->edges->first; vedge; vedge = vedge->next) {
+			if(vedge->tmp.index==index) {
+				vvert1 = BLI_dlist_find_link(&(vert_vlayer->dl), (unsigned int)vedge->v0);
+				vvert2 = BLI_dlist_find_link(&(vert_vlayer->dl), (unsigned int)vedge->v1);
+				
+				if(vvert1 && vvert2) {
+					edge_r->v1 = vvert1->tmp.index;
+					edge_r->v2 = vvert2->tmp.index;
+				}
+				else {
+					edge_r->v1 = 0;
+					edge_r->v2 = 0;
+				}
+				/* not supported yet */
+				edge_r->flag = 0;
+				edge_r->crease = 0;
+				break;
+			}
+		}
+	}
 }
 
 /* this function doesn't return face with index of access array,
  * but it returns 'indexth' vertex of dynamic list */
 void vDM_getFace(DerivedMesh *dm, int index, MFace *face_r)
 {
-	struct VerseFace *vface = ((VDerivedMesh*)dm)->polygon_layer->dl.lb.first;
-	struct VerseVert *vvert = ((VDerivedMesh*)dm)->vertex_layer->dl.lb.first;
+	VDerivedMesh *vdm = (VDerivedMesh*)dm;
+	struct VerseFace *vface;
+	struct VerseVert *vvert;
 	struct VerseVert *vvert0, *vvert1, *vvert2, *vvert3;
 	int i;
 
-	for(i = 0; i < index; ++i) vface = vface->next;
+	if(!vdm->vertex_layer || !vdm->polygon_layer) return;
+
+	for(vface = vdm->polygon_layer->dl.lb.first, i = 0; i < index; ++i) vface = vface->next;
 
 	face_r->mat_nr = 0;
 	face_r->flag = 0;
@@ -1119,7 +1159,7 @@ void vDM_getFace(DerivedMesh *dm, int index, MFace *face_r)
 	vvert3 = vface->vvert3;
 	if(!vvert3) face_r->v4 = 0;
 
-	for(i = 0; vvert0 || vvert1 || vvert2 || vvert3; i++, vvert = vvert->next) {
+	for(vvert = vdm->vertex_layer->dl.lb.first, i = 0; vvert0 || vvert1 || vvert2 || vvert3; i++, vvert = vvert->next) {
 		if(vvert == vvert0) {
 			face_r->v1 = i;
 			vvert0 = NULL;
@@ -1144,9 +1184,12 @@ void vDM_getFace(DerivedMesh *dm, int index, MFace *face_r)
 /* fill array of mvert */
 void vDM_copyVertArray(DerivedMesh *dm, MVert *vert_r)
 {
-	VerseVert *vvert = ((VDerivedMesh *)dm)->vertex_layer->dl.lb.first;
+	VDerivedMesh *vdm = (VDerivedMesh*)dm;
+	struct VerseVert *vvert;
 
-	for( ; vvert; vvert = vvert->next, ++vert_r) {
+	if(!vdm->vertex_layer) return;
+
+	for(vvert = vdm->vertex_layer->dl.lb.first ; vvert; vvert = vvert->next, ++vert_r) {
 		VECCOPY(vert_r->co, vvert->co);
 
 		vert_r->no[0] = vvert->no[0] * 32767.0;
@@ -1161,20 +1204,56 @@ void vDM_copyVertArray(DerivedMesh *dm, MVert *vert_r)
 /* dummy function, edges arent supported in verse mesh */
 void vDM_copyEdgeArray(DerivedMesh *dm, MEdge *edge_r)
 {
+	VDerivedMesh *vdm = (VDerivedMesh*)dm;
+
+	if(!vdm->vertex_layer || !vdm->edges) return;
+
+	if(vdm->edges->first) {
+		struct VerseEdge *vedge;
+		struct VLayer *vert_vlayer = vdm->vertex_layer;
+		struct VerseVert *vvert, *vvert1, *vvert2;
+		int j;
+
+		/* store vert indices in tmp union */
+		for(vvert = vdm->vertex_layer->dl.lb.first, j = 0; vvert; vvert = vvert->next, ++j)
+			vvert->tmp.index = j;
+
+		for(vedge = vdm->edges->first, j=0 ; vedge; vedge = vedge->next, ++edge_r, j++) {
+			/* create temporary edge index */
+			vedge->tmp.index = j;
+			vvert1 = BLI_dlist_find_link(&(vert_vlayer->dl), (unsigned int)vedge->v0);
+			vvert2 = BLI_dlist_find_link(&(vert_vlayer->dl), (unsigned int)vedge->v1);
+			if(vvert1 && vvert2) {
+				edge_r->v1 = vvert1->tmp.index;
+				edge_r->v2 = vvert2->tmp.index;
+			}
+			else {
+				printf("error: vDM_copyEdgeArray: %d, %d\n", vedge->v0, vedge->v1);
+				edge_r->v1 = 0;
+				edge_r->v2 = 0;
+			}
+			/* not supported yet */
+			edge_r->flag = 0;
+			edge_r->crease = 0;
+		}
+	}
 }
 
 /* fill array of mfaces */
 void vDM_copyFaceArray(DerivedMesh *dm, MFace *face_r)
 {
-	VerseFace *vface = ((VDerivedMesh*)dm)->polygon_layer->dl.lb.first;
-	VerseVert *vvert = ((VDerivedMesh*)dm)->vertex_layer->dl.lb.first;
+	VDerivedMesh *vdm = (VDerivedMesh*)dm;
+	struct VerseFace *vface;
+	struct VerseVert *vvert;
 	int i;
-
+	
+	if(!vdm->vertex_layer || !vdm->polygon_layer) return;
+	
 	/* store vertexes indices in tmp union */
-	for(i = 0; vvert; vvert = vvert->next, ++i)
+	for(vvert = vdm->vertex_layer->dl.lb.first, i = 0; vvert; vvert = vvert->next, ++i)
 		vvert->tmp.index = i;
 
-	for( ; vface; vface = vface->next, ++face_r) {
+	for(vface = vdm->polygon_layer->dl.lb.first; vface; vface = vface->next, ++face_r) {
 		face_r->mat_nr = 0;
 		face_r->flag = 0;
 
@@ -1188,8 +1267,7 @@ void vDM_copyFaceArray(DerivedMesh *dm, MFace *face_r)
 	}
 }
 
-/* return coordination of vertex with index ... I suppose, that it will
- * be very hard to do, becuase there can be holes in access array */
+/* return coordination of vertex with index */
 static void vDM_getVertCo(DerivedMesh *dm, int index, float co_r[3])
 {
 	VDerivedMesh *vdm = (VDerivedMesh*)dm;
@@ -1198,8 +1276,9 @@ static void vDM_getVertCo(DerivedMesh *dm, int index, float co_r[3])
 	if(!vdm->vertex_layer) return;
 
 	vvert = BLI_dlist_find_link(&(vdm->vertex_layer->dl), index);
+	
 	if(vvert) {
-		VECCOPY(co_r, vdm->verts ? vvert->cos : vvert->co);
+		VECCOPY(co_r, vdm->vertexCos ? vvert->cos : vvert->co);
 	}
 	else {
 		co_r[0] = co_r[1] = co_r[2] = 0.0;
@@ -1217,14 +1296,13 @@ static void vDM_getVertCos(DerivedMesh *dm, float (*cos_r)[3])
 
 	vvert = vdm->vertex_layer->dl.lb.first;
 	while(vvert) {
-		VECCOPY(cos_r[i], vdm->verts ? vvert->cos : vvert->co);
+		VECCOPY(cos_r[i], vdm->vertexCos ? vvert->cos : vvert->co);
 		i++;
 		vvert = vvert->next;
 	}
 }
 
-/* return normal of vertex with index ... again, it will be hard to
- * implemente, because access array */
+/* return normal of vertex with index */
 static void vDM_getVertNo(DerivedMesh *dm, int index, float no_r[3])
 {
 	VDerivedMesh *vdm = (VDerivedMesh*)dm;
@@ -1253,7 +1331,7 @@ static void vDM_drawVerts(DerivedMesh *dm)
 
 	bglBegin(GL_POINTS);
 	while(vvert) {
-		bglVertex3fv(vdm->verts ? vvert->cos : vvert->co);
+		bglVertex3fv(vdm->vertexCos ? vvert->cos : vvert->co);
 		vvert = vvert->next;
 	}
 	bglEnd();
@@ -1265,21 +1343,22 @@ static void vDM_drawVerts(DerivedMesh *dm)
 static void vDM_drawEdges(DerivedMesh *dm, int drawLooseEdges)
 {
 	VDerivedMesh *vdm = (VDerivedMesh*)dm;
-	struct VerseFace *vface;
+	struct VerseEdge *vedge;
+	struct VLayer *vert_vlayer = vdm->vertex_layer;
 
-	if(!vdm->polygon_layer) return;
+	if(vert_vlayer && vdm->edges && (BLI_countlist(vdm->edges) > 0)) {
+		struct VerseVert *vvert1, *vvert2;
 
-	vface = vdm->polygon_layer->dl.lb.first;
-
-	while(vface) {
-		glBegin(GL_LINE_LOOP);
-		glVertex3fv(vdm->verts ? vface->vvert0->cos : vface->vvert0->co);
-		glVertex3fv(vdm->verts ? vface->vvert1->cos : vface->vvert1->co);
-		glVertex3fv(vdm->verts ? vface->vvert2->cos : vface->vvert2->co);
-		if(vface->vvert3) glVertex3fv(vdm->verts ? vface->vvert3->cos : vface->vvert3->co);
+		glBegin(GL_LINES);
+		for(vedge = vdm->edges->first; vedge; vedge = vedge->next) {
+			vvert1 = BLI_dlist_find_link(&(vert_vlayer->dl), (unsigned int)vedge->v0);
+			vvert2 = BLI_dlist_find_link(&(vert_vlayer->dl), (unsigned int)vedge->v1);
+			if(vvert1 && vvert2) {
+				glVertex3fv(vdm->vertexCos ? vvert1->cos : vvert1->co);
+				glVertex3fv(vdm->vertexCos ? vvert2->cos : vvert2->co);
+			}
+		}
 		glEnd();
-
-		vface = vface->next;
 	}
 }
 
@@ -1303,40 +1382,21 @@ static void vDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int))
 
 	vface = vdm->polygon_layer->dl.lb.first;
 
+	glShadeModel(GL_FLAT);
 	while(vface) {
-/*		if((vface->smooth) && (vface->smooth->value)){
-			glShadeModel(GL_SMOOTH);
-			glBegin(vface->vvert3?GL_QUADS:GL_TRIANGLES);
-			glNormal3fv(vface->vvert0->no);
-			glVertex3fv(vdm->verts ? vface->vvert0->cos : vface->vvert0->co);
-			glNormal3fv(vface->vvert1->no);
-			glVertex3fv(vdm->verts ? vface->vvert1->cos : vface->vvert1->co);
-			glNormal3fv(vface->vvert2->no);
-			glVertex3fv(vdm->verts ? vface->vvert2->cos : vface->vvert2->co);
-			if(vface->vvert3){
-				glNormal3fv(vface->vvert3->no);
-				glVertex3fv(vdm->verts ? vface->vvert3->cos : vface->vvert3->co);
-			}
-			glEnd();
-		}
-		else { */
-			glShadeModel(GL_FLAT);
-			glBegin(vface->vvert3?GL_QUADS:GL_TRIANGLES);
-			glNormal3fv(vface->no);
-			glVertex3fv(vdm->verts ? vface->vvert0->cos : vface->vvert0->co);
-			glVertex3fv(vdm->verts ? vface->vvert1->cos : vface->vvert1->co);
-			glVertex3fv(vdm->verts ? vface->vvert2->cos : vface->vvert2->co);
-			if(vface->vvert3)
-				glVertex3fv(vdm->verts ? vface->vvert3->cos : vface->vvert3->co);
-			glEnd();
-/*		} */
-
+		glBegin(vface->vvert3?GL_QUADS:GL_TRIANGLES);
+		glNormal3fv(vface->no);
+		glVertex3fv(vdm->vertexCos ? vface->vvert0->cos : vface->vvert0->co);
+		glVertex3fv(vdm->vertexCos ? vface->vvert1->cos : vface->vvert1->co);
+		glVertex3fv(vdm->vertexCos ? vface->vvert2->cos : vface->vvert2->co);
+		if(vface->vvert3)
+			glVertex3fv(vdm->vertexCos ? vface->vvert3->cos : vface->vvert3->co);
+		glEnd();
 		vface = vface->next;
 	}
-	glShadeModel(GL_FLAT);
 }
 
-/* thsi function should draw mesh with mapped texture, but it isn't supported yet */
+/* this function should draw mesh with mapped texture, but it isn't supported yet */
 static void vDM_drawFacesTex(DerivedMesh *dm, int (*setDrawOptions)(MTFace *tface, MCol *mcol, int matnr))
 {
 	VDerivedMesh *vdm = (VDerivedMesh*)dm;
@@ -1348,11 +1408,11 @@ static void vDM_drawFacesTex(DerivedMesh *dm, int (*setDrawOptions)(MTFace *tfac
 
 	while(vface) {
 		glBegin(vface->vvert3?GL_QUADS:GL_TRIANGLES);
-		glVertex3fv(vdm->verts ? vface->vvert0->cos : vface->vvert0->co);
-		glVertex3fv(vdm->verts ? vface->vvert1->cos : vface->vvert1->co);
-		glVertex3fv(vdm->verts ? vface->vvert2->cos : vface->vvert2->co);
+		glVertex3fv(vdm->vertexCos ? vface->vvert0->cos : vface->vvert0->co);
+		glVertex3fv(vdm->vertexCos ? vface->vvert1->cos : vface->vvert1->co);
+		glVertex3fv(vdm->vertexCos ? vface->vvert2->cos : vface->vvert2->co);
 		if(vface->vvert3)
-			glVertex3fv(vdm->verts ? vface->vvert3->cos : vface->vvert3->co);
+			glVertex3fv(vdm->vertexCos ? vface->vvert3->cos : vface->vvert3->co);
 		glEnd();
 
 		vface = vface->next;
@@ -1372,11 +1432,11 @@ static void vDM_drawFacesColored(DerivedMesh *dm, int useTwoSided, unsigned char
 
 	while(vface) {
 		glBegin(vface->vvert3?GL_QUADS:GL_TRIANGLES);
-		glVertex3fv(vdm->verts ? vface->vvert0->cos : vface->vvert0->co);
-		glVertex3fv(vdm->verts ? vface->vvert1->cos : vface->vvert1->co);
-		glVertex3fv(vdm->verts ? vface->vvert2->cos : vface->vvert2->co);
+		glVertex3fv(vdm->vertexCos ? vface->vvert0->cos : vface->vvert0->co);
+		glVertex3fv(vdm->vertexCos ? vface->vvert1->cos : vface->vvert1->co);
+		glVertex3fv(vdm->vertexCos ? vface->vvert2->cos : vface->vvert2->co);
 		if(vface->vvert3)
-			glVertex3fv(vdm->verts ? vface->vvert3->cos : vface->vvert3->co);
+			glVertex3fv(vdm->vertexCos ? vface->vvert3->cos : vface->vvert3->co);
 		glEnd();
 
 		vface = vface->next;
@@ -1447,7 +1507,7 @@ static void vDM_release(DerivedMesh *dm)
 	VDerivedMesh *vdm = (VDerivedMesh*)dm;
 
 	if (DM_release(dm)) {
-		if(vdm->verts) MEM_freeN(vdm->verts);
+		if(vdm->vertexCos) MEM_freeN(vdm->vertexCos);
 		MEM_freeN(vdm);
 	}
 }
@@ -1462,9 +1522,11 @@ DerivedMesh *derivedmesh_from_versemesh(VNode *vnode, float (*vertexCos)[3])
 	vdm->vnode = vnode;
 	vdm->vertex_layer = find_verse_layer_type((VGeomData*)vnode->data, VERTEX_LAYER);
 	vdm->polygon_layer = find_verse_layer_type((VGeomData*)vnode->data, POLYGON_LAYER);
+	vdm->edges = &((VGeomData*)vnode->data)->edges;
 
+	/* vertex and polygon layer has to exist */
 	if(vdm->vertex_layer && vdm->polygon_layer)
-		DM_init(&vdm->dm, vdm->vertex_layer->dl.da.count, 0, vdm->polygon_layer->dl.da.count);
+		DM_init(&vdm->dm, vdm->vertex_layer->dl.da.count, BLI_countlist(vdm->edges), vdm->polygon_layer->dl.da.count);
 	else
 		DM_init(&vdm->dm, 0, 0, 0);
 	
@@ -1506,28 +1568,7 @@ DerivedMesh *derivedmesh_from_versemesh(VNode *vnode, float (*vertexCos)[3])
 
 	vdm->dm.release = vDM_release;
 
-	if(vdm->vertex_layer) {
-		if(vertexCos) {
-			int i;
-
-			vdm->verts = MEM_mallocN(sizeof(float)*3*vdm->vertex_layer->dl.da.count, "verse mod vertexes");
-			vvert = vdm->vertex_layer->dl.lb.first;
-
-			for(i=0; i<vdm->vertex_layer->dl.da.count && vvert; i++, vvert = vvert->next) {
-				VECCOPY(vdm->verts[i], vertexCos[i]);
-				vvert->cos = vdm->verts[i];
-			}
-		}
-		else {
-			vdm->verts = NULL;
-			vvert = vdm->vertex_layer->dl.lb.first;
-
-			while(vvert) {
-				vvert->cos = NULL;
-				vvert = vvert->next;
-			}
-		}
-	}
+	vdm->vertexCos = vertexCos;
 
 	return (DerivedMesh*) vdm;
 }

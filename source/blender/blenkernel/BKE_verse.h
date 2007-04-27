@@ -37,6 +37,13 @@
 #include "verse_ms.h"
 
 struct VNode;
+struct VerseEdge;
+
+/*
+ * Verse Edge Hash (similar to edit edge hash)
+ */
+#define VEDHASHSIZE    (512*512)
+#define VEDHASH(a, b)  ((a<b ? a : b) % VEDHASHSIZE)
 
 /*
  * virtual data type (used only for retype)
@@ -118,7 +125,7 @@ typedef struct VerseVert {
 	real32 co[3];			/* x,y,z-coordinates of vertex */
 	real32 no[3];			/* normal of vertex */
 	/* blender internals */
-	short flag;			/* flags: VERT_DELETED, VERT_RECEIVED */
+	short flag;			/* flags: VERT_DELETED, VERT_RECEIVED, etc. */
 	void *vertex;			/* pointer at EditVert or MVert */
 	int counter;			/* counter of VerseFaces using this VerseVert */
 	union {
@@ -127,7 +134,29 @@ typedef struct VerseVert {
 	} tmp;				/* pointer at new created verse vert, it is
 					 * used during duplicating geometry node */	
 	float *cos;			/* modified coordinates of vertex */
+	float *nos;			/* modified normal vector */
 } VerseVert;
+
+/*
+ * structture used for verse edge hash
+ */
+typedef struct HashVerseEdge {
+	struct VerseEdge *vedge;
+	struct HashVerseEdge *next;
+} HashVerseEdge;
+
+/*
+ * fake verse data: edge
+ */
+typedef struct VerseEdge {
+	struct VerseEdge *next, *prev;
+	uint32 v0, v1;			/* indexes of verse vertexes */
+	int counter;			/* counter of verse faces using this edge */
+	struct HashVerseEdge hash;	/* hash table */
+	union {
+		unsigned int index;	/* temporary index of edge */
+	} tmp;
+} VerseEdge;
 
 /*
  * verse data: polygon
@@ -147,6 +176,7 @@ typedef struct VerseFace {
 	short counter;			/* counter of missed VerseVertexes */
 	void *face;			/* pointer at EditFace */
 	float no[3];			/* normal vector */
+	float *nos;			/* modified normal vector */
 } VerseFace;
 
 /*
@@ -237,6 +267,8 @@ typedef struct VGeomData {
 	struct ListBase queue;		/* queue of our layers waiting for receiving from verse server */
 	void *mesh;			/* pointer at Mesh (object node) */
 	void *editmesh;			/* pointer at EditMesh (edit mode) */
+	struct HashVerseEdge *hash;	/* verse edge hash */
+	struct ListBase edges;		/* list of fake verse edges */
 	/* client dependent methods */
 	void (*post_vertex_create)(struct VerseVert *vvert);
 	void (*post_vertex_set_xyz)(struct VerseVert *vvert);

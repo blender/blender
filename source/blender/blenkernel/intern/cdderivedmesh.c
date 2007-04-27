@@ -400,10 +400,12 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 			if(index) {
 				orig = *index++;
 				if(orig == ORIGINDEX_NONE) continue;
-				flag = drawParamsMapped(userData, orig);
+				if(drawParamsMapped) flag = drawParamsMapped(userData, orig);
+				else continue;
 			}
 			else
-				flag = drawParamsMapped(userData, i);
+				if(drawParamsMapped) flag = drawParamsMapped(userData, i);
+				else continue;
 		}
 
 		if(flag == 0)

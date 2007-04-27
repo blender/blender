@@ -467,38 +467,45 @@ void b_verse_send_vertex_delete(EditVert *eve)
  */
 void send_versevert_pos(VerseVert *vvert)
 {
+	/* delete command was sent to verse server ... sending one
+	 * more position command would create new vertex */
+	if ((vvert->flag & VERT_DELETED) | (vvert->flag & VERT_OBSOLETE)) return;
+	
 	/* don't send position of verse vertex to verse server, because it could create
 	 * new vertex */
-	if(vvert->flag & VERT_RECEIVED && !(vvert->flag & VERT_DELETED)) {
+	if(vvert->flag & VERT_RECEIVED) {
 	       	if(vvert->flag & VERT_LOCKED) {
 			/* when position of verse vert was sent to verse server
 			 * and it wasn't received yet, then mark sent position
 			 * as obsolete ... blender will automaticaly send actual
 			 * position, when old will be received */
 			vvert->flag |= VERT_POS_OBSOLETE;
-/*			printf("\tsend_versevert_pos: %d mark OBSOLETE\n", vvert->id);*/
 		}
 		else {
 			struct EditVert *eve = (EditVert*)vvert->vertex;
 			/* send position to verse server, when it is different from actual position */
 			if(eve && (eve->co[0]!=vvert->co[0] || eve->co[1]!=vvert->co[1] || eve->co[2]!=vvert->co[2])) {
-				/* lock vertex and send its position to verse server */
+				/* lock vertex and send its position to verse server,
+				 * locking of vertex prevents from sending too many
+				 * informations about vertex position during draging
+				 * of vertex */
 				vvert->flag |= VERT_LOCKED;
 				VECCOPY(vvert->co, eve->co);
-/*				printf("\tsend_versevert_pos: %d send and LOCK \n", vvert->id);*/
 				send_verse_vertex(vvert);
 			}
 		}
 	}
-
-	if(!(vvert->flag & VERT_RECEIVED) && (vvert->flag & VERT_LOCKED)) {
+	else {
+		/* we created this vertex and we sent new position to verse server, but "confirmation" command about
+		 * position of vertex didn't arrived yet, then we can't send new position of vertex ... we only mark
+		 * position of vertex as obsolete and new position will be sent to verse server, when confirmation
+		 * command will arive */
 		struct EditVert *eve = (EditVert*)vvert->vertex;
 		if(eve && (eve->co[0]!=vvert->co[0] || eve->co[1]!=vvert->co[1] || eve->co[2]!=vvert->co[2])) {
-/*			printf("\tsend_versevert_pos: %d mark VERT_POS_OBSOLETE\n", vvert->id); */
 			vvert->flag |= VERT_POS_OBSOLETE;
 		}
 	}
-
+	
 	verse_callback_update(0);
 }
 
@@ -723,7 +730,6 @@ void post_vertex_set_xyz(VerseVert *vvert)
 
 			eve = (EditVert*)vvert->vertex;
 			VECCOPY(vvert->co, eve->co);
-/*			printf("\tpost_vertex_set_xyz: %d send and NOT_OBSOLETE\n", vvert->id); */
 			send_verse_vertex(vvert);
 			verse_callback_update(0);
 		}
@@ -733,12 +739,11 @@ void post_vertex_set_xyz(VerseVert *vvert)
 
 		return;
 	}
-
+	
 	/* when shared object is in edit mode, then update editmesh */	
 	if(G.obedit && (((Mesh*)G.obedit->data)->vnode==geom_vnode)) {
 		if(vvert->vertex) {
 			eve = (EditVert*)vvert->vertex;
-/*			printf("\tupdate pos of edit vert %d\n", vvert->id); */
 			VECCOPY(eve->co, vvert->co);
 			recalc_editnormals();
 		}

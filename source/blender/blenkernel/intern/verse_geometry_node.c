@@ -78,6 +78,16 @@ static void move_face_orphan_to_dlist(struct VNode *vnode, struct VLayer *vlayer
 static void increase_verse_verts_references(struct VerseFace *vface);
 static void recalculate_verseface_normals(struct VNode *vnode);
 
+/* verse edge functions */
+static VerseEdge* find_verse_edge(struct VNode *vnode, uint32 v0, uint32 v1);
+static void insert_verse_edgehash(struct VNode *vnode, struct VerseEdge *vedge);
+static void remove_verse_edgehash(struct VNode *vnode, struct VerseEdge *vedge);
+static void remove_verse_edge(struct VNode *vnode, uint32 v0, uint32 v1);
+static void add_verse_edge(struct VNode *vnode, uint32 v0, uint32 v1);
+static void update_edgehash_of_deleted_verseface(struct VNode *vnode, struct VerseFace *vface);
+static void update_edgehash_of_changed_verseface(struct VNode *vnode, struct VerseFace *vface, uint32 v0, uint32 v1, uint32 v2, uint32 v3);
+static void update_edgehash_of_new_verseface(struct VNode *vnode, uint32 v0, uint32 v1, uint32 v2, uint32 v3);
+
 /*
  * recalcute normals of all VerseFaces
  */
@@ -800,6 +810,22 @@ VerseVert* create_verse_vertex(
 }
 
 /*
+ * this function creates fake VerseEdge and returns pointer at this edge
+ */
+VerseEdge *create_verse_edge(uint32 v0, uint32 v1)
+{
+	struct VerseEdge *vedge;
+
+	vedge = (VerseEdge*)MEM_mallocN(sizeof(VerseEdge), "VerseEdge");
+
+	vedge->v0 = v0;
+	vedge->v1 = v1;
+	vedge->counter = 0;
+
+	return vedge;
+}
+
+/*
  * this function will create new VerseFace and will return pointer on such Face
  */
 VerseFace* create_verse_face(
@@ -902,6 +928,10 @@ VGeomData *create_geometry_data(void)
 	geom->queue.first = geom->queue.last = NULL;
 	geom->mesh = NULL;
 	geom->editmesh = NULL;
+
+	/* initialize list of fake verse edges and initialize verse edge hash */
+	geom->edges.first = geom->edges.last = NULL;
+	geom->hash = MEM_callocN(VEDHASHSIZE*sizeof(HashVerseEdge), "verse hashedge tab");
 
 	/* set up methods */
 	geom->post_vertex_create = post_vertex_create;
@@ -1058,6 +1088,9 @@ static void cb_g_polygon_delete(
 	vface = BLI_dlist_find_link(&(vlayer->dl), polygon_id);
 
 	if(!vface) return;
+
+	/* update edge hash */
+	update_edgehash_of_deleted_verseface(vnode, vface);
 	
 	((VGeomData*)vnode->data)->post_polygon_delete(vface);
 
@@ -1104,6 +1137,231 @@ static VLayer *find_vlayer_in_sending_queue(VNode *vnode, VLayerID layer_id)
 	}
 
 	return NULL;
+}
+
+/*
+ * this function will find edge in hash table, hash function isn't too optimal (it needs
+ * lot of memory for every verse node), but it works without any bug
+ */
+static VerseEdge* find_verse_edge(VNode *vnode, uint32 v0, uint32 v1)
+{
+	struct HashVerseEdge *hve;
+
+	if(((VGeomData*)vnode->data)->hash==NULL)
+		((VGeomData*)vnode->data)->hash = MEM_callocN(VEDHASHSIZE*sizeof(HashVerseEdge), "verse hashedge tab");
+
+	hve = ((VGeomData*)vnode->data)->hash + VEDHASH(v0, v1);;
+	while(hve) {
+		/* edge v0---v1 is the same edge as v1---v0 */
+		if(hve->vedge && ((hve->vedge->v0==v0 && hve->vedge->v1==v1) || (hve->vedge->v0==v1 && hve->vedge->v1==v0))) return hve->vedge;
+		hve = hve->next;
+	}
+
+	return NULL;
+}
+
+/*
+ * insert hash of verse edge to hash table
+ */
+static void insert_verse_edgehash(VNode *vnode, VerseEdge *vedge)
+{
+	struct HashVerseEdge *first, *hve;
+
+	if(((VGeomData*)vnode->data)->hash==NULL)
+		((VGeomData*)vnode->data)->hash = MEM_callocN(VEDHASHSIZE*sizeof(HashVerseEdge), "verse hashedge tab");
+
+	first = ((VGeomData*)vnode->data)->hash + VEDHASH(vedge->v0, vedge->v1);
+
+	if(first->vedge==NULL) {
+		first->vedge = vedge;
+	}
+	else {
+		hve = &(vedge->hash);
+		hve->vedge = vedge;
+		hve->next = first->next;
+		first->next = hve;
+	}
+}
+
+/*
+ * remove hash of verse edge from hash table
+ */
+static void remove_verse_edgehash(VNode *vnode, VerseEdge *vedge)
+{
+	struct HashVerseEdge *first, *hve, *prev;
+
+	hve = first = ((VGeomData*)vnode->data)->hash + VEDHASH(vedge->v0, vedge->v1);
+
+	while(hve) {
+		if(hve->vedge == vedge) {
+			if(hve==first) {
+				if(first->next) {
+					hve = first->next;
+					first->vedge = hve->vedge;
+					first->next = hve->next;
+				}
+				else {
+					hve->vedge = NULL;
+				}
+			}
+			else {
+				prev->next = hve->next;
+			}
+			return;
+		}
+		prev = hve;
+		hve = hve->next;
+	}
+}
+
+/*
+ * this function will try to remove existing fake verse edge, when this verse
+ * edge is still used by some faces, then counter will be only decremented
+ */
+static void remove_verse_edge(VNode *vnode, uint32 v0, uint32 v1)
+{
+	struct VerseEdge *vedge;
+
+	vedge = find_verse_edge(vnode, v0, v1);
+	if(vedge) {
+		vedge->counter--;
+		if(vedge->counter==0) {
+			remove_verse_edgehash(vnode, vedge);
+			BLI_freelinkN(&(((VGeomData*)vnode->data)->edges), vedge);
+		}
+	}
+	else {
+		printf("error: remove_verse_edge %d, %d\n", v0, v1);
+	}
+}
+
+/*
+ * this function will try to add new fake verse edge, when no such edge exist,
+ * when such edge exist, then only counter of edge will be incremented
+ */
+static void add_verse_edge(VNode *vnode, uint32 v0, uint32 v1)
+{
+	struct VerseEdge *vedge;
+
+	vedge = find_verse_edge(vnode, v0, v1);
+	if(!vedge) {
+		if(v0!=v1) {
+			vedge = create_verse_edge(v0, v1);
+			BLI_addtail(&(((VGeomData*)vnode->data)->edges), vedge);
+			insert_verse_edgehash(vnode, vedge);
+		}
+		else {
+			printf("error:add_verse_edge: %d, %d\n", v0, v1);
+			return;
+		}
+	}
+	vedge->counter++;
+}
+
+/*
+ * verse face was deleted ... update edge hash
+ */
+static void update_edgehash_of_deleted_verseface(VNode *vnode, VerseFace *vface)
+{
+	uint32 v0, v1, v2, v3;		/* verse vertex indexes of deleted verse face */
+	
+	v0 = vface->vvert0->id;
+	v1 = vface->vvert1->id;
+	v2 = vface->vvert2->id;
+	v3 = vface->vvert3 ? vface->vvert3->id : -1;
+
+	remove_verse_edge(vnode, v0, v1);
+	remove_verse_edge(vnode, v1, v2);
+	if(v3!=-1) {
+		remove_verse_edge(vnode, v2, v3);
+		remove_verse_edge(vnode, v3, v0);
+	}
+	else {
+		remove_verse_edge(vnode, v2, v0);
+	}
+}
+
+/*
+ * existing verse face was changed ... update edge hash
+ */
+static void update_edgehash_of_changed_verseface(
+		VNode *vnode,
+		VerseFace *vface,
+		uint32 v0,
+		uint32 v1,
+		uint32 v2,
+		uint32 v3)
+{
+	uint32 ov0, ov1, ov2, ov3;	/* old indexes at verse vertexes*/
+	
+	ov0 = vface->vvert0->id;
+	ov1 = vface->vvert1->id;
+	ov2 = vface->vvert2->id;
+	ov3 = vface->vvert3 ? vface->vvert3->id : -1;
+
+	/* 1st edge */
+	if(v0!=ov0 || v1!=ov1) {
+		remove_verse_edge(vnode, ov0, ov1);
+		add_verse_edge(vnode, v0, v1);
+	}
+	
+	/* 2nd edge */
+	if(v1!=ov1 || v2!=ov2) {
+		remove_verse_edge(vnode, ov1, ov2);
+		add_verse_edge(vnode, v1, v2);
+	}
+
+	/* 3rd edge */
+	if(v2!=ov2 || v3!=ov3 || v0!=ov0) {
+		if(ov3!=-1) {
+			remove_verse_edge(vnode, ov2, ov3);
+			if(v3!=-1) {
+				add_verse_edge(vnode, v2, v3);		/* new 3rd edge (quat->quat) */
+			}
+			else {
+				remove_verse_edge(vnode, ov3, ov0);	/* old edge v3,v0 of quat have to be removed */
+				add_verse_edge(vnode, v2, v0);		/* new 3rd edge (quat->triangle) */	
+			}
+		}
+		else {
+			remove_verse_edge(vnode, ov2, ov0);
+			if(v3!=-1) {
+				add_verse_edge(vnode, v2, v3);		/* new 3rd edge (triangle->quat) */
+			}
+			else {
+				add_verse_edge(vnode, v2, v0);		/* new 3rd edge (triangle->triangle) */
+			}
+		}
+	}
+
+	/* 4th edge */
+	if(v3!=-1 && (v3!=ov3 || v0!=ov0)) {
+		remove_verse_edge(vnode, ov3, ov0);
+		add_verse_edge(vnode, v3, v0);
+	}
+}
+
+/*
+ * new verse face was created ... update list of edges and edge has
+ */
+static void update_edgehash_of_new_verseface(
+		VNode *vnode,
+		uint32 v0,
+		uint32 v1,
+		uint32 v2,
+		uint32 v3)
+{
+	/* when edge already exists, then only its counter is incremented,
+	 * look at commentary of add_verse_edge() function */
+	add_verse_edge(vnode, v0, v1);
+	add_verse_edge(vnode, v1, v2);
+	if(v3!=-1) {
+		add_verse_edge(vnode, v2, v3);
+		add_verse_edge(vnode, v3, v0);
+	}
+	else {
+		add_verse_edge(vnode, v2, v0);
+	}
 }
 
 /*
@@ -1166,6 +1424,9 @@ static void cb_g_polygon_set_corner_uint32(
 		 * layer ids */
 		vface = find_verse_face_in_queue(vlayer, node_id, polygon_id, v0, v1, v2, v3);
 		
+		/* update edge hash */
+		update_edgehash_of_new_verseface(vnode, v0, v1, v2, v3);
+		
 		if(vface){
 /*			printf("\tremove from vface queue\n");*/
 			/* I creeated this face ... remove VerseFace from queue */
@@ -1204,6 +1465,9 @@ static void cb_g_polygon_set_corner_uint32(
 		/* VerseVertexes of existing VerseFace were changed (VerseFace will use some different
 		 * VerseVertexes or it will use them in different order) */
 
+		/* update fake verse edges */
+		update_edgehash_of_changed_verseface(vnode, vface, v0, v1, v2, v3);
+		
 		/* initialize count of unreceived vertexes needed for this face */
 		vface->counter = 4;
 
@@ -1423,19 +1687,24 @@ static void cb_g_vertex_set_xyz_real32(
 			if(vvert->flag & VERT_OBSOLETE) return;
 
 			if (vvert->flag & VERT_LOCKED) {
+				/* this application changed position of this vertex */
 				if((vvert->co[0]==x) && (vvert->co[1]==y) && (vvert->co[2]==z)) {
-					if (!(vvert->flag & VERT_POS_OBSOLETE))
-						vvert->flag &= ~VERT_LOCKED;
-					recalculate_verseface_normals(vnode);
-					((VGeomData*)vnode->data)->post_vertex_set_xyz(vvert);
+					/* unlock vertex position */
+					vvert->flag &= ~VERT_LOCKED;
+					/* call post_vertex_set_xyz only, when position of vertex is
+					 * obsolete ... the new vertex position will be sent to
+					 * verse server */
+					if (vvert->flag & VERT_POS_OBSOLETE) {
+						((VGeomData*)vnode->data)->post_vertex_set_xyz(vvert);
+					}
 				}
 			}
 			else {
+				/* somebody else changed position of this vertex*/
 				if((vvert->co[0]!=x) || (vvert->co[1]!=y) || (vvert->co[2]!=z)) {
 					vvert->co[0] = x;
 					vvert->co[1] = y;
 					vvert->co[2] = z;
-
 					recalculate_verseface_normals(vnode);
 					((VGeomData*)vnode->data)->post_vertex_set_xyz(vvert);
 				}
@@ -1625,6 +1894,10 @@ void free_geom_data(VNode *vnode)
 		((VGeomData*)vnode->data)->post_geometry_free_constraint(vnode);
 		/* free all VerseLayers */
 		BLI_dlist_destroy(&(((VGeomData*)vnode->data)->layers));
+		/* free fake verse edges */
+		BLI_freelistN(&((VGeomData*)vnode->data)->edges);
+		/* free edge hash */
+		MEM_freeN(((VGeomData*)vnode->data)->hash);
 	}
 }
 
