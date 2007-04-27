@@ -873,7 +873,7 @@ static PyGetSetDef BPy_Camera_getseters[] = {
 	 (getter)Camera_getIpo, (setter)Camera_setIpo,
 	 "Cameras ipo",
 	 NULL},
-	 
+	
 	/* float settings */
 	{"lens",
 	 (getter)getFloatAttr, (setter)setFloatAttrClamp,
@@ -891,6 +891,14 @@ static PyGetSetDef BPy_Camera_getseters[] = {
 	 (getter)getFloatAttr, (setter)setFloatAttrClamp,
 	 "the cameras clip end",
 	 (void *)EXPP_CAM_ATTR_CLIPEND},
+	{"shiftX",
+	 (getter)getFloatAttr, (setter)setFloatAttrClamp,
+	 "the cameras X perspective shift",
+	 (void *)EXPP_CAM_ATTR_SHIFTX},
+	{"shiftY",
+	 (getter)getFloatAttr, (setter)setFloatAttrClamp,
+	 "the cameras Y perspective shift",
+	 (void *)EXPP_CAM_ATTR_SHIFTY},
 	{"dofDist",
 	 (getter)getFloatAttr, (setter)setFloatAttrClamp,
 	 "cameras dof distance",

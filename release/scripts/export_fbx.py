@@ -53,6 +53,7 @@ sane_name_mapping_ob = {}
 sane_name_mapping_mat = {}
 sane_name_mapping_tex = {}
 sane_name_mapping_arm = {}
+sane_name_mapping_cam = {}
 
 def strip_path(p):
 	return p.split('\\')[-1].split('/')[-1]
@@ -68,17 +69,11 @@ def sane_name(data, dct):
 	dct[orig_name] = name
 	return name
 
-def sane_obname(data):
-	return sane_name(data, sane_name_mapping_ob)
-
-def sane_matname(data):
-	return sane_name(data, sane_name_mapping_mat)
-
-def sane_texname(data):
-	return sane_name(data, sane_name_mapping_tex)
-
-def sane_armname(data):
-	return sane_name(data, sane_name_mapping_arm)
+def sane_obname(data):		return sane_name(data, sane_name_mapping_ob)
+def sane_matname(data):		return sane_name(data, sane_name_mapping_mat)
+def sane_texname(data):		return sane_name(data, sane_name_mapping_tex)
+def sane_armname(data):		return sane_name(data, sane_name_mapping_arm)
+def sane_camname(data):		return sane_name(data, sane_name_mapping_cam)
 
 # May use this later
 """
@@ -154,6 +149,7 @@ def write_scene(file, sce, world):
 		file.write('\n\t\t\tProperty: "Lcl Translation", "Lcl Translation", "A+",%.15f,%.15f,%.15f' % loc)
 		file.write('\n\t\t\tProperty: "Lcl Rotation", "Lcl Rotation", "A+",%.15f,%.15f,%.15f' % rot)
 		file.write('\n\t\t\tProperty: "Lcl Scaling", "Lcl Scaling", "A+",%.15f,%.15f,%.15f' % scale)
+		return loc, rot, scale, matrix
 	
 	def write_object_props(ob=None, loc=None, matrix=None):
 		# if the type is 0 its an empty otherwise its a mesh
@@ -163,7 +159,7 @@ def write_scene(file, sce, world):
 			Property: "QuaternionInterpolate", "bool", "",0
 			Property: "Visibility", "Visibility", "A+",1''')
 		
-		write_object_tx(ob, loc, matrix)
+		loc, rot, scale, matrix = write_object_tx(ob, loc, matrix)
 		
 		# Rotation order
 		# eEULER_XYZ
@@ -243,6 +239,8 @@ def write_scene(file, sce, world):
 			file.write('\n\t\t\tProperty: "Color", "Color", "A",0.8,0.8,0.8')
 			file.write('\n\t\t\tProperty: "Size", "double", "",100')
 			file.write('\n\t\t\tProperty: "Look", "enum", "",1')
+		
+		return loc, rot, scale, matrix
 	
 	def write_camera_switch():
 		file.write('''
@@ -266,7 +264,7 @@ def write_scene(file, sce, world):
 		CameraIndexName: 
 	}''')
 	
-	def write_camera(name, loc, near, far, proj_type, up):
+	def write_camera_dummy(name, loc, near, far, proj_type, up):
 		file.write('\n\tModel: "Model::%s", "Camera" {' % name )
 		file.write('\n\t\tVersion: 232')
 		write_object_props(None, loc)
@@ -358,14 +356,121 @@ def write_scene(file, sce, world):
 	def write_camera_default():
 		# This sucks but to match FBX converter its easier to
 		# write the cameras though they are not needed.
-		write_camera('Producer Perspective',	(0,71.3,287.5), 10, 4000, 0, (0,1,0))
-		write_camera('Producer Top',			(0,4000,0), 1, 30000, 1, (0,0,-1))
-		write_camera('Producer Bottom',			(0,-4000,0), 1, 30000, 1, (0,0,-1))
-		write_camera('Producer Front',			(0,0,4000), 1, 30000, 1, (0,1,0))
-		write_camera('Producer Back',			(0,0,-4000), 1, 30000, 1, (0,1,0))
-		write_camera('Producer Right',			(4000,0,0), 1, 30000, 1, (0,1,0))
-		write_camera('Producer Left',			(-4000,0,0), 1, 30000, 1, (0,1,0))
+		write_camera_dummy('Producer Perspective',	(0,71.3,287.5), 10, 4000, 0, (0,1,0))
+		write_camera_dummy('Producer Top',			(0,4000,0), 1, 30000, 1, (0,0,-1))
+		write_camera_dummy('Producer Bottom',			(0,-4000,0), 1, 30000, 1, (0,0,-1))
+		write_camera_dummy('Producer Front',			(0,0,4000), 1, 30000, 1, (0,1,0))
+		write_camera_dummy('Producer Back',			(0,0,-4000), 1, 30000, 1, (0,1,0))
+		write_camera_dummy('Producer Right',			(4000,0,0), 1, 30000, 1, (0,1,0))
+		write_camera_dummy('Producer Left',			(-4000,0,0), 1, 30000, 1, (0,1,0))
 	
+	def write_camera(ob, name):
+		'''
+		Write a blender camera
+		'''
+		render = sce.render
+		width	= render.sizeX
+		height	= render.sizeY
+		aspect	= float(width)/height
+		
+		data = ob.data
+		file.write('\n\tModel: "Model::%s", "Camera" {' % name )
+		file.write('\n\t\tVersion: 232')
+		loc, rot, scale, matrix = write_object_props(ob)
+		
+		file.write('\n\t\t\tProperty: "Roll", "Roll", "A+",0')
+		file.write('\n\t\t\tProperty: "FieldOfView", "FieldOfView", "A+",%.6f' % data.lens)
+		file.write('\n\t\t\tProperty: "FieldOfViewX", "FieldOfView", "A+",1')
+		file.write('\n\t\t\tProperty: "FieldOfViewY", "FieldOfView", "A+",1')
+		file.write('\n\t\t\tProperty: "FocalLength", "Real", "A+",14.0323972702026')
+		file.write('\n\t\t\tProperty: "OpticalCenterX", "Real", "A+",%.6f' % data.shiftX) # not sure if this is in the correct units?
+		file.write('\n\t\t\tProperty: "OpticalCenterY", "Real", "A+",%.6f' % data.shiftY) # ditto 
+		file.write('\n\t\t\tProperty: "BackgroundColor", "Color", "A+",0,0,0')
+		file.write('\n\t\t\tProperty: "TurnTable", "Real", "A+",0')
+		file.write('\n\t\t\tProperty: "DisplayTurnTableIcon", "bool", "",1')
+		file.write('\n\t\t\tProperty: "Motion Blur Intensity", "Real", "A+",1')
+		file.write('\n\t\t\tProperty: "UseMotionBlur", "bool", "",0')
+		file.write('\n\t\t\tProperty: "UseRealTimeMotionBlur", "bool", "",1')
+		file.write('\n\t\t\tProperty: "ResolutionMode", "enum", "",0')
+		file.write('\n\t\t\tProperty: "ApertureMode", "enum", "",2')
+		file.write('\n\t\t\tProperty: "GateFit", "enum", "",0')
+		file.write('\n\t\t\tProperty: "CameraFormat", "enum", "",0')
+		file.write('\n\t\t\tProperty: "AspectW", "double", "",%i' % width)
+		file.write('\n\t\t\tProperty: "AspectH", "double", "",%i' % height)
+		
+		'''Camera aspect ratio modes.
+			0 If the ratio mode is eWINDOW_SIZE, both width and height values aren't relevant.
+			1 If the ratio mode is eFIXED_RATIO, the height value is set to 1.0 and the width value is relative to the height value.
+			2 If the ratio mode is eFIXED_RESOLUTION, both width and height values are in pixels.
+			3 If the ratio mode is eFIXED_WIDTH, the width value is in pixels and the height value is relative to the width value.
+			4 If the ratio mode is eFIXED_HEIGHT, the height value is in pixels and the width value is relative to the height value. 
+		
+		Definition at line 234 of file kfbxcamera.h. '''
+		
+		file.write('\n\t\t\tProperty: "PixelAspectRatio", "double", "",2')
+		
+		file.write('\n\t\t\tProperty: "UseFrameColor", "bool", "",0')
+		file.write('\n\t\t\tProperty: "FrameColor", "ColorRGB", "",0.3,0.3,0.3')
+		file.write('\n\t\t\tProperty: "ShowName", "bool", "",1')
+		file.write('\n\t\t\tProperty: "ShowGrid", "bool", "",1')
+		file.write('\n\t\t\tProperty: "ShowOpticalCenter", "bool", "",0')
+		file.write('\n\t\t\tProperty: "ShowAzimut", "bool", "",1')
+		file.write('\n\t\t\tProperty: "ShowTimeCode", "bool", "",0')
+		file.write('\n\t\t\tProperty: "NearPlane", "double", "",%.6f' % data.clipStart)
+		file.write('\n\t\t\tProperty: "FarPlane", "double", "",%.6f' % data.clipStart)
+		file.write('\n\t\t\tProperty: "FilmWidth", "double", "",1.0')
+		file.write('\n\t\t\tProperty: "FilmHeight", "double", "",1.0')
+		file.write('\n\t\t\tProperty: "FilmAspectRatio", "double", "",%.6f' % aspect)
+		file.write('\n\t\t\tProperty: "FilmSqueezeRatio", "double", "",1')
+		file.write('\n\t\t\tProperty: "FilmFormatIndex", "enum", "",0')
+		file.write('\n\t\t\tProperty: "ViewFrustum", "bool", "",1')
+		file.write('\n\t\t\tProperty: "ViewFrustumNearFarPlane", "bool", "",0')
+		file.write('\n\t\t\tProperty: "ViewFrustumBackPlaneMode", "enum", "",2')
+		file.write('\n\t\t\tProperty: "BackPlaneDistance", "double", "",100')
+		file.write('\n\t\t\tProperty: "BackPlaneDistanceMode", "enum", "",0')
+		file.write('\n\t\t\tProperty: "ViewCameraToLookAt", "bool", "",1')
+		file.write('\n\t\t\tProperty: "LockMode", "bool", "",0')
+		file.write('\n\t\t\tProperty: "LockInterestNavigation", "bool", "",0')
+		file.write('\n\t\t\tProperty: "FitImage", "bool", "",0')
+		file.write('\n\t\t\tProperty: "Crop", "bool", "",0')
+		file.write('\n\t\t\tProperty: "Center", "bool", "",1')
+		file.write('\n\t\t\tProperty: "KeepRatio", "bool", "",1')
+		file.write('\n\t\t\tProperty: "BackgroundMode", "enum", "",0')
+		file.write('\n\t\t\tProperty: "BackgroundAlphaTreshold", "double", "",0.5')
+		file.write('\n\t\t\tProperty: "ForegroundTransparent", "bool", "",1')
+		file.write('\n\t\t\tProperty: "DisplaySafeArea", "bool", "",0')
+		file.write('\n\t\t\tProperty: "SafeAreaDisplayStyle", "enum", "",1')
+		file.write('\n\t\t\tProperty: "SafeAreaAspectRatio", "double", "",%.6f' % aspect)
+		file.write('\n\t\t\tProperty: "Use2DMagnifierZoom", "bool", "",0')
+		file.write('\n\t\t\tProperty: "2D Magnifier Zoom", "Real", "A+",100')
+		file.write('\n\t\t\tProperty: "2D Magnifier X", "Real", "A+",50')
+		file.write('\n\t\t\tProperty: "2D Magnifier Y", "Real", "A+",50')
+		file.write('\n\t\t\tProperty: "CameraProjectionType", "enum", "",0')
+		file.write('\n\t\t\tProperty: "UseRealTimeDOFAndAA", "bool", "",0')
+		file.write('\n\t\t\tProperty: "UseDepthOfField", "bool", "",0')
+		file.write('\n\t\t\tProperty: "FocusSource", "enum", "",0')
+		file.write('\n\t\t\tProperty: "FocusAngle", "double", "",3.5')
+		file.write('\n\t\t\tProperty: "FocusDistance", "double", "",200')
+		file.write('\n\t\t\tProperty: "UseAntialiasing", "bool", "",0')
+		file.write('\n\t\t\tProperty: "AntialiasingIntensity", "double", "",0.77777')
+		file.write('\n\t\t\tProperty: "UseAccumulationBuffer", "bool", "",0')
+		file.write('\n\t\t\tProperty: "FrameSamplingCount", "int", "",7')
+		
+		file.write('\n\t\t}')
+		file.write('\n\t\tMultiLayer: 0')
+		file.write('\n\t\tMultiTake: 0')
+		file.write('\n\t\tShading: Y')
+		file.write('\n\t\tCulling: "CullingOff"')
+		file.write('\n\t\tTypeFlags: "Camera"')
+		file.write('\n\t\tGeometryVersion: 124')
+		file.write('\n\t\tPosition: %.6f,%.6f,%.6f' % loc)
+		file.write('\n\t\tUp: %.6f,%.6f,%.6f' % tuple(Blender.Mathutils.Vector(0,1,0)*matrix) )
+		file.write('\n\t\tLookAt: %.6f,%.6f,%.6f' % tuple(Blender.Mathutils.Vector(0,0,-1)*matrix) )
+		file.write('\n\t\tShowInfoOnMoving: 1')
+		file.write('\n\t\tShowAudio: 0')
+		file.write('\n\t\tAudioColor: 0,1,0')
+		file.write('\n\t\tCameraOrthoZoom: 1')
+		file.write('\n\t}')
 	
 	def write_light(ob, name):
 		light = ob.data
@@ -585,6 +690,7 @@ def write_scene(file, sce, world):
 	
 	ob_meshes = []
 	ob_lights = []
+	ob_cameras = []
 	materials = {}
 	textures = {}
 	armatures = [] # We should export standalone armatures also
@@ -593,8 +699,9 @@ def write_scene(file, sce, world):
 		for ob, mtx in BPyObject.getDerivedObjects(ob_base):
 			#for ob in [ob_base,]:
 			ob_type = ob.type
-			
-			if ob_type == 'Lamp':
+			if ob_type == 'Camera':
+				ob_cameras.append((sane_camname(ob), ob))
+			elif ob_type == 'Lamp':
 				ob_lights.append((sane_obname(ob), ob))
 			
 			else:
@@ -665,12 +772,26 @@ def write_scene(file, sce, world):
 
 Definitions:  {
 	Version: 100
-	Count: %i''' % (1+1+camera_count+len(ob_meshes)+len(ob_lights)+len(armatures)+armatures_totbones+len(materials)+(len(textures)*2))) # add 1 for the root model 1 for global settings
+	Count: %i''' % (\
+		1+1+camera_count+\
+		len(ob_meshes)+\
+		len(ob_lights)+\
+		len(ob_cameras)+\
+		len(armatures)+\
+		armatures_totbones+\
+		len(materials)+\
+		(len(textures)*2))) # add 1 for the root model 1 for global settings
 	
 	file.write('''
 	ObjectType: "Model" {
 		Count: %i
-	}''' % (1+camera_count+len(ob_meshes)+len(ob_lights)+len(armatures)+armatures_totbones)) # add 1 for the root model
+	}''' % (\
+		1+camera_count+\
+		len(ob_meshes)+\
+		len(ob_lights)+\
+		len(ob_cameras)+\
+		len(armatures)+\
+		armatures_totbones)) # add 1 for the root model
 	
 	file.write('''
 	ObjectType: "Geometry" {
@@ -725,7 +846,9 @@ Objects:  {''')
 		TypeFlags: "Null"
 	}''')
 	
-	
+	for obname, ob in ob_cameras:
+		write_camera(ob, obname)
+
 	for obname, ob in ob_lights:
 		write_light(ob, obname)
 	
@@ -1074,7 +1197,6 @@ Objects:  {''')
 				file.write('\n\t\t}')
 		file.write('\n\t}')	
 	
-	
 	write_camera_default()
 	
 	for matname, mat in materials:
@@ -1232,9 +1354,20 @@ def write_footer(file, sce, world):
 	file.write('\n\t}')
 	file.write('\n}')
 	file.write('\n')
+	
+	# Incase sombody imports this, clean up by clearing global dicts
+	sane_name_mapping_ob.clear()
+	sane_name_mapping_mat.clear()
+	sane_name_mapping_tex.clear()
+	sane_name_mapping_arm.clear()
+	sane_name_mapping_cam.clear()
+	
 
 import bpy
 def write_ui(filename):
+	if not filename.lower().endswith('.fbx'):
+		filename += '.fbx'
+	
 	if not BPyMessages.Warning_SaveOver(filename):
 		return
 	sce = bpy.data.scenes.active
