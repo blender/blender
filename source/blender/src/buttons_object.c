@@ -2928,8 +2928,8 @@ static void object_panel_fluidsim(Object *ob)
 					yline -= lineHeight;
 
 					uiBlockBeginAlign(block);
-					uiDefButS(block, NUM, REDRAWBUTSOBJECT, "Resolution:", 0, yline,150,objHeight, &fss->resolutionxyz, 1, maxRes, 10, 0, "Domain resolution in X,Y and Z direction");
-					uiDefButS(block, NUM, B_DIFF,           "Preview-Res.:", 150, yline,150,objHeight, &fss->previewresxyz, 1, 100, 10, 0, "Resolution of the preview meshes to generate, also in X,Y and Z direction");
+					uiDefButS(block, NUM, REDRAWBUTSOBJECT, "Resolution:", 0, yline,150,objHeight, &fss->resolutionxyz, 1, maxRes, 10, 0, "Domain resolution in X, Y and Z direction");
+					uiDefButS(block, NUM, B_DIFF,           "Preview-Res.:", 150, yline,150,objHeight, &fss->previewresxyz, 1, 100, 10, 0, "Resolution of the preview meshes to generate, also in X, Y and Z direction");
 					uiBlockEndAlign(block);
 					yline -= lineHeight;
 					yline -= 1*separateHeight;
@@ -2945,7 +2945,7 @@ static void object_panel_fluidsim(Object *ob)
 					uiDefBut(block, LABEL,   0, "Disp.-Qual.:",		 0,yline, 90,objHeight, NULL, 0.0, 0, 0, 0, "");
 					uiBlockBeginAlign(block);
 					uiDefButS(block, MENU, B_FLUIDSIM_FORCEREDRAW, "GuiDisplayMode%t|Geometry %x1|Preview %x2|Final %x3",	
-							 90,yline,105,objHeight, &fss->guiDisplayMode, 0, 0, 0, 0, "How to display the fluid mesh in the blender gui.");
+							 90,yline,105,objHeight, &fss->guiDisplayMode, 0, 0, 0, 0, "How to display the fluid mesh in the Blender GUI.");
 					uiDefButS(block, MENU, B_DIFF, "RenderDisplayMode%t|Geometry %x1|Preview %x2|Final %x3",	
 							195,yline,105,objHeight, &fss->renderDisplayMode, 0, 0, 0, 0, "How to display the fluid mesh for rendering.");
 					uiBlockEndAlign(block);
@@ -2974,7 +2974,7 @@ static void object_panel_fluidsim(Object *ob)
 					uiDefButS(block, MENU, REDRAWVIEW3D, "Viscosity%t|Manual %x1|Water %x2|Oil %x3|Honey %x4",	
 							0,yline, 90,objHeight, &fss->viscosityMode, 0, 0, 0, 0, "Set viscosity of the fluid to a preset value, or use manual input.");
 					if(fss->viscosityMode==1) {
-						uiDefButF(block, NUM, B_DIFF, "Value:",     90, yline, 105,objHeight, &fss->viscosityValue,       0.0, 10.0, 10, 0, "Viscosity setting, value that is multiplied by 10 to the power of (exponent*-1).");
+						uiDefButF(block, NUM, B_DIFF, "Value:",     90, yline, 105,objHeight, &fss->viscosityValue,       0.0, 10.0, 10, 0, "Viscosity setting: value that is multiplied by 10 to the power of (exponent*-1).");
 						uiDefButS(block, NUM, B_DIFF, "Neg-Exp.:", 195, yline, 105,objHeight, &fss->viscosityExponent, 0,   10,  10, 0, "Negative exponent for the viscosity value (to simplify entering small values e.g. 5*10^-6.");
 						uiBlockEndAlign(block);
 					} else {
@@ -3044,9 +3044,9 @@ static void object_panel_fluidsim(Object *ob)
 					|| (fss->type == OB_FLUIDSIM_INFLOW) 
 					) {
 				uiBlockBeginAlign(block); // fluid
-				uiDefButC(block, ROW, REDRAWBUTSOBJECT ,"Init Volume",    0, yline,100,objHeight, &fss->volumeInitType, 15.0, 1, 20.0, 1.0, "Type of volume init: use only inner region of mesh.");
-				uiDefButC(block, ROW, REDRAWBUTSOBJECT ,"Init Shell",   100, yline,100,objHeight, &fss->volumeInitType, 15.0, 2, 20.0, 2.0, "Type of volume init: use only the hollow shell defines by the faces of the mesh.");
-				uiDefButC(block, ROW, REDRAWBUTSOBJECT ,"Init Both",    200, yline,100,objHeight, &fss->volumeInitType, 15.0, 3, 20.0, 3.0, "Type of volume init: use both the inner volume and the outer shell.");
+				uiDefButC(block, ROW, REDRAWBUTSOBJECT, "Init Volume",    0, yline,100,objHeight, &fss->volumeInitType, 15.0, 1, 20.0, 1.0, "Type of volume init: use only inner region of mesh.");
+				uiDefButC(block, ROW, REDRAWBUTSOBJECT, "Init Shell",   100, yline,100,objHeight, &fss->volumeInitType, 15.0, 2, 20.0, 2.0, "Type of volume init: use only the hollow shell defines by the faces of the mesh.");
+				uiDefButC(block, ROW, REDRAWBUTSOBJECT, "Init Both",    200, yline,100,objHeight, &fss->volumeInitType, 15.0, 3, 20.0, 3.0, "Type of volume init: use both the inner volume and the outer shell.");
 				uiBlockEndAlign(block);
 				yline -= lineHeight;
 
@@ -3110,7 +3110,7 @@ static void object_panel_fluidsim(Object *ob)
 
 				// domainNovecgen "misused" here
 				uiDefBut(block, LABEL, 0, "Animated Mesh:",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "");
-			  uiDefButBitC(block, TOG, 1, REDRAWBUTSOBJECT, "Export",     200, yline,100,objHeight, &fss->domainNovecgen, 0, 0, 0, 0, "Export this mesh as an animated one. Slower, only use if really necessary (e.g. armatures or parented objects), animated pos/rot/scale IPOs do not require it.");
+			  uiDefButBitC(block, TOG, 1, REDRAWBUTSOBJECT, "Export",     200, yline,100,objHeight, &fss->domainNovecgen, 0, 0, 0, 0, "Export this mesh as an animated one. Slower, only use if really necessary (e.g. armatures or parented objects), animated loc/rot/scale IPOs do not require it.");
 				yline -= lineHeight;
 
 				uiDefBut(block, LABEL, 0, "PartSlip Amount:",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "");
@@ -3121,7 +3121,7 @@ static void object_panel_fluidsim(Object *ob)
 
 				// generateParticles "misused" here
 				uiDefBut(block, LABEL, 0, "Impact Factor:",		0,yline,200,objHeight, NULL, 0.0, 0, 0, 0, "");
-				uiDefButF(block, NUM, B_DIFF, "", 200, yline,100,objHeight, &fss->surfaceSmoothing, -2.0, 10.0, 10,0, "This is an unphsyical value for moving objects - it control the impact an obstacle has on the fluid, =0 behaves a bit like outflow (deleting fluid), =1 is default, while >1 results in high forces. Can be used to tweak total mass.");
+				uiDefButF(block, NUM, B_DIFF, "", 200, yline,100,objHeight, &fss->surfaceSmoothing, -2.0, 10.0, 10,0, "This is an unphysical value for moving objects - it controls the impact an obstacle has on the fluid, =0 behaves a bit like outflow (deleting fluid), =1 is default, while >1 results in high forces. Can be used to tweak total mass.");
 				yline -= lineHeight;
 
 				yline -= lineHeight; // obstacle
