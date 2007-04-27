@@ -1,6 +1,6 @@
 #!BPY
 """
-Name: 'Cal3D XML (.cfg)...'
+Name: 'Cal3D (.cfg .xaf .xsf .xmf .xrf)...'
 Blender: 243
 Group: 'Export'
 Tip: 'Export armature/bone/mesh/action data to the Cal3D format.'
@@ -386,7 +386,7 @@ class Cal3DMesh(object):
 				if len(uvlayers)>1:
 					for i, blend_vert in enumerate(face_v):
 						if face.smooth:		normal = blend_vert.no
-						vertex = submesh.getVertex(blend_mesh, blend_vert.index, blend_vert.co, normal, face_multi_uvs[face.index][i])
+						vertex = submesh.getVertex(blend_mesh, blend_vert, normal, face_multi_uvs[face.index][i])
 						face_vertices.append(vertex)
 				
 				elif len(uvlayers)==1:
@@ -398,13 +398,13 @@ class Cal3DMesh(object):
 						if write_single_layer_uvs:	uvs = (tuple(face_uv[i]),)
 						else:						uvs = ()
 						
-						vertex = submesh.getVertex(blend_mesh, blend_vert.index, blend_vert.co, normal, uvs )	
+						vertex = submesh.getVertex(blend_mesh, blend_vert, normal, uvs )	
 						face_vertices.append(vertex)
 				else:
 					# No UVs
 					for i, blend_vert in enumerate(face_v):
 						if face.smooth:		normal = blend_vert.no
-						vertex = submesh.getVertex(blend_mesh, blend_vert.index, blend_vert.co, normal, () )
+						vertex = submesh.getVertex(blend_mesh, blend_vert, normal, () )
 						face_vertices.append(vertex)
 				
 				
@@ -433,12 +433,15 @@ class Cal3DSubMesh(object):
 		self.springs    = []
 		self.id = id
 	
-	def getVertex(self, blend_mesh, blend_index, loc, normal, maps):
-		
+	def getVertex(self, blend_mesh, blend_vert, normal, maps):
+		'''
+		Request a vertex, and create a new one or return a matching vertex
+		'''
+		blend_index = blend_vert.index
 		index_map = self.vert_mapping.get(blend_index)
 		
 		if index_map == None:
-			vertex = Cal3DVertex(loc, normal, maps, blend_mesh.getVertexInfluences(blend_index))
+			vertex = Cal3DVertex(blend_vert.co, normal, maps, blend_mesh.getVertexInfluences(blend_index))
 			self.vertices.append([vertex])
 			self.vert_mapping[blend_index] = len(self.vert_mapping)
 			self.vert_count +=1
@@ -453,7 +456,7 @@ class Cal3DSubMesh(object):
 			
 			# No match, add a new vert
 			# Use the first verts influences
-			vertex = Cal3DVertex(loc, normal, maps, vertex_list[0].influences)
+			vertex = Cal3DVertex(blend_vert.co, normal, maps, vertex_list[0].influences)
 			vertex_list.append(vertex)
 			# self.vert_mapping[blend_index] = len(self.vert_mapping)
 			self.vert_count +=1
@@ -899,7 +902,9 @@ def export_cal3d(filename, PREF_SCALE=0.1, PREF_BAKE_MOTION = True, PREF_ACT_ACT
 	SUPPORTED_IPOS = 'QuatW', 'QuatX', 'QuatY', 'QuatZ', 'LocX', 'LocY', 'LocZ'
 	
 	if PREF_ACT_ACTION_ONLY:	action_items = [(blender_armature.action.name, blender_armature.action)]
-	else:						action_items = Blender.Armature.NLA.GetActions().iteritems()
+	else:						action_items = Blender.Armature.NLA.GetActions().items()
+	
+	print len(action_items), 'action_items'
 	
 	for animation_name, blend_action in action_items:
 		
@@ -913,9 +918,10 @@ def export_cal3d(filename, PREF_SCALE=0.1, PREF_BAKE_MOTION = True, PREF_ACT_ACT
 			action_end=		max(_frames);
 			del _frames
 		
+		blender_armature.action = blend_action
+		
 		if PREF_BAKE_MOTION:
 			# We need to set the action active if we are getting baked data
-			blend_action.setActive(blender_armature)
 			pose_data = BPyArmature.getBakedPoseData(blender_armature, action_start, action_end)
 			
 			# Fake, all we need is bone names
@@ -932,6 +938,8 @@ def export_cal3d(filename, PREF_SCALE=0.1, PREF_BAKE_MOTION = True, PREF_ACT_ACT
 					blend_action_ipos_items.append( (bone_name, []) )
 		
 		animation = Cal3DAnimation(animation_name)
+		# ----------------------------
+		ANIMATIONS.append(animation)
 		animation.duration = 0.0
 		
 		for bone_name, ipo in blend_action_ipos_items:
@@ -1018,16 +1026,14 @@ def export_cal3d(filename, PREF_SCALE=0.1, PREF_BAKE_MOTION = True, PREF_ACT_ACT
 			continue
 	
 	# Restore the original armature
-	backup_action.setActive(blender_armature)
+	blender_armature.action = backup_action
+	# ------------------------------------- End Animation
 	
-	
-	# ----------------------------
-	ANIMATIONS.append(animation)
 	
 	
 	cfg = open((filename), 'wb')
-	cfg.write('# Cal3D model exported from Blender with export_cal3d.py\n')
-
+	cfg.write('# Cal3D model exported from Blender with export_cal3d.py\n# from %s\n' % Blender.Get('filename'))
+	
 	if PREF_SCALE != 1.0:	cfg.write('scale=%.6f\n' % PREF_SCALE)
 	
 	fname = file_only_noext + '.xsf'
@@ -1099,6 +1105,8 @@ def export_cal3d_ui(filename):
 #import os
 if __name__ == '__main__':
 	Blender.Window.FileSelector(export_cal3d_ui, 'Cal3D Export', Blender.Get('filename').replace('.blend', '.cfg'))
+	#export_cal3d('/cally/data/skeleton/skeleton' + '.cfg', 1.0, True, False, False)
 	#export_cal3d('/test' + '.cfg')
 	#export_cal3d_ui('/test' + '.cfg')
-	#os.system('cd /; wine /cal3d_miniviewer.exe /test.cfg')
+	#os.system('cd /; wine /cal3d_miniviewer.exe /skeleton.cfg')
+	#os.system('cd /cally/;wine cally')

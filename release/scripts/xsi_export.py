@@ -171,7 +171,10 @@ def get_materials(obj):
   mats.extend(obj.getData(mesh=1).materials)
 
   # return the materials list
-  return mats
+  
+  # Is this correct!!?? - None materials raise an error otherwise
+  # but it might screw up the indicies.. TODO... check the exported files.
+  return [m for m in mats if m] 
 
 # ---------------------------------------------------------------------------
 # do_header writes out the header data

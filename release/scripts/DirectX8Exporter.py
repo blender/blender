@@ -1,13 +1,13 @@
 #!BPY
 
-""" Registration info for Blender menus:
-Name: 'DirectX(.x)...'
-Blender: 242
-Group: 'Export'
-Tip: 'Export to DirectX text file format format.'
 """
-__author__ = "Arben (Ben) Omari"
-__url__ = ("blender", "elysiun", "Author's site, http://www.omariben.too.it")
+# Name: 'DirectX (.x)...'
+# Blender: 242
+# Group: 'Export'
+# Tooltip: 'Export to DirectX text file format format for XNA Animation Component Library.'
+"""
+__author__ = "minahito (original:Arben (Ben) Omari)"
+__url__ = ("blender", "elysiun", "Adjuster's site http://sunday-lab.blogspot.com/, Author's site http://www.omariben.too.it")
 __version__ = "3.0"
 
 __bpydoc__ = """\
@@ -36,6 +36,10 @@ DX exporter.
 
 # Grab the latest version here :www.omariben.too.it
 
+# [Notice]
+# This script is the custom version of Mr.Arben Omari's great work.
+# If you have a question about the adjusted part, visit http://sunday-lab.blogspot.com/.
+
 import Blender
 from Blender import Types, Object, NMesh, Material,Armature,Mesh
 from Blender.Mathutils import *
@@ -61,6 +65,16 @@ toggle6_val = 0
 toggle7_val = 0
 anim_tick = Draw.Create(25)
 
+#***********************************************
+# DirectX file spec only allows letters, digits, and 
+# underscore in Names.
+#***********************************************
+def make_legal_name(starting_name):
+    new_name = starting_name.replace('.','_')
+    new_name = new_name.replace(' ','_')
+    if new_name[0].isdigit():
+        new_name = '_' + new_name
+    return new_name
 
 #***********************************************
 # MAIN
@@ -81,10 +95,10 @@ def event(evt, val):
 			return
 
 def button_event(evt): 
-  	global toggle_val,toggle1_val,toggle2_val,toggle3_val,toggle4_val,toggle5_val,toggle6_val,toggle7_val
+	global toggle_val,toggle1_val,toggle2_val,toggle3_val,toggle4_val,toggle5_val,toggle6_val,toggle7_val
 	global flip_z,swap_yz,flip_norm,anim,ticks,speed,no_light,Bl_norm,recalc_norm
 	arg = __script__['arg']
-  	if evt == 1:
+	if evt == 1:
 		toggle_val = 1 - toggle_val
 		anim = toggle_val
 		Draw.Redraw(1)
@@ -256,7 +270,7 @@ def draw():
 		Draw.Text("http://www.omariben.too.it")
 		glRasterPos2i(20,35)
 		Draw.Text("aromar@tin.it")
-			
+		
 def rect(x,y,width,height):
 		glBegin(GL_LINE_LOOP)
 		glVertex2i(x,y)
@@ -277,8 +291,6 @@ def rectFill(x,y,width,height):
 		
 Draw.Register(draw, event, button_event)
 
-
-		
 
 #***********************************************
 #***********************************************
@@ -332,9 +344,7 @@ class xExport:
 		if obj.type == "Empty" :
 			mat = self.getLocMat(obj)
 			mat_c = Matrix(mat)
-			name = obj.name
-			name_f = name.replace(".","")
-			self.writeArmFrames(mat_c, name_f)
+			self.writeArmFrames(mat_c, make_legal_name(obj.name))
 		if type(mesh) == Types.ArmatureType :
 			Child_obj = self.getArmChildren(obj)
 			chld_obj = obj
@@ -384,6 +394,8 @@ class xExport:
 			self.writeObjFrames(obj)
 			ch_l = self.getChildren(obj)
 			for ch in ch_l:
+			
+			
 				if ch and ch.type == "Armature":
 					ch_list.append(ch)
 					self.writeObjFrames(ch)
@@ -396,7 +408,7 @@ class xExport:
 				
 		self.file.write("}  // End of the Root Frame\n")		
 		if anim :
-			self.file.write("AnimationSet {\n")
+			self.file.write("AnimationSet AnimationSet0 {\n")
 			for obj in Blender.Scene.GetCurrent().objects:
 				if obj.type in ('Mesh', 'Empty'):
 					ip_list = obj.ipo
@@ -432,7 +444,7 @@ class xExport:
 		self.writeMeshMaterialList(obj, mesh, tex)
 		self.writeMeshNormals(obj, mesh)
 		self.writeMeshTextureCoords(obj, mesh)
-		self.file.write("  }  // End of the Frame %s \n" % (obj.name))
+		self.file.write("  }  // End of the Mesh %s \n" % (obj.name))
 		
 					
 	#***********************************************
@@ -459,7 +471,7 @@ class xExport:
 					self.file.write("}\n")
 				ip_list = obj.ipo
 				if ip_list != None :
-					self.file.write("AnimationSet {\n")
+					self.file.write("AnimationSet AnimationSet0 {\n")
 					self.writeAnimationObj(obj)
 					self.file.write("}\n")
 			else :
@@ -494,9 +506,8 @@ class xExport:
 				root_bon = bon
 		space += 1
 		mat_r = self.writeAnimCombineMatrix(root_bon,1)
-		name_r = root_bon.name
-		name_f = name_r.replace(".","")
-		self.writeArmFrames(mat_r, name_f)
+		self.writeArmFrames(mat_r, make_legal_name(root_bon.name))
+		
 		bon_c = root_bon.children
 		self.writeChildren(bon_c)
 		self.file.write("  }  // End of the Bone %s \n" % (root_bon.name))	
@@ -508,9 +519,7 @@ class xExport:
 	def writeBon(self,bon):
 		global space
 		mat_r = self.writeAnimCombineMatrix(bon,1)
-		name_r = bon.name
-		name_f = name_r.replace(".","")
-		self.writeArmFrames(mat_r, name_f)
+		self.writeArmFrames(mat_r, make_legal_name(bon.name))
 		
 	
 	def writeChildren(self,bon_c):
@@ -627,7 +636,7 @@ class xExport:
 			bo_list = []
 			weight_list = []
 			name = bo.name 
-			f_name = name.replace(".","")
+			f_name = make_legal_name(name)
 			try :
 				vert_list = mesh.getVertsFromGroup(name,1)
 				le = 0
@@ -771,9 +780,7 @@ template SkinWeights {\n\
 		global index_list,flip_z
 		#TransformMatrix
 		mat = self.getLocMat(obj)
-		name_f = obj.name.replace(".","")
-		name_f = name_f.replace(" ","")
-		self.writeArmFrames(mat, name_f)
+		self.writeArmFrames(mat, make_legal_name(obj.name))
 		mesh = NMesh.GetRawFromObject(obj.name)
 		self.file.write("Mesh {\n")    
 		numface=len(mesh.faces)
@@ -815,27 +822,18 @@ template SkinWeights {\n\
 		coun,counter = 0, 0
 		for face in mesh.faces :
 			coun += 1
+			separator = ','
 			if coun == numface:
-				if len(face.v) == 3:
-					self.file.write("3; %d, %d, %d;;\n" % (counter + a3, counter + b3, counter + c3))
-					counter += 3
-				elif len(face.v) == 4:
-					self.file.write("4; %d, %d, %d, %d;;\n" % (counter + a4, counter + b4, counter + c4, counter + d4))
-					counter += 4
-				elif len(face.v) < 3:
-					print "WARNING:the mesh has faces with less then 3 vertices"
-					print "        It my be not exported correctly."
-			else:
-				
-				if len(face.v) == 3:
-					self.file.write("3; %d, %d, %d;,\n" % (counter + a3, counter + b3, counter + c3))
-					counter += 3
-				elif len(face.v) == 4:
-					self.file.write("4; %d, %d, %d, %d;,\n" % (counter + a4, counter + b4, counter + c4, counter + d4))
-					counter += 4
-				elif len(face.v) < 3:
-					print "WARNING:the mesh has faces with less then 3 vertices"
-					print "        It my be not exported correctly."
+			    separator = ';'
+			if len(face.v) == 3:
+				self.file.write("3; %d, %d, %d;%c\n" % (counter + a3, counter + b3, counter + c3, separator))
+				counter += 3
+			elif len(face.v) == 4:
+				self.file.write("4; %d, %d, %d, %d;%c\n" % (counter + a4, counter + b4, counter + c4, counter + d4, separator))
+				counter += 4
+			elif len(face.v) < 3:
+				print "WARNING:the mesh has faces with less then 3 vertices"
+				print "        It my be not exported correctly."
 
 	
 	#***********************************************
@@ -870,9 +868,7 @@ template SkinWeights {\n\
 		##MATERIAL NAME
 		for mat in mesh.getMaterials():
 			self.file.write("  Material")
-			name_m = mat.name
-			name_f = name_m.replace(".","")
-			self.file.write(" %s "% (name_f))
+			self.file.write(" %s "% (make_legal_name(mat.name)))
 			self.file.write("{\n")
 			self.file.write("    %f; %f; %f;" % (mat.R, mat.G, mat.B))
 			self.file.write("%s;;\n" % (mat.alpha))
@@ -1081,7 +1077,7 @@ template SkinWeights {\n\
 		for bon in arm.bones.values() :
 			point_list = []
 			name = bon.name
-			name_f = name.replace(".", "")
+			name_f = make_legal_name(name)
 			try :
 				ip_bon_channel = ip[bon.name]
 				ip_bon_name = ip_bon_channel.getName()
@@ -1139,11 +1135,9 @@ template SkinWeights {\n\
 			a = po.getPoints()
 			point_list.append(int(a[0]))
 		
-		name = obj.name
-		name_f = name.replace(".", "")
 		self.file.write(" Animation {\n")
 		self.file.write("  { ")
-		self.file.write("%s }\n" % (name_f))
+		self.file.write("%s }\n" % (make_legal_name(obj.name)))
 		self.file.write("   AnimationKey { \n")
 		self.file.write("   4;\n")
 		self.file.write("   %d; \n" % (len(point_list)))

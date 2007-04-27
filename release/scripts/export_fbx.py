@@ -47,13 +47,12 @@ import BPyMesh
 import BPySys
 import BPyMessages
 import time
-from math import degrees
+from math import degrees, atan, pi
 # Used to add the scene name into the filename without using odd chars
+
 sane_name_mapping_ob = {}
 sane_name_mapping_mat = {}
 sane_name_mapping_tex = {}
-sane_name_mapping_arm = {}
-sane_name_mapping_cam = {}
 
 def strip_path(p):
 	return p.split('\\')[-1].split('/')[-1]
@@ -72,8 +71,6 @@ def sane_name(data, dct):
 def sane_obname(data):		return sane_name(data, sane_name_mapping_ob)
 def sane_matname(data):		return sane_name(data, sane_name_mapping_mat)
 def sane_texname(data):		return sane_name(data, sane_name_mapping_tex)
-def sane_armname(data):		return sane_name(data, sane_name_mapping_arm)
-def sane_camname(data):		return sane_name(data, sane_name_mapping_cam)
 
 # May use this later
 """
@@ -130,16 +127,25 @@ def write_scene(file, sce, world):
 		'''
 		
 		if ob and not matrix:	matrix = ob.matrixWorld
+		matrix_rot = matrix
+		#if matrix:
+		#	matrix = matrix_scale * matrix
 		
 		if matrix:
 			loc = tuple(matrix.translationPart())
 			scale = tuple(matrix.scalePart())
 			
+			matrix_rot = matrix.rotationPart()
 			# Lamps need to be rotated
 			if ob and ob.type =='Lamp':
-				matrix = Blender.Mathutils.RotationMatrix(90, 4, 'x') * matrix
-			
-			rot = tuple(matrix.rotationPart().toEuler())
+				matrix_rot = Blender.Mathutils.RotationMatrix(90, 4, 'x') * matrix
+				rot = tuple(matrix_rot.toEuler())
+			elif ob and ob.type =='Camera':
+				y = Blender.Mathutils.Vector(0,1,0) * matrix_rot
+				matrix_rot = matrix_rot * Blender.Mathutils.RotationMatrix(90, 3, 'r', y)
+				rot = tuple(matrix_rot.toEuler())
+			else:
+				rot = tuple(matrix_rot.toEuler())
 		else:
 			if not loc:
 				loc = 0,0,0
@@ -149,7 +155,7 @@ def write_scene(file, sce, world):
 		file.write('\n\t\t\tProperty: "Lcl Translation", "Lcl Translation", "A+",%.15f,%.15f,%.15f' % loc)
 		file.write('\n\t\t\tProperty: "Lcl Rotation", "Lcl Rotation", "A+",%.15f,%.15f,%.15f' % rot)
 		file.write('\n\t\t\tProperty: "Lcl Scaling", "Lcl Scaling", "A+",%.15f,%.15f,%.15f' % scale)
-		return loc, rot, scale, matrix
+		return loc, rot, scale, matrix, matrix_rot
 	
 	def write_object_props(ob=None, loc=None, matrix=None):
 		# if the type is 0 its an empty otherwise its a mesh
@@ -159,7 +165,7 @@ def write_scene(file, sce, world):
 			Property: "QuaternionInterpolate", "bool", "",0
 			Property: "Visibility", "Visibility", "A+",1''')
 		
-		loc, rot, scale, matrix = write_object_tx(ob, loc, matrix)
+		loc, rot, scale, matrix, matrix_rot = write_object_tx(ob, loc, matrix)
 		
 		# Rotation order
 		# eEULER_XYZ
@@ -240,7 +246,7 @@ def write_scene(file, sce, world):
 			file.write('\n\t\t\tProperty: "Size", "double", "",100')
 			file.write('\n\t\t\tProperty: "Look", "enum", "",1')
 		
-		return loc, rot, scale, matrix
+		return loc, rot, scale, matrix, matrix_rot
 	
 	def write_camera_switch():
 		file.write('''
@@ -374,12 +380,15 @@ def write_scene(file, sce, world):
 		aspect	= float(width)/height
 		
 		data = ob.data
+		
+		angle= 360.0 * atan(16.0/data.lens) / pi;
+		
 		file.write('\n\tModel: "Model::%s", "Camera" {' % name )
 		file.write('\n\t\tVersion: 232')
-		loc, rot, scale, matrix = write_object_props(ob)
+		loc, rot, scale, matrix, matrix_rot = write_object_props(ob)
 		
 		file.write('\n\t\t\tProperty: "Roll", "Roll", "A+",0')
-		file.write('\n\t\t\tProperty: "FieldOfView", "FieldOfView", "A+",%.6f' % data.lens)
+		file.write('\n\t\t\tProperty: "FieldOfView", "FieldOfView", "A+",%.6f' % angle)
 		file.write('\n\t\t\tProperty: "FieldOfViewX", "FieldOfView", "A+",1')
 		file.write('\n\t\t\tProperty: "FieldOfViewY", "FieldOfView", "A+",1')
 		file.write('\n\t\t\tProperty: "FocalLength", "Real", "A+",14.0323972702026')
@@ -464,8 +473,12 @@ def write_scene(file, sce, world):
 		file.write('\n\t\tTypeFlags: "Camera"')
 		file.write('\n\t\tGeometryVersion: 124')
 		file.write('\n\t\tPosition: %.6f,%.6f,%.6f' % loc)
-		file.write('\n\t\tUp: %.6f,%.6f,%.6f' % tuple(Blender.Mathutils.Vector(0,1,0)*matrix) )
-		file.write('\n\t\tLookAt: %.6f,%.6f,%.6f' % tuple(Blender.Mathutils.Vector(0,0,-1)*matrix) )
+		file.write('\n\t\tUp: %.6f,%.6f,%.6f' % tuple(Blender.Mathutils.Vector(0,1,0) * matrix_rot) )
+		file.write('\n\t\tLookAt: %.6f,%.6f,%.6f' % tuple(Blender.Mathutils.Vector(0,0,-1)*matrix_rot) )
+		
+		#file.write('\n\t\tUp: 0,0,0' )
+		#file.write('\n\t\tLookAt: 0,0,0' )
+		
 		file.write('\n\t\tShowInfoOnMoving: 1')
 		file.write('\n\t\tShowAudio: 0')
 		file.write('\n\t\tAudioColor: 0,1,0')
@@ -542,7 +555,7 @@ def write_scene(file, sce, world):
 		if mat:
 			mat_cold = tuple(mat.rgbCol)
 			mat_cols = tuple(mat.specCol)
-			#mat_colm = tuple(mat.mirCol)
+			#mat_colm = tuple(mat.mirCol) # we wont use the mirror color
 			mat_colamb = tuple([c for c in world_amb])
 			
 			mat_dif = mat.ref
@@ -700,7 +713,7 @@ def write_scene(file, sce, world):
 			#for ob in [ob_base,]:
 			ob_type = ob.type
 			if ob_type == 'Camera':
-				ob_cameras.append((sane_camname(ob), ob))
+				ob_cameras.append((sane_obname(ob), ob))
 			elif ob_type == 'Lamp':
 				ob_lights.append((sane_obname(ob), ob))
 			
@@ -727,7 +740,7 @@ def write_scene(file, sce, world):
 					arm = BPyObject.getObjectArmature(ob)
 					
 					if arm:
-						armname = sane_armname(arm)
+						armname = sane_obname(arm)
 						bones = arm.bones.values()
 						armatures_totbones += len(bones)
 						armatures.append((arm, armname, bones))
@@ -1236,6 +1249,9 @@ Objects:  {''')
 Relations:  {''')
 
 	file.write('\n\tModel: "Model::blend_root", "Null" {\n\t}')
+	for obname, ob in ob_cameras:
+		file.write('\n\tModel: "Model::%s", "Camera" {\n\t}' % obname)
+	
 	for obname, ob in ob_lights:
 		file.write('\n\tModel: "Model::%s", "Light" {\n\t}' % obname)
 	
@@ -1279,6 +1295,9 @@ Connections:  {''')
 
 	# write the fake root node
 	file.write('\n\tConnect: "OO", "Model::blend_root", "Model::Scene"')
+	
+	for obname, ob in ob_cameras:
+		file.write('\n\tConnect: "OO", "Model::%s", "Model::blend_root"' % obname)
 	
 	for obname, ob in ob_lights:
 		file.write('\n\tConnect: "OO", "Model::%s", "Model::blend_root"' % obname)
@@ -1359,8 +1378,6 @@ def write_footer(file, sce, world):
 	sane_name_mapping_ob.clear()
 	sane_name_mapping_mat.clear()
 	sane_name_mapping_tex.clear()
-	sane_name_mapping_arm.clear()
-	sane_name_mapping_cam.clear()
 	
 
 import bpy
@@ -1368,8 +1385,8 @@ def write_ui(filename):
 	if not filename.lower().endswith('.fbx'):
 		filename += '.fbx'
 	
-	if not BPyMessages.Warning_SaveOver(filename):
-		return
+	#if not BPyMessages.Warning_SaveOver(filename):
+	#	return
 	sce = bpy.data.scenes.active
 	world = sce.world
 	
@@ -1382,3 +1399,4 @@ def write_ui(filename):
 
 if __name__ == '__main__':
 	Blender.Window.FileSelector(write_ui, 'Export FBX', Blender.sys.makename(ext='.fbx'))
+	#write_ui('/test.fbx')
