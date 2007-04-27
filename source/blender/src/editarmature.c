@@ -50,6 +50,7 @@
 #include "DNA_ID.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_nla_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -2682,14 +2683,15 @@ void armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 			if(arm==ob->data) {
 				Object *cob;
 				bAction  *act;
-				bActionChannel *chan;
+				bActionChannel *achan;
+				bActionStrip *strip;
 
 				/* Rename action channel if necessary */
 				act = ob->action;
-				if (act && !act->id.lib){
+				if (act && !act->id.lib) {
 					/*	Find the appropriate channel */
-					chan= get_action_channel(act, oldname);
-					if(chan) BLI_strncpy(chan->name, newname, MAXBONENAME);
+					achan= get_action_channel(act, oldname);
+					if(achan) BLI_strncpy(achan->name, newname, MAXBONENAME);
 				}
 		
 				/* Rename the pose channel, if it exists */
@@ -2700,8 +2702,16 @@ void armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 					}
 				}
 				
-				/* and actually do the NLA too */
-				/* (todo) */
+				/* check all nla-strips too */
+				for (strip= ob->nlastrips.first; strip; strip= strip->next) {
+					/* Rename action channel if necessary */
+					act = strip->act;
+					if (act && !act->id.lib) {
+						/*	Find the appropriate channel */
+						achan= get_action_channel(act, oldname);
+						if(achan) BLI_strncpy(achan->name, newname, MAXBONENAME);
+					}
+				}
 				
 				/* Update any object constraints to use the new bone name */
 				for(cob= G.main->object.first; cob; cob= cob->id.next) {
@@ -2714,7 +2724,6 @@ void armature_bone_rename(bArmature *arm, char *oldnamep, char *newnamep)
 						}
 					}
 				}
-				
 			}
 					
 			/* See if an object is parented to this armature */
