@@ -1578,10 +1578,9 @@ void enter_editmode(int wc)
 {
 	Base *base;
 	Object *ob;
-	ID *id;
 	Mesh *me;
-	int ok= 0;
 	bArmature *arm;
+	int ok= 0;
 	
 	if(G.scene->id.lib) return;
 	base= BASACT;
