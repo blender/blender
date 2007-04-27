@@ -1926,7 +1926,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						show_all_pose_bones();
 				}
 				/* Object mode only, other modes are accounted for above */
-				else if ((G.f & G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT)==0) {
+				else if ((G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT))==0) {
 					if(G.qual==LR_CTRLKEY)hookmenu();
 					else if(G.qual==LR_ALTKEY) show_objects();
 					else if(G.qual==LR_SHIFTKEY) hide_objects(0);
