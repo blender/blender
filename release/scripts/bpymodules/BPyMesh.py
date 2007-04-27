@@ -427,7 +427,7 @@ def getMeshFromObject(ob, container_mesh=None, apply_modifiers=True, vgroups=Tru
 	return mesh
 
 
-def faceRayIntersect(f, orig, dir):
+def faceRayIntersect(f, orig, rdir):
 	'''
 	Returns face, side
 	Side is the side of a quad we intersect.
@@ -435,23 +435,23 @@ def faceRayIntersect(f, orig, dir):
 		side 1 == 0,2,3
 	'''
 	f_v= f.v
-	isect= Blender.Mathutils.Intersect(f_v[0].co, f_v[1].co, f_v[2].co, dir, orig, 1) # 1==clip
+	isect= Blender.Mathutils.Intersect(f_v[0].co, f_v[1].co, f_v[2].co, rdir, orig, 1) # 1==clip
 	
 	if isect:
 		return isect, 0
 	
 	if len(f_v)==4:
-		isect= Blender.Mathutils.Intersect(f_v[0].co, f_v[2].co, f_v[3].co, dir, orig, 1) # 1==clip
+		isect= Blender.Mathutils.Intersect(f_v[0].co, f_v[2].co, f_v[3].co, rdir, orig, 1) # 1==clip
 		if isect:
 			return isect, 1
 	return False, 0
 
 
-def pickMeshRayFace(me, orig, dir):
+def pickMeshRayFace(me, orig, rdir):
 	best_dist= 1000000
 	best_isect= best_side= best_face= None
 	for f in me.faces:
-		isect, side= faceRayIntersect(f, orig, dir)
+		isect, side= faceRayIntersect(f, orig, rdir)
 		if isect:
 			dist= (isect-orig).length
 			if dist<best_dist:
@@ -463,8 +463,8 @@ def pickMeshRayFace(me, orig, dir):
 	return best_face, best_isect, best_side
 
 
-def pickMeshRayFaceWeight(me, orig, dir):
-	f, isect, side = pickMeshRayFace(me, orig, dir)
+def pickMeshRayFaceWeight(me, orig, rdir):
+	f, isect, side = pickMeshRayFace(me, orig, rdir)
 	
 	if f==None:
 		return None, None, None, None, None
@@ -490,8 +490,8 @@ def pickMeshRayFaceWeight(me, orig, dir):
 
 
 
-def pickMeshGroupWeight(me, act_group, orig, dir):
-	f, side, w0, w1, w2= pickMeshRayFaceWeight(me, orig, dir)
+def pickMeshGroupWeight(me, act_group, orig, rdir):
+	f, side, w0, w1, w2= pickMeshRayFaceWeight(me, orig, rdir)
 	
 	if f==None:
 		return None
@@ -509,9 +509,9 @@ def pickMeshGroupWeight(me, act_group, orig, dir):
 	
 	return w0*vws[0] + w1*vws[1]  + w2*vws[2]
 
-def pickMeshGroupVCol(me, orig, dir):
+def pickMeshGroupVCol(me, orig, rdir):
 	Vector= Blender.Mathutils.Vector
-	f, side, w0, w1, w2= pickMeshRayFaceWeight(me, orig, dir)
+	f, side, w0, w1, w2= pickMeshRayFaceWeight(me, orig, rdir)
 	
 	if f==None:
 		return None

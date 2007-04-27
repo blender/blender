@@ -791,7 +791,11 @@ static void exec_but_callback(PyObject *callback, uiBut *but)
 		printf("Error, no button type matched.");
 	}
 	
-	PyTuple_SetItem( arg, 0, PyInt_FromLong(but->retval - EXPP_BUTTON_EVENTS_OFFSET) );
+	if (uiblock==NULL)
+		PyTuple_SetItem( arg, 0, PyInt_FromLong(but->retval - EXPP_BUTTON_EVENTS_OFFSET) );
+	else
+		PyTuple_SetItem( arg, 0, PyInt_FromLong(but->retval) );
+	
 	PyTuple_SetItem( arg, 1, pyvalue );
 	
 	result = PyObject_CallObject( callback, arg );
