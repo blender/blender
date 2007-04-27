@@ -54,17 +54,20 @@
 /*-- forward declarations -- */
 static PyObject *M_Geometry_PolyFill( PyObject * self, PyObject * args );
 static PyObject *M_Geometry_LineIntersect2D( PyObject * self, PyObject * args );
+static PyObject *M_Geometry_PointInTriangle2D( PyObject * self, PyObject * args );
 static PyObject *M_Geometry_BoxPack2D( PyObject * self, PyObject * args );
 
 /*-------------------------DOC STRINGS ---------------------------*/
 static char M_Geometry_doc[] = "The Blender Geometry module\n\n";
 static char M_Geometry_PolyFill_doc[] = "(veclist_list) - takes a list of polylines (each point a vector) and returns the point indicies for a polyline filled with triangles";
 static char M_Geometry_LineIntersect2D_doc[] = "(lineA_p1, lineA_p2, lineB_p1, lineB_p2) - takes 2 lines (as 4 vectors) and returns a vector for their point of intersection or None";
+static char M_Geometry_PointInTriangle2D_doc[] = "(pt, tri_p1, tri_p2, tri_p3) - takes 4 vectors, one is the point and the next 3 define the triabgle, only the x and y are used from the vectors";
 static char M_Geometry_BoxPack2D_doc[] = "";
 /*-----------------------METHOD DEFINITIONS ----------------------*/
 struct PyMethodDef M_Geometry_methods[] = {
 	{"PolyFill", ( PyCFunction ) M_Geometry_PolyFill, METH_VARARGS, M_Geometry_PolyFill_doc},
 	{"LineIntersect2D", ( PyCFunction ) M_Geometry_LineIntersect2D, METH_VARARGS, M_Geometry_LineIntersect2D_doc},
+	{"PointInTriangle2D", ( PyCFunction ) M_Geometry_PointInTriangle2D, METH_VARARGS, M_Geometry_PointInTriangle2D_doc},
 	{"BoxPack2D", ( PyCFunction ) M_Geometry_BoxPack2D, METH_VARARGS, M_Geometry_BoxPack2D_doc},
 	{NULL, NULL, 0, NULL}
 };
@@ -272,6 +275,28 @@ static PyObject *M_Geometry_LineIntersect2D( PyObject * self, PyObject * args )
 		return newVectorObject(newvec, 2, Py_NEW);
 	}
 	Py_RETURN_NONE;
+}
+
+#define SIDE_OF_LINE(pa,pb,pp)	((pa[0]-pp[0])*(pb[1]-pp[1]))-((pb[0]-pp[0])*(pa[1]-pp[1]))
+#define POINT_IN_TRI(p0,p1,p2,p3)	((SIDE_OF_LINE(p1,p2,p0)>=0) && (SIDE_OF_LINE(p2,p3,p0)>=0) && (SIDE_OF_LINE(p3,p1,p0)>=0))
+
+static PyObject *M_Geometry_PointInTriangle2D( PyObject * self, PyObject * args )
+{
+	VectorObject *pt_vec, *tri_p1, *tri_p2, *tri_p3;
+	
+	if( !PyArg_ParseTuple ( args, "O!O!O!O!",
+	  &vector_Type, &pt_vec,
+	  &vector_Type, &tri_p1,
+	  &vector_Type, &tri_p2,
+	  &vector_Type, &tri_p3)
+	)
+		return ( EXPP_ReturnPyObjError
+			 ( PyExc_TypeError, "expected 4 vector types\n" ) );
+	
+	if POINT_IN_TRI(pt_vec->vec, tri_p1->vec, tri_p2->vec, tri_p3->vec)
+		Py_RETURN_TRUE;
+	else
+		Py_RETURN_FALSE;
 }
 
 int boxPack_FromPyObject(PyObject * value, boxPack **boxarray )

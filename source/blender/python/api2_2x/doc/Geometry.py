@@ -48,6 +48,14 @@ def LineIntersect2D(vec1, vec2, vec3, vec4):
 	@return: a 2D Vector for the intersection or None where there is no intersection.
 	"""
 
+def PointInTriangle2D(pt, tri_pt1, tri_pt2, tri_pt3):
+	"""
+	Takes 4 vectors (one for the test point and 3 for the triangle)
+	This is a 2d function so only X and Y are used, Z and W will be ignored.
+	@rtype: bool
+	@return: True or False depending on the points intersection.
+	"""
+
 def BoxPack2D(boxlist):
 	"""
 	Takes a list of 2D boxes and packs them into a square.
