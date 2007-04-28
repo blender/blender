@@ -735,11 +735,13 @@ void BPY_spacescript_do_pywin_event( SpaceScript * sc, unsigned short event,
 	}
 }
 
-static void exec_but_callback(PyObject *callback, uiBut *but)
+static void exec_but_callback(void *pyobj, void *data)
 {
 	PyObject *result;
 	PyObject * pyvalue;
+	uiBut *but = (uiBut *)data;
 	PyObject *arg = PyTuple_New( 2 );
+	PyObject *callback = (PyObject *)pyobj;
 	
 	double value = ui_get_but_val(but);
 	

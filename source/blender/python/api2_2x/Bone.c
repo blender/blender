@@ -915,7 +915,7 @@ static PyObject *Bone_getAllChildren(BPy_Bone *self)
 	if (self->bone->childbase.first)
 		if (!PyBone_ChildrenAsList(list, &self->bone->childbase))
 			return NULL;
-	EXPP_incr_ret(list);
+	return EXPP_incr_ret(list);
 }
 //------------------ATTRIBUTE IMPLEMENTATIONS-----------------------------
 //------------------------Bone.name (get)
