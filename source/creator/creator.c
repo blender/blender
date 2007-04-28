@@ -234,23 +234,6 @@ int main(int argc, char **argv)
 	int audio = 0;
 #endif
 
-#ifndef YESIAMSTUPID
-	/* temporary: prevent people to make/use 64 bits versions without them knowing it might be
-		risky. I don't know for sure yet if we get problems, but I rather not get the burden of
-		having to fix all faulty saved 64 bits files (ton) */
-	if(sizeof(void *)==8) {
-		printf("64 bits compiles will give incorrectly saved .blend files. Do not use it. For testing purposes please remove this line from creator.c\n"); 
-		exit(0);
-	}
-#else
-	if(sizeof(void *)==8) {
-		printf("64 bits compiles will give incorrectly saved .blend files. Do not use it.\n\n"
-       "*** If you continue to run this executable, you really are quite stupid ***\n\n"); 
-
-	}
-
-#endif
-
 	setCallbacks();
 #ifdef __APPLE__
 		/* patch to ignore argument finder gives us (pid?) */
