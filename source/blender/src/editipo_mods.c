@@ -695,20 +695,35 @@ void mirror_ipo_keys(Ipo *ipo, short mirror_type)
 }
 
 /* currently only used by some action editor tools, but may soon get used by ipo editor */
-void actstrip_map_ipo_keys(Object *ob, Ipo *ipo, short restore)
+/* restore = whether to map points back to ipo-time 
+ * only_keys = whether to only adjust the location of the center point of beztriples
+ */
+void actstrip_map_ipo_keys(Object *ob, Ipo *ipo, short restore, short only_keys)
 {
 	IpoCurve *icu;
 	BezTriple *bezt;
 	int a;
 	
+	if (ipo==NULL) return;
+	
 	/* loop through all ipo curves, adjusting the times of the selected keys */
 	for (icu= ipo->curve.first; icu; icu= icu->next) {
 		for (a=0, bezt=icu->bezt; a<icu->totvert; a++, bezt++) {
 			/* are the times being adjusted for editing, or has editing finished */
-			if (restore) 
+			if (restore) {
+				if (only_keys == 0) {
+					bezt->vec[0][0]= get_action_frame(ob, bezt->vec[0][0]);
+					bezt->vec[2][0]= get_action_frame(ob, bezt->vec[2][0]);
+				}					
 				bezt->vec[1][0]= get_action_frame(ob, bezt->vec[1][0]);
-			else
+			}
+			else {
+				if (only_keys == 0) {
+					bezt->vec[0][0]= get_action_frame_inv(ob, bezt->vec[0][0]);
+					bezt->vec[2][0]= get_action_frame_inv(ob, bezt->vec[2][0]);
+				}
 				bezt->vec[1][0]= get_action_frame_inv(ob, bezt->vec[1][0]);
+			}
 		}
 	}
 }
@@ -894,6 +909,13 @@ void borderselect_ipo(void)
 	val= get_border(&rect, 3);
 
 	if(val) {
+		/* map ipo-points for editing if scaled ipo */
+		if (OBACT && OBACT->action && G.sipo->pin==0) {
+			if (G.sipo->actname || G.sipo->constname) {
+				actstrip_map_ipo_keys(OBACT, G.sipo->ipo, 0, 0);
+			}
+		}
+		
 		mval[0]= rect.xmin;
 		mval[1]= rect.ymin;
 		areamouseco_to_ipoco(G.v2d, mval, &rectf.xmin, &rectf.ymin);
@@ -940,6 +962,14 @@ void borderselect_ipo(void)
 				}
 			}
 		}
+		
+		/* undo mapping of ipo-points for drawing if scaled ipo */
+		if (OBACT && OBACT->action && G.sipo->pin==0) {
+			if (G.sipo->actname || G.sipo->constname) {
+				actstrip_map_ipo_keys(OBACT, G.sipo->ipo, 1, 0);
+			}
+		}
+		
 		BIF_undo_push("Border select Ipo");
 		allqueue(REDRAWIPO, 0);
 		allqueue(REDRAWACTION, 0);

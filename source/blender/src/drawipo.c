@@ -2155,6 +2155,13 @@ void drawipospace(ScrArea *sa, void *spacedata)
 			ei= sipo->editipo;
 			draw_key(sipo, ei->flag & IPO_VISIBLE);
 		}
+		
+		/* map ipo-points for drawing if scaled ipo */
+		if (OBACT && OBACT->action && sipo->pin==0) {
+			if (sipo->actname || sipo->constname) {
+				actstrip_map_ipo_keys(OBACT, sipo->ipo, 0, 0);
+			}
+		}
 
 		/* draw deselect */
 		draw_ipocurves(0);
@@ -2165,6 +2172,13 @@ void drawipospace(ScrArea *sa, void *spacedata)
 		draw_ipocurves(1);
 		draw_ipohandles(1);
 		draw_ipovertices(1);
+		
+		/* undo mapping of ipo-points for drawing if scaled ipo */
+		if (OBACT && OBACT->action && sipo->pin==0) {
+			if (sipo->actname || sipo->constname) {
+				actstrip_map_ipo_keys(OBACT, sipo->ipo, 1, 0);
+			}
+		}
 		
 		/* Draw 'curtains' for preview */
 		draw_anim_preview_timespace();

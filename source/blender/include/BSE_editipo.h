@@ -141,7 +141,7 @@ void filter_sampledata(float *data, int sfra, int efra);
 void sampledata_to_ipocurve(float *data, int sfra, int efra, struct IpoCurve *icu);
 void ipo_record(void);    
 
-void actstrip_map_ipo_keys(struct Object *ob, struct Ipo *ipo, short restore);
+void actstrip_map_ipo_keys(struct Object *ob, struct Ipo *ipo, short restore, short only_keys);
 
 void sethandles_ipo_keys(struct Ipo *ipo, int code);
 void snap_ipo_keys(struct Ipo *ipo, short snaptype);

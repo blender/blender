@@ -2484,9 +2484,9 @@ static void set_snap_actionchannels(bAction *act, short snaptype)
 		if(EDITABLE_ACHAN(achan)) {
 			if (achan->ipo) {
 				if(G.saction->pin==0 && OBACT) {
-					actstrip_map_ipo_keys(OBACT, achan->ipo, 0);
+					actstrip_map_ipo_keys(OBACT, achan->ipo, 0, 1);
 					snap_ipo_keys(achan->ipo, snaptype);
-					actstrip_map_ipo_keys(OBACT, achan->ipo, 1);
+					actstrip_map_ipo_keys(OBACT, achan->ipo, 1, 1);
 				}
 				else {
 					snap_ipo_keys(achan->ipo, snaptype);
@@ -2501,9 +2501,9 @@ static void set_snap_actionchannels(bAction *act, short snaptype)
 				if (EDITABLE_CONCHAN(conchan)) {
 					if (conchan->ipo) {
 						if(G.saction->pin==0 && OBACT) {
-							actstrip_map_ipo_keys(OBACT, conchan->ipo, 0);
+							actstrip_map_ipo_keys(OBACT, conchan->ipo, 0, 1);
 							snap_ipo_keys(conchan->ipo, snaptype);
-							actstrip_map_ipo_keys(OBACT, conchan->ipo, 1);
+							actstrip_map_ipo_keys(OBACT, conchan->ipo, 1, 1);
 						}
 						else {
 							snap_ipo_keys(conchan->ipo, snaptype);
@@ -2584,9 +2584,9 @@ static void mirror_actionchannels(bAction *act, short mirror_mode)
 		if (EDITABLE_ACHAN(achan)) {
 			if (achan->ipo) {
 				if (G.saction->pin==0 && OBACT) {
-					actstrip_map_ipo_keys(OBACT, achan->ipo, 0);
+					actstrip_map_ipo_keys(OBACT, achan->ipo, 0, 1);
 					mirror_ipo_keys(achan->ipo, mirror_mode);
-					actstrip_map_ipo_keys(OBACT, achan->ipo, 1);
+					actstrip_map_ipo_keys(OBACT, achan->ipo, 1, 1);
 				}
 				else {
 					mirror_ipo_keys(achan->ipo, mirror_mode);
@@ -2601,9 +2601,9 @@ static void mirror_actionchannels(bAction *act, short mirror_mode)
 				if (EDITABLE_CONCHAN(conchan)) {	
 					if (conchan->ipo) {
 						if(G.saction->pin==0 && OBACT) {
-							actstrip_map_ipo_keys(OBACT, conchan->ipo, 0);
+							actstrip_map_ipo_keys(OBACT, conchan->ipo, 0, 1);
 							mirror_ipo_keys(conchan->ipo, mirror_mode);
-							actstrip_map_ipo_keys(OBACT, conchan->ipo, 1);
+							actstrip_map_ipo_keys(OBACT, conchan->ipo, 1, 1);
 						}
 						else {
 							mirror_ipo_keys(conchan->ipo, mirror_mode);
@@ -3725,9 +3725,9 @@ void markers_selectkeys_between(void)
 		for (achan= act->chanbase.first; achan; achan= achan->next) {
 			if (achan->ipo) {
 				if(G.saction->pin==0 && OBACT) {
-					actstrip_map_ipo_keys(OBACT, achan->ipo, 0);
+					actstrip_map_ipo_keys(OBACT, achan->ipo, 0, 1);
 					borderselect_ipo_key(achan->ipo, min, max, SELECT_ADD);
-					actstrip_map_ipo_keys(OBACT, achan->ipo, 1);
+					actstrip_map_ipo_keys(OBACT, achan->ipo, 1, 1);
 				}
 				else {
 					borderselect_ipo_key(achan->ipo, min, max, SELECT_ADD);
@@ -3740,9 +3740,9 @@ void markers_selectkeys_between(void)
 			for (conchan= achan->constraintChannels.first; conchan; conchan= conchan->next) {
 				if (conchan->ipo) {
 					if(G.saction->pin==0 && OBACT) {
-						actstrip_map_ipo_keys(OBACT, conchan->ipo, 0);
+						actstrip_map_ipo_keys(OBACT, conchan->ipo, 0, 1);
 						borderselect_ipo_key(conchan->ipo, min, max, SELECT_ADD);
-						actstrip_map_ipo_keys(OBACT, conchan->ipo, 1);
+						actstrip_map_ipo_keys(OBACT, conchan->ipo, 1, 1);
 					}
 					else {
 						borderselect_ipo_key(conchan->ipo, min, max, SELECT_ADD);
