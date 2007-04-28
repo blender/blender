@@ -1,4 +1,4 @@
-/**
+/*
  * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
@@ -361,6 +361,13 @@ char *BLI_strcasestr(const char *s, const char *find);
 int BLI_strcasecmp(const char *s1, const char *s2);
 int BLI_strncasecmp(const char *s1, const char *s2, int n);
 void BLI_timestr(double time, char *str);
+
+/** 
+  * Trick to address 32 GB with an int (only for malloced pointers)
+  */
+int BLI_int_from_pointer(void *poin);
+void *BLI_pointer_from_int(int val);
+
 
 #define PRNTSUB(type,arg)			printf(#arg ": %" #type " ", arg)
 

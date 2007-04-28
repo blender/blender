@@ -1089,3 +1089,14 @@ void *dna_reconstruct(struct SDNA *newsdna, struct SDNA *oldsdna, char *compflag
 	return cur;
 }
 
+int dna_elem_offset(struct SDNA *sdna, char *stype, char *vartype, char *name)
+{
+	
+	int SDNAnr= dna_findstruct_nr(sdna, stype);
+	short *spo= sdna->structs[SDNAnr];
+	char *cp= find_elem(sdna, vartype, name, spo, NULL, NULL);
+	return (int)((long)cp);
+}
+
+
+

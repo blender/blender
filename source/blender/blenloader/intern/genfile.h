@@ -40,6 +40,7 @@ int dna_findstruct_nr(struct SDNA *sdna, char *str);
 char *dna_get_structDNA_compareflags(struct SDNA *sdna, struct SDNA *newsdna);
 void dna_switch_endian_struct(struct SDNA *oldsdna, int oldSDNAnr, char *data);
 void *dna_reconstruct(struct SDNA *newsdna, struct SDNA *oldsdna, char *compflags, int oldSDNAnr, int blocks, void *data);
+int dna_elem_offset(struct SDNA *sdna, char *stype, char *vartype, char *name);
 
 struct SDNA *dna_sdna_from_data(void *data, int datalen, int do_endian_swap);
 void dna_freestructDNA(struct SDNA *sdna);

@@ -1508,4 +1508,51 @@ void BLI_timestr(double time, char *str)
 	str[11]=0;
 }
 
+/* ************** 64 bits magic, trick to support up to 32 gig of address space *************** */
+/*                only works for malloced pointers (8 aligned)                   */
+
+#ifdef __LP64__ 
+
+#if defined(WIN32) && !defined(FREE_WINDOWS)
+#define PMASK		0x07FFFFFFFFi64
+#else
+#define PMASK		0x07FFFFFFFFll
+#endif
+
+
+int BLI_int_from_pointer(void *poin)
+{
+	long lval= (long)poin;
+	
+	return (int)(lval>>3);
+}
+
+void *BLI_pointer_from_int(int val)
+{
+	static int firsttime= 1;
+	static long basevalue= 0;
+	
+	if(firsttime) {
+		void *poin= malloc(10000);
+		basevalue= (long)poin;
+		basevalue &= ~PMASK;
+		printf("base: %d pointer %p\n", basevalue, poin); /* debug */
+		firsttime= 0;
+		free(poin);
+	}
+	return basevalue | (((long)val)<<3);
+}
+
+#else
+
+int BLI_int_from_pointer(void *poin)
+{
+	return (int)poin;
+}
+void *BLI_pointer_from_int(int val)
+{
+	return (void *)val;
+}
+
+#endif
 

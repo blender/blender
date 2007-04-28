@@ -69,6 +69,7 @@ typedef struct FileData {
 	char *compflags;
 	
 	int fileversion;
+	int id_name_offs;		/* used to retrieve ID names from (bhead+1) */
 	
 	struct OldNewMap *datamap;
 	struct OldNewMap *globmap;
@@ -119,6 +120,8 @@ void blo_freefiledata( FileData *fd);
 BHead *blo_firstbhead(FileData *fd);
 BHead *blo_nextbhead(FileData *fd, BHead *thisblock);
 BHead *blo_prevbhead(FileData *fd, BHead *thisblock);
-	
+
+char *bhead_id_name(FileData *fd, BHead *bhead);
+
 #endif
 

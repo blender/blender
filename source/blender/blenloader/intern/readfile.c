@@ -554,8 +554,7 @@ static void bh4_from_bh8(BHead *bhead, BHead8 *bhead8, int do_endian_swap)
 		}
 
 		/* this patch is to avoid a long long being read from not-eight aligned positions
-		   is necessary on SGI with -n32 compiling (no, is necessary on
-		   any modern 64bit architecture) */
+		   is necessary on any modern 64bit architecture) */
 		memcpy(&old, &bhead8->old, 8);
 		bhead4->old = (int) (old >> 3);
 
@@ -794,8 +793,12 @@ static int read_file_dna(FileData *fd)
 			int do_endian_swap= (fd->flags&FD_FLAGS_SWITCH_ENDIAN)?1:0;
 
 			fd->filesdna= dna_sdna_from_data(&bhead[1], bhead->len, do_endian_swap);
-			if (fd->filesdna)
+			if (fd->filesdna) {
+				
 				fd->compflags= dna_get_structDNA_compareflags(fd->filesdna, fd->memsdna);
+				/* used to retrieve ID names from (bhead+1) */
+				fd->id_name_offs= dna_elem_offset(fd->filesdna, "ID", "char", "name[]");
+			}
 
 			return 1;
 		} else if (bhead->code==ENDB)
@@ -1183,7 +1186,7 @@ static void switch_endian_structs(struct SDNA *filesdna, BHead *bhead)
 	int blocksize, nblocks;
 	char *data;
 
-	data= (char *)(bhead+1); /*  BHEAD+DATA dependancy */
+	data= (char *)(bhead+1);
 	blocksize= filesdna->typelens[ filesdna->structs[bhead->SDNAnr][0] ];
 
 	nblocks= bhead->nr;
@@ -1199,6 +1202,7 @@ static void *read_struct(FileData *fd, BHead *bh, char *blockname)
 	void *temp= NULL;
 
 	if (bh->len) {
+		/* switch is based on file dna */
 		if (bh->SDNAnr && (fd->flags & FD_FLAGS_SWITCH_ENDIAN))
 			switch_endian_structs(fd->filesdna, bh);
 
@@ -1207,7 +1211,7 @@ static void *read_struct(FileData *fd, BHead *bh, char *blockname)
 				temp= dna_reconstruct(fd->memsdna, fd->filesdna, fd->compflags, bh->SDNAnr, bh->nr, (bh+1));
 			} else {
 				temp= MEM_mallocN(bh->len, blockname);
-				memcpy(temp, (bh+1), bh->len); /*  BHEAD+DATA dependancy */
+				memcpy(temp, (bh+1), bh->len);
 			}
 		}
 	}
@@ -3936,15 +3940,6 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 	ListBase *lb;
 	char *allocname;
 	
-	if(bhead->code==ID_ID) {
-		ID *linkedid= (ID *)(bhead + 1); /*  BHEAD+DATA dependancy */
-
-		lb= wich_libbase(main, GS(linkedid->name));
-	}
-	else {
-		lb= wich_libbase(main, bhead->code);
-	}
-
 	/* read libblock */
 	id = read_struct(fd, bhead, "lib block");
 	if (id_r)
@@ -3953,6 +3948,15 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 		return blo_nextbhead(fd, bhead);
 	
 	oldnewmap_insert(fd->libmap, bhead->old, id, bhead->code);	/* for ID_ID check */
+	
+	/* do after read_struct, for dna reconstruct */
+	if(bhead->code==ID_ID) {
+		lb= wich_libbase(main, GS(id->name));
+	}
+	else {
+		lb= wich_libbase(main, bhead->code);
+	}
+	
 	BLI_addtail(lb, id);
 
 	/* clear first 8 bits */
@@ -6542,22 +6546,27 @@ static BHead *find_bhead(FileData *fd, void *old)
 	return NULL;
 }
 
-static ID *is_yet_read(Main *mainvar, BHead *bhead)
+char *bhead_id_name(FileData *fd, BHead *bhead)
+{
+	return ((char *)(bhead+1)) + fd->id_name_offs;
+}
+
+static ID *is_yet_read(FileData *fd, Main *mainvar, BHead *bhead)
 {
 	ListBase *lb;
-	ID *idtest, *id;
+	char *idname= bhead_id_name(fd, bhead);
 
-	// BHEAD+DATA dependancy
-	idtest= (ID *)(bhead +1);
-	lb= wich_libbase(mainvar, GS(idtest->name));
+	lb= wich_libbase(mainvar, GS(idname));
+	
 	if(lb) {
-		id= lb->first;
+		ID *id= lb->first;
 		while(id) {
-			if( strcmp(id->name, idtest->name)==0 ) return id;
+			if( strcmp(id->name, idname)==0 ) 
+				return id;
 			id= id->next;
 		}
 	}
-	return 0;
+	return NULL;
 }
 
 static void expand_doit(FileData *fd, Main *mainvar, void *old)
@@ -6572,16 +6581,12 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 			BHead *bheadlib= find_previous_lib(fd, bhead);
 
 			if(bheadlib) {
-				// BHEAD+DATA dependancy
-				Library *lib= (Library *)(bheadlib+1);
-				/* ***************************** */
-				/* we read the lib->name directly from the bhead, no DNA, potential danger (64 bits?) */
-				/* ***************************** */
+				Library *lib= read_struct(fd, bheadlib, "Library");
 				Main *ptr= blo_find_main(&fd->mainlist, lib->name, fd->filename);
 
-				id= is_yet_read(ptr, bhead);
+				id= is_yet_read(fd, ptr, bhead);
 
-				if(id==0) {
+				if(id==NULL) {
 					read_libblock(fd, ptr, bhead, LIB_READ+LIB_INDIRECT, NULL);
 					if(G.f & G_DEBUG) printf("expand_doit: other lib %s\n", lib->name);
 					
@@ -6594,20 +6599,20 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 					change_idid_adr_fd(fd, bhead->old, id);
 					if(G.f & G_DEBUG) printf("expand_doit: already linked: %s lib: %s\n", id->name, lib->name);
 				}
+				
+				MEM_freeN(lib);
 			}
 		}
 		else {
-			id= is_yet_read(mainvar, bhead);
+			id= is_yet_read(fd, mainvar, bhead);
 			if(id==NULL) {
-				// BHEAD+DATA dependancy
-				id= (ID *)(bhead+1);
 				read_libblock(fd, mainvar, bhead, LIB_TESTIND, NULL);
 			}
 			else {
 				/* this is actually only needed on UI call? when ID was already read before, and another append
 				   happens which invokes same ID... in that case the lookup table needs this entry */
 				oldnewmap_insert(fd->libmap, bhead->old, id, 1);
-				// printf("expand: already read %s\n", id->name);
+				if(G.f & G_DEBUG) printf("expand: already read %s\n", id->name);
 			}
 		}
 	}
@@ -7230,19 +7235,19 @@ static void append_named_part(FileData *fd, Main *mainvar, Scene *scene, char *n
 	Base *base;
 	BHead *bhead;
 	ID *id;
-	int afbreek=0;
+	int endloop=0;
 
 	bhead = blo_firstbhead(fd);
-	while(bhead && afbreek==0) {
+	while(bhead && endloop==0) {
 
-		if(bhead->code==ENDB) afbreek= 1;
+		if(bhead->code==ENDB) endloop= 1;
 		else if(bhead->code==idcode) {
-			// BHEAD+DATA dependancy
-			id= (ID *)(bhead+1);
-			if(strcmp(id->name+2, name)==0) {
+			char *idname= bhead_id_name(fd, bhead);
+				
+			if(strcmp(idname+2, name)==0) {
 
-				id= is_yet_read(mainvar, bhead);
-				if(id==0) {
+				id= is_yet_read(fd, mainvar, bhead);
+				if(id==NULL) {
 					read_libblock(fd, mainvar, bhead, LIB_TESTEXT, NULL);
 				}
 				else {
@@ -7258,7 +7263,7 @@ static void append_named_part(FileData *fd, Main *mainvar, Scene *scene, char *n
 					base= MEM_callocN( sizeof(Base), "app_nam_part");
 					BLI_addtail(&scene->base, base);
 
-					if(id==0) ob= mainvar->object.last;
+					if(id==NULL) ob= mainvar->object.last;
 					else ob= (Object *)id;
 					
 					/* this is bad code... G.vd nor G.scene should be used on this level... */
@@ -7276,7 +7281,7 @@ static void append_named_part(FileData *fd, Main *mainvar, Scene *scene, char *n
 						/* do NOT make base active here! screws up GUI stuff, if you want it do it on src/ level */
 					}
 				}
-				afbreek= 1;
+				endloop= 1;
 			}
 		}
 
@@ -7290,9 +7295,8 @@ static void append_id_part(FileData *fd, Main *mainvar, ID *id, ID **id_r)
 
 	for (bhead= blo_firstbhead(fd); bhead; bhead= blo_nextbhead(fd, bhead)) {
 		if (bhead->code == GS(id->name)) {
-			ID *idread= (ID *)(bhead+1); /*  BHEAD+DATA dependancy */
-
-			if (BLI_streq(id->name, idread->name)) {
+			
+			if (BLI_streq(id->name, bhead_id_name(fd, bhead))) {
 				id->flag &= ~LIB_READ;
 				id->flag |= LIB_TEST;
 //				printf("read lib block %s\n", id->name);
@@ -7509,7 +7513,7 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 		while(mainptr) {
 			int tot= mainvar_count_libread_blocks(mainptr);
 			
-			//printf("found LIB_READ %s\n", mainptr->curlib->name);
+			// printf("found LIB_READ %s\n", mainptr->curlib->name);
 			if(tot) {
 				FileData *fd= mainptr->curlib->filedata;
 
