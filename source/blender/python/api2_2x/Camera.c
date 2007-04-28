@@ -37,6 +37,7 @@
 #include "BKE_object.h"
 #include "BKE_library.h"
 #include "BLI_blenlib.h"
+#include "BLI_arithb.h" /* for M_PI */
 #include "BSE_editipo.h"
 #include "BIF_space.h"
 #include "mydevice.h"
