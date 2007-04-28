@@ -5202,7 +5202,6 @@ void view3d_buttons(void)
 				uiDefIconBut(block, BUT, B_ACTCOPY, ICON_COPYUP, 
 					     xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, 
 					     "Copies the current pose to the buffer");
-				uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 				uiDefIconBut(block, BUT, B_ACTPASTE, ICON_PASTEUP,	
 					     xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, 
 					     "Pastes the pose from the buffer");

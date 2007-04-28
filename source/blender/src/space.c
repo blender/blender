@@ -5365,7 +5365,7 @@ static void init_timespace(ScrArea *sa)
 	
 }
 
-/* ******************** SPACE: Time ********************** */
+/* ******************** SPACE: Nodes ********************** */
 
 extern void drawnodespace(ScrArea *sa, void *spacedata);
 extern void winqreadnodespace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);

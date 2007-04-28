@@ -674,6 +674,9 @@ void paste_posebuf (int flip)
 		return;
 	}
 	
+	if(pose_has_protected_selected(ob, 1))
+		return;
+	
 	/* Safely merge all of the channels in this pose into
 	any existing pose */
 	for (chan=g_posebuf->chanbase.first; chan; chan=chan->next){
