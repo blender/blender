@@ -50,6 +50,7 @@ class Camera:
 	@ivar type: The Camera type: 'persp' or 'ortho'
 	@ivar mode: The mode flags: B{ORed value}: 'showLimits':1, 'showMist':2.
 	@ivar lens: The lens value in [1.0, 250.0], only relevant to *persp* cameras.
+	@ivar angle: The lens value in degrees [7.323871, 172.847331], only relevant to *persp* cameras.
 	@ivar scale: The scale value in [0.01, 1000.00], only relevant to *ortho* cameras.
 	@ivar clipStart: The clip start value in [0.0, 100.0].
 	@ivar clipEnd: The clip end value in [1.0, 5000.0].

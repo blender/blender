@@ -52,6 +52,7 @@
 
 enum cam_consts {
 	EXPP_CAM_ATTR_LENS = 0,
+	EXPP_CAM_ATTR_ANGLE,
 	EXPP_CAM_ATTR_DOFDIST,
 	EXPP_CAM_ATTR_CLIPEND,
 	EXPP_CAM_ATTR_CLIPSTART,
@@ -728,6 +729,9 @@ static PyObject *getFloatAttr( BPy_Camera *self, void *type )
 	case EXPP_CAM_ATTR_LENS: 
 		param = cam->lens;
 		break;
+	case EXPP_CAM_ATTR_ANGLE: 
+		param = 360.0f * atan(16.0f/cam->lens) / M_PI;
+		break;
 	case EXPP_CAM_ATTR_DOFDIST: 
 		param = cam->YF_dofdist;
 		break;
@@ -772,12 +776,17 @@ static int setFloatAttrClamp( BPy_Camera *self, PyObject *value, void *type )
 	float *param;
 	struct Camera *cam = self->camera;
 	float min, max;
-
-
+	int ret;
+ 
 	switch( (int)type ) {
 	case EXPP_CAM_ATTR_LENS:
 		min = 1.0;
 		max = 250.0;
+		param = &cam->lens;
+		break;
+	case EXPP_CAM_ATTR_ANGLE:
+		min = 7.323871;
+		max = 172.847331;
 		param = &cam->lens;
 		break;
 	case EXPP_CAM_ATTR_DOFDIST:
@@ -826,7 +835,14 @@ static int setFloatAttrClamp( BPy_Camera *self, PyObject *value, void *type )
 				"undefined type in setFloatAttrClamp" );
 	}
 
-	return EXPP_setFloatClamped( value, param, min, max );
+	ret = EXPP_setFloatClamped( value, param, min, max );
+	
+	if (ret==0) {
+		if ((int)type == EXPP_CAM_ATTR_ANGLE) {
+			cam->lens = 16.0f / tan(M_PI*cam->lens/360.0f);
+		}
+	}
+	return ret;
 }
 
 
@@ -879,6 +895,11 @@ static PyGetSetDef BPy_Camera_getseters[] = {
 	 (getter)getFloatAttr, (setter)setFloatAttrClamp,
 	 "lens angle for perspective cameras",
 	 (void *)EXPP_CAM_ATTR_LENS},
+	{"angle",
+	 (getter)getFloatAttr, (setter)setFloatAttrClamp,
+	 "lens angle for perspective cameras",
+	 (void *)EXPP_CAM_ATTR_ANGLE},
+	 
 	{"scale",
 	 (getter)getFloatAttr, (setter)setFloatAttrClamp,
 	 "scale for ortho cameras",

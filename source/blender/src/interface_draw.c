@@ -1207,16 +1207,17 @@ static void ui_draw_round(int type, int colorid, float asp, float x1, float y1, 
 static void ui_draw_minimal(int type, int colorid, float asp, float x1, float y1, float x2, float y2, int flag)
 {
 	/* too much space between buttons */
-	/* 
-	x1+= asp;
-	x2-= asp;
-	y1+= asp;
-	y2-= asp;
-	*/
 	
-	/* Less space between buttons looks nicer */
-	y2-= asp;
-	x2-= asp;
+	if (type==TEX || type==IDPOIN) {
+		x1+= asp;
+		x2-= (asp*2);
+		//y1+= asp;
+		y2-= asp;
+	} else {
+		/* Less space between buttons looks nicer */
+		y2-= asp;
+		x2-= asp;
+	}
 	
 	/* paper */
 	if(flag & UI_SELECT) {
@@ -1229,34 +1230,59 @@ static void ui_draw_minimal(int type, int colorid, float asp, float x1, float y1
 	}
 	
 	glRectf(x1, y1, x2, y2);
-
-	if(flag & UI_SELECT) {
+	
+	if (type==TEX || type==IDPOIN) {
 		BIF_ThemeColorShade(colorid, -60);
-
-		/* top */
-		fdrawline(x1, y2, x2, y2);
-		/* left */
-		fdrawline(x1, y1, x1, y2);
-		BIF_ThemeColorShade(colorid, +40);
-
-		/* below */
-		fdrawline(x1, y1, x2, y1);
-		/* right */
-		fdrawline(x2, y1, x2, y2);
-	}
-	else {
-		BIF_ThemeColorShade(colorid, +40);
 
 		/* top */
 		fdrawline(x1, y2, x2, y2);
 		/* left */
 		fdrawline(x1, y1, x1, y2);
 		
-		BIF_ThemeColorShade(colorid, -60);
+		
+		/* text underline, some  */ 
+		BIF_ThemeColorShade(colorid, +50);
+		glEnable(GL_LINE_STIPPLE);
+		glLineStipple(1, 0x8888);
+		fdrawline(x1+(asp*2), y1+(asp*3), x2-(asp*2), y1+(asp*3));
+		glDisable(GL_LINE_STIPPLE);
+		
+		
+		BIF_ThemeColorShade(colorid, +60);
 		/* below */
 		fdrawline(x1, y1, x2, y1);
 		/* right */
 		fdrawline(x2, y1, x2, y2);
+		
+	} else {
+		if(flag & UI_SELECT) {
+			BIF_ThemeColorShade(colorid, -60);
+
+			/* top */
+			fdrawline(x1, y2, x2, y2);
+			/* left */
+			fdrawline(x1, y1, x1, y2);
+			BIF_ThemeColorShade(colorid, +40);
+
+			/* below */
+			fdrawline(x1, y1, x2, y1);
+			/* right */
+			fdrawline(x2, y1, x2, y2);
+		}
+		else {
+			BIF_ThemeColorShade(colorid, +40);
+
+			/* top */
+			fdrawline(x1, y2, x2, y2);
+			/* left */
+			fdrawline(x1, y1, x1, y2);
+			
+			BIF_ThemeColorShade(colorid, -60);
+			/* below */
+			fdrawline(x1, y1, x2, y1);
+			/* right */
+			fdrawline(x2, y1, x2, y2);
+		}
 	}
 	
 	/* special type decorations */

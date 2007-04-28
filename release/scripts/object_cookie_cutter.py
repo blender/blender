@@ -53,6 +53,7 @@ from math import sqrt
 import BPyMesh
 Vector= Blender.Mathutils.Vector
 LineIntersect2D= Blender.Geometry.LineIntersect2D
+PointInTriangle2D= Blender.Geometry.PointInTriangle2D
 
 # Auto class
 def auto_class(slots):
@@ -103,19 +104,14 @@ def point_in_bounds(pt, bounds):
 		return True
 	else:
 		return False
-	
-	
+
 def point_in_poly2d(pt, fvco):
-	crazy_point= Vector(pt) # A point far outside the range of the terrain.
-	crazy_point.x= crazy_point.x - 10000000
-	
-	#fvco= [v.co for v in face]
-	isect=0
-	for i in xrange(len(fvco)):
-		isect+= (LineIntersect2D(pt, crazy_point, fvco[i], fvco[i-1]) != None)
-	
-	return isect%2 # odd number is an intersect which wouold be true (inside the face) 
-	
+	if PointInTriangle2D(pt, fvco[0], fvco[1], fvco[2]):
+		return True
+	if len(fvco) == 4:
+		if PointInTriangle2D(pt, fvco[0], fvco[2], fvco[3]):
+			return True
+	return False
 
 # reuse me more.
 def sorted_edge_indicies(ed):

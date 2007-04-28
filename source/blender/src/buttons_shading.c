@@ -2045,7 +2045,7 @@ static void world_panel_texture(World *wrld)
 	uiDefButS(block, ROW, B_WORLDPRV, "Tube",		235,90,65,20, &(mtex->texco), 4.0, (float)TEXCO_H_TUBEMAP, 0, 0, "For 360 degree panorama sky, cylindrical mapped, only top half");
 	
 	uiDefButS(block, ROW, B_WORLDPRV, "Object",	100,70,70,20, &(mtex->texco), 4.0, (float)TEXCO_OBJECT, 0, 0, "Uses linked object's coordinates for texture coordinates");
-	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_WORLDPRV, "", 170,70,130,20, &(mtex->object), "");
+	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_WORLDPRV, "OB:", 170,70,130,20, &(mtex->object), "Object name to use for mapping");
 
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_WORLDPRV, "dX",		100,40,100,19, mtex->ofs, -20.0, 20.0, 10, 0, "Fine tunes texture mapping X coordinate");

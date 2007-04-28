@@ -381,14 +381,12 @@ def write_scene(file, sce, world):
 		
 		data = ob.data
 		
-		angle= 360.0 * atan(16.0/data.lens) / pi;
-		
 		file.write('\n\tModel: "Model::%s", "Camera" {' % name )
 		file.write('\n\t\tVersion: 232')
 		loc, rot, scale, matrix, matrix_rot = write_object_props(ob)
 		
 		file.write('\n\t\t\tProperty: "Roll", "Roll", "A+",0')
-		file.write('\n\t\t\tProperty: "FieldOfView", "FieldOfView", "A+",%.6f' % angle)
+		file.write('\n\t\t\tProperty: "FieldOfView", "FieldOfView", "A+",%.6f' % data.angle)
 		file.write('\n\t\t\tProperty: "FieldOfViewX", "FieldOfView", "A+",1')
 		file.write('\n\t\t\tProperty: "FieldOfViewY", "FieldOfView", "A+",1')
 		file.write('\n\t\t\tProperty: "FocalLength", "Real", "A+",14.0323972702026')
