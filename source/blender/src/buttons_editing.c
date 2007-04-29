@@ -1602,7 +1602,11 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		} else if (md->type==eModifierType_Decimate) {
 			height = 48;
 		} else if (md->type==eModifierType_Wave) {
-			height = 248;
+			WaveModifierData *wmd = (WaveModifierData *)md;
+			height = 280;
+			if(wmd->texmapping == MOD_WAV_MAP_OBJECT ||
+			   wmd->texmapping == MOD_WAV_MAP_UV)
+				height += 19;
 		} else if (md->type==eModifierType_Armature) {
 			height = 67;
 		} else if (md->type==eModifierType_Hook) {
@@ -1837,6 +1841,36 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Sta x:",		lx,(cy-=19),113,19, &wmd->startx, -100.0, 100.0, 100, 0, "Starting position for the X axis");
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Sta y:",		lx+115,cy,105,19, &wmd->starty, -100.0, 100.0, 100, 0, "Starting position for the Y axis");
 			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_MODIFIER_RECALC, "Ob: ", lx, (cy-=19), 220,19, &wmd->objectcenter, "Object to use as Starting Position (leave blank to disable)");
+			uiDefIDPoinBut(block, modifier_testTexture, ID_TE, B_CHANGEDEP,"Texture: ", lx, (cy -= 19), 220, 19, &wmd->texture,"Texture with which to modulate wave");
+			sprintf(str, "Texture Coordinates%%t"
+			        "|Local%%x%d|Global%%x%d|Object%%x%d|UV%%x%d",
+			        MOD_WAV_MAP_LOCAL, MOD_WAV_MAP_GLOBAL,
+			        MOD_WAV_MAP_OBJECT, MOD_WAV_MAP_UV);
+			uiDefButI(block, MENU, B_MODIFIER_RECALC, str,
+			          lx, (cy -= 19), 220, 19, &wmd->texmapping,
+			          0.0, 1.0, 0, 0,
+			          "Texture coordinates used for modulation input");
+			if (wmd->texmapping == MOD_WAV_MAP_UV) {
+				char *strtmp;
+				int i;
+				CustomData *fdata = G.obedit ? &G.editMesh->fdata
+				                             : &((Mesh*)ob->data)->fdata;
+				build_uvlayer_menu_vars(fdata, &strtmp, &wmd->uvlayer_tmp,
+				                        wmd->uvlayer_name);
+				but = uiDefButI(block, MENU, B_MODIFIER_RECALC, strtmp,
+				      lx, (cy -= 19), 220, 19, &wmd->uvlayer_tmp,
+				      0.0, 1.0, 0, 0, "Set the UV layer to use");
+				MEM_freeN(strtmp);
+				i = CustomData_get_layer_index(fdata, CD_MTFACE);
+				uiButSetFunc(but, set_displace_uvlayer, wmd,
+				             &fdata->layers[i]);
+			}
+			if(wmd->texmapping == MOD_DISP_MAP_OBJECT) {
+				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CHANGEDEP,
+				               "Ob: ", lx, (cy -= 19), 220, 19,
+				               &wmd->map_object,
+				               "Object to get texture coordinates from");
+			}
             cy -= 19;
 			uiBlockBeginAlign(block);
 			uiDefButF(block, NUMSLI, B_MODIFIER_RECALC, "Speed:",	lx,(cy-=19),220,19, &wmd->speed, -2.0, 2.0, 0, 0, "Specify the wave speed");

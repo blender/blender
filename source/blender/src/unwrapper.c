@@ -82,7 +82,6 @@ static void hash_add_face(EdgeHash *ehash, MFace *mf)
 
 void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int index)
 {
-	MTFace *tf;
 	MFace *mf;
 	int a, doit=1, mark=0;
 	char *linkflag;

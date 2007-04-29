@@ -3327,12 +3327,15 @@ static void waveModifier_initData(ModifierData *md)
 	wmd->flag |= (WAV_X+WAV_Y+WAV_CYCL);
 	
 	wmd->objectcenter = NULL;
+	wmd->texture = NULL;
+	wmd->map_object = NULL;
 	wmd->height= 0.5f;
 	wmd->width= 1.5f;
 	wmd->speed= 0.5f;
 	wmd->narrow= 1.5f;
 	wmd->lifetime= 0.0f;
 	wmd->damp= 10.0f;
+	wmd->texmapping = MOD_WAV_MAP_LOCAL;
 }
 
 static void waveModifier_copyData(ModifierData *md, ModifierData *target)
@@ -3351,6 +3354,9 @@ static void waveModifier_copyData(ModifierData *md, ModifierData *target)
 	twmd->timeoffs = wmd->timeoffs;
 	twmd->width = wmd->width;
 	twmd->objectcenter = wmd->objectcenter;
+	twmd->texture = wmd->texture;
+	twmd->map_object = wmd->map_object;
+	twmd->texmapping = wmd->texmapping;
 }
 
 static int waveModifier_dependsOnTime(ModifierData *md)
@@ -3359,13 +3365,23 @@ static int waveModifier_dependsOnTime(ModifierData *md)
 }
 
 static void waveModifier_foreachObjectLink(
-                ModifierData *md, Object *ob,
-                void (*walk)(void *userData, Object *ob, Object **obpoin),
-                void *userData)
+                                    ModifierData *md, Object *ob,
+                                    ObjectWalkFunc walk, void *userData)
 {
 	WaveModifierData *wmd = (WaveModifierData*) md;
 
 	walk(userData, ob, &wmd->objectcenter);
+	walk(userData, ob, &wmd->map_object);
+}
+
+static void waveModifier_foreachIDLink(ModifierData *md, Object *ob,
+                                       IDWalkFunc walk, void *userData)
+{
+	WaveModifierData *wmd = (WaveModifierData*) md;
+
+	walk(userData, ob, (ID **)&wmd->texture);
+
+	waveModifier_foreachObjectLink(md, ob, (ObjectWalkFunc)walk, userData);
 }
 
 static void waveModifier_updateDepgraph(
@@ -3379,10 +3395,117 @@ static void waveModifier_updateDepgraph(
 
 		dag_add_relation(forest, curNode, obNode, DAG_RL_OB_DATA);
 	}
+
+	if(wmd->map_object) {
+		DagNode *curNode = dag_get_node(forest, wmd->map_object);
+
+		dag_add_relation(forest, curNode, obNode, DAG_RL_OB_DATA);
+	}
 }
 
-static void waveModifier_deformVerts(
-                ModifierData *md, Object *ob, DerivedMesh *derivedData,
+CustomDataMask waveModifier_requiredDataMask(ModifierData *md)
+{
+	WaveModifierData *wmd = (WaveModifierData *)md;
+	CustomDataMask dataMask = 0;
+
+
+	/* ask for UV coordinates if we need them */
+	if(wmd->texture && wmd->texmapping == MOD_WAV_MAP_UV)
+		dataMask |= (1 << CD_MTFACE);
+
+	return dataMask;
+}
+
+static void wavemod_get_texture_coords(WaveModifierData *wmd, Object *ob,
+                               DerivedMesh *dm,
+                               float (*co)[3], float (*texco)[3],
+                               int numVerts)
+{
+	int i;
+	int texmapping = wmd->texmapping;
+
+	if(texmapping == MOD_WAV_MAP_OBJECT) {
+		if(wmd->map_object)
+			Mat4Invert(wmd->map_object->imat, wmd->map_object->obmat);
+		else /* if there is no map object, default to local */
+			texmapping = MOD_WAV_MAP_LOCAL;
+	}
+
+	/* UVs need special handling, since they come from faces */
+	if(texmapping == MOD_WAV_MAP_UV) {
+		if(dm->getFaceDataArray(dm, CD_MTFACE)) {
+			MFace *mface = dm->getFaceArray(dm);
+			MFace *mf;
+			char *done = MEM_callocN(sizeof(*done) * numVerts,
+			                         "get_texture_coords done");
+			int numFaces = dm->getNumFaces(dm);
+			MTFace *tf;
+
+			validate_layer_name(&dm->faceData, CD_MTFACE, wmd->uvlayer_name);
+
+			tf = CustomData_get_layer_named(&dm->faceData, CD_MTFACE,
+			                                wmd->uvlayer_name);
+
+			/* verts are given the UV from the first face that uses them */
+			for(i = 0, mf = mface; i < numFaces; ++i, ++mf, ++tf) {
+				if(!done[mf->v1]) {
+					texco[mf->v1][0] = tf->uv[0][0];
+					texco[mf->v1][1] = tf->uv[0][1];
+					texco[mf->v1][2] = 0;
+					done[mf->v1] = 1;
+				}
+				if(!done[mf->v2]) {
+					texco[mf->v2][0] = tf->uv[1][0];
+					texco[mf->v2][1] = tf->uv[1][1];
+					texco[mf->v2][2] = 0;
+					done[mf->v2] = 1;
+				}
+				if(!done[mf->v3]) {
+					texco[mf->v3][0] = tf->uv[2][0];
+					texco[mf->v3][1] = tf->uv[2][1];
+					texco[mf->v3][2] = 0;
+					done[mf->v3] = 1;
+				}
+				if(!done[mf->v4]) {
+					texco[mf->v4][0] = tf->uv[3][0];
+					texco[mf->v4][1] = tf->uv[3][1];
+					texco[mf->v4][2] = 0;
+					done[mf->v4] = 1;
+				}
+			}
+
+			/* remap UVs from [0, 1] to [-1, 1] */
+			for(i = 0; i < numVerts; ++i) {
+				texco[i][0] = texco[i][0] * 2 - 1;
+				texco[i][1] = texco[i][1] * 2 - 1;
+			}
+
+			MEM_freeN(done);
+			return;
+		} else /* if there are no UVs, default to local */
+			texmapping = MOD_WAV_MAP_LOCAL;
+	}
+
+	for(i = 0; i < numVerts; ++i, ++co, ++texco) {
+		switch(texmapping) {
+		case MOD_WAV_MAP_LOCAL:
+			VECCOPY(*texco, *co);
+			break;
+		case MOD_WAV_MAP_GLOBAL:
+			VECCOPY(*texco, *co);
+			Mat4MulVecfl(ob->obmat, *texco);
+			break;
+		case MOD_WAV_MAP_OBJECT:
+			VECCOPY(*texco, *co);
+			Mat4MulVecfl(ob->obmat, *texco);
+			Mat4MulVecfl(wmd->map_object->imat, *texco);
+			break;
+		}
+	}
+}
+
+static void waveModifier_do(
+                WaveModifierData *md, Object *ob, DerivedMesh *dm,
                 float (*vertexCos)[3], int numVerts)
 {
 	WaveModifierData *wmd = (WaveModifierData*) md;
@@ -3390,6 +3513,7 @@ static void waveModifier_deformVerts(
 	float minfac =
 	  (float)(1.0 / exp(wmd->width * wmd->narrow * wmd->width * wmd->narrow));
 	float lifefac = wmd->height;
+	float (*tex_co)[3];
 
 	if(wmd->objectcenter){
 		float mat[4][4];
@@ -3415,6 +3539,12 @@ static void waveModifier_deformVerts(
 		}
 	}
 
+	if(wmd->texture) {
+		tex_co = MEM_mallocN(sizeof(*tex_co) * numVerts,
+		                     "waveModifier_do tex_co");
+		wavemod_get_texture_coords(wmd, ob, dm, vertexCos, tex_co, numVerts);
+	}
+
 	if(lifefac != 0.0) {
 		int i;
 
@@ -3423,6 +3553,13 @@ static void waveModifier_deformVerts(
 			float x = co[0] - wmd->startx;
 			float y = co[1] - wmd->starty;
 			float amplit= 0.0f;
+			TexResult texres;
+
+			if(wmd->texture) {
+				texres.nor = NULL;
+				get_texture_value(wmd->texture, tex_co[i], &texres);
+			}
+
 
 			if(wmd->flag & WAV_X) {
 				if(wmd->flag & WAV_Y) amplit = (float)sqrt(x*x + y*y);
@@ -3443,18 +3580,46 @@ static void waveModifier_deformVerts(
 			if(amplit > -wmd->width && amplit < wmd->width) {
 				amplit = amplit * wmd->narrow;
 				amplit = (float)(1.0 / exp(amplit * amplit) - minfac);
+				if(wmd->texture)
+					amplit = amplit * texres.tin;
 
 				co[2] += lifefac * amplit;
 			}
 		}
 	}
+
+	if(wmd->texture) MEM_freeN(tex_co);
+}
+
+static void waveModifier_deformVerts(
+                ModifierData *md, Object *ob, DerivedMesh *derivedData,
+                float (*vertexCos)[3], int numVerts)
+{
+	DerivedMesh *dm;
+	WaveModifierData *wmd = (WaveModifierData *)md;
+
+	if(!wmd->texture || derivedData) dm = derivedData;
+	else if(ob->type == OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
+	else return;
+
+	waveModifier_do(wmd, ob, dm, vertexCos, numVerts);
+
+	if(dm != derivedData) dm->release(dm);
 }
 
 static void waveModifier_deformVertsEM(
                 ModifierData *md, Object *ob, EditMesh *editData,
                 DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
 {
-	waveModifier_deformVerts(md, ob, NULL, vertexCos, numVerts);
+	DerivedMesh *dm;
+	WaveModifierData *wmd = (WaveModifierData *)md;
+
+	if(!wmd->texture || derivedData) dm = derivedData;
+	else dm = CDDM_from_editmesh(editData, ob->data);
+
+	waveModifier_do(wmd, ob, dm, vertexCos, numVerts);
+
+	if(dm != derivedData) dm->release(dm);
 }
 
 /* Armature */
@@ -3972,7 +4137,9 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->initData = waveModifier_initData;
 		mti->copyData = waveModifier_copyData;
 		mti->dependsOnTime = waveModifier_dependsOnTime;
+		mti->requiredDataMask = waveModifier_requiredDataMask;
 		mti->foreachObjectLink = waveModifier_foreachObjectLink;
+		mti->foreachIDLink = waveModifier_foreachIDLink;
 		mti->updateDepgraph = waveModifier_updateDepgraph;
 		mti->deformVerts = waveModifier_deformVerts;
 		mti->deformVertsEM = waveModifier_deformVertsEM;

@@ -1082,7 +1082,6 @@ void weight_paint(void)
 	Object *ob; 
 	Mesh *me;
 	MFace *mface;
-	MTFace *tface;
 	float mat[4][4], imat[4][4], paintweight, *vertexcosnos;
 	float vpimat[3][3];
 	int *indexar, index, totindex, alpha, totw;
@@ -1356,7 +1355,6 @@ void vertex_paint()
 	Object *ob;
 	Mesh *me;
 	MFace *mface;
-	MTFace *tface;
 	float mat[4][4], imat[4][4], *vertexcosnos;
 	float vpimat[3][3];
 	unsigned int paintcol=0, *mcol, *mcolorig, fcol1, fcol2;

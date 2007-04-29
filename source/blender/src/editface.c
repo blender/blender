@@ -555,7 +555,7 @@ MTFace *get_active_tface(MCol **mcol)
 {
 	Mesh *me;
 	MTFace *tf;
-	MTFace *mf;
+	MFace *mf;
 	int a;
 	
 	if(OBACT==NULL || OBACT->type!=OB_MESH)

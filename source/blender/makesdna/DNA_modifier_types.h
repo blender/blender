@@ -233,15 +233,28 @@ typedef struct DecimateModifierData {
 	int faceCount;
 } DecimateModifierData;
 
+enum {
+	MOD_WAV_MAP_LOCAL,
+	MOD_WAV_MAP_GLOBAL,
+	MOD_WAV_MAP_OBJECT,
+	MOD_WAV_MAP_UV,
+};
+
 typedef struct WaveModifierData {
 	ModifierData modifier;
 
 	struct Object *objectcenter;
+	struct Tex *texture;
+	struct Object *map_object;
 
 	short flag, pad;
 
 	float startx, starty, height, width;
 	float narrow, speed, damp;
+
+	int texmapping, uvlayer_tmp;
+
+	char uvlayer_name[32];
 	
 	float timeoffs, lifetime;
 } WaveModifierData;

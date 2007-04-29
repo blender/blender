@@ -1517,7 +1517,6 @@ static void vDM_release(DerivedMesh *dm)
 DerivedMesh *derivedmesh_from_versemesh(VNode *vnode, float (*vertexCos)[3])
 {
 	VDerivedMesh *vdm = MEM_callocN(sizeof(*vdm), "vdm");
-	struct VerseVert *vvert;
 
 	vdm->vnode = vnode;
 	vdm->vertex_layer = find_verse_layer_type((VGeomData*)vnode->data, VERTEX_LAYER);
