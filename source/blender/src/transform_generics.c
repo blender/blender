@@ -147,18 +147,17 @@ static void clipMirrorModifier(TransInfo *t, Object *ob)
 			MirrorModifierData *mmd = (MirrorModifierData*) md;	
 		
 			if(mmd->flag & MOD_MIR_CLIPPING) {
-				switch(mmd->axis){
-					case 0:
-						axis |= 1;
-						tolerance[0] = mmd->tolerance;
-						break;
-					case 1:
-						axis |= 2;
-						tolerance[1] = mmd->tolerance;
-						break;
-					case 2:
-						axis |= 4;
-						tolerance[2] = mmd->tolerance;
+				if(mmd->flag & MOD_MIR_AXIS_X) {
+					axis |= 1;
+					tolerance[0] = mmd->tolerance;
+				}
+				if(mmd->flag & MOD_MIR_AXIS_Y) {
+					axis |= 2;
+					tolerance[1] = mmd->tolerance;
+				}
+				if(mmd->flag & MOD_MIR_AXIS_Z) {
+					axis |= 4;
+					tolerance[2] = mmd->tolerance;
 				}
 			}
 		}
