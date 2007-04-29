@@ -2148,6 +2148,7 @@ void drawipospace(ScrArea *sa, void *spacedata)
 		/* ipokeys */
 		if(sipo->showkey) {
 			if(sipo->ipokey.first==0) make_ipokey();
+			else update_ipokey_val();
 			draw_ipokey(sipo);
 		}
 		

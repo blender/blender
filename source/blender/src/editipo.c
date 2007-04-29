@@ -4117,7 +4117,7 @@ void make_ipokey(void)
 		}
 	}
 	
-	/* test selectflags */
+	/* test selectflags & scaling */
 	ik= lb->first;
 	while(ik) {
 		sel= desel= 0;
@@ -4147,8 +4147,16 @@ void make_ipokey(void)
 		if(sel) ik->flag = 1;
 		else ik->flag= 0;
 		
+		/* map ipo-keys for drawing/editing if scaled ipo */
+		if (OBACT && OBACT->action && G.sipo->pin==0) {
+			if (G.sipo->actname || G.sipo->constname) {
+				ik->val= get_action_frame_inv(OBACT, ik->val);
+			}
+		}
+		
 		ik= ik->next;
 	}
+	
 	get_status_editipo();
 }
 
@@ -4156,6 +4164,7 @@ void make_ipokey_transform(Object *ob, ListBase *lb, int sel)
 {
 	IpoCurve *icu;
 	BezTriple *bezt;
+	IpoKey *ik;
 	int a, adrcode = 0, ok, dloc=0, drot=0, dsize=0;
 	
 	if(ob->ipo==NULL) return;
@@ -4240,6 +4249,19 @@ void make_ipokey_transform(Object *ob, ListBase *lb, int sel)
 		}
 		icu= icu->next;
 	}
+	
+	
+	ik= lb->first;
+	while(ik) {
+		/* map ipo-keys for drawing/editing if scaled ipo */
+		if (OBACT && OBACT->action && G.sipo->pin==0) {
+			if (G.sipo->actname || G.sipo->constname) {
+				ik->val= get_action_frame_inv(OBACT, ik->val);
+			}
+		}
+		
+		ik= ik->next;
+	}
 }
 
 void update_ipokey_val(void)	/* after moving vertices */
@@ -4252,6 +4274,13 @@ void update_ipokey_val(void)	/* after moving vertices */
 		for(a=0; a<G.sipo->totipo; a++) {
 			if(ik->data[a]) {
 				ik->val= ik->data[a]->vec[1][0];
+				
+				/* map ipo-keys for drawing/editing if scaled ipo */
+				if (OBACT && OBACT->action && G.sipo->pin==0) {
+					if (G.sipo->actname || G.sipo->constname) {
+						ik->val= get_action_frame_inv(OBACT, ik->val);
+					}
+				}
 				break;
 			}
 		}
