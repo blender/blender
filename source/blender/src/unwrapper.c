@@ -105,11 +105,10 @@ void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int index)
 	}
 	else {
 		/* fill array by selection */
-		tf= me->mtface;
 		mf= me->mface;
-		for(a=0; a<me->totface; a++, tf++, mf++) {
-			if(tf->flag & TF_HIDE);
-			else if(tf->flag & TF_SELECT) {
+		for(a=0; a<me->totface; a++, mf++) {
+			if(mf->flag & ME_HIDE);
+			else if(mf->flag & ME_FACE_SEL) {
 				hash_add_face(ehash, mf);
 				linkflag[a]= 1;
 			}
@@ -120,10 +119,9 @@ void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int index)
 		doit= 0;
 		
 		/* expand selection */
-		tf= me->mtface;
 		mf= me->mface;
-		for(a=0; a<me->totface; a++, tf++, mf++) {
-			if(tf->flag & TF_HIDE)
+		for(a=0; a<me->totface; a++, mf++) {
+			if(mf->flag & ME_HIDE)
 				continue;
 
 			if(!linkflag[a]) {
@@ -161,26 +159,26 @@ void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int index)
 	BLI_edgehash_free(seamhash, NULL);
 
 	if(mode==0 || mode==2) {
-		for(a=0, tf=me->mtface; a<me->totface; a++, tf++)
+		for(a=0, mf=me->mface; a<me->totface; a++, mf++)
 			if(linkflag[a])
-				tf->flag |= TF_SELECT;
+				mf->flag |= ME_FACE_SEL;
 			else
-				tf->flag &= ~TF_SELECT;
+				mf->flag &= ~ME_FACE_SEL;
 	}
 	else if(mode==1) {
-		for(a=0, tf=me->mtface; a<me->totface; a++, tf++)
-			if(linkflag[a] && (tf->flag & TF_SELECT))
+		for(a=0, mf=me->mface; a<me->totface; a++, mf++)
+			if(linkflag[a] && (mf->flag & ME_FACE_SEL))
 				break;
 
 		if (a<me->totface) {
-			for(a=0, tf=me->mtface; a<me->totface; a++, tf++)
+			for(a=0, mf=me->mface; a<me->totface; a++, mf++)
 				if(linkflag[a])
-					tf->flag &= ~TF_SELECT;
+					mf->flag &= ~ME_FACE_SEL;
 		}
 		else {
-			for(a=0, tf=me->mtface; a<me->totface; a++, tf++)
+			for(a=0, mf=me->mface; a<me->totface; a++, mf++)
 				if(linkflag[a])
-					tf->flag |= TF_SELECT;
+					mf->flag |= ME_FACE_SEL;
 		}
 	}
 	
@@ -213,10 +211,10 @@ ParamHandle *construct_param_handle(Mesh *me, short implicit, short fill, short 
 		float *uv[4];
 		int nverts;
 
-		if (tf->flag & TF_HIDE)
+		if (mf->flag & ME_HIDE)
 			continue;
 
-		if (sel && !(tf->flag & TF_SELECT))
+		if (sel && !(me->flag & ME_FACE_SEL))
 			continue;
 
 		if (implicit && !(tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4)))

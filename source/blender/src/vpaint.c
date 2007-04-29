@@ -319,7 +319,7 @@ void clear_vpaint()
 void clear_vpaint_selectedfaces()
 {
 	Mesh *me;
-	MTFace *tf;
+	MFace *mf;
 	Object *ob;
 	unsigned int paintcol, *mcol;
 	int i;
@@ -333,10 +333,10 @@ void clear_vpaint_selectedfaces()
 
 	paintcol= vpaint_get_current_col(&Gvp);
 
-	tf = me->mtface;
+	mf = me->mface;
 	mcol = (unsigned int*)me->mcol;
-	for (i = 0; i < me->totface; i++, tf++, mcol+=4) {
-		if (tf->flag & TF_SELECT) {
+	for (i = 0; i < me->totface; i++, mf++, mcol+=4) {
+		if (mf->flag & ME_FACE_SEL) {
 			mcol[0] = paintcol;
 			mcol[1] = paintcol;
 			mcol[2] = paintcol;
@@ -356,7 +356,6 @@ void clear_wpaint_selectedfaces()
 	extern float editbutvweight;
 	float paintweight= editbutvweight;
 	Mesh *me;
-	MTFace *tface;
 	MFace *mface;
 	Object *ob;
 	MDeformWeight *dw, *uw;
@@ -368,11 +367,11 @@ void clear_wpaint_selectedfaces()
 	
 	ob= OBACT;
 	me= ob->data;
-	if(me==0 || me->totface==0 || me->dvert==0 || !me->mtface) return;
+	if(me==0 || me->totface==0 || me->dvert==0 || !me->mface) return;
 	
 	indexar= get_indexarray();
-	for(index=0, tface=me->mtface; index<me->totface; index++, tface++) {
-		if((tface->flag & TF_SELECT)==0)
+	for(index=0, mface=me->mface; index<me->totface; index++, mface++) {
+		if((mface->flag & ME_FACE_SEL)==0)
 			indexar[index]= 0;
 		else
 			indexar[index]= index+1;
@@ -1220,13 +1219,13 @@ void weight_paint(void)
 				}
 			}
 
-			if((G.f & G_FACESELECT) && me->mtface) {
+			if((G.f & G_FACESELECT) && me->mface) {
 				for(index=0; index<totindex; index++) {
 					if(indexar[index] && indexar[index]<=me->totface) {
 					
-						tface= ((MTFace *)me->mtface) + (indexar[index]-1);
+						mface= ((MFace *)me->mface) + (indexar[index]-1);
 					
-						if((tface->flag & TF_SELECT)==0) {
+						if((mface->flag & ME_FACE_SEL)==0) {
 							indexar[index]= 0;
 						}
 					}					
@@ -1439,12 +1438,12 @@ void vertex_paint()
 					}					
 				}
 			}
-			if((G.f & G_FACESELECT) && me->mtface) {
+			if((G.f & G_FACESELECT) && me->mface) {
 				for(index=0; index<totindex; index++) {
 					if(indexar[index] && indexar[index]<=me->totface) {
-						tface= ((MTFace *)me->mtface) + (indexar[index]-1);
+						mface= ((MFace *)me->mface) + (indexar[index]-1);
 					
-						if((tface->flag & TF_SELECT)==0)
+						if((mface->flag & ME_FACE_SEL)==0)
 							indexar[index]= 0;
 					}					
 				}

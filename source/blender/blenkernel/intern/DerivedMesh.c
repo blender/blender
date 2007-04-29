@@ -572,7 +572,7 @@ static void emDM_drawUVEdges(DerivedMesh *dm)
 	for(efa= emdm->em->faces.first; efa; efa= efa->next) {
 		tf = CustomData_em_get(&emdm->em->fdata, efa->data, CD_MTFACE);
 
-		if(tf && !(tf->flag&TF_HIDE)) {
+		if(tf && !(efa->h)) {
 			glVertex2fv(tf->uv[0]);
 			glVertex2fv(tf->uv[1]);
 

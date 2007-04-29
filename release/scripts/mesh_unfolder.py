@@ -368,7 +368,7 @@ class Net:
 		self.showProgress = show
 	# this method really needs work
 	def unfold(self):
-		selectedFaces = [face for face in self.src.faces if (self.src.faceUV and face.flag & Mesh.FaceFlags.SELECT)]
+		selectedFaces = [face for face in self.src.faces if (self.src.faceUV and face.sel)]
 		if(self.avoidsOverlaps):
 			print "unfolding with overlap detection"
 		if(self.firstFaceIndex==None):
@@ -662,7 +662,7 @@ class Net:
 		except:
 			print "Problem setting materials here"
 		net = Net(mesh, netMesh)
-		if(mesh.faceUV and mesh.activeFace>=0 and (mesh.faces[mesh.activeFace].flag & Mesh.FaceFlags.SELECT)):
+		if mesh.faceUV and mesh.activeFace>=0 and (mesh.faces[mesh.activeFace].sel):
 			net.firstFaceIndex = mesh.activeFace
 		net.object = ob
 		net.feedback = feedback

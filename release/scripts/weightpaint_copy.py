@@ -51,10 +51,9 @@ def copy_act_vgroup(me, PREF_NAME, PREF_SEL_ONLY):
 			except:		pass
 	else:
 		# Selected faces only
-		SEL_FLAG = Mesh.FaceFlags.SELECT
 		verts = {} # should use set
 		for f in me.faces:
-			if f.flag & SEL_FLAG:
+			if f.sel:
 				for v in f:
 					verts[v.index] = None
 		

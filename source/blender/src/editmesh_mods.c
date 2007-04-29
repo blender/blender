@@ -2977,9 +2977,9 @@ static void editmesh_calc_selvert_center(float cent_r[3])
 	}
 }
 
-static int tface_is_selected(MTFace *tf)
+static int mface_is_selected(MFace *mf)
 {
-	return (!(tf->flag & TF_HIDE) && (tf->flag & TF_SELECT));
+	return (!(mf->flag & ME_HIDE) && (mf->flag & ME_FACE_SEL));
 }
 
 	/* XXX, code for both these functions should be abstract,
@@ -2995,9 +2995,8 @@ void faceselect_align_view_to_selected(View3D *v3d, Mesh *me, int axis)
 	norm[0]= norm[1]= norm[2]= 0.0;
 	for (i=0; i<me->totface; i++) {
 		MFace *mf= ((MFace*) me->mface) + i;
-		MTFace *tf= ((MTFace*) me->mtface) + i;
 
-		if (tface_is_selected(tf)) {
+		if (mface_is_selected(mf)) {
 			float *v1, *v2, *v3, fno[3];
 
 			v1= me->mvert[mf->v1].co;

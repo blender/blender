@@ -4099,18 +4099,12 @@ void do_meshbuts(unsigned short event)
 			if (G.obedit || me) {
 				CustomData *fdata= (G.obedit)? &em->fdata: &me->fdata;
 
-				if (G.f & G_FACESELECT)
-					select_mface_from_tface(me);
-
 				CustomData_set_layer_active(fdata, CD_MTFACE, acttface-1);
 				mesh_update_customdata_pointers(me);
 				
 				/* Update first-level face data in multires */
 				if(me && me->mr && me->mr->current != 1)
 					CustomData_set_layer_active(&me->mr->fdata, CD_MTFACE, acttface-1);
-
-				if (G.f & G_FACESELECT)
-					select_tface_from_mface(me);
 
 				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 				BIF_undo_push("Set Active UV Texture");
@@ -4745,6 +4739,7 @@ void do_fpaintbuts(unsigned short event)
 	Object *ob;
 	bDeformGroup *defGroup;
 	MTFace *activetf, *tf;
+	MFace *mf;
 	MCol *activemcol;
 	int a;
 	SculptData *sd= &G.scene->sculptdata;
@@ -4770,8 +4765,8 @@ void do_fpaintbuts(unsigned short event)
 		activetf= get_active_tface(&activemcol);
 
 		if(me && activetf) {
-			for (a=0, tf=me->mtface; a < me->totface; a++, tf++) {
-				if(tf!=activetf && (tf->flag & TF_SELECT)) {
+			for (a=0, tf=me->mtface, mf=me->mface; a < me->totface; a++, tf++, mf++) {
+				if(tf!=activetf && (mf->flag & ME_FACE_SEL)) {
 					if(event==B_COPY_TF_MODE) {
 						tf->mode= activetf->mode;
 						tf->transp= activetf->transp;

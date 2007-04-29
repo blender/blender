@@ -937,8 +937,7 @@ def main():
 			me.faceUV= True
 		
 		if USER_ONLY_SELECTED_FACES:
-			SELECT_FLAG = Mesh.FaceFlags.SELECT
-			meshFaces = [thickface(f) for f in me.faces if f.flag & SELECT_FLAG]
+			meshFaces = [thickface(f) for f in me.faces if f.sel]
 		else:
 			meshFaces = map(thickface, me.faces)
 		

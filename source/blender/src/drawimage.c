@@ -290,6 +290,7 @@ ImBuf *imagewindow_get_ibuf(SpaceImage *sima)
 void image_changed(SpaceImage *sima, int dotile)
 {
 	MTFace *tface;
+	MFace *mface;
 	Mesh *me;
 	int a;
 
@@ -312,9 +313,10 @@ void image_changed(SpaceImage *sima, int dotile)
 			if(me && me->mtface) {
 				
 				tface= me->mtface;
+				mface = me->mface;
 				a= me->totface;
 				while(a--) {
-					if(tface->flag & TF_SELECT) {
+					if(mface->flag & ME_FACE_SEL) {
 						
 						if(dotile==2) {
 							tface->mode &= ~TF_TILES;
@@ -335,6 +337,7 @@ void image_changed(SpaceImage *sima, int dotile)
 						}
 					}
 					tface++;
+					mface++;
 				}
 
 				object_uvs_changed(OBACT);
@@ -426,7 +429,7 @@ void draw_tfaces(void)
 
 					glColor3ub(112, 112, 112);
 					while(a--) {
-						if(!(tface->flag & TF_HIDE) && (tface->flag & TF_SELECT)) {
+						if(!(mface->flag & ME_HIDE) && (mface->flag & ME_FACE_SEL)) {
 							glBegin(GL_LINE_LOOP);
 							glVertex2fv(tface->uv[0]);
 							glVertex2fv(tface->uv[1]);
@@ -453,7 +456,7 @@ void draw_tfaces(void)
 				mface= me->mface;
 				a= me->totface;			
 				while(a--) {
-					if(tface->flag & TF_SELECT) {
+					if(mface->flag & ME_FACE_SEL) {
 						if(!(~tface->flag & (TF_SEL1|TF_SEL2|TF_SEL3)) &&
 						   (!mface->v4 || tface->flag & TF_SEL4))
 							glColor4ubv((GLubyte *)col2);
@@ -478,7 +481,7 @@ void draw_tfaces(void)
 			mface= me->mface;
 			a= me->totface;
 			while(a--) {
-				if(tface->flag & TF_SELECT) {
+				if(mface->flag & ME_FACE_SEL) {
 					if(tface->flag & TF_ACTIVE){
 						activetface= tface; 
 						activemface= mface; 
@@ -565,7 +568,7 @@ void draw_tfaces(void)
 			mface= me->mface;
 			a= me->totface;
 			while(a--) {
-				if(tface->flag & TF_SELECT) {
+				if(mface->flag & ME_FACE_SEL) {
 					
 					if(tface->flag & TF_SEL1); else bglVertex2fv(tface->uv[0]);
 					if(tface->flag & TF_SEL2); else bglVertex2fv(tface->uv[1]);
@@ -589,7 +592,7 @@ void draw_tfaces(void)
 			mface= me->mface;
 			a= me->totface;
 			while(a--) {
-				if(tface->flag & TF_SELECT) {
+				if(mface->flag & ME_FACE_SEL) {
 					
 					if(tface->unwrap & TF_PIN1) bglVertex2fv(tface->uv[0]);
 					if(tface->unwrap & TF_PIN2) bglVertex2fv(tface->uv[1]);
@@ -612,7 +615,7 @@ void draw_tfaces(void)
 			mface= me->mface;
 			a= me->totface;
 			while(a--) {
-				if(tface->flag & TF_SELECT) {
+				if(mface->flag & ME_FACE_SEL) {
 					
 					if(tface->flag & TF_SEL1) bglVertex2fv(tface->uv[0]);
 					if(tface->flag & TF_SEL2) bglVertex2fv(tface->uv[1]);
@@ -763,7 +766,7 @@ void image_editvertex_buts(uiBlock *block)
 		MFace *mf= &((MFace*) me->mface)[i];
 		MTFace *tf= &((MTFace*) me->mtface)[i];
 		
-		if (!(tf->flag & TF_SELECT))
+		if (!(mf->flag & ME_FACE_SEL))
 			continue;
 		
 		if (tf->flag & TF_SEL1) {
@@ -835,7 +838,7 @@ void image_editvertex_buts(uiBlock *block)
 			MFace *mf= &((MFace*) me->mface)[i];
 			MTFace *tf= &((MTFace*) me->mtface)[i];
 		
-			if (!(tf->flag & TF_SELECT))
+			if (!(mf->flag & ME_FACE_SEL))
 				continue;
 		
 			if (tf->flag & TF_SEL1) {

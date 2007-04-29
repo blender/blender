@@ -177,14 +177,14 @@ static void cdDM_drawVerts(DerivedMesh *dm)
 static void cdDM_drawUVEdges(DerivedMesh *dm)
 {
 	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
-	MTFace *tf = DM_get_face_data_layer(dm, CD_MTFACE);
 	MFace *mf = cddm->mface;
+	MTFace *tf = DM_get_face_data_layer(dm, CD_MTFACE);
 	int i;
 
-	if(tf) {
+	if(mf) {
 		glBegin(GL_LINES);
-		for(i = 0; i < dm->numFaceData; i++, tf++, mf++) {
-			if(!(tf->flag&TF_HIDE)) {
+		for(i = 0; i < dm->numFaceData; i++, mf++, tf++) {
+			if(!(mf->flag&ME_HIDE)) {
 				glVertex2fv(tf->uv[0]);
 				glVertex2fv(tf->uv[1]);
 
@@ -399,67 +399,67 @@ static void cdDM_drawFacesTex_common(DerivedMesh *dm,
 		else {
 			if(index) {
 				orig = *index++;
-				if(orig == ORIGINDEX_NONE) continue;
+				if(orig == ORIGINDEX_NONE)		{ if(nors) nors += 3; continue; }
 				if(drawParamsMapped) flag = drawParamsMapped(userData, orig);
-				else continue;
+				else	{ if(nors) nors += 3; continue; }
 			}
 			else
 				if(drawParamsMapped) flag = drawParamsMapped(userData, i);
-				else continue;
+				else	{ if(nors) nors += 3; continue; }
 		}
+		
+		if(flag != 0) { /* if the flag is 0 it means the face is hidden or invisible */
+			if (flag==1 && mcol)
+				cp= (unsigned char*) &mcol[i*4];
 
-		if(flag == 0)
-			continue;
-		else if (flag==1 && mcol)
-			cp= (unsigned char*) &mcol[i*4];
-
-		if(!(mf->flag&ME_SMOOTH)) {
-			if (nors) {
-				glNormal3fv(nors);
-			}
-			else {
-				/* TODO make this better (cache facenormals as layer?) */
-				float nor[3];
-				if(mf->v4) {
-					CalcNormFloat4(mv[mf->v1].co, mv[mf->v2].co,
-								   mv[mf->v3].co, mv[mf->v4].co,
-								   nor);
-				} else {
-					CalcNormFloat(mv[mf->v1].co, mv[mf->v2].co,
-								  mv[mf->v3].co, nor);
+			if(!(mf->flag&ME_SMOOTH)) {
+				if (nors) {
+					glNormal3fv(nors);
 				}
-				glNormal3fv(nor);
+				else {
+					/* TODO make this better (cache facenormals as layer?) */
+					float nor[3];
+					if(mf->v4) {
+						CalcNormFloat4(mv[mf->v1].co, mv[mf->v2].co,
+									   mv[mf->v3].co, mv[mf->v4].co,
+									   nor);
+					} else {
+						CalcNormFloat(mv[mf->v1].co, mv[mf->v2].co,
+									  mv[mf->v3].co, nor);
+					}
+					glNormal3fv(nor);
+				}
 			}
-		}
 
-		glBegin(mf->v4?GL_QUADS:GL_TRIANGLES);
-		if(tf) glTexCoord2fv(tf[i].uv[0]);
-		if(cp) glColor3ub(cp[3], cp[2], cp[1]);
-		mvert = &mv[mf->v1];
-		if(mf->flag&ME_SMOOTH) glNormal3sv(mvert->no);
-		glVertex3fv(mvert->co);
-			
-		if(tf) glTexCoord2fv(tf[i].uv[1]);
-		if(cp) glColor3ub(cp[7], cp[6], cp[5]);
-		mvert = &mv[mf->v2];
-		if(mf->flag&ME_SMOOTH) glNormal3sv(mvert->no);
-		glVertex3fv(mvert->co);
-
-		if(tf) glTexCoord2fv(tf[i].uv[2]);
-		if(cp) glColor3ub(cp[11], cp[10], cp[9]);
-		mvert = &mv[mf->v3];
-		if(mf->flag&ME_SMOOTH) glNormal3sv(mvert->no);
-		glVertex3fv(mvert->co);
-
-		if(mf->v4) {
-			if(tf) glTexCoord2fv(tf[i].uv[3]);
-			if(cp) glColor3ub(cp[15], cp[14], cp[13]);
-			mvert = &mv[mf->v4];
+			glBegin(mf->v4?GL_QUADS:GL_TRIANGLES);
+			if(tf) glTexCoord2fv(tf[i].uv[0]);
+			if(cp) glColor3ub(cp[3], cp[2], cp[1]);
+			mvert = &mv[mf->v1];
 			if(mf->flag&ME_SMOOTH) glNormal3sv(mvert->no);
 			glVertex3fv(mvert->co);
-		}
-		glEnd();
+				
+			if(tf) glTexCoord2fv(tf[i].uv[1]);
+			if(cp) glColor3ub(cp[7], cp[6], cp[5]);
+			mvert = &mv[mf->v2];
+			if(mf->flag&ME_SMOOTH) glNormal3sv(mvert->no);
+			glVertex3fv(mvert->co);
 
+			if(tf) glTexCoord2fv(tf[i].uv[2]);
+			if(cp) glColor3ub(cp[11], cp[10], cp[9]);
+			mvert = &mv[mf->v3];
+			if(mf->flag&ME_SMOOTH) glNormal3sv(mvert->no);
+			glVertex3fv(mvert->co);
+
+			if(mf->v4) {
+				if(tf) glTexCoord2fv(tf[i].uv[3]);
+				if(cp) glColor3ub(cp[15], cp[14], cp[13]);
+				mvert = &mv[mf->v4];
+				if(mf->flag&ME_SMOOTH) glNormal3sv(mvert->no);
+				glVertex3fv(mvert->co);
+			}
+			glEnd();
+		}
+		
 		if(nors) nors += 3;
 	}
 }
@@ -483,7 +483,8 @@ static void cdDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 
 		if(index) {
 			orig = *index++;
-			if(setDrawOptions && orig == ORIGINDEX_NONE) continue;
+			if(setDrawOptions && orig == ORIGINDEX_NONE)
+				{ if(nors) nors += 3; continue; }
 		}
 		else
 			orig = i;

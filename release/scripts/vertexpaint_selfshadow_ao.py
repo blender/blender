@@ -119,9 +119,9 @@ def vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_RADIUS, PREF_MIN_EDLEN, PRE
 	tone_range= max_tone-min_tone
 	if max_tone==min_tone:
 		return
-	SELFLAG= Mesh.FaceFlags.SELECT
+	
 	for f in me.faces:
-		if not PREF_SEL_ONLY or f.flag & SELFLAG:
+		if not PREF_SEL_ONLY or f.sel:
 			f_col= f.col
 			for i, v in enumerate(f):
 				col= f_col[i]

@@ -40,8 +40,6 @@ Select same weights as the active face on the active group.
 from Blender import Scene, Draw, Mesh
 import BPyMesh
 
-SEL_FLAG = Mesh.FaceFlags['SELECT']
-
 def selSameWeights(me, PREF_TOLERENCE):
 	
 	# Check for missing data
@@ -76,7 +74,7 @@ def selSameWeights(me, PREF_TOLERENCE):
 	
 	weight_from, weight_range_from = get_face_weight(act_face)
 	for f in me.faces:
-		if (not f.flag & SEL_FLAG) and (not f.hide) and f != act_face:
+		if (not f.sel) and f != act_face:
 			weight, weight_range = get_face_weight(f)
 			
 			# Compare the 2 faces weight difference and difference in their contrast.
@@ -84,7 +82,6 @@ def selSameWeights(me, PREF_TOLERENCE):
 			abs(weight - weight_from) <= PREF_TOLERENCE and\
 			abs(weight_range - weight_range_from) <= PREF_TOLERENCE:
 				f.sel = True
-				f.flag |= SEL_FLAG
 
 
 def main():

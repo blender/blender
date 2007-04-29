@@ -4399,6 +4399,7 @@ static void do_view3d_faceselmenu(void *arg, int event)
 		would be nice if it was split up into functions */
 	Mesh *me;
 	MTFace *tf, *activetf;
+	MFace *mf;
 	MCol *activemcol;
 	int a;
 	
@@ -4410,8 +4411,9 @@ static void do_view3d_faceselmenu(void *arg, int event)
 		activetf = get_active_tface(&activemcol);
 
 		if (me && activetf) {
-			for (a=0, tf=me->mtface; a < me->totface; a++, tf++) {
-				if(tf!=activetf && (tf->flag & TF_SELECT)) {
+			mf = me->mface;
+			for (a=0, tf=me->mtface; a < me->totface; a++, tf++, mf++) {
+				if(tf!=activetf && (mf->flag & ME_FACE_SEL)) {
 					if(event==0) {
 						tf->mode= activetf->mode;
 						tf->transp= activetf->transp;

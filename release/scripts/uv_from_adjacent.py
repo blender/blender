@@ -38,7 +38,7 @@ Use this script in face select mode for texturing between textured faces.
 
 
 from Blender import *
-
+import bpy
 
 def mostUsedImage(imageList): # Returns the image most used in the list.
 	if not imageList:
@@ -70,8 +70,9 @@ def mostUsedImage(imageList): # Returns the image most used in the list.
 
 
 def main():
-	scn = Scene.GetCurrent()
-	ob = scn.objects.active
+	sce = bpy.data.scenes.active
+	ob = sce.objects.active
+	
 	if ob == None or ob.type != 'Mesh':
 		Draw.PupMenu('ERROR: No mesh object in face select mode.')
 		return
@@ -80,9 +81,9 @@ def main():
 	if not me.faceUV:
 		Draw.PupMenu('ERROR: No mesh object in face select mode.')
 		return
-	SEL_FLAG = Mesh.FaceFlags['SELECT']
-	selfaces = [f for f in me.faces if f.flag & SEL_FLAG]
-	unselfaces = [f for f in me.faces if not f.flag & SEL_FLAG]
+	
+	selfaces = [f for f in me.faces if f.sel]
+	unselfaces = [f for f in me.faces if not f.sel]
 	
 	
 	# Gather per Vert UV and Image, store in vertUvAverage
@@ -102,8 +103,6 @@ def main():
 			vertUvData[0] = reduce(lambda a,b: a+b, uvList, Mathutils.Vector(0,0)) * (1.0/len(uvList))
 		else:
 			vertUvData[0] = None
-	
-	
 	
 	# Assign to selected faces
 	TEX_FLAG = Mesh.FaceModes['TEX']

@@ -57,8 +57,5 @@ void set_texturepaint(void);
 void get_same_uv(void);  
 void seam_mark_clear_tface(short mode);
 
-void select_mface_from_tface(struct Mesh *me);
-void select_tface_from_mface(struct Mesh *me);
-
 #endif /* BDR_EDITFACE_H */
 

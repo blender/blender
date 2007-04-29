@@ -877,8 +877,6 @@ void make_editMesh()
 		}
 		
 		CustomData_copy(&me->fdata, &em->fdata, CD_MASK_EDITMESH, CD_CALLOC, 0);
-		if (G.f & G_FACESELECT)
-			select_mface_from_tface(me);
 
 		/* make faces */
 		mface= me->mface;
@@ -1149,10 +1147,6 @@ void load_editMesh(void)
 		i++;
 		efa= efa->next;
 	}
-
-	/* sync hide and select flags with faceselect mode */
-	if (G.f & G_FACESELECT)
-		select_tface_from_mface(me);
 
 	/* patch hook indices and vertex parents */
 	{

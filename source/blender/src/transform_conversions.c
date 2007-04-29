@@ -1826,7 +1826,7 @@ static void createTransUVs(TransInfo *t)
 	tf= me->mtface;
 	mf= me->mface;
 	for(a=me->totface; a>0; a--, tf++, mf++) {
-		if(mf->v3 && tf->flag & TF_SELECT) {
+		if(mf->v3 && mf->flag & ME_FACE_SEL) {
 			if(tf->flag & TF_SEL1) countsel++;
 			if(tf->flag & TF_SEL2) countsel++;
 			if(tf->flag & TF_SEL3) countsel++;
@@ -1853,7 +1853,7 @@ static void createTransUVs(TransInfo *t)
 	tf= me->mtface;
 	mf= me->mface;
 	for(a=me->totface; a>0; a--, tf++, mf++) {
-		if(mf->v3 && tf->flag & TF_SELECT) {
+		if(mf->v3 && mf->flag & ME_FACE_SEL) {
 			if(tf->flag & TF_SEL1 || propmode)
 				UVsToTransData(td++, td2d++, tf->uv[0], (tf->flag & TF_SEL1));
 			if(tf->flag & TF_SEL2 || propmode)

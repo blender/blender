@@ -81,15 +81,8 @@ def main():
 		Draw.PupMenu('ERROR: No mesh object in face select mode.')
 		return
 	
-	SELECT_FLAG = Mesh.FaceFlags.SELECT
-	HIDE_FLAG = Mesh.FaceFlags.HIDE
-	def use_face(f_flag):
-		if f_flag & HIDE_FLAG:		return False
-		elif f_flag & SELECT_FLAG:	return True
-		else:						return False
-	
-	selfaces = [f for f in me.faces if use_face(f.flag)]
-	unselfaces = [f for f in me.faces if not use_face(f.flag)]
+	selfaces = [f for f in me.faces if f.sel]
+	unselfaces = [f for f in me.faces if not f.sel if not f.hide]
 	
 	# Gather per Vert UV and Image, store in vertUvAverage
 	vertUvAverage = [[[],[]] for i in xrange(len(me.verts))]

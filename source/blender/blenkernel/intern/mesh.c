@@ -1150,7 +1150,7 @@ UvVertMap *make_uv_vert_map(struct MFace *mface, struct MTFace *tface, unsigned 
 	mf= mface;
 	tf= tface;
 	for(a=0; a<totface; a++, mf++, tf++)
-		if(!selected || (!(tf->flag & TF_HIDE) && (tf->flag & TF_SELECT)))
+		if(!selected || (!(mf->flag & ME_HIDE) && (mf->flag & ME_FACE_SEL)))
 			totuv += (mf->v4)? 4: 3;
 		
 	if(totuv==0)
@@ -1171,7 +1171,7 @@ UvVertMap *make_uv_vert_map(struct MFace *mface, struct MTFace *tface, unsigned 
 	mf= mface;
 	tf= tface;
 	for(a=0; a<totface; a++, mf++, tf++) {
-		if(!selected || (!(tf->flag & TF_HIDE) && (tf->flag & TF_SELECT))) {
+		if(!selected || (!(mf->flag & ME_HIDE) && (mf->flag & ME_FACE_SEL))) {
 			nverts= (mf->v4)? 4: 3;
 
 			for(i=0; i<nverts; i++) {

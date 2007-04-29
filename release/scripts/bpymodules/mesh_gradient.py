@@ -117,14 +117,12 @@ def vertexGradientPick(ob, MODE):
 	if not ORTHO:
 		line_angle= AngleBetweenVecs(lineA[1], lineB[1])/2
 		line_mid= (lineA[1]+lineB[1])*0.5
-	
-	FSEL= Blender.Mesh.FaceFlags.SELECT
 
 	VSEL= [False] * (len(me.verts))
 	
 	# Get the selected faces and apply the selection to the verts.
 	for f in me.faces:
-		if f.flag & FSEL:
+		if f.sel:
 			for v in f.v:
 				VSEL[v.index]= True
 	groupNames, vWeightDict= BPyMesh.meshWeight2Dict(me)
@@ -206,7 +204,7 @@ def vertexGradientPick(ob, MODE):
 	
 	else: # MODE==1 VCol
 		for f in me.faces:
-			if f.flag & FSEL:
+			if f.sel:
 				f_v= f.v
 				for i in xrange(len(f_v)):
 					v= f_v[i]

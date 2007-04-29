@@ -4333,7 +4333,7 @@ static int bbs_mesh_solid__setDrawOpts(void *userData, int index, int *drawSmoot
 {
 	Mesh *me = userData;
 
-	if (!me->mtface || !(me->mtface[index].flag&TF_HIDE)) {
+	if (!me->mtface || !(me->mface[index].flag&ME_HIDE)) {
 		set_framebuffer_index_color(index+1);
 		return 1;
 	} else {

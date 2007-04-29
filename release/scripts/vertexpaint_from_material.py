@@ -53,10 +53,9 @@ def mat2vcol(PREF_SEL_FACES_ONLY, PREF_ACTOB_ONLY, PREF_MULTIPLY_COLOR):
 		
 		matcols= [matcol(mat) for mat in me.materials]
 		len_matcols= len(matcols)
-		FSEL= Mesh.FaceFlags.SELECT
 		
 		for f in me.faces:
-			if not PREF_SEL_FACES_ONLY or f.flag & FSEL:
+			if not PREF_SEL_FACES_ONLY or f.sel:
 				f_mat= f.mat
 				if f_mat < len_matcols:
 					mat= matcols[f.mat]

@@ -47,8 +47,8 @@ import BPyWindow
 mouseViewRay= BPyWindow.mouseViewRay
 from Blender import Mathutils, Window, Scene, Draw, sys
 from Blender.Mathutils import CrossVecs, Vector, Matrix, LineIntersect, Intersect #, AngleBetweenVecs, Intersect
-LMB= Window.MButs['L']
-RMB= Window.MButs['R']
+LMB= Window.MButs.L
+RMB= Window.MButs.R
 
 def using_modifier(ob):
 	for m in ob.modifiers:
@@ -168,17 +168,8 @@ def main():
 	def get_face_coords(f):
 		f_uv = f.uv
 		return [(v.co-face_corner_main, f_uv[i]) for i,v in enumerate(f.v)]
-		
-		
-		
-	SELECT_FLAG = Blender.Mesh.FaceFlags.SELECT
-	HIDE_FLAG = Blender.Mesh.FaceFlags.HIDE
-	def use_face(f_flag):
-		if f_flag & HIDE_FLAG:		return False
-		elif f_flag & SELECT_FLAG:	return True
-		else:						return False
 	
-	coords = [ (co,uv) for f in me.faces if use_face(f.flag) for co, uv in get_face_coords(f)]
+	coords = [ (co,uv) for f in me.faces if f.sel for co, uv in get_face_coords(f)]
 	
 	coords_orig = [uv.copy() for co, uv in coords]
 	USE_MODIFIER = using_modifier(ob)

@@ -831,8 +831,8 @@ class VRML2Export:
     def faceToString(self,face):
 
         print "Debug: face.flag=0x%x (bitflags)" % face.flag
-        if face.flag & NMesh.FaceFlags.SELECT == NMesh.FaceFlags.SELECT:
-            print "Debug: face.flag.SELECT=true"
+        if face.sel:
+            print "Debug: face.sel=true"
 
         print "Debug: face.mode=0x%x (bitflags)" % face.mode
         if (face.mode & NMesh.FaceModes.TWOSIDE) == NMesh.FaceModes.TWOSIDE:

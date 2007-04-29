@@ -53,8 +53,8 @@ Example::
 @var FaceFlags: The available *texture face* (uv face select mode) selection
   flags.  Note: these refer to TexFace faces, available if nmesh.hasFaceUV()
   returns true.
-    - SELECT - selected.
-    - HIDE - hidden.
+    - SELECT - selected (deprecated after 2.43 release, use face.sel).
+    - HIDE - hidden (deprecated after 2.43 release, use face.sel).
     - ACTIVE - the active face.
 @var FaceModes: The available *texture face* modes. Note: these are only
   meaningful if nmesh.hasFaceUV() returns true, since in Blender this info is

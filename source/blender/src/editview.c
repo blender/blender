@@ -164,13 +164,13 @@ void EM_backbuf_checkAndSelectFaces(EditMesh *em, int select)
 
 void EM_backbuf_checkAndSelectTFaces(Mesh *me, int select)
 {
-	MTFace *tface = me->mtface;
+	MFace *mface = me->mface;
 	int a;
 
-	if (tface) {
-		for(a=1; a<=me->totface; a++, tface++) {
+	if (mface) {
+		for(a=1; a<=me->totface; a++, mface++) {
 			if(EM_check_backbuf(a)) {
-				tface->flag = select?(tface->flag|TF_SELECT):(tface->flag&~TF_SELECT);
+				mface->flag = select?(mface->flag|ME_FACE_SEL):(mface->flag&~ME_FACE_SEL);
 			}
 		}
 	}

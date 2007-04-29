@@ -221,12 +221,9 @@ PREF_MARGIN_DIV=		512):
 	else:
 		face_groups = []
 	
-	
-	SEL_FLAG = Mesh.FaceFlags.SELECT
-	
 	for me in meshes:			
 		if PREF_SEL_ONLY:
-			faces = [f for f in me.faces if f.flag & SEL_FLAG]
+			faces = [f for f in me.faces if f.sel]
 		else:
 			faces = list(me.faces)
 		
@@ -238,8 +235,6 @@ PREF_MARGIN_DIV=		512):
 		if PREF_NEW_UVLAYER:
 			me.addUVLayer('lightmap')
 			me.activeUVLayer = 'lightmap'
-	
-	del SEL_FLAG
 	
 	for face_sel in face_groups:
 		print "\nStarting unwrap"

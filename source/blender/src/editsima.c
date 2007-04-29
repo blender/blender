@@ -181,7 +181,7 @@ void clever_numbuts_sima(void)
 		MFace *mf= &((MFace*) me->mface)[i];
 		MTFace *tf= &((MTFace*) me->mtface)[i];
 		
-		if (!(tf->flag & TF_SELECT))
+		if (!(mf->flag & ME_FACE_SEL))
 			continue;
 		
 		if (tf->flag & TF_SEL1) {
@@ -225,7 +225,7 @@ void clever_numbuts_sima(void)
 				MFace *mf= &((MFace*) me->mface)[i];
 				MTFace *tf= &((MTFace*) me->mtface)[i];
 			
-				if (!(tf->flag & TF_SELECT))
+				if (!(mf->flag & ME_FACE_SEL))
 					continue;
 			
 				if (tf->flag & TF_SEL1) {
@@ -262,7 +262,7 @@ void be_square_tface_uv(Mesh *me)
 	tface= (MTFace*)me->mtface;
 	for(a=me->totface; a>0; a--, tface++, mface++) {
 		if(mface->v4) {
-			if(tface->flag & TF_SELECT) {
+			if(mface->flag & ME_FACE_SEL) {
 				if(tface->flag & TF_SEL1) {
 					if( tface->uv[1][0] == tface->uv[2][0] ) {
 						tface->uv[1][1]= tface->uv[0][1];
@@ -379,7 +379,7 @@ void weld_align_tface_uv(char tool)
 		tface= me->mtface;
 		mface= me->mface;
 		for(a=me->totface; a>0; a--, tface++, mface++) {
-			if(tface->flag & TF_SELECT) {
+			if(mface->flag & ME_FACE_SEL) {
 				if(tface->flag & TF_SEL1)
 					tface->uv[0][0]= cent[0];
 				if(tface->flag & TF_SEL2)
@@ -396,7 +396,7 @@ void weld_align_tface_uv(char tool)
 		tface= me->mtface;
 		mface= me->mface;
 		for(a=me->totface; a>0; a--, tface++, mface++) {
-			if(tface->flag & TF_SELECT) {
+			if(mface->flag & ME_FACE_SEL) {
 				if(tface->flag & TF_SEL1)
 					tface->uv[0][1]= cent[1];
 				if(tface->flag & TF_SEL2)
@@ -440,8 +440,9 @@ void select_swap_tface_uv(void)
 	if( is_uv_tface_editing_allowed()==0 ) return;
 	me= get_mesh(OBACT);
 
-	for(a=me->totface, tface= me->mtface; a>0; a--, tface++) {
-		if(tface->flag & TF_SELECT) {	
+	mface= me->mface;
+	for(a=me->totface, tface= me->mtface; a>0; a--, tface++, mface++) {
+		if(mface->flag & ME_FACE_SEL) {	
 			if(tface->flag & (TF_SEL1+TF_SEL2+TF_SEL3+TF_SEL4)) {
 				sel= 1;
 				break;
@@ -451,7 +452,7 @@ void select_swap_tface_uv(void)
 	
 	mface= me->mface;
 	for(a=me->totface, tface= me->mtface; a>0; a--, tface++, mface++) {
-		if(tface->flag & TF_SELECT) {
+		if(mface->flag & ME_FACE_SEL) {
 			if(mface->v4) {
 				if(sel) tface->flag &= ~(TF_SEL1+TF_SEL2+TF_SEL3+TF_SEL4);
 				else tface->flag |= (TF_SEL1+TF_SEL2+TF_SEL3+TF_SEL4);
@@ -499,11 +500,11 @@ static void find_nearest_tface(MTFace **nearesttf, MFace **nearestmf)
 	*nearestmf= NULL;
 
 	me= get_mesh(OBACT);
-	mf= (MFace*)me->mface;
+	mf= (MFace*)me	->mface;
 	tf= (MTFace*)me->mtface;
 
 	for(a=me->totface; a>0; a--, tf++, mf++) {
-		if(tf->flag & TF_SELECT) {
+		if(mf->flag & ME_FACE_SEL) {
 
 			fcenter[0]= fcenter[1]= 0;
 			nverts= mf->v4? 4: 3;
@@ -571,7 +572,7 @@ static void find_nearest_uv(MTFace **nearesttf, unsigned int *nearestv, int *nea
 	tf= (MTFace*)me->mtface;
 
 	for(a=me->totface; a>0; a--, tf++, mf++) {
-		if(tf->flag & TF_SELECT) {
+		if(mf->flag & ME_FACE_SEL) {
 
 			nverts= mf->v4? 4: 3;
 			for(i=0; i<nverts; i++) {
@@ -686,7 +687,7 @@ void mouse_select_sima(void)
 			/* deselect */
 			if(selectsticky==0) {
 				for(a=me->totface; a>0; a--, tf++, mf++) {
-					if(!(tf->flag & TF_SELECT)) continue;
+					if(!(mf->flag & ME_FACE_SEL)) continue;
 					if(nearesttf && tf!=nearesttf) tf->flag &=~ TF_ACTIVE;
 					if (!sticky) continue;
 
@@ -704,7 +705,7 @@ void mouse_select_sima(void)
 			/* select */
 			else {
 				for(a=me->totface; a>0; a--, tf++, mf++) {
-					if(!(tf->flag & TF_SELECT)) continue;
+					if(!(mf->flag & ME_FACE_SEL)) continue;
 					if(nearesttf && tf!=nearesttf)
 						tf->flag &=~ TF_ACTIVE;
 					if (!sticky) continue;
@@ -740,7 +741,7 @@ void mouse_select_sima(void)
 		mf= (MFace*)me->mface;
 		tf= (MTFace*)me->mtface;
 		for(a=me->totface; a>0; a--, tf++, mf++) {
-			if(tf->flag & TF_SELECT) {
+			if(mf->flag & ME_FACE_SEL) {
 				if(!actface) tf->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
 				if(!sticky) continue;
 
@@ -792,7 +793,7 @@ void borderselect_sima(short whichuvs)
 		mface= me->mface;
 		for(a=me->totface, tface= me->mtface; a>0; a--, tface++, mface++) {
 		
-			if(tface->flag & TF_SELECT) {
+			if(mface->flag & ME_FACE_SEL) {
 				
 				if (whichuvs == UV_SELECT_ALL) {
 				
@@ -995,23 +996,23 @@ void hide_tface_uv(int swap)
 	if(swap) {
 		mface= me->mface;
 		for(a=me->totface, tface= me->mtface; a>0; a--, tface++, mface++) {
-			if(tface->flag & TF_SELECT) {
+			if(mface->flag & ME_FACE_SEL) {
 				if((tface->flag & (TF_SEL1|TF_SEL2|TF_SEL3))==0) {
 					if(!mface->v4)
-						tface->flag &= ~TF_SELECT;
+						mface->flag &= ~ME_FACE_SEL;
 					else if(!(tface->flag & TF_SEL4))
-						tface->flag &= ~TF_SELECT;
+						mface->flag &= ~ME_FACE_SEL;
 				}
 			}
 		}
 	} else {
 		mface= me->mface;
 		for(a=me->totface, tface= me->mtface; a>0; a--, tface++, mface++) {
-			if(tface->flag & TF_SELECT) {
+			if(mface->flag & ME_FACE_SEL) {
 				if(tface->flag & (TF_SEL1|TF_SEL2|TF_SEL3))
-						tface->flag &= ~TF_SELECT;
+						mface->flag &= ~ME_FACE_SEL;
 				else if(mface->v4 && tface->flag & TF_SEL4)
-						tface->flag &= ~TF_SELECT;
+						mface->flag &= ~ME_FACE_SEL;
 			}
 		}
 	}
@@ -1033,9 +1034,9 @@ void reveal_tface_uv(void)
 
 	mface= me->mface;
 	for(a=me->totface, tface= me->mtface; a>0; a--, tface++, mface++)
-		if(!(tface->flag & TF_HIDE))
-			if(!(tface->flag & TF_SELECT))
-				tface->flag |= (TF_SELECT|TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
+		if(!(mface->flag & ME_HIDE))
+			if(!(mface->flag & ME_FACE_SEL))
+				tface->flag |= (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
 	
 	BIF_undo_push("Reveal UV");
 
@@ -1189,8 +1190,9 @@ void select_linked_tface_uv(int mode)
 
 	if (mode == 2) {
 		tf= me->mtface;
-		for(a=0; a<me->totface; a++, tf++)
-			if(!(tf->flag & TF_HIDE) && (tf->flag & TF_SELECT))
+		mf= me->mface;
+		for(a=0; a<me->totface; a++, tf++, mf++)
+			if(!(mf->flag & ME_HIDE) && (mf->flag & ME_FACE_SEL))
 				if(tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4)) {
 					stack[stacksize]= a;
 					stacksize++;
@@ -1291,7 +1293,7 @@ void unlink_selection(void)
 
 	mface= me->mface;
 	for(a=me->totface, tface= me->mtface; a>0; a--, tface++, mface++) {
-		if(tface->flag & TF_SELECT) {
+		if(mface->flag & ME_FACE_SEL) {
 			if(mface->v4) {
 				if(~tface->flag & (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4))
 					tface->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
@@ -1342,7 +1344,7 @@ void pin_tface_uv(int mode)
 	mface= me->mface;
 	tface= me->mtface;
 	for(a=me->totface; a>0; a--, tface++, mface++) {
-		if(tface->flag & TF_SELECT) {
+		if(mface->flag & ME_FACE_SEL) {
 			if(mode ==1){
 				if(tface->flag & TF_SEL1) tface->unwrap |= TF_PIN1;
 				if(tface->flag & TF_SEL2) tface->unwrap |= TF_PIN2;
@@ -1355,7 +1357,7 @@ void pin_tface_uv(int mode)
 				if(tface->flag & TF_SEL2) tface->unwrap &= ~TF_PIN2;
 				if(tface->flag & TF_SEL3) tface->unwrap &= ~TF_PIN3;
 				if(mface->v4)
-				if(tface->flag & TF_SEL4) tface->unwrap &= ~TF_PIN4;
+					if(tface->flag & TF_SEL4) tface->unwrap &= ~TF_PIN4;
 			}
 		}
 	}
@@ -1377,7 +1379,7 @@ void select_pinned_tface_uv(void)
 	mface= me->mface;
 	tface= me->mtface;
 	for(a=me->totface; a>0; a--, tface++, mface++) {
-		if(tface->flag & TF_SELECT) {
+		if(mface->flag & ME_FACE_SEL) {
 		
 			if (tface->unwrap & TF_PIN1) tface->flag |= TF_SEL1;
 			if (tface->unwrap & TF_PIN2) tface->flag |= TF_SEL2;
@@ -1409,8 +1411,8 @@ int minmax_tface_uv(float *min, float *max)
 	mf= (MFace*)me->mface;
 	tf= (MTFace*)me->mtface;
 	for(a=me->totface; a>0; a--, tf++, mf++) {
-		if(tf->flag & TF_HIDE);
-		else if(tf->flag & TF_SELECT) {
+		if(mf->flag & ME_HIDE);
+		else if(mf->flag & ME_FACE_SEL) {
 
 			if (tf->flag & TF_SEL1) {
 				DO_MINMAX2(tf->uv[0], min, max);

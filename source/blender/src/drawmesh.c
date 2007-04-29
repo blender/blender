@@ -615,12 +615,12 @@ EdgeHash *get_tface_mesh_marked_edge_info(Mesh *me)
 		MTFace *tf = &me->mtface[i];
 		
 		if (mf->v3) {
-			if (!(tf->flag&TF_HIDE)) {
+			if (!(mf->flag&ME_HIDE)) {
 				unsigned int flags = eEdge_Visible;
-				if (tf->flag&TF_SELECT) flags |= eEdge_Select;
+				if (mf->flag&ME_FACE_SEL) flags |= eEdge_Select;
 				if (tf->flag&TF_ACTIVE) {
 					flags |= eEdge_Active;
-					if (tf->flag&TF_SELECT) flags |= eEdge_SelectAndActive;
+					if (mf->flag&ME_FACE_SEL) flags |= eEdge_SelectAndActive;
 				}
 
 				get_marked_edge_info__orFlags(eh, mf->v1, mf->v2, flags);
@@ -713,8 +713,8 @@ static int draw_tfaces3D__drawFaceOpts(void *userData, int index)
 	Mesh *me = (Mesh*)userData;
 
 	if (me->mtface) {
-		MTFace *tface = &me->mtface[index];
-		if (!(tface->flag&TF_HIDE) && (tface->flag&TF_SELECT))
+		MFace *mface = &me->mface[index];
+		if (!(mface->flag&ME_HIDE) && (mface->flag&ME_FACE_SEL))
 			return 2; /* Don't set color */
 		else
 			return 0;
@@ -936,7 +936,7 @@ static unsigned char g_draw_tface_mesh_obcol[4];
 
 static int draw_tface__set_draw(MTFace *tface, MCol *mcol, int matnr)
 {
-	if (tface && ((tface->flag&TF_HIDE) || (tface->mode&TF_INVISIBLE))) return 0;
+	if (!tface || (tface->mode&TF_INVISIBLE)) return 0;
 
 	if (tface && set_draw_settings_cached(0, g_draw_tface_mesh_istex, tface, g_draw_tface_mesh_islight, g_draw_tface_mesh_ob, matnr, TF_TWOSIDE)) {
 		glColor3ub(0xFF, 0x00, 0xFF);
@@ -961,18 +961,21 @@ static int draw_tface_mapped__set_draw(void *userData, int index)
 {
 	Mesh *me = (Mesh*)userData;
 	MTFace *tface = (me->mtface)? &me->mtface[index]: NULL;
+	MFace *mface = (me->mface)? &me->mface[index]: NULL;
 	MCol *mcol = (me->mcol)? &me->mcol[index]: NULL;
 	int matnr = me->mface[index].mat_nr;
-
+	if (mface && mface->flag&ME_HIDE) return 0;
 	return draw_tface__set_draw(tface, mcol, matnr);
 }
 
 static int wpaint__setSolidDrawOptions(void *userData, int index, int *drawSmooth_r)
 {
-	MTFace *tface = (MTFace *)userData;
+	Mesh *me = (Mesh*)userData;
+	MTFace *tface = (me->mtface)? &me->mtface[index]: NULL;
+	MFace *mface = (me->mface)? &me->mface[index]: NULL;
+	
 	if (tface) {
-		tface+= index;
-		if ((tface->flag&TF_HIDE) || (tface->mode&TF_INVISIBLE)) 
+		if ((mface->flag&ME_HIDE) || (tface->mode&TF_INVISIBLE)) 
 			return 0;
 	}
 	*drawSmooth_r = 1;
@@ -1034,7 +1037,7 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 		if(ob==OBACT && (G.f & G_FACESELECT) && me && me->mtface) {
 #endif		
 			if(G.f & G_WEIGHTPAINT)
-				dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, me->mtface, 1);
+				dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, (void*)me, 1);
 			else
 				dm->drawMappedFacesTex(dm, draw_tface_mapped__set_draw, (void*)me);
 		}
@@ -1057,7 +1060,7 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 				int matnr= mf->mat_nr;
 				int mf_smooth= mf->flag & ME_SMOOTH;
 
-				if (!(tface->flag&TF_HIDE) && !(mode&TF_INVISIBLE) && (mode&TF_BMFONT)) {
+				if (!(mf->flag&ME_HIDE) && !(mode&TF_INVISIBLE) && (mode&TF_BMFONT)) {
 					int badtex= set_draw_settings_cached(0, g_draw_tface_mesh_istex, tface, g_draw_tface_mesh_islight, g_draw_tface_mesh_ob, matnr, TF_TWOSIDE);
 					float v1[3], v2[3], v3[3], v4[3];
 					char string[MAX_PROPSTRING];

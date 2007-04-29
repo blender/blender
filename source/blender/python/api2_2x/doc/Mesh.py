@@ -58,8 +58,8 @@ done once.
 @var FaceFlags: The available *texture face* (uv face select mode) selection
 	flags.  Note: these refer to TexFace faces, available if mesh.faceUV
 	returns true.
-		- SELECT - selected.
-		- HIDE - hidden.
+		- SELECT - selected (deprecated in versions after 2.43, use face.sel).
+		- HIDE - hidden  (deprecated in versions after 2.43, use face.hide).
 		- ACTIVE - the active face, read only - Use L{mesh.activeFace<Mesh.Mesh.activeFace>} to set.
 @var FaceModes: The available *texture face* modes. Note: these are only
 	meaningful if mesh.faceUV returns true, since in Blender this info is

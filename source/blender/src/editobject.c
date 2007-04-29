@@ -2182,14 +2182,17 @@ void special_editmenu(void)
 		else if(G.f & G_FACESELECT) {
 			Mesh *me= get_mesh(ob);
 			MTFace *tface;
+			MFace *mface;
 			int a;
 			
 			if(me==0 || me->mtface==0) return;
 			
 			nr= pupmenu("Specials%t|Set     Tex%x1|         Shared%x2|         Light%x3|         Invisible%x4|         Collision%x5|         TwoSide%x6|Clr     Tex%x7|         Shared%x8|         Light%x9|         Invisible%x10|         Collision%x11|         TwoSide%x12");
-	
-			for(a=me->totface, tface= me->mtface; a>0; a--, tface++) {
-				if(tface->flag & SELECT) {
+			
+			tface= me->mtface;
+			mface= me->mface;
+			for(a=me->totface; a>0; a--, tface++, mface++) {
+				if(mface->flag & ME_FACE_SEL) {
 					switch(nr) {
 					case 1:
 						tface->mode |= TF_TEX; break;
@@ -3334,6 +3337,7 @@ void copy_attr_tface(short event)
 	Object *ob= OBACT;
 	Mesh *me= get_mesh(ob);
 	MTFace *tface;
+	MFace *mface;
 	MCol *activemcol;
 	MTFace *activetf= get_active_tface(&activemcol);
 	int a;
@@ -3341,8 +3345,9 @@ void copy_attr_tface(short event)
 	if(activetf==NULL) return;
 	
 	tface= me->mtface;
-	for(a=0; a<me->totface; a++, tface++) {
-		if(tface->flag & SELECT) {
+	mface= me->mface;
+	for(a=0; a<me->totface; a++, tface++, mface++) {
+		if(mface->flag & ME_FACE_SEL) {
 			switch(event) {
 			case 1:
 				tface->tpage = activetf->tpage;

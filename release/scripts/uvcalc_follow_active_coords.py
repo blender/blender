@@ -43,8 +43,8 @@ import bpy
 import BPyMesh
 
 def extend():
-	scn = bpy.data.scenes.active
-	ob = scn.objects.active
+	sce = bpy.data.scenes.active
+	ob = sce.objects.active
 	
 	# print ob, ob.type
 	if ob == None or ob.type != 'Mesh':
@@ -156,15 +156,7 @@ def extend():
 		Draw.PupMenu('ERROR: No active face')
 		return
 	
-	
-	SELECT_FLAG = Mesh.FaceFlags.SELECT
-	HIDE_FLAG = Mesh.FaceFlags.HIDE
-	def use_face(f_flag):
-		if f_flag & HIDE_FLAG:		return False
-		elif f_flag & SELECT_FLAG:	return True
-		else:						return False
-	
-	face_sel= [f for f in me.faces if len(f) == 4 and use_face(f.flag)]
+	face_sel= [f for f in me.faces if len(f) == 4 and f.sel]
 	
 	face_act_local_index = -1
 	for i, f in enumerate(face_sel):
