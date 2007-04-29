@@ -54,7 +54,8 @@ typedef struct BokehCoeffs {
 // BKH[8] is the data returned for the bokeh shape & bkh_b[4] is it's 2d bound
 static void makeBokeh(char bktype, char ro, int* len_bkh, float* inradsq, BokehCoeffs BKH[8], float bkh_b[4])
 {
-	float x0, x1, y0, y1, dx, dy, iDxy, w = ro*M_PI/180.f;
+	float x0, x1, y0, y1, dx, dy, iDxy;
+	float w = MAX2(1e-5f, ro)*M_PI/180.f;	// never reported stangely enough, but a zero offset causes missing center line...
 	float wi = (360.f/bktype)*M_PI/180.f;
 	int i, ov, nv;
 	
@@ -337,7 +338,8 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 					bcrad = 0.5f*fabs(aperture*(dof_sp*(cam_invfdist - iZ) - 1.f));
 					// scale crad back to original maximum and blend
 					crad->rect[px] = bcrad + wts->rect[px]*(scf*crad->rect[px] - bcrad);
-					if (crad->rect[px] < 0.01f) crad->rect[px] = 0.01f;
+					// 'bug' #6615, limit minimum radius to 1 pixel, not really a solution, but somewhat mitigates the problem
+					crad->rect[px] = MAX2(crad->rect[px], 0.5f);
 					// if maxblur!=0, limit maximum
 					if (nqd->maxblur != 0.f) crad->rect[px] = MIN2(crad->rect[px], nqd->maxblur);
 				}
