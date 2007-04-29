@@ -1601,6 +1601,11 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			height = 114 + ((UVProjectModifierData *)md)->num_projectors * 19;
 		} else if (md->type==eModifierType_Decimate) {
 			height = 48;
+		} else if (md->type==eModifierType_Smooth) {
+			height = 86;
+		} else if (md->type==eModifierType_Cast) {
+			height = 124;
+			height += 19;
 		} else if (md->type==eModifierType_Wave) {
 			WaveModifierData *wmd = (WaveModifierData *)md;
 			height = 280;
@@ -1825,6 +1830,37 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Ratio:",	lx,(cy-=19),buttonWidth,19, &dmd->percent, 0.0, 1.0, 10, 0, "Defines the percentage of triangles to reduce to");
 			sprintf(str, "Face Count: %d", dmd->faceCount);
 			uiDefBut(block, LABEL, 1, str,	lx, (cy-=19), 160,19, NULL, 0.0, 0.0, 0, 0, "Displays the current number of faces in the decimated mesh");
+		} else if (md->type==eModifierType_Smooth) {
+			SmoothModifierData *smd = (SmoothModifierData*) md;
+
+			uiDefButBitS(block, TOG, MOD_SMOOTH_X, B_MODIFIER_RECALC, "X",		lx,(cy-=19),45,19, &smd->flag, 0, 0, 0, 0, "Enable X axis smoothing");
+			uiDefButBitS(block, TOG, MOD_SMOOTH_Y, B_MODIFIER_RECALC, "Y",		lx+45,cy,45,19, &smd->flag, 0, 0, 0, 0, "Enable Y axis smoothing");
+			uiDefButBitS(block, TOG, MOD_SMOOTH_Z, B_MODIFIER_RECALC, "Z",		lx+90,cy,45,19, &smd->flag, 0, 0, 0, 0, "Enable Z axis smoothing");
+
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Factor:",	lx,(cy-=19),buttonWidth, 19, &smd->fac, -10.0, 10.0, 0.5, 0, "Define the amount of smoothing, from 0.0 to 1.0 (lower / higher values can deform the mesh)");
+			uiDefButS(block, NUM, B_MODIFIER_RECALC, "Repeat:",	lx,(cy-=19),buttonWidth, 19, &smd->repeat, 0.0, 30.0, 1, 0, "Number of smoothing iterations");
+			but=uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",				  lx, (cy-=19), buttonWidth,19, &smd->defgrp_name, 0.0, 31.0, 0, 0, "Vertex Group name to define which vertices are affected");
+		} else if (md->type==eModifierType_Cast) {
+			CastModifierData *cmd = (CastModifierData*) md;
+
+			char casttypemenu[]="Projection Type%t|Sphere%x0|Cylinder%x1|Cuboid%x2";
+			uiDefButS(block, MENU, B_MODIFIER_RECALC, casttypemenu,		lx,(cy-=19),buttonWidth - 30,19, &cmd->type, 0, 0, 0, 0, "Projection type to apply");
+			uiDefButBitS(block, TOG, MOD_CAST_X, B_MODIFIER_RECALC, "X",		lx,(cy-=19),45,19, &cmd->flag, 0, 0, 0, 0, "Enable (local) X axis deformation");
+			uiDefButBitS(block, TOG, MOD_CAST_Y, B_MODIFIER_RECALC, "Y",		lx+45,cy,45,19, &cmd->flag, 0, 0, 0, 0, "Enable (local) Y axis deformation");
+			if (cmd->type != MOD_CAST_TYPE_CYLINDER) {
+				uiDefButBitS(block, TOG, MOD_CAST_Z, B_MODIFIER_RECALC, "Z",		lx+90,cy,45,19, &cmd->flag, 0, 0, 0, 0, "Enable (local) Z axis deformation");
+			}
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Factor:",	lx,(cy-=19),buttonWidth, 19, &cmd->fac, -10.0, 10.0, 5, 0, "Define the amount of deformation");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Radius:",	lx,(cy-=19),buttonWidth, 19, &cmd->radius, 0.0, 100.0, 10.0, 0, "Only deform vertices within this distance from the center of the effect (leave as 0 for infinite)");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Size:",	lx,(cy-=19),buttonWidth, 19, &cmd->size, 0.0, 100.0, 10.0, 0, "Size of projection shape (leave as 0 for auto)");
+			uiDefButBitS(block, TOG, MOD_CAST_SIZE_FROM_RADIUS, B_MODIFIER_RECALC, "From radius",		lx+buttonWidth,cy,80,19, &cmd->flag, 0, 0, 0, 0, "Use radius as size of projection shape (0 = auto)");
+			if (ob->type == OB_MESH) {
+				but=uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",				  lx, (cy-=19), buttonWidth,19, &cmd->defgrp_name, 0.0, 31.0, 0, 0, "Vertex Group name to define which vertices are affected");
+			}
+			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CHANGEDEP, "Ob: ", lx,(cy-=19), buttonWidth,19, &cmd->object, "Control object: if available, its location determines the center of the effect");
+			if(cmd->object) {
+				uiDefButBitS(block, TOG, MOD_CAST_USE_OB_TRANSFORM, B_MODIFIER_RECALC, "Use transform",		lx+buttonWidth,cy,80,19, &cmd->flag, 0, 0, 0, 0, "Use object transform to control projection shape");
+			}
 		} else if (md->type==eModifierType_Wave) {
 			WaveModifierData *wmd = (WaveModifierData*) md;
 			uiDefButBitS(block, TOG, WAV_X, B_MODIFIER_RECALC, "X",		lx,(cy-=19),45,19, &wmd->flag, 0, 0, 0, 0, "Enable X axis motion");

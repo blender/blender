@@ -4,7 +4,7 @@
 The Blender.Modifier submodule
 
 B{New}: 
-  -  provides access to Blender's modifier stack
+  -  Supports the new Cast and Smooth modifiers.
 
 This module provides access to the Modifier Data in Blender.
 
@@ -57,6 +57,9 @@ Example::
     - SUBSURF - type value for Subsurf modifiers
     - WAVE - type value for Wave modifiers
     - EDGESPLIT - type value for Edge Split modifiers
+    - DISPLACE - type value for Displace modifiers
+    - SMOOTH - type value for Smooth modifiers
+    - CAST - type value for Cast modifiers
 
 @type Settings: readonly dictionary
 @var Settings: Constant Modifier dict used for changing modifier settings.
@@ -66,13 +69,17 @@ Example::
 	- ONCAGE - Used for all modifiers (bool) If true, the modifier is enabled for the editing cage during edit mode.
 
 	- OBJECT - Used for Armature, Lattice, Curve, Boolean and Array (Object)
-	- VERTGROUP - Used for Armature, Lattice and Curve (String)
+	- VERTGROUP - Used for Armature, Lattice, Curve, Smooth and Cast (String)
 	- LIMIT - Array and Mirror (float [0.0 - 1.0])
 	- FLAG - Mirror and Wave (int)
 	- COUNT - Decimator Polycount (readonly) and Array (int)
 	- LENGTH - Build [1.0-300000.0] and Array [0.0 - 10000.0] (float)
-	
-	- TYPES - Used for Subsurf only. Determines the subdivision algorithm. Integer: 0 = Catmull-Clark; 1 = simple subdivision.
+	- FACTOR - Smooth [-10.0, 10.0] and Cast [-10.0, 10.0] (float)
+	- ENABLE_X = Smooth and Cast (bool, default: True)
+	- ENABLE_Y = Smooth and Cast (bool, default: True)
+	- ENABLE_Z = Smooth and Cast (bool, default: True)
+	- TYPES - Subsurf and Cast. For Subsurf it determines the subdivision algorithm - (int): 0 = Catmull-Clark; 1 = simple subdivision. For Cast it determines the shape to deform to = (int): 0 = Sphere; 1 = Cylinder; 2 = Cuboid
+
 	- LEVELS - Used for Subsurf only (int [0 - 6]). The number of subdivision levels used for interactive display.
 	- RENDLEVELS - Used for Subsurf only (int [0 - 6]). The number of subdivision levels used for rendering.
 	- OPTIMAL - Used for Subsurf only (bool). Enables Optimal Draw.
@@ -109,6 +116,18 @@ Example::
 	- EDGESPLIT_ANGLE - Used for edge split only (float 0.0 - 180)
 	- EDGESPLIT_FROM_ANGLE - Used for edge split only, should the modifier use the edge angle (bool)
 	- EDGESPLIT_FROM_SHARP - Used for edge split only, should the modifier use the edge sharp flag (bool)
+
+	- UVLAYER - Used for Displace only
+	- MID_LEVEL - Used for Displace only (float [0.0, 1.0], default: 0.5)
+	- STRENGTH - Used for Displace only (float [-1000.0, 1000.0, default: 1.0)
+	- TEXTURE - Used for Displace only (string)
+	- MAPPING - Used for Displace only
+	- DIRECTION - Used for Displace only
+
+	- REPEAT - Used for Smooth only (int [0, 30], default: 1)
+
+	- RADIUS - Used for Cast only (float [0.0, 100.0], default: 0.0)
+	- USE_OB_SCALE - Used for Cast only (bool, default: False)
 """
 
 class ModSeq:

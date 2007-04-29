@@ -26,6 +26,8 @@ typedef enum ModifierType {
 	eModifierType_EdgeSplit,
 	eModifierType_Displace,
 	eModifierType_UVProject,
+	eModifierType_Smooth,
+	eModifierType_Cast,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -232,6 +234,42 @@ typedef struct DecimateModifierData {
 	float percent;
 	int faceCount;
 } DecimateModifierData;
+
+/* Smooth modifier flags */
+#define MOD_SMOOTH_X 1<<1
+#define MOD_SMOOTH_Y 1<<2
+#define MOD_SMOOTH_Z 1<<3
+
+typedef struct SmoothModifierData {
+	ModifierData modifier;
+	float fac;
+	char defgrp_name[32];
+	short flag, repeat;
+
+} SmoothModifierData;
+
+/* Cast modifier flags */
+#define MOD_CAST_X 1<<1
+#define MOD_CAST_Y 1<<2
+#define MOD_CAST_Z 1<<3
+#define MOD_CAST_USE_OB_TRANSFORM 1<<4
+#define MOD_CAST_SIZE_FROM_RADIUS 1<<5
+
+/* Cast modifier projection types */
+#define MOD_CAST_TYPE_SPHERE 0
+#define MOD_CAST_TYPE_CYLINDER 1
+#define MOD_CAST_TYPE_CUBOID 2
+
+typedef struct CastModifierData {
+	ModifierData modifier;
+
+	struct Object *object;
+	float fac;
+	float radius;
+	float size;
+	char defgrp_name[32];
+	short flag, type;
+} CastModifierData;
 
 enum {
 	MOD_WAV_MAP_LOCAL,

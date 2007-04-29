@@ -67,14 +67,18 @@ enum mod_constants {
 	
 	/*GENERIC*/
 	EXPP_MOD_OBJECT, /*ARMATURE, LATTICE, CURVE, BOOLEAN, ARRAY*/
-	EXPP_MOD_VERTGROUP, /*ARMATURE, LATTICE, CURVE*/
+	EXPP_MOD_VERTGROUP, /*ARMATURE, LATTICE, CURVE, SMOOTH, CAST*/
 	EXPP_MOD_LIMIT, /*ARRAY, MIRROR*/
 	EXPP_MOD_FLAG, /*MIRROR, WAVE*/
 	EXPP_MOD_COUNT, /*DECIMATOR, ARRAY*/
 	EXPP_MOD_LENGTH, /*BUILD, ARRAY*/
+	EXPP_MOD_FACTOR, /*SMOOTH, CAST*/
+	EXPP_MOD_ENABLE_X, /*SMOOTH, CAST*/
+	EXPP_MOD_ENABLE_Y, /*SMOOTH, CAST*/
+	EXPP_MOD_ENABLE_Z, /*SMOOTH, CAST*/
+	EXPP_MOD_TYPES, /*SUBSURF, CAST*/
 	
 	/*SUBSURF SPESIFIC*/
-	EXPP_MOD_TYPES,
 	EXPP_MOD_LEVELS,
 	EXPP_MOD_RENDLEVELS,
 	EXPP_MOD_OPTIMAL,
@@ -126,7 +130,16 @@ enum mod_constants {
 	EXPP_MOD_STRENGTH,
 	EXPP_MOD_TEXTURE,
 	EXPP_MOD_MAPPING,
-	EXPP_MOD_DIRECTION
+	EXPP_MOD_DIRECTION,
+
+	/* SMOOTH */
+	EXPP_MOD_REPEAT,
+
+	/* CAST */
+	EXPP_MOD_RADIUS,
+	EXPP_MOD_SIZE,
+	EXPP_MOD_USE_OB_TRANSFORM,
+	EXPP_MOD_SIZE_FROM_RADIUS
 	
 	/* yet to be implemented */
 	/* EXPP_MOD_HOOK_,*/
@@ -548,6 +561,133 @@ static int decimate_setter( BPy_Modifier *self, int type, PyObject *value )
 	return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
 }
 
+static PyObject *smooth_getter( BPy_Modifier * self, int type )
+{
+	SmoothModifierData *md = (SmoothModifierData *)(self->md);
+
+	switch( type ) {
+	case EXPP_MOD_FACTOR:
+		return PyFloat_FromDouble( (double)md->fac );
+	case EXPP_MOD_REPEAT:
+		return PyInt_FromLong( (long)md->repeat );
+	case EXPP_MOD_VERTGROUP:
+		return PyString_FromString( md->defgrp_name ) ;
+	case EXPP_MOD_ENABLE_X:
+		return EXPP_getBitfield( &md->flag, MOD_SMOOTH_X, 'h' );
+	case EXPP_MOD_ENABLE_Y:
+		return EXPP_getBitfield( &md->flag, MOD_SMOOTH_Y, 'h' );
+	case EXPP_MOD_ENABLE_Z:
+		return EXPP_getBitfield( &md->flag, MOD_SMOOTH_Z, 'h' );
+	default:
+		return EXPP_ReturnPyObjError( PyExc_KeyError, "key not found" );
+	}
+}
+
+static int smooth_setter( BPy_Modifier *self, int type, PyObject *value )
+{
+	SmoothModifierData *md = (SmoothModifierData *)(self->md);
+
+	switch( type ) {
+	case EXPP_MOD_FACTOR:
+		return EXPP_setFloatClamped( value, &md->fac, -10.0, 10.0 );
+	case EXPP_MOD_REPEAT:
+		return EXPP_setIValueRange( value, &md->repeat, 0, 30, 'h' );
+	case EXPP_MOD_VERTGROUP: {
+		char *name = PyString_AsString( value );
+		if( !name ) return EXPP_ReturnIntError( PyExc_TypeError, "expected string arg" );
+		BLI_strncpy( md->defgrp_name, name, sizeof( md->defgrp_name ) );
+		return 0;
+	}
+	case EXPP_MOD_ENABLE_X:
+		return EXPP_setBitfield( value, &md->flag, MOD_SMOOTH_X, 'h' ); 
+	case EXPP_MOD_ENABLE_Y:
+		return EXPP_setBitfield( value, &md->flag, MOD_SMOOTH_Y, 'h' ); 
+	case EXPP_MOD_ENABLE_Z:
+		return EXPP_setBitfield( value, &md->flag, MOD_SMOOTH_Z, 'h' ); 
+	default:
+		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
+	}
+}
+
+static PyObject *cast_getter( BPy_Modifier * self, int type )
+{
+	CastModifierData *md = (CastModifierData *)(self->md);
+
+	switch( type ) {
+	case EXPP_MOD_TYPES:
+		return PyInt_FromLong( (long)md->type );
+	case EXPP_MOD_FACTOR:
+		return PyFloat_FromDouble( (double)md->fac );
+	case EXPP_MOD_RADIUS:
+		return PyFloat_FromDouble( (double)md->radius );
+	case EXPP_MOD_SIZE:
+		return PyFloat_FromDouble( (double)md->size );
+	case EXPP_MOD_OBJECT:
+		return Object_CreatePyObject( md->object );
+	case EXPP_MOD_VERTGROUP:
+		return PyString_FromString( md->defgrp_name ) ;
+	case EXPP_MOD_ENABLE_X:
+		return EXPP_getBitfield( &md->flag, MOD_CAST_X, 'h' );
+	case EXPP_MOD_ENABLE_Y:
+		return EXPP_getBitfield( &md->flag, MOD_CAST_Y, 'h' );
+	case EXPP_MOD_ENABLE_Z:
+		return EXPP_getBitfield( &md->flag, MOD_CAST_Z, 'h' );
+	case EXPP_MOD_USE_OB_TRANSFORM:
+		return EXPP_getBitfield( &md->flag, MOD_CAST_USE_OB_TRANSFORM, 'h' );
+	case EXPP_MOD_SIZE_FROM_RADIUS:
+		return EXPP_getBitfield( &md->flag, MOD_CAST_SIZE_FROM_RADIUS, 'h' );
+	default:
+		return EXPP_ReturnPyObjError( PyExc_KeyError, "key not found" );
+	}
+}
+
+static int cast_setter( BPy_Modifier *self, int type, PyObject *value )
+{
+	CastModifierData *md = (CastModifierData *)(self->md);
+
+	switch( type ) {
+	case EXPP_MOD_TYPES:
+		return EXPP_setIValueRange( value, &md->type, 0, MOD_CAST_TYPE_CUBOID, 'h' );
+	case EXPP_MOD_FACTOR:
+		return EXPP_setFloatClamped( value, &md->fac, -10.0, 10.0 );
+	case EXPP_MOD_RADIUS:
+		return EXPP_setFloatClamped( value, &md->radius, 0.0, 100.0 );
+	case EXPP_MOD_SIZE:
+		return EXPP_setFloatClamped( value, &md->size, 0.0, 100.0 );
+	case EXPP_MOD_OBJECT: {
+		Object *ob_new=NULL;
+		if (value == Py_None) {
+			md->object = NULL;
+		} else if (BPy_Object_Check( value )) {
+			ob_new = ((( BPy_Object * )value)->object);
+			md->object = ob_new;
+		} else {
+			return EXPP_ReturnIntError( PyExc_TypeError,
+				"Expected an Object or None value" );
+		}
+		return 0;
+	}
+	case EXPP_MOD_VERTGROUP: {
+		char *name = PyString_AsString( value );
+		if( !name ) return EXPP_ReturnIntError( PyExc_TypeError, "expected string arg" );
+		BLI_strncpy( md->defgrp_name, name, sizeof( md->defgrp_name ) );
+		return 0;
+	}
+	case EXPP_MOD_ENABLE_X:
+		return EXPP_setBitfield( value, &md->flag, MOD_CAST_X, 'h' ); 
+	case EXPP_MOD_ENABLE_Y:
+		return EXPP_setBitfield( value, &md->flag, MOD_CAST_Y, 'h' ); 
+	case EXPP_MOD_ENABLE_Z:
+		return EXPP_setBitfield( value, &md->flag, MOD_CAST_Z, 'h' ); 
+	case EXPP_MOD_USE_OB_TRANSFORM:
+		return EXPP_setBitfield( value, &md->flag, MOD_CAST_USE_OB_TRANSFORM, 'h' ); 
+	case EXPP_MOD_SIZE_FROM_RADIUS:
+		return EXPP_setBitfield( value, &md->flag, MOD_CAST_SIZE_FROM_RADIUS, 'h' ); 
+	default:
+		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
+	}
+}
+
 static PyObject *wave_getter( BPy_Modifier * self, int type )
 {
 	WaveModifierData *md = (WaveModifierData *)(self->md);
@@ -866,6 +1006,10 @@ static PyObject *Modifier_getData( BPy_Modifier * self, PyObject * key )
 				return mirror_getter( self, setting );
 			case eModifierType_Decimate:
 				return decimate_getter( self, setting );
+			case eModifierType_Smooth:
+				return smooth_getter( self, setting );
+			case eModifierType_Cast:
+				return cast_getter( self, setting );
 			case eModifierType_Wave:
 				return wave_getter( self, setting );
 			case eModifierType_Boolean:
@@ -934,6 +1078,10 @@ static int Modifier_setData( BPy_Modifier * self, PyObject * key,
 			return array_setter( self, key_int, arg );
 		case eModifierType_Decimate:
 			return decimate_setter( self, key_int, arg );
+		case eModifierType_Smooth:
+			return smooth_setter( self, key_int, arg );
+		case eModifierType_Cast:
+			return cast_setter( self, key_int, arg );
 		case eModifierType_Wave:
 			return wave_setter( self, key_int, arg );
 		case eModifierType_Boolean:
@@ -1347,6 +1495,10 @@ static PyObject *M_Modifier_TypeDict( void )
 				PyInt_FromLong( eModifierType_Array ) );
 		PyConstant_Insert( d, "EDGESPLIT",
 				PyInt_FromLong( eModifierType_EdgeSplit ) );
+		PyConstant_Insert( d, "SMOOTH",
+				PyInt_FromLong( eModifierType_Smooth ) );
+		PyConstant_Insert( d, "CAST",
+				PyInt_FromLong( eModifierType_Cast ) );
 	}
 	return S;
 }
@@ -1407,6 +1559,14 @@ for var in st.replace(',','').split('\n'):
 				PyInt_FromLong( EXPP_MOD_COUNT ) );
 			PyConstant_Insert( d, "LENGTH", 
 				PyInt_FromLong( EXPP_MOD_LENGTH ) );
+			PyConstant_Insert( d, "FACTOR", 
+				PyInt_FromLong( EXPP_MOD_FACTOR ) );
+			PyConstant_Insert( d, "ENABLE_X", 
+				PyInt_FromLong( EXPP_MOD_ENABLE_X ) );
+			PyConstant_Insert( d, "ENABLE_Y", 
+				PyInt_FromLong( EXPP_MOD_ENABLE_Y ) );
+			PyConstant_Insert( d, "ENABLE_Z", 
+				PyInt_FromLong( EXPP_MOD_ENABLE_Z ) );
 			PyConstant_Insert( d, "TYPES", 
 				PyInt_FromLong( EXPP_MOD_TYPES ) );
 			PyConstant_Insert( d, "LEVELS", 
@@ -1471,6 +1631,22 @@ for var in st.replace(',','').split('\n'):
 				PyInt_FromLong( EXPP_MOD_MID_LEVEL ) );
 			PyConstant_Insert( d, "STRENGTH",
 				PyInt_FromLong( EXPP_MOD_STRENGTH ) );
+			PyConstant_Insert( d, "TEXTURE", 
+				PyInt_FromLong( EXPP_MOD_TEXTURE ) );
+			PyConstant_Insert( d, "MAPPING", 
+				PyInt_FromLong( EXPP_MOD_MAPPING ) );
+			PyConstant_Insert( d, "DIRECTION", 
+				PyInt_FromLong( EXPP_MOD_DIRECTION ) );
+			PyConstant_Insert( d, "REPEAT", 
+				PyInt_FromLong( EXPP_MOD_REPEAT ) );
+			PyConstant_Insert( d, "RADIUS", 
+				PyInt_FromLong( EXPP_MOD_RADIUS ) );
+			PyConstant_Insert( d, "SIZE", 
+				PyInt_FromLong( EXPP_MOD_SIZE ) );
+			PyConstant_Insert( d, "USE_OB_TRANSFORM", 
+				PyInt_FromLong( EXPP_MOD_USE_OB_TRANSFORM ) );
+			PyConstant_Insert( d, "SIZE_FROM_RADIUS", 
+				PyInt_FromLong( EXPP_MOD_SIZE_FROM_RADIUS ) );
 			/*End Auto generated code*/
 	}
 	return S;
