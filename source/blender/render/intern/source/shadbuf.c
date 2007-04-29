@@ -525,8 +525,8 @@ static float readshadowbuf(ShadBuf *shb, ShadSampleBuf *shsample, int bias, int 
 
 	}
 	else {
-		/* got warning on this from DEC alpha (64 bits).... */
-		/* but it's working code! (ton) */
+		/* got warning on this for 64 bits.... */
+		/* but it's working code! in this case rz is not a pointer but zvalue (ton) */
  		zsamp= (int) rz;
 	}
 

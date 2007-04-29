@@ -1540,7 +1540,7 @@ void *BLI_pointer_from_int(int val)
 		firsttime= 0;
 		free(poin);
 	}
-	return basevalue | (((long)val)<<3);
+	return (void *)(basevalue | (((long)val)<<3));
 }
 
 #else

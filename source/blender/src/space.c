@@ -468,7 +468,7 @@ static void restore_all_scene_cfra(LinkNode *storelist) {
 	Scene *sc;
 	
 	for (sc= G.main->scene.first; sc; sc= sc->id.next) {
-		int stored_cfra= (int) sc_store->link;
+		int stored_cfra= (long) sc_store->link;
 		
 		sc->r.cfra= stored_cfra;
 		set_scene_bg(sc);

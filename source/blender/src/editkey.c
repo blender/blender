@@ -164,7 +164,7 @@ static void rvk_slider_func(void *voidob, void *voidkeynum)
 	IpoCurve  *icu=NULL;
 	BezTriple *bezt=NULL;
 	float cfra, rvkval;
-	int keynum = (int) voidkeynum;
+	int keynum = (long) voidkeynum;
 
 	cfra = frame_to_float(CFRA);
 
@@ -277,7 +277,7 @@ void make_rvk_slider(uiBlock *block, Object *ob, int keynum,
 				  x, y , w, h,
 				  meshslidervals+keynum, min, max, 10, 2, tip);
 	
-	uiButSetFunc(but, rvk_slider_func, ob, (void *)keynum);
+	uiButSetFunc(but, rvk_slider_func, ob, (void *)(long)keynum);
 	// no hilite, the winmatrix is not correct later on...
 	uiButSetFlag(but, UI_NO_HILITE);
 

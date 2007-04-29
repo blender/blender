@@ -75,7 +75,7 @@ char *first_slash(char *string) {
 	if (!ffslash) return fbslash;
 	else if (!fbslash) return ffslash;
 	
-	if ((int)ffslash < (int)fbslash) return ffslash;
+	if ((long)ffslash < (long)fbslash) return ffslash;
 	else return fbslash;
 }
 
@@ -88,7 +88,7 @@ char *BLI_last_slash(char *string) {
 	if (!lfslash) return lbslash; 
 	else if (!lbslash) return lfslash;
 	
-	if ((int)lfslash < (int)lbslash) return lbslash;
+	if ((long)lfslash < (long)lbslash) return lbslash;
 	else return lfslash;
 }
 

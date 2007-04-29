@@ -2668,7 +2668,7 @@ static void lib_link_object(FileData *fd, Main *main)
 				ob->type= OB_EMPTY;
 				warn= 1;
 				if(ob->id.lib) printf("Can't find obdata of %s lib %s\n", ob->id.name+2, ob->id.lib->name);
-				else printf("Object %s lost data. Lib:%x\n", ob->id.name+2, (unsigned int) ob->id.lib);
+				else printf("Object %s lost data.", ob->id.name+2);
 				
 				if(ob->pose) {
 					free_pose_channels(ob->pose);

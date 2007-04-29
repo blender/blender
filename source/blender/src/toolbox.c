@@ -1719,8 +1719,8 @@ static uiBlock *tb_makemenu(void *arg)
 static int tb_mainx= 1234, tb_mainy= 0;
 static void store_main(void *arg1, void *arg2)
 {
-	tb_mainx= (int)arg1;
-	tb_mainy= (int)arg2;
+	tb_mainx= (long)arg1;
+	tb_mainy= (long)arg2;
 }
 
 static void do_group_addmenu(void *arg, int event)
@@ -2141,27 +2141,27 @@ void toolbox_n(void)
 	
 		but=uiDefBlockBut(block, tb_makemenu, menu1, str1,	mval[0]-(1.5*dx)+tb_mainx,mval[1]+tb_mainy, dx, 19, "");
 		uiButSetFlag(but, UI_MAKE_TOP|UI_MAKE_RIGHT);
-		uiButSetFunc(but, store_main, (void *)dx, (void *)-5);
+		uiButSetFunc(but, store_main, (void *)(long)dx, (void *)(long)-5);
 
 		but=uiDefBlockBut(block, tb_makemenu, menu2, str2,	mval[0]-(0.5*dx)+tb_mainx,mval[1]+tb_mainy, dx, 19, "");
 		uiButSetFlag(but, UI_MAKE_TOP);
-		uiButSetFunc(but, store_main, (void *)0, (void *)-5);
+		uiButSetFunc(but, store_main, (void *)(long)0, (void *)(long)-5);
 
 		but=uiDefBlockBut(block, tb_makemenu, menu3, str3,	mval[0]+(0.5*dx)+tb_mainx,mval[1]+tb_mainy, dx, 19, "");
 		uiButSetFlag(but, UI_MAKE_TOP|UI_MAKE_LEFT);
-		uiButSetFunc(but, store_main, (void *)-dx, (void *)-5);
+		uiButSetFunc(but, store_main, (void *)(long)-dx, (void *)(long)-5);
 
 		but=uiDefBlockBut(block, tb_makemenu, menu4, str4,	mval[0]-(1.5*dx)+tb_mainx,mval[1]+tb_mainy-20, dx, 19, "");
 		uiButSetFlag(but, UI_MAKE_DOWN|UI_MAKE_RIGHT);
-		uiButSetFunc(but, store_main, (void *)dx, (void *)5);
+		uiButSetFunc(but, store_main, (void *)(long)dx, (void *)(long)5);
 
 		but=uiDefBlockBut(block, tb_makemenu, menu5, str5,	mval[0]-(0.5*dx)+tb_mainx,mval[1]+tb_mainy-20, dx, 19, "");
 		uiButSetFlag(but, UI_MAKE_DOWN);
-		uiButSetFunc(but, store_main, (void *)0, (void *)5);
+		uiButSetFunc(but, store_main, (void *)(long)0, (void *)(long)5);
 
 		but=uiDefBlockBut(block, tb_makemenu, menu6, str6,	mval[0]+(0.5*dx)+tb_mainx,mval[1]+tb_mainy-20, dx, 19, "");
 		uiButSetFlag(but, UI_MAKE_DOWN|UI_MAKE_LEFT);
-		uiButSetFunc(but, store_main, (void *)-dx, (void *)5);
+		uiButSetFunc(but, store_main, (void *)(long)-dx, (void *)(long)5);
 	} else if (tot==5 || tot==7) {
                 /* check if it fits, dubious */
 		if(mval[0]-0.25*dx+tb_mainx < 6) mval[0]= 6 + 0.25*dx -tb_mainx;

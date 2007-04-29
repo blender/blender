@@ -4245,7 +4245,7 @@ void draw_object_ext(Base *base)
 
 static void bbs_mesh_verts__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
 {
-	int offset = (int) userData;
+	int offset = (long) userData;
 	EditVert *eve = EM_get_vert_for_index(index);
 
 	if (eve->h==0) {
@@ -4257,7 +4257,7 @@ static int bbs_mesh_verts(DerivedMesh *dm, int offset)
 {
 	glPointSize( BIF_GetThemeValuef(TH_VERTEX_SIZE) );
 	bglBegin(GL_POINTS);
-	dm->foreachMappedVert(dm, bbs_mesh_verts__mapFunc, (void*) offset);
+	dm->foreachMappedVert(dm, bbs_mesh_verts__mapFunc, (void*)(long) offset);
 	bglEnd();
 	glPointSize(1.0);
 
@@ -4266,7 +4266,7 @@ static int bbs_mesh_verts(DerivedMesh *dm, int offset)
 
 static int bbs_mesh_wire__setDrawOptions(void *userData, int index)
 {
-	int offset = (int) userData;
+	int offset = (long) userData;
 	EditEdge *eed = EM_get_edge_for_index(index);
 
 	if (eed->h==0) {
@@ -4278,7 +4278,7 @@ static int bbs_mesh_wire__setDrawOptions(void *userData, int index)
 }
 static int bbs_mesh_wire(DerivedMesh *dm, int offset)
 {
-	dm->drawMappedEdges(dm, bbs_mesh_wire__setDrawOptions, (void*) offset);
+	dm->drawMappedEdges(dm, bbs_mesh_wire__setDrawOptions, (void*)(long) offset);
 
 	return offset + G.totedge;
 }		
@@ -4312,7 +4312,7 @@ static int bbs_mesh_solid_EM(DerivedMesh *dm, int facecol)
 	cpack(0);
 
 	if (facecol) {
-		dm->drawMappedFaces(dm, bbs_mesh_solid__setSolidDrawOptions, (void*) 1, 0);
+		dm->drawMappedFaces(dm, bbs_mesh_solid__setSolidDrawOptions, (void*)(long) 1, 0);
 
 		if(G.scene->selectmode & SCE_SELECT_FACE) {
 			glPointSize(BIF_GetThemeValuef(TH_FACEDOT_SIZE));
@@ -4345,7 +4345,7 @@ static int bbs_mesh_wire__setDrawOpts(void *userData, int index)
 {
 	struct { Mesh *me; EdgeHash *eh; int offset; } *data = userData;
 	MEdge *med = data->me->medge + index;
-	unsigned int flags = (int)BLI_edgehash_lookup(data->eh, med->v1, med->v2);
+	unsigned long flags = (long)BLI_edgehash_lookup(data->eh, med->v1, med->v2);
 
 	if (flags & 1) {
 		set_framebuffer_index_color(data->offset+index);

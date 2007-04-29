@@ -5935,7 +5935,7 @@ static int findBitIndex(unsigned int x) {
 /* autocomplete callback for ID buttons */
 static void autocomplete_id(char *str, void *arg_v)
 {
-	int blocktype= (int)arg_v;
+	int blocktype= (long)arg_v;
 	ListBase *listb= wich_libbase(G.main, blocktype);
 	char truncate[32]= {0};
 	
@@ -6285,7 +6285,7 @@ uiBut *uiDefIDPoinBut(uiBlock *block, uiIDPoinFuncFP func, short blocktype, int 
 	ui_check_but(but);
 	
 	if(blocktype)
-		uiButSetCompleteFunc(but, autocomplete_id, (void *)(int)blocktype);
+		uiButSetCompleteFunc(but, autocomplete_id, (void *)(long)blocktype);
 
 	return but;
 }

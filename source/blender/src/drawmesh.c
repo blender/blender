@@ -648,7 +648,7 @@ static int draw_tfaces3D__setHiddenOpts(void *userData, int index)
 {
 	struct { Mesh *me; EdgeHash *eh; } *data = userData;
 	MEdge *med = &data->me->medge[index];
-	unsigned int flags = (int) BLI_edgehash_lookup(data->eh, med->v1, med->v2);
+	unsigned long flags = (long) BLI_edgehash_lookup(data->eh, med->v1, med->v2);
 
 	if((G.f & G_DRAWSEAMS) && (med->flag&ME_SEAM)) {
 		return 0;
@@ -666,7 +666,7 @@ static int draw_tfaces3D__setSeamOpts(void *userData, int index)
 {
 	struct { Mesh *me; EdgeHash *eh; } *data = userData;
 	MEdge *med = &data->me->medge[index];
-	unsigned int flags = (int) BLI_edgehash_lookup(data->eh, med->v1, med->v2);
+	unsigned long flags = (long) BLI_edgehash_lookup(data->eh, med->v1, med->v2);
 
 	if (med->flag&ME_SEAM) {
 		if (G.f&G_HIDDENEDGES) {
@@ -682,7 +682,7 @@ static int draw_tfaces3D__setSelectOpts(void *userData, int index)
 {
 	struct { Mesh *me; EdgeHash *eh; } *data = userData;
 	MEdge *med = &data->me->medge[index];
-	unsigned int flags = (int) BLI_edgehash_lookup(data->eh, med->v1, med->v2);
+	unsigned long flags = (long) BLI_edgehash_lookup(data->eh, med->v1, med->v2);
 
 	return flags & eEdge_Select;
 }
@@ -690,7 +690,7 @@ static int draw_tfaces3D__setActiveOpts(void *userData, int index)
 {
 	struct { Mesh *me; EdgeHash *eh; } *data = userData;
 	MEdge *med = &data->me->medge[index];
-	unsigned int flags = (int) BLI_edgehash_lookup(data->eh, med->v1, med->v2);
+	unsigned long flags = (long) BLI_edgehash_lookup(data->eh, med->v1, med->v2);
 
 	if (flags & eEdge_Active) {
 		if (flags & eEdge_ActiveLast) {

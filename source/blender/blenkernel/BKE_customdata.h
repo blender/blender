@@ -34,7 +34,7 @@
 
 struct CustomData;
 struct CustomDataLayer;
-typedef int CustomDataMask;
+typedef long CustomDataMask;
 
 extern const CustomDataMask CD_MASK_BAREMESH;
 extern const CustomDataMask CD_MASK_MESH;

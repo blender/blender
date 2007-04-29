@@ -1566,7 +1566,7 @@ static void set_crazyspace_quats(float *mappedcos, float *quats)
 	EditVert *eve, *prev;
 	EditFace *efa;
 	float *v1, *v2, *v3, *v4;
-	int index= 0;
+	long index= 0;
 	
 	/* two abused locations in vertices */
 	for(eve= em->verts.first; eve; eve= eve->next, index++) {
@@ -1578,9 +1578,9 @@ static void set_crazyspace_quats(float *mappedcos, float *quats)
 	for(efa= em->faces.first; efa; efa= efa->next) {
 		
 		/* retrieve mapped coordinates */
-		v1= mappedcos + 3*( (int)(efa->v1->prev) );
-		v2= mappedcos + 3*( (int)(efa->v2->prev) );
-		v3= mappedcos + 3*( (int)(efa->v3->prev) );
+		v1= mappedcos + 3*( (long)(efa->v1->prev) );
+		v2= mappedcos + 3*( (long)(efa->v2->prev) );
+		v3= mappedcos + 3*( (long)(efa->v3->prev) );
 		
 		if(efa->v2->tmp.fp==NULL && efa->v2->f1) {
 			set_crazy_vertex_quat(quats, efa->v2->co, efa->v3->co, efa->v1->co, v2, v3, v1);
@@ -1589,7 +1589,7 @@ static void set_crazyspace_quats(float *mappedcos, float *quats)
 		}
 		
 		if(efa->v4) {
-			v4= mappedcos + 3*( (int)(efa->v4->prev) );
+			v4= mappedcos + 3*( (long)(efa->v4->prev) );
 			
 			if(efa->v1->tmp.fp==NULL && efa->v1->f1) {
 				set_crazy_vertex_quat(quats, efa->v1->co, efa->v2->co, efa->v4->co, v1, v2, v4);
