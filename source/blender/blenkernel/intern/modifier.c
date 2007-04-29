@@ -1240,11 +1240,12 @@ static void mirrorModifier_copyData(ModifierData *md, ModifierData *target)
 	tmmd->tolerance = mmd->tolerance;
 }
 
-static DerivedMesh *mirrorModifier__doMirror(MirrorModifierData *mmd,
-                                             DerivedMesh *dm,
-                                             int initFlags)
+static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
+						   DerivedMesh *dm,
+						   int initFlags,
+						   int axis)
 {
-	int i, axis = mmd->axis;
+	int i;
 	float tolerance = mmd->tolerance;
 	DerivedMesh *result;
 	int numVerts, numEdges, numFaces;
@@ -1377,6 +1378,30 @@ static DerivedMesh *mirrorModifier__doMirror(MirrorModifierData *mmd,
 	CDDM_lower_num_verts(result, numVerts);
 	CDDM_lower_num_edges(result, numEdges);
 	CDDM_lower_num_faces(result, numFaces);
+
+	return result;
+}
+
+static DerivedMesh *mirrorModifier__doMirror(MirrorModifierData *mmd,
+                                             DerivedMesh *dm,
+                                             int initFlags)
+{
+	DerivedMesh *result = dm;
+
+	/* check which axes have been toggled and mirror accordingly */
+	if(mmd->flag & MOD_MIR_AXIS_X) {
+		result = doMirrorOnAxis(mmd, result, initFlags, 0);
+	}
+	if(mmd->flag & MOD_MIR_AXIS_Y) {
+		DerivedMesh *tmp = result;
+		result = doMirrorOnAxis(mmd, result, initFlags, 1);
+		if(tmp != dm) tmp->release(tmp); /* free intermediate results */
+	}
+	if(mmd->flag & MOD_MIR_AXIS_Z) {
+		DerivedMesh *tmp = result;
+		result = doMirrorOnAxis(mmd, result, initFlags, 2);
+		if(tmp != dm) tmp->release(tmp); /* free intermediate results */
+	}
 
 	return result;
 }

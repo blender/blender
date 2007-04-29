@@ -6389,6 +6389,32 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					unique_vertexgroup_name(curdef, ob);
 				}
 			}
+
+			if(main->versionfile < 243 || main->subversionfile < 1) {
+				ModifierData *md;
+
+				/* translate old mirror modifier axis values to new flags */
+				for (md=ob->modifiers.first; md; md=md->next) {
+					if (md->type==eModifierType_Mirror) {
+						MirrorModifierData *mmd = (MirrorModifierData*) md;
+
+						switch(mmd->axis)
+						{
+						case 0:
+							mmd->flag |= MOD_MIR_AXIS_X;
+							break;
+						case 1:
+							mmd->flag |= MOD_MIR_AXIS_Y;
+							break;
+						case 2:
+							mmd->flag |= MOD_MIR_AXIS_Z;
+							break;
+						}
+
+						mmd->axis = 0;
+					}
+				}
+			}
 		}
 	}
 
