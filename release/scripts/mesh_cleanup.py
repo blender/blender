@@ -38,6 +38,7 @@ Cleans unused data from selected meshes
 
 
 from Blender import *
+import bpy
 from Blender.Mathutils import TriangleArea
 
 import Blender
@@ -145,7 +146,7 @@ def rem_unused_materials(me):
 
 
 def rem_free_groups(me, groupNames, vWeightDict):
-	''' cound how many vert users a group has and remove unsued groups '''
+	''' cound how many vert users a group has and remove unused groups '''
 	rem_groups		= 0
 	groupUserDict= dict([(group,0) for group in groupNames])
 	
@@ -217,10 +218,31 @@ def fix_nan_uvs(me):
 							uv[i] = 0.0
 							rem_nan += 1
 	return rem_nan
+
+
+def has_vcol(me):
+	for f in me.faces:
+		for col in f.col:
+			if not (255 == col.r == col.g == col.b):
+				return True
+	return False
+
+def rem_white_vcol_layers(me):
+	vcols_removed = 0
+	if me.vertexColors:
+		for col in me.getColorLayerNames():
+			me.activeColorLayer = col
+			if not has_vcol(me): 
+				me.removeColorLayer(col)
+				vcols_removed += 1
+	
+	return vcols_removed
+
+
 def main():	
-	scn= Scene.GetCurrent()
-	obsel= list(scn.objects.context)
-	actob= scn.objects.active
+	sce= bpy.data.scenes.active
+	obsel= list(sce.objects.context)
+	actob= sce.objects.active
 	
 	is_editmode= Window.EditMode()
 	
@@ -241,6 +263,7 @@ def main():
 	CLEAN_FACE_SMALL= Draw.Create(0)
 	
 	CLEAN_MATERIALS= Draw.Create(0)
+	CLEAN_WHITE_VCOL_LAYERS= Draw.Create(0)
 	CLEAN_GROUP= Draw.Create(0)
 	CLEAN_VWEIGHT= Draw.Create(0)
 	CLEAN_WEIGHT_NORMALIZE= Draw.Create(0)
@@ -258,8 +281,8 @@ def main():
 	('Faces: small perimeter', CLEAN_FACE_PERIMETER, 'Remove faces below the perimeter limit.'),\
 	('Faces: small area', CLEAN_FACE_SMALL, 'Remove faces below the area limit (may remove faces stopping T-face artifacts).'),\
 	('limit: ', limit, 0.001, 1.0, 'Limit for the area and length tests above (a higher limit will remove more data).'),\
-	'Materials',\
 	('Material Clean', CLEAN_MATERIALS, 'Remove unused materials.'),\
+	('Color Layers', CLEAN_WHITE_VCOL_LAYERS, 'Remove vertex color layers that are totaly white'),\
 	('VGroup Clean', CLEAN_GROUP, 'Remove vertex groups that have no verts using them.'),\
 	('Weight Clean', CLEAN_VWEIGHT, 'Remove zero weighted verts from groups (limit is zero threshold).'),\
 	('WeightNormalize', CLEAN_WEIGHT_NORMALIZE, 'Make the sum total of vertex weights accross vgroups 1.0 for each vertex.'),\
@@ -279,6 +302,7 @@ def main():
 	CLEAN_FACE_PERIMETER= CLEAN_FACE_PERIMETER.val
 	CLEAN_FACE_SMALL= CLEAN_FACE_SMALL.val
 	CLEAN_MATERIALS= CLEAN_MATERIALS.val
+	CLEAN_WHITE_VCOL_LAYERS= CLEAN_WHITE_VCOL_LAYERS.val
 	CLEAN_GROUP= CLEAN_GROUP.val
 	CLEAN_VWEIGHT= CLEAN_VWEIGHT.val
 	CLEAN_WEIGHT_NORMALIZE= CLEAN_WEIGHT_NORMALIZE.val
@@ -292,20 +316,31 @@ def main():
 	if CLEAN_ALL_DATA:
 		if CLEAN_GROUP or CLEAN_VWEIGHT or CLEAN_WEIGHT_NORMALIZE:
 			# For groups we need the objects linked to the mesh
-			meshes= [ob.getData(mesh=1) for ob in Object.Get() if ob.type == 'Mesh']
+			meshes= [ob.getData(mesh=1) for ob in bpy.data.objects if ob.type == 'Mesh' if not ob.lib]
 		else:
-			meshes= Mesh.Get()
+			meshes= bpy.data.meshes
 	else:
 		meshes= [ob.getData(mesh=1) for ob in obsel if ob.type == 'Mesh']
 	
-	
-	rem_face_count= rem_edge_count= rem_vert_count= rem_material_count= rem_group_count= rem_vweight_count= fix_nan_vcount= fix_nan_uvcount= 0
+	tot_meshes = len(meshes) # so we can decrement libdata
+	rem_face_count= rem_edge_count= rem_vert_count= rem_material_count= rem_vcol_layer_count= rem_group_count= rem_vweight_count= fix_nan_vcount= fix_nan_uvcount= 0
 	if not meshes:
 		if is_editmode: Window.EditMode(1)
 		Draw.PupMenu('No meshes to clean')
 	
 	Blender.Window.WaitCursor(1)
+	bpy.data.meshes.tag = False
 	for me in meshes:
+		
+		# Dont touch the same data twice
+		if me.tag:
+			tot_meshes -= 1
+			continue
+		me.tag = True
+		
+		if me.lib:
+			tot_meshes -= 1
+			continue
 		
 		if me.multires:
 			multires_level_orig = me.multiresDrawLevel
@@ -329,6 +364,9 @@ def main():
 		
 		if CLEAN_MATERIALS:
 			rem_material_count += rem_unused_materials(me)
+		
+		if CLEAN_WHITE_VCOL_LAYERS:
+			rem_vcol_layer_count += rem_white_vcol_layers(me)
 		
 		if CLEAN_VWEIGHT or CLEAN_GROUP or CLEAN_WEIGHT_NORMALIZE:
 			groupNames, vWeightDict= meshWeight2Dict(me)
@@ -358,12 +396,13 @@ def main():
 		
 	Blender.Window.WaitCursor(0)
 	if is_editmode: Window.EditMode(0)
-	stat_string= 'Removed from ' + str(len(meshes)) + ' Mesh(es)%t|'
+	stat_string= 'Removed from ' + str(tot_meshes) + ' Mesh(es)%t|'
 	
-	if CLEAN_VERTS_FREE:							stat_string+= 'Verts: %i|' % rem_edge_count
+	if CLEAN_VERTS_FREE:							stat_string+= 'Verts: %i|' % rem_vert_count
 	if CLEAN_EDGE_SMALL or CLEAN_EDGE_NOFACE:		stat_string+= 'Edges: %i|' % rem_edge_count
 	if CLEAN_FACE_SMALL or CLEAN_FACE_PERIMETER:	stat_string+= 'Faces: %i|' % rem_face_count
 	if CLEAN_MATERIALS:								stat_string+= 'Materials: %i|' % rem_material_count
+	if CLEAN_WHITE_VCOL_LAYERS:						stat_string+= 'Color Layers: %i|' % rem_vcol_layer_count
 	if CLEAN_VWEIGHT:								stat_string+= 'VWeights: %i|' % rem_vweight_count
 	if CLEAN_GROUP:									stat_string+= 'VGroups: %i|' % rem_group_count
 	if CLEAN_NAN_VERTS:								stat_string+= 'Vert Nan Fix: %i|' % fix_nan_vcount
