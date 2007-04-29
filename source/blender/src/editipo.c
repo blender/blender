@@ -2367,6 +2367,13 @@ void insertkey_editipo(void)
 								cfra= (float)(100.0*(cfra-last_seq->startdisp)/((float)(last_seq->enddisp-last_seq->startdisp)));
 							}
 						}
+						
+						/* convert cfra to ipo-time */
+						if (OBACT && OBACT->action && G.sipo->pin==0) {
+							if (G.sipo->actname || G.sipo->constname) {
+								cfra= get_action_frame(OBACT, cfra);
+							}
+						}
 				
 						insertvals= MEM_mallocN(sizeof(float)*2*tot, "insertkey_editipo");
 						/* make sure icu->curval is correct */
