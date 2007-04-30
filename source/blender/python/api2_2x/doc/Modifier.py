@@ -127,7 +127,9 @@ Example::
 	- REPEAT - Used for Smooth only (int [0, 30], default: 1)
 
 	- RADIUS - Used for Cast only (float [0.0, 100.0], default: 0.0)
-	- USE_OB_SCALE - Used for Cast only (bool, default: False)
+	- SIZE - Used for Cast only (float [0.0, 100.0], default: 0.0)
+	- SIZE_FROM_RADIUS - Used for Cast only (bool, default: True)
+	- USE_OB_TRANSFORM - Used for Cast only (bool, default: False)
 """
 
 class ModSeq:

@@ -236,9 +236,9 @@ typedef struct DecimateModifierData {
 } DecimateModifierData;
 
 /* Smooth modifier flags */
-#define MOD_SMOOTH_X 1<<1
-#define MOD_SMOOTH_Y 1<<2
-#define MOD_SMOOTH_Z 1<<3
+#define MOD_SMOOTH_X (1<<1)
+#define MOD_SMOOTH_Y (1<<2)
+#define MOD_SMOOTH_Z (1<<3)
 
 typedef struct SmoothModifierData {
 	ModifierData modifier;
@@ -249,11 +249,11 @@ typedef struct SmoothModifierData {
 } SmoothModifierData;
 
 /* Cast modifier flags */
-#define MOD_CAST_X 1<<1
-#define MOD_CAST_Y 1<<2
-#define MOD_CAST_Z 1<<3
-#define MOD_CAST_USE_OB_TRANSFORM 1<<4
-#define MOD_CAST_SIZE_FROM_RADIUS 1<<5
+#define MOD_CAST_X (1<<1)
+#define MOD_CAST_Y (1<<2)
+#define MOD_CAST_Z (1<<3)
+#define MOD_CAST_USE_OB_TRANSFORM (1<<4)
+#define MOD_CAST_SIZE_FROM_RADIUS (1<<5)
 
 /* Cast modifier projection types */
 #define MOD_CAST_TYPE_SPHERE 0

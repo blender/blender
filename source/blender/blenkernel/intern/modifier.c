@@ -3637,8 +3637,10 @@ static void castModifier_sphere_do(
 	facm = 1.0f - fac;
 
 	flag = cmd->flag;
-
 	type = cmd->type; /* projection type: sphere or cylinder */
+
+	if (type == MOD_CAST_TYPE_CYLINDER) 
+		flag &= ~MOD_CAST_Z;
 
 	ctrl_ob = cmd->object;
 
@@ -3680,7 +3682,7 @@ static void castModifier_sphere_do(
 	if ((ob->type == OB_MESH) && dm && defgrp_index >= 0)
 		dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
 
-	if(cmd->flag & MOD_CAST_SIZE_FROM_RADIUS) {
+	if(flag & MOD_CAST_SIZE_FROM_RADIUS) {
 		len = cmd->radius;
 	}
 	else {
@@ -3743,7 +3745,7 @@ static void castModifier_sphere_do(
 				tmp_co[0] = fac*vec[0]*len + facm*tmp_co[0];
 			if (flag & MOD_CAST_Y)
 				tmp_co[1] = fac*vec[1]*len + facm*tmp_co[1];
-			if (flag & MOD_CAST_Z && type != MOD_CAST_TYPE_CYLINDER)
+			if (flag & MOD_CAST_Z)
 				tmp_co[2] = fac*vec[2]*len + facm*tmp_co[2];
 
 			if(ctrl_ob) {
@@ -3787,7 +3789,7 @@ static void castModifier_sphere_do(
 			tmp_co[0] = fac*vec[0]*len + facm*tmp_co[0];
 		if (flag & MOD_CAST_Y)
 			tmp_co[1] = fac*vec[1]*len + facm*tmp_co[1];
-		if (flag & MOD_CAST_Z && type != MOD_CAST_TYPE_CYLINDER)
+		if (flag & MOD_CAST_Z)
 			tmp_co[2] = fac*vec[2]*len + facm*tmp_co[2];
 
 		if(ctrl_ob) {
@@ -3811,7 +3813,7 @@ static void castModifier_cuboid_do(
 
 	int i, defgrp_index = -1;
 	int has_radius = 0;
-	short flag, type;
+	short flag;
 	float fac, facm;
 	float min[3], max[3], bb[8][3];
 	float center[3] = {0.0f, 0.0f, 0.0f};
@@ -3821,8 +3823,6 @@ static void castModifier_cuboid_do(
 	facm = 1.0f - fac;
 
 	flag = cmd->flag;
-
-	type = cmd->type; /* projection type: sphere or cylinder */
 
 	ctrl_ob = cmd->object;
 
@@ -3861,12 +3861,12 @@ static void castModifier_cuboid_do(
 		Mat4MulVecfl(ob->imat, center);
 	}
 
-	if((cmd->flag & MOD_CAST_SIZE_FROM_RADIUS) && has_radius) {
+	if((flag & MOD_CAST_SIZE_FROM_RADIUS) && has_radius) {
 		for(i = 0; i < 3; i++) {
 			min[i] = -cmd->radius;
 			max[i] = cmd->radius;
 		}
-	} else if(!(cmd->flag & MOD_CAST_SIZE_FROM_RADIUS) && cmd->size > 0) {
+	} else if(!(flag & MOD_CAST_SIZE_FROM_RADIUS) && cmd->size > 0) {
 		for(i = 0; i < 3; i++) {
 			min[i] = -cmd->size;
 			max[i] = cmd->size;
@@ -3877,9 +3877,9 @@ static void castModifier_cuboid_do(
 		 * may have changed the vertex data. */
 		INIT_MINMAX(min, max);
 
-		/* Cast's center is the ob's own center in its local space,by default,
-		 * but if the user defined a control object, we use its location,
-		 * transformed to ob's local space. */
+		/* Cast's center is the ob's own center in its local space,
+		 * by default, but if the user defined a control object, we use
+		 * its location, transformed to ob's local space. */
 		if (ctrl_ob) {
 			float vec[3];
 
