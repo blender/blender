@@ -4128,7 +4128,8 @@ static void waveModifier_initData(ModifierData *md)
 {
 	WaveModifierData *wmd = (WaveModifierData*) md; // whadya know, moved here from Iraq
 		
-	wmd->flag |= (WAV_X+WAV_Y+WAV_CYCL);
+	wmd->flag |= (MOD_WAVE_X | MOD_WAVE_Y | MOD_WAVE_CYCL
+	              | MOD_WAVE_NORM_X | MOD_WAVE_NORM_Y | MOD_WAVE_NORM_Z);
 	
 	wmd->objectcenter = NULL;
 	wmd->texture = NULL;
@@ -4319,6 +4320,7 @@ static void waveModifier_do(
                 float (*vertexCos)[3], int numVerts)
 {
 	WaveModifierData *wmd = (WaveModifierData*) md;
+	MVert *mvert = NULL;
 	MDeformVert *dvert = NULL;
 	int defgrp_index;
 	float ctime = bsystem_time(ob, 0, (float)G.scene->r.cfra, 0.0);
@@ -4326,6 +4328,9 @@ static void waveModifier_do(
 	  (float)(1.0 / exp(wmd->width * wmd->narrow * wmd->width * wmd->narrow));
 	float lifefac = wmd->height;
 	float (*tex_co)[3];
+
+	if(wmd->flag & MOD_WAVE_NORM && ob->type == OB_MESH)
+		mvert = dm->getVertArray(dm);
 
 	if(wmd->objectcenter){
 		float mat[4][4];
@@ -4406,17 +4411,17 @@ static void waveModifier_do(
 			}
 
 
-			if(wmd->flag & WAV_X) {
-				if(wmd->flag & WAV_Y) amplit = (float)sqrt(x*x + y*y);
+			if(wmd->flag & MOD_WAVE_X) {
+				if(wmd->flag & MOD_WAVE_Y) amplit = (float)sqrt(x*x + y*y);
 				else amplit = x;
 			}
-			else if(wmd->flag & WAV_Y) 
+			else if(wmd->flag & MOD_WAVE_Y) 
 				amplit= y;
 			
 			/* this way it makes nice circles */
 			amplit -= (ctime - wmd->timeoffs) * wmd->speed;
 
-			if(wmd->flag & WAV_CYCL) {
+			if(wmd->flag & MOD_WAVE_CYCL) {
 				amplit = (float)fmod(amplit - wmd->width, 2.0 * wmd->width)
 				         + wmd->width;
 			}
@@ -4431,7 +4436,22 @@ static void waveModifier_do(
 				if(def_weight)
 					amplit = amplit * def_weight->weight;
 
-				co[2] += lifefac * amplit;
+				if(mvert) {
+					/* move along normals */
+					if(wmd->flag & MOD_WAVE_NORM_X) {
+						co[0] += (lifefac * amplit) * mvert[i].no[0] / 32767.0f;
+					}
+					if(wmd->flag & MOD_WAVE_NORM_Y) {
+						co[1] += (lifefac * amplit) * mvert[i].no[1] / 32767.0f;
+					}
+					if(wmd->flag & MOD_WAVE_NORM_Z) {
+						co[2] += (lifefac * amplit) * mvert[i].no[2] / 32767.0f;
+					}
+				}
+				else {
+					/* move along local z axis */
+					co[2] += lifefac * amplit;
+				}
 			}
 		}
 	}
@@ -4446,10 +4466,16 @@ static void waveModifier_deformVerts(
 	DerivedMesh *dm;
 	WaveModifierData *wmd = (WaveModifierData *)md;
 
-	if(!wmd->texture && !wmd->defgrp_name[0]) dm = derivedData;
+	if(!wmd->texture && !wmd->defgrp_name[0] && !(wmd->flag & MOD_WAVE_NORM))
+		dm = derivedData;
 	else if(derivedData) dm = derivedData;
 	else if(ob->type == OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
 	else return;
+
+	if(wmd->flag & MOD_WAVE_NORM) {
+		CDDM_apply_vert_coords(dm, vertexCos);
+		CDDM_calc_normals(dm);
+	}
 
 	waveModifier_do(wmd, ob, dm, vertexCos, numVerts);
 
@@ -4463,9 +4489,15 @@ static void waveModifier_deformVertsEM(
 	DerivedMesh *dm;
 	WaveModifierData *wmd = (WaveModifierData *)md;
 
-	if(!wmd->texture && !wmd->defgrp_name[0]) dm = derivedData;
+	if(!wmd->texture && !wmd->defgrp_name[0] && !(wmd->flag & MOD_WAVE_NORM))
+		dm = derivedData;
 	else if(derivedData) dm = derivedData;
 	else dm = CDDM_from_editmesh(editData, ob->data);
+
+	if(wmd->flag & MOD_WAVE_NORM) {
+		CDDM_apply_vert_coords(dm, vertexCos);
+		CDDM_calc_normals(dm);
+	}
 
 	waveModifier_do(wmd, ob, dm, vertexCos, numVerts);
 

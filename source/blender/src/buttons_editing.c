@@ -1607,9 +1607,11 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			height = 143;
 		} else if (md->type==eModifierType_Wave) {
 			WaveModifierData *wmd = (WaveModifierData *)md;
-			height = 275;
+			height = 294;
 			if(wmd->texmapping == MOD_WAV_MAP_OBJECT ||
 			   wmd->texmapping == MOD_WAV_MAP_UV)
+				height += 19;
+			if(wmd->flag & MOD_WAVE_NORM)
 				height += 19;
 		} else if (md->type==eModifierType_Armature) {
 			height = 67;
@@ -1862,9 +1864,21 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			}
 		} else if (md->type==eModifierType_Wave) {
 			WaveModifierData *wmd = (WaveModifierData*) md;
-			uiDefButBitS(block, TOG, WAV_X, B_MODIFIER_RECALC, "X",		lx,(cy-=19),45,19, &wmd->flag, 0, 0, 0, 0, "Enable X axis motion");
-			uiDefButBitS(block, TOG, WAV_Y, B_MODIFIER_RECALC, "Y",		lx+45,cy,45,19, &wmd->flag, 0, 0, 0, 0, "Enable Y axis motion");
-			uiDefButBitS(block, TOG, WAV_CYCL, B_MODIFIER_RECALC, "Cycl",	lx+90,cy,buttonWidth-90,19, &wmd->flag, 0, 0, 0, 0, "Enable cyclic wave effect");
+			uiDefButBitS(block, TOG, MOD_WAVE_X, B_MODIFIER_RECALC, "X",		lx,(cy-=19),45,19, &wmd->flag, 0, 0, 0, 0, "Enable X axis motion");
+			uiDefButBitS(block, TOG, MOD_WAVE_Y, B_MODIFIER_RECALC, "Y",		lx+45,cy,45,19, &wmd->flag, 0, 0, 0, 0, "Enable Y axis motion");
+			uiDefButBitS(block, TOG, MOD_WAVE_CYCL, B_MODIFIER_RECALC, "Cycl",	lx+90,cy,buttonWidth-90,19, &wmd->flag, 0, 0, 0, 0, "Enable cyclic wave effect");
+			uiDefButBitS(block, TOG, MOD_WAVE_NORM, B_MODIFIER_RECALC, "Normals",	lx,(cy-=19),buttonWidth,19, &wmd->flag, 0, 0, 0, 0, "Displace along normals");
+			if (wmd->flag & MOD_WAVE_NORM){
+				if (ob->type==OB_MESH) {
+					uiDefButBitS(block, TOG, MOD_WAVE_NORM_X, B_MODIFIER_RECALC, "X",	lx,(cy-=19),buttonWidth/3,19, &wmd->flag, 0, 0, 0, 0, "Enable displacement along the X normal");
+					uiDefButBitS(block, TOG, MOD_WAVE_NORM_Y, B_MODIFIER_RECALC, "Y",	lx+(buttonWidth/3),cy,buttonWidth/3,19, &wmd->flag, 0, 0, 0, 0, "Enable displacement along the Y normal");
+					uiDefButBitS(block, TOG, MOD_WAVE_NORM_Z, B_MODIFIER_RECALC, "Z",	lx+(buttonWidth/3)*2,cy,buttonWidth/3,19, &wmd->flag, 0, 0, 0, 0, "Enable displacement along the Z normal");
+				}
+				else
+					uiDefBut(block, LABEL, 1, "Meshes Only",	lx, (cy-=19), buttonWidth,19, NULL, 0.0, 0.0, 0, 0, "");				
+			}
+
+			uiBlockBeginAlign(block);
 			if(wmd->speed >= 0)
 				uiDefButF(block, NUM, B_MODIFIER_RECALC, "Time sta:",	lx,(cy-=19),buttonWidth,19, &wmd->timeoffs, -1000.0, 1000.0, 100, 0, "Specify starting frame of the wave");
 			else

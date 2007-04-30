@@ -743,7 +743,7 @@ static int wave_setter( BPy_Modifier *self, int type, PyObject *value )
 		return EXPP_setFloatClamped( value, &md->timeoffs, -1000.0, 1000.0 );
 	case EXPP_MOD_FLAG:
 		return EXPP_setIValueRange( value, &md->flag, 0, 
-				WAV_X+WAV_Y+WAV_CYCL, 'h' );
+				MOD_WAVE_X | MOD_WAVE_Y | MOD_WAVE_CYCL, 'h' );
 	default:
 		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
 	}

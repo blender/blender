@@ -77,11 +77,6 @@
 #define PAF_TEXRGB		1
 #define PAF_TEXGRAD		2
 
-	/* wav->flag */
-#define WAV_X			2
-#define WAV_Y			4
-#define WAV_CYCL		8
-
 typedef struct Effect {
 	struct Effect *next, *prev;
 	short type, flag, buttype, rt;
