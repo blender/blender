@@ -1227,6 +1227,7 @@ static void mirrorModifier_initData(ModifierData *md)
 {
 	MirrorModifierData *mmd = (MirrorModifierData*) md;
 
+	mmd->flag |= MOD_MIR_AXIS_X;
 	mmd->tolerance = 0.001;
 }
 
