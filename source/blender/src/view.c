@@ -1295,11 +1295,9 @@ void initlocalview()
 			G.vd->dist*= size;
 		}
 		
-		if(G.vd->persp>1) {
-			G.vd->persp= 1;
-			
-		}
-		G.vd->near= 0.1;
+		if (G.vd->persp>1) G.vd->persp= 1;
+		if (G.vd->near> 0.1) G.vd->near= 0.1;
+		
 		G.vd->cursor[0]= -G.vd->ofs[0];
 		G.vd->cursor[1]= -G.vd->ofs[1];
 		G.vd->cursor[2]= -G.vd->ofs[2];
