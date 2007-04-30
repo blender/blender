@@ -213,7 +213,7 @@ ParamHandle *construct_param_handle(Mesh *me, short implicit, short fill, short 
 		if (mf->flag & ME_HIDE)
 			continue;
 
-		if (sel && !(me->flag & ME_FACE_SEL))
+		if (sel && !(mf->flag & ME_FACE_SEL))
 			continue;
 
 		if (implicit && !(tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4)))
