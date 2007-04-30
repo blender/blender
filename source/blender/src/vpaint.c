@@ -1582,7 +1582,7 @@ void set_vpaint(void)		/* toggle */
 	
 	scrarea_queue_headredraw(curarea);
 	ob= OBACT;
-	if(!ob || ob->id.lib) {
+	if(!ob || object_data_is_libdata(ob)) {
 		G.f &= ~G_VERTEXPAINT;
 		return;
 	}

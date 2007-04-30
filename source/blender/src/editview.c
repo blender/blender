@@ -904,17 +904,17 @@ void deselectall(void)	/* is toggle */
 	base= FIRSTBASE;
 	while(base) {
 		/* is there a visible selected object */
-		if TESTBASE(base) {
-			ok= a= 1;
-			break;
-		}
-		/* are there any objects in the view*/
 		if(base->lay & G.vd->lay &&
 		  (base->object->restrictflag & OB_RESTRICT_VIEW)==0 &&
 		  (base->object->restrictflag & OB_RESTRICT_SELECT)==0
-		)
-			ok=1;
-		
+		) {
+			if (base->flag & SELECT) {
+				ok= a= 1;
+				break;
+			} else {
+				ok=1;
+			}
+		}
 		base= base->next;
 	}
 	

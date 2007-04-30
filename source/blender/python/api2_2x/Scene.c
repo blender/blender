@@ -1245,7 +1245,7 @@ int SceneObSeq_setObjects( BPy_SceneObSeq *self, PyObject *value, void *_mode_)
 		}
 		return 0;
 	}
-	
+
 	if (!PySequence_Check(value))
 		return EXPP_ReturnIntError( PyExc_ValueError,
 				"Error, must assign a sequence of objects to scn.objects.selected" );
@@ -1267,6 +1267,7 @@ int SceneObSeq_setObjects( BPy_SceneObSeq *self, PyObject *value, void *_mode_)
 				blen_ob->flag |= SELECT;
 				base->flag |= SELECT;
 				if (mode==EXPP_OBSEQ_CONTEXT && G.vd) {
+					blen_ob->restrictflag &= ~OB_RESTRICT_VIEW;
 					blen_ob->lay= base->lay= G.vd->lay;
 				}
 			}
@@ -1310,7 +1311,7 @@ static int SceneObSeq_len( BPy_SceneObSeq * self )
 			return 0;
 		
 		for (base= scene->base.first; base; base= base->next) {
-			if ((base->flag & SELECT) && (base->lay & G.vd->lay)) {
+			if TESTBASE(base) {
 				len++;
 			}
 		}
@@ -1345,7 +1346,7 @@ static PyObject *SceneObSeq_item( BPy_SceneObSeq * self, int i )
 	else if (self->mode==EXPP_OBSEQ_CONTEXT)
 		if (G.vd)
 			for (base= scene->base.first; base && i!=index; base= base->next)
-				if ((base->flag & SELECT) && (base->lay & G.vd->lay))
+				if TESTBASE(base)
 					index++;
 	
 	if (!(base))
@@ -1398,7 +1399,7 @@ static PyObject *SceneObSeq_getIter( BPy_SceneObSeq * self )
 		if (!G.vd)
 			base= NULL; /* will never iterate if we have no */
 		else
-			while (base && !((base->flag & SELECT) && (base->lay & G.vd->lay)))
+			while (base && !TESTBASE(base))
 				base= base->next;	
 	}
 	/* create a new iterator if were alredy using this one */
@@ -1434,7 +1435,7 @@ static PyObject *SceneObSeq_nextIter( BPy_SceneObSeq * self )
 		if (!G.vd)
 			base= NULL; /* will never iterate if we have no */
 		else
-			while (base && !((base->flag & SELECT) && (base->lay & G.vd->lay)))
+			while (base && !TESTBASE(base))
 				base= base->next;	
 	}
 	self->iter= base;

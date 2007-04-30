@@ -765,6 +765,7 @@ void do_global_buttons(unsigned short event)
 				allqueue(REDRAWBUTSSHADING, 0);
 				allqueue(REDRAWIPO, 0);
 				allqueue(REDRAWOOPS, 0);
+				allqueue(REDRAWVIEW3D, 0);
 				BIF_preview_changed(ID_MA);
 			}
 		}
