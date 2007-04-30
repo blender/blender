@@ -282,6 +282,7 @@ typedef struct WaveModifierData {
 	ModifierData modifier;
 
 	struct Object *objectcenter;
+	char defgrp_name[32];
 	struct Tex *texture;
 	struct Object *map_object;
 

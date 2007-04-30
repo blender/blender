@@ -1604,11 +1604,10 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		} else if (md->type==eModifierType_Smooth) {
 			height = 86;
 		} else if (md->type==eModifierType_Cast) {
-			height = 124;
-			height += 19;
+			height = 143;
 		} else if (md->type==eModifierType_Wave) {
 			WaveModifierData *wmd = (WaveModifierData *)md;
-			height = 280;
+			height = 275;
 			if(wmd->texmapping == MOD_WAV_MAP_OBJECT ||
 			   wmd->texmapping == MOD_WAV_MAP_UV)
 				height += 19;
@@ -1872,11 +1871,12 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 				uiDefButF(block, NUM, B_MODIFIER_RECALC, "Time end:",	lx,(cy-=19),buttonWidth,19, &wmd->timeoffs, -1000.0, 1000.0, 100, 0, "Specify ending frame of the wave");
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Lifetime:",	lx,(cy-=19),buttonWidth,19, &wmd->lifetime,  -1000.0, 1000.0, 100, 0, "Specify the lifespan of the wave");
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Damptime:",	lx,(cy-=19),buttonWidth,19, &wmd->damp,  -1000.0, 1000.0, 100, 0, "Specify the dampingtime of the wave");
-			cy -= 19;
+			cy -= 9;
 			uiBlockBeginAlign(block);
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Sta x:",		lx,(cy-=19),113,19, &wmd->startx, -100.0, 100.0, 100, 0, "Starting position for the X axis");
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Sta y:",		lx+115,cy,105,19, &wmd->starty, -100.0, 100.0, 100, 0, "Starting position for the Y axis");
 			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_MODIFIER_RECALC, "Ob: ", lx, (cy-=19), 220,19, &wmd->objectcenter, "Object to use as Starting Position (leave blank to disable)");
+			uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",lx, (cy -= 19), 220, 19,&wmd->defgrp_name, 0.0, 31.0, 0, 0, "Name of vertex group with which to modulate displacement");
 			uiDefIDPoinBut(block, modifier_testTexture, ID_TE, B_CHANGEDEP,"Texture: ", lx, (cy -= 19), 220, 19, &wmd->texture,"Texture with which to modulate wave");
 			sprintf(str, "Texture Coordinates%%t"
 			        "|Local%%x%d|Global%%x%d|Object%%x%d|UV%%x%d",
@@ -1907,7 +1907,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 				               &wmd->map_object,
 				               "Object to get texture coordinates from");
 			}
-            cy -= 19;
+            cy -= 9;
 			uiBlockBeginAlign(block);
 			uiDefButF(block, NUMSLI, B_MODIFIER_RECALC, "Speed:",	lx,(cy-=19),220,19, &wmd->speed, -2.0, 2.0, 0, 0, "Specify the wave speed");
 			uiDefButF(block, NUMSLI, B_MODIFIER_RECALC, "Height:",	lx,(cy-=19),220,19, &wmd->height, -2.0, 2.0, 0, 0, "Specify the amplitude of the wave");

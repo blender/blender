@@ -4140,6 +4140,7 @@ static void waveModifier_initData(ModifierData *md)
 	wmd->lifetime= 0.0f;
 	wmd->damp= 10.0f;
 	wmd->texmapping = MOD_WAV_MAP_LOCAL;
+	wmd->defgrp_name[0] = 0;
 }
 
 static void waveModifier_copyData(ModifierData *md, ModifierData *target)
@@ -4161,6 +4162,7 @@ static void waveModifier_copyData(ModifierData *md, ModifierData *target)
 	twmd->texture = wmd->texture;
 	twmd->map_object = wmd->map_object;
 	twmd->texmapping = wmd->texmapping;
+	strncpy(twmd->defgrp_name, wmd->defgrp_name, 32);
 }
 
 static int waveModifier_dependsOnTime(ModifierData *md)
@@ -4216,6 +4218,10 @@ CustomDataMask waveModifier_requiredDataMask(ModifierData *md)
 	/* ask for UV coordinates if we need them */
 	if(wmd->texture && wmd->texmapping == MOD_WAV_MAP_UV)
 		dataMask |= (1 << CD_MTFACE);
+
+	/* ask for vertexgroups if we need them */
+	if(wmd->defgrp_name[0])
+		dataMask |= (1 << CD_MDEFORMVERT);
 
 	return dataMask;
 }
@@ -4313,6 +4319,8 @@ static void waveModifier_do(
                 float (*vertexCos)[3], int numVerts)
 {
 	WaveModifierData *wmd = (WaveModifierData*) md;
+	MDeformVert *dvert = NULL;
+	int defgrp_index;
 	float ctime = bsystem_time(ob, 0, (float)G.scene->r.cfra, 0.0);
 	float minfac =
 	  (float)(1.0 / exp(wmd->width * wmd->narrow * wmd->width * wmd->narrow));
@@ -4327,6 +4335,24 @@ static void waveModifier_do(
 
 		wmd->startx = mat[3][0];
 		wmd->starty = mat[3][1];
+	}
+
+	/* get the index of the deform group */
+	defgrp_index = -1;
+
+	if(wmd->defgrp_name[0]) {
+		int i;
+		bDeformGroup *def;
+		for(i = 0, def = ob->defbase.first; def; def = def->next, i++) {
+			if(!strcmp(def->name, wmd->defgrp_name)) {
+				defgrp_index = i;
+				break;
+			}
+		}
+	}
+
+	if(defgrp_index >= 0){
+		dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
 	}
 
 	if(wmd->damp == 0) wmd->damp = 10.0f;
@@ -4358,6 +4384,21 @@ static void waveModifier_do(
 			float y = co[1] - wmd->starty;
 			float amplit= 0.0f;
 			TexResult texres;
+			MDeformWeight *def_weight = NULL;
+
+			/* get weights */
+			if(dvert) {
+				int j;
+				for(j = 0; j < dvert[i].totweight; ++j) {
+					if(dvert[i].dw[j].def_nr == defgrp_index) {
+						def_weight = &dvert[i].dw[j];
+						break;
+					}
+				}
+
+				/* if this vert isn't in the vgroup, don't deform it */
+				if(!def_weight) continue;
+			}
 
 			if(wmd->texture) {
 				texres.nor = NULL;
@@ -4387,6 +4428,9 @@ static void waveModifier_do(
 				if(wmd->texture)
 					amplit = amplit * texres.tin;
 
+				if(def_weight)
+					amplit = amplit * def_weight->weight;
+
 				co[2] += lifefac * amplit;
 			}
 		}
@@ -4402,7 +4446,8 @@ static void waveModifier_deformVerts(
 	DerivedMesh *dm;
 	WaveModifierData *wmd = (WaveModifierData *)md;
 
-	if(!wmd->texture || derivedData) dm = derivedData;
+	if(!wmd->texture && !wmd->defgrp_name[0]) dm = derivedData;
+	else if(derivedData) dm = derivedData;
 	else if(ob->type == OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
 	else return;
 
@@ -4418,7 +4463,8 @@ static void waveModifier_deformVertsEM(
 	DerivedMesh *dm;
 	WaveModifierData *wmd = (WaveModifierData *)md;
 
-	if(!wmd->texture || derivedData) dm = derivedData;
+	if(!wmd->texture && !wmd->defgrp_name[0]) dm = derivedData;
+	else if(derivedData) dm = derivedData;
 	else dm = CDDM_from_editmesh(editData, ob->data);
 
 	waveModifier_do(wmd, ob, dm, vertexCos, numVerts);
