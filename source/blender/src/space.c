@@ -1882,6 +1882,12 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else if(G.obedit->type==OB_CURVE) {
 						if(G.qual==LR_CTRLKEY)
 							add_hook();
+						else if(G.qual==LR_ALTKEY)
+							revealNurb();
+						else if((G.qual==LR_SHIFTKEY))
+							hideNurb(1);
+						else if((G.qual==0))
+							hideNurb(0);
 						else {
 							if(G.qual==LR_CTRLKEY)
 								autocalchandlesNurb_all(1);	/* flag=1, selected */

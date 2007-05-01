@@ -1036,8 +1036,6 @@ void deselectall_nurb()
 	if(!G.vd || !(G.obedit->lay & G.vd->lay))
 		return;
 
-	BIF_undo_push("Deselect all");
-	
 	a= 0;
 	for(nu= editNurb.first; nu; nu= nu->next) {
 		if((nu->type & 7)==CU_BEZIER) {
@@ -1111,6 +1109,7 @@ void deselectall_nurb()
 	}
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
+	BIF_undo_push("Deselect all");
 }
 
 void hideNurb(int swap)
@@ -1131,12 +1130,12 @@ void hideNurb(int swap)
 			sel= 0;
 			while(a--) {
 				if(BEZSELECTED(bezt)) {
-					sel++;
 					bezt->f1 &= ~1;
 					bezt->f2 &= ~1;
 					bezt->f3 &= ~1;
 					bezt->hide= 1;
 				}
+				if(bezt->hide) sel++;
 				bezt++;
 			}
 			if(sel==nu->pntsu) nu->hide= 1;
@@ -1149,13 +1148,12 @@ void hideNurb(int swap)
 				if(swap==0 && (bp->f1 & 1)) {
 					bp->f1 &= ~1;
 					bp->hide= 1;
-					sel++;
 				}
 				else if(swap && (bp->f1 & 1)==0) {
 					bp->f1 &= ~1;
 					bp->hide= 1;
-					sel++;
 				}
+				if(bp->hide) sel++;
 				bp++;
 			}
 			if(sel==nu->pntsu*nu->pntsv) nu->hide= 1;
