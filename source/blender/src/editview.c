@@ -2281,7 +2281,12 @@ void fly(void)
 					time_wheel = 1+ (10 - (20*MIN2(time_wheel, 0.5))); /* 0-0.5 -> 0-5.0 */
 					
 					if (speed<0) speed=0;
-					else speed+= G.vd->grid * time_wheel;
+					else {
+						if (G.qual & LR_SHIFTKEY)
+							speed+= G.vd->grid*time_wheel*0.1;
+						else
+							speed+= G.vd->grid*time_wheel;
+					}
 					
 				} else if(toets==PADMINUS || toets==MINUSKEY || toets==WHEELDOWNMOUSE) {
 					time_currwheel= PIL_check_seconds_timer();
@@ -2290,7 +2295,12 @@ void fly(void)
 					time_wheel = 1+ (10 - (20*MIN2(time_wheel, 0.5))); /* 0-0.5 -> 0-5.0 */
 					
 					if (speed>0) speed=0;
-					else speed-= G.vd->grid*time_wheel;
+					else {
+						if (G.qual & LR_SHIFTKEY)
+							speed-= G.vd->grid*time_wheel*0.1;
+						else
+							speed-= G.vd->grid*time_wheel;
+					}
 				
 				} else if (toets==MIDDLEMOUSE) {
 					/* make it so the camera direction dosent follow the view
@@ -2392,7 +2402,11 @@ void fly(void)
 				dvec_tmp[0]= -moffset[0];
 				dvec_tmp[1]= -moffset[1];
 				dvec_tmp[2]= 0;
-				/* z axis can stay teh same, just keep costing */
+				
+				if (G.qual & LR_SHIFTKEY) {
+					dvec_tmp[0] *= 0.1;
+					dvec_tmp[1] *= 0.1;
+				}
 				
 				Mat3MulVecfl(mat, dvec_tmp);
 				VecMulf(dvec_tmp, time_redraw*200.0 * G.vd->grid);
@@ -2492,7 +2506,7 @@ void fly(void)
 					
 					Mat3MulVecfl(mat, dvec_tmp);
 					
-					VecMulf(dvec_tmp, speed*time_redraw*0.5);
+					VecMulf(dvec_tmp, speed*time_redraw*0.25);
 				}
 			}
 			
