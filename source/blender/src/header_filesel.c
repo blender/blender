@@ -163,6 +163,7 @@ void file_buttons(void)
 	
 	glRasterPos2f((float)xcotitle, 5.0);
 	BIF_RasterPos((float)xcotitle, 5.0);	// stupid texture fonts
+	BIF_ThemeColor(TH_TEXT);
 	BIF_DrawString(uiBlockGetCurFont(block), sfile->title, (U.transopts & USER_TR_BUTTONS));
 	
 	if(sfile->type==FILE_UNIX) {
