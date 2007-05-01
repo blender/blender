@@ -870,12 +870,12 @@ def load_3ds(filename, PREF_UI= True):
 	
 	# REMOVE DUMMYVERT, - remove this in the next release when blenders internal are fixed.
 	
-	'''
+	
 	for ob in importedObjects:
 		if ob.type=='Mesh':
 			me= ob.getData(mesh=1)
 			me.verts.delete([me.verts[0],])
-	'''
+	
 	# Done DUMMYVERT
 	"""
 	if IMPORT_AS_INSTANCE:
