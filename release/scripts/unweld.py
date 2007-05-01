@@ -100,7 +100,7 @@ SUBSURF=0
 DIM=Create(1.0)
 
 def  Buffer(v,t):
-	print dir(v)
+	if DEBUG : print dir(v)
 	for n in range(len(v)): t[n]=t[n]+v[n]
 	return t
 
@@ -138,7 +138,7 @@ def connectedFacesList(me,thegood):
 	for f in me.faces:
 		for v in f.v:
 			if v==thegood:
-				if v.index not in listf2v.keys():
+				if v.index not in listf2v: # .keys()
 					listf2v[me.verts.index(v)]=[f]
 				elif f not in listf2v[me.verts.index(v)]:
 					listf2v[me.verts.index(v)].append(f)
@@ -189,7 +189,7 @@ def collecte_edge(listf2v,me,thegood):
 			vlist = [0,1,2,0]
 		else:
 			vlist = [0,1]
-		for i in range(len(vlist)-1):              
+		for i in xrange(len(vlist)-1):              
 			vert0 = min(face.v[vlist[i]].index,face.v[vlist[i+1]].index)
 			vert1 = max(face.v[vlist[i]].index,face.v[vlist[i+1]].index)              
 			edgeinlist = 0
@@ -204,16 +204,17 @@ def collecte_edge(listf2v,me,thegood):
 					edge = [vert0,vert1,1,me.faces.index(face)]
 					edgelist.append(edge)
 					
-	for  edge in edgelist:
+	for i, edge in enumerate(edgelist):
 		#print edge
 		if len(edge)==4:
-				del edgelist[edgelist.index(edge)]
+			del edgelist[i]
 				
 	edges=len(edgelist)
 	if DEBUG : print 'number of edges : ',edges," Edge list : " ,edgelist    
 	return edges, edgelist     
 
-OBJECT=Blender.Scene.GetCurrent().getActiveObject()
+import bpy
+OBJECT= bpy.data.scenes.active.objects.active
 
 if OBJECT and OBJECT.type=='Mesh':
 	if OBJECT.getData(mesh=1).multires:
@@ -227,22 +228,20 @@ if OBJECT and OBJECT.type=='Mesh':
 		result = Blender.Draw.PupMenu(name)
 		if result:
 			me=OBJECT.getData()
-			sole=0
-			vSelection=[]
+			
 			for v in me.verts:
-				if v.sel==1:
-					vSelection.append(v)
-			for v in  vSelection:
+				if v.sel:
 					thegood=v    
 					if DEBUG : print thegood
 					listf2v=connectedFacesList(me,thegood)
-					me=createAdditionalFace(me,thegood,listf2v)
-					#OBJECT.link(me)
-					me.update()
-					OBJECT.makeDisplayList()
+					if listf2v:
+						me=createAdditionalFace(me,thegood,listf2v)
+						#OBJECT.link(me)
+						me.update()
+			
+			OBJECT.makeDisplayList()
 			
 		Blender.Window.EditMode(EDITMODE)
 	
 else:
-	name = "Nothing to do! Did you select at least one vertex?"
-	result = Blender.Draw.PupMenu(name)
+	BPyMessages.Error_NoMeshActive()

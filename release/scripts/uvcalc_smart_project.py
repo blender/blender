@@ -644,6 +644,9 @@ def getUvIslands(faceGroups, me):
 		faceGroupIdx-=1
 		faces = faceGroups[faceGroupIdx]
 		
+		if not faces:
+			continue
+		
 		# Build edge dict
 		edge_users = {}
 		
