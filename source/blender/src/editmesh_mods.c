@@ -381,11 +381,7 @@ EditVert *findnearestvert(int *dist, short sel, short strict)
 	short mval[2];
 
 	getmouseco_areawin(mval);
-	/* If possible, use OGL buffer selection
-	 * This optimisation is possible only when draw mode is better than wire
-	 * when ZBuffer Selection is on and when vertex select is on (otherwise, they aren't drawn)
-	 */
-	if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT) && (G.scene->selectmode & SCE_SELECT_VERTEX)){
+	if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)){
 		int distance;
 		unsigned int index;
 		EditVert *eve;
@@ -494,11 +490,7 @@ EditEdge *findnearestedge(int *dist)
 		
 	getmouseco_areawin(mval);
 
-	/* If possible, use OGL buffer selection
-	 * This optimisation is possible only when draw mode is better than wire
-	 * when ZBuffer Selection is on and when edge select is on (otherwise, they aren't drawn)
-	 */
-	if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT) && (G.scene->selectmode & SCE_SELECT_EDGE)) {
+	if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)) {
 		int distance;
 		unsigned int index = sample_backbuf_rect(mval, 50, em_solidoffs, em_wireoffs, &distance,0, NULL);
 		EditEdge *eed = BLI_findlink(&G.editMesh->edges, index-1);
@@ -564,11 +556,7 @@ static EditFace *findnearestface(int *dist)
 
 	getmouseco_areawin(mval);
 
-	/* If possible, use OGL buffer selection
-	 * This optimisation is possible only when draw mode is better than wire
-	 * when ZBuffer Selection is on and when face select is on (otherwise, they aren't drawn)
-	 */
-	if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT) && (G.scene->selectmode & SCE_SELECT_FACE)) {
+	if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)) {
 		unsigned int index = sample_backbuf(mval[0], mval[1]);
 		EditFace *efa = BLI_findlink(&G.editMesh->faces, index-1);
 

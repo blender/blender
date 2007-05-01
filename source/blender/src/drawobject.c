@@ -4403,7 +4403,8 @@ void draw_object_backbufsel(Object *ob)
 			// we draw edges always, for loop (select) tools
 			em_wireoffs= bbs_mesh_wire(dm, em_solidoffs);
 
-			if(G.scene->selectmode & SCE_SELECT_VERTEX) 
+			// we draw verts if vert select mode or if in transform (for snap).
+			if(G.scene->selectmode & SCE_SELECT_VERTEX || G.moving & G_TRANSFORM_EDIT) 
 				em_vertoffs= bbs_mesh_verts(dm, em_wireoffs);
 			else em_vertoffs= em_wireoffs;
 			
