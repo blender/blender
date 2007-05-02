@@ -1481,7 +1481,11 @@ void *get_ipo_poin(ID *id, IpoCurve *icu, int *type)
 		/* yafray: aperture & focal distance params */
 		switch(icu->adrcode) {
 		case CAM_LENS:
-			poin= &(ca->lens); break;
+			if(ca->type==CAM_ORTHO)
+				poin= &(ca->ortho_scale);
+			else
+				poin= &(ca->lens); 
+			break;
 		case CAM_STA:
 			poin= &(ca->clipsta); break;
 		case CAM_END:
