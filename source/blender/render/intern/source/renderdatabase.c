@@ -429,11 +429,11 @@ void RE_vlakren_set_customdata_names(Render *re, CustomData *data)
 		layer= &data->layers[i];
 
 		if (layer->type == CD_MTFACE) {
-			n= vlakren_remap_layer_num(mtfn++, layer->active);
+			n= vlakren_remap_layer_num(mtfn++, layer->active_rnd);
 			strcpy(cdn->mtface[n], layer->name);
 		}
 		else if (layer->type == CD_MCOL) {
-			n= vlakren_remap_layer_num(mcn++, layer->active);
+			n= vlakren_remap_layer_num(mcn++, layer->active_rnd);
 			strcpy(cdn->mcol[n], layer->name);
 		}
 	}
