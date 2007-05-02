@@ -778,6 +778,12 @@ class Mesh:
 
 		B{Note}: After setting this value, call L{update} so the result can be seen the the 3d view.
 	@type activeColorLayer: string
+	
+	@ivar renderUVLayer: The mesh's rendered UV/Image layer. None if there is no UV/Image layers.
+	@type renderUVLayer: string
+	@ivar renderColorLayer: The mesh's rendered Vertex Color layer. None if there is no UV/Image layers.
+	@type renderColorLayer: string
+	
 	@ivar multires: The mesh has multires data, set True to add multires data.
 		Will throw an exception if the mesh has shape keys; use L{key} to test.
 	@type multires: bool

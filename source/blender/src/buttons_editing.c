@@ -799,9 +799,9 @@ static int customdata_buttons(
 		if(layer->type == type) {
 			*activep= layer->active + 1;
 			*renderp= layer->active_rnd + 1;
-
-			uiDefButI(block, ROW, setevt, "A", x,y,25,19, activep, 1.0, count, 0, 0, browsetip);
-			uiDefButI(block, ROW, setevt_rnd, "R", x+25,y,25,19, renderp, 1.0, count, 0, 0, browsetip_rnd);
+			
+			uiDefIconButI(block, ROW, setevt, ICON_VIEW3D, x,y,25,19, activep, 1.0, count, 0, 0, browsetip);
+			uiDefIconButI(block, ROW, setevt_rnd, ICON_SCENE, x+25,y,25,19, renderp, 1.0, count, 0, 0, browsetip_rnd);
 			but=uiDefBut(block, TEX, setevt, "", x+50,y,145,19, layer->name, 0.0, 31.0, 0, 0, label);
 			uiButSetFunc(but, verify_customdata_name_func, data, layer);
 			but= uiDefIconBut(block, BUT, B_NOP, VICON_X, x+195,y,25,19, NULL, 0.0, 0.0, 0.0, 0.0, deltip);

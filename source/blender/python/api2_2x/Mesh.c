@@ -6530,7 +6530,14 @@ static PyObject *Mesh_getColorLayerNames( BPy_Mesh * self )
 static PyObject *Mesh_getActiveLayer( BPy_Mesh * self, void *type )
 {
 	CustomData *data = &self->mesh->fdata;
-	int i = CustomData_get_active_layer_index(data, (int)type);
+	int layer_type = (int)type;
+	int i;
+	if (layer_type < 0) { /* hack, if negative, its the renderlayer.*/
+		layer_type = -layer_type;
+		i = CustomData_get_render_layer_index(data, layer_type);
+	} else {
+		i = CustomData_get_active_layer_index(data, layer_type);
+	}
 	if (i == -1) /* so -1 is for no active layer 0+ for an active layer */
 		Py_RETURN_NONE;
 	else {
@@ -6542,17 +6549,22 @@ static int Mesh_setActiveLayer( BPy_Mesh * self, PyObject * value, void *type )
 {
 	CustomData *data = &self->mesh->fdata;
 	char *name;
-	int i,ok,n;
+	int i,ok,n,layer_type = (int)type, render=0;
 	
 	if( !PyString_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_ValueError,
 				"expected a string argument" );
-	
+
+	if (layer_type<0) {
+		layer_type = -layer_type;
+		render = 1;
+	}
+
 	name = PyString_AsString( value );
 	ok = 0;
 	n = 0;
 	for(i=0; i < data->totlayer; ++i) {
-		if(data->layers[i].type == (int) type) {
+		if(data->layers[i].type == layer_type) {
 			if (strcmp(data->layers[i].name, name)==0) {
 				ok = 1;
 				break;
@@ -6564,9 +6576,12 @@ static int Mesh_setActiveLayer( BPy_Mesh * self, PyObject * value, void *type )
 	if (!ok)
 		return EXPP_ReturnIntError( PyExc_ValueError,
 				"layer name does not exist" );
-	
-	CustomData_set_layer_active(data, (int)type, n);
-	mesh_update_customdata_pointers(self->mesh);
+	if (render) {
+		CustomData_set_layer_render(data, layer_type, n);
+	} else {
+		CustomData_set_layer_active(data, layer_type, n);
+		mesh_update_customdata_pointers(self->mesh);
+	}
 	return 0;
 }
 
@@ -7696,6 +7711,17 @@ static PyGetSetDef BPy_Mesh_getseters[] = {
 	 (getter)Mesh_getActiveLayer, (setter)Mesh_setActiveLayer,
 	 "Name of the active vertex color layer",
 	 (void *)CD_MTFACE},
+	/* hack flip CD_MCOL so it uses the render setting */
+	{"renderColorLayer",
+	 (getter)Mesh_getActiveLayer, (setter)Mesh_setActiveLayer,
+	 "Name of the render UV layer",
+	 (void *)-CD_MCOL},
+	{"renderUVLayer",
+	 (getter)Mesh_getActiveLayer, (setter)Mesh_setActiveLayer,
+	 "Name of the render vertex color layer",
+	 (void *)-CD_MTFACE},
+	 
+	 
 
 	/* Multires */
 	{"multiresLevelCount",
