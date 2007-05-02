@@ -38,6 +38,8 @@ typedef struct CustomDataLayer {
 	int offset;     /* in editmode, offset of layer in block */
 	int flag;       /* general purpose flag */
 	int active;     /* number of the active layer of this type */
+	int active_rnd; /* number of the layer to render*/
+	char pad[4];
 	char name[32];  /* layer name */
 	void *data;     /* layer data */
 } CustomDataLayer;

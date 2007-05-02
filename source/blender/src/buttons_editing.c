@@ -172,7 +172,7 @@
 
 static float editbutweight= 1.0;
 float editbutvweight= 1;
-static int actmcol= 0, acttface= 0;
+static int actmcol= 0, acttface= 0, acttface_rnd = 0, actmcol_rnd = 0;
 
 extern ListBase editNurb;
 
@@ -691,10 +691,10 @@ static void delete_customdata_layer(void *data1, void *data2)
 	Mesh *me= (Mesh*)data1;
 	CustomData *data= (G.obedit)? &G.editMesh->fdata: &me->fdata;
 	CustomDataLayer *layer= (CustomDataLayer*)data2;
-	void *actlayerdata, *layerdata=layer->data;
+	void *actlayerdata, *rndlayerdata, *layerdata=layer->data;
 	int type= layer->type;
 	int index= CustomData_get_layer_index(data, type);
-	int i, actindex;
+	int i, actindex, rndindex;
 	
 	/*ok, deleting a non-active layer needs to preserve the active layer indices.
 	  to do this, we store a pointer to the .data member of both layer and the active layer,
@@ -704,6 +704,7 @@ static void delete_customdata_layer(void *data1, void *data2)
 	  this is necassary because the deletion functions only support deleting the active
 	  layer. */
 	actlayerdata = data->layers[CustomData_get_active_layer_index(data, type)].data;
+	rndlayerdata = data->layers[CustomData_get_render_layer_index(data, type)].data;
 	CustomData_set_layer_active(data, type, layer - &data->layers[index]);
 
 	/* Multires is handled seperately because the display data is separate
@@ -741,6 +742,21 @@ static void delete_customdata_layer(void *data1, void *data2)
 		CustomData_set_layer_active(data, type, actindex);
 	}
 	
+	if (rndlayerdata != layerdata) {
+		/*find index. . .*/
+		rndindex = CustomData_get_layer_index(data, type);
+		for (i=rndindex; i<data->totlayer; i++) {
+			if (data->layers[i].data == rndlayerdata) {
+				rndindex = i - rndindex;
+				break;
+			}
+		}
+		
+		/*set index. . .*/
+		CustomData_set_layer_render(data, type, rndindex);
+	}
+	
+	
 	DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 	
 	if(type == CD_MTFACE)
@@ -753,7 +769,12 @@ static void delete_customdata_layer(void *data1, void *data2)
 	allqueue(REDRAWBUTSEDIT, 0);
 }
 
-static int customdata_buttons(uiBlock *block, Mesh *me, CustomData *data, int type, int *activep, int setevt, int newevt, char *label, char *shortlabel, char *browsetip, char *newtip, char *deltip, int x, int y)
+static int customdata_buttons(
+	uiBlock *block,	Mesh *me, CustomData *data,
+	int type, int *activep,	int *renderp,
+	int setevt, int setevt_rnd, int newevt,
+	char *label, char *shortlabel, char *browsetip, char *browsetip_rnd,
+	char *newtip, char *deltip, int x, int y)
 {
 	CustomDataLayer *layer;
 	uiBut *but;
@@ -777,9 +798,11 @@ static int customdata_buttons(uiBlock *block, Mesh *me, CustomData *data, int ty
 
 		if(layer->type == type) {
 			*activep= layer->active + 1;
+			*renderp= layer->active_rnd + 1;
 
-			uiDefButI(block, ROW, setevt, "", x,y,25,19, activep, 1.0, count, 0, 0, browsetip);
-			but=uiDefBut(block, TEX, setevt, "", x+25,y,170,19, layer->name, 0.0, 31.0, 0, 0, label);
+			uiDefButI(block, ROW, setevt, "A", x,y,25,19, activep, 1.0, count, 0, 0, browsetip);
+			uiDefButI(block, ROW, setevt_rnd, "R", x+25,y,25,19, renderp, 1.0, count, 0, 0, browsetip_rnd);
+			but=uiDefBut(block, TEX, setevt, "", x+50,y,145,19, layer->name, 0.0, 31.0, 0, 0, label);
 			uiButSetFunc(but, verify_customdata_name_func, data, layer);
 			but= uiDefIconBut(block, BUT, B_NOP, VICON_X, x+195,y,25,19, NULL, 0.0, 0.0, 0.0, 0.0, deltip);
 			uiButSetFunc(but, delete_customdata_layer, me, layer);
@@ -848,14 +871,14 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 	uiBlockEndAlign(block);
 
 	fdata= (G.obedit)? &G.editMesh->fdata: &me->fdata;
-	yco= customdata_buttons(block, me, fdata, CD_MTFACE, &acttface,
-		B_SETTFACE, B_NEWTFACE, "UV Texture", "UV Texture:",
-		"Set active UV texture", "Creates a new UV texture layer",
+	yco= customdata_buttons(block, me, fdata, CD_MTFACE, &acttface, &acttface_rnd,
+		B_SETTFACE, B_SETTFACE_RND, B_NEWTFACE, "UV Texture", "UV Texture:",
+		"Set active UV texture", "Set rendering UV texture", "Creates a new UV texture layer",
 		"Removes the current UV texture layer", 190, 130);
 
-	yco= customdata_buttons(block, me, fdata, CD_MCOL, &actmcol,
-		B_SETMCOL, B_NEWMCOL, "Vertex Color", "Vertex Color:",
-		"Sets active vertex color layer", "Creates a new vertex color layer",
+	yco= customdata_buttons(block, me, fdata, CD_MCOL, &actmcol, &actmcol_rnd,
+		B_SETMCOL, B_SETMCOL_RND, B_NEWMCOL, "Vertex Color", "Vertex Color:",
+		"Sets active vertex color layer", "Sets rendering vertex color layer", "Creates a new vertex color layer",
 		"Removes the current vertex color layer", 190, yco-5);
 
 	if(yco < 0)
@@ -4147,6 +4170,15 @@ void do_meshbuts(unsigned short event)
 				allqueue(REDRAWBUTSEDIT, 0);
 			}
 			break;
+		case B_SETMCOL_RND:
+			if (G.obedit || me) {
+				CustomData *fdata= (G.obedit)? &em->fdata: &me->fdata;
+				CustomData_set_layer_render(fdata, CD_MCOL, actmcol_rnd-1);
+				
+				BIF_undo_push("Set Render Vertex Color");
+				allqueue(REDRAWBUTSEDIT, 0);
+			}
+			break;
 
 		case B_NEWTFACE:
 			if(me)
@@ -4197,7 +4229,15 @@ void do_meshbuts(unsigned short event)
 				allqueue(REDRAWIMAGE, 0);
 			}
 			break;
-
+		case B_SETTFACE_RND:
+			if (G.obedit || me) {
+				CustomData *fdata= (G.obedit)? &em->fdata: &me->fdata;
+				CustomData_set_layer_render(fdata, CD_MTFACE, acttface_rnd-1);
+				BIF_undo_push("Set Render UV Texture");
+				allqueue(REDRAWBUTSEDIT, 0);
+			}
+			break;
+			
 		case B_FLIPNORM:
 			if(G.obedit) {
 				flip_editnormals();

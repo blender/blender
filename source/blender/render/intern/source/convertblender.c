@@ -1757,7 +1757,7 @@ static void use_mesh_edge_lookup(Render *re, DerivedMesh *dm, MEdge *medge, Vlak
 
 			if(layer->type == CD_MTFACE && mtfn < MAX_MTFACE) {
 				mtface= &((MTFace*)layer->data)[edp->f];
-				n= vlakren_customdata_layer_num(mtfn++, layer->active);
+				n= vlakren_customdata_layer_num(mtfn++, layer->active_rnd);
 				mtf= RE_vlakren_get_tface(re, vlr, n, &name, 1);
 
 				*mtf= *mtface;
@@ -1769,7 +1769,7 @@ static void use_mesh_edge_lookup(Render *re, DerivedMesh *dm, MEdge *medge, Vlak
 			}
 			else if(layer->type == CD_MCOL && mcn < MAX_MCOL) {
 				mcol= &((MCol*)layer->data)[edp->f*4];
-				n= vlakren_customdata_layer_num(mcn++, layer->active);
+				n= vlakren_customdata_layer_num(mcn++, layer->active_rnd);
 				mc= RE_vlakren_get_mcol(re, vlr, n, &name, 1);
 
 				mc[0]= mcol[edp->i1];
@@ -1996,13 +1996,13 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 									name= layer->name;
 									
 									if(layer->type == CD_MTFACE && mtfn < MAX_MTFACE) {
-										n= vlakren_customdata_layer_num(mtfn++, layer->active);
+										n= vlakren_customdata_layer_num(mtfn++, layer->active_rnd);
 										mtf= RE_vlakren_get_tface(re, vlr, n, &name, 1);
 										mtface= (MTFace*)layer->data;
 										*mtf= mtface[a];
 									}
 									else if(layer->type == CD_MCOL && mcn < MAX_MCOL) {
-										n= vlakren_customdata_layer_num(mcn++, layer->active);
+										n= vlakren_customdata_layer_num(mcn++, layer->active_rnd);
 										mc= RE_vlakren_get_mcol(re, vlr, n, &name, 1);
 										mcol= (MCol*)layer->data;
 										memcpy(mc, &mcol[a*4], sizeof(MCol)*4);

@@ -406,6 +406,8 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_SETTFACE			2079
 #define B_SETMCOL			2080
 #define B_JOINTRIA			2081
+#define B_SETTFACE_RND		2082
+#define B_SETMCOL_RND		2083
 
 /* *********************** */
 #define B_VGROUPBUTS		2100

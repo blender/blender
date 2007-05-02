@@ -410,7 +410,7 @@ void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 {
 	const LayerTypeInfo *typeInfo;
 	CustomDataLayer *layer, *newlayer;
-	int i, type, number = 0, lasttype = -1, lastactive = 0;
+	int i, type, number = 0, lasttype = -1, lastactive = 0, lastrender = 0;
 
 	for(i = 0; i < source->totlayer; ++i) {
 		layer = &source->layers[i];
@@ -421,6 +421,7 @@ void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 		if (type != lasttype) {
 			number = 0;
 			lastactive = layer->active;
+			lastrender = layer->active_rnd;
 			lasttype = type;
 		}
 		else
@@ -437,8 +438,10 @@ void CustomData_merge(const struct CustomData *source, struct CustomData *dest,
 			newlayer = customData_add_layer__internal(dest, type, alloctype,
 				layer->data, totelem, layer->name);
 		
-		if(newlayer)
+		if(newlayer) {
 			newlayer->active = lastactive;
+			newlayer->active_rnd = lastrender;
+		}
 	}
 }
 
@@ -526,6 +529,17 @@ int CustomData_get_active_layer_index(const CustomData *data, int type)
 	return -1;
 }
 
+int CustomData_get_render_layer_index(const CustomData *data, int type)
+{
+	int i;
+
+	for(i=0; i < data->totlayer; ++i)
+		if(data->layers[i].type == type)
+			return i + data->layers[i].active_rnd;
+
+	return -1;
+}
+
 void CustomData_set_layer_active(CustomData *data, int type, int n)
 {
 	int i;
@@ -534,6 +548,16 @@ void CustomData_set_layer_active(CustomData *data, int type, int n)
 		if(data->layers[i].type == type)
 			data->layers[i].active = n;
 }
+
+void CustomData_set_layer_render(CustomData *data, int type, int n)
+{
+	int i;
+
+	for(i=0; i < data->totlayer; ++i)
+		if(data->layers[i].type == type)
+			data->layers[i].active_rnd = n;
+}
+
 
 void CustomData_set_layer_flag(struct CustomData *data, int type, int flag)
 {
@@ -617,11 +641,14 @@ static CustomDataLayer *customData_add_layer__internal(CustomData *data,
 	else
 		data->layers[index].name[0] = '\0';
 
-	if(index > 0 && data->layers[index-1].type == type)
+	if(index > 0 && data->layers[index-1].type == type) {
 		data->layers[index].active = data->layers[index-1].active;
-	else
+		data->layers[index].active_rnd = data->layers[index-1].active_rnd;
+	} else {
 		data->layers[index].active = 0;
-
+		data->layers[index].active_rnd = 0;
+	}
+	
 	customData_update_offsets(data);
 
 	return &data->layers[index];
@@ -679,8 +706,10 @@ int CustomData_free_layer(CustomData *data, int type, int totelem, int index)
 		i = CustomData_get_layer_index(data, type);
 		
 		if (i >= 0)
-			for (; i < data->totlayer && data->layers[i].type == type; i++)
+			for (; i < data->totlayer && data->layers[i].type == type; i++) {
 				data->layers[i].active--;
+				data->layers[i].active_rnd--;
+			}
 	}
 
 	if (data->totlayer <= data->maxlayer-CUSTOMDATA_GROW)

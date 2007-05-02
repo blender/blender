@@ -4316,6 +4316,18 @@ static void customdata_version_242(Mesh *me)
 	mesh_update_customdata_pointers(me);
 }
 
+/*only copy render texface layer from active*/
+static void customdata_version_243(Mesh *me)
+{
+	CustomDataLayer *layer;
+	int a;
+
+	for (a=0; a < me->fdata.totlayer; a++) {
+		layer= &me->fdata.layers[a];
+		layer->active_rnd = layer->active;
+	}
+}
+
 /* struct NodeImageAnim moved to ImageUser, and we make it default available */
 static void do_version_ntree_242_2(bNodeTree *ntree)
 {
@@ -6415,6 +6427,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					}
 				}
 			}
+		}
+		
+		/* render layer added, this is not the active layer */
+		if(main->versionfile <= 243 || main->subversionfile < 2) {
+			Mesh *me;
+			for(me=main->mesh.first; me; me=me->id.next)
+				customdata_version_243(me);
 		}
 	}
 
