@@ -51,6 +51,7 @@ void zbuffer_shadow(struct Render *re, struct LampRen *lar, int *rectz, int size
 void zbuffer_solid(struct RenderPart *pa, unsigned int layer, short layflag);
 unsigned short *zbuffer_transp_shade(struct RenderPart *pa, struct RenderLayer *rl, float *pass);
 void convert_zbuf_to_distbuf(struct RenderPart *pa, struct RenderLayer *rl);
+void zbuffer_sss(RenderPart *pa, unsigned int lay, void *handle, void (*func)(void *, int, int, int, int));
 
 typedef struct APixstr {
     unsigned short mask[4]; /* jitter mask */
@@ -85,6 +86,9 @@ typedef struct ZSpan {
 	int polygon_offset;						/* offset in Z */
 	float shad_alpha;						/* copy from material, used by irregular shadbuf */
 	int mask, apsmcounter;					/* in use by apixbuf */
+
+	void *sss_handle;						/* used by sss */
+	void (*sss_func)(void *, int, int, int, int);
 	
 	void (*zbuffunc)(struct ZSpan *, int, float *, float *, float *, float *);
 	void (*zbuflinefunc)(struct ZSpan *, int, float *, float *);

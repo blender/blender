@@ -144,6 +144,20 @@ void init_material(Material *ma)
 	ma->pr_lamp= 3;			/* two lamps, is bits */
 	ma->pr_type= MA_SPHERE;
 
+	ma->sss_radius[0]= 1.0f;
+	ma->sss_radius[1]= 1.0f;
+	ma->sss_radius[2]= 1.0f;
+	ma->sss_col[0]= 0.8f;
+	ma->sss_col[1]= 0.8f;
+	ma->sss_col[2]= 0.8f;
+	ma->sss_error= 0.05f;
+	ma->sss_scale= 0.1f;
+	ma->sss_ior= 1.3f;
+	ma->sss_colfac= 1.0f;
+	ma->sss_texfac= 0.0f;
+	ma->sss_front= 1.0f;
+	ma->sss_back= 1.0f;
+
 	ma->mode= MA_TRACEBLE|MA_SHADBUF|MA_SHADOW|MA_RADIO|MA_RAYBIAS|MA_TANGENT_STR;
 }
 
@@ -702,6 +716,33 @@ void end_render_materials(void)
 			end_render_material(ma);
 }
 
+static int material_in_nodetree(bNodeTree *ntree, Material *mat)
+{
+	bNode *node;
+
+	for(node=ntree->nodes.first; node; node= node->next) {
+		if(node->id && GS(node->id->name)==ID_MA) {
+			if(node->id==(ID*)mat)
+				return 1;
+		}
+		else if(node->type==NODE_GROUP)
+			if(material_in_nodetree((bNodeTree*)node->id, mat))
+				return 1;
+	}
+
+	return 0;
+}
+
+int material_in_material(Material *parmat, Material *mat)
+{
+	if(parmat==mat)
+		return 1;
+	else if(parmat->nodetree && parmat->use_nodes)
+		return material_in_nodetree(parmat->nodetree, mat);
+	else
+		return 0;
+}
+	
 /* ****************** */
 
 char colname_array[125][20]= {

@@ -1163,16 +1163,17 @@ static void *do_part_thread(void *pa_v)
 	
 	/* need to return nicely all parts on esc */
 	if(R.test_break()==0) {
-		
 		pa->result= new_render_result(&R, &pa->disprect, pa->crop, RR_USEMEM);
-		
-		if(R.osa)
+
+		if(R.sss_points)
+			zbufshade_sss_tile(pa);
+		else if(R.osa)
 			zbufshadeDA_tile(pa);
 		else
 			zbufshade_tile(pa);
 		
 		/* merge too on break! */
-		if(R.result->exrhandle)
+		if(!R.sss_points && R.result->exrhandle)
 			save_render_result_tile(&R, pa);
 		else
 			merge_render_result(R.result, pa->result);
@@ -1464,7 +1465,7 @@ static void threaded_tile_processor(Render *re)
 }
 
 /* currently only called by preview renders and envmap */
-void RE_TileProcessor(Render *re, int firsttile)
+void RE_TileProcessor(Render *re, int firsttile, int threaded)
 {
 	/* the partsdone variable has to be reset to firsttile, to survive esc before it was set to zero */
 	
@@ -1472,8 +1473,10 @@ void RE_TileProcessor(Render *re, int firsttile)
 
 	re->i.starttime= PIL_check_seconds_timer();
 
-	//	threaded_tile_processor(re);
-	render_tile_processor(re, firsttile);
+	if(threaded)
+		threaded_tile_processor(re);
+	else
+		render_tile_processor(re, firsttile);
 		
 	re->i.lastframetime= PIL_check_seconds_timer()- re->i.starttime;
 	re->stats_draw(&re->i);

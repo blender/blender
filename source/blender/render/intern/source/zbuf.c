@@ -51,6 +51,7 @@
 #include "DNA_meshdata_types.h"
 
 #include "BKE_global.h"
+#include "BKE_material.h"
 #include "BKE_utildefines.h"
 
 #include "radio_types.h"
@@ -67,6 +68,7 @@
 #include "rendercore.h"
 #include "shadbuf.h"
 #include "shading.h"
+#include "sss.h"
 
 /* own includes */
 #include "zbuf.h"
@@ -2007,6 +2009,164 @@ void zbuffer_shadow(Render *re, LampRen *lar, int *rectz, int size, float jitx, 
 			rectz[a]= (rectz[a]>>1) + (zspan.rectz1[a]>>1);
 		
 		MEM_freeN(zspan.rectz1);
+	}
+	
+	zbuf_free_span(&zspan);
+}
+
+static void zbuffill_sss(ZSpan *zspan, int zvlnr, float *v1, float *v2, float *v3, float *v4)
+{
+	double zxd, zyd, zy0, z;
+	float x0, y0, x1, y1, x2, y2, z0, z1, z2, xx1, *span1, *span2;
+	int x, y, sn1, sn2, rectx= zspan->rectx, my0, my2;
+	
+	/* init */
+	zbuf_init_span(zspan);
+	
+	/* set spans */
+	zbuf_add_to_span(zspan, v1, v2);
+	zbuf_add_to_span(zspan, v2, v3);
+	if(v4) {
+		zbuf_add_to_span(zspan, v3, v4);
+		zbuf_add_to_span(zspan, v4, v1);
+	}
+	else 
+		zbuf_add_to_span(zspan, v3, v1);
+	
+	/* clipped */
+	if(zspan->minp2==NULL || zspan->maxp2==NULL) return;
+	
+	if(zspan->miny1 < zspan->miny2) my0= zspan->miny2; else my0= zspan->miny1;
+	if(zspan->maxy1 > zspan->maxy2) my2= zspan->maxy2; else my2= zspan->maxy1;
+	
+	if(my2<my0) return;
+	
+	/* ZBUF DX DY, in floats still */
+	x1= v1[0]- v2[0];
+	x2= v2[0]- v3[0];
+	y1= v1[1]- v2[1];
+	y2= v2[1]- v3[1];
+	z1= v1[2]- v2[2];
+	z2= v2[2]- v3[2];
+	
+	x0= y1*z2-z1*y2;
+	y0= z1*x2-x1*z2;
+	z0= x1*y2-y1*x2;
+	
+	if(z0==0.0f) return;
+	
+	xx1= (x0*v1[0] + y0*v1[1])/z0 + v1[2];
+	zxd= -(double)x0/(double)z0;
+	zyd= -(double)y0/(double)z0;
+	zy0= ((double)my2)*zyd + (double)xx1;
+	
+	/* correct span */
+	sn1= (my0 + my2)/2;
+	if(zspan->span1[sn1] < zspan->span2[sn1]) {
+		span1= zspan->span1+my2;
+		span2= zspan->span2+my2;
+	}
+	else {
+		span1= zspan->span2+my2;
+		span2= zspan->span1+my2;
+	}
+	
+	for(y=my2; y>=my0; y--, span1--, span2--) {
+		sn1= floor(*span1);
+		sn2= floor(*span2);
+		sn1++; 
+		
+		if(sn2>=rectx) sn2= rectx-1;
+		if(sn1<0) sn1= 0;
+		
+		z= (double)sn1*zxd + zy0;
+		
+		for(x= sn1; x<=sn2; x++, z+=zxd)
+			zspan->sss_func(zspan->sss_handle, zvlnr, x, y, z);
+		
+		zy0 -= zyd;
+	}
+}
+
+void zbuffer_sss(RenderPart *pa, unsigned int lay, void *handle, void (*func)(void *, int, int, int, int))
+{
+	ZSpan zspan;
+	VlakRen *vlr= NULL;
+	VertRen *v1, *v2, *v3, *v4;
+	Material *ma=0, *sss_ma= R.sss_mat;
+	short nofill=0, env=0, wire=0;
+	char *clipflag= pa->clipflag;
+	int v, zvlnr;
+	
+	zbuf_alloc_span(&zspan, pa->rectx, pa->recty);
+
+	zspan.sss_handle= handle;
+	zspan.sss_func= func;
+	
+	/* needed for transform from hoco to zbuffer co */
+	zspan.zmulx=  ((float)R.winx)/2.0;
+	zspan.zmuly=  ((float)R.winy)/2.0;
+	
+	/* -0.5f to center the sample position */
+	zspan.zofsx= -pa->disprect.xmin - 0.5f;
+	zspan.zofsy= -pa->disprect.ymin - 0.5f;
+	
+	/* filling methods */
+	zspan.zbuffunc= zbuffill_sss;
+
+	/* fill front and back zbuffer */
+	if(pa->rectz) {
+		fillrect(pa->rectp, pa->rectx, pa->recty, 0); 
+		fillrect(pa->rectz, pa->rectx, pa->recty, 0x7FFFFFFF);
+	}
+	if(pa->rectbackz) {
+		fillrect(pa->rectbackp, pa->rectx, pa->recty, 0); 
+		fillrect(pa->rectbackz, pa->rectx, pa->recty, -0x7FFFFFFF);
+	}
+
+	for(v=0; v<R.totvlak; v++) {
+		if((v & 255)==0) vlr= R.vlaknodes[v>>8].vlak;
+		else vlr++;
+		
+		if((vlr->flag & R_VISIBLE) && material_in_material(vlr->mat, sss_ma)) {
+			/* three cases, visible for render, only z values and nothing */
+			if(vlr->lay & lay) {
+				if(vlr->mat!=ma) {
+					ma= vlr->mat;
+					nofill= ma->mode & MA_ONLYCAST;
+					env= (ma->mode & MA_ENV);
+					wire= (ma->mode & MA_WIRE);
+				}
+			}
+			else {
+				nofill= 1;
+				ma= NULL;	/* otherwise nofill can hang */
+			}
+			
+			if(nofill==0 && wire==0 && env==0) {
+				unsigned short partclip;
+				
+				v1= vlr->v1;
+				v2= vlr->v2;
+				v3= vlr->v3;
+				v4= vlr->v4;
+				
+				/* partclipping doesn't need viewplane clipping */
+				partclip= clipflag[v1->index] & clipflag[v2->index] & clipflag[v3->index];
+				if(v4)
+					partclip &= clipflag[v4->index];
+				
+
+				if(partclip==0) {
+					zvlnr= v+1;
+					zbufclip(&zspan, zvlnr, v1->ho, v2->ho, v3->ho, v1->clip, v2->clip, v3->clip);
+					if(v4) {
+						zvlnr+= RE_QUAD_OFFS;
+						zbufclip(&zspan, zvlnr, v1->ho, v3->ho, v4->ho, v1->clip, v3->clip, v4->clip);
+					}
+				}
+			}
+		}
 	}
 	
 	zbuf_free_span(&zspan);

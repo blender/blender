@@ -894,6 +894,8 @@ void set_normalflags(Render *re)
 		if((a1 & 255)==0) vlr= re->vlaknodes[a1>>8].vlak;
 		else vlr++;
 		
+		vlr->noflag= 0;
+
 		/* abuse of this flag... this is code that just sets face normal in direction of camera */
 		/* that convention we should get rid of */
 		if((vlr->flag & R_NOPUNOFLIP)==0) {
@@ -910,6 +912,7 @@ void set_normalflags(Render *re)
 				vlr->n[0]= -vlr->n[0];
 				vlr->n[1]= -vlr->n[1];
 				vlr->n[2]= -vlr->n[2];
+				vlr->noflag |= R_FLIPPED_NO;
 			}
 		}
 		
@@ -924,9 +927,9 @@ void set_normalflags(Render *re)
 		xn= fabs(vlr->n[0]);
 		yn= fabs(vlr->n[1]);
 		zn= fabs(vlr->n[2]);
-		if(zn>=xn && zn>=yn) vlr->snproj= 0;
-		else if(yn>=xn && yn>=zn) vlr->snproj= 1;
-		else vlr->snproj= 2;
+		if(zn>=xn && zn>=yn) vlr->noflag |= R_SNPROJ_X;
+		else if(yn>=xn && yn>=zn) vlr->noflag |= R_SNPROJ_Y;
+		else vlr->noflag |= R_SNPROJ_Z;
 
 	}
 }

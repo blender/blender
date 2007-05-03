@@ -46,6 +46,7 @@
 #include "pixelblending.h"
 #include "rendercore.h"
 #include "shadbuf.h"
+#include "sss.h"
 #include "texture.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -1506,6 +1507,35 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 			/* accumulates in shr->diff and shr->spec and shr->shad (diffuse with shadow!) */
 			shade_one_light(lar, shi, shr, passflag);
 		}
+
+		if(ma->sss_flag & MA_DIFF_SSS) {
+			float sss[3], col[3], texfac= ma->sss_texfac;
+
+			/* this will return false in the preprocess stage */
+			if(sample_sss(&R, ma, shi->co, sss)) {
+				if(texfac==0.0f) {
+					VECCOPY(col, shr->col);
+				}
+				else if(texfac==1.0f) {
+					col[0]= col[1]= col[2]= 1.0f;
+				}
+				else {
+					col[0]= pow(shr->col[0], 1.0f-texfac);
+					col[1]= pow(shr->col[1], 1.0f-texfac);
+					col[2]= pow(shr->col[2], 1.0f-texfac);
+				}
+
+				shr->diff[0]= sss[0]*col[0];
+				shr->diff[1]= sss[1]*col[1];
+				shr->diff[2]= sss[2]*col[2];
+
+				if(shi->combinedflag & SCE_PASS_SHADOW)	{
+					shr->shad[0]= sss[0]*col[0];
+					shr->shad[1]= sss[1]*col[1];
+					shr->shad[2]= sss[2]*col[2];
+				}
+			}
+		}
 		
 		if(shi->combinedflag & SCE_PASS_SHADOW)	
 			VECCOPY(shr->combined, shr->shad) 	/* note, no ';' ! */
@@ -1544,23 +1574,26 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 	shr->alpha= shi->alpha;
 	
 	/* from now stuff everything in shr->combined: ambient, AO, radio, ramps, exposure */
-	shr->combined[0]+= shi->ambr + shi->r*shi->amb*shi->rad[0];
-	shr->combined[1]+= shi->ambg + shi->g*shi->amb*shi->rad[1];
-	shr->combined[2]+= shi->ambb + shi->b*shi->amb*shi->rad[2];
-	
-	/* add AO in combined? */
-	if(R.wrld.mode & WO_AMB_OCC) {
-		if(shi->combinedflag & SCE_PASS_AO) {
-			float aodiff[3];
-			ambient_occlusion_to_diffuse(shi, aodiff);
-			
-			shr->combined[0] += shi->r*aodiff[0];
-			shr->combined[1] += shi->g*aodiff[1];
-			shr->combined[2] += shi->b*aodiff[2];
+	if(!(ma->sss_flag & MA_DIFF_SSS) || !has_sss_tree(&R, ma)) {
+		shr->combined[0]+= shi->ambr + shi->r*shi->amb*shi->rad[0];
+		shr->combined[1]+= shi->ambg + shi->g*shi->amb*shi->rad[1];
+		shr->combined[2]+= shi->ambb + shi->b*shi->amb*shi->rad[2];
+		
+		/* add AO in combined? */
+		if(R.wrld.mode & WO_AMB_OCC) {
+			if(shi->combinedflag & SCE_PASS_AO) {
+				float aodiff[3];
+				ambient_occlusion_to_diffuse(shi, aodiff);
+				
+				shr->combined[0] += shi->r*aodiff[0];
+				shr->combined[1] += shi->g*aodiff[1];
+				shr->combined[2] += shi->b*aodiff[2];
+			}
 		}
+		
+		if(ma->mode & MA_RAMP_COL) ramp_diffuse_result(shr->combined, shi);
 	}
-	
-	if(ma->mode & MA_RAMP_COL) ramp_diffuse_result(shr->combined, shi);
+
 	if(ma->mode & MA_RAMP_SPEC) ramp_spec_result(shr->spec, shr->spec+1, shr->spec+2, shi);
 	
 	/* refcol is for envmap only */

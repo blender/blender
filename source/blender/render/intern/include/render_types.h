@@ -68,9 +68,12 @@ typedef struct RenderPart
 	/* result of part rendering */
 	RenderResult *result;
 	
-	int *rectp;			/* polygon index table */
+	int *rectp;						/* polygon index table */
 	int *rectz;						/* zbuffer */
 	long *rectdaps;					/* delta acum buffer for pixel structs */
+	int *rectbackp;					/* polygon index table for backside sss */
+	int *rectbackz;					/* zbuffer for backside sss */
+	long *rectall;					/* buffer for all faces for sss */
 	
 	rcti disprect;					/* part coordinates within total picture */
 	int rectx, recty;				/* the size */
@@ -169,6 +172,10 @@ struct Render
 	
 	struct GHash *orco_hash;
 
+	struct GHash *sss_hash;
+	ListBase *sss_points;
+	struct Material *sss_mat;
+
 	ListBase customdata_names;
 
 	/* arena for allocating data for use during render, for
@@ -262,7 +269,7 @@ typedef struct VlakRen {
 	unsigned int lay;
 	float n[3];
 	struct Material *mat;
-	char snproj, puno;
+	char noflag, puno;
 	char flag, ec;
 	RadFace *radface;
 	Object *ob;
@@ -393,7 +400,11 @@ typedef struct LampRen {
 /* vertex normals are tangent or view-corrected vector, for hair strands */
 #define R_TANGENT		128		
 
-
+/* vlakren->noflag (char) */
+#define R_SNPROJ_X		1
+#define R_SNPROJ_Y		2
+#define R_SNPROJ_Z		4
+#define R_FLIPPED_NO	8
 
 
 

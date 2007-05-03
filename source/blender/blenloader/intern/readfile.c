@@ -6387,9 +6387,35 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if(main->versionfile <= 243) {
 		Object *ob= main->object.first;
 		Camera *cam = main->camera.first;
+		Material *ma;
 		
 		for(; cam; cam= cam->id.next) {
 			cam->angle= 360.0f * atan(16.0f/cam->lens) / M_PI;
+		}
+
+		for(ma=main->mat.first; ma; ma= ma->id.next) {
+			if(ma->sss_scale==0.0f) {
+				ma->sss_radius[0]= 1.0f;
+				ma->sss_radius[1]= 1.0f;
+				ma->sss_radius[2]= 1.0f;
+				ma->sss_col[0]= 0.8f;
+				ma->sss_col[1]= 0.8f;
+				ma->sss_col[2]= 0.8f;
+				ma->sss_error= 0.05f;
+				ma->sss_scale= 0.1f;
+				ma->sss_ior= 1.3f;
+				ma->sss_colfac= 1.0f;
+				ma->sss_texfac= 0.0f;
+			}
+			if(ma->sss_front==0 && ma->sss_back==0) {
+				ma->sss_front= 1.0f;
+				ma->sss_back= 1.0f;
+			}
+			if(ma->sss_col[0]==0 && ma->sss_col[1]==0 && ma->sss_col[2]==0) {
+				ma->sss_col[0]= ma->r;
+				ma->sss_col[1]= ma->g;
+				ma->sss_col[2]= ma->b;
+			}
 		}
 		
 		for(; ob; ob= ob->id.next) {

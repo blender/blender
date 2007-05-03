@@ -467,7 +467,7 @@ void BIF_previewrender(struct ID *id, struct RenderInfo *ri, struct ScrArea *are
 	/* entire cycle for render engine */
 	RE_SetCamera(re, sce->camera);
 	RE_Database_FromScene(re, sce, 1);
-	RE_TileProcessor(re, ri->curtile);	// actual render engine
+	RE_TileProcessor(re, ri->curtile, 0);	// actual render engine
 	RE_Database_Free(re);
 	
 	/* handle results */
@@ -842,7 +842,7 @@ void BIF_view3d_previewrender(ScrArea *sa)
 		/* OK, can we enter render code? */
 		if(ri->status==(PR_DISPRECT|PR_DBASE|PR_PROJECTED|PR_ROTATED)) {
 			//printf("curtile %d tottile %d\n", ri->curtile, ri->tottile);
-			RE_TileProcessor(ri->re, ri->curtile);
+			RE_TileProcessor(ri->re, ri->curtile, 0);
 	
 			if(ri->rect==NULL)
 				ri->rect= MEM_mallocN(sizeof(int)*ri->pr_rectx*ri->pr_recty, "preview view3d rect");

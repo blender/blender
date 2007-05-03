@@ -64,6 +64,7 @@
 #include "pixelshading.h"
 #include "shadbuf.h"
 #include "shading.h"
+#include "sss.h"
 #include "zbuf.h"
 
 #include "PIL_time.h"
@@ -1111,6 +1112,298 @@ void zbufshade_tile(RenderPart *pa)
 	MEM_freeN(pa->rectp); pa->rectp= NULL;
 	MEM_freeN(pa->rectz); pa->rectz= NULL;
 	MEM_freeN(pa->clipflag); pa->clipflag= NULL;
+}
+
+/* SSS preprocess tile render, fully threadable */
+typedef struct ZBufSSSHandle {
+	RenderPart *pa;
+	ListBase psmlist;
+	int totps;
+} ZBufSSSHandle;
+
+static void addps_sss(void *cb_handle, int facenr, int x, int y, int z)
+{
+	ZBufSSSHandle *handle = cb_handle;
+	RenderPart *pa= handle->pa;
+
+	if (pa->rectall) {
+		long *rs= pa->rectall + pa->rectx*y + x;
+
+		addps(&handle->psmlist, rs, facenr, z, 0);
+		handle->totps++;
+	}
+	if (pa->rectz) {
+		int *rz= pa->rectz + pa->rectx*y + x;
+		int *rp= pa->rectp + pa->rectx*y + x;
+
+		if (z < *rz) {
+			if(*rp == 0)
+				handle->totps++;
+			*rz= z;
+			*rp= facenr;
+		}
+	}
+	if (pa->rectbackz) {
+		int *rz= pa->rectbackz + pa->rectx*y + x;
+		int *rp= pa->rectbackp + pa->rectx*y + x;
+
+		if (z >= *rz) {
+			if(*rp == 0)
+				handle->totps++;
+			*rz= z;
+			*rp= facenr;
+		}
+	}
+}
+
+static void shade_sample_sss(ShadeSample *ssamp, Material *mat, VlakRen *vlr, int quad, int x, int y, float z, float *co, float *color, float *area)
+{
+	ShadeInput *shi= ssamp->shi;
+	ShadeResult shr;
+	float texfac, orthoarea, nor[3];
+
+	/* normal flipping must be disabled to make back scattering work, so that
+	   backside faces actually face any lighting from the back */
+	shi->puno= 0;
+	
+	/* cache for shadow */
+	shi->samplenr++;
+	
+	if(quad) 
+		shade_input_set_triangle_i(shi, vlr, 0, 2, 3);
+	else
+		shade_input_set_triangle_i(shi, vlr, 0, 1, 2);
+
+	/* we don't want flipped normals, they screw up back scattering */
+	if(vlr->noflag & R_FLIPPED_NO) {
+		shi->facenor[0]= -shi->facenor[0];
+		shi->facenor[1]= -shi->facenor[1];
+		shi->facenor[2]= -shi->facenor[2];
+	}
+
+	/* we estimate the area here using shi->dxco and shi->dyco. we need to
+	   enabled shi->osatex these are filled. we compute two areas, one with
+	   the normal pointed at the camera and one with the original normal, and
+	   then clamp to avoid a too large contribution from a single pixel */
+	shi->osatex= 1;
+
+	VECCOPY(nor, shi->facenor);
+	calc_view_vector(shi->facenor, x, y);
+	Normalize(shi->facenor);
+	shade_input_set_viewco(shi, x, y, z);
+	orthoarea= VecLength(shi->dxco)*VecLength(shi->dyco);
+
+	VECCOPY(shi->facenor, nor);
+	shade_input_set_viewco(shi, x, y, z);
+	*area= VecLength(shi->dxco)*VecLength(shi->dyco);
+	*area= MIN2(*area, 2.0f*orthoarea);
+
+	shi->osatex= 0;
+
+	shade_input_set_uv(shi);
+	shade_input_set_normals(shi);
+
+	/* if nodetree, use the material that we are currently preprocessing
+	   instead of the node material */
+	if(shi->mat->nodetree && shi->mat->use_nodes)
+		shi->mat= mat;
+
+	/* init material vars */
+	// note, keep this synced with render_types.h
+	memcpy(&shi->r, &shi->mat->r, 23*sizeof(float));
+	shi->har= shi->mat->har;
+	
+	/* render */
+	shade_input_set_shade_texco(shi);
+	
+	shade_samples_do_AO(ssamp);
+	shade_material_loop(shi, &shr);
+	
+	VECCOPY(co, shi->co);
+	VECCOPY(color, shr.combined);
+
+	/* texture blending */
+	texfac= shi->mat->sss_texfac;
+
+	if(texfac == 0.0f) {
+		if(shr.col[0]!=0.0f) color[0] /= shr.col[0];
+		if(shr.col[1]!=0.0f) color[1] /= shr.col[1];
+		if(shr.col[2]!=0.0f) color[2] /= shr.col[2];
+	}
+	else if(texfac != 1.0f) {
+		if(shr.col[0]!=0.0f) color[0] *= pow(shr.col[0], texfac)/shr.col[0];
+		if(shr.col[1]!=0.0f) color[1] *= pow(shr.col[1], texfac)/shr.col[1];
+		if(shr.col[2]!=0.0f) color[2] *= pow(shr.col[2], texfac)/shr.col[2];
+	}
+}
+
+void zbufshade_sss_tile(RenderPart *pa)
+{
+	ShadeSample ssamp;
+	ZBufSSSHandle handle;
+	RenderResult *rr= pa->result;
+	RenderLayer *rl= rr->layers.first;
+	VlakRen *vlr;
+	Material *mat= R.sss_mat;
+	float (*co)[3], (*color)[3], *area, *fcol= rl->rectf;
+	int x, y, seed, quad, totpoint;
+#if 0
+	PixStr *ps;
+	long *rs;
+	int z;
+#else
+	int *rz, *rp, *rbz, *rbp;
+#endif
+
+	set_part_zbuf_clipflag(pa);
+
+	/* setup pixelstr list and buffer for zbuffering */
+	handle.pa= pa;
+	handle.totps= 0;
+
+#if 0
+	handle.psmlist.first= handle.psmlist.last= NULL;
+	addpsmain(&handle.psmlist);
+
+	pa->rectall= MEM_callocN(sizeof(long)*pa->rectx*pa->recty+4, "rectall");
+#else
+	pa->rectp= MEM_mallocN(sizeof(int)*pa->rectx*pa->recty, "rectp");
+	pa->rectz= MEM_mallocN(sizeof(int)*pa->rectx*pa->recty, "rectz");
+	pa->rectbackp= MEM_mallocN(sizeof(int)*pa->rectx*pa->recty, "rectbackp");
+	pa->rectbackz= MEM_mallocN(sizeof(int)*pa->rectx*pa->recty, "rectbackz");
+#endif
+
+	/* create the pixelstrs to be used later */
+	zbuffer_sss(pa, rl->lay, &handle, addps_sss);
+
+	co= MEM_mallocN(sizeof(float)*3*handle.totps, "SSSCo");
+	color= MEM_mallocN(sizeof(float)*3*handle.totps, "SSSColor");
+	area= MEM_mallocN(sizeof(float)*handle.totps, "SSSArea");
+
+#if 0
+	/* create ISB (does not work currently!) */
+	if(R.r.mode & R_SHADOW)
+		ISB_create(pa, NULL);
+#endif
+
+	/* setup shade sample with correct passes */
+	shade_sample_initialize(&ssamp, pa, rl);
+	ssamp.shi[0].passflag= SCE_PASS_DIFFUSE|SCE_PASS_AO|SCE_PASS_RADIO;
+	ssamp.shi[0].passflag |= SCE_PASS_RGBA;
+	ssamp.shi[0].combinedflag= ~(SCE_PASS_SPEC);
+
+	/* initialize scanline updates for main thread */
+	rr->renrect.ymin= 0;
+	rr->renlay= rl;
+	
+	seed= pa->rectx*pa->disprect.ymin;
+#if 0
+	rs= pa->rectall;
+#else
+	rz= pa->rectz;
+	rp= pa->rectp;
+	rbz= pa->rectbackz;
+	rbp= pa->rectbackp;
+#endif
+	totpoint= 0;
+
+	for(y=pa->disprect.ymin; y<pa->disprect.ymax; y++, rr->renrect.ymax++) {
+		for(x=pa->disprect.xmin; x<pa->disprect.xmax; x++, fcol+=4) {
+			/* per pixel fixed seed */
+			BLI_thread_srandom(pa->thread, seed++);
+			
+#if 0
+			if(rs) {
+				/* for each sample in this pixel, shade it */
+				for(ps=(PixStr*)*rs; ps; ps=ps->next) {
+					vlr= RE_findOrAddVlak(&R, (ps->facenr-1) & RE_QUAD_MASK);
+					quad= (ps->facenr & RE_QUAD_OFFS);
+					z= ps->z;
+
+					shade_sample_sss(&ssamp, mat, vlr, quad, x, y, z,
+						co[totpoint], color[totpoint], &area[totpoint]);
+
+					totpoint++;
+
+					VECADD(fcol, fcol, color);
+					fcol[3]= 1.0f;
+				}
+
+				rs++;
+			}
+#else
+			if(rp) {
+				if(*rp != 0) {
+					/* shade front */
+					vlr= RE_findOrAddVlak(&R, (*rp-1) & RE_QUAD_MASK);
+					quad= ((*rp) & RE_QUAD_OFFS);
+
+					shade_sample_sss(&ssamp, mat, vlr, quad, x, y, *rz,
+						co[totpoint], color[totpoint], &area[totpoint]);
+
+					VECADD(fcol, fcol, color[totpoint]);
+					fcol[3]= 1.0f;
+					totpoint++;
+				}
+
+				rp++; rz++;
+			}
+
+			if(rbp) {
+				if(*rbp != 0 && *rbp != *(rp-1)) {
+					/* shade back */
+					vlr= RE_findOrAddVlak(&R, (*rbp-1) & RE_QUAD_MASK);
+					quad= ((*rbp) & RE_QUAD_OFFS);
+
+					shade_sample_sss(&ssamp, mat, vlr, quad, x, y, *rbz,
+						co[totpoint], color[totpoint], &area[totpoint]);
+					
+					/* to indicate this is a back sample */
+					area[totpoint]= -area[totpoint];
+
+					VECADD(fcol, fcol, color[totpoint]);
+					fcol[3]= 1.0f;
+					totpoint++;
+				}
+
+				rbz++; rbp++;
+			}
+#endif
+		}
+
+		if(y&1)
+			if(R.test_break()) break; 
+	}
+
+	/* note: after adding we do not free these arrays, sss keeps them */
+	if(totpoint > 0) {
+		sss_add_points(&R, co, color, area, totpoint);
+	}
+	else {
+		MEM_freeN(co);
+		MEM_freeN(color);
+		MEM_freeN(area);
+	}
+	
+#if 0
+	if(R.r.mode & R_SHADOW)
+		ISB_free(pa);
+#endif
+		
+	/* display active layer */
+	rr->renrect.ymin=rr->renrect.ymax= 0;
+	rr->renlay= render_get_active_layer(&R, rr);
+	
+	MEM_freeN(pa->clipflag); pa->clipflag= NULL;
+#if 0
+	MEM_freeN(pa->rectall); pa->rectall= NULL;
+	freeps(&handle.psmlist);
+#else
+	MEM_freeN(pa->rectz); pa->rectz= NULL;
+	MEM_freeN(pa->rectp); pa->rectp= NULL;
+	MEM_freeN(pa->rectbackz); pa->rectbackz= NULL;
+	MEM_freeN(pa->rectbackp); pa->rectbackp= NULL;
+#endif
 }
 
 /* ------------------------------------------------------------------------ */

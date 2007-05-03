@@ -3269,6 +3269,118 @@ static void material_panel_tramir_yafray(Material *ma)
 
 }
 
+static void material_sss_preset_cb(void *material_v, void *unused_v)
+{
+	static const float presets[11][7] = {
+	{0.909578, 0.905931, 0.665691, 6.961082,   6.400181, 1.895899, 1.300000},
+	{0.429632, 0.210025, 0.167767, 11.605177,  3.883766, 1.754386, 1.300000},
+	{0.439300, 0.216000, 0.141027, 9.435642,   3.347647, 1.790287, 1.300000},
+	{0.986552, 0.942637, 0.827285, 15.027623,  4.663968, 2.541380, 1.300000},
+	{0.221636, 0.007505, 0.002154, 4.761743,   0.574827, 0.394116, 1.300000},
+	{0.925008, 0.905025, 0.884275, 8.509412,   5.566180, 3.951266, 1.500000},
+	{0.855344, 0.740311, 0.291994, 14.266395,  7.227615, 2.036157, 1.300000},
+	{0.889319, 0.888034, 0.795811, 18.424364, 10.443473, 3.501882, 1.300000},
+	{0.573652, 0.312750, 0.174289, 3.673294,   1.366534, 0.682693, 1.300000},
+	{0.748679, 0.570766, 0.467133, 4.821475,   1.693699, 1.089971, 1.300000},
+	{0.947235, 0.931028, 0.851872, 10.898815,  6.575351, 2.508417, 1.300000}};
+
+	Material *ma= (Material*)material_v;
+
+	if(ma->sss_preset==0) return;
+
+	ma->sss_col[0]= presets[ma->sss_preset][0];
+	ma->sss_col[1]= presets[ma->sss_preset][1];
+	ma->sss_col[2]= presets[ma->sss_preset][2];
+	ma->sss_radius[0]= presets[ma->sss_preset][3];
+	ma->sss_radius[1]= presets[ma->sss_preset][4];
+	ma->sss_radius[2]= presets[ma->sss_preset][5];
+	ma->sss_ior= presets[ma->sss_preset][6];
+}
+
+static void material_sss_custom_set_cb(void *material_v, void *unused_v)
+{
+	Material *ma= (Material*)material_v;
+
+	ma->sss_preset= 0;
+	allqueue(REDRAWNODE, 0);
+}
+
+static void material_panel_sss(Material *ma)
+{
+	uiBlock *block;
+	uiBut *bt;
+	
+	block= uiNewBlock(&curarea->uiblocks, "material_panel_sss", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Shaders", "Material");
+	if(uiNewPanel(curarea, block, "SSS", "Material", 640, 0, 318, 204)==0) return;
+
+	uiSetButLock(ma->id.lib!=NULL, ERROR_LIBDATA_MESSAGE);
+	
+	uiDefButBitS(block, TOG, MA_DIFF_SSS, B_MATPRV,"Subsurface Scattering",10,180,180,20, &(ma->sss_flag), 0, 0, 0, 0, "Enables diffuse subsurface scattering");
+
+	bt=uiDefButS(block, MENU, B_MATPRV, "Apple %x1|Chicken %x2|Cream %x3|Ketchup %x4|Marble %x5|Potato %x6|Skim Milk %x7|Skin 1 %x8|Skin 2 %x9|Whole Milk %x10|Custom %x0",
+		200,180,110,20, &ma->sss_preset, 0, 0, 0, 0, "");
+	uiButSetFunc(bt, material_sss_preset_cb, ma, NULL);
+
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUM, B_MATPRV, "Scale:", 10,150,145,20,
+			  &ma->sss_scale, 0.001, 1000, 1, 3, "Object scale");
+	bt=uiDefButF(block, NUM, B_MATPRV, "Radius R", 10,130,145,20,
+			  &ma->sss_radius[0], 0.00001, 10000, 0, 0,
+			  "Mean red scattering path length");
+	uiButSetFunc(bt, material_sss_custom_set_cb, ma, NULL);
+	bt=uiDefButF(block, NUM, B_MATPRV, "Radius G", 10,110,145,20,
+			  &ma->sss_radius[1], 0.00001, 10000, 0, 0,
+			  "Mean green scattering path length");
+	uiButSetFunc(bt, material_sss_custom_set_cb, ma, NULL);
+	bt=uiDefButF(block, NUM, B_MATPRV, "Radius B", 10,90,145,20,
+			  &ma->sss_radius[2], 0.00001, 10000, 0, 0,
+			  "Mean blue scattering path length");
+	uiButSetFunc(bt, material_sss_custom_set_cb, ma, NULL);
+	uiBlockEndAlign(block);
+
+	bt=uiDefButF(block, NUM, B_MATPRV, "IOR:", 10,60,145,20,
+			  &ma->sss_ior, 0.1, 2, 1, 3, "Index of refraction");
+	uiButSetFunc(bt, material_sss_custom_set_cb, ma, NULL);
+
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUM, B_MATPRV, "Error:", 10,30,145,20,
+			  &ma->sss_error, 0.0001, 10, 1, 3, "Error");
+	uiBlockEndAlign(block);
+
+	uiBlockBeginAlign(block);
+	bt=uiDefButF(block, NUMSLI, B_MATPRV, "R ", 165,150,145,20,
+			  &ma->sss_col[0], 0.0, 1.0, 0, 0,
+			  "Red scattering color");
+	uiButSetFunc(bt, material_sss_custom_set_cb, ma, NULL);
+	bt=uiDefButF(block, NUMSLI, B_MATPRV, "G ", 165,130,145,20,
+			  &ma->sss_col[1], 0.0, 1.0, 0, 0,
+			  "Green scattering color");
+	uiButSetFunc(bt, material_sss_custom_set_cb, ma, NULL);
+	bt=uiDefButF(block, NUMSLI, B_MATPRV, "B ", 165,110,145,20,
+			  &ma->sss_col[2], 0.0, 1.0, 0, 0,
+			  "Blue scattering color");
+	uiButSetFunc(bt, material_sss_custom_set_cb, ma, NULL);
+	uiBlockEndAlign(block);
+
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUMSLI, B_MATPRV, "Col ", 165,80,145,20,
+			  &ma->sss_colfac, 0.0, 1.0, 0, 0,
+			  "Blend factor for SSS colors");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Tex ", 165,60,145,20,
+			  &ma->sss_texfac, 0.0, 1.0, 0, 0,
+			  "Texture scattering factor");
+	uiBlockEndAlign(block);
+
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUMSLI, B_MATPRV, "Front ", 165,30,145,20,
+			  &ma->sss_front, 0.0, 2.0, 0, 0,
+			  "Front scattering weight");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Back ", 165,10,145,20,
+			  &ma->sss_back, 0.0, 10.0, 0, 0,
+			  "Back scattering weight");
+	uiBlockEndAlign(block);
+}
 
 static void material_panel_shading(Material *ma)
 {
@@ -3731,7 +3843,8 @@ void material_panels()
 				}
 				material_panel_tramir_yafray(ma);
 			}
-			
+
+			material_panel_sss(ma);
 			material_panel_texture(ma);
 			
 			mtex= ma->mtex[ ma->texact ];

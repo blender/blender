@@ -103,6 +103,7 @@
 #include "shadbuf.h"
 #include "shading.h"
 #include "texture.h"
+#include "sss.h"
 #include "zbuf.h"
 
 #ifndef DISABLE_YAFRAY /* disable yafray */
@@ -2990,6 +2991,8 @@ void RE_Database_Free(Render *re)
 	}
 	
 	if(re->r.mode & R_RAYTRACE) freeoctree(re);
+
+	free_sss(re);
 	
 	re->totvlak=re->totvert=re->totlamp=re->tothalo= 0;
 	re->i.convertdone= 0;
@@ -3480,6 +3483,11 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 		
 		if(!re->test_break())
 			project_renderdata(re, projectverto, re->r.mode & R_PANORAMA, 0);
+
+		/* SSS */
+		if(!re->test_break())
+			if (re->r.renderer==R_INTERN)
+				make_sss_tree(re);
 	}
 	
 	if(re->test_break())

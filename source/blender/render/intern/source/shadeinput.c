@@ -429,11 +429,11 @@ void shade_input_set_uv(ShadeInput *shi)
 			/* most of this could become re-used for faces */
 			float detsh, t00, t10, t01, t11;
 			
-			if(vlr->snproj==0) {
+			if(vlr->noflag & R_SNPROJ_X) {
 				t00= v3[0]-v1[0]; t01= v3[1]-v1[1];
 				t10= v3[0]-v2[0]; t11= v3[1]-v2[1];
 			}
-			else if(vlr->snproj==1) {
+			else if(vlr->noflag & R_SNPROJ_Y) {
 				t00= v3[0]-v1[0]; t01= v3[2]-v1[2];
 				t10= v3[0]-v2[0]; t11= v3[2]-v2[2];
 			}
@@ -446,7 +446,7 @@ void shade_input_set_uv(ShadeInput *shi)
 			t00*= detsh; t01*=detsh; 
 			t10*=detsh; t11*=detsh;
 			
-			if(vlr->snproj==0) {
+			if(vlr->noflag & R_SNPROJ_X) {
 				shi->u= (shi->co[0]-v3[0])*t11-(shi->co[1]-v3[1])*t10;
 				shi->v= (shi->co[1]-v3[1])*t00-(shi->co[0]-v3[0])*t01;
 				if(shi->osatex) {
@@ -456,7 +456,7 @@ void shade_input_set_uv(ShadeInput *shi)
 					shi->dy_v=  shi->dyco[1]*t00- shi->dyco[0]*t01;
 				}
 			}
-			else if(vlr->snproj==1) {
+			else if(vlr->noflag & R_SNPROJ_Y) {
 				shi->u= (shi->co[0]-v3[0])*t11-(shi->co[2]-v3[2])*t10;
 				shi->v= (shi->co[2]-v3[2])*t00-(shi->co[0]-v3[0])*t01;
 				if(shi->osatex) {

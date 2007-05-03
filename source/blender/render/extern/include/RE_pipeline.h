@@ -173,7 +173,7 @@ void RE_DataBase_ApplyWindow(struct Render *re);
 void RE_set_max_threads(int threads);
 
 /* the main processor, assumes all was set OK! */
-void RE_TileProcessor(struct Render *re, int firsttile);
+void RE_TileProcessor(struct Render *re, int firsttile, int threaded);
 
 /* only RE_NewRender() needed, main Blender render calls */
 void RE_BlenderFrame(struct Render *re, struct Scene *scene, int frame);

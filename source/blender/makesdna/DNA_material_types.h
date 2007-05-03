@@ -111,6 +111,12 @@ typedef struct Material {
 	float fhdist, xyfrict;
 	short dynamode, pad2;
 
+	float sss_radius[3], sss_col[3];
+	float sss_error, sss_scale, sss_ior;
+	float sss_colfac, sss_texfac;
+	float sss_front, sss_back;
+	short sss_flag, sss_preset;
+
 	/* yafray: absorption color, dispersion parameters and material preset menu */
 	float YF_ar, YF_ag, YF_ab, YF_dscale, YF_dpwr;
 	int YF_dsmp, YF_preset, YF_djit;
@@ -267,6 +273,9 @@ typedef struct Material {
 
 /* pr_back */
 #define MA_DARK			1
+
+/* sss_flag */
+#define MA_DIFF_SSS		1
 
 #endif
 

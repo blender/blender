@@ -62,6 +62,8 @@ void init_render_materials(int, float *);
 void end_render_material(struct Material *);
 void end_render_materials(void);
 
+int material_in_material(struct Material *parmat, struct Material *mat);
+
 void automatname(struct Material *);
 void delete_material_index(void);            
 

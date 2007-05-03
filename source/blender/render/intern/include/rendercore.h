@@ -87,6 +87,8 @@ void zbufshadeDA(void);	/* Delta Accum Pixel Struct */
 void zbufshade_tile(struct RenderPart *pa);
 void zbufshadeDA_tile(struct RenderPart *pa);
 
+void zbufshade_sss_tile(struct RenderPart *pa);
+
 /* -------- ray.c ------- */
 
 extern void freeoctree(Render *re);
