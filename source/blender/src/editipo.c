@@ -4514,7 +4514,14 @@ void remake_ipo_transverts(TransVert *transmain, float *dvec, int tot)
 	
 	tv= transmain;
 	for(a=0; a<tot; a++, tv++) {
-		tv->oldloc[0]= tv->loc[0]-dvec[0];
+		if (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname) {
+			tv->oldloc[0] = get_action_frame_inv(OBACT, tv->loc[0]);
+			tv->oldloc[0]-= dvec[0];
+			tv->oldloc[0] = get_action_frame(OBACT, tv->loc[0]);
+		}
+		else {
+			tv->oldloc[0]= tv->loc[0]-dvec[0];
+		}
 		tv->oldloc[1]= tv->loc[1]-dvec[1];
 	}
 }
@@ -4692,7 +4699,15 @@ void transform_ipo(int mode)
 				
 				tv= transmain;
 				for(a=0; a<tot; a++, tv++) {
-					tv->loc[0]= tv->oldloc[0]+vec[0];
+					/* adjust times for scaled ipos */
+					if (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname) {
+						tv->loc[0] = get_action_frame_inv(OBACT, tv->oldloc[0]);
+						tv->loc[0]+= vec[0];
+						tv->loc[0] = get_action_frame(OBACT, tv->loc[0]);
+					}
+					else {
+						tv->loc[0]= tv->oldloc[0]+vec[0];
+					}
 
 					if(tv->flag==0) tv->loc[1]= tv->oldloc[1]+vec[1];
 				}
@@ -4718,7 +4733,17 @@ void transform_ipo(int mode)
 				tv= transmain;
 
 				for(a=0; a<tot; a++, tv++) {
-					tv->loc[0]= size[0]*(tv->oldloc[0]-cent[0])+ cent[0];
+					/* adjust times for scaled ipo's */
+					if (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname) {
+						tv->loc[0] = get_action_frame_inv(OBACT, tv->oldloc[0]) - get_action_frame_inv(OBACT, cent[0]);
+						tv->loc[0]*= size[0];
+						tv->loc[0]+= get_action_frame_inv(OBACT, cent[0]);
+						tv->loc[0] = get_action_frame(OBACT, tv->loc[0]);
+					}
+					else {
+						tv->loc[0]= size[0]*(tv->oldloc[0]-cent[0])+ cent[0];
+					}
+					
 					if(tv->flag==0) tv->loc[1]= size[1]*(tv->oldloc[1]-cent[1])+ cent[1];
 				}
 				
