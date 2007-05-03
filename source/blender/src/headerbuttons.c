@@ -990,7 +990,7 @@ void do_global_buttons(unsigned short event)
 		if(from==NULL) return;
 
 		if(G.sipo->menunr== -2) {
-			activate_databrowse((ID *)G.sipo->ipo, ID_IP, GS(from->name), B_IPOBROWSE, &G.sipo->menunr, do_global_buttons);
+			activate_databrowse((ID *)G.sipo->ipo, ID_IP, G.sipo->blocktype, B_IPOBROWSE, &G.sipo->menunr, do_global_buttons);
 			return;
 		}
 
