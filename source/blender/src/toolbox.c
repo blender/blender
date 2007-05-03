@@ -570,8 +570,9 @@ int do_clever_numbuts(char *name, int tot, int winevent)
 		
 		if(varstr->type==TEX) {
 			uiDefBut(block, TEX, 0,	varstr->name,(short)((x1+15) + (sizex*xi)),(short)(y2-55- 20*yi),(short)(sizex), 19, numbpoin[a], varstr->min, varstr->max, 0, 0, varstr->tip);
-		}
-		else  {
+		} else if(varstr->type==COL) {
+			uiDefButF(block, COL, 0, "",(short)((x1+15) + (sizex*xi)),(short)(y2-55- 20*yi),(short)(sizex), 19, numbpoin[a], varstr->min, varstr->max, 0, 0, "");
+		} else  {
 			if(varstr->type==LABEL) {/* dont include the label when rounding the buttons */
 				uiBlockEndAlign(block);
 			

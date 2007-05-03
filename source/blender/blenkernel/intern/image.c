@@ -370,7 +370,7 @@ Image *BKE_add_image_file(const char *name)
 	return ima;
 }
 
-static ImBuf *add_ibuf_size(int width, int height, char *name, short uvtestgrid)
+static ImBuf *add_ibuf_size(int width, int height, char *name, short uvtestgrid, float color[4])
 {
 	ImBuf *ibuf;
 	float h=0.0, hoffs=0.0, hue=0.0, s=0.9, v=0.9, r, g, b;
@@ -435,8 +435,10 @@ static ImBuf *add_ibuf_size(int width, int height, char *name, short uvtestgrid)
 	} else {	/* blank image */
 		for(y=0; y<ibuf->y; y++) {
 			for(x=0; x<ibuf->x; x++, rect+=4) {
-				rect[0]= rect[1]= rect[2]= 0;
-				rect[3]= 255;
+				rect[0]= (char)(color[0] * 255.0);
+				rect[1]= (char)(color[1] * 255.0);
+				rect[2]= (char)(color[2] * 255.0);
+				rect[3]= (char)(color[3] * 255.0);
 			}
 		}
 	}
@@ -444,7 +446,7 @@ static ImBuf *add_ibuf_size(int width, int height, char *name, short uvtestgrid)
 }
 
 /* adds new image block, creates ImBuf and initializes color */
-Image *BKE_add_image_size(int width, int height, char *name, short uvtestgrid)
+Image *BKE_add_image_size(int width, int height, char *name, short uvtestgrid, float color[4])
 {
 	Image *ima;
 	
@@ -459,7 +461,7 @@ Image *BKE_add_image_size(int width, int height, char *name, short uvtestgrid)
 		ima->gen_y= height;
 		ima->gen_type= uvtestgrid;
 		
-		ibuf= add_ibuf_size(width, height, name, uvtestgrid);
+		ibuf= add_ibuf_size(width, height, name, uvtestgrid, color);
 		image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
 		
 		ima->ok= IMA_OK_LOADED;
@@ -1370,6 +1372,7 @@ static ImBuf *image_get_render_result(Image *ima, ImageUser *iuser)
 ImBuf *BKE_image_get_ibuf(Image *ima, ImageUser *iuser)
 {
 	ImBuf *ibuf= NULL;
+	float color[] = {0, 0, 0, 1};
 
 	/* quick reject tests */
 	if(ima==NULL) 
@@ -1447,7 +1450,7 @@ ImBuf *BKE_image_get_ibuf(Image *ima, ImageUser *iuser)
 				/* UV testgrid or black or solid etc */
 				if(ima->gen_x==0) ima->gen_x= 256;
 				if(ima->gen_y==0) ima->gen_y= 256;
-				ibuf= add_ibuf_size(ima->gen_x, ima->gen_y, ima->name, ima->gen_type);
+				ibuf= add_ibuf_size(ima->gen_x, ima->gen_y, ima->name, ima->gen_type, color);
 				image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
 				ima->ok= IMA_OK_LOADED;
 			}

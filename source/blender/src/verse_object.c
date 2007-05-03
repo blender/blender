@@ -270,6 +270,7 @@ void b_verse_pop_node(VNode *vnode)
 	else if(vnode->type==V_NT_BITMAP) {
 		struct VBitmapData *vbitmap;
 		struct VBitmapLayer *vblayer;
+		float color[] = {0, 0, 0, 1};
 
 		vbitmap = (VBitmapData*)vnode->data;
 
@@ -293,7 +294,8 @@ void b_verse_pop_node(VNode *vnode)
 				vbitmap->width,
 				vbitmap->height,
 				vnode->name,
-				0);
+				0,
+				color);
 		((Image*)vbitmap->image)->vnode = (void*)vnode;
 		sync_blender_image_with_verse_bitmap_node(vnode);
 

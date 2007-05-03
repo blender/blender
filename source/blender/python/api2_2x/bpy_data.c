@@ -395,6 +395,7 @@ PyObject *LibBlockSeq_new(BPy_LibBlockSeq *self, PyObject * args, PyObject *kwd)
 	ID *id = NULL;
 	char *name=NULL, *filename=NULL, *data_type=NULL;
 	int img_width=256, img_height=256;
+	float color[] = {0, 0, 0, 1};
 	short data_code = 0;
 	int user_count = 0;
 	
@@ -537,7 +538,7 @@ PyObject *LibBlockSeq_new(BPy_LibBlockSeq *self, PyObject * args, PyObject *kwd)
 		break;
 	case ID_IM: 
 	{
-		id = (ID *)BKE_add_image_size(img_width, img_height, name?name:"Image", 0);
+		id = (ID *)BKE_add_image_size(img_width, img_height, name?name:"Image", 0, color);
 		if( !id )
 			return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
 				"couldn't create PyObject Image_Type" ) );
