@@ -1497,7 +1497,7 @@ void sculptmode_selectbrush_menu(void)
 	}
 }
 
-void sculptmode_update_all_projverts()
+void sculptmode_update_all_projverts(float *vertcosnos)
 {
 	Mesh *me= get_mesh(OBACT);
 	unsigned i;
@@ -1505,7 +1505,7 @@ void sculptmode_update_all_projverts()
 	if(projverts) MEM_freeN(projverts);
 	projverts= MEM_mallocN(sizeof(ProjVert)*me->totvert,"ProjVerts");
 	for(i=0; i<me->totvert; ++i) {
-		project(me->mvert[i].co, projverts[i].co);
+		project(vertcosnos ? &vertcosnos[i * 6] : me->mvert[i].co, projverts[i].co);
 		projverts[i].inside= 0;
 	}
 }
@@ -1676,7 +1676,9 @@ void sculpt(void)
 
 	init_sculptmatrices();
 
-	sculptmode_update_all_projverts();
+	if(modifier_calculations)
+		vertexcosnos= mesh_get_mapped_verts_nors(ob);
+	sculptmode_update_all_projverts(vertexcosnos);
 
 	e.grabdata= NULL;
 	e.layer_disps= NULL;
@@ -1699,7 +1701,7 @@ void sculpt(void)
 
 			spacing+= sqrt(pow(mvalo[0]-mouse[0],2)+pow(mvalo[1]-mouse[1],2));
 
-			if(modifier_calculations)
+			if(modifier_calculations && !vertexcosnos)
 				vertexcosnos= mesh_get_mapped_verts_nors(ob);
 
 			if(G.scene->sculptdata.brush_type != GRAB_BRUSH && (sd->spacing==0 || spacing>sd->spacing)) {
@@ -1792,8 +1794,11 @@ void sculpt(void)
 			mvalo[0]= mouse[0];
 			mvalo[1]= mouse[1];
 
-			if(modifier_calculations)
+			if(vertexcosnos) {
 				MEM_freeN(vertexcosnos);
+				vertexcosnos= NULL;
+			}
+
 		}
 		else BIF_wait_for_statechange();
 	}
