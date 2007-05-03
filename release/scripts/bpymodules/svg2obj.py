@@ -1,7 +1,7 @@
 # -*- coding: latin-1 -*-
 """
-SVG 2 OBJ translater, 0.5.9b
-Copyright (c) jm soler juillet/novembre 2004-mars 2007, 
+SVG 2 OBJ translater, 0.5.9h
+Copyright (c) jm soler juillet/novembre 2004-april 2007, 
 # ---------------------------------------------------------------
     released under GNU Licence 
     for the Blender 2.42 Python Scripts Bundle.
@@ -231,11 +231,30 @@ Changelog:
              -  Backward to 0.5.8 of the function that manages float numbers exported
                 by the  Adobe Illustrator's SVG.  After a lot of tests it seems that this oldest
                 version is also faster too .
-             -  correction (bad) on handle management with V and H commands.  
-    0.5.9b : - 2007/3/31
-            -  one or two minor corrections :
-               now the new object curve is added in the current layer.
-               short modif in the scale menu...
+              - correction (bad) on handle management with V and H commands.  
+
+     0.5.9b : - 2007/3/31
+              -  one or two minor corrections 
+              -  now the new object curve is added in the current layer.
+              - short modif in the scale menu...
+
+     0.5.9d : - 2007/4/5 
+              -  when a svg file containts several curves they can be imported in 
+                 separate object.
+              -  managment of paths' name when paths are imported as separate curves.
+              -  a menu was added to select between separate or joined curves
+              -  management of colors
+
+     0.5.9e : - 2007/4/7  
+              - corrected a scale problem that only appears when one uses beveldepth
+              - in separate curve option, name is also given to the curve data 
+              - added the list of svg's color names (147) and modified the color's method 
+                to work with.
+
+     0.5.9h : - 2007/5/2 
+              - script was updated with the modifs by cambo
+              - removed all debug statements
+              - correction of a zero division error in the calc_arc function.
 
 ==================================================================================   
 =================================================================================="""
@@ -244,6 +263,88 @@ SCALE=1
 scale_=1
 DEBUG = 0#print
 DEVELOPPEMENT=0
+TESTCOLOR=0
+
+LAST_ID=''
+LAST_COLOR=[0.0,0.0,0.0,0.0]
+SEPARATE_CURVES=0
+USE_COLORS=0
+
+SVGCOLORNAMELIST={ 'aliceblue':[240, 248, 255] ,'antiquewhite':[250, 235, 215]
+,'aqua':[ 0, 255, 255], 'aquamarine':[127, 255, 212]
+,'azure':[240, 255, 255], 'beige':[245, 245, 220]
+,'bisque':[255, 228, 196], 'black':[ 0, 0, 0]
+,'blanchedalmond':[255, 235, 205] ,'blue':[ 0, 0, 255]
+,'blueviolet':[138, 43, 226],'brown':[165, 42, 42]
+,'burlywood':[222, 184, 135],'cadetblue':[ 95, 158, 160]
+,'chartreuse':[127, 255, 0] ,'chocolate':[210, 105, 30]
+,'coral':[255, 127, 80],'cornflowerblue':[100, 149, 237]
+,'cornsilk':[255, 248, 220],'crimson':[220, 20, 60]
+,'cyan':[ 0, 255, 255],'darkblue':[ 0, 0, 139]
+,'darkcyan':[ 0, 139, 139],'darkgoldenrod':[184, 134, 11]
+,'darkgray':[169, 169, 169],'darkgreen':[ 0, 100, 0]
+,'darkgrey':[169, 169, 169],'darkkhaki':[189, 183, 107]
+,'darkmagenta':[139, 0, 139],'darkolivegreen':[ 85, 107, 47]
+,'darkorange':[255, 140, 0],'darkorchid':[153, 50, 204]
+,'darkred':[139, 0, 0],'darksalmon':[233, 150, 122]
+,'darkseagreen':[143, 188, 143],'darkslateblue':[ 72, 61, 139]
+,'darkslategray':[ 47, 79, 79],'darkslategrey':[ 47, 79, 79]
+,'darkturquoise':[ 0, 206, 209],'darkviolet':[148, 0, 211]
+,'deeppink':[255, 20, 147],'deepskyblue':[ 0, 191, 255]
+,'dimgray':[105, 105, 105],'dimgrey':[105, 105, 105]
+,'dodgerblue':[ 30, 144, 255],'firebrick':[178, 34, 34]
+,'floralwhite':[255, 250, 240],'forestgreen':[ 34, 139, 34]
+,'fuchsia':[255, 0, 255],'gainsboro':[220, 220, 220]
+,'ghostwhite':[248, 248, 255],'gold':[255, 215, 0]
+,'goldenrod':[218, 165, 32],'gray':[128, 128, 128]
+,'grey':[128, 128, 128],'green':[ 0, 128, 0]
+,'greenyellow':[173, 255, 47],'honeydew':[240, 255, 240]
+,'hotpink':[255, 105, 180],'indianred':[205, 92, 92]
+,'indigo':[ 75, 0, 130],'ivory':[255, 255, 240]
+,'khaki':[240, 230, 140],'lavender':[230, 230, 250]
+,'lavenderblush':[255, 240, 245],'lawngreen':[124, 252, 0]
+,'lemonchiffon':[255, 250, 205],'lightblue':[173, 216, 230]
+,'lightcoral':[240, 128, 128],'lightcyan':[224, 255, 255]
+,'lightgoldenrodyellow':[250, 250, 210],'lightgray':[211, 211, 211]
+,'lightgreen':[144, 238, 144],'lightgrey':[211, 211, 211]
+,'lightpink':[255, 182, 193],'lightsalmon':[255, 160, 122]
+,'lightseagreen':[ 32, 178, 170],'lightskyblue':[135, 206, 250]
+,'lightslategray':[119, 136, 153],'lightslategrey':[119, 136, 153]
+,'lightsteelblue':[176, 196, 222],'lightyellow':[255, 255, 224]
+,'lime':[ 0, 255, 0],'limegreen':[ 50, 205, 50]
+,'linen':[250, 240, 230],'magenta':[255, 0, 255]
+,'maroon':[128, 0, 0],'mediumaquamarine':[102, 205, 170]
+,'mediumblue':[ 0, 0, 205],'mediumorchid':[186, 85, 211]
+,'mediumpurple':[147, 112, 219],'mediumseagreen':[ 60, 179, 113]
+,'mediumslateblue':[123, 104, 238],'mediumspringgreen':[ 0, 250, 154]
+,'mediumturquoise':[ 72, 209, 204],'mediumvioletred':[199, 21, 133]
+,'midnightblue':[ 25, 25, 112],'mintcream':[245, 255, 250]
+,'mistyrose':[255, 228, 225],'moccasin':[255, 228, 181]
+,'navajowhite':[255, 222, 173],'navy':[ 0, 0, 128]
+,'oldlace':[253, 245, 230],'olive':[128, 128, 0]
+,'olivedrab':[107, 142, 35],'orange':[255, 165, 0]
+,'orangered':[255, 69, 0],'orchid':[218, 112, 214]
+,'palegoldenrod':[238, 232, 170],'palegreen':[152, 251, 152]
+,'paleturquoise':[175, 238, 238],'palevioletred':[219, 112, 147]
+,'papayawhip':[255, 239, 213],'peachpuff':[255, 218, 185]
+,'peru':[205, 133, 63],'pink':[255, 192, 203]
+,'plum':[221, 160, 221],'powderblue':[176, 224, 230]
+,'purple':[128, 0, 128],'red':[255, 0, 0]
+,'rosybrown':[188, 143, 143],'royalblue':[ 65, 105, 225]
+,'saddlebrown':[139, 69, 19],'salmon':[250, 128, 114]
+,'sandybrown':[244, 164, 96],'seagreen':[ 46, 139, 87]
+,'seashell':[255, 245, 238],'sienna':[160, 82, 45]
+,'silver':[192, 192, 192],'skyblue':[135, 206, 235]
+,'slateblue':[106, 90, 205],'slategray':[112, 128, 144]
+,'slategrey':[112, 128, 144],'snow':[255, 250, 250]
+,'springgreen':[ 0, 255, 127],'steelblue':[ 70, 130, 180]
+,'tan':[210, 180, 140],'teal':[ 0, 128, 128]
+,'thistle':[216, 191, 216],'tomato':[255, 99, 71]
+,'turquoise':[ 64, 224, 208],'violet':[238, 130, 238]
+,'wheat':[245, 222, 179],'white':[255, 255, 255]
+,'whitesmoke':[245, 245, 245],'yellow':[255, 255, 0]
+,'yellowgreen':[154, 205, 50]}
+
     
 import sys
 from math import cos,sin,tan, atan2, pi, ceil
@@ -360,14 +461,17 @@ class Bez(object):
 		self.tag=''
 
 class ITEM(object):
-	__slots__ =	'type', 'pntsUV', 'flagUV', 'beziers_knot','fill'
+	__slots__ =	'type', 'pntsUV', 'flagUV', 'beziers_knot','fill','color','id','mat','matname'
 	def __init__(self):
 		self.type        =  typBEZIER3D        
 		self.pntsUV      =  [0,0]              
 		self.flagUV      =  [0,0]              
 		self.beziers_knot = []
 		self.fill=0
-		#self.color=[0.0,0.0,0.0]
+		self.color=[0.0,0.0,0.0,0.0]
+		self.id=''
+		self.mat=0
+		self.matname=''
 
 class CURVE(object):
 	__slots__ =	'type','number_of_items','ITEM'
@@ -412,7 +516,8 @@ def createCURVES(curves, name):
 	"""
 	internal curves creation 
 	"""
-	global SCALE, B, BOUNDINGBOX,scale_
+	global SCALE, B, BOUNDINGBOX,scale_, SEPARATE_CURVES
+	global USE_COLORS
 	from Blender import Curve, Object, Scene, BezTriple
 	HANDLE={'C':BezTriple.HandleTypes.FREE,'L':BezTriple.HandleTypes.VECT}
 	r=BOUNDINGBOX['rec']
@@ -425,41 +530,73 @@ def createCURVES(curves, name):
 		SCALE=r[3]-r[1]
 	
 	scene = Scene.GetCurrent()
-	scene.objects.selected = [] #059b
-	c = Curve.New()         #059b
+	scene.objects.selected = [] 
 	
-	c.setResolu(24)  
+	if not SEPARATE_CURVES: 
+		c = Curve.New()   
+		c.setResolu(24)  
+
+	MATNAME=[]			
+	nloc=0.0                  
+	
+	def new_MATERIAL(val):
+		# -----------------------
+		# have to create a material
+		#------------------------
+		if val.matname and val.matname in MATNAME:
+			mat = Blender.Material.Get(val.matname)
+		elif val.matname:	  	
+			mat = Blender.Material.New(val.matname)			
+			mat.rgbCol = [val.color[0]/255.0, val.color[1]/255.0, val.color[2]/255.0] 
+		else:
+			mat = Blender.Material.New(val.id)			
+			mat.rgbCol = [val.color[0]/255.0, val.color[1]/255.0, val.color[2]/255.0] 
+		return [mat]
+				
 	for I,val in curves.ITEM.iteritems():
+		if SEPARATE_CURVES:       
+			c = Curve.New()         
+			c.setResolu(24)         
+			if USE_COLORS and val.mat:
+				c.materials=new_MATERIAL(val)					 
+					
 		bzn=0
 		if val.beziers_knot[-1].tag in ['L','l','V','v','H','h'] and\
 		test_samelocations(val.beziers_knot[-1].co,val.beziers_knot[0].co):
 			del val.beziers_knot[-1]
-			#print 'remove last point', rmp
-			#rmp+=1 
+			
 		for k2 in xrange(0,len(val.beziers_knot)):
 			bz= [co for co in val.beziers_knot[k2].co] 
 			if bzn==0:
-				cp1 =  bz[4],bz[5],0.0 , bz[0],bz[1],0.0, bz[2],bz[3],0.0, 
+				cp1 =  bz[4]/SCALE, bz[5]/-SCALE,0.0, bz[0]/SCALE, bz[1]/-SCALE,0.0, bz[2]/SCALE,bz[3]/-SCALE,0.0, 
 				beztriple1 = BezTriple.New(cp1)
 				bez = c.appendNurb(beztriple1)
 				bez[0].handleTypes=(HANDLE[val.beziers_knot[k2].ha[0]],HANDLE[val.beziers_knot[k2].ha[1]])              
 				bzn = 1
 			else:
-				cp2 =  bz[4],bz[5],0.0 , bz[0],bz[1],0.0, bz[2],bz[3],0.0
+				cp2 =  bz[4]/SCALE,bz[5]/-SCALE,0.0 , bz[0]/SCALE, bz[1]/-SCALE,0.0, bz[2]/SCALE,bz[3]/-SCALE,0.0
 				beztriple2 = BezTriple.New(cp2)
 				beztriple2.handleTypes= (HANDLE[val.beziers_knot[k2].ha[0]],HANDLE[val.beziers_knot[k2].ha[1]])
 				bez.append(beztriple2)
+				
 		if val.flagUV[0]==1 or val.fill==1:
 			#--------------------
 			# 0.4.6 : cyclic flag ...
 			#--------------------
 			bez.flagU += 1
-	ob = scene.objects.new(c,name)   #059b
-	scene.objects.active = ob        #059b
-	ob.setSize(1.0/SCALE,1.0/-SCALE,1.0)
-	c.update()
-
-
+			
+		if SEPARATE_CURVES:
+			ob = scene.objects.new(c,val.id)      
+			scene.objects.active = ob             
+			ob.setLocation(0.0,0.0,nloc)          
+			nloc+=0.0001                        
+			c.update()
+			
+	if not SEPARATE_CURVES:              
+			ob = scene.objects.new(c,name)   
+			scene.objects.active = ob        
+			c.update()
+			
 #=====================================================================
 #=====      SVG format   :  DEBUT             =========================
 #=====================================================================
@@ -625,7 +762,7 @@ def polyline(prp):
 					D=['M',str(p[0]),str(p[1])]
 					np+=1
 				else:
-					D.append('L');D.append(str(p[0]));D.append(str(p[1]))
+					D.append('L'); D.append(str(p[0])); D.append(str(p[1]))
 		return D
 	else:
 		return []
@@ -643,12 +780,12 @@ def polygon(prp):
 #--------------------
 # 0.5.8, to remove exec 
 #--------------------
-OTHERSSHAPES={ 'rect'    :  rect,
-							 'line'    :  line, 
-							 'polyline':  polyline, 
-							 'polygon' :  polygon,
-							 'circle'  :  circle,
-							 'ellipse' :  ellipse}
+OTHERSSHAPES={	'rect'    :  rect,
+				'line'    :  line, 
+				'polyline':  polyline, 
+				'polygon' :  polygon,
+				'circle'  :  circle,
+				'ellipse' :  ellipse}
 
 #--------------------
 # 0.3.9
@@ -661,13 +798,21 @@ def calc_arc (cpx,cpy, rx, ry,  ang, fa , fs , x, y) :
 	ry=abs(ry)
 	px=abs((cos(ang)*(cpx-x)+sin(ang)*(cpy-y))*0.5)**2.0
 	py=abs((cos(ang)*(cpy-y)-sin(ang)*(cpx-x))*0.5)**2.0
-	pl=px/(rx**2.0)+py/(ry**2.0 )
+	rpx=rpy=0.0
+	if abs(rx)>0.0:	rpx=px/(rx**2.0)
+	if abs(ry)>0.0:	rpy=py/(ry**2.0)
+	pl=rpx+rpy
 	if pl>1.0:
 		pl=pl**0.5;rx*=pl;ry*=pl
-	x0=(cos(ang)/rx)*cpx+(sin(ang)/rx)*cpy
-	y0=(-sin(ang)/ry)*cpx+(cos(ang)/ry)*cpy
-	x1=(cos(ang)/rx)*x+(sin(ang)/rx)*y
-	y1=(-sin(ang)/ry)*x+(cos(ang)/ ry)*y    
+	carx=sarx=cary=sary=0.0	
+	if abs(rx)>0.0: 
+		carx=cos(ang)/rx;sarx=sin(ang)/rx
+	if abs(ry)>0.0: 
+		cary=cos(ang)/ry;sary=sin(ang)/ry
+	x0=(carx)*cpx+(sarx)*cpy
+	y0=(-sary)*cpx+(cary)*cpy
+	x1=(carx)*x+(sarx)*y
+	y1=(-sary)*x+(cary)*y  
 	d=(x1-x0)*(x1-x0)+(y1-y0)*(y1-y0)  
 	if abs(d)>0.0 :sq=1.0/d-0.25
 	else: sq=-0.25
@@ -722,7 +867,7 @@ def curve_to_a(c,D,n0,CP):  #A,a
 										l[0], l[1], l[2]*(PI / 180.0),
 										l[3], l[4], 
 										l[5], l[6] )    
-	if DEBUG == 1  : print POINTS    
+	#if DEBUG == 1  : print POINTS    
 	for p in POINTS :
 		B=Bez()
 		B.co=[ p[2][0],p[2][1], p[0][0],p[0][1], p[1][0],p[1][1]]             
@@ -739,7 +884,9 @@ def curve_to_a(c,D,n0,CP):  #A,a
 	return  curves,n0,CP    
 
 def move_to(c, D, n0,CP, proprietes):
-	global DEBUG,TAGcourbe
+	global DEBUG,TAGcourbe, LAST_ID
+	global 	USE_COLORS
+		
 	l=[float(D[c[1]+1]),float(D[c[1]+2])]
 	if c[0]=='m':
 		l=[l[0]+CP[0],
@@ -747,14 +894,31 @@ def move_to(c, D, n0,CP, proprietes):
 	if n0 in curves.ITEM:
 		n0+=1
 	CP=[l[0],l[1]] 
-	curves.ITEM[n0]=ITEM() 
+	curves.ITEM[n0]=ITEM()
+	
+	if 'id' in proprietes: 
+		curves.ITEM[n0].id=proprietes['id']
+	else:
+		curves.ITEM[n0].id=LAST_ID
+	
 	proprietes['n'].append(n0)
+	if USE_COLORS:
+		pr= proprietes.get('fill') # None or the property
+		if pr != None:
+			if '#' in pr:
+				i=1
+				curves.ITEM[n0].color=[int(pr[i:i+2],16),int(pr[i+2:i+4],16),int(pr[i+4:i+6],16)]
+				curves.ITEM[n0].mat=1
+			elif pr in SVGCOLORNAMELIST:
+				Courbe[n].color=SVGCOLORNAMELIST[pr]
+				Courbe[n].mat=1			
+					
 	B=Bez()
 	B.co=[CP[0],CP[1],CP[0],CP[1],CP[0],CP[1]]
 	B.ha=['L','C']
 	B.tag=c[0]
 	curves.ITEM[n0].beziers_knot.append(B)
-	if DEBUG==1: print curves.ITEM[n0], CP    
+	#if DEBUG==1: print curves.ITEM[n0], CP    
 	return  curves,n0,CP     
 
 def close_z(c,D,n0,CP): #Z,z
@@ -784,10 +948,9 @@ def curve_to_q(c,D,n0,CP):  #Q,q
 	BP.co[2]=BP.co[0]
 	BP.co[3]=BP.co[1]
 	curves.ITEM[n0].beziers_knot.append(B)
-	if DEBUG==1: print B.co,BP.co
+	#if DEBUG==1: print B.co,BP.co
 	CP=[l[2],l[3]]
-	if DEBUG==1:
-		pass 
+	#if DEBUG==1:		pass 
 	if len(D)>c[1]+5 and D[c[1]+5] not in TAGcourbe :
 		c[1]+=4
 		curve_to_q(c, D, n0,CP)
@@ -807,7 +970,7 @@ def curve_to_t(c,D,n0,CP):  #T,t
 		BP.co[2]=l0[2]
 		BP.co[3]=l0[3]
 	curves.ITEM[n0].beziers_knot.append(B)
-	if DEBUG==1: print B.co,BP.co
+	#if DEBUG==1: print B.co,BP.co
 	CP=[l[0],l[1]]
 	if len(D)>c[1]+3 and D[c[1]+3] not in TAGcourbe :
 		c[1]+=4
@@ -840,7 +1003,7 @@ def curve_to_s(c,D,n0,CP):  #S,s
 	#--------------------
 	BP.co[2],BP.co[3]=build_SYMETRIC([BP.co[4],BP.co[5],BP.co[0],BP.co[1]])
 	curves.ITEM[n0].beziers_knot.append(B)
-	if DEBUG==1: print B.co,BP.co
+	#if DEBUG==1: print B.co,BP.co
 	#--------------------
 	# 0.4.3
 	#--------------------	
@@ -874,7 +1037,7 @@ def curve_to_c(c, D, n0,CP): #c,C
 	BP.co[3]=l[1]
 	BP.ha[1]='C'
 	curves.ITEM[n0].beziers_knot.append(B)
-	if DEBUG==1: print B.co,BP.co
+	#if DEBUG==1: print B.co,BP.co
 	CP=[l[4],l[5]]
 	if len(D)>c[1]+7 and D[c[1]+7] not in TAGcourbe :
 		c[1]+=6
@@ -930,27 +1093,27 @@ def draw_line_v(c,D,n0,CP): #V, v
 	CP=[l[0],l[1]]
 	return  curves,n0,CP    
 
-Actions=   {     "C" : curve_to_c,
-									"A" : curve_to_a, 
-									"S" : curve_to_s,
-									"M" : move_to,
-									"V" : draw_line_v,
-									"L" : draw_line_l,
-									"H" : draw_line_h,                
-									"Z" : close_z,
-									"Q" : curve_to_q,
-									"T" : curve_to_t,
+Actions=   {	"C" : curve_to_c,
+				"A" : curve_to_a, 
+				"S" : curve_to_s,
+				"M" : move_to,
+				"V" : draw_line_v,
+				"L" : draw_line_l,
+				"H" : draw_line_h,                
+				"Z" : close_z,
+				"Q" : curve_to_q,
+				"T" : curve_to_t,
 
-									"c" : curve_to_c,
-									"a" : curve_to_a, 
-									"s" : curve_to_s,
-									"m" : move_to,
-									"v" : draw_line_v,
-									"l" : draw_line_l,
-									"h" : draw_line_h,                
-									"z" : close_z,
-									"q" : curve_to_q,
-									"T" : curve_to_t
+				"c" : curve_to_c,
+				"a" : curve_to_a, 
+				"s" : curve_to_s,
+				"m" : move_to,
+				"v" : draw_line_v,
+				"l" : draw_line_l,
+				"h" : draw_line_h,                
+				"z" : close_z,
+				"q" : curve_to_q,
+				"T" : curve_to_t
 }
      
 TAGcourbe=Actions.keys()
@@ -959,7 +1122,7 @@ tagTRANSFORM=0
  
 def wash_DATA(ndata):	
 	if ndata:
-		if DEBUG==1: print ndata
+		#if DEBUG==1: print ndata
 		ndata = ndata.strip()
 		if ndata[0]==',':ndata=ndata[1:]
 		if ndata[-1]==',':ndata=ndata[:-1]
@@ -1137,11 +1300,25 @@ def control_CONTAINT(txt):
 		t0=t1+1
 	return tlist
 
-def curve_FILL(Courbe,proprietes):
-	for n in proprietes['n']:
-		if n in Courbe and 'fill:#' in proprietes['style']:
-			Courbe[n].fill=1
 
+def curve_FILL(Courbe,proprietes):
+	global 	USE_COLORS
+	for n in proprietes['n']:
+		pr = proprietes['style']
+		if n in Courbe and 'fill:' in pr:
+			if not 'fill:none' in pr:
+				Courbe[n].fill=1
+				if USE_COLORS:
+					if '#' in pr:
+						i= pr.find('fill:#')+6
+						Courbe[n].color=[int(pr[i:i+2],16),int(pr[i+2:i+4],16),int(pr[i+4:i+6],16)]
+						Courbe[n].mat=1
+					elif ';fill-opacity' in pr: 
+						i=  pr.find('fill:')+5
+						i2=	pr.find(';',i)
+						COLORNAME= pr[i:i2]
+						Courbe[n].color=SVGCOLORNAMELIST[COLORNAME]
+						Courbe[n].mat=1
 #----------------------------------------------
 # 0.4.1 : apply transform stack
 #----------------------------------------------
@@ -1189,9 +1366,9 @@ def filter(d):
 def get_BOUNDBOX(BOUNDINGBOX,SVG):
 	if 'viewbox' not in SVG:
 		h=float(filter(SVG['height']))
-		if DEBUG==1 : print 'h : ',h
+		#if DEBUG==1 : print 'h : ',h
 		w=float(filter(SVG['width']))
-		if DEBUG==1 : print 'w :',w
+		#if DEBUG==1 : print 'w :',w
 		BOUNDINGBOX['rec']=[0.0,0.0,w,h]
 		r=BOUNDINGBOX['rec']
 		BOUNDINGBOX['coef']=w/h       
@@ -1236,7 +1413,7 @@ def collect_ATTRIBUTS(data):
 # --------------------------------------------
 def build_HIERARCHY(t):
 	global CP, curves, SCALE, DEBUG, BOUNDINGBOX, scale_, tagTRANSFORM
-
+	global LAST_ID
 	TRANSFORM=0
 	t=t.replace('\t',' ')
 	while t.find('  ')!=-1: t=t.replace('  ',' ')
@@ -1283,27 +1460,40 @@ def build_HIERARCHY(t):
 					balise=BALISES[-1]
 				else:
 					balise=BALISES[-2]
+					
 			if balise=='E' or balise=='O':
 				proprietes=collect_ATTRIBUTS(t[t0:t1+ouvrante])
+				
+				#print proprietes
+				if  'id' in proprietes:
+					LAST_ID=proprietes['id'] 
+					#print LAST_ID
+					
+
+					
 				if  balise=='O' and 'transform' in proprietes:
 					STACK.append(proprietes['transform'])
 					TRANSFORM+=1   
 				elif balise=='O' : 
 					STACK.append(None)
+					
 				proprietes['stack']=STACK[:]
-				D=[] 
+				D=[]
+				 
 				if proprietes['TYPE'] in ['path'] and (proprietes['d'][1]-proprietes['d'][0]>1):
-					D=list_DATA(t[proprietes['d'][0]+t0:proprietes['d'][1]+t0])
+					D=list_DATA(t[proprietes['d'][0]+t0:proprietes['d'][1]+t0])					
+						 
 				elif proprietes['TYPE'] in OTHERSSHAPES:
 					#--------------------
 					# 0.5.8, to remove exec 
 					#--------------------
 					D=OTHERSSHAPES[proprietes['TYPE']](proprietes)
+					
 				if len(D)>0:
 					cursor=0
 					proprietes['n']=[]
 					for cell in D: 
-						if DEBUG==2 : print 'cell : ',cell ,' --'                   
+						#if DEBUG==2 : print 'cell : ',cell ,' --'                   
 						if len(cell)>=1 and cell[0] in TAGcourbe:
 							#--------------------
 							# 0.5.8, to remove exec 
@@ -1312,12 +1502,16 @@ def build_HIERARCHY(t):
 								curves,n0,CP=Actions[cell]([cell,cursor], D, n0,CP,proprietes)
 							else: 
 								curves,n0,CP=Actions[cell]([cell,cursor], D, n0,CP)
+								
 						cursor+=1
 					if TRANSFORM>0 or 'transform' in proprietes :
 						curve_TRANSFORM(curves.ITEM,proprietes)
+					
 					if 'style' in proprietes :
 						curve_FILL(curves.ITEM,proprietes)
-				elif proprietes['TYPE'] in ['svg'] :
+						
+											
+				elif proprietes['TYPE'] == 'svg':
 					#print  'proprietes.keys()',proprietes.keys()
 					BOUNDINGBOX = get_BOUNDBOX(BOUNDINGBOX,proprietes)
 		else:
@@ -1330,6 +1524,8 @@ def build_HIERARCHY(t):
 
 def scan_FILE(nom):
 	global CP, curves, SCALE, DEBUG, BOUNDINGBOX, scale_, tagTRANSFORM
+	global SEPARATE_CURVES, USE_COLORS
+	
 	dir,name=split(nom)
 	name=name.split('.')
 	result=0
@@ -1339,21 +1535,32 @@ def scan_FILE(nom):
 	if t!='false':
 		Blender.Window.EditMode(0)
 		if not SHARP_IMPORT:
-			warning = "Select Size : %t|  Scale on Width %x1|   Scale on Height %x2| As is (caution may be large)  %x3" 
-			scale_ = Blender.Draw.PupMenu(warning)
+			togH = Blender.Draw.Create(1)
+			togW = Blender.Draw.Create(0)
+			togAS = Blender.Draw.Create(0)
+			togSP = Blender.Draw.Create(0)
+			togCOL = Blender.Draw.Create(0)
+			block=[\
+				("Clamp Width 1",	togW,  "Rescale the import with a Width of one unit"),\
+				("Clamp Height 1",	togH,  "Rescale the import with a Heightof one unit"),\
+				("No Rescaling",	togAS, "No rescaling, the result can be very large"),\
+				("Separate Curves", togSP, "Create an object for each curve, Slower. May manage colors"),\
+				("Import Colors",	togCOL, "try to import color if the path is set as 'fill'. Only With separate option")]
+
+			retval = Blender.Draw.PupBlock("Import Options", block)
+			if  togW.val: scale_=1
+			elif togH.val: 	scale_=2
+			elif togAS.val: 	scale_=3
+				
+			if  togSP.val: SEPARATE_CURVES=1	
+
+			if  togCOL.val and SEPARATE_CURVES : USE_COLORS=1	
+											
 		t1=Blender.sys.time()
 		# 0.4.1 : to avoid to use sax and the xml  
 		#         tools of the complete python
 		build_HIERARCHY(t)
 		r=BOUNDINGBOX['rec']
-		"""
-		if scale_==3:
-			SCALE=1.0
-		elif scale==1:
-			SCALE=r[2]-r[0]
-		elif scale_==2:
-			SCALE=r[3]-r[1]
-		"""	
 	curves.number_of_items=len(curves.ITEM)
 	for k, val in curves.ITEM.iteritems():
 		val.pntsUV[0] =len(val.beziers_knot)
