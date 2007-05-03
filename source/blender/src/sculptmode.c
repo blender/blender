@@ -309,9 +309,15 @@ void sculptmode_rem_tex(void *junk0,void *junk1)
 {
 	MTex *mtex= G.scene->sculptdata.mtex[G.scene->sculptdata.texact];
 	if(mtex) {
+		SculptSession *ss= sculpt_session();
 		if(mtex->tex) mtex->tex->id.us--;
 		MEM_freeN(mtex);
 		G.scene->sculptdata.mtex[G.scene->sculptdata.texact]= NULL;
+		/* Clear brush preview */
+		if(ss->texcache) {
+			MEM_freeN(ss->texcache);
+			ss->texcache= NULL;
+		}
 		BIF_undo_push("Unlink brush texture");
 		allqueue(REDRAWBUTSEDIT, 0);
 		allqueue(REDRAWOOPS, 0);
@@ -783,7 +789,7 @@ float tex_strength(EditData *e, float *point, const float len,const unsigned vin
 	SculptSession *ss= sculpt_session();
 	float avg= 1;
 
-	if(sd->texact==-1)
+	if(sd->texact==-1 || !sd->mtex[sd->texact])
 		avg= 1;
 	else if(sd->texrept==SCULPTREPT_3D) {
 		/* Get strength by feeding the vertex location directly
