@@ -2578,7 +2578,7 @@ void common_insertkey(void)
 				id= G.buts->lockpoin;
 				te= G.buts->lockpoin;
 				if(id) {
-					event= pupmenu("Insert Key %t|Cloud%x0|Marble%x1|Stucci%x2|Wood%x3|Magic%x4|Blend%x5|Musgrave%x6|Voronoi%x7|Distnoise%x8|ColorFilter%x9");
+					event= pupmenu("Insert Key %t|Clouds%x0|Marble%x1|Stucci%x2|Wood%x3|Magic%x4|Blend%x5|Musgrave%x6|Voronoi%x7|DistortedNoise%x8|ColorFilter%x9");
 					if(event== -1) return;
 
 					if(event==0) {
