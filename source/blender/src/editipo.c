@@ -1372,10 +1372,8 @@ void mouse_select_ipo(void)
 	marker=find_nearest_marker(1);
 	
 	/* map ipo-points for editing if scaled ipo */
-	if (OBACT && OBACT->action && G.sipo->pin==0) {
-		if (G.sipo->actname || G.sipo->constname) {
-			actstrip_map_ipo_keys(OBACT, G.sipo->ipo, 0, 0);
-		}
+	if (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname) {
+		actstrip_map_ipo_keys(OBACT, G.sipo->ipo, 0, 0);
 	}
 	
 	if(G.sipo->showkey) {
@@ -1537,10 +1535,8 @@ void mouse_select_ipo(void)
 	}
 	
 	/* undo mapping of ipo-points for editing if scaled ipo */
-	if (OBACT && OBACT->action && G.sipo->pin==0) {
-		if (G.sipo->actname || G.sipo->constname) {
-			actstrip_map_ipo_keys(OBACT, G.sipo->ipo, 1, 0);
-		}
+	if (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname) {
+		actstrip_map_ipo_keys(OBACT, G.sipo->ipo, 1, 0);
 	}
 	
 	update_editipo_flags();
@@ -1994,10 +1990,8 @@ void add_vert_ipo(void)
 	areamouseco_to_ipoco(G.v2d, mval, &x, &y);
 	
 	/* convert click-time to ipo-time */
-	if (OBACT && OBACT->action && G.sipo->pin==0) {
-		if (G.sipo->actname || G.sipo->constname) {
-			x= get_action_frame(OBACT, x);
-		}
+	if (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname) {
+		x= get_action_frame(OBACT, x);
 	}
 	
 	if(ei->icu==NULL) {
@@ -2369,10 +2363,8 @@ void insertkey_editipo(void)
 						}
 						
 						/* convert cfra to ipo-time */
-						if (OBACT && OBACT->action && G.sipo->pin==0) {
-							if (G.sipo->actname || G.sipo->constname) {
-								cfra= get_action_frame(OBACT, cfra);
-							}
+						if (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname) {
+							cfra= get_action_frame(OBACT, cfra);
 						}
 				
 						insertvals= MEM_mallocN(sizeof(float)*2*tot, "insertkey_editipo");
@@ -3505,10 +3497,8 @@ void ipo_snap(short event)
 	get_status_editipo();
 	
 	/* map ipo-points for editing if scaled ipo */
-	if (OBACT && OBACT->action && G.sipo->pin==0) {
-		if (G.sipo->actname || G.sipo->constname) {
-			actstrip_map_ipo_keys(OBACT, G.sipo->ipo, 0, 0);
-		}
+	if (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname) {
+		actstrip_map_ipo_keys(OBACT, G.sipo->ipo, 0, 0);
 	}
 
 	ei= G.sipo->editipo;
@@ -3580,10 +3570,8 @@ void ipo_snap(short event)
 	}
 	
 	/* undo mapping of ipo-points for editing if scaled ipo */
-	if (OBACT && OBACT->action && G.sipo->pin==0) {
-		if (G.sipo->actname || G.sipo->constname) {
-			actstrip_map_ipo_keys(OBACT, G.sipo->ipo, 1, 0);
-		}
+	if (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname) {
+		actstrip_map_ipo_keys(OBACT, G.sipo->ipo, 1, 0);
 	}
 	
 	editipo_changed(G.sipo, 1);
@@ -3617,10 +3605,8 @@ void ipo_mirror(short mode)
 	if (!ei) return;
 	
 	/* map ipo-points for editing if scaled ipo */
-	if (OBACT && OBACT->action && G.sipo->pin==0) {
-		if (G.sipo->actname || G.sipo->constname) {
-			actstrip_map_ipo_keys(OBACT, G.sipo->ipo, 0, 0);
-		}
+	if (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname) {
+		actstrip_map_ipo_keys(OBACT, G.sipo->ipo, 0, 0);
 	}
 	
 	/* look throught ipo curves */
@@ -3678,10 +3664,8 @@ void ipo_mirror(short mode)
 	}
 	
 	/* undo mapping of ipo-points for editing if scaled ipo */
-	if (OBACT && OBACT->action && G.sipo->pin==0) {
-		if (G.sipo->actname || G.sipo->constname) {
-			actstrip_map_ipo_keys(OBACT, G.sipo->ipo, 1, 0);
-		}
+	if (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname) {
+		actstrip_map_ipo_keys(OBACT, G.sipo->ipo, 1, 0);
 	}
 	
 	/* cleanup and undo push */
@@ -4155,10 +4139,8 @@ void make_ipokey(void)
 		else ik->flag= 0;
 		
 		/* map ipo-keys for drawing/editing if scaled ipo */
-		if (OBACT && OBACT->action && G.sipo->pin==0) {
-			if (G.sipo->actname || G.sipo->constname) {
-				ik->val= get_action_frame_inv(OBACT, ik->val);
-			}
+		if (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname) {
+			ik->val= get_action_frame_inv(OBACT, ik->val);
 		}
 		
 		ik= ik->next;
@@ -4261,10 +4243,8 @@ void make_ipokey_transform(Object *ob, ListBase *lb, int sel)
 	ik= lb->first;
 	while(ik) {
 		/* map ipo-keys for drawing/editing if scaled ipo */
-		if (OBACT && OBACT->action && G.sipo->pin==0) {
-			if (G.sipo->actname || G.sipo->constname) {
-				ik->val= get_action_frame_inv(OBACT, ik->val);
-			}
+		if (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname) {
+			ik->val= get_action_frame_inv(OBACT, ik->val);
 		}
 		
 		ik= ik->next;
@@ -4283,10 +4263,8 @@ void update_ipokey_val(void)	/* after moving vertices */
 				ik->val= ik->data[a]->vec[1][0];
 				
 				/* map ipo-keys for drawing/editing if scaled ipo */
-				if (OBACT && OBACT->action && G.sipo->pin==0) {
-					if (G.sipo->actname || G.sipo->constname) {
-						ik->val= get_action_frame_inv(OBACT, ik->val);
-					}
+				if (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname) {
+					ik->val= get_action_frame_inv(OBACT, ik->val);
 				}
 				break;
 			}

@@ -910,10 +910,8 @@ void borderselect_ipo(void)
 
 	if(val) {
 		/* map ipo-points for editing if scaled ipo */
-		if (OBACT && OBACT->action && G.sipo->pin==0) {
-			if (G.sipo->actname || G.sipo->constname) {
-				actstrip_map_ipo_keys(OBACT, G.sipo->ipo, 0, 0);
-			}
+		if (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname) {
+			actstrip_map_ipo_keys(OBACT, G.sipo->ipo, 0, 0);
 		}
 		
 		mval[0]= rect.xmin;
@@ -964,10 +962,8 @@ void borderselect_ipo(void)
 		}
 		
 		/* undo mapping of ipo-points for drawing if scaled ipo */
-		if (OBACT && OBACT->action && G.sipo->pin==0) {
-			if (G.sipo->actname || G.sipo->constname) {
-				actstrip_map_ipo_keys(OBACT, G.sipo->ipo, 1, 0);
-			}
+		if (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname) {
+			actstrip_map_ipo_keys(OBACT, G.sipo->ipo, 1, 0);
 		}
 		
 		BIF_undo_push("Border select Ipo");

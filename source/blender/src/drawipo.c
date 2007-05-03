@@ -2158,10 +2158,8 @@ void drawipospace(ScrArea *sa, void *spacedata)
 		}
 		
 		/* map ipo-points for drawing if scaled ipo */
-		if (OBACT && OBACT->action && sipo->pin==0) {
-			if (sipo->actname || sipo->constname) {
-				actstrip_map_ipo_keys(OBACT, sipo->ipo, 0, 0);
-			}
+		if (OBACT && OBACT->action && sipo->pin==0 && sipo->actname) {
+			actstrip_map_ipo_keys(OBACT, sipo->ipo, 0, 0);
 		}
 
 		/* draw deselect */
@@ -2175,10 +2173,8 @@ void drawipospace(ScrArea *sa, void *spacedata)
 		draw_ipovertices(1);
 		
 		/* undo mapping of ipo-points for drawing if scaled ipo */
-		if (OBACT && OBACT->action && sipo->pin==0) {
-			if (sipo->actname || sipo->constname) {
-				actstrip_map_ipo_keys(OBACT, sipo->ipo, 1, 0);
-			}
+		if (OBACT && OBACT->action && sipo->pin==0 && sipo->actname) {
+			actstrip_map_ipo_keys(OBACT, sipo->ipo, 1, 0);
 		}
 		
 		/* Draw 'curtains' for preview */
