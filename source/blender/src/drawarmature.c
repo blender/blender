@@ -840,7 +840,7 @@ static void draw_line_bone(int armflag, int boneflag, int constflag, unsigned in
 				else if(constflag & PCHAN_HAS_CONST) glColor3ub(0, 255, 120);
 				else BIF_ThemeColor(TH_BONE_POSE);	// PCHAN_HAS_ACTION 
 			}
-			else BIF_ThemeColor(TH_BACK);
+			else BIF_ThemeColorShade(TH_BACK, -30);
 		}
 	}
 	
@@ -860,7 +860,7 @@ static void draw_line_bone(int armflag, int boneflag, int constflag, unsigned in
 	
    if(armflag & ARM_EDITMODE) {
 	   if (boneflag & BONE_SELECTED) BIF_ThemeColor(TH_EDGE_SELECT);
-	   else BIF_ThemeColor(TH_BACK);
+	   else BIF_ThemeColorShade(TH_BACK, -30);
    }
 	glBegin(GL_LINES);
 	glVertex3f(0.0f, 0.0f, 0.0f);
