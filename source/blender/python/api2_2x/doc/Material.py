@@ -187,18 +187,33 @@ class Material:
 	@ivar ipo:  Material Ipo data.
 	Contains the Ipo if one is assigned to the object, None otherwise.  Setting to None clears the current Ipo.
 	@type ipo:  Blender Ipo
-	@ivar mirB:  Mirror color (L{mirCol}) blue component.
-	Value is clamped to the range [0.0,1.0].
-	@type mirB:  float
+	
 	@ivar mirCol:  Mirror RGB color triplet.
 	Components are clamped to the range [0.0,1.0].
 	@type mirCol:  list of 3 floats
+	@ivar mirB:  Mirror color (L{mirCol}) blue component.
+	Value is clamped to the range [0.0,1.0].
+	@type mirB:  float
 	@ivar mirG:  Mirror color (L{mirCol}) green component.
 	Value is clamped to the range [0.0,1.0].
 	@type mirG:  float
 	@ivar mirR:  Mirror color (L{mirCol}) red component.
 	Value is clamped to the range [0.0,1.0].
 	@type mirR:  float
+	
+	@ivar sssCol:  SubSufrace scattering RGB color triplet.
+	Components are clamped to the range [0.0,1.0].
+	@type sssCol:  list of 3 floats
+	@ivar sssB:  SubSufrace scattering color (L{sssCol}) blue component.
+	Value is clamped to the range [0.0,1.0].
+	@type sssB:  float
+	@ivar sssG:  SubSufrace scattering color (L{sssCol}) green component.
+	Value is clamped to the range [0.0,1.0].
+	@type sssG:  float
+	@ivar sssR:  SubSufrace scattering color (L{sssCol}) red component.
+	Value is clamped to the range [0.0,1.0].
+	@type sssR:  float
+	
 	@ivar mode:  Mode mode bitfield.  See L{the Modes dictionary<Modes>} keys and descriptions.
 	@type mode:  int
 	@ivar nFlares:  Number of subflares with halo.
@@ -296,6 +311,39 @@ class Material:
 	The colorband can have between 1 and 31 colors.
 	@type colorbandSpecular:  list
 	
+	@ivar enableSSS:  If True, subsufrace scattering will be rendered on this material.
+	@type enableSSS:  bool
+	@ivar sssScale:  If True, subsufrace scattering will be rendered on this material.
+	Value is clamped to the range [0.1,1000.0].
+	@type sssScale:  bool
+	@ivar sssRadiusRed:  Mean red scattering path length.
+	Value is clamped to the range [0.0,10000.0].
+	@type sssRadiusRed:  float
+	@ivar sssRadiusGreen:  Mean green scattering path length.
+	Value is clamped to the range [0.0,10000.0].
+	@type sssRadiusGreen:  float
+	@ivar sssRadiusBlue:  Mean blue scattering path length.
+	Value is clamped to the range [0.0,10000.0].
+	@type sssRadiusBlue:  float
+	@ivar sssIOR:  Refraction index.
+	Value is clamped to the range [0.1,2.0].
+	@type sssIOR:  float
+	@ivar sssError:  Error allowance for the calculation (a low value is slower).
+	Value is clamped to the range [0.0,10.0].
+	@type sssError:  float
+	@ivar sssColorBlend:  Blend factor for SSS colors.
+	Value is clamped to the range [0.0,1.0].
+	@type sssColorBlend:  float
+	@ivar sssTextureScatter:  Texture scattering factor.
+	Value is clamped to the range [0.0,1.0].
+	@type sssTextureScatter:  float
+	@ivar sssFront:  Front scattering weight.
+	Value is clamped to the range [0.0,2.0].
+	@type sssFront:  float
+	@ivar sssBack:  Back scattering weight
+	Value is clamped to the range [0.0,10.0].
+	@type sssBack:  float
+
 	@warning: Most member variables assume values in some [Min, Max] interval.
 		When trying to set them, the given parameter will be clamped to lie in
 		that range: if val < Min, then val = Min, if val > Max, then val = Max.

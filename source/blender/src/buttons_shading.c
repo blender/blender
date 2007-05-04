@@ -3340,12 +3340,12 @@ static void material_panel_sss(Material *ma)
 	uiBlockEndAlign(block);
 
 	bt=uiDefButF(block, NUM, B_MATPRV, "IOR:", 10,60,145,20,
-			  &ma->sss_ior, 0.1, 2, 1, 3, "Index of refraction");
+			  &ma->sss_ior, 0.1, 2, 1, 3, "Index of refraction (higher values are denser)");
 	uiButSetFunc(bt, material_sss_custom_set_cb, ma, NULL);
 
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_MATPRV, "Error:", 10,30,145,20,
-			  &ma->sss_error, 0.0001, 10, 1, 3, "Error");
+			  &ma->sss_error, 0.0001, 10, 1, 3, "Error tolerance (low values are slower and higher quality)");
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);

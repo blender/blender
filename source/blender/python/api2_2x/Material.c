@@ -161,6 +161,10 @@
 #define	EXPP_MAT_COMP_MIRR	6
 #define	EXPP_MAT_COMP_MIRG	7
 #define	EXPP_MAT_COMP_MIRB	8
+#define	EXPP_MAT_COMP_SSSR	9
+#define	EXPP_MAT_COMP_SSSG	10
+#define	EXPP_MAT_COMP_SSSB	11
+
 
 #define IPOKEY_RGB          0
 #define IPOKEY_ALPHA        1 
@@ -172,15 +176,27 @@
 #define IPOKEY_SIZE         13
 #define IPOKEY_ALLMAPPING   11
 
+/* SSS Settings */
+#define EXPP_MAT_SSS_SCALE_MIN			0.001
+#define EXPP_MAT_SSS_SCALE_MAX			1000.0
+#define EXPP_MAT_SSS_RADIUS_MIN			0.0
+#define EXPP_MAT_SSS_RADIUS_MAX			10000.0
+#define EXPP_MAT_SSS_IOR_MIN			0.1
+#define EXPP_MAT_SSS_IOR_MAX			2.0
+#define EXPP_MAT_SSS_ERROR_MIN			0.0
+#define EXPP_MAT_SSS_ERROR_MAX			1.0
+#define EXPP_MAT_SSS_FRONT_MIN			0.0
+#define EXPP_MAT_SSS_FRONT_MAX			2.0
+#define EXPP_MAT_SSS_BACK_MIN			0.0
+#define EXPP_MAT_SSS_BACK_MAX			10.0
+
+
 /*****************************************************************************/
 /* Python API function prototypes for the Material module.                   */
 /*****************************************************************************/
 static PyObject *M_Material_New( PyObject * self, PyObject * args,
 				 PyObject * keywords );
 static PyObject *M_Material_Get( PyObject * self, PyObject * args );
-
-/* Not exposed nor used */
-Material *GetMaterialByName( char *name );
 
 /*****************************************************************************/
 /* The following string definitions are used for documentation strings.  In  */
@@ -468,6 +484,7 @@ static int Material_setMode( BPy_Material * self, PyObject * value );
 static int Material_setRGBCol( BPy_Material * self, PyObject * value );
 static int Material_setSpecCol( BPy_Material * self, PyObject * value );
 static int Material_setMirCol( BPy_Material * self, PyObject * value );
+static int Material_setSssCol( BPy_Material * self, PyObject * value );
 static int Material_setColorComponent( BPy_Material * self, PyObject * value,
 							void * closure );
 static int Material_setAmb( BPy_Material * self, PyObject * value );
@@ -515,6 +532,17 @@ static int Material_setRms( BPy_Material * self, PyObject * value );
 static int Material_setFilter( BPy_Material * self, PyObject * value );
 static int Material_setTranslucency( BPy_Material * self, PyObject * value );
 
+static int Material_setSssEnable( BPy_Material * self, PyObject * value );
+static int Material_setSssScale( BPy_Material * self, PyObject * value );
+static int Material_setSssRadius( BPy_Material * self, PyObject * value, void * type );
+static int Material_setSssIOR( BPy_Material * self, PyObject * value );
+static int Material_setSssError( BPy_Material * self, PyObject * value );
+static int Material_setSssColorBlend( BPy_Material * self, PyObject * value );
+static int Material_setSssTexScatter( BPy_Material * self, PyObject * value );
+static int Material_setSssFront( BPy_Material * self, PyObject * value );
+static int Material_setSssBack( BPy_Material * self, PyObject * value );
+static int Material_setSssBack( BPy_Material * self, PyObject * value );
+
 static PyObject *Material_getColorComponent( BPy_Material * self,
 							void * closure );
 
@@ -530,6 +558,7 @@ static PyObject *Material_getRGBCol( BPy_Material * self );
 /*static PyObject *Material_getAmbCol(BPy_Material *self);*/
 static PyObject *Material_getSpecCol( BPy_Material * self );
 static PyObject *Material_getMirCol( BPy_Material * self );
+static PyObject *Material_getSssCol( BPy_Material * self );
 static PyObject *Material_getAmb( BPy_Material * self );
 static PyObject *Material_getEmit( BPy_Material * self );
 static PyObject *Material_getAlpha( BPy_Material * self );
@@ -574,6 +603,16 @@ static PyObject *Material_getFresnelTransFac( BPy_Material * self );
 static PyObject *Material_getRigidBodyFriction( BPy_Material * self );
 static PyObject *Material_getRigidBodyRestitution( BPy_Material * self );
 
+static PyObject *Material_getSssEnable( BPy_Material * self );
+static PyObject *Material_getSssScale( BPy_Material * self );
+static PyObject *Material_getSssRadius( BPy_Material * self, void * type );
+static PyObject *Material_getSssIOR( BPy_Material * self );
+static PyObject *Material_getSssError( BPy_Material * self );
+static PyObject *Material_getSssColorBlend( BPy_Material * self );
+static PyObject *Material_getSssTexScatter( BPy_Material * self );
+static PyObject *Material_getSssFront( BPy_Material * self );
+static PyObject *Material_getSssBack( BPy_Material * self );
+static PyObject *Material_getSssBack( BPy_Material * self );
 
 static PyObject *Material_getFilter( BPy_Material * self );
 static PyObject *Material_getTranslucency( BPy_Material * self );
@@ -940,6 +979,22 @@ static PyGetSetDef BPy_Material_getseters[] = {
 	 (getter)Material_getColorComponent, (setter)Material_setColorComponent,
 	 "Mirror color blue component",
 	 (void *) EXPP_MAT_COMP_MIRB },
+	{"sssCol",
+	 (getter)Material_getSssCol, (setter)Material_setSssCol,
+	 "Sss RGB color triplet",
+	 NULL},
+	{"sssR",
+	 (getter)Material_getColorComponent, (setter)Material_setColorComponent,
+	 "SSS color red component",
+	 (void *) EXPP_MAT_COMP_SSSR },
+	{"sssG",
+	 (getter)Material_getColorComponent, (setter)Material_setColorComponent,
+	 "SSS color green component",
+	 (void *) EXPP_MAT_COMP_SSSG },
+	{"sssB",
+	 (getter)Material_getColorComponent, (setter)Material_setColorComponent,
+	 "SSS color blue component",
+	 (void *) EXPP_MAT_COMP_SSSB },
 	{"mode",
 	 (getter)Material_getMode, (setter)Material_setMode,
 	 "Material mode bitmask",
@@ -1064,6 +1119,52 @@ static PyGetSetDef BPy_Material_getseters[] = {
 	 (getter)Material_getColorband, (setter)Material_setColorband,
 	 "Set the light group for this material",
 	 (void *) 1},
+	
+	/* SSS settings */
+	{"enableSSS",
+	 (getter)Material_getSssEnable, (setter)Material_setSssEnable,
+	 "if true, SSS will be rendered for this material",
+	 NULL},
+	{"sssScale",
+	 (getter)Material_getSssScale, (setter)Material_setSssScale,
+	 "object scale for sss",
+	 NULL},
+	{"sssRadiusRed",
+	 (getter)Material_getSssRadius, (setter)Material_setSssRadius,
+	 "Mean red scattering path length",
+	 (void *) 0},
+	{"sssRadiusGreen",
+	 (getter)Material_getSssRadius, (setter)Material_setSssRadius,
+	 "Mean red scattering path length",
+	 (void *) 1},
+	{"sssRadiusBlue",
+	 (getter)Material_getSssRadius, (setter)Material_setSssRadius,
+	 "Mean red scattering path length",
+	 (void *) 0},
+	{"sssIOR",
+	 (getter)Material_getSssIOR, (setter)Material_setSssIOR,
+	 "index of refraction",
+	 NULL},
+	{"sssError",
+	 (getter)Material_getSssError, (setter)Material_setSssError,
+	 "Error",
+	 NULL},
+	{"sssColorBlend",
+	 (getter)Material_getSssColorBlend, (setter)Material_setSssColorBlend,
+	 "Blend factor for SSS Colors",
+	 NULL},
+	{"sssTextureScatter",
+	 (getter)Material_getSssTexScatter, (setter)Material_setSssTexScatter,
+	 "Texture scattering factor",
+	 NULL},
+	{"sssFont",
+	 (getter)Material_getSssFront, (setter)Material_setSssFront,
+	 "Front scattering weight",
+	 NULL},
+	{"sssBack",
+	 (getter)Material_getSssBack, (setter)Material_setSssBack,
+	 "Back scattering weight",
+	 NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
@@ -1170,6 +1271,7 @@ static void Material_dealloc( BPy_Material * self )
 	Py_DECREF( self->amb );
 	Py_DECREF( self->spec );
 	Py_DECREF( self->mir );
+	Py_DECREF( self->sss );
 	PyObject_DEL( self );
 }
 
@@ -1181,7 +1283,7 @@ static void Material_dealloc( BPy_Material * self )
 PyObject *Material_CreatePyObject( struct Material *mat )
 {
 	BPy_Material *pymat;
-	float *col[3], *amb[3], *spec[3], *mir[3];
+	float *col[3], *amb[3], *spec[3], *mir[3], *sss[3];
 
 	pymat = ( BPy_Material * ) PyObject_NEW( BPy_Material,
 						 &Material_Type );
@@ -1207,16 +1309,22 @@ PyObject *Material_CreatePyObject( struct Material *mat )
 	mir[0] = &mat->mirr;
 	mir[1] = &mat->mirg;
 	mir[2] = &mat->mirb;
+	
+	sss[0] = &mat->sss_col[0];
+	sss[1] = &mat->sss_col[1];
+	sss[2] = &mat->sss_col[2];
 
 	pymat->col = ( BPy_rgbTuple * ) rgbTuple_New( col );
 	pymat->amb = ( BPy_rgbTuple * ) rgbTuple_New( amb );
 	pymat->spec = ( BPy_rgbTuple * ) rgbTuple_New( spec );
 	pymat->mir = ( BPy_rgbTuple * ) rgbTuple_New( mir );
+	pymat->sss = ( BPy_rgbTuple * ) rgbTuple_New( sss );
 	
 	Py_INCREF(pymat->col);
 	Py_INCREF(pymat->amb);
 	Py_INCREF(pymat->spec);
 	Py_INCREF(pymat->mir);
+	Py_INCREF(pymat->sss);
 
 	return ( PyObject * ) pymat;
 }
@@ -1271,6 +1379,11 @@ static PyObject *Material_getSpecCol( BPy_Material * self )
 static PyObject *Material_getMirCol( BPy_Material * self )
 {
 	return rgbTuple_getCol( self->mir );
+}
+
+static PyObject *Material_getSssCol( BPy_Material * self )
+{
+	return rgbTuple_getCol( self->sss );
 }
 
 static PyObject *Material_getSpecShader( BPy_Material * self )
@@ -1765,7 +1878,51 @@ static PyObject* Material_getRigidBodyRestitution( BPy_Material * self )
 				      "couldn't get Material.reflect" );
 }
 
+/* SSS */
+static PyObject* Material_getSssEnable( BPy_Material * self )
+{
+	return EXPP_getBitfield( &self->material->sss_flag, MA_DIFF_SSS, 'h' );
+}
 
+static PyObject* Material_getSssScale( BPy_Material * self )
+{
+	return PyFloat_FromDouble( ( double ) self->material->sss_scale );
+}
+
+static PyObject* Material_getSssRadius( BPy_Material * self, void * type )
+{
+	return PyFloat_FromDouble( ( double ) (self->material->sss_radius[(int)type]) );
+}
+
+static PyObject* Material_getSssIOR( BPy_Material * self )
+{
+	return PyFloat_FromDouble( ( double ) self->material->sss_ior);
+}
+
+static PyObject* Material_getSssError( BPy_Material * self )
+{
+	return PyFloat_FromDouble( ( double ) self->material->sss_error);
+}
+
+static PyObject* Material_getSssColorBlend( BPy_Material * self )
+{
+	return PyFloat_FromDouble( ( double ) self->material->sss_colfac);
+}
+
+static PyObject* Material_getSssTexScatter( BPy_Material * self )
+{
+	return PyFloat_FromDouble( ( double ) self->material->sss_texfac);
+}
+
+static PyObject* Material_getSssFront( BPy_Material * self )
+{
+	return PyFloat_FromDouble( ( double ) self->material->sss_front);
+}
+
+static PyObject* Material_getSssBack( BPy_Material * self )
+{
+	return PyFloat_FromDouble( ( double ) self->material->sss_back);
+}
 
 static PyObject *Material_getTextures( BPy_Material * self )
 {
@@ -1929,6 +2086,11 @@ static int Material_setMirCol( BPy_Material * self, PyObject * value )
 	return rgbTuple_setCol( self->mir, value );
 }
 
+static int Material_setSssCol( BPy_Material * self, PyObject * value )
+{
+	return rgbTuple_setCol( self->sss, value );
+}
+
 static int Material_setColorComponent( BPy_Material * self, PyObject * value,
 							void * closure )
 {
@@ -1969,13 +2131,24 @@ static int Material_setColorComponent( BPy_Material * self, PyObject * value,
 	case EXPP_MAT_COMP_MIRB:
 		self->material->mirb = param;
 		return 0;
+	case EXPP_MAT_COMP_SSSR:
+		self->material->sss_col[0] = param;
+		return 0;
+	case EXPP_MAT_COMP_SSSG:
+		self->material->sss_col[1] = param;
+		return 0;
+	case EXPP_MAT_COMP_SSSB:
+		self->material->sss_col[2] = param;
+		return 0;
 	}
 	return EXPP_ReturnIntError( PyExc_RuntimeError,
 				"unknown color component specified" );
 }
 
+/*#define setFloatWrapper(val, min, max) {return EXPP_setFloatClamped ( value, &self->material->#val, #min, #max}*/
+
 static int Material_setAmb( BPy_Material * self, PyObject * value )
-{
+{ 
 	return EXPP_setFloatClamped ( value, &self->material->amb,
 								EXPP_MAT_AMB_MIN,
 					       		EXPP_MAT_AMB_MAX );
@@ -2275,6 +2448,71 @@ static int Material_setTranslucency( BPy_Material * self, PyObject * value )
 								EXPP_MAT_TRANSLUCENCY_MIN,
 								EXPP_MAT_TRANSLUCENCY_MAX );
 }
+
+/* SSS */
+static int Material_setSssEnable( BPy_Material * self, PyObject * value )
+{
+	return EXPP_setBitfield( value, &self->material->sss_flag, MA_DIFF_SSS, 'h' );
+}
+
+static int Material_setSssScale( BPy_Material * self, PyObject * value )
+{
+	return EXPP_setFloatClamped ( value, &self->material->sss_scale,
+								EXPP_MAT_SSS_SCALE_MIN,
+								EXPP_MAT_SSS_SCALE_MAX);
+}
+
+static int Material_setSssRadius( BPy_Material * self, PyObject * value, void *type )
+{
+	return EXPP_setFloatClamped ( value, &self->material->sss_radius[(int)type],
+								EXPP_MAT_SSS_RADIUS_MIN,
+								EXPP_MAT_SSS_RADIUS_MAX);
+}
+
+static int Material_setSssIOR( BPy_Material * self, PyObject * value )
+{
+	return EXPP_setFloatClamped ( value, &self->material->sss_ior,
+								EXPP_MAT_SSS_IOR_MIN,
+								EXPP_MAT_SSS_IOR_MAX);
+}
+
+static int Material_setSssError( BPy_Material * self, PyObject * value )
+{
+	return EXPP_setFloatClamped ( value, &self->material->sss_error,
+								EXPP_MAT_SSS_IOR_MIN,
+								EXPP_MAT_SSS_IOR_MAX);
+}
+
+static int Material_setSssColorBlend( BPy_Material * self, PyObject * value )
+{
+	return EXPP_setFloatClamped ( value, &self->material->sss_colfac,
+								0.0,
+								1.0);
+}
+
+static int Material_setSssTexScatter( BPy_Material * self, PyObject * value )
+{
+	return EXPP_setFloatClamped ( value, &self->material->sss_texfac,
+								0.0,
+								1.0);
+}
+
+static int Material_setSssFront( BPy_Material * self, PyObject * value )
+{
+	return EXPP_setFloatClamped ( value, &self->material->sss_front,
+								EXPP_MAT_SSS_FRONT_MIN,
+								EXPP_MAT_SSS_FRONT_MAX);
+}
+
+static int Material_setSssBack( BPy_Material * self, PyObject * value )
+{
+	return EXPP_setFloatClamped ( value, &self->material->sss_back,
+								EXPP_MAT_SSS_BACK_MIN,
+								EXPP_MAT_SSS_BACK_MAX);
+}
+
+
+
 
 static PyObject *Material_setTexture( BPy_Material * self, PyObject * args )
 {
@@ -2720,6 +2958,15 @@ static PyObject *Material_getColorComponent( BPy_Material * self,
 		break;
 	case EXPP_MAT_COMP_MIRB:
 		attr = PyFloat_FromDouble( ( double ) self->material->mirb );
+		break;
+	case EXPP_MAT_COMP_SSSR:
+		attr = PyFloat_FromDouble( ( double ) self->material->sss_col[0] );
+		break;
+	case EXPP_MAT_COMP_SSSG:
+		attr = PyFloat_FromDouble( ( double ) self->material->sss_col[1] );
+		break;
+	case EXPP_MAT_COMP_SSSB:
+		attr = PyFloat_FromDouble( ( double ) self->material->sss_col[2] );
 		break;
 	default:
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
