@@ -1332,15 +1332,26 @@ static void give_parvert(Object *par, int nr, float *vec)
 			}
 		}
 		else {
-			/* maybe this is against the derivedmesh philosphy, but where_is_object is called
-			   by code that is called by build_mesh... (when ob->sf!=0.0) so it can cycle eternally */
-			DerivedMesh *dm = par->derivedDeform; //mesh_get_derived_deform(par, &needsFree);
+			DerivedMesh *dm = par->derivedFinal;
 			
 			if(dm) {
-				int tot= dm->getNumVerts(dm);
-				if(tot) {
-					if(nr >= tot) nr= 0;
-					dm->getVertCo(dm, nr, vec);
+				int i, count = 0, numVerts = dm->getNumVerts(dm);
+				int *index = (int *)dm->getVertDataArray(dm, CD_ORIGINDEX);
+				float co[3];
+
+				/* get the average of all verts with (original index == nr) */
+				for(i = 0; i < numVerts; ++i, ++index) {
+					if(*index == nr) {
+						dm->getVertCo(dm, i, co);
+						VecAddf(vec, vec, co);
+						count++;
+					}
+				}
+
+				if(count > 0) {
+					VecMulf(vec, 1.0f / count);
+				} else {
+					dm->getVertCo(dm, 0, vec);
 				}
 			}
 		}
