@@ -439,6 +439,8 @@ static void draw_action_channel_names(bAction *act)
 					/* Draw IPO-curve-channels? */
 					if (FILTER_IPO_ACHAN(achan)) {
 						for (icu=achan->ipo->curve.first; icu; icu=icu->next) {
+							char *icu_name= getname_ipocurve(icu);
+							
 							/* draw backing strip behind ipo-curve channel*/
 							BIF_ThemeColorShade(TH_HEADER, -40);
 							glRectf(x+14,  y-CHANNELHEIGHT/2,  (float)NAMEWIDTH,  y+CHANNELHEIGHT/2);
@@ -449,7 +451,7 @@ static void draw_action_channel_names(bAction *act)
 							else
 								BIF_ThemeColor(TH_TEXT);
 							glRasterPos2f(x+24,  y-4);
-							BMF_DrawString(G.font, getname_ipocurve(icu));
+							BMF_DrawString(G.font, icu_name);
 							
 #if 0 /* tempolarily disabled until all ipo-code can support this option */
 							/* draw 'lock' to indicate if ipo-curve channel is protected */
