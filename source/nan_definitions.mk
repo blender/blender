@@ -62,8 +62,8 @@ all debug::
     # Determines what targets are built
     export WITH_BF_DYNAMICOPENGL ?= true
     export WITH_BF_STATICOPENGL ?= false
-    export WITH_BF_GAMEENGINE ?= true
-    export WITH_BF_GAMEPLAYER ?= true
+    export WITH_BF_BLENDERGAMEENGINE ?= true
+    export WITH_BF_BLENDERPLAYER ?= true
     export WITH_BF_WEBPLUGIN ?= false
 
     export NAN_MOTO ?= $(LCGDIR)/moto
