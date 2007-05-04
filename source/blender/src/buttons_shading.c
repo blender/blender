@@ -3311,7 +3311,7 @@ static void material_panel_sss(Material *ma)
 	uiBut *bt;
 	
 	block= uiNewBlock(&curarea->uiblocks, "material_panel_sss", UI_EMBOSS, UI_HELV, curarea->win);
-	uiNewPanelTabbed("Shaders", "Material");
+	uiNewPanelTabbed("Mirror Transp", "Material");
 	if(uiNewPanel(curarea, block, "SSS", "Material", 640, 0, 318, 204)==0) return;
 
 	uiSetButLock(ma->id.lib!=NULL, ERROR_LIBDATA_MESSAGE);
@@ -3349,34 +3349,23 @@ static void material_panel_sss(Material *ma)
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
-	bt=uiDefButF(block, NUMSLI, B_MATPRV, "R ", 165,150,145,20,
+	bt=uiDefButF(block, COL, B_MATPRV, "", 165,150,145,20,
 			  &ma->sss_col[0], 0.0, 1.0, 0, 0,
-			  "Red scattering color");
+			  "Scattering color");
 	uiButSetFunc(bt, material_sss_custom_set_cb, ma, NULL);
-	bt=uiDefButF(block, NUMSLI, B_MATPRV, "G ", 165,130,145,20,
-			  &ma->sss_col[1], 0.0, 1.0, 0, 0,
-			  "Green scattering color");
-	uiButSetFunc(bt, material_sss_custom_set_cb, ma, NULL);
-	bt=uiDefButF(block, NUMSLI, B_MATPRV, "B ", 165,110,145,20,
-			  &ma->sss_col[2], 0.0, 1.0, 0, 0,
-			  "Blue scattering color");
-	uiButSetFunc(bt, material_sss_custom_set_cb, ma, NULL);
-	uiBlockEndAlign(block);
-
-	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, B_MATPRV, "Col ", 165,80,145,20,
+	uiDefButF(block, NUMSLI, B_MATPRV, "Col ", 165,130,145,20,
 			  &ma->sss_colfac, 0.0, 1.0, 0, 0,
 			  "Blend factor for SSS colors");
-	uiDefButF(block, NUMSLI, B_MATPRV, "Tex ", 165,60,145,20,
+	uiDefButF(block, NUMSLI, B_MATPRV, "Tex ", 165,110,145,20,
 			  &ma->sss_texfac, 0.0, 1.0, 0, 0,
 			  "Texture scattering factor");
 	uiBlockEndAlign(block);
-
+	
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, B_MATPRV, "Front ", 165,30,145,20,
+	uiDefButF(block, NUMSLI, B_MATPRV, "Front ", 165,80,145,20,
 			  &ma->sss_front, 0.0, 2.0, 0, 0,
 			  "Front scattering weight");
-	uiDefButF(block, NUMSLI, B_MATPRV, "Back ", 165,10,145,20,
+	uiDefButF(block, NUMSLI, B_MATPRV, "Back ", 165,60,145,20,
 			  &ma->sss_back, 0.0, 10.0, 0, 0,
 			  "Back scattering weight");
 	uiBlockEndAlign(block);
