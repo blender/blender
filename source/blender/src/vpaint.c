@@ -86,6 +86,7 @@
 #include "BIF_toolbox.h"
 
 #include "BDR_vpaint.h"
+#include "BDR_editobject.h"
 
 #include "BSE_drawview.h"
 #include "BSE_trans_types.h"
