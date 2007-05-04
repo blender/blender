@@ -1884,12 +1884,14 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							add_hook();
 						else if(G.qual==LR_ALTKEY)
 							revealNurb();
-						else if((G.qual==LR_SHIFTKEY))
+						/* should be G.qual==LR_SHIFTKEY, but that is taken fro handles already */
+						else if((G.qual==(LR_ALTKEY|LR_SHIFTKEY))) 
 							hideNurb(1);
-						else if((G.qual==0))
+						/* should be G.qual==0, but that is taken for handles already */
+						else if((G.qual==(LR_ALTKEY|LR_CTRLKEY))) 
 							hideNurb(0);
 						else {
-							if(G.qual==LR_CTRLKEY)
+							if(G.qual==LR_CTRLKEY) /* conflict */
 								autocalchandlesNurb_all(1);	/* flag=1, selected */
 							else if((G.qual==LR_SHIFTKEY))
 								sethandlesNurb(1);
