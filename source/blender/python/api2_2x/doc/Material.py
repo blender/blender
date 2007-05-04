@@ -201,16 +201,16 @@ class Material:
 	Value is clamped to the range [0.0,1.0].
 	@type mirR:  float
 	
-	@ivar sssCol:  SubSufrace scattering RGB color triplet.
+	@ivar sssCol:  SubSsurface scattering RGB color triplet.
 	Components are clamped to the range [0.0,1.0].
 	@type sssCol:  list of 3 floats
-	@ivar sssB:  SubSufrace scattering color (L{sssCol}) blue component.
+	@ivar sssB:  SubSsurface scattering color (L{sssCol}) blue component.
 	Value is clamped to the range [0.0,1.0].
 	@type sssB:  float
-	@ivar sssG:  SubSufrace scattering color (L{sssCol}) green component.
+	@ivar sssG:  SubSsurface scattering color (L{sssCol}) green component.
 	Value is clamped to the range [0.0,1.0].
 	@type sssG:  float
-	@ivar sssR:  SubSufrace scattering color (L{sssCol}) red component.
+	@ivar sssR:  SubSsurface scattering color (L{sssCol}) red component.
 	Value is clamped to the range [0.0,1.0].
 	@type sssR:  float
 	
@@ -311,9 +311,9 @@ class Material:
 	The colorband can have between 1 and 31 colors.
 	@type colorbandSpecular:  list
 	
-	@ivar enableSSS:  If True, subsufrace scattering will be rendered on this material.
+	@ivar enableSSS:  If True, subsurface scattering will be rendered on this material.
 	@type enableSSS:  bool
-	@ivar sssScale:  If True, subsufrace scattering will be rendered on this material.
+	@ivar sssScale:  If True, subsurface scattering will be rendered on this material.
 	Value is clamped to the range [0.1,1000.0].
 	@type sssScale:  bool
 	@ivar sssRadiusRed:  Mean red scattering path length.
