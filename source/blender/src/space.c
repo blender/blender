@@ -2641,7 +2641,7 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				doredraw= 1;
 			}
 			else if(view2dmove(LEFTMOUSE));	/* only checks for sliders */
-			else if(G.qual & LR_CTRLKEY) add_vert_ipo();
+			else if((G.qual & LR_CTRLKEY) && (sipo->showkey==0)) add_vert_ipo();
 			else {
 				do {
 					getmouseco_areawin(mval);
@@ -2837,6 +2837,9 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				remove_marker();
 				del_ipo(0);
 				
+				/* note: don't update the other spaces (in particular ipo)
+				 *		 or else curves disappear.
+				 */
 				allqueue(REDRAWTIME, 0);
 				allqueue(REDRAWSOUND, 0);
 			}

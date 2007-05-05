@@ -650,6 +650,17 @@ static void nla_panel_properties(short cntrl)	// NLA_HANDLER_PROPERTIES
 				uiDefButS(block, MENU, B_REDR, "All%x0|XY%x3|XZ%x2|YZ%x1",	140,-20,40,19, &amod->no_rot_axis, 0, 0, 0, 0, "Enable rotation axes (local for curve)");
 				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_NLA_MOD_DEPS, "Ob:",	180,-20, 130, 19, &amod->ob, "Curve Object"); 
 			}
+#if 0	/* this is not really ready for the primetime yet, but is here for testing */
+			else if(amod->type==ACTSTRIP_MOD_NOISE) {
+				but= uiDefBut(block, TEX, B_NLA_PANEL, "Chan:",				10, -20, 130, 19, amod->channel, 1, 31, 0, 0, "Name of channel used for modifier");
+				uiButSetCompleteFunc(but, autocomplete_bone, (void *)ob);
+				uiDefButBitS(block, TOG, 1, B_NLA_PANEL, "L", 140, -20, 20, 19, &amod->channels, 0, 24, 0, 0, "Apply noise to Location of channel");
+				uiDefButBitS(block, TOG, 2, B_NLA_PANEL, "R", 160, -20, 20, 19, &amod->channels, 0, 24, 0, 0, "Apply noise to Rotation of channel");
+				uiDefButBitS(block, TOG, 4, B_NLA_PANEL, "S", 180, -20, 20, 19, &amod->channels, 0, 24, 0, 0, "Apply noise to Scaling of channel");
+				uiDefButF(block, NUM, B_NLA_PANEL, "NSize:",			200,-20,55,19, &amod->noisesize, 0.0001, 2.0, 10, 0, "Sets scaling for noise input");
+				uiDefButF(block, NUM, B_NLA_PANEL, "Turb:",			255,-20,55,19, &amod->turbul, 0.0, 200.0, 10, 0, "Sets the depth of the noise");
+			}
+#endif
 			else
 				uiDefBut(block, LABEL, B_NOP, "Ack! Not implemented.",	10, -20, 150, 19, NULL, 0, 0, 0, 0, "");
 				
