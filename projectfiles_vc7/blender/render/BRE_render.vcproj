@@ -164,6 +164,9 @@
 				RelativePath="..\..\..\source\blender\render\intern\source\shadeoutput.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\render\intern\source\sss.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\render\intern\source\texture.c">
 			</File>
 			<File
@@ -223,6 +226,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\render\intern\include\shading.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\render\intern\include\sss.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\render\intern\include\texture.h">
