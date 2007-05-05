@@ -2323,9 +2323,22 @@ void special_aftertrans_update(TransInfo *t)
 					actname= "Object";
 
 				if(U.uiflag & USER_KEYINSERTAVAI) {
-					if(base->object->ipo) {
+					if(base->object->ipo || base->object->action) {
 						ID* id= (ID *)(base->object);
-						icu= base->object->ipo->curve.first;
+						
+						if (base->object->ipo) {
+							icu= base->object->ipo->curve.first;
+						}
+						else {
+							bActionChannel *achan;
+							achan= get_action_channel(base->object->action, actname);
+							
+							if (achan && achan->ipo)
+								icu= achan->ipo->curve.first;
+							else
+								icu= NULL;
+						}
+						
 						while(icu) {
 							icu->flag &= ~IPO_SELECT;
 							if (U.uiflag & USER_KEYINSERTNEED)
