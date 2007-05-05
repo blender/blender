@@ -732,7 +732,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 
 		if(use_dverts || armature_def_nr >= 0) {
 			if(dm) dvert = dm->getVertData(dm, i, CD_MDEFORMVERT);
-			else if(i < target_totvert) dvert = dverts + i;
+			else if(dverts && i < target_totvert) dvert = dverts + i;
 			else dvert = NULL;
 		} else
 			dvert = NULL;
@@ -941,18 +941,18 @@ void armature_mat_pose_to_delta(float delta_mat[][4], float pose_mat[][4], float
      contain only a rotation, and no scaling. */ 
 void mat3_to_vec_roll(float mat[][3], float *vec, float *roll) 
 {
-     if (vec)
-         VecCopyf(vec, mat[1]);
+    if (vec)
+        VecCopyf(vec, mat[1]);
 
-     if (roll) {
-         float vecmat[3][3], vecmatinv[3][3], rollmat[3][3];
+    if (roll) {
+        float vecmat[3][3], vecmatinv[3][3], rollmat[3][3];
 
-         vec_roll_to_mat3(mat[1], 0.0f, vecmat);
-         Mat3Inv(vecmatinv, vecmat);
-         Mat3MulMat3(rollmat, vecmatinv, mat);
+        vec_roll_to_mat3(mat[1], 0.0f, vecmat);
+        Mat3Inv(vecmatinv, vecmat);
+        Mat3MulMat3(rollmat, vecmatinv, mat);
 
-         *roll= atan2(rollmat[2][0], rollmat[2][2]);
-     }
+        *roll= atan2(rollmat[2][0], rollmat[2][2]);
+    }
 }
 
 /*	Calculates the rest matrix of a bone based
@@ -1841,7 +1841,56 @@ static void do_strip_modifiers(Object *armob, Bone *bone, bPoseChannel *pchan)
 					break;
 				case ACTSTRIP_MOD_NOISE:	
 				{
-					
+					if( strcmp(pchan->name, amod->channel)==0 ) {
+						float nor[3], loc[3], ofs;
+						float eul[3], size[3], eulo[3], sizeo[3];
+						
+						/* calculate turbulance */
+						ofs = amod->turbul / 200.0f;
+						
+						/* make a copy of starting conditions */
+						VECCOPY(loc, pchan->pose_mat[3]);
+						Mat4ToEul(pchan->pose_mat, eul);
+						Mat4ToSize(pchan->pose_mat, size);
+						VECCOPY(eulo, eul);
+						VECCOPY(sizeo, size);
+						
+						/* apply noise to each set of channels */
+						if (amod->channels & 4) {
+							/* for scaling */
+							nor[0] = BLI_gNoise(amod->noisesize, size[0]+ofs, size[1], size[2], 0, 0) - ofs;
+							nor[1] = BLI_gNoise(amod->noisesize, size[0], size[1]+ofs, size[2], 0, 0) - ofs;	
+							nor[2] = BLI_gNoise(amod->noisesize, size[0], size[1], size[2]+ofs, 0, 0) - ofs;
+							VecAddf(size, size, nor);
+							
+							if (sizeo[0] != 0)
+								VecMulf(pchan->pose_mat[0], size[0] / sizeo[0]);
+							if (sizeo[1] != 0)
+								VecMulf(pchan->pose_mat[1], size[1] / sizeo[1]);
+							if (sizeo[2] != 0)
+								VecMulf(pchan->pose_mat[2], size[2] / sizeo[2]);
+						}
+						if (amod->channels & 2) {
+							/* for rotation */
+							nor[0] = BLI_gNoise(amod->noisesize, eul[0]+ofs, eul[1], eul[2], 0, 0) - ofs;
+							nor[1] = BLI_gNoise(amod->noisesize, eul[0], eul[1]+ofs, eul[2], 0, 0) - ofs;	
+							nor[2] = BLI_gNoise(amod->noisesize, eul[0], eul[1], eul[2]+ofs, 0, 0) - ofs;
+							
+							compatible_eul(nor, eulo);
+							VecAddf(eul, eul, nor);
+							compatible_eul(eul, eulo);
+							
+							LocEulSizeToMat4(pchan->pose_mat, loc, eul, size);
+						}
+						if (amod->channels & 1) {
+							/* for location */
+							nor[0] = BLI_gNoise(amod->noisesize, loc[0]+ofs, loc[1], loc[2], 0, 0) - ofs;
+							nor[1] = BLI_gNoise(amod->noisesize, loc[0], loc[1]+ofs, loc[2], 0, 0) - ofs;	
+							nor[2] = BLI_gNoise(amod->noisesize, loc[0], loc[1], loc[2]+ofs, 0, 0) - ofs;
+							
+							VecAddf(pchan->pose_mat[3], loc, nor);
+						}
+					}
 				}
 					break;
 				}
