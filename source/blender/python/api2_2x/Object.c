@@ -5220,6 +5220,27 @@ static PyObject *M_Object_RBShapeBoundDict( void )
 	return M;
 }
 
+static PyObject *M_Object_IpoKeyTypesDict( void )
+{
+	PyObject *M = PyConstant_New(  );
+
+	if( M ) {
+		BPy_constant *d = ( BPy_constant * ) M;
+		PyConstant_Insert( d, "LOC", PyInt_FromLong( IPOKEY_LOC ) );
+		PyConstant_Insert( d, "ROT", PyInt_FromLong( IPOKEY_ROT ) );
+		PyConstant_Insert( d, "SIZE", PyInt_FromLong( IPOKEY_SIZE ) );
+		PyConstant_Insert( d, "LOCROT", PyInt_FromLong( IPOKEY_LOCROT ) );
+		PyConstant_Insert( d, "LOCROTSIZE", PyInt_FromLong( IPOKEY_LOCROTSIZE ) );
+		
+		PyConstant_Insert( d, "PI_STRENGTH", PyInt_FromLong( IPOKEY_PI_STRENGTH ) );
+		PyConstant_Insert( d, "PI_FALLOFF", PyInt_FromLong( IPOKEY_PI_FALLOFF ) );
+		PyConstant_Insert( d, "PI_SURFACEDAMP", PyInt_FromLong( IPOKEY_PI_SURFACEDAMP ) );
+		PyConstant_Insert( d, "PI_RANDOMDAMP", PyInt_FromLong( IPOKEY_PI_RANDOMDAMP ) );
+		PyConstant_Insert( d, "PI_PERM", PyInt_FromLong( IPOKEY_PI_PERM ) );
+	}
+	return M;
+}
+
 /*****************************************************************************/
 /* Function:	 initObject						*/
 /*****************************************************************************/
@@ -5233,12 +5254,15 @@ PyObject *Object_Init( void )
 	PyObject *PITypesDict = M_Object_PITypesDict( );
 	PyObject *RBFlagsDict = M_Object_RBFlagsDict( );
 	PyObject *RBShapesDict = M_Object_RBShapeBoundDict( );
+	PyObject *IpoKeyTypesDict = M_Object_IpoKeyTypesDict( );
 
 	PyType_Ready( &Object_Type ) ;
 
 	module = Py_InitModule3( "Blender.Object", M_Object_methods,
 				 M_Object_doc );
-
+	
+	
+	/* We Should Remove these!!!! */
 	PyModule_AddIntConstant( module, "LOC", IPOKEY_LOC );
 	PyModule_AddIntConstant( module, "ROT", IPOKEY_ROT );
 	PyModule_AddIntConstant( module, "SIZE", IPOKEY_SIZE );
@@ -5256,7 +5280,9 @@ PyObject *Object_Init( void )
 	PyModule_AddIntConstant( module, "VORTEX",PFIELD_VORTEX );
 	PyModule_AddIntConstant( module, "MAGNET",PFIELD_MAGNET );
 	PyModule_AddIntConstant( module, "WIND",PFIELD_WIND );
-
+	/* Only keeping above so as not to break compat */
+	
+	
 	if( DrawModesDict )
 		PyModule_AddObject( module, "DrawModes", DrawModesDict );
 	if( DrawTypesDict )
@@ -5271,7 +5297,8 @@ PyObject *Object_Init( void )
 		PyModule_AddObject( module, "RBFlags", RBFlagsDict );
 	if( RBShapesDict )
 		PyModule_AddObject( module, "RBShapes", RBShapesDict );
-	
+	if( IpoKeyTypesDict )
+		PyModule_AddObject( module, "IpoKeyTypes", IpoKeyTypesDict );	
 
 		/*Add SUBMODULES to the module*/
 	dict = PyModule_GetDict( module ); /*borrowed*/

@@ -112,7 +112,7 @@ class Scene:
 	@type timeline: Timeline
 	@ivar timeline: The L{timeline<TimeLine.TimeLine>} for this scene, named markers are stored here. (read only)
 	@type render: RenderData
-	@ivar render: The scenes L{render<Render>} settings. (read only)
+	@ivar render: The scenes L{render<Render.RenderData>} settings. (read only)
 	@type radiosity: RenderData
 	@ivar radiosity: The scenes L{radiosity<Radio>} settings. (read only)
 	"""

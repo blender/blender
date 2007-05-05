@@ -97,6 +97,20 @@ Example::
 		- ANISOTROPIC: Enable anisotropic friction (requires ACTOR, DYNAMIC)
 		- CHILD: reserved
 
+@type IpoKeyTypes: readonly dictionary
+@var IpoKeyTypes: Constant dict used for with L{Object.insertIpoKey} attribute.
+	Values can be ORed together.
+		- LOC
+		- ROT
+		- SIZE
+		- LOCROT
+		- LOCROTSIZE
+		- PI_STRENGTH
+		- PI_FALLOFF
+		- PI_SURFACEDAMP
+		- PI_RANDOMDAMP
+		- PI_PERM
+
 @type RBShapes: readonly dictionary
 @var RBShapes: Constant dict used for with L{Object.rbShapeBoundType}
 	attribute.  Only one type can be selected at a time.  Values are
@@ -125,8 +139,8 @@ def New (type, name='type'):
 		object = Blender.Object.New('Lamp')
 		lamp = Blender.Lamp.New('Spot')
 		object.link(lamp)
-		scene = Blender.Scene.GetCurrent()
-		scene.link(object)
+		sce = Blender.Scene.GetCurrent()
+		sce.link(object)
 
 		Blender.Redraw()
 	@Note: if an object is created but is not linked to object data, and the
@@ -764,11 +778,11 @@ class Object:
 		the scene and prints the name and location of each object::
 			import Blender
 
-			objects = Blender.Object.Get()
+			sce = Blender.Scene.GetCurrent()
 
-			for obj in objects:
-				print obj.getName()
-				print obj.getLocation()
+			for ob in sce.objects:
+				print obj.name
+				print obj.loc
 		@note: the worldspace location is the same as ob.matrixWorld[3][0:3]
 		"""
 
@@ -817,11 +831,10 @@ class Object:
 		the scene and prints the name of each object::
 			import Blender
 
-			scn= Blender.Scene.GetCurrent()
-			objects = scn.getChildren()
+			sce= Blender.Scene.GetCurrent()
 
-			for obj in objects:
-				print obj.getName()
+			for ob in sce.objects:
+				print ob.getName()
 		"""
 
 	def getParent():
@@ -881,10 +894,10 @@ class Object:
 		true number 'pi'.  A better, less error-prone value of pi is math.pi from the python math module.::
 			import Blender
 
-			objects = Blender.Object.Get()
+			sce = Blender.Scene.GetCurrent()
 
-			for obj in objects:
-				if obj.getType() == 'Camera':
+			for obj in sce.objects:
+				if obj.type == 'Camera':
 					obj.LocY = -obj.LocY
 					obj.RotZ = 3.141592 - obj.RotZ
 
@@ -896,19 +909,9 @@ class Object:
 
 	def insertIpoKey(keytype):
 		"""
-		Inserts keytype values in object ipo at curframe. Uses module constants.
-		@type keytype: Integer
-		@param keytype:
-				-LOC
-				-ROT
-				-SIZE
-				-LOCROT
-				-LOCROTSIZE
-				-PI_STRENGTH
-				-PI_FALLOFF
-				-PI_PERM
-				-PI_SURFACEDAMP
-				-PI_RANDOMDAMP
+		Inserts keytype values in object ipo at curframe.
+		@type keytype: int
+		@param keytype: A constant from L{IpoKeyTypes<Object.IpoKeyTypes>}
 		@return: None
 		"""
 

@@ -354,7 +354,7 @@ def bvh_node_dict2objects(bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOOP= False):
 			
 			bvh_node.temp.rot= rx*DEG2RAD,ry*DEG2RAD,rz*DEG2RAD
 			
-			bvh_node.temp.insertIpoKey(Blender.Object.LOCROT)
+			bvh_node.temp.insertIpoKey(Blender.Object.IpoKeys.LOCROT)
 	
 	scn.update(1)
 	return objects
@@ -741,9 +741,12 @@ def main():
 	Blender.Window.FileSelector(load_bvh_ui, 'Import BVH', '*.bvh')
 
 if __name__ == '__main__':
+	#def foo():
 	main()
 	'''
 	scn = bpy.data.scenes.active
-	for ob in list(scn.objects): scn.objects.unlink(ob)
+	for ob in list(scn.objects):
+		if ob.name!='arm__':
+			scn.objects.unlink(ob)
 	load_bvh_ui('/test.bvh', False)
 	'''
