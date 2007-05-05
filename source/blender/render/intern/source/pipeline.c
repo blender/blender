@@ -544,12 +544,20 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int 
 			render_layer_add_pass(rr, rl, 1, SCE_PASS_INDEXOB);
 		
 	}
-	/* previewrender and envmap don't do layers, so we make a default one */
+	/* sss, previewrender and envmap don't do layers, so we make a default one */
 	if(rr->layers.first==NULL) {
 		rl= MEM_callocN(sizeof(RenderLayer), "new render layer");
 		BLI_addtail(&rr->layers, rl);
 		
-		rl->rectf= MEM_mapallocN(rectx*recty*sizeof(float)*4, "prev/env float rgba");
+		/* duplicate code... */
+		if(rr->exrhandle) {
+			IMB_exr_add_channel(rr->exrhandle, rl->name, "Combined.R", 0, 0, NULL);
+			IMB_exr_add_channel(rr->exrhandle, rl->name, "Combined.G", 0, 0, NULL);
+			IMB_exr_add_channel(rr->exrhandle, rl->name, "Combined.B", 0, 0, NULL);
+			IMB_exr_add_channel(rr->exrhandle, rl->name, "Combined.A", 0, 0, NULL);
+		}
+		else
+			rl->rectf= MEM_mapallocN(rectx*recty*sizeof(float)*4, "Combined rgba");
 		
 		/* note, this has to be in sync with scene.c */
 		rl->lay= (1<<20) -1;
@@ -1173,7 +1181,7 @@ static void *do_part_thread(void *pa_v)
 			zbufshade_tile(pa);
 		
 		/* merge too on break! */
-		if(!R.sss_points && R.result->exrhandle)
+		if(R.result->exrhandle)
 			save_render_result_tile(&R, pa);
 		else
 			merge_render_result(R.result, pa->result);
