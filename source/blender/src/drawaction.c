@@ -213,6 +213,7 @@ static void icu_slider_func(void *voidicu, void *voidignore)
 	allqueue (REDRAWNLA, 0);
 	allqueue (REDRAWIPO, 0);
 	allspace(REMAKEIPO, 0);
+	allqueue(REDRAWBUTSALL, 0);
 }
 
 static void make_icu_slider(uiBlock *block, IpoCurve *icu,

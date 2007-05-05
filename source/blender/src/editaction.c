@@ -2032,13 +2032,33 @@ static void mouse_actionchannels (short mval[])
 		case ACTTYPE_FILLIPO:
 			{
 				bActionChannel *achan= (bActionChannel *)act_channel;
+				
 				achan->flag ^= ACHAN_SHOWIPO;
+				
+				if ((mval[0] > 24) && (achan->flag & ACHAN_SHOWIPO)) {
+					/* select+make active achan */		
+					deselect_actionchannels(act, 0);
+					select_channel(act, achan, SELECT_ADD);
+					
+					/* messy... set active bone */
+					select_poseelement_by_name(achan->name, 2);
+				}	
 			}
 			break;
 		case ACTTYPE_FILLCON:
 			{
 				bActionChannel *achan= (bActionChannel *)act_channel;
+				
 				achan->flag ^= ACHAN_SHOWCONS;
+				
+				if ((mval[0] > 24) && (achan->flag & ACHAN_SHOWCONS)) {
+					/* select+make active achan */		
+					deselect_actionchannels(act, 0);
+					select_channel(act, achan, SELECT_ADD);
+					
+					/* messy... set active bone */
+					select_poseelement_by_name(achan->name, 2);
+				}	
 			}
 			break;
 		case ACTTYPE_ICU: 

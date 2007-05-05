@@ -932,8 +932,7 @@ void winqreadtimespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}				
 			else
 				G.scene->r.efra = CFRA;
-			allqueue(REDRAWBUTSALL, 0);
-			allqueue(REDRAWTIME, 1);
+			allqueue(REDRAWALL, 1);
 			break;
 		case MKEY: /* add, rename marker */
 			if (G.qual & LR_CTRLKEY)
@@ -960,8 +959,7 @@ void winqreadtimespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}				
 			else
 				G.scene->r.sfra = CFRA;
-			allqueue(REDRAWBUTSALL, 0);
-			allqueue(REDRAWTIME, 1);
+			allqueue(REDRAWALL, 1);
 			break;
 		case TKEY: /* popup menu */
 			nr= pupmenu("Time value%t|Frames %x1|Seconds%x2");

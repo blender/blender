@@ -961,6 +961,12 @@ void do_ipo_buttons(short event)
 
 		ei= G.sipo->editipo;
 		if(ei==0) return;
+		
+		/* map ipo-points for drawing if scaled ipo */
+		if (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname) {
+			actstrip_map_ipo_keys(OBACT, G.sipo->ipo, 0, 0);
+		}
+		
 		for(a=0; a<G.sipo->totipo; a++, ei++) {
 			if ISPOIN(ei, flag & IPO_VISIBLE, icu) {
 			
@@ -972,6 +978,11 @@ void do_ipo_buttons(short event)
 				}
 				else BLI_union_rctf(&(v2d->tot), &(ei->icu->totrct));
 			}
+		}
+		
+		/* undo mapping of ipo-points for drawing if scaled ipo */
+		if (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname) {
+			actstrip_map_ipo_keys(OBACT, G.sipo->ipo, 1, 0);
 		}
 
 		/* speciale home */

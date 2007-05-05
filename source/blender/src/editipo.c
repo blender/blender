@@ -2893,8 +2893,20 @@ void common_insertkey(void)
 						actname= "Object";
 
 					/* all curves in ipo deselect */
-					if(base->object->ipo) {
-						icu= base->object->ipo->curve.first;
+					if(base->object->ipo || base->object->action) {
+						if (base->object->ipo) {
+							icu= base->object->ipo->curve.first;
+						}
+						else {
+							bActionChannel *achan;
+							achan= get_action_channel(base->object->action, actname);
+							
+							if (achan && achan->ipo)
+								icu= achan->ipo->curve.first;
+							else
+								icu= NULL;
+						}
+						
 						while(icu) {
 							icu->flag &= ~IPO_SELECT;
 							
