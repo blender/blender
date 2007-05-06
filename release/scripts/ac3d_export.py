@@ -10,7 +10,7 @@ Tip: 'Export selected meshes to AC3D (.ac) format'
 __author__ = "Willian P. Germano"
 __url__ = ("blender", "elysiun", "AC3D's homepage, http://www.ac3d.org",
 	"PLib 3d gaming lib, http://plib.sf.net")
-__version__ = "2.43.1 2007-02-22"
+__version__ = "2.44 2007-05-05"
 
 __bpydoc__ = """\
 This script exports selected Blender meshes to AC3D's .ac file format.
@@ -72,7 +72,7 @@ Notes:<br>
 # $Id$
 #
 # --------------------------------------------------------------------------
-# AC3DExport version 2.43.1
+# AC3DExport version 2.44
 # Program versions: Blender 2.42+ and AC3Db files (means version 0xb)
 # new: updated for new Blender version and Mesh module; supports lines (edges) again;
 # option to export vertices transformed to global coordinates or not; now the modified
@@ -107,7 +107,6 @@ from Blender import Object, Mesh, Material, Image, Mathutils, Registry
 from Blender import sys as bsys
 
 # Globals
-ERROR_MSG = '' # popup error msg
 REPORT_DATA = {
 	'main': [],
 	'errors': [],
@@ -291,14 +290,14 @@ class FooMesh:
 
 class AC3DExport: # the ac3d exporter part
 
-	def __init__(self, scene_objects, filename):
+	def __init__(self, scene_objects, file):
 
 		global ARG, SKIP_DATA, ADD_DEFAULT_MAT, DEFAULT_MAT
-		global ERROR_MSG
 
 		header = 'AC3Db'
+		self.file = file
 		self.buf = ''
-		self.mbuf = ''
+		self.mbuf = []
 		self.mlist = []
 		world_kids = 0
 		parents_list = self.parents_list = []
@@ -306,14 +305,6 @@ class AC3DExport: # the ac3d exporter part
 		objs = []
 		exp_objs = self.exp_objs = []
 		tree = {}
-
-		try:
-			file = self.file = open(filename, 'w')
-		except IOError, (errno, strerror):
-			error = "IOError #%s: %s" % (errno, strerror)
-			REPORT_DATA['errors'].append("Saving failed - %s." % error)
-			ERROR_MSG = "Couldn't save file!%%t|%s" % error
-			return None
 
 		file.write(header+'\n')
 
@@ -356,9 +347,11 @@ class AC3DExport: # the ac3d exporter part
 		# write materials
 
 		self.MATERIALS(meshlist, TMP_mesh)
-		if not self.mbuf or ADD_DEFAULT_MAT:
-			self.mbuf = "%s\n%s" % (DEFAULT_MAT, self.mbuf)
-		file.write(self.mbuf)
+		mbuf = self.mbuf
+		if not mbuf or ADD_DEFAULT_MAT:
+			mbuf.insert(0, "%s\n" % DEFAULT_MAT)
+		mbuf = "".join(mbuf)
+		file.write(mbuf)
 
 		file.write('OBJECT world\nkids %s\n' % world_kids)
 
@@ -413,13 +406,13 @@ class AC3DExport: # the ac3d exporter part
 					self.export_mesh(mesh, obj)
 					self.kids()
 
-		file.close()
-		REPORT_DATA['main'].append("Done. Saved to: %s" % filename)
 
 	def traverse_dict(self, d):
 		kids_dict = self.kids_dict
 		exp_objs = self.exp_objs
 		keys = d.keys()
+		keys.sort() # sort for predictable output
+		keys.reverse()
 		for k in keys:
 			objname = k[2:]
 			klen = len(d[k])
@@ -527,11 +520,12 @@ class AC3DExport: # the ac3d exporter part
 	def MATERIALS(self, meshlist, me):
 		for meobj in meshlist:
 			me.getFromObject(meobj)
-			mat = me.materials
+			mats = me.materials
 			mbuf = []
 			mlist = self.mlist
-			for m in xrange(len(mat)):
-				name = mat[m].name
+			for m in mats:
+				if not m: continue
+				name = m.name
 				if name not in mlist:
 					mlist.append(name)
 					M = Material.Get(name)
@@ -559,7 +553,7 @@ class AC3DExport: # the ac3d exporter part
 					mbuf.append("%s %s %s %s %s %s %s\n" \
 						% (material, rgb, amb, emis, spec, shi, trans))
 			self.mlist = mlist
-			self.mbuf += "".join(mbuf)
+			self.mbuf.append("".join(mbuf))
 
 	def OBJECT(self, type):
 		self.file.write('OBJECT %s\n' % type)
@@ -658,11 +652,15 @@ class AC3DExport: # the ac3d exporter part
 
 		materials = self.mesh.materials
 		mlist = self.mlist
-		omlist = {}
-		matidx_error_told = 0
-		objmats = [omat.name for omat in materials]
+		matidx_error_reported = False
+		objmats = []
+		for omat in materials:
+			if omat: objmats.append(omat.name)
+			else: objmats.append(None)
 		for f in faces:
-			if objmats[f.mat] in mlist:
+			if not objmats:
+				m_idx = 0
+			elif objmats[f.mat] in mlist:
 				m_idx = mlist.index(objmats[f.mat])
 			else:
 				if not lc_MATIDX_ERROR:
@@ -672,12 +670,13 @@ class AC3DExport: # the ac3d exporter part
 					rdat.append("defined (not linked to an existing material).")
 					rdat.append("Result: some faces may be exported with a wrong color.")
 					rdat.append("You can assign materials in the Edit Buttons window (F9).")
-				elif not matidx_error_told:
+				elif not matidx_error_reported:
 					midxmsg = "- Same for object %s." % self.obj.name
 					REPORT_DATA['warns'].append(midxmsg)
 				lc_MATIDX_ERROR += 1
-				matidx_error_told = 1
+				matidx_error_reported = True
 				m_idx = 0
+				if lc_ADD_DEFAULT_MAT: m_idx -= 1
 			refs = len(f)
 			flaglow = 0 # polygon
 			if lc_PER_FACE_1_OR_2_SIDED and hasFaceUV: # per face attribute
@@ -771,7 +770,7 @@ def report_data():
 
 # File Selector callback:
 def fs_callback(filename):
-	global ERROR_MSG, EXPORT_DIR, OBJS, CONFIRM_OVERWRITE, VERBOSE
+	global EXPORT_DIR, OBJS, CONFIRM_OVERWRITE, VERBOSE
 
 	if not filename.endswith('.ac'): filename = '%s.ac' % filename
 
@@ -787,17 +786,28 @@ def fs_callback(filename):
 		EXPORT_DIR = export_dir
 		update_RegistryInfo()
 
-	test = AC3DExport(OBJS, filename)
-	if ERROR_MSG:
-		Blender.Draw.PupMenu(ERROR_MSG)
-		ERROR_MSG = ''
+	try:
+		file = open(filename, 'w')
+	except IOError, (errno, strerror):
+		error = "IOError #%s: %s" % (errno, strerror)
+		REPORT_DATA['errors'].append("Saving failed - %s." % error)
+		error_msg = "Couldn't save file!%%t|%s" % error
+		Blender.Draw.PupMenu(error_msg)
+		return
+
+	try:
+		test = AC3DExport(OBJS, file)
+	except:
+		file.close()
+		raise
 	else:
+		file.close()
 		endtime = bsys.time() - starttime
+		REPORT_DATA['main'].append("Done. Saved to: %s" % filename)
 		REPORT_DATA['main'].append("Data exported in %.3f seconds." % endtime)
 
 	if VERBOSE: report_data()
 	Blender.Window.WaitCursor(0)
-	return
 
 
 # -- End of definitions

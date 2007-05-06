@@ -106,7 +106,10 @@ import Blender
 from Blender import Draw, BGL, Registry, Window, sys as bsys
 from Blender.Window import Theme
 from BPyRegistry import LoadConfigData, SaveConfigData, HasConfigData,\
-	BPY_KEY_IN_FILE, MAX_STR_LEN, MAX_ITEMS_NUM
+	BPY_KEY_IN_FILE
+
+MAX_STR_LEN = 300 # max length for a string
+MAX_ITEMS_NUM = 100 # max number for each type of button
 
 # ---
 # The "General" configure options key is managed from this script.
@@ -630,6 +633,8 @@ def gui(): # drawing the screen
 				if tips and tips.has_key(l[0]): tooltip = tips[l[0]]
 				else: tooltip = "click to write a new string"
 				name = name.replace('_',' ') + ': '
+				if len(l[1]) > MAX_STR_LEN:
+					l[1] = l[1][:MAX_STR_LEN]
 				BUT_TYPES[str][i] = Draw.String(name, BEVT_STR + i,
 					x, y, w, h, l[1], MAX_STR_LEN, tooltip)
 				if is_dir:
