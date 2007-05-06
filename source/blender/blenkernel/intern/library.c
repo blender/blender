@@ -863,8 +863,7 @@ int check_for_dupid(ListBase *lb, ID *id, char *name)
 				splitIDname(idtest->name+2, leftest, &nrtest);
 				/* if base names match... */
 				/* optimized */
-				if( idtest->name[2] == name[0] &&
-						strcmp(left, leftest)==0 ) {
+				if( *left == *leftest && strcmp(left, leftest)==0 ) {
 					if(nrtest < maxtest)
 						in_use[nrtest]= 1;	/* mark as used */
 					if(nr <= nrtest)
