@@ -1156,7 +1156,7 @@ static void addps_sss(void *cb_handle, int facenr, int x, int y, int z)
 	}
 }
 
-static void shade_sample_sss(ShadeSample *ssamp, Material *mat, VlakRen *vlr, int quad, int x, int y, float z, float *co, float *color, float *area)
+static void shade_sample_sss(ShadeSample *ssamp, Material *mat, VlakRen *vlr, int quad, float x, float y, float z, float *co, float *color, float *area)
 {
 	ShadeInput *shi= ssamp->shi;
 	ShadeResult shr;
@@ -1180,6 +1180,10 @@ static void shade_sample_sss(ShadeSample *ssamp, Material *mat, VlakRen *vlr, in
 		shi->facenor[1]= -shi->facenor[1];
 		shi->facenor[2]= -shi->facenor[2];
 	}
+
+	/* center pixel */
+	x += 0.5f;
+	y += 0.5f;
 
 	/* we estimate the area here using shi->dxco and shi->dyco. we need to
 	   enabled shi->osatex these are filled. we compute two areas, one with
@@ -1237,6 +1241,20 @@ static void shade_sample_sss(ShadeSample *ssamp, Material *mat, VlakRen *vlr, in
 	}
 }
 
+static void zbufshade_sss_free(RenderPart *pa)
+{
+	MEM_freeN(pa->clipflag); pa->clipflag= NULL;
+#if 0
+	MEM_freeN(pa->rectall); pa->rectall= NULL;
+	freeps(&handle.psmlist);
+#else
+	MEM_freeN(pa->rectz); pa->rectz= NULL;
+	MEM_freeN(pa->rectp); pa->rectp= NULL;
+	MEM_freeN(pa->rectbackz); pa->rectbackz= NULL;
+	MEM_freeN(pa->rectbackp); pa->rectbackp= NULL;
+#endif
+}
+
 void zbufshade_sss_tile(RenderPart *pa)
 {
 	ShadeSample ssamp;
@@ -1276,6 +1294,11 @@ void zbufshade_sss_tile(RenderPart *pa)
 	/* create the pixelstrs to be used later */
 	zbuffer_sss(pa, rl->lay, &handle, addps_sss);
 
+	if(handle.totps==0) {
+		zbufshade_sss_free(pa);
+		return;
+	}
+
 	co= MEM_mallocN(sizeof(float)*3*handle.totps, "SSSCo");
 	color= MEM_mallocN(sizeof(float)*3*handle.totps, "SSSColor");
 	area= MEM_mallocN(sizeof(float)*handle.totps, "SSSArea");
@@ -1287,10 +1310,12 @@ void zbufshade_sss_tile(RenderPart *pa)
 #endif
 
 	/* setup shade sample with correct passes */
+	memset(&ssamp, 0, sizeof(ssamp));
 	shade_sample_initialize(&ssamp, pa, rl);
 	ssamp.shi[0].passflag= SCE_PASS_DIFFUSE|SCE_PASS_AO|SCE_PASS_RADIO;
 	ssamp.shi[0].passflag |= SCE_PASS_RGBA;
 	ssamp.shi[0].combinedflag= ~(SCE_PASS_SPEC);
+	ssamp.tot= 1;
 
 	/* initialize scanline updates for main thread */
 	rr->renrect.ymin= 0;
@@ -1340,7 +1365,7 @@ void zbufshade_sss_tile(RenderPart *pa)
 
 					shade_sample_sss(&ssamp, mat, vlr, quad, x, y, *rz,
 						co[totpoint], color[totpoint], &area[totpoint]);
-
+					
 					VECADD(fcol, fcol, color[totpoint]);
 					fcol[3]= 1.0f;
 					totpoint++;
@@ -1394,16 +1419,7 @@ void zbufshade_sss_tile(RenderPart *pa)
 	rr->renrect.ymin=rr->renrect.ymax= 0;
 	rr->renlay= render_get_active_layer(&R, rr);
 	
-	MEM_freeN(pa->clipflag); pa->clipflag= NULL;
-#if 0
-	MEM_freeN(pa->rectall); pa->rectall= NULL;
-	freeps(&handle.psmlist);
-#else
-	MEM_freeN(pa->rectz); pa->rectz= NULL;
-	MEM_freeN(pa->rectp); pa->rectp= NULL;
-	MEM_freeN(pa->rectbackz); pa->rectbackz= NULL;
-	MEM_freeN(pa->rectbackp); pa->rectbackp= NULL;
-#endif
+	zbufshade_sss_free(pa);
 }
 
 /* ------------------------------------------------------------------------ */

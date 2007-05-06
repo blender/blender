@@ -116,17 +116,16 @@ struct ScatterSettings {
 
 typedef struct ScatterPoint {
 	float co[3];
-	float radiance[3];
+	float rad[3];
 	float area;
 	int back;
 } ScatterPoint;
 
 typedef struct ScatterNode {
 	float co[3];
-	float radiance[3];
-	float backradiance[3];
-	float area;
-	int back;
+	float rad[3];
+	float backrad[3];
+	float area, backarea;
 
 	int totpoint;
 	ScatterPoint *points;
@@ -150,9 +149,10 @@ struct ScatterTree {
 };
 
 typedef struct ScatterResult {
-	float radiance[3];
-	float backradiance[3];
+	float rad[3];
+	float backrad[3];
 	float rdsum[3];
+	float backrdsum[3];
 } ScatterResult;
 
 /* Functions for BSSRDF reparametrization in to more intuitive parameters,
@@ -334,36 +334,38 @@ void scatter_settings_free(ScatterSettings *ss)
 #define SUBNODE_INDEX(co, split) \
 	((co[0]>=split[0]) + (co[1]>=split[1])*2 + (co[2]>=split[2])*4)
 	
-static void add_radiance(ScatterTree *tree, float *frontrad, float *backrad, float area, float rr, ScatterResult *result)
+static void add_radiance(ScatterTree *tree, float *frontrad, float *backrad, float area, float backarea, float rr, ScatterResult *result)
 {
-	float rd[3];
+	float rd[3], frontrd[3], backrd[3];
 
-#if 0
-	rd[0]= Rd_rsquare(tree->ss[0], rr);
-	rd[1]= Rd_rsquare(tree->ss[1], rr);
-	rd[2]= Rd_rsquare(tree->ss[2], rr);
-#else
 	approximate_Rd_rgb(tree->ss, rr, rd);
-#endif
 
-	rd[0] *= area;
-	rd[1] *= area;
-	rd[2] *= area;
+	if(frontrad && area) {
+		frontrd[0] = rd[0]*area;
+		frontrd[1] = rd[1]*area;
+		frontrd[2] = rd[2]*area;
 
-	if(frontrad) {
-		result->radiance[0] += frontrad[0]*rd[0];
-		result->radiance[1] += frontrad[1]*rd[1];
-		result->radiance[2] += frontrad[2]*rd[2];
+		result->rad[0] += frontrad[0]*frontrd[0];
+		result->rad[1] += frontrad[1]*frontrd[1];
+		result->rad[2] += frontrad[2]*frontrd[2];
+
+		result->rdsum[0] += frontrd[0];
+		result->rdsum[1] += frontrd[1];
+		result->rdsum[2] += frontrd[2];
 	}
-	if(backrad) {
-		result->backradiance[0] += backrad[0]*rd[0];
-		result->backradiance[1] += backrad[1]*rd[1];
-		result->backradiance[2] += backrad[2]*rd[2];
-	}
+	if(backrad && backarea) {
+		backrd[0] = rd[0]*backarea;
+		backrd[1] = rd[1]*backarea;
+		backrd[2] = rd[2]*backarea;
 
-	result->rdsum[0] += rd[0];
-	result->rdsum[1] += rd[1];
-	result->rdsum[2] += rd[2];
+		result->backrad[0] += backrad[0]*backrd[0];
+		result->backrad[1] += backrad[1]*backrd[1];
+		result->backrad[2] += backrad[2]*backrd[2];
+
+		result->backrdsum[0] += backrd[0];
+		result->backrdsum[1] += backrd[1];
+		result->backrdsum[2] += backrd[2];
+	}
 }
 
 static void traverse_octree(ScatterTree *tree, ScatterNode *node, float *co, int self, ScatterResult *result)
@@ -380,9 +382,9 @@ static void traverse_octree(ScatterTree *tree, ScatterNode *node, float *co, int
 			dist= INPR(sub, sub);
 
 			if(p->back)
-				add_radiance(tree, NULL, p->radiance, p->area, dist, result);
+				add_radiance(tree, NULL, p->rad, 0.0f, p->area, dist, result);
 			else
-				add_radiance(tree, p->radiance, NULL, p->area, dist, result);
+				add_radiance(tree, p->rad, NULL, p->area, 0.0f, dist, result);
 		}
 	}
 	else {
@@ -404,12 +406,12 @@ static void traverse_octree(ScatterTree *tree, ScatterNode *node, float *co, int
 					dist= INPR(sub, sub);
 
 					/* actually area/dist > error, but this avoids division */
-					if(subnode->area>tree->error*dist) {
+					if(subnode->area+subnode->backarea>tree->error*dist) {
 						traverse_octree(tree, subnode, co, 0, result);
 					}
 					else {
-						add_radiance(tree, subnode->radiance,
-							subnode->backradiance, subnode->area, dist, result);
+						add_radiance(tree, subnode->rad, subnode->backrad,
+							subnode->area, subnode->backarea, dist, result);
 					}
 				}
 			}
@@ -417,31 +419,41 @@ static void traverse_octree(ScatterTree *tree, ScatterNode *node, float *co, int
 	}
 }
 
-static void compute_radiance(ScatterTree *tree, float *co, float *radiance)
+static void compute_radiance(ScatterTree *tree, float *co, float *rad)
 {
 	ScatterResult result;
-	float rdsum[3];
+	float rdsum[3], backrad[3], backrdsum[3];
 
 	memset(&result, 0, sizeof(result));
 
 	traverse_octree(tree, tree->root, co, 1, &result);
-
-	VecMulf(result.radiance, tree->ss[0]->frontweight);
-	VecMulf(result.backradiance, tree->ss[0]->backweight);
-
-	VECCOPY(radiance, result.backradiance);
-	VECADD(radiance, radiance, result.radiance);
-
-	VECCOPY(rdsum, result.rdsum);
 
 	/* the original paper doesn't do this, but we normalize over the
 	   sampled area and multiply with the reflectance. this is because
 	   our point samples are incomplete, there are no samples on parts
 	   of the mesh not visible from the camera. this can not only make
 	   it darker, but also lead to ugly color shifts */
-	if(rdsum[0] > 0.0f) radiance[0]= tree->ss[0]->color*radiance[0]/rdsum[0];
-	if(rdsum[1] > 0.0f) radiance[1]= tree->ss[1]->color*radiance[1]/rdsum[1];
-	if(rdsum[2] > 0.0f) radiance[2]= tree->ss[2]->color*radiance[2]/rdsum[2];
+
+	VecMulf(result.rad, tree->ss[0]->frontweight);
+	VecMulf(result.backrad, tree->ss[0]->backweight);
+
+	VECCOPY(rad, result.rad);
+	VECADD(backrad, result.rad, result.backrad);
+
+	VECCOPY(rdsum, result.rdsum);
+	VECADD(backrdsum, result.rdsum, result.backrdsum);
+
+	if(rdsum[0] > 0.0f) rad[0]= tree->ss[0]->color*rad[0]/rdsum[0];
+	if(rdsum[1] > 0.0f) rad[1]= tree->ss[1]->color*rad[1]/rdsum[1];
+	if(rdsum[2] > 0.0f) rad[2]= tree->ss[2]->color*rad[2]/rdsum[2];
+
+	if(backrdsum[0] > 0.0f) backrad[0]= tree->ss[0]->color*backrad[0]/backrdsum[0];
+	if(backrdsum[1] > 0.0f) backrad[1]= tree->ss[1]->color*backrad[1]/backrdsum[1];
+	if(backrdsum[2] > 0.0f) backrad[2]= tree->ss[2]->color*backrad[2]/backrdsum[2];
+
+	rad[0]= MAX2(rad[0], backrad[0]);
+	rad[1]= MAX2(rad[1], backrad[1]);
+	rad[2]= MAX2(rad[2], backrad[2]);
 }
 
 /* building */
@@ -449,51 +461,56 @@ static void compute_radiance(ScatterTree *tree, float *co, float *radiance)
 static void sum_leaf_radiance(ScatterTree *tree, ScatterNode *node)
 {
 	ScatterPoint *p;
-	float radiance, totradiance= 0.0f, inv;
+	float rad, totrad= 0.0f, inv;
 	int i;
 
 	node->co[0]= node->co[1]= node->co[2]= 0.0;
-	node->radiance[0]= node->radiance[1]= node->radiance[2]= 0.0;
-	node->backradiance[0]= node->backradiance[1]= node->backradiance[2]= 0.0;
+	node->rad[0]= node->rad[1]= node->rad[2]= 0.0;
+	node->backrad[0]= node->backrad[1]= node->backrad[2]= 0.0;
 
-	/* compute total radiance, radiance weighted average position,
+	/* compute total rad, rad weighted average position,
 	   and total area */
 	for(i=0; i<node->totpoint; i++) {
 		p= &node->points[i];
 
-		radiance= p->area*(p->radiance[0] + p->radiance[1] + p->radiance[2]);
-		totradiance += radiance;
+		rad= p->area*(p->rad[0] + p->rad[1] + p->rad[2]);
+		totrad += rad;
 
-		node->co[0] += radiance*p->co[0];
-		node->co[1] += radiance*p->co[1];
-		node->co[2] += radiance*p->co[2];
+		node->co[0] += rad*p->co[0];
+		node->co[1] += rad*p->co[1];
+		node->co[2] += rad*p->co[2];
 
 		if(p->back) {
-			node->backradiance[0] += p->radiance[0]*p->area;
-			node->backradiance[1] += p->radiance[1]*p->area;
-			node->backradiance[2] += p->radiance[2]*p->area;
+			node->backrad[0] += p->rad[0]*p->area;
+			node->backrad[1] += p->rad[1]*p->area;
+			node->backrad[2] += p->rad[2]*p->area;
+
+			node->backarea += p->area;
 		}
 		else {
-			node->radiance[0] += p->radiance[0]*p->area;
-			node->radiance[1] += p->radiance[1]*p->area;
-			node->radiance[2] += p->radiance[2]*p->area;
-		}
+			node->rad[0] += p->rad[0]*p->area;
+			node->rad[1] += p->rad[1]*p->area;
+			node->rad[2] += p->rad[2]*p->area;
 
-		node->area += p->area;
+			node->area += p->area;
+		}
 	}
 
 	if(node->area > 0) {
 		inv= 1.0/node->area;
-		node->radiance[0] *= inv;
-		node->radiance[1] *= inv;
-		node->radiance[2] *= inv;
-		node->backradiance[0] *= inv;
-		node->backradiance[1] *= inv;
-		node->backradiance[2] *= inv;
+		node->rad[0] *= inv;
+		node->rad[1] *= inv;
+		node->rad[2] *= inv;
+	}
+	if(node->backarea > 0) {
+		inv= 1.0/node->backarea;
+		node->backrad[0] *= inv;
+		node->backrad[1] *= inv;
+		node->backrad[2] *= inv;
 	}
 
-	if(totradiance > 0.0f) {
-		inv= 1.0/totradiance;
+	if(totrad > 0.0f) {
+		inv= 1.0/totrad;
 		node->co[0] *= inv;
 		node->co[1] *= inv;
 		node->co[2] *= inv;
@@ -518,14 +535,14 @@ static void sum_leaf_radiance(ScatterTree *tree, ScatterNode *node)
 static void sum_branch_radiance(ScatterTree *tree, ScatterNode *node)
 {
 	ScatterNode *subnode;
-	float radiance, totradiance= 0.0f, inv;
+	float rad, totrad= 0.0f, inv;
 	int i, totnode;
 
 	node->co[0]= node->co[1]= node->co[2]= 0.0;
-	node->radiance[0]= node->radiance[1]= node->radiance[2]= 0.0;
-	node->backradiance[0]= node->backradiance[1]= node->backradiance[2]= 0.0;
+	node->rad[0]= node->rad[1]= node->rad[2]= 0.0;
+	node->backrad[0]= node->backrad[1]= node->backrad[2]= 0.0;
 
-	/* compute total radiance, radiance weighted average position,
+	/* compute total rad, rad weighted average position,
 	   and total area */
 	for(i=0; i<8; i++) {
 		if(node->child[i] == NULL)
@@ -533,36 +550,41 @@ static void sum_branch_radiance(ScatterTree *tree, ScatterNode *node)
 
 		subnode= node->child[i];
 
-		radiance= subnode->area*(subnode->radiance[0] + subnode->radiance[1] + subnode->radiance[2] + subnode->backradiance[0] + subnode->backradiance[1] + subnode->backradiance[2]);
-		totradiance += radiance;
+		rad= subnode->area*(subnode->rad[0] + subnode->rad[1] + subnode->rad[2]);
+		rad += subnode->backarea*(subnode->backrad[0] + subnode->backrad[1] + subnode->backrad[2]);
+		totrad += rad;
 
-		node->co[0] += radiance*subnode->co[0];
-		node->co[1] += radiance*subnode->co[1];
-		node->co[2] += radiance*subnode->co[2];
+		node->co[0] += rad*subnode->co[0];
+		node->co[1] += rad*subnode->co[1];
+		node->co[2] += rad*subnode->co[2];
 
-		node->radiance[0] += subnode->radiance[0]*subnode->area;
-		node->radiance[1] += subnode->radiance[1]*subnode->area;
-		node->radiance[2] += subnode->radiance[2]*subnode->area;
+		node->rad[0] += subnode->rad[0]*subnode->area;
+		node->rad[1] += subnode->rad[1]*subnode->area;
+		node->rad[2] += subnode->rad[2]*subnode->area;
 
-		node->backradiance[0] += subnode->backradiance[0]*subnode->area;
-		node->backradiance[1] += subnode->backradiance[1]*subnode->area;
-		node->backradiance[2] += subnode->backradiance[2]*subnode->area;
+		node->backrad[0] += subnode->backrad[0]*subnode->backarea;
+		node->backrad[1] += subnode->backrad[1]*subnode->backarea;
+		node->backrad[2] += subnode->backrad[2]*subnode->backarea;
 
 		node->area += subnode->area;
+		node->backarea += subnode->backarea;
 	}
 
 	if(node->area > 0) {
 		inv= 1.0/node->area;
-		node->radiance[0] *= inv;
-		node->radiance[1] *= inv;
-		node->radiance[2] *= inv;
-		node->backradiance[0] *= inv;
-		node->backradiance[1] *= inv;
-		node->backradiance[2] *= inv;
+		node->rad[0] *= inv;
+		node->rad[1] *= inv;
+		node->rad[2] *= inv;
+	}
+	if(node->backarea > 0) {
+		inv= 1.0/node->backarea;
+		node->backrad[0] *= inv;
+		node->backrad[1] *= inv;
+		node->backrad[2] *= inv;
 	}
 
-	if(totradiance > 0.0f) {
-		inv= 1.0/totradiance;
+	if(totrad > 0.0f) {
+		inv= 1.0/totrad;
 		node->co[0] *= inv;
 		node->co[1] *= inv;
 		node->co[2] *= inv;
@@ -725,7 +747,7 @@ ScatterTree *scatter_tree_new(ScatterSettings *ss[3], float scale, float error,
 
 	for(i=0; i<totpoint; i++) {
 		VECCOPY(points[i].co, co[i]);
-		VECCOPY(points[i].radiance, color[i]);
+		VECCOPY(points[i].rad, color[i]);
 		points[i].area= fabs(area[i])/(tree->scale*tree->scale);
 		points[i].back= (area[i] < 0.0f);
 
@@ -819,7 +841,7 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 	SSSPoints *p;
 	ListBase layers, points;
 	float (*co)[3] = NULL, (*color)[3] = NULL, *area = NULL;
-	int totpoint = 0, osa;
+	int totpoint = 0, osa, osaflag;
 
 	if(re->test_break())
 		return;
@@ -829,9 +851,11 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 	/* do SSS preprocessing render */
 	layers= re->r.layers;
 	osa= re->osa;
+	osaflag= re->r.mode & R_OSA;
 
 	re->r.layers.first= re->r.layers.last= NULL;
 	re->osa= 0;
+	re->r.mode &= ~R_OSA;
 	re->sss_points= &points;
 	re->sss_mat= mat;
 
@@ -841,6 +865,7 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 	re->sss_points= NULL;
 	re->r.layers= layers;
 	re->osa= osa;
+	if (osaflag) re->r.mode |= R_OSA;
 
 	/* no points? no tree */
 	if(!points.first)
