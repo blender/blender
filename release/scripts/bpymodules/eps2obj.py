@@ -2,14 +2,13 @@
 # (c) jm soler juillet 2004-juin 2005 , released under Blender Artistic Licence 
 #    for the Blender 2.34-2.37 Python Scripts Bundle.
 # 
-# July, 3rd, 2006 , juillet 2006 
+# last update:  06/05/2007 
 #----------------------------------------------
 # Page officielle :
 #   http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_import_eps.htm
 # Communiquer les problemes et erreurs sur:
 #   http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender
 #----------------------------------------------
-DEVELOPPEMENT   =   0
 SHARP_IMPORT    =   0
 SCALE           =   1.0
 scale           =   1
@@ -160,17 +159,16 @@ def Open_GEOfile(dir,nom):
     global SCALE,BOUNDINGBOX, scale
     if BLversion>=233:
        Blender.Load(dir+nom+'OOO.obj', 1)
-       BO=Blender.Object.Get()
-
-       BO[-1].RotY=3.1416
-       BO[-1].RotZ=3.1416
-       BO[-1].RotX=3.1416/2.0
+       BO=Blender.Scene.GetCurrent().objects.active
+       BO.RotY=3.1416
+       BO.RotZ=3.1416
+       BO.RotX=3.1416/2.0
        if scale==1:
-          BO[-1].LocY+=BOUNDINGBOX['rec'][3]
+          BO.LocY+=BOUNDINGBOX['rec'][3]
        else:
-         BO[-1].LocY+=BOUNDINGBOX['rec'][3]/SCALE
+         BO.LocY+=BOUNDINGBOX['rec'][3]/SCALE
 
-       BO[-1].makeDisplayList() 
+       BO.makeDisplayList() 
        Blender.Window.RedrawAll()
     else:
        print "Not yet implemented"
@@ -448,5 +446,7 @@ def scan_FILE(nom):
 def fonctionSELECT(nom):
     scan_FILE(nom)
 
-if DEVELOPPEMENT==1 : Blender.Window.FileSelector (fonctionSELECT, 'SELECT .EPS/.PS FILE')
-#sys.path=oldpath       
+if __name__=="__main__":
+    Blender.Window.FileSelector (fonctionSELECT, 'SELECT EPS FILE')
+
+    

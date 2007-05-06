@@ -19,6 +19,8 @@
 # 0.1.7 : 2005/06/25, two more closepath improvements 
 #
 # 0.1.8 : 2006/07/03, two more closepath improvements 
+# 0.1.9 : 2007/05/06, modif on the method that gets the last object on 
+                      the list data
 
 """
 SHARP_IMPORT=0
@@ -173,10 +175,10 @@ def Open_GEOfile(dir,nom):
        in_editmode = Blender.Window.EditMode()
        if in_editmode: Blender.Window.EditMode(0)
        Blender.Load(dir+nom+'OOO.obj', 1)
-       BO=Blender.Object.Get()
-       BO[-1].RotY=0.0
-       BO[-1].RotX=1.57
-       BO[-1].makeDisplayList() 
+       BO=Blender.Scene.GetCurrent().objects.active
+       BO.RotY=0.0
+       BO.RotX=1.57
+       BO.makeDisplayList() 
        Blender.Window.RedrawAll()
     else:
        print "Not yet implemented"

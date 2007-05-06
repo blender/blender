@@ -2,7 +2,7 @@
 #----------------------------------------------
 # (c) jm soler juillet 2004, released under Blender Artistic Licence 
 #    for the Blender 2.34 Python Scripts Bundle.
-#    update : 04/07/2006
+#    last update : 07/05/2007
 #----------------------------------------------
 # Page officielle :
 #   http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_import_gimp.htm
@@ -154,11 +154,9 @@ def test_egalitedespositions(f1,f2):
 def Open_GEOfile(dir,nom):
     if BLversion>=233:
        Blender.Load(dir+nom+'OOO.obj', 1)
-       BO=Blender.Object.Get()
-
-       BO[-1].LocZ=1.0
-       
-       BO[-1].makeDisplayList() 
+       BO=Blender.Scene.GetCurrent().objects.active
+       BO.LocZ=1.0
+       BO.makeDisplayList() 
        Blender.Window.RedrawAll()
     else:
        print "Not yet implemented"
@@ -321,5 +319,6 @@ def scan_FILE(nom):
 def fonctionSELECT(nom):
     scan_FILE(nom)
 
-#Blender.Window.FileSelector (fonctionSELECT, 'SELECT a GIMP Path FILE')
-#sys.path=oldpath
+if __name__=="__main__":
+    Blender.Window.FileSelector (fonctionSELECT, 'SELECT GIMP FILE')
+    
