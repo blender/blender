@@ -72,7 +72,7 @@ def sane_name(name):
 		new_name = new_name[:-4] + '.%.3d' % i
 		i+=1
 	
-	name_unique.append(name_unique)
+	name_unique.append(new_name)
 	name_mapping[name] = new_name
 	return new_name
 
