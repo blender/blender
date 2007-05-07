@@ -418,7 +418,8 @@ void calculate_uv_map(unsigned short mapmode)
 
 	case B_UVAUTO_RESET:
 		tface= me->mtface;
-		for(a=0; a<me->totface; a++, tface++)
+		mface= me->mface;
+		for(a=0; a<me->totface; a++, tface++, mface++)
 			if(mface->flag & ME_FACE_SEL) 
 				default_uv(tface->uv, 1.0);
 		break;
