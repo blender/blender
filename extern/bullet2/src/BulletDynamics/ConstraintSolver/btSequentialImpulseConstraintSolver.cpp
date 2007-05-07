@@ -104,6 +104,7 @@ bool  MyContactDestroyedCallback(void* userPersistentData)
 
 btSequentialImpulseConstraintSolver3::btSequentialImpulseConstraintSolver3()
 {
+	btSeed2 = 0;
 	setSolverMode(SOLVER_RANDMIZE_ORDER);
 }
 
@@ -111,6 +112,8 @@ btSequentialImpulseConstraintSolver3::btSequentialImpulseConstraintSolver3()
 btSequentialImpulseConstraintSolver::btSequentialImpulseConstraintSolver()
 :m_solverMode(SOLVER_USE_WARMSTARTING)
 {
+		btSeed2 = 0;
+
 	gContactDestroyedCallback = &MyContactDestroyedCallback;
 
 	//initialize default friction/contact funcs
