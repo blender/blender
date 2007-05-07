@@ -599,10 +599,10 @@ static void draw_channel_names(void)
 		 */
 		draw_action_channel_names(act);
 	}
-	if ( (key = get_action_mesh_key()) ) {
+	else if ( (key = get_action_mesh_key()) ) {
 		/* if there is a mesh selected with rvk's,
-			* then draw the RVK names
-			*/
+		 * then draw the RVK names
+		 */
 		draw_action_mesh_names(key);
     }
 
@@ -953,7 +953,7 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 	 * oughta fix it
 	 */
 	
-	if (key) {
+	if (!act && key) {
 		if (G.v2d->cur.ymin < -CHANNELHEIGHT) 
 			G.v2d->cur.ymin = -CHANNELHEIGHT;
 		
@@ -1007,9 +1007,10 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 	check_action_context(G.saction);
 	
 	/* Draw channel strips */
-	draw_channel_strips(G.saction);
-
-	if (key) {
+	if (act) {
+		draw_channel_strips(G.saction);
+	}
+	else if (key) {
 		/* if there is a mesh with rvk's selected,
 		 * then draw the key frames in the action window
 		 */
@@ -1048,14 +1049,17 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 		draw_channel_names();
 
 		if(sa->winx > 50 + NAMEWIDTH + SLIDERWIDTH) {
-			if (key) {
+			if (act) {
+				/* if there is an action, draw sliders for its
+				 * ipo-curve channels in the action window
+				 */
+				action_icu_buts(G.saction);
+			}
+			else if (key) {
 				/* if there is a mesh with rvk's selected,
 				 * then draw the key frames in the action window
 				 */
 				meshactionbuts(G.saction, OBACT, key);
-			}
-			else if (act) {
-				action_icu_buts(G.saction);
 			}
 		}
 	}

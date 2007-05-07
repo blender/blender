@@ -27,6 +27,8 @@
 
 /* ********** General calls (minimal dependencies) for editing Ipos in Blender ************* */
 
+#include <stdio.h>
+
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
@@ -132,10 +134,20 @@ int geticon_ipo_blocktype(short blocktype)
 char *getname_ipocurve(IpoCurve *icu)
 {
 	switch (icu->blocktype) {
-		case ID_OB:
-			return getname_ob_ei(icu->adrcode, 0); /* dummy 2nd arg */
+		case ID_OB: 
+			return getname_ob_ei(icu->adrcode, 0); /* dummy 2nd arg */ 
 		case ID_PO:
 			return getname_ac_ei(icu->adrcode);
+		case ID_KE:
+			{
+				/* quick 'hack' - must find a better solution to this
+				 * although shapekey ipo-curves can have names,
+				 * we don't have access to that info yet.
+				 */
+				static char name[32];
+				sprintf(name, "Key %d", icu->adrcode);
+				return name;
+			}
 			
 		default: /* fixme - add all of the other types! */
 			return NULL;
