@@ -165,6 +165,9 @@ endif
 	@strip -x $(DISTDIR)/blender$(EXT0)/Contents/MacOS/blender
       else
 	@strip -x $(DISTDIR)/blender$(EXT0)
+	@if [ -f $(DISTDIR)/blenderplayer$(EXTO) ]; then \
+           strip -x $(DISTDIR)/blender$(EXT0) ; \
+	fi
       endif
     endif
 	@[ ! -x $(CONFIG_GUESS)/specific.sh ] || (\
