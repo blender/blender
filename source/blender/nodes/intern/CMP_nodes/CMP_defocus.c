@@ -243,12 +243,13 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 	BokehCoeffs BKH[8];	// bokeh shape data, here never > 8 pts.
 	float bkh_b[4] = {0};	// shape 2D bound
 	unsigned int p, px, p4, zp, cp, cp4;
-	float *ctcol, u, v, iZ, ct_crad, bcrad, lwt, wt=0, cR2=0;
-	float dof_sp, maxfgc, nmaxc, scf, bk_hn_theta=0, inradsq=0;
+	float *ctcol, u, v, iZ, ct_crad, lwt, wt=0, cR2=0;
+	float dof_sp, maxfgc, bk_hn_theta=0, inradsq=0;
 	float cam_fdist=1, cam_invfdist=1, cam_lens=35;
 	int x, y, sx, sy, len_bkh=0;
 	float aspect, aperture;
 	int minsz;
+	//float bcrad, nmaxc, scf;
 	
 	// get some required params from the current scene camera
 	// (ton) this is wrong, needs fixed
@@ -317,9 +318,17 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 		}
 		
 		// fast blur...
-		IIR_gauss(crad, 2.f*maxfgc);
-		IIR_gauss(wts, 2.f*maxfgc);
+		// bug #6656 part 1, probably when previous node_composite.c was split into separate files, it was not properly updated
+		// to include recent cvs commits (well, at least not defocus node), so this part was missing...
+		wt = aperture*128.f;
+		IIR_gauss(crad, wt);
+		IIR_gauss(wts, wt);
 		
+		// bug #6656 part 2a, although foreground blur is not based anymore on closest object,
+		// the rescaling op below was still based on that anyway, and unlike the comment in below code,
+		// the difference is therefore not always that small at all...
+		// so for now commented out, not sure if this is going to cause other future problems, lets just wait and see...
+		/*
 		// find new maximum to scale it back to original
 		// (could skip this, not strictly necessary, in general, difference is quite small, but just in case...)
 		nmaxc = 0;
@@ -327,7 +336,8 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 			if (crad->rect[p] > nmaxc) nmaxc = crad->rect[p];
 		// rescale factor
 		scf = (nmaxc==0.f) ? 1.f: (maxfgc / nmaxc);
-		
+		*/
+
 		// and blend...
 		for (y=0; y<img->y; y++) {
 			p = y*img->x;
@@ -335,9 +345,15 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 				px = p + x;
 				if (zbuf->rect[px]!=0.f) {
 					iZ = (zbuf->rect[px]==0.f) ? 0.f : (1.f/zbuf->rect[px]);
+					
+					// bug #6656 part 2b, do not rescale
+					/*
 					bcrad = 0.5f*fabs(aperture*(dof_sp*(cam_invfdist - iZ) - 1.f));
 					// scale crad back to original maximum and blend
 					crad->rect[px] = bcrad + wts->rect[px]*(scf*crad->rect[px] - bcrad);
+					*/
+					crad->rect[px] = 0.5f*fabs(aperture*(dof_sp*(cam_invfdist - iZ) - 1.f));
+					
 					// 'bug' #6615, limit minimum radius to 1 pixel, not really a solution, but somewhat mitigates the problem
 					crad->rect[px] = MAX2(crad->rect[px], 0.5f);
 					// if maxblur!=0, limit maximum
