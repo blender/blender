@@ -160,6 +160,7 @@ void do_image_buttons(unsigned short event)
 		if(G.sima->flag & SI_DRAWTOOL)
 			/* add new brush if none exists */
 			brush_check_exists(&G.scene->toolsettings->imapaint.brush);
+		allqueue(REDRAWBUTSSHADING, 0);
 		allqueue(REDRAWIMAGE, 0);
 		allqueue(REDRAWVIEW3D, 0);
 		break;
@@ -662,8 +663,10 @@ static void do_image_imagemenu(void *arg, int event)
 		pack_image_sima();
 		break;
 	case 4: /* Texture Painting */
+		brush_check_exists(&G.scene->toolsettings->imapaint.brush);
 		if(G.sima->flag & SI_DRAWTOOL) G.sima->flag &= ~SI_DRAWTOOL;
 		else G.sima->flag |= SI_DRAWTOOL;
+		allqueue(REDRAWBUTSSHADING, 0);
 		break;
 	case 5:
 		save_as_image_sima();
