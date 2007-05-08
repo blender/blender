@@ -690,12 +690,10 @@ static void draw_cursor(SpaceText *st) {
 
 		if(st->showlinenrs) {
 			if (!x) x= TXT_OFFSET + TEXTXLOC -4;
-		}
-		else {
+		} else {
 			if (!x) x= TXT_OFFSET - 4;
 		}
 		
-		if (!x) x= TXT_OFFSET-10;
 		while (linef && linef != linel) {
 			h= txt_get_span(text->lines.first, linef) - st->top;
 			if (h>st->viewlines) break;
