@@ -3326,15 +3326,15 @@ static void material_panel_sss(Material *ma)
 	uiDefButF(block, NUM, B_MATPRV, "Scale:", 10,150,145,20,
 			  &ma->sss_scale, 0.001, 1000, 1, 3, "Object scale");
 	bt=uiDefButF(block, NUM, B_MATPRV, "Radius R", 10,130,145,20,
-			  &ma->sss_radius[0], 0.00001, 10000, 0, 0,
+			  &ma->sss_radius[0], 0.0001, 10000, 1, 3,
 			  "Mean red scattering path length");
 	uiButSetFunc(bt, material_sss_custom_set_cb, ma, NULL);
 	bt=uiDefButF(block, NUM, B_MATPRV, "Radius G", 10,110,145,20,
-			  &ma->sss_radius[1], 0.00001, 10000, 0, 0,
+			  &ma->sss_radius[1], 0.0001, 10000, 1, 3,
 			  "Mean green scattering path length");
 	uiButSetFunc(bt, material_sss_custom_set_cb, ma, NULL);
 	bt=uiDefButF(block, NUM, B_MATPRV, "Radius B", 10,90,145,20,
-			  &ma->sss_radius[2], 0.00001, 10000, 0, 0,
+			  &ma->sss_radius[2], 0.0001, 10000, 1, 3,
 			  "Mean blue scattering path length");
 	uiButSetFunc(bt, material_sss_custom_set_cb, ma, NULL);
 	uiBlockEndAlign(block);

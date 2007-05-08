@@ -551,6 +551,11 @@ void RE_SetCamera(Render *re, Object *camera)
 
 }
 
+void RE_SetPixelSize(Render *re, float pixsize)
+{
+	re->viewdx= pixsize;
+	re->viewdy= re->ycor*pixsize;
+}
 
 /* ~~~~~~~~~~~~~~~~ part (tile) calculus ~~~~~~~~~~~~~~~~~~~~~~ */
 

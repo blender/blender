@@ -158,6 +158,7 @@ void RE_SetDispRect (struct Render *re, rcti *disprect);
 void RE_SetCamera(struct Render *re, struct Object *camera);
 void RE_SetWindow (struct Render *re, rctf *viewplane, float clipsta, float clipend);
 void RE_SetOrtho (struct Render *re, rctf *viewplane, float clipsta, float clipend);
+void RE_SetPixelSize(struct Render *re, float pixsize);
 
 /* option to set viewmatrix before making dbase */
 void RE_SetView (struct Render *re, float mat[][4]);

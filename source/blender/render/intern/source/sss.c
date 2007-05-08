@@ -841,7 +841,7 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 	SSSPoints *p;
 	ListBase layers, points;
 	float (*co)[3] = NULL, (*color)[3] = NULL, *area = NULL;
-	int totpoint = 0, osa, osaflag;
+	int totpoint = 0, osa, osaflag, partsdone;
 
 	if(re->test_break())
 		return;
@@ -852,12 +852,14 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 	layers= re->r.layers;
 	osa= re->osa;
 	osaflag= re->r.mode & R_OSA;
+	partsdone= re->i.partsdone;
 
 	re->r.layers.first= re->r.layers.last= NULL;
 	re->osa= 0;
 	re->r.mode &= ~R_OSA;
 	re->sss_points= &points;
 	re->sss_mat= mat;
+	re->i.partsdone= 0;
 
 	RE_TileProcessor(re, 0, 1);
 
@@ -866,6 +868,7 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 	re->r.layers= layers;
 	re->osa= osa;
 	if (osaflag) re->r.mode |= R_OSA;
+	re->i.partsdone= partsdone;
 
 	/* no points? no tree */
 	if(!points.first)
@@ -902,11 +905,15 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 		float ior= mat->sss_ior, cfac= mat->sss_colfac;
 		float *col= mat->sss_col, *radius= mat->sss_radius;
 		float fw= mat->sss_front, bw= mat->sss_back;
+		float error = mat->sss_error;
+		
+		if((R.r.scemode & R_PREVIEWBUTS) && error < 0.5f)
+			error= 0.5f;
 
 		sss->ss[0]= scatter_settings_new(col[0], radius[0], ior, cfac, fw, bw);
 		sss->ss[1]= scatter_settings_new(col[1], radius[1], ior, cfac, fw, bw);
 		sss->ss[2]= scatter_settings_new(col[2], radius[2], ior, cfac, fw, bw);
-		sss->tree= scatter_tree_new(sss->ss, mat->sss_scale, mat->sss_error,
+		sss->tree= scatter_tree_new(sss->ss, mat->sss_scale, error,
 			co, color, area, totpoint);
 
 		MEM_freeN(co);

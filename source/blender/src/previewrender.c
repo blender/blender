@@ -673,7 +673,7 @@ void BIF_view3d_previewrender_free(View3D *v3d)
 }
 
 /* returns 1 if OK, do not call while in panel space!  */
-static int view3d_previewrender_get_rects(ScrArea *sa, rctf *viewplane, RenderInfo *ri, float *clipsta, float *clipend, int *ortho)
+static int view3d_previewrender_get_rects(ScrArea *sa, rctf *viewplane, RenderInfo *ri, float *clipsta, float *clipend, int *ortho, float *pixsize)
 {
 	int rectx, recty;
 	uiBlock *block;
@@ -690,7 +690,7 @@ static int view3d_previewrender_get_rects(ScrArea *sa, rctf *viewplane, RenderIn
 	/* correction for gla draw */
 	BLI_translate_rcti(&ri->disprect, -sa->winrct.xmin, -sa->winrct.ymin);
 	
-	*ortho= get_view3d_viewplane(sa->winx, sa->winy, viewplane, clipsta, clipend);
+	*ortho= get_view3d_viewplane(sa->winx, sa->winy, viewplane, clipsta, clipend, pixsize);
 
 	rectx= ri->disprect.xmax - ri->disprect.xmin;
 	recty= ri->disprect.ymax - ri->disprect.ymin;
@@ -732,7 +732,7 @@ void BIF_view3d_previewrender(ScrArea *sa)
 	RenderStats *rstats;
 	RenderData rdata;
 	rctf viewplane;
-	float clipsta, clipend;
+	float clipsta, clipend, pixsize;
 	int orth;
 	
 	/* first get the render info right */
@@ -742,7 +742,7 @@ void BIF_view3d_previewrender(ScrArea *sa)
 	}
 	ri= v3d->ri;
 	
-	if(0==view3d_previewrender_get_rects(sa, &viewplane, ri, &clipsta, &clipend, &orth))
+	if(0==view3d_previewrender_get_rects(sa, &viewplane, ri, &clipsta, &clipend, &orth, &pixsize))
 		return;
 	
 	/* render is finished, so return */
@@ -779,6 +779,7 @@ void BIF_view3d_previewrender(ScrArea *sa)
 			RE_SetOrtho(re, &viewplane, clipsta, clipend);
 		else
 			RE_SetWindow(re, &viewplane, clipsta, clipend);
+		RE_SetPixelSize(re, pixsize);
 		
 		/* until here are no escapes */
 		ri->status |= PR_DISPRECT;
@@ -798,6 +799,7 @@ void BIF_view3d_previewrender(ScrArea *sa)
 				RE_SetOrtho(ri->re, &viewplane, clipsta, clipend);
 			else
 				RE_SetWindow(ri->re, &viewplane, clipsta, clipend);
+			RE_SetPixelSize(re, pixsize);
 			ri->status |= PR_DISPRECT;
 			ri->curtile= 0;
 			//printf("disprect update\n");

@@ -825,7 +825,7 @@ void object_view_settings(Object *ob, float *lens, float *clipsta, float *clipen
 }
 
 
-int get_view3d_viewplane(int winxi, int winyi, rctf *viewplane, float *clipsta, float *clipend)
+int get_view3d_viewplane(int winxi, int winyi, rctf *viewplane, float *clipsta, float *clipend, float *pixsize)
 {
 	Camera *cam=NULL;
 	float lens, fac, x1, y1, x2, y2;
@@ -922,6 +922,19 @@ int get_view3d_viewplane(int winxi, int winyi, rctf *viewplane, float *clipsta, 
 			y2+= dy;
 		}
 	}
+
+	if(pixsize) {
+		float viewfac;
+
+		if(orth) {
+			viewfac= (winx >= winy)? winx: winy;
+			*pixsize= 1.0f/viewfac;
+		}
+		else {
+			viewfac= (((winx >= winy)? winx: winy)*lens)/32.0;
+			*pixsize= *clipsta/viewfac;
+		}
+	}
 	
 	viewplane->xmin= x1;
 	viewplane->ymin= y1;
@@ -938,7 +951,7 @@ void setwinmatrixview3d(int winx, int winy, rctf *rect)		/* rect: for picking */
 	float clipsta, clipend, x1, y1, x2, y2;
 	int orth;
 	
-	orth= get_view3d_viewplane(winx, winy, &viewplane, &clipsta, &clipend);
+	orth= get_view3d_viewplane(winx, winy, &viewplane, &clipsta, &clipend, NULL);
 //	printf("%d %d %f %f %f %f %f %f\n", winx, winy, viewplane.xmin, viewplane.ymin, viewplane.xmax, viewplane.ymax, clipsta, clipend);
 	x1= viewplane.xmin;
 	y1= viewplane.ymin;

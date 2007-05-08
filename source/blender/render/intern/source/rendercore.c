@@ -1126,28 +1126,35 @@ static void addps_sss(void *cb_handle, int facenr, int x, int y, int z)
 	ZBufSSSHandle *handle = cb_handle;
 	RenderPart *pa= handle->pa;
 
-	if (pa->rectall) {
+	/* extra border for filter gives double samples on part edges,
+	   don't use those */
+	if(x<pa->crop || x>=pa->rectx-pa->crop)
+		return;
+	if(y<pa->crop || y>=pa->recty-pa->crop)
+		return;
+	
+	if(pa->rectall) {
 		long *rs= pa->rectall + pa->rectx*y + x;
 
 		addps(&handle->psmlist, rs, facenr, z, 0);
 		handle->totps++;
 	}
-	if (pa->rectz) {
+	if(pa->rectz) {
 		int *rz= pa->rectz + pa->rectx*y + x;
 		int *rp= pa->rectp + pa->rectx*y + x;
 
-		if (z < *rz) {
+		if(z < *rz) {
 			if(*rp == 0)
 				handle->totps++;
 			*rz= z;
 			*rp= facenr;
 		}
 	}
-	if (pa->rectbackz) {
+	if(pa->rectbackz) {
 		int *rz= pa->rectbackz + pa->rectx*y + x;
 		int *rp= pa->rectbackp + pa->rectx*y + x;
 
-		if (z >= *rz) {
+		if(z >= *rz) {
 			if(*rp == 0)
 				handle->totps++;
 			*rz= z;

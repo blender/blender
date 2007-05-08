@@ -77,7 +77,7 @@ void calctrackballvecfirst(struct rcti *area, short *mval, float *vec);
 void calctrackballvec(struct rcti *area, short *mval, float *vec);
 void viewmove(int mode);
 
-int get_view3d_viewplane(int winxi, int winyi, rctf *viewplane, float *clipsta, float *clipend);
+int get_view3d_viewplane(int winxi, int winyi, rctf *viewplane, float *clipsta, float *clipend, float *pixsize);
 void setwinmatrixview3d(int winx, int winy, struct rctf *rect);
 
 void obmat_to_viewmat(struct Object *ob, short smooth);
