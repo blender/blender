@@ -4006,7 +4006,7 @@ static void winqreadbutspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	short val= evt->val;
 	SpaceButs *sbuts= curarea->spacedata.first;
 	ScrArea *sa2, *sa3d;
-	int nr, doredraw= 0;
+	int nr;
 
 	if(val) {
 		
@@ -4087,7 +4087,6 @@ static void winqreadbutspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		}
 	}
 
-	if(doredraw) scrarea_queue_winredraw(curarea);
 }
 
 void set_rects_butspace(SpaceButs *buts)
