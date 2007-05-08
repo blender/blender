@@ -811,7 +811,7 @@ static int node_composit_buts_image(uiBlock *block, bNodeTree *ntree, bNode *nod
 				dy-= 19;
 				uiDefButI(block, NUM, B_NODE_EXEC+node->nr, "Offs:",
 						  xmin, dy, width, 19, 
-						  &iuser->offset, 0.0, 10000.0, 0, 0, "Offsets the number of the frame to use in the animation");
+						  &iuser->offset, -10000.0, 10000.0, 0, 0, "Offsets the number of the frame to use in the animation");
 				uiDefButS(block, TOG, B_NODE_EXEC+node->nr, "Cycl",
 						  xmin+width, dy, width-20, 19, 
 						  &iuser->cycl, 0.0, 0.0, 0, 0, "Make animation go cyclic");
