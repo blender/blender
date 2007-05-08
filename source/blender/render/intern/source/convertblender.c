@@ -1544,7 +1544,7 @@ static void sort_halos(Render *re)
 /* ------------------------------------------------------------------------- */
 static void init_render_mball(Render *re, Object *ob)
 {
-	DispList *dl, *dlo;
+	DispList *dl;
 	VertRen *ver;
 	VlakRen *vlr, *vlr1;
 	Material *ma;
@@ -1564,10 +1564,7 @@ static void init_render_mball(Render *re, Object *ob)
 	if(ma->texco & TEXCO_ORCO) {
 		need_orco= 1;
 	}
-
-	dlo= ob->disp.first;
-	if(dlo) BLI_remlink(&ob->disp, dlo);
-
+	
 	makeDispListMBall(ob);
 	dl= ob->disp.first;
 	if(dl==0) return;
@@ -1632,13 +1629,11 @@ static void init_render_mball(Render *re, Object *ob)
 	if(need_orco) {
 		/* store displist and scale */
 		make_orco_mball(ob);
-		if(dlo) BLI_addhead(&ob->disp, dlo);
 
 	}
-	else {
-		freedisplist(&ob->disp);
-		if(dlo) BLI_addtail(&ob->disp, dlo);
-	}
+
+	/* enforce display lists remade */
+	freedisplist(&ob->disp);
 }
 /* ------------------------------------------------------------------------- */
 /* convert */
