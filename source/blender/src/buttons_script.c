@@ -195,6 +195,8 @@ static void scriptlinks_pupmenu(ScriptLink *slink)
 	short menuitem;
 	char *menustr = scriptlinks_menu_string();
 
+	if (!slink) return;
+
 	if (menustr) {
 		menuitem = pupmenu_col(menustr, 20);
 		MEM_freeN(menustr);
