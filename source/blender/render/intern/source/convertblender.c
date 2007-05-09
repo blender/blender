@@ -1629,11 +1629,11 @@ static void init_render_mball(Render *re, Object *ob)
 	if(need_orco) {
 		/* store displist and scale */
 		make_orco_mball(ob);
-
 	}
-
-	/* enforce display lists remade */
-	freedisplist(&ob->disp);
+	else {
+		/* enforce display lists remade */
+		freedisplist(&ob->disp);
+	}
 }
 /* ------------------------------------------------------------------------- */
 /* convert */
