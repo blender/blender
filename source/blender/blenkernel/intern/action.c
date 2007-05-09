@@ -360,7 +360,7 @@ bActionChannel *get_action_channel(bAction *act, const char *name)
 {
 	bActionChannel *chan;
 	
-	if (!act)
+	if (!act || !name)
 		return NULL;
 	
 	for (chan = act->chanbase.first; chan; chan=chan->next){
