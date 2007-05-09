@@ -1264,20 +1264,20 @@ static void zbufshade_sss_free(RenderPart *pa)
 
 void zbufshade_sss_tile(RenderPart *pa)
 {
+	Render *re= &R;
 	ShadeSample ssamp;
 	ZBufSSSHandle handle;
 	RenderResult *rr= pa->result;
 	RenderLayer *rl= rr->layers.first;
 	VlakRen *vlr;
-	Material *mat= R.sss_mat;
+	Material *mat= re->sss_mat;
 	float (*co)[3], (*color)[3], *area, *fcol= rl->rectf;
-	int x, y, seed, quad, totpoint;
+	int x, y, seed, quad, totpoint, display = !(re->r.scemode & R_PREVIEWBUTS);
+	int *rz, *rp, *rbz, *rbp;
 #if 0
 	PixStr *ps;
 	long *rs;
 	int z;
-#else
-	int *rz, *rp, *rbz, *rbp;
 #endif
 
 	set_part_zbuf_clipflag(pa);
@@ -1312,7 +1312,7 @@ void zbufshade_sss_tile(RenderPart *pa)
 
 #if 0
 	/* create ISB (does not work currently!) */
-	if(R.r.mode & R_SHADOW)
+	if(re->r.mode & R_SHADOW)
 		ISB_create(pa, NULL);
 #endif
 
@@ -1324,9 +1324,11 @@ void zbufshade_sss_tile(RenderPart *pa)
 	ssamp.shi[0].combinedflag= ~(SCE_PASS_SPEC);
 	ssamp.tot= 1;
 
-	/* initialize scanline updates for main thread */
-	rr->renrect.ymin= 0;
-	rr->renlay= rl;
+	if(display) {
+		/* initialize scanline updates for main thread */
+		rr->renrect.ymin= 0;
+		rr->renlay= rl;
+	}
 	
 	seed= pa->rectx*pa->disprect.ymin;
 #if 0
@@ -1348,7 +1350,7 @@ void zbufshade_sss_tile(RenderPart *pa)
 			if(rs) {
 				/* for each sample in this pixel, shade it */
 				for(ps=(PixStr*)*rs; ps; ps=ps->next) {
-					vlr= RE_findOrAddVlak(&R, (ps->facenr-1) & RE_QUAD_MASK);
+					vlr= RE_findOrAddVlak(re, (ps->facenr-1) & RE_QUAD_MASK);
 					quad= (ps->facenr & RE_QUAD_OFFS);
 					z= ps->z;
 
@@ -1367,7 +1369,7 @@ void zbufshade_sss_tile(RenderPart *pa)
 			if(rp) {
 				if(*rp != 0) {
 					/* shade front */
-					vlr= RE_findOrAddVlak(&R, (*rp-1) & RE_QUAD_MASK);
+					vlr= RE_findOrAddVlak(re, (*rp-1) & RE_QUAD_MASK);
 					quad= ((*rp) & RE_QUAD_OFFS);
 
 					shade_sample_sss(&ssamp, mat, vlr, quad, x, y, *rz,
@@ -1384,7 +1386,7 @@ void zbufshade_sss_tile(RenderPart *pa)
 			if(rbp) {
 				if(*rbp != 0 && *rbp != *(rp-1)) {
 					/* shade back */
-					vlr= RE_findOrAddVlak(&R, (*rbp-1) & RE_QUAD_MASK);
+					vlr= RE_findOrAddVlak(re, (*rbp-1) & RE_QUAD_MASK);
 					quad= ((*rbp) & RE_QUAD_OFFS);
 
 					shade_sample_sss(&ssamp, mat, vlr, quad, x, y, *rbz,
@@ -1404,12 +1406,12 @@ void zbufshade_sss_tile(RenderPart *pa)
 		}
 
 		if(y&1)
-			if(R.test_break()) break; 
+			if(re->test_break()) break; 
 	}
 
 	/* note: after adding we do not free these arrays, sss keeps them */
 	if(totpoint > 0) {
-		sss_add_points(&R, co, color, area, totpoint);
+		sss_add_points(re, co, color, area, totpoint);
 	}
 	else {
 		MEM_freeN(co);
@@ -1418,13 +1420,15 @@ void zbufshade_sss_tile(RenderPart *pa)
 	}
 	
 #if 0
-	if(R.r.mode & R_SHADOW)
+	if(re->r.mode & R_SHADOW)
 		ISB_free(pa);
 #endif
 		
-	/* display active layer */
-	rr->renrect.ymin=rr->renrect.ymax= 0;
-	rr->renlay= render_get_active_layer(&R, rr);
+	if(display) {
+		/* display active layer */
+		rr->renrect.ymin=rr->renrect.ymax= 0;
+		rr->renlay= render_get_active_layer(&R, rr);
+	}
 	
 	zbufshade_sss_free(pa);
 }

@@ -1165,6 +1165,15 @@ void RE_AddObject(Render *re, Object *ob)
 
 /* *************************************** */
 
+static int render_display_draw_enabled(Render *re)
+{
+	/* don't show preprocess for previewrender sss */
+	if(re->sss_points)
+		return !(re->r.scemode & R_PREVIEWBUTS);
+	else
+		return 1;
+}
+
 static void *do_part_thread(void *pa_v)
 {
 	RenderPart *pa= pa_v;
@@ -1183,7 +1192,7 @@ static void *do_part_thread(void *pa_v)
 		/* merge too on break! */
 		if(R.result->exrhandle)
 			save_render_result_tile(&R, pa);
-		else
+		else if(render_display_draw_enabled(&R))
 			merge_render_result(R.result, pa->result);
 	}
 	
@@ -1226,7 +1235,8 @@ static void render_tile_processor(Render *re, int firsttile)
 			
 			if(pa->result) {
 				if(!re->test_break()) {
-					re->display_draw(pa->result, NULL);
+					if(render_display_draw_enabled(re))
+						re->display_draw(pa->result, NULL);
 					
 					re->i.partsdone++;
 					re->stats_draw(&re->i);
@@ -1432,7 +1442,8 @@ static void threaded_tile_processor(Render *re)
 				BLI_remove_thread(&threads, pa);
 				
 				if(pa->result) {
-					re->display_draw(pa->result, NULL);
+					if(render_display_draw_enabled(re))
+						re->display_draw(pa->result, NULL);
 					print_part_stats(re, pa);
 					
 					RE_FreeRenderResult(pa->result);
@@ -1444,7 +1455,8 @@ static void threaded_tile_processor(Render *re)
 			else {
 				rendering= 1;
 				if(pa->nr && pa->result && drawtimer>20) {
-					re->display_draw(pa->result, &pa->result->renrect);
+					if(render_display_draw_enabled(re))
+						re->display_draw(pa->result, &pa->result->renrect);
 					hasdrawn= 1;
 				}
 			}

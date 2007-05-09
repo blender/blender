@@ -839,6 +839,7 @@ typedef struct SSSPoints {
 static void sss_create_tree_mat(Render *re, Material *mat)
 {
 	SSSPoints *p;
+	RenderResult *rr;
 	ListBase layers, points;
 	float (*co)[3] = NULL, (*color)[3] = NULL, *area = NULL;
 	int totpoint = 0, osa, osaflag, partsdone;
@@ -848,11 +849,15 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 	
 	points.first= points.last= NULL;
 
+	/* TODO: this is getting a bit ugly, copying all those variables and
+	   setting them back, maybe we need to create our own Render? */
+
 	/* do SSS preprocessing render */
 	layers= re->r.layers;
 	osa= re->osa;
 	osaflag= re->r.mode & R_OSA;
 	partsdone= re->i.partsdone;
+	rr= re->result;
 
 	re->r.layers.first= re->r.layers.last= NULL;
 	re->osa= 0;
@@ -860,15 +865,18 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 	re->sss_points= &points;
 	re->sss_mat= mat;
 	re->i.partsdone= 0;
+	re->result= NULL;
 
-	RE_TileProcessor(re, 0, 1);
+	RE_TileProcessor(re, 0, !(re->r.mode & R_PREVIEWBUTS));
+	RE_FreeRenderResult(re->result);
 
+	re->result= rr;
+	re->i.partsdone= partsdone;
 	re->sss_mat= NULL;
 	re->sss_points= NULL;
 	re->r.layers= layers;
 	re->osa= osa;
 	if (osaflag) re->r.mode |= R_OSA;
-	re->i.partsdone= partsdone;
 
 	/* no points? no tree */
 	if(!points.first)
@@ -907,7 +915,7 @@ static void sss_create_tree_mat(Render *re, Material *mat)
 		float fw= mat->sss_front, bw= mat->sss_back;
 		float error = mat->sss_error;
 		
-		if((R.r.scemode & R_PREVIEWBUTS) && error < 0.5f)
+		if((re->r.scemode & R_PREVIEWBUTS) && error < 0.5f)
 			error= 0.5f;
 
 		sss->ss[0]= scatter_settings_new(col[0], radius[0], ior, cfac, fw, bw);
