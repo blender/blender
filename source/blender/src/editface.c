@@ -1339,7 +1339,7 @@ void face_borderselect()
 		}
 		
 		mface= me->mface;
-		for(a=1; a<=me->totface; a++, tface++) {
+		for(a=1; a<=me->totface; a++, tface++, mface++) {
 			if(selar[a]) {
 				if(mface->flag & ME_HIDE);
 				else {
