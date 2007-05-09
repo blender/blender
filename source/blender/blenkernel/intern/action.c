@@ -987,20 +987,22 @@ static void cyclic_offs_bone(Object *ob, bPose *pose, bActionStrip *strip, float
 				/* bring it into armature space */
 				VecSubf(min, max, min);
 				bone= get_named_bone(ob->data, strip->offs_bone);	/* weak */
-				Mat4Mul3Vecfl(bone->arm_mat, min);
-				
-				/* dominant motion, cyclic_offset was cleared in rest_pose */
-				if (strip->flag & (ACTSTRIP_CYCLIC_USEX | ACTSTRIP_CYCLIC_USEY | ACTSTRIP_CYCLIC_USEZ)) {
-					if (strip->flag & ACTSTRIP_CYCLIC_USEX) pose->cyclic_offset[0]= time*min[0];
-					if (strip->flag & ACTSTRIP_CYCLIC_USEY) pose->cyclic_offset[1]= time*min[1];
-					if (strip->flag & ACTSTRIP_CYCLIC_USEZ) pose->cyclic_offset[2]= time*min[2];
-				} else {
-					if( fabs(min[0]) >= fabs(min[1]) && fabs(min[0]) >= fabs(min[2]))
-						pose->cyclic_offset[0]= time*min[0];
-					else if( fabs(min[1]) >= fabs(min[0]) && fabs(min[1]) >= fabs(min[2]))
-						pose->cyclic_offset[1]= time*min[1];
-					else
-						pose->cyclic_offset[2]= time*min[2];
+				if(bone) {
+					Mat4Mul3Vecfl(bone->arm_mat, min);
+					
+					/* dominant motion, cyclic_offset was cleared in rest_pose */
+					if (strip->flag & (ACTSTRIP_CYCLIC_USEX | ACTSTRIP_CYCLIC_USEY | ACTSTRIP_CYCLIC_USEZ)) {
+						if (strip->flag & ACTSTRIP_CYCLIC_USEX) pose->cyclic_offset[0]= time*min[0];
+						if (strip->flag & ACTSTRIP_CYCLIC_USEY) pose->cyclic_offset[1]= time*min[1];
+						if (strip->flag & ACTSTRIP_CYCLIC_USEZ) pose->cyclic_offset[2]= time*min[2];
+					} else {
+						if( fabs(min[0]) >= fabs(min[1]) && fabs(min[0]) >= fabs(min[2]))
+							pose->cyclic_offset[0]= time*min[0];
+						else if( fabs(min[1]) >= fabs(min[0]) && fabs(min[1]) >= fabs(min[2]))
+							pose->cyclic_offset[1]= time*min[1];
+						else
+							pose->cyclic_offset[2]= time*min[2];
+					}
 				}
 			}
 		}
