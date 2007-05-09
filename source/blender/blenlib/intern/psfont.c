@@ -664,7 +664,6 @@ static short STDtoISO(short c)
  */
 
 static char * newfgets(char * s, int n, PackedFile * pf){
-	int read = 0;
 	int c;
 	char * p;
 
@@ -673,9 +672,7 @@ static char * newfgets(char * s, int n, PackedFile * pf){
 		c = ((char *) pf->data)[pf->seek];
 		pf->seek++;
 		if (pf->seek > pf->size){
-			if (read == 0) return (0);
-			*p = 0;
-			return(s);
+			return (0);
 		}
 		if (c == 10 || c == 13){
 			*p = 0;
