@@ -1677,9 +1677,9 @@ def main():
 	
 	Blender.Window.FileSelector(read, "Import LWO", '*.lwo')
 
-#if __name__=='__main__':
-#	main()
-
+if __name__=='__main__':
+	main()
+"""
 # Cams debugging lwo loader
 
 TIME= Blender.sys.time()
@@ -1725,3 +1725,4 @@ for i, _lwo in enumerate(lines):
 		print 'mb size so far', size
 
 print 'TOTAL TIME: %.6f' % (Blender.sys.time() - TIME)
+"""
