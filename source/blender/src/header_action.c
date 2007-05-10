@@ -150,24 +150,18 @@ void do_action_buttons(unsigned short event)
 
 	switch(event){
 		case B_ACTBAKE:
-			bake_action_with_client (G.saction->action, ob, 0.01);
+			bake_action_with_client(G.saction->action, ob, 0.01);
 			break;
 		case B_ACTHOME:
-			//	Find X extents
-			//v2d= &(G.saction->v2d);
-
+			/*	Find X extents */
 			G.v2d->cur.xmin = 0;
 			G.v2d->cur.ymin=-SCROLLB;
 
-			if (!G.saction->action){	// here the mesh rvk?
-				G.v2d->cur.xmax= -5;
-				G.v2d->cur.xmax= 100;
-			}
-			else {
+			if (G.saction->action) {
 				float extra;
 				
 				calc_action_range(G.saction->action, &G.v2d->cur.xmin, &G.v2d->cur.xmax, 0);
-				if(G.saction->pin==0 && ob) {
+				if (G.saction->pin==0 && ob) {
 					G.v2d->cur.xmin= get_action_frame_inv(ob, G.v2d->cur.xmin);
 					G.v2d->cur.xmax= get_action_frame_inv(ob, G.v2d->cur.xmax);
 				}				
@@ -175,10 +169,14 @@ void do_action_buttons(unsigned short event)
 				G.v2d->cur.xmin-= extra;
 				G.v2d->cur.xmax+= extra;
 
-				if(G.v2d->cur.xmin==G.v2d->cur.xmax) {
+				if (G.v2d->cur.xmin==G.v2d->cur.xmax) {
 					G.v2d->cur.xmax= -5;
 					G.v2d->cur.xmax= 100;
 				}
+			}
+			else { /* shapekeys and/or no action */
+				G.v2d->cur.xmax= -5;
+				G.v2d->cur.xmax= 100;
 			}
 			G.v2d->cur.ymin= 0.0f;
 			G.v2d->cur.ymax= 1000.0f;
@@ -204,19 +202,17 @@ void do_action_buttons(unsigned short event)
 			break;
 
 		case B_ACTPIN:	/* __PINFAKE */
-/*		if (G.saction->flag & SACTION_PIN){
-		if (G.saction->action)
-		G.saction->action->id.us ++;
-		
+/*		if (G.saction->flag & SACTION_PIN) {
+			if (G.saction->action)
+				G.saction->action->id.us ++;
 		}
 		else {
 			if (G.saction->action)
 				G.saction->action->id.us --;
-				}
+		}
 */		/* end PINFAKE */
 			allqueue(REDRAWACTION, 1);
 			break;
-
 	}
 }
 
@@ -356,18 +352,20 @@ static void do_action_selectmenu_columnmenu(void *arg, int event)
 	bAction	*act;
 	Key *key;
 	
-	saction= curarea->spacedata.first;
-	act=saction->action;
+	saction = curarea->spacedata.first;
+	if (!saction) return;
+
+	act = saction->action;
 	key = get_action_mesh_key();
 	
 	if (event == ACTMENU_SEL_COLUMN_MARKERSBETWEEN) {
 		markers_selectkeys_between();
 	}
 	else if (ELEM(event, ACTMENU_SEL_COLUMN_KEYS, ACTMENU_SEL_COLUMN_MARKERSCOLUMN)) {
-		if (key)
-			column_select_shapekeys(key, event);
-		else if (act)
+		if (act)
 			column_select_actionkeys(act, event);
+		else if (key)
+			column_select_shapekeys(key, event);
 	}
 	else
 		return;
@@ -412,8 +410,7 @@ static void do_action_selectmenu(void *arg, int event)
 	Key *key;
 	
 	saction = curarea->spacedata.first;
-	if (!saction)
-		return;
+	if (!saction) return;
 
 	act = saction->action;
 	key = get_action_mesh_key();
@@ -421,11 +418,11 @@ static void do_action_selectmenu(void *arg, int event)
 	switch(event)
 	{
 		case ACTMENU_SEL_BORDER: /* Border Select */
-			if (key) {
-				borderselect_mesh(key);
-			}
-			else {
+			if (act) {
 				borderselect_action();
+			}
+			else if (key) {
+				borderselect_mesh(key);
 			}
 			break;
 			
@@ -434,14 +431,14 @@ static void do_action_selectmenu(void *arg, int event)
 			break;
 
 		case ACTMENU_SEL_ALL_KEYS: /* Select/Deselect All Keys */
-			if (key) {
-				deselect_meshchannel_keys(key, 1, 1);
+			if (act) {
+				deselect_actionchannel_keys (act, 1, 1);
 				allqueue (REDRAWACTION, 0);
 				allqueue(REDRAWNLA, 0);
 				allqueue (REDRAWIPO, 0);
 			}
-			else {
-				deselect_actionchannel_keys (act, 1, 1);
+			else if (key) {
+				deselect_meshchannel_keys(key, 1, 1);
 				allqueue (REDRAWACTION, 0);
 				allqueue(REDRAWNLA, 0);
 				allqueue (REDRAWIPO, 0);
@@ -449,7 +446,7 @@ static void do_action_selectmenu(void *arg, int event)
 			break;
 
 		case ACTMENU_SEL_ALL_CHAN: /* Select/Deselect All Channels */
-			deselect_actionchannels (act, 1);
+			deselect_actionchannels(act, 1);
 			allqueue (REDRAWVIEW3D, 0);
 			allqueue (REDRAWACTION, 0);
 			allqueue(REDRAWNLA, 0);
@@ -466,14 +463,14 @@ static void do_action_selectmenu(void *arg, int event)
 			break;
 			
 		case ACTMENU_SEL_INVERSE_KEYS: /* invert selection status of keys */
-			if (key) {
-				deselect_meshchannel_keys(key, 0, 2);
+			if (act) {
+				deselect_actionchannel_keys(act, 0, 2);
 				allqueue (REDRAWACTION, 0);
 				allqueue(REDRAWNLA, 0);
 				allqueue (REDRAWIPO, 0);
 			}
-			else {
-				deselect_actionchannel_keys (act, 0, 2);
+			else if (key) {
+				deselect_meshchannel_keys(key, 0, 2);
 				allqueue (REDRAWACTION, 0);
 				allqueue(REDRAWNLA, 0);
 				allqueue (REDRAWIPO, 0);
@@ -562,36 +559,37 @@ static void do_action_keymenu_transformmenu(void *arg, int event)
 	bAction	*act;
 	Key *key;
 	
+	saction = curarea->spacedata.first;
+	if (!saction) return;
+
+	act = saction->action;
 	key = get_action_mesh_key();
-	saction= curarea->spacedata.first;
 	
-	act=saction->action;
-	
-	switch(event)
+	switch (event)
 	{
 		case ACTMENU_KEY_TRANSFORM_MOVE:
-			if (key) {
-				transform_meshchannel_keys('g', key);
-			} 
-			else if (act) {	
+			if (act) {	
 				transform_actionchannel_keys ('g', 0);
 			}
+			else if (key) {
+				transform_meshchannel_keys('g', key);
+			} 
 			break;
 		case ACTMENU_KEY_TRANSFORM_SCALE:
-			if (key) {
-				transform_meshchannel_keys('s', key);
-			} 
-			else if (act) {
+			if (act) {
 				transform_actionchannel_keys ('s', 0);
 			}
+			else if (key) {
+				transform_meshchannel_keys('s', key);
+			} 
 			break;
 		case ACTMENU_KEY_TRANSFORM_SLIDE:
-			if (key) {
-				//transform_meshchannel_keys('t', key);
-			} 
-			else if (act) {
+			if (act) {
 				transform_actionchannel_keys ('t', 0);
 			}
+			else if (key) {
+				//transform_meshchannel_keys('t', key);
+			} 
 			break;
 	}
 
@@ -626,17 +624,24 @@ static uiBlock *action_keymenu_transformmenu(void *arg_unused)
 
 static void do_action_keymenu_handlemenu(void *arg, int event)
 {
+	SpaceAction *saction;
+	bAction	*act;
 	Key *key;
 	
+	saction = curarea->spacedata.first;
+	if (!saction) return;
+
+	act = saction->action;
 	key = get_action_mesh_key();
 
-	switch (event){
+	switch (event) {
 		case ACTMENU_KEY_HANDLE_AUTO:
-			if (key) {
-				sethandles_meshchannel_keys(HD_AUTO, key);
-			} else {
+			if (act) {
 				sethandles_actionchannel_keys(HD_AUTO);
 			}
+			else if (key) {
+				sethandles_meshchannel_keys(HD_AUTO, key);
+			} 
 			break;
 
 		case ACTMENU_KEY_HANDLE_ALIGN:
@@ -644,19 +649,21 @@ static void do_action_keymenu_handlemenu(void *arg, int event)
 			/* OK, this is kinda dumb, need to fix the
 			 * toggle crap in sethandles_ipo_keys() 
 			 */
-			if (key) {
-				sethandles_meshchannel_keys(HD_ALIGN, key);
-			} else {
+			if (act) {
 				sethandles_actionchannel_keys(HD_ALIGN);
 			}
+			else if (key) {
+				sethandles_meshchannel_keys(HD_ALIGN, key);
+			} 
 			break;
 
 		case ACTMENU_KEY_HANDLE_VECTOR:
-			if (key) {
-				sethandles_meshchannel_keys(HD_VECT, key);
-			} else {
+			if (act) {
 				sethandles_actionchannel_keys(HD_VECT);
 			}
+			else if (key) {
+				sethandles_meshchannel_keys(HD_VECT, key);
+			} 			
 			break;
 	}
 }
@@ -694,35 +701,32 @@ static uiBlock *action_keymenu_handlemenu(void *arg_unused)
 
 static void do_action_keymenu_intpolmenu(void *arg, int event)
 {
-	Key *key;
+	SpaceAction *saction;
+	bAction	*act;
+	//Key *key;
+	
+	saction = curarea->spacedata.first;
+	if (!saction) return;
 
-	key = get_action_mesh_key();
+	act = saction->action;
+	//key = get_action_mesh_key();
 
 	switch(event)
 	{
 		case ACTMENU_KEY_INTERP_CONST:
-			if (key) {
-				/* to do */
-			}
-			else {
+			if (act)
 				set_ipotype_actionchannels(SET_IPO_CONSTANT);
-			}
+			//else if (key) /* todo */
 			break;
 		case ACTMENU_KEY_INTERP_LINEAR:
-			if (key) {
-				/* to do */
-			}
-			else {
+			if (act)
 				set_ipotype_actionchannels(SET_IPO_LINEAR);
-			}
+			//else if (key) /* todo */
 			break;
 		case ACTMENU_KEY_INTERP_BEZIER:
-			if (key) {
-				/* to do */
-			}
-			else {
+			if (act)
 				set_ipotype_actionchannels(SET_IPO_BEZIER);
-			}
+			//else if (key) /* todo */
 			break;
 	}
 
@@ -759,43 +763,37 @@ static uiBlock *action_keymenu_intpolmenu(void *arg_unused)
 
 static void do_action_keymenu_extendmenu(void *arg, int event)
 {
-	Key *key;
+	SpaceAction *saction;
+	bAction	*act;
+	//Key *key;
+	
+	saction = curarea->spacedata.first;
+	if (!saction) return;
 
-	key = get_action_mesh_key();
+	act = saction->action;
+	//key = get_action_mesh_key();
 
 	switch(event)
 	{
 		case ACTMENU_KEY_EXTEND_CONST:
-			if (key) {
-				/* to do */
-			}
-			else {
+			if (act)
 				set_extendtype_actionchannels(SET_EXTEND_CONSTANT);
-			}
+			//else if (key) /* todo */
 			break;
 		case ACTMENU_KEY_EXTEND_EXTRAPOLATION:
-			if (key) {
-				/* to do */
-			}
-			else {
+			if (act)
 				set_extendtype_actionchannels(SET_EXTEND_EXTRAPOLATION);
-			}
+			//else if (key) /* todo */
 			break;
 		case ACTMENU_KEY_EXTEND_CYCLIC:
-			if (key) {
-				/* to do */
-			}
-			else {
+			if (act)
 				set_extendtype_actionchannels(SET_EXTEND_CYCLIC);
-			}
+			//else if (key) /* todo */
 			break;
 		case ACTMENU_KEY_EXTEND_CYCLICEXTRAPOLATION:
-			if (key) {
-				/* to do */
-			}
-			else {
+			if (act)
 				set_extendtype_actionchannels(SET_EXTEND_CYCLICEXTRAPOLATION);
-			}
+			//else if (key) /* todo */
 			break;
 	}
 
@@ -984,9 +982,8 @@ static void do_action_keymenu(void *arg, int event)
 	bAction	*act;
 	Key *key;
 	
-	saction= curarea->spacedata.first;
-	if (!saction)
-		return;
+	saction = curarea->spacedata.first;
+	if (!saction) return;
 
 	act = saction->action;
 	key = get_action_mesh_key();
@@ -994,31 +991,31 @@ static void do_action_keymenu(void *arg, int event)
 	switch(event)
 	{
 		case ACTMENU_KEY_DUPLICATE:
-			if (key) {
-				duplicate_meshchannel_keys(key);
-			}
-			else if (act) {
+			if (act) {
 				duplicate_actionchannel_keys();
 				remake_action_ipos(act);
+			}
+			else if (key) {
+				duplicate_meshchannel_keys(key);
 			}
  			break;
 
 		case ACTMENU_KEY_DELETE:
-			if (key) {
-				delete_meshchannel_keys(key);
-			}
-			else if (act) {
+			if (act) {
 				delete_actionchannel_keys ();
+			}
+			else if (key) {
+				delete_meshchannel_keys(key);
 			}
 			break;
 		case ACTMENU_KEY_BAKE:
-			bake_action_with_client (G.saction->action, OBACT, 0.01);
+			bake_action_with_client(G.saction->action, OBACT, 0.01);
 			break;
 		case ACTMENU_KEY_CLEAN:
-			if (key) 
-				clean_shapekeys(key);
-			else if (act) 
+			if (act) 
 				clean_actionchannels(act);
+			else if (key) 
+				clean_shapekeys(key);
 			break;
 	}
 }

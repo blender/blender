@@ -356,7 +356,7 @@ static void *get_nearest_actionchannel_key (float *selx, short *sel, short *ret_
 		if(VISIBLE_ACHAN(achan)) {
 			if (clickmax < 0) 
 				break;
-			if (clickmin <= 0) {
+			if ((clickmin <= 0) && (achan->ipo)) {
 				/* found level - action channel */
 				icu= get_nearest_icu_key(achan->ipo->curve.first, selx, sel, xrange);
 				
@@ -422,7 +422,7 @@ static void *get_nearest_actionchannel_key (float *selx, short *sel, short *ret_
 				for (conchan= achan->constraintChannels.first; conchan; conchan=conchan->next) {
 					if (clickmax < 0) 
 						break;
-					if (clickmin <= 0) {
+					if ((clickmin <= 0) && (conchan->ipo)) {
 						/* found match - constraint channel */
 						icu= get_nearest_icu_key(conchan->ipo->curve.first, selx, sel, xrange);
 						
@@ -581,8 +581,8 @@ void column_select_shapekeys(Key *key, int mode)
 		}
 		
 		/* loop through all of the keys and select additional keyframes
-			* based on the keys found to be selected above
-			*/
+		 * based on the keys found to be selected above
+		 */
 		for(ce= elems.first; ce; ce= ce->next) {
 			for (icu = key->ipo->curve.first; icu ; icu = icu->next) {
 				BezTriple *bezt= icu->bezt;
@@ -1703,7 +1703,7 @@ void deselect_actionchannels (bAction *act, int test)
 				}
 				if (sel) {
 					if (EXPANDED_ACHAN(achan)) {
-						if (FILTER_IPO_ACHAN(achan)) {
+						if (FILTER_IPO_ACHAN(achan) && (achan->ipo)) {
 							for (icu=achan->ipo->curve.first; icu; icu=icu->next) {
 								if (SEL_ICU(icu)) {
 									sel= 0;
@@ -1739,7 +1739,7 @@ void deselect_actionchannels (bAction *act, int test)
 				achan->flag &= ~ACHAN_SELECTED;
 
 			if (EXPANDED_ACHAN(achan)) {
-				if (FILTER_IPO_ACHAN(achan)) {
+				if (FILTER_IPO_ACHAN(achan) && (achan->ipo)) {
 					for (icu=achan->ipo->curve.first; icu; icu=icu->next) {
 						if (sel)
 							icu->flag |= IPO_SELECT;
@@ -2578,12 +2578,12 @@ void snap_keys_to_frame(int snap_mode)
 	}
 	
 	/* snap to frame */
-	if (key) {
-		set_snap_meshchannels(key, snap_mode);
-	}
-	else if (act) {
+	if (act) {
 		set_snap_actionchannels(act, snap_mode);
 		remake_action_ipos (act);
+	}
+	else if (key) {
+		set_snap_meshchannels(key, snap_mode);
 	}
 	
 	BIF_undo_push(str);
@@ -2680,12 +2680,12 @@ void mirror_action_keys(short mirror_mode)
 	}
 	
 	/* mirror */
-	if (key) {
-		mirror_meshchannels(key, mirror_mode);
-	}
-	else if (act) {
+	if (act) {
 		mirror_actionchannels(act, mirror_mode);
 		remake_action_ipos (act);
+	}
+	else if (key) {
+		mirror_meshchannels(key, mirror_mode);
 	}
 	
 	BIF_undo_push(str);
@@ -3064,17 +3064,20 @@ static void numbuts_action(void)
 {
 	/* now called from action window event loop, plus reacts on mouseclick */
 	/* removed Hos grunts for that reason! :) (ton) */
-    Key *key;
+	bAction *act;
+	Key *key;
     short mval[2];
 	
 	key = get_action_mesh_key();
+	act = G.saction->action;
+	
 	getmouseco_areawin (mval);
 	
 	if (mval[0] < NAMEWIDTH) {
-	    if (key) 
-			clever_keyblock_names(key, mval);
-		else 
+		if (act)
 			clever_achannel_names(mval);
+		else if (key) 
+			clever_keyblock_names(key, mval);
 	}
 }
 
@@ -3099,6 +3102,8 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		return;
 
 	act=saction->action;
+	key = get_action_mesh_key();
+	
 	if (val) {
 		if ( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
 		
@@ -3114,9 +3119,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		}
 		
 		getmouseco_areawin(mval);
-
-		key = get_action_mesh_key();
-
+		
 		switch(event) {
 		case UI_BUT_EVENT:
 			do_actionbuts(val); 	// window itself
@@ -3127,28 +3130,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 
 		case AKEY:
-			if (key) {
-				if (mval[0]<ACTWIDTH){
-					/* to do ??? */
-				}
-				else {
-					if (G.qual == LR_CTRLKEY) {
-						deselect_markers(1, 0);
-						allqueue(REDRAWTIME, 0);
-						allqueue(REDRAWIPO, 0);
-						allqueue(REDRAWACTION, 0);
-						allqueue(REDRAWNLA, 0);
-						allqueue(REDRAWSOUND, 0);
-					}
-					else {
-						deselect_meshchannel_keys(key, 1, 1);
-						allqueue (REDRAWACTION, 0);
-						allqueue(REDRAWNLA, 0);
-						allqueue (REDRAWIPO, 0);
-					}
-				}
-			}
-			else {
+			if (act) {
 				if (mval[0]<NAMEWIDTH) {
 					deselect_actionchannels (act, 1);
 					allqueue (REDRAWVIEW3D, 0);
@@ -3173,30 +3155,42 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					}
 				}
 			}
+			else if (key) {
+				if (mval[0]<ACTWIDTH) {
+					/* to do ??? */
+				}
+				else {
+					if (G.qual == LR_CTRLKEY) {
+						deselect_markers(1, 0);
+						allqueue(REDRAWTIME, 0);
+						allqueue(REDRAWIPO, 0);
+						allqueue(REDRAWACTION, 0);
+						allqueue(REDRAWNLA, 0);
+						allqueue(REDRAWSOUND, 0);
+					}
+					else {
+						deselect_meshchannel_keys(key, 1, 1);
+						allqueue (REDRAWACTION, 0);
+						allqueue(REDRAWNLA, 0);
+						allqueue (REDRAWIPO, 0);
+					}
+				}
+			}
 			break;
 
 		case BKEY:
 			if (G.qual & LR_CTRLKEY)
 				borderselect_markers();
-			else if (key) {
-				if (mval[0]<ACTWIDTH) {
-					/* to do?? */
-				}
-				else {
-					borderselect_mesh(key);
-				}
-			}
-			else {
+			else if (act) {
 				/* If the border select is initiated in the
 				 * part of the action window where the channel
 				 * names reside, then select the channels
 				 */
-				if (mval[0]<NAMEWIDTH){
+				if (mval[0]<NAMEWIDTH) {
 					borderselect_function(borderselect_actionchannels);
 					BIF_undo_push("Select Action");
 				}
-				else if (mval[0]>ACTWIDTH){
-
+				else if (mval[0]>ACTWIDTH) {
 					/* If the border select is initiated in the
 					 * vertical scrollbar, then (de)select all keys
 					 * for the channels in the selection region
@@ -3212,12 +3206,19 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else if (IN_2D_HORIZ_SCROLL(mval)) {
 						borderselect_function(select_all_keys_frames);
 					}
-
-					/* Other wise, select the action keys
-					 */
+					
+					/* Other wise, select the action keys */
 					else {
 						borderselect_action();
 					}
+				}
+			}
+			else if (key) {
+				if (mval[0]<ACTWIDTH) {
+					/* to do?? */
+				}
+				else {
+					borderselect_mesh(key);
 				}
 			}
 			break;
@@ -3235,12 +3236,12 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					duplicate_marker();
 				}
 				else if (G.qual == LR_SHIFTKEY) {
-					if (key) {
-						duplicate_meshchannel_keys(key);
-					}
-					else if (act) {
+					if (act) {
 						duplicate_actionchannel_keys();
 						remake_action_ipos(act);
+					}
+					else if (key) {
+						duplicate_meshchannel_keys(key);
 					}
 				}
 			}
@@ -3252,31 +3253,31 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			else {
 				if (mval[0]>=ACTWIDTH) {
-					if (key) {
-						transform_meshchannel_keys('g', key);
-					}
-					else if (act) {
+					if (act) {
 						transform_actionchannel_keys ('g', 0);
+					}
+					else if (key) {
+						transform_meshchannel_keys('g', key);
 					}
 				}
 			}
 			break;
-
+		
 		case HKEY:
 			if(G.qual & LR_SHIFTKEY) {
 				if(okee("Set Keys to Auto Handle")) {
-					if (key)
-						sethandles_meshchannel_keys(HD_AUTO, key);
-					else
+					if (act)
 						sethandles_actionchannel_keys(HD_AUTO);
+					else if (key)
+						sethandles_meshchannel_keys(HD_AUTO, key);
 				}
 			}
 			else {
 				if(okee("Toggle Keys Aligned Handle")) {
-					if (key)
-						sethandles_meshchannel_keys(HD_ALIGN, key);
-					else
+					if (act)
 						sethandles_actionchannel_keys(HD_ALIGN);
+					else if (key)
+						sethandles_meshchannel_keys(HD_ALIGN, key);
 				}
 			}
 			break;
@@ -3288,10 +3289,10 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			else {
 				val= (G.qual & LR_SHIFTKEY) ? 2 : 1;
 				
-				if(key)
-					column_select_shapekeys(key, val);
-				else if(act)
+				if (act)
 					column_select_actionkeys(act, val);
+				else if (key)
+					column_select_shapekeys(key, val);
 			}
 			
 			allqueue(REDRAWTIME, 0);
@@ -3333,10 +3334,10 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 			
 		case OKEY:
-			if(key)
-				clean_shapekeys(key);
-			else if(act)
+			if(act)
 				clean_actionchannels(act);
+			else if(key)
+				clean_shapekeys(key);
 			break;
 			
 		case PKEY:
@@ -3358,42 +3359,35 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					snap_keys_to_frame(val);
 				}
 				else {
-					if (key)
-						transform_meshchannel_keys('s', key);
-					else if (act)
+					if (act)
 						transform_actionchannel_keys ('s', 0);
+					else if (key)
+						transform_meshchannel_keys('s', key);	
 				}
 			}
 			break;
-
-			/*** set the Ipo type  ***/
+		
 		case TKEY:
-			if (key) {
-				/* to do */
-			}
-			else {
+			if (act) {
 				if(G.qual & LR_SHIFTKEY)
 					set_ipotype_actionchannels(SET_IPO_POPUP);
 				else
 					transform_actionchannel_keys ('t', 0);
 			}
+			/* else if (key) {}  ... todo */
 			break;
 
 		case VKEY:
 			if(okee("Set Keys to Vector Handle")) {
-				if (key)
-					sethandles_meshchannel_keys(HD_VECT, key);
-				else
+				if (act)
 					sethandles_actionchannel_keys(HD_VECT);
+				else if (key)
+					sethandles_meshchannel_keys(HD_VECT, key);
 			}
 			break;
 
 		case PAGEUPKEY:
-			if (key) {
-				/* only jump to markers possible (key channels can't be moved yet) */
-				nextprev_marker(1);
-			}
-			else {
+			if (act) {
 				if(G.qual & LR_SHIFTKEY)
 					top_sel_action();
 				else if (G.qual & LR_CTRLKEY)
@@ -3401,13 +3395,13 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else
 					nextprev_marker(1);
 			}
+			else if (key) {
+				/* only jump to markers possible (key channels can't be moved yet) */
+				nextprev_marker(1);
+			}
 			break;
 		case PAGEDOWNKEY:
-			if (key) {
-				/* only jump to markers possible (key channels can't be moved yet) */
-				nextprev_marker(-1);
-			}
-			else {
+			if (act) {
 				if(G.qual & LR_SHIFTKEY)
 					bottom_sel_action();
 				else if (G.qual & LR_CTRLKEY) 
@@ -3415,18 +3409,23 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else
 					nextprev_marker(-1);
 			}
+			else if (key) {
+				/* only jump to markers possible (key channels can't be moved yet) */
+				nextprev_marker(-1);
+			}
 			break;
+			
 		case DELKEY:
 		case XKEY:
 			if (okee("Erase selected")) {
-				if (key) {
-					delete_meshchannel_keys(key);
-				}
-				else {
+				if (act) {
 					if (mval[0]<NAMEWIDTH)
 						delete_actionchannels();
 					else
 						delete_actionchannel_keys();
+				}
+				else if (key) {
+					delete_meshchannel_keys(key);
 				}
 				
 				if (mval[0] >= NAMEWIDTH)
@@ -3439,6 +3438,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				allqueue(REDRAWSOUND, 0);
 			}
 			break;
+		
 		/* LEFTMOUSE and RIGHTMOUSE event codes can be swapped above,
 		 * based on user preference USER_LMOUSESELECT
 		 */
@@ -3504,17 +3504,17 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				 * selects keys and markers
 				 */
 				else {
-					if (key) {
-						if(G.qual & LR_SHIFTKEY)
-							mouse_mesh_action(SELECT_INVERT, key);
-						else
-							mouse_mesh_action(SELECT_REPLACE, key);
-					}
-					else {
+					if (act) {
 						if(G.qual & LR_SHIFTKEY)
 							mouse_action(SELECT_INVERT);
 						else
 							mouse_action(SELECT_REPLACE);
+					}
+					else if (key) {
+						if(G.qual & LR_SHIFTKEY)
+							mouse_mesh_action(SELECT_INVERT, key);
+						else
+							mouse_mesh_action(SELECT_REPLACE, key);
 					}
 				}
 			}
@@ -3577,7 +3577,8 @@ Key *get_action_mesh_key(void)
     return NULL;
 }
 
-int get_nearest_key_num(Key *key, short *mval, float *x) {
+int get_nearest_key_num(Key *key, short *mval, float *x) 
+{
 	/* returns the key num that cooresponds to the
 	 * y value of the mouse click. Does not check
 	 * if this is a valid keynum. Also gives the Ipo
@@ -3734,11 +3735,7 @@ void markers_selectkeys_between(void)
 	key = get_action_mesh_key();
 	
 	/* select keys in-between */
-	if (key) {
-		if (key->ipo) 
-			borderselect_ipo_key(key->ipo, min, max, SELECT_ADD);
-	}
-	else if (act) {
+	if (act) {
 		bActionChannel *achan;
 		bConstraintChannel *conchan;
 		
@@ -3770,6 +3767,10 @@ void markers_selectkeys_between(void)
 				}
 			}
 		}
+	}
+	else if (key) {
+		if (key->ipo) 
+			borderselect_ipo_key(key->ipo, min, max, SELECT_ADD);
 	}
 }
 
@@ -3841,8 +3842,7 @@ void up_sel_action()
 		achan->flag = achan->flag & ~ACHAN_MOVED;
 	}
 	
-	/* Clean up and redraw stuff
-	*/
+	/* Clean up and redraw stuff */
 	remake_action_ipos (act);
 	BIF_undo_push("Up Action channel");
 	allspace(REMAKEIPO, 0);
@@ -3887,8 +3887,7 @@ void down_sel_action()
 		achan->flag = achan->flag & ~ACHAN_MOVED;
 	}
 	
-	/* Clean up and redraw stuff
-	*/
+	/* Clean up and redraw stuff */
 	remake_action_ipos (act);
 	BIF_undo_push("Down Action channel");
 	allspace(REMAKEIPO, 0);
@@ -3922,8 +3921,7 @@ void bottom_sel_action()
 		achan->flag = achan->flag & ~ACHAN_MOVED;
 	}
 	
-	/* Clean up and redraw stuff
-	*/
+	/* Clean up and redraw stuff */
 	remake_action_ipos (act);
 	BIF_undo_push("Bottom Action channel");
 	allspace(REMAKEIPO, 0);
@@ -3946,7 +3944,7 @@ void world2bonespace(float boneSpaceMat[][4], float worldSpace[][4], float restP
 	Mat4MulMat4(boneSpaceMat, restPos, t2mat);
 }
 
-bAction* bake_action_with_client (bAction *act, Object *armob, float tolerance)
+bAction *bake_action_with_client (bAction *act, Object *armob, float tolerance)
 {
 	bArmature		*arm;
 	bAction			*result=NULL;

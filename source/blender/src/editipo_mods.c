@@ -1182,8 +1182,8 @@ void borderselect_icu_key(IpoCurve *icu, float xmin, float xmax,
 void borderselect_ipo_key(Ipo *ipo, float xmin, float xmax, int selectmode)
 {
 	/* Selects all bezier triples in each Ipocurve of the
-	* Ipo between times xmin and xmax, using the selection mode.
-	*/
+	 * Ipo between times xmin and xmax, using the selection mode.
+	 */
 	
 	IpoCurve *icu;
 	int (*select_function)(BezTriple *);
@@ -1193,8 +1193,8 @@ void borderselect_ipo_key(Ipo *ipo, float xmin, float xmax, int selectmode)
 		return;
 	
 	/* Set the selection function based on the
-		* selection mode.
-		*/
+	 * selection mode.
+	 */
 	switch(selectmode) {
 		case SELECT_ADD:
 			select_function = select_bezier_add;
