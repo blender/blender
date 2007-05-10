@@ -1634,6 +1634,9 @@ static void init_render_mball(Render *re, Object *ob)
 		/* enforce display lists remade */
 		freedisplist(&ob->disp);
 	}
+	
+	/* this enforces remake for real, orco displist is small (in scale) */
+	ob->recalc |= OB_RECALC_DATA;
 }
 /* ------------------------------------------------------------------------- */
 /* convert */
