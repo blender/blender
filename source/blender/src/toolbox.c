@@ -1129,7 +1129,7 @@ static TBitem tb_mesh[]= {
 
 static TBitem tb_curve_hide[]= {
 {	0, "Show Hidden|Alt H", 		10, 		NULL},
-{	0, "Hide Selected|Ctrl H", 			11, 		NULL},
+{	0, "Hide Selected|Alt Ctrl H", 			11, 		NULL},
 {  -1, "", 			0, do_view3d_edit_curve_showhidemenu}};
 
 
