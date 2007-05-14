@@ -1841,7 +1841,7 @@ static int hashlist_projectvert(float *v1, float winmat[][4], float *hoco)
 		return 0;
 	}
 	
-	buck= &bucket[ (((unsigned long)v1)/16) & 255 ];
+	buck= &bucket[ (((long)v1)/16) & 255 ];
 	if(buck->vert==v1) {
 		QUATCOPY(hoco, buck->hoco);
 		return buck->clip;
