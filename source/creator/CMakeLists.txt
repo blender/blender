@@ -149,9 +149,9 @@ IF(WIN32)
     COMMAND copy /Y \"${WIN_LIBDIR}\\sdl\\lib\\SDL.dll\" \"$\(TargetDir\)\\\"
     COMMAND copy /Y \"${WIN_LIBDIR}\\zlib\\lib\\zlib.dll\" \"$\(TargetDir\)\\\"
     COMMAND copy /Y \"${WIN_LIBDIR}\\tiff\\lib\\libtiff.dll\" \"$\(TargetDir\)\\\"
-    COMMAND if $\(ConfigurationName\)==Debug copy /Y \"${WIN_LIBDIR}\\python\\lib\\python24_D.dll\" \"$\(TargetDir\)\\\"
+    COMMAND if $\(ConfigurationName\)==Debug copy /Y \"${WIN_LIBDIR}\\python\\lib\\python25_D.dll\" \"$\(TargetDir\)\\\"
     COMMAND if $\(ConfigurationName\)==Debug copy /Y \"${WIN_LIBDIR}\\CRTL\\lib\\msvcrtd.dll\" \"$\(TargetDir\)\\\"
-    COMMAND if NOT $\(ConfigurationName\)==Debug copy /Y \"${WIN_LIBDIR}\\python\\lib\\python24.dll\" \"$\(TargetDir\)\\\"
+    COMMAND if NOT $\(ConfigurationName\)==Debug copy /Y \"${WIN_LIBDIR}\\python\\lib\\python25.dll\" \"$\(TargetDir\)\\\"
     COMMAND copy /Y \"${WIN_LIBDIR}\\pthreads\\lib\\pthreadVC2.dll\" \"$\(TargetDir\)\\\"
   )
 
