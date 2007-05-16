@@ -2681,11 +2681,16 @@ static PyObject *Object_shareFrom( BPy_Object * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected an object argument" );
 
-	if( self->object->type != object->object->type )
+	if( !object->object->data )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "Object argument has no data linked yet or is an empty" );
+	
+	if( self->object->type != object->object->type &&
+		self->realtype != object->object->type)
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "objects are not of same data type" );
 
-	switch ( self->object->type ) {
+	switch ( object->object->type ) {
 	case OB_MESH:
 	case OB_LAMP:
 	case OB_CAMERA:	/* we can probably add the other types, too */
@@ -2693,6 +2698,13 @@ static PyObject *Object_shareFrom( BPy_Object * self, PyObject * args )
 	case OB_CURVE:
 	case OB_SURF:
 	case OB_LATTICE:
+		
+		/* if this object had no data, we need to enable the realtype */
+		if (self->object->type == OB_EMPTY) {
+			self->object->type= self->realtype;
+			self->realtype = OB_EMPTY;
+		}
+	
 		oldid = ( ID * ) self->object->data;
 		id = ( ID * ) object->object->data;
 		self->object->data = object->object->data;
@@ -2711,6 +2723,7 @@ static PyObject *Object_shareFrom( BPy_Object * self, PyObject * args )
 					   "old object reference count below 0" );
 			}
 		}
+		
 		Py_RETURN_NONE;
 	default:
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
