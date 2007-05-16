@@ -2024,7 +2024,7 @@ static void editmesh_calc_modifiers(DerivedMesh **cage_r,
 		CDDM_calc_normals(*final_r);
 	} else if (dm) {
 		*final_r = dm;
-	} else if (cage_r && *cage_r) {
+	} else if (!deformedVerts && cage_r && *cage_r) {
 		*final_r = *cage_r;
 	} else {
 		*final_r = getEditMeshDerivedMesh(em, ob, deformedVerts);
