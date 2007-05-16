@@ -1012,7 +1012,7 @@ static TBitem tb_mesh_edit_vertex[]= {
 {	0, "Separate|P", 			3, 		NULL},
 {	0, "SEPR",					0, NULL},
 {	0, "Smooth|W, Alt 1", 			2, NULL},
-{	0, "Remove Doubles|W, 5", 			1, NULL},
+{	0, "Remove Doubles|W, 6", 			1, NULL},
 {	0, "SEPR",					0, NULL},
 {	0, "Make Vertex Parent|Ctrl P", 	0, NULL},
 {	0, "Add Hook|Ctrl H",		6, NULL},
