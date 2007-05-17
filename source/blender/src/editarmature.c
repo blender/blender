@@ -2529,6 +2529,7 @@ void hide_selected_pose_bones(void)
 
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWACTION, 0);
 	BIF_undo_push("Hide Bones");
 }
 
