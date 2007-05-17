@@ -1539,6 +1539,54 @@ void addvert_armature(void)
 }
 
 
+static EditBone *get_named_editbone(char *name)
+{
+	EditBone  *eBone;
+
+	if (name)
+		for (eBone=G.edbo.first; eBone; eBone=eBone->next){
+			if (!strcmp (name, eBone->name))
+				return eBone;
+		}
+
+	return NULL;
+}
+
+static void update_dup_subtarget(EditBone *dupBone)
+{
+	/* If an edit bone has been duplicated, lets
+	 * update it's constraints if the subtarget
+	 * they point to has also been duplicated
+	 */
+	EditBone     *oldtarget, *newtarget;
+	bPoseChannel *chan;
+	bConstraint  *curcon;
+	ListBase     *conlist;
+	char         *subname;
+
+
+	if ( (chan = verify_pose_channel(OBACT->pose, dupBone->name)) )
+		if ( (conlist = &chan->constraints) )
+			for (curcon = conlist->first; curcon; curcon=curcon->next) {
+				/* does this constraint have a subtarget in
+				 * this armature?
+				 */
+				subname = get_con_subtarget_name(curcon, G.obedit);
+				oldtarget = get_named_editbone(subname);
+				if (oldtarget)
+					/* was the subtarget bone duplicated too? If
+					 * so, update the constraint to point at the 
+					 * duplicate of the old subtarget.
+					 */
+					if (oldtarget->flag & BONE_SELECTED){
+						newtarget = (EditBone*) oldtarget->temp;
+						strcpy(subname, newtarget->name);
+					}
+			}
+	
+}
+
+
 void adduplicate_armature(void)
 {
 	bArmature *arm= G.obedit->data;
@@ -1570,7 +1618,24 @@ void adduplicate_armature(void)
 				/* Lets duplicate the list of constraits that the
 					* current bone has.
 					*/
-				/* temporal removed (ton) */
+				if (OBACT->pose) {
+					bPoseChannel *chanold, *channew;
+					ListBase     *listold, *listnew;
+
+					chanold = verify_pose_channel (OBACT->pose, curBone->name);
+					if (chanold) {
+						listold = &chanold->constraints;
+						if (listold){
+							channew = 
+								verify_pose_channel(OBACT->pose, eBone->name);
+							if (channew) {
+								listnew = &channew->constraints;
+								copy_constraints (listnew, listold);
+							}
+						}
+					}
+				}
+
 			}
 		}
 	}
@@ -1603,8 +1668,8 @@ void adduplicate_armature(void)
 				
 				/* Lets try to fix any constraint subtargets that might
 					have been duplicated */
-				/* temporal removed (ton) */
-			}			
+				update_dup_subtarget(eBone);
+			}
 		}
 	} 
 	
