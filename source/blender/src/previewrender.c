@@ -283,6 +283,8 @@ static Scene *preview_prepare_scene(RenderInfo *ri, int id_type, ID *id, int pr_
 				/* turn on raytracing if needed */
 				if(mat->mode_l & (MA_RAYTRANSP|MA_RAYMIRROR))
 					sce->r.mode |= R_RAYTRACE;
+				if(mat->sss_flag & MA_DIFF_SSS)
+					sce->r.mode |= R_SSS;
 				
 				/* turn off fake shadows if needed */
 				/* this only works in a specific case where the preview.blend contains
@@ -314,7 +316,7 @@ static Scene *preview_prepare_scene(RenderInfo *ri, int id_type, ID *id, int pr_
 				}
 			}
 			else {
-				sce->r.mode &= ~(R_OSA|R_RAYTRACE);
+				sce->r.mode &= ~(R_OSA|R_RAYTRACE|R_SSS);
 			}
 			
 			for(base= sce->base.first; base; base= base->next) {

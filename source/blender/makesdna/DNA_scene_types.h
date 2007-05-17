@@ -486,6 +486,7 @@ typedef struct Scene {
 		/* threads obsolete... is there for old files */
 #define R_THREADS		0x80000
 #define R_SPEED			0x100000
+#define R_SSS			0x200000
 
 /* filtertype */
 #define R_FILTER_BOX	0
