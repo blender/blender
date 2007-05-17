@@ -1179,72 +1179,31 @@ static void modifier_testImage(char *name, ID **idpp)
 /* autocomplete callback for ID buttons */
 void autocomplete_image(char *str, void *arg_v)
 {
-	char truncate[40] = {0};
-
 	/* search if str matches the beginning of an ID struct */
 	if(str[0]) {
+		AutoComplete *autocpl = autocomplete_begin(str, 22);
 		ID *id;
 
-		for(id = G.main->image.first; id; id = id->next) {
-			int a;
+		for(id = G.main->image.first; id; id = id->next)
+			autocomplete_do_name(autocpl, id->name+2);
 
-			for(a = 0; a < 24 - 2; a++) {
-				if(str[a] == 0 || str[a] != id->name[a + 2])
-					break;
-			}
-			/* found a match */
-			if(str[a] == 0) {
-				/* first match */
-				if(truncate[0] == 0)
-					BLI_strncpy(truncate, id->name + 2, 24);
-				else {
-					/* remove from truncate what is not in id->name */
-					for(a = 0; a < 23; a++) {
-						if(truncate[a] != id->name[a])
-							truncate[a] = 0;
-					}
-				}
-			}
-		}
-		if(truncate[0])
-			BLI_strncpy(str, truncate, 24);
+		autocomplete_end(autocpl, str);
 	}
 }
 
 /* autocomplete callback for ID buttons */
 void autocomplete_meshob(char *str, void *arg_v)
 {
-	char truncate[40] = {0};
-
 	/* search if str matches the beginning of an ID struct */
 	if(str[0]) {
+		AutoComplete *autocpl = autocomplete_begin(str, 22);
 		ID *id;
 
-		for(id = G.main->object.first; id; id = id->next) {
-			int a;
+		for(id = G.main->object.first; id; id = id->next)
+			if(((Object *)id)->type == OB_MESH)
+				autocomplete_do_name(autocpl, id->name+2);
 
-			if(((Object *)id)->type != OB_MESH) continue;
-
-			for(a = 0; a < 24 - 2; a++) {
-				if(str[a] == 0 || str[a] != id->name[a + 2])
-					break;
-			}
-			/* found a match */
-			if(str[a] == 0) {
-				/* first match */
-				if(truncate[0] == 0)
-					BLI_strncpy(truncate, id->name + 2, 24);
-				else {
-					/* remove from truncate what is not in id->name */
-					for(a = 0; a < 23; a++) {
-						if(truncate[a] != id->name[a])
-							truncate[a] = 0;
-					}
-				}
-			}
-		}
-		if(truncate[0])
-			BLI_strncpy(str, truncate, 24);
+		autocomplete_end(autocpl, str);
 	}
 }
 
@@ -3740,38 +3699,18 @@ static void editing_panel_armature_visuals(Object *ob, bArmature *arm)
 /* autocomplete callback for editbones */
 static void autocomplete_editbone(char *str, void *arg_v)
 {
-	char truncate[40]= {0};
-	
 	if(G.obedit==NULL) return;
 	
 	/* search if str matches the beginning of an ID struct */
 	if(str[0]) {
+		AutoComplete *autocpl= autocomplete_begin(str, 32);
 		EditBone *ebone;
 		
-		for (ebone=G.edbo.first; ebone; ebone=ebone->next) {
-			int a;
-			if(ebone->name==str) continue;
-			
-			for(a=0; a<31; a++) {
-				if(str[a]==0 || str[a]!=ebone->name[a])
-					break;
-			}
-			/* found a match */
-			if(str[a]==0) {
-				/* first match */
-				if(truncate[0]==0)
-					BLI_strncpy(truncate, ebone->name, 32);
-				else {
-					/* remove from truncate what is not in bone->name */
-					for(a=0; a<31; a++) {
-						if(truncate[a] && truncate[a]!=ebone->name[a])
-							truncate[a]= 0;
-					}
-				}
-			}
-		}
-		if(truncate[0])
-			BLI_strncpy(str, truncate, 32);
+		for (ebone=G.edbo.first; ebone; ebone=ebone->next)
+			if(ebone->name!=str)
+				autocomplete_do_name(autocpl, ebone->name);
+
+		autocomplete_end(autocpl, str);
 	}
 }
 

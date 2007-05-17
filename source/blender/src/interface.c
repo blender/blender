@@ -5932,42 +5932,78 @@ static int findBitIndex(unsigned int x) {
 	}
 }
 
+/* autocomplete helper functions */
+struct AutoComplete {
+	int maxlen;
+	char *truncate;
+	char *startname;
+};
+
+AutoComplete *autocomplete_begin(char *startname, int maxlen)
+{
+	AutoComplete *autocpl;
+	
+	autocpl= MEM_callocN(sizeof(AutoComplete), "AutoComplete");
+	autocpl->maxlen= maxlen;
+	autocpl->truncate= MEM_callocN(sizeof(char)*maxlen, "AutoCompleteTruncate");
+	autocpl->startname= startname;
+
+	return autocpl;
+}
+
+void autocomplete_do_name(AutoComplete *autocpl, const char *name)
+{
+	char *truncate= autocpl->truncate;
+	char *startname= autocpl->startname;
+	int a;
+
+	for(a=0; a<autocpl->maxlen-1; a++) {
+		if(startname[a]==0 || startname[a]!=name[a])
+			break;
+	}
+	/* found a match */
+	if(startname[a]==0) {
+		/* first match */
+		if(truncate[0]==0)
+			BLI_strncpy(truncate, name, autocpl->maxlen);
+		else {
+			/* remove from truncate what is not in bone->name */
+			for(a=0; a<autocpl->maxlen-1; a++) {
+				if(truncate[a]!=name[a])
+					truncate[a]= 0;
+			}
+		}
+	}
+}
+
+void autocomplete_end(AutoComplete *autocpl, char *autoname)
+{
+	if(autocpl->truncate[0])
+		BLI_strncpy(autoname, autocpl->truncate, autocpl->maxlen);
+	else
+		BLI_strncpy(autoname, autocpl->startname, autocpl->maxlen);
+
+	MEM_freeN(autocpl->truncate);
+	MEM_freeN(autocpl);
+}
+
 /* autocomplete callback for ID buttons */
 static void autocomplete_id(char *str, void *arg_v)
 {
 	int blocktype= (long)arg_v;
 	ListBase *listb= wich_libbase(G.main, blocktype);
-	char truncate[32]= {0};
 	
 	if(listb==NULL) return;
 	
 	/* search if str matches the beginning of an ID struct */
 	if(str[0]) {
+		AutoComplete *autocpl= autocomplete_begin(str, 22);
 		ID *id;
 		
-		for(id= listb->first; id; id= id->next) {
-			int a;
-			
-			for(a=0; a<21; a++) {
-				if(str[a]==0 || str[a]!=id->name[a+2])
-					break;
-			}
-			/* found a match */
-			if(str[a]==0) {
-				/* first match */
-				if(truncate[0]==0)
-					strcpy(truncate, id->name+2);
-				else {
-					/* remove from truncate what is not in id->name */
-					for(a=0; a<21; a++) {
-						if(truncate[a]!=id->name[a+2])
-							truncate[a]= 0;
-					}
-				}
-			}
-		}
-		if(truncate[0])
-			BLI_strncpy(str, truncate, 21);
+		for(id= listb->first; id; id= id->next)
+			autocomplete_do_name(autocpl, id->name+2);
+
+		autocomplete_end(autocpl, str);
 	}
 }
 

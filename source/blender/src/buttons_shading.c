@@ -43,9 +43,11 @@
 
 #include "DNA_brush_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_customdata_types.h"
 #include "DNA_image_types.h"
 #include "DNA_lamp_types.h"
 #include "DNA_material_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
 #include "DNA_node_types.h"
@@ -3019,10 +3021,51 @@ static void material_panel_map_to(Material *ma, int from_nodes)
 	uiDefButF(block, NUMSLI, B_MATPRV, "fac ",			195,10,115,19, &(mtex->warpfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects texture coordinates of next channels");
 }
 
+/* autocomplete callback for buttons */
+static void autocomplete_uv(char *str, void *arg_v)
+{
+	Mesh *me;
+	CustomDataLayer *layer;
+	AutoComplete *autocpl;
+	int a;
+
+	if(str[0]==0)
+		return;
+
+	autocpl= autocomplete_begin(str, 32);
+		
+	/* search if str matches the beginning of name */
+	for(me= G.main->mesh.first; me; me=me->id.next)
+		for(a=0, layer= me->fdata.layers; a<me->fdata.totlayer; a++, layer++)
+			if(layer->type == CD_MTFACE)
+				autocomplete_do_name(autocpl, layer->name);
+	
+	autocomplete_end(autocpl, str);
+}
+
+static int verify_valid_uv_name(char *str)
+{
+	Mesh *me;
+	CustomDataLayer *layer;
+	int a;
+	
+	if(str[0]==0)
+		return 1;
+
+	/* search if str matches the name */
+	for(me= G.main->mesh.first; me; me=me->id.next)
+		for(a=0, layer= me->fdata.layers; a<me->fdata.totlayer; a++, layer++)
+			if(layer->type == CD_MTFACE)
+				if(strcmp(layer->name, str)==0)
+					return 1;
+	
+	return 0;
+}
 
 static void material_panel_map_input(Object *ob, Material *ma)
 {
 	uiBlock *block;
+	uiBut *but;
 	MTex *mtex;
 	int b;
 	
@@ -3042,8 +3085,13 @@ static void material_panel_map_input(Object *ob, Material *ma)
 	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW, B_MATPRV, "Glob",			630,180,45,18, &(mtex->texco), 4.0, (float)TEXCO_GLOB, 0, 0, "Uses global coordinates for the texture coordinates");
 	uiDefButS(block, ROW, B_MATPRV, "Object",		675,180,75,18, &(mtex->texco), 4.0, (float)TEXCO_OBJECT, 0, 0, "Uses linked object's coordinates for texture coordinates");
-	if(mtex->texco == TEXCO_UV)
-		uiDefBut(block, TEX, B_MATPRV, "UV:", 750,180,158,18, mtex->uvname, 0, 31, 0, 0, "Set name of UV layer to use, default is active UV layer");
+	if(mtex->texco == TEXCO_UV) {
+		if(!verify_valid_uv_name(mtex->uvname))
+            uiBlockSetCol(block, TH_REDALERT);
+		but=uiDefBut(block, TEX, B_MATPRV, "UV:", 750,180,158,18, mtex->uvname, 0, 31, 0, 0, "Set name of UV layer to use, default is active UV layer");
+		uiButSetCompleteFunc(but, autocomplete_uv, NULL);
+		uiBlockSetCol(block, TH_AUTO);
+	}
 	else
 		uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_MATPRV, "Ob:",750,180,158,18, &(mtex->object), "");
 	

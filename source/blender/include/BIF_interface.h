@@ -36,6 +36,7 @@
 struct ID;
 struct ListBase;
 struct ScrArea;
+struct AutoComplete;
 
 /* uiBlock->dt */
 #define UI_EMBOSS		0	/* use one of the themes for drawing */
@@ -318,6 +319,12 @@ extern void uiDrawBoxShadow(unsigned char alpha, float minx, float miny, float m
 extern void *uiSetCurFont_ext(float aspect);
 
 void shade_buttons_change_3d(void);
+
+typedef struct AutoComplete AutoComplete;
+
+AutoComplete *autocomplete_begin(char *startname, int maxlen);
+void autocomplete_do_name(AutoComplete *autocpl, const char *name);
+void autocomplete_end(AutoComplete *autocpl, char *autoname);
 
 #endif /*  BIF_INTERFACE_H */
 

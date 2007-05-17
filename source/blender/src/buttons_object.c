@@ -473,37 +473,18 @@ static void constraint_moveDown(void *ob_v, void *con_v)
 void autocomplete_bone(char *str, void *arg_v)
 {
 	Object *ob= (Object *)arg_v;
-	char truncate[40]= {0};
 	
 	if(ob==NULL || ob->pose==NULL) return;
 	
 	/* search if str matches the beginning of name */
 	if(str[0]) {
+		AutoComplete *autocpl= autocomplete_begin(str, 32);
 		bPoseChannel *pchan;
 		
-		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-			int a;
-			
-			for(a=0; a<31; a++) {
-				if(str[a]==0 || str[a]!=pchan->name[a])
-					break;
-			}
-			/* found a match */
-			if(str[a]==0) {
-				/* first match */
-				if(truncate[0]==0)
-					BLI_strncpy(truncate, pchan->name, 32);
-				else {
-					/* remove from truncate what is not in bone->name */
-					for(a=0; a<31; a++) {
-						if(truncate[a]!=pchan->name[a])
-							truncate[a]= 0;
-					}
-				}
-			}
-		}
-		if(truncate[0])
-			BLI_strncpy(str, truncate, 32);
+		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next)
+			autocomplete_do_name(autocpl, pchan->name);
+
+		autocomplete_end(autocpl, str);
 	}
 }
 
@@ -511,38 +492,19 @@ void autocomplete_bone(char *str, void *arg_v)
 void autocomplete_vgroup(char *str, void *arg_v)
 {
 	Object *ob= (Object *)arg_v;
-	char truncate[40]= {0};
 	
 	if(ob==NULL) return;
 	
 	/* search if str matches the beginning of a name */
 	if(str[0]) {
+		AutoComplete *autocpl= autocomplete_begin(str, 32);
 		bDeformGroup *dg;
 		
-		for(dg= ob->defbase.first; dg; dg= dg->next) {
-			int a;
-			if(dg->name==str) continue;
-			
-			for(a=0; a<31; a++) {
-				if(str[a]==0 || str[a]!=dg->name[a])
-					break;
-			}
-			/* found a match */
-			if(str[a]==0) {
-				/* first match */
-				if(truncate[0]==0)
-					BLI_strncpy(truncate, dg->name, 32);
-				else {
-					/* remove from truncate what is not in bone->name */
-					for(a=0; a<31; a++) {
-						if(truncate[a]!=dg->name[a])
-							truncate[a]= 0;
-					}
-				}
-			}
-		}
-		if(truncate[0])
-			BLI_strncpy(str, truncate, 32);
+		for(dg= ob->defbase.first; dg; dg= dg->next)
+			if(dg->name!=str)
+				autocomplete_do_name(autocpl, dg->name);
+
+		autocomplete_end(autocpl, str);
 	}
 }
 
