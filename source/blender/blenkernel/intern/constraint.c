@@ -78,13 +78,10 @@ void Mat4BlendMat4(float [][4], float [][4], float [][4], float );
 
 void free_constraint_data (bConstraint *con)
 {
-	if (con->data){
-		switch (con->type){
-			default:
-				break;
-		};
+	if (con->data) {
+		/* any constraint-type specific stuff here */
 		
-		MEM_freeN (con->data);
+		MEM_freeN(con->data);
 	}
 }
 
@@ -94,7 +91,7 @@ void free_constraints (ListBase *conlist)
 	
 	/* Do any specific freeing */
 	for (con=conlist->first; con; con=con->next) {
-		free_constraint_data (con);
+		free_constraint_data(con);
 	}
 	
 	/* Free the whole list */
@@ -105,9 +102,8 @@ void free_constraint_channels (ListBase *chanbase)
 {
 	bConstraintChannel *chan;
 	
-	for (chan=chanbase->first; chan; chan=chan->next)
-	{
-		if (chan->ipo){
+	for (chan=chanbase->first; chan; chan=chan->next) {
+		if (chan->ipo) {
 			chan->ipo->id.us--;
 		}
 	}
@@ -119,8 +115,8 @@ void relink_constraints (struct ListBase *list)
 {
 	bConstraint *con;
 	
-	for (con = list->first; con; con=con->next){
-		switch (con->type){
+	for (con = list->first; con; con=con->next) {
+		switch (con->type) {
 			case CONSTRAINT_TYPE_KINEMATIC:
 			{
 				bKinematicConstraint *data;
@@ -228,7 +224,7 @@ void copy_constraint_channels (ListBase *dst, ListBase *src)
 	dst->first=dst->last=NULL;
 	duplicatelist(dst, src);
 	
-	for (dchan=dst->first, schan=src->first; dchan; dchan=dchan->next, schan=schan->next){
+	for (dchan=dst->first, schan=src->first; dchan; dchan=dchan->next, schan=schan->next) {
 		dchan->ipo = copy_ipo(schan->ipo);
 	}
 }
@@ -240,7 +236,7 @@ void clone_constraint_channels (ListBase *dst, ListBase *src)
 	dst->first=dst->last=NULL;
 	duplicatelist(dst, src);
 	
-	for (dchan=dst->first, schan=src->first; dchan; dchan=dchan->next, schan=schan->next){
+	for (dchan=dst->first, schan=src->first; dchan; dchan=dchan->next, schan=schan->next) {
 		id_us_plus((ID *)dchan->ipo);
 	}
 }
@@ -255,7 +251,6 @@ void copy_constraints (ListBase *dst, ListBase *src)
 	
 	for (con = dst->first; con; con=con->next) {
 		con->data = MEM_dupallocN (con->data);
-		/* removed a whole lot of useless code here (ton) */
 	}
 }
 
@@ -264,7 +259,7 @@ void copy_constraints (ListBase *dst, ListBase *src)
 
 char constraint_has_target (bConstraint *con) 
 {
-	switch (con->type){
+	switch (con->type) {
 	case CONSTRAINT_TYPE_TRACKTO:
 		{
 			bTrackToConstraint *data = con->data;
@@ -355,10 +350,9 @@ char constraint_has_target (bConstraint *con)
 
 Object *get_constraint_target(bConstraint *con, char **subtarget)
 {
-/*
-* If the target for this constraint is target, return a pointer 
-* to the name for this constraints subtarget ... NULL otherwise
-	*/
+	/* If the target for this constraint is target, return a pointer 
+	  * to the name for this constraints subtarget ... NULL otherwise
+	  */
 	switch (con->type) {
 	case CONSTRAINT_TYPE_ACTION:
 		{
@@ -454,9 +448,7 @@ Object *get_constraint_target(bConstraint *con, char **subtarget)
 
 void set_constraint_target(bConstraint *con, Object *ob, char *subtarget)
 {
-	/*
-	 * Set the target for this constraint  
-	 */
+	/* Set the target for this constraint  */
 	switch (con->type) {
 		case CONSTRAINT_TYPE_ACTION:
 		{
@@ -597,7 +589,7 @@ void *new_constraint_data (short type)
 {
 	void *result;
 	
-	switch (type){
+	switch (type) {
 	case CONSTRAINT_TYPE_KINEMATIC:
 		{
 			bKinematicConstraint *data;
@@ -611,37 +603,28 @@ void *new_constraint_data (short type)
 			result = data;
 		}
 		break;
-	case CONSTRAINT_TYPE_NULL:
-		{
-			result = NULL;
-		}
-		break;
 	case CONSTRAINT_TYPE_TRACKTO:
 		{
 			bTrackToConstraint *data;
 			data = MEM_callocN(sizeof(bTrackToConstraint), "tracktoConstraint");
-
-
+			
 			data->reserved1 = TRACK_Y;
 			data->reserved2 = UP_Z;
-
+			
 			result = data;
-
 		}
 		break;
 	case CONSTRAINT_TYPE_MINMAX:
 		{
 			bMinMaxConstraint *data;
 			data = MEM_callocN(sizeof(bMinMaxConstraint), "minmaxConstraint");
-
-
+			
 			data->minmaxflag = TRACK_Z;
 			data->offset = 0.0f;
 			data->cache[0] = data->cache[1] = data->cache[2] = 0.0f;
 			data->flag = 0;
-
+			
 			result = data;
-
 		}
 		break;
 	case CONSTRAINT_TYPE_ROTLIKE:
@@ -664,7 +647,6 @@ void *new_constraint_data (short type)
 		{
 			bSizeLikeConstraint *data;
 			data = MEM_callocN(sizeof(bLocateLikeConstraint), "sizelikeConstraint");
-
 			data->flag |= SIZELIKE_X|SIZELIKE_Y|SIZELIKE_Z;
 			result = data;
 		}
@@ -1337,8 +1319,8 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 	
 	case CONSTRAINT_TYPE_ACTION:
 		{
-			float temp[4][4];
 			bActionConstraint *data;
+			float temp[4][4];
 			
 			data = constraint->data;
 			Mat4CpyMat4 (temp, ob->obmat);
@@ -1416,9 +1398,9 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 		break;
  	case CONSTRAINT_TYPE_SIZELIKE:
  		{
- 			float obsize[3], size[3];
  			bSizeLikeConstraint *data;
- 
+			float obsize[3], size[3];
+			
  			data = constraint->data;
  
  			Mat4ToSize(targetmat, size);
@@ -1434,9 +1416,9 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
   		break;
 	case CONSTRAINT_TYPE_MINMAX:
 		{
+			bMinMaxConstraint *data;
 			float val1, val2;
 			int index;
-			bMinMaxConstraint *data;
 			float obmat[4][4],imat[4][4],tarmat[4][4],tmat[4][4];
 
 			data = constraint->data;
@@ -1452,7 +1434,7 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 				Mat4One(tarmat);
 			}
 
-			switch (data->minmaxflag){
+			switch (data->minmaxflag) {
 			case TRACK_Z:
 				val1 = tarmat[3][2];
 				val2 = obmat[3][2]-data->offset;
@@ -1489,23 +1471,25 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 			
 			if (val1 > val2) {
 				obmat[3][index] = tarmat[3][index] + data->offset;
-				if (data->flag&MINMAX_STICKY) {
-					if (data->flag&MINMAX_STUCK) {
+				if (data->flag & MINMAX_STICKY) {
+					if (data->flag & MINMAX_STUCK) {
 						VECCOPY(obmat[3], data->cache);
-					} else {
+					} 
+					else {
 						VECCOPY(data->cache, obmat[3]);
 						data->flag|=MINMAX_STUCK;
 					}
 				}
-				if (data->flag&MINMAX_USEROT) {
+				if (data->flag & MINMAX_USEROT) {
 					/* get out of localspace */
 					Mat4MulMat4(tmat,obmat,targetmat);
 					Mat4CpyMat4(ob->obmat,tmat);
-				} else {			
+				} 
+				else {			
 					VECCOPY(ob->obmat[3],obmat[3]);
 				}
-
-			} else {
+			} 
+			else {
 				data->flag&=~MINMAX_STUCK;
 			}
 			
@@ -1521,13 +1505,12 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 
 			data=(bTrackToConstraint*)constraint->data;			
 			
-			if (data->tar){
-					
+			if (data->tar) {
 				/* Get size property, since ob->size is only the object's own relative size, not its global one */
 				Mat4ToSize (ob->obmat, size);
-	
+				
 				Mat4CpyMat4 (M_oldmat, ob->obmat);
-
+				
 				// Clear the object's rotation 	
 				ob->obmat[0][0]=size[0];
 				ob->obmat[0][1]=0;
@@ -1544,7 +1527,7 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 				vectomat(vec, targetmat[2], 
 						(short)data->reserved1, (short)data->reserved2, 
 						data->flags, totmat);
-
+				
 				Mat4CpyMat4(tmat, ob->obmat);
 				
 				Mat4MulMat34(ob->obmat, totmat, tmat);
@@ -1561,11 +1544,9 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 			float tmat[4][4];
 			float mdet;
 
-
 			data=(bLockTrackConstraint*)constraint->data;			
-
-			if (data->tar){
-	
+			
+			if (data->tar) {
 				Mat4CpyMat4 (M_oldmat, ob->obmat);
 
 				/* Vector object -> target */
@@ -1906,12 +1887,11 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
             float totmat[3][3];
             float tmat[4][4];
             float dist;
+			
             data=(bStretchToConstraint*)constraint->data;            
             Mat4ToSize (ob->obmat, size);
-
             
-            if (data->tar){
-                
+            if (data->tar) {
                 /* store X orientation before destroying obmat */
                 xx[0] = ob->obmat[0][0];
                 xx[1] = ob->obmat[0][1];
@@ -1936,7 +1916,7 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
                 if (data->bulge ==0) data->bulge = 1.0;
 
                 scale[1] = dist/data->orglength;
-                switch (data->volmode){
+                switch (data->volmode) {
                 /* volume preserving scaling */
                 case VOLUME_XZ :
                     scale[0] = 1.0f - (float)sqrt(data->bulge) + (float)sqrt(data->bulge*(data->orglength/dist));
@@ -1976,7 +1956,7 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
                 totmat[1][0] = -vec[0];
                 totmat[1][1] = -vec[1];
                 totmat[1][2] = -vec[2];
-                switch (data->plane){
+                switch (data->plane) {
                 case PLANE_X:
                     /* build new Z vector */
                     /* othogonal to "new Y" "old X! plane */
@@ -2001,7 +1981,7 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
                     Crossf(orth, vec, zz);
                     Normalize(orth);
                     
-                    /* new X*/
+                    /* new X */
                     totmat[0][0] = -orth[0];
                     totmat[0][1] = -orth[1];
                     totmat[0][2] = -orth[2];
@@ -2015,11 +1995,9 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
                     break;
                 } /* switch (data->plane) */
                 
-
                 Mat4CpyMat4(tmat, ob->obmat);
                 
                 Mat4MulMat34(ob->obmat, totmat, tmat);
-
             }
         }
         break;

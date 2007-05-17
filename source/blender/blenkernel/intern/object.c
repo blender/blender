@@ -1827,23 +1827,20 @@ void solve_constraints (Object *ob, short obtype, void *obdata, float ctime)
 					float imat[4][4];
 					float identity[4][4];
 					
-					if (con->type!=CONSTRAINT_TYPE_KINEMATIC) {
-						/* If we're not an IK constraint, solve the constraint then blend it to the previous one */
-						evaluate_constraint(con, ob, obtype, obdata, lastmat);
-						
-						Mat4CpyMat4 (solution, ob->obmat);
-
-						/* Interpolate the enforcement */					
-						Mat4Invert (imat, oldmat);
-						Mat4MulMat4 (delta, solution, imat);
-						
-						if (a<1.0) {
-							Mat4One(identity);
-							Mat4BlendMat4(delta, identity, delta, a);
-						}
-						Mat4MulMat4 (ob->obmat, delta, oldmat);
-
+					/* solve the constraint then blend it to the previous one */
+					evaluate_constraint(con, ob, obtype, obdata, lastmat);
+					
+					Mat4CpyMat4 (solution, ob->obmat);
+					
+					/* Interpolate the enforcement */					
+					Mat4Invert (imat, oldmat);
+					Mat4MulMat4 (delta, solution, imat);
+					
+					if (a<1.0) {
+						Mat4One(identity);
+						Mat4BlendMat4(delta, identity, delta, a);
 					}
+					Mat4MulMat4 (ob->obmat, delta, oldmat);
 				}
 			}
 		}
