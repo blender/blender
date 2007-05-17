@@ -499,7 +499,7 @@ endif
     export ID = $(LOGNAME)
     export NAN_PYTHON ?= $(LCGDIR)/python
     export NAN_ICONV ?= $(LCGDIR)/iconv
-    export NAN_PYTHON_VERSION ?= 2.4
+    export NAN_PYTHON_VERSION ?= 2.5
     ifeq ($(FREE_WINDOWS), true)
       export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
       export NAN_FREETYPE ?= $(LCGDIR)/gcc/freetype
