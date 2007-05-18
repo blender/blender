@@ -237,14 +237,14 @@ def EndAlign():
 
 def UIBlock(draw):
 	"""
-	This function creates a popup area where buttons, lebels, sliders etc can be dwarn.
+	This function creates a popup area where buttons, labels, sliders etc can be drawn.
 	
 	@type draw: function
 	@param draw: A function to draw to the popup area, taking no arguments: draw().
 	
 	@note: The size of the popup will expand to fit the bounds of the buttons created in the draw function.
 	@note: Be sure to use the mouse coordinates to position the buttons under the mouse,
-		so the popup dosnt exit as soon as it opens.
+		so the popup dosn't exit as soon as it opens.
 		The coordinates for buttons start 0,0 at the bottom left hand side of the screen.
 	@note: Within this popup, Redraw events and the registered button callback will not work.
 		For buttons to run events, use per button callbacks.
