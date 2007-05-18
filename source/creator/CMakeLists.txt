@@ -76,8 +76,8 @@ IF(UNIX)
   ADD_CUSTOM_COMMAND(TARGET blender
     POST_BUILD
     MAIN_DEPENDENCY blender
-    COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/plugins ${TARGETDIR}/
-    COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/text/* ${TARGETDIR}/
+    #COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/plugins ${TARGETDIR}/
+    #COMMAND cp -R ${CMAKE_SOURCE_DIR}/release/text/* ${TARGETDIR}/
   )
 ENDIF(UNIX)
 
