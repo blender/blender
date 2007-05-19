@@ -1,11 +1,26 @@
 LCGDIR = '#../lib/darwin-6.1-powerpc'
 LIBDIR = '${LCGDIR}'
 
-WITH_BF_VERSE = 'false'
-BF_VERSE_INCLUDE = "#extern/verse/dist"
+# enable ffmpeg  support
+WITH_BF_FFMPEG = 'true'  # -DWITH_FFMPEG
+BF_FFMPEG = LIBDIR +'/ffmpeg'
+BF_FFMPEG_INC = '${BF_FFMPEG}/include'
+BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
+BF_FFMPEG_LIB = 'avformat.a avcodec.a avutil.a'
 
-BF_PYTHON = '/System/Library/Frameworks/Python.framework/Versions/'
-BF_PYTHON_VERSION = '2.5'
+WITH_BF_VERSE = 'false'
+BF_VERSE = "#extern/verse/dist"
+BF_VERSE_LIBPATH = "${BF_BUILDDIR}/extern/verse/dist"
+BF_VERSE_INCLUDE = BF_VERSE
+BF_VERSE_LIBS = "libverse"
+
+# python.org libs install in /library 
+BF_PYTHON_VERSION = '2.3'
+if BF_PYTHON_VERSION=='2.3':
+	BF_PYTHON = '/System/Library/Frameworks/Python.framework/Versions/'
+else:
+	BF_PYTHON = '/Library/Frameworks/Python.framework/Versions/'
+
 BF_PYTHON_INC = '${BF_PYTHON}${BF_PYTHON_VERSION}/include/python${BF_PYTHON_VERSION}'
 BF_PYTHON_BINARY = '${BF_PYTHON}${BF_PYTHON_VERSION}/bin/python${BF_PYTHON_VERSION}'
 BF_PYTHON_LIB = ''
@@ -13,7 +28,12 @@ BF_PYTHON_LIBPATH = '${BF_PYTHON}${BF_PYTHON_VERSION}/lib/python${BF_PYTHON_VERS
 BF_PYTHON_LINKFLAGS = '-u __dummy -u _PyMac_Error -framework System -framework Python'
 
 WITH_BF_OPENAL = 'true'
-BF_OPENAL = LIBDIR + '/openal'
+#different lib must be used  following version of gcc
+# for gcc 3.3
+#BF_OPENAL = LIBDIR + '/openal'
+# for gcc 3.4
+BF_OPENAL = '#../lib/darwin-8.0.0-powerpc/openal'
+
 BF_OPENAL_INC = '${BF_OPENAL}/include'
 BF_OPENAL_LIB = 'openal'
 BF_OPENAL_LIBPATH = '${BF_OPENAL}/lib'
@@ -30,7 +50,7 @@ BF_FMOD = LIBDIR + '/fmod'
 WITH_BF_OPENEXR = 'true'
 BF_OPENEXR = '/usr/local'
 BF_OPENEXR_INC = '${BF_OPENEXR}/include/OpenEXR'
-BF_OPENEXR_LIB = ' Iex Half IlmImf Imath '
+BF_OPENEXR_LIB = ' Iex Half IlmImf Imath IlmThread'
 
 
 WITH_BF_JPEG = 'true'
@@ -65,8 +85,8 @@ BF_FTGL = '#extern/bFTGL'
 BF_FTGL_INC = '${BF_FTGL}/include'
 BF_FTGL_LIB = 'extern_ftgl'
 
-WITH_BF_GAMEENGINE='false'
-WITH_BF_PLAYER='false'
+WITH_BF_GAMEENGINE='true'
+WITH_BF_PLAYER='true'
 
 WITH_BF_ODE = 'false'
 BF_ODE = LIBDIR + '/ode'
@@ -129,9 +149,9 @@ BF_OPENGL_LINKFLAGS = '-framework OpenGL'
 
 CFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing']
 
-CPPFLAGS = []
-CCFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing']
-CXXFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing']
+CPPFLAGS = ['-fpascal-strings']
+CCFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing', '-fpascal-strings']
+CXXFLAGS = ['-pipe','-fPIC','-funsigned-char','-fno-strict-aliasing', '-fpascal-strings']
 PLATFORM_LINKFLAGS = '-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Carbon -framework AGL -framework AudioUnit -framework AudioToolbox -framework CoreAudio -framework QuickTime'
 REL_CFLAGS = ['-O2']
 REL_CCFLAGS = ['-O2']

@@ -71,6 +71,11 @@ if platform=='win32':
 
 if not use_color=='1':
     B.bc.disable()
+    
+ #on defaut white Os X terminal, some colors are totally unlegible
+if platform=='darwin':
+	B.bc.OKGREEN = '\033[34m'
+ 	B.bc.WARNING = '\033[36m'
 
 # arguments
 print B.bc.HEADER+'Command-line arguments'+B.bc.ENDC
