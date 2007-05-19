@@ -114,14 +114,16 @@ static PyObject *M_MeshPrim_Plane( PyObject *self_unused, PyObject *args )
 
 static PyObject *M_MeshPrim_Cube( PyObject *self_unused, PyObject *args )
 {
-	float size = 2.0;
+	float height = 2.0;
+	float dia;
 
-	if( !PyArg_ParseTuple( args, "|f", &size ) )
+	if( !PyArg_ParseTuple( args, "|f", &height ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected optional float arg" );
 
-	size *= (float)(sqrt(2.0)/2.0);
-	return make_mesh( 1, "Cube", 4, 0, 0, size, -size, 1, 1 );
+	height /= 2.0;
+	dia = height * (float)sqrt(2.0);
+	return make_mesh( 1, "Cube", 4, 32, 2, dia, -height, 1, 1 );
 }
 
 static PyObject *M_MeshPrim_Circle( PyObject *self_unused, PyObject *args )
