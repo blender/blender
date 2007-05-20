@@ -29,8 +29,6 @@
 
 #include "../CMP_util.h"
 
-/* completely useless comment to test SVN */
-
 /* ************ qdn: Defocus node ****************** */
 static bNodeSocketType cmp_node_defocus_in[]= {
 	{	SOCK_RGBA, 1, "Image",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
