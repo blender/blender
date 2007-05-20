@@ -1482,6 +1482,8 @@ static void threaded_tile_processor(Render *re)
 	
 	BLI_end_threads(&threads);
 	freeparts(re);
+	re->viewplane= viewplane; /* restore viewplane, modified by pano render */
+
 }
 
 /* currently only called by preview renders and envmap */
