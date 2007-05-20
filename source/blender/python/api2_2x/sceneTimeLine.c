@@ -82,6 +82,12 @@ static PyMethodDef BPy_TimeLine_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
+/*-----------------------dealloc----------------------------------------*/
+static void TimeLine_dealloc( BPy_TimeLine * self )
+{
+	PyObject_DEL( self );
+}
+
 /*-----------------------getattr----------------------------------------*/
 static PyObject *TimeLine_getattr (BPy_TimeLine *self, char *name) {
 	return Py_FindMethod( BPy_TimeLine_methods, ( PyObject * ) self, name );
@@ -114,7 +120,7 @@ PyTypeObject TimeLine_Type = {
 	sizeof (BPy_TimeLine),	/* tp_basicsize */
 	0,			/* tp_itemsize */
 	/* methods */
-	NULL,	/* tp_dealloc */
+	( destructor ) TimeLine_dealloc,	/* tp_dealloc */
 	(printfunc) 0,	/* tp_print */
 	(getattrfunc) TimeLine_getattr,	/* tp_getattr */
 	(setattrfunc) TimeLine_setattr,	/* tp_setattr */
