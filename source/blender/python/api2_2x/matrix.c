@@ -952,7 +952,7 @@ PyObject *newMatrixObject(float *mat, int rowSize, int colSize, int type)
 					self->matrix[row][col] = mat[(row * colSize) + col];
 				}
 			}
-		} else { /*or if no arguments are passed return identity matrix*/
+		} else if (rowSize == colSize ) { /*or if no arguments are passed return identity matrix for square matrices */
 			Matrix_Identity(self);
 			Py_DECREF(self);
 		}
