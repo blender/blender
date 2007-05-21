@@ -245,17 +245,23 @@ int PyConstant_Insert(BPy_constant *self, char *name, PyObject *value)
 PyObject *PyConstant_NewInt(char *name, int value)
 {
         PyObject *constant = PyConstant_New();
-                
-        PyConstant_Insert((BPy_constant*)constant, "name", PyString_FromString(name));
-		PyConstant_Insert((BPy_constant*)constant, "value", PyInt_FromLong(value));
-        return EXPP_incr_ret(constant);
+
+		if (constant)
+		{                
+			PyConstant_Insert((BPy_constant*)constant, "name", PyString_FromString(name));
+			PyConstant_Insert((BPy_constant*)constant, "value", PyInt_FromLong(value));
+		}
+		return constant;
 }
 //This is a helper function for generating constants......
 PyObject *PyConstant_NewString(char *name, char *value)
 {
-        PyObject *constant = PyConstant_New();
-       
-        PyConstant_Insert((BPy_constant*)constant, "name", PyString_FromString(name));
-		PyConstant_Insert((BPy_constant*)constant, "value", PyString_FromString(value));
-        return EXPP_incr_ret(constant);
+		PyObject *constant = PyConstant_New();
+
+		if (constant)
+		{
+			PyConstant_Insert((BPy_constant*)constant, "name", PyString_FromString(name));
+			PyConstant_Insert((BPy_constant*)constant, "value", PyString_FromString(value));
+		}
+		return constant;
 }

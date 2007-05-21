@@ -1236,11 +1236,11 @@ PyObject *Pose_Init(void)
 
 	//Add CONSTANTS to the module
 	PyModule_AddObject(module, "ROT", 
-		EXPP_incr_ret(PyConstant_NewInt("ROT", POSE_ROT)));
+		PyConstant_NewInt("ROT", POSE_ROT));
 	PyModule_AddObject(module, "LOC", 
-		EXPP_incr_ret(PyConstant_NewInt("LOC", POSE_LOC)));
+		PyConstant_NewInt("LOC", POSE_LOC));
 	PyModule_AddObject(module, "SIZE", 
-		EXPP_incr_ret(PyConstant_NewInt("SIZE", POSE_SIZE)));
+		PyConstant_NewInt("SIZE", POSE_SIZE));
 
 	return module;
 }

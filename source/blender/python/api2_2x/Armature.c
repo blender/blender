@@ -1373,30 +1373,30 @@ PyObject *Armature_Init(void)
 
 	//Add CONSTANTS to the module
 	PyModule_AddObject(module, "CONNECTED", 
-		EXPP_incr_ret(PyConstant_NewInt("CONNECTED", BONE_CONNECTED)));
+		PyConstant_NewInt("CONNECTED", BONE_CONNECTED));
 	PyModule_AddObject(module, "HINGE", 
-		EXPP_incr_ret(PyConstant_NewInt("HINGE", BONE_HINGE)));
+		PyConstant_NewInt("HINGE", BONE_HINGE));
 	PyModule_AddObject(module, "NO_DEFORM", 
-		EXPP_incr_ret(PyConstant_NewInt("NO_DEFORM", BONE_NO_DEFORM)));
+		PyConstant_NewInt("NO_DEFORM", BONE_NO_DEFORM));
 	PyModule_AddObject(module, "MULTIPLY", 
-		EXPP_incr_ret(PyConstant_NewInt("MULTIPLY", BONE_MULT_VG_ENV)));
+		PyConstant_NewInt("MULTIPLY", BONE_MULT_VG_ENV));
 	PyModule_AddObject(module, "HIDDEN_EDIT", 
-		EXPP_incr_ret(PyConstant_NewInt("HIDDEN_EDIT", BONE_HIDDEN_A)));
+		PyConstant_NewInt("HIDDEN_EDIT", BONE_HIDDEN_A));
 	PyModule_AddObject(module, "ROOT_SELECTED", 
-		EXPP_incr_ret(PyConstant_NewInt("ROOT_SELECTED", BONE_ROOTSEL)));
+		PyConstant_NewInt("ROOT_SELECTED", BONE_ROOTSEL));
 	PyModule_AddObject(module, "BONE_SELECTED", 
-		EXPP_incr_ret(PyConstant_NewInt("BONE_SELECTED", BONE_SELECTED)));
+		PyConstant_NewInt("BONE_SELECTED", BONE_SELECTED));
 	PyModule_AddObject(module, "TIP_SELECTED", 
-		EXPP_incr_ret(PyConstant_NewInt("TIP_SELECTED", BONE_TIPSEL)));
+		PyConstant_NewInt("TIP_SELECTED", BONE_TIPSEL));
 
 	PyModule_AddObject(module, "OCTAHEDRON", 
-		EXPP_incr_ret(PyConstant_NewInt("OCTAHEDRON", ARM_OCTA)));
+		PyConstant_NewInt("OCTAHEDRON", ARM_OCTA));
 	PyModule_AddObject(module, "STICK", 
-		EXPP_incr_ret(PyConstant_NewInt("STICK", ARM_LINE)));
+		PyConstant_NewInt("STICK", ARM_LINE));
 	PyModule_AddObject(module, "BBONE", 
-		EXPP_incr_ret(PyConstant_NewInt("BBONE", ARM_B_BONE)));
+		PyConstant_NewInt("BBONE", ARM_B_BONE));
 	PyModule_AddObject(module, "ENVELOPE", 
-		EXPP_incr_ret(PyConstant_NewInt("ENVELOPE", ARM_ENVELOPE)));
+		PyConstant_NewInt("ENVELOPE", ARM_ENVELOPE));
 
 	//Add SUBMODULES to the module
 	dict = PyModule_GetDict( module ); //borrowed
