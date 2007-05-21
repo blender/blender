@@ -218,7 +218,9 @@ static void planeProjection(TransInfo *t, float in[3], float out[3]) {
 	VecSubf(vec, out, in);
 
 	factor = Inpf(vec, norm);
-	if (factor == 0.0f) return; /* prevent divide by zero */
+	if (fabs(factor) <= FLT_EPSILON) {
+		return; /* prevent divide by zero */
+	}
 	factor = Inpf(vec, vec) / factor;
 
 	VECCOPY(vec, norm);
