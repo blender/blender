@@ -935,8 +935,6 @@ static void draw_manipulator_rotate(float mat[][4], int moving, int drawflags, i
 	
 	if(arcs==0 && moving) {
 		
-		if(arcs) glEnable(GL_CLIP_PLANE0);
-
 		/* Z circle */
 		if(drawflags & MAN_ROT_Z) {
 			if(G.f & G_PICKSEL) glLoadName(MAN_ROT_Z);
