@@ -269,7 +269,7 @@ static void createTransTexspace(TransInfo *t)
 	
 	ob= OBACT;
 	
-	if (ob==NULL) { // Should logically happen, but still...
+	if (ob==NULL) { // Shouldn't logically happen, but still...
 		t->total = 0;
 		return;
 	}
