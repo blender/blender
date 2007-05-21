@@ -1,14 +1,50 @@
 """
+paths_ai2obj.py
+# ---------------------------------------------------------------
+Copyright (c) jm soler juillet/novembre 2004-april 2007, 
+# ---------------------------------------------------------------
+    released under GNU Licence 
+    for the Blender 2.45 Python Scripts Bundle.
+Ce programme est libre, vous pouvez le redistribuer et/ou
+le modifier selon les termes de la Licence Publique Générale GNU
+publiée par la Free Software Foundation (version 2 ou bien toute
+autre version ultérieure choisie par vous).
+
+Ce programme est distribué car potentiellement utile, mais SANS
+AUCUNE GARANTIE, ni explicite ni implicite, y compris les garanties
+de commercialisation ou d'adaptation dans un but spécifique.
+Reportez-vous à la Licence Publique Générale GNU pour plus de détails.
+
+Vous devez avoir reçu une copie de la Licence Publique Générale GNU
+en même temps que ce programme ; si ce n'est pas le cas, écrivez à la
+Free Software Foundation, Inc., 59 Temple Place, Suite 330, Boston,
+MA 02111-1307, États-Unis.
+
+
+This program is free software; you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation; either version 2 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+You should have received a copy of the GNU General Public License
+along with this program; if not, write to the Free Software
+Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA    
+# ---------------------------------------------------------------
 #----------------------------------------------
-# (c) jm soler juillet 2004-juin 2005, 
-#  released under Blender Artistic Licence 
-#    for the Blender 2.34 Python Scripts Bundle.
-#----------------------------------------------
+#  
 # Page officielle :
 #   http://jmsoler.free.fr/didacticiel/blender/tutor/cpl_import_ai_en.htm
 # Communiquer les problemes et erreurs sur:
 #   http://www.zoo-logique.org/3D.Blender/newsportal/thread.php?group=3D.Blender
-#
+#----------------------------------------------
+#----------------------------------------------
+#Chagelog
+#----------------------------------------------
 # 0.1.1 : 2004/08/03, bug in boudingbox reading when Value are negative
 # 0.1.2 : 2005/06/12, gmove tranformation properties
 # 0.1.3 : 2005/06/25, added a __name__ test to use the script alone
@@ -21,7 +57,6 @@
 # 0.1.8 : 2006/07/03, two more closepath improvements 
 # 0.1.9 : 2007/05/06, modif on the method that gets the last object on 
                       the list data
-
 """
 SHARP_IMPORT=0
 SCALE=1
