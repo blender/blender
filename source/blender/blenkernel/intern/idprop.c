@@ -53,8 +53,8 @@ static char idp_size_table[] = {
 	1, /*strings*/
 	sizeof(int),
 	sizeof(float),
-	sizeof(float)*3, /*Vector type*/
-	sizeof(float)*16, /*Matrix type, we allocate max 4x4 even if in 3x3 mode*/
+	sizeof(float)*3, /*Vector type, deprecated*/
+	sizeof(float)*16, /*Matrix type, deprecated*/
 	0, /*arrays don't have a fixed size*/
 	sizeof(ListBase), /*Group type*/
 	sizeof(void*)
@@ -169,6 +169,27 @@ void IDP_UnlinkID(IDProperty *prop)
 }
 
 /*-------- Group Functions -------*/
+
+/*checks if a property with the same name as prop exists, and if so replaces it.*/
+void IDP_ReplaceInGroup(IDProperty *group, IDProperty *prop)
+{
+	IDProperty *loop;
+	for (loop=group->data.group.first; loop; loop=loop->next) {
+		if (BSTR_EQ(loop->name, prop->name)) {
+			if (loop->next) BLI_insertlinkbefore(&group->data.group, loop->next, prop);
+			else BLI_addtail(&group->data.group, prop);
+			BLI_remlink(&group->data.group, loop);
+			IDP_FreeProperty(loop);
+			MEM_freeN(loop);
+			group->len++;
+			return;
+		}
+	}
+
+	group->len++;
+	BLI_addtail(&group->data.group, prop);
+}
+
 /*returns 0 if an id property with the same name exists and it failed,
   or 1 if it succeeded in adding to the group.*/
 int IDP_AddToGroup(IDProperty *group, IDProperty *prop)
@@ -323,26 +344,6 @@ IDProperty *IDP_New(int type, IDPropertyTemplate val, char *name)
 			/* heh I think all needed values are set properly by calloc anyway :) */
 			break;
 		}
-		case IDP_MATRIX:
-			prop = MEM_callocN(sizeof(IDProperty), "IDProperty array");
-			if (val.matrix_or_vector.matvec_size == IDP_MATRIX4X4)
-				prop->data.pointer = MEM_callocN(sizeof(float)*4*4, "matrix 4x4 idproperty");
-			else
-				prop->data.pointer = MEM_callocN(sizeof(float)*3*3, "matrix 3x3 idproperty");
-		case IDP_VECTOR:
-			prop = MEM_callocN(sizeof(IDProperty), "IDProperty array");
-			switch (val.matrix_or_vector.matvec_size) {
-				case IDP_VECTOR4D:
-					prop->data.pointer = MEM_callocN(sizeof(float)*4, "vector 4d idproperty");
-					break;
-				case IDP_VECTOR3D:
-					prop->data.pointer = MEM_callocN(sizeof(float)*3, "vector 3d idproperty");
-					break;
-				case IDP_VECTOR2D:
-					prop->data.pointer = MEM_callocN(sizeof(float)*2, "vector 2d idproperty");
-					break;
-
-			}
 		default:
 		{
 			prop = MEM_callocN(sizeof(IDProperty), "IDProperty array");
@@ -369,10 +370,6 @@ void IDP_FreeProperty(IDProperty *prop)
 			break;
 		case IDP_GROUP:
 			IDP_FreeGroup(prop);
-			break;
-		case IDP_VECTOR:
-		case IDP_MATRIX:
-			MEM_freeN(prop->data.pointer);
 			break;
 	}
 }
