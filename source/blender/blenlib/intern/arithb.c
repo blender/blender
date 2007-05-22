@@ -4,9 +4,6 @@
  *
  * sort of cleaned up mar-01 nzc
  *
- * Functions here get counterparts with MTC prefixes. Basically, we phase
- * out the calls here in favour of fully prototyped versions.
- *
  * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****

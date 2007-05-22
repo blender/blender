@@ -32,9 +32,6 @@
  * Contributor(s): none yet.
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
- *
- * The old math stuff from Ton. These will slowly phase out in favour
- * of MTC calls. (or even MoTO :) )
  * */
 
 #ifndef BLI_ARITHB_H
