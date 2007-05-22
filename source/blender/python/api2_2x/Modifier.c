@@ -78,34 +78,36 @@ enum mod_constants {
 	EXPP_MOD_ENABLE_Z, /*SMOOTH, CAST*/
 	EXPP_MOD_TYPES, /*SUBSURF, CAST*/
 	
-	/*SUBSURF SPESIFIC*/
+	/*SUBSURF SPECIFIC*/
 	EXPP_MOD_LEVELS,
 	EXPP_MOD_RENDLEVELS,
 	EXPP_MOD_OPTIMAL,
 	EXPP_MOD_UV,
 	
-	/*ARMATURE SPESIFIC*/
+	/*ARMATURE SPECIFIC*/
 	EXPP_MOD_ENVELOPES,
 	
-	/*ARRAY SPESIFIC*/
+	/*ARRAY SPECIFIC*/
 	EXPP_MOD_OBJECT_OFFSET,
 	EXPP_MOD_OBJECT_CURVE,
 	EXPP_MOD_OFFSET_VEC,
 	EXPP_MOD_SCALE_VEC,
 	EXPP_MOD_MERGE_DIST,
 	
-	/*BUILD SPESIFIC*/
+	/*BUILD SPECIFIC*/
 	EXPP_MOD_START,
 	EXPP_MOD_SEED,
 	EXPP_MOD_RANDOMIZE,
 
-	/*MIRROR SPESIFIC*/
-	EXPP_MOD_AXIS,
+	/*MIRROR SPECIFIC*/
+	EXPP_MOD_AXIS_X,
+	EXPP_MOD_AXIS_Y,
+	EXPP_MOD_AXIS_Z,
 
-	/*DECIMATE SPESIFIC*/
+	/*DECIMATE SPECIFIC*/
 	EXPP_MOD_RATIO,
 
-	/*WAVE SPESIFIC*/
+	/*WAVE SPECIFIC*/
 	EXPP_MOD_STARTX,
 	EXPP_MOD_STARTY,
 	EXPP_MOD_HEIGHT,
@@ -116,10 +118,10 @@ enum mod_constants {
 	EXPP_MOD_LIFETIME,
 	EXPP_MOD_TIMEOFFS,
 	
-	/*BOOLEAN SPESIFIC*/
+	/*BOOLEAN SPECIFIC*/
 	EXPP_MOD_OPERATION,
 
-	/*EDGE SPLIT SPESIFIC */
+	/*EDGE SPLIT SPECIFIC */
 	EXPP_MOD_EDGESPLIT_ANGLE,
 	EXPP_MOD_EDGESPLIT_FROM_ANGLE,
 	EXPP_MOD_EDGESPLIT_FROM_SHARP,
@@ -515,8 +517,15 @@ static PyObject *mirror_getter( BPy_Modifier * self, int type )
 		return PyFloat_FromDouble( (double)md->tolerance );
 	case EXPP_MOD_FLAG:
 		return PyBool_FromLong( (long)( md->flag & MOD_MIR_CLIPPING ) ) ;
-	case EXPP_MOD_AXIS:
-		return PyInt_FromLong( (long)md->axis );
+	case EXPP_MOD_AXIS_X:
+		return PyBool_FromLong( ( long ) 
+				( md->flag & MOD_MIR_AXIS_X ) ) ;
+	case EXPP_MOD_AXIS_Y:
+		return PyBool_FromLong( ( long ) 
+				( md->flag & MOD_MIR_AXIS_Y ) ) ;
+	case EXPP_MOD_AXIS_Z:
+		return PyBool_FromLong( ( long ) 
+				( md->flag & MOD_MIR_AXIS_Z ) ) ;
 	default:
 		return EXPP_ReturnPyObjError( PyExc_KeyError, "key not found" );
 	}
@@ -531,8 +540,12 @@ static int mirror_setter( BPy_Modifier *self, int type, PyObject *value )
 		return EXPP_setFloatClamped( value, &md->tolerance, 0.0, 1.0 );
 	case EXPP_MOD_FLAG:
 		return EXPP_setBitfield( value, &md->flag, MOD_MIR_CLIPPING, 'i' );
-	case EXPP_MOD_AXIS:
-		return EXPP_setIValueRange( value, &md->axis, 0, 2, 'h' );
+	case EXPP_MOD_AXIS_X:
+		return EXPP_setBitfield( value, &md->flag, MOD_MIR_AXIS_X, 'h' );
+	case EXPP_MOD_AXIS_Y:
+		return EXPP_setBitfield( value, &md->flag, MOD_MIR_AXIS_Y, 'h' );
+	case EXPP_MOD_AXIS_Z:
+		return EXPP_setBitfield( value, &md->flag, MOD_MIR_AXIS_Z, 'h' );
 	default:
 		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
 	}
@@ -1595,8 +1608,12 @@ for var in st.replace(',','').split('\n'):
 				PyInt_FromLong( EXPP_MOD_SEED ) );
 			PyConstant_Insert( d, "RANDOMIZE", 
 				PyInt_FromLong( EXPP_MOD_RANDOMIZE ) );
-			PyConstant_Insert( d, "AXIS", 
-				PyInt_FromLong( EXPP_MOD_AXIS ) );
+			PyConstant_Insert( d, "AXIS_X", 
+				PyInt_FromLong( EXPP_MOD_AXIS_X ) );
+			PyConstant_Insert( d, "AXIS_Y", 
+				PyInt_FromLong( EXPP_MOD_AXIS_Y ) );
+			PyConstant_Insert( d, "AXIS_Z", 
+				PyInt_FromLong( EXPP_MOD_AXIS_Z ) );
 			PyConstant_Insert( d, "RATIO", 
 				PyInt_FromLong( EXPP_MOD_RATIO ) );
 			PyConstant_Insert( d, "STARTX", 

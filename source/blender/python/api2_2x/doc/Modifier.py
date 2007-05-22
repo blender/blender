@@ -52,6 +52,7 @@ Example::
     - BOOLEAN - type value for Boolean modifiers
     - BUILD - type value for Build modifiers
     - CURVE - type value for Curve modifiers
+    - MIRROR - type value for Mirror modifiers
     - DECIMATE - type value for Decimate modifiers
     - LATTICE - type value for Lattice modifiers
     - SUBSURF - type value for Subsurf modifiers
@@ -97,7 +98,9 @@ Example::
 	- SEED - Used for Build only (int)
 	- RANDOMIZE - Used for Build only (bool)
 
-	- AXIS - Used for Mirror only (int [0 - 2])
+	- AXIS_X - Used for Mirror only (bool)
+	- AXIS_Y - Used for Mirror only (bool)
+	- AXIS_Z - Used for Mirror only (bool)
 
 	- RATIO - Used for Decimate only (float [0.0 - 1.0])
 	
