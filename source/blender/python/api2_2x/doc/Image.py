@@ -6,7 +6,7 @@ The Blender.Image submodule.
 Image
 =====
 
-B{New}: L{Image.setFilename}.
+B{New}: L{Image.clampX}, L{Image.clampY}.
 
 This module provides access to B{Image} objects in Blender.
 
@@ -335,9 +335,10 @@ class Image:
 		
 	def save():
 		"""
-		Saves the current image.
-		@returns: nothing
-		@rtype: none
+		Saves the current image to L{filename}
+		@note: Saving to a directory that doent exist will raise an error.
+		@note: Saving a packed image will make a unique (numbered) name if the file alredy exists. Remove the file first to be sure it will not be renamed.
+		@returns: None
 		"""
 	
 	def pack():
@@ -355,7 +356,7 @@ class Image:
 	def unpack(mode):
 		"""
 		Unpacks the image to the images filename.
-		@param mode: One of the values in Blender.Unpackmodes dict.
+		@param mode: One of the values in L{Blender.UnpackModes}.
 		@note: An error will be raised if the image is not packed or the filename path does not exist.
 		@returns: nothing
 		@rtype: none
@@ -365,6 +366,7 @@ class Image:
 		"""
 		Set the currently displayed Image from Blenders UV/Image window.
 		When multiple images are displayed, the last active UV/Image windows image is used.
+		@warn: Deprecated, set bpy.data.images.active = image instead.
 		@rtype: bool
 		@return: True if the current image could be set, if no window was available, return False.
 		"""

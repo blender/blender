@@ -657,7 +657,7 @@ static PyObject *Image_unpack( BPy_Image * self, PyObject * args )
 	/*get the absolute path */
 	if( !PyArg_ParseTuple( args, "i", &mode ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected 1 integer" );
+					      "expected 1 integer from Blender.UnpackModes" );
 	
 	if (image->packedfile==NULL)
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -716,10 +716,21 @@ static PyObject *Image_makeCurrent( BPy_Image * self )
 static PyObject *Image_save( BPy_Image * self )
 {
 	ImBuf *ibuf= BKE_image_get_ibuf(self->image, NULL);
-	
-	if(!ibuf || !IMB_saveiff( ibuf, self->image->name, ibuf->flags ) )
+
+	if(!ibuf)
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "could not save image" );
+					      "could not save image (no image buffer)" );
+	
+	/* If this is a packed file, write using writePackedFile
+	 * because IMB_saveiff wont save to a file */
+	if (self->image->packedfile) {
+		if (writePackedFile(self->image->name, self->image->packedfile, 0) != RET_OK) {
+			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+		      "could not save image (writing image from packedfile failed)" );
+		}
+	} else if (!IMB_saveiff( ibuf, self->image->name, ibuf->flags))
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "could not save image (writing the image buffer failed)" );
 
 	Py_RETURN_NONE;		/*  normal return, image saved */
 }
