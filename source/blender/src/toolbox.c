@@ -1911,7 +1911,7 @@ static TBitem *create_mesh_sublevel(ListBase *storage)
 		
 		/* note that we account for the 10 previous entries with i+4: */
 		for (pym = BPyMenuTable[PYMENU_ADDMESH]; pym; pym = pym->next, i++) {
-			mm->icon = 0;
+			mm->icon = ICON_PYTHON;
 			mm->retval= i+20;
 			mm->name = pym->name;	
 			mm++; a++;
