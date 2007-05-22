@@ -11,6 +11,7 @@ This environment builds on SCons.Script.SConscript.SConsEnvironment
 
 TODO: clean up and sanitise code - crosscheck with btools and SConstruct
 to kill any code duplication
+
 """
 
 import os.path
