@@ -1341,6 +1341,10 @@ void do_global_buttons(unsigned short event)
 		set_mipmap(!(U.gameflags & USER_DISABLE_MIPMAP));
 		allqueue(REDRAWVIEW3D, 0);
 		break;
+	case B_GLRESLIMITCHANGED:
+		free_all_realtime_images(); /* force reloading with new res limit */
+		allqueue(REDRAWVIEW3D, 0);
+		break;
 	case B_NEWSPACE:
 		newspace(curarea, curarea->butspacetype);
 		break;

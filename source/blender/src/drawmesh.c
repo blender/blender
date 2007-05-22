@@ -51,6 +51,7 @@
 #include "DNA_property_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_bmfont.h"
 #include "BKE_displist.h"
@@ -108,6 +109,18 @@ static int smaller_pow2(int num) {
 	while (!is_pow2(num))
 		num= num&(num-1);
 	return num;	
+}
+
+/* These are used to enable texture clamping */
+static int is_pow2_limit(int num) {
+	if (U.glreslimit != 0 && num > U.glreslimit) return 0;
+	return ((num)&(num-1))==0;
+}
+
+static int smaller_pow2_limit(int num) {
+	if (U.glreslimit != 0 && num > U.glreslimit)
+		return U.glreslimit;
+	return smaller_pow2(num);
 }
 
 static int fCurtile=0, fCurmode=0,fCurtileXRep=0,fCurtileYRep=0;
@@ -371,9 +384,9 @@ int set_tpage(MTFace *tface)
 			rect= tilerect;
 		}
 #endif
-		if (!is_pow2(rectw) || !is_pow2(recth)) {
-			rectw= smaller_pow2(rectw);
-			recth= smaller_pow2(recth);
+		if (!is_pow2_limit(rectw) || !is_pow2_limit(recth)) {
+			rectw= smaller_pow2_limit(rectw);
+			recth= smaller_pow2_limit(recth);
 			
 			scalerect= MEM_mallocN(rectw*recth*sizeof(*scalerect), "scalerect");
 			gluScaleImage(GL_RGBA, tpx, tpy, GL_UNSIGNED_BYTE, rect, rectw, recth, GL_UNSIGNED_BYTE, scalerect);

@@ -3745,11 +3745,16 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			&(U.uiflag), 0, 0, 0, 0, "Hide files/datablocks that start with a dot(.*)");
 
 		uiDefBut(block, LABEL,0,"OpenGL:",
-			(xpos+edgsp+(5*midsp)+(5*mpref)),y5label,mpref,buth,
+			(xpos+edgsp+(5*midsp)+(5*mpref)),y6label,mpref,buth,
 			0, 0, 0, 0, 0, "");
 		uiDefButBitI(block, TOGN, USER_DISABLE_MIPMAP, B_MIPMAPCHANGED, "Mipmaps",
-			(xpos+edgsp+(5*mpref)+(5*midsp)),y4,mpref,buth,
+			(xpos+edgsp+(5*mpref)+(5*midsp)),y5,mpref,buth,
 			&(U.gameflags), 0, 0, 0, 0, "Toggles between mipmap textures on (beautiful) and off (fast)");
+		
+		/* main choices pup: note, it uses collums, and the seperators (%l) then have to fill both halves equally for the menu to work */
+		uiDefButS(block, MENU, B_GLRESLIMITCHANGED, "GL Texture Clamp Off%x0|%l|GL Texture Clamp 8192%x8192|GL Texture Clamp 4096%x4096|GL Texture Clamp 2048%x2048|GL Texture Clamp 1024%x1024|GL Texture Clamp 512%x512|GL Texture Clamp 256%x256|GL Texture Clamp 128%x128",
+													(xpos+edgsp+(5*mpref)+(5*midsp)),y4,mpref,buth, &(U.glreslimit), 0, 0, 0, 0, "Limit the texture size to save graphics memory");
+		
 		uiDefButBitI(block, TOG, USER_VERTEX_ARRAYS, 0, "Vertex Arrays",
 			(xpos+edgsp+(5*mpref)+(5*midsp)),y3,mpref,buth,
 			&(U.gameflags), 0, 0, 0, 0, "Toggles between vertex arrays on (less reliable) and off (more reliable)");
