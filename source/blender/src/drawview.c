@@ -1520,6 +1520,7 @@ typedef struct {
 /* is used for both read and write... */
 static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 {
+#if 0
 	EditMesh *em = G.editMesh;
 	EditVert *eve, *evedef=NULL;
 	EditEdge *eed;
@@ -1810,6 +1811,7 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 		
 		BIF_undo_push("Transform properties");
 	}
+#endif
 }
 
 /* assumes armature active */

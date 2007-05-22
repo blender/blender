@@ -79,6 +79,7 @@
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
+#include "BKE_bmesh.h"
 
 #ifdef WITH_VERSE
 #include "BKE_verse.h"
@@ -229,7 +230,7 @@ void recalcData(TransInfo *t)
 			
 			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);  /* sets recalc flags */
 			
-			recalc_editnormals();
+			//EDITBMESHGREP recalc_editnormals();
 		}
 		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
 			Nurb *nu= editNurb.first;
@@ -750,11 +751,11 @@ void calculateCenter(TransInfo *t)
 		/* set median, and if if if... do object center */
 		
 		/* EDIT MODE ACTIVE EDITMODE ELEMENT */
-		if (G.obedit && G.obedit->type == OB_MESH && G.editMesh->selected.last) {
-			EM_editselection_center(t->center, G.editMesh->selected.last);
-			calculateCenter2D(t);
-			break;
-		} /* END EDIT MODE ACTIVE ELEMENT */
+		//if (G.obedit && G.obedit->type == OB_MESH && G.editMesh->selected.last) {
+		//	EM_editselection_center(t->center, G.editMesh->selected.last);
+		//	calculateCenter2D(t);
+		//	break; EDITBMESHGREP
+		//} /* END EDIT MODE ACTIVE ELEMENT */
 		
 		calculateCenterMedian(t);
 		if((t->flag & (T_EDIT|T_POSE))==0) {

@@ -1508,9 +1508,9 @@ static PyObject *SceneObSeq_new( BPy_SceneObSeq * self, PyObject *args )
 		type = OB_MESH;
 		if( !data )		/* NULL means there is already an error */
 			return NULL;
-	} else if( BPy_Mesh_Check( py_data ) ) {
-		data = ( void * ) Mesh_FromPyObject( py_data, NULL );
-		type = OB_MESH;
+//EDITBMESHGREP 	} else if( BPy_Mesh_Check( py_data ) ) {
+		/*data = ( void * ) Mesh_FromPyObject( py_data, NULL );
+		type = OB_MESH;*/
 	} else if( BPy_Lattice_Check( py_data ) ) {
 		data = ( void * ) Lattice_FromPyObject( py_data );
 		type = OB_LATTICE;

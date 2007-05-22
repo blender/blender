@@ -533,5 +533,5 @@ LinkNode *BLI_read_file_as_lines(char *name)
 
 void BLI_free_file_lines(LinkNode *lines)
 {
-	BLI_linklist_free(lines, (void(*)(void*)) MEM_freeN);
+	BLI_linklist_free(lines, (void(*)(void*)) WMEM_freeN);
 }

@@ -135,6 +135,8 @@ void mesh_update_customdata_pointers(Mesh *me)
 	me->mface = CustomData_get_layer(&me->fdata, CD_MFACE);
 	me->mcol = CustomData_get_layer(&me->fdata, CD_MCOL);
 	me->mtface = CustomData_get_layer(&me->fdata, CD_MTFACE);
+	me->mloop =  CustomData_get_layer(&me->ldata, CD_MLOOP);	
+	me->mpoly =  CustomData_get_layer(&me->pdata, CD_MPOLY);
 }
 
 /* Note: unlinking is called when me->id.us is 0, question remains how
@@ -264,6 +266,8 @@ Mesh *copy_mesh(Mesh *me)
 	CustomData_copy(&me->vdata, &men->vdata, CD_MASK_MESH, CD_DUPLICATE, men->totvert);
 	CustomData_copy(&me->edata, &men->edata, CD_MASK_MESH, CD_DUPLICATE, men->totedge);
 	CustomData_copy(&me->fdata, &men->fdata, CD_MASK_MESH, CD_DUPLICATE, men->totface);
+	CustomData_copy(&me->ldata, &men->ldata, CD_MASK_MESH, CD_DUPLICATE, men->totloop);
+	CustomData_copy(&me->pdata, &men->pdata, CD_MASK_MESH, CD_DUPLICATE, men->totpoly);
 	mesh_update_customdata_pointers(men);
 
 	/* ensure indirect linked data becomes lib-extern */

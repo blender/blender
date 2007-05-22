@@ -1320,9 +1320,10 @@ static void give_parvert(Object *par, int nr, float *vec)
 	vec[0]=vec[1]=vec[2]= 0.0f;
 	
 	if(par->type==OB_MESH) {
+		#if 0
 		if(G.obedit && (par->data==G.obedit->data)) {
-			EditMesh *em = G.editMesh;
-			EditVert *eve;
+			BME_Mesh *em = G.editMesh;
+			BME_Vert *eve;
 			
 			for(eve= em->verts.first; eve; eve= eve->next) {
 				if(eve->keyindex==nr) {
@@ -1355,6 +1356,7 @@ static void give_parvert(Object *par, int nr, float *vec)
 				}
 			}
 		}
+		#endif
 	}
 	else if ELEM(par->type, OB_CURVE, OB_SURF) {
 		Nurb *nu;

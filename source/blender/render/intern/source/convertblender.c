@@ -988,7 +988,7 @@ static float *get_object_orco(Render *re, Object *ob)
 static void free_mesh_orco_hash(Render *re) 
 {
 	if (re->orco_hash) {
-		BLI_ghash_free(re->orco_hash, NULL, (GHashValFreeFP)MEM_freeN);
+		BLI_ghash_free(re->orco_hash, NULL, (GHashValFreeFP)WMEM_freeN);
 		re->orco_hash = NULL;
 	}
 }

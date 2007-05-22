@@ -90,6 +90,7 @@
 #include "BKE_object.h"
 #include "BKE_softbody.h"
 #include "BKE_utildefines.h"
+#include "BKE_bmesh.h"
 
 #include "BIF_editaction.h"
 #include "BIF_editview.h"
@@ -324,15 +325,15 @@ static void createTransTexspace(TransInfo *t)
 
 static void createTransEdge(TransInfo *t) {
 	TransData *td = NULL;
-	EditMesh *em = G.editMesh;
-	EditEdge *eed;
+	BME_Mesh *em = G.editMesh;
+	BME_Edge *eed;
 	float mtx[3][3], smtx[3][3];
 	int count=0, countsel=0;
 	int propmode = t->flag & T_PROP_EDIT;
 
 	for(eed= em->edges.first; eed; eed= eed->next) {
 		if(eed->h==0) {
-			if (eed->f & SELECT) countsel++;
+			if (eed->flag & SELECT) countsel++;
 			if (propmode) count++;
 		}
 	}
@@ -353,13 +354,13 @@ static void createTransEdge(TransInfo *t) {
 	Mat3Inv(smtx, mtx);
 
 	for(eed= em->edges.first; eed; eed= eed->next) {
-		if(eed->h==0 && (eed->f & SELECT || propmode)) {
+		if(eed->h==0 && (eed->flag & SELECT || propmode)) {
 			/* need to set center for center calculations */
 			VecAddf(td->center, eed->v1->co, eed->v2->co);
 			VecMulf(td->center, 0.5f);
 
 			td->loc= NULL;
-			if (eed->f & SELECT)
+			if (eed->flag & SELECT)
 				td->flag= TD_SELECTED;
 			else 
 				td->flag= 0;
@@ -1320,9 +1321,10 @@ static void createTransLatticeVerts(TransInfo *t)
 #define THRESHOLD	0.0001f
 static void editmesh_set_connectivity_distance(int total, float *vectors, EditVert **nears)
 {
-	EditMesh *em = G.editMesh;
-	EditVert *eve;
-	EditEdge *eed;
+#if 0 //EDITBMESH this function is horrifically bad anyway, better rewrite it to be topologically based.
+	BME_Mesh *em = G.editMesh;
+	BME_Vert *eve;
+	BME_Edge *eed;
 	int i= 0, done= 1;
 
 	/* f2 flag is used for 'selection' */
@@ -1428,31 +1430,36 @@ static void editmesh_set_connectivity_distance(int total, float *vectors, EditVe
 			}
 		}
 	}
+#endif
 }
 
 /* loop-in-a-loop I know, but we need it! (ton) */
 static void get_face_center(float *cent, EditVert *eve)
 {
-	EditMesh *em = G.editMesh;
-	EditFace *efa;
+#if 0
+	BME_Mesh *em = G.editMesh;
+	BME_Poly *efa;
 	
 	for(efa= em->faces.first; efa; efa= efa->next)
-		if(efa->f & SELECT)
+		if(efa->flag & SELECT)
 			if(efa->v1==eve || efa->v2==eve || efa->v3==eve || efa->v4==eve)
 				break;
+				
 	if(efa) {
 		VECCOPY(cent, efa->cent);
 	}
+#endif
 }
 
-static void VertsToTransData(TransData *td, EditVert *eve)
+static void VertsToTransData(TransData *td, BME_Vert *eve)
 {
 	td->flag = 0;
 	td->loc = eve->co;
 	
 	VECCOPY(td->center, td->loc);
-	if(G.vd->around==V3D_LOCAL && (G.scene->selectmode & SCE_SELECT_FACE))
-		get_face_center(td->center, eve);
+	//EDITBMESHGREP -- I think we can do this much better too.
+	//if(G.vd->around==V3D_LOCAL && (G.scene->selectmode & SCE_SELECT_FACE))
+	//	get_face_center(td->center, eve);
 	VECCOPY(td->iloc, td->loc);
 
 	// Setting normals
@@ -1468,7 +1475,7 @@ static void VertsToTransData(TransData *td, EditVert *eve)
 	td->tdi = NULL;
 	td->val = NULL;
 	td->tdmir= NULL;
-
+/* //EDITBMESHGREP
 #ifdef WITH_VERSE
 	if(eve->vvert) {
 		td->verse = (void*)eve->vvert;
@@ -1477,6 +1484,7 @@ static void VertsToTransData(TransData *td, EditVert *eve)
 	else
 		td->flag &= ~TD_VERSE_VERT;
 #endif
+*/
 }
 
 /* *********************** CrazySpace correction. Now without doing subsurf optimal ****************** */
@@ -1562,9 +1570,10 @@ static void set_crazy_vertex_quat(float *quat, float *v1, float *v2, float *v3, 
 
 static void set_crazyspace_quats(float *mappedcos, float *quats)
 {
-	EditMesh *em = G.editMesh;
-	EditVert *eve, *prev;
-	EditFace *efa;
+#if 0 //EDITBMESH we can toss this function
+	BME_Mesh *em = G.editMesh;
+	BME_Vert *eve, *prev;
+	BME_Poly *efa;
 	float *v1, *v2, *v3, *v4;
 	long index= 0;
 	
@@ -1624,15 +1633,15 @@ static void set_crazyspace_quats(float *mappedcos, float *quats)
 	/* restore abused prev pointer */
 	for(prev= NULL, eve= em->verts.first; eve; prev= eve, eve= eve->next)
 		eve->prev= prev;
-
+#endif
 }
 
 static void createTransEditVerts(TransInfo *t)
 {
 	TransData *tob = NULL;
-	EditMesh *em = G.editMesh;
-	EditVert *eve;
-	EditVert **nears = NULL;
+	BME_Mesh *em = G.editMesh;
+	BME_Vert *eve;
+	BME_Vert **nears = NULL;
 	float *vectors = NULL, *mappedcos = NULL, *quats= NULL;
 	float mtx[3][3], smtx[3][3];
 	int count=0, countsel=0;
@@ -1642,27 +1651,30 @@ static void createTransEditVerts(TransInfo *t)
 	// transform now requires awareness for select mode, so we tag the f1 flags in verts
 	if(G.scene->selectmode & SCE_SELECT_VERTEX) {
 		for(eve= em->verts.first; eve; eve= eve->next) {
-			if(eve->h==0 && (eve->f & SELECT)) 
-				eve->f1= SELECT;
+			if(eve->h==0 && (eve->flag & SELECT)) 
+				eve->tflag1= SELECT;
 			else
-				eve->f1= 0;
+				eve->tflag1= 0;
 		}
 	}
 	else if(G.scene->selectmode & SCE_SELECT_EDGE) {
-		EditEdge *eed;
-		for(eve= em->verts.first; eve; eve= eve->next) eve->f1= 0;
+		BME_Edge *eed;
+		for(eve= em->verts.first; eve; eve= eve->next) eve->tflag1= 0;
 		for(eed= em->edges.first; eed; eed= eed->next) {
-			if(eed->h==0 && (eed->f & SELECT))
-				eed->v1->f1= eed->v2->f1= SELECT;
+			if(eed->h==0 && (eed->flag & SELECT))
+				eed->v1->tflag1= eed->v2->tflag1= SELECT;
 		}
 	}
 	else {
-		EditFace *efa;
-		for(eve= em->verts.first; eve; eve= eve->next) eve->f1= 0;
-		for(efa= em->faces.first; efa; efa= efa->next) {
-			if(efa->h==0 && (efa->f & SELECT)) {
-				efa->v1->f1= efa->v2->f1= efa->v3->f1= SELECT;
-				if(efa->v4) efa->v4->f1= SELECT;
+		BME_Poly *efa;
+		for(eve= em->verts.first; eve; eve= eve->next) eve->tflag1= 0;
+		for(efa= em->polys.first; efa; efa= efa->next) {
+			if(efa->h==0 && (efa->flag & SELECT)) {
+				BME_Loop *loop = efa->loopbase;
+				do {
+					loop->v->tflag1 = SELECT;
+					loop=loop->next;
+				} while (loop != efa->loopbase);
 			}
 		}
 	}
@@ -1670,7 +1682,7 @@ static void createTransEditVerts(TransInfo *t)
 	/* now we can count */
 	for(eve= em->verts.first; eve; eve= eve->next) {
 		if(eve->h==0) {
-			if(eve->f1) countsel++;
+			if(eve->tflag1) countsel++;
 			if(propmode) count++;
 		}
 	}
@@ -1682,8 +1694,8 @@ static void createTransEditVerts(TransInfo *t)
 		t->total = count; 
 	
 		/* allocating scratch arrays */
-		vectors = (float *)MEM_mallocN(t->total * 3 * sizeof(float), "scratch vectors");
-		nears = (EditVert**)MEM_mallocN(t->total * sizeof(EditVert*), "scratch nears");
+	//	vectors = (float *)MEM_mallocN(t->total * 3 * sizeof(float), "scratch vectors");
+//		nears = (EditVert**)MEM_mallocN(t->total * sizeof(BME_Vert*), "scratch nears");
 	}
 	else t->total = countsel;
 	tob= t->data= MEM_callocN(t->total*sizeof(TransData), "TransObData(Mesh EditMode)");
@@ -1691,24 +1703,27 @@ static void createTransEditVerts(TransInfo *t)
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
 
-	if(propmode) editmesh_set_connectivity_distance(t->total, vectors, nears);
+//	if(propmode) editmesh_set_connectivity_distance(t->total, vectors, nears);
 	
 	/* detect CrazySpace [tm] */
+	/* heh I never did get the purpose of this stuff.  I always had an easier time
+	  editing with it disabled :)
 	if(propmode==0) {
 		if(modifiers_getCageIndex(G.obedit, NULL)>=0) {
 			if(modifiers_isDeformed(G.obedit)) {
-				/* disable subsurf temporal, get mapped cos, and enable it */
+				disable subsurf temporal, get mapped cos, and enable it
 				mappedcos= get_crazy_mapped_editverts();
 				quats= MEM_mallocN( (t->total)*sizeof(float)*4, "crazy quats");
 				set_crazyspace_quats(mappedcos, quats);
 			}
 		}
 	}
+	*/
 	
 	/* find out which half we do */
 	if(mirror) {
 		for (eve=em->verts.first; eve; eve=eve->next) {
-			if(eve->h==0 && eve->f1 && eve->co[0]!=0.0f) {
+			if(eve->h==0 && eve->tflag1 && eve->co[0]!=0.0f) {
 				if(eve->co[0]<0.0f)
 					mirror = -1;
 				break;
@@ -1718,24 +1733,26 @@ static void createTransEditVerts(TransInfo *t)
 	
 	for (eve=em->verts.first; eve; eve=eve->next) {
 		if(eve->h==0) {
-			if(propmode || eve->f1) {
+			if(propmode || eve->tflag1) {
 				VertsToTransData(tob, eve);
 
-				if(eve->f1) tob->flag |= TD_SELECTED;
+				if(eve->tflag1) tob->flag |= TD_SELECTED;
 				if(propmode) {
-					if (eve->f2) {
-						float vec[3];
-						VECCOPY(vec, E_VEC(eve));
-						Mat3MulVecfl(mtx, vec);
-						tob->dist= VecLength(vec);
-					}
-					else {
+					//if (eve->tflag2) {
+					//	float vec[3];
+					//	VECCOPY(vec, E_VEC(eve));
+					//	Mat3MulVecfl(mtx, vec);
+					//	tob->dist= VecLength(vec);
+					//}
+					//else {
+					{
 						tob->flag |= TD_NOTCONNECTED;
 						tob->dist = MAXFLOAT;
 					}
 				}
 				
-				/* CrazySpace */
+				
+				/* CrazySpace
 				if(quats && eve->tmp.fp) {
 					float mat[3][3], imat[3][3], qmat[3][3];
 					
@@ -1750,31 +1767,34 @@ static void createTransEditVerts(TransInfo *t)
 					Mat3CpyMat3(tob->smtx, smtx);
 					Mat3CpyMat3(tob->mtx, mtx);
 				}
+				*/
 				
 				/* Mirror? */
-				if( (mirror>0 && tob->iloc[0]>0.0f) || (mirror<0 && tob->iloc[0]<0.0f)) {
-					EditVert *vmir= editmesh_get_x_mirror_vert(G.obedit, tob->iloc);	/* initializes octree on first call */
-					if(vmir!=eve) tob->tdmir= vmir;
-				}
+				//EDITBMESHGREP
+				//if( (mirror>0 && tob->iloc[0]>0.0f) || (mirror<0 && tob->iloc[0]<0.0f)) {
+				//	BME_Vert *vmir= editmesh_get_x_mirror_vert(G.obedit, tob->iloc);	/* initializes octree on first call */
+				//	if(vmir!=eve) tob->tdmir= vmir;
+				//}
 				tob++;
 			}
 		}	
 	}
 	if (propmode) {
-		MEM_freeN(vectors);
-		MEM_freeN(nears);
+		//MEM_freeN(vectors);
+		//MEM_freeN(nears);
 	}
 	/* crazy space free */
-	if(mappedcos)
-		MEM_freeN(mappedcos);
-	if(quats)
-		MEM_freeN(quats);
+	//if(mappedcos)
+	//	MEM_freeN(mappedcos);
+	//if(quats)
+	//	MEM_freeN(quats);
 }
 
 /* ********************* UV ****************** */
 
 static void UVsToTransData(TransData *td, TransData2D *td2d, float *uv, int selected)
 {
+#if 0 //EDITBMESHGREP
 	float aspx, aspy;
 
 	transform_aspect_ratio_tface_uv(&aspx, &aspy);
@@ -1807,10 +1827,12 @@ static void UVsToTransData(TransData *td, TransData2D *td2d, float *uv, int sele
 	
 	Mat3One(td->mtx);
 	Mat3One(td->smtx);
+#endif
 }
 
 static void createTransUVs(TransInfo *t)
 {
+#if 0 //EDITBMESHGREP
 	TransData *td = NULL;
 	TransData2D *td2d = NULL;
 	Mesh *me;
@@ -1868,10 +1890,12 @@ static void createTransUVs(TransInfo *t)
 
 	if (G.sima->flag & SI_LIVE_UNWRAP)
 		unwrap_lscm_live_begin();
+#endif
 }
 
 void flushTransUVs(TransInfo *t)
 {
+#if 0 //EDITBMESHGREP
 	TransData2D *td;
 	int a, width, height;
 	Object *ob= OBACT;
@@ -1900,10 +1924,12 @@ void flushTransUVs(TransInfo *t)
 
 	/* this is overkill if G.sima->lock is not set, but still needed */
 	object_uvs_changed(ob);
+#endif
 }
 
 int clipUVTransform(TransInfo *t, float *vec, int resize)
 {
+#if 0 //EDITBMESHGREP
 	TransData *td;
 	int a, clipx=1, clipy=1;
 	float aspx, aspy, min[2], max[2];
@@ -1948,6 +1974,7 @@ int clipUVTransform(TransInfo *t, float *vec, int resize)
 	}	
 
 	return (clipx || clipy);
+#endif
 }
 
 /* **************** IpoKey stuff, for Object TransData ********** */

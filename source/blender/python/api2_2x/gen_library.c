@@ -165,7 +165,7 @@ short GenericLib_getType(PyObject * pydata)
 {
 	//~ if (BPy_Scene_Check(pydata))	return ID_SCE;
 	if (BPy_Object_Check(pydata))	return ID_OB;
-	if (BPy_Mesh_Check(pydata))		return ID_ME;
+//	if (BPy_Mesh_Check(pydata))		return ID_ME;
 	//~ if (BPy_Curve_Check(pydata))	return ID_CU;
 	//~ if (BPy_Metaball_Check(pydata))	return ID_MB;
 	//~ if (BPy_Material_Check(pydata))	return ID_MA;
@@ -283,7 +283,8 @@ PyObject *GetPyObjectFromID( ID * id )
 	case ID_OB:
 		return Object_CreatePyObject( (Object *) id );
 	case ID_ME:
-		return Mesh_CreatePyObject( (Mesh *)id, NULL );
+		//EDITBMESHGREP return Mesh_CreatePyObject( (Mesh *)id, NULL );
+		break;
 	case ID_CU:
 		switch (curve_type((Curve *)id)) {
 		case OB_FONT:

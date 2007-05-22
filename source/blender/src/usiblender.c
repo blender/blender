@@ -922,7 +922,7 @@ void exit_usiblender(void)
 			free_editText();
 		}
 		else if(G.obedit->type==OB_MBALL) BLI_freelistN(&editelems);
-		free_editMesh(G.editMesh);
+		BME_free_mesh(G.editMesh);
 	}
 
 	free_editLatt();

@@ -64,7 +64,7 @@ void BLI_memarena_use_calloc(MemArena *ma) {
 }
 
 void BLI_memarena_free(MemArena *ma) {
-	BLI_linklist_free(ma->bufs, (void(*)(void*)) MEM_freeN);
+	BLI_linklist_free(ma->bufs, (void(*)(void*)) WMEM_freeN);
 	MEM_freeN(ma);
 }
 

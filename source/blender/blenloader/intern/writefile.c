@@ -1139,11 +1139,18 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 					CD_MEDGE, mesh->totedge);
 				write_customdata(wd, mesh->pv->totface, &mesh->fdata,
 					CD_MFACE, mesh->totface);
+				write_customdata(wd, mesh->pv->totloop, &mesh->ldata,
+					CD_MEDGE, mesh->totloop);
+				write_customdata(wd, mesh->pv->totpoly, &mesh->pdata,
+					CD_MFACE, mesh->totpoly);
+
 			}
 			else {
 				write_customdata(wd, mesh->totvert, &mesh->vdata, -1, 0);
 				write_customdata(wd, mesh->totedge, &mesh->edata, -1, 0);
 				write_customdata(wd, mesh->totface, &mesh->fdata, -1, 0);
+				write_customdata(wd, mesh->totloop, &mesh->ldata, -1, 0);
+				write_customdata(wd, mesh->totpoly, &mesh->pdata, -1, 0);
 			}
 
 			/* Multires data */

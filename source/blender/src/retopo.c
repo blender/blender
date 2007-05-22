@@ -60,6 +60,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
+#include "BKE_bmesh.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
@@ -230,15 +231,20 @@ typedef struct FaceNode {
 
 char faces_equal(EditFace *f1, EditFace *f2)
 {
+	return 0;
+	#if 0
 	return editface_containsVert(f2,f1->v1) &&
 	       editface_containsVert(f2,f1->v2) &&
 	       editface_containsVert(f2,f1->v3) &&
 	       (f1->v4 ? editface_containsVert(f2,f1->v4) : 1);
+	#endif
 }
 
 EditFace *addfaceif(EditMesh *em, EditVert *v1, EditVert *v2, EditVert *v3, EditVert *v4)
 {
-	EditFace *efa;
+	#if 0 //EDITBMESHGREP
+	BME_Face *efa;
+	int stop=0;
 	
 	for(efa= em->faces.first; efa; efa= efa->next) {
 		if(editface_containsVert(efa,v1) &&
@@ -249,12 +255,15 @@ EditFace *addfaceif(EditMesh *em, EditVert *v1, EditVert *v2, EditVert *v3, Edit
 	}
 
 	return addfacelist(v1,v2,v3,v4,NULL,NULL);
+	#endif
+	return NULL;
 }
 
 void retopo_paint_apply()
 {
+	#if 0  //EDITBMESHGREP
 	RetopoPaintData *rpd= G.editMesh->retopo_paint_data;
-	EditVert *eve;
+	BME_Vert *eve;
 
 	if(rpd) {
 		RetopoPaintLine *l1, *l2;
@@ -315,6 +324,7 @@ void retopo_paint_apply()
 	}
 
 	retopo_free_paint();
+	#endif
 }
 
 void add_rppoint(RetopoPaintLine *l, short x, short y)
@@ -795,6 +805,7 @@ void retopo_do_vert(View3D *v3d, float *v)
 
 void retopo_do_all()
 {
+#if 0 //EDITBMESHGREP
 	RetopoViewData *rvd= G.vd->retopo_view_data;
 	if(retopo_mesh_check()) {
 		if(rvd) {
@@ -852,6 +863,7 @@ void retopo_do_all()
 			allqueue(REDRAWVIEW3D, 0);			
 		}
 	}
+#endif
 }
 
 void retopo_do_all_cb(void *j1, void *j2)

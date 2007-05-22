@@ -82,6 +82,7 @@
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
+#include "BKE_bmesh.h"
 
 #ifdef WITH_VERSE
 #include "BKE_verse.h"
@@ -650,25 +651,11 @@ void countall()
 	if(G.obedit) {
 		
 		if(G.obedit->type==OB_MESH) {
-			EditMesh *em = G.editMesh;
-			EditVert *eve;
-			EditEdge *eed;
-			EditFace *efa;
-			
-			for(eve= em->verts.first; eve; eve= eve->next) {
-				G.totvert++;
-				if(eve->f & SELECT) G.totvertsel++;
-			}
-			for(eed= em->edges.first; eed; eed= eed->next) {
-				G.totedge++;
-				if(eed->f & SELECT) G.totedgesel++;
-			}
-			for(efa= em->faces.first; efa; efa= efa->next) {
-				G.totface++;
-				if(efa->f & SELECT) G.totfacesel++;
-			}
-			
-			EM_validate_selections();
+			BME_Mesh *em = G.editMesh;
+
+			G.totvert = em->totvert;
+			G.totedge = em->totedge;
+			G.totface = em->totpoly;
 		}
 		else if (G.obedit->type==OB_ARMATURE){
 			for (ebo=G.edbo.first;ebo;ebo=ebo->next){
@@ -823,11 +810,11 @@ static void special_transvert_update(void)
 		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		
 		if(G.obedit->type==OB_MESH) {
-#ifdef WITH_VERSE
-			if(G.editMesh->vnode)
-				sync_all_verseverts_with_editverts((VNode*)G.editMesh->vnode);
+#ifdef WITH_VERSE //EDITBMESHGREP
+//			if(G.editMesh->vnode)
+//				sync_all_verseverts_with_editverts((VNode*)G.editMesh->vnode);
 #endif
-			recalc_editnormals();	// does face centers too
+			//EDITBMESHGREP recalc_editnormals();	// does face centers too
 		}
 		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
 			extern ListBase editNurb;
@@ -887,13 +874,13 @@ static void special_transvert_update(void)
 static void make_trans_verts(float *min, float *max, int mode)	
 {
 	extern ListBase editNurb;
-	EditMesh *em = G.editMesh;
+	BME_Mesh *em = G.editMesh;
 	Nurb *nu;
 	BezTriple *bezt;
 	BPoint *bp;
 	TransVert *tv=NULL;
 	MetaElem *ml;
-	EditVert *eve;
+	BME_Vert *eve;
 	EditBone	*ebo;
 	float total, center[3], centroid[3];
 	int a;
@@ -927,38 +914,41 @@ static void make_trans_verts(float *min, float *max, int mode)
 		tottrans= 0;
 		if(G.scene->selectmode & SCE_SELECT_VERTEX) {
 			for(eve= em->verts.first; eve; eve= eve->next) {
-				if(eve->h==0 && (eve->f & SELECT)) {
-					eve->f1= SELECT;
+				if(eve->h==0 && (eve->flag & SELECT)) {
+					eve->tflag1= SELECT;
 					tottrans++;
 				}
-				else eve->f1= 0;
+				else eve->tflag1= 0;
 			}
 		}
 		else if(G.scene->selectmode & SCE_SELECT_EDGE) {
-			EditEdge *eed;
-			for(eve= em->verts.first; eve; eve= eve->next) eve->f1= 0;
+			BME_Edge *eed;
+			for(eve= em->verts.first; eve; eve= eve->next) eve->tflag1= 0;
 			for(eed= em->edges.first; eed; eed= eed->next) {
-				if(eed->h==0 && (eed->f & SELECT)) eed->v1->f1= eed->v2->f1= SELECT;
+				if(eed->h==0 && (eed->flag & SELECT)) eed->v1->tflag1= eed->v2->tflag1= SELECT;
 			}
-			for(eve= em->verts.first; eve; eve= eve->next) if(eve->f1) tottrans++;
+			for(eve= em->verts.first; eve; eve= eve->next) if(eve->tflag1) tottrans++;
 		}
 		else {
-			EditFace *efa;
-			for(eve= em->verts.first; eve; eve= eve->next) eve->f1= 0;
-			for(efa= em->faces.first; efa; efa= efa->next) {
-				if(efa->h==0 && (efa->f & SELECT)) {
-					efa->v1->f1= efa->v2->f1= efa->v3->f1= SELECT;
-					if(efa->v4) efa->v4->f1= SELECT;
+			BME_Poly *efa;
+			for(eve= em->verts.first; eve; eve= eve->next) eve->tflag1= 0;
+			for(efa= em->polys.first; efa; efa= efa->next) {
+				if(efa->h==0 && (efa->flag & SELECT)) {
+					BME_Loop *loop = efa->loopbase;
+					do {
+						loop->v->tflag1 = SELECT;
+						loop=loop->next;
+					} while (loop != efa->loopbase);
 				}
 			}
-			for(eve= em->verts.first; eve; eve= eve->next) if(eve->f1) tottrans++;
+			for(eve= em->verts.first; eve; eve= eve->next) if(eve->tflag1) tottrans++;
 		}
 		
 		/* proportional edit exception... */
 		if(mode==1 && tottrans) {
 			for(eve= em->verts.first; eve; eve= eve->next) {
 				if(eve->h==0) {
-					eve->f1 |= 2;
+					eve->tflag1 |= 2;
 					proptrans++;
 				}
 			}
@@ -970,12 +960,12 @@ static void make_trans_verts(float *min, float *max, int mode)
 			tv=transvmain= MEM_callocN(tottrans*sizeof(TransVert), "maketransverts");
 
 			for(eve= em->verts.first; eve; eve= eve->next) {
-				if(eve->f1) {
+				if(eve->tflag1) {
 					VECCOPY(tv->oldloc, eve->co);
 					tv->loc= eve->co;
 					if(eve->no[0]!=0.0 || eve->no[1]!=0.0 ||eve->no[2]!=0.0)
 						tv->nor= eve->no; // note this is a hackish signal (ton)
-					tv->flag= eve->f1 & SELECT;
+					tv->flag= eve->tflag1 & SELECT;
 					tv++;
 				}
 			}
@@ -1736,7 +1726,7 @@ void snapmenu()
 #define MERGELIMIT 0.001
 void mergemenu(void)
 {	
-
+#if 0 //EDITBMESHGREP
 	short event;
 	int remCount = 0;
 	
@@ -1782,6 +1772,7 @@ void mergemenu(void)
 	notice("Removed %d Vertices", remCount);
 	allqueue(REDRAWVIEW3D, 0);
 	countall();
+#endif
 }
 #undef MERGELIMIT
 
@@ -1789,8 +1780,8 @@ void mergemenu(void)
 void delete_context_selected(void) 
 {
 	if(G.obedit) {
-		if(G.obedit->type==OB_MESH) delete_mesh();
-		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) delNurb();
+		/*//EDITBMESHGREP if(G.obedit->type==OB_MESH) delete_mesh();
+		else */if ELEM(G.obedit->type, OB_CURVE, OB_SURF) delNurb();
 		else if(G.obedit->type==OB_MBALL) delete_mball();
 		else if (G.obedit->type==OB_ARMATURE) delete_armature();
 	}
@@ -1800,8 +1791,8 @@ void delete_context_selected(void)
 void duplicate_context_selected(void) 
 {
 	if(G.obedit) {
-		if(G.obedit->type==OB_MESH) adduplicate_mesh();
-		else if(G.obedit->type==OB_ARMATURE) adduplicate_armature();
+		/*//EDITBMESHGREP if(G.obedit->type==OB_MESH) adduplicate_mesh();
+		else */if(G.obedit->type==OB_ARMATURE) adduplicate_armature();
 		else if(G.obedit->type==OB_MBALL) adduplicate_mball();
 		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) adduplicate_nurb();
 	}

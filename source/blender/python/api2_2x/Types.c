@@ -49,8 +49,8 @@ extern PyTypeObject Lamp_Type, Lattice_Type;
 extern PyTypeObject Material_Type, Metaball_Type, MTex_Type;
 extern PyTypeObject NMFace_Type, NMEdge_Type, NMVert_Type, NMCol_Type,
 	   NMesh_Type;
-extern PyTypeObject MFace_Type, MVert_Type, PVert_Type, MEdge_Type, MCol_Type,
-	   Mesh_Type;
+//extern PyTypeObject MFace_Type, MVert_Type, PVert_Type, MEdge_Type, MCol_Type,
+//	   Mesh_Type; //EDITBMESHGREP 
 
 extern PyTypeObject Object_Type;
 extern PyTypeObject Group_Type;
@@ -107,12 +107,12 @@ void types_InitAll( void )
 	NMEdge_Type.ob_type = &PyType_Type;
 	NMVert_Type.ob_type = &PyType_Type;
 	NMesh_Type.ob_type = &PyType_Type;
-	MFace_Type.ob_type = &PyType_Type;
-   	MVert_Type.ob_type = &PyType_Type;
-   	PVert_Type.ob_type = &PyType_Type;
-   	MEdge_Type.ob_type = &PyType_Type;
-   	MCol_Type.ob_type = &PyType_Type;
-   	Mesh_Type.ob_type = &PyType_Type;
+	//MFace_Type.ob_type = &PyType_Type;
+   	//MVert_Type.ob_type = &PyType_Type;
+   	//PVert_Type.ob_type = &PyType_Type;
+   	//MEdge_Type.ob_type = &PyType_Type;
+   	//MCol_Type.ob_type = &PyType_Type;
+   	//Mesh_Type.ob_type = &PyType_Type;
 	Object_Type.ob_type = &PyType_Type;
 	Group_Type.ob_type = &PyType_Type;
 	RenderData_Type.ob_type = &PyType_Type;
@@ -175,16 +175,16 @@ PyObject *Types_Init( void )
 			      ( PyObject * ) &NMEdge_Type );
 	PyDict_SetItemString( dict, "NMColType", ( PyObject * ) &NMCol_Type );
 
-	PyDict_SetItemString( dict, "MeshType", ( PyObject * ) &Mesh_Type );
-	PyDict_SetItemString( dict, "MFaceType",
-			      ( PyObject * ) &MFace_Type );
-	PyDict_SetItemString( dict, "MEdgeType",
-			      ( PyObject * ) &MEdge_Type );
-	PyDict_SetItemString( dict, "MVertType",
-			      ( PyObject * ) &MVert_Type );
-	PyDict_SetItemString( dict, "PVertType",
-			      ( PyObject * ) &PVert_Type );
-	PyDict_SetItemString( dict, "MColType", ( PyObject * ) &MCol_Type );
+	//PyDict_SetItemString( dict, "MeshType", ( PyObject * ) &Mesh_Type );
+	//PyDict_SetItemString( dict, "MFaceType",
+	////EDITBMESHGREP 		      ( PyObject * ) &MFace_Type );
+	//PyDict_SetItemString( dict, "MEdgeType",
+//			      ( PyObject * ) &MEdge_Type );
+//	PyDict_SetItemString( dict, "MVertType",
+//			      ( PyObject * ) &MVert_Type );
+//	PyDict_SetItemString( dict, "PVertType",
+//			      ( PyObject * ) &PVert_Type );
+//	PyDict_SetItemString( dict, "MColType", ( PyObject * ) &MCol_Type );
 
 	PyDict_SetItemString( dict, "ArmatureType",
 			      ( PyObject * ) &Armature_Type );

@@ -1600,8 +1600,9 @@ static PyObject *Object_link( BPy_Object * self, PyObject * args )
 		data = ( void * ) NMesh_FromPyObject( py_data, self->object );
 		if( !data )		/* NULL means there is already an error */
 			return NULL;
-	} else if( BPy_Mesh_Check( py_data ) )
-		data = ( void * ) Mesh_FromPyObject( py_data, self->object );
+	}
+//	} else if( BPy_Mesh_Check( py_data ) );
+		//EDITBMESHGREP data = ( void * ) Mesh_FromPyObject( py_data, self->object );
 	else if( BPy_Lattice_Check( py_data ) )
 		data = ( void * ) Lattice_FromPyObject( py_data );
 	else if( BPy_Metaball_Check( py_data ) )
@@ -4419,8 +4420,8 @@ static PyObject *get_obj_data( BPy_Object *self, int mesh )
 	case OB_MESH:
 		if( !mesh ) /* get as NMesh (default) */
 			data_object = NMesh_CreatePyObject( object->data, object );
-		else		/* else get as Mesh */
-			data_object = Mesh_CreatePyObject( object->data, object );
+		else;		/* else get as Mesh */
+			//EDITBMESHGREP data_object = Mesh_CreatePyObject( object->data, object );
 		break;
 	case OB_MBALL:
 		data_object = Metaball_CreatePyObject( object->data );

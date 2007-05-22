@@ -61,7 +61,7 @@ struct bScreen;
 struct Object;
 struct bSoundListener;
 struct BMF_Font;
-struct EditMesh;
+struct BME_Mesh;
 
 typedef struct Global {
 
@@ -110,7 +110,7 @@ typedef struct Global {
 	int f;
 
 	/* Editmode lists */
-	struct EditMesh *editMesh;
+	struct BME_Mesh *editMesh;
     
 	float textcurs[4][2];
     

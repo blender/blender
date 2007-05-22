@@ -359,14 +359,14 @@ static void do_view3d_view_alignviewmenu(void *arg, int event)
 	case 1:
 	case 2:
 		if ((G.obedit) && (G.obedit->type == OB_MESH)) {
-			editmesh_align_view_to_selected(v3d, event);
+			//EDITBMESHGREP editmesh_align_view_to_selected(v3d, event);
 		} else if (G.f & G_FACESELECT) {
 			Object *obact= OBACT;
 			if (obact && obact->type==OB_MESH) {
 				Mesh *me= obact->data;
 
 				if (me->mtface) {
-					faceselect_align_view_to_selected(v3d, me, event);
+					//EDITBMESHGREP faceselect_align_view_to_selected(v3d, me, event);
 					addqueue(v3d->area->win, REDRAW, 1);
 				}
 			}
@@ -922,60 +922,60 @@ void do_view3d_select_meshmenu(void *arg, int event)
 			borderselect();
 			break;
 		case 2: /* Select/Deselect all */
-			deselectall_mesh();
+			//EDITBMESHGREP deselectall_mesh();
 			break;
 		case 3: /* Inverse */
-			selectswap_mesh();
+			//EDITBMESHGREP selectswap_mesh();
 			break;
 		case 4: /* select linked vertices */
-			selectconnected_mesh(LR_CTRLKEY);
+			//EDITBMESHGREP selectconnected_mesh(LR_CTRLKEY);
 			break;
 		case 5: /* select random */
-			selectrandom_mesh();
+			//EDITBMESHGREP selectrandom_mesh();
 			break;
 		case 7: /* select more */
-			select_more();
+			//EDITBMESHGREP select_more();
 			break;
 		case 8: /* select less */
-			select_less();
+			//EDITBMESHGREP select_less();
 			break;
 		case 9: /* select non-manifold */
-			select_non_manifold();
+			//EDITBMESHGREP select_non_manifold();
 			break;
 		case 11: /* select triangles */
-			select_faces_by_numverts(3);
+			//EDITBMESHGREP select_faces_by_numverts(3);
 			break;
 		case 12: /* select quads */
-			select_faces_by_numverts(4);
+			//EDITBMESHGREP select_faces_by_numverts(4);
 			break;
 		case 13: /* select non-triangles/quads */
-			select_faces_by_numverts(5);
+			//EDITBMESHGREP select_faces_by_numverts(5);
 			break;
 		case 14: /* select sharp edges */
-			select_sharp_edges();
+			//EDITBMESHGREP select_sharp_edges();
 			break;
 		case 15: /* select linked flat faces */
-			select_linked_flat_faces();
+			//EDITBMESHGREP select_linked_flat_faces();
 			break;
 
 		case 16: /* path select */
-			pathselect();
+			//EDITBMESHGREP pathselect();
 			BIF_undo_push("Path Select");
 			break;
 		case 17: /* edge loop select */
-			loop_multiselect(0);
+			//EDITBMESHGREP loop_multiselect(0);
 			break;
 		case 18: /* edge ring select */
-			loop_multiselect(1);
+			//EDITBMESHGREP loop_multiselect(1);
 			break;
 		case 19: /* loop to region */
-			loop_to_region();
+			//EDITBMESHGREP loop_to_region();
 			break;
 		case 20: /* region to loop */
-			region_to_loop();
+			//EDITBMESHGREP region_to_loop();
 			break;
 		case 21: /* Select grouped */
-			select_mesh_group_menu();
+			//EDITBMESHGREP select_mesh_group_menu();
 			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -2486,7 +2486,7 @@ void do_view3d_edit_mesh_verticesmenu(void *arg, int event)
 		make_parent();
 		break;
 	case 1: /* remove doubles */
-		count= removedoublesflag(1, G.scene->toolsettings->doublimit);
+		//EDITBMESHGREP count= removedoublesflag(1, G.scene->toolsettings->doublimit);
 		notice("Removed: %d", count);
 		if (count) { /* only undo and redraw if an action is taken */
 			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
@@ -2494,23 +2494,23 @@ void do_view3d_edit_mesh_verticesmenu(void *arg, int event)
 		}
 		break;
 	case 2: /* smooth */
-		vertexsmooth();
+		//EDITBMESHGREP vertexsmooth();
 		break;
 	case 3: /* separate */
-		separate_mesh();
+		//EDITBMESHGREP separate_mesh();
 		break;
 	case 4: /*split */
-		split_mesh();
+		//EDITBMESHGREP split_mesh();
 		break;
 	case 5: /*merge */
-		mergemenu();
+		//EDITBMESHGREP mergemenu();
 		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		break;
 	case 6: /* add hook */
 		add_hook();
 		break;
 	case 7: /* rip */
-		mesh_rip();
+		//EDITBMESHGREP mesh_rip();
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -2552,37 +2552,37 @@ void do_view3d_edit_mesh_edgesmenu(void *arg, int event)
 	switch(event) {
 		 
 	case 0: /* subdivide smooth */
-		esubdivideflag(1, 0.0, G.scene->toolsettings->editbutflag | B_SMOOTH,1,0);
+		//EDITBMESHGREP esubdivideflag(1, 0.0, G.scene->toolsettings->editbutflag | B_SMOOTH,1,0);
 		BIF_undo_push("Subdivide Smooth");
 		break;
 	case 1: /*subdivide fractal */
 		randfac= 10;
 		if(button(&randfac, 1, 100, "Rand fac:")==0) return;
 		fac= -( (float)randfac )/100;
-		esubdivideflag(1, fac, G.scene->toolsettings->editbutflag,1,0);
+		//EDITBMESHGREP esubdivideflag(1, fac, G.scene->toolsettings->editbutflag,1,0);
 		BIF_undo_push("Subdivide Fractal");
 		break;
 	case 2: /* subdivide */
-		esubdivideflag(1, 0.0, G.scene->toolsettings->editbutflag,1,0);
+		//EDITBMESHGREP esubdivideflag(1, 0.0, G.scene->toolsettings->editbutflag,1,0);
 		BIF_undo_push("Subdivide");
 		break;
 	case 3: /* knife subdivide */
-		KnifeSubdivide(KNIFE_PROMPT);
+		//EDITBMESHGREP KnifeSubdivide(KNIFE_PROMPT);
 		break;
 	case 4: /* Loop subdivide */
-		CutEdgeloop(1);
+		//EDITBMESHGREP CutEdgeloop(1);
 		break;
 	case 5: /* Make Edge/Face */
-		addedgeface_mesh();
+		//EDITBMESHGREP addedgeface_mesh();
 		break;
 	case 6:
-		bevel_menu();
+		//EDITBMESHGREP bevel_menu();
 		break;
 	case 7: /* Mark Seam */
-		editmesh_mark_seam(0);
+		//EDITBMESHGREP editmesh_mark_seam(0);
 		break;
 	case 8: /* Clear Seam */
-		editmesh_mark_seam(1);
+		//EDITBMESHGREPeditmesh_mark_seam(1);
 		break;
 	case 9: /* Cease SubSurf */
 		if(!multires_level1_test()) {
@@ -2591,19 +2591,19 @@ void do_view3d_edit_mesh_edgesmenu(void *arg, int event)
 		}
 		break;
 	case 10: /* Rotate Edge */
-		edge_rotate_selected(2);
+		//EDITBMESHGREP edge_rotate_selected(2);
 		break;
 	case 11: /* Rotate Edge */
-		edge_rotate_selected(1);
+		//EDITBMESHGREP edge_rotate_selected(1);
 		break;
 	case 12: /* Edgeslide */
-		EdgeSlide(0,0.0);
+		//EDITBMESHGREP EdgeSlide(0,0.0);
 		break;
 	case 13: /* Edge Loop Delete */
-		EdgeLoopDelete();
+		//EDITBMESHGREP EdgeLoopDelete();
 		break;
 	case 14: /*Collapse Edges*/
-		collapseEdges();
+		//EDITBMESHGREP collapseEdges();
 		BIF_undo_push("Collapse");
 		break;
 	}
@@ -2658,31 +2658,31 @@ void do_view3d_edit_mesh_facesmenu(void *arg, int event)
 {
 	switch(event) {
 	case 0: /* Fill Faces */
-		fill_mesh();
+		//EDITBMESH fill_mesh();
 		break;
 	case 1: /* Beauty Fill Faces */
-		beauty_fill();
+		//EDITBMESH beauty_fill();
 		break;
 	case 2: /* Quads to Tris */
-		convert_to_triface(0);
+		//EDITBMESH convert_to_triface(0);
 		allqueue(REDRAWVIEW3D, 0);
 		countall();
 		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		break;
 	case 3: /* Tris to Quads */
-		join_triangles();
+		//EDITBMESH join_triangles();
 		break;
 	case 4: /* Flip triangle edges */
-		edge_flip();
+		//EDITBMESH edge_flip();
 		break;
 	case 5: /* Make Edge/Face */
-		addedgeface_mesh();
+		//EDITBMESH addedgeface_mesh();
 		break;
 	case 6: /* Set Smooth */
-		mesh_set_smooth_faces(1);
+		//EDITBMESH mesh_set_smooth_faces(1);
 		break;
 	case 7: /* Set Solid */
-		mesh_set_smooth_faces(0);
+		//EDITBMESH mesh_set_smooth_faces(0);
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -2721,13 +2721,13 @@ void do_view3d_edit_mesh_normalsmenu(void *arg, int event)
 {
 	switch(event) {
 	case 0: /* flip */
-		flip_editnormals();
+		//EDITBMESH flip_editnormals();
 		break;
 	case 1: /* recalculate inside */
-		righthandfaces(2);
+		//EDITBMESH righthandfaces(2);
 		break;
 	case 2: /* recalculate outside */
-		righthandfaces(1);
+		//EDITBMESH righthandfaces(1);
 		break;
 		}
 	allqueue(REDRAWVIEW3D, 0);
@@ -2883,13 +2883,13 @@ static void do_view3d_edit_meshmenu(void *arg, int event)
 		common_insertkey();
 		break;
 	case 5: /* Extrude */
-		extrude_mesh();
+		//EDITBMESH extrude_mesh();
 		break;
 	case 6: /* duplicate */
 		duplicate_context_selected();
 		break;
 	case 7: /* make edge face */
-		addedgeface_mesh();
+		//EDITBMESH addedgeface_mesh();
 		break;
 	case 8: /* delete */
 		delete_context_selected();
@@ -4808,7 +4808,7 @@ void do_view3d_buttons(short event)
 	case B_SEL_VERT:
 		if( (G.qual & LR_SHIFTKEY)==0 || G.scene->selectmode==0)
 			G.scene->selectmode= SCE_SELECT_VERTEX;
-		EM_selectmode_set();
+		//EDITBMESHGREP EM_selectmode_set();
 		countall();
 		BIF_undo_push("Selectmode Set: Vertex");
 		allqueue(REDRAWVIEW3D, 1);
@@ -4816,11 +4816,11 @@ void do_view3d_buttons(short event)
 	case B_SEL_EDGE:
 		if( (G.qual & LR_SHIFTKEY)==0 || G.scene->selectmode==0){
 			if( (G.scene->selectmode ^ SCE_SELECT_EDGE) == SCE_SELECT_VERTEX){
-				if(G.qual==LR_CTRLKEY) EM_convertsel(SCE_SELECT_VERTEX,SCE_SELECT_EDGE); 
+				//EDITBMESHGREP if(G.qual==LR_CTRLKEY) EM_convertsel(SCE_SELECT_VERTEX,SCE_SELECT_EDGE); 
 			}
 			G.scene->selectmode = SCE_SELECT_EDGE;
 		}
-		EM_selectmode_set();
+		//EDITBMESHGREP EM_selectmode_set();
 		countall();
 		BIF_undo_push("Selectmode Set: Edge");
 		allqueue(REDRAWVIEW3D, 1);
@@ -4828,11 +4828,11 @@ void do_view3d_buttons(short event)
 	case B_SEL_FACE:
 		if( (G.qual & LR_SHIFTKEY)==0 || G.scene->selectmode==0){
 			if( ((G.scene->selectmode ^ SCE_SELECT_FACE) == SCE_SELECT_VERTEX) || ((G.scene->selectmode ^ SCE_SELECT_FACE) == SCE_SELECT_EDGE)){
-				if(G.qual==LR_CTRLKEY) EM_convertsel((G.scene->selectmode ^ SCE_SELECT_FACE),SCE_SELECT_FACE);
+				//EDITBMESHGREP if(G.qual==LR_CTRLKEY) EM_convertsel((G.scene->selectmode ^ SCE_SELECT_FACE),SCE_SELECT_FACE);
 			}
 			G.scene->selectmode = SCE_SELECT_FACE;
 		}
-		EM_selectmode_set();
+		//EDITBMESHGREP EM_selectmode_set();
 		countall();
 		BIF_undo_push("Selectmode Set: Face");
 		allqueue(REDRAWVIEW3D, 1);

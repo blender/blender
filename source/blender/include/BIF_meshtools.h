@@ -36,15 +36,15 @@
 struct Object;
 struct EditVert;
 
-extern int join_mesh(void);
+int join_mesh(void);
 
-extern void sort_faces(void);
-extern void objects_bake_render_menu(void);
-extern void objects_bake_render(short event);
+void sort_faces(void);
+void objects_bake_render_menu(void);
+void objects_bake_render(short event);
 
-extern long mesh_octree_table(struct Object *ob, float *co, char mode);
-extern int mesh_get_x_mirror_vert(struct Object *ob, int index);
-extern struct EditVert *editmesh_get_x_mirror_vert(struct Object *ob, float *co);
+long mesh_octree_table(struct Object *ob, float *co, char mode);
+int mesh_get_x_mirror_vert(struct Object *ob, int index);
+struct BME_Vert *editmesh_get_x_mirror_vert(struct Object *ob, float *co);
 
 #endif
 

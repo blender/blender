@@ -75,6 +75,7 @@
 #include "BKE_object.h"
 #include "BKE_scene.h"
 #include "BKE_sound.h"
+#include "BKE_main.h"
 
 #include "BLI_editVert.h"
 
@@ -201,8 +202,8 @@ void initglobals(void)
 {
 	memset(&G, 0, sizeof(Global));
 	
-	memset(&theEditMesh, 0, sizeof(theEditMesh));
-	G.editMesh = &theEditMesh;
+	//memset(&theEditMesh, 0, sizeof(theEditMesh));
+	//G.editMesh = &theEditMesh;
 
 	U.savetime= 1;
 
@@ -246,7 +247,7 @@ static void clear_global(void)
 	
 	if (G.obedit) {
 		freeNurblist(&editNurb);
-		free_editMesh(G.editMesh);
+		if (G.editMesh) BME_free_mesh(G.editMesh);
 		free_editText();
 		free_editArmature();
 	}

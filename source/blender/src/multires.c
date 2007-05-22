@@ -390,6 +390,7 @@ void multires_col_avg2(MultiresCol *avg, MultiresCol *c1, MultiresCol *c2)
 
 void multires_load_cols(Mesh *me)
 {
+#if 0 //EDITBMESHGREP
 	MultiresLevel *lvl= BLI_findlink(&me->mr->levels,me->mr->current-1), *cur;
 	EditMesh *em= G.obedit ? G.editMesh : NULL;
 	CustomData *src= em ? &em->fdata : &me->fdata;
@@ -458,6 +459,7 @@ void multires_load_cols(Mesh *me)
 		}
 		lvl= lvl->prev;
 	}
+#endif
 }
 
 void multires_get_vert(MVert *out, EditVert *eve, MVert *m, int i)
@@ -533,6 +535,7 @@ void multires_get_edge(MultiresEdge *e, EditEdge *eed, MEdge *m, short *flag, ch
 
 void multires_make(void *ob, void *me_v)
 {
+#if 0 //EDITBMESHGREP
 	Mesh *me= me_v;
 	MultiresLevel *lvl;
 	EditMesh *em= G.obedit ? G.editMesh : NULL;
@@ -614,6 +617,7 @@ void multires_make(void *ob, void *me_v)
 	BIF_undo_push("Make multires");
 
 	waitcursor(0);
+#endif
 }
 
 void multires_delete(void *ob, void *me_v)
@@ -733,6 +737,7 @@ void multires_clip_levels(Multires *mr)
    first-level data up to the new lowest level. */
 void multires_del_lower(void *ob, void *me)
 {
+#if 0 //EDITBMESHGREP
 	Multires *mr= ((Mesh*)me)->mr;
 	MultiresLevel *lvl1= mr->levels.first, *cr_lvl= current_level(mr);
 	MultiresLevel *lvl= NULL, *lvlprev= NULL;
@@ -778,6 +783,7 @@ void multires_del_lower(void *ob, void *me)
 	allqueue(REDRAWBUTSEDIT, 0);
 
 	BIF_undo_push("Multires delete lower");
+#endif
 }
 
 void multires_del_higher(void *ob, void *me)
@@ -825,6 +831,7 @@ unsigned int find_mid_edge(ListBase *vert_edge_map,
 
 void check_colors(Mesh *me)
 {
+#if 0 //EDITBMESHGREP
 	CustomData *src= G.obedit ? &G.editMesh->fdata : &me->fdata;
 	const char col= CustomData_has_layer(src, CD_MCOL);
 
@@ -835,10 +842,12 @@ void check_colors(Mesh *me)
 		me->mr->use_col= 1;
 		multires_load_cols(me);
 	}
+#endif
 }
 
 void multires_add_level(void *ob, void *me_v)
 {
+	#if 0 //EDITBMESHGREP
 	int i,j, curf, cure;
 	Mesh *me= me_v;
 	MultiresLevel *lvl= MEM_callocN(sizeof(MultiresLevel), "multireslevel");
@@ -1011,6 +1020,7 @@ void multires_add_level(void *ob, void *me_v)
 	BIF_undo_push("Add multires level");
 
 	waitcursor(0);
+#endif
 }
 
 void multires_set_level_cb(void *ob, void *me)
@@ -1060,6 +1070,7 @@ void medge_flag_to_eed(const short flag, const char crease, EditEdge *eed)
 /* note, function is called in background render too, without UI */
 void multires_level_to_mesh(Object *ob, Mesh *me, const int render)
 {
+#if 0 //EDITBMESHGREP
 	MultiresLevel *lvl= BLI_findlink(&me->mr->levels,me->mr->current-1);
 	int i;
 	EditMesh *em= (!render && G.obedit) ? G.editMesh : NULL;
@@ -1211,10 +1222,12 @@ void multires_level_to_mesh(Object *ob, Mesh *me, const int render)
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWIMAGE, 0);
 	}
+#endif
 }
 
 void multires_update_colors(Mesh *me)
 {
+#if 0 //EDITBMESHGREP
 	MultiresLevel *lvl= BLI_findlink(&me->mr->levels,me->mr->current-1);
 	MultiresCol *pr_deltas= NULL, *cr_deltas= NULL;
 	EditMesh *em= G.obedit ? G.editMesh : NULL;
@@ -1309,10 +1322,12 @@ void multires_update_colors(Mesh *me)
 			lvl= lvl->prev;
 		}
 	}
+#endif
 }
 
 void multires_update_edge_flags(Multires *mr, Mesh *me, EditMesh *em)
 {
+#if 0 //EDITBMESHGREP
 	MultiresLevel *lvl= current_level(mr);
 	EditEdge *eed= NULL;
 	int i;
@@ -1329,10 +1344,12 @@ void multires_update_edge_flags(Multires *mr, Mesh *me, EditMesh *em)
 			mr->edge_creases[i]= me->medge[i].crease;
 		}
 	}
+#endif
 }
 
 void multires_update_levels(Mesh *me, const int render)
 {
+#if 0 //EDITBMESHGREP
 	/* cr=current, pr=previous, or=original */
 	MultiresLevel *cr_lvl= current_level(me->mr), *pr_lvl;
 	MultiresLevel *or_lvl= cr_lvl;
@@ -1556,11 +1573,12 @@ void multires_update_levels(Mesh *me, const int render)
 	if(cr_mat_damaged) MEM_freeN(cr_mat_damaged);
 
 	multires_update_colors(me);
-
+#endif
 }
 
 void multires_calc_level_maps(MultiresLevel *lvl)
 {
+#if 0 //EDITBMESHGREP
 	unsigned i,j;
 	MultiresMapNode *indexnode= NULL;
 	
@@ -1582,10 +1600,12 @@ void multires_calc_level_maps(MultiresLevel *lvl)
 			BLI_addtail(&lvl->vert_face_map[lvl->faces[i].v[j]], indexnode);
 		}
 	}
+#endif
 }
 
 void multires_edge_level_update(void *ob, void *me_v)
 {
+#if 0 //EDITBMESHGREP
 	if(!G.obedit) {
 		Mesh *me= me_v;
 		MultiresLevel *cr_lvl= BLI_findlink(&me->mr->levels,me->mr->current-1);
@@ -1606,6 +1626,7 @@ void multires_edge_level_update(void *ob, void *me_v)
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 0);
 	}
+#endif 
 }
 
 int multires_modifier_warning()

@@ -75,6 +75,7 @@ char type_ok(const int type)
 /* Copy vdata or fdata from Mesh or EditMesh to Multires. */
 void multires_update_customdata(MultiresLevel *lvl1, CustomData *src, CustomData *dst, const int type)
 {
+	#if 0 //EDITBMESHGREP
 	if(src && dst && type_ok(type)) {
 		const int tot= (type == CD_MDEFORMVERT ? lvl1->totvert : lvl1->totface);
 		int i;
@@ -101,12 +102,14 @@ void multires_update_customdata(MultiresLevel *lvl1, CustomData *src, CustomData
 				CustomData_copy(src, dst, cdmask(type), CD_DUPLICATE, tot);
 		}
 	}
+	#endif
 }
 
 /* Uses subdivide_dverts or subdivide_mtfaces to subdivide src to match lvl_end. Does not free src. */
 void *subdivide_customdata_to_level(void *src, MultiresLevel *lvl_start,
                                     MultiresLevel *lvl_end, const int type)
 {
+	#if 0 //EDITBMESHGREP
 	if(src && lvl_start && lvl_end && type_ok(type)) {
 		MultiresLevel *lvl;
 		void *cr_data= NULL, *pr_data= NULL;
@@ -134,11 +137,15 @@ void *subdivide_customdata_to_level(void *src, MultiresLevel *lvl_start,
 	}
 	
 	return NULL;
+	
+	#endif
+	return NULL;
 }
 
 /* Directly copy src into dst (handles both Mesh and EditMesh) */
 void customdata_to_mesh(Mesh *me, EditMesh *em, CustomData *src, CustomData *dst, const int tot, const int type)
 {
+	#if 0//EDITBMESHGREP
 	if(me && me->mr && src && dst && type_ok(type)) {
 		if(em) {
 			int i;
@@ -160,12 +167,14 @@ void customdata_to_mesh(Mesh *me, EditMesh *em, CustomData *src, CustomData *dst
 			CustomData_merge(src, dst, cdmask(type), CD_DUPLICATE, tot);
 		}
 	}
+	#endif
 }
 
 /* Subdivide vdata or fdata from Multires into either Mesh or EditMesh. */
 void multires_customdata_to_mesh(Mesh *me, EditMesh *em, MultiresLevel *lvl, CustomData *src,
                                  CustomData *dst, const int type)
 {	
+	#if 0 //EDITBMESHGREP
 	if(me && me->mr && lvl && src && dst && type_ok(type) &&
 	   CustomData_has_layer(src, type)) {
 		const int tot= (type == CD_MDEFORMVERT ? lvl->totvert : lvl->totface);
@@ -189,11 +198,13 @@ void multires_customdata_to_mesh(Mesh *me, EditMesh *em, MultiresLevel *lvl, Cus
 			CustomData_free(&cdf, tot);
 		}
 	}
+	#endif
 }
 
 /* Subdivide the first-level customdata up to cr_lvl, then delete the original data */
 void multires_del_lower_customdata(Multires *mr, MultiresLevel *cr_lvl)
 {
+	#if 0 //EDITBMESHGREP
 	MultiresLevel *lvl1= mr->levels.first;
 	MDeformVert *dverts= NULL;
 	CustomData cdf;
@@ -219,6 +230,7 @@ void multires_del_lower_customdata(Multires *mr, MultiresLevel *cr_lvl)
 	
 	CustomData_free(&mr->fdata, lvl1->totface);
 	mr->fdata= cdf;
+	#endif
 }
 
 /*********** Multires.vdata ***********/
@@ -228,6 +240,7 @@ void multires_del_lower_customdata(Multires *mr, MultiresLevel *cr_lvl)
 /* Add each weight from in to out. Scale each weight by w. */
 void multires_add_dvert(MDeformVert *out, const MDeformVert *in, const float w)
 {
+	#if 0 //EDITBMESHGREP
 	if(out && in) {
 		int i, j;
 		char found;
@@ -256,11 +269,13 @@ void multires_add_dvert(MDeformVert *out, const MDeformVert *in, const float w)
 			}
 		}
 	}
+	#endif
 }
 
 /* Takes an input array of dverts and subdivides them (linear) using the topology of lvl */
 MDeformVert *subdivide_dverts(MDeformVert *src, MultiresLevel *lvl)
 {
+	#if 0 //EDITBMESHGREP
 	if(lvl && lvl->next) {
 		MDeformVert *out = MEM_callocN(sizeof(MDeformVert)*lvl->next->totvert, "dvert prop array");
 		int i, j;
@@ -286,6 +301,8 @@ MDeformVert *subdivide_dverts(MDeformVert *src, MultiresLevel *lvl)
 	}
 	
 	return NULL;
+	#endif
+	return NULL;
 }
 
 
@@ -304,6 +321,7 @@ void multires_uv_avg2(float out[2], const float a[2], const float b[2])
 /* Takes an input array of mtfaces and subdivides them (linear) using the topology of lvl */
 MTFace *subdivide_mtfaces(MTFace *src, MultiresLevel *lvl)
 {
+	#if 0 //EDITBMESHGREP
 	if(lvl && lvl->next) {
 		MTFace *out= MEM_callocN(sizeof(MultiresColFace)*lvl->next->totface,"Multirescolfaces");
 		int i, j, curf;
@@ -337,12 +355,15 @@ MTFace *subdivide_mtfaces(MTFace *src, MultiresLevel *lvl)
 		
 		return out;
 	}
+	return NULL;
 	
+	#endif
 	return NULL;
 }
 
 void multires_delete_layer(Mesh *me, CustomData *cd, const int type, int n)
 {
+	#if 0 //EDITBMESHGREP
 	if(me && me->mr && cd) {
 		MultiresLevel *lvl1= me->mr->levels.first;
 		
@@ -353,11 +374,13 @@ void multires_delete_layer(Mesh *me, CustomData *cd, const int type, int n)
 		
 		multires_level_to_mesh(OBACT, me, 0);
 	}
+	#endif
 }
 
 MultiresLevel *current_level(Multires *mr);
 void multires_add_layer(Mesh *me, CustomData *cd, const int type, const int n)
 {
+	#if 0
 	if(me && me->mr && cd) {
 		multires_update_levels(me, 0);
 	
@@ -370,4 +393,5 @@ void multires_add_layer(Mesh *me, CustomData *cd, const int type, const int n)
 		CustomData_set_layer_active(cd, type, n);
 		multires_level_to_mesh(OBACT, me, 0);
 	}
+	#endif
 }

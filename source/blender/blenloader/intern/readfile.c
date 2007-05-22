@@ -141,6 +141,7 @@
 #include "BLO_readfile.h"
 #include "BLO_undofile.h"
 #include "BLO_readblenfile.h" // streaming read pipe, for BLO_readblenfile BLO_readblenfilememory
+#include "BLI_memarena.h"
 
 #include "multires.h"
 
@@ -2511,6 +2512,8 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	mesh->mcol= newdataadr(fd, mesh->mcol);
 	mesh->msticky= newdataadr(fd, mesh->msticky);
 	mesh->dvert= newdataadr(fd, mesh->dvert);
+	mesh->mpoly = newdataadr(fd, mesh->mpoly);
+	mesh->mloop = newdataadr(fd, mesh->mloop);
 	
 	/* Partial-mesh visibility (do this before using totvert, totface, or totedge!) */
 	mesh->pv= newdataadr(fd, mesh->pv);
@@ -2528,6 +2531,8 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	direct_link_customdata(fd, &mesh->vdata, mesh->pv ? mesh->pv->totvert : mesh->totvert);
 	direct_link_customdata(fd, &mesh->edata, mesh->pv ? mesh->pv->totedge : mesh->totedge);
 	direct_link_customdata(fd, &mesh->fdata, mesh->pv ? mesh->pv->totface : mesh->totface);
+	direct_link_customdata(fd, &mesh->ldata, mesh->pv ? mesh->pv->totloop : mesh->totloop );
+	direct_link_customdata(fd, &mesh->pdata, mesh->pv ? mesh->pv->totpoly : mesh->totpoly );
 
 	mesh->bb= NULL;
 	mesh->oc= 0;
@@ -6470,11 +6475,141 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				sce->r.mode |= R_SSS;
 		}
 	}
+	
+	/*patch meshes*/
+	if (main->versionfile <= 244 && main->subversionfile < 1) {
+		/*BMesh Stuff!!*/
+		Mesh *mesh;
+		MEdge *medge;
+		MLoop *mloop;
+		MPoly *mpoly;
+		MFace *mface;
+		void *hash;
+		//MTFace *mtface;
+		int i, totloop, curloop=0;
+		
+		/*these functions are just defined after this function ends, 
+		  to avoid massive scrolling*/
+		extern void *makeConvEHash(void);
+		extern void freeConvEHash(void *vhash);
+		extern void addToConvEHash(void *vhash, MEdge *edge, int i);
+		extern int getFromConvEHash(void *vhash, int v1, int v2);
 
+		#define MAKE_LOOP(_v1, _v2) \
+			mloop->edge = getFromConvEHash(hash, _v1, _v2);\
+			mloop->poly = i;\
+			mloop->v = _v1;\
+			mloop++;\
+			curloop++
+
+		for (mesh=main->mesh.first; mesh; mesh=mesh->id.next) {
+			totloop = 0;
+			curloop = 0;
+			for (mface=mesh->mface,i=0; i<mesh->totface; i++,  mface++) {
+				if (mface->v4) totloop += 4;
+				else totloop += 3;
+			}
+			mesh->totloop = totloop;
+			mesh->totpoly = mesh->totface;
+			
+			mesh->mloop = mloop = MEM_callocN(sizeof(MLoop)*mesh->totloop, "mloop converted");
+			mesh->mpoly = mpoly = MEM_callocN(sizeof(MPoly)*mesh->totpoly, "mpoly converted");
+			
+			CustomData_add_layer(&mesh->ldata, CD_MLOOP, CD_ASSIGN, mesh->mloop, mesh->totloop);
+			CustomData_add_layer(&mesh->pdata, CD_MPOLY, CD_ASSIGN, mesh->mpoly, mesh->totpoly);
+			
+			hash = makeConvEHash();
+			for (medge=mesh->medge,i=0; i<mesh->totedge; i++, medge++) {
+				addToConvEHash(hash, medge, i);
+			}			
+			
+			for (mface=mesh->mface,i=0; i<mesh->totpoly; i++, mface++, mpoly++) {
+				mpoly->mat_nr = mface->mat_nr;
+				mpoly->flag = (mface->flag&ME_SMOOTH?ME_NSMOOTH:0)|(mface->flag&ME_FACE_SEL?1:0);
+				mpoly->firstloop = curloop;
+				MAKE_LOOP(mface->v1, mface->v2);
+				MAKE_LOOP(mface->v2, mface->v3);
+				if (mface->v4) {
+					MAKE_LOOP(mface->v3, mface->v4);
+					MAKE_LOOP(mface->v4, mface->v1);
+					mpoly->totloop = 4;
+				} else {
+					MAKE_LOOP(mface->v3, mface->v1);
+					mpoly->totloop = 3;
+				}				
+			}
+			
+			freeConvEHash(hash);
+		}
+	}
+	#undef MAKE_LOOP
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
 
 	/* don't forget to set version number in blender.c! */
+}
+
+/*Hash structure used for conversion*/
+#define MAX_HASH	8096*2
+typedef struct _convedge {
+	struct _convedge *next, *prev;
+	struct MEdge *edge;
+	int index;
+} _convedge;
+
+typedef struct _convhash {
+	ListBase array[MAX_HASH];
+	MemArena *arena;
+} _convhash;
+
+void *makeConvEHash(void)
+{
+	_convhash *h = MEM_callocN(sizeof(_convhash), "_convhash");
+	h->arena = BLI_memarena_new(1<<11);
+	return h;
+}
+
+void freeConvEHash(void *vhash)
+{
+	_convhash *h = vhash;
+	BLI_memarena_free(h->arena);
+	MEM_freeN(h);
+}
+
+void addToConvEHash(void *vhash, MEdge *edge, int i)
+{
+	_convhash *h = vhash;
+	_convedge *e = NULL;
+	ListBase *lbase;
+	int lv1 = edge->v1, lv2 = edge->v2, least;
+
+	least = lv1<lv2?lv1:lv2;
+	
+	lbase = &h->array[least % MAX_HASH];
+	e = BLI_memarena_alloc(h->arena, sizeof(_convedge));
+	e->edge = edge;
+	e->index = i;
+	
+	BLI_addtail(lbase, e);
+}
+
+int getFromConvEHash(void *vhash, int lv1, int lv2)
+{
+	_convhash *h = vhash;
+	_convedge *e = NULL;
+	ListBase *lbase;
+	int least;
+
+	least = lv1<lv2?lv1:lv2;
+	
+	lbase = &h->array[least % MAX_HASH];
+	for (e=lbase->first; e; e=e->next) {
+		if (e->edge->v1 == lv1 && e->edge->v2 == lv2) return e->index;
+		else if (e->edge->v1 == lv2 && e->edge->v2 == lv1) return e->index;		
+	}
+	
+	printf("did not find edge in getFromConvEHash!!!\n");
+	return 0;
 }
 
 static void lib_link_all(FileData *fd, Main *main)

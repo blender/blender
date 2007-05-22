@@ -77,6 +77,7 @@ void sort_faces(void);
 #include "BKE_material.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
+#include "BKE_bmesh.h"
 
 #include "BIF_editmesh.h"
 #include "BIF_graphics.h"
@@ -701,7 +702,7 @@ static long mesh_octree_find_index(MocNode **bt, MVert *mvert, float *co)
 					return (*bt)->index[a]-1;
 			}
 			else {
-				EditVert *eve= (EditVert *)((*bt)->index[a]);
+				BME_Vert *eve= (BME_Vert *)((*bt)->index[a]);
 				if(FloatCompare(eve->co, co, MOC_THRESH))
 					return (*bt)->index[a];
 			}
@@ -763,7 +764,7 @@ long mesh_octree_table(Object *ob, float *co, char mode)
 		basetable= MEM_callocN(MOC_RES*MOC_RES*MOC_RES*sizeof(void *), "sym table");
 		
 		if(ob==G.obedit) {
-			EditVert *eve;
+			BME_Vert *eve;
 			
 			for(eve= G.editMesh->verts.first; eve; eve= eve->next) {
 				mesh_octree_add_nodes(basetable, eve->co, offs, div, (long)(eve));
@@ -805,7 +806,7 @@ int mesh_get_x_mirror_vert(Object *ob, int index)
 	return mesh_octree_table(ob, vec, 'u');
 }
 
-EditVert *editmesh_get_x_mirror_vert(Object *ob, float *co)
+BME_Vert *editmesh_get_x_mirror_vert(Object *ob, float *co)
 {
 	float vec[3];
 	long poinval;
@@ -816,7 +817,7 @@ EditVert *editmesh_get_x_mirror_vert(Object *ob, float *co)
 	
 	poinval= mesh_octree_table(ob, vec, 'u');
 	if(poinval != -1)
-		return (EditVert *)(poinval);
+		return (BME_Vert *)(poinval);
 	return NULL;
 }
 

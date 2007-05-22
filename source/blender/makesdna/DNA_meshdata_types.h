@@ -37,6 +37,18 @@
 struct Bone;
 struct Image;
 
+typedef struct MPoly {
+	unsigned int firstloop, totloop;
+	char flag, mat_nr, pad1, pad2;
+	float no[3]; int pad3;
+} MPoly;
+
+typedef struct MLoop {
+	unsigned int edge, v, poly;
+	unsigned int flag;
+} MLoop;
+
+
 typedef struct MFace {
 	unsigned int v1, v2, v3, v4;
 	char pad, mat_nr;
@@ -137,7 +149,7 @@ typedef struct PartialVisibility {
 	int *edge_map; /* edge_map[Old Index]= New Index, -1= hidden */
 	MFace *old_faces;
 	MEdge *old_edges;
-	unsigned int totface, totedge, totvert, pad;
+	unsigned int totface, totedge, totvert, pad, totloop, totpoly;
 } PartialVisibility;
 
 /* mvert->flag (1=SELECT) */
@@ -174,8 +186,10 @@ typedef struct PartialVisibility {
 #define ME_V4V1			8
 
 /* flag (mface) */
-#define ME_SMOOTH			1
-#define ME_FACE_SEL			2
+#define ME_SMOOTH			1 /*dead, reserved for SELECT now! muahahaha!*/
+#define ME_FACE_SEL			2 /*dead!*/
+
+#define ME_NSMOOTH			2
 						/* flag ME_HIDE==16 is used here too */ 
 /* mselect->type */
 #define ME_VSEl	0

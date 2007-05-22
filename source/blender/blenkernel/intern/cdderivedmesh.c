@@ -68,6 +68,8 @@ typedef struct {
 	MVert *mvert;
 	MEdge *medge;
 	MFace *mface;
+	MLoop *mloop;
+	MPoly *mpoly;
 } CDDerivedMesh;
 
 /**************** DerivedMesh interface functions ****************/
@@ -242,14 +244,6 @@ static void cdDM_drawLooseEdges(DerivedMesh *dm)
 	glEnd();
 }
 
-static void cdDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int))
-{
-	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
-	MVert *mvert = cddm->mvert;
-	MFace *mface = cddm->mface;
-	float *nors= dm->getFaceDataArray(dm, CD_NORMAL);
-	int a, glmode = -1, shademodel = -1, matnr = -1, drawCurrentMat = 1;
-
 #define PASSVERT(index) {						\
 	if(shademodel == GL_SMOOTH) {				\
 		short *no = mvert[index].no;			\
@@ -257,7 +251,68 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int))
 	}											\
 	glVertex3fv(mvert[index].co);	\
 }
+static void cdDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int))
+{
+	CDDerivedMesh *cddm = (CDDerivedMesh*) dm;
+	MVert *mvert = cddm->mvert;
+	MFace *mface = cddm->mface;
+	MLoop *mloop = cddm->mloop;
+	MPoly *mpoly = cddm->mpoly;
+	float *nors= dm->getFaceDataArray(dm, CD_NORMAL);
+	int a, j, glmode = -1, shademodel = -1, matnr = -1, drawCurrentMat = 1;
 
+	printf("v: %p f: %p l: %p p: %p\n", mvert, mface, mloop, mpoly);
+	printf("totpolys: %d\n", dm->numPolyData);
+	
+	for (mpoly=cddm->mpoly, a=0; a<dm->numPolyData; a++, mpoly++) {
+		int new_glmode, new_matnr, new_shademodel;
+		printf("poly a: %d\n", a);
+		
+		mloop = &cddm->mloop[mpoly->firstloop];
+		
+		new_glmode = GL_POLYGON; //mpoly->v4?GL_QUADS:GL_TRIANGLES;
+		new_matnr = mpoly->mat_nr + 1;
+		new_shademodel = (mpoly->flag & ME_NSMOOTH)?GL_SMOOTH:GL_FLAT;
+		
+		mloop = &cddm->mloop[mpoly->firstloop];
+		
+		if(new_glmode != glmode || new_matnr != matnr
+		   || new_shademodel != shademodel) {
+			glEnd();
+
+			drawCurrentMat = setMaterial(matnr = new_matnr);
+
+			glShadeModel(shademodel = new_shademodel);
+			glBegin(glmode = new_glmode);
+		} 
+		
+		if(drawCurrentMat) {
+			if(shademodel == GL_FLAT) {
+				if (nors) {
+					glNormal3fv(nors);
+				}
+				else {
+					/* TODO make this better (cache facenormals as layer?) */
+					float nor[3];
+					CalcNormFloat(mvert[mloop->v].co, mvert[(mloop+1)->v].co,
+								  mvert[(mloop+2)->v].co, nor);
+					glNormal3fv(nor);
+				}
+			}
+			
+			for (j=0; j<mpoly->totloop; j++, mloop++) {
+				PASSVERT(mloop->v);
+			}
+		
+		} else mloop += mpoly->totloop;
+
+		if(nors) nors += 3;
+	}
+	glEnd();
+
+	glShadeModel(GL_FLAT);
+	
+	return;
 	glBegin(glmode = GL_QUADS);
 	for(a = 0; a < dm->numFaceData; a++, mface++) {
 		int new_glmode, new_matnr, new_shademodel;
@@ -724,20 +779,24 @@ static CDDerivedMesh *cdDM_create(const char *desc)
 	return cddm;
 }
 
-DerivedMesh *CDDM_new(int numVerts, int numEdges, int numFaces)
+DerivedMesh *CDDM_new(int numVerts, int numEdges, int numFaces, int numLoops, int numPolys)
 {
 	CDDerivedMesh *cddm = cdDM_create("CDDM_new dm");
 	DerivedMesh *dm = &cddm->dm;
 
-	DM_init(dm, numVerts, numEdges, numFaces);
+	DM_init(dm, numVerts, numEdges, numFaces, numLoops, numPolys);
 
 	CustomData_add_layer(&dm->vertData, CD_MVERT, CD_CALLOC, NULL, numVerts);
 	CustomData_add_layer(&dm->edgeData, CD_MEDGE, CD_CALLOC, NULL, numEdges);
 	CustomData_add_layer(&dm->faceData, CD_MFACE, CD_CALLOC, NULL, numFaces);
+	CustomData_add_layer(&dm->loopData, CD_MLOOP, CD_CALLOC, NULL, numLoops);
+	CustomData_add_layer(&dm->polyData, CD_MPOLY, CD_CALLOC, NULL, numPolys);
 
 	cddm->mvert = CustomData_get_layer(&dm->vertData, CD_MVERT);
 	cddm->medge = CustomData_get_layer(&dm->edgeData, CD_MEDGE);
 	cddm->mface = CustomData_get_layer(&dm->faceData, CD_MFACE);
+	cddm->mloop = CustomData_get_layer(&dm->loopData, CD_MLOOP);
+	cddm->mpoly = CustomData_get_layer(&dm->polyData, CD_MPOLY);
 
 	return dm;
 }
@@ -748,9 +807,10 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *ob)
 	DerivedMesh *dm = &cddm->dm;
 	int i, *index;
 
+	printf("CDDM_from_mesh() called!!!\n");
 	/* this does a referenced copy, the only new layers being ORIGINDEX */
 
-	DM_init(dm, mesh->totvert, mesh->totedge, mesh->totface);
+	DM_init(dm, mesh->totvert, mesh->totedge, mesh->totface, mesh->totloop, mesh->totpoly);
 
 	CustomData_merge(&mesh->vdata, &dm->vertData, CD_MASK_MESH, CD_REFERENCE,
 	                 mesh->totvert);
@@ -758,10 +818,16 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *ob)
 	                 mesh->totedge);
 	CustomData_merge(&mesh->fdata, &dm->faceData, CD_MASK_MESH, CD_REFERENCE,
 	                 mesh->totface);
+	CustomData_merge(&mesh->ldata, &dm->loopData, CD_MASK_MESH, CD_REFERENCE,
+	                 mesh->totloop);
+	CustomData_merge(&mesh->pdata, &dm->polyData, CD_MASK_MESH, CD_REFERENCE,
+	                 mesh->totpoly);
 
 	cddm->mvert = CustomData_get_layer(&dm->vertData, CD_MVERT);
 	cddm->medge = CustomData_get_layer(&dm->edgeData, CD_MEDGE);
 	cddm->mface = CustomData_get_layer(&dm->faceData, CD_MFACE);
+	cddm->mloop = CustomData_get_layer(&dm->loopData, CD_MLOOP);
+	cddm->mpoly = CustomData_get_layer(&dm->polyData, CD_MPOLY);
 
 	index = CustomData_get_layer(&dm->vertData, CD_ORIGINDEX);
 	for(i = 0; i < mesh->totvert; ++i, ++index)
@@ -786,6 +852,8 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *ob)
 
 DerivedMesh *CDDM_from_editmesh(EditMesh *em, Mesh *me)
 {
+	return NULL;
+#if 0
 	DerivedMesh *dm = CDDM_new(BLI_countlist(&em->verts),
 	                           BLI_countlist(&em->edges),
 	                           BLI_countlist(&em->faces));
@@ -877,6 +945,7 @@ DerivedMesh *CDDM_from_editmesh(EditMesh *em, Mesh *me)
 	}
 
 	return dm;
+#endif
 }
 
 DerivedMesh *CDDM_copy(DerivedMesh *source)
@@ -886,43 +955,55 @@ DerivedMesh *CDDM_copy(DerivedMesh *source)
 	int numVerts = source->numVertData;
 	int numEdges = source->numEdgeData;
 	int numFaces = source->numFaceData;
+	int numLoops = source->numLoopData;
+	int numPolys = source->numPolyData;
 
 	/* this initializes dm, and copies all non mvert/medge/mface layers */
-	DM_from_template(dm, source, numVerts, numEdges, numFaces);
+	DM_from_template(dm, source, numVerts, numEdges, numFaces, numLoops, numPolys);
 
 	CustomData_copy_data(&source->vertData, &dm->vertData, 0, 0, numVerts);
 	CustomData_copy_data(&source->edgeData, &dm->edgeData, 0, 0, numEdges);
 	CustomData_copy_data(&source->faceData, &dm->faceData, 0, 0, numFaces);
+	CustomData_copy_data(&source->loopData, &dm->loopData, 0, 0, numLoops);
+	CustomData_copy_data(&source->polyData, &dm->polyData, 0, 0, numPolys);
 
 	/* now add mvert/medge/mface layers */
 	cddm->mvert = source->dupVertArray(source);
 	cddm->medge = source->dupEdgeArray(source);
 	cddm->mface = source->dupFaceArray(source);
+	cddm->mloop = source->dupLoopArray(source);
+	cddm->mpoly = source->dupPolyArray(source);
 
 	CustomData_add_layer(&dm->vertData, CD_MVERT, CD_ASSIGN, cddm->mvert, numVerts);
 	CustomData_add_layer(&dm->edgeData, CD_MEDGE, CD_ASSIGN, cddm->medge, numEdges);
 	CustomData_add_layer(&dm->faceData, CD_MFACE, CD_ASSIGN, cddm->mface, numFaces);
+	CustomData_add_layer(&dm->loopData, CD_MLOOP, CD_ASSIGN, cddm->mloop, numLoops);
+	CustomData_add_layer(&dm->polyData, CD_MPOLY, CD_ASSIGN, cddm->mpoly, numPolys);
 
 	return dm;
 }
 
 DerivedMesh *CDDM_from_template(DerivedMesh *source,
-                                int numVerts, int numEdges, int numFaces)
+                                int numVerts, int numEdges, int numFaces, int numLoops, int numPolys)
 {
 	CDDerivedMesh *cddm = cdDM_create("CDDM_from_template dest");
 	DerivedMesh *dm = &cddm->dm;
 
 	/* this does a copy of all non mvert/medge/mface layers */
-	DM_from_template(dm, source, numVerts, numEdges, numFaces);
+	DM_from_template(dm, source, numVerts, numEdges, numFaces, numLoops, numPolys);
 
 	/* now add mvert/medge/mface layers */
 	CustomData_add_layer(&dm->vertData, CD_MVERT, CD_CALLOC, NULL, numVerts);
 	CustomData_add_layer(&dm->edgeData, CD_MEDGE, CD_CALLOC, NULL, numEdges);
 	CustomData_add_layer(&dm->faceData, CD_MFACE, CD_CALLOC, NULL, numFaces);
+	CustomData_add_layer(&dm->loopData, CD_MLOOP, CD_CALLOC, NULL, numLoops);
+	CustomData_add_layer(&dm->polyData, CD_MPOLY, CD_CALLOC, NULL, numPolys);
 
 	cddm->mvert = CustomData_get_layer(&dm->vertData, CD_MVERT);
 	cddm->medge = CustomData_get_layer(&dm->edgeData, CD_MEDGE);
 	cddm->mface = CustomData_get_layer(&dm->faceData, CD_MFACE);
+	cddm->mloop = CustomData_get_layer(&dm->loopData, CD_MLOOP);
+	cddm->mpoly = CustomData_get_layer(&dm->polyData, CD_MPOLY);
 
 	return dm;
 }

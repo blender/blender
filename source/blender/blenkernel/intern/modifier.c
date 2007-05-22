@@ -482,7 +482,7 @@ static DerivedMesh *buildModifier_applyModifier(ModifierData *md, Object *ob,
 	 * the mesh
 	 */
 	result = CDDM_from_template(dm, BLI_ghash_size(vertHash),
-	                            BLI_ghash_size(edgeHash), numFaces);
+	                            BLI_ghash_size(edgeHash), numFaces, 0, 0);
 
 	/* copy the vertices across */
 	for(hashIter = BLI_ghashIterator_new(vertHash);
@@ -802,7 +802,7 @@ static DerivedMesh *arrayModifier_doArray(ArrayModifierData *amd,
 		finalEdges += end_cap->getNumEdges(end_cap);
 		finalFaces += end_cap->getNumFaces(end_cap);
 	}
-	result = CDDM_from_template(dm, finalVerts, finalEdges, finalFaces);
+	result = CDDM_from_template(dm, finalVerts, finalEdges, finalFaces, 0, 0);
 
 	/* calculate the offset matrix of the final copy (for merging) */ 
 	MTC_Mat4One(final_offset);
@@ -1259,7 +1259,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 
 	indexMap = MEM_mallocN(sizeof(*indexMap) * maxVerts, "indexmap");
 
-	result = CDDM_from_template(dm, maxVerts * 2, maxEdges * 2, maxFaces * 2);
+	result = CDDM_from_template(dm, maxVerts * 2, maxEdges * 2, maxFaces * 2, 0, 0);
 
 	for(i = 0; i < maxVerts; i++) {
 		MVert inMV;
@@ -1783,7 +1783,7 @@ static DerivedMesh *CDDM_from_smoothmesh(SmoothMesh *mesh)
 	DerivedMesh *result = CDDM_from_template(mesh->dm,
 	                                         mesh->num_verts,
 	                                         mesh->num_edges,
-	                                         mesh->num_faces);
+	                                         mesh->num_faces, 0, 0);
 	MVert *new_verts = CDDM_get_verts(result);
 	MEdge *new_edges = CDDM_get_edges(result);
 	MFace *new_faces = CDDM_get_faces(result);
@@ -3274,11 +3274,11 @@ static DerivedMesh *decimateModifier_applyModifier(
 			}
 
 			if(lod.vertex_num>2) {
-				result = CDDM_new(lod.vertex_num, 0, lod.face_num);
+				result = CDDM_new(lod.vertex_num, 0, lod.face_num, 0, 0);
 				dmd->faceCount = lod.face_num;
 			}
 			else
-				result = CDDM_new(lod.vertex_num, 0, 0);
+				result = CDDM_new(lod.vertex_num, 0, 0, 0, 0);
 
 			mvert = CDDM_get_verts(result);
 			for(a=0; a<lod.vertex_num; a++) {

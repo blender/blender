@@ -235,12 +235,12 @@ int calc_manipulator_stats(ScrArea *sa)
 			
 			/* USE LAST SELECTE WITH ACTIVE */
 			if (G.vd->around==V3D_ACTIVE && em->selected.last) {
-				EM_editselection_center(vec, em->selected.last);
+				//EDITBMESHGREP EM_editselection_center(vec, em->selected.last);
 				calc_tw_center(vec);
 				totsel= 1;
 				if (v3d->twmode == V3D_MANIP_NORMAL) {
-					EM_editselection_normal(normal, em->selected.last);
-					EM_editselection_plane(plane, em->selected.last);
+					//EDITBMESHGREP EM_editselection_normal(normal, em->selected.last);
+					//EDITBMESHGREP EM_editselection_plane(plane, em->selected.last);
 				} /* NORMAL OPERATION */
 			} else {
 				if(v3d->twmode == V3D_MANIP_NORMAL) {

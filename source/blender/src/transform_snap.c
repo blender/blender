@@ -70,6 +70,8 @@
 #include "mydevice.h"		/* for KEY defines	*/
 #include "blendef.h" /* for selection modes */
 
+#include "editbmesh.h"
+
 /********************* PROTOTYPES ***********************/
 
 void setSnappingCallback(TransInfo *t);
@@ -325,6 +327,7 @@ void CalcSnapGrid(TransInfo *t, float *vec)
 
 void CalcSnapGeometry(TransInfo *t, float *vec)
 {
+#if 0
 	if (G.obedit != NULL && G.obedit->type==OB_MESH)
 	{
 		/*if (G.scene->selectmode & B_SEL_VERT)*/
@@ -335,7 +338,7 @@ void CalcSnapGeometry(TransInfo *t, float *vec)
 			int dist = 40; // Use a user defined value here
 			
 			// use findnearestverts in vert mode, others in other modes
-			nearest = findnearestvert(&dist, SELECT, 1);
+			nearest = EditBME_FindNearestVert(&dist, SELECT, 1);
 			
 			found = findNearestVertFromObjects(&dist, vec);
 			if (found == 1)
@@ -384,6 +387,7 @@ void CalcSnapGeometry(TransInfo *t, float *vec)
 		}
 		*/
 	}
+#endif
 }
 
 /********************** TARGET **************************/

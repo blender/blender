@@ -964,7 +964,7 @@ void M_Blender_Init(void)
 	PyDict_SetItemString(dict, "Lattice", Lattice_Init());
 	PyDict_SetItemString(dict, "Library", oldLibrary_Init());
 	PyDict_SetItemString(dict, "Material", Material_Init());
-	PyDict_SetItemString(dict, "Mesh", Mesh_Init()); 
+	//PyDict_SetItemString(dict, "Mesh", Mesh_Init()); 
 	PyDict_SetItemString(dict, "Metaball", Metaball_Init());
 	PyDict_SetItemString(dict, "Mathutils", Mathutils_Init());
 	PyDict_SetItemString(dict, "Geometry", Geometry_Init());

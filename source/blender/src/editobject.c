@@ -125,6 +125,7 @@
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 #include "BKE_modifier.h"
+#include "BKE_bmesh.h"
 
 #include "BIF_butspace.h"
 #include "BIF_editconstraint.h"
@@ -178,7 +179,7 @@
 #include "BIF_transform.h"
 
 #include "BIF_poseobject.h"
-
+#include "editbmesh.h"
 
 /* --------------------------------- */
 
@@ -328,12 +329,12 @@ void delete_obj(int ok)
 
 static int return_editmesh_indexar(int *tot, int **indexar, float *cent)
 {
-	EditMesh *em = G.editMesh;
-	EditVert *eve;
+	BME_Mesh *em = G.editMesh;
+	BME_Vert *eve;
 	int *index, nr, totvert=0;
 	
 	for(eve= em->verts.first; eve; eve= eve->next) {
-		if(eve->f & SELECT) totvert++;
+		if(eve->flag & SELECT) totvert++;
 	}
 	if(totvert==0) return 0;
 	
@@ -343,7 +344,7 @@ static int return_editmesh_indexar(int *tot, int **indexar, float *cent)
 	cent[0]= cent[1]= cent[2]= 0.0;
 	
 	for(eve= em->verts.first; eve; eve= eve->next) {
-		if(eve->f & SELECT) {
+		if(eve->flag & SELECT) {
 			*index= nr; index++;
 			VecAddf(cent, cent, eve->co);
 		}
@@ -357,9 +358,9 @@ static int return_editmesh_indexar(int *tot, int **indexar, float *cent)
 
 static int return_editmesh_vgroup(char *name, float *cent)
 {
-	EditMesh *em = G.editMesh;
+	BME_Mesh *em = G.editMesh;
 	MDeformVert *dvert;
-	EditVert *eve;
+	BME_Vert *eve;
 	int i, totvert=0;
 	
 	cent[0]= cent[1]= cent[2]= 0.0;
@@ -392,17 +393,17 @@ static int return_editmesh_vgroup(char *name, float *cent)
 
 static void select_editmesh_hook(HookModifierData *hmd)
 {
-	EditMesh *em = G.editMesh;
-	EditVert *eve;
+	BME_Mesh *em = G.editMesh;
+	BME_Vert *eve;
 	int index=0, nr=0;
 	
 	for(eve= em->verts.first; eve; eve= eve->next, nr++) {
 		if(nr==hmd->indexar[index]) {
-			eve->f |= SELECT;
+			eve->flag |= SELECT;
 			if(index < hmd->totindex-1) index++;
 		}
 	}
-	EM_select_flush();
+	//EM_select_flush(); //EDITBMESHGREP
 }
 
 static int return_editlattice_indexar(int *tot, int **indexar, float *cent)
@@ -1107,8 +1108,8 @@ void set_slowparent(void)
 
 void make_vertex_parent(void)
 {
-	EditMesh *em = G.editMesh;
-	EditVert *eve;
+	BME_Mesh *em = G.editMesh;
+	BME_Vert *eve;
 	Base *base;
 	Nurb *nu;
 	BezTriple *bezt;
@@ -1121,7 +1122,7 @@ void make_vertex_parent(void)
 	if(G.obedit->type==OB_MESH) {
 		eve= em->verts.first;
 		while(eve) {
-			if(eve->f & 1) {
+			if(eve->flag & SELECT) {
 				if(v1==0) v1= nr;
 				else if(v2==0) v2= nr;
 				else if(v3==0) v3= nr;
@@ -1605,7 +1606,7 @@ void enter_editmode(int wc)
 		if(me->pv) sculptmode_pmv_off(me);
 		ok= 1;
 		G.obedit= ob;
-		make_editMesh();
+		EditBME_makeEditMesh();
 		allqueue(REDRAWBUTSLOGIC, 0);
 		if(G.f & G_FACESELECT) allqueue(REDRAWIMAGE, 0);
 	}
@@ -1678,9 +1679,9 @@ void exit_editmode(int flag)	/* freedata==0 at render, 1= freedata, 2= do undo b
 			error("Too many vertices");
 			return;
 		}
-		load_editMesh();
+		EditBME_loadEditMesh(G.obedit->data);
 
-		if(freedata) free_editMesh(G.editMesh);
+		if(freedata) BME_free_mesh(G.editMesh);
 			
 		if(G.f & G_FACESELECT)
 			allqueue(REDRAWIMAGE, 0);
@@ -1761,7 +1762,7 @@ void check_editmode(int type)
 
 void docenter(int centermode)
 {
-	EditMesh *em = G.editMesh;
+	BME_Mesh *em = G.editMesh;
 	Base *base;
 	Object *ob;
 	Mesh *me, *tme;
@@ -1769,7 +1770,7 @@ void docenter(int centermode)
 /*	BezTriple *bezt;
 	BPoint *bp; */
 	Nurb *nu, *nu1;
-	EditVert *eve;
+	BME_Vert *eve;
 	float cent[3], centn[3], min[3], max[3], omat[3][3];
 	int a, total= 0;
 	
@@ -1809,7 +1810,7 @@ void docenter(int centermode)
 				VecSubf(eve->co, eve->co, cent);			
 			}
 			
-			recalc_editnormals();
+			//EDITBMESH recalc_editnormals();
 			tot_change++;
 		}
 	}
@@ -2334,14 +2335,14 @@ void special_editmenu(void)
 		switch(nr) {
 		case 1:
 			waitcursor(1);
-			esubdivideflag(1, 0.0, G.scene->toolsettings->editbutflag, 1, 0);
+			//EDITBMESHGREP esubdivideflag(1, 0.0, G.scene->toolsettings->editbutflag, 1, 0);
 			
 			BIF_undo_push("ESubdivide Single");            
 			break;
 		case 2:
 			if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
 			waitcursor(1);
-			esubdivideflag(1, 0.0, G.scene->toolsettings->editbutflag, numcuts, 0);
+			//EDITBMESHGREP esubdivideflag(1, 0.0, G.scene->toolsettings->editbutflag, numcuts, 0);
 			BIF_undo_push("ESubdivide");
 			break;
 		case 3:
@@ -2350,7 +2351,7 @@ void special_editmenu(void)
 			if(button(&randfac, 1, 100, "Rand fac:")==0) return;
 			waitcursor(1);			
 			fac= -( (float)randfac )/100;
-			esubdivideflag(1, fac, G.scene->toolsettings->editbutflag, numcuts, 0);
+			//EDITBMESHGREP esubdivideflag(1, fac, G.scene->toolsettings->editbutflag, numcuts, 0);
 			BIF_undo_push("Subdivide Fractal");
 			break;
 			
@@ -2361,7 +2362,7 @@ void special_editmenu(void)
 				fac= 0.292f*fac;
 			
 			waitcursor(1);
-			esubdivideflag(1, fac, G.scene->toolsettings->editbutflag | B_SMOOTH, 1, 0);
+			//EDITBMESHGREP esubdivideflag(1, fac, G.scene->toolsettings->editbutflag | B_SMOOTH, 1, 0);
 			BIF_undo_push("Subdivide Smooth");
 			break;		
 			
@@ -2369,42 +2370,42 @@ void special_editmenu(void)
 			mergemenu();
 			break;
 		case 5:
-			notice("Removed %d Vertices", removedoublesflag(1, G.scene->toolsettings->doublimit));
+			//EDITBMESHGREP notice("Removed %d Vertices", removedoublesflag(1, G.scene->toolsettings->doublimit));
 			BIF_undo_push("Remove Doubles");
 			break;
 		case 6:
-			hide_mesh(0);
+			//EDITBMESHGREP hide_mesh(0);
 			break;
 		case 7:
-			reveal_mesh();
+			//EDITBMESHGREP reveal_mesh();
 			break;
 		case 8:
-			selectswap_mesh();
+			//EDITBMESHGREP selectswap_mesh();
 			break;
 		case 9:
-			flip_editnormals();
+			//EDITBMESHGREP flip_editnormals();
 			BIF_undo_push("Flip Normals");
 			break;
 		case 10:
-			vertexsmooth();
+			//EDITBMESHGREP vertexsmooth();
 			break;
 		case 11:
-			bevel_menu();
+			//EDITBMESHGREP bevel_menu();
 			break;
 		case 14:
-			mesh_set_smooth_faces(1);
+			//EDITBMESHGREP mesh_set_smooth_faces(1);
 			break;
 		case 15: 
-			mesh_set_smooth_faces(0);
+			//EDITBMESHGREP mesh_set_smooth_faces(0);
 			break;
 		case 16: 
-			shape_copy_select_from();
+			//EDITBMESHGREP shape_copy_select_from();
 			break;
 		case 17: 
-			shape_propagate();
+			//EDITBMESHGREP shape_propagate();
 			break;
 		case 18:
-			pathselect();
+			//EDITBMESHGREP pathselect();
 			BIF_undo_push("Select Vertex Path");
 			break;
 		}
@@ -3793,9 +3794,9 @@ void apply_keyb_grid(float *val, float fac1, float fac2, float fac3, int invert)
 
 int cylinder_intersect_test(void)
 {
-	EditMesh *em = G.editMesh;
+	BME_Mesh *em = G.editMesh;
 	float *oldloc, speed[3], s, t, labda, labdacor, dist, len, len2, axis[3], *base, rc[3], n[3], o[3];
-	EditVert *v1;
+	BME_Vert *v1;
 	
 	v1= em->verts.first;
 
@@ -3858,9 +3859,9 @@ int cylinder_intersect_test(void)
 
 int sphere_intersect_test(void)
 {
-	EditMesh *em = G.editMesh;
+	BME_Mesh *em = G.editMesh;
 	float *oldloc, speed[3], labda, labdacor, len, bsq, u, disc, *base, rc[3];
-	EditVert *v1;
+	BME_Vert *v1;
 	
 	v1= em->verts.first;
 	base= v1->co;

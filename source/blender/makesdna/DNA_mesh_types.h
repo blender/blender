@@ -72,12 +72,15 @@ typedef struct Mesh {
 	struct Mesh *texcomesh;
 	struct MSelect *mselect;
 	
+	struct MLoop *mloop; /*new bmesh ngon stuff*/
+	struct MPoly *mpoly; /*new bmesh ngon stuff*/
+	
 	struct OcInfo *oc;		/* not written in file */
 	void *sumohandle;
 
-	struct CustomData vdata, edata, fdata;
+	struct CustomData vdata, edata, fdata, ldata, pdata;
 
-	int totvert, totedge, totface, totselect, pad2;
+	int totvert, totedge, totface, totselect, totloop, totpoly;
 	int texflag;
 	
 	/* texture space, copied as one block in editobject.c */
@@ -92,7 +95,8 @@ typedef struct Mesh {
 	short subdiv, subdivr;
 	short totcol;
 	short subsurftype; 
-
+	int padbleh;
+	
 	struct Multires *mr;		/* Multiresolution modeling data */
 	struct PartialVisibility *pv;
 /*ifdef WITH_VERSE*/

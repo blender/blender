@@ -74,6 +74,7 @@
 #include "BKE_mesh.h"
 #include "BKE_object.h" /* fly mode where_is_object to get camera location */
 #include "BKE_utildefines.h"
+#include "BKE_bmesh.h"
 
 #include "BIF_butspace.h"
 #include "BIF_editaction.h"
@@ -123,11 +124,11 @@ extern void setcameratoview3d(void);
 void EM_backbuf_checkAndSelectVerts(EditMesh *em, int select)
 {
 	EditVert *eve;
-	int index= em_wireoffs;
+	int index= 0; //em_wireoffs;
 
 	for(eve= em->verts.first; eve; eve= eve->next, index++) {
 		if(eve->h==0) {
-			if(EM_check_backbuf(index)) {
+			if(BME_check_backbuf(index)) {
 				eve->f = select?(eve->f|1):(eve->f&~1);
 			}
 		}
@@ -137,12 +138,12 @@ void EM_backbuf_checkAndSelectVerts(EditMesh *em, int select)
 void EM_backbuf_checkAndSelectEdges(EditMesh *em, int select)
 {
 	EditEdge *eed;
-	int index= em_solidoffs;
+	int index= 0; //em_solidoffs;
 
 	for(eed= em->edges.first; eed; eed= eed->next, index++) {
 		if(eed->h==0) {
-			if(EM_check_backbuf(index)) {
-				EM_select_edge(eed, select);
+			if(BME_check_backbuf(index)) {
+				//EDITBMESH EM_select_edge(eed, select);
 			}
 		}
 	}
@@ -155,8 +156,8 @@ void EM_backbuf_checkAndSelectFaces(EditMesh *em, int select)
 
 	for(efa= em->faces.first; efa; efa= efa->next, index++) {
 		if(efa->h==0) {
-			if(EM_check_backbuf(index)) {
-				EM_select_face_fgon(efa, select);
+			if(BME_check_backbuf(index)) {
+				//EDITBMESH EM_select_face_fgon(efa, select);
 			}
 		}
 	}
@@ -169,9 +170,9 @@ void EM_backbuf_checkAndSelectTFaces(Mesh *me, int select)
 
 	if (mface) {
 		for(a=1; a<=me->totface; a++, mface++) {
-			if(EM_check_backbuf(a)) {
-				mface->flag = select?(mface->flag|ME_FACE_SEL):(mface->flag&~ME_FACE_SEL);
-			}
+			//EDITBMESHGREP if(EM_check_backbuf(a)) {
+			//EDITBMESHGREP 	mface->flag = select?(mface->flag|ME_FACE_SEL):(mface->flag&~ME_FACE_SEL);
+			//EDITBMESHGREP }
 		}
 	}
 }
@@ -394,34 +395,37 @@ static void do_lasso_select_mesh__doSelectEdge(void *userData, EditEdge *eed, in
 {
 	struct { rcti *rect; short (*mcords)[2], moves, select, pass, done; } *data = userData;
 
-	if (EM_check_backbuf(em_solidoffs+index)) {
+/*//EDITBMESH 
+	if (BME_check_backbuf(em_solidoffs+index)) {
 		if (data->pass==0) {
 			if (	edge_fully_inside_rect(data->rect, x0, y0, x1, y1)  &&
 					lasso_inside(data->mcords, data->moves, x0, y0) &&
 					lasso_inside(data->mcords, data->moves, x1, y1)) {
-				EM_select_edge(eed, data->select);
+				//EDITBMESHGREP EM_select_edge(eed, data->select);
 				data->done = 1;
 			}
 		} else {
 			if (lasso_inside_edge(data->mcords, data->moves, x0, y0, x1, y1)) {
-				EM_select_edge(eed, data->select);
+				//EDITBMESHGREP EM_select_edge(eed, data->select);
 			}
 		}
 	}
+*/
 }
 static void do_lasso_select_mesh__doSelectFace(void *userData, EditFace *efa, int x, int y, int index)
 {
 	struct { rcti *rect; short (*mcords)[2], moves, select, pass, done; } *data = userData;
 
 	if (BLI_in_rcti(data->rect, x, y) && lasso_inside(data->mcords, data->moves, x, y)) {
-		EM_select_face_fgon(efa, data->select);
+		//EDITBMESHGREP EM_select_face_fgon(efa, data->select);
 	}
 }
 
 static void do_lasso_select_mesh(short mcords[][2], short moves, short select)
 {
+#if 0//EDITBMESHGREP 
 	struct { rcti *rect; short (*mcords)[2], moves, select, pass, done; } data;
-	EditMesh *em = G.editMesh;
+	BME_Mesh *em = G.editMesh;
 	rcti rect;
 	int bbsel;
 	
@@ -464,7 +468,8 @@ static void do_lasso_select_mesh(short mcords[][2], short moves, short select)
 	}
 	
 	EM_free_backbuf();
-	EM_selectmode_flush();	
+	EM_selectmode_flush();
+#endif
 }
 
 static void do_lasso_select_curve__doSelect(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, int x, int y)
@@ -552,6 +557,7 @@ static void do_lasso_select_armature(short mcords[][2], short moves, short selec
 
 static void do_lasso_select_facemode(short mcords[][2], short moves, short select)
 {
+#if 0//EDITBMESHGREP 
 	Mesh *me;
 	rcti rect;
 	
@@ -569,6 +575,7 @@ static void do_lasso_select_facemode(short mcords[][2], short moves, short selec
 	EM_free_backbuf();
 	
 	object_tface_flags_changed(OBACT, 0);
+#endif
 }
 
 static void do_lasso_select(short mcords[][2], short moves, short select)
@@ -888,7 +895,7 @@ void mouse_cursor(void)
 	allqueue(REDRAWVIEW3D, 1);
 	
 	if(lr_click) {
-		if(G.obedit->type==OB_MESH) add_click_mesh();
+		if(G.obedit->type==OB_MESH); //EDITBMESH add_click_mesh();
 		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) addvert_Nurb(0);
 		else if (G.obedit->type==OB_ARMATURE) addvert_armature();
 		VECCOPY(fp, oldcurs);
@@ -1575,41 +1582,44 @@ static void do_lattice_box_select(rcti *rect, int select)
 	lattice_foreachScreenVert(do_lattice_box_select__doSelect, &data);
 }
 
-static void do_mesh_box_select__doSelectVert(void *userData, EditVert *eve, int x, int y, int index)
+static void do_mesh_box_select__doSelectVert(void *userData, BME_Vert *eve, int x, int y, int index)
 {
 	struct { rcti *rect; short select, pass, done; } *data = userData;
 
 	if (BLI_in_rcti(data->rect, x, y)) {
-		eve->f = data->select?(eve->f|1):(eve->f&~1);
+		eve->flag = data->select?(eve->flag|1):(eve->flag&~1);
 	}
 }
-static void do_mesh_box_select__doSelectEdge(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index)
+static void do_mesh_box_select__doSelectEdge(void *userData, BME_Edge *eed, int x0, int y0, int x1, int y1, int index)
 {
+#if 0 //EDITBMESH 
 	struct { rcti *rect; short select, pass, done; } *data = userData;
 
-	if(EM_check_backbuf(em_solidoffs+index)) {
+	if(BME_check_backbuf(em_solidoffs+index)) {
 		if (data->pass==0) {
 			if (edge_fully_inside_rect(data->rect, x0, y0, x1, y1)) {
-				EM_select_edge(eed, data->select);
+				//EDITBMESHGREP EM_select_edge(eed, data->select);
 				data->done = 1;
 			}
 		} else {
 			if (edge_inside_rect(data->rect, x0, y0, x1, y1)) {
-				EM_select_edge(eed, data->select);
+				//EDITBMESHGREP EM_select_edge(eed, data->select);
 			}
 		}
 	}
+#endif
 }
-static void do_mesh_box_select__doSelectFace(void *userData, EditFace *efa, int x, int y, int index)
+static void do_mesh_box_select__doSelectFace(void *userData, BME_Poly *efa, int x, int y, int index)
 {
 	struct { rcti *rect; short select, pass, done; } *data = userData;
 
 	if (BLI_in_rcti(data->rect, x, y)) {
-		EM_select_face_fgon(efa, data->select);
+		//EDITBMESHGREP EM_select_face_fgon(efa, data->select);
 	}
 }
 static void do_mesh_box_select(rcti *rect, int select)
 {
+#if 0//EDITBMESHGREP 
 	struct { rcti *rect; short select, pass, done; } data;
 	EditMesh *em = G.editMesh;
 	int bbsel;
@@ -1651,6 +1661,7 @@ static void do_mesh_box_select(rcti *rect, int select)
 	EM_free_backbuf();
 		
 	EM_selectmode_flush();
+#endif
 }
 
 /**
@@ -1893,7 +1904,7 @@ static void mesh_selectionCB__doSelectEdge(void *userData, EditEdge *eed, int x0
 	struct { short select, mval[2]; float radius; } *data = userData;
 
 	if (edge_inside_circle(data->mval[0], data->mval[1], (short) data->radius, x0, y0, x1, y1)) {
-		EM_select_edge(eed, data->select);
+		//EDITBMESHGREP EM_select_edge(eed, data->select);
 	}
 }
 static void mesh_selectionCB__doSelectFace(void *userData, EditFace *efa, int x, int y, int index)
@@ -1903,13 +1914,14 @@ static void mesh_selectionCB__doSelectFace(void *userData, EditFace *efa, int x,
 	float r = sqrt(mx*mx + my*my);
 
 	if (r<=data->radius) {
-		EM_select_face_fgon(efa, data->select);
+		//EDITBMESHGREP EM_select_face_fgon(efa, data->select);
 	}
 }
 static void mesh_selectionCB(int selecting, Object *editobj, short *mval, float rad)
 {
+#if 0//EDITBMESHGREP 
 	struct { short select, mval[2]; float radius; } data;
-	EditMesh *em = G.editMesh;
+	BME_Mesh *em = G.editMesh;
 	int bbsel;
 
 	if(!G.obedit && (G.f&G_FACESELECT)) {
@@ -1961,6 +1973,7 @@ static void mesh_selectionCB(int selecting, Object *editobj, short *mval, float 
 
 	EM_free_backbuf();
 	EM_selectmode_flush();
+#endif
 }
 
 

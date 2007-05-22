@@ -4,6 +4,8 @@ Import ('env')
 # TODO: src_env.Append (CCFLAGS = user_options_dict['SDL_CFLAGS'])
 
 sources = env.Glob('*.c')
+#sources = env.Glob('editbmesh/*.c')
+
 numobj = len(sources)
 maxobj = 30
 

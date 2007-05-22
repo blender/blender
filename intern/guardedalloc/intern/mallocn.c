@@ -351,35 +351,46 @@ void MEM_printmemlist()
 	mem_unlock_thread();
 }
 
-short MEM_freeN(void *vmemh)		/* anders compileertie niet meer */
+short WMEM_freeN(void *vmemh)
+{
+	return _MEM_freeN(vmemh, "(called through C stub function)", -1);
+}
+
+/*special macro-wrapped MEM_freeN that keeps track of where MEM_freeN is called.*/
+short _MEM_freeN(void *vmemh, char *file, int line)		/* anders compileertie niet meer */
 {
 	short error = 0;
 	MemTail *memt;
 	MemHead *memh= vmemh;
 	const char *name;
-
+	char str1[90];
+	
 	if (memh == NULL){
-		MemorY_ErroR("free","attempt to free NULL pointer");
+		sprintf(str1, "Error in %s on line %d: attempt to free NULL pointer", file, line);
+		MemorY_ErroR("free", str1);
 		/* print_error(err_stream, "%d\n", (memh+4000)->tag1); */
 		return(-1);
 	}
 
 	if(sizeof(long)==8) {
 		if (((long) memh) & 0x7) {
-			MemorY_ErroR("free","attempt to free illegal pointer");
+			sprintf(str1, "Error in %s on line %d: attempt to free illegal pointer", file, line);
+			MemorY_ErroR("free", str1);
 			return(-1);
 		}
 	}
 	else {
 		if (((long) memh) & 0x3) {
-			MemorY_ErroR("free","attempt to free illegal pointer");
+			sprintf(str1, "Error in %s on line %d: attempt to free illegal pointer", file, line);
+			MemorY_ErroR("free", str1);
 			return(-1);
 		}
 	}
 	
 	memh--;
 	if(memh->tag1 == MEMFREE && memh->tag2 == MEMFREE) {
-		MemorY_ErroR(memh->name,"double free");
+		sprintf(str1, "Error in %s on line %d: double free", file, line);
+		MemorY_ErroR(memh->name, str1);
 		return(-1);
 	}
 
@@ -403,13 +414,19 @@ short MEM_freeN(void *vmemh)		/* anders compileertie niet meer */
 		MemorY_ErroR(memh->name,"end corrupt");
 		name = check_memlist(memh);
 		if (name != 0){
-			if (name != memh->name) MemorY_ErroR(name,"is also corrupt");
+			sprintf(str1, "Error in %s on line %d: %s is also corrupt", file, line, name);
+			if (name != memh->name) MemorY_ErroR(name, str1);
 		}
 	} else{
 		error = -1;
 		name = check_memlist(memh);
-		if (name == 0) MemorY_ErroR("free","pointer not in memlist");
-		else MemorY_ErroR(name,"error in header");
+		if (name == 0) {
+			sprintf(str1, "Error in %s on line %d: pointer not in memlist", file, line);
+			MemorY_ErroR("free", str1);
+		} else {
+			sprintf(str1, "Error in %s on line %d: error in header", file, line);
+			MemorY_ErroR(name, str1);
+		}
 	}
 
 	totblock--;

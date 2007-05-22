@@ -379,6 +379,7 @@ VFont *exist_vfont(char *str);
 
 void do_common_editbuts(unsigned short event) // old name, is a mix of object and editing events.... 
 {
+#if 0 //EDITBMESH
 	EditMesh *em = G.editMesh;
 	EditFace *efa;
 	Base *base;
@@ -673,7 +674,7 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 			ob->lay= BASACT->lay;
 		}
 	}
-
+#endif
 }
 
 /* *************************** MESH  ******************************** */
@@ -688,6 +689,7 @@ static void verify_customdata_name_func(void *data1, void *data2)
 
 static void delete_customdata_layer(void *data1, void *data2)
 {
+	#if 0 //EDITBMESHGREP
 	Mesh *me= (Mesh*)data1;
 	CustomData *data= (G.obedit)? &G.editMesh->fdata: &me->fdata;
 	CustomDataLayer *layer= (CustomDataLayer*)data2;
@@ -767,6 +769,7 @@ static void delete_customdata_layer(void *data1, void *data2)
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWIMAGE, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
+	#endif
 }
 
 static int customdata_buttons(
@@ -776,6 +779,8 @@ static int customdata_buttons(
 	char *label, char *shortlabel, char *browsetip, char *browsetip_rnd,
 	char *newtip, char *deltip, int x, int y)
 {
+	return y;
+#if 0 //EDITBMESHGREP
 	CustomDataLayer *layer;
 	uiBut *but;
 	int i, count= CustomData_number_of_layers(data, type);
@@ -815,10 +820,12 @@ static int customdata_buttons(
 	uiBlockEndAlign(block);
 
 	return y;
+#endif
 }
 
 static void editing_panel_mesh_type(Object *ob, Mesh *me)
 {
+	#if 0
 	uiBlock *block;
 	uiBut *but;
 	float val;
@@ -883,6 +890,7 @@ static void editing_panel_mesh_type(Object *ob, Mesh *me)
 
 	if(yco < 0)
 		uiNewPanelHeight(block, 204 - yco);
+	#endif
 }
 
 /* *************************** MODIFIERS ******************************** */
@@ -1743,6 +1751,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			          0.0, 1.0, 0, 0,
 			          "Texture coordinates used for displacement input");
 			if (dmd->texmapping == MOD_DISP_MAP_UV) {
+			#if 0 //EDITBMESHGREP
 				char *strtmp;
 				int i;
 				CustomData *fdata = G.obedit ? &G.editMesh->fdata
@@ -1756,6 +1765,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 				i = CustomData_get_layer_index(fdata, CD_MTFACE);
 				uiButSetFunc(but, set_displace_uvlayer, dmd,
 				             &fdata->layers[i]);
+			#endif
 			}
 			if(dmd->texmapping == MOD_DISP_MAP_OBJECT) {
 				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CHANGEDEP,
@@ -1764,6 +1774,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 				               "Object to get texture coordinates from");
 			}
 		} else if (md->type==eModifierType_UVProject) {
+			#if 0 //EDITBMESHGREP
 			UVProjectModifierData *umd = (UVProjectModifierData *) md;
 			int i;
 			char *strtmp;
@@ -1808,6 +1819,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			             &umd->flags, 0, 0, 0, 0,
 			             "Override faces' current images with the "
 			             "given image");
+			#endif
 		} else if (md->type==eModifierType_Decimate) {
 			DecimateModifierData *dmd = (DecimateModifierData*) md;
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Ratio:",	lx,(cy-=19),buttonWidth,19, &dmd->percent, 0.0, 1.0, 10, 0, "Defines the percentage of triangles to reduce to");
@@ -1883,6 +1895,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			          0.0, 1.0, 0, 0,
 			          "Texture coordinates used for modulation input");
 			if (wmd->texmapping == MOD_WAV_MAP_UV) {
+			#if 0 //EDITBMESH
 				char *strtmp;
 				int i;
 				CustomData *fdata = G.obedit ? &G.editMesh->fdata
@@ -1896,6 +1909,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 				i = CustomData_get_layer_index(fdata, CD_MTFACE);
 				uiButSetFunc(but, set_displace_uvlayer, wmd,
 				             &fdata->layers[i]);
+			#endif
 			}
 			if(wmd->texmapping == MOD_DISP_MAP_OBJECT) {
 				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CHANGEDEP,
@@ -4038,6 +4052,7 @@ void do_vgroupbuts(unsigned short event)
 
 void do_meshbuts(unsigned short event)
 {
+#if 0 //EDITBMESH
 	Object *ob;
 	Mesh *me;
 	MCol *mcol;
@@ -4272,6 +4287,7 @@ void do_meshbuts(unsigned short event)
 	}
 
 	/* WATCH IT: previous events only in editmode! */
+#endif
 }
 
 static void editing_panel_mesh_tools(Object *ob, Mesh *me)
@@ -4378,8 +4394,9 @@ static void editing_panel_mesh_tools1(Object *ob, Mesh *me)
 	uiDefButBitI(block, TOG, G_DRAW_EDGEANG, REDRAWVIEW3D, "Edge Angles",	1125,148,150,19,  &G.f, 0, 0, 0, 0, "Displays the angles in the selected edges in degrees");
 	uiDefButBitI(block, TOG, G_DRAW_FACEAREA, REDRAWVIEW3D, "Face Area",	1125,126,150,19, &G.f, 0, 0, 0, 0, "Displays the area of selected faces");
 #ifdef WITH_VERSE
-	if(G.editMesh->vnode)
-		uiDefButBitI(block, TOG, G_DRAW_VERSE_DEBUG, REDRAWVIEW3D, "Draw VDebug",1125,104,150,19, &G.f, 0, 0, 0, 0, "Displays verse debug information");
+//EDITBMESH
+	//if(G.editMesh->vnode)
+	//	uiDefButBitI(block, TOG, G_DRAW_VERSE_DEBUG, REDRAWVIEW3D, "Draw VDebug",1125,104,150,19, &G.f, 0, 0, 0, 0, "Displays verse debug information");
 #endif
 	
 	uiBlockEndAlign(block);

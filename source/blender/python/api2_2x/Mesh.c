@@ -30,6 +30,7 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#if 0
 #include "Mesh.h" /*This must come first*/
 
 #include "MEM_guardedalloc.h"
@@ -8212,3 +8213,4 @@ Mesh *Mesh_FromPyObject( PyObject * pyobj, Object *obj )
 	return blen_obj->mesh;
 
 }
+#endif

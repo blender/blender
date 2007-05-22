@@ -54,6 +54,7 @@
 #include "BKE_lattice.h"
 #include "BKE_mesh.h"
 #include "BKE_utildefines.h"
+#include "BKE_bmesh.h"
 
 #include "BIF_editdeform.h"
 #include "BIF_editmesh.h"
@@ -71,7 +72,7 @@
 /* only in editmode */
 void sel_verts_defgroup (int select)
 {
-	EditVert *eve;
+	BME_Vert *eve;
 	Object *ob;
 	int i;
 	MDeformVert *dvert;
@@ -89,8 +90,8 @@ void sel_verts_defgroup (int select)
 			if (dvert && dvert->totweight){
 				for (i=0; i<dvert->totweight; i++){
 					if (dvert->dw[i].def_nr == (ob->actdef-1)){
-						if (select) eve->f |= SELECT;
-						else eve->f &= ~SELECT;
+						if (select) eve->flag |= SELECT;
+						else eve->flag &= ~SELECT;
 						
 						break;
 					}
@@ -98,8 +99,8 @@ void sel_verts_defgroup (int select)
 			}
 		}
 		/* this has to be called, because this function operates on vertices only */
-		if(select) EM_select_flush();	// vertices to edges/faces
-		else EM_deselect_flush();
+		//if(select) EM_select_flush();	// vertices to edges/faces
+		//else EM_deselect_flush(); //EDITBMESHGREP
 		
 		break;
 	case OB_LATTICE:
@@ -312,8 +313,8 @@ void del_defgroup (Object *ob)
 
 	/* Make sure that any verts with higher indices are adjusted accordingly */
 	if(ob->type==OB_MESH) {
-		EditMesh *em = G.editMesh;
-		EditVert *eve;
+		BME_Mesh *em = G.editMesh;
+		BME_Vert *eve;
 		MDeformVert *dvert;
 		
 		for (eve=em->verts.first; eve; eve=eve->next){
@@ -612,7 +613,7 @@ void assign_verts_defgroup (void)
 	switch (ob->type){
 	case OB_MESH:
 		if (!CustomData_has_layer(&G.editMesh->vdata, CD_MDEFORMVERT))
-			EM_add_data_layer(&G.editMesh->vdata, CD_MDEFORMVERT);
+			BME_add_data_layer(&G.editMesh->vdata, CD_MDEFORMVERT);
 
 		/* Go through the list of editverts and assign them */
 		for (eve=G.editMesh->verts.first; eve; eve=eve->next){
@@ -703,7 +704,7 @@ void remove_vert_defgroup (Object *ob, bDeformGroup	*dg, int vertnum)
 void remove_verts_defgroup (int allverts)
 {
 	Object *ob;
-	EditVert *eve;
+	BME_Vert *eve;
 	MDeformVert *dvert;
 	MDeformWeight *newdw;
 	bDeformGroup *dg, *eg;
@@ -727,7 +728,7 @@ void remove_verts_defgroup (int allverts)
 		for (eve=G.editMesh->verts.first; eve; eve=eve->next){
 			dvert= CustomData_em_get(&G.editMesh->vdata, eve->data, CD_MDEFORMVERT);
 
-			if (dvert && dvert->dw && ((eve->f & 1) || allverts)){
+			if (dvert && dvert->dw && ((eve->flag & 1) || allverts)){
 				for (i=0; i<dvert->totweight; i++){
 					/* Find group */
 					eg = BLI_findlink (&ob->defbase, dvert->dw[i].def_nr);

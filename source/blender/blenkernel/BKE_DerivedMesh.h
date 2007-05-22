@@ -45,41 +45,107 @@
  *    conversion to DLM.
  */
 
+#include "DNA_listBase.h"
 #include "DNA_customdata_types.h"
 #include "BKE_customdata.h"
 
 struct MVert;
 struct MEdge;
-struct MFace;
-struct MTFace;
+struct MFace; /* EVIL! */
+struct MTFace; /* EVIL! */
+struct MPoly;
+struct MLoop;
 struct Object;
 struct Mesh;
 struct EditMesh;
 struct ModifierData;
 struct MCol;
+struct Material;
 
 /* number of sub-elements each mesh element has (for interpolation) */
 #define SUB_ELEMS_VERT 0
 #define SUB_ELEMS_EDGE 2
 #define SUB_ELEMS_FACE 4
 
+
+typedef struct bglTriangle {
+	struct bglTriangle *next, *prev;
+	float uv[3][2];
+	float vert_colors[3][3];
+	float vert_cos[3][3];
+	float vert_nos[3][3];	
+} bglTriangle;
+
+typedef struct bglMesh {
+	float *gl_array; //is interleaved
+	ListBase triangles;
+} bglMesh;
+
+/*ONLY ACCEPTS TRIANGLES!*/
+typedef struct bglCacheDrawInterface {
+	void (*beginCache)(void *vself);
+	void (*setMaterials)(void *vself, int totmat, struct Material **materials);
+	
+	/*if v4 == NULL, then the face is assumed to be a triangle.  Will do quads, or triangles,
+      but will NOT automatically tesselate ngons!*/
+	void (*addFace)(void *vself, float *verts, float *normals, char *cols,
+	                              int mat, int sel, int smooth);
+	                              
+	void (*addEdgeWire)(void *vself, float *v1, float *v2, int sel, int seam);
+	void (*addVertPoint)(void *vself, float *v, int sel, int seam);
+	void (*endCache)(void *vself);
+	void (*drawCache)(void *vself, int drawlevel);
+	/* char *colors is an array of per-face colors.*/
+	void (*drawCacheOverloadColors)(void *vself, char *colors, int drawlevel, int flags);
+} bglCacheDrawInterface;
+
+#define BGLC_EnableLighting		1
+#define BGLC_EnableMaterial		2
+#define BGLC_EnableSmooth		4
+#define BGLC_EnableFaces		8
+#define BGLC_EnableWires		16
+#define BGLC_EnablePoints		32
+
+/*theres always one group per material, that is
+  entirely triangles.*/
+
+typedef struct bglCacheFaceGroup {
+	float *faceverts;
+	float *facecolors;
+	float *facenormals;
+} bglCacheFaceGroup;	
+
+typedef struct bglCacheDrawer {
+	bglCacheDrawInterface *interface;
+	bglCacheFaceGroup facegroups[16];
+	float *edgeverts;
+	float *edgecols;
+	float *pointverts;
+	float *pointcols;
+} bglCacheDrawer;
+
 typedef struct DerivedMesh DerivedMesh;
 struct DerivedMesh {
 	/* Private DerivedMesh data, only for internal DerivedMesh use */
-	CustomData vertData, edgeData, faceData;
-	int numVertData, numEdgeData, numFaceData;
+	
+	/*faceData is stored tesselated faces only for updated DerivedMeshes.*/
+	CustomData vertData, edgeData, faceData, loopData, polyData;
+	int numVertData, numEdgeData, numFaceData, numLoopData, numPolyData;
 	int needsFree; /* checked on ->release, is set to 0 for cached results */
-
+	int needsDrawCacheUpdate;
+	bglCacheDrawInterface *drawer;
+	
 	/* Misc. Queries */
 
 	/* Also called in Editmode */
 	int (*getNumVerts)(DerivedMesh *dm);
 	/* Also called in Editmode */
-	int (*getNumFaces)(DerivedMesh *dm);
-
 	int (*getNumEdges)(DerivedMesh *dm);
-
-	/* copy a single vert/edge/face from the derived mesh into
+	int (*getNumFaces)(DerivedMesh *dm);
+	int (*getNumLoops)(DerivedMesh *dm);
+	int (*getNumPolys)(DerivedMesh *dm);
+	
+	/* copy a single vert/edge/tesselated face/face ngon from the derived mesh into
 	 * *{vert/edge/face}_r. note that the current implementation
 	 * of this function can be quite slow, iterating over all
 	 * elements (editmesh, verse mesh)
@@ -87,7 +153,9 @@ struct DerivedMesh {
 	void (*getVert)(DerivedMesh *dm, int index, struct MVert *vert_r);
 	void (*getEdge)(DerivedMesh *dm, int index, struct MEdge *edge_r);
 	void (*getFace)(DerivedMesh *dm, int index, struct MFace *face_r);
-
+	void (*getLoop)(DerivedMesh *dm, int index, struct MFace *face_r);
+	void (*getPoly)(DerivedMesh *dm, int index, struct MPoly *face_r);
+	
 	/* return a pointer to the entire array of verts/edges/face from the
 	 * derived mesh. if such an array does not exist yet, it will be created,
 	 * and freed on the next ->release(). consider using getVert/Edge/Face if
@@ -96,38 +164,48 @@ struct DerivedMesh {
 	struct MVert *(*getVertArray)(DerivedMesh *dm);
 	struct MEdge *(*getEdgeArray)(DerivedMesh *dm);
 	struct MFace *(*getFaceArray)(DerivedMesh *dm);
-
-	/* copy all verts/edges/faces from the derived mesh into
+	struct MLoop *(*getLoopArray)(DerivedMesh *dm);
+	struct MPoly *(*getPolyArray)(DerivedMesh *dm);
+	
+	/* copy all verts/edges/tesselated faces/polys from the derived mesh into
 	 * *{vert/edge/face}_r (must point to a buffer large enough)
 	 */
 	void (*copyVertArray)(DerivedMesh *dm, struct MVert *vert_r);
 	void (*copyEdgeArray)(DerivedMesh *dm, struct MEdge *edge_r);
 	void (*copyFaceArray)(DerivedMesh *dm, struct MFace *face_r);
-
-	/* return a copy of all verts/edges/faces from the derived mesh
-	 * it is the caller's responsibility to free the returned pointer
+	void (*copyLoopArray)(DerivedMesh *dm, struct MLoop *loop_r);
+	void (*copyPolyArray)(DerivedMesh *dm, struct MPoly *poly_r);
+	
+	/* return a copy of all verts/edges/tesselated faces/polys from the derived mesh
+	 * it is the caller's responsibility to free the returned pointer with MEM_freeN(pointer).
 	 */
 	struct MVert *(*dupVertArray)(DerivedMesh *dm);
 	struct MEdge *(*dupEdgeArray)(DerivedMesh *dm);
 	struct MFace *(*dupFaceArray)(DerivedMesh *dm);
-
-	/* return a pointer to a single element of vert/edge/face custom data
+	struct MLoop *(*dupLoopArray)(DerivedMesh *dm);
+	struct MPoly *(*dupPolyArray)(DerivedMesh *dm);
+	
+	/* return a pointer to a single element of vert/edge/tesselated faces/polys custom data
 	 * from the derived mesh (this gives a pointer to the actual data, not
 	 * a copy)
 	 */
 	void *(*getVertData)(DerivedMesh *dm, int index, int type);
 	void *(*getEdgeData)(DerivedMesh *dm, int index, int type);
 	void *(*getFaceData)(DerivedMesh *dm, int index, int type);
-
-	/* return a pointer to the entire array of vert/edge/face custom data
+	void *(*getLoopData)(DerivedMesh *dm, int index, int type);
+	void *(*getPolyData)(DerivedMesh *dm, int index, int type);
+	
+	/* return a pointer to the entire array of vert/edge/tesselated faces/polys custom data
 	 * from the derived mesh (this gives a pointer to the actual data, not
 	 * a copy)
 	 */
 	void *(*getVertDataArray)(DerivedMesh *dm, int type);
 	void *(*getEdgeDataArray)(DerivedMesh *dm, int type);
 	void *(*getFaceDataArray)(DerivedMesh *dm, int type);
-
-	/* Iterate over each mapped vertex in the derived mesh, calling the
+	void *(*getLoopDataArray)(DerivedMesh *dm, int type);
+	void *(*getPolyDataArray)(DerivedMesh *dm, int type);
+	 
+	/* DEPRECATED FOR DIRECT DRAWING: Iterate over each mapped vertex in the derived mesh, calling the
 	 * given function with the original vert and the mapped vert's new
 	 * coordinate and normal. For historical reasons the normal can be
 	 * passed as a float or short array, only one should be non-NULL.
@@ -175,7 +253,11 @@ struct DerivedMesh {
 	/* Get vertex normal, undefined if index is not valid */
 	void (*getVertNo)(DerivedMesh *dm, int index, float no_r[3]);
 
-	/* Drawing Operations */
+	/* Create opengl arrays with the new drawing API*/
+	void (*UpdateDrawCache)(DerivedMesh *dm, bglCacheDrawInterface *interface);
+	void (*setOverrideVerts)(DerivedMesh *dm, float *cos, float *nos);
+	
+	/* Drawing Operations -- These should use the cache opengl functions.*/
 
 	/* Draw all vertices as bgl points (no options) */
 	void (*drawVerts)(DerivedMesh *dm);
@@ -193,6 +275,7 @@ struct DerivedMesh {
 	void (*drawLooseEdges)(DerivedMesh *dm);
 
 	/* Draw all faces
+	 *  These are deprecated, use the drawPoly*** functions instead.
 	 *  o Set face normal or vertex normal based on inherited face flag
 	 *  o Use inherited face material index to call setMaterial
 	 *  o Only if setMaterial returns true
@@ -215,6 +298,7 @@ struct DerivedMesh {
 	void (*drawFacesTex)(DerivedMesh *dm,
 	                     int (*setDrawOptions)(struct MTFace *tface,
 	                     struct MCol *mcol, int matnr));
+
 
 	/* Draw mapped faces (no color, or texture)
 	 *  o Only if !setDrawOptions or
@@ -279,13 +363,13 @@ void DM_init_funcs(DerivedMesh *dm);
  * of vertices, edges and faces (doesn't allocate memory for them, just
  * sets up the custom data layers)
  */
-void DM_init(DerivedMesh *dm, int numVerts, int numEdges, int numFaces);
+void DM_init(DerivedMesh *dm, int numVerts, int numEdges, int numFaces, int numLoops, int numPolys);
 
 /* utility function to initialise a DerivedMesh for the desired number
  * of vertices, edges and faces, with a layer setup copied from source
  */
 void DM_from_template(DerivedMesh *dm, DerivedMesh *source,
-                      int numVerts, int numEdges, int numFaces);
+                      int numVerts, int numEdges, int numFaces, int numLoops, int numPolys);
 
 /* utility function to release a DerivedMesh's layers
  * returns 1 if DerivedMesh has to be released by the backend, 0 otherwise

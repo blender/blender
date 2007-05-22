@@ -87,6 +87,7 @@
 #include "BKE_node.h"
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
+#include "BKE_bmesh.h"
 
 #include "BIF_spacetypes.h"  /* first, nasty dependency with typedef */
 
@@ -168,6 +169,8 @@
 #include "BSE_trans_types.h"
 
 #include "SYS_System.h" /* for the user def menu ... should move elsewhere. */
+
+#include "editbmesh.h"
 
 /* maybe we need this defined somewhere else */
 extern void StartKetsjiShell(ScrArea *area, char* startscenename, struct Main* maggie, struct SpaceIpo* sipo,int always_use_expand_framing);
@@ -644,7 +647,7 @@ static void align_view_to_selected(View3D *v3d)
 		if(G.qual==LR_CTRLKEY) axis= -axis;
 		
 		if ((G.obedit) && (G.obedit->type == OB_MESH)) {
-			editmesh_align_view_to_selected(v3d, axis);
+			//EDITBMESH editmesh_align_view_to_selected(v3d, axis);
 			addqueue(v3d->area->win, REDRAW, 1);
 		} else if (G.f & G_FACESELECT) {
 			Object *obact= OBACT;
@@ -652,7 +655,7 @@ static void align_view_to_selected(View3D *v3d)
 				Mesh *me= obact->data;
 
 				if (me->mtface) {
-					faceselect_align_view_to_selected(v3d, me, axis);
+					//EDITBMESH faceselect_align_view_to_selected(v3d, me, axis);
 					addqueue(v3d->area->win, REDRAW, 1);
 				}
 			}
@@ -1534,7 +1537,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case RIGHTMOUSE:
 				if((G.obedit) && (G.qual & LR_CTRLKEY)==0) {
 					if(G.obedit->type==OB_MESH)
-						mouse_mesh();
+						mouse_bmesh();
 					else if ELEM(G.obedit->type, OB_CURVE, OB_SURF)
 						mouse_nurb();
 					else if(G.obedit->type==OB_MBALL)
@@ -1545,9 +1548,9 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						mouse_armature();
 				}
 				else if((G.obedit && G.obedit->type==OB_MESH) && (G.qual == (LR_CTRLKEY|LR_ALTKEY)))
-					mouse_mesh();	/* loop select for 1 mousebutton dudes */
+					mouse_bmesh();	/* loop select for 1 mousebutton dudes */
 				else if((G.obedit && G.obedit->type==OB_MESH) && (G.qual == (LR_CTRLKEY|LR_ALTKEY|LR_SHIFTKEY)))
-					mouse_mesh();	/* loop select for 1 mousebutton dudes */
+					mouse_bmesh();	/* loop select for 1 mousebutton dudes */
 				else if(G.qual==LR_CTRLKEY)
 					mouse_select();	/* also allow in editmode, for vertex parenting */
 				else if(G.f & G_FACESELECT)
@@ -1585,8 +1588,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					flip_subdivison(3);
 				}
 				else if ( G.qual == (LR_SHIFTKEY | LR_ALTKEY | LR_CTRLKEY) ) {
-					if ( (G.obedit) && (G.obedit->type==OB_MESH) )
-						select_faces_by_numverts(3);
+					if ( (G.obedit) && (G.obedit->type==OB_MESH) );
+						//EDITBMESHGREP select_faces_by_numverts(3);
 				}
 				else do_layer_buttons(2); 
 				break;
@@ -1596,16 +1599,16 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					flip_subdivison(4);
 				}
 				else if ( G.qual == (LR_SHIFTKEY | LR_ALTKEY | LR_CTRLKEY) ) {
-					if ( (G.obedit) && (G.obedit->type==OB_MESH) )
-						select_faces_by_numverts(4);
+					//if ( (G.obedit) && (G.obedit->type==OB_MESH) )
+						//EDITBMESHGREP select_faces_by_numverts(4);
 				}
 				else do_layer_buttons(3); 
 				break;
 				
 			case FIVEKEY:
 				if ( G.qual == (LR_SHIFTKEY | LR_ALTKEY | LR_CTRLKEY) ) {
-					if ( (G.obedit) && (G.obedit->type==OB_MESH) )
-						select_faces_by_numverts(5);
+					//if ( (G.obedit) && (G.obedit->type==OB_MESH) )
+						//EDITBMESHGREP select_faces_by_numverts(5);
 				}
 				else do_layer_buttons(4);
 				break;
@@ -1773,9 +1776,9 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case EKEY:
 				if (G.qual==0){
 					if(G.obedit) {
-						if(G.obedit->type==OB_MESH)
-							extrude_mesh();
-						else if(G.obedit->type==OB_CURVE)
+						//if(G.obedit->type==OB_MESH)
+							//EDITBMESHGREP extrude_mesh();
+						if(G.obedit->type==OB_CURVE)
 							addvert_Nurb('e');
 						else if(G.obedit->type==OB_SURF)
 							extrude_nurb();
@@ -1784,9 +1787,9 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					}
 				}
 				else if (G.qual==LR_CTRLKEY) {
-					if(G.obedit && G.obedit->type==OB_MESH)
-						Edge_Menu();
-					else if (G.f & G_FACESELECT)
+					//if(G.obedit && G.obedit->type==OB_MESH)
+						//EDITBMESHGREP Edge_Menu();
+					if (G.f & G_FACESELECT)
 						seam_mark_clear_tface(0);
 				}
 				else if (G.qual==LR_SHIFTKEY) {
@@ -1803,17 +1806,17 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case FKEY:
 				if(G.obedit) {
 					if(G.obedit->type==OB_MESH) {
-						if((G.qual==LR_SHIFTKEY))
-							fill_mesh();
-						else if(G.qual==LR_ALTKEY)
-							beauty_fill();
-						else if(G.qual==LR_CTRLKEY)
-							edge_flip();
-						else if (G.qual==0)
-							addedgeface_mesh();
+						//if((G.qual==LR_SHIFTKEY))
+							//EDITBMESHGREP fill_mesh();
+						if(G.qual==LR_ALTKEY);
+							//EDITBMESHGREP beauty_fill();
+						else if(G.qual==LR_CTRLKEY);
+							//EDITBMESHGREP edge_flip();
+						else if (G.qual==0);
+							//EDITBMESHGREP addedgeface_mesh();
 						else if ( G.qual == 
 							 (LR_SHIFTKEY | LR_ALTKEY | LR_CTRLKEY) ) {
-							select_linked_flat_faces();
+							//EDITBMESHGREP select_linked_flat_faces();
 						}
 
 					}
@@ -1839,8 +1842,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					group_operation_with_menu();
 				else if((G.qual==LR_SHIFTKEY))
 					if(G.obedit) {
-						if(G.obedit->type==OB_MESH)
-							select_mesh_group_menu();
+						//if(G.obedit->type==OB_MESH)
+							//EDITBMESHGREP select_mesh_group_menu();
 					} else
 						select_object_grouped_menu();
 				else if((G.obedit==0) && G.qual==LR_ALTKEY) {
@@ -1965,7 +1968,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				else if(G.obedit) {
 					if(G.obedit->type==OB_MESH) {
-						join_triangles();
+						//EDITBMESHGREP join_triangles();
 					}
 				}
 
@@ -1973,10 +1976,10 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case KKEY:
 				if(G.obedit) {
 					if (G.obedit->type==OB_MESH) {
-						if (G.qual==LR_SHIFTKEY)
-							KnifeSubdivide(KNIFE_PROMPT);
-						else if (G.qual==0)
-							LoopMenu();
+						//if (G.qual==LR_SHIFTKEY)
+							//EDITBMESHGREP KnifeSubdivide(KNIFE_PROMPT);
+						/*else*/if (G.qual==0);
+							//EDITBMESHGREP LoopMenu();
 					}
 					else if(G.obedit->type==OB_SURF)
 						printknots();
@@ -2000,8 +2003,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			case LKEY:
 				if(G.obedit) {
-					if(G.obedit->type==OB_MESH)
-						selectconnected_mesh(G.qual);
+					if(G.obedit->type==OB_MESH);
+						//EDITBMESHGREP selectconnected_mesh(G.qual);
 					if(G.obedit->type==OB_ARMATURE)
 						selectconnected_armature();
 					else if ELEM(G.obedit->type, OB_CURVE, OB_SURF)
@@ -2043,7 +2046,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						mirrormenu();
 					}
 					if ( G.qual == (LR_SHIFTKEY | LR_ALTKEY | LR_CTRLKEY) ) {
-						if(G.obedit->type==OB_MESH) select_non_manifold();
+						//EDITBMESHGREP if(G.obedit->type==OB_MESH) select_non_manifold();
 					}
 				}
 				else if(G.qual & LR_CTRLKEY) {
@@ -2074,14 +2077,14 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					case OB_MESH: 
 						if(G.qual==(LR_SHIFTKEY|LR_CTRLKEY)) {
 							if(okee("Recalculate normals inside")) {
-								righthandfaces(2);
+								//EDITBMESHGREP righthandfaces(2);
 								allqueue(REDRAWVIEW3D, 0);
 								BIF_undo_push("Recalculate normals inside");
 							}
 						}
 						else if(G.qual==LR_CTRLKEY){
 							if(okee("Recalculate normals outside")) {
-								righthandfaces(1);
+								//EDITBMESHGREP righthandfaces(1);
 								allqueue(REDRAWVIEW3D, 0);
 								BIF_undo_push("Recalculate normals outside");
 							}
@@ -2130,8 +2133,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						clear_bone_parent();
 					else if((G.qual==0) && (G.obedit->type==OB_ARMATURE)) 
 						select_bone_parent();
-					else if((G.qual==0) && G.obedit->type==OB_MESH)
-						separatemenu();
+					else if((G.qual==0) && G.obedit->type==OB_MESH);
+						//EDITBMESHGREP separatemenu();
 					else if ((G.qual==0) && ELEM(G.obedit->type, OB_CURVE, OB_SURF))
 						separate_nurb();
 					else if (G.qual==LR_SHIFTKEY) {
@@ -2181,7 +2184,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					}
 					else if(G.qual==LR_CTRLKEY) {
 						if (G.obedit->type==OB_MESH) {
-							CutEdgeloop(1);
+							//EDITBMESHGREP CutEdgeloop(1);
 							BIF_undo_push("Cut Edgeloop");
 						}
 						else if (G.obedit->type==OB_ARMATURE) {
@@ -2240,7 +2243,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						Transform();
 					}
 					if ( G.qual == (LR_SHIFTKEY | LR_ALTKEY | LR_CTRLKEY) ) {
-						if(G.obedit->type==OB_MESH) select_sharp_edges();
+						//EDITBMESHGREP if(G.obedit->type==OB_MESH) select_sharp_edges();
 					}
 				}
 				else if(G.qual==LR_ALTKEY) {
@@ -2278,7 +2281,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case TKEY:
 				if(G.obedit){
 					if((G.qual & LR_CTRLKEY) && G.obedit->type==OB_MESH) {
-						convert_to_triface(G.qual & LR_SHIFTKEY);
+						//EDITBMESHGREP convert_to_triface(G.qual & LR_SHIFTKEY);
 						allqueue(REDRAWVIEW3D, 0);
 						countall();
 						DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
@@ -2344,7 +2347,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else if (G.qual==0){
 					if(G.obedit) {
 						if(G.obedit->type==OB_MESH) {
-							mesh_rip();
+							//EDITBMESHGREP mesh_rip();
 						}
 						else if(G.obedit->type==OB_CURVE) {
 							sethandlesNurb(2);
@@ -2383,7 +2386,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			case YKEY:
 				if((G.qual==0) && (G.obedit)) {
-					if(G.obedit->type==OB_MESH) split_mesh();
+					//EDITBMESHGREP if(G.obedit->type==OB_MESH) split_mesh();
 				}
 				break;
 			case ZKEY:
@@ -2440,12 +2443,12 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if(G.qual==0) {
 					if(ob) {
 						if ((G.obedit) && (G.obedit->type == OB_MESH)) {
-							editmesh_align_view_to_selected(G.vd, 3);
+							//EDITBMESHGREP editmesh_align_view_to_selected(G.vd, 3);
 						} 
 						else if (G.f & G_FACESELECT) {
 							if(ob->type==OB_MESH) {
 								Mesh *me= ob->data;
-								faceselect_align_view_to_selected(G.vd, me, 3);
+								//EDITBMESHGREP faceselect_align_view_to_selected(G.vd, me, 3);
 							}
 						}
 						else
@@ -2483,8 +2486,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			case PADMINUS:
 				if ( (G.qual==LR_CTRLKEY)
-					 && (G.obedit) && (G.obedit->type==OB_MESH) )
-					select_less();
+					 && (G.obedit) && (G.obedit->type==OB_MESH) );
+					//EDITBMESHGREP select_less();
 				else if ( (G.qual==LR_CTRLKEY)
 					 && (G.obedit) && (G.obedit->type==OB_CURVE) )
 					select_less_nurb();
@@ -2501,8 +2504,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 			case PADPLUSKEY:
 				if ( (G.qual==LR_CTRLKEY)
-					 && (G.obedit) && (G.obedit->type==OB_MESH) )
-					select_more();
+					 && (G.obedit) && (G.obedit->type==OB_MESH) );
+					//EDITBMESHGREP select_more();
 				else if ( (G.qual==LR_CTRLKEY)
 					 && (G.obedit) && (G.obedit->type==OB_CURVE) )
 					select_more_nurb();

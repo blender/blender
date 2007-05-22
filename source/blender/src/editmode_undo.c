@@ -308,7 +308,7 @@ static void do_editmode_undohistorymenu(void *arg, int event)
 	if(G.obedit==NULL || event<1) return;
 
 	if (event==1) {
-		if(G.obedit->type==OB_MESH) remake_editMesh();
+		if(G.obedit->type==OB_MESH) EditBME_remakeEditMesh();
 	}
 	else undo_number(event-1);
 	

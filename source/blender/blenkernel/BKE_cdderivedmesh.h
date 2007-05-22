@@ -43,7 +43,7 @@ struct Mesh;
 struct Object;
 
 /* creates a new CDDerivedMesh */
-struct DerivedMesh *CDDM_new(int numVerts, int numEdges, int numFaces);
+struct DerivedMesh *CDDM_new(int numVerts, int numEdges, int numFaces, int numLoops, int numPolys);
 
 /* creates a CDDerivedMesh from the given Mesh, this will reference the
    original data in Mesh, but it is safe to apply vertex coordinates or
@@ -64,7 +64,7 @@ struct DerivedMesh *CDDM_copy(struct DerivedMesh *dm);
  * elements are initialised to all zeros
  */
 struct DerivedMesh *CDDM_from_template(struct DerivedMesh *source,
-                                  int numVerts, int numEdges, int numFaces);
+                                  int numVerts, int numEdges, int numFaces, int numLoops, int numPolys);
 
 /* applies vertex coordinates or normals to a CDDerivedMesh. if the MVert
  * layer is a referenced layer, it will be duplicate to not overwrite the

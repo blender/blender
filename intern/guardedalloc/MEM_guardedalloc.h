@@ -76,8 +76,9 @@ extern "C" {
 	/**
 	 * Release memory previously allocatred by this module. 
 	 */
-	short MEM_freeN(void *vmemh);
-
+	short WMEM_freeN(void *vmemh);
+	short _MEM_freeN(void *vmemh, char *file, int line);
+	#define MEM_freeN(vmemh)	_MEM_freeN(vmemh, __FILE__, __LINE__)
 	/**
 	 * Duplicates a block of memory, and returns a pointer to the
 	 * newly allocated block.  */

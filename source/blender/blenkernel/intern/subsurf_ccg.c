@@ -529,11 +529,11 @@ DerivedMesh *ss_to_cdderivedmesh(CCGSubSurf *ss, int ssFromEditmesh,
 	if(dm) {
 		result = CDDM_from_template(dm, ccgSubSurf_getNumFinalVerts(ss),
 		                            ccgSubSurf_getNumFinalEdges(ss),
-		                            ccgSubSurf_getNumFinalFaces(ss));
+		                            ccgSubSurf_getNumFinalFaces(ss), 0, 0);
 	} else {
 		result = CDDM_new(ccgSubSurf_getNumFinalVerts(ss),
 		                  ccgSubSurf_getNumFinalEdges(ss),
-		                  ccgSubSurf_getNumFinalFaces(ss));
+		                  ccgSubSurf_getNumFinalFaces(ss), 0, 0);
 	}
 
 	// load verts
@@ -2062,7 +2062,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	if(dm) {
 		DM_from_template(&ccgdm->dm, dm, ccgSubSurf_getNumFinalVerts(ss),
 		                 ccgSubSurf_getNumFinalEdges(ss),
-		                 ccgSubSurf_getNumFinalFaces(ss));
+		                 ccgSubSurf_getNumFinalFaces(ss), 0, 0);
 		DM_add_face_layer(&ccgdm->dm, CD_FLAGS, CD_CALLOC, NULL);
 		DM_add_edge_layer(&ccgdm->dm, CD_FLAGS, CD_CALLOC, NULL);
 
@@ -2071,7 +2071,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	} else {
 		DM_init(&ccgdm->dm, ccgSubSurf_getNumFinalVerts(ss),
 		        ccgSubSurf_getNumFinalEdges(ss),
-		        ccgSubSurf_getNumFinalFaces(ss));
+		        ccgSubSurf_getNumFinalFaces(ss), 0, 0);
 	}
 
 	ccgdm->dm.getMinMax = ccgDM_getMinMax;
