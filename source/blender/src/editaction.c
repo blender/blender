@@ -305,7 +305,6 @@ static void *get_nearest_actionchannel_key (float *selx, short *sel, short *ret_
 	float xmin, xmax, x, y;
 	float xrange[2];
 	int clickmin, clickmax;
-	int	wsize;
 	short mval[2];
 		
 	getmouseco_areawin (mval);
@@ -317,16 +316,9 @@ static void *get_nearest_actionchannel_key (float *selx, short *sel, short *ret_
 		*ret_type= ACTTYPE_NONE;
 		return NULL;
 	}
-	
-	/* wsize is the greatest possible height (in pixels) that would be
-	 * needed to draw all of the action channels, ipo-curve channels and constraint
-	 * channels.
-	 */
-	wsize =  count_action_levels(act)*(CHANNELHEIGHT+CHANNELSKIP);
-	wsize += CHANNELHEIGHT/2;
 
     areamouseco_to_ipoco(G.v2d, mval, &x, &y);
-    clickmin = (int) ((wsize - y) / (CHANNELHEIGHT+CHANNELSKIP));
+    clickmin = (int) (((CHANNELHEIGHT/2) - y) / (CHANNELHEIGHT+CHANNELSKIP));
 	clickmax = clickmin;
 	
 	mval[0]-=7;
@@ -908,8 +900,7 @@ void borderselect_action(void)
 			rectf.xmax= get_action_frame(OBACT, rectf.xmax);
 		}
 		
-		ymax = count_action_levels(act) * (CHANNELHEIGHT+CHANNELSKIP);
-		ymax += CHANNELHEIGHT/2;
+		ymax = CHANNELHEIGHT/2;
 		
 		for (achan=act->chanbase.first; achan; achan= achan->next) {
 			if(VISIBLE_ACHAN(achan)) {
@@ -1865,7 +1856,6 @@ static void borderselect_actionchannels(bAction *act, short *mval,
 	IpoCurve *icu;
 	float click, x,y;
 	int   clickmin, clickmax;
-	int	  wsize;
 
 	if (!act)
 		return;
@@ -1875,15 +1865,8 @@ static void borderselect_actionchannels(bAction *act, short *mval,
 		selectmode = SELECT_ADD;
 	}
 
-	/* wsize is the greatest possible height (in pixels) that would be
-	 * needed to draw all of the action channels and constraint
-	 * channels.
-	 */
-	wsize =  count_action_levels(act)*(CHANNELHEIGHT+CHANNELSKIP);
-	wsize += CHANNELHEIGHT/2;
-
     areamouseco_to_ipoco(G.v2d, mval, &x, &y);
-    clickmin = (int) ((wsize - y) / (CHANNELHEIGHT+CHANNELSKIP));
+    clickmin = (int) (((CHANNELHEIGHT/2) - y) / (CHANNELHEIGHT+CHANNELSKIP));
 	
 	/* Only one click */
 	if (mvalo == NULL) {
@@ -1892,7 +1875,7 @@ static void borderselect_actionchannels(bAction *act, short *mval,
 	/* Two click values (i.e., border select */
 	else {
 		areamouseco_to_ipoco(G.v2d, mvalo, &x, &y);
-		click = ((wsize - y) / (CHANNELHEIGHT+CHANNELSKIP));
+		click = (((CHANNELHEIGHT/2) - y) / (CHANNELHEIGHT+CHANNELSKIP));
 
 		if ( ((int) click) < clickmin) {
 			clickmax = clickmin;
@@ -2781,7 +2764,6 @@ static void select_all_keys_channels(bAction *act, short *mval,
 	bConstraintChannel *conchan;
 	float              click, x,y;
 	int                clickmin, clickmax;
-	int                wsize;
 	
 	/* This function selects all the action keys that
 	 * are in the mouse selection range defined by
@@ -2800,17 +2782,9 @@ static void select_all_keys_channels(bAction *act, short *mval,
 		deselect_actionchannel_keys(act, 0, 0);
 		selectmode = SELECT_ADD;
 	}
-
-	/* wsize is the greatest possible height (in pixels) that would be
-	 * needed to draw all of the action channels and constraint
-	 * channels.
-	 */
-
-	wsize =  count_action_levels(act)*(CHANNELHEIGHT+CHANNELSKIP);
-	wsize += CHANNELHEIGHT/2;
 	
     areamouseco_to_ipoco(G.v2d, mval, &x, &y);
-    clickmin = (int) ((wsize - y) / (CHANNELHEIGHT+CHANNELSKIP));
+    clickmin = (int) (((CHANNELHEIGHT/2) - y) / (CHANNELHEIGHT+CHANNELSKIP));
 	
 	/* Only one click */
 	if (mvalo == NULL) {
@@ -2819,7 +2793,7 @@ static void select_all_keys_channels(bAction *act, short *mval,
 	/* Two click values (i.e., border select) */
 	else {
 		areamouseco_to_ipoco(G.v2d, mvalo, &x, &y);
-		click = ((wsize - y) / (CHANNELHEIGHT+CHANNELSKIP));
+		click = (((CHANNELHEIGHT/2) - y) / (CHANNELHEIGHT+CHANNELSKIP));
 		
 		if ( ((int) click) < clickmin) {
 			clickmax = clickmin;
@@ -3611,22 +3585,14 @@ void *get_nearest_act_channel(short mval[], short *ret_type)
 	
 	float	x,y;
 	int   clickmin, clickmax;
-	int		wsize;
 	
 	if (act == NULL) {
 		*ret_type= ACTTYPE_NONE;
 		return NULL;
 	}
 	
-	/* wsize is the greatest possible height (in pixels) that would be
-	 * needed to draw all of the groups, action channels and constraint
-	 * channels.
-	 */
-	wsize =  count_action_levels(act)*(CHANNELHEIGHT+CHANNELSKIP);
-	wsize += CHANNELHEIGHT/2;
-
     areamouseco_to_ipoco(G.v2d, mval, &x, &y);
-    clickmin = (int) ((wsize - y) / (CHANNELHEIGHT+CHANNELSKIP));
+	clickmin = (int) (((CHANNELHEIGHT/2) - y) / (CHANNELHEIGHT+CHANNELSKIP));
 	clickmax = clickmin;
 	
 	if (clickmax < 0) {

@@ -280,7 +280,7 @@ static void action_icu_buts(SpaceAction *saction)
                        UI_EMBOSS, UI_HELV, curarea->win);
 
 	x = NAMEWIDTH + 1;
-    y = count_action_levels(act)*(CHANNELHEIGHT+CHANNELSKIP);
+    y = 0.0;
 	
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 
@@ -379,7 +379,7 @@ static void draw_action_channel_names(bAction *act)
     float	x, y;
 
     x = 0.0;
-	y= count_action_levels(act)*(CHANNELHEIGHT+CHANNELSKIP);
+	y = 0.0f;
 
 	for (achan=act->chanbase.first; achan; achan= achan->next) {
 		if(VISIBLE_ACHAN(achan)) {
@@ -706,7 +706,7 @@ static void draw_channel_strips(SpaceAction *saction)
 		map_active_strip(di, OBACT, 1);
 	
 	/* first backdrop strips */
-	y= count_action_levels(act)*(CHANNELHEIGHT+CHANNELSKIP);
+	y = 0.0;
 	glEnable(GL_BLEND);
 	for (achan=act->chanbase.first; achan; achan= achan->next) {
 		if(VISIBLE_ACHAN(achan)) {
@@ -776,8 +776,8 @@ static void draw_channel_strips(SpaceAction *saction)
 	if (G.saction->pin==0 && OBACT)
 		map_active_strip(di, OBACT, 0);
 	
-	/* dot thingies */
-	y= count_action_levels(act)*(CHANNELHEIGHT+CHANNELSKIP);
+	/* keyframes  */
+	y = 0.0;
 	for (achan= act->chanbase.first; achan; achan= achan->next) {
 		if(VISIBLE_ACHAN(achan)) {
 			
@@ -828,8 +828,7 @@ static void draw_channel_strips(SpaceAction *saction)
 
 static void draw_mesh_strips(SpaceAction *saction, Key *key)
 {
-	/* draw the RVK keyframes as those little square button things
-	 */
+	/* draw the RVK keyframes */
 	rcti scr_rct;
 	gla2DDrawInfo *di;
 	float	y, ybase;

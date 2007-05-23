@@ -69,6 +69,7 @@
 #include "BKE_main.h"
 #include "BKE_utildefines.h"
 
+#include "BDR_drawaction.h"
 #include "BSE_drawipo.h"
 #include "BSE_headerbuttons.h"
 #include "BSE_time.h"
@@ -173,13 +174,16 @@ void do_action_buttons(unsigned short event)
 					G.v2d->cur.xmax= -5;
 					G.v2d->cur.xmax= 100;
 				}
+				
+				G.v2d->cur.ymin= -(count_action_levels(G.saction->action)*(CHANNELHEIGHT+CHANNELSKIP));
+				G.v2d->cur.ymax= 0;
 			}
 			else { /* shapekeys and/or no action */
 				G.v2d->cur.xmax= -5;
 				G.v2d->cur.xmax= 100;
+				G.v2d->cur.ymax= 1000;
+				G.v2d->cur.ymin= 0;
 			}
-			G.v2d->cur.ymin= 0.0f;
-			G.v2d->cur.ymax= 1000.0f;
 			
 			G.v2d->tot= G.v2d->cur;
 			test_view2d(G.v2d, curarea->winx, curarea->winy);
