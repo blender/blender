@@ -42,7 +42,7 @@
 #include "BKE_bmesh.h"
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
-#include "BLI_GHash.h"
+#include "BLI_ghash.h"
 
 /**
  *	MISC utility functions.
