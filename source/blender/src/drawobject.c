@@ -1902,6 +1902,7 @@ void BGLCache_addTriangle(void *vself, float verts[][3], float normals[][3], cha
 {
 	bglCacheMesh *self = (bglCacheMesh*) vself;
 	bglTriangle *tri;
+
 	CACHEERROR_CHECK
 
 	if (mat < 0 || mat >= self->totmat) {
@@ -1927,14 +1928,21 @@ void BGLCache_addEdgeWire(void *vself, float v1[3], float v2[3], char c1[3], cha
 {
 	bglCacheMesh *self = (bglCacheMesh*) vself;
 	bglEdgeWire *ewire;
+
 	CACHEERROR_CHECK
 
 	ewire = BLI_memarena_alloc(self->arena, sizeof(*ewire));
 	VECCOPY(ewire->v1, v1);
 	VECCOPY(ewire->v2, v2);
+
 	if (c1) VECCOPY(ewire->c2, c2);
-	if (c2) VECCOPY(ewire->c2, c2);
-	
+
+	if (c2) {
+		VECCOPY(ewire->c2, c2);
+	} else if (c1) {
+		VECCOPY(ewire->c2, c1);
+	}
+
 	self->totwire++;
 	BLI_addtail(&self->wires, ewire);
 }
@@ -1943,6 +1951,7 @@ void BGLCache_addVertPoint(void *vself, float v[3], char col[3], float size)
 {
 	bglCacheMesh *self = (bglCacheMesh*) vself;
 	bglVertPoint *point;
+
 	CACHEERROR_CHECK
 
 	point = BLI_memarena_alloc(self->arena, sizeof(*point));
@@ -1959,6 +1968,7 @@ void BGLCache_endCache(void *vself)
 	bglCacheMesh *self = (bglCacheMesh*) vself;
 	bglCacheFaceGroup *group;
 	bglTriangle *tri;
+	bglEdgeWire *wire;
 	bglVertPoint *point;
 	int i, j;
 
@@ -1992,6 +2002,17 @@ void BGLCache_endCache(void *vself)
 		for (point=self->points.first,i=0; point; i++, point=point->next) {
 			VECCOPY(self->pointverts+i*3, point->co);
 			VECCOPY(self->pointcols+i*3, point->col);
+		}
+	}
+
+	if (self->totwire) {
+		self->wireverts = BLI_memarena_alloc(self->gl_arena, sizeof(float)*3*2*self->totwire);
+		self->wirecols = BLI_memarena_alloc(self->gl_arena, 3*2*self->totwire);
+		for (wire=self->wires.first, i=0; wire; i++, wire=wire->next) {
+			VECCOPY(self->wireverts+i*3*2, wire->v1);
+			VECCOPY(self->wireverts+i*3*2+3, wire->v2);
+			VECCOPY(self->wirecols+i*3*2, wire->c1);
+			VECCOPY(self->wirecols+i*3*2+3, wire->c2);
 		}
 	}
 
@@ -2063,15 +2084,31 @@ void BGLCache_drawVertPoints(void *vself, float alpha)
 	glDisableClientState(GL_VERTEX_ARRAY);
 }
 
-void BGLCache_drawEdges(void *vself)
+void BGLCache_drawEdges(void *vself, float alpha)
 {
+	bglCacheMesh *self = (bglCacheMesh*) vself;
+
+	glDisableClientState(GL_COLOR_ARRAY); /*I remember this can be left on by some of the other vert array code :/ */
+	glDisableClientState(GL_NORMAL_ARRAY); /* this is just paranoia check */
+
+	glColor4f(0, 0, 0, alpha); /*hopefully the color array won't affect alpha. . .eck :/ */
+
+	glEnableClientState(GL_VERTEX_ARRAY);
+	if (self->totwire) {
+		glVertexPointer(3, GL_FLOAT, 0, self->wireverts);
+		if (self->wirecols) {
+			glEnableClientState(GL_COLOR_ARRAY);
+			glColorPointer(3, GL_UNSIGNED_BYTE, 0, self->wirecols);
+		}
+		glDrawArrays(GL_LINES, 0, self->totwire*2);
+	}
+	glDisableClientState(GL_COLOR_ARRAY);
+	glDisableClientState(GL_VERTEX_ARRAY);
 }
 
 void BGLCache_release(void *vself)
 {
 	bglCacheMesh *self = (bglCacheMesh*) vself;
-	bglCacheFaceGroup *group;
-	int i;
 
 	if (self->arena) BLI_memarena_free(self->arena);
 	if (self->gl_arena) BLI_memarena_free(self->gl_arena);
@@ -2089,7 +2126,8 @@ void BGLCache_release(void *vself)
 	self->points.first = self->points.last = NULL;
 
 	memset(self->facegroups, 0, sizeof(bglCacheFaceGroup)*MAX_FACEGROUP);
-	self->edgeverts = self->edgecols = self->pointverts = self->pointcols = NULL;
+	self->wireverts = self->pointverts = NULL;
+	self->wirecols = self->pointcols = NULL;
 }
 
 
@@ -2147,7 +2185,12 @@ static void draw_bme_fancy(Object *ob, BME_Mesh *bmesh, DerivedMesh *cageDM, Der
 		glDepthMask(0);
 	}
 
+	if (finalDM->drawEdges) finalDM->drawEdges(finalDM, 1);
+
 	if (finalDM->drawEditVerts) finalDM->drawEditVerts(finalDM, 1.0);
+
+	glDepthMask(1);
+	bglPolygonOffset(0.0);
 }
 
 /*this is only here for reference, REMEBER TO DELETE IT!*/

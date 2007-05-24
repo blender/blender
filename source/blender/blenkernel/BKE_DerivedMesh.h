@@ -83,7 +83,7 @@ typedef struct bglCacheDrawInterface {
 	void (*drawFacesSolid)(void *vself, int usecolors);
 	void (*drawFacesTransp)(void *vself);
 	void (*drawVertPoints)(void *vself, float alpha);
-	void (*drawEdges)(void *vself);
+	void (*drawWireEdges)(void *vself, float alpha);
 
 	/*NOTE: does not free the struct pointed to at vself! just direct data*/
 	void (*release)(void *vself);
@@ -149,8 +149,8 @@ typedef struct bglCacheMesh {
 
 	/*actual opengl array stuff:*/
 	bglCacheFaceGroup facegroups[MAX_FACEGROUP];
-	float *edgeverts;
-	char *edgecols;
+	float *wireverts;
+	char *wirecols;
 	float *pointverts;
 	char *pointcols;
 } bglCacheMesh;

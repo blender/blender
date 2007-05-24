@@ -630,13 +630,15 @@ static void emDM_drawEdges(DerivedMesh *dm, int drawLooseEdges)
 {
 	EditBMeshDerivedMesh *emdm = (EditBMeshDerivedMesh*) dm;
 	emdm->bmesh = emdm->bmesh;
+	emdm->bmesh = emdm->bmesh;
+	if (emdm->recalc_cdraw) emDM_recalcDrawCache(emdm);
+
+	emdm->cdraw->drawWireEdges(emdm->cdraw, 1.0);
 }
 
 static void emDM_drawMappedEdgesInterp(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index), void (*setDrawInterpOptions)(void *userData, int index, float t), void *userData) 
 {
 	EditBMeshDerivedMesh *emdm = (EditBMeshDerivedMesh*) dm;
-	emdm->bmesh = emdm->bmesh;
-
 }
 
 static void emDM_drawUVEdges(DerivedMesh *dm)
@@ -658,14 +660,18 @@ static void emDM_recalcDrawCache(EditBMeshDerivedMesh *emdm)
 {
 	BME_Poly *efa;
 	BME_Loop *loop;
+	BME_Edge *eed;
 	BME_Vert *eve;
 	float v[3][3], no[3][3];
 	float nor[3], vsize;
-	char high[4], vcol[3], svcol[3];
+	char high[4], vcol[3], svcol[3], ecol[3], secol[3];
 
 	BIF_GetThemeColor3ubv(TH_VERTEX, vcol);
 	BIF_GetThemeColor3ubv(TH_VERTEX_SELECT, svcol);
 	vsize = BIF_GetThemeValuef(TH_VERTEX_SIZE);
+
+	BIF_GetThemeColor3ubv(TH_EDGE, ecol);
+	BIF_GetThemeColor3ubv(TH_EDGE_SELECT, secol);
 
 	/*Eck! remember to write code to set high (which is the transparent highlight color!)*/
 	if (!emdm->cdraw) emdm->cdraw = bglCacheNew();
@@ -705,6 +711,11 @@ static void emDM_recalcDrawCache(EditBMeshDerivedMesh *emdm)
 		else emdm->cdraw->addVertPoint(emdm->cdraw, eve->co, vcol, vsize);
 	}
 
+	printf("bleh 3\n");
+	for (eed=emdm->bmesh->edges.first; eed; eed=eed->next) {
+		if (eed->flag & SELECT) emdm->cdraw->addEdgeWire(emdm->cdraw, eed->v1->co, eed->v2->co, secol, secol);
+		else emdm->cdraw->addEdgeWire(emdm->cdraw, eed->v1->co, eed->v2->co, ecol, ecol);
+	}
 	emdm->recalc_cdraw = 0;
 	emdm->cdraw->endCache(emdm->cdraw);
 }
