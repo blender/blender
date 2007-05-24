@@ -1648,7 +1648,7 @@ static void createTransEditVerts(TransInfo *t)
 	int propmode = t->flag & T_PROP_EDIT;
 	int mirror= (G.scene->toolsettings->editbutflag & B_MESH_X_MIRROR);
 
-	// transform now requires awareness for select mode, so we tag the f1 flags in verts
+	// transform now requires awareness for select mode, so we tag the tflag1 flags in verts
 	if(G.scene->selectmode & SCE_SELECT_VERTEX) {
 		for(eve= em->verts.first; eve; eve= eve->next) {
 			if(eve->h==0 && (eve->flag & SELECT)) 

@@ -639,6 +639,7 @@ static void emDM_drawEdges(DerivedMesh *dm, int drawLooseEdges)
 static void emDM_drawMappedEdgesInterp(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index), void (*setDrawInterpOptions)(void *userData, int index, float t), void *userData) 
 {
 	EditBMeshDerivedMesh *emdm = (EditBMeshDerivedMesh*) dm;
+	emdm->bmesh = emdm->bmesh; /* stupid warning suppression! */
 }
 
 static void emDM_drawUVEdges(DerivedMesh *dm)
@@ -651,9 +652,23 @@ static void emDM_drawUVEdges(DerivedMesh *dm)
 static void emDM_drawEditVerts(DerivedMesh *dm, float alpha)
 {
 	EditBMeshDerivedMesh *emdm = (EditBMeshDerivedMesh*) dm;
-   if (emdm->recalc_cdraw) emDM_recalcDrawCache(emdm);
+	float vsize;
 
-   emdm->cdraw->drawVertPoints(emdm->cdraw, alpha);
+	if (emdm->recalc_cdraw) emDM_recalcDrawCache(emdm);
+
+	vsize = BIF_GetThemeValuef(TH_VERTEX_SIZE);
+	emdm->cdraw->drawVertPoints(emdm->cdraw, alpha, vsize);
+}
+
+static void emDM_drawEditFacePoints(DerivedMesh *dm, float alpha)
+{
+	EditBMeshDerivedMesh *emdm = (EditBMeshDerivedMesh*) dm;
+	float fsize;
+
+	if (emdm->recalc_cdraw) emDM_recalcDrawCache(emdm);
+
+	fsize = BIF_GetThemeValuef(TH_FACEDOT_SIZE);
+	emdm->cdraw->drawFacePoints(emdm->cdraw, alpha, fsize);
 }
 
 static void emDM_recalcDrawCache(EditBMeshDerivedMesh *emdm)
@@ -662,9 +677,10 @@ static void emDM_recalcDrawCache(EditBMeshDerivedMesh *emdm)
 	BME_Loop *loop;
 	BME_Edge *eed;
 	BME_Vert *eve;
-	float v[3][3], no[3][3];
+	float v[3][3], no[3][3], facedot[3];
 	float nor[3], vsize;
-	char high[4], vcol[3], svcol[3], ecol[3], secol[3];
+	char high[4], vcol[3], svcol[3], ecol[3], secol[3], fcol[3], sfcol[3];
+	int i;
 
 	BIF_GetThemeColor3ubv(TH_VERTEX, vcol);
 	BIF_GetThemeColor3ubv(TH_VERTEX_SELECT, svcol);
@@ -672,6 +688,9 @@ static void emDM_recalcDrawCache(EditBMeshDerivedMesh *emdm)
 
 	BIF_GetThemeColor3ubv(TH_EDGE, ecol);
 	BIF_GetThemeColor3ubv(TH_EDGE_SELECT, secol);
+
+	BIF_GetThemeColor3ubv(TH_FACE, fcol);
+	BIF_GetThemeColor3ubv(TH_FACE_SELECT, sfcol);
 
 	/*Eck! remember to write code to set high (which is the transparent highlight color!)*/
 	if (!emdm->cdraw) emdm->cdraw = bglCacheNew();
@@ -683,6 +702,21 @@ static void emDM_recalcDrawCache(EditBMeshDerivedMesh *emdm)
 
 	printf("bleh 1\n");
 	for (efa=emdm->bmesh->polys.first; efa; efa=efa->next) {
+
+		/*do face dot*/
+		loop = efa->loopbase;
+		facedot[0] = facedot[1] = facedot[2] = 0.0;
+		i = 0;
+		do {
+			VecAddf(facedot, facedot, loop->v->co);
+			i++;
+			loop = loop->next;
+		} while (loop != efa->loopbase);
+		VecMulf(facedot, 1.0f/(float)i);
+		if (efa->flag & SELECT) emdm->cdraw->addFacePoint(emdm->cdraw, facedot, sfcol);
+		else emdm->cdraw->addFacePoint(emdm->cdraw, facedot, fcol);
+		
+		/*do face itself, triangulate via trangle-fan.*/
 		loop = efa->loopbase->next;
 		do {
 			VECCOPY(v[0], loop->v->co);
@@ -707,14 +741,14 @@ static void emDM_recalcDrawCache(EditBMeshDerivedMesh *emdm)
 	
 	printf("bleh 2\n");
 	for (eve=emdm->bmesh->verts.first; eve; eve=eve->next) {
-		if (eve->flag & SELECT) emdm->cdraw->addVertPoint(emdm->cdraw, eve->co, svcol, vsize);
-		else emdm->cdraw->addVertPoint(emdm->cdraw, eve->co, vcol, vsize);
+		if (eve->flag & SELECT) emdm->cdraw->addVertPoint(emdm->cdraw, eve->co, svcol);
+		else emdm->cdraw->addVertPoint(emdm->cdraw, eve->co, vcol);
 	}
 
 	printf("bleh 3\n");
-	for (eed=emdm->bmesh->edges.first; eed; eed=eed->next) {
-		if (eed->flag & SELECT) emdm->cdraw->addEdgeWire(emdm->cdraw, eed->v1->co, eed->v2->co, secol, secol);
-		else emdm->cdraw->addEdgeWire(emdm->cdraw, eed->v1->co, eed->v2->co, ecol, ecol);
+	for (eed=emdm->bmesh->edges.first, i=0; eed; i++, eed=eed->next) {
+		if (eed->flag & SELECT) emdm->cdraw->addEdgeWire(emdm->cdraw, eed->v1->co, eed->v2->co, secol, secol, i);
+		else emdm->cdraw->addEdgeWire(emdm->cdraw, eed->v1->co, eed->v2->co, ecol, ecol, i);
 	}
 	emdm->recalc_cdraw = 0;
 	emdm->cdraw->endCache(emdm->cdraw);
@@ -848,6 +882,7 @@ static DerivedMesh *getEditMeshDerivedMesh(BME_Mesh *em, Object *ob,
 	emdm->dm.foreachMappedEdge = emDM_foreachMappedEdge;
 	emdm->dm.foreachMappedFaceCenter = emDM_foreachMappedFaceCenter;
 
+	emdm->dm.drawEditFacePoints = emDM_drawEditFacePoints;
 	emdm->dm.drawEditVerts = emDM_drawEditVerts;
 	emdm->dm.drawEdges = emDM_drawEdges;
 	emdm->dm.drawMappedEdges = emDM_drawMappedEdges;

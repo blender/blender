@@ -6540,6 +6540,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 			
 			freeConvEHash(hash);
+
+			CustomData_free(&mesh->fdata, mesh->totface);
+			mesh->mface = NULL;
 			mesh->totface = 0;
 		}
 	}

@@ -13,12 +13,21 @@
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_customdata_types.h"
+#include "DNA_view3d_types.h"
+#include "DNA_scene_types.h"
+#include "DNA_space_types.h"
 
 #include "BLI_PointerArray.h"
 #include "BLI_memarena.h"
 #include "BLI_blenlib.h"
 
 #include "BIF_space.h"
+#include "BIF_screen.h"
+#include "BIF_resources.h"
+#include "BIF_language.h"
+
+#include "BDR_editobject.h"
+#include "BDR_drawobject.h"
 
 #include "mydevice.h" //event codes
 #include "editbmesh.h"
@@ -152,6 +161,7 @@ BME_Mesh *BME_FromMesh(Mesh *me)
 
 	for (i=0, medge=me->medge; i<me->totedge; i++, medge++) {
 		edge_table[i] = BME_ME(bmesh, vert_table[medge->v1], vert_table[medge->v2]);
+		edge_table[i]->flag = medge->flag;
 	}
 	
 	CustomData_copy(&me->pdata, &bmesh->pdata, CD_MASK_EDITMESH, CD_CALLOC, 0);
@@ -317,12 +327,123 @@ void EditBME_loadEditMesh(Mesh *mesh)
 	Mesh_FromBMesh(G.editMesh, mesh);
 }
 
-void mouse_bmesh()
+void EditBME_FlushSelUpward(BME_Mesh *mesh)
 {
+	BME_Edge *eed;
+	BME_Loop *loop;
+	BME_Poly *efa;
+
+	for (eed=mesh->edges.first; eed; eed=eed->next) {
+		if ((eed->v1->flag & SELECT) && (eed->v2->flag & SELECT)) eed->flag |= SELECT;
+		else eed->flag &= ~SELECT;
+	}
+
+	for (efa=mesh->polys.first; efa; efa=efa->next) {
+		loop = efa->loopbase;
+		efa->flag |= SELECT;
+		do {
+			if ((loop->v->flag & SELECT)==0) efa->flag &= ~SELECT;
+			loop=loop->next;
+		} while (loop != efa->loopbase);
+	}
 }
 
-BME_Vert *EditBME_FindNearestVert(int *dis)
+void mouse_bmesh(void)
 {
+	printf("in mouse_bmesh()\n");
+	if (G.scene->selectmode == SCE_SELECT_VERTEX) {
+		int dis = 75;
+		BME_Vert *vert = EditBME_FindNearestVert(&dis, 1, 0);
+		printf("vert: %p\n", vert);
+		if (vert) {
+			if (G.qual & LR_SHIFTKEY) {
+				if (vert->flag & SELECT) vert->flag &= ~SELECT;
+				else vert->flag |= SELECT;
+			} else {
+				BME_Vert *eve;
+				for (eve=G.editMesh->verts.first; eve; eve=eve->next) eve->flag &= ~SELECT;
+				vert->flag |= SELECT;
+			}
+			EditBME_FlushSelUpward(G.editMesh);
+			allqueue(REDRAWVIEW3D, 1);
+		}
+	}
+	rightmouse_transform();
+}
+
+static unsigned int findnearestvert__backbufIndextest(unsigned int index){
+	BME_Vert *eve = BLI_findlink(&G.editMesh->verts, index-1);
+	if(eve && (eve->flag & SELECT)) return 0;
+	return 1; 
+}
+
+static void findnearestvert__doClosest(void *userData, BME_Vert *eve, int x, int y, int index)
+{
+	struct { short mval[2], pass, select, strict; int dist, lastIndex, closestIndex; BME_Vert *closest; } *data = userData;
+
+	if (data->pass==0) {
+		if (index<=data->lastIndex)
+			return;
+	} else {
+		if (index>data->lastIndex)
+			return;
+	}
+
+	if (data->dist>3) {
+		int temp = abs(data->mval[0] - x) + abs(data->mval[1]- y);
+		if ((eve->flag&SELECT) == data->select) {
+			if (data->strict == 1)
+				return;
+			else
+				temp += 5;
+		}
+
+		if (temp<data->dist) {
+			data->dist = temp;
+			data->closest = eve;
+			data->closestIndex = index;
+		}
+	}
+}
+
+BME_Vert *EditBME_FindNearestVert(int *dist, short sel, short strict)
+{
+	short mval[2];
+	getmouseco_areawin(mval);
+
+	if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)) {
+	} else {
+		struct { short mval[2], pass, select, strict; int dist, lastIndex, closestIndex; BME_Vert *closest; } data;
+		static int lastSelectedIndex=0;
+		static BME_Vert *lastSelected=NULL;
+		if (lastSelected && BLI_findlink(&G.editMesh->verts, lastSelectedIndex)!=lastSelected) {
+			lastSelectedIndex = 0;
+			lastSelected = NULL;
+		}
+
+		data.lastIndex = lastSelectedIndex;
+		data.mval[0] = mval[0];
+		data.mval[1] = mval[1];
+		data.select = sel;
+		data.dist = *dist;
+		data.strict = strict;
+		data.closest = NULL;
+		data.closestIndex = 0;
+
+		data.pass = 0;
+		mesh_foreachScreenVert(findnearestvert__doClosest, &data, 1);
+
+		if (data.dist>3) {
+			data.pass = 1;
+			mesh_foreachScreenVert(findnearestvert__doClosest, &data, 1);
+		}
+
+		*dist = data.dist;
+		lastSelected = data.closest;
+		lastSelectedIndex = data.closestIndex;
+
+		return data.closest;
+	}
 	return NULL;
 }
 

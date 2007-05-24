@@ -1130,11 +1130,12 @@ static void drawlattice(Object *ob)
 
 /* ***************** ******************** */
 
+static BME_Vert **bvert_table = NULL;
+
 static void mesh_foreachScreenVert__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
 {
-#if 0 //EDITBMESHGREP
-	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index); void *userData; int clipVerts; float pmat[4][4], vmat[4][4]; } *data = userData;
-	EditVert *eve = EM_get_vert_for_index(index);
+	struct { void (*func)(void *userData, BME_Vert *eve, int x, int y, int index); void *userData; int clipVerts; float pmat[4][4], vmat[4][4]; } *data = userData;
+	BME_Vert *eve = bvert_table[index];
 	short s[2];
 
 	if (eve->h==0) {
@@ -1146,24 +1147,30 @@ static void mesh_foreachScreenVert__mapFunc(void *userData, int index, float *co
 
 		data->func(data->userData, eve, s[0], s[1], index);
 	}
-#endif
 }
-void mesh_foreachScreenVert(void (*func)(void *userData, EditVert *eve, int x, int y, int index), void *userData, int clipVerts)
+void mesh_foreachScreenVert(void (*func)(void *userData, BME_Vert *eve, int x, int y, int index), void *userData, int clipVerts)
 {
 	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index); void *userData; int clipVerts; float pmat[4][4], vmat[4][4]; } data;
 	DerivedMesh *dm = editmesh_get_derived_cage(CD_MASK_BAREMESH);
+	BME_Vert *eve;
+	int i;
 
 	data.func = func;
 	data.userData = userData;
 	data.clipVerts = clipVerts;
 
+	if (!G.editMesh->totvert) return;
+
+	bvert_table = MEM_callocN(sizeof(void*)*G.editMesh->totvert, "bvert_table");
+	for (eve=G.editMesh->verts.first,i=0; eve; i++, eve=eve->next) bvert_table[i] = eve;
+
 	view3d_get_object_project_mat(curarea, G.obedit, data.pmat, data.vmat);
 
-	//EDITBMESHGREP EM_init_index_arrays(1, 0, 0);
 	dm->foreachMappedVert(dm, mesh_foreachScreenVert__mapFunc, &data);
-	//EDITBMESHGREP EM_free_index_arrays();
 
 	dm->release(dm);
+	if (bvert_table) MEM_freeN(bvert_table);
+	bvert_table = NULL;
 }
 
 static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, float *v0co, float *v1co)
@@ -1924,7 +1931,7 @@ void BGLCache_addTriangle(void *vself, float verts[][3], float normals[][3], cha
 }
 
 	                              
-void BGLCache_addEdgeWire(void *vself, float v1[3], float v2[3], char c1[3], char c2[3])
+void BGLCache_addEdgeWire(void *vself, float v1[3], float v2[3], char c1[3], char c2[3], int index)
 {
 	bglCacheMesh *self = (bglCacheMesh*) vself;
 	bglEdgeWire *ewire;
@@ -1934,7 +1941,7 @@ void BGLCache_addEdgeWire(void *vself, float v1[3], float v2[3], char c1[3], cha
 	ewire = BLI_memarena_alloc(self->arena, sizeof(*ewire));
 	VECCOPY(ewire->v1, v1);
 	VECCOPY(ewire->v2, v2);
-
+	
 	if (c1) VECCOPY(ewire->c2, c2);
 
 	if (c2) {
@@ -1942,12 +1949,13 @@ void BGLCache_addEdgeWire(void *vself, float v1[3], float v2[3], char c1[3], cha
 	} else if (c1) {
 		VECCOPY(ewire->c2, c1);
 	}
+	ewire->index = index;
 
 	self->totwire++;
 	BLI_addtail(&self->wires, ewire);
 }
 
-void BGLCache_addVertPoint(void *vself, float v[3], char col[3], float size)
+void BGLCache_addVertPoint(void *vself, float v[3], char col[3])
 {
 	bglCacheMesh *self = (bglCacheMesh*) vself;
 	bglVertPoint *point;
@@ -1957,10 +1965,24 @@ void BGLCache_addVertPoint(void *vself, float v[3], char col[3], float size)
 	point = BLI_memarena_alloc(self->arena, sizeof(*point));
 	VECCOPY(point->co, v);
 	if (col) VECCOPY(point->col, col);
-	point->size = size;
 
 	self->totpoint++;
 	BLI_addtail(&self->points, point);	
+}
+
+void BGLCache_addFacePoint(void *vself, float v[3], char col[3])
+{
+	bglCacheMesh *self = (bglCacheMesh*) vself;
+	bglVertPoint *point;
+
+	CACHEERROR_CHECK
+
+	point = BLI_memarena_alloc(self->arena, sizeof(*point));
+	VECCOPY(point->co, v);
+	if (col) VECCOPY(point->col, col);
+
+	self->totfpoint++;
+	BLI_addtail(&self->fpoints, point);	
 }
 
 void BGLCache_endCache(void *vself)
@@ -2002,6 +2024,15 @@ void BGLCache_endCache(void *vself)
 		for (point=self->points.first,i=0; point; i++, point=point->next) {
 			VECCOPY(self->pointverts+i*3, point->co);
 			VECCOPY(self->pointcols+i*3, point->col);
+		}
+	}
+
+	if (self->totfpoint) {
+		self->fpointverts = BLI_memarena_alloc(self->gl_arena, sizeof(float)*3*self->totfpoint);
+		self->fpointcols = BLI_memarena_alloc(self->gl_arena, 3*self->totfpoint);
+		for (point=self->fpoints.first,i=0; point; i++, point=point->next) {
+			VECCOPY(self->fpointverts+i*3, point->co);
+			VECCOPY(self->fpointcols+i*3, point->col);
 		}
 	}
 
@@ -2062,7 +2093,7 @@ void BGLCache_drawFacesTransp(void *vself)
 {
 }
 
-void BGLCache_drawVertPoints(void *vself, float alpha)
+void BGLCache_drawVertPoints(void *vself, float alpha, float size)
 {
 	bglCacheMesh *self = (bglCacheMesh*) vself;
 
@@ -2071,6 +2102,7 @@ void BGLCache_drawVertPoints(void *vself, float alpha)
 
 	glColor4f(0, 0, 0, alpha); /*hopefully the color array won't affect alpha. . .eck :/ */
 
+	glPointSize(size);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	if (self->totpoint) {
 		glVertexPointer(3, GL_FLOAT, 0, self->pointverts);
@@ -2079,6 +2111,29 @@ void BGLCache_drawVertPoints(void *vself, float alpha)
 			glColorPointer(3, GL_UNSIGNED_BYTE, 0, self->pointcols);
 		}
 		glDrawArrays(GL_POINTS, 0, self->totpoint);
+	}
+	glDisableClientState(GL_COLOR_ARRAY);
+	glDisableClientState(GL_VERTEX_ARRAY);
+}
+
+void BGLCache_drawFacePoints(void *vself, float alpha, float size)
+{
+	bglCacheMesh *self = (bglCacheMesh*) vself;
+
+	glDisableClientState(GL_COLOR_ARRAY); /*I remember this can be left on by some of the other vert array code :/ */
+	glDisableClientState(GL_NORMAL_ARRAY); /* this is just paranoia check */
+
+	glColor4f(0, 0, 0, alpha); /*hopefully the color array won't affect alpha. . .eck :/ */
+
+	glPointSize(size);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	if (self->totfpoint) {
+		glVertexPointer(3, GL_FLOAT, 0, self->fpointverts);
+		if (self->fpointcols) {
+			glEnableClientState(GL_COLOR_ARRAY);
+			glColorPointer(3, GL_UNSIGNED_BYTE, 0, self->fpointcols);
+		}
+		glDrawArrays(GL_POINTS, 0, self->totfpoint);
 	}
 	glDisableClientState(GL_COLOR_ARRAY);
 	glDisableClientState(GL_VERTEX_ARRAY);
@@ -2106,6 +2161,20 @@ void BGLCache_drawEdges(void *vself, float alpha)
 	glDisableClientState(GL_VERTEX_ARRAY);
 }
 
+void BGLCache_drawFacesBackSel(void *vself, int offset)
+{
+}
+
+int BGLCache_drawEdgesBackSel(void *vself, int offset)
+{
+	return 0;
+}
+
+int BGLCache_drawVertsBackSel(void *vself)
+{
+	return 0;
+}
+
 void BGLCache_release(void *vself)
 {
 	bglCacheMesh *self = (bglCacheMesh*) vself;
@@ -2117,13 +2186,14 @@ void BGLCache_release(void *vself)
 
 	if (self->mats) MEM_freeN(self->mats);
 	self->mats = NULL;
-	self->totmat = self->totpoint = self->tottri = self->totwire = 0;
+	self->totmat = self->totpoint = self->tottri = self->totwire = self->totfpoint = 0;
 
 	self->initilized = 0;
 
 	memset(self->triangles, 0, sizeof(ListBase)*MAX_FACEGROUP);
 	self->wires.first = self->wires.last = NULL;
 	self->points.first = self->points.last = NULL;
+	self->fpoints.first = self->fpoints.last = NULL;
 
 	memset(self->facegroups, 0, sizeof(bglCacheFaceGroup)*MAX_FACEGROUP);
 	self->wireverts = self->pointverts = NULL;
@@ -2142,11 +2212,16 @@ static bglCacheDrawInterface cache_template = {
 	BGLCache_addTriangle,
 	BGLCache_addEdgeWire,
 	BGLCache_addVertPoint,
+	BGLCache_addFacePoint,
 	BGLCache_endCache,
 	BGLCache_drawFacesSolid,
 	BGLCache_drawFacesTransp,
 	BGLCache_drawVertPoints,
 	BGLCache_drawEdges,
+	BGLCache_drawFacePoints,
+	BGLCache_drawFacesBackSel,
+	BGLCache_drawEdgesBackSel,
+	BGLCache_drawVertsBackSel,
 	BGLCache_release,
 	BGLCache_drawCacheOverloadColors
 };
@@ -2183,7 +2258,42 @@ static void draw_bme_fancy(Object *ob, BME_Mesh *bmesh, DerivedMesh *cageDM, Der
 
 		bglPolygonOffset(1.0);
 		glDepthMask(0);
+
+		/*draw face dot overlay.  has issues still :/*/
+		if (G.scene->selectmode & SCE_SELECT_FACE && !(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT))) {
+			glDisable(GL_DEPTH_TEST);
+			glDepthMask(0); //disable write in zbuffer
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			if (finalDM->drawEditFacePoints) finalDM->drawEditFacePoints(finalDM, 0.5);
+			glDisable(GL_BLEND);
+			glEnable(GL_DEPTH_TEST);
+			glDepthMask(1);
+		}
+		if (!(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT))) {
+			glDisable(GL_DEPTH_TEST);
+			glDepthMask(0); //disable write in zbuffer
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			if (finalDM->drawEditFacePoints) finalDM->drawEdges(finalDM, 1);
+			glDisable(GL_BLEND);
+			glEnable(GL_DEPTH_TEST);
+			glDepthMask(1);
+		}
+
+		if (G.scene->selectmode & SCE_SELECT_VERTEX && !(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT))) {
+			glDisable(GL_DEPTH_TEST);
+			glDepthMask(0); //disable write in zbuffer
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			if (finalDM->drawEditFacePoints) finalDM->drawEditVerts(finalDM, 0.5);
+			glDisable(GL_BLEND);
+			glEnable(GL_DEPTH_TEST);
+			glDepthMask(1);
+		}
 	}
+	
+	if (G.scene->selectmode & SCE_SELECT_FACE) finalDM->drawEditFacePoints(finalDM, 1.0);
 
 	if (finalDM->drawEdges) finalDM->drawEdges(finalDM, 1);
 

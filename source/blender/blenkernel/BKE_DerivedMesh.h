@@ -77,13 +77,25 @@ typedef struct bglCacheDrawInterface {
 	void (*addTriangle)(void *vself, float verts[][3], float normals[][3], char cols[][3],
 	                              char highcols[4], int mat);
 	                              
-	void (*addEdgeWire)(void *vself, float v1[3], float v2[3], char c1[3], char c2[3]);
-	void (*addVertPoint)(void *vself, float v[3], char col[3], float size);
+	/*if index > 0, then this edge wire is included in backbuffered select draw.*/
+	void (*addEdgeWire)(void *vself, float v1[3], float v2[3], char c1[3], char c2[3], int index);
+	void (*addVertPoint)(void *vself, float v[3], char col[3]);
+	void (*addFacePoint)(void *vself, float v[3], char col[3]);
 	void (*endCache)(void *vself);
+	
 	void (*drawFacesSolid)(void *vself, int usecolors);
 	void (*drawFacesTransp)(void *vself);
-	void (*drawVertPoints)(void *vself, float alpha);
+	void (*drawVertPoints)(void *vself, float alpha, float size);
 	void (*drawWireEdges)(void *vself, float alpha);
+	void (*drawFacePoints)(void *vself, float alpha, float size);
+
+	void (*drawFacesBackSel)(void *vself, int offset);
+
+	/*returns start offset to be used with faces*/
+	int (*drawEdgesBackSel)(void *vself, int offset);
+
+	/*returns start offset to be used with edges*/
+	int (*drawVertsBackSel)(void *vself);
 
 	/*NOTE: does not free the struct pointed to at vself! just direct data*/
 	void (*release)(void *vself);
@@ -116,13 +128,13 @@ typedef struct bglEdgeWire {
 	struct bglEdgeWire *next, *pref;
 	float v1[3], v2[3];
 	char c1[3], c2[3];
+	int index; /*backbuffered select index*/
 } bglEdgeWire;
 
 typedef struct bglVertPoint {
 	struct bglVertPoint *next, *prev;
 	float co[3];
 	char col[3];
-	float size;
 } bglVertPoint;
 
 typedef struct bglCacheFaceGroup {
@@ -139,20 +151,30 @@ typedef struct bglCacheMesh {
 	bglCacheDrawInterface cinterface;
 	
 	/*temporary stuff used until ->endCache() is called:*/
-	ListBase triangles[MAX_FACEGROUP], wires, points;
-	int tottri, totwire, totpoint;
+	ListBase triangles[MAX_FACEGROUP], wires, points, fpoints;
+	int tottri, totwire, totpoint, totfpoint;
 	struct MemArena *arena;
 	struct MemArena *gl_arena; /*this holds only opengl arrays*/
 
 	struct Material **mats;
-	int  totmat, initilized; /*set to 1 by setmaterials and 2 by begincache, then 3 by endcache (e.g. ready to draw).*/
+
+	/*initilzed is set to 1 by setmaterials and 2 by begincache, 
+	  then 3 by endcache (e.g. ready to draw).*/
+	int  totmat, initilized; 
 
 	/*actual opengl array stuff:*/
 	bglCacheFaceGroup facegroups[MAX_FACEGROUP];
 	float *wireverts;
 	char *wirecols;
+	char *wire_selcols; /*selection colors*/
+
 	float *pointverts;
 	char *pointcols;
+	char *point_selcols; /*backbuffered select colors for vert dots.  this is auto-generated.*/
+
+	float *fpointverts;
+	char *fpointcols;
+	char *fpoint_selcols; /*backbuffered select colors for face dots. this is auto-generated.*/
 } bglCacheMesh;
 
 typedef struct DerivedMesh DerivedMesh;
@@ -164,7 +186,7 @@ struct DerivedMesh {
 	int numVertData, numEdgeData, numFaceData, numLoopData, numPolyData;
 	int needsFree; /* checked on ->release, is set to 0 for cached results */
 	int needsDrawCacheUpdate;
-	bglCacheDrawInterface *drawer;
+	int backbuf_wireoff, backbuf_faceoff;
 	
 	/* Misc. Queries */
 
@@ -294,8 +316,19 @@ struct DerivedMesh {
 	void (*drawVerts)(DerivedMesh *dm);
 
 	/* Draw edit verts. 
-	   This will be generalized somewhat obviously. */
+	Note that the dm->backbuf_wireoff/faceoff will be used.*/
 	void (*drawEditVerts)(DerivedMesh *dm, float alpha);
+
+	/* Draw edit verts.*/
+	int (*drawEditVertsBackbuffer)(DerivedMesh *dm);
+
+	/* Draw edit face points.  */
+	void (*drawEditFacePoints)(DerivedMesh *dm, float alpha);
+
+	/* Draw edit face points for backbuffer select.  
+	Note that the dm->backbuf_wireoff/faceoff will be used.*/
+	void (*drawEditFacePointsBackbuffer)(DerivedMesh *dm);
+
 
 	/* Draw edges in the UV mesh (if exists) */
 	void (*drawUVEdges)(DerivedMesh *dm);
