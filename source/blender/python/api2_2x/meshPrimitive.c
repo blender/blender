@@ -129,7 +129,7 @@ static PyObject *M_MeshPrim_Cube( PyObject *self_unused, PyObject *args )
 static PyObject *M_MeshPrim_Circle( PyObject *self_unused, PyObject *args )
 {
 	int tot = 32;
-	float size = (float)(2.0*sqrt(2.0));
+	float size = 2;
 
 	if( !PyArg_ParseTuple( args, "|if", &tot, &size ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -145,8 +145,8 @@ static PyObject *M_MeshPrim_Circle( PyObject *self_unused, PyObject *args )
 static PyObject *M_MeshPrim_Cylinder( PyObject *self_unused, PyObject *args )
 {
 	int tot = 32;
-	float size = (float)(2.0*sqrt(2.0));
-	float len = 1.0;
+	float size = 2.0;
+	float len = 2.0;
 
 	if( !PyArg_ParseTuple( args, "|iff", &tot, &size, &len ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -155,15 +155,14 @@ static PyObject *M_MeshPrim_Cylinder( PyObject *self_unused, PyObject *args )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"number of vertices must be in the range [3:100]" );
 
-	size /= 2.0;
-	return make_mesh( 5, "Cylinder", tot, 0, 0, size, -len, 1, 1 );
+	return make_mesh( 5, "Cylinder", tot, 0, 0, size/2.0, -len/2.0, 1, 1 );
 }
 
 static PyObject *M_MeshPrim_Tube( PyObject *self_unused, PyObject *args )
 {
 	int tot = 32;
-	float size = (float)(2.0*sqrt(2.0));
-	float len = 1.0;
+	float size = 2.0;
+	float len = 2.0;
 
 	if( !PyArg_ParseTuple( args, "|iff", &tot, &size, &len ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -172,15 +171,14 @@ static PyObject *M_MeshPrim_Tube( PyObject *self_unused, PyObject *args )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"number of vertices must be in the range [3:100]" );
 
-	size /= 2.0;
-	return make_mesh( 6, "Tube", tot, 0, 0, size, -len, 1, 0 );
+	return make_mesh( 6, "Tube", tot, 0, 0, size/2.0, -len/2.0, 1, 0 );
 }
 
 static PyObject *M_MeshPrim_Cone( PyObject *self_unused, PyObject *args )
 {
 	int tot = 32;
-	float size = (float)(2.0*sqrt(2.0));
-	float len = 1.0;
+	float size = 2.0;
+	float len = 2.0;
 
 	if( !PyArg_ParseTuple( args, "|iff", &tot, &size, &len ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -189,8 +187,7 @@ static PyObject *M_MeshPrim_Cone( PyObject *self_unused, PyObject *args )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"number of vertices must be in the range [3:100]" );
 
-	size /= 2.0;
-	return make_mesh( 7, "Cone", tot, 0, 0, size, -len, 0, 1 );
+	return make_mesh( 7, "Cone", tot, 0, 0, size/2.0, -len/2.0, 0, 1 );
 }
 
 static PyObject *M_MeshPrim_Grid( PyObject *self_unused, PyObject *args )
@@ -214,7 +211,7 @@ static PyObject *M_MeshPrim_UVsphere( PyObject *self_unused, PyObject *args )
 {
 	int segs = 32;
 	int rings = 32;
-	float size = (float)(2.0*sqrt(2.0));
+	float size = 2.0;
 
 	if( !PyArg_ParseTuple( args, "|iif", &segs, &rings, &size ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -230,7 +227,7 @@ static PyObject *M_MeshPrim_UVsphere( PyObject *self_unused, PyObject *args )
 static PyObject *M_MeshPrim_Icosphere( PyObject *self_unused, PyObject *args )
 {
 	int subdiv = 2;
-	float size = (float)(2.0*sqrt(2.0));
+	float size = 2.0;
 
 	if( !PyArg_ParseTuple( args, "|if", &subdiv, &size ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
