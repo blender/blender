@@ -131,15 +131,25 @@ BME_Mesh *BME_FromMesh(Mesh *me)
 	PointerArray edgearr = {0};
 	int i, j;
 	
-	if (me->totface && !me->totpoly) return BME_fromOldMesh(me);
-	
+	if (me->totface && !me->totpoly) {
+		printf("ERROR: paranoia mesh conversion function was called!\n");
+		return BME_fromOldMesh(me);
+	}
+
 	CustomData_copy(&me->vdata, &bmesh->vdata, CD_MASK_EDITMESH, CD_CALLOC, 0);
 	for (i=0, mvert=me->mvert; i<me->totvert; i++, mvert++) {
 		vert_table[i] = BME_MV(bmesh, mvert->co);
+		vert_table[i]->no[0] = mvert->no[0] / 32767.0f;
+		vert_table[i]->no[1] = mvert->no[1] / 32767.0f;
+		vert_table[i]->no[2] = mvert->no[2] / 32767.0f;
+
 		vert_table[i]->flag = mvert->flag;
 		CustomData_to_em_block(&me->vdata, &bmesh->vdata, i, &vert_table[i]->data);
+
+		printf("vert_table->no: %f %f %f\n", vert_table[i]->no[0], vert_table[i]->no[1], vert_table[i]->no[2]);
+		printf("mvert->no: %d %d %d\n", (int)mvert->no[0], (int)mvert->no[1], (int)mvert->no[2]);
 	}
-	
+
 	for (i=0, medge=me->medge; i<me->totedge; i++, medge++) {
 		edge_table[i] = BME_ME(bmesh, vert_table[medge->v1], vert_table[medge->v2]);
 	}
@@ -149,12 +159,14 @@ BME_Mesh *BME_FromMesh(Mesh *me)
 		mloop = &me->mloop[mpoly->firstloop];
 		printf("mpoly->firstloop: %d, me->mloop: %p\n", mpoly->firstloop, me->mloop);
 		for (j=0; j<mpoly->totloop; j++) {
+			/*hrm. . . a simple scratch pointer array of, oh 6000 length might be better here.*/
 			PA_AddToArray(&edgearr, edge_table[mloop->edge], j);
 			mloop++;
 		}		
 		poly = BME_MF(bmesh, ((BME_Edge*)edgearr.array[0])->v1, ((BME_Edge*)edgearr.array[0])->v2, (BME_Edge**)edgearr.array, j);
+		poly->flag = mpoly->flag;
 		if (!poly) printf("EVIL POLY NOT CREATED!! EVVVIILL!!\n");
-		PA_FreeArray(&edgearr);
+		PA_FreeArray(&edgearr); /*basically sets array length to NULL*/
 		CustomData_to_em_block(&me->pdata, &bmesh->pdata, i, &poly->data);
 	}
 	
@@ -178,7 +190,8 @@ void Mesh_FromBMesh(BME_Mesh *bmesh, Mesh *me)
 	BME_Loop *blo;
 	BME_Poly *bply;
 	int i, j, curloop=0;
-	
+	short no[3];
+
 	printf("v: %d e: %d l: %d p: %d\n", bmesh->totvert, bmesh->totedge, bmesh->totloop, bmesh->totpoly);
 	CustomData_free(&me->vdata, me->totvert);
 	CustomData_free(&me->edata, me->totedge);
@@ -212,13 +225,23 @@ void Mesh_FromBMesh(BME_Mesh *bmesh, Mesh *me)
 
 	for (bve=bmesh->verts.first, i=0; bve; i++, bve=bve->next, mvert++) {
 		bve->tflag1 = i;
-		VECCOPY(bve->co, mvert->co);
-		VECCOPY(bve->no, mvert->no);
+		VECCOPY(mvert->co, bve->co);
+
+		no[0] = (short)(bve->no[0]*32767.0f);
+		no[1] = (short)(bve->no[1]*32767.0f);
+		no[2] = (short)(bve->no[2]*32767.0f);
+		VECCOPY(mvert->no, no);
 		CustomData_from_em_block(&bmesh->vdata, &me->vdata, bve->data, i);
+		mvert->flag = bve->flag;
+
+		printf("bve->no: %f %f %f\n", bve->no[0], bve->no[1], bve->no[2]);
+		printf("bve->no: %d %d %d\n", (int)mvert->no[0], (int)mvert->no[1], (int)mvert->no[2]);
+
+		//printf("mesh->co: %f %f %f\n", mvert->co[0], mvert->co[1], mvert->co[2]);
 	}
 	
 	/* the edges */
-	for (bed=bmesh->edges.first, i=0; bed; i++, bed=bed->next, mvert++) {
+	for (bed=bmesh->edges.first, i=0; bed; i++, bed=bed->next, medge++) {
 		bed->tflag1 = i;
 		medge->v1= (unsigned int) bed->v1->tflag1;
 		medge->v2= (unsigned int) bed->v2->tflag1;
@@ -300,14 +323,17 @@ void mouse_bmesh()
 
 BME_Vert *EditBME_FindNearestVert(int *dis)
 {
+	return NULL;
 }
 
 BME_Edge *EditBME_FindNearestEdge(int *dis)
 {
+	return NULL;
 }
 
 BME_Poly *EditBME_FindNearestPoly(int *dis)
 {
+	return NULL;
 }
 
 void undo_push_mesh(char *str)

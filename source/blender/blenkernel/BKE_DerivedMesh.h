@@ -61,41 +61,34 @@ struct EditMesh;
 struct ModifierData;
 struct MCol;
 struct Material;
+struct MemArena;
 
 /* number of sub-elements each mesh element has (for interpolation) */
 #define SUB_ELEMS_VERT 0
 #define SUB_ELEMS_EDGE 2
 #define SUB_ELEMS_FACE 4
 
-
-typedef struct bglTriangle {
-	struct bglTriangle *next, *prev;
-	float uv[3][2];
-	float vert_colors[3][3];
-	float vert_cos[3][3];
-	float vert_nos[3][3];	
-} bglTriangle;
-
-typedef struct bglMesh {
-	float *gl_array; //is interleaved
-	ListBase triangles;
-} bglMesh;
-
-/*ONLY ACCEPTS TRIANGLES!*/
+/*Only accepts triangles!*/
 typedef struct bglCacheDrawInterface {
-	void (*beginCache)(void *vself);
+	/*this must be called first!*/
 	void (*setMaterials)(void *vself, int totmat, struct Material **materials);
+	void (*beginCache)(void *vself);
 	
-	/*if v4 == NULL, then the face is assumed to be a triangle.  Will do quads, or triangles,
-      but will NOT automatically tesselate ngons!*/
-	void (*addFace)(void *vself, float *verts, float *normals, char *cols,
-	                              int mat, int sel, int smooth);
+	void (*addTriangle)(void *vself, float verts[][3], float normals[][3], char cols[][3],
+	                              char highcols[4], int mat);
 	                              
-	void (*addEdgeWire)(void *vself, float *v1, float *v2, int sel, int seam);
-	void (*addVertPoint)(void *vself, float *v, int sel, int seam);
+	void (*addEdgeWire)(void *vself, float v1[3], float v2[3], char c1[3], char c2[3]);
+	void (*addVertPoint)(void *vself, float v[3], char col[3], float size);
 	void (*endCache)(void *vself);
-	void (*drawCache)(void *vself, int drawlevel);
-	/* char *colors is an array of per-face colors.*/
+	void (*drawFacesSolid)(void *vself, int usecolors);
+	void (*drawFacesTransp)(void *vself);
+	void (*drawVertPoints)(void *vself, float alpha);
+	void (*drawEdges)(void *vself);
+
+	/*NOTE: does not free the struct pointed to at vself! just direct data*/
+	void (*release)(void *vself);
+
+	/* char *colors is an array of per-triangle colors.*/
 	void (*drawCacheOverloadColors)(void *vself, char *colors, int drawlevel, int flags);
 } bglCacheDrawInterface;
 
@@ -109,20 +102,58 @@ typedef struct bglCacheDrawInterface {
 /*theres always one group per material, that is
   entirely triangles.*/
 
+typedef struct bglTriangle {
+	struct bglTriangle *next, *prev;
+	float uv[3][2];
+	unsigned char colors[3][3];
+	float cos[3][3];
+	float nos[3][3];
+	unsigned char highlightclr[4];
+	int mat;
+} bglTriangle;
+
+typedef struct bglEdgeWire {
+	struct bglEdgeWire *next, *pref;
+	float v1[3], v2[3];
+	char c1[3], c2[3];
+} bglEdgeWire;
+
+typedef struct bglVertPoint {
+	struct bglVertPoint *next, *prev;
+	float co[3];
+	char col[3];
+	float size;
+} bglVertPoint;
+
 typedef struct bglCacheFaceGroup {
 	float *faceverts;
-	float *facecolors;
+	char *facecolors;
+	char *highcolors; /*highlight colors for editmode*/
 	float *facenormals;
-} bglCacheFaceGroup;	
+	int tottris;
+} bglCacheFaceGroup;
 
-typedef struct bglCacheDrawer {
-	bglCacheDrawInterface *interface;
-	bglCacheFaceGroup facegroups[16];
+#define MAX_FACEGROUP	16 /*actually a copy of the maximum number of materials, which is 16*/
+
+typedef struct bglCacheMesh {
+	bglCacheDrawInterface cinterface;
+	
+	/*temporary stuff used until ->endCache() is called:*/
+	ListBase triangles[MAX_FACEGROUP], wires, points;
+	int tottri, totwire, totpoint;
+	struct MemArena *arena;
+	struct MemArena *gl_arena; /*this holds only opengl arrays*/
+
+	struct Material **mats;
+	int  totmat, initilized; /*set to 1 by setmaterials and 2 by begincache, then 3 by endcache (e.g. ready to draw).*/
+
+	/*actual opengl array stuff:*/
+	bglCacheFaceGroup facegroups[MAX_FACEGROUP];
 	float *edgeverts;
-	float *edgecols;
+	char *edgecols;
 	float *pointverts;
-	float *pointcols;
-} bglCacheDrawer;
+	char *pointcols;
+} bglCacheMesh;
 
 typedef struct DerivedMesh DerivedMesh;
 struct DerivedMesh {
@@ -262,6 +293,10 @@ struct DerivedMesh {
 	/* Draw all vertices as bgl points (no options) */
 	void (*drawVerts)(DerivedMesh *dm);
 
+	/* Draw edit verts. 
+	   This will be generalized somewhat obviously. */
+	void (*drawEditVerts)(DerivedMesh *dm, float alpha);
+
 	/* Draw edges in the UV mesh (if exists) */
 	void (*drawUVEdges)(DerivedMesh *dm);
 
@@ -353,6 +388,9 @@ struct DerivedMesh {
 	 * if the DerivedMesh will be freed, or cached for later use. */
 	void (*release)(DerivedMesh *dm);
 };
+
+/*create a new cache drawing interface*/
+bglCacheDrawInterface *bglCacheNew(void);
 
 /* utility function to initialise a DerivedMesh's function pointers to
  * the default implementation (for those functions which have a default)

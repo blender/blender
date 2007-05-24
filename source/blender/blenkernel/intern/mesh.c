@@ -132,9 +132,9 @@ void mesh_update_customdata_pointers(Mesh *me)
 
 	me->medge = CustomData_get_layer(&me->edata, CD_MEDGE);
 
-	me->mface = CustomData_get_layer(&me->fdata, CD_MFACE);
+	//me->mface = CustomData_get_layer(&me->fdata, CD_MFACE);
 	me->mcol = CustomData_get_layer(&me->fdata, CD_MCOL);
-	me->mtface = CustomData_get_layer(&me->fdata, CD_MTFACE);
+	//me->mtface = CustomData_get_layer(&me->fdata, CD_MTFACE);
 	me->mloop =  CustomData_get_layer(&me->ldata, CD_MLOOP);	
 	me->mpoly =  CustomData_get_layer(&me->pdata, CD_MPOLY);
 }

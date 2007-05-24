@@ -74,6 +74,7 @@
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"
 #include "BLI_edgehash.h"
+#include "BLI_memarena.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_curve.h"
@@ -1165,48 +1166,6 @@ void mesh_foreachScreenVert(void (*func)(void *userData, EditVert *eve, int x, i
 	dm->release(dm);
 }
 
-void beginCache(void *vself)
-{
-}
-
-void setMaterials(void *vself, int totmat, Material **mats)
-{
-}
-
-void addFace(void *vself, float *verts, float *normals, char *cols,
-                 int mat, int self, int smooth)
-{
-}
-
-void addEdgeWire(void *vself, float *v1, float *v2, int sel, int seam)
-{
-}
-void addVertPoint(void *vself, float *v, int sel, int seam)
-{
-}
-void endCache(void *vself)
-{
-}
-void drawCache(void *vself, int drawlevel)
-{
-}
-/* char *colors is an array of per-face colors.*/
-void drawCacheOverloadColors(void *vself, char *colors, int drawlevel, int flags)
-{
-}
-
-bglCacheDrawer *BGLC_CreateCacher(void)
-{
-	bglCacheDrawer *cache = MEM_callocN(sizeof(bglCacheDrawer), "bglCacheDrawer");
-	
-	return cache;
-}
-
-void BGLC_Free(bglCacheDrawer *cache)
-{
-
-}
-
 static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, float *v0co, float *v1co)
 {
 #if 0 //EDITBMESHGREP
@@ -1903,10 +1862,292 @@ static int draw_em_fancy__setFaceOpts(void *userData, int index, int *drawSmooth
 #endif
 }
 
+void BGLCache_setMaterials(void *vself, int totmat, struct Material **materials)
+{
+	bglCacheMesh *self = (bglCacheMesh*) vself;
+	if (self->initilized != 0) {
+		printf("Can only set materials on empty/cleared draw cache!\n");
+		return;
+	}
+
+	self->initilized = 1;
+	
+	if (totmat) {
+		self->totmat = totmat;
+		self->mats = MEM_dupallocN(materials);
+	} else { /*if there are no materials, we create a fake one that's NULL.*/
+		self->totmat = 1;
+		self->mats = MEM_callocN(sizeof(void*)+1, "bleh mat"); /*the +1 is to avoid possible problems with 4-byte allocations*/
+		*self->mats = NULL;
+	}
+}
+
+void BGLCache_beginCache(void *vself)
+{
+	bglCacheMesh *self = (bglCacheMesh*) vself;
+	if (self->initilized != 1) {
+		printf("error in BGLCache_beginCache, beginCache was called with cache in wrong state!\n");
+		return;
+	}
+
+	self->arena = BLI_memarena_new(1<<13);
+	self->initilized = 2;
+}
+
+
+#define CACHEERROR_CHECK	if (self->initilized != 2) { printf("Error! Opengl Cache not properly initialized!\n"); return; }
+
+void BGLCache_addTriangle(void *vself, float verts[][3], float normals[][3], char cols[][3],
+	                              char highcols[4], int mat)
+{
+	bglCacheMesh *self = (bglCacheMesh*) vself;
+	bglTriangle *tri;
+	CACHEERROR_CHECK
+
+	if (mat < 0 || mat >= self->totmat) {
+		printf("invalid material number!!\n");
+		return;
+	}
+
+	tri = BLI_memarena_alloc(self->arena, sizeof(*tri));
+	memcpy(tri->cos, verts, sizeof(float)*3*3);
+	memcpy(tri->nos, normals, sizeof(float)*3*3);
+	if (cols) memcpy(tri->colors, cols, 3*3);
+	if (highcols) memcpy(tri->highlightclr, highcols, 4);
+
+	tri->mat = mat;
+	
+	self->facegroups[mat].tottris++;
+	self->tottri++;
+	BLI_addtail(&self->triangles[mat], tri);
+}
+
+	                              
+void BGLCache_addEdgeWire(void *vself, float v1[3], float v2[3], char c1[3], char c2[3])
+{
+	bglCacheMesh *self = (bglCacheMesh*) vself;
+	bglEdgeWire *ewire;
+	CACHEERROR_CHECK
+
+	ewire = BLI_memarena_alloc(self->arena, sizeof(*ewire));
+	VECCOPY(ewire->v1, v1);
+	VECCOPY(ewire->v2, v2);
+	if (c1) VECCOPY(ewire->c2, c2);
+	if (c2) VECCOPY(ewire->c2, c2);
+	
+	self->totwire++;
+	BLI_addtail(&self->wires, ewire);
+}
+
+void BGLCache_addVertPoint(void *vself, float v[3], char col[3], float size)
+{
+	bglCacheMesh *self = (bglCacheMesh*) vself;
+	bglVertPoint *point;
+	CACHEERROR_CHECK
+
+	point = BLI_memarena_alloc(self->arena, sizeof(*point));
+	VECCOPY(point->co, v);
+	if (col) VECCOPY(point->col, col);
+	point->size = size;
+
+	self->totpoint++;
+	BLI_addtail(&self->points, point);	
+}
+
+void BGLCache_endCache(void *vself)
+{
+	bglCacheMesh *self = (bglCacheMesh*) vself;
+	bglCacheFaceGroup *group;
+	bglTriangle *tri;
+	bglVertPoint *point;
+	int i, j;
+
+	CACHEERROR_CHECK
+	
+	printf("in endCache!\n");
+	self->gl_arena = BLI_memarena_new(1<<13);
+
+	for (i=0; i<self->totmat; i++) {
+		group = &self->facegroups[i];
+		if (!group->tottris) continue;
+
+		group->faceverts =   BLI_memarena_alloc(self->gl_arena, sizeof(float)*3*3*group->tottris);
+		group->facecolors =  BLI_memarena_alloc(self->gl_arena, 3*3*group->tottris);
+		group->facenormals = BLI_memarena_alloc(self->gl_arena, sizeof(float)*3*3*group->tottris);
+		group->highcolors =  BLI_memarena_alloc(self->gl_arena, 3*4*group->tottris);
+		for (tri=self->triangles[i].first, j=0; tri; j++, tri=tri->next) {
+			memcpy(group->faceverts+3*3*j, tri->cos, sizeof(float)*3*3);
+			memcpy(group->facenormals+3*3*j, tri->nos, sizeof(float)*3*3);
+			//memcpy(group->facecolors+j*4*3, tri->colors, sizeof(float)*3*3);
+
+			//memcpy(group->highcolors+j*4*3+4, tri->highlightclr, 4);
+			//memcpy(group->highcolors+j*4*3+8, tri->highlightclr, 4);
+			//memcpy(group->highcolors+j*4*3+12, tri->highlightclr, 4);
+		}
+	}
+
+	if (self->totpoint) {
+		self->pointverts = BLI_memarena_alloc(self->gl_arena, sizeof(float)*3*self->totpoint);
+		self->pointcols = BLI_memarena_alloc(self->gl_arena, 3*self->totpoint);
+		for (point=self->points.first,i=0; point; i++, point=point->next) {
+			VECCOPY(self->pointverts+i*3, point->co);
+			VECCOPY(self->pointcols+i*3, point->col);
+		}
+	}
+
+	self->initilized = 3;
+
+	BLI_memarena_free(self->arena);
+	self->arena = NULL;
+}
+
+void BGLCache_drawFacesSolid(void *vself, int usecolors)
+{
+	bglCacheMesh *self = (bglCacheMesh*) vself;
+	bglCacheFaceGroup *group;
+	int i;
+
+	if (self->initilized != 3) {
+		printf("drawCache called with invalid state!!\n");
+		return;
+	}
+
+	glShadeModel(GL_SMOOTH);
+
+	printf("in draw cache!\n");
+	glDisableClientState(GL_COLOR_ARRAY);
+
+	glEnableClientState(GL_VERTEX_ARRAY);
+	for (i=0; i<self->totmat; i++) {
+		printf("drawing a material group!\n");
+		group = &self->facegroups[i];
+		if (group->facenormals) glEnableClientState(GL_NORMAL_ARRAY);
+		
+		set_gl_material(i+1);
+		glVertexPointer(3, GL_FLOAT, 0, group->faceverts);
+		glNormalPointer(GL_FLOAT, 0, group->facenormals);
+
+		glDrawArrays(GL_TRIANGLES, 0, group->tottris*3);
+		if (group->facenormals) glDisableClientState(GL_NORMAL_ARRAY);
+	}
+	glDisableClientState(GL_VERTEX_ARRAY);
+
+	printf("out of draw cache!\n");
+	glShadeModel(GL_FLAT);
+}
+
+
+void BGLCache_drawFacesTransp(void *vself)
+{
+}
+
+void BGLCache_drawVertPoints(void *vself, float alpha)
+{
+	bglCacheMesh *self = (bglCacheMesh*) vself;
+
+	glDisableClientState(GL_COLOR_ARRAY); /*I remember this can be left on by some of the other vert array code :/ */
+	glDisableClientState(GL_NORMAL_ARRAY); /* this is just paranoia check */
+
+	glColor4f(0, 0, 0, alpha); /*hopefully the color array won't affect alpha. . .eck :/ */
+
+	glEnableClientState(GL_VERTEX_ARRAY);
+	if (self->totpoint) {
+		glVertexPointer(3, GL_FLOAT, 0, self->pointverts);
+		if (self->pointcols) {
+			glEnableClientState(GL_COLOR_ARRAY);
+			glColorPointer(3, GL_UNSIGNED_BYTE, 0, self->pointcols);
+		}
+		glDrawArrays(GL_POINTS, 0, self->totpoint);
+	}
+	glDisableClientState(GL_COLOR_ARRAY);
+	glDisableClientState(GL_VERTEX_ARRAY);
+}
+
+void BGLCache_drawEdges(void *vself)
+{
+}
+
+void BGLCache_release(void *vself)
+{
+	bglCacheMesh *self = (bglCacheMesh*) vself;
+	bglCacheFaceGroup *group;
+	int i;
+
+	if (self->arena) BLI_memarena_free(self->arena);
+	if (self->gl_arena) BLI_memarena_free(self->gl_arena);
+	self->arena = NULL;
+	self->gl_arena = NULL;
+
+	if (self->mats) MEM_freeN(self->mats);
+	self->mats = NULL;
+	self->totmat = self->totpoint = self->tottri = self->totwire = 0;
+
+	self->initilized = 0;
+
+	memset(self->triangles, 0, sizeof(ListBase)*MAX_FACEGROUP);
+	self->wires.first = self->wires.last = NULL;
+	self->points.first = self->points.last = NULL;
+
+	memset(self->facegroups, 0, sizeof(bglCacheFaceGroup)*MAX_FACEGROUP);
+	self->edgeverts = self->edgecols = self->pointverts = self->pointcols = NULL;
+}
+
+
+/* char *colors is an array of per-triangle colors.*/
+void BGLCache_drawCacheOverloadColors(void *vself, char *colors, int drawlevel, int flags)
+{
+}
+
+static bglCacheDrawInterface cache_template = {
+	BGLCache_setMaterials,
+	BGLCache_beginCache,
+	BGLCache_addTriangle,
+	BGLCache_addEdgeWire,
+	BGLCache_addVertPoint,
+	BGLCache_endCache,
+	BGLCache_drawFacesSolid,
+	BGLCache_drawFacesTransp,
+	BGLCache_drawVertPoints,
+	BGLCache_drawEdges,
+	BGLCache_release,
+	BGLCache_drawCacheOverloadColors
+};
+
+bglCacheDrawInterface *bglCacheNew(void)
+{
+	bglCacheMesh *cmesh = MEM_callocN(sizeof(bglCacheMesh), "bglCacheMesh");
+	memcpy(cmesh, &cache_template, sizeof(bglCacheDrawInterface));
+
+	return (bglCacheDrawInterface*) cmesh;
+}
+
 /*BMesh drawing func!*/
 static void draw_bme_fancy(Object *ob, BME_Mesh *bmesh, DerivedMesh *cageDM, DerivedMesh *finalDM, int dt)
 {
+	Mesh *me = ob->data;
 
+	if (!finalDM) return;
+	
+	if(dt>OB_WIRE) {
+		glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, me->flag & ME_TWOSIDED);
+
+		glEnable(GL_LIGHTING);
+		glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
+
+		finalDM->drawMappedFaces(finalDM, draw_em_fancy__setFaceOpts, NULL, 0);
+
+		glFrontFace(GL_CCW);
+		glDisable(GL_LIGHTING);
+		
+		// Setup for drawing wire over, disable zbuffer
+		// write to show selected edge wires better
+		BIF_ThemeColor(TH_WIRE);
+
+		bglPolygonOffset(1.0);
+		glDepthMask(0);
+	}
+
+	if (finalDM->drawEditVerts) finalDM->drawEditVerts(finalDM, 1.0);
 }
 
 /*this is only here for reference, REMEBER TO DELETE IT!*/
@@ -2054,7 +2295,7 @@ static void draw_mesh_fancy(Base *base, int dt, int flag)
 	Material *ma= give_current_material(ob, 1);
 	int hasHaloMat = (ma && (ma->mode&MA_HALO));
 	int draw_wire = ob->dtx&OB_DRAWWIRE;
-	int totvert, totedge, totface;
+	int totvert, totedge, totpoly;
 	DispList *dl;
 	DerivedMesh *dm= mesh_get_derived_final(ob, get_viewedit_datamask());
 
@@ -2081,7 +2322,7 @@ static void draw_mesh_fancy(Base *base, int dt, int flag)
 #else
 	totvert = me->totvert;
 	totedge = me->totedge;
-	totface = me->totface;
+	totpoly = me->totpoly;
 #endif
 	
 	/* vertexpaint, faceselect wants this, but it doesnt work for shaded? */
@@ -2094,12 +2335,12 @@ static void draw_mesh_fancy(Base *base, int dt, int flag)
 	if(dt==OB_BOUNDBOX) {
 		draw_bounding_volume(ob);
 	}
-	else if(hasHaloMat || (totface==0 && totedge==0)) {
+	else if(hasHaloMat || (totpoly==0 && totedge==0)) {
 		glPointSize(1.5);
 		dm->drawVerts(dm);
 		glPointSize(1.0);
 	}
-	else if(dt==OB_WIRE || totface==0) {
+	else if(dt==OB_WIRE || totpoly==0) {
 		draw_wire = 1;
 	}
 	else if( (ob==OBACT && (G.f & (G_FACESELECT|G_TEXTUREPAINT))) || (G.vd->drawtype==OB_TEXTURE && dt>OB_SOLID)) {
@@ -2228,7 +2469,7 @@ static void draw_mesh_fancy(Base *base, int dt, int flag)
 			glDepthMask(0);	// disable write in zbuffer, selected edge wires show better
 		}
 
-		dm->drawEdges(dm, (dt==OB_WIRE || totface==0));
+		dm->drawEdges(dm, (dt==OB_WIRE || totpoly==0));
 
 		if (dt!=OB_WIRE) {
 			glDepthMask(1);

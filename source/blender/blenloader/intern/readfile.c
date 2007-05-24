@@ -6486,7 +6486,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		MFace *mface;
 		void *hash;
 		//MTFace *mtface;
-		int i, totloop, curloop=0;
+		int i, totloop, curloop;
 		
 		/*these functions are just defined after this function ends, 
 		  to avoid massive scrolling*/
@@ -6504,7 +6504,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 		for (mesh=main->mesh.first; mesh; mesh=mesh->id.next) {
 			totloop = 0;
-			curloop = 0;
 			for (mface=mesh->mface,i=0; i<mesh->totface; i++,  mface++) {
 				if (mface->v4) totloop += 4;
 				else totloop += 3;
@@ -6523,7 +6522,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				addToConvEHash(hash, medge, i);
 			}			
 			
-			for (mface=mesh->mface,i=0; i<mesh->totpoly; i++, mface++, mpoly++) {
+			curloop = 0;
+			for (mface=mesh->mface,i=0; i<mesh->totface; i++, mface++, mpoly++) {
 				mpoly->mat_nr = mface->mat_nr;
 				mpoly->flag = (mface->flag&ME_SMOOTH?ME_NSMOOTH:0)|(mface->flag&ME_FACE_SEL?1:0);
 				mpoly->firstloop = curloop;
@@ -6540,6 +6540,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 			
 			freeConvEHash(hash);
+			mesh->totface = 0;
 		}
 	}
 	#undef MAKE_LOOP

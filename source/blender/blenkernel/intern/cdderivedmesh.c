@@ -261,37 +261,27 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int))
 	float *nors= dm->getFaceDataArray(dm, CD_NORMAL);
 	int a, j, glmode = -1, shademodel = -1, matnr = -1, drawCurrentMat = 1;
 
-	printf("v: %p f: %p l: %p p: %p\n", mvert, mface, mloop, mpoly);
-	printf("totpolys: %d\n", dm->numPolyData);
+	//printf("v: %p f: %p l: %p p: %p\n", mvert, mface, mloop, mpoly);
+	//printf("totpolys: %d\n", dm->numPolyData);
 	
 	for (mpoly=cddm->mpoly, a=0; a<dm->numPolyData; a++, mpoly++) {
 		int new_glmode, new_matnr, new_shademodel;
-		printf("poly a: %d\n", a);
-		
-		mloop = &cddm->mloop[mpoly->firstloop];
-		
+		//printf("poly a: %d\n", a);
 		new_glmode = GL_POLYGON; //mpoly->v4?GL_QUADS:GL_TRIANGLES;
 		new_matnr = mpoly->mat_nr + 1;
 		new_shademodel = (mpoly->flag & ME_NSMOOTH)?GL_SMOOTH:GL_FLAT;
-		
+		shademodel = new_shademodel;
+
 		mloop = &cddm->mloop[mpoly->firstloop];
 		
-		if(new_glmode != glmode || new_matnr != matnr
-		   || new_shademodel != shademodel) {
-			glEnd();
+		drawCurrentMat = setMaterial(matnr = new_matnr);
+		glShadeModel(new_shademodel);
 
-			drawCurrentMat = setMaterial(matnr = new_matnr);
-
-			glShadeModel(shademodel = new_shademodel);
-			glBegin(glmode = new_glmode);
-		} 
-		
 		if(drawCurrentMat) {
 			if(shademodel == GL_FLAT) {
 				if (nors) {
 					glNormal3fv(nors);
-				}
-				else {
+				} else {
 					/* TODO make this better (cache facenormals as layer?) */
 					float nor[3];
 					CalcNormFloat(mvert[mloop->v].co, mvert[(mloop+1)->v].co,
@@ -299,16 +289,16 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int))
 					glNormal3fv(nor);
 				}
 			}
-			
+
+			glBegin(GL_POLYGON);
 			for (j=0; j<mpoly->totloop; j++, mloop++) {
 				PASSVERT(mloop->v);
-			}
-		
+			}		
+			glEnd();
 		} else mloop += mpoly->totloop;
 
 		if(nors) nors += 3;
 	}
-	glEnd();
 
 	glShadeModel(GL_FLAT);
 	
@@ -829,6 +819,7 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *ob)
 	cddm->mloop = CustomData_get_layer(&dm->loopData, CD_MLOOP);
 	cddm->mpoly = CustomData_get_layer(&dm->polyData, CD_MPOLY);
 
+	/*NOTE: Remeber to add this for loops and polys too!!! EDITBMESHGREP*/
 	index = CustomData_get_layer(&dm->vertData, CD_ORIGINDEX);
 	for(i = 0; i < mesh->totvert; ++i, ++index)
 		*index = i;
@@ -852,6 +843,7 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *ob)
 
 DerivedMesh *CDDM_from_editmesh(EditMesh *em, Mesh *me)
 {
+	printf("CCDM_from_editmesh called!\n");
 	return NULL;
 #if 0
 	DerivedMesh *dm = CDDM_new(BLI_countlist(&em->verts),

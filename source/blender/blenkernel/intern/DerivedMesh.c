@@ -83,6 +83,7 @@
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
+#include "BIF_resources.h"
 
 #include "multires.h"
 
@@ -272,6 +273,7 @@ void DM_init(DerivedMesh *dm,
 void DM_from_template(DerivedMesh *dm, DerivedMesh *source,
                       int numVerts, int numEdges, int numFaces, int numLoops, int numPolys)
 {
+	printf("DM_from_template called!\n");
 	CustomData_copy(&source->vertData, &dm->vertData, CD_MASK_DERIVEDMESH,
 	                CD_CALLOC, numVerts);
 	CustomData_copy(&source->edgeData, &dm->edgeData, CD_MASK_DERIVEDMESH,
@@ -286,6 +288,8 @@ void DM_from_template(DerivedMesh *dm, DerivedMesh *source,
 	dm->numVertData = numVerts;
 	dm->numEdgeData = numEdges;
 	dm->numFaceData = numFaces;
+	dm->numLoopData = numLoops;
+	dm->numPolyData = numPolys;
 
 	DM_init_funcs(dm);
 
@@ -320,9 +324,13 @@ void DM_to_mesh(DerivedMesh *dm, Mesh *me)
 	Mesh tmp = *me;
 	int totvert, totedge, totface, totloop, totpoly;
 
+	printf("DM_to_mesh called!\n");
+
 	memset(&tmp.vdata, 0, sizeof(tmp.vdata));
 	memset(&tmp.edata, 0, sizeof(tmp.edata));
 	memset(&tmp.fdata, 0, sizeof(tmp.fdata));
+	memset(&tmp.ldata, 0, sizeof(tmp.ldata));
+	memset(&tmp.pdata, 0, sizeof(tmp.pdata));
 
 	totvert = tmp.totvert = dm->getNumVerts(dm);
 	totedge = tmp.totedge = dm->getNumEdges(dm);
@@ -566,6 +574,8 @@ typedef struct {
 	float (*vertexCos)[3];
 	float (*vertexNos)[3];
 	float (*faceNos)[3];
+	bglCacheDrawInterface *cdraw;
+	int recalc_cdraw;
 } EditBMeshDerivedMesh;
 
 typedef struct {
@@ -577,12 +587,14 @@ typedef struct {
 	float (*faceNos)[3];
 } EditMeshDerivedMesh;
 
+static void emDM_recalcDrawCache(EditBMeshDerivedMesh *emdm);
+
 static void emDM_foreachMappedVert(DerivedMesh *dm, void (*func)(void *userData, int index, float *co, float *no_f, short *no_s), void *userData)
 {
 	EditBMeshDerivedMesh *bem = (EditBMeshDerivedMesh*) dm;
 	BME_Vert *bev;
 	int i;
-	short no[3];
+	//short no[3];
 	
 	for (bev=bem->bmesh->verts.first, i=0; bev; i++, bev=bev->next) {
 		if (bem->vertexCos) {
@@ -597,7 +609,7 @@ static void emDM_foreachMappedEdge(DerivedMesh *dm, void (*func)(void *userData,
 	EditBMeshDerivedMesh *bem = (EditBMeshDerivedMesh*) dm;
 	BME_Edge *bed;
 	int i;
-	short no[3];
+	//short no[3];
 	
 	for (bed=bem->bmesh->edges.first, i=0; bed; i++, bed=bed->next) {
 		if (bem->vertexCos) {
@@ -610,19 +622,91 @@ static void emDM_foreachMappedEdge(DerivedMesh *dm, void (*func)(void *userData,
 
 static void emDM_drawMappedEdges(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index), void *userData) 
 {
-
+	EditBMeshDerivedMesh *emdm = (EditBMeshDerivedMesh*) dm;
+	emdm->bmesh = emdm->bmesh;
 }
+
 static void emDM_drawEdges(DerivedMesh *dm, int drawLooseEdges)
 {
-
+	EditBMeshDerivedMesh *emdm = (EditBMeshDerivedMesh*) dm;
+	emdm->bmesh = emdm->bmesh;
 }
+
 static void emDM_drawMappedEdgesInterp(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index), void (*setDrawInterpOptions)(void *userData, int index, float t), void *userData) 
 {
+	EditBMeshDerivedMesh *emdm = (EditBMeshDerivedMesh*) dm;
+	emdm->bmesh = emdm->bmesh;
 
 }
 
 static void emDM_drawUVEdges(DerivedMesh *dm)
 {
+	EditBMeshDerivedMesh *emdm = (EditBMeshDerivedMesh*) dm;
+	emdm->bmesh = emdm->bmesh;
+
+}
+
+static void emDM_drawEditVerts(DerivedMesh *dm, float alpha)
+{
+	EditBMeshDerivedMesh *emdm = (EditBMeshDerivedMesh*) dm;
+   if (emdm->recalc_cdraw) emDM_recalcDrawCache(emdm);
+
+   emdm->cdraw->drawVertPoints(emdm->cdraw, alpha);
+}
+
+static void emDM_recalcDrawCache(EditBMeshDerivedMesh *emdm)
+{
+	BME_Poly *efa;
+	BME_Loop *loop;
+	BME_Vert *eve;
+	float v[3][3], no[3][3];
+	float nor[3], vsize;
+	char high[4], vcol[3], svcol[3];
+
+	BIF_GetThemeColor3ubv(TH_VERTEX, vcol);
+	BIF_GetThemeColor3ubv(TH_VERTEX_SELECT, svcol);
+	vsize = BIF_GetThemeValuef(TH_VERTEX_SIZE);
+
+	/*Eck! remember to write code to set high (which is the transparent highlight color!)*/
+	if (!emdm->cdraw) emdm->cdraw = bglCacheNew();
+
+	printf("in emDM_recalcDrawCache!\n");
+	emdm->cdraw->release(emdm->cdraw); /*resets the entire draw cache*/
+	emdm->cdraw->setMaterials(emdm->cdraw, G.obedit->totcol, G.obedit->mat);
+	emdm->cdraw->beginCache(emdm->cdraw);
+
+	printf("bleh 1\n");
+	for (efa=emdm->bmesh->polys.first; efa; efa=efa->next) {
+		loop = efa->loopbase->next;
+		do {
+			VECCOPY(v[0], loop->v->co);
+			VECCOPY(v[1], loop->next->v->co);
+			VECCOPY(v[2], efa->loopbase->v->co);
+			if (efa->flag & ME_NSMOOTH) {
+				VECCOPY(no[0], loop->v->no);
+				VECCOPY(no[1], loop->next->v->no);
+				VECCOPY(no[2], efa->loopbase->v->no);
+				printf("smooth face!\n");
+			} else {
+				CalcNormFloat(efa->loopbase->v->co, efa->loopbase->next->v->co, 
+				              efa->loopbase->next->next->v->co, nor);
+				VECCOPY(no[0], nor);
+				VECCOPY(no[1], nor);
+				VECCOPY(no[2], nor);
+			}
+			emdm->cdraw->addTriangle(emdm->cdraw, v, no, NULL, high, efa->mat_nr);
+			loop=loop->next;
+		} while (loop != efa->loopbase->prev);
+	}
+	
+	printf("bleh 2\n");
+	for (eve=emdm->bmesh->verts.first; eve; eve=eve->next) {
+		if (eve->flag & SELECT) emdm->cdraw->addVertPoint(emdm->cdraw, eve->co, svcol, vsize);
+		else emdm->cdraw->addVertPoint(emdm->cdraw, eve->co, vcol, vsize);
+	}
+
+	emdm->recalc_cdraw = 0;
+	emdm->cdraw->endCache(emdm->cdraw);
 }
 
 static void emDM__calcFaceCent(EditFace *efa, float cent[3], float (*vertexCos)[3])
@@ -631,11 +715,18 @@ static void emDM__calcFaceCent(EditFace *efa, float cent[3], float (*vertexCos)[
 }
 static void emDM_foreachMappedFaceCenter(DerivedMesh *dm, void (*func)(void *userData, int index, float *co, float *no), void *userData)
 {
+	EditBMeshDerivedMesh *emdm = (EditBMeshDerivedMesh*) dm;
+	emdm->bmesh = emdm->bmesh;
 
 }
 static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), void *userData, int useColors)
 {
-	
+	EditBMeshDerivedMesh *emdm = (EditBMeshDerivedMesh*) dm;
+	if (emdm->recalc_cdraw) emDM_recalcDrawCache(emdm);
+
+	printf("drawing!\n");
+	emdm->cdraw->drawFacesSolid(emdm->cdraw, 0);
+	printf("end draw.\n");
 }
 
 static void emDM_getMinMax(DerivedMesh *dm, float min_r[3], float max_r[3])
@@ -671,37 +762,51 @@ static int emDM_getNumPolys(DerivedMesh *dm)
 
 void emDM_getVert(DerivedMesh *dm, int index, MVert *vert_r)
 {
-
+	EditBMeshDerivedMesh *emdm = (EditBMeshDerivedMesh*) dm;
+	emdm->bmesh = emdm->bmesh;
 }
 
 void emDM_getEdge(DerivedMesh *dm, int index, MEdge *edge_r)
 {
-	
+	EditBMeshDerivedMesh *emdm = (EditBMeshDerivedMesh*) dm;
+	emdm->bmesh = emdm->bmesh;
 }
 
 void emDM_getFace(DerivedMesh *dm, int index, MFace *face_r)
 {
-	
+	EditBMeshDerivedMesh *emdm = (EditBMeshDerivedMesh*) dm;
+	emdm->bmesh = emdm->bmesh;
 }
 
 void emDM_copyVertArray(DerivedMesh *dm, MVert *vert_r)
 {
-	
+	EditBMeshDerivedMesh *emdm = (EditBMeshDerivedMesh*) dm;
+	emdm->bmesh = emdm->bmesh;
 }
 
 void emDM_copyEdgeArray(DerivedMesh *dm, MEdge *edge_r)
 {
-	
+	EditBMeshDerivedMesh *emdm = (EditBMeshDerivedMesh*) dm;
+	emdm->bmesh = emdm->bmesh;
 }
 
 void emDM_copyFaceArray(DerivedMesh *dm, MFace *face_r)
 {
-	
+	EditBMeshDerivedMesh *emdm = (EditBMeshDerivedMesh*) dm;
+	emdm->bmesh = emdm->bmesh;
 }
 
 static void emDM_release(DerivedMesh *dm)
 {
-	
+	EditBMeshDerivedMesh *emdm = (EditBMeshDerivedMesh*) dm;
+
+	printf("stupid free!\n");
+	if (emdm->cdraw) {
+		emdm->cdraw->release(emdm->cdraw);
+		MEM_freeN(emdm->cdraw);
+		emdm->cdraw = NULL;
+	}
+	emdm->recalc_cdraw = 1;
 }
 
 static DerivedMesh *getEditMeshDerivedMesh(BME_Mesh *em, Object *ob,
@@ -710,6 +815,9 @@ static DerivedMesh *getEditMeshDerivedMesh(BME_Mesh *em, Object *ob,
 	EditBMeshDerivedMesh *emdm = MEM_callocN(sizeof(*emdm), "emdm");
 
 	DM_init(&emdm->dm, em->totvert, em->totedge, 0, em->totloop, em->totpoly);
+
+	emdm->cdraw = bglCacheNew();
+	emdm->recalc_cdraw = 1;
 
 	emdm->dm.getMinMax = emDM_getMinMax;
 
@@ -729,6 +837,7 @@ static DerivedMesh *getEditMeshDerivedMesh(BME_Mesh *em, Object *ob,
 	emdm->dm.foreachMappedEdge = emDM_foreachMappedEdge;
 	emdm->dm.foreachMappedFaceCenter = emDM_foreachMappedFaceCenter;
 
+	emdm->dm.drawEditVerts = emDM_drawEditVerts;
 	emdm->dm.drawEdges = emDM_drawEdges;
 	emdm->dm.drawMappedEdges = emDM_drawMappedEdges;
 	emdm->dm.drawMappedEdgesInterp = emDM_drawMappedEdgesInterp;
@@ -752,10 +861,10 @@ static DerivedMesh *getEditMeshDerivedMesh(BME_Mesh *em, Object *ob,
 	}
 
 	if(vertexCos) {
-		BME_Vert *eve;
-		BME_Poly *efa;
-		int totpoly = em->totpoly;
-		int i;
+		//BME_Vert *eve;
+		//BME_Poly *efa;
+		//int totpoly = em->totpoly;
+		//int i;
 
 		//for (i=0,eve=em->verts.first; eve; eve= eve->next)
 		//	eve->tmp.l = (long) i++;
@@ -1631,13 +1740,29 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 
 static float (*editmesh_getVertexCos(EditMesh *em, int *numVerts_r))[3]
 {
-
+	return NULL; //EDITBMESHGREP
 }
 
 static void editmesh_calc_modifiers(DerivedMesh **cage_r,
                                     DerivedMesh **final_r,
                                     CustomDataMask dataMask)
 {
+	Object *ob = G.obedit;
+	BME_Mesh *em = G.editMesh;
+	int cageIndex = modifiers_getCageIndex(ob, NULL);
+	float (*deformedVerts)[3] = NULL;
+
+	if(cage_r && cageIndex == -1) {
+		*cage_r = getEditMeshDerivedMesh(em, ob, NULL);
+	}
+
+	if (cage_r && *cage_r) {
+		*final_r = *cage_r;
+	} else {
+		if (!*final_r) *final_r = getEditMeshDerivedMesh(em, ob, deformedVerts);
+		deformedVerts = NULL;
+	}
+
 #if 0
 	Object *ob = G.obedit;
 	EditMesh *em = G.editMesh;
@@ -1932,9 +2057,8 @@ static void mesh_build_data(Object *ob, CustomDataMask dataMask)
 
 static void bmesh_build_data(CustomDataMask dataMask)
 {
-	float min[3], max[3];
-
 	BME_Mesh *em = G.editMesh;
+	float min[3], max[3];
 
 	clear_mesh_caches(G.obedit);
 	if (em->derivedFinal) {
@@ -1955,6 +2079,7 @@ static void bmesh_build_data(CustomDataMask dataMask)
 	
 	em->derivedFinal->needsFree = 0;
 	em->derivedCage->needsFree = 0;	
+	em->lastDataMask = dataMask;
 	return;
 	
 	INIT_MINMAX(min, max);
@@ -2153,7 +2278,10 @@ DerivedMesh *editmesh_get_derived_cage(CustomDataMask dataMask)
 
 DerivedMesh *editmesh_get_derived_base(void)
 {
-	return getEditMeshDerivedMesh(G.editMesh, G.obedit, NULL);
+	BME_Mesh *bme = G.editMesh;
+	
+	if (bme->derivedFinal) return bme->derivedFinal;
+	else return getEditMeshDerivedMesh(G.editMesh, G.obedit, NULL);
 }
 
 
