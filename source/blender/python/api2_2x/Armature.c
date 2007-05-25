@@ -428,6 +428,9 @@ static PyObject *PyBonesDict_FromPyArmature(BPy_Armature *py_armature)
 	if (!py_BonesDict)
 		goto RuntimeError;
 
+	py_BonesDict->bones = NULL;
+	py_BonesDict->editbones.first = py_BonesDict->editbones.last = NULL;
+
 	//create internal dictionaries
 	py_BonesDict->bonesMap = PyDict_New();
 	py_BonesDict->editbonesMap = PyDict_New();
@@ -1294,7 +1297,7 @@ PyObject *Armature_RebuildBones(PyObject *pyarmature)
  * Converts a bArmature to a PyArmature
  * 
  * WARNING!!! - MEMORY LEAK HERE, Run in a loop and loose your ram.
- * cannot find out why but dosnt seam to be the weakref */
+ * cannot find out why but doesn't seem to be the weakref */
 
 PyObject *Armature_CreatePyObject(struct bArmature *armature)
 {
