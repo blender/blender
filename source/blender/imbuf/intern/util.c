@@ -242,6 +242,15 @@ static int isffmpeg (char *filename) {
 
 	do_init_ffmpeg();
 
+	if( BLI_testextensie(filename, ".swf") ||
+		BLI_testextensie(filename, ".jpg") ||
+		BLI_testextensie(filename, ".png") ||
+		BLI_testextensie(filename, ".tga") ||
+		BLI_testextensie(filename, ".bmp") ||
+		BLI_testextensie(filename, ".exr") ||
+		BLI_testextensie(filename, ".cin") ||
+		BLI_testextensie(filename, ".wav")) return 0;
+
 	if(av_open_input_file(&pFormatCtx, filename, NULL, 0, NULL)!=0) {
 		fprintf(stderr, "isffmpeg: av_open_input_file failed\n");
 		return 0;
@@ -266,8 +275,10 @@ static int isffmpeg (char *filename) {
 			break;
 		}
 
-	if(videoStream==-1)
+	if(videoStream==-1) {
+		av_close_input_file(pFormatCtx);
 		return 0;
+	}
 
 	pCodecCtx = get_codec_from_stream(pFormatCtx->streams[videoStream]);
 
