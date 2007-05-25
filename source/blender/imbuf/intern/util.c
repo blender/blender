@@ -170,7 +170,10 @@ int IMB_ispic(char *filename)
 				||	BLI_testextensie(filename, ".pict")
 				||	BLI_testextensie(filename, ".pntg") //macpaint
 				||	BLI_testextensie(filename, ".qtif")
-				||  BLI_testextensie(filename, ".cin")
+				||	BLI_testextensie(filename, ".cin")
+#ifdef WITH_BF_OPENEXR
+				||	BLI_testextensie(filename, ".exr")
+#endif
 				||	BLI_testextensie(filename, ".sgi")) {
 				return IMB_ispic_name(filename);
 			} else {
@@ -184,7 +187,10 @@ int IMB_ispic(char *filename)
 				||	BLI_testextensie(filename, ".rgb")
 				||	BLI_testextensie(filename, ".bmp")
 				||	BLI_testextensie(filename, ".png")
-				||  BLI_testextensie(filename, ".cin")
+				||	BLI_testextensie(filename, ".cin")
+#ifdef WITH_BF_OPENEXR
+				||	BLI_testextensie(filename, ".exr")
+#endif
 				||	BLI_testextensie(filename, ".iff")
 				||	BLI_testextensie(filename, ".lbm")
 				||	BLI_testextensie(filename, ".sgi")) {
