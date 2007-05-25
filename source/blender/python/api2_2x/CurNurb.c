@@ -947,8 +947,7 @@ PyObject *CurNurb_pointAtIndex( Nurb * nurb, int index )
 
 		for( i = 0; i < 4; i++ ) {
 			PyList_SetItem( pyo, i,
-					PyFloat_FromDouble( nurb->bp[index].
-							    vec[i] ) );
+					PyFloat_FromDouble( nurb->bp[index].vec[i] ) );
 		}
 
 		/* add Tilt only if curve is 3D */

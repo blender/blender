@@ -386,7 +386,7 @@ void EXPP_allqueue(unsigned short event, short val)
 PyObject *EXPP_getScriptLinks( ScriptLink * slink, PyObject * args,
 			       int is_scene )
 {
-	PyObject *list = NULL;
+	PyObject *list = NULL, *tmpstr;
 	char *eventname = NULL;
 	int i, event = 0;
 
@@ -414,15 +414,18 @@ PyObject *EXPP_getScriptLinks( ScriptLink * slink, PyObject * args,
 		event = SCRIPT_ONLOAD;
 	else if( is_scene && !strcmp( eventname, "OnSave" ) )
 		event = SCRIPT_ONSAVE;
-	else
+	else {
+		Py_XDECREF(list);
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 					      "invalid event name" );
-
+	}
+	
 	for( i = 0; i < slink->totscript; i++ ) {
-		if( ( slink->flag[i] == event ) && slink->scripts[i] )
-			PyList_Append( list,
-				       PyString_FromString( slink->scripts[i]->
-							    name + 2 ) );
+		if( ( slink->flag[i] == event ) && slink->scripts[i] ) {
+			tmpstr =PyString_FromString( slink->scripts[i]->name + 2 ); 
+			PyList_Append( list, tmpstr );
+			Py_DECREF(tmpstr);
+		}
 	}
 
 	return list;

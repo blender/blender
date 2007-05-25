@@ -118,17 +118,18 @@ static PyMethodDef BPy_BonesDict_methods[] = {
 //-----------------(internal)
 static int BoneMapping_Init(PyObject *dictionary, ListBase *bones){
 	Bone *bone = NULL;
-	PyObject *py_bone = NULL;
+	PyObject *py_bone = NULL, *str;
 
 	for (bone = bones->first; bone; bone = bone->next){
 		py_bone = PyBone_FromBone(bone);
 		if (!py_bone)
 			return -1;
-
-		if(PyDict_SetItem(dictionary, 
-			PyString_FromString(bone->name), py_bone) == -1){
+		
+		str = PyString_FromString(bone->name);
+		if(PyDict_SetItem(dictionary, str, py_bone) == -1)
 			return -1;
-		}
+		
+		Py_DECREF(str);
 		Py_DECREF(py_bone);
 		if (bone->childbase.first) 
 			BoneMapping_Init(dictionary, &bone->childbase);
@@ -138,17 +139,18 @@ static int BoneMapping_Init(PyObject *dictionary, ListBase *bones){
 //-----------------(internal)
 static int EditBoneMapping_Init(PyObject *dictionary, ListBase *editbones){
 	EditBone *editbone = NULL;
-	PyObject *py_editbone = NULL;
+	PyObject *py_editbone = NULL, *str;
 
 	for (editbone = editbones->first; editbone; editbone = editbone->next){
 		py_editbone = PyEditBone_FromEditBone(editbone);
 		if (!py_editbone)
 			return -1;
-
-		if(PyDict_SetItem(dictionary, 
-			PyString_FromString(editbone->name), py_editbone) == -1){
+		
+		str = PyString_FromString(editbone->name);
+		if(PyDict_SetItem(dictionary, str, py_editbone) == -1)
 			return -1;
-		}
+		
+		Py_DECREF(str);
 		Py_DECREF(py_editbone);
 	}
 	return 0;
@@ -215,7 +217,7 @@ static void BonesDict_dealloc(BPy_BonesDict * self)
 	Py_DECREF(self->bonesMap);
 	Py_DECREF(self->editbonesMap);
 	BLI_freelistN(&self->editbones); 
-	BonesDict_Type.tp_free(self);
+	PyObject_DEL( self );
 	return;
 }
 //------------------------mp_length
@@ -422,10 +424,7 @@ PyTypeObject BonesDict_Type = {
 //-----------------------PyBonesDict_FromPyArmature
 static PyObject *PyBonesDict_FromPyArmature(BPy_Armature *py_armature)
 {
-	BPy_BonesDict *py_BonesDict = NULL;
-
-	//create py object
-	py_BonesDict = (BPy_BonesDict *)BonesDict_Type.tp_alloc(&BonesDict_Type, 0); 
+	BPy_BonesDict *py_BonesDict = (BPy_BonesDict *)PyObject_NEW( BPy_BonesDict, &BonesDict_Type );
 	if (!py_BonesDict)
 		goto RuntimeError;
 
@@ -1067,9 +1066,9 @@ static void Armature_dealloc(BPy_Armature * self)
 {
 	if (self->weaklist != NULL)
         PyObject_ClearWeakRefs((PyObject *) self);
+	
 	Py_DECREF(self->Bones);
-	Armature_Type.tp_free(self);
-	return;
+	PyObject_DEL( self );
 }
 //------------------TYPE_OBECT DEFINITION--------------------------
 PyTypeObject Armature_Type = {
@@ -1126,7 +1125,7 @@ PyTypeObject Armature_Type = {
 //----------------Blender.Armature.Get()
 /* This function will return a Py_Armature when a single string is passed
 * or else it will return a {key:value} dictionary when mutliple strings are passed
-* or it will return a {key:value} dictionary of all armatures when nothing is passed*/
+* or it will return a {key:value} dictionary of all armatures when nothing is passed */
 static PyObject *M_Armature_Get(PyObject * self, PyObject * args)
 {
 	PyObject *seq = NULL, *item = NULL, *dict = NULL, *py_armature = NULL;
@@ -1291,8 +1290,12 @@ PyObject *Armature_RebuildBones(PyObject *pyarmature)
 {
 	return Armature_update((BPy_Armature*)pyarmature);
 }
-//-----------------(internal)
-//Converts a bArmature to a PyArmature
+/*-----------------(internal)
+ * Converts a bArmature to a PyArmature
+ * 
+ * WARNING!!! - MEMORY LEAK HERE, Run in a loop and loose your ram.
+ * cannot find out why but dosnt seam to be the weakref */
+
 PyObject *Armature_CreatePyObject(struct bArmature *armature)
 {
 	BPy_Armature *py_armature = NULL;
@@ -1300,15 +1303,16 @@ PyObject *Armature_CreatePyObject(struct bArmature *armature)
 	PyObject *armlist = NULL;  /* list of armature weak refs */
 	char *list_name = ARM_WEAKREF_LIST_NAME;
 
-	//create armature type
-	py_armature = (BPy_Armature*)Armature_Type.tp_alloc(&Armature_Type, 0); /*new*/
+	/*create armature type*/
+	py_armature = PyObject_NEW( BPy_Armature, &Armature_Type );
+	
 	if (!py_armature){
 		printf("Oops - can't create py armature\n");
 		goto RuntimeError;
 	}
 
-	py_armature->weaklist = NULL; //init the weaklist
 	py_armature->armature = armature;
+	py_armature->weaklist = NULL; //init the weaklist
 	
 	//create armature.bones
 	py_armature->Bones = (BPy_BonesDict*)PyBonesDict_FromPyArmature(py_armature);

@@ -885,12 +885,20 @@ class Mesh:
 		@param object: The Blender Object linked to the mesh.
 		"""
 
-	def update():
+	def update(key=None):
 		"""
 		Update display lists after changes to mesh.  B{Note}: with changes taking
 		place for using a directed acyclic graph (DAG) for scene and object
 		updating, this method may be only temporary and may be removed in future
 		releases.
+		@type key: string
+		@param key: Use this optional argument to write the current vertex
+		locations to the a shape key. the name must match an existing shape key for this mesh
+		See L{Mesh.Mesh.key} and L{Key.Key.blocks} to get a list of the named shape keys, setting the active keys is
+		done from the object with L{Object.Object.pinShape}, L{Object.Object.activeShape}.
+		
+		
+		
 		@warn: Since Blender 2.42 this function has changed; now it won't recalculate
 		vertex normals (seen when faces are smooth). See L{Mesh.calcNormals()}.
 		"""

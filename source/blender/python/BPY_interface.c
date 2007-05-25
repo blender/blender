@@ -877,6 +877,7 @@ int BPY_menu_do_python( short menutype, int event )
 
 	if( !setup_armature_weakrefs()){
 		printf("Oops - weakref dict\n");
+		MEM_freeN( buffer );
 		return 0;
 	}
 

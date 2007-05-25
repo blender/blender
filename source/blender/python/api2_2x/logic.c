@@ -152,7 +152,8 @@ int updateProperyData( BPy_Property * self )
 static int checkValidData_ptr( BPy_Property * self )
 {
 	int length;
-	//test pointer to see if data was removed (oops)
+	/* test pointer to see if data was removed (oops) */
+	/* WARNING!!! - MEMORY LEAK HERE, why not free this??? */
 	length = MEM_allocN_len( self->property );
 	if( length != sizeof( bProperty ) ) {	//data was freed
 		self->property = NULL;
@@ -312,11 +313,9 @@ static int Property_compare( BPy_Property * a, BPy_Property * b )
 							       property->
 							       data ) ) );
 			} else if( py_propB->property->type == PROP_STRING ) {
-				retval = PyObject_Compare( py_propA->data,
-							   PyString_FromString
-							   ( py_propB->
-							     property->
-							     poin ) );
+				PyObject *tmpstr = PyString_FromString( py_propB->property->poin );
+				retval = PyObject_Compare( py_propA->data, tmpstr );
+				Py_DECREF(tmpstr);
 			}
 		} else
 			retval = -1;

@@ -465,6 +465,17 @@ class Object:
 
 		Value is clamped to [1,len(ob.materials)]. - [0,0] when there is no materials applied to the object.
 	@type activeMaterial: int
+	@ivar activeShape: The active shape key index for this object.
+
+		The active index is used to select the material to edit in the material buttons,
+		new data created will also use the active material.
+
+		Value is clamped to [1,len(ob.data.key.blocks)]. - [0,0] when there are no keys.
+
+	@type activeShape: int
+	
+	@ivar pinShape: If True, only the activeShape will be displayed.
+	@type pinShape: bool
 	@ivar drawSize: The size to display the Empty.
 	Value clamped to [0.01,10.0].
 	@type drawSize: float

@@ -374,7 +374,7 @@ static PyObject *Font_repr( BPy_Font * self )
 		return PyString_FromFormat( "[Font \"%s\"]",
 					    self->font->id.name+2 );
 	else
-		return PyString_FromString( "NULL" );
+		return PyString_FromString( "[Font - no data]" );
 }
 
 /*--------------- compare------------------------------------------*/

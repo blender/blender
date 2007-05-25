@@ -44,6 +44,7 @@ struct rctf;
 #include "DNA_view3d_types.h"
 #include "DNA_object_force.h"
 #include "DNA_userdef_types.h"
+#include "DNA_key_types.h" /* for pinShape and activeShape */
 
 #include "BKE_action.h"
 #include "BKE_anim.h" /* used for dupli-objects */
@@ -68,6 +69,7 @@ struct rctf;
 #include "BKE_modifier.h"
 #include "BKE_idprop.h"
 #include "BKE_object.h"
+#include "BKE_key.h" /* for setting the activeShape */
 
 #include "BSE_editipo.h"
 #include "BSE_edit.h"
@@ -174,6 +176,7 @@ enum obj_consts {
 	EXPP_OBJ_ATTR_PARENT_TYPE,
 	EXPP_OBJ_ATTR_PASSINDEX,
 	EXPP_OBJ_ATTR_ACT_MATERIAL,
+	EXPP_OBJ_ATTR_ACT_SHAPE,
 	
 	EXPP_OBJ_ATTR_PI_SURFACEDAMP,	/* these need to stay together */
 	EXPP_OBJ_ATTR_PI_RANDOMDAMP,	/* and in order */
@@ -331,7 +334,6 @@ struct PyMethodDef M_Object_methods[] = {
 static int setupSB(Object* ob); /*Make sure Softbody Pointer is initialized */
 static int setupPI(Object* ob);
 
-static PyObject *Object_GetProperties(BPy_Object * self);
 static PyObject *Object_buildParts( BPy_Object * self );
 static PyObject *Object_clearIpo( BPy_Object * self );
 static PyObject *Object_clrParent( BPy_Object * self, PyObject * args );
@@ -756,8 +758,6 @@ works only if self and the object specified are of the same type."},
 	 "([s1<,s2,s3...>]) - Delete specified scriptlinks from this object."},
 	{"insertShapeKey", ( PyCFunction ) Object_insertShapeKey, METH_NOARGS,
 	 "() - Insert a Shape Key in the current object"},
-	{"getProperties", ( PyCFunction ) Object_GetProperties, METH_NOARGS,
-	 "() return a reference to the ID properties associated with this object."},
 	{"__copy__", ( PyCFunction ) Object_copy, METH_NOARGS,
 	 "() - Return a copy of this object."},
 	{"copy", ( PyCFunction ) Object_copy, METH_NOARGS,
@@ -1020,12 +1020,6 @@ static PyObject *M_Object_Duplicate( PyObject * self_unused,
 /*****************************************************************************/
 /* Python BPy_Object methods:					*/
 /*****************************************************************************/
-
-static PyObject *Object_GetProperties(BPy_Object * self)
-{
-	return BPy_Wrap_IDProperty( (ID*)self->object, IDP_GetProperties((ID*)self->object, 1), NULL );
-	
-}
 
 static PyObject *Object_buildParts( BPy_Object * self )
 {
@@ -2733,14 +2727,16 @@ static PyObject *Object_shareFrom( BPy_Object * self, PyObject * args )
 
 static PyObject *Object_getAllProperties( BPy_Object * self )
 {
-	PyObject *prop_list;
+	PyObject *prop_list, *pyval;
 	bProperty *prop = NULL;
 
 	prop_list = PyList_New( 0 );
 
 	prop = self->object->prop.first;
 	while( prop ) {
-		PyList_Append( prop_list, Property_CreatePyObject( prop ) );
+		pyval = Property_CreatePyObject( prop );
+		PyList_Append( prop_list, pyval );
+		Py_DECREF(pyval);
 		prop = prop->next;
 	}
 	return prop_list;
@@ -3019,7 +3015,7 @@ static int Object_setDupliGroup( BPy_Object * self, PyObject * value )
 
 static PyObject *Object_getEffects( BPy_Object * self )
 {
-	PyObject *effect_list;
+	PyObject *effect_list, *pyval;
 	Effect *eff;
 
 	effect_list = PyList_New( 0 );
@@ -3030,7 +3026,9 @@ static PyObject *Object_getEffects( BPy_Object * self )
 	eff = self->object->effect.first;
 
 	while( eff ) {
-		PyList_Append( effect_list, EffectCreatePyObject( eff, self->object ) );
+		pyval = EffectCreatePyObject( eff, self->object );
+		PyList_Append( effect_list, pyval );
+		Py_DECREF(pyval);
 		eff = eff->next;
 	}
 	return effect_list;
@@ -3571,6 +3569,9 @@ static PyObject *getIntAttr( BPy_Object *self, void *type )
 	case EXPP_OBJ_ATTR_ACT_MATERIAL:
 		param = object->actcol;
 		break;
+	case EXPP_OBJ_ATTR_ACT_SHAPE:
+		param = object->shapenr;
+		break;		
 	default:
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"undefined type in getIntAttr" );
@@ -3632,6 +3633,20 @@ static int setIntAttrClamp( BPy_Object *self, PyObject *value, void *type )
 		size = 'b';			/* in case max is later made > 128 */
 		param = (void *)&object->actcol;
 		break;
+	case EXPP_OBJ_ATTR_ACT_SHAPE:
+	{
+		Key *key= ob_get_key(object);
+		KeyBlock *kb;
+		min = 1;
+		max = 0;
+		if (key) {
+			max= 1;
+			for (kb = key->block.first; kb; kb=kb->next, max++);
+		}
+		size = 'h';			/* in case max is later made > 128 */
+		param = (void *)&object->shapenr;
+		break;
+	}
 	default:
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
 				"undefined type in setIntAttrClamp");
@@ -4143,6 +4158,26 @@ static int setFloat3Attr( BPy_Object *self, PyObject *value, void *type )
 /*****************************************************************************/
 /* BPy_Object methods and attribute handlers                                 */
 /*****************************************************************************/
+
+static PyObject *Object_getShapeFlag( BPy_Object *self, void *type )
+{
+	if (self->object->shapeflag & (int)type)
+		Py_RETURN_TRUE;
+	else
+		Py_RETURN_FALSE;
+}
+
+static int Object_setShapeFlag( BPy_Object *self, PyObject *value,
+		void *type )
+{
+	if (PyObject_IsTrue(value) )
+		self->object->shapeflag |= (int)type;
+	else
+		self->object->shapeflag &= ~(int)type;
+	
+	self->object->recalc |= OB_RECALC_OB;
+	return 0;
+}
 
 static PyObject *Object_getRestricted( BPy_Object *self, void *type )
 {
@@ -5013,8 +5048,16 @@ static PyGetSetDef BPy_Object_getseters[] = {
 	 "Toggle object restrictions",
 	 (void *)OB_RESTRICT_RENDER},
 
-	{"properties", (getter)Object_GetProperties, (setter)NULL,
-	"Get the ID properties associated with this object"},
+	{"pinShape",
+	 (getter)Object_getShapeFlag, (setter)Object_setShapeFlag, 
+	 "Set the state for pinning this object",
+	 (void *)OB_SHAPE_LOCK},
+	{"activeShape",
+	 (getter)getIntAttr, (setter)setIntAttrClamp, 
+	 "set the index for the active shape key",
+	 (void *)EXPP_OBJ_ATTR_ACT_SHAPE},
+	 
+	 
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 

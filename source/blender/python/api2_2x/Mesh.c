@@ -4972,15 +4972,15 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args,
 
 				tmpface->flag = ME_FACE_SEL;
 
-				if( return_list )
-					PyList_Append( return_list, 
-							PyInt_FromLong( mesh->totface ) );
-
+				if( return_list ) {
+					tmp = PyInt_FromLong( mesh->totface );
+					PyList_Append( return_list, tmp );
+					Py_DECREF(tmp);
+				}
 				mesh->totface++;
 				++tmpface;
 				--good_faces;
 			} else if( return_list ) {
-				Py_INCREF( Py_None );
 				PyList_Append( return_list, Py_None );
 				--good_faces;
 			}
@@ -5385,9 +5385,44 @@ static PyObject *Mesh_vertexShade( BPy_Mesh * self )
  * force display list update
  */
 
-static PyObject *Mesh_Update( BPy_Mesh * self )
+static PyObject *Mesh_Update( BPy_Mesh * self, PyObject *args, PyObject *kwd )
 {
-	mesh_update( self->mesh );
+
+	char *blockname= NULL;
+	static char *kwlist[] = {"key", NULL};
+	
+	if( !PyArg_ParseTupleAndKeywords(args, kwd, "|s", kwlist, &blockname) )
+	return EXPP_ReturnPyObjError( PyExc_TypeError,
+			"Expected nothing or the name of a shapeKey");
+	
+	if (blockname) {
+		Mesh *me = self->mesh;
+		MVert *mv = me->mvert;  
+		Key *key= me->key;
+		KeyBlock *kb;
+		float (*co)[3];
+		int i;
+		
+		if (!key)
+			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"Cannot update the key for this mesh, it has no shape keys");
+		
+		for (kb = key->block.first; kb; kb=kb->next)
+			if (strcmp(blockname, kb->name))
+				break;
+		
+		if (!kb)
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"This requested key to update does not exist");
+		
+		printf("KEYBLOCKNAME %s\n", kb->name);
+		
+		for(i=0, co= kb->data; i<me->totvert; i++, mv++, co++)
+			VECCOPY(*co, mv->co);
+	} else {
+		/* Normal operation */
+		mesh_update( self->mesh );
+	}
 	Py_RETURN_NONE;
 }
 
@@ -5893,7 +5928,6 @@ static PyObject *Mesh_addVertGroup( PyObject * self, PyObject * args )
 {
 	char *groupStr;
 	struct Object *object;
-	PyObject *tempStr;
 
 	if( !PyArg_ParseTuple( args, "s", &groupStr ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -5905,10 +5939,7 @@ static PyObject *Mesh_addVertGroup( PyObject * self, PyObject * args )
 
 	object = ( ( BPy_Mesh * ) self )->object;
 
-	/*get clamped name*/
-	tempStr = PyString_FromStringAndSize( groupStr, 32 );
-	groupStr = PyString_AsString( tempStr );
-
+	/* add_defgroup_name clamps the name to 32, make sure that dosnt change  */
 	add_defgroup_name( object, groupStr );
 
 	EXPP_allqueue( REDRAWBUTSALL, 1 );
@@ -6502,7 +6533,7 @@ static PyObject *Mesh_getLayerNames_internal( BPy_Mesh * self, int type )
 {
 	CustomData *data;
 	CustomDataLayer *layer;
-	PyObject *list = PyList_New( 0 );
+	PyObject *str, *list = PyList_New( 0 );
 	Mesh *mesh = self->mesh;
 	int i;
 	data = &mesh->fdata;
@@ -6511,7 +6542,9 @@ static PyObject *Mesh_getLayerNames_internal( BPy_Mesh * self, int type )
 	for(i=0; i<data->totlayer; i++) {
 		layer = &data->layers[i];
 		if(layer->type == type) {
-			PyList_Append( list, PyString_FromString(layer->name) );
+			str = PyString_FromString(layer->name);
+			PyList_Append( list, str );
+			Py_DECREF(str);
 		}
 	}
 	return list;
@@ -6990,7 +7023,7 @@ static struct PyMethodDef BPy_Mesh_methods[] = {
 		"find indices of an multiple edges in the mesh"},
 	{"getFromObject", (PyCFunction)Mesh_getFromObject, METH_VARARGS,
 		"Get a mesh by name"},
-	{"update", (PyCFunction)Mesh_Update, METH_NOARGS,
+	{"update", (PyCFunction)Mesh_Update, METH_VARARGS | METH_KEYWORDS,
 		"Update display lists after changes to mesh"},
 	{"transform", (PyCFunction)Mesh_transform, METH_VARARGS | METH_KEYWORDS,
 		"Applies a transformation matrix to mesh's vertices"},

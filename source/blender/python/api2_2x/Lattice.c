@@ -166,11 +166,11 @@ static PyObject *M_Lattice_New( PyObject * self, PyObject * args )
 					      "expected string and int arguments (or nothing)" );
 
 	bl_Lattice = add_lattice( "Lattice" );
-	bl_Lattice->id.us = 0;
 
-	if( bl_Lattice )
+	if( bl_Lattice ) {
+		bl_Lattice->id.us = 0;
 		py_Lattice = Lattice_CreatePyObject( bl_Lattice );
-	else
+	} else
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "couldn't create Lattice Object in Blender" );
 	if( !py_Lattice )

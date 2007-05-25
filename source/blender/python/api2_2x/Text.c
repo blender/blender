@@ -452,6 +452,7 @@ static PyObject *Text_asLines( BPy_Text * self )
 	while( line ) {
 		ob = Py_BuildValue( "s", line->line );
 		PyList_Append( list, ob );
+		Py_DECREF(ob);
 		line = line->next;
 	}
 

@@ -685,8 +685,7 @@ static PyObject *Theme_get( BPy_Theme * self, PyObject * args )
 
 		while( type < EXPP_THEME_NUMBEROFTHEMES ) {
 			PyList_SET_ITEM( ret, type,
-					 PyString_FromString( themes_map[type].
-							      sval ) );
+					 PyString_FromString( themes_map[type].sval ) );
 			type++;
 		}
 

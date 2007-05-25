@@ -144,11 +144,13 @@ static PyObject *constant_getAttro(BPy_constant * self, PyObject *value)
 static PyObject *constant_repr(BPy_constant * self)
 {
 	char str[4096];
-	PyObject *key, *value;
+	PyObject *key, *value, *tempstr;
 	int pos = 0;
 
 	BLI_strncpy(str,"[Constant: ",4096);
-	value = PyDict_GetItem( self->dict, PyString_FromString("name") );
+	tempstr = PyString_FromString("name");
+	value = PyDict_GetItem( self->dict, tempstr );
+	Py_DECREF(tempstr);
 	if(value) {
 		strcat(str, PyString_AsString(value));
 	} else {

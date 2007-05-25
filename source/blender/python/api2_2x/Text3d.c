@@ -544,7 +544,7 @@ PyObject *M_Text3d_Get( PyObject * self, PyObject * args )
 							      &Text3d_Type );
 			found_text3d->curve = curv_iter;
 			PyList_Append( curvlist, ( PyObject * ) found_text3d );
-
+			Py_DECREF(found_text3d);
 			curv_iter = curv_iter->id.next;
 		}
 		return ( curvlist );

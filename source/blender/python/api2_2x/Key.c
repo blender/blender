@@ -64,6 +64,7 @@
 
 static int Key_compare( BPy_Key * a, BPy_Key * b );
 static PyObject *Key_repr( BPy_Key * self );
+static void Key_dealloc( BPy_Key * self );
 
 static PyObject *Key_getBlocks( BPy_Key * self );
 static PyObject *Key_getType( BPy_Key * self );
@@ -106,6 +107,10 @@ static int KeyBlock_setVgroup( BPy_KeyBlock *, PyObject * args  );
 static int KeyBlock_setSlidermin( BPy_KeyBlock *, PyObject * args  );
 static int KeyBlock_setSlidermax( BPy_KeyBlock *, PyObject * args  );
 
+static void KeyBlock_dealloc( BPy_KeyBlock * self );
+static int KeyBlock_compare( BPy_KeyBlock * a, BPy_KeyBlock * b );
+static PyObject *KeyBlock_repr( BPy_KeyBlock * self );
+
 static struct PyMethodDef KeyBlock_methods[] = {
 	{ "getData", (PyCFunction) KeyBlock_getData, METH_NOARGS,
 		"Get keyblock data" },
@@ -136,7 +141,7 @@ PyTypeObject Key_Type = {
 	sizeof( BPy_Key ),				/*tp_basicsize */
 	0,								/*tp_itemsize */
 	/* methods */
-	NULL,							/*tp_dealloc */
+	( destructor ) Key_dealloc,/* destructor tp_dealloc; */
 	( printfunc ) 0,				/*tp_print */
 	( getattrfunc ) 0,	/*tp_getattr */
 	( setattrfunc ) 0,			 	/*tp_setattr */
@@ -213,12 +218,12 @@ PyTypeObject KeyBlock_Type = {
 	sizeof( BPy_KeyBlock ),	/*tp_basicsize */
 	0,			/*tp_itemsize */
 	/* methods */
-	NULL,				/*tp_dealloc */
-	NULL,				/*tp_print */
-	NULL, 				/*tp_getattr */
-	NULL,				/*tp_setattr */
-	NULL, 				/*tp_compare*/
-	NULL, 				/* tp_repr */
+	( destructor ) KeyBlock_dealloc,/* destructor tp_dealloc; */
+	( printfunc ) 0,				/*tp_print */
+	( getattrfunc ) 0,	/*tp_getattr */
+	( setattrfunc ) 0,			 	/*tp_setattr */
+	( cmpfunc) KeyBlock_compare, 		/*tp_compare*/
+	( reprfunc ) KeyBlock_repr, 			/* tp_repr */
 	/* Method suites for standard classes */
 
 	NULL,                       /* PyNumberMethods *tp_as_number; */
@@ -303,6 +308,10 @@ PyObject *Key_CreatePyObject( Key * k )
 	return ( PyObject * ) key;
 }
 
+static void Key_dealloc( BPy_Key * self )
+{
+	PyObject_DEL( self );
+}
 
 static int Key_compare( BPy_Key * a, BPy_Key * b )
 {
@@ -378,14 +387,12 @@ static PyObject *Key_getBlocks( BPy_Key * self )
 {
 	Key *key = self->key;
 	KeyBlock *kb;
-	PyObject *keyblock_object;
-	PyObject *l = PyList_New( 0 );
+	int i=0;
+	PyObject *l = PyList_New( BLI_countlist( &(key->block)) );
 
-	for (kb = key->block.first; kb; kb = kb->next) {
-		keyblock_object =  KeyBlock_CreatePyObject( kb, key );
-		PyList_Append( l, keyblock_object );
-	}
-
+	for (kb = key->block.first; kb; kb = kb->next, i++)
+		PyList_SET_ITEM( l, i, KeyBlock_CreatePyObject( kb, key ) );
+	
 	return l;
 }
 
@@ -398,17 +405,11 @@ static PyObject *Key_getValue( BPy_Key * self )
 
 /* ------------ Key Block Functions -------------- */
 
-static PyObject *new_KeyBlock( KeyBlock * oldkeyBlock, Key *parentKey)
+static PyObject *new_KeyBlock( KeyBlock * keyblock, Key *key)
 {
 	BPy_KeyBlock *kb = PyObject_NEW( BPy_KeyBlock, &KeyBlock_Type );
-
-	kb->key = parentKey;
-
-	if( !oldkeyBlock ) {
-		kb->keyblock = 0;
-	} else {
-		kb->keyblock = oldkeyBlock;
-	}
+	kb->key = key;
+	kb->keyblock = keyblock; /* keyblock maye be NULL, thats ok */
 	return ( PyObject * ) kb;
 }
 
@@ -477,6 +478,22 @@ static int KeyBlock_setSlidermax( BPy_KeyBlock * self, PyObject * args  ){
 								-10.0f,
 								10.0f );
 }
+
+static void KeyBlock_dealloc( BPy_KeyBlock * self )
+{
+	PyObject_DEL( self );
+}
+
+static int KeyBlock_compare( BPy_KeyBlock * a, BPy_KeyBlock * b )
+{
+	return ( a->keyblock == b->keyblock ) ? 0 : -1;
+}
+
+static PyObject *KeyBlock_repr( BPy_KeyBlock * self )
+{
+	return PyString_FromFormat( "[KeyBlock \"%s\"]", self->keyblock->name );
+}
+
 
 static Curve *find_curve( Key *key )
 {

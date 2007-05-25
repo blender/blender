@@ -1275,10 +1275,10 @@ static PyObject *NMesh_getSelectedFaces( PyObject * self, PyObject * args )
 	BPy_NMesh *nm = ( BPy_NMesh * ) self;
 	Mesh *me = nm->mesh;
 	int flag = 0;
-
+	
 	MTFace *tf;
 	int i;
-	PyObject *l = PyList_New( 0 );
+	PyObject *l = PyList_New( 0 ), *pyval;
 
 	if( me == NULL )
 		return NULL;
@@ -1292,15 +1292,16 @@ static PyObject *NMesh_getSelectedFaces( PyObject * self, PyObject * args )
 
 	if( flag ) {
 		for( i = 0; i < me->totface; i++ ) {
-			if( tf[i].flag & TF_SELECT )
-				PyList_Append( l, PyInt_FromLong( i ) );
+			if( tf[i].flag & TF_SELECT ) {
+				pyval = PyInt_FromLong( i );
+				PyList_Append( l, pyval );
+				Py_DECREF(pyval);
+			}
 		}
 	} else {
 		for( i = 0; i < me->totface; i++ ) {
 			if( tf[i].flag & TF_SELECT )
-				PyList_Append( l,
-					       PyList_GetItem( nm->faces,
-							       i ) );
+				PyList_Append( l, PyList_GetItem( nm->faces, i ) );
 		}
 	}
 	return l;
@@ -2434,11 +2435,13 @@ static PyObject *M_NMesh_GetRaw( PyObject * self, PyObject * args )
 
 static PyObject *M_NMesh_GetNames(PyObject *self)
 {
-	PyObject *names = PyList_New(0);
+	PyObject *names = PyList_New(0), *tmpstr;
 	Mesh *me = G.main->mesh.first;
 
 	while (me) {
-		PyList_Append(names, PyString_FromString(me->id.name+2));
+		tmpstr = PyString_FromString(me->id.name+2);
+		PyList_Append(names, tmpstr);
+		Py_DECREF(tmpstr);
 		me = me->id.next;
 	}
 
@@ -4095,7 +4098,7 @@ static PyObject *NMesh_renameVertGroup( PyObject * self, PyObject * args )
 static PyObject *NMesh_getVertGroupNames( PyObject * self )
 {
 	bDeformGroup *defGroup;
-	PyObject *list;
+	PyObject *list, *tmpstr;
 
 	if( !( ( BPy_NMesh * ) self )->object )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -4103,11 +4106,15 @@ static PyObject *NMesh_getVertGroupNames( PyObject * self )
 
 	list = PyList_New( 0 );
 	for( defGroup = ( ( ( BPy_NMesh * ) self )->object )->defbase.first;
-	     defGroup; defGroup = defGroup->next ) {
-		if( PyList_Append
-		    ( list, PyString_FromString( defGroup->name ) ) < 0 )
-			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-						      "Couldn't add item to list" );
+				defGroup; defGroup = defGroup->next ) {
+		
+		tmpstr = PyString_FromString( defGroup->name );
+		if( PyList_Append( list,  tmpstr) < 0 ) {
+			Py_XDECREF(list);
+			Py_XDECREF(tmpstr);
+			return EXPP_ReturnPyObjError( PyExc_RuntimeError, "Couldn't add item to list" );
+		}
+		Py_XDECREF(tmpstr);
 	}
 
 	return list;

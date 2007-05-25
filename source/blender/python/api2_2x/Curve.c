@@ -1396,7 +1396,7 @@ static PyObject *M_Curve_Get( PyObject * self, PyObject * args )
 							      &Curve_Type );
 			found_cur->curve = curv_iter;
 			PyList_Append( curvlist, ( PyObject * ) found_cur );
-
+			Py_DECREF(found_cur);
 			curv_iter = curv_iter->id.next;
 		}
 

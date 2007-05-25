@@ -439,7 +439,8 @@ static PyObject *M_World_Get( PyObject * self, PyObject * args )
 							      &World_Type );
 			found_world->world = world_iter;
 			PyList_Append( worldlist, ( PyObject * ) found_world );
-
+			Py_DECREF(found_world);
+			
 			world_iter = world_iter->id.next;
 		}
 		return ( worldlist );
@@ -673,13 +674,13 @@ static PyObject *World_oldsetMistype( BPy_World * self, PyObject * args )
 
 static PyObject *World_getHor( BPy_World * self )
 {
-	PyObject *attr = PyList_New( 0 );
+	PyObject *attr = PyList_New( 3 );
 	if( !attr )
 		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
 						"couldn't create list" ) );
-	PyList_Append( attr, PyFloat_FromDouble( self->world->horr ) );
-	PyList_Append( attr, PyFloat_FromDouble( self->world->horg ) );
-	PyList_Append( attr, PyFloat_FromDouble( self->world->horb ) );
+	PyList_SET_ITEM( attr, 0, PyFloat_FromDouble( self->world->horr ) );
+	PyList_SET_ITEM( attr, 1, PyFloat_FromDouble( self->world->horg ) );
+	PyList_SET_ITEM( attr, 2, PyFloat_FromDouble( self->world->horb ) );
 	return attr;
 }
 
@@ -705,13 +706,13 @@ static PyObject *World_oldsetHor( BPy_World * self, PyObject * args )
 
 static PyObject *World_getZen( BPy_World * self )
 {
-	PyObject *attr = PyList_New( 0 );
+	PyObject *attr = PyList_New( 3 );
 	if( !attr )
 		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
 						"couldn't create list" ) );
-	PyList_Append( attr, PyFloat_FromDouble( self->world->zenr ) );
-	PyList_Append( attr, PyFloat_FromDouble( self->world->zeng ) );
-	PyList_Append( attr, PyFloat_FromDouble( self->world->zenb ) );
+	PyList_SET_ITEM( attr, 0, PyFloat_FromDouble( self->world->zenr ) );
+	PyList_SET_ITEM( attr, 1, PyFloat_FromDouble( self->world->zeng ) );
+	PyList_SET_ITEM( attr, 2, PyFloat_FromDouble( self->world->zenb ) );
 	return attr;
 }
 
@@ -738,13 +739,13 @@ static PyObject *World_oldsetZen( BPy_World * self, PyObject * args )
 
 static PyObject *World_getAmb( BPy_World * self )
 {
-	PyObject *attr = PyList_New( 0 );
+	PyObject *attr = PyList_New( 3 );
 	if( !attr )
 		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
 						"couldn't create list" ) );
-	PyList_Append( attr, PyFloat_FromDouble( self->world->ambr ) );
-	PyList_Append( attr, PyFloat_FromDouble( self->world->ambg ) );
-	PyList_Append( attr, PyFloat_FromDouble( self->world->ambb ) );
+	PyList_SET_ITEM( attr, 0, PyFloat_FromDouble( self->world->ambr ) );
+	PyList_SET_ITEM( attr, 1, PyFloat_FromDouble( self->world->ambg ) );
+	PyList_SET_ITEM( attr, 2, PyFloat_FromDouble( self->world->ambb ) );
 	return attr;
 }
 
@@ -770,17 +771,17 @@ static PyObject *World_oldsetAmb( BPy_World * self, PyObject * args )
 
 static PyObject *World_getStar( BPy_World * self )
 {
-	PyObject *attr = PyList_New( 0 );
+	PyObject *attr = PyList_New( 7 );
 	if( !attr )
 		return ( EXPP_ReturnPyObjError
 			 ( PyExc_RuntimeError, "couldn't create list" ) );
-	PyList_Append( attr, PyFloat_FromDouble( self->world->starr ) );
-	PyList_Append( attr, PyFloat_FromDouble( self->world->starg ) );
-	PyList_Append( attr, PyFloat_FromDouble( self->world->starb ) );
-	PyList_Append( attr, PyFloat_FromDouble( self->world->starsize ) );
-	PyList_Append( attr, PyFloat_FromDouble( self->world->starmindist ) );
-	PyList_Append( attr, PyFloat_FromDouble( self->world->stardist ) );
-	PyList_Append( attr, PyFloat_FromDouble( self->world->starcolnoise ) );
+	PyList_SET_ITEM( attr, 0, PyFloat_FromDouble( self->world->starr ) );
+	PyList_SET_ITEM( attr, 1, PyFloat_FromDouble( self->world->starg ) );
+	PyList_SET_ITEM( attr, 2, PyFloat_FromDouble( self->world->starb ) );
+	PyList_SET_ITEM( attr, 3, PyFloat_FromDouble( self->world->starsize ) );
+	PyList_SET_ITEM( attr, 4, PyFloat_FromDouble( self->world->starmindist ) );
+	PyList_SET_ITEM( attr, 5, PyFloat_FromDouble( self->world->stardist ) );
+	PyList_SET_ITEM( attr, 6, PyFloat_FromDouble( self->world->starcolnoise ) );
 	return attr;
 }
 
@@ -815,17 +816,16 @@ static PyObject *World_oldsetStar( BPy_World * self, PyObject * args )
 
 static PyObject *World_getMist( BPy_World * self )
 {
-	PyObject *attr = PyList_New( 0 );
+	PyObject *attr = PyList_New( 4 );
 	if( !attr )
 		return ( EXPP_ReturnPyObjError
 			 ( PyExc_RuntimeError, "couldn't create list" ) );
-	PyList_Append( attr, PyFloat_FromDouble( self->world->misi ) );
-	PyList_Append( attr, PyFloat_FromDouble( self->world->miststa ) );
-	PyList_Append( attr, PyFloat_FromDouble( self->world->mistdist ) );
-	PyList_Append( attr, PyFloat_FromDouble( self->world->misthi ) );
+	PyList_SET_ITEM( attr, 0, PyFloat_FromDouble( self->world->misi ) );
+	PyList_SET_ITEM( attr, 1, PyFloat_FromDouble( self->world->miststa ) );
+	PyList_SET_ITEM( attr, 2, PyFloat_FromDouble( self->world->mistdist ) );
+	PyList_SET_ITEM( attr, 3, PyFloat_FromDouble( self->world->misthi ) );
 	return attr;
 }
-
 
 static int World_setMist( BPy_World * self, PyObject * value )
 {

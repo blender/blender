@@ -787,9 +787,11 @@ static void exec_but_callback(void *pyobj, void *data)
 	}
 	case BUT:
 		pyvalue = Py_None;
+		Py_INCREF(pyvalue);
 		break;
 	default:
 		pyvalue = Py_None;
+		Py_INCREF(pyvalue);
 		printf("Error, no button type matched.");
 	}
 	
@@ -802,6 +804,7 @@ static void exec_but_callback(void *pyobj, void *data)
 	
 	result = PyObject_CallObject( callback, arg );
 	if (!result) {
+		Py_DECREF(pyvalue);
 		PyErr_Print(  );
 		error( "Python script error: check console" );
 	}

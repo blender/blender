@@ -121,7 +121,7 @@ void types_InitAll( void )
 	Text_Type.ob_type = &PyType_Type;
 	Text3d_Type.ob_type = &PyType_Type;
 	Texture_Type.ob_type = &PyType_Type;
-	TimeLine_Type.ob_type = &PyType_Type;
+	//TimeLine_Type.ob_type = &PyType_Type;
 	World_Type.ob_type = &PyType_Type;
 	buffer_Type.ob_type = &PyType_Type;
 	constant_Type.ob_type = &PyType_Type;

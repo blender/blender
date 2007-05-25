@@ -197,7 +197,7 @@ static PyGetSetDef BPy_Ipo_getseters[] = {
 	 (getter)Ipo_getBlocktype, (setter)NULL,
 	 "Ipo block type",
 	 NULL},
-	{"rcft",
+	{"rctf",
 	 (getter)Ipo_getRctf, (setter)Ipo_setRctf,
 	 "Ipo type",
 	 NULL},
@@ -830,11 +830,11 @@ static int Ipo_setBlocktype( BPy_Ipo * self, PyObject * args )
 
 static PyObject *Ipo_getRctf( BPy_Ipo * self )
 {
-	PyObject *l = PyList_New( 0 );
-	PyList_Append( l, PyFloat_FromDouble( self->ipo->cur.xmin ) );
-	PyList_Append( l, PyFloat_FromDouble( self->ipo->cur.xmax ) );
-	PyList_Append( l, PyFloat_FromDouble( self->ipo->cur.ymin ) );
-	PyList_Append( l, PyFloat_FromDouble( self->ipo->cur.ymax ) );
+	PyObject *l = PyList_New( 4 );
+	PyList_SET_ITEM( l, 0, PyFloat_FromDouble( self->ipo->cur.xmin ) );
+	PyList_SET_ITEM( l, 1, PyFloat_FromDouble( self->ipo->cur.xmax ) );
+	PyList_SET_ITEM( l, 2, PyFloat_FromDouble( self->ipo->cur.ymin ) );
+	PyList_SET_ITEM( l, 3, PyFloat_FromDouble( self->ipo->cur.ymax ) );
 	return l;
 }
 
@@ -1018,12 +1018,14 @@ typeError:
 
 static PyObject *Ipo_getCurves( BPy_Ipo * self )
 {
-	PyObject *attr = PyList_New( 0 );
+	PyObject *attr = PyList_New( 0 ), *pyipo;
 	IpoCurve *icu;
 
-	for( icu = self->ipo->curve.first; icu; icu = icu->next )
-		PyList_Append( attr, IpoCurve_CreatePyObject( icu ) );
-
+	for( icu = self->ipo->curve.first; icu; icu = icu->next ) {
+		pyipo = IpoCurve_CreatePyObject( icu );
+		PyList_Append( attr, pyipo );
+		Py_DECREF(pyipo);
+	}
 	return attr;
 }
 
@@ -1110,14 +1112,16 @@ static PyObject *Ipo_getCurveNames( BPy_Ipo * self )
 			/* find the ipo in the keylist */
 			for( key = G.main->key.first; key; key = key->id.next ) {
 				if( key->ipo == self->ipo ) {
+					PyObject *tmpstr;
 					KeyBlock *block = key->block.first;
 					attr = PyList_New( 0 );
-
+					
 					/* add each name to the list */
-					for( block = key->block.first; block; block = block->next )
-						PyList_Append( attr,
-								PyString_FromString( block->name ) );
-
+					for( block = key->block.first; block; block = block->next ) {
+						tmpstr = PyString_FromString( block->name );
+						PyList_Append( attr, tmpstr);
+						Py_DECREF(tmpstr);
+					}
 					return attr;
 				}
 			}
@@ -1674,7 +1678,7 @@ static PyObject *Ipo_getCurveBeztriple( BPy_Ipo * self, PyObject * args )
 	struct BezTriple *ptrbt;
 	int num = 0, pos, i, j;
 	IpoCurve *icu;
-	PyObject *l = PyList_New( 0 );
+	PyObject *l = PyList_New( 0 ), *pyfloat;
 
 	if( !PyArg_ParseTuple( args, "ii", &num, &pos ) )
 		return ( EXPP_ReturnPyObjError
@@ -1698,11 +1702,13 @@ static PyObject *Ipo_getCurveBeztriple( BPy_Ipo * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "No bez triple" );
 
-	for( i = 0; i < 3; i++ )
-		for( j = 0; j < 3; j++ )
-			PyList_Append( l,
-				       PyFloat_FromDouble( ptrbt->
-							   vec[i][j] ) );
+	for( i = 0; i < 3; i++ ) {
+		for( j = 0; j < 3; j++ ) {
+			pyfloat = PyFloat_FromDouble( ptrbt->vec[i][j] );
+			PyList_Append( l, pyfloat );
+			Py_DECREF(pyfloat);
+		}
+	}
 	return l;
 }
 
@@ -1823,8 +1829,7 @@ static PyObject *Ipo_getCurvecurval( BPy_Ipo * self, PyObject * args )
 
 	if( icu )
 		return PyFloat_FromDouble( icu->curval );
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /*
