@@ -59,6 +59,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_text_types.h" /* for space handlers */
 #include "DNA_texture_types.h"
+#include "DNA_userdef_types.h" /* U.smooth_viewtx */
 
 #include "BKE_action.h"
 #include "BKE_curve.h"
@@ -70,6 +71,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_utildefines.h" /* for VECCOPY */
 
 #ifdef WITH_VERSE
 #include "BKE_verse.h"
@@ -213,11 +215,35 @@ static void do_view3d_view_camerasmenu(void *arg, int event)
 				i++;
 				
 				if (event==i) {
-					G.vd->camera= base->object;
-					handle_view3d_lock();
 					
-					G.vd->persp= 2;
-					G.vd->view= 0;
+					if (G.vd->camera == base->object && G.vd->persp==2)
+						return;
+					
+					if (U.smooth_viewtx) {	
+						/* move 3d view to camera view */
+						float orig_ofs[3], orig_lens = G.vd->lens;
+						VECCOPY(orig_ofs, G.vd->ofs);
+						
+						if (G.vd->camera && G.vd->persp==2)
+							view_settings_from_ob(G.vd->camera, G.vd->ofs, G.vd->viewquat, &G.vd->dist, &G.vd->lens);
+						
+						G.vd->camera = base->object;
+						handle_view3d_lock();
+						G.vd->persp= 2;
+						G.vd->view= 0;
+						
+						smooth_view_to_camera(G.vd);
+						
+						/* restore values */
+						VECCOPY(G.vd->ofs, orig_ofs);
+						G.vd->lens = orig_lens;
+					} else {
+						G.vd->camera= base->object;
+						handle_view3d_lock();
+						G.vd->persp= 2;
+						G.vd->view= 0;
+					}
+					break;
 				}
 			}
 		}
