@@ -5408,14 +5408,12 @@ static PyObject *Mesh_Update( BPy_Mesh * self, PyObject *args, PyObject *kwd )
 				"Cannot update the key for this mesh, it has no shape keys");
 		
 		for (kb = key->block.first; kb; kb=kb->next)
-			if (strcmp(blockname, kb->name))
+			if (strcmp(blockname, kb->name)==0)
 				break;
 		
 		if (!kb)
 			return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"This requested key to update does not exist");
-		
-		printf("KEYBLOCKNAME %s\n", kb->name);
 		
 		for(i=0, co= kb->data; i<me->totvert; i++, mv++, co++)
 			VECCOPY(*co, mv->co);

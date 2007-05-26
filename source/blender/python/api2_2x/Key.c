@@ -289,23 +289,12 @@ PyTypeObject KeyBlock_Type = {
 	NULL
 };
 
-static PyObject *new_Key(Key * oldkey)
+PyObject *Key_CreatePyObject( Key * blenkey )
 {
-	BPy_Key *k = PyObject_NEW( BPy_Key, &Key_Type );
-
-	if( !oldkey ) {
-		k->key = 0;
-	} else {
-		k->key = oldkey;
-	}
-	return ( PyObject * ) k;
-}
-
-PyObject *Key_CreatePyObject( Key * k )
-{
-	BPy_Key *key = ( BPy_Key * ) new_Key( k );
-
-	return ( PyObject * ) key;
+	BPy_Key *bpykey = PyObject_NEW( BPy_Key, &Key_Type );
+	/* blenkey may be NULL so be careful */
+	bpykey->key = blenkey;
+	return ( PyObject * ) bpykey;
 }
 
 static void Key_dealloc( BPy_Key * self )
@@ -325,15 +314,9 @@ static PyObject *Key_repr( BPy_Key * self )
 
 static PyObject *Key_getIpo( BPy_Key * self )
 {
-	BPy_Ipo *new_ipo;
-
-	if (self->key->ipo) {
-		new_ipo = ( BPy_Ipo * ) PyObject_NEW( BPy_Ipo, &Ipo_Type );
-		new_ipo->ipo = self->key->ipo;
-		return (PyObject *) new_ipo;
-	} else {
-		Py_RETURN_NONE;
-	}
+	if (self->key->ipo)
+		Ipo_CreatePyObject( self->key->ipo );
+	Py_RETURN_NONE;
 }
 
 static int Key_setIpo( BPy_Key * self, PyObject * value )
@@ -404,20 +387,12 @@ static PyObject *Key_getValue( BPy_Key * self )
 }
 
 /* ------------ Key Block Functions -------------- */
-
-static PyObject *new_KeyBlock( KeyBlock * keyblock, Key *key)
+PyObject *KeyBlock_CreatePyObject( KeyBlock * keyblock, Key *parentKey )
 {
-	BPy_KeyBlock *kb = PyObject_NEW( BPy_KeyBlock, &KeyBlock_Type );
-	kb->key = key;
-	kb->keyblock = keyblock; /* keyblock maye be NULL, thats ok */
-	return ( PyObject * ) kb;
-}
-
-PyObject *KeyBlock_CreatePyObject( KeyBlock * kb, Key *parentKey )
-{
-	BPy_KeyBlock *keyBlock = ( BPy_KeyBlock * ) new_KeyBlock( kb, parentKey );
-
-	return ( PyObject * ) keyBlock;
+	BPy_KeyBlock *bpykb = PyObject_NEW( BPy_KeyBlock, &KeyBlock_Type );
+	bpykb->key = parentKey;
+	bpykb->keyblock = keyblock; /* keyblock maye be NULL, thats ok */
+	return ( PyObject * ) bpykb;
 }
 
 static PyObject *KeyBlock_getCurval( BPy_KeyBlock * self ) {

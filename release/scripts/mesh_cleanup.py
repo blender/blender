@@ -196,7 +196,7 @@ def isnan(f):
 	
 	return False
 
-def fix_nan_verts(me):
+def fix_nan_verts__internal(me):
 	rem_nan = 0
 	for v in me.verts:
 		co = v.co
@@ -206,9 +206,46 @@ def fix_nan_verts(me):
 				rem_nan += 1
 	return rem_nan
 
+def fix_nan_verts(me):
+	rem_nan = 0
+	key = me.key
+	if key:
+		# Find the object, and get a mesh thats thinked to the oblink.
+		# this is a bit crap but needed to set the active key.
+		me_oblink = None
+		for ob in bpy.data.objects:
+			me_oblink = ob.getData(mesh=1)
+			if me_oblink == me:
+				me = me_oblink
+				break
+		if not me_oblink:
+			ob = None
+	
+	if key and ob:
+		blocks = key.blocks
+		# print blocks
+		orig_pin = ob.pinShape
+		orig_shape = ob.activeShape
+		orig_relative = key.relative
+		ob.pinShape = True
+		for i, block in enumerate(blocks):
+			ob.activeShape = i+1
+			ob.makeDisplayList()
+			rem_nan += fix_nan_verts__internal(me)
+			me.update(block.name) # get the new verts
+		ob.pinShape	= orig_pin
+		ob.activeShape = orig_shape
+		key.relative = orig_relative
+		
+	else: # No keys, simple operation
+		rem_nan = fix_nan_verts__internal(me)
+	
+	return rem_nan
+
 def fix_nan_uvs(me):
 	rem_nan = 0
 	if me.faceUV:
+		orig_uvlayer = me.activeUVLayer
 		for uvlayer in me.getUVLayerNames():
 			me.activeUVLayer = uvlayer
 			for f in me.faces:
@@ -217,6 +254,7 @@ def fix_nan_uvs(me):
 						if isnan(uv[i]):
 							uv[i] = 0.0
 							rem_nan += 1
+		me.activeUVLayer = orig_uvlayer
 	return rem_nan
 
 

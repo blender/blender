@@ -50,7 +50,7 @@ typedef struct {
 	Key * key;			/* libdata must be second */
 	/* Object *object;*/		/* for vertex grouping info, since it's stored on the object */
 	/*PyObject *keyBlock;*/
-	PyObject *ipo;
+	/*PyObject *ipo;*/
 } BPy_Key;
 
 typedef struct {
