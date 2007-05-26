@@ -436,7 +436,7 @@ static PyObject *Text_write( BPy_Text * self, PyObject * args )
 static PyObject *Text_asLines( BPy_Text * self )
 {
 	TextLine *line;
-	PyObject *list, *ob;
+	PyObject *list, *tmpstr;
 
 	if( !self->text )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -450,9 +450,9 @@ static PyObject *Text_asLines( BPy_Text * self )
 					      "couldn't create PyList" );
 
 	while( line ) {
-		ob = Py_BuildValue( "s", line->line );
-		PyList_Append( list, ob );
-		Py_DECREF(ob);
+		tmpstr = PyString_FromString( line->line );
+		PyList_Append( list, tmpstr );
+		Py_DECREF(tmpstr);
 		line = line->next;
 	}
 

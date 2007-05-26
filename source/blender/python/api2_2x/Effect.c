@@ -1494,7 +1494,7 @@ static PyObject *Effect_getParticlesLoc( BPy_Effect * self )
 	Effect *eff;
 	PartEff *paf;
 	Particle *pa=0;
-	PyObject  *list, *strand_list, *pyvec;
+	PyObject  *list, *strand_list, *pyvec, *pyvec2;
 	float p_time, c_time, vec[3], vec1[3], cfra, m_time, s_time;
 	int a;
 	short disp=100 ;
@@ -1585,13 +1585,17 @@ static PyObject *Effect_getParticlesLoc( BPy_Effect * self )
 					}
 					where_is_particle(paf, pa, s_time, vec);
 					where_is_particle(paf, pa, p_time, vec1);
-					if( PyList_Append( list, Py_BuildValue("[OO]",
-									newVectorObject(vec, 3, Py_NEW),
-									newVectorObject(vec1, 3, Py_NEW))) < 0 ) {
+					pyvec  = newVectorObject(vec, 3, Py_NEW);
+					pyvec2 = newVectorObject(vec1, 3, Py_NEW);
+					if( PyList_Append( list, Py_BuildValue("[OO]", pyvec, pyvec2)) < 0 ) {
 						Py_DECREF( list );
+						Py_XDECREF( pyvec );
+						Py_XDECREF( pyvec2 );
 						return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 								"Couldn't append item to PyList" );
 					}
+					Py_DECREF( pyvec );
+					Py_DECREF( pyvec2 );
 				} else { /* not a vector */
 					where_is_particle(paf, pa, c_time, vec);
 					pyvec = newVectorObject(vec, 3, Py_NEW);

@@ -243,11 +243,10 @@ PyObject *charRGBA_getCol( BPy_charRGBA * self )
 		return EXPP_ReturnPyObjError( PyExc_MemoryError,
 					      "couldn't create PyList" );
 
-	PyList_SET_ITEM( list, 0, Py_BuildValue( "b", *( self->rgba[0] ) ) );
-	PyList_SET_ITEM( list, 1, Py_BuildValue( "b", *( self->rgba[1] ) ) );
-	PyList_SET_ITEM( list, 2, Py_BuildValue( "b", *( self->rgba[2] ) ) );
-	PyList_SET_ITEM( list, 3, Py_BuildValue( "b", *( self->rgba[3] ) ) );
-
+	PyList_SET_ITEM( list, 0, PyInt_FromLong( *(self->rgba[0])) );
+	PyList_SET_ITEM( list, 1, PyInt_FromLong( *(self->rgba[1])) );
+	PyList_SET_ITEM( list, 2, PyInt_FromLong( *(self->rgba[2])) );
+	PyList_SET_ITEM( list, 3, PyInt_FromLong( *(self->rgba[3])) );
 	return list;
 }
 
@@ -335,7 +334,7 @@ static PyObject *charRGBASubscript( BPy_charRGBA * self, PyObject * key )
 	else
 		return EXPP_ReturnPyObjError( PyExc_AttributeError, name );
 
-	return Py_BuildValue( "b", *( self->rgba[i] ) );
+	return PyInt_FromLong( (long)(*self->rgba[i]) );
 }
 
 static int charRGBAAssSubscript( BPy_charRGBA * self, PyObject * key,
@@ -382,7 +381,7 @@ static PyObject *charRGBAItem( BPy_charRGBA * self, int i )
 		return EXPP_ReturnPyObjError( PyExc_IndexError,
 					      "array index out of range" );
 
-	return Py_BuildValue( "b", *( self->rgba[i] ) );
+	return PyInt_FromLong( *(self->rgba[i]) );
 }
 
 static PyObject *charRGBASlice( BPy_charRGBA * self, int begin, int end )

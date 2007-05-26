@@ -206,7 +206,7 @@ static PyObject *rgbTuple_getAttr( BPy_rgbTuple * self, char *name )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"attribute not found" ) );
 
-	return Py_BuildValue( "f", *( self->rgb[i] ) );
+	return PyFloat_FromDouble( (double)(*( self->rgb[i] )) );
 }
 
 /*****************************************************************************/
@@ -271,7 +271,7 @@ static PyObject *rgbTupleSubscript( BPy_rgbTuple * self, PyObject * key )
 	else
 		return EXPP_ReturnPyObjError( PyExc_AttributeError, name );
 
-	return Py_BuildValue( "f", *( self->rgb[i] ) );
+	return PyFloat_FromDouble( (double)(*( self->rgb[i] )) );
 }
 
 static int rgbTupleAssSubscript( BPy_rgbTuple * self, PyObject * key,
@@ -316,7 +316,7 @@ static PyObject *rgbTupleItem( BPy_rgbTuple * self, int i )
 		return EXPP_ReturnPyObjError( PyExc_IndexError,
 					      "array index out of range" );
 
-	return Py_BuildValue( "f", *( self->rgb[i] ) );
+	return PyFloat_FromDouble( (long)(*( self->rgb[i] )) );
 }
 
 static PyObject *rgbTupleSlice( BPy_rgbTuple * self, int begin, int end )

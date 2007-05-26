@@ -49,7 +49,7 @@ extern PyTypeObject IDGroup_Iter_Type;
 
 PyObject *IDGroup_repr( BPy_IDProperty *self )
 {
-	return Py_BuildValue( "s", "(ID Property)" );
+	return PyString_FromString( "(ID Property)" );
 }
 
 extern PyTypeObject IDGroup_Type;
@@ -58,11 +58,11 @@ PyObject *BPy_IDGroup_WrapData( ID *id, IDProperty *prop )
 {
 	switch ( prop->type ) {
 		case IDP_STRING:
-			return Py_BuildValue( "s", prop->data.pointer );
+			return PyString_FromString( prop->data.pointer );
 		case IDP_INT:
-			return Py_BuildValue( "i", prop->data.val );
+			return PyInt_FromLong( (long)prop->data.val );
 		case IDP_FLOAT:
-			return Py_BuildValue( "f", *(float*)(&prop->data.val) );
+			return PyFloat_FromDouble( (double)(*(float*)(&prop->data.val)) );
 		case IDP_GROUP:
 			/*blegh*/
 			{
@@ -140,7 +140,7 @@ int BPy_IDGroup_SetData(BPy_IDProperty *self, IDProperty *prop, PyObject *value)
 
 PyObject *BPy_IDGroup_GetName(BPy_IDProperty *self, void *bleh)
 {
-	return Py_BuildValue("s", self->prop->name);
+	return PyString_FromString(self->prop->name);
 }
 
 int BPy_IDGroup_SetName(BPy_IDProperty *self, PyObject *value, void *bleh)
@@ -159,7 +159,7 @@ int BPy_IDGroup_SetName(BPy_IDProperty *self, PyObject *value, void *bleh)
 
 PyObject *BPy_IDGroup_GetType(BPy_IDProperty *self)
 {
-	return Py_BuildValue("i", self->prop->type);
+	return PyInt_FromLong((long)self->prop->type);
 }
 
 static PyGetSetDef BPy_IDGroup_getseters[] = {
@@ -332,13 +332,13 @@ PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
 {
 	switch (prop->type) {
 		case IDP_STRING:
-			return Py_BuildValue("s", prop->data.pointer);
+			return PyString_FromString(prop->data.pointer);
 			break;
 		case IDP_FLOAT:
-			return Py_BuildValue("f", *((float*)&prop->data.val));
+			return PyFloat_FromDouble(*((float*)&prop->data.val));
 			break;
 		case IDP_INT:
-			return Py_BuildValue("i", prop->data.val);
+			return PyInt_FromLong( (long)prop->data.val );
 			break;
 		case IDP_ARRAY:
 		{
@@ -351,8 +351,11 @@ PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
 			
 			for (i=0; i<prop->len; i++) {
 				if (prop->subtype == IDP_FLOAT)
-					PyList_SetItem(seq, i, Py_BuildValue("f", ((float*)prop->data.pointer)[i]));
-				else PyList_SetItem(seq, i, Py_BuildValue("i",   ((int*)prop->data.pointer)[i]));
+						PyList_SetItem(seq, i,
+						PyFloat_FromDouble(((float*)prop->data.pointer)[i]));
+				
+				else 	PyList_SetItem(seq, i,
+						PyInt_FromLong(((int*)prop->data.pointer)[i]));
 			}
 			return seq;
 		}
@@ -429,7 +432,7 @@ PyObject *BPy_IDGroup_IterItems(BPy_IDProperty *self)
 
 PyObject *BPy_IDGroup_GetKeys(BPy_IDProperty *self)
 {
-	PyObject *seq = PyList_New(self->prop->len), *st;
+	PyObject *seq = PyList_New(self->prop->len);
 	IDProperty *loop;
 	int i;
 
@@ -437,10 +440,8 @@ PyObject *BPy_IDGroup_GetKeys(BPy_IDProperty *self)
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 		   "PyList_New() failed" );
 		   
-	for (i=0, loop=self->prop->data.group.first; loop; loop=loop->next, i++) {
-		st = Py_BuildValue("s", loop->name);
-		PyList_SetItem(seq, i, st);
-	}
+	for (i=0, loop=self->prop->data.group.first; loop; loop=loop->next, i++)
+		PyList_SetItem(seq, i, PyString_FromString(loop->name));
 	
 	return seq;
 }
@@ -612,18 +613,18 @@ PyObject *BPy_Wrap_IDProperty(ID *id, IDProperty *prop, IDProperty *parent)
 
 PyObject *IDArray_repr(BPy_IDArray *self)
 {
-	return Py_BuildValue("s", "(ID Array)");
+	return PyString_FromString("(ID Array)");
 }
 
 
 PyObject *BPy_IDArray_GetType(BPy_IDArray *self)
 {
-	return Py_BuildValue("i", self->prop->subtype);
+	return PyInt_FromLong( (long)self->prop->subtype );
 }
 
 PyObject *BPy_IDArray_GetLen(BPy_IDArray *self)
 {
-	return Py_BuildValue("i", self->prop->len);
+	return PyInt_FromLong( (long)self->prop->len );
 }
 
 static PyGetSetDef BPy_IDArray_getseters[] = {
@@ -651,10 +652,10 @@ PyObject *BPy_IDArray_GetItem(BPy_IDArray *self, int index)
 
 	switch (self->prop->subtype) {
 		case IDP_FLOAT:
-			return Py_BuildValue("f", ((float*)self->prop->data.pointer)[index]);
+			return PyFloat_FromDouble( (double)(((float*)self->prop->data.pointer)[index]));
 			break;
 		case IDP_INT:
-			return Py_BuildValue("i", ((int*)self->prop->data.pointer)[index]);
+			return PyInt_FromLong( (long)((int*)self->prop->data.pointer)[index] );
 			break;
 	}
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -803,20 +804,25 @@ PyObject *IDGroup_Iter_iterself(PyObject *self)
 
 PyObject *IDGroup_Iter_repr(BPy_IDGroup_Iter *self)
 {
-	return Py_BuildValue("s", "(ID Property Group)");
+	return PyString_FromString("(ID Property Group)");
 }
 
 PyObject *BPy_Group_Iter_Next(BPy_IDGroup_Iter *self)
 {
 	IDProperty *cur=NULL;
+	PyObject *tmpval;
+	PyObject *ret;
 
 	if (self->cur) {
 		cur = self->cur;
 		self->cur = self->cur->next;
 		if (self->mode == IDPROP_ITER_ITEMS) {
-			return Py_BuildValue("[s, O]", cur->name, BPy_IDGroup_WrapData(self->group->id, cur));
+			tmpval = BPy_IDGroup_WrapData(self->group->id, cur);
+			ret = Py_BuildValue("[s, O]", cur->name, tmpval);
+			Py_DECREF(tmpval);
+			return ret;
 		} else {
-			return Py_BuildValue("s", cur->name);
+			return PyString_FromString(cur->name);
 		}
 	} else {
 		return EXPP_ReturnPyObjError( PyExc_StopIteration,

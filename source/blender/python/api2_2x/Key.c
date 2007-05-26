@@ -425,8 +425,7 @@ static PyObject *KeyBlock_getCurval( BPy_KeyBlock * self ) {
 }
 
 static PyObject *KeyBlock_getName( BPy_KeyBlock * self ) {
-	PyObject *name = Py_BuildValue( "s", self->keyblock->name);
-	return name;
+	return PyString_FromString(self->keyblock->name);
 }
 
 static PyObject *KeyBlock_getPos( BPy_KeyBlock * self ){
@@ -442,7 +441,7 @@ static PyObject *KeyBlock_getSlidermax( BPy_KeyBlock * self ){
 }
 
 static PyObject *KeyBlock_getVgroup( BPy_KeyBlock * self ){
-	return Py_BuildValue( "s", self->keyblock->vgroup);
+	return PyString_FromString(self->keyblock->vgroup);
 }
 
 static int KeyBlock_setName( BPy_KeyBlock * self, PyObject * args ){

@@ -228,8 +228,9 @@ static PyObject *Noise_noise( PyObject * self, PyObject * args )
 	int nb = 1;
 	if( !PyArg_ParseTuple( args, "(fff)|i", &x, &y, &z, &nb ) )
 		return NULL;
-	return Py_BuildValue( "f",
-			      2.0 * BLI_gNoise( 1.0, x, y, z, 0, nb ) - 1.0 );
+	
+	return PyFloat_FromDouble(
+			(double)(2.0 * BLI_gNoise( 1.0, x, y, z, 0, nb ) - 1.0) );
 }
 
 /*-------------------------------------------------------------------------*/
@@ -290,7 +291,7 @@ static PyObject *Noise_turbulence( PyObject * self, PyObject * args )
 	if( !PyArg_ParseTuple
 	    ( args, "(fff)ii|iff", &x, &y, &z, &oct, &hd, &nb, &as, &fs ) )
 		return NULL;
-	return Py_BuildValue( "f", turb( x, y, z, oct, hd, nb, as, fs ) );
+	return PyFloat_FromDouble( (double)turb( x, y, z, oct, hd, nb, as, fs ) );
 }
 
 /*--------------------------------------------------------------------------*/
@@ -349,7 +350,7 @@ static PyObject *Noise_fBm( PyObject * self, PyObject * args )
 	if( !PyArg_ParseTuple
 	    ( args, "(fff)fff|i", &x, &y, &z, &H, &lac, &oct, &nb ) )
 		return NULL;
-	return Py_BuildValue( "f", mg_fBm( x, y, z, H, lac, oct, nb ) );
+	return PyFloat_FromDouble( (double)mg_fBm( x, y, z, H, lac, oct, nb ) );
 }
 
 /*------------------------------------------------------------------------*/
@@ -361,8 +362,7 @@ static PyObject *Noise_multiFractal( PyObject * self, PyObject * args )
 	if( !PyArg_ParseTuple
 	    ( args, "(fff)fff|i", &x, &y, &z, &H, &lac, &oct, &nb ) )
 		return NULL;
-	return Py_BuildValue( "f",
-			      mg_MultiFractal( x, y, z, H, lac, oct, nb ) );
+	return PyFloat_FromDouble( (double)mg_MultiFractal( x, y, z, H, lac, oct, nb ) );
 }
 
 /*------------------------------------------------------------------------*/
@@ -374,7 +374,7 @@ static PyObject *Noise_vlNoise( PyObject * self, PyObject * args )
 	if( !PyArg_ParseTuple
 	    ( args, "(fff)f|ii", &x, &y, &z, &d, &nt1, &nt2 ) )
 		return NULL;
-	return Py_BuildValue( "f", mg_VLNoise( x, y, z, d, nt1, nt2 ) );
+	return PyFloat_FromDouble( (double)mg_VLNoise( x, y, z, d, nt1, nt2 ) );
 }
 
 /*-------------------------------------------------------------------------*/
@@ -386,9 +386,9 @@ static PyObject *Noise_heteroTerrain( PyObject * self, PyObject * args )
 	if( !PyArg_ParseTuple
 	    ( args, "(fff)ffff|i", &x, &y, &z, &H, &lac, &oct, &ofs, &nb ) )
 		return NULL;
-	return Py_BuildValue( "f",
-			      mg_HeteroTerrain( x, y, z, H, lac, oct, ofs,
-						nb ) );
+	
+	return PyFloat_FromDouble(
+			(double)mg_HeteroTerrain( x, y, z, H, lac, oct, ofs, nb ) );
 }
 
 /*-------------------------------------------------------------------------*/
@@ -401,9 +401,9 @@ static PyObject *Noise_hybridMFractal( PyObject * self, PyObject * args )
 	    ( args, "(fff)fffff|i", &x, &y, &z, &H, &lac, &oct, &ofs, &gn,
 	      &nb ) )
 		return NULL;
-	return Py_BuildValue( "f",
-			      mg_HybridMultiFractal( x, y, z, H, lac, oct, ofs,
-						     gn, nb ) );
+	
+	return PyFloat_FromDouble(
+			(double)mg_HybridMultiFractal( x, y, z, H, lac, oct, ofs, gn, nb) );
 }
 
 /*------------------------------------------------------------------------*/
@@ -416,9 +416,8 @@ static PyObject *Noise_ridgedMFractal( PyObject * self, PyObject * args )
 	    ( args, "(fff)fffff|i", &x, &y, &z, &H, &lac, &oct, &ofs, &gn,
 	      &nb ) )
 		return NULL;
-	return Py_BuildValue( "f",
-			      mg_RidgedMultiFractal( x, y, z, H, lac, oct, ofs,
-						     gn, nb ) );
+	return PyFloat_FromDouble(
+			(double)mg_RidgedMultiFractal( x, y, z, H, lac, oct, ofs, gn, nb) );
 }
 
 /*-------------------------------------------------------------------------*/

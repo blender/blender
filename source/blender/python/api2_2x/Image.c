@@ -637,8 +637,7 @@ static PyObject *Image_getMinXY( BPy_Image * self )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "couldn't load image data in Blender" );
 
-	attr = Py_BuildValue( "[i,i]", ibuf->xorig,
-			      ibuf->yorig );
+	attr = Py_BuildValue( "[i,i]", ibuf->xorig, ibuf->yorig );
 
 	if( attr )
 		return attr;
@@ -839,7 +838,7 @@ static PyObject *Image_getDepth( BPy_Image * self )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "couldn't load image data in Blender" );
 
-	attr = Py_BuildValue( "h", ibuf->depth );
+	attr = PyInt_FromLong( (long)ibuf->depth );
 
 	if( attr )
 		return attr;

@@ -935,10 +935,10 @@ static int Bone_setName(BPy_Bone *self, PyObject *value, void *closure)
 }
 //------------------------Bone.roll (get)
 static PyObject *Bone_getRoll(BPy_Bone *self, void *closure)
-{
-	return Py_BuildValue("{s:O, s:O}", 
-		"BONESPACE", PyFloat_FromDouble((self->bone->roll * (180/Py_PI))),
-		"ARMATURESPACE", PyFloat_FromDouble((boneRoll_ToArmatureSpace(self->bone) * (180/Py_PI))));
+{	
+	return Py_BuildValue("{s:f, s:f}", 
+		"BONESPACE", self->bone->roll * (180/Py_PI),
+		"ARMATURESPACE", boneRoll_ToArmatureSpace(self->bone) * (180/Py_PI));
 }
 //------------------------Bone.roll (set)
 static int Bone_setRoll(BPy_Bone *self, PyObject *value, void *closure)
@@ -949,9 +949,14 @@ static int Bone_setRoll(BPy_Bone *self, PyObject *value, void *closure)
 //------------------------Bone.head (get)
 static PyObject *Bone_getHead(BPy_Bone *self, void *closure)
 {
-	return Py_BuildValue("{s:O, s:O}", 
-		"BONESPACE", newVectorObject(self->bone->head, 3, Py_WRAP),
-		"ARMATURESPACE", newVectorObject(self->bone->arm_head, 3, Py_WRAP));
+	PyObject *val1 = newVectorObject(self->bone->head, 3, Py_WRAP);
+	PyObject *val2 = newVectorObject(self->bone->arm_head, 3, Py_WRAP);
+	PyObject *ret =	Py_BuildValue(
+			"{s:O, s:O}", "BONESPACE", val1, "ARMATURESPACE", val2);
+	
+	Py_DECREF(val1);
+	Py_DECREF(val2);
+	return ret;
 }
 //------------------------Bone.head (set)
 static int Bone_setHead(BPy_Bone *self, PyObject *value, void *closure)
@@ -962,9 +967,14 @@ static int Bone_setHead(BPy_Bone *self, PyObject *value, void *closure)
 //------------------------Bone.tail (get)
 static PyObject *Bone_getTail(BPy_Bone *self, void *closure)
 {
-    return Py_BuildValue("{s:O, s:O}", 
-		"BONESPACE", newVectorObject(self->bone->tail, 3, Py_WRAP),
-		"ARMATURESPACE", newVectorObject(self->bone->arm_tail, 3, Py_WRAP));
+	PyObject *val1 = newVectorObject(self->bone->tail, 3, Py_WRAP);
+	PyObject *val2 = newVectorObject(self->bone->arm_tail, 3, Py_WRAP);
+	PyObject *ret =	Py_BuildValue("{s:O, s:O}", 
+		"BONESPACE", val1, "ARMATURESPACE", val2);
+	
+	Py_DECREF(val1);
+	Py_DECREF(val2);
+	return ret;
 }
 //------------------------Bone.tail (set)
 static int Bone_setTail(BPy_Bone *self, PyObject *value, void *closure)
@@ -1108,9 +1118,15 @@ static int Bone_setChildren(BPy_Bone *self, PyObject *value, void *closure)
 //------------------------Bone.matrix (get)
 static PyObject *Bone_getMatrix(BPy_Bone *self, void *closure)
 {
-    return Py_BuildValue("{s:O, s:O}", 
-		"BONESPACE", newMatrixObject((float*)self->bone->bone_mat, 3,3, Py_WRAP),
-		"ARMATURESPACE", newMatrixObject((float*)self->bone->arm_mat, 4,4, Py_WRAP));
+	PyObject *val1 = newMatrixObject((float*)self->bone->bone_mat, 3,3, Py_WRAP);
+	PyObject *val2 = newMatrixObject((float*)self->bone->arm_mat, 4,4, Py_WRAP);
+	PyObject *ret =	Py_BuildValue("{s:O, s:O}", 
+		"BONESPACE", val1, "ARMATURESPACE", val2);
+	Py_DECREF(val1);
+	Py_DECREF(val2);
+	return ret;
+    
+    
 }
 //------------------------Bone.matrix (set)
 static int Bone_setMatrix(BPy_Bone *self, PyObject *value, void *closure)

@@ -1642,7 +1642,7 @@ static PyObject *Lamp_oldsetType( BPy_Lamp * self, PyObject * args )
 
 	/* build tuple, call wrapper */
 
-	value = Py_BuildValue( "(i)", type );
+	value = PyInt_FromLong( (long)type );
 	error = EXPP_setterWrapper ( (void *)self, value, (setter)Lamp_setType );
 	Py_DECREF ( value );
 	return error;
@@ -1701,7 +1701,7 @@ static PyObject *Lamp_oldsetMode( BPy_Lamp * self, PyObject * args )
 
 	/* build tuple, call wrapper */
 
-	value = Py_BuildValue( "(i)", flag );
+	value = PyInt_FromLong( (long)flag );
 	error = EXPP_setterWrapper ( (void *)self, value, (setter)Lamp_setMode );
 	Py_DECREF ( value );
 	return error;

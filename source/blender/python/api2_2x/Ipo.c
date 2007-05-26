@@ -1255,7 +1255,7 @@ void generate_curveconsts( PyObject* module )
 static PyObject *Ipo_getChannel( BPy_Ipo * self )
 {
 	if( self->mtex != -1 )
-		return Py_BuildValue( "h", self->mtex );
+		return PyInt_FromLong( (long)self->mtex );
 	Py_RETURN_NONE;
 }
 

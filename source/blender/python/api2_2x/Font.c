@@ -166,7 +166,7 @@ PyObject *M_Font_Load( PyObject * self, PyObject * args )
 	/*create python font*/
 	if( !S_ISDIR(BLI_exist(filename_str)) )  {
 		tmp= Py_BuildValue("(s)", filename_str);
-		py_font= (BPy_Font *) M_Text3d_LoadFont (self, Py_BuildValue("(s)", filename_str));
+		py_font= (BPy_Font *) M_Text3d_LoadFont (self, tmp);
 		Py_DECREF (tmp);
 	}
 	else

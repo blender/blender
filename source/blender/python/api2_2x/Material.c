@@ -3329,7 +3329,7 @@ static PyObject *Matr_oldsetMode( BPy_Material * self, PyObject * args )
 			   "expected nothing, an integer or up to 22 string argument(s)" ) );
 	/* build tuple, call wrapper */
 
-	value = Py_BuildValue( "(i)", flag );
+	value = PyInt_FromLong( (long)flag );
 	error = EXPP_setterWrapper( (void *)self, value, (setter)Material_setMode );
 	Py_DECREF ( value );
 	return error;

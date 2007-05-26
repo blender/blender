@@ -528,7 +528,7 @@ static PyObject *Blender_Redraw( PyObject * self, PyObject * args )
 					      "expected int argument (or nothing)" );
 	}
 
-	return M_Window_Redraw( self, Py_BuildValue( "(i)", wintype ) );
+	return M_Window_Redraw( self, PyInt_FromLong( (long)wintype ) );
 }
 
 /*****************************************************************************/

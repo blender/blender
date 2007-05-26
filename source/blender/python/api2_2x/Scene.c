@@ -1170,7 +1170,7 @@ static PyObject *Scene_play( BPy_Scene * self, PyObject * args )
 		areawinset( sa->win );
 
 	/* play_anim returns 0 for normal exit or 1 if user canceled it */
-	ret = Py_BuildValue( "i", play_anim( mode ) );
+	ret = PyInt_FromLong( (long)play_anim( mode ) );
 
 	if( sa )
 		areawinset( oldsa->win );

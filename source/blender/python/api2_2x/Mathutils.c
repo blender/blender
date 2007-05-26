@@ -1759,7 +1759,7 @@ PyObject *M_Mathutils_RotateEuler(PyObject * self, PyObject * args)
 			   "Mathutils.RotateEuler(): expected euler type & float & string");
 
 	Euler_Rotate(Eul, Py_BuildValue("fs", angle, axis));
-	return EXPP_incr_ret(Py_None);
+	Py_RETURN_NONE;
 }
 //----------------------------------Mathutils.MatMultVec() --------------
 //COLUMN VECTOR Multiplication (Matrix X Vector)

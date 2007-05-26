@@ -190,7 +190,7 @@ static PyObject *M_Library_Open( PyObject * self, PyObject * args )
 	if( bpy_openlibname )
 		PyOS_snprintf( bpy_openlibname, len, "%s", fname1 );
 
-	return Py_BuildValue( "i", 1 );
+	Py_RETURN_TRUE;
 }
 
 /**
@@ -275,16 +275,14 @@ static PyObject *M_Library_Datablocks( PyObject * self, PyObject * args )
 		list = PyList_New( BLI_linklist_length( names ) );
 		for( l = names; l; l = l->next ) {
 			PyList_SET_ITEM( list, counter,
-					 Py_BuildValue( "s",
-							( char * ) l->link ) );
+					PyString_FromString( ( char * ) l->link ) );
 			counter++;
 		}
 		BLI_linklist_free( names, free );	/* free linklist *and* each node's data */
 		return list;
 	}
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /**
