@@ -6200,14 +6200,17 @@ static PyObject *Mesh_getVertsFromGroup( BPy_Mesh* self, PyObject * args )
 		for( i = 0; i < PyList_Size( listObject ); i++ ) {
 			PyObject *attr = NULL;
 
-			if( !PyArg_Parse( PyList_GetItem( listObject, i ), "i", &num ) )
+			if( !PyArg_Parse( PyList_GetItem( listObject, i ), "i", &num ) ) {
+				Py_DECREF(tempVertexList);
 				return EXPP_ReturnPyObjError( PyExc_TypeError,
 							      "python list integer not parseable" );
+			}
 
-			if( num < 0 || num >= mesh->totvert )
+			if( num < 0 || num >= mesh->totvert ) {
+				Py_DECREF(tempVertexList);
 				return EXPP_ReturnPyObjError( PyExc_ValueError,
 							      "bad vertex index in list" );
-
+			}
 			dvert = mesh->dvert + num;
 			for( k = 0; k < dvert->totweight; k++ ) {
 				if( dvert->dw[k].def_nr == nIndex ) {

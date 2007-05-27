@@ -309,11 +309,12 @@ static PyObject *M_Material_Get( PyObject * self, PyObject * args )
 		while( mat_iter ) {
 			pyobj = Material_CreatePyObject( mat_iter );
 
-			if( !pyobj )
+			if( !pyobj ) {
+				Py_DECREF(matlist);
 				return ( EXPP_ReturnPyObjError
 					 ( PyExc_MemoryError,
 					   "couldn't create PyObject" ) );
-
+			}
 			PyList_SET_ITEM( matlist, index, pyobj );
 
 			mat_iter = mat_iter->id.next;

@@ -704,10 +704,12 @@ static PyObject *M_Lamp_Get( PyObject * self, PyObject * args )
 		while( lamp_iter ) {
 			pyobj = Lamp_CreatePyObject( lamp_iter );
 
-			if( !pyobj )
+			if( !pyobj ) {
+				Py_DECREF(lamplist);
 				return ( EXPP_ReturnPyObjError
 					 ( PyExc_MemoryError,
-					   "couldn't create PyString" ) );
+					   "couldn't create PyLamp" ) );
+			}
 
 			PyList_SET_ITEM( lamplist, index, pyobj );
 

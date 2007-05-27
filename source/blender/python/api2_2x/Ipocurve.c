@@ -645,7 +645,7 @@ static PyObject *IpoCurve_getPoints( C_IpoCurve * self )
 		po = BezTriple_CreatePyObject( bezt );
 		if( !po ) {
 			Py_DECREF( list );
-			return NULL;
+			return NULL; /* This is okay since the error is alredy set */
 		}
 		PyList_SET_ITEM( list, i, po );
 	}

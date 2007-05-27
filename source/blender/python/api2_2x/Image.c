@@ -389,7 +389,7 @@ static PyObject *M_Image_Load( PyObject * self, PyObject * args )
 static PyObject *Image_getPixelF( BPy_Image * self, PyObject * args )
 {
 
-	PyObject *attr = PyList_New(4);
+	PyObject *attr;
 	ImBuf *ibuf= BKE_image_get_ibuf(self->image, NULL);
 	char *pixel;		/* image data */
 	int index;		/* offset into image data */
@@ -397,10 +397,6 @@ static PyObject *Image_getPixelF( BPy_Image * self, PyObject * args )
 	int y = 0;
 	int pixel_size = 4;	/* each pixel is 4 x 8-bits packed in unsigned int */
 	int i;
-
-	if (!attr)
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't allocate memory for color list" );
 	
 	if( !PyArg_ParseTuple( args, "ii", &x, &y ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -425,6 +421,12 @@ static PyObject *Image_getPixelF( BPy_Image * self, PyObject * args )
 	   so we calc ourselves
 	 */
 
+	attr = PyList_New(4);
+	
+	if (!attr)
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				      "couldn't allocate memory for color list" );
+	
 	index = ( x + y * ibuf->x ) * pixel_size;
 
 	pixel = ( char * ) ibuf->rect;
@@ -815,11 +817,14 @@ static PyObject *Image_getFilename( BPy_Image * self )
 static PyObject *Image_getSize( BPy_Image * self )
 {
 	ImBuf *ibuf= BKE_image_get_ibuf(self->image, NULL);
-	PyObject *attr = PyList_New(2);
+	PyObject *attr;
 	
 	if( !ibuf )	/* didn't work */
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "couldn't load image data in Blender" );
+
+	attr = PyList_New(2);
+	
 	if( !attr )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				      "couldn't get Image.size attribute" );

@@ -481,7 +481,7 @@ static PyObject *Curve_setControlPoint( BPy_Curve * self, PyObject * args )
 
 static PyObject *Curve_getControlPoint( BPy_Curve * self, PyObject * args )
 {
-	PyObject *liste = PyList_New( 0 );	/* return values */
+	PyObject *liste;
 	PyObject *item;
 
 	Nurb *ptrnurb;
@@ -498,7 +498,7 @@ static PyObject *Curve_getControlPoint( BPy_Curve * self, PyObject * args )
 
 	/* if no nurbs in this curve obj */
 	if( !self->curve->nurb.first )
-		return liste;
+		return PyList_New( 0 );
 
 	/* walk the list of nurbs to find requested numcourbe */
 	ptrnurb = self->curve->nurb.first;
@@ -513,7 +513,8 @@ static PyObject *Curve_getControlPoint( BPy_Curve * self, PyObject * args )
 	if( numpoint >= ptrnurb->pntsu )
 		return ( EXPP_ReturnPyObjError( PyExc_ValueError,
 						"point index out of range" ) );
-
+	
+	liste = PyList_New( 0 );
 	if( ptrnurb->bp ) {	/* if we are a nurb curve, you get 4 values */
 		for( i = 0; i < 4; i++ ) {
 			item = PyFloat_FromDouble( ptrnurb->bp[numpoint].vec[i] );

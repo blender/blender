@@ -218,11 +218,12 @@ static PyObject *M_Text_Get( PyObject * self, PyObject * args )
 		while( txt_iter ) {
 			pyobj = Text_CreatePyObject( txt_iter );
 
-			if( !pyobj )
+			if( !pyobj ) {
+				Py_DECREF(txtlist);
 				return ( EXPP_ReturnPyObjError
 					 ( PyExc_MemoryError,
 					   "couldn't create PyString" ) );
-
+			}
 			PyList_SET_ITEM( txtlist, index, pyobj );
 
 			txt_iter = txt_iter->id.next;

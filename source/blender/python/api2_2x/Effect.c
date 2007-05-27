@@ -635,8 +635,7 @@ PyObject *M_Effect_Get( PyObject * self, PyObject * args )
 					if (eff) {
 						return EffectCreatePyObject( eff, object_iter );
 					} else { /* didn't find any effect in the given position */
-						Py_INCREF(Py_None);
-						return Py_None;
+						Py_RETURN_NONE;
 					}
 				}
 

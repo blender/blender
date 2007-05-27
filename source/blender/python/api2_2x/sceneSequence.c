@@ -512,23 +512,30 @@ static PyObject *Sequence_getImages( BPy_Sequence * self )
 	Strip *strip;
 	StripElem *se;
 	int i;
-	PyObject *attr;
+	PyObject *list, *ret;
 	
-	if (self->seq->type != SEQ_IMAGE)
-		return PyList_New(0);
+	if (self->seq->type != SEQ_IMAGE) {
+		list = PyList_New(0);
+		ret= Py_BuildValue( "sO", "", list);
+		Py_DECREF(list);
+		return ret;
+	}
+	
 			/*return EXPP_ReturnPyObjError( PyExc_TypeError,
 					"Sequence is not an image type" );*/
 	
 	
 	strip = self->seq->strip;
 	se = strip->stripdata;
-	attr = PyList_New(strip->len);
+	list = PyList_New(strip->len);
 	
 	for (i=0; i<strip->len; i++, se++) {
-		PyList_SetItem( attr, i, PyString_FromString(se->name) );
+		PyList_SetItem( list, i, PyString_FromString(se->name) );
 	}
-
-	return attr;
+	
+	ret= Py_BuildValue( "sO", strip->dir, list);
+	Py_DECREF(list);
+	return ret;
 }
 
 

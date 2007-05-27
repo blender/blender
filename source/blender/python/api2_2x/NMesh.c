@@ -533,10 +533,12 @@ static PyObject *new_NMFace( PyObject * vertexlist )
 
 			if( item )
 				PyList_SET_ITEM( vlcopy, i, item );
-			else
+			else {
+				Py_DECREF(vlcopy);
 				return EXPP_ReturnPyObjError
 					( PyExc_RuntimeError,
 					  "couldn't get vertex from a PyList" );
+			}
 		}
 	} else			/* create an empty vertex list */
 		vlcopy = PyList_New( 0 );
@@ -3808,14 +3810,16 @@ static PyObject *NMesh_assignVertsToGroup( PyObject * self, PyObject * args )
 		if( !
 		    ( PyArg_Parse
 		      ( ( PyList_GetItem( listObject, x ) ), "i",
-			&tempInt ) ) )
+			&tempInt ) ) ) {
 			return EXPP_ReturnPyObjError( PyExc_TypeError,
 						      "python list integer not parseable" );
+		}
 
 		if( tempInt < 0
-		    || tempInt >= ( ( Mesh * ) object->data )->totvert )
+		    || tempInt >= ( ( Mesh * ) object->data )->totvert ) {
 			return EXPP_ReturnPyObjError( PyExc_ValueError,
 						      "bad vertex index in list" );
+		}
 
 		add_vert_defnr( object, nIndex, tempInt, weight, assignmode );
 	}
@@ -4013,16 +4017,18 @@ static PyObject *NMesh_getVertsFromGroup( PyObject * self, PyObject * args )
 			if( !
 			    ( PyArg_Parse
 			      ( ( PyList_GetItem( listObject, x ) ), "i",
-				&tempInt ) ) )
+				&tempInt ) ) ) {
+				Py_DECREF(tempVertexList);
 				return EXPP_ReturnPyObjError( PyExc_TypeError,
 							      "python list integer not parseable" );
-
+			}
 			if( tempInt < 0
 			    || tempInt >=
-			    ( ( Mesh * ) object->data )->totvert )
+			    ( ( Mesh * ) object->data )->totvert ) {
+				Py_DECREF(tempVertexList);
 				return EXPP_ReturnPyObjError( PyExc_ValueError,
 							      "bad vertex index in list" );
-
+			}
 			num = tempInt;
 			dvert = ( ( Mesh * ) object->data )->dvert + num;
 			for( i = 0; i < dvert->totweight; i++ ) {

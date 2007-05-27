@@ -136,11 +136,12 @@ static PyObject *M_Font_Get( PyObject * self, PyObject * args )
 		while( vfont_iter ) {
 			pyobj = Font_CreatePyObject( vfont_iter );
 
-			if( !pyobj )
+			if( !pyobj ) {
+				Py_DECREF(vfontlist);
 				return ( EXPP_ReturnPyObjError
 					 ( PyExc_MemoryError,
 					   "couldn't create Object" ) );
-
+			}
 			PyList_SET_ITEM( vfontlist, index, pyobj );
 
 			vfont_iter = vfont_iter->id.next;

@@ -304,11 +304,12 @@ static PyObject *M_Camera_Get( PyObject * self, PyObject * args )
 		while( cam_iter ) {
 			pyobj = Camera_CreatePyObject( cam_iter );
 
-			if( !pyobj )
+			if( !pyobj ) {
+				Py_DECREF(cam_pylist);
 				return EXPP_ReturnPyObjError
 					( PyExc_MemoryError,
 					  "couldn't create Camera PyObject" );
-
+			}
 			PyList_SET_ITEM( cam_pylist, index, pyobj );
 
 			cam_iter = cam_iter->id.next;

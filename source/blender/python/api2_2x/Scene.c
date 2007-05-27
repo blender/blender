@@ -282,10 +282,12 @@ static int Scene_setLayerMask( BPy_Scene * self, PyObject * value )
 
 static PyObject *Scene_getLayerList( BPy_Scene * self )
 {
-	PyObject *laylist = PyList_New( 0 ), *item;
+	PyObject *laylist, *item;
 	int layers, bit = 0, val = 0;
 	
 	SCENE_DEL_CHECK_PY(self);
+	
+	laylist = PyList_New( 0 );
 	
 	if( !laylist )
 		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
@@ -677,11 +679,12 @@ static PyObject *M_Scene_Get( PyObject * self, PyObject * args )
 		while( scene_iter ) {
 			pyobj = Scene_CreatePyObject( scene_iter );
 
-			if( !pyobj )
+			if( !pyobj ) {
+				Py_DECREF(sce_pylist);
 				return ( EXPP_ReturnPyObjError
 					 ( PyExc_MemoryError,
 					   "couldn't create PyString" ) );
-
+			}
 			PyList_SET_ITEM( sce_pylist, index, pyobj );
 
 			scene_iter = scene_iter->id.next;
@@ -927,7 +930,7 @@ static PyObject *Scene_unlink( BPy_Scene * self, PyObject * args )
 static PyObject *Scene_getChildren( BPy_Scene * self )
 {
 	Scene *scene = self->scene;
-	PyObject *pylist = PyList_New( 0 );
+	PyObject *pylist;
 	PyObject *bpy_obj;
 	Object *object;
 	Base *base;
@@ -940,7 +943,8 @@ static PyObject *Scene_getChildren( BPy_Scene * self )
 
 	SCENE_DEL_CHECK_PY(self);
 
-
+	pylist = PyList_New( 0 );
+	
 	base = scene->base.first;
 
 	while( base ) {
@@ -948,12 +952,13 @@ static PyObject *Scene_getChildren( BPy_Scene * self )
 		
 		bpy_obj = Object_CreatePyObject( object );
 		
-		if( !bpy_obj )
+		if( !bpy_obj ) {
+			Py_DECREF(pylist);
 			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 						      "couldn't create new object wrapper" );
-
+		}
 		PyList_Append( pylist, bpy_obj );
-		Py_XDECREF( bpy_obj );	/* PyList_Append incref'ed it */
+		Py_DECREF( bpy_obj );	/* PyList_Append incref'ed it */
 		
 		base = base->next;
 	}

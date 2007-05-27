@@ -947,11 +947,12 @@ static PyObject *M_Texture_Get( PyObject * self, PyObject * args )
 
 		while( tex_iter ) {
 			pyobj = Texture_CreatePyObject( tex_iter );
-			if( !pyobj )
+			if( !pyobj ) {
+				Py_DECREF(tex_pylist);
 				return EXPP_ReturnPyObjError
 					( PyExc_MemoryError,
 					  "couldn't create Texture PyObject" );
-
+			}
 			PyList_SET_ITEM( tex_pylist, index, pyobj );
 
 			tex_iter = tex_iter->id.next;

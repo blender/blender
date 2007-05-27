@@ -235,11 +235,12 @@ static PyObject *M_Lattice_Get( PyObject * self, PyObject * args )
 		while( lat_iter ) {
 			pyobj = Lattice_CreatePyObject( lat_iter );
 
-			if( !pyobj )
+			if( !pyobj ) {
+				Py_DECREF(latlist);
 				return ( EXPP_ReturnPyObjError
 					 ( PyExc_MemoryError,
 					   "couldn't create PyString" ) );
-
+			}
 			PyList_SET_ITEM( latlist, index, pyobj );
 
 			lat_iter = lat_iter->id.next;

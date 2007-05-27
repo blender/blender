@@ -1678,7 +1678,7 @@ static PyObject *Ipo_getCurveBeztriple( BPy_Ipo * self, PyObject * args )
 	struct BezTriple *ptrbt;
 	int num = 0, pos, i, j;
 	IpoCurve *icu;
-	PyObject *l = PyList_New( 0 ), *pyfloat;
+	PyObject *l, *pyfloat;
 
 	if( !PyArg_ParseTuple( args, "ii", &num, &pos ) )
 		return ( EXPP_ReturnPyObjError
@@ -1702,6 +1702,7 @@ static PyObject *Ipo_getCurveBeztriple( BPy_Ipo * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "No bez triple" );
 
+	l = PyList_New( 0 );
 	for( i = 0; i < 3; i++ ) {
 		for( j = 0; j < 3; j++ ) {
 			pyfloat = PyFloat_FromDouble( ptrbt->vec[i][j] );
