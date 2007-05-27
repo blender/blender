@@ -57,7 +57,7 @@ int set_gl_material(int nr);
 int init_gl_materials(struct Object *ob, int check_alpha);
 
 void mesh_foreachScreenVert(void (*func)(void *userData, struct BME_Vert *eve, int x, int y, int index), void *userData, int clipVerts);
-void mesh_foreachScreenEdge(void (*func)(void *userData, struct EditEdge *eed, int x0, int y0, int x1, int y1, int index), void *userData, int clipVerts);
+void mesh_foreachScreenEdge(void (*func)(void *userData, struct BME_Edge *eed, int x0, int y0, int x1, int y1, int index), void *userData, int clipVerts);
 void mesh_foreachScreenFace(void (*func)(void *userData, struct EditFace *efa, int x, int y, int index), void *userData);
 
 void lattice_foreachScreenVert(void (*func)(void *userData, struct BPoint *bp, int x, int y), void *userData);

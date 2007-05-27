@@ -1150,7 +1150,7 @@ static void mesh_foreachScreenVert__mapFunc(void *userData, int index, float *co
 }
 void mesh_foreachScreenVert(void (*func)(void *userData, BME_Vert *eve, int x, int y, int index), void *userData, int clipVerts)
 {
-	struct { void (*func)(void *userData, EditVert *eve, int x, int y, int index); void *userData; int clipVerts; float pmat[4][4], vmat[4][4]; } data;
+	struct { void (*func)(void *userData, BME_Vert *eve, int x, int y, int index); void *userData; int clipVerts; float pmat[4][4], vmat[4][4]; } data;
 	DerivedMesh *dm = editmesh_get_derived_cage(CD_MASK_BAREMESH);
 	BME_Vert *eve;
 	int i;
@@ -1173,11 +1173,12 @@ void mesh_foreachScreenVert(void (*func)(void *userData, BME_Vert *eve, int x, i
 	bvert_table = NULL;
 }
 
+static BME_Edge **meshmap_edges = NULL;
+
 static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, float *v0co, float *v1co)
 {
-#if 0 //EDITBMESHGREP
 	struct { void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index); void *userData; int clipVerts; float pmat[4][4], vmat[4][4]; } *data = userData;
-	EditEdge *eed = EM_get_edge_for_index(index);
+	BME_Edge *eed = meshmap_edges[index];
 	short s[2][2];
 
 	if (eed->h==0) {
@@ -1197,12 +1198,18 @@ static void mesh_foreachScreenEdge__mapFunc(void *userData, int index, float *v0
 
 		data->func(data->userData, eed, s[0][0], s[0][1], s[1][0], s[1][1], index);
 	}
-#endif
 }
-void mesh_foreachScreenEdge(void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index), void *userData, int clipVerts)
+void mesh_foreachScreenEdge(void (*func)(void *userData, BME_Edge *eed, int x0, int y0, int x1, int y1, int index), void *userData, int clipVerts)
 {
-	struct { void (*func)(void *userData, EditEdge *eed, int x0, int y0, int x1, int y1, int index); void *userData; int clipVerts; float pmat[4][4], vmat[4][4]; } data;
+	struct { void (*func)(void *userData, BME_Edge *eed, int x0, int y0, int x1, int y1, int index); void *userData; int clipVerts; float pmat[4][4], vmat[4][4]; } data;
 	DerivedMesh *dm = editmesh_get_derived_cage(CD_MASK_BAREMESH);
+	BME_Edge *eed;
+	int i;
+
+	meshmap_edges = MEM_callocN(sizeof(void*)*G.editMesh->totedge, "meshmap_edges");
+	for (eed=G.editMesh->edges.first,i=0; eed; i++, eed=eed->next) {
+		meshmap_edges[i] = eed;
+	}
 
 	data.func = func;
 	data.userData = userData;
@@ -1210,11 +1217,11 @@ void mesh_foreachScreenEdge(void (*func)(void *userData, EditEdge *eed, int x0, 
 
 	view3d_get_object_project_mat(curarea, G.obedit, data.pmat, data.vmat);
 
-	//EDITBMESHGREP EM_init_index_arrays(0, 1, 0);
 	dm->foreachMappedEdge(dm, mesh_foreachScreenEdge__mapFunc, &data);
-	//EDITBMESHGREP EM_free_index_arrays();
 
 	dm->release(dm);
+	MEM_freeN(meshmap_edges);
+	meshmap_edges = NULL;
 }
 
 static void mesh_foreachScreenFace__mapFunc(void *userData, int index, float *cent, float *no)
@@ -2259,46 +2266,40 @@ static void draw_bme_fancy(Object *ob, BME_Mesh *bmesh, DerivedMesh *cageDM, Der
 		bglPolygonOffset(1.0);
 		glDepthMask(0);
 
-		/*draw face dot overlay.  has issues still :/*/
-		if (G.scene->selectmode & SCE_SELECT_FACE && !(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT))) {
-			glDisable(GL_DEPTH_TEST);
-			glDepthMask(0); //disable write in zbuffer
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			if (finalDM->drawEditFacePoints) finalDM->drawEditFacePoints(finalDM, 0.5);
-			glDisable(GL_BLEND);
-			glEnable(GL_DEPTH_TEST);
-			glDepthMask(1);
-		}
 		if (!(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT))) {
+			extern void glBlendColor(GLclampf red, GLclampf green, GLclampf blue, GLclampf alpha);
 			glDisable(GL_DEPTH_TEST);
 			glDepthMask(0); //disable write in zbuffer
 			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			if (finalDM->drawEditFacePoints) finalDM->drawEdges(finalDM, 1);
-			glDisable(GL_BLEND);
-			glEnable(GL_DEPTH_TEST);
-			glDepthMask(1);
-		}
+			//glBlendColor(0, 0, 0, 0.5);
+			glBlendFunc(GL_DST_COLOR, GL_ONE_MINUS_DST_COLOR);
 
-		if (G.scene->selectmode & SCE_SELECT_VERTEX && !(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT))) {
-			glDisable(GL_DEPTH_TEST);
-			glDepthMask(0); //disable write in zbuffer
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-			if (finalDM->drawEditFacePoints) finalDM->drawEditVerts(finalDM, 0.5);
+			/*draw face dot overlay.  has issues still :/*/
+			if (G.scene->selectmode & SCE_SELECT_FACE) {
+				if (finalDM->drawEditFacePoints) finalDM->drawEditFacePoints(finalDM, 0.5);
+			}
+			if (finalDM->drawEditFacePoints) finalDM->drawEdges(finalDM, 1);
+
+			if (G.scene->selectmode & SCE_SELECT_VERTEX) {
+				bglPolygonOffset(2.0);
+				if (finalDM->drawEditFacePoints) finalDM->drawEditVerts(finalDM, 0.5);
+				bglPolygonOffset(1.0);
+			}
 			glDisable(GL_BLEND);
 			glEnable(GL_DEPTH_TEST);
 			glDepthMask(1);
 		}
 	}
-	
-	if (G.scene->selectmode & SCE_SELECT_FACE) finalDM->drawEditFacePoints(finalDM, 1.0);
+	if (G.scene->selectmode & SCE_SELECT_FACE) {
+		finalDM->drawEditFacePoints(finalDM, 1.0);
+	}
 
 	if (finalDM->drawEdges) finalDM->drawEdges(finalDM, 1);
 
-	if (finalDM->drawEditVerts) finalDM->drawEditVerts(finalDM, 1.0);
-
+	if (G.scene->selectmode & SCE_SELECT_VERTEX) {
+		bglPolygonOffset(2.0);
+		if (finalDM->drawEditVerts) finalDM->drawEditVerts(finalDM, 1.0);
+	}
 	glDepthMask(1);
 	bglPolygonOffset(0.0);
 }

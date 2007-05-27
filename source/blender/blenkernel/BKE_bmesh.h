@@ -63,6 +63,7 @@ typedef struct BME_Mesh
 	struct CustomData vdata, edata, pdata, ldata;	/*Custom Data Layer information*/
 	struct DerivedMesh *derivedFinal, *derivedCage;
 	struct RetopoPaintData *retopo_paint_data; /*here for temporary code compatibility only*/
+	//BME_ElementList selection;
 	int lastDataMask;
 } BME_Mesh;
 
@@ -74,9 +75,9 @@ typedef struct BME_Vert
 {
 	struct BME_Vert *next, *prev;
 	int	EID;
-	struct BME_Edge *edge;							/*first edge in the disk cycle for this vertex*/
-	float no[3];									/*vertex normal. Actually pointer to custom data block*/
 	float co[3];									/*vertex location. Actually pointer to custom data block*/
+	float no[3];									/*vertex normal. Actually pointer to custom data block*/
+	struct BME_Edge *edge;							/*first edge in the disk cycle for this vertex*/
 	void *data;										/*custom vertex data*/
 	int eflag1, eflag2;								/*reserved for use by eulers*/
 	int tflag1, tflag2;								/*reserved for use by tools*/
@@ -93,7 +94,8 @@ typedef struct BME_Edge
 	void *data;										/*custom edge data*/
 	int eflag1, eflag2;								/*reserved for use by eulers*/
 	int tflag1, tflag2;								/*reserved for use by tools*/
-	unsigned char flag, h, crease;
+	unsigned char flag, h;
+	float crease;
 } BME_Edge;
 
 typedef struct BME_Loop 

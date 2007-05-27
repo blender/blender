@@ -20,6 +20,7 @@
 #include "BLI_PointerArray.h"
 #include "BLI_memarena.h"
 #include "BLI_blenlib.h"
+#include "BLI_arithb.h"
 
 #include "BIF_space.h"
 #include "BIF_screen.h"
@@ -28,6 +29,8 @@
 
 #include "BDR_editobject.h"
 #include "BDR_drawobject.h"
+
+#include "BSE_drawview.h"
 
 #include "mydevice.h" //event codes
 #include "editbmesh.h"
@@ -148,11 +151,12 @@ BME_Mesh *BME_FromMesh(Mesh *me)
 	CustomData_copy(&me->vdata, &bmesh->vdata, CD_MASK_EDITMESH, CD_CALLOC, 0);
 	for (i=0, mvert=me->mvert; i<me->totvert; i++, mvert++) {
 		vert_table[i] = BME_MV(bmesh, mvert->co);
-		vert_table[i]->no[0] = mvert->no[0] / 32767.0f;
-		vert_table[i]->no[1] = mvert->no[1] / 32767.0f;
-		vert_table[i]->no[2] = mvert->no[2] / 32767.0f;
+		vert_table[i]->no[0] = (float)mvert->no[0] / 32767.0f;
+		vert_table[i]->no[1] = (float)mvert->no[1] / 32767.0f;
+		vert_table[i]->no[2] = (float)mvert->no[2] / 32767.0f;
 
 		vert_table[i]->flag = mvert->flag;
+		printf("->h: %d\n", (int) vert_table[i]->h);
 		CustomData_to_em_block(&me->vdata, &bmesh->vdata, i, &vert_table[i]->data);
 
 		printf("vert_table->no: %f %f %f\n", vert_table[i]->no[0], vert_table[i]->no[1], vert_table[i]->no[2]);
@@ -367,6 +371,57 @@ void mouse_bmesh(void)
 			EditBME_FlushSelUpward(G.editMesh);
 			allqueue(REDRAWVIEW3D, 1);
 		}
+	} else if (G.scene->selectmode == SCE_SELECT_EDGE) {
+		BME_Edge *edge;
+		BME_Vert *eve;
+		BME_Edge *eed;
+		BME_Poly *efa;
+		BME_Loop *loop;
+		int dis = 75, stop=0;
+
+		edge = EditBME_FindNearestEdge(&dis);
+		printf("edge: %p\n", edge);
+
+		if (edge) {
+			if (G.qual & LR_SHIFTKEY) {
+				if (edge->flag & SELECT) edge->flag &= ~SELECT;
+				else edge->flag |= SELECT;
+			} else {
+				BME_Edge *eed;
+				for (eed=G.editMesh->edges.first; eed; eed=eed->next) eed->flag &= ~SELECT;
+				edge->flag |= SELECT;
+			}
+
+			/*Hackish code for edge flushing.  Will need proper implementation later.*/
+			for (eve=G.editMesh->verts.first; eve; eve=eve->next) eve->tflag1 = 0;
+			for (eed=G.editMesh->edges.first; eed; eed=eed->next) {
+				if (eed->flag & SELECT) {
+					eed->v1->tflag1 = 1;
+					eed->v2->tflag1 = 1;
+				}
+			}
+
+			for (eve=G.editMesh->verts.first; eve; eve=eve->next) {
+				if (eve->tflag1==0) eve->flag &= ~SELECT;
+				else eve->flag |= SELECT;
+			}
+			
+			for (efa=G.editMesh->polys.first; efa; efa=efa->next) {
+				stop = 0;
+				loop = efa->loopbase;
+				do {
+					if ((loop->e->flag & SELECT)==0) {
+						stop = 1;
+						break;
+					}
+					loop=loop->next;
+				} while (loop != efa->loopbase);
+				if (stop) efa->flag &= ~SELECT;
+				else efa->flag |= SELECT;
+			}
+
+			allqueue(REDRAWVIEW3D, 1);
+		}
 	}
 	rightmouse_transform();
 }
@@ -447,8 +502,88 @@ BME_Vert *EditBME_FindNearestVert(int *dist, short sel, short strict)
 	return NULL;
 }
 
-BME_Edge *EditBME_FindNearestEdge(int *dis)
+/* taken from editmesh_mods.c, and why isn't the arithb function used anymore?
+  returns labda for closest distance v1 to line-piece v2-v3 */
+static float labda_PdistVL2Dfl( float *v1, float *v2, float *v3) 
 {
+	float rc[2], len;
+	
+	rc[0]= v3[0]-v2[0];
+	rc[1]= v3[1]-v2[1];
+	len= rc[0]*rc[0]+ rc[1]*rc[1];
+	if(len==0.0f)
+		return 0.0f;
+	
+	return ( rc[0]*(v1[0]-v2[0]) + rc[1]*(v1[1]-v2[1]) )/len;
+}
+
+/* note; uses G.vd, so needs active 3d window */
+static void BME_findnearestedge__doClosest(void *userData, BME_Edge *eed, int x0, int y0, int x1, int y1, int index)
+{
+	struct { float mval[2]; int dist; BME_Edge *closest; } *data = userData;
+	float v1[2], v2[2];
+	int distance;
+		
+	v1[0] = x0;
+	v1[1] = y0;
+	v2[0] = x1;
+	v2[1] = y1;
+		
+	distance= PdistVL2Dfl(data->mval, v1, v2);
+		
+	if(eed->flag & SELECT) distance+=5;
+	if(distance < data->dist) {
+		if(G.vd->flag & V3D_CLIPPING) {
+			float labda= labda_PdistVL2Dfl(data->mval, v1, v2);
+			float vec[3];
+
+			vec[0]= eed->v1->co[0] + labda*(eed->v2->co[0] - eed->v1->co[0]);
+			vec[1]= eed->v1->co[1] + labda*(eed->v2->co[1] - eed->v1->co[1]);
+			vec[2]= eed->v1->co[2] + labda*(eed->v2->co[2] - eed->v1->co[2]);
+			Mat4MulVecfl(G.obedit->obmat, vec);
+
+			if(view3d_test_clipping(G.vd, vec)==0) {
+				data->dist = distance;
+				data->closest = eed;
+			}
+		}
+		else {
+			data->dist = distance;
+			data->closest = eed;
+		}
+	}
+}
+BME_Edge *EditBME_FindNearestEdge(int *dist)
+{
+	short mval[2];
+		
+	getmouseco_areawin(mval);
+
+	if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)) {
+		/*int distance;
+		unsigned int index = sample_backbuf_rect(mval, 50, em_solidoffs, em_wireoffs, &distance,0, NULL);
+		BME_Edge *eed = BLI_findlink(&G.editMesh->edges, index-1);
+
+		if (eed && distance<*dist) {
+			*dist = distance;
+			return eed;
+		} else {
+			return NULL;
+		}*/
+	}
+	else {
+		struct { float mval[2]; int dist; BME_Edge *closest; } data;
+
+		data.mval[0] = mval[0];
+		data.mval[1] = mval[1];
+		data.dist = *dist;
+		data.closest = NULL;
+
+		mesh_foreachScreenEdge(BME_findnearestedge__doClosest, &data, 2);
+
+		*dist = data.dist;
+		return data.closest;
+	}
 	return NULL;
 }
 
