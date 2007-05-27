@@ -9,7 +9,7 @@ Tooltip: 'Export the UV face layout of the selected object to a .TGA or .SVG fil
 
 __author__ = "Martin 'theeth' Poirier"
 __url__ = ("http://www.blender.org", "http://blenderartists.org/")
-__version__ = "2.3"
+__version__ = "2.4"
 
 __bpydoc__ = """\
 This script exports the UV face layout of the selected mesh object to
@@ -25,11 +25,7 @@ selected, define size and wire size parameters and push "Export" button.
 There are more options to configure, like setting export path, if image should
 use object's name and more.
 
-Notes:<br>
-	 Jean-Michel Soler (jms) wrote TGA functions used by this script.<br>
-	 Zaz added the default path code and Selected Face option.<br>
-	 Macouno fixed a rounding error in the step calculations<br>
-	 Jarod added the SVG file export<br>
+Notes:<br>See change logs in scripts for a list of contributors.
 """
 
 
@@ -97,10 +93,16 @@ Notes:<br>
 #	Version 2.3
 # Added check for excentric UVs (only affects TGA)
 # --------------------------
+#	Version 2.4
+# Port from NMesh to Mesh by Daniel Salazar (zanqdo)
+# --------------------------
+
 
 FullPython = False
 
 import Blender
+import bpy
+import BPyMessages
 
 try:
 	import os
@@ -175,18 +177,14 @@ def ExportCallback(f):
 	obj = Blender.Scene.GetCurrent().objects.active
 	
 	time1= Blender.sys.time()
-	
-	if not obj:
-		Blender.Draw.PupMenu("ERROR%t|No Active Object!")
-		return
 
 	if obj.type != "Mesh":
-		Blender.Draw.PupMenu("ERROR%t|Not a Mesh!")
+		BPyMessages.Error_NoMeshActive()
 		return
 
-	mesh = obj.getData()
-	if not mesh.hasFaceUV():
-		Blender.Draw.PupMenu("ERROR%t|No UV coordinates!")
+	mesh = obj.getData(mesh=1)
+	if not mesh.faceUV:
+		BPyMessages.Error_NoMeshUvActive()
 		return
 
 	# just for information...
@@ -259,18 +257,9 @@ def GetDefaultFilename():
 	return filename
 
 def ExtractUVFaces(mesh, allface):
-	FaceList = []
 	
-	if allface:
-		faces = mesh.faces
-	else:
-		faces = mesh.getSelectedFaces()
-
-	for f in faces:
-		FaceList.append(f.uv)
-	
-	return FaceList
-
+	if allface: return [f.uv for f in mesh.faces]
+	else:  return [f.uv for f in mesh.faces if f.sel]
 
 def Buffer(height=16, width=16, profondeur=1,rvb=255 ):  
 	"""  
