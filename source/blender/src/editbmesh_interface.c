@@ -323,6 +323,7 @@ void EditBME_remakeEditMesh(void)
 
 void EditBME_makeEditMesh(void)
 {
+	if (G.editMesh) BME_free_mesh(G.editMesh);
 	G.editMesh = BME_FromMesh(G.obedit->data);
 }
 

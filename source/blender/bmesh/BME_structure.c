@@ -44,6 +44,7 @@
 #include "BLI_linklist.h"
 #include "BLI_ghash.h"
 
+#include "BKE_customdata.h"
 /**
  *	MISC utility functions.
  *
@@ -169,22 +170,22 @@ BME_Poly *BME_addpolylist(BME_Mesh *bm, BME_Poly *example){
 */
 void BME_free_vert(BME_Mesh *bm, BME_Vert *v){
 	bm->totvert--;
-	//BME_CustomData_free_block(&bm->vdata, &v->data);
+	CustomData_em_free_block(&bm->vdata, &v->data);
 	MEM_freeN(v);
 }
 void BME_free_edge(BME_Mesh *bm, BME_Edge *e){
 	bm->totedge--;
-	//BME_CustomData_free_block(&bm->edata, &e->data);
+	CustomData_em_free_block(&bm->edata, &e->data);
 	MEM_freeN(e);
 }
 void BME_free_poly(BME_Mesh *bm, BME_Poly *f){
 	bm->totpoly--;
-	//BME_CustomData_free_block(&bm->pdata, &f->data);
+	CustomData_em_free_block(&bm->pdata, &f->data);
 	MEM_freeN(f);
 }
 void BME_delete_loop(BME_Mesh *bm, BME_Loop *l){
 	bm->totloop--;
-	//BME_CustomData_free_block(&bm->ldata, &l->data);
+	CustomData_em_free_block(&bm->ldata, &l->data);
 	MEM_freeN(l);
 }
 void BME_free_loop(BME_Mesh *bm, BME_Loop *l){

@@ -64,6 +64,7 @@
 #include "BIF_verse.h"
 #endif
 
+#include "BKE_bmesh.h"
 #include "BKE_action.h"
 #include "BKE_anim.h"
 #include "BKE_armature.h"
@@ -191,7 +192,7 @@ static void clipMirrorModifier(TransInfo *t, Object *ob)
 static void editmesh_apply_to_mirror(TransInfo *t)
 {
 	TransData *td = t->data;
-	EditVert *eve;
+	BME_Vert *eve;
 	int i;
 	
 	for(i = 0 ; i < t->total; i++, td++) {
@@ -219,14 +220,14 @@ void recalcData(TransInfo *t)
 		
 	if (G.obedit) {
 		if (G.obedit->type == OB_MESH) {
-			retopo_do_all();
+			//retopo_do_all();
 
 			/* mirror modifier clipping? */
-			if(t->state != TRANS_CANCEL)
-				clipMirrorModifier(t, G.obedit);
+			//if(t->state != TRANS_CANCEL)
+			//	clipMirrorModifier(t, G.obedit);
 			
-			if(G.scene->toolsettings->editbutflag & B_MESH_X_MIRROR)
-				editmesh_apply_to_mirror(t);
+			//if(G.scene->toolsettings->editbutflag & B_MESH_X_MIRROR)
+			//	editmesh_apply_to_mirror(t);
 			
 			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);  /* sets recalc flags */
 			

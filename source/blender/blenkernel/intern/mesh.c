@@ -185,6 +185,8 @@ void free_mesh(Mesh *me)
 	CustomData_free(&me->vdata, me->totvert);
 	CustomData_free(&me->edata, me->totedge);
 	CustomData_free(&me->fdata, me->totface);
+	CustomData_free(&me->ldata, me->totloop);
+	CustomData_free(&me->pdata, me->totpoly);
 
 	if(me->mat) MEM_freeN(me->mat);
 	

@@ -47,6 +47,7 @@
 #include "BKE_bmesh.h"
 #include "BKE_global.h"
 #include "BKE_depsgraph.h"
+#include "BKE_DerivedMesh.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
@@ -111,10 +112,20 @@ void BME_free_mesh(BME_Mesh *bm)
 		BME_free_vert(bm, bv);
 		bv = nextv; 
 	}
-
+	
+	if (bm->derivedFinal) {
+		bm->derivedFinal->needsFree = 1;
+		bm->derivedFinal->release(bm->derivedFinal);
+	}
+	
+	if (bm->derivedCage && bm->derivedCage != bm->derivedFinal) {
+		bm->derivedCage->needsFree = 1;
+		bm->derivedCage->release(bm->derivedCage);
+	}
+	
 	for(loopref=bm->loops.first;loopref;loopref=loopref->next) BME_delete_loop(bm,loopref->data);
 	BLI_freelistN(&(bm->loops));
-	MEM_freeN(bm);
+	MEM_freeN(bm);	
 }
 
 /*	

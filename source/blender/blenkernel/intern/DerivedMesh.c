@@ -845,11 +845,14 @@ static void emDM_release(DerivedMesh *dm)
 {
 	EditBMeshDerivedMesh *emdm = (EditBMeshDerivedMesh*) dm;
 
-	printf("stupid free!\n");
-	if (emdm->cdraw) {
-		emdm->cdraw->release(emdm->cdraw);
-		MEM_freeN(emdm->cdraw);
-		emdm->cdraw = NULL;
+	if (DM_release(dm)) {
+		printf("stupid free!\n");
+		if (emdm->cdraw) {
+			emdm->cdraw->release(emdm->cdraw);
+			MEM_freeN(emdm->cdraw);
+			emdm->cdraw = NULL;
+		}
+		MEM_freeN(dm);
 	}
 	emdm->recalc_cdraw = 1;
 }
@@ -2126,7 +2129,6 @@ static void bmesh_build_data(CustomDataMask dataMask)
 	em->derivedFinal->needsFree = 0;
 	em->derivedCage->needsFree = 0;	
 	em->lastDataMask = dataMask;
-	return;
 	
 	INIT_MINMAX(min, max);
 

@@ -1681,7 +1681,7 @@ void exit_editmode(int flag)	/* freedata==0 at render, 1= freedata, 2= do undo b
 		}
 		EditBME_loadEditMesh(G.obedit->data);
 
-		if(freedata) BME_free_mesh(G.editMesh);
+		if(freedata && G.editMesh) BME_free_mesh(G.editMesh);
 			
 		if(G.f & G_FACESELECT)
 			allqueue(REDRAWIMAGE, 0);

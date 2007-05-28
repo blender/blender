@@ -1319,137 +1319,6 @@ static void createTransLatticeVerts(TransInfo *t)
 #define E_VEC(a)	(vectors + (3 * (a)->tmp.l))
 #define E_NEAR(a)	(nears[((a)->tmp.l)])
 #define THRESHOLD	0.0001f
-static void editmesh_set_connectivity_distance(int total, float *vectors, EditVert **nears)
-{
-#if 0 //EDITBMESH this function is horrifically bad anyway, better rewrite it to be topologically based.
-	BME_Mesh *em = G.editMesh;
-	BME_Vert *eve;
-	BME_Edge *eed;
-	int i= 0, done= 1;
-
-	/* f2 flag is used for 'selection' */
-	/* tmp.l is offset on scratch array   */
-	for(eve= em->verts.first; eve; eve= eve->next) {
-		if(eve->h==0) {
-			eve->tmp.l = i++;
-
-			if(eve->f & SELECT) {
-				eve->f2= 2;
-				E_NEAR(eve) = eve;
-				E_VEC(eve)[0] = 0.0f;
-				E_VEC(eve)[1] = 0.0f;
-				E_VEC(eve)[2] = 0.0f;
-			}
-			else {
-				eve->f2 = 0;
-			}
-		}
-	}
-
-
-	/* Floodfill routine */
-	/*
-	At worst this is n*n of complexity where n is number of edges 
-	Best case would be n if the list is ordered perfectly.
-	Estimate is n log n in average (so not too bad)
-	*/
-	while(done) {
-		done= 0;
-		
-		for(eed= em->edges.first; eed; eed= eed->next) {
-			if(eed->h==0) {
-				EditVert *v1= eed->v1, *v2= eed->v2;
-				float *vec2 = E_VEC(v2);
-				float *vec1 = E_VEC(v1);
-
-				if (v1->f2 + v2->f2 == 4)
-					continue;
-
-				if (v1->f2) {
-					if (v2->f2) {
-						float nvec[3];
-						float len1 = VecLength(vec1);
-						float len2 = VecLength(vec2);
-						float lenn;
-						/* for v2 if not selected */
-						if (v2->f2 != 2) {
-							VecSubf(nvec, v2->co, E_NEAR(v1)->co);
-							lenn = VecLength(nvec);
-							/* 1 < n < 2 */
-							if (lenn - len1 > THRESHOLD && len2 - lenn > THRESHOLD) {
-								VECCOPY(vec2, nvec);
-								E_NEAR(v2) = E_NEAR(v1);
-								done = 1;
-							}
-							/* n < 1 < 2 */
-							else if (len2 - len1 > THRESHOLD && len1 - lenn > THRESHOLD) {
-								VECCOPY(vec2, vec1);
-								E_NEAR(v2) = E_NEAR(v1);
-								done = 1;
-							}
-						}
-						/* for v1 if not selected */
-						if (v1->f2 != 2) {
-							VecSubf(nvec, v1->co, E_NEAR(v2)->co);
-							lenn = VecLength(nvec);
-							/* 2 < n < 1 */
-							if (lenn - len2 > THRESHOLD && len1 - lenn > THRESHOLD) {
-								VECCOPY(vec1, nvec);
-								E_NEAR(v1) = E_NEAR(v2);
-								done = 1;
-							}
-							/* n < 2 < 1 */
-							else if (len1 - len2 > THRESHOLD && len2 - lenn > THRESHOLD) {
-								VECCOPY(vec1, vec2);
-								E_NEAR(v1) = E_NEAR(v2);
-								done = 1;
-							}
-						}
-					}
-					else {
-						v2->f2 = 1;
-						VecSubf(vec2, v2->co, E_NEAR(v1)->co);
-						/* 2 < 1 */
-						if (VecLength(vec1) - VecLength(vec2) > THRESHOLD) {
-							VECCOPY(vec2, vec1);
-						}
-						E_NEAR(v2) = E_NEAR(v1);
-						done = 1;
-					}
-				}
-				else if (v2->f2) {
-					v1->f2 = 1;
-					VecSubf(vec1, v1->co, E_NEAR(v2)->co);
-					/* 2 < 1 */
-					if (VecLength(vec2) - VecLength(vec1) > THRESHOLD) {
-						VECCOPY(vec1, vec2);
-					}
-					E_NEAR(v1) = E_NEAR(v2);
-					done = 1;
-				}
-			}
-		}
-	}
-#endif
-}
-
-/* loop-in-a-loop I know, but we need it! (ton) */
-static void get_face_center(float *cent, EditVert *eve)
-{
-#if 0
-	BME_Mesh *em = G.editMesh;
-	BME_Poly *efa;
-	
-	for(efa= em->faces.first; efa; efa= efa->next)
-		if(efa->flag & SELECT)
-			if(efa->v1==eve || efa->v2==eve || efa->v3==eve || efa->v4==eve)
-				break;
-				
-	if(efa) {
-		VECCOPY(cent, efa->cent);
-	}
-#endif
-}
 
 static void VertsToTransData(TransData *td, BME_Vert *eve)
 {
@@ -1457,10 +1326,14 @@ static void VertsToTransData(TransData *td, BME_Vert *eve)
 	td->loc = eve->co;
 	
 	VECCOPY(td->center, td->loc);
+	VECCOPY(td->iloc, td->loc);
+
 	//EDITBMESHGREP -- I think we can do this much better too.
 	//if(G.vd->around==V3D_LOCAL && (G.scene->selectmode & SCE_SELECT_FACE))
 	//	get_face_center(td->center, eve);
-	VECCOPY(td->iloc, td->loc);
+
+	//td->loc[0] = 0.0f;
+	//printf("td->loc: %p\n", td->loc);
 
 	// Setting normals
 	VECCOPY(td->axismtx[2], eve->no);
@@ -1513,136 +1386,11 @@ static void modifiers_setOnCage(void *ob_v, void *md_v)
 		}
 }
 
-
-/* disable subsurf temporal, get mapped cos, and enable it */
-static float *get_crazy_mapped_editverts(void)
-{
-	DerivedMesh *dm;
-	ModifierData *md;
-	float *vertexcos;
-	int i;
-	
-	for( i = 0, md=G.obedit->modifiers.first; md; ++i, md=md->next ) {
-		if(md->type==eModifierType_Subsurf)
-			if(md->mode & eModifierMode_OnCage)
-				break;
-	}
-	if(md) {
-		/* this call disables subsurf and enables the underlying modifier to deform, apparently */
-		modifiers_setOnCage(G.obedit, md);
-		/* make it all over */
-		makeDerivedMesh(G.obedit, CD_MASK_BAREMESH);
-	}
-	
-	/* now get the cage */
-	dm= editmesh_get_derived_cage(CD_MASK_BAREMESH);
-
-	vertexcos= MEM_mallocN(3*sizeof(float)*G.totvert, "vertexcos map");
-	dm->foreachMappedVert(dm, make_vertexcos__mapFunc, vertexcos);
-	
-	dm->release(dm);
-	
-	if(md) {
-		/* set back the flag, no new cage needs to be built, transform does it */
-		modifiers_setOnCage(G.obedit, md);
-	}
-	
-	return vertexcos;
-}
-
-#define TAN_MAKE_VEC(a, b, c)	a[0]= b[0] + 0.2f*(b[0]-c[0]); a[1]= b[1] + 0.2f*(b[1]-c[1]); a[2]= b[2] + 0.2f*(b[2]-c[2])
-static void set_crazy_vertex_quat(float *quat, float *v1, float *v2, float *v3, float *def1, float *def2, float *def3)
-{
-	float vecu[3], vecv[3];
-	float q1[4], q2[4];
-	
-	TAN_MAKE_VEC(vecu, v1, v2);
-	TAN_MAKE_VEC(vecv, v1, v3);
-	triatoquat(v1, vecu, vecv, q1);
-	
-	TAN_MAKE_VEC(vecu, def1, def2);
-	TAN_MAKE_VEC(vecv, def1, def3);
-	triatoquat(def1, vecu, vecv, q2);
-	
-	QuatSub(quat, q2, q1);
-}
-#undef TAN_MAKE_VEC
-
-static void set_crazyspace_quats(float *mappedcos, float *quats)
-{
-#if 0 //EDITBMESH we can toss this function
-	BME_Mesh *em = G.editMesh;
-	BME_Vert *eve, *prev;
-	BME_Poly *efa;
-	float *v1, *v2, *v3, *v4;
-	long index= 0;
-	
-	/* two abused locations in vertices */
-	for(eve= em->verts.first; eve; eve= eve->next, index++) {
-		eve->tmp.fp = NULL;
-		eve->prev= (EditVert *)index;
-	}
-	
-	/* first store two sets of tangent vectors in vertices, we derive it just from the face-edges */
-	for(efa= em->faces.first; efa; efa= efa->next) {
-		
-		/* retrieve mapped coordinates */
-		v1= mappedcos + 3*( (long)(efa->v1->prev) );
-		v2= mappedcos + 3*( (long)(efa->v2->prev) );
-		v3= mappedcos + 3*( (long)(efa->v3->prev) );
-		
-		if(efa->v2->tmp.fp==NULL && efa->v2->f1) {
-			set_crazy_vertex_quat(quats, efa->v2->co, efa->v3->co, efa->v1->co, v2, v3, v1);
-			efa->v2->tmp.fp= quats;
-			quats+= 4;
-		}
-		
-		if(efa->v4) {
-			v4= mappedcos + 3*( (long)(efa->v4->prev) );
-			
-			if(efa->v1->tmp.fp==NULL && efa->v1->f1) {
-				set_crazy_vertex_quat(quats, efa->v1->co, efa->v2->co, efa->v4->co, v1, v2, v4);
-				efa->v1->tmp.fp= quats;
-				quats+= 4;
-			}
-			if(efa->v3->tmp.fp==NULL && efa->v3->f1) {
-				set_crazy_vertex_quat(quats, efa->v3->co, efa->v4->co, efa->v2->co, v3, v4, v2);
-				efa->v3->tmp.fp= quats;
-				quats+= 4;
-			}
-			if(efa->v4->tmp.fp==NULL && efa->v4->f1) {
-				set_crazy_vertex_quat(quats, efa->v4->co, efa->v1->co, efa->v3->co, v4, v1, v3);
-				efa->v4->tmp.fp= quats;
-				quats+= 4;
-			}
-		}
-		else {
-			if(efa->v1->tmp.fp==NULL && efa->v1->f1) {
-				set_crazy_vertex_quat(quats, efa->v1->co, efa->v2->co, efa->v3->co, v1, v2, v3);
-				efa->v1->tmp.fp= quats;
-				quats+= 4;
-			}
-			if(efa->v3->tmp.fp==NULL && efa->v3->f1) {
-				set_crazy_vertex_quat(quats, efa->v3->co, efa->v1->co, efa->v2->co, v3, v1, v2);
-				efa->v3->tmp.fp= quats;
-				quats+= 4;
-			}
-		}
-	}
-
-	/* restore abused prev pointer */
-	for(prev= NULL, eve= em->verts.first; eve; prev= eve, eve= eve->next)
-		eve->prev= prev;
-#endif
-}
-
 static void createTransEditVerts(TransInfo *t)
 {
 	TransData *tob = NULL;
 	BME_Mesh *em = G.editMesh;
 	BME_Vert *eve;
-	BME_Vert **nears = NULL;
-	float *vectors = NULL, *mappedcos = NULL, *quats= NULL;
 	float mtx[3][3], smtx[3][3];
 	int count=0, countsel=0;
 	int propmode = t->flag & T_PROP_EDIT;
@@ -1651,8 +1399,9 @@ static void createTransEditVerts(TransInfo *t)
 	// transform now requires awareness for select mode, so we tag the tflag1 flags in verts
 	if(G.scene->selectmode & SCE_SELECT_VERTEX) {
 		for(eve= em->verts.first; eve; eve= eve->next) {
-			if(eve->h==0 && (eve->flag & SELECT)) 
+			if(eve->h==0 && (eve->flag & SELECT))  {
 				eve->tflag1= SELECT;
+			}
 			else
 				eve->tflag1= 0;
 		}
@@ -1687,39 +1436,20 @@ static void createTransEditVerts(TransInfo *t)
 		}
 	}
 	
+	printf("count: %d, countsel: %d\n", count, countsel);
+
  	/* note: in prop mode we need at least 1 selected */
 	if (countsel==0) return;
 	
 	if(propmode) {
 		t->total = count; 
-	
-		/* allocating scratch arrays */
-	//	vectors = (float *)MEM_mallocN(t->total * 3 * sizeof(float), "scratch vectors");
-//		nears = (EditVert**)MEM_mallocN(t->total * sizeof(BME_Vert*), "scratch nears");
-	}
-	else t->total = countsel;
+	} else t->total = countsel;
+
 	tob= t->data= MEM_callocN(t->total*sizeof(TransData), "TransObData(Mesh EditMode)");
 	
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
 
-//	if(propmode) editmesh_set_connectivity_distance(t->total, vectors, nears);
-	
-	/* detect CrazySpace [tm] */
-	/* heh I never did get the purpose of this stuff.  I always had an easier time
-	  editing with it disabled :)
-	if(propmode==0) {
-		if(modifiers_getCageIndex(G.obedit, NULL)>=0) {
-			if(modifiers_isDeformed(G.obedit)) {
-				disable subsurf temporal, get mapped cos, and enable it
-				mappedcos= get_crazy_mapped_editverts();
-				quats= MEM_mallocN( (t->total)*sizeof(float)*4, "crazy quats");
-				set_crazyspace_quats(mappedcos, quats);
-			}
-		}
-	}
-	*/
-	
 	/* find out which half we do */
 	if(mirror) {
 		for (eve=em->verts.first; eve; eve=eve->next) {
@@ -1735,39 +1465,12 @@ static void createTransEditVerts(TransInfo *t)
 		if(eve->h==0) {
 			if(propmode || eve->tflag1) {
 				VertsToTransData(tob, eve);
-
+				printf("converted! co: [%f, %f, %f], tob: %p\n", tob->loc[0], tob->loc[1], tob->loc[2], tob);
 				if(eve->tflag1) tob->flag |= TD_SELECTED;
 				if(propmode) {
-					//if (eve->tflag2) {
-					//	float vec[3];
-					//	VECCOPY(vec, E_VEC(eve));
-					//	Mat3MulVecfl(mtx, vec);
-					//	tob->dist= VecLength(vec);
-					//}
-					//else {
-					{
-						tob->flag |= TD_NOTCONNECTED;
-						tob->dist = MAXFLOAT;
-					}
+					tob->flag |= TD_NOTCONNECTED;
+					tob->dist = MAXFLOAT;
 				}
-				
-				
-				/* CrazySpace
-				if(quats && eve->tmp.fp) {
-					float mat[3][3], imat[3][3], qmat[3][3];
-					
-					QuatToMat3(eve->tmp.fp, qmat);
-					Mat3MulMat3(mat, mtx, qmat);
-					Mat3Inv(imat, mat);
-					
-					Mat3CpyMat3(tob->smtx, imat);
-					Mat3CpyMat3(tob->mtx, mat);
-				}
-				else {
-					Mat3CpyMat3(tob->smtx, smtx);
-					Mat3CpyMat3(tob->mtx, mtx);
-				}
-				*/
 				
 				/* Mirror? */
 				//EDITBMESHGREP
@@ -1779,15 +1482,6 @@ static void createTransEditVerts(TransInfo *t)
 			}
 		}	
 	}
-	if (propmode) {
-		//MEM_freeN(vectors);
-		//MEM_freeN(nears);
-	}
-	/* crazy space free */
-	//if(mappedcos)
-	//	MEM_freeN(mappedcos);
-	//if(quats)
-	//	MEM_freeN(quats);
 }
 
 /* ********************* UV ****************** */
@@ -1929,6 +1623,7 @@ void flushTransUVs(TransInfo *t)
 
 int clipUVTransform(TransInfo *t, float *vec, int resize)
 {
+	return 0;
 #if 0 //EDITBMESHGREP
 	TransData *td;
 	int a, clipx=1, clipy=1;
