@@ -808,6 +808,7 @@ void mball_to_mesh(ListBase *lb, Mesh *me)
 	}	
 }
 
+/* this may fail replacing ob->data, be sure to check ob->type */
 void nurbs_to_mesh(Object *ob)
 {
 	Object *ob1;
@@ -847,7 +848,8 @@ void nurbs_to_mesh(Object *ob)
 		dl= dl->next;
 	}
 	if(totvert==0) {
-		error("can't convert");
+		/* error("can't convert"); */
+		/* Make Sure you check ob->data is a curve */
 		return;
 	}
 

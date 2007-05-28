@@ -5704,6 +5704,10 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 		nurbs_to_mesh( tmpobj );
 		tmpmesh = tmpobj->data;
 		free_libblock_us( &G.main->object, tmpobj );
+		
+		if (ob->type != OB_MESH)
+			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"cant convert curve to mesh. Does the curve have any segments?" );
  		break;
  	case OB_MBALL:
 		/* metaballs don't have modifiers, so just convert to mesh */
