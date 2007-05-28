@@ -285,16 +285,24 @@ def NSIS_Installer():
         Exit()
         
     install_base_dir = os.getcwd() + "\\"
+	
+    if not os.path.exists(install_base_dir+env['BF_INSTALLDIR']+'/plugins/include'):
+        os.mkdir(install_base_dir+env['BF_INSTALLDIR']+'/plugins/include')
+        
+    for f in glob.glob('source/blender/blenpluginapi/*.h'):
+        shutil.copy(f,install_base_dir+env['BF_INSTALLDIR']+'/plugins/include')
 
+    shutil.copy('source/blender/blenpluginapi/plugin.def',install_base_dir+env['BF_INSTALLDIR']+'/plugins/include/')
+    
     os.chdir("release")
     v = open("VERSION")
-    version = v.read()[:-1]
+    version = v.read()[:-1]	
     shortver = version.split('.')[0] + version.split('.')[1]
     v.close()
 
     #### change to suit install dir ####
     inst_dir = install_base_dir + env['BF_INSTALLDIR']
-
+    
     os.chdir("windows/installer")
 
     ns = open("00.sconsblender.nsi","r")
@@ -591,7 +599,7 @@ allinstall = [blenderinstall, dotblenderinstall, scriptinstall, plugininstall, t
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw'):
     dllsources = ['${LCGDIR}/gettext/lib/gnu_gettext.dll',
                         '${LCGDIR}/png/lib/libpng.dll',
-#                        '#release/windows/extra/python24.zip',
+                        '#release/windows/extra/python25.zip',
 #                        '#release/windows/extra/zlib.pyd',
                         '${LCGDIR}/sdl/lib/SDL.dll',
                         '${LCGDIR}/zlib/lib/zlib.dll',
