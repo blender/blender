@@ -4391,6 +4391,13 @@ static PyObject *Object_getMatrixWorld( BPy_Object * self )
 	return newMatrixObject((float*)self->object->obmat,4,4,Py_WRAP);
 }
 
+/* Parent Inverse matrix */
+
+static PyObject *Object_getMatrixParentInverse( BPy_Object * self )
+{
+	return newMatrixObject((float*)self->object->parentinv,4,4,Py_WRAP);
+}
+
 /*
  * Old behavior, prior to Blender 2.34, where eventual changes made by the
  * script itself were not taken into account until a redraw happened, either
@@ -4760,6 +4767,10 @@ static PyGetSetDef BPy_Object_getseters[] = {
 	{"matrixLocal",
 	 (getter)Object_getMatrixLocal, (setter)Object_setMatrix,
 	 "localspace matrix: relative to the object's parent",
+	 NULL},
+	{"matrixParentInverse",
+	 (getter)Object_getMatrixParentInverse, (setter)NULL,
+	 "parents inverse matrix: parents localspace inverted matrix",
 	 NULL},
 	{"matrixOldWorld",
 	 (getter)Object_getMatrixOldWorld, (setter)NULL,

@@ -366,6 +366,8 @@ class Object:
 	@ivar matrixLocal: The matrix of the object relative to its parent; if there is no parent,
 	returns the world matrix (L{matrixWorld<Object.Object.matrixWorld>}).
 	@type matrixLocal: Matrix
+	@ivar matrixParentInverse: The inverse if the parents local matrix, set when the objects parent is set (wrapped).
+	@type matrixParentInverse: Matrix
 	@ivar matrixOldWorld: Old-type worldspace matrix (prior to Blender 2.34).
 		Read-only.
 	@type matrixOldWorld: Matrix
