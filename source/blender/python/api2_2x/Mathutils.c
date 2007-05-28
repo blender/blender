@@ -1065,7 +1065,7 @@ PyObject *M_Mathutils_Quaternion(PyObject * self, PyObject * args)
 			}
 		}else{
 			listObject = PySequence_GetItem(args, 1);
-			if (PySequence_Check(listObject)) {
+			if (size>1 && PySequence_Check(listObject)) {
 				size = PySequence_Length(listObject);
 				if (size != 3) { 
 					// invalid args/size
