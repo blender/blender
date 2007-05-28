@@ -585,6 +585,8 @@ PyObject *Text3d_Init( void )
 		generate_ModuleIntConstant("Text3d.RIGHT", CU_RIGHT));
 	PyModule_AddObject( submodule, "FLUSH",
 		generate_ModuleIntConstant("Text3d.FLUSH", CU_FLUSH));
+	PyModule_AddObject( submodule, "JUSTIFY",
+		generate_ModuleIntConstant("Text3d.JUSTIFY", CU_JUSTIFY));
 	PyModule_AddObject( submodule, "DRAW3D",
 		generate_ModuleIntConstant("Text3d.DRAW3D", CU_3D));
 	PyModule_AddObject( submodule, "DRAWFRONT",
@@ -1050,7 +1052,10 @@ static PyObject *Text3d_getAlignment( BPy_Text3d * self )
 		return return_ModuleConstant("RIGHT");
 	}else if (self->curve->spacemode == CU_FLUSH){
 		return return_ModuleConstant("FLUSH");
+	}else if (self->curve->spacemode == CU_JUSTIFY){ 
+		return return_ModuleConstant("JUSTIFY");
 	}
+
 	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
 		"couldn't get Curve.spacemode attribute" ) );
 }
