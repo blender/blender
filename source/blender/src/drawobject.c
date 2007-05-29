@@ -2003,7 +2003,6 @@ void BGLCache_endCache(void *vself)
 
 	CACHEERROR_CHECK
 	
-	printf("in endCache!\n");
 	self->gl_arena = BLI_memarena_new(1<<13);
 
 	for (i=0; i<self->totmat; i++) {
@@ -2073,12 +2072,10 @@ void BGLCache_drawFacesSolid(void *vself, int usecolors)
 
 	glShadeModel(GL_SMOOTH);
 
-	printf("in draw cache!\n");
 	glDisableClientState(GL_COLOR_ARRAY);
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	for (i=0; i<self->totmat; i++) {
-		printf("drawing a material group!\n");
 		group = &self->facegroups[i];
 		if (group->facenormals) glEnableClientState(GL_NORMAL_ARRAY);
 		
@@ -2091,7 +2088,6 @@ void BGLCache_drawFacesSolid(void *vself, int usecolors)
 	}
 	glDisableClientState(GL_VERTEX_ARRAY);
 
-	printf("out of draw cache!\n");
 	glShadeModel(GL_FLAT);
 }
 

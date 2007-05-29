@@ -1332,9 +1332,6 @@ static void VertsToTransData(TransData *td, BME_Vert *eve)
 	//if(G.vd->around==V3D_LOCAL && (G.scene->selectmode & SCE_SELECT_FACE))
 	//	get_face_center(td->center, eve);
 
-	//td->loc[0] = 0.0f;
-	//printf("td->loc: %p\n", td->loc);
-
 	// Setting normals
 	VECCOPY(td->axismtx[2], eve->no);
 	td->axismtx[0][0]		=
@@ -1436,8 +1433,6 @@ static void createTransEditVerts(TransInfo *t)
 		}
 	}
 	
-	printf("count: %d, countsel: %d\n", count, countsel);
-
  	/* note: in prop mode we need at least 1 selected */
 	if (countsel==0) return;
 	
@@ -1465,7 +1460,7 @@ static void createTransEditVerts(TransInfo *t)
 		if(eve->h==0) {
 			if(propmode || eve->tflag1) {
 				VertsToTransData(tob, eve);
-				printf("converted! co: [%f, %f, %f], tob: %p\n", tob->loc[0], tob->loc[1], tob->loc[2], tob);
+				//printf("converted! co: [%f, %f, %f], tob: %p\n", tob->loc[0], tob->loc[1], tob->loc[2], tob);
 				if(eve->tflag1) tob->flag |= TD_SELECTED;
 				if(propmode) {
 					tob->flag |= TD_NOTCONNECTED;

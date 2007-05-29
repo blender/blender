@@ -261,9 +261,6 @@ static void cdDM_drawFacesSolid(DerivedMesh *dm, int (*setMaterial)(int))
 	float *nors= dm->getFaceDataArray(dm, CD_NORMAL);
 	int a, j, glmode = -1, shademodel = -1, matnr = -1, drawCurrentMat = 1;
 
-	//printf("v: %p f: %p l: %p p: %p\n", mvert, mface, mloop, mpoly);
-	//printf("totpolys: %d\n", dm->numPolyData);
-	
 	for (mpoly=cddm->mpoly, a=0; a<dm->numPolyData; a++, mpoly++) {
 		int new_glmode, new_matnr, new_shademodel;
 		//printf("poly a: %d\n", a);
@@ -797,7 +794,6 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *ob)
 	DerivedMesh *dm = &cddm->dm;
 	int i, *index;
 
-	printf("CDDM_from_mesh() called!!!\n");
 	/* this does a referenced copy, the only new layers being ORIGINDEX */
 
 	DM_init(dm, mesh->totvert, mesh->totedge, mesh->totface, mesh->totloop, mesh->totpoly);
@@ -843,7 +839,6 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *ob)
 
 DerivedMesh *CDDM_from_editmesh(EditMesh *em, Mesh *me)
 {
-	printf("CCDM_from_editmesh called!\n");
 	return NULL;
 #if 0
 	DerivedMesh *dm = CDDM_new(BLI_countlist(&em->verts),

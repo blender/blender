@@ -695,12 +695,10 @@ static void emDM_recalcDrawCache(EditBMeshDerivedMesh *emdm)
 	/*Eck! remember to write code to set high (which is the transparent highlight color!)*/
 	if (!emdm->cdraw) emdm->cdraw = bglCacheNew();
 
-	printf("in emDM_recalcDrawCache!\n");
 	emdm->cdraw->release(emdm->cdraw); /*resets the entire draw cache*/
 	emdm->cdraw->setMaterials(emdm->cdraw, G.obedit->totcol, G.obedit->mat);
 	emdm->cdraw->beginCache(emdm->cdraw);
 
-	printf("bleh 1\n");
 	for (efa=emdm->bmesh->polys.first; efa; efa=efa->next) {
 
 		/*do face dot*/
@@ -726,7 +724,6 @@ static void emDM_recalcDrawCache(EditBMeshDerivedMesh *emdm)
 				VECCOPY(no[0], loop->v->no);
 				VECCOPY(no[1], loop->next->v->no);
 				VECCOPY(no[2], efa->loopbase->v->no);
-				printf("smooth face!\n");
 			} else {
 				CalcNormFloat(efa->loopbase->v->co, efa->loopbase->next->v->co, 
 				              efa->loopbase->next->next->v->co, nor);
@@ -739,13 +736,11 @@ static void emDM_recalcDrawCache(EditBMeshDerivedMesh *emdm)
 		} while (loop != efa->loopbase->prev);
 	}
 	
-	printf("bleh 2\n");
 	for (eve=emdm->bmesh->verts.first; eve; eve=eve->next) {
 		if (eve->flag & SELECT) emdm->cdraw->addVertPoint(emdm->cdraw, eve->co, svcol);
 		else emdm->cdraw->addVertPoint(emdm->cdraw, eve->co, vcol);
 	}
 
-	printf("bleh 3\n");
 	for (eed=emdm->bmesh->edges.first, i=0; eed; i++, eed=eed->next) {
 		if (eed->flag & SELECT) emdm->cdraw->addEdgeWire(emdm->cdraw, eed->v1->co, eed->v2->co, secol, secol, i);
 		else emdm->cdraw->addEdgeWire(emdm->cdraw, eed->v1->co, eed->v2->co, ecol, ecol, i);
@@ -769,9 +764,7 @@ static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 	EditBMeshDerivedMesh *emdm = (EditBMeshDerivedMesh*) dm;
 	if (emdm->recalc_cdraw) emDM_recalcDrawCache(emdm);
 
-	printf("drawing!\n");
 	emdm->cdraw->drawFacesSolid(emdm->cdraw, 0);
-	printf("end draw.\n");
 }
 
 static void emDM_getMinMax(DerivedMesh *dm, float min_r[3], float max_r[3])
@@ -846,7 +839,6 @@ static void emDM_release(DerivedMesh *dm)
 	EditBMeshDerivedMesh *emdm = (EditBMeshDerivedMesh*) dm;
 
 	if (DM_release(dm)) {
-		printf("stupid free!\n");
 		if (emdm->cdraw) {
 			emdm->cdraw->release(emdm->cdraw);
 			MEM_freeN(emdm->cdraw);

@@ -156,11 +156,7 @@ BME_Mesh *BME_FromMesh(Mesh *me)
 		vert_table[i]->no[2] = (float)mvert->no[2] / 32767.0f;
 
 		vert_table[i]->flag = mvert->flag;
-		printf("->h: %d\n", (int) vert_table[i]->h);
 		CustomData_to_em_block(&me->vdata, &bmesh->vdata, i, &vert_table[i]->data);
-
-		printf("vert_table->no: %f %f %f\n", vert_table[i]->no[0], vert_table[i]->no[1], vert_table[i]->no[2]);
-		printf("mvert->no: %d %d %d\n", (int)mvert->no[0], (int)mvert->no[1], (int)mvert->no[2]);
 	}
 
 	for (i=0, medge=me->medge; i<me->totedge; i++, medge++) {
@@ -171,7 +167,6 @@ BME_Mesh *BME_FromMesh(Mesh *me)
 	CustomData_copy(&me->pdata, &bmesh->pdata, CD_MASK_EDITMESH, CD_CALLOC, 0);
 	for (i=0, mpoly=me->mpoly; i<me->totpoly; i++, mpoly++) {
 		mloop = &me->mloop[mpoly->firstloop];
-		printf("mpoly->firstloop: %d, me->mloop: %p\n", mpoly->firstloop, me->mloop);
 		for (j=0; j<mpoly->totloop; j++) {
 			/*hrm. . . a simple scratch pointer array of, oh 6000 length might be better here.*/
 			PA_AddToArray(&edgearr, edge_table[mloop->edge], j);
@@ -179,7 +174,11 @@ BME_Mesh *BME_FromMesh(Mesh *me)
 		}		
 		poly = BME_MF(bmesh, ((BME_Edge*)edgearr.array[0])->v1, ((BME_Edge*)edgearr.array[0])->v2, (BME_Edge**)edgearr.array, j);
 		poly->flag = mpoly->flag;
-		if (!poly) printf("EVIL POLY NOT CREATED!! EVVVIILL!!\n");
+		if (!poly) {
+			printf("EVIL POLY NOT CREATED!! EVVVIILL!!\n");
+			PA_FreeArray(&edgearr); /*basically sets array length to NULL*/
+			return bmesh;
+		}
 		PA_FreeArray(&edgearr); /*basically sets array length to NULL*/
 		CustomData_to_em_block(&me->pdata, &bmesh->pdata, i, &poly->data);
 	}
@@ -206,7 +205,6 @@ void Mesh_FromBMesh(BME_Mesh *bmesh, Mesh *me)
 	int i, j, curloop=0;
 	short no[3];
 
-	printf("v: %d e: %d l: %d p: %d\n", bmesh->totvert, bmesh->totedge, bmesh->totloop, bmesh->totpoly);
 	CustomData_free(&me->vdata, me->totvert);
 	CustomData_free(&me->edata, me->totedge);
 	CustomData_free(&me->fdata, me->totface);
@@ -247,11 +245,6 @@ void Mesh_FromBMesh(BME_Mesh *bmesh, Mesh *me)
 		VECCOPY(mvert->no, no);
 		CustomData_from_em_block(&bmesh->vdata, &me->vdata, bve->data, i);
 		mvert->flag = bve->flag;
-
-		printf("bve->no: %f %f %f\n", bve->no[0], bve->no[1], bve->no[2]);
-		printf("bve->no: %d %d %d\n", (int)mvert->no[0], (int)mvert->no[1], (int)mvert->no[2]);
-
-		//printf("mesh->co: %f %f %f\n", mvert->co[0], mvert->co[1], mvert->co[2]);
 	}
 	
 	/* the edges */
@@ -355,11 +348,9 @@ void EditBME_FlushSelUpward(BME_Mesh *mesh)
 
 void mouse_bmesh(void)
 {
-	printf("in mouse_bmesh()\n");
 	if (G.scene->selectmode == SCE_SELECT_VERTEX) {
 		int dis = 75;
 		BME_Vert *vert = EditBME_FindNearestVert(&dis, 1, 0);
-		printf("vert: %p\n", vert);
 		if (vert) {
 			if (G.qual & LR_SHIFTKEY) {
 				if (vert->flag & SELECT) vert->flag &= ~SELECT;
@@ -381,7 +372,6 @@ void mouse_bmesh(void)
 		int dis = 75, stop=0;
 
 		edge = EditBME_FindNearestEdge(&dis);
-		printf("edge: %p\n", edge);
 
 		if (edge) {
 			if (G.qual & LR_SHIFTKEY) {

@@ -6477,7 +6477,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 	
 	/*patch meshes*/
-	if (main->versionfile <= 244 && main->subversionfile < 1) {
+	if (main->versionfile <= 244 && main->subversionfile < 8) {
 		/*BMesh Stuff!!*/
 		Mesh *mesh;
 		MEdge *medge;
