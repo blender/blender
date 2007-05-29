@@ -2226,7 +2226,6 @@ static bglCacheDrawInterface cache_template = {
 	BGLCache_drawEdgesBackSel,
 	BGLCache_drawVertsBackSel,
 	BGLCache_release,
-	BGLCache_drawCacheOverloadColors
 };
 
 bglCacheDrawInterface *bglCacheNew(void)

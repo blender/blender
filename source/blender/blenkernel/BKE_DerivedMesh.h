@@ -74,6 +74,7 @@ typedef struct bglCacheDrawInterface {
 	void (*setMaterials)(void *vself, int totmat, struct Material **materials);
 	void (*beginCache)(void *vself);
 	
+	/*highcols are for drawing transparent highlight faces.*/
 	void (*addTriangle)(void *vself, float verts[][3], float normals[][3], char cols[][3],
 	                              char highcols[4], int mat);
 	                              
@@ -99,21 +100,11 @@ typedef struct bglCacheDrawInterface {
 
 	/*NOTE: does not free the struct pointed to at vself! just direct data*/
 	void (*release)(void *vself);
-
-	/* char *colors is an array of per-triangle colors.*/
-	void (*drawCacheOverloadColors)(void *vself, char *colors, int drawlevel, int flags);
 } bglCacheDrawInterface;
 
-#define BGLC_EnableLighting		1
-#define BGLC_EnableMaterial		2
-#define BGLC_EnableSmooth		4
-#define BGLC_EnableFaces		8
-#define BGLC_EnableWires		16
-#define BGLC_EnablePoints		32
-
-/*theres always one group per material, that is
-  entirely triangles.*/
-
+/** Interal data structure for bglCacheMesh, should not be accessed directly.
+    Note that all this data is converted to opengl arrays and freed on cache->endCache()
+ **/
 typedef struct bglTriangle {
 	struct bglTriangle *next, *prev;
 	float uv[3][2];
@@ -137,6 +128,8 @@ typedef struct bglVertPoint {
 	char col[3];
 } bglVertPoint;
 
+/*theres always one group per material, that is
+  entirely triangles.*/
 typedef struct bglCacheFaceGroup {
 	float *faceverts;
 	char *facecolors;

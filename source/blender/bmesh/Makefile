@@ -1,5 +1,5 @@
 #
-# $Id$
+# $Id: Makefile 10354 2007-03-24 21:06:23Z scourage $
 #
 # ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
 #
@@ -31,23 +31,35 @@
 #
 #
 
-include nan_definitions.mk
+LIBNAME = bmesh
+DIR = $(OCGDIR)/blender/$(LIBNAME)
 
-DIRS = blenloader readblenfile
-DIRS += avi imbuf render radiosity blenlib blenkernel blenpluginapi
-DIRS += makesdna src yafray
-DIRS += python nodes bmesh
+include nan_compile.mk
 
-ifeq ($(INTERNATIONAL), true)
-	DIRS += ftfont
+ifeq ($(OS),$(findstring $(OS), "beos darwin freebsd openbsd linux solaris windows"))
+    CFLAGS += -funsigned-char
 endif
 
-ifeq ($(WITH_QUICKTIME), true)
-	DIRS += quicktime
-endif
+CFLAGS += $(LEVEL_1_C_WARNINGS)
 
-DIR = $(OCGDIR)/blender
-SOURCEDIR = source/blender
-TESTDIRS = deflate streamglue
+# OpenGL and Python
+CPPFLAGS += -I$(OPENGL_HEADERS)
+CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)
 
-include nan_subdirs.mk
+CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
+# Reference to the types in makesdna and imbuf
+CPPFLAGS += -I../../makesdna
+CPPFLAGS += -I../../imbuf
+# This mod uses the BLI and BLO module
+CPPFLAGS += -I../../blenlib
+CPPFLAGS += -I../../blenloader
+CPPFLAGS += -I../../python
+# also avi is used
+CPPFLAGS += -I../../avi
+CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
+
+# we still refer to /include a bit...
+CPPFLAGS += -I../../include
+
+# path to our own external headerfiles
+CPPFLAGS += -I..
