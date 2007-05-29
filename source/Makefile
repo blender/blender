@@ -94,6 +94,8 @@ GRPLIB += $(OCGDIR)/blender/python/$(DEBUG_DIR)libpython.a
 # linkers (e.g. under Linux) need libs to be specified multiple times
 # to properly resolve circular dependencies. ugly, but it works...
 # the repeat entries could probably be trimmed down.
+COMLIB += $(OCGDIR)/blender/bmesh/$(DEBUG_DIR)libbmesh.a
+
 COMLIB = $(OCGDIR)/blender/blenkernel/$(DEBUG_DIR)libblenkernel.a
 COMLIB += $(NAN_DECIMATION)/lib/libdecimation.a
 COMLIB += $(OCGDIR)/blender/blenloader/$(DEBUG_DIR)libblenloader.a
