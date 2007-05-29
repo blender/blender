@@ -1,7 +1,7 @@
 #!BPY
 
 """
- Name: 'Save Mesh as MDD'
+ Name: 'Vertex Keyframe Animation (.mdd)...'
  Blender: 242
  Group: 'Export'
  Tooltip: 'Animated mesh to MDD vertex keyframe file.'
@@ -36,7 +36,7 @@ Be sure not to use modifiers that change the number or order of verts in the mes
 #
 # ***** END GPL LICENCE BLOCK *****
 
-
+import bpy
 import Blender
 from Blender import *
 import BPyMessages
@@ -118,7 +118,7 @@ def mdd_export_ui(filepath):
 	if not BPyMessages.Warning_SaveOver(filepath):
 		return
 	
-	scn= Scene.GetCurrent()
+	scn= bpy.data.scenes.active
 	ob_act= scn.objects.active
 	if not ob_act or ob_act.type != 'Mesh':
 		BPyMessages.Error_NoMeshActive()
