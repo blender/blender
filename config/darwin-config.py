@@ -1,4 +1,4 @@
-LCGDIR = '#../lib/darwin-6.1-powerpc'
+LCGDIR = '#../../trunk/lib/darwin-6.1-powerpc'
 LIBDIR = '${LCGDIR}'
 
 # enable ffmpeg  support
@@ -15,16 +15,17 @@ BF_VERSE_INCLUDE = BF_VERSE
 BF_VERSE_LIBS = "libverse"
 
 # python.org libs install in /library 
-BF_PYTHON_VERSION = '2.3'
+BF_PYTHON_VERSION = '2.5'
 if BF_PYTHON_VERSION=='2.3':
 	BF_PYTHON = '/System/Library/Frameworks/Python.framework/Versions/'
 else:
-	BF_PYTHON = '/Library/Frameworks/Python.framework/Versions/'
+	BF_PYTHON = '/Library/Frameworks/Python.framework'
 
-BF_PYTHON_INC = '${BF_PYTHON}${BF_PYTHON_VERSION}/include/python${BF_PYTHON_VERSION}'
-BF_PYTHON_BINARY = '${BF_PYTHON}${BF_PYTHON_VERSION}/bin/python${BF_PYTHON_VERSION}'
+BF_PYTHON_INC = '${BF_PYTHON}/Headers'
+BF_PYTHON_BINARY = '${BF_PYTHON}/python'
 BF_PYTHON_LIB = ''
-BF_PYTHON_LIBPATH = '${BF_PYTHON}${BF_PYTHON_VERSION}/lib/python${BF_PYTHON_VERSION}/config'
+BF_PYTHON_LIBPATH = '${BF_PYTHON}/Versions/${BF_PYTHON_VERSION}/lib/python${BF_PYTHON_VERSION}/config'
+#BF_PYTHON_LIBPATH = '${BF_PYTHON}${BF_PYTHON_VERSION}/lib/python${BF_PYTHON_VERSION}/config'
 BF_PYTHON_LINKFLAGS = '-u __dummy -u _PyMac_Error -framework System -framework Python'
 
 WITH_BF_OPENAL = 'true'
@@ -32,7 +33,7 @@ WITH_BF_OPENAL = 'true'
 # for gcc 3.3
 #BF_OPENAL = LIBDIR + '/openal'
 # for gcc 3.4
-BF_OPENAL = '#../lib/darwin-8.0.0-powerpc/openal'
+BF_OPENAL = '#../../trunk/lib/darwin-8.0.0-powerpc/openal'
 
 BF_OPENAL_INC = '${BF_OPENAL}/include'
 BF_OPENAL_LIB = 'openal'
@@ -86,7 +87,7 @@ BF_FTGL_INC = '${BF_FTGL}/include'
 BF_FTGL_LIB = 'extern_ftgl'
 
 WITH_BF_GAMEENGINE='true'
-WITH_BF_PLAYER='true'
+WITH_BF_PLAYER='false'
 
 WITH_BF_ODE = 'false'
 BF_ODE = LIBDIR + '/ode'

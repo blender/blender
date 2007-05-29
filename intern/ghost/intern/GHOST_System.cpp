@@ -47,13 +47,14 @@
 
 #include "GHOST_DisplayManager.h"
 #include "GHOST_EventManager.h"
+#include "GHOST_NDOFManager.h"
 #include "GHOST_TimerTask.h"
 #include "GHOST_TimerManager.h"
 #include "GHOST_WindowManager.h"
 
 
 GHOST_System::GHOST_System()
-: m_displayManager(0), m_timerManager(0), m_windowManager(0), m_eventManager(0)
+: m_displayManager(0), m_timerManager(0), m_windowManager(0), m_eventManager(0), m_ndofManager(0)
 {
 }
 
@@ -239,6 +240,19 @@ GHOST_TSuccess GHOST_System::pushEvent(GHOST_IEvent* event)
 	return success;
 }
 
+void GHOST_System::openNDOF(GHOST_IWindow* w,
+        GHOST_NDOFLibraryInit_fp setNdofLibraryInit, 
+        GHOST_NDOFLibraryShutdown_fp setNdofLibraryShutdown,
+        GHOST_NDOFDeviceOpen_fp setNdofDeviceOpen,
+        GHOST_NDOFEventHandler_fp setNdofEventHandler)
+{
+    m_ndofManager->deviceOpen(w,
+        setNdofLibraryInit, 
+        setNdofLibraryShutdown,
+        setNdofDeviceOpen,
+        setNdofEventHandler);
+}
+
 
 GHOST_TSuccess GHOST_System::getModifierKeyState(GHOST_TModifierKeyMask mask, bool& isDown) const
 {
@@ -271,6 +285,11 @@ GHOST_TSuccess GHOST_System::init()
 	m_timerManager = new GHOST_TimerManager ();
 	m_windowManager = new GHOST_WindowManager ();
 	m_eventManager = new GHOST_EventManager ();
+    m_ndofManager = new GHOST_NDOFManager();
+
+	if(m_ndofManager)
+		printf("ndof manager \n");
+
 #ifdef GHOST_DEBUG
 	if (m_eventManager) {
 		m_eventManager->addConsumer(&m_eventPrinter);
@@ -306,6 +325,10 @@ GHOST_TSuccess GHOST_System::exit()
 		delete m_eventManager;
 		m_eventManager = 0;
 	}
+    if (m_ndofManager) {
+        delete m_ndofManager;
+        m_ndofManager = 0;
+    }
 	return GHOST_kSuccess;
 }
 

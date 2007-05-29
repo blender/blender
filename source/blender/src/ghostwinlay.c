@@ -55,10 +55,15 @@
 #include "BIF_usiblender.h"
 #include "BIF_cursors.h"
 
+#include "PIL_dynlib.h"
+
 #include "mydevice.h"
 #include "blendef.h"
 
 #include "winlay.h"
+
+#include <math.h>
+
 
 #ifdef __APPLE__
 #include <OpenGL/OpenGL.h>
@@ -106,6 +111,12 @@ struct _Window {
 	 * the event number of the last faked button.
 	 */
 	int		faked_mbut;
+
+		/* Last known ndof device state
+         * note that the ghost device manager 
+         * can handle any number of devices, but ghostwinlay can't
+         */
+    float   ndof[7];    /* tx, ty, tz, rx, ry, rz, dt */
 
 	GHOST_TimerTaskHandle	timer;
 	int						timer_event;
@@ -334,6 +345,7 @@ Window *window_open(char *title, int posx, int posy, int sizex, int sizey, int s
 	GHOST_WindowHandle ghostwin;
 	GHOST_TWindowState inital_state;
 	int scr_w, scr_h;
+    int i;
 
 	winlay_get_screensize(&scr_w, &scr_h);
 	posy= (scr_h-posy-sizey);
@@ -366,7 +378,10 @@ Window *window_open(char *title, int posx, int posy, int sizex, int sizey, int s
 			
 			win->lmouse[0]= win->size[0]/2;
 			win->lmouse[1]= win->size[1]/2;
-			
+
+            for (i = 0; i < 7; ++i)
+                win->ndof[i] = 0;
+		
 			
 		} else {
 			GHOST_DisposeWindow(g_system, ghostwin);
@@ -538,6 +553,31 @@ static int event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 		}
 		
 		switch (type) {
+
+        case GHOST_kEventNDOFMotion: {
+            // update ndof device data, and dispatch motion event
+            GHOST_TEventNDOFData *sb= data;
+
+            win->ndof[0] = sb->tx;
+            win->ndof[1] = sb->ty;
+            win->ndof[2] = sb->tz;
+            win->ndof[3] = sb->rx;
+            win->ndof[4] = sb->ry;
+            win->ndof[5] = sb->rz;
+            win->ndof[6] = sb->dt;
+
+            // start interaction for larger than teeny-tiny motions
+            if ((fabsf(sb->tx) > 0.03f) ||
+                (fabsf(sb->ty) > 0.03f) ||
+                (fabsf(sb->tz) > 0.03f) ||
+                (fabsf(sb->rx) > 0.03f) ||
+                (fabsf(sb->ry) > 0.03f) ||
+                (fabsf(sb->rz) > 0.03f)) {
+                    window_handle(win, NDOFMOTION, sb->dt * 255);
+            }
+          break;
+        }
+
 		case GHOST_kEventCursorMove: {
 			if(win->active == 1) {
 				GHOST_TEventCursorData *cd= data;
@@ -705,6 +745,13 @@ static int event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 	return 1;
 }
 
+void window_get_ndof(Window* win, float* sbval) {
+    int i;
+    for (i = 0; i < 7; ++i) {
+        *sbval++ = win->ndof[i];
+    }
+}
+
 char *window_get_title(Window *win) {
 	char *title= GHOST_GetTitle(win->ghostwin);
 	char *mem_title= BLI_strdup(title);
@@ -831,3 +878,21 @@ void winlay_get_screensize(int *width_r, int *height_r) {
 Window *winlay_get_active_window(void) {
 	return active_gl_window;
 }
+
+void window_open_ndof(Window* win)
+{
+    PILdynlib* ndofLib = PIL_dynlib_open("NDOFPlugin.plug");
+    printf("passing here \n");
+    if (ndofLib) {
+    	    printf("and here \n");
+
+        GHOST_OpenNDOF(g_system, win->ghostwin, 
+            PIL_dynlib_find_symbol(ndofLib, "ndofInit"),
+            PIL_dynlib_find_symbol(ndofLib, "ndofShutdown"),
+            PIL_dynlib_find_symbol(ndofLib, "ndofOpen"),
+            PIL_dynlib_find_symbol(ndofLib, "ndofEventHandler"));
+    }
+    else {
+        GHOST_OpenNDOF(g_system, win->ghostwin, 0, 0, 0, 0);
+    }
+ }

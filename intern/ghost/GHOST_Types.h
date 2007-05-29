@@ -133,6 +133,8 @@ typedef enum {
 	GHOST_kEventButtonUp,		/// Mouse button event
 	GHOST_kEventWheel,			/// Mouse wheel event
 
+	GHOST_kEventNDOFMotion, /// N degree of freedom device motion event
+
 	GHOST_kEventKeyDown,
 	GHOST_kEventKeyUp,
 //	GHOST_kEventKeyAuto,
@@ -335,6 +337,18 @@ typedef struct {
 	/** Displacement of a mouse wheel. */
 	GHOST_TInt32 z;	
 } GHOST_TEventWheelData;
+
+typedef int     (*GHOST_NDOFLibraryInit_fp)();
+typedef void    (*GHOST_NDOFLibraryShutdown_fp)(void* deviceHandle);
+typedef void*   (*GHOST_NDOFDeviceOpen_fp)(void* platformData);
+typedef int     (*GHOST_NDOFEventHandler_fp)(float* result7, void* deviceHandle, unsigned int message, unsigned int* wParam, unsigned long* lParam);
+
+typedef struct {
+   /** N-degree of freedom device data */
+   float tx, ty, tz;   /** -x left, +y up, +z forward */
+   float rx, ry, rz;
+   float dt;
+} GHOST_TEventNDOFData;
 
 typedef struct {
 	/** The key code. */

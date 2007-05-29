@@ -88,6 +88,7 @@
 #include "blendef.h"
 
 #include "PIL_time.h" /* smoothview */
+#include <float.h>
 
 #define TRACKBALLSIZE  (1.1)
 #define BL_NEAR_CLIP 0.001
@@ -799,6 +800,169 @@ void viewmove(int mode)
 		BIF_view3d_previewrender_signal(curarea, PR_PROJECTED);
 
 }
+
+
+
+
+
+void viewmoveNDOF(int mode)
+{
+    static double prevTime = 0.0;
+
+    int i;
+    float fval[7];
+    float dvec[3];
+    float sbadjust = 1.0f;
+    float len;
+    double now, frametime;
+	short use_sel = 0;
+	Object *ob = OBACT;
+    float m[3][3];
+    float m_inv[3][3];
+    float xvec[3] = {1,0,0};
+    float phi, si;
+    float q1[4];
+    float obofs[3];
+    float reverse;
+    float diff[4];
+    float d, curareaX, curareaY;
+
+    /* Sensitivity will control how fast the view rotates.  The value was
+     * obtained experimentally by tweaking until the author didn't get dizzy watching.
+     * Perhaps this should be a configurable user parameter. 
+     */
+    float psens = 0.005f * (float) U.ndof_pan;   /* pan sensitivity */
+    const float rsens = 0.005f * (float) U.ndof_rotate;  /* rotate sensitivity */
+    const float zsens = 0.1f;   /* zoom sensitivity */
+
+    const float minZoom = -30.0f;
+    const float maxZoom = 300.0f;
+
+	if (G.obedit==NULL && ob && !(ob->flag & OB_POSEMODE)) {
+		use_sel = 1;
+	}
+
+    /*----------------------------------------------------
+	 * sometimes this routine is called from headerbuttons
+     * viewmove needs to refresh the screen
+     */
+	areawinset(curarea->win);
+
+    /*----------------------------------------------------
+     * record how much time has passed. clamp at 10 Hz
+     * pretend the previous frame occured at the clamped time 
+     */
+    now = PIL_check_seconds_timer();
+    frametime = (now - prevTime);
+    if (frametime > 0.1f){        /* if more than 1/10s */
+        frametime = 1.0f/60.0;      /* clamp at 1/60s so no jumps when starting to move */
+    }
+    prevTime = now;
+    sbadjust *= 60 * frametime;             /* normalize ndof device adjustments to 100Hz for framerate independence */
+
+    /* fetch the current state of the ndof device */
+    getndof(fval);
+
+    /* set object offset */
+	if (ob) {
+		obofs[0] = -ob->obmat[3][0];
+		obofs[1] = -ob->obmat[3][1];
+		obofs[2] = -ob->obmat[3][2];
+	}
+	else {
+		VECCOPY(obofs, G.vd->ofs);
+	}
+
+    /* calc an adjustment based on distance from camera */
+    if (ob) {
+        VecSubf(diff, obofs, G.vd->ofs);
+        d = VecLength(diff);
+    }
+    else {
+        d = 1.0f;
+    }
+    reverse = (G.vd->persmat[2][1] < 0.0f) ? -1.0f : 1.0f;
+
+    /*----------------------------------------------------
+     * ndof device pan 
+     */
+    psens *= 1.0f + d;
+    curareaX = sbadjust * psens * fval[0];
+    curareaY = sbadjust * psens * fval[1];
+    dvec[0] = curareaX * G.vd->persinv[0][0] + curareaY * G.vd->persinv[1][0];
+    dvec[1] = curareaX * G.vd->persinv[0][1] + curareaY * G.vd->persinv[1][1];
+    dvec[2] = curareaX * G.vd->persinv[0][2] + curareaY * G.vd->persinv[1][2];
+    VecAddf(G.vd->ofs, G.vd->ofs, dvec);
+
+    /*----------------------------------------------------
+     * ndof device dolly 
+     */
+    len = zsens * sbadjust * fval[2];
+
+    if (G.vd->persp==2) {
+        if(G.vd->persp==2) {
+            G.vd->camzoom+= 10.0f * -len;
+        }
+        if (G.vd->camzoom < minZoom) G.vd->camzoom = minZoom;
+        else if (G.vd->camzoom > maxZoom) G.vd->camzoom = maxZoom;
+    }
+    else if ((G.vd->dist> 0.001*G.vd->grid) && (G.vd->dist<10.0*G.vd->far)) {
+        G.vd->dist*=(1.0 + len);
+    }
+
+
+    /*----------------------------------------------------
+     * ndof device turntable
+     * derived from the turntable code in viewmove
+     */
+
+    /* Get the 3x3 matrix and its inverse from the quaternion */
+    QuatToMat3(G.vd->viewquat, m);
+    Mat3Inv(m_inv,m);
+
+    /* Determine the direction of the x vector (for rotating up and down) */
+    /* This can likely be compuated directly from the quaternion. */
+    Mat3MulVecfl(m_inv,xvec);
+
+    /* Perform the up/down rotation */
+    phi = sbadjust * rsens * /*0.5f * */ fval[3]; /* spin vertically half as fast as horizontally */
+    si = sin(phi);
+    q1[0] = cos(phi);
+    q1[1] = si * xvec[0];
+    q1[2] = si * xvec[1];
+    q1[3] = si * xvec[2];
+    QuatMul(G.vd->viewquat, G.vd->viewquat, q1);
+
+    if (use_sel) {
+        QuatConj(q1); /* conj == inv for unit quat */
+        VecSubf(G.vd->ofs, G.vd->ofs, obofs);
+        QuatMulVecf(q1, G.vd->ofs);
+        VecAddf(G.vd->ofs, G.vd->ofs, obofs);
+    }
+
+    /* Perform the orbital rotation */
+    phi = sbadjust * rsens * reverse * fval[4];     /* twist the knob, y axis */
+    q1[0] = cos(phi);
+    q1[1] = q1[2] = 0.0;
+    q1[3] = sin(phi);
+    QuatMul(G.vd->viewquat, G.vd->viewquat, q1);
+
+    if (use_sel) {
+        QuatConj(q1);
+        VecSubf(G.vd->ofs, G.vd->ofs, obofs);
+        QuatMulVecf(q1, G.vd->ofs);
+        VecAddf(G.vd->ofs, G.vd->ofs, obofs);
+    }
+
+    /*----------------------------------------------------
+     * refresh the screen
+     */
+    scrarea_do_windraw(curarea);
+    screen_swapbuffers();
+}
+
+
+
 
 /* Gets the lens and clipping values from a camera of lamp type object */
 void object_view_settings(Object *ob, float *lens, float *clipsta, float *clipend)

@@ -259,6 +259,18 @@ GHOST_TSuccess GHOST_AddEventConsumer(GHOST_SystemHandle systemhandle, GHOST_Eve
 	return system->addEventConsumer((GHOST_CallbackEventConsumer*)consumerhandle);
 }
 
+void GHOST_OpenNDOF(GHOST_SystemHandle systemhandle, GHOST_WindowHandle windowhandle,
+   GHOST_NDOFLibraryInit_fp setNdofLibraryInit, 
+    GHOST_NDOFLibraryShutdown_fp setNdofLibraryShutdown,
+    GHOST_NDOFDeviceOpen_fp setNdofDeviceOpen,
+    GHOST_NDOFEventHandler_fp setNdofEventHandler)
+{
+	GHOST_ISystem* system = (GHOST_ISystem*) systemhandle;
+
+    system->openNDOF((GHOST_IWindow*) windowhandle,
+        setNdofLibraryInit, setNdofLibraryShutdown, setNdofDeviceOpen, setNdofEventHandler);
+}
+
 
 
 GHOST_TStandardCursor GHOST_GetCursorShape(GHOST_WindowHandle windowhandle)

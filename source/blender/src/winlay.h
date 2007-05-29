@@ -79,6 +79,8 @@ void	window_warp_pointer	(Window *win, int x, int y);
 
 void	window_queue_redraw	(Window *win);
 
+void    window_open_ndof(Window* win);
+
 	/* Global windowing operations */
 
 Window*	winlay_get_active_window(void);

@@ -70,6 +70,9 @@
 #define WINQUIT			0x018	/* signal from user that app is to go away */
 #define Q_FIRSTTIME		0x019	/* on startup */
 
+/* N-degre of freedom device : 500 */
+#define NDOFMOTION 500
+
 /* standard keyboard */
 
 #define AKEY		'a'

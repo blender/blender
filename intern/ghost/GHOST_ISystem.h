@@ -295,6 +295,20 @@ public:
 	 */
 	virtual GHOST_TSuccess addEventConsumer(GHOST_IEventConsumer* consumer) = 0;
 	
+	 /***************************************************************************************
+	 ** N-degree of freedom device management functionality
+	 ***************************************************************************************/
+
+   /**
+    * Starts the N-degree of freedom device manager
+    */
+   virtual void openNDOF(GHOST_IWindow*,
+       GHOST_NDOFLibraryInit_fp setNdofLibraryInit, 
+       GHOST_NDOFLibraryShutdown_fp setNdofLibraryShutdown,
+       GHOST_NDOFDeviceOpen_fp setNdofDeviceOpen,
+       GHOST_NDOFEventHandler_fp setNdofEventHandler) = 0;
+
+
 	/***************************************************************************************
 	 ** Cursor management functionality
 	 ***************************************************************************************/

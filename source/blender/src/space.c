@@ -1566,6 +1566,10 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				doredraw= 1;
 				break;
 
+            case NDOFMOTION:
+                viewmoveNDOF(0);
+                break;
+
 			case ONEKEY:
 				if(G.qual==LR_CTRLKEY) {
 					flip_subdivison(1);
@@ -3330,7 +3334,9 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgsp+mpref+(2*spref)+(3*midsp)+(mpref/2)),y2,(mpref/2),buth,
 			&(U.uiflag), 0, 0, 0, 0,
 			"Use selection as the orbiting center");
-		uiBlockEndAlign(block);
+	
+         uiBlockEndAlign(block);
+
 		
 
 		uiBlockBeginAlign(block);
@@ -3442,6 +3448,18 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 				  &(U.obcenter_dia), 4, 10, 0, 0,
 				  "Diameter in Pixels for Object/Lamp center display");
 		
+		uiDefBut(block, LABEL,0,"6DOF devices speeds :",
+				 (xpos+edgsp+(5*mpref)+(6*midsp)),y2label,mpref,buth,
+				 0, 0, 0, 0, 0, "");		  
+					//FIXME NDOF BAD ETIQUETTES
+		uiDefButS(block, NUM, USER_AUTOPERSP, "ndPan",
+			(xpos+edgsp+(5*mpref)+(6*midsp)),y1,(mpref/2),buth,
+			&(U.ndof_pan), 0, 200, 0, 0,
+			"The overall panning speed of an NDOF device, as percent of standard");
+		uiDefButS(block, NUM, USER_ORBIT_SELECTION, "ndRot",
+			(xpos+edgsp+(5*mpref)+(6*midsp)+(mpref/2)),y1,(mpref/2),buth,
+		&(U.ndof_rotate), 0, 200, 0, 0,
+			"The overall rotation speed of an NDOF device, as percent of standard");
 		
 	} else if (U.userpref == 1) { /* edit methods */
 
