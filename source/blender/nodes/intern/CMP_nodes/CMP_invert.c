@@ -90,19 +90,22 @@ static void node_composit_exec_invert(void *data, bNode *node, bNodeStack **in, 
 	else {
 		/* make output size of first available input image, or then size of fac */
 		CompBuf *cbuf= in[1]->data?in[1]->data:in[0]->data;
-		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* allocs */
-		
+
 		/* if neither RGB or A toggled on, pass through */
-		if (node->custom1 == 0) {
+		if (node->custom1 != 0) {
+			CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* allocs */
+			
+			if (fac[0] < 1.0f || in[0]->data!=NULL)
+				composit2_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, in[0]->data, fac, do_invert_fac, CB_RGBA, CB_VAL);
+			else
+				composit1_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, do_invert, CB_RGBA);
+			out[0]->data= stackbuf;
+			return;
+			
+		} else {
 			out[0]->data = pass_on_compbuf(cbuf);
 			return;
 		}
-
-		if (fac[0] < 1.0f || in[0]->data!=NULL)
-			composit2_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, in[0]->data, fac, do_invert_fac, CB_RGBA, CB_VAL);
-		else
-			composit1_pixel_processor(node, stackbuf, in[1]->data, in[1]->vec, do_invert, CB_RGBA);
-		out[0]->data= stackbuf;
 	}
 }
 
