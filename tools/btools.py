@@ -4,6 +4,9 @@ import SCons.Options
 import SCons.Options.BoolOption
 import subprocess
 import string
+import glob
+import shutil
+import sys
 
 Options = SCons.Options
 BoolOption = SCons.Options.BoolOption
@@ -291,4 +294,187 @@ def read_opts(cfg, args):
     ) # end of opts.AddOptions()
 
     return localopts
+
+def NSIS_print(target, source, env):
+    return "Creating NSIS installer for Blender 3D"
+
+def NSIS_Installer(target=None, source=None, env=None):
+
+    if env['OURPLATFORM'] != 'win32-vc' and env['OURPLATFORM'] != 'win32-mingw':
+        print "NSIS installer is only available on Windows."
+        Exit()
+        
+    start_dir = os.getcwd()
+    rel_dir = start_dir + "\\release\\windows\\installer\\"
+    install_base_dir = start_dir + "\\"
+    
+    if not os.path.exists(install_base_dir+env['BF_INSTALLDIR']+'/plugins/include'):
+        os.mkdir(install_base_dir+env['BF_INSTALLDIR']+'/plugins/include')
+        
+    for f in glob.glob('source/blender/blenpluginapi/*.h'):
+        shutil.copy(f,install_base_dir+env['BF_INSTALLDIR']+'/plugins/include')
+
+    shutil.copy('source/blender/blenpluginapi/plugin.def',install_base_dir+env['BF_INSTALLDIR']+'/plugins/include/')
+    
+    os.chdir("release")
+    v = open("VERSION")
+    version = v.read()[:-1]	
+    shortver = version.split('.')[0] + version.split('.')[1]
+    v.close()
+
+    #### change to suit install dir ####
+    inst_dir = install_base_dir + env['BF_INSTALLDIR']
+    
+    os.chdir("windows/installer")
+
+    ns = open("00.sconsblender.nsi","r")
+
+    ns_cnt = str(ns.read())
+    ns.close()
+
+    # do root
+    rootlist = []
+    rootdir = os.listdir(inst_dir+"\\")
+    for rootitem in rootdir:
+        if os.path.isdir(inst_dir+"\\"+ rootitem) == 0:
+            rootlist.append("File \"" + os.path.normpath(inst_dir) + "\\" + rootitem+"\"")
+    rootstring = string.join(rootlist, "\n  ")
+    rootstring += "\n\n"
+    ns_cnt = string.replace(ns_cnt, "[ROOTDIRCONTS]", rootstring)
+
+    # do delete items
+    delrootlist = []
+    for rootitem in rootdir:
+        if os.path.isdir(inst_dir + rootitem) == 0:
+            delrootlist.append("Delete $INSTDIR\\" + rootitem)
+    delrootstring = string.join(delrootlist, "\n ")
+    delrootstring += "\n"
+    ns_cnt = string.replace(ns_cnt, "[DELROOTDIRCONTS]", delrootstring)
+
+    # do scripts
+    scriptlist = []
+    scriptpath = "%s%s" % (inst_dir, "\\.blender\\scripts")
+    scriptdir = os.listdir(scriptpath)
+    for scriptitem in scriptdir:
+        scriptfile = "%s\\%s" % (scriptpath, scriptitem)
+        if os.path.isdir(scriptfile) == 0:
+            scriptfile = os.path.normpath(scriptfile)
+            scriptlist.append("File \"%s\"" % scriptfile)
+    scriptstring = string.join(scriptlist, "\n  ")
+    scriptstring += "\n\n"
+    ns_cnt = string.replace(ns_cnt, "[SCRIPTCONTS]", scriptstring)
+
+    # do scripts\bpymodules
+    bpymodlist = []
+    bpymodpath = "%s%s" % (inst_dir, "\\.blender\\scripts\\bpymodules")
+    bpymoddir = os.listdir(bpymodpath)
+
+    for bpymoditem in bpymoddir:
+        bpymodfile = "%s\\%s" % (bpymodpath, bpymoditem)
+        if os.path.isdir(bpymodfile) == 0:
+            bpymodfile = os.path.normpath(bpymodfile)
+            bpymodlist.append("File \"%s\"" % bpymodfile)
+    bpymodstring = string.join(bpymodlist, "\n  ")
+    bpymodstring += "\n\n"
+    ns_cnt = string.replace(ns_cnt, "[SCRIPTMODCONTS]", bpymodstring)
+
+    # do scripts\bpymodules\colladaimex
+    colladalist = []
+    bpymodpath = "%s%s" % (inst_dir, "\\.blender\\scripts\\bpymodules\\ColladaImEx")
+    bpymoddir = os.listdir(bpymodpath)
+
+    for bpymoditem in bpymoddir:
+        bpymodfile = "%s\\%s" % (bpymodpath, bpymoditem)
+        if os.path.isdir(bpymodfile) == 0:
+            bpymodfile=os.path.normpath(bpymodfile)
+            colladalist.append("File \"%s\"" % bpymodfile)
+    bpymodstring = string.join(colladalist, "\n  ")
+    bpymodstring += "\n\n"
+    ns_cnt = string.replace(ns_cnt, "[SCRIPTMODCOLLADACONT]", bpymodstring)
+
+    # do scripts\bpydata
+    bpydatalist = []
+    bpydatapath = "%s%s" % (inst_dir, "\\.blender\\scripts\\bpydata")
+    bpydatadir = os.listdir(bpydatapath)
+    for bpydataitem in bpydatadir:
+        bpydatafile = "%s\\%s" % (bpydatapath, bpydataitem)
+        if os.path.isdir(bpydatafile) == 0:
+            bpydatalist.append("File \"%s\"" % bpydatafile)
+    bpydatastring = string.join(bpydatalist, "\n  ")
+    bpydatastring += "\n\n"
+    ns_cnt = string.replace(ns_cnt, "[SCRIPTDATACONTS]", bpydatastring)
+
+    # do plugins\include
+    plugincludelist = []
+    plugincludepath = "%s%s" % (inst_dir, "\\plugins\\include")
+    plugincludedir = os.listdir(plugincludepath)
+    for plugincludeitem in plugincludedir:
+        plugincludefile = "%s\\%s" % (plugincludepath, plugincludeitem)
+        if os.path.isdir(plugincludefile) == 0:
+            if plugincludefile.find('.h') or plugincludefile.find('.DEF'):
+                plugincludefile = os.path.normpath(plugincludefile)
+                plugincludelist.append("File \"%s\"" % plugincludefile)
+    plugincludestring = string.join(plugincludelist, "\n  ")
+    plugincludestring += "\n\n"
+    ns_cnt = string.replace(ns_cnt, "[PLUGINCONTS]", plugincludestring)
+
+    # do scripts\bpydata\config
+    cfglist = []
+    cfgpath = "%s%s" % (inst_dir, "\\.blender\\scripts\\bpydata\\config")
+    cfgdir = os.listdir(cfgpath)
+    for cfgitem in cfgdir:
+        cfgfile = "%s\\%s" % (cfgpath, cfgitem)
+        if os.path.isdir(cfgfile) == 0:
+            cfglist.append("File \"%s\"" % cfgfile)
+    cfgstring = string.join(cfglist, "\n  ")
+    cfgstring += "\n\n"
+    ns_cnt = string.replace(ns_cnt, "[SCRIPTDATACFGCONTS]", cfgstring)
+
+    # do dotblender
+    dotblendlist = []
+    dotblenddir = os.listdir(inst_dir+"\\.blender")
+    for dotblenditem in dotblenddir:
+        if os.path.isdir(inst_dir + "\\.blender\\" + dotblenditem) == 0:
+            dotblendlist.append("File \"" + os.path.normpath(inst_dir) + "\\.blender\\" +
+            dotblenditem+"\"")
+    dotblendstring = string.join(dotblendlist, "\n  ")
+    dotblendstring += "\n\n"
+    ns_cnt = string.replace(ns_cnt, "[DOTBLENDERCONTS]", dotblendstring)
+
+    # do language files
+    langlist = []
+    langfiles = []
+    langdir = os.listdir(inst_dir + "\\.blender\\locale")
+    for langitem in langdir:
+        if os.path.isdir(inst_dir + "\\.blender\\locale\\" + langitem) == 1:
+            langfiles.append("SetOutPath $BLENDERHOME\\.blender\\locale\\" + langitem + "\\LC_MESSAGES")
+            langfiles.append("File \"" + os.path.normpath(inst_dir) + "\\.blender\\locale\\"
+                    + langitem + "\\LC_MESSAGES\\blender.mo\"")
+    langstring = string.join(langfiles, "\n  ")
+    langstring += "\n\n"
+    ns_cnt = string.replace(ns_cnt, "[LANGUAGECONTS]", langstring)
+
+    # var replacements
+    ns_cnt = string.replace(ns_cnt, "DISTDIR", os.path.normpath(inst_dir+"\\"))
+    ns_cnt = string.replace(ns_cnt, "SHORTVER", shortver)
+    ns_cnt = string.replace(ns_cnt, "VERSION", version)
+    ns_cnt = string.replace(ns_cnt, "RELDIR", os.path.normpath(rel_dir))
+
+    tmpnsi = os.path.normpath(install_base_dir+os.sep+env['BF_BUILDDIR']+os.sep+"00.blender_tmp.nsi")
+    new_nsis = open(tmpnsi, 'w')
+    new_nsis.write(ns_cnt)
+    new_nsis.close()
+
+    os.chdir(start_dir)
+
+    cmdline = "makensis " + "\""+tmpnsi+"\""
+
+    startupinfo = subprocess.STARTUPINFO()
+    startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+    proc = subprocess.Popen(cmdline, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE, startupinfo=startupinfo, shell = True)
+    data, err = proc.communicate()
+    rv = proc.wait()
+
+    return 0
 
