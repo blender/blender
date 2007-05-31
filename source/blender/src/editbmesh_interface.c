@@ -143,6 +143,8 @@ BME_Mesh *BME_FromMesh(Mesh *me)
 	PointerArray edgearr = {0};
 	int i, j;
 	
+	BME_model_begin(bmesh);
+	
 	if (me->totface && !me->totpoly) {
 		printf("ERROR: paranoia mesh conversion function was called!\n");
 		return BME_fromOldMesh(me);
@@ -172,7 +174,8 @@ BME_Mesh *BME_FromMesh(Mesh *me)
 			PA_AddToArray(&edgearr, edge_table[mloop->edge], j);
 			mloop++;
 		}		
-		poly = BME_MF(bmesh, ((BME_Edge*)edgearr.array[0])->v1, ((BME_Edge*)edgearr.array[0])->v2, (BME_Edge**)edgearr.array, j);
+		mloop = &me->mloop[mpoly->firstloop];
+		poly = BME_MF(bmesh, vert_table[mloop->v],vert_table[(mloop+1)->v],(BME_Edge**)edgearr.array, j);
 		poly->flag = mpoly->flag;
 		if (!poly) {
 			printf("EVIL POLY NOT CREATED!! EVVVIILL!!\n");
@@ -188,6 +191,7 @@ BME_Mesh *BME_FromMesh(Mesh *me)
 	if (vert_table) MEM_freeN(vert_table);
 	if (edge_table) MEM_freeN(edge_table);
 	
+	BME_model_end(bmesh);
 	return bmesh;
 }
 
@@ -414,6 +418,7 @@ void mouse_bmesh(void)
 			allqueue(REDRAWVIEW3D, 1);
 		}
 	}
+	makeDerivedMesh(G.obedit,CD_MASK_EDITMESH);
 	rightmouse_transform();
 }
 
