@@ -1,7 +1,9 @@
-import sys
-import StringIO
+import os
+import os.path
 import SCons.Options
 import SCons.Options.BoolOption
+import subprocess
+import string
 
 Options = SCons.Options
 BoolOption = SCons.Options.BoolOption
@@ -84,33 +86,26 @@ def validate_targets(targs, bc):
             print '\t'+bc.WARNING+'Invalid target: '+bc.ENDC+t
     return oklist
 
-    
+class ourSpawn:
+    def ourspawn(self, sh, escape, cmd, args, env):
+        newargs = string.join(args[1:], ' ')
+        cmdline = cmd + " " + newargs
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        proc = subprocess.Popen(cmdline, stdin=subprocess.PIPE, stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE, startupinfo=startupinfo, shell = False)
+        data, err = proc.communicate()
+        rv = proc.wait()
+        if rv:
+            print "====="
+            print err
+            print "====="
+        return rv
 
-class idBuffering:
-    def buffered_spawn( self, sh, escape, cmd, args, env ):
-        stderr = StringIO.StringIO()
-        stdout = StringIO.StringIO()
-        command_string = ''
-        for i in args:
-            if ( len( command_string ) ):
-                command_string += ' '
-            command_string += i
-        try:
-            retval = self.env['PSPAWN']( sh, escape, cmd, args, env, stdout, stderr )
-        except OSError, x:
-            if x.errno != 10:
-                raise x
-            print 'OSError ignored on command: %s' % command_string
-            retval = 0
-        sys.stdout.write( stdout.getvalue() )
-        sys.stderr.write( stderr.getvalue() )
-        return retval
-
-# get a clean error output when running multiple jobs
-def SetupBufferedOutput( env ):
-    buf = idBuffering()
-    buf.env = env
-    env['SPAWN'] = buf.buffered_spawn
+def SetupSpawn( env ):
+    buf = ourSpawn()
+    buf.ourenv = env
+    env['SPAWN'] = buf.ourspawn
 
 
 def read_opts(cfg, args):

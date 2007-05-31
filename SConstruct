@@ -74,8 +74,8 @@ if not use_color=='1':
     
  #on defaut white Os X terminal, some colors are totally unlegible
 if platform=='darwin':
-	B.bc.OKGREEN = '\033[34m'
- 	B.bc.WARNING = '\033[36m'
+    B.bc.OKGREEN = '\033[34m'
+    B.bc.WARNING = '\033[36m'
 
 # arguments
 print B.bc.HEADER+'Command-line arguments'+B.bc.ENDC
@@ -115,6 +115,8 @@ if toolset:
         env.Tool('mstoolkit', ['tools'])
     else:
         env = BlenderEnvironment(tools=[toolset], ENV = os.environ)
+        if env:
+            btools.SetupSpawn(env)
 else:
     env = BlenderEnvironment(ENV = os.environ)
 
@@ -122,7 +124,7 @@ if not env:
     print "Could not create a build environment"
     Exit()
 
-env.SConscriptChdir(0)
+
 cc = B.arguments.get('CC', None)
 cxx = B.arguments.get('CXX', None)
 if cc:
@@ -135,53 +137,7 @@ if env['CC'] in ['cl', 'cl.exe'] and sys.platform=='win32':
 elif env['CC'] in ['gcc'] and sys.platform=='win32':
     platform = 'win32-mingw'
 
-# Fix me!
-#if platform == 'win32-mingw':
-if 0:
-    try:
-        import win32file
-        import win32event
-        import win32process
-        import win32security
-        import string
-
-        slash= re.compile(r"\\")
-
-        def myesc(b):
-            if b[0]!= "-":
-                b = slash.sub(r"\\\\", b[1:-1])
-                return "\"" + b + "\""
-            else:
-                return b
-
-        def my_spawn(sh, escape, cmd, args, spawnenv):
-            for var in spawnenv:
-                spawnenv[var] = spawnenv[var].encode('ascii', 'replace')
-
-            sAttrs = win32security.SECURITY_ATTRIBUTES()
-            StartupInfo = win32process.STARTUPINFO()
-            if cmd=='ar' and args[1]=='r':
-                args[1] = '-r'
-            newargs = string.join(map(myesc, args[1:]), ' ')
-            cmdline = cmd + " " + newargs
-
-            # check for any special operating system commands
-            if cmd == 'del':
-                for arg in args[1:]:
-                    win32file.DeleteFile(arg)
-                exit_code = 0
-            else:
-                # otherwise execute the command.
-                hProcess, hThread, dwPid, dwTid = win32process.CreateProcess(None, cmdline, None, None, 1, 0, spawnenv, None, StartupInfo)
-                win32event.WaitForSingleObject(hProcess, win32event.INFINITE)
-                exit_code = win32process.GetExitCodeProcess(hProcess)
-                win32file.CloseHandle(hProcess);
-                win32file.CloseHandle(hThread);
-            return exit_code
-
-        env['SPAWN'] = my_spawn
-    except:
-        print "install win32all from http://sourceforge.net/project/showfiles.php?group_id=78018"
+env.SConscriptChdir(0)
 
 crossbuild = B.arguments.get('BF_CROSS', None)
 if crossbuild and platform!='win32':
@@ -285,7 +241,7 @@ def NSIS_Installer():
         Exit()
         
     install_base_dir = os.getcwd() + "\\"
-	
+    
     if not os.path.exists(install_base_dir+env['BF_INSTALLDIR']+'/plugins/include'):
         os.mkdir(install_base_dir+env['BF_INSTALLDIR']+'/plugins/include')
         
@@ -484,8 +440,6 @@ B.init_lib_dict()
 ##### END SETUP ##########
 
 Export('env')
-#Export('root_build_dir') # this one is still needed for makesdna
-##TODO: improve makesdna usage
 
 BuildDir(B.root_build_dir+'/intern', 'intern', duplicate=0)
 SConscript(B.root_build_dir+'/intern/SConscript')
