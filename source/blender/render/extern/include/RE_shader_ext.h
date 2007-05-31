@@ -151,6 +151,10 @@ typedef struct ShadeInput
 	int samplenr;			/* sample counter, to detect if we should do shadow again */
 	int depth;				/* 1 or larger on raytrace shading */
 	
+	/* stored copy of original face normal (facenor) 
+	 * before flipping. Used in Front/back output on geometry node */
+	float orignor[3];
+
 	/* from initialize, part or renderlayer */
 	short do_preview;		/* for nodes, in previewrender */
 	short thread, sample;	/* sample: ShadeSample array index */
@@ -158,6 +162,7 @@ typedef struct ShadeInput
 	int layflag, passflag, combinedflag;
 	struct Group *light_override;
 	struct Material *mat_override;
+	
 } ShadeInput;
 
 

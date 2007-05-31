@@ -39,15 +39,38 @@ static bNodeSocketType sh_node_material_in[]= {
 	{	-1, 0, ""	}
 };
 
-/* output socket defines */
-#define MAT_OUT_COLOR	0
-#define MAT_OUT_ALPHA	1
-#define MAT_OUT_NORMAL	2
-
 static bNodeSocketType sh_node_material_out[]= {
 	{	SOCK_RGBA, 0, "Color",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
 	{	SOCK_VALUE, 0, "Alpha",		1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
 	{	SOCK_VECTOR, 0, "Normal",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+/* **************** EXTENDED MATERIAL ******************** */
+
+static bNodeSocketType sh_node_material_ext_in[]= {
+	{	SOCK_RGBA, 1, "Color",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 1, "Spec",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "Refl",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VECTOR, 1, "Normal",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
+	{	SOCK_RGBA, 1, "Mirror",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 1, "AmbCol",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "Ambient",	0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "Emit",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "SpecTra",	0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "Ray Mirror",	0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "Alpha",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 1, "Translucency",	0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	-1, 0, ""	}
+};
+
+static bNodeSocketType sh_node_material_ext_out[]= {
+	{	SOCK_RGBA, 0, "Color",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE, 0, "Alpha",		1.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f},
+	{	SOCK_VECTOR, 0, "Normal",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
+	{	SOCK_RGBA, 0, "Diffuse",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 0, "Spec",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_RGBA, 0, "AO",		0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
@@ -91,6 +114,25 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 			shi->vn[2]= -shi->vn[2];
 		}
 		
+		if (node->type == SH_NODE_MATERIAL_EXT) {
+			if(in[MAT_IN_MIR]->hasinput)
+				nodestack_get_vec(&shi->mirr, SOCK_VECTOR, in[MAT_IN_MIR]);
+			if(in[MAT_IN_AMBCOL]->hasinput)
+				nodestack_get_vec(&shi->ambr, SOCK_VECTOR, in[MAT_IN_AMBCOL]);
+			if(in[MAT_IN_AMB]->hasinput)
+				nodestack_get_vec(&shi->amb, SOCK_VALUE, in[MAT_IN_AMB]);
+			if(in[MAT_IN_EMIT]->hasinput)
+				nodestack_get_vec(&shi->emit, SOCK_VALUE, in[MAT_IN_EMIT]);
+			if(in[MAT_IN_SPECTRA]->hasinput)
+				nodestack_get_vec(&shi->spectra, SOCK_VALUE, in[MAT_IN_SPECTRA]);
+			if(in[MAT_IN_RAY_MIRROR]->hasinput)
+				nodestack_get_vec(&shi->ray_mirror, SOCK_VALUE, in[MAT_IN_RAY_MIRROR]);
+			if(in[MAT_IN_ALPHA]->hasinput)
+				nodestack_get_vec(&shi->alpha, SOCK_VALUE, in[MAT_IN_ALPHA]);
+			if(in[MAT_IN_TRANSLUCENCY]->hasinput)
+				nodestack_get_vec(&shi->translucency, SOCK_VALUE, in[MAT_IN_TRANSLUCENCY]);			
+		}
+		
 		node_shader_lamp_loop(shi, &shrnode);	/* clears shrnode */
 		
 		/* write to outputs */
@@ -122,6 +164,15 @@ static void node_shader_exec_material(void *data, bNode *node, bNodeStack **in, 
 		
 		VECCOPY(out[MAT_OUT_NORMAL]->vec, shi->vn);
 		
+		/* Extended material options */
+		if (node->type == SH_NODE_MATERIAL_EXT) {
+			/* Shadow, Reflect, Refract, Radiosity, Speed seem to cause problems inside
+			 * a node tree :( */
+			VECCOPY(out[MAT_OUT_DIFFUSE]->vec, shrnode.diff);
+			VECCOPY(out[MAT_OUT_SPEC]->vec, shrnode.spec);
+			VECCOPY(out[MAT_OUT_AO]->vec, shrnode.ao);
+		}
+		
 		/* copy passes, now just active node */
 		if(node->flag & NODE_ACTIVE_ID)
 			*(shcd->shr)= shrnode;
@@ -143,6 +194,24 @@ bNodeType sh_node_material= {
 	/* class+opts  */	NODE_CLASS_INPUT, NODE_OPTIONS|NODE_PREVIEW,
 	/* input sock  */	sh_node_material_in,
 	/* output sock */	sh_node_material_out,
+	/* storage     */	"",
+	/* execfunc    */	node_shader_exec_material,
+	/* butfunc     */	NULL,
+	/* initfunc    */	node_shader_init_material,
+	/* freestoragefunc    */	NULL,
+	/* copystoragefunc    */	NULL,
+	/* id          */	NULL
+	
+};
+
+bNodeType sh_node_material_ext= {
+	/* *next,*prev */	NULL, NULL,
+	/* type code   */	SH_NODE_MATERIAL_EXT,
+	/* name        */	"Extended Material",
+	/* width+range */	120, 80, 240,
+	/* class+opts  */	NODE_CLASS_INPUT, NODE_OPTIONS|NODE_PREVIEW,
+	/* input sock  */	sh_node_material_ext_in,
+	/* output sock */	sh_node_material_ext_out,
 	/* storage     */	"",
 	/* execfunc    */	node_shader_exec_material,
 	/* butfunc     */	NULL,

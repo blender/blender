@@ -90,12 +90,12 @@ static void node_composit_exec_alphaover(void *data, bNode *node, bNodeStack **i
 		return;
 	
 	/* input no image? then only color operation */
-	if(in[1]->data==NULL) {
+	if(in[1]->data==NULL && in[2]->data==NULL) {
 		do_alphaover_premul(node, out[0]->vec, in[1]->vec, in[2]->vec, in[0]->vec);
 	}
 	else {
 		/* make output size of input image */
-		CompBuf *cbuf= in[1]->data;
+		CompBuf *cbuf= in[1]->data?in[1]->data:in[2]->data;
 		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_RGBA, 1); /* allocs */
 		
 		if(node->custom1)

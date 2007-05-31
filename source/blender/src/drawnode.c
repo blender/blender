@@ -622,6 +622,7 @@ static void node_shader_set_butfunc(bNodeType *ntype)
 		/* case NODE_GROUP:	 note, typeinfo for group is generated... see "XXX ugly hack" */
 
 		case SH_NODE_MATERIAL:
+		case SH_NODE_MATERIAL_EXT:
 			ntype->butfunc= node_shader_buts_material;
 			break;
 		case SH_NODE_TEXTURE:
@@ -1508,6 +1509,21 @@ static int node_composit_buts_scale(uiBlock *block, bNodeTree *ntree, bNode *nod
 	return 20;
 }
 
+static int node_composit_buts_invert(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr) 
+{
+	if(block) {
+		uiBlockBeginAlign(block);
+		uiDefButBitS(block, TOG, CMP_CHAN_RGB, B_NODE_EXEC+node->nr, "RGB",
+					 butr->xmin, butr->ymin, (butr->xmax-butr->xmin)/2, 20, 
+					 &node->custom1, 0, 0, 0, 0, "");
+		uiDefButBitS(block, TOG, CMP_CHAN_A, B_NODE_EXEC+node->nr, "A",
+					 butr->xmin+(butr->xmax-butr->xmin)/2, butr->ymin, (butr->xmax-butr->xmin)/2, 20, 
+					 &node->custom1, 0, 0, 0, 0, "");
+		uiBlockEndAlign(block);
+	}
+	return 20;	
+}
+
 /* only once called */
 static void node_composit_set_butfunc(bNodeType *ntype)
 {
@@ -1608,6 +1624,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_MATH:
 			ntype->butfunc= node_buts_math;
+			break;
+		case CMP_NODE_INVERT:
+			ntype->butfunc= node_composit_buts_invert;
 			break;
 		default:
 			ntype->butfunc= NULL;

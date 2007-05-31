@@ -145,7 +145,7 @@ void nodeShaderSynchronizeID(bNode *node, int copyto)
 {
 	if(node->id==NULL) return;
 	
-	if(node->type==SH_NODE_MATERIAL) {
+	if(ELEM(node->type, SH_NODE_MATERIAL, SH_NODE_MATERIAL_EXT)) {
 		bNodeSocket *sock;
 		Material *ma= (Material *)node->id;
 		int a;
@@ -161,6 +161,20 @@ void nodeShaderSynchronizeID(bNode *node, int copyto)
 							VECCOPY(&ma->specr, sock->ns.vec); break;
 						case MAT_IN_REFL:
 							ma->ref= sock->ns.vec[0]; break;
+						case MAT_IN_MIR:
+							VECCOPY(&ma->mirr, sock->ns.vec); break;
+						case MAT_IN_AMB:
+							VECCOPY(&ma->ambr, sock->ns.vec); break;
+						case MAT_IN_EMIT:
+							ma->emit= sock->ns.vec[0]; break;
+						case MAT_IN_SPECTRA:
+							ma->spectra= sock->ns.vec[0]; break;
+						case MAT_IN_RAY_MIRROR:
+							ma->ray_mirror= sock->ns.vec[0]; break;
+						case MAT_IN_ALPHA:
+							ma->alpha= sock->ns.vec[0]; break;
+						case MAT_IN_TRANSLUCENCY:
+							ma->translucency= sock->ns.vec[0]; break;
 					}
 				}
 				else {
@@ -171,6 +185,20 @@ void nodeShaderSynchronizeID(bNode *node, int copyto)
 							VECCOPY(sock->ns.vec, &ma->specr); break;
 						case MAT_IN_REFL:
 							sock->ns.vec[0]= ma->ref; break;
+						case MAT_IN_MIR:
+							VECCOPY(sock->ns.vec, &ma->mirr); break;
+						case MAT_IN_AMB:
+							VECCOPY(sock->ns.vec, &ma->ambr); break;
+						case MAT_IN_EMIT:
+							sock->ns.vec[0]= ma->emit; break;
+						case MAT_IN_SPECTRA:
+							sock->ns.vec[0]= ma->spectra; break;
+						case MAT_IN_RAY_MIRROR:
+							sock->ns.vec[0]= ma->ray_mirror; break;
+						case MAT_IN_ALPHA:
+							sock->ns.vec[0]= ma->alpha; break;
+						case MAT_IN_TRANSLUCENCY:
+							sock->ns.vec[0]= ma->translucency; break;
 					}
 				}
 			}

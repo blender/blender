@@ -56,6 +56,8 @@ extern bNodeType sh_node_curve_rgb;
 extern bNodeType sh_node_math;
 extern bNodeType sh_node_vect_math;
 extern bNodeType sh_node_squeeze;
+extern bNodeType sh_node_material_ext;
+extern bNodeType sh_node_invert;
 
 #endif
 

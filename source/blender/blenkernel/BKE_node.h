@@ -204,6 +204,8 @@ struct ShadeResult;
 #define SH_NODE_MATH		115
 #define SH_NODE_VECT_MATH	116
 #define SH_NODE_SQUEEZE		117
+#define SH_NODE_MATERIAL_EXT	118
+#define SH_NODE_INVERT		119
 
 
 /* custom defines options for Material node */
@@ -293,9 +295,16 @@ void			set_node_shader_lamp_loop(void (*lamp_loop_func)(struct ShadeInput *, str
 #define CMP_NODE_COMBHSVA	246
 #define CMP_NODE_MATH		247
 #define CMP_NODE_LUMA_MATTE	248
-
 #define CMP_NODE_BRIGHTCONTRAST 249
 #define CMP_NODE_GAMMA		250
+#define CMP_NODE_INVERT		251
+
+/* channel toggles */
+#define CMP_CHAN_RGB		1
+#define CMP_CHAN_A			2
+#define CMP_CHAN_R			4
+#define CMP_CHAN_G			8
+#define CMP_CHAN_B			16
 
 /* filter types */
 #define CMP_FILT_SOFT		0
