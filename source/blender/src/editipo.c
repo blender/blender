@@ -2426,6 +2426,9 @@ void common_insertkey(void)
 	if(curarea->spacetype==SPACE_IPO) {
 		insertkey_editipo();
 	}
+	else if(curarea->spacetype==SPACE_ACTION) {
+		insertkey_action();
+	}
 	else if(curarea->spacetype==SPACE_BUTS) {
 		if(G.buts->mainb==CONTEXT_SHADING) {
 			int tab= G.buts->tab[CONTEXT_SHADING];
