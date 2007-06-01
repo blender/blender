@@ -6467,11 +6467,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if(main->versionfile <= 244) {
 		Scene *sce;
 
-		if(main->subversionfile < 1) {
+		if(main->versionfile != 244 || main->subversionfile < 2) {
 			for(sce= main->scene.first; sce; sce= sce->id.next)
 				sce->r.mode |= R_SSS;
-		}
-		if(main->versionfile != 244 || main->subversionfile < 2) {
+
 			/* Copy over old per-level multires vertex data
 			   into a single vertex array in struct Multires */
 			Mesh *me;
