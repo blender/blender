@@ -2468,6 +2468,7 @@ static int _can_softbodies_at_all(Object *ob)
     if ((ob->type==OB_MESH)
 		|| (ob->type==OB_CURVE)
 		|| (ob->type==OB_LATTICE)
+		|| (ob->type==OB_SURF)
 		) return 1;
 	// else deny
 	return 0;
