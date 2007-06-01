@@ -1278,23 +1278,33 @@ static PyObject *NMesh_getSelectedFaces( PyObject * self, PyObject * args )
 	Mesh *me = nm->mesh;
 	int flag = 0;
 	
-	MTFace *tf;
+	MFace *mf;
 	int i;
 	PyObject *l = PyList_New( 0 ), *pyval;
 
-	if( me == NULL )
+	/* dont allow returning more then the NMesh's number of faces */
+	int totfaces = PySequence_Length(nm->faces);
+	
+	if( me == NULL ) {
+		Py_DECREF(l);
 		return NULL;
-
-	tf = me->mtface;
-	if( tf == 0 )
+	}
+	mf = me->mface;
+	if( mf == NULL )
 		return l;
 
-	if( !PyArg_ParseTuple( args, "|i", &flag ) )
+	if( !PyArg_ParseTuple( args, "|i", &flag ) ) {
+		Py_DECREF(l);
 		return NULL;
-
+	}
+	
+	/* make sure not to write more faces then we have */
+	if (totfaces > me->totface)
+		totfaces= me->totface;
+	
 	if( flag ) {
 		for( i = 0; i < me->totface; i++ ) {
-			if( tf[i].flag & TF_SELECT ) {
+			if( mf[i].flag & ME_FACE_SEL ) {
 				pyval = PyInt_FromLong( i );
 				PyList_Append( l, pyval );
 				Py_DECREF(pyval);
@@ -1302,7 +1312,7 @@ static PyObject *NMesh_getSelectedFaces( PyObject * self, PyObject * args )
 		}
 	} else {
 		for( i = 0; i < me->totface; i++ ) {
-			if( tf[i].flag & TF_SELECT )
+			if( mf[i].flag & ME_FACE_SEL )
 				PyList_Append( l, PyList_GetItem( nm->faces, i ) );
 		}
 	}
