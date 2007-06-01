@@ -504,7 +504,7 @@ static float *make_orco_mesh_internal(Object *ob, int render)
 		if(me->mr) {
 			lvl = multires_level_n(me->mr, me->mr->pinlvl);
 			vcos = MEM_callocN(sizeof(*vcos)*lvl->totvert, "orco mr mesh");
-			mvert = lvl->verts;
+			mvert = me->mr->verts;
 			totvert = lvl->totvert;
 		}
 		else {

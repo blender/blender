@@ -109,7 +109,6 @@ struct MultiresMapNode;
 typedef struct MultiresLevel {
 	struct MultiresLevel *next, *prev;
 
-	MVert *verts;
 	MultiresFace *faces;
 	MultiresColFace *colfaces;
 	MultiresEdge *edges;
@@ -118,10 +117,15 @@ typedef struct MultiresLevel {
 	struct MultiresMapNode *map_mem;
 
 	unsigned int totvert, totface, totedge, pad;
+
+	/* Kept for compatibility with older files */
+	MVert *verts;
 } MultiresLevel;
 
 typedef struct Multires {
 	ListBase levels;
+	MVert *verts;
+
 	unsigned char level_count, current, newlvl, edgelvl, pinlvl, renderlvl;
 	unsigned char use_col, pad;
 

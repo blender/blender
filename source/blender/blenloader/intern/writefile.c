@@ -1156,13 +1156,17 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 					writedata(wd, DATA, sizeof(short)*lvl->totedge, mesh->mr->edge_flags);
 					writedata(wd, DATA, sizeof(char)*lvl->totedge, mesh->mr->edge_creases);
 				}
+
 				for(; lvl; lvl= lvl->next) {
 					writestruct(wd, DATA, "MultiresLevel", 1, lvl);
-					writestruct(wd, DATA, "MVert", lvl->totvert, lvl->verts);
 					writestruct(wd, DATA, "MultiresFace", lvl->totface, lvl->faces);
 					writestruct(wd, DATA, "MultiresEdge", lvl->totedge, lvl->edges);
 					writestruct(wd, DATA, "MultiresColFace", lvl->totface, lvl->colfaces);
 				}
+
+				lvl= mesh->mr->levels.last;
+				if(lvl)
+					writestruct(wd, DATA, "MVert", lvl->totvert, mesh->mr->verts);
 			}
 
 			/* PMV data */

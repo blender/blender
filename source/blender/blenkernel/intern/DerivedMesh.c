@@ -2272,7 +2272,7 @@ float *multires_render_pin(Object *ob, Mesh *me, int *orig_lvl)
 		lvl= multires_level_n(me->mr, BLI_countlist(&me->mr->levels));
 		vert_copy= MEM_callocN(sizeof(float)*3*lvl->totvert, "multires vert_copy");
 		for(i=0; i<lvl->totvert; ++i)
-			VecCopyf(&vert_copy[i*3], lvl->verts[i].co);
+			VecCopyf(&vert_copy[i*3], me->mr->verts[i].co);
 	
 		/* Goto the pin level for multires */
 		me->mr->newlvl= me->mr->pinlvl;

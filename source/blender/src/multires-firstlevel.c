@@ -55,6 +55,8 @@
 
 MDeformVert *subdivide_dverts(MDeformVert *src, MultiresLevel *lvl);
 MTFace *subdivide_mtfaces(MTFace *src, MultiresLevel *lvl);
+void multires_update_edge_flags(Mesh *me, EditMesh *em);
+void eed_to_medge_flag(EditEdge *eed, short *flag, char *crease);
 
 /***********    Generic     ***********/
 
@@ -220,6 +222,41 @@ void multires_del_lower_customdata(Multires *mr, MultiresLevel *cr_lvl)
 	CustomData_free(&mr->fdata, lvl1->totface);
 	mr->fdata= cdf;
 }
+
+/* Update all special first-level data, if the first-level is active */
+void multires_update_first_level(Mesh *me, EditMesh *em)
+{
+	if(me && me->mr && me->mr->current == 1) {
+		multires_update_customdata(me->mr->levels.first, em ? &em->vdata : &me->vdata,
+		                           &me->mr->vdata, CD_MDEFORMVERT);
+		multires_update_customdata(me->mr->levels.first, em ? &em->fdata : &me->fdata,
+		                           &me->mr->fdata, CD_MTFACE);
+		multires_update_edge_flags(me, em);
+	}
+}
+
+/*********** Multires.edge_flags ***********/
+void multires_update_edge_flags(Mesh *me, EditMesh *em)
+{
+	MultiresLevel *lvl= me->mr->levels.first;
+	EditEdge *eed= NULL;
+	int i;
+	
+	if(em) eed= em->edges.first;
+	for(i=0; i<lvl->totedge; ++i) {
+		if(em) {
+			me->mr->edge_flags[i]= 0;
+			eed_to_medge_flag(eed, &me->mr->edge_flags[i], &me->mr->edge_creases[i]);
+			eed= eed->next;
+		}
+		else {
+			me->mr->edge_flags[i]= me->medge[i].flag;
+			me->mr->edge_creases[i]= me->medge[i].crease;
+		}
+	}
+}
+
+
 
 /*********** Multires.vdata ***********/
 

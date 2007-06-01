@@ -2554,6 +2554,8 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 			mesh->mr->edge_flags= MEM_callocN(sizeof(short)*lvl->totedge, "Multires Edge Flags");
 		if(!mesh->mr->edge_creases)
 			mesh->mr->edge_creases= MEM_callocN(sizeof(char)*lvl->totedge, "Multires Edge Creases");
+
+		mesh->mr->verts = newdataadr(fd, mesh->mr->verts);
 			
 		for(; lvl; lvl= lvl->next) {
 			lvl->verts= newdataadr(fd, lvl->verts);
@@ -6468,6 +6470,25 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		if(main->subversionfile < 1) {
 			for(sce= main->scene.first; sce; sce= sce->id.next)
 				sce->r.mode |= R_SSS;
+		}
+		if(main->versionfile != 244 || main->subversionfile < 2) {
+			/* Copy over old per-level multires vertex data
+			   into a single vertex array in struct Multires */
+			Mesh *me;
+			for(me = main->mesh.first; me; me=me->id.next) {
+				if(me->mr) {
+					MultiresLevel *lvl = me->mr->levels.last;
+					if(lvl) {
+						me->mr->verts = lvl->verts;
+						lvl->verts = NULL;
+						/* Don't need the other vert arrays */
+						for(lvl = lvl->prev; lvl; lvl = lvl->prev) {
+							MEM_freeN(lvl->verts);
+							lvl->verts = NULL;
+						}
+					}
+				}
+			}
 		}
 	}
 
