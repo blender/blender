@@ -1303,7 +1303,7 @@ static PyObject *NMesh_getSelectedFaces( PyObject * self, PyObject * args )
 		totfaces= me->totface;
 	
 	if( flag ) {
-		for( i = 0; i < me->totface; i++ ) {
+		for( i = 0; i < totfaces; i++ ) {
 			if( mf[i].flag & ME_FACE_SEL ) {
 				pyval = PyInt_FromLong( i );
 				PyList_Append( l, pyval );
@@ -1311,7 +1311,7 @@ static PyObject *NMesh_getSelectedFaces( PyObject * self, PyObject * args )
 			}
 		}
 	} else {
-		for( i = 0; i < me->totface; i++ ) {
+		for( i = 0; i < totfaces; i++ ) {
 			if( mf[i].flag & ME_FACE_SEL )
 				PyList_Append( l, PyList_GetItem( nm->faces, i ) );
 		}
