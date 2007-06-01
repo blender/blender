@@ -526,6 +526,9 @@ static void add_nla_block(short event)
 	if(strip->object)
 		id_lib_extern(&strip->object->id);	/* checks lib data, sets correct flag for saving then */
 
+	if(ob->nlastrips.first == NULL)
+		ob->nlaflag |= OB_NLA_OVERRIDE;
+	
 	BLI_addtail(&ob->nlastrips, strip);
 
 	BIF_undo_push("Add NLA strip");
@@ -580,6 +583,9 @@ static void add_nla_block_by_name(char name[32], Object *ob, short hold, short a
 	
 	act->id.us++;
 	
+	if(ob->nlastrips.first == NULL)
+		ob->nlaflag |= OB_NLA_OVERRIDE;
+		
 	BLI_addtail(&ob->nlastrips, strip);
 }
 
