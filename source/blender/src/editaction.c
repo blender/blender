@@ -2692,9 +2692,10 @@ void insertkey_action(void)
 {
 	bAction *act;
 	Key *key;
+	Object *ob= OBACT;
 	IpoCurve *icu;
 	short mode;
-	float cfra, val;
+	float cfra;
 	
 	/* get data */
 	act = G.saction->action;
@@ -2713,8 +2714,10 @@ void insertkey_action(void)
 			if (EDITABLE_ACHAN(achan)) {
 				if (achan->ipo && (SEL_ACHAN(achan) || (mode == 1))) {
 					for (icu= achan->ipo->curve.first; icu; icu=icu->next) {
-						val = icu->curval;
-						insert_vert_ipo(icu, cfra, val);
+						if (ob)
+							insertkey((ID *)ob, icu->blocktype, achan->name, NULL, icu->adrcode);
+						else
+							insert_vert_ipo(icu, cfra, icu->curval);
 					}
 				}	
 				
@@ -2723,8 +2726,13 @@ void insertkey_action(void)
 						if (EDITABLE_CONCHAN(conchan)) {
 							if (conchan->ipo && (SEL_ACHAN(conchan) || (mode == 1))) {
 								for (icu= conchan->ipo->curve.first; icu; icu=icu->next) {
-									val = icu->curval;
-									insert_vert_ipo(icu, cfra, val);
+									/* // commented out as this doesn't seem to work right for some reason
+									if (ob)
+										insertkey((ID *)ob, ID_CO, achan->name, conchan->name, CO_ENFORCE);
+									 else
+										insert_vert_ipo(icu, cfra, icu->curval);
+									*/
+									insert_vert_ipo(icu, cfra, icu->curval);
 								}
 							}
 						}
@@ -2740,8 +2748,7 @@ void insertkey_action(void)
 		
 		if (key->ipo) {
 			for (icu= key->ipo->curve.first; icu; icu=icu->next) {
-				val = icu->curval;
-				insert_vert_ipo(icu, cfra, val);
+				insert_vert_ipo(icu, cfra, icu->curval);
 			}
 		}
 	}
