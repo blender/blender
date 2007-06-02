@@ -67,5 +67,8 @@ void vertexgroup_select_by_name(struct Object *ob, char *name);
 
 extern void object_apply_deform(struct Object *ob);
 
+void vgroup_assign_with_menu(void);
+void vgroup_operation_with_menu(void);
+
 #endif
 

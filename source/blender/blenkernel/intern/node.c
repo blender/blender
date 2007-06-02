@@ -2322,6 +2322,9 @@ static void registerCompositNodes(ListBase *ntypelist)
 	nodeRegisterType(ntypelist, &cmp_node_curve_rgb);
 	nodeRegisterType(ntypelist, &cmp_node_mix_rgb);
 	nodeRegisterType(ntypelist, &cmp_node_hue_sat);
+	nodeRegisterType(ntypelist, &cmp_node_brightcontrast);
+	nodeRegisterType(ntypelist, &cmp_node_gamma);
+	nodeRegisterType(ntypelist, &cmp_node_invert);
 	nodeRegisterType(ntypelist, &cmp_node_alphaover);
 	nodeRegisterType(ntypelist, &cmp_node_zcombine);
 	
@@ -2361,9 +2364,6 @@ static void registerCompositNodes(ListBase *ntypelist)
 	nodeRegisterType(ntypelist, &cmp_node_flip);
 	nodeRegisterType(ntypelist, &cmp_node_displace);
 	nodeRegisterType(ntypelist, &cmp_node_mapuv);
-
-	nodeRegisterType(ntypelist, &cmp_node_brightcontrast);
-	nodeRegisterType(ntypelist, &cmp_node_gamma);
 }
 
 static void registerShaderNodes(ListBase *ntypelist) 
@@ -2383,9 +2383,11 @@ static void registerShaderNodes(ListBase *ntypelist)
 	nodeRegisterType(ntypelist, &sh_node_squeeze);
 	nodeRegisterType(ntypelist, &sh_node_camera);
 	nodeRegisterType(ntypelist, &sh_node_material);
+	nodeRegisterType(ntypelist, &sh_node_material_ext);
 	nodeRegisterType(ntypelist, &sh_node_value);
 	nodeRegisterType(ntypelist, &sh_node_rgb);
 	nodeRegisterType(ntypelist, &sh_node_texture);
+	nodeRegisterType(ntypelist, &sh_node_invert);
 }
 
 void init_nodesystem(void) 

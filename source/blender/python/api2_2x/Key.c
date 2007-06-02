@@ -315,7 +315,7 @@ static PyObject *Key_repr( BPy_Key * self )
 static PyObject *Key_getIpo( BPy_Key * self )
 {
 	if (self->key->ipo)
-		Ipo_CreatePyObject( self->key->ipo );
+		return Ipo_CreatePyObject( self->key->ipo );
 	Py_RETURN_NONE;
 }
 

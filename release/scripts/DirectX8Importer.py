@@ -23,7 +23,7 @@ Tip: 'Import from DirectX text file format format.'
 # This script import meshes from DirectX text file format
 
 # Grab the latest version here :www.omariben.too.it
-
+import bpy
 import Blender
 from Blender import NMesh,Object,Material,Texture,Image,Draw
 
@@ -33,123 +33,102 @@ class xImport:
 		global my_path
 		self.file = open(filename, "r")
 		my_path = Blender.sys.dirname(filename)
-		self.lines = self.file.readlines()
+
+		# 
+		self.lines = [l_split for l in self.file.readlines() for l_split in (' '.join(l.split()),) if l_split]
 
 	def Import(self):
 		lines = self.lines
 		print "importing into Blender ..."
-		scene  = Blender.Scene.getCurrent()
+		scene  = bpy.data.scenes.active
 		mesh = NMesh.GetRaw()
 		#Get the line of Texture Coords
 		nr_uv_ind = 0
-		for line_uv in lines:
-			l = line_uv.strip()
-			words = line_uv.split()																																																	
-			if l and words[0] == "MeshTextureCoords" :
-				nr_uv_ind = lines.index(line_uv)	
-		
-		
-				
-		#Get Materials		
+
+		#Get Materials
+		nr_fac_mat = 0
 		idx = 0
 		i = -1
 		mat_list = []
 		tex_list = []
-		for line_mat in lines:
-			i += 1
-			l = line_mat.strip()
-			words = line_mat.split()																																																	
-			if l and words[0] == "Material" :
-				idx += 1	
-				self.writeMaterials(i, idx, mat_list, tex_list)
-		
-			
-		
-		nr_fac_mat = 0		
-		#Assign Materials		
-		for line_m in lines:
-			l = line_m.strip()
-			words = line_m.split()																																																	
-			if l and words[0] == "MeshMaterialList" :
-				nr_fac_mat = lines.index(line_m)	+ 2
-				
-		#Create The Mesh								
-		for line in lines:
+		mesh_line_indicies = []
+		for j, line in enumerate(lines):
 			l = line.strip()
-			words = line.split()																																																	
-			if l and words[0] == "Mesh" :											
-				nr_vr_ind = lines.index(line)																		
-				self.writeVertices(nr_vr_ind, mesh, nr_uv_ind, nr_fac_mat, tex_list)
-				
-				
-		NMesh.PutRaw(mesh,"Mesh",1)
+			words = line.split()
+			if words[0] == "Material" :
+				idx += 1
+				self.writeMaterials(j, idx, mat_list, tex_list)
+			elif words[0] == "MeshTextureCoords" :
+				nr_uv_ind = j
+			elif words[0] == "MeshMaterialList" :
+				nr_fac_mat = j + 2
+			elif words[0] == "Mesh": # Avoid a second loop
+				mesh_line_indicies.append(j)
+
+		#Create The Mesh
+		for nr_vr_ind in mesh_line_indicies:
+			self.writeVertices(nr_vr_ind, mesh, nr_uv_ind, nr_fac_mat, tex_list)
+
 		mesh.setMaterials(mat_list)
-		mesh.update()
-			
-		if nr_fac_mat :
+		if nr_fac_mat:
 			self.writeMeshMaterials(nr_fac_mat, mesh)
-				
+		NMesh.PutRaw(mesh,"Mesh",1)
+
 		self.file.close()
 		print "... finished"
-		
+
 	#------------------------------------------------------------------------------
 	#        CREATE THE MESH
 	#------------------------------------------------------------------------------
 	def writeVertices(self, nr_vr_ind, mesh, nr_uv, nr_fac_mat, tex_list):
-		
-		lin = self.lines[nr_vr_ind + 1]
+		v_ind = nr_vr_ind + 1
+		lin = self.lines[v_ind]
 		if lin :
-			lin_c = self.CleanLine(lin)																					
+			lin_c = self.CleanLine(lin)
 			nr_vert = int((lin_c.split()[0]))
-			v_ind = self.lines.index(lin)
 		else :
-			lin = self.lines.index(nr_vr_ind + 2)
-			lin_c = self.CleanLine(lin)																					
+			v_ind = nr_vr_ind + 2
+			lin = self.lines[v_ind]
+			lin_c = self.CleanLine(lin)
 			nr_vert = int((lin_c.split()[0]))
-			v_ind = self.lines.index(lin)
-																					
+
 		vx_array = range(v_ind + 1, (v_ind + nr_vert +1))
 		#--------------------------------------------------
-		lin_f = self.lines[v_ind + nr_vert +1]
+		nr_fac_li = v_ind + nr_vert +1
+		lin_f = self.lines[nr_fac_li]
 		if lin_f :
-			lin_fc = self.CleanLine(lin_f)																					
+			lin_fc = self.CleanLine(lin_f)
 			nr_face = int((lin_fc.split()[0]))
-			nr_fac_li = self.lines.index(lin_f)
 		else :
-			lin_f = self.lines[v_ind + nr_vert +1]
-			lin_fc = self.CleanLine(lin_f)																					
+			nr_fac_li = v_ind + nr_vert +1
+			lin_f = self.lines[nr_fac_li]
+			lin_fc = self.CleanLine(lin_f)
 			nr_face = int((lin_fc.split()[0]))
-			nr_fac_li = self.lines.index(lin_f)	
-																		
-																																																			
-		fac_array = range(nr_fac_li + 1, (nr_fac_li + nr_face + 1))																																																																		
-		#Get Coordinates													
+
+		fac_array = range(nr_fac_li + 1, (nr_fac_li + nr_face + 1))
+		#Get Coordinates
 		for l in vx_array:
 			line_v = self.lines[l]
 			lin_v = self.CleanLine(line_v)
-			words = lin_v.split()																									
+			words = lin_v.split()
 			if len(words)==3:
-				co_vert_x = float(words[0]) 
-				co_vert_y = float(words[1])
-				co_vert_z = float(words[2])
-				v=NMesh.Vert(co_vert_x,co_vert_y,co_vert_z)
-				mesh.verts.append(v) 
-																																												
-		
-																																																									
+				mesh.verts.append(NMesh.Vert(float(words[0]),float(words[1]),float(words[2])))
+
 		#Make Faces
 		i = 0
+		mesh_verts = mesh.verts
 		for f in fac_array:
 			i += 1
 			line_f = self.lines[f]
 			lin_f = self.CleanLine(line_f)
-			words = lin_f.split()																																					
-			if len(words) == 5:																					
-				f=NMesh.Face() 
-				f.v.append(mesh.verts[int(words[1])])
-				f.v.append(mesh.verts[int(words[2])])
-				f.v.append(mesh.verts[int(words[3])])
-				f.v.append(mesh.verts[int(words[4])])
+			words = lin_f.split()
+			if len(words) == 5:
+				f= NMesh.Face([\
+					mesh_verts[int(words[1])],
+					mesh_verts[int(words[2])],
+					mesh_verts[int(words[3])],
+					mesh_verts[int(words[4])]])
+				
 				mesh.faces.append(f)
 				if nr_uv :
 					uv = []
@@ -193,12 +172,13 @@ class xImport:
 								#Draw.PupMenu("No image to load")
 								#print "No image " + name_tex + " to load"
 								pass
-					
-			elif len(words) == 4:																			
-				f=NMesh.Face() 
-				f.v.append(mesh.verts[int(words[1])])
-				f.v.append(mesh.verts[int(words[2])])
-				f.v.append(mesh.verts[int(words[3])])
+
+			elif len(words) == 4:
+				f=NMesh.Face([\
+					mesh_verts[int(words[1])],\
+					mesh_verts[int(words[2])],\
+					mesh_verts[int(words[3])]]) 
+				
 				mesh.faces.append(f)
 				if nr_uv :
 					uv = []
@@ -236,10 +216,10 @@ class xImport:
 								#Draw.PupMenu("No image to load")
 								#print "No image " + name_tex + " to load"
 								pass
-								
-				
-	
-		
+
+
+
+
 	def CleanLine(self,line):
 		fix_line = line.replace(";", " ")
 		fix_1_line = fix_line.replace('"', ' ')
@@ -248,7 +228,7 @@ class xImport:
 		fix_4_line = fix_3_line.replace(",", " ")
 		fix_5_line = fix_4_line.replace("'", " ")
 		return fix_5_line
-	
+
 	#------------------------------------------------------------------
 	# CREATE MATERIALS
 	#------------------------------------------------------------------
@@ -257,21 +237,21 @@ class xImport:
 		mat = Material.New(name)
 		line = self.lines[nr_mat + 1]
 		fixed_line = self.CleanLine(line)
-		words = fixed_line.split()	
+		words = fixed_line.split()
 		mat.rgbCol = [float(words[0]),float(words[1]),float(words[2])]
 		mat.setAlpha(float(words[3]))
 		mat_list.append(mat)
 		l = self.lines[nr_mat + 5]
 		fix_3_line = self.CleanLine(l)
 		tex_n = fix_3_line.split()
-		
+
 		if tex_n and tex_n[0] == "TextureFilename" :
-			
+
 			if len(tex_n) > 1:
 				tex_list.append(tex_n[1])
-				
+
 			if len(tex_n) <= 1 :
-				
+
 				l_succ = self.lines[nr_mat + 6]
 				fix_3_succ = self.CleanLine(l_succ)
 				tex_n_succ = fix_3_succ.split()
@@ -279,7 +259,7 @@ class xImport:
 		else :
 			tex_name = None
 			tex_list.append(tex_name)
-			
+
 		return mat_list, tex_list
 	#------------------------------------------------------------------
 	# SET MATERIALS
@@ -292,10 +272,8 @@ class xImport:
 			wrd = fixed_line.split()
 			mat_idx = int(wrd[0])
 			face.materialIndex = mat_idx
-		mesh.update()	
-		
-		
-				
+
+
 #------------------------------------------------------------------
 #  MAIN
 #------------------------------------------------------------------
@@ -308,4 +286,4 @@ arg = __script__['arg']
 
 if __name__ == '__main__':
 	Blender.Window.FileSelector(my_callback, "Import DirectX", "*.x")
-	
+# my_callback('/directxterrain.x')

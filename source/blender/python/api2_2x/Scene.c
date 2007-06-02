@@ -1343,16 +1343,18 @@ static PyObject *SceneObSeq_item( BPy_SceneObSeq * self, int i )
 	if (self->mode==EXPP_OBSEQ_NORMAL)
 		for (base= scene->base.first; base && i!=index; base= base->next, index++) {}
 	/* selected */
-	else if (self->mode==EXPP_OBSEQ_SELECTED)
+	else if (self->mode==EXPP_OBSEQ_SELECTED) {
 		for (base= scene->base.first; base && i!=index; base= base->next)
 			if (base->flag & SELECT)
 				index++;
+	}
 	/* context */
-	else if (self->mode==EXPP_OBSEQ_CONTEXT)
+	else if (self->mode==EXPP_OBSEQ_CONTEXT) {
 		if (G.vd)
 			for (base= scene->base.first; base && i!=index; base= base->next)
 				if TESTBASE(base)
 					index++;
+	}
 	
 	if (!(base))
 		return EXPP_ReturnPyObjError( PyExc_IndexError,

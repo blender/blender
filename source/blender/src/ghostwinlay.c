@@ -881,10 +881,8 @@ Window *winlay_get_active_window(void) {
 
 void window_open_ndof(Window* win)
 {
-    PILdynlib* ndofLib = PIL_dynlib_open("NDOFPlugin.plug");
-    printf("passing here \n");
+    PILdynlib* ndofLib = PIL_dynlib_open("spaceplug.plug");
     if (ndofLib) {
-    	    printf("and here \n");
 
         GHOST_OpenNDOF(g_system, win->ghostwin, 
             PIL_dynlib_find_symbol(ndofLib, "ndofInit"),

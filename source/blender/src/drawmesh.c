@@ -320,7 +320,6 @@ int set_tpage(MTFace *tface)
 	else fCurtile= tface->tile;
 
 	if(tilemode) {
-
 		if(ima->repbind==0) make_repbind(ima);
 		
 		if(fCurtile>=ima->totbind) fCurtile= 0;

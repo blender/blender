@@ -97,6 +97,7 @@
 #include "BIF_drawscript.h"
 #include "BIF_editarmature.h"
 #include "BIF_editconstraint.h"
+#include "BIF_editdeform.h"
 #include "BIF_editfont.h"
 #include "BIF_editgroup.h"
 #include "BIF_editkey.h"
@@ -1839,8 +1840,20 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				
 				break;
 			case GKEY:
-				if(G.qual == LR_CTRLKEY) 
-					group_operation_with_menu();
+				if((G.qual == LR_CTRLKEY)) {
+					if(G.obedit) {
+						if(ELEM(G.obedit->type, OB_MESH, OB_LATTICE))
+							vgroup_assign_with_menu();
+					}
+					else
+						group_operation_with_menu();
+				}
+				else if((G.qual == (LR_CTRLKEY|LR_SHIFTKEY))) {
+					if(G.obedit) {
+						if(ELEM(G.obedit->type, OB_MESH, OB_LATTICE))
+							vgroup_operation_with_menu();
+					}
+				}
 				else if((G.qual==LR_SHIFTKEY))
 					if(G.obedit) {
 						if(G.obedit->type==OB_MESH)

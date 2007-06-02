@@ -2568,6 +2568,9 @@ void snap_keys_to_frame(int snap_mode)
 	else if (key) {
 		set_snap_meshchannels(key, snap_mode);
 	}
+	else {
+		return;
+	}
 	
 	BIF_undo_push(str);
 	allspace(REMAKEIPO, 0);
@@ -2670,8 +2673,87 @@ void mirror_action_keys(short mirror_mode)
 	else if (key) {
 		mirror_meshchannels(key, mirror_mode);
 	}
+	else {
+		return;
+	}
 	
 	BIF_undo_push(str);
+	allspace(REMAKEIPO, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWIPO, 0);
+	allqueue(REDRAWNLA, 0);
+}
+
+/* This function allows the user to insert keyframes on the current
+ * frame from the Action Editor, using the current values of the channels
+ * to be keyframed.  
+ */
+void insertkey_action(void)
+{
+	bAction *act;
+	Key *key;
+	Object *ob= OBACT;
+	IpoCurve *icu;
+	short mode;
+	float cfra;
+	
+	/* get data */
+	act = G.saction->action;
+	key = get_action_mesh_key();
+	cfra = frame_to_float(CFRA);
+	
+	if (act) {
+		bActionChannel *achan;
+		bConstraintChannel *conchan;
+		
+		/* ask user what to keyframe */
+		mode = pupmenu("Insert Key%t|All Channels%x1|Only Selected Channels%x2");
+		if (mode == 0) return;
+		
+		for (achan= act->chanbase.first; achan; achan=achan->next) {
+			if (EDITABLE_ACHAN(achan)) {
+				if (achan->ipo && (SEL_ACHAN(achan) || (mode == 1))) {
+					for (icu= achan->ipo->curve.first; icu; icu=icu->next) {
+						if (ob)
+							insertkey((ID *)ob, icu->blocktype, achan->name, NULL, icu->adrcode);
+						else
+							insert_vert_ipo(icu, cfra, icu->curval);
+					}
+				}	
+				
+				if (EXPANDED_ACHAN(achan) && FILTER_CON_ACHAN(achan)) {
+					for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
+						if (EDITABLE_CONCHAN(conchan)) {
+							if (conchan->ipo && (SEL_ACHAN(conchan) || (mode == 1))) {
+								for (icu= conchan->ipo->curve.first; icu; icu=icu->next) {
+									/* // commented out as this doesn't seem to work right for some reason
+									if (ob)
+										insertkey((ID *)ob, ID_CO, achan->name, conchan->name, CO_ENFORCE);
+									 else
+										insert_vert_ipo(icu, cfra, icu->curval);
+									*/
+									insert_vert_ipo(icu, cfra, icu->curval);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+	else if (key) {
+		/* ask user if they want to insert a keyframe */
+		mode = okee("Insert Keyframe?");
+		if (mode == 0) return;
+		
+		if (key->ipo) {
+			for (icu= key->ipo->curve.first; icu; icu=icu->next) {
+				insert_vert_ipo(icu, cfra, icu->curval);
+			}
+		}
+	}
+	
+	BIF_undo_push("Insert Key");
 	allspace(REMAKEIPO, 0);
 	allqueue(REDRAWACTION, 0);
 	allqueue(REDRAWIPO, 0);
@@ -2886,7 +2968,7 @@ static void borderselect_function(void (*select_func)(bAction *act,
 			select_func(act, mval, mvalo, SELECT_SUBTRACT);
 	}
 	
-	BIF_undo_push("Border select Action");
+	BIF_undo_push("Border Select Action");
 }
 
 static void clever_keyblock_names(Key *key, short* mval){
@@ -3255,7 +3337,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 			}
 			break;
-			
+		
 		case KKEY:
 			if (G.qual & LR_CTRLKEY) {
 				markers_selectkeys_between();
@@ -3278,8 +3360,10 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case MKEY:
 			if (G.qual & LR_SHIFTKEY) {
 				/* mirror keyframes */
-				val = pupmenu("Mirror Keys Over%t|Current Frame%x1|Vertical Axis%x2|Horizontal Axis %x3|Selected Marker %x4");
-				mirror_action_keys(val);
+				if (act || key) {
+					val = pupmenu("Mirror Keys Over%t|Current Frame%x1|Vertical Axis%x2|Horizontal Axis %x3|Selected Marker %x4");
+					mirror_action_keys(val);
+				}
 			}
 			else {
 				/* marker operations */
@@ -3329,8 +3413,10 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case SKEY: 
 			if (mval[0]>=ACTWIDTH) {
 				if(G.qual & LR_SHIFTKEY) {
-					val = pupmenu("Snap Keys To%t|Nearest Frame%x1|Current Frame%x2|Nearest Marker %x3");
-					snap_keys_to_frame(val);
+					if (act || key) {
+						val = pupmenu("Snap Keys To%t|Nearest Frame%x1|Current Frame%x2|Nearest Marker %x3");
+						snap_keys_to_frame(val);
+					}
 				}
 				else {
 					if (act)

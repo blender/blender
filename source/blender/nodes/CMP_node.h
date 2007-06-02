@@ -53,6 +53,9 @@ extern bNodeType cmp_node_output_file;
 extern bNodeType cmp_node_curve_rgb;
 extern bNodeType cmp_node_mix_rgb;
 extern bNodeType cmp_node_hue_sat;
+extern bNodeType cmp_node_brightcontrast;
+extern bNodeType cmp_node_gamma;
+extern bNodeType cmp_node_invert;
 extern bNodeType cmp_node_alphaover;
 extern bNodeType cmp_node_zcombine;
 
@@ -92,9 +95,6 @@ extern bNodeType cmp_node_scale;
 extern bNodeType cmp_node_flip;
 extern bNodeType cmp_node_displace;
 extern bNodeType cmp_node_mapuv;
-
-extern bNodeType cmp_node_brightcontrast;
-extern bNodeType cmp_node_gamma;
 
 #endif
 

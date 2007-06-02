@@ -498,7 +498,7 @@ class RenderData:
 
   def setOversamplingLevel(level):
     """
-    Set the edge color for toon shading.
+    Set the level of over-sampling (anti-aliasing).
     @type level: int
     @param level: can be either 5, 8, 11, or 16
     """

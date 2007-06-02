@@ -190,8 +190,9 @@ double BL_ArmatureObject::GetLastFrame()
 
 bool BL_ArmatureObject::GetBoneMatrix(Bone* bone, MT_Matrix4x4& matrix) const
 {
-	// ton hack
-	bPoseChannel *pchan= get_pose_channel(m_pose, bone->name);
+	Object* par_arma = m_objArma;
+	where_is_pose(par_arma);
+	bPoseChannel *pchan= get_pose_channel(par_arma->pose, bone->name);
 
 	if(pchan) {
 		matrix.setValue(&pchan->pose_mat[0][0]);

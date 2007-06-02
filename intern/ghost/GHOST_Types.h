@@ -343,6 +343,7 @@ typedef void    (*GHOST_NDOFLibraryShutdown_fp)(void* deviceHandle);
 typedef void*   (*GHOST_NDOFDeviceOpen_fp)(void* platformData);
 typedef int     (*GHOST_NDOFEventHandler_fp)(float* result7, void* deviceHandle, unsigned int message, unsigned int* wParam, unsigned long* lParam);
 
+/* original patch used floats, but the driver return ints and uns. We will calibrate in view, no sense on doing conversions twice */
 typedef struct {
    /** N-degree of freedom device data */
    float tx, ty, tz;   /** -x left, +y up, +z forward */

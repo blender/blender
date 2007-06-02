@@ -4447,7 +4447,7 @@ static void editing_panel_links(Object *ob)
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_links", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Link and Materials", "Editing", 0, 0, 318, 204)==0) return;
 	
-	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+	uiSetButLock((ob && ob->id.lib), ERROR_LIBDATA_MESSAGE);
 	
 	buttons_active_id(&id, &idfrom);
 	

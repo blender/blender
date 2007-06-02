@@ -92,6 +92,7 @@ void snap_keys_to_frame(int snap_mode);
 void mirror_action_keys(short mirror_mode);
 void clean_shapekeys(struct Key *key);
 void clean_actionchannels(struct bAction *act);
+void insertkey_action(void);
 
 /* Marker Operations */
 void column_select_shapekeys(struct Key *key, int mode);

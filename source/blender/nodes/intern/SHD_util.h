@@ -108,12 +108,30 @@ typedef struct ShaderCallData {
 #define GEOM_OUT_UV		4
 #define GEOM_OUT_NORMAL	5
 #define GEOM_OUT_VCOL	6
+#define GEOM_OUT_FRONTBACK	7
+
 
 /* input socket defines */
 #define MAT_IN_COLOR	0
 #define MAT_IN_SPEC		1
 #define MAT_IN_REFL		2
 #define MAT_IN_NORMAL	3
+#define MAT_IN_MIR		4
+#define MAT_IN_AMBCOL	5
+#define MAT_IN_AMB		6
+#define MAT_IN_EMIT	7
+#define MAT_IN_SPECTRA	8
+#define MAT_IN_RAY_MIRROR	9
+#define MAT_IN_ALPHA	10
+#define MAT_IN_TRANSLUCENCY	11
+
+/* output socket defines */
+#define MAT_OUT_COLOR		0
+#define MAT_OUT_ALPHA		1
+#define MAT_OUT_NORMAL	2
+#define MAT_OUT_DIFFUSE	3
+#define MAT_OUT_SPEC		4
+#define MAT_OUT_AO		5
 
 
 extern void node_ID_title_cb(void *node_v, void *unused_v);

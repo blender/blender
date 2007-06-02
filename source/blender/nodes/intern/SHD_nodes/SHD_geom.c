@@ -41,6 +41,7 @@ static bNodeSocketType sh_node_geom_out[]= {
 	{	SOCK_VECTOR, 0, "UV",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
 	{	SOCK_VECTOR, 0, "Normal",	0.0f, 0.0f, 0.0f, 1.0f, -1.0f, 1.0f},
 	{	SOCK_RGBA,   0, "Vertex Color", 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
+	{	SOCK_VALUE,   0, "Front/Back", 0.0f, 0.0f, 0.0f, 1.0f, 0.0f, 1.0f},
 	{	-1, 0, ""	}
 };
 
@@ -52,6 +53,7 @@ static void node_shader_exec_geom(void *data, bNode *node, bNodeStack **in, bNod
 		NodeGeometry *ngeo= (NodeGeometry*)node->storage;
 		ShadeInputUV *suv= &shi->uv[0];
 		static float defaultvcol[4] = {1.0f, 1.0f, 1.0f, 1.0f};
+		static float front= 0.0;
 		int i;
 
 		if(ngeo->uvname[0]) {
@@ -105,6 +107,15 @@ static void node_shader_exec_geom(void *data, bNode *node, bNodeStack **in, bNod
 			out[GEOM_OUT_NORMAL]->data= shi->dxno;
 			out[GEOM_OUT_NORMAL]->datatype= NS_OSA_VECTORS;
 		}
+		
+		/* front/back
+		* check the original un-flipped normals to determine front or back side */
+		if (shi->orignor[2] < FLT_EPSILON) {
+			front= 1.0f;
+		} else {
+			front = 0.0f;
+		}
+		out[GEOM_OUT_FRONTBACK]->vec[0]= front;
 	}
 }
 

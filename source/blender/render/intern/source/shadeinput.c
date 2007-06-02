@@ -259,6 +259,11 @@ void shade_input_set_triangle_i(ShadeInput *shi, VlakRen *vlr, short i1, short i
 	/* facenormal copy, can get flipped */
 	VECCOPY(shi->facenor, vlr->n);
 	
+	/* copy of original pre-flipped normal, for geometry->front/back node output */
+	VECCOPY(shi->orignor, vlr->n);
+	if (vlr->noflag & R_FLIPPED_NO)	{
+		VECMUL(shi->orignor, -1.0f);
+	}
 }
 
 /* note, facenr declared volatile due to over-eager -O2 optimizations

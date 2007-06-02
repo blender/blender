@@ -55,12 +55,16 @@
 #include "BKE_mesh.h"
 #include "BKE_utildefines.h"
 
+#include "BIF_interface.h"
 #include "BIF_editdeform.h"
 #include "BIF_editmesh.h"
+#include "BIF_space.h"
 #include "BIF_toolbox.h"
 
 #include "BSE_edit.h"
 
+#include "butspace.h"
+#include "mydevice.h"
 #include "editmesh.h"
 #include "multires.h"
 
@@ -788,6 +792,99 @@ void vertexgroup_select_by_name(Object *ob, char *name)
 	ob->actdef=0;	// this signals on painting to create a new one, if a bone in posemode is selected */
 }
 
+/* This function provides a shortcut for adding/removing verts from 
+ * vertex groups. It is called by the Ctrl-G hotkey in EditMode for Meshes
+ * and Lattices. (currently only restricted to those two)
+ * It is only responsible for 
+ */
+void vgroup_assign_with_menu(void)
+{
+	Object *ob= G.obedit;
+	int defCount;
+	int mode;
+	
+	/* prevent crashes */
+	if (ob==NULL) return;
+	
+	defCount= BLI_countlist(&ob->defbase);
+	
+	/* give user choices of adding to current/new or removing from current */
+	if (defCount && ob->actdef)
+		mode = pupmenu("Vertex Groups %t|Add Selected to New Group %x1|Add Selected to Active Group %x2|Remove Selected from Active Group %x3");
+	else
+		mode= pupmenu("Vertex Groups %t|Add Selected to New Group %x1");
+	
+	/* handle choices */
+	switch (mode) {
+		case 1: /* add to new group */
+			add_defgroup(ob);
+			assign_verts_defgroup();
+			allqueue(REDRAWVIEW3D, 1);
+			BIF_undo_push("Assign to vertex group");
+			break;
+		case 2: /* add to current group */
+			assign_verts_defgroup();
+			allqueue(REDRAWVIEW3D, 1);
+			BIF_undo_push("Assign to vertex group");
+			break;
+		case 3:	/* remove from current group */
+			remove_verts_defgroup(0);
+			allqueue(REDRAWVIEW3D, 1);
+			BIF_undo_push("Remove from vertex group");
+			break;
+	}
+}
+
+/* This function provides a shortcut for commonly used vertex group 
+ * functions - change weight (not implemented), change active group, delete active group,
+ * when Ctrl-Shift-G is used in EditMode, for Meshes and Lattices (only for now).
+ */
+void vgroup_operation_with_menu(void)
+{
+	Object *ob= G.obedit;
+	int defCount;
+	int mode;
+	
+	/* prevent crashes and useless cases */
+	if (ob==NULL) return;
+	
+	defCount= BLI_countlist(&ob->defbase);
+	if (defCount == 0) return;
+	
+	/* give user choices of adding to current/new or removing from current */
+	if (ob->actdef)
+		mode = pupmenu("Vertex Groups %t|Change Active Group%x1|Delete Active Group%x2");
+	else
+		mode= pupmenu("Vertex Groups %t|Change Active Group%x1");
+	
+	/* handle choices */
+	switch (mode) {
+		case 1: /* change active group*/
+			{
+				char *menustr= get_vertexgroup_menustr(ob);
+				short nr;
+				
+				if (menustr) {
+					nr= pupmenu(menustr);
+					
+					if ((nr >= 1) && (nr <= defCount)) 
+						ob->actdef= nr;
+						
+					MEM_freeN(menustr);
+				}
+				allqueue(REDRAWBUTSALL, 0);
+			}
+			break;
+		case 2: /* delete active group  */
+			{
+				del_defgroup(ob);
+				allqueue (REDRAWVIEW3D, 1);
+				allqueue(REDRAWOOPS, 0);
+				BIF_undo_push("Delete vertex group");
+			}
+			break;
+	}
+}
 
 /* ******************* other deform edit stuff ********** */
 

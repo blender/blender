@@ -141,7 +141,10 @@ bActionStrip *convert_action_to_strip (Object *ob)
 	//set_active_strip(ob, nstrip); /* is in editnla as does UI calls */
 			
 	nstrip->repeat = 1.0;
-							
+
+	if(ob->nlastrips.first == NULL)
+		ob->nlaflag |= OB_NLA_OVERRIDE;
+	
 	BLI_addtail(&ob->nlastrips, nstrip);
 	return nstrip; /* is created, malloced etc. here so is safe to just return the pointer?
 			  this is needed for setting this active in UI, and probably useful for API too */

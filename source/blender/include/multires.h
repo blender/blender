@@ -31,6 +31,7 @@
 #define MULTIRES_H
 
 struct CustomData;
+struct EditMesh;
 struct Object;
 struct MDeformVert;
 struct Mesh;
@@ -65,6 +66,7 @@ int multires_modifier_warning();
 
 /* multires-firstlevel.c */
 /* Generic */
+void multires_update_first_level(struct Mesh *me, struct EditMesh *em);
 void multires_update_customdata(struct MultiresLevel *lvl1, struct CustomData *src,
                                 struct CustomData *dst, const int type);
 void multires_customdata_to_mesh(struct Mesh *me, struct EditMesh *em, struct MultiresLevel *lvl,

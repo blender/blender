@@ -6922,45 +6922,26 @@ static PyObject *Mesh_fill( BPy_Mesh * self )
 /*
  * "pointInside" function
  */
-
+#define SIDE_OF_LINE(pa,pb,pp)	((pa[0]-pp[0])*(pb[1]-pp[1]))-((pb[0]-pp[0])*(pa[1]-pp[1]))
+#define POINT_IN_TRI(p0,p1,p2,p3)	((SIDE_OF_LINE(p1,p2,p0)>=0) && (SIDE_OF_LINE(p2,p3,p0)>=0) && (SIDE_OF_LINE(p3,p1,p0)>=0))
 static short pointInside_internal(float *vec, float *v1, float *v2, float  *v3 )
 {	
-	float a,a1,a2,a3, /*areas, used for point in tri test */
-	z,w1,w2,w3,wtot;
-	float bounds[5];
+	float z,w1,w2,w3,wtot;
 	
-	/*min,max*/
-	bounds[0] = MIN3(v1[0], v2[0], v3[0]);
-	bounds[1] = MAX3(v1[0], v2[0], v3[0]);
-	bounds[2] = MIN3(v1[1], v2[1], v3[1]);
-	bounds[3] = MAX3(v1[1], v2[1], v3[1]);
-	/*bounds[4] = MIN3(v1[2], v2[2], v3[2]); - ZMIN isnt used*/ 
-	bounds[4] = MAX3(v1[2], v2[2], v3[2]);  /* reuse 4 index as the max */
+	if (!POINT_IN_TRI(vec, v1,v2,v3))
+		return 0;
 	
-	if ( /* is the vertex in the bounds of the face? */
-		(bounds[0] < vec[0] && vec[0] < bounds[1]) &&
-		(bounds[2] < vec[1] && vec[1] < bounds[3]) &&
-		(bounds[4] < vec[2]) /* the vector must be above the face on the Z axis */
-	)
-	{
-		/* these areas are used for calculating the Z value where the vector is over the face */
-		a =		AreaF2Dfl(v1, v2, v3);
-		w1=a1=	AreaF2Dfl(vec, v2, v3);
-		if (a1>a) return 0; /*outside*/
-		w2=a2=	AreaF2Dfl(v1, vec, v3);
-		if (a1+a2>a) return 0; /*outside*/
-		w3=a3=	AreaF2Dfl(v1, v2, vec);
-		if ((a1+a2+a3) - 0.000001 > a) return 0; /*outside*/
-		
+	if (vec[2] < MAX3(v1[2], v2[2], v3[2])) {
+		w1= AreaF2Dfl(vec, v2, v3);
+		w2=	AreaF2Dfl(v1, vec, v3);
+		w3=	AreaF2Dfl(v1, v2, vec);
 		wtot = w1+w2+w3;
-		if (!wtot) return 0;
 		w1/=wtot; w2/=wtot; w3/=wtot;
 		z =((v1[2] * (w2+w3)) +
 			(v2[2] * (w1+w3)) +
 			(v3[2] * (w1+w2))) * 0.5;
-		
 		/* only return true if the face is above vec*/
-		if (vec[2] > z )
+		if (vec[2] < z )
 			return 1;
 	}
 	return 0;

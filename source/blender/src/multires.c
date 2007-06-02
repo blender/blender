@@ -52,6 +52,7 @@
 #include "BKE_key.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
+#include "BKE_object.h"
 
 #include "BIF_editmesh.h"
 #include "BIF_screen.h"
@@ -483,13 +484,14 @@ void multires_get_face(MultiresFace *f, EditFace *efa, MFace *m)
 		tmp.v3= efa->v3->tmp.l;
 		tmp.v4= 0;
 		if(efa->v4) tmp.v4= efa->v4->tmp.l;
-		tmp.flag= efa->flag;
-		if(efa->f & 1) tmp.flag |= ME_FACE_SEL;
-		else f->flag &= ~ME_FACE_SEL;
-		if(efa->h) tmp.flag |= ME_HIDE;
 		test_index_face(&tmp, NULL, 0, efa->v4?4:3);
 		for(j=0; j<4; ++j) f->v[j]= (&tmp.v1)[j];
-		f->flag= tmp.flag;
+
+		/* Flags */
+		f->flag= efa->flag;
+		if(efa->f & 1) f->flag |= ME_FACE_SEL;
+		else f->flag &= ~ME_FACE_SEL;
+		if(efa->h) f->flag |= ME_HIDE;
 		f->mat_nr= efa->mat_nr;
 	} else {		
 		f->v[0]= m->v1;
@@ -574,12 +576,12 @@ void multires_make(void *ob, void *me_v)
 
 	/* Load vertices and vdata (MDeformVerts) */
 	lvl->totvert= em ? BLI_countlist(&em->verts) : me->totvert;
-	lvl->verts= MEM_callocN(sizeof(MVert)*lvl->totvert,"multires verts");
+	me->mr->verts= MEM_callocN(sizeof(MVert)*lvl->totvert,"multires verts");
 	multires_update_customdata(me->mr->levels.first, em ? &em->vdata : &me->vdata,
 	                           &me->mr->vdata, CD_MDEFORMVERT);
 	if(em) eve= em->verts.first;
 	for(i=0; i<lvl->totvert; ++i) {
-		multires_get_vert(&lvl->verts[i], eve, &me->mvert[i], i);
+		multires_get_vert(&me->mr->verts[i], eve, &me->mvert[i], i);
 		if(em) eve= eve->next;
 	}
 
@@ -635,7 +637,6 @@ MultiresLevel *multires_level_copy(MultiresLevel *orig)
 		MultiresLevel *lvl= MEM_dupallocN(orig);
 		
 		lvl->next= lvl->prev= NULL;
-		lvl->verts= MEM_dupallocN(orig->verts);
 		lvl->faces= MEM_dupallocN(orig->faces);
 		lvl->colfaces= MEM_dupallocN(orig->colfaces);
 		lvl->edges= MEM_dupallocN(orig->edges);
@@ -657,6 +658,8 @@ Multires *multires_copy(Multires *orig)
 		
 		for(lvl= orig->levels.first; lvl; lvl= lvl->next)
 			BLI_addtail(&mr->levels, multires_level_copy(lvl));
+
+		mr->verts= MEM_dupallocN(orig->verts);
 		
 		lvl= mr->levels.first;
 		if(lvl) {
@@ -689,6 +692,8 @@ void multires_free(Multires *mr)
 			lvl= lvl->next;
 		}
 
+		MEM_freeN(mr->verts);
+
 		BLI_freelistN(&mr->levels);
 
 		MEM_freeN(mr);
@@ -699,7 +704,6 @@ void multires_free(Multires *mr)
 void multires_free_level(MultiresLevel *lvl)
 {
 	if(lvl) {
-		if(lvl->verts) MEM_freeN(lvl->verts);
 		if(lvl->faces) MEM_freeN(lvl->faces);
 		if(lvl->edges) MEM_freeN(lvl->edges);
 		if(lvl->colfaces) MEM_freeN(lvl->colfaces);
@@ -843,6 +847,7 @@ void multires_add_level(void *ob, void *me_v)
 	Mesh *me= me_v;
 	MultiresLevel *lvl= MEM_callocN(sizeof(MultiresLevel), "multireslevel");
 	MultiApplyData data;
+	MVert *oldverts= NULL;
 	
 	multires_check_state();
 
@@ -858,15 +863,16 @@ void multires_add_level(void *ob, void *me_v)
 	/* Create vertices
 	   =============== */
 	lvl->totvert= lvl->prev->totvert + lvl->prev->totedge + lvl->prev->totface;
-	lvl->verts= MEM_callocN(sizeof(MVert)*lvl->totvert,"multires verts");
-	/* Copy previous level's verts */
+	oldverts= me->mr->verts;
+	me->mr->verts= MEM_callocN(sizeof(MVert)*lvl->totvert, "multitres verts");
+	/* Copy old verts */
 	for(i=0; i<lvl->prev->totvert; ++i)
-		lvl->verts[i]= lvl->prev->verts[i];
+		me->mr->verts[i]= oldverts[i];
 	/* Create new edge verts */
 	for(i=0; i<lvl->prev->totedge; ++i) {
-		VecMidf(lvl->verts[lvl->prev->totvert + i].co,
-			lvl->prev->verts[lvl->prev->edges[i].v[0]].co,
-			lvl->prev->verts[lvl->prev->edges[i].v[1]].co);
+		VecMidf(me->mr->verts[lvl->prev->totvert + i].co,
+			oldverts[lvl->prev->edges[i].v[0]].co,
+			oldverts[lvl->prev->edges[i].v[1]].co);
 		lvl->prev->edges[i].mid= lvl->prev->totvert + i;
 	}
 	/* Create new face verts */
@@ -936,37 +942,41 @@ void multires_add_level(void *ob, void *me_v)
 	   =============== */
 	for(i=0; i<lvl->prev->totface; ++i) {
 		const MultiresFace *f= &lvl->prev->faces[i];
-		data.corner1= lvl->prev->verts[f->v[0]].co;
-		data.corner2= lvl->prev->verts[f->v[1]].co;
-		data.corner3= lvl->prev->verts[f->v[2]].co;
-		data.corner4= lvl->prev->verts[f->v[3]].co;
+		data.corner1= oldverts[f->v[0]].co;
+		data.corner2= oldverts[f->v[1]].co;
+		data.corner3= oldverts[f->v[2]].co;
+		data.corner4= oldverts[f->v[3]].co;
 		data.quad= f->v[3] ? 1 : 0;
-		multi_apply(lvl->verts[f->mid].co, &data, 3, catmullclark_smooth_face);
+		multi_apply(me->mr->verts[f->mid].co, &data, 3, catmullclark_smooth_face);
 	}
 
 	if(G.scene->toolsettings->multires_subdiv_type == 0) {
 		for(i=0; i<lvl->prev->totedge; ++i) {
 			const MultiresEdge *e= &lvl->prev->edges[i];
 			data.boundary= multires_edge_is_boundary(lvl->prev,i);
-			edge_face_neighbor_midpoints_accum(&data,lvl->prev,lvl->verts,sizeof(MVert),e);
-			data.endpoint1= lvl->prev->verts[e->v[0]].co;
-			data.endpoint2= lvl->prev->verts[e->v[1]].co;
-			multi_apply(lvl->verts[e->mid].co, &data, 3, catmullclark_smooth_edge);
+			edge_face_neighbor_midpoints_accum(&data,lvl->prev, me->mr->verts, sizeof(MVert),e);
+			data.endpoint1= oldverts[e->v[0]].co;
+			data.endpoint2= oldverts[e->v[1]].co;
+			multi_apply(me->mr->verts[e->mid].co, &data, 3, catmullclark_smooth_edge);
 		}
 		
 		for(i=0; i<lvl->prev->totvert; ++i) {
 			data.boundary= multires_vert_is_boundary(lvl->prev,i);
-			data.original= lvl->verts[i].co;
+			data.original= oldverts[i].co;
 			data.edge_count= BLI_countlist(&lvl->prev->vert_edge_map[i]);
 			if(data.boundary)
-				boundary_edges_average(&data,lvl->prev,lvl->prev->verts,sizeof(MVert),i);
+				boundary_edges_average(&data,lvl->prev, oldverts, sizeof(MVert),i);
 			else {
-				vert_face_neighbor_midpoints_average(&data,lvl->prev,lvl->verts,sizeof(MVert),i);
-				vert_edge_neighbor_midpoints_average(&data,lvl->prev,lvl->prev->verts,sizeof(MVert),i);
+				vert_face_neighbor_midpoints_average(&data,lvl->prev, me->mr->verts,
+								     sizeof(MVert),i);
+				vert_edge_neighbor_midpoints_average(&data,lvl->prev, oldverts,
+								     sizeof(MVert),i);
 			}
-			multi_apply(lvl->verts[i].co, &data, 3, catmullclark_smooth_vert);
+			multi_apply(me->mr->verts[i].co, &data, 3, catmullclark_smooth_vert);
 		}
 	}
+
+	MEM_freeN(oldverts);
 
 	/* Vertex Colors
 	   ============= */
@@ -1093,13 +1103,13 @@ void multires_level_to_mesh(Object *ob, Mesh *me, const int render)
 	
 	for(i=0; i<lvl->totvert; ++i) {
 		if(em) {
-			eves[i]= addvertlist(lvl->verts[i].co, NULL); /* TODO */
-			if(lvl->verts[i].flag & 1) eves[i]->f |= SELECT;
-			if(lvl->verts[i].flag & ME_HIDE) eves[i]->h= 1;
+			eves[i]= addvertlist(me->mr->verts[i].co, NULL);
+			if(me->mr->verts[i].flag & 1) eves[i]->f |= SELECT;
+			if(me->mr->verts[i].flag & ME_HIDE) eves[i]->h= 1;
 			eves[i]->data= NULL;
 		}
 		else
-			me->mvert[i]= lvl->verts[i];
+			me->mvert[i]= me->mr->verts[i];
 	}
 	for(i=0; i<lvl->totedge; ++i) {
 		if(em) {
@@ -1114,9 +1124,12 @@ void multires_level_to_mesh(Object *ob, Mesh *me, const int render)
 		if(em) {
 			EditVert *eve4= lvl->faces[i].v[3] ? eves[lvl->faces[i].v[3]] : NULL;
 			EditFace *efa= addfacelist(eves[lvl->faces[i].v[0]], eves[lvl->faces[i].v[1]],
-			               eves[lvl->faces[i].v[2]], eve4, NULL, NULL); /* TODO */
-			efa->flag= lvl->faces[i].flag;
+			               eves[lvl->faces[i].v[2]], eve4, NULL, NULL);
+			efa->flag= lvl->faces[i].flag & ~ME_HIDE;
 			efa->mat_nr= lvl->faces[i].mat_nr;
+			if(lvl->faces[i].flag & ME_FACE_SEL)
+				efa->f |= SELECT;
+			if(lvl->faces[i].flag & ME_HIDE) efa->h= 1;
 			efa->data= NULL;
 		}
 		else {
@@ -1157,6 +1170,14 @@ void multires_level_to_mesh(Object *ob, Mesh *me, const int render)
 				me->medge[i].flag= me->mr->edge_flags[ndx];
 				me->medge[i].crease= me->mr->edge_creases[ndx];
 			}
+		}
+	}
+
+	if(em) {
+		eed= em->edges.first;
+		for(i=0, eed= em->edges.first; i<lvl->totedge; ++i, eed= eed->next) {
+			eed->h= me->mr->verts[lvl->edges[i].v[0]].flag & ME_HIDE ||
+				me->mr->verts[lvl->edges[i].v[1]].flag & ME_HIDE;
 		}
 	}
 	
@@ -1205,6 +1226,7 @@ void multires_level_to_mesh(Object *ob, Mesh *me, const int render)
 
 	/* friendly check for background render */
 	if(G.background==0) {
+		object_handle_update(ob);
 		countall();
 		
 		if(G.vd && G.vd->depths) G.vd->depths->damaged= 1;
@@ -1311,108 +1333,65 @@ void multires_update_colors(Mesh *me)
 	}
 }
 
-void multires_update_edge_flags(Multires *mr, Mesh *me, EditMesh *em)
+/* Update vertex locations and vertex flags */
+void multires_update_vertices(Mesh *me, EditMesh *em)
 {
-	MultiresLevel *lvl= current_level(mr);
-	EditEdge *eed= NULL;
-	int i;
-	
-	if(em) eed= em->edges.first;
-	for(i=0; i<lvl->totedge; ++i) {
-		if(em) {
-			mr->edge_flags[i]= 0;
-			eed_to_medge_flag(eed, &mr->edge_flags[i], &mr->edge_creases[i]);
-			eed= eed->next;
-		}
-		else {
-			mr->edge_flags[i]= me->medge[i].flag;
-			mr->edge_creases[i]= me->medge[i].crease;
-		}
-	}
-}
-
-void multires_update_levels(Mesh *me, const int render)
-{
-	/* cr=current, pr=previous, or=original */
-	MultiresLevel *cr_lvl= current_level(me->mr), *pr_lvl;
-	MultiresLevel *or_lvl= cr_lvl;
-	vec3f *pr_deltas= NULL, *cr_deltas= NULL;
-	char *pr_flag_damaged= NULL, *cr_flag_damaged= NULL, *pr_mat_damaged= NULL, *cr_mat_damaged= NULL;
-	char *or_flag_damaged= NULL, *or_mat_damaged= NULL;
-	EditMesh *em= (!render && G.obedit) ? G.editMesh : NULL;
+	MultiresLevel *cr_lvl= current_level(me->mr), *pr_lvl= NULL,
+		      *last_lvl= me->mr->levels.last;
+	vec3f *pr_deltas= NULL, *cr_deltas= NULL, *swap_deltas= NULL;
 	EditVert *eve= NULL;
-	EditFace *efa= NULL;
 	MultiApplyData data;
-	unsigned i,j,curf;
-
-	/* Update special first-level data */
-	if(cr_lvl==me->mr->levels.first) {
-		multires_update_customdata(me->mr->levels.first, em ? &em->vdata : &me->vdata,
-		                           &me->mr->vdata, CD_MDEFORMVERT);
-		multires_update_customdata(me->mr->levels.first, em ? &em->fdata : &me->fdata,
-		                           &me->mr->fdata, CD_MTFACE);
-		multires_update_edge_flags(me->mr, me, em);
-	}
+	int i, j;
 
 	/* Prepare deltas */
-	cr_deltas= MEM_callocN(sizeof(vec3f)*cr_lvl->totvert,"initial deltas");
+	pr_deltas= MEM_callocN(sizeof(vec3f)*last_lvl->totvert, "multires deltas 1");
+	cr_deltas= MEM_callocN(sizeof(vec3f)*last_lvl->totvert, "multires deltas 2");
 
 	/* Calculate initial deltas -- current mesh subtracted from current level*/
 	if(em) eve= em->verts.first;
 	for(i=0; i<cr_lvl->totvert; ++i) {
 		if(em) {
-			VecSubf(&cr_deltas[i].x, eve->co, cr_lvl->verts[i].co);
+			VecSubf(&cr_deltas[i].x, eve->co, me->mr->verts[i].co);
 			eve= eve->next;
 		} else
-			VecSubf(&cr_deltas[i].x, me->mvert[i].co, cr_lvl->verts[i].co);
+			VecSubf(&cr_deltas[i].x, me->mvert[i].co, me->mr->verts[i].co);
 	}
-	
-	/* Faces -- find whether flag/mat has changed */
-	cr_flag_damaged= MEM_callocN(sizeof(char)*cr_lvl->totface, "flag_damaged 1");
-	cr_mat_damaged= MEM_callocN(sizeof(char)*cr_lvl->totface, "mat_damaged 1");
-	if(em) efa= em->faces.first;
-	for(i=0; i<cr_lvl->totface; ++i) {
-		if(cr_lvl->faces[i].flag != (em ? efa->flag : me->mface[i].flag))
-			cr_flag_damaged[i]= 1;
-		if(cr_lvl->faces[i].mat_nr != (em ? efa->mat_nr : me->mface[i].mat_nr))
-			cr_mat_damaged[i]= 1;
-		if(em) efa= efa->next;
-	}
-	or_flag_damaged= MEM_dupallocN(cr_flag_damaged);
-	or_mat_damaged= MEM_dupallocN(cr_mat_damaged);
 
-	/* Update current level -- copy current mesh into current level */
-	if(em) {
-		eve= em->verts.first;
-		efa= em->faces.first;
+
+	/* Copy current level's vertex flags and clear the rest */
+	if(em) eve= em->verts.first;	
+	for(i=0; i < last_lvl->totvert; ++i) {
+		if(i < cr_lvl->totvert) {
+			MVert mvflag;
+			multires_get_vert(&mvflag, eve, &me->mvert[i], i);
+			if(em) eve= eve->next;
+			me->mr->verts[i].flag= mvflag.flag;
+		}
+		else
+			me->mr->verts[i].flag= 0;
 	}
-	for(i=0; i<cr_lvl->totvert; ++i) {
-		multires_get_vert(&cr_lvl->verts[i], eve, &me->mvert[i], i);
-		if(em) eve= eve->next;
-	}
-	for(i=0; i<cr_lvl->totface; ++i) {
-		cr_lvl->faces[i].flag= em ? efa->flag : me->mface[i].flag;
-		cr_lvl->faces[i].mat_nr= em ? efa->mat_nr : me->mface[i].mat_nr;
-		if(em) efa= efa->next;
+
+	/* If already on the highest level, copy current verts (including flags) into current level */
+	if(cr_lvl == last_lvl) {
+		if(em)
+			eve= em->verts.first;
+		for(i=0; i<cr_lvl->totvert; ++i) {
+			multires_get_vert(&me->mr->verts[i], eve, &me->mvert[i], i);
+			if(em) eve= eve->next;
+		}
 	}
 
 	/* Update higher levels */
 	pr_lvl= BLI_findlink(&me->mr->levels,me->mr->current-1);
 	cr_lvl= pr_lvl->next;
 	while(cr_lvl) {
-		/* Set up new deltas, but keep the ones from the previous level */
-		if(pr_deltas) MEM_freeN(pr_deltas);
+		/* Swap the old/new deltas */
+		swap_deltas= pr_deltas;
 		pr_deltas= cr_deltas;
-		cr_deltas= MEM_callocN(sizeof(vec3f)*cr_lvl->totvert,"deltas");
-		if(pr_flag_damaged) MEM_freeN(pr_flag_damaged);
-		pr_flag_damaged= cr_flag_damaged;
-		cr_flag_damaged= MEM_callocN(sizeof(char)*cr_lvl->totface,"flag_damaged 2");
-		if(pr_mat_damaged) MEM_freeN(pr_mat_damaged);
-		pr_mat_damaged= cr_mat_damaged;
-		cr_mat_damaged= MEM_callocN(sizeof(char)*cr_lvl->totface,"mat_damaged 2");
+		cr_deltas= swap_deltas;
 
 		/* Calculate and add new deltas
-		   ============================*/
+		   ============================ */
 		for(i=0; i<pr_lvl->totface; ++i) {
 			const MultiresFace *f= &pr_lvl->faces[i];
 			data.corner1= &pr_deltas[f->v[0]].x;
@@ -1421,18 +1400,9 @@ void multires_update_levels(Mesh *me, const int render)
 			data.corner4= &pr_deltas[f->v[3]].x;
 			data.quad= f->v[3] ? 1 : 0;
 			multi_apply(&cr_deltas[f->mid].x, &data, 3, catmullclark_smooth_face);
-
-			VecAddf(cr_lvl->verts[f->mid].co,
-				cr_lvl->verts[f->mid].co,
-				&cr_deltas[f->mid].x);
 			
-			cr_lvl->verts[f->mid].flag= 0;
-			for(j=0; j<(data.quad?4:3); ++j) {
-				if(pr_lvl->verts[f->v[j]].flag & 1)
-					cr_lvl->verts[f->mid].flag |= 1;
-				if(pr_lvl->verts[f->v[j]].flag & ME_HIDE)
-					cr_lvl->verts[f->mid].flag |= ME_HIDE;
-			}
+			for(j=0; j<(data.quad?4:3); ++j)
+				me->mr->verts[f->mid].flag |= me->mr->verts[f->v[j]].flag;
 		}
 
 		for(i=0; i<pr_lvl->totedge; ++i) {
@@ -1442,20 +1412,9 @@ void multires_update_levels(Mesh *me, const int render)
 			data.endpoint1= &pr_deltas[e->v[0]].x;
 			data.endpoint2= &pr_deltas[e->v[1]].x;
 			multi_apply(&cr_deltas[e->mid].x, &data, 3, catmullclark_smooth_edge);
-			
-			cr_lvl->verts[e->mid].flag= 0;
-			for(j=0; j<2; ++j) {
-				if(pr_lvl->verts[e->v[j]].flag & 1)
-					cr_lvl->verts[e->mid].flag |= 1;
-				if(pr_lvl->verts[e->v[j]].flag & ME_HIDE)
-					cr_lvl->verts[e->mid].flag |= ME_HIDE;
-			}
-		}
-		for(i=0; i<pr_lvl->totedge; ++i) {
-			const unsigned ndx= pr_lvl->edges[i].mid;
-			VecAddf(cr_lvl->verts[ndx].co,
-				cr_lvl->verts[ndx].co,
-				&cr_deltas[ndx].x);
+				
+			for(j=0; j<2; ++j)
+				me->mr->verts[e->mid].flag |= me->mr->verts[e->v[j]].flag;
 		}
 
 		for(i=0; i<pr_lvl->totvert; ++i) {
@@ -1469,31 +1428,13 @@ void multires_update_levels(Mesh *me, const int render)
 				vert_edge_neighbor_midpoints_average(&data,pr_lvl,pr_deltas,sizeof(vec3f),i);
 			}
 			multi_apply(&cr_deltas[i].x, &data, 3, catmullclark_smooth_vert);
-			cr_lvl->verts[i].flag= 0;
-			if(pr_lvl->verts[i].flag & 1) cr_lvl->verts[i].flag |= 1;
-			if(pr_lvl->verts[i].flag & ME_HIDE) cr_lvl->verts[i].flag |= ME_HIDE;
-		}
-		for(i=0; i<pr_lvl->totvert; ++i) {
-			VecAddf(cr_lvl->verts[i].co,
-				cr_lvl->verts[i].co,
-				&cr_deltas[i].x);
 		}
 
-		/* Update faces */
-		curf= 0;
-		for(i=0; i<pr_lvl->totface; ++i) {
-			const int sides= cr_lvl->prev->faces[i].v[3] ? 4 : 3;
-			for(j=0; j<sides; ++j) {
-				if(pr_flag_damaged[i]) {
-					cr_lvl->faces[curf].flag= pr_lvl->faces[i].flag;
-					cr_flag_damaged[curf]= 1;
-				}
-				if(pr_mat_damaged[i]) {
-					cr_lvl->faces[curf].mat_nr= pr_lvl->faces[i].mat_nr;
-					cr_mat_damaged[curf]= 1;
-				}
-				++curf;
-			}
+		/* Apply deltas to vertex locations */
+		for(i=0; (cr_lvl == last_lvl) && (i < cr_lvl->totvert); ++i) {
+			VecAddf(me->mr->verts[i].co,
+				me->mr->verts[i].co,
+				&cr_deltas[i].x);			
 		}
 
 		pr_lvl= pr_lvl->next;
@@ -1502,34 +1443,51 @@ void multires_update_levels(Mesh *me, const int render)
 	if(pr_deltas) MEM_freeN(pr_deltas);
 	if(cr_deltas) MEM_freeN(cr_deltas);
 
-	/* Update lower levels */
-	cr_lvl= me->mr->levels.last;
-	cr_lvl= cr_lvl->prev;
-	/* Update Verts */
-	while(cr_lvl) {
-		for(i=0; i<cr_lvl->totvert; ++i)
-			cr_lvl->verts[i]= cr_lvl->next->verts[i];
-		cr_lvl= cr_lvl->prev;
-	}
-	
-	/* Update Faces */
-	
-	/* Clear to original damages */
-	if(cr_flag_damaged) MEM_freeN(cr_flag_damaged);
-	if(cr_mat_damaged) MEM_freeN(cr_mat_damaged);
-	cr_flag_damaged= or_flag_damaged;
-	cr_mat_damaged= or_mat_damaged;
-	
-	cr_lvl= or_lvl->prev;
-	while(cr_lvl) {
-		if(pr_flag_damaged) MEM_freeN(pr_flag_damaged);
-		pr_flag_damaged= cr_flag_damaged;
-		cr_flag_damaged= MEM_callocN(sizeof(char)*cr_lvl->totface,"flag_damaged 3");
-		if(pr_mat_damaged) MEM_freeN(pr_mat_damaged);
-		pr_mat_damaged= cr_mat_damaged;
-		cr_mat_damaged= MEM_callocN(sizeof(char)*cr_lvl->totface,"mat_damaged 3");
+}
 
-		/* Update faces */
+void multires_update_faces(Mesh *me, EditMesh *em)
+{
+	MultiresLevel *cr_lvl= current_level(me->mr), *pr_lvl= NULL,
+		      *last_lvl= me->mr->levels.last;
+	char *pr_flag_damaged= NULL, *cr_flag_damaged= NULL, *or_flag_damaged= NULL,
+	     *pr_mat_damaged= NULL, *cr_mat_damaged= NULL, *or_mat_damaged= NULL, *swap= NULL;
+	EditFace *efa= NULL;
+	unsigned i,j,curf;
+
+	/* Find for each face whether flag/mat has changed */
+	pr_flag_damaged= MEM_callocN(sizeof(char) * last_lvl->totface, "flag_damaged 1");
+	cr_flag_damaged= MEM_callocN(sizeof(char) * last_lvl->totface, "flag_damaged 1");
+	pr_mat_damaged= MEM_callocN(sizeof(char) * last_lvl->totface, "mat_damaged 1");
+	cr_mat_damaged= MEM_callocN(sizeof(char) * last_lvl->totface, "mat_damaged 1");
+	if(em) efa= em->faces.first;
+	for(i=0; i<cr_lvl->totface; ++i) {
+		MultiresFace mftmp;
+		multires_get_face(&mftmp, efa, &me->mface[i]);
+		if(cr_lvl->faces[i].flag != mftmp.flag)
+			cr_flag_damaged[i]= 1;
+		if(cr_lvl->faces[i].mat_nr != mftmp.mat_nr)
+			cr_mat_damaged[i]= 1;
+
+		/* Update current level */
+		cr_lvl->faces[i].flag= mftmp.flag;
+		cr_lvl->faces[i].mat_nr= mftmp.mat_nr;
+
+		if(em) efa= efa->next;
+	}
+	or_flag_damaged= MEM_dupallocN(cr_flag_damaged);
+	or_mat_damaged= MEM_dupallocN(cr_mat_damaged);
+
+	/* Update lower levels */
+	cr_lvl= cr_lvl->prev;
+	while(cr_lvl) {
+		swap= pr_flag_damaged;
+		pr_flag_damaged= cr_flag_damaged;
+		cr_flag_damaged= swap;
+
+		swap= pr_mat_damaged;
+		pr_mat_damaged= cr_mat_damaged;
+		cr_mat_damaged= swap;
+
 		curf= 0;
 		for(i=0; i<cr_lvl->totface; ++i) {
 			const int sides= cr_lvl->faces[i].v[3] ? 4 : 3;
@@ -1549,14 +1507,58 @@ void multires_update_levels(Mesh *me, const int render)
 
 		cr_lvl= cr_lvl->prev;
 	}
+	
+	/* Clear to original damages */
+	if(cr_flag_damaged) MEM_freeN(cr_flag_damaged);
+	if(cr_mat_damaged) MEM_freeN(cr_mat_damaged);
+	cr_flag_damaged= or_flag_damaged;
+	cr_mat_damaged= or_mat_damaged;
+	
+	/* Update higher levels */
+	pr_lvl= current_level(me->mr);
+	cr_lvl= pr_lvl->next;
+	while(cr_lvl) {
+		swap= pr_flag_damaged;
+		pr_flag_damaged= cr_flag_damaged;
+		cr_flag_damaged= swap;
+
+		swap= pr_mat_damaged;
+		pr_mat_damaged= cr_mat_damaged;
+		cr_mat_damaged= swap;
+
+		/* Update faces */
+		for(i=0, curf= 0; i<pr_lvl->totface; ++i) {
+			const int sides= cr_lvl->prev->faces[i].v[3] ? 4 : 3;
+			for(j=0; j<sides; ++j, ++curf) {
+				if(pr_flag_damaged[i]) {
+					cr_lvl->faces[curf].flag= pr_lvl->faces[i].flag;
+					cr_flag_damaged[curf]= 1;
+				}
+				if(pr_mat_damaged[i]) {
+					cr_lvl->faces[curf].mat_nr= pr_lvl->faces[i].mat_nr;
+					cr_mat_damaged[curf]= 1;
+				}
+			}
+		}
+
+		pr_lvl= pr_lvl->next;
+		cr_lvl= cr_lvl->next;
+	}
 
 	if(pr_flag_damaged) MEM_freeN(pr_flag_damaged);
 	if(cr_flag_damaged) MEM_freeN(cr_flag_damaged);
 	if(pr_mat_damaged) MEM_freeN(pr_mat_damaged);
 	if(cr_mat_damaged) MEM_freeN(cr_mat_damaged);
+}
 
+void multires_update_levels(Mesh *me, const int render)
+{
+	EditMesh *em= (!render && G.obedit) ? G.editMesh : NULL;
+
+	multires_update_first_level(me, em);
+	multires_update_vertices(me, em);
+	multires_update_faces(me, em);
 	multires_update_colors(me);
-
 }
 
 void multires_calc_level_maps(MultiresLevel *lvl)

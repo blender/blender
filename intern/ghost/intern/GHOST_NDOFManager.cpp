@@ -46,6 +46,7 @@ GHOST_NDOFManager::GHOST_NDOFManager()
     ndofLibraryShutdown = 0;
     ndofDeviceOpen = 0;
     ndofEventHandler = 0;
+   // available = 0;
 }
 
 GHOST_NDOFManager::~GHOST_NDOFManager()
@@ -69,9 +70,9 @@ GHOST_NDOFManager::deviceOpen(GHOST_IWindow* window,
     ndofDeviceOpen = setNdofDeviceOpen;
     ndofEventHandler = setNdofEventHandler;
 
-    if (ndofLibraryInit)
+    if (ndofLibraryInit  && ndofDeviceOpen)
     {
-        ndofLibraryInit();
+       printf("%i client \n", ndofLibraryInit());
     }
 /*
     if (ndofDeviceOpen)
@@ -96,6 +97,7 @@ GHOST_NDOFManager::handle(unsigned int message, unsigned int* wParam, unsigned l
     {
         handled = ndofEventHandler(&sbdata.tx, m_DeviceHandle, message, wParam, lParam);
     }
+    printf("handled %i\n", handled);
     return handled ? &sbdata : 0;
 }
 
@@ -105,3 +107,4 @@ GHOST_NDOFManager::available()
 { 
     return m_DeviceHandle != 0; 
 }
+

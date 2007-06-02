@@ -521,14 +521,7 @@ static PyObject *Blender_Get( PyObject * self, PyObject * args )
 /*****************************************************************************/
 static PyObject *Blender_Redraw( PyObject * self, PyObject * args )
 {
-	int wintype = SPACE_VIEW3D;
-
-	if( !PyArg_ParseTuple( args, "|i", &wintype ) ) {
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected int argument (or nothing)" );
-	}
-
-	return M_Window_Redraw( self, PyInt_FromLong( (long)wintype ) );
+	return M_Window_Redraw( self, args );
 }
 
 /*****************************************************************************/
