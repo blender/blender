@@ -6928,7 +6928,6 @@ static short pointInside_internal(float *vec, float *v1, float *v2, float  *v3 )
 {	
 	float z,w1,w2,w3,wtot;
 	
-	/*min,max*/
 	if (!POINT_IN_TRI(vec, v1,v2,v3))
 		return 0;
 	
