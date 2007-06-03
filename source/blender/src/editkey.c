@@ -67,6 +67,7 @@
 #include "BKE_key.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 
@@ -599,21 +600,26 @@ void insert_curvekey(Curve *cu, short rel)
 
 void insert_shapekey(Object *ob)
 {
-	Key *key;
+	if(get_mesh(ob) && get_mesh(ob)->mr) {
+		error("Cannot create shape keys on a multires mesh.");
+	}
+	else {
+		Key *key;
 	
-	if(ob->type==OB_MESH) insert_meshkey(ob->data, 1);
-	else if ELEM(ob->type, OB_CURVE, OB_SURF) insert_curvekey(ob->data, 1);
-	else if(ob->type==OB_LATTICE) insert_lattkey(ob->data, 1);
+		if(ob->type==OB_MESH) insert_meshkey(ob->data, 1);
+		else if ELEM(ob->type, OB_CURVE, OB_SURF) insert_curvekey(ob->data, 1);
+		else if(ob->type==OB_LATTICE) insert_lattkey(ob->data, 1);
 	
-	key= ob_get_key(ob);
-	ob->shapenr= BLI_countlist(&key->block);
+		key= ob_get_key(ob);
+		ob->shapenr= BLI_countlist(&key->block);
 	
-	allspace(REMAKEIPO, 0);
-	allqueue(REDRAWIPO, 0);
-	allqueue(REDRAWACTION, 0);
-	allqueue(REDRAWNLA, 0);
-	allqueue(REDRAWBUTSOBJECT, 0);
-	allqueue(REDRAWBUTSEDIT, 0);
+		allspace(REMAKEIPO, 0);
+		allqueue(REDRAWIPO, 0);
+		allqueue(REDRAWACTION, 0);
+		allqueue(REDRAWNLA, 0);
+		allqueue(REDRAWBUTSOBJECT, 0);
+		allqueue(REDRAWBUTSEDIT, 0);
+	}
 }
 
 void delete_key(Object *ob)
