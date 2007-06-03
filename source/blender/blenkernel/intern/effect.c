@@ -1541,6 +1541,7 @@ typedef struct pMatrixCache {
 
 
 /* WARN: this function stores data in ob->id.idnew! */
+/* error: this function changes ob->recalc of other objects... */
 static pMatrixCache *cache_object_matrices(Object *ob, int start, int end)
 {
 	pMatrixCache *mcache, *mc;
@@ -1561,16 +1562,17 @@ static pMatrixCache *cache_object_matrices(Object *ob, int start, int end)
 	sfo= ob->sf;
 	ob->sf= 0.0f;
 
-	/* clear storage */
-	for(obcopy= G.main->object.first; obcopy; obcopy= obcopy->id.next) 
+	/* clear storage, copy recalc tag (bad loop) */
+	for(obcopy= G.main->object.first; obcopy; obcopy= obcopy->id.next) {
 		obcopy->id.newid= NULL;
+		obcopy->recalco= obcopy->recalc;
+		obcopy->recalc= 0;
+	}
 	
 	/* all objects get tagged recalc that influence this object (does group too) */
-	/* another hack; while transform you cannot call this, it sets own recalc flags */
-	if(G.moving==0) {
-		ob->recalc |= OB_RECALC_OB; /* make sure a recalc gets flushed */
-		DAG_object_update_flags(G.scene, ob, -1);
-	}
+	/* note that recalco has the real recalc tags, set by callers of this function */
+	ob->recalc |= OB_RECALC_OB; /* make sure a recalc gets flushed */
+	DAG_object_update_flags(G.scene, ob, -1);
 	
 	for(G.scene->r.cfra= start; G.scene->r.cfra<=end; G.scene->r.cfra++, mc++) {
 		
@@ -1649,7 +1651,12 @@ static pMatrixCache *cache_object_matrices(Object *ob, int start, int end)
 				}
 			}
 		}
-	}	
+	}
+	
+	/* copy recalc tag (bad loop) */
+	for(obcopy= G.main->object.first; obcopy; obcopy= obcopy->id.next)
+		obcopy->recalc= obcopy->recalco;
+	
 	return mcache;
 }
 
@@ -2088,6 +2095,7 @@ void build_particle_system(Object *ob)
 	/* reset deflector cache */
 	for(base= G.scene->base.first; base; base= base->next) {
 		if(base->object->sumohandle) {
+			
 			MEM_freeN(base->object->sumohandle);
 			base->object->sumohandle= NULL;
 		}
