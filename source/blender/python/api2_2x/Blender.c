@@ -84,6 +84,7 @@ struct ID; /*keep me up here */
 #include "NMesh.h"
 #include "Object.h"
 #include "Group.h"
+#include "BMesh.h"
 #include "Registry.h"
 #include "Scene.h"
 #include "Sound.h"
@@ -973,6 +974,7 @@ void M_Blender_Init(void)
 	PyDict_SetItemString(dict, "Noise", Noise_Init());
 	PyDict_SetItemString(dict, "Object", Object_Init());
 	PyDict_SetItemString(dict, "Group", Group_Init());
+	PyDict_SetItemString(dict, "BMesh", BMesh_Init());
 	PyDict_SetItemString(dict, "Registry", Registry_Init());
 	PyDict_SetItemString(dict, "Scene", Scene_Init());
 	PyDict_SetItemString(dict, "Sound", Sound_Init());
