@@ -106,6 +106,7 @@ typedef struct EditEdge
 	short fast; 		/* only 0 or 1, for editmesh_fastmalloc */
 	short fgoni;		/* index for fgon, for search */
 	HashEdge hash;
+	void *data;			/*custom edge data*/
 } EditEdge;
 
 /* note; changing this also might affect the undo copy in editmesh.c */
@@ -171,7 +172,7 @@ typedef struct EditMesh
 
 	struct RetopoPaintData *retopo_paint_data;
 
-	CustomData vdata, fdata;
+	CustomData vdata, edata, fdata;
 
 #ifdef WITH_VERSE
 	void *vnode;

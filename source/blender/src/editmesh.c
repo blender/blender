@@ -859,6 +859,7 @@ void make_editMesh()
 	else {
 		MEdge *medge= me->medge;
 		
+		CustomData_copy(&me->edata, &em->edata, CD_MASK_EDITMESH, CD_CALLOC, 0);
 		/* make edges */
 		for(a=0; a<me->totedge; a++, medge++) {
 			eed= addedgelist(evlist[medge->v1], evlist[medge->v2], NULL);
@@ -873,6 +874,7 @@ void make_editMesh()
 				if(medge->flag & ME_HIDE) eed->h |= 1;
 				if(G.scene->selectmode==SCE_SELECT_EDGE) 
 					EM_select_edge(eed, eed->f & SELECT);		// force edge selection to vertices, seems to be needed ...
+				CustomData_to_em_block(&me->edata,&em->edata, a, &eed->data);
 			}
 		}
 		
@@ -1014,6 +1016,7 @@ void load_editMesh(void)
 	me->totface= G.totface;
 
 	CustomData_copy(&em->vdata, &me->vdata, CD_MASK_MESH, CD_CALLOC, me->totvert);
+	CustomData_copy(&em->edata, &me->edata, CD_MASK_MESH, CD_CALLOC, me->totedge);
 	CustomData_copy(&em->fdata, &me->fdata, CD_MASK_MESH, CD_CALLOC, me->totface);
 
 	CustomData_add_layer(&me->vdata, CD_MVERT, CD_ASSIGN, mvert, me->totvert);
@@ -1071,7 +1074,8 @@ void load_editMesh(void)
 		if(eed->h & 1) medge->flag |= ME_HIDE;
 		
 		medge->crease= (char)(255.0*eed->crease);
-		
+		CustomData_from_em_block(&em->edata, &me->edata, eed->data, a);		
+
 		eed->tmp.l = a++;
 		
 		medge++;
@@ -1823,7 +1827,7 @@ typedef struct UndoMesh {
 	short selectmode;
 	RetopoPaintData *retopo_paint_data;
 	char retopo_mode;
-	CustomData vdata, fdata;
+	CustomData vdata, edata, fdata;
 	EM_MultiresUndo *mru;
 } UndoMesh;
 
@@ -1839,6 +1843,7 @@ static void free_undoMesh(void *umv)
 	if(um->selected) MEM_freeN(um->selected);
 	if(um->retopo_paint_data) retopo_free_paint_data(um->retopo_paint_data);
 	CustomData_free(&um->vdata, um->totvert);
+	CustomData_free(&um->edata, um->totedge);
 	CustomData_free(&um->fdata, um->totface);
 	if(um->mru) {
 		--um->mru->users;
@@ -1881,6 +1886,7 @@ static void *editMesh_to_undoMesh(void)
 	if(um->totsel) esec= um->selected= MEM_callocN(um->totsel*sizeof(EditSelectionC), "allselections");
 
 	if(um->totvert) CustomData_copy(&em->vdata, &um->vdata, CD_MASK_EDITMESH, CD_CALLOC, um->totvert);
+	if(um->totedge) CustomData_copy(&em->edata, &um->edata, CD_MASK_EDITMESH, CD_CALLOC, um->totedge);
 	if(um->totface) CustomData_copy(&em->fdata, &um->fdata, CD_MASK_EDITMESH, CD_CALLOC, um->totface);
 	
 	/* now copy vertices */
@@ -1909,6 +1915,8 @@ static void *editMesh_to_undoMesh(void)
 		eedc->crease= (short)(eed->crease*255.0);
 		eedc->fgoni= eed->fgoni;
 		eed->tmp.l = a; /*store index*/
+		CustomData_from_em_block(&em->edata, &um->edata, eed->data, a);
+	
 	}
 	
 	/* copy faces */
@@ -2000,9 +2008,11 @@ static void undoMesh_to_editMesh(void *umv)
 #endif
 
 	CustomData_free(&em->vdata, 0);
+	CustomData_free(&em->edata, 0);
 	CustomData_free(&em->fdata, 0);
 
 	CustomData_copy(&um->vdata, &em->vdata, CD_MASK_EDITMESH, CD_CALLOC, 0);
+	CustomData_copy(&um->edata, &em->edata, CD_MASK_EDITMESH, CD_CALLOC, 0);
 	CustomData_copy(&um->fdata, &em->fdata, CD_MASK_EDITMESH, CD_CALLOC, 0);
 
 	/* now copy vertices */
@@ -2030,6 +2040,7 @@ static void undoMesh_to_editMesh(void *umv)
 		eed->sharp= eedc->sharp;
 		eed->fgoni= eedc->fgoni;
 		eed->crease= ((float)eedc->crease)/255.0;
+		CustomData_to_em_block(&um->edata, &em->edata, a, &eed->data);
 	}
 	
 	/* copy faces */

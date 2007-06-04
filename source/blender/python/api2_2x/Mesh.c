@@ -1226,6 +1226,239 @@ static long MVert_hash( BPy_MVert *self )
 	return (long)self->index;
 }
 
+static PyObject *Mesh_addPropLayer_internal(Mesh *mesh, CustomData *data, int tot, PyObject *args)
+{
+	char *name=NULL;
+	int type = -1;
+	
+	if( !PyArg_ParseTuple( args, "si", &name, &type) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+							"expected a string and an int" );
+	if (strlen(name)>31)
+		return EXPP_ReturnPyObjError( PyExc_ValueError,
+							"error, maximum name length is 31");
+	if((type != CD_PROP_FLT) && (type != CD_PROP_INT) && (type != CD_PROP_STR))
+		return EXPP_ReturnPyObjError( PyExc_ValueError,
+							"error, unknown layer type");
+	if (name)
+		CustomData_add_layer_named(data, type, CD_DEFAULT, NULL,tot,name);
+	
+	mesh_update_customdata_pointers(mesh);
+	Py_RETURN_NONE;
+}
+
+static PyObject *Mesh_removePropLayer_internal(Mesh *mesh, CustomData *data, int tot,PyObject *args)
+{
+	CustomDataLayer *layer;
+	char *name=NULL;
+	int i;
+	
+	if( !PyArg_ParseTuple( args, "s", &name ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+					      "expected string argument" );
+	
+	if (strlen(name)>31)
+		return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"error, maximum name length is 31" );
+	
+	i = CustomData_get_named_layer_index(data, CD_PROP_FLT, name);
+	if(i == -1) i = CustomData_get_named_layer_index(data, CD_PROP_INT, name);
+	if(i == -1) i = CustomData_get_named_layer_index(data, CD_PROP_STR, name);
+	if (i==-1)
+		return EXPP_ReturnPyObjError(PyExc_ValueError,
+			"No matching layers to remove" );	
+	layer = &data->layers[i];
+	CustomData_free_layer(data, layer->type, tot, i);
+	mesh_update_customdata_pointers(mesh);
+
+	Py_RETURN_NONE;
+}
+
+static PyObject *Mesh_renamePropLayer_internal(Mesh *mesh, CustomData *data, PyObject *args)
+{
+	CustomDataLayer *layer;
+	int i;
+	char *name_from, *name_to;
+	
+	if( !PyArg_ParseTuple( args, "ss", &name_from, &name_to ) )
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+				"expected 2 strings" );
+	
+	if (strlen(name_from)>31 || strlen(name_to)>31)
+		return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"error, maximum name length is 31" );
+	
+	i = CustomData_get_named_layer_index(data, CD_PROP_FLT, name_from);
+	if(i == -1) i = CustomData_get_named_layer_index(data, CD_PROP_INT, name_from);
+	if(i == -1) i = CustomData_get_named_layer_index(data, CD_PROP_STR, name_from);
+	if(i == -1)
+		return EXPP_ReturnPyObjError(PyExc_ValueError,
+			"No matching layers to rename" );	
+
+	layer = &data->layers[i];
+	
+	strcpy(layer->name, name_to); /* we alredy know the string sizes are under 32 */
+	CustomData_set_layer_unique_name(data, i);
+	Py_RETURN_NONE;
+}
+
+static PyObject *Mesh_propList_internal(CustomData *data)
+{
+	CustomDataLayer *layer;
+	PyObject *list = PyList_New( 0 ), *item;
+	int i;
+	for(i=0; i<data->totlayer; i++) {
+		layer = &data->layers[i];
+		if( (layer->type == CD_PROP_FLT) || (layer->type == CD_PROP_INT) || (layer->type == CD_PROP_STR)) {
+			item = PyString_FromString(layer->name);
+			PyList_Append( list, item );
+			Py_DECREF(item);
+		}
+	}
+	return list;
+} 
+
+static PyObject *Mesh_getProperty_internal(CustomData *data, int eindex, PyObject *args)
+{
+	CustomDataLayer *layer;
+	char *name=NULL;
+	int i;
+	MFloatProperty *pf;
+	MIntProperty *pi;
+	MStringProperty *ps;
+
+	if(!PyArg_ParseTuple(args, "s", &name))
+		return EXPP_ReturnPyObjError( PyExc_TypeError,
+			"expected an string argument" );
+	
+	if (strlen(name)>31)
+		return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"error, maximum name length is 31" );
+	
+	i = CustomData_get_named_layer_index(data, CD_PROP_FLT, name);
+	if(i == -1) i = CustomData_get_named_layer_index(data, CD_PROP_INT, name);
+	if(i == -1) i = CustomData_get_named_layer_index(data, CD_PROP_STR, name);
+	if(i == -1)
+		return EXPP_ReturnPyObjError(PyExc_ValueError,
+			"No matching layers" );	
+	
+	layer = &data->layers[i];
+
+	if(layer->type == CD_PROP_FLT){ 
+		pf = layer->data;
+		return PyFloat_FromDouble(pf[eindex].f);
+	}
+	else if(layer->type == CD_PROP_INT){
+		pi = layer->data;
+		return PyInt_FromLong(pi[eindex].i);
+	
+	}
+	else if(layer->type == CD_PROP_STR){
+		ps = layer->data;
+		return PyString_FromString(ps[eindex].s);
+	}
+	Py_RETURN_NONE;
+}
+
+static PyObject *Mesh_setProperty_internal(CustomData *data, int eindex, PyObject *args)
+{
+	CustomDataLayer *layer;
+	int i,index, type = -1;
+	float f;
+	char *s=NULL, *name=NULL;
+	MFloatProperty *pf;
+	MIntProperty  *pi;
+	MStringProperty *ps;
+	PyObject *val;
+	
+	if(PyArg_ParseTuple(args, "sO", &name, &val)){
+		if (strlen(name)>31)
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+					"error, maximum name length is 31" );
+		
+		if(PyInt_CheckExact(val)){ 
+			type = CD_PROP_INT;
+			i = (int)PyInt_AS_LONG(val);
+		}
+		else if(PyFloat_CheckExact(val)){
+			type = CD_PROP_FLT;
+			f = (float)PyFloat_AsDouble(val);
+		}
+		else if(PyString_CheckExact(val)){
+			type = CD_PROP_STR;
+			s = PyString_AsString(val);
+		}
+		else
+			return EXPP_ReturnPyObjError( PyExc_TypeError,
+					"expected an name plus either float/int/string" );
+
+	}
+
+	index = CustomData_get_named_layer_index(data, type, name);
+	if(index == -1)
+		return EXPP_ReturnPyObjError(PyExc_ValueError,
+			"No matching layers or type mismatch" );	
+
+	layer = &data->layers[index];
+	
+	if(type==CD_PROP_STR){
+		if (strlen(s)>255){
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"error, maximum string length is 255");
+		}
+		else{
+			ps =  layer->data;
+			strcpy(ps[eindex].s,s);
+		}
+	}
+	else if(type==CD_PROP_FLT){
+		pf = layer->data;
+		pf[eindex].f = f;
+	}
+	else{
+		pi = layer->data;
+		pi[eindex].i = i;
+	}
+	Py_RETURN_NONE;
+}
+
+static PyObject *MVert_getProp( BPy_MVert *self, PyObject *args)
+{
+	if( BPy_MVert_Check( self ) ){
+		Mesh *me = (Mesh *)self->data;
+		if(self->index >= me->totvert)
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"error, MVert is no longer valid part of mesh!");
+		else
+			return Mesh_getProperty_internal(&(me->vdata), self->index, args);
+	}
+	return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"error, Vertex not part of a mesh!");
+}
+
+static PyObject *MVert_setProp( BPy_MVert *self,  PyObject *args)
+{
+	if( BPy_MVert_Check( self ) ){
+		Mesh *me = (Mesh *)self->data;
+		if(self->index >= me->totvert)
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"error, MVert is no longer valid part of mesh!");
+		else
+			return Mesh_setProperty_internal(&(me->vdata), self->index, args);
+	}
+	return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"error, Vertex not part of a mesh!");
+}
+	
+static struct PyMethodDef BPy_MVert_methods[] = {
+	{"getProperty", (PyCFunction)MVert_getProp, METH_VARARGS,
+		"get property indicated by name"},
+	{"setProperty", (PyCFunction)MVert_setProp, METH_VARARGS,
+		"set property indicated by name"},
+	{NULL, NULL, 0, NULL}
+};
+
+
 /************************************************************************
  *
  * Python MVert_Type structure definition
@@ -1290,7 +1523,7 @@ PyTypeObject MVert_Type = {
 	NULL,                       /* iternextfunc tp_iternext; */
 
   /*** Attribute descriptor and subclassing stuff ***/
-	NULL,                       /* struct PyMethodDef *tp_methods; */
+	BPy_MVert_methods,          /* struct PyMethodDef *tp_methods; */
 	NULL,                       /* struct PyMemberDef *tp_members; */
 	BPy_MVert_getseters,        /* struct PyGetSetDef *tp_getset; */
 	NULL,                       /* struct _typeobject *tp_base; */
@@ -1955,6 +2188,37 @@ static PyObject *MVertSeq_selected( BPy_MVertSeq * self )
 	}
 	return list;
 }
+static PyObject *MVertSeq_add_layertype(BPy_MVertSeq *self, PyObject *args)
+{
+	Mesh *me = (Mesh*)self->mesh;
+	return Mesh_addPropLayer_internal(me, &(me->vdata), me->totvert, args);
+}
+static PyObject *MVertSeq_del_layertype(BPy_MVertSeq *self, PyObject *args)
+{
+	Mesh *me = (Mesh*)self->mesh;
+	return Mesh_removePropLayer_internal(me, &(me->vdata), me->totvert, args);
+}
+static PyObject *MVertSeq_rename_layertype(BPy_MVertSeq *self, PyObject *args)
+{
+	Mesh *me = (Mesh*)self->mesh;
+	return Mesh_renamePropLayer_internal(me,&(me->vdata),args);
+}
+static PyObject *MVertSeq_PropertyList(BPy_MVertSeq *self) 
+{
+	Mesh *me = (Mesh*)self->mesh;
+	return Mesh_propList_internal(&(me->vdata));
+}
+static PyObject *M_Mesh_PropertiesTypeDict(void)
+{
+	PyObject *Types = PyConstant_New( );
+	if(Types) {
+		BPy_constant *d = (BPy_constant *) Types;
+		PyConstant_Insert(d, "FLOAT", PyInt_FromLong(CD_PROP_FLT));
+		PyConstant_Insert(d, "INT" , PyInt_FromLong(CD_PROP_INT));
+		PyConstant_Insert(d, "STRING", PyInt_FromLong(CD_PROP_STR));
+	}
+	return Types;
+}
 
 static struct PyMethodDef BPy_MVertSeq_methods[] = {
 	{"extend", (PyCFunction)MVertSeq_extend, METH_VARARGS,
@@ -1963,8 +2227,24 @@ static struct PyMethodDef BPy_MVertSeq_methods[] = {
 		"delete vertices from mesh"},
 	{"selected", (PyCFunction)MVertSeq_selected, METH_NOARGS,
 		"returns a list containing indices of selected vertices"},
+	{"addPropertyLayer",(PyCFunction)MVertSeq_add_layertype, METH_VARARGS,
+		"add a new property layer"},
+	{"removePropertyLayer",(PyCFunction)MVertSeq_del_layertype, METH_VARARGS,
+		"removes a property layer"},
+	{"renamePropertyLayer",(PyCFunction)MVertSeq_rename_layertype, METH_VARARGS,
+		"renames an existing property layer"},
 	{NULL, NULL, 0, NULL}
 };
+
+static PyGetSetDef BPy_MVertSeq_getseters[] = {
+	{"properties",
+	(getter)MVertSeq_PropertyList, (setter)NULL,
+	"vertex property layers, read only",
+	NULL},
+	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
+};
+
+
 
 /************************************************************************
  *
@@ -2035,7 +2315,7 @@ PyTypeObject MVertSeq_Type = {
   /*** Attribute descriptor and subclassing stuff ***/
 	BPy_MVertSeq_methods,       /* struct PyMethodDef *tp_methods; */
 	NULL,                       /* struct PyMemberDef *tp_members; */
-	NULL,                       /* struct PyGetSetDef *tp_getset; */
+	BPy_MVertSeq_getseters,     /* struct PyGetSetDef *tp_getset; */
 	NULL,                       /* struct _typeobject *tp_base; */
 	NULL,                       /* PyObject *tp_dict; */
 	NULL,                       /* descrgetfunc tp_descr_get; */
@@ -2452,7 +2732,25 @@ static long MEdge_hash( BPy_MEdge *self )
 {
 	return (long)self->index;
 }
+static PyObject *MEdge_getProp( BPy_MEdge *self, PyObject *args)
+{
+	Mesh *me = (Mesh *)self->mesh;
+	return Mesh_getProperty_internal(&(me->edata), self->index, args);
+}
 
+static PyObject *MEdge_setProp( BPy_MEdge *self,  PyObject *args)
+{
+	Mesh *me = (Mesh *)self->mesh;
+	return Mesh_setProperty_internal(&(me->edata), self->index, args);
+}
+
+static struct PyMethodDef BPy_MEdge_methods[] = {
+	{"getProperty", (PyCFunction)MEdge_getProp, METH_VARARGS,
+		"get property indicated by name"},
+	{"setProperty", (PyCFunction)MEdge_setProp, METH_VARARGS,
+		"set property indicated by name"},
+	{NULL, NULL, 0, NULL}
+};
 /************************************************************************
  *
  * Python MEdge_Type structure definition
@@ -2517,7 +2815,7 @@ PyTypeObject MEdge_Type = {
 	( iternextfunc ) MEdge_nextIter, /* iternextfunc tp_iternext; */
 
   /*** Attribute descriptor and subclassing stuff ***/
-	NULL,                       /* struct PyMethodDef *tp_methods; */
+	BPy_MEdge_methods,          /* struct PyMethodDef *tp_methods; */
 	NULL,                       /* struct PyMemberDef *tp_members; */
 	BPy_MEdge_getseters,        /* struct PyGetSetDef *tp_getset; */
 	NULL,                       /* struct _typeobject *tp_base; */
@@ -3311,6 +3609,28 @@ static PyObject *MEdgeSeq_selected( BPy_MEdgeSeq * self )
 	return list;
 }
 
+static PyObject *MEdgeSeq_add_layertype(BPy_MEdgeSeq *self, PyObject *args)
+{
+	Mesh *me = (Mesh*)self->mesh;
+	return Mesh_addPropLayer_internal(me, &(me->edata), me->totedge, args);
+}
+static PyObject *MEdgeSeq_del_layertype(BPy_MEdgeSeq *self, PyObject *args)
+{
+	Mesh *me = (Mesh*)self->mesh;
+	return Mesh_removePropLayer_internal(me, &(me->edata), me->totedge, args);
+}
+static PyObject *MEdgeSeq_rename_layertype(BPy_MEdgeSeq *self, PyObject *args)
+{
+	Mesh *me = (Mesh*)self->mesh;
+	return Mesh_renamePropLayer_internal(me,&(me->edata),args);
+}
+static PyObject *MEdgeSeq_PropertyList(BPy_MEdgeSeq *self) 
+{
+	Mesh *me = (Mesh*)self->mesh;
+	return Mesh_propList_internal(&(me->edata));
+}
+
+
 static struct PyMethodDef BPy_MEdgeSeq_methods[] = {
 	{"extend", (PyCFunction)MEdgeSeq_extend, METH_VARARGS,
 		"add edges to mesh"},
@@ -3320,8 +3640,23 @@ static struct PyMethodDef BPy_MEdgeSeq_methods[] = {
 		"returns a list containing indices of selected edges"},
 	{"collapse", (PyCFunction)MEdgeSeq_collapse, METH_VARARGS,
 		"collapse one or more edges to a vertex"},
+	{"addPropertyLayer",(PyCFunction)MEdgeSeq_add_layertype, METH_VARARGS,
+		"add a new property layer"},
+	{"removePropertyLayer",(PyCFunction)MEdgeSeq_del_layertype, METH_VARARGS,
+		"removes a property layer"},
+	{"renamePropertyLayer",(PyCFunction)MEdgeSeq_rename_layertype, METH_VARARGS,
+		"renames an existing property layer"},
+
 	{NULL, NULL, 0, NULL}
 };
+static PyGetSetDef BPy_MEdgeSeq_getseters[] = {
+	{"properties",
+	(getter)MEdgeSeq_PropertyList, (setter)NULL,
+	"edge property layers, read only",
+	NULL},
+	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
+};
+
 
 /************************************************************************
  *
@@ -3392,7 +3727,7 @@ PyTypeObject MEdgeSeq_Type = {
   /*** Attribute descriptor and subclassing stuff ***/
 	BPy_MEdgeSeq_methods,       /* struct PyMethodDef *tp_methods; */
 	NULL,                       /* struct PyMemberDef *tp_members; */
-	NULL,                       /* struct PyGetSetDef *tp_getset; */
+	BPy_MEdgeSeq_getseters,     /* struct PyGetSetDef *tp_getset; */
 	NULL,                       /* struct _typeobject *tp_base; */
 	NULL,                       /* PyObject *tp_dict; */
 	NULL,                       /* descrgetfunc tp_descr_get; */
@@ -4469,6 +4804,35 @@ static PySequenceMethods MFace_as_sequence = {
 	0,0,0,
 };
 
+static PyObject *MFace_getProp( BPy_MFace *self, PyObject *args)
+{
+	Mesh *me = (Mesh *)self->mesh;
+	MFace *face = MFace_get_pointer( self );
+	if( !face )
+		return NULL;
+	mesh_update_customdata_pointers(me); //!
+	return Mesh_getProperty_internal(&(me->fdata), self->index, args);
+}
+
+static PyObject *MFace_setProp( BPy_MFace *self,  PyObject *args)
+{
+	Mesh *me = (Mesh *)self->mesh;
+	PyObject *obj;
+	MFace *face = MFace_get_pointer( self );
+	if( !face )
+		return NULL;
+	obj = Mesh_setProperty_internal(&(me->fdata), self->index, args);
+	mesh_update_customdata_pointers(me); //!
+	return obj;
+}
+
+static struct PyMethodDef BPy_MFace_methods[] = {
+	{"getProperty", (PyCFunction)MFace_getProp, METH_VARARGS,
+		"get property indicated by name"},
+	{"setProperty", (PyCFunction)MFace_setProp, METH_VARARGS,
+		"set property indicated by name"},
+	{NULL, NULL, 0, NULL}
+};
 /************************************************************************
  *
  * Python MFace_Type structure definition
@@ -4533,7 +4897,7 @@ PyTypeObject MFace_Type = {
 	( iternextfunc ) MFace_nextIter, /* iternextfunc tp_iternext; */
 
   /*** Attribute descriptor and subclassing stuff ***/
-	NULL,                       /* struct PyMethodDef *tp_methods; */
+	BPy_MFace_methods,          /* struct PyMethodDef *tp_methods; */
 	NULL,                       /* struct PyMemberDef *tp_members; */
 	BPy_MFace_getseters,        /* struct PyGetSetDef *tp_getset; */
 	NULL,                       /* struct _typeobject *tp_base; */
@@ -5242,6 +5606,27 @@ static PyObject *MFaceSeq_selected( BPy_MFaceSeq * self )
 	return list;
 }
 
+static PyObject *MFaceSeq_add_layertype(BPy_MFaceSeq *self, PyObject *args)
+{
+	Mesh *me = (Mesh*)self->mesh;
+	return Mesh_addPropLayer_internal(me, &(me->fdata), me->totface, args);
+}
+static PyObject *MFaceSeq_del_layertype(BPy_MFaceSeq *self, PyObject *args)
+{
+	Mesh *me = (Mesh*)self->mesh;
+	return Mesh_removePropLayer_internal(me, &(me->fdata), me->totface, args);
+}
+static PyObject *MFaceSeq_rename_layertype(BPy_MFaceSeq *self, PyObject *args)
+{
+	Mesh *me = (Mesh*)self->mesh;
+	return Mesh_renamePropLayer_internal(me,&(me->fdata),args);
+}
+static PyObject *MFaceSeq_PropertyList(BPy_MFaceSeq *self) 
+{
+	Mesh *me = (Mesh*)self->mesh;
+	return Mesh_propList_internal(&(me->fdata));
+}
+
 static struct PyMethodDef BPy_MFaceSeq_methods[] = {
 	{"extend", (PyCFunction)MFaceSeq_extend, METH_VARARGS|METH_KEYWORDS,
 		"add faces to mesh"},
@@ -5249,8 +5634,22 @@ static struct PyMethodDef BPy_MFaceSeq_methods[] = {
 		"delete faces from mesh"},
 	{"selected", (PyCFunction)MFaceSeq_selected, METH_NOARGS,
 		"returns a list containing indices of selected faces"},
+	{"addPropertyLayer",(PyCFunction)MFaceSeq_add_layertype, METH_VARARGS,
+		"add a new property layer"},
+	{"removePropertyLayer",(PyCFunction)MFaceSeq_del_layertype, METH_VARARGS,
+		"removes a property layer"},
+	{"renamePropertyLayer",(PyCFunction)MFaceSeq_rename_layertype, METH_VARARGS,
+		"renames an existing property layer"},
 	{NULL, NULL, 0, NULL}
 };
+static PyGetSetDef BPy_MFaceSeq_getseters[] = {
+	{"properties",
+	(getter)MFaceSeq_PropertyList, (setter)NULL,
+	"vertex property layers, read only",
+	NULL},
+	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
+};
+
 
 /************************************************************************
  *
@@ -5321,7 +5720,7 @@ PyTypeObject MFaceSeq_Type = {
   /*** Attribute descriptor and subclassing stuff ***/
 	BPy_MFaceSeq_methods,       /* struct PyMethodDef *tp_methods; */
 	NULL,                       /* struct PyMemberDef *tp_members; */
-	NULL,                       /* struct PyGetSetDef *tp_getset; */
+	BPy_MFaceSeq_getseters,     /* struct PyGetSetDef *tp_getset; */
 	NULL,                       /* struct _typeobject *tp_base; */
 	NULL,                       /* PyObject *tp_dict; */
 	NULL,                       /* descrgetfunc tp_descr_get; */
@@ -8156,7 +8555,8 @@ PyObject *Mesh_Init( void )
 	PyObject *EdgeFlags = M_Mesh_EdgeFlagsDict(  );
 	PyObject *AssignModes = M_Mesh_VertAssignDict( );
 	PyObject *SelectModes = M_Mesh_SelectModeDict( );
-
+	PyObject *PropertyTypes = M_Mesh_PropertiesTypeDict( );
+	
 	if( PyType_Ready( &MCol_Type ) < 0 )
 		return NULL;
 	if( PyType_Ready( &MVert_Type ) < 0 )
@@ -8196,6 +8596,9 @@ PyObject *Mesh_Init( void )
 		PyModule_AddObject( submodule, "AssignModes", AssignModes );
 	if( SelectModes )
 		PyModule_AddObject( submodule, "SelectModes", SelectModes );
+	if( PropertyTypes )
+		PyModule_AddObject( submodule, "PropertyTypes", PropertyTypes );
+
 
 
 	return submodule;

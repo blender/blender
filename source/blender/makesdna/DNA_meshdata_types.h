@@ -86,6 +86,18 @@ typedef struct MTFace {
 	short mode, tile, unwrap;
 } MTFace;
 
+/*Custom Data Properties*/
+typedef struct MFloatProperty{
+	float	f;
+} MFloatProperty;
+typedef struct MIntProperty{
+	int		i;
+} MIntProperty;
+typedef struct MStringProperty{
+	char	s[256];
+} MStringProperty;
+
+
 /* Multiresolution modeling */
 typedef struct MultiresCol {
 	float a, r, g, b;

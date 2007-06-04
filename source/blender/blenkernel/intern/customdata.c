@@ -367,20 +367,24 @@ const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	/* 3 floats per normal vector */
 	{sizeof(float)*3, "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
 	{sizeof(int), "", 0, NULL, NULL, NULL, NULL, NULL, NULL},
+	{sizeof(MFloatProperty), "MFloatProperty",1,"Float",NULL,NULL,NULL,NULL},
+	{sizeof(MIntProperty), "MIntProperty",1,"Int",NULL,NULL,NULL,NULL},
+	{sizeof(MStringProperty), "MStringProperty",1,"String",NULL,NULL,NULL,NULL},
 };
 
 const char *LAYERTYPENAMES[CD_NUMTYPES] = {
 	"CDMVert", "CDMSticky", "CDMDeformVert", "CDMEdge", "CDMFace", "CDMTFace",
-	"CDMCol", "CDOrigIndex", "CDNormal", "CDFlags"};
+	"CDMCol", "CDOrigIndex", "CDNormal", "CDFlags","CDMFloatProperty","CDMIntProperty","CDMStringProperty"};
 
 const CustomDataMask CD_MASK_BAREMESH =
 	CD_MASK_MVERT | CD_MASK_MEDGE | CD_MASK_MFACE;
 const CustomDataMask CD_MASK_MESH =
 	CD_MASK_MVERT | CD_MASK_MEDGE | CD_MASK_MFACE |
-	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_MTFACE | CD_MASK_MCOL;
+	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_MTFACE | CD_MASK_MCOL |
+	CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_PROP_STR;
 const CustomDataMask CD_MASK_EDITMESH =
 	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_MTFACE |
-	CD_MASK_MCOL;
+	CD_MASK_MCOL|CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_PROP_STR;
 const CustomDataMask CD_MASK_DERIVEDMESH =
 	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_MTFACE |
 	CD_MASK_MCOL | CD_MASK_ORIGINDEX;
@@ -1335,6 +1339,13 @@ const char *CustomData_layertype_name(int type)
 	return layerType_getName(type);
 }
 
+static int  CustomData_is_property_layer(int type)
+{
+	if((type == CD_PROP_FLT) || (type == CD_PROP_INT) || (type == CD_PROP_STR))
+		return 1;
+	return 0;
+}
+
 void CustomData_set_layer_unique_name(CustomData *data, int index)
 {
 	char tempname[64];
@@ -1355,9 +1366,17 @@ void CustomData_set_layer_unique_name(CustomData *data, int index)
 	/* see if there is a duplicate */
 	for(i=0; i<data->totlayer; i++) {
 		layer = &data->layers[i];
-
-		if(i!=index && layer->type==type && strcmp(layer->name, name)==0)
-			break;
+		
+		if(CustomData_is_property_layer(type)){
+			if(i!=index && CustomData_is_property_layer(layer->type) && 
+				strcmp(layer->name, name)==0)
+					break;	
+		
+		}
+		else{
+			if(i!=index && layer->type==type && strcmp(layer->name, name)==0)
+				break;
+		}
 	}
 
 	if(i == data->totlayer)
@@ -1373,8 +1392,16 @@ void CustomData_set_layer_unique_name(CustomData *data, int index)
 		for(i=0; i<data->totlayer; i++) {
 			layer = &data->layers[i];
 			
-			if(i!=index && layer->type==type && strcmp(layer->name, tempname)==0)
+			if(CustomData_is_property_layer(type)){
+				if(i!=index && CustomData_is_property_layer(layer->type) && 
+					strcmp(layer->name, tempname)==0)
+
 				break;
+			}
+			else{
+				if(i!=index && layer->type==type && strcmp(layer->name, tempname)==0)
+					break;
+			}
 		}
 
 		if(i == data->totlayer) {
