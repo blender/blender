@@ -1515,8 +1515,7 @@ static void draw_viewport_name(ScrArea *sa)
 				name = (G.vd->persp & V3D_PERSP_DO_3D_PERSP) ? "User Persp" : "User Ortho";
 			}
 	}
-
-	/* Easy sync of tests to clean up the string allocation */
+	
 	if (G.vd->localview) {
 		printable = malloc(strlen(name) + strlen(" (Local)_")); /* '_' gives space for '\0' */
 		strcpy(printable, name);
