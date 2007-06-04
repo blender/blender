@@ -1481,25 +1481,58 @@ static void draw_view_icon(void)
 static void draw_viewport_name(ScrArea *sa)
 {
 	char *name = NULL;
+	char *printable = NULL;
 	
 	switch(G.vd->view) {
 		case 1:
-			name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Back" : "Front";
+			if (G.vd->persp & V3D_PERSP_DO_3D_PERSP)
+				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Back Persp" : "Front Persp";
+			else
+				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Back Ortho" : "Front Ortho";
 			break;
 		case 3:
-			name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Left" : "Right";
+			if (G.vd->persp & V3D_PERSP_DO_3D_PERSP)
+				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Left Persp" : "Right Persp";
+			else
+				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Left Ortho" : "Right Ortho";
 			break;
 		case 7:
-			name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Bottom" : "Top";
+			if (G.vd->persp & V3D_PERSP_DO_3D_PERSP)
+				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Bottom Persp" : "Top Persp";
+			else
+				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Bottom Ortho" : "Top Ortho";
 			break;
 		default:
-			name = G.vd->persp==V3D_PERSP_USE_THE_CAMERA ? "Camera" : "User";
+			if(G.vd->persp==V3D_PERSP_USE_THE_CAMERA) {
+				if (G.vd->camera->type == OB_CAMERA) {
+					Camera *cam;
+					cam = G.vd->camera->data;
+					name = (cam->type != CAM_ORTHO) ? "Camera Persp" : "Camera Ortho";
+				} else {
+					name = "Object as Camera";
+				}
+			} else { 
+				name = (G.vd->persp & V3D_PERSP_DO_3D_PERSP) ? "User Persp" : "User Ortho";
+			}
 	}
 
-	if (name) {
+	/* Easy sync of tests to clean up the string allocation */
+	if (G.vd->localview) {
+		printable = malloc(strlen(name) + strlen(" (Local)_")); /* '_' gives space for '\0' */
+		strcpy(printable, name);
+		strcat(printable, " (Local)");
+	} else {
+		printable = name;
+	}
+
+	if (printable) {
 		BIF_ThemeColor(TH_TEXT_HI);
 		glRasterPos2i(10,  sa->winy-20);
-		BMF_DrawString(G.fonts, name);
+		BMF_DrawString(G.fonts, printable);
+	}
+
+	if (G.vd->localview) {
+		free(printable);
 	}
 }
 
