@@ -507,7 +507,9 @@ void oops_buttons(void)
 		uiDefIconButBitS(block, TOG, OOPS_TE, B_NEWOOPS, ICON_TEXTURE_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Texture datablocks");
 		uiDefIconButBitS(block, TOG, OOPS_IP, B_NEWOOPS, ICON_IPO_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Ipo datablocks");
 		uiDefIconButBitS(block, TOG, OOPS_IM, B_NEWOOPS, ICON_IMAGE_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Image datablocks");
+		uiDefIconButBitS(block, TOG, OOPS_GR, B_NEWOOPS, ICON_CIRCLE_DEHLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Group datablocks");
 		uiDefIconButBitS(block, TOG, OOPS_LI, B_NEWOOPS, ICON_LIBRARY_HLT,	(short)(xco+=XIC),0,XIC,YIC, &soops->visiflag, 0, 0, 0, 0, "Displays Library datablocks");
+		
 
 		uiBlockEndAlign(block);
 	  
@@ -518,8 +520,11 @@ void oops_buttons(void)
 			else strcpy(naam, oops->id->name);
 			
 			cpack(0x0);
+            BIF_ThemeColor(TH_MENU_TEXT); /* makes text readable on dark theme */
+            BIF_SetScale(1.0);
 			glRasterPos2i(xco+=XIC+10,	5);
-			BMF_DrawString(uiBlockGetCurFont(block), naam);
+			BIF_RasterPos(xco+=XIC+10,	5);
+			BIF_DrawString(G.font, naam, 0);
 
 		}
 	}

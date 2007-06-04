@@ -50,6 +50,7 @@
 #include "DNA_texture_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_key_types.h"
+#include "DNA_group_types.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
@@ -656,8 +657,21 @@ void add_material_oopslinks(Material *ma, Oops *oops, short flag)
 			if(ma->mtex[a]) add_oopslink("ob", oops, ID_OB, &(ma->mtex[a]->object), 0.0, (float)(0.2*OOPSY));
 		}
 	}
-	if(flag & OOPS_IP) {
+	if(flag & OOPS_IP)
 		if(ma->ipo) add_oopslink("ipo", oops, ID_IP, &(ma->ipo), OOPSX, (float)(0.5*OOPSY));
+	
+	if (ma->group)
+		add_oopslink("group", oops, ID_GR, &(ma->group), OOPSX, (float)(0.5*OOPSY));
+}
+
+
+void add_group_oopslinks(Group *gp, Oops *oops, short flag)
+{
+	GroupObject *gob;
+	if(flag & OOPS_GR) {
+		for(gob=gp->gobject.first; gob; gob= gob->next) {
+			add_oopslink("group", oops, ID_GR, &(gob->ob), (float)(0.5*OOPSX), (float)OOPSY);
+		}
 	}
 }
 
@@ -701,6 +715,9 @@ void add_object_oopslinks(Object *ob, Oops *oops, short flag)
 	}
 	
 	if(flag & OOPS_IP) add_oopslink("ipo", oops, ID_IP, &ob->ipo, OOPSX, (float)(0.5*OOPSY));
+	
+	if (ob->dup_group && (ob->transflag & OB_DUPLIGROUP))
+		add_oopslink("group", oops, ID_GR, &ob->dup_group, OOPSX, (float)(0.5*OOPSY));
 }
 
 void add_mesh_oopslinks(Mesh *me, Oops *oops, short flag)
@@ -816,6 +833,9 @@ Oops *add_test_oops(void *id)	/* incl links */
 		break;
 	case ID_MA:
 		add_material_oopslinks((Material *)id, oops, G.soops->visiflag);
+		break;
+	case ID_GR:
+		add_group_oopslinks((Group *)id, oops, G.soops->visiflag);
 		break;
 	case ID_TE:
 		tex= (Tex *)id;
@@ -962,7 +982,13 @@ void build_oops()
 				ima= ima->id.next;
 			}
 		}
-		
+		if(G.soops->visiflag & OOPS_GR) {
+			Group *gp= G.main->group.first;
+			while(gp) {
+				oops= add_test_oops(gp);
+				gp= gp->id.next;
+			}
+		}
 	}
 	else {
 		

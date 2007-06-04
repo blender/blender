@@ -56,6 +56,7 @@
 
 #include "BIF_interface.h"
 #include "BIF_interface_icons.h"
+#include "BIF_language.h"
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 #include "BIF_mywindow.h"
@@ -69,8 +70,13 @@
 #include "BSE_drawipo.h"
 #include "BSE_drawoops.h"
 
-float oopscalex;
-struct BMF_Font *font; /* for using different sized fonts */
+float aspect;
+void *font;
+
+
+static float icon_width();
+float center_oops_text(char *str);
+
 
 void boundbox_oops(short sel)
 {
@@ -130,7 +136,7 @@ void draw_oopslink(Oops *oops)
 	float vec[4][3], dist, spline_step;
 	short curve_res;
 	
-	if(oops->type==ID_SCE) {
+	if(oops->type==ID_SCE || oops->type==ID_GR) {
 		if(oops->flag & SELECT) {
 			/* when using python Mesh to make meshes a file was saved
 			that had an oops with no ID, stops a segfault when looking for lib */
@@ -180,7 +186,7 @@ void draw_oopslink(Oops *oops)
 				else if ( MAX4(vec[0][0], vec[1][0], vec[2][0], vec[3][0]) < G.v2d->cur.xmin); /* clipped */
 					else {
 						/* calculate a curve resolution to use based on the length of the curve.*/
-						curve_res = MIN2(40, MAX2(2, (short)((dist*2) * (oopscalex))));
+						curve_res = MIN2(40, MAX2(2, 2*dist/aspect));
 						
 						/* we can reuse the dist variable here to increment the GL curve eval amount*/
 						dist = (float)1/curve_res;
@@ -200,9 +206,16 @@ void draw_oopslink(Oops *oops)
 	}
 }
 
+static float icon_width()
+{
+    /* change it in *one place* when you mess around */
+    return 0.8*OOPSY;
+}
+
 void draw_icon_oops(float *co, short type)
 {
 	BIFIconID icon;
+    float ofs;
 	
 	switch(type) {
 	default: return;
@@ -218,12 +231,15 @@ void draw_icon_oops(float *co, short type)
 	case ID_IP:	icon= ICON_IPO_HLT; break;
 	case ID_LI:	icon= ICON_LIBRARY_HLT; break;
 	case ID_IM:	icon= ICON_IMAGE_HLT; break;
+	case ID_GR:	icon= ICON_CIRCLE_DEHLT; break;
 	}
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 
 
-	BIF_icon_draw(co[0], co[1]-0.2, icon);
+    /* height of box is OOPSY...icon is centered vertically */
+    ofs = (OOPSY - icon_width())/2.0;
+	BIF_icon_draw_aspect(co[0], co[1]+ofs, icon, icon_width()*aspect*ICON_DEFAULT_HEIGHT/OOPSY);
 
 	glBlendFunc(GL_ONE,  GL_ZERO); 
 	glDisable(GL_BLEND);
@@ -267,6 +283,8 @@ unsigned int give_oops_color(short type, short sel, unsigned int *border)
 		body= 0x2198DC; break;
 	case ID_IM:
 		body= 0x35659F; break;
+	case ID_GR:
+		body= 0x507050; break;
 	default:
 		body= 0x606070; break;
 	}
@@ -281,46 +299,25 @@ unsigned int give_oops_color(short type, short sel, unsigned int *border)
 	return body;
 }
 
-void calc_oopstext(char *str, float *v1)
+
+float center_oops_text(char *str)
+/* gives x offset at which to draw oops text -- takes icon into account */
 {
-	float f1, f2, size; /* f1 is the lhs of the oops block, f2 is the rhs */
-	short mval[2], len, flen;
-	
-	ipoco_to_areaco_noclip(G.v2d, v1, mval);
-	f1= mval[0];
-	v1[0]+= OOPSX;
-	ipoco_to_areaco_noclip(G.v2d, v1, mval);
-	f2= mval[0];
-	
-	if (oopscalex>1.1) { /* Make text area wider if we have no icon.*/
-		size= f2-f1;
-	} else {
-		size= (f2-f1)*1.7; 
-	}
+    int len;
+    float width;
 
 	len= strlen(str);
-	
-	while( (flen= BMF_GetStringWidth(G.fonts, str)) > size) {
-		if(flen < 10 || len<2) break;
-		len--;
-		str[len]= 0;
-	}
-	
-	flen= BMF_GetStringWidth(font, str);
-	
-	/* calc centerd location for icon and text,
-	else if were zoomed too far out, just push text to the left of the oops block. */
-	if (oopscalex>1.1) { 
-		mval[0]= (f1+f2-flen+1)/2;
-	} else {
-		mval[0]=  f1; 
-	}
-	
-	mval[1]= 1;
-	areamouseco_to_ipoco(G.v2d, mval, &f1, &f2);
-	
-	v1[0]= f1;
-	
+    if(len < 1) return 0;
+
+    /* center at box width of OOPSX */
+	width= aspect*BIF_GetStringWidth(font, str, 0) + icon_width();
+
+    while(width > OOPSX && len >= 0) {
+        str[len] = 0;
+        width= aspect*BIF_GetStringWidth(font, str, 0) + icon_width();
+        len--;
+    }
+    return (OOPSX - width)/2;
 }
 
 void draw_oops(Oops *oops)
@@ -336,6 +333,7 @@ void draw_oops(Oops *oops)
 	y1= oops->y; 
 	y2= oops->y+OOPSY;
 
+    /* do clip */
 	if(x2 < G.v2d->cur.xmin || x1 > G.v2d->cur.xmax) return;
 	if(y2 < G.v2d->cur.ymin || y1 > G.v2d->cur.ymax) return;
 
@@ -346,9 +344,9 @@ void draw_oops(Oops *oops)
 	if(oops->id->us) {
 		cpack(body);
 
-		glRectf(x1,  y1,  x2,  y2);
+		glRectf(x1, y1, x2, y2);
 	}
-	
+
 	/* it has never happened that an oops was missing an ID at
 	this point but has occured elseware so lets be safe */
 	if(oops->id && oops->id->lib) { 
@@ -359,27 +357,31 @@ void draw_oops(Oops *oops)
 	}
 
 	v1[0]= x1; 
-	v1[1]= (y1+y2)/2 -0.3;
+    v1[1] = y1;
+
 	if(oops->type==ID_LI) {
-		sprintf(str, "     %s", ((Library *)oops->id)->name);
+		sprintf(str, " %s", ((Library *)oops->id)->name);
 	}
 	else {
-		sprintf(str, "     %s", oops->id->name+2);
+		sprintf(str, " %s", oops->id->name+2);
 	}
-	calc_oopstext(str, v1);
 
-	/* ICON */
-	if(str[1] && oopscalex>1.1) { /* HAS ICON */
-		draw_icon_oops(v1, oops->type);
-	} else { /* NO ICON, UNINDENT*/
-		v1[0] -= 1.3 / oopscalex;
- 	}
+    BIF_SetScale(aspect);
+    v1[0] += center_oops_text(str);
+
+    draw_icon_oops(v1, oops->type);
+    v1[0] += icon_width();
+
+    v1[1] = y1+(y2-y1)/3.0;
 	if(oops->flag & SELECT) BIF_ThemeColor(TH_TEXT_HI);
 	else BIF_ThemeColor(TH_TEXT);
-	glRasterPos3f(v1[0],  v1[1], 0.0);
-	BMF_DrawString(font, str);
-
-	if(line) setlinestyle(2);
+	glRasterPos2f(v1[0],  v1[1]);
+    BIF_RasterPos(v1[0], v1[1]);
+    BIF_SetScale(aspect);
+	BIF_DrawString(font, str, 0);
+	
+    
+    if(line) setlinestyle(2);
 	cpack(border);
 
 	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
@@ -410,7 +412,7 @@ void draw_oops(Oops *oops)
 	}
 
 	if(oops->flag & OOPS_REFER) {
-			/* Draw the little rounded connection point */
+        /* Draw the little rounded connection point */
 		glColor3ub(0, 0, 0);
 		glPushMatrix();
 
@@ -445,62 +447,56 @@ void drawoopsspace(ScrArea *sa, void *spacedata)
 		boundbox_oops(0);
 		calc_scrollrcts(sa, G.v2d, curarea->winx, curarea->winy);
 
-		myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
+        myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
+        bwin_clear_viewmat(sa->win);	/* clear buttons view */
+        glLoadIdentity();
 
-		oopscalex= .14*((float)curarea->winx)/(G.v2d->cur.xmax-G.v2d->cur.xmin);
+        aspect= (G.v2d->cur.xmax - G.v2d->cur.xmin)/((float)sa->winx);
+        font= uiSetCurFont_ext(30*aspect);
+
 		calc_ipogrid();	/* for scrollvariables */
 		
-		
-		/* Draw a page about the oops */
+        /* drop shadow */
+		BIF_ThemeColorShade(TH_BACK, -96); /* drop shadow color */
+        glRectf(G.v2d->tot.xmin-1, G.v2d->tot.ymin-3, G.v2d->tot.xmax+3,
+                G.v2d->tot.ymax+1);
+        
+        /* light square in the center */
 		BIF_GetThemeColor3fv(TH_BACK, col);
 		glColor3fv(col);
-		glRectf(G.v2d->tot.xmin-2, G.v2d->tot.ymin-2,  G.v2d->tot.xmax+2, G.v2d->tot.ymax+2); /* light square in the center */
-		BIF_ThemeColorShade(TH_BACK, -96); /* drop shadow color */
-		glRectf(G.v2d->tot.xmin-1, G.v2d->tot.ymin-2,  G.v2d->tot.xmax+3, G.v2d->tot.ymin-3); /* bottom dropshadow */
-		glRectf(G.v2d->tot.xmax+2, G.v2d->tot.ymin-2,  G.v2d->tot.xmax+3, G.v2d->tot.ymax+1); /* right hand dropshadow */
+        glRectf(G.v2d->tot.xmin-2, G.v2d->tot.ymin-2,  G.v2d->tot.xmax+2,
+                G.v2d->tot.ymax+2);
+
 		/* box around the oops. */
 		cpack(0x0);
-		mysbox(G.v2d->tot.xmin-2, G.v2d->tot.ymin-2,  G.v2d->tot.xmax+2, G.v2d->tot.ymax+2);
-		
-		
-		/* Set the font size for the oops based on the zoom level */
-		if (oopscalex > 6.0) font = BMF_GetFont(BMF_kScreen15);
-		else if (oopscalex > 3.5) font = G.font;
-		else if (oopscalex > 2.5) font = G.fonts;
-		else font = G.fontss;		
-		
+        mysbox(G.v2d->tot.xmin-2, G.v2d->tot.ymin-2,  G.v2d->tot.xmax+2,
+                G.v2d->tot.ymax+2);
+	
+
 		/* Draw unselected oops links */
-		oops= soops->oops.first;
-		while(oops) {
+        for(oops= soops->oops.first; oops; oops = oops->next) {
 			if(oops->hide==0 && (oops->flag & SELECT)); else {
 				draw_oopslink(oops);
 			}
-			oops= oops->next;
 		}
 		
 		/* Draw selected oops links */
-		oops= soops->oops.first;
-		while(oops) {
+        for(oops= soops->oops.first; oops; oops = oops->next) {
 			if(oops->hide==0 && (oops->flag & SELECT)) {
 				draw_oopslink(oops);
 			}
-			oops= oops->next;
 		}			
 		
-		oops= soops->oops.first;
-		while(oops) {
+        for(oops= soops->oops.first; oops; oops = oops->next) {
 			if(oops->hide==0) {
 				if(oops->flag & SELECT); else draw_oops(oops);
 			}
-			oops= oops->next;
 		}
 		
-		oops= soops->oops.first;
-		while(oops) {
+        for(oops= soops->oops.first; oops; oops = oops->next) {
 			if(oops->hide==0) {
 				if(oops->flag & SELECT) draw_oops(oops);
 			}
-			oops= oops->next;
 		}
 	}
 	
