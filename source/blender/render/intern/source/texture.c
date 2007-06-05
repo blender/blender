@@ -2434,6 +2434,7 @@ void render_realtime_texture(ShadeInput *shi, Image *ima)
 	
 	texvec[0]= 0.5+0.5*shi->uv[0].uv[0];
 	texvec[1]= 0.5+0.5*shi->uv[0].uv[1];
+	texvec[2] = 0;  // initalize it because imagewrap looks at it.
 	if(shi->osatex) {
 		dx[0]= 0.5*shi->uv[0].dxuv[0];
 		dx[1]= 0.5*shi->uv[0].dxuv[1];
