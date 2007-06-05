@@ -434,7 +434,7 @@ static PyObject *Noise_voronoi( PyObject * self, PyObject * args )
 			      da[0], da[1], da[2], da[3],
 			      pa[0], pa[1], pa[2],
 			      pa[3], pa[4], pa[5],
-			      pa[6], pa[7], pa[8], pa[9], pa[10], pa[12] );
+			      pa[6], pa[7], pa[8], pa[9], pa[10], pa[11] );
 }
 
 /*-------------------------------------------------------------------------*/
