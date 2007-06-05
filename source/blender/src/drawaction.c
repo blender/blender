@@ -110,14 +110,14 @@ static void meshactionbuts(SpaceAction *saction, Object *ob, Key *key)
 	 * correctly *grumble*
 	 */
 	mywinset(curarea->win);
-	myortho2(-0.375, curarea->winx-0.375, -0.375, curarea->winy-0.375);
+	myortho2(-0.375, curarea->winx-0.375, G.v2d->cur.ymin, G.v2d->cur.ymax);
 
     sprintf(str, "actionbuttonswin %d", curarea->win);
     block= uiNewBlock (&curarea->uiblocks, str, 
                        UI_EMBOSS, UI_HELV, curarea->win);
 
 	x = NAMEWIDTH + 1;
-    y = key->totkey*(CHANNELHEIGHT+CHANNELSKIP) + CHANNELHEIGHT/2  - G.v2d->cur.ymin;
+    y = CHANNELHEIGHT/2;
 
 	/* make the little 'open the sliders' widget */
     BIF_ThemeColor(TH_FACE); // this slot was open...
@@ -534,7 +534,7 @@ static void draw_action_mesh_names(Key *key)
 	KeyBlock *kb;
 
 	x = 0.0;
-	y= key->totkey*(CHANNELHEIGHT+CHANNELSKIP);
+	y= 0.0;
 
 	kb= key->block.first;
 
@@ -846,7 +846,7 @@ static void draw_mesh_strips(SpaceAction *saction, Key *key)
 	scr_rct.ymax= saction->area->winrct.ymin + saction->v2d.mask.ymax; 
 	di= glaBegin2DDraw(&scr_rct, &G.v2d->cur);
 
-	ybase = key->totkey*(CHANNELHEIGHT+CHANNELSKIP);
+	ybase = 0;
 
 	for (icu = key->ipo->curve.first; icu ; icu = icu->next) {
 		int frame1_x, channel_y;
@@ -959,7 +959,7 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 		if (G.v2d->cur.ymin < -CHANNELHEIGHT) 
 			G.v2d->cur.ymin = -CHANNELHEIGHT;
 		
-		maxymin = key->totkey*(CHANNELHEIGHT+CHANNELSKIP);
+		maxymin = -(key->totkey*(CHANNELHEIGHT+CHANNELSKIP));
 		if (G.v2d->cur.ymin > maxymin) G.v2d->cur.ymin = maxymin;
 	}
 

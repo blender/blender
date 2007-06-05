@@ -2199,7 +2199,8 @@ void bake_all_to_action(void)
 	ob = get_object_from_active_strip();
 	if (ob) {
 		if (ob->flag&OB_ARMATURE) {
-			newAction = bake_obIPO_to_action(ob);
+			//newAction = bake_obIPO_to_action(ob);
+			newAction = NULL;
 			if (newAction) {
 				/* unlink the object's IPO */
 				ipo=ob->ipo;

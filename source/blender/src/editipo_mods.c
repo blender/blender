@@ -496,21 +496,40 @@ static int vis_edit_icu_bez(EditIpo *ei)
 
 void select_ipo_bezier_keys(Ipo *ipo, int selectmode)
 {
-  /* Select all of the beziers in all
-   * of the Ipo curves belonging to the
-   * Ipo, using the selection mode.
-   */
-  switch (selectmode) {
-  case SELECT_ADD:
-    ipo_keys_bezier_loop(ipo, select_bezier_add, NULL);
-    break;
-  case SELECT_SUBTRACT:
-    ipo_keys_bezier_loop(ipo, select_bezier_subtract, NULL);
-    break;
-  case SELECT_INVERT:
-    ipo_keys_bezier_loop(ipo, select_bezier_invert, NULL);
-    break;
-  }
+	/* Select all of the beziers in all
+	* of the Ipo curves belonging to the
+	* Ipo, using the selection mode.
+	*/
+	switch (selectmode) {
+		case SELECT_ADD:
+			ipo_keys_bezier_loop(ipo, select_bezier_add, NULL);
+			break;
+		case SELECT_SUBTRACT:
+			ipo_keys_bezier_loop(ipo, select_bezier_subtract, NULL);
+			break;
+		case SELECT_INVERT:
+			ipo_keys_bezier_loop(ipo, select_bezier_invert, NULL);
+			break;
+	}
+}
+
+void select_icu_bezier_keys(IpoCurve *icu, int selectmode)
+{
+	/* Select all of the beziers in all
+	* of the Ipo curves belonging to the
+	* Ipo, using the selection mode.
+	*/
+	switch (selectmode) {
+		case SELECT_ADD:
+			icu_keys_bezier_loop(icu, select_bezier_add, NULL);
+			break;
+		case SELECT_SUBTRACT:
+			icu_keys_bezier_loop(icu, select_bezier_subtract, NULL);
+			break;
+		case SELECT_INVERT:
+			icu_keys_bezier_loop(icu, select_bezier_invert, NULL);
+			break;
+	}
 }
 
 void sethandles_ipo_keys(Ipo *ipo, int code)

@@ -33,21 +33,11 @@
 #ifndef BIF_EDITACTION_H
 #define BIF_EDITACTION_H
 
-#define SET_IPO_POPUP    0
-#define SET_IPO_CONSTANT 1
-#define SET_IPO_LINEAR   2
-#define SET_IPO_BEZIER   3
-
-#define SET_EXTEND_POPUP    0
-#define SET_EXTEND_CONSTANT 1
-#define SET_EXTEND_EXTRAPOLATION  2
-#define SET_EXTEND_CYCLIC   3
-#define SET_EXTEND_CYCLICEXTRAPOLATION   4
-
+/* some interface related sizes*/
 #define	CHANNELHEIGHT	16
 #define	CHANNELSKIP		2
-#define NAMEWIDTH      164
-#define SLIDERWIDTH    125
+#define NAMEWIDTH      	164
+#define SLIDERWIDTH    	125
 #define ACTWIDTH 		(G.saction->actwidth)
 
 /* Some types for easier type-testing */
@@ -57,6 +47,8 @@
 #define ACTTYPE_ICU			3
 #define ACTTYPE_FILLIPO		4
 #define ACTTYPE_FILLCON		5
+#define ACTTYPE_IPO			6
+#define ACTTYPE_SHAPEKEY	7
 
 /* Macros for easier/more consistant state testing */
 #define VISIBLE_ACHAN(achan) ((achan->flag & ACHAN_HIDDEN)==0)
@@ -72,6 +64,19 @@
 #define EDITABLE_ICU(icu) ((icu->flag & IPO_PROTECT)==0)
 #define SEL_ICU(icu) (icu->flag & IPO_SELECT)
 
+/* constants for setting ipo-interpolation type */
+#define SET_IPO_POPUP    0
+#define SET_IPO_CONSTANT 1
+#define SET_IPO_LINEAR   2
+#define SET_IPO_BEZIER   3
+
+/* constants for setting ipo-extrapolation type */
+#define SET_EXTEND_POPUP    		10
+#define SET_EXTEND_CONSTANT 		11
+#define SET_EXTEND_EXTRAPOLATION  	12
+#define SET_EXTEND_CYCLIC   		13
+#define SET_EXTEND_CYCLICEXTRAPOLATION   14
+
 struct bAction;
 struct bActionChannel;
 struct bPoseChannel;
@@ -82,21 +87,18 @@ struct Key;
 struct ListBase;
 
 /* Key operations */
-void delete_meshchannel_keys(struct Key *key);
-void delete_actionchannel_keys(void);
-void duplicate_meshchannel_keys(struct Key *key);
-void duplicate_actionchannel_keys(void);
-void transform_actionchannel_keys(int mode, int dummy);
-void transform_meshchannel_keys(char mode, struct Key *key);
-void snap_keys_to_frame(int snap_mode);
-void mirror_action_keys(short mirror_mode);
-void clean_shapekeys(struct Key *key);
-void clean_actionchannels(struct bAction *act);
+void transform_action_keys(int mode, int dummy);
+void duplicate_action_keys(void);
+void snap_action_keys(short mode);
+void mirror_action_keys(short mode);
 void insertkey_action(void);
+void delete_action_keys(void);
+void delete_action_channels(void);
+void clean_action(void);
 
-/* Marker Operations */
-void column_select_shapekeys(struct Key *key, int mode);
-void column_select_actionkeys(struct bAction *act, int mode);
+/* Column/Channel Key select */
+void column_select_action_keys(int mode);
+void selectall_action_keys(short mval[], short mode, short selectmode);
 void markers_selectkeys_between(void);
 
 /* channel/strip operations */
@@ -105,20 +107,15 @@ void down_sel_action(void);
 void top_sel_action(void);
 void bottom_sel_action(void);
 
-/* Handles */
-void sethandles_meshchannel_keys(int code, struct Key *key);
-void sethandles_actionchannel_keys(int code);
-
-/* Ipo type */ 
-void set_ipotype_actionchannels(int ipotype);
-void set_extendtype_actionchannels(int extendtype);
+/* IPO/Handle Types  */
+void sethandles_action_keys(int code);
+void action_set_ipo_flags(int mode);
 
 /* Select */
-void borderselect_mesh(struct Key *key);
 void borderselect_action(void);
-void deselect_actionchannel_keys(struct bAction *act, int test, int sel);
-void deselect_actionchannels (struct bAction *act, int test);
-void deselect_meshchannel_keys (struct Key *key, int test, int sel);
+void deselect_action_keys(short test, short sel);
+void deselect_action_channels(short test);
+void deselect_actionchannels(struct bAction *act, short test);
 int select_channel(struct bAction *act, struct bActionChannel *achan, int selectmode);
 void select_actionchannel_by_name (struct bAction *act, char *name, int select);
 
@@ -128,19 +125,17 @@ int get_nearest_key_num(struct Key *key, short *mval, float *x);
 void *get_nearest_act_channel(short mval[], short *ret_type);
 
 /* Action */
-struct bActionChannel* get_hilighted_action_channel(struct bAction* action);
+struct bActionChannel *get_hilighted_action_channel(struct bAction* action);
 struct bAction *add_empty_action(char *name);
-
-void winqreadactionspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
-
-/* contextual get action */
 struct bAction *ob_get_action(struct Object *ob);
+
+void actdata_filter(ListBase *act_data, int filter_mode, void *data, short datatype);
+void *get_action_context(short *datatype);
 
 void remake_action_ipos(struct bAction *act);
 
-/* this needs review badly! (ton) */
-struct bAction *bake_action_with_client (struct bAction *act, struct Object *arm, float tolerance);
-void world2bonespace(float boneSpaceMat[][4], float worldSpace[][4], float restPos[][4], float armPos[][4]);
+/* event handling */
+void winqreadactionspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
 
 #endif
 

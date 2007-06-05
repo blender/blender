@@ -149,10 +149,7 @@ void do_action_buttons(unsigned short event)
 {
 	Object *ob= OBACT;
 
-	switch(event){
-		case B_ACTBAKE:
-			bake_action_with_client(G.saction->action, ob, 0.01);
-			break;
+	switch(event) {
 		case B_ACTHOME:
 			/*	Find X extents */
 			G.v2d->cur.xmin = 0;
@@ -362,6 +359,7 @@ static void do_action_selectmenu_columnmenu(void *arg, int event)
 	act = saction->action;
 	key = get_action_mesh_key();
 	
+#if 0 // actionrewite
 	if (event == ACTMENU_SEL_COLUMN_MARKERSBETWEEN) {
 		markers_selectkeys_between();
 	}
@@ -373,6 +371,7 @@ static void do_action_selectmenu_columnmenu(void *arg, int event)
 	}
 	else
 		return;
+#endif // actionrewite
 		
 	allqueue(REDRAWTIME, 0);
 	allqueue(REDRAWIPO, 0);
@@ -422,12 +421,7 @@ static void do_action_selectmenu(void *arg, int event)
 	switch(event)
 	{
 		case ACTMENU_SEL_BORDER: /* Border Select */
-			if (act) {
-				borderselect_action();
-			}
-			else if (key) {
-				borderselect_mesh(key);
-			}
+			borderselect_action();
 			break;
 			
 		case ACTMENU_SEL_BORDERM: /* Border Select */
@@ -435,22 +429,14 @@ static void do_action_selectmenu(void *arg, int event)
 			break;
 
 		case ACTMENU_SEL_ALL_KEYS: /* Select/Deselect All Keys */
-			if (act) {
-				deselect_actionchannel_keys (act, 1, 1);
-				allqueue (REDRAWACTION, 0);
-				allqueue(REDRAWNLA, 0);
-				allqueue (REDRAWIPO, 0);
-			}
-			else if (key) {
-				deselect_meshchannel_keys(key, 1, 1);
-				allqueue (REDRAWACTION, 0);
-				allqueue(REDRAWNLA, 0);
-				allqueue (REDRAWIPO, 0);
-			}
+			deselect_action_keys(1, 1);
+			allqueue (REDRAWACTION, 0);
+			allqueue(REDRAWNLA, 0);
+			allqueue (REDRAWIPO, 0);
 			break;
 
 		case ACTMENU_SEL_ALL_CHAN: /* Select/Deselect All Channels */
-			deselect_actionchannels(act, 1);
+			deselect_action_channels(1);
 			allqueue (REDRAWVIEW3D, 0);
 			allqueue (REDRAWACTION, 0);
 			allqueue(REDRAWNLA, 0);
@@ -467,18 +453,10 @@ static void do_action_selectmenu(void *arg, int event)
 			break;
 			
 		case ACTMENU_SEL_INVERSE_KEYS: /* invert selection status of keys */
-			if (act) {
-				deselect_actionchannel_keys(act, 0, 2);
-				allqueue (REDRAWACTION, 0);
-				allqueue(REDRAWNLA, 0);
-				allqueue (REDRAWIPO, 0);
-			}
-			else if (key) {
-				deselect_meshchannel_keys(key, 0, 2);
-				allqueue (REDRAWACTION, 0);
-				allqueue(REDRAWNLA, 0);
-				allqueue (REDRAWIPO, 0);
-			}
+			deselect_action_keys(0, 2);
+			allqueue (REDRAWACTION, 0);
+			allqueue(REDRAWNLA, 0);
+			allqueue (REDRAWIPO, 0);
 			break;
 			
 		case ACTMENU_SEL_INVERSE_MARKERS: /* invert selection of markers */
@@ -558,42 +536,17 @@ static uiBlock *action_selectmenu(void *arg_unused)
 }
 
 static void do_action_keymenu_transformmenu(void *arg, int event)
-{
-	SpaceAction *saction;
-	bAction	*act;
-	Key *key;
-	
-	saction = curarea->spacedata.first;
-	if (!saction) return;
-
-	act = saction->action;
-	key = get_action_mesh_key();
-	
+{	
 	switch (event)
 	{
 		case ACTMENU_KEY_TRANSFORM_MOVE:
-			if (act) {	
-				transform_actionchannel_keys ('g', 0);
-			}
-			else if (key) {
-				transform_meshchannel_keys('g', key);
-			} 
+			transform_action_keys('g', 0);
 			break;
 		case ACTMENU_KEY_TRANSFORM_SCALE:
-			if (act) {
-				transform_actionchannel_keys ('s', 0);
-			}
-			else if (key) {
-				transform_meshchannel_keys('s', key);
-			} 
+			transform_action_keys ('s', 0);
 			break;
 		case ACTMENU_KEY_TRANSFORM_SLIDE:
-			if (act) {
-				transform_actionchannel_keys ('t', 0);
-			}
-			else if (key) {
-				//transform_meshchannel_keys('t', key);
-			} 
+			transform_action_keys ('t', 0);
 			break;
 	}
 
@@ -628,24 +581,9 @@ static uiBlock *action_keymenu_transformmenu(void *arg_unused)
 
 static void do_action_keymenu_handlemenu(void *arg, int event)
 {
-	SpaceAction *saction;
-	bAction	*act;
-	Key *key;
-	
-	saction = curarea->spacedata.first;
-	if (!saction) return;
-
-	act = saction->action;
-	key = get_action_mesh_key();
-
 	switch (event) {
 		case ACTMENU_KEY_HANDLE_AUTO:
-			if (act) {
-				sethandles_actionchannel_keys(HD_AUTO);
-			}
-			else if (key) {
-				sethandles_meshchannel_keys(HD_AUTO, key);
-			} 
+			sethandles_action_keys(HD_AUTO);
 			break;
 
 		case ACTMENU_KEY_HANDLE_ALIGN:
@@ -653,21 +591,11 @@ static void do_action_keymenu_handlemenu(void *arg, int event)
 			/* OK, this is kinda dumb, need to fix the
 			 * toggle crap in sethandles_ipo_keys() 
 			 */
-			if (act) {
-				sethandles_actionchannel_keys(HD_ALIGN);
-			}
-			else if (key) {
-				sethandles_meshchannel_keys(HD_ALIGN, key);
-			} 
+			sethandles_action_keys(HD_ALIGN);
 			break;
 
 		case ACTMENU_KEY_HANDLE_VECTOR:
-			if (act) {
-				sethandles_actionchannel_keys(HD_VECT);
-			}
-			else if (key) {
-				sethandles_meshchannel_keys(HD_VECT, key);
-			} 			
+			sethandles_action_keys(HD_VECT);	
 			break;
 	}
 }
@@ -705,32 +633,16 @@ static uiBlock *action_keymenu_handlemenu(void *arg_unused)
 
 static void do_action_keymenu_intpolmenu(void *arg, int event)
 {
-	SpaceAction *saction;
-	bAction	*act;
-	//Key *key;
-	
-	saction = curarea->spacedata.first;
-	if (!saction) return;
-
-	act = saction->action;
-	//key = get_action_mesh_key();
-
 	switch(event)
 	{
 		case ACTMENU_KEY_INTERP_CONST:
-			if (act)
-				set_ipotype_actionchannels(SET_IPO_CONSTANT);
-			//else if (key) /* todo */
+			action_set_ipo_flags(SET_IPO_CONSTANT);
 			break;
 		case ACTMENU_KEY_INTERP_LINEAR:
-			if (act)
-				set_ipotype_actionchannels(SET_IPO_LINEAR);
-			//else if (key) /* todo */
+			action_set_ipo_flags(SET_IPO_LINEAR);
 			break;
 		case ACTMENU_KEY_INTERP_BEZIER:
-			if (act)
-				set_ipotype_actionchannels(SET_IPO_BEZIER);
-			//else if (key) /* todo */
+			action_set_ipo_flags(SET_IPO_BEZIER);
 			break;
 	}
 
@@ -767,37 +679,19 @@ static uiBlock *action_keymenu_intpolmenu(void *arg_unused)
 
 static void do_action_keymenu_extendmenu(void *arg, int event)
 {
-	SpaceAction *saction;
-	bAction	*act;
-	//Key *key;
-	
-	saction = curarea->spacedata.first;
-	if (!saction) return;
-
-	act = saction->action;
-	//key = get_action_mesh_key();
-
 	switch(event)
 	{
 		case ACTMENU_KEY_EXTEND_CONST:
-			if (act)
-				set_extendtype_actionchannels(SET_EXTEND_CONSTANT);
-			//else if (key) /* todo */
+			action_set_ipo_flags(SET_EXTEND_CONSTANT);
 			break;
 		case ACTMENU_KEY_EXTEND_EXTRAPOLATION:
-			if (act)
-				set_extendtype_actionchannels(SET_EXTEND_EXTRAPOLATION);
-			//else if (key) /* todo */
+			action_set_ipo_flags(SET_EXTEND_EXTRAPOLATION);
 			break;
 		case ACTMENU_KEY_EXTEND_CYCLIC:
-			if (act)
-				set_extendtype_actionchannels(SET_EXTEND_CYCLIC);
-			//else if (key) /* todo */
+			action_set_ipo_flags(SET_EXTEND_CYCLIC);
 			break;
 		case ACTMENU_KEY_EXTEND_CYCLICEXTRAPOLATION:
-			if (act)
-				set_extendtype_actionchannels(SET_EXTEND_CYCLICEXTRAPOLATION);
-			//else if (key) /* todo */
+			action_set_ipo_flags(SET_EXTEND_CYCLICEXTRAPOLATION);
 			break;
 	}
 
@@ -900,7 +794,7 @@ static void do_action_keymenu_snapmenu(void *arg, int event)
 		case ACTMENU_KEY_SNAP_NEARFRAME:
 		case ACTMENU_KEY_SNAP_CURFRAME:
 		case ACTMENU_KEY_SNAP_NEARMARK:
-			snap_keys_to_frame(event);
+			snap_action_keys(event);
 			break;
 	}
 
@@ -995,31 +889,13 @@ static void do_action_keymenu(void *arg, int event)
 	switch(event)
 	{
 		case ACTMENU_KEY_DUPLICATE:
-			if (act) {
-				duplicate_actionchannel_keys();
-				remake_action_ipos(act);
-			}
-			else if (key) {
-				duplicate_meshchannel_keys(key);
-			}
+			duplicate_action_keys();
  			break;
-
 		case ACTMENU_KEY_DELETE:
-			if (act) {
-				delete_actionchannel_keys ();
-			}
-			else if (key) {
-				delete_meshchannel_keys(key);
-			}
-			break;
-		case ACTMENU_KEY_BAKE:
-			bake_action_with_client(G.saction->action, OBACT, 0.01);
+			delete_action_keys ();
 			break;
 		case ACTMENU_KEY_CLEAN:
-			if (act) 
-				clean_actionchannels(act);
-			else if (key) 
-				clean_shapekeys(key);
+			clean_action();
 			break;
 	}
 }
@@ -1062,11 +938,6 @@ static uiBlock *action_keymenu(void *arg_unused)
 					 "Clean Action|O", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_KEY_CLEAN, "");
-			 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Bake Action to Ipo Keys", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
-					 ACTMENU_KEY_BAKE, "");
 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
@@ -1260,16 +1131,6 @@ void action_buttons(void)
 						B_ACTIONBROWSE, ID_AC, 0, (ID*)G.saction->action, 
 						from, &(G.saction->actnr), B_ACTALONE, 
 						B_ACTLOCAL, B_ACTIONDELETE, 0, 0);	
-
-		
-	/* Draw action baker */
-	xco+= 8;
-	
-	uiDefBut(block, BUT, B_ACTBAKE, 
-			 "Bake", xco, 0, 64, YIC, 0, 0, 0, 0, 0, 
-			 "Create an action with the constraint effects "
-			 "converted into Ipo keys");
-	xco+=64;
 
 	uiClearButLock();
 
