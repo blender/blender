@@ -287,8 +287,14 @@ EXPORT_GROUP_BY_OB=False,  EXPORT_GROUP_BY_MAT=False, EXPORT_MORPH_TARGET=False)
 				me.transform(ob_mat)
 			
 			# High Quality Normals
-			if EXPORT_NORMALS and EXPORT_NORMALS_HQ and faces:
-				BPyMesh.meshCalcNormals(me)
+			if EXPORT_NORMALS and faces:
+				if EXPORT_NORMALS_HQ:
+					BPyMesh.meshCalcNormals(me)
+				else:
+					# transforming normals is incorrect
+					# when the matrix is scaled,
+					# better to recalculate them
+					me.calcNormals()
 			
 			# # Crash Blender
 			#materials = me.getMaterials(1) # 1 == will return None in the list.
