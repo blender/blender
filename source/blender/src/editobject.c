@@ -5184,18 +5184,17 @@ void set_ob_ipoflags(void)
 			}
 			else {
 				base->object->ipoflag &= ~OB_DRAWKEY;
+				if(base->object->ipo) base->object->ipo->showkey= 0;
 			}
 		}
 		base= base->next;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSOBJECT, 0);
-	if(set) {
-		allqueue(REDRAWNLA, 0);
-		allqueue (REDRAWACTION, 0);
-		allspace(REMAKEIPO, 0);
-		allqueue(REDRAWIPO, 0);
-	}
+	allqueue(REDRAWNLA, 0);
+	allqueue (REDRAWACTION, 0);
+	allspace(REMAKEIPO, 0);
+	allqueue(REDRAWIPO, 0);
 }
 
 void select_select_keys(void)

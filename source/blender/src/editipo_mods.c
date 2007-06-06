@@ -79,15 +79,13 @@ extern int totipo_edit, totipo_sel, totipo_vertsel, totipo_vis;
 
 void ipo_toggle_showkey(void) 
 {
-	if(G.sipo->showkey) {
-		G.sipo->showkey= 0;
-		swap_selectall_editipo();	/* sel all */
-	}
+	if(G.sipo->showkey) G.sipo->showkey= 0;
 	else G.sipo->showkey= 1;
+
 	free_ipokey(&G.sipo->ipokey);
 	if(G.sipo->ipo) G.sipo->ipo->showkey= G.sipo->showkey;
 	
-	BIF_undo_push("Toggle show key Ipo");
+	BIF_undo_push("Toggle Show Key Ipo");
 }
 
 void swap_selectall_editipo(void)
