@@ -2,7 +2,10 @@ import os
 import os.path
 import SCons.Options
 import SCons.Options.BoolOption
-import subprocess
+try:
+    import subprocess
+except ImportError:
+	pass
 import string
 import glob
 import shutil
