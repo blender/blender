@@ -273,6 +273,9 @@
 					RelativePath="..\..\..\source\blender\nodes\intern\CMP_nodes\CMP_image.c">
 				</File>
 				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\CMP_nodes\CMP_invert.c">
+				</File>
+				<File
 					RelativePath="..\..\..\source\blender\nodes\intern\CMP_nodes\CMP_lummaMatte.c">
 				</File>
 				<File
@@ -353,6 +356,9 @@
 				</File>
 				<File
 					RelativePath="..\..\..\source\blender\nodes\intern\SHD_nodes\SHD_geom.c">
+				</File>
+				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\SHD_nodes\SHD_invert.c">
 				</File>
 				<File
 					RelativePath="..\..\..\source\blender\nodes\intern\SHD_nodes\SHD_mapping.c">
