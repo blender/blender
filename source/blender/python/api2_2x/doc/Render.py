@@ -105,14 +105,15 @@ attribute.  One of the following modes can be active:
 @var PAL169: Output format. Use with renderdata.sizePreset()
 @var B_PR_FULL: Output format. Use with renderdata.sizePreset()
 
-@var NONE: Yafray GI Quality. Use with renderdata.setYafrayGIQuality()
+@var NONE: Yafray GI Quality / Method. Use with renderdata.setYafrayGIQuality()
 @var LOW: Yafray GI Quality. Use with renderdata.setYafrayGIQuality()
 @var MEDIUM: Yafray GI Quality. Use with renderdata.setYafrayGIQuality()
 @var HIGH: Yafray GI Quality. Use with renderdata.setYafrayGIQuality()
 @var HIGHER: Yafray GI Quality. Use with renderdata.setYafrayGIQuality()
 @var BEST: Yafray GI Quality. Use with renderdata.setYafrayGIQuality()
-@var SKYDOME: Yafray GI Quality. Use with renderdata.setYafrayGIQuality()
-@var GIFULL: Yafray GI Quality. Use with renderdata.setYafrayGIQuality()
+@var USEAOSETTINGS: Yafray GI Quality. Use with renderdata.setYafrayGIQuality()
+@var SKYDOME: Yafray GI Method. Use with renderdata.setYafrayGIMethod()
+@var GIFULL: Yafray GI Method. Use with renderdata.setYafrayGIMethod()
 """
 
 def CloseRenderWindow():
@@ -324,8 +325,45 @@ class RenderData:
   scene or None (setting to None clears the set).  The scene argument cannot
   cause a circular link.
   @type set: BPy_Scene or None
+  @ivar yafrayGIMethod: Global Illumination method.
+  Valid values are NONE (0), SKYDOME (1) or FULL (2).
+  @type yafrayGIMethod: int
+  @ivar yafrayGIQuality: Global Illumination quality.
+  @type yafrayGIQuality: int {NONE (0), LOW (1), MEDIUM (2), HIGH (3), HIGHER (4), BEST (5), USEAOSETTINGS (6)}
+  @ivar yafrayExportToXML: If true export to an xml file and call yafray instead of plugin.
+  @type yafrayExportToXML: boolean
+  @ivar yafrayAutoAntiAliasing: Automatic anti-aliasing enabled/disabled.
+  @type yafrayAutoAntiAliasing: boolean
+  @ivar yafrayClampRGB: Clamp RGB enabled/disabled.
+  @type yafrayClampRGB: boolean
+  @ivar yafrayAntiAliasingPasses: Number of anti-aliasing passes (0 is no Anti-Aliasing).
+  @type yafrayAntiAliasingPasses: int [0, 64]
+  @ivar yafrayAntiAliasingSamples: Number of samples per pass.
+  @type yafrayAntiAliasingSamples: int [0, 2048]
+  @ivar yafrayAntiAliasingPixelSize: Anti-aliasing pixel filter size.
+  @type yafrayAntiAliasingPixelSize: float [1.0, 2.0]
+  @ivar yafrayAntiAliasingThreshold: Anti-aliasing threshold.
+  @type yafrayAntiAliasingThreshold: float [0.05, 1.0]
+  @ivar yafrayNumberOfProcessors: Number of processors to use.
+  @type yafrayNumberOfProcessors: int [1, 8]
+  @ivar yafrayGIMethod: Global illumination method.
+  @type yafrayGIMethod: int {NONE (0), SKYDOME (1), GIFULL (2)}
+  @ivar yafrayGICache: Cache occlusion/irradiance samples (faster).
+  @type yafrayGICache: boolean
+  @ivar yafrayGICacheBumpNormals: Enable/disable bumpnormals for cache.
+  @type yafrayGICacheBumpNormals: boolean
+  @ivar yafrayGICacheShadowQuality: Shadow quality, keep it under 0.95 :-).
+  @type yafrayGICacheShadowQuality: float [0.01, 1.0]
+  @ivar yafrayGICachePixelsPerSample: Maximum number of pixels without samples, the lower the better and slower.
+  @type yafrayGICachePixelsPerSample: int [1, 50]
+  @ivar yafrayGICacheRefinement: Threshold to refine shadows EXPERIMENTAL. 1 = no refinement.
+  @type yafrayGICacheRefinement: float [0.001, 1.0]
+  @ivar yafrayGIPhotons: Enable/disable use of global photons to help in GI.
+  @type yafrayGIPhotons: boolean
+  @ivar yafrayGITunePhotons: If true the photonmap is shown directly in the render for tuning.
+  @type yafrayGITunePhotons: boolean
   """
-
+  
   def currentFrame(frame = None):
     """
     Get/set the current frame.
@@ -824,6 +862,21 @@ class RenderData:
         - HIGH
         - HIGHER
         - BEST
+        - USEAOSETTINGS
+    """
+
+  def getYafrayGIQuality():
+    """
+    Get yafray global Illumination quality.
+    @rtype: enum constant
+    @return: one of 6 constants:
+        - NONE
+        - LOW
+        - MEDIUM
+        - HIGH
+        - HIGHER
+        - BEST
+        - USEAOSETTINGS
     """
 
   def setYafrayGIMethod(type):
@@ -831,6 +884,17 @@ class RenderData:
     Set yafray global Illumination method.
     @type type: enum constant
     @param type: must be one of 3 constants:
+        - NONE: Do not use GI illumination
+        - SKYDOME: Use Skydome method
+        - GIFULL: Use Full method
+    """
+
+  def getYafrayGIMethod():
+    # (dietrich) 2007/06/01
+    """
+    Get yafray global Illumination method.
+    @rtype: enum constant - 
+    @return: Current yafray global illumination method:
         - NONE: Do not use GI illumination
         - SKYDOME: Use Skydome method
         - GIFULL: Use Full method

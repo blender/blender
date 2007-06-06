@@ -25,7 +25,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Joseph Gilbert
+ * Contributor(s): Joseph Gilbert, Dietrich Bollmann
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
 */
@@ -56,14 +56,15 @@ struct View3D; /* keep me up here */
 #include "Scene.h"
 
 /* local defines */
-#define PY_NONE		0
-#define PY_LOW		1
-#define PY_MEDIUM	2
-#define PY_HIGH		3
-#define PY_HIGHER	4
-#define PY_BEST		5
-#define PY_SKYDOME	1
-#define PY_FULL	 2
+#define PY_NONE		     0
+#define PY_LOW		     1
+#define PY_MEDIUM	     2
+#define PY_HIGH		     3
+#define PY_HIGHER	     4
+#define PY_BEST		     5
+#define PY_USEAOSETTINGS 6
+#define PY_SKYDOME	     1
+#define PY_FULL	         2
 
 enum rend_constants {
 	EXPP_RENDER_ATTR_XPARTS = 0,
@@ -299,6 +300,85 @@ static void M_Render_DoSizePreset( BPy_RenderData * self, short xsch,
 	BLI_init_rctf( &self->renderContext->safety, a, b, c, d );
 	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 	EXPP_allqueue( REDRAWVIEWCAM, 0 );
+}
+
+/** set / get boolean */
+
+static int M_Render_setBooleanShort( BPy_RenderData * self, PyObject *value, short* var )
+{
+	if( !PyInt_Check( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+									"expected boolean value" );
+
+	*var = (PyInt_AsLong( value )) ? 1 : 0;
+
+	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
+	return 0;
+}
+
+static PyObject *M_Render_getBooleanShort( BPy_RenderData * self, short var )
+{
+	return PyInt_FromLong( (long) var );
+}
+
+/** set / get float */
+
+static int M_Render_setFloat( BPy_RenderData *self, PyObject *value, float *var, float min, float max )
+{
+	float val;
+	char error[48];
+
+	if( !PyFloat_Check( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+									"expected float value" );
+
+	val = (float) PyFloat_AsDouble( value );
+
+	/* check range */
+	if ( val < min || val > max ) {
+		sprintf( error, "out of range - expected %f to %f", min, max );
+		return EXPP_ReturnIntError( PyExc_TypeError,error );
+	}
+
+	*var = val;
+
+	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
+	return 0;
+}
+
+static PyObject *M_Render_getFloat( BPy_RenderData *self, float var )
+{
+	return PyFloat_FromDouble( (double) var );
+}
+
+/** set / get integer */
+
+static int M_Render_setInt( BPy_RenderData *self, PyObject *value, int *var, int min, int max )
+{
+	int val;
+	char error[48];
+
+	if( !PyInt_Check( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+									"expected integer value" );
+
+	val = (int) PyInt_AsLong( value );
+
+	/* check range */
+	if ( val < min || val > max ) {
+		sprintf( error, "out of range - expected %d to %d", min, max );
+		return EXPP_ReturnIntError( PyExc_TypeError,error );
+	}
+
+	*var = val;
+
+	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
+	return 0;
+}
+
+static PyObject *M_Render_getInt( BPy_RenderData *self, int var )
+{
+	return PyInt_FromLong( (long) var );
 }
 
 /***************************************************************************/
@@ -1038,6 +1118,8 @@ PyObject *RenderData_SizePreset( BPy_RenderData * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
+/*
+
 PyObject *RenderData_SetYafrayGIQuality( BPy_RenderData * self,
 					 PyObject * args )
 {
@@ -1077,6 +1159,276 @@ PyObject *RenderData_SetYafrayGIMethod( BPy_RenderData * self,
 	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
 	Py_RETURN_NONE;
 }
+*/
+
+/* (die) beg */
+
+/* YafRay - Yafray GI Method */
+
+static int RenderData_setYafrayGIQuality( BPy_RenderData * self, PyObject * value )
+{
+	long type;
+
+	if( !PyInt_Check( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+									"expected constant" );
+
+	type = PyInt_AsLong( value );
+
+	if( type == PY_NONE   || type == PY_LOW  ||
+	    type == PY_MEDIUM || type == PY_HIGH ||
+	    type == PY_HIGHER || type == PY_BEST ||
+	    type == PY_USEAOSETTINGS
+		) {
+		self->renderContext->GIquality = (short)type;
+	} else {
+		return EXPP_ReturnIntError( PyExc_TypeError,
+									"expected constant NONE, LOW, MEDIUM, HIGHER or BEST" );
+	}
+
+	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
+	return 0;
+}
+
+static PyObject *RenderData_getYafrayGIQuality( BPy_RenderData * self )
+{
+	return PyInt_FromLong( (long) self->renderContext->GIquality );
+}
+
+static PyObject *RenderData_SetYafrayGIQuality( BPy_RenderData * self,
+												PyObject * args )
+{
+	return EXPP_setterWrapper( (void*) self, args,
+							   (setter) RenderData_setYafrayGIQuality );
+}
+
+static PyObject *RenderData_GetYafrayGIQuality( BPy_RenderData * self )
+{
+	return RenderData_getYafrayGIQuality(self);
+}
+
+/* YafRay - Yafray GI Method */
+
+static int RenderData_setYafrayGIMethod( BPy_RenderData * self, PyObject * value )
+{
+	int type;
+
+	if( !PyInt_Check( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected constant NONE, SKYDOME or FULL" );
+
+	type = PyInt_AsLong( value );
+	if( type == PY_NONE || type == PY_SKYDOME || type == PY_FULL ) {
+		self->renderContext->GImethod = (short)type;
+	} else {
+		return EXPP_ReturnIntError( PyExc_TypeError,
+									"expected constant NONE, SKYDOME or FULL" );
+	}
+
+	EXPP_allqueue( REDRAWBUTSSCENE, 0 );
+	return 0;
+}
+
+static PyObject *RenderData_getYafrayGIMethod( BPy_RenderData * self )
+{
+	return PyInt_FromLong( (long)self->renderContext->GImethod );
+}
+
+static PyObject *RenderData_GetYafrayGIMethod( BPy_RenderData * self )
+{
+	return RenderData_getYafrayGIMethod(self);
+}
+
+static PyObject *RenderData_SetYafrayGIMethod( BPy_RenderData * self,
+											   PyObject * args )
+{
+	return EXPP_setterWrapper( (void *)self, args,
+			(setter)RenderData_setYafrayGIMethod );
+}
+
+
+/* YafRay - Export to XML */
+
+static int RenderData_setYafrayExportToXML( BPy_RenderData * self, PyObject * value )
+{
+	return M_Render_setBooleanShort( self, value, &self->renderContext->YFexportxml );
+}
+
+static PyObject *RenderData_getYafrayExportToXML( BPy_RenderData * self )
+{
+	return M_Render_getBooleanShort( self, self->renderContext->YFexportxml );
+}
+
+/** Auto AA */
+
+static int RenderData_setYafrayAutoAntiAliasing( BPy_RenderData * self, PyObject * value )
+{
+	return M_Render_setBooleanShort( self, value, &self->renderContext->YF_AA );
+}
+
+static PyObject *RenderData_getYafrayAutoAntiAliasing( BPy_RenderData * self )
+{
+	return M_Render_getBooleanShort( self, self->renderContext->YF_AA );
+}
+
+/** Clamp RGB */
+
+static int RenderData_setYafrayClampRGB( BPy_RenderData * self, PyObject * value )
+{
+	return M_Render_setBooleanShort( self, value, &self->renderContext->YF_clamprgb );
+}
+
+static PyObject *RenderData_getYafrayClampRGB( BPy_RenderData * self )
+{
+	return M_Render_getBooleanShort( self, self->renderContext->YF_clamprgb );
+}
+
+/** YafRay - Anti-Aliasing Passes */
+
+static int RenderData_setYafrayAntiAliasingPasses( BPy_RenderData * self, PyObject * value )
+{
+	return M_Render_setInt( self, value, &self->renderContext->YF_AApasses, 0, 64 );
+}
+
+static PyObject *RenderData_getYafrayAntiAliasingPasses( BPy_RenderData * self )
+{
+	return M_Render_getInt( self, self->renderContext->YF_AApasses );
+}
+
+/** YafRay - Anti-Aliasing Samples */
+
+static int RenderData_setYafrayAntiAliasingSamples( BPy_RenderData * self, PyObject * value )
+{
+	return M_Render_setInt( self, value, &self->renderContext->YF_AAsamples, 0, 2048 );
+}
+
+static PyObject *RenderData_getYafrayAntiAliasingSamples( BPy_RenderData * self )
+{
+	return M_Render_getInt( self, self->renderContext->YF_AAsamples );
+}
+
+/* YafRay - Anti-Aliasing Pixel Filter Size */
+
+static int RenderData_setYafrayAntiAliasingPixelSize( BPy_RenderData * self, PyObject * value )
+{
+	return M_Render_setFloat( self, value, &self->renderContext->YF_AApixelsize, 1.0, 2.0 );
+}
+
+static PyObject *RenderData_getYafrayAntiAliasingPixelSize( BPy_RenderData * self )
+{
+	return M_Render_getFloat( self, self->renderContext->YF_AApixelsize );
+}
+
+/* YafRay - Anti-Aliasing threshold */
+
+static int RenderData_setYafrayAntiAliasingThreshold( BPy_RenderData * self, PyObject * value )
+{
+	return M_Render_setFloat( self, value, &self->renderContext->YF_AAthreshold, 0.05, 1.0 );
+}
+
+static PyObject *RenderData_getYafrayAntiAliasingThreshold( BPy_RenderData * self )
+{
+	return M_Render_getFloat( self, self->renderContext->YF_AAthreshold );
+}
+
+/** YafRay - Number of processors to use */
+
+static int RenderData_setYafrayNumberOfProcessors( BPy_RenderData * self, PyObject * value )
+{
+	return M_Render_setInt( self, value, &self->renderContext->YF_numprocs, 1, 8 );
+}
+
+static PyObject *RenderData_getYafrayNumberOfProcessors( BPy_RenderData * self )
+{
+	return M_Render_getInt( self, self->renderContext->YF_numprocs );
+}
+
+/* YafRay - Cache occlusion/irradiance samples (faster) */
+
+static int RenderData_setYafrayGICache( BPy_RenderData * self, PyObject * value )
+{
+	return M_Render_setBooleanShort( self, value, &self->renderContext->GIcache );
+}
+
+static PyObject *RenderData_getYafrayGICache( BPy_RenderData * self )
+{
+	return M_Render_getBooleanShort( self, self->renderContext->GIcache );
+}
+
+/* YafRay - Enable/disable bumpnormals for cache
+   (faster, but no bumpmapping in total indirectly lit areas) */
+
+static int RenderData_setYafrayGICacheBumpNormals( BPy_RenderData * self, PyObject * value )
+{
+	return M_Render_setBooleanShort( self, value, &self->renderContext->YF_nobump );
+}
+
+static PyObject *RenderData_getYafrayGICacheBumpNormals( BPy_RenderData * self )
+{
+	return M_Render_getBooleanShort( self, self->renderContext->YF_nobump );
+}
+
+/* YafRay - Shadow quality, keep it under 0.95 :-) */
+
+static int RenderData_setYafrayGICacheShadowQuality( BPy_RenderData * self, PyObject * value )
+{
+	return M_Render_setFloat( self, value, &self->renderContext->GIshadowquality, 0.01, 1.0 );
+}
+
+static PyObject *RenderData_getYafrayGICacheShadowQuality( BPy_RenderData * self )
+{
+	return M_Render_getFloat( self, self->renderContext->GIshadowquality );
+}
+
+/* YafRay - Threshold to refine shadows EXPERIMENTAL. 1 = no refinement */
+
+static int RenderData_setYafrayGICacheRefinement( BPy_RenderData * self, PyObject * value )
+{
+	return M_Render_setFloat( self, value, &self->renderContext->GIrefinement, 0.001, 1.0 );
+}
+
+static PyObject *RenderData_getYafrayGICacheRefinement( BPy_RenderData * self )
+{
+	return M_Render_getFloat( self, self->renderContext->GIrefinement );
+}
+
+/* YafRay - Maximum number of pixels without samples, the lower the better and slower */
+
+static int RenderData_setYafrayGICachePixelsPerSample( BPy_RenderData * self, PyObject * value )
+{
+	return M_Render_setInt( self, value, &self->renderContext->GIpixelspersample, 1, 50 );
+}
+
+static PyObject *RenderData_getYafrayGICachePixelsPerSample( BPy_RenderData * self )
+{
+	return M_Render_getInt( self, self->renderContext->GIpixelspersample );
+}
+
+/** YafRay - Enable/disable use of global photons to help in GI */
+
+static int RenderData_setYafrayGIPhotons( BPy_RenderData * self, PyObject * value )
+{
+	return M_Render_setBooleanShort( self, value, &self->renderContext->GIphotons );
+}
+
+static PyObject *RenderData_getYafrayGIPhotons( BPy_RenderData * self )
+{
+	return M_Render_getBooleanShort( self, self->renderContext->GIphotons );
+}
+
+/** YafRay - If true the photonmap is shown directly in the render for tuning */
+
+static int RenderData_setYafrayGITunePhotons( BPy_RenderData * self, PyObject * value )
+{
+	return M_Render_setBooleanShort( self, value, &self->renderContext->GIdirect );
+}
+
+static PyObject *RenderData_getYafrayGITunePhotons( BPy_RenderData * self )
+{
+	return M_Render_getBooleanShort( self, self->renderContext->GIdirect );
+}
+
+/* (die) end */
 
 PyObject *RenderData_YafrayGIPower( BPy_RenderData * self, PyObject * args )
 {
@@ -1103,7 +1455,7 @@ PyObject *RenderData_YafrayGIDepth( BPy_RenderData * self, PyObject * args )
 	if( self->renderContext->GImethod == 2 ) {
 		return M_Render_GetSetAttributeInt( args,
 						    &self->renderContext->
-						    GIdepth, 1, 8 );
+						    GIdepth, 1, 100 );
 	} else
 		return ( EXPP_ReturnPyObjError( PyExc_StandardError,
 						"YafrayGIMethod must be set to 'FULL'" ) );
@@ -1114,7 +1466,7 @@ PyObject *RenderData_YafrayGICDepth( BPy_RenderData * self, PyObject * args )
 	if( self->renderContext->GImethod == 2 ) {
 		return M_Render_GetSetAttributeInt( args,
 						    &self->renderContext->
-						    GIcausdepth, 1, 8 );
+						    GIcausdepth, 1, 100 );
 	} else
 		return ( EXPP_ReturnPyObjError( PyExc_StandardError,
 						"YafrayGIMethod must be set to 'FULL'" ) );
@@ -1151,7 +1503,7 @@ PyObject *RenderData_YafrayGIPhotonCount( BPy_RenderData * self,
 	    && self->renderContext->GIphotons == 1 ) {
 		return M_Render_GetSetAttributeInt( args,
 						    &self->renderContext->
-						    GIphotoncount, 0,
+						    GIphotoncount, 100000,
 						    10000000 );
 	} else
 		return ( EXPP_ReturnPyObjError( PyExc_StandardError,
@@ -1179,7 +1531,7 @@ PyObject *RenderData_YafrayGIPhotonMixCount( BPy_RenderData * self,
 	    && self->renderContext->GIphotons == 1 ) {
 		return M_Render_GetSetAttributeInt( args,
 						    &self->renderContext->
-						    GImixphotons, 0, 1000 );
+						    GImixphotons, 100, 1000 );
 	} else
 		return ( EXPP_ReturnPyObjError( PyExc_StandardError,
 						"YafrayGIMethod must be set to 'FULL' and GIPhotons must be enabled" ) );
@@ -2217,6 +2569,76 @@ static PyGetSetDef BPy_RenderData_getseters[] = {
 	 (getter)RenderData_getSet, (setter)RenderData_setSet,
 	 "Scene link 'set' value",
 	 NULL},
+
+	{"yafrayGIMethod",
+	 (getter)RenderData_getYafrayGIMethod, (setter)RenderData_setYafrayGIMethod,
+	 "Global illumination method",
+	 NULL},
+	{"yafrayGIQuality",
+	 (getter)RenderData_getYafrayGIQuality, (setter)RenderData_setYafrayGIQuality,
+	 "Global Illumination quality",
+	 NULL},
+	{"yafrayExportToXML",
+	 (getter)RenderData_getYafrayExportToXML, (setter)RenderData_setYafrayExportToXML,
+	 "If true export to an xml file and call yafray instead of plugin",
+	 NULL},
+	{"yafrayAutoAntiAliasing",
+	 (getter)RenderData_getYafrayAutoAntiAliasing, (setter)RenderData_setYafrayAutoAntiAliasing,
+	 "Automatic anti-aliasing enabled/disabled",
+	 NULL},
+	{"yafrayClampRGB",
+	 (getter)RenderData_getYafrayClampRGB, (setter)RenderData_setYafrayClampRGB,
+	 "Clamp RGB enabled/disabled",
+	 NULL},
+	{"yafrayAntiAliasingPasses",
+	 (getter)RenderData_getYafrayAntiAliasingPasses, (setter)RenderData_setYafrayAntiAliasingPasses,
+	 "Number of anti-aliasing passes (0 is no anti-aliasing)",
+	 NULL},
+	{"yafrayAntiAliasingSamples",
+	 (getter)RenderData_getYafrayAntiAliasingSamples, (setter)RenderData_setYafrayAntiAliasingSamples,
+	 "Number of samples per pass",
+	 NULL},
+	{"yafrayAntiAliasingPixelSize",
+	 (getter)RenderData_getYafrayAntiAliasingPixelSize, (setter)RenderData_setYafrayAntiAliasingPixelSize,
+	 "Anti-aliasing pixel filter size",
+	 NULL},
+	{"yafrayAntiAliasingThreshold",
+	 (getter)RenderData_getYafrayAntiAliasingThreshold, (setter)RenderData_setYafrayAntiAliasingThreshold,
+	 "Anti-aliasing threshold",
+	 NULL},
+	{"yafrayNumberOfProcessors",
+	 (getter)RenderData_getYafrayNumberOfProcessors, (setter)RenderData_setYafrayNumberOfProcessors,
+	 "Number of processors to use",
+	 NULL},
+	{"yafrayGICache",
+	 (getter)RenderData_getYafrayGICache, (setter)RenderData_setYafrayGICache,
+	 "Cache occlusion/irradiance samples (faster)",
+	 NULL},
+	{"yafrayGICacheBumpNormals",
+	 (getter)RenderData_getYafrayGICacheBumpNormals, (setter)RenderData_setYafrayGICacheBumpNormals,
+	 "Enable/disable bumpnormals for cache",
+	 NULL},
+	{"yafrayGICacheShadowQuality",
+	 (getter)RenderData_getYafrayGICacheShadowQuality, (setter)RenderData_setYafrayGICacheShadowQuality,
+	 "Shadow quality, keep it under 0.95 :-)",
+	 NULL},
+	{"yafrayGICachePixelsPerSample",
+	 (getter)RenderData_getYafrayGICachePixelsPerSample, (setter)RenderData_setYafrayGICachePixelsPerSample,
+	 "Maximum number of pixels without samples, the lower the better and slower",
+	 NULL},
+	{"yafrayGICacheRefinement",
+	 (getter)RenderData_getYafrayGICacheRefinement, (setter)RenderData_setYafrayGICacheRefinement,
+	 "Threshold to refine shadows EXPERIMENTAL. 1 = no refinement",
+	 NULL},
+	{"yafrayGIPhotons",
+	 (getter)RenderData_getYafrayGIPhotons, (setter)RenderData_setYafrayGIPhotons,
+	 "Enable/disable use of global photons to help in GI",
+	 NULL},
+	{"yafrayGITunePhotons",
+	 (getter)RenderData_getYafrayGITunePhotons, (setter)RenderData_setYafrayGITunePhotons,
+	 "If true the photonmap is shown directly in the render for tuning",
+	 NULL},
+
 	{NULL,NULL,NULL,NULL,NULL}
 };
 
@@ -2373,10 +2795,16 @@ static PyMethodDef BPy_RenderData_methods[] = {
 	 "(enum) - get/set the render to one of a few preget/sets"},
 	{"setYafrayGIQuality", ( PyCFunction ) RenderData_SetYafrayGIQuality,
 	 METH_VARARGS,
-	 "(enum) - get/set yafray global Illumination quality"},
+	 "(enum) - set yafray global Illumination quality"},
+	{"getYafrayGIQuality", ( PyCFunction ) RenderData_GetYafrayGIQuality,
+	 METH_VARARGS,
+	 "(enum) - get yafray global Illumination quality"},
 	{"setYafrayGIMethod", ( PyCFunction ) RenderData_SetYafrayGIMethod,
 	 METH_VARARGS,
-	 "(enum) - get/set yafray global Illumination method"},
+	 "(enum) - set yafray global Illumination method"},
+	{"getYafrayGIMethod", ( PyCFunction ) RenderData_GetYafrayGIMethod,
+	 METH_VARARGS,
+	 "(enum) - get yafray global Illumination method"},
 	{"yafrayGIPower", ( PyCFunction ) RenderData_YafrayGIPower,
 	 METH_VARARGS,
 	 "(float) - get/set GI lighting intensity scale"},
@@ -2403,7 +2831,7 @@ static PyMethodDef BPy_RenderData_methods[] = {
 	 "(float) - get/set radius to search for photons to mix (blur)"},
 	{"yafrayGIPhotonMixCount",
 	 ( PyCFunction ) RenderData_YafrayGIPhotonMixCount, METH_VARARGS,
-	 "(int) - get/set number of photons to shoot"},
+	 "(int) - get/set number of photons to mix"},
 	{"enableYafrayGITunePhotons",
 	 ( PyCFunction ) RenderData_EnableYafrayGITunePhotons, METH_VARARGS,
 	 "(bool) - enable/disable show the photonmap directly in the render for tuning"},
@@ -2666,6 +3094,7 @@ PyObject *Render_Init( void )
 	PyModule_AddIntConstant( submodule, "HIGH", PY_HIGH );
 	PyModule_AddIntConstant( submodule, "HIGHER", PY_HIGHER );
 	PyModule_AddIntConstant( submodule, "BEST", PY_BEST );
+	PyModule_AddIntConstant( submodule, "USEAOSETTINGS", PY_USEAOSETTINGS );
 	PyModule_AddIntConstant( submodule, "SKYDOME", PY_SKYDOME );
 	PyModule_AddIntConstant( submodule, "GIFULL", PY_FULL );
 	PyModule_AddIntConstant( submodule, "OPENEXR", R_OPENEXR );
