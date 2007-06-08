@@ -1181,7 +1181,7 @@ static uiBlock *view3d_select_curvemenu(void *arg_unused)
 	return block;
 }
 
-static void do_view3d_select_metaballmenu(void *arg, int event)
+void do_view3d_select_metaballmenu(void *arg, int event)
 {
 
 	switch(event) {
@@ -1190,6 +1190,12 @@ static void do_view3d_select_metaballmenu(void *arg, int event)
 			break;
 		case 2: /* Select/Deselect all */
 			deselectall_mball();
+			break;
+		case 3: /* Inverse */
+			selectinverse_mball();
+			break;
+		case 4: /* Select Random */
+			selectrandom_mball();
 			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -1209,7 +1215,13 @@ static uiBlock *view3d_select_metaballmenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect All|A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Inverse", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
 		
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Random...", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
 	}

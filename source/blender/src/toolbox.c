@@ -960,6 +960,15 @@ static TBitem tb_curve_select[]= {
 {	0, "Less|Ctrl NumPad -",	10, NULL},
 {  -1, "", 				0, do_view3d_select_curvemenu}};
 
+static TBitem tb_mball_select[]= {
+{	0, "Border Select|B", 	0, NULL},
+{	0, "SEPR", 		0, NULL},
+{	0, "(De)select All|A", 	2, NULL},
+{	0, "Inverse", 		3, NULL},
+{	0, "SEPR",		0, NULL},
+{	0, "Random...",		4, NULL},
+{  -1, "",                      0, do_view3d_select_metaballmenu}};
+
 static TBitem tb__select[]= {
 {       0, "Border Select|B",   'b', NULL},
 {       0, "(De)select All|A",  'a', NULL},
@@ -2019,7 +2028,7 @@ void toolbox_n(void)
 				case OB_MBALL:
 					menu1= addmenu_meta;
 					menu2= tb_edit;
-					menu3= tb__select;
+					menu3= tb_mball_select;
 					menu4= tb_transform_editmode2;
 					menu5= tb_obdata; str5= "Meta";
 				break;

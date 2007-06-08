@@ -42,6 +42,8 @@ void load_editMball(void);
  */
 void add_primitiveMball(int);
 void deselectall_mball(void);
+void selectinverse_mball(void);
+void selectrandom_mball(void);
 void mouse_mball(void);
 void adduplicate_mball(void);
 void delete_mball(void); 

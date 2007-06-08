@@ -30,6 +30,7 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#include <math.h>
 #include <string.h>
 
 #ifdef HAVE_CONFIG_H
@@ -40,6 +41,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
+#include "BLI_rand.h"
 
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -249,6 +251,43 @@ void deselectall_mball()
 	allqueue(REDRAWVIEW3D, 0);
 	countall();
 	BIF_undo_push("Deselect MetaElem");
+}
+
+/* inverts metaball selection */
+void selectinverse_mball()
+{
+	MetaElem *ml;
+	
+	ml= editelems.first;
+	while(ml) {
+		if(ml->flag & SELECT) ml->flag &= ~SELECT;
+		else ml->flag |= SELECT;
+		ml= ml->next;
+	}
+
+	allqueue(REDRAWVIEW3D, 0);
+	countall();
+	BIF_undo_push("Invert MetaElem");
+}
+
+/* select random metaball selection */
+void selectrandom_mball()
+{
+	MetaElem *ml;
+	static short randfac= 50;
+
+	if(!button(&randfac,0, 100,"Percentage:")) return;
+
+	ml= editelems.first;
+	BLI_srand( BLI_rand() ); /* random seed */
+	while(ml) {
+		if((BLI_frand() * 100) < randfac) ml->flag |= SELECT;
+		ml= ml->next;
+	}
+
+	allqueue(REDRAWVIEW3D, 0);
+	countall();
+	BIF_undo_push("Random MetaElem");
 }
 
 /* select MetaElement with mouse click (user can select radius circle or
