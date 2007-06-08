@@ -180,9 +180,11 @@ edit mode before applying changes to a mesh (otherwise the changes will\n\
 be lost) and then returning to it upon leaving.";
 
 static char M_Window_ViewLayers_doc[] =
-	"(layers = []) - Get/set active layers in all 3d View windows.\n\
+	"(layers = [], winid = None) - Get/set active layers in all 3d View windows.\n\
 () - Make no changes, only return currently visible layers.\n\
 (layers = []) - a list of integers, each in the range [1, 20].\n\
+(layers = [], winid = int) - layers as above, winid is an optional.\n\
+arg that makes the function only set layers for that view.\n\
 This function returns the currently visible layers as a list of ints.";
 
 static char M_Window_GetViewQuat_doc[] =
@@ -993,19 +995,24 @@ static PyObject *M_Window_ViewLayers( PyObject * self, PyObject * args )
 {
 	PyObject *item = NULL;
 	PyObject *list = NULL, *resl = NULL;
-	int val, i, bit = 0, layer = 0;
+	int val, i, bit = 0, layer = 0, len_list;
+	short winid = -1;
 
 	if( !G.scene ) {
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 			"can't get pointer to global scene" );
 	}
 
-	if( !PyArg_ParseTuple( args, "|O!", &PyList_Type, &list ) )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-		  "expected nothing or a list of ints as argument" );
-
+	/* Pase Args, Nothing, One list, Or a list and an int */
+	if (PyTuple_GET_SIZE(args)!=0) {
+		if( !PyArg_ParseTuple ( args, "O!|h", &PyList_Type, &list, &winid) ) {
+			return EXPP_ReturnPyObjError( PyExc_TypeError,
+					"nothing or a list and optionaly a window ID argument" );	
+		}
+	}
+	
 	if( list ) {
-		int len_list = PyList_Size(list);
+		len_list = PyList_Size(list);
 
 		if (len_list == 0)
 			return EXPP_ReturnPyObjError( PyExc_AttributeError,
@@ -1026,17 +1033,59 @@ static PyObject *M_Window_ViewLayers( PyObject * self, PyObject * args )
 
 			layer |= 1 << ( val - 1 );
 		}
-		G.scene->lay = layer;
-		if (G.vd) {
-			G.vd->lay = layer;
-
-			while( bit < 20 ) {
-				val = 1 << bit;
-				if( layer & val ) {
-					G.vd->layact = val;
-					break;
+		
+		if (winid==-1) {
+			printf("Doing WINIID NOT!!!\n");
+			/* set scene and viewport */
+			G.scene->lay = layer;
+			if (G.vd) {
+				G.vd->lay = layer;
+	
+				while( bit < 20 ) {
+					val = 1 << bit;
+					if( layer & val ) {
+						G.vd->layact = val;
+						break;
+					}
+					bit++;
 				}
-				bit++;
+			}
+		} else {
+			/* only set the windows layer */
+			ScrArea *sa;
+			SpaceLink *sl;
+			View3D *vd;
+			 
+			if (G.curscreen) { /* can never be too careful */
+	            for (sa=G.curscreen->areabase.first; sa; sa= sa->next) {
+	            	if (winid == sa->win) {
+	            		
+	            		for (sl= sa->spacedata.first; sl; sl= sl->next)
+	            			if(sl->spacetype==SPACE_VIEW3D)
+	            				break;
+	            		
+	            		if (!sl)
+	            			return EXPP_ReturnPyObjError( PyExc_ValueError,
+	            				"The window matching the winid has no 3d viewport" );
+	            		
+	            		vd= (View3D *) sl;
+	            		vd->lay = layer;
+	            		
+	            		for(bit= 0; bit < 20; bit++) {
+	            			val = 1 << bit;
+	            			if( layer & val ) {
+	            				vd->layact = val;
+	            				 break;
+	            			}
+	            		}
+	            		
+	            		winid = -1; /* so we know its done */
+	            		break;
+	            	}
+	            }
+				if (winid!=-1)
+					return EXPP_ReturnPyObjError( PyExc_TypeError,
+							"The winid argument did not match any window" );
 			}
 		}
 	}
@@ -1140,22 +1189,24 @@ static PyObject *M_Window_QAdd( PyObject * self, PyObject * args )
 static PyObject *M_Window_QHandle( PyObject * self, PyObject * args )
 {
 	short win;
-	ScrArea *sa = G.curscreen->areabase.first;
+	ScrArea *sa;
 	ScrArea *oldsa = NULL;
 
 	if (G.background)
 		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
 			"QHandle is not available in background mode");
 
+	if (!G.curscreen)
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+			"No screens available");
+	
 	if( !PyArg_ParseTuple( args, "h", &win ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected an int as argument" );
-
-	while( sa ) {
+	
+	for (sa= G.curscreen->areabase.first; sa; sa= sa->next)
 		if( sa->win == win )
 			break;
-		sa = sa->next;
-	}
 
 	if( sa ) {
 		BWinEvent evt;

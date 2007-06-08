@@ -284,13 +284,17 @@ def EditMode(enable = -1, undo_msg = 'From script', undo = 1):
       because the normal mesh will be rebuilt based on its unchanged edit mesh.
   """
 
-def ViewLayers (layers = []):
+def ViewLayers (layers = [], winid = None):
   """
   Get and optionally set the currently visible layers in all 3d Views.
   @type layers: list of ints
   @param layers: a list with indexes of the layers that will be visible.  Each
       index must be in the range [1, 20].  If not given or equal to [], the
       function simply returns the visible ones without changing anything.
+  @type winid: window id from as redurned by GetScreenInfo
+  @param winid: An optional argument to set the layer of a window
+      rather then setting the scene layers. For this to display in the 3d view
+      the layer lock must be disabled (unlocked).
   @rtype: list of ints
   @return: the currently visible layers.
   """
