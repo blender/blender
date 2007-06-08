@@ -677,7 +677,6 @@ void post_vertex_create(VerseVert *vvert)
 		if(em && (vvert->vertex)) {
 			struct EditVert *eve = (EditVert*)vvert->vertex;
 			VECCOPY(vvert->co, eve->co);
-/*			printf("\tpost_vertex_create: %d send and NOT_OBSOLETE\n", vvert->id);*/
 			send_verse_vertex(vvert);
 			verse_callback_update(0);
 

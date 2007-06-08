@@ -2632,6 +2632,16 @@ void do_view3d_edit_mesh_edgesmenu(void *arg, int event)
 		collapseEdges();
 		BIF_undo_push("Collapse");
 		break;
+	case 15:
+		editmesh_mark_sharp(1);
+		BIF_undo_push("Mark Sharp");
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+		break;
+	case 16:
+		editmesh_mark_sharp(0);
+		BIF_undo_push("Clear Sharp");
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -2662,6 +2672,12 @@ static uiBlock *view3d_edit_mesh_edgesmenu(void *arg_unused)
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Mark Seam|Ctrl E",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Seam|Ctrl E",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
+	
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Mark Sharp|Ctrl E",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 15, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Sharp|Ctrl E",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 16, "");
+	
 
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Crease SubSurf|Shift E",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
