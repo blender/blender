@@ -481,7 +481,7 @@ int get_nearest_key_num (Key *key, short *mval, float *x)
 	 * x coordinate.
 	 */
     int num;
-    float ybase, y;
+    float y;
 
     areamouseco_to_ipoco(G.v2d, mval, x, &y);
     num = (int) ((CHANNELHEIGHT/2 - y) / (CHANNELHEIGHT+CHANNELSKIP));
@@ -1174,7 +1174,13 @@ void snap_action_keys(short mode)
 	
 	/* snap to frame */
 	for (ale= act_data.first; ale; ale= ale->next) {
-		snap_ipo_keys(ale->key_data, mode);
+		if (datatype==ACTCONT_ACTION && G.saction->pin==0 && OBACT) {
+			actstrip_map_ipo_keys(OBACT, ale->key_data, 0, 1); 
+			snap_ipo_keys(ale->key_data, mode);
+			actstrip_map_ipo_keys(OBACT, ale->key_data, 1, 1);
+		}
+		else 
+			snap_ipo_keys(ale->key_data, mode);
 	}
 	BLI_freelistN(&act_data);
 	
@@ -1226,7 +1232,13 @@ void mirror_action_keys(short mode)
 	
 	/* mirror */
 	for (ale= act_data.first; ale; ale= ale->next) {
-		mirror_ipo_keys(ale->key_data, mode);
+		if (datatype==ACTCONT_ACTION && G.saction->pin==0 && OBACT) {
+			actstrip_map_ipo_keys(OBACT, ale->key_data, 0, 1); 
+			mirror_ipo_keys(ale->key_data, mode);
+			actstrip_map_ipo_keys(OBACT, ale->key_data, 1, 1);
+		}
+		else 
+			mirror_ipo_keys(ale->key_data, mode);
 	}
 	BLI_freelistN(&act_data);
 	
@@ -2319,18 +2331,19 @@ static void mouse_action (int selectmode)
 {
 	void *data;
 	short datatype;
-	bAction	*act;
-	bActionChannel *achan;
+	bAction	*act= NULL;
+	bActionChannel *achan= NULL;
 	bConstraintChannel *conchan= NULL;
 	IpoCurve *icu= NULL;
 	TimeMarker *marker;
 	void *act_channel;
 	short sel, act_type;
-	float	selx;
+	float selx;
 	
 	/* determine what type of data we are operating on */
 	data = get_action_context(&datatype);
 	if (data == NULL) return;
+	if (datatype == ACTCONT_ACTION) act= (bAction *)data;
 
 	act_channel= get_nearest_action_key(&selx, &sel, &act_type, &achan);
 	marker=find_nearest_marker(1);
