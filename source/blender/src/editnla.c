@@ -395,9 +395,16 @@ void snap_action_strips(int snap_mode)
 	bActionStrip *strip;
 	
 	for (base=G.scene->base.first; base; base=base->next) {
+		/* object has ipo - these keyframes should be able to be snapped, even if strips are collapsed */
+		if (base->object->ipo) {
+			snap_ipo_keys(base->object->ipo, snap_mode);
+		}
+		
+		/* object is collapsed - action and nla strips not shown/editable */
 		if (base->object->nlaflag & OB_NLA_COLLAPSED)
 			continue;
 		
+		/* snap action strips */
 		for (strip = base->object->nlastrips.last; strip; strip=strip->prev) {
 			if (strip->flag & ACTSTRIP_SELECT) {
 				if (snap_mode==1) {
@@ -420,11 +427,6 @@ void snap_action_strips(int snap_mode)
 					}
 				}
 			}
-		}
-		
-		/* object has ipo */
-		if (base->object->ipo) {
-			snap_ipo_keys(base->object->ipo, snap_mode);
 		}
 		
 		/* object has action */
