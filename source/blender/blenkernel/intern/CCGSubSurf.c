@@ -483,19 +483,16 @@ static void _edge_unlinkMarkAndFree(CCGEdge *e, CCGSubSurf *ss) {
 	_edge_free(e, ss);
 }
 
-static float EDGE_getSharpness(CCGEdge *e, int lvl, CCGSubSurf *ss) {
-	float sharpness = e->crease;
-	while (lvl--) {
-		if (sharpness>1.0) {
-			sharpness -= 1.0;
-		} else {
-			sharpness = 0.0;
-		}
-	}
-	return sharpness;
+static float EDGE_getSharpness(CCGEdge *e, int lvl) {
+	if (!lvl)
+		return e->crease;
+	else if (!e->crease)
+		return 0.0;
+	else if (e->crease - lvl < 0.0)
+		return 0.0;
+	else
+		return e->crease - lvl;
 }
-
-/***/
 
 static CCGFace *_face_new(CCGFaceHDL fHDL, CCGVert **verts, CCGEdge **edges, int numVerts, int levels, int dataSize, CCGSubSurf *ss) {
 	int maxGridSize = 1 + (1<<(ss->subdivLevels-1));
@@ -1194,7 +1191,7 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 	for (ptrIdx=0; ptrIdx<numEffectedE; ptrIdx++) {
 		CCGEdge *e = effectedE[ptrIdx];
 		void *co = EDGE_getCo(e, nextLvl, 1);
-		float sharpness = EDGE_getSharpness(e, curLvl, ss);
+		float sharpness = EDGE_getSharpness(e, curLvl);
 
 		if (_edge_isBoundary(e) || sharpness>=1.0) {
 			VertDataCopy(co, VERT_getCo(e->v0, curLvl));
@@ -1233,7 +1230,7 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 
 		for (i=0; i<v->numEdges; i++) {
 			CCGEdge *e = v->edges[i];
-			float sharpness = EDGE_getSharpness(e, curLvl, ss);
+			float sharpness = EDGE_getSharpness(e, curLvl);
 
 			if (seam && _edge_isBoundary(e))
 				seamEdges++;
@@ -1307,7 +1304,7 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 
 			for (i=0; i<v->numEdges; i++) {
 				CCGEdge *e = v->edges[i];
-				float sharpness = EDGE_getSharpness(e, curLvl, ss);
+				float sharpness = EDGE_getSharpness(e, curLvl);
 
 				if (seam) {
 					if (_edge_isBoundary(e)) {
@@ -1472,7 +1469,7 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 			 */
 		for (ptrIdx=0; ptrIdx<numEffectedE; ptrIdx++) {
 			CCGEdge *e = (CCGEdge*) effectedE[ptrIdx];
-			float sharpness = EDGE_getSharpness(e, curLvl, ss);
+			float sharpness = EDGE_getSharpness(e, curLvl);
 
 			if (_edge_isBoundary(e) || sharpness>1.0) {
 				for (x=0; x<edgeSize-1; x++) {
@@ -1531,7 +1528,7 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 
 			for (i=0; i<v->numEdges; i++) {
 				CCGEdge *e = v->edges[i];
-				float sharpness = EDGE_getSharpness(e, curLvl, ss);
+				float sharpness = EDGE_getSharpness(e, curLvl);
 
 				if (seam && _edge_isBoundary(e))
 					seamEdges++;
@@ -1607,7 +1604,7 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 
 				for (i=0; i<v->numEdges; i++) {
 					CCGEdge *e = v->edges[i];
-					float sharpness = EDGE_getSharpness(e, curLvl, ss);
+					float sharpness = EDGE_getSharpness(e, curLvl);
 
 					if (seam) {
 						if (_edge_isBoundary(e))
@@ -1647,7 +1644,7 @@ static void ccgSubSurf__sync(CCGSubSurf *ss) {
 			 */
 		for (ptrIdx=0; ptrIdx<numEffectedE; ptrIdx++) {
 			CCGEdge *e = (CCGEdge*) effectedE[ptrIdx];
-			float sharpness = EDGE_getSharpness(e, curLvl, ss);
+			float sharpness = EDGE_getSharpness(e, curLvl);
 			int sharpCount = 0;
 			float avgSharpness = 0.0;
 
