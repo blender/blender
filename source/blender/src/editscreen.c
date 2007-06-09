@@ -1403,7 +1403,7 @@ void screenmain(void)
 				if(sc == NULL)
 					sc= G.main->screen.first;
 				
-				setscreen(sc);
+				if(is_allowed_to_change_screen(sc)) setscreen(sc);
 				g_activearea= NULL;
 				towin= 0;
 			}
@@ -1416,7 +1416,7 @@ void screenmain(void)
 				if(sc == NULL)
 					sc= G.main->screen.last;
 				
-				setscreen(sc);
+				if(is_allowed_to_change_screen(sc)) setscreen(sc);
 				g_activearea= NULL;
 				towin= 0;
 			}
