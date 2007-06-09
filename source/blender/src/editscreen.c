@@ -1400,8 +1400,7 @@ void screenmain(void)
 				bScreen *sc= G.curscreen->id.next;
 
 				/* if screen is last, set it to first */
-				if(sc == NULL)
-					sc= G.main->screen.first;
+				if(sc == NULL) sc= G.main->screen.first;
 				
 				if(is_allowed_to_change_screen(sc)) setscreen(sc);
 				g_activearea= NULL;
@@ -1413,8 +1412,7 @@ void screenmain(void)
 				bScreen *sc= G.curscreen->id.prev;
 				
 				/* if screen is first, set it to last */
-				if(sc == NULL)
-					sc= G.main->screen.last;
+				if(sc == NULL) sc= G.main->screen.last;
 				
 				if(is_allowed_to_change_screen(sc)) setscreen(sc);
 				g_activearea= NULL;
