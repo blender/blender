@@ -41,20 +41,27 @@ import BPyMessages
 
 def get_object_images(ob):
 	# Could optimize this
-	if ob.type == 'Mesh':
-		unique_images = {}
-		me = ob.getData(mesh=1)
-		orig_uvlayer = me.activeUVLayer 
-		
-		for uvlayer in me.getUVLayerNames():
-			me.activeUVLayer = uvlayer
-			for f in me.faces:
-				i = f.image
-				if i: unique_images[i.name] = i
-		
-		me.activeUVLayer = orig_uvlayer
-		
-		return unique_images.values()
+	if ob.type != 'Mesh':
+		return []
+	
+	me = ob.getData(mesh=1)
+
+	if not me.faceUV:
+		return []
+
+	unique_images = {}
+	
+	orig_uvlayer = me.activeUVLayer 
+	
+	for uvlayer in me.getUVLayerNames():
+		me.activeUVLayer = uvlayer
+		for f in me.faces:
+			i = f.image
+			if i: unique_images[i.name] = i
+	
+	me.activeUVLayer = orig_uvlayer
+	
+	return unique_images.values()
 	
 	# Todo, support other object types, materials
 	return []
