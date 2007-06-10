@@ -609,8 +609,6 @@ void multires_make(void *ob, void *me_v)
 
 	multires_load_cols(me);
 
-	multires_calc_level_maps(lvl);
-	
 	allqueue(REDRAWBUTSEDIT, 0);
 
 	BIF_undo_push("Make multires");
@@ -641,7 +639,7 @@ MultiresLevel *multires_level_copy(MultiresLevel *orig)
 		lvl->colfaces= MEM_dupallocN(orig->colfaces);
 		lvl->edges= MEM_dupallocN(orig->edges);
 		lvl->vert_edge_map= lvl->vert_face_map= NULL;
-		multires_calc_level_maps(lvl);
+		lvl->map_mem= NULL;
 		
 		return lvl;
 	}
@@ -700,6 +698,19 @@ void multires_free(Multires *mr)
 	}
 }
 
+/* Free and clear the vert-edge-face maps */
+void multires_free_maps(MultiresLevel *lvl)
+{
+	if(lvl) {
+		if(lvl->vert_edge_map) MEM_freeN(lvl->vert_edge_map);
+		if(lvl->vert_face_map) MEM_freeN(lvl->vert_face_map);
+		if(lvl->map_mem) MEM_freeN(lvl->map_mem);
+
+		lvl->vert_edge_map = lvl->vert_face_map = NULL;
+		lvl->map_mem = NULL;
+	}
+}
+
 /* Does not actually free lvl itself! */
 void multires_free_level(MultiresLevel *lvl)
 {
@@ -708,10 +719,7 @@ void multires_free_level(MultiresLevel *lvl)
 		if(lvl->edges) MEM_freeN(lvl->edges);
 		if(lvl->colfaces) MEM_freeN(lvl->colfaces);
 		
-		/* Free all vertex maps */
-		MEM_freeN(lvl->vert_edge_map);
-		MEM_freeN(lvl->vert_face_map);
-		MEM_freeN(lvl->map_mem);
+		multires_free_maps(lvl);
 	}
 }
 
@@ -880,6 +888,8 @@ void multires_add_level(void *ob, void *me_v)
 		lvl->prev->faces[i].mid= lvl->prev->totvert + lvl->prev->totedge + i;
 	}
 
+	multires_calc_level_maps(lvl->prev);
+
 	/* Create faces
 	   ============ */
 	/* Allocate all the new faces (each triangle creates three, and
@@ -936,8 +946,6 @@ void multires_add_level(void *ob, void *me_v)
 		}
 	}
 
-	multires_calc_level_maps(lvl);
-	
 	/* Smooth vertices
 	   =============== */
 	for(i=0; i<lvl->prev->totface; ++i) {
@@ -976,6 +984,7 @@ void multires_add_level(void *ob, void *me_v)
 		}
 	}
 
+	multires_free_maps(lvl->prev);
 	MEM_freeN(oldverts);
 
 	/* Vertex Colors
@@ -1385,6 +1394,8 @@ void multires_update_vertices(Mesh *me, EditMesh *em)
 	pr_lvl= BLI_findlink(&me->mr->levels,me->mr->current-1);
 	cr_lvl= pr_lvl->next;
 	while(cr_lvl) {
+		multires_calc_level_maps(pr_lvl);
+
 		/* Swap the old/new deltas */
 		swap_deltas= pr_deltas;
 		pr_deltas= cr_deltas;
@@ -1436,6 +1447,8 @@ void multires_update_vertices(Mesh *me, EditMesh *em)
 				me->mr->verts[i].co,
 				&cr_deltas[i].x);			
 		}
+
+		multires_free_maps(pr_lvl);
 
 		pr_lvl= pr_lvl->next;
 		cr_lvl= cr_lvl->next;
