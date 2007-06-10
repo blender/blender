@@ -60,7 +60,6 @@ void multires_set_level_cb(void *ob, void *me);
 void multires_set_level(struct Object *ob, struct Mesh *me, const int render);
 void multires_update_levels(struct Mesh *me, const int render);
 void multires_level_to_mesh(struct Object *ob, struct Mesh *me, const int render);
-void multires_calc_level_maps(struct MultiresLevel *lvl);
 void multires_edge_level_update(void *ob, void *me);
 int multires_modifier_warning();
 

@@ -2562,9 +2562,6 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 			lvl->faces= newdataadr(fd, lvl->faces);
 			lvl->edges= newdataadr(fd, lvl->edges);
 			lvl->colfaces= newdataadr(fd, lvl->colfaces);
-
-			/* Recalculating the maps is faster than reading them from the file */
-			multires_calc_level_maps(lvl);
 		}
 	}
 	

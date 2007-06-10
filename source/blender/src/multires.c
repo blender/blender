@@ -80,6 +80,8 @@
 
 const CustomDataMask vdata_mask= CD_MASK_MDEFORMVERT;
 
+void multires_calc_temp_data(struct MultiresLevel *lvl);
+
 int multires_test()
 {
 	Mesh *me= get_mesh(OBACT);
@@ -138,34 +140,11 @@ void Vec3fAvg4(float *out, float *v1, float *v2, float *v3, float *v4)
 	out[2]= (v1[2]+v2[2]+v3[2]+v4[2])/4;
 }
 
-short multires_edge_is_boundary(MultiresLevel *lvl, unsigned e)
-{
-	MultiresMapNode *n1= lvl->vert_face_map[lvl->edges[e].v[0]].first;
-	unsigned total= 0;
-
-	while(n1) {
-		MultiresMapNode *n2= lvl->vert_face_map[lvl->edges[e].v[1]].first;
-		while(n2) {
-			if(n1->Index == n2->Index) {
-				++total;
-
-				if(total > 1)
-					return 0;
-			}
-
-			n2= n2->next;
-		}
-		n1= n1->next;
-	}
-
-	return 1;
-}
-
 short multires_vert_is_boundary(MultiresLevel *lvl, unsigned v)
 {
 	MultiresMapNode *node= lvl->vert_edge_map[v].first;
 	while(node) {
-		if(multires_edge_is_boundary(lvl,node->Index))
+		if(lvl->edge_boundary_states[node->Index])
 			return 1;
 		node= node->next;
 	}
@@ -324,7 +303,7 @@ void boundary_edges_average(MultiApplyData *data, MultiresLevel *lvl,
 		const MultiresEdge *e= &lvl->edges[n1->Index];
 		const unsigned end= e->v[0]==i ? e->v[1] : e->v[0];
 		
-		if(multires_edge_is_boundary(lvl,n1->Index)) {
+		if(lvl->edge_boundary_states[n1->Index]) {
 			for(j=0; j<3; ++j)
 				out[j]+= get_float(array,end,j,stride);
 			++count;
@@ -638,6 +617,7 @@ MultiresLevel *multires_level_copy(MultiresLevel *orig)
 		lvl->faces= MEM_dupallocN(orig->faces);
 		lvl->colfaces= MEM_dupallocN(orig->colfaces);
 		lvl->edges= MEM_dupallocN(orig->edges);
+		lvl->edge_boundary_states = NULL;
 		lvl->vert_edge_map= lvl->vert_face_map= NULL;
 		lvl->map_mem= NULL;
 		
@@ -698,14 +678,16 @@ void multires_free(Multires *mr)
 	}
 }
 
-/* Free and clear the vert-edge-face maps */
-void multires_free_maps(MultiresLevel *lvl)
+/* Free and clear the temporary connectivity data */
+void multires_free_temp_data(MultiresLevel *lvl)
 {
 	if(lvl) {
+		if(lvl->edge_boundary_states) MEM_freeN(lvl->edge_boundary_states);
 		if(lvl->vert_edge_map) MEM_freeN(lvl->vert_edge_map);
 		if(lvl->vert_face_map) MEM_freeN(lvl->vert_face_map);
 		if(lvl->map_mem) MEM_freeN(lvl->map_mem);
 
+		lvl->edge_boundary_states = NULL;
 		lvl->vert_edge_map = lvl->vert_face_map = NULL;
 		lvl->map_mem = NULL;
 	}
@@ -719,7 +701,7 @@ void multires_free_level(MultiresLevel *lvl)
 		if(lvl->edges) MEM_freeN(lvl->edges);
 		if(lvl->colfaces) MEM_freeN(lvl->colfaces);
 		
-		multires_free_maps(lvl);
+		multires_free_temp_data(lvl);
 	}
 }
 
@@ -888,7 +870,7 @@ void multires_add_level(void *ob, void *me_v)
 		lvl->prev->faces[i].mid= lvl->prev->totvert + lvl->prev->totedge + i;
 	}
 
-	multires_calc_level_maps(lvl->prev);
+	multires_calc_temp_data(lvl->prev);
 
 	/* Create faces
 	   ============ */
@@ -960,7 +942,7 @@ void multires_add_level(void *ob, void *me_v)
 	if(G.scene->toolsettings->multires_subdiv_type == 0) {
 		for(i=0; i<lvl->prev->totedge; ++i) {
 			const MultiresEdge *e= &lvl->prev->edges[i];
-			data.boundary= multires_edge_is_boundary(lvl->prev,i);
+			data.boundary= lvl->prev->edge_boundary_states[i];
 			edge_face_neighbor_midpoints_accum(&data,lvl->prev, me->mr->verts, sizeof(MVert),e);
 			data.endpoint1= oldverts[e->v[0]].co;
 			data.endpoint2= oldverts[e->v[1]].co;
@@ -983,7 +965,7 @@ void multires_add_level(void *ob, void *me_v)
 		}
 	}
 
-	multires_free_maps(lvl->prev);
+	multires_free_temp_data(lvl->prev);
 	MEM_freeN(oldverts);
 
 	/* Vertex Colors
@@ -1393,7 +1375,7 @@ void multires_update_vertices(Mesh *me, EditMesh *em)
 	pr_lvl= BLI_findlink(&me->mr->levels,me->mr->current-1);
 	cr_lvl= pr_lvl->next;
 	while(cr_lvl) {
-		multires_calc_level_maps(pr_lvl);
+		multires_calc_temp_data(pr_lvl);
 
 		/* Swap the old/new deltas */
 		swap_deltas= pr_deltas;
@@ -1417,7 +1399,7 @@ void multires_update_vertices(Mesh *me, EditMesh *em)
 
 		for(i=0; i<pr_lvl->totedge; ++i) {
 			const MultiresEdge *e= &pr_lvl->edges[i];
-			data.boundary= multires_edge_is_boundary(pr_lvl,i);
+			data.boundary= pr_lvl->edge_boundary_states[i];
 			edge_face_neighbor_midpoints_accum(&data,pr_lvl,cr_deltas,sizeof(vec3f),e);
 			data.endpoint1= &pr_deltas[e->v[0]].x;
 			data.endpoint2= &pr_deltas[e->v[1]].x;
@@ -1447,7 +1429,7 @@ void multires_update_vertices(Mesh *me, EditMesh *em)
 				&cr_deltas[i].x);			
 		}
 
-		multires_free_maps(pr_lvl);
+		multires_free_temp_data(pr_lvl);
 
 		pr_lvl= pr_lvl->next;
 		cr_lvl= cr_lvl->next;
@@ -1573,14 +1555,15 @@ void multires_update_levels(Mesh *me, const int render)
 	multires_update_colors(me);
 }
 
-void multires_calc_level_maps(MultiresLevel *lvl)
+void multires_calc_temp_data(MultiresLevel *lvl)
 {
-	unsigned i,j;
+	unsigned i, j, emax;
 	MultiresMapNode *indexnode= NULL;
-	
+
 	lvl->map_mem= MEM_mallocN(sizeof(MultiresMapNode)*(lvl->totedge*2 + lvl->totface*4), "map_mem");
 	indexnode= lvl->map_mem;
 	
+	/* edge map */
 	lvl->vert_edge_map= MEM_callocN(sizeof(ListBase)*lvl->totvert,"vert_edge_map");
 	for(i=0; i<lvl->totedge; ++i) {
 		for(j=0; j<2; ++j, ++indexnode) {
@@ -1589,11 +1572,38 @@ void multires_calc_level_maps(MultiresLevel *lvl)
 		}
 	}
 
+	/* face map */
        	lvl->vert_face_map= MEM_callocN(sizeof(ListBase)*lvl->totvert,"vert_face_map");
 	for(i=0; i<lvl->totface; ++i){
 		for(j=0; j<(lvl->faces[i].v[3]?4:3); ++j, ++indexnode) {
 			indexnode->Index= i;
 			BLI_addtail(&lvl->vert_face_map[lvl->faces[i].v[j]], indexnode);
+		}
+	}
+
+	/* edge boundaries */
+	emax = (lvl->prev ? (lvl->prev->totedge * 2) : lvl->totedge);
+	lvl->edge_boundary_states= MEM_callocN(sizeof(char)*lvl->totedge, "edge_boundary_states");
+	for(i=0; i<emax; ++i) {
+		MultiresMapNode *n1= lvl->vert_face_map[lvl->edges[i].v[0]].first;
+		unsigned total= 0;
+		
+		lvl->edge_boundary_states[i] = 1;
+		while(n1 && lvl->edge_boundary_states[i] == 1) {
+			MultiresMapNode *n2= lvl->vert_face_map[lvl->edges[i].v[1]].first;
+			while(n2) {
+				if(n1->Index == n2->Index) {
+					++total;
+					
+					if(total > 1) {
+						lvl->edge_boundary_states[i] = 0;
+						break;
+					}
+				}
+				
+				n2= n2->next;
+			}
+			n1= n1->next;
 		}
 	}
 }

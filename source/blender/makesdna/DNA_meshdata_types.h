@@ -123,6 +123,9 @@ typedef struct MultiresLevel {
 	MultiresFace *faces;
 	MultiresColFace *colfaces;
 	MultiresEdge *edges;
+
+	/* Temporary connectivity data */
+	char *edge_boundary_states;
 	struct ListBase *vert_edge_map;
 	struct ListBase *vert_face_map;
 	struct MultiresMapNode *map_mem;
