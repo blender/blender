@@ -524,6 +524,9 @@ static void do_image_selectmenu(void *arg, int event)
 	case 1: /* Select/Deselect All */
 		select_swap_tface_uv();
 		break;
+	case 9: /* Select Inverse */
+		select_invert_tface_uv();
+		break;
 	case 2: /* Unlink Selection */
 		unlink_selection();
 		break;
@@ -590,6 +593,8 @@ static uiBlock *image_selectmenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect All|A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Inverse", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 9, "");
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Unlink Selection|Alt L", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 	

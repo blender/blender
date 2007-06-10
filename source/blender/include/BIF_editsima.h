@@ -52,6 +52,7 @@ void transform_aspect_ratio_tface_uv(float *aspx, float *aspy);
 void borderselect_sima(short whichuvs);
 void mouseco_to_curtile(void);
 void mouse_select_sima(void);
+void select_invert_tface_uv(void);
 void select_swap_tface_uv(void);
 void mirrormenu_tface_uv(void);
 void mirror_tface_uv(char mirroraxis);

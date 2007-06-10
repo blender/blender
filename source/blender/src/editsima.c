@@ -430,6 +430,31 @@ void weld_align_menu_tface_uv(void)
 	else if(mode==2 || mode==3) BIF_undo_push("Align UV");
 }
 
+void select_invert_tface_uv(void)
+{
+	Mesh *me;
+	MTFace *tface;
+	MFace *mface;
+	int a;
+	
+	if( is_uv_tface_editing_allowed()==0 ) return;
+	me= get_mesh(OBACT);
+	mface= me->mface;
+
+	for(a=me->totface, tface= me->mtface; a>0; a--, tface++, mface++) {
+		if(mface->flag & ME_FACE_SEL) {	
+			tface->flag ^= TF_SEL1;
+			tface->flag ^= TF_SEL2;
+			tface->flag ^= TF_SEL3;
+			if(mface->v4) tface->flag ^= TF_SEL4;
+		}
+	}
+
+	BIF_undo_push("Select Inverse UV");
+
+	allqueue(REDRAWIMAGE, 0);
+}
+
 void select_swap_tface_uv(void)
 {
 	Mesh *me;
@@ -1033,10 +1058,14 @@ void reveal_tface_uv(void)
 	me= get_mesh(OBACT);
 
 	mface= me->mface;
-	for(a=me->totface, tface= me->mtface; a>0; a--, tface++, mface++)
-		if(!(mface->flag & ME_HIDE))
-			if(!(mface->flag & ME_FACE_SEL))
+	for(a=me->totface, tface= me->mtface; a>0; a--, tface++, mface++) {
+		if(!(mface->flag & ME_HIDE)) {
+			if(!(mface->flag & ME_FACE_SEL)) {
+				mface->flag |= ME_FACE_SEL;
 				tface->flag |= (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
+			}
+		}
+	}
 	
 	BIF_undo_push("Reveal UV");
 
