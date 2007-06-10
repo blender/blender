@@ -151,15 +151,6 @@ short multires_vert_is_boundary(MultiresLevel *lvl, unsigned v)
 	return 0;
 }
 
-typedef struct FloatNode {
-	struct FloatNode *next, *prev;
-	float value;
-} FloatNode;
-typedef struct FloatArrayNode {
-	struct FloatArrayNode *next, *prev;
-	float *value;
-} FloatArrayNode;
-
 typedef struct MultiApplyData {
 	/* Smooth faces */
 	float *corner1, *corner2, *corner3, *corner4;
@@ -226,10 +217,7 @@ void multi_apply(float *out, MultiApplyData *data,
 		out[i]= func(data,i);
 }
 
-float get_float(void *array, const unsigned i, const unsigned j, const char stride)
-{
-	return ((float*)((char*)array+(i*stride)))[j];
-}
+#define GET_FLOAT(array, i, j, stride) (((float*)((char*)(array)+((i)*(stride))))[(j)])
 
 void edge_face_neighbor_midpoints_accum(MultiApplyData *data, MultiresLevel *lvl,
 					void *array, const char stride, const MultiresEdge *e)
@@ -246,7 +234,7 @@ void edge_face_neighbor_midpoints_accum(MultiApplyData *data, MultiresLevel *lvl
 		for(n2= neighbors2->first; n2; n2= n2->next) {
 			if(n1->Index == n2->Index) {
 				for(j=0; j<3; ++j)
-					out[j]+= get_float(array,lvl->faces[n1->Index].mid,j,stride);
+					out[j]+= GET_FLOAT(array,lvl->faces[n1->Index].mid,j,stride);
 				++count;
 			}
 		}
@@ -266,7 +254,7 @@ void vert_face_neighbor_midpoints_average(MultiApplyData *data, MultiresLevel *l
 
 	for(n1= neighbors->first; n1; n1= n1->next) {
 		for(j=0; j<3; ++j)
-			out[j]+= get_float(array,lvl->faces[n1->Index].mid,j,stride);
+			out[j]+= GET_FLOAT(array,lvl->faces[n1->Index].mid,j,stride);
 		++count;
 	}
 	for(j=0; j<3; ++j) out[j]/= count;
@@ -283,8 +271,8 @@ void vert_edge_neighbor_midpoints_average(MultiApplyData *data, MultiresLevel *l
 
 	for(n1= neighbors->first; n1; n1= n1->next) {
 		for(j=0; j<3; ++j)
-			out[j]+= (get_float(array,lvl->edges[n1->Index].v[0],j,stride) +
-				  get_float(array,lvl->edges[n1->Index].v[1],j,stride)) / 2;
+			out[j]+= (GET_FLOAT(array,lvl->edges[n1->Index].v[0],j,stride) +
+				  GET_FLOAT(array,lvl->edges[n1->Index].v[1],j,stride)) / 2;
 		++count;
 	}
 	for(j=0; j<3; ++j) out[j]/= count;
@@ -305,7 +293,7 @@ void boundary_edges_average(MultiApplyData *data, MultiresLevel *lvl,
 		
 		if(lvl->edge_boundary_states[n1->Index]) {
 			for(j=0; j<3; ++j)
-				out[j]+= get_float(array,end,j,stride);
+				out[j]+= GET_FLOAT(array,end,j,stride);
 			++count;
 		}
 	}
@@ -965,7 +953,6 @@ void multires_add_level(void *ob, void *me_v)
 		}
 	}
 
-	multires_free_temp_data(lvl->prev);
 	MEM_freeN(oldverts);
 
 	/* Vertex Colors
@@ -997,6 +984,8 @@ void multires_add_level(void *ob, void *me_v)
 	}
 
 	multires_update_levels(me, 0);
+	multires_free_temp_data(lvl->prev);
+
 	me->mr->newlvl= me->mr->level_count;
 	me->mr->current= me->mr->newlvl;
 	/* Unless the render level has been set to something other than the
@@ -1375,7 +1364,7 @@ void multires_update_vertices(Mesh *me, EditMesh *em)
 	pr_lvl= BLI_findlink(&me->mr->levels,me->mr->current-1);
 	cr_lvl= pr_lvl->next;
 	while(cr_lvl) {
-		multires_calc_temp_data(pr_lvl);
+		multires_calc_temp_data(pr_lvl);		
 
 		/* Swap the old/new deltas */
 		swap_deltas= pr_deltas;
@@ -1559,6 +1548,9 @@ void multires_calc_temp_data(MultiresLevel *lvl)
 {
 	unsigned i, j, emax;
 	MultiresMapNode *indexnode= NULL;
+
+	if(lvl->map_mem)
+		return;
 
 	lvl->map_mem= MEM_mallocN(sizeof(MultiresMapNode)*(lvl->totedge*2 + lvl->totface*4), "map_mem");
 	indexnode= lvl->map_mem;
