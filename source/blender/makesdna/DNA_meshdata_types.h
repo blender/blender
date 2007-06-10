@@ -109,7 +109,6 @@ typedef struct MultiresColFace {
 typedef struct MultiresFace {
 	unsigned int v[4];
        	unsigned int mid;
-	unsigned int childrenstart;
 	char flag, mat_nr, pad[2];
 } MultiresFace;
 typedef struct MultiresEdge {

@@ -903,7 +903,6 @@ void multires_add_level(void *ob, void *me_v)
 	for(i=0; i<lvl->prev->totface; ++i) {
 		const int max= lvl->prev->faces[i].v[3] ? 3 : 2;
 		
-		lvl->prev->faces[i].childrenstart= curf;
 		for(j=0; j<max+1; ++j) {
 			lvl->faces[curf].v[0]= find_mid_edge(lvl->prev->vert_edge_map,lvl->prev,
 							     lvl->prev->faces[i].v[j],
