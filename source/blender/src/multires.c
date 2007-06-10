@@ -834,6 +834,7 @@ void multires_add_level(void *ob, void *me_v)
 	if(me->pv) sculptmode_pmv_off(me);
 
 	check_colors(me);
+	multires_update_levels(me, 0);
 
 	++me->mr->level_count;
 	BLI_addtail(&me->mr->levels,lvl);
@@ -953,6 +954,7 @@ void multires_add_level(void *ob, void *me_v)
 		}
 	}
 
+	multires_free_temp_data(lvl->prev);
 	MEM_freeN(oldverts);
 
 	/* Vertex Colors
@@ -982,9 +984,6 @@ void multires_add_level(void *ob, void *me_v)
 			}
 		}
 	}
-
-	multires_update_levels(me, 0);
-	multires_free_temp_data(lvl->prev);
 
 	me->mr->newlvl= me->mr->level_count;
 	me->mr->current= me->mr->newlvl;
@@ -1548,9 +1547,6 @@ void multires_calc_temp_data(MultiresLevel *lvl)
 {
 	unsigned i, j, emax;
 	MultiresMapNode *indexnode= NULL;
-
-	if(lvl->map_mem)
-		return;
 
 	lvl->map_mem= MEM_mallocN(sizeof(MultiresMapNode)*(lvl->totedge*2 + lvl->totface*4), "map_mem");
 	indexnode= lvl->map_mem;
