@@ -306,6 +306,17 @@ void free_verse_node(VNode *vnode)
 }
 
 /*
+ * Find a Verse Node from session
+ */
+VNode* lookup_vnode(VerseSession *session, VNodeID node_id)
+{
+	struct VNode *vnode;
+	vnode = BLI_dlist_find_link(&(session->nodes), (unsigned int)node_id);
+
+	return vnode;
+}
+
+/*
  * create new Verse Node
  */
 VNode* create_verse_node(VerseSession *session, VNodeID node_id, uint8 type, VNodeID owner_id)
@@ -322,12 +333,16 @@ VNode* create_verse_node(VerseSession *session, VNodeID node_id, uint8 type, VNo
 
 	BLI_dlist_init(&(vnode->taggroups));
 	vnode->queue.first = vnode->queue.last = NULL;
+	vnode->methodgroups.first = vnode->methodgroups.last = NULL;
 
 	vnode->data = NULL;
 
 	vnode->counter = 0;
 
 	vnode->flag = 0;
+#ifdef VERSECHAT
+	vnode->chat_flag = CHAT_NOTLOGGED;
+#endif
 
 	vnode->post_node_create = post_node_create;
 	vnode->post_node_destroy = post_node_destroy;

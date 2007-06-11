@@ -33,6 +33,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_listBase.h"
+#include "DNA_userdef_types.h"
 
 #include "BLI_dynamiclist.h"
 #include "BLI_blenlib.h"
@@ -260,6 +261,7 @@ void free_object_data(VNode *vnode)
 	struct VerseSession *session = vnode->session;
 	struct VObjectData *obj = (VObjectData*)vnode->data;
 	struct VLink *vlink;
+	struct VMethodGroup *vmg;
 
 	if(!obj) return;
 
@@ -279,6 +281,12 @@ void free_object_data(VNode *vnode)
 	/* free dynamic list and sendig queue of links */
 	BLI_dlist_destroy(&(obj->links));
 	BLI_freelistN(&(obj->queue));
+	
+	/* free method groups and their methods */
+	for(vmg = vnode->methodgroups.first; vmg; vmg= vmg->next) {
+		free_verse_methodgroup(vmg);
+	}
+	BLI_freelistN(&(vnode->methodgroups));
 
 	/* free constraint between VerseNode and Object */
 	obj->post_object_free_constraint(vnode);

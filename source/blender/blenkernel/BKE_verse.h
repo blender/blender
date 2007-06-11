@@ -335,6 +335,30 @@ typedef struct VTagGroup {
 	void (*post_taggroup_create)(struct VTagGroup *vtaggroup);
 } VTagGroup;
 
+ /*
+ * Verse Method Group
+ */
+typedef struct VMethodGroup
+{
+	struct VMethodGroup *next, *prev;
+	uint16 group_id;
+	char name[16];
+	struct ListBase methods;
+} VMethodGroup;
+
+/*
+ * Verse Method
+ */
+typedef struct VMethod
+{
+	struct VMethod *next, *prev;
+	uint16 id;
+	char name[500];
+	uint8 param_count;
+	VNOParamType *param_type;
+	char **param_name;
+} VMethod;
+
 /*
  * Verse Node
  */
@@ -349,6 +373,7 @@ typedef struct VNode {
 	/* blender internals */
 	char flag;			/* flags: NODE_SENT, NODE_RECEIVED, NODE_DELTED, NODE_OBSOLETE */
 	struct DynamicList taggroups;	/* dynamic list with access array of taggroups */
+	struct ListBase methodgroups;	/* method groups */
 	struct ListBase queue;		/* list of taggroups waiting for receiving from verse server */
 	void *data;			/* generic pointer at some data (VObjectData, VGeomData, ...) */
 	int counter;			/* counter of verse link pointing at this vnode (vlink->target) */
@@ -356,6 +381,10 @@ typedef struct VNode {
 	void (*post_node_create)(struct VNode *vnode);	
 	void (*post_node_destroy)(struct VNode *vnode);
 	void (*post_node_name_set)(struct VNode *vnode);
+#ifdef VERSECHAT
+	/* verse chat */
+	int chat_flag;			/* CHAT_LOGGED, CHAT_NOTLOGGED */
+#endif
 } VNode;
 
 
@@ -410,6 +439,11 @@ typedef struct PostCallbackFunction {
 #define NODE_RECEIVED		2
 #define NODE_DELTED		4
 #define NODE_OBSOLETE		8
+
+#ifdef VERSECHAT
+#define CHAT_NOTLOGGED		0
+#define CHAT_LOGGED		1
+#endif
 
 /* VLayer flags */
 #define LAYER_SENT		1
@@ -482,7 +516,7 @@ struct VerseSession *current_verse_session(void);
 struct VerseSession *create_verse_session(const char *name, const char *pass, const char *address, uint8 *expected_key);
 void free_verse_session(struct VerseSession *session);
 void b_verse_update(void);
-void b_vers_ms_get(void);
+void b_verse_ms_get(void);
 void b_verse_connect(char *address);
 void end_verse_session(struct VerseSession *session);
 void end_all_verse_sessions(void);
@@ -493,6 +527,7 @@ void send_verse_taggroup(struct VTagGroup *vtaggroup);
 void send_verse_node(struct VNode *vnode);
 void free_verse_node_data(struct VNode *vnode);
 void free_verse_node(struct VNode *vnode);
+struct VNode* lookup_vnode(VerseSession *session, VNodeID node_id);
 struct VNode* create_verse_node(VerseSession *session, VNodeID node_id, uint8 type, VNodeID owner_id);
 void set_node_callbacks(void);
 
@@ -508,6 +543,18 @@ void send_verse_link(struct VLink *vlink);
 void free_object_data(struct VNode *vnode);
 void set_object_callbacks(void);
 struct VObjectData *create_object_data(void);
+	
+
+/* functions from verse_method.c */
+void free_verse_methodgroup(VMethodGroup *vmg);
+#ifdef VERSECHAT
+void send_say(const char *chan, const char *utter);
+void send_login(struct VNode *vnode);
+void send_logout(struct VNode *vnode);
+void send_join(struct VNode *vnode, const char *chan);
+void send_leave(struct VNode *vnode, const char *chan);
+#endif
+void set_method_callbacks(void);
 
 /* functions from verse_geometry_node.c */
 struct VerseFace* create_verse_face(struct VLayer *vlayer, uint32 polygon_id, uint32 v0, uint32 v1, uint32 v2, uint32 v3);

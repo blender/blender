@@ -185,6 +185,10 @@ static void cb_connect_accept(
 	for(i = 0; i < V_NT_NUM_TYPES; i++)
 		mask = mask | (1 << i);
 	verse_send_node_index_subscribe(mask);
+	verse_send_node_subscribe(session->avatar); /* subscribe to avatar node, as well */
+
+	/* create our own method group and method */
+	/*verse_send_o_method_group_create(session->avatar, ~0, "tawk-client");*/
 }
 
 /*
@@ -218,6 +222,9 @@ static void set_all_callbacks(void)
 
 	/* set up all callbacks for bitmap nodes */
 	set_bitmap_callbacks();
+	
+	/* set up all callbacks for method groups and methods */
+	set_method_callbacks();
 }
 
 /*
