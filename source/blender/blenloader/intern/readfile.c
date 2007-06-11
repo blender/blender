@@ -2562,6 +2562,9 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 			lvl->faces= newdataadr(fd, lvl->faces);
 			lvl->edges= newdataadr(fd, lvl->edges);
 			lvl->colfaces= newdataadr(fd, lvl->colfaces);
+			lvl->edge_boundary_states= NULL;
+			lvl->vert_face_map = lvl->vert_edge_map = NULL;
+			lvl->map_mem= NULL;
 		}
 	}
 	
