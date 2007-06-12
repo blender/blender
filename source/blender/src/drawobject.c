@@ -1991,14 +1991,14 @@ static void draw_mesh_fancy(Base *base, int dt, int flag)
 		else totface = 0;
 	}
 	else {
-		totvert = me->totvert;
-		totedge = me->totedge;
-		totface = me->totface;
+		totvert = dm->getNumVerts(dm);
+		totedge = dm->getNumEdges(dm);
+		totface = dm->getNumFaces(dm);
 	}
 #else
-	totvert = me->totvert;
-	totedge = me->totedge;
-	totface = me->totface;
+	totvert = dm->getNumVerts(dm);
+	totedge = dm->getNumEdges(dm);
+	totface = dm->getNumFaces(dm);
 #endif
 	
 	/* vertexpaint, faceselect wants this, but it doesnt work for shaded? */
