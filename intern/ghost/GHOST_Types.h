@@ -338,18 +338,37 @@ typedef struct {
 	GHOST_TInt32 z;	
 } GHOST_TEventWheelData;
 
+
+/* original patch used floats, but the driver return ints and uns. We will calibrate in view, no sense on doing conversions twice */
+/* as all USB device controls are likely to use ints, this is also more future proof */
+//typedef struct {
+//   /** N-degree of freedom device data */
+//   float tx, ty, tz;   /** -x left, +y up, +z forward */
+//   float rx, ry, rz;
+//   float dt;
+//} GHOST_TEventNDOFData;
+
+typedef struct {
+   /** N-degree of freedom device data v2*/
+   int changed;
+   GHOST_TUns64 client;
+   GHOST_TUns64 address;
+   GHOST_TInt16 tx, ty, tz;   /** -x left, +y up, +z forward */
+   GHOST_TInt16 rx, ry, rz;
+   GHOST_TInt16 buttons;
+   GHOST_TUns64 time;
+   GHOST_TUns64 delta;
+} GHOST_TEventNDOFData;
+
 typedef int     (*GHOST_NDOFLibraryInit_fp)();
 typedef void    (*GHOST_NDOFLibraryShutdown_fp)(void* deviceHandle);
 typedef void*   (*GHOST_NDOFDeviceOpen_fp)(void* platformData);
-typedef int     (*GHOST_NDOFEventHandler_fp)(float* result7, void* deviceHandle, unsigned int message, unsigned int* wParam, unsigned long* lParam);
 
-/* original patch used floats, but the driver return ints and uns. We will calibrate in view, no sense on doing conversions twice */
-typedef struct {
-   /** N-degree of freedom device data */
-   float tx, ty, tz;   /** -x left, +y up, +z forward */
-   float rx, ry, rz;
-   float dt;
-} GHOST_TEventNDOFData;
+// original patch windows callback. In mac os X version the callback is internal to the plug-in and post an event to main thead.
+// not necessary faster, but better integration with other events. 
+
+//typedef int     (*GHOST_NDOFEventHandler_fp)(float* result7, void* deviceHandle, unsigned int message, unsigned int* wParam, unsigned long* lParam);
+//typedef void     (*GHOST_NDOFCallBack_fp)(GHOST_TEventNDOFDataV2 *VolDatas);
 
 typedef struct {
 	/** The key code. */

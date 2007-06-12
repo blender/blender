@@ -827,6 +827,8 @@ void viewmoveNDOF(int mode)
     float diff[4];
     float d, curareaX, curareaY;
 
+//printf("passing here \n");
+
     /* Sensitivity will control how fast the view rotates.  The value was
      * obtained experimentally by tweaking until the author didn't get dizzy watching.
      * Perhaps this should be a configurable user parameter. 
@@ -852,16 +854,18 @@ void viewmoveNDOF(int mode)
      * record how much time has passed. clamp at 10 Hz
      * pretend the previous frame occured at the clamped time 
      */
-    now = PIL_check_seconds_timer();
-    frametime = (now - prevTime);
-    if (frametime > 0.1f){        /* if more than 1/10s */
-        frametime = 1.0f/60.0;      /* clamp at 1/60s so no jumps when starting to move */
-    }
-    prevTime = now;
-    sbadjust *= 60 * frametime;             /* normalize ndof device adjustments to 100Hz for framerate independence */
+//    now = PIL_check_seconds_timer();
+ //   frametime = (now - prevTime);
+ //   if (frametime > 0.1f){        /* if more than 1/10s */
+ //       frametime = 1.0f/60.0;      /* clamp at 1/60s so no jumps when starting to move */
+//    }
+//    prevTime = now;
+ //   sbadjust *= 60 * frametime;             /* normalize ndof device adjustments to 100Hz for framerate independence */
 
     /* fetch the current state of the ndof device */
     getndof(fval);
+   //         printf(" motion command %f %f %f %f %f %f %f \n", fval[0], fval[1], fval[2],
+   //         							 fval[3], fval[4], fval[5], fval[6]);
 
     /* set object offset */
 	if (ob) {

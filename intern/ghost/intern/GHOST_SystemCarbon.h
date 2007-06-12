@@ -224,6 +224,10 @@ protected:
      */
     bool handleMenuCommand(GHOST_TInt32 menuResult);
     
+    /* callback for blender generated events */
+//	static OSStatus blendEventHandlerProc(EventHandlerCallRef handler, EventRef event, void* userData);
+
+
     /**
      * Callback for Carbon when it has events.
      */

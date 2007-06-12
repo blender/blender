@@ -243,14 +243,15 @@ GHOST_TSuccess GHOST_System::pushEvent(GHOST_IEvent* event)
 void GHOST_System::openNDOF(GHOST_IWindow* w,
         GHOST_NDOFLibraryInit_fp setNdofLibraryInit, 
         GHOST_NDOFLibraryShutdown_fp setNdofLibraryShutdown,
-        GHOST_NDOFDeviceOpen_fp setNdofDeviceOpen,
-        GHOST_NDOFEventHandler_fp setNdofEventHandler)
+        GHOST_NDOFDeviceOpen_fp setNdofDeviceOpen)
+// original patch only
+//        GHOST_NDOFEventHandler_fp setNdofEventHandler)
 {
     m_ndofManager->deviceOpen(w,
         setNdofLibraryInit, 
         setNdofLibraryShutdown,
-        setNdofDeviceOpen,
-        setNdofEventHandler);
+        setNdofDeviceOpen);
+ //       setNdofEventHandler);
 }
 
 

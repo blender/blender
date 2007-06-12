@@ -556,25 +556,35 @@ static int event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 
         case GHOST_kEventNDOFMotion: {
             // update ndof device data, and dispatch motion event
+
             GHOST_TEventNDOFData *sb= data;
+			
+			// the multipliers are arbitrary values
+			// they could be ajustable in the future
+            win->ndof[0] = sb->tx  * (1.0f/1024.0f);
+            win->ndof[1] = sb->ty  * (1.0f/1024.0f);
+            win->ndof[2] = sb->tz  * (1.0f/1024.0f);
+            win->ndof[3] = sb->rx  * 0.00003f;
+            win->ndof[4] = sb->ry  * 0.00003f;
+            win->ndof[5] = sb->rz  * 0.00003f;
+            win->ndof[6] = sb->delta  / 1000000.0f;
+ //        	printf(" motion capted %f %f %f %f %f %f %f \n", win->ndof[0], win->ndof[1], win->ndof[2],
+ //        							 win->ndof[3], win->ndof[4], win->ndof[5], win->ndof[6]);
 
-            win->ndof[0] = sb->tx;
-            win->ndof[1] = sb->ty;
-            win->ndof[2] = sb->tz;
-            win->ndof[3] = sb->rx;
-            win->ndof[4] = sb->ry;
-            win->ndof[5] = sb->rz;
-            win->ndof[6] = sb->dt;
 
-            // start interaction for larger than teeny-tiny motions
-            if ((fabsf(sb->tx) > 0.03f) ||
-                (fabsf(sb->ty) > 0.03f) ||
-                (fabsf(sb->tz) > 0.03f) ||
-                (fabsf(sb->rx) > 0.03f) ||
-                (fabsf(sb->ry) > 0.03f) ||
-                (fabsf(sb->rz) > 0.03f)) {
-                    window_handle(win, NDOFMOTION, sb->dt * 255);
-            }
+ //          window_handle(win, NDOFMOTION, win->ndof[6]);
+
+ //       start interaction for larger than teeny-tiny motions
+ //         if (fabs(win->ndof[0] > 0.003f) ||
+ //             fabs(win->ndof[1] > 0.003f) ||
+ //          fabs(win->ndof[2] > 0.003f) ||
+ //               fabs(win->ndof[3] > 0.003f) ||
+ //               fabs(win->ndof[4] > 0.003f) ||
+ //              fabs(win->ndof[5] > 0.003f)) {
+                    window_handle(win, NDOFMOTION, 1);
+ //    printf("ok\n");
+ //    }
+;
           break;
         }
 
@@ -881,16 +891,19 @@ Window *winlay_get_active_window(void) {
 
 void window_open_ndof(Window* win)
 {
-    PILdynlib* ndofLib = PIL_dynlib_open("spaceplug.plug");
+    PILdynlib* ndofLib = PIL_dynlib_open("XXXXXXX-PUT-HERE-YOUR-PATH-TO-THE-PLUG--/spaceplug.plug");
     if (ndofLib) {
 
         GHOST_OpenNDOF(g_system, win->ghostwin, 
             PIL_dynlib_find_symbol(ndofLib, "ndofInit"),
             PIL_dynlib_find_symbol(ndofLib, "ndofShutdown"),
-            PIL_dynlib_find_symbol(ndofLib, "ndofOpen"),
-            PIL_dynlib_find_symbol(ndofLib, "ndofEventHandler"));
+            PIL_dynlib_find_symbol(ndofLib, "ndofOpen"));
+
+// original patch only
+//            PIL_dynlib_find_symbol(ndofLib, "ndofEventHandler"));
     }
     else {
-        GHOST_OpenNDOF(g_system, win->ghostwin, 0, 0, 0, 0);
+//        GHOST_OpenNDOF(g_system, win->ghostwin, 0, 0, 0, 0);
+        GHOST_OpenNDOF(g_system, win->ghostwin, 0, 0, 0);
     }
  }

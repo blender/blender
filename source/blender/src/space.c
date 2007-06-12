@@ -1568,7 +1568,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 
             case NDOFMOTION:
-                viewmoveNDOF(0);
+                viewmoveNDOF(1);
                 break;
 
 			case ONEKEY:

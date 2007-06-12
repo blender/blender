@@ -276,8 +276,11 @@ extern void GHOST_OpenNDOF(GHOST_SystemHandle systemhandle,
                            GHOST_WindowHandle windowhandle,
                           GHOST_NDOFLibraryInit_fp setNdofLibraryInit, 
                           GHOST_NDOFLibraryShutdown_fp setNdofLibraryShutdown,
-                          GHOST_NDOFDeviceOpen_fp setNdofDeviceOpen,
-                          GHOST_NDOFEventHandler_fp setNdofEventHandler);
+                          GHOST_NDOFDeviceOpen_fp setNdofDeviceOpen
+                          );
+ 
+ // original patch only 
+ //                         GHOST_NDOFEventHandler_fp setNdofEventHandler);
 
 /***************************************************************************************
  ** Cursor management functionality

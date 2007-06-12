@@ -305,8 +305,10 @@ public:
    virtual void openNDOF(GHOST_IWindow*,
        GHOST_NDOFLibraryInit_fp setNdofLibraryInit, 
        GHOST_NDOFLibraryShutdown_fp setNdofLibraryShutdown,
-       GHOST_NDOFDeviceOpen_fp setNdofDeviceOpen,
-       GHOST_NDOFEventHandler_fp setNdofEventHandler) = 0;
+       GHOST_NDOFDeviceOpen_fp setNdofDeviceOpen
+       // original patch only
+      // GHOST_NDOFEventHandler_fp setNdofEventHandler
+       ) = 0;
 
 
 	/***************************************************************************************

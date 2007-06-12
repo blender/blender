@@ -1,21 +1,23 @@
-
-// Insert Blender compatible license here :-)
-
-// note: an implementation is currently only provided for Windows, but designed to be easy to move to Linux, etc.
-
-/**
-
-    To use this implemenation, you must specify the #define WITH_SPACEBALL for the ghost library.
-    Only this cpp file is affected by the macro, the header file and everything else are independent
-    of the spaceball libraries.
-
-    The 3dXWare SDK is available from the tab on the left side of -
-    http://www.3dconnexion.com/support/4a.php
-
-    The SDK is necessary to build this file with WITH_SPACEBALL defined.
-
-    For this stuff to work, siappdll.dll and spwini.dll must be in the executable path of blender
-
+/*
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version. 
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Contributor(s): none yet.
+ *
+ * ***** END GPL LICENSE BLOCK *****
  */
 
 
@@ -23,15 +25,17 @@
 //#include "GHOST_WindowWin32.h"
 
 
-
-
+// the variable is outside the class because it must be accessed from plugin
+static volatile GHOST_TEventNDOFData currentNdofValues = {0,0,0,0,0,0,0,0,0,0,0};
 
 namespace
 {
     GHOST_NDOFLibraryInit_fp ndofLibraryInit = 0;
     GHOST_NDOFLibraryShutdown_fp ndofLibraryShutdown = 0;
     GHOST_NDOFDeviceOpen_fp ndofDeviceOpen = 0;
-    GHOST_NDOFEventHandler_fp ndofEventHandler = 0;
+//    GHOST_NDOFEventHandler_fp ndofEventHandler = 0;
+    
+    
 }
 
 
@@ -45,8 +49,7 @@ GHOST_NDOFManager::GHOST_NDOFManager()
     ndofLibraryInit = 0;
     ndofLibraryShutdown = 0;
     ndofDeviceOpen = 0;
-    ndofEventHandler = 0;
-   // available = 0;
+ //   ndofEventHandler = 0;
 }
 
 GHOST_NDOFManager::~GHOST_NDOFManager()
@@ -62,18 +65,22 @@ void
 GHOST_NDOFManager::deviceOpen(GHOST_IWindow* window,
         GHOST_NDOFLibraryInit_fp setNdofLibraryInit, 
         GHOST_NDOFLibraryShutdown_fp setNdofLibraryShutdown,
-        GHOST_NDOFDeviceOpen_fp setNdofDeviceOpen,
-        GHOST_NDOFEventHandler_fp setNdofEventHandler)
+        GHOST_NDOFDeviceOpen_fp setNdofDeviceOpen)
+//        GHOST_NDOFEventHandler_fp setNdofEventHandler)
 {
     ndofLibraryInit = setNdofLibraryInit;
     ndofLibraryShutdown = setNdofLibraryShutdown;
     ndofDeviceOpen = setNdofDeviceOpen;
-    ndofEventHandler = setNdofEventHandler;
+//	 original patch    
+//    ndofEventHandler = setNdofEventHandler;
 
     if (ndofLibraryInit  && ndofDeviceOpen)
     {
        printf("%i client \n", ndofLibraryInit());
-    }
+		m_DeviceHandle = ndofDeviceOpen((void *)&currentNdofValues);    
+	}
+    
+    
 /*
     if (ndofDeviceOpen)
     {
@@ -87,7 +94,8 @@ GHOST_NDOFManager::deviceOpen(GHOST_IWindow* window,
 }
 
 
-
+/** original patch only */
+/*  
 GHOST_TEventNDOFData*
 GHOST_NDOFManager::handle(unsigned int message, unsigned int* wParam, unsigned long* lParam)
 {
@@ -100,7 +108,7 @@ GHOST_NDOFManager::handle(unsigned int message, unsigned int* wParam, unsigned l
     printf("handled %i\n", handled);
     return handled ? &sbdata : 0;
 }
-
+*/
 
 bool 
 GHOST_NDOFManager::available() 
@@ -108,3 +116,40 @@ GHOST_NDOFManager::available()
     return m_DeviceHandle != 0; 
 }
 
+bool 
+GHOST_NDOFManager::event_present() 
+{ 
+    if( currentNdofValues.changed >0) {
+   			printf("time %llu but%u x%i y%i z%i rx%i ry%i rz%i \n"	, 			
+   						currentNdofValues.time,		currentNdofValues.buttons,
+   						currentNdofValues.tx,currentNdofValues.ty,currentNdofValues.tz,
+   						currentNdofValues.rx,currentNdofValues.ry,currentNdofValues.rz);
+    	return true;
+	}else
+	return false;
+
+}
+
+void        GHOST_NDOFManager::GHOST_NDOFGetDatas(GHOST_TEventNDOFData &datas)
+{
+		datas.tx = currentNdofValues.tx;
+		datas.ty = currentNdofValues.ty;
+		datas.tz = currentNdofValues.tz;
+		datas.rx = currentNdofValues.rx;
+		datas.ry = currentNdofValues.ry;
+		datas.rz = currentNdofValues.rz;
+		datas.buttons = currentNdofValues.buttons;
+		datas.client = currentNdofValues.client;
+		datas.address = currentNdofValues.address;
+		datas.time = currentNdofValues.time;
+		datas.delta = currentNdofValues.delta;
+
+}
+
+/*
+//#ifdef
+OSStatus GHOST_SystemCarbon::blendEventHandlerProc(EventHandlerCallRef handler, EventRef event, void* userData)
+{
+}
+
+*/

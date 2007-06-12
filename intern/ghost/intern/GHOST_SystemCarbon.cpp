@@ -48,22 +48,33 @@
 #include "GHOST_EventButton.h"
 #include "GHOST_EventCursor.h"
 #include "GHOST_EventWheel.h"
+#include "GHOST_EventNDOF.h"
+
 #include "GHOST_TimerManager.h"
 #include "GHOST_TimerTask.h"
 #include "GHOST_WindowManager.h"
 #include "GHOST_WindowCarbon.h"
+#include "GHOST_NDOFManager.h"
 
 #define GHOST_KEY_SWITCH(mac, ghost) { case (mac): ghostKey = (ghost); break; }
+
+/* blender class and types events */
+enum {
+  kEventClassBlender              = 'blnd'
+};
+
+enum {
+	kEventBlenderNdofAxis			= 1,
+	kEventBlenderNdofButtons		= 2
+};
 
 const EventTypeSpec	kEvents[] =
 {
 	{ kEventClassAppleEvent, kEventAppleEvent },
-	
 /*
 	{ kEventClassApplication, kEventAppActivated },
 	{ kEventClassApplication, kEventAppDeactivated },
 */	
-
 	{ kEventClassKeyboard, kEventRawKeyDown },
 	{ kEventClassKeyboard, kEventRawKeyRepeat },
 	{ kEventClassKeyboard, kEventRawKeyUp },
@@ -84,7 +95,12 @@ const EventTypeSpec	kEvents[] =
 	{ kEventClassWindow, kEventWindowActivated },
 	{ kEventClassWindow, kEventWindowDeactivated },
 	{ kEventClassWindow, kEventWindowUpdate },
-	{ kEventClassWindow, kEventWindowBoundsChanged }
+	{ kEventClassWindow, kEventWindowBoundsChanged },
+	
+	{ kEventClassBlender, kEventBlenderNdofAxis },
+	{ kEventClassBlender, kEventBlenderNdofButtons }
+	
+	
 	
 };
 
@@ -416,7 +432,9 @@ GHOST_IWindow* GHOST_SystemCarbon::createWindow(
     return window;
 }
 
-
+/* this is an old style low level event queue.
+  As we want to handle our own timers, this is ok.
+  the full screen hack should be removed */
 bool GHOST_SystemCarbon::processEvents(bool waitForEvent)
 {
 	bool anyProcessed = false;
@@ -424,7 +442,7 @@ bool GHOST_SystemCarbon::processEvents(bool waitForEvent)
 	
 	do {
 		GHOST_TimerManager* timerMgr = getTimerManager();
-
+		
 		if (waitForEvent) {
 			GHOST_TUns64 curtime = getMilliSeconds();
 			GHOST_TUns64 next = timerMgr->nextFireTime();
@@ -455,6 +473,8 @@ bool GHOST_SystemCarbon::processEvents(bool waitForEvent)
 			}
 		}
 
+		
+		/* end loop when no more events available */
 		while (::ReceiveNextEvent(0, NULL, 0, true, &event)==noErr) {
 			OSStatus status= ::SendEventToEventTarget(event, ::GetEventDispatcherTarget());
 			if (status==noErr) {
@@ -466,7 +486,7 @@ bool GHOST_SystemCarbon::processEvents(bool waitForEvent)
 					 * are, but we get a lot of them
 					 */
 				if (i!='cgs ') {
-					//printf("Missed - Class: '%.4s', Kind: %d\n", &i, ::GetEventKind(event));
+					printf("Missed - Class: '%.4s', Kind: %d\n", &i, ::GetEventKind(event));
 				}
 			}
 			::ReleaseEvent(event);
@@ -610,6 +630,7 @@ OSErr GHOST_SystemCarbon::sAEHandlerQuit(const AppleEvent *event, AppleEvent *re
 
 GHOST_TSuccess GHOST_SystemCarbon::init()
 {
+ 
     GHOST_TSuccess success = GHOST_System::init();
     if (success) {
 		/*
@@ -629,6 +650,7 @@ GHOST_TSuccess GHOST_SystemCarbon::init()
 		::AEInstallEventHandler(kCoreEventClass, kAEOpenDocuments, sAEHandlerOpenDocs, (SInt32) this, false);
 		::AEInstallEventHandler(kCoreEventClass, kAEPrintDocuments, sAEHandlerPrintDocs, (SInt32) this, false);
 		::AEInstallEventHandler(kCoreEventClass, kAEQuitApplication, sAEHandlerQuit, (SInt32) this, false);
+		
     }
     return success;
 }
@@ -765,6 +787,7 @@ OSStatus GHOST_SystemCarbon::handleTabletEvent(EventRef event)
 		}
 	err = noErr;
 	}
+
 }
 
 OSStatus GHOST_SystemCarbon::handleMouseEvent(EventRef event)
@@ -1039,11 +1062,14 @@ bool GHOST_SystemCarbon::handleMenuCommand(GHOST_TInt32 menuResult)
     return handled;
 }
 
+
 OSStatus GHOST_SystemCarbon::sEventHandlerProc(EventHandlerCallRef handler, EventRef event, void* userData)
 {
 	GHOST_SystemCarbon* sys = (GHOST_SystemCarbon*) userData;
     OSStatus err = eventNotHandledErr;
-
+	GHOST_IWindow* window;
+	GHOST_TEventNDOFData data;
+	
     switch (::GetEventClass(event))
     {
 		case kEventClassAppleEvent:
@@ -1061,7 +1087,16 @@ OSStatus GHOST_SystemCarbon::sEventHandlerProc(EventHandlerCallRef handler, Even
 		case kEventClassKeyboard:
 			err = sys->handleKeyEvent(event);
 			break;
-    }
+ 		case kEventClassBlender :
+			window = sys->m_windowManager->getActiveWindow();
+			sys->m_ndofManager->GHOST_NDOFGetDatas(data);
+			sys->m_eventManager->pushEvent(new GHOST_EventNDOF(sys->getMilliSeconds(), GHOST_kEventNDOFMotion, window, data));
+			err = noErr;
+			break;
+		default : 
+ 			;
+			break;
+   }
 
     return err;
 }
