@@ -394,16 +394,16 @@ PyObject *EXPP_getScriptLinks( ScriptLink * slink, PyObject * args,
 	if( !PyArg_ParseTuple( args, "s", &eventname ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected event name (string) as argument" );
-
-	/* actually !scriptlink shouldn't happen ... */
-	if( !slink || !slink->totscript )
-		return list;
 	
 	list = PyList_New( 0 );
 	if( !list )
 		return EXPP_ReturnPyObjError( PyExc_MemoryError,
 					      "couldn't create PyList!" );
 
+	/* actually !scriptlink shouldn't happen ... */
+	if( !slink || !slink->totscript )
+		return list;
+	
 	if( !strcmp( eventname, "FrameChanged" ) )
 		event = SCRIPT_FRAMECHANGED;
 	else if( !strcmp( eventname, "Redraw" ) )
@@ -415,7 +415,7 @@ PyObject *EXPP_getScriptLinks( ScriptLink * slink, PyObject * args,
 	else if( is_scene && !strcmp( eventname, "OnSave" ) )
 		event = SCRIPT_ONSAVE;
 	else {
-		Py_XDECREF(list);
+		Py_DECREF(list);
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 					      "invalid event name" );
 	}
