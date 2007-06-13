@@ -471,6 +471,9 @@
 				RelativePath="..\..\..\source\blender\blenkernel\intern\verse_geometry_node.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\verse_method.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\verse_node.c">
 			</File>
 			<File
