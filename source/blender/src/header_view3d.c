@@ -1104,17 +1104,17 @@ void do_view3d_select_curvemenu(void *arg, int event)
 		/* select connected control points */
 		/*case 4:
 			G.qual |= LR_CTRLKEY;
-			selectconnected_nurb();
+			select_connected_nurb();
 			G.qual &= ~LR_CTRLKEY;
 			break;*/
 		case 5: /* select row (nurb) */
 			selectrow_nurb();
 			break;
 		case 7: /* select/deselect first */
-			selectends_nurb(1);
+			selectend_nurb(FIRST, 1, DESELECT);
 			break;
 		case 8: /* select/deselect last */ 
-			selectends_nurb(0);
+			selectend_nurb(LAST, 1, DESELECT);
 			break;
 		case 9: /* select more */
 			select_more_nurb();
@@ -1127,6 +1127,12 @@ void do_view3d_select_curvemenu(void *arg, int event)
 			break;
 		case 12: /* select previous */
 			select_prev_nurb();
+			break;
+		case 13: /* select random */
+			select_random_nurb();
+			break;
+		case 14: /* select every nth */
+			select_every_nth_nurb();
 			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -1147,6 +1153,8 @@ static uiBlock *view3d_select_curvemenu(void *arg_unused)
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect All|A",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Inverse",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Random...",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Every Nth",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 14, "");
 	
 	if (OBACT->type == OB_SURF) {
 		uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");

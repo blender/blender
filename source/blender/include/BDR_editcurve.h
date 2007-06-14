@@ -78,11 +78,13 @@ void extrude_nurb(void);
 void makecyclicNurb(void);
 void selectconnected_nurb(void);
 void selectrow_nurb(void);
-void selectends_nurb(int selFirst);
+void selectend_nurb(short selfirst, short doswap, short selstatus);
 void select_more_nurb(void);
 void select_less_nurb(void);
 void select_next_nurb(void);
 void select_prev_nurb(void);
+void select_random_nurb(void);
+void select_every_nth_nurb(void);
 void adduplicate_nurb(void);
 void delNurb(void);
 void nurb_set_smooth(short event);
@@ -98,4 +100,3 @@ int bezt_compare (const void *e1, const void *e2);
 extern void undo_push_curve(char *name);
 
 #endif  /*  BDR_EDITCURVE_H */
-

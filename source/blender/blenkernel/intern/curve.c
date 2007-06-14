@@ -324,7 +324,20 @@ int count_curveverts(ListBase *nurb)
 	return tot;
 }
 
-
+int count_curveverts_without_handles(ListBase *nurb)
+{
+	Nurb *nu;
+	int tot=0;
+	
+	nu= nurb->first;
+	while(nu) {
+		if(nu->bezt) tot+= nu->pntsu;
+		else if(nu->bp) tot+= nu->pntsu*nu->pntsv;
+		
+		nu= nu->next;
+	}
+	return tot;
+}
 
 /* **************** NURBS ROUTINES ******************** */
 

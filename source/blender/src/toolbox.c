@@ -949,7 +949,9 @@ static TBitem tb_curve_select[]= {
 {	0, "SEPR", 				0, NULL},
 {	0, "(De)select All|A", 	2, NULL},
 {	0, "Inverse", 			3, NULL},
-{	0, "Row|Shift R", 			5, NULL},
+{	0, "Random...", 		13, NULL},
+{	0, "Every Nth", 		14, NULL},
+{	0, "Row|Shift R", 			5, NULL}, /* shouldn't be visible in case of bezier curves*/
 {	0, "SEPR",				0, NULL},
 {	0, "(De)select First",	7, NULL},
 {	0, "(De)select Last", 	8, NULL},

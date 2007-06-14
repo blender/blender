@@ -87,13 +87,16 @@
 #endif
 
 #define SELECT			1
+#define HIDDEN			1
+#define FIRST			1
 #define ACTIVE			2
 /*#ifdef WITH_VERSE*/
 #define VERSE			3
 /*#endif*/
 #define DESELECT		0
 #define NOT_YET			0
-
+#define VISIBLE			0
+#define LAST			0
 
 #define TESTBASE(base)	( ((base)->flag & SELECT) && ((base)->lay & G.vd->lay) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0) )
 #define TESTBASELIB(base)	( ((base)->flag & SELECT) && ((base)->lay & G.vd->lay) && ((base)->object->id.lib==0) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0))
