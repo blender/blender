@@ -65,7 +65,6 @@ public:
 								   const MT_Point3& p3, 
 								   const MT_Plane3& plane) const;
 	unsigned int getDeep() const;
-	void computeBox();
 	void print();
 	inline void setRoot(BOP_BSPNode* root) {m_root=root;};
 	inline BOP_BSPNode* getRoot() const {return m_root;};
