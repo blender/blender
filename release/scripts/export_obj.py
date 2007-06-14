@@ -164,7 +164,7 @@ def copy_images(dest_dir):
 		
 		# Get MTex images
 		if matname != None:
-			mat= Material.Get(matname)
+			mat= Blender.Material.Get(matname)
 			for mtex in mat.getTextures():
 				if mtex and mtex.tex.type == Blender.Texture.Types.IMAGE:
 					try:

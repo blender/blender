@@ -181,7 +181,7 @@ bool RAS_MaterialBucket::ActivateMaterial(const MT_Transform& cameratrans, RAS_I
 	else
 		dolights = (m_material->GetDrawingMode()&16)!=0;
 
-	if ((rasty->GetDrawingMode() <= RAS_IRasterizer::KX_SOLID) || !dolights)
+	if ((rasty->GetDrawingMode() < RAS_IRasterizer::KX_SOLID) || !dolights)
 	{
 		rendertools->ProcessLighting(-1);
 	}

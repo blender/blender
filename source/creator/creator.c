@@ -180,8 +180,8 @@ static void print_help(void)
 	printf ("    -o <path>\tSet the render path and file name.\n");
 	printf ("      Use // at the start of the path to\n");
 	printf ("        render relative to the blend file.\n");
-	printf ("      Use # in the filename to be replaced with the frame number\n");
-	printf ("      eg: blender -b foobar.blend -o //render_# -F PNG -x 1\n");
+	printf ("      The frame number will be added at the end of the filename.\n");
+	printf ("      eg: blender -b foobar.blend -o //render_ -F PNG -x 1\n");
 	printf ("    -F <format>\tSet the render format, Valid options are..\n");
 	printf ("    \tTGA IRIS HAMX FTYPE JPEG MOVIE IRIZ RAWTGA\n");
 	printf ("    \tAVIRAW AVIJPEG PNG BMP FRAMESERVER\n");
