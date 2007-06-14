@@ -674,8 +674,11 @@ void paste_posebuf (int flip)
 		return;
 	}
 	
+	/*
+	// disabled until protected bones in proxies follow the rules everywhere else!
 	if(pose_has_protected_selected(ob, 1))
 		return;
+	*/
 	
 	/* Safely merge all of the channels in this pose into
 	any existing pose */

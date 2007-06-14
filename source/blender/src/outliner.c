@@ -3351,6 +3351,7 @@ static void namebutton_cb(void *tep, void *oldnamep)
 			switch(tselem->type) {
 			case TSE_DEFGROUP:
 				unique_vertexgroup_name(te->directdata, (Object *)tselem->id); //	id = object
+				allqueue(REDRAWBUTSEDIT, 0);
 				break;
 			case TSE_NLA_ACTION:
 				test_idbutton(tselem->id->name+2);

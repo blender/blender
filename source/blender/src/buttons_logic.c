@@ -2530,7 +2530,6 @@ void logic_buts(void)
 	int a;
 	short xco, yco, count, width, ycoo;
 	char *pupstr, name[32];
-	int butreturn = 0;
 
 	wrld= G.scene->world;
 
@@ -2576,26 +2575,20 @@ void logic_buts(void)
 		but= uiDefBut(block, TEX, 1, "Name:",					110, (short)(70-20*a), 110, 20, prop->name, 0, 31, 0, 0, "");
 		uiButSetFunc(but, make_unique_prop_names_cb, prop->name, (void*) 1);
 		
-		if (strcmp(prop->name, "Text") == 0) {
-			butreturn = REDRAWVIEW3D;
-		} else {
-			butreturn = 0;
-		}
-
 		if(prop->type==PROP_BOOL) {
 			uiDefButBitI(block, TOG, 1, B_REDR, "True",		220, (short)(70-20*a), 55, 20, &prop->data, 0, 0, 0, 0, "");
 			uiDefButBitI(block, TOGN, 1, B_REDR, "False",	270, (short)(70-20*a), 55, 20, &prop->data, 0, 0, 0, 0, "");
 		}
 		else if(prop->type==PROP_INT) 
-			uiDefButI(block, NUM, butreturn, "",			220, (short)(70-20*a), 110, 20, &prop->data, -10000, 10000, 0, 0, "");
+			uiDefButI(block, NUM, B_REDR, "",			220, (short)(70-20*a), 110, 20, &prop->data, -10000, 10000, 0, 0, "");
 		else if(prop->type==PROP_FLOAT) 
-			uiDefButF(block, NUM, butreturn, "",			220, (short)(70-20*a), 110, 20, (float*) &prop->data, -10000, 10000, 100, 3, "");
+			uiDefButF(block, NUM, B_REDR, "",			220, (short)(70-20*a), 110, 20, (float*) &prop->data, -10000, 10000, 100, 3, "");
 		else if(prop->type==PROP_STRING) 
-			uiDefBut(block, TEX, butreturn, "",				220, (short)(70-20*a), 110, 20, prop->poin, 0, 127, 0, 0, "");
+			uiDefBut(block, TEX, B_REDR, "",				220, (short)(70-20*a), 110, 20, prop->poin, 0, 127, 0, 0, "");
 		else if(prop->type==PROP_TIME) 
-			uiDefButF(block, NUM, butreturn, "",			220, (short)(70-20*a), 110, 20, (float*) &prop->data, -10000, 10000, 0, 0, "");
+			uiDefButF(block, NUM, B_REDR, "",			220, (short)(70-20*a), 110, 20, (float*) &prop->data, -10000, 10000, 100, 3, "");
 		
-		uiDefButBitS(block, TOG, PROP_DEBUG, 0, "D",		330, (short)(70-20*a), 20, 20, &prop->flag, 0, 0, 0, 0, "Print Debug info");
+		uiDefButBitS(block, TOG, PROP_DEBUG, B_REDR, "D",		330, (short)(70-20*a), 20, 20, &prop->flag, 0, 0, 0, 0, "Print Debug info");
 		
 		a++;
 		prop= prop->next;

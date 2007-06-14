@@ -197,6 +197,7 @@ static void load_image_cb(char *str, void *ima_pp_v, void *iuser_v)	/* called fr
 			if(GS(tex->id.name)==ID_TE) {
 				BIF_preview_changed(ID_TE);
 				allqueue(REDRAWBUTSSHADING, 0);
+				allqueue(REDRAWOOPS, 0);
 			}
 		}
 	}

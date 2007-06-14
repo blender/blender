@@ -1277,7 +1277,7 @@ static void render_panel_render(void)
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, R_MBLUR, 0, "MBLUR",	496,109,64,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables Motion Blur calculation");
+	uiDefButBitI(block, TOG, R_MBLUR, B_REDR, "MBLUR",	496,109,64,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables Motion Blur calculation");
 	uiDefButF(block, NUM,B_DIFF,"Bf:",			496,88,64,20,&G.scene->r.blurfac, 0.01, 5.0, 10, 2, "Sets motion blur factor");
 	uiBlockEndAlign(block);
 
@@ -1296,11 +1296,11 @@ static void render_panel_render(void)
 		uiDefButS(block, MENU, B_DIFF,"Octree resolution %t|64 %x64|128 %x128|256 %x256|512 %x512",	496,13,64,20,&G.scene->r.ocres,0.0,0.0, 0, 0, "Octree resolution for ray tracing");
 
 	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, R_SHADOW, 0,"Shadow",	565,172,60,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable shadow calculation");
-	uiDefButBitI(block, TOG, R_ENVMAP, 0,"EnvMap",	627,172,60,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable environment map rendering");
-	uiDefButBitI(block, TOG, R_PANORAMA, 0,"Pano",	565,142,40,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable panorama rendering (output width is multiplied by Xparts)");
+	uiDefButBitI(block, TOG, R_SHADOW, B_REDR,"Shadow",	565,172,60,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable shadow calculation");
+	uiDefButBitI(block, TOG, R_ENVMAP, B_REDR,"EnvMap",	627,172,60,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable environment map rendering");
+	uiDefButBitI(block, TOG, R_PANORAMA, B_REDR,"Pano",	565,142,40,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable panorama rendering (output width is multiplied by Xparts)");
 	uiDefButBitI(block, TOG, R_RAYTRACE, B_REDR,"Ray",606,142,40,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable ray tracing");
-	uiDefButBitI(block, TOG, R_RADIO, 0,"Radio",	647,142,40,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable radiosity rendering");
+	uiDefButBitI(block, TOG, R_RADIO, B_REDR,"Radio",	647,142,40,29, &G.scene->r.mode, 0, 0, 0, 0, "Enable radiosity rendering");
 	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
@@ -1311,9 +1311,9 @@ static void render_panel_render(void)
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, R_FIELDS, 0,"Fields",  565,55,60,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables field rendering");
-	uiDefButBitI(block, TOG, R_ODDFIELD, 0,"Odd",	627,55,39,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables Odd field first rendering (Default: Even field)");
-	uiDefButBitI(block, TOG, R_FIELDSTILL, 0,"X",		668,55,19,20,&G.scene->r.mode, 0, 0, 0, 0, "Disables time difference in field calculations");
+	uiDefButBitI(block, TOG, R_FIELDS, B_REDR,"Fields",  565,55,60,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables field rendering");
+	uiDefButBitI(block, TOG, R_ODDFIELD, B_REDR,"Odd",	627,55,39,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables Odd field first rendering (Default: Even field)");
+	uiDefButBitI(block, TOG, R_FIELDSTILL, B_REDR,"X",		668,55,19,20,&G.scene->r.mode, 0, 0, 0, 0, "Disables time difference in field calculations");
 	
 	sprintf(str, "Filter%%t|Box %%x%d|Tent %%x%d|Quad %%x%d|Cubic %%x%d|Gauss %%x%d|CatRom %%x%d|Mitch %%x%d", R_FILTER_BOX, R_FILTER_TENT, R_FILTER_QUAD, R_FILTER_CUBIC, R_FILTER_GAUSS, R_FILTER_CATROM, R_FILTER_MITCH);
 	uiDefButS(block, MENU, B_DIFF,str,		565,34,60,20, &G.scene->r.filtertype, 0, 0, 0, 0, "Set sampling filter for antialiasing");
