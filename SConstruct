@@ -515,6 +515,8 @@ if  env['OURPLATFORM']=='darwin':
         for dp, dn, df in os.walk(bundle):
             if 'CVS' in dn:
                 dn.remove('CVS')
+            if '.svn' in dn:
+                dn.remove('.svn')
             dir=env['BF_INSTALLDIR']+dp[len(bundledir):]
             source=[dp+os.sep+f for f in df]
             blenderinstall.append(env.Install(dir=dir,source=source))
@@ -527,6 +529,8 @@ dottargetlist = []
 for dp, dn, df in os.walk('bin/.blender'):
     if 'CVS' in dn:
         dn.remove('CVS')
+    if '.svn' in dn:
+        dn.remove('.svn')
     for f in df:
         dotblendlist.append(dp+os.sep+f)
         dottargetlist.append(env['BF_INSTALLDIR']+dp[3:]+os.sep+f)
@@ -542,6 +546,8 @@ scriptpath='release/scripts'
 for dp, dn, df in os.walk(scriptpath):
     if 'CVS' in dn:
         dn.remove('CVS')
+    if '.svn' in dn:
+        dn.remove('.svn')
     dir=env['BF_INSTALLDIR']+'/.blender/scripts'+dp[len(scriptpath):]
     source=[dp+os.sep+f for f in df]
     scriptinstall.append(env.Install(dir=dir,source=source))
@@ -552,6 +558,8 @@ plugtargetlist = []
 for tp, tn, tf in os.walk('release/plugins'):
     if 'CVS' in tn:
         tn.remove('CVS')
+    if '.svn' in tn:
+        tn.remove('.svn')
     for f in tf:
         pluglist.append(tp+os.sep+f)
         plugtargetlist.append(env['BF_INSTALLDIR']+tp[7:]+os.sep+f)
@@ -566,6 +574,8 @@ texttargetlist = []
 for tp, tn, tf in os.walk('release/text'):
     if 'CVS' in tn:
         tn.remove('CVS')
+    if '.svn' in tn:
+        tn.remove('.svn')
     for f in tf:
         textlist.append(tp+os.sep+f)
 
