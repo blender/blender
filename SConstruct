@@ -390,7 +390,7 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw'):
     dllsources = ['${LCGDIR}/gettext/lib/gnu_gettext.dll',
                         '${LCGDIR}/png/lib/libpng.dll',
                         '#release/windows/extra/python25.zip',
-#                        '#release/windows/extra/zlib.pyd',
+                        '#release/windows/extra/zlib.pyd',
                         '${LCGDIR}/sdl/lib/SDL.dll',
                         '${LCGDIR}/zlib/lib/zlib.dll',
                         '${LCGDIR}/tiff/lib/libtiff.dll']
