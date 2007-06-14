@@ -1045,7 +1045,7 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 			dm->drawFacesTex(dm, draw_tface__set_draw);
 
 		/* drawing game engine text hack */
-		if (!editing && prop && me->tface) {
+		if (!editing && prop && me->mtface) {
 			DerivedMesh *ddm = mesh_get_derived_deform(ob, CD_MASK_BAREMESH);
 			MFace *mface= me->mface;
 			MTFace *tface= me->mtface;

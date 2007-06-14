@@ -2916,6 +2916,31 @@ static void merge_transp_passes(RenderLayer *rl, ShadeResult *shr)
 			case SCE_PASS_NORMAL:
 				col= shr->nor;
 				break;
+			case SCE_PASS_VECTOR:
+				
+				{
+					ShadeResult *shr_t= shr+1;
+					float *fp= shr->winspeed;	/* was initialized */
+					int samp;
+					
+					/* add minimum speed in pixel */
+					for(samp= 1; samp<R.osa; samp++, shr_t++) {
+						
+						if(shr_t->combined[3] > 0.0f) {
+							float *speed= shr_t->winspeed;
+							
+							if( (ABS(speed[0]) + ABS(speed[1]))< (ABS(fp[0]) + ABS(fp[1])) ) {
+								fp[0]= speed[0];
+								fp[1]= speed[1];
+							}
+							if( (ABS(speed[2]) + ABS(speed[3]))< (ABS(fp[2]) + ABS(fp[3])) ) {
+								fp[2]= speed[2];
+								fp[3]= speed[3];
+							}
+						}
+					}
+				}
+				break;
 		}
 		if(col) {
 			float *fp= col+delta;
@@ -3315,7 +3340,11 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 					
 					/* for each mask-sample we alpha-under colors. then in end it's added using filter */
 					memset(samp_shr, 0, sizeof(ShadeResult)*R.osa);
-
+					
+					/* nice this memset, but speed vectors are not initialized OK then. it is sufficient to only clear 1 (see merge_transp_passes) */
+					if(addpassflag & SCE_PASS_VECTOR)
+						samp_shr->winspeed[0]= samp_shr->winspeed[1]= samp_shr->winspeed[2]= samp_shr->winspeed[3]= PASS_VECTOR_MAX;
+					
 					while(totface>0) {
 						totface--;
 						
