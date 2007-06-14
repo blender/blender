@@ -1629,6 +1629,17 @@ void adduplicate_armature(void)
 							channew = 
 								verify_pose_channel(OBACT->pose, eBone->name);
 							if (channew) {
+								/* copy transform locks */
+								channew->protectflag = chanold->protectflag;
+								
+								/* ik (dof) settings */
+								channew->ikflag = chanold->ikflag;
+								VECCOPY(channew->limitmin, chanold->limitmin);
+								VECCOPY(channew->limitmax, chanold->limitmax);
+								VECCOPY(channew->stiffness, chanold->stiffness);
+								channew->ikstretch= chanold->ikstretch;
+								
+								/* constraints */
 								listnew = &channew->constraints;
 								copy_constraints (listnew, listold);
 							}
