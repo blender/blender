@@ -383,15 +383,15 @@ void EXPP_allqueue(unsigned short event, short val)
 /************************************************************************/
 /* Scriptlink-related functions, used by scene, object, etc. bpyobjects */
 /************************************************************************/
-PyObject *EXPP_getScriptLinks( ScriptLink * slink, PyObject * args,
+PyObject *EXPP_getScriptLinks( ScriptLink * slink, PyObject * value,
 			       int is_scene )
 {
 	PyObject *list = NULL, *tmpstr;
-	char *eventname = NULL;
+	char *eventname = PyString_AsString(value);
 	int i, event = 0;
 
 
-	if( !PyArg_ParseTuple( args, "s", &eventname ) )
+	if( !eventname )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected event name (string) as argument" );
 	

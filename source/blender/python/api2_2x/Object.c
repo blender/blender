@@ -394,7 +394,7 @@ static PyObject *Object_getProperty( BPy_Object * self, PyObject * args );
 static PyObject *Object_removeAllProperties( BPy_Object * self );
 static PyObject *Object_copyAllPropertiesTo( BPy_Object * self,
 					     PyObject * args );
-static PyObject *Object_getScriptLinks( BPy_Object * self, PyObject * args );
+static PyObject *Object_getScriptLinks( BPy_Object * self, PyObject * value );
 static PyObject *Object_addScriptLink( BPy_Object * self, PyObject * args );
 static PyObject *Object_clearScriptLinks( BPy_Object * self, PyObject *args );
 static PyObject *Object_getPIStrength( BPy_Object * self );
@@ -744,7 +744,7 @@ works only if self and the object specified are of the same type."},
 	{"copyAllPropertiesTo", ( PyCFunction ) Object_copyAllPropertiesTo,
 	 METH_VARARGS,
 	 "() - copy all properties from this object to another object"},
-	{"getScriptLinks", ( PyCFunction ) Object_getScriptLinks, METH_VARARGS,
+	{"getScriptLinks", ( PyCFunction ) Object_getScriptLinks, METH_O,
 	 "(eventname) - Get a list of this object's scriptlinks (Text names) "
 	 "of the given type\n"
 	 "(eventname) - string: FrameChanged, Redraw or Render."},
@@ -2929,11 +2929,11 @@ static PyObject *Object_clearScriptLinks( BPy_Object * self, PyObject * args )
 	return EXPP_clearScriptLinks( slink, args );
 }
 
-static PyObject *Object_getScriptLinks( BPy_Object * self, PyObject * args )
+static PyObject *Object_getScriptLinks( BPy_Object * self, PyObject * value )
 {
 	Object *obj = self->object;
 	ScriptLink *slink = &obj->scriptlink;
-	return EXPP_getScriptLinks( slink, args, 0 );
+	return EXPP_getScriptLinks( slink, value, 0 );
 }
 
 static PyObject *Object_getNLAflagBits ( BPy_Object * self ) 

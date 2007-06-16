@@ -99,16 +99,16 @@ struct ID; /*keep me up here */
 /* Python API function prototypes for the Blender module.	*/
 /**********************************************************/
 static PyObject *Blender_Set( PyObject * self, PyObject * args );
-static PyObject *Blender_Get( PyObject * self, PyObject * args );
+static PyObject *Blender_Get( PyObject * self, PyObject * value );
 static PyObject *Blender_Redraw( PyObject * self, PyObject * args );
 static PyObject *Blender_Quit( PyObject * self );
 static PyObject *Blender_Load( PyObject * self, PyObject * args );
 static PyObject *Blender_Save( PyObject * self, PyObject * args );
-static PyObject *Blender_Run( PyObject * self, PyObject * args );
-static PyObject *Blender_ShowHelp( PyObject * self, PyObject * args );
+static PyObject *Blender_Run( PyObject * self, PyObject * value );
+static PyObject *Blender_ShowHelp( PyObject * self, PyObject * script );
 static PyObject *Blender_UpdateMenus( PyObject * self);
 static PyObject *Blender_PackAll( PyObject * self);
-static PyObject *Blender_UnpackAll( PyObject * self, PyObject * args);
+static PyObject *Blender_UnpackAll( PyObject * self, PyObject * value);
 static PyObject *Blender_CountPackedFiles( PyObject * self );
 
 extern PyObject *Text3d_Init( void ); /* missing in some include */
@@ -199,16 +199,16 @@ static char Blender_CountPackedFiles_doc[] =
 /*****************************************************************************/
 static struct PyMethodDef Blender_methods[] = {
 	{"Set", Blender_Set, METH_VARARGS, Blender_Set_doc},
-	{"Get", Blender_Get, METH_VARARGS, Blender_Get_doc},
+	{"Get", Blender_Get, METH_O, Blender_Get_doc},
 	{"Redraw", Blender_Redraw, METH_VARARGS, Blender_Redraw_doc},
 	{"Quit", ( PyCFunction ) Blender_Quit, METH_NOARGS, Blender_Quit_doc},
 	{"Load", Blender_Load, METH_VARARGS, Blender_Load_doc},
 	{"Save", Blender_Save, METH_VARARGS, Blender_Save_doc},
-	{"Run", Blender_Run, METH_VARARGS, Blender_Run_doc},
-	{"ShowHelp", Blender_ShowHelp, METH_VARARGS, Blender_ShowHelp_doc},
+	{"Run", Blender_Run, METH_O, Blender_Run_doc},
+	{"ShowHelp", Blender_ShowHelp, METH_O, Blender_ShowHelp_doc},
 	{"CountPackedFiles", ( PyCFunction ) Blender_CountPackedFiles, METH_NOARGS, Blender_CountPackedFiles_doc},
 	{"PackAll", ( PyCFunction ) Blender_PackAll, METH_NOARGS, Blender_PackAll_doc},
-	{"UnpackAll", Blender_UnpackAll, METH_VARARGS, Blender_UnpackAll_doc},
+	{"UnpackAll", Blender_UnpackAll, METH_O, Blender_UnpackAll_doc},
 	{"UpdateMenus", ( PyCFunction ) Blender_UpdateMenus, METH_NOARGS,
 	 Blender_UpdateMenus_doc},
 	{NULL, NULL, 0, NULL}
@@ -288,12 +288,12 @@ static PyObject *Blender_Set( PyObject * self, PyObject * args )
 /* Function:		Blender_Get	 */
 /* Python equivalent:	Blender.Get		 */
 /*****************************************************************************/
-static PyObject *Blender_Get( PyObject * self, PyObject * args )
+static PyObject *Blender_Get( PyObject * self, PyObject * value )
 {
 	PyObject *ret = NULL;
-	char *str = NULL;
+	char *str = PyString_AsString(value);
 
-	if( !PyArg_ParseTuple( args, "s", &str ) )
+	if( !str )
 		return EXPP_ReturnPyObjError (PyExc_TypeError,
 			"expected string argument");
 
@@ -712,14 +712,13 @@ static PyObject *Blender_Save( PyObject * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
-static PyObject *Blender_ShowHelp(PyObject *self, PyObject *args)
+static PyObject *Blender_ShowHelp(PyObject *self, PyObject *script)
 {
-	PyObject *script = NULL;
 	char hspath[FILE_MAXDIR + FILE_MAXFILE]; /* path to help_browser.py */
 	char *sdir = bpy_gethome(1);
 	PyObject *rkeyd = NULL, *arglist = NULL;
 
-	if (!PyArg_ParseTuple(args, "O!", &PyString_Type, &script))
+	if (!PyString_Check(script))
 		return EXPP_ReturnPyObjError(PyExc_TypeError,
 			"expected a script filename as argument");
 
@@ -759,14 +758,14 @@ static PyObject *Blender_ShowHelp(PyObject *self, PyObject *args)
 	Py_RETURN_NONE;
 }
 
-static PyObject *Blender_Run(PyObject *self, PyObject *args)
+static PyObject *Blender_Run(PyObject *self, PyObject *value)
 {
-	char *fname = NULL;
+	char *fname = PyString_AsString(value);
 	Text *text = NULL;
 	int is_blender_text = 0;
 	Script *script = NULL;
 
-	if (!PyArg_ParseTuple(args, "s", &fname))
+	if (!fname)
 		return EXPP_ReturnPyObjError(PyExc_TypeError,
 			"expected a filename or a Blender Text name as argument");
 
@@ -848,10 +847,12 @@ static PyObject *Blender_PackAll( PyObject * self)
 /* Function:		Blender_UnpackAll		 */
 /* Python equivalent:	Blender.UnpackAll			 */
 /*****************************************************************************/
-static PyObject *Blender_UnpackAll( PyObject * self, PyObject *args)
+static PyObject *Blender_UnpackAll( PyObject * self, PyObject *value)
 {
-	int mode;
-	PyArg_ParseTuple( args, "i", &mode );
+	int mode = PyInt_AsLong(value);
+	
+	if (mode==-1)
+		return EXPP_ReturnPyObjError( PyExc_ValueError, "expected an int Blender.UnpackModes");
 	unpackAll(mode);
 	Py_RETURN_NONE;
 }

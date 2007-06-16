@@ -174,7 +174,7 @@ static int Constraint_setData( BPy_Constraint * self, PyObject * key,
 /*****************************************************************************/
 static PyMethodDef BPy_Constraint_methods[] = {
 	/* name, method, flags, doc */
-	{"insertKey", ( PyCFunction ) Constraint_insertKey, METH_VARARGS,
+	{"insertKey", ( PyCFunction ) Constraint_insertKey, METH_O,
 	 "Insert influence keyframe for constraint"},
 	{NULL, NULL, 0, NULL}
 };
@@ -374,11 +374,10 @@ static PyObject *Constraint_getType( BPy_Constraint * self )
  * add keyframe for influence
 	base on code in add_influence_key_to_constraint_func()
  */
-
-static PyObject *Constraint_insertKey( BPy_Constraint * self, PyObject * arg )
+static PyObject *Constraint_insertKey( BPy_Constraint * self, PyObject * value )
 {
 	IpoCurve *icu;
-	float cfra;
+	float cfra = (float)PyFloat_AsDouble(value);
 	char actname[32] = "";
 	Object *ob = self->obj;
 	bConstraint *con = self->con;
@@ -388,7 +387,7 @@ static PyObject *Constraint_insertKey( BPy_Constraint * self, PyObject * arg )
 				"This constraint has been removed!" );
 
 	/* get frame for inserting key */
-	if( !PyArg_ParseTuple( arg, "f", &cfra ) )
+	if( PyFloat_Check(value) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected a float argument" );
 
@@ -1647,18 +1646,16 @@ static bConstraint *locate_constr( BPy_ConstraintSeq *self, PyObject * args )
 
 /* create a new constraint at the end of the list */
 
-static PyObject *ConstraintSeq_append( BPy_ConstraintSeq *self, PyObject *args )
+static PyObject *ConstraintSeq_append( BPy_ConstraintSeq *self, PyObject *value )
 {
-	int type;
+	int type = (int)PyInt_AsLong(value);
 	bConstraint *con;
 
-	if( !PyArg_ParseTuple( args, "i", &type ) )
-		EXPP_ReturnPyObjError( PyExc_TypeError, "expected int argument" );
-
-	/* type 0 is CONSTRAINT_TYPE_NULL, should we be able to add one of these? */
+	/* type 0 is CONSTRAINT_TYPE_NULL, should we be able to add one of these?
+	 * if the value is not an int it will be -1 */
 	if( type < CONSTRAINT_TYPE_NULL || type > CONSTRAINT_TYPE_RIGIDBODYJOINT ) 
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
-				"int argument out of range" );
+				"arg not in int or out of range" );
 
 	con = add_new_constraint( type );
 	if( self->pchan ) {
@@ -1739,7 +1736,7 @@ static void ConstraintSeq_dealloc( BPy_Constraint * self )
 /*****************************************************************************/
 static PyMethodDef BPy_ConstraintSeq_methods[] = {
 	/* name, method, flags, doc */
-	{"append", ( PyCFunction ) ConstraintSeq_append, METH_VARARGS,
+	{"append", ( PyCFunction ) ConstraintSeq_append, METH_O,
 	 "(type) - add a new constraint, where type is the constraint type"},
 	{"remove", ( PyCFunction ) ConstraintSeq_remove, METH_VARARGS,
 	 "(con) - remove an existing constraint, where con is a constraint from this object."},

@@ -129,7 +129,7 @@ static PyObject *Camera_oldsetClipStart( BPy_Camera * self, PyObject * args );
 static PyObject *Camera_oldsetClipEnd( BPy_Camera * self, PyObject * args );
 static PyObject *Camera_oldsetDrawSize( BPy_Camera * self, PyObject * args );
 static PyObject *Camera_oldsetScale( BPy_Camera * self, PyObject * args );
-static PyObject *Camera_oldgetScriptLinks( BPy_Camera * self, PyObject * args );
+static PyObject *Camera_oldgetScriptLinks( BPy_Camera * self, PyObject * value );
 static PyObject *Camera_addScriptLink( BPy_Camera * self, PyObject * args );
 static PyObject *Camera_oldclearIpo( BPy_Camera * self );
 static PyObject *Camera_clearScriptLinks( BPy_Camera * self, PyObject * args );
@@ -169,21 +169,21 @@ static PyMethodDef BPy_Camera_methods[] = {
 	 "( Camera IPO type ) - Inserts a key into IPO"},
 	{"setName", ( PyCFunction ) GenericLib_setName_with_method, METH_VARARGS,
 	 "(s) - Set Camera Data name"},
-	{"setType", ( PyCFunction ) Camera_oldsetType, METH_VARARGS,
+	{"setType", ( PyCFunction ) Camera_oldsetType, METH_O,
 	 "(s) - Set Camera type, which can be 'persp' or 'ortho'"},
 	{"setMode", ( PyCFunction ) Camera_oldsetMode, METH_VARARGS,
 	 "(<s<,s>>) - Set Camera mode flag(s): 'showLimits' and 'showMist'"},
-	{"setLens", ( PyCFunction ) Camera_oldsetLens, METH_VARARGS,
+	{"setLens", ( PyCFunction ) Camera_oldsetLens, METH_O,
 	 "(f) - Set *perpective* Camera lens value"},
-	{"setScale", ( PyCFunction ) Camera_oldsetScale, METH_VARARGS,
+	{"setScale", ( PyCFunction ) Camera_oldsetScale, METH_O,
 	 "(f) - Set *ortho* Camera scale value"},
-	{"setClipStart", ( PyCFunction ) Camera_oldsetClipStart, METH_VARARGS,
+	{"setClipStart", ( PyCFunction ) Camera_oldsetClipStart, METH_O,
 	 "(f) - Set Camera clip start value"},
-	{"setClipEnd", ( PyCFunction ) Camera_oldsetClipEnd, METH_VARARGS,
+	{"setClipEnd", ( PyCFunction ) Camera_oldsetClipEnd, METH_O,
 	 "(f) - Set Camera clip end value"},
-	{"setDrawSize", ( PyCFunction ) Camera_oldsetDrawSize, METH_VARARGS,
+	{"setDrawSize", ( PyCFunction ) Camera_oldsetDrawSize, METH_O,
 	 "(f) - Set Camera draw size value"},
-	{"getScriptLinks", ( PyCFunction ) Camera_oldgetScriptLinks, METH_VARARGS,
+	{"getScriptLinks", ( PyCFunction ) Camera_oldgetScriptLinks, METH_O,
 	 "(eventname) - Get a list of this camera's scriptlinks (Text names) "
 	 "of the given type\n"
 	 "(eventname) - string: FrameChanged, Redraw or Render."},
@@ -462,11 +462,11 @@ static PyObject *Camera_oldclearIpo( BPy_Camera * self )
 	return EXPP_incr_ret_False(); /* no ipo found */
 }
 
-static PyObject *Camera_oldsetType( BPy_Camera * self, PyObject * args )
+static PyObject *Camera_oldsetType( BPy_Camera * self, PyObject * value )
 {
-	char *type;
+	char *type = PyString_AsString(value);
 
-	if( !PyArg_ParseTuple( args, "s", &type ) )
+	if(!value)
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected string argument" );
 
@@ -516,75 +516,75 @@ static PyObject *Camera_oldsetMode( BPy_Camera * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
-static PyObject *Camera_oldsetLens( BPy_Camera * self, PyObject * args )
+static PyObject *Camera_oldsetLens( BPy_Camera * self, PyObject * value )
 {
-	float value;
+	float param = PyFloat_AsDouble(value);
 
-	if( !PyArg_ParseTuple( args, "f", &value ) )
+	if( !PyFloat_Check(value) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected float argument" );
 
-	self->camera->lens = EXPP_ClampFloat( value,
+	self->camera->lens = EXPP_ClampFloat( param,
 					      EXPP_CAM_LENS_MIN,
 					      EXPP_CAM_LENS_MAX );
 
 	Py_RETURN_NONE;
 }
 
-static PyObject *Camera_oldsetScale( BPy_Camera * self, PyObject * args )
+static PyObject *Camera_oldsetScale( BPy_Camera * self, PyObject * value )
 {
-	float value;
+	float param = PyFloat_AsDouble(value);
 
-	if( !PyArg_ParseTuple( args, "f", &value ) )
+	if( !PyFloat_Check(value) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected float argument" );
 
-	self->camera->ortho_scale = EXPP_ClampFloat( value,
+	self->camera->ortho_scale = EXPP_ClampFloat( param,
 					      EXPP_CAM_SCALE_MIN,
 					      EXPP_CAM_SCALE_MAX );
 
 	Py_RETURN_NONE;
 }
 
-static PyObject *Camera_oldsetClipStart( BPy_Camera * self, PyObject * args )
+static PyObject *Camera_oldsetClipStart( BPy_Camera * self, PyObject * value )
 {
-	float value;
+	float param = PyFloat_AsDouble(value);
 
-	if( !PyArg_ParseTuple( args, "f", &value ) )
+	if( !PyFloat_Check(value) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected float argument" );
 
-	self->camera->clipsta = EXPP_ClampFloat( value,
+	self->camera->clipsta = EXPP_ClampFloat( param,
 						 EXPP_CAM_CLIPSTART_MIN,
 						 EXPP_CAM_CLIPSTART_MAX );
 
 	Py_RETURN_NONE;
 }
 
-static PyObject *Camera_oldsetClipEnd( BPy_Camera * self, PyObject * args )
+static PyObject *Camera_oldsetClipEnd( BPy_Camera * self, PyObject * value )
 {
-	float value;
+	float param = PyFloat_AsDouble(value);
 
-	if( !PyArg_ParseTuple( args, "f", &value ) )
+	if( !PyFloat_Check(value) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected float argument" );
 
-	self->camera->clipend = EXPP_ClampFloat( value,
+	self->camera->clipend = EXPP_ClampFloat( param,
 						 EXPP_CAM_CLIPEND_MIN,
 						 EXPP_CAM_CLIPEND_MAX );
 
 	Py_RETURN_NONE;
 }
 
-static PyObject *Camera_oldsetDrawSize( BPy_Camera * self, PyObject * args )
+static PyObject *Camera_oldsetDrawSize( BPy_Camera * self, PyObject * value )
 {
-	float value;
+	float param = PyFloat_AsDouble(value);
 
-	if( !PyArg_ParseTuple( args, "f", &value ) )
+	if( !PyFloat_Check(value) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected a float number as argument" );
+					      "expected float argument" );
 
-	self->camera->drawsize = EXPP_ClampFloat( value,
+	self->camera->drawsize = EXPP_ClampFloat( param,
 						  EXPP_CAM_DRAWSIZE_MIN,
 						  EXPP_CAM_DRAWSIZE_MAX );
 
@@ -614,7 +614,7 @@ static PyObject *Camera_clearScriptLinks( BPy_Camera * self, PyObject * args )
 }
 
 /* cam.getScriptLinks */
-static PyObject *Camera_oldgetScriptLinks( BPy_Camera * self, PyObject * args )
+static PyObject *Camera_oldgetScriptLinks( BPy_Camera * self, PyObject * value )
 {
 	Camera *cam = self->camera;
 	ScriptLink *slink = NULL;
@@ -622,7 +622,7 @@ static PyObject *Camera_oldgetScriptLinks( BPy_Camera * self, PyObject * args )
 
 	slink = &( cam )->scriptlink;
 
-	ret = EXPP_getScriptLinks( slink, args, 0 );
+	ret = EXPP_getScriptLinks( slink, value, 0 );
 
 	if( ret )
 		return ret;

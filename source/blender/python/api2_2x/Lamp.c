@@ -207,7 +207,7 @@ static PyObject *Lamp_getComponent( BPy_Lamp * self, void * closure );
 static PyObject *Lamp_clearIpo( BPy_Lamp * self );
 static PyObject *Lamp_insertIpoKey( BPy_Lamp * self, PyObject * args );
 static PyObject *Lamp_oldsetIpo( BPy_Lamp * self, PyObject * args );
-static PyObject *Lamp_oldsetType( BPy_Lamp * self, PyObject * args );
+static PyObject *Lamp_oldsetType( BPy_Lamp * self, PyObject * value );
 static PyObject *Lamp_oldsetMode( BPy_Lamp * self, PyObject * args );
 static PyObject *Lamp_oldsetSamples( BPy_Lamp * self, PyObject * args );
 static PyObject *Lamp_oldsetRaySamplesX( BPy_Lamp * self, PyObject * args );
@@ -251,7 +251,7 @@ static int Lamp_setHaloInt( BPy_Lamp * self, PyObject * args );
 static int Lamp_setQuad1( BPy_Lamp * self, PyObject * args );
 static int Lamp_setQuad2( BPy_Lamp * self, PyObject * args );
 static int Lamp_setCol( BPy_Lamp * self, PyObject * args );
-static PyObject *Lamp_getScriptLinks( BPy_Lamp * self, PyObject * args );
+static PyObject *Lamp_getScriptLinks( BPy_Lamp * self, PyObject * value );
 static PyObject *Lamp_addScriptLink( BPy_Lamp * self, PyObject * args );
 static PyObject *Lamp_clearScriptLinks( BPy_Lamp * self, PyObject * args );
 static int Lamp_setComponent( BPy_Lamp * self, PyObject * value, void * closure );
@@ -306,7 +306,7 @@ static PyMethodDef BPy_Lamp_methods[] = {
 	 "() - return light rgb color triplet"},
 	{"setName", ( PyCFunction ) GenericLib_setName_with_method, METH_VARARGS,
 	 "(str) - rename Lamp"},
-	{"setType", ( PyCFunction ) Lamp_oldsetType, METH_VARARGS,
+	{"setType", ( PyCFunction ) Lamp_oldsetType, METH_O,
 	 "(str) - change Lamp type, which can be 'Lamp', 'Sun', 'Spot', 'Hemi', 'Area', 'Photon'"},
 	{"setMode", ( PyCFunction ) Lamp_oldsetMode, METH_VARARGS,
 	 "([up to eight str's]) - Set Lamp mode flag(s)"},
@@ -348,7 +348,7 @@ static PyMethodDef BPy_Lamp_methods[] = {
 	 "(float) - change light intensity value #2 for a Quad Lamp"},
 	{"setCol", ( PyCFunction ) Lamp_oldsetCol, METH_VARARGS,
 	 "(f,f,f) or ([f,f,f]) - change light's rgb color triplet"},
-	{"getScriptLinks", ( PyCFunction ) Lamp_getScriptLinks, METH_VARARGS,
+	{"getScriptLinks", ( PyCFunction ) Lamp_getScriptLinks, METH_O,
 	 "(eventname) - Get a list of this lamp's scriptlinks (Text names) "
 	 "of the given type\n"
 	 "(eventname) - string: FrameChanged, Redraw or Render."},
@@ -1330,7 +1330,7 @@ static PyObject *Lamp_clearScriptLinks( BPy_Lamp * self, PyObject * args )
 }
 
 /* mat.getScriptLinks */
-static PyObject *Lamp_getScriptLinks( BPy_Lamp * self, PyObject * args )
+static PyObject *Lamp_getScriptLinks( BPy_Lamp * self, PyObject * value )
 {
 	Lamp *lamp = self->lamp;
 	ScriptLink *slink = NULL;
@@ -1338,7 +1338,7 @@ static PyObject *Lamp_getScriptLinks( BPy_Lamp * self, PyObject * args )
 
 	slink = &( lamp )->scriptlink;
 
-	ret = EXPP_getScriptLinks( slink, args, 0 );
+	ret = EXPP_getScriptLinks( slink, value, 0 );
 
 	if( ret )
 		return ret;
@@ -1613,14 +1613,14 @@ static PyObject *Lamp_clearIpo( BPy_Lamp * self )
  * setType() accepts a string while mode setter takes an integer
  */
 
-static PyObject *Lamp_oldsetType( BPy_Lamp * self, PyObject * args )
+static PyObject *Lamp_oldsetType( BPy_Lamp * self, PyObject * value )
 {
-	char *type;
-	PyObject *value, *error;
+	char *type = PyString_AsString(value);
+	PyObject *arg, *error;
 
 	/* parse string argument */
 
-	if( !PyArg_ParseTuple( args, "s", &type ) )
+	if( !value )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected string argument" ) );
 
@@ -1644,9 +1644,9 @@ static PyObject *Lamp_oldsetType( BPy_Lamp * self, PyObject * args )
 
 	/* build tuple, call wrapper */
 
-	value = PyInt_FromLong( (long)type );
-	error = EXPP_setterWrapper ( (void *)self, value, (setter)Lamp_setType );
-	Py_DECREF ( value );
+	arg = PyInt_FromLong( (long)type );
+	error = EXPP_setterWrapper ( (void *)self, arg, (setter)Lamp_setType );
+	Py_DECREF ( arg );
 	return error;
 }
 

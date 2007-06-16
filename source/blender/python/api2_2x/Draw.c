@@ -832,7 +832,7 @@ static PyObject *Method_Exit( PyObject * self, PyObject * args )
 	else
 		Py_RETURN_NONE;
 
-	if( !PyArg_ParseTuple( args, "" ) )
+	if( PyTuple_Size(args) )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 					      "expected empty argument list" );
 
@@ -958,7 +958,7 @@ static PyObject *Method_Draw( PyObject * self, PyObject * args )
 		Py_RETURN_NONE;
 	}
 
-	if( !PyArg_ParseTuple( args, "" ) )
+	if( PyTuple_Size(args) )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 					      "expected empty argument list" );
 

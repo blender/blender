@@ -621,9 +621,9 @@ static PyObject *Material_getTextures( BPy_Material * self );
 static PyObject *Material_clearIpo( BPy_Material * self );
 
 static PyObject *Material_setTexture( BPy_Material * self, PyObject * args );
-static PyObject *Material_clearTexture( BPy_Material * self, PyObject * args );
+static PyObject *Material_clearTexture( BPy_Material * self, PyObject * value );
 
-static PyObject *Material_getScriptLinks(BPy_Material *self, PyObject * args );
+static PyObject *Material_getScriptLinks(BPy_Material *self, PyObject * value );
 static PyObject *Material_addScriptLink(BPy_Material * self, PyObject * args );
 static PyObject *Material_clearScriptLinks(BPy_Material *self, PyObject *args);
 
@@ -840,10 +840,9 @@ static PyMethodDef BPy_Material_methods[] = {
 	 "(f) - Set fresnel power for refractions factor- [0.0, 5.0]"},
 	{"setTexture", ( PyCFunction ) Material_setTexture, METH_VARARGS,
 	 "(n,tex,texco=0,mapto=0) - Set numbered texture to tex"},
-	{"clearTexture", ( PyCFunction ) Material_clearTexture, METH_VARARGS,
+	{"clearTexture", ( PyCFunction ) Material_clearTexture, METH_O,
 	 "(n) - Remove texture from numbered slot"},
-	{"getScriptLinks", ( PyCFunction ) Material_getScriptLinks,
-	 METH_VARARGS,
+	{"getScriptLinks", ( PyCFunction ) Material_getScriptLinks, METH_O,
 	 "(eventname) - Get a list of this material's scriptlinks (Text names) "
 	 "of the given type\n"
 	 "(eventname) - string: FrameChanged, Redraw or Render."},
@@ -2548,14 +2547,11 @@ static PyObject *Material_setTexture( BPy_Material * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
-static PyObject *Material_clearTexture( BPy_Material * self, PyObject * args )
+static PyObject *Material_clearTexture( BPy_Material * self, PyObject * value )
 {
-	int texnum;
+	int texnum = (int)PyInt_AsLong(value);
 	struct MTex *mtex;
-
-	if( !PyArg_ParseTuple( args, "i", &texnum ) )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected int in [0,9]" );
+	/* non ints will be -1 */
 	if( ( texnum < 0 ) || ( texnum >= MAX_MTEX ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected int in [0,9]" );
@@ -2595,7 +2591,7 @@ static PyObject *Material_clearScriptLinks(BPy_Material *self, PyObject *args )
 
 /* mat.getScriptLinks */
 static PyObject *Material_getScriptLinks( BPy_Material * self,
-					  PyObject * args )
+					  PyObject * value )
 {
 	Material *mat = self->material;
 	ScriptLink *slink = NULL;
@@ -2606,7 +2602,7 @@ static PyObject *Material_getScriptLinks( BPy_Material * self,
 	/* can't this just return?  EXP_getScriptLinks() returns a PyObject*
 	 * or NULL anyway */
 
-	ret = EXPP_getScriptLinks( slink, args, 0 );
+	ret = EXPP_getScriptLinks( slink, value, 0 );
 
 	if( ret )
 		return ret;

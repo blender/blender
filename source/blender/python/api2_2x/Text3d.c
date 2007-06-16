@@ -83,7 +83,7 @@ static PyObject *generate_ModuleIntConstant(char *name, int value);
 struct PyMethodDef M_Text3d_methods[] = {
 	{"New", ( PyCFunction ) M_Text3d_New, METH_VARARGS, NULL},
 	{"Get", ( PyCFunction ) M_Text3d_Get, METH_VARARGS, NULL},
-	{"LoadFont", ( PyCFunction ) M_Text3d_LoadFont, METH_VARARGS, NULL},
+	{"LoadFont", ( PyCFunction ) M_Text3d_LoadFont, METH_O, NULL},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -1173,13 +1173,13 @@ static PyObject *Text3d_removeFrame( BPy_Text3d * self, PyObject * args )
 }
 
 
-PyObject *M_Text3d_LoadFont( PyObject * self, PyObject * args )
+PyObject *M_Text3d_LoadFont( PyObject * self, PyObject * value )
 {
-	char *fontfile= NULL;
+	char *fontfile= PyString_AsString(value);
 	FILE *file= NULL;
 	VFont *vf= NULL;
 
-	if( !PyArg_ParseTuple( args, "s", &fontfile ) )
+	if( !fontfile )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected a string" );
 	vf= exist_vfont(fontfile);

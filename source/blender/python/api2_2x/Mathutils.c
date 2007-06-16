@@ -59,7 +59,7 @@ static char M_Mathutils_ScaleMatrix_doc[] =	"() - construct a scaling matrix fro
 static char M_Mathutils_OrthoProjectionMatrix_doc[] = "() - construct a orthographic projection matrix from a selected plane";
 static char M_Mathutils_ShearMatrix_doc[] = "() - construct a shearing matrix from a plane of shear and a shear factor";
 static char M_Mathutils_CopyMat_doc[] = "() - create a copy of a matrix";
-static char M_Mathutils_TranslationMatrix_doc[] = "() - create a translation matrix from a vector";
+static char M_Mathutils_TranslationMatrix_doc[] = "(vec) - create a translation matrix from a vector";
 static char M_Mathutils_CopyQuat_doc[] = "() - copy quatB to quatA";
 static char M_Mathutils_CopyEuler_doc[] = "() - copy eulB to eultA";
 static char M_Mathutils_CrossQuats_doc[] = "() - return the mutliplication of two quaternions";
@@ -88,7 +88,7 @@ struct PyMethodDef M_Mathutils_methods[] = {
 	{"RotationMatrix", (PyCFunction) M_Mathutils_RotationMatrix, METH_VARARGS, M_Mathutils_RotationMatrix_doc},
 	{"ScaleMatrix", (PyCFunction) M_Mathutils_ScaleMatrix, METH_VARARGS, M_Mathutils_ScaleMatrix_doc},
 	{"ShearMatrix", (PyCFunction) M_Mathutils_ShearMatrix, METH_VARARGS, M_Mathutils_ShearMatrix_doc},
-	{"TranslationMatrix", (PyCFunction) M_Mathutils_TranslationMatrix, METH_VARARGS, M_Mathutils_TranslationMatrix_doc},
+	{"TranslationMatrix", (PyCFunction) M_Mathutils_TranslationMatrix, METH_O, M_Mathutils_TranslationMatrix_doc},
 	{"CopyMat", (PyCFunction) M_Mathutils_CopyMat, METH_VARARGS, M_Mathutils_CopyMat_doc},
 	{"OrthoProjectionMatrix", (PyCFunction) M_Mathutils_OrthoProjectionMatrix,  METH_VARARGS, M_Mathutils_OrthoProjectionMatrix_doc},
 	{"MatMultVec", (PyCFunction) M_Mathutils_MatMultVec, METH_VARARGS, M_Mathutils_MatMultVec_doc},
@@ -773,13 +773,12 @@ PyObject *M_Mathutils_RotationMatrix(PyObject * self, PyObject * args)
 }
 //----------------------------------Mathutils.TranslationMatrix() -------
 //creates a translation matrix
-PyObject *M_Mathutils_TranslationMatrix(PyObject * self, PyObject * args)
+PyObject *M_Mathutils_TranslationMatrix(PyObject * self, VectorObject * vec)
 {
-	VectorObject *vec = NULL;
 	float mat[16] = {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f,
 		0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 1.0f};
-
-	if(!PyArg_ParseTuple(args, "O!", &vector_Type, &vec)) {
+	
+	if(!VectorObject_Check(vec)) {
 		return EXPP_ReturnPyObjError(PyExc_TypeError,
 						"Mathutils.TranslationMatrix(): expected vector\n");
 	}

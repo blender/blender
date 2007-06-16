@@ -593,21 +593,15 @@ PyObject *LibBlockSeq_new(BPy_LibBlockSeq *self, PyObject * args, PyObject *kwd)
 }
 
 
-PyObject *LibBlockSeq_unlink(BPy_LibBlockSeq *self, PyObject * args)
+PyObject *LibBlockSeq_unlink(BPy_LibBlockSeq *self, PyObject * value)
 {
-	PyObject *pyobj;
-	
 	switch (self->type) {
 	case ID_SCE:
-		if( !PyArg_ParseTuple( args, "O!", &Scene_Type, &pyobj ) ) {
+		if( !BPy_Scene_Check(value) ) {
 			return EXPP_ReturnPyObjError( PyExc_TypeError,
 					"expected Scene object" );
 		} else {
-			BPy_Scene *bpydata;
-			Scene *data;
-			
-			bpydata = (BPy_Scene *)pyobj;
-			data = bpydata->scene;
+			Scene *data = ((BPy_Scene *)value)->scene;
 			
 			if (!data)
 				return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -615,20 +609,15 @@ PyObject *LibBlockSeq_unlink(BPy_LibBlockSeq *self, PyObject * args)
 			
 			/* Run the removal code */
 			free_libblock( &G.main->scene, data );
-			bpydata->scene= NULL;
-			
+			((BPy_Scene *)value)->scene = NULL;
 			Py_RETURN_NONE;
 		}
 	case ID_GR:
-		if( !PyArg_ParseTuple( args, "O!", &Group_Type, &pyobj ) ) {
+		if( !BPy_Group_Check(value) ) {
 			return EXPP_ReturnPyObjError( PyExc_TypeError,
 					"expected Group object" );
 		} else {
-			BPy_Group *bpydata;
-			Group *data;
-			
-			bpydata = (BPy_Group *)pyobj;
-			data = bpydata->group;
+			Group *data = ((BPy_Group *)value)->group;
 			
 			if (!data)
 				return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -639,20 +628,17 @@ PyObject *LibBlockSeq_unlink(BPy_LibBlockSeq *self, PyObject * args)
 			unlink_group(data);
 			data->id.us= 0;
 			free_libblock( &G.main->group, data );
-			bpydata->group= NULL;
+			((BPy_Group *)value)->group = NULL;
 			
 			Py_RETURN_NONE;
 		}
 
 	case ID_TXT:
-		if( !PyArg_ParseTuple( args, "O!", &Text_Type, &pyobj ) ) {
+		if( !BPy_Text_Check(value) ) {
 			return EXPP_ReturnPyObjError( PyExc_TypeError,
 					"expected Text object" );
 		} else {
-			BPy_Text *bpydata;
-			Text *data;
-			bpydata = (BPy_Text *)pyobj;
-			data = bpydata->text;
+			Text *data = ((BPy_Text *)value)->text;
 			
 			if (!data)
 				return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -663,7 +649,7 @@ PyObject *LibBlockSeq_unlink(BPy_LibBlockSeq *self, PyObject * args)
 			free_text_controllers( data );
 			unlink_text( data );
 			free_libblock( &G.main->text, data );
-			bpydata->text = NULL;
+			((BPy_Text *)value)->text = NULL;
 			
 			Py_RETURN_NONE;
 		}
@@ -701,7 +687,7 @@ static PyGetSetDef LibBlockSeq_getseters[] = {
 static struct PyMethodDef BPy_LibBlockSeq_methods[] = {
 	{"new", (PyCFunction)LibBlockSeq_new, METH_VARARGS | METH_KEYWORDS,
 		"(name) - Create a new object in this scene from the obdata given and return a new object"},
-	{"unlink", (PyCFunction)LibBlockSeq_unlink, METH_VARARGS,
+	{"unlink", (PyCFunction)LibBlockSeq_unlink, METH_O,
 		"unlinks the object from the scene"},
 	{NULL, NULL, 0, NULL}
 };

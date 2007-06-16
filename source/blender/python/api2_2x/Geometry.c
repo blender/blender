@@ -52,7 +52,7 @@
 #define eul 0.000001
 
 /*-- forward declarations -- */
-static PyObject *M_Geometry_PolyFill( PyObject * self, PyObject * args );
+static PyObject *M_Geometry_PolyFill( PyObject * self, PyObject * polyLineSeq );
 static PyObject *M_Geometry_LineIntersect2D( PyObject * self, PyObject * args );
 static PyObject *M_Geometry_PointInTriangle2D( PyObject * self, PyObject * args );
 static PyObject *M_Geometry_BoxPack2D( PyObject * self, PyObject * args );
@@ -65,10 +65,10 @@ static char M_Geometry_PointInTriangle2D_doc[] = "(pt, tri_p1, tri_p2, tri_p3) -
 static char M_Geometry_BoxPack2D_doc[] = "";
 /*-----------------------METHOD DEFINITIONS ----------------------*/
 struct PyMethodDef M_Geometry_methods[] = {
-	{"PolyFill", ( PyCFunction ) M_Geometry_PolyFill, METH_VARARGS, M_Geometry_PolyFill_doc},
+	{"PolyFill", ( PyCFunction ) M_Geometry_PolyFill, METH_O, M_Geometry_PolyFill_doc},
 	{"LineIntersect2D", ( PyCFunction ) M_Geometry_LineIntersect2D, METH_VARARGS, M_Geometry_LineIntersect2D_doc},
 	{"PointInTriangle2D", ( PyCFunction ) M_Geometry_PointInTriangle2D, METH_VARARGS, M_Geometry_PointInTriangle2D_doc},
-	{"BoxPack2D", ( PyCFunction ) M_Geometry_BoxPack2D, METH_VARARGS, M_Geometry_BoxPack2D_doc},
+	{"BoxPack2D", ( PyCFunction ) M_Geometry_BoxPack2D, METH_O, M_Geometry_BoxPack2D_doc},
 	{NULL, NULL, 0, NULL}
 };
 /*----------------------------MODULE INIT-------------------------*/
@@ -83,10 +83,10 @@ PyObject *Geometry_Init(void)
 
 /*----------------------------------Geometry.PolyFill() -------------------*/
 /* PolyFill function, uses Blenders scanfill to fill multiple poly lines */
-static PyObject *M_Geometry_PolyFill( PyObject * self, PyObject * args )
+static PyObject *M_Geometry_PolyFill( PyObject * self, PyObject * polyLineSeq )
 {
 	PyObject *tri_list; /*return this list of tri's */
-	PyObject *polyLineSeq, *polyLine, *polyVec;
+	PyObject *polyLine, *polyVec;
 	int i, len_polylines, len_polypoints;
 	
 	/* display listbase */
@@ -99,7 +99,7 @@ static PyObject *M_Geometry_PolyFill( PyObject * self, PyObject * args )
 	dispbase.first= dispbase.last= NULL;
 	
 	
-	if(!PyArg_ParseTuple ( args, "O", &polyLineSeq) || !PySequence_Check(polyLineSeq)) {
+	if(!PySequence_Check(polyLineSeq)) {
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected a sequence of poly lines" );
 	}
@@ -361,18 +361,16 @@ void boxPack_ToPyObject(PyObject * value, boxPack **boxarray)
 }
 
 
-static PyObject *M_Geometry_BoxPack2D( PyObject * self, PyObject * args )
+static PyObject *M_Geometry_BoxPack2D( PyObject * self, PyObject * boxlist )
 {
-	PyObject *boxlist; /*return this list of tri's */
 	boxPack *boxarray;
 	float tot_width, tot_height;
 	int len;
 	int error;
 	
-	if(!PyArg_ParseTuple ( args, "O", &boxlist) || !PyList_Check(boxlist)) {
+	if(!PyList_Check(boxlist))
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected a sequence of boxes [[x,y,w,h], ... ]" );
-	}
 	
 	len = PyList_Size( boxlist );
 	

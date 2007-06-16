@@ -98,7 +98,7 @@ static int       World_setStar( BPy_World * self, PyObject * args );
 static PyObject *World_getMist( BPy_World * self );
 static PyObject *World_oldsetMist( BPy_World * self, PyObject * args );
 static int       World_setMist( BPy_World * self, PyObject * args );
-static PyObject *World_getScriptLinks( BPy_World * self, PyObject * args );
+static PyObject *World_getScriptLinks( BPy_World * self, PyObject * value );
 static PyObject *World_addScriptLink( BPy_World * self, PyObject * args );
 static PyObject *World_clearScriptLinks( BPy_World * self, PyObject * args );
 static PyObject *World_setCurrent( BPy_World * self );
@@ -209,7 +209,7 @@ static PyMethodDef BPy_World_methods[] = {
 	 "() - Return World Data mist"},
 	{"setMist", ( PyCFunction ) World_oldsetMist, METH_VARARGS,
 	 "() - Return World Data mist"},
-	{"getScriptLinks", ( PyCFunction ) World_getScriptLinks, METH_VARARGS,
+	{"getScriptLinks", ( PyCFunction ) World_getScriptLinks, METH_O,
 	 "(eventname) - Get a list of this world's scriptlinks (Text names) "
 	 "of the given type\n"
 	 "(eventname) - string: FrameChanged, Redraw or Render."},
@@ -874,7 +874,7 @@ static PyObject *World_clearScriptLinks( BPy_World * self, PyObject * args )
 }
 
 /* world.getScriptLinks */
-static PyObject *World_getScriptLinks( BPy_World * self, PyObject * args )
+static PyObject *World_getScriptLinks( BPy_World * self, PyObject * value )
 {
 	World *world = self->world;
 	ScriptLink *slink = NULL;
@@ -882,7 +882,7 @@ static PyObject *World_getScriptLinks( BPy_World * self, PyObject * args )
 
 	slink = &( world )->scriptlink;
 
-	ret = EXPP_getScriptLinks( slink, args, 0 );
+	ret = EXPP_getScriptLinks( slink, value, 0 );
 
 	if( ret )
 		return ret;

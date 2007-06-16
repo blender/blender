@@ -161,7 +161,7 @@ PyObject *EXPP_setterWrapperTuple ( PyObject * self, PyObject * args,
 				setter func);
 
 /* scriplinks-related: */
-PyObject *EXPP_getScriptLinks(ScriptLink *slink, PyObject *args, int is_scene);
+PyObject *EXPP_getScriptLinks(ScriptLink *slink, PyObject *value, int is_scene);
 PyObject *EXPP_addScriptLink(ScriptLink *slink, PyObject *args, int is_scene);
 PyObject *EXPP_clearScriptLinks(ScriptLink *slink, PyObject *args);
 

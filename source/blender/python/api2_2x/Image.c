@@ -83,7 +83,7 @@ enum img_consts {
 static PyObject *M_Image_New( PyObject * self, PyObject * args );
 static PyObject *M_Image_Get( PyObject * self, PyObject * args );
 static PyObject *M_Image_GetCurrent( PyObject * self );
-static PyObject *M_Image_Load( PyObject * self, PyObject * args );
+static PyObject *M_Image_Load( PyObject * self, PyObject * value );
 
 
 /*****************************************************************************/
@@ -100,8 +100,8 @@ static PyObject *Image_getEnd( BPy_Image * self );
 static PyObject *Image_getSpeed( BPy_Image * self );
 static int Image_setFilename( BPy_Image * self, PyObject * args );
 static PyObject *Image_oldsetFilename( BPy_Image * self, PyObject * args );
-static PyObject *Image_setXRep( BPy_Image * self, PyObject * args );
-static PyObject *Image_setYRep( BPy_Image * self, PyObject * args );
+static PyObject *Image_setXRep( BPy_Image * self, PyObject * value );
+static PyObject *Image_setYRep( BPy_Image * self, PyObject * value );
 static PyObject *Image_setStart( BPy_Image * self, PyObject * args );
 static PyObject *Image_setEnd( BPy_Image * self, PyObject * args );
 static PyObject *Image_setSpeed( BPy_Image * self, PyObject * args );
@@ -115,7 +115,7 @@ static PyObject *Image_setPixelI( BPy_Image * self, PyObject * args );
 static PyObject *Image_getMaxXY( BPy_Image * self );
 static PyObject *Image_getMinXY( BPy_Image * self );
 static PyObject *Image_save( BPy_Image * self );
-static PyObject *Image_unpack( BPy_Image * self, PyObject * args );
+static PyObject *Image_unpack( BPy_Image * self, PyObject * value );
 static PyObject *Image_pack( BPy_Image * self );
 static PyObject *Image_makeCurrent( BPy_Image * self );
 
@@ -169,9 +169,9 @@ static PyMethodDef BPy_Image_methods[] = {
 	 "(str) - Change Image object name"},
 	{"setFilename", ( PyCFunction ) Image_oldsetFilename, METH_VARARGS,
 	 "(str) - Change Image file name"},
-	{"setXRep", ( PyCFunction ) Image_setXRep, METH_VARARGS,
+	{"setXRep", ( PyCFunction ) Image_setXRep, METH_O,
 	 "(int) - Change Image object x repetition value"},
-	{"setYRep", ( PyCFunction ) Image_setYRep, METH_VARARGS,
+	{"setYRep", ( PyCFunction ) Image_setYRep, METH_O,
 	 "(int) - Change Image object y repetition value"},
 	{"setStart", ( PyCFunction ) Image_setStart, METH_VARARGS,
 	 "(int) - Change Image object animation start value"},
@@ -222,7 +222,7 @@ struct PyMethodDef M_Image_methods[] = {
 	{"Get", M_Image_Get, METH_VARARGS, M_Image_Get_doc},
 	{"GetCurrent", ( PyCFunction ) M_Image_GetCurrent, METH_NOARGS, M_Image_GetCurrent_doc},	
 	{"get", M_Image_Get, METH_VARARGS, M_Image_Get_doc},
-	{"Load", M_Image_Load, METH_VARARGS, M_Image_Load_doc},
+	{"Load", M_Image_Load, METH_O, M_Image_Load_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -349,13 +349,13 @@ static PyObject *M_Image_GetCurrent( PyObject * self )
 /* Description:		Receives a string and returns the image object	 */
 /*			whose filename matches the string.		 */
 /*****************************************************************************/
-static PyObject *M_Image_Load( PyObject * self, PyObject * args )
+static PyObject *M_Image_Load( PyObject * self, PyObject * value )
 {
-	char *fname;
+	char *fname = PyString_AsString(value);
 	Image *img_ptr;
 	BPy_Image *image;
 
-	if( !PyArg_ParseTuple( args, "s", &fname ) )
+	if( !value )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected string argument" ) );
 
@@ -650,13 +650,13 @@ static PyObject *Image_getMinXY( BPy_Image * self )
 
 /* unpack image */
 
-static PyObject *Image_unpack( BPy_Image * self, PyObject * args )
+static PyObject *Image_unpack( BPy_Image * self, PyObject * value )
 {
 	Image *image = self->image;
-	int mode;
+	int mode = (int)PyInt_AsLong(value);
 	
 	/*get the absolute path */
-	if( !PyArg_ParseTuple( args, "i", &mode ) )
+	if( mode==-1 )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected 1 integer from Blender.UnpackModes" );
 	
@@ -1000,37 +1000,27 @@ static PyObject *Image_oldsetFilename( BPy_Image * self, PyObject * args )
 	return EXPP_setterWrapper( (void *)self, args, (setter)Image_setFilename );
 }
 
-static PyObject *Image_setXRep( BPy_Image * self, PyObject * args )
+static PyObject *Image_setXRep( BPy_Image * self, PyObject * value )
 {
-	short value;
+	short param = (short)PyInt_AsLong(value);
 
-	if( !PyArg_ParseTuple( args, "h", &value ) )
+	if( param !=-1 && param >= EXPP_IMAGE_REP_MIN && param <= EXPP_IMAGE_REP_MAX)
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected int argument in [1,16]" ) );
 
-	if( value >= EXPP_IMAGE_REP_MIN && value <= EXPP_IMAGE_REP_MAX )
-		self->image->xrep = value;
-	else
-		return ( EXPP_ReturnPyObjError( PyExc_ValueError,
-						"expected int argument in [1,16]" ) );
-
+	self->image->xrep = param;
 	Py_RETURN_NONE;
 }
 
-static PyObject *Image_setYRep( BPy_Image * self, PyObject * args )
+static PyObject *Image_setYRep( BPy_Image * self, PyObject * value )
 {
-	short value;
+	short param = (short)PyInt_AsLong(value);
 
-	if( !PyArg_ParseTuple( args, "h", &value ) )
+	if( param !=-1 && param >= EXPP_IMAGE_REP_MIN && param <= EXPP_IMAGE_REP_MAX)
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected int argument in [1,16]" ) );
 
-	if( value >= EXPP_IMAGE_REP_MIN && value <= EXPP_IMAGE_REP_MAX )
-		self->image->yrep = value;
-	else
-		return ( EXPP_ReturnPyObjError( PyExc_ValueError,
-						"expected int argument in [1,16]" ) );
-
+	self->image->yrep = param;
 	Py_RETURN_NONE;
 }
 

@@ -145,7 +145,7 @@ static PyObject *Scene_getCurrentCamera( BPy_Scene * self );
 static PyObject *Scene_setCurrentCamera( BPy_Scene * self, PyObject * args );
 static PyObject *Scene_getRenderingContext( BPy_Scene * self );
 static PyObject *Scene_getRadiosityContext( BPy_Scene * self );
-static PyObject *Scene_getScriptLinks( BPy_Scene * self, PyObject * args );
+static PyObject *Scene_getScriptLinks( BPy_Scene * self, PyObject * value );
 static PyObject *Scene_getSequence( BPy_Scene * self );
 static PyObject *Scene_addScriptLink( BPy_Scene * self, PyObject * args );
 static PyObject *Scene_clearScriptLinks( BPy_Scene * self, PyObject * args );
@@ -194,7 +194,7 @@ static PyMethodDef BPy_Scene_methods[] = {
 	{"getCurrentCamera", ( PyCFunction ) Scene_getCurrentCamera,
 	 METH_NOARGS,
 	 "() - Return current active Camera"},
-	{"getScriptLinks", ( PyCFunction ) Scene_getScriptLinks, METH_VARARGS,
+	{"getScriptLinks", ( PyCFunction ) Scene_getScriptLinks, METH_O,
 	 "(eventname) - Get a list of this scene's scriptlinks (Text names) "
 	 "of the given type\n"
 	 "(eventname) - string: FrameChanged, OnLoad, OnSave, Redraw or Render."},
@@ -1109,7 +1109,7 @@ static PyObject *Scene_clearScriptLinks( BPy_Scene * self, PyObject * args )
 }
 
 /* scene.getScriptLinks */
-static PyObject *Scene_getScriptLinks( BPy_Scene * self, PyObject * args )
+static PyObject *Scene_getScriptLinks( BPy_Scene * self, PyObject * value )
 {
 	Scene *scene = self->scene;
 	ScriptLink *slink = NULL;
@@ -1119,7 +1119,7 @@ static PyObject *Scene_getScriptLinks( BPy_Scene * self, PyObject * args )
 
 	slink = &( scene )->scriptlink;
 
-	ret = EXPP_getScriptLinks( slink, args, 1 );
+	ret = EXPP_getScriptLinks( slink, value, 1 );
 
 	if( ret )
 		return ret;

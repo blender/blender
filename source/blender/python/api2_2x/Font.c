@@ -44,7 +44,7 @@
 extern PyObject *M_Text3d_LoadFont( PyObject * self, PyObject * args );
 
 /*--------------------Python API function prototypes for the Font module----*/
-static PyObject *M_Font_Load( PyObject * self, PyObject * args );
+static PyObject *M_Font_Load( PyObject * self, PyObject * value );
 static PyObject *M_Font_Get( PyObject * self, PyObject * args );
 
 /*------------------------Python API Doc strings for the Font module--------*/
@@ -62,7 +62,7 @@ returns None if not found.\n";
 /*----- Python method structure definition for Blender.Text3d.Font module---*/
 struct PyMethodDef M_Font_methods[] = {
 	{"Get", ( PyCFunction ) M_Font_Get, METH_VARARGS, M_Font_Get_doc},
-	{"Load", ( PyCFunction ) M_Font_Load, METH_VARARGS, M_Font_Load_doc},
+	{"Load", ( PyCFunction ) M_Font_Load, METH_O, M_Font_Load_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -74,7 +74,7 @@ static PyObject *Font_unpack( BPy_Font * self, PyObject * args );
 static PyMethodDef BPy_Font_methods[] = {
 	{"pack", ( PyCFunction ) Font_pack, METH_NOARGS,
 	 "() - pack this Font"},
-	{"unpack", ( PyCFunction ) Font_unpack, METH_VARARGS,
+	{"unpack", ( PyCFunction ) Font_unpack, METH_O,
 	 "(mode) - unpack this packed font"},
 	{NULL, NULL, 0, NULL}
 };
@@ -154,21 +154,18 @@ static PyObject *M_Font_Get( PyObject * self, PyObject * args )
 
 
 /*--------------- Blender.Text3d.Font.New()-----------------------*/
-PyObject *M_Font_Load( PyObject * self, PyObject * args )
+PyObject *M_Font_Load( PyObject * self, PyObject * value )
 {
-	char *filename_str;
+	char *filename_str = PyString_AsString(value);
 	BPy_Font *py_font = NULL;	/* for Font Data object wrapper in Python */
-	PyObject *tmp; 
 
-	if( !PyArg_ParseTuple( args, "s", &filename_str ) )
+	if( !value )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"expected string or empty argument" ) );
 
 	/*create python font*/
 	if( !S_ISDIR(BLI_exist(filename_str)) )  {
-		tmp= Py_BuildValue("(s)", filename_str);
-		py_font= (BPy_Font *) M_Text3d_LoadFont (self, tmp);
-		Py_DECREF (tmp);
+		py_font= (BPy_Font *) M_Text3d_LoadFont (self, value);
 	}
 	else
 		Py_RETURN_NONE;
@@ -218,12 +215,12 @@ static PyObject *Font_pack( BPy_Font * self )
 }
 
 /*--------------- BPy_Font.unpack()---------------------------------*/
-static PyObject *Font_unpack( BPy_Font * self, PyObject * args ) 
+static PyObject *Font_unpack( BPy_Font * self, PyObject * value ) 
 {
-	int mode= 0;
+	int mode= PyInt_AsLong(value);
 	VFont *font= self->font;
 	
-	if( !PyArg_ParseTuple( args, "i", &mode ) )
+	if( mode==-1 )
 		return ( EXPP_ReturnPyObjError
 			 ( PyExc_AttributeError,
 			   "expected int argument from Blender.UnpackModes" ) );

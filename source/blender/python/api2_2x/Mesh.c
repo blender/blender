@@ -1247,13 +1247,13 @@ static PyObject *Mesh_addPropLayer_internal(Mesh *mesh, CustomData *data, int to
 	Py_RETURN_NONE;
 }
 
-static PyObject *Mesh_removePropLayer_internal(Mesh *mesh, CustomData *data, int tot,PyObject *args)
+static PyObject *Mesh_removePropLayer_internal(Mesh *mesh, CustomData *data, int tot,PyObject *value)
 {
 	CustomDataLayer *layer;
-	char *name=NULL;
+	char *name=PyString_AsString(value);
 	int i;
 	
-	if( !PyArg_ParseTuple( args, "s", &name ) )
+	if( !name )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected string argument" );
 	
@@ -1318,16 +1318,16 @@ static PyObject *Mesh_propList_internal(CustomData *data)
 	return list;
 } 
 
-static PyObject *Mesh_getProperty_internal(CustomData *data, int eindex, PyObject *args)
+static PyObject *Mesh_getProperty_internal(CustomData *data, int eindex, PyObject *value)
 {
 	CustomDataLayer *layer;
-	char *name=NULL;
+	char *name=PyString_AsString(value);
 	int i;
 	MFloatProperty *pf;
 	MIntProperty *pi;
 	MStringProperty *ps;
 
-	if(!PyArg_ParseTuple(args, "s", &name))
+	if(!name)
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 			"expected an string argument" );
 	
@@ -2193,10 +2193,10 @@ static PyObject *MVertSeq_add_layertype(BPy_MVertSeq *self, PyObject *args)
 	Mesh *me = (Mesh*)self->mesh;
 	return Mesh_addPropLayer_internal(me, &(me->vdata), me->totvert, args);
 }
-static PyObject *MVertSeq_del_layertype(BPy_MVertSeq *self, PyObject *args)
+static PyObject *MVertSeq_del_layertype(BPy_MVertSeq *self, PyObject *value)
 {
 	Mesh *me = (Mesh*)self->mesh;
-	return Mesh_removePropLayer_internal(me, &(me->vdata), me->totvert, args);
+	return Mesh_removePropLayer_internal(me, &(me->vdata), me->totvert, value);
 }
 static PyObject *MVertSeq_rename_layertype(BPy_MVertSeq *self, PyObject *args)
 {
@@ -2229,7 +2229,7 @@ static struct PyMethodDef BPy_MVertSeq_methods[] = {
 		"returns a list containing indices of selected vertices"},
 	{"addPropertyLayer",(PyCFunction)MVertSeq_add_layertype, METH_VARARGS,
 		"add a new property layer"},
-	{"removePropertyLayer",(PyCFunction)MVertSeq_del_layertype, METH_VARARGS,
+	{"removePropertyLayer",(PyCFunction)MVertSeq_del_layertype, METH_O,
 		"removes a property layer"},
 	{"renamePropertyLayer",(PyCFunction)MVertSeq_rename_layertype, METH_VARARGS,
 		"renames an existing property layer"},
@@ -3614,10 +3614,10 @@ static PyObject *MEdgeSeq_add_layertype(BPy_MEdgeSeq *self, PyObject *args)
 	Mesh *me = (Mesh*)self->mesh;
 	return Mesh_addPropLayer_internal(me, &(me->edata), me->totedge, args);
 }
-static PyObject *MEdgeSeq_del_layertype(BPy_MEdgeSeq *self, PyObject *args)
+static PyObject *MEdgeSeq_del_layertype(BPy_MEdgeSeq *self, PyObject *value)
 {
 	Mesh *me = (Mesh*)self->mesh;
-	return Mesh_removePropLayer_internal(me, &(me->edata), me->totedge, args);
+	return Mesh_removePropLayer_internal(me, &(me->edata), me->totedge, value);
 }
 static PyObject *MEdgeSeq_rename_layertype(BPy_MEdgeSeq *self, PyObject *args)
 {
@@ -3642,7 +3642,7 @@ static struct PyMethodDef BPy_MEdgeSeq_methods[] = {
 		"collapse one or more edges to a vertex"},
 	{"addPropertyLayer",(PyCFunction)MEdgeSeq_add_layertype, METH_VARARGS,
 		"add a new property layer"},
-	{"removePropertyLayer",(PyCFunction)MEdgeSeq_del_layertype, METH_VARARGS,
+	{"removePropertyLayer",(PyCFunction)MEdgeSeq_del_layertype, METH_O,
 		"removes a property layer"},
 	{"renamePropertyLayer",(PyCFunction)MEdgeSeq_rename_layertype, METH_VARARGS,
 		"renames an existing property layer"},
@@ -5611,10 +5611,10 @@ static PyObject *MFaceSeq_add_layertype(BPy_MFaceSeq *self, PyObject *args)
 	Mesh *me = (Mesh*)self->mesh;
 	return Mesh_addPropLayer_internal(me, &(me->fdata), me->totface, args);
 }
-static PyObject *MFaceSeq_del_layertype(BPy_MFaceSeq *self, PyObject *args)
+static PyObject *MFaceSeq_del_layertype(BPy_MFaceSeq *self, PyObject *value)
 {
 	Mesh *me = (Mesh*)self->mesh;
-	return Mesh_removePropLayer_internal(me, &(me->fdata), me->totface, args);
+	return Mesh_removePropLayer_internal(me, &(me->fdata), me->totface, value);
 }
 static PyObject *MFaceSeq_rename_layertype(BPy_MFaceSeq *self, PyObject *args)
 {
@@ -5636,7 +5636,7 @@ static struct PyMethodDef BPy_MFaceSeq_methods[] = {
 		"returns a list containing indices of selected faces"},
 	{"addPropertyLayer",(PyCFunction)MFaceSeq_add_layertype, METH_VARARGS,
 		"add a new property layer"},
-	{"removePropertyLayer",(PyCFunction)MFaceSeq_del_layertype, METH_VARARGS,
+	{"removePropertyLayer",(PyCFunction)MFaceSeq_del_layertype, METH_O,
 		"removes a property layer"},
 	{"renamePropertyLayer",(PyCFunction)MFaceSeq_rename_layertype, METH_VARARGS,
 		"renames an existing property layer"},
@@ -6325,20 +6325,20 @@ static PyObject *Mesh_transform( BPy_Mesh *self, PyObject *args, PyObject *kwd )
 	Py_RETURN_NONE;
 }
 
-static PyObject *Mesh_addVertGroup( PyObject * self, PyObject * args )
+static PyObject *Mesh_addVertGroup( PyObject * self, PyObject * value )
 {
-	char *groupStr;
+	char *groupStr = PyString_AsString(value);
 	struct Object *object;
 
-	if( !PyArg_ParseTuple( args, "s", &groupStr ) )
+	if( !groupStr )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected string argument" );
 
-	if( ( ( BPy_Mesh * ) self )->object == NULL )
+	object = ( ( BPy_Mesh * ) self )->object;
+	
+	if( object == NULL )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 					      "mesh not linked to an object" );
-
-	object = ( ( BPy_Mesh * ) self )->object;
 
 	/* add_defgroup_name clamps the name to 32, make sure that dosnt change  */
 	add_defgroup_name( object, groupStr );
@@ -6348,14 +6348,14 @@ static PyObject *Mesh_addVertGroup( PyObject * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
-static PyObject *Mesh_removeVertGroup( PyObject * self, PyObject * args )
+static PyObject *Mesh_removeVertGroup( PyObject * self, PyObject * value )
 {
-	char *groupStr;
+	char *groupStr = PyString_AsString(value);
 	struct Object *object;
 	int nIndex;
 	bDeformGroup *pGroup;
 
-	if( !PyArg_ParseTuple( args, "s", &groupStr ) )
+	if( !groupStr )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected string argument" );
 
@@ -6842,14 +6842,14 @@ static PyObject *Mesh_addColorLayer( BPy_Mesh * self, PyObject * args )
 	return Mesh_addCustomLayer_internal(self->mesh, args, CD_MCOL);
 }
 
-static PyObject *Mesh_removeLayer_internal( BPy_Mesh * self, PyObject * args, int type )
+static PyObject *Mesh_removeLayer_internal( BPy_Mesh * self, PyObject * value, int type )
 {
 	Mesh *me = self->mesh;
 	CustomData *data = &me->fdata;
-	char *name;
+	char *name = PyString_AsString(value);
 	int i;
 	
-	if( !PyArg_ParseTuple( args, "s", &name ) )
+	if( !name )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected string argument" );
 	
@@ -6881,14 +6881,14 @@ static PyObject *Mesh_removeLayer_internal( BPy_Mesh * self, PyObject * args, in
 }
 
 
-static PyObject *Mesh_removeUVLayer( BPy_Mesh * self, PyObject * args )
+static PyObject *Mesh_removeUVLayer( BPy_Mesh * self, PyObject * value )
 {
-	return Mesh_removeLayer_internal(self, args, CD_MTFACE);
+	return Mesh_removeLayer_internal(self, value, CD_MTFACE);
 }
 
-static PyObject *Mesh_removeColorLayer( BPy_Mesh * self, PyObject * args )
+static PyObject *Mesh_removeColorLayer( BPy_Mesh * self, PyObject * value )
 {
-	return Mesh_removeLayer_internal(self, args, CD_MCOL);
+	return Mesh_removeLayer_internal(self, value, CD_MCOL);
 }
 
 
@@ -7346,18 +7346,17 @@ static short pointInside_internal(float *vec, float *v1, float *v2, float  *v3 )
 	return 0;
 }
 
-static PyObject *Mesh_pointInside( BPy_Mesh * self, PyObject *args )
+static PyObject *Mesh_pointInside( BPy_Mesh * self, VectorObject * vec )
 {
-	VectorObject *vec = NULL;
 	Mesh *mesh = self->mesh;
 	MFace *mf = mesh->mface;
 	MVert *mvert = mesh->mvert;
 	int i;
 	int isect_count=0;
 	
-	if(!PyArg_ParseTuple(args, "O!", &vector_Type, &vec))
+	if(!VectorObject_Check(vec))
 			return EXPP_ReturnPyObjError( PyExc_TypeError,
-					"expected one or 2 vector types" );
+					"expected one vector type" );
 	
 	if(vec->size < 3)
 		return EXPP_ReturnPyObjError(PyExc_AttributeError, 
@@ -7412,9 +7411,9 @@ static struct PyMethodDef BPy_Mesh_methods[] = {
 		"Update display lists after changes to mesh"},
 	{"transform", (PyCFunction)Mesh_transform, METH_VARARGS | METH_KEYWORDS,
 		"Applies a transformation matrix to mesh's vertices"},
-	{"addVertGroup", (PyCFunction)Mesh_addVertGroup, METH_VARARGS,
+	{"addVertGroup", (PyCFunction)Mesh_addVertGroup, METH_O,
 		"Assign vertex group name to the object linked to the mesh"},
-	{"removeVertGroup", (PyCFunction)Mesh_removeVertGroup, METH_VARARGS,
+	{"removeVertGroup", (PyCFunction)Mesh_removeVertGroup, METH_O,
 		"Delete vertex group name from the object linked to the mesh"},
 	{"assignVertsToGroup", (PyCFunction)Mesh_assignVertsToGroup, METH_VARARGS,
 		"Assigns vertices to a vertex group"},
@@ -7452,7 +7451,7 @@ static struct PyMethodDef BPy_Mesh_methods[] = {
 		"Removes duplicates from selected vertices (experimental)"},
 	{"recalcNormals", (PyCFunction)Mesh_recalcNormals, METH_VARARGS,
 		"Recalculates inside or outside normals (experimental)"},
-	{"pointInside", (PyCFunction)Mesh_pointInside, METH_VARARGS,
+	{"pointInside", (PyCFunction)Mesh_pointInside, METH_O,
 		"Recalculates inside or outside normals (experimental)"},
 	
 	/* mesh custom data layers */
@@ -7460,9 +7459,9 @@ static struct PyMethodDef BPy_Mesh_methods[] = {
 		"adds a UV layer to this mesh"},
 	{"addColorLayer", (PyCFunction)Mesh_addColorLayer, METH_VARARGS,
 		"adds a color layer to this mesh "},
-	{"removeUVLayer", (PyCFunction)Mesh_removeUVLayer, METH_VARARGS,
+	{"removeUVLayer", (PyCFunction)Mesh_removeUVLayer, METH_O,
 		"removes a UV layer to this mesh"},
-	{"removeColorLayer", (PyCFunction)Mesh_removeColorLayer, METH_VARARGS,
+	{"removeColorLayer", (PyCFunction)Mesh_removeColorLayer, METH_O,
 		"removes a color layer to this mesh"},
 	{"getUVLayerNames", (PyCFunction)Mesh_getUVLayerNames, METH_NOARGS,
 		"Get names of UV layers"},

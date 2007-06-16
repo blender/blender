@@ -38,7 +38,7 @@
 
 //--------------- Python BPy_Property methods declarations:---------------
 static PyObject *Property_getName( BPy_Property * self );
-static PyObject *Property_setName( BPy_Property * self, PyObject * args );
+static PyObject *Property_setName( BPy_Property * self, PyObject * value );
 static PyObject *Property_getData( BPy_Property * self );
 static PyObject *Property_setData( BPy_Property * self, PyObject * args );
 static PyObject *Property_getType( BPy_Property * self );
@@ -46,7 +46,7 @@ static PyObject *Property_getType( BPy_Property * self );
 static PyMethodDef BPy_Property_methods[] = {
 	{"getName", ( PyCFunction ) Property_getName, METH_NOARGS,
 	 "() - return Property name"},
-	{"setName", ( PyCFunction ) Property_setName, METH_VARARGS,
+	{"setName", ( PyCFunction ) Property_setName, METH_O,
 	 "() - set the name of this Property"},
 	{"getData", ( PyCFunction ) Property_getData, METH_NOARGS,
 	 "() - return Property data"},
@@ -203,25 +203,25 @@ static PyObject *Property_getAttr( BPy_Property * self, char *name )
 static int
 Property_setAttr( BPy_Property * self, char *name, PyObject * value )
 {
-	PyObject *valtuple;
 	PyObject *error = NULL;
 
 	checkValidData_ptr( self );
-	valtuple = Py_BuildValue( "(O)", value );
-	if( !valtuple )
-		return EXPP_ReturnIntError( PyExc_MemoryError,
-					    "PropertySetAttr: couldn't create tuple" );
 
-	if( strcmp( name, "name" ) == 0 )
-		error = Property_setName( self, valtuple );
-	else if( strcmp( name, "data" ) == 0 )
+	if( strcmp( name, "name" ) == 0 ) {
+		error = Property_setName( self, value );
+	} else if( strcmp( name, "data" ) == 0 ) {
+		PyObject *valtuple = Py_BuildValue( "(O)", value );
+		if( !valtuple )
+			return EXPP_ReturnIntError( PyExc_MemoryError,
+						    "PropertySetAttr: couldn't create tuple" );
+		
 		error = Property_setData( self, valtuple );
-	else {
 		Py_DECREF( valtuple );
+	} else {
 		return ( EXPP_ReturnIntError
 			 ( PyExc_KeyError, "attribute not found" ) );
 	}
-	Py_DECREF( valtuple );
+	
 
 	if( error != Py_None )
 		return -1;
@@ -395,11 +395,11 @@ static PyObject *Property_getName( BPy_Property * self )
 }
 
 //--------------- BPy_Property.setName()----------------------------
-static PyObject *Property_setName( BPy_Property * self, PyObject * args )
+static PyObject *Property_setName( BPy_Property * self, PyObject * value )
 {
-	char *name;
+	char *name = PyString_AsString(value);
 
-	if( !PyArg_ParseTuple( args, "s", &name ) )
+	if( !name )
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"expected string argument" ) );
 

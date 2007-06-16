@@ -384,14 +384,13 @@ PyObject *BPy_IDGroup_MapDataToPy(IDProperty *prop)
 					   "eek!! a property exists with a bad type code!!!" );
 }
 
-PyObject *BPy_IDGroup_Pop(BPy_IDProperty *self, PyObject *vars)
+PyObject *BPy_IDGroup_Pop(BPy_IDProperty *self, PyObject *value)
 {
 	IDProperty *loop;
 	PyObject *pyform;
-	char *name;
-	int ok = PyArg_ParseTuple(vars, "s", &name);
+	char *name = PyString_AsString(value);
 	
-	if (!ok) {
+	if (!name) {
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 		   "pop expected at least 1 arguments, got 0" );
 	}
@@ -463,12 +462,12 @@ PyObject *BPy_IDGroup_GetValues(BPy_IDProperty *self)
 	return seq;
 }
 
-PyObject *BPy_IDGroup_HasKey(BPy_IDProperty *self, PyObject *vars)
+PyObject *BPy_IDGroup_HasKey(BPy_IDProperty *self, PyObject *value)
 {
 	IDProperty *loop;
-	char *name;
+	char *name = PyString_AsString(value);
 	
-	if (!PyArg_ParseTuple(vars, "s", &name))
+	if (!name)
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 		   "expected a string");
 		   
@@ -507,7 +506,7 @@ PyObject *BPy_IDGroup_ConvertToPy(BPy_IDProperty *self)
 }
 
 static struct PyMethodDef BPy_IDGroup_methods[] = {
-	{"pop", (PyCFunction)BPy_IDGroup_Pop, METH_VARARGS,
+	{"pop", (PyCFunction)BPy_IDGroup_Pop, METH_O,
 		"pop an item from the group; raises KeyError if the item doesn't exist."},
 	{"iteritems", (PyCFunction)BPy_IDGroup_IterItems, METH_NOARGS,
 		"iterate through the items in the dict; behaves like dictionary method iteritems."},
@@ -515,7 +514,7 @@ static struct PyMethodDef BPy_IDGroup_methods[] = {
 		"get the keys associated with this group as a list of strings."},
 	{"values", (PyCFunction)BPy_IDGroup_GetValues, METH_NOARGS,
 		"get the values associated with this group."},
-	{"has_key", (PyCFunction)BPy_IDGroup_HasKey, METH_VARARGS,
+	{"has_key", (PyCFunction)BPy_IDGroup_HasKey, METH_O,
 		"returns true if the group contains a key, false if not."},
 	{"update", (PyCFunction)BPy_IDGroup_Update, METH_VARARGS,
 		"updates the values in the group with the values of another or a dict."},

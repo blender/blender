@@ -57,7 +57,7 @@ PyObject *M_Mathutils_MidpointVecs(PyObject * self, PyObject * args);
 PyObject *M_Mathutils_ProjectVecs(PyObject * self, PyObject * args);
 PyObject *M_Mathutils_Matrix(PyObject * self, PyObject * args);
 PyObject *M_Mathutils_RotationMatrix(PyObject * self, PyObject * args);
-PyObject *M_Mathutils_TranslationMatrix(PyObject * self, PyObject * args);
+PyObject *M_Mathutils_TranslationMatrix(PyObject * self, VectorObject * value);
 PyObject *M_Mathutils_ScaleMatrix(PyObject * self, PyObject * args);
 PyObject *M_Mathutils_OrthoProjectionMatrix(PyObject * self, PyObject * args);
 PyObject *M_Mathutils_ShearMatrix(PyObject * self, PyObject * args);
