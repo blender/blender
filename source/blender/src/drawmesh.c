@@ -1021,7 +1021,7 @@ void draw_tface_mesh(Object *ob, Mesh *me, int dt)
 	g_draw_tface_mesh_ob = ob;
 	g_draw_tface_mesh_istex = istex;
 	memcpy(g_draw_tface_mesh_obcol, obcol, sizeof(obcol));
-	set_draw_settings_cached(1, 0, 0, 1, 0, 0, 0);
+	set_draw_settings_cached(1, 0, 0, g_draw_tface_mesh_islight, 0, 0, 0);
 
 	if(dt > OB_SOLID || g_draw_tface_mesh_islight==-1) {
 		bProperty *prop = get_property(ob, "Text");

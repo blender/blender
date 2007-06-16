@@ -1234,15 +1234,15 @@ void deselectall_armature(int toggle, int doundo)
 					sel=0;
 					break;
 				}
-			}
-//		}
+//			}
+		}
 	}
 	else sel= toggle;
 	
 	/*	Set the flags */
 	for (eBone=G.edbo.first;eBone;eBone=eBone->next){
 		if (sel==1) {
-			if(arm->layer & eBone->layer) {
+			if(arm->layer & eBone->layer && (eBone->flag & BONE_HIDDEN_A)==0) {
 				eBone->flag |= (BONE_SELECTED | BONE_TIPSEL | BONE_ROOTSEL);
 				if(eBone->parent)
 					eBone->parent->flag |= (BONE_TIPSEL);
@@ -2158,7 +2158,7 @@ void deselectall_posearmature (Object *ob, int test, int doundo)
 	/*	Determine if we're selecting or deselecting	*/
 	if (test==1) {
 		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next)
-			if(pchan->bone->layer & arm->layer)
+			if(pchan->bone->layer & arm->layer && !(pchan->bone->flag & BONE_HIDDEN_P))
 				if(pchan->bone->flag & BONE_SELECTED)
 					break;
 		
@@ -2170,7 +2170,7 @@ void deselectall_posearmature (Object *ob, int test, int doundo)
 	
 	/*	Set the flags accordingly	*/
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if(pchan->bone->layer & arm->layer) {
+		if(pchan->bone->layer & arm->layer && !(pchan->bone->flag & BONE_HIDDEN_P)) {
 			if(selectmode==0) pchan->bone->flag &= ~(BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL|BONE_ACTIVE);
 			else if(selectmode==1) pchan->bone->flag |= BONE_SELECTED;
 			else pchan->bone->flag &= ~BONE_ACTIVE;
