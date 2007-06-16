@@ -102,7 +102,7 @@ static int Text3d_compare( BPy_Text3d * a, BPy_Text3d * b );
 /*PyObject *Text3d_getType(BPy_Text3d *self);*/
 static PyObject *Text3d_getName( BPy_Text3d * self );
 static PyObject *Text3d_setName( BPy_Text3d * self, PyObject * args );
-static PyObject *Text3d_setText( BPy_Text3d * self, PyObject * args );
+static PyObject *Text3d_setText( BPy_Text3d * self, PyObject * value );
 static PyObject *Text3d_getText( BPy_Text3d * self );
 static PyObject *Text3d_getDrawMode( BPy_Text3d * self );
 static PyObject *Text3d_setDrawMode( BPy_Text3d * self, PyObject * args );
@@ -664,11 +664,11 @@ static PyObject *Text3d_setName( BPy_Text3d * self, PyObject * args )
 	return Curve_setName( (BPy_Curve*)self,args );
 }
 
-static PyObject *Text3d_setText( BPy_Text3d * self, PyObject * args )
+static PyObject *Text3d_setText( BPy_Text3d * self, PyObject * value )
 {
-	char *text;
+	char *text = PyString_AsString(value);
 
-	if( !PyArg_ParseTuple( args, "s", &text ) )
+	if( !text )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 				"expected string argument" );
 

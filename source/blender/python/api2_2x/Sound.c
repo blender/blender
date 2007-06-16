@@ -59,7 +59,7 @@
 /* Python API function prototypes for the Sound module.		*/
 /*****************************************************************************/
 static PyObject *M_Sound_Get( PyObject * self, PyObject * args );
-static PyObject *M_Sound_Load( PyObject * self, PyObject * args );
+static PyObject *M_Sound_Load( PyObject * self, PyObject * value );
 
 /************************************************************************/
 /* The following string definitions are used for documentation strings.	*/
@@ -82,7 +82,7 @@ returns None if not found.";
 /*****************************************************************************/
 struct PyMethodDef M_Sound_methods[] = {
 	{"Get", M_Sound_Get, METH_VARARGS, M_Sound_Get_doc},
-	{"Load", M_Sound_Load, METH_VARARGS, M_Sound_Load_doc},
+	{"Load", M_Sound_Load, METH_O, M_Sound_Load_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -265,13 +265,13 @@ static PyObject *M_Sound_Get( PyObject * self, PyObject * args )
 /* Description:		Receives a string and returns the Sound object	 */
 /*			whose filename matches the string.		 */
 /*****************************************************************************/
-static PyObject *M_Sound_Load( PyObject * self, PyObject * args )
+static PyObject *M_Sound_Load( PyObject * self, PyObject * value )
 {
-	char *fname;
+	char *fname = PyString_AsString(value);
 	bSound *snd_ptr;
 	BPy_Sound *snd;
 
-	if( !PyArg_ParseTuple( args, "s", &fname ) )
+	if( !fname )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected string argument" ) );
 

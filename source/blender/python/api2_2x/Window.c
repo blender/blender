@@ -100,7 +100,7 @@ static PyObject *M_Window_GetAreaSize( PyObject * self );
 static PyObject *M_Window_GetAreaID( PyObject * self );
 static PyObject *M_Window_GetScreenSize( PyObject * self );
 static PyObject *M_Window_GetScreens( PyObject * self );
-static PyObject *M_Window_SetScreen( PyObject * self, PyObject * args );
+static PyObject *M_Window_SetScreen( PyObject * self, PyObject * value );
 static PyObject *M_Window_GetScreenInfo( PyObject * self, PyObject * args,
 					 PyObject * kwords );
 PyObject *Window_Init( void );
@@ -362,7 +362,7 @@ struct PyMethodDef M_Window_methods[] = {
 	 M_Window_GetScreenSize_doc},
 	{"GetScreens", ( PyCFunction ) M_Window_GetScreens, METH_NOARGS,
 	 M_Window_GetScreens_doc},
-	{"SetScreen", ( PyCFunction ) M_Window_SetScreen, METH_VARARGS,
+	{"SetScreen", ( PyCFunction ) M_Window_SetScreen, METH_O,
 	 M_Window_SetScreen_doc},
 	{"GetScreenInfo", ( PyCFunction ) M_Window_GetScreenInfo,
 	 METH_VARARGS | METH_KEYWORDS, M_Window_GetScreenInfo_doc},
@@ -1334,12 +1334,12 @@ static PyObject *M_Window_GetScreenSize( PyObject * self )
 }
 
 
-static PyObject *M_Window_SetScreen( PyObject * self, PyObject * args )
+static PyObject *M_Window_SetScreen( PyObject * self, PyObject * value )
 {
 	bScreen *scr = G.main->screen.first;
-	char *name = NULL;
+	char *name = PyString_AsString(value);
 
-	if( !PyArg_ParseTuple( args, "s", &name ) )
+	if( !name )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected string as argument" );
 

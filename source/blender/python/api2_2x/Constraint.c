@@ -1612,18 +1612,17 @@ static PySequenceMethods ConstraintSeq_as_sequence = {
  * helper function to check for a valid constraint argument
  */
 
-static bConstraint *locate_constr( BPy_ConstraintSeq *self, PyObject * args )
+static bConstraint *locate_constr( BPy_ConstraintSeq *self, BPy_Constraint * value )
 {
-	BPy_Constraint *pyobj;
 	bConstraint *con;
 
 	/* check that argument is a modifier */
-	if( !PyArg_ParseTuple( args, "O!", &Constraint_Type, &pyobj ) )
+	if (!BPy_Constraint_Check(value))
 		return (bConstraint *)EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected a constraint as an argument" );
 
 	/* check whether constraint has been removed */
-	if( !pyobj->con )
+	if( !value->con )
 		return (bConstraint *)EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"This constraint has been removed!" );
 
@@ -1632,7 +1631,7 @@ static bConstraint *locate_constr( BPy_ConstraintSeq *self, PyObject * args )
 		con = self->pchan->constraints.first;
 	else
 		con = self->obj->constraints.first;
-	while( con && con != pyobj->con )
+	while( con && con != value->con )
 	   	con = con->next;
 
 	/* if we didn't find it, exception */
@@ -1670,9 +1669,9 @@ static PyObject *ConstraintSeq_append( BPy_ConstraintSeq *self, PyObject *value 
 
 /* move the constraint up in the stack */
 
-static PyObject *ConstraintSeq_moveUp( BPy_ConstraintSeq *self, PyObject *args )
+static PyObject *ConstraintSeq_moveUp( BPy_ConstraintSeq *self, BPy_Constraint *value )
 {
-	bConstraint *con = locate_constr( self,  args );
+	bConstraint *con = locate_constr( self,  value );
 
 	/* if we can't locate the constraint, return (exception already set) */
 	if( !con )
@@ -1684,9 +1683,9 @@ static PyObject *ConstraintSeq_moveUp( BPy_ConstraintSeq *self, PyObject *args )
 
 /* move the constraint down in the stack */
 
-static PyObject *ConstraintSeq_moveDown( BPy_ConstraintSeq *self, PyObject *args )
+static PyObject *ConstraintSeq_moveDown( BPy_ConstraintSeq *self, BPy_Constraint *value )
 {
-	bConstraint *con = locate_constr( self,  args );
+	bConstraint *con = locate_constr( self,  value );
 
 	/* if we can't locate the constraint, return (exception already set) */
 	if( !con )
@@ -1698,10 +1697,9 @@ static PyObject *ConstraintSeq_moveDown( BPy_ConstraintSeq *self, PyObject *args
 
 /* remove an existing constraint */
 
-static PyObject *ConstraintSeq_remove( BPy_ConstraintSeq *self, PyObject *args )
+static PyObject *ConstraintSeq_remove( BPy_ConstraintSeq *self, BPy_Constraint *value )
 {
-	BPy_Constraint *pyobj;
-	bConstraint *con = locate_constr( self,  args );
+	bConstraint *con = locate_constr( self,  value );
 
 	/* if we can't locate the constraint, return (exception already set) */
 	if( !con )
@@ -1715,8 +1713,7 @@ static PyObject *ConstraintSeq_remove( BPy_ConstraintSeq *self, PyObject *args )
 	del_constr_func( self->obj, con );
 
 	/* erase the link to the constraint */
-	pyobj = ( BPy_Constraint * )PyTuple_GET_ITEM( args, 0 );
-	pyobj->con = NULL;
+	value->con = NULL;
 
 	Py_RETURN_NONE;
 }
@@ -1738,11 +1735,11 @@ static PyMethodDef BPy_ConstraintSeq_methods[] = {
 	/* name, method, flags, doc */
 	{"append", ( PyCFunction ) ConstraintSeq_append, METH_O,
 	 "(type) - add a new constraint, where type is the constraint type"},
-	{"remove", ( PyCFunction ) ConstraintSeq_remove, METH_VARARGS,
+	{"remove", ( PyCFunction ) ConstraintSeq_remove, METH_O,
 	 "(con) - remove an existing constraint, where con is a constraint from this object."},
-	{"moveUp", ( PyCFunction ) ConstraintSeq_moveUp, METH_VARARGS,
+	{"moveUp", ( PyCFunction ) ConstraintSeq_moveUp, METH_O,
 	 "(con) - Move constraint up in stack"},
-	{"moveDown", ( PyCFunction ) ConstraintSeq_moveDown, METH_VARARGS,
+	{"moveDown", ( PyCFunction ) ConstraintSeq_moveDown, METH_O,
 	 "(con) - Move constraint down in stack"},
 	{NULL, NULL, 0, NULL}
 };

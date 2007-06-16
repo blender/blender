@@ -51,7 +51,7 @@
 /*****************************************************************************/
 static PyObject *M_Text_New( PyObject * self, PyObject * args);
 static PyObject *M_Text_Get( PyObject * self, PyObject * args );
-static PyObject *M_Text_Load( PyObject * self, PyObject * args );
+static PyObject *M_Text_Load( PyObject * self, PyObject * value );
 static PyObject *M_Text_unlink( PyObject * self, PyObject * args );
 
 /*****************************************************************************/
@@ -81,7 +81,7 @@ struct PyMethodDef M_Text_methods[] = {
 	{"New", M_Text_New, METH_VARARGS, M_Text_New_doc},
 	{"Get", M_Text_Get, METH_VARARGS, M_Text_Get_doc},
 	{"get", M_Text_Get, METH_VARARGS, M_Text_Get_doc},
-	{"Load", M_Text_Load, METH_VARARGS, M_Text_Load_doc},
+	{"Load", M_Text_Load, METH_O, M_Text_Load_doc},
 	{"unlink", M_Text_unlink, METH_VARARGS, M_Text_unlink_doc},
 	{NULL, NULL, 0, NULL}
 };
@@ -93,7 +93,7 @@ struct PyMethodDef M_Text_methods[] = {
 static PyObject *Text_getFilename( BPy_Text * self );
 static PyObject *Text_getNLines( BPy_Text * self );
 static PyObject *Text_clear( BPy_Text * self );
-static PyObject *Text_write( BPy_Text * self, PyObject * args );
+static PyObject *Text_write( BPy_Text * self, PyObject * value );
 static PyObject *Text_set( BPy_Text * self, PyObject * args );
 static PyObject *Text_asLines( BPy_Text * self );
 
@@ -112,7 +112,7 @@ static PyMethodDef BPy_Text_methods[] = {
 	 "(str) - Change Text Object name"},
 	{"clear", ( PyCFunction ) Text_clear, METH_NOARGS,
 	 "() - Clear Text buffer"},
-	{"write", ( PyCFunction ) Text_write, METH_VARARGS,
+	{"write", ( PyCFunction ) Text_write, METH_O,
 	 "(line) - Append string 'str' to Text buffer"},
 	{"set", ( PyCFunction ) Text_set, METH_VARARGS,
 	 "(name, val) - Set attribute 'name' to value 'val'"},
@@ -240,14 +240,14 @@ static PyObject *M_Text_Get( PyObject * self, PyObject * args )
 /* Description:           Receives a filename and returns the text object    */
 /*                        created from the corresponding file.               */
 /*****************************************************************************/
-static PyObject *M_Text_Load( PyObject * self, PyObject * args )
+static PyObject *M_Text_Load( PyObject * self, PyObject * value )
 {
-	char *fname = NULL;
+	char *fname = PyString_AsString(value);
 	char fpath[FILE_MAXDIR + FILE_MAXFILE];
 	Text *txt_ptr = NULL;
 	unsigned int maxlen = FILE_MAXDIR + FILE_MAXFILE;
 
-	if( !PyArg_ParseTuple( args, "s", &fname ) )
+	if( !fname )
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 						"expected string argument" ) );
 
@@ -413,16 +413,16 @@ static PyObject *Text_set( BPy_Text * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
-static PyObject *Text_write( BPy_Text * self, PyObject * args )
+static PyObject *Text_write( BPy_Text * self, PyObject * value )
 {
-	char *str;
+	char *str = PyString_AsString(value);
 	int oldstate;
 
 	if( !self->text )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "This object isn't linked to a Blender Text Object" );
 
-	if( !PyArg_ParseTuple( args, "s", &str ) )
+	if( !str )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected string argument" );
 

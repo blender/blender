@@ -1261,24 +1261,23 @@ static PySequenceMethods ModSeq_as_sequence = {
  * helper function to check for a valid modifier argument
  */
 
-static ModifierData *locate_modifier( BPy_ModSeq *self, PyObject * args )
+static ModifierData *locate_modifier( BPy_ModSeq *self, BPy_Modifier * value )
 {
-	BPy_Modifier *pyobj;
 	ModifierData *md;
 
 	/* check that argument is a modifier */
-	if( !PyArg_ParseTuple( args, "O!", &Modifier_Type, &pyobj ) )
+	if( !BPy_Modifier_Check(value) )
 		return (ModifierData *)EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected an modifier as an argument" );
 
 	/* check whether modifier has been removed */
-	if( !pyobj->md )
+	if( !value->md )
 		return (ModifierData *)EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"This modifier has been removed!" );
 
 	/* find the modifier in the object's list */
 	for( md = self->object->modifiers.first; md; md = md->next )
-		if( md == pyobj->md )
+		if( md == value->md )
 			return md;
 
 	/* return exception if we can't find the modifier */
@@ -1288,18 +1287,14 @@ static ModifierData *locate_modifier( BPy_ModSeq *self, PyObject * args )
 
 /* create a new modifier at the end of the list */
 
-static PyObject *ModSeq_append( BPy_ModSeq *self, PyObject *args )
+static PyObject *ModSeq_append( BPy_ModSeq *self, PyObject *value )
 {
-	int type;
-
-	if( !PyArg_ParseTuple( args, "i", &type ) )
-		return EXPP_ReturnPyObjError( PyExc_TypeError,
-				"expected int argument" );
-
+	int type = PyInt_AsLong(value);
+	
 	/* type 0 is eModifierType_None, should we be able to add one of these? */
 	if( type <= 0 || type >= NUM_MODIFIER_TYPES )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
-				"int argument out of range, expected an int from Blender.Modifier.Type" );
+				"Not an int or argument out of range, expected an int from Blender.Modifier.Type" );
 	
 	BLI_addtail( &self->object->modifiers, modifier_new( type ) );
 	return Modifier_CreatePyObject( self->object, self->object->modifiers.last );
@@ -1307,10 +1302,9 @@ static PyObject *ModSeq_append( BPy_ModSeq *self, PyObject *args )
 
 /* remove an existing modifier */
 
-static PyObject *ModSeq_remove( BPy_ModSeq *self, PyObject *args )
+static PyObject *ModSeq_remove( BPy_ModSeq *self, BPy_Modifier *value )
 {
-	ModifierData *md = locate_modifier( self, args );
-	BPy_Modifier *py_obj;
+	ModifierData *md = locate_modifier( self, value );
 
 	/* if we can't locate the modifier, return (exception already set) */
 	if( !md )
@@ -1321,17 +1315,16 @@ static PyObject *ModSeq_remove( BPy_ModSeq *self, PyObject *args )
 	modifier_free( md );
 
 	/* erase the link to the modifier */
-	py_obj = ( BPy_Modifier * )PyTuple_GET_ITEM( args, 0 );
-	py_obj->md = NULL;
+	value->md = NULL;
 
 	Py_RETURN_NONE;
 }
 
 /* move the modifier up in the stack */
 
-static PyObject *ModSeq_moveUp( BPy_ModSeq * self, PyObject * args )
+static PyObject *ModSeq_moveUp( BPy_ModSeq * self, BPy_Modifier * value )
 {
-	ModifierData *md = locate_modifier( self, args );
+	ModifierData *md = locate_modifier( self, value );
 
 	/* if we can't locate the modifier, return (exception already set) */
 	if( !md )
@@ -1346,9 +1339,9 @@ static PyObject *ModSeq_moveUp( BPy_ModSeq * self, PyObject * args )
 
 /* move the modifier down in the stack */
 
-static PyObject *ModSeq_moveDown( BPy_ModSeq * self, PyObject *args )
+static PyObject *ModSeq_moveDown( BPy_ModSeq * self, BPy_Modifier *value )
 {
-	ModifierData *md = locate_modifier( self, args );
+	ModifierData *md = locate_modifier( self, value );
 
 	/* if we can't locate the modifier, return (exception already set) */
 	if( !md )
@@ -1366,13 +1359,13 @@ static PyObject *ModSeq_moveDown( BPy_ModSeq * self, PyObject *args )
 /*****************************************************************************/
 static PyMethodDef BPy_ModSeq_methods[] = {
 	/* name, method, flags, doc */
-	{"append", ( PyCFunction ) ModSeq_append, METH_VARARGS,
+	{"append", ( PyCFunction ) ModSeq_append, METH_O,
 	 "(type) - add a new modifier, where type is the type of modifier"},
-	{"remove", ( PyCFunction ) ModSeq_remove, METH_VARARGS,
+	{"remove", ( PyCFunction ) ModSeq_remove, METH_O,
 	 "(modifier) - remove an existing modifier, where modifier is a modifier from this object."},
-	{"moveUp", ( PyCFunction ) ModSeq_moveUp, METH_VARARGS,
+	{"moveUp", ( PyCFunction ) ModSeq_moveUp, METH_O,
 	 "(modifier) - Move a modifier up in stack"},
-	{"moveDown", ( PyCFunction ) ModSeq_moveDown, METH_VARARGS,
+	{"moveDown", ( PyCFunction ) ModSeq_moveDown, METH_O,
 	 "(modifier) - Move a modifier down in stack"},
 	{NULL, NULL, 0, NULL}
 };

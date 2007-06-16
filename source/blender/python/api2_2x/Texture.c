@@ -498,7 +498,7 @@ static int Texture_setNoiseBasis2( BPy_Texture *self, PyObject *args,
 								
 static PyObject *Texture_getColorband( BPy_Texture * self);
 int Texture_setColorband( BPy_Texture * self, PyObject * value);
-static PyObject *Texture_evaluate( BPy_Texture *self, PyObject *args );
+static PyObject *Texture_evaluate( BPy_Texture *self, VectorObject *vec_in );
 static PyObject *Texture_copy( BPy_Texture *self );
 
 /*****************************************************************************/
@@ -542,7 +542,7 @@ static PyMethodDef BPy_Texture_methods[] = {
 	 "(s) - Set Dist Noise"},
 	{"setDistMetric", ( PyCFunction ) Texture_oldsetDistMetric, METH_VARARGS,
 	 "(s) - Set Dist Metric"},
-	{"evaluate", ( PyCFunction ) Texture_evaluate, METH_VARARGS,
+	{"evaluate", ( PyCFunction ) Texture_evaluate, METH_O,
 	 "(vector) - evaluate the texture at this position"},
 	{"__copy__", ( PyCFunction ) Texture_copy, METH_NOARGS,
 	 "() - return a copy of the the texture"},
@@ -2704,14 +2704,13 @@ int Texture_setColorband( BPy_Texture * self, PyObject * value)
 	return EXPP_Colorband_fromPyList( &self->texture->coba, value );
 }
 
-static PyObject *Texture_evaluate( BPy_Texture * self, PyObject * args )
+static PyObject *Texture_evaluate( BPy_Texture * self, VectorObject * vec_in )
 {
-	VectorObject *vec_in = NULL;
 	TexResult texres= {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, NULL};
 	float vec[4];
 	/* int rgbnor; dont use now */
 	
-	if(!PyArg_ParseTuple(args, "O!", &vector_Type, &vec_in) || vec_in->size < 3)
+	if(!VectorObject_Check(vec_in) || vec_in->size < 3)
 		return EXPP_ReturnPyObjError(PyExc_TypeError, 
 			"expects a 3D vector object");
 	
