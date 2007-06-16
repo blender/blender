@@ -136,11 +136,12 @@ static PyObject *M_Font_Get( PyObject * self, PyObject * args )
 		while( vfont_iter ) {
 			pyobj = Font_CreatePyObject( vfont_iter );
 
-			if( !pyobj )
+			if( !pyobj ) {
+				Py_DECREF(vfontlist);
 				return ( EXPP_ReturnPyObjError
 					 ( PyExc_MemoryError,
 					   "couldn't create Object" ) );
-
+			}
 			PyList_SET_ITEM( vfontlist, index, pyobj );
 
 			vfont_iter = vfont_iter->id.next;
@@ -166,7 +167,7 @@ PyObject *M_Font_Load( PyObject * self, PyObject * args )
 	/*create python font*/
 	if( !S_ISDIR(BLI_exist(filename_str)) )  {
 		tmp= Py_BuildValue("(s)", filename_str);
-		py_font= (BPy_Font *) M_Text3d_LoadFont (self, Py_BuildValue("(s)", filename_str));
+		py_font= (BPy_Font *) M_Text3d_LoadFont (self, tmp);
 		Py_DECREF (tmp);
 	}
 	else
@@ -374,7 +375,7 @@ static PyObject *Font_repr( BPy_Font * self )
 		return PyString_FromFormat( "[Font \"%s\"]",
 					    self->font->id.name+2 );
 	else
-		return PyString_FromString( "NULL" );
+		return PyString_FromString( "[Font - no data]" );
 }
 
 /*--------------- compare------------------------------------------*/

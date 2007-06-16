@@ -2989,12 +2989,14 @@ static PyObject *Object_getDupliObjects( BPy_Object * self )
 			if( !list )
 				return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 						"PyList_New() failed" );
-
-			for(dupob= duplilist->first, index=0; dupob; dupob= dupob->next, index++)
-				PyList_SetItem( list, index, Py_BuildValue( "(OO)",
-							Object_CreatePyObject(dupob->ob),
-							newMatrixObject((float*)dupob->mat,4,4,Py_NEW) ) );
-
+			
+			for(dupob= duplilist->first, index=0; dupob; dupob= dupob->next, index++) {
+				pair = PyTuple_New( 2 );
+				
+				PyTuple_SET_ITEM( pair, 0, Object_CreatePyObject(dupob->ob) );
+				PyTuple_SET_ITEM( pair, 1, newMatrixObject((float*)dupob->mat,4,4,Py_NEW) );
+				PyList_SET_ITEM( list, index, pair);
+			}
 			free_object_duplilist(duplilist);
 			return list;
 		}
@@ -3019,7 +3021,7 @@ static int Object_setDupliGroup( BPy_Object * self, PyObject * value )
 
 static PyObject *Object_getEffects( BPy_Object * self )
 {
-	PyObject *effect_list;
+	PyObject *effect_list, *pyval;
 	Effect *eff;
 
 	effect_list = PyList_New( 0 );
@@ -3030,7 +3032,9 @@ static PyObject *Object_getEffects( BPy_Object * self )
 	eff = self->object->effect.first;
 
 	while( eff ) {
-		PyList_Append( effect_list, EffectCreatePyObject( eff, self->object ) );
+		pyval = EffectCreatePyObject( eff, self->object );
+		PyList_Append( effect_list, pyval );
+		Py_DECREF(pyval);
 		eff = eff->next;
 	}
 	return effect_list;
@@ -4943,7 +4947,7 @@ static PyGetSetDef BPy_Object_getseters[] = {
 	 (void *)OB_DUPLINOSPEED},
 	{"DupObjects",
 	 (getter)Object_getDupliObjects, (setter)NULL,
-	 "Get a list of tuples for object duplicated by dupliframe",
+	 "Get a list of tuple pairs (object, matrix), for getting dupli objects",
 	 NULL},
 	{"DupGroup",
 	 (getter)Object_getDupliGroup, (setter)Object_setDupliGroup,

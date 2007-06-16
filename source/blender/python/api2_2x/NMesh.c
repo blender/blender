@@ -524,19 +524,23 @@ static PyObject *new_NMFace( PyObject * vertexlist )
 
 		vlcopy = PyList_New( len );
 
-		if( !vlcopy )
+		if( !vlcopy ) {
+			Py_DECREF(mf);
 			return EXPP_ReturnPyObjError( PyExc_MemoryError,
 						      "couldn't create PyList" );
-
+		}
 		for( i = 0; i < len; i++ ) {
 			item = PySequence_GetItem( vertexlist, i );	/* PySequence increfs */
 
 			if( item )
 				PyList_SET_ITEM( vlcopy, i, item );
-			else
+			else {
+				Py_DECREF(mf);
+				Py_DECREF(vlcopy);
 				return EXPP_ReturnPyObjError
 					( PyExc_RuntimeError,
 					  "couldn't get vertex from a PyList" );
+			}
 		}
 	} else			/* create an empty vertex list */
 		vlcopy = PyList_New( 0 );
@@ -580,7 +584,7 @@ static PyObject *NMFace_append( PyObject * self, PyObject * args )
 
 	PyList_Append( f->v, vert );
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 #undef MethodDef
@@ -614,7 +618,7 @@ static PyObject *NMFace_getattr( PyObject * self, char *name )
 		if( mf->image )
 			return Image_CreatePyObject( mf->image );
 		else
-			return EXPP_incr_ret( Py_None );
+			Py_RETURN_NONE;
 	}
 
 	else if( strcmp( name, "mode" ) == 0 )
@@ -1167,7 +1171,7 @@ static PyObject *NMesh_setMaterials( PyObject * self, PyObject * args )
 	Py_DECREF( me->materials );
 	me->materials = EXPP_incr_ret( pymats );
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static PyObject *NMesh_addMaterial( PyObject * self, PyObject * args )
@@ -1198,7 +1202,7 @@ static PyObject *NMesh_addMaterial( PyObject * self, PyObject * args )
 
 	PyList_Append( me->materials, ( PyObject * ) pymat );
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static PyObject *NMesh_getKey( BPy_NMesh * self )
@@ -1267,40 +1271,39 @@ static PyObject *NMesh_insertKey( PyObject * self, PyObject * args )
 	if( fra > 0 )
 		G.scene->r.cfra = (int)oldfra;
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static PyObject *NMesh_getSelectedFaces( PyObject * self, PyObject * args )
 {
 	BPy_NMesh *nm = ( BPy_NMesh * ) self;
 	Mesh *me = nm->mesh;
-	int flag = 0;
-
-	MTFace *tf;
-	int i;
-	PyObject *l = PyList_New( 0 );
-
-	if( me == NULL )
-		return NULL;
-
-	tf = me->mtface;
-	if( tf == 0 )
-		return l;
+	int i, totfaces, flag = 0;
+	PyObject *l, *pyval;
 
 	if( !PyArg_ParseTuple( args, "|i", &flag ) )
-		return NULL;
-
+		return EXPP_ReturnPyObjError( PyExc_ValueError,
+					      "expected int argument (or nothing)" );
+	
+	l = PyList_New( 0 );
+	if( me == NULL || me->mface == NULL)
+		return l;
+	
+	/* make sure not to write more faces then we have */
+	totfaces= MIN2(me->totface, PySequence_Length(nm->faces));
+	
 	if( flag ) {
-		for( i = 0; i < me->totface; i++ ) {
-			if( tf[i].flag & TF_SELECT )
-				PyList_Append( l, PyInt_FromLong( i ) );
+		for( i = 0; i < totfaces; i++ ) {
+			if( me->mface[i].flag & ME_FACE_SEL ) {
+				pyval = PyInt_FromLong( i );
+				PyList_Append( l, pyval );
+				Py_DECREF(pyval);
+			}
 		}
 	} else {
-		for( i = 0; i < me->totface; i++ ) {
-			if( tf[i].flag & TF_SELECT )
-				PyList_Append( l,
-					       PyList_GetItem( nm->faces,
-							       i ) );
+		for( i = 0; i < totfaces; i++ ) {
+			if( me->mface[i].flag & ME_FACE_SEL )
+				PyList_Append( l, PyList_GetItem( nm->faces, i ) );
 		}
 	}
 	return l;
@@ -1309,7 +1312,7 @@ static PyObject *NMesh_getSelectedFaces( PyObject * self, PyObject * args )
 static PyObject *NMesh_getActiveFace( PyObject * self )
 {
 	if( ( ( BPy_NMesh * ) self )->sel_face < 0 )
-		return EXPP_incr_ret( Py_None );
+		Py_RETURN_NONE;
 
 	return Py_BuildValue( "i", ( ( BPy_NMesh * ) self )->sel_face );
 }
@@ -1573,8 +1576,7 @@ static PyObject *NMesh_setMaxSmoothAngle( PyObject * self, PyObject * args )
 		( short ) EXPP_ClampInt( value, NMESH_SMOOTHRESH_MIN,
 					 NMESH_SMOOTHRESH_MAX );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *NMesh_getSubDivLevels( BPy_NMesh * self )
@@ -1606,8 +1608,7 @@ static PyObject *NMesh_setSubDivLevels( PyObject * self, PyObject * args )
 		( short ) EXPP_ClampInt( render, NMESH_SUBDIV_MIN,
 					 NMESH_SUBDIV_MAX );
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 static PyObject *NMesh_getMode( BPy_NMesh * self )
@@ -1659,8 +1660,7 @@ static PyObject *NMesh_setMode( PyObject * self, PyObject * args )
 
 	nmesh->mode = mode;
 
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }
 
 /* METH_VARARGS: function(PyObject *self, PyObject *args) */
@@ -2434,11 +2434,13 @@ static PyObject *M_NMesh_GetRaw( PyObject * self, PyObject * args )
 
 static PyObject *M_NMesh_GetNames(PyObject *self)
 {
-	PyObject *names = PyList_New(0);
+	PyObject *names = PyList_New(0), *tmpstr;
 	Mesh *me = G.main->mesh.first;
 
 	while (me) {
-		PyList_Append(names, PyString_FromString(me->id.name+2));
+		tmpstr = PyString_FromString(me->id.name+2);
+		PyList_Append(names, tmpstr);
+		Py_DECREF(tmpstr);
 		me = me->id.next;
 	}
 
@@ -2822,7 +2824,7 @@ PyObject *NMesh_assignMaterials_toObject( BPy_NMesh * nmesh, Object * ob )
 	ob->colbits = old_matmask;	/*@ HACK */
 
 	ob->actcol = 1;
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static void fill_medge_from_nmesh(Mesh * mesh, BPy_NMesh * nmesh)
@@ -3188,7 +3190,7 @@ static PyObject *M_NMesh_PutRaw( PyObject * self, PyObject * args )
 			EXPP_newMaterialList_fromPyList( nmesh->materials );
 		EXPP_incr_mats_us( mesh->mat,
 				   PyList_Size( nmesh->materials ) );
-		return EXPP_incr_ret( Py_None );
+		Py_RETURN_NONE;
 	}
 
 }
@@ -3416,7 +3418,7 @@ static PyObject *findEdge( BPy_NMesh *nmesh, BPy_NMVert *v1, BPy_NMVert *v2, int
     return newEdge;
   }
   else
-    return EXPP_incr_ret( Py_None );
+    Py_RETURN_NONE;
 }
 
 static void removeEdge( BPy_NMesh *nmesh, BPy_NMVert *v1, BPy_NMVert *v2, int ununsedOnly)
@@ -3521,7 +3523,7 @@ static PyObject *NMesh_removeEdge( PyObject * self, PyObject * args )
 					      "vertices must be different" );
   removeEdge(bmesh, v1, v2, 0);
 
-  return EXPP_incr_ret( Py_None );
+  Py_RETURN_NONE;
 }
 
 
@@ -3574,7 +3576,7 @@ static PyObject *NMesh_addFace( PyObject * self, PyObject * args )
       return edges;
     }
 
-  return EXPP_incr_ret( Py_None );
+  Py_RETURN_NONE;
 }
 
 static PyObject *NMesh_removeFace( PyObject * self, PyObject * args )
@@ -3621,7 +3623,7 @@ static PyObject *NMesh_removeFace( PyObject * self, PyObject * args )
       }
     }
 
-  return EXPP_incr_ret( Py_None );
+  Py_RETURN_NONE;
 }
 
 static PyObject *NMesh_printDebug( PyObject * self )
@@ -3670,7 +3672,7 @@ static PyObject *NMesh_printDebug( PyObject * self )
     }
   }
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static PyObject *NMesh_addVertGroup( PyObject * self, PyObject * args )
@@ -3697,7 +3699,7 @@ static PyObject *NMesh_addVertGroup( PyObject * self, PyObject * args )
 
 	EXPP_allqueue( REDRAWBUTSALL, 1 );
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static PyObject *NMesh_removeVertGroup( PyObject * self, PyObject * args )
@@ -3733,7 +3735,7 @@ static PyObject *NMesh_removeVertGroup( PyObject * self, PyObject * args )
 
 	EXPP_allqueue( REDRAWBUTSALL, 1 );
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static PyObject *NMesh_assignVertsToGroup( PyObject * self, PyObject * args )
@@ -3805,19 +3807,21 @@ static PyObject *NMesh_assignVertsToGroup( PyObject * self, PyObject * args )
 		if( !
 		    ( PyArg_Parse
 		      ( ( PyList_GetItem( listObject, x ) ), "i",
-			&tempInt ) ) )
+			&tempInt ) ) ) {
 			return EXPP_ReturnPyObjError( PyExc_TypeError,
 						      "python list integer not parseable" );
+		}
 
 		if( tempInt < 0
-		    || tempInt >= ( ( Mesh * ) object->data )->totvert )
+		    || tempInt >= ( ( Mesh * ) object->data )->totvert ) {
 			return EXPP_ReturnPyObjError( PyExc_ValueError,
 						      "bad vertex index in list" );
+		}
 
 		add_vert_defnr( object, nIndex, tempInt, weight, assignmode );
 	}
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static PyObject *NMesh_removeVertsFromGroup( PyObject * self, PyObject * args )
@@ -3903,7 +3907,7 @@ static PyObject *NMesh_removeVertsFromGroup( PyObject * self, PyObject * args )
 		}
 	}
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static PyObject *NMesh_getVertsFromGroup( PyObject * self, PyObject * args )
@@ -4010,16 +4014,18 @@ static PyObject *NMesh_getVertsFromGroup( PyObject * self, PyObject * args )
 			if( !
 			    ( PyArg_Parse
 			      ( ( PyList_GetItem( listObject, x ) ), "i",
-				&tempInt ) ) )
+				&tempInt ) ) ) {
+				Py_DECREF(tempVertexList);
 				return EXPP_ReturnPyObjError( PyExc_TypeError,
 							      "python list integer not parseable" );
-
+			}
 			if( tempInt < 0
 			    || tempInt >=
-			    ( ( Mesh * ) object->data )->totvert )
+			    ( ( Mesh * ) object->data )->totvert ) {
+				Py_DECREF(tempVertexList);
 				return EXPP_ReturnPyObjError( PyExc_ValueError,
 							      "bad vertex index in list" );
-
+			}
 			num = tempInt;
 			dvert = ( ( Mesh * ) object->data )->dvert + num;
 			for( i = 0; i < dvert->totweight; i++ ) {
@@ -4089,13 +4095,13 @@ static PyObject *NMesh_renameVertGroup( PyObject * self, PyObject * args )
 	PyOS_snprintf( defGroup->name, 32, newGr );
 	unique_vertexgroup_name( defGroup, ( ( BPy_NMesh * ) self )->object );
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 static PyObject *NMesh_getVertGroupNames( PyObject * self )
 {
 	bDeformGroup *defGroup;
-	PyObject *list;
+	PyObject *list, *tmpstr;
 
 	if( !( ( BPy_NMesh * ) self )->object )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -4103,11 +4109,15 @@ static PyObject *NMesh_getVertGroupNames( PyObject * self )
 
 	list = PyList_New( 0 );
 	for( defGroup = ( ( ( BPy_NMesh * ) self )->object )->defbase.first;
-	     defGroup; defGroup = defGroup->next ) {
-		if( PyList_Append
-		    ( list, PyString_FromString( defGroup->name ) ) < 0 )
-			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-						      "Couldn't add item to list" );
+				defGroup; defGroup = defGroup->next ) {
+		
+		tmpstr = PyString_FromString( defGroup->name );
+		if( PyList_Append( list,  tmpstr) < 0 ) {
+			Py_XDECREF(list);
+			Py_XDECREF(tmpstr);
+			return EXPP_ReturnPyObjError( PyExc_RuntimeError, "Couldn't add item to list" );
+		}
+		Py_XDECREF(tmpstr);
 	}
 
 	return list;
@@ -4178,6 +4188,5 @@ static PyObject *NMesh_transform (PyObject *self, PyObject *args)
 
 	/* should we alternatively return a list of changed verts (and preserve
 	 * the original ones) ? */
-	Py_INCREF( Py_None );
-	return Py_None;
+	Py_RETURN_NONE;
 }

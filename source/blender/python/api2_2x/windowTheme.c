@@ -643,11 +643,12 @@ static PyObject *M_Theme_Get( PyObject * self, PyObject * args )
 			pytheme = PyObject_New( BPy_Theme, &Theme_Type );
 			pytheme->theme = iter;
 
-			if( !pytheme )
+			if( !pytheme ) {
+				Py_DECREF(list);
 				return EXPP_ReturnPyObjError
 					( PyExc_MemoryError,
 					  "couldn't create Theme PyObject" );
-
+			}
 			PyList_SET_ITEM( list, index, ( PyObject * ) pytheme );
 
 			iter = iter->next;
@@ -685,8 +686,7 @@ static PyObject *Theme_get( BPy_Theme * self, PyObject * args )
 
 		while( type < EXPP_THEME_NUMBEROFTHEMES ) {
 			PyList_SET_ITEM( ret, type,
-					 PyString_FromString( themes_map[type].
-							      sval ) );
+					 PyString_FromString( themes_map[type].sval ) );
 			type++;
 		}
 

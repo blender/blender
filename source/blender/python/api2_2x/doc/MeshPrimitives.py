@@ -42,10 +42,10 @@ def Cube(size=2.0):
   @return: returns a mesh object.
   """
 
-def Circle(verts=32,diameter=2.8284):
+def Circle(verts=32,diameter=2.0):
   """
   Construct a circle mesh.  The defaults create a circle with a
-  diameter of 2*sqrt(2) Blender units, identical to the Blender UI.
+  diameter of 2 Blender units, identical to the Blender UI.
   @type verts: int
   @param verts: optional number of vertices for the circle.  
   Value must be in the range [3,100].
@@ -55,10 +55,10 @@ def Circle(verts=32,diameter=2.8284):
   @return: returns a mesh object.
   """
 
-def Cylinder(verts=32, diameter=2.8284, length=1.0):
+def Cylinder(verts=32, diameter=2.0, length=2.0):
   """
   Construct a cylindrical mesh (ends filled).  The defaults create a
-  cylinder with a diameter of 2*sqrt(2) Blender units and length 1 unit,
+  cylinder with a diameter of 2 Blender units and length 2 units,
   identical to the Blender UI.
   @type verts: int
   @param verts: optional number of vertices in the cylinder's perimeter.
@@ -71,10 +71,10 @@ def Cylinder(verts=32, diameter=2.8284, length=1.0):
   @return: returns a mesh object.
   """
 
-def Tube(verts=32, diameter=2.8284, length=1.0):
+def Tube(verts=32, diameter=2.0, length=2.0):
   """
   Construct a cylindrical mesh (ends not filled).  The defaults create a
-  cylinder with a diameter of 2*sqrt(2) Blender units and length 1 unit, identical
+  cylinder with a diameter of 2 Blender units and length 2 units, identical
   to the Blender UI.
   @type verts: int
   @param verts: optional number of vertices in the tube's perimeter.
@@ -87,11 +87,11 @@ def Tube(verts=32, diameter=2.8284, length=1.0):
   @return: returns a mesh object.
   """
 
-def Cone(verts=32, diameter=2.8284, length=1.0):
+def Cone(verts=32, diameter=2.0, length=2.0):
   """
   Construct a conic mesh (ends filled).  The defaulte create a cone with a
-  base diameter of 2*sqrt(2) Blender units and length 1 unit, identical to the Blender
-  UI.
+  base diameter of 2 Blender units and length 2 units, identical to
+  the Blender UI.
   @type verts: int
   @param verts: optional number of vertices in the cone's perimeter.
   Value must be in the range [3,100].
@@ -119,10 +119,10 @@ def Grid(xres=32, yres=32, size=2.0):
   @return: returns a mesh object.
   """
 
-def UVsphere(segments=32, rings=32, diameter=2.8284):
+def UVsphere(segments=32, rings=32, diameter=2.0):
   """
   Construct a UV sphere mesh.  The defaults create a 32 by 32 sphere with
-  a diameter of 2*sqrt(2) Blender units, identical to the Blender UI.
+  a diameter of 2 Blender units, identical to the Blender UI.
   @type segments: int
   @param segments: optional number of longitudinal divisions.
   Value must be in the range [3,100].
@@ -135,10 +135,10 @@ def UVsphere(segments=32, rings=32, diameter=2.8284):
   @return: returns a mesh object.
   """
 
-def Icosphere(subdivisions=2, diameter=2.82824):
+def Icosphere(subdivisions=2, diameter=2.0):
   """
   Construct a Icosphere mesh.  The defaults create sphere with 2 subdivisions
-  and diameter of 2*sqrt(2) Blender units, identical to the Blender UI.
+  and diameter of 2 Blender units, identical to the Blender UI.
   @type subdivisions: int
   @param subdivisions: optional number of subdivisions.
   Value must be in the range [2,5].

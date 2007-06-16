@@ -218,11 +218,12 @@ static PyObject *M_Text_Get( PyObject * self, PyObject * args )
 		while( txt_iter ) {
 			pyobj = Text_CreatePyObject( txt_iter );
 
-			if( !pyobj )
+			if( !pyobj ) {
+				Py_DECREF(txtlist);
 				return ( EXPP_ReturnPyObjError
 					 ( PyExc_MemoryError,
 					   "couldn't create PyString" ) );
-
+			}
 			PyList_SET_ITEM( txtlist, index, pyobj );
 
 			txt_iter = txt_iter->id.next;
@@ -436,7 +437,7 @@ static PyObject *Text_write( BPy_Text * self, PyObject * args )
 static PyObject *Text_asLines( BPy_Text * self )
 {
 	TextLine *line;
-	PyObject *list, *ob;
+	PyObject *list, *tmpstr;
 
 	if( !self->text )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -450,8 +451,9 @@ static PyObject *Text_asLines( BPy_Text * self )
 					      "couldn't create PyList" );
 
 	while( line ) {
-		ob = Py_BuildValue( "s", line->line );
-		PyList_Append( list, ob );
+		tmpstr = PyString_FromString( line->line );
+		PyList_Append( list, tmpstr );
+		Py_DECREF(tmpstr);
 		line = line->next;
 	}
 

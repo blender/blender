@@ -166,11 +166,11 @@ static PyObject *M_Lattice_New( PyObject * self, PyObject * args )
 					      "expected string and int arguments (or nothing)" );
 
 	bl_Lattice = add_lattice( "Lattice" );
-	bl_Lattice->id.us = 0;
 
-	if( bl_Lattice )
+	if( bl_Lattice ) {
+		bl_Lattice->id.us = 0;
 		py_Lattice = Lattice_CreatePyObject( bl_Lattice );
-	else
+	} else
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "couldn't create Lattice Object in Blender" );
 	if( !py_Lattice )
@@ -235,11 +235,12 @@ static PyObject *M_Lattice_Get( PyObject * self, PyObject * args )
 		while( lat_iter ) {
 			pyobj = Lattice_CreatePyObject( lat_iter );
 
-			if( !pyobj )
+			if( !pyobj ) {
+				Py_DECREF(latlist);
 				return ( EXPP_ReturnPyObjError
 					 ( PyExc_MemoryError,
 					   "couldn't create PyString" ) );
-
+			}
 			PyList_SET_ITEM( latlist, index, pyobj );
 
 			lat_iter = lat_iter->id.next;
@@ -677,7 +678,7 @@ static PyObject *Lattice_getLatSize(BPy_Lattice * self)
 
 static PyObject *Lattice_getAxisType(BPy_Lattice * self, void * type)
 {
-	char interp_type = (char)NULL;
+	char interp_type = 0;
 	switch ( (int)type ) {
 	case 0:
 		interp_type = self->lattice->typeu;

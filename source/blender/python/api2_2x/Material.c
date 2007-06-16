@@ -309,11 +309,12 @@ static PyObject *M_Material_Get( PyObject * self, PyObject * args )
 		while( mat_iter ) {
 			pyobj = Material_CreatePyObject( mat_iter );
 
-			if( !pyobj )
+			if( !pyobj ) {
+				Py_DECREF(matlist);
 				return ( EXPP_ReturnPyObjError
 					 ( PyExc_MemoryError,
 					   "couldn't create PyObject" ) );
-
+			}
 			PyList_SET_ITEM( matlist, index, pyobj );
 
 			mat_iter = mat_iter->id.next;
@@ -3329,7 +3330,7 @@ static PyObject *Matr_oldsetMode( BPy_Material * self, PyObject * args )
 			   "expected nothing, an integer or up to 22 string argument(s)" ) );
 	/* build tuple, call wrapper */
 
-	value = Py_BuildValue( "(i)", flag );
+	value = PyInt_FromLong( (long)flag );
 	error = EXPP_setterWrapper( (void *)self, value, (setter)Material_setMode );
 	Py_DECREF ( value );
 	return error;

@@ -389,7 +389,7 @@ static PyObject *M_Image_Load( PyObject * self, PyObject * args )
 static PyObject *Image_getPixelF( BPy_Image * self, PyObject * args )
 {
 
-	PyObject *attr = PyList_New(4);
+	PyObject *attr;
 	ImBuf *ibuf= BKE_image_get_ibuf(self->image, NULL);
 	char *pixel;		/* image data */
 	int index;		/* offset into image data */
@@ -397,10 +397,6 @@ static PyObject *Image_getPixelF( BPy_Image * self, PyObject * args )
 	int y = 0;
 	int pixel_size = 4;	/* each pixel is 4 x 8-bits packed in unsigned int */
 	int i;
-
-	if (!attr)
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't allocate memory for color list" );
 	
 	if( !PyArg_ParseTuple( args, "ii", &x, &y ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
@@ -425,6 +421,12 @@ static PyObject *Image_getPixelF( BPy_Image * self, PyObject * args )
 	   so we calc ourselves
 	 */
 
+	attr = PyList_New(4);
+	
+	if (!attr)
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				      "couldn't allocate memory for color list" );
+	
 	index = ( x + y * ibuf->x ) * pixel_size;
 
 	pixel = ( char * ) ibuf->rect;
@@ -637,8 +639,7 @@ static PyObject *Image_getMinXY( BPy_Image * self )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "couldn't load image data in Blender" );
 
-	attr = Py_BuildValue( "[i,i]", ibuf->xorig,
-			      ibuf->yorig );
+	attr = Py_BuildValue( "[i,i]", ibuf->xorig, ibuf->yorig );
 
 	if( attr )
 		return attr;
@@ -657,7 +658,7 @@ static PyObject *Image_unpack( BPy_Image * self, PyObject * args )
 	/*get the absolute path */
 	if( !PyArg_ParseTuple( args, "i", &mode ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
-					      "expected 1 integer" );
+					      "expected 1 integer from Blender.UnpackModes" );
 	
 	if (image->packedfile==NULL)
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -716,10 +717,21 @@ static PyObject *Image_makeCurrent( BPy_Image * self )
 static PyObject *Image_save( BPy_Image * self )
 {
 	ImBuf *ibuf= BKE_image_get_ibuf(self->image, NULL);
-	
-	if(!ibuf || !IMB_saveiff( ibuf, self->image->name, ibuf->flags ) )
+
+	if(!ibuf)
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "could not save image" );
+					      "could not save image (no image buffer)" );
+	
+	/* If this is a packed file, write using writePackedFile
+	 * because IMB_saveiff wont save to a file */
+	if (self->image->packedfile) {
+		if (writePackedFile(self->image->name, self->image->packedfile, 0) != RET_OK) {
+			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+		      "could not save image (writing image from packedfile failed)" );
+		}
+	} else if (!IMB_saveiff( ibuf, self->image->name, ibuf->flags))
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+					      "could not save image (writing the image buffer failed)" );
 
 	Py_RETURN_NONE;		/*  normal return, image saved */
 }
@@ -805,11 +817,14 @@ static PyObject *Image_getFilename( BPy_Image * self )
 static PyObject *Image_getSize( BPy_Image * self )
 {
 	ImBuf *ibuf= BKE_image_get_ibuf(self->image, NULL);
-	PyObject *attr = PyList_New(2);
+	PyObject *attr;
 	
 	if( !ibuf )	/* didn't work */
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "couldn't load image data in Blender" );
+
+	attr = PyList_New(2);
+	
 	if( !attr )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				      "couldn't get Image.size attribute" );
@@ -828,7 +843,7 @@ static PyObject *Image_getDepth( BPy_Image * self )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "couldn't load image data in Blender" );
 
-	attr = Py_BuildValue( "h", ibuf->depth );
+	attr = PyInt_FromLong( (long)ibuf->depth );
 
 	if( attr )
 		return attr;

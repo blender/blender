@@ -426,11 +426,12 @@ PyObject *M_Group_Get( PyObject * self, PyObject * args )
 		while( group_iter ) {
 			pyobj = Group_CreatePyObject( group_iter );
 
-			if( !pyobj )
+			if( !pyobj ) {
+				Py_DECREF(grouplist);
 				return ( EXPP_ReturnPyObjError
 					 ( PyExc_MemoryError,
 					   "couldn't create Object" ) );
-
+			}
 			PyList_SET_ITEM( grouplist, index, pyobj );
 
 			group_iter = group_iter->id.next;

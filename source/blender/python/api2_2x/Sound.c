@@ -243,11 +243,12 @@ static PyObject *M_Sound_Get( PyObject * self, PyObject * args )
 		while( snd_iter ) {
 			pyobj = Sound_CreatePyObject( snd_iter );
 
-			if( !pyobj )
+			if( !pyobj ) {
+				Py_DECREF(snd_list);
 				return ( EXPP_ReturnPyObjError
 					 ( PyExc_MemoryError,
 					   "couldn't create PyObject" ) );
-
+			}
 			PyList_SET_ITEM( snd_list, index, pyobj );
 
 			snd_iter = snd_iter->id.next;

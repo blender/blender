@@ -635,8 +635,7 @@ PyObject *M_Effect_Get( PyObject * self, PyObject * args )
 					if (eff) {
 						return EffectCreatePyObject( eff, object_iter );
 					} else { /* didn't find any effect in the given position */
-						Py_INCREF(Py_None);
-						return Py_None;
+						Py_RETURN_NONE;
 					}
 				}
 
@@ -1494,7 +1493,7 @@ static PyObject *Effect_getParticlesLoc( BPy_Effect * self )
 	Effect *eff;
 	PartEff *paf;
 	Particle *pa=0;
-	PyObject  *list, *strand_list;
+	PyObject  *list, *strand_list, *pyvec, *pyvec2;
 	float p_time, c_time, vec[3], vec1[3], cfra, m_time, s_time;
 	int a;
 	short disp=100 ;
@@ -1545,12 +1544,17 @@ static PyObject *Effect_getParticlesLoc( BPy_Effect * self )
 			for(c_time= pa->time; c_time<m_time; c_time+=paf->staticstep) {
 				where_is_particle(paf, pa, c_time, vec);
 				MTC_Mat4MulVecfl(ob->obmat, vec); /* make worldspace like the others */
-				if( PyList_Append( strand_list, newVectorObject(vec, 3, Py_NEW)) < 0 ) {
+				pyvec = newVectorObject(vec, 3, Py_NEW);
+				if( PyList_Append( strand_list, pyvec) < 0 ) {
 					Py_DECREF( list );
 					Py_DECREF( strand_list );
+					Py_XDECREF( pyvec );
+					
 					return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 							"Couldn't append item to PyList" );
 				}
+				Py_DECREF( pyvec );
+				
 			}
 			
 			if( PyList_Append( list, strand_list) < 0 ) {
@@ -1580,21 +1584,27 @@ static PyObject *Effect_getParticlesLoc( BPy_Effect * self )
 					}
 					where_is_particle(paf, pa, s_time, vec);
 					where_is_particle(paf, pa, p_time, vec1);
-					if( PyList_Append( list, Py_BuildValue("[OO]",
-									newVectorObject(vec, 3, Py_NEW),
-									newVectorObject(vec1, 3, Py_NEW))) < 0 ) {
+					pyvec  = newVectorObject(vec, 3, Py_NEW);
+					pyvec2 = newVectorObject(vec1, 3, Py_NEW);
+					if( PyList_Append( list, Py_BuildValue("[OO]", pyvec, pyvec2)) < 0 ) {
 						Py_DECREF( list );
+						Py_XDECREF( pyvec );
+						Py_XDECREF( pyvec2 );
 						return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 								"Couldn't append item to PyList" );
 					}
+					Py_DECREF( pyvec );
+					Py_DECREF( pyvec2 );
 				} else { /* not a vector */
 					where_is_particle(paf, pa, c_time, vec);
-					if( PyList_Append( list,
-								newVectorObject(vec, 3, Py_NEW)) < 0 ) {
+					pyvec = newVectorObject(vec, 3, Py_NEW);
+					if( PyList_Append( list, pyvec) < 0 ) {
 						Py_DECREF( list );
+						Py_XDECREF( pyvec );
 						return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 								"Couldn't append item to PyList" );
 					}
+					Py_DECREF( pyvec );
 				}
 			}
 		}

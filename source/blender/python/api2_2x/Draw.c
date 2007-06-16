@@ -740,7 +740,7 @@ static void exec_but_callback(void *pyobj, void *data)
 	PyObject *result;
 	PyObject * pyvalue;
 	uiBut *but = (uiBut *)data;
-	PyObject *arg = PyTuple_New( 2 );
+	PyObject *arg;
 	PyObject *callback = (PyObject *)pyobj;
 	
 	double value = ui_get_but_val(but);
@@ -787,12 +787,15 @@ static void exec_but_callback(void *pyobj, void *data)
 	}
 	case BUT:
 		pyvalue = Py_None;
+		Py_INCREF(pyvalue);
 		break;
 	default:
 		pyvalue = Py_None;
+		Py_INCREF(pyvalue);
 		printf("Error, no button type matched.");
 	}
 	
+	arg = PyTuple_New( 2 );
 	if (uiblock==NULL)
 		PyTuple_SetItem( arg, 0, PyInt_FromLong(but->retval - EXPP_BUTTON_EVENTS_OFFSET) );
 	else
@@ -801,7 +804,10 @@ static void exec_but_callback(void *pyobj, void *data)
 	PyTuple_SetItem( arg, 1, pyvalue );
 	
 	result = PyObject_CallObject( callback, arg );
+	Py_DECREF(arg);
+	
 	if (!result) {
+		Py_DECREF(pyvalue);
 		PyErr_Print(  );
 		error( "Python script error: check console" );
 	}

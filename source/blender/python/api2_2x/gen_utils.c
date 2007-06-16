@@ -386,24 +386,24 @@ void EXPP_allqueue(unsigned short event, short val)
 PyObject *EXPP_getScriptLinks( ScriptLink * slink, PyObject * args,
 			       int is_scene )
 {
-	PyObject *list = NULL;
+	PyObject *list = NULL, *tmpstr;
 	char *eventname = NULL;
 	int i, event = 0;
 
-	list = PyList_New( 0 );
 
 	if( !PyArg_ParseTuple( args, "s", &eventname ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected event name (string) as argument" );
+	
+	list = PyList_New( 0 );
+	if( !list )
+		return EXPP_ReturnPyObjError( PyExc_MemoryError,
+					      "couldn't create PyList!" );
 
 	/* actually !scriptlink shouldn't happen ... */
 	if( !slink || !slink->totscript )
 		return list;
 	
-	if( !list )
-		return EXPP_ReturnPyObjError( PyExc_MemoryError,
-					      "couldn't create PyList!" );
-
 	if( !strcmp( eventname, "FrameChanged" ) )
 		event = SCRIPT_FRAMECHANGED;
 	else if( !strcmp( eventname, "Redraw" ) )
@@ -414,15 +414,18 @@ PyObject *EXPP_getScriptLinks( ScriptLink * slink, PyObject * args,
 		event = SCRIPT_ONLOAD;
 	else if( is_scene && !strcmp( eventname, "OnSave" ) )
 		event = SCRIPT_ONSAVE;
-	else
+	else {
+		Py_DECREF(list);
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 					      "invalid event name" );
-
+	}
+	
 	for( i = 0; i < slink->totscript; i++ ) {
-		if( ( slink->flag[i] == event ) && slink->scripts[i] )
-			PyList_Append( list,
-				       PyString_FromString( slink->scripts[i]->
-							    name + 2 ) );
+		if( ( slink->flag[i] == event ) && slink->scripts[i] ) {
+			tmpstr =PyString_FromString( slink->scripts[i]->name + 2 ); 
+			PyList_Append( list, tmpstr );
+			Py_DECREF(tmpstr);
+		}
 	}
 
 	return list;

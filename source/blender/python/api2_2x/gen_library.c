@@ -58,7 +58,7 @@ int GenericLib_setName( void *self, PyObject *value )
 }
 
 PyObject *GenericLib_getFakeUser( void *self )
-{	
+{
 	ID *id = ((BPy_GenericLib *)self)->id;
 	if (!id) return ( EXPP_ReturnPyObjError( PyExc_RuntimeError, "data has been removed" ) );
 	if (id->flag & LIB_FAKEUSER)
@@ -330,9 +330,12 @@ long GenericLib_hash(PyObject * pydata)
 {
 	ID *id = ((BPy_GenericLib *)pydata)->id;
 	PyObject *pyhash = PyTuple_New( 2 );
+	long hash;
 	PyTuple_SetItem( pyhash, 0, PyString_FromString(id->name) );
-	if (id->lib) PyTuple_SetItem( pyhash, 0, PyString_FromString(id->lib->name) );
-	else		PyTuple_SetItem( pyhash, 1, Py_None );
-	return PyObject_Hash(pyhash);
+	if (id->lib) PyTuple_SetItem( pyhash, 1, PyString_FromString(id->lib->name) );
+	else		PyTuple_SetItem( pyhash, 1, EXPP_incr_ret(Py_None) );
+	hash = PyObject_Hash(pyhash);
+	Py_DECREF(pyhash);
+	return hash;
 }
 

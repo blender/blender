@@ -82,6 +82,12 @@ static PyMethodDef BPy_TimeLine_methods[] = {
 	{NULL, NULL, 0, NULL}
 };
 
+/*-----------------------dealloc----------------------------------------*/
+static void TimeLine_dealloc( BPy_TimeLine * self )
+{
+	PyObject_DEL( self );
+}
+
 /*-----------------------getattr----------------------------------------*/
 static PyObject *TimeLine_getattr (BPy_TimeLine *self, char *name) {
 	return Py_FindMethod( BPy_TimeLine_methods, ( PyObject * ) self, name );
@@ -114,7 +120,7 @@ PyTypeObject TimeLine_Type = {
 	sizeof (BPy_TimeLine),	/* tp_basicsize */
 	0,			/* tp_itemsize */
 	/* methods */
-	NULL,	/* tp_dealloc */
+	( destructor ) TimeLine_dealloc,	/* tp_dealloc */
 	(printfunc) 0,	/* tp_print */
 	(getattrfunc) TimeLine_getattr,	/* tp_getattr */
 	(setattrfunc) TimeLine_setattr,	/* tp_setattr */
@@ -164,7 +170,7 @@ static PyObject *TimeLine_getFramesMarked (BPy_TimeLine *self, PyObject *args) {
 
 	PyObject *marker_dict= NULL;
 	TimeMarker *marker_it= NULL;
-	PyObject *tmarker= NULL, *pyo= NULL;
+	PyObject *tmarker= NULL, *pyo= NULL, *tmpstr;
 
 	if (!PyArg_ParseTuple (args, "|O", &tmarker))
 		return EXPP_ReturnPyObjError (PyExc_AttributeError,
@@ -190,13 +196,16 @@ static PyObject *TimeLine_getFramesMarked (BPy_TimeLine *self, PyObject *args) {
 			for (marker_it= self->marker_list->first; marker_it; marker_it= marker_it->next){
 				if (marker_it->frame==frm) {
 					pyo= PyDict_GetItem ((PyObject*)marker_dict, PyInt_FromLong ((long int)marker_it->frame));
+					tmpstr = PyString_FromString(marker_it->name);
 					if (pyo) {
-						PyList_Append (pyo, PyString_FromString (marker_it->name));
-						Py_INCREF (pyo);
+						PyList_Append (pyo, tmpstr);
+						Py_INCREF(pyo);
 					}else{
-						pyo = PyList_New (0);
-						PyList_Append (pyo, PyString_FromString (marker_it->name));
+						pyo = PyList_New(0);
+						PyList_Append (pyo, tmpstr);
 					}
+					Py_DECREF(tmpstr);
+					
 					PyDict_SetItem (marker_dict, PyInt_FromLong ((long int)marker_it->frame), pyo); 
 					if (pyo) { 
 						Py_DECREF (pyo); 
@@ -210,13 +219,16 @@ static PyObject *TimeLine_getFramesMarked (BPy_TimeLine *self, PyObject *args) {
 		marker_dict= PyDict_New ();
 		for (marker_it= self->marker_list->first; marker_it; marker_it= marker_it->next) {
 			pyo=PyDict_GetItem ((PyObject*)marker_dict, PyInt_FromLong ((long int)marker_it->frame));
+			tmpstr = PyString_FromString(marker_it->name);
 			if (pyo) {
-				PyList_Append (pyo, PyString_FromString (marker_it->name));
+				PyList_Append (pyo, tmpstr);
 				Py_INCREF (pyo);
 			}else{ 
 				pyo= PyList_New (0);
-				PyList_Append (pyo, PyString_FromString (marker_it->name));
+				PyList_Append (pyo, tmpstr);
 			}
+			Py_DECREF(tmpstr);
+			
 			PyDict_SetItem (marker_dict, PyInt_FromLong ((long int)marker_it->frame), pyo); 
 			if (pyo) { 
 				Py_DECREF (pyo); 

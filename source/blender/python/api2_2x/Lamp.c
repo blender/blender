@@ -704,10 +704,12 @@ static PyObject *M_Lamp_Get( PyObject * self, PyObject * args )
 		while( lamp_iter ) {
 			pyobj = Lamp_CreatePyObject( lamp_iter );
 
-			if( !pyobj )
+			if( !pyobj ) {
+				Py_DECREF(lamplist);
 				return ( EXPP_ReturnPyObjError
 					 ( PyExc_MemoryError,
-					   "couldn't create PyString" ) );
+					   "couldn't create PyLamp" ) );
+			}
 
 			PyList_SET_ITEM( lamplist, index, pyobj );
 
@@ -1642,7 +1644,7 @@ static PyObject *Lamp_oldsetType( BPy_Lamp * self, PyObject * args )
 
 	/* build tuple, call wrapper */
 
-	value = Py_BuildValue( "(i)", type );
+	value = PyInt_FromLong( (long)type );
 	error = EXPP_setterWrapper ( (void *)self, value, (setter)Lamp_setType );
 	Py_DECREF ( value );
 	return error;
@@ -1701,7 +1703,7 @@ static PyObject *Lamp_oldsetMode( BPy_Lamp * self, PyObject * args )
 
 	/* build tuple, call wrapper */
 
-	value = Py_BuildValue( "(i)", flag );
+	value = PyInt_FromLong( (long)flag );
 	error = EXPP_setterWrapper ( (void *)self, value, (setter)Lamp_setMode );
 	Py_DECREF ( value );
 	return error;
