@@ -782,8 +782,13 @@ if scriptDir:
 
 	if not sys.exists(console_autoexec):
 		# touch the file
-		cmdBuffer.append(cmdLine('...console_autoexec.py not found, making new in scripts dir', 1, None))
-		open(console_autoexec, 'w').close()
+		try:
+			open(console_autoexec, 'w').close()
+			cmdBuffer.append(cmdLine('...console_autoexec.py not found, making new in scripts dir', 1, None))
+		except:
+			cmdBuffer.append(cmdLine('...console_autoexec.py could not write, this is ok', 1, None))
+			scriptDir = None # make sure we only use this for console_autoexec.py
+		
 	else:
 		cmdBuffer.append(cmdLine('...Using existing console_autoexec.py in scripts dir', 1, None))
 

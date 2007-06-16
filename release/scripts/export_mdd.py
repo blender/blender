@@ -1,7 +1,7 @@
 #!BPY
 
 """
- Name: 'Save Mesh as MDD'
+ Name: 'Vertex Keyframe Animation (.mdd)...'
  Blender: 242
  Group: 'Export'
  Tooltip: 'Animated mesh to MDD vertex keyframe file.'
@@ -18,7 +18,25 @@ Be sure not to use modifiers that change the number or order of verts in the mes
 """
 #Please send any fixes,updates,bugs to Slow67_at_Gmail.com or cbarton_at_metavr.com
 #Bill Niewuendorp
+# ***** BEGIN GPL LICENSE BLOCK *****
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# ***** END GPL LICENCE BLOCK *****
 
+import bpy
 import Blender
 from Blender import *
 import BPyMessages
@@ -100,7 +118,7 @@ def mdd_export_ui(filepath):
 	if not BPyMessages.Warning_SaveOver(filepath):
 		return
 	
-	scn= Scene.GetCurrent()
+	scn= bpy.data.scenes.active
 	ob_act= scn.objects.active
 	if not ob_act or ob_act.type != 'Mesh':
 		BPyMessages.Error_NoMeshActive()

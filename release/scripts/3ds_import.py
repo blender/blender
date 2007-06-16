@@ -625,9 +625,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 			new_chunk.bytes_read+=STRUCT_SIZE_3FLOAT
 			
 			contextLamp[1]= bpy.data.lamps.new()
-			contextLamp[0]= SCN_OBJECTS.link(contextLamp[1])
-			contextLamp[0].link(contextLamp[1])
-			##scn.link(contextLamp[0])
+			contextLamp[0]= SCN_OBJECTS.new(contextLamp[1])
 			importedObjects.append(contextLamp[0])
 			
 			#print 'number of faces: ', num_faces
