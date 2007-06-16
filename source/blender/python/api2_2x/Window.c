@@ -423,7 +423,10 @@ PyObject *M_Window_Redraw( PyObject * self, PyObject * args )
 /*****************************************************************************/
 static PyObject *M_Window_RedrawAll( PyObject * self, PyObject * args )
 {
-	return M_Window_Redraw( self, Py_BuildValue( "(i)", -1 ) );
+	PyObject *arg = Py_BuildValue( "(i)", -1 );
+	PyObject *ret = M_Window_Redraw( self, arg );
+	Py_DECREF(arg);
+	return ret;
 }
 
 /*****************************************************************************/
