@@ -100,7 +100,18 @@ int setup_armature_weakrefs()
 
 	main_module = PyImport_AddModule( "__main__");
 	if(main_module){
+		PyObject *weakreflink;
 		maindict= PyModule_GetDict(main_module);
+
+		/* check if there is already a dict entry for the armature weakrefs,
+		 * and delete if so before making another one */
+
+		weakreflink= PyDict_GetItemString(maindict,list_name);
+		if( weakreflink != NULL ) {
+			PyDict_DelItemString(maindict,list_name);
+			Py_XDECREF( weakreflink );
+		}
+
 		if (PyDict_SetItemString(maindict, 
 								 list_name, 
 								 PyList_New(0)) == -1){
