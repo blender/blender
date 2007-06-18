@@ -32,7 +32,7 @@ Or to print all the constraints attached to each bone in a pose::
 	for comparison with L{Constraint.type}.  Values are
 	TRACKTO, IKSOLVER, FOLLOWPATH, COPYROT, COPYLOC, COPYSIZE, ACTION,
 	LOCKTRACK, STRETCHTO, FLOOR, LIMITLOC, LIMITROT, LIMITSIZE, CLAMPTO, 
-	NULL
+	PYTHON, NULL
 
 @type Settings: readonly dictionary
 @var Settings: Constant dict used for changing constraint settings.
@@ -117,12 +117,15 @@ Or to print all the constraints attached to each bone in a pose::
 	- Used by Limit Scale (LIMITSIZE) constraint:
 		- LIMIT (bitfield): any combination of LIMIT_XMIN, LIMIT_XMAX,
 			LIMIT_YMIN, LIMIT_YMAX, LIMIT_ZMIN, LIMIT_ZMAX
-		- XMIN (float): clamped to [-1000.0,1000.0]
-		- XMAX (float): clamped to [-1000.0,1000.0]
-		- YMIN (float): clamped to [-1000.0,1000.0]
-		- YMAX (float): clamped to [-1000.0,1000.0]
-		- ZMIN (float): clamped to [-1000.0,1000.0]
-		- ZMAX (float): clamped to [-1000.0,1000.0]
+		- XMIN (float): clamped to [0.0001,1000.0]
+		- XMAX (float): clamped to [0.0001,1000.0]
+		- YMIN (float): clamped to [0.0001,1000.0]
+		- YMAX (float): clamped to [0.0001,1000.0]
+		- ZMIN (float): clamped to [0.0001,1000.0]
+		- ZMAX (float): clamped to [0.0001,1000.0]
+	- Used by Python Script (PYTHON) constraint:
+		- SCRIPT (Text): script to use
+		- PROPERTIES (IDProperties): ID-Properties of constraint
 
 """
 

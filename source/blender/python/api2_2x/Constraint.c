@@ -36,6 +36,7 @@
 #include "DNA_effect_types.h"
 #include "DNA_vec_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_text_types.h"
 
 #include "BKE_main.h"
 #include "BKE_global.h"
@@ -50,8 +51,10 @@
 #include "blendef.h"
 #include "mydevice.h"
 
+#include "IDProp.h"
 #include "Object.h"
 #include "NLA.h"
+#include "Text.h"
 #include "gen_utils.h"
 
 enum constraint_constants {
@@ -126,6 +129,9 @@ enum constraint_constants {
 	EXPP_CONSTR_LIMLOCALBONE,
 	EXPP_CONSTR_LIMLOCALNOPAR,
 	
+	EXPP_CONSTR_SCRIPT,
+	EXPP_CONSTR_PROPS,
+		
 	EXPP_CONSTR_RB_TYPE,
 	EXPP_CONSTR_RB_BALL,
 	EXPP_CONSTR_RB_HINGE,
@@ -1211,6 +1217,63 @@ static int sizelimit_setter( BPy_Constraint *self, int type, PyObject *value )
 	}
 }
 
+static PyObject *script_getter( BPy_Constraint * self, int type )
+{
+	bPythonConstraint *con = (bPythonConstraint *)(self->con->data);
+
+	switch( type ) {
+	case EXPP_CONSTR_TARGET:
+		return Object_CreatePyObject( con->tar );
+	case EXPP_CONSTR_BONE:
+		return PyString_FromString( con->subtarget );
+	case EXPP_CONSTR_SCRIPT:
+		return Text_CreatePyObject( con->text );
+	case EXPP_CONSTR_PROPS:
+		return BPy_Wrap_IDProperty( NULL, con->prop, NULL);
+	default:
+		return EXPP_ReturnPyObjError( PyExc_KeyError, "key not found" );
+	}
+}
+
+static int script_setter( BPy_Constraint *self, int type, PyObject *value )
+{
+	bPythonConstraint *con = (bPythonConstraint *)(self->con->data);
+
+	switch( type ) {
+	case EXPP_CONSTR_TARGET: {
+		Object *obj = (( BPy_Object * )value)->object;
+		if( !BPy_Object_Check( value ) )
+			return EXPP_ReturnIntError( PyExc_TypeError, 
+					"expected BPy object argument" );
+		con->tar = obj;
+		return 0;
+		}
+	case EXPP_CONSTR_BONE: {
+		char *name = PyString_AsString( value );
+		if( !name )
+			return EXPP_ReturnIntError( PyExc_TypeError,
+					"expected string arg" );
+
+		BLI_strncpy( con->subtarget, name, sizeof( con->subtarget ) );
+
+		return 0;
+		}
+	case EXPP_CONSTR_SCRIPT: {
+		Text *text = (( BPy_Text * )value)->text;
+		if( !BPy_Object_Check( value ) )
+			return EXPP_ReturnIntError( PyExc_TypeError, 
+					"expected BPy text argument" );
+		con->text = text;
+		return 0;
+		}
+	case EXPP_CONSTR_PROPS:
+		return EXPP_ReturnIntError( PyExc_RuntimeError,
+					"setting ID-Properties of PyConstraints this way is not supported" );
+	default:
+		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
+	}
+}
+
 
 static PyObject *rigidbody_getter( BPy_Constraint * self, int type)
 {
@@ -1380,8 +1443,9 @@ static PyObject *Constraint_getData( BPy_Constraint * self, PyObject * key )
 			return rigidbody_getter( self, setting );
 		case CONSTRAINT_TYPE_CLAMPTO:
 			return clampto_getter( self, setting );
-		case CONSTRAINT_TYPE_CHILDOF:	/* Unimplemented */
 		case CONSTRAINT_TYPE_PYTHON:
+			return script_getter( self, setting );
+		case CONSTRAINT_TYPE_CHILDOF:	/* Unimplemented */
 		default:
 			return EXPP_ReturnPyObjError( PyExc_KeyError,
 					"unknown constraint type" );
@@ -1447,10 +1511,12 @@ static int Constraint_setData( BPy_Constraint * self, PyObject * key,
 	case CONSTRAINT_TYPE_CLAMPTO:
 		result = clampto_setter( self, key_int, arg);
 		break;
+	case CONSTRAINT_TYPE_PYTHON:
+		result = script_setter( self, key_int, arg);
+		break;
 	case CONSTRAINT_TYPE_NULL:
 		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
 	case CONSTRAINT_TYPE_CHILDOF:	/* Unimplemented */
-	case CONSTRAINT_TYPE_PYTHON:
 	default:
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
 				"unsupported constraint setting" );
@@ -2117,7 +2183,11 @@ static PyObject *M_Constraint_SettingsDict( void )
 				PyInt_FromLong( EXPP_CONSTR_LIMLOCALBONE ) );
 		PyConstant_Insert( d, "LIMIT_LOCAL_NOPARENT",
 				PyInt_FromLong( EXPP_CONSTR_LIMLOCALNOPAR ) );
-
+		
+		PyConstant_Insert( d, "SCRIPT",
+				PyInt_FromLong( EXPP_CONSTR_SCRIPT ) );
+		PyConstant_Insert( d, "PROPERTIES",
+				PyInt_FromLong( EXPP_CONSTR_PROPS ) );
 
 		PyConstant_Insert( d, "CONSTR_RB_TYPE",
 				PyInt_FromLong( EXPP_CONSTR_RB_TYPE ) );
