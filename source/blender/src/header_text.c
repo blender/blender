@@ -52,6 +52,8 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_text_types.h"
+#include "DNA_constraint_types.h"
+#include "DNA_action_types.h"
 
 #include "BIF_drawtext.h"
 #include "BIF_interface.h"
@@ -59,11 +61,14 @@
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
+
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_sca.h"
 #include "BKE_text.h"
+#include "BKE_depsgraph.h"
+
 #include "BSE_filesel.h"
 
 #include "BPY_extern.h"
@@ -135,27 +140,68 @@ void do_text_buttons(unsigned short event)
 		break;
 		
 	case B_TEXTDELETE:
-		
-		text= st->text;
-		if (!text) return;
-		
-		/* make the previous text active, if its not there make the next text active */
-		if (st->text->id.prev) {
-			st->text = st->text->id.prev;
-			pop_space_text(st);
-		} else if (st->text->id.next) {
-			st->text = st->text->id.next;
-			pop_space_text(st);
-		}
+		{
+			Object *obt;
+			bConstraint *con;
+			int update;
 			
-		BPY_clear_bad_scriptlinks(text);
-		free_text_controllers(text);
-		
-		unlink_text(text);
-		free_libblock(&G.main->text, text);
-		
-		allqueue(REDRAWTEXT, 0);
-		allqueue(REDRAWHEADERS, 0);
+			text= st->text;
+			if (!text) return;
+			
+			/* make the previous text active, if its not there make the next text active */
+			if (st->text->id.prev) {
+				st->text = st->text->id.prev;
+				pop_space_text(st);
+			} else if (st->text->id.next) {
+				st->text = st->text->id.next;
+				pop_space_text(st);
+			}
+			
+			/*check all pyconstraints*/
+			for (obt=G.main->object.first; obt; obt=obt->id.next) {
+				update = 0;
+				if(obt->type==OB_ARMATURE && obt->pose) {
+					bPoseChannel *pchan;
+					for(pchan= obt->pose->chanbase.first; pchan; pchan= pchan->next) {
+						for (con = pchan->constraints.first; con; con=con->next) {
+							if (con->type==CONSTRAINT_TYPE_PYTHON) {
+								bPythonConstraint *data = con->data;
+								if (data->text==text) data->text = NULL;
+								update = 1;
+								
+							}
+						}
+					}
+				}
+				for (con = obt->constraints.first; con; con=con->next) {
+					if (con->type==CONSTRAINT_TYPE_PYTHON) {
+						bPythonConstraint *data = con->data;
+						if (data->text==text) data->text = NULL;
+						update = 1;
+					}
+				}
+				
+				if (update) {
+					DAG_object_flush_update(G.scene, obt, OB_RECALC_DATA);
+				}
+			}
+			
+			BPY_clear_bad_scriptlinks(text);
+			free_text_controllers(text);
+			
+			unlink_text(text);
+			free_libblock(&G.main->text, text);
+			
+			allqueue(REDRAWTEXT, 0);
+			allqueue(REDRAWHEADERS, 0);
+			
+			/*for if any object constraints were changed.*/
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWBUTSOBJECT, 0);
+			allqueue(REDRAWBUTSEDIT, 0);
+			
+			BIF_undo_push("Delete Text");
+		}
 		break;
 		
 /*
@@ -264,6 +310,42 @@ static void do_text_filemenu(void *arg, int event)
 		break;
 	case 6:
 		run_python_script(st);
+		break;
+	case 7:
+	{
+		Object *obt;
+		bConstraint *con;
+		short update;
+		
+		/* check all pyconstraints */
+		for (obt=G.main->object.first; obt; obt=obt->id.next) {
+			update = 0;
+			if(obt->type==OB_ARMATURE && obt->pose) {
+				bPoseChannel *pchan;
+				for(pchan= obt->pose->chanbase.first; pchan; pchan= pchan->next) {
+					for (con = pchan->constraints.first; con; con=con->next) {
+						if (con->type==CONSTRAINT_TYPE_PYTHON) {
+							bPythonConstraint *data = con->data;
+							if (data->text==text) data->flag = 0;
+							update = 1;
+							
+						}
+					}
+				}
+			}
+			for (con = obt->constraints.first; con; con=con->next) {
+				if (con->type==CONSTRAINT_TYPE_PYTHON) {
+					bPythonConstraint *data = con->data;
+					if (data->text==text) data->flag = 0;
+					update = 1;
+				}
+			}
+			
+			if (update) {
+				DAG_object_flush_update(G.scene, obt, OB_RECALC_DATA);
+			}
+		}
+	}
 		break;
 	default:
 		break;
@@ -608,13 +690,23 @@ static uiBlock *text_filemenu(void *arg_unused)
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "New|Alt N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Open...|Alt O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	
 	if(text) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reopen|Alt R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+		
 		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+		
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save|Alt S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save As...", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
+		
 		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+		
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Run Python Script|Alt P", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
+		
+		if (BPY_is_pyconstraint(text))
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Refresh All PyConstraints", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
+			
+		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	}
 	
 	uiDefIconTextBlockBut(block, text_template_scriptsmenu, NULL, ICON_RIGHTARROW_THIN, "Script Templates", 0, yco-=20, 120, 19, "");

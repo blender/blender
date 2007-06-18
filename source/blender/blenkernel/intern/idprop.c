@@ -274,6 +274,7 @@ void IDP_FreeGroup(IDProperty *prop)
 	for (loop=prop->data.group.first; loop; loop=next)
 	{
 		next = loop->next;
+		BLI_remlink(&prop->data.group, loop);
 		IDP_FreeProperty(loop);
 		MEM_freeN(loop);
 	}

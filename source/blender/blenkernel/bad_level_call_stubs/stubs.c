@@ -54,6 +54,7 @@ struct IpoCurve;
 struct FluidsimSettings;
 struct Render;
 struct RenderResult;
+struct bPythonConstraint;
 
 char *getIpoCurveName( struct IpoCurve * icu );
 void insert_vert_ipo(struct IpoCurve *icu, float x, float y);
@@ -123,6 +124,16 @@ int BPY_button_eval(char *expr, double *value)
 {
 	return 0;
 }
+
+/* constraint.c */
+void BPY_pyconstraint_eval(struct bPythonConstraint *con, float obmat[][4], short ownertype, void *ownerdata, float targetmat[][4])
+{
+}
+int BPY_pyconstraint_targets(struct bPythonConstraint *con, float targetmat[][4])
+{
+	return 0;
+}
+
 
 /* writefile.c */
 	/* struct Oops; */

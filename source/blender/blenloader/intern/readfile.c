@@ -1611,6 +1611,15 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 		}
 
 		switch (con->type) {
+		case CONSTRAINT_TYPE_PYTHON:
+			{
+				bPythonConstraint *data;
+				data= (bPythonConstraint*)con->data;
+				data->tar = newlibadr(fd, id->lib, data->tar);
+				data->text = newlibadr(fd, id->lib, data->text);
+				//IDP_LibLinkProperty(data->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+			}
+			break;
 		case CONSTRAINT_TYPE_ACTION:
 			{
 				bActionConstraint *data;
@@ -1717,6 +1726,11 @@ static void direct_link_constraints(FileData *fd, ListBase *lb)
 	link_list(fd, lb);
 	for (cons=lb->first; cons; cons=cons->next) {
 		cons->data = newdataadr(fd, cons->data);
+		if (cons->type == CONSTRAINT_TYPE_PYTHON) {
+			bPythonConstraint *data= cons->data;
+			data->prop = newdataadr(fd, data->prop);
+			IDP_DirectLinkProperty(data->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
+		}
 	}
 }
 
@@ -6885,6 +6899,13 @@ static void expand_constraints(FileData *fd, Main *mainvar, ListBase *lb)
 
 	for (curcon=lb->first; curcon; curcon=curcon->next) {
 		switch (curcon->type) {
+		case CONSTRAINT_TYPE_PYTHON:
+			{
+				bPythonConstraint *data = (bPythonConstraint*)curcon->data;
+				expand_doit(fd, mainvar, data->tar);
+				expand_doit(fd, mainvar, data->text);
+				break;
+			}
 		case CONSTRAINT_TYPE_ACTION:
 			{
 				bActionConstraint *data = (bActionConstraint*)curcon->data;

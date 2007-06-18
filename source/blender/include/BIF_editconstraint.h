@@ -38,6 +38,9 @@ struct ListBase;
 struct Object;
 struct bConstraint;
 struct bConstraintChannel;
+struct Text;
+
+/* generic constraint editing functions */
 
 struct bConstraint *add_new_constraint(short type);
 
@@ -57,6 +60,10 @@ char *get_con_subtarget_name(struct bConstraint *con, struct Object *target);
 
 void rename_constraint(struct Object *ob, struct bConstraint *con, char *newname);
 
+
+/* two special functions for PyConstraints */
+char *buildmenu_pyconstraints(struct Text *con_text, int *pyconindex);
+void validate_pyconstraint_cb(void *arg1, void *arg2);
 
 #endif
 

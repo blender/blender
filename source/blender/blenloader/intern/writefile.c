@@ -702,6 +702,16 @@ static void write_constraints(WriteData *wd, ListBase *conlist)
 		switch (con->type) {
 		case CONSTRAINT_TYPE_NULL:
 			break;
+		case CONSTRAINT_TYPE_PYTHON:
+			{
+				bPythonConstraint *data = (bPythonConstraint*) con->data;
+				writestruct(wd, DATA, "bPythonConstraint", 1, data);
+				
+				/*Write ID Properties -- and copy this comment EXACTLY for easy finding
+				 of library blocks that implement this.*/
+				IDP_WriteProperty(data->prop, wd);
+			}
+			break;
 		case CONSTRAINT_TYPE_TRACKTO:
 			writestruct(wd, DATA, "bTrackToConstraint", 1, con->data);
 			break;

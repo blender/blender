@@ -45,6 +45,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_text_types.h"
 #include "DNA_view3d_types.h"
 
 #include "BKE_action.h"
@@ -52,6 +53,7 @@
 #include "BKE_constraint.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
+#include "BKE_main.h"
 #include "BKE_ipo.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
@@ -64,6 +66,8 @@
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
+
+#include "BPY_extern.h"
 
 #include "blendef.h"
 #include "nla.h"
@@ -247,7 +251,14 @@ char *get_con_subtarget_name(bConstraint *con, Object *target)
 	 * to the name for this constraints subtarget ... NULL otherwise
 	 */
 	switch (con->type) {
-
+		case CONSTRAINT_TYPE_PYTHON:
+		{
+			bPythonConstraint *data = con->data;
+			if (data->flag & PYCON_USETARGETS) {
+				if (data->tar==target) return data->subtarget;
+			}
+		}
+		break;
 		case CONSTRAINT_TYPE_ACTION:
 		{
 			bActionConstraint *data = con->data;
@@ -376,6 +387,51 @@ static void test_constraints (Object *owner, const char* substring)
 			curcon->flag &= ~CONSTRAINT_DISABLE;
 			
 			switch (curcon->type){
+				case CONSTRAINT_TYPE_PYTHON:
+				{
+					bPythonConstraint *data = curcon->data;
+					float dummy_matrix[4][4];
+					
+					/* is there are valid script? */
+					if (!data->text) {
+						curcon->flag |= CONSTRAINT_DISABLE;
+						break;
+					}
+					else if (!BPY_is_pyconstraint(data->text)) {
+						curcon->flag |= CONSTRAINT_DISABLE;
+						break;
+					}
+					data->flag &= ~PYCON_SCRIPTERROR;
+					
+					/* does the constraint require target input? */
+					if (BPY_pyconstraint_targets(data, dummy_matrix))
+						data->flag |= PYCON_USETARGETS;
+					else
+						data->flag &= ~PYCON_USETARGETS;
+					
+					/* check whether we have a valid target */
+					if (data->flag & PYCON_USETARGETS) {
+						/* validate target */
+						if (!exist_object(data->tar)) {
+							data->tar = NULL;
+							curcon->flag |= CONSTRAINT_DISABLE;
+							break;
+						}
+						
+						if ( (data->tar == owner) &&
+							 (!get_named_bone(get_armature(owner), 
+											  data->subtarget))) {
+							curcon->flag |= CONSTRAINT_DISABLE;
+							break;
+						}
+					}
+					else {
+						/* don't hold onto target */
+						data->tar = NULL;
+						BLI_strncpy(data->subtarget, "", 32);
+					}
+				}
+					break;
 				case CONSTRAINT_TYPE_ACTION:
 				{
 					bActionConstraint *data = curcon->data;
@@ -688,21 +744,21 @@ void add_constraint(int only_IK)
 	else {
 		if(pchanact) {
 			if(pchansel)
-				nr= pupmenu("Add Constraint to Active Bone%t|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|Track To%x3|Floor%x4|Locked Track%x5|Stretch To%x7|Action%x16");
+				nr= pupmenu("Add Constraint to Active Bone%t|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|%l|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|%l|Track To%x3|Floor%x4|Locked Track%x5|Stretch To%x7|Action%x16|%l|Script%x18");
 			else if(obsel && obsel->type==OB_CURVE)
-				nr= pupmenu("Add Constraint to Active Object%t|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|Track To%x3|Floor%x4|Locked Track%x5|Follow Path%x6|Clamp To%x17|Stretch To%x7|Action%x16");
+				nr= pupmenu("Add Constraint to Active Object%t|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|%l|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|%l|Track To%x3|Floor%x4|Locked Track%x5|Follow Path%x6|Clamp To%x17|Stretch To%x7|Action%x16|%l|Script%x18");
 			else if(obsel)
-				nr= pupmenu("Add Constraint to Active Object%t|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|Track To%x3|Floor%x4|Locked Track%x5|Stretch To%x7|Action%x16");
+				nr= pupmenu("Add Constraint to Active Object%t|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|%l|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|%l|Track To%x3|Floor%x4|Locked Track%x5|Stretch To%x7|Action%x16|%l|Script%x18");
 			else
-				nr= pupmenu("Add Constraint to New Empty Object%t|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|Track To%x3|Floor%x4|Locked Track%x5|Stretch To%x7");
+				nr= pupmenu("Add Constraint to New Empty Object%t|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|%l|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|%l|Track To%x3|Floor%x4|Locked Track%x5|Stretch To%x7|%l|Script%x18");
 		}
 		else {
 			if(obsel && obsel->type==OB_CURVE)
-				nr= pupmenu("Add Constraint to Active Object%t|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|Track To%x3|Floor%x4|Locked Track%x5|Follow Path%x6|Clamp To%x17");
+				nr= pupmenu("Add Constraint to Active Object%t|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|%l|Track To%x3|Floor%x4|Locked Track%x5|Follow Path%x6|Clamp To%x17|%l|Script%x18");
 			else if(obsel)
-				nr= pupmenu("Add Constraint to Active Object%t|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|Track To%x3|Floor%x4|Locked Track%x5");
+				nr= pupmenu("Add Constraint to Active Object%t|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|%l|Track To%x3|Floor%x4|Locked Track%x5|%l|Script%x18");
 			else
-				nr= pupmenu("Add Constraint to New Empty Object%t|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|Track To%x3|Floor%x4|Locked Track%x5");
+				nr= pupmenu("Add Constraint to New Empty Object%t|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|%l|Track To%x3|Floor%x4|Locked Track%x5|%l|Script%x18");
 		}
 	}
 	
@@ -761,6 +817,21 @@ void add_constraint(int only_IK)
 			Curve *cu= obsel->data;
 			cu->flag |= CU_PATH;
 			con = add_new_constraint(CONSTRAINT_TYPE_CLAMPTO);
+		}
+		else if(nr==18) {	
+			char *menustr;
+			int scriptint= 0, dummy_active=0;
+			
+			/* popup a list of usable scripts */
+			menustr = buildmenu_pyconstraints(NULL, &dummy_active);
+			scriptint = pupmenu(menustr);
+			MEM_freeN(menustr);
+			
+			/* only add constraint if a script was chosen */
+			if (scriptint) {
+				con = add_new_constraint(CONSTRAINT_TYPE_PYTHON);
+				validate_pyconstraint_cb(con->data, &scriptint);
+			}
 		}
 		
 		if(con==NULL) return;	/* paranoia */
@@ -921,3 +992,53 @@ void rename_constraint(Object *ob, bConstraint *con, char *oldname)
 	
 }
 
+/* ********************** CONSTRAINT-SPECIFIC STUFF ********************* */
+/* ------------- PyConstraints ------------------ */
+
+/* this callback sets the text-file to be used for selected menu item */
+void validate_pyconstraint_cb(void *arg1, void *arg2)
+{
+	bPythonConstraint *data = arg1;
+	Text *text;
+	int index = *((int *)arg2);
+	int i;
+	
+	/* innovative use of a for loop to search */
+	for (text=G.main->text.first, i=1; text && index!=i; i++, text=text->id.next);
+	data->text = text;
+}
+
+/* this returns a string for the list of usable pyconstraint script names */
+char *buildmenu_pyconstraints(Text *con_text, int *pyconindex)
+{
+	Text *text;
+	char *menustr = MEM_callocN(128, "menustr pyconstraints");
+	char *name, stmp[128];
+	int buf = 128;
+	int used = strlen("Scripts: %t") + 1;
+	int i;
+		
+	sprintf(menustr, "%s", "Scripts: %t");
+	
+	for (text=G.main->text.first, i=1; text; i++, text=text->id.next) {
+		/* this is important to ensure that right script is shown as active */
+		if (text == con_text) *pyconindex = i;
+		
+		/* menu entry is length of name + 3(len(|%X)) + 6 characters for the int.*/
+		if (BPY_is_pyconstraint(text)) {
+			name= text->id.name;
+			if (strlen(name)+used+10 >= buf) {
+				char *newbuf = MEM_callocN(buf+128, "menustr pyconstraints 2");
+				memcpy(newbuf, menustr, used);
+				MEM_freeN(menustr);
+				menustr = newbuf;
+				buf += 128;
+			}
+			sprintf(stmp, "|%s%%x%d", name, i);
+			strcat(menustr, stmp);
+			used += strlen(name)+10;
+		}
+	}
+	
+	return menustr;
+}

@@ -46,11 +46,16 @@ struct SpaceScript; /* DNA_space_types.h */
 struct Script; /* BPI_script.h */
 struct ScrArea; /* DNA_screen_types.h */
 struct bScreen; /* DNA_screen_types.h */
-
+struct bPythonConstraint; /* DNA_constraint_types.h */
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+	void BPY_pyconstraint_eval(struct bPythonConstraint *con, float obmat[][4], short ownertype, void *ownerdata, float targetmat[][4]);
+	void BPY_pyconstraint_settings(void *arg1, void *arg2);
+	int BPY_pyconstraint_targets(struct bPythonConstraint *con, float targetmat[][4]);
+	int BPY_is_pyconstraint(struct Text *text);
+	
 	void BPY_start_python( int argc, char **argv );
 	void BPY_end_python( void );
 	void BPY_post_start_python( void );

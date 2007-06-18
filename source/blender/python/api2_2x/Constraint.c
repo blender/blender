@@ -1918,6 +1918,8 @@ static PyObject *M_Constraint_TypeDict( void )
 				PyInt_FromLong( CONSTRAINT_TYPE_RIGIDBODYJOINT ) );
 		PyConstant_Insert( d, "CLAMPTO", 
 				PyInt_FromLong( CONSTRAINT_TYPE_CLAMPTO ) );
+		PyConstant_Insert( d, "PYTHON",
+				PyInt_FromLong( CONSTRAINT_TYPE_PYTHON ) );
 	}
 	return S;
 }

@@ -40,6 +40,7 @@
 #include "BIF_space.h"
 #include "BIF_screen.h"
 #include "BIF_toolbox.h"
+#include "BKE_action.h" 	/* for get_pose_channel() */
 #include "BKE_library.h"
 #include "BKE_object.h"		/* during_scriptlink() */
 #include "BKE_text.h"
@@ -47,6 +48,7 @@
 #include "DNA_curve_types.h" /* for struct IpoDriver */
 #include "DNA_ID.h" /* ipo driver */
 #include "DNA_object_types.h" /* ipo driver */
+#include "DNA_constraint_types.h" /* for pyconstraint */
 
 #include "DNA_screen_types.h"
 #include "DNA_userdef_types.h"	/* for U.pythondir */
@@ -66,7 +68,12 @@
 #include "api2_2x/Draw.h"
 #include "api2_2x/Object.h"
 #include "api2_2x/Registry.h"
+#include "api2_2x/Pose.h"
 #include "api2_2x/bpy.h" /* for the new "bpy" module */
+
+/*these next two are for pyconstraints*/
+#include "api2_2x/IDProp.h"
+#include "api2_2x/matrix.h"
 
 /* for scriptlinks */
 #include "DNA_lamp_types.h"
@@ -85,7 +92,6 @@
 
 /* for pydrivers (ipo drivers defined by one-line Python expressions) */
 PyObject *bpy_pydriver_Dict = NULL;
-
 
 /*
  * set up a weakref list for Armatures
@@ -160,6 +166,7 @@ PyObject *importText( char *name );
 void init_ourImport( void );
 void init_ourReload( void );
 PyObject *blender_import( PyObject * self, PyObject * args );
+PyObject *RunPython2( Text * text, PyObject * globaldict, PyObject *localdict );
 
 
 void BPY_Err_Handle( char *script_name );
@@ -462,10 +469,11 @@ void BPY_Err_Handle( char *script_name )
 
 	PyErr_Fetch( &exception, &err, &tb );
 
-	if( !exception && !tb ) {
-		printf( "FATAL: spurious exception\n" );
-		return;
-	}
+	if (!script_name) script_name = "untitled";
+	//if( !exception && !tb ) {
+	//	printf( "FATAL: spurious exception\n" );
+	//	return;
+	//}
 
 	strcpy( g_script_error.filename, script_name );
 
@@ -1136,6 +1144,376 @@ static float pydriver_error(IpoDriver *driver) {
 	PyErr_Print();
 
 	return 0.0f;
+}
+
+
+/********PyConstraints*********/
+
+int BPY_is_pyconstraint(Text *text)
+{
+	TextLine *tline = text->lines.first;
+
+	if (tline && (tline->len > 10)) {
+		char *line = tline->line;
+
+		/* Expected format: #BPYCONSTRAINT
+		 * The actual checks are forgiving, so slight variations also work. */
+		if (line && line[0] == '#' && strstr(line, "BPYCONSTRAINT")) return 1;
+	}
+	return 0;
+}
+
+/* This evals py constraints. It is passed all the arguments the normal constraints recieve */
+void BPY_pyconstraint_eval(bPythonConstraint *con, float obmat[][4], short ownertype, void *ownerdata, float targetmat[][4])
+{
+	PyObject *srcmat, *tarmat, *idprop;
+	PyObject *globals;
+	PyObject *gval;
+	PyObject *pyargs, *retval;
+	MatrixObject *retmat;
+	int row, col;
+	
+	if ( !con->text ) return;
+	if ( con->flag & PYCON_SCRIPTERROR) return;
+	
+	globals = CreateGlobalDictionary();
+	
+	srcmat = newMatrixObject( (float*)obmat, 4, 4, Py_NEW );
+	tarmat = newMatrixObject( (float*)targetmat, 4, 4, Py_NEW );
+	idprop = BPy_Wrap_IDProperty( NULL, con->prop, NULL);
+	
+/*  since I can't remember what the armature weakrefs do, I'll just leave this here
+    commented out.  This function was based on pydrivers, and it might still be relevent.
+	if( !setup_armature_weakrefs()){
+		fprintf( stderr, "Oops - weakref dict setup\n");
+		return result;
+	}
+*/
+	retval = RunPython( con->text, globals );
+
+	if ( retval == NULL ) {
+		BPY_Err_Handle(con->text->id.name);
+		ReleaseGlobalDictionary( globals );
+		con->flag |= PYCON_SCRIPTERROR;
+	
+		/* free temp objects */
+		Py_XDECREF( idprop );
+		Py_XDECREF( srcmat );
+		Py_XDECREF( tarmat );
+		return;
+	}
+
+	if (retval) {Py_XDECREF( retval );}
+	retval = NULL;
+	
+	gval = PyDict_GetItemString(globals, "doConstraint");
+	if (!gval) {
+		ReleaseGlobalDictionary( globals );
+	
+		/* free temp objects */
+		Py_XDECREF( idprop );
+		Py_XDECREF( srcmat );
+		Py_XDECREF( tarmat );
+		printf("ERROR: no doConstraint function in constraint!\n");
+		return;
+	}
+	
+	/* Now for the fun part! Try and find the functions we need. */
+	if (PyFunction_Check(gval) ) {
+		pyargs = Py_BuildValue("OOO", srcmat, tarmat, idprop);
+		retval = PyObject_CallObject(gval, pyargs);
+		Py_XDECREF( pyargs );
+	} else {
+		printf("ERROR: doConstraint is supposed to be a function!\n");
+		con->flag |= PYCON_SCRIPTERROR;
+		ReleaseGlobalDictionary( globals );
+		
+		Py_XDECREF( idprop );
+		Py_XDECREF( srcmat );
+		Py_XDECREF( tarmat );
+		return;
+	}
+	
+	if (!retval) {
+		BPY_Err_Handle(con->text->id.name);
+		con->flag |= PYCON_SCRIPTERROR;
+		
+		/* free temp objects */
+		ReleaseGlobalDictionary( globals );
+		
+		Py_XDECREF( idprop );
+		Py_XDECREF( srcmat );
+		Py_XDECREF( tarmat );
+		return;
+	}
+	
+	
+	if (!PyObject_TypeCheck(retval, &matrix_Type)) {
+		printf("Error in PyConstraint - doConstraint: Function not returning a matrix!\n");
+		con->flag |= PYCON_SCRIPTERROR;
+		ReleaseGlobalDictionary( globals );
+		
+		Py_XDECREF( idprop );
+		Py_XDECREF( srcmat );
+		Py_XDECREF( tarmat );
+		Py_XDECREF( retval );
+		return;
+	}
+	
+	retmat = (MatrixObject*) retval;
+	if (retmat->rowSize != 4 || retmat->colSize != 4) {
+		printf("Error in PyConstraint - doConstraint: Matrix returned is the wrong size!\n");
+		con->flag |= PYCON_SCRIPTERROR;
+		ReleaseGlobalDictionary( globals );
+		
+		Py_XDECREF( idprop );
+		Py_XDECREF( srcmat );
+		Py_XDECREF( tarmat );
+		Py_XDECREF( retval );
+		return;
+	}	
+
+	/* this is the reverse of code taken from newMatrix() */
+	for(row = 0; row < 4; row++) {
+		for(col = 0; col < 4; col++) {
+			obmat[row][col] = retmat->contigPtr[row*4+col];
+		}
+	}
+	
+	/* clear globals */
+	ReleaseGlobalDictionary( globals );
+	
+	/* free temp objects */
+	Py_XDECREF( idprop );
+	Py_XDECREF( srcmat );
+	Py_XDECREF( tarmat );
+	Py_XDECREF( retval );
+}
+
+/* This evaluates whether constraint uses targets, and also the target matrix 
+ * Return code of 0 = doesn't use targets, 1 = uses targets + matrix set, -1 = uses targets + matrix not set
+ */
+int BPY_pyconstraint_targets(bPythonConstraint *con, float targetmat[][4])
+{
+	PyObject *tar, *subtar;
+	PyObject *tarmat, *idprop;
+	PyObject *globals;
+	PyObject *gval, *gval2;
+	PyObject *pyargs, *retval;
+	MatrixObject *retmat;
+	bPoseChannel *pchan;
+	int row, col;
+	
+	if ( !con->text ) return 0;
+	if ( con->flag & PYCON_SCRIPTERROR) return 0;
+	
+	globals = CreateGlobalDictionary();
+	
+	tar = Object_CreatePyObject( con->tar );
+	if ( con->tar )
+		pchan = get_pose_channel( con->tar->pose, con->subtarget );
+	else
+		pchan = NULL;
+	subtar = PyPoseBone_FromPosechannel( pchan );
+	
+	tarmat = newMatrixObject( (float*)targetmat, 4, 4, Py_NEW );
+	idprop = BPy_Wrap_IDProperty( NULL, con->prop, NULL);
+	
+/*  since I can't remember what the armature weakrefs do, I'll just leave this here
+    commented out.  This function was based on pydrivers, and it might still be relevent.
+	if( !setup_armature_weakrefs()){
+		fprintf( stderr, "Oops - weakref dict setup\n");
+		return result;
+	}
+*/
+	retval = RunPython( con->text, globals );
+
+	if ( retval == NULL ) {
+		BPY_Err_Handle(con->text->id.name);
+		ReleaseGlobalDictionary( globals );
+		con->flag |= PYCON_SCRIPTERROR;
+	
+		/* free temp objects */
+		Py_XDECREF( tar );
+		Py_XDECREF( subtar );
+		Py_XDECREF( idprop );
+		Py_XDECREF( tarmat );
+		return 0;
+	}
+
+	if (retval) {Py_XDECREF( retval );}
+	retval = NULL;
+	
+	/* try to find USE_TARGET global constant */
+	gval = PyDict_GetItemString(globals, "USE_TARGET");
+	if (!gval) {
+		ReleaseGlobalDictionary( globals );
+	
+		/* free temp objects */
+		Py_XDECREF( tar );
+		Py_XDECREF( subtar );
+		Py_XDECREF( idprop );
+		Py_XDECREF( tarmat );
+		return 0;
+	}
+	
+	/* try to find doTarget function to set the target matrix */
+	gval2 = PyDict_GetItemString(globals, "doTarget");
+	if (!gval2) {
+		ReleaseGlobalDictionary( globals );
+	
+		/* free temp objects */
+		Py_XDECREF( tar );
+		Py_XDECREF( subtar );
+		Py_XDECREF( idprop );
+		Py_XDECREF( tarmat );
+		return -1;
+	}
+	
+	/* Now for the fun part! Try and find the functions we need.*/
+	if (PyFunction_Check(gval2) ) {
+		pyargs = Py_BuildValue("OOOO", tar, subtar, tarmat, idprop);
+		retval = PyObject_CallObject(gval2, pyargs);
+		Py_XDECREF( pyargs );
+	} else {
+		printf("ERROR: doTarget is supposed to be a function!\n");
+		con->flag |= PYCON_SCRIPTERROR;
+		ReleaseGlobalDictionary( globals );
+		
+		Py_XDECREF( tar );
+		Py_XDECREF( subtar );
+		Py_XDECREF( idprop );
+		Py_XDECREF( tarmat );
+		return -1;
+	}
+	
+	if (!retval) {
+		BPY_Err_Handle(con->text->id.name);
+		con->flag |= PYCON_SCRIPTERROR;
+		
+		/* free temp objects */
+		ReleaseGlobalDictionary( globals );
+		
+		Py_XDECREF( tar );
+		Py_XDECREF( subtar );
+		Py_XDECREF( idprop );
+		Py_XDECREF( tarmat );
+		return -1;
+	}
+	
+	if (!PyObject_TypeCheck(retval, &matrix_Type)) {
+		ReleaseGlobalDictionary( globals );
+		
+		Py_XDECREF( tar );
+		Py_XDECREF( subtar );
+		Py_XDECREF( idprop );
+		Py_XDECREF( tarmat );
+		Py_XDECREF( retval );
+		return -1;
+	}
+	
+	retmat = (MatrixObject*) retval;
+	if (retmat->rowSize != 4 || retmat->colSize != 4) {
+		printf("Error in PyConstraint - doTarget: Matrix returned is the wrong size!\n");
+		con->flag |= PYCON_SCRIPTERROR;
+		ReleaseGlobalDictionary( globals );
+		
+		Py_XDECREF( tar );
+		Py_XDECREF( subtar );
+		Py_XDECREF( idprop );
+		Py_XDECREF( tarmat );
+		Py_XDECREF( retval );
+		return -1;
+	}	
+
+	/* this is the reverse of code taken from newMatrix() */
+	for(row = 0; row < 4; row++) {
+		for(col = 0; col < 4; col++) {
+			targetmat[row][col] = retmat->contigPtr[row*4+col];
+		}
+	}
+	
+	/* clear globals */
+	ReleaseGlobalDictionary( globals );
+	
+	/* free temp objects */
+	Py_XDECREF( tar );
+	Py_XDECREF( subtar );
+	Py_XDECREF( idprop );
+	Py_XDECREF( tarmat );
+	Py_XDECREF( retval );
+	return 1;
+}
+
+/* This draws+handles the user-defined interface for editing pyconstraints idprops */
+void BPY_pyconstraint_settings(void *arg1, void *arg2)
+{
+	bPythonConstraint *con= (bPythonConstraint *)arg1;
+	PyObject *idprop;
+	PyObject *globals;
+	PyObject *gval;
+	PyObject *retval;
+	
+	if ( !con->text ) return;
+	if ( con->flag & PYCON_SCRIPTERROR) return;
+	
+	globals = CreateGlobalDictionary();
+	
+	idprop = BPy_Wrap_IDProperty( NULL, con->prop, NULL);
+	
+	retval = RunPython( con->text, globals );
+
+	if ( retval == NULL ) {
+		BPY_Err_Handle(con->text->id.name);
+		ReleaseGlobalDictionary( globals );
+		con->flag |= PYCON_SCRIPTERROR;
+	
+		/* free temp objects */
+		Py_XDECREF( idprop );
+		return;
+	}
+
+	if (retval) {Py_XDECREF( retval );}
+	retval = NULL;
+	
+	gval = PyDict_GetItemString(globals, "getSettings");
+	if (!gval) {
+		printf("ERROR: no getSettings function in constraint!");
+		
+		/* free temp objects */
+		ReleaseGlobalDictionary( globals );
+		Py_XDECREF( idprop );
+		return;
+	}
+	
+	/* Now for the fun part! Try and find the functions we need. */
+	if (PyFunction_Check(gval) ) {
+		retval = PyObject_CallFunction(gval, "O", idprop);
+	} else {
+		printf("ERROR: getSettings is supposed to be a function!\n");
+		ReleaseGlobalDictionary( globals );
+		
+		Py_XDECREF( idprop );
+		return;
+	}
+	
+	if (!retval) {
+		BPY_Err_Handle(con->text->id.name);
+		con->flag |= PYCON_SCRIPTERROR;
+		
+		/* free temp objects */
+		ReleaseGlobalDictionary( globals );
+		Py_XDECREF( idprop );
+		return;
+	}
+	else {
+		/* clear globals */
+		ReleaseGlobalDictionary( globals );
+		
+		/* free temp objects */
+		Py_XDECREF( idprop );
+		return;
+	}
 }
 
 /* Update function, it gets rid of pydrivers global dictionary, forcing

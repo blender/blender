@@ -39,6 +39,10 @@
 #include "DNA_object_types.h"
 
 struct Action;
+struct Text;
+#ifndef __cplusplus
+struct PyObject;
+#endif
 
 /* channels reside in Object or Action (ListBase) constraintChannels */
 typedef struct bConstraintChannel{
@@ -58,6 +62,18 @@ typedef struct bConstraint{
 
 	float		enforce;
 } bConstraint;
+
+/* Python Script Constraint */
+typedef struct bPythonConstraint {
+	Object *tar;			/* object to use as target (if required) */
+	char subtarget[32]; 	/* bone to use as subtarget (if required) */
+	
+	struct Text *text;		/* text-buffer (containing script) to execute */
+	IDProperty *prop;		/* 'id-properties' used to store custom properties for constraint */
+	
+	int flag;				/* general settings/state indicators accessed by bitmapping */
+	int pad;
+} bPythonConstraint;
 
 /* Single-target subobject constraints */
 typedef struct bKinematicConstraint{
@@ -349,6 +365,10 @@ typedef struct bClampToConstraint {
 #define LIMIT_ZROT 0x04
 
 #define LIMIT_NOPARENT 0x01
+
+/* python constraint -> flag */
+#define PYCON_USETARGETS	0x01
+#define PYCON_SCRIPTERROR	0x02
 
 #define CONSTRAINT_DRAW_PIVOT 0x40
 

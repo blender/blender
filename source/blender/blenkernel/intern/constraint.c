@@ -58,6 +58,9 @@
 #include "BKE_ipo.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
+#include "BKE_idprop.h"
+
+#include "BPY_extern.h"
 
 #include "blendef.h"
 
@@ -80,6 +83,15 @@ void free_constraint_data (bConstraint *con)
 {
 	if (con->data) {
 		/* any constraint-type specific stuff here */
+		switch (con->type) {
+			case CONSTRAINT_TYPE_PYTHON:
+			{
+				bPythonConstraint *data= con->data;
+				IDP_FreeProperty(data->prop);
+				MEM_freeN(data->prop);
+			}
+				break;
+		}
 		
 		MEM_freeN(con->data);
 	}
@@ -117,6 +129,14 @@ void relink_constraints (struct ListBase *list)
 	
 	for (con = list->first; con; con=con->next) {
 		switch (con->type) {
+			case CONSTRAINT_TYPE_PYTHON:
+			{
+				bPythonConstraint *data;
+				data = con->data;
+				
+				ID_NEW(data->tar);
+			}
+				break;
 			case CONSTRAINT_TYPE_KINEMATIC:
 			{
 				bKinematicConstraint *data;
@@ -260,6 +280,13 @@ void copy_constraints (ListBase *dst, ListBase *src)
 char constraint_has_target (bConstraint *con) 
 {
 	switch (con->type) {
+	case CONSTRAINT_TYPE_PYTHON:
+		{
+			bPythonConstraint *data = con->data;
+			if (data->tar)
+				return 1;
+		}
+		break;
 	case CONSTRAINT_TYPE_TRACKTO:
 		{
 			bTrackToConstraint *data = con->data;
@@ -354,6 +381,13 @@ Object *get_constraint_target(bConstraint *con, char **subtarget)
 	  * to the name for this constraints subtarget ... NULL otherwise
 	  */
 	switch (con->type) {
+	case CONSTRAINT_TYPE_PYTHON:
+		{
+			bPythonConstraint *data=con->data;
+			*subtarget = data->subtarget;
+			return data->tar;
+		}
+		break;
 	case CONSTRAINT_TYPE_ACTION:
 		{
 			bActionConstraint *data = con->data;
@@ -450,6 +484,14 @@ void set_constraint_target(bConstraint *con, Object *ob, char *subtarget)
 {
 	/* Set the target for this constraint  */
 	switch (con->type) {
+		
+		case CONSTRAINT_TYPE_PYTHON:
+		{
+			bPythonConstraint *data = con->data;
+			data->tar= ob;
+			if(subtarget) BLI_strncpy(data->subtarget, subtarget, 32);
+		}
+			break;		
 		case CONSTRAINT_TYPE_ACTION:
 		{
 			bActionConstraint *data = con->data;
@@ -590,6 +632,18 @@ void *new_constraint_data (short type)
 	void *result;
 	
 	switch (type) {
+	case CONSTRAINT_TYPE_PYTHON:
+		{
+			bPythonConstraint *data;
+			data = MEM_callocN(sizeof(bPythonConstraint), "pythonConstraint");
+			
+			/* everything should be set correctly by calloc, except for the prop->type constant.*/
+			data->prop = MEM_callocN(sizeof(IDProperty), "PyConstraintProps");
+			data->prop->type = IDP_GROUP;
+			
+			result = data;
+		}
+		break;		
 	case CONSTRAINT_TYPE_KINEMATIC:
 		{
 			bKinematicConstraint *data;
@@ -1272,6 +1326,31 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 				Mat4One (mat);
 		}
 		break;
+	case CONSTRAINT_TYPE_PYTHON:
+		{
+			bPythonConstraint *data;
+			data = (bPythonConstraint*)con->data;
+			
+			/* special exception for curves - depsgraph issues */
+			if (data->tar && data->tar->type == OB_CURVE) {
+				Curve *cu= data->tar->data;
+				
+				/* this check is to make sure curve objects get updated on file load correctly.*/
+				if(cu->path==NULL || cu->path->data==NULL) /* only happens on reload file, but violates depsgraph still... fix! */
+					makeDispListCurveTypes(data->tar, 0);				
+			}
+			
+			/* if the script doesn't set the target matrix for any reason, fall back to standard methods */
+			if (BPY_pyconstraint_targets(data, mat) < 1) {
+				if (data->tar) {
+					constraint_target_to_mat4(data->tar, data->subtarget, mat, size);
+					valid = 1;
+				}
+				else
+					Mat4One (mat);
+			}
+		}
+		break;
 	case CONSTRAINT_TYPE_CLAMPTO:
 		{
 			bClampToConstraint *data;
@@ -1316,7 +1395,14 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 	case CONSTRAINT_TYPE_NULL:
 	case CONSTRAINT_TYPE_KINEMATIC: /* removed */
 		break;
-	
+	case CONSTRAINT_TYPE_PYTHON:
+		{
+			bPythonConstraint *data;
+			
+			data= constraint->data;
+			BPY_pyconstraint_eval(data, ob->obmat, ownertype, ownerdata, targetmat);
+		} 
+		break;
 	case CONSTRAINT_TYPE_ACTION:
 		{
 			bActionConstraint *data;

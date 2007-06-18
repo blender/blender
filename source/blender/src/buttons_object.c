@@ -109,6 +109,7 @@
 #include "DNA_vfont_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
+#include "DNA_text_types.h"
 
 #include "BKE_anim.h"
 #include "BKE_armature.h"
@@ -143,6 +144,7 @@
 #include "BSE_edit.h"
 
 #include "BDR_editobject.h"
+#include "BPY_extern.h"
 
 #include "butspace.h" // own module
 
@@ -328,6 +330,9 @@ void get_constraint_typestring (char *str, void *con_v)
 	bConstraint *con= con_v;
 
 	switch (con->type){
+	case CONSTRAINT_TYPE_PYTHON:
+		strcpy(str, "Script");
+		return;
 	case CONSTRAINT_TYPE_CHILDOF:
 		strcpy (str, "Child Of");
 		return;
@@ -508,6 +513,7 @@ void autocomplete_vgroup(char *str, void *arg_v)
 	}
 }
 
+/* draw panel showing settings for a constraint */
 static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, short *xco, short *yco)
 {
 	Object *ob= OBACT, *target;
@@ -599,10 +605,60 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 	}
 	else {
 		switch (con->type){
+		case CONSTRAINT_TYPE_PYTHON:
+			{
+				bPythonConstraint *data = con->data;
+				uiBut *but2;
+				static int pyconindex=0;
+				char *menustr;
+				
+				height = 90;
+				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40, height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
+				
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Script:", *xco+60, *yco-24, 55, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				
+				/* do the scripts menu */
+				menustr = buildmenu_pyconstraints(data->text, &pyconindex);
+				but2 = uiDefButI(block, MENU, B_CONSTRAINT_TEST, menustr,
+				      *xco+120, *yco-24, 150, 20, &pyconindex,
+				      0.0, 1.0, 0, 0, "Set the Script Constraint to use");
+				uiButSetFunc(but2, validate_pyconstraint_cb, data, &pyconindex);
+				MEM_freeN(menustr);	
+				
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+60, *yco-48, 55, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				if (data->flag & PYCON_USETARGETS) {
+					/* Draw target parameters */ 
+					uiBlockBeginAlign(block);
+					uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-48, 150, 18, &data->tar, "Target Object"); 
+
+					if (is_armature_target) {
+						but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-66,150,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
+						uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
+					}
+					else {
+						strcpy (data->subtarget, "");
+					}
+					
+					uiBlockEndAlign(block);
+				}
+				else {
+					/* Draw indication that no target needed */
+					uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Not Applicable", *xco+120, *yco-48, 150, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				}
+				
+				/* settings */
+				uiBlockBeginAlign(block);
+				but=uiDefBut(block, BUT, B_CONSTRAINT_TEST, "Options", *xco, *yco-88, (width/2),18, NULL, 0, 24, 0, 0, "Change some of the constraint's settings.");
+				uiButSetFunc(but, BPY_pyconstraint_settings, data, NULL);
+				
+				uiDefBut(block, BUT, B_CONSTRAINT_TEST, "Refresh", *xco+((width/2)+10), *yco-88, (width/2),18, NULL, 0, 24, 0, 0, "Force constraint to refresh it's settings");
+				uiBlockEndAlign(block);
+			}
+			break;
 		case CONSTRAINT_TYPE_ACTION:
 			{
 				bActionConstraint *data = con->data;
-
+				
 				height = 88;
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
@@ -1336,7 +1392,12 @@ static uiBlock *add_constraintmenu(void *arg_unused)
 	}
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
 
+	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_PYTHON, "Script", 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+	
+	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_NULL,"Null",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+	
 	
 	uiTextBoundsBlock(block, 50);
 	uiBlockSetDirection(block, UI_DOWN);
@@ -1360,7 +1421,17 @@ void do_constraintbuts(unsigned short event)
 		if(ob->pose) ob->pose->flag |= POSE_RECALC;	// checks & sorts pose channels
 		DAG_scene_sort(G.scene);
 		break;
-		
+	
+	case B_CONSTRAINT_ADD_PYTHON:
+		{
+			bConstraint *con;
+			
+			con = add_new_constraint(CONSTRAINT_TYPE_PYTHON);
+			add_constraint_to_active(ob, con);
+
+			BIF_undo_push("Add constraint");
+		}
+		break;
 	case B_CONSTRAINT_ADD_NULL:
 		{
 			bConstraint *con;
