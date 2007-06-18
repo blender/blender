@@ -252,17 +252,17 @@ static int isffmpeg (char *filename) {
 		BLI_testextensie(filename, ".wav")) return 0;
 
 	if(av_open_input_file(&pFormatCtx, filename, NULL, 0, NULL)!=0) {
-		fprintf(stderr, "isffmpeg: av_open_input_file failed\n");
+		if(UTIL_DEBUG) fprintf(stderr, "isffmpeg: av_open_input_file failed\n");
 		return 0;
 	}
 
 	if(av_find_stream_info(pFormatCtx)<0) {
-		fprintf(stderr, "isffmpeg: av_find_stream_info failed\n");
+		if(UTIL_DEBUG) fprintf(stderr, "isffmpeg: av_find_stream_info failed\n");
 		av_close_input_file(pFormatCtx);
 		return 0;
 	}
 
-	dump_format(pFormatCtx, 0, filename, 0);
+	if(UTIL_DEBUG) dump_format(pFormatCtx, 0, filename, 0);
 
 
         /* Find the first video stream */
@@ -309,19 +309,33 @@ int imb_get_anim_type(char * name) {
 
 	if(UTIL_DEBUG) printf("in getanimtype: %s\n", name);
 
-#ifdef WITH_FFMPEG
+#ifndef _WIN32
+#	ifdef WITH_FFMPEG
 	/* stat test below fails on large files > 4GB */
 	if (isffmpeg(name)) return (ANIM_FFMPEG);
-#endif
-
+#	endif
 	if (ib_stat(name,&st) == -1) return(0);
 	if (((st.st_mode) & S_IFMT) != S_IFREG) return(0);
 
 	if (isavi(name)) return (ANIM_AVI);
 
 	if (ismovie(name)) return (ANIM_MOVIE);
-#ifdef WITH_QUICKTIME
+#	ifdef WITH_QUICKTIME
 	if (isqtime(name)) return (ANIM_QTIME);
+#	endif
+#else
+	if (ib_stat(name,&st) == -1) return(0);
+	if (((st.st_mode) & S_IFMT) != S_IFREG) return(0);
+
+	if (isavi(name)) return (ANIM_AVI);
+
+	if (ismovie(name)) return (ANIM_MOVIE);
+#	ifdef WITH_QUICKTIME
+	if (isqtime(name)) return (ANIM_QTIME);
+#	endif
+#	ifdef WITH_FFMPEG
+	if (isffmpeg(name)) return (ANIM_FFMPEG);
+#	endif
 #endif
 	type = IMB_ispic(name);
 	if (type == ANIM) return (ANIM_ANIM5);

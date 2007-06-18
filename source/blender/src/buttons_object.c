@@ -2500,11 +2500,22 @@ static void object_softbodies__enable(void *ob_v, void *arg2)
 	allqueue(REDRAWBUTSEDIT, 0);
 }
 
+static int _can_softbodies_at_all(Object *ob)
+{
+	// list of Yes
+    if ((ob->type==OB_MESH)
+		|| (ob->type==OB_CURVE)
+		|| (ob->type==OB_LATTICE)
+		|| (ob->type==OB_SURF)
+		) return 1;
+	// else deny
+	return 0;
+}
 static void object_softbodies_II(Object *ob)
 {
 	uiBlock *block;
 	static int val;
-
+    if(!_can_softbodies_at_all(ob)) return;
 	block= uiNewBlock(&curarea->uiblocks, "object_softbodies_II", UI_EMBOSS, UI_HELV, curarea->win);
 	uiNewPanelTabbed("Soft Body", "Physics");
 	if(uiNewPanel(curarea, block, "Soft Body Collision", "Physics", 651, 0, 318, 204)==0) return;
@@ -2583,9 +2594,9 @@ static void object_softbodies(Object *ob)
 	uiBlock *block;
 	static int val;
 	uiBut *but;
+    if(!_can_softbodies_at_all(ob)) return;
 	block= uiNewBlock(&curarea->uiblocks, "object_softbodies", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Soft Body", "Physics", 640, 0, 318, 204)==0) return;
-
 	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 
 	val = modifiers_isSoftbodyEnabled(ob);

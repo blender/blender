@@ -52,6 +52,7 @@
 #include "BKE_key.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
+#include "BKE_object.h"
 
 #include "BIF_editmesh.h"
 #include "BIF_screen.h"
@@ -1205,6 +1206,7 @@ void multires_level_to_mesh(Object *ob, Mesh *me, const int render)
 
 	/* friendly check for background render */
 	if(G.background==0) {
+		object_handle_update(ob);
 		countall();
 		
 		if(G.vd && G.vd->depths) G.vd->depths->damaged= 1;

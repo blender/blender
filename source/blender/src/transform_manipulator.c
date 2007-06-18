@@ -697,11 +697,13 @@ static void draw_manipulator_axes(int colcode, int flagx, int flagy, int flagz)
 /* only called while G.moving */
 static void draw_manipulator_rotate_ghost(float mat[][4], int drawflags)
 {
-	GLUquadricObj *qobj= gluNewQuadric(); 
+	GLUquadricObj *qobj;
 	float size, phi, startphi, vec[3], svec[3], matt[4][4], cross[3], tmat[3][3];
 	int arcs= (G.rt!=2);
 	
 	glDisable(GL_DEPTH_TEST);
+
+	qobj= gluNewQuadric(); 
 	gluQuadricDrawStyle(qobj, GLU_FILL); 
 	
 	glColor4ub(0,0,0,64);
@@ -832,7 +834,7 @@ static void draw_manipulator_rotate_ghost(float mat[][4], int drawflags)
 
 static void draw_manipulator_rotate(float mat[][4], int moving, int drawflags, int combo)
 {
-	GLUquadricObj *qobj= gluNewQuadric(); 
+	GLUquadricObj *qobj; 
 	double plane[4];
 	float size, vec[3], unitmat[4][4];
 	float cywid= 0.33f*0.01f*(float)U.tw_handlesize;	
@@ -849,6 +851,8 @@ static void draw_manipulator_rotate(float mat[][4], int moving, int drawflags, i
 	/* Init stuff */
 	glDisable(GL_DEPTH_TEST);
 	Mat4One(unitmat);
+
+	qobj= gluNewQuadric();
 	gluQuadricDrawStyle(qobj, GLU_FILL); 
 	
 	/* prepare for screen aligned draw */
@@ -1153,7 +1157,7 @@ static void draw_cylinder(GLUquadricObj *qobj, float len, float width)
 
 static void draw_manipulator_translate(float mat[][4], int moving, int drawflags, int combo, int colcode)
 {
-	GLUquadricObj *qobj = gluNewQuadric(); 
+	GLUquadricObj *qobj; 
 	float cylen= 0.01f*(float)U.tw_handlesize;
 	float cywid= 0.25f*cylen, dz, size;
 	float unitmat[4][4];
@@ -1163,6 +1167,8 @@ static void draw_manipulator_translate(float mat[][4], int moving, int drawflags
 	
 	if(moving) glTranslatef(Trans.vec[0], Trans.vec[1], Trans.vec[2]);
 	glDisable(GL_DEPTH_TEST);
+
+	qobj= gluNewQuadric();
 	gluQuadricDrawStyle(qobj, GLU_FILL); 
 	
 	/* center circle, do not add to selection when shift is pressed (planar constraint) */
@@ -1225,19 +1231,21 @@ static void draw_manipulator_translate(float mat[][4], int moving, int drawflags
 
 static void draw_manipulator_rotate_cyl(float mat[][4], int moving, int drawflags, int combo, int colcode)
 {
-	GLUquadricObj *qobj = gluNewQuadric(); 
+	GLUquadricObj *qobj;
 	float size;
 	float cylen= 0.01f*(float)U.tw_handlesize;
 	float cywid= 0.25f*cylen;
 	
 	/* when called while moving in mixed mode, do not draw when... */
 	if((drawflags & MAN_ROT_C)==0) return;
-	
+
 	/* prepare for screen aligned draw */
 	glPushMatrix();
 	size= screen_aligned(mat);
 	
 	glDisable(GL_DEPTH_TEST);
+
+	qobj= gluNewQuadric(); 
 	
 	/* Screen aligned view rot circle */
 	if(drawflags & MAN_ROT_V) {
