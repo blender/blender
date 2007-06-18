@@ -2970,6 +2970,7 @@ static int Object_setNLAflagBits ( BPy_Object * self, PyObject * args )
 static PyObject *Object_getDupliObjects( BPy_Object * self )
 {
 	Object *ob= self->object;
+	PyObject *pair;
 	
 	if(ob->transflag & OB_DUPLI) {
 		/* before make duplis, update particle for current frame */

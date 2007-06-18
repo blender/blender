@@ -473,7 +473,7 @@ static void sum_leaf_radiance(ScatterTree *tree, ScatterNode *node)
 	for(i=0; i<node->totpoint; i++) {
 		p= &node->points[i];
 
-		rad= p->area*(p->rad[0] + p->rad[1] + p->rad[2]);
+		rad= p->area*fabs(p->rad[0] + p->rad[1] + p->rad[2]);
 		totrad += rad;
 
 		node->co[0] += rad*p->co[0];
@@ -550,8 +550,8 @@ static void sum_branch_radiance(ScatterTree *tree, ScatterNode *node)
 
 		subnode= node->child[i];
 
-		rad= subnode->area*(subnode->rad[0] + subnode->rad[1] + subnode->rad[2]);
-		rad += subnode->backarea*(subnode->backrad[0] + subnode->backrad[1] + subnode->backrad[2]);
+		rad= subnode->area*fabs(subnode->rad[0] + subnode->rad[1] + subnode->rad[2]);
+		rad += subnode->backarea*fabs(subnode->backrad[0] + subnode->backrad[1] + subnode->backrad[2]);
 		totrad += rad;
 
 		node->co[0] += rad*subnode->co[0];

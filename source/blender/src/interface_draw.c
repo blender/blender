@@ -1785,7 +1785,7 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 	PackedFile *pf;
 	int result = 0;
 	int charmax = G.charmax;
-
+	
 	/* <builtin> font in use. There are TTF <builtin> and non-TTF <builtin> fonts */
 	if(!strcmp(G.selfont->name, "<builtin>"))
 	{
@@ -1946,6 +1946,12 @@ static void ui_draw_but_CHARTAB(uiBut *but)
 	if (result == 0)
 	{
 		result = FTF_SetFont((unsigned char *) datatoc_bfont_ttf, datatoc_bfont_ttf_size, 11);
+	}
+	
+	/* resets the font size */
+	if(G.ui_international == TRUE)
+	{
+		uiSetCurFont(but->block, UI_HELV);
 	}
 }
 

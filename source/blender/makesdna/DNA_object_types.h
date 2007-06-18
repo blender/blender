@@ -204,7 +204,7 @@ typedef struct Object {
 
 	short shapenr, shapeflag;	/* current shape key for menu or pinned, flag for pinning */
 	float smoothresh;			/* smoothresh is phong interpolation ray_shadow correction in render */
-	int pad4;
+	short recalco, pad4;		/* recalco for temp storage of ob->recalc, bad design warning */
 	
 	struct FluidsimSettings *fluidsimSettings; /* if fluidsim enabled, store additional settings */
   

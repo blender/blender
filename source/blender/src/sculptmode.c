@@ -1096,13 +1096,22 @@ void calc_damaged_verts(ListBase *damaged_verts, GrabData *grabdata)
 BrushData *sculptmode_brush(void)
 {
 	SculptData *sd= &G.scene->sculptdata;
-	return (sd->brush_type==DRAW_BRUSH ? &sd->drawbrush :
-		sd->brush_type==SMOOTH_BRUSH ? &sd->smoothbrush :
-		sd->brush_type==PINCH_BRUSH ? &sd->pinchbrush :
-		sd->brush_type==INFLATE_BRUSH ? &sd->inflatebrush :
-		sd->brush_type==GRAB_BRUSH ? &sd->grabbrush :
-		sd->brush_type==LAYER_BRUSH ? &sd->layerbrush :
-		sd->brush_type==FLATTEN_BRUSH ? &sd->flattenbrush : NULL);
+
+	BrushData *bd = 
+		(sd->brush_type==DRAW_BRUSH ? &sd->drawbrush :
+		 sd->brush_type==SMOOTH_BRUSH ? &sd->smoothbrush :
+		 sd->brush_type==PINCH_BRUSH ? &sd->pinchbrush :
+		 sd->brush_type==INFLATE_BRUSH ? &sd->inflatebrush :
+		 sd->brush_type==GRAB_BRUSH ? &sd->grabbrush :
+		 sd->brush_type==LAYER_BRUSH ? &sd->layerbrush :
+		 sd->brush_type==FLATTEN_BRUSH ? &sd->flattenbrush : NULL);
+
+	if(!bd) {
+		sculptmode_init(G.scene);
+		bd = &sd->drawbrush;
+	}
+
+	return bd;
 }
 
 void sculptmode_update_tex()
@@ -1853,8 +1862,8 @@ void set_sculptmode(void)
 	else {
 		G.f |= G_SCULPTMODE;
 
-		if(!sculptmode_brush())
-			sculptmode_init(G.scene);
+		/* Called here to sanity-check the brush */
+		sculptmode_brush();
 
 		sculpt_init_session();
 		
