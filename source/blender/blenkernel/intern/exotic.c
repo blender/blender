@@ -1246,7 +1246,12 @@ static void read_inventor(char *str, struct ListBase *listb)
 		error("Can't read file\n");
 		return;
 	}
+
 	filelen= BLI_filesize(file);
+	if(filelen < 1) {
+		close(file);
+		return;
+	}
 	
 	maindata= MEM_mallocN(filelen, "leesInventor");
 	read(file, maindata, filelen);

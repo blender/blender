@@ -265,6 +265,7 @@ void do_scriptbuts(unsigned short event)
 	}
 
 	allqueue(REDRAWBUTSSCRIPT, 0);
+	allqueue(REDRAWOOPS, 0);
 }
 
 void draw_scriptlink(uiBlock *block, ScriptLink *script, int sx, int sy, int scene) 

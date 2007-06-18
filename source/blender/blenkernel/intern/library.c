@@ -915,12 +915,17 @@ int new_id(ListBase *lb, ID *id, const char *tname)
 	/* if no libdata given, look up based on ID */
 	if(lb==NULL) lb= wich_libbase(G.main, GS(id->name));
 
-	if(tname==0) 	/* if no name given, use name of current ID */
+	if(tname==0) {	/* if no name given, use name of current ID */
 		strncpy(name, id->name+2, 21);
-	else /* else make a copy (tname args can be const) */
+		result= strlen(id->name+2);
+	}
+	else { /* else make a copy (tname args can be const) */
 		strncpy(name, tname, 21);
+		result= strlen(tname);
+	}
 
-	if( strlen(name) > 21 ) name[21]= 0;
+	/* if result > 21, strncpy don't put the final '\0' to name. */
+	if( result > 21 ) name[21]= 0;
 
 	result = check_for_dupid( lb, id, name );
 	strcpy( id->name+2, name );

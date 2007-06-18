@@ -271,6 +271,13 @@ static void build_pict_list(char * first)
 				return;
 			}
 			size = BLI_filesize(file);
+
+			if (size < 1) {
+				close(file);
+				MEM_freeN(picture);
+				return;
+			}
+
 			picture->size = size;
 			picture->IB_flags = IB_rect;
 						
