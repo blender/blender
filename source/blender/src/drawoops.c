@@ -343,15 +343,15 @@ void draw_oops(Oops *oops)
 	if(oops->id== (ID *)((G.scene->basact) ? (G.scene->basact->object) : 0)) line= 1;
 	else if(oops->id== (ID *)G.scene) line= 1;
 
+	if (!oops->id) return;
+
 	if(oops->id->us) {
 		cpack(body);
 
 		glRectf(x1,  y1,  x2,  y2);
 	}
 	
-	/* it has never happened that an oops was missing an ID at
-	this point but has occured elseware so lets be safe */
-	if(oops->id && oops->id->lib) { 
+	if(oops->id->lib) { 
 		if(oops->id->flag & LIB_INDIRECT) cpack(0x1144FF);
 		else cpack(0x11AAFF);
 
@@ -360,6 +360,7 @@ void draw_oops(Oops *oops)
 
 	v1[0]= x1; 
 	v1[1]= (y1+y2)/2 -0.3;
+
 	if(oops->type==ID_LI) {
 		sprintf(str, "     %s", ((Library *)oops->id)->name);
 	}
@@ -428,6 +429,8 @@ void drawoopsspace(ScrArea *sa, void *spacedata)
 	float col[3];
 	
 	BIF_GetThemeColor3fv(TH_BACK, col);
+
+	if(soops==0) return;	
 	
 	/* darker background for oops */
 	if(soops->type!=SO_OUTLINER) {
@@ -436,7 +439,6 @@ void drawoopsspace(ScrArea *sa, void *spacedata)
 	
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
-	if(soops==0) return;	
 	
 	if(soops->type==SO_OUTLINER) draw_outliner(sa, soops);
 	else {

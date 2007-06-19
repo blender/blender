@@ -58,30 +58,82 @@ BOP_BSPNode::~BOP_BSPNode()
 
 /**
  * Adds a new face to this BSP tree.
- * @param p1 first face point.
- * @param p2 second face point.
- * @param p3 third face point.
+ * @param pts vector containing face points
  * @param plane face plane.
  */
-unsigned int BOP_BSPNode::addFace(const MT_Point3& p1, 
-								  const MT_Point3& p2, 
-								  const MT_Point3& p3, 
-								  const MT_Plane3& plane)
+
+unsigned int BOP_BSPNode::addFace(BOP_BSPPoints pts,
+								  const MT_Plane3& plane )
 {
 	unsigned int newDeep = 0;
-	BOP_TAG tag = BOP_createTAG(testPoint(p1), testPoint(p2), testPoint(p3));
-	if ((tag & IN_IN_IN) != 0) {
+	BOP_TAG tag = ON;
+
+	// find out if any points on the "face" lie in either half-space
+	BOP_IT_BSPPoints ptsEnd = pts.end();
+	for(BOP_IT_BSPPoints itp=pts.begin();itp!=ptsEnd;itp++){
+		tag = (BOP_TAG) ((int) tag | (int)testPoint(*itp));
+	}
+ 
+	if (tag == ON) { }		// face lies on hyperplane: do nothing
+	else if ((tag & IN) != 0 && (tag & OUT) == 0) {	// face is entirely on inside
 		if (m_inChild != NULL)
-			newDeep = m_inChild->addFace(p1, p2, p3, plane) + 1;
+			newDeep = m_inChild->addFace(pts, plane) + 1;
 		else {
 			m_inChild = new BOP_BSPNode(plane);
 			newDeep = 2;
 		}    
-	}
-	
-	if ((tag & OUT_OUT_OUT) != 0){
+	} else if ((tag & OUT) != 0 && (tag & IN) == 0) { // face is entirely on outside
 		if (m_outChild != NULL)
-			newDeep = MT_max(newDeep, m_outChild->addFace(p1, p2, p3, plane) + 1);
+			newDeep = m_outChild->addFace(pts, plane) + 1;
+		else {
+			m_outChild = new BOP_BSPNode(plane);
+			newDeep = 2;
+		}      
+	} else { // face lies in both half-spaces: split it
+		BOP_BSPPoints inside, outside;
+  		MT_Point3 lpoint= pts[pts.size()-1];
+		BOP_TAG ltag = testPoint(lpoint);
+		BOP_TAG tstate = ltag;
+
+		// classify each line segment, looking for endpoints which lie on different
+		// sides of the hyperplane.
+
+		BOP_IT_BSPPoints ptsEnd = pts.end();
+		for(BOP_IT_BSPPoints itp=pts.begin();itp!=ptsEnd;itp++){
+			MT_Point3 npoint= *itp;
+			BOP_TAG ntag = testPoint(npoint);
+
+			if(ltag != ON) {	// last point not on hyperplane
+				if(tstate == IN) {
+					if (m_inChild != NULL) inside.push_back(lpoint);
+				} else {
+					if (m_outChild != NULL) outside.push_back(lpoint);
+				}
+				if(ntag != ON && ntag != tstate) {	// last, self in different half-spaces 
+					MT_Point3 mpoint = BOP_intersectPlane( m_plane, lpoint, npoint );
+					if (m_inChild != NULL) inside.push_back(mpoint);
+					if (m_outChild != NULL) outside.push_back(mpoint);
+					tstate = ntag;
+				}
+			} else {			// last point on hyperplane, so we're switching
+								// half-spaces
+								// boundary point belong to both faces
+				if (m_inChild != NULL) inside.push_back(lpoint);	
+				if (m_outChild != NULL) outside.push_back(lpoint);
+				tstate = ntag;	// state changes to new point tag
+			}
+			lpoint = npoint;	// save point, tag for next iteration
+			ltag = ntag;
+		}
+
+		if (m_inChild != NULL)
+			newDeep = m_inChild->addFace(inside, plane) + 1;
+		else {
+			m_inChild = new BOP_BSPNode(plane);
+			newDeep = 2;
+		}    
+		if (m_outChild != NULL)
+			newDeep = MT_max(newDeep, m_outChild->addFace(outside, plane) + 1);
 		else {
 			m_outChild = new BOP_BSPNode(plane);
 			newDeep = MT_max(newDeep,(unsigned int)2);
@@ -653,19 +705,13 @@ int BOP_BSPNode::splitTriangle(MT_Point3* res,
  */
 void BOP_BSPNode::print(unsigned int deep)
 {
-	for (unsigned int i = 0; i < deep; ++i)
-		cout << "  ";
-	
-	cout << m_plane.x() << ", ";
-	cout << m_plane.y() << ", ";
-	cout << m_plane.z() << ", ";
-	cout << m_plane.w() << endl;
-	if (m_inChild != NULL) {
-		cout << "IN:";
+	cout << "(" << deep << "," << m_plane << ")," << endl;
+	if (m_inChild != NULL)
 		m_inChild->print(deep + 1);
-	}
-	if (m_outChild != NULL) {
-		cout << "OUT:";
+	else
+		cout << "(" << deep+1 << ",None)," << endl;
+	if (m_outChild != NULL)
 		m_outChild->print(deep + 1);
-	}
+	else
+		cout << "(" << deep+1 << ",None)," << endl;
 }

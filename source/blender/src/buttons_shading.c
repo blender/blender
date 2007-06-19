@@ -2467,7 +2467,7 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 	}
 	uiBlockEndAlign(block);
 	
-	uiDefButBitS(block, TOG, LA_ONLYSHADOW, B_NOP,"OnlyShadow",		10,110,80,19,&la->mode, 0, 0, 0, 0, "Causes light to cast shadows only without illuminating objects");
+	uiDefButBitS(block, TOG, LA_ONLYSHADOW, B_LAMPPRV,"OnlyShadow",		10,110,80,19,&la->mode, 0, 0, 0, 0, "Causes light to cast shadows only without illuminating objects");
 
 	if(la->type==LA_SPOT) {
 		uiBlockBeginAlign(block);

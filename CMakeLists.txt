@@ -144,6 +144,7 @@ IF(UNIX)
     /opt/local/include/freetype2
     /opt/csw/include/freetype2
     /opt/include/freetype2
+    NO_DEFAULT_PATH
   )
   SET(FREETYPE_LIB freetype)
 
