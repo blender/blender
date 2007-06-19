@@ -1612,6 +1612,18 @@ void enter_editmode(int wc)
 	if (ob->type==OB_ARMATURE){
 		arm= base->object->data;
 		if (!arm) return;
+		/*
+		 * The function object_data_is_libdata make a problem here, the
+		 * check for ob->proxy return 0 and let blender enter to edit mode
+		 * this causa a crash when you try leave the edit mode.
+		 * The problem is that i can't remove the ob->proxy check from
+		 * object_data_is_libdata that prevent the bugfix #6614, so
+		 * i add this little hack here.
+		 */
+		if(arm->id.lib) {
+			error_libdata();
+			return;
+		}
 		ok=1;
 		G.obedit=ob;
 		make_editArmature();
