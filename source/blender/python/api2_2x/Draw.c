@@ -1461,9 +1461,9 @@ static PyObject *Method_Number( PyObject * self, PyObject * args )
 		if (!range) range= 1.0f; /* avoid any odd errors */
 		
 		/* set the precission to display*/
-		if      (range>=100.0f) precission=1.0f;
-		else if (range>=10.0f) precission=2.0f;
-		else if (range>=1.0f) precission=3.0f;
+		if      (range>=1000.0f) precission=1.0f;
+		else if (range>=100.0f) precission=2.0f;
+		else if (range>=10.0f) precission=3.0f;
 		else precission=4.0f;
 		
 		but->type = BFLOAT_TYPE;
