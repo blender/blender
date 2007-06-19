@@ -4569,14 +4569,14 @@ static void init_actionspace(ScrArea *sa)
 	saction->blockscale= 0.7;
 
 	saction->v2d.tot.xmin= 1.0;
-	saction->v2d.tot.ymin=	0.0;
+	saction->v2d.tot.ymin= -1000.0;
 	saction->v2d.tot.xmax= 1000.0;
-	saction->v2d.tot.ymax= 1000.0;
+	saction->v2d.tot.ymax= 0.0;
 	
 	saction->v2d.cur.xmin= -5.0;
-	saction->v2d.cur.ymin= 0.0;
+	saction->v2d.cur.ymin= -75.0;
 	saction->v2d.cur.xmax= 65.0;
-	saction->v2d.cur.ymax= 1000.0;
+	saction->v2d.cur.ymax= 5.0;
 
 	saction->v2d.min[0]= 0.0;
 	saction->v2d.min[1]= 0.0;

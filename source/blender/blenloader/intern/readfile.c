@@ -6480,9 +6480,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 	if(main->versionfile <= 244) {
 		Scene *sce;
+		bScreen *sc;
 
 		if(main->versionfile != 244 || main->subversionfile < 2) {
 			Mesh *me;
+			
 			for(sce= main->scene.first; sce; sce= sce->id.next)
 				sce->r.mode |= R_SSS;
 
@@ -6503,6 +6505,28 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					}
 				}
 			}
+			
+			/* correct older action editors - incorrect scrolling */
+			for(sc= main->screen.first; sc; sc= sc->id.next) {
+				ScrArea *sa;
+				sa= sc->areabase.first;
+				while(sa) {
+					SpaceLink *sl;
+
+					for (sl= sa->spacedata.first; sl; sl= sl->next) {
+						if(sl->spacetype==SPACE_ACTION) {
+							SpaceAction *saction= (SpaceAction*) sl;
+							
+							saction->v2d.tot.ymin= -1000.0;
+							saction->v2d.tot.ymax= 0.0;
+							
+							saction->v2d.cur.ymin= -75.0;
+							saction->v2d.cur.ymax= 5.0;
+						}
+					}
+					sa = sa->next;
+			}
+		}
 		}
 	}
 
