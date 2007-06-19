@@ -71,6 +71,11 @@ if platform=='win32':
 
 if not use_color=='1':
     B.bc.disable()
+    
+ #on defaut white Os X terminal, some colors are totally unlegible
+if platform=='darwin':
+    B.bc.OKGREEN = '\033[34m'
+    B.bc.WARNING = '\033[36m'
 
 # arguments
 print B.bc.HEADER+'Command-line arguments'+B.bc.ENDC
@@ -110,6 +115,8 @@ if toolset:
         env.Tool('mstoolkit', ['tools'])
     else:
         env = BlenderEnvironment(tools=[toolset], ENV = os.environ)
+        if env:
+            btools.SetupSpawn(env)
 else:
     env = BlenderEnvironment(ENV = os.environ)
 
@@ -117,7 +124,7 @@ if not env:
     print "Could not create a build environment"
     Exit()
 
-env.SConscriptChdir(0)
+
 cc = B.arguments.get('CC', None)
 cxx = B.arguments.get('CXX', None)
 if cc:
@@ -130,53 +137,7 @@ if env['CC'] in ['cl', 'cl.exe'] and sys.platform=='win32':
 elif env['CC'] in ['gcc'] and sys.platform=='win32':
     platform = 'win32-mingw'
 
-# Fix me!
-#if platform == 'win32-mingw':
-if 0:
-    try:
-        import win32file
-        import win32event
-        import win32process
-        import win32security
-        import string
-
-        slash= re.compile(r"\\")
-
-        def myesc(b):
-            if b[0]!= "-":
-                b = slash.sub(r"\\\\", b[1:-1])
-                return "\"" + b + "\""
-            else:
-                return b
-
-        def my_spawn(sh, escape, cmd, args, spawnenv):
-            for var in spawnenv:
-                spawnenv[var] = spawnenv[var].encode('ascii', 'replace')
-
-            sAttrs = win32security.SECURITY_ATTRIBUTES()
-            StartupInfo = win32process.STARTUPINFO()
-            if cmd=='ar' and args[1]=='r':
-                args[1] = '-r'
-            newargs = string.join(map(myesc, args[1:]), ' ')
-            cmdline = cmd + " " + newargs
-
-            # check for any special operating system commands
-            if cmd == 'del':
-                for arg in args[1:]:
-                    win32file.DeleteFile(arg)
-                exit_code = 0
-            else:
-                # otherwise execute the command.
-                hProcess, hThread, dwPid, dwTid = win32process.CreateProcess(None, cmdline, None, None, 1, 0, spawnenv, None, StartupInfo)
-                win32event.WaitForSingleObject(hProcess, win32event.INFINITE)
-                exit_code = win32process.GetExitCodeProcess(hProcess)
-                win32file.CloseHandle(hProcess);
-                win32file.CloseHandle(hThread);
-            return exit_code
-
-        env['SPAWN'] = my_spawn
-    except:
-        print "install win32all from http://sourceforge.net/project/showfiles.php?group_id=78018"
+env.SConscriptChdir(0)
 
 crossbuild = B.arguments.get('BF_CROSS', None)
 if crossbuild and platform!='win32':
@@ -273,162 +234,6 @@ env['BUILDDIR'] = B.root_build_dir
 if not B.root_build_dir[-1]==os.sep:
     B.root_build_dir += os.sep
     
-def NSIS_Installer():
-
-    if env['OURPLATFORM'] != 'win32-vc' and env['OURPLATFORM'] != 'win32-mingw':
-        print "NSIS installer is only available on Windows."
-        Exit()
-        
-    install_base_dir = os.getcwd() + "\\"
-
-    os.chdir("release")
-    v = open("VERSION")
-    version = v.read()[:-1]
-    shortver = version.split('.')[0] + version.split('.')[1]
-    v.close()
-
-    #### change to suit install dir ####
-    inst_dir = install_base_dir + env['BF_INSTALLDIR']
-
-    os.chdir("windows/installer")
-
-    ns = open("00.sconsblender.nsi","r")
-
-    ns_cnt = str(ns.read())
-    ns.close()
-
-    # do root
-    rootlist = []
-    rootdir = os.listdir(inst_dir+"\\")
-    for rootitem in rootdir:
-        if os.path.isdir(inst_dir+"\\"+ rootitem) == 0:
-            rootlist.append("File " + inst_dir + "\\" + rootitem)
-    rootstring = string.join(rootlist, "\n  ")
-    rootstring += "\n\n"
-    ns_cnt = string.replace(ns_cnt, "[ROOTDIRCONTS]", rootstring)
-
-    # do delete items
-    delrootlist = []
-    for rootitem in rootdir:
-        if os.path.isdir(inst_dir + rootitem) == 0:
-            delrootlist.append("Delete $INSTDIR\\" + rootitem)
-    delrootstring = string.join(delrootlist, "\n ")
-    delrootstring += "\n"
-    ns_cnt = string.replace(ns_cnt, "[DELROOTDIRCONTS]", delrootstring)
-
-    # do scripts
-    scriptlist = []
-    scriptpath = "%s%s" % (inst_dir, "\\.blender\\scripts")
-    scriptdir = os.listdir(scriptpath)
-    for scriptitem in scriptdir:
-        scriptfile = "%s\\%s" % (scriptpath, scriptitem)
-        if os.path.isdir(scriptfile) == 0:
-            scriptlist.append("File %s" % scriptfile)
-    scriptstring = string.join(scriptlist, "\n  ")
-    scriptstring += "\n\n"
-    ns_cnt = string.replace(ns_cnt, "[SCRIPTCONTS]", scriptstring)
-
-    # do scripts\bpymodules
-    bpymodlist = []
-    bpymodpath = "%s%s" % (inst_dir, "\\.blender\\scripts\\bpymodules")
-    bpymoddir = os.listdir(bpymodpath)
-
-    for bpymoditem in bpymoddir:
-        bpymodfile = "%s\\%s" % (bpymodpath, bpymoditem)
-        if os.path.isdir(bpymodfile) == 0:
-            bpymodlist.append("File %s" % bpymodfile)
-    bpymodstring = string.join(bpymodlist, "\n  ")
-    bpymodstring += "\n\n"
-    ns_cnt = string.replace(ns_cnt, "[SCRIPTMODCONTS]", bpymodstring)
-
-    # do scripts\bpymodules\colladaimex
-    colladalist = []
-    bpymodpath = "%s%s" % (inst_dir, "\\.blender\\scripts\\bpymodules\\ColladaImEx")
-    bpymoddir = os.listdir(bpymodpath)
-
-    for bpymoditem in bpymoddir:
-        bpymodfile = "%s\\%s" % (bpymodpath, bpymoditem)
-        if os.path.isdir(bpymodfile) == 0:
-            colladalist.append("File %s" % bpymodfile)
-    bpymodstring = string.join(colladalist, "\n  ")
-    bpymodstring += "\n\n"
-    ns_cnt = string.replace(ns_cnt, "[SCRIPTMODCOLLADACONT]", bpymodstring)
-
-    # do scripts\bpydata
-    bpydatalist = []
-    bpydatapath = "%s%s" % (inst_dir, "\\.blender\\scripts\\bpydata")
-    bpydatadir = os.listdir(bpydatapath)
-    for bpydataitem in bpydatadir:
-        bpydatafile = "%s\\%s" % (bpydatapath, bpydataitem)
-        if os.path.isdir(bpydatafile) == 0:
-            bpydatalist.append("File %s" % bpydatafile)
-    bpydatastring = string.join(bpydatalist, "\n  ")
-    bpydatastring += "\n\n"
-    ns_cnt = string.replace(ns_cnt, "[SCRIPTDATACONTS]", bpydatastring)
-
-    # do plugins\include
-    plugincludelist = []
-    plugincludepath = "%s%s" % (inst_dir, "\\plugins\\include")
-    plugincludedir = os.listdir(plugincludepath)
-    for plugincludeitem in plugincludedir:
-        plugincludefile = "%s\\%s" % (plugincludepath, plugincludeitem)
-        if os.path.isdir(plugincludefile) == 0:
-            if plugincludefile.find('.h') or plugincludefile.find('.DEF'):
-                plugincludelist.append("File %s" % plugincludefile)
-    plugincludestring = string.join(plugincludelist, "\n  ")
-    plugincludestring += "\n\n"
-    ns_cnt = string.replace(ns_cnt, "[PLUGINCONTS]", plugincludestring)
-
-    # do scripts\bpydata\config
-    cfglist = []
-    cfgpath = "%s%s" % (inst_dir, "\\.blender\\scripts\\bpydata\\config")
-    cfgdir = os.listdir(cfgpath)
-    for cfgitem in cfgdir:
-        cfgfile = "%s\\%s" % (cfgpath, cfgitem)
-        if os.path.isdir(cfgfile) == 0:
-            cfglist.append("File %s" % cfgfile)
-    cfgstring = string.join(cfglist, "\n  ")
-    cfgstring += "\n\n"
-    ns_cnt = string.replace(ns_cnt, "[SCRIPTDATACFGCONTS]", cfgstring)
-
-    # do dotblender
-    dotblendlist = []
-    dotblenddir = os.listdir(inst_dir+"\\.blender")
-    for dotblenditem in dotblenddir:
-        if os.path.isdir(inst_dir + "\\.blender\\" + dotblenditem) == 0:
-            dotblendlist.append("File " + inst_dir + "\\.blender\\" + dotblenditem)
-    dotblendstring = string.join(dotblendlist, "\n  ")
-    dotblendstring += "\n\n"
-    ns_cnt = string.replace(ns_cnt, "[DOTBLENDERCONTS]", dotblendstring)
-
-    # do language files
-    langlist = []
-    langfiles = []
-    langdir = os.listdir(inst_dir + "\\.blender\\locale")
-    for langitem in langdir:
-        if os.path.isdir(inst_dir + "\\.blender\\locale\\" + langitem) == 1:
-            langfiles.append("SetOutPath $BLENDERHOME\\.blender\\locale\\" + langitem + "\\LC_MESSAGES")
-            langfiles.append("File " + inst_dir + "\\.blender\\locale\\" + langitem + "\\LC_MESSAGES\\blender.mo")
-    langstring = string.join(langfiles, "\n  ")
-    langstring += "\n\n"
-    ns_cnt = string.replace(ns_cnt, "[LANGUAGECONTS]", langstring)
-
-    # var replacements
-    ns_cnt = string.replace(ns_cnt, "DISTDIR", inst_dir+"\\")
-    ns_cnt = string.replace(ns_cnt, "SHORTVER", shortver)
-    ns_cnt = string.replace(ns_cnt, "VERSION", version)
-
-    new_nsis = open("00.blender_tmp.nsi", 'w')
-    new_nsis.write(ns_cnt)
-    new_nsis.close()
-
-    sys.stdout = os.popen("makensis 00.blender_tmp.nsi", 'w')
-    
-nsis_build = None
-if 'nsis' in B.targets:
-    NSIS_Installer()
-    Exit()
-
 # We do a shortcut for clean when no quicklist is given: just delete
 # builddir without reading in SConscripts
 do_clean = None
@@ -471,8 +276,6 @@ B.init_lib_dict()
 ##### END SETUP ##########
 
 Export('env')
-#Export('root_build_dir') # this one is still needed for makesdna
-##TODO: improve makesdna usage
 
 BuildDir(B.root_build_dir+'/intern', 'intern', duplicate=0)
 SConscript(B.root_build_dir+'/intern/SConscript')
@@ -586,8 +389,8 @@ allinstall = [blenderinstall, dotblenderinstall, scriptinstall, plugininstall, t
 if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw'):
     dllsources = ['${LCGDIR}/gettext/lib/gnu_gettext.dll',
                         '${LCGDIR}/png/lib/libpng.dll',
-#                        '#release/windows/extra/python24.zip',
-#                        '#release/windows/extra/zlib.pyd',
+                        '#release/windows/extra/python25.zip',
+                        '#release/windows/extra/zlib.pyd',
                         '${LCGDIR}/sdl/lib/SDL.dll',
                         '${LCGDIR}/zlib/lib/zlib.dll',
                         '${LCGDIR}/tiff/lib/libtiff.dll']
@@ -611,6 +414,10 @@ if env['OURPLATFORM'] in ('win32-vc', 'win32-mingw'):
 installtarget = env.Alias('install', allinstall)
 bininstalltarget = env.Alias('install-bin', blenderinstall)
 
+nsisaction = env.Action(btools.NSIS_Installer, btools.NSIS_print)
+nsiscmd = env.Command('nsisinstaller', None, nsisaction)
+nsisalias = env.Alias('nsis', nsiscmd)
+
 if env['WITH_BF_PLAYER']:
     blenderplayer = env.Alias('blenderplayer', B.program_list)
     Depends(blenderplayer,installtarget)
@@ -618,6 +425,8 @@ if env['WITH_BF_PLAYER']:
 if not env['WITH_BF_GAMEENGINE']:
     blendernogame = env.Alias('blendernogame', B.program_list)
     Depends(blendernogame,installtarget)
+
+Depends(nsiscmd, allinstall)
 
 Default(B.program_list)
 Default(installtarget)

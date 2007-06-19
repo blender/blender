@@ -4,18 +4,6 @@ Import ('env')
 # TODO: src_env.Append (CCFLAGS = user_options_dict['SDL_CFLAGS'])
 
 sources = env.Glob('*.c')
-numobj = len(sources)
-maxobj = 30
-
-numlibs = numobj / maxobj
-if (numobj % maxobj):
-    numlibs = numlibs + 1
-subsources = []
-
-if (env['OURPLATFORM'] == 'win32-mingw'):
-    for i in range(numlibs - 1):
-        subsources.append(sources[i*maxobj:(i+1)*maxobj])
-    subsources.append(sources[(numlibs-1)*maxobj:])
 
 incs = ' #/intern/guardedalloc #/intern/memutil'
 incs += ' ../blenlib ../makesdna ../blenkernel'
@@ -67,8 +55,4 @@ if env['WITH_BF_VERSE']:
 if env['BF_BUILDINFO'] == 1:
     defs.append('NAN_BUILDINFO')
 
-if (env['OURPLATFORM'] == 'win32-mingw'):
-    for i in range(numlibs):
-        env.BlenderLib ( libname = 'src%d' % (i), sources = subsources[i], includes = Split(incs), defines = defs, libtype=['core', 'intern'], priority = [5, 25] )
-else:
-    env.BlenderLib ( libname = 'src', sources = sources, includes = Split(incs), defines = defs, libtype=['core', 'intern'], priority = [5, 25] )
+env.BlenderLib ( libname = 'src', sources = sources, includes = Split(incs), defines = defs, libtype=['core', 'intern'], priority = [5, 25] )

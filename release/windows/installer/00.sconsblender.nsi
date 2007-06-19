@@ -8,17 +8,19 @@
 !include "FileFunc.nsh"
 !include "WordFunc.nsh"
 
+SetCompressor /SOLID lzma
+
 Name "Blender VERSION" 
 
 !define MUI_ABORTWARNING
 
 !define MUI_WELCOMEPAGE_TEXT  "This wizard will guide you through the installation of Blender.\r\n\r\nIt is recommended that you close all other applications before starting Setup.\r\n\r\nNote to Win2k/XP users: You may require administrator privileges to install Blender successfully."
-!define MUI_WELCOMEFINISHPAGE_BITMAP "01.installer.bmp"
+!define MUI_WELCOMEFINISHPAGE_BITMAP "RELDIR\01.installer.bmp"
 !define MUI_HEADERIMAGE
-!define MUI_HEADERIMAGE_BITMAP  "00.header.bmp"
+!define MUI_HEADERIMAGE_BITMAP  "RELDIR\00.header.bmp"
 !define MUI_COMPONENTSPAGE_SMALLDESC
 !define MUI_FINISHPAGE_RUN "$INSTDIR\blender.exe"
-!define MUI_CHECKBITMAP "00.checked.bmp"
+!define MUI_CHECKBITMAP "RELDIR\00.checked.bmp"
 
 !insertmacro MUI_PAGE_WELCOME
 !insertmacro MUI_PAGE_LICENSE "DISTDIR\Copyright.txt"
@@ -38,8 +40,8 @@ Page custom DataLocation
 !insertmacro VersionCompare
 
 
-Icon "00.installer.ico"
-UninstallIcon "00.installer.ico"
+Icon "RELDIR\00.installer.ico"
+UninstallIcon "RELDIR\00.installer.ico"
 
 ;--------------------------------
 ;Languages
@@ -60,7 +62,6 @@ UninstallIcon "00.installer.ico"
 
 Caption "Blender VERSION Installer"
 OutFile "DISTDIR\..\blender-VERSION-windows.exe"
-
 InstallDir "$PROGRAMFILES\Blender Foundation\Blender"
 
 BrandingText "http://www.blender.org/bf"
@@ -208,7 +209,7 @@ Function .onInit
   Call GetWindowsVersion
   Pop $R0
   Strcpy $winversion $R0
-  !insertmacro MUI_INSTALLOPTIONS_EXTRACT "data.ini"
+  !insertmacro MUI_INSTALLOPTIONS_EXTRACT "RELDIR\data.ini"
 FunctionEnd
 
 !define DLL_VER "8.00.50727.42"

@@ -5,8 +5,9 @@ sources = env.Glob('*.cpp')
 
 incs = '. #source/kernel/gen_system #intern/string #intern/moto/include'
 
-cflags = []
 if env['OURPLATFORM']=='win32-vc':
-    cflags.append('/Ox')
-
-env.BlenderLib ( 'bf_rasterizer', sources, Split(incs), [], libtype=['game','player'], priority=[35,115], compileflags = cflags )
+	cflags = []
+	cflags.append('/Ox')
+	env.BlenderLib ( 'bf_rasterizer', sources, Split(incs), [], libtype=['game','player'], priority=[35,115], compileflags = cflags )
+else:
+	env.BlenderLib ( 'bf_rasterizer', sources, Split(incs), [], libtype=['game','player'], priority=[35,115] )
