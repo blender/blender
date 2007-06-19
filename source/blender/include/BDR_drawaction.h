@@ -41,6 +41,19 @@ struct bAction;
 struct Object;
 struct ListBase;
 
+/* ****************************** Base Structs ****************************** */
+
+/* Keyframe Column Struct */
+typedef struct ActKeyColumn {
+	struct ActKeyColumn *next, *prev;
+	short sel, handle_type;
+	float cfra;
+	
+	/* only while drawing - used to determine if long-keyframe needs to be drawn */
+	short modified;
+	short totcurve;
+} ActKeyColumn;
+
 /* 'Long Keyframe' Struct */
 typedef struct ActKeyBlock {
 	struct ActKeyBlock *next, *prev;
@@ -53,7 +66,10 @@ typedef struct ActKeyBlock {
 	short totcurve; 
 } ActKeyBlock;
 
-/*Action Generics */
+
+/* ******************************* Methods ****************************** */
+
+/* Action Generics */
 void draw_cfra_action(void);
 int count_action_levels (struct bAction *act);
 
@@ -65,9 +81,9 @@ void draw_object_channel(struct gla2DDrawInfo *di, Object *ob, float ypos);
 
 /* Keydata Generation */
 void icu_to_keylist(struct IpoCurve *icu, ListBase *keys, ListBase *blocks);
-int ipo_to_keylist(struct Ipo *ipo, ListBase *keys, ListBase *blocks);
-int action_to_keylist(bAction *act, ListBase *keys, ListBase *blocks);
-int ob_to_keylist(Object *ob, ListBase *keys, ListBase *blocks);
+void ipo_to_keylist(struct Ipo *ipo, ListBase *keys, ListBase *blocks);
+void action_to_keylist(bAction *act, ListBase *keys, ListBase *blocks);
+void ob_to_keylist(Object *ob, ListBase *keys, ListBase *blocks);
 
 #endif  /*  BDR_DRAWACTION_H */
 

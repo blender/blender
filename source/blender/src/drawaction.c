@@ -926,6 +926,8 @@ static void action_blockhandlers(ScrArea *sa)
 	uiDrawBlocksPanels(sa, 0);
 }
 
+/* ************************* Action Editor Space ***************************** */
+
 void drawactionspace(ScrArea *sa, void *spacedata)
 {
 	short ofsx = 0, ofsy = 0;
@@ -1077,96 +1079,46 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 	curarea->win_swap= WIN_BACK_OK;
 }
 
-static void draw_keylist(gla2DDrawInfo *di, ListBase *keys, ListBase *blocks, float ypos, int totcurve)
+/* *************************** Keyframe Drawing *************************** */
+
+static void add_bezt_to_keycolumnslist(ListBase *keys, BezTriple *bezt)
 {
-	CfraElem *ce;
-	ActKeyBlock *ab;
+	/* The equivilant of add_to_cfra_elem except this version 
+	 * makes ActKeyColumns - one of the two datatypes required
+	 * for action editor drawing.
+	 */
+	ActKeyColumn *ak, *akn;
 	
-	glEnable(GL_BLEND);
+	if (!(keys) || !(bezt)) return;
 	
-	/* draw keyblocks */
-	if (blocks) {
-		for (ab= blocks->first; ab; ab= ab->next) {
-			/* only draw keyblock if it appears in all curves sampled */
-			if (ab->totcurve == totcurve) {
-				int sc_xa, sc_ya;
-				int sc_xb, sc_yb;
-				
-				/* get co-ordinates of block */
-				gla2DDrawTranslatePt(di, ab->start, ypos, &sc_xa, &sc_ya);
-				gla2DDrawTranslatePt(di, ab->end, ypos, &sc_xb, &sc_yb);
-				
-				/* draw block */
-				if (ab->sel & 1)
-					BIF_ThemeColor4(TH_STRIP_SELECT);
-				else
-					BIF_ThemeColor4(TH_STRIP);
-				glRectf(sc_xa,  sc_ya-3,  sc_xb,  sc_yb+5);
-			}
+	/* try to find a keyblock that starts on the previous beztriple */
+	for (ak= keys->first; ak; ak= ak->next) {
+		/* do because of double keys */
+		if (ak->cfra == bezt->vec[1][0]) {			
+			/* set selection status and 'touched' status */
+			if (BEZSELECTED(bezt)) ak->sel = SELECT;
+			ak->modified += 1;
+			
+			return;
 		}
+		else if (ak->cfra > bezt->vec[1][0]) break;
 	}
 	
-	/* draw keys */
-	if (keys) {
-		for (ce= keys->first; ce; ce= ce->next) {
-			int sc_x, sc_y;
-			
-			/* get co-ordinate to draw at */
-			gla2DDrawTranslatePt(di, ce->cfra, ypos, &sc_x, &sc_y);
-			
-			if(ce->sel & 1) BIF_icon_draw_aspect(sc_x-7, sc_y-6, ICON_SPACE2, 1.0f);
-			else BIF_icon_draw_aspect(sc_x-7, sc_y-6, ICON_SPACE3, 1.0f);
-		}	
-	}
+	/* add new block */
+	akn= MEM_callocN(sizeof(ActKeyColumn), "ActKeyColumn");
+	if (ak) BLI_insertlinkbefore(keys, ak, akn);
+	else BLI_addtail(keys, akn);
 	
-	glDisable(GL_BLEND);
-}
-
-void draw_object_channel(gla2DDrawInfo *di, Object *ob, float ypos)
-{
-	ListBase keys = {0, 0};
-	ListBase blocks = {0, 0};
-	int totcurve;
-
-	totcurve= ob_to_keylist(ob, &keys, &blocks);
-	draw_keylist(di, &keys, &blocks, ypos, totcurve);
+	akn->cfra= bezt->vec[1][0];
+	akn->modified += 1;
 	
-	BLI_freelistN(&keys);
-	BLI_freelistN(&blocks);
-}
-
-void draw_ipo_channel(gla2DDrawInfo *di, Ipo *ipo, float ypos)
-{
-	ListBase keys = {0, 0};
-	ListBase blocks = {0, 0};
-	int totcurve;
-
-	totcurve= ipo_to_keylist(ipo, &keys, &blocks);
-	draw_keylist(di, &keys, &blocks, ypos, totcurve);
+	// TODO: handle type = bezt->h1 or bezt->h2
+	akn->handle_type= 0; 
 	
-	BLI_freelistN(&keys);
-	BLI_freelistN(&blocks);
-}
-
-void draw_icu_channel(gla2DDrawInfo *di, IpoCurve *icu, float ypos)
-{
-	ListBase keys = {0, 0};
-	ListBase blocks = {0, 0};
-
-	icu_to_keylist(icu, &keys, &blocks);
-	draw_keylist(di, &keys, &blocks, ypos, 1);
-	
-	BLI_freelistN(&keys);
-	BLI_freelistN(&blocks);
-}
-
-void draw_action_channel(gla2DDrawInfo *di, bAction *act, float ypos)
-{
-	ListBase keys = {0, 0};
-
-	action_to_keylist(act, &keys, NULL);
-	draw_keylist(di, &keys, NULL, ypos, 0);
-	BLI_freelistN(&keys);
+	if (BEZSELECTED(bezt))
+		akn->sel = SELECT;
+	else
+		akn->sel = 0;
 }
 
 static void add_bezt_to_keyblockslist(ListBase *blocks, IpoCurve *icu, int index)
@@ -1182,34 +1134,23 @@ static void add_bezt_to_keyblockslist(ListBase *blocks, IpoCurve *icu, int index
 	
 	/* get beztriples */
 	beztn= (icu->bezt + index);
-	/* The following search for previous beztriple doesn't work
-	 * that great on actions with a large amount of keys. There
-	 * are a few commented out shortcuts for these cases, which will
-	 * remain so until the definitive point where slowdown starts to
-	 * bite is determined.
-	 */
-	//if (icu->totvert > 3500) {
-	//	if (index >= 1) 
-	//		prev= (icu->bezt + (index - 1));
-	//}
-	//else {
-		for (v=0, bezt=icu->bezt; v<icu->totvert; v++, bezt++) {
-			/* skip if beztriple is current */
-			if (v != index) {
-				/* check if beztriple is immediately before */
-				if (beztn->vec[1][0] > bezt->vec[1][0]) {
-					/* check if closer than previous was */
-					if (prev) {
-						if (prev->vec[1][0] < bezt->vec[1][0])
-							prev= bezt;
-					}
-					else {
+	
+	for (v=0, bezt=icu->bezt; v<icu->totvert; v++, bezt++) {
+		/* skip if beztriple is current */
+		if (v != index) {
+			/* check if beztriple is immediately before */
+			if (beztn->vec[1][0] > bezt->vec[1][0]) {
+				/* check if closer than previous was */
+				if (prev) {
+					if (prev->vec[1][0] < bezt->vec[1][0])
 						prev= bezt;
-					}
+				}
+				else {
+					prev= bezt;
 				}
 			}
 		}
-	//}
+	}
 	
 	/* check if block needed - same value? */
 	if ((!prev) || (!beztn))
@@ -1231,7 +1172,7 @@ static void add_bezt_to_keyblockslist(ListBase *blocks, IpoCurve *icu, int index
 	}
 	
 	/* add new block */
-	abn= MEM_callocN(sizeof(ActKeyBlock), "add_bezt_to_keyblockslist");
+	abn= MEM_callocN(sizeof(ActKeyBlock), "ActKeyBlock");
 	if (ab) BLI_insertlinkbefore(blocks, ab, abn);
 	else BLI_addtail(blocks, abn);
 	
@@ -1241,40 +1182,154 @@ static void add_bezt_to_keyblockslist(ListBase *blocks, IpoCurve *icu, int index
 	
 	if (BEZSELECTED(prev) || BEZSELECTED(beztn))
 		abn->sel = SELECT;
-	else
-		abn->sel = 0;
-	abn->modified += 1;
+	abn->modified = 1;
 }
 
-int ob_to_keylist(Object *ob, ListBase *keys, ListBase *blocks)
+/* helper function - find actkeycolumn that occurs on cframe */
+static ActKeyColumn *cfra_find_actkeycolumn (ListBase *keys, float cframe)
+{
+	ActKeyColumn *ak;
+	
+	if (keys==NULL) 
+		return NULL;
+	 
+	for (ak= keys->first; ak; ak= ak->next) {
+		if (ak->cfra == cframe)
+			return ak;
+	}
+	
+	return NULL;
+}
+
+static void draw_keylist(gla2DDrawInfo *di, ListBase *keys, ListBase *blocks, float ypos)
+{
+	ActKeyColumn *ak;
+	ActKeyBlock *ab;
+	
+	glEnable(GL_BLEND);
+	
+	/* draw keyblocks */
+	if (blocks) {
+		for (ab= blocks->first; ab; ab= ab->next) {
+			short startCurves, endCurves, totCurves;
+			
+			/* find out how many curves occur at each keyframe */
+			ak= cfra_find_actkeycolumn(keys, ab->start);
+			startCurves = (ak)? ak->totcurve: 0;
+			
+			ak= cfra_find_actkeycolumn(keys, ab->end);
+			endCurves = (ak)? ak->totcurve: 0;
+			
+			/* only draw keyblock if it appears in at all of the keyframes at lowest end */
+			if (!startCurves && !endCurves) 
+				continue;
+			else
+				totCurves = (startCurves>endCurves)? endCurves: startCurves;
+				
+			if (ab->totcurve >= totCurves) {
+				int sc_xa, sc_ya;
+				int sc_xb, sc_yb;
+				
+				/* get co-ordinates of block */
+				gla2DDrawTranslatePt(di, ab->start, ypos, &sc_xa, &sc_ya);
+				gla2DDrawTranslatePt(di, ab->end, ypos, &sc_xb, &sc_yb);
+				
+				/* draw block */
+				if (ab->sel & 1)
+					BIF_ThemeColor4(TH_STRIP_SELECT);
+				else
+					BIF_ThemeColor4(TH_STRIP);
+				glRectf(sc_xa,  sc_ya-3,  sc_xb,  sc_yb+5);
+			}
+		}
+	}
+	
+	/* draw keys */
+	if (keys) {
+		for (ak= keys->first; ak; ak= ak->next) {
+			int sc_x, sc_y;
+			
+			/* get co-ordinate to draw at */
+			gla2DDrawTranslatePt(di, ak->cfra, ypos, &sc_x, &sc_y);
+			
+			if(ak->sel & 1) BIF_icon_draw_aspect(sc_x-7, sc_y-6, ICON_SPACE2, 1.0f);
+			else BIF_icon_draw_aspect(sc_x-7, sc_y-6, ICON_SPACE3, 1.0f);
+		}	
+	}
+	
+	glDisable(GL_BLEND);
+}
+
+void draw_object_channel(gla2DDrawInfo *di, Object *ob, float ypos)
+{
+	ListBase keys = {0, 0};
+	ListBase blocks = {0, 0};
+
+	ob_to_keylist(ob, &keys, &blocks);
+	draw_keylist(di, &keys, &blocks, ypos);
+	
+	BLI_freelistN(&keys);
+	BLI_freelistN(&blocks);
+}
+
+void draw_ipo_channel(gla2DDrawInfo *di, Ipo *ipo, float ypos)
+{
+	ListBase keys = {0, 0};
+	ListBase blocks = {0, 0};
+
+	ipo_to_keylist(ipo, &keys, &blocks);
+	draw_keylist(di, &keys, &blocks, ypos);
+	
+	BLI_freelistN(&keys);
+	BLI_freelistN(&blocks);
+}
+
+void draw_icu_channel(gla2DDrawInfo *di, IpoCurve *icu, float ypos)
+{
+	ListBase keys = {0, 0};
+	ListBase blocks = {0, 0};
+
+	icu_to_keylist(icu, &keys, &blocks);
+	draw_keylist(di, &keys, &blocks, ypos);
+	
+	BLI_freelistN(&keys);
+	BLI_freelistN(&blocks);
+}
+
+void draw_action_channel(gla2DDrawInfo *di, bAction *act, float ypos)
+{
+	ListBase keys = {0, 0};
+
+	action_to_keylist(act, &keys, NULL);
+	draw_keylist(di, &keys, NULL, ypos);
+	BLI_freelistN(&keys);
+}
+
+void ob_to_keylist(Object *ob, ListBase *keys, ListBase *blocks)
 {
 	bConstraintChannel *conchan;
-	int totcurve = 0;
 
 	if (ob) {
 		/* Add object keyframes */
-		if (ob->ipo) {
-			totcurve += ipo_to_keylist(ob->ipo, keys, blocks);
-		}
+		if (ob->ipo)
+			ipo_to_keylist(ob->ipo, keys, blocks);
 		
 		/* Add constraint keyframes */
 		for (conchan=ob->constraintChannels.first; conchan; conchan=conchan->next){
-			if(conchan->ipo) {
-				totcurve += ipo_to_keylist(conchan->ipo, keys, blocks);
-			}				
+			if(conchan->ipo)
+				ipo_to_keylist(conchan->ipo, keys, blocks);		
 		}
 			
 		/* Add object data keyframes */
 		// 		TODO??
 	}
-	
-	return totcurve;
 }
 
 void icu_to_keylist(IpoCurve *icu, ListBase *keys, ListBase *blocks)
 {
 	BezTriple *bezt;
-	ActKeyBlock *ab, *abn;
+	ActKeyColumn *ak;
+	ActKeyBlock *ab;
 	int v;
 	
 	if (icu && icu->totvert) {
@@ -1282,15 +1337,21 @@ void icu_to_keylist(IpoCurve *icu, ListBase *keys, ListBase *blocks)
 		bezt= icu->bezt;
 		
 		for (v=0; v<icu->totvert; v++, bezt++) {
-			add_to_cfra_elem(keys, bezt);
+			add_bezt_to_keycolumnslist(keys, bezt);
 			if (blocks) add_bezt_to_keyblockslist(blocks, icu, v);
 		}
 		
-		/* update the number of curves the blocks have appeared in */
+		/* update the number of curves that elements have appeared in  */
+		if (keys) {
+			for (ak= keys->first; ak; ak= ak->next) {
+				if (ak->modified) {
+					ak->modified = 0;
+					ak->totcurve += 1;
+				}
+			}
+		}
 		if (blocks) {
-			for (ab= blocks->first; ab; ab= abn) {
-				abn= ab->next;
-				
+			for (ab= blocks->first; ab; ab= ab->next) {
 				if (ab->modified) {
 					ab->modified = 0;
 					ab->totcurve += 1;
@@ -1300,44 +1361,34 @@ void icu_to_keylist(IpoCurve *icu, ListBase *keys, ListBase *blocks)
 	}
 }
 
-int ipo_to_keylist(Ipo *ipo, ListBase *keys, ListBase *blocks)
+void ipo_to_keylist(Ipo *ipo, ListBase *keys, ListBase *blocks)
 {
 	IpoCurve *icu;
-	int totcurve = 0;
 	
 	if (ipo) {
-		for (icu= ipo->curve.first; icu; icu= icu->next) {
+		for (icu= ipo->curve.first; icu; icu= icu->next)
 			icu_to_keylist(icu, keys, blocks);
-			totcurve++;
-		}
 	}
-	
-	return totcurve;
 }
 
-int action_to_keylist(bAction *act, ListBase *keys, ListBase *blocks)
+void action_to_keylist(bAction *act, ListBase *keys, ListBase *blocks)
 {
 	bActionChannel *achan;
 	bConstraintChannel *conchan;
-	int totcurve = 0;
 
 	if (act) {
 		/* loop through action channels */
 		for (achan= act->chanbase.first; achan; achan= achan->next) {
 			/* firstly, add keys from action channel's ipo block */
-			if (achan->ipo) {
-				totcurve+= ipo_to_keylist(achan->ipo, keys, blocks);
-			}
+			if (achan->ipo)
+				ipo_to_keylist(achan->ipo, keys, blocks);
 			
 			/* then, add keys from constraint channels */
 			for (conchan= achan->constraintChannels.first; conchan; conchan= conchan->next) {
-				if (conchan->ipo) {
-					totcurve+= ipo_to_keylist(achan->ipo, keys, blocks);
-				}
+				if (conchan->ipo)
+					ipo_to_keylist(achan->ipo, keys, blocks);
 			}
 		}
 	}
-	
-	return totcurve;
 }
 
