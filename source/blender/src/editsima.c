@@ -1808,7 +1808,7 @@ void save_as_image_sima(void)
 			if(ima->rr && !(ima->source==IMA_SRC_SEQUENCE && ima->type==IMA_TYPE_MULTILAYER))
 				G.sima->imtypenr= R_MULTILAYER;
 			else if(ima->type==IMA_TYPE_R_RESULT)
-				G.sima->imtypenr= R_MULTILAYER;
+				G.sima->imtypenr= G.scene->r.imtype;
 			else G.sima->imtypenr= BKE_ftype_to_imtype(ibuf->ftype);
 			
 			activate_fileselect_menu(FILE_SPECIAL, "Save Image", name, strp, &G.sima->imtypenr, save_image_doit);
