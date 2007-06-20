@@ -2535,7 +2535,7 @@ static void mouse_actionchannels (short mval[])
 /* **************************************************** */
 /* ACTION CHANNEL RE-ORDERING */
 
-void top_sel_action()
+void top_sel_action ()
 {
 	bAction *act;
 	bActionChannel *achan;
@@ -2571,7 +2571,7 @@ void top_sel_action()
 	allqueue(REDRAWNLA, 0);
 }
 
-void up_sel_action()
+void up_sel_action ()
 {
 	bAction *act;
 	bActionChannel *achan, *prev;
@@ -2610,7 +2610,7 @@ void up_sel_action()
 	allqueue(REDRAWNLA, 0);
 }
 
-void down_sel_action()
+void down_sel_action ()
 {
 	bAction *act;
 	bActionChannel *achan, *next;
@@ -2655,7 +2655,7 @@ void down_sel_action()
 	allqueue(REDRAWNLA, 0);
 }
 
-void bottom_sel_action()
+void bottom_sel_action ()
 {
 	bAction *act;
 	bActionChannel *achan;
@@ -2696,8 +2696,8 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	extern void do_actionbuts(unsigned short event); // drawaction.c
 	SpaceAction *saction;
-	bAction	*act;
-	Key *key;
+	void *data;
+	short datatype;
 	float dx, dy;
 	int doredraw= 0;
 	int	cfra;
@@ -2712,8 +2712,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	if (!saction)
 		return;
 
-	act=saction->action;
-	key = get_action_mesh_key();
+	data= get_action_context(&datatype);
 	
 	if (val) {
 		if ( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
@@ -2831,7 +2830,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case MKEY:
 			if (G.qual & LR_SHIFTKEY) {
 				/* mirror keyframes */
-				if (act || key) {
+				if (data) {
 					val = pupmenu("Mirror Keys Over%t|Current Frame%x1|Vertical Axis%x2|Horizontal Axis %x3|Selected Marker %x4");
 					mirror_action_keys(val);
 				}
@@ -2881,7 +2880,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case SKEY: 
 			if (mval[0]>=ACTWIDTH) {
 				if(G.qual & LR_SHIFTKEY) {
-					if (act || key) {
+					if (data) {
 						val = pupmenu("Snap Keys To%t|Nearest Frame%x1|Current Frame%x2|Nearest Marker %x3");
 						snap_action_keys(val);
 					}
@@ -2904,7 +2903,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 
 		case PAGEUPKEY:
-			if (act) {
+			if (datatype == ACTCONT_ACTION) {
 				if(G.qual & LR_SHIFTKEY)
 					top_sel_action();
 				else if (G.qual & LR_CTRLKEY)
@@ -2912,13 +2911,13 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else
 					nextprev_marker(1);
 			}
-			else if (key) {
+			else if (datatype == ACTCONT_SHAPEKEY) {
 				/* only jump to markers possible (key channels can't be moved yet) */
 				nextprev_marker(1);
 			}
 			break;
 		case PAGEDOWNKEY:
-			if (act) {
+			if (datatype == ACTCONT_ACTION) {
 				if(G.qual & LR_SHIFTKEY)
 					bottom_sel_action();
 				else if (G.qual & LR_CTRLKEY) 
@@ -2926,7 +2925,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else
 					nextprev_marker(-1);
 			}
-			else if (key) {
+			else if (datatype == ACTCONT_SHAPEKEY) {
 				/* only jump to markers possible (key channels can't be moved yet) */
 				nextprev_marker(-1);
 			}
@@ -2980,7 +2979,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case RIGHTMOUSE:
 			/* Clicking in the channel area */
 			if (mval[0]<NAMEWIDTH) {
-				if (act) {
+				if (datatype == ACTCONT_ACTION) {
 					/* mouse is over action channels */
 					if (G.qual & LR_CTRLKEY)
 						clever_achannel_names(mval);
