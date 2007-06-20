@@ -747,17 +747,26 @@ void add_constraint(int only_IK)
 		}
 		else if(nr==18) {	
 			char *menustr;
-			int scriptint= 0, dummy_active=0;
+			int scriptint= 0, dummy_int=0;
+			float dummy_matrix[4][4];
 			
 			/* popup a list of usable scripts */
-			menustr = buildmenu_pyconstraints(NULL, &dummy_active);
+			menustr = buildmenu_pyconstraints(NULL, &dummy_int);
 			scriptint = pupmenu(menustr);
 			MEM_freeN(menustr);
 			
 			/* only add constraint if a script was chosen */
 			if (scriptint) {
+				/* add constraint */
 				con = add_new_constraint(CONSTRAINT_TYPE_PYTHON);
 				validate_pyconstraint_cb(con->data, &scriptint);
+				
+				/* make sure target allowance is set correctly */
+				dummy_int = BPY_pyconstraint_targets(con->data, dummy_matrix);
+				if (dummy_int) {
+					bPythonConstraint *pycon= (bPythonConstraint *)con->data;
+					pycon->flag |= PYCON_USETARGETS;
+				}
 			}
 		}
 		

@@ -1478,7 +1478,7 @@ void BPY_pyconstraint_settings(void *arg1, void *arg2)
 	
 	gval = PyDict_GetItemString(globals, "getSettings");
 	if (!gval) {
-		printf("ERROR: no getSettings function in constraint!");
+		printf("ERROR: no getSettings function in constraint!\n");
 		
 		/* free temp objects */
 		ReleaseGlobalDictionary( globals );
