@@ -2577,7 +2577,14 @@ static void displaceModifier_copyData(ModifierData *md, ModifierData *target)
 	DisplaceModifierData *dmd = (DisplaceModifierData*) md;
 	DisplaceModifierData *tdmd = (DisplaceModifierData*) target;
 
-	*tdmd = *dmd;
+	tdmd->texture = dmd->texture;
+	tdmd->strength = dmd->strength;
+	tdmd->direction = dmd->direction;
+	strncpy(tdmd->defgrp_name, dmd->defgrp_name, 32);
+	tdmd->midlevel = dmd->midlevel;
+	tdmd->texmapping = dmd->texmapping;
+	tdmd->map_object = dmd->map_object;
+	strncpy(tdmd->uvlayer_name, dmd->uvlayer_name, 32);
 }
 
 CustomDataMask displaceModifier_requiredDataMask(ModifierData *md)
