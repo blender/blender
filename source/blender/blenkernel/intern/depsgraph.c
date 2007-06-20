@@ -573,7 +573,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 			Object *obt= get_constraint_target(con, &str);
 			
 			node2 = dag_get_node(dag, obt);
-			if(con->type==CONSTRAINT_TYPE_FOLLOWPATH)
+			if(ELEM(con->type, CONSTRAINT_TYPE_FOLLOWPATH, CONSTRAINT_TYPE_CLAMPTO))
 				dag_add_relation(dag, node2, node, DAG_RL_DATA_OB|DAG_RL_OB_OB);
 			else {
 				if(obt->type==OB_ARMATURE && str[0])
