@@ -128,111 +128,13 @@ void relink_constraints (struct ListBase *list)
 	bConstraint *con;
 	
 	for (con = list->first; con; con=con->next) {
-		switch (con->type) {
-			case CONSTRAINT_TYPE_PYTHON:
-			{
-				bPythonConstraint *data;
-				data = con->data;
-				
-				ID_NEW(data->tar);
-			}
-				break;
-			case CONSTRAINT_TYPE_KINEMATIC:
-			{
-				bKinematicConstraint *data;
-				data = con->data;
-				
-				ID_NEW(data->tar);
-			}
-				break;
-			case CONSTRAINT_TYPE_TRACKTO:
-			{
-				bTrackToConstraint *data;
-				data = con->data;
-				
-				ID_NEW(data->tar);
-			}
-				break;
-			case CONSTRAINT_TYPE_MINMAX:
-			{
-				bMinMaxConstraint *data;
-				data = con->data;
-				
-				ID_NEW(data->tar);
-			}
-				break;
-			case CONSTRAINT_TYPE_LOCKTRACK:
-			{
-				bLockTrackConstraint *data;
-				data = con->data;
-				
-				ID_NEW(data->tar);
-			}
-				break;
-			case CONSTRAINT_TYPE_ACTION:
-			{
-				bActionConstraint *data;
-				data = con->data;
-				
-				ID_NEW(data->tar);
-			}
-				break;
-			case CONSTRAINT_TYPE_LOCLIKE:
-			{
-				bLocateLikeConstraint *data;
-				data = con->data;
-				
-				ID_NEW(data->tar);
-			}
-				break;
-			case CONSTRAINT_TYPE_ROTLIKE:
-			{
-				bRotateLikeConstraint *data;
-				data = con->data;
-				
-				ID_NEW(data->tar);
-			}
-				break;
-	 		case CONSTRAINT_TYPE_SIZELIKE:
- 			{
- 				bSizeLikeConstraint *data;
- 				data = con->data;
- 
- 				ID_NEW(data->tar);
- 			}
- 				break;
-			case CONSTRAINT_TYPE_FOLLOWPATH:
-			{
-				bFollowPathConstraint *data;
-				data = con->data;
-				
-				ID_NEW(data->tar);
-			}
-				break;
-			case CONSTRAINT_TYPE_STRETCHTO:
-			{
-				bStretchToConstraint *data;
-				data = con->data;
-				
-				ID_NEW(data->tar);
-			}
-				break;
-			case CONSTRAINT_TYPE_RIGIDBODYJOINT:
-			{
-				bRigidBodyJointConstraint *data;
-				data = con->data;
-				
-				ID_NEW(data->tar);
-			}
-				break;
-			case CONSTRAINT_TYPE_CLAMPTO:
-			{	
-				bClampToConstraint *data;
-				data = con->data;
-				
-				ID_NEW(data->tar);
-			}
-				break;
+		/* check if constraint has a target that needs relinking */
+		if (constraint_has_target(con)) {
+			Object *tar;
+			char *subtarget;
+			
+			tar = get_constraint_target(con, &subtarget);
+			ID_NEW(tar);
 		}
 	}
 }

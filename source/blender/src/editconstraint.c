@@ -250,86 +250,13 @@ char *get_con_subtarget_name(bConstraint *con, Object *target)
 	 * If the target for this constraint is target, return a pointer 
 	 * to the name for this constraints subtarget ... NULL otherwise
 	 */
-	switch (con->type) {
-		case CONSTRAINT_TYPE_PYTHON:
-		{
-			bPythonConstraint *data = con->data;
-			if (data->flag & PYCON_USETARGETS) {
-				if (data->tar==target) return data->subtarget;
-			}
-		}
-		break;
-		case CONSTRAINT_TYPE_ACTION:
-		{
-			bActionConstraint *data = con->data;
-			if (data->tar==target) return data->subtarget;
-		}
-		break;
-		case CONSTRAINT_TYPE_LOCLIKE:
-		{
-			bLocateLikeConstraint *data = con->data;
-			if (data->tar==target) return data->subtarget;
-		}
-		break;
-		case CONSTRAINT_TYPE_ROTLIKE:
-		{
-			bRotateLikeConstraint *data = con->data;
-			if (data->tar==target) return data->subtarget;
-		}
-		break;
-		case CONSTRAINT_TYPE_SIZELIKE:
-		{
-			bSizeLikeConstraint *data = con->data;
-			if (data->tar==target) return data->subtarget;
-		}
-		break;
-		case CONSTRAINT_TYPE_KINEMATIC:
-		{
-			bKinematicConstraint *data = con->data;
-			if (data->tar==target) return data->subtarget;
-		}
-		break;
-		case CONSTRAINT_TYPE_TRACKTO:
-		{
-			bTrackToConstraint *data = con->data;
-			if (data->tar==target) return data->subtarget;
-		}
-		break;
-		case CONSTRAINT_TYPE_MINMAX:
-		{
-			bMinMaxConstraint *data = con->data;
-			if (data->tar==target) return data->subtarget;
-		}
-		break;
-		case CONSTRAINT_TYPE_LOCKTRACK:
-		{
-			bLockTrackConstraint *data = con->data;
-			if (data->tar==target) return data->subtarget;
-		}
-		break;
-		case CONSTRAINT_TYPE_STRETCHTO:
-		{
-			bStretchToConstraint *data = con->data;
-			if (data->tar==target) return data->subtarget;
-		}
-		break;
-		case CONSTRAINT_TYPE_FOLLOWPATH: 
-			/* wonder if this is relevent, since this constraint 
-			 * cannot have a subtarget - theeth 
-			 */
-		{
-			/*
-			 * bFollowPathConstraint *data = con->data;
-			 */
-			return NULL;
-		}
-		break;
-		case CONSTRAINT_TYPE_CLAMPTO:
-		{
-			/* cannot have subtarget. if followpath is removed from here, remove this too... */
-			return NULL; 
-		}
-		break;
+	 
+	if (constraint_has_target(con)) {
+		Object *tar;
+		char *subtarget;
+		
+		tar = get_constraint_target(con, &subtarget);
+		if (tar==target) return subtarget;
 	}
 	
 	return NULL;  
