@@ -1261,10 +1261,10 @@ void delete_nlachannel_keys(void)
 		}
 	}
 	
+	recalc_all_ipos();	// bad
 	synchronize_action_strips();
 	
 	BIF_undo_push("Delete NLA keys");
-	recalc_all_ipos();	// bad
 	allspace(REMAKEIPO,0);
 	allqueue (REDRAWVIEW3D, 0);
 	allqueue(REDRAWNLA, 0);
@@ -2106,10 +2106,10 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case XKEY:
 				if (mval[0]>=NLAWIDTH) {
 					if (okee("Erase selected?")) {
-						remove_marker();
-						
 						delete_nlachannel_keys();
 						update_for_newframe_muted();
+						
+						remove_marker();
 						
 						allqueue(REDRAWTIME, 0);
 						allqueue(REDRAWIPO, 0);

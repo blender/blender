@@ -738,7 +738,7 @@ void BPY_spacescript_do_pywin_event( SpaceScript * sc, unsigned short event,
 static void exec_but_callback(void *pyobj, void *data)
 {
 	PyObject *result;
-	PyObject * pyvalue;
+	PyObject *pyvalue = NULL;
 	uiBut *but = (uiBut *)data;
 	PyObject *arg;
 	PyObject *callback = (PyObject *)pyobj;
