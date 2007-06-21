@@ -4334,7 +4334,7 @@ static void waveModifier_do(
 	float minfac =
 	  (float)(1.0 / exp(wmd->width * wmd->narrow * wmd->width * wmd->narrow));
 	float lifefac = wmd->height;
-	float (*tex_co)[3];
+	float (*tex_co)[3] = NULL;
 
 	if(wmd->flag & MOD_WAVE_NORM && ob->type == OB_MESH)
 		mvert = dm->getVertArray(dm);
