@@ -380,6 +380,8 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 							
 							if(subtarget && subtarget[0])
 								dag_add_relation(dag,node3,node, DAG_RL_OB_DATA|DAG_RL_DATA_DATA);
+							else if(ELEM(con->type, CONSTRAINT_TYPE_FOLLOWPATH, CONSTRAINT_TYPE_CLAMPTO)) 	
+								dag_add_relation(dag,node3,node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA);
 							else
 								dag_add_relation(dag,node3,node, DAG_RL_OB_DATA);
 							
