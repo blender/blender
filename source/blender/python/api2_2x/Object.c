@@ -1230,7 +1230,9 @@ static int Object_setSelect( BPy_Object * self, PyObject * value )
 		}
 		base = base->next;
 	}
-	countall(  );
+	if (base) { /* was the object selected? */
+		countall(  );
+	}
 	return 0;
 }
 
@@ -4297,13 +4299,16 @@ static int Object_setLayers( BPy_Object * self, PyObject *value )
 			local = base->lay;
 			base->lay = local | layers;
 			self->object->lay = base->lay;
+			break;
 		}
 		base = base->next;
 	}
 	
 	/* these to calls here are overkill! (ton) */
-	countall();
-	DAG_scene_sort( G.scene );
+	if (base) { /* The object was found? */
+		countall();
+		DAG_scene_sort( G.scene );
+	}
 	return 0;
 }
 
@@ -4333,11 +4338,14 @@ static int Object_setLayersMask( BPy_Object *self, PyObject *value )
 			local = base->lay;
 			base->lay = local | layers;
 			self->object->lay = base->lay;
+			break;
 		}
 		base = base->next;
 	}
-	countall();
-	DAG_scene_sort( G.scene );
+	if (base) { /* The object was found? */
+		countall();
+		DAG_scene_sort( G.scene );
+	}
 	return 0;
 }
 
