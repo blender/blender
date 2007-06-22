@@ -825,8 +825,12 @@ static void mouse_nlachannels(short mval[2])
 	
 	if(actclick) /* de-activate all strips */
 		set_active_strip(ob, NULL);
-	else if(strip) /* set action */
-		set_active_strip(ob, strip);
+	else if(strip) {
+		if(mval[0] >= (NLAWIDTH-16)) /* toggle strip muting */
+			strip->flag ^= ACTSTRIP_MUTE;
+		else /* set action */
+			set_active_strip(ob, strip);
+	}
 
 	/* icon toggles beside strip */
 	if (obclick && mval[0]<20) {
@@ -836,6 +840,10 @@ static void mouse_nlachannels(short mval[2])
 	else if(obclick && mval[0]<36) {
 		/* override option for NLA */
 		ob->nlaflag ^= OB_NLA_OVERRIDE;
+	}
+	else if((obclick) && (ob->ipo) && (mval[0] >= (NLAWIDTH-16))) {
+		/* mute Object IPO-block */
+		ob->ipo->muteipo = (ob->ipo->muteipo)? 0: 1;
 	}
 	
 	ob->ctime= -1234567.0f;	// eveil! 

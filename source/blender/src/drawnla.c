@@ -148,6 +148,15 @@ static void draw_nla_channels(void)
 				else
 					BIF_icon_draw(x+17, y-8, ICON_ACTION);
 			}	
+			
+			/* icon to indicate if ipo-channel muted */
+			if (ob->ipo) {
+				if (ob->ipo->muteipo) 
+					BIF_icon_draw(NLAWIDTH-16, y-NLACHANNELHEIGHT/2, ICON_RESTRICT_VIEW_ON);
+				else 
+					BIF_icon_draw(NLAWIDTH-16, y-NLACHANNELHEIGHT/2, ICON_RESTRICT_VIEW_OFF);
+			}
+			
 			glDisable(GL_BLEND);
 			y-=NLACHANNELHEIGHT+NLACHANNELSKIP;
 			
@@ -192,16 +201,20 @@ static void draw_nla_channels(void)
 						glRasterPos2f(x+48,  y-4);
 						BMF_DrawString(G.font, strip->act->id.name+2);
 						
-						if(strip->flag & ACTSTRIP_ACTIVE) {
-							glEnable(GL_BLEND);
+						glEnable(GL_BLEND);
+						
+						if(strip->flag & ACTSTRIP_ACTIVE)
 							BIF_icon_draw(x+16, y-8, ICON_DOT);
-							glDisable(GL_BLEND);
-						}
-						if(strip->modifiers.first) {
-							glEnable(GL_BLEND);
+							
+						if(strip->modifiers.first)
 							BIF_icon_draw(x+34, y-8, ICON_MODIFIER);
-							glDisable(GL_BLEND);
-						}
+						
+						if(strip->flag & ACTSTRIP_MUTE)
+							BIF_icon_draw(NLAWIDTH-16, y-NLACHANNELHEIGHT/2, ICON_RESTRICT_VIEW_ON);
+						else
+							BIF_icon_draw(NLAWIDTH-16, y-NLACHANNELHEIGHT/2, ICON_RESTRICT_VIEW_OFF);
+						
+						glDisable(GL_BLEND);
 					}
 					
 					y-=(NLACHANNELHEIGHT+NLACHANNELSKIP);
