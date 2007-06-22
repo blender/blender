@@ -1261,6 +1261,12 @@ void ipo_buttons(void)
 		uiClearButLock();
 	}
 	
+	/* ipo muting */
+	if (G.sipo->ipo) {
+		uiDefIconButS(block, ICONTOG, 1, ICON_RESTRICT_VIEW_OFF, xco,0,XIC,YIC, &(G.sipo->ipo->muteipo), 0, 0, 0, 0, "Mute IPO-block");
+		xco += XIC;
+	}
+	
 	/* mainmenu, only when data is there and no pin */
 	uiSetButLock(G.sipo->pin, "Can't change because of pinned data");
 

@@ -1647,7 +1647,8 @@ static void clever_achannel_names (short *mval)
 	
 	int but=0;
     char str[64];
-	short expand, protect, chantype;
+	short chantype;
+	short expand, protect, mute;
 	float slidermin, slidermax;
 	
 	/* figure out what is under cursor */
@@ -1660,9 +1661,11 @@ static void clever_achannel_names (short *mval)
 		strcpy(str, achan->name);
 		protect= (achan->flag & ACHAN_PROTECTED);
 		expand = (achan->flag & ACHAN_EXPANDED);
+		mute = (achan->ipo)? (achan->ipo->muteipo): 0;
 
 		add_numbut(but++, TEX, "ActChan: ", 0, 31, str, "Name of Action Channel");
 		add_numbut(but++, TOG|SHO, "Expanded", 0, 24, &expand, "Action Channel is Expanded");
+		add_numbut(but++, TOG|SHO, "Muted", 0, 24, &mute, "Channel is Muted");
 		add_numbut(but++, TOG|SHO, "Protected", 0, 24, &protect, "Channel is Protected");
 	}
 	else if (chantype == ACTTYPE_CONCHAN) {
@@ -1670,8 +1673,10 @@ static void clever_achannel_names (short *mval)
 		
 		strcpy(str, conchan->name);
 		protect= (conchan->flag & CONSTRAINT_CHANNEL_PROTECTED);
+		mute = (conchan->ipo)? (conchan->ipo->muteipo): 0;
 		
 		add_numbut(but++, TEX, "ConChan: ", 0, 29, str, "Name of Constraint Channel");
+		add_numbut(but++, TOG|SHO, "Muted", 0, 24, &mute, "Channel is Muted");
 		add_numbut(but++, TOG|SHO, "Protected", 0, 24, &protect, "Channel is Protected");
 	}
 	else if (chantype == ACTTYPE_ICU) {
@@ -1693,9 +1698,11 @@ static void clever_achannel_names (short *mval)
 		slidermax= icu->slide_max;
 		
 		//protect= (icu->flag & IPO_PROTECT);
+		mute = (icu->flag & IPO_MUTE);
 		
 		add_numbut(but++, NUM|FLO, "Slider Min:", -10000, slidermax, &slidermin, 0);
 		add_numbut(but++, NUM|FLO, "Slider Max:", slidermin, 10000, &slidermax, 0);
+		add_numbut(but++, TOG|SHO, "Muted", 0, 24, &mute, "Channel is Muted");
 		//add_numbut(but++, TOG|SHO, "Protected", 0, 24, &protect, "Channel is Protected");
 	}
 	else {
@@ -1712,12 +1719,17 @@ static void clever_achannel_names (short *mval)
 			
 			//if (protect) icu->flag |= IPO_PROTECT;
 			//else icu->flag &= ~IPO_PROTECT;
+			if (mute) icu->flag |= IPO_MUTE;
+			else icu->flag &= ~IPO_MUTE;
 		}
 		else if (conchan) {
 			strcpy(conchan->name, str);
 			
 			if (protect) conchan->flag |= CONSTRAINT_CHANNEL_PROTECTED;
 			else conchan->flag &= ~CONSTRAINT_CHANNEL_PROTECTED;
+			
+			if (conchan->ipo)
+				conchan->ipo->muteipo = mute;
 		}
 		else if (achan) {
 			strcpy(achan->name, str);
@@ -1727,6 +1739,9 @@ static void clever_achannel_names (short *mval)
 			
 			if (protect) achan->flag |= ACHAN_PROTECTED;
 			else achan->flag &= ~ACHAN_PROTECTED;
+			
+			if (achan->ipo)
+				achan->ipo->muteipo = mute;
 		}
 		
         allqueue (REDRAWACTION, 0);
@@ -2441,6 +2456,10 @@ static void mouse_actionchannels (short mval[])
 					/* toggle protect */
 					achan->flag ^= ACHAN_PROTECTED;
 				}
+				else if ((mval[0] >= (NAMEWIDTH-32)) && (achan->ipo)) {
+					/* toggle mute */
+					achan->ipo->muteipo = (achan->ipo->muteipo)? 0: 1;
+				}
 				else if (mval[0] <= 17) {
 					/* toggle expand */
 					achan->flag ^= ACHAN_EXPANDED;
@@ -2496,9 +2515,15 @@ static void mouse_actionchannels (short mval[])
 			{
 				IpoCurve *icu= (IpoCurve *)act_channel;
 				
+#if 0 /* disabled until all ipo tools support this ------->  */
 				if (mval[0] >= (NAMEWIDTH-16)) {
 					/* toggle protection */
 					icu->flag ^= IPO_PROTECT;
+				}
+#endif /* <------- end of disabled code */
+				if (mval[0] >= (NAMEWIDTH-16)) {
+					/* toggle mute */
+					icu->flag ^= IPO_MUTE;
 				}
 				else {
 					/* select/deselect */
@@ -2513,6 +2538,10 @@ static void mouse_actionchannels (short mval[])
 				if (mval[0] >= (NAMEWIDTH-16)) {
 					/* toggle protection */
 					conchan->flag ^= CONSTRAINT_CHANNEL_PROTECTED;
+				}
+				else if ((mval[0] >= (NAMEWIDTH-32)) && (conchan->ipo)) {
+					/* toggle mute */
+					conchan->ipo->muteipo = (conchan->ipo->muteipo)? 0: 1;
 				}
 				else {
 					/* select/deselect */

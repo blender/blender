@@ -404,6 +404,14 @@ static void draw_action_channel_names(bAction *act)
 			glRasterPos2f(x+18,  y-4);
 			BMF_DrawString(G.font, achan->name);
 			
+			/* draw 'eye' indicating whether channel's ipo is muted */
+			if (achan->ipo) {
+				if (achan->ipo->muteipo) 
+					BIF_icon_draw(NAMEWIDTH-32, y-CHANNELHEIGHT/2, ICON_RESTRICT_VIEW_ON);
+				else 
+					BIF_icon_draw(NAMEWIDTH-32, y-CHANNELHEIGHT/2, ICON_RESTRICT_VIEW_OFF);
+			}
+			
 			/* draw 'lock' indicating whether channel is protected */
 			if (EDITABLE_ACHAN(achan)==0) 
 				BIF_icon_draw(NAMEWIDTH-16, y-CHANNELHEIGHT/2, ICON_LOCKED);
@@ -453,6 +461,12 @@ static void draw_action_channel_names(bAction *act)
 								BIF_ThemeColor(TH_TEXT);
 							glRasterPos2f(x+24,  y-4);
 							BMF_DrawString(G.font, icu_name);
+							
+							/* draw 'eye' indicating whether channel's ipo curve is muted */
+							if (icu->flag & IPO_MUTE) 
+								BIF_icon_draw(NAMEWIDTH-16, y-CHANNELHEIGHT/2, ICON_RESTRICT_VIEW_ON);
+							else 
+								BIF_icon_draw(NAMEWIDTH-16, y-CHANNELHEIGHT/2, ICON_RESTRICT_VIEW_OFF);
 							
 #if 0 /* tempolarily disabled until all ipo-code can support this option */
 							/* draw 'lock' to indicate if ipo-curve channel is protected */
@@ -505,6 +519,14 @@ static void draw_action_channel_names(bAction *act)
 								BIF_ThemeColor(TH_TEXT);
 							glRasterPos2f(x+25,  y-4);
 							BMF_DrawString(G.font, conchan->name);
+							
+							/* draw 'eye' indicating whether channel's ipo is muted */
+							if (conchan->ipo) {
+								if (conchan->ipo->muteipo) 
+									BIF_icon_draw(NAMEWIDTH-32, y-CHANNELHEIGHT/2, ICON_RESTRICT_VIEW_ON);
+								else 
+									BIF_icon_draw(NAMEWIDTH-32, y-CHANNELHEIGHT/2, ICON_RESTRICT_VIEW_OFF);
+							}
 							
 							/* draw 'lock' to indicate if constraint channel is protected */
 							if (EDITABLE_CONCHAN(conchan)==0) 

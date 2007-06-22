@@ -995,10 +995,13 @@ void calc_ipo(Ipo *ipo, float ctime)
 	IpoCurve *icu;
 	
 	if(ipo==NULL) return;
+	if(ipo->muteipo) return;
 	
 	for(icu= ipo->curve.first; icu; icu= icu->next) {
-		if(icu->driver || (icu->flag & IPO_LOCK)==0) 
-			calc_icu(icu, ctime);
+		if(icu->driver || (icu->flag & IPO_LOCK)==0) { 
+			if((icu->flag & IPO_MUTE)==0)
+				calc_icu(icu, ctime);
+		}
 	}
 }
 

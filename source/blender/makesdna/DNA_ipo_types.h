@@ -45,8 +45,7 @@ typedef struct Ipo {
 	ListBase curve;
 	rctf cur;
 	short blocktype, showkey;
-	int pad;
-		
+	short muteipo, pad;
 } Ipo;
 
 /* sometimes used */
@@ -391,6 +390,7 @@ typedef short IPO_Channel;
 #define IPO_AUTO_HORIZ	16
 #define IPO_ACTIVE		32
 #define IPO_PROTECT		64
+#define IPO_MUTE		128
 
 #endif
 
