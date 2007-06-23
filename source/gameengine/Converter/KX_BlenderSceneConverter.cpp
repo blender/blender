@@ -229,6 +229,11 @@ struct	BlenderDebugDraw : public btIDebugDraw
 		}
 	}
 	
+	virtual void	reportErrorWarning(const char* warningString)
+	{
+
+	}
+
 	virtual void	drawContactPoint(const btVector3& PointOnB,const btVector3& normalOnB,float distance,int lifeTime,const btVector3& color)
 	{
 		//not yet
