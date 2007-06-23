@@ -2992,7 +2992,7 @@ static PyObject *Object_getDupliObjects( BPy_Object * self )
 						"PyList_New() failed" );
 			
 			for(dupob= duplilist->first, index=0; dupob; dupob= dupob->next, index++) {
-				pair = PyTuple_New( 2 );
+				PyObject *pair = PyTuple_New( 2 );
 				
 				PyTuple_SET_ITEM( pair, 0, Object_CreatePyObject(dupob->ob) );
 				PyTuple_SET_ITEM( pair, 1, newMatrixObject((float*)dupob->mat,4,4,Py_NEW) );

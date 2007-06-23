@@ -38,4 +38,4 @@ This script opens the user's default web browser at http://www.blender.org's
 
 import Blender, webbrowser
 version = str(int(Blender.Get('version')))
-webbrowser.open('http://www.blender3d.org/Help/?pg=PyReference&ver='+ version)
+webbrowser.open('http://www.blender.org/documentation/'+ version +'PythonDoc/index.html')

@@ -286,7 +286,7 @@ int writePackedFile(char * filename, PackedFile *pf, int guimode)
 	char tempname[FILE_MAXDIR + FILE_MAXFILE];
 /*  	void * data; */
 	
-	waitcursor(1);
+	if (guimode) waitcursor(1);
 	
 	strcpy(name, filename);
 	BLI_convertstringcode(name, G.sce, G.scene->r.cfra);

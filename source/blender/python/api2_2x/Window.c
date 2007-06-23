@@ -1150,6 +1150,10 @@ static PyObject *M_Window_QHandle( PyObject * self, PyObject * args )
 		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
 			"QHandle is not available in background mode");
 
+	if (!G.curscreen)
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+			"No screens available");
+	
 	if( !PyArg_ParseTuple( args, "h", &win ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected an int as argument" );

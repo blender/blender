@@ -429,6 +429,9 @@ static PyObject *PyBonesDict_FromPyArmature(BPy_Armature *py_armature)
 	if (!py_BonesDict)
 		goto RuntimeError;
 
+	py_BonesDict->bones = NULL;
+	py_BonesDict->editbones.first = py_BonesDict->editbones.last = NULL;
+
 	//create internal dictionaries
 	py_BonesDict->bonesMap = PyDict_New();
 	py_BonesDict->editbonesMap = PyDict_New();

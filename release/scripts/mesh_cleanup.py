@@ -209,6 +209,7 @@ def fix_nan_verts(me):
 def fix_nan_uvs(me):
 	rem_nan = 0
 	if me.faceUV:
+		orig_uvlayer = me.activeUVLayer
 		for uvlayer in me.getUVLayerNames():
 			me.activeUVLayer = uvlayer
 			for f in me.faces:
@@ -217,6 +218,7 @@ def fix_nan_uvs(me):
 						if isnan(uv[i]):
 							uv[i] = 0.0
 							rem_nan += 1
+		me.activeUVLayer = orig_uvlayer
 	return rem_nan
 
 
