@@ -104,12 +104,13 @@ public:
 
 };
 
+
 void CcdPhysicsController::CreateRigidbody()
 {
 
-	btTransform trans = GetTransformFromMotionState(m_cci.m_MotionState);
+	btTransform trans = GetTransformFromMotionState(m_MotionState);
 
-	m_bulletMotionState = new BlenderBulletMotionState(m_cci.m_MotionState);
+	m_bulletMotionState = new BlenderBulletMotionState(m_MotionState);
 
 	m_body = new btRigidBody(m_cci.m_mass,
 		m_bulletMotionState,
