@@ -547,82 +547,24 @@ void *get_nearest_act_channel (short mval[], short *ret_type)
 	return NULL;
 }
 
-/* helper for get_nearest_[action,mesh]channel_key */
-static IpoCurve *get_nearest_icu_key (IpoCurve *curve, float *selx, short *sel, float xrange[])
-{
-	/* try to find first beztriple in bounds that is selected */
-	IpoCurve *icu, *firsticu=NULL;
-    int	     foundsel=0;
-    float    firstvert=-1, foundx=-1;
-	int      i;
-	
-	if (curve == NULL)
-		return NULL;
-	
-    /* lets loop through the IpoCurves trying to find the closest bezier */
-	for (icu= curve; icu ; icu= icu->next) {
-		/* loop through the beziers in the curve */
-		for (i=0; i<icu->totvert; i++) {
-			/* Is this bezier in the right area? */
-			if (icu->bezt[i].vec[1][0] > xrange[0] && 
-				icu->bezt[i].vec[1][0] <= xrange[1] ) {
-
-				/* if no other curves have been picked ... */
-				if (firsticu==NULL) {
-					/* mark this curve/bezier as the first selected */
-					firsticu= icu;
-					firstvert= icu->bezt[i].vec[1][0];
-
-					/* sel = (is the bezier is already selected) ? 1 : 0; */
-					*sel = (icu->bezt[i].f2 & 1);	
-				}
-
-				/* if the bezier is selected ... */
-				if (icu->bezt[i].f2 & 1) { 
-					/* if we haven't found a selected one yet ... */
-					if (!foundsel) {
-						/* record the found x value */
-						foundsel=1;
-						foundx = icu->bezt[i].vec[1][0];
-						
-					}
-				}
-
-				/* if the bezier is unselected and not at the x
-				 * position of a previous found selected bezier ...
-				 */
-				else if (foundsel && icu->bezt[i].vec[1][0] != foundx){
-					/* lets return this found curve/bezier */
-					*sel = 0;
-					*selx= icu->bezt[i].vec[1][0];
-					return icu;
-				}
-			}
-		}
-	}
-	
-    /* return what we've found */
-    *selx=firstvert;
-    return firsticu;
-}
-
 /* used only by mouse_action. It is used to find the location of the nearest 
  * keyframe to where the mouse clicked, 
  */
 static void *get_nearest_action_key (float *selx, short *sel, short *ret_type, bActionChannel **par)
 {
 	ListBase act_data = {NULL, NULL};
+	ListBase act_keys = {NULL, NULL};
 	bActListElem *ale;
+	ActKeyColumn *ak;
 	void *data;
 	short datatype;
 	int filter;
 	
-	IpoCurve *icu;
 	rctf rectf;
 	float xmin, xmax, x, y;
-	float xrange[2];
 	int clickmin, clickmax;
 	short mval[2];
+	short found = 0;
 		
 	getmouseco_areawin (mval);
 
@@ -659,10 +601,7 @@ static void *get_nearest_action_key (float *selx, short *sel, short *ret_type, b
 		*ret_type= ACTTYPE_NONE;
 		return NULL;
 	}
-	
-	xrange[0]= xmin;
-	xrange[1]= xmax;
-	
+		
 	/* filter data */
 	filter= (ACTFILTER_VISIBLE | ACTFILTER_CHANNELS);
 	actdata_filter(&act_data, filter, data, datatype);
@@ -674,28 +613,44 @@ static void *get_nearest_action_key (float *selx, short *sel, short *ret_type, b
 			/* found match */
 			*ret_type= ale->type;
 			
-			/* find location of keyframe (if applicable) */
+			/* make list of keyframes */
 			if (ale->key_data) {
 				switch (ale->datatype) {
 					case ALE_IPO:
 					{
 						Ipo *ipo= (Ipo *)ale->key_data;
-						icu= get_nearest_icu_key(ipo->curve.first, selx, sel, xrange);
+						ipo_to_keylist(ipo, &act_keys, NULL);
 					}
 						break;
 					case ALE_ICU:
 					{
-						icu= (IpoCurve *)ale->key_data;
-						icu= get_nearest_icu_key(icu, selx, sel, xrange);
+						IpoCurve *icu= (IpoCurve *)ale->key_data;
+						icu_to_keylist(icu, &act_keys, NULL);
 					}
 						break;
 				}
 			}
 			
+			/* loop through keyframes, finding one that was clicked on */
+			for (ak= act_keys.first; ak; ak= ak->next) {
+				if (IN_RANGE(ak->cfra, xmin, xmax)) {
+					*selx= ak->cfra;
+					found= 1;
+					break;
+				}
+			}
+			/* no matching keyframe found - set to mean frame value so it doesn't actually select anything */
+			if (found == 0)
+				*selx= ((xmax+xmin) / 2);
+			
 			/* figure out what to return */
 			if (datatype == ACTCONT_ACTION)
 				*par= ale->owner; /* assume that this is an action channel */
 			data = ale->data;
+			
+			/* cleanup tempolary lists */
+			BLI_freelistN(&act_keys);
+			act_keys.first = act_keys.last = NULL;
 			
 			BLI_freelistN(&act_data);
 			
