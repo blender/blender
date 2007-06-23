@@ -44,6 +44,7 @@ struct NumInput;
 struct Object;
 struct View3D;
 struct ScrArea;
+struct bPose;
 
 
 typedef struct NumInput {
@@ -343,6 +344,10 @@ void createTransData(TransInfo *t);
 void sort_trans_data_dist(TransInfo *t);
 void add_tdi_poin(float *poin, float *old, float delta);
 void special_aftertrans_update(TransInfo *t);
+
+/* auto-keying stuff used by special_aftertrans_update */
+void autokeyframe_ob_cb_func(struct Object *ob, int tmode);
+void autokeyframe_pose_cb_func(struct Object *ob, int tmode, short targetless_ik);
 
 /*********************** Constraints *****************************/
 

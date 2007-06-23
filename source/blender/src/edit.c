@@ -120,6 +120,7 @@
 /*#include "armature.h"*/
 /*  #include "edit.h" */
 #include "nla.h"
+#include "transform.h"
 
 #ifdef __NLA
 #include "BIF_editarmature.h"
@@ -1209,7 +1210,10 @@ void snap_sel_to_grid()
 					}
 				}
 				ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
-				ob->recalc |= OB_RECALC_DATA;
+				
+				/* autokeyframing */
+				autokeyframe_pose_cb_func(ob, TFM_TRANSLATION, 0);
+				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			}
 			else {
 				ob->recalc |= OB_RECALC_OB;
@@ -1235,6 +1239,9 @@ void snap_sel_to_grid()
 #ifdef WITH_VERSE
 				if(ob->vnode) b_verse_send_transformation(ob);
 #endif
+			
+				/* auto-keyframing */
+				autokeyframe_ob_cb_func(ob, TFM_TRANSLATION);
 			}
 		}
 
@@ -1318,7 +1325,10 @@ void snap_sel_to_curs()
 					}
 				}
 				ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
-				ob->recalc |= OB_RECALC_DATA;
+				
+				/* autokeyframing */
+				autokeyframe_pose_cb_func(ob, TFM_TRANSLATION, 0);
+				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			}
 			else {
 				ob->recalc |= OB_RECALC_OB;
@@ -1344,6 +1354,9 @@ void snap_sel_to_curs()
 #ifdef WITH_VERSE
 				if(ob->vnode) b_verse_send_transformation(ob);
 #endif
+				
+				/* auto-keyframing */
+				autokeyframe_ob_cb_func(ob, TFM_TRANSLATION);
 			}
 		}
 
@@ -1667,8 +1680,11 @@ void snap_to_center()
 						}
 					}
 				}
-				ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
-				ob->recalc |= OB_RECALC_DATA;
+				
+				/* autokeyframing */
+				ob->pose->flag |= POSE_DO_UNLOCK;
+				autokeyframe_pose_cb_func(ob, TFM_TRANSLATION, 0);
+				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			}
 			else {
 				ob->recalc |= OB_RECALC_OB;
@@ -1694,6 +1710,9 @@ void snap_to_center()
 #ifdef WITH_VERSE
 				if(ob->vnode) b_verse_send_transformation(ob);
 #endif
+				
+				/* auto-keyframing */
+				autokeyframe_ob_cb_func(ob, TFM_TRANSLATION);
 			}
 		}
 

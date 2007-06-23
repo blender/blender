@@ -2177,13 +2177,171 @@ static void clear_trans_object_base_flags(void)
 	}
 }
 
+/* auto-keyframing feature - for objects 
+ * 	tmode: should be a transform mode 
+ */
+void autokeyframe_ob_cb_func(Object *ob, int tmode)
+{
+	IpoCurve *icu;
+	char *actname="";
+	
+	if (G.flags & G_RECORDKEYS) {
+		if(ob->ipoflag & OB_ACTION_OB)
+			actname= "Object";
+
+		if(U.uiflag & USER_KEYINSERTAVAI) {
+			if(ob->ipo || ob->action) {
+				ID *id= (ID *)(ob);
+				
+				if (ob->ipo) {
+					icu= ob->ipo->curve.first;
+				}
+				else {
+					bActionChannel *achan;
+					achan= get_action_channel(ob->action, actname);
+					
+					if (achan && achan->ipo)
+						icu= achan->ipo->curve.first;
+					else
+						icu= NULL;
+				}
+				
+				while(icu) {
+					icu->flag &= ~IPO_SELECT;
+					if (U.uiflag & USER_KEYINSERTNEED)
+						insertkey_smarter(id, ID_OB, actname, NULL, icu->adrcode);
+					else
+						insertkey(id, ID_OB, actname, NULL, icu->adrcode);
+					icu= icu->next;
+				}
+			}
+		}
+		else if (U.uiflag & USER_KEYINSERTNEED) {
+			if (tmode==TFM_RESIZE) {
+				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_SIZE_X);
+				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_SIZE_Y);
+				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_SIZE_Z);
+			}
+			else if (tmode==TFM_ROTATION) {
+				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_ROT_X);
+				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_ROT_Y);
+				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_ROT_Z);
+			}
+			else if (tmode==TFM_TRANSLATION) {
+				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_LOC_X);
+				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_LOC_Y);
+				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_LOC_Z);
+			}
+		}
+		else {
+			insertkey(&ob->id, ID_OB, actname, NULL, OB_ROT_X);
+			insertkey(&ob->id, ID_OB, actname, NULL, OB_ROT_Y);
+			insertkey(&ob->id, ID_OB, actname, NULL, OB_ROT_Z);
+
+			insertkey(&ob->id, ID_OB, actname, NULL, OB_LOC_X);
+			insertkey(&ob->id, ID_OB, actname, NULL, OB_LOC_Y);
+			insertkey(&ob->id, ID_OB, actname, NULL, OB_LOC_Z);
+
+			insertkey(&ob->id, ID_OB, actname, NULL, OB_SIZE_X);
+			insertkey(&ob->id, ID_OB, actname, NULL, OB_SIZE_Y);
+			insertkey(&ob->id, ID_OB, actname, NULL, OB_SIZE_Z);
+		}
+
+		remake_object_ipos(ob);
+		allqueue(REDRAWIPO, 0);
+		allspace(REMAKEIPO, 0);
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWNLA, 0);
+		allqueue(REDRAWTIME, 0);
+	}
+}
+
+/* auto-keyframing feature - for poses/pose-channels 
+ * 	tmode: should be a transform mode 
+ *	targetless_ik: has targetless ik been done on any channels?
+ */
+void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
+{
+	bAction	*act;
+	bPose	*pose;
+	bPoseChannel *pchan;
+	IpoCurve *icu;
+	
+	pose= ob->pose;
+	act= ob->action;
+	
+	if (G.flags & G_RECORDKEYS) {
+		if (!act)
+			act= ob->action= add_empty_action("Action");
+		
+		for (pchan=pose->chanbase.first; pchan; pchan=pchan->next){
+			if (pchan->bone->flag & BONE_TRANSFORM){
+
+				if(U.uiflag & USER_KEYINSERTAVAI) {
+					bActionChannel *achan; 
+
+					for (achan = act->chanbase.first; achan; achan=achan->next){
+						if (achan->ipo && !strcmp (achan->name, pchan->name)){
+							for (icu = achan->ipo->curve.first; icu; icu=icu->next){
+								if (U.uiflag & USER_KEYINSERTNEED)
+									insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, icu->adrcode);
+								else
+									insertkey(&ob->id, ID_PO, pchan->name, NULL, icu->adrcode);
+							}
+							break;
+						}
+					}
+				}
+				else if (U.uiflag & USER_KEYINSERTNEED) {
+					if ((tmode==TFM_TRANSLATION) && (targetless_ik==0)) {
+						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_X);
+						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Y);
+						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Z);
+					}
+					if ((tmode==TFM_ROTATION) || ((tmode==TFM_TRANSLATION) && targetless_ik)) {
+						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_W);
+						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_X);
+						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
+						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
+					}
+					if (tmode==TFM_RESIZE) {
+						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_X);
+						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Y);
+						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Z);
+					}
+				}
+				else {
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_X);
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Y);
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Z);
+
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_W);
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_X);
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
+
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_X);
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Y);
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Z);
+				}
+			}
+		}
+		
+		remake_action_ipos (act);
+		allspace(REMAKEIPO, 0);
+		allqueue(REDRAWACTION, 0);
+		allqueue(REDRAWIPO, 0);
+		allqueue(REDRAWNLA, 0);
+		allqueue(REDRAWTIME, 0);
+	}
+}
+
 /* inserting keys, refresh ipo-keys, softbody, redraw events... (ton) */
 /* note; transdata has been freed already! */
 void special_aftertrans_update(TransInfo *t)
 {
 	Object *ob;
 	Base *base;
-	IpoCurve *icu;
 	int redrawipo=0;
 	int cancelled= (t->state == TRANS_CANCEL);
 		
@@ -2196,7 +2354,6 @@ void special_aftertrans_update(TransInfo *t)
 	}
 	else if( (t->flag & T_POSE) && t->poseobj) {
 		bArmature *arm;
-		bAction	*act;
 		bPose	*pose;
 		bPoseChannel *pchan;
 		short targetless_ik= 0;
@@ -2223,74 +2380,8 @@ void special_aftertrans_update(TransInfo *t)
 			pose_grab_with_ik_clear(ob);
 		
 		/* automatic inserting of keys */
-		if((G.flags & G_RECORDKEYS) && (!cancelled)) {
-			act= ob->action;
-			
-			if (!act)
-				act= ob->action= add_empty_action("Action");
-			
-			for (pchan=pose->chanbase.first; pchan; pchan=pchan->next){
-				if (pchan->bone->flag & BONE_TRANSFORM){
-
-					if(U.uiflag & USER_KEYINSERTAVAI) {
-						bActionChannel *achan; 
-
-						for (achan = act->chanbase.first; achan; achan=achan->next){
-
-							if (achan->ipo && !strcmp (achan->name, pchan->name)){
-								for (icu = achan->ipo->curve.first; icu; icu=icu->next){
-									if (U.uiflag & USER_KEYINSERTNEED)
-										insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, icu->adrcode);
-									else
-										insertkey(&ob->id, ID_PO, pchan->name, NULL, icu->adrcode);
-								}
-
-								break;
-							}
-						}
-					}
-					else if (U.uiflag & USER_KEYINSERTNEED) {
-						if ((t->mode==TFM_TRANSLATION) && (targetless_ik==0)) {
-							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_X);
-							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Y);
-							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Z);
-						}
-						if ((t->mode==TFM_ROTATION) || ((t->mode==TFM_TRANSLATION) && targetless_ik)) {
-							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_W);
-							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_X);
-							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
-							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
-						}
-						if (t->mode==TFM_RESIZE) {
-							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_X);
-							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Y);
-							insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Z);
-						}
-					}
-					else {
-						insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_X);
-						insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Y);
-						insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Z);
-
-						insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_W);
-						insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_X);
-						insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
-						insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
-
-						insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_X);
-						insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Y);
-						insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Z);
-					}
-				}
-			}
-			
-			remake_action_ipos (act);
-			allspace(REMAKEIPO, 0);
-			allqueue(REDRAWACTION, 0);
-			allqueue(REDRAWIPO, 0);
-			allqueue(REDRAWNLA, 0);
-			allqueue(REDRAWTIME, 0);
-			
+		if(!cancelled) {
+			autokeyframe_pose_cb_func(ob, t->mode, targetless_ik);
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		}
 		else if(arm->flag & ARM_DELAYDEFORM) {
@@ -2316,76 +2407,8 @@ void special_aftertrans_update(TransInfo *t)
 			if(modifiers_isSoftbodyEnabled(ob)) ob->softflag |= OB_SB_REDO;
 			
 			/* Set autokey if necessary */
-			if ((G.flags & G_RECORDKEYS) && (!cancelled) && (base->flag & SELECT)){
-				char *actname="";
-
-				if(ob->ipoflag & OB_ACTION_OB)
-					actname= "Object";
-
-				if(U.uiflag & USER_KEYINSERTAVAI) {
-					if(base->object->ipo || base->object->action) {
-						ID* id= (ID *)(base->object);
-						
-						if (base->object->ipo) {
-							icu= base->object->ipo->curve.first;
-						}
-						else {
-							bActionChannel *achan;
-							achan= get_action_channel(base->object->action, actname);
-							
-							if (achan && achan->ipo)
-								icu= achan->ipo->curve.first;
-							else
-								icu= NULL;
-						}
-						
-						while(icu) {
-							icu->flag &= ~IPO_SELECT;
-							if (U.uiflag & USER_KEYINSERTNEED)
-								insertkey_smarter(id, ID_OB, actname, NULL, icu->adrcode);
-							else
-								insertkey(id, ID_OB, actname, NULL, icu->adrcode);
-							icu= icu->next;
-						}
-					}
-				}
-				else if (U.uiflag & USER_KEYINSERTNEED) {
-					if (t->mode==TFM_RESIZE) {
-						insertkey_smarter(&base->object->id, ID_OB, actname, NULL, OB_SIZE_X);
-						insertkey_smarter(&base->object->id, ID_OB, actname, NULL, OB_SIZE_Y);
-						insertkey_smarter(&base->object->id, ID_OB, actname, NULL, OB_SIZE_Z);
-					}
-					else if (t->mode==TFM_ROTATION) {
-						insertkey_smarter(&base->object->id, ID_OB, actname, NULL, OB_ROT_X);
-						insertkey_smarter(&base->object->id, ID_OB, actname, NULL, OB_ROT_Y);
-						insertkey_smarter(&base->object->id, ID_OB, actname, NULL, OB_ROT_Z);
-					}
-					else if (t->mode==TFM_TRANSLATION) {
-						insertkey_smarter(&base->object->id, ID_OB, actname, NULL, OB_LOC_X);
-						insertkey_smarter(&base->object->id, ID_OB, actname, NULL, OB_LOC_Y);
-						insertkey_smarter(&base->object->id, ID_OB, actname, NULL, OB_LOC_Z);
-					}
-				}
-				else {
-					insertkey(&base->object->id, ID_OB, actname, NULL, OB_ROT_X);
-					insertkey(&base->object->id, ID_OB, actname, NULL, OB_ROT_Y);
-					insertkey(&base->object->id, ID_OB, actname, NULL, OB_ROT_Z);
-
-					insertkey(&base->object->id, ID_OB, actname, NULL, OB_LOC_X);
-					insertkey(&base->object->id, ID_OB, actname, NULL, OB_LOC_Y);
-					insertkey(&base->object->id, ID_OB, actname, NULL, OB_LOC_Z);
-
-					insertkey(&base->object->id, ID_OB, actname, NULL, OB_SIZE_X);
-					insertkey(&base->object->id, ID_OB, actname, NULL, OB_SIZE_Y);
-					insertkey(&base->object->id, ID_OB, actname, NULL, OB_SIZE_Z);
-				}
-
-				remake_object_ipos (ob);
-				allqueue(REDRAWIPO, 0);
-				allspace(REMAKEIPO, 0);
-				allqueue(REDRAWVIEW3D, 0);
-				allqueue(REDRAWNLA, 0);
-				allqueue(REDRAWTIME, 0);
+			if ((!cancelled) && (base->flag & SELECT)){
+				autokeyframe_ob_cb_func(ob, t->mode);
 			}
 			
 			base= base->next;
