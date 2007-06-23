@@ -15,15 +15,15 @@ subject to the following restrictions:
 
 #include "btTriangleIndexVertexArray.h"
 
-btTriangleIndexVertexArray::btTriangleIndexVertexArray(int numTriangles,int* triangleIndexBase,int triangleIndexStride,int numVertices,float* vertexBase,int vertexStride)
+btTriangleIndexVertexArray::btTriangleIndexVertexArray(int numTriangles,int* triangleIndexBase,int triangleIndexStride,int numVertices,btScalar* vertexBase,int vertexStride)
 {
 	btIndexedMesh mesh;
 	
 	mesh.m_numTriangles = numTriangles;
-	mesh.m_triangleIndexBase = triangleIndexBase;
+	mesh.m_triangleIndexBase = (const unsigned char *)triangleIndexBase;
 	mesh.m_triangleIndexStride = triangleIndexStride;
 	mesh.m_numVertices = numVertices;
-	mesh.m_vertexBase = vertexBase;
+	mesh.m_vertexBase = (const unsigned char *)vertexBase;
 	mesh.m_vertexStride = vertexStride;
 	
 	addIndexedMesh(mesh);

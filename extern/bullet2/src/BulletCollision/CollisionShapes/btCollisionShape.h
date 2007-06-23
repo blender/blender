@@ -16,18 +16,18 @@ subject to the following restrictions:
 #ifndef COLLISION_SHAPE_H
 #define COLLISION_SHAPE_H
 
-#include "LinearMath/btTransform.h"
-#include "LinearMath/btVector3.h"
-#include <LinearMath/btMatrix3x3.h>
-#include "LinearMath/btPoint3.h"
-#include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h" //for the shape types
+#include "../../LinearMath/btTransform.h"
+#include "../../LinearMath/btVector3.h"
+#include "../../LinearMath/btMatrix3x3.h"
+#include "../../LinearMath/btPoint3.h"
+#include "../BroadphaseCollision/btBroadphaseProxy.h" //for the shape types
 
 ///btCollisionShape provides interface for collision shapes that can be shared among btCollisionObjects.
 class btCollisionShape
 {
 public:
 
-	btCollisionShape() :m_tempDebug(0)
+	btCollisionShape() 
 	{
 	}
 	virtual ~btCollisionShape()
@@ -40,13 +40,14 @@ public:
 	virtual void	getBoundingSphere(btVector3& center,btScalar& radius) const;
 
 	///getAngularMotionDisc returns the maximus radius needed for Conservative Advancement to handle time-of-impact with rotations.
-	virtual float	getAngularMotionDisc() const;
+	virtual btScalar	getAngularMotionDisc() const;
 
-	virtual int		getShapeType() const=0;
 
 	///calculateTemporalAabb calculates the enclosing aabb for the moving object over interval [0..timeStep)
 	///result is conservative
 	void calculateTemporalAabb(const btTransform& curTrans,const btVector3& linvel,const btVector3& angvel,btScalar timeStep, btVector3& temporalAabbMin,btVector3& temporalAabbMax);
+
+#ifndef __SPU__
 
 	inline bool	isPolyhedral() const
 	{
@@ -72,20 +73,20 @@ public:
 		return btBroadphaseProxy::isInfinite(getShapeType());
 	}
 
+	virtual int		getShapeType() const=0;
 	virtual void	setLocalScaling(const btVector3& scaling) =0;
 	virtual const btVector3& getLocalScaling() const =0;
-
 	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia) = 0;
+
 
 //debugging support
 	virtual char*	getName()const =0 ;
-	const char* getExtraDebugInfo() const { return m_tempDebug;}
-	void  setExtraDebugInfo(const char* extraDebugInfo) { m_tempDebug = extraDebugInfo;}
-	const char * m_tempDebug;
-//endif debugging support
+#endif //__SPU__
 
-	virtual void	setMargin(float margin) = 0;
-	virtual float	getMargin() const = 0;
+	
+
+	virtual void	setMargin(btScalar margin) = 0;
+	virtual btScalar	getMargin() const = 0;
 
 };	
 

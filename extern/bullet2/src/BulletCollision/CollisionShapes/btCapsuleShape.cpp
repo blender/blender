@@ -13,37 +13,24 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#include "btMultiSphereShape.h"
+
+#include "btCapsuleShape.h"
+
 #include "BulletCollision/CollisionShapes/btCollisionMargin.h"
 #include "LinearMath/btQuaternion.h"
 
-btMultiSphereShape::btMultiSphereShape (const btVector3& inertiaHalfExtents,const btVector3* positions,const btScalar* radi,int numSpheres)
-:m_inertiaHalfExtents(inertiaHalfExtents)
+btCapsuleShape::btCapsuleShape(btScalar radius, btScalar height)
 {
-	btScalar startMargin = btScalar(1e30);
-
-	m_numSpheres = numSpheres;
-	for (int i=0;i<m_numSpheres;i++)
-	{
-		m_localPositions[i] = positions[i];
-		m_radi[i] = radi[i];
-		if (radi[i] < startMargin)
-			startMargin = radi[i];
-	}
-	setMargin(startMargin);
-
+	m_implicitShapeDimensions.setValue(radius,0.5f*height,radius);
 }
 
-
-
  
- btVector3	btMultiSphereShape::localGetSupportingVertexWithoutMargin(const btVector3& vec0)const
+ btVector3	btCapsuleShape::localGetSupportingVertexWithoutMargin(const btVector3& vec0)const
 {
-	int i;
+
 	btVector3 supVec(0,0,0);
 
 	btScalar maxDot(btScalar(-1e30));
-
 
 	btVector3 vec = vec0;
 	btScalar lenSqr = vec.length2();
@@ -58,15 +45,23 @@ btMultiSphereShape::btMultiSphereShape (const btVector3& inertiaHalfExtents,cons
 
 	btVector3 vtx;
 	btScalar newDot;
+	
+	btScalar radius = getRadius();
 
-	const btVector3* pos = &m_localPositions[0];
-	const btScalar* rad = &m_radi[0];
 
-	for (i=0;i<m_numSpheres;i++)
 	{
-		vtx = (*pos) +vec*m_localScaling*(*rad) - vec * getMargin();
-		pos++;
-		rad++;
+		btVector3 pos(0,getHalfHeight(),0);
+		vtx = pos +vec*m_localScaling*(radius) - vec * getMargin();
+		newDot = vec.dot(vtx);
+		if (newDot > maxDot)
+		{
+			maxDot = newDot;
+			supVec = vtx;
+		}
+	}
+	{
+		btVector3 pos(0,-getHalfHeight(),0);
+		vtx = pos +vec*m_localScaling*(radius) - vec * getMargin();
 		newDot = vec.dot(vtx);
 		if (newDot > maxDot)
 		{
@@ -79,26 +74,22 @@ btMultiSphereShape::btMultiSphereShape (const btVector3& inertiaHalfExtents,cons
 
 }
 
- void	btMultiSphereShape::batchedUnitVectorGetSupportingVertexWithoutMargin(const btVector3* vectors,btVector3* supportVerticesOut,int numVectors) const
+ void	btCapsuleShape::batchedUnitVectorGetSupportingVertexWithoutMargin(const btVector3* vectors,btVector3* supportVerticesOut,int numVectors) const
 {
+
+	
+	btScalar radius = getRadius();
 
 	for (int j=0;j<numVectors;j++)
 	{
 		btScalar maxDot(btScalar(-1e30));
-
 		const btVector3& vec = vectors[j];
 
 		btVector3 vtx;
 		btScalar newDot;
-
-		const btVector3* pos = &m_localPositions[0];
-		const btScalar* rad = &m_radi[0];
-
-		for (int i=0;i<m_numSpheres;i++)
 		{
-			vtx = (*pos) +vec*m_localScaling*(*rad) - vec * getMargin();
-			pos++;
-			rad++;
+			btVector3 pos(0,getHalfHeight(),0);
+			vtx = pos +vec*m_localScaling*(radius) - vec * getMargin();
 			newDot = vec.dot(vtx);
 			if (newDot > maxDot)
 			{
@@ -106,27 +97,32 @@ btMultiSphereShape::btMultiSphereShape (const btVector3& inertiaHalfExtents,cons
 				supportVerticesOut[j] = vtx;
 			}
 		}
+		{
+			btVector3 pos(0,-getHalfHeight(),0);
+			vtx = pos +vec*m_localScaling*(radius) - vec * getMargin();
+			newDot = vec.dot(vtx);
+			if (newDot > maxDot)
+			{
+				maxDot = newDot;
+				supportVerticesOut[j] = vtx;
+			}
+		}
+		
 	}
 }
 
 
-
-
-
-
-
-
-void	btMultiSphereShape::calculateLocalInertia(btScalar mass,btVector3& inertia)
+void	btCapsuleShape::calculateLocalInertia(btScalar mass,btVector3& inertia)
 {
 	//as an approximation, take the inertia of the box that bounds the spheres
 
 	btTransform ident;
 	ident.setIdentity();
-//	btVector3 aabbMin,aabbMax;
 
-//	getAabb(ident,aabbMin,aabbMax);
+	
+	btScalar radius = getRadius();
 
-	btVector3 halfExtents = m_inertiaHalfExtents;//(aabbMax - aabbMin)* btScalar(0.5);
+	btVector3 halfExtents(radius,radius+getHalfHeight(),radius);
 
 	btScalar margin = CONVEX_DISTANCE_MARGIN;
 
@@ -143,6 +139,8 @@ void	btMultiSphereShape::calculateLocalInertia(btScalar mass,btVector3& inertia)
 	inertia[2] = scaledmass * (x2+y2);
 
 }
+
+
 
 
 

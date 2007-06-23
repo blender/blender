@@ -16,7 +16,7 @@ subject to the following restrictions:
 #ifndef STATIC_PLANE_SHAPE_H
 #define STATIC_PLANE_SHAPE_H
 
-#include "BulletCollision/CollisionShapes/btConcaveShape.h"
+#include "btConcaveShape.h"
 
 
 ///StaticPlaneShape simulates an 'infinite' plane by dynamically reporting triangles approximated by intersection of the plane with the AABB.

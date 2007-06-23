@@ -23,7 +23,7 @@ class btManifoldPoint;
 
 #include "BulletCollision/NarrowPhaseCollision/btDiscreteCollisionDetectorInterface.h"
 
-#include "LinearMath/btTransform.h"
+#include "../../LinearMath/btTransform.h"
 
 typedef bool (*ContactAddedCallback)(btManifoldPoint& cp,	const btCollisionObject* colObj0,int partId0,int index0,const btCollisionObject* colObj1,int partId1,int index1);
 extern ContactAddedCallback		gContactAddedCallback;
@@ -68,7 +68,7 @@ public:
 			m_index1=index1;		
 	}
 
-	virtual void addContactPoint(const btVector3& normalOnBInWorld,const btVector3& pointInWorld,float depth);
+	virtual void addContactPoint(const btVector3& normalOnBInWorld,const btVector3& pointInWorld,btScalar depth);
 
 
 

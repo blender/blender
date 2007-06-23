@@ -16,48 +16,40 @@ subject to the following restrictions:
 #ifndef SIMD_TRANSFORM_UTIL_H
 #define SIMD_TRANSFORM_UTIL_H
 
-#include "LinearMath/btTransform.h"
-#define ANGULAR_MOTION_THRESHOLD 0.5f*SIMD_HALF_PI
+#include "btTransform.h"
+#define ANGULAR_MOTION_THRESHOLD btScalar(0.5)*SIMD_HALF_PI
 
 
 
 #define SIMDSQRT12 btScalar(0.7071067811865475244008443621048490)
 
-#define btRecipSqrt(x) ((float)(1.0f/btSqrt(float(x))))		/* reciprocal square root */
+#define btRecipSqrt(x) ((btScalar)(btScalar(1.0)/btSqrt(btScalar(x))))		/* reciprocal square root */
 
 inline btVector3 btAabbSupport(const btVector3& halfExtents,const btVector3& supportDir)
 {
-	return btVector3(supportDir.x() < btScalar(0.0f) ? -halfExtents.x() : halfExtents.x(),
-      supportDir.y() < btScalar(0.0f) ? -halfExtents.y() : halfExtents.y(),
-      supportDir.z() < btScalar(0.0f) ? -halfExtents.z() : halfExtents.z()); 
+	return btVector3(supportDir.x() < btScalar(0.0) ? -halfExtents.x() : halfExtents.x(),
+      supportDir.y() < btScalar(0.0) ? -halfExtents.y() : halfExtents.y(),
+      supportDir.z() < btScalar(0.0) ? -halfExtents.z() : halfExtents.z()); 
 }
 
 
 inline void btPlaneSpace1 (const btVector3& n, btVector3& p, btVector3& q)
 {
-  if (btFabs(n[2]) > SIMDSQRT12) {
+  if (btFabs(n.z()) > SIMDSQRT12) {
     // choose p in y-z plane
     btScalar a = n[1]*n[1] + n[2]*n[2];
     btScalar k = btRecipSqrt (a);
-    p[0] = 0;
-    p[1] = -n[2]*k;
-    p[2] = n[1]*k;
+    p.setValue(0,-n[2]*k,n[1]*k);
     // set q = n x p
-    q[0] = a*k;
-    q[1] = -n[0]*p[2];
-    q[2] = n[0]*p[1];
+    q.setValue(a*k,-n[0]*p[2],n[0]*p[1]);
   }
   else {
     // choose p in x-y plane
-    btScalar a = n[0]*n[0] + n[1]*n[1];
+    btScalar a = n.x()*n.x() + n.y()*n.y();
     btScalar k = btRecipSqrt (a);
-    p[0] = -n[1]*k;
-    p[1] = n[0]*k;
-    p[2] = 0;
+    p.setValue(-n.y()*k,n.x()*k,0);
     // set q = n x p
-    q[0] = -n[2]*p[1];
-    q[1] = n[2]*p[0];
-    q[2] = a*k;
+    q.setValue(-n.z()*p.y(),n.z()*p.x(),a*k);
   }
 }
 
@@ -74,9 +66,9 @@ public:
 		predictedTransform.setOrigin(curTrans.getOrigin() + linvel * timeStep);
 //	#define QUATERNION_DERIVATIVE
 	#ifdef QUATERNION_DERIVATIVE
-		btQuaternion orn = curTrans.getRotation();
-		orn += (angvel * orn) * (timeStep * 0.5f);
-		orn.normalize();
+		btQuaternion predictedOrn = curTrans.getRotation();
+		predictedOrn += (angvel * predictedOrn) * (timeStep * btScalar(0.5));
+		predictedOrn.normalize();
 	#else
 		//exponential map
 		btVector3 axis;
@@ -87,20 +79,21 @@ public:
 			fAngle = ANGULAR_MOTION_THRESHOLD / timeStep;
 		}
 
-		if ( fAngle < 0.001f )
+		if ( fAngle < btScalar(0.001) )
 		{
 			// use Taylor's expansions of sync function
-			axis   = angvel*( 0.5f*timeStep-(timeStep*timeStep*timeStep)*(0.020833333333f)*fAngle*fAngle );
+			axis   = angvel*( btScalar(0.5)*timeStep-(timeStep*timeStep*timeStep)*(btScalar(0.020833333333))*fAngle*fAngle );
 		}
 		else
 		{
 			// sync(fAngle) = sin(c*fAngle)/t
-			axis   = angvel*( btSin(0.5f*fAngle*timeStep)/fAngle );
+			axis   = angvel*( btSin(btScalar(0.5)*fAngle*timeStep)/fAngle );
 		}
-		btQuaternion dorn (axis.x(),axis.y(),axis.z(),btCos( fAngle*timeStep*0.5f ));
+		btQuaternion dorn (axis.x(),axis.y(),axis.z(),btCos( fAngle*timeStep*btScalar(0.5) ));
 		btQuaternion orn0 = curTrans.getRotation();
 
 		btQuaternion predictedOrn = dorn * orn0;
+		predictedOrn.normalize();
 	#endif
 		predictedTransform.setRotation(predictedOrn);
 	}
@@ -130,11 +123,11 @@ public:
 	
 		angle = dorn.getAngle();
 		axis = btVector3(dorn.x(),dorn.y(),dorn.z());
-		axis[3] = 0.f;
+		axis[3] = btScalar(0.);
 		//check for axis length
 		btScalar len = axis.length2();
 		if (len < SIMD_EPSILON*SIMD_EPSILON)
-			axis = btVector3(1.f,0.f,0.f);
+			axis = btVector3(btScalar(1.),btScalar(0.),btScalar(0.));
 		else
 			axis /= btSqrt(len);
 	}

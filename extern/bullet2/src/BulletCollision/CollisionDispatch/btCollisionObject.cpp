@@ -20,11 +20,11 @@ btCollisionObject::btCollisionObject()
 		m_collisionShape(0),
 		m_collisionFlags(0),
 		m_activationState1(1),
-		m_deactivationTime(0.f),
+		m_deactivationTime(btScalar(0.)),
 		m_userObjectPointer(0),
-		m_hitFraction(1.f),
-		m_ccdSweptSphereRadius(0.f),
-		m_ccdSquareMotionThreshold(0.f)
+		m_hitFraction(btScalar(1.)),
+		m_ccdSweptSphereRadius(btScalar(0.)),
+		m_ccdSquareMotionThreshold(btScalar(0.))
 {
 	
 }
@@ -46,7 +46,7 @@ void btCollisionObject::activate(bool forceActivation)
 	if (forceActivation || !(m_collisionFlags & (CF_STATIC_OBJECT|CF_KINEMATIC_OBJECT)))
 	{
 		setActivationState(ACTIVE_TAG);
-		m_deactivationTime = 0.f;
+		m_deactivationTime = btScalar(0.);
 	}
 }
 

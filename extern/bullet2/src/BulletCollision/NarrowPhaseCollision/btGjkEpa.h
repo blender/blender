@@ -21,7 +21,7 @@ Nov.2006
 
 #ifndef _05E48D53_04E0_49ad_BB0A_D74FE62E7366_
 #define _05E48D53_04E0_49ad_BB0A_D74FE62E7366_
-#include "BulletCollision/CollisionShapes/btConvexShape.h"
+#include "../CollisionShapes/btConvexShape.h"
 
 class btStackAlloc;
 

@@ -18,7 +18,7 @@ subject to the following restrictions:
 #include "LinearMath/btTransform.h"
 #include <assert.h>
 
-float						gContactBreakingThreshold = 0.02f;
+btScalar					gContactBreakingThreshold = btScalar(0.02);
 ContactDestroyedCallback	gContactDestroyedCallback = 0;
 
 
@@ -100,7 +100,7 @@ int btPersistentManifold::sortCachedPoints(const btManifoldPoint& pt)
 		int maxPenetrationIndex = -1;
 #define KEEP_DEEPEST_POINT 1
 #ifdef KEEP_DEEPEST_POINT
-		float maxPenetration = pt.getDistance();
+		btScalar maxPenetration = pt.getDistance();
 		for (int i=0;i<4;i++)
 		{
 			if (m_pointCache[i].getDistance() < maxPenetration)
@@ -111,7 +111,7 @@ int btPersistentManifold::sortCachedPoints(const btManifoldPoint& pt)
 		}
 #endif //KEEP_DEEPEST_POINT
 		
-		btScalar res0(0.f),res1(0.f),res2(0.f),res3(0.f);
+		btScalar res0(btScalar(0.)),res1(btScalar(0.)),res2(btScalar(0.)),res3(btScalar(0.));
 		if (maxPenetrationIndex != 0)
 		{
 			btVector3 a0 = pt.m_localPointA-m_pointCache[1].m_localPointA;
@@ -193,7 +193,7 @@ void btPersistentManifold::AddManifoldPoint(const btManifoldPoint& newPoint)
 	replaceContactPoint(newPoint,insertIndex);
 }
 
-float	btPersistentManifold::getContactBreakingThreshold() const
+btScalar	btPersistentManifold::getContactBreakingThreshold() const
 {
 	return gContactBreakingThreshold;
 }

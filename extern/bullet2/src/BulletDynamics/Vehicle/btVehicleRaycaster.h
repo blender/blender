@@ -11,7 +11,7 @@
 #ifndef VEHICLE_RAYCASTER_H
 #define VEHICLE_RAYCASTER_H
 
-#include "LinearMath/btVector3.h"
+#include "../../LinearMath/btVector3.h"
 
 /// btVehicleRaycaster is provides interface for between vehicle simulation and raycasting
 struct btVehicleRaycaster
@@ -21,7 +21,7 @@ virtual ~btVehicleRaycaster()
 }
 	struct btVehicleRaycasterResult
 	{
-		btVehicleRaycasterResult() :m_distFraction(-1.f){};
+		btVehicleRaycasterResult() :m_distFraction(btScalar(-1.)){};
 		btVector3	m_hitPointInWorld;
 		btVector3	m_hitNormalInWorld;
 		btScalar	m_distFraction;

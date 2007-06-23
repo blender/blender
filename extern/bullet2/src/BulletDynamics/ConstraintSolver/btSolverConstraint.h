@@ -1,3 +1,5 @@
+
+
 /*
 Bullet Continuous Collision Detection and Physics Library
 Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
@@ -13,28 +15,49 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef BT_MOTIONSTATE_H
-#define BT_MOTIONSTATE_H
+#ifndef BT_SOLVER_CONSTRAINT_H
+#define BT_SOLVER_CONSTRAINT_H
 
-#include "btTransform.h"
+class	btRigidBody;
+#include "LinearMath/btVector3.h"
+#include "LinearMath/btMatrix3x3.h"
 
-///btMotionState allows the dynamics world to synchronize the updated world transforms with graphics
-///For optimizations, potentially only moving objects get synchronized (using setWorldPosition/setWorldOrientation)
-class	btMotionState
+//#define NO_FRICTION_TANGENTIALS 1
+
+///1D constraint along a normal axis between bodyA and bodyB. It can be combined to solve contact and friction constraints.
+ATTRIBUTE_ALIGNED16 (struct)	btSolverConstraint
 {
-	public:
-		
-		virtual ~btMotionState()
-		{
-			
-		}
-		
-		virtual void	getWorldTransform(btTransform& worldTrans ) const =0;
+	btVector3	m_relpos1CrossNormal;
+	btVector3	m_relpos2CrossNormal;
+	btVector3	m_contactNormal;
+	btVector3	m_angularComponentA;
+	btVector3	m_angularComponentB;
 
-		//Bullet only calls the update of worldtransform for active objects
-		virtual void	setWorldTransform(const btTransform& worldTrans)=0;
-		
-	
+	btScalar	m_appliedVelocityImpulse;
+	int			m_solverBodyIdA;
+	int			m_solverBodyIdB;
+	btScalar	m_friction;
+	btScalar	m_restitution;
+	btScalar	m_jacDiagABInv;
+	btScalar	m_penetration;
+	btScalar	m_appliedImpulse;
+
+	int			m_constraintType;
+	int			m_frictionIndex;
+	int			m_unusedPadding[2];
+
+	enum		btSolverConstraintType
+	{
+		BT_SOLVER_CONTACT_1D = 0,
+		BT_SOLVER_FRICTION_1D
+	};
 };
 
-#endif //BT_MOTIONSTATE_H
+
+
+
+
+
+#endif //BT_SOLVER_CONSTRAINT_H
+
+

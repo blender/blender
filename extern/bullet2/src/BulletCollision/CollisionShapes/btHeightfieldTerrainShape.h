@@ -16,7 +16,7 @@ subject to the following restrictions:
 #ifndef HEIGHTFIELD_TERRAIN_SHAPE_H
 #define HEIGHTFIELD_TERRAIN_SHAPE_H
 
-#include "BulletCollision/CollisionShapes/btConcaveShape.h"
+#include "btConcaveShape.h"
 
 ///btHeightfieldTerrainShape simulates a 2D heightfield terrain 
 class btHeightfieldTerrainShape : public btConcaveShape

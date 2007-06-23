@@ -16,21 +16,21 @@ subject to the following restrictions:
 #ifndef COMPOUND_COLLISION_ALGORITHM_H
 #define COMPOUND_COLLISION_ALGORITHM_H
 
-#include "BulletCollision/BroadphaseCollision/btCollisionAlgorithm.h"
-#include "BulletCollision/BroadphaseCollision/btDispatcher.h"
-#include "BulletCollision/BroadphaseCollision/btBroadphaseInterface.h"
+#include "../BroadphaseCollision/btCollisionAlgorithm.h"
+#include "../BroadphaseCollision/btDispatcher.h"
+#include "../BroadphaseCollision/btBroadphaseInterface.h"
 
-#include "BulletCollision/NarrowPhaseCollision/btPersistentManifold.h"
+#include "../NarrowPhaseCollision/btPersistentManifold.h"
 class btDispatcher;
-#include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
-#include <vector>
+#include "../BroadphaseCollision/btBroadphaseProxy.h"
 #include "btCollisionCreateFunc.h"
+#include "../../LinearMath/btAlignedObjectArray.h"
 
 /// btCompoundCollisionAlgorithm  supports collision between CompoundCollisionShapes and other collision shapes
 /// Place holder, not fully implemented yet
 class btCompoundCollisionAlgorithm  : public btCollisionAlgorithm
 {
-	std::vector<btCollisionAlgorithm*> m_childCollisionAlgorithms;
+	btAlignedObjectArray<btCollisionAlgorithm*> m_childCollisionAlgorithms;
 	bool m_isSwapped;
 	
 public:
@@ -41,7 +41,7 @@ public:
 
 	virtual void processCollision (btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut);
 
-	float	calculateTimeOfImpact(btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut);
+	btScalar	calculateTimeOfImpact(btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut);
 
 	struct CreateFunc :public 	btCollisionAlgorithmCreateFunc
 	{

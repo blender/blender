@@ -19,8 +19,8 @@ subject to the following restrictions:
 //todo: make into a proper class working with the iterative constraint solver
 
 class btRigidBody;
-#include "LinearMath/btVector3.h"
-#include "LinearMath/btScalar.h"
+#include "../../LinearMath/btVector3.h"
+#include "../../LinearMath/btScalar.h"
 struct btContactSolverInfo;
 class btManifoldPoint;
 
@@ -33,7 +33,7 @@ enum {
 };
 
 
-typedef float (*ContactSolverFunc)(btRigidBody& body1,
+typedef btScalar (*ContactSolverFunc)(btRigidBody& body1,
 									 btRigidBody& body2,
 									 class btManifoldPoint& contactPoint,
 									 const btContactSolverInfo& info);
@@ -42,15 +42,15 @@ typedef float (*ContactSolverFunc)(btRigidBody& body1,
 struct btConstraintPersistentData
 {
 	inline btConstraintPersistentData()
-	:m_appliedImpulse(0.f),
-	m_prevAppliedImpulse(0.f),
-	m_accumulatedTangentImpulse0(0.f),
-	m_accumulatedTangentImpulse1(0.f),
-	m_jacDiagABInv(0.f),
+	:m_appliedImpulse(btScalar(0.)),
+	m_prevAppliedImpulse(btScalar(0.)),
+	m_accumulatedTangentImpulse0(btScalar(0.)),
+	m_accumulatedTangentImpulse1(btScalar(0.)),
+	m_jacDiagABInv(btScalar(0.)),
 	m_persistentLifeTime(0),
-	m_restitution(0.f),
-	m_friction(0.f),
-	m_penetration(0.f),
+	m_restitution(btScalar(0.)),
+	m_friction(btScalar(0.)),
+	m_penetration(btScalar(0.)),
 	m_contactSolverFunc(0),
 	m_frictionSolverFunc(0)
 	{
@@ -58,18 +58,18 @@ struct btConstraintPersistentData
 	
 					
 				/// total applied impulse during most recent frame
-			float	m_appliedImpulse;
-			float	m_prevAppliedImpulse;
-			float	m_accumulatedTangentImpulse0;
-			float	m_accumulatedTangentImpulse1;
+			btScalar	m_appliedImpulse;
+			btScalar	m_prevAppliedImpulse;
+			btScalar	m_accumulatedTangentImpulse0;
+			btScalar	m_accumulatedTangentImpulse1;
 			
-			float	m_jacDiagABInv;
-			float	m_jacDiagABInvTangent0;
-			float	m_jacDiagABInvTangent1;
+			btScalar	m_jacDiagABInv;
+			btScalar	m_jacDiagABInvTangent0;
+			btScalar	m_jacDiagABInvTangent1;
 			int		m_persistentLifeTime;
-			float	m_restitution;
-			float	m_friction;
-			float	m_penetration;
+			btScalar	m_restitution;
+			btScalar	m_friction;
+			btScalar	m_penetration;
 			btVector3	m_frictionWorldTangential0;
 			btVector3	m_frictionWorldTangential1;
 
@@ -91,19 +91,28 @@ struct btConstraintPersistentData
 ///positive distance = separation, negative distance = penetration
 void resolveSingleBilateral(btRigidBody& body1, const btVector3& pos1,
                       btRigidBody& body2, const btVector3& pos2,
-                      btScalar distance, const btVector3& normal,btScalar& impulse ,float timeStep);
+                      btScalar distance, const btVector3& normal,btScalar& impulse ,btScalar timeStep);
 
 
 ///contact constraint resolution:
 ///calculate and apply impulse to satisfy non-penetration and non-negative relative velocity constraint
 ///positive distance = separation, negative distance = penetration
-float resolveSingleCollision(
+btScalar resolveSingleCollision(
 	btRigidBody& body1,
 	btRigidBody& body2,
 		btManifoldPoint& contactPoint,
 		 const btContactSolverInfo& info);
 
-float resolveSingleFriction(
+btScalar resolveSingleFriction(
+	btRigidBody& body1,
+	btRigidBody& body2,
+	btManifoldPoint& contactPoint,
+	const btContactSolverInfo& solverInfo
+		);
+
+
+
+btScalar resolveSingleCollisionCombined(
 	btRigidBody& body1,
 	btRigidBody& body2,
 	btManifoldPoint& contactPoint,

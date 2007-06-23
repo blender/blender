@@ -16,9 +16,10 @@ subject to the following restrictions:
 #ifndef SIMULATION_ISLAND_MANAGER_H
 #define SIMULATION_ISLAND_MANAGER_H
 
-#include "BulletCollision/CollisionDispatch/btUnionFind.h"
+#include "../CollisionDispatch/btUnionFind.h"
 #include "btCollisionCreateFunc.h"
 
+class btCollisionObject;
 class btCollisionWorld;
 class btDispatcher;
 
@@ -49,7 +50,7 @@ public:
 	{
 		virtual ~IslandCallback() {};
 
-		virtual	void	ProcessIsland(class btPersistentManifold**	manifolds,int numManifolds, int islandId) = 0;
+		virtual	void	ProcessIsland(btCollisionObject** bodies,int numBodies,class btPersistentManifold**	manifolds,int numManifolds, int islandId) = 0;
 	};
 
 	void	buildAndProcessIslands(btDispatcher* dispatcher,btCollisionObjectArray& collisionObjects, IslandCallback* callback);

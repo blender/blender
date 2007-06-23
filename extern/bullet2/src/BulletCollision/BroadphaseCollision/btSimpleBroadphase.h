@@ -31,6 +31,7 @@ struct btSimpleBroadphaseProxy : public btBroadphaseProxy
 	:btBroadphaseProxy(userPtr,collisionFilterGroup,collisionFilterMask),
 	m_min(minpt),m_max(maxpt)		
 	{
+		(void)shapeType;
 	}
 	
 

@@ -27,7 +27,7 @@ inline btScalar	calculateCombinedFriction(const btCollisionObject* body0,const b
 {
 	btScalar friction = body0->getFriction() * body1->getFriction();
 
-	const btScalar MAX_FRICTION  = 10.f;
+	const btScalar MAX_FRICTION  = btScalar(10.);
 	if (friction < -MAX_FRICTION)
 		friction = -MAX_FRICTION;
 	if (friction > MAX_FRICTION)
@@ -53,7 +53,7 @@ btManifoldResult::btManifoldResult(btCollisionObject* body0,btCollisionObject* b
 }
 
 
-void btManifoldResult::addContactPoint(const btVector3& normalOnBInWorld,const btVector3& pointInWorld,float depth)
+void btManifoldResult::addContactPoint(const btVector3& normalOnBInWorld,const btVector3& pointInWorld,btScalar depth)
 {
 	assert(m_manifoldPtr);
 	//order in manifold needs to match
@@ -63,15 +63,22 @@ void btManifoldResult::addContactPoint(const btVector3& normalOnBInWorld,const b
 
 	bool isSwapped = m_manifoldPtr->getBody0() != m_body0;
 
-	btTransform transAInv = isSwapped? m_rootTransB.inverse() : m_rootTransA.inverse();
-	btTransform transBInv = isSwapped? m_rootTransA.inverse() : m_rootTransB.inverse();
-
 	btVector3 pointA = pointInWorld + normalOnBInWorld * depth;
-	btVector3 localA = transAInv(pointA );
-	btVector3 localB = transBInv(pointInWorld);
-	btManifoldPoint newPt(localA,localB,normalOnBInWorld,depth);
 
+	btVector3 localA;
+	btVector3 localB;
 	
+	if (isSwapped)
+	{
+		localA = m_rootTransB.invXform(pointA );
+		localB = m_rootTransA.invXform(pointInWorld);
+	} else
+	{
+		localA = m_rootTransA.invXform(pointA );
+		localB = m_rootTransB.invXform(pointInWorld);
+	}
+
+	btManifoldPoint newPt(localA,localB,normalOnBInWorld,depth);
 
 	int insertIndex = m_manifoldPtr->getCacheEntry(newPt);
 

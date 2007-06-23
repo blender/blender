@@ -58,6 +58,8 @@ btBU_Simplex1to4::btBU_Simplex1to4(const btPoint3& pt0,const btPoint3& pt1,const
 void btBU_Simplex1to4::addVertex(const btPoint3& pt)
 {
 	m_vertices[m_numVertices++] = pt;
+
+	recalcLocalAabb();
 }
 
 
@@ -176,17 +178,17 @@ int	btBU_Simplex1to4::getNumPlanes() const
 }
 
 
-void btBU_Simplex1to4::getPlane(btVector3& planeNormal,btPoint3& planeSupport,int i) const
+void btBU_Simplex1to4::getPlane(btVector3&, btPoint3& ,int ) const
 {
 	
 }
 
-int btBU_Simplex1to4::getIndex(int i) const
+int btBU_Simplex1to4::getIndex(int ) const
 {
 	return 0;
 }
 
-bool btBU_Simplex1to4::isInside(const btPoint3& pt,btScalar tolerance) const
+bool btBU_Simplex1to4::isInside(const btPoint3& ,btScalar ) const
 {
 	return false;
 }

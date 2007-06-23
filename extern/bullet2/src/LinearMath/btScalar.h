@@ -25,10 +25,11 @@ subject to the following restrictions:
 
 #ifdef WIN32
 
-		#if defined(__MINGW32__) || defined(__CYGWIN__)
+		#if defined(__MINGW32__) || defined(__CYGWIN__) || (defined (_MSC_VER) && _MSC_VER < 1300)
 			#define SIMD_FORCE_INLINE inline
 			#define ATTRIBUTE_ALIGNED16(a) a
 		#else
+			#define BT_HAS_ALIGNED_ALOCATOR
 			#pragma warning(disable:4530)
 			#pragma warning(disable:4996)
 			#pragma warning(disable:4786)
@@ -38,8 +39,21 @@ subject to the following restrictions:
 
 		#include <assert.h>
 		#define btAssert assert
+		//btFullAssert is optional, slows down a lot
+		#define btFullAssert(x)
 #else
 	
+#if defined	(__CELLOS_LV2__)
+		#define SIMD_FORCE_INLINE inline
+		#define ATTRIBUTE_ALIGNED16(a) a __attribute__ ((aligned (16)))
+		#ifndef assert
+		#include <assert.h>
+		#endif
+		#define btAssert assert
+		//btFullAssert is optional, slows down a lot
+		#define btFullAssert(x)
+#else
+
 	//non-windows systems
 
 		#define SIMD_FORCE_INLINE inline
@@ -48,16 +62,28 @@ subject to the following restrictions:
 		#include <assert.h>
 		#endif
 		#define btAssert assert
+		//btFullAssert is optional, slows down a lot
+		#define btFullAssert(x)
+#endif	//__CELLOS_LV2__
+#endif
+
+/// older compilers (gcc 3.x) and Sun needs double version of sqrt etc.
+/// exclude Apple Intel (i's assumed to be a Macbook or new Intel Dual Core Processor)
+#if defined (__sun) || defined (__sun__) || defined (__sparc) || (defined (__APPLE__) && ! defined (__i386__))
+//use slow double float precision operation on those platforms
+#ifndef BT_USE_DOUBLE_PRECISION
+#define BT_FORCE_DOUBLE_FUNCTIONS
+#endif
+#endif
+
+#if defined(BT_USE_DOUBLE_PRECISION)
+typedef double btScalar;
+#else
+typedef float btScalar;
 #endif
 
 
-
-typedef float    btScalar;
-
-///older compilers (gcc 3.x) and Sun needs double versions of srqt etc.
-///exclude Apple Intel (it's assumed to be a Macbook or newer Intel Dual Core processor)
-#if defined (__sun) || defined (__sun__) || defined (__sparc) || (defined (__APPLE__) && ! defined (__i386__))
-//use slow double float precision operation on those platforms
+#if defined(BT_USE_DOUBLE_PRECISION) || defined(BT_FORCE_DOUBLE_FUNCTIONS)
 		
 SIMD_FORCE_INLINE btScalar btSqrt(btScalar x) { return sqrt(x); }
 SIMD_FORCE_INLINE btScalar btFabs(btScalar x) { return fabs(x); }
@@ -90,13 +116,19 @@ SIMD_FORCE_INLINE btScalar btPow(btScalar x,btScalar y) { return powf(x,y); }
 #endif
 
 
-#define SIMD_2_PI         6.283185307179586232f
-#define SIMD_PI           (SIMD_2_PI * btScalar(0.5f))
-#define SIMD_HALF_PI      (SIMD_2_PI * btScalar(0.25f))
-#define SIMD_RADS_PER_DEG (SIMD_2_PI / btScalar(360.0f))
-#define SIMD_DEGS_PER_RAD  (btScalar(360.0f) / SIMD_2_PI)
+#define SIMD_2_PI         btScalar(6.283185307179586232)
+#define SIMD_PI           (SIMD_2_PI * btScalar(0.5))
+#define SIMD_HALF_PI      (SIMD_2_PI * btScalar(0.25))
+#define SIMD_RADS_PER_DEG (SIMD_2_PI / btScalar(360.0))
+#define SIMD_DEGS_PER_RAD  (btScalar(360.0) / SIMD_2_PI)
+
+#ifdef BT_USE_DOUBLE_PRECISION
+#define SIMD_EPSILON      DBL_EPSILON
+#define SIMD_INFINITY     DBL_MAX
+#else
 #define SIMD_EPSILON      FLT_EPSILON
 #define SIMD_INFINITY     FLT_MAX
+#endif
 
 SIMD_FORCE_INLINE bool      btFuzzyZero(btScalar x) { return btFabs(x) < SIMD_EPSILON; }
 
@@ -117,7 +149,7 @@ SIMD_FORCE_INLINE btScalar btAtan2(btScalar x, btScalar y) { return atan2f(x, y)
 */
 
 SIMD_FORCE_INLINE int       btIsNegative(btScalar x) {
-    return x < 0.0f ? 1 : 0;
+    return x < btScalar(0.0) ? 1 : 0;
 }
 
 SIMD_FORCE_INLINE btScalar btRadians(btScalar x) { return x * SIMD_RADS_PER_DEG; }

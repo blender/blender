@@ -17,16 +17,16 @@ subject to the following restrictions:
 #define CONE_MINKOWSKI_H
 
 #include "btConvexShape.h"
-#include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h" // for the types
+#include "../BroadphaseCollision/btBroadphaseProxy.h" // for the types
 
 ///btConeShape implements a Cone shape, around the Y axis
 class btConeShape : public btConvexShape
 
 {
 
-	float m_sinAngle;
-	float m_radius;
-	float m_height;
+	btScalar m_sinAngle;
+	btScalar m_radius;
+	btScalar m_height;
 	int		m_coneIndices[3];
 	btVector3 coneLocalSupport(const btVector3& v) const;
 
@@ -38,8 +38,8 @@ public:
 	virtual btVector3	localGetSupportingVertexWithoutMargin(const btVector3& vec) const;
 	virtual void	batchedUnitVectorGetSupportingVertexWithoutMargin(const btVector3* vectors,btVector3* supportVerticesOut,int numVectors) const;
 
-	float getRadius() const { return m_radius;}
-	float getHeight() const { return m_height;}
+	btScalar getRadius() const { return m_radius;}
+	btScalar getHeight() const { return m_height;}
 
 
 	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia)
@@ -49,17 +49,17 @@ public:
 		btVector3 aabbMin,aabbMax;
 		getAabb(identity,aabbMin,aabbMax);
 
-		btVector3 halfExtents = (aabbMax-aabbMin)*0.5f;
+		btVector3 halfExtents = (aabbMax-aabbMin)*btScalar(0.5);
 
-		float margin = getMargin();
+		btScalar margin = getMargin();
 
-		btScalar lx=2.f*(halfExtents.x()+margin);
-		btScalar ly=2.f*(halfExtents.y()+margin);
-		btScalar lz=2.f*(halfExtents.z()+margin);
+		btScalar lx=btScalar(2.)*(halfExtents.x()+margin);
+		btScalar ly=btScalar(2.)*(halfExtents.y()+margin);
+		btScalar lz=btScalar(2.)*(halfExtents.z()+margin);
 		const btScalar x2 = lx*lx;
 		const btScalar y2 = ly*ly;
 		const btScalar z2 = lz*lz;
-		const btScalar scaledmass = mass * 0.08333333f;
+		const btScalar scaledmass = mass * btScalar(0.08333333);
 
 		inertia = scaledmass * (btVector3(y2+z2,x2+z2,x2+y2));
 

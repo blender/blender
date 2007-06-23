@@ -18,19 +18,51 @@ subject to the following restrictions:
 #include "BulletCollision/CollisionShapes/btBvhTriangleMeshShape.h"
 #include "BulletCollision/CollisionShapes/btOptimizedBvh.h"
 
+
 ///Bvh Concave triangle mesh is a static-triangle mesh shape with Bounding Volume Hierarchy optimization.
 ///Uses an interface to access the triangles to allow for sharing graphics/physics triangles.
-btBvhTriangleMeshShape::btBvhTriangleMeshShape(btStridingMeshInterface* meshInterface)
-:btTriangleMeshShape(meshInterface)
+btBvhTriangleMeshShape::btBvhTriangleMeshShape(btStridingMeshInterface* meshInterface, bool useQuantizedAabbCompression)
+:btTriangleMeshShape(meshInterface),m_useQuantizedAabbCompression(useQuantizedAabbCompression)
 {
 	//construct bvh from meshInterface
 #ifndef DISABLE_BVH
 
 	m_bvh = new btOptimizedBvh();
-	m_bvh->build(meshInterface);
+	btVector3 bvhAabbMin,bvhAabbMax;
+	meshInterface->calculateAabbBruteForce(bvhAabbMin,bvhAabbMax);
+	m_bvh->build(meshInterface,m_useQuantizedAabbCompression,bvhAabbMin,bvhAabbMax);
 
 #endif //DISABLE_BVH
 
+}
+
+btBvhTriangleMeshShape::btBvhTriangleMeshShape(btStridingMeshInterface* meshInterface, bool useQuantizedAabbCompression,const btVector3& bvhAabbMin,const btVector3& bvhAabbMax)
+:btTriangleMeshShape(meshInterface),m_useQuantizedAabbCompression(useQuantizedAabbCompression)
+{
+	//construct bvh from meshInterface
+#ifndef DISABLE_BVH
+
+	m_bvh = new btOptimizedBvh();
+	m_bvh->build(meshInterface,m_useQuantizedAabbCompression,bvhAabbMin,bvhAabbMax);
+
+#endif //DISABLE_BVH
+
+}
+
+void	btBvhTriangleMeshShape::partialRefitTree(const btVector3& aabbMin,const btVector3& aabbMax)
+{
+	m_bvh->refitPartial( m_meshInterface,aabbMin,aabbMax );
+	
+	m_localAabbMin.setMin(aabbMin);
+	m_localAabbMax.setMax(aabbMax);
+}
+
+
+void	btBvhTriangleMeshShape::refitTree()
+{
+	m_bvh->refit( m_meshInterface );
+	
+	recalcLocalAabb();
 }
 
 btBvhTriangleMeshShape::~btBvhTriangleMeshShape()
@@ -63,7 +95,7 @@ void	btBvhTriangleMeshShape::processAllTriangles(btTriangleCallback* callback,co
 		{
 		}
 				
-		virtual void processNode(const btOptimizedBvhNode* node)
+		virtual void processNode(int nodeSubPart, int nodeTriangleIndex)
 		{
 			const unsigned char *vertexbase;
 			int numverts;
@@ -84,19 +116,21 @@ void	btBvhTriangleMeshShape::processAllTriangles(btTriangleCallback* callback,co
 				indexstride,
 				numfaces,
 				indicestype,
-				node->m_subPart);
+				nodeSubPart);
 
-			int* gfxbase = (int*)(indexbase+node->m_triangleIndex*indexstride);
-			
+			int* gfxbase = (int*)(indexbase+nodeTriangleIndex*indexstride);
+	
 			const btVector3& meshScaling = m_meshInterface->getScaling();
 			for (int j=2;j>=0;j--)
 			{
 				
 				int graphicsindex = gfxbase[j];
+
+
 #ifdef DEBUG_TRIANGLE_MESH
 				printf("%d ,",graphicsindex);
 #endif //DEBUG_TRIANGLE_MESH
-				float* graphicsbase = (float*)(vertexbase+graphicsindex*stride);
+				btScalar* graphicsbase = (btScalar*)(vertexbase+graphicsindex*stride);
 
 				m_triangle[j] = btVector3(
 					graphicsbase[0]*meshScaling.getX(),
@@ -107,8 +141,8 @@ void	btBvhTriangleMeshShape::processAllTriangles(btTriangleCallback* callback,co
 #endif //DEBUG_TRIANGLE_MESH
 			}
 
-			m_callback->processTriangle(m_triangle,node->m_subPart,node->m_triangleIndex);
-			m_meshInterface->unLockReadOnlyVertexBase(node->m_subPart);
+			m_callback->processTriangle(m_triangle,nodeSubPart,nodeTriangleIndex);
+			m_meshInterface->unLockReadOnlyVertexBase(nodeSubPart);
 		}
 
 	};
@@ -130,8 +164,10 @@ void	btBvhTriangleMeshShape::setLocalScaling(const btVector3& scaling)
 	{
 		btTriangleMeshShape::setLocalScaling(scaling);
 		delete m_bvh;
+		///m_localAabbMin/m_localAabbMax is already re-calculated in btTriangleMeshShape. We could just scale aabb, but this needs some more work
 		m_bvh = new btOptimizedBvh();
-		m_bvh->build(m_meshInterface);
 		//rebuild the bvh...
+		m_bvh->build(m_meshInterface,m_useQuantizedAabbCompression,m_localAabbMin,m_localAabbMax);
+
 	}
 }

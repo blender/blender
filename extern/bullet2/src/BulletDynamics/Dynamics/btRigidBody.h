@@ -16,26 +16,22 @@ subject to the following restrictions:
 #ifndef RIGIDBODY_H
 #define RIGIDBODY_H
 
-#include <vector>
-#include <LinearMath/btPoint3.h>
-#include <LinearMath/btTransform.h>
-#include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
-
-
-#include "BulletCollision/CollisionDispatch/btCollisionObject.h"
+#include "../../LinearMath/btPoint3.h"
+#include "../../LinearMath/btTransform.h"
+#include "../../BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
+#include "../../BulletCollision/CollisionDispatch/btCollisionObject.h"
 
 class btCollisionShape;
 class btMotionState;
 
 
 
-extern float gLinearAirDamping;
-extern bool gUseEpa;
+extern btScalar gLinearAirDamping;
 
-extern float gDeactivationTime;
+extern btScalar gDeactivationTime;
 extern bool gDisableDeactivation;
-extern float gLinearSleepingThreshold;
-extern float gAngularSleepingThreshold;
+extern btScalar gLinearSleepingThreshold;
+extern btScalar gAngularSleepingThreshold;
 
 
 /// btRigidBody class for btRigidBody Dynamics
@@ -65,10 +61,10 @@ public:
 
 #ifdef OBSOLETE_MOTIONSTATE_LESS
 	//not supported, please use btMotionState
-	btRigidBody(float mass, const btTransform& worldTransform, btCollisionShape* collisionShape, const btVector3& localInertia=btVector3(0,0,0),btScalar linearDamping=0.f,btScalar angularDamping=0.f,btScalar friction=0.5f,btScalar restitution=0.f);
+	btRigidBody(btScalar mass, const btTransform& worldTransform, btCollisionShape* collisionShape, const btVector3& localInertia=btVector3(0,0,0),btScalar linearDamping=btScalar(0.),btScalar angularDamping=btScalar(0.),btScalar friction=btScalar(0.5),btScalar restitution=btScalar(0.));
 #endif //OBSOLETE_MOTIONSTATE_LESS
 
-	btRigidBody(float mass, btMotionState* motionState, btCollisionShape* collisionShape, const btVector3& localInertia=btVector3(0,0,0),btScalar linearDamping=0.f,btScalar angularDamping=0.f,btScalar friction=0.5f,btScalar restitution=0.f);
+	btRigidBody(btScalar mass, btMotionState* motionState, btCollisionShape* collisionShape, const btVector3& localInertia=btVector3(0,0,0),btScalar linearDamping=btScalar(0.),btScalar angularDamping=btScalar(0.),btScalar friction=btScalar(0.5),btScalar restitution=btScalar(0.));
 
 	void			proceedToTransform(const btTransform& newTrans); 
 	
@@ -157,7 +153,7 @@ public:
 	
 	void applyImpulse(const btVector3& impulse, const btVector3& rel_pos) 
 	{
-		if (m_inverseMass != 0.f)
+		if (m_inverseMass != btScalar(0.))
 		{
 			applyCentralImpulse(impulse);
 			if (m_angularFactor)
@@ -168,9 +164,9 @@ public:
 	}
 
 	//Optimization for the iterative solver: avoid calculating constant terms involving inertia, normal, relative position
-	inline void internalApplyImpulse(const btVector3& linearComponent, const btVector3& angularComponent,float impulseMagnitude)
+	inline void internalApplyImpulse(const btVector3& linearComponent, const btVector3& angularComponent,btScalar impulseMagnitude)
 	{
-		if (m_inverseMass != 0.f)
+		if (m_inverseMass != btScalar(0.))
 		{
 			m_linearVelocity += linearComponent*impulseMagnitude;
 			if (m_angularFactor)
@@ -182,8 +178,8 @@ public:
 	
 	void clearForces() 
 	{
-		m_totalForce.setValue(0.0f, 0.0f, 0.0f);
-		m_totalTorque.setValue(0.0f, 0.0f, 0.0f);
+		m_totalForce.setValue(btScalar(0.0), btScalar(0.0), btScalar(0.0));
+		m_totalTorque.setValue(btScalar(0.0), btScalar(0.0), btScalar(0.0));
 	}
 	
 	void updateInertiaTensor();    
@@ -238,7 +234,7 @@ public:
 
 
 	
-	inline float computeImpulseDenominator(const btPoint3& pos, const btVector3& normal) const
+	inline btScalar computeImpulseDenominator(const btPoint3& pos, const btVector3& normal) const
 	{
 		btVector3 r0 = pos - getCenterOfMassPosition();
 
@@ -250,13 +246,13 @@ public:
 
 	}
 
-	inline float computeAngularImpulseDenominator(const btVector3& axis) const
+	inline btScalar computeAngularImpulseDenominator(const btVector3& axis) const
 	{
 		btVector3 vec = axis * getInvInertiaTensorWorld();
 		return axis.dot(vec);
 	}
 
-	inline void	updateDeactivation(float timeStep)
+	inline void	updateDeactivation(btScalar timeStep)
 	{
 		if ( (getActivationState() == ISLAND_SLEEPING) || (getActivationState() == DISABLE_DEACTIVATION))
 			return;
@@ -267,7 +263,7 @@ public:
 			m_deactivationTime += timeStep;
 		} else
 		{
-			m_deactivationTime=0.f;
+			m_deactivationTime=btScalar(0.);
 			setActivationState(0);
 		}
 
@@ -280,7 +276,7 @@ public:
 			return false;
 
 		//disable deactivation
-		if (gDisableDeactivation || (gDeactivationTime == 0.f))
+		if (gDisableDeactivation || (gDeactivationTime == btScalar(0.)))
 			return false;
 
 		if ( (getActivationState() == ISLAND_SLEEPING) || (getActivationState() == WANTS_DEACTIVATION))
@@ -328,11 +324,11 @@ public:
 	int	m_contactSolverType;
 	int	m_frictionSolverType;
 
-	void	setAngularFactor(float angFac)
+	void	setAngularFactor(btScalar angFac)
 	{
 		m_angularFactor = angFac;
 	}
-	float	getAngularFactor() const
+	btScalar	getAngularFactor() const
 	{
 		return m_angularFactor;
 	}

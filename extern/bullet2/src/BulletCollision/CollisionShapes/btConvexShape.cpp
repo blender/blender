@@ -15,8 +15,9 @@ subject to the following restrictions:
 
 #include "btConvexShape.h"
 
+
 btConvexShape::btConvexShape()
-: m_localScaling(1.f,1.f,1.f),
+: m_localScaling(btScalar(1.),btScalar(1.),btScalar(1.)),
 m_collisionMargin(CONVEX_DISTANCE_MARGIN)
 {
 }
@@ -35,34 +36,41 @@ void	btConvexShape::getAabbSlow(const btTransform& trans,btVector3&minAabb,btVec
 	btScalar margin = getMargin();
 	for (int i=0;i<3;i++)
 	{
-		btVector3 vec(0.f,0.f,0.f);
-		vec[i] = 1.f;
+		btVector3 vec(btScalar(0.),btScalar(0.),btScalar(0.));
+		vec[i] = btScalar(1.);
 
 		btVector3 sv = localGetSupportingVertex(vec*trans.getBasis());
 
 		btVector3 tmp = trans(sv);
 		maxAabb[i] = tmp[i]+margin;
-		vec[i] = -1.f;
+		vec[i] = btScalar(-1.);
 		tmp = trans(localGetSupportingVertex(vec*trans.getBasis()));
 		minAabb[i] = tmp[i]-margin;
 	}
 };
 
+
 btVector3	btConvexShape::localGetSupportingVertex(const btVector3& vec)const
- {
+{
+#ifndef __SPU__
+
 	 btVector3	supVertex = localGetSupportingVertexWithoutMargin(vec);
 
-	if ( getMargin()!=0.f )
+	if ( getMargin()!=btScalar(0.) )
 	{
 		btVector3 vecnorm = vec;
 		if (vecnorm .length2() < (SIMD_EPSILON*SIMD_EPSILON))
 		{
-			vecnorm.setValue(-1.f,-1.f,-1.f);
+			vecnorm.setValue(btScalar(-1.),btScalar(-1.),btScalar(-1.));
 		} 
 		vecnorm.normalize();
 		supVertex+= getMargin() * vecnorm;
 	}
 	return supVertex;
+
+#else
+	return btVector3(0,0,0);
+#endif //__SPU__
 
  }
 

@@ -24,18 +24,18 @@ btTypedConstraint::btTypedConstraint()
 m_userConstraintId(-1),
 m_rbA(s_fixed),
 m_rbB(s_fixed),
-m_appliedImpulse(0.f)
+m_appliedImpulse(btScalar(0.))
 {
-	s_fixed.setMassProps(0.f,btVector3(0.f,0.f,0.f));
+	s_fixed.setMassProps(btScalar(0.),btVector3(btScalar(0.),btScalar(0.),btScalar(0.)));
 }
 btTypedConstraint::btTypedConstraint(btRigidBody& rbA)
 : m_userConstraintType(-1),
 m_userConstraintId(-1),
 m_rbA(rbA),
 m_rbB(s_fixed),
-m_appliedImpulse(0.f)
+m_appliedImpulse(btScalar(0.))
 {
-		s_fixed.setMassProps(0.f,btVector3(0.f,0.f,0.f));
+		s_fixed.setMassProps(btScalar(0.),btVector3(btScalar(0.),btScalar(0.),btScalar(0.)));
 
 }
 
@@ -45,9 +45,9 @@ btTypedConstraint::btTypedConstraint(btRigidBody& rbA,btRigidBody& rbB)
 m_userConstraintId(-1),
 m_rbA(rbA),
 m_rbB(rbB),
-m_appliedImpulse(0.f)
+m_appliedImpulse(btScalar(0.))
 {
-		s_fixed.setMassProps(0.f,btVector3(0.f,0.f,0.f));
+		s_fixed.setMassProps(btScalar(0.),btVector3(btScalar(0.),btScalar(0.),btScalar(0.)));
 
 }
 

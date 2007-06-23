@@ -16,23 +16,33 @@ subject to the following restrictions:
 #include "LinearMath/btPoint3.h"
 
 btCylinderShape::btCylinderShape (const btVector3& halfExtents)
-:btBoxShape(halfExtents)
+:btBoxShape(halfExtents),
+m_upAxis(1)
 {
-
+	recalcLocalAabb();
 }
 
 
 btCylinderShapeX::btCylinderShapeX (const btVector3& halfExtents)
 :btCylinderShape(halfExtents)
 {
+	m_upAxis = 0;
+	recalcLocalAabb();
 }
 
 
 btCylinderShapeZ::btCylinderShapeZ (const btVector3& halfExtents)
 :btCylinderShape(halfExtents)
 {
+	m_upAxis = 2;
+	recalcLocalAabb();
 }
 
+void btCylinderShape::getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aabbMax) const
+{
+	//skip the box 'getAabb'
+	btPolyhedralConvexShape::getAabb(t,aabbMin,aabbMax);
+}
 
 
 inline btVector3 CylinderLocalSupportX(const btVector3& halfExtents,const btVector3& v) 
@@ -46,8 +56,8 @@ const int ZZ = 2;
 	// extents of the cylinder is: X,Y is for radius, and Z for height
 
 
-	float radius = halfExtents[XX];
-	float halfHeight = halfExtents[cylinderUpAxis];
+	btScalar radius = halfExtents[XX];
+	btScalar halfHeight = halfExtents[cylinderUpAxis];
 
 
     btVector3 tmp;
@@ -87,8 +97,8 @@ const int YY = 1;
 const int ZZ = 2;
 
 
-	float radius = halfExtents[XX];
-	float halfHeight = halfExtents[cylinderUpAxis];
+	btScalar radius = halfExtents[XX];
+	btScalar halfHeight = halfExtents[cylinderUpAxis];
 
 
     btVector3 tmp;
@@ -124,8 +134,8 @@ const int ZZ = 1;
 	// extents of the cylinder is: X,Y is for radius, and Z for height
 
 
-	float radius = halfExtents[XX];
-	float halfHeight = halfExtents[cylinderUpAxis];
+	btScalar radius = halfExtents[XX];
+	btScalar halfHeight = halfExtents[cylinderUpAxis];
 
 
     btVector3 tmp;

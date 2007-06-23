@@ -17,7 +17,7 @@ subject to the following restrictions:
 #ifndef SIMD__QUATERNION_H_
 #define SIMD__QUATERNION_H_
 
-#include "LinearMath/btVector3.h"
+#include "btVector3.h"
 
 class btQuaternion : public btQuadWord {
 public:
@@ -68,13 +68,13 @@ public:
 
 	btQuaternion& operator+=(const btQuaternion& q)
 	{
-		m_x += q.x(); m_y += q.y(); m_z += q.z(); m_unusedW += q[3];
+		m_x += q.x(); m_y += q.y(); m_z += q.z(); m_unusedW += q.m_unusedW;
 		return *this;
 	}
 
 	btQuaternion& operator-=(const btQuaternion& q) 
 	{
-		m_x -= q.x(); m_y -= q.y(); m_z -= q.z(); m_unusedW -= q[3];
+		m_x -= q.x(); m_y -= q.y(); m_z -= q.z(); m_unusedW -= q.m_unusedW;
 		return *this;
 	}
 
@@ -87,16 +87,16 @@ public:
 
 	btQuaternion& operator*=(const btQuaternion& q)
 	{
-		setValue(m_unusedW * q.x() + m_x * q[3] + m_y * q.z() - m_z * q.y(),
-			m_unusedW * q.y() + m_y * q[3] + m_z * q.x() - m_x * q.z(),
-			m_unusedW * q.z() + m_z * q[3] + m_x * q.y() - m_y * q.x(),
-			m_unusedW * q[3] - m_x * q.x() - m_y * q.y() - m_z * q.z());
+		setValue(m_unusedW * q.x() + m_x * q.m_unusedW + m_y * q.z() - m_z * q.y(),
+			m_unusedW * q.y() + m_y * q.m_unusedW + m_z * q.x() - m_x * q.z(),
+			m_unusedW * q.z() + m_z * q.m_unusedW + m_x * q.y() - m_y * q.x(),
+			m_unusedW * q.m_unusedW - m_x * q.x() - m_y * q.y() - m_z * q.z());
 		return *this;
 	}
 
 	btScalar dot(const btQuaternion& q) const
 	{
-		return m_x * q.x() + m_y * q.y() + m_z * q.z() + m_unusedW * q[3];
+		return m_x * q.x() + m_y * q.y() + m_z * q.z() + m_unusedW * q.m_unusedW;
 	}
 
 	btScalar length2() const
@@ -150,7 +150,7 @@ public:
 
 	btScalar getAngle() const 
 	{
-		btScalar s = 2.f * btAcos(m_unusedW);
+		btScalar s = btScalar(2.) * btAcos(m_unusedW);
 		return s;
 	}
 
@@ -165,20 +165,20 @@ public:
 	operator+(const btQuaternion& q2) const
 	{
 		const btQuaternion& q1 = *this;
-		return btQuaternion(q1.x() + q2.x(), q1.y() + q2.y(), q1.z() + q2.z(), q1[3] + q2[3]);
+		return btQuaternion(q1.x() + q2.x(), q1.y() + q2.y(), q1.z() + q2.z(), q1.m_unusedW + q2.m_unusedW);
 	}
 
 	SIMD_FORCE_INLINE btQuaternion
 	operator-(const btQuaternion& q2) const
 	{
 		const btQuaternion& q1 = *this;
-		return btQuaternion(q1.x() - q2.x(), q1.y() - q2.y(), q1.z() - q2.z(), q1[3] - q2[3]);
+		return btQuaternion(q1.x() - q2.x(), q1.y() - q2.y(), q1.z() - q2.z(), q1.m_unusedW - q2.m_unusedW);
 	}
 
 	SIMD_FORCE_INLINE btQuaternion operator-() const
 	{
 		const btQuaternion& q2 = *this;
-		return btQuaternion( - q2.x(), - q2.y(),  - q2.z(),  - q2[3]);
+		return btQuaternion( - q2.x(), - q2.y(),  - q2.z(),  - q2.m_unusedW);
 	}
 
 	SIMD_FORCE_INLINE btQuaternion farthest( const btQuaternion& qd) const 
@@ -202,7 +202,7 @@ public:
 			return btQuaternion((m_x * s0 + q.x() * s1) * d,
 				(m_y * s0 + q.y() * s1) * d,
 				(m_z * s0 + q.z() * s1) * d,
-				(m_unusedW * s0 + q[3] * s1) * d);
+				(m_unusedW * s0 + q.m_unusedW * s1) * d);
 		}
 		else
 		{
@@ -219,7 +219,7 @@ public:
 SIMD_FORCE_INLINE btQuaternion
 operator-(const btQuaternion& q)
 {
-	return btQuaternion(-q.x(), -q.y(), -q.z(), -q[3]);
+	return btQuaternion(-q.x(), -q.y(), -q.z(), -q.w());
 }
 
 
@@ -227,27 +227,27 @@ operator-(const btQuaternion& q)
 
 SIMD_FORCE_INLINE btQuaternion
 operator*(const btQuaternion& q1, const btQuaternion& q2) {
-	return btQuaternion(q1[3] * q2.x() + q1.x() * q2[3] + q1.y() * q2.z() - q1.z() * q2.y(),
-		q1[3] * q2.y() + q1.y() * q2[3] + q1.z() * q2.x() - q1.x() * q2.z(),
-		q1[3] * q2.z() + q1.z() * q2[3] + q1.x() * q2.y() - q1.y() * q2.x(),
-		q1[3] * q2[3] - q1.x() * q2.x() - q1.y() * q2.y() - q1.z() * q2.z()); 
+	return btQuaternion(q1.w() * q2.x() + q1.x() * q2.w() + q1.y() * q2.z() - q1.z() * q2.y(),
+		q1.w() * q2.y() + q1.y() * q2.w() + q1.z() * q2.x() - q1.x() * q2.z(),
+		q1.w() * q2.z() + q1.z() * q2.w() + q1.x() * q2.y() - q1.y() * q2.x(),
+		q1.w() * q2.w() - q1.x() * q2.x() - q1.y() * q2.y() - q1.z() * q2.z()); 
 }
 
 SIMD_FORCE_INLINE btQuaternion
 operator*(const btQuaternion& q, const btVector3& w)
 {
-	return btQuaternion( q[3] * w.x() + q.y() * w.z() - q.z() * w.y(),
-		q[3] * w.y() + q.z() * w.x() - q.x() * w.z(),
-		q[3] * w.z() + q.x() * w.y() - q.y() * w.x(),
+	return btQuaternion( q.w() * w.x() + q.y() * w.z() - q.z() * w.y(),
+		q.w() * w.y() + q.z() * w.x() - q.x() * w.z(),
+		q.w() * w.z() + q.x() * w.y() - q.y() * w.x(),
 		-q.x() * w.x() - q.y() * w.y() - q.z() * w.z()); 
 }
 
 SIMD_FORCE_INLINE btQuaternion
 operator*(const btVector3& w, const btQuaternion& q)
 {
-	return btQuaternion( w.x() * q[3] + w.y() * q.z() - w.z() * q.y(),
-		w.y() * q[3] + w.z() * q.x() - w.x() * q.z(),
-		w.z() * q[3] + w.x() * q.y() - w.y() * q.x(),
+	return btQuaternion( w.x() * q.w() + w.y() * q.z() - w.z() * q.y(),
+		w.y() * q.w() + w.z() * q.x() - w.x() * q.z(),
+		w.z() * q.w() + w.x() * q.y() - w.y() * q.x(),
 		-w.x() * q.x() - w.y() * q.y() - w.z() * q.z()); 
 }
 

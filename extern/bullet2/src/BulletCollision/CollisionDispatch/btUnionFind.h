@@ -16,7 +16,10 @@ subject to the following restrictions:
 #ifndef UNION_FIND_H
 #define UNION_FIND_H
 
-#include <vector>
+#include "../../LinearMath/btAlignedObjectArray.h"
+
+	#define USE_PATH_COMPRESSION 1
+
 struct	btElement
 {
 	int	m_id;
@@ -29,7 +32,7 @@ struct	btElement
 class btUnionFind
   {
     private:
-		std::vector<btElement>	m_elements;
+		btAlignedObjectArray<btElement>	m_elements;
 
     public:
 	  
@@ -78,6 +81,7 @@ class btUnionFind
 			if (i == j) 
 				return;
 
+#ifndef USE_PATH_COMPRESSION
 			//weighted quick union, this keeps the 'trees' balanced, and keeps performance of unite O( log(n) )
 			if (m_elements[i].m_sz < m_elements[j].m_sz)
 			{ 
@@ -87,6 +91,9 @@ class btUnionFind
 			{ 
 				m_elements[j].m_id = i; m_elements[i].m_sz += m_elements[j].m_sz; 
 			}
+#else
+			m_elements[i].m_id = j; m_elements[j].m_sz += m_elements[i].m_sz; 
+#endif //USE_PATH_COMPRESSION
 		}
 
 		int find(int x)
@@ -97,7 +104,7 @@ class btUnionFind
 			while (x != m_elements[x].m_id) 
 			{
 		//not really a reason not to use path compression, and it flattens the trees/improves find performance dramatically
-		#define USE_PATH_COMPRESSION 1
+	
 		#ifdef USE_PATH_COMPRESSION
 				//
 				m_elements[x].m_id = m_elements[m_elements[x].m_id].m_id;

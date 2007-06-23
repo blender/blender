@@ -853,7 +853,8 @@ static btCollisionShape* CreateBulletShapeFromMesh(RAS_MeshObject* meshobj, bool
 		//map_gamemesh_to_bulletshape.insert(GEN_HashedPtr(meshobj),collisionMeshShape);
 		if (!polytope)
 		{
-			concaveShape = new btBvhTriangleMeshShape( collisionMeshData );
+			bool useQuantization = true;
+			concaveShape = new btBvhTriangleMeshShape( collisionMeshData, useQuantization );
 			//concaveShape = new btTriangleMeshShape( collisionMeshData );
 
 			concaveShape->recalcLocalAabb();

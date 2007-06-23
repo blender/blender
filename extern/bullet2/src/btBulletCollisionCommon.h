@@ -25,6 +25,7 @@ subject to the following restrictions:
 ///Collision Shapes
 #include "BulletCollision/CollisionShapes/btBoxShape.h"
 #include "BulletCollision/CollisionShapes/btSphereShape.h"
+#include "BulletCollision/CollisionShapes/btCapsuleShape.h"
 #include "BulletCollision/CollisionShapes/btCylinderShape.h"
 #include "BulletCollision/CollisionShapes/btConeShape.h"
 #include "BulletCollision/CollisionShapes/btStaticPlaneShape.h"

@@ -16,7 +16,7 @@ subject to the following restrictions:
 #include "btAlignedAllocator.h"
 
 
-#if defined (WIN32) && !defined(__MINGW32__) && !defined(__CYGWIN__)
+#if defined (BT_HAS_ALIGNED_ALOCATOR)
 
 #include <malloc.h>
 void*	btAlignedAlloc	(int size, int alignment)
@@ -31,6 +31,26 @@ void	btAlignedFree	(void* ptr)
 
 #else
 
+#ifdef __CELLOS_LV2__
+
+#include <stdlib.h>
+
+int numAllocs = 0;
+int numFree = 0;
+
+void*	btAlignedAlloc	(int size, int alignment)
+{
+	numAllocs++;
+	return memalign(alignment, size);
+}
+
+void	btAlignedFree	(void* ptr)
+{
+	numFree++;
+	free(ptr);
+}
+
+#else
 ///todo
 ///will add some multi-platform version that works without _aligned_malloc/_aligned_free
 
@@ -41,7 +61,10 @@ void*	btAlignedAlloc	(int size, int alignment)
 
 void	btAlignedFree	(void* ptr)
 {
-	delete ptr;
+	delete [] (char*) ptr;
 }
+#endif //
 
 #endif
+
+

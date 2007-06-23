@@ -89,7 +89,7 @@ void btCompoundCollisionAlgorithm::processCollision (btCollisionObject* body0,bt
 	}
 }
 
-float	btCompoundCollisionAlgorithm::calculateTimeOfImpact(btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut)
+btScalar	btCompoundCollisionAlgorithm::calculateTimeOfImpact(btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut)
 {
 
 	btCollisionObject* colObj = m_isSwapped? body1 : body0;
@@ -106,7 +106,7 @@ float	btCompoundCollisionAlgorithm::calculateTimeOfImpact(btCollisionObject* bod
 	//then use each overlapping node AABB against Tree0
 	//and vise versa.
 
-	float hitFraction = 1.f;
+	btScalar hitFraction = btScalar(1.);
 
 	int numChildren = m_childCollisionAlgorithms.size();
 	int i;
@@ -124,7 +124,7 @@ float	btCompoundCollisionAlgorithm::calculateTimeOfImpact(btCollisionObject* bod
 		colObj->setWorldTransform( newChildWorldTrans );
 
 		colObj->setCollisionShape( childShape );
-		float frac = m_childCollisionAlgorithms[i]->calculateTimeOfImpact(colObj,otherObj,dispatchInfo,resultOut);
+		btScalar frac = m_childCollisionAlgorithms[i]->calculateTimeOfImpact(colObj,otherObj,dispatchInfo,resultOut);
 		if (frac<hitFraction)
 		{
 			hitFraction = frac;

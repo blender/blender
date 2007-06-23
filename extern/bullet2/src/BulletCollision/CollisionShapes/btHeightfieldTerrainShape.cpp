@@ -19,7 +19,7 @@ subject to the following restrictions:
 
 
 btHeightfieldTerrainShape::btHeightfieldTerrainShape()
-:m_localScaling(0.f,0.f,0.f)
+:m_localScaling(btScalar(0.),btScalar(0.),btScalar(0.))
 {
 }
 
@@ -30,11 +30,10 @@ btHeightfieldTerrainShape::~btHeightfieldTerrainShape()
 
 
 
-void btHeightfieldTerrainShape::getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aabbMax) const
+void btHeightfieldTerrainShape::getAabb(const btTransform& ,btVector3& aabbMin,btVector3& aabbMax) const
 {
-	aabbMin.setValue(-1e30f,-1e30f,-1e30f);
-	aabbMax.setValue(1e30f,1e30f,1e30f);
-
+	aabbMin.setValue(btScalar(-1e30),btScalar(-1e30),btScalar(-1e30));
+	aabbMax.setValue(btScalar(1e30),btScalar(1e30),btScalar(1e30));
 }
 
 
@@ -42,14 +41,17 @@ void btHeightfieldTerrainShape::getAabb(const btTransform& t,btVector3& aabbMin,
 
 void	btHeightfieldTerrainShape::processAllTriangles(btTriangleCallback* callback,const btVector3& aabbMin,const btVector3& aabbMax) const
 {
+	(void)callback;
+	(void)aabbMax;
+	(void)aabbMin;
 
-	btVector3 halfExtents = (aabbMax - aabbMin) * 0.5f;
-	btScalar radius = halfExtents.length();
-	btVector3 center = (aabbMax + aabbMin) * 0.5f;
+	/*
+	btVector3 halfExtents = (aabbMax - aabbMin) * btScalar(0.5);
+	btVector3 center = (aabbMax + aabbMin) * btScalar(0.5);
 	
 	//TODO
 	//this is where the triangles are generated, given AABB and plane equation (normal/constant)
-/*
+
 	btVector3 tangentDir0,tangentDir1;
 
 	//tangentDir0/tangentDir1 can be precalculated
@@ -60,6 +62,7 @@ void	btHeightfieldTerrainShape::processAllTriangles(btTriangleCallback* callback
 	btVector3 projectedCenter = center - (m_planeNormal.dot(center) - m_planeConstant)*m_planeNormal;
 	
 	btVector3 triangle[3];
+	btScalar radius = halfExtents.length();
 	triangle[0] = projectedCenter + tangentDir0*radius + tangentDir1*radius;
 	triangle[1] = projectedCenter + tangentDir0*radius - tangentDir1*radius;
 	triangle[2] = projectedCenter - tangentDir0*radius - tangentDir1*radius;
@@ -75,11 +78,11 @@ void	btHeightfieldTerrainShape::processAllTriangles(btTriangleCallback* callback
 
 }
 
-void	btHeightfieldTerrainShape::calculateLocalInertia(btScalar mass,btVector3& inertia)
+void	btHeightfieldTerrainShape::calculateLocalInertia(btScalar ,btVector3& inertia)
 {
 	//moving concave objects not supported
 	
-	inertia.setValue(0.f,0.f,0.f);
+	inertia.setValue(btScalar(0.),btScalar(0.),btScalar(0.));
 }
 
 void	btHeightfieldTerrainShape::setLocalScaling(const btVector3& scaling)

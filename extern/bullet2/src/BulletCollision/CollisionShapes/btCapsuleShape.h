@@ -13,50 +13,48 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
-#ifndef MINKOWSKI_SUM_SHAPE_H
-#define MINKOWSKI_SUM_SHAPE_H
+#ifndef BT_CAPSULE_SHAPE_H
+#define BT_CAPSULE_SHAPE_H
 
 #include "btConvexShape.h"
 #include "../BroadphaseCollision/btBroadphaseProxy.h" // for the types
 
-/// btMinkowskiSumShape represents implicit (getSupportingVertex) based minkowski sum of two convex implicit shapes.
-class btMinkowskiSumShape : public btConvexShape
+
+///btCapsuleShape represents a capsule around the Y axis
+///A more general solution that can represent capsules is the btMultiSphereShape
+class btCapsuleShape : public btConvexShape
 {
 
-	btTransform	m_transA;
-	btTransform	m_transB;
-	btConvexShape*	m_shapeA;
-	btConvexShape*	m_shapeB;
-
 public:
+	btCapsuleShape(btScalar radius,btScalar height);
 
-	btMinkowskiSumShape(btConvexShape* shapeA,btConvexShape* shapeB);
+	///CollisionShape Interface
+	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia);
 
+	/// btConvexShape Interface
 	virtual btVector3	localGetSupportingVertexWithoutMargin(const btVector3& vec)const;
 
 	virtual void	batchedUnitVectorGetSupportingVertexWithoutMargin(const btVector3* vectors,btVector3* supportVerticesOut,int numVectors) const;
-
-
-	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia);
-
-	void	setTransformA(const btTransform&	transA) { m_transA = transA;}
-	void	setTransformB(const btTransform&	transB) { m_transB = transB;}
-
-	const btTransform& getTransformA()const  { return m_transA;}
-	const btTransform& GetTransformB()const  { return m_transB;}
-
-
-	virtual int	getShapeType() const { return MINKOWSKI_SUM_SHAPE_PROXYTYPE; }
-
-	virtual btScalar	getMargin() const;
-
-	const btConvexShape*	getShapeA() const { return m_shapeA;}
-	const btConvexShape*	getShapeB() const { return m_shapeB;}
+	
+	virtual int	getShapeType() const { return CAPSULE_SHAPE_PROXYTYPE; }
 
 	virtual char*	getName()const 
 	{
-		return "MinkowskiSum";
+		return "CapsuleShape";
 	}
+
+	btScalar	getRadius() const
+	{
+		return m_implicitShapeDimensions.getX();
+	}
+
+	btScalar	getHalfHeight() const
+	{
+		return m_implicitShapeDimensions.getY();
+	}
+
 };
 
-#endif //MINKOWSKI_SUM_SHAPE_H
+
+
+#endif //BT_CAPSULE_SHAPE_H

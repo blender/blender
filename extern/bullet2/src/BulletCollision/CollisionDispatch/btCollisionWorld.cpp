@@ -31,7 +31,6 @@ subject to the following restrictions:
 #include "BulletCollision/CollisionDispatch/btCollisionDispatcher.h"
 #include "BulletCollision/BroadphaseCollision/btSimpleBroadphase.h"
 
-#include <algorithm>
 
 btCollisionWorld::btCollisionWorld(btDispatcher* dispatcher,btOverlappingPairCache* pairCache, int stackSize)
 :m_dispatcher1(dispatcher),
@@ -50,13 +49,10 @@ btCollisionWorld::~btCollisionWorld()
 	delete m_stackAlloc;
 
 	//clean up remaining objects
-	std::vector<btCollisionObject*>::iterator i;
-
-	for (i=m_collisionObjects.begin();
-	!(i==m_collisionObjects.end()); i++)
-
+	int i;
+	for (i=0;i<m_collisionObjects.size();i++)
 	{
-		btCollisionObject* collisionObject= (*i);
+		btCollisionObject* collisionObject= m_collisionObjects[i];
 		
 		btBroadphaseProxy* bp = collisionObject->getBroadphaseHandle();
 		if (bp)
@@ -89,9 +85,7 @@ void	btCollisionWorld::addCollisionObject(btCollisionObject* collisionObject,sho
 {
 
 	//check that the object isn't already added
-	std::vector<btCollisionObject*>::iterator i =	std::find(m_collisionObjects.begin(), m_collisionObjects.end(), collisionObject);
-	assert(i == m_collisionObjects.end());
-
+		btAssert( m_collisionObjects.findLinearSearch(collisionObject)  == m_collisionObjects.size());
 
 		m_collisionObjects.push_back(collisionObject);
 
@@ -125,19 +119,24 @@ void	btCollisionWorld::performDiscreteCollisionDetection()
 {
 	btDispatcherInfo& dispatchInfo = getDispatchInfo();
 
-	BEGIN_PROFILE("performDiscreteCollisionDetection");
+	BEGIN_PROFILE("perform Broadphase Collision Detection");
 
 
 	//update aabb (of all moved objects)
 
 	btVector3 aabbMin,aabbMax;
-	for (size_t i=0;i<m_collisionObjects.size();i++)
+	for (int i=0;i<m_collisionObjects.size();i++)
 	{
 		m_collisionObjects[i]->getCollisionShape()->getAabb(m_collisionObjects[i]->getWorldTransform(),aabbMin,aabbMax);
 		m_broadphasePairCache->setAabb(m_collisionObjects[i]->getBroadphaseHandle(),aabbMin,aabbMax);
 	}
 
 	m_broadphasePairCache->refreshOverlappingPairs();
+
+	
+	END_PROFILE("perform Broadphase Collision Detection");
+
+	BEGIN_PROFILE("performDiscreteCollisionDetection");
 
 	btDispatcher* dispatcher = getDispatcher();
 	if (dispatcher)
@@ -169,14 +168,12 @@ void	btCollisionWorld::removeCollisionObject(btCollisionObject* collisionObject)
 	}
 
 
-	std::vector<btCollisionObject*>::iterator i =	std::find(m_collisionObjects.begin(), m_collisionObjects.end(), collisionObject);
-		
-	if (!(i == m_collisionObjects.end()))
-		{
-			std::swap(*i, m_collisionObjects.back());
-			m_collisionObjects.pop_back();
-		}
+	//swapremove
+	m_collisionObjects.remove(collisionObject);
+
 }
+
+
 
 void	btCollisionWorld::rayTestSingle(const btTransform& rayFromTrans,const btTransform& rayToTrans,
 					  btCollisionObject* collisionObject,
@@ -185,12 +182,13 @@ void	btCollisionWorld::rayTestSingle(const btTransform& rayFromTrans,const btTra
 					  RayResultCallback& resultCallback)
 {
 	
-	btSphereShape pointShape(0.0f);
+	btSphereShape pointShape(btScalar(0.0));
+	pointShape.setMargin(0.f);
 
 	if (collisionShape->isConvex())
 			{
 				btConvexCast::CastResult castResult;
-				castResult.m_fraction = 1.f;//??
+				castResult.m_fraction = btScalar(1.);//??
 
 				btConvexShape* convexShape = (btConvexShape*) collisionShape;
 				btVoronoiSimplexSolver	simplexSolver;
@@ -201,7 +199,7 @@ void	btCollisionWorld::rayTestSingle(const btTransform& rayFromTrans,const btTra
 				if (convexCaster.calcTimeOfImpact(rayFromTrans,rayToTrans,colObjWorldTransform,colObjWorldTransform,castResult))
 				{
 					//add hit
-					if (castResult.m_normal.length2() > 0.0001f)
+					if (castResult.m_normal.length2() > btScalar(0.0001))
 					{
 						castResult.m_normal.normalize();
 						if (castResult.m_fraction < resultCallback.m_closestHitFraction)
@@ -252,7 +250,7 @@ void	btCollisionWorld::rayTestSingle(const btTransform& rayFromTrans,const btTra
 								}
 
 
-							virtual float reportHit(const btVector3& hitNormalLocal, float hitFraction, int partId, int triangleIndex )
+							virtual btScalar reportHit(const btVector3& hitNormalLocal, btScalar hitFraction, int partId, int triangleIndex )
 							{
 								btCollisionWorld::LocalShapeInfo	shapeInfo;
 								shapeInfo.m_shapePart = partId;
@@ -321,19 +319,16 @@ void	btCollisionWorld::rayTest(const btVector3& rayFromWorld, const btVector3& r
 
 	/// go over all objects, and if the ray intersects their aabb, do a ray-shape query using convexCaster (CCD)
 	
-	std::vector<btCollisionObject*>::iterator iter;
-	
-	for (iter=m_collisionObjects.begin();
-	!(iter==m_collisionObjects.end()); iter++)
+	int i;
+	for (i=0;i<m_collisionObjects.size();i++)
 	{
-		
-		btCollisionObject*	collisionObject= (*iter);
+		btCollisionObject*	collisionObject= m_collisionObjects[i];
 
 		//RigidcollisionObject* collisionObject = ctrl->GetRigidcollisionObject();
 		btVector3 collisionObjectAabbMin,collisionObjectAabbMax;
 		collisionObject->getCollisionShape()->getAabb(collisionObject->getWorldTransform(),collisionObjectAabbMin,collisionObjectAabbMax);
 
-		float hitLambda = 1.f; //could use resultCallback.m_closestHitFraction, but needs testing
+		btScalar hitLambda = btScalar(1.); //could use resultCallback.m_closestHitFraction, but needs testing
 		btVector3 hitNormal;
 		if (btRayAabb(rayFromWorld,rayToWorld,collisionObjectAabbMin,collisionObjectAabbMax,hitLambda,hitNormal))
 		{

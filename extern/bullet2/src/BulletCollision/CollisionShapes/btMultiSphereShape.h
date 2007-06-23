@@ -17,7 +17,7 @@ subject to the following restrictions:
 #define MULTI_SPHERE_MINKOWSKI_H
 
 #include "btConvexShape.h"
-#include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h" // for the types
+#include "../BroadphaseCollision/btBroadphaseProxy.h" // for the types
 
 #define MAX_NUM_SPHERES 5
 

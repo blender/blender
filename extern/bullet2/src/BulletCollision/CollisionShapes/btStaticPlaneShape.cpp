@@ -21,7 +21,7 @@ subject to the following restrictions:
 btStaticPlaneShape::btStaticPlaneShape(const btVector3& planeNormal,btScalar planeConstant)
 :m_planeNormal(planeNormal),
 m_planeConstant(planeConstant),
-m_localScaling(0.f,0.f,0.f)
+m_localScaling(btScalar(0.),btScalar(0.),btScalar(0.))
 {
 }
 
@@ -34,16 +34,19 @@ btStaticPlaneShape::~btStaticPlaneShape()
 
 void btStaticPlaneShape::getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aabbMax) const
 {
-	btVector3 infvec (1e30f,1e30f,1e30f);
+	(void)t;
+	/*
+	btVector3 infvec (btScalar(1e30),btScalar(1e30),btScalar(1e30));
 
 	btVector3 center = m_planeNormal*m_planeConstant;
 	aabbMin = center + infvec*m_planeNormal;
 	aabbMax = aabbMin;
 	aabbMin.setMin(center - infvec*m_planeNormal);
 	aabbMax.setMax(center - infvec*m_planeNormal); 
+	*/
 
-	aabbMin.setValue(-1e30f,-1e30f,-1e30f);
-	aabbMax.setValue(1e30f,1e30f,1e30f);
+	aabbMin.setValue(btScalar(-1e30),btScalar(-1e30),btScalar(-1e30));
+	aabbMax.setValue(btScalar(1e30),btScalar(1e30),btScalar(1e30));
 
 }
 
@@ -53,9 +56,9 @@ void btStaticPlaneShape::getAabb(const btTransform& t,btVector3& aabbMin,btVecto
 void	btStaticPlaneShape::processAllTriangles(btTriangleCallback* callback,const btVector3& aabbMin,const btVector3& aabbMax) const
 {
 
-	btVector3 halfExtents = (aabbMax - aabbMin) * 0.5f;
+	btVector3 halfExtents = (aabbMax - aabbMin) * btScalar(0.5);
 	btScalar radius = halfExtents.length();
-	btVector3 center = (aabbMax + aabbMin) * 0.5f;
+	btVector3 center = (aabbMax + aabbMin) * btScalar(0.5);
 	
 	//this is where the triangles are generated, given AABB and plane equation (normal/constant)
 
@@ -85,9 +88,11 @@ void	btStaticPlaneShape::processAllTriangles(btTriangleCallback* callback,const 
 
 void	btStaticPlaneShape::calculateLocalInertia(btScalar mass,btVector3& inertia)
 {
+	(void)mass;
+
 	//moving concave objects not supported
 	
-	inertia.setValue(0.f,0.f,0.f);
+	inertia.setValue(btScalar(0.),btScalar(0.),btScalar(0.));
 }
 
 void	btStaticPlaneShape::setLocalScaling(const btVector3& scaling)

@@ -19,25 +19,25 @@ subject to the following restrictions:
 #include <LinearMath/btTransformUtil.h>
 #include <LinearMath/btMotionState.h>
 
-float gLinearAirDamping = 1.f;
+btScalar gLinearAirDamping = btScalar(1.);
 //'temporarily' global variables
-float	gDeactivationTime = 2.f;
+btScalar	gDeactivationTime = btScalar(2.);
 bool	gDisableDeactivation = false;
 
-float gLinearSleepingThreshold = 0.8f;
-float gAngularSleepingThreshold = 1.0f;
+btScalar gLinearSleepingThreshold = btScalar(0.8);
+btScalar gAngularSleepingThreshold = btScalar(1.0);
 static int uniqueId = 0;
 
-btRigidBody::btRigidBody(float mass, btMotionState* motionState, btCollisionShape* collisionShape, const btVector3& localInertia,btScalar linearDamping,btScalar angularDamping,btScalar friction,btScalar restitution)
+btRigidBody::btRigidBody(btScalar mass, btMotionState* motionState, btCollisionShape* collisionShape, const btVector3& localInertia,btScalar linearDamping,btScalar angularDamping,btScalar friction,btScalar restitution)
 : 
-	m_gravity(0.0f, 0.0f, 0.0f),
-	m_totalForce(0.0f, 0.0f, 0.0f),
-	m_totalTorque(0.0f, 0.0f, 0.0f),
-	m_linearVelocity(0.0f, 0.0f, 0.0f),
-	m_angularVelocity(0.f,0.f,0.f),
-	m_angularFactor(1.f),
-	m_linearDamping(0.f),
-	m_angularDamping(0.5f),
+	m_linearVelocity(btScalar(0.0), btScalar(0.0), btScalar(0.0)),
+	m_angularVelocity(btScalar(0.),btScalar(0.),btScalar(0.)),
+	m_angularFactor(btScalar(1.)),
+	m_gravity(btScalar(0.0), btScalar(0.0), btScalar(0.0)),
+	m_totalForce(btScalar(0.0), btScalar(0.0), btScalar(0.0)),
+	m_totalTorque(btScalar(0.0), btScalar(0.0), btScalar(0.0)),
+	m_linearDamping(btScalar(0.)),
+	m_angularDamping(btScalar(0.5)),
 	m_optionalMotionState(motionState),
 	m_contactSolverType(0),
 	m_frictionSolverType(0)
@@ -72,15 +72,15 @@ btRigidBody::btRigidBody(float mass, btMotionState* motionState, btCollisionShap
 }
 
 #ifdef OBSOLETE_MOTIONSTATE_LESS
-btRigidBody::btRigidBody( float mass,const btTransform& worldTransform,btCollisionShape* collisionShape,const btVector3& localInertia,btScalar linearDamping,btScalar angularDamping,btScalar friction,btScalar restitution)
+btRigidBody::btRigidBody( btScalar mass,const btTransform& worldTransform,btCollisionShape* collisionShape,const btVector3& localInertia,btScalar linearDamping,btScalar angularDamping,btScalar friction,btScalar restitution)
 : 
-	m_gravity(0.0f, 0.0f, 0.0f),
-	m_totalForce(0.0f, 0.0f, 0.0f),
-	m_totalTorque(0.0f, 0.0f, 0.0f),
-	m_linearVelocity(0.0f, 0.0f, 0.0f),
-	m_angularVelocity(0.f,0.f,0.f),
-	m_linearDamping(0.f),
-	m_angularDamping(0.5f),
+	m_gravity(btScalar(0.0), btScalar(0.0), btScalar(0.0)),
+	m_totalForce(btScalar(0.0), btScalar(0.0), btScalar(0.0)),
+	m_totalTorque(btScalar(0.0), btScalar(0.0), btScalar(0.0)),
+	m_linearVelocity(btScalar(0.0), btScalar(0.0), btScalar(0.0)),
+	m_angularVelocity(btScalar(0.),btScalar(0.),btScalar(0.)),
+	m_linearDamping(btScalar(0.)),
+	m_angularDamping(btScalar(0.5)),
 	m_optionalMotionState(0),
 	m_contactSolverType(0),
 	m_frictionSolverType(0)
@@ -110,16 +110,18 @@ btRigidBody::btRigidBody( float mass,const btTransform& worldTransform,btCollisi
 #endif //OBSOLETE_MOTIONSTATE_LESS
 
 
-//#define EXPERIMENTAL_JITTER_REMOVAL 1
+
+
+#define EXPERIMENTAL_JITTER_REMOVAL 1
 #ifdef EXPERIMENTAL_JITTER_REMOVAL
 //Bullet 2.20b has experimental damping code to reduce jitter just before objects fall asleep/deactivate
 //doesn't work very well yet (value 0 disabled this damping)
 //note there this influences deactivation thresholds!
-float gClippedAngvelThresholdSqr = 0.01f;
-float	gClippedLinearThresholdSqr = 0.01f;
+btScalar gClippedAngvelThresholdSqr = btScalar(0.01);
+btScalar	gClippedLinearThresholdSqr = btScalar(0.01);
 #endif //EXPERIMENTAL_JITTER_REMOVAL
 
-float	gJitterVelocityDampingFactor = 1.f;
+btScalar	gJitterVelocityDampingFactor = btScalar(0.7);
 
 void btRigidBody::predictIntegratedTransform(btScalar timeStep,btTransform& predictedTransform) 
 {
@@ -144,7 +146,7 @@ void btRigidBody::predictIntegratedTransform(btScalar timeStep,btTransform& pred
 void			btRigidBody::saveKinematicState(btScalar timeStep)
 {
 	//todo: clamp to some (user definable) safe minimum timestep, to limit maximum angular/linear velocities
-	if (timeStep != 0.f)
+	if (timeStep != btScalar(0.))
 	{
 		//if we use motionstate to synchronize world transforms, get the new kinematic/animated world transform
 		if (getMotionState())
@@ -169,9 +171,9 @@ void	btRigidBody::getAabb(btVector3& aabbMin,btVector3& aabbMax) const
 
 void btRigidBody::setGravity(const btVector3& acceleration) 
 {
-	if (m_inverseMass != 0.0f)
+	if (m_inverseMass != btScalar(0.0))
 	{
-		m_gravity = acceleration * (1.0f / m_inverseMass);
+		m_gravity = acceleration * (btScalar(1.0) / m_inverseMass);
 	}
 }
 
@@ -182,8 +184,8 @@ void btRigidBody::setGravity(const btVector3& acceleration)
 
 void btRigidBody::setDamping(btScalar lin_damping, btScalar ang_damping)
 {
-	m_linearDamping = GEN_clamped(lin_damping, 0.0f, 1.0f);
-	m_angularDamping = GEN_clamped(ang_damping, 0.0f, 1.0f);
+	m_linearDamping = GEN_clamped(lin_damping, (btScalar)btScalar(0.0), (btScalar)btScalar(1.0));
+	m_angularDamping = GEN_clamped(ang_damping, (btScalar)btScalar(0.0), (btScalar)btScalar(1.0));
 }
 
 
@@ -198,36 +200,36 @@ void btRigidBody::applyForces(btScalar step)
 	
 	applyCentralForce(m_gravity);	
 	
-	m_linearVelocity *= GEN_clamped((1.f - step * gLinearAirDamping * m_linearDamping), 0.0f, 1.0f);
-	m_angularVelocity *= GEN_clamped((1.f - step * m_angularDamping), 0.0f, 1.0f);
+	m_linearVelocity *= GEN_clamped((btScalar(1.) - step * gLinearAirDamping * m_linearDamping), (btScalar)btScalar(0.0), (btScalar)btScalar(1.0));
+	m_angularVelocity *= GEN_clamped((btScalar(1.) - step * m_angularDamping), (btScalar)btScalar(0.0), (btScalar)btScalar(1.0));
 
 #define FORCE_VELOCITY_DAMPING 1
 #ifdef FORCE_VELOCITY_DAMPING
-	float speed = m_linearVelocity.length();
+	btScalar speed = m_linearVelocity.length();
 	if (speed < m_linearDamping)
 	{
-		float dampVel = 0.005f;
+		btScalar dampVel = btScalar(0.005);
 		if (speed > dampVel)
 		{
 			btVector3 dir = m_linearVelocity.normalized();
 			m_linearVelocity -=  dir * dampVel;
 		} else
 		{
-			m_linearVelocity.setValue(0.f,0.f,0.f);
+			m_linearVelocity.setValue(btScalar(0.),btScalar(0.),btScalar(0.));
 		}
 	}
 
-	float angSpeed = m_angularVelocity.length();
+	btScalar angSpeed = m_angularVelocity.length();
 	if (angSpeed < m_angularDamping)
 	{
-		float angDampVel = 0.005f;
+		btScalar angDampVel = btScalar(0.005);
 		if (angSpeed > angDampVel)
 		{
 			btVector3 dir = m_angularVelocity.normalized();
 			m_angularVelocity -=  dir * angDampVel;
 		} else
 		{
-			m_angularVelocity.setValue(0.f,0.f,0.f);
+			m_angularVelocity.setValue(btScalar(0.),btScalar(0.),btScalar(0.));
 		}
 	}
 #endif //FORCE_VELOCITY_DAMPING
@@ -242,19 +244,19 @@ void btRigidBody::proceedToTransform(const btTransform& newTrans)
 
 void btRigidBody::setMassProps(btScalar mass, const btVector3& inertia)
 {
-	if (mass == 0.f)
+	if (mass == btScalar(0.))
 	{
 		m_collisionFlags |= btCollisionObject::CF_STATIC_OBJECT;
-		m_inverseMass = 0.f;
+		m_inverseMass = btScalar(0.);
 	} else
 	{
 		m_collisionFlags &= (~btCollisionObject::CF_STATIC_OBJECT);
-		m_inverseMass = 1.0f / mass;
+		m_inverseMass = btScalar(1.0) / mass;
 	}
 	
-	m_invInertiaLocal.setValue(inertia[0] != 0.0f ? 1.0f / inertia[0]: 0.0f,
-				   inertia[1] != 0.0f ? 1.0f / inertia[1]: 0.0f,
-				   inertia[2] != 0.0f ? 1.0f / inertia[2]: 0.0f);
+	m_invInertiaLocal.setValue(inertia.x() != btScalar(0.0) ? btScalar(1.0) / inertia.x(): btScalar(0.0),
+				   inertia.y() != btScalar(0.0) ? btScalar(1.0) / inertia.y(): btScalar(0.0),
+				   inertia.z() != btScalar(0.0) ? btScalar(1.0) / inertia.z(): btScalar(0.0));
 
 }
 
@@ -276,7 +278,7 @@ void btRigidBody::integrateVelocities(btScalar step)
 
 #define MAX_ANGVEL SIMD_HALF_PI
 	/// clamp angular velocity. collision calculations will fail on higher angular velocities	
-	float angvel = m_angularVelocity.length();
+	btScalar angvel = m_angularVelocity.length();
 	if (angvel*step > MAX_ANGVEL)
 	{
 		m_angularVelocity *= (MAX_ANGVEL/step) /angvel;
@@ -295,7 +297,7 @@ btQuaternion btRigidBody::getOrientation() const
 	
 void btRigidBody::setCenterOfMassTransform(const btTransform& xform)
 {
-	m_interpolationWorldTransform = m_worldTransform;
+	m_interpolationWorldTransform = xform;//m_worldTransform;
 	m_interpolationLinearVelocity = getLinearVelocity();
 	m_interpolationAngularVelocity = getAngularVelocity();
 	m_worldTransform = xform;

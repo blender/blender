@@ -20,7 +20,7 @@ btTriangleRaycastCallback::btTriangleRaycastCallback(const btVector3& from,const
 	:
 	m_from(from),
 	m_to(to),
-	m_hitFraction(1.f)
+	m_hitFraction(btScalar(1.))
 {
 
 }
@@ -40,19 +40,19 @@ void btTriangleRaycastCallback::processTriangle(btVector3* triangle,int partId, 
 
 	btVector3 triangleNormal; triangleNormal = v10.cross( v20 );
 	
-	const float dist = vert0.dot(triangleNormal);
-	float dist_a = triangleNormal.dot(m_from) ;
+	const btScalar dist = vert0.dot(triangleNormal);
+	btScalar dist_a = triangleNormal.dot(m_from) ;
 	dist_a-= dist;
-	float dist_b = triangleNormal.dot(m_to);
+	btScalar dist_b = triangleNormal.dot(m_to);
 	dist_b -= dist;
 
-	if ( dist_a * dist_b >= 0.0f)
+	if ( dist_a * dist_b >= btScalar(0.0) )
 	{
 		return ; // same sign
 	}
 	
-	const float proj_length=dist_a-dist_b;
-	const float distance = (dist_a)/(proj_length);
+	const btScalar proj_length=dist_a-dist_b;
+	const btScalar distance = (dist_a)/(proj_length);
 	// Now we have the intersection point on the plane, we'll see if it's inside the triangle
 	// Add an epsilon as a tolerance for the raycast,
 	// in case the ray hits exacly on the edge of the triangle.
@@ -62,27 +62,27 @@ void btTriangleRaycastCallback::processTriangle(btVector3* triangle,int partId, 
 	{
 		
 
-		float edge_tolerance =triangleNormal.length2();		
-		edge_tolerance *= -0.0001f;
+		btScalar edge_tolerance =triangleNormal.length2();		
+		edge_tolerance *= btScalar(-0.0001);
 		btVector3 point; point.setInterpolate3( m_from, m_to, distance);
 		{
 			btVector3 v0p; v0p = vert0 - point;
 			btVector3 v1p; v1p = vert1 - point;
 			btVector3 cp0; cp0 = v0p.cross( v1p );
 
-			if ( (float)(cp0.dot(triangleNormal)) >=edge_tolerance) 
+			if ( (btScalar)(cp0.dot(triangleNormal)) >=edge_tolerance) 
 			{
 						
 
 				btVector3 v2p; v2p = vert2 -  point;
 				btVector3 cp1;
 				cp1 = v1p.cross( v2p);
-				if ( (float)(cp1.dot(triangleNormal)) >=edge_tolerance) 
+				if ( (btScalar)(cp1.dot(triangleNormal)) >=edge_tolerance) 
 				{
 					btVector3 cp2;
 					cp2 = v2p.cross(v0p);
 					
-					if ( (float)(cp2.dot(triangleNormal)) >=edge_tolerance) 
+					if ( (btScalar)(cp2.dot(triangleNormal)) >=edge_tolerance) 
 					{
 
 						if ( dist_a > 0 )
