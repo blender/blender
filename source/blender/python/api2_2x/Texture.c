@@ -772,8 +772,8 @@ static PyGetSetDef BPy_Texture_getseters[] = {
 	 (void *)TEX_NORMALMAP},
 	{"colorband",
 	 (getter)Texture_getColorband, (setter)Texture_setColorband,
-	 "Use of image RGB values for normal mapping enabled ('ImageFlags')",
-	 (void *)TEX_NORMALMAP},
+	 "The colorband for this texture",
+	 NULL},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
