@@ -767,7 +767,11 @@ static TransVert *transform_action_init (int *tvtot, float *minx, float *maxx)
 		count += fullselect_ipo_keys(ale->key_data);
 	
 	/* stop if trying to build list if nothing selected */
-	if (count == 0) return NULL;
+	if (count == 0) {
+		/* cleanup temp list */
+		BLI_freelistN(&act_data);
+		return NULL;
+	}
 		
 	/* Build the transvert structure */
 	tv = MEM_callocN (sizeof(TransVert) * count, "transVert");
@@ -1152,11 +1156,7 @@ void snap_action_keys(short mode)
 	/* get data */
 	data= get_action_context(&datatype);
 	if (data == NULL) return;
-		
-	/* filter data */
-	filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT | ACTFILTER_IPOKEYS);
-	actdata_filter(&act_data, filter, data, datatype);
-
+	
 	/* determine mode */
 	switch (mode) {
 		case 1:
@@ -1171,6 +1171,10 @@ void snap_action_keys(short mode)
 		default:
 			return;
 	}
+	
+	/* filter data */
+	filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT | ACTFILTER_IPOKEYS);
+	actdata_filter(&act_data, filter, data, datatype);
 	
 	/* snap to frame */
 	for (ale= act_data.first; ale; ale= ale->next) {
@@ -1207,11 +1211,7 @@ void mirror_action_keys(short mode)
 	/* get data */
 	data= get_action_context(&datatype);
 	if (data == NULL) return;
-		
-	/* filter data */
-	filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT | ACTFILTER_IPOKEYS);
-	actdata_filter(&act_data, filter, data, datatype);
-
+	
 	/* determine mode */
 	switch (mode) {
 		case 1:
@@ -1229,6 +1229,10 @@ void mirror_action_keys(short mode)
 		default:
 			return;
 	}
+	
+	/* filter data */
+	filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT | ACTFILTER_IPOKEYS);
+	actdata_filter(&act_data, filter, data, datatype);
 	
 	/* mirror */
 	for (ale= act_data.first; ale; ale= ale->next) {
@@ -1554,8 +1558,7 @@ void action_set_ipo_flags (int mode)
 	allqueue(REDRAWNLA, 0);
 }
 
-/* this function sets the handles on keyframes
- */
+/* this function sets the handles on keyframes */
 void sethandles_action_keys (int code)
 {
 	ListBase act_data = {NULL, NULL};
