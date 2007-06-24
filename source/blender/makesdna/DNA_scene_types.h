@@ -388,6 +388,7 @@ typedef struct SculptData
 	char texsep;
 
 	char averaging;
+	char flags;
 	
 	char draw_flag;
 	
@@ -397,6 +398,8 @@ typedef struct SculptData
 	/* Symmetry is separate from the other BrushData because the same
 	   settings are always used for all brush types */
 	char symm;
+
+	char pad[7];
 } SculptData;
 
 typedef struct Scene {
@@ -603,6 +606,8 @@ typedef struct Scene {
 #define FFMPEG_MULTIPLEX_AUDIO  1
 #define FFMPEG_AUTOSPLIT_OUTPUT 2
 
+/* SculptData.flags */
+#define SCULPT_INPUT_SMOOTH 1
 /* SculptData.brushtype */
 #define DRAW_BRUSH 1
 #define SMOOTH_BRUSH 2

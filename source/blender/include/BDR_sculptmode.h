@@ -30,13 +30,15 @@
 #ifndef BDR_SCULPTMODE_H
 #define BDR_SCULPTMODE_H
 
+#include "DNA_listBase.h"
+#include "DNA_vec_types.h"
 /* For bglMats */
 #include "BIF_glutil.h"
-
 #include "transform.h"
 
 struct uiBlock;
 struct BrushData;
+struct EditData;
 struct IndexNode;
 struct KeyBlock;
 struct Mesh;
@@ -45,6 +47,7 @@ struct PartialVisibility;
 struct Scene;
 struct ScrArea;
 struct SculptData;
+struct SculptStroke;
 
 typedef enum PropsetMode {
 	PropsetNone = 0,
@@ -75,6 +78,11 @@ typedef struct SculptSession {
 	struct ListBase *vertex_users;
 	struct IndexNode *vertex_users_mem;
 	int vertex_users_size;
+
+	/* Used temporarily per-stroke */
+	float *vertexcosnos;
+	ListBase damaged_rects;
+	ListBase damaged_verts;
 	
 	/* Used to cache the render of the active texture */
 	unsigned int texcache_w, texcache_h, *texcache;
@@ -83,6 +91,8 @@ typedef struct SculptSession {
 	
 	/* For rotating around a pivot point */
 	vec3f pivot;
+
+	struct SculptStroke *stroke;
 } SculptSession;
 
 SculptSession *sculpt_session(void);
@@ -102,14 +112,25 @@ void sculptmode_propset(const unsigned short event);
 void sculptmode_selectbrush_menu(void);
 void sculptmode_draw_mesh(int);
 void sculpt_paint_brush(char clear);
+void sculpt_stroke_draw();
 
 struct BrushData *sculptmode_brush(void);
 float tex_angle(void);
+void do_symmetrical_brush_actions(struct EditData *e, short *, short *);
 
 void sculptmode_update_tex(void);
 char sculpt_modifiers_active(struct Object *ob);
 void sculpt(void);
 void set_sculptmode(void);
+
+/* Stroke */
+void sculpt_stroke_new(const int max);
+void sculpt_stroke_free();
+void sculpt_stroke_add_point(const short x, const short y);
+void sculpt_stroke_apply(struct EditData *);
+void sculpt_stroke_apply_all(struct EditData *e);
+void sculpt_stroke_draw();
+
 
 /* Partial Mesh Visibility */
 struct PartialVisibility *sculptmode_copy_pmv(struct PartialVisibility *);

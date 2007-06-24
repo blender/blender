@@ -2920,6 +2920,10 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		PropsetData *pd= sculpt_session()->propset;
 		short r1=100, r2=100, r3=100;
 		short mouse[2];
+
+		if(sculpt_data()->flags & SCULPT_INPUT_SMOOTH)
+			sculpt_stroke_draw();
+
 		if(pd) {
 			if(pd->mode == PropsetSize) {
 				r1= sculptmode_brush()->size;
