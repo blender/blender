@@ -2980,7 +2980,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 				sdrawXORline(pd->origloc[0], pd->origloc[1], mouse[0], mouse[1]);
 			}
 		}
-		else if(sculpt_data()->draw_flag & SCULPTDRAW_BRUSH) {
+		else if(sculpt_data()->flags & SCULPT_DRAW_BRUSH) {
 			short csc[2], car[2];
 			getmouseco_sc(csc);
 			getmouseco_areawin(car);

@@ -222,7 +222,7 @@ void sculptmode_init(Scene *sce)
 	sd->averaging= 1;
 	sd->texsep= 0;
 	sd->texrept= SCULPTREPT_DRAG;
-	sd->draw_flag= SCULPTDRAW_BRUSH;
+	sd->flags= SCULPT_DRAW_BRUSH;
 	sd->tablet_size=3;
 	sd->tablet_strength=10;
 }
@@ -1395,7 +1395,7 @@ void sculptmode_propset_init(PropsetMode mode)
 
 void sculpt_paint_brush(char clear)
 {
-	if(sculpt_data()->draw_flag & SCULPTDRAW_BRUSH) {
+	if(sculpt_data()->flags & SCULPT_DRAW_BRUSH) {
 		static short mvalo[2];
 		short mval[2];
 		const short rad= sculptmode_brush()->size;
@@ -1711,7 +1711,7 @@ void sculpt(void)
 	e.scale[2]= 1.0f / ob->size[2];
 
 	/* Capture original copy */
-	if(sd->draw_flag & SCULPTDRAW_FAST)
+	if(sd->flags & SCULPT_DRAW_FAST)
 		glAccum(GL_LOAD, 1);
 
 	while (get_mbut() & mousebut) {
@@ -1745,7 +1745,7 @@ void sculpt(void)
 			if(modifier_calculations || ob_get_keyblock(ob))
 				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 
-			if(modifier_calculations || sd->brush_type == GRAB_BRUSH || !(sd->draw_flag & SCULPTDRAW_FAST)) {
+			if(modifier_calculations || sd->brush_type == GRAB_BRUSH || !(sd->flags & SCULPT_DRAW_FAST)) {
 				calc_damaged_verts(&ss->damaged_verts,e.grabdata);
 				scrarea_do_windraw(curarea);
 				screen_swapbuffers();
@@ -1788,7 +1788,7 @@ void sculpt(void)
 				glEnable(GL_SCISSOR_TEST);
 				
 				/* Draw cursor */
-				if(sculpt_data()->draw_flag & SCULPTDRAW_BRUSH) {
+				if(sculpt_data()->flags & SCULPT_DRAW_BRUSH) {
 					persp(PERSP_WIN);
 					glDisable(GL_DEPTH_TEST);
 					fdrawXORcirc((float)mouse[0],(float)mouse[1],sculptmode_brush()->size);

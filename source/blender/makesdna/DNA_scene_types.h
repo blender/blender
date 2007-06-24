@@ -390,16 +390,12 @@ typedef struct SculptData
 	char averaging;
 	char flags;
 	
-	char draw_flag;
-	
 	/* Control tablet input */
 	char tablet_size, tablet_strength;
 	
 	/* Symmetry is separate from the other BrushData because the same
 	   settings are always used for all brush types */
 	char symm;
-
-	char pad[7];
 } SculptData;
 
 typedef struct Scene {
@@ -608,21 +604,20 @@ typedef struct Scene {
 
 /* SculptData.flags */
 #define SCULPT_INPUT_SMOOTH 1
+#define SCULPT_DRAW_FAST    2
+#define SCULPT_DRAW_BRUSH   4
 /* SculptData.brushtype */
-#define DRAW_BRUSH 1
-#define SMOOTH_BRUSH 2
-#define PINCH_BRUSH 3
+#define DRAW_BRUSH    1
+#define SMOOTH_BRUSH  2
+#define PINCH_BRUSH   3
 #define INFLATE_BRUSH 4
-#define GRAB_BRUSH 5
-#define LAYER_BRUSH 6
+#define GRAB_BRUSH    5
+#define LAYER_BRUSH   6
 #define FLATTEN_BRUSH 7
 /* SculptData.texrept */
 #define SCULPTREPT_DRAG 1
 #define SCULPTREPT_TILE 2
 #define SCULPTREPT_3D   3
-/* SculptData.draw_flag */
-#define SCULPTDRAW_FAST  1
-#define SCULPTDRAW_BRUSH 2
 
 #define SYMM_X 1
 #define SYMM_Y 2

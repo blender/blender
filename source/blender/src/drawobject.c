@@ -2184,7 +2184,7 @@ static int draw_mesh_object(Base *base, int dt, int flag)
 			cageDM->release(cageDM);
 		finalDM->release(finalDM);
 	}
-	else if(!G.obedit && (G.f & G_SCULPTMODE) &&(G.scene->sculptdata.draw_flag & SCULPTDRAW_FAST) &&
+	else if(!G.obedit && (G.f & G_SCULPTMODE) &&(G.scene->sculptdata.flags & SCULPT_DRAW_FAST) &&
 	        OBACT==ob && !sculpt_modifiers_active(ob)) {
 		sculptmode_draw_mesh(0);
 	}
