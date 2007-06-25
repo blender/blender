@@ -633,6 +633,10 @@ int BKE_imtype_to_ftype(int imtype)
 		return RADHDR;
 	else if (imtype==R_PNG)
 		return PNG;
+#ifdef WITH_DDS
+	else if (imtype==R_DDS)
+		return DDS;
+#endif
 	else if (imtype==R_BMP)
 		return BMP;
 	else if (imtype==R_TIFF)
@@ -663,6 +667,10 @@ int BKE_ftype_to_imtype(int ftype)
 		return R_RADHDR;
 	else if (ftype & PNG)
 		return R_PNG;
+#ifdef WITH_DDS
+	else if (ftype & DDS)
+		return R_DDS;
+#endif
 	else if (ftype & BMP)
 		return R_BMP;
 	else if (ftype & TIF)
@@ -719,6 +727,12 @@ void BKE_add_image_extension(char *string, int imtype)
 		if(!BLI_testextensie(string, ".png"))
 			extension= ".png";
 	}
+#ifdef WITH_DDS
+	else if(imtype==R_DDS) {
+		if(!BLI_testextensie(string, ".dds"))
+			extension= ".dds";
+	}
+#endif
 	else if(imtype==R_RAWTGA) {
 		if(!BLI_testextensie(string, ".tga"))
 			extension= ".tga";
@@ -771,6 +785,11 @@ int BKE_write_ibuf(ImBuf *ibuf, char *name, int imtype, int subimtype, int quali
 	else if ((imtype==R_PNG)) {
 		ibuf->ftype= PNG;
 	}
+#ifdef WITH_DDS
+	else if ((imtype==R_DDS)) {
+		ibuf->ftype= DDS;
+	}
+#endif
 	else if ((imtype==R_BMP)) {
 		ibuf->ftype= BMP;
 	}

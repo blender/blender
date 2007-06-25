@@ -1041,6 +1041,11 @@ static char *imagetype_pup(void)
 #endif
 
 	strcat(formatstring, "|%s %%x%d");	// add space for PNG
+/*  Commented out until implemented
+#ifdef WITH_DDS
+	strcat(formatstring, "|%s %%x%d");	// add space for DDS
+#endif
+*/
 	strcat(formatstring, "|%s %%x%d");	// add space for BMP
 	strcat(formatstring, "|%s %%x%d");	// add space for Radiance HDR
 	strcat(formatstring, "|%s %%x%d");	// add space for Cineon
@@ -1077,6 +1082,11 @@ static char *imagetype_pup(void)
 			"Targa",          R_TARGA,
 			"Targa Raw",      R_RAWTGA,
 			"PNG",            R_PNG,
+/* commented out until implemented 
+#ifdef WITH_DDS
+			"DDS",            R_DDS,
+#endif
+*/
 			"BMP",            R_BMP,
 			"Jpeg",           R_JPEG90,
 			"HamX",           R_HAMX,
@@ -1102,6 +1112,9 @@ static char *imagetype_pup(void)
 			"Targa",          R_TARGA,
 			"Targa Raw",      R_RAWTGA,
 			"PNG",            R_PNG,
+#ifdef WITH_DDS
+			"DDS",            R_DDS,
+#endif
 			"BMP",            R_BMP,
 			"Jpeg",           R_JPEG90,
 			"HamX",           R_HAMX,

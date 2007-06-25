@@ -44,6 +44,11 @@
 
 #include "IMB_targa.h"
 #include "IMB_png.h"
+
+#ifdef WITH_DDS
+#include "dds/dds_api.h"
+#endif
+
 #include "IMB_bmp.h"
 #include "IMB_tiff.h"
 #include "IMB_radiance_hdr.h"
@@ -113,6 +118,9 @@ static int IMB_ispic_name(char *name)
 
 				}
 				if (imb_is_a_png(buf)) return(PNG);
+#ifdef WITH_DDS
+				if (imb_is_a_dds((uchar *)buf)) return(DDS);
+#endif
 				if (imb_is_a_targa(buf)) return(TGA);
 #ifdef WITH_OPENEXR
 				if (imb_is_a_openexr((uchar *)buf)) return(OPENEXR);
@@ -162,6 +170,9 @@ int IMB_ispic(char *filename)
 				||	BLI_testextensie(filename, ".rgb")
 				||	BLI_testextensie(filename, ".bmp")
 				||	BLI_testextensie(filename, ".png")
+#ifdef WITH_DDS
+				||	BLI_testextensie(filename, ".dds")
+#endif
 				||	BLI_testextensie(filename, ".iff")
 				||	BLI_testextensie(filename, ".lbm")
 				||	BLI_testextensie(filename, ".gif")
@@ -188,6 +199,9 @@ int IMB_ispic(char *filename)
 				||	BLI_testextensie(filename, ".bmp")
 				||	BLI_testextensie(filename, ".png")
 				||	BLI_testextensie(filename, ".cin")
+#ifdef WITH_DDS
+				||	BLI_testextensie(filename, ".dds")
+#endif
 #ifdef WITH_BF_OPENEXR
 				||	BLI_testextensie(filename, ".exr")
 #endif
@@ -251,6 +265,7 @@ static int isffmpeg (char *filename) {
 	if( BLI_testextensie(filename, ".swf") ||
 		BLI_testextensie(filename, ".jpg") ||
 		BLI_testextensie(filename, ".png") ||
+		BLI_testextensie(filename, ".dds") ||
 		BLI_testextensie(filename, ".tga") ||
 		BLI_testextensie(filename, ".bmp") ||
 		BLI_testextensie(filename, ".exr") ||

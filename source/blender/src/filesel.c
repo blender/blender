@@ -535,6 +535,9 @@ void test_flags_file(SpaceFile *sfile)
 					||	BLI_testextensie(file->relname, ".rgb")
 					||	BLI_testextensie(file->relname, ".bmp")
 					||	BLI_testextensie(file->relname, ".png")
+#ifdef WITH_DDS
+					||	BLI_testextensie(file->relname, ".dds")
+#endif
 					||	BLI_testextensie(file->relname, ".iff")
 					||	BLI_testextensie(file->relname, ".lbm")
 					||	BLI_testextensie(file->relname, ".gif")
@@ -566,6 +569,9 @@ void test_flags_file(SpaceFile *sfile)
 					||	BLI_testextensie(file->relname, ".rgb")
 					||	BLI_testextensie(file->relname, ".bmp")
 					||	BLI_testextensie(file->relname, ".png")
+#ifdef WITH_DDS
+					||	BLI_testextensie(file->relname, ".dds")
+#endif
 					||	BLI_testextensie(file->relname, ".iff")
 					||	BLI_testextensie(file->relname, ".lbm")
 					||  BLI_testextensie(file->relname, ".cin")

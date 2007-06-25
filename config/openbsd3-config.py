@@ -28,6 +28,8 @@ BF_OPENEXR = '/usr/local'
 BF_OPENEXR_INC = '${BF_OPENEXR}/include/OpenEXR'
 BF_OPENEXR_LIB = 'Half IlmImf Iex Imath '
 
+WITH_BF_DDS = 'true'
+
 WITH_BF_JPEG = 'true'
 BF_JPEG = '/usr/local'
 BF_JPEG_INC = '${BF_JPEG}/include'

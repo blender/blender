@@ -35,6 +35,9 @@ if env['WITH_BF_INTERNATIONAL'] == 1:
 if env['WITH_BF_OPENEXR'] == 1:
     defs.append('WITH_OPENEXR')
 
+if env['WITH_BF_DDS'] == 1:
+    defs.append('WITH_DDS')
+
 if env['WITH_BF_QUICKTIME']==1:
     incs += ' ' + env['BF_QUICKTIME_INC']
     defs.append('WITH_QUICKTIME')

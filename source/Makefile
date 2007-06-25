@@ -169,6 +169,10 @@ endif
 
 COMLIB += $(OCGDIR)/blender/imbuf/cineon/$(DEBUG_DIR)libcineon.a
 
+ifeq ($(WITH_DDS), true)
+    COMLIB += $(OCGDIR)/blender/imbuf/dds/$(DEBUG_DIR)libdds.a
+endif
+
 ifeq ($(WITH_FREETYPE2), true)
     ifeq ($(OS), windows)
       ifeq ($(FREE_WINDOWS), true)

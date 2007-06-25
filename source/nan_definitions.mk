@@ -111,7 +111,7 @@ endif
     endif
 
     export WITH_OPENEXR ?= true
-
+    export WITH_DDS ?= true
 
     ifeq ($(OS),windows)
 	export NAN_WINTAB ?= $(LCGDIR)/wintab

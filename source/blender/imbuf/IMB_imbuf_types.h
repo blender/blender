@@ -174,6 +174,10 @@ typedef enum {
 #define CINEON			(1 << 21)
 #define DPX				(1 << 20)
 
+#ifdef WITH_DDS
+#define DDS				(1 << 19)
+#endif
+
 #define RAWTGA	        (TGA | 1)
 
 #define JPG_STD	        (JPG | (0 << 8))
@@ -215,6 +219,10 @@ typedef enum {
 #define IS_bmp(x)		(x->ftype & BMP)
 #define IS_tiff(x)		(x->ftype & TIF)
 #define IS_radhdr(x)	(x->ftype & RADHDR)
+
+#ifdef WITH_DDS
+#define IS_dds(x)		(x->ftype & DDS)
+#endif
 
 #define IMAGIC 	0732
 #define IS_iris(x)		(x->ftype == IMAGIC)

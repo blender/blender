@@ -52,6 +52,7 @@ BF_OPENEXR = '/usr/local'
 BF_OPENEXR_INC = '${BF_OPENEXR}/include/OpenEXR'
 BF_OPENEXR_LIB = ' Iex Half IlmImf Imath IlmThread'
 
+WITH_BF_DDS = 'true'
 
 WITH_BF_JPEG = 'true'
 BF_JPEG = LIBDIR + '/jpeg'

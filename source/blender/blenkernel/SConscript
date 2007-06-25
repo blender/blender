@@ -27,6 +27,9 @@ if env['WITH_BF_VERSE']:
 if env['WITH_BF_OPENEXR'] == 1:
     defs += ' WITH_OPENEXR'
 
+if env['WITH_BF_DDS'] == 1:
+    defs += ' WITH_DDS'
+
 if env['WITH_BF_FFMPEG'] == 1:
     defs += ' WITH_FFMPEG'
     incs += ' ' + env['BF_FFMPEG_INC']
