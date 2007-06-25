@@ -1092,6 +1092,17 @@ void calc_damaged_verts(ListBase *damaged_verts, GrabData *grabdata)
 	} else {
 		update_damaged_vert(me,damaged_verts);
 		BLI_freelistN(damaged_verts);
+		damaged_verts->first = damaged_verts->last = NULL;
+	}
+}
+
+void projverts_clear_inside()
+{
+	Mesh *me = get_mesh(OBACT);
+	if(me) {
+		int i;
+		for(i = 0; i < me->totvert; ++i)
+			projverts[i].inside = 0;
 	}
 }
 
@@ -1558,6 +1569,7 @@ void sculptmode_draw_mesh(int only_damaged)
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_LIGHTING);
 	init_gl_materials(OBACT, 0);
+	glEnable(GL_CULL_FACE);
 
 	glShadeModel(GL_SMOOTH);
 
@@ -1568,7 +1580,6 @@ void sculptmode_draw_mesh(int only_damaged)
 	if(dt==OB_WIRE)
 		glColorMask(0,0,0,0);
 
-	
 	for(i=0; i<me->totface; ++i) {
 		MFace *f= &me->mface[i];
 		char inside= 0;
@@ -1594,6 +1605,7 @@ void sculptmode_draw_mesh(int only_damaged)
 			glDrawElements(f->v4?GL_QUADS:GL_TRIANGLES, f->v4?4:3, GL_UNSIGNED_INT, &f->v1);
 	}
 
+	glDisable(GL_CULL_FACE);
 	glDisable(GL_LIGHTING);
 	glColorMask(1,1,1,1);
 
@@ -1637,6 +1649,7 @@ void sculpt(void)
 	EditData e;
 	RectNode *rn= NULL;
 	short spacing= 32000;
+	int scissor_box[4];
 
 	if(!(G.f & G_SCULPTMODE) || G.obedit || !ob || ob->id.lib || !get_mesh(ob) || (get_mesh(ob)->totface == 0))
 		return;
@@ -1714,6 +1727,9 @@ void sculpt(void)
 	if(sd->flags & SCULPT_DRAW_FAST)
 		glAccum(GL_LOAD, 1);
 
+	/* Get original scissor box */
+	glGetIntegerv(GL_SCISSOR_BOX, scissor_box);
+
 	while (get_mbut() & mousebut) {
 		getmouseco_areawin(mouse);
 		
@@ -1757,7 +1773,6 @@ void sculpt(void)
 
 				/* Clear each of the area(s) modified by the brush */
 				for(rn=ss->damaged_rects.first; rn; rn= rn->next) {
-					float col[3];
 					rcti clp= rn->r;
 					rcti *win= &curarea->winrct;
 					
@@ -1776,28 +1791,30 @@ void sculpt(void)
 							  clp.xmax-clp.xmin-2,clp.ymax-clp.ymin-2);
 					}
 					
-					BIF_GetThemeColor3fv(TH_BACK, col);
-					glClearColor(col[0], col[1], col[2], 0.0);
-					glClear(GL_DEPTH_BUFFER_BIT|GL_COLOR_BUFFER_BIT);
+					glClear(GL_DEPTH_BUFFER_BIT);
 				}
 				
 				/* Draw all the polygons that are inside the modified area(s) */
-				glDisable(GL_SCISSOR_TEST);
+				glScissor(scissor_box[0], scissor_box[1], scissor_box[2], scissor_box[3]);
 				sculptmode_draw_mesh(1);
 				glAccum(GL_LOAD, 1);
-				glEnable(GL_SCISSOR_TEST);
+
+				projverts_clear_inside();
+
+				persp(PERSP_WIN);
+				glDisable(GL_DEPTH_TEST);
 				
 				/* Draw cursor */
-				if(sculpt_data()->flags & SCULPT_DRAW_BRUSH) {
-					persp(PERSP_WIN);
-					glDisable(GL_DEPTH_TEST);
+				if(sculpt_data()->flags & SCULPT_DRAW_BRUSH)
 					fdrawXORcirc((float)mouse[0],(float)mouse[1],sculptmode_brush()->size);
-				}
+				if(sculpt_data()->flags & SCULPT_INPUT_SMOOTH)
+					sculpt_stroke_draw();
 				
 				myswapbuffers();
 			}
 
 			BLI_freelistN(&ss->damaged_rects);
+			ss->damaged_rects.first = ss->damaged_rects.last = NULL;
 	
 			mvalo[0]= mouse[0];
 			mvalo[1]= mouse[1];
