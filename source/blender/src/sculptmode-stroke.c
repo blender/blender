@@ -32,6 +32,7 @@
 
 #include "MEM_guardedalloc.h"
 #include "DNA_listBase.h"
+#include "DNA_scene_types.h"
 #include "BLI_blenlib.h"
 #include "BIF_gl.h"
 #include "BDR_sculptmode.h"
@@ -49,6 +50,7 @@ typedef struct SculptStroke {
 	float length;
 	ListBase final;
 	StrokePoint *final_mem;
+	float offset;
 } SculptStroke;
 
 void sculpt_stroke_new(const int max)
@@ -105,7 +107,7 @@ void sculpt_stroke_smooth(SculptStroke *stroke)
 	}	
 }
 
-void sculpt_stroke_create_final()
+static void sculpt_stroke_create_final()
 {
 	SculptStroke *stroke = sculpt_session()->stroke;
 
@@ -126,13 +128,15 @@ void sculpt_stroke_create_final()
 		}
 
 		/* Remove shortest edges */
-		for(p = ((StrokePoint*)stroke->final.first)->next; p && p->next; p = pnext) {
-			const int dx = p->x - p->prev->x;
-			const int dy = p->y - p->prev->y;
-			const float len = sqrt(dx*dx + dy*dy);
-			pnext = p->next;
-			if(len < 10) {
-				BLI_remlink(&stroke->final, p);
+		if(stroke->final.first) {
+			for(p = ((StrokePoint*)stroke->final.first)->next; p && p->next; p = pnext) {
+				const int dx = p->x - p->prev->x;
+				const int dy = p->y - p->prev->y;
+				const float len = sqrt(dx*dx + dy*dy);
+				pnext = p->next;
+				if(len < 10) {
+					BLI_remlink(&stroke->final, p);
+				}
 			}
 		}
 
@@ -159,47 +163,71 @@ float sculpt_stroke_seglen(StrokePoint *p1, StrokePoint *p2)
 	return sqrt(dx*dx + dy*dy);
 }
 
+float sculpt_stroke_final_length(SculptStroke *stroke)
+{
+	StrokePoint *p;
+	float len = 0;
+	for(p = stroke->final.first; p && p->next; ++p)
+		len += sculpt_stroke_seglen(p, p->next);
+	return len;
+}
+
+/* If partial is nonzero, cuts off apply after that length has been processed */
+static StrokePoint *sculpt_stroke_apply_generic(SculptStroke *stroke, struct EditData *e, const int partial)
+{
+	const int sdspace = sculpt_data()->spacing;
+	const short spacing = sdspace > 0 ? sdspace : 2;
+	const int dots = sculpt_stroke_final_length(stroke) / spacing;
+	int i;
+	StrokePoint *p = stroke->final.first;
+	float startloc = stroke->offset;
+
+	for(i = 0; i < dots && p && p->next; ++i) {
+		const float dotloc = spacing * i;
+		short co[2];
+		float len = sculpt_stroke_seglen(p, p->next);
+		float u, v;
+
+		/* Find edge containing dot */
+		while(dotloc > startloc + len && p && p->next && p->next->next) {
+			p = p->next;
+			startloc += len;
+			len = sculpt_stroke_seglen(p, p->next);
+		}
+
+		if(!p || !p->next || dotloc > startloc + len)
+			break;
+
+		if(partial && startloc > partial) {
+			/* Calculate offset for next stroke segment */
+			stroke->offset = startloc + len - dotloc;
+			break;
+		}
+
+		u = (dotloc - startloc) / len;
+		v = 1 - u;
+					
+		co[0] = p->x*v + p->next->x*u;
+		co[1] = p->y*v + p->next->y*u;
+
+		do_symmetrical_brush_actions(e, co, NULL);
+	}
+
+	return p ? p->next : NULL;
+}
+
 void sculpt_stroke_apply(struct EditData *e)
 {
 	SculptStroke *stroke = sculpt_session()->stroke;
+	/* TODO: make these values user-modifiable? */
+	const int partial_len = 100;
+	const int min_len = 200;
 
 	if(stroke) {
 		sculpt_stroke_create_final();
 
-		if(stroke->length > 200) {
-			const short spacing = 2;
-			const int dots = stroke->length / spacing;
-			int i;
-			StrokePoint *p = stroke->final.first;
-			float startloc = 0;
-
-			for(i = 0; i < dots && p && p->next; ++i) {
-				const float dotloc = spacing * i;
-				short co[2];
-				float len = sculpt_stroke_seglen(p, p->next);
-				float u, v;
-				
-				/* Find edge containing dot */
-				while(dotloc > startloc + len && p && p->next && p->next->next) {
-					p = p->next;
-					startloc += len;
-					len = sculpt_stroke_seglen(p, p->next);
-				}
-
-				if(!p || !p->next) break;
-
-
-				u = (dotloc - startloc) / len;
-				v = 1 - u;
-					
-				co[0] = p->x*u + p->next->x*v;
-				co[1] = p->y*u + p->next->y*v;
-
-				if(startloc > 100)
-					break;
-
-				do_symmetrical_brush_actions(e, co, NULL);
-			}
+		if(sculpt_stroke_final_length(stroke) > min_len) {
+			StrokePoint *p = sculpt_stroke_apply_generic(stroke, e, partial_len);
 
 			/* Replace remaining values in stroke->loc with remaining stroke->final values */
 			stroke->index = -1;
@@ -223,36 +251,7 @@ void sculpt_stroke_apply_all(struct EditData *e)
 	sculpt_stroke_create_final();
 
 	if(stroke) {
-		const short spacing = 2;
-		const int dots = stroke->length / spacing;
-		int i;
-		StrokePoint *p = stroke->final.first;
-		float startloc = 0;
-
-		for(i = 0; i < dots && p && p->next; ++i) {
-			const float dotloc = spacing * i;
-			short co[2];
-			float len = sculpt_stroke_seglen(p, p->next);
-			float u, v;
-				
-			/* Find edge containing dot */
-			while(dotloc > startloc + len && p && p->next && p->next->next) {
-				p = p->next;
-				startloc += len;
-				len = sculpt_stroke_seglen(p, p->next);
-			}
-
-			if(!p || !p->next) break;
-
-
-			u = (dotloc - startloc) / len;
-			v = 1 - u;
-					
-			co[0] = p->x*u + p->next->x*v;
-			co[1] = p->y*u + p->next->y*v;
-
-			do_symmetrical_brush_actions(e, co, NULL);
-		}
+		sculpt_stroke_apply_generic(stroke, e, 0);
 	}
 }
 
