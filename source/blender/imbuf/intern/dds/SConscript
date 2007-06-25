@@ -5,6 +5,7 @@ source_files = ['dds_api.cpp', 'DirectDrawSurface.cpp', 'Stream.cpp', 'BlockDXT.
 
 incs = ['.',
 	'../../',
+	'../..',
 	'..',
 	'../../../makesdna',
 	'../../../blenkernel',
@@ -13,6 +14,6 @@ incs = ['.',
 	'#/intern/guardedalloc']
 
 
-defs = []
-                 
+defs = ['WITH_DDS']
+
 env.BlenderLib ('bf_dds', source_files, incs, defs, libtype=['core','player'], priority = [90, 200])
