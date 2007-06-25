@@ -476,6 +476,9 @@
 				RelativePath="..\..\..\source\blender\src\screendump.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\src\sculptmode-stroke.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\src\sculptmode.c">
 			</File>
 			<File

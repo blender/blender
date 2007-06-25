@@ -681,6 +681,12 @@ ECHO Done
 						RelativePath="..\..\src\BulletCollision\CollisionShapes\btBvhTriangleMeshShape.h">
 					</File>
 					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btCapsuleShape.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletCollision\CollisionShapes\btCapsuleShape.h">
+					</File>
+					<File
 						RelativePath="..\..\src\BulletCollision\CollisionShapes\btCollisionMargin.h">
 					</File>
 					<File
