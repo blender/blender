@@ -66,7 +66,7 @@ STR_String KX_IpoActuator::S_KX_ACT_IPO_FROM_PROP_STRING = "FromProp";
 class CIpoAction : public CAction
 {
 	float		m_curtime;
-	bool		m_resurse;
+	bool		m_recurse;
 	KX_GameObject* m_gameobj;
 	bool        m_ipo_as_force;
 	bool        m_force_ipo_local;
@@ -78,7 +78,7 @@ public:
 		bool ipo_as_force,
 		bool force_ipo_local) :
 	  m_curtime(curtime) ,
-	  m_resurse(recurse),
+	  m_recurse(recurse),
 	  m_gameobj(gameobj),
 	  m_ipo_as_force(ipo_as_force),
 	  m_force_ipo_local(force_ipo_local) 
@@ -90,7 +90,7 @@ public:
 	{
 		m_gameobj->UpdateIPO(
 			m_curtime, 
-			m_resurse, 
+			m_recurse, 
 			m_ipo_as_force, 
 			m_force_ipo_local);
 	};

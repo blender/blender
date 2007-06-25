@@ -173,7 +173,7 @@ public:
 		void		
 	SetSimulatedTime(
 		double time,
-		bool resurse
+		bool recurse
 	);
 
 	/**

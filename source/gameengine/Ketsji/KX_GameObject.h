@@ -416,7 +416,7 @@ public:
 		void	
 	UpdateIPO(
 		float curframetime,
-		bool resurse, 
+		bool recurse, 
 		bool ipo_as_force,
 		bool force_ipo_local
 	);
