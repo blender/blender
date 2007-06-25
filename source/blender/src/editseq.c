@@ -1981,6 +1981,48 @@ void set_filter_seq(void)
 
 }
 
+void seq_remap_paths(void)
+{
+	Sequence *seq, *last_seq = get_last_seq();
+	Editing *ed;
+	char from[FILE_MAX], to[FILE_MAX], stripped[FILE_MAX];
+	
+	ed= G.scene->ed;
+	if(ed==NULL || last_seq==NULL) 
+		return;
+	
+	BLI_strncpy(from, last_seq->strip->dir, FILE_MAX);
+	if (0==sbutton(from, 0, sizeof(from)-1, "From: "))
+		return;
+	
+	strcpy(to, from);
+	if (0==sbutton(to, 0, sizeof(to)-1, "To: "))
+		return;
+	
+	if (strcmp(to, from)==0)
+		return;
+	
+	WHILE_SEQ(ed->seqbasep) {
+		if(seq->flag & SELECT) {
+			if(strncmp(seq->strip->dir, from, strlen(from))==0) {
+				printf("found %s\n", seq->strip->dir);
+				
+				/* strip off the beginning */
+				stripped[0]= 0;
+				BLI_strncpy(stripped, seq->strip->dir + strlen(from), FILE_MAX);
+				
+				/* new path */
+				BLI_strncpy(seq->strip->dir, to, FILE_MAX);
+				strcat(seq->strip->dir, stripped);
+				printf("new %s\n", seq->strip->dir);
+			}
+		}
+	}
+	END_SEQ
+		
+	BIF_undo_push("Remap paths in Sequencer");
+	allqueue(REDRAWSEQ, 0);
+}
 
 
 void no_gaps(void)

@@ -385,6 +385,9 @@ static void do_seq_editmenu(void *arg, int event)
 	case 14:
 		reassign_inputs_seq_effect();
 		break;
+	case 15:
+		seq_remap_paths();
+		break;
 	}
 }
 
@@ -423,6 +426,10 @@ static uiBlock *seq_editmenu(void *arg_unused)
 		}
 		else if(last_seq->type == SEQ_IMAGE) uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Change Image...|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 		else uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Change Scene...|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+		
+		if(last_seq->type==SEQ_IMAGE)
+			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Remap Paths...|Shift R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 15, "");
+			
 	}
 
 /*	if (last_seq != NULL && last_seq->type == SEQ_MOVIE) {

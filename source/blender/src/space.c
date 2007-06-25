@@ -4473,7 +4473,10 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			break;
 		case RKEY:
-			reassign_inputs_seq_effect();
+			if((G.qual==LR_SHIFTKEY))
+				seq_remap_paths();
+			else
+				reassign_inputs_seq_effect();
 			break;
 		case SKEY:
 			if((G.qual==LR_SHIFTKEY))

@@ -305,7 +305,7 @@ short sbutton(char *var, float min, float max, char *str)
 
 	getmouseco_sc(mval);
 	
-	if(mval[0]<150) mval[0]=150;
+	if(mval[0]<250) mval[0]=250;
 	if(mval[1]<30) mval[1]=30;
 	if(mval[0]>G.curscreen->sizex) mval[0]= G.curscreen->sizex-10;
 	if(mval[1]>G.curscreen->sizey) mval[1]= G.curscreen->sizey-10;
@@ -313,11 +313,11 @@ short sbutton(char *var, float min, float max, char *str)
 	block= uiNewBlock(&listb, "button", UI_EMBOSS, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_RET_1|UI_BLOCK_ENTER_OK);
 
-	x1=mval[0]-150; 
+	x1=mval[0]-250; 
 	y1=mval[1]-20; 
 	
-	uiDefButC(block, TEX, 32766, str,	x1+5,y1+10,125,20, var,(float)min,(float)max, 0, 0, "");
-	uiDefBut(block, BUT, 32767, "OK",	x1+136,y1+10,25,20, NULL, 0, 0, 0, 0, "");
+	uiDefButC(block, TEX, 32766, str,	x1+5,y1+10,225,20, var,(float)min,(float)max, 0, 0, "");
+	uiDefBut(block, BUT, 32767, "OK",	x1+236,y1+10,25,20, NULL, 0, 0, 0, 0, "");
 
 	uiBoundsBlock(block, 5);
 	
@@ -326,6 +326,7 @@ short sbutton(char *var, float min, float max, char *str)
 
 	if(ret==UI_RETURN_OK) return 1;
 	return 0;
+	
 }
 
 short fbutton(float *var, float min, float max, float a1, float a2, char *str)
