@@ -167,6 +167,21 @@ static void do_seq_selectmenu(void *arg, int event)
 	case 1:
 		swap_select_seq();
 		break;
+	case 2:
+		select_dir_from_last(1);
+		break;
+	case 3:
+		select_dir_from_last(2);
+		break;
+	case 4:
+		select_surround_from_last();
+		break;
+	case 5:
+		select_neighbor_from_last(1);
+		break;
+	case 6:
+		select_neighbor_from_last(2);
+		break;
 	}
 }
 
@@ -177,7 +192,14 @@ static uiBlock *seq_selectmenu(void *arg_unused)
 
 	block= uiNewBlock(&curarea->uiblocks, "seq_selectmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_seq_selectmenu, NULL);
-
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Strips to the Left", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Strips to the Right", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Surrounding Handles", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Left Handles", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Right Handles", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Border Select|B", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect All|A", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");

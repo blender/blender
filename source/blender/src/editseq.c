@@ -201,6 +201,46 @@ int sequence_is_free_transformable(Sequence * seq)
 		|| (get_sequence_effect_num_inputs(seq->type) == 0);
 }
 
+Sequence *find_neighboring_sequence(Sequence *test, int lr) {
+/* looks to the left on lr==1, to the right on lr==2 */
+	Sequence *seq,*foundneighbor;
+	int found=0;
+	Editing *ed;
+
+	ed= G.scene->ed;
+	if(ed==0) return 0;
+
+	seq= ed->seqbasep->first;
+	while(seq) {
+		if(seq!=test) {
+			if (test->machine==seq->machine) {
+				if(test->depth==seq->depth) {
+					switch (lr) {
+					case 1:
+						if (test->startdisp == (seq->enddisp)) {
+							foundneighbor=seq;
+							found=1;
+						}
+						break;
+					case 2:
+						if (test->enddisp == (seq->startdisp)) {
+							foundneighbor=seq;
+							found=1;
+						}
+						break;
+					}
+				}
+			}
+		}
+		seq= seq->next;
+	}
+	if (found==1) {
+		return foundneighbor;
+	} else {
+		return 0;
+	}
+}
+
 Sequence *find_nearest_seq(int *hand)
 {
 	Sequence *seq;
@@ -441,14 +481,100 @@ void swap_select_seq(void)
 
 }
 
+void select_channel_direction(Sequence *test,int lr) {
+/* selects all strips in a channel to one direction of the passed strip */
+	Sequence *seq;
+	Editing *ed;
+
+	ed= G.scene->ed;
+	if(ed==0) return;
+
+	seq= ed->seqbasep->first;
+	while(seq) {
+		if(seq!=test) {
+			if (test->machine==seq->machine) {
+				if(test->depth==seq->depth) {
+					if (((lr==1)&&(test->startdisp > (seq->startdisp)))||((lr==2)&&(test->startdisp < (seq->startdisp)))) {
+						seq->flag |= SELECT;
+						recurs_sel_seq(seq);
+					}
+				}
+			}
+		}
+		seq= seq->next;
+	}
+	test->flag |= SELECT;
+	recurs_sel_seq(test);
+}
+
+void select_dir_from_last(int lr)
+{
+	Sequence *seq=get_last_seq();
+	
+	if (seq) select_channel_direction(seq,lr);
+}
+
+void select_surrounding_handles(Sequence *test) 
+{
+	Sequence *neighbor;
+	
+	neighbor=find_neighboring_sequence(test, 1);
+	if (neighbor) {
+		neighbor->flag |= SELECT;
+		recurs_sel_seq(neighbor);
+		neighbor->flag |= SEQ_RIGHTSEL;
+	}
+	neighbor=find_neighboring_sequence(test, 2);
+	if (neighbor) {
+		neighbor->flag |= SELECT;
+		recurs_sel_seq(neighbor);
+		neighbor->flag |= SEQ_LEFTSEL;
+	}
+	test->flag |= SELECT;
+}
+
+void select_surround_from_last()
+{
+	Sequence *seq=get_last_seq();
+	
+	if (seq) select_surrounding_handles(seq);
+}
+
+void select_neighbor_from_last(int lr)
+{
+	Sequence *seq=get_last_seq();
+	Sequence *neighbor;
+	
+	if (seq) {
+		neighbor=find_neighboring_sequence(seq, lr);
+		if (neighbor) {
+			switch (lr) {
+			case 1:
+				neighbor->flag |= SELECT;
+				recurs_sel_seq(neighbor);
+				neighbor->flag |= SEQ_RIGHTSEL;
+				seq->flag |= SEQ_LEFTSEL;
+				break;
+			case 2:
+				neighbor->flag |= SELECT;
+				recurs_sel_seq(neighbor);
+				neighbor->flag |= SEQ_LEFTSEL;
+				seq->flag |= SEQ_RIGHTSEL;
+				break;
+			}
+		seq->flag |= SELECT;
+		}
+	}
+}
+
 void mouse_select_seq(void)
 {
-	Sequence *seq;
-	int hand;
+	Sequence *seq,*neighbor;
+	int hand,seldir;
 
 	seq= find_nearest_seq(&hand);
 
-	if(!(G.qual & LR_SHIFTKEY)) deselect_all_seq();
+	if(!(G.qual & LR_SHIFTKEY)&&!(G.qual & LR_ALTKEY)&&!(G.qual & LR_CTRLKEY)) deselect_all_seq();
 
 	if(seq) {
 		set_last_seq(seq);
@@ -482,6 +608,53 @@ void mouse_select_seq(void)
 			if(hand==1) seq->flag |= SEQ_LEFTSEL;
 			if(hand==2) seq->flag |= SEQ_RIGHTSEL;
 		}
+		
+		/* On Ctrl-Alt selection, select the strip and bordering handles */
+		if ((G.qual & LR_CTRLKEY) && (G.qual & LR_ALTKEY)) {
+			if (!(G.qual & LR_SHIFTKEY)) deselect_all_seq();
+			seq->flag |= SELECT;
+			select_surrounding_handles(seq);
+			
+		/* Ctrl signals Left, Alt signals Right
+		   First click selects adjacent handles on that side.
+		   Second click selects all strips in that direction.
+		   If there are no adjacent strips, it just selects all in that direction. */
+		} else if (((G.qual & LR_CTRLKEY) || (G.qual & LR_ALTKEY)) && (seq->flag & SELECT)) {
+	
+			if (G.qual & LR_CTRLKEY) seldir=1;
+				else seldir=2;
+			neighbor=find_neighboring_sequence(seq, seldir);
+			if (neighbor) {
+				switch (seldir) {
+				case 1:
+					if ((seq->flag & SEQ_LEFTSEL)&&(neighbor->flag & SEQ_RIGHTSEL)) {
+						if (!(G.qual & LR_SHIFTKEY)) deselect_all_seq();
+						select_channel_direction(seq,1);
+					} else {
+						neighbor->flag |= SELECT;
+						recurs_sel_seq(neighbor);
+						neighbor->flag |= SEQ_RIGHTSEL;
+						seq->flag |= SEQ_LEFTSEL;
+					}
+					break;
+				case 2:
+					if ((seq->flag & SEQ_RIGHTSEL)&&(neighbor->flag & SEQ_LEFTSEL)) {
+						if (!(G.qual & LR_SHIFTKEY)) deselect_all_seq();
+						select_channel_direction(seq,2);
+					} else {
+						neighbor->flag |= SELECT;
+						recurs_sel_seq(neighbor);
+						neighbor->flag |= SEQ_LEFTSEL;
+						seq->flag |= SEQ_RIGHTSEL;
+					}
+					break;
+				}
+			} else {
+				if (!(G.qual & LR_SHIFTKEY)) deselect_all_seq();
+				select_channel_direction(seq,seldir);
+			}
+		}
+		
 		recurs_sel_seq(seq);
 	}
 
