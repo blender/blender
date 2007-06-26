@@ -168,6 +168,7 @@ GHOST_WindowX11(
 
 	if (m_visual == NULL) {
 		// barf : no visual meeting these requirements could be found.
+		printf("%s:%d: X11 glxChooseVisual() failed for OpenGL, verify working openGL system!\n", __FILE__, __LINE__);
 		return;
 	}
 
