@@ -37,6 +37,10 @@ typedef char boolean;
 #include "v_cmd_gen.h"
 #include "v_network.h"
 
+#if !defined socklen_t
+#define socklen_t int
+#endif
+
 #define	TRUE	1
 #define	FALSE	0
 
