@@ -98,7 +98,7 @@ unsigned int BOP_BSPNode::addFace(BOP_BSPPoints pts,
 		// classify each line segment, looking for endpoints which lie on different
 		// sides of the hyperplane.
 
-		BOP_IT_BSPPoints ptsEnd = pts.end();
+		ptsEnd = pts.end();
 		for(BOP_IT_BSPPoints itp=pts.begin();itp!=ptsEnd;itp++){
 			MT_Point3 npoint= *itp;
 			BOP_TAG ntag = testPoint(npoint);
