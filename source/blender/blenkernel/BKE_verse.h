@@ -46,21 +46,12 @@ struct VerseEdge;
 #define VEDHASH(a, b)  ((a<b ? a : b) % VEDHASHSIZE)
 
 /*
- * virtual data type (used only for retype)
- */
-typedef struct verse_parent {
-	struct verse_parent *next, *prev;
-	VLayerID layer_id;
-	uint32 id;
-} verse_parent;
-
-/*
  * verse data: 4 float value
  */
 typedef struct quat_real32_item {
 	struct quat_real32_item *next, *prev;
-	VLayerID layer_id;
-	void *parent;
+	struct VLayer *vlayer;		/* pointer at VerseLayer */
+	uint32 id;			/* id of item */
 	real32 value[4];
 } quat_real32_item;
 
@@ -69,8 +60,8 @@ typedef struct quat_real32_item {
  */
 typedef struct quat_uint32_item {
 	struct quat_uint32_item *next, *prev;
-	VLayerID layer_id;
-	void *parent;
+	struct VLayer *vlayer;		/* pointer at VerseLayer */
+	uint32 id;			/* id of item */
 	uint32 value[4];
 } quat_uint32_item;
 
@@ -79,8 +70,8 @@ typedef struct quat_uint32_item {
  */
 typedef struct vec_real32_item {
 	struct vec_real32_item *next, *prev;
-	VLayerID layer_id;
-	void *parent;
+	struct VLayer *vlayer;		/* pointer at VerseLayer */
+	uint32 id;			/* id of item */
 	real32 value[3];
 } vec_real32_item;
 
@@ -89,8 +80,8 @@ typedef struct vec_real32_item {
  */
 typedef struct real32_item {
 	struct real32_item *next, *prev;
-	VLayerID layer_id;
-	void *parent;
+	struct VLayer *vlayer;		/* pointer at VerseLayer */
+	uint32 id;			/* id of item */
 	real32 value;
 } real32_item;
 
@@ -99,8 +90,8 @@ typedef struct real32_item {
  */
 typedef struct uint32_item {
 	struct uint32_item *next, *prev;
-	VLayerID layer_id;
-	void *parent;
+	struct VLayer *vlayer;		/* pointer at VerseLayer */
+	uint32 id;			/* id of item */
 	uint32 value;
 } uint32_item;
 
@@ -109,8 +100,8 @@ typedef struct uint32_item {
  */
 typedef struct uint8_item {
 	struct uint8_item *next, *prev;
-	VLayerID layer_id;
-	void *parent;
+	struct VLayer *vlayer;		/* pointer at VerseLayer */
+	uint32 id;			/* id of item */
 	uint8 value;
 } uint8_item;
 

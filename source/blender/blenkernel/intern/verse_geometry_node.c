@@ -141,6 +141,11 @@ static void recalculate_verseface_normals(VNode *vnode)
  */
 void add_item_to_send_queue(ListBase *lb, void *item, short type)
 {
+	struct VNode *vnode;
+	struct VLayer *vlayer;
+	struct VerseVert *vvert;
+	struct VerseFace *vface;
+
 	/* this prevent from adding duplicated faces */
 	if(type==VERSE_FACE) {
 		struct Link *link = (Link*)lb->first;
@@ -188,35 +193,59 @@ void add_item_to_send_queue(ListBase *lb, void *item, short type)
 			send_verse_taggroup((VTagGroup*)item);
 			break;
 		case VERSE_VERT_UINT32:	/* parent item has to exist */
-			if( ((verse_parent*)((uint32_item*)item)->parent)->id != -1)
+			vnode = (((uint32_item*)item)->vlayer)->vnode;
+			vlayer = (VLayer*)BLI_dlist_find_link(&(((VGeomData*)vnode->data)->layers), 0 );
+			vvert = (VerseVert*)BLI_dlist_find_link(&(vlayer->dl), ((uint32_item*)item)->id );
+			if(vvert != NULL)
 				send_verse_vert_uint32((uint32_item*)item, type);
 			break;
 		case VERSE_VERT_REAL32:	/* parent item has to exist */
-			if( ((verse_parent*)((real32_item*)item)->parent)->id != -1)
+			vnode = (((real32_item*)item)->vlayer)->vnode;
+			vlayer = (VLayer*)BLI_dlist_find_link(&(((VGeomData*)vnode->data)->layers), 0 );
+			vvert = (VerseVert*)BLI_dlist_find_link(&(vlayer->dl), ((real32_item*)item)->id );
+			if( vvert != NULL)
 				send_verse_vert_real32((real32_item*)item, type);
 			break;
 		case VERSE_VERT_VEC_REAL32:	/* parent item has to exist */
-			if( ((verse_parent*)((vec_real32_item*)item)->parent)->id != -1)
+			vnode = (((vec_real32_item*)item)->vlayer)->vnode;
+			vlayer = (VLayer*)BLI_dlist_find_link(&(((VGeomData*)vnode->data)->layers), 0 );
+			vvert = (VerseVert*)BLI_dlist_find_link(&(vlayer->dl), ((vec_real32_item*)item)->id );
+			if(vvert != NULL)
 				send_verse_vert_vec_real32((vec_real32_item*)item, type);
 			break;
 		case VERSE_FACE_UINT8:	/* parent item has to exist */
-			if( ((verse_parent*)((uint8_item*)item)->parent)->id != -1)
+			vnode = (((uint8_item*)item)->vlayer)->vnode;
+			vlayer = (VLayer*)BLI_dlist_find_link(&(((VGeomData*)vnode->data)->layers), 1 );
+			vface = (VerseFace*)BLI_dlist_find_link(&(vlayer->dl), ((uint8_item*)item)->id );
+			if(vface != NULL)
 				send_verse_face_uint8((uint8_item*)item, type);
 			break;
 		case VERSE_FACE_UINT32:	/* parent item has to exist */
-			if( ((verse_parent*)((uint32_item*)item)->parent)->id != -1)
+			vnode = (((uint32_item*)item)->vlayer)->vnode;
+			vlayer = (VLayer*)BLI_dlist_find_link(&(((VGeomData*)vnode->data)->layers), 1 );
+			vface = (VerseFace*)BLI_dlist_find_link(&(vlayer->dl), ((uint32_item*)item)->id );
+			if(vface != NULL)
 				send_verse_face_uint32((uint32_item*)item, type);
 			break;
 		case VERSE_FACE_REAL32:	/* parent item has to exist */
-			if( ((verse_parent*)((real32_item*)item)->parent)->id != -1)
+			vnode = (((real32_item*)item)->vlayer)->vnode;
+			vlayer = (VLayer*)BLI_dlist_find_link(&(((VGeomData*)vnode->data)->layers), 1 );
+			vface = (VerseFace*)BLI_dlist_find_link(&(vlayer->dl), ((real32_item*)item)->id );
+			if(vface != NULL)
 				send_verse_face_real32((real32_item*)item, type);
 			break;
 		case VERSE_FACE_QUAT_UINT32:	/* parent item has to exist */
-			if( ((verse_parent*)((quat_uint32_item*)item)->parent)->id != -1)
+			vnode = (((quat_uint32_item*)item)->vlayer)->vnode;
+			vlayer = (VLayer*)BLI_dlist_find_link(&(((VGeomData*)vnode->data)->layers), 1 );
+			vface = (VerseFace*)BLI_dlist_find_link(&(vlayer->dl), ((quat_uint32_item*)item)->id );
+			if(vface != NULL)
 				send_verse_face_corner_quat_uint32((quat_uint32_item*)item, type);
 			break;
 		case VERSE_FACE_QUAT_REAL32:	/* parent item has to exist */
-			if( ((verse_parent*)((quat_real32_item*)item)->parent)->id != -1)
+			vnode = (((quat_real32_item*)item)->vlayer)->vnode;
+			vlayer = (VLayer*)BLI_dlist_find_link(&(((VGeomData*)vnode->data)->layers), 1 );
+			vface = (VerseFace*)BLI_dlist_find_link(&(vlayer->dl), ((quat_real32_item*)item)->id );
+			if(vface != NULL)
 				send_verse_face_corner_quat_real32((quat_real32_item*)item, type);
 			break;
 	}
@@ -479,12 +508,10 @@ static VerseVert* find_verse_vert_in_queue(
  */
 void send_verse_face_corner_quat_real32(quat_real32_item *item, short type)
 {
-	struct VerseFace *vface = (VerseFace*)item->parent;
-
 	verse_send_g_polygon_set_corner_real32(
-			vface->vlayer->vnode->id,
-			item->layer_id,
-			vface->id,
+			item->vlayer->vnode->id,
+			item->vlayer->id,
+			item->id,
 			item->value[0],
 			item->value[1],
 			item->value[2],
@@ -496,12 +523,10 @@ void send_verse_face_corner_quat_real32(quat_real32_item *item, short type)
  */
 void send_verse_face_corner_quat_uint32(quat_uint32_item *item, short type)
 {
-	struct VerseFace *vface = (VerseFace*)item->parent;
-
 	verse_send_g_polygon_set_corner_uint32(
-			vface->vlayer->vnode->id,
-			item->layer_id,
-			vface->id,
+			item->vlayer->vnode->id,
+			item->vlayer->id,
+			item->id,
 			item->value[0],
 			item->value[1],
 			item->value[2],
@@ -513,12 +538,10 @@ void send_verse_face_corner_quat_uint32(quat_uint32_item *item, short type)
  */
 void send_verse_face_real32(real32_item *item, short type)
 {
-	struct VerseFace *vface = (VerseFace*)item->parent;
-
 	verse_send_g_polygon_set_face_real32(
-			vface->vlayer->vnode->id,
-			item->layer_id,
-			vface->id,
+			item->vlayer->vnode->id,
+			item->vlayer->id,
+			item->id,
 			item->value);
 }
 
@@ -527,12 +550,10 @@ void send_verse_face_real32(real32_item *item, short type)
  */
 void send_verse_face_uint32(uint32_item *item, short type)
 {
-	struct VerseFace *vface = (VerseFace*)item->parent;
-
 	verse_send_g_polygon_set_face_uint32(
-			vface->vlayer->vnode->id,
-			item->layer_id,
-			vface->id,
+			item->vlayer->vnode->id,
+			item->vlayer->id,
+			item->id,
 			item->value);
 }
 
@@ -541,12 +562,10 @@ void send_verse_face_uint32(uint32_item *item, short type)
  */
 void send_verse_face_uint8(uint8_item *item, short type)
 {
-	struct VerseFace *vface = (VerseFace*)item->parent;
-
 	verse_send_g_polygon_set_face_uint8(
-			vface->vlayer->vnode->id,
-			item->layer_id,
-			vface->id,
+			item->vlayer->vnode->id,
+			item->vlayer->id,
+			item->id,
 			item->value);
 }
 
@@ -555,12 +574,10 @@ void send_verse_face_uint8(uint8_item *item, short type)
  */
 void send_verse_vert_vec_real32(vec_real32_item *item, short type)
 {
-	struct VerseVert *vvert = (VerseVert*)item->parent;
-
 	verse_send_g_vertex_set_xyz_real32(
-			vvert->vlayer->vnode->id,
-			item->layer_id,
-			vvert->id,
+			item->vlayer->vnode->id,
+			item->vlayer->id,
+			item->id,
 			item->value[0],
 			item->value[1],
 			item->value[2]);
@@ -571,12 +588,10 @@ void send_verse_vert_vec_real32(vec_real32_item *item, short type)
  */
 void send_verse_vert_real32(real32_item *item, short type)
 {
-	struct VerseVert *vvert = (VerseVert*)item->parent;
-
 	verse_send_g_vertex_set_real32(
-			vvert->vlayer->vnode->id,
-			item->layer_id,
-			vvert->id,
+			item->vlayer->vnode->id,
+			item->vlayer->id,
+			item->id,
 			item->value);
 }
 
@@ -585,12 +600,10 @@ void send_verse_vert_real32(real32_item *item, short type)
  */
 void send_verse_vert_uint32(uint32_item *item, short type)
 {
-	struct VerseVert *vvert = (VerseVert*)item->parent;
-
 	verse_send_g_vertex_set_uint32(
-			vvert->vlayer->vnode->id,
-			item->layer_id,
-			vvert->id,
+			item->vlayer->vnode->id,
+			item->vlayer->id,
+			item->id,
 			item->value);
 }
 
@@ -663,7 +676,6 @@ static void send_verse_face(VerseFace *vface)
 	vface->flag |= FACE_SENT;
 
 	if(vface->v3 != -1) {
-/*		printf("\tSEND: VerseFace: %d, %d, %d, %d, %d\n", vface->id, vface->v0, vface->v3, vface->v2, vface->v1);*/
 		verse_send_g_polygon_set_corner_uint32(
 				vface->vlayer->vnode->id,
 				vface->vlayer->id,
@@ -674,7 +686,6 @@ static void send_verse_face(VerseFace *vface)
 				vface->v1);	/* verse use clock-wise winding */
 	}
 	else {
-/*		printf("\tSEND: VerseFace: %d, %d, %d, %d, %d\n", vface->id, vface->v0, vface->v2, vface->v1, vface->v3);*/
 		verse_send_g_polygon_set_corner_uint32(
 				vface->vlayer->vnode->id,
 				vface->vlayer->id,
@@ -948,6 +959,71 @@ VGeomData *create_geometry_data(void)
 	return geom;
 }
 
+/* Create item containing 4 floats */
+static quat_real32_item *create_quat_real32_item(
+		VLayer *vlayer,
+		uint32 item_id,
+		real32 v0,
+		real32 v1,
+		real32 v2,
+		real32 v3)
+{
+	struct quat_real32_item *item;
+
+	item = (quat_real32_item*)MEM_mallocN(sizeof(quat_real32_item), "quat_real32_item");
+
+	item->vlayer = vlayer;
+	item->id = item_id;
+	item->value[0] = v0;
+	item->value[1] = v1;
+	item->value[2] = v2;
+	item->value[3] = v3;
+
+	return item;
+}
+
+/* Create item containing 1 float */
+static real32_item *create_real32_item(VLayer *vlayer, uint32 item_id, real32 value)
+{
+	struct real32_item *item;
+
+	item = (real32_item*)MEM_mallocN(sizeof(real32_item), "real32_item");
+
+	item->vlayer = vlayer;
+	item->id = item_id;
+	item->value = value;
+
+	return item;
+}
+
+/* Create item containing 1 integer */
+static uint32_item *create_uint32_item(VLayer *vlayer, uint32 item_id, uint32 value)
+{
+	struct uint32_item *item;
+
+	item = (uint32_item*)MEM_mallocN(sizeof(uint32_item), "uint32_item");
+
+	item->vlayer = vlayer;
+	item->id = item_id;
+	item->value = value;
+
+	return item;
+}
+
+/* Create item containing 1 byte */
+static uint8_item *create_uint8_item(VLayer *vlayer, uint32 item_id, uint8 value)
+{
+	struct uint8_item *item;
+
+	item = (uint8_item*)MEM_mallocN(sizeof(uint8_item), "uint8_item");
+
+	item->vlayer = vlayer;
+	item->id = item_id;
+	item->value = value;
+
+	return item;
+}
+
 /*
  * callback function: vertex crease was set
  */
@@ -957,153 +1033,6 @@ static void cb_g_crease_set_vertex(
 		const char *layer,
 		uint32 def_crease)
 {
-/*	struct VerseSession *session = (VerseSession*)current_verse_session();
-	struct VNode *vnode;*/
-}
-
-/*
- * callback function: edge crease was set
- */
-static void cb_g_crease_set_edge(
-		void *user_data,
-		VNodeID node_id,
-		const char *layer,
-		uint32 def_crease)
-{
-/*	struct VerseSession *session = (VerseSession*)current_verse_session();
-	struct VNode *vnode;*/
-}
-
-/*
- * callback function: float value for polygon was set up
- */
-static void cb_g_polygon_set_face_real32(
-		void *user_def,
-		VNodeID node_id,
-		VLayerID layer_id,
-		uint32 polygon_id,
-		real32 value)
-{
-/*	struct VerseSession *session = (VerseSession*)current_verse_session();
-	struct VNode *vnode;*/
-}
-
-/*
- * callback function: int values for polygon was set up
- */
-static void cb_g_polygon_set_face_uint32(
-		void *user_def,
-		VNodeID node_id,
-		VLayerID layer_id,
-		uint32 polygon_id,
-		uint32 value)
-{
-/*	struct VerseSession *session = (VerseSession*)current_verse_session();
-	struct VNode *vnode;*/
-}
-
-static uint8_item *create_uint8_item(void)
-{
-	struct uint8_item *item;
-
-	item = (uint8_item*)MEM_mallocN(sizeof(uint8_item), "uint8_item");
-	item->value = 0;
-
-	return item;
-}
-
-/*
- * callback function: uint8 value for polygon was set up
- */
-static void cb_g_polygon_set_face_uint8(
-		void *user_def,
-		VNodeID node_id,
-		VLayerID layer_id,
-		uint32 polygon_id,
-		uint8 value)
-{
-	struct VerseSession *session = (VerseSession*)current_verse_session();
-	struct VNode *vnode;
-	struct VLayer *vlayer;
-	struct uint8_item *item;
-
-	if(!session) return;
-
-	/* find needed node (we can be sure, that it is geometry node) */
-	vnode = (VNode*)BLI_dlist_find_link(&(session->nodes), (unsigned int)node_id);
-
-	/* find layer containing uint_8 data */
-	vlayer = (VLayer*)BLI_dlist_find_link(&(((VGeomData*)vnode->data)->layers), (unsigned int)layer_id);
-
-	/* try to find item*/
-	item = BLI_dlist_find_link(&(vlayer->dl), polygon_id);
-
-	if(item) {
-		item->value = value;
-	}
-	else {
-		item = create_uint8_item();
-		BLI_dlist_add_item_index(&(vlayer->dl), item, polygon_id);
-		item->value = value;
-	}
-}
-
-/*
- * callback function: float value for polygon corner was set up
- */
-static void cb_g_polygon_set_corner_real32(
-		void *user_def,
-		VNodeID node_id,
-		VLayerID layer_id,
-		uint32 polygon_id,
-		real32 v0,
-		real32 v1,
-		real32 v2,
-		real32 v3)
-{
-}
-
-/*
- * callback function: polygon is deleted
- */
-static void cb_g_polygon_delete(
-		void *user_data,
-		VNodeID node_id,
-		uint32 polygon_id)
-{
-	struct VerseSession *session = (VerseSession*)current_verse_session();
-	VNode *vnode;
-	VLayer *vlayer;
-	VerseFace *vface;
-
-	if(!session) return;
-
-	/* find needed node (we can be sure, that it is geometry node) */
-	vnode = BLI_dlist_find_link(&(session->nodes), node_id);
-
-	/* find layer containing faces */
-	vlayer = find_verse_layer_type((VGeomData*)vnode->data, POLYGON_LAYER);
-
-	/* find wanted VerseFace */
-	vface = BLI_dlist_find_link(&(vlayer->dl), polygon_id);
-
-	if(!vface) return;
-
-	/* update edge hash */
-	update_edgehash_of_deleted_verseface(vnode, vface);
-	
-	((VGeomData*)vnode->data)->post_polygon_delete(vface);
-
-	/* decrease references at coresponding VerseVertexes */
-	vface->vvert0->counter--;
-	vface->vvert1->counter--;
-	vface->vvert2->counter--;
-	if(vface->vvert3) vface->vvert3->counter--;
-
-	/* delete unneeded VerseVertexes */
-	free_unneeded_verseverts_of_verseface(vnode, vface);
-	
-	free_verse_face(vlayer, vface);
 }
 
 /*
@@ -1365,6 +1294,206 @@ static void update_edgehash_of_new_verseface(
 }
 
 /*
+ * callback function: edge crease was set
+ */
+static void cb_g_crease_set_edge(
+		void *user_data,
+		VNodeID node_id,
+		const char *layer,
+		uint32 def_crease)
+{
+}
+
+/*
+ * callback function: float value for polygon was set up
+ */
+static void cb_g_polygon_set_face_real32(
+		void *user_def,
+		VNodeID node_id,
+		VLayerID layer_id,
+		uint32 polygon_id,
+		real32 value)
+{
+	struct VerseSession *session = (VerseSession*)current_verse_session();
+	struct VNode *vnode;
+	struct VLayer *vlayer;
+	struct real32_item *item;
+
+	if(!session) return;
+
+	/* find needed node (we can be sure, that it is geometry node) */
+	vnode = (VNode*)BLI_dlist_find_link(&(session->nodes), (unsigned int)node_id);
+
+	/* find layer containing uint_8 data */
+	vlayer = (VLayer*)BLI_dlist_find_link(&(((VGeomData*)vnode->data)->layers), (unsigned int)layer_id);
+
+	/* try to find item*/
+	item = BLI_dlist_find_link(&(vlayer->dl), polygon_id);
+
+	if(item) {
+		item->value = value;
+	}
+	else {
+		item = create_real32_item(vlayer, polygon_id, value);
+		BLI_dlist_add_item_index(&(vlayer->dl), item, item->id);
+	}
+}
+
+/*
+ * callback function: int values for polygon was set up
+ */
+static void cb_g_polygon_set_face_uint32(
+		void *user_def,
+		VNodeID node_id,
+		VLayerID layer_id,
+		uint32 polygon_id,
+		uint32 value)
+{
+	struct VerseSession *session = (VerseSession*)current_verse_session();
+	struct VNode *vnode;
+	struct VLayer *vlayer;
+	struct uint32_item *item;
+
+	if(!session) return;
+
+	/* find needed node (we can be sure, that it is geometry node) */
+	vnode = (VNode*)BLI_dlist_find_link(&(session->nodes), (unsigned int)node_id);
+
+	/* find layer containing uint_8 data */
+	vlayer = (VLayer*)BLI_dlist_find_link(&(((VGeomData*)vnode->data)->layers), (unsigned int)layer_id);
+
+	/* try to find item*/
+	item = BLI_dlist_find_link(&(vlayer->dl), polygon_id);
+
+	if(item) {
+		item->value = value;
+	}
+	else {
+		item = create_uint32_item(vlayer, polygon_id, value);
+		BLI_dlist_add_item_index(&(vlayer->dl), item, item->id);
+	}
+}
+
+/*
+ * callback function: uint8 value for polygon was set up
+ */
+static void cb_g_polygon_set_face_uint8(
+		void *user_def,
+		VNodeID node_id,
+		VLayerID layer_id,
+		uint32 polygon_id,
+		uint8 value)
+{
+	struct VerseSession *session = (VerseSession*)current_verse_session();
+	struct VNode *vnode;
+	struct VLayer *vlayer;
+	struct uint8_item *item;
+
+	if(!session) return;
+
+	/* find needed node (we can be sure, that it is geometry node) */
+	vnode = (VNode*)BLI_dlist_find_link(&(session->nodes), (unsigned int)node_id);
+
+	/* find layer containing uint_8 data */
+	vlayer = (VLayer*)BLI_dlist_find_link(&(((VGeomData*)vnode->data)->layers), (unsigned int)layer_id);
+
+	/* try to find item*/
+	item = BLI_dlist_find_link(&(vlayer->dl), polygon_id);
+
+	if(item) {
+		item->value = value;
+	}
+	else {
+		item = create_uint8_item(vlayer, polygon_id, value);
+		BLI_dlist_add_item_index(&(vlayer->dl), item, item->id);
+	}
+}
+
+/*
+ * callback function: float value for polygon corner was set up
+ */
+static void cb_g_polygon_set_corner_real32(
+		void *user_def,
+		VNodeID node_id,
+		VLayerID layer_id,
+		uint32 polygon_id,
+		real32 v0,
+		real32 v1,
+		real32 v2,
+		real32 v3)
+{
+	struct VerseSession *session = (VerseSession*)current_verse_session();
+	struct VNode *vnode;
+	struct VLayer *vlayer;
+	struct quat_real32_item *item;
+
+	if(!session) return;
+
+	/* find needed node (we can be sure, that it is geometry node) */
+	vnode = (VNode*)BLI_dlist_find_link(&(session->nodes), (unsigned int)node_id);
+
+	/* find layer containing uint_8 data */
+	vlayer = (VLayer*)BLI_dlist_find_link(&(((VGeomData*)vnode->data)->layers), (unsigned int)layer_id);
+
+	/* try to find item*/
+	item = BLI_dlist_find_link(&(vlayer->dl), polygon_id);
+
+	if(item) {
+		item->value[0] = v0;
+		item->value[1] = v1;
+		item->value[2] = v2;
+		item->value[3] = v3;
+	}
+	else {
+		item = create_quat_real32_item(vlayer, polygon_id, v0, v1, v2, v3);
+		BLI_dlist_add_item_index(&(vlayer->dl), item, item->id);
+	}
+}
+
+/*
+ * callback function: polygon is deleted
+ */
+static void cb_g_polygon_delete(
+		void *user_data,
+		VNodeID node_id,
+		uint32 polygon_id)
+{
+	struct VerseSession *session = (VerseSession*)current_verse_session();
+	VNode *vnode;
+	VLayer *vlayer;
+	VerseFace *vface;
+
+	if(!session) return;
+
+	/* find needed node (we can be sure, that it is geometry node) */
+	vnode = BLI_dlist_find_link(&(session->nodes), node_id);
+
+	/* find layer containing faces */
+	vlayer = find_verse_layer_type((VGeomData*)vnode->data, POLYGON_LAYER);
+
+	/* find wanted VerseFace */
+	vface = BLI_dlist_find_link(&(vlayer->dl), polygon_id);
+
+	if(!vface) return;
+
+	/* update edge hash */
+	update_edgehash_of_deleted_verseface(vnode, vface);
+	
+	((VGeomData*)vnode->data)->post_polygon_delete(vface);
+
+	/* decrease references at coresponding VerseVertexes */
+	vface->vvert0->counter--;
+	vface->vvert1->counter--;
+	vface->vvert2->counter--;
+	if(vface->vvert3) vface->vvert3->counter--;
+
+	/* delete unneeded VerseVertexes */
+	free_unneeded_verseverts_of_verseface(vnode, vface);
+	
+	free_verse_face(vlayer, vface);
+}
+
+/*
  * callback function: new polygon (face) created or existing polygon was changed
  */
 static void cb_g_polygon_set_corner_uint32(
@@ -1395,8 +1524,6 @@ static void cb_g_polygon_set_corner_uint32(
 	/* we have to test coretness of incoming data */
 	if(!test_polygon_set_corner_uint32(v0, v1, v2, v3)) return;
 	
-/*	printf("\tRECEIVE VerseFace: %d, %d, %d, %d, %d\n", polygon_id, v0, v1, v2, v3);*/
-
 	/* Blender uses different order of vertexes */
 	if(v3!=-1) { /* quat swap */
 		unsigned int v; v = v1; v1 = v3; v3 = v;
@@ -1414,12 +1541,10 @@ static void cb_g_polygon_set_corner_uint32(
 		if(vface) {
 			BLI_remlink(&(vlayer->queue), (void*)vface);
 			BLI_dlist_add_item_index(&(vlayer->dl), (void*)vface, (unsigned int)polygon_id);
-/*			printf("\treceived changed face (changed by this app)\n");*/
 		}
 	}
 
 	if(!vface) {
-/*		printf("\tno vface\n");*/
 		/* try to find VerseFace in list of VerseVaces created by me and set up polygon and
 		 * layer ids */
 		vface = find_verse_face_in_queue(vlayer, node_id, polygon_id, v0, v1, v2, v3);
@@ -1428,12 +1553,10 @@ static void cb_g_polygon_set_corner_uint32(
 		update_edgehash_of_new_verseface(vnode, v0, v1, v2, v3);
 		
 		if(vface){
-/*			printf("\tremove from vface queue\n");*/
 			/* I creeated this face ... remove VerseFace from queue */
 			BLI_remlink(&(vlayer->queue), (void*)vface);
 		}
 		else {
-/*			printf("\tcreate vface\n");*/
 			/* some other client created this face*/
 			vface = create_verse_face(vlayer, polygon_id, v0, v1, v2, v3);
 		}
@@ -1452,7 +1575,6 @@ static void cb_g_polygon_set_corner_uint32(
 			((VGeomData*)vnode->data)->post_polygon_create(vface);
 		}
 		else {
-/*			printf("\torphan vface\n");*/
 			/* when all needed VerseVertexes weren't received, then VerseFace is moved to
 			 * the list of orphans waiting on needed vertexes */
 			vface->flag |= FACE_RECEIVED;
@@ -1461,7 +1583,6 @@ static void cb_g_polygon_set_corner_uint32(
 	}
 	else {
 		VLayer *vert_vlayer = find_verse_layer_type((VGeomData*)vnode->data, VERTEX_LAYER);
-/*		printf("\tvface changed\n");*/
 		/* VerseVertexes of existing VerseFace were changed (VerseFace will use some different
 		 * VerseVertexes or it will use them in different order) */
 
@@ -1594,8 +1715,29 @@ static void cb_g_vertex_set_real32(
 		uint32 vertex_id,
 		real32 value)
 {
-/*	struct VerseSession *session = (VerseSession*)current_verse_session();
-	struct VNode *vnode;*/
+	struct VerseSession *session = (VerseSession*)current_verse_session();
+	struct VNode *vnode;
+	struct VLayer *vlayer;
+	struct real32_item *item;
+
+	if(!session) return;
+
+	/* find needed node (we can be sure, that it is geometry node) */
+	vnode = (VNode*)BLI_dlist_find_link(&(session->nodes), (unsigned int)node_id);
+
+	/* find layer containing uint_8 data */
+	vlayer = (VLayer*)BLI_dlist_find_link(&(((VGeomData*)vnode->data)->layers), (unsigned int)layer_id);
+
+	/* try to find item*/
+	item = BLI_dlist_find_link(&(vlayer->dl), vertex_id);
+
+	if(item) {
+		item->value = value;
+	}
+	else {
+		item = create_real32_item(vlayer, vertex_id, value);
+		BLI_dlist_add_item_index(&(vlayer->dl), item, item->id);
+	}
 }
 
 /*
@@ -1608,8 +1750,29 @@ static void cb_g_vertex_set_uint32(
 		uint32 vertex_id,
 		uint32 value)
 {
-/*	struct VerseSession *session = (VerseSession*)current_verse_session();
-	struct VNode *vnode;*/
+	struct VerseSession *session = (VerseSession*)current_verse_session();
+	struct VNode *vnode;
+	struct VLayer *vlayer;
+	struct uint32_item *item;
+
+	if(!session) return;
+
+	/* find needed node (we can be sure, that it is geometry node) */
+	vnode = (VNode*)BLI_dlist_find_link(&(session->nodes), (unsigned int)node_id);
+
+	/* find layer containing uint_8 data */
+	vlayer = (VLayer*)BLI_dlist_find_link(&(((VGeomData*)vnode->data)->layers), (unsigned int)layer_id);
+
+	/* try to find item*/
+	item = BLI_dlist_find_link(&(vlayer->dl), vertex_id);
+
+	if(item) {
+		item->value = value;
+	}
+	else {
+		item = create_uint32_item(vlayer, vertex_id, value);
+		BLI_dlist_add_item_index(&(vlayer->dl), item, item->id);
+	}
 }
 
 /*
