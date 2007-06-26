@@ -6462,6 +6462,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				customdata_version_243(me);
 		}
 	}
+	if(main->versionfile <= 244) {
+		Scene *sce;
+
+		if(main->versionfile != 244 || main->subversionfile < 1) {
+			for(sce= main->scene.first; sce; sce= sce->id.next)
+				sce->r.mode |= R_SSS;
+		}
+	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */

@@ -3483,7 +3483,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 			project_renderdata(re, projectverto, re->r.mode & R_PANORAMA, 0);
 
 		/* SSS */
-		if(!re->test_break())
+		if((re->r.mode & R_SSS) && !re->test_break())
 			if (re->r.renderer==R_INTERN)
 				make_sss_tree(re);
 	}
