@@ -588,7 +588,7 @@ static void *get_nearest_action_key (float *selx, short *sel, short *ret_type, b
 	areamouseco_to_ipoco(G.v2d, mval, &rectf.xmax, &rectf.ymax);
 
 	/* if action is mapped in NLA, it returns a correction */
-	if (G.saction->pin==0 && OBACT && datatype==ACTCONT_ACTION) {
+	if (NLA_ACTION_SCALED && datatype==ACTCONT_ACTION) {
 		xmin= get_action_frame(OBACT, rectf.xmin);
 		xmax= get_action_frame(OBACT, rectf.xmax);
 	}
@@ -773,7 +773,7 @@ static short transform_action_loop (TransVert *tv, int tvtot, char mode, short c
 	getmouseco_areawin (mvals);
 	areamouseco_to_ipoco(G.v2d, mvals, &sval[0], &sval[1]);
 
-	if(G.saction->pin==0 && OBACT)
+	if (NLA_ACTION_SCALED)
 		sval[0]= get_action_frame(OBACT, sval[0]);
 	
 	/* used for drawing */
@@ -826,10 +826,10 @@ static short transform_action_loop (TransVert *tv, int tvtot, char mode, short c
 			getmouseco_areawin (mvalc);
 			areamouseco_to_ipoco(G.v2d, mvalc, &cval[0], &cval[1]);
 			
-			if(G.saction->pin==0 && OBACT)
+			if (NLA_ACTION_SCALED)
 				cval[0]= get_action_frame(OBACT, cval[0]);
 
-			if(mode=='t')
+			if (mode=='t')
 				G.saction->timeslide= cval[0];
 			
 			if (!firsttime && lastcval[0]==cval[0] && lastcval[1]==cval[1]) {
@@ -878,7 +878,7 @@ static short transform_action_loop (TransVert *tv, int tvtot, char mode, short c
 						}
 						break;
 					case 'g':
-						if (G.saction->pin==0 && OBACT && context==ACTCONT_ACTION) {
+						if (NLA_ACTION_SCALED && context==ACTCONT_ACTION) {
 							deltax = get_action_frame_inv(OBACT, cval[0]);
 							deltax -= get_action_frame_inv(OBACT, sval[0]);
 							
@@ -919,7 +919,7 @@ static short transform_action_loop (TransVert *tv, int tvtot, char mode, short c
 							fac*=-1;
 						}
 						startx= (G.scene->r.cfra);
-						if(G.saction->pin==0 && OBACT && context==ACTCONT_ACTION)
+						if(NLA_ACTION_SCALED && context==ACTCONT_ACTION)
 							startx= get_action_frame(OBACT, startx);
 							
 						tv[i].loc[0]-= startx;
@@ -934,7 +934,7 @@ static short transform_action_loop (TransVert *tv, int tvtot, char mode, short c
 						float snapval;
 						
 						/* convert frame to nla-action time (if needed) */
-						if (G.saction->pin==0 && OBACT && context==ACTCONT_ACTION) 
+						if (NLA_ACTION_SCALED && context==ACTCONT_ACTION) 
 							snapval= get_action_frame_inv(OBACT, tv[i].loc[0]);
 						else
 							snapval= tv[i].loc[0];
@@ -943,7 +943,7 @@ static short transform_action_loop (TransVert *tv, int tvtot, char mode, short c
 						snapval= (float)(floor(snapval+0.5));
 							
 						/* convert frame out of nla-action time */
-						if (G.saction->pin==0 && OBACT && context==ACTCONT_ACTION)
+						if (NLA_ACTION_SCALED && context==ACTCONT_ACTION)
 							tv[i].loc[0]= get_action_frame(OBACT, snapval);
 						else
 							tv[i].loc[0]= snapval;
@@ -955,7 +955,7 @@ static short transform_action_loop (TransVert *tv, int tvtot, char mode, short c
 					headerprint(str);
 				}
 				else if (mode=='g') {
-					if(G.saction->pin==0 && OBACT && context==ACTCONT_ACTION) {
+					if (NLA_ACTION_SCALED && context==ACTCONT_ACTION) {
 						/* recalculate the delta based on 'visual' times */
 						fac = get_action_frame_inv(OBACT, cval[0]);
 						fac -= get_action_frame_inv(OBACT, sval[0]);
@@ -1133,7 +1133,7 @@ void snap_action_keys(short mode)
 	
 	/* snap to frame */
 	for (ale= act_data.first; ale; ale= ale->next) {
-		if (datatype==ACTCONT_ACTION && G.saction->pin==0 && OBACT) {
+		if (NLA_ACTION_SCALED && datatype==ACTCONT_ACTION) {
 			actstrip_map_ipo_keys(OBACT, ale->key_data, 0, 1); 
 			snap_ipo_keys(ale->key_data, mode);
 			actstrip_map_ipo_keys(OBACT, ale->key_data, 1, 1);
@@ -1191,7 +1191,7 @@ void mirror_action_keys(short mode)
 	
 	/* mirror */
 	for (ale= act_data.first; ale; ale= ale->next) {
-		if (datatype==ACTCONT_ACTION && G.saction->pin==0 && OBACT) {
+		if (NLA_ACTION_SCALED && datatype==ACTCONT_ACTION) {
 			actstrip_map_ipo_keys(OBACT, ale->key_data, 0, 1); 
 			mirror_ipo_keys(ale->key_data, mode);
 			actstrip_map_ipo_keys(OBACT, ale->key_data, 1, 1);
@@ -2120,7 +2120,7 @@ void markers_selectkeys_between (void)
 		
 	/* select keys in-between */
 	for (ale= act_data.first; ale; ale= ale->next) {
-		if(G.saction->pin==0 && OBACT && datatype==ACTCONT_ACTION) {
+		if(NLA_ACTION_SCALED && datatype==ACTCONT_ACTION) {
 			actstrip_map_ipo_keys(OBACT, ale->key_data, 0, 1);
 			borderselect_ipo_key(ale->key_data, min, max, SELECT_ADD);
 			actstrip_map_ipo_keys(OBACT, ale->key_data, 1, 1);
@@ -2189,7 +2189,7 @@ void column_select_action_keys(int mode)
 			make_marker_cfra_list(&elems, 1);
 			
 			/* apply scaled action correction if needed */
-			if (G.saction->pin==0 && OBACT && datatype==ACTCONT_ACTION) {
+			if (NLA_ACTION_SCALED && datatype==ACTCONT_ACTION) {
 				for (ce= elems.first; ce; ce= ce->next) 
 					ce->cfra= get_action_frame(OBACT, ce->cfra);
 			}
@@ -2261,7 +2261,7 @@ void borderselect_action (void)
 		areamouseco_to_ipoco(G.v2d, mval, &rectf.xmax, &rectf.ymax);
 		
 		/* if action is mapped in NLA, it returns a correction */
-		if (G.saction->pin==0 && OBACT && datatype==ACTCONT_ACTION) {
+		if (NLA_ACTION_SCALED && datatype==ACTCONT_ACTION) {
 			rectf.xmin= get_action_frame(OBACT, rectf.xmin);
 			rectf.xmax= get_action_frame(OBACT, rectf.xmax);
 		}

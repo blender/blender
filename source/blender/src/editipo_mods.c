@@ -58,6 +58,7 @@
 #include "BKE_key.h"
 #include "BKE_utildefines.h"
 
+#include "BIF_editaction.h"
 #include "BIF_interface.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
@@ -927,7 +928,7 @@ void borderselect_ipo(void)
 
 	if(val) {
 		/* map ipo-points for editing if scaled ipo */
-		if (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname) {
+		if (NLA_IPO_SCALED) {
 			actstrip_map_ipo_keys(OBACT, G.sipo->ipo, 0, 0);
 		}
 		
@@ -979,7 +980,7 @@ void borderselect_ipo(void)
 		}
 		
 		/* undo mapping of ipo-points for drawing if scaled ipo */
-		if (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname) {
+		if (NLA_IPO_SCALED) {
 			actstrip_map_ipo_keys(OBACT, G.sipo->ipo, 1, 0);
 		}
 		

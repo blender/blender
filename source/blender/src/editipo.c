@@ -1372,7 +1372,7 @@ void mouse_select_ipo(void)
 	marker=find_nearest_marker(1);
 	
 	/* map ipo-points for editing if scaled ipo */
-	if (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname) {
+	if (NLA_IPO_SCALED) {
 		actstrip_map_ipo_keys(OBACT, G.sipo->ipo, 0, 0);
 	}
 	
@@ -1535,7 +1535,7 @@ void mouse_select_ipo(void)
 	}
 	
 	/* undo mapping of ipo-points for editing if scaled ipo */
-	if (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname) {
+	if (NLA_IPO_SCALED) {
 		actstrip_map_ipo_keys(OBACT, G.sipo->ipo, 1, 0);
 	}
 	
@@ -1990,7 +1990,7 @@ void add_vert_ipo(void)
 	areamouseco_to_ipoco(G.v2d, mval, &x, &y);
 	
 	/* convert click-time to ipo-time */
-	if (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname) {
+	if (NLA_IPO_SCALED) {
 		x= get_action_frame(OBACT, x);
 	}
 	
@@ -2363,7 +2363,7 @@ void insertkey_editipo(void)
 						}
 						
 						/* convert cfra to ipo-time */
-						if (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname) {
+						if (NLA_IPO_SCALED) {
 							cfra= get_action_frame(OBACT, cfra);
 						}
 				
@@ -3512,7 +3512,7 @@ void ipo_snap(short event)
 	get_status_editipo();
 	
 	/* map ipo-points for editing if scaled ipo */
-	if (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname) {
+	if (NLA_IPO_SCALED) {
 		actstrip_map_ipo_keys(OBACT, G.sipo->ipo, 0, 0);
 	}
 
@@ -3585,7 +3585,7 @@ void ipo_snap(short event)
 	}
 	
 	/* undo mapping of ipo-points for editing if scaled ipo */
-	if (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname) {
+	if (NLA_IPO_SCALED) {
 		actstrip_map_ipo_keys(OBACT, G.sipo->ipo, 1, 0);
 	}
 	
@@ -3620,7 +3620,7 @@ void ipo_mirror(short mode)
 	if (!ei) return;
 	
 	/* map ipo-points for editing if scaled ipo */
-	if (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname) {
+	if (NLA_IPO_SCALED) {
 		actstrip_map_ipo_keys(OBACT, G.sipo->ipo, 0, 0);
 	}
 	
@@ -3679,7 +3679,7 @@ void ipo_mirror(short mode)
 	}
 	
 	/* undo mapping of ipo-points for editing if scaled ipo */
-	if (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname) {
+	if (NLA_IPO_SCALED) {
 		actstrip_map_ipo_keys(OBACT, G.sipo->ipo, 1, 0);
 	}
 	
@@ -4154,7 +4154,7 @@ void make_ipokey(void)
 		else ik->flag= 0;
 		
 		/* map ipo-keys for drawing/editing if scaled ipo */
-		if (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname) {
+		if (NLA_IPO_SCALED) {
 			ik->val= get_action_frame_inv(OBACT, ik->val);
 		}
 		
@@ -4258,7 +4258,7 @@ void make_ipokey_transform(Object *ob, ListBase *lb, int sel)
 	ik= lb->first;
 	while(ik) {
 		/* map ipo-keys for drawing/editing if scaled ipo */
-		if (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname) {
+		if (NLA_IPO_SCALED) {
 			ik->val= get_action_frame_inv(OBACT, ik->val);
 		}
 		
@@ -4278,7 +4278,7 @@ void update_ipokey_val(void)	/* after moving vertices */
 				ik->val= ik->data[a]->vec[1][0];
 				
 				/* map ipo-keys for drawing/editing if scaled ipo */
-				if (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname) {
+				if (NLA_IPO_SCALED) {
 					ik->val= get_action_frame_inv(OBACT, ik->val);
 				}
 				break;
@@ -4529,7 +4529,7 @@ void remake_ipo_transverts(TransVert *transmain, float *dvec, int tot)
 	
 	tv= transmain;
 	for(a=0; a<tot; a++, tv++) {
-		if (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname) {
+		if (NLA_IPO_SCALED) {
 			tv->oldloc[0] = get_action_frame_inv(OBACT, tv->loc[0]);
 			tv->oldloc[0]-= dvec[0];
 			tv->oldloc[0] = get_action_frame(OBACT, tv->loc[0]);
@@ -4715,7 +4715,7 @@ void transform_ipo(int mode)
 				tv= transmain;
 				for(a=0; a<tot; a++, tv++) {
 					/* adjust times for scaled ipos */
-					if (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname) {
+					if (NLA_IPO_SCALED) {
 						tv->loc[0] = get_action_frame_inv(OBACT, tv->oldloc[0]);
 						tv->loc[0]+= vec[0];
 						tv->loc[0] = get_action_frame(OBACT, tv->loc[0]);
@@ -4749,7 +4749,7 @@ void transform_ipo(int mode)
 
 				for(a=0; a<tot; a++, tv++) {
 					/* adjust times for scaled ipo's */
-					if (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname) {
+					if (NLA_IPO_SCALED) {
 						tv->loc[0] = get_action_frame_inv(OBACT, tv->oldloc[0]) - get_action_frame_inv(OBACT, cent[0]);
 						tv->loc[0]*= size[0];
 						tv->loc[0]+= get_action_frame_inv(OBACT, cent[0]);

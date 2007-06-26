@@ -25,7 +25,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Joshua Leung
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  * Drawing routines for the Action window type
@@ -716,7 +716,7 @@ static void draw_channel_strips(SpaceAction *saction)
 	di= glaBegin2DDraw(&scr_rct, &G.v2d->cur);
 
 	/* if in NLA there's a strip active, map the view */
-	if (G.saction->pin==0 && OBACT)
+	if (NLA_ACTION_SCALED)
 		map_active_strip(di, OBACT, 0);
 	
 	/* start and end of action itself */
@@ -724,7 +724,7 @@ static void draw_channel_strips(SpaceAction *saction)
 	gla2DDrawTranslatePt(di, sta, 0.0f, &act_start, &dummy);
 	gla2DDrawTranslatePt(di, end, 0.0f, &act_end, &dummy);
 	
-	if (G.saction->pin==0 && OBACT)
+	if (NLA_ACTION_SCALED)
 		map_active_strip(di, OBACT, 1);
 	
 	/* first backdrop strips */
@@ -795,7 +795,7 @@ static void draw_channel_strips(SpaceAction *saction)
 	}		
 	glDisable(GL_BLEND);
 	
-	if (G.saction->pin==0 && OBACT)
+	if (NLA_ACTION_SCALED)
 		map_active_strip(di, OBACT, 0);
 	
 	/* keyframes  */
