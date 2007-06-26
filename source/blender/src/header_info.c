@@ -395,7 +395,10 @@ void do_info_buttons(unsigned short event)
 		}
 		/* last item: NEW SCREEN */
 		if(sc==0) {
-			duplicate_screen();
+			nr= pupmenu("New Screen%t|Empty%x1|Duplicate%x2");
+
+			if(nr==1) default_twosplit();
+			if(nr==2) duplicate_screen();
 		}
 		break;
 	case B_INFODELSCR:
