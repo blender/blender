@@ -209,7 +209,8 @@ unsigned int v_n_wait_for_incoming(unsigned int microseconds)
 int v_n_receive_data(VNetworkAddress *address, char *data, size_t length)
 {
 	struct	sockaddr_in address_in;
-	size_t	from_length = sizeof address_in, len;
+	socklen_t from_length = sizeof address_in;
+	size_t	len;
 
 	if(v_n_socket_create() == -1)
 		return 0;

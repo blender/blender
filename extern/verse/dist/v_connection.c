@@ -275,7 +275,8 @@ boolean v_con_callback_update(void)
 {
 	static unsigned int seconds;
 	boolean	output = FALSE;
-	unsigned int	size, connection, s;
+	size_t	size; 
+	unsigned int connection, s;
 	VNetInPacked	*p;
 
 	v_n_get_current_time(&s, NULL);
