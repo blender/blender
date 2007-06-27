@@ -34,10 +34,6 @@
 #include <iostream>
 #include <math.h>
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-
 #ifdef __linux__
 #ifdef __alpha__
 #include <signal.h>
@@ -290,7 +286,7 @@ int main(int argc, char** argv)
 	bool fullScreenParFound = false;
 	bool windowParFound = false;
 	bool closeConsole = true;
-	RAS_IRasterizer::StereoMode stereomode = RAS_IRasterizer::RAS_STEREO_NOSTEREO;
+	RAS_IRasterizer::StereoMode stereomode;
 	bool stereoWindow = false;
 	bool stereoParFound = false;
 	int windowLeft = 100;
@@ -301,7 +297,7 @@ int main(int argc, char** argv)
 	GHOST_TUns32 fullScreenHeight= 0;
 	int fullScreenBpp = 32;
 	int fullScreenFrequency = 60;
-	
+
 #ifdef __linux__
 #ifdef __alpha__
 	signal (SIGFPE, SIG_IGN);
@@ -334,12 +330,9 @@ int main(int argc, char** argv)
 	GEN_init_messaging_system();
  
 	// Parse command line options
-#ifdef WIN32
 #ifndef NDEBUG
 	printf("argv[0] = '%s'\n", argv[0]);
 #endif
-#endif //WIN32
-
 
 #ifdef WIN32
 	if (scr_saver_init(argc, argv))
@@ -370,11 +363,9 @@ int main(int argc, char** argv)
 		;)
 
 	{
-#ifdef WIN32
 #ifndef NDEBUG
 		printf("argv[%d] = '%s'   , %i\n", i, argv[i],argc);
 #endif
-#endif //WIN32
 		if (argv[i][0] == '-')
 		{
 			switch (argv[i][1])
@@ -397,11 +388,9 @@ int main(int argc, char** argv)
 								SYS_WriteCommandLineInt(syshandle, paramname, atoi(argv[i]));
 								SYS_WriteCommandLineFloat(syshandle, paramname, atof(argv[i]));
 								SYS_WriteCommandLineString(syshandle, paramname, argv[i]);
-#ifdef WIN32
 #ifndef NDEBUG
 								printf("%s = '%s'\n", paramname, argv[i]);
 #endif
-#endif //WIN32
 								i++;
 							}
 							else
@@ -412,7 +401,7 @@ int main(int argc, char** argv)
 						}
 						else
 						{
-							SYS_WriteCommandLineInt(syshandle, argv[i++], 1);
+//							SYS_WriteCommandLineInt(syshandle, argv[i++], 1);
 						}
 					}
 				}
@@ -533,13 +522,16 @@ int main(int argc, char** argv)
 		printf("error: window size too small.\n");
 	}
 	
-	if (error)
+	if (error || argc == 1) 
 	{
 		usage(argv[0]);
+		return 0;
 	}
-	else
+
+	if (!stereoParFound) stereomode = RAS_IRasterizer::RAS_STEREO_NOSTEREO;
+
 #ifdef WIN32
-		if (scr_saver_mode != SCREEN_SAVER_MODE_CONFIGURATION)
+	if (scr_saver_mode != SCREEN_SAVER_MODE_CONFIGURATION)
 #endif
 	{
 #ifdef __APPLE__
@@ -547,6 +539,7 @@ int main(int argc, char** argv)
 		SYS_WriteCommandLineInt(syshandle, "nomipmap", 1);
 		//fullScreen = false;		// Can't use full screen
 #endif
+
 		if (SYS_GetCommandLineInt(syshandle, "nomipmap", 0))
 		{
 			GPC_PolygonMaterial::SetMipMappingEnabled(0);
@@ -768,7 +761,7 @@ int main(int argc, char** argv)
 			printf("error: couldn't create a system.\n");
 		}
 	}
-	
+
 	return error ? -1 : 0;
 }
 
