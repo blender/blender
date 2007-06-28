@@ -125,6 +125,8 @@ static PyObject *MEdgeSeq_CreatePyObject( Mesh * mesh );
 static PyObject *MFace_CreatePyObject( Mesh * mesh, int i );
 static PyObject *MEdge_CreatePyObject( Mesh * mesh, int i );
 
+#define MFACE_VERT_BADRANGE_CHECK(me, face) ((int)face->v1 >= me->totvert || (int)face->v2 >= me->totvert || (int)face->v3 >= me->totvert || (int)face->v4 >= me->totvert)
+#define MEDGE_VERT_BADRANGE_CHECK(me, edge) ((int)edge->v1 >= me->totvert || (int)edge->v2 >= me->totvert)
 
 /************************************************************************
  *
@@ -587,7 +589,6 @@ static unsigned int make_vertex_table( unsigned int *vert_table, int count )
 static PyObject *MCol_getAttr( BPy_MCol * self, void *type )
 {
 	unsigned char param;
-	PyObject *attr;
 
 	switch( (long)type ) {
     case 'R':	/* these are backwards, but that how it works */
@@ -611,12 +612,7 @@ static PyObject *MCol_getAttr( BPy_MCol * self, void *type )
 		}
 	}
 
-	attr = PyInt_FromLong( param );
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"PyInt_FromLong() failed"); 
+	return PyInt_FromLong( param ); 
 }
 
 /*
@@ -684,7 +680,6 @@ static PyGetSetDef BPy_MCol_getseters[] = {
 static PyObject *MCol_item(BPy_MCol * self, int i)
 {
 	unsigned char param;
-	PyObject *attr;
 	switch (i) {
 	case 0:
 		param = self->color->b;
@@ -703,12 +698,7 @@ static PyObject *MCol_item(BPy_MCol * self, int i)
 			"vector[index] = x: assignment index out of range\n");
 	}
 	
-	attr = PyInt_FromLong( param );
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"PyInt_FromLong() failed");
+	return PyInt_FromLong( param );
 }
 
 /*----------------------------object[]-------------------------
@@ -924,18 +914,11 @@ static int MVert_setCoord( BPy_MVert * self, VectorObject * value )
 
 static PyObject *MVert_getIndex( BPy_MVert * self )
 {
-	PyObject *attr;
-
 	if( self->index >= ((Mesh *)self->data)->totvert )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"MVert is no longer valid" );
 
-	attr = PyInt_FromLong( self->index );
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"PyInt_FromLong() failed" );
+	return PyInt_FromLong( self->index );
 }
 
 
@@ -947,11 +930,9 @@ static PyObject *MVert_getMFlagBits( BPy_MVert * self, void * type )
 {
 	MVert *v;
 
-	v = MVert_get_pointer( self );
-	
-	if( self->index >= ((Mesh *)self->data)->totvert )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"MVert is no longer valid" );
+	v = MVert_get_pointer( self );	
+	if (!v)
+		return NULL; /* error is set */
 
 	return EXPP_getBitfield( &v->flag, (int)((long)type & 0xff), 'b' );
 }
@@ -968,9 +949,8 @@ static int MVert_setMFlagBits( BPy_MVert * self, PyObject * value,
 
 	v = MVert_get_pointer( self );
 
-	if( self->index >= ((Mesh *)self->data)->totvert )
-		return EXPP_ReturnIntError( PyExc_RuntimeError,
-				"MVert is no longer valid" );
+	if (!v)
+		return -1; /* error is set */
 
 	return EXPP_setBitfield( value, &v->flag, 
 			(int)((long)type & 0xff), 'b' );
@@ -989,7 +969,7 @@ static PyObject *MVert_getNormal( BPy_MVert * self )
 
 	v = MVert_get_pointer( self );
 	if( !v )
-		return NULL;
+		return NULL; /* error set */
 
 	for( i = 0; i < 3; ++i )
 		no[i] = (float)(v->no[i] / 32767.0);
@@ -1008,7 +988,7 @@ static int MVert_setNormal( BPy_MVert * self, VectorObject * value )
 	
 	v = MVert_get_pointer( self );
 	if( !v )
-		return -1;
+		return -1; /* error set */
 
 	if( !VectorObject_Check( value ) || value->size != 3 )
 		return EXPP_ReturnIntError( PyExc_TypeError,
@@ -1037,7 +1017,7 @@ static PyObject *MVert_getSel( BPy_MVert *self )
 
 	v = MVert_get_pointer( self );
 	if( !v )
-		return NULL;
+		return NULL; /* error is set */
 
 	return EXPP_getBitfield( &v->flag, SELECT, 'b' );
 }
@@ -1050,6 +1030,8 @@ static int MVert_setSel( BPy_MVert *self, PyObject *value )
 {
 	MVert *v = MVert_get_pointer( self );
 	Mesh *me = (Mesh *)self->data;
+	if (!v)
+		return -1; /* error is set */
 
 	/* 
 	 * if vertex exists and setting status is OK, delete select storage
@@ -2357,18 +2339,12 @@ static MEdge * MEdge_get_pointer( BPy_MEdge * self )
 
 static PyObject *MEdge_getCrease( BPy_MEdge * self )
 {
-	PyObject *attr;
 	MEdge *edge = MEdge_get_pointer( self );
 
 	if( !edge )
 		return NULL;
 
-	attr = PyInt_FromLong( edge->crease );
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"PyInt_FromLong() failed" );
+	return PyInt_FromLong( edge->crease );
 }
 
 /*
@@ -2391,19 +2367,12 @@ static int MEdge_setCrease( BPy_MEdge * self, PyObject * value )
 
 static PyObject *MEdge_getFlag( BPy_MEdge * self )
 {
-	PyObject *attr;
 	MEdge *edge = MEdge_get_pointer( self );
 
 	if( !edge )
 		return NULL;
 
-	attr = PyInt_FromLong( edge->flag );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"PyInt_FromLong() failed" );
+	return PyInt_FromLong( edge->flag );
 }
 
 /*
@@ -2483,8 +2452,8 @@ static PyObject *MEdge_getV2( BPy_MEdge * self )
 	MEdge *edge = MEdge_get_pointer( self );
 
 	if( !edge )
-		return NULL;
-
+		return NULL; /* error is set */
+	/* if v2 is out of range, the python mvert will complain, no need to check here  */
 	return MVert_CreatePyObject( self->mesh, edge->v2 );
 }
 
@@ -2497,10 +2466,13 @@ static int MEdge_setV2( BPy_MEdge * self, BPy_MVert * value )
 	MEdge *edge = MEdge_get_pointer( self );
 
 	if( !edge )
-		return -1;
+		return -1; /* error is set */
 	if( !BPy_MVert_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError, "expected an MVert" );
 
+	if ( edge->v1 == value->index )
+		return EXPP_ReturnIntError( PyExc_ValueError, "an edge cant use the same vertex for each end" );
+	
 	edge->v2 = value->index;
 	return 0;
 }
@@ -2511,18 +2483,10 @@ static int MEdge_setV2( BPy_MEdge * self, BPy_MVert * value )
 
 static PyObject *MEdge_getIndex( BPy_MEdge * self )
 {
-	PyObject *attr;
-
 	if( !MEdge_get_pointer( self ) )
-		return NULL;
+		return NULL; /* error is set */
 
-	attr = PyInt_FromLong( self->index );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"PyInt_FromLong() failed" );
+	return PyInt_FromLong( self->index );
 }
 
 /*
@@ -2534,7 +2498,7 @@ static PyObject *MEdge_getMFlagBits( BPy_MEdge * self, void * type )
 	MEdge *edge = MEdge_get_pointer( self );
 
 	if( !edge )
-		return NULL;
+		return NULL; /* error is set */
 
 	return EXPP_getBitfield( &edge->flag, (int)((long)type & 0xff), 'b' );
 }
@@ -2551,6 +2515,12 @@ static PyObject *MEdge_getLength( BPy_MEdge * self )
 	int i;
 	float *v1, *v2;
 
+	if (!edge)
+		return NULL; /* error is set */	
+	
+	if MEDGE_VERT_BADRANGE_CHECK(self->mesh, edge)
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError, "This edge uses removed vert(s)" );
+	
 	/* get the 2 edges vert locations */
 	v1= (&((Mesh *)self->mesh)->mvert[edge->v1])->co;
 	v2= (&((Mesh *)self->mesh)->mvert[edge->v2])->co;
@@ -2574,11 +2544,11 @@ static PyObject *MEdge_getKey( BPy_MEdge * self )
 	MEdge *edge = MEdge_get_pointer( self );
 	PyObject *attr = PyTuple_New( 2 );
 	if (edge->v1 > edge->v2) {
-		PyTuple_SetItem( attr, 0, PyInt_FromLong(edge->v2) );
-		PyTuple_SetItem( attr, 1, PyInt_FromLong(edge->v1) );
+		PyTuple_SET_ITEM( attr, 0, PyInt_FromLong(edge->v2) );
+		PyTuple_SET_ITEM( attr, 1, PyInt_FromLong(edge->v1) );
 	} else {
-		PyTuple_SetItem( attr, 0, PyInt_FromLong(edge->v1) );
-		PyTuple_SetItem( attr, 1, PyInt_FromLong(edge->v2) );
+		PyTuple_SET_ITEM( attr, 0, PyInt_FromLong(edge->v1) );
+		PyTuple_SET_ITEM( attr, 1, PyInt_FromLong(edge->v2) );
 	}
 	return attr;
 }
@@ -2596,7 +2566,10 @@ static int MEdge_setSel( BPy_MEdge * self,PyObject * value,
 
 	if( !edge )
 		return -1;
-
+	
+	if MEDGE_VERT_BADRANGE_CHECK(me, edge)
+		return EXPP_ReturnIntError( PyExc_RuntimeError, "This edge uses removed vert(s)" );
+	
 	if( param == -1 )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"expected true/false argument" );
@@ -3807,7 +3780,26 @@ static int MFace_setVerts( BPy_MFace * self, PyObject * args )
 				&MVert_Type, &v2, &MVert_Type, &v3, &MVert_Type, &v4 ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 			"expected tuple of 3 or 4 MVerts" );
-
+	
+	if(	v1->index == v2->index || 
+		v1->index == v3->index || 
+		v2->index == v3->index  ) 
+		return EXPP_ReturnIntError( PyExc_ValueError,
+			"cannot assign 2 or move verts that are the same" );
+	
+	if(v4 && (	v1->index == v4->index ||
+				v2->index == v4->index ||
+				v3->index == v4->index ))
+		return EXPP_ReturnIntError( PyExc_ValueError,
+			"cannot assign 2 or move verts that are the same" );
+	
+	if(		v1->index >= self->mesh->totvert || 
+			v2->index >= self->mesh->totvert || 
+			v3->index >= self->mesh->totvert ||
+	(v4 &&(	v4->index >= self->mesh->totvert)))
+		return EXPP_ReturnIntError( PyExc_ValueError,
+			"cannot assign verts that have been removed" );
+	
 	face->v1 = v1->index;
 	face->v2 = v2->index;
 	face->v3 = v3->index;
@@ -3822,19 +3814,12 @@ static int MFace_setVerts( BPy_MFace * self, PyObject * args )
 
 static PyObject *MFace_getMat( BPy_MFace * self )
 {
-	PyObject *attr;
 	MFace *face = MFace_get_pointer( self );
 
 	if( !face )
 		return NULL;
 
-	attr = PyInt_FromLong( face->mat_nr );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"PyInt_FromLong() failed" );
+	return PyInt_FromLong( face->mat_nr );
 }
 
 /*
@@ -3846,7 +3831,7 @@ static int MFace_setMat( BPy_MFace * self, PyObject * value )
 	MFace *face = MFace_get_pointer( self );
 
 	if( !face )
-		return -1;
+		return -1; /* error is set */
 
 	return EXPP_setIValueRange( value, &face->mat_nr, 0, 15, 'b' );
 }
@@ -3857,19 +3842,12 @@ static int MFace_setMat( BPy_MFace * self, PyObject * value )
 
 static PyObject *MFace_getIndex( BPy_MFace * self )
 {
-	PyObject *attr;
 	MFace *face = MFace_get_pointer( self );
 
 	if( !face )
-		return NULL;
+		return NULL; /* error is set */
 
-	attr = PyInt_FromLong( self->index );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"PyInt_FromLong() failed" );
+	return PyInt_FromLong( self->index );
 }
 
 /*
@@ -3882,21 +3860,20 @@ static PyObject *MFace_getNormal( BPy_MFace * self )
 	float no[3];
 	MFace *face = MFace_get_pointer( self );
 
+	Mesh *me = self->mesh;
+	
 	if( !face )
-		return NULL;
-
-	if( (int)face->v1 >= self->mesh->totvert ||
-			(int)face->v2 >= self->mesh->totvert ||
-			(int)face->v3 >= self->mesh->totvert ||
-			(int)face->v4 >= self->mesh->totvert )
+	return NULL; /* error is set */
+	
+	if MFACE_VERT_BADRANGE_CHECK(me, face)
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"one or more MFace vertices are no longer valid" );
 
-	vert[0] = self->mesh->mvert[face->v1].co;
-	vert[1] = self->mesh->mvert[face->v2].co;
-	vert[2] = self->mesh->mvert[face->v3].co;
+	vert[0] = me->mvert[face->v1].co;
+	vert[1] = me->mvert[face->v2].co;
+	vert[2] = me->mvert[face->v3].co;
 	if( face->v4 ) {
-		vert[3] = self->mesh->mvert[face->v4].co;
+		vert[3] = me->mvert[face->v4].co;
 		CalcNormFloat4( vert[0], vert[1], vert[2], vert[3], no );
 	} else
 		CalcNormFloat( vert[0], vert[1], vert[2], no );
@@ -3913,23 +3890,22 @@ static PyObject *MFace_getCent( BPy_MFace * self )
 	float *vert[4];
 	float cent[3]= {0,0,0};
 	int i=3, j, k;
+	Mesh *me = self->mesh;
 	MFace *face = MFace_get_pointer( self );
 	
 	if( !face )
-		return NULL;
+		return NULL; /* error is set */
+	
 
-	if( (int)face->v1 >= self->mesh->totvert ||
-			(int)face->v2 >= self->mesh->totvert ||
-			(int)face->v3 >= self->mesh->totvert ||
-			(int)face->v4 >= self->mesh->totvert )
+	if MFACE_VERT_BADRANGE_CHECK(me, face)
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"one or more MFace vertices are no longer valid" );
 
-	vert[0] = self->mesh->mvert[face->v1].co;
-	vert[1] = self->mesh->mvert[face->v2].co;
-	vert[2] = self->mesh->mvert[face->v3].co;
+	vert[0] = me->mvert[face->v1].co;
+	vert[1] = me->mvert[face->v2].co;
+	vert[2] = me->mvert[face->v3].co;
 	if( face->v4 ) {
-		vert[3] = self->mesh->mvert[face->v4].co;
+		vert[3] = me->mvert[face->v4].co;
 		i=4;
 	} 
 	
@@ -3952,23 +3928,21 @@ static PyObject *MFace_getArea( BPy_MFace * self )
 {
 	float *v1,*v2,*v3,*v4;
 	MFace *face = MFace_get_pointer( self );
+	Mesh *me = self->mesh;
 	
 	if( !face )
-		return NULL;
+		return NULL; /* error is set */
 
-	if( (int)face->v1 >= self->mesh->totvert ||
-			(int)face->v2 >= self->mesh->totvert ||
-			(int)face->v3 >= self->mesh->totvert ||
-			(int)face->v4 >= self->mesh->totvert )
+	if MFACE_VERT_BADRANGE_CHECK(me, face)
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"one or more MFace vertices are no longer valid" );
 
-	v1 = self->mesh->mvert[face->v1].co;
-	v2 = self->mesh->mvert[face->v2].co;
-	v3 = self->mesh->mvert[face->v3].co;
+	v1 = me->mvert[face->v1].co;
+	v2 = me->mvert[face->v2].co;
+	v3 = me->mvert[face->v3].co;
 	
 	if( face->v4 ) {
-		v4 = self->mesh->mvert[face->v4].co;
+		v4 = me->mvert[face->v4].co;
 		return PyFloat_FromDouble( AreaQ3Dfl(v1, v2, v3, v4));
 	} else
 		return PyFloat_FromDouble( AreaT3Dfl(v1, v2, v3));
@@ -3983,7 +3957,7 @@ static PyObject *MFace_getMFlagBits( BPy_MFace * self, void * type )
 	MFace *face = MFace_get_pointer( self );
 
 	if( !face )
-		return NULL;
+		return NULL; /* error is set */
 
 	return EXPP_getBitfield( &face->flag, (int)((long)type & 0xff), 'b' );
 }
@@ -3998,7 +3972,7 @@ static int MFace_setMFlagBits( BPy_MFace * self, PyObject * value,
 	MFace *face = MFace_get_pointer( self );
 
 	if( !face )
-		return -1;
+		return -1; /* error is set */
 
 	return EXPP_setBitfield( value, &face->flag, 
 			(int)((long)type & 0xff), 'b' );
@@ -4012,7 +3986,7 @@ static int MFace_setSelect( BPy_MFace * self, PyObject * value,
 	Mesh *me;
 
 	if( !face )
-		return -1;
+		return -1; /* error is set */
 
 	if( param == -1 )
 		return EXPP_ReturnIntError( PyExc_TypeError,
@@ -4241,7 +4215,6 @@ static int MFace_setMode( BPy_MFace *self, PyObject *value )
 
 static PyObject *MFace_getTransp( BPy_MFace *self )
 {
-	PyObject *attr;
 	if( !self->mesh->mtface )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"face has no texture values" );
@@ -4249,13 +4222,7 @@ static PyObject *MFace_getTransp( BPy_MFace *self )
 	if( !MFace_get_pointer( self ) )
 		return NULL;
 
-	attr = PyInt_FromLong( self->mesh->mtface[self->index].transp );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"PyInt_FromLong() failed" );
+	return PyInt_FromLong( self->mesh->mtface[self->index].transp );
 }
 
 /*
@@ -4531,80 +4498,84 @@ static PyObject *MFace_getEdgeKeys( BPy_MFace * self )
 {
 	MFace *face = MFace_get_pointer( self );
 	PyObject *attr, *edpair;
+	
+	if (!face)
+		return NULL; /* error set */
+	
 	if (face->v4) {
 		attr = PyTuple_New( 4 );
 		edpair = PyTuple_New( 2 );
 		if (face->v1 > face->v2) {
-			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v2) );
-			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v1) );
+			PyTuple_SET_ITEM( edpair, 0, PyInt_FromLong(face->v2) );
+			PyTuple_SET_ITEM( edpair, 1, PyInt_FromLong(face->v1) );
 		} else {
-			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v1) );
-			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v2) );
+			PyTuple_SET_ITEM( edpair, 0, PyInt_FromLong(face->v1) );
+			PyTuple_SET_ITEM( edpair, 1, PyInt_FromLong(face->v2) );
 		}
-		PyTuple_SetItem( attr, 0, edpair );
+		PyTuple_SET_ITEM( attr, 0, edpair );
 		
 		edpair = PyTuple_New( 2 );
 		if (face->v2 > face->v3) {
-			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v3) );
-			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v2) );
+			PyTuple_SET_ITEM( edpair, 0, PyInt_FromLong(face->v3) );
+			PyTuple_SET_ITEM( edpair, 1, PyInt_FromLong(face->v2) );
 		} else {
-			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v2) );
-			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v3) );
+			PyTuple_SET_ITEM( edpair, 0, PyInt_FromLong(face->v2) );
+			PyTuple_SET_ITEM( edpair, 1, PyInt_FromLong(face->v3) );
 		}
-		PyTuple_SetItem( attr, 1, edpair );
+		PyTuple_SET_ITEM( attr, 1, edpair );
 
 		edpair = PyTuple_New( 2 );
 		if (face->v3 > face->v4) {
-			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v4) );
-			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v3) );
+			PyTuple_SET_ITEM( edpair, 0, PyInt_FromLong(face->v4) );
+			PyTuple_SET_ITEM( edpair, 1, PyInt_FromLong(face->v3) );
 		} else {
-			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v3) );
-			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v4) );
+			PyTuple_SET_ITEM( edpair, 0, PyInt_FromLong(face->v3) );
+			PyTuple_SET_ITEM( edpair, 1, PyInt_FromLong(face->v4) );
 		}
-		PyTuple_SetItem( attr, 2, edpair );
+		PyTuple_SET_ITEM( attr, 2, edpair );
 		
 		edpair = PyTuple_New( 2 );
 		if (face->v4 > face->v1) {
-			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v1) );
-			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v4) );
+			PyTuple_SET_ITEM( edpair, 0, PyInt_FromLong(face->v1) );
+			PyTuple_SET_ITEM( edpair, 1, PyInt_FromLong(face->v4) );
 		} else {
-			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v4) );
-			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v1) );
+			PyTuple_SET_ITEM( edpair, 0, PyInt_FromLong(face->v4) );
+			PyTuple_SET_ITEM( edpair, 1, PyInt_FromLong(face->v1) );
 		}
-		PyTuple_SetItem( attr, 3, edpair );
+		PyTuple_SET_ITEM( attr, 3, edpair );
 		
 	} else {
 		
 		attr = PyTuple_New( 3 );
 		edpair = PyTuple_New( 2 );
 		if (face->v1 > face->v2) {
-			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v2) );
-			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v1) );
+			PyTuple_SET_ITEM( edpair, 0, PyInt_FromLong(face->v2) );
+			PyTuple_SET_ITEM( edpair, 1, PyInt_FromLong(face->v1) );
 		} else {
-			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v1) );
-			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v2) );
+			PyTuple_SET_ITEM( edpair, 0, PyInt_FromLong(face->v1) );
+			PyTuple_SET_ITEM( edpair, 1, PyInt_FromLong(face->v2) );
 		}
-		PyTuple_SetItem( attr, 0, edpair );
+		PyTuple_SET_ITEM( attr, 0, edpair );
 		
 		edpair = PyTuple_New( 2 );
 		if (face->v2 > face->v3) {
-			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v3) );
-			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v2) );
+			PyTuple_SET_ITEM( edpair, 0, PyInt_FromLong(face->v3) );
+			PyTuple_SET_ITEM( edpair, 1, PyInt_FromLong(face->v2) );
 		} else {
-			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v2) );
-			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v3) );
+			PyTuple_SET_ITEM( edpair, 0, PyInt_FromLong(face->v2) );
+			PyTuple_SET_ITEM( edpair, 1, PyInt_FromLong(face->v3) );
 		}
-		PyTuple_SetItem( attr, 1, edpair );
+		PyTuple_SET_ITEM( attr, 1, edpair );
 
 		edpair = PyTuple_New( 2 );
 		if (face->v3 > face->v1) {
-			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v1) );
-			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v3) );
+			PyTuple_SET_ITEM( edpair, 0, PyInt_FromLong(face->v1) );
+			PyTuple_SET_ITEM( edpair, 1, PyInt_FromLong(face->v3) );
 		} else {
-			PyTuple_SetItem( edpair, 0, PyInt_FromLong(face->v3) );
-			PyTuple_SetItem( edpair, 1, PyInt_FromLong(face->v1) );
+			PyTuple_SET_ITEM( edpair, 0, PyInt_FromLong(face->v3) );
+			PyTuple_SET_ITEM( edpair, 1, PyInt_FromLong(face->v1) );
 		}
-		PyTuple_SetItem( attr, 2, edpair );
+		PyTuple_SET_ITEM( attr, 2, edpair );
 	}
 	
 	return attr;
@@ -4820,7 +4791,8 @@ static PyObject *MFace_setProp( BPy_MFace *self,  PyObject *args)
 	PyObject *obj;
 	MFace *face = MFace_get_pointer( self );
 	if( !face )
-		return NULL;
+		return NULL; /* error set */
+	
 	obj = Mesh_setProperty_internal(&(me->fdata), self->index, args);
 	mesh_update_customdata_pointers(me); //!
 	return obj;
@@ -7638,13 +7610,7 @@ static int Mesh_setMaterials( BPy_Mesh *self, PyObject * value )
 
 static PyObject *Mesh_getMaxSmoothAngle( BPy_Mesh * self )
 {
-    PyObject *attr = PyInt_FromLong( self->mesh->smoothresh );
-
-    if( attr )
-        return attr;
-
-    return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"PyInt_FromLong() failed" );
+    return PyInt_FromLong( self->mesh->smoothresh );
 }
 
 static int Mesh_setMaxSmoothAngle( BPy_Mesh *self, PyObject *value )
@@ -7656,14 +7622,8 @@ static int Mesh_setMaxSmoothAngle( BPy_Mesh *self, PyObject *value )
 
 static PyObject *Mesh_getSubDivLevels( BPy_Mesh * self )
 {
-	PyObject *attr = Py_BuildValue( "(h,h)",
+	return  Py_BuildValue( "(h,h)",
 			self->mesh->subdiv, self->mesh->subdivr );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"Py_BuildValue() failed" );
 }
 
 static int Mesh_setSubDivLevels( BPy_Mesh *self, PyObject *value )
@@ -7803,13 +7763,7 @@ static int Mesh_setFlag( BPy_Mesh * self, PyObject *value, void *type )
 
 static PyObject *Mesh_getMode( BPy_Mesh * self )
 {
-	PyObject *attr = PyInt_FromLong( self->mesh->flag );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Mesh.mode attribute" );
+	return PyInt_FromLong( self->mesh->flag );
 }
 
 static int Mesh_setMode( BPy_Mesh *self, PyObject *value )
@@ -7858,13 +7812,7 @@ static PyObject *Mesh_getActiveFace( BPy_Mesh * self )
 
 	for( i = 0; i < totface; ++face, ++i )
 		if( face->flag & TF_ACTIVE ) {
-			PyObject *attr = PyInt_FromLong( i );
-
-			if( attr )
-				return attr;
-
-			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"PyInt_FromLong() failed" );
+			return PyInt_FromLong( i );
 		}
 
 	Py_RETURN_NONE;
@@ -7968,7 +7916,7 @@ static int Mesh_setTexMesh( BPy_Mesh * self, PyObject * value )
 	if (ret==0 && value!=Py_None) /*This must be a mesh type*/
 		(( BPy_Mesh * ) value)->new= 0;
 	
-	return 0;
+	return ret;
 }
 
 static int Mesh_setSel( BPy_Mesh * self, PyObject * arg )

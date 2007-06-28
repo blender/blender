@@ -149,7 +149,7 @@ static PyMethodDef BPy_Text3d_methods[] = {
 	{"setName", ( PyCFunction ) Text3d_setName,
 	 METH_VARARGS, "() - Sets Text3d Data name"},
 	{"setText", ( PyCFunction ) Text3d_setText,
-	 METH_VARARGS, "() - Sets Text3d Data"},
+	 METH_O, "() - Sets Text3d Data"},
 	{"getText", ( PyCFunction ) Text3d_getText,
 	 METH_NOARGS, "() - Gets Text3d Data"},		 
 	{"getDrawMode", ( PyCFunction ) Text3d_getDrawMode,
