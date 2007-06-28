@@ -94,7 +94,6 @@
 #include "blendef.h"
 #include "mydevice.h"
 
-static int viewmovetemp = 0;
 extern int totipo_edit, totipo_sel;
 
 /* headerbutton call, assuming full context is set */
@@ -1065,7 +1064,6 @@ void do_ipo_buttons(short event)
 		allqueue(REDRAWVIEW3D, 0);
 		break;
 	case B_VIEW2DZOOM:
-		viewmovetemp= 0;
 		view2dzoom(event);
 		scrarea_queue_headredraw(curarea);
 		break;

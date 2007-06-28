@@ -153,8 +153,6 @@
 #define TEST_EDITMESH	if(G.obedit==0) return; \
 						if( (G.vd->lay & G.obedit->lay)==0 ) return;
 
-static int viewmovetemp = 0;
-
 void do_layer_buttons(short event)
 {
 	static int oldlay= 1;
@@ -4750,18 +4748,7 @@ void do_view3d_buttons(short event)
 		if (select_area(SPACE_VIEW3D)) {
 				start_game();
 		}
-		break;
-	case B_VIEWZOOM:
-		viewmovetemp= 0;
-		viewmove(2);
-		scrarea_queue_headredraw(curarea);
-		break;
-	case B_VIEWTRANS:
-		viewmovetemp= 0;
-		viewmove(1);
-		scrarea_queue_headredraw(curarea);
-		break;
-		
+		break;		
 	case B_MODESELECT:
 		if (G.vd->modeselect == V3D_OBJECTMODE_SEL) {
 			
