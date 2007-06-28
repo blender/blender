@@ -39,6 +39,10 @@ typedef unsigned short		GHOST_TUns16;
 typedef	int					GHOST_TInt32;
 typedef	unsigned int		GHOST_TUns32;
 
+#ifdef WIN32
+#define WM_BLND_3DX			WM_USER + 1
+#endif
+
 #if defined(WIN32) && !defined(FREE_WINDOWS)
 typedef __int64				GHOST_TInt64;
 typedef unsigned __int64	GHOST_TUns64;
