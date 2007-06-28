@@ -125,6 +125,8 @@ static PyObject *MEdgeSeq_CreatePyObject( Mesh * mesh );
 static PyObject *MFace_CreatePyObject( Mesh * mesh, int i );
 static PyObject *MEdge_CreatePyObject( Mesh * mesh, int i );
 
+#define MFACE_VERT_BADRANGE_CHECK(me, face) ((int)face->v1 >= me->totvert || (int)face->v2 >= me->totvert || (int)face->v3 >= me->totvert || (int)face->v4 >= me->totvert)
+#define MEDGE_VERT_BADRANGE_CHECK(me, edge) ((int)edge->v1 >= me->totvert || (int)edge->v2 >= me->totvert)
 
 /************************************************************************
  *
@@ -947,11 +949,9 @@ static PyObject *MVert_getMFlagBits( BPy_MVert * self, void * type )
 {
 	MVert *v;
 
-	v = MVert_get_pointer( self );
-	
-	if( self->index >= ((Mesh *)self->data)->totvert )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"MVert is no longer valid" );
+	v = MVert_get_pointer( self );	
+	if (!v)
+		return NULL; /* error is set */
 
 	return EXPP_getBitfield( &v->flag, (int)((long)type & 0xff), 'b' );
 }
@@ -968,9 +968,8 @@ static int MVert_setMFlagBits( BPy_MVert * self, PyObject * value,
 
 	v = MVert_get_pointer( self );
 
-	if( self->index >= ((Mesh *)self->data)->totvert )
-		return EXPP_ReturnIntError( PyExc_RuntimeError,
-				"MVert is no longer valid" );
+	if (!v)
+		return -1; /* error is set */
 
 	return EXPP_setBitfield( value, &v->flag, 
 			(int)((long)type & 0xff), 'b' );
@@ -1050,6 +1049,8 @@ static int MVert_setSel( BPy_MVert *self, PyObject *value )
 {
 	MVert *v = MVert_get_pointer( self );
 	Mesh *me = (Mesh *)self->data;
+	if (!v)
+		return -1; /* error is set */
 
 	/* 
 	 * if vertex exists and setting status is OK, delete select storage
@@ -2203,8 +2204,8 @@ static PyObject *MEdge_getV2( BPy_MEdge * self )
 	MEdge *edge = MEdge_get_pointer( self );
 
 	if( !edge )
-		return NULL;
-
+		return NULL; /* error is set */
+	/* if v2 is out of range, the python mvert will complain, no need to check here  */
 	return MVert_CreatePyObject( self->mesh, edge->v2 );
 }
 
@@ -2217,10 +2218,13 @@ static int MEdge_setV2( BPy_MEdge * self, BPy_MVert * value )
 	MEdge *edge = MEdge_get_pointer( self );
 
 	if( !edge )
-		return -1;
+		return -1; /* error is set */
 	if( !BPy_MVert_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError, "expected an MVert" );
 
+	if ( edge->v1 == value->index )
+		return EXPP_ReturnIntError( PyExc_ValueError, "an edge cant use the same vertex for each end" );
+	
 	edge->v2 = value->index;
 	return 0;
 }
@@ -2271,6 +2275,12 @@ static PyObject *MEdge_getLength( BPy_MEdge * self )
 	int i;
 	float *v1, *v2;
 
+	if (!edge)
+		return NULL; /* error is set */	
+	
+	if MEDGE_VERT_BADRANGE_CHECK(self->mesh, edge)
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError, "This edge uses removed vert(s)" );
+	
 	/* get the 2 edges vert locations */
 	v1= (&((Mesh *)self->mesh)->mvert[edge->v1])->co;
 	v2= (&((Mesh *)self->mesh)->mvert[edge->v2])->co;
@@ -2317,6 +2327,10 @@ static int MEdge_setSel( BPy_MEdge * self,PyObject * value,
 	if( !edge )
 		return -1;
 
+	
+	if MEDGE_VERT_BADRANGE_CHECK(me, edge)
+		return EXPP_ReturnIntError( PyExc_RuntimeError, "This edge uses removed vert(s)" );
+	
 	if( param == -1 )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"expected true/false argument" );
@@ -3472,7 +3486,26 @@ static int MFace_setVerts( BPy_MFace * self, PyObject * args )
 				&MVert_Type, &v2, &MVert_Type, &v3, &MVert_Type, &v4 ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 			"expected tuple of 3 or 4 MVerts" );
-
+	
+	if(	v1->index == v2->index || 
+		v1->index == v3->index || 
+		v2->index == v3->index  ) 
+		return EXPP_ReturnIntError( PyExc_ValueError,
+			"cannot assign 2 or move verts that are the same" );
+	
+	if(v4 && (	v1->index == v4->index ||
+				v2->index == v4->index ||
+				v3->index == v4->index ))
+		return EXPP_ReturnIntError( PyExc_ValueError,
+			"cannot assign 2 or move verts that are the same" );
+	
+	if(		v1->index >= self->mesh->totvert || 
+			v2->index >= self->mesh->totvert || 
+			v3->index >= self->mesh->totvert ||
+	(v4 &&(	v4->index >= self->mesh->totvert)))
+		return EXPP_ReturnIntError( PyExc_ValueError,
+			"cannot assign verts that have been removed" );
+	
 	face->v1 = v1->index;
 	face->v2 = v2->index;
 	face->v3 = v3->index;
@@ -3547,21 +3580,20 @@ static PyObject *MFace_getNormal( BPy_MFace * self )
 	float no[3];
 	MFace *face = MFace_get_pointer( self );
 
+	Mesh *me = self->mesh;
+	
 	if( !face )
-		return NULL;
-
-	if( (int)face->v1 >= self->mesh->totvert ||
-			(int)face->v2 >= self->mesh->totvert ||
-			(int)face->v3 >= self->mesh->totvert ||
-			(int)face->v4 >= self->mesh->totvert )
+	return NULL; /* error is set */
+	
+	if MFACE_VERT_BADRANGE_CHECK(me, face)
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"one or more MFace vertices are no longer valid" );
 
-	vert[0] = self->mesh->mvert[face->v1].co;
-	vert[1] = self->mesh->mvert[face->v2].co;
-	vert[2] = self->mesh->mvert[face->v3].co;
+	vert[0] = me->mvert[face->v1].co;
+	vert[1] = me->mvert[face->v2].co;
+	vert[2] = me->mvert[face->v3].co;
 	if( face->v4 ) {
-		vert[3] = self->mesh->mvert[face->v4].co;
+		vert[3] = me->mvert[face->v4].co;
 		CalcNormFloat4( vert[0], vert[1], vert[2], vert[3], no );
 	} else
 		CalcNormFloat( vert[0], vert[1], vert[2], no );
@@ -3578,23 +3610,22 @@ static PyObject *MFace_getCent( BPy_MFace * self )
 	float *vert[4];
 	float cent[3]= {0,0,0};
 	int i=3, j, k;
+	Mesh *me = self->mesh;
 	MFace *face = MFace_get_pointer( self );
 	
 	if( !face )
-		return NULL;
+		return NULL; /* error is set */
+	
 
-	if( (int)face->v1 >= self->mesh->totvert ||
-			(int)face->v2 >= self->mesh->totvert ||
-			(int)face->v3 >= self->mesh->totvert ||
-			(int)face->v4 >= self->mesh->totvert )
+	if MFACE_VERT_BADRANGE_CHECK(me, face)
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"one or more MFace vertices are no longer valid" );
 
-	vert[0] = self->mesh->mvert[face->v1].co;
-	vert[1] = self->mesh->mvert[face->v2].co;
-	vert[2] = self->mesh->mvert[face->v3].co;
+	vert[0] = me->mvert[face->v1].co;
+	vert[1] = me->mvert[face->v2].co;
+	vert[2] = me->mvert[face->v3].co;
 	if( face->v4 ) {
-		vert[3] = self->mesh->mvert[face->v4].co;
+		vert[3] = me->mvert[face->v4].co;
 		i=4;
 	} 
 	
@@ -3617,23 +3648,21 @@ static PyObject *MFace_getArea( BPy_MFace * self )
 {
 	float *v1,*v2,*v3,*v4;
 	MFace *face = MFace_get_pointer( self );
+	Mesh *me = self->mesh;
 	
 	if( !face )
-		return NULL;
+		return NULL; /* error is set */
 
-	if( (int)face->v1 >= self->mesh->totvert ||
-			(int)face->v2 >= self->mesh->totvert ||
-			(int)face->v3 >= self->mesh->totvert ||
-			(int)face->v4 >= self->mesh->totvert )
+	if MFACE_VERT_BADRANGE_CHECK(me, face)
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"one or more MFace vertices are no longer valid" );
 
-	v1 = self->mesh->mvert[face->v1].co;
-	v2 = self->mesh->mvert[face->v2].co;
-	v3 = self->mesh->mvert[face->v3].co;
+	v1 = me->mvert[face->v1].co;
+	v2 = me->mvert[face->v2].co;
+	v3 = me->mvert[face->v3].co;
 	
 	if( face->v4 ) {
-		v4 = self->mesh->mvert[face->v4].co;
+		v4 = me->mvert[face->v4].co;
 		return PyFloat_FromDouble( AreaQ3Dfl(v1, v2, v3, v4));
 	} else
 		return PyFloat_FromDouble( AreaT3Dfl(v1, v2, v3));
@@ -4196,6 +4225,10 @@ static PyObject *MFace_getEdgeKeys( BPy_MFace * self )
 {
 	MFace *face = MFace_get_pointer( self );
 	PyObject *attr, *edpair;
+	
+	if (!face)
+		return NULL; /* error set */
+	
 	if (face->v4) {
 		attr = PyTuple_New( 4 );
 		edpair = PyTuple_New( 2 );
@@ -7537,7 +7570,7 @@ static int Mesh_setTexMesh( BPy_Mesh * self, PyObject * value )
 	if (ret==0 && value!=Py_None) /*This must be a mesh type*/
 		(( BPy_Mesh * ) value)->new= 0;
 	
-	return 0;
+	return ret;
 }
 
 static int Mesh_setSel( BPy_Mesh * self, PyObject * arg )
