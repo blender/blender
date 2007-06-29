@@ -4138,8 +4138,6 @@ static int MFace_setFlag( BPy_MFace *self, PyObject *value )
 
 static PyObject *MFace_getMode( BPy_MFace *self )
 {
-	PyObject *attr;
-
 	if( !self->mesh->mtface )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"face has no texture values" );
@@ -4147,13 +4145,7 @@ static PyObject *MFace_getMode( BPy_MFace *self )
 	if( !MFace_get_pointer( self ) )
 		return NULL;
 
-	attr = PyInt_FromLong( self->mesh->mtface[self->index].mode );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"PyInt_FromLong() failed" );
+	return PyInt_FromLong( self->mesh->mtface[self->index].mode );
 }
 
 /*
@@ -7653,34 +7645,23 @@ static int Mesh_setSubDivLevels( BPy_Mesh *self, PyObject *value )
 
 static PyObject *Mesh_getFlag( BPy_Mesh * self, void *type )
 {
-	PyObject *attr;
-
 	switch( (long)type ) {
 	case MESH_HASFACEUV:
-		attr = self->mesh->mtface ? EXPP_incr_ret_True() :
+		return self->mesh->mtface ? EXPP_incr_ret_True() :
 			EXPP_incr_ret_False();
-		break;
 	case MESH_HASMCOL:
-		attr = self->mesh->mcol ? EXPP_incr_ret_True() :
+		return self->mesh->mcol ? EXPP_incr_ret_True() :
 			EXPP_incr_ret_False();
-		break;
 	case MESH_HASVERTUV:
-		attr = self->mesh->msticky ? EXPP_incr_ret_True() :
+		return self->mesh->msticky ? EXPP_incr_ret_True() :
 			EXPP_incr_ret_False();
-		break;
 	case MESH_HASMULTIRES:
-		attr = self->mesh->mr ? EXPP_incr_ret_True() :
+		return self->mesh->mr ? EXPP_incr_ret_True() :
 			EXPP_incr_ret_False();
-		break;
 	default:
-		attr = NULL;
-	}
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					"couldn't get attribute" );
+	}
 }
 
 static int Mesh_setFlag( BPy_Mesh * self, PyObject *value, void *type )

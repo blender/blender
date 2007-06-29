@@ -1285,7 +1285,7 @@ static PyObject *Object_getIpo( BPy_Object * self )
 static PyObject *Object_getLocation( BPy_Object * self, PyObject * args )
 {
 	char *space = "localspace";	/* default to local */
-	PyObject *attr;
+	
 	if( !PyArg_ParseTuple( args, "|s", &space ) ) 
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected a string or nothing" );
@@ -1294,23 +1294,20 @@ static PyObject *Object_getLocation( BPy_Object * self, PyObject * args )
 		disable_where_script( 1 );
 		where_is_object( self->object );
 		
-		attr = Py_BuildValue( "fff",
+		return Py_BuildValue( "fff",
 					self->object->obmat[3][0],
 					self->object->obmat[3][1],
 					self->object->obmat[3][2] );
 		
 		disable_where_script( 0 );
 	} else if( BLI_streq( space, "localspace" ) ) {	/* Localspace matrix */
-		attr = Py_BuildValue( "fff",
+		return Py_BuildValue( "fff",
 					self->object->loc[0],
 					self->object->loc[1],
 					self->object->loc[2] );
-	} else {
-		return EXPP_ReturnPyObjError( PyExc_ValueError,
-				"expected either nothing, 'localspace' (default) or 'worldspace'" );
 	}
-
-	return attr;
+	return EXPP_ReturnPyObjError( PyExc_ValueError,
+				"expected either nothing, 'localspace' (default) or 'worldspace'" );
 }
 
 static PyObject *Object_getMaterials( BPy_Object * self, PyObject * args )
@@ -1366,7 +1363,6 @@ static int Object_setParentBoneName( BPy_Object * self, PyObject *value )
 
 static PyObject *Object_getSize( BPy_Object * self, PyObject * args )
 {
-	PyObject *attr;
 	char *space = "localspace";	/* default to local */
 	
 	if( !PyArg_ParseTuple( args, "|s", &space ) )
@@ -1378,22 +1374,19 @@ static PyObject *Object_getSize( BPy_Object * self, PyObject * args )
 		disable_where_script( 1 );
 		where_is_object( self->object );
 		Mat4ToSize(self->object->obmat, scale);
-		attr = Py_BuildValue( "fff",
+		return Py_BuildValue( "fff",
 					self->object->size[0],
 					self->object->size[1],
 					self->object->size[2] );
 		disable_where_script( 0 );
 	} else if( BLI_streq( space, "localspace" ) ) {	/* Localspace matrix */
-		attr = Py_BuildValue( "fff",
+		return Py_BuildValue( "fff",
 					self->object->size[0],
 					self->object->size[1],
 					self->object->size[2] );
-	} else {
-		return EXPP_ReturnPyObjError( PyExc_ValueError,
-				"expected either nothing, 'localspace' (default) or 'worldspace'" );
 	}
-
-	return attr;
+	return EXPP_ReturnPyObjError( PyExc_ValueError,
+			"expected either nothing, 'localspace' (default) or 'worldspace'" );
 }
 
 static PyObject *Object_getTimeOffset( BPy_Object * self )
@@ -3535,7 +3528,6 @@ void Object_updateDag( void *data )
 
 static PyObject *getIntAttr( BPy_Object *self, void *type )
 {
-	PyObject *attr = NULL;
 	int param;
 	struct Object *object = self->object;
 
@@ -3582,13 +3574,7 @@ static PyObject *getIntAttr( BPy_Object *self, void *type )
 				"undefined type in getIntAttr" );
 	}
 
-	attr = PyInt_FromLong( param );
-	
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_MemoryError,
-				"PyInt_FromLong() failed!" );
+	return PyInt_FromLong( param );
 }
 
 /*
@@ -4079,7 +4065,6 @@ static int setFloatAttr( BPy_Object *self, PyObject *value, void *type )
 
 static PyObject *getFloat3Attr( BPy_Object *self, void *type )
 {
-	PyObject *attr = NULL;
 	float *param;
 	struct Object *object = self->object;
 
@@ -4104,13 +4089,7 @@ static PyObject *getFloat3Attr( BPy_Object *self, void *type )
 				"undefined type in getFloat3Attr" );
 	}
 
-	attr = Py_BuildValue( "(fff)", param[0], param[1], param[2] );
-	
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_MemoryError,
-				"Py_BuildValue() failed!" );
+	return Py_BuildValue( "(fff)", param[0], param[1], param[2] );
 }
 
 /*

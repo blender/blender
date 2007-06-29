@@ -1554,13 +1554,7 @@ Mesh *Mesh_fromNMesh( BPy_NMesh * nmesh )
 
 static PyObject *NMesh_getMaxSmoothAngle( BPy_NMesh * self )
 {
-	PyObject *attr = PyInt_FromLong( self->smoothresh );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get NMesh.maxSmoothAngle attribute" );
+	return PyInt_FromLong( self->smoothresh );
 }
 
 static PyObject *NMesh_setMaxSmoothAngle( PyObject * self, PyObject * args )
@@ -1581,14 +1575,7 @@ static PyObject *NMesh_setMaxSmoothAngle( PyObject * self, PyObject * args )
 
 static PyObject *NMesh_getSubDivLevels( BPy_NMesh * self )
 {
-	PyObject *attr =
-		Py_BuildValue( "[h,h]", self->subdiv[0], self->subdiv[1] );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get NMesh.subDivLevels attribute" );
+	return Py_BuildValue( "[h,h]", self->subdiv[0], self->subdiv[1] );
 }
 
 static PyObject *NMesh_setSubDivLevels( PyObject * self, PyObject * args )
@@ -1613,13 +1600,7 @@ static PyObject *NMesh_setSubDivLevels( PyObject * self, PyObject * args )
 
 static PyObject *NMesh_getMode( BPy_NMesh * self )
 {
-	PyObject *attr = PyInt_FromLong( self->mode );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get NMesh.mode attribute" );
+	return PyInt_FromLong( self->mode );
 }
 
 static PyObject *NMesh_setMode( PyObject * self, PyObject * args )

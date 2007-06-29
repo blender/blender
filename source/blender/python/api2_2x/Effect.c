@@ -774,11 +774,7 @@ PyObject *Effect_Init( void )
 
 static PyObject *Effect_getType( BPy_Effect * self )
 {
-	PyObject *attr = PyInt_FromLong( ( long ) self->effect->type );
-	if( attr )
-		return attr;
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get mode attribute" ) );
+	return PyInt_FromLong( ( long ) self->effect->type );
 }
 
 /* does nothing since there is only one type of effect */
@@ -800,28 +796,12 @@ static int Effect_setStype( BPy_Effect * self, PyObject * args )
 
 static PyObject *Effect_getStype( BPy_Effect * self )
 {
-	PyObject *attr;
-	long stype = (long)( self->effect->stype );
-
-	attr = PyInt_FromLong( stype );
-	if( attr )		return attr;
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Effect.stype attribute" );
+	return PyInt_FromLong( (long)( self->effect->stype ) );
 }
 
 static PyObject *Effect_getFlag( BPy_Effect * self )
 {
-	PyObject *attr;
-	/* toggle "Verts" setting because clear is "on" */
-	long flag = (long)( self->effect->flag ^ PAF_OFACE );
-
-	attr = PyInt_FromLong( flag );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Effect.flag attribute" );
+	return PyInt_FromLong( (long)( self->effect->flag ^ PAF_OFACE ) );
 }
 
 static int Effect_setFlag( BPy_Effect * self, PyObject * args )
@@ -852,13 +832,7 @@ static int Effect_setFlag( BPy_Effect * self, PyObject * args )
 
 static PyObject *Effect_getSta( BPy_Effect * self )
 {
-	PyObject *attr = PyFloat_FromDouble( self->effect->sta );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Effect.sta attribute" );
+	return PyFloat_FromDouble( self->effect->sta );
 }
 
 static int Effect_setSta( BPy_Effect * self, PyObject * args )
@@ -869,15 +843,7 @@ static int Effect_setSta( BPy_Effect * self, PyObject * args )
 
 static PyObject *Effect_getEnd( BPy_Effect * self )
 {
-	PyObject *attr;
-	PartEff *ptr = ( PartEff * ) self->effect;
-
-	attr = PyFloat_FromDouble( ptr->end );
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Effect.end attribute" );
+	return PyFloat_FromDouble( ((PartEff *) self->effect)->end );
 }
 
 static int Effect_setEnd( BPy_Effect * self, PyObject * args )
@@ -895,13 +861,7 @@ static int Effect_setEnd( BPy_Effect * self, PyObject * args )
 
 static PyObject *Effect_getLifetime( BPy_Effect * self )
 {
-	PyObject *attr = PyFloat_FromDouble( self->effect->lifetime );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Effect.lifetime attribute" );
+	return PyFloat_FromDouble( self->effect->lifetime );
 }
 
 static int Effect_setLifetime( BPy_Effect * self, PyObject * args )
@@ -912,13 +872,7 @@ static int Effect_setLifetime( BPy_Effect * self, PyObject * args )
 
 static PyObject *Effect_getNormfac( BPy_Effect * self )
 {
-	PyObject *attr = PyFloat_FromDouble( self->effect->normfac );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Effect.normfac attribute" );
+	return PyFloat_FromDouble( self->effect->normfac );
 }
 
 static int Effect_setNormfac( BPy_Effect * self, PyObject * args )
@@ -929,13 +883,7 @@ static int Effect_setNormfac( BPy_Effect * self, PyObject * args )
 
 static PyObject *Effect_getObfac( BPy_Effect * self )
 {
-	PyObject *attr = PyFloat_FromDouble( self->effect->obfac );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Effect.obfac attribute" );
+	return PyFloat_FromDouble( self->effect->obfac );
 }
 
 static int Effect_setObfac( BPy_Effect * self, PyObject * args )
@@ -946,13 +894,7 @@ static int Effect_setObfac( BPy_Effect * self, PyObject * args )
 
 static PyObject *Effect_getRandfac( BPy_Effect * self )
 {
-	PyObject *attr = PyFloat_FromDouble( self->effect->randfac );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Effect.randfac attribute" );
+	return PyFloat_FromDouble( self->effect->randfac );
 }
 
 static int Effect_setRandfac( BPy_Effect * self, PyObject * args )
@@ -963,13 +905,7 @@ static int Effect_setRandfac( BPy_Effect * self, PyObject * args )
 
 static PyObject *Effect_getTexfac( BPy_Effect * self )
 {
-	PyObject *attr = PyFloat_FromDouble( self->effect->texfac );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Effect.texfac attribute" );
+	return PyFloat_FromDouble( self->effect->texfac );
 }
 
 static int Effect_setTexfac( BPy_Effect * self, PyObject * args )
@@ -980,13 +916,7 @@ static int Effect_setTexfac( BPy_Effect * self, PyObject * args )
 
 static PyObject *Effect_getRandlife( BPy_Effect * self )
 {
-	PyObject *attr = PyFloat_FromDouble( self->effect->randlife );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Effect.randlife attribute" );
+	return PyFloat_FromDouble( self->effect->randlife );
 }
 
 static int Effect_setRandlife( BPy_Effect * self, PyObject * args )
@@ -997,13 +927,7 @@ static int Effect_setRandlife( BPy_Effect * self, PyObject * args )
 
 static PyObject *Effect_getNabla( BPy_Effect * self )
 {
-	PyObject *attr = PyFloat_FromDouble( self->effect->nabla );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Effect.nabla attribute" );
+	return PyFloat_FromDouble( self->effect->nabla );
 }
 
 static int Effect_setNabla( BPy_Effect * self, PyObject * args )
@@ -1014,13 +938,7 @@ static int Effect_setNabla( BPy_Effect * self, PyObject * args )
 
 static PyObject *Effect_getVectsize( BPy_Effect * self )
 {
-	PyObject *attr = PyFloat_FromDouble( self->effect->vectsize );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Effect.vectsize attribute" );
+	return PyFloat_FromDouble( self->effect->vectsize );
 }
 
 static int Effect_setVectsize( BPy_Effect * self, PyObject * args )
@@ -1031,13 +949,7 @@ static int Effect_setVectsize( BPy_Effect * self, PyObject * args )
 
 static PyObject *Effect_getTotpart( BPy_Effect * self )
 {
-	PyObject *attr = PyInt_FromLong( self->effect->totpart );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Effect.totpart attribute" );
+	return PyInt_FromLong( self->effect->totpart );
 }
 
 static int Effect_setTotpart( BPy_Effect * self, PyObject * args )
@@ -1048,13 +960,7 @@ static int Effect_setTotpart( BPy_Effect * self, PyObject * args )
 
 static PyObject *Effect_getTotkey( BPy_Effect * self )
 {
-	PyObject *attr = PyInt_FromLong( self->effect->totkey );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Effect.totkey attribute" );
+	return PyInt_FromLong( self->effect->totkey );
 }
 
 static int Effect_setTotkey( BPy_Effect * self, PyObject * args )
@@ -1065,13 +971,7 @@ static int Effect_setTotkey( BPy_Effect * self, PyObject * args )
 
 static PyObject *Effect_getSeed( BPy_Effect * self )
 {
-	PyObject *attr = PyInt_FromLong( self->effect->seed );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Effect.seed attribute" );
+	return PyInt_FromLong( self->effect->seed );
 }
 
 static int Effect_setSeed( BPy_Effect * self, PyObject * args )
@@ -1082,14 +982,8 @@ static int Effect_setSeed( BPy_Effect * self, PyObject * args )
 
 static PyObject *Effect_getForce( BPy_Effect * self )
 {
-	PyObject *attr = Py_BuildValue( "(f,f,f)", self->effect->force[0],
+	return Py_BuildValue( "(f,f,f)", self->effect->force[0],
 			self->effect->force[1], self->effect->force[2] );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Effect.force attribute" );
 }
 
 static int Effect_setForce( BPy_Effect * self, PyObject * args )
@@ -1111,15 +1005,9 @@ static int Effect_setForce( BPy_Effect * self, PyObject * args )
 
 static PyObject *Effect_getMult( BPy_Effect * self )
 {
-	PyObject *attr = Py_BuildValue( "(f,f,f,f)", self->effect->mult[0],
+	return Py_BuildValue( "(f,f,f,f)", self->effect->mult[0],
 			self->effect->mult[1], self->effect->mult[2],
 			self->effect->mult[3] );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Effect.mult attribute" );
 }
 
 static int Effect_setMult( BPy_Effect * self, PyObject * args )
@@ -1141,15 +1029,9 @@ static int Effect_setMult( BPy_Effect * self, PyObject * args )
 
 static PyObject *Effect_getLife( BPy_Effect * self )
 {
-	PyObject *attr = Py_BuildValue( "(f,f,f,f)", self->effect->life[0],
+	return Py_BuildValue( "(f,f,f,f)", self->effect->life[0],
 			self->effect->life[1], self->effect->life[2],
 			self->effect->life[3] );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Effect.life attribute" );
 }
 
 static int Effect_setLife( BPy_Effect * self, PyObject * args )
@@ -1171,15 +1053,9 @@ static int Effect_setLife( BPy_Effect * self, PyObject * args )
 
 static PyObject *Effect_getChild( BPy_Effect * self )
 {
-	PyObject *attr = Py_BuildValue( "(h,h,h,h)", self->effect->child[0],
+	return Py_BuildValue( "(h,h,h,h)", self->effect->child[0],
 			self->effect->child[1], self->effect->child[2],
 			self->effect->child[3] );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Effect.child attribute" );
 }
 
 
@@ -1202,15 +1078,9 @@ static int Effect_setChild( BPy_Effect * self, PyObject * args )
 
 static PyObject *Effect_getChildMat( BPy_Effect * self )
 {
-	PyObject *attr = Py_BuildValue( "(h,h,h,h)", self->effect->mat[0],
+	return Py_BuildValue( "(h,h,h,h)", self->effect->mat[0],
 			self->effect->mat[1], self->effect->mat[2],
 			self->effect->mat[3] );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Effect.childMat attribute" );
 }
 
 static int Effect_setChildMat( BPy_Effect * self, PyObject * args )
@@ -1232,14 +1102,8 @@ static int Effect_setChildMat( BPy_Effect * self, PyObject * args )
 
 static PyObject *Effect_getDefvec( BPy_Effect * self )
 {
-	PyObject *attr = Py_BuildValue( "(f,f,f)", self->effect->defvec[0],
+	return Py_BuildValue( "(f,f,f)", self->effect->defvec[0],
 			self->effect->defvec[1], self->effect->defvec[2] );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Effect.defvec attribute" );
 }
 
 static int Effect_setDefvec( BPy_Effect * self, PyObject * args )
@@ -1262,13 +1126,7 @@ static int Effect_setDefvec( BPy_Effect * self, PyObject * args )
 
 static PyObject *Effect_getJitter( BPy_Effect * self )
 {
-	PyObject *attr = PyInt_FromLong( ( long )self->effect->userjit );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Effect.jitter attribute" );
+	return PyInt_FromLong( ( long )self->effect->userjit );
 }
 
 static int Effect_setJitter( BPy_Effect * self, PyObject * args )
@@ -1279,13 +1137,7 @@ static int Effect_setJitter( BPy_Effect * self, PyObject * args )
 
 static PyObject *Effect_getDispMat( BPy_Effect * self )
 {
-	PyObject *attr = PyInt_FromLong( ( long )self->effect->omat );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Effect.dispMat attribute" );
+	return PyInt_FromLong( ( long )self->effect->omat );
 }
 
 static int Effect_setDispMat( BPy_Effect * self, PyObject * args )
@@ -1296,13 +1148,7 @@ static int Effect_setDispMat( BPy_Effect * self, PyObject * args )
 
 static PyObject *Effect_getEmissionTex( BPy_Effect * self )
 {
-	PyObject *attr = PyInt_FromLong( ( long )self->effect->timetex );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Effect.emissionTex attribute" );
+	return PyInt_FromLong( ( long )self->effect->timetex );
 }
 
 static int Effect_setEmissionTex( BPy_Effect * self, PyObject * args )
@@ -1313,13 +1159,7 @@ static int Effect_setEmissionTex( BPy_Effect * self, PyObject * args )
 
 static PyObject *Effect_getForceTex( BPy_Effect * self )
 {
-	PyObject *attr = PyInt_FromLong( ( long )self->effect->speedtex );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Effect.forceTex attribute" );
+	return PyInt_FromLong( ( long )self->effect->speedtex );
 }
 
 static int Effect_setForceTex( BPy_Effect * self, PyObject * args )
@@ -1330,13 +1170,7 @@ static int Effect_setForceTex( BPy_Effect * self, PyObject * args )
 
 static PyObject *Effect_getSpeedType( BPy_Effect * self )
 {
-	PyObject *attr = PyInt_FromLong( ( long )self->effect->texmap );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Effect.speedType attribute" );
+	return PyInt_FromLong( ( long )self->effect->texmap );
 }
 
 static int Effect_setSpeedType( BPy_Effect * self, PyObject * args )
@@ -1348,13 +1182,7 @@ static int Effect_setSpeedType( BPy_Effect * self, PyObject * args )
 
 static PyObject *Effect_getDamping( BPy_Effect * self )
 {
-	PyObject *attr = PyFloat_FromDouble( ( double )self->effect->damp );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Effect.damping attribute" );
+	return PyFloat_FromDouble( ( double )self->effect->damp );
 }
 
 static int Effect_setDamping( BPy_Effect * self, PyObject * args )
@@ -1365,13 +1193,7 @@ static int Effect_setDamping( BPy_Effect * self, PyObject * args )
 
 static PyObject *Effect_getVertGroup( BPy_Effect * self )
 {
-	PyObject *attr = PyString_FromString( self->effect->vgroupname );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Effect.vGroup attribute" );
+	return PyString_FromString( self->effect->vgroupname );
 }
 
 
@@ -1399,13 +1221,7 @@ static int Effect_setVertGroup( BPy_Effect * self, PyObject * value )
 
 static PyObject *Effect_getSpeedVertGroup( BPy_Effect * self )
 {
-	PyObject *attr = PyString_FromString( self->effect->vgroupname_v );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Effect.speedVGroup attribute" );
+	return PyString_FromString( self->effect->vgroupname_v );
 }
 
 static int Effect_setSpeedVertGroup( BPy_Effect * self, PyObject * value )
@@ -1438,13 +1254,7 @@ static int Effect_setSpeedVertGroup( BPy_Effect * self, PyObject * value )
 /*****************************************************************************/
 static PyObject *Effect_getDisp( BPy_Effect * self )
 {
-	PyObject *attr = PyInt_FromLong( ( long )self->effect->disp );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Effect.disp attribute" );
+	return PyInt_FromLong( ( long )self->effect->disp );
 }
 
 static int Effect_setDisp( BPy_Effect * self, PyObject * args )
@@ -1461,13 +1271,7 @@ static int Effect_setDisp( BPy_Effect * self, PyObject * args )
 /*****************************************************************************/
 static PyObject *Effect_getStaticStep( BPy_Effect * self )
 {
-	PyObject *attr = PyInt_FromLong( ( long )self->effect->staticstep );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Effect.staticStep attribute" );
+	return PyInt_FromLong( ( long )self->effect->staticstep );
 }
 
 static int Effect_setStaticStep( BPy_Effect * self , PyObject * args )

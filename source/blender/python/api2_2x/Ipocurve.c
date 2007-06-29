@@ -998,13 +998,7 @@ PyObject *IpoCurve_Init( void )
 
 static PyObject *IpoCurve_newgetInterp( C_IpoCurve * self )
 {
-	PyObject *attr = PyInt_FromLong( self->ipocurve->ipo );	
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get IpoCurve.interp atrtribute" );
+	return PyInt_FromLong( self->ipocurve->ipo );	
 }
 
 static int IpoCurve_newsetInterp( C_IpoCurve * self, PyObject * value )
@@ -1015,13 +1009,7 @@ static int IpoCurve_newsetInterp( C_IpoCurve * self, PyObject * value )
 
 static PyObject *IpoCurve_newgetExtend( C_IpoCurve * self )
 {
-	PyObject *attr = PyInt_FromLong( self->ipocurve->extrap );	
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get IpoCurve.extend atrtribute" );
+	return PyInt_FromLong( self->ipocurve->extrap );	
 }
 
 static int IpoCurve_newsetExtend( C_IpoCurve * self, PyObject * value )

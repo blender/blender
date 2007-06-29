@@ -612,19 +612,12 @@ static PyObject *Image_setPixelI( BPy_Image * self, PyObject * args )
 static PyObject *Image_getMaxXY( BPy_Image * self )
 {
 	ImBuf *ibuf= BKE_image_get_ibuf(self->image, NULL);
-	PyObject *attr;
 
 	if( !ibuf || !ibuf->rect )	/* didn't work */
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "couldn't load image data in Blender" );
 
-	attr = Py_BuildValue( "[i,i]", ibuf->x, ibuf->y );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "could not determine max x or y" );
+	return Py_BuildValue( "[i,i]", ibuf->x, ibuf->y );
 }
 
 
@@ -633,19 +626,12 @@ static PyObject *Image_getMaxXY( BPy_Image * self )
 static PyObject *Image_getMinXY( BPy_Image * self )
 {
 	ImBuf *ibuf= BKE_image_get_ibuf(self->image, NULL);
-	PyObject *attr;
 
 	if( !ibuf || !ibuf->rect )	/* didn't work */
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "couldn't load image data in Blender" );
 
-	attr = Py_BuildValue( "[i,i]", ibuf->xorig, ibuf->yorig );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "could not determine min x or y" );
+	return Py_BuildValue( "[i,i]", ibuf->xorig, ibuf->yorig );
 }
 
 /* unpack image */
@@ -805,13 +791,7 @@ Image *Image_FromPyObject( PyObject * pyobj )
 
 static PyObject *Image_getFilename( BPy_Image * self )
 {
-	PyObject *attr = PyString_FromString( self->image->name );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Image.filename attribute" ) );
+	return PyString_FromString( self->image->name );
 }
 
 static PyObject *Image_getSize( BPy_Image * self )
@@ -837,86 +817,43 @@ static PyObject *Image_getSize( BPy_Image * self )
 static PyObject *Image_getDepth( BPy_Image * self )
 {
 	ImBuf *ibuf= BKE_image_get_ibuf(self->image, NULL);
-	PyObject *attr;
 
 	if( !ibuf )	/* didn't work */
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					      "couldn't load image data in Blender" );
 
-	attr = PyInt_FromLong( (long)ibuf->depth );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Image.depth attribute" );
+	return PyInt_FromLong( (long)ibuf->depth );
 }
 
 
 static PyObject *Image_getXRep( BPy_Image * self )
 {
-	PyObject *attr = PyInt_FromLong( self->image->xrep );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Image.xrep attribute" );
+	return PyInt_FromLong( self->image->xrep );
 }
 
 static PyObject *Image_getYRep( BPy_Image * self )
 {
-	PyObject *attr = PyInt_FromLong( self->image->yrep );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Image.yrep attribute" );
+	return PyInt_FromLong( self->image->yrep );
 }
 
 static PyObject *Image_getStart( BPy_Image * self )
 {
-	PyObject *attr = PyInt_FromLong( self->image->twsta );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Image.start attribute" );
+	return PyInt_FromLong( self->image->twsta );
 }
 
 static PyObject *Image_getEnd( BPy_Image * self )
 {
-	PyObject *attr = PyInt_FromLong( self->image->twend );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Image.end attribute" );
+	return PyInt_FromLong( self->image->twend );
 }
 
 static PyObject *Image_getSpeed( BPy_Image * self )
 {
-	PyObject *attr = PyInt_FromLong( self->image->animspeed );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Image.speed attribute" );
+	return PyInt_FromLong( self->image->animspeed );
 }
 
 static PyObject *Image_getBindCode( BPy_Image * self )
 {
-	PyObject *attr = PyLong_FromUnsignedLong( self->image->bindcode );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Image.bindcode attribute" );
+	return PyLong_FromUnsignedLong( self->image->bindcode );
 }
 
 static PyObject *Image_reload( BPy_Image * self )
@@ -1179,7 +1116,6 @@ static int Image_setFlagTpage(BPy_Image *self, PyObject *value, void *flag)
  */
 static PyObject *getIntAttr( BPy_Image *self, void *type )
 {
-	PyObject *attr = NULL;
 	int param;
 	struct Image *image = self->image;
 
@@ -1210,13 +1146,7 @@ static PyObject *getIntAttr( BPy_Image *self, void *type )
 				"undefined type in getIntAttr" );
 	}
 
-	attr = PyInt_FromLong( param );
-	
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_MemoryError,
-				"PyInt_FromLong() failed!" );
+	return PyInt_FromLong( param );
 }
 
 

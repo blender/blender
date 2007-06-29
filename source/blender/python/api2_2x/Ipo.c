@@ -806,13 +806,7 @@ static PyObject *M_Ipo_Recalc( PyObject * self_unused, PyObject * value )
 /*****************************************************************************/
 static PyObject *Ipo_getBlocktype( BPy_Ipo * self )
 {
-	PyObject *attr = PyInt_FromLong( self->ipo->blocktype );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-		   "couldn't get Ipo.blocktype attribute" );
+	return PyInt_FromLong( self->ipo->blocktype );
 }
 
 static int Ipo_setBlocktype( BPy_Ipo * self, PyObject * args )

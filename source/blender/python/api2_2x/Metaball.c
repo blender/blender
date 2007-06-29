@@ -744,22 +744,13 @@ static void Metaelem_dealloc( BPy_Metaelem * self )
  * elem.type - int to set the shape of the element
  */
 static PyObject *Metaelem_getType( BPy_Metaelem *self )
-{
-	PyObject *attr = NULL;
-	
+{	
 	METAELEM_DEL_CHECK_PY(self);
 	
-	attr = PyInt_FromLong( self->metaelem->type );
-	
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_MemoryError,
-				"metaelem.type - PyInt_FromLong() failed!" );
+	return PyInt_FromLong( self->metaelem->type );
 }
 static int Metaelem_setType( BPy_Metaelem * self,  PyObject * value )
 {
-
 	int type;
 	if( !PyInt_CheckExact( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,

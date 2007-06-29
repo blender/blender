@@ -92,29 +92,24 @@ struct PyMethodDef M_Sound_methods[] = {
 static int Sound_compare( BPy_Sound * a, BPy_Sound * b );
 static PyObject *Sound_repr( BPy_Sound * self );
 
-#define SOUND_FLOAT_METHODS(funcname, varname)			\
-static PyObject *Sound_get ## funcname(BPy_Sound *self) {	\
-    char e[256];						\
-    PyObject *attr = PyFloat_FromDouble(self->sound->varname);	\
-    if (attr) return attr;					\
-    sprintf(e, "couldn't get Sound.%s attribute", #varname);	\
-    return EXPP_ReturnPyObjError (PyExc_RuntimeError, e);	\
-}								\
+#define SOUND_FLOAT_METHODS(funcname, varname)					\
+static PyObject *Sound_get ## funcname(BPy_Sound *self) {		\
+    return PyFloat_FromDouble(self->sound->varname);			\
+}																\
 static PyObject *Sound_set ## funcname(BPy_Sound *self, PyObject *args) { \
-    float	f = 0;						\
-    if (!PyArg_ParseTuple(args, "f", &f))			\
-	    return (EXPP_ReturnPyObjError (PyExc_TypeError,	\
-		    "expected float argument"));		\
-    self->sound->varname = EXPP_ClampFloat(f,\
-			EXPP_SND_##varname##_MIN, EXPP_SND_##varname##_MAX);\
-    Py_INCREF(Py_None);						\
-    return Py_None;						\
+    float	f = 0;													\
+    if (!PyArg_ParseTuple(args, "f", &f))							\
+	    return (EXPP_ReturnPyObjError (PyExc_TypeError,				\
+		    "expected float argument"));							\
+    self->sound->varname = EXPP_ClampFloat(f,						\
+			EXPP_SND_##varname##_MIN, EXPP_SND_##varname##_MAX);	\
+    Py_RETURN_NONE;													\
 }
 
-#define SOUND_FLOAT_METHOD_FUNCS(varname)			\
-{"get"#varname, (PyCFunction)Sound_get ## varname, METH_NOARGS,	\
-"() - Return Sound object "#varname},				\
-{"set"#varname, (PyCFunction)Sound_set ## varname, METH_VARARGS, \
+#define SOUND_FLOAT_METHOD_FUNCS(varname)							\
+{"get"#varname, (PyCFunction)Sound_get ## varname, METH_NOARGS,		\
+"() - Return Sound object "#varname},								\
+{"set"#varname, (PyCFunction)Sound_set ## varname, METH_VARARGS,	\
 "(float) - Change Sound object "#varname},
 
 
@@ -354,24 +349,12 @@ bSound *Sound_FromPyObject( PyObject * pyobj )
 /*****************************************************************************/
 static PyObject *Sound_getName( BPy_Sound * self )
 {
-	PyObject *attr = PyString_FromString( self->sound->id.name + 2 );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Sound.name attribute" ) );
+	return PyString_FromString( self->sound->id.name + 2 );
 }
 
 static PyObject *Sound_getFilename( BPy_Sound * self )
 {
-	PyObject *attr = PyString_FromString( self->sound->name );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Sound.filename attribute" ) );
+	return PyString_FromString( self->sound->name );
 }
 
 static PyObject *Sound_getPacked( BPy_Sound * self )

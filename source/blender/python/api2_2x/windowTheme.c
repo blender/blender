@@ -807,15 +807,10 @@ static void Theme_dealloc( BPy_Theme * self )
 
 static PyObject *Theme_getAttr( BPy_Theme * self, char *name )
 {
-	PyObject *attr = Py_None;
-
 	if( !strcmp( name, "name" ) )
-		attr = PyString_FromString( self->theme->name );
+		return PyString_FromString( self->theme->name );
 	else if( !strcmp( name, "__members__" ) )
-		attr = Py_BuildValue( "[s]", "name" );
-
-	if( attr != Py_None )
-		return attr;
+		return Py_BuildValue( "[s]", "name" );
 
 	return Py_FindMethod( BPy_Theme_methods, ( PyObject * ) self, name );
 }

@@ -138,12 +138,8 @@ PyObject *rgbTuple_New( float *rgb[3] )
 /*****************************************************************************/
 PyObject *rgbTuple_getCol( BPy_rgbTuple * self )
 {
-	PyObject *attr = Py_BuildValue( "[fff]", *(self->rgb[0]),
+	return Py_BuildValue( "[fff]", *(self->rgb[0]),
 			 			*(self->rgb[1]), *(self->rgb[2]));
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_MemoryError,
-					      "Py_BuildValue() failed" );
-	return attr;
 }
 
 int rgbTuple_setCol( BPy_rgbTuple * self, PyObject * args )

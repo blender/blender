@@ -175,28 +175,18 @@ static void Property_dealloc( BPy_Property * self )
 //---------------getattr--------------------------------------------
 static PyObject *Property_getAttr( BPy_Property * self, char *name )
 {
-	PyObject *attr = Py_None;
-
 	checkValidData_ptr( self );
 	if( strcmp( name, "name" ) == 0 )
-		attr = Property_getName( self );
+		return Property_getName( self );
 	else if( strcmp( name, "data" ) == 0 )
-		attr = Property_getData( self );
+		return Property_getData( self );
 	else if( strcmp( name, "type" ) == 0 )
-		attr = Property_getType( self );
+		return Property_getType( self );
 	else if( strcmp( name, "__members__" ) == 0 ) {
-		attr = Py_BuildValue( "[s,s,s]", "name", "data", "type" );
+		return Py_BuildValue( "[s,s,s]", "name", "data", "type" );
 	}
 
-	if( !attr )
-		return ( EXPP_ReturnPyObjError
-			 ( PyExc_MemoryError, "couldn't create PyObject" ) );
-
-	if( attr != Py_None )
-		return attr;
-
-	return Py_FindMethod( BPy_Property_methods, ( PyObject * ) self,
-			      name );
+	return Py_FindMethod( BPy_Property_methods, ( PyObject * ) self, name );
 }
 
 //--------------- setattr-------------------------------------------
@@ -380,18 +370,10 @@ PyObject *newPropertyObject( char *name, PyObject * data, int type )
 //--------------- BPy_Property.getName()----------------------------
 static PyObject *Property_getName( BPy_Property * self )
 {
-	PyObject *attr = NULL;
-
 	if( !self->property )
-		attr = PyString_FromString( self->name );
+		return PyString_FromString( self->name );
 	else
-		attr = PyString_FromString( self->property->name );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Property.name attribute" ) );
+		return PyString_FromString( self->property->name );
 }
 
 //--------------- BPy_Property.setName()----------------------------
@@ -410,7 +392,7 @@ static PyObject *Property_setName( BPy_Property * self, PyObject * value )
 		updatePyProperty( self );
 	}
 
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 //--------------- BPy_Property.getData()----------------------------
@@ -441,7 +423,7 @@ static PyObject *Property_getData( BPy_Property * self )
 		return attr;
 
 	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Property.name attribute" ) );
+					"couldn't get Property.data attribute" ) );
 }
 
 //--------------- BPy_Property.setData()----------------------------
@@ -520,13 +502,12 @@ static PyObject *Property_setData( BPy_Property * self, PyObject * args )
 	} else {
 		self->data = data;
 	}
-	return EXPP_incr_ret( Py_None );
+	Py_RETURN_NONE;
 }
 
 //--------------- BPy_Property.getType()----------------------------
 static PyObject *Property_getType( BPy_Property * self )
 {
-	PyObject *attr = Py_None;
 	int type;
 
 	if( self->property )
@@ -535,15 +516,14 @@ static PyObject *Property_getType( BPy_Property * self )
 		type = self->type;
 
 	if( type == PROP_BOOL )
-		attr = PyString_FromString( "BOOL" );
+		return PyString_FromString( "BOOL" );
 	else if( type == PROP_INT )
-		attr = PyString_FromString( "INT" );
+		return PyString_FromString( "INT" );
 	else if( type == PROP_FLOAT )
-		attr = PyString_FromString( "FLOAT" );
+		return PyString_FromString( "FLOAT" );
 	else if( type == PROP_STRING )
-		attr = PyString_FromString( "STRING" );
+		return PyString_FromString( "STRING" );
 	else if( type == PROP_TIME )
-		attr = PyString_FromString( "TIME" );
-
-	return attr;
+		return PyString_FromString( "TIME" );
+	Py_RETURN_NONE;
 }

@@ -338,26 +338,16 @@ PyObject *Text_CreatePyObject( Text * txt )
 /*****************************************************************************/
 static PyObject *Text_getFilename( BPy_Text * self )
 {
-	PyObject *attr;
-	char *name = self->text->name;
-
-	if( name )
-		attr = PyString_FromString( self->text->name );
-	else
-		attr = Py_None;
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Text.filename attribute" );
+	if( self->text->name )
+		return PyString_FromString( self->text->name );
+	
+	Py_RETURN_NONE;
 }
 
 static PyObject *Text_getNLines( BPy_Text * self )
 {				/* text->nlines isn't updated in Blender (?) */
 	int nlines = 0;
 	TextLine *line;
-	PyObject *attr;
 
 	line = self->text->lines.first;
 
@@ -368,13 +358,7 @@ static PyObject *Text_getNLines( BPy_Text * self )
 
 	self->text->nlines = nlines;	/* and update Blender, too (should we?) */
 
-	attr = PyInt_FromLong( nlines );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Text.nlines attribute" );
+	return PyInt_FromLong( nlines );
 }
 
 static PyObject *Text_clear( BPy_Text * self)

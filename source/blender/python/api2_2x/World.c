@@ -561,13 +561,7 @@ static PyObject *World_clearIpo( BPy_World * self )
 
 static PyObject *World_getSkytype( BPy_World * self )
 {
-	PyObject *attr = PyInt_FromLong( ( long ) self->world->skytype );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get World.skytype attribute" ) );
+	return PyInt_FromLong( ( long ) self->world->skytype );
 }
 
 
@@ -600,13 +594,7 @@ static PyObject *World_oldsetSkytype( BPy_World * self, PyObject * args )
 
 static PyObject *World_getMode( BPy_World * self )
 {
-	PyObject *attr = PyInt_FromLong( ( long ) self->world->mode );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get World.mode attribute" ) );
+	return PyInt_FromLong( ( long ) self->world->mode );
 }
 
 
@@ -640,13 +628,7 @@ static PyObject *World_oldsetMode( BPy_World * self, PyObject * args )
 
 static PyObject *World_getMistype( BPy_World * self )
 {
-	PyObject *attr = PyInt_FromLong( ( long ) self->world->mistype );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get World.mistype attribute" ) );
+	return PyInt_FromLong( ( long ) self->world->mistype );
 }
 
 

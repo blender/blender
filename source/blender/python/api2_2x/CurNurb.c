@@ -420,13 +420,7 @@ static PyObject *CurNurb_getKnotsV( BPy_CurNurb * self )
 
 static PyObject *CurNurb_getPoints( BPy_CurNurb * self )
 {
-	PyObject *attr = PyInt_FromLong( ( long ) self->nurb->pntsu );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"could not get number of points" );
+	return PyInt_FromLong( ( long ) self->nurb->pntsu );
 }
 
 /*

@@ -363,79 +363,37 @@ Camera *Camera_FromPyObject( PyObject * pyobj )
 
 static PyObject *Camera_oldgetType( BPy_Camera * self )
 {
-	PyObject *attr = PyInt_FromLong( self->camera->type );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Camera.type attribute" );
+	return PyInt_FromLong( self->camera->type );
 }
 
 static PyObject *Camera_oldgetMode( BPy_Camera * self )
 {
-	PyObject *attr = PyInt_FromLong( self->camera->flag );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Camera.Mode attribute" );
+	return PyInt_FromLong( self->camera->flag );
 }
 
 static PyObject *Camera_oldgetLens( BPy_Camera * self )
 {
-	PyObject *attr = PyFloat_FromDouble( self->camera->lens );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Camera.lens attribute" );
+	return PyFloat_FromDouble( self->camera->lens );
 }
 
 static PyObject *Camera_oldgetScale( BPy_Camera * self )
 {
-	PyObject *attr = PyFloat_FromDouble( self->camera->ortho_scale );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Camera.scale attribute" );
+	return PyFloat_FromDouble( self->camera->ortho_scale );
 }
 
 static PyObject *Camera_oldgetClipStart( BPy_Camera * self )
 {
-	PyObject *attr = PyFloat_FromDouble( self->camera->clipsta );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Camera.clipStart attribute" );
+	return PyFloat_FromDouble( self->camera->clipsta );
 }
 
 static PyObject *Camera_oldgetClipEnd( BPy_Camera * self )
 {
-	PyObject *attr = PyFloat_FromDouble( self->camera->clipend );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Camera.clipEnd attribute" );
+	return PyFloat_FromDouble( self->camera->clipend );
 }
 
 static PyObject *Camera_oldgetDrawSize( BPy_Camera * self )
 {
-	PyObject *attr = PyFloat_FromDouble( self->camera->drawsize );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Camera.drawSize attribute" );
+	return PyFloat_FromDouble( self->camera->drawsize );
 }
 
 

@@ -178,15 +178,7 @@ PyObject *M_Font_Load( PyObject * self, PyObject * value )
 /*--------------- BPy_Font.filename-------------------------------------*/
 static PyObject *Font_getFilename( BPy_Font * self )
 {
-	PyObject *attr = NULL;
-
-	if( self->font )
-		attr = PyString_FromString( self->font->name );
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Font.filename attribute" ) );
+	return PyString_FromString( self->font->name );
 }
 
 static int Font_setFilename( BPy_Font * self, PyObject * value )

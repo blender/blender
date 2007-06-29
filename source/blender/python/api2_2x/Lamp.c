@@ -864,221 +864,102 @@ static PyObject *Lamp_copy( BPy_Lamp * self )
 
 static PyObject *Lamp_getType( BPy_Lamp * self )
 {
-	PyObject *attr = PyInt_FromLong( self->lamp->type );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Lamp.type attribute" ) );
+	return PyInt_FromLong( self->lamp->type );
 }
 
 static PyObject *Lamp_getMode( BPy_Lamp * self )
 {
-	PyObject *attr = PyInt_FromLong( self->lamp->mode );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Lamp.mode attribute" ) );
+	return PyInt_FromLong( self->lamp->mode );
 }
 
 static PyObject *Lamp_getSamples( BPy_Lamp * self )
 {
-	PyObject *attr = PyInt_FromLong( self->lamp->samp );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Lamp.samples attribute" ) );
+	return PyInt_FromLong( self->lamp->samp );
 }
 
 static PyObject *Lamp_getRaySamplesX( BPy_Lamp * self )
 {
-	PyObject *attr = PyInt_FromLong( self->lamp->ray_samp );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Lamp.raySamplesX attribute" ) );
+	return PyInt_FromLong( self->lamp->ray_samp );
 }
 
 static PyObject *Lamp_getRaySamplesY( BPy_Lamp * self )
 {
-	PyObject *attr = PyInt_FromLong( self->lamp->ray_sampy );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Lamp.raySamplesY attribute" ) );
+	return PyInt_FromLong( self->lamp->ray_sampy );
 }
 
 static PyObject *Lamp_getAreaSizeX( BPy_Lamp * self )
 {
-	PyObject *attr = PyFloat_FromDouble( self->lamp->area_size );
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Lamp.areaSizeX attribute" ) );
+	return PyFloat_FromDouble( self->lamp->area_size );
 }
 
 static PyObject *Lamp_getAreaSizeY( BPy_Lamp * self )
 {
-	PyObject *attr = PyFloat_FromDouble( self->lamp->area_sizey );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Lamp.areaSizeY attribute" ) );
+	return PyFloat_FromDouble( self->lamp->area_sizey );
 }
 
 static PyObject *Lamp_getBufferSize( BPy_Lamp * self )
 {
-	PyObject *attr = PyInt_FromLong( self->lamp->bufsize );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Lamp.bufferSize attribute" ) );
+	return PyInt_FromLong( self->lamp->bufsize );
 }
 
 static PyObject *Lamp_getHaloStep( BPy_Lamp * self )
 {
-	PyObject *attr = PyInt_FromLong( self->lamp->shadhalostep );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Lamp.haloStep attribute" ) );
+	return PyInt_FromLong( self->lamp->shadhalostep );
 }
 
 static PyObject *Lamp_getEnergy( BPy_Lamp * self )
 {
-	PyObject *attr = PyFloat_FromDouble( self->lamp->energy );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Lamp.energy attribute" ) );
+	return PyFloat_FromDouble( self->lamp->energy );
 }
 
 static PyObject *Lamp_getDist( BPy_Lamp * self )
 {
-	PyObject *attr = PyFloat_FromDouble( self->lamp->dist );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Lamp.dist attribute" ) );
+	return PyFloat_FromDouble( self->lamp->dist );
 }
 
 static PyObject *Lamp_getSpotSize( BPy_Lamp * self )
 {
-	PyObject *attr = PyFloat_FromDouble( self->lamp->spotsize );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Lamp.spotSize attribute" ) );
+	return PyFloat_FromDouble( self->lamp->spotsize );
 }
 
 static PyObject *Lamp_getSpotBlend( BPy_Lamp * self )
 {
-	PyObject *attr = PyFloat_FromDouble( self->lamp->spotblend );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Lamp.spotBlend attribute" ) );
+	return PyFloat_FromDouble( self->lamp->spotblend );
 }
 
 static PyObject *Lamp_getClipStart( BPy_Lamp * self )
 {
-	PyObject *attr = PyFloat_FromDouble( self->lamp->clipsta );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Lamp.clipStart attribute" ) );
+	return PyFloat_FromDouble( self->lamp->clipsta );
 }
 
 static PyObject *Lamp_getClipEnd( BPy_Lamp * self )
 {
-	PyObject *attr = PyFloat_FromDouble( self->lamp->clipend );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Lamp.clipEnd attribute" ) );
+	return PyFloat_FromDouble( self->lamp->clipend );
 }
 
 static PyObject *Lamp_getBias( BPy_Lamp * self )
 {
-	PyObject *attr = PyFloat_FromDouble( self->lamp->bias );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Lamp.bias attribute" ) );
+	return PyFloat_FromDouble( self->lamp->bias );
 }
 
 static PyObject *Lamp_getSoftness( BPy_Lamp * self )
 {
-	PyObject *attr = PyFloat_FromDouble( self->lamp->soft );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Lamp.softness attribute" ) );
+	return PyFloat_FromDouble( self->lamp->soft );
 }
 
 static PyObject *Lamp_getHaloInt( BPy_Lamp * self )
 {
-	PyObject *attr = PyFloat_FromDouble( self->lamp->haint );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Lamp.haloInt attribute" ) );
+	return PyFloat_FromDouble( self->lamp->haint );
 }
 
 static PyObject *Lamp_getQuad1( BPy_Lamp * self )
 {				/* should we complain if Lamp is not of type Quad? */
-	PyObject *attr = PyFloat_FromDouble( self->lamp->att1 );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Lamp.quad1 attribute" ) );
+	return PyFloat_FromDouble( self->lamp->att1 );
 }
 
 static PyObject *Lamp_getQuad2( BPy_Lamp * self )
 {			/* should we complain if Lamp is not of type Quad? */
-	PyObject *attr = PyFloat_FromDouble( self->lamp->att2 );
-
-	if( attr )
-		return attr;
-
-	return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Lamp.quad2 attribute" ) );
+	return PyFloat_FromDouble( self->lamp->att2 );
 }
 
 static PyObject *Lamp_getCol( BPy_Lamp * self )
@@ -1252,27 +1133,17 @@ static int Lamp_setQuad2( BPy_Lamp * self, PyObject * value )
 
 static PyObject *Lamp_getComponent( BPy_Lamp * self, void * closure )
 {
-	PyObject *attr = NULL;
-
 	switch ( (int)closure ) {
 	case EXPP_LAMP_COMP_R:
-		attr = PyFloat_FromDouble( self->lamp->r );
-		break;
+		return PyFloat_FromDouble( self->lamp->r );
 	case EXPP_LAMP_COMP_G:
-		attr = PyFloat_FromDouble( self->lamp->g );
-		break;
+		return PyFloat_FromDouble( self->lamp->g );
 	case EXPP_LAMP_COMP_B:
-		attr = PyFloat_FromDouble( self->lamp->b );
-		break;
+		return PyFloat_FromDouble( self->lamp->b );
 	default:
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 					"unknown color component specified" );
 	}
-
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"PyFloat_FromDouble() failed" );
-	return attr;
 }
 
 static int Lamp_setComponent( BPy_Lamp * self, PyObject * value,
@@ -1448,7 +1319,7 @@ static PyObject *Lamp_insertIpoKey( BPy_Lamp * self, PyObject * args )
 
 static PyObject *Lamp_getModesConst( void )
 {
-	PyObject * attr = Py_BuildValue
+	return Py_BuildValue
 			( "{s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h,s:h}",
 			  "Shadows", EXPP_LAMP_MODE_SHADOWS, "Halo",
 			  EXPP_LAMP_MODE_HALO, "Layer", EXPP_LAMP_MODE_LAYER,
@@ -1460,29 +1331,17 @@ static PyObject *Lamp_getModesConst( void )
 			  EXPP_LAMP_MODE_NODIFFUSE, "NoSpecular",
 			  EXPP_LAMP_MODE_NOSPECULAR, "RayShadow",
 			  EXPP_LAMP_MODE_SHAD_RAY);
-
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Lamp.Modes attribute" );
-
-	return attr;
 }
 
 static PyObject *Lamp_getTypesConst( void )
 {
-	PyObject *attr = Py_BuildValue( "{s:h,s:h,s:h,s:h,s:h,s:h}",
+	return Py_BuildValue( "{s:h,s:h,s:h,s:h,s:h,s:h}",
 				      "Lamp", EXPP_LAMP_TYPE_LAMP,
 				      "Sun", EXPP_LAMP_TYPE_SUN,
 				      "Spot", EXPP_LAMP_TYPE_SPOT,
 				      "Hemi", EXPP_LAMP_TYPE_HEMI, 
 				      "Area", EXPP_LAMP_TYPE_AREA, 
 				      "Photon", EXPP_LAMP_TYPE_YF_PHOTON );
-
-	if( !attr )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				      "couldn't get Lamp.Types attribute" );
-
-	return attr;
 }
 
 /* #####DEPRECATED###### */
