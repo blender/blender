@@ -57,7 +57,9 @@ enum seq_consts {
 	EXPP_SEQ_ATTR_LENGTH,
 	EXPP_SEQ_ATTR_START,
 	EXPP_SEQ_ATTR_STARTOFS,
-	EXPP_SEQ_ATTR_ENDOFS
+	EXPP_SEQ_ATTR_ENDOFS,
+	EXPP_SEQ_ATTR_STARTSTILL,
+	EXPP_SEQ_ATTR_ENDSTILL
 };
 
 
@@ -568,6 +570,12 @@ static PyObject *getIntAttr( BPy_Sequence *self, void *type )
 	case EXPP_SEQ_ATTR_ENDOFS:
 		param = seq->endofs;
 		break;
+	case EXPP_SEQ_ATTR_STARTSTILL:
+		param = seq->startstill;
+		break;
+	case EXPP_SEQ_ATTR_ENDSTILL:
+		param = seq->endstill;
+		break;
 	default:
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError, 
 				"undefined type in getFloatAttr" );
@@ -576,12 +584,26 @@ static PyObject *getIntAttr( BPy_Sequence *self, void *type )
 	return PyInt_FromLong( param );
 }
 
-
 /* internal functions for recursivly updating metastrip locatons */
 static void intern_pos_update(Sequence * seq) {
 	/* update startdisp and enddisp */
+	if(seq->startofs && seq->startstill) seq->startstill= 0;
+	if(seq->endofs && seq->endstill) seq->endstill= 0;
+
+	seq->startdisp= seq->start + seq->startofs - seq->startstill;
+	seq->enddisp= seq->start+seq->len - seq->endofs + seq->endstill;
+
+	seq->handsize= 10.0;	/* 10 frames */
+	if( seq->enddisp-seq->startdisp < 20 ) {
+		seq->handsize= (float)(0.5*(seq->enddisp-seq->startdisp));
+	}
+	else if(seq->enddisp-seq->startdisp > 250) {
+		seq->handsize= (float)((seq->enddisp-seq->startdisp)/25);
+	}
+	
+	/* original Cambo code; replaced with c&p from function in blenkernel/sequence.c 
 	seq->startdisp = seq->start + seq->startofs - seq->startstill;
-	seq->enddisp = ((seq->start + seq->len) - seq->endofs )+ seq->endstill;
+	seq->enddisp = ((seq->start + seq->len) - seq->endofs )+ seq->endstill; */
 }
 
 void intern_recursive_pos_update(Sequence * seq, int offset) {
@@ -621,9 +643,10 @@ static int setIntAttrClamp( BPy_Sequence *self, PyObject *value, void *type )
 		break;
 	
 	case EXPP_SEQ_ATTR_STARTOFS:
-		CLAMP(number, 0, seq->len - seq->endofs);
+		if (self->seq->type == SEQ_EFFECT)
 			return EXPP_ReturnIntError( PyExc_RuntimeError,
 				"This property dosnt apply to an effect" );
+		CLAMP(number, 0, seq->len - seq->endofs);
 		seq->startofs = number;
 		break;
 	case EXPP_SEQ_ATTR_ENDOFS:
@@ -633,7 +656,28 @@ static int setIntAttrClamp( BPy_Sequence *self, PyObject *value, void *type )
 		CLAMP(number, 0, seq->len - seq->startofs);
 		seq->endofs = number;
 		break;
-	
+	case EXPP_SEQ_ATTR_STARTSTILL:
+		if (self->seq->type == SEQ_EFFECT)
+			return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"This property dosnt apply to an effect" );
+		CLAMP(number, 1, MAXFRAME);
+		seq->startstill = number;
+		break;
+	case EXPP_SEQ_ATTR_ENDSTILL:
+		if (self->seq->type == SEQ_EFFECT)
+			return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"This property dosnt apply to an effect" );
+		CLAMP(number, seq->startstill+1, MAXFRAME);
+		seq->endstill = number;
+		break;
+	case EXPP_SEQ_ATTR_LENGTH:
+		if (self->seq->type == SEQ_EFFECT)
+			return EXPP_ReturnIntError( PyExc_RuntimeError,
+				"cannot set the length of an effect directly" );
+		CLAMP(number, 1, MAXFRAME);
+		origval = seq->len;
+		seq->start = number;
+		break;
 	default:
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
 				"undefined type in setFloatAttrClamp" );
@@ -730,7 +774,15 @@ static PyGetSetDef BPy_Sequence_getseters[] = {
 	 (getter)getIntAttr, (setter)setIntAttrClamp,
 	 "",
 	 (void *) EXPP_SEQ_ATTR_ENDOFS},
-
+	{"startStill",
+	 (getter)getIntAttr, (setter)setIntAttrClamp,
+	 "",
+	 (void *) EXPP_SEQ_ATTR_STARTSTILL},
+	{"endStill",
+	 (getter)getIntAttr, (setter)setIntAttrClamp,
+	 "",
+	 (void *) EXPP_SEQ_ATTR_ENDSTILL},
+	 
 	{"sel",
 	 (getter)getFlagAttr, (setter)setFlagAttr,
 	 "Sequence audio mute option",
