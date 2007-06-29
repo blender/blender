@@ -2302,6 +2302,9 @@ static PyObject *MEdge_getLength( BPy_MEdge * self )
 static PyObject *MEdge_getKey( BPy_MEdge * self )
 {
 	MEdge *edge = MEdge_get_pointer( self );
+	if (!edge)
+		return NULL; /* error is set */	
+	
 	PyObject *attr = PyTuple_New( 2 );
 	if (edge->v1 > edge->v2) {
 		PyTuple_SetItem( attr, 0, PyInt_FromLong(edge->v2) );
@@ -3583,7 +3586,7 @@ static PyObject *MFace_getNormal( BPy_MFace * self )
 	Mesh *me = self->mesh;
 	
 	if( !face )
-	return NULL; /* error is set */
+		return NULL; /* error is set */
 	
 	if MFACE_VERT_BADRANGE_CHECK(me, face)
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
