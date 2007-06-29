@@ -334,11 +334,13 @@ void del_defgroup (Object *ob)
 		MDeformVert *dvert= editLatt->dvert;
 		int a, tot;
 		
-		tot= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
-		for(a=0, bp= editLatt->def; a<tot; a++, bp++, dvert++) {
-			for (i=0; i<dvert->totweight; i++){
-				if (dvert->dw[i].def_nr > (ob->actdef-1))
-					dvert->dw[i].def_nr--;
+		if (dvert) {
+			tot= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
+			for(a=0, bp= editLatt->def; a<tot; a++, bp++, dvert++) {
+				for (i=0; i<dvert->totweight; i++){
+					if (dvert->dw[i].def_nr > (ob->actdef-1))
+						dvert->dw[i].def_nr--;
+				}
 			}
 		}
 	}

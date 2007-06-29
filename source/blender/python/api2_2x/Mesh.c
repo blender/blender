@@ -2542,6 +2542,9 @@ static PyObject *MEdge_getLength( BPy_MEdge * self )
 static PyObject *MEdge_getKey( BPy_MEdge * self )
 {
 	MEdge *edge = MEdge_get_pointer( self );
+	if (!edge)
+		return NULL; /* error is set */	
+	
 	PyObject *attr = PyTuple_New( 2 );
 	if (edge->v1 > edge->v2) {
 		PyTuple_SET_ITEM( attr, 0, PyInt_FromLong(edge->v2) );
