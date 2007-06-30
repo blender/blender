@@ -6525,8 +6525,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						}
 					}
 					sa = sa->next;
+				}
 			}
-		}
 		}
 	}
 
