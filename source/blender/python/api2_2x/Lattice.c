@@ -89,16 +89,6 @@ struct PyMethodDef M_Lattice_methods[] = {
 /* In Python these will be written to the console when doing a		 */
 /* Blender.Lattice.__doc__			*/
 /*****************************************************************************/
-static char Lattice_getName_doc[] = "() - Return Lattice Object name";
-
-static char Lattice_setName_doc[] = "(str) - Change Lattice Object name";
-
-static char Lattice_setPartitions_doc[] =
-	"(str) - Set the number of Partitions in x,y,z";
-
-static char Lattice_getPartitions_doc[] =
-	"(str) - Get the number of Partitions in x,y,z";
-
 static char Lattice_getKey_doc[] =
 	"() - Get the Key object attached to this Lattice";
 
@@ -279,38 +269,6 @@ PyObject *Lattice_Init( void )
 	EXPP_ADDCONST( BSPLINE );
 	
 	return ( mod );
-}
-
-static PyObject *Lattice_setPartitions( BPy_Lattice * self, PyObject * args )
-{
-	int x = 0;
-	int y = 0;
-	int z = 0;
-	Lattice *bl_Lattice;
-
-	if( !PyArg_ParseTuple( args, "iii", &x, &y, &z ) )
-		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
-						"expected int,int,int argument" ) );
-
-	bl_Lattice = self->lattice;
-
-	if( x < 2 || y < 2 || z < 2 )
-		return ( EXPP_ReturnPyObjError( PyExc_RuntimeError,
-						"partition values must be 2 or greater" ) );
-
-	resizelattice(bl_Lattice, x, y, z, NULL);
-
-	Py_RETURN_NONE;
-}
-
-static PyObject *Lattice_getPartitions( BPy_Lattice * self )
-{
-	Lattice *bl_Lattice;
-	bl_Lattice = self->lattice;
-
-	return Py_BuildValue( "[i,i,i]", ( int ) bl_Lattice->pntsu,
-			      ( int ) bl_Lattice->pntsv,
-			      ( int ) bl_Lattice->pntsw );
 }
 
 static PyObject *Lattice_getKey( BPy_Lattice * self )
@@ -623,14 +581,6 @@ static PyObject *Lattice_repr( BPy_Lattice * self )
 /*****************************************************************************/
 static PyMethodDef BPy_Lattice_methods[] = {
 	/* name, method, flags, doc */
-	{"getName", ( PyCFunction ) GenericLib_getName, METH_NOARGS,
-	 Lattice_getName_doc},
-	{"setName", ( PyCFunction ) GenericLib_setName_with_method, METH_VARARGS,
-	 Lattice_setName_doc},
-	{"setPartitions", ( PyCFunction ) Lattice_setPartitions, METH_VARARGS,
-	 Lattice_setPartitions_doc},
-	{"getPartitions", ( PyCFunction ) Lattice_getPartitions, METH_NOARGS,
-	 Lattice_getPartitions_doc},
 	{"getKey", ( PyCFunction ) Lattice_getKey, METH_NOARGS,
 	 Lattice_getKey_doc},
 	{"setKeyTypes", ( PyCFunction ) Lattice_setKeyTypes, METH_VARARGS,
@@ -657,22 +607,43 @@ static PyMethodDef BPy_Lattice_methods[] = {
 /*****************************************************************************/
 /* Python attributes get/set functions:                                      */
 /*****************************************************************************/
-static PyObject *Lattice_getWidth(BPy_Lattice * self)
+static PyObject *Lattice_getSubD(BPy_Lattice * self, void * type)
 {
-	return PyInt_FromLong( self->lattice->pntsu );
+	switch ((long)type) {
+	case 0:
+		return PyInt_FromLong( self->lattice->pntsu ); 
+	case 1:
+		return PyInt_FromLong( self->lattice->pntsv );
+	case 2:
+		return PyInt_FromLong( self->lattice->pntsw );
+	}
+	Py_RETURN_NONE;
 }
-static PyObject *Lattice_getHeight(BPy_Lattice * self)
+
+static int Lattice_setSubD(BPy_Lattice * self, PyObject *value, void * type)
 {
-	return PyInt_FromLong( self->lattice->pntsv );
-}
-static PyObject *Lattice_getDepth(BPy_Lattice * self)
-{
-	return PyInt_FromLong( self->lattice->pntsw );
-}
-static PyObject *Lattice_getLatSize(BPy_Lattice * self)
-{
-	return PyInt_FromLong(
-		self->lattice->pntsu * self->lattice->pntsv * self->lattice->pntsw );
+	short u= self->lattice->pntsu, v= self->lattice->pntsv, w= self->lattice->pntsv;
+	short param = (short)PyInt_AsLong(value);
+	
+	if (!PyInt_Check(value))
+		return EXPP_ReturnIntError( PyExc_ValueError,
+				"extected an int value between 1 and 64" );
+	
+	CLAMP(param,  1, 64);
+	
+	switch ((long)type) {
+	case 0:
+		resizelattice(self->lattice, param, v, w, NULL);
+		break;
+	case 1:
+		resizelattice(self->lattice, u, param, w, NULL);
+		break;
+	case 2:
+		resizelattice(self->lattice, u, v, param, NULL);
+		break;
+	}
+	
+	return 0;
 }
 
 
@@ -707,14 +678,12 @@ static PyObject *Lattice_getAxisType(BPy_Lattice * self, void * type)
 /*****************************************************************************/
 static PyGetSetDef BPy_Lattice_getseters[] = {
 	GENERIC_LIB_GETSETATTR,
-	{"width", (getter)Lattice_getWidth, (setter)NULL,
-	 "lattice U sibdivision ", NULL},
-	{"height", (getter)Lattice_getHeight, (setter)NULL,
-	 "lattice V sibdivision", NULL},
-	{"depth", (getter)Lattice_getDepth, (setter)NULL,
-	 "lattice W sibdivision", NULL},
-	{"latSize", (getter)Lattice_getLatSize, (setter)NULL,
-	 "lattice W sibdivision", NULL},	 
+	{"subdU", (getter)Lattice_getSubD, (setter)Lattice_setSubD,
+	 "lattice U subdivision ", (void *)0},
+	{"subdV", (getter)Lattice_getSubD, (setter)Lattice_setSubD,
+	 "lattice V subdivision", (void *)1},
+	{"subdW", (getter)Lattice_getSubD, (setter)Lattice_setSubD,
+	 "lattice W subdivision", (void *)2},	 
 	 
 	{"widthType", (getter)Lattice_getAxisType, NULL,
 	 "lattice U interpolation type", (void *)0},
