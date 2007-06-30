@@ -1,4 +1,7 @@
 /**
+ *
+ * $Id$
+ *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -23,7 +26,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Marc Freixas, Ken Hughes
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -427,17 +430,11 @@ void BOP_mergeVertexs(BOP_Mesh *mesh, unsigned int firstFace)
 						// v2 ~= v3
 						mesh->replaceVertexIndex(v2,v3);
 					} else {
-#if 0
-	/*
-	 * for now, don't just remove "co-linear" faces; some of these faces
-	 * being removed are real and cause other things to break
-	 */
 						// all differents
 						if (BOP_collinear(vertex1,vertex2,vertex3)) {
 							// collinear triangle 
 							face->setTAG(PHANTOM);
 						}
-#endif
 					}
 				}
 			}
