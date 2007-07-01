@@ -661,7 +661,7 @@ static int Metaball_setUpdate( BPy_Metaball * self, PyObject * value )
 {
 
 	int param;
-	if( !PyInt_CheckExact( value ) )
+	if( !PyInt_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 					"metaball.update - expected an int argument" );
 
@@ -752,7 +752,7 @@ static PyObject *Metaelem_getType( BPy_Metaelem *self )
 static int Metaelem_setType( BPy_Metaelem * self,  PyObject * value )
 {
 	int type;
-	if( !PyInt_CheckExact( value ) )
+	if( !PyInt_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 			"metaelem.type - expected an integer (bitmask) as argument" );
 	

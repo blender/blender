@@ -220,7 +220,7 @@ static int Group_setLayers( BPy_Group * self, PyObject * value )
 	
 	GROUP_DEL_CHECK_INT(self);
 	
-	if( !PyInt_CheckExact( value ) )
+	if( !PyInt_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 			"expected an integer (bitmask) as argument" );
 	

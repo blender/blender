@@ -638,7 +638,7 @@ int EXPP_setIValueClamped( PyObject *value, void *param,
 {
 	int number;
 
-	if( !PyInt_CheckExact ( value ) ) {
+	if( !PyInt_Check( value ) ) {
 		char errstr[128];
 		sprintf ( errstr, "expected int argument in [%d,%d]", min, max );
 		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
@@ -729,7 +729,7 @@ int EXPP_setIValueRange( PyObject *value, void *param,
 
 	sprintf ( errstr, "expected int argument in [%d,%d]", min, max );
 
-	if( !PyInt_CheckExact ( value ) )
+	if( !PyInt_Check ( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
 
 	number = PyInt_AS_LONG( value );

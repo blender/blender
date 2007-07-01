@@ -652,7 +652,7 @@ static int Camera_setMode( BPy_Camera * self, PyObject * value )
 {
 	unsigned int flag = 0;
 	
-	if( !PyInt_CheckExact( value ) )
+	if( !PyInt_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 			"expected an integer (bitmask) as argument" );
 	

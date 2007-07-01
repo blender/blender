@@ -988,7 +988,7 @@ static int Lamp_setMode( BPy_Lamp * self, PyObject * value )
 				| EXPP_LAMP_MODE_NOSPECULAR
 				| EXPP_LAMP_MODE_SHAD_RAY;
 
-	if( !PyInt_CheckExact ( value ) ) {
+	if( !PyInt_Check ( value ) ) {
 		char errstr[128];
 		sprintf ( errstr , "expected int bitmask of 0x%04x", bitmask );
 		return EXPP_ReturnIntError( PyExc_TypeError, errstr );

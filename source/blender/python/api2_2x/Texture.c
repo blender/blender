@@ -1530,7 +1530,7 @@ static int Texture_setFlags( BPy_Texture * self, PyObject * value )
 					| TEX_CHECKER_ODD
 					| TEX_CHECKER_EVEN;
 
-	if( !PyInt_CheckExact ( value ) ) {
+	if( !PyInt_Check( value ) ) {
 		char errstr[128];
 		sprintf ( errstr , "expected int bitmask of 0x%08x", bitmask );
 		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
@@ -1602,7 +1602,7 @@ static int Texture_setImageFlags( BPy_Texture * self, PyObject * value,
 					| TEX_CALCALPHA
 					| TEX_NORMALMAP;
 
-		if( !PyInt_CheckExact ( value ) ) {
+		if( !PyInt_Check( value ) ) {
 			char errstr[128];
 			sprintf ( errstr , "expected int bitmask of 0x%08x", bitmask );
 			return EXPP_ReturnIntError( PyExc_TypeError, errstr );
@@ -1674,7 +1674,7 @@ static int Texture_setNoiseBasis( BPy_Texture * self, PyObject * value )
 {
     int param;
 
-	if( !PyInt_CheckExact ( value ) )
+	if( !PyInt_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError, 
 				"expected int (see 'Noise' constant dictionary)" );
 
@@ -1700,7 +1700,7 @@ static int Texture_setNoiseBasis2( BPy_Texture * self, PyObject * value,
 
 	if( (int)type == EXPP_TEX_NOISEBASIS2 ) {
     	int param;
-		if( !PyInt_CheckExact ( value ) )
+		if( !PyInt_Check( value ) )
 			return EXPP_ReturnIntError( PyExc_TypeError, 
 					"expected int (see 'Noise' constant dictionary)" );
 
@@ -1720,7 +1720,7 @@ static int Texture_setNoiseBasis2( BPy_Texture * self, PyObject * value,
 	 */
 
 	} else {
-		if( !PyInt_CheckExact ( value ) )
+		if( !PyInt_Check( value ) )
 			return EXPP_ReturnIntError( PyExc_TypeError, 
 					"expected int value of 1" );
 
@@ -1772,7 +1772,7 @@ static int Texture_setSType( BPy_Texture * self, PyObject * value )
 	short param;
 	const char *dummy = NULL;
 
-	if( !PyInt_CheckExact ( value ) )
+	if( !PyInt_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 					      "expected int argument" );
 

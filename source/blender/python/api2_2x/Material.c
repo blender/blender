@@ -1764,7 +1764,7 @@ static int Material_setMode( BPy_Material * self, PyObject * value )
 {
 	int param;
 
-	if( !PyInt_CheckExact ( value ) ) {
+	if( !PyInt_Check( value ) ) {
 		char errstr[128];
 		sprintf ( errstr , "expected int bitmask of 0x%08x", MA_MODE_MASK );
 		return EXPP_ReturnIntError( PyExc_TypeError, errstr );

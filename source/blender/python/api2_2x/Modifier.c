@@ -987,7 +987,7 @@ static PyObject *Modifier_getData( BPy_Modifier * self, PyObject * key )
 {
 	int setting;
 
-	if( !PyInt_CheckExact( key ) )
+	if( !PyInt_Check( key ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected an int arg as stored in Blender.Modifier.Settings" );
 

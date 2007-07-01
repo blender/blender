@@ -249,7 +249,7 @@ static int Scene_setLayerMask( BPy_Scene * self, PyObject * value )
 	
 	SCENE_DEL_CHECK_INT(self);
 	
-	if (!PyInt_CheckExact(value)) {
+	if (!PyInt_Check(value)) {
 		return EXPP_ReturnIntError( PyExc_AttributeError,
 			"expected an integer (bitmask) as argument" );
 	}

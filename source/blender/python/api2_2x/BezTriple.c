@@ -413,7 +413,7 @@ static int BezTriple_setHandles( BPy_BezTriple * self, PyObject *args )
 	ob1 = PySequence_ITEM( args, 0 );
 	ob2 = PySequence_ITEM( args, 1 );
 
-	if( !PyInt_CheckExact( ob1 ) || !PyInt_CheckExact( ob2 ) ) {
+	if( !PyInt_Check( ob1 ) || !PyInt_Check( ob2 ) ) {
 		Py_DECREF( ob1 );
 		Py_DECREF( ob2 );
 		return EXPP_ReturnIntError( PyExc_TypeError,

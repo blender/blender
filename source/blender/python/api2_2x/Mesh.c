@@ -1358,15 +1358,15 @@ static PyObject *Mesh_setProperty_internal(CustomData *data, int eindex, PyObjec
 			return EXPP_ReturnPyObjError( PyExc_ValueError,
 					"error, maximum name length is 31" );
 		
-		if(PyInt_CheckExact(val)){ 
+		if(PyInt_Check(val)){ 
 			type = CD_PROP_INT;
 			i = (int)PyInt_AS_LONG(val);
 		}
-		else if(PyFloat_CheckExact(val)){
+		else if(PyFloat_Check(val)){
 			type = CD_PROP_FLT;
 			f = (float)PyFloat_AsDouble(val);
 		}
-		else if(PyString_CheckExact(val)){
+		else if(PyString_Check(val)){
 			type = CD_PROP_STR;
 			s = PyString_AsString(val);
 		}
@@ -2085,7 +2085,7 @@ static PyObject *MVertSeq_delete( BPy_MVertSeq * self, PyObject *args )
 						"MVert belongs to a different mesh" );
 			}
 			index = ((BPy_MVert*)tmp)->index;
-		} else if( PyInt_CheckExact( tmp ) ) {
+		} else if( PyInt_Check( tmp ) ) {
 			index = PyInt_AsLong ( tmp );
 		} else {
 			MEM_freeN( vert_table );
@@ -2396,7 +2396,7 @@ static int MEdge_setFlag( BPy_MEdge * self, PyObject * value )
 	if( !edge )
 		return -1;
 
-	if( !PyInt_CheckExact ( value ) ) {
+	if( !PyInt_Check ( value ) ) {
 		char errstr[128];
 		sprintf ( errstr , "expected int bitmask of 0x%04x", bitmask );
 		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
@@ -3020,7 +3020,7 @@ static PyObject *MEdgeSeq_extend( BPy_MEdgeSeq * self, PyObject *args )
 			ok = 0; 
 			for( j = 0; ok == 0 && j < nverts; ++j ) {
 				PyObject *item = PySequence_ITEM( tmp, j );
-				if( !PyInt_CheckExact( item ) )
+				if( !PyInt_Check( item ) )
 					ok = 1;
 				else {
 					int index = PyInt_AsLong ( item );
@@ -3254,7 +3254,7 @@ static PyObject *MEdgeSeq_delete( BPy_MEdgeSeq * self, PyObject *args )
 		PyObject *tmp = PySequence_GetItem( args, i );
 		if( BPy_MEdge_Check( tmp ) )
 			edge_table[i] = ((BPy_MEdge *)tmp)->index;
-		else if( PyInt_CheckExact( tmp ) )
+		else if( PyInt_Check( tmp ) )
 			edge_table[i] = PyInt_AsLong ( tmp );
 		else {
 			MEM_freeN( edge_table );
@@ -3464,7 +3464,7 @@ static PyObject *MEdgeSeq_collapse( BPy_MEdgeSeq * self, PyObject *args )
 		tmp1 = PySequence_GetItem( tmp, 0 );
 		tmp2 = PySequence_GetItem( tmp, 1 );
 		Py_DECREF( tmp );
-		if( !(BPy_MEdge_Check( tmp1 ) || PyInt_CheckExact( tmp1 )) ||
+		if( !(BPy_MEdge_Check( tmp1 ) || PyInt_Check( tmp1 )) ||
 				!VectorObject_Check ( tmp2 ) ) {
 			MEM_freeN( edge_table );
 			MEM_freeN( vert_list );
@@ -3476,7 +3476,7 @@ static PyObject *MEdgeSeq_collapse( BPy_MEdgeSeq * self, PyObject *args )
 		}
 
 		/* store edge index, new vertex location */
-		if( PyInt_CheckExact( tmp1 ) )
+		if( PyInt_Check( tmp1 ) )
 			edge_table[i] = PyInt_AsLong ( tmp1 );
 		else
 			edge_table[i] = ((BPy_MEdge *)tmp1)->index;
@@ -4114,7 +4114,7 @@ static int MFace_setFlag( BPy_MFace *self, PyObject *value )
 	if( !MFace_get_pointer( self ) )
 		return -1;
 
-	if( !PyInt_CheckExact ( value ) ) {
+	if( !PyInt_Check ( value ) ) {
 		char errstr[128];
 		sprintf ( errstr , "expected int bitmask of 0x%04x", MFACE_FLAG_BITMASK );
 		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
@@ -4180,7 +4180,7 @@ static int MFace_setMode( BPy_MFace *self, PyObject *value )
 	if( !MFace_get_pointer( self ) )
 		return -1;
 
-	if( !PyInt_CheckExact ( value ) ) {
+	if( !PyInt_Check ( value ) ) {
 		char errstr[128];
 		sprintf ( errstr , "expected int bitmask of 0x%04x", bitmask );
 		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
@@ -4387,7 +4387,7 @@ static int MFace_setUVSel( BPy_MFace * self, PyObject * value )
 	mask = TF_SEL1;
 	for( i=0; i<length; ++i, mask <<= 1 ) {
 		PyObject *tmp = PySequence_GetItem( value, i ); /* adds a reference, remove below */
-		if( !PyInt_CheckExact( tmp ) ) {
+		if( !PyInt_Check( tmp ) ) {
 			Py_DECREF(tmp);
 			return EXPP_ReturnIntError( PyExc_TypeError,
 					"expected a tuple of integers" );
@@ -5370,7 +5370,7 @@ static PyObject *MFaceSeq_delete( BPy_MFaceSeq * self, PyObject *args )
 		PyObject *tmp = PySequence_GetItem( args, i );
 		if( BPy_MFace_Check( tmp ) )
 			face_table[i] = ((BPy_MFace *)tmp)->index;
-		else if( PyInt_CheckExact( tmp ) )
+		else if( PyInt_Check( tmp ) )
 			face_table[i] = PyInt_AsLong( tmp );
 		else {
 			MEM_freeN( face_table );
@@ -5948,7 +5948,7 @@ static PyObject *Mesh_findEdges( PyObject * self, PyObject *args )
 			}
 			index1 = v1->index;
 			index2 = v2->index;
-		} else if( PyInt_CheckExact( v1 ) && PyInt_CheckExact( v2 ) ) {
+		} else if( PyInt_Check( v1 ) && PyInt_Check( v2 ) ) {
 			index1 = PyInt_AsLong( (PyObject *)v1 );
 			index2 = PyInt_AsLong( (PyObject *)v2 );
 			if( (int)index1 >= mesh->totvert
@@ -7030,7 +7030,7 @@ static PyObject *Mesh_getMultires( BPy_Mesh * self, void *type )
 static int Mesh_setMultires( BPy_Mesh * self, PyObject *value, void *type )
 {
 	int i;
-	if( !PyInt_CheckExact( value ) )
+	if( !PyInt_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 					"expected integer argument" );
 	
@@ -7758,7 +7758,7 @@ static int Mesh_setMode( BPy_Mesh *self, PyObject *value )
 		ME_UVEFFECT | ME_VCOLEFFECT | ME_AUTOSMOOTH | ME_SMESH |
 		ME_SUBSURF | ME_OPT_EDGES;
 
-	if( !PyInt_CheckExact ( value ) ) {
+	if( !PyInt_Check ( value ) ) {
 		char errstr[128];
 		sprintf ( errstr , "expected int bitmask of 0x%04x", bitmask );
 		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
@@ -7816,7 +7816,7 @@ static int Mesh_setActiveFace( BPy_Mesh * self, PyObject * value )
 
 	/* if param isn't an int, error */
 
-	if( !PyInt_CheckExact( value ) )
+	if( !PyInt_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"expected an int argument" );
 

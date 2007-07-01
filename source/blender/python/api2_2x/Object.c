@@ -3657,7 +3657,7 @@ static int setIntAttrRange( BPy_Object *self, PyObject *value, void *type )
 	struct Object *object = self->object;
 	int min, max, size;
 
-	if( !PyInt_CheckExact( value ) )
+	if( !PyInt_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 					"expected integer argument" );
 
@@ -4296,7 +4296,7 @@ static int Object_setLayersMask( BPy_Object *self, PyObject *value )
 	int layers = 0, local;
 	Base *base;
 
-	if( !PyInt_CheckExact( value ) )
+	if( !PyInt_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 			"expected an integer (bitmask) as argument" );
 

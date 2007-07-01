@@ -623,7 +623,7 @@ static int setIntAttrClamp( BPy_Sequence *self, PyObject *value, void *type )
 	struct Sequence *seq= self->seq;
 	int number, origval=0;
 
-	if( !PyInt_CheckExact ( value ) )
+	if( !PyInt_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError, "expected an int value" );
 	
 	number = PyInt_AS_LONG( value );

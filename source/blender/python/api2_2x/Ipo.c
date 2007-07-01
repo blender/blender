@@ -811,7 +811,7 @@ static PyObject *Ipo_getBlocktype( BPy_Ipo * self )
 
 static int Ipo_setBlocktype( BPy_Ipo * self, PyObject * args )
 {
-	if( !PyInt_CheckExact( args ) )
+	if( !PyInt_Check( args ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"expected int argument" );
 

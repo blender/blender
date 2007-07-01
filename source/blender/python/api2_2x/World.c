@@ -573,7 +573,7 @@ static PyObject *World_getSkytype( BPy_World * self )
 
 static int World_setSkytype( BPy_World * self, PyObject * value )
 {
-	if( !PyInt_CheckExact(value) )
+	if( !PyInt_Check(value) )
 		return ( EXPP_ReturnIntError( PyExc_TypeError,
 						"expected int argument" ) );
 	self->world->skytype = (short)PyInt_AsLong(value);
@@ -606,7 +606,7 @@ static PyObject *World_getMode( BPy_World * self )
 
 static int World_setMode( BPy_World * self, PyObject * value )
 {
-	if( !PyInt_CheckExact(value) )
+	if( !PyInt_Check(value) )
 		return ( EXPP_ReturnIntError( PyExc_TypeError,
 						"expected int argument" ) );
 	self->world->mode = (short)PyInt_AsLong(value);
@@ -640,7 +640,7 @@ static PyObject *World_getMistype( BPy_World * self )
 
 static int World_setMistype( BPy_World * self, PyObject * value )
 {
-	if( !PyInt_CheckExact(value) )
+	if( !PyInt_Check(value) )
 		return ( EXPP_ReturnIntError( PyExc_TypeError,
 						"expected int argument" ) );
 	self->world->mistype = (short)PyInt_AsLong(value);

@@ -796,7 +796,7 @@ static int IpoCurve_setDriver( C_IpoCurve * self, PyObject * args )
 {
 	IpoCurve *ipo = self->ipocurve;
 	int type;
-	if( !PyInt_CheckExact( args ) )
+	if( !PyInt_Check( args ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"expected int argument 0 or 1 " );
 	
@@ -879,7 +879,7 @@ static int IpoCurve_setDriverChannel( C_IpoCurve * self, PyObject * args )
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
 				"This IpoCurve does not have an active driver" );
 
-	if( !PyInt_CheckExact( args ) )
+	if( !PyInt_Check( args ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"expected int argument" );
 

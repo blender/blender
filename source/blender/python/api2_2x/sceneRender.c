@@ -694,7 +694,7 @@ static int RenderData_setOSALevel( BPy_RenderData * self,
 {
 	int level;
 
-	if( !PyInt_CheckExact( value ) )
+	if( !PyInt_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"expected int argument" );
 
@@ -925,7 +925,7 @@ static int RenderData_setRenderer( BPy_RenderData * self, PyObject * value )
 {
 	int type;
 
-	if( !PyInt_CheckExact( value ) )
+	if( !PyInt_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"expected constant INTERNAL or YAFRAY" );
 
@@ -956,7 +956,7 @@ static int RenderData_setImageType( BPy_RenderData *self, PyObject *value )
 {
 	int type;
 
-	if( !PyInt_CheckExact( value ) )
+	if( !PyInt_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"expected int constant" );
 
@@ -1951,7 +1951,7 @@ static int RenderData_setMode( BPy_RenderData* self, PyObject *arg )
 {
 	int value;
 
-	if( !PyInt_CheckExact( arg ) )
+	if( !PyInt_Check( arg ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"expected int argument" );
 
@@ -1987,7 +1987,7 @@ static int RenderData_setSceMode( BPy_RenderData* self, PyObject *arg )
 {
 	int value;
 
-	if( !PyInt_CheckExact( arg ) )
+	if( !PyInt_Check( arg ) )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"expected int argument" );
 
@@ -2102,7 +2102,7 @@ static int RenderData_setImagePlanes( BPy_RenderData *self, PyObject *value )
 	int depth;
 	char *errstr = "expected int argument of 8, 24, or 32";
 
-	if( !PyInt_CheckExact( value ) )
+	if( !PyInt_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
 
 	depth = PyInt_AsLong( value );
@@ -2227,7 +2227,7 @@ static int RenderData_setRenderWinSize( BPy_RenderData *self, PyObject *value )
 	int size;
 	char *errstr = "expected int argument of 25, 50, 75, or 100";
 
-	if( !PyInt_CheckExact( value ) )
+	if( !PyInt_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
 
 	size = PyInt_AsLong( value );
@@ -2319,7 +2319,7 @@ static int RenderData_setThreads( BPy_RenderData *self, PyObject *value )
 {
 	int threads;
 
-	if( !PyInt_CheckExact( value ) )
+	if( !PyInt_Check( value ) )
 		return EXPP_ReturnIntError( PyExc_TypeError, "Error, threads must be an int" );
 
 	threads = PyInt_AsLong( value );
