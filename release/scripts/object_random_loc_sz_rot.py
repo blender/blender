@@ -33,46 +33,67 @@ This script randomizes the selected objects location/size/rotation.
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
 
+'''
+30 Jun 07 - ZanQdo:
+ - Properly coded axis toggles for Loc random (didn't work at all)
+ - Made Rot input values meaningful (45 will give max 45 degres of rotation)
+ - Pumped up the Scale value limit
+ - Made Scale input values meaningful (15 will give max 15 units bigger model)
+'''
+
 from Blender import Draw, Scene
 from Blender.Mathutils import Rand
 
-def rnd():
-	return Rand()-0.5
+def rnd(flag):
+	Random = Rand()
+	if flag == "LOC":
+		return (Random - 0.5) * 2
+	elif flag == "ROT":
+		return (Random - 0.5) * 0.035
+	elif flag == "SIZE":
+		return (Random - 0.5) * 1.8
 
 def randomize(sel, PREF_LOC, PREF_SIZE, PREF_ROT, PREF_LINK_AXIS, PREF_X_AXIS, PREF_Y_AXIS, PREF_Z_AXIS):
 	for ob in sel:
 		if PREF_LOC:
 			if PREF_LINK_AXIS:
-				rand = PREF_LOC*rnd()
+				rand = PREF_LOC*rnd("LOC")
 				ob.loc = (ob.LocX+(rand*PREF_X_AXIS),  ob.LocY+(rand*PREF_Y_AXIS),  ob.LocZ+(rand*PREF_Z_AXIS))
 			else:
-				ob.loc = (ob.LocX+(PREF_LOC*rnd()),  ob.LocY+(PREF_LOC*rnd()),  ob.LocZ+(PREF_LOC*rnd()))
-				
+				if PREF_X_AXIS:	x= PREF_LOC*rnd("LOC")
+				else:			x= 0
+				if PREF_Y_AXIS:	y= PREF_LOC*rnd("LOC")
+				else:			y= 0
+				if PREF_Z_AXIS:	z= PREF_LOC*rnd("LOC")
+				else:			z= 0
+				ob.loc = (ob.LocX+x,  ob.LocY+y,  ob.LocZ+z)
+		
 		if PREF_SIZE:
 			if PREF_LINK_AXIS:
-				rand = 1 + (PREF_SIZE*rnd())
+				rand = PREF_SIZE*rnd("SIZE")
 				if PREF_X_AXIS:	x= rand
-				else:			x= 1
+				else:			x= 0
 				if PREF_Y_AXIS:	y= rand
-				else:			y= 1
+				else:			y= 0
 				if PREF_Z_AXIS:	z= rand
-				else:			z= 1
-				ob.size = (ob.SizeX*x,  ob.SizeY*y,  ob.SizeZ*z)
+				else:			z= 0
+			
 			else:
-				if PREF_X_AXIS:	x= 1+ PREF_SIZE*rnd()
-				else:			x= 1
-				if PREF_Y_AXIS:	y= 1+ PREF_SIZE*rnd()
-				else:			y= 1
-				if PREF_Z_AXIS:	z= 1+ PREF_SIZE*rnd()
-				else:			z= 1
+				if PREF_X_AXIS:	x= PREF_SIZE*rnd("SIZE")
+				else:			x= 0
+				if PREF_Y_AXIS:	y= PREF_SIZE*rnd("SIZE")
+				else:			y= 0
+				if PREF_Z_AXIS:	z= PREF_SIZE*rnd("SIZE")
+				else:			z= 0
 				
-				ob.size = (ob.SizeX*x,  ob.SizeY*y,  ob.SizeZ*z)
+			ob.size = (abs(ob.SizeX+x),  abs(ob.SizeY+y),  abs(ob.SizeZ+z))
+		
 		if PREF_ROT:
 			if PREF_LINK_AXIS:
-				rand = PREF_ROT*rnd()
+				rand = PREF_ROT*rnd("ROT")
 				ob.rot = (ob.RotX+rand,  ob.RotY+rand,  ob.RotZ+rand)
 			else:
-				ob.rot = (ob.RotX+(PREF_X_AXIS*PREF_ROT*rnd()),  ob.RotY+(PREF_Y_AXIS*PREF_ROT*rnd()),  ob.RotZ+(PREF_Z_AXIS*PREF_ROT*rnd()))
+				ob.rot = (ob.RotX+(PREF_X_AXIS*PREF_ROT*rnd("ROT")),  ob.RotY+(PREF_Y_AXIS*PREF_ROT*rnd("ROT")),  ob.RotZ+(PREF_Z_AXIS*PREF_ROT*rnd("ROT")))
 	
 
 def main():
@@ -89,9 +110,9 @@ def main():
 	PREF_Z_AXIS= Draw.Create(1)
 	
 	pup_block = [\
-	('loc:', PREF_LOC, 0.0, 10.0, 'Amount to randomize the location'),\
-	('size:', PREF_SIZE, 0.0, 10.0,  'Amount to randomize the size'),\
-	('rot:', PREF_ROT, 0.0, 10.0, 'Amount to randomize the rotation'),\
+	('loc:', PREF_LOC, 0.0, 100.0, 'Amount to randomize the location'),\
+	('size:', PREF_SIZE, 0.0, 100.0,  'Amount to randomize the size'),\
+	('rot:', PREF_ROT, 0.0, 360.0, 'Amount to randomize the rotation'),\
 	'',\
 	('Link Axis', PREF_LINK_AXIS, 'Use the same random value for each objects XYZ'),\
 	('X Axis', PREF_X_AXIS, 'Enable X axis randomization'),\
