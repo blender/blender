@@ -60,7 +60,6 @@ BF_TIFF_INC = '${BF_TIFF}/include'
 WITH_BF_ZLIB = 'true'
 BF_ZLIB = LIBDIR + '/zlib'
 BF_ZLIB_INC = '${BF_ZLIB}/include'
-#BF_ZLIB_LIB = 'z'
 BF_ZLIB_LIBPATH = '${BF_ZLIB}/lib'
 
 WITH_BF_INTERNATIONAL = 'true'
@@ -109,9 +108,6 @@ WITH_BF_YAFRAY = 'true'
 #BF_MOZILLA_LIB =
 # Will fall back to look in BF_MOZILLA_INC/nspr and BF_MOZILLA_LIB
 # if this is not set.
-#
-# Be paranoid regarding library creation (do not update archives)
-#BF_PARANOID = 'true'
 
 # enable freetype2 support for text objects
 BF_FREETYPE = LIBDIR + '/gcc/freetype'
@@ -141,8 +137,6 @@ BF_OPENGL_LIB_STATIC = [ '${BF_OPENGL}/lib/libGL.a', '${BF_OPENGL}/lib/libGLU.a'
 ##
 CC = 'gcc'
 CXX = 'g++'
-##ifeq ($CPU),alpha)
-##   CFLAGS += -pipe -fPIC -funsigned-char -fno-strict-aliasing -mieee
 
 CCFLAGS = [ '-pipe', '-funsigned-char', '-fno-strict-aliasing' ]
 
@@ -150,21 +144,12 @@ CPPFLAGS = [ '-DXP_UNIX', '-DWIN32', '-DFREE_WINDOWS' ]
 CXXFLAGS = ['-pipe', '-mwindows', '-funsigned-char', '-fno-strict-aliasing' ]
 REL_CFLAGS = [ '-O2' ]
 REL_CCFLAGS = [ '-O2' ]
-##BF_DEPEND = 'true'
-##
-##AR = ar
-##ARFLAGS = ruv
-##ARFLAGSQUIET = ru
-##
+
 C_WARN = [ '-Wall' , '-Wno-char-subscripts', '-Wdeclaration-after-statement' ]
 
 CC_WARN = [ '-Wall' ]
 
-##FIX_STUBS_WARNINGS = -Wno-unused
-
-LLIBS = ['-lshell32', '-lshfolder', '-ldxguid', '-lgdi32', '-lmsvcrt', '-lwinmm', '-lmingw32', '-lm', '-lws2_32', '-lz'] #'-lutil', '-lc', '-lm', '-ldl', '-lpthread']
-##LOPTS = --dynamic
-##DYNLDFLAGS = -shared $(LDFLAGS)
+LLIBS = ['-lshell32', '-lshfolder', '-ldxguid', '-lgdi32', '-lmsvcrt', '-lwinmm', '-lmingw32', '-lm', '-lws2_32', '-lz', '-lstdc++']
 
 BF_DEBUG = 'false'
 BF_DEBUG_FLAGS= '-g'

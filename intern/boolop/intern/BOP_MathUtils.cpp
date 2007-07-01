@@ -1,4 +1,7 @@
 /**
+ *
+ * $Id$
+ *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -23,7 +26,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Marc Freixas, Ken Hughes
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -115,7 +118,12 @@ bool BOP_collinear(const MT_Point3& p1, const MT_Point3& p2, const MT_Point3& p3
 {
 	MT_Vector3 v1 = p2 - p1;
 	MT_Vector3 v2 = p3 - p2;
-	
+
+	/* normalize vectors before taking their cross product, so its length 
+     * has some actual meaning */
+	v1.normalize();	
+	v2.normalize();
+
 	MT_Vector3 w = v1.cross(v2);
 	
 	return (BOP_comp(w.x(),0.0) == 0) && (BOP_comp(w.y(),0.0) == 0) && (BOP_comp(w.z(),0.0) == 0);

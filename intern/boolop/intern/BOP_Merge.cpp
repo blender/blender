@@ -1,4 +1,7 @@
 /**
+ *
+ * $Id$
+ *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -23,7 +26,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Marc Freixas, Ken Hughes
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -56,6 +59,32 @@ void BOP_Merge::mergeFaces(BOP_Mesh *m, BOP_Index v)
 
 	// Merge faces
 	mergeFaces();
+
+	/*
+	 * HACK: somehow triangular faces are being created with two vertices the
+	 * same.  If it's happening in BOP_Mesh::replaceVertexIndex() we should
+	 * be catching it, so either it's not happening there or we aren't
+	 * catching it (duh).  Until we figure this out, this hack cleans things.
+	 * 
+	 * Test for any invalid faces: if any two vertices are the same of a
+	 * triangle, the face is broken.  Further, I don't believe it's possible
+	 * to have any quads at this point, so if we find one send a message
+	 * to stdout.
+	 */
+
+	BOP_Faces faces = m_mesh->getFaces();
+	const BOP_IT_Faces ifacesIEnd = (faces.end());
+	for(BOP_IT_Faces faceI=faces.begin();faceI!=ifacesIEnd;faceI++) {
+		if ((*faceI)->getTAG() != BROKEN ) {
+			BOP_Index i1 = (*faceI)->getVertex(0);
+			BOP_Index i2 = (*faceI)->getVertex(1);
+			BOP_Index i3 = (*faceI)->getVertex(2);
+			if ( (*faceI)->size() == 4)
+				cout << "BOP_Merge::mergeFaces found a quad: this is an error" << endl;
+			if (i1 == i2 || i2 == i3 || i3 == i1 )
+				(*faceI)->setTAG(BROKEN);
+		}
+	}
 
 	do {
 		// Add quads ...
@@ -592,6 +621,7 @@ bool BOP_Merge::createQuads()
 	
 	// Get mesh faces
 	BOP_Faces faces = m_mesh->getFaces();
+
 	
     // Merge mesh triangles
 	const BOP_IT_Faces facesIEnd = (faces.end()-1);

@@ -1,4 +1,7 @@
 /**
+ *
+ * $Id$
+ *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -23,7 +26,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Marc Freixas, Ken Hughes
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
