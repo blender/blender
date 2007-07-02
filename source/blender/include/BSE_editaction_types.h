@@ -48,6 +48,7 @@ typedef struct bActListElem {
 	void 	*data;		/* source data this elem represents */
 	int 	type;		/* one of the ACTTYPE_* values */
 	int		flag;		/* copy of elem's flags for quick access */
+	int 	index;		/* copy of adrcode where applicable */
 	
 	void	*key_data;	/* motion data - ipo or ipo-curve */
 	short	datatype;	/* type of motion data to expect */
@@ -66,6 +67,7 @@ typedef struct bActListElem {
 #define ACTFILTER_CHANNELS		0x008	/* do we only care that it is a channel */
 #define ACTFILTER_IPOKEYS		0x010	/* only channels referencing ipo's */
 #define ACTFILTER_ONLYICU		0x020	/* only reference ipo-curves */
+#define ACTFILTER_FORDRAWING	0x040	/* make list for interface drawing */
 
 /* Action Editor - Main Data types */
 #define ACTCONT_NONE		0

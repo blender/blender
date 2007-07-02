@@ -380,18 +380,52 @@ static void actdata_filter_action (ListBase *act_data, bAction *act, int filter_
 static void actdata_filter_shapekey (ListBase *act_data, Key *key, int filter_mode)
 {
 	bActListElem *ale;
+	KeyBlock *kb;
 	IpoCurve *icu;
+	int i;
 	
-	/* loop over ipo curves if present */
-	if (key->ipo) {
-		if (filter_mode & ACTFILTER_IPOKEYS) {
-			ale= make_new_actlistelem(key->ipo, ACTTYPE_IPO, key, ACTTYPE_SHAPEKEY);
-			if (ale) BLI_addtail(act_data, ale);
+	/* are we filtering for display or editing */
+	if (filter_mode & ACTFILTER_FORDRAWING) {
+		/* for display - loop over shapekeys, adding ipo-curve references where needed */
+		kb= key->block.first;
+		
+		/* loop through possible shapekeys, manually creating entries */
+		for (i= 1; i < key->totkey; i++) {
+			ale= MEM_callocN(sizeof(bActListElem), "bActListElem");
+			kb = kb->next;
+			
+			ale->data= kb;
+			ale->type= ACTTYPE_SHAPEKEY; /* 'abused' usage of this type */
+			ale->owner= key;
+			ale->ownertype= ACTTYPE_SHAPEKEY;
+			ale->datatype= ALE_NONE;
+			ale->index = i;
+			
+			if (key->ipo) {
+				for (icu= key->ipo->curve.first; icu; icu=icu->next) {
+					if (icu->adrcode == i) {
+						ale->key_data= icu;
+						ale->datatype= ALE_ICU;
+						break;
+					}
+				}
+			}
+			
+			BLI_addtail(act_data, ale);
 		}
-		else {
-			for (icu= key->ipo->curve.first; icu; icu=icu->next) {
-				ale= make_new_actlistelem(icu, ACTTYPE_ICU, key, ACTTYPE_SHAPEKEY);
+	}
+	else {
+		/* loop over ipo curves if present - for editing */
+		if (key->ipo) {
+			if (filter_mode & ACTFILTER_IPOKEYS) {
+				ale= make_new_actlistelem(key->ipo, ACTTYPE_IPO, key, ACTTYPE_SHAPEKEY);
 				if (ale) BLI_addtail(act_data, ale);
+			}
+			else {
+				for (icu= key->ipo->curve.first; icu; icu=icu->next) {
+					ale= make_new_actlistelem(icu, ACTTYPE_ICU, key, ACTTYPE_SHAPEKEY);
+					if (ale) BLI_addtail(act_data, ale);
+				}
 			}
 		}
 	}
@@ -2329,8 +2363,11 @@ static void mouse_action (int selectmode)
 			case ACTTYPE_CONCHAN:
 				conchan= (bConstraintChannel *)act_channel;
 				break;
-			default:
+			case ACTTYPE_ACHAN:
 				achan= (bActionChannel *)act_channel;
+				break;
+			default:
+				return;
 		}
 		
 		if (selectmode == SELECT_REPLACE) {

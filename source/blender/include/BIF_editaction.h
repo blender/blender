@@ -64,7 +64,7 @@
 #define EDITABLE_ICU(icu) ((icu->flag & IPO_PROTECT)==0)
 #define SEL_ICU(icu) (icu->flag & IPO_SELECT)
 
-#define NLA_ACTION_SCALED (G.saction->pin==0 && OBACT)
+#define NLA_ACTION_SCALED (G.saction->pin==0 && OBACT && OBACT->action)
 #define NLA_IPO_SCALED (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname)
 
 /* constants for setting ipo-interpolation type */

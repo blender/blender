@@ -83,6 +83,7 @@
 
 #include "BSE_drawnla.h"
 #include "BSE_drawipo.h"
+#include "BSE_editaction_types.h"
 #include "BSE_editipo.h"
 #include "BSE_time.h"
 #include "BSE_view.h"
@@ -91,6 +92,8 @@
 
 #include "blendef.h"
 #include "mydevice.h"
+
+/********************************** Slider Stuff **************************** */
 
 /* sliders for shapekeys */
 static void meshactionbuts(SpaceAction *saction, Object *ob, Key *key)
@@ -336,7 +339,9 @@ static void action_icu_buts(SpaceAction *saction)
 	uiDrawBlock(block);
 }
 
-void draw_cfra_action(void)
+/********************************** Current Frame **************************** */
+
+void draw_cfra_action (void)
 {
 	Object *ob;
 	float vec[2];
@@ -370,231 +375,23 @@ void draw_cfra_action(void)
 	glLineWidth(1.0);
 }
 
-/* left hand */
-static void draw_action_channel_names(bAction *act) 
-{
-    bActionChannel *achan;
-    bConstraintChannel *conchan;
-	IpoCurve *icu;
-    float	x, y;
-
-    x = 0.0;
-	y = 0.0f;
-
-	for (achan=act->chanbase.first; achan; achan= achan->next) {
-		if(VISIBLE_ACHAN(achan)) {
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) ;
-			
-			/* draw backing strip behind action channel name */
-			BIF_ThemeColorShade(TH_HEADER, 20);
-			glRectf(x,  y-CHANNELHEIGHT/2,  (float)NAMEWIDTH,  y+CHANNELHEIGHT/2);
-			
-			/* draw expand/collapse triangle for action-channel */
-			if (EXPANDED_ACHAN(achan))
-				BIF_icon_draw(x+1, y-CHANNELHEIGHT/2, ICON_TRIA_DOWN);
-			else
-				BIF_icon_draw(x+1, y-CHANNELHEIGHT/2, ICON_TRIA_RIGHT);
-			
-			/* draw name of action channel */
-			if (SEL_ACHAN(achan))
-				BIF_ThemeColor(TH_TEXT_HI);
-			else
-				BIF_ThemeColor(TH_TEXT);
-			glRasterPos2f(x+18,  y-4);
-			BMF_DrawString(G.font, achan->name);
-			
-			/* draw 'eye' indicating whether channel's ipo is muted */
-			if (achan->ipo) {
-				if (achan->ipo->muteipo) 
-					BIF_icon_draw(NAMEWIDTH-32, y-CHANNELHEIGHT/2, ICON_RESTRICT_VIEW_ON);
-				else 
-					BIF_icon_draw(NAMEWIDTH-32, y-CHANNELHEIGHT/2, ICON_RESTRICT_VIEW_OFF);
-			}
-			
-			/* draw 'lock' indicating whether channel is protected */
-			if (EDITABLE_ACHAN(achan)==0) 
-				BIF_icon_draw(NAMEWIDTH-16, y-CHANNELHEIGHT/2, ICON_LOCKED);
-			else 
-				BIF_icon_draw(NAMEWIDTH-16, y-CHANNELHEIGHT/2, ICON_UNLOCKED);
-			y-=CHANNELHEIGHT+CHANNELSKIP;
-			
-			if (EXPANDED_ACHAN(achan)) {
-				/* Draw IPO-curves show/hide widget */
-				if (achan->ipo) {					
-					/* draw backing strip behind */
-					BIF_ThemeColorShade(TH_HEADER, -20);
-					glRectf(x+7,  y-CHANNELHEIGHT/2,  (float)NAMEWIDTH,  y+CHANNELHEIGHT/2);
-					
-					/* draw expand/collapse triangle for showing sub-channels  */
-					if (FILTER_IPO_ACHAN(achan))
-						BIF_icon_draw(x+8, y-CHANNELHEIGHT/2, ICON_TRIA_DOWN);
-					else
-						BIF_icon_draw(x+8, y-CHANNELHEIGHT/2, ICON_TRIA_RIGHT);
-					
-					/* draw icon showing type of ipo-block */
-					BIF_icon_draw(x+24, y-CHANNELHEIGHT/2, geticon_ipo_blocktype(achan->ipo->blocktype));
-					
-					/* draw name of ipo-block */
-					if (SEL_ACHAN(achan))
-						BIF_ThemeColor(TH_TEXT_HI);
-					else
-						BIF_ThemeColor(TH_TEXT);
-					glRasterPos2f(x+40,  y-4);
-					BMF_DrawString(G.font, "IPO Curves"); // TODO: make proper naming scheme
-				
-					y-=CHANNELHEIGHT+CHANNELSKIP;
-				
-					/* Draw IPO-curve-channels? */
-					if (FILTER_IPO_ACHAN(achan)) {
-						for (icu=achan->ipo->curve.first; icu; icu=icu->next) {
-							char *icu_name= getname_ipocurve(icu);
-							
-							/* draw backing strip behind ipo-curve channel*/
-							BIF_ThemeColorShade(TH_HEADER, -40);
-							glRectf(x+14,  y-CHANNELHEIGHT/2,  (float)NAMEWIDTH,  y+CHANNELHEIGHT/2);
-							
-							/* draw name of ipo-curve channel */
-							if (SEL_ICU(icu))
-								BIF_ThemeColor(TH_TEXT_HI);
-							else
-								BIF_ThemeColor(TH_TEXT);
-							glRasterPos2f(x+24,  y-4);
-							BMF_DrawString(G.font, icu_name);
-							
-							/* draw 'eye' indicating whether channel's ipo curve is muted */
-							if (icu->flag & IPO_MUTE) 
-								BIF_icon_draw(NAMEWIDTH-16, y-CHANNELHEIGHT/2, ICON_RESTRICT_VIEW_ON);
-							else 
-								BIF_icon_draw(NAMEWIDTH-16, y-CHANNELHEIGHT/2, ICON_RESTRICT_VIEW_OFF);
-							
-#if 0 /* tempolarily disabled until all ipo-code can support this option */
-							/* draw 'lock' to indicate if ipo-curve channel is protected */
-							if (EDITABLE_ICU(icu)==0) 
-								BIF_icon_draw(NAMEWIDTH-16, y-CHANNELHEIGHT/2, ICON_LOCKED);
-							else 
-								BIF_icon_draw(NAMEWIDTH-16, y-CHANNELHEIGHT/2, ICON_UNLOCKED);	
-#endif
-							y-=CHANNELHEIGHT+CHANNELSKIP;
-						}
-					}
-				}
-
-				/* Draw constraints show/hide widget */
-				if (achan->constraintChannels.first) {
-					/* draw backing strip behind */
-					BIF_ThemeColorShade(TH_HEADER, -20);
-					glRectf(x+7,  y-CHANNELHEIGHT/2,  (float)NAMEWIDTH,  y+CHANNELHEIGHT/2);
-					
-					/* draw expand/collapse triangle for showing sub-channels  */
-					if (FILTER_CON_ACHAN(achan))
-						BIF_icon_draw(x+8, y-CHANNELHEIGHT/2, ICON_TRIA_DOWN);
-					else
-						BIF_icon_draw(x+8, y-CHANNELHEIGHT/2, ICON_TRIA_RIGHT);
-					
-					/* draw constraint icon */
-					BIF_icon_draw(x+24, y-CHANNELHEIGHT/2, ICON_CONSTRAINT);
-					
-					/* draw name of widget */
-					if (SEL_ACHAN(achan))
-						BIF_ThemeColor(TH_TEXT_HI);
-					else
-						BIF_ThemeColor(TH_TEXT);
-					glRasterPos2f(x+40,  y-4);
-					BMF_DrawString(G.font, "Constraints");
-				
-					y-=CHANNELHEIGHT+CHANNELSKIP;
-				
-					/* Draw constraint channels?  */
-					if (FILTER_CON_ACHAN(achan)) {
-						for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
-							/* draw backing strip behind constraint channel*/
-							BIF_ThemeColorShade(TH_HEADER, -40);
-							glRectf(x+14,  y-CHANNELHEIGHT/2,  (float)NAMEWIDTH,  y+CHANNELHEIGHT/2);
-							
-							/* draw name of constraint channel */
-							if (SEL_CONCHAN(conchan))
-								BIF_ThemeColor(TH_TEXT_HI);
-							else
-								BIF_ThemeColor(TH_TEXT);
-							glRasterPos2f(x+25,  y-4);
-							BMF_DrawString(G.font, conchan->name);
-							
-							/* draw 'eye' indicating whether channel's ipo is muted */
-							if (conchan->ipo) {
-								if (conchan->ipo->muteipo) 
-									BIF_icon_draw(NAMEWIDTH-32, y-CHANNELHEIGHT/2, ICON_RESTRICT_VIEW_ON);
-								else 
-									BIF_icon_draw(NAMEWIDTH-32, y-CHANNELHEIGHT/2, ICON_RESTRICT_VIEW_OFF);
-							}
-							
-							/* draw 'lock' to indicate if constraint channel is protected */
-							if (EDITABLE_CONCHAN(conchan)==0) 
-								BIF_icon_draw(NAMEWIDTH-16, y-CHANNELHEIGHT/2, ICON_LOCKED);
-							else 
-								BIF_icon_draw(NAMEWIDTH-16, y-CHANNELHEIGHT/2, ICON_UNLOCKED);	
-							y-=CHANNELHEIGHT+CHANNELSKIP;
-						}
-					}
-				}
-			}
-			
-			glDisable(GL_BLEND);
-		}
-	}
-}
-
-
-static void draw_action_mesh_names(Key *key) 
-{
-	/* draws the names of the rvk keys in the
-	 * left side of the action window
-	 */
-	int	     i;
-	char     keyname[32];
-	float    x, y;
-	KeyBlock *kb;
-
-	x = 0.0;
-	y= 0.0;
-
-	kb= key->block.first;
-
-	for (i=1 ; i < key->totkey ; ++ i) {
-		glColor3ub(0xAA, 0xAA, 0xAA);
-		glRectf(x,	y-CHANNELHEIGHT/2,	(float)NAMEWIDTH,  y+CHANNELHEIGHT/2);
-
-		glColor3ub(0, 0, 0);
-
-		glRasterPos2f(x+8,	y-4);
-		kb = kb->next;
-		/* Blender now has support for named
-		 * key blocks. If a name hasn't
-		 * been set for an key block then
-		 * just display the key number -- 
-		 * otherwise display the name stored
-		 * in the keyblock.
-		 */
-		if (kb->name[0] == '\0') {
-		  sprintf(keyname, "Key %d", i);
-		  BMF_DrawString(G.font, keyname);
-		}
-		else {
-		  BMF_DrawString(G.font, kb->name);
-		}
-
-		y-=CHANNELHEIGHT+CHANNELSKIP;
-
-	}
-}
+/********************************** Left-Hand Panel + Generics **************************** */
 
 /* left hand part */
 static void draw_channel_names(void) 
 {
-	short ofsx, ofsy = 0; 
-	bAction	*act;
-	Key *key;
-
+	ListBase act_data = {NULL, NULL};
+	bActListElem *ale;
+	int filter;
+	void *data;
+	short datatype;
+	short ofsx = 0, ofsy = 0; 
+	float x= 0.0f, y= 0.0f;
+	
+	/* determine what type of data we are operating on */
+	data = get_action_context(&datatype);
+	if (data == NULL) return;
+	
 	/* Clip to the scrollable area */
 	if(curarea->winx>SCROLLB+10 && curarea->winy>SCROLLH+10) {
 		if(G.v2d->scroll) {	
@@ -609,57 +406,213 @@ static void draw_channel_names(void)
 		}
 	}
 	
-	myortho2(0,	NAMEWIDTH, G.v2d->cur.ymin, G.v2d->cur.ymax);	//	Scaling
+	/* prepare scaling for LHS panel */
+	myortho2(0,	NAMEWIDTH, G.v2d->cur.ymin, G.v2d->cur.ymax);
 	
+	/* set default color back to black */
 	glColor3ub(0x00, 0x00, 0x00);
+	
+	/* build list of channels to draw */
+	filter= (ACTFILTER_FORDRAWING|ACTFILTER_VISIBLE|ACTFILTER_CHANNELS);
+	actdata_filter(&act_data, filter, data, datatype);
+		
+	/* loop through channels, and set up drawing depending on their type  */
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	
+	for (ale= act_data.first; ale; ale= ale->next) {
+		short indent= 0, offset= 0, sel= 0;
+		int expand= -1, protect = -1, special= -1, mute = -1;
+		char name[32];
+		
+		/* determine what needs to be drawn */
+		switch (ale->type) {
+			case ACTTYPE_ACHAN: /* action channel */
+			{
+				bActionChannel *achan= (bActionChannel *)ale->data;
+				
+				indent = 0;
+				special = -1;
+				
+				if (EXPANDED_ACHAN(achan))
+					expand = ICON_TRIA_DOWN;
+				else
+					expand = ICON_TRIA_RIGHT;
+					
+				if (EDITABLE_ACHAN(achan))
+					protect = ICON_UNLOCKED;
+				else
+					protect = ICON_LOCKED;
+					
+				if (achan->ipo) {
+					if (achan->ipo->muteipo)
+						mute = ICON_RESTRICT_VIEW_ON;
+					else
+						mute = ICON_RESTRICT_VIEW_OFF;
+				}
+				
+				sel = SEL_ACHAN(achan);
+				sprintf(name, achan->name);
+			}
+				break;
+			case ACTTYPE_CONCHAN: /* constraint channel */
+			{
+				bConstraintChannel *conchan = (bConstraintChannel *)ale->data;
+				
+				indent = 2;
+				
+				if (EDITABLE_CONCHAN(conchan))
+					protect = ICON_UNLOCKED;
+				else
+					protect = ICON_LOCKED;
+					
+				if (conchan->ipo) {
+					if (conchan->ipo->muteipo)
+						mute = ICON_RESTRICT_VIEW_ON;
+					else
+						mute = ICON_RESTRICT_VIEW_OFF;
+				}
+				
+				sel = SEL_CONCHAN(conchan);
+				sprintf(name, conchan->name);
+			}
+				break;
+			case ACTTYPE_ICU: /* ipo-curve channel */
+			{
+				IpoCurve *icu = (IpoCurve *)ale->data;
+				
+				indent = 2;
+				protect = -1; // for now, until this can be supported by others
+				
+				if (icu->flag & IPO_MUTE)
+					mute = ICON_RESTRICT_VIEW_ON;
+				else	
+					mute = ICON_RESTRICT_VIEW_OFF;
+				
+				sel = SEL_ICU(icu);
+				sprintf(name, getname_ipocurve(icu));
+			}
+				break;
+			case ACTTYPE_SHAPEKEY: /* shapekey channel */
+			{
+				KeyBlock *kb = (KeyBlock *)ale->data;
+				
+				indent = 0;
+				special = -1;
+				
+				if (kb->name[0] == '\0')
+					sprintf(name, "Key %d", ale->index);
+				else
+					sprintf(name, kb->name);
+			}
+				break;
+			case ACTTYPE_FILLIPO: /* ipo expand widget */
+			{
+				bActionChannel *achan = (bActionChannel *)ale->data;
+				
+				indent = 1;
+				special = geticon_ipo_blocktype(achan->ipo->blocktype);
+				
+				if (FILTER_IPO_ACHAN(achan))	
+					expand = ICON_TRIA_DOWN;
+				else
+					expand = ICON_TRIA_RIGHT;
+				
+				sel = SEL_ACHAN(achan);
+				sprintf(name, "IPO Curves");
+			}
+				break;
+			case ACTTYPE_FILLCON: /* constraint expand widget */
+			{
+				bActionChannel *achan = (bActionChannel *)ale->data;
+				
+				indent = 1;
+				special = ICON_CONSTRAINT;
+				
+				if (FILTER_CON_ACHAN(achan))	
+					expand = ICON_TRIA_DOWN;
+				else
+					expand = ICON_TRIA_RIGHT;
+					
+				sel = SEL_ACHAN(achan);
+				sprintf(name, "Constraint");
+			}
+				break;
+		}	
 
-	act=G.saction->action;
-
-	if (act) {
-		/* if there is a selected action then
-		 * draw the channel names
+		/* now, start drawing based on this information */
+		/* draw backing strip behind channel name */
+		BIF_ThemeColorShade(TH_HEADER, ((indent==0)?20: (indent==1)?-20: -40));
+		offset = 7 * indent;
+		glRectf(x+offset,  y-CHANNELHEIGHT/2,  (float)NAMEWIDTH,  y+CHANNELHEIGHT/2);
+		
+		/* draw expand/collapse triangle */
+		if (expand > 0) {
+			BIF_icon_draw(x+offset, y-CHANNELHEIGHT/2, expand);
+			offset += 17;
+		}
+		
+		/* draw special icon indicating type of ipo-blocktype? 
+		 * 	only for expand widgets for Ipo and Constraint Channels 
 		 */
-		draw_action_channel_names(act);
+		if (special > 0) {
+			offset = 24;
+			BIF_icon_draw(x+offset, y-CHANNELHEIGHT/2, special);
+			offset += 17;
+		}
+			
+		/* draw name */
+		if (sel)
+			BIF_ThemeColor(TH_TEXT_HI);
+		else
+			BIF_ThemeColor(TH_TEXT);
+		offset += 3;
+		glRasterPos2f(x+offset, y-4);
+		BMF_DrawString(G.font, name);
+		
+		/* reset offset - for RHS of panel */
+		offset = 0;
+		
+		/* draw protect 'lock' */
+		if (protect > 0) {
+			offset = 16;
+			BIF_icon_draw(NAMEWIDTH-offset, y-CHANNELHEIGHT/2, protect);
+		}
+		
+		/* draw mute 'eye' */
+		if (mute > 0) {
+			offset += 16;
+			BIF_icon_draw(NAMEWIDTH-offset, y-CHANNELHEIGHT/2, mute);
+		}
+		
+		/* adjust y-position for next one */
+		y-=CHANNELHEIGHT+CHANNELSKIP;
 	}
-	else if ( (key = get_action_mesh_key()) ) {
-		/* if there is a mesh selected with rvk's,
-		 * then draw the RVK names
-		 */
-		draw_action_mesh_names(key);
-    }
-
-    myortho2(0,	NAMEWIDTH, 0, (ofsy+G.v2d->mask.ymax) -
-              (ofsy+G.v2d->mask.ymin));	//	Scaling
-
+	
+	/* free tempolary channels */
+	BLI_freelistN(&act_data);
+	
+	/* re-adjust view matrices for correct scaling*/
+    myortho2(0,	NAMEWIDTH, 0, (ofsy+G.v2d->mask.ymax) - (ofsy+G.v2d->mask.ymin));	//	Scaling
 }
 
+/* this function could soon be depreceated... */
 int count_action_levels(bAction *act)
 {
-	bActionChannel *achan;
-	int y=0;
+	ListBase act_data = {NULL, NULL};
+	int filter, y=0;
 
-	if (!act) 
+	/* check for invalid action */
+	if (act == NULL) 
 		return 0;
+		
+	/* build list of channels to count */
+	filter= (ACTFILTER_VISIBLE|ACTFILTER_CHANNELS);
+	actdata_filter(&act_data, filter, act, ACTCONT_ACTION);
 
-	for (achan=act->chanbase.first; achan; achan=achan->next) {
-		if(VISIBLE_ACHAN(achan)) {
-			y++;
-			
-			if (EXPANDED_ACHAN(achan)) {
-				if (achan->constraintChannels.first) {
-					y++;
-					if (FILTER_CON_ACHAN(achan))
-						y += BLI_countlist(&achan->constraintChannels);
-				}
-				else if (achan->ipo) {
-					y++;
-					if (FILTER_IPO_ACHAN(achan))
-						y += BLI_countlist(&achan->ipo->curve);
-				}
-			}
-		}
-	}
-
+	/* count and free data */
+	y = BLI_countlist(&act_data);
+	BLI_freelistN(&act_data);
 	return y;
 }
 
@@ -690,14 +643,16 @@ void check_action_context(SpaceAction *saction)
 	}
 }
 
-static void draw_channel_strips(SpaceAction *saction)
+static void draw_channel_strips(void)
 {
+	ListBase act_data = {NULL, NULL};
+	bActListElem *ale;
+	int filter;
+	void *data;
+	short datatype;
+	
 	rcti scr_rct;
 	gla2DDrawInfo *di;
-	bAction	*act;
-	bActionChannel *achan;
-	bConstraintChannel *conchan;
-	IpoCurve *icu;
 	float y, sta, end;
 	int act_start, act_end, dummy;
 	char col1[3], col2[3];
@@ -705,198 +660,129 @@ static void draw_channel_strips(SpaceAction *saction)
 	BIF_GetThemeColor3ubv(TH_SHADE2, col2);
 	BIF_GetThemeColor3ubv(TH_HILITE, col1);
 
-	act= saction->action;
-	if (!act)
-		return;
+	/* get editor data */
+	data= get_action_context(&datatype);
+	if (data == NULL) return;
 
-	scr_rct.xmin= saction->area->winrct.xmin + saction->v2d.mask.xmin;
-	scr_rct.ymin= saction->area->winrct.ymin + saction->v2d.mask.ymin;
-	scr_rct.xmax= saction->area->winrct.xmin + saction->v2d.hor.xmax;
-	scr_rct.ymax= saction->area->winrct.ymin + saction->v2d.mask.ymax; 
+	scr_rct.xmin= G.saction->area->winrct.xmin + G.saction->v2d.mask.xmin;
+	scr_rct.ymin= G.saction->area->winrct.ymin + G.saction->v2d.mask.ymin;
+	scr_rct.xmax= G.saction->area->winrct.xmin + G.saction->v2d.hor.xmax;
+	scr_rct.ymax= G.saction->area->winrct.ymin + G.saction->v2d.mask.ymax; 
 	di= glaBegin2DDraw(&scr_rct, &G.v2d->cur);
 
 	/* if in NLA there's a strip active, map the view */
-	if (NLA_ACTION_SCALED)
-		map_active_strip(di, OBACT, 0);
+	if (datatype == ACTCONT_ACTION) {
+		if (NLA_ACTION_SCALED)
+			map_active_strip(di, OBACT, 0);
+		
+		/* start and end of action itself */
+		calc_action_range(data, &sta, &end, 0);
+		gla2DDrawTranslatePt(di, sta, 0.0f, &act_start, &dummy);
+		gla2DDrawTranslatePt(di, end, 0.0f, &act_end, &dummy);
+		
+		if (NLA_ACTION_SCALED)
+			map_active_strip(di, OBACT, 1);
+	}
 	
-	/* start and end of action itself */
-	calc_action_range(act, &sta, &end, 0);
-	gla2DDrawTranslatePt(di, sta, 0.0f, &act_start, &dummy);
-	gla2DDrawTranslatePt(di, end, 0.0f, &act_end, &dummy);
-	
-	if (NLA_ACTION_SCALED)
-		map_active_strip(di, OBACT, 1);
+	/* build list of channels to draw */
+	filter= (ACTFILTER_FORDRAWING|ACTFILTER_VISIBLE|ACTFILTER_CHANNELS);
+	actdata_filter(&act_data, filter, data, datatype);
 	
 	/* first backdrop strips */
 	y = 0.0;
 	glEnable(GL_BLEND);
-	for (achan=act->chanbase.first; achan; achan= achan->next) {
-		if(VISIBLE_ACHAN(achan)) {
-			int frame1_x, channel_y;
-			
-			gla2DDrawTranslatePt(di, G.v2d->cur.xmin, y, &frame1_x, &channel_y);
-			
-			if (SEL_ACHAN(achan)) glColor4ub(col1[0], col1[1], col1[2], 0x22);
-			else glColor4ub(col2[0], col2[1], col2[2], 0x22);
-			glRectf(frame1_x,  channel_y-CHANNELHEIGHT/2,  G.v2d->hor.xmax,  channel_y+CHANNELHEIGHT/2);
-			
-			if (SEL_ACHAN(achan)) glColor4ub(col1[0], col1[1], col1[2], 0x22);
-			else glColor4ub(col2[0], col2[1], col2[2], 0x22);
-			glRectf(act_start,  channel_y-CHANNELHEIGHT/2,  act_end,  channel_y+CHANNELHEIGHT/2);
-			
-			/*	Increment the step */
-			y-=CHANNELHEIGHT+CHANNELSKIP;
-			
-			/* Draw sub channels */
-			if (EXPANDED_ACHAN(achan)) {
-				/* Draw ipo channels */
-				if (achan->ipo) {
-					y-=CHANNELHEIGHT+CHANNELSKIP;
-					
-					if (FILTER_IPO_ACHAN(achan)) {
-						for (icu=achan->ipo->curve.first; icu; icu=icu->next) {
-							gla2DDrawTranslatePt(di, 1, y, &frame1_x, &channel_y);
-							
-							if (SEL_ICU(icu)) glColor4ub(col1[0], col1[1], col1[2], 0x22);
-							else glColor4ub(col2[0], col2[1], col2[2], 0x22);
-							glRectf(frame1_x,  channel_y-CHANNELHEIGHT/2+4,  G.v2d->hor.xmax,  channel_y+CHANNELHEIGHT/2-4);
-							
-							if (SEL_ICU(icu)) glColor4ub(col1[0], col1[1], col1[2], 0x22);
-							else glColor4ub(col2[0], col2[1], col2[2], 0x22);
-							glRectf(act_start,  channel_y-CHANNELHEIGHT/2+4,  act_end,  channel_y+CHANNELHEIGHT/2-4);
-							
-							y-=CHANNELHEIGHT+CHANNELSKIP;
-						}
-					}
+	for (ale= act_data.first; ale; ale= ale->next) {
+		int frame1_x, channel_y, sel=0;
+		
+		/* determine if any need to draw channel */
+		if (ale->datatype != ALE_NONE) {
+			/* determine if channel is selected */
+			switch (ale->type) {
+				case ACTTYPE_ACHAN:
+				{
+					bActionChannel *achan = (bActionChannel *)ale->data;
+					sel = SEL_ACHAN(achan);
 				}
+					break;
+				case ACTTYPE_CONCHAN:
+				{
+					bConstraintChannel *conchan = (bConstraintChannel *)ale->data;
+					sel = SEL_CONCHAN(conchan);
+				}
+					break;
+				case ACTTYPE_ICU:
+				{
+					IpoCurve *icu = (IpoCurve *)ale->data;
+					sel = SEL_ICU(icu);
+				}
+					break;
+			}
+			
+			if (datatype == ACTCONT_ACTION) {
+				gla2DDrawTranslatePt(di, G.v2d->cur.xmin, y, &frame1_x, &channel_y);
 				
-				/* Draw constraint channels */
-				if (achan->constraintChannels.first) {
-					y-=CHANNELHEIGHT+CHANNELSKIP;
-					
-					if (FILTER_CON_ACHAN(achan)) {
-						for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
-							gla2DDrawTranslatePt(di, 1, y, &frame1_x, &channel_y);
-							
-							if (SEL_CONCHAN(conchan)) glColor4ub(col1[0], col1[1], col1[2], 0x22);
-							else glColor4ub(col2[0], col2[1], col2[2], 0x22);
-							glRectf(frame1_x,  channel_y-CHANNELHEIGHT/2+4,  G.v2d->hor.xmax,  channel_y+CHANNELHEIGHT/2-4);
-							
-							if (SEL_CONCHAN(conchan)) glColor4ub(col1[0], col1[1], col1[2], 0x22);
-							else glColor4ub(col2[0], col2[1], col2[2], 0x22);
-							glRectf(act_start,  channel_y-CHANNELHEIGHT/2+4,  act_end,  channel_y+CHANNELHEIGHT/2-4);
-							
-							y-=CHANNELHEIGHT+CHANNELSKIP;
-						}
-					}
-				}
+				if (sel) glColor4ub(col1[0], col1[1], col1[2], 0x22);
+				else glColor4ub(col2[0], col2[1], col2[2], 0x22);
+				glRectf(frame1_x,  channel_y-CHANNELHEIGHT/2,  G.v2d->hor.xmax,  channel_y+CHANNELHEIGHT/2);
+				
+				if (sel) glColor4ub(col1[0], col1[1], col1[2], 0x22);
+				else glColor4ub(col2[0], col2[1], col2[2], 0x22);
+				glRectf(act_start,  channel_y-CHANNELHEIGHT/2,  act_end,  channel_y+CHANNELHEIGHT/2);
+			}
+			else if (datatype == ACTCONT_SHAPEKEY) {
+				gla2DDrawTranslatePt(di, 1, y, &frame1_x, &channel_y);
+				
+				/* all frames that have a frame number less than one
+				 * get a desaturated orange background
+				 */
+				glColor4ub(col2[0], col2[1], col2[2], 0x22);
+				glRectf(0, channel_y-CHANNELHEIGHT/2, frame1_x, channel_y+CHANNELHEIGHT/2);
+				
+				/* frames one and higher get a saturated orange background */
+				glColor4ub(col2[0], col2[1], col2[2], 0x44);
+				glRectf(frame1_x, channel_y-CHANNELHEIGHT/2, G.v2d->hor.xmax,  channel_y+CHANNELHEIGHT/2);
 			}
 		}
+		
+		/*	Increment the step */
+		y-=CHANNELHEIGHT+CHANNELSKIP;
 	}		
 	glDisable(GL_BLEND);
 	
 	if (NLA_ACTION_SCALED)
 		map_active_strip(di, OBACT, 0);
 	
-	/* keyframes  */
+	/* draw keyframes */
 	y = 0.0;
-	for (achan= act->chanbase.first; achan; achan= achan->next) {
-		if(VISIBLE_ACHAN(achan)) {
-			
-			draw_ipo_channel(di, achan->ipo, y);
-			y-=CHANNELHEIGHT+CHANNELSKIP;
-
-			/* Draw sub channels */
-			if (EXPANDED_ACHAN(achan)) {
-				/* Draw ipo curves */
-				if (achan->ipo) {
-					y-=CHANNELHEIGHT+CHANNELSKIP;
-					
-					if (FILTER_IPO_ACHAN(achan)) {
-						for (icu=achan->ipo->curve.first; icu; icu=icu->next) {
-							draw_icu_channel(di, icu, y);
-							y-=CHANNELHEIGHT+CHANNELSKIP;
-						}
-					}
-				}
-				
-				/* Draw constraint channels */
-				if (achan->constraintChannels.first) {
-					y-=CHANNELHEIGHT+CHANNELSKIP;
-					
-					if (FILTER_CON_ACHAN(achan)) {
-						for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
-							draw_ipo_channel(di, conchan->ipo, y);
-							y-=CHANNELHEIGHT+CHANNELSKIP;
-						}
-					}
-				}
-			}
+	for (ale= act_data.first; ale; ale= ale->next) {
+		switch (ale->datatype) {
+			case ALE_IPO:
+				draw_ipo_channel(di, ale->key_data, y);
+				break;
+			case ALE_ICU:
+				draw_icu_channel(di, ale->key_data, y);
+				break;
 		}
+		
+		y-=CHANNELHEIGHT+CHANNELSKIP;
 	}
+	
+	/* free tempolary channels used for drawing */
+	BLI_freelistN(&act_data);
 
-	if(saction->flag & SACTION_MOVING) {
+	/* black lines marking bounds for Time-Slide transform mode */
+	if (G.saction->flag & SACTION_MOVING) {
 		int frame1_x, channel_y;
-		gla2DDrawTranslatePt(di, saction->timeslide, 0, &frame1_x, &channel_y);
+		
+		gla2DDrawTranslatePt(di, G.saction->timeslide, 0, &frame1_x, &channel_y);
 		cpack(0x0);
+		
 		glBegin(GL_LINES);
 		glVertex2f(frame1_x, G.v2d->mask.ymin - 100);
 		glVertex2f(frame1_x, G.v2d->mask.ymax);
 		glEnd();
 	}
 	
-	glaEnd2DDraw(di);
-}
-
-static void draw_mesh_strips(SpaceAction *saction, Key *key)
-{
-	/* draw the RVK keyframes */
-	rcti scr_rct;
-	gla2DDrawInfo *di;
-	float	y, ybase;
-	IpoCurve *icu;
-	char col1[3], col2[3];
-	
-	BIF_GetThemeColor3ubv(TH_SHADE2, col2);
-	BIF_GetThemeColor3ubv(TH_HILITE, col1);
-
-	if (!key->ipo) return;
-
-	scr_rct.xmin= saction->area->winrct.xmin + ACTWIDTH;
-	scr_rct.ymin= saction->area->winrct.ymin + saction->v2d.mask.ymin;
-	scr_rct.xmax= saction->area->winrct.xmin + saction->v2d.hor.xmax;
-	scr_rct.ymax= saction->area->winrct.ymin + saction->v2d.mask.ymax; 
-	di= glaBegin2DDraw(&scr_rct, &G.v2d->cur);
-
-	ybase = 0;
-
-	for (icu = key->ipo->curve.first; icu ; icu = icu->next) {
-		int frame1_x, channel_y;
-		
-		/* lets not deal with the "speed" Ipo */
-		if (icu->adrcode==0) continue;
-		
-		y = ybase	- (CHANNELHEIGHT+CHANNELSKIP)*(icu->adrcode-1);
-		gla2DDrawTranslatePt(di, 1, y, &frame1_x, &channel_y);
-			
-		/* all frames that have a frame number less than one
-		 * get a desaturated orange background
-		 */
-		glEnable(GL_BLEND);
-		glColor4ub(col2[0], col2[1], col2[2], 0x22);
-		glRectf(0,        channel_y-CHANNELHEIGHT/2,  
-				frame1_x, channel_y+CHANNELHEIGHT/2);
-
-		/* frames one and higher get a saturated orange background */
-		glColor4ub(col2[0], col2[1], col2[2], 0x44);
-		glRectf(frame1_x,         channel_y-CHANNELHEIGHT/2,  
-				G.v2d->hor.xmax,  channel_y+CHANNELHEIGHT/2);
-		glDisable(GL_BLEND);
-
-		/* draw the keyframes */
-		draw_icu_channel(di, icu, y); 
-	}
-
 	glaEnd2DDraw(di);
 }
 
@@ -952,34 +838,42 @@ static void action_blockhandlers(ScrArea *sa)
 
 void drawactionspace(ScrArea *sa, void *spacedata)
 {
+	bAction *act = NULL;
+	Key *key = NULL;
+	void *data;
+	short datatype;
+	
+	
 	short ofsx = 0, ofsy = 0;
-	bAction *act;
-	Key *key;
 	float col[3];
 	short maxymin;
 
 	if (!G.saction)
 		return;
 
-	/* warning; blocks need to be freed each time, handlers dont remove  */
+	/* warning: blocks need to be freed each time, handlers dont remove  */
 	uiFreeBlocksWin(&sa->uiblocks, sa->win);
 
 	if (!G.saction->pin) {
-		/* allow more than one active action sometime? */
+		/* TODO: allow more than one active action sometime? */
 		if (OBACT)
 			G.saction->action = OBACT->action;
 		else
 			G.saction->action=NULL;
 	}
-	key = get_action_mesh_key();
-	act= G.saction->action;
+	
+	/* get data */
+	data = get_action_context(&datatype);
+	if (datatype == ACTCONT_ACTION)
+		act = data;
+	else if (datatype == ACTCONT_SHAPEKEY)
+		key = data;
 
 	/* Damn I hate hunting to find my rvk's because
 	 * they have scrolled off of the screen ... this
 	 * oughta fix it
 	 */
-	
-	if (!act && key) {
+	if (key) {
 		if (G.v2d->cur.ymin < -CHANNELHEIGHT) 
 			G.v2d->cur.ymin = -CHANNELHEIGHT;
 		
@@ -991,16 +885,16 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 	 * is set to an appropriate value based on whether sliders
 	 * are showing of not
 	 */
-	if (((key)||(act)) && (G.saction->flag & SACTION_SLIDERS)) 
+	if ((data) && (G.saction->flag & SACTION_SLIDERS)) 
 		ACTWIDTH = NAMEWIDTH + SLIDERWIDTH;
 	else 
 		ACTWIDTH = NAMEWIDTH;
 
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA) ;
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	calc_scrollrcts(sa, G.v2d, curarea->winx, curarea->winy);
 
-	/* background color for entire window (used in lefthand part tho) */
+	/* background color for entire window (used in lefthand part though) */
 	BIF_GetThemeColor3fv(TH_HEADER, col);
 	glClearColor(col[0], col[1], col[2], 0.0); 
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -1033,15 +927,7 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 	check_action_context(G.saction);
 	
 	/* Draw channel strips */
-	if (act) {
-		draw_channel_strips(G.saction);
-	}
-	else if (key) {
-		/* if there is a mesh with rvk's selected,
-		 * then draw the key frames in the action window
-		 */
-		draw_mesh_strips(G.saction, key);
-	}
+	draw_channel_strips();
 	
 	/* reset matrices for stuff to be drawn on top of keys*/
 	glViewport(ofsx+G.v2d->mask.xmin,  
@@ -1065,15 +951,15 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 
 	/* Draw scroll */
 	mywinset(curarea->win);	// reset scissor too
-	if(curarea->winx>SCROLLB+10 && curarea->winy>SCROLLH+10) {
-      myortho2(-0.375, curarea->winx-0.375, -0.375, curarea->winy-0.375);
-      if(G.v2d->scroll) drawscroll(0);
+	if (curarea->winx>SCROLLB+10 && curarea->winy>SCROLLH+10) {
+		myortho2(-0.375, curarea->winx-0.375, -0.375, curarea->winy-0.375);
+		if (G.v2d->scroll) drawscroll(0);
 	}
 
-	if(G.v2d->mask.xmin!=0) {
+	if (G.v2d->mask.xmin!=0) {
 		/* Draw channel names */
 		draw_channel_names();
-
+		
 		if(sa->winx > 50 + NAMEWIDTH + SLIDERWIDTH) {
 			if (act) {
 				/* if there is an action, draw sliders for its
@@ -1326,6 +1212,8 @@ void draw_action_channel(gla2DDrawInfo *di, bAction *act, float ypos)
 	draw_keylist(di, &keys, NULL, ypos);
 	BLI_freelistN(&keys);
 }
+
+/* --------------- Conversion: data -> keyframe list ------------------ */
 
 void ob_to_keylist(Object *ob, ListBase *keys, ListBase *blocks)
 {
