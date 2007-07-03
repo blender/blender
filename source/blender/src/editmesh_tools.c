@@ -2919,8 +2919,6 @@ void beauty_fill(void)
 	totedge = count_selected_edges(em->edges.first);
 	if(totedge==0) return;
 
-	if(okee("Beautify fill")==0) return;
-	
 	/* temp block with face pointers */
 	efaar= (EVPTuple *) MEM_callocN(totedge * sizeof(EVPTuple), "beautyfill");
 
