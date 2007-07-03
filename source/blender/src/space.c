@@ -1409,6 +1409,9 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case LKEY:
 				sd->brush_type= LAYER_BRUSH;
 				update_prop= 1; break;
+			case TKEY:
+				sd->brush_type= FLATTEN_BRUSH;
+				update_prop= 1; break;
 			/* Symmetry */
 			case XKEY:
 				sd->symm^= SYMM_X;
