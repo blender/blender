@@ -1367,7 +1367,7 @@ static PyObject *Effect_getParticlesLoc( BPy_Effect * self )
 					return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 							"Couldn't append item to PyList" );
 			}
-			
+			Py_DECREF( strand_list );
 		} else {
 			if(c_time > pa->time && c_time < pa->time+pa->lifetime ) {
 				/* vector particles are a tuple of 2 vectors */
