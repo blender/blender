@@ -2105,20 +2105,31 @@ static void imagewindow_clear_display_cb(RenderResult *rr)
 	}
 }
 
+/* returns biggest area that is not uv/image editor. Note that it uses buttons */
+/* window as the last possible alternative.									   */
 static ScrArea *biggest_non_image_area(void)
 {
 	ScrArea *sa, *big= NULL;
-	int size, maxsize= 0;
+	int size, maxsize= 0, bwmaxsize= 0;
+	short foundwin= 0;
 	
 	for(sa= G.curscreen->areabase.first; sa; sa= sa->next) {
-		if(sa->spacetype!=SPACE_IMAGE) {
+		if(sa->winx > 10 && sa->winy > 10) {
 			size= sa->winx*sa->winy;
-			if(sa->winx > 10 && sa->winy > 10 && size > maxsize) {
+			if(sa->spacetype == SPACE_BUTS) {
+				if(foundwin == 0 && size > bwmaxsize) {
+					bwmaxsize= size;
+					big= sa;	
+				}
+			}
+			else if(sa->spacetype != SPACE_IMAGE && size > maxsize) {
 				maxsize= size;
 				big= sa;
+				foundwin= 1;
 			}
 		}
 	}
+		
 	return big;
 }
 
