@@ -836,15 +836,28 @@ static int find_indicated_socket(SpaceNode *snode, bNode **nodep, bNodeSocket **
 	short mval[2];
 	
 	getmouseco_areawin(mval);
-	areamouseco_to_ipoco(G.v2d, mval, &rect.xmin, &rect.ymin);
-	
-	rect.xmin -= NODE_SOCKSIZE+3;
-	rect.ymin -= NODE_SOCKSIZE+3;
-	rect.xmax = rect.xmin + 2*NODE_SOCKSIZE+6;
-	rect.ymax = rect.ymin + 2*NODE_SOCKSIZE+6;
 	
 	/* check if we click in a socket */
 	for(node= snode->edittree->nodes.first; node; node= node->next) {
+	
+		areamouseco_to_ipoco(G.v2d, mval, &rect.xmin, &rect.ymin);
+		
+		rect.xmin -= NODE_SOCKSIZE+3;
+		rect.ymin -= NODE_SOCKSIZE+3;
+		rect.xmax = rect.xmin + 2*NODE_SOCKSIZE+6;
+		rect.ymax = rect.ymin + 2*NODE_SOCKSIZE+6;
+		
+		if (!(node->flag & NODE_HIDDEN)) {
+			/* extra padding inside and out - allow dragging on the text areas too */
+			if (in_out == SOCK_IN) {
+				rect.xmax += NODE_SOCKSIZE;
+				rect.xmin -= NODE_SOCKSIZE*4;
+			} else if (in_out == SOCK_OUT) {
+				rect.xmax += NODE_SOCKSIZE*4;
+				rect.xmin -= NODE_SOCKSIZE;
+			}
+		}
+			
 		if(in_out & SOCK_IN) {
 			for(sock= node->inputs.first; sock; sock= sock->next) {
 				if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
