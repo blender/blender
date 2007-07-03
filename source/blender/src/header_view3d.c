@@ -71,6 +71,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_modifier.h"
 #include "BKE_utildefines.h" /* for VECCOPY */
 
 #ifdef WITH_VERSE
@@ -4125,9 +4126,11 @@ static uiBlock *view3d_tpaintmenu(void *arg_unused)
 
 static void do_view3d_wpaintmenu(void *arg, int event)
 {
+	Object *ob= OBACT;
+	Object *par= modifiers_isDeformedByArmature(ob);
 	
 	/* events >= 2 are registered bpython scripts */
-	if (event >= 2) BPY_menu_do_python(PYMENU_WEIGHTPAINT, event - 2);
+	if (event >= 3) BPY_menu_do_python(PYMENU_WEIGHTPAINT, event - 3);
 	
 	switch(event) {
 	case 0: /* undo weight painting */
@@ -4136,6 +4139,14 @@ static void do_view3d_wpaintmenu(void *arg, int event)
 	case 1: /* set vertex colors/weight */
 		clear_wpaint_selectedfaces();
 		break;
+	case 2: /* vgroups from envelopes */
+		if(par && (par->flag & OB_POSEMODE))  {
+			pose_adds_vgroups(ob);
+			BIF_undo_push("Apply Bone Envelopes to VertexGroups");
+		} else {
+			error("The active object must have a deforming armature in pose mode");
+		}
+	break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -4146,22 +4157,26 @@ static uiBlock *view3d_wpaintmenu(void *arg_unused)
 	short yco= 0, menuwidth=120, menunr=1;
 	BPyMenu *pym;
 	int i=0;
-	
+		
 	block= uiNewBlock(&curarea->uiblocks, "view3d_paintmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_view3d_wpaintmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Undo Weight Painting|U",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Apply Bone Envelopes to Vertex Groups|W, 1",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
 	if (G.f & G_FACESELECT) {
-		uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Weight|Shift K",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+		uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 		menunr++;
 	}
 	
-	/* note that we account for the 2 previous entries with i+2:
+	/* note that we account for the 3 previous entries with i+3:
 	even if the last item isnt displayed, it dosent matter */
 	for (pym = BPyMenuTable[PYMENU_WEIGHTPAINT]; pym; pym = pym->next, i++) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20,
-			menuwidth, 19, NULL, 0.0, 0.0, 1, i+2,
+			menuwidth, 19, NULL, 0.0, 0.0, 1, i+3,
 			pym->tooltip?pym->tooltip:pym->filename);
 	}
 	
@@ -4311,7 +4326,7 @@ uiBlock *view3d_sculptmenu(void *arg_unused)
 		}
 	}
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, (sd->brush_type==FLATTEN_BRUSH ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Flatten", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+	uiDefIconTextBut(block, BUTM, 1, (sd->brush_type==FLATTEN_BRUSH ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Flatten|T", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 	uiDefIconTextBut(block, BUTM, 1, (sd->brush_type==LAYER_BRUSH ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Layer|L", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 	uiDefIconTextBut(block, BUTM, 1, (sd->brush_type==GRAB_BRUSH ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Grab|G", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 	uiDefIconTextBut(block, BUTM, 1, (sd->brush_type==INFLATE_BRUSH ? ICON_CHECKBOX_HLT : ICON_CHECKBOX_DEHLT), "Inflate|I", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
