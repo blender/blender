@@ -72,9 +72,6 @@
 #define M_PI		3.14159265358979323846
 #endif
 
-/* used by object.c */
-void Mat4BlendMat4(float [][4], float [][4], float [][4], float );
-
 /* Local function prototypes */
 
 /* ********************* Data level ****************** */
@@ -493,9 +490,9 @@ void unique_constraint_name (bConstraint *con, ListBase *list)
 	}
 	
 	/* See if we even need to do this */
-	for (curcon = list->first; curcon; curcon=curcon->next){
+	for (curcon = list->first; curcon; curcon=curcon->next) {
 		if (curcon!=con){
-			if (!strcmp(curcon->name, con->name)){
+			if (!strcmp(curcon->name, con->name)) {
 				exists = 1;
 				break;
 			}
@@ -510,19 +507,19 @@ void unique_constraint_name (bConstraint *con, ListBase *list)
 	if (dot)
 		*dot=0;
 	
-	for (number = 1; number <=999; number++){
+	for (number = 1; number <=999; number++) {
 		sprintf (tempname, "%s.%03d", con->name, number);
 		
 		exists = 0;
-		for (curcon=list->first; curcon; curcon=curcon->next){
-			if (con!=curcon){
-				if (!strcmp (curcon->name, tempname)){
+		for (curcon=list->first; curcon; curcon=curcon->next) {
+			if (con!=curcon) {
+				if (!strcmp (curcon->name, tempname)) {
 					exists = 1;
 					break;
 				}
 			}
 		}
-		if (!exists){
+		if (!exists) {
 			strcpy (con->name, tempname);
 			return;
 		}
@@ -583,14 +580,6 @@ void *new_constraint_data (short type)
 			result = data;
 		}
 		break;
-	case CONSTRAINT_TYPE_ROTLIKE:
-		{
-			bRotateLikeConstraint *data;
-			data = MEM_callocN(sizeof(bRotateLikeConstraint), "rotlikeConstraint");
-			data->flag = ROTLIKE_X|ROTLIKE_Y|ROTLIKE_Z;
-			result = data;
-		}
-		break;
 	case CONSTRAINT_TYPE_LOCLIKE:
 		{
 			bLocateLikeConstraint *data;
@@ -599,11 +588,19 @@ void *new_constraint_data (short type)
 			result = data;
 		}
 		break;
+	case CONSTRAINT_TYPE_ROTLIKE:
+		{
+			bRotateLikeConstraint *data;
+			data = MEM_callocN(sizeof(bRotateLikeConstraint), "rotlikeConstraint");
+			data->flag = ROTLIKE_X|ROTLIKE_Y|ROTLIKE_Z;
+			result = data;
+		}
+		break;
 	case CONSTRAINT_TYPE_SIZELIKE:
 		{
 			bSizeLikeConstraint *data;
 			data = MEM_callocN(sizeof(bLocateLikeConstraint), "sizelikeConstraint");
-			data->flag |= SIZELIKE_X|SIZELIKE_Y|SIZELIKE_Z;
+			data->flag = SIZELIKE_X|SIZELIKE_Y|SIZELIKE_Z;
 			result = data;
 		}
 		break;
@@ -775,46 +772,6 @@ void do_constraint_channels (ListBase *conbase, ListBase *chanbase, float ctime)
 	}
 }
 
-void Mat4BlendMat4(float out[][4], float dst[][4], float src[][4], float srcweight)
-{
-	float squat[4], dquat[4], fquat[4];
-	float ssize[3], dsize[3], fsize[4];
-	float sloc[3], dloc[3], floc[3];
-	float mat3[3][3], dstweight;
-	float qmat[3][3], smat[3][3];
-	int i;
-
-	dstweight = 1.0F-srcweight;
-
-	Mat3CpyMat4(mat3, dst);
-	Mat3ToQuat(mat3, dquat);
-	Mat3ToSize(mat3, dsize);
-	VECCOPY (dloc, dst[3]);
-
-	Mat3CpyMat4(mat3, src);
-	Mat3ToQuat(mat3, squat);
-	Mat3ToSize(mat3, ssize);
-	VECCOPY (sloc, src[3]);
-	
-	/* Do the actual blend */
-	for (i=0; i<3; i++){
-		floc[i] = (dloc[i]*dstweight) + (sloc[i]*srcweight);
-		fsize[i] = 1.0f + ((dsize[i]-1.0f)*dstweight) + ((ssize[i]-1.0f)*srcweight);
-		fquat[i+1] = (dquat[i+1]*dstweight) + (squat[i+1]*srcweight);
-	}
-	
-	/* Do one more iteration for the quaternions only and normalize the quaternion if needed */
-	fquat[0] = 1.0f + ((dquat[0]-1.0f)*dstweight) + ((squat[0]-1.0f)*srcweight);
-	NormalQuat (fquat);
-
-	QuatToMat3(fquat, qmat);
-	SizeToMat3(fsize, smat);
-
-	Mat3MulMat3(mat3, qmat, smat);
-	Mat4CpyMat3(out, mat3);
-	VECCOPY (out[3], floc);
-}
-
 static void constraint_target_to_mat4 (Object *ob, const char *substring, float mat[][4], float size[3])
 {
 
@@ -937,7 +894,7 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 {
 	short valid=0;
 
-	switch (con->type){
+	switch (con->type) {
 	case CONSTRAINT_TYPE_NULL:
 		{
 			Mat4One(mat);
@@ -959,7 +916,7 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 				if (data->tar==NULL) return 0;
 				
 				/* need proper check for bone... */
-				if(data->subtarget[0]) {
+				if (data->subtarget[0]) {
 					pchan = get_pose_channel(data->tar->pose, data->subtarget);
 					if (pchan) {
 						float arm_mat[3][3], pose_mat[3][3];		/* arm mat should be bone mat! bug... */
@@ -1002,9 +959,9 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 				}
 				
 				Mat3ToEul(tempmat3, eul);
-				eul[0]*=(float)(180.0/M_PI);
-				eul[1]*=(float)(180.0/M_PI);
-				eul[2]*=(float)(180.0/M_PI);
+				eul[0] *= (float)(180.0/M_PI);
+				eul[1] *= (float)(180.0/M_PI);
+				eul[2] *= (float)(180.0/M_PI);
 				
 				/* Target defines the animation */
 				s = (eul[data->type]-data->min)/(data->max-data->min);
@@ -1072,7 +1029,7 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 		{
 			bMinMaxConstraint *data = (bMinMaxConstraint*)con->data;
 
-			if (data->tar){
+			if (data->tar) {
 				constraint_target_to_mat4(data->tar, data->subtarget, mat, size);
 				valid=1;
 			}
@@ -1085,7 +1042,7 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 			bRotateLikeConstraint *data;
 			data = (bRotateLikeConstraint*)con->data;
 
-			if (data->tar){
+			if (data->tar) {
 				constraint_target_to_mat4(data->tar, data->subtarget, mat, size);
 				valid=1;
 			}
@@ -1098,7 +1055,7 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 			bSizeLikeConstraint *data;
 			data = (bSizeLikeConstraint*)con->data;
 
-			if (data->tar){
+			if (data->tar) {
 				constraint_target_to_mat4(data->tar, data->subtarget, mat, size);
 				valid=1;
 			}
@@ -1111,7 +1068,7 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 			bTrackToConstraint *data;
 			data = (bTrackToConstraint*)con->data;
 
-			if (data->tar){
+			if (data->tar) {
 				constraint_target_to_mat4(data->tar, data->subtarget, mat, size);
 				valid=1;
 			}
@@ -1124,14 +1081,14 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 			bKinematicConstraint *data;
 			data = (bKinematicConstraint*)con->data;
 
-			if (data->tar){
+			if (data->tar) {
 				constraint_target_to_mat4(data->tar, data->subtarget, mat, size);
 				valid=1;
 			}
 			else if (data->flag & CONSTRAINT_IK_AUTO) {
 				Object *ob= ownerdata;
 				
-				if(ob==NULL)
+				if (ob==NULL)
 					Mat4One(mat);
 				else {
 					float vec[3];
@@ -1151,7 +1108,7 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 			bLockTrackConstraint *data;
 			data = (bLockTrackConstraint*)con->data;
 
-			if (data->tar){
+			if (data->tar) {
 				constraint_target_to_mat4(data->tar, data->subtarget, mat, size);
 				valid=1;
 			}
@@ -1164,7 +1121,7 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 			bFollowPathConstraint *data;
 			data = (bFollowPathConstraint*)con->data;
 
-			if (data->tar){
+			if (data->tar) {
 				Curve *cu;
 				float q[4], vec[4], dir[3], *quat, x1, totmat[4][4];
 				float curvetime;
@@ -1177,22 +1134,21 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 				/* note; when creating constraints that follow path, the curve gets the CU_PATH set now,
 					currently for paths to work it needs to go through the bevlist/displist system (ton) */
 				
-				if(cu->path==NULL || cu->path->data==NULL) /* only happens on reload file, but violates depsgraph still... fix! */
+				if (cu->path==NULL || cu->path->data==NULL) /* only happens on reload file, but violates depsgraph still... fix! */
 					makeDispListCurveTypes(data->tar, 0);
-				if(cu->path && cu->path->data) {
+				if (cu->path && cu->path->data) {
 					
 					curvetime= bsystem_time(data->tar, data->tar->parent, (float)ctime, 0.0) - data->offset;
 
-					if(calc_ipo_spec(cu->ipo, CU_SPEED, &curvetime)==0) {
+					if (calc_ipo_spec(cu->ipo, CU_SPEED, &curvetime)==0) {
 						curvetime /= cu->pathlen;
 						CLAMP(curvetime, 0.0, 1.0);
 					}
-
-					if(where_on_path(data->tar, curvetime, vec, dir) ) {
-
-						if(data->followflag){
+					
+					if (where_on_path(data->tar, curvetime, vec, dir) ) {
+						if (data->followflag) {
 							quat= vectoquat(dir, (short) data->trackflag, (short) data->upflag);
-
+							
 							Normalize(dir);
 							q[0]= (float)cos(0.5*vec[3]);
 							x1= (float)sin(0.5*vec[3]);
@@ -1201,7 +1157,6 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 							q[3]= -x1*dir[2];
 							QuatMul(quat, q, quat);
 							
-
 							QuatToMat4(quat, totmat);
 						}
 						VECCOPY(totmat[3], vec);
@@ -1220,7 +1175,7 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 			bStretchToConstraint *data;
 			data = (bStretchToConstraint*)con->data;
 
-			if (data->tar){
+			if (data->tar) {
 				constraint_target_to_mat4(data->tar, data->subtarget, mat, size);
 				valid = 1;
 			}
@@ -1238,7 +1193,7 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void* own
 				Curve *cu= data->tar->data;
 				
 				/* this check is to make sure curve objects get updated on file load correctly.*/
-				if(cu->path==NULL || cu->path->data==NULL) /* only happens on reload file, but violates depsgraph still... fix! */
+				if (cu->path==NULL || cu->path->data==NULL) /* only happens on reload file, but violates depsgraph still... fix! */
 					makeDispListCurveTypes(data->tar, 0);				
 			}
 			
@@ -1312,7 +1267,7 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 			
 			data = constraint->data;
 			Mat4CpyMat4 (temp, ob->obmat);
-
+			
 			Mat4MulMat4(ob->obmat, targetmat, temp);
 		}
 		break;
@@ -1375,11 +1330,11 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 			}
 			
 			if((data->flag & ROTLIKE_X) && (data->flag & ROTLIKE_X_INVERT))
-				eul[0]*=-1;
+				eul[0]*= -1;
 			if((data->flag & ROTLIKE_Y) && (data->flag & ROTLIKE_Y_INVERT))
-				eul[1]*=-1;
+				eul[1]*= -1;
 			if((data->flag & ROTLIKE_Z) && (data->flag & ROTLIKE_Z_INVERT))
-				eul[2]*=-1;
+				eul[2]*= -1;
 			
 			LocEulSizeToMat4(ob->obmat, loc, eul, size);
 		}
@@ -1414,8 +1369,8 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 			Mat4CpyMat4(obmat,ob->obmat);
 			Mat4CpyMat4(tarmat,targetmat);
 			
-			if (data->flag&MINMAX_USEROT) {
-			/* take rotation of target into account by doing the transaction in target's localspace */
+			if (data->flag & MINMAX_USEROT) {
+				/* take rotation of target into account by doing the transaction in target's localspace */
 				Mat4Invert(imat,tarmat);
 				Mat4MulMat4(tmat,obmat,imat);
 				Mat4CpyMat4(obmat,tmat);
@@ -1465,7 +1420,7 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 					} 
 					else {
 						VECCOPY(data->cache, obmat[3]);
-						data->flag|=MINMAX_STUCK;
+						data->flag |= MINMAX_STUCK;
 					}
 				}
 				if (data->flag & MINMAX_USEROT) {
@@ -1478,9 +1433,8 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 				}
 			} 
 			else {
-				data->flag&=~MINMAX_STUCK;
+				data->flag &= ~MINMAX_STUCK;
 			}
-			
 		}
 		break;
 	case CONSTRAINT_TYPE_TRACKTO:
@@ -1491,7 +1445,7 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 			float totmat[3][3];
 			float tmat[4][4];
 
-			data=(bTrackToConstraint*)constraint->data;			
+			data = constraint->data;			
 			
 			if (data->tar) {
 				/* Get size property, since ob->size is only the object's own relative size, not its global one */
@@ -1499,7 +1453,7 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 				
 				Mat4CpyMat4 (M_oldmat, ob->obmat);
 				
-				// Clear the object's rotation 	
+				/* Clear the object's rotation */ 	
 				ob->obmat[0][0]=size[0];
 				ob->obmat[0][1]=0;
 				ob->obmat[0][2]=0;
@@ -1509,8 +1463,7 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 				ob->obmat[2][0]=0;
 				ob->obmat[2][1]=0;
 				ob->obmat[2][2]=size[2];
-	
-			
+				
 				VecSubf(vec, ob->obmat[3], targetmat[3]);
 				vectomat(vec, targetmat[2], 
 						(short)data->reserved1, (short)data->reserved2, 
@@ -1532,274 +1485,274 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 			float tmat[4][4];
 			float mdet;
 
-			data=(bLockTrackConstraint*)constraint->data;			
+			data = constraint->data;			
 			
 			if (data->tar) {
 				Mat4CpyMat4 (M_oldmat, ob->obmat);
-
+				
 				/* Vector object -> target */
 				VecSubf(vec, targetmat[3], ob->obmat[3]);
 				switch (data->lockflag){
 				case LOCK_X: /* LOCK X */
-					{
-					switch (data->trackflag){
-					case TRACK_Y: /* LOCK X TRACK Y */
+				{
+					switch (data->trackflag) {
+						case TRACK_Y: /* LOCK X TRACK Y */
 						{
-						/* Projection of Vector on the plane */
-						Projf(vec2, vec, ob->obmat[0]);
-						VecSubf(totmat[1], vec, vec2);
-						Normalize(totmat[1]);
-
-						/* the x axis is fixed*/
-						totmat[0][0] = ob->obmat[0][0];
-						totmat[0][1] = ob->obmat[0][1];
-						totmat[0][2] = ob->obmat[0][2];
-						Normalize(totmat[0]);
-				
-						/* the z axis gets mapped onto
-						a third orthogonal vector */
-						Crossf(totmat[2], totmat[0], totmat[1]);
+							/* Projection of Vector on the plane */
+							Projf(vec2, vec, ob->obmat[0]);
+							VecSubf(totmat[1], vec, vec2);
+							Normalize(totmat[1]);
+							
+							/* the x axis is fixed*/
+							totmat[0][0] = ob->obmat[0][0];
+							totmat[0][1] = ob->obmat[0][1];
+							totmat[0][2] = ob->obmat[0][2];
+							Normalize(totmat[0]);
+							
+							/* the z axis gets mapped onto
+							a third orthogonal vector */
+							Crossf(totmat[2], totmat[0], totmat[1]);
 						}
-						break;
-					case TRACK_Z: /* LOCK X TRACK Z */
+							break;
+						case TRACK_Z: /* LOCK X TRACK Z */
 						{
-						/* Projection of Vector on the plane */
-						Projf(vec2, vec, ob->obmat[0]);
-						VecSubf(totmat[2], vec, vec2);
-						Normalize(totmat[2]);
+							/* Projection of Vector on the plane */
+							Projf(vec2, vec, ob->obmat[0]);
+							VecSubf(totmat[2], vec, vec2);
+							Normalize(totmat[2]);
 
-						/* the x axis is fixed*/
-						totmat[0][0] = ob->obmat[0][0];
-						totmat[0][1] = ob->obmat[0][1];
-						totmat[0][2] = ob->obmat[0][2];
-						Normalize(totmat[0]);
-				
-						/* the z axis gets mapped onto
-						a third orthogonal vector */
-						Crossf(totmat[1], totmat[2], totmat[0]);
+							/* the x axis is fixed*/
+							totmat[0][0] = ob->obmat[0][0];
+							totmat[0][1] = ob->obmat[0][1];
+							totmat[0][2] = ob->obmat[0][2];
+							Normalize(totmat[0]);
+					
+							/* the z axis gets mapped onto
+							a third orthogonal vector */
+							Crossf(totmat[1], totmat[2], totmat[0]);
 						}
-						break;
-					case TRACK_nY: /* LOCK X TRACK -Y */
+							break;
+						case TRACK_nY: /* LOCK X TRACK -Y */
 						{
-						/* Projection of Vector on the plane */
-						Projf(vec2, vec, ob->obmat[0]);
-						VecSubf(totmat[1], vec, vec2);
-						Normalize(totmat[1]);
-						VecMulf(totmat[1],-1);
-
-						/* the x axis is fixed*/
-						totmat[0][0] = ob->obmat[0][0];
-						totmat[0][1] = ob->obmat[0][1];
-						totmat[0][2] = ob->obmat[0][2];
-						Normalize(totmat[0]);
-				
-						/* the z axis gets mapped onto
-						a third orthogonal vector */
-						Crossf(totmat[2], totmat[0], totmat[1]);
+							/* Projection of Vector on the plane */
+							Projf(vec2, vec, ob->obmat[0]);
+							VecSubf(totmat[1], vec, vec2);
+							Normalize(totmat[1]);
+							VecMulf(totmat[1],-1);
+							
+							/* the x axis is fixed*/
+							totmat[0][0] = ob->obmat[0][0];
+							totmat[0][1] = ob->obmat[0][1];
+							totmat[0][2] = ob->obmat[0][2];
+							Normalize(totmat[0]);
+							
+							/* the z axis gets mapped onto
+							a third orthogonal vector */
+							Crossf(totmat[2], totmat[0], totmat[1]);
 						}
-						break;
-					case TRACK_nZ: /* LOCK X TRACK -Z */
+							break;
+						case TRACK_nZ: /* LOCK X TRACK -Z */
 						{
-						/* Projection of Vector on the plane */
-						Projf(vec2, vec, ob->obmat[0]);
-						VecSubf(totmat[2], vec, vec2);
-						Normalize(totmat[2]);
-						VecMulf(totmat[2],-1);
-
-						/* the x axis is fixed*/
-						totmat[0][0] = ob->obmat[0][0];
-						totmat[0][1] = ob->obmat[0][1];
-						totmat[0][2] = ob->obmat[0][2];
-						Normalize(totmat[0]);
-				
-						/* the z axis gets mapped onto
-						a third orthogonal vector */
-						Crossf(totmat[1], totmat[2], totmat[0]);
+							/* Projection of Vector on the plane */
+							Projf(vec2, vec, ob->obmat[0]);
+							VecSubf(totmat[2], vec, vec2);
+							Normalize(totmat[2]);
+							VecMulf(totmat[2],-1);
+								
+							/* the x axis is fixed*/
+							totmat[0][0] = ob->obmat[0][0];
+							totmat[0][1] = ob->obmat[0][1];
+							totmat[0][2] = ob->obmat[0][2];
+							Normalize(totmat[0]);
+								
+							/* the z axis gets mapped onto
+							a third orthogonal vector */
+							Crossf(totmat[1], totmat[2], totmat[0]);
 						}
-						break;
-					default:
+							break;
+						default:
 						{
 							totmat[0][0] = 1;totmat[0][1] = 0;totmat[0][2] = 0;
 							totmat[1][0] = 0;totmat[1][1] = 1;totmat[1][2] = 0;
 							totmat[2][0] = 0;totmat[2][1] = 0;totmat[2][2] = 1;
 						}
-						break;
+							break;
 					}
-					}
+				}
 					break;
 				case LOCK_Y: /* LOCK Y */
-					{
-					switch (data->trackflag){
-					case TRACK_X: /* LOCK Y TRACK X */
+				{
+					switch (data->trackflag) {
+						case TRACK_X: /* LOCK Y TRACK X */
 						{
-						/* Projection of Vector on the plane */
-						Projf(vec2, vec, ob->obmat[1]);
-						VecSubf(totmat[0], vec, vec2);
-						Normalize(totmat[0]);
-
-						/* the y axis is fixed*/
-						totmat[1][0] = ob->obmat[1][0];
-						totmat[1][1] = ob->obmat[1][1];
-						totmat[1][2] = ob->obmat[1][2];
-						Normalize(totmat[1]);
-						
-						/* the z axis gets mapped onto
-						a third orthogonal vector */
-						Crossf(totmat[2], totmat[0], totmat[1]);
+							/* Projection of Vector on the plane */
+							Projf(vec2, vec, ob->obmat[1]);
+							VecSubf(totmat[0], vec, vec2);
+							Normalize(totmat[0]);
+							
+							/* the y axis is fixed*/
+							totmat[1][0] = ob->obmat[1][0];
+							totmat[1][1] = ob->obmat[1][1];
+							totmat[1][2] = ob->obmat[1][2];
+							Normalize(totmat[1]);
+							
+							/* the z axis gets mapped onto
+							a third orthogonal vector */
+							Crossf(totmat[2], totmat[0], totmat[1]);
 						}
-						break;
-					case TRACK_Z: /* LOCK Y TRACK Z */
+							break;
+						case TRACK_Z: /* LOCK Y TRACK Z */
 						{
-						/* Projection of Vector on the plane */
-						Projf(vec2, vec, ob->obmat[1]);
-						VecSubf(totmat[2], vec, vec2);
-						Normalize(totmat[2]);
+							/* Projection of Vector on the plane */
+							Projf(vec2, vec, ob->obmat[1]);
+							VecSubf(totmat[2], vec, vec2);
+							Normalize(totmat[2]);
 
-						/* the y axis is fixed*/
-						totmat[1][0] = ob->obmat[1][0];
-						totmat[1][1] = ob->obmat[1][1];
-						totmat[1][2] = ob->obmat[1][2];
-						Normalize(totmat[1]);
-						
-						/* the z axis gets mapped onto
-						a third orthogonal vector */
-						Crossf(totmat[0], totmat[1], totmat[2]);
+							/* the y axis is fixed*/
+							totmat[1][0] = ob->obmat[1][0];
+							totmat[1][1] = ob->obmat[1][1];
+							totmat[1][2] = ob->obmat[1][2];
+							Normalize(totmat[1]);
+							
+							/* the z axis gets mapped onto
+							a third orthogonal vector */
+							Crossf(totmat[0], totmat[1], totmat[2]);
 						}
-						break;
-					case TRACK_nX: /* LOCK Y TRACK -X */
+							break;
+						case TRACK_nX: /* LOCK Y TRACK -X */
 						{
-						/* Projection of Vector on the plane */
-						Projf(vec2, vec, ob->obmat[1]);
-						VecSubf(totmat[0], vec, vec2);
-						Normalize(totmat[0]);
-						VecMulf(totmat[0],-1);
+							/* Projection of Vector on the plane */
+							Projf(vec2, vec, ob->obmat[1]);
+							VecSubf(totmat[0], vec, vec2);
+							Normalize(totmat[0]);
+							VecMulf(totmat[0],-1);
 
-						/* the y axis is fixed*/
-						totmat[1][0] = ob->obmat[1][0];
-						totmat[1][1] = ob->obmat[1][1];
-						totmat[1][2] = ob->obmat[1][2];
-						Normalize(totmat[1]);
-						
-						/* the z axis gets mapped onto
-						a third orthogonal vector */
-						Crossf(totmat[2], totmat[0], totmat[1]);
+							/* the y axis is fixed*/
+							totmat[1][0] = ob->obmat[1][0];
+							totmat[1][1] = ob->obmat[1][1];
+							totmat[1][2] = ob->obmat[1][2];
+							Normalize(totmat[1]);
+							
+							/* the z axis gets mapped onto
+							a third orthogonal vector */
+							Crossf(totmat[2], totmat[0], totmat[1]);
 						}
-						break;
-					case TRACK_nZ: /* LOCK Y TRACK -Z */
+							break;
+						case TRACK_nZ: /* LOCK Y TRACK -Z */
 						{
-						/* Projection of Vector on the plane */
-						Projf(vec2, vec, ob->obmat[1]);
-						VecSubf(totmat[2], vec, vec2);
-						Normalize(totmat[2]);
-						VecMulf(totmat[2],-1);
+							/* Projection of Vector on the plane */
+							Projf(vec2, vec, ob->obmat[1]);
+							VecSubf(totmat[2], vec, vec2);
+							Normalize(totmat[2]);
+							VecMulf(totmat[2],-1);
 
-						/* the y axis is fixed*/
-						totmat[1][0] = ob->obmat[1][0];
-						totmat[1][1] = ob->obmat[1][1];
-						totmat[1][2] = ob->obmat[1][2];
-						Normalize(totmat[1]);
-						
-						/* the z axis gets mapped onto
-						a third orthogonal vector */
-						Crossf(totmat[0], totmat[1], totmat[2]);
+							/* the y axis is fixed*/
+							totmat[1][0] = ob->obmat[1][0];
+							totmat[1][1] = ob->obmat[1][1];
+							totmat[1][2] = ob->obmat[1][2];
+							Normalize(totmat[1]);
+							
+							/* the z axis gets mapped onto
+							a third orthogonal vector */
+							Crossf(totmat[0], totmat[1], totmat[2]);
 						}
-						break;
-					default:
+							break;
+						default:
 						{
 							totmat[0][0] = 1;totmat[0][1] = 0;totmat[0][2] = 0;
 							totmat[1][0] = 0;totmat[1][1] = 1;totmat[1][2] = 0;
 							totmat[2][0] = 0;totmat[2][1] = 0;totmat[2][2] = 1;
 						}
-						break;
+							break;
 					}
-					}
+				}
 					break;
 				case LOCK_Z: /* LOCK Z */
-					{
-					switch (data->trackflag){
-					case TRACK_X: /* LOCK Z TRACK X */
+				{
+					switch (data->trackflag) {
+						case TRACK_X: /* LOCK Z TRACK X */
 						{
-						/* Projection of Vector on the plane */
-						Projf(vec2, vec, ob->obmat[2]);
-						VecSubf(totmat[0], vec, vec2);
-						Normalize(totmat[0]);
-
-						/* the z axis is fixed*/
-						totmat[2][0] = ob->obmat[2][0];
-						totmat[2][1] = ob->obmat[2][1];
-						totmat[2][2] = ob->obmat[2][2];
-						Normalize(totmat[2]);
-						
-						/* the x axis gets mapped onto
-						a third orthogonal vector */
-						Crossf(totmat[1], totmat[2], totmat[0]);
+							/* Projection of Vector on the plane */
+							Projf(vec2, vec, ob->obmat[2]);
+							VecSubf(totmat[0], vec, vec2);
+							Normalize(totmat[0]);
+							
+							/* the z axis is fixed*/
+							totmat[2][0] = ob->obmat[2][0];
+							totmat[2][1] = ob->obmat[2][1];
+							totmat[2][2] = ob->obmat[2][2];
+							Normalize(totmat[2]);
+							
+							/* the x axis gets mapped onto
+							a third orthogonal vector */
+							Crossf(totmat[1], totmat[2], totmat[0]);
 						}
-						break;
-					case TRACK_Y: /* LOCK Z TRACK Y */
+							break;
+						case TRACK_Y: /* LOCK Z TRACK Y */
 						{
-						/* Projection of Vector on the plane */
-						Projf(vec2, vec, ob->obmat[2]);
-						VecSubf(totmat[1], vec, vec2);
-						Normalize(totmat[1]);
-
-						/* the z axis is fixed*/
-						totmat[2][0] = ob->obmat[2][0];
-						totmat[2][1] = ob->obmat[2][1];
-						totmat[2][2] = ob->obmat[2][2];
-						Normalize(totmat[2]);
-						
-						/* the x axis gets mapped onto
-						a third orthogonal vector */
-						Crossf(totmat[0], totmat[1], totmat[2]);
+							/* Projection of Vector on the plane */
+							Projf(vec2, vec, ob->obmat[2]);
+							VecSubf(totmat[1], vec, vec2);
+							Normalize(totmat[1]);
+							
+							/* the z axis is fixed*/
+							totmat[2][0] = ob->obmat[2][0];
+							totmat[2][1] = ob->obmat[2][1];
+							totmat[2][2] = ob->obmat[2][2];
+							Normalize(totmat[2]);
+								
+							/* the x axis gets mapped onto
+							a third orthogonal vector */
+							Crossf(totmat[0], totmat[1], totmat[2]);
 						}
-						break;
-					case TRACK_nX: /* LOCK Z TRACK -X */
+							break;
+						case TRACK_nX: /* LOCK Z TRACK -X */
 						{
-						/* Projection of Vector on the plane */
-						Projf(vec2, vec, ob->obmat[2]);
-						VecSubf(totmat[0], vec, vec2);
-						Normalize(totmat[0]);
-						VecMulf(totmat[0],-1);
-
-						/* the z axis is fixed*/
-						totmat[2][0] = ob->obmat[2][0];
-						totmat[2][1] = ob->obmat[2][1];
-						totmat[2][2] = ob->obmat[2][2];
-						Normalize(totmat[2]);
-						
-						/* the x axis gets mapped onto
-						a third orthogonal vector */
-						Crossf(totmat[1], totmat[2], totmat[0]);
+							/* Projection of Vector on the plane */
+							Projf(vec2, vec, ob->obmat[2]);
+							VecSubf(totmat[0], vec, vec2);
+							Normalize(totmat[0]);
+							VecMulf(totmat[0],-1);
+							
+							/* the z axis is fixed*/
+							totmat[2][0] = ob->obmat[2][0];
+							totmat[2][1] = ob->obmat[2][1];
+							totmat[2][2] = ob->obmat[2][2];
+							Normalize(totmat[2]);
+							
+							/* the x axis gets mapped onto
+							a third orthogonal vector */
+							Crossf(totmat[1], totmat[2], totmat[0]);
 						}
-						break;
-					case TRACK_nY: /* LOCK Z TRACK -Y */
+							break;
+						case TRACK_nY: /* LOCK Z TRACK -Y */
 						{
-						/* Projection of Vector on the plane */
-						Projf(vec2, vec, ob->obmat[2]);
-						VecSubf(totmat[1], vec, vec2);
-						Normalize(totmat[1]);
-						VecMulf(totmat[1],-1);
-
-						/* the z axis is fixed*/
-						totmat[2][0] = ob->obmat[2][0];
-						totmat[2][1] = ob->obmat[2][1];
-						totmat[2][2] = ob->obmat[2][2];
-						Normalize(totmat[2]);
-						
-						/* the x axis gets mapped onto
-						a third orthogonal vector */
-						Crossf(totmat[0], totmat[1], totmat[2]);
+							/* Projection of Vector on the plane */
+							Projf(vec2, vec, ob->obmat[2]);
+							VecSubf(totmat[1], vec, vec2);
+							Normalize(totmat[1]);
+							VecMulf(totmat[1],-1);
+							
+							/* the z axis is fixed*/
+							totmat[2][0] = ob->obmat[2][0];
+							totmat[2][1] = ob->obmat[2][1];
+							totmat[2][2] = ob->obmat[2][2];
+							Normalize(totmat[2]);
+								
+							/* the x axis gets mapped onto
+							a third orthogonal vector */
+							Crossf(totmat[0], totmat[1], totmat[2]);
 						}
-						break;
-					default:
+							break;
+						default:
 						{
-							totmat[0][0] = 1;totmat[0][1] = 0;totmat[0][2] = 0;
-							totmat[1][0] = 0;totmat[1][1] = 1;totmat[1][2] = 0;
-							totmat[2][0] = 0;totmat[2][1] = 0;totmat[2][2] = 1;
+								totmat[0][0] = 1;totmat[0][1] = 0;totmat[0][2] = 0;
+								totmat[1][0] = 0;totmat[1][1] = 1;totmat[1][2] = 0;
+								totmat[2][0] = 0;totmat[2][1] = 0;totmat[2][2] = 1;
 						}
-						break;
+							break;
 					}
-					}
+				}
 					break;
 				default:
 					{
@@ -1845,7 +1798,7 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
 			float obmat[4][4];
 			float size[3], obsize[3];
 
-			data=(bFollowPathConstraint*)constraint->data;			
+			data = constraint->data;			
 
 			if (data->tar) {
 				/* get Object local transform (loc/rot/size) to determine transformation from path */
@@ -1876,7 +1829,7 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
             float tmat[4][4];
             float dist;
 			
-            data=(bStretchToConstraint*)constraint->data;            
+            data = constraint->data;            
             Mat4ToSize (ob->obmat, size);
             
             if (data->tar) {
@@ -1885,13 +1838,13 @@ void evaluate_constraint (bConstraint *constraint, Object *ob, short ownertype, 
                 xx[1] = ob->obmat[0][1];
                 xx[2] = ob->obmat[0][2];
                 Normalize(xx);
-
+				
                 /* store Z orientation before destroying obmat */
                 zz[0] = ob->obmat[2][0];
                 zz[1] = ob->obmat[2][1];
                 zz[2] = ob->obmat[2][2];
                 Normalize(zz);
-
+				
 				VecSubf(vec, ob->obmat[3], targetmat[3]);
 				vec[0] /= size[0];
 				vec[1] /= size[1];

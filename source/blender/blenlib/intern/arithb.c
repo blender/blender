@@ -760,7 +760,45 @@ void Mat4MulSerie(float answ[][4], float m1[][4],
 	}
 }
 
+void Mat4BlendMat4(float out[][4], float dst[][4], float src[][4], float srcweight)
+{
+	float squat[4], dquat[4], fquat[4];
+	float ssize[3], dsize[3], fsize[4];
+	float sloc[3], dloc[3], floc[3];
+	float mat3[3][3], dstweight;
+	float qmat[3][3], smat[3][3];
+	int i;
 
+	dstweight = 1.0F-srcweight;
+
+	Mat3CpyMat4(mat3, dst);
+	Mat3ToQuat(mat3, dquat);
+	Mat3ToSize(mat3, dsize);
+	VecCopyf(dloc, dst[3]);
+
+	Mat3CpyMat4(mat3, src);
+	Mat3ToQuat(mat3, squat);
+	Mat3ToSize(mat3, ssize);
+	VecCopyf(sloc, src[3]);
+	
+	/* Do the actual blend */
+	for (i=0; i<3; i++){
+		floc[i] = (dloc[i]*dstweight) + (sloc[i]*srcweight);
+		fsize[i] = 1.0f + ((dsize[i]-1.0f)*dstweight) + ((ssize[i]-1.0f)*srcweight);
+		fquat[i+1] = (dquat[i+1]*dstweight) + (squat[i+1]*srcweight);
+	}
+	
+	/* Do one more iteration for the quaternions only and normalize the quaternion if needed */
+	fquat[0] = 1.0f + ((dquat[0]-1.0f)*dstweight) + ((squat[0]-1.0f)*srcweight);
+	NormalQuat (fquat);
+
+	QuatToMat3(fquat, qmat);
+	SizeToMat3(fsize, smat);
+
+	Mat3MulMat3(mat3, qmat, smat);
+	Mat4CpyMat3(out, mat3);
+	VecCopyf(out[3], floc);
+}
 
 void Mat4Clr(float *m)
 {
@@ -1767,7 +1805,6 @@ void Mat4Ortho(float mat[][4])
 
 void VecCopyf(float *v1, float *v2)
 {
-
 	v1[0]= v2[0];
 	v1[1]= v2[1];
 	v1[2]= v2[2];

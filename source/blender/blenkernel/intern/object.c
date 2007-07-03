@@ -1734,7 +1734,6 @@ for a lamp that is the child of another object */
 	ob->ipo= ipo;
 	
 }
-extern void Mat4BlendMat4(float out[][4], float dst[][4], float src[][4], float srcweight);
 
 void solve_constraints (Object *ob, short obtype, void *obdata, float ctime)
 {
