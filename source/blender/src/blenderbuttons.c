@@ -1,7 +1,7 @@
 /* DataToC output of file <release\datafiles\blenderbuttons> */
 
-int datatoc_release\datafiles\blenderbuttons_size= 65992;
-char datatoc_release\datafiles\blenderbuttons[]= {
+int datatoc_blenderbuttons_size= 65992;
+char datatoc_blenderbuttons[]= {
 137, 80, 78, 71, 13, 10, 26, 10,
   0,  0,  0, 13, 73, 72, 68, 82,  0,  0,  2,  0,  0,  0,  1,  0,  8,  6,  0,  0,  0,197,144,206,103,  0,  0,  0,  6, 98, 75, 71,
  68,  0,255,  0,255,  0,255,160,189,167,147,  0,  0,  0,  9,112, 72, 89,115,  0,  0, 11, 19,  0,  0, 11, 19,  1,  0,154,156, 24,
