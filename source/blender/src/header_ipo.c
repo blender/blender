@@ -1261,7 +1261,7 @@ void ipo_buttons(void)
 	
 	/* ipo muting */
 	if (G.sipo->ipo) {
-		uiDefIconButS(block, ICONTOG, 1, ICON_RESTRICT_VIEW_OFF, xco,0,XIC,YIC, &(G.sipo->ipo->muteipo), 0, 0, 0, 0, "Mute IPO-block");
+		uiDefIconButS(block, ICONTOG, 1, ICON_MUTE_IPO_OFF, xco,0,XIC,YIC, &(G.sipo->ipo->muteipo), 0, 0, 0, 0, "Mute IPO-block");
 		xco += XIC;
 	}
 	

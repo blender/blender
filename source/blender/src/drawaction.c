@@ -446,9 +446,9 @@ static void draw_channel_names(void)
 					
 				if (achan->ipo) {
 					if (achan->ipo->muteipo)
-						mute = ICON_RESTRICT_VIEW_ON;
+						mute = ICON_MUTE_IPO_ON;
 					else
-						mute = ICON_RESTRICT_VIEW_OFF;
+						mute = ICON_MUTE_IPO_OFF;
 				}
 				
 				sel = SEL_ACHAN(achan);
@@ -468,9 +468,9 @@ static void draw_channel_names(void)
 					
 				if (conchan->ipo) {
 					if (conchan->ipo->muteipo)
-						mute = ICON_RESTRICT_VIEW_ON;
+						mute = ICON_MUTE_IPO_ON;
 					else
-						mute = ICON_RESTRICT_VIEW_OFF;
+						mute = ICON_MUTE_IPO_OFF;
 				}
 				
 				sel = SEL_CONCHAN(conchan);
@@ -485,9 +485,9 @@ static void draw_channel_names(void)
 				protect = -1; // for now, until this can be supported by others
 				
 				if (icu->flag & IPO_MUTE)
-					mute = ICON_RESTRICT_VIEW_ON;
+					mute = ICON_MUTE_IPO_ON;
 				else	
-					mute = ICON_RESTRICT_VIEW_OFF;
+					mute = ICON_MUTE_IPO_OFF;
 				
 				sel = SEL_ICU(icu);
 				sprintf(name, getname_ipocurve(icu));

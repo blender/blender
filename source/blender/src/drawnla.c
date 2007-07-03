@@ -152,9 +152,9 @@ static void draw_nla_channels(void)
 			/* icon to indicate if ipo-channel muted */
 			if (ob->ipo) {
 				if (ob->ipo->muteipo) 
-					BIF_icon_draw(NLAWIDTH-16, y-NLACHANNELHEIGHT/2, ICON_RESTRICT_VIEW_ON);
+					BIF_icon_draw(NLAWIDTH-16, y-NLACHANNELHEIGHT/2, ICON_MUTE_IPO_ON);
 				else 
-					BIF_icon_draw(NLAWIDTH-16, y-NLACHANNELHEIGHT/2, ICON_RESTRICT_VIEW_OFF);
+					BIF_icon_draw(NLAWIDTH-16, y-NLACHANNELHEIGHT/2, ICON_MUTE_IPO_OFF);
 			}
 			
 			glDisable(GL_BLEND);
@@ -210,9 +210,9 @@ static void draw_nla_channels(void)
 							BIF_icon_draw(x+34, y-8, ICON_MODIFIER);
 						
 						if(strip->flag & ACTSTRIP_MUTE)
-							BIF_icon_draw(NLAWIDTH-16, y-NLACHANNELHEIGHT/2, ICON_RESTRICT_VIEW_ON);
+							BIF_icon_draw(NLAWIDTH-16, y-NLACHANNELHEIGHT/2, ICON_MUTE_IPO_ON);
 						else
-							BIF_icon_draw(NLAWIDTH-16, y-NLACHANNELHEIGHT/2, ICON_RESTRICT_VIEW_OFF);
+							BIF_icon_draw(NLAWIDTH-16, y-NLACHANNELHEIGHT/2, ICON_MUTE_IPO_OFF);
 						
 						glDisable(GL_BLEND);
 					}
