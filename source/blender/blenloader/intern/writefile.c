@@ -767,21 +767,23 @@ static void write_constraints(WriteData *wd, ListBase *conlist)
 
 static void write_pose(WriteData *wd, bPose *pose)
 {
-	bPoseChannel	*chan;
+	bPoseChannel *chan;
 
 	/* Write each channel */
-
 	if (!pose)
 		return;
 
-	// Write channels
+	/* Write channels */
 	for (chan=pose->chanbase.first; chan; chan=chan->next) {
 		write_constraints(wd, &chan->constraints);
-		chan->selectflag= chan->bone->flag & (BONE_SELECTED|BONE_ACTIVE); // gets restored on read, for library armatures
+		
+		/* prevent crashes with autosave, when a bone duplicated in editmode has not yet been assigned to its posechannel */
+		if (chan->bone) 
+			chan->selectflag= chan->bone->flag & (BONE_SELECTED|BONE_ACTIVE); /* gets restored on read, for library armatures */
 		writestruct(wd, DATA, "bPoseChannel", 1, chan);
 	}
 
-	// Write this pose
+	/* Write this pose */
 	writestruct(wd, DATA, "bPose", 1, pose);
 }
 

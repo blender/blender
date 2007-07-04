@@ -1615,9 +1615,9 @@ void adduplicate_armature(void)
 				if (!firstDup)
 					firstDup=eBone;
 				
-				/* Lets duplicate the list of constraits that the
-					* current bone has.
-					*/
+				/* Lets duplicate the list of constraints that the
+				 * current bone has.
+				 */
 				if (OBACT->pose) {
 					bPoseChannel *chanold, *channew;
 					ListBase     *listold, *listnew;
@@ -1625,7 +1625,10 @@ void adduplicate_armature(void)
 					chanold = verify_pose_channel (OBACT->pose, curBone->name);
 					if (chanold) {
 						listold = &chanold->constraints;
-						if (listold){
+						if (listold) {
+							/* WARNING: this creates a new posechannel, but there will not be an attached bone 
+							 *		yet as the new bones created here are still 'EditBones' not 'Bones'. 
+							 */
 							channew = 
 								verify_pose_channel(OBACT->pose, eBone->name);
 							if (channew) {
@@ -1646,7 +1649,6 @@ void adduplicate_armature(void)
 						}
 					}
 				}
-
 			}
 		}
 	}
