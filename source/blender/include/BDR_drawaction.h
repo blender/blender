@@ -71,7 +71,6 @@ typedef struct ActKeyBlock {
 
 /* Action Generics */
 void draw_cfra_action(void);
-int count_action_levels (struct bAction *act);
 
 /* Channel Drawing */
 void draw_icu_channel(struct gla2DDrawInfo *di, struct IpoCurve *icu, float ypos);

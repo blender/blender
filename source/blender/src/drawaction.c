@@ -100,7 +100,7 @@ static void meshactionbuts(SpaceAction *saction, Object *ob, Key *key)
 {
 	int           i;
 	char          str[64];
-	float	        x, y;
+	float	      x, y;
 	uiBlock       *block;
 	uiBut 		  *but;
 
@@ -116,16 +116,15 @@ static void meshactionbuts(SpaceAction *saction, Object *ob, Key *key)
 	myortho2(-0.375, curarea->winx-0.375, G.v2d->cur.ymin, G.v2d->cur.ymax);
 
     sprintf(str, "actionbuttonswin %d", curarea->win);
-    block= uiNewBlock (&curarea->uiblocks, str, 
-                       UI_EMBOSS, UI_HELV, curarea->win);
+    block= uiNewBlock (&curarea->uiblocks, str, UI_EMBOSS, UI_HELV, curarea->win);
 
 	x = NAMEWIDTH + 1;
-    y = CHANNELHEIGHT/2;
+    y = 0.0f;
 
 	/* make the little 'open the sliders' widget */
-    BIF_ThemeColor(TH_FACE); // this slot was open...
-	glRects(2,            y + 2*CHANNELHEIGHT - 2,  
-			ACTWIDTH - 2, y + CHANNELHEIGHT + 2);
+	// should eventually be removed
+    BIF_ThemeColor(TH_FACE); // this slot was open... (???... Aligorith)
+	glRects(2,            y + 2*CHANNELHEIGHT - 2, ACTWIDTH - 2, y + CHANNELHEIGHT + 2);
 	glColor3ub(0, 0, 0);
 	glRasterPos2f(4, y + CHANNELHEIGHT + 6);
 	BMF_DrawString(G.font, "Sliders");
@@ -283,7 +282,7 @@ static void action_icu_buts(SpaceAction *saction)
                        UI_EMBOSS, UI_HELV, curarea->win);
 
 	x = NAMEWIDTH + 1;
-    y = 0.0;
+    y = 0.0f;
 	
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 
@@ -592,28 +591,8 @@ static void draw_channel_names(void)
 	/* free tempolary channels */
 	BLI_freelistN(&act_data);
 	
-	/* re-adjust view matrices for correct scaling*/
+	/* re-adjust view matrices for correct scaling */
     myortho2(0,	NAMEWIDTH, 0, (ofsy+G.v2d->mask.ymax) - (ofsy+G.v2d->mask.ymin));	//	Scaling
-}
-
-/* this function could soon be depreceated... */
-int count_action_levels(bAction *act)
-{
-	ListBase act_data = {NULL, NULL};
-	int filter, y=0;
-
-	/* check for invalid action */
-	if (act == NULL) 
-		return 0;
-		
-	/* build list of channels to count */
-	filter= (ACTFILTER_VISIBLE|ACTFILTER_CHANNELS);
-	actdata_filter(&act_data, filter, act, ACTCONT_ACTION);
-
-	/* count and free data */
-	y = BLI_countlist(&act_data);
-	BLI_freelistN(&act_data);
-	return y;
 }
 
 /* sets or clears hidden flags */
@@ -843,10 +822,8 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 	void *data;
 	short datatype;
 	
-	
 	short ofsx = 0, ofsy = 0;
 	float col[3];
-	short maxymin;
 
 	if (!G.saction)
 		return;
@@ -868,19 +845,7 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 		act = data;
 	else if (datatype == ACTCONT_SHAPEKEY)
 		key = data;
-
-	/* Damn I hate hunting to find my rvk's because
-	 * they have scrolled off of the screen ... this
-	 * oughta fix it
-	 */
-	if (key) {
-		if (G.v2d->cur.ymin < -CHANNELHEIGHT) 
-			G.v2d->cur.ymin = -CHANNELHEIGHT;
-		
-		maxymin = -(key->totkey*(CHANNELHEIGHT+CHANNELSKIP));
-		if (G.v2d->cur.ymin > maxymin) G.v2d->cur.ymin = maxymin;
-	}
-
+	
 	/* Lets make sure the width of the left hand of the screen
 	 * is set to an appropriate value based on whether sliders
 	 * are showing of not

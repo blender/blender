@@ -637,7 +637,7 @@ static void *get_nearest_action_key (float *selx, short *sel, short *ret_type, b
 	}
 		
 	/* filter data */
-	filter= (ACTFILTER_VISIBLE | ACTFILTER_CHANNELS);
+	filter= (ACTFILTER_FORDRAWING | ACTFILTER_VISIBLE | ACTFILTER_CHANNELS);
 	actdata_filter(&act_data, filter, data, datatype);
 	
 	for (ale= act_data.first; ale; ale= ale->next) {
@@ -645,7 +645,6 @@ static void *get_nearest_action_key (float *selx, short *sel, short *ret_type, b
 			break;
 		if (clickmin <= 0) {
 			/* found match */
-			*ret_type= ale->type;
 			
 			/* make list of keyframes */
 			if (ale->key_data) {
@@ -678,9 +677,15 @@ static void *get_nearest_action_key (float *selx, short *sel, short *ret_type, b
 				*selx= ((xmax+xmin) / 2);
 			
 			/* figure out what to return */
-			if (datatype == ACTCONT_ACTION)
+			if (datatype == ACTCONT_ACTION) {
 				*par= ale->owner; /* assume that this is an action channel */
-			data = ale->data;
+				*ret_type= ale->type;
+				data = ale->data;
+			}
+			else if (datatype == ACTCONT_SHAPEKEY) {
+				data = ale->key_data;
+				*ret_type= ACTTYPE_ICU;
+			}
 			
 			/* cleanup tempolary lists */
 			BLI_freelistN(&act_keys);
