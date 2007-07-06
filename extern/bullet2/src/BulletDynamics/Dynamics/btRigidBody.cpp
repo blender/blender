@@ -16,8 +16,9 @@ subject to the following restrictions:
 #include "btRigidBody.h"
 #include "BulletCollision/CollisionShapes/btConvexShape.h"
 #include "LinearMath/btMinMax.h"
-#include <LinearMath/btTransformUtil.h>
-#include <LinearMath/btMotionState.h>
+#include "LinearMath/btTransformUtil.h"
+#include "LinearMath/btMotionState.h"
+#include "BulletDynamics/ConstraintSolver/btTypedConstraint.h"
 
 btScalar gLinearAirDamping = btScalar(1.);
 //'temporarily' global variables
@@ -305,4 +306,33 @@ void btRigidBody::setCenterOfMassTransform(const btTransform& xform)
 }
 
 
+bool btRigidBody::checkCollideWithOverride(btCollisionObject* co)
+{
+	btRigidBody* otherRb = btRigidBody::upcast(co);
+	if (!otherRb)
+		return true;
 
+	for (int i = 0; i < m_constraintRefs.size(); ++i)
+	{
+		btTypedConstraint* c = m_constraintRefs[i];
+		if (&c->getRigidBodyA() == otherRb || &c->getRigidBodyB() == otherRb)
+			return false;
+	}
+
+	return true;
+}
+
+void btRigidBody::addConstraintRef(btTypedConstraint* c)
+{
+	int index = m_constraintRefs.findLinearSearch(c);
+	if (index == m_constraintRefs.size())
+		m_constraintRefs.push_back(c); 
+
+	m_checkCollideWith = true;
+}
+
+void btRigidBody::removeConstraintRef(btTypedConstraint* c)
+{
+	m_constraintRefs.remove(c);
+	m_checkCollideWith = m_constraintRefs.size() > 0;
+}

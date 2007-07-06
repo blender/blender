@@ -212,6 +212,7 @@ public:
 
 	SIMD_FORCE_INLINE const btScalar& getW() const { return m_unusedW; }
 
+	
 };
 
 
@@ -283,6 +284,36 @@ slerp(const btQuaternion& q1, const btQuaternion& q2, const btScalar& t)
 	return q1.slerp(q2, t);
 }
 
+SIMD_FORCE_INLINE btVector3 
+quatRotate(btQuaternion& rotation, btVector3& v) 
+{
+	btQuaternion q = rotation * v;
+	q *= rotation.inverse();
+	return btVector3(q.getX(),q.getY(),q.getZ());
+}
+
+SIMD_FORCE_INLINE btQuaternion 
+shortestArcQuat(btVector3& v0,btVector3& v1) // Game Programming Gems 2.10. make sure v0,v1 are normalized
+{
+	btVector3 c = v0.cross(v1);
+	btScalar  d = v0.dot(v1);
+
+	if (d < -1.0 + SIMD_EPSILON)
+		return btQuaternion(0.0f,1.0f,0.0f,0.0f); // just pick any vector
+
+	btScalar  s = btSqrt((1.0f + d) * 2.0f);
+	btScalar rs = 1.0f / s;
+
+	return btQuaternion(c.getX()*rs,c.getY()*rs,c.getZ()*rs,s * 0.5f);
+}
+
+SIMD_FORCE_INLINE btQuaternion 
+shortestArcQuatNormalize(btVector3& v0,btVector3& v1)
+{
+	v0.normalize();
+	v1.normalize();
+	return shortestArcQuat(v0,v1);
+}
 
 #endif
 

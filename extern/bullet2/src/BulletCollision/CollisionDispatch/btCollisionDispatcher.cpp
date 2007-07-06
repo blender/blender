@@ -273,6 +273,8 @@ bool	btCollisionDispatcher::needsCollision(btCollisionObject* body0,btCollisionO
 		
 	if ((!body0->isActive()) && (!body1->isActive()))
 		needsCollision = false;
+	else if (!body0->checkCollideWith(body1))
+		needsCollision = false;
 	
 	return needsCollision ;
 

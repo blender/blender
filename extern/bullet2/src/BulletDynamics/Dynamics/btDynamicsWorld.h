@@ -43,7 +43,7 @@ class btDynamicsWorld : public btCollisionWorld
 			
 		virtual void	updateAabbs() = 0;
 				
-		virtual void	addConstraint(btTypedConstraint* constraint) { (void)constraint;};
+		virtual void	addConstraint(btTypedConstraint* constraint, bool disableCollisionsBetweenLinkedBodies=false) { (void)constraint;};
 
 		virtual void	removeConstraint(btTypedConstraint* constraint) {(void)constraint;};
 

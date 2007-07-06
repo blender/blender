@@ -25,12 +25,12 @@ class btMinkowskiSumShape : public btConvexShape
 
 	btTransform	m_transA;
 	btTransform	m_transB;
-	btConvexShape*	m_shapeA;
-	btConvexShape*	m_shapeB;
+	const btConvexShape*	m_shapeA;
+	const btConvexShape*	m_shapeB;
 
 public:
 
-	btMinkowskiSumShape(btConvexShape* shapeA,btConvexShape* shapeB);
+	btMinkowskiSumShape(const btConvexShape* shapeA,const btConvexShape* shapeB);
 
 	virtual btVector3	localGetSupportingVertexWithoutMargin(const btVector3& vec)const;
 

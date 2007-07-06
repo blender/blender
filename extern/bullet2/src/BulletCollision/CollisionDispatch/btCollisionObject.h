@@ -69,15 +69,23 @@ protected:
 	void*			m_internalOwner;
 
 	///time of impact calculation
-	btScalar			m_hitFraction; 
+	btScalar		m_hitFraction; 
 	
 	///Swept sphere radius (0.0 by default), see btConvexConvexAlgorithm::
-	btScalar			m_ccdSweptSphereRadius;
+	btScalar		m_ccdSweptSphereRadius;
 
 	/// Don't do continuous collision detection if square motion (in one step) is less then m_ccdSquareMotionThreshold
-	btScalar			m_ccdSquareMotionThreshold;
+	btScalar		m_ccdSquareMotionThreshold;
 	
-	char	m_pad[8];
+	/// If some object should have elaborate collision filtering by sub-classes
+	bool			m_checkCollideWith;
+
+	char	m_pad[7];
+
+	virtual bool	checkCollideWithOverride(btCollisionObject* co)
+	{
+		return true;
+	}
 
 public:
 
@@ -118,6 +126,7 @@ public:
 	
 	btCollisionObject();
 
+	virtual ~btCollisionObject();
 
 	void	setCollisionShape(btCollisionShape* collisionShape)
 	{
@@ -159,7 +168,7 @@ public:
 		return ((getActivationState() != ISLAND_SLEEPING) && (getActivationState() != DISABLE_SIMULATION));
 	}
 
-		void	setRestitution(btScalar rest)
+	void	setRestitution(btScalar rest)
 	{
 		m_restitution = rest;
 	}
@@ -321,6 +330,15 @@ public:
 	{
 		m_userObjectPointer = userPointer;
 	}
+
+	inline bool checkCollideWith(btCollisionObject* co)
+	{
+		if (m_checkCollideWith)
+			return checkCollideWithOverride(co);
+
+		return true;
+	}
+
 
 }
 ;

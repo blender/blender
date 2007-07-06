@@ -58,11 +58,11 @@ public:
 		return m_childShapes[index];
 	}
 
-	btTransform	getChildTransform(int index)
+	btTransform&	getChildTransform(int index)
 	{
 		return m_childTransforms[index];
 	}
-	const btTransform	getChildTransform(int index) const
+	const btTransform&	getChildTransform(int index) const
 	{
 		return m_childTransforms[index];
 	}

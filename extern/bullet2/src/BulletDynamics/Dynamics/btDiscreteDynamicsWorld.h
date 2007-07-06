@@ -80,6 +80,7 @@ protected:
 
 	void	saveKinematicState(btScalar timeStep);
 
+	void	debugDrawSphere(btScalar radius, const btTransform& transform, const btVector3& color);
 
 public:
 
@@ -94,7 +95,7 @@ public:
 
 	virtual void	updateAabbs();
 
-	void	addConstraint(btTypedConstraint* constraint);
+	void	addConstraint(btTypedConstraint* constraint, bool disableCollisionsBetweenLinkedBodies=false);
 
 	void	removeConstraint(btTypedConstraint* constraint);
 
@@ -130,6 +131,8 @@ public:
 	virtual void	setGravity(const btVector3& gravity);
 
 	virtual void	addRigidBody(btRigidBody* body);
+
+	virtual void	addRigidBody(btRigidBody* body, short group, short mask);
 
 	virtual void	removeRigidBody(btRigidBody* body);
 

@@ -77,9 +77,9 @@ void btCompoundCollisionAlgorithm::processCollision (btCollisionObject* body0,bt
 		btTransform	orgTrans = colObj->getWorldTransform();
 		btCollisionShape* orgShape = colObj->getCollisionShape();
 
-		btTransform childTrans = compoundShape->getChildTransform(i);
-		btTransform	newChildWorldTrans = orgTrans*childTrans ;
-		colObj->setWorldTransform( newChildWorldTrans );
+		const btTransform& childTrans = compoundShape->getChildTransform(i);
+		//btTransform	newChildWorldTrans = orgTrans*childTrans ;
+		colObj->setWorldTransform( orgTrans*childTrans );
 		//the contactpoint is still projected back using the original inverted worldtrans
 		colObj->setCollisionShape( childShape );
 		m_childCollisionAlgorithms[i]->processCollision(colObj,otherObj,dispatchInfo,resultOut);
@@ -119,9 +119,9 @@ btScalar	btCompoundCollisionAlgorithm::calculateTimeOfImpact(btCollisionObject* 
 		btTransform	orgTrans = colObj->getWorldTransform();
 		btCollisionShape* orgShape = colObj->getCollisionShape();
 
-		btTransform childTrans = compoundShape->getChildTransform(i);
-		btTransform	newChildWorldTrans = orgTrans*childTrans ;
-		colObj->setWorldTransform( newChildWorldTrans );
+		const btTransform& childTrans = compoundShape->getChildTransform(i);
+		//btTransform	newChildWorldTrans = orgTrans*childTrans ;
+		colObj->setWorldTransform( orgTrans*childTrans );
 
 		colObj->setCollisionShape( childShape );
 		btScalar frac = m_childCollisionAlgorithms[i]->calculateTimeOfImpact(colObj,otherObj,dispatchInfo,resultOut);

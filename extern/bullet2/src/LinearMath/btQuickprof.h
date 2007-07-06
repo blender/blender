@@ -32,7 +32,7 @@ subject to the following restrictions:
 #define USE_BT_CLOCK 1
 
 #ifdef USE_BT_CLOCK
-#ifdef __PPU__
+#ifdef __CELLOS_LV2__
 #include <sys/sys_time.h>
 #include <stdio.h>
 typedef uint64_t __int64;
@@ -49,8 +49,13 @@ typedef uint64_t __int64;
    #define NOWINRES 
    #define NOMCX 
    #define NOIME 
+#ifdef _XBOX
+	#include <Xtl.h>
+#else
 	#include <windows.h>
+#endif
 	#include <time.h>
+
 #else
 	#include <sys/time.h>
 #endif
@@ -81,7 +86,7 @@ class btClock
 			mStartTick = GetTickCount();
 			mPrevElapsedTime = 0;
 #else
-#ifdef __PPU__
+#ifdef __CELLOS_LV2__
 
 	typedef uint64_t __int64;
 	typedef __int64  ClockSize;
@@ -134,7 +139,7 @@ class btClock
 			return msecTicks;
 #else
 			
-#ifdef __PPU__
+#ifdef __CELLOS_LV2__
 	__int64 freq=sys_time_get_timebase_frequency();
 	 double dFreq=((double) freq) / 1000.0;
 	typedef uint64_t __int64;
@@ -149,7 +154,7 @@ class btClock
 			gettimeofday(&currentTime, 0);
 			return (currentTime.tv_sec - mStartTime.tv_sec) * 1000 + 
 				(currentTime.tv_usec - mStartTime.tv_usec) / 1000;
-#endif //__PPU__
+#endif //__CELLOS_LV2__
 #endif
 		}
 
@@ -192,7 +197,7 @@ class btClock
 			return usecTicks;
 #else
 
-#ifdef __PPU__
+#ifdef __CELLOS_LV2__
 	__int64 freq=sys_time_get_timebase_frequency();
 	 double dFreq=((double) freq)/ 1000000.0;
 	typedef uint64_t __int64;
@@ -207,7 +212,7 @@ class btClock
 			gettimeofday(&currentTime, 0);
 			return (currentTime.tv_sec - mStartTime.tv_sec) * 1000000 + 
 				(currentTime.tv_usec - mStartTime.tv_usec);
-#endif//__PPU__
+#endif//__CELLOS_LV2__
 #endif 
 		}
 
@@ -218,12 +223,12 @@ class btClock
 		LONGLONG mPrevElapsedTime;
 		LARGE_INTEGER mStartTime;
 #else
-#ifdef __PPU__
+#ifdef __CELLOS_LV2__
 		uint64_t	mStartTime;
 #else
 		struct timeval mStartTime;
 #endif
-#endif //__PPU__
+#endif //__CELLOS_LV2__
 
 	};
 
@@ -703,4 +708,5 @@ std::string btProfiler::createStatsString(BlockTimingMethod method)
 #endif //USE_QUICKPROF
 
 #endif //QUICK_PROF_H
+
 

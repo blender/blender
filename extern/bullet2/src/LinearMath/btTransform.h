@@ -42,6 +42,19 @@ public:
 		m_origin(c)
 	{}
 
+	SIMD_FORCE_INLINE btTransform (const btTransform& other)
+		: m_basis(other.m_basis),
+		m_origin(other.m_origin)
+	{
+	}
+
+	SIMD_FORCE_INLINE btTransform& operator=(const btTransform& other)
+	{
+		m_basis = other.m_basis;
+		m_origin = other.m_origin;
+		return *this;
+	}
+
 
 		SIMD_FORCE_INLINE void mult(const btTransform& t1, const btTransform& t2) {
 			m_basis = t1.m_basis * t2.m_basis;

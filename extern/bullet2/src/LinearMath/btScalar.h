@@ -35,6 +35,11 @@ subject to the following restrictions:
 			#pragma warning(disable:4786)
 			#define SIMD_FORCE_INLINE __forceinline
 			#define ATTRIBUTE_ALIGNED16(a) __declspec(align(16)) a
+		#ifdef _XBOX
+			#define BT_USE_VMX128
+		#else
+			#define BT_USE_SSE
+		#endif
 		#endif //__MINGW32__
 
 		#include <assert.h>
@@ -115,7 +120,6 @@ SIMD_FORCE_INLINE btScalar btPow(btScalar x,btScalar y) { return powf(x,y); }
 	
 #endif
 
-
 #define SIMD_2_PI         btScalar(6.283185307179586232)
 #define SIMD_PI           (SIMD_2_PI * btScalar(0.5))
 #define SIMD_HALF_PI      (SIMD_2_PI * btScalar(0.25))
@@ -129,6 +133,22 @@ SIMD_FORCE_INLINE btScalar btPow(btScalar x,btScalar y) { return powf(x,y); }
 #define SIMD_EPSILON      FLT_EPSILON
 #define SIMD_INFINITY     FLT_MAX
 #endif
+
+SIMD_FORCE_INLINE btScalar btAtan2Fast(btScalar y, btScalar x) 
+{
+	btScalar coeff_1 = SIMD_PI / 4.0f;
+	btScalar coeff_2 = 3.0f * coeff_1;
+	btScalar abs_y = btFabs(y);
+	btScalar angle;
+	if (x >= 0.0f) {
+		btScalar r = (x - abs_y) / (x + abs_y);
+		angle = coeff_1 - coeff_1 * r;
+	} else {
+		btScalar r = (x + abs_y) / (abs_y - x);
+		angle = coeff_2 - coeff_1 * r;
+	}
+	return (y < 0.0f) ? -angle : angle;
+}
 
 SIMD_FORCE_INLINE bool      btFuzzyZero(btScalar x) { return btFabs(x) < SIMD_EPSILON; }
 

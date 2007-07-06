@@ -17,6 +17,8 @@ subject to the following restrictions:
 #include "btCollisionDispatcher.h"
 #include "BulletCollision/CollisionDispatch/btCollisionObject.h"
 #include "BulletCollision/CollisionShapes/btCollisionShape.h"
+#include "BulletCollision/CollisionShapes/btConvexShape.h"
+
 #include "BulletCollision/CollisionShapes/btSphereShape.h" //for raycasting
 #include "BulletCollision/CollisionShapes/btTriangleMeshShape.h" //for raycasting
 #include "BulletCollision/NarrowPhaseCollision/btRaycastCallback.h"
@@ -179,11 +181,26 @@ void	btCollisionWorld::rayTestSingle(const btTransform& rayFromTrans,const btTra
 					  btCollisionObject* collisionObject,
 					  const btCollisionShape* collisionShape,
 					  const btTransform& colObjWorldTransform,
-					  RayResultCallback& resultCallback)
+					  RayResultCallback& resultCallback,short int collisionFilterMask)
 {
 	
 	btSphereShape pointShape(btScalar(0.0));
 	pointShape.setMargin(0.f);
+
+	objectQuerySingle(&pointShape,rayFromTrans,rayToTrans,
+					  collisionObject,
+					  collisionShape,
+					  colObjWorldTransform,
+					  resultCallback,collisionFilterMask);
+}
+
+void	btCollisionWorld::objectQuerySingle(const btConvexShape* castShape,const btTransform& rayFromTrans,const btTransform& rayToTrans,
+					  btCollisionObject* collisionObject,
+					  const btCollisionShape* collisionShape,
+					  const btTransform& colObjWorldTransform,
+					  RayResultCallback& resultCallback,short int collisionFilterMask)
+{
+	
 
 	if (collisionShape->isConvex())
 			{
@@ -192,9 +209,9 @@ void	btCollisionWorld::rayTestSingle(const btTransform& rayFromTrans,const btTra
 
 				btConvexShape* convexShape = (btConvexShape*) collisionShape;
 				btVoronoiSimplexSolver	simplexSolver;
-				btSubsimplexConvexCast convexCaster(&pointShape,convexShape,&simplexSolver);
-				//GjkConvexCast	convexCaster(&pointShape,convexShape,&simplexSolver);
-				//ContinuousConvexCollision convexCaster(&pointShape,convexShape,&simplexSolver,0);
+				btSubsimplexConvexCast convexCaster(castShape,convexShape,&simplexSolver);
+				//GjkConvexCast	convexCaster(castShape,convexShape,&simplexSolver);
+				//ContinuousConvexCollision convexCaster(castShape,convexShape,&simplexSolver,0);
 				
 				if (convexCaster.calcTimeOfImpact(rayFromTrans,rayToTrans,colObjWorldTransform,colObjWorldTransform,castResult))
 				{
@@ -292,11 +309,11 @@ void	btCollisionWorld::rayTestSingle(const btTransform& rayFromTrans,const btTra
 								btTransform childTrans = compoundShape->getChildTransform(i);
 								const btCollisionShape* childCollisionShape = compoundShape->getChildShape(i);
 								btTransform childWorldTrans = colObjWorldTransform * childTrans;
-								rayTestSingle(rayFromTrans,rayToTrans,
+								objectQuerySingle(castShape, rayFromTrans,rayToTrans,
 									collisionObject,
 									childCollisionShape,
 									childWorldTrans,
-									resultCallback);
+									resultCallback, collisionFilterMask);
 
 							}
 
@@ -306,7 +323,7 @@ void	btCollisionWorld::rayTestSingle(const btTransform& rayFromTrans,const btTra
 			}
 }
 
-void	btCollisionWorld::rayTest(const btVector3& rayFromWorld, const btVector3& rayToWorld, RayResultCallback& resultCallback)
+void	btCollisionWorld::rayTest(const btVector3& rayFromWorld, const btVector3& rayToWorld, RayResultCallback& resultCallback,short int collisionFilterMask)
 {
 
 	
@@ -323,21 +340,22 @@ void	btCollisionWorld::rayTest(const btVector3& rayFromWorld, const btVector3& r
 	for (i=0;i<m_collisionObjects.size();i++)
 	{
 		btCollisionObject*	collisionObject= m_collisionObjects[i];
+		//only perform raycast if filterMask matches
+		if(collisionObject->getBroadphaseHandle()->m_collisionFilterGroup & collisionFilterMask) { 
+			//RigidcollisionObject* collisionObject = ctrl->GetRigidcollisionObject();
+			btVector3 collisionObjectAabbMin,collisionObjectAabbMax;
+			collisionObject->getCollisionShape()->getAabb(collisionObject->getWorldTransform(),collisionObjectAabbMin,collisionObjectAabbMax);
 
-		//RigidcollisionObject* collisionObject = ctrl->GetRigidcollisionObject();
-		btVector3 collisionObjectAabbMin,collisionObjectAabbMax;
-		collisionObject->getCollisionShape()->getAabb(collisionObject->getWorldTransform(),collisionObjectAabbMin,collisionObjectAabbMax);
-
-		btScalar hitLambda = btScalar(1.); //could use resultCallback.m_closestHitFraction, but needs testing
-		btVector3 hitNormal;
-		if (btRayAabb(rayFromWorld,rayToWorld,collisionObjectAabbMin,collisionObjectAabbMax,hitLambda,hitNormal))
-		{
-			rayTestSingle(rayFromTrans,rayToTrans,
-				collisionObject,
-					 collisionObject->getCollisionShape(),
-					  collisionObject->getWorldTransform(),
-					  resultCallback);
-			
+			btScalar hitLambda = btScalar(1.); //could use resultCallback.m_closestHitFraction, but needs testing
+			btVector3 hitNormal;
+			if (btRayAabb(rayFromWorld,rayToWorld,collisionObjectAabbMin,collisionObjectAabbMax,hitLambda,hitNormal))
+			{
+				rayTestSingle(rayFromTrans,rayToTrans,
+					collisionObject,
+						collisionObject->getCollisionShape(),
+						collisionObject->getWorldTransform(),
+						resultCallback);
+			}	
 		}
 	}
 

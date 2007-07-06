@@ -755,6 +755,10 @@ btScalar btSequentialImpulseConstraintSolver::solveGroup(btCollisionObject** bod
 
 	if (getSolverMode() & SOLVER_CACHE_FRIENDLY)
 	{
+		//you need to provide at least some bodies
+		//btSimpleDynamicsWorld needs to switch off SOLVER_CACHE_FRIENDLY
+		btAssert(bodies);
+		btAssert(numBodies);
 		return solveGroupCacheFriendly(bodies,numBodies,manifoldPtr, numManifolds,constraints,numConstraints,infoGlobal,debugDrawer,stackAlloc);
 	}
 

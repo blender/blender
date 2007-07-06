@@ -20,7 +20,7 @@ subject to the following restrictions:
 #include "BulletCollision/NarrowPhaseCollision/btSimplexSolverInterface.h"
 
 
-btSubsimplexConvexCast::btSubsimplexConvexCast (btConvexShape* convexA,btConvexShape* convexB,btSimplexSolverInterface* simplexSolver)
+btSubsimplexConvexCast::btSubsimplexConvexCast (const btConvexShape* convexA,const btConvexShape* convexB,btSimplexSolverInterface* simplexSolver)
 :m_simplexSolver(simplexSolver),
 m_convexA(convexA),m_convexB(convexB)
 {

@@ -41,6 +41,8 @@ struct btSimpleBroadphaseProxy : public btBroadphaseProxy
 class btSimpleBroadphase : public btOverlappingPairCache
 {
 
+protected:
+
 	btSimpleBroadphaseProxy*	m_proxies;
 	int*				m_freeProxies;
 	int				m_firstFreeProxy;

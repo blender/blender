@@ -26,11 +26,18 @@ subject to the following restrictions:
 
 struct	btOverlapCallback
 {
-virtual ~btOverlapCallback()
-{
-}
+	virtual ~btOverlapCallback()
+	{}
 	//return true for deletion of the pair
 	virtual bool	processOverlap(btBroadphasePair& pair) = 0;
+};
+
+struct btOverlapFilterCallback
+{
+	virtual ~btOverlapFilterCallback()
+	{}
+	// return true when pairs need collision
+	virtual bool	needBroadphaseCollision(btBroadphaseProxy* proxy0,btBroadphaseProxy* proxy1) const = 0;
 };
 
 ///btOverlappingPairCache maintains the objects with overlapping AABB
@@ -44,6 +51,8 @@ class	btOverlappingPairCache : public btBroadphaseInterface
 		//during the dispatch, check that user doesn't destroy/create proxy
 		bool		m_blockedForChanges;
 		
+		//if set, use the callback instead of the built in filter in needBroadphaseCollision
+		btOverlapFilterCallback* m_overlapFilterCallback;
 	public:
 			
 		btOverlappingPairCache();	
@@ -67,6 +76,9 @@ class	btOverlappingPairCache : public btBroadphaseInterface
 
 		inline bool needsBroadphaseCollision(btBroadphaseProxy* proxy0,btBroadphaseProxy* proxy1) const
 		{
+			if (m_overlapFilterCallback)
+				return m_overlapFilterCallback->needBroadphaseCollision(proxy0,proxy1);
+
 			bool collides = (proxy0->m_collisionFilterGroup & proxy1->m_collisionFilterMask) != 0;
 			collides = collides && (proxy1->m_collisionFilterGroup & proxy0->m_collisionFilterMask);
 			
@@ -92,7 +104,17 @@ class	btOverlappingPairCache : public btBroadphaseInterface
 			return m_overlappingPairArray.size();
 		}
 		
+		btOverlapFilterCallback* getOverlapFilterCallback()
+		{
+			return m_overlapFilterCallback;
+		}
+
+		void setOverlapFilterCallback(btOverlapFilterCallback* callback)
+		{
+			m_overlapFilterCallback = callback;
+		}
 
 };
 #endif //OVERLAPPING_PAIR_CACHE_H
+
 

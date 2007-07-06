@@ -16,6 +16,7 @@ subject to the following restrictions:
 #ifndef RIGIDBODY_H
 #define RIGIDBODY_H
 
+#include "../../LinearMath/btAlignedObjectArray.h"
 #include "../../LinearMath/btPoint3.h"
 #include "../../LinearMath/btTransform.h"
 #include "../../BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
@@ -23,7 +24,7 @@ subject to the following restrictions:
 
 class btCollisionShape;
 class btMotionState;
-
+class btTypedConstraint;
 
 
 extern btScalar gLinearAirDamping;
@@ -56,6 +57,9 @@ class btRigidBody  : public btCollisionObject
 
 	//m_optionalMotionState allows to automatic synchronize the world transform for active objects
 	btMotionState*	m_optionalMotionState;
+
+	//keep track of typed constraints referencing this rigid body
+	btAlignedObjectArray<btTypedConstraint*> m_constraintRefs;
 
 public:
 
@@ -338,6 +342,11 @@ public:
 	{
 		return (getBroadphaseProxy() != 0);
 	}
+
+	virtual bool checkCollideWithOverride(btCollisionObject* co);
+
+	void addConstraintRef(btTypedConstraint* c);
+	void removeConstraintRef(btTypedConstraint* c);
 
 	int	m_debugBodyId;
 };

@@ -24,7 +24,8 @@ subject to the following restrictions:
 int	gOverlappingPairs = 0;
 
 btOverlappingPairCache::btOverlappingPairCache():
-m_blockedForChanges(false)
+m_blockedForChanges(false),
+m_overlapFilterCallback(0)
 //m_NumOverlapBroadphasePair(0)
 {
 }

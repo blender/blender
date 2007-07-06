@@ -16,7 +16,7 @@ subject to the following restrictions:
 #include "btMinkowskiSumShape.h"
 
 
-btMinkowskiSumShape::btMinkowskiSumShape(btConvexShape* shapeA,btConvexShape* shapeB)
+btMinkowskiSumShape::btMinkowskiSumShape(const btConvexShape* shapeA,const btConvexShape* shapeB)
 :m_shapeA(shapeA),
 m_shapeB(shapeB)
 {

@@ -45,6 +45,21 @@ class btMatrix3x3 {
 					 zx, zy, zz);
 		}
 		
+		SIMD_FORCE_INLINE btMatrix3x3 (const btMatrix3x3& other)
+		{
+			m_el[0] = other.m_el[0];
+			m_el[1] = other.m_el[1];
+			m_el[2] = other.m_el[2];
+		}
+
+		SIMD_FORCE_INLINE btMatrix3x3& operator=(const btMatrix3x3& other)
+		{
+			m_el[0] = other.m_el[0];
+			m_el[1] = other.m_el[1];
+			m_el[2] = other.m_el[2];
+			return *this;
+		}
+
 		SIMD_FORCE_INLINE btVector3 getColumn(int i) const
 		{
 			return btVector3(m_el[0][i],m_el[1][i],m_el[2][i]);
