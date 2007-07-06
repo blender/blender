@@ -113,7 +113,7 @@ btRigidBody::btRigidBody( btScalar mass,const btTransform& worldTransform,btColl
 
 
 
-#define EXPERIMENTAL_JITTER_REMOVAL 1
+//#define EXPERIMENTAL_JITTER_REMOVAL 1
 #ifdef EXPERIMENTAL_JITTER_REMOVAL
 //Bullet 2.20b has experimental damping code to reduce jitter just before objects fall asleep/deactivate
 //doesn't work very well yet (value 0 disabled this damping)
@@ -298,7 +298,14 @@ btQuaternion btRigidBody::getOrientation() const
 	
 void btRigidBody::setCenterOfMassTransform(const btTransform& xform)
 {
-	m_interpolationWorldTransform = xform;//m_worldTransform;
+
+	if (isStaticOrKinematicObject())
+	{
+		m_interpolationWorldTransform = m_worldTransform;
+	} else
+	{
+		m_interpolationWorldTransform = xform;
+	}
 	m_interpolationLinearVelocity = getLinearVelocity();
 	m_interpolationAngularVelocity = getAngularVelocity();
 	m_worldTransform = xform;
