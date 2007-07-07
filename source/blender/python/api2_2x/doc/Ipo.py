@@ -14,12 +14,12 @@ several IpoCurves, and an IpoCurve is composed of several BezTriples.
 Example::
 	from Blender import Ipo
 
-	ob = Ipo.Get('ObIpo')				# retrieves an Ipo object
-	ob.name = 'ipo1'					# change the Ipo's name
-	icu = ob[Ipo.OB_LOCX]				# change here ipo to ob
+	ipo = Ipo.Get('ObIpo')				# retrieves an Ipo object
+	ipo.name = 'ipo1'					# change the Ipo's name
+	icu = ipo[Ipo.OB_LOCX]				# request X Location Ipo curve
 	if icu != None and len(icu.bezierPoints) > 0: # if curve exists and has BezTriple points
 		val = icu[2.5]					# get the curve's value at time 2.5
-		ob[Ipo.OB_LOCX] = None			# change here icu  to ob
+		ipo[Ipo.OB_LOCX] = None			# delete the Ipo curve
 	
 Each type of Ipo has different types Ipocurves.  With the exception of Shape
 Key Ipos, constants are used to specify all Ipocurves.  There are two ways

@@ -327,7 +327,7 @@ class RenderData:
   @type set: BPy_Scene or None
   @ivar yafrayGIMethod: Global Illumination method.
   Valid values are NONE (0), SKYDOME (1) or FULL (2).
-  @type yafrayGIMethod: int
+  @type yafrayGIMethod: int {NONE (0), SKYDOME (1), GIFULL (2)}
   @ivar yafrayGIQuality: Global Illumination quality.
   @type yafrayGIQuality: int {NONE (0), LOW (1), MEDIUM (2), HIGH (3), HIGHER (4), BEST (5), USEAOSETTINGS (6)}
   @ivar yafrayExportToXML: If true export to an xml file and call yafray instead of plugin.
@@ -346,8 +346,6 @@ class RenderData:
   @type yafrayAntiAliasingThreshold: float [0.05, 1.0]
   @ivar yafrayNumberOfProcessors: Number of processors to use.
   @type yafrayNumberOfProcessors: int [1, 8]
-  @ivar yafrayGIMethod: Global illumination method.
-  @type yafrayGIMethod: int {NONE (0), SKYDOME (1), GIFULL (2)}
   @ivar yafrayGICache: Cache occlusion/irradiance samples (faster).
   @type yafrayGICache: boolean
   @ivar yafrayGICacheBumpNormals: Enable/disable bumpnormals for cache.
