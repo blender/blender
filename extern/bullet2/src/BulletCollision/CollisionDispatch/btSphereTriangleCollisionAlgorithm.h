@@ -16,9 +16,9 @@ subject to the following restrictions:
 #ifndef SPHERE_TRIANGLE_COLLISION_ALGORITHM_H
 #define SPHERE_TRIANGLE_COLLISION_ALGORITHM_H
 
-#include "BulletCollision/BroadphaseCollision/btCollisionAlgorithm.h"
-#include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
-#include "BulletCollision/CollisionDispatch/btCollisionCreateFunc.h"
+#include "../BroadphaseCollision/btCollisionAlgorithm.h"
+#include "../BroadphaseCollision/btBroadphaseProxy.h"
+#include "../CollisionDispatch/btCollisionCreateFunc.h"
 class btPersistentManifold;
 
 /// btSphereSphereCollisionAlgorithm  provides sphere-sphere collision detection.
@@ -38,7 +38,7 @@ public:
 
 	virtual void processCollision (btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut);
 
-	virtual float calculateTimeOfImpact(btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut);
+	virtual btScalar calculateTimeOfImpact(btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut);
 
 	
 	virtual ~btSphereTriangleCollisionAlgorithm();

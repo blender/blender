@@ -17,7 +17,7 @@ subject to the following restrictions:
 #define MULTI_SPHERE_MINKOWSKI_H
 
 #include "btConvexShape.h"
-#include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h" // for the types
+#include "../BroadphaseCollision/btBroadphaseProxy.h" // for the types
 
 #define MAX_NUM_SPHERES 5
 
@@ -46,6 +46,20 @@ public:
 
 	virtual void	batchedUnitVectorGetSupportingVertexWithoutMargin(const btVector3* vectors,btVector3* supportVerticesOut,int numVectors) const;
 	
+	int	getSphereCount() const
+	{
+		return m_numSpheres;
+	}
+
+	const btVector3&	getSpherePosition(int index) const
+	{
+		return m_localPositions[index];
+	}
+
+	btScalar	getSphereRadius(int index) const
+	{
+		return m_radi[index];
+	}
 
 	virtual int	getShapeType() const { return MULTI_SPHERE_SHAPE_PROXYTYPE; }
 

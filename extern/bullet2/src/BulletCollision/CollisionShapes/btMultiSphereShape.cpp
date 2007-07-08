@@ -20,7 +20,7 @@ subject to the following restrictions:
 btMultiSphereShape::btMultiSphereShape (const btVector3& inertiaHalfExtents,const btVector3* positions,const btScalar* radi,int numSpheres)
 :m_inertiaHalfExtents(inertiaHalfExtents)
 {
-	float startMargin = 1e30f;
+	btScalar startMargin = btScalar(1e30);
 
 	m_numSpheres = numSpheres;
 	for (int i=0;i<m_numSpheres;i++)
@@ -42,17 +42,17 @@ btMultiSphereShape::btMultiSphereShape (const btVector3& inertiaHalfExtents,cons
 	int i;
 	btVector3 supVec(0,0,0);
 
-	btScalar maxDot(-1e30f);
+	btScalar maxDot(btScalar(-1e30));
 
 
 	btVector3 vec = vec0;
 	btScalar lenSqr = vec.length2();
-	if (lenSqr < 0.0001f)
+	if (lenSqr < btScalar(0.0001))
 	{
 		vec.setValue(1,0,0);
 	} else
 	{
-		float rlen = 1.f / btSqrt(lenSqr );
+		btScalar rlen = btScalar(1.) / btSqrt(lenSqr );
 		vec *= rlen;
 	}
 
@@ -84,7 +84,7 @@ btMultiSphereShape::btMultiSphereShape (const btVector3& inertiaHalfExtents,cons
 
 	for (int j=0;j<numVectors;j++)
 	{
-		btScalar maxDot(-1e30f);
+		btScalar maxDot(btScalar(-1e30));
 
 		const btVector3& vec = vectors[j];
 
@@ -126,17 +126,17 @@ void	btMultiSphereShape::calculateLocalInertia(btScalar mass,btVector3& inertia)
 
 //	getAabb(ident,aabbMin,aabbMax);
 
-	btVector3 halfExtents = m_inertiaHalfExtents;//(aabbMax - aabbMin)* 0.5f;
+	btVector3 halfExtents = m_inertiaHalfExtents;//(aabbMax - aabbMin)* btScalar(0.5);
 
-	float margin = CONVEX_DISTANCE_MARGIN;
+	btScalar margin = CONVEX_DISTANCE_MARGIN;
 
-	btScalar lx=2.f*(halfExtents[0]+margin);
-	btScalar ly=2.f*(halfExtents[1]+margin);
-	btScalar lz=2.f*(halfExtents[2]+margin);
+	btScalar lx=btScalar(2.)*(halfExtents[0]+margin);
+	btScalar ly=btScalar(2.)*(halfExtents[1]+margin);
+	btScalar lz=btScalar(2.)*(halfExtents[2]+margin);
 	const btScalar x2 = lx*lx;
 	const btScalar y2 = ly*ly;
 	const btScalar z2 = lz*lz;
-	const btScalar scaledmass = mass * 0.08333333f;
+	const btScalar scaledmass = mass * btScalar(.08333333);
 
 	inertia[0] = scaledmass * (y2+z2);
 	inertia[1] = scaledmass * (x2+z2);

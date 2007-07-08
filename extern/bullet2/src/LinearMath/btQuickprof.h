@@ -22,17 +22,17 @@ subject to the following restrictions:
 #ifndef QUICK_PROF_H
 #define QUICK_PROF_H
 
-#define USE_QUICKPROF 1
+#include "btScalar.h"
 
-#ifdef USE_QUICKPROF
+//#define USE_QUICKPROF 1
+//Don't use quickprof for now, because it contains STL. TODO: replace STL by Bullet container classes.
 
 
-#include <iostream>
-#include <fstream>
-#include <string>
-#include <map>
+//if you don't need btClock, you can comment next line
+#define USE_BT_CLOCK 1
 
-#ifdef __PPU__
+#ifdef USE_BT_CLOCK
+#ifdef __CELLOS_LV2__
 #include <sys/sys_time.h>
 #include <stdio.h>
 typedef uint64_t __int64;
@@ -43,47 +43,30 @@ typedef uint64_t __int64;
 #endif
 
 #if defined(WIN32) || defined(_WIN32)
-	#define USE_WINDOWS_TIMERS
+
+ #define USE_WINDOWS_TIMERS 
+   #define WIN32_LEAN_AND_MEAN 
+   #define NOWINRES 
+   #define NOMCX 
+   #define NOIME 
+#ifdef _XBOX
+	#include <Xtl.h>
+#else
 	#include <windows.h>
+#endif
 	#include <time.h>
+
 #else
 	#include <sys/time.h>
 #endif
 
 #define mymin(a,b) (a > b ? a : b)
-namespace hidden
-{
-	/// A simple data structure representing a single timed block 
-	/// of code.
-	struct ProfileBlock
-	{
-		ProfileBlock()
-		{
-			currentBlockStartMicroseconds = 0;
-			currentCycleTotalMicroseconds = 0;
-			lastCycleTotalMicroseconds = 0;
-			totalMicroseconds = 0;
-		}
 
-		/// The starting time (in us) of the current block update.
-		unsigned long int currentBlockStartMicroseconds;
-
-		/// The accumulated time (in us) spent in this block during the 
-		/// current profiling cycle.
-		unsigned long int currentCycleTotalMicroseconds;
-
-		/// The accumulated time (in us) spent in this block during the 
-		/// past profiling cycle.
-		unsigned long int lastCycleTotalMicroseconds;
-
-		/// The total accumulated time (in us) spent in this block.
-		unsigned long int totalMicroseconds;
-	};
-
-	class Clock
+/// basic clock
+class btClock
 	{
 	public:
-		Clock()
+		btClock()
 		{
 #ifdef USE_WINDOWS_TIMERS
 			QueryPerformanceFrequency(&mClockFrequency);
@@ -91,7 +74,7 @@ namespace hidden
 			reset();
 		}
 
-		~Clock()
+		~btClock()
 		{
 		}
 
@@ -103,7 +86,7 @@ namespace hidden
 			mStartTick = GetTickCount();
 			mPrevElapsedTime = 0;
 #else
-#ifdef __PPU__
+#ifdef __CELLOS_LV2__
 
 	typedef uint64_t __int64;
 	typedef __int64  ClockSize;
@@ -111,14 +94,14 @@ namespace hidden
 	__asm __volatile__( "mftb %0" : "=r" (newTime) : : "memory");
 	mStartTime = newTime;
 #else
-			gettimeofday(&mStartTime, NULL);
+			gettimeofday(&mStartTime, 0);
 #endif
 
 #endif
 		}
 
 		/// Returns the time in ms since the last call to reset or since 
-		/// the Clock was created.
+		/// the btClock was created.
 		unsigned long int getTimeMilliseconds()
 		{
 #ifdef USE_WINDOWS_TIMERS
@@ -156,7 +139,7 @@ namespace hidden
 			return msecTicks;
 #else
 			
-#ifdef __PPU__
+#ifdef __CELLOS_LV2__
 	__int64 freq=sys_time_get_timebase_frequency();
 	 double dFreq=((double) freq) / 1000.0;
 	typedef uint64_t __int64;
@@ -168,10 +151,10 @@ namespace hidden
 #else
 
 			struct timeval currentTime;
-			gettimeofday(&currentTime, NULL);
+			gettimeofday(&currentTime, 0);
 			return (currentTime.tv_sec - mStartTime.tv_sec) * 1000 + 
 				(currentTime.tv_usec - mStartTime.tv_usec) / 1000;
-#endif //__PPU__
+#endif //__CELLOS_LV2__
 #endif
 		}
 
@@ -214,7 +197,7 @@ namespace hidden
 			return usecTicks;
 #else
 
-#ifdef __PPU__
+#ifdef __CELLOS_LV2__
 	__int64 freq=sys_time_get_timebase_frequency();
 	 double dFreq=((double) freq)/ 1000000.0;
 	typedef uint64_t __int64;
@@ -226,10 +209,10 @@ namespace hidden
 #else
 
 			struct timeval currentTime;
-			gettimeofday(&currentTime, NULL);
+			gettimeofday(&currentTime, 0);
 			return (currentTime.tv_sec - mStartTime.tv_sec) * 1000000 + 
 				(currentTime.tv_usec - mStartTime.tv_usec);
-#endif//__PPU__
+#endif//__CELLOS_LV2__
 #endif 
 		}
 
@@ -240,14 +223,58 @@ namespace hidden
 		LONGLONG mPrevElapsedTime;
 		LARGE_INTEGER mStartTime;
 #else
-#ifdef __PPU__
+#ifdef __CELLOS_LV2__
 		uint64_t	mStartTime;
 #else
 		struct timeval mStartTime;
 #endif
-#endif //__PPU__
+#endif //__CELLOS_LV2__
 
 	};
+
+#endif //USE_BT_CLOCK
+
+
+#ifdef USE_QUICKPROF
+
+
+#include <iostream>
+#include <fstream>
+#include <string>
+#include <map>
+
+
+
+
+namespace hidden
+{
+	/// A simple data structure representing a single timed block 
+	/// of code.
+	struct ProfileBlock
+	{
+		ProfileBlock()
+		{
+			currentBlockStartMicroseconds = 0;
+			currentCycleTotalMicroseconds = 0;
+			lastCycleTotalMicroseconds = 0;
+			totalMicroseconds = 0;
+		}
+
+		/// The starting time (in us) of the current block update.
+		unsigned long int currentBlockStartMicroseconds;
+
+		/// The accumulated time (in us) spent in this block during the 
+		/// current profiling cycle.
+		unsigned long int currentCycleTotalMicroseconds;
+
+		/// The accumulated time (in us) spent in this block during the 
+		/// past profiling cycle.
+		unsigned long int lastCycleTotalMicroseconds;
+
+		/// The total accumulated time (in us) spent in this block.
+		unsigned long int totalMicroseconds;
+	};
+
 };
 
 /// A static class that manages timing for a set of profiling blocks.
@@ -336,6 +363,7 @@ public:
 	/// Prints an error message to standard output.
 	inline static void printError(const std::string& msg)
 	{
+		//btAssert(0);
 		std::cout << "[QuickProf error] " << msg << std::endl;
 	}
 
@@ -343,7 +371,7 @@ public:
 	static bool mEnabled;
 
 	/// The clock used to time profile blocks.
-	static hidden::Clock mClock;
+	static btClock mClock;
 
 	/// The starting time (in us) of the current profiling cycle.
 	static unsigned long int mCurrentCycleStartMicroseconds;
@@ -680,4 +708,5 @@ std::string btProfiler::createStatsString(BlockTimingMethod method)
 #endif //USE_QUICKPROF
 
 #endif //QUICK_PROF_H
+
 

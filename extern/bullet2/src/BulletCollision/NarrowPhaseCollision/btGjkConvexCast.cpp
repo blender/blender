@@ -60,9 +60,9 @@ bool	btGjkConvexCast::calcTimeOfImpact(
 
 
 
-	float radius = 0.01f;
+	btScalar radius = btScalar(0.01);
 
-	btScalar lambda = 0.f;
+	btScalar lambda = btScalar(0.);
 	btVector3 s = rayFromLocalA.getOrigin();
 	btVector3 r = rayToLocalA.getOrigin()-rayFromLocalA.getOrigin();
 	btVector3 x = s;
@@ -71,7 +71,7 @@ bool	btGjkConvexCast::calcTimeOfImpact(
 	bool hasResult = false;
 	btVector3 c;
 
-	float lastLambda = lambda;
+	btScalar lastLambda = lambda;
 
 	//first solution, using GJK
 
@@ -81,8 +81,8 @@ bool	btGjkConvexCast::calcTimeOfImpact(
 	btTransform identityTrans;
 	identityTrans.setIdentity();
 
-	btSphereShape	raySphere(0.0f);
-	raySphere.setMargin(0.f);
+	btSphereShape	raySphere(btScalar(0.0));
+	raySphere.setMargin(btScalar(0.));
 
 	btTransform sphereTr;
 	sphereTr.setIdentity();
@@ -112,7 +112,7 @@ bool	btGjkConvexCast::calcTimeOfImpact(
 		if (dist < radius)
 		{
 			//penetration
-			lastLambda = 1.f;
+			lastLambda = btScalar(1.);
 		}
 
 		//not close enough
@@ -143,7 +143,7 @@ bool	btGjkConvexCast::calcTimeOfImpact(
 			gjk.getClosestPoints(input,pointCollector,0);
 			if (pointCollector.m_hasResult)
 			{
-				if (pointCollector.m_distance < 0.f)
+				if (pointCollector.m_distance < btScalar(0.))
 				{
 					//degeneracy, report a hit
 					result.m_fraction = lastLambda;
@@ -160,7 +160,7 @@ bool	btGjkConvexCast::calcTimeOfImpact(
 
 		}
 
-		if (lastLambda < 1.f)
+		if (lastLambda < btScalar(1.))
 		{
 		
 			result.m_fraction = lastLambda;

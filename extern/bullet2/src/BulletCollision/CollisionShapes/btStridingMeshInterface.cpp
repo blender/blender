@@ -23,6 +23,8 @@ btStridingMeshInterface::~btStridingMeshInterface()
 
 void	btStridingMeshInterface::InternalProcessAllTriangles(btInternalTriangleIndexCallback* callback,const btVector3& aabbMin,const btVector3& aabbMax) const
 {
+	(void)aabbMin;
+	(void)aabbMax;
 	int numtotalphysicsverts = 0;
 	int part,graphicssubparts = getNumSubParts();
 	const unsigned char * vertexbase;
@@ -33,7 +35,7 @@ void	btStridingMeshInterface::InternalProcessAllTriangles(btInternalTriangleInde
 	int stride,numverts,numtriangles;
 	int gfxindex;
 	btVector3 triangle[3];
-	float* graphicsbase;
+	btScalar* graphicsbase;
 
 	btVector3 meshScaling = getScaling();
 
@@ -50,11 +52,11 @@ void	btStridingMeshInterface::InternalProcessAllTriangles(btInternalTriangleInde
 				for (gfxindex=0;gfxindex<numtriangles;gfxindex++)
 				{
 					int* tri_indices= (int*)(indexbase+gfxindex*indexstride);
-					graphicsbase = (float*)(vertexbase+tri_indices[0]*stride);
+					graphicsbase = (btScalar*)(vertexbase+tri_indices[0]*stride);
 					triangle[0].setValue(graphicsbase[0]*meshScaling.getX(),graphicsbase[1]*meshScaling.getY(),graphicsbase[2]*meshScaling.getZ());
-					graphicsbase = (float*)(vertexbase+tri_indices[1]*stride);
+					graphicsbase = (btScalar*)(vertexbase+tri_indices[1]*stride);
 					triangle[1].setValue(graphicsbase[0]*meshScaling.getX(),graphicsbase[1]*meshScaling.getY(),	graphicsbase[2]*meshScaling.getZ());
-					graphicsbase = (float*)(vertexbase+tri_indices[2]*stride);
+					graphicsbase = (btScalar*)(vertexbase+tri_indices[2]*stride);
 					triangle[2].setValue(graphicsbase[0]*meshScaling.getX(),graphicsbase[1]*meshScaling.getY(),	graphicsbase[2]*meshScaling.getZ());
 					callback->internalProcessTriangleIndex(triangle,part,gfxindex);
 				}
@@ -65,11 +67,11 @@ void	btStridingMeshInterface::InternalProcessAllTriangles(btInternalTriangleInde
 				for (gfxindex=0;gfxindex<numtriangles;gfxindex++)
 				{
 					short int* tri_indices= (short int*)(indexbase+gfxindex*indexstride);
-					graphicsbase = (float*)(vertexbase+tri_indices[0]*stride);
+					graphicsbase = (btScalar*)(vertexbase+tri_indices[0]*stride);
 					triangle[0].setValue(graphicsbase[0]*meshScaling.getX(),graphicsbase[1]*meshScaling.getY(),graphicsbase[2]*meshScaling.getZ());
-					graphicsbase = (float*)(vertexbase+tri_indices[1]*stride);
+					graphicsbase = (btScalar*)(vertexbase+tri_indices[1]*stride);
 					triangle[1].setValue(graphicsbase[0]*meshScaling.getX(),graphicsbase[1]*meshScaling.getY(),	graphicsbase[2]*meshScaling.getZ());
-					graphicsbase = (float*)(vertexbase+tri_indices[2]*stride);
+					graphicsbase = (btScalar*)(vertexbase+tri_indices[2]*stride);
 					triangle[2].setValue(graphicsbase[0]*meshScaling.getX(),graphicsbase[1]*meshScaling.getY(),	graphicsbase[2]*meshScaling.getZ());
 					callback->internalProcessTriangleIndex(triangle,part,gfxindex);
 				}
@@ -83,3 +85,40 @@ void	btStridingMeshInterface::InternalProcessAllTriangles(btInternalTriangleInde
 	}
 }
 
+void	btStridingMeshInterface::calculateAabbBruteForce(btVector3& aabbMin,btVector3& aabbMax)
+{
+
+	struct	AabbCalculationCallback : public btInternalTriangleIndexCallback
+	{
+		btVector3	m_aabbMin;
+		btVector3	m_aabbMax;
+
+		AabbCalculationCallback()
+		{
+			m_aabbMin.setValue(btScalar(1e30),btScalar(1e30),btScalar(1e30));
+			m_aabbMax.setValue(btScalar(-1e30),btScalar(-1e30),btScalar(-1e30));
+		}
+
+		virtual void internalProcessTriangleIndex(btVector3* triangle,int partId,int  triangleIndex)
+		{
+			(void)partId;
+			(void)triangleIndex;
+
+			m_aabbMin.setMin(triangle[0]);
+			m_aabbMax.setMax(triangle[0]);
+			m_aabbMin.setMin(triangle[1]);
+			m_aabbMax.setMax(triangle[1]);
+			m_aabbMin.setMin(triangle[2]);
+			m_aabbMax.setMax(triangle[2]);
+		}
+	};
+
+		//first calculate the total aabb for all triangles
+	AabbCalculationCallback	aabbCallback;
+	aabbMin.setValue(btScalar(-1e30),btScalar(-1e30),btScalar(-1e30));
+	aabbMax.setValue(btScalar(1e30),btScalar(1e30),btScalar(1e30));
+	InternalProcessAllTriangles(&aabbCallback,aabbMin,aabbMax);
+
+	aabbMin = aabbCallback.m_aabbMin;
+	aabbMax = aabbCallback.m_aabbMax;
+}

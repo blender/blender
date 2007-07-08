@@ -17,42 +17,37 @@ subject to the following restrictions:
 #ifndef TRIANGLE_MESH_H
 #define TRIANGLE_MESH_H
 
-#include "BulletCollision/CollisionShapes/btStridingMeshInterface.h"
-#include <LinearMath/btVector3.h>
-#include "LinearMath/btAlignedObjectArray.h"
-struct btMyTriangle
-{
-	btVector3	m_vert0;
-	btVector3	m_vert1;
-	btVector3	m_vert2;
-};
+#include "btStridingMeshInterface.h"
+#include "../../LinearMath/btVector3.h"
+#include "../../LinearMath/btAlignedObjectArray.h"
 
 ///TriangleMesh provides storage for a concave triangle mesh. It can be used as data for the btTriangleMeshShape.
 class btTriangleMesh : public btStridingMeshInterface
 {
-	btAlignedObjectArray<btMyTriangle>	m_triangles;
+	btAlignedObjectArray<btVector3>	m_vertices;
+	btAlignedObjectArray<int>		m_indices;
 
 	public:
 		btTriangleMesh ();
 
 		void	addTriangle(const btVector3& vertex0,const btVector3& vertex1,const btVector3& vertex2)
 		{
-			btMyTriangle tri;
-			tri.m_vert0 = vertex0;
-			tri.m_vert1 = vertex1;
-			tri.m_vert2 = vertex2;
-			m_triangles.push_back(tri);
+			int curIndex = m_indices.size();
+			m_vertices.push_back(vertex0);
+			m_vertices.push_back(vertex1);
+			m_vertices.push_back(vertex2);
+
+			m_indices.push_back(curIndex++);
+			m_indices.push_back(curIndex++);
+			m_indices.push_back(curIndex++);
 		}
 
 		int getNumTriangles() const
 		{
-			return m_triangles.size();
+			return m_indices.size() / 3;
 		}
 
-		const btMyTriangle&	getTriangle(int index) const
-		{
-			return m_triangles[index];
-		}
+		
 
 //StridingMeshInterface interface implementation
 
@@ -62,16 +57,16 @@ class btTriangleMesh : public btStridingMeshInterface
 
 		/// unLockVertexBase finishes the access to a subpart of the triangle mesh
 		/// make a call to unLockVertexBase when the read and write access (using getLockedVertexIndexBase) is finished
-		virtual void	unLockVertexBase(int subpart) {}
+		virtual void	unLockVertexBase(int subpart) {(void) subpart;}
 
-		virtual void	unLockReadOnlyVertexBase(int subpart) const {}
+		virtual void	unLockReadOnlyVertexBase(int subpart) const { (void) subpart;}
 
 		/// getNumSubParts returns the number of seperate subparts
 		/// each subpart has a continuous array of vertices and indices
 		virtual int		getNumSubParts() const;
 		
-		virtual void	preallocateVertices(int numverts){}
-		virtual void	preallocateIndices(int numindices){}
+		virtual void	preallocateVertices(int numverts){(void) numverts;}
+		virtual void	preallocateIndices(int numindices){(void) numindices;}
 
 		
 };

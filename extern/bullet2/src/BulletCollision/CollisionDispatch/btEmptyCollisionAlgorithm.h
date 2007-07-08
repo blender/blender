@@ -15,7 +15,7 @@ subject to the following restrictions:
 
 #ifndef EMPTY_ALGORITH
 #define EMPTY_ALGORITH
-#include "BulletCollision/BroadphaseCollision/btCollisionAlgorithm.h"
+#include "../BroadphaseCollision/btCollisionAlgorithm.h"
 #include "btCollisionCreateFunc.h"
 
 #define ATTRIBUTE_ALIGNED(a)
@@ -31,12 +31,14 @@ public:
 
 	virtual void processCollision (btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut);
 
-	virtual float calculateTimeOfImpact(btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut);
+	virtual btScalar calculateTimeOfImpact(btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut);
 
 	struct CreateFunc :public 	btCollisionAlgorithmCreateFunc
 	{
 		virtual	btCollisionAlgorithm* CreateCollisionAlgorithm(btCollisionAlgorithmConstructionInfo& ci, btCollisionObject* body0,btCollisionObject* body1)
 		{
+			(void)body0;
+			(void)body1;
 			return new btEmptyAlgorithm(ci);
 		}
 	};

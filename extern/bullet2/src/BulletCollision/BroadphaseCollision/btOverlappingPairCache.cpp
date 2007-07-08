@@ -24,7 +24,8 @@ subject to the following restrictions:
 int	gOverlappingPairs = 0;
 
 btOverlappingPairCache::btOverlappingPairCache():
-m_blockedForChanges(false)
+m_blockedForChanges(false),
+m_overlapFilterCallback(0)
 //m_NumOverlapBroadphasePair(0)
 {
 }
@@ -39,15 +40,15 @@ btOverlappingPairCache::~btOverlappingPairCache()
 void	btOverlappingPairCache::removeOverlappingPair(btBroadphasePair& findPair)
 {
 	
-	std::set<btBroadphasePair>::iterator it = m_overlappingPairSet.find(findPair);
-//	assert(it != m_overlappingPairSet.end());
-
-	if (it != m_overlappingPairSet.end())
+	int findIndex = m_overlappingPairArray.findLinearSearch(findPair);
+	if (findIndex < m_overlappingPairArray.size())
 	{
 		gOverlappingPairs--;
-		btBroadphasePair* pair = (btBroadphasePair*)(&(*it));
-		cleanOverlappingPair(*pair);	
-		m_overlappingPairSet.erase(it);
+		btBroadphasePair& pair = m_overlappingPairArray[findIndex];
+		cleanOverlappingPair(pair);
+		
+		m_overlappingPairArray.swap(findIndex,m_overlappingPairArray.size()-1);
+		m_overlappingPairArray.pop_back();
 	}
 }
 
@@ -78,7 +79,7 @@ void	btOverlappingPairCache::addOverlappingPair(btBroadphaseProxy* proxy0,btBroa
 
 	btBroadphasePair pair(*proxy0,*proxy1);
 	
-	m_overlappingPairSet.insert(pair);
+	m_overlappingPairArray.push_back(pair);
 	gOverlappingPairs++;
 	
 }
@@ -93,13 +94,15 @@ void	btOverlappingPairCache::addOverlappingPair(btBroadphaseProxy* proxy0,btBroa
 		return 0;
 
 	btBroadphasePair tmpPair(*proxy0,*proxy1);
-	std::set<btBroadphasePair>::iterator it = m_overlappingPairSet.find(tmpPair);
-	if ((it == m_overlappingPairSet.end()))
-		return 0;
+	int findIndex = m_overlappingPairArray.findLinearSearch(tmpPair);
 
-	//assert(it != m_overlappingPairSet.end());
-	 btBroadphasePair* pair = (btBroadphasePair*)(&(*it));
-	return pair;
+	if (findIndex < m_overlappingPairArray.size())
+	{
+		//assert(it != m_overlappingPairSet.end());
+		 btBroadphasePair* pair = &m_overlappingPairArray[findIndex];
+		return pair;
+	}
+	return 0;
 }
 
 
@@ -170,30 +173,23 @@ void	btOverlappingPairCache::removeOverlappingPairsContainingProxy(btBroadphaseP
 
 void	btOverlappingPairCache::processAllOverlappingPairs(btOverlapCallback* callback)
 {
-	std::set<btBroadphasePair>::iterator it = m_overlappingPairSet.begin();
-	for (; !(it==m_overlappingPairSet.end());)
+
+	int i;
+
+	for (i=0;i<m_overlappingPairArray.size();)
 	{
 	
-		btBroadphasePair* pair = (btBroadphasePair*)(&(*it));
+		btBroadphasePair* pair = &m_overlappingPairArray[i];
 		if (callback->processOverlap(*pair))
 		{
 			cleanOverlappingPair(*pair);
 
-			std::set<btBroadphasePair>::iterator it2 = it;
-			//why does next line not compile under OS X??
-#ifdef MAC_OSX_FIXED_STL_SET
-			it2++;
-			it = m_overlappingPairSet.erase(it);
-			assert(it == it2);
-#else
-			it++;
-			m_overlappingPairSet.erase(it2);
-#endif //MAC_OSX_FIXED_STL_SET
-
+			m_overlappingPairArray.swap(i,m_overlappingPairArray.size()-1);
+			m_overlappingPairArray.pop_back();
 			gOverlappingPairs--;
 		} else
 		{
-			it++;
+			i++;
 		}
 	}
 }

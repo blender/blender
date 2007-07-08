@@ -16,8 +16,8 @@ subject to the following restrictions:
 #ifndef SOLVE_2LINEAR_CONSTRAINT_H
 #define SOLVE_2LINEAR_CONSTRAINT_H
 
-#include "LinearMath/btMatrix3x3.h"
-#include "LinearMath/btVector3.h"
+#include "../../LinearMath/btMatrix3x3.h"
+#include "../../LinearMath/btVector3.h"
 
 
 class btRigidBody;
@@ -85,7 +85,7 @@ public:
 					  btScalar depthB, const btVector3& normalB, 
 					  btScalar& imp0,btScalar& imp1);
 
-
+/*
 	void resolveAngularConstraint(	const btMatrix3x3& invInertiaAWS,
 						const btScalar invMassA,
 						const btVector3& linvelA,const btVector3& angvelA,
@@ -100,6 +100,7 @@ public:
 					  btScalar depthB, const btVector3& normalB, 
 					  btScalar& imp0,btScalar& imp1);
 
+*/
 
 };
 

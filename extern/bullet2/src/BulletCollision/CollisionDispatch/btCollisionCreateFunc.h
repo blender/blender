@@ -16,9 +16,8 @@ subject to the following restrictions:
 #ifndef COLLISION_CREATE_FUNC
 #define COLLISION_CREATE_FUNC
 
-#include <vector>
-
-typedef std::vector<class btCollisionObject*> btCollisionObjectArray;
+#include "../../LinearMath/btAlignedObjectArray.h"
+typedef btAlignedObjectArray<class btCollisionObject*> btCollisionObjectArray;
 class btCollisionAlgorithm;
 class btCollisionObject;
 
@@ -35,8 +34,11 @@ struct btCollisionAlgorithmCreateFunc
 	}
 	virtual ~btCollisionAlgorithmCreateFunc(){};
 
-	virtual	btCollisionAlgorithm* CreateCollisionAlgorithm(btCollisionAlgorithmConstructionInfo& ci, btCollisionObject* body0,btCollisionObject* body1)
+	virtual	btCollisionAlgorithm* CreateCollisionAlgorithm(btCollisionAlgorithmConstructionInfo& , btCollisionObject* body0,btCollisionObject* body1)
 	{
+		
+		(void)body0;
+		(void)body1;
 		return 0;
 	}
 };

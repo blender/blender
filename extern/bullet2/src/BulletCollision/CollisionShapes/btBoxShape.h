@@ -17,10 +17,10 @@ subject to the following restrictions:
 #define OBB_BOX_MINKOWSKI_H
 
 #include "btPolyhedralConvexShape.h"
-#include "BulletCollision/CollisionShapes/btCollisionMargin.h"
-#include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
-#include "LinearMath/btPoint3.h"
-#include "LinearMath/btSimdMinMax.h"
+#include "btCollisionMargin.h"
+#include "../BroadphaseCollision/btBroadphaseProxy.h"
+#include "../../LinearMath/btPoint3.h"
+#include "../../LinearMath/btSimdMinMax.h"
 
 ///btBoxShape implements both a feature based (vertex/edge/plane) and implicit (getSupportingVertex) Box
 class btBoxShape: public btPolyhedralConvexShape
@@ -41,9 +41,9 @@ public:
 		btVector3 halfExtents = getHalfExtents();
 		
 		btVector3 supVertex;
-		supVertex = btPoint3(vec.x() < btScalar(0.0f) ? -halfExtents.x() : halfExtents.x(),
-                     vec.y() < btScalar(0.0f) ? -halfExtents.y() : halfExtents.y(),
-                     vec.z() < btScalar(0.0f) ? -halfExtents.z() : halfExtents.z()); 
+		supVertex = btPoint3(vec.x() < btScalar(0.0) ? -halfExtents.x() : halfExtents.x(),
+                     vec.y() < btScalar(0.0) ? -halfExtents.y() : halfExtents.y(),
+                     vec.z() < btScalar(0.0) ? -halfExtents.z() : halfExtents.z()); 
   
 		return supVertex;
 	}
@@ -54,9 +54,9 @@ public:
 		btVector3 margin(getMargin(),getMargin(),getMargin());
 		halfExtents -= margin;
 
-		return btVector3(vec.x() < btScalar(0.0f) ? -halfExtents.x() : halfExtents.x(),
-                    vec.y() < btScalar(0.0f) ? -halfExtents.y() : halfExtents.y(),
-                    vec.z() < btScalar(0.0f) ? -halfExtents.z() : halfExtents.z()); 
+		return btVector3(vec.x() < btScalar(0.0) ? -halfExtents.x() : halfExtents.x(),
+                    vec.y() < btScalar(0.0) ? -halfExtents.y() : halfExtents.y(),
+                    vec.z() < btScalar(0.0) ? -halfExtents.z() : halfExtents.z()); 
 	}
 
 	virtual void	batchedUnitVectorGetSupportingVertexWithoutMargin(const btVector3* vectors,btVector3* supportVerticesOut,int numVectors) const
@@ -69,9 +69,9 @@ public:
 		for (int i=0;i<numVectors;i++)
 		{
 			const btVector3& vec = vectors[i];
-			supportVerticesOut[i].setValue(vec.x() < btScalar(0.0f) ? -halfExtents.x() : halfExtents.x(),
-                    vec.y() < btScalar(0.0f) ? -halfExtents.y() : halfExtents.y(),
-                    vec.z() < btScalar(0.0f) ? -halfExtents.z() : halfExtents.z()); 
+			supportVerticesOut[i].setValue(vec.x() < btScalar(0.0) ? -halfExtents.x() : halfExtents.x(),
+                    vec.y() < btScalar(0.0) ? -halfExtents.y() : halfExtents.y(),
+                    vec.z() < btScalar(0.0) ? -halfExtents.z() : halfExtents.z()); 
 		}
 
 	}
@@ -132,27 +132,27 @@ public:
 		switch (i)
 		{
 		case 0:
-			plane.setValue(1.f,0.f,0.f);
+			plane.setValue(btScalar(1.),btScalar(0.),btScalar(0.));
 			plane[3] = -halfExtents.x();
 			break;
 		case 1:
-			plane.setValue(-1.f,0.f,0.f);
+			plane.setValue(btScalar(-1.),btScalar(0.),btScalar(0.));
 			plane[3] = -halfExtents.x();
 			break;
 		case 2:
-			plane.setValue(0.f,1.f,0.f);
+			plane.setValue(btScalar(0.),btScalar(1.),btScalar(0.));
 			plane[3] = -halfExtents.y();
 			break;
 		case 3:
-			plane.setValue(0.f,-1.f,0.f);
+			plane.setValue(btScalar(0.),btScalar(-1.),btScalar(0.));
 			plane[3] = -halfExtents.y();
 			break;
 		case 4:
-			plane.setValue(0.f,0.f,1.f);
+			plane.setValue(btScalar(0.),btScalar(0.),btScalar(1.));
 			plane[3] = -halfExtents.z();
 			break;
 		case 5:
-			plane.setValue(0.f,0.f,-1.f);
+			plane.setValue(btScalar(0.),btScalar(0.),btScalar(-1.));
 			plane[3] = -halfExtents.z();
 			break;
 		default:
@@ -265,22 +265,22 @@ public:
 		switch (index)
 		{
 		case 0:
-			penetrationVector.setValue(1.f,0.f,0.f);
+			penetrationVector.setValue(btScalar(1.),btScalar(0.),btScalar(0.));
 			break;
 		case 1:
-			penetrationVector.setValue(-1.f,0.f,0.f);
+			penetrationVector.setValue(btScalar(-1.),btScalar(0.),btScalar(0.));
 			break;
 		case 2:
-			penetrationVector.setValue(0.f,1.f,0.f);
+			penetrationVector.setValue(btScalar(0.),btScalar(1.),btScalar(0.));
 			break;
 		case 3:
-			penetrationVector.setValue(0.f,-1.f,0.f);
+			penetrationVector.setValue(btScalar(0.),btScalar(-1.),btScalar(0.));
 			break;
 		case 4:
-			penetrationVector.setValue(0.f,0.f,1.f);
+			penetrationVector.setValue(btScalar(0.),btScalar(0.),btScalar(1.));
 			break;
 		case 5:
-			penetrationVector.setValue(0.f,0.f,-1.f);
+			penetrationVector.setValue(btScalar(0.),btScalar(0.),btScalar(-1.));
 			break;
 		default:
 			assert(0);

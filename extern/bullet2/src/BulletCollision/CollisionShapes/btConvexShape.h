@@ -18,11 +18,10 @@ subject to the following restrictions:
 
 #include "btCollisionShape.h"
 
-#include "LinearMath/btVector3.h"
-#include "LinearMath/btTransform.h"
-#include "LinearMath/btMatrix3x3.h"
-#include <vector>
-#include "BulletCollision/CollisionShapes/btCollisionMargin.h"
+#include "../../LinearMath/btVector3.h"
+#include "../../LinearMath/btTransform.h"
+#include "../../LinearMath/btMatrix3x3.h"
+#include "btCollisionMargin.h"
 
 //todo: get rid of this btConvexCastResult thing!
 struct btConvexCastResult;
@@ -31,9 +30,9 @@ struct btConvexCastResult;
 /// btConvexShape is an abstract shape interface.
 /// The explicit part provides plane-equations, the implicit part provides GetClosestPoint interface.
 /// used in combination with GJK or btConvexCast
-class btConvexShape : public btCollisionShape
+ATTRIBUTE_ALIGNED16(class) btConvexShape : public btCollisionShape
 {
-	
+
 protected:
 
 	//local scaling. collisionMargin is not scaled !
@@ -43,14 +42,27 @@ protected:
 	
 	btScalar	m_collisionMargin;
 
+	btScalar	m_padding[2];
+
+
+
+
 public:
 	btConvexShape();
 
+	virtual ~btConvexShape()
+	{
+
+	}
+
+
 	virtual btVector3	localGetSupportingVertex(const btVector3& vec)const;
+#ifndef __SPU__
 	virtual btVector3	localGetSupportingVertexWithoutMargin(const btVector3& vec) const= 0;
 	
 	//notice that the vectors should be unit length
 	virtual void	batchedUnitVectorGetSupportingVertexWithoutMargin(const btVector3* vectors,btVector3* supportVerticesOut,int numVectors) const= 0;
+#endif //#ifndef __SPU__
 
 	const btVector3& getImplicitShapeDimensions() const
 	{
@@ -74,12 +86,21 @@ public:
 		return m_localScaling;
 	}
 
+	const btVector3& getLocalScalingNV() const 
+	{
+		return m_localScaling;
+	}
 
-	virtual void	setMargin(float margin)
+	virtual void	setMargin(btScalar margin)
 	{
 		m_collisionMargin = margin;
 	}
-	virtual float	getMargin() const
+	virtual btScalar	getMargin() const
+	{
+		return m_collisionMargin;
+	}
+
+	btScalar	getMarginNV() const
 	{
 		return m_collisionMargin;
 	}
@@ -91,12 +112,15 @@ public:
 	
 	virtual void	getPreferredPenetrationDirection(int index, btVector3& penetrationVector) const
 	{
-		assert(0);
+		(void)penetrationVector;
+		(void)index;
+		btAssert(0);
 	}
 
 
 
-};
+}
+;
 
 
 

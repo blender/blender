@@ -8,8 +8,7 @@
 #include "BulletCollision/CollisionDispatch/btCollisionWorld.h"
 
 #include <stdio.h>
-#include <algorithm>
-
+#include "LinearMath/btQuickprof.h"
 
 btSimulationIslandManager::btSimulationIslandManager()
 {
@@ -33,7 +32,7 @@ void btSimulationIslandManager::findUnions(btDispatcher* dispatcher)
 		for (int i=0;i<dispatcher->getNumManifolds();i++)
 		{
 			const btPersistentManifold* manifold = dispatcher->getManifoldByIndexInternal(i);
-			//static objects (invmass 0.f) don't merge !
+			//static objects (invmass btScalar(0.)) don't merge !
 
 			 const  btCollisionObject* colObj0 = static_cast<const btCollisionObject*>(manifold->getBody0());
 			 const  btCollisionObject* colObj1 = static_cast<const btCollisionObject*>(manifold->getBody1());
@@ -57,16 +56,15 @@ void	btSimulationIslandManager::updateActivationState(btCollisionWorld* colWorld
 	
 	// put the index into m_controllers into m_tag	
 	{
-		std::vector<btCollisionObject*>::iterator i;
 		
 		int index = 0;
-		for (i=colWorld->getCollisionObjectArray().begin();
-		!(i==colWorld->getCollisionObjectArray().end()); i++)
+		int i;
+		for (i=0;i<colWorld->getCollisionObjectArray().size(); i++)
 		{
-			
-			btCollisionObject*	collisionObject= (*i);
+			btCollisionObject*	collisionObject= colWorld->getCollisionObjectArray()[i];
 			collisionObject->setIslandTag(index);
-			collisionObject->setHitFraction(1.f);
+			collisionObject->setCompanionId(-1);
+			collisionObject->setHitFraction(btScalar(1.));
 			index++;
 			
 		}
@@ -88,20 +86,19 @@ void	btSimulationIslandManager::storeIslandActivationState(btCollisionWorld* col
 	{
 		
 		
-		std::vector<btCollisionObject*>::iterator i;
-		
 		int index = 0;
-		for (i=colWorld->getCollisionObjectArray().begin();
-		!(i==colWorld->getCollisionObjectArray().end()); i++)
+		int i;
+		for (i=0;i<colWorld->getCollisionObjectArray().size();i++)
 		{
-			btCollisionObject* collisionObject= (*i);
-			
+			btCollisionObject* collisionObject= colWorld->getCollisionObjectArray()[i];
 			if (collisionObject->mergesSimulationIslands())
 			{
 				collisionObject->setIslandTag( m_unionFind.find(index) );
+				collisionObject->setCompanionId(-1);
 			} else
 			{
 				collisionObject->setIslandTag(-1);
+				collisionObject->setCompanionId(-2);
 			}
 			index++;
 		}
@@ -118,13 +115,21 @@ inline	int	getIslandId(const btPersistentManifold* lhs)
 
 }
 
-bool btPersistentManifoldSortPredicate(const btPersistentManifold* lhs, const btPersistentManifold* rhs)
+
+
+/// function object that routes calls to operator<
+class btPersistentManifoldSortPredicate
 {
-	int rIslandId0,lIslandId0;
-	rIslandId0 = getIslandId(rhs);
-	lIslandId0 = getIslandId(lhs);
-	return lIslandId0 < rIslandId0;
-}
+	public:
+
+		SIMD_FORCE_INLINE bool operator() ( const btPersistentManifold* lhs, const btPersistentManifold* rhs )
+		{
+			return getIslandId(lhs) < getIslandId(rhs);
+		}
+};
+
+
+
 
 
 //
@@ -132,6 +137,22 @@ bool btPersistentManifoldSortPredicate(const btPersistentManifold* lhs, const bt
 //
 void btSimulationIslandManager::buildAndProcessIslands(btDispatcher* dispatcher,btCollisionObjectArray& collisionObjects, IslandCallback* callback)
 {
+
+	
+	
+	/*if (0)
+	{
+		int maxNumManifolds = dispatcher->getNumManifolds();
+		btCollisionDispatcher* colDis = (btCollisionDispatcher*)dispatcher;
+		btPersistentManifold** manifold = colDis->getInternalManifoldPointer();
+		callback->ProcessIsland(&collisionObjects[0],collisionObjects.size(),manifold,maxNumManifolds, 0);
+		return;
+	}
+	*/
+
+
+	BEGIN_PROFILE("islandUnionFindAndHeapSort");
+	
 	//we are going to sort the unionfind array, and store the element id in the size
 	//afterwards, we clean unionfind, to make sure no-one uses it anymore
 	
@@ -139,9 +160,11 @@ void btSimulationIslandManager::buildAndProcessIslands(btDispatcher* dispatcher,
 	int numElem = getUnionFind().getNumElements();
 
 	int endIslandIndex=1;
+	int startIslandIndex;
+
 
 	//update the sleeping state for bodies, if all are sleeping
-	for (int startIslandIndex=0;startIslandIndex<numElem;startIslandIndex = endIslandIndex)
+	for ( startIslandIndex=0;startIslandIndex<numElem;startIslandIndex = endIslandIndex)
 	{
 		int islandId = getUnionFind().getElement(startIslandIndex).m_id;
 		for (endIslandIndex = startIslandIndex+1;(endIslandIndex<numElem) && (getUnionFind().getElement(endIslandIndex).m_id == islandId);endIslandIndex++)
@@ -224,7 +247,7 @@ void btSimulationIslandManager::buildAndProcessIslands(btDispatcher* dispatcher,
 		}
 	}
 
-	std::vector<btPersistentManifold*>  islandmanifold;
+	btAlignedObjectArray<btPersistentManifold*>  islandmanifold;
 	int i;
 	int maxNumManifolds = dispatcher->getNumManifolds();
 	islandmanifold.reserve(maxNumManifolds);
@@ -261,63 +284,74 @@ void btSimulationIslandManager::buildAndProcessIslands(btDispatcher* dispatcher,
 
 	// Sort manifolds, based on islands
 	// Sort the vector using predicate and std::sort
-	std::sort(islandmanifold.begin(), islandmanifold.end(), btPersistentManifoldSortPredicate);
+	//std::sort(islandmanifold.begin(), islandmanifold.end(), btPersistentManifoldSortPredicate);
+
+	//we should do radix sort, it it much faster (O(n) instead of O (n log2(n))
+	islandmanifold.heapSort(btPersistentManifoldSortPredicate());
 
 	//now process all active islands (sets of manifolds for now)
 
 	int startManifoldIndex = 0;
 	int endManifoldIndex = 1;
 
-	int islandId;
+	//int islandId;
+
+	END_PROFILE("islandUnionFindAndHeapSort");
+
+	btAlignedObjectArray<btCollisionObject*>	islandBodies;
 
 
-	 //traverse the simulation islands, and call the solver, unless all objects are sleeping/deactivated
-        for (int startIslandIndex=0;startIslandIndex<numElem;startIslandIndex = endIslandIndex)
-        {               
-                int islandId = getUnionFind().getElement(startIslandIndex).m_id;
-                                
-                                        
-               bool islandSleeping = false;
+	//traverse the simulation islands, and call the solver, unless all objects are sleeping/deactivated
+	for ( startIslandIndex=0;startIslandIndex<numElem;startIslandIndex = endIslandIndex)
+	{
+		int islandId = getUnionFind().getElement(startIslandIndex).m_id;
+
+
+	       bool islandSleeping = false;
                 
                 for (endIslandIndex = startIslandIndex;(endIslandIndex<numElem) && (getUnionFind().getElement(endIslandIndex).m_id == islandId);endIslandIndex++)
                 {
                         int i = getUnionFind().getElement(endIslandIndex).m_sz;
                         btCollisionObject* colObj0 = collisionObjects[i];
+						islandBodies.push_back(colObj0);
                         if (!colObj0->isActive())
                                 islandSleeping = true;
                 }
                 
 
-                //find the accompanying contact manifold for this islandId
-                int numIslandManifolds = 0;
-                btPersistentManifold** startManifold = 0; 
+		//find the accompanying contact manifold for this islandId
+		int numIslandManifolds = 0;
+		btPersistentManifold** startManifold = 0;
 
-                if (startManifoldIndex<numManifolds)
-                {
-                        int curIslandId = getIslandId(islandmanifold[startManifoldIndex]);
-                        if (curIslandId == islandId)
-                        {
-                                startManifold = &islandmanifold[startManifoldIndex];
+		if (startManifoldIndex<numManifolds)
+		{
+			int curIslandId = getIslandId(islandmanifold[startManifoldIndex]);
+			if (curIslandId == islandId)
+			{
+				startManifold = &islandmanifold[startManifoldIndex];
+			
+				for (endManifoldIndex = startManifoldIndex+1;(endManifoldIndex<numManifolds) && (islandId == getIslandId(islandmanifold[endManifoldIndex]));endManifoldIndex++)
+				{
 
-                                for (endManifoldIndex = startManifoldIndex+1;(endManifoldIndex<numManifolds) && (islandId == getIslandId(islandmanifold[endManifoldIndex]));endManifoldIndex++)
-                                {
+				}
+				/// Process the actual simulation, only if not sleeping/deactivated
+				numIslandManifolds = endManifoldIndex-startManifoldIndex;
+			}
 
-                                }
-                                /// Process the actual simulation, only if not sleeping/deactivated
-                                numIslandManifolds = endManifoldIndex-startManifoldIndex;
-                        }
+		}
 
-                }
+		if (!islandSleeping)
+		{
+			callback->ProcessIsland(&islandBodies[0],islandBodies.size(),startManifold,numIslandManifolds, islandId);
+		}
+		
+		if (numIslandManifolds)
+		{
+			startManifoldIndex = endManifoldIndex;
+		}
 
-                if (!islandSleeping)
-                {
-                        callback->ProcessIsland(startManifold,numIslandManifolds, islandId);
-                }
+		islandBodies.resize(0);
+	}
 
-                if (numIslandManifolds)
-                {
-                        startManifoldIndex = endManifoldIndex;
-                }
-        }
-
+	
 }

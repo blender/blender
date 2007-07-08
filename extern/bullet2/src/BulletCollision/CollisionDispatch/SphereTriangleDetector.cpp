@@ -13,6 +13,7 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
+#include "LinearMath/btScalar.h"
 #include "SphereTriangleDetector.h"
 #include "BulletCollision/CollisionShapes/btTriangleShape.h"
 #include "BulletCollision/CollisionShapes/btSphereShape.h"
@@ -28,13 +29,14 @@ m_triangle(triangle)
 void	SphereTriangleDetector::getClosestPoints(const ClosestPointInput& input,Result& output,class btIDebugDraw* debugDraw)
 {
 
+	(void)debugDraw;
 	const btTransform& transformA = input.m_transformA;
 	const btTransform& transformB = input.m_transformB;
 
 	btVector3 point,normal;
-	btScalar timeOfImpact = 1.f;
-	btScalar depth = 0.f;
-//	output.m_distance = 1e30f;
+	btScalar timeOfImpact = btScalar(1.);
+	btScalar depth = btScalar(0.);
+//	output.m_distance = btScalar(1e30);
 	//move sphere into triangle space
 	btTransform	sphereInTr = transformB.inverseTimes(transformA);
 
@@ -45,19 +47,19 @@ void	SphereTriangleDetector::getClosestPoints(const ClosestPointInput& input,Res
 
 }
 
-#define MAX_OVERLAP 0.f
+#define MAX_OVERLAP btScalar(0.)
 
 
 
 // See also geometrictools.com
 // Basic idea: D = |p - (lo + t0*lv)| where t0 = lv . (p - lo) / lv . lv
-float SegmentSqrDistance(const btVector3& from, const btVector3& to,const btVector3 &p, btVector3 &nearest) {
+btScalar SegmentSqrDistance(const btVector3& from, const btVector3& to,const btVector3 &p, btVector3 &nearest) {
 	btVector3 diff = p - from;
 	btVector3 v = to - from;
-	float t = v.dot(diff);
+	btScalar t = v.dot(diff);
 	
 	if (t > 0) {
-		float dotVV = v.dot(v);
+		btScalar dotVV = v.dot(v);
 		if (t < dotVV) {
 			t /= dotVV;
 			diff -= t*v;
@@ -80,7 +82,7 @@ bool SphereTriangleDetector::facecontains(const btVector3 &p,const btVector3* ve
 }
 
 ///combined discrete/continuous sphere-triangle
-bool SphereTriangleDetector::collide(const btVector3& sphereCenter,btVector3 &point, btVector3& resultNormal, btScalar& depth, float &timeOfImpact)
+bool SphereTriangleDetector::collide(const btVector3& sphereCenter,btVector3 &point, btVector3& resultNormal, btScalar& depth, btScalar &timeOfImpact)
 {
 
 	const btVector3* vertices = &m_triangle->getVertexPtr(0);
@@ -92,25 +94,25 @@ bool SphereTriangleDetector::collide(const btVector3& sphereCenter,btVector3 &po
 	btVector3 normal = (vertices[1]-vertices[0]).cross(vertices[2]-vertices[0]);
 	normal.normalize();
 	btVector3 p1ToCentre = c - vertices[0];
-	float distanceFromPlane = p1ToCentre.dot(normal);
+	btScalar distanceFromPlane = p1ToCentre.dot(normal);
 
-	if (distanceFromPlane < 0.f)
+	if (distanceFromPlane < btScalar(0.))
 	{
 		//triangle facing the other way
 	
-		distanceFromPlane *= -1.f;
-		normal *= -1.f;
+		distanceFromPlane *= btScalar(-1.);
+		normal *= btScalar(-1.);
 	}
 
 	///todo: move this gContactBreakingThreshold into a proper structure
-	extern float gContactBreakingThreshold;
+	extern btScalar gContactBreakingThreshold;
 
-	float contactMargin = gContactBreakingThreshold;
+	btScalar contactMargin = gContactBreakingThreshold;
 	bool isInsideContactPlane = distanceFromPlane < r + contactMargin;
 	bool isInsideShellPlane = distanceFromPlane < r;
 	
-	float deltaDotNormal = delta.dot(normal);
-	if (!isInsideShellPlane && deltaDotNormal >= 0.0f)
+	btScalar deltaDotNormal = delta.dot(normal);
+	if (!isInsideShellPlane && deltaDotNormal >= btScalar(0.0))
 		return false;
 
 	// Check for contact / intersection
@@ -123,7 +125,7 @@ bool SphereTriangleDetector::collide(const btVector3& sphereCenter,btVector3 &po
 			contactPoint = c - normal*distanceFromPlane;
 		} else {
 			// Could be inside one of the contact capsules
-			float contactCapsuleRadiusSqr = (r + contactMargin) * (r + contactMargin);
+			btScalar contactCapsuleRadiusSqr = (r + contactMargin) * (r + contactMargin);
 			btVector3 nearestOnEdge;
 			for (int i = 0; i < m_triangle->getNumEdges(); i++) {
 				
@@ -132,7 +134,7 @@ bool SphereTriangleDetector::collide(const btVector3& sphereCenter,btVector3 &po
 				
 				m_triangle->getEdge(i,pa,pb);
 
-				float distanceSqr = SegmentSqrDistance(pa,pb,c, nearestOnEdge);
+				btScalar distanceSqr = SegmentSqrDistance(pa,pb,c, nearestOnEdge);
 				if (distanceSqr < contactCapsuleRadiusSqr) {
 					// Yep, we're inside a capsule
 					hasContact = true;
@@ -145,25 +147,22 @@ bool SphereTriangleDetector::collide(const btVector3& sphereCenter,btVector3 &po
 
 	if (hasContact) {
 		btVector3 contactToCentre = c - contactPoint;
-		float distanceSqr = contactToCentre.length2();
+		btScalar distanceSqr = contactToCentre.length2();
 		if (distanceSqr < (r - MAX_OVERLAP)*(r - MAX_OVERLAP)) {
-			float distance = btSqrt(distanceSqr);
-			if (1)
-			{
-				resultNormal = contactToCentre;
-				resultNormal.normalize();
-			}
+			btScalar distance = btSqrt(distanceSqr);
+			resultNormal = contactToCentre;
+			resultNormal.normalize();
 			point = contactPoint;
 			depth = -(r-distance);
 			return true;
 		}
 
-		if (delta.dot(contactToCentre) >= 0.0f) 
+		if (delta.dot(contactToCentre) >= btScalar(0.0)) 
 			return false;
 		
 		// Moving towards the contact point -> collision
 		point = contactPoint;
-		timeOfImpact = 0.0f;
+		timeOfImpact = btScalar(0.0);
 		return true;
 	}
 	
@@ -189,7 +188,7 @@ bool SphereTriangleDetector::pointInTriangle(const btVector3 vertices[], const b
 	btVector3 edge2_normal( edge2.cross(normal));
 	btVector3 edge3_normal( edge3.cross(normal));
 	
-	float r1, r2, r3;
+	btScalar r1, r2, r3;
 	r1 = edge1_normal.dot( p1_to_p );
 	r2 = edge2_normal.dot( p2_to_p );
 	r3 = edge3_normal.dot( p3_to_p );

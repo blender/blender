@@ -16,7 +16,7 @@ subject to the following restrictions:
 #ifndef BT_DYNAMICS_WORLD_H
 #define BT_DYNAMICS_WORLD_H
 
-#include "BulletCollision/CollisionDispatch/btCollisionWorld.h"
+#include "../../BulletCollision/CollisionDispatch/btCollisionWorld.h"
 class btTypedConstraint;
 class btRaycastVehicle;
 class btConstraintSolver;
@@ -39,17 +39,17 @@ class btDynamicsWorld : public btCollisionWorld
 		
 		///stepSimulation proceeds the simulation over timeStep units
 		///if maxSubSteps > 0, it will interpolate time steps
-		virtual int		stepSimulation( float timeStep,int maxSubSteps=1, float fixedTimeStep=1.f/60.f)=0;
+		virtual int		stepSimulation( btScalar timeStep,int maxSubSteps=1, btScalar fixedTimeStep=btScalar(1.)/btScalar(60.))=0;
 			
 		virtual void	updateAabbs() = 0;
 				
-		virtual void	addConstraint(btTypedConstraint* constraint) {};
+		virtual void	addConstraint(btTypedConstraint* constraint, bool disableCollisionsBetweenLinkedBodies=false) { (void)constraint;};
 
-		virtual void	removeConstraint(btTypedConstraint* constraint) {};
+		virtual void	removeConstraint(btTypedConstraint* constraint) {(void)constraint;};
 
-		virtual void	addVehicle(btRaycastVehicle* vehicle) {};
+		virtual void	addVehicle(btRaycastVehicle* vehicle) {(void)vehicle;};
 
-		virtual void	removeVehicle(btRaycastVehicle* vehicle) {};
+		virtual void	removeVehicle(btRaycastVehicle* vehicle) {(void)vehicle;};
 
 
 		virtual void	setDebugDrawer(btIDebugDraw*	debugDrawer) = 0;
@@ -68,9 +68,9 @@ class btDynamicsWorld : public btCollisionWorld
 		
 		virtual	int		getNumConstraints() const {	return 0;		}
 		
-		virtual btTypedConstraint* getConstraint(int index)		{			return 0;		}
+		virtual btTypedConstraint* getConstraint(int index)		{	(void)index;		return 0;		}
 		
-		virtual const btTypedConstraint* getConstraint(int index) const	{		return 0;	}
+		virtual const btTypedConstraint* getConstraint(int index) const	{	(void)index;	return 0;	}
 
 };
 

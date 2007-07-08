@@ -16,8 +16,8 @@ subject to the following restrictions:
 #ifndef JACOBIAN_ENTRY_H
 #define JACOBIAN_ENTRY_H
 
-#include "LinearMath/btVector3.h"
-#include "BulletDynamics/Dynamics/btRigidBody.h"
+#include "../../LinearMath/btVector3.h"
+#include "../Dynamics/btRigidBody.h"
 
 
 //notes:
@@ -50,7 +50,7 @@ public:
 		m_1MinvJt = inertiaInvB * m_bJ;
 		m_Adiag = massInvA + m_0MinvJt.dot(m_aJ) + massInvB + m_1MinvJt.dot(m_bJ);
 
-		btAssert(m_Adiag > 0.0f);
+		btAssert(m_Adiag > btScalar(0.0));
 	}
 
 	//angular constraint between two different rigidbodies
@@ -59,7 +59,7 @@ public:
 		const btMatrix3x3& world2B,
 		const btVector3& inertiaInvA,
 		const btVector3& inertiaInvB)
-		:m_linearJointAxis(btVector3(0.f,0.f,0.f))
+		:m_linearJointAxis(btVector3(btScalar(0.),btScalar(0.),btScalar(0.)))
 	{
 		m_aJ= world2A*jointAxis;
 		m_bJ = world2B*-jointAxis;
@@ -67,7 +67,7 @@ public:
 		m_1MinvJt = inertiaInvB * m_bJ;
 		m_Adiag =  m_0MinvJt.dot(m_aJ) + m_1MinvJt.dot(m_bJ);
 
-		btAssert(m_Adiag > 0.0f);
+		btAssert(m_Adiag > btScalar(0.0));
 	}
 
 	//angular constraint between two different rigidbodies
@@ -75,7 +75,7 @@ public:
 		const btVector3& axisInB,
 		const btVector3& inertiaInvA,
 		const btVector3& inertiaInvB)
-		: m_linearJointAxis(btVector3(0.f,0.f,0.f))
+		: m_linearJointAxis(btVector3(btScalar(0.),btScalar(0.),btScalar(0.)))
 		, m_aJ(axisInA)
 		, m_bJ(-axisInB)
 	{
@@ -83,7 +83,7 @@ public:
 		m_1MinvJt = inertiaInvB * m_bJ;
 		m_Adiag =  m_0MinvJt.dot(m_aJ) + m_1MinvJt.dot(m_bJ);
 
-		btAssert(m_Adiag > 0.0f);
+		btAssert(m_Adiag > btScalar(0.0));
 	}
 
 	//constraint on one rigidbody
@@ -98,10 +98,10 @@ public:
 		m_aJ= world2A*(rel_pos1.cross(jointAxis));
 		m_bJ = world2A*(rel_pos2.cross(-jointAxis));
 		m_0MinvJt	= inertiaInvA * m_aJ;
-		m_1MinvJt = btVector3(0.f,0.f,0.f);
+		m_1MinvJt = btVector3(btScalar(0.),btScalar(0.),btScalar(0.));
 		m_Adiag = massInvA + m_0MinvJt.dot(m_aJ);
 
-		btAssert(m_Adiag > 0.0f);
+		btAssert(m_Adiag > btScalar(0.0));
 	}
 
 	btScalar	getDiagonal() const { return m_Adiag; }

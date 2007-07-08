@@ -13,16 +13,16 @@ subject to the following restrictions:
 3. This notice may not be removed or altered from any source distribution.
 */
 
+/* Hinge Constraint by Dirk Gregorius. Limits added by Marcus Hennix at Starbreeze Studios */
+
 #ifndef HINGECONSTRAINT_H
 #define HINGECONSTRAINT_H
 
-#include "LinearMath/btVector3.h"
-
-#include "BulletDynamics/ConstraintSolver/btJacobianEntry.h"
+#include "../../LinearMath/btVector3.h"
+#include "btJacobianEntry.h"
 #include "btTypedConstraint.h"
 
 class btRigidBody;
-
 
 /// hinge constraint between two rigidbodies each with a pivotpoint that descibes the axis location in local space
 /// axis defines the orientation of the hinge axis
@@ -31,22 +31,40 @@ class btHingeConstraint : public btTypedConstraint
 	btJacobianEntry	m_jac[3]; //3 orthogonal linear constraints
 	btJacobianEntry	m_jacAng[3]; //2 orthogonal angular constraints+ 1 for limit/motor
 
-	btVector3	m_pivotInA;
-	btVector3	m_pivotInB;
-	btVector3	m_axisInA;
-	btVector3	m_axisInB;
+	btTransform m_rbAFrame; // constraint axii. Assumes z is hinge axis.
+	btTransform m_rbBFrame;
+
+	btScalar	m_motorTargetVelocity;
+	btScalar	m_maxMotorImpulse;
+
+	btScalar	m_limitSoftness; 
+	btScalar	m_biasFactor; 
+	btScalar    m_relaxationFactor; 
+
+	btScalar    m_lowerLimit;	
+	btScalar    m_upperLimit;	
+	
+	btScalar	m_kHinge;
+
+	btScalar	m_limitSign;
+	btScalar	m_correction;
+
+	btScalar	m_accLimitImpulse;
 
 	bool		m_angularOnly;
-
-	float		m_motorTargetVelocity;
-	float		m_maxMotorImpulse;
 	bool		m_enableAngularMotor;
+	bool		m_solveLimit;
+
 	
 public:
 
-	btHingeConstraint(btRigidBody& rbA,btRigidBody& rbB, const btVector3& pivotInA,const btVector3& pivotInB,btVector3& axisInA,btVector3& axisInB);
+	btHingeConstraint(btRigidBody& rbA,btRigidBody& rbB, const btVector3& pivotInA,const btVector3& pivotInB, btVector3& axisInA,btVector3& axisInB);
 
-	btHingeConstraint(btRigidBody& rbA,const btVector3& pivotInA,btVector3& axisInA);
+	btHingeConstraint::btHingeConstraint(btRigidBody& rbA,const btVector3& pivotInA,btVector3& axisInA);
+	
+	btHingeConstraint(btRigidBody& rbA,btRigidBody& rbB, const btTransform& rbAFrame, const btTransform& rbBFrame);
+
+	btHingeConstraint(btRigidBody& rbA,const btTransform& rbAFrame);
 
 	btHingeConstraint();
 
@@ -70,13 +88,40 @@ public:
 		m_angularOnly = angularOnly;
 	}
 
-	void	enableAngularMotor(bool enableMotor,float targetVelocity,float maxMotorImpulse)
+	void	enableAngularMotor(bool enableMotor,btScalar targetVelocity,btScalar maxMotorImpulse)
 	{
 		m_enableAngularMotor  = enableMotor;
 		m_motorTargetVelocity = targetVelocity;
 		m_maxMotorImpulse = maxMotorImpulse;
 	}
 
+	void	setLimit(btScalar low,btScalar high,btScalar _softness = 0.9f, btScalar _biasFactor = 0.3f, btScalar _relaxationFactor = 1.0f)
+	{
+		m_lowerLimit = low;
+		m_upperLimit = high;
+
+		m_limitSoftness =  _softness;
+		m_biasFactor = _biasFactor;
+		m_relaxationFactor = _relaxationFactor;
+
+	}
+
+	btScalar getHingeAngle();
+
+
+	const btTransform& getAFrame() { return m_rbAFrame; };	
+	const btTransform& getBFrame() { return m_rbBFrame; };
+
+	inline int getSolveLimit()
+	{
+		return m_solveLimit;
+	}
+
+	inline btScalar getLimitSign()
+	{
+		return m_limitSign;
+	}
+		
 };
 
 #endif //HINGECONSTRAINT_H

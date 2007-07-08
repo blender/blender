@@ -16,11 +16,11 @@ subject to the following restrictions:
 #ifndef CONVEX_CONVEX_ALGORITHM_H
 #define CONVEX_CONVEX_ALGORITHM_H
 
-#include "BulletCollision/BroadphaseCollision/btCollisionAlgorithm.h"
-#include "BulletCollision/NarrowPhaseCollision/btGjkPairDetector.h"
-#include "BulletCollision/NarrowPhaseCollision/btPersistentManifold.h"
-#include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
-#include "BulletCollision/NarrowPhaseCollision/btVoronoiSimplexSolver.h"
+#include "../BroadphaseCollision/btCollisionAlgorithm.h"
+#include "../NarrowPhaseCollision/btGjkPairDetector.h"
+#include "../NarrowPhaseCollision/btPersistentManifold.h"
+#include "../BroadphaseCollision/btBroadphaseProxy.h"
+#include "../NarrowPhaseCollision/btVoronoiSimplexSolver.h"
 #include "btCollisionCreateFunc.h"
 
 class btConvexPenetrationDepthSolver;
@@ -44,7 +44,7 @@ public:
 
 	virtual void processCollision (btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut);
 
-	virtual float calculateTimeOfImpact(btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut);
+	virtual btScalar calculateTimeOfImpact(btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut);
 
 	void	setLowLevelOfDetail(bool useLowLevel);
 
@@ -62,6 +62,7 @@ public:
 		
 		CreateFunc(btSimplexSolverInterface*			simplexSolver, btConvexPenetrationDepthSolver* pdSolver);
 		CreateFunc();
+		virtual ~CreateFunc();
 
 		virtual	btCollisionAlgorithm* CreateCollisionAlgorithm(btCollisionAlgorithmConstructionInfo& ci, btCollisionObject* body0,btCollisionObject* body1)
 		{

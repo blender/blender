@@ -17,40 +17,44 @@ subject to the following restrictions:
 #define BT_TRIANGLE_INDEX_VERTEX_ARRAY_H
 
 #include "btStridingMeshInterface.h"
-#include <LinearMath/btAlignedObjectArray.h>
+#include "../../LinearMath/btAlignedObjectArray.h"
 
 ///IndexedMesh indexes into existing vertex and index arrays, in a similar way OpenGL glDrawElements
 ///instead of the number of indices, we pass the number of triangles
 ///todo: explain with pictures
-struct	btIndexedMesh
-	{
-		int			m_numTriangles;
-		int*		m_triangleIndexBase;
-		int			m_triangleIndexStride;
-		int			m_numVertices;
-		float*		m_vertexBase;
-		int			m_vertexStride;
-	};
+ATTRIBUTE_ALIGNED16( struct)	btIndexedMesh
+{
+	int			m_numTriangles;
+	const unsigned char *		m_triangleIndexBase;
+	int			m_triangleIndexStride;
+	int			m_numVertices;
+	const unsigned char *		m_vertexBase;
+	int			m_vertexStride;
+	int			pad[2];
+}
+;
+
+
+typedef btAlignedObjectArray<btIndexedMesh>	IndexedMeshArray;
 
 ///TriangleIndexVertexArray allows to use multiple meshes, by indexing into existing triangle/index arrays.
 ///Additional meshes can be added using addIndexedMesh
 ///No duplcate is made of the vertex/index data, it only indexes into external vertex/index arrays.
 ///So keep those arrays around during the lifetime of this btTriangleIndexVertexArray.
-class btTriangleIndexVertexArray : public btStridingMeshInterface
+ATTRIBUTE_ALIGNED16( class) btTriangleIndexVertexArray : public btStridingMeshInterface
 {
-	btAlignedObjectArray<btIndexedMesh>	m_indexedMeshes;
+	IndexedMeshArray	m_indexedMeshes;
+	int m_pad[3];
 
 		
 public:
-
-	
 
 	btTriangleIndexVertexArray()
 	{
 	}
 
 	//just to be backwards compatible
-	btTriangleIndexVertexArray(int numTriangleIndices,int* triangleIndexBase,int triangleIndexStride,int numVertices,float* vertexBase,int vertexStride);
+	btTriangleIndexVertexArray(int numTriangleIndices,int* triangleIndexBase,int triangleIndexStride,int numVertices,btScalar* vertexBase,int vertexStride);
 	
 	void	addIndexedMesh(const btIndexedMesh& mesh)
 	{
@@ -64,19 +68,30 @@ public:
 
 	/// unLockVertexBase finishes the access to a subpart of the triangle mesh
 	/// make a call to unLockVertexBase when the read and write access (using getLockedVertexIndexBase) is finished
-	virtual void	unLockVertexBase(int subpart) {}
+	virtual void	unLockVertexBase(int subpart) {(void)subpart;}
 
-	virtual void	unLockReadOnlyVertexBase(int subpart) const {}
+	virtual void	unLockReadOnlyVertexBase(int subpart) const {(void)subpart;}
 
 	/// getNumSubParts returns the number of seperate subparts
 	/// each subpart has a continuous array of vertices and indices
 	virtual int		getNumSubParts() const { 
 		return (int)m_indexedMeshes.size();
 	}
-	
-	virtual void	preallocateVertices(int numverts){}
-	virtual void	preallocateIndices(int numindices){}
 
-};
+	IndexedMeshArray&	getIndexedMeshArray()
+	{
+		return m_indexedMeshes;
+	}
+
+	const IndexedMeshArray&	getIndexedMeshArray() const
+	{
+		return m_indexedMeshes;
+	}
+
+	virtual void	preallocateVertices(int numverts){(void) numverts;}
+	virtual void	preallocateIndices(int numindices){(void) numindices;}
+
+}
+;
 
 #endif //BT_TRIANGLE_INDEX_VERTEX_ARRAY_H

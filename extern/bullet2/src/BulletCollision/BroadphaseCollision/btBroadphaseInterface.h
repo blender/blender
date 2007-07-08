@@ -21,7 +21,7 @@ subject to the following restrictions:
 struct btDispatcherInfo;
 class btDispatcher;
 struct btBroadphaseProxy;
-#include "LinearMath/btVector3.h"
+#include "../../LinearMath/btVector3.h"
 
 ///BroadphaseInterface for aabb-overlapping object pairs
 class btBroadphaseInterface

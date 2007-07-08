@@ -37,48 +37,52 @@ BLENDNAME=blender-$(VERSION)-$(CONFIG_GUESS)$(TYPE)
 export DISTDIR=$(NAN_OBJDIR)/$(BLENDNAME)
 export CONFDIR=$(DISTDIR)/.blender
 
+ifeq ($(OS),beos)
+   TAR="zip"
+   TARFLAGS="-ry9"
+   EXT0=""
+   EXT1=".zip"
+   COMPRESS=""
+   EXT2=""
+   NOPLUGINS="true"
+endif
+
+ifeq ($(OS),$(findstring $(OS), "freebsd irix linux openbsd solaris"))
+   TAR="tar"
+   TARFLAGS="cf"
+   EXT0=""
+   EXT1=".tar"
+   COMPRESS="bzip2"
+   COMPRESSFLAGS="-f"
+   EXT2=".bz2"
+endif
+
+ifeq ($(OS),windows)
+   TAR="zip"
+   TARFLAGS="-r9"
+   EXT0=".exe"
+   EXT1=".zip"
+   NOPLUGINS="true"
+   NOSTRIP="true"
+endif
+
+ifeq ($(OS),darwin)
+   TAR="tar"
+   TARFLAGS="cf"
+   EXT0=".app"
+   EXT1=".tar"
+   COMPRESS="bzip2"
+   COMPRESSFLAGS="-f"
+   EXT2=".bz2"
+endif
 
 release: all
 
 all:
-    ifeq ($(OS),beos)
-	@$(MAKE) pkg TYPE="" TAR="zip -ry9" EXT1=".zip" NOPLUGINS="true"
-    endif
-    ifeq ($(OS),freebsd)
-	@$(MAKE) pkg TYPE="" TAR="tar cf" EXT1=".tar" \
-	    COMPRESS="bzip2 -f" EXT2=".bz2"
-    endif
-    ifeq ($(OS),irix)
-	@$(MAKE) pkg TYPE="" TAR="tar cf" EXT1=".tar" \
-	    COMPRESS="bzip2 -f" EXT2=".bz2"
-    endif
-    ifeq ($(OS),linux)
-      ifeq ($(CPU),alpha)
-	@$(MAKE) pkg TYPE="" TAR="tar cf" EXT1=".tar" \
-	    COMPRESS="bzip2 -f" EXT2=".bz2"
-      else
-	@$(MAKE) pkg TYPE="" TAR="tar cf" EXT1=".tar" \
-	    COMPRESS="bzip2 -f" EXT2=".bz2"
-	@$(MAKE) pkg TYPE="-static" TAR="tar cf" EXT1=".tar" \
-	    COMPRESS="bzip2 -f" EXT2=".bz2"
-      endif
-    endif
-    ifeq ($(OS),openbsd)
-	@$(MAKE) pkg TYPE="-static" TAR="tar cf" EXT1=".tar" \
-	    COMPRESS="bzip2 -f" EXT2=".bz2"
-    endif
-    ifeq ($(OS),solaris)
-	@$(MAKE) pkg TYPE="" TAR="tar cf" EXT1=".tar" \
-	    COMPRESS="bzip2 -f" EXT2=".bz2"
-    endif
-    ifeq ($(OS),windows)
-	@$(MAKE) pkg TYPE="" TAR="zip -r9" EXT0=".exe" EXT1=".zip" \
-	    NOPLUGINS="true" NOSTRIP="true"
-    endif
-    ifeq ($(OS),darwin)
-	@$(MAKE) pkg TYPE="" TAR="tar cf" EXT0"=.app" EXT1=".tar" \
-	    COMPRESS="bzip2 -f" EXT2=".bz2"
-    endif
+	@$(MAKE) pkg TYPE=""
+ifeq ($(WITH_BF_STATICOPENGL), true)
+	@$(MAKE) pkg TYPE="-static" 
+endif
 
 # OS independent targets below:
 
@@ -178,12 +182,11 @@ pkg: install
 	@echo "----> Create distribution file $(BLENDNAME)$(EXT1)"
 	@#enable the next sleep if you get 'tar file changed while reading'
 	@#sleep 10
-	@cd $(NAN_OBJDIR) && \
-	rm -f  $(VERSION)/$(BLENDNAME)$(EXT1)* && \
-	$(TAR) $(VERSION)/$(BLENDNAME)$(EXT1) $(BLENDNAME)
+	rm -f  $(NAN_OBJDIR)/$(VERSION)/$(BLENDNAME)$(EXT1)*
+	@cd $(NAN_OBJDIR) && $(TAR) $(TARFLAGS) $(VERSION)/$(BLENDNAME)$(EXT1) $(BLENDNAME)
     ifdef COMPRESS
 	@echo "----> Compressing distribution to $(BLENDNAME)$(EXT1)$(EXT2)"
-	@$(COMPRESS) $(NAN_OBJDIR)/$(VERSION)/$(BLENDNAME)$(EXT1)
+	@$(COMPRESS) $(COMPRESSFLAGS) $(NAN_OBJDIR)/$(VERSION)/$(BLENDNAME)$(EXT1)
     endif
 	@#echo "****> Clean up temporary distribution directory"
 	@rm -fr $(DISTDIR)

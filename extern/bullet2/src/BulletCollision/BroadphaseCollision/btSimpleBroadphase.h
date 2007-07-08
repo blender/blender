@@ -31,6 +31,7 @@ struct btSimpleBroadphaseProxy : public btBroadphaseProxy
 	:btBroadphaseProxy(userPtr,collisionFilterGroup,collisionFilterMask),
 	m_min(minpt),m_max(maxpt)		
 	{
+		(void)shapeType;
 	}
 	
 
@@ -39,6 +40,8 @@ struct btSimpleBroadphaseProxy : public btBroadphaseProxy
 ///SimpleBroadphase is a brute force aabb culling broadphase based on O(n^2) aabb checks
 class btSimpleBroadphase : public btOverlappingPairCache
 {
+
+protected:
 
 	btSimpleBroadphaseProxy*	m_proxies;
 	int*				m_freeProxies;

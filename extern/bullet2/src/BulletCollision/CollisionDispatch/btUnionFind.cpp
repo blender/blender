@@ -15,7 +15,6 @@ subject to the following restrictions:
 
 #include "btUnionFind.h"
 #include <assert.h>
-#include <algorithm>
 
 
 
@@ -50,11 +49,16 @@ void	btUnionFind::reset(int N)
 	} 
 }
 
-bool btUnionFindElementSortPredicate(const btElement& lhs, const btElement& rhs)
-{
-	return lhs.m_id < rhs.m_id;
-}
 
+class btUnionFindElementSortPredicate
+{
+	public:
+
+		bool operator() ( const btElement& lhs, const btElement& rhs )
+		{
+			return lhs.m_id < rhs.m_id;
+		}
+};
 
 ///this is a special operation, destroying the content of btUnionFind.
 ///it sorts the elements, based on island id, in order to make it easy to iterate over islands
@@ -71,7 +75,9 @@ void	btUnionFind::sortIslands()
 	}
 	
 	 // Sort the vector using predicate and std::sort
-	  std::sort(m_elements.begin(), m_elements.end(), btUnionFindElementSortPredicate);
+	  //std::sort(m_elements.begin(), m_elements.end(), btUnionFindElementSortPredicate);
+	//perhaps use radix sort?
+	  m_elements.heapSort(btUnionFindElementSortPredicate());
 
 }
 

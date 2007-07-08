@@ -16,7 +16,7 @@ subject to the following restrictions:
 #ifndef BT_MOTIONSTATE_H
 #define BT_MOTIONSTATE_H
 
-#include "LinearMath/btTransform.h"
+#include "btTransform.h"
 
 ///btMotionState allows the dynamics world to synchronize the updated world transforms with graphics
 ///For optimizations, potentially only moving objects get synchronized (using setWorldPosition/setWorldOrientation)
@@ -34,10 +34,7 @@ class	btMotionState
 		//Bullet only calls the update of worldtransform for active objects
 		virtual void	setWorldTransform(const btTransform& worldTrans)=0;
 		
-		//future: when Bullet makes attempt to deactivate object, you can intercept this callback (return false to disable deactivation for this object this frame)
-		virtual bool deactivationCallback(void*	userPointer) {
-			return true;
-		}
+	
 };
 
 #endif //BT_MOTIONSTATE_H

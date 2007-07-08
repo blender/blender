@@ -28,7 +28,7 @@ DEALINGS IN THE SOFTWARE.
 #ifndef IDEBUG_DRAW__H
 #define IDEBUG_DRAW__H
 
-#include "LinearMath/btVector3.h"
+#include "btVector3.h"
 
 
 class	btIDebugDraw
@@ -56,14 +56,45 @@ class	btIDebugDraw
 
 	virtual void	drawLine(const btVector3& from,const btVector3& to,const btVector3& color)=0;
 
-	virtual void	drawContactPoint(const btVector3& PointOnB,const btVector3& normalOnB,float distance,int lifeTime,const btVector3& color)=0;
+	virtual void	drawContactPoint(const btVector3& PointOnB,const btVector3& normalOnB,btScalar distance,int lifeTime,const btVector3& color)=0;
+
+	virtual void	reportErrorWarning(const char* warningString) = 0;
 
 	virtual void	setDebugMode(int debugMode) =0;
 	
 	virtual int		getDebugMode() const = 0;
 
+	inline void drawAabb(const btVector3& from,const btVector3& to,const btVector3& color)
+	{
 
+		btVector3 halfExtents = (to-from)* 0.5f;
+		btVector3 center = (to+from) *0.5f;
+		int i,j;
+
+		btVector3 edgecoord(1.f,1.f,1.f),pa,pb;
+		for (i=0;i<4;i++)
+		{
+			for (j=0;j<3;j++)
+			{
+				pa = btVector3(edgecoord[0]*halfExtents[0], edgecoord[1]*halfExtents[1],		
+					edgecoord[2]*halfExtents[2]);
+				pa+=center;
+
+				int othercoord = j%3;
+				edgecoord[othercoord]*=-1.f;
+				pb = btVector3(edgecoord[0]*halfExtents[0], edgecoord[1]*halfExtents[1],	
+					edgecoord[2]*halfExtents[2]);
+				pb+=center;
+
+				drawLine(pa,pb,color);
+			}
+			edgecoord = btVector3(-1.f,-1.f,-1.f);
+			if (i<3)
+				edgecoord[i]*=-1.f;
+		}
+	}
 };
+
 
 #endif //IDEBUG_DRAW__H
 

@@ -16,17 +16,17 @@ subject to the following restrictions:
 #ifndef TRIANGLE_MESH_SHAPE_H
 #define TRIANGLE_MESH_SHAPE_H
 
-#include "BulletCollision/CollisionShapes/btConcaveShape.h"
-#include "BulletCollision/CollisionShapes/btStridingMeshInterface.h"
+#include "btConcaveShape.h"
+#include "btStridingMeshInterface.h"
 
 
 ///Concave triangle mesh. Uses an interface to access the triangles to allow for sharing graphics/physics triangles.
 class btTriangleMeshShape : public btConcaveShape
 {
 protected:
-	btStridingMeshInterface* m_meshInterface;
 	btVector3	m_localAabbMin;
 	btVector3	m_localAabbMax;
+	btStridingMeshInterface* m_meshInterface;
 	
 
 public:
@@ -58,6 +58,16 @@ public:
 	virtual void	setLocalScaling(const btVector3& scaling);
 	virtual const btVector3& getLocalScaling() const;
 	
+	btStridingMeshInterface* getMeshInterface()
+	{
+		return m_meshInterface;
+	}
+
+	const btStridingMeshInterface* getMeshInterface() const
+	{
+		return m_meshInterface;
+	}
+
 
 	//debugging
 	virtual char*	getName()const {return "TRIANGLEMESH";}

@@ -1567,9 +1567,9 @@ void adduplicate_armature(void)
 				if (!firstDup)
 					firstDup=eBone;
 				
-				/* Lets duplicate the list of constraits that the
-					* current bone has.
-					*/
+				/* Lets duplicate the list of constraints that the
+				 * current bone has.
+				 */
 				/* temporal removed (ton) */
 			}
 		}

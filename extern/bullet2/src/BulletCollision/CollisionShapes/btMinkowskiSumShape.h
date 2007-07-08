@@ -17,7 +17,7 @@ subject to the following restrictions:
 #define MINKOWSKI_SUM_SHAPE_H
 
 #include "btConvexShape.h"
-#include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h" // for the types
+#include "../BroadphaseCollision/btBroadphaseProxy.h" // for the types
 
 /// btMinkowskiSumShape represents implicit (getSupportingVertex) based minkowski sum of two convex implicit shapes.
 class btMinkowskiSumShape : public btConvexShape
@@ -25,12 +25,12 @@ class btMinkowskiSumShape : public btConvexShape
 
 	btTransform	m_transA;
 	btTransform	m_transB;
-	btConvexShape*	m_shapeA;
-	btConvexShape*	m_shapeB;
+	const btConvexShape*	m_shapeA;
+	const btConvexShape*	m_shapeB;
 
 public:
 
-	btMinkowskiSumShape(btConvexShape* shapeA,btConvexShape* shapeB);
+	btMinkowskiSumShape(const btConvexShape* shapeA,const btConvexShape* shapeB);
 
 	virtual btVector3	localGetSupportingVertexWithoutMargin(const btVector3& vec)const;
 
@@ -48,7 +48,7 @@ public:
 
 	virtual int	getShapeType() const { return MINKOWSKI_SUM_SHAPE_PROXYTYPE; }
 
-	virtual float	getMargin() const;
+	virtual btScalar	getMargin() const;
 
 	const btConvexShape*	getShapeA() const { return m_shapeA;}
 	const btConvexShape*	getShapeB() const { return m_shapeB;}

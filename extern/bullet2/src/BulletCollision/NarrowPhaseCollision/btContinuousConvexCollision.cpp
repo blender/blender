@@ -49,28 +49,28 @@ bool	btContinuousConvexCollision::calcTimeOfImpact(
 
 	/// compute linear and angular velocity for this interval, to interpolate
 	btVector3 linVelA,angVelA,linVelB,angVelB;
-	btTransformUtil::calculateVelocity(fromA,toA,1.f,linVelA,angVelA);
-	btTransformUtil::calculateVelocity(fromB,toB,1.f,linVelB,angVelB);
+	btTransformUtil::calculateVelocity(fromA,toA,btScalar(1.),linVelA,angVelA);
+	btTransformUtil::calculateVelocity(fromB,toB,btScalar(1.),linVelB,angVelB);
 
 	btScalar boundingRadiusA = m_convexA->getAngularMotionDisc();
 	btScalar boundingRadiusB = m_convexB->getAngularMotionDisc();
 
 	btScalar maxAngularProjectedVelocity = angVelA.length() * boundingRadiusA + angVelB.length() * boundingRadiusB;
 
-	float radius = 0.001f;
+	btScalar radius = btScalar(0.001);
 
-	btScalar lambda = 0.f;
+	btScalar lambda = btScalar(0.);
 	btVector3 v(1,0,0);
 
 	int maxIter = MAX_ITERATIONS;
 
 	btVector3 n;
-	n.setValue(0.f,0.f,0.f);
+	n.setValue(btScalar(0.),btScalar(0.),btScalar(0.));
 	bool hasResult = false;
 	btVector3 c;
 
-	float lastLambda = lambda;
-	//float epsilon = 0.001f;
+	btScalar lastLambda = lambda;
+	//btScalar epsilon = btScalar(0.001);
 
 	int numIter = 0;
 	//first solution, using GJK
@@ -79,8 +79,8 @@ bool	btContinuousConvexCollision::calcTimeOfImpact(
 	btTransform identityTrans;
 	identityTrans.setIdentity();
 
-	btSphereShape	raySphere(0.0f);
-	raySphere.setMargin(0.f);
+	btSphereShape	raySphere(btScalar(0.0));
+	raySphere.setMargin(btScalar(0.));
 
 
 //	result.drawCoordSystem(sphereTr);
@@ -116,23 +116,23 @@ bool	btContinuousConvexCollision::calcTimeOfImpact(
 			if (numIter > maxIter)
 				return false; //todo: report a failure
 
-			float dLambda = 0.f;
+			btScalar dLambda = btScalar(0.);
 
 			//calculate safe moving fraction from distance / (linear+rotational velocity)
 			
-			//float clippedDist  = GEN_min(angularConservativeRadius,dist);
-			//float clippedDist  = dist;
+			//btScalar clippedDist  = GEN_min(angularConservativeRadius,dist);
+			//btScalar clippedDist  = dist;
 			
-			float projectedLinearVelocity = (linVelB-linVelA).dot(n);
+			btScalar projectedLinearVelocity = (linVelB-linVelA).dot(n);
 			
 			dLambda = dist / (projectedLinearVelocity+ maxAngularProjectedVelocity);
 
 			lambda = lambda + dLambda;
 
-			if (lambda > 1.f)
+			if (lambda > btScalar(1.))
 				return false;
 
-			if (lambda < 0.f)
+			if (lambda < btScalar(0.))
 				return false;
 
 			//todo: next check with relative epsilon
@@ -159,7 +159,7 @@ bool	btContinuousConvexCollision::calcTimeOfImpact(
 			gjk.getClosestPoints(input,pointCollector,0);
 			if (pointCollector.m_hasResult)
 			{
-				if (pointCollector.m_distance < 0.f)
+				if (pointCollector.m_distance < btScalar(0.))
 				{
 					//degenerate ?!
 					result.m_fraction = lastLambda;
@@ -188,9 +188,9 @@ bool	btContinuousConvexCollision::calcTimeOfImpact(
 //todo:
 	//if movement away from normal, discard result
 	btVector3 move = transBLocalTo.getOrigin() - transBLocalFrom.getOrigin();
-	if (result.m_fraction < 1.f)
+	if (result.m_fraction < btScalar(1.))
 	{
-		if (move.dot(result.m_normal) <= 0.f)
+		if (move.dot(result.m_normal) <= btScalar(0.))
 		{
 		}
 	}

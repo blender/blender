@@ -17,19 +17,25 @@ subject to the following restrictions:
 #define TYPED_CONSTRAINT_H
 
 class btRigidBody;
-#include "LinearMath/btScalar.h"
+#include "../../LinearMath/btScalar.h"
 
 ///TypedConstraint is the baseclass for Bullet constraints and vehicles
 class btTypedConstraint
 {
 	int	m_userConstraintType;
 	int	m_userConstraintId;
-	
+
+	btTypedConstraint&	operator=(btTypedConstraint&	other)
+	{
+		btAssert(0);
+		(void) other;
+		return *this;
+	}
 
 protected:
 	btRigidBody&	m_rbA;
 	btRigidBody&	m_rbB;
-	float	m_appliedImpulse;
+	btScalar	m_appliedImpulse;
 
 
 public:
@@ -81,7 +87,7 @@ public:
 	{
 		return m_userConstraintId;
 	}
-	float	getAppliedImpulse()
+	btScalar	getAppliedImpulse()
 	{
 		return m_appliedImpulse;
 	}

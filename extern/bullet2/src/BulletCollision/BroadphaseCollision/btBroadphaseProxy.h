@@ -16,6 +16,7 @@ subject to the following restrictions:
 #ifndef BROADPHASE_PROXY_H
 #define BROADPHASE_PROXY_H
 
+#include "../../LinearMath/btScalar.h" //for SIMD_FORCE_INLINE
 
 
 /// btDispatcher uses these types
@@ -33,6 +34,7 @@ enum BroadphaseNativeTypes
 IMPLICIT_CONVEX_SHAPES_START_HERE,
 	SPHERE_SHAPE_PROXYTYPE,
 	MULTI_SPHERE_SHAPE_PROXYTYPE,
+	CAPSULE_SHAPE_PROXYTYPE,
 	CONE_SHAPE_PROXYTYPE,
 	CONVEX_SHAPE_PROXYTYPE,
 	CYLINDER_SHAPE_PROXYTYPE,
@@ -71,7 +73,7 @@ struct btBroadphaseProxy
 	        KinematicFilter = 4,
 	        DebrisFilter = 8,
 			SensorTrigger = 16,
-	        AllFilter = DefaultFilter | StaticFilter | KinematicFilter | DebrisFilter | SensorTrigger,
+	        AllFilter = DefaultFilter | StaticFilter | KinematicFilter | DebrisFilter | SensorTrigger
 	};
 
 	//Usually the client btCollisionObject or Rigidbody class
@@ -113,7 +115,8 @@ struct btBroadphaseProxy
 		return (proxyType == STATIC_PLANE_PROXYTYPE);
 	}
 	
-};
+}
+;
 
 class btCollisionAlgorithm;
 
@@ -128,14 +131,16 @@ struct btBroadphasePair
 		:
 	m_pProxy0(0),
 		m_pProxy1(0),
-		m_algorithm(0)
+		m_algorithm(0),
+		m_userInfo(0)
 	{
 	}
 
 	btBroadphasePair(const btBroadphasePair& other)
 		:		m_pProxy0(other.m_pProxy0),
 				m_pProxy1(other.m_pProxy1),
-				m_algorithm(other.m_algorithm)
+				m_algorithm(other.m_algorithm),
+				m_userInfo(other.m_userInfo)
 	{
 	}
 	btBroadphasePair(btBroadphaseProxy& proxy0,btBroadphaseProxy& proxy1)
@@ -154,6 +159,7 @@ struct btBroadphasePair
         }
 
 		m_algorithm = 0;
+		m_userInfo = 0;
 
 	}
 	
@@ -161,14 +167,36 @@ struct btBroadphasePair
 	btBroadphaseProxy* m_pProxy1;
 	
 	mutable btCollisionAlgorithm* m_algorithm;
+	mutable void* m_userInfo;
+
 };
 
-
+/*
 //comparison for set operation, see Solid DT_Encounter
-inline bool operator<(const btBroadphasePair& a, const btBroadphasePair& b) 
+SIMD_FORCE_INLINE bool operator<(const btBroadphasePair& a, const btBroadphasePair& b) 
 { 
     return a.m_pProxy0 < b.m_pProxy0 || 
         (a.m_pProxy0 == b.m_pProxy0 && a.m_pProxy1 < b.m_pProxy1); 
+}
+*/
+
+
+class btBroadphasePairSortPredicate
+{
+	public:
+
+		bool operator() ( const btBroadphasePair& a, const btBroadphasePair& b )
+		{
+			 return a.m_pProxy0 > b.m_pProxy0 || 
+				(a.m_pProxy0 == b.m_pProxy0 && a.m_pProxy1 > b.m_pProxy1) ||
+				(a.m_pProxy0 == b.m_pProxy0 && a.m_pProxy1 == b.m_pProxy1 && a.m_algorithm > b.m_algorithm); 
+		}
+};
+
+
+SIMD_FORCE_INLINE bool operator==(const btBroadphasePair& a, const btBroadphasePair& b) 
+{
+	 return (a.m_pProxy0 == b.m_pProxy0) && (a.m_pProxy1 == b.m_pProxy1);
 }
 
 

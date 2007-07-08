@@ -15,6 +15,16 @@ subject to the following restrictions:
 
 #include "BulletCollision/CollisionShapes/btCollisionShape.h"
 
+
+/*
+  Make sure this dummy function never changes so that it
+  can be used by probes that are checking whether the
+  library is actually installed.
+*/
+extern "C" void btBulletCollisionProbe () {}
+
+
+
 void	btCollisionShape::getBoundingSphere(btVector3& center,btScalar& radius) const
 {
 	btTransform tr;
@@ -23,14 +33,14 @@ void	btCollisionShape::getBoundingSphere(btVector3& center,btScalar& radius) con
 
 	getAabb(tr,aabbMin,aabbMax);
 
-	radius = (aabbMax-aabbMin).length()*0.5f;
-	center = (aabbMin+aabbMax)*0.5f;
+	radius = (aabbMax-aabbMin).length()*btScalar(0.5);
+	center = (aabbMin+aabbMax)*btScalar(0.5);
 }
 
-float	btCollisionShape::getAngularMotionDisc() const
+btScalar	btCollisionShape::getAngularMotionDisc() const
 {
 	btVector3	center;
-	float disc;
+	btScalar disc;
 	getBoundingSphere(center,disc);
 	disc += (center).length();
 	return disc;
@@ -41,25 +51,25 @@ void btCollisionShape::calculateTemporalAabb(const btTransform& curTrans,const b
 	//start with static aabb
 	getAabb(curTrans,temporalAabbMin,temporalAabbMax);
 
-	float temporalAabbMaxx = temporalAabbMax.getX();
-	float temporalAabbMaxy = temporalAabbMax.getY();
-	float temporalAabbMaxz = temporalAabbMax.getZ();
-	float temporalAabbMinx = temporalAabbMin.getX();
-	float temporalAabbMiny = temporalAabbMin.getY();
-	float temporalAabbMinz = temporalAabbMin.getZ();
+	btScalar temporalAabbMaxx = temporalAabbMax.getX();
+	btScalar temporalAabbMaxy = temporalAabbMax.getY();
+	btScalar temporalAabbMaxz = temporalAabbMax.getZ();
+	btScalar temporalAabbMinx = temporalAabbMin.getX();
+	btScalar temporalAabbMiny = temporalAabbMin.getY();
+	btScalar temporalAabbMinz = temporalAabbMin.getZ();
 
 	// add linear motion
 	btVector3 linMotion = linvel*timeStep;
 	//todo: simd would have a vector max/min operation, instead of per-element access
-	if (linMotion.x() > 0.f)
+	if (linMotion.x() > btScalar(0.))
 		temporalAabbMaxx += linMotion.x(); 
 	else
 		temporalAabbMinx += linMotion.x();
-	if (linMotion.y() > 0.f)
+	if (linMotion.y() > btScalar(0.))
 		temporalAabbMaxy += linMotion.y(); 
 	else
 		temporalAabbMiny += linMotion.y();
-	if (linMotion.z() > 0.f)
+	if (linMotion.z() > btScalar(0.))
 		temporalAabbMaxz += linMotion.z(); 
 	else
 		temporalAabbMinz += linMotion.z();

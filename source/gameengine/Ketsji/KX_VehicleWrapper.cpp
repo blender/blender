@@ -61,9 +61,9 @@ PyObject* KX_VehicleWrapper::PyAddWheel(PyObject* self,
 		aDir[0] = attachDir[0];
 		aDir[1] = attachDir[1];
 		aDir[2] = attachDir[2];
-		aAxle[0] = attachAxle[0];
-		aAxle[1] = attachAxle[1];
-		aAxle[2] = attachAxle[2];
+		aAxle[0] = -attachAxle[0];//someone reverse some conventions inside Bullet (axle winding)
+		aAxle[1] = -attachAxle[1];
+		aAxle[2] = -attachAxle[2];
 		
 		printf("attempt for addWheel: suspensionRestLength%f wheelRadius %f, hasSteering:%d\n",suspensionRestLength,wheelRadius,hasSteering);
 		m_vehicle->AddWheel(motionState,aPos,aDir,aAxle,suspensionRestLength,wheelRadius,hasSteering);
@@ -152,6 +152,7 @@ PyObject* KX_VehicleWrapper::PyApplyEngineForce(PyObject* self,
 
 	if (PyArg_ParseTuple(args,"fi",&force,&wheelIndex))
 	{
+		force *= -1.f;//someone reverse some conventions inside Bullet (axle winding)
 		m_vehicle->ApplyEngineForce(force,wheelIndex);
 	}
 	Py_INCREF(Py_None);

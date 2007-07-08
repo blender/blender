@@ -16,6 +16,8 @@ subject to the following restrictions:
 #ifndef COLLISION_ALGORITHM_H
 #define COLLISION_ALGORITHM_H
 
+#include "../../LinearMath/btScalar.h"
+
 struct btBroadphaseProxy;
 class btDispatcher;
 class btManifoldResult;
@@ -34,6 +36,7 @@ struct btCollisionAlgorithmConstructionInfo
 	btCollisionAlgorithmConstructionInfo(btDispatcher* dispatcher,int temp)
 		:m_dispatcher(dispatcher)
 	{
+		(void)temp;
 	}
 
 	btDispatcher*	m_dispatcher;
@@ -66,7 +69,7 @@ public:
 
 	virtual void processCollision (btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut) = 0;
 
-	virtual float calculateTimeOfImpact(btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut) = 0;
+	virtual btScalar calculateTimeOfImpact(btCollisionObject* body0,btCollisionObject* body1,const btDispatcherInfo& dispatchInfo,btManifoldResult* resultOut) = 0;
 
 };
 

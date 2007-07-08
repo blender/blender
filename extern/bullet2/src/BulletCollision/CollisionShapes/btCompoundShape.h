@@ -18,12 +18,11 @@ subject to the following restrictions:
 
 #include "btCollisionShape.h"
 
-#include "LinearMath/btVector3.h"
-#include "LinearMath/btTransform.h"
-#include "LinearMath/btMatrix3x3.h"
-#include <vector>
-#include "BulletCollision/CollisionShapes/btCollisionMargin.h"
-#include "LinearMath/btAlignedObjectArray.h"
+#include "../../LinearMath/btVector3.h"
+#include "../../LinearMath/btTransform.h"
+#include "../../LinearMath/btMatrix3x3.h"
+#include "btCollisionMargin.h"
+#include "../../LinearMath/btAlignedObjectArray.h"
 
 class btOptimizedBvh;
 
@@ -59,11 +58,11 @@ public:
 		return m_childShapes[index];
 	}
 
-	btTransform	getChildTransform(int index)
+	btTransform&	getChildTransform(int index)
 	{
 		return m_childTransforms[index];
 	}
-	const btTransform	getChildTransform(int index) const
+	const btTransform&	getChildTransform(int index) const
 	{
 		return m_childTransforms[index];
 	}
@@ -85,11 +84,11 @@ public:
 	
 	virtual int	getShapeType() const { return COMPOUND_SHAPE_PROXYTYPE;}
 
-	virtual void	setMargin(float margin)
+	virtual void	setMargin(btScalar margin)
 	{
 		m_collisionMargin = margin;
 	}
-	virtual float	getMargin() const
+	virtual btScalar	getMargin() const
 	{
 		return m_collisionMargin;
 	}

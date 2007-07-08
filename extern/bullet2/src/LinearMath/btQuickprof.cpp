@@ -27,7 +27,7 @@ subject to the following restrictions:
 // Note: We must declare these private static variables again here to 
 // avoid link errors.
 bool btProfiler::mEnabled = false;
-hidden::Clock btProfiler::mClock;
+btClock btProfiler::mClock;
 unsigned long int btProfiler::mCurrentCycleStartMicroseconds = 0;
 unsigned long int btProfiler::mLastCycleDurationMicroseconds = 0;
 std::map<std::string, hidden::ProfileBlock*> btProfiler::mProfileBlocks;

@@ -17,7 +17,7 @@ subject to the following restrictions:
 #define OBB_TRIANGLE_MINKOWSKI_H
 
 #include "btConvexShape.h"
-#include "BulletCollision/CollisionShapes/btBoxShape.h"
+#include "btBoxShape.h"
 
 class btTriangleShape : public btPolyhedralConvexShape
 {
@@ -56,6 +56,7 @@ public:
 		getVertex(i,pa);
 		getVertex((i+1)%3,pb);
 	}
+
 
 	virtual void getAabb(const btTransform& t,btVector3& aabbMin,btVector3& aabbMax)const 
 	{
@@ -110,14 +111,16 @@ public:
 
 	virtual void getPlaneEquation(int i, btVector3& planeNormal,btPoint3& planeSupport) const
 	{
+		(void)i;
 		calcNormal(planeNormal);
 		planeSupport = m_vertices1[0];
 	}
 
 	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia)
 	{
+		(void)mass;
 		btAssert(0);
-		inertia.setValue(0.f,0.f,0.f);
+		inertia.setValue(btScalar(0.),btScalar(0.),btScalar(0.));
 	}
 
 		virtual	bool isInside(const btPoint3& pt,btScalar tolerance) const
@@ -166,7 +169,7 @@ public:
 		{
 			calcNormal(penetrationVector);
 			if (index)
-				penetrationVector *= -1.f;
+				penetrationVector *= btScalar(-1.);
 		}
 
 

@@ -30,13 +30,17 @@ subject to the following restrictions:
 //bilateral constraint between two dynamic objects
 void resolveSingleBilateral(btRigidBody& body1, const btVector3& pos1,
                       btRigidBody& body2, const btVector3& pos2,
-                      btScalar distance, const btVector3& normal,btScalar& impulse ,float timeStep)
+                      btScalar distance, const btVector3& normal,btScalar& impulse ,btScalar timeStep)
 {
-	float normalLenSqr = normal.length2();
-	ASSERT2(fabs(normalLenSqr) < 1.1f);
-	if (normalLenSqr > 1.1f)
+	(void)timeStep;
+	(void)distance;
+
+
+	btScalar normalLenSqr = normal.length2();
+	ASSERT2(btFabs(normalLenSqr) < btScalar(1.1));
+	if (normalLenSqr > btScalar(1.1))
 	{
-		impulse = 0.f;
+		impulse = btScalar(0.);
 		return;
 	}
 	btVector3 rel_pos1 = pos1 - body1.getCenterOfMassPosition(); 
@@ -54,24 +58,24 @@ void resolveSingleBilateral(btRigidBody& body1, const btVector3& pos1,
 		body2.getInvInertiaDiagLocal(),body2.getInvMass());
 
 	btScalar jacDiagAB = jac.getDiagonal();
-	btScalar jacDiagABInv = 1.f / jacDiagAB;
+	btScalar jacDiagABInv = btScalar(1.) / jacDiagAB;
 	
 	  btScalar rel_vel = jac.getRelativeVelocity(
 		body1.getLinearVelocity(),
 		body1.getCenterOfMassTransform().getBasis().transpose() * body1.getAngularVelocity(),
 		body2.getLinearVelocity(),
 		body2.getCenterOfMassTransform().getBasis().transpose() * body2.getAngularVelocity()); 
-	float a;
+	btScalar a;
 	a=jacDiagABInv;
 
 
 	rel_vel = normal.dot(vel);
 	
 	//todo: move this into proper structure
-	btScalar contactDamping = 0.2f;
+	btScalar contactDamping = btScalar(0.2);
 
 #ifdef ONLY_USE_LINEAR_MASS
-	btScalar massTerm = 1.f / (body1.getInvMass() + body2.getInvMass());
+	btScalar massTerm = btScalar(1.) / (body1.getInvMass() + body2.getInvMass());
 	impulse = - contactDamping * rel_vel * massTerm;
 #else	
 	btScalar velocityImpulse = -contactDamping * rel_vel * jacDiagABInv;
@@ -82,19 +86,20 @@ void resolveSingleBilateral(btRigidBody& body1, const btVector3& pos1,
 
 
 //response  between two dynamic objects with friction
-float resolveSingleCollision(
+btScalar resolveSingleCollision(
 	btRigidBody& body1,
 	btRigidBody& body2,
 	btManifoldPoint& contactPoint,
 	const btContactSolverInfo& solverInfo)
 {
 
-	const btVector3& pos1 = contactPoint.getPositionWorldOnA();
-	const btVector3& pos2 = contactPoint.getPositionWorldOnB();
+	const btVector3& pos1_ = contactPoint.getPositionWorldOnA();
+	const btVector3& pos2_ = contactPoint.getPositionWorldOnB();
    	const btVector3& normal = contactPoint.m_normalWorldOnB;
 
-	btVector3 rel_pos1 = pos1 - body1.getCenterOfMassPosition(); 
-	btVector3 rel_pos2 = pos2 - body2.getCenterOfMassPosition();
+	//constant over all iterations
+	btVector3 rel_pos1 = pos1_ - body1.getCenterOfMassPosition(); 
+	btVector3 rel_pos2 = pos2_ - body2.getCenterOfMassPosition();
 	
 	btVector3 vel1 = body1.getVelocityInLocalPoint(rel_pos1);
 	btVector3 vel2 = body2.getVelocityInLocalPoint(rel_pos2);
@@ -102,11 +107,11 @@ float resolveSingleCollision(
 	btScalar rel_vel;
 	rel_vel = normal.dot(vel);
 	
-	btScalar Kfps = 1.f / solverInfo.m_timeStep ;
+	btScalar Kfps = btScalar(1.) / solverInfo.m_timeStep ;
 
-	// float damping = solverInfo.m_damping ;
-	float Kerp = solverInfo.m_erp;
-	float Kcor = Kerp *Kfps;
+	// btScalar damping = solverInfo.m_damping ;
+	btScalar Kerp = solverInfo.m_erp;
+	btScalar Kcor = Kerp *Kfps;
 
 	btConstraintPersistentData* cpd = (btConstraintPersistentData*) contactPoint.m_userPersistentData;
 	assert(cpd);
@@ -121,9 +126,9 @@ float resolveSingleCollision(
 	btScalar normalImpulse = penetrationImpulse+velocityImpulse;
 	
 	// See Erin Catto's GDC 2006 paper: Clamp the accumulated impulse
-	float oldNormalImpulse = cpd->m_appliedImpulse;
-	float sum = oldNormalImpulse + normalImpulse;
-	cpd->m_appliedImpulse = 0.f > sum ? 0.f: sum;
+	btScalar oldNormalImpulse = cpd->m_appliedImpulse;
+	btScalar sum = oldNormalImpulse + normalImpulse;
+	cpd->m_appliedImpulse = btScalar(0.) > sum ? btScalar(0.): sum;
 
 	normalImpulse = cpd->m_appliedImpulse - oldNormalImpulse;
 
@@ -145,12 +150,14 @@ float resolveSingleCollision(
 }
 
 
-float resolveSingleFriction(
+btScalar resolveSingleFriction(
 	btRigidBody& body1,
 	btRigidBody& body2,
 	btManifoldPoint& contactPoint,
 	const btContactSolverInfo& solverInfo)
 {
+
+	(void)solverInfo;
 
 	const btVector3& pos1 = contactPoint.getPositionWorldOnA();
 	const btVector3& pos2 = contactPoint.getPositionWorldOnB();
@@ -161,11 +168,11 @@ float resolveSingleFriction(
 	btConstraintPersistentData* cpd = (btConstraintPersistentData*) contactPoint.m_userPersistentData;
 	assert(cpd);
 
-	float combinedFriction = cpd->m_friction;
+	btScalar combinedFriction = cpd->m_friction;
 	
 	btScalar limit = cpd->m_appliedImpulse * combinedFriction;
 	
-	if (cpd->m_appliedImpulse>0.f)
+	if (cpd->m_appliedImpulse>btScalar(0.))
 	//friction
 	{
 		//apply friction in the 2 tangential directions
@@ -183,7 +190,7 @@ float resolveSingleFriction(
 
 			// calculate j that moves us to zero relative velocity
 			j1 = -vrel * cpd->m_jacDiagABInvTangent0;
-			float oldTangentImpulse = cpd->m_accumulatedTangentImpulse0;
+			btScalar oldTangentImpulse = cpd->m_accumulatedTangentImpulse0;
 			cpd->m_accumulatedTangentImpulse0 = oldTangentImpulse + j1;
 			GEN_set_min(cpd->m_accumulatedTangentImpulse0, limit);
 			GEN_set_max(cpd->m_accumulatedTangentImpulse0, -limit);
@@ -197,7 +204,7 @@ float resolveSingleFriction(
 			
 			// calculate j that moves us to zero relative velocity
 			j2 = -vrel * cpd->m_jacDiagABInvTangent1;
-			float oldTangentImpulse = cpd->m_accumulatedTangentImpulse1;
+			btScalar oldTangentImpulse = cpd->m_accumulatedTangentImpulse1;
 			cpd->m_accumulatedTangentImpulse1 = oldTangentImpulse + j2;
 			GEN_set_min(cpd->m_accumulatedTangentImpulse1, limit);
 			GEN_set_max(cpd->m_accumulatedTangentImpulse1, -limit);
@@ -226,12 +233,14 @@ float resolveSingleFriction(
 }
 
 
-float resolveSingleFrictionOriginal(
+btScalar resolveSingleFrictionOriginal(
 	btRigidBody& body1,
 	btRigidBody& body2,
 	btManifoldPoint& contactPoint,
 	const btContactSolverInfo& solverInfo)
 {
+
+	(void)solverInfo;
 
 	const btVector3& pos1 = contactPoint.getPositionWorldOnA();
 	const btVector3& pos2 = contactPoint.getPositionWorldOnB();
@@ -242,10 +251,10 @@ float resolveSingleFrictionOriginal(
 	btConstraintPersistentData* cpd = (btConstraintPersistentData*) contactPoint.m_userPersistentData;
 	assert(cpd);
 
-	float combinedFriction = cpd->m_friction;
+	btScalar combinedFriction = cpd->m_friction;
 	
 	btScalar limit = cpd->m_appliedImpulse * combinedFriction;
-	//if (contactPoint.m_appliedImpulse>0.f)
+	//if (contactPoint.m_appliedImpulse>btScalar(0.))
 	//friction
 	{
 		//apply friction in the 2 tangential directions
@@ -260,7 +269,7 @@ float resolveSingleFrictionOriginal(
 
 			// calculate j that moves us to zero relative velocity
 			btScalar j = -vrel * cpd->m_jacDiagABInvTangent0;
-			float total = cpd->m_accumulatedTangentImpulse0 + j;
+			btScalar total = cpd->m_accumulatedTangentImpulse0 + j;
 			GEN_set_min(total, limit);
 			GEN_set_max(total, -limit);
 			j = total - cpd->m_accumulatedTangentImpulse0;
@@ -280,7 +289,7 @@ float resolveSingleFrictionOriginal(
 			
 			// calculate j that moves us to zero relative velocity
 			btScalar j = -vrel * cpd->m_jacDiagABInvTangent1;
-			float total = cpd->m_accumulatedTangentImpulse1 + j;
+			btScalar total = cpd->m_accumulatedTangentImpulse1 + j;
 			GEN_set_min(total, limit);
 			GEN_set_max(total, -limit);
 			j = total - cpd->m_accumulatedTangentImpulse1;
@@ -295,7 +304,7 @@ float resolveSingleFrictionOriginal(
 
 //velocity + friction
 //response  between two dynamic objects with friction
-float resolveSingleCollisionCombined(
+btScalar resolveSingleCollisionCombined(
 	btRigidBody& body1,
 	btRigidBody& body2,
 	btManifoldPoint& contactPoint,
@@ -315,11 +324,11 @@ float resolveSingleCollisionCombined(
 	btScalar rel_vel;
 	rel_vel = normal.dot(vel);
 	
-	btScalar Kfps = 1.f / solverInfo.m_timeStep ;
+	btScalar Kfps = btScalar(1.) / solverInfo.m_timeStep ;
 
-	//float damping = solverInfo.m_damping ;
-	float Kerp = solverInfo.m_erp;
-	float Kcor = Kerp *Kfps;
+	//btScalar damping = solverInfo.m_damping ;
+	btScalar Kerp = solverInfo.m_erp;
+	btScalar Kcor = Kerp *Kfps;
 
 	btConstraintPersistentData* cpd = (btConstraintPersistentData*) contactPoint.m_userPersistentData;
 	assert(cpd);
@@ -334,9 +343,9 @@ float resolveSingleCollisionCombined(
 	btScalar normalImpulse = penetrationImpulse+velocityImpulse;
 	
 	// See Erin Catto's GDC 2006 paper: Clamp the accumulated impulse
-	float oldNormalImpulse = cpd->m_appliedImpulse;
-	float sum = oldNormalImpulse + normalImpulse;
-	cpd->m_appliedImpulse = 0.f > sum ? 0.f: sum;
+	btScalar oldNormalImpulse = cpd->m_appliedImpulse;
+	btScalar sum = oldNormalImpulse + normalImpulse;
+	cpd->m_appliedImpulse = btScalar(0.) > sum ? btScalar(0.): sum;
 
 	normalImpulse = cpd->m_appliedImpulse - oldNormalImpulse;
 
@@ -367,7 +376,7 @@ float resolveSingleCollisionCombined(
 		btVector3 lat_vel = vel - normal * rel_vel;
 		btScalar lat_rel_vel = lat_vel.length();
 
-		float combinedFriction = cpd->m_friction;
+		btScalar combinedFriction = cpd->m_friction;
 
 		if (cpd->m_appliedImpulse > 0)
 		if (lat_rel_vel > SIMD_EPSILON)
@@ -390,12 +399,19 @@ float resolveSingleCollisionCombined(
 
 	return normalImpulse;
 }
-float resolveSingleFrictionEmpty(
+
+btScalar resolveSingleFrictionEmpty(
 	btRigidBody& body1,
 	btRigidBody& body2,
 	btManifoldPoint& contactPoint,
 	const btContactSolverInfo& solverInfo)
 {
-	return 0.f;
+	(void)contactPoint;
+	(void)body1;
+	(void)body2;
+	(void)solverInfo;
+
+
+	return btScalar(0.);
 };
 
