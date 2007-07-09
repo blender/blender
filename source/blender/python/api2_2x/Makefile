@@ -45,6 +45,9 @@ endif
 
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 
+ifeq ($(WITH_FFMPEG), true)
+   CPPFLAGS += -DWITH_FFMPEG
+endif
 
 CPPFLAGS += -I$(OPENGL_HEADERS)
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
