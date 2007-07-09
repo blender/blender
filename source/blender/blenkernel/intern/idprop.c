@@ -104,6 +104,31 @@ void IDP_ResizeArray(IDProperty *prop, int newlen)
 		MEM_freeN(prop->data.pointer);
 }
 
+
+ static IDProperty *idp_generic_copy(IDProperty *prop)
+ {
+	IDProperty *newp = MEM_callocN(sizeof(IDProperty), "IDProperty array dup");
+
+	strncpy(newp->name, prop->name, MAX_IDPROP_NAME);
+	newp->type = prop->type;
+	newp->flag = prop->flag;
+	newp->data.val = prop->data.val;
+
+	return newp;
+ }
+
+IDProperty *IDP_CopyArray(IDProperty *prop)
+{
+	IDProperty *newp = idp_generic_copy(prop);
+
+	if (prop->data.pointer) newp->data.pointer = MEM_dupallocN(prop->data.pointer);
+	newp->len = prop->len;
+	newp->subtype = prop->subtype;
+	newp->totallen = prop->totallen;
+
+	return newp;
+}
+
 /*taken from readfile.c*/
 #define SWITCH_LONGINT(a) { \
     char s_i, *p_i; \
@@ -116,6 +141,19 @@ void IDP_ResizeArray(IDProperty *prop, int newlen)
 
 
 /* ---------- String Type ------------ */
+IDProperty *IDP_CopyString(IDProperty *prop)
+{
+	IDProperty *newp = idp_generic_copy(prop);
+
+	if (prop->data.pointer) newp->data.pointer = MEM_dupallocN(prop->data.pointer);
+	newp->len = prop->len;
+	newp->subtype = prop->subtype;
+	newp->totallen = prop->totallen;
+
+	return newp;
+}
+
+
 void IDP_AssignString(IDProperty *prop, char *st)
 {
 	int stlen;
@@ -154,7 +192,7 @@ void IDP_FreeString(IDProperty *prop)
 }
 
 
-/*-------- ID Type -------*/
+/*-------- ID Type, not in use yet -------*/
 
 void IDP_LinkID(IDProperty *prop, ID *id)
 {
@@ -171,6 +209,17 @@ void IDP_UnlinkID(IDProperty *prop)
 /*-------- Group Functions -------*/
 
 /*checks if a property with the same name as prop exists, and if so replaces it.*/
+IDProperty *IDP_CopyGroup(IDProperty *prop)
+{
+	IDProperty *newp = idp_generic_copy(prop), *link;
+
+	for (link=prop->data.group.first; link; link=link->next) {
+		BLI_addtail(&newp->data.group, IDP_CopyProperty(link));
+	}
+
+	return newp;
+}
+
 void IDP_ReplaceInGroup(IDProperty *group, IDProperty *prop)
 {
 	IDProperty *loop;
@@ -282,6 +331,15 @@ void IDP_FreeGroup(IDProperty *prop)
 
 
 /*-------- Main Functions --------*/
+IDProperty *IDP_CopyProperty(IDProperty *prop)
+{
+	switch (prop->type) {
+		case IDP_GROUP: return IDP_CopyGroup(prop);
+		case IDP_STRING: return IDP_CopyString(prop);
+		case IDP_ARRAY: return IDP_CopyArray(prop);
+		default: return idp_generic_copy(prop);
+	}
+}
 
 IDProperty *IDP_GetProperties(ID *id, int create_if_needed)
 {

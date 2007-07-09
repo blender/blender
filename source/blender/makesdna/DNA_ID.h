@@ -65,7 +65,7 @@ typedef struct IDProperty {
 	/*totallen is total length of allocated array/string, including a buffer.
 	  Note that the buffering is mild; the code comes from python's list implementation.*/
 	int totallen; /*strings and arrays are both buffered, though the buffer isn't
-	                saved.  at least it won't be when I write that code. :)*/
+	                saved.*/
 } IDProperty;
 
 #define MAX_IDPROP_NAME	32
@@ -75,21 +75,12 @@ typedef struct IDProperty {
 #define IDP_STRING	0
 #define IDP_INT		1
 #define IDP_FLOAT	2
-#define IDP_VECTOR	3
-#define IDP_MATRIX	4
 #define IDP_ARRAY	5
 #define IDP_GROUP	6
+/*the ID link property type hasn't been implemented yet, this will require
+  some cleanup of blenkernel, most likely.*/
 #define IDP_ID		7
 
-/*special types for vector, matrices and arrays
- these arn't quite completely implemented, and
- may be removed.*/
-#define IDP_MATRIX4X4	9
-#define IDP_MATRIX3X3	10
-#define IDP_VECTOR2D	11
-#define IDP_VECTOR3D	12
-#define IDP_VECTOR4D	13
-#define IDP_FILE	14
 /*add any future new id property types here.*/
 
 /* watch it: Sequence has identical beginning. */

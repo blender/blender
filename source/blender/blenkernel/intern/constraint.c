@@ -162,14 +162,21 @@ void clone_constraint_channels (ListBase *dst, ListBase *src)
 
 void copy_constraints (ListBase *dst, ListBase *src)
 {
-	bConstraint *con;
+	bConstraint *con, *srccon;
 	
 	dst->first= dst->last= NULL;
 	
 	duplicatelist (dst, src);
 	
-	for (con = dst->first; con; con=con->next) {
+	for (con = dst->first, srccon=src->first; con; srccon=srccon->next, con=con->next) {
 		con->data = MEM_dupallocN (con->data);
+		if (con->type == CONSTRAINT_TYPE_PYTHON) {
+			bPythonConstraint *pycon = (bPythonConstraint*) con->data;
+			bPythonConstraint *opycon = (bPythonConstraint*) srccon->data;
+
+			pycon->prop = IDP_CopyProperty(opycon->prop);
+		}
+		/* removed a whole lot of useless code here (ton) */
 	}
 }
 
