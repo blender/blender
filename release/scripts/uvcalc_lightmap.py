@@ -221,7 +221,11 @@ PREF_MARGIN_DIV=		512):
 	else:
 		face_groups = []
 	
-	for me in meshes:			
+	for me in meshes:
+		# Add face UV if it does not exist.
+		# All new faces are selected.
+		me.faceUV = True
+			
 		if PREF_SEL_ONLY:
 			faces = [f for f in me.faces if f.sel]
 		else:

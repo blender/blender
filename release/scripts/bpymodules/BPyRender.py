@@ -91,7 +91,7 @@ def imageFromObjectsOrtho(objects, path, width, height, smooth, alpha= True, cam
 	render_cam_ob= Object.New('Camera')
 	render_cam_ob.link(render_cam_data)
 	render_scn.link(render_cam_ob)
-	render_scn.setCurrentCamera(render_cam_ob)
+	render_scn.objects.camera = render_cam_ob
 	
 	render_cam_data.type= 'ortho'
 	
