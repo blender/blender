@@ -395,7 +395,13 @@ void IMB_float_from_rect(struct ImBuf *ibuf);
  * @attention Defined in imageprocess.c
  */
 void IMB_convert_rgba_to_abgr(struct ImBuf *ibuf);
-
+/**
+ *
+ * @attention defined in imageprocess.c
+ */
+void bicubic_interpolation(struct ImBuf *in, struct ImBuf *out, float x, float y, int xout, int yout);
+void neareast_interpolation(struct ImBuf *in, struct ImBuf *out, float u, float v, int xout, int yout);
+void bilinear_interpolation(struct ImBuf *in, struct ImBuf *out, float u, float v, int xout, int yout);
 /**
  * Change the ordering of the color bytes pointed to by rect from
  * rgba to abgr. size * 4 color bytes are reordered.
