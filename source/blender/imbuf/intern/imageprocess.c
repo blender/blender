@@ -85,17 +85,8 @@ void IMB_convert_rgba_to_abgr(struct ImBuf *ibuf)
 * http://wiki.blender.org/index.php/User:Damiles#Interpolations_Algorithms
 ***************************************************************************/
 
-/* BICUBIC */
-
-/* Bicubic formula:
-*
-*  A’(px,py) = Σn=-1..2Σm=-1..2 A(i+n,j+m)·P(n-a)·P(b-m)
-*  with: P(k) = 1/6(C(k+2)^3-4C(k+1)^3+6C(k)^3-4C(k-1)^3)
-*  and C(k) = max(0, k)
-*
-*  Where A= in and A'=out
-*
-*  More info: http://wiki.blender.org/index.php/User:Damiles#Bicubic_pixel_interpolation
+/* BICUBIC Interpolation functions */
+/*  More info: http://wiki.blender.org/index.php/User:Damiles#Bicubic_pixel_interpolation
 */
 /* function assumes out to be zero'ed, only does RGBA */
 static float P(float k){
