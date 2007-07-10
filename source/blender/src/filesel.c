@@ -111,10 +111,6 @@
 
 #include "BIF_fsmenu.h"  /* include ourselves */
 
-#if defined WITH_ICONV
-	#include "iconv.h"
-#endif
-
 #if defined WIN32 || defined __BeOS
 int fnmatch(const char *pattern, const char *string, int flags)
 {
@@ -902,32 +898,6 @@ static void linerect(int id, int x, int y)
 
 }
 
-#ifdef WITH_ICONV
-static void string_to_utf8(char *original, char *utf_8, char *code) 
-{
-	size_t inbytesleft=strlen(original);
-	size_t outbytesleft=512;
-	size_t rv=0;
-	iconv_t cd;
-	
-	cd=iconv_open("UTF-8", code);
-
-	if (cd == (iconv_t)(-1)) {
-		printf("iconv_open Error");
-		*utf_8='\0';
-		return ;
-	}
-	rv=iconv(cd, &original, &inbytesleft, &utf_8, &outbytesleft);
-	if (rv == (size_t) -1) {
-		printf("iconv Error\n");
-		return ;
-	}
-	*utf_8 = '\0';
-	iconv_close(cd);
-}
-#endif
-
-
 static void print_line(SpaceFile *sfile, struct direntry *files, int x, int y)
 {
 	int boxcol=0;
@@ -978,25 +948,24 @@ static void print_line(SpaceFile *sfile, struct direntry *files, int x, int y)
 #ifdef WITH_ICONV
 		{
 			struct LANGMenuEntry *lme;
-			char utf_8[512];
+       		lme = find_language(U.language);
 
-       		 	lme = find_language(U.language);
-
-       		 	if (!strcmp(lme->code, "ja_JP")) { /* japanese */
-				string_to_utf8(files->relname, utf_8, "Shift_JIS");
-				BIF_RasterPos((float)x, (float)y);	/* texture fonts */
-				BIF_DrawString(G.font, utf_8, (U.transopts & USER_TR_MENUS));
-			} else if (!strcmp(lme->code, "zh_CN")) { /* chinese */
-				string_to_utf8(files->relname, utf_8, "gb2312");
-				BIF_RasterPos((float)x, (float)y);	/* texture fonts */
-				BIF_DrawString(G.font, utf_8, (U.transopts & USER_TR_MENUS));
+			if (!strcmp(lme->code, "ja_JP") || 
+				!strcmp(lme->code, "zh_CN"))
+			{
+				BIF_RasterPos((float)x, (float)y);
+#ifdef WIN32
+				BIF_DrawString(G.font, files->relname, ((U.transopts & USER_TR_MENUS) | CONVERT_TO_UTF8));
+#else
+				BIF_DrawString(G.font, files->relname, (U.transopts & USER_TR_MENUS));
+#endif
 			} else {
 				BMF_DrawString(G.font, files->relname);
 			}
 		}
 #else
 			BMF_DrawString(G.font, files->relname);
-#endif
+#endif /* WITH_ICONV */
 
 		x += sfile->maxnamelen + 100;
 

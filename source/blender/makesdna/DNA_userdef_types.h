@@ -243,6 +243,7 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_TR_TEXTEDIT		16
 #define USER_DOTRANSLATE		32
 #define USER_USETEXTUREFONT		64
+#define CONVERT_TO_UTF8			128
 
 /* dupflag */
 
