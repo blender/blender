@@ -27,6 +27,10 @@
 // the variable is outside the class because it must be accessed from plugin
 static volatile GHOST_TEventNDOFData currentNdofValues = {0,0,0,0,0,0,0,0,0,0,0};
 
+#if !defined(_WIN32) && !defined(__APPLE__)
+#include "GHOST_SystemX11.h"
+#endif
+
 namespace
 {
     GHOST_NDOFLibraryInit_fp ndofLibraryInit = 0;
