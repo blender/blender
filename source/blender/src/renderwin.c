@@ -1081,11 +1081,14 @@ static void do_render(int anim)
 
 	/* allow localview render for objects with lights in normal layers */
 	if(curarea->spacetype==SPACE_VIEW3D) {
-		if(G.vd->lay & 0xFF000000) {
-			G.scene->lay |= G.vd->lay;
-			G.scene->r.scemode |= R_SINGLE_LAYER;
+		/* if view is defined (might not be if called from script), check and set layers. */
+		if(G.vd) {
+			if(G.vd->lay & 0xFF000000) {
+				G.scene->lay |= G.vd->lay;
+				G.scene->r.scemode |= R_SINGLE_LAYER;
+			}
+			else G.scene->lay= G.vd->lay;
 		}
-		else G.scene->lay= G.vd->lay;
 	}
 	
 	if(anim)
