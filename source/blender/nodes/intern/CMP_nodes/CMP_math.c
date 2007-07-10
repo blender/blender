@@ -137,21 +137,30 @@ static void do_math(bNode *node, float *out, float *in, float *in2)
 
 static void node_composit_exec_math(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
+	CompBuf *cbuf=in[0]->data;
+	CompBuf *cbuf2=in[1]->data;
+	CompBuf *stackbuf; 
+	int maxx=-1, maxy=-1;
+
 	/* stack order out: bw */
 	/* stack order in: col */
 	
 	if(out[0]->hasoutput==0)
 		return;
-	
-	/* input no image? then only color operation */
-	if(in[0]->data==NULL) {
-		do_math(node, out[0]->vec, in[0]->vec, in[1]->vec);
+	/* check max size */
+	if(cbuf) {
+		maxx=cbuf->x;
+		maxy=cbuf->y;
 	}
-	else {
-		/* make output size of input image */
-		CompBuf *cbuf= in[0]->data;
-		CompBuf *stackbuf= alloc_compbuf(cbuf->x, cbuf->y, CB_VAL, 1); /* allocs */
-		
+	if(cbuf2) {
+		if(cbuf2->x > maxx) maxx=cbuf2->x;
+		if(cbuf2->y > maxy) maxy=cbuf2->y;
+	}
+
+	/* operate in case there's valid size */
+	if((maxx != -1) && (maxy !=-1)) {
+		stackbuf=alloc_compbuf(maxx, maxy, CB_VAL, 1); /* allocs */
+	
 		composit2_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, in[1]->data, in[1]->vec, do_math, CB_VAL, CB_VAL);
 		
 		out[0]->data= stackbuf;
