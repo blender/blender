@@ -2331,7 +2331,7 @@ static void registerCompositNodes(ListBase *ntypelist)
 	nodeRegisterType(ntypelist, &cmp_node_normal);
 	nodeRegisterType(ntypelist, &cmp_node_curve_vec);
 	nodeRegisterType(ntypelist, &cmp_node_map_value);
-	nodeRegisterType(ntypeList, &cmp_node_normalize);
+	nodeRegisterType(ntypelist, &cmp_node_normalize);
 	
 	nodeRegisterType(ntypelist, &cmp_node_filter);
 	nodeRegisterType(ntypelist, &cmp_node_blur);
