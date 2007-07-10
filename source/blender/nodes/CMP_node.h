@@ -62,6 +62,7 @@ extern bNodeType cmp_node_zcombine;
 extern bNodeType cmp_node_normal;
 extern bNodeType cmp_node_curve_vec;
 extern bNodeType cmp_node_map_value;
+extern bNodeType cmp_node_normalize;
 
 extern bNodeType cmp_node_filter;
 extern bNodeType cmp_node_blur;
