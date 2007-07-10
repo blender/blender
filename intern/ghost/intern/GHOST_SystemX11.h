@@ -196,7 +196,11 @@ public:
 		return m_display;
 	}	
 
-	
+		void *
+	prepareNdofInfo(
+		volatile GHOST_TEventNDOFData *current_values
+	);
+		
 private :
 
 	Display * m_display;

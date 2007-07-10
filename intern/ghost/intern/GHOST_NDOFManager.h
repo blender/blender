@@ -46,16 +46,10 @@ public:
         GHOST_NDOFLibraryShutdown_fp setNdofLibraryShutdown,
         GHOST_NDOFDeviceOpen_fp setNdofDeviceOpen);
         
-    void GHOST_NDOFGetDatas(GHOST_TEventNDOFData &datas);
+    void GHOST_NDOFGetDatas(GHOST_TEventNDOFData &datas) const;
         
-//        GHOST_NDOFEventHandler_fp setNdofEventHandler);
-
-    bool available();
-    bool event_present();
-
-/* original patch. unused now */
-    /* to do: abstract for Linux, MacOS, etc. */
-//    GHOST_TEventNDOFData* handle(unsigned int message, unsigned int* wparam, unsigned long* lparam);
+    bool available() const;
+    bool event_present() const;
 
 protected:
     void* m_DeviceHandle;

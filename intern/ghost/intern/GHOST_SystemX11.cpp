@@ -29,37 +29,6 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-/**
- * $Id$
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
- *
- * This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License
- * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program; if not, write to the Free Software Foundation,
- * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
- *
- * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
- * All rights reserved.
- *
- * The Original Code is: all of this file.
- *
- * Contributor(s): none yet.
- *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
- */
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -72,6 +41,8 @@
 #include "GHOST_EventKey.h"
 #include "GHOST_EventButton.h"
 #include "GHOST_EventWheel.h"
+#include "GHOST_EventNDOF.h"
+#include "GHOST_NDOFManager.h"
 #include "GHOST_DisplayManagerX11.h"
 
 #include "GHOST_Debug.h"
@@ -95,6 +66,14 @@
 #include <unistd.h>
 
 #include <vector>
+
+typedef struct NDOFPlatformInfo {
+	Display *display;
+	Window window;
+	volatile GHOST_TEventNDOFData *currValues;
+} NDOFPlatformInfo;
+
+static NDOFPlatformInfo sNdofInfo = {NULL, 0, NULL};
 
 using namespace std;
 
@@ -145,8 +124,6 @@ init(
 
 	return GHOST_kFailure;
 }
-	
-
 
 	GHOST_TUns64
 GHOST_SystemX11::
@@ -235,7 +212,6 @@ createWindow(
 		}
 	}
 	return window;
-
 }
 
 	GHOST_WindowX11 * 
@@ -483,6 +459,28 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 					GHOST_kEventWindowClose,
 					window
 				);
+			} else 
+#endif
+			if (sNdofInfo.currValues) {
+				sNdofInfo.currValues->changed = 1;
+				sNdofInfo.currValues->delta = xcme.data.s[8] - sNdofInfo.currValues->time;
+				sNdofInfo.currValues->time = xcme.data.s[8];
+				sNdofInfo.currValues->tx = xcme.data.s[2] >> 4;
+				sNdofInfo.currValues->ty = xcme.data.s[3] >> 4;
+				sNdofInfo.currValues->tz = xcme.data.s[4] >> 4;
+				sNdofInfo.currValues->rx = xcme.data.s[5];
+				sNdofInfo.currValues->ry = xcme.data.s[6];
+				sNdofInfo.currValues->rz = xcme.data.s[7];
+
+				/*fprintf(stderr, "ClientMessage: [%d %d %d][%d %d %d] t=%llu\n",
+				        sNdofInfo.currValues->tx, sNdofInfo.currValues->ty, 
+				        sNdofInfo.currValues->tz, sNdofInfo.currValues->rx, 
+				        sNdofInfo.currValues->ry, sNdofInfo.currValues->rz, 
+						sNdofInfo.currValues->time); */
+				
+				g_event = new GHOST_EventNDOF(getMilliSeconds(), 
+				                              GHOST_kEventNDOFMotion, 
+				                              window, *sNdofInfo.currValues);
 			} else {
 				/* Unknown client message, ignore */
 			}
@@ -539,6 +537,17 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 	}
 }
 
+	void *
+GHOST_SystemX11::
+prepareNdofInfo(volatile GHOST_TEventNDOFData *currentNdofValues)
+{
+	const vector<GHOST_IWindow*>& v(m_windowManager->getWindows());
+	if (v.size() > 0)
+	sNdofInfo.window = static_cast<GHOST_WindowX11*>(v[0])->getXWindow();
+	sNdofInfo.display = m_display;
+	sNdofInfo.currValues = currentNdofValues;
+	return (void*)&sNdofInfo;
+}
 
 	GHOST_TSuccess 
 GHOST_SystemX11::

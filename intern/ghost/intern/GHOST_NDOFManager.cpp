@@ -22,7 +22,6 @@
 
 
 #include "GHOST_NDOFManager.h"
-//#include "GHOST_WindowWin32.h"
 
 
 // the variable is outside the class because it must be accessed from plugin
@@ -33,13 +32,7 @@ namespace
     GHOST_NDOFLibraryInit_fp ndofLibraryInit = 0;
     GHOST_NDOFLibraryShutdown_fp ndofLibraryShutdown = 0;
     GHOST_NDOFDeviceOpen_fp ndofDeviceOpen = 0;
-//    GHOST_NDOFEventHandler_fp ndofEventHandler = 0;
-    
-    
 }
-
-
-//typedef enum SpwRetVal (WINAPI *PFNSI_INIT) (void);
 
 GHOST_NDOFManager::GHOST_NDOFManager()
 {
@@ -49,7 +42,6 @@ GHOST_NDOFManager::GHOST_NDOFManager()
     ndofLibraryInit = 0;
     ndofLibraryShutdown = 0;
     ndofDeviceOpen = 0;
- //   ndofEventHandler = 0;
 }
 
 GHOST_NDOFManager::~GHOST_NDOFManager()
@@ -66,31 +58,26 @@ GHOST_NDOFManager::deviceOpen(GHOST_IWindow* window,
         GHOST_NDOFLibraryInit_fp setNdofLibraryInit, 
         GHOST_NDOFLibraryShutdown_fp setNdofLibraryShutdown,
         GHOST_NDOFDeviceOpen_fp setNdofDeviceOpen)
-//        GHOST_NDOFEventHandler_fp setNdofEventHandler)
 {
     ndofLibraryInit = setNdofLibraryInit;
     ndofLibraryShutdown = setNdofLibraryShutdown;
     ndofDeviceOpen = setNdofDeviceOpen;
-//	 original patch    
-//    ndofEventHandler = setNdofEventHandler;
 
     if (ndofLibraryInit  && ndofDeviceOpen)
     {
        printf("%i client \n", ndofLibraryInit());
+		
 		m_DeviceHandle = ndofDeviceOpen((void *)&currentNdofValues);    
+		
+		#if defined(_WIN32) || defined(__APPLE__)
+			m_DeviceHandle = ndofDeviceOpen((void *)&currentNdofValues);    
+		#else
+			GHOST_SystemX11 *sys;
+			sys = static_cast<GHOST_SystemX11*>(GHOST_ISystem::getSystem());
+			void *ndofInfo = sys->prepareNdofInfo(&currentNdofValues);
+			m_DeviceHandle = ndofDeviceOpen(ndofInfo);
+		#endif
 	}
-    
-    
-/*
-    if (ndofDeviceOpen)
-    {
-        GHOST_WindowWin32* win32 = (GHOST_WindowWin32*) window; // GHOST_IWindow doesn't have RTTI...
-        if (win32 != 0)
-        {
-            m_DeviceHandle = ndofDeviceOpen(win32->getHWND());
-        }
-    }
-    */
 }
 
 
@@ -111,45 +98,36 @@ GHOST_NDOFManager::handle(unsigned int message, unsigned int* wParam, unsigned l
 */
 
 bool 
-GHOST_NDOFManager::available() 
+GHOST_NDOFManager::available() const
 { 
     return m_DeviceHandle != 0; 
 }
 
 bool 
-GHOST_NDOFManager::event_present() 
+GHOST_NDOFManager::event_present() const
 { 
     if( currentNdofValues.changed >0) {
-   			printf("time %llu but%u x%i y%i z%i rx%i ry%i rz%i \n"	, 			
-   						currentNdofValues.time,		currentNdofValues.buttons,
-   						currentNdofValues.tx,currentNdofValues.ty,currentNdofValues.tz,
-   						currentNdofValues.rx,currentNdofValues.ry,currentNdofValues.rz);
+		printf("time %llu but%u x%i y%i z%i rx%i ry%i rz%i \n"	, 			
+				currentNdofValues.time,		currentNdofValues.buttons,
+				currentNdofValues.tx,currentNdofValues.ty,currentNdofValues.tz,
+				currentNdofValues.rx,currentNdofValues.ry,currentNdofValues.rz);
     	return true;
 	}else
 	return false;
 
 }
 
-void        GHOST_NDOFManager::GHOST_NDOFGetDatas(GHOST_TEventNDOFData &datas)
+void        GHOST_NDOFManager::GHOST_NDOFGetDatas(GHOST_TEventNDOFData &datas) const
 {
-		datas.tx = currentNdofValues.tx;
-		datas.ty = currentNdofValues.ty;
-		datas.tz = currentNdofValues.tz;
-		datas.rx = currentNdofValues.rx;
-		datas.ry = currentNdofValues.ry;
-		datas.rz = currentNdofValues.rz;
-		datas.buttons = currentNdofValues.buttons;
-		datas.client = currentNdofValues.client;
-		datas.address = currentNdofValues.address;
-		datas.time = currentNdofValues.time;
-		datas.delta = currentNdofValues.delta;
-
+	datas.tx = currentNdofValues.tx;
+	datas.ty = currentNdofValues.ty;
+	datas.tz = currentNdofValues.tz;
+	datas.rx = currentNdofValues.rx;
+	datas.ry = currentNdofValues.ry;
+	datas.rz = currentNdofValues.rz;
+	datas.buttons = currentNdofValues.buttons;
+	datas.client = currentNdofValues.client;
+	datas.address = currentNdofValues.address;
+	datas.time = currentNdofValues.time;
+	datas.delta = currentNdofValues.delta;
 }
-
-/*
-//#ifdef
-OSStatus GHOST_SystemCarbon::blendEventHandlerProc(EventHandlerCallRef handler, EventRef event, void* userData)
-{
-}
-
-*/
