@@ -4327,7 +4327,7 @@ static void editing_panel_mesh_tools(Object *ob, Mesh *me)
 	uiDefButBitS(block, TOG, B_JOINTRIA_UV, 0, "Delimit UVs",  10, -40, 78, 19, &G.scene->toolsettings->editbutflag, 0,0,0,0, "Don't join pairs where UVs don't match");
 	uiDefButBitS(block, TOG, B_JOINTRIA_VCOL, 0, "Delimit Vcol", 90, -40, 78, 19, &G.scene->toolsettings->editbutflag, 0,0,0,0, "Don't join pairs where Vcols don't match"); 
 	uiDefButBitS(block, TOG, B_JOINTRIA_SHARP, 0, "Delimit Sharp", 170, -40, 78, 19, &G.scene->toolsettings->editbutflag, 0,0,0,0, "Don't join pairs where edge is sharp"); 
-	uiDefButBitS(block, TOG, B_JOINTRIA_MAT, 0, "Delimit Mat", 250, -40, 74, 19, &G.scene->toolsettings->editbutflag, 0,0,0,0, "Don't join pairs where material dosnt match");
+	uiDefButBitS(block, TOG, B_JOINTRIA_MAT, 0, "Delimit Mat", 250, -40, 74, 19, &G.scene->toolsettings->editbutflag, 0,0,0,0, "Don't join pairs where material doesn't match");
 	uiBlockEndAlign(block);
 
 	
