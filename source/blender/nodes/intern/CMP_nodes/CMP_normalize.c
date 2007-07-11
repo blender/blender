@@ -22,7 +22,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s):  gsr b3d, and a very minor edit from Robert Holcomb 
  *
  * ***** END GPL LICENSE BLOCK *****
  */
