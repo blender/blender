@@ -2659,11 +2659,14 @@ void common_insertkey(void)
 		}
 		else if(G.buts->mainb==CONTEXT_OBJECT) {
 			ob= OBACT;
-			if(ob && ob->type==OB_MESH) {
+			if(ob) {
 				id= (ID *) (ob);
 				if(id) {
-					event= pupmenu("Insert Key %t|Surface Damping%x0|Random Damping%x1|Permeability%x2|Force Strength%x3|Force Falloff%x4");
-					if(event== -1) return;
+					if(ob->type==OB_MESH) 
+						event= pupmenu("Insert Key %t|Surface Damping%x0|Random Damping%x1|Permeability%x2|Force Strength%x3|Force Falloff%x4");
+					else
+						event= pupmenu("Insert Key %t|Force Strength%x3|Force Falloff%x4");
+					if(event == -1) return;
 
 					if(event==0) {
 						insertkey(id, ID_OB, NULL, NULL, OB_PD_SDAMP);
