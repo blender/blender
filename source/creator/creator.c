@@ -704,6 +704,7 @@ static void error_cb(char *err)
 static void mem_error_cb(char *errorStr)
 {
 	fprintf(stderr, errorStr);
+	fflush(stderr);
 }
 
 void setCallbacks(void)
