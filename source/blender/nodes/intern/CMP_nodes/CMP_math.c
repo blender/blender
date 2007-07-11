@@ -143,8 +143,13 @@ static void node_composit_exec_math(void *data, bNode *node, bNodeStack **in, bN
 
 	/* check for inputs and outputs for early out*/
 	if(in[0]->hasinput==0 || in[1]->hasinput==0) return;
-	if(in[0]->data==NULL && in[1]->data==NULL) return;
 	if(out[0]->hasoutput==0) return;
+
+	/* no image-color operation */
+	if(in[0]->data==NULL && in[1]->data==NULL) {
+		do_math(node, out[0]->vec, in[0]->vec, in[1]->vec);
+		return;
+	}
 
 	/*create output based on first input */
 	if(cbuf) {
