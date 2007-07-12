@@ -350,7 +350,12 @@ static PyObject *BezTriple_getHide( BPy_BezTriple * self )
 
 static int BezTriple_setHide( BPy_BezTriple * self, PyObject *value )
 {
-	if( PyObject_IsTrue( value ) )
+	int param = PyObject_IsTrue( value );
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected True/False or 0/1" );
+	
+	if( param )
 		self->beztriple->hide = IPO_BEZ;
 	else
 		self->beztriple->hide = 0;
@@ -368,6 +373,7 @@ static int BezTriple_setSelects( BPy_BezTriple * self, PyObject *args )
 {
 	struct BezTriple *bezt = self->beztriple;
 	PyObject *ob1, *ob2, *ob3;
+	int param1, param2, param3;
 
        /* only accept a sequence of three booleans */
 
@@ -379,15 +385,22 @@ static int BezTriple_setSelects( BPy_BezTriple * self, PyObject *args )
 	ob2 = PySequence_ITEM( args, 1 );
 	ob3 = PySequence_ITEM( args, 2 );
 
+	param1 = PyObject_IsTrue( ob1 );
+	param2 = PyObject_IsTrue( ob2 );
+	param3 = PyObject_IsTrue( ob3 );
+	
+	if (param1==-1 || param2==-1 || param3==-1)
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected a sequence of 3 items: True/False or 0/1" );
+	
        /* assign the selects */
-	bezt->f1 = ( char )PyObject_IsTrue( ob1 );
-	bezt->f2 = ( char )PyObject_IsTrue( ob2 );
-	bezt->f3 = ( char )PyObject_IsTrue( ob3 );
+	bezt->f1 = (char)param1;
+	bezt->f2 = (char)param2;
+	bezt->f3 = (char)param3;
 
 	Py_DECREF( ob1 );
 	Py_DECREF( ob2 );
 	Py_DECREF( ob3 );
-
 	return 0;
 }
 

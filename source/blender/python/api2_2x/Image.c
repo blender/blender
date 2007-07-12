@@ -1168,7 +1168,12 @@ static int Image_setSource( BPy_Image *self, PyObject *args)
 
 static int Image_setFlag(BPy_Image *self, PyObject *value, void *flag)
 {
-	if ( PyObject_IsTrue(value) )
+	int param = PyObject_IsTrue( value );
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected True/False or 0/1" );
+	
+	if ( param )
 		self->image->flag |= (int)flag;
 	else
 		self->image->flag &= ~(int)flag;
@@ -1177,7 +1182,12 @@ static int Image_setFlag(BPy_Image *self, PyObject *value, void *flag)
 
 static int Image_setFlagTpage(BPy_Image *self, PyObject *value, void *flag)
 {
-	if ( PyObject_IsTrue(value) )
+	int param = PyObject_IsTrue( value );
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected True/False or 0/1" );
+	
+	if ( param )
 		self->image->tpageflag |= (int)flag;
 	else
 		self->image->tpageflag &= ~(int)flag;

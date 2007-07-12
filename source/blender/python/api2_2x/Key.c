@@ -334,7 +334,12 @@ static PyObject *Key_getRelative( BPy_Key * self )
 
 static int Key_setRelative( BPy_Key * self, PyObject * value )
 {
-	if( PyObject_IsTrue( value ) )
+	int param = PyObject_IsTrue( value );
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected True/False or 0/1" );
+	
+	if( param )
 		self->key->type = KEY_RELATIVE;
 	else
 		self->key->type = KEY_NORMAL;

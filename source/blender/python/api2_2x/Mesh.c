@@ -2337,7 +2337,7 @@ static int MEdge_setSel( BPy_MEdge * self,PyObject * value,
 	
 	if( param == -1 )
 		return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected true/false argument" );
+				"expected True/False or 0/1" );
 
 	me = self->mesh;
 
@@ -3714,7 +3714,7 @@ static int MFace_setSelect( BPy_MFace * self, PyObject * value,
 
 	if( param == -1 )
 		return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected true/false argument" );
+				"expected True/False or 0/1" );
 
 	me = self->mesh;
 	if( param ) {
@@ -4716,12 +4716,25 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args,
 	/* process any keyword arguments */
 	if( keywds ) {
 		PyObject *res = PyDict_GetItemString( keywds, "ignoreDups" );
-		if( res )
+		if( res ) {
 			ignore_dups = PyObject_IsTrue( res );
-
+			if (ignore_dups==-1) {
+				return EXPP_ReturnPyObjError( PyExc_TypeError,
+						"keyword argument \"ignoreDups\" expected True/False or 0/1" );
+			}
+		}
 		res = PyDict_GetItemString( keywds, "indexList" );
-		if( res && PyObject_IsTrue( res ) )
-			return_list = PyList_New( 0 );
+		if (res) {
+			switch( PyObject_IsTrue( res ) ) {
+			case  0:
+				break;
+			case -1:
+				return EXPP_ReturnPyObjError( PyExc_TypeError,
+						"keyword argument \"indexList\" expected True/False or 0/1" );
+			default:
+				return_list = PyList_New( 0 );
+			}
+		}
 	}
 
 	/* make sure we get a tuple of sequences of something */
@@ -7338,7 +7351,7 @@ static int Mesh_setFlag( BPy_Mesh * self, PyObject *value, void *type )
 
 	if( param == -1 )
 		return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected int argument in range [0,1]" );
+				"expected True/False or 0/1" );
 
 	/* sticky is independent of faceUV and vertUV */
 
@@ -7577,15 +7590,19 @@ static int Mesh_setTexMesh( BPy_Mesh * self, PyObject * value )
 	return ret;
 }
 
-static int Mesh_setSel( BPy_Mesh * self, PyObject * arg )
+static int Mesh_setSel( BPy_Mesh * self, PyObject * value )
 {
-	int i;
+	int i, param = PyObject_IsTrue( value );
 	Mesh *me = self->mesh;
 	MVert *mvert = me->mvert;
 	MEdge *medge = me->medge;
 	MFace *mface = me->mface;
 
-	if( PyObject_IsTrue( arg ) ) {
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected True/False or 0/1" );
+	
+	if( param ) {
 		for( i = 0; i < me->totvert; ++mvert, ++i )
 			mvert->flag |= SELECT;
 		for( i = 0; i < me->totedge; ++medge, ++i )
@@ -7604,15 +7621,19 @@ static int Mesh_setSel( BPy_Mesh * self, PyObject * arg )
 	return 0;
 }
 
-static int Mesh_setHide( BPy_Mesh * self, PyObject * arg )
+static int Mesh_setHide( BPy_Mesh * self, PyObject * value )
 {
-	int i;
+	int i, param = PyObject_IsTrue( value );
 	Mesh *me = self->mesh;
 	MVert *mvert = me->mvert;
 	MEdge *medge = me->medge;
 	MFace *mface = me->mface;
 
-	if( PyObject_IsTrue( arg ) ) {
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected True/False or 0/1" );
+	
+	if( param ) {
 		for( i = 0; i < me->totvert; ++mvert, ++i )
 			mvert->flag |= ME_HIDE;
 		for( i = 0; i < me->totedge; ++medge, ++i )

@@ -866,7 +866,12 @@ static PyObject *getFlagAttr( BPy_Camera *self, void *type )
 
 static int setFlagAttr( BPy_Camera *self, PyObject *value, void *type )
 {
-	if (PyObject_IsTrue(value))
+	int param = PyObject_IsTrue( value );
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected True/False or 0/1" );
+	
+	if (param)
 		self->camera->flag |= (int)type;
 	else
 		self->camera->flag &= ~(int)type;

@@ -657,11 +657,15 @@ static PyObject *getFlagAttr( BPy_Sequence *self, void *type )
 static int setFlagAttr( BPy_Sequence *self, PyObject *value, void *type )
 {
 	int t = (int)type;
+	int param = PyObject_IsTrue( value );
 	
-	if (PyObject_IsTrue(value))
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected True/False or 0/1" );
+	
+	if (param)
 		self->seq->flag |= t;
 	else {
-		
 		/* dont allow leftsel and rightsel when its not selected */
 		if (t == SELECT)
 			t = t + SEQ_LEFTSEL + SEQ_RIGHTSEL;
