@@ -828,23 +828,27 @@ PyObject *EXPP_getBitfield( void *param, int setting, char type )
 
 int EXPP_setBitfield( PyObject * value, void *param, int setting, char type )
 {
-	int flag = PyObject_IsTrue( value );
+	int param_bool = PyObject_IsTrue( value );
 
+	if( param_bool == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected True/False or 0/1" );
+	
 	switch ( type ) {
 	case 'b':
-		if ( flag )
+		if ( param_bool )
 			*(char *)param |= setting;
 		else
 			*(char *)param &= ~setting;
 		return 0;
 	case 'h':
-		if ( flag )
+		if ( param_bool )
 			*(short *)param |= setting;
 		else
 			*(short *)param &= ~setting;
 		return 0;
 	case 'i':
-		if ( flag )
+		if ( param_bool )
 			*(int *)param |= setting;
 		else
 			*(int *)param &= ~setting;

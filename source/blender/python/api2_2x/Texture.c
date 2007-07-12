@@ -1406,7 +1406,12 @@ static int Texture_setAnimFrames( BPy_Texture * self, PyObject * value )
 
 static int Texture_setIUserCyclic( BPy_Texture * self, PyObject * value )
 {
-	if( PyObject_IsTrue( value ) )
+	int param = PyObject_IsTrue( value );
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected True/False or 0/1" );
+	
+	if( param )
 		self->texture->iuser.cycl = 1;
 	else
 		self->texture->iuser.cycl = 0;
@@ -1623,7 +1628,12 @@ static int Texture_setImageFlags( BPy_Texture * self, PyObject * value,
 static int Texture_setIUserFlags( BPy_Texture * self, PyObject * value,
 									void *flag )
 {
-	if( PyObject_IsTrue(value) )
+	int param = PyObject_IsTrue( value );
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected True/False or 0/1" );
+	
+	if( param )
 		self->texture->iuser.flag |= (int)flag;
 	else
 		self->texture->iuser.flag &= ~(int)flag;

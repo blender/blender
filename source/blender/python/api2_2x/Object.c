@@ -1209,16 +1209,16 @@ static PyObject *Object_getSelected( BPy_Object * self )
 static int Object_setSelect( BPy_Object * self, PyObject * value )
 {
 	Base *base;
-	int setting = PyObject_IsTrue( value );
+	int param = PyObject_IsTrue( value );
 
-	if( setting == -1 )
+	if( param == -1 )
 		return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected true/false argument" );
+				"expected True/False or 0/1" );
 
 	base = FIRSTBASE;
 	while( base ) {
 		if( base->object == self->object ) {
-			if( setting == 1 ) {
+			if( param ) {
 				base->flag |= SELECT;
 				self->object->flag = (short)base->flag;
 				set_active_base( base );
@@ -2939,20 +2939,20 @@ static PyObject *Object_getNLAflagBits ( BPy_Object * self )
 		Py_RETURN_FALSE;
 }
 
-static int Object_setNLAflagBits ( BPy_Object * self, PyObject * args ) 
+static int Object_setNLAflagBits ( BPy_Object * self, PyObject * value ) 
 {
-	int value;
+	int param;
 
-	value = PyObject_IsTrue( args );
-	if( value == -1 )
+	param = PyObject_IsTrue( value );
+	if( param == -1 )
 		return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected 1/0 for true/false" );
+				"expected True/False or 0/1" );
 
-	if (value==1)
+	if (param)
 		self->object->nlaflag |= OB_NLA_OVERRIDE;
 	else 
 		self->object->nlaflag &= ~OB_NLA_OVERRIDE;
-		
+	
 	self->object->recalc |= OB_RECALC_OB;  
 
 	return 0;
@@ -2961,7 +2961,6 @@ static int Object_setNLAflagBits ( BPy_Object * self, PyObject * args )
 static PyObject *Object_getDupliObjects( BPy_Object * self )
 {
 	Object *ob= self->object;
-	PyObject *pair;
 	
 	if(ob->transflag & OB_DUPLI) {
 		/* before make duplis, update particle for current frame */
@@ -2983,6 +2982,7 @@ static PyObject *Object_getDupliObjects( BPy_Object * self )
 						"PyList_New() failed" );
 
 			for(dupob= duplilist->first, index=0; dupob; dupob= dupob->next, index++) {
+				PyObject *pair;
 				pair = PyTuple_New( 2 );
 				
 				PyTuple_SET_ITEM( pair, 0, Object_CreatePyObject(dupob->ob) );
@@ -3184,20 +3184,20 @@ static PyObject *Object_getPIDeflection( BPy_Object * self )
 	return PyBool_FromLong( ( long ) self->object->pd->deflect );
 }
 
-static int Object_setPIDeflection( BPy_Object * self, PyObject * args )
+static int Object_setPIDeflection( BPy_Object * self, PyObject * value )
 {
-	int value;
+	int param;
 
     if( !self->object->pd && !setupPI(self->object) )
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
 				"particle deflection could not be accessed" );
 
-	value = PyObject_IsTrue( args );
-	if( value == -1 )
+	param = PyObject_IsTrue( value );
+	if( param == -1 )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"expected true/false argument" );
 
-	self->object->pd->deflect = (short)value;
+	self->object->pd->deflect = (short)param;
 	self->object->recalc |= OB_RECALC_OB;  
 
 	return 0;
@@ -3249,20 +3249,20 @@ static PyObject *Object_getPIUseMaxDist( BPy_Object * self )
 	return PyBool_FromLong( ( long )self->object->pd->flag );
 }
 
-static int Object_setPIUseMaxDist( BPy_Object * self, PyObject * args )
+static int Object_setPIUseMaxDist( BPy_Object * self, PyObject * value )
 {
-	int value;
+	int param;
 
     if( !self->object->pd && !setupPI(self->object) )
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
 				"particle deflection could not be accessed" );
 
-	value = PyObject_IsTrue( args );
-	if( value == -1 )
+	param = PyObject_IsTrue( value );
+	if( param == -1 )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"expected true/false argument" );
 
-	self->object->pd->flag = (short)value;
+	self->object->pd->flag = (short)param;
 	self->object->recalc |= OB_RECALC_OB;  
 
 	return 0;
@@ -3363,9 +3363,9 @@ static PyObject *Object_getSBUseGoal( BPy_Object * self )
 		Py_RETURN_FALSE;
 }
 
-static int Object_setSBUseGoal( BPy_Object * self, PyObject * args )
+static int Object_setSBUseGoal( BPy_Object * self, PyObject * value )
 {
-	int setting = PyObject_IsTrue( args );
+	int setting = PyObject_IsTrue( value );
 
     if( !self->object->soft && !setupSB(self->object) )
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
@@ -3396,9 +3396,9 @@ static PyObject *Object_getSBUseEdges( BPy_Object * self )
 		Py_RETURN_FALSE;
 }
 
-static int Object_setSBUseEdges( BPy_Object * self, PyObject * args )
+static int Object_setSBUseEdges( BPy_Object * self, PyObject * value )
 {
-	int setting = PyObject_IsTrue( args );
+	int setting = PyObject_IsTrue( value );
 
     if( !self->object->soft && !setupSB(self->object) )
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
@@ -3429,9 +3429,9 @@ static PyObject *Object_getSBStiffQuads( BPy_Object * self )
 		Py_RETURN_FALSE;
 }
 
-static int Object_setSBStiffQuads( BPy_Object * self, PyObject * args )
+static int Object_setSBStiffQuads( BPy_Object * self, PyObject * value )
 {
-	int setting = PyObject_IsTrue( args );
+	int setting = PyObject_IsTrue( value );
 
     if( !self->object->soft && !setupSB(self->object) )
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
@@ -4174,7 +4174,12 @@ static PyObject *Object_getRestricted( BPy_Object *self, void *type )
 static int Object_setRestricted( BPy_Object *self, PyObject *value,
 		void *type )
 {
-	if (PyObject_IsTrue(value) )
+	int param = PyObject_IsTrue( value );
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected True/False or 0/1" );
+	
+	if ( param )
 		self->object->restrictflag |= (int)type;
 	else
 		self->object->restrictflag &= ~(int)type;

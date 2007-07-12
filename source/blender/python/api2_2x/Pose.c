@@ -931,7 +931,12 @@ static PyObject *PoseBone_getSelect(BPy_PoseBone *self, void *closure)
 //Sets the pose bones selection
 static int PoseBone_setSelect(BPy_PoseBone *self, PyObject *value, void *closure)
 {
-	if (PyObject_IsTrue( value ))
+	int param = PyObject_IsTrue( value );
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected True/False or 0/1" );
+	
+	if ( param )
 		self->posechannel->bone->flag |= BONE_SELECTED;
 	else
 		self->posechannel->bone->flag &= ~(BONE_SELECTED | BONE_ACTIVE);
@@ -1071,7 +1076,12 @@ static PyObject *PoseBone_getIKFlag(BPy_PoseBone *self, void *flag)
 //Sets the pose bones ikflag
 static int PoseBone_setIKFlag(BPy_PoseBone *self, PyObject *value, void *flag)
 {
-	if ( PyObject_IsTrue(value) )
+	int param = PyObject_IsTrue( value );
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected True/False or 0/1" );
+	
+	if ( param )
 		self->posechannel->ikflag |= (int)flag;
 	else
 		self->posechannel->ikflag &= ~(int)flag;

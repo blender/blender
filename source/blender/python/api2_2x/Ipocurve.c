@@ -1029,6 +1029,9 @@ static PyObject *IpoCurve_getFlag( C_IpoCurve * self, void *type )
 static int IpoCurve_setFlag( C_IpoCurve * self, PyObject *value, void *type )
 {
 	int param = PyObject_IsTrue( value );
+	if( param == -1 )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"expected True/False or 0/1" );
 	
 	if (param)
 		self->ipocurve->flag |= (int)type;

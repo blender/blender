@@ -76,7 +76,7 @@ int GenericLib_setFakeUser( void *self, PyObject *value )
 	param = PyObject_IsTrue( value );
 	if( param == -1 )
 		return EXPP_ReturnIntError( PyExc_TypeError,
-				"expected int argument in range [0,1]" );
+				"expected True/False or 0/1" );
 	
 	if (param) {
 		if (!(id->flag & LIB_FAKEUSER)) {
