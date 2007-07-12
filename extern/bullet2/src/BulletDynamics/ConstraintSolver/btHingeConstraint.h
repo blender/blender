@@ -60,7 +60,7 @@ public:
 
 	btHingeConstraint(btRigidBody& rbA,btRigidBody& rbB, const btVector3& pivotInA,const btVector3& pivotInB, btVector3& axisInA,btVector3& axisInB);
 
-	btHingeConstraint::btHingeConstraint(btRigidBody& rbA,const btVector3& pivotInA,btVector3& axisInA);
+	btHingeConstraint(btRigidBody& rbA,const btVector3& pivotInA,btVector3& axisInA);
 	
 	btHingeConstraint(btRigidBody& rbA,btRigidBody& rbB, const btTransform& rbAFrame, const btTransform& rbBFrame);
 

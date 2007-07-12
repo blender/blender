@@ -409,7 +409,8 @@ void *copy_libblock(void *rt)
 	
 	id->newid= idn;
 	idn->flag |= LIB_NEW;
-	
+	if (id->properties) idn->properties = IDP_CopyProperty(id->properties);
+
 	return idn;
 }
 

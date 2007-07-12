@@ -86,9 +86,6 @@ PyObject *BPy_IDGroup_WrapData( ID *id, IDProperty *prop )
 				array->prop = prop;
 				return (PyObject*) array;
 			}
-		case IDP_MATRIX:
-		case IDP_VECTOR:
-			break;
 	}
 	Py_RETURN_NONE;
 }
@@ -141,12 +138,12 @@ int BPy_IDGroup_SetData(BPy_IDProperty *self, IDProperty *prop, PyObject *value)
 	return 0;
 }
 
-PyObject *BPy_IDGroup_GetName(BPy_IDProperty *self)
+PyObject *BPy_IDGroup_GetName(BPy_IDProperty *self, void *bleh)
 {
 	return Py_BuildValue("s", self->prop->name);
 }
 
-int BPy_IDGroup_SetName(BPy_IDProperty *self, PyObject *value)
+int BPy_IDGroup_SetName(BPy_IDProperty *self, PyObject *value, void *bleh)
 {
 	char *st;
 	if (!PyString_Check(value))
@@ -206,7 +203,7 @@ PyObject *BPy_IDGroup_Map_GetItem(BPy_IDProperty *self, PyObject *item)
 /*returns NULL on success, error string on failure*/
 char *BPy_IDProperty_Map_ValidateAndCreate(char *name, IDProperty *group, PyObject *ob)
 {
-	IDProperty *prop = NULL, *prop2=NULL, *prev=NULL;
+	IDProperty *prop = NULL;
 	IDPropertyTemplate val = {0};
 	
 	if (PyFloat_Check(ob)) {
@@ -285,15 +282,7 @@ char *BPy_IDProperty_Map_ValidateAndCreate(char *name, IDProperty *group, PyObje
 		Py_XDECREF(vals);
 	} else return "invalid property value";
 	
-	prop2 = IDP_GetPropertyFromGroup(group, prop->name);
-	if (prop2) {
-		prev=prop2->prev; /*we want to insert new property in same place as old*/
-		IDP_RemFromGroup(group, prop2);
-		IDP_FreeProperty(prop2);
-		MEM_freeN(prop2);
-	}
-
-	IDP_InsertToGroup(group, prev, prop);
+	IDP_ReplaceInGroup(group, prop);
 	return NULL;
 }
 

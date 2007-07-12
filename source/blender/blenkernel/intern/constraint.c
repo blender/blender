@@ -255,7 +255,10 @@ void copy_constraints (ListBase *dst, ListBase *src)
 	
 	for (con = dst->first; con; con=con->next) {
 		con->data = MEM_dupallocN (con->data);
-		/* removed a whole lot of useless code here (ton) */
+		/* NOTE: the pyconstraint system aren't implemented
+		 * in the stable branch.
+		 * 			- bdiego
+		 */
 	}
 }
 
