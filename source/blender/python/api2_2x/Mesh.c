@@ -2566,7 +2566,7 @@ static int MEdge_setSel( BPy_MEdge * self,PyObject * value,
 {
 	MEdge *edge = MEdge_get_pointer( self );
 	int param = PyObject_IsTrue( value );
-	Mesh *me;
+	Mesh *me = self->mesh;
 
 	if( !edge )
 		return -1;
@@ -2577,8 +2577,6 @@ static int MEdge_setSel( BPy_MEdge * self,PyObject * value,
 	if( param == -1 )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"expected True/False or 0/1" );
-
-	me = self->mesh;
 
 	if( param ) {
 		edge->flag |= SELECT;
