@@ -4324,10 +4324,10 @@ static void editing_panel_mesh_tools(Object *ob, Mesh *me)
 	uiBlockBeginAlign(block);
 	uiDefBut(block, BUT, B_JOINTRIA, "Join Triangles", 10, -20, 120, 19, 0, 0, 0, 0, 0, "Convert selected triangles to Quads");
 	uiDefButF(block, NUM, B_DIFF, "Threshold", 130, -20, 195, 19, &G.scene->toolsettings->jointrilimit, 0.0, 1.0, 5, 0, "Conversion threshold for complex islands");
-	uiDefButBitS(block, TOG, B_JOINTRIA_UV, 0, "Delimit UVs",  10, -40, 78, 19, &G.scene->toolsettings->editbutflag, 0,0,0,0, "Don't join pairs where UVs don't match");
-	uiDefButBitS(block, TOG, B_JOINTRIA_VCOL, 0, "Delimit Vcol", 90, -40, 78, 19, &G.scene->toolsettings->editbutflag, 0,0,0,0, "Don't join pairs where Vcols don't match"); 
-	uiDefButBitS(block, TOG, B_JOINTRIA_SHARP, 0, "Delimit Sharp", 170, -40, 78, 19, &G.scene->toolsettings->editbutflag, 0,0,0,0, "Don't join pairs where edge is sharp"); 
-	uiDefButBitS(block, TOG, B_JOINTRIA_MAT, 0, "Delimit Mat", 250, -40, 74, 19, &G.scene->toolsettings->editbutflag, 0,0,0,0, "Don't join pairs where material doesn't match");
+	uiDefButBitS(block, TOG, B_JOINTRIA_UV, 0, "Delimit UVs",  10, -40, 78, 19, &G.scene->toolsettings->editbutflag, 0,0,0,0, "Join pairs where UVs match");
+	uiDefButBitS(block, TOG, B_JOINTRIA_VCOL, 0, "Delimit Vcol", 90, -40, 78, 19, &G.scene->toolsettings->editbutflag, 0,0,0,0, "Join pairs where Vcols match"); 
+	uiDefButBitS(block, TOG, B_JOINTRIA_SHARP, 0, "Delimit Sharp", 170, -40, 78, 19, &G.scene->toolsettings->editbutflag, 0,0,0,0, "Join pairs where edge is not sharp"); 
+	uiDefButBitS(block, TOG, B_JOINTRIA_MAT, 0, "Delimit Mat", 250, -40, 74, 19, &G.scene->toolsettings->editbutflag, 0,0,0,0, "Join pairs where material matches");
 	uiBlockEndAlign(block);
 
 	
