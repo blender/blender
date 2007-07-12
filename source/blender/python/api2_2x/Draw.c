@@ -103,10 +103,10 @@ static void exec_callback( SpaceScript * sc, PyObject * callback,
 static void spacescript_do_pywin_buttons( SpaceScript * sc,
 					  unsigned short event );
 
-static PyObject *Method_Exit( PyObject * self, PyObject * args );
+static PyObject *Method_Exit( PyObject * self );
 static PyObject *Method_Register( PyObject * self, PyObject * args );
 static PyObject *Method_Redraw( PyObject * self, PyObject * args );
-static PyObject *Method_Draw( PyObject * self, PyObject * args );
+static PyObject *Method_Draw( PyObject * self );
 static PyObject *Method_Create( PyObject * self, PyObject * args );
 static PyObject *Method_UIBlock( PyObject * self, PyObject * args );
 
@@ -134,11 +134,18 @@ static PyObject *Method_Image( PyObject * self, PyObject * args);
 /* CLEVER NUMBUT */
 static PyObject *Method_PupBlock( PyObject * self, PyObject * args );
 
+PyObject * pycallback_weakref_dealloc(PyObject *self, PyObject *weakref);
+/* python callable */
+PyObject * pycallback_weakref_dealloc__pyfunc;
+
 static uiBlock *Get_uiBlock( void );
 static void py_slider_update( void *butv, void *data2_unused );
 
 /* hack to get 1 block for the UIBlock, only ever 1 at a time */
 static uiBlock *uiblock=NULL;
+
+/* store weakref's to callbacks here */
+static PyObject *callback_list; 
 
 static char Draw_doc[] = "The Blender.Draw submodule";
 
@@ -389,11 +396,11 @@ static struct PyMethodDef Draw_methods[] = {
 	MethodDef( PupStrInput ),
 	MethodDef( PupBlock ),
 	MethodDef( Image ),
-	MethodDef( Exit ),
+	{"Exit", (PyCFunction)Method_Exit, METH_NOARGS, Method_Exit_doc},
 	MethodDef( Redraw ),
-	MethodDef( Draw ),
+	{"Draw", (PyCFunction)Method_Draw, METH_NOARGS, Method_Draw_doc},
 	MethodDef( Register ),
-	{"PushButton", Method_Button, METH_VARARGS, Method_Button_doc},
+	{"PushButton", (PyCFunction)Method_Button, METH_VARARGS, Method_Button_doc},
 	MethodDef( BeginAlign ),
 	MethodDef( EndAlign),
 	{NULL, NULL, 0, NULL}
@@ -591,11 +598,7 @@ static PyObject *Button_richcmpr(PyObject *objectA, PyObject *objectB, int compa
 
 static Button *newbutton( void )
 {
-	Button *but = NULL;
-	
-	but = ( Button * ) PyObject_NEW( Button, &Button_Type );
-
-	return but;
+	return ( Button * ) PyObject_NEW( Button, &Button_Type );
 }
 
 /* GUI interface routines */
@@ -710,7 +713,10 @@ void BPY_spacescript_do_pywin_event( SpaceScript * sc, unsigned short event,
 
 		if (event == UI_BUT_EVENT) {
 			/* check that event is in free range for script button events;
-			 * read the comment before check_button_event() below to understand */
+			 * read the comment before check_button_event() below to understand
+			 * 
+			 * This will never run from UIBlock so no need to check if uiblock==NULL
+			 * And only sub EXPP_BUTTON_EVENTS_OFFSET in that case */
 			if (val >= EXPP_BUTTON_EVENTS_OFFSET && val < 0x4000)
 				spacescript_do_pywin_buttons(sc, val - EXPP_BUTTON_EVENTS_OFFSET);
 			return;
@@ -748,6 +754,14 @@ static void exec_but_callback(void *pyobj, void *data)
 	if (callback==NULL || callback == Py_None)
 		return;
 	
+	if (callback) {
+		if (!PySequence_Contains(callback_list, callback)) {
+			printf("Error, the callback is out of scope.\n\tmake the callback global to resolve this.\n");
+			return;
+		}
+		callback = PyWeakref_GetObject(callback);
+	}
+
 	/* Button types support
 	case MENU:	
 	case TEX:
@@ -814,13 +828,34 @@ static void exec_but_callback(void *pyobj, void *data)
 	Py_XDECREF( result );
 }
 
+PyObject * pycallback_weakref_dealloc(PyObject *self, PyObject *weakref)
+{
+	int i = PySequence_Index(callback_list, weakref);
+	if (i==-1) {
+		printf("callback weakref internal error, weakref not in list\n\tthis should never happen.\n");
+		return NULL;
+	}
+	PySequence_DelItem(callback_list, i);
+	Py_RETURN_NONE;
+}
 static void set_pycallback(uiBut *ubut, PyObject *callback)
 {
+	PyObject *weakref;
 	if (!callback || !PyCallable_Check(callback)) return;
-	uiButSetFunc(ubut, exec_but_callback, callback, ubut);
+	
+	/* This works in most cases except where there are local functions
+	 * that are deallocated so we must use weakrefs, will complain rather then crashing */
+	/*uiButSetFunc(ubut, exec_but_callback, callback, ubut);*/
+	
+	weakref = PyWeakref_NewRef(callback, pycallback_weakref_dealloc__pyfunc);
+	PyList_Append(callback_list, weakref);
+	Py_DECREF(weakref);
+	
+	/*printf("adding weakref, totlength %i\n", PyList_Size(callback_list));*/
+	uiButSetFunc(ubut, exec_but_callback, weakref, ubut);
 }
 
-static PyObject *Method_Exit( PyObject * self, PyObject * args )
+static PyObject *Method_Exit( PyObject * self )
 {
 	SpaceScript *sc;
 	Script *script;
@@ -831,10 +866,6 @@ static PyObject *Method_Exit( PyObject * self, PyObject * args )
 		sc = curarea->spacedata.first;
 	else
 		Py_RETURN_NONE;
-
-	if( !PyArg_ParseTuple( args, "" ) )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-					      "expected empty argument list" );
 
 	exit_pydraw( sc, 0 );
 
@@ -950,17 +981,13 @@ static PyObject *Method_Redraw( PyObject * self, PyObject * args )
 	Py_RETURN_NONE;
 }
 
-static PyObject *Method_Draw( PyObject * self, PyObject * args )
+static PyObject *Method_Draw( PyObject * self )
 {
 	/*@ If forced drawing is disable queue a redraw event instead */
 	if( EXPP_disable_force_draw ) {
 		scrarea_queue_winredraw( curarea );
 		Py_RETURN_NONE;
 	}
-
-	if( !PyArg_ParseTuple( args, "" ) )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
-					      "expected empty argument list" );
 
 	scrarea_do_windraw( curarea );
 
@@ -1200,13 +1227,13 @@ static void py_slider_update( void *butv, void *data2_unused )
 	disable_where_script( 1 );
 
 	spacescript_do_pywin_buttons( curarea->spacedata.first,
-		(unsigned short)uiButGetRetVal( but ) );
+		(unsigned short)uiButGetRetVal( but ) -  EXPP_BUTTON_EVENTS_OFFSET);
 
 	/* XXX useless right now, investigate better before a bcon 5 */
 	ret = M_Window_Redraw( 0, ref );
 
 	Py_DECREF(ref);
-	if (ret) { Py_DECREF(ret); }
+	Py_XDECREF(ret);
 
 	disable_where_script( 0 );
 
@@ -1231,6 +1258,9 @@ static PyObject *Method_Slider( PyObject * self, PyObject * args )
 			and optionally int, string and callback arguments" );
 
 	UI_METHOD_ERRORCHECK;
+	
+	if(realtime && uiblock)
+		realtime = 0; /* realtime dosnt work with UIBlock */
 	
 	but = newbutton(  );
 
@@ -1966,17 +1996,26 @@ static PyObject *Method_Image( PyObject * self, PyObject * args )
 
 }
 
+static PyMethodDef bpycallback_weakref_dealloc[] = {
+	{"pycallback_weakref_dealloc", pycallback_weakref_dealloc, METH_O, ""}
+};
+
 PyObject *Draw_Init( void )
 {
 	PyObject *submodule, *dict;
-
+	
+	/* Weakref management - used for callbacks so we can
+	 * tell when a callback has been removed that a UI button referenced */
+	callback_list = PyList_New(0);
+	pycallback_weakref_dealloc__pyfunc = PyCFunction_New(bpycallback_weakref_dealloc, NULL);
+	
 	if( PyType_Ready( &Button_Type) < 0)
 		Py_RETURN_NONE;
 
 	submodule = Py_InitModule3( "Blender.Draw", Draw_methods, Draw_doc );
 
 	dict = PyModule_GetDict( submodule );
-
+	
 #define EXPP_ADDCONST(x) \
 	EXPP_dict_set_item_str(dict, #x, PyInt_FromLong(x))
 
