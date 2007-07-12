@@ -1,4 +1,7 @@
 /**
+ *
+ * $Id$
+ *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -23,7 +26,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Marc Freixas, Ken Hughes
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -36,16 +39,23 @@
 #include "MT_Point3.h"
 #include "MT_Plane3.h"
 
+/* define this to give better precision comparisons */
+#define VAR_EPSILON
+
+#ifndef VAR_EPSILON
 const MT_Scalar BOP_EPSILON(1.0e-5);
+#else
+const MT_Scalar BOP_EPSILON(9.3132257461547852e-10);	/* ~= 2**-30 */
+#endif
 
 inline int BOP_sign(MT_Scalar x) {
     return x < 0.0 ? -1 : x > 0.0 ? 1 : 0;
 }
 inline MT_Scalar BOP_abs(MT_Scalar x) { return fabs(x); }
-inline bool      BOP_fuzzyZero(MT_Scalar x) { return BOP_abs(x) < BOP_EPSILON; }
-
 int BOP_comp(const MT_Scalar A, const MT_Scalar B);
 int BOP_comp(const MT_Tuple3& A, const MT_Tuple3& B);
+int BOP_comp0(const MT_Scalar A);
+inline bool BOP_fuzzyZero(MT_Scalar x) { return BOP_comp0(x) == 0; }
 int BOP_exactComp(const MT_Scalar A, const MT_Scalar B);
 int BOP_exactComp(const MT_Tuple3& A, const MT_Tuple3& B);
 bool BOP_between(const MT_Point3& p1, const MT_Point3& p2, const MT_Point3& p3);
