@@ -1,5 +1,6 @@
 /* 
  * $Id$
+ *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -846,7 +847,6 @@ static PyObject *Curve_appendPoint( BPy_Curve * self, PyObject * args )
 	int nurb_num;		/* index of curve we append to */
 	PyObject *coord_args;	/* coords for new point */
 	PyObject *retval = NULL;
-	PyObject *valtuple;
 	Nurb *nurb = self->curve->nurb.first;	/* first nurb in Curve */
 
 /* fixme - need to malloc new Nurb */
@@ -870,10 +870,10 @@ static PyObject *Curve_appendPoint( BPy_Curve * self, PyObject * args )
 	}
 
 	/* rebuild our arg tuple for appendPointToNurb() */
-	valtuple = Py_BuildValue( "(O)", coord_args );
+	//valtuple = Py_BuildValue( "(O)", coord_args );
 	
-	retval =  CurNurb_appendPointToNurb( nurb, valtuple );
-	Py_DECREF( valtuple );
+	retval =  CurNurb_appendPointToNurb( nurb, coord_args );
+	// Py_DECREF( valtuple );
 
 	return retval;
 }
