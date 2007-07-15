@@ -347,6 +347,12 @@ ECHO Done
 					Name="ConstraintSolver"
 					Filter="">
 					<File
+						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btConeTwistConstraint.cpp">
+					</File>
+					<File
+						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btConeTwistConstraint.h">
+					</File>
+					<File
 						RelativePath="..\..\src\BulletDynamics\ConstraintSolver\btConstraintSolver.h">
 					</File>
 					<File
