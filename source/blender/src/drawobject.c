@@ -4182,7 +4182,7 @@ void draw_object(Base *base, int flag)
 		 extern void make_axis_color(char *col, char *col2, char axis);	// drawview.c
 		 */
 			bConstraint *curcon;
-			float size[3], tmat[4][4];
+			float tmat[4][4];
 			char col[4], col2[4];
 
 			BIF_GetThemeColor3ubv(TH_GRID, col);
@@ -4191,7 +4191,7 @@ void draw_object(Base *base, int flag)
 
 			for (curcon = list->first; curcon; curcon=curcon->next){
 				if ((curcon->flag & CONSTRAINT_EXPAND)&&(curcon->type!=CONSTRAINT_TYPE_NULL)&&(constraint_has_target(curcon))){
-					get_constraint_target_matrix(curcon, TARGET_OBJECT, NULL, tmat, size, bsystem_time(ob, 0, (float)(G.scene->r.cfra), ob->sf));
+					get_constraint_target_matrix(curcon, TARGET_OBJECT, NULL, tmat, bsystem_time(ob, 0, (float)(G.scene->r.cfra), ob->sf));
 					setlinestyle(3);
 					glBegin(GL_LINES);
 					glVertex3fv(tmat[3]);

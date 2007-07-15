@@ -69,6 +69,7 @@ typedef struct bPoseChannel {
 	
 	float		chan_mat[4][4];		/* matrix result of loc/quat/size , and where we put deform in, see next line */
 	float		pose_mat[4][4];		/* constraints accumulate here. in the end, pose_mat = bone->arm_mat * chan_mat */
+	float		constinv[4][4];		/* inverse result of constraints. doesn't include effect of restposition, parent, and local transform*/
 	
 	float		pose_head[3];		/* actually pose_mat[3] */
 	float		pose_tail[3];		/* also used for drawing help lines... */

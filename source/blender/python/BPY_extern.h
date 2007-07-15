@@ -51,7 +51,7 @@ struct bPythonConstraint; /* DNA_constraint_types.h */
 extern "C" {
 #endif
 
-	void BPY_pyconstraint_eval(struct bPythonConstraint *con, float obmat[][4], short ownertype, void *ownerdata, float targetmat[][4]);
+	void BPY_pyconstraint_eval(struct bPythonConstraint *con, float ownermat[][4], float targetmat[][4]);
 	void BPY_pyconstraint_settings(void *arg1, void *arg2);
 	int BPY_pyconstraint_targets(struct bPythonConstraint *con, float targetmat[][4]);
 	int BPY_is_pyconstraint(struct Text *text);

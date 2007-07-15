@@ -33,43 +33,66 @@
 #ifndef BKE_CONSTRAINT_H
 #define BKE_CONSTRAINT_H
 
+
 struct bConstraint;
-struct Object;
 struct ListBase;
+struct Object;
 struct bConstraintChannel;
+struct bPoseChannel;
 struct bAction;
 struct bArmature;
 
-/* Function prototypes */
+/* ---------------------------------------------------------------------------- */
+
+/* Constraint target/owner types */
+#define TARGET_OBJECT			1	/*	string is ""				*/
+#define TARGET_BONE				2	/*	string is bone-name		*/
+#define TARGET_VERT				3	/*	string is vertex-group name 	*/
+#define TARGET_CV				4 	/* 	string is vertex-group name - is not available until curves get vgroups */
+
+/* ---------------------------------------------------------------------------- */
+
+/* special struct for use in constraint evaluation */
+typedef struct bConstraintOb {
+	struct Object *ob;			/* if pchan, then armature that it comes from, otherwise constraint owner */
+	struct bPoseChannel *pchan;	/* pose channel that owns the constraints being evaluated */
+	
+	float matrix[4][4];			/* matrix where constraints are accumulated + solved */
+	float startmat[4][4];		/* original matrix (before constraint solving) */
+	
+	short type;					/* type of owner  */
+} bConstraintOb;
+
+/* ---------------------------------------------------------------------------- */
+
+/* Constraint function prototypes */
 void unique_constraint_name (struct bConstraint *con, struct ListBase *list);
 void *new_constraint_data (short type);
-void evaluate_constraint (struct bConstraint *constraint, struct Object *ob, short ownertype, void *ownerdata, float targetmat[][4]);
 void free_constraints (struct ListBase *conlist);
 void copy_constraints (struct ListBase *dst, struct ListBase *src);
-void copy_constraint_channels (ListBase *dst, ListBase *src);
-void clone_constraint_channels (struct ListBase *dst, struct ListBase *src);
 void relink_constraints (struct ListBase *list);
 void free_constraint_data (struct bConstraint *con);
 
-/* channels */
+/* Constraint Channel function prototypes */
 struct bConstraintChannel *get_constraint_channel (ListBase *list, const char *name);
 struct bConstraintChannel *verify_constraint_channel (ListBase *list, const char *name);
+void do_constraint_channels (struct ListBase *conbase, struct ListBase *chanbase, float ctime);
+void copy_constraint_channels (ListBase *dst, ListBase *src);
+void clone_constraint_channels (struct ListBase *dst, struct ListBase *src);
 void free_constraint_channels (ListBase *chanbase);
 
-/* Gemeric functions */
-void do_constraint_channels (struct ListBase *conbase, struct ListBase *chanbase, float ctime);
-short get_constraint_target_matrix (struct bConstraint *con, short ownertype, void *ownerdata, float mat[][4], float size[3], float time);
+/* Target function prototypes  */
 char constraint_has_target (struct bConstraint *con);
 struct Object *get_constraint_target(struct bConstraint *con, char **subtarget);
 void set_constraint_target(struct bConstraint *con, struct Object *ob, char *subtarget);
 
+/* Constraint Evaluation function prototypes */
+struct bConstraintOb *constraints_make_evalob (struct Object *ob, void *subdata, short datatype);
+void constraints_clear_evalob(struct bConstraintOb *cob);
 
-/* Constraint target/owner types */
-#define TARGET_OBJECT			1	//	string is ""
-#define TARGET_BONE				2	//	string is bone-name
-#define TARGET_VERT				3	//	string is "VE:#" 
-#define TARGET_FACE				4	//	string is "FA:#" 
-#define TARGET_CV				5	//	string is "CV:#"
+short get_constraint_target_matrix (struct bConstraint *con, short ownertype, void *ownerdata, float mat[][4], float time);
+void solve_constraints (struct ListBase *conlist, struct bConstraintOb *cob, float ctime);
+
 
 #endif
 

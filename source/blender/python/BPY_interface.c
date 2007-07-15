@@ -1164,7 +1164,7 @@ int BPY_is_pyconstraint(Text *text)
 }
 
 /* This evals py constraints. It is passed all the arguments the normal constraints recieve */
-void BPY_pyconstraint_eval(bPythonConstraint *con, float obmat[][4], short ownertype, void *ownerdata, float targetmat[][4])
+void BPY_pyconstraint_eval(bPythonConstraint *con, float ownermat[][4], float targetmat[][4])
 {
 	PyObject *srcmat, *tarmat, *idprop;
 	PyObject *globals;
@@ -1178,7 +1178,7 @@ void BPY_pyconstraint_eval(bPythonConstraint *con, float obmat[][4], short owner
 	
 	globals = CreateGlobalDictionary();
 	
-	srcmat = newMatrixObject( (float*)obmat, 4, 4, Py_NEW );
+	srcmat = newMatrixObject( (float*)ownermat, 4, 4, Py_NEW );
 	tarmat = newMatrixObject( (float*)targetmat, 4, 4, Py_NEW );
 	idprop = BPy_Wrap_IDProperty( NULL, con->prop, NULL);
 	
@@ -1276,7 +1276,7 @@ void BPY_pyconstraint_eval(bPythonConstraint *con, float obmat[][4], short owner
 	/* this is the reverse of code taken from newMatrix() */
 	for(row = 0; row < 4; row++) {
 		for(col = 0; col < 4; col++) {
-			obmat[row][col] = retmat->contigPtr[row*4+col];
+			ownermat[row][col] = retmat->contigPtr[row*4+col];
 		}
 	}
 	

@@ -671,21 +671,21 @@ void add_constraint(int only_IK)
 	else {
 		if(pchanact) {
 			if(pchansel)
-				nr= pupmenu("Add Constraint to Active Bone%t|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|%l|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|%l|Track To%x3|Floor%x4|Locked Track%x5|Stretch To%x7|Action%x16|%l|Script%x18");
+				nr= pupmenu("Add Constraint to Active Bone%t|Child Of%x19|%l|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|%l|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|%l|Track To%x3|Floor%x4|Locked Track%x5|Stretch To%x7|%l|Action%x16|Script%x18");
 			else if(obsel && obsel->type==OB_CURVE)
-				nr= pupmenu("Add Constraint to Active Object%t|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|%l|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|%l|Track To%x3|Floor%x4|Locked Track%x5|Follow Path%x6|Clamp To%x17|Stretch To%x7|Action%x16|%l|Script%x18");
+				nr= pupmenu("Add Constraint to Active Object%t|Child Of%x19|%l|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|%l|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|%l|Track To%x3|Floor%x4|Locked Track%x5|Follow Path%x6|Clamp To%x17|Stretch To%x7|%l|Action%x16|Script%x18");
 			else if(obsel)
-				nr= pupmenu("Add Constraint to Active Object%t|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|%l|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|%l|Track To%x3|Floor%x4|Locked Track%x5|Stretch To%x7|Action%x16|%l|Script%x18");
+				nr= pupmenu("Add Constraint to Active Object%t|Child Of%x19|%l|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|%l|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|%l|Track To%x3|Floor%x4|Locked Track%x5|Stretch To%x7|%l|Action%x16|Script%x18");
 			else
-				nr= pupmenu("Add Constraint to New Empty Object%t|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|%l|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|%l|Track To%x3|Floor%x4|Locked Track%x5|Stretch To%x7|%l|Script%x18");
+				nr= pupmenu("Add Constraint to New Empty Object%t|Child Of%x19|%l|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|%l|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|%l|Track To%x3|Floor%x4|Locked Track%x5|Stretch To%x7|%l|Script%x18");
 		}
 		else {
 			if(obsel && obsel->type==OB_CURVE)
-				nr= pupmenu("Add Constraint to Active Object%t|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|%l|Track To%x3|Floor%x4|Locked Track%x5|Follow Path%x6|Clamp To%x17|%l|Script%x18");
+				nr= pupmenu("Add Constraint to Active Object%t|Child Of%x19|%l|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|%l|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|%l|Track To%x3|Floor%x4|Locked Track%x5|Follow Path%x6|Clamp To%x17|%l|Script%x18");
 			else if(obsel)
-				nr= pupmenu("Add Constraint to Active Object%t|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|%l|Track To%x3|Floor%x4|Locked Track%x5|%l|Script%x18");
+				nr= pupmenu("Add Constraint to Active Object%t|Child Of%x19|%l|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|%l|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|%l|Track To%x3|Floor%x4|Locked Track%x5|%l|Script%x18");
 			else
-				nr= pupmenu("Add Constraint to New Empty Object%t|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|%l|Track To%x3|Floor%x4|Locked Track%x5|%l|Script%x18");
+				nr= pupmenu("Add Constraint to New Empty Object%t|Child Of%x19|%l|Copy Location%x1|Copy Rotation%x2|Copy Scale%x8|%l|Limit Location%x13|Limit Rotation%x14|Limit Scale%x15|%l|Track To%x3|Floor%x4|Locked Track%x5|%l|Script%x18");
 		}
 	}
 	
@@ -724,28 +724,31 @@ void add_constraint(int only_IK)
 	}
 	else {
 		
-		if(nr==1) con = add_new_constraint(CONSTRAINT_TYPE_LOCLIKE);
-		else if(nr==2) con = add_new_constraint(CONSTRAINT_TYPE_ROTLIKE);
-		else if(nr==3) con = add_new_constraint(CONSTRAINT_TYPE_TRACKTO);
-		else if(nr==4) con = add_new_constraint(CONSTRAINT_TYPE_MINMAX);
-		else if(nr==5) con = add_new_constraint(CONSTRAINT_TYPE_LOCKTRACK);
-		else if(nr==6) {
+		if (nr==1) con = add_new_constraint(CONSTRAINT_TYPE_LOCLIKE);
+		else if (nr==2) con = add_new_constraint(CONSTRAINT_TYPE_ROTLIKE);
+		else if (nr==3) con = add_new_constraint(CONSTRAINT_TYPE_TRACKTO);
+		else if (nr==4) con = add_new_constraint(CONSTRAINT_TYPE_MINMAX);
+		else if (nr==5) con = add_new_constraint(CONSTRAINT_TYPE_LOCKTRACK);
+		else if (nr==6) {
 			Curve *cu= obsel->data;
 			cu->flag |= CU_PATH;
 			con = add_new_constraint(CONSTRAINT_TYPE_FOLLOWPATH);
 		}
-		else if(nr==7) con = add_new_constraint(CONSTRAINT_TYPE_STRETCHTO);
-		else if(nr==8) con = add_new_constraint(CONSTRAINT_TYPE_SIZELIKE);
-		else if(nr==13) con = add_new_constraint(CONSTRAINT_TYPE_LOCLIMIT);
-		else if(nr==14) con = add_new_constraint(CONSTRAINT_TYPE_ROTLIMIT);
-		else if(nr==15) con = add_new_constraint(CONSTRAINT_TYPE_SIZELIMIT);
-		else if(nr==16) con = add_new_constraint(CONSTRAINT_TYPE_ACTION);
-		else if(nr==17) {
+		else if (nr==7) con = add_new_constraint(CONSTRAINT_TYPE_STRETCHTO);
+		else if (nr==8) con = add_new_constraint(CONSTRAINT_TYPE_SIZELIKE);
+		else if (nr==13) con = add_new_constraint(CONSTRAINT_TYPE_LOCLIMIT);
+		else if (nr==14) con = add_new_constraint(CONSTRAINT_TYPE_ROTLIMIT);
+		else if (nr==15) con = add_new_constraint(CONSTRAINT_TYPE_SIZELIMIT);
+		else if (nr==16) {
+			/* TODO: add a popup-menu to display list of available actions to use (like for pyconstraints) */
+			con = add_new_constraint(CONSTRAINT_TYPE_ACTION);
+		}
+		else if (nr==17) {
 			Curve *cu= obsel->data;
 			cu->flag |= CU_PATH;
 			con = add_new_constraint(CONSTRAINT_TYPE_CLAMPTO);
 		}
-		else if(nr==18) {	
+		else if (nr==18) {	
 			char *menustr;
 			int scriptint= 0, dummy_int=0;
 			float dummy_matrix[4][4];
@@ -769,10 +772,21 @@ void add_constraint(int only_IK)
 				}
 			}
 		}
+		else if (nr==19) {
+			con= add_new_constraint(CONSTRAINT_TYPE_CHILDOF);
+			
+			/* if this constraint is being added to a posechannel, make sure
+			 * the constraint gets evaluated in pose-space
+			 */
+			if (pchanact) {
+				con->ownspace = CONSTRAINT_SPACE_POSE;
+				con->flag |= CONSTRAINT_SPACEONCE;
+			}
+		}
 		
-		if(con==NULL) return;	/* paranoia */
+		if (con==NULL) return;	/* paranoia */
 		
-		if(pchanact) {
+		if (pchanact) {
 			BLI_addtail(&pchanact->constraints, con);
 			unique_constraint_name(con, &pchanact->constraints);
 			pchanact->constflag |= PCHAN_HAS_CONST;	/* for draw */
@@ -784,13 +798,13 @@ void add_constraint(int only_IK)
 	}
 	
 	/* set the target */
-	if(pchansel) {
+	if (pchansel) {
 		set_constraint_target(con, ob, pchansel->name);
 	}
 	else if(obsel) {
 		set_constraint_target(con, obsel, NULL);
 	}
-	else if(ELEM4(nr, 11, 13, 14, 15)==0) {	/* add new empty as target */
+	else if (ELEM4(nr, 11, 13, 14, 15)==0) {	/* add new empty as target */
 		Base *base= BASACT, *newbase;
 		Object *obt;
 		
@@ -801,7 +815,7 @@ void add_constraint(int only_IK)
 		obt->lay= newbase->lay;
 		
 		/* transform cent to global coords for loc */
-		if(pchanact) {
+		if (pchanact) {
 			if(only_IK)
 				VecMat4MulVecfl(obt->loc, ob->obmat, pchanact->pose_tail);
 			else
@@ -816,8 +830,7 @@ void add_constraint(int only_IK)
 		BASACT= base;
 		base->flag |= SELECT;
 	}
-
-
+	
 	/* active flag */
 	con->flag |= CONSTRAINT_ACTIVE;
 	for(con= con->prev; con; con= con->prev)
@@ -825,7 +838,7 @@ void add_constraint(int only_IK)
 
 	DAG_scene_sort(G.scene);		// sort order of objects
 	
-	if(pchanact) {
+	if (pchanact) {
 		ob->pose->flag |= POSE_RECALC;	// sort pose channels
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);	// and all its relations
 	}
@@ -836,7 +849,7 @@ void add_constraint(int only_IK)
 	allqueue (REDRAWBUTSOBJECT, 0);
 	allqueue (REDRAWOOPS, 0);
 	
-	if(only_IK)
+	if (only_IK)
 		BIF_undo_push("Add IK Constraint");
 	else
 		BIF_undo_push("Add Constraint");

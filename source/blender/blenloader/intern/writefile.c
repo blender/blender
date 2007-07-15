@@ -707,10 +707,13 @@ static void write_constraints(WriteData *wd, ListBase *conlist)
 				bPythonConstraint *data = (bPythonConstraint*) con->data;
 				writestruct(wd, DATA, "bPythonConstraint", 1, data);
 				
-				/*Write ID Properties -- and copy this comment EXACTLY for easy finding
+				/* Write ID Properties -- and copy this comment EXACTLY for easy finding
 				 of library blocks that implement this.*/
 				IDP_WriteProperty(data->prop, wd);
 			}
+			break;
+		case CONSTRAINT_TYPE_CHILDOF:
+			writestruct(wd, DATA, "bChildOfConstraint", 1, con->data);
 			break;
 		case CONSTRAINT_TYPE_TRACKTO:
 			writestruct(wd, DATA, "bTrackToConstraint", 1, con->data);
@@ -780,6 +783,7 @@ static void write_pose(WriteData *wd, bPose *pose)
 		/* prevent crashes with autosave, when a bone duplicated in editmode has not yet been assigned to its posechannel */
 		if (chan->bone) 
 			chan->selectflag= chan->bone->flag & (BONE_SELECTED|BONE_ACTIVE); /* gets restored on read, for library armatures */
+		
 		writestruct(wd, DATA, "bPoseChannel", 1, chan);
 	}
 

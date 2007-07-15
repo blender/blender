@@ -221,6 +221,7 @@ void Mat3TransMulVecfl(float mat[][3], float *vec);
 void VecUpMat3old(float *vec, float mat[][3], short axis);
 void VecUpMat3(float *vec, float mat[][3], short axis);
 void VecRotToMat3(float *vec, float phi, float mat[][3]);
+void VecRotToMat4(float *vec, float phi, float mat[][4]);
 
 void VecCopyf(float *v1, float *v2);
 int VecLen(int *v1, int *v2);
@@ -325,6 +326,7 @@ void i_rotate(float angle, char axis, float mat[][4]);
 
 void MinMax3(float *min, float *max, float *vec);
 void SizeToMat3(float *size, float mat[][3]);
+void SizeToMat4(float *size, float mat[][4]);
 
 void printmatrix3(char *str, float m[][3]);
 void printmatrix4(char *str, float m[][4]);

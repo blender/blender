@@ -1633,21 +1633,21 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 				bLocateLikeConstraint *data;
 				data= ((bLocateLikeConstraint*)con->data);
 				data->tar = newlibadr(fd, id->lib, data->tar);
-			};
+			}
 			break;
 		case CONSTRAINT_TYPE_ROTLIKE:
 			{
 				bRotateLikeConstraint *data;
 				data= ((bRotateLikeConstraint*)con->data);
 				data->tar = newlibadr(fd, id->lib, data->tar);
-			};
+			}
 			break;
 		case CONSTRAINT_TYPE_SIZELIKE:
 			{
 				bSizeLikeConstraint *data;
 				data= ((bSizeLikeConstraint*)con->data);
 				data->tar = newlibadr(fd, id->lib, data->tar);
-			};
+			}
 			break;
 		case CONSTRAINT_TYPE_KINEMATIC:
 			{
@@ -1675,44 +1675,43 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 				bLockTrackConstraint *data;
 				data= ((bLockTrackConstraint*)con->data);
 				data->tar = newlibadr(fd, id->lib, data->tar);
-			};
+			}
 			break;
 		case CONSTRAINT_TYPE_FOLLOWPATH:
 			{
 				bFollowPathConstraint *data;
 				data= ((bFollowPathConstraint*)con->data);
 				data->tar = newlibadr(fd, id->lib, data->tar);
-			};
-			break;
-		case CONSTRAINT_TYPE_DISTANCELIMIT:
-			{
-				bDistanceLimitConstraint *data;
-				data= ((bDistanceLimitConstraint*)con->data);
-				data->tar = newlibadr(fd, id->lib, data->tar);
-			};
+			}
 			break;
 		case CONSTRAINT_TYPE_STRETCHTO:
 			{
 				bStretchToConstraint *data;
 				data= ((bStretchToConstraint*)con->data);
 				data->tar = newlibadr(fd, id->lib, data->tar);
-			};
+			}
 			break;
 		case CONSTRAINT_TYPE_RIGIDBODYJOINT:
 			{
 				bRigidBodyJointConstraint *data;
 				data= ((bRigidBodyJointConstraint*)con->data);
 				data->tar = newlibadr(fd, id->lib, data->tar);
-			};
+			}
 			break;
 		case CONSTRAINT_TYPE_CLAMPTO:
 			{
 				bClampToConstraint *data;
 				data= ((bClampToConstraint*)con->data);
 				data->tar = newlibadr(fd, id->lib, data->tar);
-			};
+			}
 			break;
-
+		case CONSTRAINT_TYPE_CHILDOF:
+			{
+				bChildOfConstraint *data;
+				data= ((bChildOfConstraint*)con->data);
+				data->tar = newlibadr(fd, id->lib, data->tar);
+			}
+			break;
 		case CONSTRAINT_TYPE_NULL:
 			break;
 		}
@@ -6481,6 +6480,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if(main->versionfile <= 244) {
 		Scene *sce;
 		bScreen *sc;
+		Object *ob;
 
 		if(main->versionfile != 244 || main->subversionfile < 2) {
 			Mesh *me;
@@ -6525,6 +6525,91 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						}
 					}
 					sa = sa->next;
+				}
+			}
+		}
+		if (main->subversionfile < 3) {
+			for(ob = main->object.first; ob; ob= ob->id.next) {
+				ListBase *list;
+				list = &ob->constraints;
+				float temp_size[3];
+
+				/* fix up constraints due to constraint recode changes */
+				if (list) {
+					bConstraint *curcon;
+					for (curcon = list->first; curcon; curcon=curcon->next) {
+						/* old CONSTRAINT_LOCAL check -> convert to CONSTRAINT_SPACE_LOCAL */
+						if (curcon->flag & 0x20) {
+							curcon->ownspace = CONSTRAINT_SPACE_LOCAL;
+							curcon->tarspace = CONSTRAINT_SPACE_LOCAL;
+						}
+						
+						switch (curcon->type) {
+							case CONSTRAINT_TYPE_ACTION:
+							{
+								bActionConstraint *data= (bActionConstraint *)curcon->data;
+								
+								if (data->local)
+									curcon->tarspace = CONSTRAINT_SPACE_LOCAL;
+							}							
+								break;
+							case CONSTRAINT_TYPE_LOCLIMIT:
+							{
+								bLocLimitConstraint *data= (bLocLimitConstraint *)curcon->data;
+								
+								if (data->flag2) {
+									curcon->ownspace = CONSTRAINT_SPACE_LOCAL;
+									curcon->ownspace = CONSTRAINT_SPACE_LOCAL;
+								}
+							}
+								break;
+						}	
+					}
+				}
+				
+				/* correctly initialise constinv matrix */
+				Mat4One(ob->constinv);
+
+				if (ob->type == OB_ARMATURE) {
+					if (ob->pose) {
+						bConstraint *curcon;
+						bPoseChannel *pchan;
+						
+						for (pchan = ob->pose->chanbase.first; pchan; pchan=pchan->next) {
+							/* make sure constraints are all up to date */
+							for (curcon = pchan->constraints.first; curcon; curcon=curcon->next) {
+								/* old CONSTRAINT_LOCAL check -> convert to CONSTRAINT_SPACE_LOCAL */
+								if (curcon->flag & 0x20) {
+									curcon->ownspace = CONSTRAINT_SPACE_LOCAL;
+									curcon->tarspace = CONSTRAINT_SPACE_LOCAL;
+								}
+								
+								switch (curcon->type) {
+									case CONSTRAINT_TYPE_ACTION:
+									{
+										bActionConstraint *data= (bActionConstraint *)curcon->data;
+										
+										if (data->local)
+											curcon->tarspace = CONSTRAINT_SPACE_LOCAL;
+									}							
+										break;
+									case CONSTRAINT_TYPE_LOCLIMIT:
+									{
+										bLocLimitConstraint *data= (bLocLimitConstraint *)curcon->data;
+										
+										if (data->flag2) {
+											curcon->ownspace = CONSTRAINT_SPACE_LOCAL;
+											curcon->ownspace = CONSTRAINT_SPACE_LOCAL;
+										}
+									}
+										break;
+								}
+							}
+							
+							/* correctly initialise constinv matrix */
+							Mat4One(pchan->constinv);
+						}
+					}
 				}
 			}
 		}
@@ -6923,13 +7008,15 @@ static void expand_constraints(FileData *fd, Main *mainvar, ListBase *lb)
 
 	for (curcon=lb->first; curcon; curcon=curcon->next) {
 		switch (curcon->type) {
+		case CONSTRAINT_TYPE_NULL:
+			break;
 		case CONSTRAINT_TYPE_PYTHON:
 			{
 				bPythonConstraint *data = (bPythonConstraint*)curcon->data;
 				expand_doit(fd, mainvar, data->tar);
 				expand_doit(fd, mainvar, data->text);
-				break;
 			}
+			break;
 		case CONSTRAINT_TYPE_ACTION:
 			{
 				bActionConstraint *data = (bActionConstraint*)curcon->data;
@@ -6941,75 +7028,73 @@ static void expand_constraints(FileData *fd, Main *mainvar, ListBase *lb)
 			{
 				bLocateLikeConstraint *data = (bLocateLikeConstraint*)curcon->data;
 				expand_doit(fd, mainvar, data->tar);
-				break;
 			}
+			break;
 		case CONSTRAINT_TYPE_ROTLIKE:
 			{
 				bRotateLikeConstraint *data = (bRotateLikeConstraint*)curcon->data;
 				expand_doit(fd, mainvar, data->tar);
-				break;
 			}
+			break;
 		case CONSTRAINT_TYPE_SIZELIKE:
 			{
 				bSizeLikeConstraint *data = (bSizeLikeConstraint*)curcon->data;
 				expand_doit(fd, mainvar, data->tar);
-				break;
 			}
+			break;
 		case CONSTRAINT_TYPE_KINEMATIC:
 			{
 				bKinematicConstraint *data = (bKinematicConstraint*)curcon->data;
 				expand_doit(fd, mainvar, data->tar);
-				break;
 			}
+			break;
 		case CONSTRAINT_TYPE_TRACKTO:
 			{
 				bTrackToConstraint *data = (bTrackToConstraint*)curcon->data;
 				expand_doit(fd, mainvar, data->tar);
-				break;
 			}
+			break;
 		case CONSTRAINT_TYPE_MINMAX:
 			{
 				bMinMaxConstraint *data = (bMinMaxConstraint*)curcon->data;
 				expand_doit(fd, mainvar, data->tar);
-				break;
 			}
+			break;
 		case CONSTRAINT_TYPE_LOCKTRACK:
 			{
 				bLockTrackConstraint *data = (bLockTrackConstraint*)curcon->data;
 				expand_doit(fd, mainvar, data->tar);
-				break;
 			}
+			break;
 		case CONSTRAINT_TYPE_FOLLOWPATH:
 			{
 				bFollowPathConstraint *data = (bFollowPathConstraint*)curcon->data;
 				expand_doit(fd, mainvar, data->tar);
-				break;
 			}
-		case CONSTRAINT_TYPE_DISTANCELIMIT:
-			{
-				bDistanceLimitConstraint *data = (bDistanceLimitConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->tar);
-				break;
-			}
+			break;
 		case CONSTRAINT_TYPE_STRETCHTO:
 			{
 				bStretchToConstraint *data = (bStretchToConstraint*)curcon->data;
 				expand_doit(fd, mainvar, data->tar);
-				break;
 			}
+			break;
 		case CONSTRAINT_TYPE_RIGIDBODYJOINT:
 			{
 				bRigidBodyJointConstraint *data = (bRigidBodyJointConstraint*)curcon->data;
 				expand_doit(fd, mainvar, data->tar);
-				break;
 			}
+			break;
 		case CONSTRAINT_TYPE_CLAMPTO:
 			{
 				bClampToConstraint *data = (bClampToConstraint*)curcon->data;
 				expand_doit(fd, mainvar, data->tar);
-				break;
 			}
-		case CONSTRAINT_TYPE_NULL:
+			break;
+		case CONSTRAINT_TYPE_CHILDOF:
+			{
+				bChildOfConstraint *data = (bChildOfConstraint*)curcon->data;
+				expand_doit(fd, mainvar, data->tar);
+			}
 			break;
 		default:
 			break;

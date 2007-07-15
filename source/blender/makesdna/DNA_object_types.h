@@ -115,7 +115,8 @@ typedef struct Object {
 	float rot[3], drot[3];
 	float quat[4], dquat[4];
 	float obmat[4][4];
-	float parentinv[4][4];
+	float parentinv[4][4]; /* inverse result of parent, so that object doesn't 'stick' to parent */
+	float constinv[4][4]; /* inverse result of constraints. doesn't include effect of parent or object local transform */
 	float imat[4][4];	/* for during render, old game engine, temporally: ipokeys of transform  */
 	
 	unsigned int lay;				/* copy of Base */

@@ -511,6 +511,7 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 {
 	Bone *bone= pchan->bone;
 	float pmat[3][3], omat[3][3];
+	float lmat[3][3], tmat[3][3];
 	float vec[3];
 
 	VECCOPY(vec, pchan->pose_mat[3]);
@@ -530,21 +531,18 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 	QUATCOPY(td->ext->iquat, pchan->quat);
 	VECCOPY(td->ext->isize, pchan->size);
 
-	/* proper way to get the parent transform + own transform */
+	/* matrix to convert from dataspace to worldspace is
+	 *	world_mat = obmat * (pose_mat - chan_mat)
+	 */
 	Mat3CpyMat4(omat, ob->obmat);
-	if(pchan->parent) {
-		if(pchan->bone->flag & BONE_HINGE)
-			Mat3CpyMat4(pmat, pchan->parent->bone->arm_mat);
-		else
-			Mat3CpyMat4(pmat, pchan->parent->pose_mat);
-			
-		Mat3MulSerie(td->mtx, pchan->bone->bone_mat, pmat, omat, 0,0,0,0,0);	// dang mulserie swaps args
-	}
-	else {
-		Mat3MulMat3(td->mtx, omat, pchan->bone->bone_mat);	// huh, transposed?
-	}
 	
-	Mat3Inv (td->smtx, td->mtx);
+	Mat3CpyMat4(tmat, pchan->chan_mat);
+	Mat3Inv(lmat, tmat);
+	Mat3CpyMat4(pmat, pchan->pose_mat);
+	Mat3MulMat3(tmat, lmat, pmat); // argh... order of args is reversed 
+	Mat3MulMat3(td->mtx, omat, pmat);
+		
+	Mat3Inv(td->smtx, td->mtx);
 	
 	/* for axismat we use bone's own transform */
 	Mat3CpyMat4(pmat, pchan->pose_mat);
@@ -2046,28 +2044,12 @@ static void ipokey_to_transdata(IpoKey *ik, TransData *td)
 static void ObjectToTransData(TransData *td, Object *ob) 
 {
 	float obmtx[3][3];
-	Object *tr;
-	void *cfirst, *clast;
 
-	/* set axismtx BEFORE clearing constraints to have the real orientation */
+	/* axismtx has the real orientation */
 	Mat3CpyMat4(td->axismtx, ob->obmat);
 	Mat3Ortho(td->axismtx);
 
-	/* then why are constraints and track disabled here? 
-		they dont alter loc/rot/size itself (ton) */
-	cfirst = ob->constraints.first;
-	clast = ob->constraints.last;
-	ob->constraints.first=ob->constraints.last=NULL;
-
-	tr= ob->track;
-	ob->track= NULL;
-
 	where_is_object(ob);
-
-	ob->track= tr;
-
-	ob->constraints.first = cfirst;
-	ob->constraints.last = clast;
 
 	td->ob = ob;
 
@@ -2084,11 +2066,11 @@ static void ObjectToTransData(TransData *td, Object *ob)
 
 	VECCOPY(td->center, ob->obmat[3]);
 
-	if (ob->parent)
+	if (ob->parent || ob->track || ob->constraints.first)
 	{
 		float totmat[3][3], obinv[3][3];
 		
-		/* we calculate smtx without obmat: so a parmat */
+		/* get the effect of parenting, and/or tracking, and/or constraints */
 		object_to_mat3(ob, obmtx);
 		Mat3CpyMat4(totmat, ob->obmat);
 		Mat3Inv(obinv, totmat);

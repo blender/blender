@@ -772,6 +772,7 @@ Object *add_only_object(int type, char *name)
 	ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0;
 	ob->size[0]= ob->size[1]= ob->size[2]= 1.0;
 
+	Mat4One(ob->constinv);
 	Mat4One(ob->parentinv);
 	Mat4One(ob->obmat);
 	ob->dt= OB_SHADED;
@@ -1560,9 +1561,18 @@ void where_is_object_time(Object *ob, float ctime)
 		
 	}
 
-	/* constraints need ctime, not stime. it calls where_is_object_time and bsystem_time */
-	solve_constraints (ob, TARGET_OBJECT, NULL, ctime);
-
+	/* solve constraints */
+	if (ob->constraints.first) {
+		bConstraintOb *cob;
+		
+		cob= constraints_make_evalob(ob, NULL, TARGET_OBJECT);
+		
+		/* constraints need ctime, not stime. Some call where_is_object_time and bsystem_time */
+		solve_constraints (&ob->constraints, cob, ctime);
+		
+		constraints_clear_evalob(cob);
+	}
+	
 	if(ob->scriptlink.totscript && !during_script()) {
 		if (G.f & G_DOSCRIPTLINKS) BPY_do_pyscript((ID *)ob, SCRIPT_REDRAW);
 	}
@@ -1728,122 +1738,17 @@ for a lamp that is the child of another object */
 	if(ob->track) 
 		solve_tracking(ob, ob->track->obmat);
 
-	solve_constraints(ob, TARGET_OBJECT, NULL, G.scene->r.cfra);
+	/* solve constraints */
+	if (ob->constraints.first) {
+		bConstraintOb *cob;
+		
+		cob= constraints_make_evalob(ob, NULL, TARGET_OBJECT);
+		solve_constraints (&ob->constraints, cob, G.scene->r.cfra);
+		constraints_clear_evalob(cob);
+	}
 	
 	/*  WATCH IT!!! */
 	ob->ipo= ipo;
-	
-}
-
-void solve_constraints (Object *ob, short obtype, void *obdata, float ctime)
-{
-	bConstraint *con;
-	float tmat[4][4], focusmat[4][4], lastmat[4][4];
-	int i, clear=1, tot=0;
-	float	a=0;
-	float	aquat[4], quat[4];
-	float	aloc[3], loc[3];
-	float	asize[3], size[3];
-	float	oldmat[4][4];
-	float	smat[3][3], rmat[3][3], mat[3][3];
-	float enf;
-
-	for (con = ob->constraints.first; con; con=con->next) {
-		// inverse kinematics is solved seperate 
-		if (con->type==CONSTRAINT_TYPE_KINEMATIC) continue;
-		// and this we can skip completely
-		if (con->flag & CONSTRAINT_DISABLE) continue;
-		// local constraints are handled in armature.c only 
-		if (con->flag & CONSTRAINT_LOCAL) continue;
-
-		/* Clear accumulators if necessary*/
-		if (clear) {
-			clear= 0;
-			a= 0;
-			tot= 0;
-			memset(aquat, 0, sizeof(float)*4);
-			memset(aloc, 0, sizeof(float)*3);
-			memset(asize, 0, sizeof(float)*3);
-		}
-		
-		enf = con->enforce;	// value from ipos (from action channels)
-
-		/* Get the targetmat */
-		get_constraint_target_matrix(con, obtype, obdata, tmat, size, ctime);
-		
-		Mat4CpyMat4(focusmat, tmat);
-		
-		/* Extract the components & accumulate */
-		Mat4ToQuat(focusmat, quat);
-		VECCOPY(loc, focusmat[3]);
-		Mat3CpyMat4(mat, focusmat);
-		Mat3ToSize(mat, size);
-		
-		a+= enf;
-		tot++;
-		
-		for(i=0; i<3; i++) {
-			aquat[i+1]+=(quat[i+1]) * enf;
-			aloc[i]+=(loc[i]) * enf;
-			asize[i]+=(size[i]-1.0f) * enf;
-		}
-		aquat[0]+=(quat[0])*enf;
-		Mat4CpyMat4(lastmat, focusmat);
-		
-		/* removed for now, probably becomes option? (ton) */
-		
-		/* If the next constraint is not the same type (or there isn't one),
-		 *	then evaluate the accumulator & request a clear */
-		if (TRUE) { //(!con->next)||(con->next && con->next->type!=con->type)) {
-			clear= 1;
-			Mat4CpyMat4(oldmat, ob->obmat);
-
-			/*	If we have several inputs, do a blend of them */
-			if (tot) {
-				if (tot>1) {
-					if (a) {
-						for (i=0; i<3; i++) {
-							asize[i]=1.0f + (asize[i]/(a));
-							aloc[i]=(aloc[i]/a);
-						}
-						
-						NormalQuat(aquat);
-						
-						QuatToMat3(aquat, rmat);
-						SizeToMat3(asize, smat);
-						Mat3MulMat3(mat, rmat, smat);
-						Mat4CpyMat3(focusmat, mat);
-						VECCOPY(focusmat[3], aloc);
-
-						evaluate_constraint(con, ob, obtype, obdata, focusmat);
-					}
-					
-				}	
-				/* If we only have one, blend with the current obmat */
-				else {
-					float solution[4][4];
-					float delta[4][4];
-					float imat[4][4];
-					float identity[4][4];
-					
-					/* solve the constraint then blend it to the previous one */
-					evaluate_constraint(con, ob, obtype, obdata, lastmat);
-					
-					Mat4CpyMat4 (solution, ob->obmat);
-					
-					/* Interpolate the enforcement */					
-					Mat4Invert (imat, oldmat);
-					Mat4MulMat4 (delta, solution, imat);
-					
-					if (a<1.0) {
-						Mat4One(identity);
-						Mat4BlendMat4(delta, identity, delta, a);
-					}
-					Mat4MulMat4 (ob->obmat, delta, oldmat);
-				}
-			}
-		}
-	}	
 }
 
 /* for calculation of the inverse parent transform, only used for editor */
@@ -1853,6 +1758,7 @@ void what_does_parent(Object *ob)
 	clear_workob();
 	Mat4One(workob.obmat);
 	Mat4One(workob.parentinv);
+	Mat4One(workob.constinv);
 	workob.parent= ob->parent;
 	workob.track= ob->track;
 

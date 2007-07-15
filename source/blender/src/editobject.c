@@ -1400,7 +1400,7 @@ void make_parent(void)
 			while(base) {
 				if TESTBASELIB(base) {
 					if(base!=BASACT) {
-						float cmat[4][4], vec[3], size[3];
+						float cmat[4][4], vec[3];
 
 						con = add_new_constraint(CONSTRAINT_TYPE_FOLLOWPATH);
 						strcpy (con->name, "AutoPath");
@@ -1410,7 +1410,7 @@ void make_parent(void)
 
 						add_constraint_to_object(con, base->object);
 
-						get_constraint_target_matrix(con, TARGET_OBJECT, NULL, cmat, size, G.scene->r.cfra - base->object->sf);
+						get_constraint_target_matrix(con, TARGET_OBJECT, NULL, cmat, G.scene->r.cfra - base->object->sf);
 						VecSubf(vec, base->object->obmat[3], cmat[3]);
 
 						base->object->loc[0] = vec[0];
@@ -1423,7 +1423,7 @@ void make_parent(void)
 
 			allqueue(REDRAWVIEW3D, 0);
 			DAG_scene_sort(G.scene);
-			BIF_undo_push("make Parent");
+			BIF_undo_push("Make Parent");
 			return;
 		}
 	}

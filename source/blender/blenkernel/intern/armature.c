@@ -1321,7 +1321,7 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 	float goalrot[3][3], goalpos[3];
 	float rootmat[4][4], imat[4][4];
 	float goal[4][4], goalinv[4][4];
-	float size[3], irest_basis[3][3], full_basis[3][3];
+	float irest_basis[3][3], full_basis[3][3];
 	float end_pose[4][4], world_pose[4][4];
 	float length, basis[3][3], rest_basis[3][3], start[3], *ikstretch=NULL;
 	int a, flag, hasstretch=0;
@@ -1444,7 +1444,7 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 		data= (bKinematicConstraint*)target->con->data;
 
 		/* 1.0=ctime, we pass on object for auto-ik */
-		get_constraint_target_matrix(target->con, TARGET_BONE, ob, rootmat, size, 1.0);
+		get_constraint_target_matrix(target->con, TARGET_BONE, ob, rootmat, 1.0);
 
 		/* and set and transform goal */
 		Mat4MulMat4(goal, rootmat, goalinv);
@@ -1603,211 +1603,7 @@ static void where_is_ik_bone(bPoseChannel *pchan, float ik_mat[][3])   // nr = t
 	pchan->flag |= POSE_DONE;
 }
 
-static void do_local_constraint(bPoseChannel *pchan, bConstraint *con)
-{
-	switch(con->type) {
-		case CONSTRAINT_TYPE_LOCLIKE:
-		{
-			bLocateLikeConstraint *data= con->data;
-			float fac= con->enforce;
-			
-			if(data->tar && data->subtarget[0]) {
-				bPoseChannel *pchant= get_pose_channel(data->tar->pose, data->subtarget);
-				if(pchant) {
-					float loc[3];
-					
-					/* copy location of tip of bone? */
-					if (data->flag & LOCLIKE_TIP) {
-						float mat[4][4], tmat[4][4];
-						
-						Mat4One(tmat);
-						VECCOPY(tmat[3], pchant->pose_tail);
-						
-						armature_mat_pose_to_delta(mat, tmat, pchant->bone->arm_mat);
-						VECCOPY(loc, mat[3]);
-					}
-					else
-						VECCOPY(loc, pchant->loc);
-					
-					/* do offsets? */
-					if (data->flag & LOCLIKE_OFFSET)
-						VecAddf(loc, loc, pchan->loc);
-					
-					if (data->flag & LOCLIKE_X)
-						pchan->loc[0]= FloatLerpf(loc[0], pchan->loc[0], fac);
-					if (data->flag & LOCLIKE_Y)
-						pchan->loc[1]= FloatLerpf(loc[1], pchan->loc[1], fac);
-					if (data->flag & LOCLIKE_Z)
-						pchan->loc[2]= FloatLerpf(loc[2], pchan->loc[2], fac);
-					if (data->flag & LOCLIKE_X_INVERT)
-						pchan->loc[0]= FloatLerpf(pchant->loc[0], pchan->loc[0], -fac);
-					if (data->flag & LOCLIKE_Y_INVERT)
-						pchan->loc[1]= FloatLerpf(pchant->loc[1], pchan->loc[1], -fac);
-					if (data->flag & LOCLIKE_Z_INVERT)
-						pchan->loc[2]= FloatLerpf(pchant->loc[2], pchan->loc[2], -fac);
-				}
-			}
-		}
-			break;
-		case CONSTRAINT_TYPE_ROTLIKE:
-		{
-			bRotateLikeConstraint *data= con->data;
-			if(data->tar && data->subtarget[0]) {
-				bPoseChannel *pchant= get_pose_channel(data->tar->pose, data->subtarget);
-				if(pchant) {
-					if(data->flag != (ROTLIKE_X|ROTLIKE_Y|ROTLIKE_Z)) {
-						float eul[3], eult[3], euln[3];
-						float fac= con->enforce;
-						
-						QuatToEul(pchan->quat, eul);
-						QuatToEul(pchant->quat, eult);
-						VECCOPY(euln, eul);
-						
-						if(data->flag & ROTLIKE_X) euln[0]= FloatLerpf(eult[0], eul[0], fac); 
-						if(data->flag & ROTLIKE_Y) euln[1]= FloatLerpf(eult[1], eul[1], fac);
-						if(data->flag & ROTLIKE_Z) euln[2]= FloatLerpf(eult[2], eul[2], fac);
-						if(data->flag & ROTLIKE_X_INVERT) euln[0]= FloatLerpf(eult[0], eul[0], -fac); 
-						if(data->flag & ROTLIKE_Y_INVERT) euln[1]= FloatLerpf(eult[1], eul[1], -fac);
-						if(data->flag & ROTLIKE_Z_INVERT) euln[2]= FloatLerpf(eult[2], eul[2], -fac);
-						
-						compatible_eul(eul, euln);
-						EulToQuat(euln, pchan->quat);
-					}
-					else {
-						QuatInterpol(pchan->quat, pchan->quat, pchant->quat, con->enforce);
-					}
-				}
-			}
-		}
-			break;
-		case CONSTRAINT_TYPE_SIZELIKE:
-		{
-			bSizeLikeConstraint *data= con->data;
-			float fac= con->enforce;
-			
-			if(data->tar && data->subtarget[0]) {
-				bPoseChannel *pchant= get_pose_channel(data->tar->pose, data->subtarget);
-				if(pchant) {
-					if (data->flag & SIZELIKE_X)
-						pchan->size[0]= FloatLerpf(pchant->size[0], pchan->size[0], fac);
-					if (data->flag & SIZELIKE_Y)
-						pchan->size[1]= FloatLerpf(pchant->size[1], pchan->size[1], fac);
-					if (data->flag & SIZELIKE_Z)
-						pchan->size[2]= FloatLerpf(pchant->size[2], pchan->size[2], fac);
-				}
-			}
-		}
-			break;
-		case CONSTRAINT_TYPE_LOCLIMIT:
-		{
-			bLocLimitConstraint *data= con->data;
-			float fac= con->enforce;
-			
-			if (data->flag & LIMIT_XMIN) {
-				if(pchan->loc[0] < data->xmin)
-					pchan->loc[0] = FloatLerpf(data->xmin, pchan->loc[0], fac);
-			}
-			if (data->flag & LIMIT_XMAX) {
-				if (pchan->loc[0] > data->xmax)
-					pchan->loc[0] = FloatLerpf(data->xmax, pchan->loc[0], fac);
-			}
-			if (data->flag & LIMIT_YMIN) {
-				if(pchan->loc[1] < data->ymin)
-					pchan->loc[1] = FloatLerpf(data->ymin, pchan->loc[1], fac);
-			}
-			if (data->flag & LIMIT_YMAX) {
-				if (pchan->loc[1] > data->ymax)
-					pchan->loc[1] = FloatLerpf(data->ymax, pchan->loc[1], fac);
-			}
-			if (data->flag & LIMIT_ZMIN) {
-				if(pchan->loc[2] < data->zmin)
-					pchan->loc[2] = FloatLerpf(data->zmin, pchan->loc[2], fac);
-			}
-			if (data->flag & LIMIT_ZMAX) {
-				if (pchan->loc[2] > data->zmax)
-					pchan->loc[2] = FloatLerpf(data->zmax, pchan->loc[2], fac);
-			}
-		}	
-			break;
-		case CONSTRAINT_TYPE_ROTLIMIT:
-		{
-			bRotLimitConstraint *data = con->data;
-			float eul[3];
-			float fac= con->enforce;
-			
-			QuatToEul(pchan->quat, eul);
-			
-			/* eulers: radians to degrees! */
-			eul[0] = (eul[0] / (2*M_PI) * 360);
-			eul[1] = (eul[1] / (2*M_PI) * 360);
-			eul[2] = (eul[2] / (2*M_PI) * 360);
-			
-			/* limiting of euler values... */
-			if (data->flag & LIMIT_XROT) {
-				if (eul[0] < data->xmin) 
-					eul[0] = FloatLerpf(data->xmin, eul[0], fac);
-					
-				if (eul[0] > data->xmax)
-					eul[0] = FloatLerpf(data->xmax, eul[0], fac);
-			}
-			if (data->flag & LIMIT_YROT) {
-				if (eul[1] < data->ymin)
-					eul[1] = FloatLerpf(data->ymin, eul[1], fac);
-					
-				if (eul[1] > data->ymax)
-					eul[1] = FloatLerpf(data->ymax, eul[1], fac);
-			}
-			if (data->flag & LIMIT_ZROT) {
-				if (eul[2] < data->zmin)
-					eul[2] = FloatLerpf(data->zmin, eul[2], fac);
-					
-				if (eul[2] > data->zmax)
-					eul[2] = FloatLerpf(data->zmax, eul[2], fac);
-			}
-				
-			/* eulers: degrees to radians ! */
-			eul[0] = (eul[0] / 360 * (2*M_PI)); 
-			eul[1] = (eul[1] / 360 * (2*M_PI));
-			eul[2] = (eul[2] / 360 * (2*M_PI));
-			
-			/* convert back */
-			EulToQuat(eul, pchan->quat);
-		}
-			break;
-		case CONSTRAINT_TYPE_SIZELIMIT:
-		{
-			bSizeLimitConstraint *data= con->data;
-			float fac= con->enforce;
-			
-			if (data->flag & LIMIT_XMIN) {
-				if(pchan->size[0] < data->xmin)
-					pchan->size[0] = FloatLerpf(data->xmin, pchan->size[0], fac);
-			}
-			if (data->flag & LIMIT_XMAX) {
-				if (pchan->size[0] > data->xmax)
-					pchan->size[0] = FloatLerpf(data->xmax, pchan->size[0], fac);
-			}
-			if (data->flag & LIMIT_YMIN) {
-				if(pchan->size[1] < data->ymin)
-					pchan->size[1] = FloatLerpf(data->ymin, pchan->size[1], fac);
-			}
-			if (data->flag & LIMIT_YMAX) {
-				if (pchan->size[1] > data->ymax)
-					pchan->size[1] = FloatLerpf(data->ymax, pchan->size[1], fac);
-			}
-			if (data->flag & LIMIT_ZMIN) {
-				if(pchan->size[2] < data->zmin)
-					pchan->size[2] = FloatLerpf(data->zmin, pchan->size[2], fac);
-			}
-			if (data->flag & LIMIT_ZMAX) {
-				if (pchan->size[2] > data->zmax)
-					pchan->size[2] = FloatLerpf(data->zmax, pchan->size[2], fac);
-			}
-		}
-			break;
-	}
-}
-
+/* NLA strip modifiers */
 static void do_strip_modifiers(Object *armob, Bone *bone, bPoseChannel *pchan)
 {
 	bActionModifier *amod;
@@ -1906,31 +1702,15 @@ static void where_is_pose_bone(Object *ob, bPoseChannel *pchan, float ctime)
 {
 	Bone *bone, *parbone;
 	bPoseChannel *parchan;
-	float vec[3], quat[4];
-	int did_local= 0;	/* copying quaternion should be limited, chan_calc_mat() normalizes quat */
+	float vec[3];
 	
 	/* set up variables for quicker access below */
 	bone= pchan->bone;
 	parbone= bone->parent;
 	parchan= pchan->parent;
-		
-	/* Do local constraints, these only work on the channel data (loc rot size) */
-	QUATCOPY(quat, pchan->quat);
-	if(pchan->constraints.first) {
-		bConstraint *con;
-		for(con=pchan->constraints.first; con; con= con->next) {
-			if(con->flag & CONSTRAINT_LOCAL) {
-				do_local_constraint(pchan, con);
-				did_local= 1;
-			}
-		}
-	}
 	
 	/* this gives a chan_mat with actions (ipos) results */
 	chan_calc_mat(pchan);
-	
-	if(did_local) 
-		QUATCOPY(pchan->quat, quat);	/* local constraint hack. bad! */
 	
 	/* construct the posemat based on PoseChannels, that we do before applying constraints */
 	/* pose_mat(b)= pose_mat(b-1) * yoffs(b-1) * d_root(b) * bone_mat(b) * chan_mat(b) */
@@ -1970,44 +1750,33 @@ static void where_is_pose_bone(Object *ob, bPoseChannel *pchan, float ctime)
 		VecAddf(pchan->pose_mat[3], pchan->pose_mat[3], ob->pose->cyclic_offset);
 	}
 	
+	/* do NLA strip modifiers - i.e. curve follow */
 	do_strip_modifiers(ob, bone, pchan);
 	
 	/* Do constraints */
-	if(pchan->constraints.first) {
-		static Object conOb;
-		static int initialized= 0;
+	if (pchan->constraints.first) {
+		bConstraintOb *cob;
 		
+		/* make a copy of location of PoseChannel for later */
 		VECCOPY(vec, pchan->pose_mat[3]);
 		
-		/* Build a workob to pass the bone to the constraint solver */
-		if(initialized==0) {
-			memset(&conOb, 0, sizeof(Object));
-			initialized= 1;
-		}
-		conOb.size[0]= conOb.size[1]= conOb.size[2]= 1.0;
-		conOb.data = ob->data;
-		conOb.type = ob->type;
-		conOb.parent = ob;	// ik solver retrieves the armature that way !?!?!?!
-		conOb.pose= ob->pose;				// needed for retrieving pchan
-		conOb.trackflag = ob->trackflag;
-		conOb.upflag = ob->upflag;
+		/* prepare PoseChannel for Constraint solving 
+		 * - makes a copy of matrix, and creates temporary struct to use 
+		 */
+		cob= constraints_make_evalob(ob, pchan, TARGET_BONE);
 		
-		/* Collect the constraints from the pose (listbase copy) */
-		conOb.constraints = pchan->constraints;
+		/* Solve PoseChannel's Constraints */
+		solve_constraints(&pchan->constraints, cob, ctime);	// ctime doesnt alter objects
 		
-		/* conOb.obmat takes bone to worldspace */
-		Mat4MulMat4 (conOb.obmat, pchan->pose_mat, ob->obmat);
-		
-		/* Solve */
-		solve_constraints (&conOb, TARGET_BONE, (void*)pchan, ctime);	// ctime doesnt alter objects
-		
-		/* Take out of worldspace */
-		Mat4MulMat4 (pchan->pose_mat, conOb.obmat, ob->imat);
+		/* cleanup after Constraint Solving 
+		 * - applies matrix back to pchan, and frees temporary struct used
+		 */
+		constraints_clear_evalob(cob);
 		
 		/* prevent constraints breaking a chain */
-		if(pchan->bone->flag & BONE_CONNECTED)
+		if(pchan->bone->flag & BONE_CONNECTED) {
 			VECCOPY(pchan->pose_mat[3], vec);
-
+		}
 	}
 	
 	/* calculate head */
@@ -2016,7 +1785,6 @@ static void where_is_pose_bone(Object *ob, bPoseChannel *pchan, float ctime)
 	VECCOPY(vec, pchan->pose_mat[1]);
 	VecMulf(vec, bone->length);
 	VecAddf(pchan->pose_tail, pchan->pose_head, vec);
-	
 }
 
 /* This only reads anim data from channels, and writes to channels */

@@ -765,39 +765,22 @@ void Mat4BlendMat4(float out[][4], float dst[][4], float src[][4], float srcweig
 	float squat[4], dquat[4], fquat[4];
 	float ssize[3], dsize[3], fsize[4];
 	float sloc[3], dloc[3], floc[3];
-	float mat3[3][3], dstweight;
-	float qmat[3][3], smat[3][3];
-	int i;
-
-	dstweight = 1.0F-srcweight;
-
-	Mat3CpyMat4(mat3, dst);
-	Mat3ToQuat(mat3, dquat);
-	Mat3ToSize(mat3, dsize);
+	
+	Mat4ToQuat(dst, dquat);
+	Mat4ToSize(dst, dsize);
 	VecCopyf(dloc, dst[3]);
 
-	Mat3CpyMat4(mat3, src);
-	Mat3ToQuat(mat3, squat);
-	Mat3ToSize(mat3, ssize);
+	Mat4ToQuat(src, squat);
+	Mat4ToSize(src, ssize);
 	VecCopyf(sloc, src[3]);
 	
-	/* Do the actual blend */
-	for (i=0; i<3; i++){
-		floc[i] = (dloc[i]*dstweight) + (sloc[i]*srcweight);
-		fsize[i] = 1.0f + ((dsize[i]-1.0f)*dstweight) + ((ssize[i]-1.0f)*srcweight);
-		fquat[i+1] = (dquat[i+1]*dstweight) + (squat[i+1]*srcweight);
-	}
-	
-	/* Do one more iteration for the quaternions only and normalize the quaternion if needed */
-	fquat[0] = 1.0f + ((dquat[0]-1.0f)*dstweight) + ((squat[0]-1.0f)*srcweight);
-	NormalQuat (fquat);
+	/* do blending */
+	VecLerpf(floc, dloc, sloc, srcweight);
+	QuatInterpol(fquat, dquat, squat, srcweight);
+	VecLerpf(fsize, dsize, ssize, srcweight);
 
-	QuatToMat3(fquat, qmat);
-	SizeToMat3(fsize, smat);
-
-	Mat3MulMat3(mat3, qmat, smat);
-	Mat4CpyMat3(out, mat3);
-	VecCopyf(out[3], floc);
+	/* compose new matrix */
+	LocQuatSizeToMat4(out, floc, fquat, fsize);
 }
 
 void Mat4Clr(float *m)
@@ -2428,6 +2411,15 @@ void VecRotToMat3( float *vec, float phi, float mat[][3])
 	
 }
 
+void VecRotToMat4( float *vec, float phi, float mat[][4])
+{
+	float tmat[3][3];
+	
+	VecRotToMat3(vec, phi, tmat);
+	Mat4One(mat);
+	Mat4CpyMat3(mat, tmat);
+}
+
 void VecRotToQuat( float *vec, float phi, float *quat)
 {
 	/* rotation of phi radials around vec */
@@ -2436,7 +2428,7 @@ void VecRotToQuat( float *vec, float phi, float *quat)
 	quat[1]= vec[0];
 	quat[2]= vec[1];
 	quat[3]= vec[2];
-													   
+	
 	if( Normalize(quat+1) == 0.0) {
 		QuatOne(quat);
 	}
@@ -2612,6 +2604,15 @@ void SizeToMat3( float *size, float mat[][3])
 	mat[2][2]= size[2];
 	mat[2][1]= 0.0;
 	mat[2][0]= 0.0;
+}
+
+void SizeToMat4( float *size, float mat[][4])
+{
+	float tmat[3][3];
+	
+	SizeToMat3(size, tmat);
+	Mat4One(mat);
+	Mat4CpyMat3(mat, tmat);
 }
 
 void Mat3ToSize( float mat[][3], float *size)
@@ -3286,43 +3287,47 @@ int point_in_tri_prism(float p[3], float v1[3], float v2[3], float v3[3])
 /********************************************************/
 
 /* make a 4x4 matrix out of 3 transform components */
+/* matrices are made in the order: scale * rot * loc */
 void LocEulSizeToMat4(float mat[][4], float loc[3], float eul[3], float size[3])
 {
-	float tmat[3][3];
+	float rmat[3][3], smat[3][3], tmat[3][3];
 	
-	/* make base matrix */
-	EulToMat3(eul, tmat);
-
-	/* make new matrix */
+	/* initialise new matrix */
 	Mat4One(mat);
 	
-	mat[0][0] = tmat[0][0] * size[0];
-	mat[0][1] = tmat[0][1] * size[1];
-	mat[0][2] = tmat[0][2] * size[2];
+	/* make rotation + scaling part */
+	EulToMat3(eul, rmat);
+	SizeToMat3(size, smat);
+	Mat3MulMat3(tmat, rmat, smat);
 	
-	mat[1][0] = tmat[1][0] * size[0];
-	mat[1][1] = tmat[1][1] * size[1];
-	mat[1][2] = tmat[1][2] * size[2];
+	/* copy rot/scale part to output matrix*/
+	Mat4CpyMat3(mat, tmat);
 	
-	mat[2][0] = tmat[2][0] * size[0];
-	mat[2][1] = tmat[2][1] * size[1];
-	mat[2][2] = tmat[2][2] * size[2];
-	
+	/* copy location to matrix */
 	mat[3][0] = loc[0];
 	mat[3][1] = loc[1];
 	mat[3][2] = loc[2];
 }
 
 /* make a 4x4 matrix out of 3 transform components */
+/* matrices are made in the order: scale * rot * loc */
 void LocQuatSizeToMat4(float mat[][4], float loc[3], float quat[4], float size[3])
 {
-	float eul[3];
+	float rmat[3][3], smat[3][3], tmat[3][3];
 	
-	/* convert quaternion component to euler 
-	 * 	NOTE: not as good as using quat directly. Todo for later.
-	 */
-	QuatToEul(quat, eul);
+	/* initialise new matrix */
+	Mat4One(mat);
 	
-	/* make into matrix using exisiting code */
-	LocEulSizeToMat4(mat, loc, eul, size);
+	/* make rotation + scaling part */
+	QuatToMat3(quat, rmat);
+	SizeToMat3(size, smat);
+	Mat3MulMat3(tmat, rmat, smat);
+	
+	/* copy rot/scale part to output matrix*/
+	Mat4CpyMat3(mat, tmat);
+	
+	/* copy location to matrix */
+	mat[3][0] = loc[0];
+	mat[3][1] = loc[1];
+	mat[3][2] = loc[2];
 }
