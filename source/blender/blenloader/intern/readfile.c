@@ -6531,9 +6531,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		if (main->subversionfile < 3) {
 			for(ob = main->object.first; ob; ob= ob->id.next) {
 				ListBase *list;
-				list = &ob->constraints;
 				float temp_size[3];
-
+				list = &ob->constraints;
+				
 				/* fix up constraints due to constraint recode changes */
 				if (list) {
 					bConstraint *curcon;

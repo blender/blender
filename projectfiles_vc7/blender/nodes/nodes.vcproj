@@ -294,6 +294,9 @@
 					RelativePath="..\..\..\source\blender\nodes\intern\CMP_nodes\CMP_normal.c">
 				</File>
 				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\CMP_nodes\CMP_normalize.c">
+				</File>
+				<File
 					RelativePath="..\..\..\source\blender\nodes\intern\CMP_nodes\CMP_outputFile.c">
 				</File>
 				<File
