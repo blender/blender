@@ -837,10 +837,10 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				
 				/* Inverse options */
 				uiBlockBeginAlign(block);
-				but=uiDefBut(block, BUT, B_CONSTRAINT_TEST, "Set Inverse", *xco, *yco-151, (width/2),18, NULL, 0, 24, 0, 0, "Calculate current Parent-Inverse Matrix");
+				but=uiDefBut(block, BUT, B_CONSTRAINT_TEST, "Set Offset", *xco, *yco-151, (width/2),18, NULL, 0, 24, 0, 0, "Calculate current Parent-Inverse Matrix (i.e. restore offset from parent)");
 				uiButSetFunc(but, childof_const_setinv, data, NULL);
 				
-				but=uiDefBut(block, BUT, B_CONSTRAINT_TEST, "Clear Inverse", *xco+((width/2)+10), *yco-151, (width/2),18, NULL, 0, 24, 0, 0, "Clear Parent-Inverse Matrix");
+				but=uiDefBut(block, BUT, B_CONSTRAINT_TEST, "Clear Offset", *xco+((width/2)+10), *yco-151, (width/2),18, NULL, 0, 24, 0, 0, "Clear Parent-Inverse Matrix (i.e. clear offset from parent)");
 				uiButSetFunc(but, childof_const_clearinv, data, NULL);
 				uiBlockEndAlign(block);
 			}

@@ -3480,9 +3480,8 @@ static void build_bonestring (char *string, EditBone *bone)
 	int		index, numbones, i;
 	char (*qsort_ptr)[32] = NULL;
 
-	sprintf (string, "Parent%%t| %%x%d", -1);	/* That space is there
-												 * for a reason
-												 */
+	/* That space is there for a reason - for no parent */
+	sprintf (string, "Parent%%t| %%x%d", -1);	
 
 	numbones = BLI_countlist(&G.edbo);
 

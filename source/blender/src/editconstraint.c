@@ -276,8 +276,8 @@ static void test_constraints (Object *owner, const char* substring)
 	/* Check parents */
 	/* Get the constraint list for this object */
 	
-	if (strlen (substring)){
-		switch (owner->type){
+	if (strlen (substring)) {
+		switch (owner->type) {
 			case OB_ARMATURE:
 				type = TARGET_BONE;
 				break;
@@ -290,7 +290,7 @@ static void test_constraints (Object *owner, const char* substring)
 		type = TARGET_OBJECT;
 	
 	
-	switch (type){
+	switch (type) {
 		case TARGET_OBJECT:
 			conlist = &owner->constraints;
 			break;
@@ -308,12 +308,12 @@ static void test_constraints (Object *owner, const char* substring)
 			break;
 	}
 	
-	/* Cycle constraints */
-	if (conlist){
-		for (curcon = conlist->first; curcon; curcon=curcon->next){
+	/* Check all constraints - is constraint valid? */
+	if (conlist) {
+		for (curcon = conlist->first; curcon; curcon=curcon->next) {
 			curcon->flag &= ~CONSTRAINT_DISABLE;
 			
-			switch (curcon->type){
+			switch (curcon->type) {
 				case CONSTRAINT_TYPE_PYTHON:
 				{
 					bPythonConstraint *data = curcon->data;
@@ -952,7 +952,7 @@ void validate_pyconstraint_cb(void *arg1, void *arg2)
 	int index = *((int *)arg2);
 	int i;
 	
-	/* innovative use of a for loop to search */
+	/* innovative use of a for...loop to search */
 	for (text=G.main->text.first, i=1; text && index!=i; i++, text=text->id.next);
 	data->text = text;
 }

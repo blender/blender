@@ -1051,7 +1051,6 @@ static void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float 
 
 /* generic function to get the appropriate matrix for most target cases */
 /* The cases where the target can be object data have not been implemented */
-// TODO: add 'space' handling stuff here! 
 static void constraint_target_to_mat4 (Object *ob, const char *substring, float mat[][4], short from, short to)
 {
 	/*	Case OBJECT */
