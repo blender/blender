@@ -1001,8 +1001,8 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 		case CONSTRAINT_TYPE_TRACKTO:
 			{
 				bTrackToConstraint *data = con->data;
-
-				height = 66;
+				
+				height = 96;
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
@@ -1020,10 +1020,10 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				}
 				
 				uiBlockEndAlign(block);
-
+				
 				uiBlockBeginAlign(block);
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Align:", *xco+5, *yco-42, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, "");
-
+				
 				uiDefButBitI(block, TOG, 1, B_CONSTRAINT_TEST, "TargetZ", *xco+60, *yco-42, 50, 18, &data->flags, 0, 1, 0, 0, "Target Z axis, not world Z axis, will constrain up direction");
 				uiBlockEndAlign(block);
 
@@ -1045,6 +1045,9 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Y",	*xco+221, *yco-64,17,18, &data->reserved2, 13.0, 1.0, 0, 0, "Y axis points upward");
 				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Z",	*xco+238, *yco-64,17,18, &data->reserved2, 13.0, 2.0, 0, 0, "Z axis points upward");
 				uiBlockEndAlign(block);
+				
+				/* constraint space settings */
+				draw_constraint_spaceselect(block, con, *xco, *yco-94, is_armature_owner, is_armature_target);
 			}
 			break;
 		case CONSTRAINT_TYPE_MINMAX:
