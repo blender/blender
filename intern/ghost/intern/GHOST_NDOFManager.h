@@ -31,14 +31,7 @@
 class GHOST_NDOFManager
 {
 public:
-	/**
-	 * Constructor.
-	 */
 	GHOST_NDOFManager();
-
-	/**
-	 * Destructor.
-	 */
 	virtual ~GHOST_NDOFManager();
 
     void deviceOpen(GHOST_IWindow* window,

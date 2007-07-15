@@ -70,9 +70,6 @@ GHOST_NDOFManager::deviceOpen(GHOST_IWindow* window,
     if (ndofLibraryInit  && ndofDeviceOpen)
     {
        printf("%i client \n", ndofLibraryInit());
-		
-		m_DeviceHandle = ndofDeviceOpen((void *)&currentNdofValues);    
-		
 		#if defined(_WIN32) || defined(__APPLE__)
 			m_DeviceHandle = ndofDeviceOpen((void *)&currentNdofValues);    
 		#else

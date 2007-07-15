@@ -484,7 +484,6 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			} else {
 				/* Unknown client message, ignore */
 			}
-#endif
 			break;
 		}
 			
@@ -543,7 +542,7 @@ prepareNdofInfo(volatile GHOST_TEventNDOFData *currentNdofValues)
 {
 	const vector<GHOST_IWindow*>& v(m_windowManager->getWindows());
 	if (v.size() > 0)
-	sNdofInfo.window = static_cast<GHOST_WindowX11*>(v[0])->getXWindow();
+		sNdofInfo.window = static_cast<GHOST_WindowX11*>(v[0])->getXWindow();
 	sNdofInfo.display = m_display;
 	sNdofInfo.currValues = currentNdofValues;
 	return (void*)&sNdofInfo;
