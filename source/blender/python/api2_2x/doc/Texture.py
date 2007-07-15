@@ -59,6 +59,7 @@ Example::
 		- NEGALPHA - Reverse the alpha value
 		- CHECKER_ODD - Fill the "odd" checkerboard tiles
 		- CHECKER_EVEN - Fill the "even" checkerboard tiles
+		- COLORBAND - Enable colorband for this texture
 
 @type ImageFlags: readonly dictionary
 @var ImageFlags: The available image flags for Texture.imageFlags:
