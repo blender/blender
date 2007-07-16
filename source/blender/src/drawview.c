@@ -1019,8 +1019,8 @@ static void drawviewborder(void)
 		
 	/* camera name - draw in highlighted text colour */
 	if (ca && (ca->flag & CAM_SHOWNAME)) {
-		glRasterPos2f(x1, y1-15);
 		BIF_ThemeColor(TH_TEXT_HI);
+		glRasterPos2f(x1, y1-15);
 		
 		BMF_DrawString(G.font, G.vd->camera->id.name+2);
 		BIF_ThemeColor(TH_WIRE);
