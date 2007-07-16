@@ -1137,6 +1137,74 @@ int			CcdPhysicsEnvironment::createConstraint(class PHY_IPhysicsController* ctrl
 
 			break;
 		}
+	case PHY_CONE_TWIST_CONSTRAINT:
+		{
+			btConeTwistConstraint* coneTwistContraint = 0;
+
+			
+			if (rb1)
+			{
+				btTransform frameInA;
+				btTransform frameInB;
+				
+				btVector3 axis1(axis1X,axis1Y,axis1Z), axis2(axis2X,axis2Y,axis2Z);
+				if (axis1.length() == 0.0)
+				{
+					btPlaneSpace1( axisInA, axis1, axis2 );
+				}
+				
+				frameInA.getBasis().setValue( axisInA.x(), axis1.x(), axis2.x(),
+					                          axisInA.y(), axis1.y(), axis2.y(),
+											  axisInA.z(), axis1.z(), axis2.z() );
+				frameInA.setOrigin( pivotInA );
+
+				btTransform inv = rb1->getCenterOfMassTransform().inverse();
+
+				btTransform globalFrameA = rb0->getCenterOfMassTransform() * frameInA;
+				
+				frameInB = inv  * globalFrameA;
+				
+				coneTwistContraint = new btConeTwistConstraint(	*rb0,*rb1,
+					frameInA,frameInB);
+
+
+			} else
+			{
+				static btRigidBody s_fixedObject2( 0,0,0);
+				btTransform frameInA;
+				btTransform frameInB;
+				
+				btVector3 axis1, axis2;
+				btPlaneSpace1( axisInA, axis1, axis2 );
+
+				frameInA.getBasis().setValue( axisInA.x(), axis1.x(), axis2.x(),
+					                          axisInA.y(), axis1.y(), axis2.y(),
+											  axisInA.z(), axis1.z(), axis2.z() );
+
+				frameInA.setOrigin( pivotInA );
+
+				///frameInB in worldspace
+				frameInB = rb0->getCenterOfMassTransform() * frameInA;
+
+				coneTwistContraint = new btConeTwistConstraint(
+					*rb0,s_fixedObject2,
+					frameInA,frameInB);
+			}
+			
+			if (coneTwistContraint)
+			{
+				//m_constraints.push_back(genericConstraint);
+				m_dynamicsWorld->addConstraint(coneTwistContraint);
+				coneTwistContraint->setUserConstraintId(gConstraintUid++);
+				coneTwistContraint->setUserConstraintType(type);
+				//64 bit systems can't cast pointer to int. could use size_t instead.
+				return coneTwistContraint->getUserConstraintId();
+			} 
+
+
+
+			break;
+		}
 	case PHY_ANGULAR_CONSTRAINT:
 		angularOnly = true;
 
