@@ -384,8 +384,12 @@ static void vertex_dupli__mapFunc(void *userData, int index, float *co, float *n
 	VECCOPY(obmat[3], vec);
 	
 	if(vdd->par->transflag & OB_DUPLIROT) {
-		
-		vec[0]= -no_f[0]; vec[1]= -no_f[1]; vec[2]= -no_f[2];
+		if(no_f) {
+			vec[0]= -no_f[0]; vec[1]= -no_f[1]; vec[2]= -no_f[2];
+		}
+		else if(no_s) {
+			vec[0]= -no_s[0]; vec[1]= -no_s[1]; vec[2]= -no_s[2];
+		}
 		
 		q2= vectoquat(vec, vdd->ob->trackflag, vdd->ob->upflag);
 		
