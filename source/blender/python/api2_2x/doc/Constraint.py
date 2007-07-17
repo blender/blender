@@ -32,7 +32,7 @@ Or to print all the constraints attached to each bone in a pose::
 	for comparison with L{Constraint.type}.  Values are
 	TRACKTO, IKSOLVER, FOLLOWPATH, COPYROT, COPYLOC, COPYSIZE, ACTION,
 	LOCKTRACK, STRETCHTO, FLOOR, LIMITLOC, LIMITROT, LIMITSIZE, CLAMPTO, 
-	PYTHON, NULL
+	PYTHON, CHILDOF, NULL
 
 @type Settings: readonly dictionary
 @var Settings: Constant dict used for changing constraint settings.
@@ -52,12 +52,11 @@ Or to print all the constraints attached to each bone in a pose::
 		- USETIP (bool)
 	- Used by Action (ACTION) constraint:
 		- ACTION (Action Object)
-		- LOCAL (bool)
 		- START (int): clamped to [1,maxframe]
 		- END (int): clamped to [1,maxframe]
-		- MIN (float): clamped to [-180.0,180.0]
-		- MAX (float): clamped to [-180.0,180.0]
-		- KEYON (int): values are XROT, YROT, ZROT
+		- MIN (float): clamped to [-1000.0,1000.0] for Location, [-180.0,180.0] for Rotation, [0.0001,1000.0] for Scaling
+		- MAX (float): clamped to [-1000.0,1000.0] for Location, [-180.0,180.0] for Rotation, [0.0001,1000.0] for Scaling
+		- KEYON (int): values are XLOC, YLOC, ZLOC, XROT, YROT, ZROT, XSIZE, YSIZE, ZSIZE
 	- Used by Track To (TRACKTO) constraint:
 		- TRACK (int): values are TRACKX, TRACKY, TRACKZ, TRACKNEGX,
 			TRACKNEGY, TRACKNEGZ
@@ -86,17 +85,11 @@ Or to print all the constraints attached to each bone in a pose::
 		- STICKY (bool)
 	- Used by Copy Location (COPYLOC) and Copy Rotation (COPYROT)
 		- COPY (bitfield): any combination of COPYX, COPYY and COPYZ with possible addition of COPYXINVERT, COPYYINVERT and COPYZINVERT to invert that particular input (if on).
-		- LOCAL (bool): Only for constraints which Armature targets.
 	- Used by Copy Size (COPYSIZE) constraint:
 		- COPY (bitfield): any combination of COPYX, COPYY and COPYZ
 	- Used by Limit Location (LIMITLOC) constraint:
 		- LIMIT (bitfield): any combination of LIMIT_XMIN, LIMIT_XMAX,
 			LIMIT_YMIN, LIMIT_YMAX, LIMIT_ZMIN, LIMIT_ZMAX
-		- LIMIT_LOCAL_BONE (boolean): USE WITH CAUTION. Only do something
-			with this value if constraint is assigned to a bone.
-		- LIMIT_LOCAL_NOPARENT (boolean): USE WITH CAUTION. Only do something
-			with this value if constraint is assigned to an object with that 
-			has been parented to something.
 		- XMIN (float): clamped to [-1000.0,1000.0]
 		- XMAX (float): clamped to [-1000.0,1000.0]
 		- YMIN (float): clamped to [-1000.0,1000.0]
@@ -106,8 +99,6 @@ Or to print all the constraints attached to each bone in a pose::
 	- Used by Limit Rotation (LIMITROT) constraint:
 		- LIMIT (bitfield): any combination of LIMIT_XROT, LIMIT_YROT, 
 			LIMIT_ZROT
-		- LIMIT_LOCAL_BONE (boolean): USE WITH CAUTION. Only do something
-			with this value if constraint is assigned to a bone.
 		- XMIN (float): clamped to [-360.0,360.0]
 		- XMAX (float): clamped to [-360.0,360.0]
 		- YMIN (float): clamped to [-360.0,360.0]
@@ -126,6 +117,9 @@ Or to print all the constraints attached to each bone in a pose::
 	- Used by Python Script (PYTHON) constraint:
 		- SCRIPT (Text): script to use
 		- PROPERTIES (IDProperties): ID-Properties of constraint
+	- Used by Child Of (CHILDOF) constraint:
+		- COPY (bitfield): any combination of PARLOCX, PARLOCY, PARLOCZ, 
+			PARROTX, PARROTY, PARROTZ, PARSIZEX, PARSIZEY, PARSIZEZ.
 
 """
 
