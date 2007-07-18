@@ -1981,7 +1981,7 @@ int BLO_write_file_mem(MemFile *compare, MemFile *current, int write_flags, char
 #define PATHSEPERATOR		"/"
 #endif
 
-static char *get_install_dir(void) {
+char *get_install_dir(void) {
 	extern char bprogname[];
 	char *tmpname = BLI_strdup(bprogname);
 	char *cut;

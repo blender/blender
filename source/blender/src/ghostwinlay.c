@@ -889,21 +889,53 @@ Window *winlay_get_active_window(void) {
 	return active_gl_window;
 }
 
+#ifdef _WIN32
+#define PATH_SEP		"\\"
+#else
+#define PATH_SEP		"/"
+#endif
+
+
 void window_open_ndof(Window* win)
 {
-    PILdynlib* ndofLib = PIL_dynlib_open("XXXXXXX-PUT-HERE-YOUR-PATH-TO-THE-PLUG--/spaceplug.plug");
-    if (ndofLib) {
-
-        GHOST_OpenNDOF(g_system, win->ghostwin, 
-            PIL_dynlib_find_symbol(ndofLib, "ndofInit"),
-            PIL_dynlib_find_symbol(ndofLib, "ndofShutdown"),
-            PIL_dynlib_find_symbol(ndofLib, "ndofOpen"));
-
-// original patch only
-//            PIL_dynlib_find_symbol(ndofLib, "ndofEventHandler"));
-    }
+	char *inst_path, *plug_path;
+	const char *plug_dir = "plugins";
+	const char *plug_name = "3DxNdofBlender.plug";
+	PILdynlib *ndofLib;
+	
+	// build the plugin path
+	plug_path = NULL;
+	inst_path = get_install_dir(); // path to main blender exec/bundle
+	if (inst_path) {
+		// assume the ndof plugin is located in the plug-in dir
+		size_t len = strlen(inst_path) + strlen(plug_dir) + strlen(PATH_SEP)*2
+		             + strlen(plug_name) + 1;
+		plug_path = MEM_mallocN(len, "ndofpluginpath");
+		if (plug_path) {
+			strncpy(plug_path, inst_path, len);
+			strcat(plug_path, PATH_SEP);
+			strcat(plug_path, plug_dir);
+			strcat(plug_path, PATH_SEP);
+			strcat(plug_path, plug_name);
+		}
+		MEM_freeN(inst_path);
+	}
+	
+	ndofLib	= PIL_dynlib_open(plug_path);
+#if 0
+	fprintf(stderr, "plugin path=%s; ndofLib=%p\n", plug_path, (void*)ndofLib);
+#endif
+	
+	if (plug_path)
+		MEM_freeN(plug_path);
+	
+	if (ndofLib) {
+		GHOST_OpenNDOF(g_system, win->ghostwin, 
+		               PIL_dynlib_find_symbol(ndofLib, "ndofInit"),
+		               PIL_dynlib_find_symbol(ndofLib, "ndofShutdown"),
+		               PIL_dynlib_find_symbol(ndofLib, "ndofOpen"));
+		}
     else {
-//        GHOST_OpenNDOF(g_system, win->ghostwin, 0, 0, 0, 0);
         GHOST_OpenNDOF(g_system, win->ghostwin, 0, 0, 0);
     }
  }

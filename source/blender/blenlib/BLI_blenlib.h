@@ -247,6 +247,7 @@ void BLI_free_file_lines(struct LinkNode *lines);
 	 */
 void BLI_where_am_i(char *fullname, char *name);
 
+char *get_install_dir(void);
 	/**
 	 * determines the full path to the application bundle on OS X
 	 *
