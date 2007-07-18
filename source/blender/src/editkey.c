@@ -613,6 +613,7 @@ void insert_shapekey(Object *ob)
 		key= ob_get_key(ob);
 		ob->shapenr= BLI_countlist(&key->block);
 	
+		BIF_undo_push("Add Shapekey");
 		allspace(REMAKEIPO, 0);
 		allqueue(REDRAWIPO, 0);
 		allqueue(REDRAWACTION, 0);
@@ -674,6 +675,7 @@ void delete_key(Object *ob)
 	
 	DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 	
+	BIF_undo_push("Delete Shapekey");
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 	allspace(REMAKEIPO, 0);
@@ -762,6 +764,7 @@ void move_keys(Object *ob)
 	/* for boundbox */
 	editipo_changed(G.sipo, 0);
 
+	BIF_undo_push("Move Shapekey(s)");
 	allspace(REMAKEIPO, 0);
 	allqueue(REDRAWIPO, 0);
 	allqueue(REDRAWVIEW3D, 0);
