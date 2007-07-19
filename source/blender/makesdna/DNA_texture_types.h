@@ -287,6 +287,10 @@ typedef struct TexMapping {
 #define TEX_BANDNOISE	2
 #define TEX_RINGNOISE	3
 
+/* tex->stype in texture.c - cloud types */
+#define TEX_DEFAULT		0
+#define TEX_COLOR		1
+
 /* tex->stype in texture.c - marble types */
 #define TEX_SOFT		0
 #define TEX_SHARP		1
@@ -300,6 +304,17 @@ typedef struct TexMapping {
 #define TEX_SPHERE		4
 #define TEX_HALO		5
 #define TEX_RAD			6
+
+/* tex->stype in texture.c - stucci types */
+#define TEX_PLASTIC		0
+#define TEX_WALLIN		1
+#define TEX_WALLOUT		2
+
+/* tex->stype in texture.c - voronoi types */
+#define TEX_INTENSITY	0
+#define TEX_COL1		1
+#define TEX_COL2		2
+#define TEX_COL3		3
 
 /* wrap */
 #define MTEX_FLAT		0

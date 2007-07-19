@@ -471,15 +471,15 @@ static void texture_panel_blend(Tex *tex)
 	uiSetButLock(tex->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, B_TEXPRV, "Lin",		10, 180, 75, 19, &tex->stype, 2.0, 0.0, 0, 0, "Creates a linear progresion"); 
-	uiDefButS(block, ROW, B_TEXPRV, "Quad",		85, 180, 75, 19, &tex->stype, 2.0, 1.0, 0, 0, "Creates a quadratic progression"); 
-	uiDefButS(block, ROW, B_TEXPRV, "Ease",		160, 180, 75, 19, &tex->stype, 2.0, 2.0, 0, 0, "Creates a progression easing from one step to the next"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Lin",		10, 180, 75, 19, &tex->stype, 2.0, (float)TEX_LIN, 0, 0, "Creates a linear progresion"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Quad",		85, 180, 75, 19, &tex->stype, 2.0, (float)TEX_QUAD, 0, 0, "Creates a quadratic progression"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Ease",		160, 180, 75, 19, &tex->stype, 2.0, (float)TEX_EASE, 0, 0, "Creates a progression easing from one step to the next"); 
 	uiDefButBitS(block, TOG, TEX_FLIPBLEND, B_TEXPRV, "Flip XY",	235, 180, 75, 19, &tex->flag, 0, 0, 0, 0, "Flips the direction of the progression 90 degrees");
 
-	uiDefButS(block, ROW, B_TEXPRV, "Diag",		10, 160, 75, 19, &tex->stype, 2.0, 3.0, 0, 0, "Use a diagonal progression");
-	uiDefButS(block, ROW, B_TEXPRV, "Sphere",	85, 160, 75, 19, &tex->stype, 2.0, 4.0, 0, 0, "Use progression with the shape of a sphere");
-	uiDefButS(block, ROW, B_TEXPRV, "Halo",		160, 160, 75, 19, &tex->stype, 2.0, 5.0, 0, 0, "Use a quadratic progression with the shape of a sphere");
-	uiDefButS(block, ROW, B_TEXPRV, "Radial",	235, 160, 75, 19, &tex->stype, 2.0, 6.0, 0, 0, "Use a polar progression");
+	uiDefButS(block, ROW, B_TEXPRV, "Diag",		10, 160, 75, 19, &tex->stype, 2.0, (float)TEX_DIAG, 0, 0, "Use a diagonal progression");
+	uiDefButS(block, ROW, B_TEXPRV, "Sphere",	85, 160, 75, 19, &tex->stype, 2.0, (float)TEX_SPHERE, 0, 0, "Use progression with the shape of a sphere");
+	uiDefButS(block, ROW, B_TEXPRV, "Halo",		160, 160, 75, 19, &tex->stype, 2.0, (float)TEX_HALO, 0, 0, "Use a quadratic progression with the shape of a sphere");
+	uiDefButS(block, ROW, B_TEXPRV, "Radial",	235, 160, 75, 19, &tex->stype, 2.0, (float)TEX_RAD, 0, 0, "Use a polar progression");
 	
 }
 
@@ -500,16 +500,16 @@ static void texture_panel_wood(Tex *tex)
 	uiSetButLock(tex->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 	
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, B_TEXPRV, "Bands",		10, 180, 75, 18, &tex->stype, 2.0, 0.0, 0, 0, "Uses standard wood texture in bands"); 
-	uiDefButS(block, ROW, B_TEXPRV, "Rings",		85, 180, 75, 18, &tex->stype, 2.0, 1.0, 0, 0, "Uses wood texture in rings"); 
-	uiDefButS(block, ROW, B_TEXPRV, "BandNoise",	160, 180, 75, 18, &tex->stype, 2.0, 2.0, 0, 0, "Adds noise to standard wood"); 
-	uiDefButS(block, ROW, B_TEXPRV, "RingNoise",	235, 180, 75, 18, &tex->stype, 2.0, 3.0, 0, 0, "Adds noise to rings");
+	uiDefButS(block, ROW, B_TEXPRV, "Bands",		10, 180, 75, 18, &tex->stype, 2.0, (float)TEX_BAND, 0, 0, "Uses standard wood texture in bands"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Rings",		85, 180, 75, 18, &tex->stype, 2.0, (float)TEX_RING, 0, 0, "Uses wood texture in rings"); 
+	uiDefButS(block, ROW, B_TEXPRV, "BandNoise",	160, 180, 75, 18, &tex->stype, 2.0, (float)TEX_BANDNOISE, 0, 0, "Adds noise to standard wood"); 
+	uiDefButS(block, ROW, B_TEXPRV, "RingNoise",	235, 180, 75, 18, &tex->stype, 2.0, (float)TEX_RINGNOISE, 0, 0, "Adds noise to rings");
 	
-	uiDefButS(block, ROW, B_TEXPRV, "Sin",			10, 160, 50, 19, &tex->noisebasis2, 8.0, 0.0, 0, 0, "Uses a sine wave to produce bands"); 
-	uiDefButS(block, ROW, B_TEXPRV, "Saw",			60, 160, 50, 19, &tex->noisebasis2, 8.0, 1.0, 0, 0, "Uses a saw wave to produce bands"); 
-	uiDefButS(block, ROW, B_TEXPRV, "Tri",			110, 160, 50, 19, &tex->noisebasis2, 8.0, 2.0, 0, 0, "Uses a triangle wave to produce bands");
-	uiDefButS(block, ROW, B_TEXPRV, "Soft noise",	160, 160, 75, 19, &tex->noisetype, 12.0, 0.0, 0, 0, "Generates soft noise");
-	uiDefButS(block, ROW, B_TEXPRV, "Hard noise",	235, 160, 75, 19, &tex->noisetype, 12.0, 1.0, 0, 0, "Generates hard noise");
+	uiDefButS(block, ROW, B_TEXPRV, "Sin",			10, 160, 50, 19, &tex->noisebasis2, 8.0, (float)TEX_SIN, 0, 0, "Uses a sine wave to produce bands"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Saw",			60, 160, 50, 19, &tex->noisebasis2, 8.0, (float)TEX_SAW, 0, 0, "Uses a saw wave to produce bands"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Tri",			110, 160, 50, 19, &tex->noisebasis2, 8.0, (float)TEX_TRI, 0, 0, "Uses a triangle wave to produce bands");
+	uiDefButS(block, ROW, B_TEXPRV, "Soft noise",	160, 160, 75, 19, &tex->noisetype, 12.0, (float)TEX_NOISESOFT, 0, 0, "Generates soft noise");
+	uiDefButS(block, ROW, B_TEXPRV, "Hard noise",	235, 160, 75, 19, &tex->noisetype, 12.0, (float)TEX_NOISEPERL, 0, 0, "Generates hard noise");
 	
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_TEXPRV, "NoiseSize :",	10, 130, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Sets scaling for noise input");
@@ -532,12 +532,12 @@ static void texture_panel_stucci(Tex *tex)
 	uiSetButLock(tex->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, B_TEXPRV, "Plastic",		10, 180, 100, 19, &tex->stype, 2.0, 0.0, 0, 0, "Uses standard stucci");
-	uiDefButS(block, ROW, B_TEXPRV, "Wall In",		110, 180, 100, 19, &tex->stype, 2.0, 1.0, 0, 0, "Creates Dimples"); 
-	uiDefButS(block, ROW, B_TEXPRV, "Wall Out",		210, 180, 100, 19, &tex->stype, 2.0, 2.0, 0, 0, "Creates Ridges"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Plastic",		10, 180, 100, 19, &tex->stype, 2.0, (float)TEX_PLASTIC, 0, 0, "Uses standard stucci");
+	uiDefButS(block, ROW, B_TEXPRV, "Wall In",		110, 180, 100, 19, &tex->stype, 2.0, (float)TEX_WALLIN, 0, 0, "Creates Dimples"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Wall Out",		210, 180, 100, 19, &tex->stype, 2.0, (float)TEX_WALLOUT, 0, 0, "Creates Ridges"); 
 	
-	uiDefButS(block, ROW, B_TEXPRV, "Soft noise",	10, 160, 150, 19, &tex->noisetype, 12.0, 0.0, 0, 0, "Generates soft noise");
-	uiDefButS(block, ROW, B_TEXPRV, "Hard noise",	160, 160, 150, 19, &tex->noisetype, 12.0, 1.0, 0, 0, "Generates hard noise");
+	uiDefButS(block, ROW, B_TEXPRV, "Soft noise",	10, 160, 150, 19, &tex->noisetype, 12.0, (float)TEX_NOISESOFT, 0, 0, "Generates soft noise");
+	uiDefButS(block, ROW, B_TEXPRV, "Hard noise",	160, 160, 150, 19, &tex->noisetype, 12.0, (float)TEX_NOISEPERL, 0, 0, "Generates hard noise");
 
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_TEXPRV, "NoiseSize :",	10, 110, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Sets scaling for noise input");
@@ -561,12 +561,12 @@ static void texture_panel_marble(Tex *tex)
 	uiSetButLock(tex->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 	
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, B_TEXPRV, "Soft",			10, 180, 100, 18, &tex->stype, 2.0, 0.0, 0, 0, "Uses soft marble"); 
-	uiDefButS(block, ROW, B_TEXPRV, "Sharp",		110, 180, 100, 18, &tex->stype, 2.0, 1.0, 0, 0, "Uses more clearly defined marble"); 
-	uiDefButS(block, ROW, B_TEXPRV, "Sharper",		210, 180, 100, 18, &tex->stype, 2.0, 2.0, 0, 0, "Uses very clearly defined marble"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Soft",			10, 180, 100, 18, &tex->stype, 2.0, (float)TEX_SOFT, 0, 0, "Uses soft marble"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Sharp",		110, 180, 100, 18, &tex->stype, 2.0, (float)TEX_SHARP, 0, 0, "Uses more clearly defined marble"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Sharper",		210, 180, 100, 18, &tex->stype, 2.0, (float)TEX_SHARPER, 0, 0, "Uses very clearly defined marble"); 
 	
-	uiDefButS(block, ROW, B_TEXPRV, "Soft noise",	10, 160, 150, 19, &tex->noisetype, 12.0, 0.0, 0, 0, "Generates soft noise");
-	uiDefButS(block, ROW, B_TEXPRV, "Hard noise",	160, 160, 150, 19, &tex->noisetype, 12.0, 1.0, 0, 0, "Generates hard noise");
+	uiDefButS(block, ROW, B_TEXPRV, "Soft noise",	10, 160, 150, 19, &tex->noisetype, 12.0, (float)TEX_NOISESOFT, 0, 0, "Generates soft noise");
+	uiDefButS(block, ROW, B_TEXPRV, "Hard noise",	160, 160, 150, 19, &tex->noisetype, 12.0, (float)TEX_NOISEPERL, 0, 0, "Generates hard noise");
 	
 	uiDefButS(block, ROW, B_TEXPRV, "Sin",			10, 140, 100, 18, &tex->noisebasis2, 8.0, 0.0, 0, 0, "Uses a sine wave to produce bands."); 
 	uiDefButS(block, ROW, B_TEXPRV, "Saw",			110, 140, 100, 18, &tex->noisebasis2, 8.0, 1.0, 0, 0, "Uses a saw wave to produce bands"); 
@@ -594,10 +594,10 @@ static void texture_panel_clouds(Tex *tex)
 	uiSetButLock(tex->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, B_TEXPRV, "Default",		10, 180, 70, 18, &tex->stype, 2.0, 0.0, 0, 0, "Uses standard noise"); 
-	uiDefButS(block, ROW, B_TEXPRV, "Color",		80, 180, 70, 18, &tex->stype, 2.0, 1.0, 0, 0, "Lets Noise return RGB value"); 
-	uiDefButS(block, ROW, B_TEXPRV, "Soft noise",	155, 180, 75, 18, &tex->noisetype, 12.0, 0.0, 0, 0, "Generates soft noise");
-	uiDefButS(block, ROW, B_TEXPRV, "Hard noise",	230, 180, 80, 18, &tex->noisetype, 12.0, 1.0, 0, 0, "Generates hard noise");
+	uiDefButS(block, ROW, B_TEXPRV, "Default",		10, 180, 70, 18, &tex->stype, 2.0, (float)TEX_DEFAULT, 0, 0, "Uses standard noise"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Color",		80, 180, 70, 18, &tex->stype, 2.0, (float)TEX_COLOR, 0, 0, "Lets Noise return RGB value"); 
+	uiDefButS(block, ROW, B_TEXPRV, "Soft noise",	155, 180, 75, 18, &tex->noisetype, 12.0, (float)TEX_NOISESOFT, 0, 0, "Generates soft noise");
+	uiDefButS(block, ROW, B_TEXPRV, "Hard noise",	230, 180, 80, 18, &tex->noisetype, 12.0, (float)TEX_NOISEPERL, 0, 0, "Generates hard noise");
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_TEXPRV, "NoiseSize :",	10, 130, 150, 19, &tex->noisesize, 0.0001, 2.0, 10, 0, "Sets scaling for noise input");
 	uiDefButS(block, NUM, B_TEXPRV, "NoiseDepth:",	160, 130, 150, 19, &tex->noisedepth, 0.0, 6.0, 0, 0, "Sets the depth of the cloud calculation");
@@ -622,7 +622,8 @@ static void texture_panel_musgrave(Tex *tex)
 	block= uiNewBlock(&curarea->uiblocks, "texture_panel_musgrave", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Musgrave", "Texture", 640, 0, 318, 204)==0) return;
 	uiSetButLock(tex->id.lib!=0, ERROR_LIBDATA_MESSAGE);
-
+	
+	/* TEX_MFRACTAL, TEX_RIDGEDMF, TEX_HYBRIDMF, TEX_FBM, TEX_HTERRAIN */
 	str= "Multifractal %x0|Ridged Multifractal %x1|Hybrid Multifractal %x2|Hetero Terrain %x4|fBm %x3";
 	uiDefButS(block, MENU, B_TEXREDR_PRV, str, 10, 160, 150, 19, &tex->stype, 0.0, 0.0, 0, 0, "Sets Musgrave type");
 	
@@ -1294,9 +1295,9 @@ static void texture_panel_envmap(Tex *tex)
 		env= tex->env;
 		
 		uiBlockBeginAlign(block);
-		uiDefButS(block, ROW, B_REDR, 	"Static", 	10, 180, 100, 19, &env->stype, 2.0, 0.0, 0, 0, "Calculates environment map only once");
-		uiDefButS(block, ROW, B_REDR, 	"Anim", 	110, 180, 100, 19, &env->stype, 2.0, 1.0, 0, 0, "Calculates environment map at each rendering");
-		uiDefButS(block, ROW, B_ENV_FREE, "Load", 	210, 180, 100, 19, &env->stype, 2.0, 2.0, 0, 0, "Loads saved environment map from disk");
+		uiDefButS(block, ROW, B_REDR, 	"Static", 	10, 180, 100, 19, &env->stype, 2.0, (float)ENV_STATIC, 0, 0, "Calculates environment map only once");
+		uiDefButS(block, ROW, B_REDR, 	"Anim", 	110, 180, 100, 19, &env->stype, 2.0, (float)ENV_ANIM, 0, 0, "Calculates environment map at each rendering");
+		uiDefButS(block, ROW, B_ENV_FREE, "Load", 	210, 180, 100, 19, &env->stype, 2.0, (float)ENV_LOAD, 0, 0, "Loads saved environment map from disk");
 		uiBlockEndAlign(block);
 		
 		if(env->stype==ENV_LOAD) {
@@ -1339,8 +1340,8 @@ static void texture_panel_envmap(Tex *tex)
 			uiDefBut(block, BUT, B_ENV_FREE_ALL, "Free all EnvMaps", 210,145,100,20, 0, 0, 0, 0, 0, "Frees all rendered environment maps for all materials");
 			
 			uiBlockBeginAlign(block);
-			uiDefButS(block, ROW, B_NOP, "Cube",			10,120,100,20, &env->type, 3.0f, 0.0f, 0, 0, "Use environment map with six cube sides");
-			uiDefButS(block, ROW, B_NOP, "Plane",			110,120,100,20, &env->type, 3.0f, 1.0f, 0, 0, "Only one side is rendered, with Z axis pointing in direction of image");
+			uiDefButS(block, ROW, B_NOP, "Cube",			10,120,100,20, &env->type, 3.0f, (float)ENV_CUBE, 0, 0, "Use environment map with six cube sides");
+			uiDefButS(block, ROW, B_NOP, "Plane",			110,120,100,20, &env->type, 3.0f, (float)ENV_PLANE, 0, 0, "Only one side is rendered, with Z axis pointing in direction of image");
 			uiDefButF(block, NUM, B_NOP, "Zoom: ",			210,120,100,20, &env->viewscale, 0.5f, 5.0f, 100, 2, "Zoom factor for planar environment map");
 			uiBlockEndAlign(block);
 		}

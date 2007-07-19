@@ -200,7 +200,7 @@ static int blend(Tex *tex, float *texvec, TexResult *texres)
 	else {  /* sphere TEX_SPHERE */
 		texres->tin= 1.0-sqrt(x*x+	y*y+texvec[2]*texvec[2]);
 		if(texres->tin<0.0) texres->tin= 0.0;
-		if(tex->stype==5) texres->tin*= texres->tin;  /* halo */
+		if(tex->stype==TEX_HALO) texres->tin*= texres->tin;  /* halo */
 	}
 
 	BRICONT;
@@ -229,7 +229,7 @@ static int clouds(Tex *tex, float *texvec, TexResult *texres)
 		rv |= TEX_NOR;
 	}
 
-	if (tex->stype==1) {
+	if (tex->stype==TEX_COLOR) {
 		// in this case, int. value should really be computed from color,
 		// and bumpnormal from that, would be too slow, looks ok as is
 		texres->tr = texres->tin;
@@ -480,7 +480,7 @@ static int stucci(Tex *tex, float *texvec, TexResult *texres)
 		VECCOPY(texres->nor, nor);
 		tex_normal_derivate(tex, texres);
 		
-		if(tex->stype==2) {
+		if(tex->stype==TEX_WALLOUT) {
 			texres->nor[0]= -texres->nor[0];
 			texres->nor[1]= -texres->nor[1];
 			texres->nor[2]= -texres->nor[2];
@@ -489,7 +489,7 @@ static int stucci(Tex *tex, float *texvec, TexResult *texres)
 		retval |= TEX_NOR;
 	}
 	
-	if(tex->stype==2) 
+	if(tex->stype==TEX_WALLOUT) 
 		texres->tin= 1.0f-texres->tin;
 	
 	if(texres->tin<0.0f)
