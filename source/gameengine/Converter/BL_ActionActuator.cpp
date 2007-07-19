@@ -43,6 +43,7 @@
 #include "KX_GameObject.h"
 #include "STR_HashedString.h"
 #include "DNA_action_types.h"
+#include "DNA_nla_types.h"
 #include "DNA_actuator_types.h"
 #include "BKE_action.h"
 #include "DNA_armature_types.h"
