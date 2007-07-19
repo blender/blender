@@ -67,7 +67,7 @@ typedef struct ImageUser {
 typedef struct Image {
 	ID id;
 	
-	char name[240];
+	char name[240];			/* file path */
 	
 	ListBase ibufs;			/* not written in file */
 	

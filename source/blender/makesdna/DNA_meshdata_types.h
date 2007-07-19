@@ -66,8 +66,10 @@ typedef struct MVert {
 	char flag, mat_nr;
 } MVert;
 
+/* at the moment alpha is abused for vertex painting
+ * and not used for transperency, note that red and blue are swapped */
 typedef struct MCol {
-	char a, r, g, b;
+	char a, r, g, b;	
 } MCol;
 
 typedef struct MSticky {
@@ -231,6 +233,8 @@ typedef struct PartialVisibility {
 #define TF_SOLID	0
 #define TF_ADD		1
 #define TF_ALPHA	2
+
+/* sub is not available in the user interface anymore */
 #define TF_SUB		3
 
 /* mtface->unwrap */

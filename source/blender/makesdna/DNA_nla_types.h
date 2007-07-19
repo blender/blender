@@ -88,7 +88,7 @@ typedef struct bActionStrip {
 /* strip->flag */
 #define ACTSTRIP_SELECT			0x01
 #define ACTSTRIP_USESTRIDE		0x02
-#define ACTSTRIP_BLENDTONEXT	0x04
+#define ACTSTRIP_BLENDTONEXT	0x04	/* This is not used anywhere */
 #define ACTSTRIP_HOLDLASTFRAME	0x08
 #define ACTSTRIP_ACTIVE			0x10
 #define ACTSTRIP_LOCK_ACTION	0x20

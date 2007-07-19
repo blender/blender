@@ -2589,6 +2589,8 @@ static uiBlock *view3d_edit_mesh_verticesmenu(void *arg_unused)
 	return block;
 }
 
+extern void editmesh_mark_sharp(int set); /* declared in editmesh_mods.c */
+
 void do_view3d_edit_mesh_edgesmenu(void *arg, int event)
 {
 	float fac;

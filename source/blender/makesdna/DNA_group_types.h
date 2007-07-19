@@ -52,6 +52,10 @@ typedef struct Group {
 	ID id;
 	
 	ListBase gobject;	/* GroupObject */
+	
+	/* Bad design, since layers stored in the scenes 'Base'
+	 * the objects that show in the group can change depending
+	 * on the last used scene */
 	unsigned int layer;
 	int pad;
 } Group;

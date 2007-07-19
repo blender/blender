@@ -54,7 +54,7 @@ typedef struct Lamp {
 	
 	float energy, dist, spotsize, spotblend;
 	float haint;
-	float att1, att2;
+	float att1, att2;	/* Quad1 and Quad2 attenuation */
 	
 	float clipsta, clipend, shadspotsize;
 	float bias, soft;

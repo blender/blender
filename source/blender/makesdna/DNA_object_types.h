@@ -69,7 +69,8 @@ typedef struct BoundBox {
 /* boundbox flag */
 #define OB_BB_DISABLED	1
 
-/* OcInfo and LBuf structs are for the Enji gameengine */
+/* OcInfo and LBuf structs are for the Enji gameengine
+ * These structs are not needed anymore, both should be removed */
 
 typedef struct OcInfo {
 	float dvec[3];
@@ -102,7 +103,7 @@ typedef struct Object {
 	
 	ListBase constraintChannels;
 	ListBase effect;
-	ListBase network;
+	ListBase network;	/* This is not used anywhere - TODO, should be removed (Campbell)*/
 	ListBase disp;
 	ListBase defbase;
 	ListBase modifiers; /* list of ModifierData structures */
@@ -154,7 +155,7 @@ typedef struct Object {
 	
 	char dt, dtx;
 	char totcol;	/* copy of mesh or curve or meta */
-	char actcol;
+	char actcol;	/* currently selected material in the user interface */
 	char empty_drawtype, pad1[7];
 	float empty_drawsize;
 	
@@ -164,12 +165,14 @@ typedef struct Object {
 	ListBase controllers;
 	ListBase actuators;
 
-    void *sumohandle;
+	/* now used to store cache particles,
+	 * should be renamed see effect.c (Campbell) */
+    void *sumohandle;		
     
 	float bbsize[3];
 	short index;			/* custom index, for renderpasses */
 	unsigned short actdef;	/* current deformation group */
-	float col[4];
+	float col[4];			/* object color, adjusted via IPO's only */
 	/**
 	 * Settings for game objects
 	 * bit 0: Object has dynamic behaviour
@@ -218,6 +221,7 @@ typedef struct Object {
 /*#endif*/
 } Object;
 
+/* Warning, this is not used anymore because hooks are now modifiers */
 typedef struct ObHook {
 	struct ObHook *next, *prev;
 	

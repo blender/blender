@@ -61,19 +61,19 @@ typedef struct Mesh {
 	struct Key *key;
 	struct Material **mat;
 
-	struct MFace *mface;
-	struct MTFace *mtface;
+	struct MFace *mface;	/* array of mesh object mode faces */
+	struct MTFace *mtface;	/* store face UV's and texture here */
 	struct TFace *tface;	/* depecrated, use mtface */
-	struct MVert *mvert;
-	struct MEdge *medge;
+	struct MVert *mvert;	/* array of verts */
+	struct MEdge *medge;	/* array of edges */
 	struct MDeformVert *dvert;	/* __NLA */
-	struct MCol *mcol;
+	struct MCol *mcol;		/* array of colors, this must be the number of faces * 4 */
 	struct MSticky *msticky;
 	struct Mesh *texcomesh;
 	struct MSelect *mselect;
 	
-	struct OcInfo *oc;		/* not written in file */
-	void *sumohandle;
+	struct OcInfo *oc;		/* not written in file - TODO remove this! */
+	void *sumohandle;		/* this is not used anywhere anymore - TODO remove this too (Campbell)*/
 
 	struct CustomData vdata, edata, fdata;
 
@@ -91,7 +91,7 @@ typedef struct Mesh {
 
 	short subdiv, subdivr;
 	short totcol;
-	short subsurftype; 
+	short subsurftype;		/* only kept for backwards compat, not used anymore */
 
 	struct Multires *mr;		/* Multiresolution modeling data */
 	struct PartialVisibility *pv;
@@ -103,7 +103,7 @@ typedef struct Mesh {
 
 /* deprecated by MTFace, only here for file reading */
 typedef struct TFace {
-	void *tpage;
+	void *tpage;	/* the faces image for the active UVLayer */
 	float uv[4][2];
 	unsigned int col[4];
 	char flag, transp;

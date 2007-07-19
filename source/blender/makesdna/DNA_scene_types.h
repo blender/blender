@@ -424,7 +424,7 @@ typedef struct Scene {
 	
 	void *ed;
 	struct Radio *radio;
-	void *sumohandle;
+	void *sumohandle;		/* TODO - remove this, its not ued anywhere (Campbell) */
 	
 	struct GameFraming framing;
 
