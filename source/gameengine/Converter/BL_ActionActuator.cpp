@@ -384,7 +384,7 @@ bool BL_ActionActuator::Update(double curtime, bool frame)
 				
 				/* Find percentages */
 				newweight = (m_blendframe/(float)m_blendin);
-				blend_poses(m_pose, m_blendpose, 1.0 - newweight, POSE_BLEND);
+				blend_poses(m_pose, m_blendpose, 1.0 - newweight, ACTSTRIPMODE_BLEND);
 
 				/* Increment current blending percentage */
 				m_blendframe = (curtime - m_blendstart)*KX_FIXED_FRAME_PER_SEC;

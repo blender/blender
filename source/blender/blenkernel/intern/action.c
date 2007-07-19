@@ -458,10 +458,10 @@ static void blend_pose_strides(bPose *dst, bPose *src, float srcweight, short mo
 	float dstweight;
 	
 	switch (mode){
-		case POSE_BLEND:
+		case ACTSTRIPMODE_BLEND:
 			dstweight = 1.0F - srcweight;
 			break;
-		case POSE_ADD:
+		case ACTSTRIPMODE_ADD:
 			dstweight = 1.0F;
 			break;
 		default :
@@ -563,10 +563,10 @@ void blend_poses(bPose *dst, bPose *src, float srcweight, short mode)
 	int i;
 	
 	switch (mode){
-	case POSE_BLEND:
+	case ACTSTRIPMODE_BLEND:
 		dstweight = 1.0F - srcweight;
 		break;
-	case POSE_ADD:
+	case ACTSTRIPMODE_ADD:
 		dstweight = 1.0F;
 		break;
 	default :
@@ -582,7 +582,7 @@ void blend_poses(bPose *dst, bPose *src, float srcweight, short mode)
 			if (schan->flag & POSE_ROT) {
 				QUATCOPY(dquat, dchan->quat);
 				QUATCOPY(squat, schan->quat);
-				if(mode==POSE_BLEND)
+				if(mode==ACTSTRIPMODE_BLEND)
 					QuatInterpol(dchan->quat, dquat, squat, srcweight);
 				else
 					QuatAdd(dchan->quat, dquat, squat, srcweight);
@@ -825,10 +825,10 @@ static void blend_ipochannels(ListBase *dst, ListBase *src, float srcweight, int
 	float dstweight;
 	
 	switch (mode){
-		case POSE_BLEND:
+		case ACTSTRIPMODE_BLEND:
 			dstweight = 1.0F - srcweight;
 			break;
-		case POSE_ADD:
+		case ACTSTRIPMODE_ADD:
 			dstweight = 1.0F;
 			break;
 		default :
