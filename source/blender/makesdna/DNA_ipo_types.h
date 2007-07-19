@@ -39,17 +39,20 @@
 
 #include "DNA_ID.h"
 
+/* IPO Data-Block */
 typedef struct Ipo {
 	ID id;
 	
-	ListBase curve;
-	rctf cur;
-	short blocktype, showkey;
-	short muteipo, pad;
+	ListBase curve;				/* A list of IpoCurve structs in a linked list. */
+	rctf cur;					/* Rect defining extents of keyframes? */
+	
+	short blocktype, showkey;	/* blocktype: self-explanatory; showkey: either 0 or 1 (show vertical yellow lines for editing) */
+	short muteipo, pad;			/* muteipo: either 0 or 1 (whether ipo block is muted) */	
 } Ipo;
 
-/* sometimes used */
+/* NOTE: IpoCurve struct is defined in DNA_curve_types.h, not in here... */
 
+/* sometimes used */
 typedef short IPO_Channel;  
 
 /* defines: are these duped or new? */

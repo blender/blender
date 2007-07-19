@@ -54,6 +54,7 @@ typedef struct bActionModifier {
 	struct Object *ob;	
 } bActionModifier;
 
+/* NLA-Modifier Types */
 #define ACTSTRIP_MOD_DEFORM		0
 #define ACTSTRIP_MOD_NOISE		1
 #define ACTSTRIP_MOD_OOMPH		2
@@ -64,7 +65,7 @@ typedef struct bActionStrip {
 	short	stride_axis;		/* axis 0=x, 1=y, 2=z */
 	short   curmod;				/* current modifier for buttons */
 
-	struct	Ipo *ipo;			/* Blending ipo */
+	struct	Ipo *ipo;			/* Blending ipo - was used for some old NAN era experiments. Non-functional currently. */
 	struct	bAction *act;		/* The action referenced by this strip */
 	struct  Object *object;		/* For groups, the actual object being nla'ed */
 	float	start, end;			/* The range of frames covered by this strip */
@@ -73,7 +74,7 @@ typedef struct bActionStrip {
 	float	stridelen;			/* The stridelength (considered when flag & ACT_USESTRIDE) */
 	float	repeat;				/* The number of times to repeat the action range */
 
-	float	blendin, blendout;
+	float	blendin, blendout;	/* The number of frames on either end of the strip's length to fade in/out */
 	
 	char	stridechannel[32];	/* Instead of stridelen, it uses an action channel */
 	char	offs_bone[32];		/* if repeat, use this bone/channel for defining offset */
@@ -82,18 +83,19 @@ typedef struct bActionStrip {
 	
 } bActionStrip;
 
+/* strip->mode (these defines aren't really used, but are here for reference) */
 #define ACTSTRIPMODE_BLEND		0
 #define ACTSTRIPMODE_ADD		1
 
 /* strip->flag */
 #define ACTSTRIP_SELECT			0x01
 #define ACTSTRIP_USESTRIDE		0x02
-#define ACTSTRIP_BLENDTONEXT	0x04	/* This is not used anywhere */
+#define ACTSTRIP_BLENDTONEXT	0x04	/* Not implemented. Is not used anywhere */
 #define ACTSTRIP_HOLDLASTFRAME	0x08
 #define ACTSTRIP_ACTIVE			0x10
 #define ACTSTRIP_LOCK_ACTION	0x20
 #define ACTSTRIP_MUTE			0x40
-#define ACTSTRIP_REVERSE		0x80
+#define ACTSTRIP_REVERSE		0x80	/* This has yet to be implemented. To indicate that a strip should be played backwards */
 #define ACTSTRIP_CYCLIC_USEX	0x100
 #define ACTSTRIP_CYCLIC_USEY	0x200
 #define ACTSTRIP_CYCLIC_USEZ	0x400

@@ -43,7 +43,7 @@ struct Object;
 
 typedef struct bPoseChannel {
 	struct bPoseChannel	*next, *prev;
-	ListBase			constraints;
+	ListBase			constraints;/* Constraints that act on this PoseChannel */
 	char				name[32];	/* Channels need longer names than normal blender objects */
 	
 	short				flag;		/* dynamic, for detecting transform changes */
@@ -83,30 +83,39 @@ typedef struct bPoseChannel {
 	
 } bPoseChannel;
 
-
-typedef struct bPose{
-	ListBase			chanbase;
+/* Pose-Object. It is only found under ob->pose. It is not library data, even
+ * though there is a define for it (hack for the outliner).
+ */
+typedef struct bPose {
+	ListBase chanbase; 			/* list of pose channels */
 	short flag, proxy_layer;	/* proxy layer: copy from armature, gets synced */
 	float ctime;				/* local action time of this pose */
 	float stride_offset[3];		/* applied to object */
 	float cyclic_offset[3];		/* result of match and cycles, applied in where_is_pose() */
 } bPose;
 
+/* Action Channels belong to Actions. They are linked with an IPO block, and can also own 
+ * Constraint Channels in certain situations. 
+ */
 typedef struct bActionChannel {
 	struct bActionChannel	*next, *prev;
-	struct Ipo				*ipo;
-	ListBase				constraintChannels;
+	struct Ipo				*ipo;					/* IPO block this action channel references */
+	ListBase				constraintChannels;		/* Constraint Channels (when Action Channel represents an Object or Bone) */
 	
-	int		flag;
-	char	name[32];		/* Channel name */
+	int		flag;			/* settings accessed via bitmapping */
+	char	name[32];		/* channel name */
 	int		reserved1;
 } bActionChannel;
 
+/* Action. A recyclable block that contains a series of Action Channels (ipo), which define 
+ * a clip of reusable animation for use in the NLA.
+ */
 typedef struct bAction {
 	ID				id;
-	ListBase		chanbase;	/* Action Channels in this action */
+	ListBase		chanbase;	/* Action Channels in this Action */
 } bAction;
 
+/* Action Editor Space. This is defined here instead of in DNA_space_types.h */
 typedef struct SpaceAction {
 	struct SpaceLink *next, *prev;
 	int spacetype;
@@ -116,10 +125,11 @@ typedef struct SpaceAction {
 	short blockhandler[8];
 
 	View2D v2d;	
-	bAction		*action;
-	short flag, autosnap;	
-	short pin, actnr, lock, actwidth;
-	float timeslide;
+	bAction		*action;		/* the currently active action */
+	short flag, autosnap;		/* flag: bitmapped settings; autosnap: automatic keyframe snapping mode */
+	short pin, actnr, lock;		/* pin: keep showing current action; actnr: used for finding chosen action from menu; lock: lock time to other windows */
+	short actwidth;				/* width of the left-hand side name panel (in pixels?) */
+	float timeslide;			/* for Time-Slide transform mode drawing - current frame? */
 } SpaceAction;
 
 /* Action Channel flags */

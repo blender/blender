@@ -75,7 +75,8 @@ typedef struct BevPoint {
 	short f1, f2;
 } BevPoint;
 
-/* note; alfa location in struct is abused by Key system */
+/* Keyframes on IPO curves and Points on Bezier Curves/Paths are generally BezTriples */
+/* note: alfa location in struct is abused by Key system */
 /* vec in BezTriple looks like this:
 	vec[0][0]=x location of handle 1
 	vec[0][1]=y location of handle 1
