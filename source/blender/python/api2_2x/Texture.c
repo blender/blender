@@ -687,10 +687,6 @@ static PyGetSetDef BPy_Texture_getseters[] = {
 	 (getter)Texture_getType, (setter)Texture_setType,
 	 "Texture's 'Type' mode",
 	 NULL},
-	{"users",
-	 (getter)Texture_getUsers, (setter)NULL,
-	 "Number of texture users",
-	 NULL},
 	{"weight1",
 	 (getter)Texture_getWeight1, (setter)Texture_setWeight1,
 	 "Weight 1 (for Voronoi textures)",
@@ -2196,11 +2192,6 @@ static PyObject *Texture_getTurbulence( BPy_Texture *self )
 static PyObject *Texture_getType( BPy_Texture *self )
 {
 	return PyInt_FromLong( self->texture->type );
-}
-
-static PyObject *Texture_getUsers( BPy_Texture *self )
-{
-	return PyInt_FromLong( self->texture->id.us );
 }
 
 static PyObject *Texture_getWeight1( BPy_Texture *self )
