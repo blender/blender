@@ -846,7 +846,6 @@ static PyObject *Curve_appendPoint( BPy_Curve * self, PyObject * args )
 	int i;
 	int nurb_num;		/* index of curve we append to */
 	PyObject *coord_args;	/* coords for new point */
-	PyObject *retval = NULL;
 	Nurb *nurb = self->curve->nurb.first;	/* first nurb in Curve */
 
 /* fixme - need to malloc new Nurb */
@@ -868,14 +867,8 @@ static PyObject *Curve_appendPoint( BPy_Curve * self, PyObject * args )
 			return EXPP_ReturnPyObjError( PyExc_ValueError,
 					"curve index out of range" );
 	}
-
-	/* rebuild our arg tuple for appendPointToNurb() */
-	//valtuple = Py_BuildValue( "(O)", coord_args );
 	
-	retval =  CurNurb_appendPointToNurb( nurb, coord_args );
-	// Py_DECREF( valtuple );
-
-	return retval;
+	return CurNurb_appendPointToNurb( nurb, coord_args );
 }
 
 
@@ -885,7 +878,7 @@ static PyObject *Curve_appendPoint( BPy_Curve * self, PyObject * args )
   returns a refernce to the newly created nurb.
 *****/
 
-static PyObject *Curve_appendNurb( BPy_Curve * self, PyObject * args )
+static PyObject *Curve_appendNurb( BPy_Curve * self, PyObject * value )
 {
 	Nurb *nurb_ptr = self->curve->nurb.first;
 	Nurb **pptr = ( Nurb ** ) & ( self->curve->nurb.first );
@@ -906,7 +899,7 @@ static PyObject *Curve_appendNurb( BPy_Curve * self, PyObject * args )
 		return EXPP_ReturnPyObjError
 			( PyExc_MemoryError, "unable to malloc Nurb" );
 
-	if( CurNurb_appendPointToNurb( new_nurb, args ) ) {
+	if( CurNurb_appendPointToNurb( new_nurb, value ) ) {
 		*pptr = new_nurb;
 		new_nurb->resolu = self->curve->resolu;
 		new_nurb->resolv = self->curve->resolv;
@@ -1493,7 +1486,7 @@ Sets a control point "},
 	 "(nothing or integer) - returns the number of points of the specified curve"},
 	{"appendPoint", ( PyCFunction ) Curve_appendPoint, METH_VARARGS,
 	 "( int numcurve, list of coordinates) - adds a new point to end of curve"},
-	{"appendNurb", ( PyCFunction ) Curve_appendNurb, METH_VARARGS,
+	{"appendNurb", ( PyCFunction ) Curve_appendNurb, METH_O,
 	 "( new_nurb ) - adds a new nurb to the Curve"},
 	{"update", ( PyCFunction ) Curve_update, METH_NOARGS,
 	 "( ) - updates display lists after changes to Curve"},

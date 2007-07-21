@@ -1114,11 +1114,11 @@ static PyGetSetDef BPy_Material_getseters[] = {
 	 (void *) EXPP_MAT_COMP_B },
 	{"colorbandDiffuse",
 	 (getter)Material_getColorband, (setter)Material_setColorband,
-	 "Set the light group for this material",
+	 "The diffuse colorband for this material",
 	 (void *) 0},
 	{"colorbandSpecular",
 	 (getter)Material_getColorband, (setter)Material_setColorband,
-	 "Set the light group for this material",
+	 "The specular colorband for this material",
 	 (void *) 1},
 	
 	/* SSS settings */
