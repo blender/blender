@@ -760,6 +760,9 @@ static void write_constraints(WriteData *wd, ListBase *conlist)
 		case CONSTRAINT_TYPE_CLAMPTO:
 			writestruct(wd, DATA, "bClampToConstraint", 1, con->data);
 			break;
+		case CONSTRAINT_TYPE_TRANSFORM:
+			writestruct(wd, DATA, "bTransformConstraint", 1, con->data);
+			break;
 		default:
 			break;
 		}

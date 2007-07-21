@@ -1712,6 +1712,13 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 				data->tar = newlibadr(fd, id->lib, data->tar);
 			}
 			break;
+		case CONSTRAINT_TYPE_TRANSFORM:
+			{
+				bTransformConstraint *data;
+				data= ((bTransformConstraint*)con->data);
+				data->tar = newlibadr(fd, id->lib, data->tar);
+			}
+			break;
 		case CONSTRAINT_TYPE_NULL:
 			break;
 		}
@@ -7092,6 +7099,12 @@ static void expand_constraints(FileData *fd, Main *mainvar, ListBase *lb)
 		case CONSTRAINT_TYPE_CHILDOF:
 			{
 				bChildOfConstraint *data = (bChildOfConstraint*)curcon->data;
+				expand_doit(fd, mainvar, data->tar);
+			}
+			break;
+		case CONSTRAINT_TYPE_TRANSFORM:
+			{
+				bTransformConstraint *data = (bTransformConstraint*)curcon->data;
 				expand_doit(fd, mainvar, data->tar);
 			}
 			break;

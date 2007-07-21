@@ -267,6 +267,12 @@ char constraint_has_target (bConstraint *con)
 			if (data->tar) return 1;
 		}
 		break;
+	case CONSTRAINT_TYPE_TRANSFORM:
+		{
+			bTransformConstraint *data = con->data;
+			if (data->tar) return 1;
+		}
+		break;
 	}
 	
 	/* Unknown types or CONSTRAINT_TYPE_NULL or no target */
@@ -377,6 +383,13 @@ Object *get_constraint_target(bConstraint *con, char **subtarget)
 			return data->tar;
 		}
 		break;
+	case CONSTRAINT_TYPE_TRANSFORM:	
+		{
+			bTransformConstraint *data = con->data;
+			*subtarget= data->subtarget;
+			return data->tar;
+		}
+		break;
 	default:
 		*subtarget= NULL;
 		break;
@@ -480,6 +493,13 @@ void set_constraint_target(bConstraint *con, Object *ob, char *subtarget)
 		case CONSTRAINT_TYPE_CHILDOF:
 		{
 			bChildOfConstraint *data = con->data;
+			data->tar= ob;
+			if (subtarget) BLI_strncpy(data->subtarget, subtarget, 32);
+		}
+			break;
+		case CONSTRAINT_TYPE_TRANSFORM:
+		{
+			bTransformConstraint *data = con->data;
 			data->tar= ob;
 			if (subtarget) BLI_strncpy(data->subtarget, subtarget, 32);
 		}
@@ -710,6 +730,18 @@ void *new_constraint_data (short type)
 							CHILDOF_ROTX |CHILDOF_ROTY | CHILDOF_ROTZ |
 							CHILDOF_SIZEX | CHILDOF_SIZEY | CHILDOF_SIZEZ);
 			Mat4One(data->invmat);
+			
+			result = data;
+		}
+		break;
+	case CONSTRAINT_TYPE_TRANSFORM:
+		{
+			bTransformConstraint *data;
+			data = MEM_callocN(sizeof(bTransformConstraint), "TransformationConstraint");
+			
+			data->map[0]= 0;
+			data->map[1]= 1;
+			data->map[2]= 2;
 			
 			result = data;
 		}
@@ -1495,6 +1527,19 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void *own
 		{
 			bChildOfConstraint *data;
 			data= (bChildOfConstraint *)con->data;
+			
+			if (data->tar) {
+				constraint_target_to_mat4(data->tar, data->subtarget, mat, CONSTRAINT_SPACE_WORLD, con->tarspace);
+				valid = 1;
+			}
+			else
+				Mat4One(mat);
+		}
+		break;
+	case CONSTRAINT_TYPE_TRANSFORM:
+		{
+			bTransformConstraint *data;
+			data= (bTransformConstraint *)con->data;
 			
 			if (data->tar) {
 				constraint_target_to_mat4(data->tar, data->subtarget, mat, CONSTRAINT_SPACE_WORLD, con->tarspace);
@@ -2466,8 +2511,114 @@ static void evaluate_constraint (bConstraint *constraint, float ownermat[][4], f
 			}
 		}
 		break;
+	case CONSTRAINT_TYPE_TRANSFORM:
+		{
+			bTransformConstraint *data;
+			
+			data = constraint->data;
+			
+			/* only work if there is a target */
+			if (data->tar) {
+				float loc[3], eul[3], size[3];
+				float dvec[3], sval[3];
+				short i;
+				
+				/* obtain target effect */
+				switch (data->from) {
+					case 2:	/* scale */
+					{
+						Mat4ToSize(targetmat, dvec);
+					}
+						break;
+					case 1: /* rotation */
+					{
+						/* copy, and reduce to smallest rotation distance */
+						Mat4ToEul(targetmat, dvec);
+						
+						/* reduce rotation */
+						for (i=0; i<3; i++)
+							dvec[i]= fmod(dvec[i], M_PI*2);
+					}
+						break;
+					default: /* location */
+					{
+						VECCOPY(dvec, targetmat[3]);
+					}
+						break;
+				}
+				
+				/* extract components of owner's matrix */
+				VECCOPY(loc, ownermat[3]);
+				Mat4ToEul(ownermat, eul);
+				Mat4ToSize(ownermat, size);
+				
+				/* determine where in range current transforms lie */
+				if (data->expo) {
+					for (i=0; i<3; i++) {
+						if (data->from_max[i] - data->from_min[i])
+							sval[i]= (dvec[i] - data->from_min[i]) / (data->from_max[i] - data->from_min[i]);
+						else
+							sval[i]= 0.0f;
+					}
+				}
+				else {
+					/* clamp transforms out of range */
+					for (i=0; i<3; i++) {
+						CLAMP(dvec[i], data->from_min[i], data->from_max[i]);
+						if (data->from_max[i] - data->from_min[i])
+							sval[i]= (dvec[i] - data->from_min[i]) / (data->from_max[i] - data->from_min[i]);
+						else
+							sval[i]= 0.0f;
+					}
+				}
+				
+				/* convert radian<->degree */
+				if (data->from==1 && data->to==0) {
+					/* from radians to degrees */
+					for (i=0; i<3; i++) 
+						sval[i] = sval[i] / M_PI * 180;
+				}
+				else if (data->from==0 && data->to==1) {
+					/* from degrees to radians */
+					for (i=0; i<3; i++) 
+						sval[i] = sval[i] / 180 * M_PI;
+				}
+				else if (data->from == data->to == 1) {
+					/* degrees to radians */
+					for (i=0; i<3; i++) 
+						sval[i] = sval[i] / 180 * M_PI;
+				}
+				
+				/* apply transforms */
+				switch (data->to) {
+					case 2: /* scaling */
+						for (i=0; i<3; i++)
+							size[i]= data->to_min[i] + (sval[data->map[i]] * (data->to_max[i] - data->to_min[i])); 
+						break;
+					case 1: /* rotation */
+						for (i=0; i<3; i++) {
+							float tmin, tmax;
+							
+							/* convert destination min/max ranges from degrees to radians */
+							tmin= data->to_min[i] / M_PI * 180;
+							tmax= data->to_max[i] / M_PI * 180;
+							
+							eul[i]= tmin + (sval[data->map[i]] * (tmax - tmin)); 
+						}
+						break;
+					default: /* location */
+						for (i=0; i<3; i++)
+							loc[i] += (data->to_min[i] + (sval[data->map[i]] * (data->to_max[i] - data->to_min[i]))); 
+						break;
+				}
+				
+				/* apply to matrix */
+				LocEulSizeToMat4(ownermat, loc, eul, size);
+			}
+		}
+		break;
 	default:
-		printf ("Error: Unknown constraint type\n");
+		printf("Error: Unknown constraint type\n");
 		break;
 	}
 }

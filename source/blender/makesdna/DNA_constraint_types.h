@@ -210,12 +210,28 @@ typedef struct bClampToConstraint {
 
 /* Child Of Constraint */
 typedef struct bChildOfConstraint {
-	Object 		*tar;			/* object which may/may not be the parent */
+	Object 		*tar;			/* object which will act as parent (or target comes from) */
 	int 		flag;			/* settings */
 	int			pad;
 	float		invmat[4][4];	/* parent-inverse matrix to use */
 	char 		subtarget[32];	/* string to specify a subobject target */
 } bChildOfConstraint;
+
+/* Generic Transform->Transform Constraint */
+typedef struct bTransformConstraint {
+	Object 		*tar;			/* target (i.e. 'driver' object/bone) */
+	char 		subtarget[32];	
+	
+	short		from, to;		/* can be loc(0) , rot(1),  or size(2) */
+	char		map[3];			/* defines which target-axis deform is copied by each owner-axis */
+	char		expo;			/* extrapolate motion? if 0, confine to ranges */
+	
+	float		from_min[3];	/* from_min/max defines range of target transform 	*/
+	float		from_max[3];	/* 	to map on to to_min/max range. 			*/
+	
+	float		to_min[3];		/* range of motion on owner caused by target  */
+	float		to_max[3];	
+} bTransformConstraint;
 
 /* transform limiting constraints - zero target ----------------------------  */
 /* Limit Location Constraint */
@@ -247,26 +263,27 @@ typedef struct bSizeLimitConstraint {
 
 /* bConstraint.type */
 #define CONSTRAINT_TYPE_NULL		0
-#define CONSTRAINT_TYPE_CHILDOF		1	/* Unimplemented non longer :) - during constraints recode, Aligorith */
+#define CONSTRAINT_TYPE_CHILDOF		1		/* Unimplemented non longer :) - during constraints recode, Aligorith */
 #define CONSTRAINT_TYPE_TRACKTO		2	
 #define CONSTRAINT_TYPE_KINEMATIC	3	
 #define CONSTRAINT_TYPE_FOLLOWPATH	4
-#define CONSTRAINT_TYPE_ROTLIMIT	5	/* Unimplemented no longer :) - Aligorith */
-#define CONSTRAINT_TYPE_LOCLIMIT	6	/* Unimplemented no longer :) - Aligorith */
-#define CONSTRAINT_TYPE_SIZELIMIT	7	/* Unimplemented no longer :) - Aligorith */
+#define CONSTRAINT_TYPE_ROTLIMIT	5		/* Unimplemented no longer :) - Aligorith */
+#define CONSTRAINT_TYPE_LOCLIMIT	6		/* Unimplemented no longer :) - Aligorith */
+#define CONSTRAINT_TYPE_SIZELIMIT	7		/* Unimplemented no longer :) - Aligorith */
 #define CONSTRAINT_TYPE_ROTLIKE		8	
 #define CONSTRAINT_TYPE_LOCLIKE		9	
 #define CONSTRAINT_TYPE_SIZELIKE	10
-#define CONSTRAINT_TYPE_PYTHON		11	/* Unimplemented no longer :) - Aligorith. Scripts */
+#define CONSTRAINT_TYPE_PYTHON		11		/* Unimplemented no longer :) - Aligorith. Scripts */
 #define CONSTRAINT_TYPE_ACTION		12
-#define CONSTRAINT_TYPE_LOCKTRACK	13	/* New Tracking constraint that locks an axis in place - theeth */
-#define CONSTRAINT_TYPE_DISTANCELIMIT	14 /* was never properly coded - removed! */
-#define CONSTRAINT_TYPE_STRETCHTO	15  /* claiming this to be mine :) is in tuhopuu bjornmose */ 
-#define CONSTRAINT_TYPE_MINMAX      16  /* floor constraint */
-#define CONSTRAINT_TYPE_RIGIDBODYJOINT 17 /* rigidbody constraint */
-#define CONSTRAINT_TYPE_CLAMPTO		18  /* clampto constraint */		
+#define CONSTRAINT_TYPE_LOCKTRACK	13		/* New Tracking constraint that locks an axis in place - theeth */
+#define CONSTRAINT_TYPE_DISTANCELIMIT 14 	/* was never properly coded - removed! */
+#define CONSTRAINT_TYPE_STRETCHTO	15  	/* claiming this to be mine :) is in tuhopuu bjornmose */ 
+#define CONSTRAINT_TYPE_MINMAX      16  	/* floor constraint */
+#define CONSTRAINT_TYPE_RIGIDBODYJOINT 17 	/* rigidbody constraint */
+#define CONSTRAINT_TYPE_CLAMPTO		18  	/* clampto constraint */	
+#define CONSTRAINT_TYPE_TRANSFORM	19 		/* transformation constraint */	
 
-/* bConstraint.flag */
+/* bConstraint->flag */
 		/* expand for UI */
 #define CONSTRAINT_EXPAND		0x01
 		/* pre-check for illegal object name or bone name */
@@ -278,7 +295,7 @@ typedef struct bSizeLimitConstraint {
 		/* to indicate that the owner's space should only be changed into ownspace, but not out of it */
 #define CONSTRAINT_SPACEONCE	0x40
 
-/* bConstraint.ownspace/tarspace */
+/* bConstraint->ownspace/tarspace */
 	/* default for all - worldspace */
 #define CONSTRAINT_SPACE_WORLD			0
 	/* for objects (relative to parent/without parent influence), for bones (along normals of bone, without parent/restposi) */

@@ -32,7 +32,7 @@ Or to print all the constraints attached to each bone in a pose::
 	for comparison with L{Constraint.type}.  Values are
 	TRACKTO, IKSOLVER, FOLLOWPATH, COPYROT, COPYLOC, COPYSIZE, ACTION,
 	LOCKTRACK, STRETCHTO, FLOOR, LIMITLOC, LIMITROT, LIMITSIZE, CLAMPTO, 
-	PYTHON, CHILDOF, NULL
+	PYTHON, CHILDOF, TRANSFORM, NULL
 
 @type Settings: readonly dictionary
 @var Settings: Constant dict used for changing constraint settings.
@@ -120,6 +120,20 @@ Or to print all the constraints attached to each bone in a pose::
 	- Used by Child Of (CHILDOF) constraint:
 		- COPY (bitfield): any combination of PARLOCX, PARLOCY, PARLOCZ, 
 			PARROTX, PARROTY, PARROTZ, PARSIZEX, PARSIZEY, PARSIZEZ.
+	- Used by Transformation (TRANSFORM) constraint:
+		- FROM (int): values are LOC, ROT, SCALE
+		- TO (int): values are LOC, ROT, SCALE
+		- MAPX, MAPY, MAPZ (int): values are LOC, ROT, SCALE
+		- EXTRAPOLATE (bool)
+		- FROM_MINX, FROM_MINY, FROM_MINZ, FROM_MAXX, 
+		  FROM_MAXY, FROM_MAXZ (float):
+		  If FROM==LOC, then is clamped to [-1000.0, 1000.0]
+		  If FROM==ROT, then is clamped to [-360.0, 360.0]
+		  If FROM==SCALE, then is clamped to [0.0001, 1000.0]
+		- TO_MINX, TO_MINY, TO_MINZ, TO_MAXX, TO_MAXY, TO_MAXZ (float):
+		  If TO==LOC, then is clamped to [-1000.0, 1000.0]
+		  If TO==ROT, then is clamped to [-360.0, 360.0]
+		  If TO==SCALE, then is clamped to [0.0001, 1000.0]
 
 """
 

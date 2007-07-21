@@ -25,7 +25,7 @@
  *
  * This is a new part of Blender.
  *
- * Contributor(s): Joseph Gilbert, Ken Hughes
+ * Contributor(s): Joseph Gilbert, Ken Hughes, Joshua Leung
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -133,6 +133,25 @@ enum constraint_constants {
 	
 	EXPP_CONSTR_SCRIPT,
 	EXPP_CONSTR_PROPS,
+	
+	EXPP_CONSTR_FROM,
+	EXPP_CONSTR_TO,
+	EXPP_CONSTR_EXPO,
+	EXPP_CONSTR_FROMMINX,
+	EXPP_CONSTR_FROMMAXX,
+	EXPP_CONSTR_FROMMINY,
+	EXPP_CONSTR_FROMMAXY,
+	EXPP_CONSTR_FROMMINZ,
+	EXPP_CONSTR_FROMMAXZ,
+	EXPP_CONSTR_TOMINX,
+	EXPP_CONSTR_TOMAXX,
+	EXPP_CONSTR_TOMINY,
+	EXPP_CONSTR_TOMAXY,
+	EXPP_CONSTR_TOMINZ,
+	EXPP_CONSTR_TOMAXZ,
+	EXPP_CONSTR_MAPX,
+	EXPP_CONSTR_MAPY,
+	EXPP_CONSTR_MAPZ,
 	
 	EXPP_CONSTR_OWNSPACE,
 	EXPP_CONSTR_TARSPACE,
@@ -1397,6 +1416,147 @@ static int childof_setter( BPy_Constraint *self, int type, PyObject *value )
 	}
 }
 
+static PyObject *transf_getter( BPy_Constraint * self, int type )
+{
+	bTransformConstraint *con = (bTransformConstraint *)(self->con->data);
+
+	switch( type ) {
+	case EXPP_CONSTR_TARGET:
+		return Object_CreatePyObject( con->tar );
+	case EXPP_CONSTR_BONE:
+		return PyString_FromString( con->subtarget );
+	case EXPP_CONSTR_FROM:
+		return PyInt_FromLong( (long)con->from );
+	case EXPP_CONSTR_TO:
+		return PyInt_FromLong( (long)con->to );
+	case EXPP_CONSTR_MAPX:
+		return PyInt_FromLong( (long)con->map[0] );
+	case EXPP_CONSTR_MAPY:
+		return PyInt_FromLong( (long)con->map[1] );
+	case EXPP_CONSTR_MAPZ:
+		return PyInt_FromLong( (long)con->map[2] );
+	case EXPP_CONSTR_FROMMINX:
+		return PyFloat_FromDouble( (double)con->from_min[0] );
+	case EXPP_CONSTR_FROMMAXX:
+		return PyFloat_FromDouble( (double)con->from_max[0] );
+	case EXPP_CONSTR_FROMMINY:
+		return PyFloat_FromDouble( (double)con->from_min[1] );
+	case EXPP_CONSTR_FROMMAXY:
+		return PyFloat_FromDouble( (double)con->from_max[1] );
+	case EXPP_CONSTR_FROMMINZ:
+		return PyFloat_FromDouble( (double)con->from_min[2] );
+	case EXPP_CONSTR_FROMMAXZ:
+		return PyFloat_FromDouble( (double)con->from_max[2] );
+	case EXPP_CONSTR_TOMINX:
+		return PyFloat_FromDouble( (double)con->to_min[0] );
+	case EXPP_CONSTR_TOMAXX:
+		return PyFloat_FromDouble( (double)con->to_max[0] );
+	case EXPP_CONSTR_TOMINY:
+		return PyFloat_FromDouble( (double)con->to_min[1] );
+	case EXPP_CONSTR_TOMAXY:
+		return PyFloat_FromDouble( (double)con->to_max[1] );
+	case EXPP_CONSTR_TOMINZ:
+		return PyFloat_FromDouble( (double)con->to_min[2] );
+	case EXPP_CONSTR_TOMAXZ:
+		return PyFloat_FromDouble( (double)con->to_max[2] );
+	case EXPP_CONSTR_EXPO:
+		return PyBool_FromLong( (long)con->expo );
+	default:
+		return EXPP_ReturnPyObjError( PyExc_KeyError, "key not found" );
+	}
+}
+
+static int transf_setter( BPy_Constraint *self, int type, PyObject *value )
+{
+	bTransformConstraint *con = (bTransformConstraint *)(self->con->data);
+	float fmin, fmax, tmin, tmax;
+	
+	if (con->from == 2) {
+		fmin = 0.0001;
+		fmax = 1000.0;
+	}
+	else if (con->from == 1) {
+		fmin = -360.0;
+		fmax = 360.0;
+	}
+	else {
+		fmin = -1000.0;
+		fmax = 1000.0;
+	}
+	
+	if (con->to == 2) {
+		tmin = 0.0001;
+		tmax = 1000.0;
+	}
+	else if (con->to == 1) {
+		tmin = -360.0;
+		tmax = 360.0;
+	}
+	else {
+		tmin = -1000.0;
+		tmax = 1000.0;
+	}
+	
+	switch( type ) {
+	case EXPP_CONSTR_TARGET: {
+		Object *obj = (( BPy_Object * )value)->object;
+		if( !BPy_Object_Check( value ) )
+			return EXPP_ReturnIntError( PyExc_TypeError, 
+					"expected BPy object argument" );
+		con->tar = obj;
+		return 0;
+		}
+	case EXPP_CONSTR_BONE: {
+		char *name = PyString_AsString( value );
+		if( !name )
+			return EXPP_ReturnIntError( PyExc_TypeError,
+					"expected string arg" );
+
+		BLI_strncpy( con->subtarget, name, sizeof( con->subtarget ) );
+
+		return 0;
+		}
+	case EXPP_CONSTR_FROM:
+		return EXPP_setIValueClamped( value, &con->from, 0, 3, 'h' );
+	case EXPP_CONSTR_TO:
+		return EXPP_setIValueClamped( value, &con->to, 0, 3, 'h' );
+	case EXPP_CONSTR_MAPX:
+		return EXPP_setIValueClamped( value, &con->map[0], 0, 3, 'h' );
+	case EXPP_CONSTR_MAPY:
+		return EXPP_setIValueClamped( value, &con->map[1], 0, 3, 'h' );
+	case EXPP_CONSTR_MAPZ:
+		return EXPP_setIValueClamped( value, &con->map[2], 0, 3, 'h' );
+	case EXPP_CONSTR_FROMMINX:
+		return EXPP_setFloatClamped( value, &con->from_min[0], fmin, fmax );
+	case EXPP_CONSTR_FROMMAXX:
+		return EXPP_setFloatClamped( value, &con->from_max[0], fmin, fmax );
+	case EXPP_CONSTR_FROMMINY:
+		return EXPP_setFloatClamped( value, &con->from_min[1], fmin, fmax );
+	case EXPP_CONSTR_FROMMAXY:
+		return EXPP_setFloatClamped( value, &con->from_max[1], fmin, fmax );
+	case EXPP_CONSTR_FROMMINZ:
+		return EXPP_setFloatClamped( value, &con->from_min[2], fmin, fmax );
+	case EXPP_CONSTR_FROMMAXZ:
+		return EXPP_setFloatClamped( value, &con->from_max[2], fmin, fmax );
+	case EXPP_CONSTR_TOMINX:
+		return EXPP_setFloatClamped( value, &con->to_min[0], tmin, tmax );
+	case EXPP_CONSTR_TOMAXX:
+		return EXPP_setFloatClamped( value, &con->to_max[0], tmin, tmax );
+	case EXPP_CONSTR_TOMINY:
+		return EXPP_setFloatClamped( value, &con->to_min[1], tmin, tmax );
+	case EXPP_CONSTR_TOMAXY:
+		return EXPP_setFloatClamped( value, &con->to_max[1], tmin, tmax );
+	case EXPP_CONSTR_TOMINZ:
+		return EXPP_setFloatClamped( value, &con->to_min[2], tmin, tmax );
+	case EXPP_CONSTR_TOMAXZ:
+		return EXPP_setFloatClamped( value, &con->to_max[2], tmin, tmax );
+	case EXPP_CONSTR_EXPO:
+		return EXPP_setBitfield( value, &con->expo, 1, 'h' );
+	default:
+		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
+	}
+}
+
 /*
  * get data from a constraint
  */
@@ -1451,6 +1611,8 @@ static PyObject *Constraint_getData( BPy_Constraint * self, PyObject * key )
 			return script_getter( self, setting );
 		case CONSTRAINT_TYPE_CHILDOF:
 			return childof_getter( self, setting );
+		case CONSTRAINT_TYPE_TRANSFORM:
+			return transf_getter( self, setting );
 		default:
 			return EXPP_ReturnPyObjError( PyExc_KeyError,
 					"unknown constraint type" );
@@ -1521,6 +1683,9 @@ static int Constraint_setData( BPy_Constraint * self, PyObject * key,
 		break;
 	case CONSTRAINT_TYPE_CHILDOF:
 		result = childof_setter( self, key_int, arg);
+		break;
+	case CONSTRAINT_TYPE_TRANSFORM:
+		result = transf_setter( self, key_int, arg);
 		break;
 	case CONSTRAINT_TYPE_NULL:
 		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
@@ -1995,6 +2160,8 @@ static PyObject *M_Constraint_TypeDict( void )
 				PyInt_FromLong( CONSTRAINT_TYPE_PYTHON ) );
 		PyConstant_Insert( d, "CHILDOF",
 				PyInt_FromLong( CONSTRAINT_TYPE_CHILDOF ) );
+		PyConstant_Insert( d, "TRANSFORM",
+				PyInt_FromLong( CONSTRAINT_TYPE_TRANSFORM ) );
 	}
 	return S;
 }
@@ -2221,6 +2388,50 @@ static PyObject *M_Constraint_SettingsDict( void )
 				PyInt_FromLong( EXPP_CONSTR_SCRIPT ) );
 		PyConstant_Insert( d, "PROPERTIES",
 				PyInt_FromLong( EXPP_CONSTR_PROPS ) );
+				
+		PyConstant_Insert( d, "FROM",
+				PyInt_FromLong( EXPP_CONSTR_FROM ) );
+		PyConstant_Insert( d, "TO",
+				PyInt_FromLong( EXPP_CONSTR_TO ) );
+		PyConstant_Insert( d, "EXTRAPOLATE",
+				PyInt_FromLong( EXPP_CONSTR_EXPO ) );
+		PyConstant_Insert( d, "MAPX",
+				PyInt_FromLong( EXPP_CONSTR_MAPX ) );
+		PyConstant_Insert( d, "MAPY",
+				PyInt_FromLong( EXPP_CONSTR_MAPY ) );
+		PyConstant_Insert( d, "MAPZ",
+				PyInt_FromLong( EXPP_CONSTR_MAPZ ) );
+		PyConstant_Insert( d, "FROM_MINX",
+				PyInt_FromLong( EXPP_CONSTR_FROMMINX ) );
+		PyConstant_Insert( d, "FROM_MAXX",
+				PyInt_FromLong( EXPP_CONSTR_FROMMAXX ) );
+		PyConstant_Insert( d, "FROM_MINY",
+				PyInt_FromLong( EXPP_CONSTR_FROMMINY ) );
+		PyConstant_Insert( d, "FROM_MAXY",
+				PyInt_FromLong( EXPP_CONSTR_FROMMAXY ) );
+		PyConstant_Insert( d, "FROM_MINZ",
+				PyInt_FromLong( EXPP_CONSTR_FROMMINZ ) );
+		PyConstant_Insert( d, "FROM_MAXZ",
+				PyInt_FromLong( EXPP_CONSTR_FROMMAXZ ) );
+		PyConstant_Insert( d, "TO_MINX",
+				PyInt_FromLong( EXPP_CONSTR_TOMINX ) );
+		PyConstant_Insert( d, "TO_MAXX",
+				PyInt_FromLong( EXPP_CONSTR_TOMAXX ) );
+		PyConstant_Insert( d, "TO_MINY",
+				PyInt_FromLong( EXPP_CONSTR_TOMINY ) );
+		PyConstant_Insert( d, "TO_MAXY",
+				PyInt_FromLong( EXPP_CONSTR_TOMAXY ) );
+		PyConstant_Insert( d, "TO_MINZ",
+				PyInt_FromLong( EXPP_CONSTR_TOMINZ ) );
+		PyConstant_Insert( d, "TO_MAXZ",
+				PyInt_FromLong( EXPP_CONSTR_TOMAXZ ) );
+				
+		PyConstant_Insert( d, "LOC",
+				PyInt_FromLong( 0 ) );
+		PyConstant_Insert( d, "ROT",
+				PyInt_FromLong( 1 ) );
+		PyConstant_Insert( d, "SCALE",
+				PyInt_FromLong( 2 ) );
 				
 		PyConstant_Insert( d, "CONSTR_RB_TYPE",
 				PyInt_FromLong( EXPP_CONSTR_RB_TYPE ) );

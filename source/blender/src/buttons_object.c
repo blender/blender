@@ -329,102 +329,67 @@ void get_constraint_typestring (char *str, void *con_v)
 {
 	bConstraint *con= con_v;
 
-	switch (con->type){
+	switch (con->type) {
 	case CONSTRAINT_TYPE_PYTHON:
 		strcpy(str, "Script");
 		return;
 	case CONSTRAINT_TYPE_CHILDOF:
-		strcpy (str, "Child Of");
+		strcpy(str, "Child Of");
 		return;
 	case CONSTRAINT_TYPE_NULL:
-		strcpy (str, "Null");
+		strcpy(str, "Null");
 		return;
 	case CONSTRAINT_TYPE_TRACKTO:
-		strcpy (str, "Track To");
+		strcpy(str, "Track To");
 		return;
 	case CONSTRAINT_TYPE_MINMAX:
-		strcpy (str, "Floor");
+		strcpy(str, "Floor");
 		return;
 	case CONSTRAINT_TYPE_KINEMATIC:
-		strcpy (str, "IK Solver");
+		strcpy(str, "IK Solver");
 		return;
 	case CONSTRAINT_TYPE_ROTLIKE:
-		strcpy (str, "Copy Rotation");
+		strcpy(str, "Copy Rotation");
 		return;
 	case CONSTRAINT_TYPE_LOCLIKE:
-		strcpy (str, "Copy Location");
+		strcpy(str, "Copy Location");
 		return;
 	case CONSTRAINT_TYPE_SIZELIKE:
-		strcpy (str, "Copy Scale");
+		strcpy(str, "Copy Scale");
 		return;
 	case CONSTRAINT_TYPE_ACTION:
-		strcpy (str, "Action");
+		strcpy(str, "Action");
 		return;
 	case CONSTRAINT_TYPE_LOCKTRACK:
-		strcpy (str, "Locked Track");
+		strcpy(str, "Locked Track");
 		return;
 	case CONSTRAINT_TYPE_FOLLOWPATH:
-		strcpy (str, "Follow Path");
+		strcpy(str, "Follow Path");
 		return;
 	case CONSTRAINT_TYPE_STRETCHTO:
-		strcpy (str, "Stretch To");
+		strcpy(str, "Stretch To");
 		return;
 	case CONSTRAINT_TYPE_LOCLIMIT:
-		strcpy (str, "Limit Location");
+		strcpy(str, "Limit Location");
 		return;
 	case CONSTRAINT_TYPE_ROTLIMIT:
-		strcpy (str, "Limit Rotation");
+		strcpy(str, "Limit Rotation");
 		return;
 	case CONSTRAINT_TYPE_SIZELIMIT:
-		strcpy (str, "Limit Scale");
+		strcpy(str, "Limit Scale");
 		return;
 	case CONSTRAINT_TYPE_RIGIDBODYJOINT:
-		strcpy (str, "Rigid Body");
+		strcpy(str, "Rigid Body");
 		return;
 	case CONSTRAINT_TYPE_CLAMPTO:
-		strcpy (str, "Clamp To");
+		strcpy(str, "Clamp To");
 		return;
+	case CONSTRAINT_TYPE_TRANSFORM:
+		strcpy(str, "Transformation");
+		break;
 	default:
 		strcpy (str, "Unknown");
 		return;
-	}
-}
-
-static int get_constraint_col(bConstraint *con)
-{
-	switch (con->type) {
-	case CONSTRAINT_TYPE_NULL:
-		return TH_BUT_NEUTRAL;
-	case CONSTRAINT_TYPE_KINEMATIC:
-		return TH_BUT_SETTING2;
-	case CONSTRAINT_TYPE_TRACKTO:
-		return TH_BUT_SETTING;
-	case CONSTRAINT_TYPE_ROTLIKE:
-		return TH_BUT_SETTING1;
-	case CONSTRAINT_TYPE_LOCLIKE:
-		return TH_BUT_POPUP;
-	case CONSTRAINT_TYPE_MINMAX:
-		return TH_BUT_POPUP;
-	case CONSTRAINT_TYPE_SIZELIKE:
-		return TH_BUT_POPUP;
-	case CONSTRAINT_TYPE_ACTION:
-		return TH_BUT_ACTION;
-	case CONSTRAINT_TYPE_LOCKTRACK:
-		return TH_BUT_SETTING;
-	case CONSTRAINT_TYPE_FOLLOWPATH:
-		return TH_BUT_SETTING2;
-	case CONSTRAINT_TYPE_STRETCHTO:
-		return TH_BUT_SETTING;
-	case CONSTRAINT_TYPE_LOCLIMIT:
-		return TH_BUT_POPUP;
-	case CONSTRAINT_TYPE_ROTLIMIT:
-		return TH_BUT_POPUP;
-	case CONSTRAINT_TYPE_SIZELIMIT:
-		return TH_BUT_POPUP;
-	case CONSTRAINT_TYPE_RIGIDBODYJOINT:
-		return TH_BUT_SETTING;
-	default:
-		return TH_REDALERT;
 	}
 }
 
@@ -602,7 +567,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 	char typestr[64], *subtarget;
 	short height, width = 265;
 	short is_armature_target, is_armature_owner;
-	int curCol, rb_col;
+	int rb_col;
 
 	target= get_constraint_target(con, &subtarget);
 	is_armature_target= (target && target->type==OB_ARMATURE);
@@ -612,8 +577,6 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 	uiBlockSetFunc(block, constraint_active_func, ob, con);
 	
 	get_constraint_typestring(typestr, con);
-
-	curCol = get_constraint_col(con);
 
 	/* Draw constraint header */
 	uiBlockSetEmboss(block, UI_EMBOSSN);
@@ -635,12 +598,8 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 	uiButSetFunc(but, constraint_moveDown, ob, con);
 	
 	if (con->flag & CONSTRAINT_EXPAND) {
-		if (con->flag & CONSTRAINT_DISABLE) {
-			BIF_ThemeColor(TH_REDALERT);
+		if (con->flag & CONSTRAINT_DISABLE)
 			uiBlockSetCol(block, TH_REDALERT);
-		}
-		else 
-			BIF_ThemeColor(curCol);
 		
 		uiBlockSetEmboss(block, UI_EMBOSS);
 		
@@ -652,12 +611,8 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 	else {
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		
-		if (con->flag & CONSTRAINT_DISABLE) {
+		if (con->flag & CONSTRAINT_DISABLE)
 			uiBlockSetCol(block, TH_REDALERT);
-			BIF_ThemeColor(TH_REDALERT);
-		}
-		else
-			BIF_ThemeColor(curCol);
 		
 		uiDefBut(block, LABEL, B_CONSTRAINT_TEST, typestr, *xco+10, *yco, 100, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 		
@@ -1095,13 +1050,13 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				bLockTrackConstraint *data = con->data;
 				height = 66;
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
-
+				
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-
+				
 				/* Draw target parameters */
 				uiBlockBeginAlign(block);
 				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
-
+				
 				if (is_armature_target) {
 					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
@@ -1135,21 +1090,21 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 		case CONSTRAINT_TYPE_FOLLOWPATH:
 			{
 				bFollowPathConstraint *data = con->data;
-
+				
 				height = 66;
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-
+				
 				/* Draw target parameters */
 				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
 				
 				/* Draw Curve Follow toggle */
 				but=uiDefButBitI(block, TOG, 1, B_CONSTRAINT_TEST, "CurveFollow", *xco+39, *yco-44, 100, 18, &data->followflag, 0, 24, 0, 0, "Object will follow the heading and banking of the curve");
-
+				
 				/* Draw Offset number button */
 				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Offset:", *xco+155, *yco-44, 100, 18, &data->offset, -MAXFRAMEF, MAXFRAMEF, 100.0, 0.0, "Offset from the position corresponding to the time frame"); 
-
+				
 				uiBlockBeginAlign(block);
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Fw:", *xco+12, *yco-64, 27, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 				
@@ -1455,11 +1410,127 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiBlockEndAlign(block);
 			}
 			break;
+		case CONSTRAINT_TYPE_TRANSFORM:
+			{
+				bTransformConstraint *data = con->data;
+				float fmin, fmax, tmin, tmax;
+				
+				height = 178;
+				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
+				
+				/* Draw target parameters */			
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				
+				/* Draw target parameters */
+				uiBlockBeginAlign(block);
+				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object to use as Parent"); 
+				
+				if (is_armature_target) {
+					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone to use as Parent");
+					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
+				}
+				else {
+					strcpy(data->subtarget, "");
+				}
+				
+				uiBlockEndAlign(block);
+				
+				/* Extrapolate Ranges? */
+				uiDefButBitC(block, TOG, 1, B_CONSTRAINT_TEST, "Extrapolate", *xco, *yco-42,80,19, &data->expo, 0, 0, 0, 0, "Extrapolate ranges");
+				
+				/* Draw options for source motion */
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Source:", *xco-10, *yco-62, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				
+				/* 	draw Loc/Rot/Size toggles 	*/
+				uiBlockBeginAlign(block);
+				uiDefButS(block, ROW, B_CONSTRAINT_TEST, "Loc", *xco-5, *yco-82, 45, 18, &data->from, 12.0, 0, 0, 0, "Use Location transform channels from Target");
+				uiDefButS(block, ROW, B_CONSTRAINT_TEST, "Rot", *xco+40, *yco-82, 45, 18, &data->from, 12.0, 1, 0, 0, "Use Rotation transform channels from Target");
+				uiDefButS(block, ROW, B_CONSTRAINT_TEST, "Scale", *xco+85, *yco-82, 45, 18, &data->from, 12.0, 2, 0, 0, "Use Scale transform channels from Target");
+				uiBlockEndAlign(block);
+				
+				/* Draw Pairs of Axis: Min/Max Value*/
+				if (data->from == 2) {
+					fmin= 0.0001;
+					fmax= 1000.0;
+				}
+				else if (data->from == 1) {
+					fmin= -360.0;
+					fmax= 360.0;
+				}
+				else {
+					fmin = -1000.0;
+					fmax= 1000.0;
+				}
+				
+				uiBlockBeginAlign(block); 
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "X:", *xco-10, *yco-107, 30, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "min", *xco+20, *yco-107, 55, 18, &data->from_min[0], fmin, fmax, 0, 0, "Bottom of range of x-axis source motion for source->target mapping"); 
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "max", *xco+75, *yco-107, 55, 18, &data->from_max[0], fmin, fmax, 0, 0, "Top of range of x-axis source motion for source->target mapping"); 
+				uiBlockEndAlign(block); 
+				
+				uiBlockBeginAlign(block); 
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Y:", *xco-10, *yco-127, 30, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "min", *xco+20, *yco-127, 55, 18, &data->from_min[1], fmin, fmax, 0, 0, "Bottom of range of y-axis source motion for source->target mapping"); 
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "max", *xco+75, *yco-127, 55, 18, &data->from_max[1], fmin, fmax, 0, 0, "Top of range of y-axis source motion for source->target mapping"); 
+				uiBlockEndAlign(block);
+				
+				uiBlockBeginAlign(block); 
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Z:", *xco-10, *yco-147, 30, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "min", *xco+20, *yco-147, 55, 18, &data->from_min[2], fmin, fmax, 0, 0, "Bottom of range of z-axis source motion for source->target mapping"); 
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "max", *xco+75, *yco-147, 55, 18, &data->from_max[2], fmin, fmax, 0, 0, "Top of range of z-axis source motion for source->target mapping"); 
+				uiBlockEndAlign(block); 
+				
+				
+				/* Draw options for target motion */
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Destination:", *xco+150, *yco-62, 150, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				
+				/* 	draw Loc/Rot/Size toggles 	*/
+				uiBlockBeginAlign(block);
+				uiDefButS(block, ROW, B_CONSTRAINT_TEST, "Loc", *xco+150, *yco-82, 45, 18, &data->to, 12.0, 0, 0, 0, "Use as Location transform");
+				uiDefButS(block, ROW, B_CONSTRAINT_TEST, "Rot", *xco+195, *yco-82, 45, 18, &data->to, 12.0, 1, 0, 0, "Use as Rotation transform");
+				uiDefButS(block, ROW, B_CONSTRAINT_TEST, "Scale", *xco+245, *yco-82, 45, 18, &data->to, 12.0, 2, 0, 0, "Use as Scale transform");
+				uiBlockEndAlign(block);
+				
+				/* Draw Pairs of Source-Axis: Min/Max Value*/
+				if (data->to == 2) {
+					tmin= 0.0001;
+					tmax= 1000.0;
+				}
+				else if (data->to == 1) {
+					tmin= -360.0;
+					tmax= 360.0;
+				}
+				else {
+					tmin = -1000.0;
+					tmax= 1000.0;
+				}
+				
+				uiBlockBeginAlign(block); 
+				uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Axis Mapping%t|X->X%x0|Y->X%x1|Z->X%x2", *xco+150, *yco-107, 40, 18, &data->map[0], 0, 24, 0, 0, "Specify which source axis the x-axis destination uses");
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "min", *xco+175, *yco-107, 50, 18, &data->to_min[0], tmin, tmax, 0, 0, "Bottom of range of x-axis destination motion for source->target mapping"); 
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "max", *xco+240, *yco-107, 50, 18, &data->to_max[0], tmin, tmax, 0, 0, "Top of range of x-axis destination motion for source->target mapping"); 
+				uiBlockEndAlign(block); 
+				
+				uiBlockBeginAlign(block); 
+				uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Axis Mapping%t|X->Y%x0|Y->Y%x1|Z->Y%x2", *xco+150, *yco-127, 40, 18, &data->map[1], 0, 24, 0, 0, "Specify which source axis the y-axis destination uses");
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "min", *xco+175, *yco-127, 50, 18, &data->to_min[1], tmin, tmax, 0, 0, "Bottom of range of y-axis destination motion for source->target mapping"); 
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "max", *xco+240, *yco-127, 50, 18, &data->to_max[1], tmin, tmax, 0, 0, "Top of range of y-axis destination motion for source->target mapping"); 
+				uiBlockEndAlign(block);
+				
+				uiBlockBeginAlign(block); 
+				uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Axis Mapping%t|X->Z%x0|Y->Z%x1|Z->Z%x2", *xco+150, *yco-147, 40, 18, &data->map[2], 0, 24, 0, 0, "Specify which source axis the z-axis destination uses");
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "min", *xco+175, *yco-147, 50, 18, &data->to_min[2], tmin, tmax, 0, 0, "Bottom of range of z-axis destination motion for source->target mapping"); 
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "max", *xco+240, *yco-147, 50, 18, &data->to_max[2], tmin, tmax, 0, 0, "Top of range of z-axis destination motion for source->target mapping"); 
+				uiBlockEndAlign(block); 
+				
+				/* constraint space settings */
+				draw_constraint_spaceselect(block, con, *xco, *yco-170, is_armature_owner, is_armature_target);
+			}
+			break;
 		case CONSTRAINT_TYPE_NULL:
 			{
 				height = 17;
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
-				
 			}
 			break;
 		default:
@@ -1499,6 +1570,7 @@ static uiBlock *add_constraintmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "add_constraintmenu", UI_EMBOSSP, UI_HELV, curarea->win);
 
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_CHILDOF, "Child Of",			0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_TRANSFORM, "Transformation", 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
@@ -1518,10 +1590,10 @@ static uiBlock *add_constraintmenu(void *arg_unused)
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_MINMAX, "Floor",	0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_LOCKTRACK, "Locked Track", 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_FOLLOWPATH, "Follow Path", 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
-	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_CLAMPTO, "Clamp To", 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
-	
+		
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
+	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_CLAMPTO, "Clamp To", 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_STRETCHTO, "Stretch To", 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
 
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_RIGIDBODYJOINT, "Rigid Body Joint", 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");//rcruiz
@@ -1730,6 +1802,14 @@ void do_constraintbuts(unsigned short event)
 	case B_CONSTRAINT_ADD_CLAMPTO:
 		{
 			con = add_new_constraint(CONSTRAINT_TYPE_CLAMPTO);
+			add_constraint_to_active(ob, con);
+			
+			BIF_undo_push("Add constraint");
+		}
+		break;
+	case B_CONSTRAINT_ADD_TRANSFORM:
+		{
+			con = add_new_constraint(CONSTRAINT_TYPE_TRANSFORM);
 			add_constraint_to_active(ob, con);
 			
 			BIF_undo_push("Add constraint");
