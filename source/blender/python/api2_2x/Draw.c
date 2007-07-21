@@ -588,11 +588,15 @@ static PyObject *Button_repr( PyObject * self )
 
 static PyObject *Button_richcmpr(PyObject *objectA, PyObject *objectB, int comparison_type)
 {
+	PyObject *ret, *valA=NULL, *valB=NULL;
 	if (ButtonObject_Check(objectA))
-		objectA = Button_getattr( objectA, "val" );
+		objectA = valA = Button_getattr( objectA, "val" );
 	if (ButtonObject_Check(objectB))
-		objectB = Button_getattr( objectB, "val" );
-	return PyObject_RichCompare(objectA, objectB, comparison_type);
+		objectB = valB = Button_getattr( objectB, "val" );
+	ret = PyObject_RichCompare(objectA, objectB, comparison_type);
+	Py_XDECREF(valA); /* Button_getattr created with 1 ref, we dont care about them now */
+	Py_XDECREF(valB);
+	return ret;
 }
 
 
@@ -1003,21 +1007,24 @@ static PyObject *Method_Create( PyObject * self, PyObject * args )
 	char *newstr;
 
 	but = newbutton();
-
+	/* If this function dosnt sucseed this will need to be deallocated,
+	 * make sure the type is NOT BSTRING_TYPE before deallocing -1 is ok.
+	 * so we dont dealloc with an uninitialized value wich would be bad! */
 	if ( PyArg_ParseTuple( args, "fff", but->val.asvec, but->val.asvec+1, but->val.asvec+2 ) ) {
 		but->type = BVECTOR_TYPE;
-	}
-	else if ( PyArg_ParseTuple( args, "O!", &PyFloat_Type, &val ) ) {
+	
+	} else if ( PyArg_ParseTuple( args, "O!", &PyFloat_Type, &val ) ) {
 		but->val.asfloat = (float)PyFloat_AS_DOUBLE(val);
 		but->type = BFLOAT_TYPE;
-	}
-	else if ( PyArg_ParseTuple( args, "O!", &PyInt_Type, &val ) ) {
+	
+	} else if ( PyArg_ParseTuple( args, "O!", &PyInt_Type, &val ) ) {
 		but->val.asint = (int)PyInt_AS_LONG(val);
 		but->type = BINT_TYPE;
-	}
-	else if ( PyArg_ParseTuple( args, "s#", &newstr, &but->slen ) ) {
+	
+	} else if ( PyArg_ParseTuple( args, "s#", &newstr, &but->slen ) ) {
 		if (but->slen + 1 > UI_MAX_DRAW_STR) {
-			PyObject_DEL( (PyObject *) but );
+			but->type = -1;
+			Py_DECREF((PyObject *)but); /* will remove */
 			but = NULL;
 			PyErr_SetString( PyExc_TypeError, "string is longer then 399 chars");
 		} else {
@@ -1025,9 +1032,10 @@ static PyObject *Method_Create( PyObject * self, PyObject * args )
 			but->val.asstr = MEM_mallocN( but->slen + 1, "button string" );
 			BLI_strncpy( but->val.asstr, newstr, but->slen+1 );
 		}
-	}
-	else {
-		PyObject_DEL( (PyObject *) but );
+	
+	} else {
+		but->type = -1;
+		Py_DECREF((PyObject *)but); /* will remove */
 		but = NULL;
 		PyErr_SetString( PyExc_TypeError, "expected string, float, int or 3-float tuple argument" );
 	}

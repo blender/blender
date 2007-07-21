@@ -57,7 +57,7 @@ typedef struct _Button {
 		char *asstr;
 		float asvec[3];
 	} val;
-	char *tooltip;
+	/*char *tooltip;*/
 } Button;
 
 #define BINT_TYPE		1
