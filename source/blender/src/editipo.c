@@ -3196,7 +3196,7 @@ void clean_ipo_curve(IpoCurve *icu)
 	thresh= G.scene->toolsettings->clean_thresh;
 	
 	/* add first keyframe and setup tempolary array of beztriples */
-	newb = newbs = MEM_callocN(sizeof(BezTriple)*totCount, "NewBeztriples");
+	newb = newbs = MEM_callocN(sizeof(BezTriple)*totCount, "NewBezTriples");
 	bezt= icu->bezt;
 	*newb= *bezt;
 	bezt++;
@@ -3206,12 +3206,12 @@ void clean_ipo_curve(IpoCurve *icu)
 		float prev[2], cur[2], next[2];
 		
 		/* get references for quicker access */
-		memcpy(prev, newb->vec[1], 8);
-		memcpy(cur, bezt->vec[1], 8);
+		memcpy(prev, newb->vec[1], sizeof(float)*2);
+		memcpy(cur, bezt->vec[1], sizeof(float)*2);
 		
 		if (i < (totCount - 1)) {
 			beztn = (bezt + 1);
-			memcpy(next, beztn->vec[1], 8);
+			memcpy(next, beztn->vec[1], sizeof(float)*2);
 		}
 		else {
 			beztn = NULL;
@@ -3222,10 +3222,10 @@ void clean_ipo_curve(IpoCurve *icu)
 		if ((cur[0] - prev[0]) <= thresh) {
 			/* only add if values are a considerable distance apart */
 			if (IS_EQT(cur[1], prev[1], thresh) == 0) {
-					/* add new keyframe */
-					newCount++;
-					newb++;
-					*newb = *bezt;
+				/* add new keyframe */
+				newCount++;
+				newb++;
+				*newb = *bezt;
 			}
 		}
 		else {
@@ -3261,18 +3261,18 @@ void clean_ipo_curve(IpoCurve *icu)
 	if (totCount != newCount) {
 		BezTriple *newbz;
 		
-		/* make better sized list */	
+		/* make a copy of the array which uses only as much memory as is needed */	
 		newbz= MEM_callocN(sizeof(BezTriple)*newCount, "BezTriples");
 		memcpy(newbz, newbs, sizeof(BezTriple)*newCount);
 		
-		/* free and assign new */
+		/* free old arrays and assign new */
 		MEM_freeN(icu->bezt);
 		MEM_freeN(newbs);
 		icu->bezt= newbz;
 		icu->totvert= newCount;
 	}
 	else {
-		/* free memory we used */
+		/* free temporary memory we used */
 		MEM_freeN(newbs);
 	}
 	
