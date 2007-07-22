@@ -1412,7 +1412,7 @@ static int Texture_setAnimFrames( BPy_Texture * self, PyObject * value )
 {
 	return EXPP_setIValueClamped ( value, &self->texture->iuser.frames,
 								EXPP_TEX_ANIMFRAME_MIN,
-								EXPP_TEX_ANIMFRAME_MAX, 'h' );
+								EXPP_TEX_ANIMFRAME_MAX, 'i' );
 }
 
 static int Texture_setIUserCyclic( BPy_Texture * self, PyObject * value )
@@ -1435,7 +1435,7 @@ static int Texture_setAnimLength( BPy_Texture * self, PyObject * value )
 {
 	return EXPP_setIValueClamped ( value, &self->texture->len,
 								EXPP_TEX_ANIMLEN_MIN,
-								EXPP_TEX_ANIMLEN_MAX, 'h' );
+								EXPP_TEX_ANIMLEN_MAX, 'i' );
 }
 
 /* this is too simple to keep supporting? disabled for time being (ton) */
@@ -1469,14 +1469,14 @@ static int Texture_setAnimOffset( BPy_Texture * self, PyObject * value )
 {
 	return EXPP_setIValueClamped ( value, &self->texture->iuser.offset,
 								EXPP_TEX_ANIMOFFSET_MIN,
-								EXPP_TEX_ANIMOFFSET_MAX, 'h' );
+								EXPP_TEX_ANIMOFFSET_MAX, 'i' );
 }
 
 static int Texture_setAnimStart( BPy_Texture * self, PyObject * value )
 {
 	return EXPP_setIValueClamped ( value, &self->texture->iuser.sfra,
 								EXPP_TEX_ANIMSTART_MIN,
-								EXPP_TEX_ANIMSTART_MAX, 'h' );
+								EXPP_TEX_ANIMSTART_MAX, 'i' );
 }
 
 static int Texture_setBrightness( BPy_Texture * self, PyObject * value )
