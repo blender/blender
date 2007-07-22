@@ -532,6 +532,180 @@ void calctrackballvec(rcti *area, short *mval, float *vec)
 
 }
 
+
+// ndof scaling will be moved to user setting.
+// In the mean time this is just a place holder.
+
+// Note: scaling in the plugin and ghostwinlay.c
+// should be removed. With driver default setting,
+// each axis returns approx. +-200 max deflection.
+
+// The values I selected are based on the older
+// polling i/f. With event i/f, the sensistivity
+// can be increased for improved response from
+// small deflections of the device input.
+
+float ndof_axis_scale[6] = {
+	+2.0,	// Tx
+	+2.0,	// Tz
+	+2.0,	// Ty
+	+0.25,	// Rx
+	+0.25,	// Rz
+	+0.25	// Ry
+};
+
+// statics for controlling G.vd->dist corrections.
+// viewmoveNDOF zeros and adjusts G.vd->ofs.
+// viewmove restores based on dz_flag state.
+
+int dz_flag = 0;
+float m_dist;
+
+void getndof(float *sbval);
+
+#define USE_NEW_NDOFMOVE
+
+#ifdef USE_NEW_NDOFMOVE
+void viewmoveNDOF(int mode)
+{
+    int i;
+    float phi;
+    float dval[7];
+	// static fval[6] for low pass filter; device input vector is dval[6]
+	static float fval[6];
+    float tvec[3],rvec[3];
+    float q1[4];
+	float mat[3][3];
+	float upvec[3];
+
+
+    /*----------------------------------------------------
+	 * sometimes this routine is called from headerbuttons
+     * viewmove needs to refresh the screen
+     */
+	areawinset(curarea->win);
+
+
+	// fetch the current state of the ndof device
+	getndof(dval);
+
+	for(i=0;i<7;i++) printf("%f ",dval[i]);
+		printf("\n");
+
+
+	// Scale input values
+
+	if(dval[6] == 0) return; // guard against divide by zero
+
+	for(i=0;i<6;i++) {
+		dval[i] = dval[i] / dval[6]; // this should be moved to device specific
+
+		// user scaling
+		dval[i] = dval[i] * ndof_axis_scale[i];
+
+		// non-linear scaling
+		if(dval[i]<0.0f)
+			dval[i] = -1.0f * dval[i] * dval[i];
+		else
+			dval[i] = dval[i] * dval[i];
+	}
+
+
+	// low pass filter with zero crossing reset
+
+	for(i=0;i<6;i++) {
+		if((dval[i] * fval[i]) >= 0)
+			dval[i] = (fval[i] * 15 + dval[i]) / 16;
+		else
+			fval[i] = 0;
+	}
+
+
+	// force perspective mode. This is a hack and is
+	// incomplete. It doesn't actually effect the view
+	// until the first draw and doesn't update the menu
+	// to reflect persp mode.
+
+	G.vd->persp = 1;
+
+
+	// Correct the distance jump if G.vd->dist != 0
+
+	// This is due to a side effect of the original
+	// mouse view rotation code. The rotation point is
+	// set a distance in front of the viewport to
+	// make rotating with the mouse look better.
+	// The distance effect is written at a low level
+	// in the view management instead of the mouse
+	// view function. This means that all other view
+	// movement devices must subtract this from their
+	// view transformations.
+
+	if(G.vd->dist != 0.0) {
+		dz_flag = 1;
+		m_dist = G.vd->dist;
+		upvec[0] = upvec[1] = 0;
+		upvec[2] = G.vd->dist;
+		Mat3CpyMat4(mat, G.vd->viewinv);
+		Mat3MulVecfl(mat, upvec);
+		VecSubf(G.vd->ofs, G.vd->ofs, upvec);
+		G.vd->dist = 0.0;
+	}
+
+
+	// Apply rotation
+
+	rvec[0] = -dval[3];
+	rvec[1] = -dval[4];
+	rvec[2] = dval[5];
+
+	// rotate device x and y by view z
+
+	Mat3CpyMat4(mat, G.vd->viewinv);
+	mat[2][2] = 0.0f;
+	Mat3MulVecfl(mat, rvec);
+
+	// rotate the view
+
+	phi = Normalize(rvec);
+	if(phi != 0) {
+		VecRotToQuat(rvec,phi,q1);
+		QuatMul(G.vd->viewquat, G.vd->viewquat, q1);
+	}
+
+
+	// Apply translation
+
+	tvec[0] = dval[0];
+	tvec[1] = dval[1];
+	tvec[2] = -dval[2];
+
+	// the next three lines rotate the x and y translation coordinates
+	// by the current z axis angle
+
+	Mat3CpyMat4(mat, G.vd->viewinv);
+	mat[2][2] = 0.0f;
+	Mat3MulVecfl(mat, tvec);
+
+	// translate the view
+
+	VecSubf(G.vd->ofs, G.vd->ofs, tvec);
+
+
+	/*----------------------------------------------------
+     * refresh the screen
+     */
+
+    scrarea_do_windraw(curarea);
+    screen_swapbuffers();
+
+	// update render preview window
+
+	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
+}
+
+#endif
+
 void viewmove(int mode)
 {
 	Object *ob = OBACT;
@@ -543,12 +717,30 @@ void viewmove(int mode)
 	short use_sel = 0;
 	short preview3d_event= 1;
 	
-	/* 3D window may not be defined */
+	// locals for dist correction
+	float mat[3][3];
+	float upvec[3];
+
+		/* 3D window may not be defined */
 	if( !G.vd ) {
 		fprintf( stderr, "G.vd == NULL in viewmove()\n" );
 		return;
 	}
+	
+		// dist correction from other movement devices
+		
+	if(dz_flag) {
+		dz_flag = 0;
+		G.vd->dist = m_dist;
+		upvec[0] = upvec[1] = 0;
+		upvec[2] = G.vd->dist;
+		Mat3CpyMat4(mat, G.vd->viewinv);
+		Mat3MulVecfl(mat, upvec);
+		VecAddf(G.vd->ofs, G.vd->ofs, upvec);
+	}
 
+
+		
 	/* sometimes this routine is called from headerbuttons */
 
 	areawinset(curarea->win);
@@ -803,6 +995,7 @@ void viewmove(int mode)
 
 
 
+#ifndef USE_NEW_NDOFMOVE
 
 
 void viewmoveNDOF(int mode)
@@ -867,6 +1060,17 @@ void viewmoveNDOF(int mode)
    //         printf(" motion command %f %f %f %f %f %f %f \n", fval[0], fval[1], fval[2],
    //         							 fval[3], fval[4], fval[5], fval[6]);
 
+	
+	// put scaling back here, was previously in ghostwinlay
+            fval[0] = fval[0]  * (1.0f/1024.0f);
+            fval[1] = fval[1]  * (1.0f/1024.0f);
+            fval[2] = fval[2] * (1.0f/1024.0f);
+            fval[3] = fval[3]  * 0.00003f;
+            fval[4] = fval[4]  * 0.00003f;
+            fval[5] = fval[5] * 0.00003f;
+            fval[6] = fval[6]  / 1000000.0f;
+	
+	
     /* set object offset */
 	if (ob) {
 		obofs[0] = -ob->obmat[3][0];
@@ -965,7 +1169,7 @@ void viewmoveNDOF(int mode)
     screen_swapbuffers();
 }
 
-
+#endif
 
 
 /* Gets the lens and clipping values from a camera of lamp type object */

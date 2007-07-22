@@ -559,15 +559,14 @@ static int event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 
             GHOST_TEventNDOFData *sb= data;
 			
-			// the multipliers are arbitrary values
-			// they could be ajustable in the future
-            win->ndof[0] = sb->tx  * (1.0f/1024.0f);
-            win->ndof[1] = sb->ty  * (1.0f/1024.0f);
-            win->ndof[2] = sb->tz  * (1.0f/1024.0f);
-            win->ndof[3] = sb->rx  * 0.00003f;
-            win->ndof[4] = sb->ry  * 0.00003f;
-            win->ndof[5] = sb->rz  * 0.00003f;
-            win->ndof[6] = sb->delta  / 1000000.0f;
+				// no scaling per sfgoros patch
+            win->ndof[0] = sb->tx;
+            win->ndof[1] = sb->ty;
+            win->ndof[2] = sb->tz;
+            win->ndof[3] = sb->rx;
+            win->ndof[4] = sb->ry;
+            win->ndof[5] = sb->rz;
+            win->ndof[6] = sb->delta;
  //        	printf(" motion capted %f %f %f %f %f %f %f \n", win->ndof[0], win->ndof[1], win->ndof[2],
  //        							 win->ndof[3], win->ndof[4], win->ndof[5], win->ndof[6]);
 
