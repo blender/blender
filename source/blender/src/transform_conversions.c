@@ -540,8 +540,7 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 	Mat3Inv(lmat, tmat);
 	Mat3CpyMat4(pmat, pchan->pose_mat);
 	Mat3MulMat3(tmat, lmat, pmat); // argh... order of args is reversed 
-	Mat3MulMat3(td->mtx, omat, pmat);
-		
+	Mat3MulMat3(td->mtx, omat, tmat);
 	Mat3Inv(td->smtx, td->mtx);
 	
 	/* for axismat we use bone's own transform */
@@ -2066,15 +2065,15 @@ static void ObjectToTransData(TransData *td, Object *ob)
 
 	VECCOPY(td->center, ob->obmat[3]);
 
-	if (ob->parent || ob->track || ob->constraints.first)
+	if (ob->parent || ob->constraints.first)
 	{
 		float totmat[3][3], obinv[3][3];
 		
-		/* get the effect of parenting, and/or tracking, and/or constraints */
+		/* get the effect of parenting, and/or constraints */
 		object_to_mat3(ob, obmtx);
 		Mat3CpyMat4(totmat, ob->obmat);
-		Mat3Inv(obinv, totmat);
-		Mat3MulMat3(td->smtx, obmtx, obinv);
+		Mat3Inv(obinv, obmtx);
+		Mat3MulMat3(td->smtx, totmat, obinv);
 		Mat3Inv(td->mtx, td->smtx);
 	}
 	else

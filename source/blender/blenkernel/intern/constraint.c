@@ -818,7 +818,7 @@ bConstraintOb *constraints_make_evalob (Object *ob, void *subdata, short datatyp
 				cob->type = datatype;
 				
 				/* matrix in world-space */
-				Mat4MulMat4 (cob->matrix, cob->pchan->pose_mat, ob->obmat);
+				Mat4MulMat4(cob->matrix, cob->pchan->pose_mat, ob->obmat);
 				Mat4CpyMat4(cob->startmat, cob->matrix);
 			}
 			else
@@ -2640,6 +2640,8 @@ void solve_constraints (ListBase *conlist, bConstraintOb *cob, float ctime)
 	for (con= conlist->first; con; con= con->next) {
 		/* this we can skip completely */
 		if (con->flag & CONSTRAINT_DISABLE) continue;
+		/* influence == 0 should be ignored */
+		if (con->enforce == 0.0f) continue;
 		/* and inverse kinematics is solved seperate */ 
 		if (con->type==CONSTRAINT_TYPE_KINEMATIC) continue;
 		/* rigidbody is really a game-engine thing - and is not solved here */
