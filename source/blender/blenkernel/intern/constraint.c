@@ -2583,11 +2583,6 @@ static void evaluate_constraint (bConstraint *constraint, float ownermat[][4], f
 					for (i=0; i<3; i++) 
 						sval[i] = sval[i] / 180 * M_PI;
 				}
-				else if (data->from == data->to == 1) {
-					/* degrees to radians */
-					for (i=0; i<3; i++) 
-						sval[i] = sval[i] / 180 * M_PI;
-				}
 				
 				/* apply transforms */
 				switch (data->to) {
