@@ -772,7 +772,7 @@ static void reset_sky_speed(RenderPart *pa, RenderLayer *rl)
 	fp= RE_RenderLayerGetPass(rl, SCE_PASS_VECTOR);
 	if(fp==NULL) return;
 	
-	for(a= 4*pa->rectx*pa->recty; a>0; a--)
+	for(a= 4*pa->rectx*pa->recty - 1; a>=0; a--)
 		if(fp[a] == PASS_VECTOR_MAX) fp[a]= 0.0f;
 }
 

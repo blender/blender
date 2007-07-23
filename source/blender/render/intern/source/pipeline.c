@@ -576,7 +576,7 @@ static RenderResult *new_render_result(Render *re, rcti *partrct, int crop, int 
 
 static int render_scene_needs_vector(Render *re)
 {
-	if(re->r.scemode & R_DOCOMP) {
+	if((re->r.scemode & R_DOCOMP) || re->r.imtype==R_MULTILAYER) {
 		SceneRenderLayer *srl;
 	
 		for(srl= re->scene->r.layers.first; srl; srl= srl->next)
