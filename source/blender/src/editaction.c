@@ -2985,7 +2985,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case LEFTMOUSE:
 			if(view2dmove(LEFTMOUSE)) // only checks for sliders
 				break;
-			else if (mval[0]>ACTWIDTH) {
+			else if ((G.v2d->mask.xmin==0) || (mval[0]>ACTWIDTH)) {
 				do {
 					getmouseco_areawin(mval);
 					
@@ -3007,7 +3007,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			/* passed on as selection */
 		case RIGHTMOUSE:
 			/* Clicking in the channel area */
-			if (mval[0]<NAMEWIDTH) {
+			if ((G.v2d->mask.xmin) && (mval[0]<NAMEWIDTH)) {
 				if (datatype == ACTCONT_ACTION) {
 					/* mouse is over action channels */
 					if (G.qual & LR_CTRLKEY)
@@ -3017,7 +3017,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				else numbuts_action();
 			}
-			else if (mval[0]>ACTWIDTH) {
+			else {
 				short select_mode= (G.qual & LR_SHIFTKEY)? SELECT_INVERT: SELECT_REPLACE;
 				
 				/* Clicking in the vertical scrollbar selects

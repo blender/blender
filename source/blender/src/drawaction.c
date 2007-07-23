@@ -345,6 +345,7 @@ void draw_cfra_action (void)
 	Object *ob;
 	float vec[2];
 	
+	/* Draw a light green line to indicate current frame */
 	vec[0]= (G.scene->r.cfra);
 	vec[0]*= G.scene->r.framelen;
 	
@@ -358,6 +359,7 @@ void draw_cfra_action (void)
 	glVertex2fv(vec);
 	glEnd();
 	
+	/* Draw dark green line if slow-parenting/time-offset is enabled */
 	ob= (G.scene->basact) ? (G.scene->basact->object) : 0;
 	if(ob && ob->sf!=0.0 && (ob->ipoflag & OB_OFFS_OB) ) {
 		vec[0]-= ob->sf;
@@ -749,7 +751,7 @@ static void draw_channel_strips(void)
 	/* free tempolary channels used for drawing */
 	BLI_freelistN(&act_data);
 
-	/* black lines marking bounds for Time-Slide transform mode */
+	/* black line marking 'current frame' for Time-Slide transform mode */
 	if (G.saction->flag & SACTION_MOVING) {
 		int frame1_x, channel_y;
 		
@@ -921,6 +923,7 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 		if (G.v2d->scroll) drawscroll(0);
 	}
 
+	/* Draw Left-Hand Panel if enough space in window */
 	if (G.v2d->mask.xmin!=0) {
 		/* Draw channel names */
 		draw_channel_names();
@@ -1055,6 +1058,8 @@ static void add_bezt_to_keyblockslist(ListBase *blocks, IpoCurve *icu, int index
 	
 	if (BEZSELECTED(prev) || BEZSELECTED(beztn))
 		abn->sel = SELECT;
+	else
+		abn->sel = 0;
 	abn->modified = 1;
 }
 
@@ -1108,7 +1113,7 @@ static void draw_keylist(gla2DDrawInfo *di, ListBase *keys, ListBase *blocks, fl
 				gla2DDrawTranslatePt(di, ab->end, ypos, &sc_xb, &sc_yb);
 				
 				/* draw block */
-				if (ab->sel & 1)
+				if (ab->sel)
 					BIF_ThemeColor4(TH_STRIP_SELECT);
 				else
 					BIF_ThemeColor4(TH_STRIP);
