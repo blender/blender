@@ -1235,7 +1235,7 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 	/* shadow and spec, (visifac==0 outside spot) */
 	if(visifac> 0.0f) {
 		
-		if(i>0.0f && (R.r.mode & R_SHADOW)) {
+		if((R.r.mode & R_SHADOW)) {
 			if(ma->mode & MA_SHADOW) {
 				if(lar->shb || (lar->mode & LA_SHAD_RAY)) {
 					
@@ -1259,7 +1259,7 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 			}
 		}
 		
-		/* in case 'no diffuse' we still do most calculus, spec can be in shadow */
+		/* in case 'no diffuse' we still do most calculus, spec can be in shadow.*/
 		if(!(lar->mode & LA_NO_DIFF)) {
 			if(i>0.0f) {
 				if(ma->mode & MA_SHADOW_TRA)

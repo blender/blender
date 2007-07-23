@@ -1506,7 +1506,7 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 	if (td->ext) {
 		float fsize[3];
 
-		if (t->flag & (T_OBJECT|T_TEXTURE)) {
+		if (t->flag & (T_OBJECT|T_TEXTURE|T_POSE)) {
 			float obsizemat[3][3];
 			// Reorient the size mat to fit the oriented object.
 			Mat3MulMat3(obsizemat, tmat, td->axismtx);
@@ -1520,7 +1520,7 @@ static void ElementResize(TransInfo *t, TransData *td, float mat[3][3]) {
 		
 		protectedSizeBits(td->protectflag, fsize);
 		
-		if ((t->flag & T_V3D_ALIGN)==0) {	// align mode doesn't rotate objects itself
+		if ((t->flag & T_V3D_ALIGN)==0) {	// align mode doesn't resize objects itself
 			/* handle ipokeys? */
 			if(td->tdi) {
 				TransDataIpokey *tdi= td->tdi;
@@ -1726,6 +1726,7 @@ int ToSphere(TransInfo *t, short mval[2])
 
 		VecAddf(td->loc, t->center, vec);
 	}
+	
 
 	recalcData(t);
 
