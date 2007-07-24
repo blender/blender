@@ -1017,9 +1017,30 @@ static void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float 
 							VECCOPY(offs_bone[3], pchan->bone->head);
 							offs_bone[3][1]+= pchan->parent->bone->length;
 							
-							Mat4MulMat4(diff_mat, offs_bone, pchan->parent->pose_mat);
-							Mat4CpyMat4(tempmat, mat);
-							Mat4MulMat4(mat, tempmat, diff_mat);
+							if (pchan->bone->flag & BONE_HINGE) {
+								/* pose_mat = par_pose-space_location * chan_mat */
+								float tmat[4][4];
+								
+								/* the rotation of the parent restposition */
+								Mat4CpyMat4(tmat, pchan->parent->bone->arm_mat);
+								
+								/* the location of actual parent transform */
+								VECCOPY(tmat[3], offs_bone[3]);
+								offs_bone[3][0]= offs_bone[3][1]= offs_bone[3][2]= 0.0f;
+								Mat4MulVecfl(pchan->parent->pose_mat, tmat[3]);
+								
+								Mat4MulMat4(diff_mat, offs_bone, tmat);
+								
+								Mat4MulMat4(diff_mat, pchan->parent->pose_mat, offs_bone);
+								Mat4CpyMat4(tempmat, mat);
+								Mat4MulMat4(mat, tempmat, diff_mat);
+							}
+							else {
+								/* pose_mat = par_pose_mat * bone_mat * chan_mat */
+								Mat4MulMat4(diff_mat, pchan->parent->pose_mat, offs_bone);
+								Mat4CpyMat4(tempmat, mat);
+								Mat4MulMat4(mat, tempmat, diff_mat);
+							}
 						}
 						else {
 							Mat4CpyMat4(diff_mat, pchan->bone->arm_mat);

@@ -25,7 +25,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): 2007 - Joshua Leung (major recode)
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
