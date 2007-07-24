@@ -2040,6 +2040,36 @@ static void ipokey_to_transdata(IpoKey *ik, TransData *td)
 
 /* *************************** Object Transform data ******************* */
 
+/* Little helper function for ObjectToTransData used to give certain
+ * constraints (ChildOf, FollowPath, and others that may be added)
+ * inverse corrections for transform, so that they aren't in CrazySpace.
+ * These particular constraints benefit from this, but others don't, hence
+ * this semi-hack ;-)    - Aligorith
+ */
+static short ob_constraints_needinv(Object *ob)
+{
+	bConstraint *con;
+	
+	/* loop through constraints, checking if there's one of the mentioned 
+	 * constraints needing special crazyspace corrections
+	 */
+	if (ob && ob->constraints.first) {
+		for (con= ob->constraints.first; con; con=con->next) {
+			/* only consider constraint if it is enabled, and has influence on result */
+			if ((con->flag & CONSTRAINT_DISABLE)==0 && (con->enforce!=0.0)) {
+				/* (affirmative) returns for specific constraints here... */
+				if (con->type == CONSTRAINT_TYPE_CHILDOF) return 1;
+				if (con->type == CONSTRAINT_TYPE_FOLLOWPATH) return 1;
+				if (con->type == CONSTRAINT_TYPE_CLAMPTO) return 1;
+			}
+		}
+	}
+	
+	/* no appropriate candidates found */
+	return 0;
+}
+
+/* transcribe given object into TransData for Transforming */
 static void ObjectToTransData(TransData *td, Object *ob) 
 {
 	float obmtx[3][3];
@@ -2065,19 +2095,22 @@ static void ObjectToTransData(TransData *td, Object *ob)
 
 	VECCOPY(td->center, ob->obmat[3]);
 
-	if (ob->parent || ob->constraints.first)
-	{
+	/* is there a need to set the global<->data space conversion matrices? */
+	if (ob->parent || ob_constraints_needinv(ob)) {
 		float totmat[3][3], obinv[3][3];
 		
-		/* get the effect of parenting, and/or constraints */
+		/* Get the effect of parenting, and/or certain constraints.
+		 * NOTE: some Constraints, and also Tracking should never get this
+		 *		done, as it doesn't work well.
+		 */
 		object_to_mat3(ob, obmtx);
 		Mat3CpyMat4(totmat, ob->obmat);
-		Mat3Inv(obinv, obmtx);
-		Mat3MulMat3(td->smtx, totmat, obinv);
+		Mat3Inv(obinv, totmat);
+		Mat3MulMat3(td->smtx, obmtx, obinv);
 		Mat3Inv(td->mtx, td->smtx);
 	}
-	else
-	{
+	else {
+		/* no conversion to/from dataspace */
 		Mat3One(td->smtx);
 		Mat3One(td->mtx);
 	}
