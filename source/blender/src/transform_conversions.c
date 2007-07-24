@@ -70,6 +70,7 @@
 #include "DNA_property_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_listBase.h"
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
@@ -128,6 +129,8 @@ extern ListBase editelems;
 
 #include "transform.h"
 
+/* local function prototype - for Object/Bone Constraints */
+static short constraints_list_needinv(ListBase *list);
 
 /* ************************** Functions *************************** */
 
@@ -511,7 +514,7 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 {
 	Bone *bone= pchan->bone;
 	float pmat[3][3], omat[3][3];
-	float lmat[3][3], tmat[3][3];
+	float cmat[3][3], tmat[3][3];
 	float vec[3];
 
 	VECCOPY(vec, pchan->pose_mat[3]);
@@ -531,16 +534,33 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 	QUATCOPY(td->ext->iquat, pchan->quat);
 	VECCOPY(td->ext->isize, pchan->size);
 
-	/* matrix to convert from dataspace to worldspace is
-	 *	world_mat = obmat * (pose_mat - chan_mat)
-	 */
+	/* proper way to get parent transform + own transform + constraints transform */
 	Mat3CpyMat4(omat, ob->obmat);
 	
-	Mat3CpyMat4(tmat, pchan->chan_mat);
-	Mat3Inv(lmat, tmat);
-	Mat3CpyMat4(pmat, pchan->pose_mat);
-	Mat3MulMat3(tmat, lmat, pmat); // argh... order of args is reversed 
-	Mat3MulMat3(td->mtx, omat, tmat);
+	if(pchan->parent) { 	 
+		if(pchan->bone->flag & BONE_HINGE) 	 
+			Mat3CpyMat4(pmat, pchan->parent->bone->arm_mat); 	 
+		else 	 
+			Mat3CpyMat4(pmat, pchan->parent->pose_mat);
+		
+		if (constraints_list_needinv(&pchan->constraints)) {
+			Mat3CpyMat4(tmat, pchan->constinv);
+			Mat3Inv(cmat, tmat);
+			Mat3MulSerie(td->mtx, pchan->bone->bone_mat, pmat, cmat, omat, 0,0,0,0);    // dang mulserie swaps args
+		}
+		else
+			Mat3MulSerie(td->mtx, pchan->bone->bone_mat, pmat, omat, 0,0,0,0,0);    // dang mulserie swaps args
+	}
+	else {
+		if (constraints_list_needinv(&pchan->constraints)) {
+			Mat3CpyMat4(tmat, pchan->constinv);
+			Mat3Inv(cmat, tmat);
+			Mat3MulSerie(td->mtx, pchan->bone->bone_mat, cmat, omat, 0, 0,0,0,0);    // dang mulserie swaps args
+		}
+		else 
+			Mat3MulMat3(td->mtx, omat, pchan->bone->bone_mat);  // Mat3MulMat3 has swapped args! 
+	}
+	
 	Mat3Inv(td->smtx, td->mtx);
 	
 	/* for axismat we use bone's own transform */
@@ -2046,15 +2066,15 @@ static void ipokey_to_transdata(IpoKey *ik, TransData *td)
  * These particular constraints benefit from this, but others don't, hence
  * this semi-hack ;-)    - Aligorith
  */
-static short ob_constraints_needinv(Object *ob)
+static short constraints_list_needinv(ListBase *list)
 {
 	bConstraint *con;
 	
 	/* loop through constraints, checking if there's one of the mentioned 
 	 * constraints needing special crazyspace corrections
 	 */
-	if (ob && ob->constraints.first) {
-		for (con= ob->constraints.first; con; con=con->next) {
+	if (list) {
+		for (con= list->first; con; con=con->next) {
 			/* only consider constraint if it is enabled, and has influence on result */
 			if ((con->flag & CONSTRAINT_DISABLE)==0 && (con->enforce!=0.0)) {
 				/* (affirmative) returns for specific constraints here... */
@@ -2096,7 +2116,7 @@ static void ObjectToTransData(TransData *td, Object *ob)
 	VECCOPY(td->center, ob->obmat[3]);
 
 	/* is there a need to set the global<->data space conversion matrices? */
-	if (ob->parent || ob_constraints_needinv(ob)) {
+	if (ob->parent || constraints_list_needinv(&ob->constraints)) {
 		float totmat[3][3], obinv[3][3];
 		
 		/* Get the effect of parenting, and/or certain constraints.
