@@ -6535,7 +6535,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
-		if (main->subversionfile < 3) {
+		if (main->versionfile != 244 || main->subversionfile < 3) {
 			for(ob = main->object.first; ob; ob= ob->id.next) {
 				ListBase *list;
 				list = &ob->constraints;
@@ -6551,15 +6551,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						}
 						
 						switch (curcon->type) {
-							case CONSTRAINT_TYPE_ACTION:
-							{
-								bActionConstraint *data= (bActionConstraint *)curcon->data;
-								
-								/* 'data->local' used to mean that target was in local-space */
-								if (data->local)
-									curcon->tarspace = CONSTRAINT_SPACE_LOCAL;
-							}							
-								break;
 							case CONSTRAINT_TYPE_LOCLIMIT:
 							{
 								bLocLimitConstraint *data= (bLocLimitConstraint *)curcon->data;
@@ -6607,15 +6598,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 										if (data->local)
 											curcon->tarspace = CONSTRAINT_SPACE_LOCAL;
 									}							
-										break;
-									case CONSTRAINT_TYPE_LOCLIMIT:
-									{
-										bLocLimitConstraint *data= (bLocLimitConstraint *)curcon->data;
-										
-										/* old limit without parent option for objects */
-										if (data->flag2)
-											curcon->ownspace = CONSTRAINT_SPACE_LOCAL;
-									}
 										break;
 									case CONSTRAINT_TYPE_STRETCHTO:
 									{
