@@ -999,9 +999,6 @@ static PyObject *Scene_getActiveObject(BPy_Scene *self)
 /*-----------------------Scene.getCurrentCamera()------------------------*/
 static PyObject *Scene_getCurrentCamera( BPy_Scene * self )
 {
-	Object *cam_obj;
-	PyObject *pyob;
-	Scene *scene = self->scene;
 	static char warning = 1;
 	
 	if( warning ) {
@@ -1010,18 +1007,8 @@ static PyObject *Scene_getCurrentCamera( BPy_Scene * self )
 	}
 
 	SCENE_DEL_CHECK_PY(self);
-
-	cam_obj = scene->camera;
-
-	if( cam_obj ) {		/* if found, return a wrapper for it */
-		pyob = Object_CreatePyObject( cam_obj );
-		if (!pyob)
-			return EXPP_ReturnPyObjError(PyExc_MemoryError,
-					"couldn't create new object wrapper!");
-		return pyob;
-	}
-
-	Py_RETURN_NONE;	/* none found */
+	/* None is ok */
+	return Object_CreatePyObject( self->scene->camera );
 }
 
 /*-----------------------Scene.setCurrentCamera()------------------------*/
@@ -1333,7 +1320,6 @@ static int SceneObSeq_len( BPy_SceneObSeq * self )
 static PyObject *SceneObSeq_item( BPy_SceneObSeq * self, int i )
 {
 	int index=0;
-	PyObject *bpy_obj;
 	Base *base= NULL;
 	Scene *scene= self->bpyscene->scene;
 	
@@ -1360,13 +1346,7 @@ static PyObject *SceneObSeq_item( BPy_SceneObSeq * self, int i )
 		return EXPP_ReturnPyObjError( PyExc_IndexError,
 					      "array index out of range" );
 	
-	bpy_obj = Object_CreatePyObject( base->object );
-
-	if( !bpy_obj )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-				"PyObject_New() failed" );
-
-	return (PyObject *)bpy_obj;
+	return Object_CreatePyObject( base->object );
 }
 
 static PySequenceMethods SceneObSeq_as_sequence = {
@@ -1630,9 +1610,7 @@ static PyObject *SceneObSeq_unlink( BPy_SceneObSeq * self, PyObject *args )
 
 PyObject *SceneObSeq_getActive(BPy_SceneObSeq *self)
 {
-	PyObject *pyob;
 	Base *base;
-	
 	SCENE_DEL_CHECK_PY(self->bpyscene);
 	
 	if (self->mode!=EXPP_OBSEQ_NORMAL)
@@ -1643,13 +1621,7 @@ PyObject *SceneObSeq_getActive(BPy_SceneObSeq *self)
 	if (!base)
 		Py_RETURN_NONE;
 	
-	pyob = Object_CreatePyObject( base->object );
-	
-	if (!pyob)
-		return EXPP_ReturnPyObjError(PyExc_MemoryError,
-					"couldn't create new object wrapper!");
-	
-	return pyob;
+	return Object_CreatePyObject( base->object );
 }
 
 static int SceneObSeq_setActive(BPy_SceneObSeq *self, PyObject *value)
@@ -1683,26 +1655,13 @@ static int SceneObSeq_setActive(BPy_SceneObSeq *self, PyObject *value)
 
 PyObject *SceneObSeq_getCamera(BPy_SceneObSeq *self)
 {
-	PyObject *pyob;
-	Object *ob;
-	
 	SCENE_DEL_CHECK_PY(self->bpyscene);
 	
 	if (self->mode!=EXPP_OBSEQ_NORMAL)
 			return (EXPP_ReturnPyObjError( PyExc_TypeError,
 						"cannot get camera from objects.selected or objects.context" ));
 	
-	ob= self->bpyscene->scene->camera;
-	if (!ob)
-		Py_RETURN_NONE;
-	
-	pyob = Object_CreatePyObject( ob );
-	
-	if (!pyob)
-		return EXPP_ReturnPyObjError(PyExc_MemoryError,
-					"couldn't create new object wrapper!");
-	
-	return pyob;
+	return Object_CreatePyObject( self->bpyscene->scene->camera );
 }
 
 static int SceneObSeq_setCamera(BPy_SceneObSeq *self, PyObject *value)

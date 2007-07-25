@@ -1341,7 +1341,7 @@ int BPY_pyconstraint_targets(bPythonConstraint *con, float targetmat[][4])
 		return 0;
 	}
 
-	if (retval) {Py_XDECREF( retval );}
+	Py_XDECREF( retval );
 	retval = NULL;
 	
 	/* try to find USE_TARGET global constant */

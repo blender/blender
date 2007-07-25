@@ -722,20 +722,13 @@ static PyObject *M_Window_WaitCursor( PyObject * self, PyObject * args )
 static PyObject *M_Window_GetViewVector( PyObject * self )
 {
 	float *vec = NULL;
-	PyObject *pylist;
 
 	if( !G.vd )
 		Py_RETURN_NONE;
 
 	vec = G.vd->viewinv[2];
 
-	pylist = Py_BuildValue( "[fff]", vec[0], vec[1], vec[2] );
-
-	if( !pylist )
-		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
-						"GetViewVector: couldn't create pylist" ) );
-
-	return pylist;
+	return Py_BuildValue( "[fff]", vec[0], vec[1], vec[2] );
 }
 
 /*****************************************************************************/
@@ -786,20 +779,13 @@ static PyObject *M_Window_SetActiveLayer( PyObject * self, PyObject * args )
 static PyObject *M_Window_GetViewQuat( PyObject * self )
 {
 	float *vec = NULL;
-	PyObject *pylist;
 
 	if( !G.vd )
 		Py_RETURN_NONE;
 
 	vec = G.vd->viewquat;
 
-	pylist = Py_BuildValue( "[ffff]", vec[0], vec[1], vec[2], vec[3] );
-
-	if( !pylist )
-		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
-						"GetViewQuat: couldn't create pylist" ) );
-
-	return pylist;
+	return Py_BuildValue( "[ffff]", vec[0], vec[1], vec[2], vec[3] );
 }
 
 static PyObject *M_Window_SetViewQuat( PyObject * self, PyObject * args )
@@ -831,21 +817,9 @@ static PyObject *M_Window_SetViewQuat( PyObject * self, PyObject * args )
 
 static PyObject *M_Window_GetViewOffset( PyObject * self )
 {
-	float *vec = NULL;
-	PyObject *pylist;
-
 	if( !G.vd )
 		Py_RETURN_NONE;
-
-	vec = G.vd->ofs;
-
-	pylist = Py_BuildValue( "[fff]", vec[0], vec[1], vec[2] );
-
-	if( !pylist )
-		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
-						"GetViewQuat: couldn't create pylist" ) );
-
-	return pylist;
+	return Py_BuildValue( "[fff]", G.vd->ofs[0], G.vd->ofs[1], G.vd->ofs[2] );
 }
 
 static PyObject *M_Window_SetViewOffset( PyObject * self, PyObject * args )
@@ -881,20 +855,10 @@ static PyObject *M_Window_SetViewOffset( PyObject * self, PyObject * args )
 /*****************************************************************************/
 static PyObject *M_Window_GetViewMatrix( PyObject * self )
 {
-	PyObject *viewmat;
-
 	if( !G.vd )
 		Py_RETURN_NONE;
 
-	viewmat =
-		( PyObject * ) newMatrixObject( ( float * ) G.vd->viewmat, 4,
-						4, Py_WRAP );
-
-	if( !viewmat )
-		return EXPP_ReturnPyObjError( PyExc_MemoryError,
-					      "GetViewMatrix: couldn't create matrix pyobject" );
-
-	return viewmat;
+	return newMatrixObject( ( float * ) G.vd->viewmat, 4, 4, Py_WRAP );
 }
 
 /*****************************************************************************/
@@ -903,20 +867,10 @@ static PyObject *M_Window_GetViewMatrix( PyObject * self )
 /*****************************************************************************/
 static PyObject *M_Window_GetPerspMatrix( PyObject * self )
 {
-	PyObject *perspmat;
-
 	if( !G.vd )
 		Py_RETURN_NONE;
 
-	perspmat =
-		( PyObject * ) newMatrixObject( ( float * ) G.vd->persmat, 4,
-						4, Py_WRAP );
-
-	if( !perspmat )
-		return EXPP_ReturnPyObjError( PyExc_MemoryError,
-					      "GetPerspMatrix: couldn't create matrix pyobject" );
-
-	return perspmat;
+	return newMatrixObject( ( float * ) G.vd->persmat, 4, 4, Py_WRAP );
 }
 
 
