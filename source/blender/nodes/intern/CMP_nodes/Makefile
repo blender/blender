@@ -42,6 +42,7 @@ endif
 
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 
+CPPFLAGS += -I$(OPENGL_HEADERS)
 CPPFLAGS += -I../../../blenkernel
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 CPPFLAGS += -I../../../makesdna

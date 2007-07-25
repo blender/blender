@@ -142,7 +142,7 @@ endif
 			endif
         else
           export NAN_OPENEXR ?= /usr/local
-	  export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a
+	  export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a $(NAN_OPENEXR)/lib/libIlmThread.a
         endif
       endif
 		 	ifeq ($(WITH_OPENEXR), true)
@@ -268,7 +268,7 @@ endif
     export FREEDESKTOP ?= true
 
     export NAN_PYTHON ?= /usr/local
-    export NAN_PYTHON_VERSION ?= 2.3
+    export NAN_PYTHON_VERSION ?= 2.4
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
     export NAN_OPENAL ?= /usr/local
     export NAN_FMOD ?= $(LCGDIR)/fmod
@@ -282,9 +282,9 @@ endif
     export NAN_NSPR ?= /usr/local
     export NAN_FREETYPE ?= $(LCGDIR)/freetype
     export NAN_GETTEXT ?= $(LCGDIR)/gettext
-    export NAN_SDL ?= $(shell sdl11-config --prefix)
-    export NAN_SDLLIBS ?= $(shell sdl11-config --libs)
-    export NAN_SDLCFLAGS ?= $(shell sdl11-config --cflags)
+    export NAN_SDL ?= $(shell sdl-config --prefix)
+    export NAN_SDLLIBS ?= $(shell sdl-config --libs)
+    export NAN_SDLCFLAGS ?= $(shell sdl-config --cflags)
 
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
