@@ -2092,13 +2092,26 @@ static short constraints_list_needinv(ListBase *list)
 /* transcribe given object into TransData for Transforming */
 static void ObjectToTransData(TransData *td, Object *ob) 
 {
+	Object *track;
 	float obmtx[3][3];
 
 	/* axismtx has the real orientation */
 	Mat3CpyMat4(td->axismtx, ob->obmat);
 	Mat3Ortho(td->axismtx);
 
-	where_is_object(ob);
+	/* hack: tempolarily disable tracking when getting object matrix, 
+	 *		to stop it from screwing up space conversion matrix later
+	 */
+	if (ob->track) {
+		track= ob->track;
+		ob->track= NULL;
+		
+		where_is_object(ob);
+		
+		ob->track= track;
+	}
+	else
+		where_is_object(ob);
 
 	td->ob = ob;
 
