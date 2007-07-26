@@ -43,6 +43,7 @@
 #include "BKE_library.h"
 #include "BKE_action.h"
 #include "BKE_armature.h"
+#include "BKE_constraint.h"
 #include "BLI_blenlib.h"
 #include "BIF_editconstraint.h"
 #include "BSE_editipo.h"
@@ -435,6 +436,118 @@ static PyObject *Constraint_insertKey( BPy_Constraint * self, PyObject * value )
 		insert_vert_ipo( icu, cfra, con->enforce);
 
 	Py_RETURN_NONE;
+}
+
+/******************************************************************************/
+/* Constraint Space Conversion get/set procedures 						*/
+/* 		- Individual constraint procedures should call these 				*/
+/******************************************************************************/
+
+static PyObject *constspace_getter( BPy_Constraint * self, int type )
+{
+	bConstraint *con= (bConstraint *)(self->con);
+	
+	/* depends on type being asked for
+	 * NOTE: not all constraints support all space types 
+	 */
+	if (type == EXPP_CONSTR_OWNSPACE) {
+		switch (con->type) {
+			/* all of these support this... */
+			case CONSTRAINT_TYPE_PYTHON:
+			case CONSTRAINT_TYPE_LOCLIKE:
+			case CONSTRAINT_TYPE_ROTLIKE:
+			case CONSTRAINT_TYPE_SIZELIKE:
+			case CONSTRAINT_TYPE_TRACKTO:
+			case CONSTRAINT_TYPE_LOCLIMIT:
+			case CONSTRAINT_TYPE_ROTLIMIT:
+			case CONSTRAINT_TYPE_SIZELIMIT:
+			case CONSTRAINT_TYPE_TRANSFORM:
+				return PyInt_FromLong( (long)con->ownspace );
+		}
+	}
+	else if (type == EXPP_CONSTR_TARSPACE) {
+		switch (con->type) {
+			/* all of these support this... */
+			case CONSTRAINT_TYPE_PYTHON:
+			case CONSTRAINT_TYPE_ACTION:
+			case CONSTRAINT_TYPE_LOCLIKE:
+			case CONSTRAINT_TYPE_ROTLIKE:
+			case CONSTRAINT_TYPE_SIZELIKE:
+			case CONSTRAINT_TYPE_TRACKTO:
+			case CONSTRAINT_TYPE_TRANSFORM:
+				return PyInt_FromLong( (long)con->tarspace );
+		}
+	}
+	
+	/* raise error if failed */
+	return EXPP_ReturnPyObjError( PyExc_KeyError, "key not found" );
+}
+
+static int constspace_setter( BPy_Constraint *self, int type, PyObject *value )
+{
+	bConstraint *con= (bConstraint *)(self->con);
+	
+	/* depends on type being asked for
+	 * NOTE: not all constraints support all space types 
+	 */
+	if (type == EXPP_CONSTR_OWNSPACE) {
+		switch (con->type) {
+			/* all of these support this... */
+			case CONSTRAINT_TYPE_PYTHON:
+			case CONSTRAINT_TYPE_LOCLIKE:
+			case CONSTRAINT_TYPE_ROTLIKE:
+			case CONSTRAINT_TYPE_SIZELIKE:
+			case CONSTRAINT_TYPE_TRACKTO:
+			case CONSTRAINT_TYPE_LOCLIMIT:
+			case CONSTRAINT_TYPE_ROTLIMIT:
+			case CONSTRAINT_TYPE_SIZELIMIT:
+			case CONSTRAINT_TYPE_TRANSFORM:
+			{
+				/* only copy depending on ownertype */
+				if (self->pchan) {
+					return EXPP_setIValueClamped( value, &con->ownspace, 
+							CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_PARLOCAL, 'h' );
+				}
+				else {
+					return EXPP_setIValueClamped( value, &con->ownspace, 
+							CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_LOCAL, 'h' );
+				}
+			}
+				break;
+		}
+	}
+	else if (type == EXPP_CONSTR_TARSPACE) {
+		switch (con->type) {
+			/* all of these support this... */
+			case CONSTRAINT_TYPE_PYTHON:
+			case CONSTRAINT_TYPE_ACTION:
+			case CONSTRAINT_TYPE_LOCLIKE:
+			case CONSTRAINT_TYPE_ROTLIKE:
+			case CONSTRAINT_TYPE_SIZELIKE:
+			case CONSTRAINT_TYPE_TRACKTO:
+			case CONSTRAINT_TYPE_TRANSFORM:
+			{
+				Object *tar;
+				char subtarget[32];
+				
+				tar= get_constraint_target(con, &subtarget);
+				
+				/* only copy depending on target-type */
+				if (tar && subtarget[0]) {
+					return EXPP_setIValueClamped( value, &con->tarspace, 
+							CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_PARLOCAL, 'h' );
+				}
+				else if (tar) {
+					return EXPP_setIValueClamped( value, &con->tarspace, 
+							CONSTRAINT_SPACE_WORLD, CONSTRAINT_SPACE_LOCAL, 'h' );
+				}
+			}
+				break;
+		}
+	}
+	
+	/* raise error if failed */
+	return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
 }
 
 /*****************************************************************************/
@@ -1574,6 +1687,13 @@ static PyObject *Constraint_getData( BPy_Constraint * self, PyObject * key )
 				"This constraint has been removed!" );
 	
 	setting = PyInt_AsLong( key );
+	
+	/* bypass doing settings of individual constraints, if we're just doing
+	 * constraint space access-stuff 
+	 */
+	if ((setting==EXPP_CONSTR_OWNSPACE) || (setting==EXPP_CONSTR_TARSPACE)) {
+		return constspace_getter( self, setting );
+	}
 	switch( self->con->type ) {
 		case CONSTRAINT_TYPE_NULL:
 			Py_RETURN_NONE;
@@ -1632,66 +1752,75 @@ static int Constraint_setData( BPy_Constraint * self, PyObject * key,
 				"This constraint has been removed!" );
 	
 	key_int = PyInt_AsLong( key );
-	switch( self->con->type ) {
-	case CONSTRAINT_TYPE_KINEMATIC:
-		result = kinematic_setter( self, key_int, arg );
-		break;
-	case CONSTRAINT_TYPE_ACTION:
-		result = action_setter( self, key_int, arg );
-		break;
-	case CONSTRAINT_TYPE_TRACKTO:
-		result = trackto_setter( self, key_int, arg );
-		break;
-	case CONSTRAINT_TYPE_STRETCHTO:
-		result = stretchto_setter( self, key_int, arg );
-		break;
-	case CONSTRAINT_TYPE_FOLLOWPATH:
-		result = followpath_setter( self, key_int, arg );
-		break;
-	case CONSTRAINT_TYPE_LOCKTRACK:
-		result = locktrack_setter( self, key_int, arg );
-		break;
-	case CONSTRAINT_TYPE_MINMAX:
-		result = floor_setter( self, key_int, arg );
-		break;
-	case CONSTRAINT_TYPE_LOCLIKE:
-		result = locatelike_setter( self, key_int, arg );
-		break;
-	case CONSTRAINT_TYPE_ROTLIKE:
-		result = rotatelike_setter( self, key_int, arg );
-		break;
-	case CONSTRAINT_TYPE_SIZELIKE:
-		result = sizelike_setter( self, key_int, arg );
-		break;
-	case CONSTRAINT_TYPE_ROTLIMIT:
-		result = rotlimit_setter( self, key_int, arg );
-		break;
-	case CONSTRAINT_TYPE_LOCLIMIT:
-		result = loclimit_setter( self, key_int, arg );
-		break;
-	case CONSTRAINT_TYPE_SIZELIMIT:
-		result = sizelimit_setter( self, key_int, arg);
-		break;
-	case CONSTRAINT_TYPE_RIGIDBODYJOINT:
-		result = rigidbody_setter( self, key_int, arg);
-		break;
-	case CONSTRAINT_TYPE_CLAMPTO:
-		result = clampto_setter( self, key_int, arg);
-		break;
-	case CONSTRAINT_TYPE_PYTHON:
-		result = script_setter( self, key_int, arg);
-		break;
-	case CONSTRAINT_TYPE_CHILDOF:
-		result = childof_setter( self, key_int, arg);
-		break;
-	case CONSTRAINT_TYPE_TRANSFORM:
-		result = transf_setter( self, key_int, arg);
-		break;
-	case CONSTRAINT_TYPE_NULL:
-		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
-	default:
-		return EXPP_ReturnIntError( PyExc_RuntimeError,
-				"unsupported constraint setting" );
+	
+	/* bypass doing settings of individual constraints, if we're just doing
+	 * constraint space access-stuff 
+	 */
+	if ((key_int==EXPP_CONSTR_OWNSPACE) || (key_int==EXPP_CONSTR_TARSPACE)) {
+		result = constspace_setter( self, key_int, arg );
+	}
+	else {
+		switch( self->con->type ) {
+		case CONSTRAINT_TYPE_KINEMATIC:
+			result = kinematic_setter( self, key_int, arg );
+			break;
+		case CONSTRAINT_TYPE_ACTION:
+			result = action_setter( self, key_int, arg );
+			break;
+		case CONSTRAINT_TYPE_TRACKTO:
+			result = trackto_setter( self, key_int, arg );
+			break;
+		case CONSTRAINT_TYPE_STRETCHTO:
+			result = stretchto_setter( self, key_int, arg );
+			break;
+		case CONSTRAINT_TYPE_FOLLOWPATH:
+			result = followpath_setter( self, key_int, arg );
+			break;
+		case CONSTRAINT_TYPE_LOCKTRACK:
+			result = locktrack_setter( self, key_int, arg );
+			break;
+		case CONSTRAINT_TYPE_MINMAX:
+			result = floor_setter( self, key_int, arg );
+			break;
+		case CONSTRAINT_TYPE_LOCLIKE:
+			result = locatelike_setter( self, key_int, arg );
+			break;
+		case CONSTRAINT_TYPE_ROTLIKE:
+			result = rotatelike_setter( self, key_int, arg );
+			break;
+		case CONSTRAINT_TYPE_SIZELIKE:
+			result = sizelike_setter( self, key_int, arg );
+			break;
+		case CONSTRAINT_TYPE_ROTLIMIT:
+			result = rotlimit_setter( self, key_int, arg );
+			break;
+		case CONSTRAINT_TYPE_LOCLIMIT:
+			result = loclimit_setter( self, key_int, arg );
+			break;
+		case CONSTRAINT_TYPE_SIZELIMIT:
+			result = sizelimit_setter( self, key_int, arg);
+			break;
+		case CONSTRAINT_TYPE_RIGIDBODYJOINT:
+			result = rigidbody_setter( self, key_int, arg);
+			break;
+		case CONSTRAINT_TYPE_CLAMPTO:
+			result = clampto_setter( self, key_int, arg);
+			break;
+		case CONSTRAINT_TYPE_PYTHON:
+			result = script_setter( self, key_int, arg);
+			break;
+		case CONSTRAINT_TYPE_CHILDOF:
+			result = childof_setter( self, key_int, arg);
+			break;
+		case CONSTRAINT_TYPE_TRANSFORM:
+			result = transf_setter( self, key_int, arg);
+			break;
+		case CONSTRAINT_TYPE_NULL:
+			return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
+		default:
+			return EXPP_ReturnIntError( PyExc_RuntimeError,
+					"unsupported constraint setting" );
+		}
 	}
 	if( !result && self->pchan )
 		update_pose_constraint_flags( self->obj->pose );

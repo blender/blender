@@ -42,6 +42,13 @@ Or to print all the constraints attached to each bone in a pose::
 		- BONE (string): name of Bone sub-target (for armature targets) (Note: not
 			used by Stretch To (STRETCHTO), Limit Location (LIMITLOC), Limit Rotation 
 			(LIMITROT), Limit Scale (LIMITSIZE), Follow Path (FOLLOWPATH), Clamp To (CLAMPTO))
+	- Used by some constraints:
+		- OWNERSPACE (int): for TRACKTO, COPYLOC, COPYROT, COPYSIZE, LIMITLOC, LIMITROT, LIMITSIZE, PYTHON, TRANSFORM
+			If the owner is an object, values are SPACE_WORLD, SPACE_LOCAL
+			If the owner is a bone, values are SPACE_WORLD, SPACE_POSE, SPACE_PARLOCAL, SPACE_LOCAL
+		- TARGETSPACE (int): for TRACKTO, COPYLOC, COPYROT, COPYSIZE, PYTHON, TRANSFORM, ACTION
+			If the owner is an object, values are SPACE_WORLD, SPACE_LOCAL
+			If the owner is a bone, values are SPACE_WORLD, SPACE_POSE, SPACE_PARLOCAL, SPACE_LOCAL
 	- Used by IK Solver (IKSOLVER) constraint:
 		- TOLERANCE (float): clamped to [0.0001:1.0]
 		- ITERATIONS (int): clamped to [1,10000]
