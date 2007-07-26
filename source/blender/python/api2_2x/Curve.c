@@ -809,27 +809,14 @@ static PyObject *Curve_appendPoint( BPy_Curve * self, PyObject * args )
 
 static PyObject *Curve_appendNurb( BPy_Curve * self, PyObject * value )
 {
-	Nurb *nurb_ptr = self->curve->nurb.first;
-	Nurb **pptr = ( Nurb ** ) & ( self->curve->nurb.first );
 	Nurb *new_nurb;
-
-
-	/* walk to end of nurblist */
-	if( nurb_ptr ) {
-		while( nurb_ptr->next ) {
-			nurb_ptr = nurb_ptr->next;
-		}
-		pptr = &nurb_ptr->next;
-	}
-
 	/* malloc new nurb */
 	new_nurb = ( Nurb * ) MEM_callocN( sizeof( Nurb ), "appendNurb" );
 	if( !new_nurb )
 		return EXPP_ReturnPyObjError
 			( PyExc_MemoryError, "unable to malloc Nurb" );
-
+	
 	if( CurNurb_appendPointToNurb( new_nurb, value ) ) {
-		*pptr = new_nurb;
 		new_nurb->resolu = self->curve->resolu;
 		new_nurb->resolv = self->curve->resolv;
 		new_nurb->hide = 0;
@@ -856,6 +843,7 @@ static PyObject *Curve_appendNurb( BPy_Curve * self, PyObject * value )
 			new_nurb->knotsu = 0;
 			/*makenots( new_nurb, 1, new_nurb->flagu >> 1); */
 		}
+		BLI_addtail( &self->curve->nurb, new_nurb);
 
 	} else {
 		freeNurb( new_nurb );
