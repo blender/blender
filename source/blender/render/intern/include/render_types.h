@@ -46,7 +46,6 @@ struct Object;
 struct MemArena;
 struct VertTableNode;
 struct VlakTableNode;
-struct Octree;
 struct GHash;
 
 #define TABLEINITSIZE 1024
@@ -83,16 +82,6 @@ typedef struct RenderPart
 	
 	char *clipflag;					/* clipflags for part zbuffering */
 } RenderPart;
-
-typedef struct Octree {
-	struct Branch **adrbranch;
-	struct Node **adrnode;
-	float ocsize;	/* ocsize: mult factor,  max size octree */
-	float ocfacx,ocfacy,ocfacz;
-	float min[3], max[3];
-	int ocres;
-	int branchcount, nodecount;
-} Octree;
 
 /* controls state of render, everything that's read-only during render stage */
 struct Render
@@ -150,7 +139,7 @@ struct Render
 	ListBase parts;
 	
 	/* octree tables and variables for raytrace */
-	Octree oc;
+	void *raytree;
 	
 	/* use this instead of R.r.cfra */
 	float cfra;	

@@ -157,7 +157,7 @@ static Render *envmap_render_copy(Render *re, EnvMap *env)
 	envre->vlaknodeslen= re->vlaknodeslen;
 	envre->vlaknodes= re->vlaknodes;
 	envre->customdata_names= re->customdata_names;
-	envre->oc= re->oc;
+	envre->raytree= re->raytree;
 	
 	return envre;
 }
@@ -177,8 +177,7 @@ static void envmap_free_render_copy(Render *envre)
 	envre->vlaknodeslen= 0;
 	envre->vlaknodes= NULL;
 	envre->customdata_names.first= envre->customdata_names.last= NULL;
-	envre->oc.adrbranch= NULL;
-	envre->oc.adrnode= NULL;
+	envre->raytree= NULL;
 	
 	RE_FreeRender(envre);
 }

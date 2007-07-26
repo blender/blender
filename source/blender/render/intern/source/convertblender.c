@@ -2988,7 +2988,7 @@ void RE_Database_Free(Render *re)
 		re->scene->world->aotables= NULL;
 	}
 	
-	if(re->r.mode & R_RAYTRACE) freeoctree(re);
+	if(re->r.mode & R_RAYTRACE) freeraytree(re);
 
 	free_sss(re);
 	
@@ -3461,17 +3461,17 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 			}
 		}
 		
-		/* yafray: 'direct' radiosity, environment maps and octree init not needed for yafray render */
+		/* yafray: 'direct' radiosity, environment maps and raytree init not needed for yafray render */
 		/* although radio mode could be useful at some point, later */
 		if (re->r.renderer==R_INTERN) {
 			/* RADIO (uses no R anymore) */
 			if(!re->test_break())
 				if(re->r.mode & R_RADIO) do_radio_render(re);
 			
-			/* octree */
+			/* raytree */
 			if(!re->test_break()) {
 				if(re->r.mode & R_RAYTRACE) {
-					makeoctree(re);
+					makeraytree(re);
 				}
 			}
 			/* ENVIRONMENT MAPS */
@@ -4048,10 +4048,10 @@ void RE_Database_Baking(Render *re, Scene *scene, int type)
 	}
 
 	if(type!=RE_BAKE_LIGHT) {
-		/* octree */
+		/* raytree */
 		if(!re->test_break()) {
 			if(re->r.mode & R_RAYTRACE) {
-				makeoctree(re);
+				makeraytree(re);
 			}
 		}
 	}

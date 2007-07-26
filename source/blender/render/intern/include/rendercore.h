@@ -91,8 +91,8 @@ void zbufshade_sss_tile(struct RenderPart *pa);
 
 /* -------- ray.c ------- */
 
-extern void freeoctree(Render *re);
-extern void makeoctree(Render *re);
+extern void freeraytree(Render *re);
+extern void makeraytree(Render *re);
 
 extern void ray_shadow(ShadeInput *, LampRen *, float *);
 extern void ray_trace(ShadeInput *, ShadeResult *);
