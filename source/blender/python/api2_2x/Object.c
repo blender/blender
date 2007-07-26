@@ -1329,7 +1329,7 @@ static PyObject *Object_getParent( BPy_Object * self )
 
 static PyObject *Object_getParentBoneName( BPy_Object * self )
 {
-	if( self->object->parent && self->object->parsubstr[0] != '\0' )
+	if( self->object->parent && self->object->parent->type==OB_ARMATURE && self->object->parsubstr[0] != '\0' )
 		return PyString_FromString( self->object->parsubstr );
 	Py_RETURN_NONE;
 }
