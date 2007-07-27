@@ -103,76 +103,74 @@ static float cube[8][3] = {
 
 static void drawsolidcube_size(float xsize, float ysize, float zsize)
 {
+	static GLuint displist=0;
 	float n[3];
 	
 	glScalef(xsize, ysize, zsize);
 	
 	n[0]=0; n[1]=0; n[2]=0;
-	glBegin(GL_QUADS);
-	n[0]= -1.0;
-	glNormal3fv(n); 
-	glVertex3fv(cube[0]); glVertex3fv(cube[1]); glVertex3fv(cube[2]); glVertex3fv(cube[3]);
-	n[0]=0;
-	glEnd();
-	
-	glBegin(GL_QUADS);
-	n[1]= -1.0;
-	glNormal3fv(n); 
-	glVertex3fv(cube[0]); glVertex3fv(cube[4]); glVertex3fv(cube[5]); glVertex3fv(cube[1]);
-	n[1]=0;
-	glEnd();
-	
-	glBegin(GL_QUADS);
-	n[0]= 1.0;
-	glNormal3fv(n); 
-	glVertex3fv(cube[4]); glVertex3fv(cube[7]); glVertex3fv(cube[6]); glVertex3fv(cube[5]);
-	n[0]=0;
-	glEnd();
-	
-	glBegin(GL_QUADS);
-	n[1]= 1.0;
-	glNormal3fv(n); 
-	glVertex3fv(cube[7]); glVertex3fv(cube[3]); glVertex3fv(cube[2]); glVertex3fv(cube[6]);
-	n[1]=0;
-	glEnd();
-	
-	glBegin(GL_QUADS);
-	n[2]= 1.0;
-	glNormal3fv(n); 
-	glVertex3fv(cube[1]); glVertex3fv(cube[5]); glVertex3fv(cube[6]); glVertex3fv(cube[2]);
-	n[2]=0;
-	glEnd();
-	
-	glBegin(GL_QUADS);
-	n[2]= -1.0;
-	glNormal3fv(n); 
-	glVertex3fv(cube[7]); glVertex3fv(cube[4]); glVertex3fv(cube[0]); glVertex3fv(cube[3]);
-	glEnd();
+
+	if(displist==0) {
+		displist= glGenLists(1);
+		glNewList(displist, GL_COMPILE_AND_EXECUTE);
+
+		glBegin(GL_QUADS);
+		n[0]= -1.0;
+		glNormal3fv(n); 
+		glVertex3fv(cube[0]); glVertex3fv(cube[1]); glVertex3fv(cube[2]); glVertex3fv(cube[3]);
+		n[0]=0;
+		n[1]= -1.0;
+		glNormal3fv(n); 
+		glVertex3fv(cube[0]); glVertex3fv(cube[4]); glVertex3fv(cube[5]); glVertex3fv(cube[1]);
+		n[1]=0;
+		n[0]= 1.0;
+		glNormal3fv(n); 
+		glVertex3fv(cube[4]); glVertex3fv(cube[7]); glVertex3fv(cube[6]); glVertex3fv(cube[5]);
+		n[0]=0;
+		n[1]= 1.0;
+		glNormal3fv(n); 
+		glVertex3fv(cube[7]); glVertex3fv(cube[3]); glVertex3fv(cube[2]); glVertex3fv(cube[6]);
+		n[1]=0;
+		n[2]= 1.0;
+		glNormal3fv(n); 
+		glVertex3fv(cube[1]); glVertex3fv(cube[5]); glVertex3fv(cube[6]); glVertex3fv(cube[2]);
+		n[2]=0;
+		n[2]= -1.0;
+		glNormal3fv(n); 
+		glVertex3fv(cube[7]); glVertex3fv(cube[4]); glVertex3fv(cube[0]); glVertex3fv(cube[3]);
+		glEnd();
+
+		glEndList();
+	}
+	else glCallList(displist);
 	
 }
 
 static void drawcube_size(float xsize, float ysize, float zsize)
 {
+	static GLuint displist=0;
 	
 	glScalef(xsize, ysize, zsize);
 	
-	glBegin(GL_LINE_STRIP);
-	glVertex3fv(cube[0]); glVertex3fv(cube[1]);glVertex3fv(cube[2]); glVertex3fv(cube[3]);
-	glVertex3fv(cube[0]); glVertex3fv(cube[4]);glVertex3fv(cube[5]); glVertex3fv(cube[6]);
-	glVertex3fv(cube[7]); glVertex3fv(cube[4]);
-	glEnd();
-	
-	glBegin(GL_LINE_STRIP);
-	glVertex3fv(cube[1]); glVertex3fv(cube[5]);
-	glEnd();
-	
-	glBegin(GL_LINE_STRIP);
-	glVertex3fv(cube[2]); glVertex3fv(cube[6]);
-	glEnd();
-	
-	glBegin(GL_LINE_STRIP);
-	glVertex3fv(cube[3]); glVertex3fv(cube[7]);
-	glEnd();
+	if(displist==0) {
+		displist= glGenLists(1);
+		glNewList(displist, GL_COMPILE_AND_EXECUTE);
+
+		glBegin(GL_LINE_STRIP);
+		glVertex3fv(cube[0]); glVertex3fv(cube[1]);glVertex3fv(cube[2]); glVertex3fv(cube[3]);
+		glVertex3fv(cube[0]); glVertex3fv(cube[4]);glVertex3fv(cube[5]); glVertex3fv(cube[6]);
+		glVertex3fv(cube[7]); glVertex3fv(cube[4]);
+		glEnd();
+		
+		glBegin(GL_LINES);
+		glVertex3fv(cube[1]); glVertex3fv(cube[5]);
+		glVertex3fv(cube[2]); glVertex3fv(cube[6]);
+		glVertex3fv(cube[3]); glVertex3fv(cube[7]);
+		glEnd();
+
+		glEndList();
+	}
+	else glCallList(displist);
 	
 }
 
