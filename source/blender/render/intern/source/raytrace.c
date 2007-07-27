@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: $
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -488,7 +488,7 @@ RayTree *RE_ray_tree_create(int ocres, int totface, float *min, float *max, RayC
 
 void RE_ray_tree_add_face(RayTree *tree, RayFace *face)
 {
-	Octree *oc = (Octree*)tree;;
+	Octree *oc = (Octree*)tree;
 	float *v1, *v2, *v3, *v4, ocfac[3], rtf[4][3];
 	short rts[4][3], ocmin[6], *ocmax;
 	char *ocface= oc->ocface;	// front, top, size view of face, to fill in
