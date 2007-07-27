@@ -32,6 +32,7 @@
 
 #include "Curve.h" /*This must come first*/
 
+#include "BLI_blenlib.h"
 #include "BKE_main.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
