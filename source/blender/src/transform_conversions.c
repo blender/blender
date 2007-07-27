@@ -2093,20 +2093,36 @@ static short constraints_list_needinv(ListBase *list)
 static void ObjectToTransData(TransData *td, Object *ob) 
 {
 	Object *track;
+	ListBase fakecons = {NULL, NULL};
 	float obmtx[3][3];
+	short constinv;
 
 	/* axismtx has the real orientation */
 	Mat3CpyMat4(td->axismtx, ob->obmat);
 	Mat3Ortho(td->axismtx);
 
-	/* hack: tempolarily disable tracking when getting object matrix, 
-	 *		to stop it from screwing up space conversion matrix later
+	/* hack: tempolarily disable tracking and/or constraints when getting 
+	 *		object matrix, if tracking is on, or if constraints don't need
+	 * 		inverse correction to stop it from screwing up space conversion
+	 *		matrix later
 	 */
-	if (ob->track) {
+	constinv= constraints_list_needinv(&ob->constraints);
+	if (ob->track || constinv==0) {
 		track= ob->track;
 		ob->track= NULL;
 		
+		if (constinv == 0) {
+			fakecons.first = ob->constraints.first;
+			fakecons.last = ob->constraints.last;
+			ob->constraints.first = ob->constraints.last = NULL;
+		}
+		
 		where_is_object(ob);
+		
+		if (constinv == 0) {
+			ob->constraints.first = fakecons.first;
+			ob->constraints.last = fakecons.last;
+		}
 		
 		ob->track= track;
 	}
@@ -2129,7 +2145,7 @@ static void ObjectToTransData(TransData *td, Object *ob)
 	VECCOPY(td->center, ob->obmat[3]);
 
 	/* is there a need to set the global<->data space conversion matrices? */
-	if (ob->parent || constraints_list_needinv(&ob->constraints)) {
+	if (ob->parent || constinv) {
 		float totmat[3][3], obinv[3][3];
 		
 		/* Get the effect of parenting, and/or certain constraints.
