@@ -292,9 +292,10 @@ typedef struct SpaceScript {
 	struct ScrArea *area;
 	struct Script *script;
 
-	int pad2;
 	short flags, menunr;
-
+	int pad1;
+	
+	void *but_refs;
 } SpaceScript;
 
 typedef struct SpaceTime {

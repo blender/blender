@@ -134,18 +134,12 @@ static PyObject *Method_Image( PyObject * self, PyObject * args);
 /* CLEVER NUMBUT */
 static PyObject *Method_PupBlock( PyObject * self, PyObject * args );
 
-PyObject * pycallback_weakref_dealloc(PyObject *self, PyObject *weakref);
-/* python callable */
-PyObject * pycallback_weakref_dealloc__pyfunc;
-
 static uiBlock *Get_uiBlock( void );
+
 static void py_slider_update( void *butv, void *data2_unused );
 
 /* hack to get 1 block for the UIBlock, only ever 1 at a time */
 static uiBlock *uiblock=NULL;
-
-/* store weakref's to callbacks here */
-static PyObject *callback_list; 
 
 static char Draw_doc[] = "The Blender.Draw submodule";
 
@@ -361,6 +355,12 @@ Warning: On cancel, the value objects are brought back to there previous values,
 \texcept for string values which will still contain the modified values.\n";
 
 static char Method_Exit_doc[] = "() - Exit the windowing interface";
+
+/*This is needed for button callbacks.  Any button that uses a callback gets added to this list.
+  On the C side of drawing begin, this list should be cleared.
+  Each entry is a tuple of the form (button, callback py object)
+*/
+PyObject *M_Button_List = NULL;
 
 /*
 * here we engage in some macro trickery to define the PyMethodDef table
@@ -602,7 +602,13 @@ static PyObject *Button_richcmpr(PyObject *objectA, PyObject *objectB, int compa
 
 static Button *newbutton( void )
 {
-	return ( Button * ) PyObject_NEW( Button, &Button_Type );
+	Button *but = NULL;
+	
+	but = ( Button * ) PyObject_NEW( Button, &Button_Type );
+	but->tooltip[0] = 0; /*NULL-terminate tooltip string*/
+	but->tooltip[255] = 0; /*necassary to insure we always have a NULL-terminated string, as
+	                         according to the docs strncpy doesn't do this for us.*/
+	return but;
 }
 
 /* GUI interface routines */
@@ -623,6 +629,10 @@ static void exit_pydraw( SpaceScript * sc, short err )
 		scrarea_queue_redraw( sc->area );
 	}
 
+	BPy_Set_DrawButtonsList(sc->but_refs);
+	BPy_Free_DrawButtonsList(); /*clear all temp button references*/
+	sc->but_refs = NULL;
+	
 	Py_XDECREF( ( PyObject * ) script->py_draw );
 	Py_XDECREF( ( PyObject * ) script->py_event );
 	Py_XDECREF( ( PyObject * ) script->py_button );
@@ -676,6 +686,13 @@ void BPY_spacescript_do_pywin_draw( SpaceScript * sc )
 			    UI_HELV, curarea->win );
 
 	if( script->py_draw ) {
+		if (sc->but_refs) {
+			BPy_Set_DrawButtonsList(sc->but_refs);
+			BPy_Free_DrawButtonsList(); /*clear all temp button references*/
+		}
+		sc->but_refs = PyList_New(0);
+		BPy_Set_DrawButtonsList(sc->but_refs);
+		
 		glPushAttrib( GL_ALL_ATTRIB_BITS );
 		exec_callback( sc, script->py_draw, Py_BuildValue( "()" ) );
 		glPopAttrib(  );
@@ -717,10 +734,7 @@ void BPY_spacescript_do_pywin_event( SpaceScript * sc, unsigned short event,
 
 		if (event == UI_BUT_EVENT) {
 			/* check that event is in free range for script button events;
-			 * read the comment before check_button_event() below to understand
-			 * 
-			 * This will never run from UIBlock so no need to check if uiblock==NULL
-			 * And only sub EXPP_BUTTON_EVENTS_OFFSET in that case */
+			 * read the comment before check_button_event() below to understand */
 			if (val >= EXPP_BUTTON_EVENTS_OFFSET && val < 0x4000)
 				spacescript_do_pywin_buttons(sc, val - EXPP_BUTTON_EVENTS_OFFSET);
 			return;
@@ -758,14 +772,6 @@ static void exec_but_callback(void *pyobj, void *data)
 	if (callback==NULL || callback == Py_None)
 		return;
 	
-	if (callback) {
-		if (!PySequence_Contains(callback_list, callback)) {
-			printf("Error, the callback is out of scope.\n\tmake the callback global to resolve this.\n");
-			return;
-		}
-		callback = PyWeakref_GetObject(callback);
-	}
-
 	/* Button types support
 	case MENU:	
 	case TEX:
@@ -832,31 +838,49 @@ static void exec_but_callback(void *pyobj, void *data)
 	Py_XDECREF( result );
 }
 
-PyObject * pycallback_weakref_dealloc(PyObject *self, PyObject *weakref)
+/*note that this function populates the drawbutton ref lists.*/
+static void set_pycallback(uiBut *ubut, PyObject *callback, Button *but)
 {
-	int i = PySequence_Index(callback_list, weakref);
-	if (i==-1) {
-		printf("callback weakref internal error, weakref not in list\n\tthis should never happen.\n");
-		return NULL;
+	PyObject *tuple;
+	if (!callback || !PyCallable_Check(callback)) {
+		if (M_Button_List && but) {
+			PyList_Append(M_Button_List, (PyObject*)but);
+		}
+		return;
 	}
-	PySequence_DelItem(callback_list, i);
-	Py_RETURN_NONE;
+	
+	if (M_Button_List) {
+		if (but) tuple = PyTuple_New(2);
+		else tuple = PyTuple_New(1);
+		
+		/*the tuple API mandates this*/
+		Py_XINCREF(callback);
+		Py_XINCREF(but); /*this checks for NULL*/
+		
+		PyTuple_SET_ITEM(tuple, 0, callback);
+		if (but) PyTuple_SET_ITEM(tuple, 1, (PyObject*)but);
+		
+		PyList_Append(M_Button_List, tuple);
+		Py_DECREF(tuple); /*we have to do this to aovid double references.*/
+		
+		uiButSetFunc(ubut, exec_but_callback, callback, ubut);
+	}
 }
-static void set_pycallback(uiBut *ubut, PyObject *callback)
+
+void BPy_Set_DrawButtonsList(void *list)
 {
-	PyObject *weakref;
-	if (!callback || !PyCallable_Check(callback)) return;
-	
-	/* This works in most cases except where there are local functions
-	 * that are deallocated so we must use weakrefs, will complain rather then crashing */
-	/*uiButSetFunc(ubut, exec_but_callback, callback, ubut);*/
-	
-	weakref = PyWeakref_NewRef(callback, pycallback_weakref_dealloc__pyfunc);
-	PyList_Append(callback_list, weakref);
-	Py_DECREF(weakref);
-	
-	/*printf("adding weakref, totlength %i\n", PyList_Size(callback_list));*/
-	uiButSetFunc(ubut, exec_but_callback, weakref, ubut);
+	M_Button_List = list;
+}
+
+/*this MUST be called after doing UI stuff.*/
+void BPy_Free_DrawButtonsList(void)
+{
+	/*Clear the list.*/
+	if (M_Button_List) {
+		PyList_SetSlice(M_Button_List, 0, PyList_Size(M_Button_List), NULL);
+		Py_DECREF(M_Button_List);
+		M_Button_List = NULL;
+	}
 }
 
 static PyObject *Method_Exit( PyObject * self )
@@ -1047,6 +1071,7 @@ static PyObject *Method_Create( PyObject * self, PyObject * args )
 	return (PyObject*) but;
 }
 
+
 static PyObject *Method_UIBlock( PyObject * self, PyObject * args )
 {
 	PyObject *val = NULL;
@@ -1060,13 +1085,15 @@ static PyObject *Method_UIBlock( PyObject * self, PyObject * args )
 	if (uiblock)
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 	      "cannot run more then 1 UIBlock at a time" );
+
+	BPy_Set_DrawButtonsList(PyList_New(0));
 	
 	mywinset(G.curscreen->mainwin);
 	uiblock= uiNewBlock(&listb, "numbuts", UI_EMBOSS, UI_HELV, G.curscreen->mainwin);
 	
 	uiBlockSetFlag(uiblock, UI_BLOCK_LOOP|UI_BLOCK_REDRAW);
 	result = PyObject_CallObject( val, Py_BuildValue( "()" ) );
-
+	
 	if (!result) {
 		PyErr_Print(  );
 		error( "Python script error: check console" );
@@ -1076,9 +1103,15 @@ static PyObject *Method_UIBlock( PyObject * self, PyObject * args )
 	}
 	uiFreeBlocks(&listb);
 	uiblock = NULL;
+	BPy_Free_DrawButtonsList(); /*clear all temp button references*/
 	
 	Py_XDECREF( result );
 	Py_RETURN_NONE;
+}
+
+void Set_uiBlock(uiBlock *block)
+{
+	uiblock = block;
 }
 
 static uiBlock *Get_uiBlock( void )
@@ -1149,7 +1182,7 @@ static PyObject *Method_Button( PyObject * self, PyObject * args )
 	block = Get_uiBlock(  );
 	if( block ) {
 		uiBut *ubut = uiDefBut( block, BUT, event, name, (short)x, (short)y, (short)w, (short)h, 0, 0, 0, 0, 0, tip );
-		set_pycallback(ubut, callback);
+		set_pycallback(ubut, callback, NULL);
 	}
 	Py_RETURN_NONE;
 }
@@ -1173,12 +1206,13 @@ static PyObject *Method_Menu( PyObject * self, PyObject * args )
 	but = newbutton(  );
 	but->type = BINT_TYPE;
 	but->val.asint = def;
-
+	if (tip) strncpy(but->tooltip, tip, BPY_MAX_TOOLTIP);
+	
 	block = Get_uiBlock(  );
 	if( block ) {
 		uiBut *ubut = uiDefButI( block, MENU, event, name, (short)x, (short)y, (short)w, (short)h,
-			   &but->val.asint, 0, 0, 0, 0, tip );
-		set_pycallback(ubut, callback);
+			   &but->val.asint, 0, 0, 0, 0, but->tooltip );
+		set_pycallback(ubut, callback, but);
 	}
 	return ( PyObject * ) but;
 }
@@ -1202,12 +1236,13 @@ static PyObject *Method_Toggle( PyObject * self, PyObject * args )
 	but = newbutton(  );
 	but->type = BINT_TYPE;
 	but->val.asint = def;
-
+	if (tip) strncpy(but->tooltip, tip, BPY_MAX_TOOLTIP);
+	
 	block = Get_uiBlock(  );
 	if( block ) {
 		uiBut *ubut = uiDefButI( block, TOG, event, name, (short)x, (short)y, (short)w, (short)h,
-			   &but->val.asint, 0, 0, 0, 0, tip );
-		set_pycallback(ubut, callback);
+			   &but->val.asint, 0, 0, 0, 0, but->tooltip );
+		set_pycallback(ubut, callback, but);
 	}
 	return ( PyObject * ) but;
 }
@@ -1235,12 +1270,12 @@ static void py_slider_update( void *butv, void *data2_unused )
 	disable_where_script( 1 );
 
 	spacescript_do_pywin_buttons( curarea->spacedata.first,
-		(unsigned short)uiButGetRetVal( but ) -  EXPP_BUTTON_EVENTS_OFFSET);
+		(unsigned short)uiButGetRetVal( but ) -  EXPP_BUTTON_EVENTS_OFFSET );
 
 	/* XXX useless right now, investigate better before a bcon 5 */
 	ret = M_Window_Redraw( 0, ref );
 
-	Py_DECREF(ref);
+	Py_XDECREF(ref);
 	Py_XDECREF(ret);
 
 	disable_where_script( 0 );
@@ -1265,10 +1300,10 @@ static PyObject *Method_Slider( PyObject * self, PyObject * args )
 					      "expected a string, five ints, three PyObjects\n\
 			and optionally int, string and callback arguments" );
 
-	UI_METHOD_ERRORCHECK;
-	
 	if(realtime && uiblock)
 		realtime = 0; /* realtime dosnt work with UIBlock */
+
+	UI_METHOD_ERRORCHECK;
 	
 	but = newbutton(  );
 
@@ -1281,17 +1316,18 @@ static PyObject *Method_Slider( PyObject * self, PyObject * args )
 
 		but->type = BFLOAT_TYPE;
 		but->val.asfloat = ini;
-
+		if (tip) strncpy(but->tooltip, tip, BPY_MAX_TOOLTIP);
+		
 		block = Get_uiBlock(  );
 		if( block ) {
 			uiBut *ubut;
 			ubut = uiDefButF( block, NUMSLI, event, name, (short)x, (short)y, (short)w,
 					  (short)h, &but->val.asfloat, min, max, 0, 0,
-					  tip );
+					  but->tooltip );
 			if( realtime )
 				uiButSetFunc( ubut, py_slider_update, ubut, NULL );
 			else
-				set_pycallback(ubut, callback);
+				set_pycallback(ubut, callback, but);
 		}
 	} else {
 		int ini, min, max;
@@ -1302,17 +1338,18 @@ static PyObject *Method_Slider( PyObject * self, PyObject * args )
 
 		but->type = BINT_TYPE;
 		but->val.asint = ini;
-
+		if (tip) strncpy(but->tooltip, tip, BPY_MAX_TOOLTIP);
+		
 		block = Get_uiBlock(  );
 		if( block ) {
 			uiBut *ubut;
 			ubut = uiDefButI( block, NUMSLI, event, name, (short)x, (short)y, (short)w,
 					  (short)h, &but->val.asint, (float)min, (float)max, 0, 0,
-					  tip );
+					  but->tooltip );
 			if( realtime )
 				uiButSetFunc( ubut, py_slider_update, ubut, NULL );
 			else
-				set_pycallback(ubut, callback);
+				set_pycallback(ubut, callback, but);
 		}
 	}
 	return ( PyObject * ) but;
@@ -1345,7 +1382,8 @@ another int and string as arguments" );
 		"button event argument must be in the range [0, 16382]");
 
 	but = newbutton(  );
-
+	if (tip) strncpy(but->tooltip, tip, BPY_MAX_TOOLTIP);
+	
 	if( PyFloat_Check( inio ) )
 		but->type = BFLOAT_TYPE;
 	else
@@ -1361,13 +1399,13 @@ another int and string as arguments" );
 		if( but->type == BFLOAT_TYPE ) {
 			but->val.asfloat = ini;
 			ubut = uiDefButF( block, SCROLL, event, "", (short)x, (short)y, (short)w, (short)h,
-					  &but->val.asfloat, min, max, 0, 0, tip );
+					  &but->val.asfloat, min, max, 0, 0, but->tooltip );
 			if( realtime )
 				uiButSetFunc( ubut, py_slider_update, ubut, NULL );
 		} else {
 			but->val.asint = (int)ini;
 			ubut = uiDefButI( block, SCROLL, event, "", (short)x, (short)y, (short)w, (short)h,
-					  &but->val.asint, min, max, 0, 0, tip );
+					  &but->val.asint, min, max, 0, 0, but->tooltip );
 			if( realtime )
 				uiButSetFunc( ubut, py_slider_update, ubut, NULL );
 		}
@@ -1411,12 +1449,13 @@ static PyObject *Method_ColorPicker( PyObject * self, PyObject * args )
 	but->val.asvec[0] = col[0];
 	but->val.asvec[1] = col[1];
 	but->val.asvec[2] = col[2];
+	if (tip) strncpy(but->tooltip, tip, BPY_MAX_TOOLTIP);
 	
 	block = Get_uiBlock(  );
 	if( block ) {
 		uiBut *ubut;
-		ubut = uiDefButF( block, COL, event, "", x, y, w, h, but->val.asvec, 0, 0, 0, 0, tip);
-		set_pycallback(ubut, callback);
+		ubut = uiDefButF( block, COL, event, "", x, y, w, h, but->val.asvec, 0, 0, 0, 0, but->tooltip);
+		set_pycallback(ubut, callback, but);
 	}
 
  	return ( PyObject * ) but;
@@ -1450,7 +1489,8 @@ static PyObject *Method_Normal( PyObject * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_ValueError, USAGE_ERROR);
  
 	but = newbutton();
- 
+	if (tip) strncpy(but->tooltip, tip, BPY_MAX_TOOLTIP);
+	
 	but->type = BVECTOR_TYPE;
 	but->val.asvec[0] = nor[0];
 	but->val.asvec[1] = nor[1];
@@ -1459,8 +1499,8 @@ static PyObject *Method_Normal( PyObject * self, PyObject * args )
 	block = Get_uiBlock(  );
 	if( block ) {
 		uiBut *ubut;
-		ubut = uiDefButF( block, BUT_NORMAL, event, "", x, y, w, h, but->val.asvec, 0.0f, 1.0f, 0, 0, tip);
-		set_pycallback(ubut, callback);
+		ubut = uiDefButF( block, BUT_NORMAL, event, "", x, y, w, h, but->val.asvec, 0.0f, 1.0f, 0, 0, but->tooltip);
+		set_pycallback(ubut, callback, but);
 	}
 	
  	return ( PyObject * ) but;
@@ -1486,6 +1526,7 @@ static PyObject *Method_Number( PyObject * self, PyObject * args )
 	UI_METHOD_ERRORCHECK;
 
 	but = newbutton(  );
+	if (tip) strncpy(but->tooltip, tip, BPY_MAX_TOOLTIP);
 	block = Get_uiBlock(  );
 	
 	if( PyFloat_Check( inio ) ) {
@@ -1502,15 +1543,15 @@ static PyObject *Method_Number( PyObject * self, PyObject * args )
 		if      (range>=1000.0f) precission=1.0f;
 		else if (range>=100.0f) precission=2.0f;
 		else if (range>=10.0f) precission=3.0f;
-		else precission=4.0f;
-		
+ 		else precission=4.0f;
+ 			
 		but->type = BFLOAT_TYPE;
 		but->val.asfloat = ini;
 
 		
 		if( block )
 			ubut= uiDefButF( block, NUM, event, name, (short)x, (short)y, (short)w, (short)h,
-				   &but->val.asfloat, min, max, 10*range, precission, tip );
+				   &but->val.asfloat, min, max, 10*range, precission, but->tooltip );
 	} else {
 		int ini, min, max;
 
@@ -1523,10 +1564,10 @@ static PyObject *Method_Number( PyObject * self, PyObject * args )
 
 		if( block )
 			ubut= uiDefButI( block, NUM, event, name, (short)x, (short)y, (short)w, (short)h,
-				   &but->val.asint, (float)min, (float)max, 0, 0, tip );
+				   &but->val.asint, (float)min, (float)max, 0, 0, but->tooltip );
 	}
 	
-	if (ubut) set_pycallback(ubut, callback);
+	if (ubut) set_pycallback(ubut, callback, but);
 	
 	return ( PyObject * ) but;
 }
@@ -1555,11 +1596,12 @@ static PyObject *Method_String( PyObject * self, PyObject * args )
 
 	real_len = strlen(newstr);
 	if (real_len > len) real_len = len;
-
+	
 	but = newbutton(  );
 	but->type = BSTRING_TYPE;
 	but->slen = len;
 	but->val.asstr = MEM_mallocN( len + 1, "pybutton str" );
+	if (tip) strncpy(but->tooltip, tip, BPY_MAX_TOOLTIP);
 
 	BLI_strncpy( but->val.asstr, newstr, len + 1); /* adds '\0' */
 	but->val.asstr[real_len] = '\0';
@@ -1570,8 +1612,8 @@ static PyObject *Method_String( PyObject * self, PyObject * args )
 	block = Get_uiBlock(  );
 	if( block ) {
 		uiBut *ubut = uiDefBut( block, TEX, event, info_str, (short)x, (short)y, (short)w, (short)h,
-			  but->val.asstr, 0, (float)len, 0, 0, tip );
-		set_pycallback(ubut, callback);
+			  but->val.asstr, 0, (float)len, 0, 0, but->tooltip );
+		set_pycallback(ubut, callback, but);
 	}
 	return ( PyObject * ) but;
 }
@@ -2004,26 +2046,17 @@ static PyObject *Method_Image( PyObject * self, PyObject * args )
 
 }
 
-static PyMethodDef bpycallback_weakref_dealloc[] = {
-	{"pycallback_weakref_dealloc", pycallback_weakref_dealloc, METH_O, ""}
-};
-
 PyObject *Draw_Init( void )
 {
 	PyObject *submodule, *dict;
-	
-	/* Weakref management - used for callbacks so we can
-	 * tell when a callback has been removed that a UI button referenced */
-	callback_list = PyList_New(0);
-	pycallback_weakref_dealloc__pyfunc = PyCFunction_New(bpycallback_weakref_dealloc, NULL);
-	
+
 	if( PyType_Ready( &Button_Type) < 0)
 		Py_RETURN_NONE;
 
 	submodule = Py_InitModule3( "Blender.Draw", Draw_methods, Draw_doc );
 
 	dict = PyModule_GetDict( submodule );
-	
+
 #define EXPP_ADDCONST(x) \
 	EXPP_dict_set_item_str(dict, #x, PyInt_FromLong(x))
 

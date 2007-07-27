@@ -6222,13 +6222,26 @@ SpaceType *spacetext_get_type(void)
 
 	return st;
 }
+
+static void spacescript_change(ScrArea *sa, void *spacedata)
+{
+	SpaceScript *sc = (SpaceScript*) spacedata;
+
+	/*clear all temp button references*/
+	if (sc->but_refs) {
+		BPy_Set_DrawButtonsList(sc->but_refs);
+		BPy_Free_DrawButtonsList();
+		sc->but_refs = NULL;
+	}
+}
+
 SpaceType *spacescript_get_type(void)
 {
 	static SpaceType *st = NULL;
 
 	if (!st) {
 		st = spacetype_new("Script");
-		spacetype_set_winfuncs(st, drawscriptspace, NULL, winqreadscriptspace);
+		spacetype_set_winfuncs(st, drawscriptspace, spacescript_change, winqreadscriptspace);
 	}
 
 	return st;

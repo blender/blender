@@ -142,6 +142,12 @@ void winqreadscriptspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *
 void free_scriptspace (SpaceScript *sc)
 {
 	if (!sc) return;
-
+	
+	/*free buttons references*/
+	if (sc->but_refs) {
+		BPy_Set_DrawButtonsList(sc->but_refs);
+		BPy_Free_DrawButtonsList();
+		sc->but_refs = NULL;
+	}
 	sc->script = NULL;
 }

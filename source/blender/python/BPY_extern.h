@@ -51,6 +51,25 @@ struct bPythonConstraint; /* DNA_constraint_types.h */
 extern "C" {
 #endif
 
+	/*These two next functions are important for making sure the Draw module
+	  works correctly.  Before calling any gui callback using the Draw module,
+	  the following code must be executed:
+	  
+		if (some_drawspace_pylist) {
+			BPy_Set_DrawButtonsList(some_drawspace_pylist->but_refs);
+			BPy_Free_DrawButtonsList();
+		}
+		some_drawspace_pylist = PyList_New(0);
+		BPy_Set_DrawButtonsList(some_drawspace_pylist);
+
+      Also, BPy_Free_DrawButtonsList() must be called as necassary when a drawspace
+      with python callbacks is destroyed.
+      
+      This is necassary to avoid blender buttons storing invalid pointers to freed
+      python data.*/
+	void BPy_Set_DrawButtonsList(void *list);
+	void BPy_Free_DrawButtonsList(void);
+	
 	void BPY_pyconstraint_eval(struct bPythonConstraint *con, float ownermat[][4], float targetmat[][4]);
 	void BPY_pyconstraint_settings(void *arg1, void *arg2);
 	int BPY_pyconstraint_targets(struct bPythonConstraint *con, float targetmat[][4]);
