@@ -131,10 +131,12 @@ void nlBegin(NLenum primitive);
 void nlEnd(NLenum primitive);
 void nlCoefficient(NLuint index, NLfloat value);
 
-/* Setting random elements matrix/vector - not for least squares! */
+/* Setting random elements matrix/vector - not supported for
+   least squares! */
 
 void nlMatrixAdd(NLuint row, NLuint col, NLfloat value);
 void nlRightHandSideAdd(NLuint index, NLfloat value);
+void nlRightHandSideSet(NLuint index, NLfloat value);
 
 /* Solve */
 
