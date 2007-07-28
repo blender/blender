@@ -125,6 +125,11 @@ typedef struct ModifierTypeInfo {
 	            struct EditMesh *editData, struct DerivedMesh *derivedData,
 	            float (*vertexCos)[3], int numVerts);
 
+	/* Set deform matrix per vertex for crazyspace correction */
+	void (*deformMatricesEM)(
+	            struct ModifierData *md, struct Object *ob,
+	            struct EditMesh *editData, struct DerivedMesh *derivedData,
+	            float (*vertexCos)[3], float (*defMats)[3][3], int numVerts);
 
 	/********************* Non-deform modifier functions *********************/
 
@@ -257,6 +262,7 @@ void          modifier_copyData(struct ModifierData *md, struct ModifierData *ta
 int           modifier_dependsOnTime(struct ModifierData *md);
 int           modifier_supportsMapping(struct ModifierData *md);
 int           modifier_couldBeCage(struct ModifierData *md);
+int           modifier_isDeformer(struct ModifierData *md);
 void          modifier_setError(struct ModifierData *md, char *format, ...);
 
 void          modifiers_foreachObjectLink(struct Object *ob,

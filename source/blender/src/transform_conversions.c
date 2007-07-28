@@ -1506,43 +1506,33 @@ static void make_vertexcos__mapFunc(void *userData, int index, float *co, float 
 	VECCOPY(vec, co);
 }
 
-/* hurmf, copy from buttons_editing.c, i have to sort this out what it means... */
-static void modifiers_setOnCage(void *ob_v, void *md_v)
+static int modifiers_disable_subsurf_temporary(Object *ob)
 {
-	Object *ob = ob_v;
 	ModifierData *md;
+	int disabled = 0;
 	
-	int i, cageIndex = modifiers_getCageIndex(ob, NULL );
+	for(md=ob->modifiers.first; md; md=md->next)
+		if(md->type==eModifierType_Subsurf)
+			if(md->mode & eModifierMode_OnCage) {
+				md->mode ^= eModifierMode_DisableTemporary;
+				disabled= 1;
+			}
 	
-	for( i = 0, md=ob->modifiers.first; md; ++i, md=md->next )
-		if( md == md_v ) {
-			if( i >= cageIndex )
-				md->mode ^= eModifierMode_OnCage;
-			break;
-		}
+	return disabled;
 }
-
 
 /* disable subsurf temporal, get mapped cos, and enable it */
 static float *get_crazy_mapped_editverts(void)
 {
 	DerivedMesh *dm;
-	ModifierData *md;
 	float *vertexcos;
-	int i;
-	
-	for( i = 0, md=G.obedit->modifiers.first; md; ++i, md=md->next ) {
-		if(md->type==eModifierType_Subsurf)
-			if(md->mode & eModifierMode_OnCage)
-				break;
-	}
-	if(md) {
-		/* this call disables subsurf and enables the underlying modifier to deform, apparently */
-		modifiers_setOnCage(G.obedit, md);
-		/* make it all over */
+
+	/* disable subsurf temporal, get mapped cos, and enable it */
+	if(modifiers_disable_subsurf_temporary(G.obedit)) {
+		/* need to make new derivemesh */
 		makeDerivedMesh(G.obedit, CD_MASK_BAREMESH);
 	}
-	
+
 	/* now get the cage */
 	dm= editmesh_get_derived_cage(CD_MASK_BAREMESH);
 
@@ -1551,10 +1541,8 @@ static float *get_crazy_mapped_editverts(void)
 	
 	dm->release(dm);
 	
-	if(md) {
-		/* set back the flag, no new cage needs to be built, transform does it */
-		modifiers_setOnCage(G.obedit, md);
-	}
+	/* set back the flag, no new cage needs to be built, transform does it */
+	modifiers_disable_subsurf_temporary(G.obedit);
 	
 	return vertexcos;
 }
@@ -1577,12 +1565,12 @@ static void set_crazy_vertex_quat(float *quat, float *v1, float *v2, float *v3, 
 }
 #undef TAN_MAKE_VEC
 
-static void set_crazyspace_quats(float *mappedcos, float *quats)
+static void set_crazyspace_quats(float *origcos, float *mappedcos, float *quats)
 {
 	EditMesh *em = G.editMesh;
 	EditVert *eve, *prev;
 	EditFace *efa;
-	float *v1, *v2, *v3, *v4;
+	float *v1, *v2, *v3, *v4, *co1, *co2, *co3, *co4;
 	long index= 0;
 	
 	/* two abused locations in vertices */
@@ -1595,43 +1583,48 @@ static void set_crazyspace_quats(float *mappedcos, float *quats)
 	for(efa= em->faces.first; efa; efa= efa->next) {
 		
 		/* retrieve mapped coordinates */
-		v1= mappedcos + 3*( (long)(efa->v1->prev) );
-		v2= mappedcos + 3*( (long)(efa->v2->prev) );
-		v3= mappedcos + 3*( (long)(efa->v3->prev) );
-		
+		v1= mappedcos + 3*(long)(efa->v1->prev);
+		v2= mappedcos + 3*(long)(efa->v2->prev);
+		v3= mappedcos + 3*(long)(efa->v3->prev);
+
+		co1= (origcos)? origcos + 3*(long)(efa->v1->prev): efa->v1->co;
+		co2= (origcos)? origcos + 3*(long)(efa->v2->prev): efa->v2->co;
+		co3= (origcos)? origcos + 3*(long)(efa->v3->prev): efa->v3->co;
+
 		if(efa->v2->tmp.fp==NULL && efa->v2->f1) {
-			set_crazy_vertex_quat(quats, efa->v2->co, efa->v3->co, efa->v1->co, v2, v3, v1);
+			set_crazy_vertex_quat(quats, co2, co3, co1, v2, v3, v1);
 			efa->v2->tmp.fp= quats;
 			quats+= 4;
 		}
 		
 		if(efa->v4) {
-			v4= mappedcos + 3*( (long)(efa->v4->prev) );
-			
+			v4= mappedcos + 3*(long)(efa->v4->prev);
+			co4= (origcos)? origcos + 3*(long)(efa->v4->prev): efa->v4->co;
+
 			if(efa->v1->tmp.fp==NULL && efa->v1->f1) {
-				set_crazy_vertex_quat(quats, efa->v1->co, efa->v2->co, efa->v4->co, v1, v2, v4);
+				set_crazy_vertex_quat(quats, co1, co2, co4, v1, v2, v4);
 				efa->v1->tmp.fp= quats;
 				quats+= 4;
 			}
 			if(efa->v3->tmp.fp==NULL && efa->v3->f1) {
-				set_crazy_vertex_quat(quats, efa->v3->co, efa->v4->co, efa->v2->co, v3, v4, v2);
+				set_crazy_vertex_quat(quats, co3, co4, co2, v3, v4, v2);
 				efa->v3->tmp.fp= quats;
 				quats+= 4;
 			}
 			if(efa->v4->tmp.fp==NULL && efa->v4->f1) {
-				set_crazy_vertex_quat(quats, efa->v4->co, efa->v1->co, efa->v3->co, v4, v1, v3);
+				set_crazy_vertex_quat(quats, co4, co1, co3, v4, v1, v3);
 				efa->v4->tmp.fp= quats;
 				quats+= 4;
 			}
 		}
 		else {
 			if(efa->v1->tmp.fp==NULL && efa->v1->f1) {
-				set_crazy_vertex_quat(quats, efa->v1->co, efa->v2->co, efa->v3->co, v1, v2, v3);
+				set_crazy_vertex_quat(quats, co1, co2, co3, v1, v2, v3);
 				efa->v1->tmp.fp= quats;
 				quats+= 4;
 			}
 			if(efa->v3->tmp.fp==NULL && efa->v3->f1) {
-				set_crazy_vertex_quat(quats, efa->v3->co, efa->v1->co, efa->v2->co, v3, v1, v2);
+				set_crazy_vertex_quat(quats, co3, co1, co2, v3, v1, v2);
 				efa->v3->tmp.fp= quats;
 				quats+= 4;
 			}
@@ -1651,8 +1644,8 @@ static void createTransEditVerts(TransInfo *t)
 	EditVert *eve;
 	EditVert **nears = NULL;
 	float *vectors = NULL, *mappedcos = NULL, *quats= NULL;
-	float mtx[3][3], smtx[3][3];
-	int count=0, countsel=0;
+	float mtx[3][3], smtx[3][3], (*defmats)[3][3] = NULL, (*defcos)[3] = NULL;
+	int count=0, countsel=0, a, totleft;
 	int propmode = t->flag & T_PROP_EDIT;
 	int mirror= (G.scene->toolsettings->editbutflag & B_MESH_X_MIRROR);
 
@@ -1714,10 +1707,23 @@ static void createTransEditVerts(TransInfo *t)
 	if(propmode==0) {
 		if(modifiers_getCageIndex(G.obedit, NULL)>=0) {
 			if(modifiers_isDeformed(G.obedit)) {
-				/* disable subsurf temporal, get mapped cos, and enable it */
-				mappedcos= get_crazy_mapped_editverts();
-				quats= MEM_mallocN( (t->total)*sizeof(float)*4, "crazy quats");
-				set_crazyspace_quats(mappedcos, quats);
+				/* check if we can use deform matrices for modifier from the
+				   start up to stack, they are more accurate than quats */
+				totleft= editmesh_get_first_deform_matrices(&defmats, &defcos);
+
+				/* if we still have more modifiers, also do crazyspace
+				   correction with quats, relative to the coordinates after
+				   the modifiers that support deform matrices (defcos) */
+				if(totleft > 0) {
+					mappedcos= get_crazy_mapped_editverts();
+					quats= MEM_mallocN( (t->total)*sizeof(float)*4, "crazy quats");
+					set_crazyspace_quats((float*)defcos, mappedcos, quats);
+					if(mappedcos)
+						MEM_freeN(mappedcos);
+				}
+
+				if(defcos)
+					MEM_freeN(defcos);
 			}
 		}
 	}
@@ -1733,7 +1739,7 @@ static void createTransEditVerts(TransInfo *t)
 		}
 	}
 	
-	for (eve=em->verts.first; eve; eve=eve->next) {
+	for (a=0, eve=em->verts.first; eve; eve=eve->next, a++) {
 		if(eve->h==0) {
 			if(propmode || eve->f1) {
 				VertsToTransData(tob, eve);
@@ -1753,11 +1759,22 @@ static void createTransEditVerts(TransInfo *t)
 				}
 				
 				/* CrazySpace */
-				if(quats && eve->tmp.fp) {
+				if(defmats || (quats && eve->tmp.fp)) {
 					float mat[3][3], imat[3][3], qmat[3][3];
 					
-					QuatToMat3(eve->tmp.fp, qmat);
-					Mat3MulMat3(mat, mtx, qmat);
+					/* use both or either quat and defmat correction */
+					if(quats && eve->tmp.f) {
+						QuatToMat3(eve->tmp.fp, qmat);
+
+						if(defmats)
+							Mat3MulSerie(mat, mtx, qmat, defmats[a],
+								NULL, NULL, NULL, NULL, NULL);
+						else
+							Mat3MulMat3(mat, mtx, qmat);
+					}
+					else
+						Mat3MulMat3(mat, mtx, defmats[a]);
+
 					Mat3Inv(imat, mat);
 					
 					Mat3CpyMat3(tob->smtx, imat);
@@ -1782,10 +1799,10 @@ static void createTransEditVerts(TransInfo *t)
 		MEM_freeN(nears);
 	}
 	/* crazy space free */
-	if(mappedcos)
-		MEM_freeN(mappedcos);
 	if(quats)
 		MEM_freeN(quats);
+	if(defmats)
+		MEM_freeN(defmats);
 }
 
 /* ********************* UV ****************** */

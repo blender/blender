@@ -4577,8 +4577,8 @@ static void armatureModifier_deformVerts(
 {
 	ArmatureModifierData *amd = (ArmatureModifierData*) md;
 
-	armature_deform_verts(amd->object, ob, derivedData, vertexCos, numVerts,
-	                      amd->deformflag, amd->defgrp_name);
+	armature_deform_verts(amd->object, ob, derivedData, vertexCos, NULL,
+	                      numVerts, amd->deformflag, amd->defgrp_name);
 }
 
 static void armatureModifier_deformVertsEM(
@@ -4590,7 +4590,23 @@ static void armatureModifier_deformVertsEM(
 
 	if(!derivedData) dm = CDDM_from_editmesh(editData, ob->data);
 
-	armature_deform_verts(amd->object, ob, dm, vertexCos, numVerts,
+	armature_deform_verts(amd->object, ob, dm, vertexCos, NULL, numVerts,
+	                      amd->deformflag, amd->defgrp_name);
+
+	if(!derivedData) dm->release(dm);
+}
+
+static void armatureModifier_deformMatricesEM(
+				ModifierData *md, Object *ob, EditMesh *editData,
+				DerivedMesh *derivedData, float (*vertexCos)[3],
+				float (*defMats)[3][3], int numVerts)
+{
+	ArmatureModifierData *amd = (ArmatureModifierData*) md;
+	DerivedMesh *dm = derivedData;
+
+	if(!derivedData) dm = CDDM_from_editmesh(editData, ob->data);
+
+	armature_deform_verts(amd->object, ob, dm, vertexCos, defMats, numVerts,
 	                      amd->deformflag, amd->defgrp_name);
 
 	if(!derivedData) dm->release(dm);
@@ -5067,6 +5083,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->updateDepgraph = armatureModifier_updateDepgraph;
 		mti->deformVerts = armatureModifier_deformVerts;
 		mti->deformVertsEM = armatureModifier_deformVertsEM;
+		mti->deformMatricesEM = armatureModifier_deformMatricesEM;
 
 		mti = INIT_TYPE(Hook);
 		mti->type = eModifierTypeType_OnlyDeform;
@@ -5268,6 +5285,7 @@ int modifiers_getCageIndex(Object *ob, int *lastPossibleCageIndex_r)
 		if (!(md->mode & eModifierMode_Editmode)) continue;
 		if (mti->isDisabled && mti->isDisabled(md)) continue;
 		if (!(mti->flags & eModifierTypeFlag_SupportsEditmode)) continue;
+		if (md->mode & eModifierMode_DisableTemporary) continue;
 
 		if (!modifier_supportsMapping(md))
 			break;
@@ -5447,20 +5465,26 @@ int modifiers_usesArmature(Object *ob, bArmature *arm)
 	return 0;
 }
 
+int modifier_isDeformer(ModifierData *md)
+{
+	if (md->type==eModifierType_Armature)
+		return 1;
+	if (md->type==eModifierType_Curve)
+		return 1;
+	if (md->type==eModifierType_Lattice)
+		return 1;
+	
+	return 0;
+}
+
 int modifiers_isDeformed(Object *ob)
 {
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
 	
 	for (; md; md=md->next) {
 		if(ob==G.obedit && (md->mode & eModifierMode_Editmode)==0);
-		else {
-			if (md->type==eModifierType_Armature)
-				return 1;
-			if (md->type==eModifierType_Curve)
-				return 1;
-			if (md->type==eModifierType_Lattice)
-				return 1;
-		}
+		else if(modifier_isDeformer(md))
+			return 1;
 	}
 	return 0;
 }

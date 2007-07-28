@@ -38,6 +38,7 @@ typedef enum ModifierMode {
 	eModifierMode_OnCage = (1<<3),
 	eModifierMode_Expanded = (1<<4),
 	eModifierMode_Virtual = (1<<5),
+	eModifierMode_DisableTemporary = (1 << 31)
 } ModifierMode;
 
 typedef struct ModifierData {

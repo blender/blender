@@ -504,39 +504,54 @@ static void pchan_b_bone_defmats(bPoseChannel *pchan)
 	Bone *bone= pchan->bone;
 	Mat4 *b_bone= b_bone_spline_setup(pchan);
 	Mat4 *b_bone_mats;
+	float tmat[4][4];
 	int a;
 	
-	pchan->b_bone_mats=b_bone_mats= MEM_mallocN((1+bone->segments)*sizeof(Mat4), "BBone defmats");
-	
-	/* first matrix is the inverse arm_mat, to bring points in local bone space */
+	/* allocate b_bone matrices and dual quats */
+	b_bone_mats= MEM_mallocN((1+bone->segments)*sizeof(Mat4), "BBone defmats");
+	pchan->b_bone_mats= b_bone_mats;
+
+	/* first matrix is the inverse arm_mat, to bring points in local bone space
+	   for finding out which segment it belongs to */
 	Mat4Invert(b_bone_mats[0].mat, bone->arm_mat);
-	
-	/* then we multiply the bbone_mats with arm_mat */
+
+	/* then we make the b_bone_mats:
+	    - first transform to local bone space
+		- translate over the curve to the bbone mat space
+		- transform with b_bone matrix
+		- transform back into global space */
+	Mat4One(tmat);
+
 	for(a=0; a<bone->segments; a++) {
-		Mat4MulMat4(b_bone_mats[a+1].mat, b_bone[a].mat, bone->arm_mat);
+		tmat[3][1] = -a*(bone->length/(float)bone->segments);
+
+		Mat4MulSerie(b_bone_mats[a+1].mat, pchan->chan_mat, bone->arm_mat,
+			b_bone[a].mat, tmat, b_bone_mats[0].mat, NULL, NULL, NULL);
 	}
 }
 
-static void b_bone_deform(bPoseChannel *pchan, Bone *bone, float *defpos)
+static void b_bone_deform(bPoseChannel *pchan, Bone *bone, float *co, float defmat[][3])
 {
 	Mat4 *b_bone= pchan->b_bone_mats;
-	float segment;
+	float (*mat)[4]= b_bone[0].mat;
+	float segment, y;
 	int a;
 	
-	/* need to transform defpos back to bonespace */
-	Mat4MulVecfl(b_bone[0].mat, defpos);
+	/* need to transform co back to bonespace, only need y */
+	y= mat[0][1]*co[0] + mat[1][1]*co[1] + mat[2][1]*co[2] + mat[3][1];
 	
 	/* now calculate which of the b_bones are deforming this */
 	segment= bone->length/((float)bone->segments);
-	a= (int) (defpos[1]/segment);
+	a= (int)(y/segment);
 	
-	/* note; by clamping it extends deform at endpoints, goes best with straight joints in restpos. */
+	/* note; by clamping it extends deform at endpoints, goes best with
+	   straight joints in restpos. */
 	CLAMP(a, 0, bone->segments-1);
 
-	/* since the bbone mats translate from (0.0.0) on the curve, we subtract */
-	defpos[1] -= ((float)a)*segment;
-	
-	Mat4MulVecfl(b_bone[a+1].mat, defpos);
+	Mat4MulVecfl(b_bone[a+1].mat, co);
+
+	if(defmat)
+		Mat3CpyMat4(defmat, b_bone[a+1].mat);
 }
 
 /* using vec with dist to bone b1 - b2 */
@@ -590,12 +605,24 @@ float distfactor_to_bone (float vec[3], float b1[3], float b2[3], float rad1, fl
 	}
 }
 
-static float dist_bone_deform(bPoseChannel *pchan, float *vec, float *co)
+static void pchan_deform_mat_add(bPoseChannel *pchan, float weight, float bbonemat[][3], float mat[][3])
+{
+	float wmat[3][3];
+
+	if(pchan->bone->segments>1)
+		Mat3CpyMat3(wmat, bbonemat);
+	else
+		Mat3CpyMat4(wmat, pchan->chan_mat);
+
+	Mat3MulFloat((float*)wmat, weight);
+	Mat3AddMat3(mat, mat, wmat);
+}
+
+static float dist_bone_deform(bPoseChannel *pchan, float *vec, float mat[][3], float *co)
 {
 	Bone *bone= pchan->bone;
-	float	fac;
-	float	cop[3];
-	float	contrib=0.0;
+	float fac, contrib=0.0;
+	float cop[3], bbonemat[3][3];
 
 	if(bone==NULL) return 0.0f;
 	
@@ -603,52 +630,58 @@ static float dist_bone_deform(bPoseChannel *pchan, float *vec, float *co)
 
 	fac= distfactor_to_bone(cop, bone->arm_head, bone->arm_tail, bone->rad_head, bone->rad_tail, bone->dist);
 	
-	if (fac>0.0){
+	if (fac>0.0) {
 		
 		fac*=bone->weight;
 		contrib= fac;
 		if(contrib>0.0) {
-
-			VECCOPY (cop, co);
-			
 			if(bone->segments>1)
-				b_bone_deform(pchan, bone, cop);	// applies on cop
-			
-			Mat4MulVecfl(pchan->chan_mat, cop);
-			
-			VecSubf (cop, cop, co);	//	Make this a delta from the base position
+				// applies on cop and bbonemat
+				b_bone_deform(pchan, bone, cop, (mat)?bbonemat:NULL);
+			else
+				Mat4MulVecfl(pchan->chan_mat, cop);
+
+			//	Make this a delta from the base position
+			VecSubf (cop, cop, co);
 			cop[0]*=fac; cop[1]*=fac; cop[2]*=fac;
 			VecAddf (vec, vec, cop);
+
+			if(mat)
+				pchan_deform_mat_add(pchan, fac, bbonemat, mat);
 		}
 	}
 	
 	return contrib;
 }
 
-static void pchan_bone_deform(bPoseChannel *pchan, float weight, float *vec, float *co, float *contrib)
+static void pchan_bone_deform(bPoseChannel *pchan, float weight, float *vec, float mat[][3], float *co, float *contrib)
 {
-	float	cop[3];
+	float cop[3], bbonemat[3][3];
 
 	if (!weight)
 		return;
 
-	VECCOPY (cop, co);
-	
+	VECCOPY(cop, co);
+
 	if(pchan->bone->segments>1)
-		b_bone_deform(pchan, pchan->bone, cop);	// applies on cop
-	
-	Mat4MulVecfl(pchan->chan_mat, cop);
+		// applies on cop and bbonemat
+		b_bone_deform(pchan, pchan->bone, cop, (mat)?bbonemat:NULL);
+	else
+		Mat4MulVecfl(pchan->chan_mat, cop);
 	
 	vec[0]+=(cop[0]-co[0])*weight;
 	vec[1]+=(cop[1]-co[1])*weight;
 	vec[2]+=(cop[2]-co[2])*weight;
 
+	if(mat)
+		pchan_deform_mat_add(pchan, weight, bbonemat, mat);
+
 	(*contrib)+=weight;
 }
 
 void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
-                           float (*vertexCos)[3], int numVerts, int deformflag,
-                           const char *defgrp_name)
+                           float (*vertexCos)[3], float (*defMats)[3][3],
+						   int numVerts, int deformflag, const char *defgrp_name)
 {
 	bPoseChannel *pchan, **defnrToPC = NULL;
 	MDeformVert *dverts = NULL;
@@ -669,12 +702,11 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 
 	/* bone defmats are already in the channels, chan_mat */
 	
-	/* initialize B_bone matrices */
-	for(pchan = armOb->pose->chanbase.first; pchan; pchan = pchan->next) {
+	/* initialize B_bone matrices and dual quaternions */
+	for(pchan = armOb->pose->chanbase.first; pchan; pchan = pchan->next)
 		if(!(pchan->bone->flag & BONE_NO_DEFORM))
 			if(pchan->bone->segments > 1)
 				pchan_b_bone_defmats(pchan);
-	}
 
 	/* get the def_nr for the overall armature vertex group if present */
 	for(i = 0, dg = target->defbase.first; dg; i++, dg = dg->next)
@@ -723,12 +755,18 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 	for(i = 0; i < numVerts; i++) {
 		MDeformVert *dvert;
 		float *co = vertexCos[i];
+		float summat[3][3], (*smat)[3] = NULL;
 		float vec[3];
 		float contrib = 0.0f;
 		float armature_weight = 1.0f; /* default to 1 if no overall def group */
 		int	  j;
 
 		vec[0] = vec[1] = vec[2] = 0.0f;
+
+		if(defMats) {
+			Mat3Clr((float*)summat);
+			smat = summat;
+		}
 
 		if(use_dverts || armature_def_nr >= 0) {
 			if(dm) dvert = dm->getVertData(dm, i, CD_MDEFORMVERT);
@@ -772,7 +810,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 						                             bone->rad_tail,
 						                             bone->dist);
 					}
-					pchan_bone_deform(pchan, weight, vec, co, &contrib);
+					pchan_bone_deform(pchan, weight, vec, smat, co, &contrib);
 				}
 			}
 			/* if there are vertexgroups but not groups with bones
@@ -782,7 +820,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 				for(pchan = armOb->pose->chanbase.first; pchan;
 				    pchan = pchan->next) {
 					if(!(pchan->bone->flag & BONE_NO_DEFORM))
-						contrib += dist_bone_deform(pchan, vec, co);
+						contrib += dist_bone_deform(pchan, vec, smat, co);
 				}
 			}
 		}
@@ -790,15 +828,31 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 			for(pchan = armOb->pose->chanbase.first; pchan;
 			    pchan = pchan->next) {
 				if(!(pchan->bone->flag & BONE_NO_DEFORM))
-					contrib += dist_bone_deform(pchan, vec, co);
+					contrib += dist_bone_deform(pchan, vec, smat, co);
 			}
 		}
 
 		/* actually should be EPSILON? weight values and contrib can be like 10e-39 small */
 		if(contrib > 0.0001f) {
-			VecMulf(vec, armature_weight / contrib);
+			float scale = armature_weight/contrib;
+
+			VecMulf(vec, scale);
 			VecAddf(co, vec, co);
+
+			if(defMats) {
+				float pre[3][3], post[3][3], tmpmat[3][3];
+
+				Mat3CpyMat4(pre, premat);
+				Mat3CpyMat4(post, postmat);
+				Mat3CpyMat3(tmpmat, defMats[i]);
+
+				Mat3MulFloat((float*)smat, scale);
+				Mat3MulSerie(defMats[i], tmpmat, pre, smat, post,
+					NULL, NULL, NULL, NULL);
+			}
+
 		}
+		
 		/* always, check above code */
 		Mat4MulVecfl(postmat, co);
 	}

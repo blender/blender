@@ -1887,6 +1887,24 @@ static float (*editmesh_getVertexCos(EditMesh *em, int *numVerts_r))[3]
 	return cos;
 }
 
+static int editmesh_modifier_is_enabled(ModifierData *md, DerivedMesh *dm)
+{
+	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+	int required_mode = eModifierMode_Realtime | eModifierMode_Editmode;
+
+	if((md->mode & required_mode) != required_mode) return 0;
+	if((mti->flags & eModifierTypeFlag_RequiresOriginalData) && dm) {
+		modifier_setError(md, "Internal error, modifier requires"
+		                  "original data (bad stack position).");
+		return 0;
+	}
+	if(mti->isDisabled && mti->isDisabled(md)) return 0;
+	if(!(mti->flags & eModifierTypeFlag_SupportsEditmode)) return 0;
+	if(md->mode & eModifierMode_DisableTemporary) return 0;
+	
+	return 1;
+}
+
 static void editmesh_calc_modifiers(DerivedMesh **cage_r,
                                     DerivedMesh **final_r,
                                     CustomDataMask dataMask)
@@ -1897,7 +1915,6 @@ static void editmesh_calc_modifiers(DerivedMesh **cage_r,
 	float (*deformedVerts)[3] = NULL;
 	DerivedMesh *dm;
 	int i, numVerts = 0, cageIndex = modifiers_getCageIndex(ob, NULL);
-	int required_mode = eModifierMode_Realtime | eModifierMode_Editmode;
 	LinkNode *datamasks, *curr;
 
 	modifiers_clearErrors(ob);
@@ -1918,14 +1935,8 @@ static void editmesh_calc_modifiers(DerivedMesh **cage_r,
 	for(i = 0; md; i++, md = md->next, curr = curr->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
-		if((md->mode & required_mode) != required_mode) continue;
-		if((mti->flags & eModifierTypeFlag_RequiresOriginalData) && dm) {
-			modifier_setError(md, "Internal error, modifier requires"
-			                  "original data (bad stack position).");
+		if(!editmesh_modifier_is_enabled(md, dm))
 			continue;
-		}
-		if(mti->isDisabled && mti->isDisabled(md)) continue;
-		if(!(mti->flags & eModifierTypeFlag_SupportsEditmode)) continue;
 
 		/* How to apply modifier depends on (a) what we already have as
 		 * a result of previous modifiers (could be a DerivedMesh or just
@@ -2461,6 +2472,61 @@ float *mesh_get_mapped_verts_nors(Object *ob)
 	return vertexcosnos;
 }
 
+/* ********* crazyspace *************** */
+
+int editmesh_get_first_deform_matrices(float (**deformmats)[3][3], float (**deformcos)[3])
+{
+	Object *ob = G.obedit;
+	EditMesh *em = G.editMesh;
+	ModifierData *md;
+	DerivedMesh *dm;
+	int i, a, numleft = 0, numVerts = 0;
+	int cageIndex = modifiers_getCageIndex(ob, NULL);
+	float (*defmats)[3][3] = NULL, (*deformedVerts)[3] = NULL;
+
+	modifiers_clearErrors(ob);
+
+	dm = NULL;
+	md = ob->modifiers.first;
+
+	/* compute the deformation matrices and coordinates for the first
+	   modifiers with on cage editing that are enabled and support computing
+	   deform matrices */
+	for(i = 0; md && i <= cageIndex; i++, md = md->next) {
+		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+
+		if(!editmesh_modifier_is_enabled(md, dm))
+			continue;
+
+		if(mti->type==eModifierTypeType_OnlyDeform && mti->deformMatricesEM) {
+			if(!defmats) {
+				dm= getEditMeshDerivedMesh(em, ob, NULL);
+				deformedVerts= editmesh_getVertexCos(em, &numVerts);
+				defmats= MEM_callocN(sizeof(*defmats)*numVerts, "defmats");
+
+				for(a=0; a<numVerts; a++)
+					Mat3One(defmats[a]);
+			}
+
+			mti->deformMatricesEM(md, ob, em, dm, deformedVerts, defmats,
+				numVerts);
+		}
+		else
+			break;
+	}
+
+	for(; md && i <= cageIndex; md = md->next, i++)
+		if(editmesh_modifier_is_enabled(md, dm) && modifier_isDeformer(md))
+			numleft++;
+
+	if(dm)
+		dm->release(dm);
+	
+	*deformmats= defmats;
+	*deformcos= deformedVerts;
+
+	return numleft;
+}
 
 /* ************************* fluidsim bobj file handling **************************** */
 

@@ -64,8 +64,8 @@ void lattice_deform_verts(struct Object *laOb, struct Object *target,
                           int numVerts, char *vgroup);
 void armature_deform_verts(struct Object *armOb, struct Object *target,
                            struct DerivedMesh *dm, float (*vertexCos)[3],
-                           int numVerts, int deformflag,
-                           const char *defgrp_name);
+                           float (*defMats)[3][3], int numVerts,
+                           int deformflag, const char *defgrp_name);
 float (*lattice_getVertexCos(struct Object *ob, int *numVerts_r))[3];
 void lattice_applyVertexCos(struct Object *ob, float (*vertexCos)[3]);
 void lattice_calc_modifiers(struct Object *ob);

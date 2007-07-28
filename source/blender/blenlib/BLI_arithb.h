@@ -217,6 +217,8 @@ void Mat3MulVecfl(float mat[][3], float *vec);
 void Mat3MulVecd(float mat[][3], double *vec);
 void Mat3TransMulVecfl(float mat[][3], float *vec);
 
+void Mat3AddMat3(float m1[][3], float m2[][3], float m3[][3]);
+void Mat4AddMat4(float m1[][4], float m2[][4], float m3[][4]);
 
 void VecUpMat3old(float *vec, float mat[][3], short axis);
 void VecUpMat3(float *vec, float mat[][3], short axis);

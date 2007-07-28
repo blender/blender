@@ -425,6 +425,11 @@ DerivedMesh *editmesh_get_derived_cage(CustomDataMask dataMask);
 DerivedMesh *editmesh_get_derived_cage_and_final(DerivedMesh **final_r,
                                                  CustomDataMask dataMask);
 
+/* returns an array of deform matrices for crazyspace correction, and the
+   number of modifiers left */
+int editmesh_get_first_deform_matrices(float (**deformmats)[3][3],
+                                       float (**deformcos)[3]);
+
 void weight_to_rgb(float input, float *fr, float *fg, float *fb);
 
 /* determines required DerivedMesh data according to view and edit modes */
