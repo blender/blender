@@ -803,10 +803,11 @@ bConstraintOb *constraints_make_evalob (Object *ob, void *subdata, short datatyp
 				cob->ob = ob;
 				cob->type = datatype;
 				Mat4CpyMat4(cob->matrix, ob->obmat);
-				Mat4CpyMat4(cob->startmat, ob->obmat);
 			}
-			else 
+			else
 				Mat4One(cob->matrix);
+			
+			Mat4CpyMat4(cob->startmat, cob->matrix);
 		}
 			break;
 		case TARGET_BONE:
@@ -819,16 +820,17 @@ bConstraintOb *constraints_make_evalob (Object *ob, void *subdata, short datatyp
 				
 				/* matrix in world-space */
 				Mat4MulMat4(cob->matrix, cob->pchan->pose_mat, ob->obmat);
-				Mat4CpyMat4(cob->startmat, cob->matrix);
 			}
 			else
 				Mat4One(cob->matrix);
-				Mat4CpyMat4(cob->startmat, cob->matrix);
+				
+			Mat4CpyMat4(cob->startmat, cob->matrix);
 		}
 			break;
 			
 		default: // other types not yet handled
 			Mat4One(cob->matrix);
+			Mat4One(cob->startmat);
 			break;
 	}
 	
@@ -892,9 +894,8 @@ void do_constraint_channels (ListBase *conbase, ListBase *chanbase, float ctime)
 				switch (icu->adrcode) {
 					case CO_ENFORCE:
 					{
-						con->enforce = icu->curval;
-						if (con->enforce<0.0f) con->enforce= 0.0f;
-						else if (con->enforce>1.0f) con->enforce= 1.0f;
+						/* Influence is clamped to 0.0f -> 1.0f range */
+						con->enforce = CLAMPIS(icu->curval, 0.0f, 1.0f);
 					}
 						break;
 				}
@@ -932,6 +933,7 @@ static void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float 
 					Mat4CpyMat4(tempmat, mat);
 					Mat4MulMat4(mat, tempmat, imat);
 				}
+				
 				/* pose to local */
 				if (to == CONSTRAINT_SPACE_LOCAL) {
 					/* call self with slightly different values */
@@ -974,7 +976,7 @@ static void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float 
 								offs_bone[3][0]= offs_bone[3][1]= offs_bone[3][2]= 0.0f;
 								Mat4MulVecfl(pchan->parent->pose_mat, tmat[3]);
 								
-								Mat4MulMat4(diff_mat, offs_bone, tmat);
+								Mat4MulMat4(diff_mat, tmat, offs_bone);
 								Mat4Invert(imat, diff_mat);
 							}
 							else {
@@ -1029,9 +1031,7 @@ static void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float 
 								offs_bone[3][0]= offs_bone[3][1]= offs_bone[3][2]= 0.0f;
 								Mat4MulVecfl(pchan->parent->pose_mat, tmat[3]);
 								
-								Mat4MulMat4(diff_mat, offs_bone, tmat);
-								
-								Mat4MulMat4(diff_mat, pchan->parent->pose_mat, offs_bone);
+								Mat4MulMat4(diff_mat, tmat, offs_bone);
 								Mat4CpyMat4(tempmat, mat);
 								Mat4MulMat4(mat, tempmat, diff_mat);
 							}
