@@ -58,7 +58,7 @@ void free_posebuf(void);
 void copy_posebuf (void);
 void paste_posebuf (int flip);
 
-void pose_adds_vgroups(struct Object *meshobj);
+void pose_adds_vgroups(struct Object *meshobj, int heatweights);
 
 void pose_calculate_path(struct Object *ob);
 void pose_clear_paths(struct Object *ob);

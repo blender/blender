@@ -2263,12 +2263,12 @@ void special_editmenu(void)
 		}
 		else if(G.f & G_WEIGHTPAINT) {
 			Object *par= modifiers_isDeformedByArmature(ob);
+
 			if(par && (par->flag & OB_POSEMODE)) {
-				nr= pupmenu("Specials%t|Apply Bone Envelopes to VertexGroups %x1");
-				if(nr==1) {
-					pose_adds_vgroups(ob);
-					BIF_undo_push("Apply Bone Envelopes to VertexGroups");
-				}
+				nr= pupmenu("Specials%t|Apply Bone Envelopes to Vertex Groups %x1|Apply Bone Heat Weights to Vertex Groups %x2");
+
+				if(nr==1 || nr==2)
+					pose_adds_vgroups(ob, (nr == 2));
 			}
 		}
 		else {

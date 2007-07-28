@@ -3284,6 +3284,31 @@ int point_in_tri_prism(float p[3], float v1[3], float v2[3], float v3[3])
 	return 1;
 }
 
+/* point closest to v1 on line v2-v3 in 3D */
+void PclosestVL3Dfl(float *closest, float *v1, float *v2, float *v3)
+{
+	float lambda, cp[3], len;
+
+	lambda= lambda_cp_line_ex(v1, v2, v3, cp);
+
+	if(lambda <= 0.0f)
+		VecCopyf(closest, v2);
+	else if(lambda >= 1.0f)
+		VecCopyf(closest, v3);
+	else
+		VecCopyf(closest, cp);
+}
+
+/* distance v1 to line-piece v2-v3 in 3D */
+float PdistVL3Dfl(float *v1, float *v2, float *v3) 
+{
+	float closest[3];
+
+	PclosestVL3Dfl(closest, v1, v2, v3);
+
+	return VecLenf(closest, v1);
+}
+
 /********************************************************/
 
 /* make a 4x4 matrix out of 3 transform components */
@@ -3331,3 +3356,4 @@ void LocQuatSizeToMat4(float mat[][4], float loc[3], float quat[4], float size[3
 	mat[3][1] = loc[1];
 	mat[3][2] = loc[2];
 }
+

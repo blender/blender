@@ -4129,10 +4129,9 @@ static uiBlock *view3d_tpaintmenu(void *arg_unused)
 static void do_view3d_wpaintmenu(void *arg, int event)
 {
 	Object *ob= OBACT;
-	Object *par= modifiers_isDeformedByArmature(ob);
 	
-	/* events >= 2 are registered bpython scripts */
-	if (event >= 3) BPY_menu_do_python(PYMENU_WEIGHTPAINT, event - 3);
+	/* events >= 3 are registered bpython scripts */
+	if (event >= 4) BPY_menu_do_python(PYMENU_WEIGHTPAINT, event - 4);
 	
 	switch(event) {
 	case 0: /* undo weight painting */
@@ -4142,13 +4141,11 @@ static void do_view3d_wpaintmenu(void *arg, int event)
 		clear_wpaint_selectedfaces();
 		break;
 	case 2: /* vgroups from envelopes */
-		if(par && (par->flag & OB_POSEMODE))  {
-			pose_adds_vgroups(ob);
-			BIF_undo_push("Apply Bone Envelopes to VertexGroups");
-		} else {
-			error("The active object must have a deforming armature in pose mode");
-		}
-	break;
+		pose_adds_vgroups(ob, 0);
+		break;
+	case 3: /* vgroups from bone heat */
+		pose_adds_vgroups(ob, 1);
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -4164,6 +4161,10 @@ static uiBlock *view3d_wpaintmenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_view3d_wpaintmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Undo Weight Painting|U",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Apply Bone Heat Weights to Vertex Groups|W, 2",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Apply Bone Envelopes to Vertex Groups|W, 1",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
@@ -4174,11 +4175,11 @@ static uiBlock *view3d_wpaintmenu(void *arg_unused)
 		menunr++;
 	}
 	
-	/* note that we account for the 3 previous entries with i+3:
+	/* note that we account for the 4 previous entries with i+4:
 	even if the last item isnt displayed, it dosent matter */
 	for (pym = BPyMenuTable[PYMENU_WEIGHTPAINT]; pym; pym = pym->next, i++) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_PYTHON, pym->name, 0, yco-=20,
-			menuwidth, 19, NULL, 0.0, 0.0, 1, i+3,
+			menuwidth, 19, NULL, 0.0, 0.0, 1, i+4,
 			pym->tooltip?pym->tooltip:pym->filename);
 	}
 	

@@ -51,7 +51,6 @@
 #include "BKE_constraint.h"
 #include "BKE_deform.h"
 #include "BKE_depsgraph.h"
-#include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_modifier.h"
@@ -66,7 +65,6 @@
 #include "BIF_graphics.h"
 #include "BIF_interface.h"
 #include "BIF_poseobject.h"
-#include "BIF_meshtools.h"
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
 #include "BIF_screen.h"
@@ -754,114 +752,29 @@ void paste_posebuf (int flip)
 
 /* ********************************************** */
 
-struct vgroup_map {
-	float head[3], tail[3];
-	Bone *bone;
-	bDeformGroup *dg, *dgflip;
-	Object *meshobj;
-};
-
-static void pose_adds_vgroups__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
-{
-	struct vgroup_map *map= userData;
-	float vec[3], fac;
-	
-	VECCOPY(vec, co);
-	Mat4MulVecfl(map->meshobj->obmat, vec);
-		
-	/* get the distance-factor from the vertex to bone */
-	fac= distfactor_to_bone (vec, map->head, map->tail, map->bone->rad_head, map->bone->rad_tail, map->bone->dist);
-	
-	/* add to vgroup. this call also makes me->dverts */
-	if(fac!=0.0f) 
-		add_vert_to_defgroup (map->meshobj, map->dg, index, fac, WEIGHT_REPLACE);
-	else
-		remove_vert_defgroup (map->meshobj, map->dg, index);
-	
-	if(map->dgflip) {
-		int j= mesh_get_x_mirror_vert(map->meshobj, index);
-		if(j>=0) {
-			if(fac!=0.0f) 
-				add_vert_to_defgroup (map->meshobj, map->dgflip, j, fac, WEIGHT_REPLACE);
-			else
-				remove_vert_defgroup (map->meshobj, map->dgflip, j);
-		}
-	}
-}
-
 /* context weightpaint and deformer in posemode */
-void pose_adds_vgroups(Object *meshobj)
+void pose_adds_vgroups(Object *meshobj, int heatweights)
 {
 	extern VPaint Gwp;         /* from vpaint */
-	struct vgroup_map map;
-	DerivedMesh *dm;
 	Object *poseobj= modifiers_isDeformedByArmature(meshobj);
-	bArmature *arm= poseobj->data;
-	bPoseChannel *pchan;
-	Bone *bone;
-	bDeformGroup *dg, *curdef;
-	
-	if(poseobj==NULL || (poseobj->flag & OB_POSEMODE)==0) return;
-	
-	dm = mesh_get_derived_final(meshobj, CD_MASK_BAREMESH);
-	
-	map.meshobj= meshobj;
-	
-	for(pchan= poseobj->pose->chanbase.first; pchan; pchan= pchan->next) {
-		bone= pchan->bone;
-		if(arm->layer & pchan->bone->layer) {
-			if(bone->flag & (BONE_SELECTED)) {
-				
-				/* check if mesh has vgroups */
-				dg= get_named_vertexgroup(meshobj, bone->name);
-				if(dg==NULL)
-					dg= add_defgroup_name(meshobj, bone->name);
-				
-				/* flipped bone */
-				if(Gwp.flag & VP_MIRROR_X) {
-					char name[32];
-					
-					BLI_strncpy(name, dg->name, 32);
-					bone_flip_name(name, 0);		// 0 = don't strip off number extensions
-					
-					for (curdef = meshobj->defbase.first; curdef; curdef=curdef->next)
-						if (!strcmp(curdef->name, name))
-							break;
-					map.dgflip= curdef;
-				}
-				else map.dgflip= NULL;
-				
-				/* get the root of the bone in global coords */
-				VECCOPY(map.head, bone->arm_head);
-				Mat4MulVecfl(poseobj->obmat, map.head);
-				
-				/* get the tip of the bone in global coords */
-				VECCOPY(map.tail, bone->arm_tail);
-				Mat4MulVecfl(poseobj->obmat, map.tail);
-				
-				/* use the optimal vertices instead of mverts */
-				map.dg= dg;
-				map.bone= bone;
-				if(dm->foreachMappedVert) 
-					dm->foreachMappedVert(dm, pose_adds_vgroups__mapFunc, (void*) &map);
-				else {
-					Mesh *me= meshobj->data;
-					int i;
-					for(i=0; i<me->totvert; i++) 
-						pose_adds_vgroups__mapFunc(&map, i, (me->mvert+i)->co, NULL, NULL);
-				}
-				
-			}
-		}
+
+	if(poseobj==NULL || (poseobj->flag & OB_POSEMODE)==0) {
+		error("The active object must have a deforming armature in pose mode");
+		return;
 	}
-	
-	dm->release(dm);
+
+	add_verts_to_dgroups(meshobj, poseobj, heatweights, (Gwp.flag & VP_MIRROR_X));
+
+	if(heatweights)
+		BIF_undo_push("Apply Bone Heat Weights to Vertex Groups");
+	else
+		BIF_undo_push("Apply Bone Envelopes to Vertex Groups");
 
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
 	
-	DAG_object_flush_update(G.scene, meshobj, OB_RECALC_DATA);	// and all its relations
-
+	// and all its relations
+	DAG_object_flush_update(G.scene, meshobj, OB_RECALC_DATA);
 }
 
 /* ********************************************** */

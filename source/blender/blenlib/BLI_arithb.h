@@ -258,6 +258,8 @@ void euler_rot(float *beul, float ang, char axis);
 
 float DistVL2Dfl(float *v1, float *v2, float *v3);
 float PdistVL2Dfl(float *v1, float *v2, float *v3);
+float PdistVL3Dfl(float *v1, float *v2, float *v3);
+void PclosestVL3Dfl(float *closest, float *v1, float *v2, float *v3);
 float AreaF2Dfl(float *v1, float *v2, float *v3);
 float AreaQ3Dfl(float *v1, float *v2, float *v3, float *v4);
 float AreaT3Dfl(float *v1, float *v2, float *v3);

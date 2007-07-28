@@ -2441,11 +2441,11 @@ struct DerivedMesh *subsurf_make_derived_from_derived(
 
 void subsurf_calculate_limit_positions(Mesh *me, float (*positions_r)[3]) 
 {
-		/* Finds the subsurf limit positions for the verts in a mesh 
-		 * and puts them in an array of floats. Please note that the 
-		 * calculated vert positions is incorrect for the verts 
-		 * on the boundary of the mesh.
-		 */
+	/* Finds the subsurf limit positions for the verts in a mesh 
+	 * and puts them in an array of floats. Please note that the 
+	 * calculated vert positions is incorrect for the verts 
+	 * on the boundary of the mesh.
+	 */
 	CCGSubSurf *ss = _getSubSurf(NULL, 1, 0, 1, 0);
 	float edge_sum[3], face_sum[3];
 	CCGVertIterator *vi;
@@ -2473,6 +2473,11 @@ void subsurf_calculate_limit_positions(Mesh *me, float (*positions_r)[3])
 			CCGFace *f = ccgSubSurf_getVertFace(ss, v, i);
 			VecAddf(face_sum, face_sum, ccgSubSurf_getFaceCenterData(ss, f));
 		}
+
+		/* ad-hoc correction for boundary vertices, to at least avoid them
+		   moving completely out of place (brecht) */
+		if(numFaces && numFaces != N)
+			VecMulf(face_sum, (float)N/(float)numFaces);
 
 		co = ccgSubSurf_getVertData(ss, v);
 		positions_r[idx][0] = (co[0]*N*N + edge_sum[0]*4 + face_sum[0])/(N*(N+5));

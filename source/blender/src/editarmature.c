@@ -67,6 +67,7 @@
 #include "BKE_constraint.h"
 #include "BKE_deform.h"
 #include "BKE_depsgraph.h"
+#include "BKE_derivedmesh.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
@@ -82,6 +83,8 @@
 #include "BIF_gl.h"
 #include "BIF_graphics.h"
 #include "BIF_interface.h"
+#include "BIF_meshlaplacian.h"
+#include "BIF_meshtools.h"
 #include "BIF_poseobject.h"
 #include "BIF_mywindow.h"
 #include "BIF_resources.h"
@@ -2334,14 +2337,16 @@ static int bone_skinnable(Object *ob, Bone *bone, void *data)
      */
     Bone ***hbone;
 
-    if (!(bone->flag & BONE_NO_DEFORM)) {
-		if (data != NULL) {
-			hbone = (Bone ***) data;
-            **hbone = bone;
-            ++*hbone;
-        }
-        return 1;
-    }
+	if(!(G.f & G_WEIGHTPAINT) || !(bone->flag & BONE_HIDDEN_P)) {
+		if (!(bone->flag & BONE_NO_DEFORM)) {
+			if (data != NULL) {
+				hbone = (Bone ***) data;
+				**hbone = bone;
+				++*hbone;
+			}
+			return 1;
+		}
+	}
     return 0;
 }
 
@@ -2387,57 +2392,97 @@ static int dgroup_skinnable(Object *ob, Bone *bone, void *data)
      */
     bDeformGroup ***hgroup, *defgroup;
 
-   if (!(bone->flag & BONE_NO_DEFORM)) {
-        if ( !(defgroup = get_named_vertexgroup(ob, bone->name)) ) {
-            defgroup = add_defgroup_name(ob, bone->name);
-        }
+	if(!(G.f & G_WEIGHTPAINT) || !(bone->flag & BONE_HIDDEN_P)) {
+	   if (!(bone->flag & BONE_NO_DEFORM)) {
+			if ( !(defgroup = get_named_vertexgroup(ob, bone->name)) ) {
+				defgroup = add_defgroup_name(ob, bone->name);
+			}
 
-        if (data != NULL) {
-            hgroup = (bDeformGroup ***) data;
-            **hgroup = defgroup;
-            ++*hgroup;
-        }
-        return 1;
-    }
+			if (data != NULL) {
+				hgroup = (bDeformGroup ***) data;
+				**hgroup = defgroup;
+				++*hgroup;
+			}
+			return 1;
+		}
+	}
     return 0;
 }
 
-static void add_verts_to_closest_dgroup(Object *ob, Object *par)
+static void add_vgroups__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
 {
-    /* This function implements a crude form of 
-     * auto-skinning: vertices are assigned to the
-     * deformation groups associated with bones based
-     * on thier proximity to a bone. Every vert is
-     * given a weight of 1.0 to the weight group
-     * cooresponding to the bone that it is
-     * closest to. The vertex may also be assigned to
-     * a deformation group associated to a bone
-     * that is within 10% of the mninimum distance
-     * between the bone and the nearest vert -- the
-     * cooresponding weight will fall-off to zero
-     * as the distance approaches the 10% tolerance mark.
-	 * If the mesh has subsurf enabled then the verts
-	 * on the subsurf limit surface is used to generate 
-	 * the weights rather than the verts on the cage
-	 * mesh.
+	/* DerivedMesh mapFunc for getting final coords in weight paint mode */
+
+	float (*verts)[3] = userData;
+	VECCOPY(verts[index], co);
+}
+
+static void envelope_bone_weighting(Object *ob, Mesh *mesh, float (*verts)[3], int numbones, Bone **bonelist, bDeformGroup **dgrouplist, bDeformGroup **dgroupflip, float (*root)[3], float (*tip)[3], int *selected)
+{
+	/* Create vertex group weights from envelopes */
+
+	Bone *bone;
+	bDeformGroup *dgroup;
+	float distance;
+	int i, iflip, j;
+
+	/* for each vertex in the mesh */
+	for (i=0; i < mesh->totvert; i++) {
+		iflip = (dgroupflip)? mesh_get_x_mirror_vert(ob, i): 0;
+
+		/* for each skinnable bone */
+		for (j=0; j < numbones; ++j) {
+			if(!selected[j])
+				continue;
+
+			bone = bonelist[j];
+			dgroup = dgrouplist[j];
+
+			/* store the distance-factor from the vertex to the bone */
+			distance = distfactor_to_bone (verts[i], root[j], tip[j],
+				bone->rad_head, bone->rad_tail, bone->dist);
+
+			/* add the vert to the deform group if weight!=0.0 */
+			if (distance!=0.0)
+				add_vert_to_defgroup (ob, dgroup, i, distance, WEIGHT_REPLACE);
+			else
+				remove_vert_defgroup (ob, dgroup, i);
+
+			/* do same for mirror */
+			if (dgroupflip && dgroupflip[j] && iflip >= 0) {
+				if (distance!=0.0)
+					add_vert_to_defgroup (ob, dgroupflip[j], iflip, distance,
+						WEIGHT_REPLACE);
+				else
+					remove_vert_defgroup (ob, dgroupflip[j], iflip);
+			}
+		}
+	}
+}
+
+void add_verts_to_dgroups(Object *ob, Object *par, int heat, int mirror)
+{
+	/* This functions implements the automatic computation of vertex group
+	 * weights, either through envelopes or using a heat equilibrium.
 	 *
-	 * ("Limit surface" = same amount of vertices as mesh, but vertices 
-     *   moved to the subsurfed position, like for 'optimal').
+	 * This function can be called both when parenting a mesh to an armature,
+	 * or in weightpaint + posemode. In the latter case selection is taken
+	 * into account and vertex weights can be mirrored.
+	 *
+	 * The mesh vertex positions used are either the final deformed coords
+	 * from the derivedmesh in weightpaint mode, the final subsurf coords
+	 * when parenting, or simply the original mesh coords.
      */
 
     bArmature *arm;
     Bone **bonelist, **bonehandle, *bone;
-    bDeformGroup **dgrouplist, **dgrouphandle, *defgroup;
-    float *distance;
-    float   root[3];
-    float   tip[3];
-    float real_co[3];
-	float *subverts = NULL;
-    float *subvert;
-    Mesh  *mesh;
-    MVert *vert;
-
-    int numbones, i, j;
+    bDeformGroup **dgrouplist, **dgroupflip, **dgrouphandle;
+	bDeformGroup *dgroup, *curdg;
+    Mesh *mesh;
+    float (*root)[3], (*tip)[3], (*verts)[3];
+	int *selected;
+    int numbones, vertsfilled = 0, i, j;
+	int wpmode = (G.f & G_WEIGHTPAINT);
 
     /* If the parent object is not an armature exit */
     arm = get_armature(par);
@@ -2445,97 +2490,113 @@ static void add_verts_to_closest_dgroup(Object *ob, Object *par)
         return;
 
     /* count the number of skinnable bones */
-    numbones = bone_looper(ob, arm->bonebase.first, NULL,
-                                  bone_skinnable);
+    numbones = bone_looper(ob, arm->bonebase.first, NULL, bone_skinnable);
+	
+	if (numbones == 0)
+		return;
 	
     /* create an array of pointer to bones that are skinnable
-     * and fill it with all of the skinnable bones
-     */
-    bonelist = MEM_mallocN(numbones*sizeof(Bone *), "bonelist");
+     * and fill it with all of the skinnable bones */
+    bonelist = MEM_callocN(numbones*sizeof(Bone *), "bonelist");
     bonehandle = bonelist;
-    bone_looper(ob, arm->bonebase.first, &bonehandle,
-                       bone_skinnable);
+    bone_looper(ob, arm->bonebase.first, &bonehandle, bone_skinnable);
 
     /* create an array of pointers to the deform groups that
      * coorespond to the skinnable bones (creating them
-     * as necessary.
-     */
-    dgrouplist = MEM_mallocN(numbones*sizeof(bDeformGroup *), "dgrouplist");
+     * as necessary. */
+    dgrouplist = MEM_callocN(numbones*sizeof(bDeformGroup *), "dgrouplist");
+    dgroupflip = MEM_callocN(numbones*sizeof(bDeformGroup *), "dgroupflip");
+
     dgrouphandle = dgrouplist;
-    bone_looper(ob, arm->bonebase.first, &dgrouphandle,
-                       dgroup_skinnable);
+    bone_looper(ob, arm->bonebase.first, &dgrouphandle, dgroup_skinnable);
 
-    /* create an array of floats that will be used for each vert
-     * to hold the distance-factor to each bone.
-     */
-    distance = MEM_mallocN(numbones*sizeof(float), "distance");
+    /* create an array of root and tip positions transformed into
+	 * global coords */
+    root = MEM_callocN(numbones*sizeof(float)*3, "root");
+    tip = MEM_callocN(numbones*sizeof(float)*3, "tip");
+	selected = MEM_callocN(numbones*sizeof(int), "selected");
 
-    mesh = (Mesh*)ob->data;
+	for (j=0; j < numbones; ++j) {
+   		bone = bonelist[j];
+		dgroup = dgrouplist[j];
 
-	/* Is subsurf on? Lets use the verts on the limit surface then */
-	if (modifiers_findByType(ob, eModifierType_Subsurf)) {
-		subverts = MEM_mallocN(3*mesh->totvert*sizeof(float), "subverts");
-		subsurf_calculate_limit_positions(mesh, (void *)subverts);	/* (ton) made void*, dunno how to cast */
+		/* compute root and tip */
+		VECCOPY(root[j], bone->arm_head);
+		Mat4MulVecfl(par->obmat, root[j]);
+
+		VECCOPY(tip[j], bone->arm_tail);
+		Mat4MulVecfl(par->obmat, tip[j]);
+
+		/* set selected */
+		if(wpmode) {
+			if ((arm->layer & bone->layer) && (bone->flag & BONE_SELECTED))
+				selected[j] = 1;
+		}
+		else
+			selected[j] = 1;
+
+		/* find flipped group */
+		if(mirror) {
+			char name[32];
+			
+			BLI_strncpy(name, dgroup->name, 32);
+			// 0 = don't strip off number extensions
+			bone_flip_name(name, 0);
+
+			for (curdg = ob->defbase.first; curdg; curdg=curdg->next)
+				if (!strcmp(curdg->name, name))
+					break;
+
+			dgroupflip[j] = curdg;
+		}
 	}
 
-    /* for each vertex in the mesh ...
-     */
-    for ( i=0 ; i < mesh->totvert ; ++i ) {
-        /* get the vert in global coords
-         */
-		
-		if (subverts) {
-			subvert = subverts + i*3;
-			VECCOPY (real_co, subvert);
+	/* create verts */
+    mesh = (Mesh*)ob->data;
+	verts = MEM_callocN(mesh->totvert*sizeof(*verts), "closestboneverts");
+
+	if (wpmode) {
+		/* if in weight paint mode, use final verts from derivedmesh */
+		DerivedMesh *dm = mesh_get_derived_final(ob, CD_MASK_BAREMESH);
+
+		if(dm->foreachMappedVert) {
+			dm->foreachMappedVert(dm, add_vgroups__mapFunc, (void*)verts);
+			vertsfilled = 1;
 		}
-		else {
-			vert = mesh->mvert + i;
-			VECCOPY (real_co, vert->co);
-		}
-        Mat4MulVecfl(ob->obmat, real_co);
 
+		dm->release(dm);
+	}
+	else if (modifiers_findByType(ob, eModifierType_Subsurf)) {
+		/* is subsurf on? Lets use the verts on the limit surface then.
+	 	 * = same amount of vertices as mesh, but vertices  moved to the
+		 * subsurfed position, like for 'optimal'. */
+		subsurf_calculate_limit_positions(mesh, verts);
+		vertsfilled = 1;
+	}
 
-        /* for each skinnable bone ...
-         */
-        for (j=0; j < numbones; ++j) {
-            bone = bonelist[j];
+	/* transform verts to global space */
+	for (i=0; i < mesh->totvert; i++) {
+		if (!vertsfilled)
+			VECCOPY(verts[i], mesh->mvert[i].co)
+		Mat4MulVecfl(ob->obmat, verts[i]);
+	}
 
-            /* get the root of the bone in global coords
-             */
-			VECCOPY(root, bone->arm_head);
-			Mat4MulVecfl(par->obmat, root);
+	/* compute the weights based on gathered vertices and bones */
+	if (heat)
+		heat_bone_weighting(ob, mesh, verts, numbones, dgrouplist, dgroupflip,
+			root, tip, selected);
+	else
+		envelope_bone_weighting(ob, mesh, verts, numbones, bonelist, dgrouplist,
+			dgroupflip, root, tip, selected);
 
-            /* get the tip of the bone in global coords
-             */
-			VECCOPY(tip, bone->arm_tail);
-            Mat4MulVecfl(par->obmat, tip);
-
-            /* store the distance-factor from the vertex to
-             * the bone
-             */
-			distance[j]= distfactor_to_bone (real_co, root, tip, bone->rad_head, bone->rad_tail, bone->dist);
-        }
-
-        /* for each deform group ...
-         */
-        for (j=0; j < numbones; ++j) {
-            defgroup = dgrouplist[j];
-
-            /* add the vert to the deform group if weight!=0.0
-             */
-            if (distance[j]!=0.0)
-                add_vert_to_defgroup (ob, defgroup, i, distance[j], WEIGHT_REPLACE);
-            else
-                remove_vert_defgroup (ob, defgroup, i);
-        }
-    }
-
-    /* free the memory allocated
-     */
+    /* free the memory allocated */
     MEM_freeN(bonelist);
     MEM_freeN(dgrouplist);
-    MEM_freeN(distance);
-	if (subverts) MEM_freeN(subverts);
+	MEM_freeN(dgroupflip);
+	MEM_freeN(root);
+	MEM_freeN(tip);
+	MEM_freeN(selected);
+	MEM_freeN(verts);
 }
 
 void create_vgroups_from_armature(Object *ob, Object *par)
@@ -2557,7 +2618,8 @@ void create_vgroups_from_armature(Object *ob, Object *par)
     mode= pupmenu("Create Vertex Groups? %t|"
 				  "Don't Create Groups %x1|"
 				  "Name Groups %x2|"
-                  "Create From Closest Bones %x3");
+                  "Create From Envelopes %x3|"
+				  "Create From Bone Heat %x4|");
 	switch (mode){
 	case 2:
 		/* Traverse the bone list, trying to create empty vertex 
@@ -2571,11 +2633,12 @@ void create_vgroups_from_armature(Object *ob, Object *par)
 		break;
 
 	case 3:
+	case 4:
 		/* Traverse the bone list, trying to create vertex groups 
 		 * that are populated with the vertices for which the
 		 * bone is closest.
 		 */
-		add_verts_to_closest_dgroup(ob, par);
+		add_verts_to_dgroups(ob, par, (mode == 4), 0);
 		break;
 
 	}
