@@ -41,7 +41,7 @@ extern PyTypeObject Sequence_Type;
 extern PyTypeObject SceneSeq_Type;
 
 #define BPy_Sequence_Check(v)       ((v)->ob_type == &Sequence_Type)
-#define BPy_SceneSeq_Check(v)       ((v)->ob_type == &Sequence_Type)
+#define BPy_SceneSeq_Check(v)       ((v)->ob_type == &SceneSeq_Type)
 
 
 /*****************************************************************************/
