@@ -175,7 +175,7 @@ void BL_SkinDeformer::Update(void)
 		for (int v =0; v<m_bmesh->totvert; v++)
 			VECCOPY(m_transverts[v], m_bmesh->mvert[v].co);
 
-		armature_deform_verts( par_arma, m_objMesh, NULL, m_transverts, m_bmesh->totvert, ARM_DEF_VGROUP, NULL );
+		armature_deform_verts( par_arma, m_objMesh, NULL, m_transverts, NULL, m_bmesh->totvert, ARM_DEF_VGROUP, NULL );
 		RecalcNormals();
 
 		/* Update the current frame */
