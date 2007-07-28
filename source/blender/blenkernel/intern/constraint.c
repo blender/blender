@@ -956,32 +956,32 @@ static void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float 
 				/* pose to local */
 				else if (to == CONSTRAINT_SPACE_LOCAL) {
 					if (pchan->bone) {
-						if (pchan->parent && pchan->parent->bone) {
+						if (pchan->parent) {
 							float offs_bone[4][4];
 								
 							/* construct offs_bone the same way it is done in armature.c */
 							Mat4CpyMat3(offs_bone, pchan->bone->bone_mat);
 							VECCOPY(offs_bone[3], pchan->bone->head);
-							offs_bone[3][1]+= pchan->parent->bone->length;
+							offs_bone[3][1]+= pchan->bone->parent->length;
 							
 							if (pchan->bone->flag & BONE_HINGE) {
 								/* pose_mat = par_pose-space_location * chan_mat */
 								float tmat[4][4];
 								
 								/* the rotation of the parent restposition */
-								Mat4CpyMat4(tmat, pchan->parent->bone->arm_mat);
+								Mat4CpyMat4(tmat, pchan->bone->parent->arm_mat);
 								
 								/* the location of actual parent transform */
 								VECCOPY(tmat[3], offs_bone[3]);
 								offs_bone[3][0]= offs_bone[3][1]= offs_bone[3][2]= 0.0f;
 								Mat4MulVecfl(pchan->parent->pose_mat, tmat[3]);
 								
-								Mat4MulMat4(diff_mat, tmat, offs_bone);
+								Mat4MulMat4(diff_mat, offs_bone, tmat);
 								Mat4Invert(imat, diff_mat);
 							}
 							else {
 								/* pose_mat = par_pose_mat * bone_mat * chan_mat */
-								Mat4MulMat4(diff_mat, pchan->parent->pose_mat, offs_bone);
+								Mat4MulMat4(diff_mat, offs_bone, pchan->parent->pose_mat);
 								Mat4Invert(imat, diff_mat);
 							}
 						}
@@ -1017,27 +1017,27 @@ static void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float 
 							/* construct offs_bone the same way it is done in armature.c */
 							Mat4CpyMat3(offs_bone, pchan->bone->bone_mat);
 							VECCOPY(offs_bone[3], pchan->bone->head);
-							offs_bone[3][1]+= pchan->parent->bone->length;
+							offs_bone[3][1]+= pchan->bone->parent->length;
 							
 							if (pchan->bone->flag & BONE_HINGE) {
 								/* pose_mat = par_pose-space_location * chan_mat */
 								float tmat[4][4];
 								
 								/* the rotation of the parent restposition */
-								Mat4CpyMat4(tmat, pchan->parent->bone->arm_mat);
+								Mat4CpyMat4(tmat, pchan->bone->parent->arm_mat);
 								
 								/* the location of actual parent transform */
 								VECCOPY(tmat[3], offs_bone[3]);
 								offs_bone[3][0]= offs_bone[3][1]= offs_bone[3][2]= 0.0f;
 								Mat4MulVecfl(pchan->parent->pose_mat, tmat[3]);
 								
-								Mat4MulMat4(diff_mat, tmat, offs_bone);
+								Mat4MulMat4(diff_mat, offs_bone, tmat);
 								Mat4CpyMat4(tempmat, mat);
 								Mat4MulMat4(mat, tempmat, diff_mat);
 							}
 							else {
 								/* pose_mat = par_pose_mat * bone_mat * chan_mat */
-								Mat4MulMat4(diff_mat, pchan->parent->pose_mat, offs_bone);
+								Mat4MulMat4(diff_mat, offs_bone, pchan->parent->pose_mat);
 								Mat4CpyMat4(tempmat, mat);
 								Mat4MulMat4(mat, tempmat, diff_mat);
 							}
