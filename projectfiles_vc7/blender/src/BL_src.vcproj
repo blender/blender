@@ -425,6 +425,9 @@
 				RelativePath="..\..\..\source\blender\src\mainqueue.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\src\meshlaplacian.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\src\meshtools.c">
 			</File>
 			<File
@@ -706,6 +709,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\include\BIF_mainqueue.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\include\BIF_meshlaplacian.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\include\BIF_meshtools.h">
