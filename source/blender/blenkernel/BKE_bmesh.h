@@ -48,6 +48,11 @@ struct BME_Loop;
 struct RetopoPaintData;
 struct DerivedMesh;
 
+#define BME_VERT 1
+#define BME_EDGE 2
+#define BME_POLY 3
+#define BME_LOOP 4
+
 typedef struct BME_CycleNode{
 	struct BME_CycleNode *next, *prev;
 	void *data;
@@ -70,31 +75,41 @@ typedef struct BME_Mesh
 //60, 52, 52, 12 704
 //60, 52, 84 
 
+/*only defined to make certain things easier*/
+typedef struct BME_Element
+{
+	struct BME_Element *next, *prev;
+	int EID;
+	unsigned short flag,h;
+
+} BME_Element;
 
 typedef struct BME_Vert
 {
 	struct BME_Vert *next, *prev;
 	int	EID;
+	unsigned short flag, h;
 	float co[3];									/*vertex location. Actually pointer to custom data block*/
 	float no[3];									/*vertex normal. Actually pointer to custom data block*/
 	struct BME_Edge *edge;							/*first edge in the disk cycle for this vertex*/
 	void *data;										/*custom vertex data*/
 	int eflag1, eflag2;								/*reserved for use by eulers*/
 	int tflag1, tflag2;								/*reserved for use by tools*/
-	unsigned short flag, h;
+
 } BME_Vert;
 
 typedef struct BME_Edge
 {
 	struct BME_Edge *next, *prev;
 	int EID;
+	unsigned short flag, h;
 	struct BME_Vert *v1, *v2;						/*note that order of vertex pointers means nothing to eulers*/
 	struct BME_CycleNode d1, d2;					/*disk cycle nodes for v1 and v2 respectivley*/
 	struct BME_Loop *loop;							/*first BME_Loop in the radial cycle around this edge*/
 	void *data;										/*custom edge data*/
 	int eflag1, eflag2;								/*reserved for use by eulers*/
 	int tflag1, tflag2;								/*reserved for use by tools*/
-	unsigned char flag, h;
+
 	float crease;
 } BME_Edge;
 
@@ -102,6 +117,7 @@ typedef struct BME_Loop
 {	
 	struct BME_Loop *next, *prev;					/*circularly linked list around face*/
 	int EID;
+	unsigned short flag, h;
 	struct BME_CycleNode radial;					/*circularly linked list used to find faces around an edge*/
 	struct BME_CycleNode *gref;						/*pointer to loop ref. Nasty.*/
 	struct BME_Vert *v;								/*vertex that this loop starts at.*/
@@ -110,20 +126,22 @@ typedef struct BME_Loop
 	void *data;										/*custom per face vertex data*/
 	int eflag1, eflag2;								/*reserved for use by eulers*/
 	int tflag1, tflag2;								/*reserved for use by tools*/
-	unsigned short flag, h;
+
 } BME_Loop;
 
 typedef struct BME_Poly
 {
 	struct BME_Poly *next, *prev;
 	int EID;
+	unsigned short flag, h; 
+	unsigned short mat_nr;
 	struct BME_Loop *loopbase;						/*First editloop around Polygon.*/
 	struct ListBase holes;							/*list of inner loops in the face*/
 	unsigned int len;								/*total length of the face. Eulers should preserve this data*/
 	void *data;										/*custom face data*/
 	int eflag1, eflag2;								/*reserved for use by eulers*/
 	int tflag1, tflag2;								/*reserved for use by tools*/
-	unsigned short flag, h, mat_nr;
+
 } BME_Poly;
 
 //*EDGE UTILITIES*/
@@ -171,6 +189,14 @@ int BME_JEKV(struct BME_Mesh *bm, struct BME_Edge *ke, struct BME_Vert *kv);
 struct BME_Poly *BME_JFKE(struct BME_Mesh *bm, struct BME_Poly *f1, struct BME_Poly *f2,struct BME_Edge *e); /*no reason to return BME_Poly pointer?*/
 /*NORMAL FLIP(Is its own inverse)*/
 int BME_loop_reverse(struct BME_Mesh *bm, struct BME_Poly *f);
+
+/* SELECTION  AND ITERATOR FUNCTIONS*/
+void *BME_first(struct BME_Mesh *bm, int type);
+void *BME_next(struct BME_Mesh *bm, int type, void *element);
+void BME_select_vert(struct BME_Mesh *bm, struct BME_Vert *v, int select);
+void BME_select_edge(struct BME_Mesh *bm, struct BME_Edge *e, int select);
+void BME_select_poly(struct BME_Mesh *bm, struct BME_Poly *f, int select);
+#define BME_SELECTED(element) (element->flag & SELECT)
 
 /*TOOLS CODE*/
 struct BME_Loop *BME_inset_edge(struct BME_Mesh *bm, struct BME_Loop *l, struct BME_Poly *f);

@@ -61,6 +61,56 @@
 
 
 /*	
+ *	BME FIRST
+ *
+ * Finds the first element of the given type in the bmesh
+*/
+
+void *BME_first(BME_Mesh *bm, int type){
+	if(type == BME_VERT) return bm->verts.first;
+	else if(type == BME_EDGE) return bm->edges.first;
+	else if (type == BME_POLY) return bm->polys.first;
+	else if (type == BME_LOOP){
+		if(bm->loops.first){
+			return ((BME_CycleNode*)bm->loops.first)->data;
+		}
+	}
+	return NULL;
+}
+/*	
+ *	BME NEXT
+ *
+ * Finds the next element of the givent type in the bmesh
+*/
+void *BME_next(BME_Mesh *bm, int type, void *element){
+	if(type == BME_VERT) return ((BME_Vert*)element)->next;
+	else if(type == BME_EDGE) return ((BME_Edge*)element)->next;
+	else if(type == BME_POLY) return ((BME_Poly*)element)->next;
+	else if(type == BME_LOOP) return ((BME_Loop*)element)->gref->next->data;
+	return NULL;
+}
+
+/*	
+ *	BME SELECT VERT/EDGE/POLY
+ *
+ * Selects elements.
+*/
+void BME_select_vert(BME_Mesh *bm, BME_Vert *v, int select){
+	if(select) v->flag |= SELECT;
+	else v->flag &= ~SELECT;
+}
+void BME_select_edge(BME_Mesh *bm, BME_Edge *e, int select){
+	if(select) e->flag |= SELECT;
+	else e->flag &= ~SELECT;
+}
+void BME_select_poly(BME_Mesh *bm, BME_Poly *f, int select){
+	if(select) f->flag |= SELECT;
+	else f->flag &= ~SELECT;
+}
+
+
+
+/*	
  *	BME MAKE MESH
  *
  *  Allocates a new BME_Mesh structure
@@ -174,15 +224,19 @@ BME_Mesh *BME_copy_mesh(BME_Mesh *bm){
 */
 
 int BME_model_begin(BME_Mesh *bm){
-	if(bm->lock) return 0;
-	bm->lock = 1;
-	bm->backup = BME_copy_mesh(bm);
-	return 1;
+	BME_Vert *v;
+	BME_Edge *e;
+	BME_Poly *f;
+	BME_Loop *l;
+
+	for(v=BME_first(bm,BME_VERT); v; v=BME_next(bm,BME_VERT,v)) v->tflag1 = v->tflag2 = 0;
+	for(e=BME_first(bm,BME_EDGE); e; e=BME_next(bm,BME_EDGE,e)) e->tflag1 = e->tflag2 = 0;
+	for(f=BME_first(bm,BME_POLY); f; f=BME_next(bm,BME_POLY,f)) f->tflag1 = f->tflag2 = 0;
+	for(l=BME_first(bm,BME_LOOP); l; l=BME_next(bm,BME_LOOP,l)) l->tflag1 = l->tflag2 = 0;
 }
 
 void BME_model_end(BME_Mesh *bm){
-	BME_Mesh *badmesh;
-	int meshok,backupok, totvert, totedge, totpoly, totloop;
+	int meshok, totvert, totedge, totpoly, totloop;
 
 	totvert = BLI_countlist(&(bm->verts));
 	totedge = BLI_countlist(&(bm->edges));
@@ -194,23 +248,15 @@ void BME_model_end(BME_Mesh *bm){
 	
 	meshok = BME_validate_mesh(bm, 1);
 	if(!meshok){
-		printf("Warning, Mesh failed validation, restoring from backup");
-		badmesh = bm;
-		bm= badmesh->backup;
-		bm->backup = badmesh;
-		backupok = BME_validate_mesh(bm,1);
-		if(!backupok) printf("Backup corrupted too, Briggs did something stupid!");
+		printf("Warning, Mesh failed validation! Put in bug tracker!");
 	}
-	BME_free_mesh(bm->backup);
-	bm->lock = 0;
 }
-
 
 /*	
  *	BME VALIDATE MESH
  *
  *	There are several levels of validation for meshes. At the 
- *  Euler level, some basic validation is done to local topology.
+ *  Euler level, some basic validation is done to local topology.SSSS
  *  To catch more subtle problems however, BME_validate_mesh() is 
  *  called by BME_model_end() whenever a tool is done executing.
  *  The purpose of this function is to insure that during the course 

@@ -357,14 +357,14 @@ void mouse_bmesh(void)
 		BME_Vert *vert = EditBME_FindNearestVert(&dis, 1, 0);
 		if (vert) {
 			if (G.qual & LR_SHIFTKEY) {
-				if (vert->flag & SELECT) vert->flag &= ~SELECT;
-				else vert->flag |= SELECT;
+				if (BME_SELECTED(vert)) BME_select_vert(G.editMesh,vert,0);
+				else BME_select_vert(G.editMesh,vert,1);
 			} else {
 				BME_Vert *eve;
-				for (eve=G.editMesh->verts.first; eve; eve=eve->next) eve->flag &= ~SELECT;
-				vert->flag |= SELECT;
+				for(eve=BME_first(G.editMesh,BME_VERT);eve;eve=BME_next(G.editMesh,BME_VERT,eve)) BME_select_vert(G.editMesh,eve,0);
+				BME_select_vert(G.editMesh,vert,1);
 			}
-			EditBME_FlushSelUpward(G.editMesh);
+			//EditBME_FlushSelUpward(G.editMesh);
 			allqueue(REDRAWVIEW3D, 1);
 		}
 	} else if (G.scene->selectmode == SCE_SELECT_EDGE) {
@@ -379,40 +379,12 @@ void mouse_bmesh(void)
 
 		if (edge) {
 			if (G.qual & LR_SHIFTKEY) {
-				if (edge->flag & SELECT) edge->flag &= ~SELECT;
-				else edge->flag |= SELECT;
+				if (BME_SELECTED(edge)) BME_select_edge(G.editMesh,edge,0);
+				else BME_select_edge(G.editMesh,edge,1);
 			} else {
 				BME_Edge *eed;
-				for (eed=G.editMesh->edges.first; eed; eed=eed->next) eed->flag &= ~SELECT;
-				edge->flag |= SELECT;
-			}
-
-			/*Hackish code for edge flushing.  Will need proper implementation later.*/
-			for (eve=G.editMesh->verts.first; eve; eve=eve->next) eve->tflag1 = 0;
-			for (eed=G.editMesh->edges.first; eed; eed=eed->next) {
-				if (eed->flag & SELECT) {
-					eed->v1->tflag1 = 1;
-					eed->v2->tflag1 = 1;
-				}
-			}
-
-			for (eve=G.editMesh->verts.first; eve; eve=eve->next) {
-				if (eve->tflag1==0) eve->flag &= ~SELECT;
-				else eve->flag |= SELECT;
-			}
-			
-			for (efa=G.editMesh->polys.first; efa; efa=efa->next) {
-				stop = 0;
-				loop = efa->loopbase;
-				do {
-					if ((loop->e->flag & SELECT)==0) {
-						stop = 1;
-						break;
-					}
-					loop=loop->next;
-				} while (loop != efa->loopbase);
-				if (stop) efa->flag &= ~SELECT;
-				else efa->flag |= SELECT;
+				for (eed=BME_first(G.editMesh,BME_EDGE); eed; eed=BME_next(G.editMesh,BME_EDGE,eed)) BME_select_edge(G.editMesh, eed,0);
+				BME_select_edge(G.editMesh,edge,1);
 			}
 
 			allqueue(REDRAWVIEW3D, 1);
