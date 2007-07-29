@@ -478,33 +478,6 @@ void autocomplete_vgroup(char *str, void *arg_v)
 	}
 }
 
-/* ChildOf Constraint - set inverse */
-static void childof_const_setinv (void *conv, void *unused)
-{
-	bChildOfConstraint *data= (bChildOfConstraint *)conv;
-	Object *ob= OBACT;
-	bPoseChannel *pchan= NULL;
-
-	if (ob && ob->pose)
-		pchan= get_active_posechannel(ob);
-	
-	// for now, try using constinv if available
-	if (pchan)
-		Mat4CpyMat4(data->invmat, pchan->constinv);
-	else if (ob)
-		Mat4CpyMat4(data->invmat, ob->constinv);
-	else 
-		Mat4One(data->invmat);
-}
-
-/* ChildOf Constraint - clear inverse */
-static void childof_const_clearinv (void *conv, void *unused)
-{
-	bChildOfConstraint *data= (bChildOfConstraint *)conv;
-	
-	Mat4One(data->invmat);
-}
-
 /* Helper function for draw constraint - draws constraint space stuff 
  * This function should not be called if no menus are required 
  * owner/target: -1 = don't draw menu; 0= not posemode, 1 = posemode 

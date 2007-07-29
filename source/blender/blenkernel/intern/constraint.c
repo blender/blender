@@ -2623,8 +2623,12 @@ static void evaluate_constraint (bConstraint *constraint, float ownermat[][4], f
 						}
 						break;
 					default: /* location */
+						/* get new location */
 						for (i=0; i<3; i++)
-							loc[i] += (data->to_min[i] + (sval[data->map[i]] * (data->to_max[i] - data->to_min[i]))); 
+							loc[i]= (data->to_min[i] + (sval[data->map[i]] * (data->to_max[i] - data->to_min[i])));
+						
+						/* add original location back on (so that it can still be moved) */
+						VecAddf(loc, ownermat[3], loc);
 						break;
 				}
 				

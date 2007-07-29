@@ -1010,3 +1010,43 @@ char *buildmenu_pyconstraints(Text *con_text, int *pyconindex)
 	
 	return menustr;
 }
+
+/* ------------- Child-Of Constraint ------------------ */
+
+/* ChildOf Constraint - set inverse callback */
+void childof_const_setinv (void *conv, void *unused)
+{
+	bChildOfConstraint *data= (bChildOfConstraint *)conv;
+	Object *ob= OBACT;
+	bPoseChannel *pchan= NULL;
+
+	/* try to find a pose channel */
+	if (ob && ob->pose)
+		pchan= get_active_posechannel(ob);
+	
+	/* calculate/set inverse matrix */
+	if (pchan) {
+		/* for now, just use pchan->constinv.
+		 * NOTE: bad hack... doesn't work in many cases
+		 */
+		Mat4CpyMat4(data->invmat, pchan->constinv);
+	}
+	else if (ob) {
+		/* use what_does_parent to find inverse - just like for normal parenting.
+		 * NOTE: what_does_parent uses a static workob defined in object.c 
+		 */
+		what_does_parent(ob);
+		Mat4Invert(data->invmat, workob.obmat);
+	}
+	else
+		Mat4One(data->invmat);
+}
+
+/* ChildOf Constraint - clear inverse callback */
+void childof_const_clearinv (void *conv, void *unused)
+{
+	bChildOfConstraint *data= (bChildOfConstraint *)conv;
+	
+	/* simply clear the matrix */
+	Mat4One(data->invmat);
+}

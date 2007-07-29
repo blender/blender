@@ -65,5 +65,9 @@ void rename_constraint(struct Object *ob, struct bConstraint *con, char *newname
 char *buildmenu_pyconstraints(struct Text *con_text, int *pyconindex);
 void validate_pyconstraint_cb(void *arg1, void *arg2);
 
+/* two special functions for ChildOf Constriant */
+void childof_const_setinv (void *conv, void *unused);
+void childof_const_clearinv(void *conv, void *unused);
+
 #endif
 
