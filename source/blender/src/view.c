@@ -574,7 +574,7 @@ float m_dist;
 
 void getndof(float *sbval);
 
-static filterNDOFvalues(float *sbval)
+static void filterNDOFvalues(float *sbval)
 {
 	int i=0;
 	float max  = 0.0;
@@ -1036,10 +1036,6 @@ void viewmoveNDOF(int mode)
     float diff[4];
     float d, curareaX, curareaY;
 
-	//reset view type
-	G.vd->view = 0;
-//printf("passing here \n");
-
     /* Sensitivity will control how fast the view rotates.  The value was
      * obtained experimentally by tweaking until the author didn't get dizzy watching.
      * Perhaps this should be a configurable user parameter. 
@@ -1051,6 +1047,10 @@ void viewmoveNDOF(int mode)
     const float minZoom = -30.0f;
     const float maxZoom = 300.0f;
 
+	//reset view type
+	G.vd->view = 0;
+//printf("passing here \n");
+//
 	if (G.obedit==NULL && ob && !(ob->flag & OB_POSEMODE)) {
 		use_sel = 1;
 	}
