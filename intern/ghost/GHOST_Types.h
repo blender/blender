@@ -137,7 +137,8 @@ typedef enum {
 	GHOST_kEventButtonUp,		/// Mouse button event
 	GHOST_kEventWheel,			/// Mouse wheel event
 
-	GHOST_kEventNDOFMotion, /// N degree of freedom device motion event
+	GHOST_kEventNDOFMotion,		/// N degree of freedom device motion event
+	GHOST_kEventNDOFButton,		/// N degree of freedom device button event
 
 	GHOST_kEventKeyDown,
 	GHOST_kEventKeyUp,

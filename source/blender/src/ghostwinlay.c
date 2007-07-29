@@ -586,7 +586,13 @@ static int event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 ;
           break;
         }
-
+        case GHOST_kEventNDOFButton: {
+			GHOST_TEventNDOFData *sb= data;
+			
+//			printf("this is a button %i\n", sb->buttons);
+			window_handle(win, NDOFBUTTON, sb->buttons);
+			break;
+        }
 		case GHOST_kEventCursorMove: {
 			if(win->active == 1) {
 				GHOST_TEventCursorData *cd= data;

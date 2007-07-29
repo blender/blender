@@ -5258,7 +5258,28 @@ void view3d_buttons(void)
 		}
 
 		uiDefIconBut(block, BUT, B_VIEWRENDER, ICON_SCENE_DEHLT, xco,0,XIC,YIC, NULL, 0, 1.0, 0, 0, "Render this window (hold CTRL for anim)");
-	
+		
+		{
+			char tempstring[256];
+			switch (G.vd->ndofmode) {		
+				case 0:
+					sprintf(tempstring,"6dof : %s %s", "turntable",((G.vd->ndoffilter==1) ? "dominant" : ""));
+					break;
+				case 1:
+					sprintf(tempstring,"6dof : %s %s", "fly",((G.vd->ndoffilter==1) ? "dominant" : ""));
+					break;
+				case 2:
+					sprintf(tempstring,"6dof : %s %s", "transform",((G.vd->ndoffilter==1) ? "dominant" : ""));
+					break;
+				default:
+					tempstring[0]=0;
+					break;
+			}
+			uiDefBut(block, LABEL,0,tempstring,
+					 xco+=XIC*2,0,150,YIC, 0, 1.0, 0, 0, 0, 
+					 "");
+			
+		}
 		if (ob && (ob->flag & OB_POSEMODE)) {
 			xco+= XIC/2;
 			uiBlockBeginAlign(block);

@@ -462,25 +462,21 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			} else 
 #endif
 			if (sNdofInfo.currValues) {
-				sNdofInfo.currValues->changed = 1;
-				sNdofInfo.currValues->delta = xcme.data.s[8] - sNdofInfo.currValues->time;
-				sNdofInfo.currValues->time = xcme.data.s[8];
-				sNdofInfo.currValues->tx = xcme.data.s[2] >> 4;
-				sNdofInfo.currValues->ty = xcme.data.s[3] >> 4;
-				sNdofInfo.currValues->tz = xcme.data.s[4] >> 4;
-				sNdofInfo.currValues->rx = xcme.data.s[5];
-				sNdofInfo.currValues->ry = xcme.data.s[6];
-				sNdofInfo.currValues->rz = xcme.data.s[7];
+  				GHOST_TEventNDOFData data;
+				data.changed = 1;
+				data.delta = xcme.data.s[8] - data.time;
+				data.time = xcme.data.s[8];
+				data.tx = xcme.data.s[2] >> 4;
+				data.ty = xcme.data.s[3] >> 4;
+				data.tz = xcme.data.s[4] >> 4;
+				data.rx = xcme.data.s[5];
+				data.ry = xcme.data.s[6];
+				data.rz = xcme.data.s[7];
 
-				/*fprintf(stderr, "ClientMessage: [%d %d %d][%d %d %d] t=%llu\n",
-				        sNdofInfo.currValues->tx, sNdofInfo.currValues->ty, 
-				        sNdofInfo.currValues->tz, sNdofInfo.currValues->rx, 
-				        sNdofInfo.currValues->ry, sNdofInfo.currValues->rz, 
-						sNdofInfo.currValues->time); */
+				g_event = new GHOST_EventNDOF(getMilliSeconds(),
+                                GHOST_kEventNDOFMotion,
+                                window, data);
 				
-				g_event = new GHOST_EventNDOF(getMilliSeconds(), 
-				                              GHOST_kEventNDOFMotion, 
-				                              window, *sNdofInfo.currValues);
 			} else {
 				/* Unknown client message, ignore */
 			}

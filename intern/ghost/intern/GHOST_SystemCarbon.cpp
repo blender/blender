@@ -984,7 +984,7 @@ bool GHOST_SystemCarbon::handleMouseDown(EventRef event)
 			GHOST_ASSERT(ghostWindow, "GHOST_SystemCarbon::handleMouseEvent: ghostWindow==0");
 			if (::TrackGoAway(window, mousePos))
 			{
-				// todo: add option-close, because itØs in the HIG
+				// todo: add option-close, because itÃ¿s in the HIG
 				// if (event.modifiers & optionKey) {
 					// Close the clean documents, others will be confirmed one by one.
 				//}
@@ -1069,6 +1069,7 @@ OSStatus GHOST_SystemCarbon::sEventHandlerProc(EventHandlerCallRef handler, Even
     OSStatus err = eventNotHandledErr;
 	GHOST_IWindow* window;
 	GHOST_TEventNDOFData data;
+	UInt32 kind;
 	
     switch (::GetEventClass(event))
     {
@@ -1090,7 +1091,19 @@ OSStatus GHOST_SystemCarbon::sEventHandlerProc(EventHandlerCallRef handler, Even
  		case kEventClassBlender :
 			window = sys->m_windowManager->getActiveWindow();
 			sys->m_ndofManager->GHOST_NDOFGetDatas(data);
-			sys->m_eventManager->pushEvent(new GHOST_EventNDOF(sys->getMilliSeconds(), GHOST_kEventNDOFMotion, window, data));
+			kind = ::GetEventKind(event);
+			
+			switch (kind)
+			{
+				case 1:
+					sys->m_eventManager->pushEvent(new GHOST_EventNDOF(sys->getMilliSeconds(), GHOST_kEventNDOFMotion, window, data));
+	//				printf("motion\n");
+					break;
+				case 2:
+					sys->m_eventManager->pushEvent(new GHOST_EventNDOF(sys->getMilliSeconds(), GHOST_kEventNDOFButton, window, data));
+//					printf("button\n");
+					break;
+			}
 			err = noErr;
 			break;
 		default : 

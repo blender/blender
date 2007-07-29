@@ -76,6 +76,7 @@ void sdrawbox(short x1, short y1, short x2, short y2);
 void calctrackballvecfirst(struct rcti *area, short *mval, float *vec);
 void calctrackballvec(struct rcti *area, short *mval, float *vec);
 void viewmove(int mode);
+void viewmoveNDOFfly(int mode);
 void viewmoveNDOF(int mode);
 
 int get_view3d_viewplane(int winxi, int winyi, rctf *viewplane, float *clipsta, float *clipend, float *pixsize);

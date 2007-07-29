@@ -72,6 +72,7 @@
 
 /* N-degre of freedom device : 500 */
 #define NDOFMOTION 500
+#define NDOFBUTTON 501
 
 /* standard keyboard */
 

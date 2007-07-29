@@ -1567,10 +1567,29 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				doredraw= 1;
 				break;
 
-            case NDOFMOTION:
-                viewmoveNDOF(1);
+            case NDOFMOTION:		
+				if (G.vd->ndofmode == 0) {
+					viewmoveNDOF(1);
+				} else if (G.vd->ndofmode == 1) {
+					viewmoveNDOFfly(1);
+				} else {
+					;
+				}
+					
                 break;
 
+            case NDOFBUTTON:
+				if (val == 1) {
+					G.vd->ndofmode +=1;
+					if (G.vd->ndofmode > 2)		/* we have currently 3 modes : 0 original, 1 fly, 2 transform */
+						G.vd->ndofmode = 0;
+				}
+				if (val == 2) {
+					G.vd->ndoffilter =(G.vd->ndoffilter == 1 ? 0 : 1);
+				}
+				allqueue(REDRAWHEADERS, 0);
+                break;
+				
 			case ONEKEY:
 				if(G.qual==LR_CTRLKEY) {
 					flip_subdivison(1);
@@ -2584,6 +2603,7 @@ static void initview3d(ScrArea *sa)
 	vd->gridflag &= ~V3D_SHOW_Z;
 
 	vd->depths= NULL;
+	vd->ndofmode=0;
 }
 
 

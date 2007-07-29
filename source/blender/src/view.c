@@ -545,13 +545,24 @@ void calctrackballvec(rcti *area, short *mval, float *vec)
 // can be increased for improved response from
 // small deflections of the device input.
 
+
+// lukep notes : i disagree on the range.
+// the normal 3Dconnection driver give +/-400
+// on defaut range in other applications
+// and up to +/- 1000 if set to maximum
+// because i remove the scaling by delta,
+// which was a bad idea as it depend of the system
+// speed and os, i changed the scaling values, but 
+// those are still not ok
+
+
 float ndof_axis_scale[6] = {
-	+2.0,	// Tx
-	+2.0,	// Tz
-	+2.0,	// Ty
-	+0.25,	// Rx
-	+0.25,	// Rz
-	+0.25	// Ry
+	+0.01,	// Tx
+	+0.01,	// Tz
+	+0.01,	// Ty
+	+0.0015,	// Rx
+	+0.0015,	// Rz
+	+0.0015	// Ry
 };
 
 // statics for controlling G.vd->dist corrections.
@@ -563,10 +574,20 @@ float m_dist;
 
 void getndof(float *sbval);
 
-#define USE_NEW_NDOFMOVE
+static filterNDOFvalues(float *sbval)
+{
+	int i=0;
+	float max  = 0.0;
+	
+	for (i =0; i<5;i++)
+		if (fabs(sbval[i]) > max)
+			max = fabs(sbval[i]);
+	for (i =0; i<5;i++)
+		if (fabs(sbval[i]) != max )
+			sbval[i]=0.0;
+}
 
-#ifdef USE_NEW_NDOFMOVE
-void viewmoveNDOF(int mode)
+void viewmoveNDOFfly(int mode)
 {
     int i;
     float phi;
@@ -589,16 +610,18 @@ void viewmoveNDOF(int mode)
 	// fetch the current state of the ndof device
 	getndof(dval);
 
-	for(i=0;i<7;i++) printf("%f ",dval[i]);
-		printf("\n");
+	if (G.vd->ndoffilter)
+		filterNDOFvalues(fval);
+
+//	for(i=0;i<7;i++) printf("%f ",dval[i]);
+//		printf("\n");
 
 
 	// Scale input values
 
-	if(dval[6] == 0) return; // guard against divide by zero
+//	if(dval[6] == 0) return; // guard against divide by zero
 
 	for(i=0;i<6;i++) {
-		dval[i] = dval[i] / dval[6]; // this should be moved to device specific
 
 		// user scaling
 		dval[i] = dval[i] * ndof_axis_scale[i];
@@ -695,7 +718,6 @@ void viewmoveNDOF(int mode)
 	/*----------------------------------------------------
      * refresh the screen
      */
-
     scrarea_do_windraw(curarea);
     screen_swapbuffers();
 
@@ -703,8 +725,6 @@ void viewmoveNDOF(int mode)
 
 	BIF_view3d_previewrender_signal(curarea, PR_DBASE|PR_DISPRECT);
 }
-
-#endif
 
 void viewmove(int mode)
 {
@@ -994,10 +1014,6 @@ void viewmove(int mode)
 }
 
 
-
-#ifndef USE_NEW_NDOFMOVE
-
-
 void viewmoveNDOF(int mode)
 {
     static double prevTime = 0.0;
@@ -1057,19 +1073,31 @@ void viewmoveNDOF(int mode)
 
     /* fetch the current state of the ndof device */
     getndof(fval);
-   //         printf(" motion command %f %f %f %f %f %f %f \n", fval[0], fval[1], fval[2],
-   //         							 fval[3], fval[4], fval[5], fval[6]);
-
+ //           printf(" motion command %f %f %f %f %f %f %f \n", fval[0], fval[1], fval[2],
+ //           							 fval[3], fval[4], fval[5], fval[6]);
+			if (G.vd->ndoffilter)
+				filterNDOFvalues(fval);
+	
 	
 	// put scaling back here, was previously in ghostwinlay
             fval[0] = fval[0]  * (1.0f/1024.0f);
             fval[1] = fval[1]  * (1.0f/1024.0f);
             fval[2] = fval[2] * (1.0f/1024.0f);
-            fval[3] = fval[3]  * 0.00003f;
-            fval[4] = fval[4]  * 0.00003f;
-            fval[5] = fval[5] * 0.00003f;
+            fval[3] = fval[3]  * 0.00005f;
+            fval[4] = fval[4]  * 0.00005f;
+            fval[5] = fval[5] * 0.00005f;
             fval[6] = fval[6]  / 1000000.0f;
-	
+			
+	// scale more if not in perspective mode
+			if (G.vd->persp == 0) {
+				fval[0] = fval[0] * 0.05f;
+				fval[1] = fval[1] * 0.05f;
+				fval[2] = fval[2] * 0.05f;
+				fval[3] = fval[3] * 0.9f;
+				fval[4] = fval[4] * 0.9f;
+				fval[5] = fval[5] * 0.9f;
+			}
+			
 	
     /* set object offset */
 	if (ob) {
@@ -1169,7 +1197,6 @@ void viewmoveNDOF(int mode)
     screen_swapbuffers();
 }
 
-#endif
 
 
 /* Gets the lens and clipping values from a camera of lamp type object */

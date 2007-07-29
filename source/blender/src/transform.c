@@ -726,9 +726,9 @@ static void transformEvent(unsigned short event, short val) {
 			else view_editmove(event);
 			Trans.redraw= 1;
 			break;
-		case NDOFMOTION:
-            viewmoveNDOF(0);
-           break;
+//		case NDOFMOTION:
+//            viewmoveNDOF(1);
+  //         break;
 		}
 		Trans.redraw |= handleNumInput(&(Trans.num), event);
 		Trans.redraw |= handleSnapping(&Trans, event);
@@ -1075,9 +1075,9 @@ void ManipulatorTransform()
 			case RETKEY:
 				Trans.state = TRANS_CONFIRM;
 				break;
-            case NDOFMOTION:
-                viewmoveNDOF(0);
-                break;
+   //         case NDOFMOTION:
+     //           viewmoveNDOF(1);
+     //           break;
 			}
 			if(val) {
 				switch(event) {
