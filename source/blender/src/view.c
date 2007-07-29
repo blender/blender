@@ -1036,6 +1036,8 @@ void viewmoveNDOF(int mode)
     float diff[4];
     float d, curareaX, curareaY;
 
+	//reset view type
+	G.vd->view = 0;
 //printf("passing here \n");
 
     /* Sensitivity will control how fast the view rotates.  The value was
@@ -1043,8 +1045,8 @@ void viewmoveNDOF(int mode)
      * Perhaps this should be a configurable user parameter. 
      */
     float psens = 0.005f * (float) U.ndof_pan;   /* pan sensitivity */
-    const float rsens = 0.005f * (float) U.ndof_rotate;  /* rotate sensitivity */
-    const float zsens = 0.1f;   /* zoom sensitivity */
+    float rsens = 0.005f * (float) U.ndof_rotate;  /* rotate sensitivity */
+    float zsens = 0.3f;   /* zoom sensitivity */
 
     const float minZoom = -30.0f;
     const float maxZoom = 300.0f;
@@ -1080,9 +1082,9 @@ void viewmoveNDOF(int mode)
 	
 	
 	// put scaling back here, was previously in ghostwinlay
-            fval[0] = fval[0]  * (1.0f/1024.0f);
-            fval[1] = fval[1]  * (1.0f/1024.0f);
-            fval[2] = fval[2] * (1.0f/1024.0f);
+            fval[0] = fval[0]  * (1.0f/800.0f);
+            fval[1] = fval[1]  * (1.0f/800.0f);
+            fval[2] = fval[2] * (1.0f/800.0f);
             fval[3] = fval[3]  * 0.00005f;
             fval[4] = fval[4]  * 0.00005f;
             fval[5] = fval[5] * 0.00005f;
@@ -1096,6 +1098,7 @@ void viewmoveNDOF(int mode)
 				fval[3] = fval[3] * 0.9f;
 				fval[4] = fval[4] * 0.9f;
 				fval[5] = fval[5] * 0.9f;
+				zsens *= 8;
 			}
 			
 	
