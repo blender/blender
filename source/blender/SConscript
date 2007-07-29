@@ -15,8 +15,7 @@ SConscript(['avi/SConscript',
             'readblenfile/SConscript',
             'render/SConscript',
             'src/SConscript',
-            'nodes/SConscript',
-            'bmesh/SConscript'])
+            'nodes/SConscript'])
 
 if env['WITH_BF_YAFRAY'] == 1:
     SConscript(['yafray/SConscript'])
