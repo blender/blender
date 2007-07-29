@@ -34,7 +34,7 @@
 
 #include "mydevice.h" //event codes
 #include "editbmesh.h"
-
+/*
 typedef struct BME_Undo_Mesh {
 } BME_Undo_Mesh;
 
@@ -54,7 +54,7 @@ BME_Undo_Mesh *EditBME_makeUndoMesh(BME_Mesh *mesh)
 {
 	return NULL;
 }
-
+*/
 typedef struct _edgeref {
 	struct _edgeref *next, *prev;
 	BME_Edge *edge;

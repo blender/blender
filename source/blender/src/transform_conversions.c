@@ -1459,6 +1459,7 @@ static void createTransEditVerts(TransInfo *t)
 	for (eve=em->verts.first; eve; eve=eve->next) {
 		if(eve->h==0) {
 			if(propmode || eve->tflag1) {
+				float mat[3][3], imat[3][3], qmat[3][3];
 				VertsToTransData(tob, eve);
 				//printf("converted! co: [%f, %f, %f], tob: %p\n", tob->loc[0], tob->loc[1], tob->loc[2], tob);
 				if(eve->tflag1) tob->flag |= TD_SELECTED;
@@ -1466,7 +1467,8 @@ static void createTransEditVerts(TransInfo *t)
 					tob->flag |= TD_NOTCONNECTED;
 					tob->dist = MAXFLOAT;
 				}
-				
+				Mat3CpyMat3(tob->smtx, smtx);
+				Mat3CpyMat3(tob->mtx, mtx);
 				/* Mirror? */
 				//EDITBMESHGREP
 				//if( (mirror>0 && tob->iloc[0]>0.0f) || (mirror<0 && tob->iloc[0]<0.0f)) {

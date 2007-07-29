@@ -18,13 +18,13 @@ BF_PYTHON_BINARY = 'python'
 BF_PYTHON_LIB = 'python25'
 BF_PYTHON_LIBPATH = '${BF_PYTHON}/lib'
 
-WITH_BF_OPENAL = 'true'
+WITH_BF_OPENAL = 'false'
 BF_OPENAL = LIBDIR + '/openal'
 BF_OPENAL_INC = '${BF_OPENAL}/include ${BF_OPENAL}/include/AL '
 BF_OPENAL_LIB = 'openal_static'
 BF_OPENAL_LIBPATH = '${BF_OPENAL}/lib'
 
-WITH_BF_ICONV = 'true'
+WITH_BF_ICONV = 'false'
 BF_ICONV = LIBDIR + '/iconv'
 BF_ICONV_INC = '${BF_ICONV}/include'
 BF_ICONV_LIB = 'iconv'
@@ -44,7 +44,7 @@ BF_PTHREADS_LIBPATH = '${BF_PTHREADS}/lib'
 WITH_BF_FMOD = 'false'
 BF_FMOD = LIBDIR + '/fmod'
 
-WITH_BF_OPENEXR = 'true'
+WITH_BF_OPENEXR = 'false'
 BF_OPENEXR = LIBDIR + '/openexr'
 BF_OPENEXR_INC = '${BF_OPENEXR}/include ${BF_OPENEXR}/include/IlmImf ${BF_OPENEXR}/include/Iex ${BF_OPENEXR}/include/Imath '
 BF_OPENEXR_LIB = ' Iex Half IlmImf Imath IlmThread '
@@ -71,26 +71,26 @@ BF_ZLIB_INC = '${BF_ZLIB}/include'
 BF_ZLIB_LIB = 'libz'
 BF_ZLIB_LIBPATH = '${BF_ZLIB}/lib'
 
-WITH_BF_INTERNATIONAL = 'true'
+WITH_BF_INTERNATIONAL = 'false'
 
 BF_GETTEXT = LIBDIR + '/gettext'
 BF_GETTEXT_INC = '${BF_GETTEXT}/include'
 BF_GETTEXT_LIB = 'gnu_gettext'
 BF_GETTEXT_LIBPATH = '${BF_GETTEXT}/lib'
 
-WITH_BF_FTGL = 'true'
+WITH_BF_FTGL = 'false'
 BF_FTGL = LIBDIR + '/ftgl'
 BF_FTGL_INC = '${BF_FTGL}/include'
 BF_FTGL_LIB = 'extern_ftgl'
 
 WITH_BF_GAMEENGINE = 'false'
 
-WITH_BF_ODE = 'true'
+WITH_BF_ODE = 'false'
 BF_ODE = LIBDIR + '/ode'
 BF_ODE_INC = BF_ODE + '/include'
 BF_ODE_LIB = BF_ODE + '/lib/libode.a'
 
-WITH_BF_BULLET = 'true'
+WITH_BF_BULLET = 'false'
 BF_BULLET = '#extern/bullet2/src'
 BF_BULLET_INC = '${BF_BULLET}'
 BF_BULLET_LIB = 'extern_bullet'
@@ -102,7 +102,7 @@ BF_SOLID_LIB = 'extern_solid'
 BF_WINTAB = LIBDIR + '/wintab'
 BF_WINTAB_INC = '${BF_WINTAB}/INCLUDE'
 
-WITH_BF_YAFRAY = 'true'
+WITH_BF_YAFRAY = 'false'
 
 #WITH_BF_NSPR = 'true'
 #BF_NSPR = $(LIBDIR)/nspr
@@ -127,7 +127,7 @@ BF_FREETYPE_INC = '${BF_FREETYPE}/include ${BF_FREETYPE}/include/freetype2'
 BF_FREETYPE_LIB = 'freetype2ST'
 BF_FREETYPE_LIBPATH = '${BF_FREETYPE}/lib'
 
-WITH_BF_QUICKTIME = 'true' # -DWITH_QUICKTIME
+WITH_BF_QUICKTIME = 'false' # -DWITH_QUICKTIME
 BF_QUICKTIME = LIBDIR + '/QTDevWin'
 BF_QUICKTIME_INC = '${BF_QUICKTIME}/CIncludes'
 BF_QUICKTIME_LIB = 'qtmlClient'
@@ -144,12 +144,11 @@ CC = 'cl.exe'
 CXX = 'cl.exe'
 
 CCFLAGS = ['/nologo', '/Og', '/Ot', '/Ob1', '/Op', '/G6','/EHsc', '/J', '/W3', '/Gd', '/MT']
+BF_DEBUG_FLAGS = ['/Od', '/Zi', '/FR${TARGET}.sbr']
 
-BF_DEBUG_FLAGS = ['/Zi', '/FR${TARGET.base}.sbr']
-
-CPPFLAGS = ['-DWIN32','-D_CONSOLE', '-D_LIB', '-DUSE_OPENAL', '-DFTGL_LIBRARY_STATIC', '-D_CRT_SECURE_NO_DEPRECATE']
-REL_CFLAGS = ['-O2', '-DNDEBUG']
-REL_CCFLAGS = ['-O2', '-DNDEBUG']
+CPPFLAGS = ['-DWIN32','-D_CONSOLE', '-D_LIB', '-DFTGL_LIBRARY_STATIC', '-D_CRT_SECURE_NO_DEPRECATE']
+REL_CFLAGS = ['-DNDEBUG']
+REL_CCFLAGS = ['-DNDEBUG']
 C_WARN = []
 CC_WARN = []
 
