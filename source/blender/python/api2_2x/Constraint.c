@@ -439,10 +439,10 @@ static PyObject *Constraint_insertKey( BPy_Constraint * self, PyObject * value )
 }
 
 /******************************************************************************/
-/* Constraint Space Conversion get/set procedures 						*/
-/* 		- These are called before/instead of individual constraint 			*/
-/*		  get/set procedures when OWNERSPACE or TARGETSPACE are chosen		*/
-/*		- They are only called from Constraint_g/setData 
+/* Constraint Space Conversion get/set procedures							  */
+/* 		- These are called before/instead of individual constraint 			  */
+/*		  get/set procedures when OWNERSPACE or TARGETSPACE are chosen		  */
+/*		- They are only called from Constraint_g/setData					  */
 /******************************************************************************/
 
 static PyObject *constspace_getter( BPy_Constraint * self, int type )
