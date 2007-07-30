@@ -221,7 +221,6 @@ void free_object(Object *ob)
 		MEM_freeN(ob->pose);
 	}
 	free_effects(&ob->effect);
-	BLI_freelistN(&ob->network);
 	free_properties(&ob->prop);
 	object_free_modifiers(ob);
 	
@@ -920,8 +919,6 @@ Object *copy_object(Object *ob)
 		modifier_copyData(md, nmd);
 		BLI_addtail(&obn->modifiers, nmd);
 	}
-	
-	obn->network.first= obn->network.last= 0;
 	
 	BPY_copy_scriptlink(&ob->scriptlink);
 	

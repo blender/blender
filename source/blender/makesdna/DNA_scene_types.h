@@ -422,9 +422,8 @@ typedef struct Scene {
 	short use_nodes;
 	struct bNodeTree *nodetree;	
 	
-	void *ed;
+	void *ed;								/* sequence editor data is allocated here */
 	struct Radio *radio;
-	void *sumohandle;		/* TODO - remove this, its not ued anywhere (Campbell) */
 	
 	struct GameFraming framing;
 

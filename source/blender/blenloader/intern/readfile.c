@@ -2549,9 +2549,7 @@ static void direct_link_mesh(FileData *fd, Mesh *mesh)
 	direct_link_customdata(fd, &mesh->edata, mesh->pv ? mesh->pv->totedge : mesh->totedge);
 	direct_link_customdata(fd, &mesh->fdata, mesh->pv ? mesh->pv->totface : mesh->totface);
 
-	mesh->bb= NULL;
-	mesh->oc= 0;
-	mesh->mselect= NULL;
+	mesh->bb= mesh->mselect = NULL;
 
 	/* Multires data */
 	mesh->mr= newdataadr(fd, mesh->mr);

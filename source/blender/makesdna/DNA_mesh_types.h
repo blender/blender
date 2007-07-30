@@ -71,9 +71,6 @@ typedef struct Mesh {
 	struct MSticky *msticky;
 	struct Mesh *texcomesh;
 	struct MSelect *mselect;
-	
-	struct OcInfo *oc;		/* not written in file - TODO remove this! */
-	void *sumohandle;		/* this is not used anywhere anymore - TODO remove this too (Campbell)*/
 
 	struct CustomData vdata, edata, fdata;
 

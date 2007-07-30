@@ -69,21 +69,6 @@ typedef struct BoundBox {
 /* boundbox flag */
 #define OB_BB_DISABLED	1
 
-/* OcInfo and LBuf structs are for the Enji gameengine
- * These structs are not needed anymore, both should be removed */
-
-typedef struct OcInfo {
-	float dvec[3];
-	float size[3];
-} OcInfo;
-
-typedef struct LBuf {
-	short tot, max;
-	int pad;
-	struct Object **ob;
-} LBuf;
-
-
 typedef struct Object {
 	ID id;
 
@@ -103,7 +88,6 @@ typedef struct Object {
 	
 	ListBase constraintChannels;
 	ListBase effect;
-	ListBase network;	/* This is not used anywhere - TODO, should be removed (Campbell)*/
 	ListBase disp;
 	ListBase defbase;
 	ListBase modifiers; /* list of ModifierData structures */
