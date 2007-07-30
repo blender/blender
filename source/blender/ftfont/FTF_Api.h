@@ -154,6 +154,10 @@ FTF_EXPORT void FTF_SetScale(float fsize);
 
 FTF_EXPORT void FTF_End(void);
 
+/* Font preview functions */
+FTF_EXPORT int FTF_GetNewFont (const unsigned char *str, int datasize, int fontsize);
+FTF_EXPORT float FTF_DrawNewFontString(char* str, unsigned int flag);
+
 #ifdef __cplusplus
 }
 #endif

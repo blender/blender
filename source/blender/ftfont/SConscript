@@ -4,7 +4,7 @@ Import ('env')
 
 sources = env.Glob('intern/*.cpp')
 
-incs = '. intern ../blenkernel ../blenlib ../makesdna'
+incs = '. intern ../blenkernel ../blenlib ../makesdna ../include'
 incs += ' ' + env['BF_FTGL_INC']
 incs += ' ' + env['BF_FREETYPE_INC']
 incs += ' ' + env['BF_GETTEXT_INC']

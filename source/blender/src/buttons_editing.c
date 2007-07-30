@@ -2420,7 +2420,7 @@ void do_fontbuts(unsigned short event)
 		sa= closest_bigger_area();
 		areawinset(sa->win);
 
-		activate_fileselect(FILE_SPECIAL, "SELECT FONT", str, load_buts_vfont);
+		activate_fileselect(FILE_LOADFONT, "SELECT FONT", str, load_buts_vfont);
 
 		break;
 	case B_PACKFONT:

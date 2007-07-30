@@ -5,7 +5,7 @@ WITH_BF_VERSE = 'false'
 BF_VERSE_INCLUDE = "#extern/verse/dist"
 
 BF_PYTHON = '/usr'
-BF_PYTHON_VERSION = '2.5'
+BF_PYTHON_VERSION = '2.4'
 BF_PYTHON_INC = '${BF_PYTHON}/include/python${BF_PYTHON_VERSION}'
 BF_PYTHON_BINARY = '${BF_PYTHON}/bin/python${BF_PYTHON_VERSION}'
 BF_PYTHON_LIB = 'python${BF_PYTHON_VERSION}' #BF_PYTHON+'/lib/python'+BF_PYTHON_VERSION+'/config/libpython'+BF_PYTHON_VERSION+'.a'
@@ -27,7 +27,7 @@ BF_SDL_LIB = 'SDL' #BF_SDL #$(shell $(BF_SDL)/bin/sdl-config --libs) -lSDL_mixer
 WITH_BF_FMOD = 'false'
 BF_FMOD = LIBDIR + '/fmod'
 
-WITH_BF_OPENEXR = 'true'
+WITH_BF_OPENEXR = 'false'
 BF_OPENEXR = '/usr'
 BF_OPENEXR_INC = '${BF_OPENEXR}/include/OpenEXR'
 BF_OPENEXR_LIB = 'Half IlmImf Iex Imath '

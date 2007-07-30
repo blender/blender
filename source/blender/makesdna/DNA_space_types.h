@@ -170,8 +170,10 @@ typedef struct SpaceFile {
 	char file[80];
 	
 	short type, ofs, flag, sort;
-	short maxnamelen, collums;
-	
+	short maxnamelen, collums, f_fp, pad1;
+	int pad2;
+	char fp_str[8];
+
 	struct BlendHandle *libfiledata;
 	
 	unsigned short retval;		/* event */
@@ -443,6 +445,7 @@ typedef struct SpaceImaSel {
 
 #define FILE_LOADLIB		1
 #define FILE_MAIN			2
+#define FILE_LOADFONT		3
 
 /* sfile->flag */
 #define FILE_SHOWSHORT		1

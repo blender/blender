@@ -111,6 +111,8 @@
 
 #include "BIF_fsmenu.h"  /* include ourselves */
 
+#include "FTF_Api.h"
+
 #if defined WIN32 || defined __BeOS
 int fnmatch(const char *pattern, const char *string, int flags)
 {
@@ -507,7 +509,7 @@ void test_flags_file(SpaceFile *sfile)
 					}
 				}
 			}
-		} else if (sfile->type==FILE_SPECIAL){
+		} else if (sfile->type==FILE_SPECIAL || sfile->type==FILE_LOADFONT){
 			if(BLI_testextensie(file->relname, ".py")) {
 				file->flags |= PYSCRIPTFILE;			
 			} else if( BLI_testextensie(file->relname, ".ttf")
@@ -1368,7 +1370,7 @@ static void activate_fileselect_(int type, char *title, char *file, short *menup
 			sfile->libfiledata= NULL;
 		}
 	}
-	else {	/* FILE_BLENDER */
+	else {	/* FILE_BLENDER or FILE_LOADFONT */
 		split_sfile(sfile, name);	/* test filelist too */
 		BLI_cleanup_dir(G.sce, sfile->dir);
 
@@ -2019,8 +2021,15 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					}
 					else {
 						if( strcmp(sfile->file, sfile->filelist[act].relname)) {
+							char tmpstr[240];
 							do_draw= 1;
 							BLI_strncpy(sfile->file, sfile->filelist[act].relname, sizeof(sfile->file));
+							if (sfile->f_fp) {
+								sprintf (tmpstr, "%s%s", sfile->dir, sfile->file);
+								/* printf ("%s\n", tmpstr); */
+								if (!FTF_GetNewFont ((const unsigned char *)tmpstr, 0, U.fontsize))
+									error ("No font file");
+							}
 						}
 						if(event==MIDDLEMOUSE && sfile->type) filesel_execute(sfile);
 					}

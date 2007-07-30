@@ -46,6 +46,7 @@ CFLAGS += $(LEVEL_1_C_WARNINGS)
 CPPFLAGS += -I../../makesdna
 CPPFLAGS += -I../../blenkernel
 CPPFLAGS += -I../../blenlib
+CPPFLAGS += -I../../include
 CPPFLAGS += -I$(NAN_FTGL)/include
 CPPFLAGS += -I$(NAN_FTGL)/include/FTGL
 CPPFLAGS += -I$(NAN_GETTEXT)/include

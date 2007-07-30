@@ -158,6 +158,13 @@ void file_buttons(void)
 	
 		xco+= 100;	// scroll
 	}
+	else if(sfile->type==FILE_LOADFONT) {
+		uiDefIconButBitS(block, ICONTOG, FILE_SHOWSHORT, B_SORTFILELIST, ICON_BLANK3, xco+= XIC, 0, XIC, YIC, &sfile->f_fp, 0, 0, 0, 0, "Activate font preview");
+		if (sfile->f_fp)
+			uiDefButC(block, FTPREVIEW, 0, "Font preview", xco+= XIC, 0, 100, YIC, sfile->fp_str, (float)0, (float)16, 0, 0, "Font preview");
+	
+		xco+= 100;	// scroll
+	}
 
 	uiDrawBlock(block);
 	

@@ -43,7 +43,17 @@
 #include "../FTF_Api.h"
 #include "FTF_TTFont.h"
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+	#include "datatoc.h"
+#ifdef __cplusplus
+}
+#endif
+
 #define FTF_EXPORT
+
+FTF_TTFont *newfont= 0; // preview font
 
 static FTF_TTFont *_FTF_GetFont(void) { 
 	static FTF_TTFont *theFont = NULL; 
@@ -55,8 +65,28 @@ static FTF_TTFont *_FTF_GetFont(void) {
 	return theFont; 
 }
 
+FTF_EXPORT int FTF_GetNewFont (const unsigned char *str, int datasize, int fontsize) {
+
+	if (newfont) delete newfont;
+	newfont= new FTF_TTFont(); 
+
+	if (!(newfont->SetFont((unsigned char*)str, datasize, fontsize))) {
+		newfont->SetFont((unsigned char*)datatoc_bfont_ttf, datatoc_bfont_ttf_size, fontsize);
+		return 0;
+	}
+	return 1;
+}
+
+FTF_EXPORT float FTF_DrawNewFontString(char* str, unsigned int flag)
+{
+	if (newfont)
+		return newfont->DrawString(str, flag);
+	return 0.0f;
+}
+
 FTF_EXPORT void FTF_End(void) { 
 	delete _FTF_GetFont(); 
+	delete newfont;
 }
 
 FTF_EXPORT void FTF_SetSize(int size)
@@ -174,3 +204,5 @@ FTF_EXPORT void FTF_SetScale(float fsize)
 {
   _FTF_GetFont()->SetScale(fsize);
 }
+
+
