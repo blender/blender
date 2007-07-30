@@ -3305,7 +3305,7 @@ int point_in_tri_prism(float p[3], float v1[3], float v2[3], float v3[3])
 /* point closest to v1 on line v2-v3 in 3D */
 void PclosestVL3Dfl(float *closest, float *v1, float *v2, float *v3)
 {
-	float lambda, cp[3], len;
+	float lambda, cp[3];
 
 	lambda= lambda_cp_line_ex(v1, v2, v3, cp);
 

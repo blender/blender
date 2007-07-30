@@ -440,7 +440,9 @@ static PyObject *Constraint_insertKey( BPy_Constraint * self, PyObject * value )
 
 /******************************************************************************/
 /* Constraint Space Conversion get/set procedures 						*/
-/* 		- Individual constraint procedures should call these 				*/
+/* 		- These are called before/instead of individual constraint 			*/
+/*		  get/set procedures when OWNERSPACE or TARGETSPACE are chosen		*/
+/*		- They are only called from Constraint_g/setData 
 /******************************************************************************/
 
 static PyObject *constspace_getter( BPy_Constraint * self, int type )
@@ -528,7 +530,7 @@ static int constspace_setter( BPy_Constraint *self, int type, PyObject *value )
 			case CONSTRAINT_TYPE_TRANSFORM:
 			{
 				Object *tar;
-				char subtarget[32];
+				char *subtarget;
 				
 				tar= get_constraint_target(con, &subtarget);
 				

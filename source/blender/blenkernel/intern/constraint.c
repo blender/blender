@@ -2547,24 +2547,13 @@ static void evaluate_constraint (bConstraint *constraint, float ownermat[][4], f
 				/* obtain target effect */
 				switch (data->from) {
 					case 2:	/* scale */
-					{
 						Mat4ToSize(targetmat, dvec);
-					}
 						break;
 					case 1: /* rotation */
-					{
-						/* copy, and reduce to smallest rotation distance */
 						Mat4ToEul(targetmat, dvec);
-						
-						/* reduce rotation */
-						for (i=0; i<3; i++)
-							dvec[i]= fmod(dvec[i], M_PI*2);
-					}
 						break;
 					default: /* location */
-					{
-						VECCOPY(dvec, targetmat[3]);
-					}
+						VecCopyf(dvec, targetmat[3]);
 						break;
 				}
 				
