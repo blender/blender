@@ -3106,4 +3106,98 @@ void BIF_TransformSetUndo(char *str)
 	Trans.undostr= str;
 }
 
+void ndof_do_transform(float *fval)
+{
+	char str[200];
+	float fvec[3] = {0.0,0.0,0.0};
+	char change = 0;
+	
+//	fprintf(stderr,"passing here %f %f %f \n",fval[3],fval[4],fval[5]);
 
+	
+	if (fval[3] != 0.0 ) {
+		fvec[0] = 1.0;
+		initTransform(TFM_ROTATION, CTX_NONE);
+		applyRotation(&Trans, fval[3], fvec);
+		recalcData(&Trans);
+		change =1;
+		fvec[0] = 0.0;
+		drawSnapping(&Trans);
+		/* free data */
+		postTrans(&Trans);
+		
+		/* aftertrans does insert ipos and action channels, and clears base flags, doesnt read transdata */
+		special_aftertrans_update(&Trans);
+		
+	}
+	if (fval[4] != 0.0 ) {
+		fvec[1] = 1.0;
+		initTransform(TFM_ROTATION, CTX_NONE);
+		applyRotation(&Trans, fval[4], fvec);
+		recalcData(&Trans);
+		change =1;
+		fvec[1] = 0.0;
+		drawSnapping(&Trans);
+		/* free data */
+		postTrans(&Trans);
+		
+		/* aftertrans does insert ipos and action channels, and clears base flags, doesnt read transdata */
+		special_aftertrans_update(&Trans);
+		
+	}
+	if (fval[5] != 0.0 ) {
+		fvec[2] = 1.0;
+		initTransform(TFM_ROTATION, CTX_NONE);
+		applyRotation(&Trans, fval[5], fvec);
+		recalcData(&Trans);
+		change =1;
+		fvec[2] = 0.0;
+		drawSnapping(&Trans);
+		/* free data */
+		postTrans(&Trans);
+		
+		/* aftertrans does insert ipos and action channels, and clears base flags, doesnt read transdata */
+		special_aftertrans_update(&Trans);
+		
+	}
+	
+	
+	if ((fval[0] != 0.0 )|( fval[1] != 0.0 )| (fval[2] != 0.0)) {
+		initTransform(TFM_TRANSLATION, CTX_NONE);
+		Trans.vec[0] = fval[0];
+		Trans.vec[1] = fval[1];     
+		Trans.vec[2] = fval[2];	
+		
+		applyTranslation(&Trans, Trans.vec);
+		
+		/* evil hack - redo translation if cliiping needeed */
+		if (Trans.flag & T_CLIP_UV && clipUVTransform(&Trans, Trans.vec, 0))
+			applyTranslation(&Trans, Trans.vec);
+		
+		recalcData(&Trans);
+		change =1;
+		drawSnapping(&Trans);
+		/* free data */
+		postTrans(&Trans);
+		
+		/* aftertrans does insert ipos and action channels, and clears base flags, doesnt read transdata */
+		special_aftertrans_update(&Trans);
+		
+	}
+	
+
+	
+	if (change) {	
+		;
+	}
+		
+		/* send events out for redraws */
+		viewRedrawPost(&Trans);
+		
+		if(Trans.undostr) BIF_undo_push(Trans.undostr);
+		else BIF_undo_push(transform_to_undostr(&Trans));
+		
+		Trans.undostr= NULL;
+		
+
+}

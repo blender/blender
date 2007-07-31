@@ -2214,3 +2214,22 @@ void smooth_view_to_camera(View3D *v3d)
 		v3d->persp=2;
 	}
 }
+
+void ndof_transform(void)
+{
+    float fval[7];
+
+	getndof(fval);
+
+	if (G.vd->ndoffilter)
+		filterNDOFvalues(fval);
+	
+	fval[0] =  fval[0] * (1.0f/1024.0f);
+	fval[1] = -fval[1] * (1.0f/1024.0f);	// axis inversion
+	fval[2] = -fval[2] * (1.0f/1024.0f);	// axis inversion
+	fval[3] =  fval[3] * (1.0f/8024.0f);
+	fval[4] =  fval[4] * (1.0f/8024.0f);
+	fval[5] =  fval[5] * (1.0f/8024.0f);
+	
+	ndof_do_transform(fval);
+}
