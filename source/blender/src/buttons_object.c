@@ -484,24 +484,25 @@ void autocomplete_vgroup(char *str, void *arg_v)
  */
 static void draw_constraint_spaceselect (uiBlock *block, bConstraint *con, short xco, short yco, short owner, short target)
 {
-	short ownx, tarx;
+	short tarx, ownx;
 	short bwidth;
 	
 	/* calculate sizes and placement of menus */
 	if (owner == -1) {
 		bwidth = 125;
-		ownx = 0;
 		tarx = 120;
+		ownx = 0;
+		
 	}
 	else if (target == -1) {
 		bwidth = 125;
-		ownx = 120;
 		tarx = 0;
+		ownx = 120;
 	}
 	else {
 		bwidth = 100;
-		ownx = 95;
-		tarx = ownx + bwidth;
+		tarx = 95;
+		ownx = tarx + bwidth;
 	}
 	
 	
@@ -509,24 +510,24 @@ static void draw_constraint_spaceselect (uiBlock *block, bConstraint *con, short
 	
 	uiBlockBeginAlign(block);
 	
-	/* Owner-Space */
-	if (owner == 1) {
-		uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Owner Space %t|World Space %x0|Pose Space %x3|Local with Parent %x4|Local Space %x1", 
-												ownx, yco, bwidth, 18, &con->ownspace, 0, 0, 0, 0, "Choose space that owner is evaluated in");	
-	}
-	else if (owner == 0) {
-		uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Owner Space %t|World Space %x0|Local Space %x1", 
-										ownx, yco, bwidth, 18, &con->ownspace, 0, 0, 0, 0, "Choose space that owner is evaluated in");	
-	}
-	
 	/* Target-Space */
 	if (target == 1) {
 		uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Target Space %t|World Space %x0|Pose Space %x3|Local with Parent %x4|Local Space %x1", 
 												tarx, yco, bwidth, 18, &con->tarspace, 0, 0, 0, 0, "Choose space that target is evaluated in");	
 	}
 	else if (target == 0) {
-		uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Target Space %t|World Space %x0|Local Space %x1", 
+		uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Target Space %t|World Space %x0|Local (Without Parent) Space %x1", 
 										tarx, yco, bwidth, 18, &con->tarspace, 0, 0, 0, 0, "Choose space that target is evaluated in");	
+	}
+	
+	/* Owner-Space */
+	if (owner == 1) {
+		uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Owner Space %t|World Space %x0|Pose Space %x3|Local with Parent %x4|Local Space %x1", 
+												ownx, yco, bwidth, 18, &con->ownspace, 0, 0, 0, 0, "Choose space that owner is evaluated in");	
+	}
+	else if (owner == 0) {
+		uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Owner Space %t|World Space %x0|Local (Without Parent) Space %x1", 
+										ownx, yco, bwidth, 18, &con->ownspace, 0, 0, 0, 0, "Choose space that owner is evaluated in");	
 	}
 	
 	uiBlockEndAlign(block);
