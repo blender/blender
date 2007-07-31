@@ -3486,21 +3486,25 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 
 
 		uiDefBut(block, LABEL,0,"Auto keyframe",
-			(xpos+(2*edgsp)+(2*mpref)+midsp),y4label,mpref,buth,
+			(xpos+(2*edgsp)+(2*mpref)+midsp),y5label,mpref,buth,
 			0, 0, 0, 0, 0, "");
 
 		uiDefButBitI(block, TOG, G_RECORDKEYS, REDRAWTIME, "Action and Object", 
-					(xpos+edgsp+(2*mpref)+(2*midsp)),y3,mpref, buth,
+					(xpos+edgsp+(2*mpref)+(2*midsp)),y4,mpref, buth,
 					 &(G.flags), 0, 0, 0, 0, "Automatic keyframe insertion in Object and Action Ipo curves");
-
+	
 		uiBlockBeginAlign(block);
 		uiDefButBitI(block, TOG, USER_KEYINSERTAVAI, REDRAWTIME, "Available", 
-			(xpos+edgsp+(2*mpref)+(2*midsp)),y2,mpref, buth,
+			(xpos+edgsp+(2*mpref)+(2*midsp)),y3,mpref, buth,
 			&(U.uiflag), 0, 0, 0, 0, "Automatic keyframe insertion in available curves");
 			
 		uiDefButBitI(block, TOG, USER_KEYINSERTNEED, REDRAWTIME, "Needed", 
-			(xpos+edgsp+(2*mpref)+(2*midsp)),y1,mpref, buth,
+			(xpos+edgsp+(2*mpref)+(2*midsp)),y2,mpref, buth,
 			&(U.uiflag), 0, 0, 0, 0, "Automatic keyframe insertion only when keyframe needed");
+			
+		uiDefButBitI(block, TOG, G_AUTOMATKEYS, REDRAWTIME, "Use Visual Keying", 
+			(xpos+edgsp+(2*mpref)+(2*midsp)),y1,mpref, buth,
+			 &(G.flags), 0, 0, 0, 0, "Use Visual keying automatically for constrained objects");
 		uiBlockEndAlign(block);
 			
 /*		uiDefButBitS(block, TOG, USER_KEYINSERTACT, 0, "Action",

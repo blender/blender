@@ -20,7 +20,8 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * Contributor(s): Blender Foundation, 2005. Full recode
+ * Contributor(s): Blender Foundation, 2005. Full recode.
+ * Roland Hess, 2007. Visual Key refactor.
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -2154,6 +2155,227 @@ static int new_key_needed(IpoCurve *icu, float cFrame, float nValue)
 		return KEYNEEDED_JUSTADD;
 }
 
+/* a duplicate of insertkey that does not check for routing to insertmatrixkey 
+	to avoid recursion problems */
+static void insertkey_nonrecurs(ID *id, int blocktype, char *actname, char *constname, int adrcode)
+{
+	IpoCurve *icu;
+	Object *ob;
+	void *poin= NULL;
+	float curval, cfra;
+	int vartype;
+	int matset=0;
+	
+	if (matset==0) {
+		icu= verify_ipocurve(id, blocktype, actname, constname, adrcode);
+		
+		if(icu) {
+			
+			poin= get_context_ipo_poin(id, blocktype, actname, icu, &vartype);
+			
+			if(poin) {
+				curval= read_ipo_poin(poin, vartype);
+				
+				cfra= frame_to_float(CFRA);
+				
+				/* if action is mapped in NLA, it returns a correction */
+				if(actname && actname[0] && GS(id->name)==ID_OB)
+					cfra= get_action_frame((Object *)id, cfra);
+				
+				if( GS(id->name)==ID_OB ) {
+					ob= (Object *)id;
+					if(ob->sf!=0.0 && (ob->ipoflag & OB_OFFS_OB) ) {
+						/* actually frametofloat calc again! */
+						cfra-= ob->sf*G.scene->r.framelen;
+					}
+				}
+				
+				insert_vert_ipo(icu, cfra, curval);
+			}
+		}
+	}
+}
+
+int insertmatrixkey(ID *id, int blocktype, char *actname, char *constname, int adrcode)
+{
+	int matindex=0;
+	/* branch on adrcode and blocktype, generating the proper matrix-based
+	values to send to insertfloatkey */
+	if (GS(id->name)==ID_OB) {
+		Object *ob= (Object *)id;
+
+		if ( blocktype==ID_OB ){ //working with an object
+			if ((ob)&&!(ob->parent)) {
+				if ((adrcode==OB_ROT_X)||(adrcode==OB_ROT_Y)||(adrcode==OB_ROT_Z)) { //get a rotation
+					switch (adrcode) {
+						case OB_ROT_X:
+							matindex=0;
+							break;
+						case OB_ROT_Y:
+							matindex=1;
+							break;
+						case OB_ROT_Z:
+							matindex=2;
+							break;
+					}
+					float eul[3];
+					Mat4ToEul(ob->obmat, eul);
+					insertfloatkey(id, ID_OB, actname, NULL, adrcode, eul[matindex]*(5.72958));
+					return 1;
+				} else if ((adrcode==OB_LOC_X)||(adrcode==OB_LOC_Y)||(adrcode==OB_LOC_Z)) {//get a translation
+					switch (adrcode) {
+						case OB_LOC_X:
+							matindex=0;
+							break;
+						case OB_LOC_Y:
+							matindex=1;
+							break;
+						case OB_LOC_Z:
+							matindex=2;
+							break;
+					}
+					insertfloatkey(id, ID_OB, actname, NULL, adrcode, ob->obmat[3][matindex]);
+					return 1;
+				}
+			}
+		} else if ( blocktype==ID_PO) { //working with a pose channel
+			bPoseChannel *pchan= get_pose_channel(ob->pose, actname);
+			if (pchan) {
+				if ((adrcode==AC_LOC_X)||(adrcode==AC_LOC_Y)||(adrcode==AC_LOC_Z)) {
+					switch (adrcode) {
+						case AC_LOC_X:
+							matindex=0;
+							break;
+						case AC_LOC_Y:
+							matindex=1;
+							break;
+						case AC_LOC_Z:
+							matindex=2;
+							break;
+					}
+					if (!(pchan->bone->parent)||((pchan->bone->parent)&&!(pchan->bone->flag&BONE_CONNECTED))) { /* don't use for non-connected child bones */
+						float delta_mat[4][4]; 
+						armature_mat_pose_to_delta(delta_mat, pchan->pose_mat, pchan->bone->arm_mat);
+						insertfloatkey(id, ID_PO, pchan->name, NULL, adrcode, delta_mat[3][matindex]);
+						return 1;
+					}
+				} else if ((adrcode==AC_QUAT_W)||(adrcode==AC_QUAT_X)||(adrcode==AC_QUAT_Y)||(adrcode==AC_QUAT_Z)) { 
+					switch (adrcode) {
+						case AC_QUAT_W:
+							matindex=0;
+							break;
+						case AC_QUAT_X:
+							matindex=1;
+							break;
+						case AC_QUAT_Y:
+							matindex=2;
+							break;
+						case AC_QUAT_Z:
+							matindex=3;
+							break;
+					}
+					if (!(pchan->bone->parent)||((pchan->bone->parent)&&!(pchan->bone->flag&BONE_HINGE))) {  /* don't use for non-hinged child bones */
+						float delta_mat[4][4],trimat[3][3];
+						float localQuat[4];
+						armature_mat_pose_to_delta(delta_mat, pchan->pose_mat, pchan->bone->arm_mat);
+						/* Fixed this bit up from the old "hacky" version, as it was called.
+							Not sure of the origin of Mat3ToQuat_is_ok or why its in there. In most cases, this
+							produces the same result of the "hacky" version, and in some
+							cases the results seem to be better. But whatever the case, this is unideal, as
+							we're decomposing a 3x3 rotation matrix into a quat, which is
+							not a discrete operation.											*/
+						Mat3CpyMat4(trimat, delta_mat);
+						Mat3ToQuat_is_ok(trimat, localQuat);
+						insertfloatkey(id, ID_PO, pchan->name, NULL, adrcode, localQuat[matindex]);
+						return 1;
+					}
+				}
+			}
+		}
+	}
+	/* failed to set a matrix key -- use traditional, but the non-recursing version */
+	insertkey_nonrecurs(id,blocktype,actname,constname,adrcode);
+	return 0;
+}
+
+static int match_adr_constraint(ID * id, int blocktype, char *actname, int adrcode)
+{	/* This function matches constraint blocks with adrcodes to see if the
+		visual keying method should be used. For example, an object looking to key
+		location and having a CopyLoc constraint would return true. */
+		
+	Object *ob=NULL;
+	int foundmatch=0;
+	int searchtype=0;
+	bConstraint *conref=NULL, *con=NULL;
+	
+	/*Retrieve constraint list*/
+	if( GS(id->name)==ID_OB ) 
+		ob= (Object *)id;
+	if (ob) {
+		if (blocktype==ID_PO) {
+			bPoseChannel *pchan= get_pose_channel(ob->pose, actname);
+			conref=pchan->constraints.first;
+		} else if (blocktype==ID_OB) {
+			conref=ob->constraints.first;
+		}
+		
+		if (conref) {
+			/*Set search type: 1 is for translation contraints, 2 is for rotation*/
+			if ((adrcode==OB_LOC_X)||(adrcode==OB_LOC_Y)||(adrcode==OB_LOC_Z)||(adrcode==AC_LOC_X)||(adrcode==AC_LOC_Y)||(adrcode==AC_LOC_Z)) {
+				searchtype=1;
+			} else if ((adrcode==OB_ROT_X)||(adrcode==OB_ROT_Y)||(adrcode==OB_ROT_Z)||(adrcode==AC_QUAT_W)||(adrcode==AC_QUAT_X)||(adrcode==AC_QUAT_Y)||(adrcode==AC_QUAT_Z)) {
+				searchtype=2;
+			}
+			
+			if (searchtype>0) {
+				for (con=conref; (con)&&(foundmatch==0); con=con->next) {
+					switch (con->type) {
+					/* match constraint types to which kinds of keying they would affect */
+						case CONSTRAINT_TYPE_CHILDOF:
+							foundmatch=1;
+							break;
+						case CONSTRAINT_TYPE_TRACKTO:
+							if (searchtype==2) foundmatch=1;
+							break;
+						case CONSTRAINT_TYPE_FOLLOWPATH:
+							foundmatch=1;
+							break;
+						case CONSTRAINT_TYPE_ROTLIMIT:
+							if (searchtype==2) foundmatch=1;
+							break;
+						case CONSTRAINT_TYPE_LOCLIMIT:
+							if (searchtype==1) foundmatch=1;
+							break;
+						case CONSTRAINT_TYPE_ROTLIKE:
+							if (searchtype==2) foundmatch=1;
+							break;
+						case CONSTRAINT_TYPE_LOCLIKE:
+							if (searchtype==1) foundmatch=1;
+							break;
+						case CONSTRAINT_TYPE_LOCKTRACK:
+							if (searchtype==2) foundmatch=1;
+							break;
+						case CONSTRAINT_TYPE_DISTANCELIMIT:
+							if (searchtype==1) foundmatch=1;
+							break;
+						case CONSTRAINT_TYPE_MINMAX:
+							if (searchtype==1) foundmatch=1;
+							break;
+						case CONSTRAINT_TYPE_TRANSFORM:
+							foundmatch=1;
+							break;
+						default:
+							break;
+					}
+				}
+			}
+		}
+	}
+	
+	return foundmatch;
+			
+}
+
 void insertkey(ID *id, int blocktype, char *actname, char *constname, int adrcode)
 {
 	IpoCurve *icu;
@@ -2161,34 +2383,42 @@ void insertkey(ID *id, int blocktype, char *actname, char *constname, int adrcod
 	void *poin= NULL;
 	float curval, cfra;
 	int vartype;
+	int matset=0;
 	
-	icu= verify_ipocurve(id, blocktype, actname, constname, adrcode);
-	
-	if(icu) {
+	if ((G.flags&G_AUTOMATKEYS)&&(match_adr_constraint(id, blocktype, actname, adrcode))) {
+		matset=insertmatrixkey(id, blocktype, actname, constname, adrcode);
+	} 
+	if (matset==0) {
+		icu= verify_ipocurve(id, blocktype, actname, constname, adrcode);
 		
-		poin= get_context_ipo_poin(id, blocktype, actname, icu, &vartype);
-		
-		if(poin) {
-			curval= read_ipo_poin(poin, vartype);
+		if(icu) {
 			
-			cfra= frame_to_float(CFRA);
+			poin= get_context_ipo_poin(id, blocktype, actname, icu, &vartype);
 			
-			/* if action is mapped in NLA, it returns a correction */
-			if(actname && actname[0] && GS(id->name)==ID_OB)
-				cfra= get_action_frame((Object *)id, cfra);
-			
-			if( GS(id->name)==ID_OB ) {
-				ob= (Object *)id;
-				if(ob->sf!=0.0 && (ob->ipoflag & OB_OFFS_OB) ) {
-					/* actually frametofloat calc again! */
-					cfra-= ob->sf*G.scene->r.framelen;
+			if(poin) {
+				curval= read_ipo_poin(poin, vartype);
+				
+				cfra= frame_to_float(CFRA);
+				
+				/* if action is mapped in NLA, it returns a correction */
+				if(actname && actname[0] && GS(id->name)==ID_OB)
+					cfra= get_action_frame((Object *)id, cfra);
+				
+				if( GS(id->name)==ID_OB ) {
+					ob= (Object *)id;
+					if(ob->sf!=0.0 && (ob->ipoflag & OB_OFFS_OB) ) {
+						/* actually frametofloat calc again! */
+						cfra-= ob->sf*G.scene->r.framelen;
+					}
 				}
+				
+				insert_vert_ipo(icu, cfra, curval);
 			}
-			
-			insert_vert_ipo(icu, cfra, curval);
 		}
 	}
 }
+
+
 
 /* This function is a 'smarter' version of the insert key code.
  * It uses an auxilliary function to check whether a keyframe is really needed */
@@ -2244,9 +2474,8 @@ void insertkey_smarter(ID *id, int blocktype, char *actname, char *constname, in
 	}
 }
 
-/* For inserting keys based on the object matrix - not on the current IPO value
-   Generically - it inserts the passed float value into the appropriate IPO */
-void insertmatrixkey(ID *id, int blocktype, char *actname, char *constname, int adrcode, float matrixvalue)
+/* For inserting keys based on an arbitrary float value */
+void insertfloatkey(ID *id, int blocktype, char *actname, char *constname, int adrcode, float floatkey)
 {
 	IpoCurve *icu;
 	Object *ob;
@@ -2275,7 +2504,9 @@ void insertmatrixkey(ID *id, int blocktype, char *actname, char *constname, int 
  					cfra-= ob->sf*G.scene->r.framelen;
  				}
  			}
- 			insert_vert_ipo(icu, cfra, matrixvalue);
+			
+			/* insert new keyframe at current frame */
+			insert_vert_ipo(icu, cfra, floatkey);
  		}
  	}
 }
@@ -2829,42 +3060,26 @@ void common_insertkey(void)
 						}
 					}
  					if(event==11 || event==13) {
- 						float delta_mat[4][4]; 
  						
- 						armature_mat_pose_to_delta(delta_mat, pchan->pose_mat, pchan->bone->arm_mat);
- 						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_LOC_X, delta_mat[3][0]);
- 						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y, delta_mat[3][1]);
- 						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z, delta_mat[3][2]);
+						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_LOC_X);
+						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y);
+						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z);
+						
  					}
  					if(event==12 || event==13) {
- 						float delta_mat[4][4];
- 						float localQuat[4], oldQuat[4];
- 						
-						/* obtain rotation caused by constraints/IK*/
- 						armature_mat_pose_to_delta(delta_mat, pchan->pose_mat, pchan->bone->arm_mat);
- 						Mat4ToQuat(delta_mat, localQuat);
-						
-						/* bad hack warning:
-						 * Write the 'visual' rotation onto the
-						 * bone's quat/rotation values and use standard 
-						 * keyframing method to insert a keyframe with this
-						 * value. 
-						 *
-						 * Needed, as rotation wouldn't get keyed correctly
-						 * otherwise for some strange reason. As a side-effect,
-						 * sometimes there may be slightly un-updated bones, but
-						 * still, it is better that this worked.
-						 */
-						 
-						QUATCOPY(oldQuat, pchan->quat);
-						QUATCOPY(pchan->quat, localQuat);
-						
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
-						
-						QUATCOPY(pchan->quat, oldQuat);
+ 						int matsuccess=0; 
+						/* check one to make sure we're not trying to set visual rot keys on
+							bones inside of a chain, which only leads to tears. */
+						matsuccess=insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W);
+						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X);
+						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
+						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
+						if (matsuccess==0) {
+							insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X);
+							insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
+							insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
+							insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W);
+						}
  					}
 					if (event==15 && ob->action) {
 						bActionChannel *achan;
@@ -2951,17 +3166,14 @@ void common_insertkey(void)
 						base->object->lay= tlay;
 					}
  					if(event==11 || event==13) {
- 						insertmatrixkey(id, ID_OB, actname, NULL, OB_LOC_X, ob->obmat[3][0]);
- 						insertmatrixkey(id, ID_OB, actname, NULL, OB_LOC_Y, ob->obmat[3][1]);
- 						insertmatrixkey(id, ID_OB, actname, NULL, OB_LOC_Z, ob->obmat[3][2]);
+						insertmatrixkey(id, ID_OB, actname, NULL, OB_LOC_X);
+						insertmatrixkey(id, ID_OB, actname, NULL, OB_LOC_Y);
+						insertmatrixkey(id, ID_OB, actname, NULL, OB_LOC_Z);
  					}
  					if(event==12 || event==13) {
- 						float eul[3];
-						
- 						Mat4ToEul(ob->obmat, eul);
- 						insertmatrixkey(id, ID_OB, actname, NULL, OB_ROT_X, eul[0]*(5.72958));
- 						insertmatrixkey(id, ID_OB, actname, NULL, OB_ROT_Y, eul[1]*(5.72958));
- 						insertmatrixkey(id, ID_OB, actname, NULL, OB_ROT_Z, eul[2]*(5.72958));
+						insertmatrixkey(id, ID_OB, actname, NULL, OB_ROT_X);
+						insertmatrixkey(id, ID_OB, actname, NULL, OB_ROT_Y);
+						insertmatrixkey(id, ID_OB, actname, NULL, OB_ROT_Z);
  					}
 					base->object->recalc |= OB_RECALC_OB;
 				}

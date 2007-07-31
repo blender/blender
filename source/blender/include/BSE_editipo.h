@@ -158,8 +158,8 @@ void duplicate_ipo_keys(struct Ipo *ipo);
 void borderselect_ipo_key(struct Ipo *ipo, float xmin, float xmax, int val);
 void borderselect_icu_key(struct IpoCurve *icu, float xmin, float xmax, 
 						  int (*select_function)(struct BezTriple *));
-void insertmatrixkey(ID *id, int blocktype, char *actname, char *constname, int adrcode, float matrixvalue);
-
+int insertmatrixkey(ID *id, int blocktype, char *actname, char *constname, int adrcode);
+void insertfloatkey(ID *id, int blocktype, char *actname, char *constname, int adrcode, float floatkey);
 void select_ipo_key(struct Ipo *ipo, float selx, int sel);
 void select_icu_key(struct IpoCurve *icu, float selx, int selectmode);
 void setexprap_ipoloop(struct Ipo *ipo, int code);

@@ -191,6 +191,8 @@ typedef struct Global {
 #define G_DRAWSHARP     (1 << 28) /* draw edges with the sharp flag */
 #define G_SCULPTMODE    (1 << 29)
 
+#define G_AUTOMATKEYS	(1 << 30)
+
 /* G.fileflags */
 
 #define G_AUTOPACK               (1 << 0)
