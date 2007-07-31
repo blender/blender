@@ -936,7 +936,7 @@ void Mat4MulFloat(float *m, float f)
 {
 	int i;
 
-	for(i=0;i<12;i++) m[i]*=f;	/* count to 12: without vector component */
+	for(i=0;i<16;i++) m[i]*=f;	/* count to 12: without vector component */
 }
 
 
@@ -1595,6 +1595,221 @@ void QuatAdd(float *result, float *quat1, float *quat2, float t)
 	result[1]= quat1[1] + t*quat2[1];
 	result[2]= quat1[2] + t*quat2[2];
 	result[3]= quat1[3] + t*quat2[3];
+}
+
+void QuatCopy(float *q1, float *q2)
+{
+	q1[0]= q2[0];
+	q1[1]= q2[1];
+	q1[2]= q2[2];
+	q1[3]= q2[3];
+}
+
+/* **************** DUAL QUATERNIONS ************** */
+
+/*
+   Conversion routines between (regular quaternion, translation) and
+   dual quaternion.
+
+   Version 1.0.0, February 7th, 2007
+
+   Copyright (C) 2006-2007 University of Dublin, Trinity College, All Rights 
+   Reserved
+
+   This software is provided 'as-is', without any express or implied
+   warranty.  In no event will the author(s) be held liable for any damages
+   arising from the use of this software.
+
+   Permission is granted to anyone to use this software for any purpose,
+   including commercial applications, and to alter it and redistribute it
+   freely, subject to the following restrictions:
+
+   1. The origin of this software must not be misrepresented; you must not
+      claim that you wrote the original software. If you use this software
+      in a product, an acknowledgment in the product documentation would be
+      appreciated but is not required.
+   2. Altered source versions must be plainly marked as such, and must not be
+      misrepresented as being the original software.
+   3. This notice may not be removed or altered from any source distribution.
+
+   Author: Ladislav Kavan, kavanl@cs.tcd.ie
+
+   Changes for Blender:
+   - renaming, style changes and optimizations
+   - added support for scaling
+*/
+
+void Mat4ToDQuat(float basemat[][4], float mat[][4], DualQuat *dq)
+{
+	float *t, *q, dscale[3], scale[3], basequat[4];
+	float baseRS[4][4], baseinv[4][4], baseR[4][4], baseRinv[4][4];
+	float R[4][4], S[4][4];
+
+	/* split scaling and rotation, there is probably a faster way to do
+	   this, it's done like this now to correctly get negative scaling */
+	Mat4MulMat4(baseRS, basemat, mat);
+	Mat4ToSize(baseRS, scale);
+
+	VecCopyf(dscale, scale);
+	dscale[0] -= 1.0f; dscale[1] -= 1.0f; dscale[2] -= 1.0f;
+
+	if((Det4x4(mat) < 0.0f) || VecLength(dscale) > 1e-4) {
+		/* extract R and S  */
+		Mat4ToQuat(baseRS, basequat);
+		QuatToMat4(basequat, baseR);
+		VecCopyf(baseR[3], baseRS[3]);
+
+		Mat4Invert(baseinv, basemat);
+		Mat4MulMat4(R, baseinv, baseR);
+
+		Mat4Invert(baseRinv, baseR);
+		Mat4MulMat4(S, baseRS, baseRinv);
+
+		/* set scaling part */
+		Mat4MulSerie(dq->scale, basemat, S, baseinv, 0, 0, 0, 0, 0);
+		dq->scale_weight= 1.0f;
+	}
+	else {
+		/* matrix does not contain scaling */
+		Mat4CpyMat4(R, mat);
+		dq->scale_weight= 0.0f;
+	}
+
+	/* non-dual part */
+	Mat4ToQuat(R, dq->quat);
+
+	/* dual part */
+	t= R[3];
+	q= dq->quat;
+	dq->trans[0]= -0.5f*( t[0]*q[1] + t[1]*q[2] + t[2]*q[3]);
+	dq->trans[1]=  0.5f*( t[0]*q[0] + t[1]*q[3] - t[2]*q[2]);
+	dq->trans[2]=  0.5f*(-t[0]*q[3] + t[1]*q[0] + t[2]*q[1]);
+	dq->trans[3]=  0.5f*( t[0]*q[2] - t[1]*q[1] + t[2]*q[0]);
+}
+
+void DQuatToMat4(DualQuat *dq, float mat[][4])
+{
+	float len, *t, q0[4];
+	
+	/* regular quaternion */
+	QuatCopy(q0, dq->quat);
+
+	/* normalize */
+	len= sqrt(QuatDot(q0, q0)); 
+	if(len != 0.0f)
+		QuatMulf(q0, 1.0f/len);
+	
+	/* rotation */
+	QuatToMat4(q0, mat);
+
+	/* translation */
+	t= dq->trans;
+	mat[3][0]= 2.0*(-t[0]*q0[1] + t[1]*q0[0] - t[2]*q0[3] + t[3]*q0[2]);
+	mat[3][1]= 2.0*(-t[0]*q0[2] + t[1]*q0[3] + t[2]*q0[0] - t[3]*q0[1]);
+	mat[3][2]= 2.0*(-t[0]*q0[3] - t[1]*q0[2] + t[2]*q0[1] + t[3]*q0[0]);
+
+	/* note: this does not handle scaling */
+}	
+
+void DQuatAddWeighted(DualQuat *dqsum, DualQuat *dq, float weight)
+{
+	/* make sure we interpolate quats in the right direction */
+	if (QuatDot(dq->quat, dqsum->quat) < 0)
+		weight = -weight;
+
+	/* interpolate rotation and translation */
+	dqsum->quat[0] += weight*dq->quat[0];
+	dqsum->quat[1] += weight*dq->quat[1];
+	dqsum->quat[2] += weight*dq->quat[2];
+	dqsum->quat[3] += weight*dq->quat[3];
+
+	dqsum->trans[0] += weight*dq->trans[0];
+	dqsum->trans[1] += weight*dq->trans[1];
+	dqsum->trans[2] += weight*dq->trans[2];
+	dqsum->trans[3] += weight*dq->trans[3];
+
+	/* interpolate scale - but only if needed */
+	if (dq->scale_weight) {
+		float wmat[4][4];
+
+		Mat4CpyMat4(wmat, dq->scale);
+		Mat4MulFloat((float*)wmat, weight);
+		Mat4AddMat4(dqsum->scale, dqsum->scale, wmat);
+		dqsum->scale_weight += weight;
+	}
+}
+
+void DQuatNormalize(DualQuat *dq, float totweight, float factor)
+{
+	float scale= factor/totweight;
+
+	QuatMulf(dq->quat, scale);
+	QuatMulf(dq->trans, scale);
+	
+	if(dq->scale_weight) {
+		float addweight= totweight - dq->scale_weight;
+
+		if(addweight) {
+			dq->scale[0][0] += addweight;
+			dq->scale[1][1] += addweight;
+			dq->scale[2][2] += addweight;
+			dq->scale[3][3] += addweight;
+		}
+
+		Mat4MulFloat((float*)dq->scale, scale);
+		dq->scale_weight= 1.0f;
+	}
+}
+
+void DQuatMulVecfl(DualQuat *dq, float *co, float mat[][3])
+{	
+	float M[3][3], t[3], scalemat[3][3], len2;
+	float w= dq->quat[0], x= dq->quat[1], y= dq->quat[2], z= dq->quat[3];
+	float t0= dq->trans[0], t1= dq->trans[1], t2= dq->trans[2], t3= dq->trans[3];
+	
+	/* rotation matrix */
+	M[0][0]= w*w + x*x - y*y - z*z;
+	M[1][0]= 2*(x*y - w*z);
+	M[2][0]= 2*(x*z + w*y);
+
+	M[0][1]= 2*(x*y + w*z);
+	M[1][1]= w*w + y*y - x*x - z*z;
+	M[2][1]= 2*(y*z - w*x); 
+
+	M[0][2]= 2*(x*z - w*y);
+	M[1][2]= 2*(y*z + w*x);
+	M[2][2]= w*w + z*z - x*x - y*y;
+	
+	len2= QuatDot(dq->quat, dq->quat);
+	if(len2 > 0.0f)
+		len2= 1.0f/len2;
+	
+	/* translation */
+	t[0]= 2*(-t0*x + w*t1 - t2*z + y*t3);
+	t[1]= 2*(-t0*y + t1*z - x*t3 + w*t2);
+	t[2]= 2*(-t0*z + x*t2 + w*t3 - t1*y);
+
+	/* apply scaling */
+	if(dq->scale_weight)
+		Mat4MulVecfl(dq->scale, co);
+	
+	/* apply rotation and translation */
+	Mat3MulVecfl(M, co);
+	co[0]= (co[0] + t[0])*len2;
+	co[1]= (co[1] + t[1])*len2;
+	co[2]= (co[2] + t[2])*len2;
+
+	/* compute crazyspace correction mat */
+	if(mat) {
+		Mat3CpyMat4(scalemat, dq->scale);
+		Mat3MulMat3(mat, M, scalemat);
+		Mat3MulFloat((float*)mat, len2);
+	}
+}
+
+void DQuatCpyDQuat(DualQuat *dq1, DualQuat *dq2)
+{
+	memcpy(dq1, dq2, sizeof(DualQuat));
 }
 
 /* **************** VIEW / PROJECTION ********************************  */
@@ -2635,28 +2850,16 @@ void SizeToMat4( float *size, float mat[][4])
 
 void Mat3ToSize( float mat[][3], float *size)
 {
-	float vec[3];
-
-	VecCopyf(vec, mat[0]);
-	size[0]= Normalize(vec);
-	VecCopyf(vec, mat[1]);
-	size[1]= Normalize(vec);
-	VecCopyf(vec, mat[2]);
-	size[2]= Normalize(vec);
-
+	size[0]= VecLength(mat[0]);
+	size[1]= VecLength(mat[1]);
+	size[2]= VecLength(mat[2]);
 }
 
 void Mat4ToSize( float mat[][4], float *size)
 {
-	float vec[3];
-	
-
-	VecCopyf(vec, mat[0]);
-	size[0]= Normalize(vec);
-	VecCopyf(vec, mat[1]);
-	size[1]= Normalize(vec);
-	VecCopyf(vec, mat[2]);
-	size[2]= Normalize(vec);
+	size[0]= VecLength(mat[0]);
+	size[1]= VecLength(mat[1]);
+	size[2]= VecLength(mat[2]);
 }
 
 /* ************* SPECIALS ******************* */

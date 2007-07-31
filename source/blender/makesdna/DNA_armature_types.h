@@ -113,6 +113,7 @@ typedef struct bArmature {
 /* armature->deformflag */
 #define		ARM_DEF_VGROUP		1
 #define		ARM_DEF_ENVELOPE	2
+#define		ARM_DEF_QUATERNION	4
 
 /* armature->pathflag */
 #define		ARM_PATH_FNUMS	0x001

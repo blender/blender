@@ -1592,7 +1592,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			if(wmd->flag & MOD_WAVE_NORM)
 				height += 19;
 		} else if (md->type==eModifierType_Armature) {
-			height = 67;
+			height = 86;
 		} else if (md->type==eModifierType_Hook) {
 			HookModifierData *hmd = (HookModifierData*) md;
 			height = 86;
@@ -1913,6 +1913,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ob);
 			uiDefButBitS(block, TOG, ARM_DEF_VGROUP, B_ARM_RECALCDATA, "Vert.Groups",	lx,cy-=19,buttonWidth/2,20, &amd->deformflag, 0, 0, 0, 0, "Enable VertexGroups defining deform");
 			uiDefButBitS(block, TOG, ARM_DEF_ENVELOPE, B_ARM_RECALCDATA, "Envelopes",	lx+buttonWidth/2,cy,(buttonWidth + 1)/2,20, &amd->deformflag, 0, 0, 0, 0, "Enable Bone Envelopes defining deform");
+			uiDefButBitS(block, TOG, ARM_DEF_QUATERNION, B_ARM_RECALCDATA, "Quaternion",	lx,(cy-=19),buttonWidth + 1,20, &amd->deformflag, 0, 0, 0, 0, "Enable deform rotation interpolation with Quaternions");
+
 			
 		} else if (md->type==eModifierType_Hook) {
 			HookModifierData *hmd = (HookModifierData*) md;
@@ -3624,8 +3626,9 @@ static void editing_panel_armature_type(Object *ob, bArmature *arm)
 	
 	uiDefBut(block, LABEL, 0, "Deform Options", 10,40,150,20, 0, 0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, ARM_DEF_VGROUP, B_ARM_RECALCDATA, "Vertex Groups",	10, 20,150,20, &arm->deformflag, 0, 0, 0, 0, "Enable VertexGroups defining deform (not for Modifiers)");
-	uiDefButBitS(block, TOG, ARM_DEF_ENVELOPE, B_ARM_RECALCDATA, "Envelopes",	160,20,150,20, &arm->deformflag, 0, 0, 0, 0, "Enable Bone Envelopes defining deform (not for Modifiers)");
+	uiDefButBitS(block, TOG, ARM_DEF_VGROUP, B_ARM_RECALCDATA, "Vertex Groups",	10, 20,100,20, &arm->deformflag, 0, 0, 0, 0, "Enable VertexGroups defining deform (not for Modifiers)");
+	uiDefButBitS(block, TOG, ARM_DEF_ENVELOPE, B_ARM_RECALCDATA, "Envelopes",	110,20,100,20, &arm->deformflag, 0, 0, 0, 0, "Enable Bone Envelopes defining deform (not for Modifiers)");
+	uiDefButBitS(block, TOG, ARM_DEF_QUATERNION, B_ARM_RECALCDATA, "Quaternion", 210,20,100,20, &arm->deformflag, 0, 0, 0, 0, "Enable deform rotation interpolation with Quaternions (not for Modifiers)");
 	uiDefButBitI(block, TOG, ARM_RESTPOS, B_ARM_RECALCDATA,"Rest Position",		10,0,150,20, &arm->flag, 0, 0, 0, 0, "Show armature rest position, no posing possible");
 	uiDefButBitI(block, TOG, ARM_DELAYDEFORM, REDRAWVIEW3D, "Delay Deform",		160,0,150,20, &arm->flag, 0, 0, 0, 0, "Don't deform children when manipulating bones in pose mode");
 	uiBlockEndAlign(block);

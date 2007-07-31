@@ -128,6 +128,7 @@ void QuatConj(float *q);
 void QuatInv(float *q);
 void QuatMulf(float *q, float f);
 float QuatDot(float *q1, float *q2);
+void QuatCopy(float *q1, float *q2);
 
 void printquat(char *str, float q[4]);
 
@@ -353,6 +354,21 @@ void spheremap(float x, float y, float z, float *u, float *v);
 int LineIntersectsTriangle(float p1[3], float p2[3], float v0[3], float v1[3], float v2[3], float *lambda);
 int point_in_tri_prism(float p[3], float v1[3], float v2[3], float v3[3]);
 
+typedef struct DualQuat {
+	float quat[4];
+	float trans[4];
+
+	float scale[4][4];
+	float scale_weight;
+} DualQuat;
+
+void Mat4ToDQuat(float basemat[][4], float mat[][4], DualQuat *dq);
+void DQuatToMat4(DualQuat *dq, float mat[][4]);
+void DQuatAddWeighted(DualQuat *dqsum, DualQuat *dq, float weight);
+void DQuatNormalize(DualQuat *dq, float totweight, float factor);
+void DQuatMulVecfl(DualQuat *dq, float *co, float mat[][3]);
+void DQuatCpyDQuat(DualQuat *dq1, DualQuat *dq2);
+			  
 #ifdef __cplusplus
 }
 #endif
