@@ -86,7 +86,8 @@ void *BME_next(BME_Mesh *bm, int type, void *element){
 	if(type == BME_VERT) return ((BME_Vert*)element)->next;
 	else if(type == BME_EDGE) return ((BME_Edge*)element)->next;
 	else if(type == BME_POLY) return ((BME_Poly*)element)->next;
-	else if(type == BME_LOOP) return ((BME_Loop*)element)->gref->next->data;
+	else if(type == BME_LOOP && ((BME_Loop*)element)->gref->next) 
+			return ((BME_Loop*)element)->gref->next->data;
 	return NULL;
 }
 
@@ -223,16 +224,22 @@ BME_Mesh *BME_copy_mesh(BME_Mesh *bm){
  *
 */
 
+static void BME_clear_flag(BME_Mesh *bm, BME_Element *elem){
+	elem->tflag1 = elem->tflag2 = 0;
+	elem->flag &= ~BME_VISITED;
+	elem->flag &= ~BME_NEW;
+}
+
 int BME_model_begin(BME_Mesh *bm){
 	BME_Vert *v;
 	BME_Edge *e;
 	BME_Poly *f;
 	BME_Loop *l;
 
-	for(v=BME_first(bm,BME_VERT); v; v=BME_next(bm,BME_VERT,v)) v->tflag1 = v->tflag2 = 0;
-	for(e=BME_first(bm,BME_EDGE); e; e=BME_next(bm,BME_EDGE,e)) e->tflag1 = e->tflag2 = 0;
-	for(f=BME_first(bm,BME_POLY); f; f=BME_next(bm,BME_POLY,f)) f->tflag1 = f->tflag2 = 0;
-	for(l=BME_first(bm,BME_LOOP); l; l=BME_next(bm,BME_LOOP,l)) l->tflag1 = l->tflag2 = 0;
+	for(v=BME_first(bm,BME_VERT); v; v=BME_next(bm,BME_VERT,v)) BME_clear_flag(bm,v);
+	for(e=BME_first(bm,BME_EDGE); e; e=BME_next(bm,BME_EDGE,e)) BME_clear_flag(bm,e);
+	for(f=BME_first(bm,BME_POLY); f; f=BME_next(bm,BME_POLY,f)) BME_clear_flag(bm,f);
+	for(l=BME_first(bm,BME_LOOP); l; l=BME_next(bm,BME_LOOP,l)) BME_clear_flag(bm,l);
 }
 
 void BME_model_end(BME_Mesh *bm){

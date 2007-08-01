@@ -360,7 +360,7 @@ void mouse_bmesh(void)
 				if (BME_SELECTED(vert)) BME_select_vert(G.editMesh,vert,0);
 				else BME_select_vert(G.editMesh,vert,1);
 			} else {
-				BME_Vert *eve;
+				BME_Vert *eve=NULL;
 				for(eve=BME_first(G.editMesh,BME_VERT);eve;eve=BME_next(G.editMesh,BME_VERT,eve)) BME_select_vert(G.editMesh,eve,0);
 				BME_select_vert(G.editMesh,vert,1);
 			}
@@ -382,7 +382,7 @@ void mouse_bmesh(void)
 				if (BME_SELECTED(edge)) BME_select_edge(G.editMesh,edge,0);
 				else BME_select_edge(G.editMesh,edge,1);
 			} else {
-				BME_Edge *eed;
+				BME_Edge *eed=NULL;
 				for (eed=BME_first(G.editMesh,BME_EDGE); eed; eed=BME_next(G.editMesh,BME_EDGE,eed)) BME_select_edge(G.editMesh, eed,0);
 				BME_select_edge(G.editMesh,edge,1);
 			}

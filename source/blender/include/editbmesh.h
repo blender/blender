@@ -23,3 +23,7 @@ struct BME_Vert *EditBME_FindNearestVert(int *dis, short sel, short strict);
 struct BME_Edge *EditBME_FindNearestEdge(int *dis);
 struct BME_Poly *EditBME_FindNearestPoly(int *dis);
 void mouse_bmesh(void);
+
+
+/*editbmesh_tools.c*/
+void EM_cut_edges(int numcuts);	

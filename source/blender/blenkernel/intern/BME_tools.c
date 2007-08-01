@@ -43,6 +43,7 @@
 #include "BKE_utildefines.h"
 #include "BKE_bmesh.h"
 #include "BLI_blenlib.h"
+#include "BLI_arithb.h"
 
 /**
  *			BME_dissolve_edge
@@ -56,6 +57,59 @@
  *	Returns -
 */
 
+/**
+ *			BME_cut_edge
+ *
+ *
+ *
+ *
+ */
+
+void BME_cut_edge(BME_Mesh *bm, BME_Edge *e, int numcuts){
+	int i;
+	float percent, step,length, vt1[3], v2[3];
+	BME_Vert *nv;
+	
+	percent = 0.0;
+	step = (1.0/((float)numcuts+1));
+	
+	length = VecLenf(e->v1->co,e->v2->co);
+	VECCOPY(v2,e->v2->co);
+	VecSubf(vt1, e->v1->co,  e->v2->co);
+	
+	for(i=0; i < numcuts; i++){
+		percent += step;
+		nv = BME_SEMV(bm,e->v2,e,NULL);
+		VECCOPY(nv->co,vt1);
+		VecMulf(nv->co,percent);
+		VecAddf(nv->co,v2,nv->co);
+	}
+}
+
+
+/**
+ *			BME_cut_edges
+ *
+ *	Edge Cut Function:
+ *	
+ *	Cuts all selected edges a given number of times 
+ *	TODO:
+ *	-Do percentage cut for knife tool?
+*	-Need to fix up patching of selection flags in eulers as well as marking new elements with BME_NEW.
+*		Tools should then test for 'if( BME_SELECTED(e) && (!e->flag & BME_NEW))' when iterating over mesh and cutting elements.
+*	-Move BME_model_begin and BME_model_end out of here. They belong in UI code. Also DAG_object_flush_update call and allqueue().
+*
+ *	Returns -
+*/
+
+void BME_cut_edges(BME_Mesh *bm, int numcuts)
+{
+	BME_Edge *e;
+	for(e=BME_first(bm,BME_EDGE); e; e=BME_next(bm,BME_EDGE,e)){
+		if(BME_SELECTED(e)) 
+			BME_cut_edge(bm,e,numcuts);
+	}
+}
 /**
  *			BME_inset_edge
  *

@@ -2332,89 +2332,24 @@ void special_editmenu(void)
 	}
 	else if(G.obedit->type==OB_MESH) {
 
-		nr= pupmenu("Specials%t|Subdivide%x1|Subdivide Multi%x2|Subdivide Multi Fractal%x3|Subdivide Smooth%x12|Merge%x4|Remove Doubles%x5|Hide%x6|Reveal%x7|Select Swap%x8|Flip Normals %x9|Smooth %x10|Bevel %x11|Set Smooth %x14|Set Solid %x15|Blend From Shape%x16|Propagate To All Shapes%x17|Select Vertex Path%x18");
-		
+		if(G.scene->selectmode == SCE_SELECT_VERTEX)
+			nr= pupmenu("Specials%t|Connect%x100|Extrude%x105|Merge%x102|Remove Doubles%x103|Delete%x104");
+		else if(G.scene->selectmode == SCE_SELECT_EDGE)
+			nr= pupmenu("Specials%t|Bevel%x200|Cut%x201|Cut Multi%x202|Connect%x203|Collapse%x204|Dissolve%x205|Extrude%x207|Subdivide%x209|Subdivide Multi%x210|Delete%x208");	
+		else if(G.scene->selectmode == SCE_SELECT_FACE)
+			nr= pupmenu("Specials%t|Create%x301|Extrude%x302|Extrude Region%x303|Delete%x304");
+		else
+			return;
+
 		switch(nr) {
-		case 1:
-			waitcursor(1);
-			//EDITBMESHGREP esubdivideflag(1, 0.0, G.scene->toolsettings->editbutflag, 1, 0);
-			
-			BIF_undo_push("ESubdivide Single");            
-			break;
-		case 2:
-			if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
-			waitcursor(1);
-			//EDITBMESHGREP esubdivideflag(1, 0.0, G.scene->toolsettings->editbutflag, numcuts, 0);
-			BIF_undo_push("ESubdivide");
-			break;
-		case 3:
-			if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
-			randfac= 10;
-			if(button(&randfac, 1, 100, "Rand fac:")==0) return;
-			waitcursor(1);			
-			fac= -( (float)randfac )/100;
-			//EDITBMESHGREP esubdivideflag(1, fac, G.scene->toolsettings->editbutflag, numcuts, 0);
-			BIF_undo_push("Subdivide Fractal");
-			break;
-			
-		case 12:	/* smooth */
-			/* if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return; */
-			fac= 1.0f;
-			if(fbutton(&fac, 0.0f, 5.0f, 10, 10, "Smooth:")==0) return;
-				fac= 0.292f*fac;
-			
-			waitcursor(1);
-			//EDITBMESHGREP esubdivideflag(1, fac, G.scene->toolsettings->editbutflag | B_SMOOTH, 1, 0);
-			BIF_undo_push("Subdivide Smooth");
-			break;		
-			
-		case 4:
-			mergemenu();
-			break;
-		case 5:
-			//EDITBMESHGREP notice("Removed %d Vertices", removedoublesflag(1, G.scene->toolsettings->doublimit));
-			BIF_undo_push("Remove Doubles");
-			break;
-		case 6:
-			//EDITBMESHGREP hide_mesh(0);
-			break;
-		case 7:
-			//EDITBMESHGREP reveal_mesh();
-			break;
-		case 8:
-			//EDITBMESHGREP selectswap_mesh();
-			break;
-		case 9:
-			//EDITBMESHGREP flip_editnormals();
-			BIF_undo_push("Flip Normals");
-			break;
-		case 10:
-			//EDITBMESHGREP vertexsmooth();
-			break;
-		case 11:
-			//EDITBMESHGREP bevel_menu();
-			break;
-		case 14:
-			//EDITBMESHGREP mesh_set_smooth_faces(1);
-			break;
-		case 15: 
-			//EDITBMESHGREP mesh_set_smooth_faces(0);
-			break;
-		case 16: 
-			//EDITBMESHGREP shape_copy_select_from();
-			break;
-		case 17: 
-			//EDITBMESHGREP shape_propagate();
-			break;
-		case 18:
-			//EDITBMESHGREP pathselect();
-			BIF_undo_push("Select Vertex Path");
-			break;
+		case 201:
+			{
+				EM_cut_edges(1);
+				BIF_undo_push("Cut Edges");            
+				break;
+			}
 		}
-		
 		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
-		
-		if(nr>0) waitcursor(0);
 		
 	}
 	else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {

@@ -48,7 +48,7 @@
 #include "BLI_ghash.h"
 
 /*********************************************************
- *                    "Euler API"                        *
+ *                    "Euler API"                     *
  *                                                       *
  *                                                       *
  *	 Primitive construction operators for mesh tools.    *
@@ -85,6 +85,9 @@
 
 	TODO:
 	-Finish inserting 'strict' validation in all Eulers
+	-Add in proper handling of propogation of selection flags
+	-Fix lack of custom data handling for new loops with BME_SFME.
+	-Add in flagging of new elements with BME_NEW bitflag.
 */
 
 #define RETCLEAR(bm) {bm->rval->v = bm->rval->e = bm->rval->f = bm->rva->l = NULL;}
