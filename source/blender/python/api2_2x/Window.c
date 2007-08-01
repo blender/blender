@@ -940,7 +940,7 @@ static int update_armature_weakrefs()
 
 	for (x = 0; x < PySequence_Size(armlist); x++){
 		pyarmature = PyWeakref_GetObject(PySequence_GetItem(	armlist, x));
-		if (pyarmature != Py_None)
+		if (pyarmature != Py_None) /* the PyNone check is probably not needed anymore */
 			Armature_RebuildEditbones(pyarmature);
 	}
 	return 1;

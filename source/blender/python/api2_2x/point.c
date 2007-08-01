@@ -172,7 +172,7 @@ static PyObject *Point_item(PointObject * self, int i)
 		return EXPP_ReturnPyObjError(PyExc_IndexError,
 		"point[attribute]: array index out of range\n");
 
-	return Py_BuildValue("f", self->coord[i]);
+	return PyFloat_FromDouble( (double)self->coord[i] );
 
 }
 //----------------------------object[]-------------------------

@@ -249,8 +249,9 @@ def UIBlock(draw):
 	@note: Within this popup, Redraw events and the registered button callback will not work.
 		For buttons to run events, use per button callbacks.
 	@note: OpenGL drawing functions wont work within this popup, for text use L{Label} rather then L{Text}
+	@warning: L{Menu} will not work properly within a UIBlock, this is a limitation with blenders user interface internals.
 	"""
-	
+
 def Register(draw = None, event = None, button = None):
 	"""
 	Register callbacks for windowing.

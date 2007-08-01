@@ -89,9 +89,7 @@ static struct PyMethodDef BPy_Config_methods[] = {
  */
 static PyObject *getStrAttr( BPy_Config *self, void *type )
 {
-	PyObject *attr = NULL;
 	char *param = NULL;
-	
 	
 	switch( (int)type ) {
 	case EXPP_CONF_ATTR_PATH_YF_EXPORT:
@@ -127,13 +125,7 @@ static PyObject *getStrAttr( BPy_Config *self, void *type )
 				"undefined type in getStrAttr" );
 	}
 
-	attr = PyString_FromString( param );
-	
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_MemoryError,
-				"PyString_FromString() failed!" );
+	return PyString_FromString( param );
 }
 
 /*
@@ -195,7 +187,6 @@ static int setStrAttr( BPy_Config *self, PyObject *value, void *type )
 
 static PyObject *getIntAttr( BPy_Config *self, void *type )
 {
-	PyObject *attr = NULL;
 	int param;
 
 	switch( (int)type ) {
@@ -220,13 +211,7 @@ static PyObject *getIntAttr( BPy_Config *self, void *type )
 				"undefined type in getIntAttr" );
 	}
 
-	attr = PyInt_FromLong( param );
-	
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_MemoryError,
-				"PyInt_FromLong() failed!" );
+	return PyInt_FromLong( param );
 }
 
 /*

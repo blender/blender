@@ -32,6 +32,7 @@
 
 #include "Curve.h" /*This must come first*/
 
+#include "BLI_blenlib.h"
 #include "BKE_main.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
@@ -139,13 +140,7 @@ struct chartrans *text_to_curve( Object * ob, int mode );
 
 PyObject *Curve_getName( BPy_Curve * self )
 {
-	PyObject *attr = PyString_FromString( self->curve->id.name + 2 );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					"couldn't get Curve.name attribute" );
+	return PyString_FromString( self->curve->id.name + 2 );
 }
 
 static int Curve_newsetName( BPy_Curve * self, PyObject * args )
@@ -165,13 +160,7 @@ static int Curve_newsetName( BPy_Curve * self, PyObject * args )
 
 static PyObject *Curve_getPathLen( BPy_Curve * self )
 {
-	PyObject *attr = PyInt_FromLong( ( long ) self->curve->pathlen );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Curve.pathlen attribute" );
+	return PyInt_FromLong( ( long ) self->curve->pathlen );
 }
 
 
@@ -192,25 +181,13 @@ static int Curve_newsetPathLen( BPy_Curve * self, PyObject * args )
 
 static PyObject *Curve_getTotcol( BPy_Curve * self )
 {
-	PyObject *attr = PyInt_FromLong( ( long ) self->curve->totcol );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Curve.totcol attribute" );
+	return PyInt_FromLong( ( long ) self->curve->totcol );
 }
 
 
 PyObject *Curve_getMode( BPy_Curve * self )
 {
-	PyObject *attr = PyInt_FromLong( ( long ) self->curve->flag );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Curve.flag attribute" );
+	return PyInt_FromLong( ( long ) self->curve->flag );
 }
 
 
@@ -231,13 +208,7 @@ static int Curve_newsetMode( BPy_Curve * self, PyObject * args )
 
 PyObject *Curve_getBevresol( BPy_Curve * self )
 {
-	PyObject *attr = PyInt_FromLong( ( long ) self->curve->bevresol );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Curve.bevresol attribute" );
+	return PyInt_FromLong( ( long ) self->curve->bevresol );
 }
 
 static int Curve_newsetBevresol( BPy_Curve * self, PyObject * args )
@@ -264,13 +235,7 @@ static int Curve_newsetBevresol( BPy_Curve * self, PyObject * args )
 
 PyObject *Curve_getResolu( BPy_Curve * self )
 {
-	PyObject *attr = PyInt_FromLong( ( long ) self->curve->resolu );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Curve.resolu attribute" );
+	return PyInt_FromLong( ( long ) self->curve->resolu );
 }
 
 
@@ -302,13 +267,7 @@ static int Curve_newsetResolu( BPy_Curve * self, PyObject * args )
 
 PyObject *Curve_getResolv( BPy_Curve * self )
 {
-	PyObject *attr = PyInt_FromLong( ( long ) self->curve->resolv );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Curve.resolv attribute" );
+	return PyInt_FromLong( ( long ) self->curve->resolv );
 }
 
 static int Curve_newsetResolv( BPy_Curve * self, PyObject * args )
@@ -334,13 +293,7 @@ static int Curve_newsetResolv( BPy_Curve * self, PyObject * args )
 
 PyObject *Curve_getWidth( BPy_Curve * self )
 {
-	PyObject *attr = PyFloat_FromDouble( ( double ) self->curve->width );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Curve.width attribute" );
+	return PyFloat_FromDouble( ( double ) self->curve->width );
 }
 
 
@@ -368,13 +321,7 @@ static int Curve_newsetWidth( BPy_Curve * self, PyObject * args )
 
 PyObject *Curve_getExt1( BPy_Curve * self )
 {
-	PyObject *attr = PyFloat_FromDouble( ( double ) self->curve->ext1 );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Curve.ext1 attribute" );
+	return PyFloat_FromDouble( ( double ) self->curve->ext1 );
 }
 
 
@@ -401,13 +348,7 @@ static int Curve_newsetExt1( BPy_Curve * self, PyObject * args )
 
 PyObject *Curve_getExt2( BPy_Curve * self )
 {
-	PyObject *attr = PyFloat_FromDouble( ( double ) self->curve->ext2 );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Curve.ext2 attribute" );
+	return PyFloat_FromDouble( ( double ) self->curve->ext2 );
 }
 
 
@@ -536,14 +477,8 @@ static PyObject *Curve_getControlPoint( BPy_Curve * self, PyObject * args )
 
 static PyObject *Curve_getLoc( BPy_Curve * self )
 {
-	PyObject *attr = Py_BuildValue( "[f,f,f]", self->curve->loc[0],
+	return Py_BuildValue( "[f,f,f]", self->curve->loc[0],
 				self->curve->loc[1], self->curve->loc[2] );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Curve.loc attribute" );
 }
 
 static int Curve_newsetLoc( BPy_Curve * self, PyObject * args )
@@ -574,14 +509,8 @@ TypeError:
 
 static PyObject *Curve_getRot( BPy_Curve * self )
 {
-	PyObject *attr = Py_BuildValue( "[f,f,f]", self->curve->rot[0],
+	return Py_BuildValue( "[f,f,f]", self->curve->rot[0],
 				self->curve->rot[1], self->curve->rot[2] );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Curve.rot attribute" );
 }
 
 static int Curve_newsetRot( BPy_Curve * self, PyObject * args )
@@ -612,14 +541,8 @@ TypeError:
 
 static PyObject *Curve_getSize( BPy_Curve * self )
 {
-	PyObject *attr = Py_BuildValue( "[f,f,f]", self->curve->size[0],
+	return Py_BuildValue( "[f,f,f]", self->curve->size[0],
 				self->curve->size[1], self->curve->size[2] );
-
-	if( attr )
-		return attr;
-
-	return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-			"couldn't get Curve.size attribute" );
 }
 
 static int Curve_newsetSize( BPy_Curve * self, PyObject * args )
@@ -846,6 +769,7 @@ static PyObject *Curve_appendPoint( BPy_Curve * self, PyObject * args )
 	int i;
 	int nurb_num;		/* index of curve we append to */
 	PyObject *coord_args;	/* coords for new point */
+	PyObject *retval = NULL;
 	Nurb *nurb = self->curve->nurb.first;	/* first nurb in Curve */
 
 /* fixme - need to malloc new Nurb */
@@ -867,8 +791,14 @@ static PyObject *Curve_appendPoint( BPy_Curve * self, PyObject * args )
 			return EXPP_ReturnPyObjError( PyExc_ValueError,
 					"curve index out of range" );
 	}
+
+	/* rebuild our arg tuple for appendPointToNurb() */
+	//valtuple = Py_BuildValue( "(O)", coord_args );
 	
-	return CurNurb_appendPointToNurb( nurb, coord_args );
+	retval =  CurNurb_appendPointToNurb( nurb, coord_args );
+	// Py_DECREF( valtuple );
+
+	return retval;
 }
 
 
@@ -880,27 +810,14 @@ static PyObject *Curve_appendPoint( BPy_Curve * self, PyObject * args )
 
 static PyObject *Curve_appendNurb( BPy_Curve * self, PyObject * value )
 {
-	Nurb *nurb_ptr = self->curve->nurb.first;
-	Nurb **pptr = ( Nurb ** ) & ( self->curve->nurb.first );
 	Nurb *new_nurb;
-
-
-	/* walk to end of nurblist */
-	if( nurb_ptr ) {
-		while( nurb_ptr->next ) {
-			nurb_ptr = nurb_ptr->next;
-		}
-		pptr = &nurb_ptr->next;
-	}
-
 	/* malloc new nurb */
 	new_nurb = ( Nurb * ) MEM_callocN( sizeof( Nurb ), "appendNurb" );
 	if( !new_nurb )
 		return EXPP_ReturnPyObjError
 			( PyExc_MemoryError, "unable to malloc Nurb" );
-
+	
 	if( CurNurb_appendPointToNurb( new_nurb, value ) ) {
-		*pptr = new_nurb;
 		new_nurb->resolu = self->curve->resolu;
 		new_nurb->resolv = self->curve->resolv;
 		new_nurb->hide = 0;
@@ -927,6 +844,7 @@ static PyObject *Curve_appendNurb( BPy_Curve * self, PyObject * value )
 			new_nurb->knotsu = 0;
 			/*makenots( new_nurb, 1, new_nurb->flagu >> 1); */
 		}
+		BLI_addtail( &self->curve->nurb, new_nurb);
 
 	} else {
 		freeNurb( new_nurb );
