@@ -535,8 +535,8 @@ def get_float_func(filepath):
 	find the float function for this obj file
 	- weather to replace commas or not
 	'''
-	file= open(filepath, 'r')
-	for line in file.xreadlines():
+	file= open(filepath, 'rU')
+	for line in file: #.xreadlines():
 		if line.startswith('v'): # vn vt v 
 			if ',' in line:
 				return lambda f: float(f.replace(',', '.'))
@@ -585,8 +585,8 @@ def load_obj(filepath, CLAMP_SIZE= 0.0, CREATE_FGONS= True, CREATE_SMOOTH_GROUPS
 	
 	print '\tpassing obj file "%s"...' % filepath,
 	time_sub= sys.time()
-	file= open(filepath, 'r')
-	for line in file.xreadlines():
+	file= open(filepath, 'rU')
+	for line in file: # .xreadlines()
 		
 		if line.startswith('v '):
 			line_split= line.split()
