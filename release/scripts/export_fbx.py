@@ -706,6 +706,7 @@ def write_scene(file, sce, world):
 	textures = {}
 	armatures = [] # We should export standalone armatures also
 	armatures_totbones = 0 # we need this because each bone is a model
+	ob_type = None # incase no objects are exported, so as not to raise an error 
 	for ob_base in sce.objects.context:
 		for ob, mtx in BPyObject.getDerivedObjects(ob_base):
 			#for ob in [ob_base,]:

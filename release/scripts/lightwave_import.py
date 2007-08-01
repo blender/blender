@@ -1006,46 +1006,6 @@ def read_surfs(lwochunk, surf_list, tag_list):
 	###if DEBUG: print "-> Material pre-allocated."
 	return my_dict
 
-
-
-def reduce_face(verts, face):
-	
-	####if DEBUG: print len(face), face
-	# wants indicies local to the face
-	len_face= len(face)
-	
-	
-	# Dont do this, its no good - odd quads are ok and used in subsurf modeling
-	"""
-	TriangleArea= Blender.Mathutils.TriangleArea
-	if len_face==3:
-		return [face]
-	elif len_face==4:
-		vecs= [Vector(verts[i]) for i in face]
-		# Get the convave quad area
-		a1= TriangleArea(vecs[0], vecs[1], vecs[2])
-		a2= TriangleArea(vecs[0], vecs[2], vecs[3])
-		
-		a3= TriangleArea(vecs[0], vecs[1], vecs[3])
-		a4= TriangleArea(vecs[1], vecs[2], vecs[3])
-		
-		if abs((a1+a2) - (a3+a4)) < (a1+a2+a3+a4)/100: # Not convace
-			####if DEBUG: print 'planer'
-			return [[0,1,2,3]]
-		if a1+a2<a3+a4:
-			return [[0,1,2], [0,2,3]]
-		else:
-			return [[0,1,3], [1,2,3]]
-	"""
-	
-	if len(face) <= 4:
-		return [face]
-	else: # 5+
-		###if DEBUG: print 'SCANFILL...', len(face)
-		return BPyMesh.ngon(verts, face, PREF_FIX_LOOPS= True)
-	
-
-
 # =========================
 # === Recalculate Faces ===
 # =========================
@@ -1200,7 +1160,7 @@ def my_create_mesh(clip_list, surf, objspec_list, current_facelist, objname, not
 			face_data.append( [vertex_map[j] for j in rev_face] )
 			if uv_flag: face_uvs.append(tmp_get_face_uvs(rev_face, i))
 		elif numfaceverts > 4:
-			meta_faces= reduce_face(complete_vertlist, cur_face)        # Indices of triangles
+			meta_faces= BPyMesh.ngon(complete_vertlist, cur_face, PREF_FIX_LOOPS= True)
 			edge_face_count = {}
 			for mf in meta_faces:
 				# These will always be tri's since they are scanfill faces
@@ -1689,6 +1649,12 @@ os.system('find /fe/lwo/Objects/ -follow -iname "*.lwo" > /tmp/templwo_list')
 print '...Done'
 file= open('/tmp/templwo_list', 'r')
 lines= file.readlines()
+
+# sort by filesize for faster testing
+lines_size = [(os.path.getsize(f[:-1]), f[:-1]) for f in lines]
+lines_size.sort()
+lines = [f[1] for f in lines_size]
+
 file.close()
 
 def between(v,a,b):
@@ -1705,8 +1671,9 @@ for i, _lwo in enumerate(lines):
 	#if between(i, 525, 550):
 	#if i > 1635:
 	#if i != 1519: # 730
-	if i>125:
-		_lwo= _lwo[:-1]
+	if i>141:
+		#if 1:
+		# _lwo= _lwo[:-1]
 		print 'Importing', _lwo, '\nNUMBER', i, 'of', len(lines)
 		_lwo_file= _lwo.split('/')[-1].split('\\')[-1]
 		newScn= bpy.data.scenes.new(_lwo_file)
