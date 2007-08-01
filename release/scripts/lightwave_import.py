@@ -693,7 +693,7 @@ def read_clip(lwochunk, dir_part):
 		i = i + 6 + subchunklen
 	#end loop on surf chunks
 	###if DEBUG: print "read image:%s" % clip_dict
-	if clip_dict.has_key('XREF'):
+	if 'XREF' in clip_dict: # has_key
 		###if DEBUG: print "Cross-reference: no image pre-allocated."
 		return clip_dict
 	#look for images
@@ -985,7 +985,8 @@ def read_surfs(lwochunk, surf_list, tag_list):
 					
 			if uvname: # != "":
 				my_dict['UVNAME'] = uvname                            #theoretically there could be a number of them: only one used per surf
-			if not(my_dict.has_key('g_IMAG')) and (rr.has_key('CHAN')) and (rr.has_key('OPAC')) and (rr.has_key('IMAG')):
+			# all are dictionaries - so testing keys 
+			if not('g_IMAG' in my_dict) and ('CHAN' in rr) and ('OPAC' in rr) and ('IMAG' in rr):
 				if (rr['CHAN'] == 'COLR') and (rr['OPAC'] == 0):
 					my_dict['g_IMAG'] = rr['IMAG']                 #do not set anything, just save image object for later assignment
 			subchunklen = 0 #force ending
@@ -1004,40 +1005,6 @@ def read_surfs(lwochunk, surf_list, tag_list):
 	my_dict['g_MAT'] = bpy.data.materials.new(my_dict['NAME'])
 	###if DEBUG: print "-> Material pre-allocated."
 	return my_dict
-
-
-
-def reduce_face(verts, face):
-	TriangleArea= Blender.Mathutils.TriangleArea
-	Vector= Blender.Mathutils.Vector
-	####if DEBUG: print len(face), face
-	# wants indicies local to the face
-	len_face= len(face)
-	if len_face==3:
-		return [face]
-	elif len_face==4:
-		vecs= [Vector(verts[i]) for i in face]
-		# Get the convave quad area
-		a1= TriangleArea(vecs[0], vecs[1], vecs[2])
-		a2= TriangleArea(vecs[0], vecs[2], vecs[3])
-		
-		a3= TriangleArea(vecs[0], vecs[1], vecs[3])
-		a4= TriangleArea(vecs[1], vecs[2], vecs[3])
-		
-		if abs((a1+a2) - (a3+a4)) < (a1+a2+a3+a4)/100: # Not convace
-			####if DEBUG: print 'planer'
-			return [[0,1,2,3]]
-		if a1+a2<a3+a4:
-			return [[0,1,2], [0,2,3]]
-		else:
-			return [[0,1,3], [1,2,3]]
-
-	else: # 5+
-		####if DEBUG: print 'SCANFILL...', len(face)
-		ngons= BPyMesh.ngon(verts, face, PREF_FIX_LOOPS= True)
-	return ngons
-	
-
 
 # =========================
 # === Recalculate Faces ===
@@ -1109,7 +1076,7 @@ def my_create_mesh(clip_list, surf, objspec_list, current_facelist, objname, not
 		pass
 	
 	msh.mode |= Blender.Mesh.Modes.AUTOSMOOTH #smooth it anyway
-	if surf.has_key('SMAN'):
+	if 'SMAN' in surf: # has_key
 		#not allowed mixed mode mesh (all the mesh is smoothed and all with the same angle)
 		#only one smoothing angle will be active! => take the max one
 		msh.degr = min(80, int(surf['SMAN']/3.1415926535897932384626433832795*180.0))     #lwo in radians - blender in degrees
@@ -1119,12 +1086,8 @@ def my_create_mesh(clip_list, surf, objspec_list, current_facelist, objname, not
 	except:
 		img= None
 	
-	
 	#uv_flag = ((surf.has_key('UVNAME')) and (uvcoords_dict.has_key(surf['UVNAME'])) and (img != None))
-	uv_flag = ((surf.has_key('UVNAME')) and (uvcoords_dict.has_key(surf['UVNAME'])))
-	
-	
-	
+	uv_flag = (('UVNAME' in surf) and (surf['UVNAME'] in uvcoords_dict))
 
 	###if DEBUG: print "\n#===================================================================#"
 	###if DEBUG: print "Processing Object: %s" % objname
@@ -1186,55 +1149,50 @@ def my_create_mesh(clip_list, surf, objspec_list, current_facelist, objname, not
 					uvs.append(default_uv)
 		
 		return uvs
-	
+	cur_face
 	for i in cur_ptag_faces_indexes:
 		cur_face = complete_facelist[i]
 		numfaceverts = len(cur_face)
 		
 		if numfaceverts == 2:		edges.append((vertex_map[cur_face[0]], vertex_map[cur_face[1]]))
-		elif numfaceverts == 3:	
-			rev_face = (cur_face[2], cur_face[1], cur_face[0])
+		elif numfaceverts == 3 or numfaceverts == 4:	
+			rev_face = [__i for __i in reversed(cur_face)]
 			face_data.append( [vertex_map[j] for j in rev_face] )
 			if uv_flag: face_uvs.append(tmp_get_face_uvs(rev_face, i))
-		
-		elif numfaceverts > 3:
-			meta_faces= reduce_face(complete_vertlist, cur_face)        # Indices of triangles
+		elif numfaceverts > 4:
+			meta_faces= BPyMesh.ngon(complete_vertlist, cur_face, PREF_FIX_LOOPS= True)
 			edge_face_count = {}
 			for mf in meta_faces:
-				# ###if DEBUG: print meta_faces
+				# These will always be tri's since they are scanfill faces
+				mf = cur_face[mf[2]], cur_face[mf[1]], cur_face[mf[0]]
+				face_data.append( [vertex_map[j] for j in mf] )
 				
-				if len(mf) == 3: #triangle
-					mf = cur_face[mf[2]], cur_face[mf[1]], cur_face[mf[0]]
-					face_data.append( [vertex_map[j] for j in mf] )
-					
-					if uv_flag: face_uvs.append(tmp_get_face_uvs(mf, i))
-					
-					#if USE_FGON:
-					if len(meta_faces) > 1:
-						mf = face_data[-1] # reuse mf
-						for i in xrange(3):
-							v1= mf[i]
-							v2= mf[i-1]
-							if v1!=v2:
-								if v1>v2:
-									v2,v1= v1,v2
-								try:
-									edge_face_count[v1,v2]+= 1
-								except:
-									edge_face_count[v1,v2]= 0
+				if uv_flag: face_uvs.append(tmp_get_face_uvs(mf, i))
 				
-				else: #quads
-					mf= cur_face[mf[3]], cur_face[mf[2]], cur_face[mf[1]], cur_face[mf[0]]
-					face_data.append( [vertex_map[j] for j in mf] )
-					if uv_flag: face_uvs.append(tmp_get_face_uvs(mf, i))
+				#if USE_FGON:
+				if len(meta_faces) > 1:
+					mf = face_data[-1] # reuse mf
+					for j in xrange(3):
+						v1= mf[j]
+						v2= mf[j-1]
+						if v1!=v2:
+							if v1>v2:
+								v2,v1= v1,v2
+							try:
+								edge_face_count[v1,v2]+= 1
+							except:
+								edge_face_count[v1,v2]= 0
+				
+
 			
 			if edge_face_count:
 				edges_fgon.extend( [vert_key for vert_key, count in edge_face_count.iteritems() if count] )
-				
 	
-	msh.edges.extend(edges)
+	if edges:
+		msh.edges.extend(edges)
+	
 	face_mapping_removed = msh.faces.extend(face_data, indexList=True)
-	if surf.has_key('TRAN') or (mat and mat.alpha<1.0): # incase mat is null
+	if 'TRAN' in surf or (mat and mat.alpha<1.0): # incase mat is null
 		transp_flag = True
 	else:
 		transp_flag = False
@@ -1347,7 +1305,7 @@ def create_objects(clip_list, objspec_list, surf_list):
 def lookup_imag(clip_list, ima_id):
 	for ii in clip_list:
 		if ii and ii['ID'] == ima_id:
-			if ii.has_key('XREF'):
+			if 'XREF' in ii: # has_key
 				#cross reference - recursively look for images
 				return lookup_imag(clip_list, ii['XREF'])
 			else:
@@ -1415,7 +1373,7 @@ def create_blok(surf, mat, clip_list, obj_size, obj_pos):
 		#if not blok['ENAB']:
 		#    ###if DEBUG: print "***Image is not ENABled! Quitting this block"
 		#    break
-		if not(blok.has_key('IMAG')):
+		if not('IMAG' in blok): # has_key
 			###if DEBUG: print "***No IMAGE for this block? Quitting"
 			break                 #extract out the image index within the clip_list
 		if blok['IMAG'] == 0: blok['IMAG'] = lastimag #experimental ....
@@ -1434,13 +1392,13 @@ def create_blok(surf, mat, clip_list, obj_size, obj_pos):
 			tname += "+"
 		else:
 			tname += "x" #let's signal when should not be enabled
-		if blok.has_key('CHAN'):
+		if 'CHAN' in blok: # has_key
 			tname += blok['CHAN']
 		newtex = bpy.data.textures.new(tname)
 		newtex.setType('Image')                 # make it anu image texture
 		newtex.image = img
 		#how does it extends beyond borders
-		if blok.has_key('WRAP'):
+		if 'WRAP' in blok: # has_key
 			if (blok['WRAP'] == 3) or (blok['WRAP'] == 2):
 				newtex.setExtend('Extend')
 			elif (blok['WRAP'] == 1):
@@ -1457,35 +1415,35 @@ def create_blok(surf, mat, clip_list, obj_size, obj_pos):
 		nega = False
 		mapflag = Blender.Texture.MapTo.COL  #default to color
 		maptype = Blender.Texture.Mappings.FLAT
-		if blok.has_key('CHAN'):
-			if blok['CHAN'] == 'COLR' and blok.has_key('OPACVAL'):
+		if 'CHAN' in blok: # has_key
+			if blok['CHAN'] == 'COLR' and 'OPACVAL' in blok: # has_key
 				colfac = blok['OPACVAL']
 				# Blender needs this to be clamped
 				colfac = max(0.0, min(1.0, colfac))
 				###if DEBUG: print "!!!Set Texture -> MapTo -> Col = %.3f" % colfac
 			if blok['CHAN'] == 'BUMP':
 				mapflag = Blender.Texture.MapTo.NOR
-				if blok.has_key('OPACVAL'): norfac = blok['OPACVAL']
+				if 'OPACVAL' in blok: norfac = blok['OPACVAL'] # has_key
 				###if DEBUG: print "!!!Set Texture -> MapTo -> Nor = %.3f" % norfac
 			if blok['CHAN'] == 'LUMI':
 				mapflag = Blender.Texture.MapTo.EMIT
-				if blok.has_key('OPACVAL'): dvar = blok['OPACVAL']
+				if 'OPACVAL' in blok: dvar = blok['OPACVAL'] # has_key
 				###if DEBUG: print "!!!Set Texture -> MapTo -> DVar = %.3f" % dvar
 			if blok['CHAN'] == 'DIFF':
 				mapflag = Blender.Texture.MapTo.REF
-				if blok.has_key('OPACVAL'): dvar = blok['OPACVAL']
+				if 'OPACVAL' in blok: dvar = blok['OPACVAL'] # has_key
 				###if DEBUG: print "!!!Set Texture -> MapTo -> DVar = %.3f" % dvar
 			if blok['CHAN'] == 'SPEC':
 				mapflag = Blender.Texture.MapTo.SPEC
-				if blok.has_key('OPACVAL'): dvar = blok['OPACVAL']
+				if 'OPACVAL' in blok: dvar = blok['OPACVAL'] # has_key
 				###if DEBUG: print "!!!Set Texture -> MapTo -> DVar = %.3f" % dvar
 			if blok['CHAN'] == 'TRAN':
 				mapflag = Blender.Texture.MapTo.ALPHA
-				if blok.has_key('OPACVAL'): dvar = blok['OPACVAL']
+				if 'OPACVAL' in blok: dvar = blok['OPACVAL'] # has_key
 				###if DEBUG: print "!!!Set Texture -> MapTo -> DVar = %.3f" % dvar
 				alphaflag = 1
 				nega = True
-		if blok.has_key('NEGA'):
+		if 'NEGA' in blok: # has_key
 			###if DEBUG: print "!!!Watch-out: effect of this texture channel must be INVERTED!"
 			nega = not nega
 
@@ -1498,7 +1456,7 @@ def create_blok(surf, mat, clip_list, obj_size, obj_pos):
 						 'Texture Displacement',
 						 'Additive']
 		set_blendmode = 7 #default additive
-		if blok.has_key('OPAC'):
+		if 'OPAC' in blok: # has_key
 			set_blendmode = blok['OPAC']
 		if set_blendmode == 5: #transparency
 			newtex.imageFlags |= Blender.Texture.ImageFlags.CALCALPHA
@@ -1509,7 +1467,7 @@ def create_blok(surf, mat, clip_list, obj_size, obj_pos):
 		axis = [Blender.Texture.Proj.X, Blender.Texture.Proj.Y, Blender.Texture.Proj.Z]
 		size = [1.0] * 3
 		ofs = [0.0] * 3
-		if blok.has_key('PROJ'):
+		if 'PROJ' in blok: # has_key
 			if blok['PROJ'] == 0: #0 - Planar
 				###if DEBUG: print "!!!Flat projection"
 				coordflag = Blender.Texture.TexCo.ORCO
@@ -1598,44 +1556,44 @@ def update_material(clip_list, objspec, surf_list):
 				break
 			#mat = Blender.Material.New(surf['NAME'])
 			#surf['g_MAT'] = mat
-			if surf.has_key('COLR'):
+			if 'COLR' in surf: # has_key
 				mat.rgbCol = surf['COLR']
-			if surf.has_key('LUMI'):
+			if 'LUMI' in surf:
 				mat.setEmit(surf['LUMI'])
-			if surf.has_key('GVAL'):
+			if 'GVAL' in surf: # has_key
 				mat.setAdd(surf['GVAL'])
-			if surf.has_key('SPEC'):
-				mat.setSpec(surf['SPEC'])                        #it should be * 2 but seems to be a bit higher lwo [0.0, 1.0] - blender [0.0, 2.0]
-			if surf.has_key('DIFF'):
-				mat.setRef(surf['DIFF'])                         #lwo [0.0, 1.0] - blender [0.0, 1.0]
-			if surf.has_key('GLOS'):                             #lwo [0.0, 1.0] - blender [0, 255]
-				glo = int(371.67 * surf['GLOS'] - 42.334)        #linear mapping - seems to work better than exp mapping
-				if glo <32:  glo = 32                            #clamped to 32-255
+			if 'SPEC' in surf: # has_key
+				mat.setSpec(surf['SPEC'])							#it should be * 2 but seems to be a bit higher lwo [0.0, 1.0] - blender [0.0, 2.0]
+			if 'DIFF' in surf: # has_key
+				mat.setRef(surf['DIFF'])							#lwo [0.0, 1.0] - blender [0.0, 1.0]
+			if 'GLOS' in surf: # has_key							#lwo [0.0, 1.0] - blender [0, 255]
+				glo = int(371.67 * surf['GLOS'] - 42.334)			#linear mapping - seems to work better than exp mapping
+				if glo <32:  glo = 32								#clamped to 32-255
 				if glo >255: glo = 255
 				mat.setHardness(glo)
-			if surf.has_key('TRNL'):
+			if 'TRNL' in surf: # has_key
 				mat.setTranslucency(surf['TRNL'])                #NOT SURE ABOUT THIS lwo [0.0, 1.0] - blender [0.0, 1.0]
 
-			mm = mat.getMode()
+			mm = mat.mode
 			mm |= Blender.Material.Modes.TRANSPSHADOW
-			if surf.has_key('REFL'):
+			if 'REFL' in surf: # has_key
 				mat.setRayMirr(surf['REFL'])                     #lwo [0.0, 1.0] - blender [0.0, 1.0]
 				mm |= Blender.Material.Modes.RAYMIRROR
-			if surf.has_key('TRAN'):
+			if 'TRAN' in surf: # has_key
 				mat.setAlpha(1.0-surf['TRAN'])                                        #lwo [0.0, 1.0] - blender [1.0, 0.0]
 				mm |= Blender.Material.Modes.RAYTRANSP
-			if surf.has_key('RIND'):
+			if 'RIND' in surf: # has_key
 				s = surf['RIND']
 				if s < 1.0: s = 1.0
 				if s > 3.0: s = 3.0
 				mat.setIOR(s)                                                         #clipped to blender [1.0, 3.0]
 				mm |= Blender.Material.Modes.RAYTRANSP
-			if surf.has_key('BLOK') and surf['BLOK'] != []:
+			if 'BLOK' in surf and surf['BLOK'] != []:
 				#update the material according to texture.
 				alphaflag = create_blok(surf, mat, clip_list, obj_size, obj_pos)
 				if alphaflag:
 					mm |= Blender.Material.Modes.RAYTRANSP
-			mat.setMode(mm)
+			mat.mode = mm
 			#finished setting up the material
 		#end if exist SURF
 	#end loop on materials (SURFs)
@@ -1676,12 +1634,13 @@ def main():
 		return
 	
 	Blender.Window.FileSelector(read, "Import LWO", '*.lwo')
+	
 
 if __name__=='__main__':
 	main()
-"""
-# Cams debugging lwo loader
 
+# Cams debugging lwo loader
+"""
 TIME= Blender.sys.time()
 import os
 print 'Searching for files'
@@ -1690,6 +1649,12 @@ os.system('find /fe/lwo/Objects/ -follow -iname "*.lwo" > /tmp/templwo_list')
 print '...Done'
 file= open('/tmp/templwo_list', 'r')
 lines= file.readlines()
+
+# sort by filesize for faster testing
+lines_size = [(os.path.getsize(f[:-1]), f[:-1]) for f in lines]
+lines_size.sort()
+lines = [f[1] for f in lines_size]
+
 file.close()
 
 def between(v,a,b):
@@ -1706,8 +1671,9 @@ for i, _lwo in enumerate(lines):
 	#if between(i, 525, 550):
 	#if i > 1635:
 	#if i != 1519: # 730
-	if i>125:
-		_lwo= _lwo[:-1]
+	if i>141:
+		#if 1:
+		# _lwo= _lwo[:-1]
 		print 'Importing', _lwo, '\nNUMBER', i, 'of', len(lines)
 		_lwo_file= _lwo.split('/')[-1].split('\\')[-1]
 		newScn= bpy.data.scenes.new(_lwo_file)

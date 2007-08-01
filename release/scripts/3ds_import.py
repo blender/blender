@@ -1,7 +1,7 @@
 #!BPY
 """ 
 Name: '3D Studio (.3ds)...'
-Blender: 241
+Blender: 244
 Group: 'Import'
 Tooltip: 'Import from 3DS file format (.3ds)'
 """
@@ -945,6 +945,7 @@ if __name__=='__main__' and not DEBUG:
 #load_3ds('/metavr/convert/vehicle/truck_002/TruckTanker1.3DS', False)
 #load_3ds('/metavr/archive/convert/old/arranged_3ds_to_hpx-2/only-need-engine-trains/Engine2.3DS', False)
 '''
+
 else:
 	# DEBUG ONLY
 	TIME= Blender.sys.time()
@@ -956,6 +957,11 @@ else:
 	file= open('/tmp/temp3ds_list', 'r')
 	lines= file.readlines()
 	file.close()
+	# sort by filesize for faster testing
+	lines_size = [(os.path.getsize(f[:-1]), f[:-1]) for f in lines]
+	lines_size.sort()
+	lines = [f[1] for f in lines_size]
+	
 
 	def between(v,a,b):
 		if v <= max(a,b) and v >= min(a,b):
@@ -963,8 +969,8 @@ else:
 		return False
 		
 	for i, _3ds in enumerate(lines):
-		if between(i, 1,200):
-			_3ds= _3ds[:-1]
+		if between(i, 650,800):
+			#_3ds= _3ds[:-1]
 			print 'Importing', _3ds, '\nNUMBER', i, 'of', len(lines)
 			_3ds_file= _3ds.split('/')[-1].split('\\')[-1]
 			newScn= Blender.Scene.New(_3ds_file)
@@ -972,4 +978,5 @@ else:
 			load_3ds(_3ds, False)
 
 	print 'TOTAL TIME: %.6f' % (Blender.sys.time() - TIME)
+
 '''
