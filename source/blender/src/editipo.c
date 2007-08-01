@@ -2207,6 +2207,7 @@ int insertmatrixkey(ID *id, int blocktype, char *actname, char *constname, int a
 		if ( blocktype==ID_OB ){ //working with an object
 			if ((ob)&&!(ob->parent)) {
 				if ((adrcode==OB_ROT_X)||(adrcode==OB_ROT_Y)||(adrcode==OB_ROT_Z)) { //get a rotation
+					float eul[3];
 					switch (adrcode) {
 						case OB_ROT_X:
 							matindex=0;
@@ -2218,7 +2219,6 @@ int insertmatrixkey(ID *id, int blocktype, char *actname, char *constname, int a
 							matindex=2;
 							break;
 					}
-					float eul[3];
 					Mat4ToEul(ob->obmat, eul);
 					insertfloatkey(id, ID_OB, actname, NULL, adrcode, eul[matindex]*(5.72958));
 					return 1;
