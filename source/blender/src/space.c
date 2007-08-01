@@ -5209,10 +5209,10 @@ void init_v2d_oops(ScrArea *sa, SpaceOops *soops)
 		/* outliner space is window size */
 		calc_scrollrcts(sa, v2d, sa->winx, sa->winy);
 		
-		v2d->tot.xmax= 0.0;
-		v2d->tot.ymax= 0.0;
-		v2d->tot.xmin= -(v2d->mask.xmax-v2d->mask.xmin);
-		v2d->tot.ymin= -(v2d->mask.ymax-v2d->mask.ymin);
+		v2d->tot.xmax= (v2d->mask.xmax-v2d->mask.xmin);
+		v2d->tot.ymax= (v2d->mask.ymax-v2d->mask.ymin);
+		v2d->tot.xmin= 0.0;
+		v2d->tot.ymin= 0.0;
 		
 		v2d->cur= v2d->tot;
 		
@@ -5225,10 +5225,18 @@ void init_v2d_oops(ScrArea *sa, SpaceOops *soops)
 		v2d->minzoom= 1.0;
 		v2d->maxzoom= 1.0;
 		
-		v2d->scroll= L_SCROLL;
+		/* B_SCROLLO used here instead of B_SCROLL, to stop old blender's hanging on 
+		 * loading a file from a version with horizontal scrolling due to an old bug
+		 */
+		v2d->scroll= L_SCROLL+B_SCROLLO;
 		v2d->keepaspect= 1;
 		v2d->keepzoom= 1;
-		v2d->keeptot= 1;
+		
+		/* NOTE: keeptot is 2, as keeptot!=0 makes sure it does get
+		 * 		too freely scrolled on x-axis, but keeptot=1 will result
+		 *		in a snap-back when clicking on elements
+		 */
+		v2d->keeptot= 2;
 	}
 	else {
 		v2d->tot.xmin= -28.0;

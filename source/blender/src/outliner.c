@@ -261,6 +261,20 @@ static void outliner_height(SpaceOops *soops, ListBase *lb, int *h)
 	}
 }
 
+static void outliner_width(SpaceOops *soops, ListBase *lb, int *w)
+{
+	TreeElement *te= lb->first;
+	while(te) {
+		TreeStoreElem *tselem= TREESTORE(te);
+		if(tselem->flag & TSE_CLOSED) {
+			if (te->xend > *w)
+				*w = te->xend;
+		}
+		outliner_width(soops, &te->subtree, w);
+		te= te->next;
+	}
+}
+
 static TreeElement *outliner_find_tree_element(ListBase *lb, int store_index)
 {
 	TreeElement *te= lb->first, *tes;
@@ -2042,7 +2056,7 @@ void outliner_show_active(struct ScrArea *sa)
 {
 	SpaceOops *so= sa->spacedata.first;
 	TreeElement *te;
-	int ytop;
+	int xdelta, ytop;
 	
 	if(OBACT == NULL) return;
 	
@@ -2053,6 +2067,12 @@ void outliner_show_active(struct ScrArea *sa)
 		if(ytop>0) ytop= 0;
 		so->v2d.cur.ymax= ytop;
 		so->v2d.cur.ymin= ytop-(so->v2d.mask.ymax-so->v2d.mask.ymin);
+		
+		/* make te->xs ==> te->xend center of view */
+		xdelta = te->xs - so->v2d.cur.xmin;
+		so->v2d.cur.xmin += xdelta;
+		so->v2d.cur.xmax += xdelta;
+		
 		so->storeflag |= SO_TREESTORE_REDRAW;
 		scrarea_queue_redraw(sa);
 	}
@@ -2062,7 +2082,7 @@ void outliner_show_selected(struct ScrArea *sa)
 {
 	SpaceOops *so= sa->spacedata.first;
 	TreeElement *te;
-	int ytop;
+	int xdelta, ytop;
 	
 	te= outliner_find_id(so, &so->tree, (ID *)OBACT);
 	if(te) {
@@ -2071,6 +2091,12 @@ void outliner_show_selected(struct ScrArea *sa)
 		if(ytop>0) ytop= 0;
 		so->v2d.cur.ymax= ytop;
 		so->v2d.cur.ymin= ytop-(so->v2d.mask.ymax-so->v2d.mask.ymin);
+		
+		/* make te->xs ==> te->xend center of view */
+		xdelta = te->xs - so->v2d.cur.xmin;
+		so->v2d.cur.xmin += xdelta;
+		so->v2d.cur.xmax += xdelta;
+		
 		so->storeflag |= SO_TREESTORE_REDRAW;
 		scrarea_queue_redraw(sa);
 	}
@@ -2149,7 +2175,7 @@ void outliner_find_panel(struct ScrArea *sa, int again, int flags)
 	TreeElement *te= NULL;
 	TreeElement *last_find;
 	TreeStoreElem *tselem;
-	int ytop, prevFound=0;
+	int ytop, xdelta, prevFound=0;
 	char name[33];
 	
 	/* get last found tree-element based on stored search_tse */
@@ -2195,6 +2221,11 @@ void outliner_find_panel(struct ScrArea *sa, int again, int flags)
 			if(ytop>0) ytop= 0;
 			soops->v2d.cur.ymax= ytop;
 			soops->v2d.cur.ymin= ytop-(soops->v2d.mask.ymax-soops->v2d.mask.ymin);
+			
+			/* make te->xs ==> te->xend center of view */
+			xdelta = te->xs - soops->v2d.cur.xmin;
+			soops->v2d.cur.xmin += xdelta;
+			soops->v2d.cur.xmax += xdelta;
 			
 			/* store selection */
 			soops->search_tse= *tselem;
@@ -3174,7 +3205,7 @@ static void outliner_draw_selection(SpaceOops *soops, ListBase *lb, int *starty)
 		
 		/* selection status */
 		if(tselem->flag & TSE_SELECTED) {
-			glRecti(0, *starty+1, (int)soops->v2d.mask.xmax, *starty+OL_H-1);
+			glRecti(0, *starty+1, (int)soops->v2d.cur.xmax, *starty+OL_H-1);
 		}
 		*starty-= OL_H;
 		if((tselem->flag & TSE_CLOSED)==0) outliner_draw_selection(soops, &te->subtree, starty);
@@ -3225,7 +3256,7 @@ static void outliner_back(SpaceOops *soops)
 	ystart= OL_H*(ystart/(OL_H));
 	
 	while(ystart > soops->v2d.cur.ymin) {
-		glRecti(0, ystart, (int)soops->v2d.mask.xmax, ystart+OL_H);
+		glRecti(0, ystart, (int)soops->v2d.cur.xmax, ystart+OL_H);
 		ystart-= 2*OL_H;
 	}
 }
@@ -3236,35 +3267,35 @@ static void outliner_draw_restrictcols(SpaceOops *soops)
 	
 	/* background underneath */
 	BIF_ThemeColor(TH_BACK);
-	glRecti((int)soops->v2d.mask.xmax-(OL_TOGW+SCROLLB), soops->v2d.cur.ymin, (int)soops->v2d.mask.xmax, soops->v2d.tot.ymax);
+	glRecti((int)soops->v2d.cur.xmax-OL_TOGW, soops->v2d.cur.ymin, (int)soops->v2d.cur.xmax, soops->v2d.cur.ymax);
 	
 	BIF_ThemeColorShade(TH_BACK, 6);
 	ystart= soops->v2d.tot.ymax;
 	ystart= OL_H*(ystart/(OL_H));
 	
 	while(ystart > soops->v2d.cur.ymin) {
-		glRecti((int)soops->v2d.mask.xmax-(OL_TOGW+SCROLLB), ystart, (int)soops->v2d.mask.xmax, ystart+OL_H);
+		glRecti((int)soops->v2d.cur.xmax-OL_TOGW, ystart, (int)soops->v2d.cur.xmax, ystart+OL_H);
 		ystart-= 2*OL_H;
 	}
 	
 	BIF_ThemeColorShadeAlpha(TH_BACK, -15, -200);
 
 	/* view */
-	fdrawline(soops->v2d.mask.xmax-(OL_TOG_RESTRICT_VIEWX+SCROLLB),
-		soops->v2d.tot.ymax,
-		soops->v2d.mask.xmax-(OL_TOG_RESTRICT_VIEWX+SCROLLB),
+	fdrawline(soops->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX,
+		soops->v2d.cur.ymax,
+		soops->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX,
 		soops->v2d.cur.ymin);
 
 	/* render */
-	fdrawline(soops->v2d.mask.xmax-(OL_TOG_RESTRICT_SELECTX+SCROLLB),
-		soops->v2d.tot.ymax,
-		soops->v2d.mask.xmax-(OL_TOG_RESTRICT_SELECTX+SCROLLB),
+	fdrawline(soops->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX,
+		soops->v2d.cur.ymax,
+		soops->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX,
 		soops->v2d.cur.ymin);
 
 	/* render */
-	fdrawline(soops->v2d.mask.xmax-(OL_TOG_RESTRICT_RENDERX+SCROLLB),
-		soops->v2d.tot.ymax,
-		soops->v2d.mask.xmax-(OL_TOG_RESTRICT_RENDERX+SCROLLB),
+	fdrawline(soops->v2d.cur.xmax-OL_TOG_RESTRICT_RENDERX,
+		soops->v2d.cur.ymax,
+		soops->v2d.cur.xmax-OL_TOG_RESTRICT_RENDERX,
 		soops->v2d.cur.ymin);
 }
 
@@ -3419,12 +3450,76 @@ static void namebutton_cb(void *tep, void *oldnamep)
 	scrarea_queue_redraw(curarea);
 }
 
+static void outliner_draw_restrictbuts(uiBlock *block, SpaceOops *soops, ListBase *lb)
+{	
+	uiBut *bt;
+	TreeElement *te;
+	TreeStoreElem *tselem;
+	Object *ob;
+	
+	for(te= lb->first; te; te= te->next) {
+		tselem= TREESTORE(te);
+		if(te->ys >= soops->v2d.cur.ymin && te->ys <= soops->v2d.cur.ymax) {	
+			/* objects have toggle-able restriction flags */
+			if(tselem->type==0 && te->idcode==ID_OB) {
+				ob = (Object *)tselem->id;
+
+				uiBlockSetEmboss(block, UI_EMBOSSN);
+				bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_VIEW, REDRAWALL, ICON_RESTRICT_VIEW_OFF, 
+						(int)soops->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
+				uiButSetFunc(bt, restrictbutton_view_cb, ob, NULL);
+				uiButSetFlag(bt, UI_NO_HILITE);
+				
+				bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_SELECT, REDRAWALL, ICON_RESTRICT_SELECT_OFF, 
+						(int)soops->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow selection in the 3D View");
+				uiButSetFunc(bt, restrictbutton_sel_cb, ob, NULL);
+				uiButSetFlag(bt, UI_NO_HILITE);
+				
+				bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_RENDER, REDRAWALL, ICON_RESTRICT_RENDER_OFF, 
+						(int)soops->v2d.cur.xmax-OL_TOG_RESTRICT_RENDERX, te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow renderability");
+				uiButSetFunc(bt, restrictbutton_rend_cb, NULL, NULL);
+				uiButSetFlag(bt, UI_NO_HILITE);
+				
+				uiBlockSetEmboss(block, UI_EMBOSS);
+			}
+			/* scene render layers and passes have toggle-able flags too! */
+			else if(tselem->type==TSE_R_LAYER) {
+				uiBlockSetEmboss(block, UI_EMBOSSN);
+				
+				bt= uiDefIconButBitI(block, ICONTOGN, SCE_LAY_DISABLE, REDRAWBUTSSCENE, ICON_CHECKBOX_HLT-1, 
+									 (int)soops->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, te->ys, 17, OL_H-1, te->directdata, 0, 0, 0, 0, "Render this RenderLayer");
+				uiButSetFunc(bt, restrictbutton_r_lay_cb, NULL, NULL);
+				
+				uiBlockSetEmboss(block, UI_EMBOSS);
+			}
+			else if(tselem->type==TSE_R_PASS) {
+				int *layflag= te->directdata;
+				uiBlockSetEmboss(block, UI_EMBOSSN);
+				
+				/* NOTE: tselem->nr is short! */
+				bt= uiDefIconButBitI(block, ICONTOG, tselem->nr, REDRAWBUTSSCENE, ICON_CHECKBOX_HLT-1, 
+									 (int)soops->v2d.cur.xmax-OL_TOG_RESTRICT_VIEWX, te->ys, 17, OL_H-1, layflag, 0, 0, 0, 0, "Render this Pass");
+				uiButSetFunc(bt, restrictbutton_r_lay_cb, NULL, NULL);
+				
+				layflag++;	/* is lay_xor */
+				if(ELEM6(tselem->nr, SCE_PASS_SPEC, SCE_PASS_SHADOW, SCE_PASS_AO, SCE_PASS_REFLECT, SCE_PASS_REFRACT, SCE_PASS_RADIO))
+					bt= uiDefIconButBitI(block, TOG, tselem->nr, REDRAWBUTSSCENE, (*layflag & tselem->nr)?ICON_DOT:ICON_BLANK1, 
+									 (int)soops->v2d.cur.xmax-OL_TOG_RESTRICT_SELECTX, te->ys, 17, OL_H-1, layflag, 0, 0, 0, 0, "Exclude this Pass from Combined");
+				uiButSetFunc(bt, restrictbutton_r_lay_cb, NULL, NULL);
+				
+				uiBlockSetEmboss(block, UI_EMBOSS);
+			}
+		}
+		
+		if((tselem->flag & TSE_CLOSED)==0) outliner_draw_restrictbuts(block, soops, &te->subtree);
+	}
+}
+
 static void outliner_buttons(uiBlock *block, SpaceOops *soops, ListBase *lb)
 {
 	uiBut *bt;
 	TreeElement *te;
 	TreeStoreElem *tselem;
-	Object *ob;
 	int dx, len;
 	
 	for(te= lb->first; te; te= te->next) {
@@ -3451,59 +3546,6 @@ static void outliner_buttons(uiBlock *block, SpaceOops *soops, ListBase *lb)
 				/* otherwise keeps open on ESC */
 				tselem->flag &= ~TSE_TEXTBUT;
 			}
-			
-			if (!(soops->flag & SO_HIDE_RESTRICTCOLS)) {
-				
-				/* objects have toggle-able restriction flags */
-				if(tselem->type==0 && te->idcode==ID_OB) {
-					ob = (Object *)tselem->id;
-
-					uiBlockSetEmboss(block, UI_EMBOSSN);
-					bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_VIEW, REDRAWALL, ICON_RESTRICT_VIEW_OFF, 
-							(int)soops->v2d.mask.xmax-(OL_TOG_RESTRICT_VIEWX+SCROLLB), te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow visibility in the 3D View");
-					uiButSetFunc(bt, restrictbutton_view_cb, ob, NULL);
-					uiButSetFlag(bt, UI_NO_HILITE);
-					
-					bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_SELECT, REDRAWALL, ICON_RESTRICT_SELECT_OFF, 
-							(int)soops->v2d.mask.xmax-(OL_TOG_RESTRICT_SELECTX+SCROLLB), te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow selection in the 3D View");
-					uiButSetFunc(bt, restrictbutton_sel_cb, ob, NULL);
-					uiButSetFlag(bt, UI_NO_HILITE);
-					
-					bt= uiDefIconButBitS(block, ICONTOG, OB_RESTRICT_RENDER, REDRAWALL, ICON_RESTRICT_RENDER_OFF, 
-							(int)soops->v2d.mask.xmax-(OL_TOG_RESTRICT_RENDERX+SCROLLB), te->ys, 17, OL_H-1, &(ob->restrictflag), 0, 0, 0, 0, "Restrict/Allow renderability");
-					uiButSetFunc(bt, restrictbutton_rend_cb, NULL, NULL);
-					uiButSetFlag(bt, UI_NO_HILITE);
-					
-					uiBlockSetEmboss(block, UI_EMBOSS);
-				}
-				/* scene render layers and passes have toggle-able flags too! */
-				else if(tselem->type==TSE_R_LAYER) {
-					uiBlockSetEmboss(block, UI_EMBOSSN);
-					
-					bt= uiDefIconButBitI(block, ICONTOGN, SCE_LAY_DISABLE, REDRAWBUTSSCENE, ICON_CHECKBOX_HLT-1, 
-										 (int)soops->v2d.mask.xmax-(OL_TOG_RESTRICT_VIEWX+SCROLLB), te->ys, 17, OL_H-1, te->directdata, 0, 0, 0, 0, "Render this RenderLayer");
-					uiButSetFunc(bt, restrictbutton_r_lay_cb, NULL, NULL);
-					
-					uiBlockSetEmboss(block, UI_EMBOSS);
-				}
-				else if(tselem->type==TSE_R_PASS) {
-					int *layflag= te->directdata;
-					uiBlockSetEmboss(block, UI_EMBOSSN);
-					
-					/* NOTE: tselem->nr is short! */
-					bt= uiDefIconButBitI(block, ICONTOG, tselem->nr, REDRAWBUTSSCENE, ICON_CHECKBOX_HLT-1, 
-										 (int)soops->v2d.mask.xmax-(OL_TOG_RESTRICT_VIEWX+SCROLLB), te->ys, 17, OL_H-1, layflag, 0, 0, 0, 0, "Render this Pass");
-					uiButSetFunc(bt, restrictbutton_r_lay_cb, NULL, NULL);
-					
-					layflag++;	/* is lay_xor */
-					if(ELEM6(tselem->nr, SCE_PASS_SPEC, SCE_PASS_SHADOW, SCE_PASS_AO, SCE_PASS_REFLECT, SCE_PASS_REFRACT, SCE_PASS_RADIO))
-						bt= uiDefIconButBitI(block, TOG, tselem->nr, REDRAWBUTSSCENE, (*layflag & tselem->nr)?ICON_DOT:ICON_BLANK1, 
-										 (int)soops->v2d.mask.xmax-(OL_TOG_RESTRICT_SELECTX+SCROLLB), te->ys, 17, OL_H-1, layflag, 0, 0, 0, 0, "Exclude this Pass from Combined");
-					uiButSetFunc(bt, restrictbutton_r_lay_cb, NULL, NULL);
-					
-					uiBlockSetEmboss(block, UI_EMBOSS);
-				}
-			}
 		}
 		
 		if((tselem->flag & TSE_CLOSED)==0) outliner_buttons(block, soops, &te->subtree);
@@ -3513,11 +3555,18 @@ static void outliner_buttons(uiBlock *block, SpaceOops *soops, ListBase *lb)
 void draw_outliner(ScrArea *sa, SpaceOops *soops)
 {
 	uiBlock *block;
-	int sizey;
+	int sizey, sizex;
 	short ofsx, ofsy;
 	
-	calc_scrollrcts(sa, G.v2d, sa->winx, sa->winy);
-
+	/* version patch for old outliners here - do_versions patch doesn't work */
+	if (G.v2d->scroll != L_SCROLL+B_SCROLLO) {
+		init_v2d_oops(curarea, soops);
+		test_view2d(G.v2d, curarea->winx, curarea->winy);
+		calc_scrollrcts(sa, G.v2d, sa->winx, sa->winy);
+	}
+	else
+		calc_scrollrcts(sa, G.v2d, sa->winx, sa->winy);
+	
 	if(sa->winx>SCROLLB+10 && sa->winy>SCROLLH+10) {
 		if(G.v2d->scroll) {	
 			ofsx= sa->winrct.xmin;	/* because mywin */
@@ -3528,12 +3577,21 @@ void draw_outliner(ScrArea *sa, SpaceOops *soops)
 	}
 	
 	outliner_build_tree(soops); // always 
-	sizey= 0;
+	sizey = sizex = 0;
 	outliner_height(soops, &soops->tree, &sizey);
+	outliner_width(soops, &soops->tree, &sizex);
 	
-	/* we init all tot rect vars, only really needed on window size change tho */
+	/* we init all tot rect vars, only really needed on window size change though */
 	G.v2d->tot.xmin= 0.0;
 	G.v2d->tot.xmax= (G.v2d->mask.xmax-G.v2d->mask.xmin);
+	if(soops->flag & SO_HIDE_RESTRICTCOLS) {
+		if(G.v2d->tot.xmax <= sizex)
+			G.v2d->tot.xmax= 2*sizex;
+	}
+	else {
+		if(G.v2d->tot.xmax-OL_TOGW <= sizex)
+			G.v2d->tot.xmax= 2*sizex;
+	}
 	G.v2d->tot.ymax= 0.0;
 	G.v2d->tot.ymin= -sizey*OL_H;
 	test_view2d(G.v2d, sa->winx, sa->winy);
@@ -3546,20 +3604,26 @@ void draw_outliner(ScrArea *sa, SpaceOops *soops)
 
 	myortho2(G.v2d->cur.xmin-0.375, G.v2d->cur.xmax-0.375, G.v2d->cur.ymin-0.375, G.v2d->cur.ymax-0.375);
 
-	/* draw outliner stuff */
+	/* draw outliner stuff (background and hierachy lines) */
 	outliner_back(soops);
 	outliner_draw_tree(soops);
-	if (!(soops->flag & SO_HIDE_RESTRICTCOLS))
-		outliner_draw_restrictcols(soops);
 
 	/* restore viewport */
 	mywinset(sa->win);
 	
-	/* ortho corrected */
-	myortho2(G.v2d->cur.xmin-SCROLLB-0.375, G.v2d->cur.xmax-0.375, G.v2d->cur.ymin-0.375, G.v2d->cur.ymax-0.375);
+	/* ortho corrected - 'pixel space' */
+	myortho2(G.v2d->cur.xmin-SCROLLB-0.375, G.v2d->cur.xmax-0.375, G.v2d->cur.ymin-SCROLLH-0.375, G.v2d->cur.ymax-0.375);
 	
+	/* draw icons and names */
 	block= uiNewBlock(&sa->uiblocks, "outliner buttons", UI_EMBOSS, UI_HELV, sa->win);
 	outliner_buttons(block, soops, &soops->tree);
+	
+	/* draw restriction columns */
+	if (!(soops->flag & SO_HIDE_RESTRICTCOLS)) {
+		outliner_draw_restrictcols(soops);
+		outliner_draw_restrictbuts(block, soops, &soops->tree);
+	}
+	
 	uiDrawBlock(block);
 	
 	/* clear flag that allows quick redraws */

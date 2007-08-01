@@ -512,6 +512,7 @@ void test_view2d(View2D *v2d, int winx, int winy)
 	/* correct winx for scroll */
 	if(v2d->scroll & L_SCROLL) winx-= SCROLLB;
 	if(v2d->scroll & B_SCROLL) winy-= SCROLLH;
+	if(v2d->scroll & B_SCROLLO) winy-= SCROLLH; /* B_SCROLL and B_SCROLLO are basically same thing */
 	
 	/* header completely closed window */
 	if(winy<=0) return;
@@ -652,7 +653,7 @@ void test_view2d(View2D *v2d, int winx, int winy)
 				cur->xmin+= dx;
 				cur->xmax+= dx;
 			}
-			else if(cur->xmax > tot->xmax) {
+			else if((v2d->keeptot!=2) && (cur->xmax > tot->xmax)) {
 				dx= cur->xmax-tot->xmax;
 				cur->xmin-= dx;
 				cur->xmax-= dx;
@@ -753,7 +754,7 @@ void calc_scrollrcts(ScrArea *sa, View2D *v2d, int winx, int winy)
 			v2d->mask.xmax= v2d->vert.xmin;
 		}
 		
-		if(v2d->scroll & B_SCROLL) {
+		if((v2d->scroll & B_SCROLL) || (v2d->scroll & B_SCROLLO)) {
 			v2d->hor= v2d->mask;
 			v2d->hor.ymax= SCROLLH;
 			v2d->mask.ymin= SCROLLH;
@@ -856,7 +857,7 @@ void drawscroll(int disptype)
 	light= 20;
 	lighter= 50;
 	
-	if(G.v2d->scroll & HOR_SCROLL) {
+	if((G.v2d->scroll & HOR_SCROLL) || (G.v2d->scroll & HOR_SCROLLO)) {
 		
 		BIF_ThemeColorShade(TH_SHADE1, light);
 		glRecti(hor.xmin,  hor.ymin,  hor.xmax,  hor.ymax);
@@ -890,7 +891,13 @@ void drawscroll(int disptype)
 		val= ipogrid_startx;
 		while(fac < hor.xmax) {
 			
-			if(curarea->spacetype==SPACE_OOPS);
+			if(curarea->spacetype==SPACE_OOPS) { 
+				/* Under no circumstances may the outliner/oops display numbers on its scrollbar 
+				 * Unfortunately, versions of Blender without this patch will hang on loading files with
+				 * horizontally scrollable Outliners.
+				 */
+				break;
+			}
 			else if(curarea->spacetype==SPACE_SEQ) {
 				SpaceSeq * sseq = curarea->spacedata.first;
 				if (sseq->flag & SEQ_DRAWFRAMES) {
@@ -2491,13 +2498,7 @@ int view2dmove(unsigned short event)
 	}
 	
 	cursor = BC_NSEW_SCROLLCURSOR;
-	
-	/* no x move in outliner */
-	if(curarea->spacetype==SPACE_OOPS && G.v2d->scroll) {
-		facx= 0.0;
-		cursor = BC_NS_SCROLLCURSOR;
-	}
-	
+		
 	/* no y move in audio & time */
 	if ELEM(curarea->spacetype, SPACE_SOUND, SPACE_TIME) {
 		facy= 0.0;
