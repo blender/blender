@@ -124,9 +124,12 @@ void makeraytree(Render *re)
 		}
 	}
 
-	if(min[0] > max[0]) return;	/* empty raytree */
-
 	re->raytree= RE_ray_tree_create(re->r.ocres, totface, min, max, vlr_face_coords, vlr_check_intersect);
+
+	if(min[0] > max[0]) { /* empty raytree */
+		RE_ray_tree_done(re->raytree);
+		return;	
+	}
 
 	for(v=0; v<re->totvlak; v++) {
 		if((v & 255)==0) {
