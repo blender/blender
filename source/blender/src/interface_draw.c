@@ -1604,11 +1604,15 @@ static void ui_draw_text_icon(uiBut *but)
 			ui_rasterpos_safe(x, (but->y1+but->y2- 9.0)/2.0, but->aspect);
 			if(but->type==IDPOIN) transopts= 0;	// no translation, of course!
 			else transopts= (U.transopts & USER_TR_BUTTONS);
-
+			
+		#ifdef INTERNATIONAL
 			if (but->type == FTPREVIEW)
 				FTF_DrawNewFontString (but->drawstr+but->ofs, FTF_INPUT_UTF8);
 			else
 				BIF_DrawString(but->font, but->drawstr+but->ofs, transopts);
+		#else
+			BIF_DrawString(but->font, but->drawstr+but->ofs, transopts);
+		#endif
 
 			/* part text right aligned */
 			if(cpoin) {

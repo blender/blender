@@ -111,7 +111,9 @@
 
 #include "BIF_fsmenu.h"  /* include ourselves */
 
+#ifdef INTERNATIONAL
 #include "FTF_Api.h"
+#endif
 
 #if defined WIN32 || defined __BeOS
 int fnmatch(const char *pattern, const char *string, int flags)
@@ -2027,8 +2029,10 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							if (sfile->f_fp) {
 								sprintf (tmpstr, "%s%s", sfile->dir, sfile->file);
 								/* printf ("%s\n", tmpstr); */
+								#ifdef INTERNATIONAL
 								if (!FTF_GetNewFont ((const unsigned char *)tmpstr, 0, U.fontsize))
 									error ("No font file");
+								#endif
 							}
 						}
 						if(event==MIDDLEMOUSE && sfile->type) filesel_execute(sfile);

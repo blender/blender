@@ -158,6 +158,7 @@ void file_buttons(void)
 	
 		xco+= 100;	// scroll
 	}
+	#ifdef INTERNATIONAL
 	else if(sfile->type==FILE_LOADFONT) {
 		uiDefIconButBitS(block, TOG, FILE_SHOWSHORT, B_SORTFILELIST, ICON_FONTPREVIEW, xco+= XIC, 0, XIC, YIC, &sfile->f_fp, 0, 0, 0, 0, "Activate font preview");
 		if (sfile->f_fp)
@@ -165,6 +166,7 @@ void file_buttons(void)
 	
 		xco+= 100;	// scroll
 	}
+	#endif
 
 	uiDrawBlock(block);
 	
