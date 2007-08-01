@@ -3049,7 +3049,8 @@ static void editing_panel_curve_type(Object *ob, Curve *cu)
 			uiDefBut(block, LABEL, 0, str,						675,135,75,19, 0, 1.0, 0, 0, 0, "");
 			
 			uiBlockBeginAlign(block);
-			uiDefButS(block, NUM, B_RECALCPATH, "PathLen:",			600,50,150,19, &cu->pathlen, 1.0, MAXFRAMEF, 0, 0, "If no speed Ipo was set, the amount of frames of the path");
+			/*note, PathLen's max was MAXFRAMEF but this is a short, perhaps the pathlen should be increased later on */
+			uiDefButS(block, NUM, B_RECALCPATH, "PathLen:",			600,50,150,19, &cu->pathlen, 1.0, 32767.0f, 0, 0, "If no speed Ipo was set, the amount of frames of the path");
 			uiDefButBitS(block, TOG, CU_PATH, B_RECALCPATH, "CurvePath",	600,30,75,19 , &cu->flag, 0, 0, 0, 0, "Enables curve to become translation path");
 			uiDefButBitS(block, TOG, CU_FOLLOW, REDRAWVIEW3D, "CurveFollow",675,30,75,19, &cu->flag, 0, 0, 0, 0, "Makes curve path children to rotate along path");
 			uiDefButBitS(block, TOG, CU_STRETCH, B_CURVECHECK, "CurveStretch", 600,10,150,19, &cu->flag, 0, 0, 0, 0, "Option for curve-deform: makes deformed child to stretch along entire path");

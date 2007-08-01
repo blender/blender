@@ -68,7 +68,7 @@ def read(filename):
 	file = open(filename, "rb")
 
 	raw = []
-	for line in file.xreadlines():
+	for line in file: #.xreadlines():
 		data = line.split()
 		if data[0] == "vertex":
 			vert = map(float, data[1:])
