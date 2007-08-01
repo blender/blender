@@ -1245,12 +1245,17 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 						lamp_get_shadow(lar, shi, inp, shadfac, shi->depth);
 						
 					/* warning, here it skips the loop */
-					if(lar->mode & LA_ONLYSHADOW) {
+					if((lar->mode & LA_ONLYSHADOW) && i>0.0) {
 						
 						shadfac[3]= i*lar->energy*(1.0f-shadfac[3]);
 						shr->shad[0] -= shadfac[3]*shi->r;
 						shr->shad[1] -= shadfac[3]*shi->g;
 						shr->shad[2] -= shadfac[3]*shi->b;
+						
+						shr->spec[0] -= shadfac[3]*shi->specr;
+						shr->spec[1] -= shadfac[3]*shi->specg;
+						shr->spec[2] -= shadfac[3]*shi->specb;
+						
 						return;
 					}
 					
@@ -1280,7 +1285,7 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 		}
 		
 		/* specularity */
-		if(shadfac[3]>0.0f && shi->spec!=0.0f && !(lar->mode & LA_NO_SPEC)) {
+		if(shadfac[3]>0.0f && shi->spec!=0.0f && !(lar->mode & LA_NO_SPEC) && !(lar->mode & LA_ONLYSHADOW)) {
 			
 			if(!(passflag & (SCE_PASS_COMBINED|SCE_PASS_SPEC)));
 			else if(lar->type==LA_HEMI) {
@@ -1508,6 +1513,16 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 			shade_one_light(lar, shi, shr, passflag);
 		}
 
+		/*this check is to prevent only shadow lamps from producing negative
+		  colors.*/
+		if (shr->spec[0] < 0) shr->spec[0] = 0;
+		if (shr->spec[1] < 0) shr->spec[1] = 0;
+		if (shr->spec[2] < 0) shr->spec[2] = 0;
+
+		if (shr->shad[0] < 0) shr->shad[0] = 0;
+		if (shr->shad[1] < 0) shr->shad[1] = 0;
+		if (shr->shad[2] < 0) shr->shad[2] = 0;
+						
 		if(ma->sss_flag & MA_DIFF_SSS) {
 			float sss[3], col[3], texfac= ma->sss_texfac;
 
