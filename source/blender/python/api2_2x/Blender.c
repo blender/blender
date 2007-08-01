@@ -676,7 +676,7 @@ static PyObject *Blender_Save( PyObject * self, PyObject * args )
 
 	len = strlen( fname );
 
-	if( len > FILE_MAXFILE )
+	if( len > FILE_MAXDIR + FILE_MAXFILE )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 					      "filename is too long!" );
 	else if( BLI_exists( fname ) && !overwrite )

@@ -535,7 +535,7 @@ def get_float_func(filepath):
 	find the float function for this obj file
 	- weather to replace commas or not
 	'''
-	file= open(filepath, 'r')
+	file= open(filepath, 'rU')
 	for line in file: #.xreadlines():
 		if line.startswith('v'): # vn vt v 
 			if ',' in line:

@@ -110,7 +110,7 @@ def eulerRotate(x,y,z, rot_order):
 def read_bvh(file_path, GLOBAL_SCALE=1.0):
 	# File loading stuff
 	# Open the file for importing
-	file = open(file_path, 'r')	
+	file = open(file_path, 'rU')	
 	
 	# Seperate into a list of lists, each line a list of words.
 	file_lines = file.readlines()
