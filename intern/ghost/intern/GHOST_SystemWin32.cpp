@@ -843,7 +843,7 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 * In GHOST, we let DefWindowProc call the timer callback.
 					 */
 					break;
-				case WM_BLND_3DX:
+				case WM_BLND_NDOF_AXIS:
 					{
 						GHOST_TEventNDOFData ndofdata;
 						system->m_ndofManager->GHOST_NDOFGetDatas(ndofdata);
@@ -851,6 +851,17 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 							pushEvent(new GHOST_EventNDOF(
 								system->getMilliSeconds(), 
 								GHOST_kEventNDOFMotion, 
+								window, ndofdata));
+					}
+					break;
+				case WM_BLND_NDOF_BTN:
+					{
+						GHOST_TEventNDOFData ndofdata;
+						system->m_ndofManager->GHOST_NDOFGetDatas(ndofdata);
+						system->m_eventManager->
+							pushEvent(new GHOST_EventNDOF(
+								system->getMilliSeconds(), 
+								GHOST_kEventNDOFButton, 
 								window, ndofdata));
 					}
 					break;
