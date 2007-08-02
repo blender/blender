@@ -71,9 +71,13 @@ typedef struct NDOFPlatformInfo {
 	Display *display;
 	Window window;
 	volatile GHOST_TEventNDOFData *currValues;
+	Atom cmdAtom;
+	Atom motionAtom;
+	Atom btnPressAtom;
+	Atom btnRelAtom;
 } NDOFPlatformInfo;
 
-static NDOFPlatformInfo sNdofInfo = {NULL, 0, NULL};
+static NDOFPlatformInfo sNdofInfo = {NULL, 0, NULL, 0, 0, 0, 0};
 
 using namespace std;
 
@@ -462,21 +466,30 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			} else 
 #endif
 			if (sNdofInfo.currValues) {
-  				GHOST_TEventNDOFData data;
-				data.changed = 1;
-				data.delta = xcme.data.s[8] - data.time;
-				data.time = xcme.data.s[8];
-				data.tx = xcme.data.s[2] >> 4;
-				data.ty = xcme.data.s[3] >> 4;
-				data.tz = xcme.data.s[4] >> 4;
-				data.rx = xcme.data.s[5];
-				data.ry = xcme.data.s[6];
-				data.rz = xcme.data.s[7];
-
-				g_event = new GHOST_EventNDOF(getMilliSeconds(),
-                                GHOST_kEventNDOFMotion,
-                                window, data);
-				
+				static GHOST_TEventNDOFData data = {0,0,0,0,0,0,0,0,0,0,0};
+				if (xcme.message_type == sNdofInfo.motionAtom)
+				{
+					data.changed = 1;
+					data.delta = xcme.data.s[8] - data.time;
+					data.time = xcme.data.s[8];
+					data.tx = xcme.data.s[2];
+					data.ty = xcme.data.s[3];
+					data.tz = xcme.data.s[4];
+					data.rx = xcme.data.s[5];
+					data.ry = xcme.data.s[6];
+					data.rz = xcme.data.s[7];
+					g_event = new GHOST_EventNDOF(getMilliSeconds(),
+					                              GHOST_kEventNDOFMotion,
+					                              window, data);
+				} else if (xcme.message_type == sNdofInfo.btnPressAtom) {
+					data.changed = 2;
+					data.delta = xcme.data.s[8] - data.time;
+					data.time = xcme.data.s[8];
+					data.buttons = xcme.data.s[2];
+					g_event = new GHOST_EventNDOF(getMilliSeconds(),
+					                              GHOST_kEventNDOFButton,
+					                              window, data);
+				}
 			} else {
 				/* Unknown client message, ignore */
 			}
