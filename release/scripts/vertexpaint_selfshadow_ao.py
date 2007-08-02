@@ -39,6 +39,7 @@ and optionaly blur the shading to remove artifacts from spesific edges.
 # --------------------------------------------------------------------------
 
 from Blender import Scene, Draw, sys, Window, Mathutils, Mesh
+import bpy
 import BPyMesh
 
 
@@ -135,10 +136,10 @@ def vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_RADIUS, PREF_MIN_EDLEN, PRE
 	Window.WaitCursor(0)
 
 def main():
-	scn= Scene.GetCurrent()
-	ob= scn.getActiveObject()
+	sce= bpy.data.scenes.active
+	ob= sce.objects.active
 	
-	if not ob or ob.getType() != 'Mesh':
+	if not ob or ob.type != 'Mesh':
 		Draw.PupMenu('Error, no active mesh object, aborting.')
 		return
 	
@@ -174,8 +175,8 @@ def main():
 	PREF_SHADOW_ONLY= PREF_SHADOW_ONLY.val
 	PREF_SEL_ONLY= PREF_SEL_ONLY.val
 	
-	if not me.faceUV:
-		me.faceUV= 1
+	if not me.vertexColors:
+		me.vertexColors= 1
 	
 	t= sys.time()
 	vertexFakeAO(me, PREF_BLUR_ITERATIONS, PREF_BLUR_RADIUS, PREF_MIN_EDLEN, PREF_CLAMP_CONCAVE, PREF_CLAMP_CONVEX, PREF_SHADOW_ONLY, PREF_SEL_ONLY)

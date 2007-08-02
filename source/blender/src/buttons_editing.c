@@ -4149,6 +4149,8 @@ void do_meshbuts(unsigned short event)
 				if(!mcol)
 					shadeMeshMCol(ob, me);
 			}
+			
+			if (me->mr) multires_load_cols(me);
 
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			BIF_undo_push("New Vertex Color");

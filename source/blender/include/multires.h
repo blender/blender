@@ -63,6 +63,9 @@ void multires_calc_level_maps(struct MultiresLevel *lvl);
 void multires_edge_level_update(void *ob, void *me);
 int multires_modifier_warning();
 
+/* after adding or removing vcolor layers, run this */
+void multires_load_cols(Mesh *me);
+
 /* multires-firstlevel.c */
 /* Generic */
 void multires_update_customdata(struct MultiresLevel *lvl1, struct CustomData *src,

@@ -17,6 +17,7 @@ face's attributes (the vertex color):
 
 Example::
 	from Blender import *
+	import bpy
 
 	editmode = Window.EditMode()    # are we in edit mode?  If so ...
 	if editmode: Window.EditMode(0) # leave edit mode before getting the mesh
@@ -25,7 +26,7 @@ Example::
 	coords=[ [-1,-1,-1], [1,-1,-1], [1,1,-1], [-1,1,-1], [0,0,1] ]	
 	faces= [ [3,2,1,0], [0,1,4], [1,2,4], [2,3,4], [3,0,4] ]
 
-	me = Mesh.New('myMesh')          # create a new mesh
+	me = bpy.data.meshes.new('myMesh')          # create a new mesh
 
 	me.verts.extend(coords)          # add vertices to mesh
 	me.faces.extend(faces)           # add faces to the mesh (also adds edges)
@@ -35,7 +36,7 @@ Example::
 	me.faces[1].col[1].g = 255
 	me.faces[1].col[2].b = 255
 
-	scn = Scene.GetCurrent()          # link object to current scene
+	scn = bpy.data.scenes.active     # link object to current scene
 	ob = scn.objects.new(me, 'myObj')
 
 	if editmode: Window.EditMode(1)  # optional, just being nice
@@ -518,7 +519,7 @@ class MFace:
 			me= ob.getData(mesh=1)	# thin wrapper doesn't copy mesh data like nmesh
 			me.vertexColors= True	# Enable face, vertex colors
 			for f in me.faces:
-				for i, v in enumerate(f.v):
+				for i, v in enumerate(f):
 					no= v.no
 					col= f.col[i]
 					col.r= int((no.x+1)*128)
@@ -740,19 +741,9 @@ class Mesh:
 	@type hide: boolean
 	@ivar subDivLevels: The [display, rendering] subdivision levels in [1, 6].
 	@type subDivLevels: list of 2 ints
-
-	@ivar faceUV: The mesh contains UV-mapped textured faces.  Enabling faceUV
-		does not initialize the face colors like the Blender UI does; this must
-		be done in the script.  B{Note}: if faceUV is set, L{vertexColors} cannot
-		be set.  Furthermore, if vertexColors is already set when faceUV is set,
-		vertexColors is cleared.  This is because the vertex color information
-		is stored with UV faces, so enabling faceUV implies enabling vertexColors.
-		In addition, faceUV cannot be set when the mesh has no faces defined
-		(this is the same behavior as the UI).  Attempting to do so will throw
-		a RuntimeError exception.
+	@ivar faceUV: The mesh contains UV-mapped textured faces.
 	@type faceUV: bool
-	@ivar vertexColors: The mesh contains vertex colors.  See L{faceUV} for the
-		use of vertex colors when UV-mapped texture faces are enabled.
+	@ivar vertexColors: The mesh contains vertex colors. Set True to add vertex colors.
 	@type vertexColors: bool
 	@ivar vertexUV: The mesh contains "sticky" per-vertex UV coordinates.
 	@type vertexUV: bool

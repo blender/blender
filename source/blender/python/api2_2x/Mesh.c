@@ -6445,6 +6445,9 @@ static PyObject * Mesh_addCustomLayer_internal(Mesh *me, PyObject * args, int ty
 		CustomData_add_layer(data, type, CD_DEFAULT,
 											NULL, me->totface);
 	mesh_update_customdata_pointers(me);
+	if (type==CD_MCOL && me->mr)
+		multires_load_cols(me);
+		
 	Py_RETURN_NONE;
 }
 
@@ -6492,6 +6495,9 @@ static PyObject *Mesh_removeLayer_internal( BPy_Mesh * self, PyObject * args, in
 				set_faceselect();  /* get out of faceselect mode */
 		}
 	}
+	
+	if (type==CD_MCOL && me->mr)
+		multires_load_cols(me);
 	
 	Py_RETURN_NONE;
 }
@@ -7376,7 +7382,9 @@ static int Mesh_setFlag( BPy_Mesh * self, PyObject *value, void *type )
 		} else if( !mesh->mcol ) {
 				/* TODO: mesh_create_shadedColors */
 			mesh->mcol = CustomData_add_layer( &mesh->fdata, CD_MCOL,
-				CD_DEFAULT, NULL, mesh->totface );
+					CD_DEFAULT, NULL, mesh->totface );
+			
+			if (mesh->mr) multires_load_cols(mesh);
 		}
 		return 0;
 	case MESH_HASVERTUV:
