@@ -57,6 +57,25 @@
  *	Returns -
 */
 
+void BME_dissolve_edges(BME_Mesh *bm)
+{
+	BME_Edge *e,*nexte;
+	BME_Poly *f1, *f2;
+	BME_Loop *next;
+	
+	e=BME_first(bm,BME_EDGE);
+	while(e){
+		nexte = BME_next(bm,BME_EDGE,e);
+		if(BME_SELECTED(e)){
+			f1 = e->loop->f;
+			next = BME_radial_nextloop(e->loop);
+			f2 = next->f;
+			BME_JFKE(bm,f1,f2,e);
+		}
+		e = nexte;
+	}
+}
+
 /**
  *			BME_cut_edge
  *
@@ -65,7 +84,8 @@
  *
  */
 
-void BME_cut_edge(BME_Mesh *bm, BME_Edge *e, int numcuts){
+void BME_cut_edge(BME_Mesh *bm, BME_Edge *e, int numcuts)
+{
 	int i;
 	float percent, step,length, vt1[3], v2[3];
 	BME_Vert *nv;
@@ -106,7 +126,7 @@ void BME_cut_edges(BME_Mesh *bm, int numcuts)
 {
 	BME_Edge *e;
 	for(e=BME_first(bm,BME_EDGE); e; e=BME_next(bm,BME_EDGE,e)){
-		if(BME_SELECTED(e)) 
+		if(BME_SELECTED(e) && !(BME_NEWELEM(e))) 
 			BME_cut_edge(bm,e,numcuts);
 	}
 }

@@ -91,6 +91,8 @@ BME_Vert *BME_addvertlist(BME_Mesh *bm, BME_Vert *example){
 	v = MEM_callocN(sizeof(BME_Vert), "BME Vertex");
 	BLI_addtail(&(bm->verts), v);
 	v->EID = bm->nextv;
+	v->flag |= BME_NEW;
+	if(example && (example->flag & SELECT))v->flag |=SELECT; 
 	bm->nextv++;
 	bm->totvert++;
 
@@ -111,6 +113,8 @@ BME_Edge *BME_addedgelist(BME_Mesh *bm, BME_Vert *v1, BME_Vert *v2, BME_Edge *ex
 	e->d1.data = e;
 	e->d2.data = e;
 	e->EID = bm->nexte;
+	e->flag |= BME_NEW;
+	if(example && (example->flag & SELECT))e->flag |=SELECT;
 	bm->nexte++;
 	bm->totedge++;
 	BLI_addtail(&(bm->edges), e);
@@ -134,6 +138,7 @@ BME_Loop *BME_create_loop(BME_Mesh *bm, BME_Vert *v, BME_Edge *e, BME_Poly *f, B
 	l->f = f;
 	l->EID = bm->nextl;
 	l->gref = loopnode;
+	l->flag |= BME_NEW;
 	loopnode->data = l;
 	BLI_addtail(&(bm->loops),loopnode);
 	bm->nextl++;
@@ -153,6 +158,8 @@ BME_Poly *BME_addpolylist(BME_Mesh *bm, BME_Poly *example){
 	f= MEM_callocN(sizeof(BME_Poly),"BME_Poly");
 	BLI_addtail(&(bm->polys),f);
 	f->EID = bm->nextp;
+	f->flag |= BME_NEW;
+	if(example && (example->flag & SELECT))f->flag|=SELECT;
 	bm->nextp++;
 	bm->totpoly++;
 

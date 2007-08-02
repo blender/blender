@@ -197,10 +197,12 @@ void BME_select_vert(struct BME_Mesh *bm, struct BME_Vert *v, int select);
 void BME_select_edge(struct BME_Mesh *bm, struct BME_Edge *e, int select);
 void BME_select_poly(struct BME_Mesh *bm, struct BME_Poly *f, int select);
 #define BME_SELECTED(element) (element->flag & SELECT)
+#define BME_NEWELEM(element) (element->flag & BME_NEW)
 
 /*TOOLS CODE*/
 void BME_cut_edge(struct BME_Mesh *bm, BME_Edge *e, int numcuts);
 void BME_cut_edges(struct BME_Mesh *bm, int numcuts);
 struct BME_Loop *BME_inset_edge(struct BME_Mesh *bm, struct BME_Loop *l, struct BME_Poly *f);
 struct BME_Poly *BME_inset_poly(struct BME_Mesh *bm, struct BME_Poly *f);
+void BME_dissolve_edges(struct BME_Mesh *bm);
 #endif

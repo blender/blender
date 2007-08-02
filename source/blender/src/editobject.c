@@ -2346,8 +2346,14 @@ void special_editmenu(void)
 			{
 				EM_cut_edges(1);
 				BIF_undo_push("Cut Edges");            
-				break;
 			}
+			break;
+		case 205:
+			{
+				EM_dissolve_edges();
+				BIF_undo_push("Dissolve Edges");
+			}
+			break;
 		}
 		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		
