@@ -1866,7 +1866,6 @@ static void validate_bonebutton_cb(void *bonev, void *namev)
 	}
 }
 
-
 static void v3d_posearmature_buts(uiBlock *block, Object *ob, float lim)
 {
 	uiBut *but;
@@ -1954,9 +1953,9 @@ static void v3d_editarmature_buts(uiBlock *block, Object *ob, float lim)
 	uiDefButF(block, NUM, B_ARMATUREPANEL1, "TipY:",	160, 50, 140, 19, ebone->tail+1, -lim, lim, 10, 3, "");
 	uiDefButF(block, NUM, B_ARMATUREPANEL1, "TipZ:",	160, 30, 140, 19, ebone->tail+2, -lim, lim, 10, 3, "");
 	uiBlockEndAlign(block);
+	
 	tfp->ob_eul[0]= 180.0*ebone->roll/M_PI;
 	uiDefButF(block, NUM, B_ARMATUREPANEL1, "Roll:",	10, 100, 140, 19, tfp->ob_eul, -lim, lim, 1000, 3, "");
-	
 
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_ARMATUREPANEL1, "TipRadius:",	10, 150, 140, 19, &ebone->rad_tail, 0, lim, 10, 3, "");

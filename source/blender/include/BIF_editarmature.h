@@ -106,9 +106,9 @@ void	remake_editArmature(void);
 void	selectconnected_armature(void);
 void	selectconnected_posearmature(void);
 void	select_bone_parent(void);
-void    unique_editbone_name (struct ListBase *ebones, char* name);
+void    unique_editbone_name (struct ListBase *ebones, char *name);
 
-void	auto_align_armature(void);
+void	auto_align_armature(short mode);
 void	create_vgroups_from_armature(Object *ob, Object *par);
 
 void	hide_selected_pose_bones(void);

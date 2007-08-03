@@ -3633,6 +3633,39 @@ static uiBlock *view3d_edit_armature_parentmenu(void *arg_unused)
 	return block;
 }
 
+void do_view3d_edit_armature_rollmenu(void *arg, int event)
+{
+	if (event == 1 || event == 2)
+		/* set roll based on aligning z-axis */
+		auto_align_armature(event);
+	else if (event == 3) {
+		/* interactively set bone roll */
+		initTransform(TFM_BONE_ROLL, CTX_NONE);
+		Transform();
+	}
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+static uiBlock *view3d_edit_armature_rollmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+
+	block= uiNewBlock(&curarea->uiblocks, "view3d_edit_armature_rollmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_view3d_edit_armature_rollmenu, NULL);
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Roll (Z-Axis Up)|Ctrl N, 1",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Roll to Cursor|Ctrl N, 2", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Roll|Ctrl R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	return block;
+}
+
 static void do_view3d_edit_armaturemenu(void *arg, int event)
 {
 	switch(event) {
@@ -3662,18 +3695,12 @@ static void do_view3d_edit_armaturemenu(void *arg, int event)
 	case 10: /* forked! */
 		extrude_armature(1);
 		break;
-	case 11: /* clear roll */
-		auto_align_armature();
-		break;
 	case 12: /* subdivide */
 		subdivide_armature();
 		break;
 	case 13: /* flip left and right names */
 		armature_flip_names();
 		break;
-	case 14: /* interactively set bone roll */
-		initTransform(TFM_BONE_ROLL, CTX_NONE);
-		Transform();
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -3729,8 +3756,7 @@ static uiBlock *view3d_edit_armaturemenu(void *arg_unused)
 	uiDefIconTextBlockBut(block, view3d_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_mirrormenu, NULL, ICON_RIGHTARROW_THIN, "Mirror", 0, yco-=20, menuwidth, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_snapmenu, NULL, ICON_RIGHTARROW_THIN, "Snap", 0, yco-=20, 120, 19, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Bone Roll Angle|Ctrl R",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 14, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clear Bone Roll Angle|Ctrl N",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");
+	uiDefIconTextBlockBut(block, view3d_edit_armature_rollmenu, NULL, ICON_RIGHTARROW_THIN, "Bone Roll", 0, yco-=20, 120, 19, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 

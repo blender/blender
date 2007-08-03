@@ -1269,37 +1269,80 @@ void deselectall_armature(int toggle, int doundo)
 	}
 }
 
-void auto_align_armature(void)
-/* Sets the roll value of selected bones so that their zaxes point upwards */
+/* Sets the roll value of selected bones, depending on the mode
+ * 	mode == 0: their z-axes point upwards 
+ * 	mode == 1: their z-axes point towards 3d-cursor
+ */
+void auto_align_armature(short mode)
 {
 	bArmature *arm= G.obedit->data;
 	EditBone *ebone;
-	float	xaxis[3]={1.0, 0.0, 0.0}, yaxis[3], zaxis[3]={0.0, 0.0, 1.0};
-	float	targetmat[3][3], imat[3][3];
-	float	curmat[3][3], diffmat[3][3];
 	float	delta[3];
-	
-	for (ebone = G.edbo.first; ebone; ebone=ebone->next){
+	float	curmat[3][3];
+	float  	*cursor= give_cursor();
+		
+	for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
 		if(arm->layer & ebone->layer) {
-			if (ebone->flag & BONE_SELECTED){
-				/* Find the current bone matrix */
-				VecSubf(delta, ebone->tail, ebone->head);
-				vec_roll_to_mat3(delta, 0.0, curmat);
-				
-				/* Make new matrix based on y axis & z-up */
-				VECCOPY (yaxis, curmat[1]);
-				
-				Mat3One(targetmat);
-				VECCOPY (targetmat[0], xaxis);
-				VECCOPY (targetmat[1], yaxis);
-				VECCOPY (targetmat[2], zaxis);
-				Mat3Ortho(targetmat);
-				
-				/* Find the difference between the two matrices */
-				Mat3Inv(imat, targetmat);
-				Mat3MulMat3(diffmat, imat, curmat);
-				
-				ebone->roll = atan2(diffmat[2][0], diffmat[2][2]);
+			if (ebone->flag & BONE_SELECTED) {
+				/* specific method used to calculate roll depends on mode */
+				if (mode == 1) {
+					/* Z-Axis point towards cursor */
+					float	mat[4][4], tmat[4][4], imat[4][4];
+					float 	rmat[4][4], rot[3];
+					float	vec[3];
+					
+					/* find the current bone matrix as a 4x4 matrix (in Armature Space) */
+					VecSubf(delta, ebone->tail, ebone->head);
+					vec_roll_to_mat3(delta, ebone->roll, curmat);
+					Mat4CpyMat3(mat, curmat);
+					VECCOPY(mat[3], ebone->head);
+					
+					/* multiply bone-matrix by object matrix (so that bone-matrix is in WorldSpace) */
+					Mat4MulMat4(tmat, mat, G.obedit->obmat);
+					Mat4Invert(imat, tmat);
+					
+					/* find position of cursor relative to bone */
+					VecMat4MulVecfl(vec, imat, cursor);
+					
+					/* check that cursor is in usable position */
+					if ((IS_EQ(vec[0], 0)==0) && (IS_EQ(vec[2], 0)==0)) {
+						/* Compute a rotation matrix around y */
+						rot[1] = atan2(vec[0], vec[2]);
+						rot[0] = rot[2] = 0.0f;
+						EulToMat4(rot, rmat);
+						
+						/* Multiply the bone matrix by rotation matrix. This should be new bone-matrix */
+						Mat4MulMat4(tmat, rmat, mat);
+						Mat3CpyMat4(curmat, tmat);
+						
+						/* Now convert from new bone-matrix, back to a roll value (in radians) */
+						mat3_to_vec_roll(curmat, delta, &ebone->roll);
+					}
+				}
+				else { 
+					/* Z-Axis Point Up */
+					float	xaxis[3]={1.0, 0.0, 0.0}, yaxis[3], zaxis[3]={0.0, 0.0, 1.0};
+					float	targetmat[3][3], imat[3][3], diffmat[3][3];
+					
+					/* Find the current bone matrix */
+					VecSubf(delta, ebone->tail, ebone->head);
+					vec_roll_to_mat3(delta, 0.0, curmat);
+					
+					/* Make new matrix based on y axis & z-up */
+					VECCOPY (yaxis, curmat[1]);
+					
+					Mat3One(targetmat);
+					VECCOPY (targetmat[0], xaxis);
+					VECCOPY (targetmat[1], yaxis);
+					VECCOPY (targetmat[2], zaxis);
+					Mat3Ortho(targetmat);
+					
+					/* Find the difference between the two matrices */
+					Mat3Inv(imat, targetmat);
+					Mat3MulMat3(diffmat, imat, curmat);
+					
+					ebone->roll = atan2(diffmat[2][0], diffmat[2][2]);
+				}
 			}
 		}
 	}

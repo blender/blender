@@ -2080,9 +2080,10 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else if(G.obedit) {
 					switch (G.obedit->type){
 					case OB_ARMATURE:
-						if(G.qual==LR_CTRLKEY){
-							if (okee("Recalculate bone roll angles")) {
-								auto_align_armature();
+						if(G.qual==LR_CTRLKEY) {
+							pupval= pupmenu("Recalculate Bone Roll Angles%t|Clear Roll (Z-Axis Up) %x1|Align Z-Axis to 3D-Cursor %x2");
+							if (pupval > 0) {
+								auto_align_armature(pupval - 1);
 								allqueue(REDRAWVIEW3D, 0);
 							}
 						}
