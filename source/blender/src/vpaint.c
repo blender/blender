@@ -250,7 +250,9 @@ void make_vertexcol(int shade)	/* single ob */
 		shadeMeshMCol(ob, me);
 	else
 		memset(me->mcol, 255, 4*sizeof(MCol)*me->totface);
-
+	
+	if (me->mr) multires_load_cols(me);
+	
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 	
 	allqueue(REDRAWBUTSEDIT, 0);
