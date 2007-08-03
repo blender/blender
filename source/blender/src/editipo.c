@@ -4747,7 +4747,7 @@ void remake_ipo_transverts(TransVert *transmain, float *dvec, int tot)
 		if (NLA_IPO_SCALED) {
 			tv->oldloc[0] = get_action_frame_inv(OBACT, tv->loc[0]);
 			tv->oldloc[0]-= dvec[0];
-			tv->oldloc[0] = get_action_frame(OBACT, tv->loc[0]);
+			tv->oldloc[0] = get_action_frame(OBACT, tv->oldloc[0]);
 		}
 		else {
 			tv->oldloc[0]= tv->loc[0]-dvec[0];
