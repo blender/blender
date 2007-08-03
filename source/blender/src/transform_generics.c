@@ -403,6 +403,7 @@ void initTransModeFlags(TransInfo *t, int mode)
 	case TFM_CREASE:
 	case TFM_BONE_ENVELOPE:
 	case TFM_CURVE_SHRINKFATTEN:
+	case TFM_BONE_ROLL:
 		t->flag |= T_NO_CONSTRAINT;
 		break;
 	}
