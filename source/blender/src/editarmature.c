@@ -2817,6 +2817,7 @@ void transform_armature_mirror_update(void)
 				}
 				if(ebo->flag & BONE_SELECTED) {
 					eboflip->dist= ebo->dist;
+					eboflip->roll= -ebo->roll;
 					eboflip->xwidth= ebo->xwidth;
 					eboflip->zwidth= ebo->zwidth;
 				}
