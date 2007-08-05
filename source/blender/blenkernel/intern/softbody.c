@@ -2893,7 +2893,7 @@ static int softbody_baked_step(Object *ob, float framenr, float (*vertexCos)[3],
  	
 	/* convert cfra time to system time */
 	sfra= (float)sb->sfra;
-	cfra= bsystem_time(ob, NULL, framenr, 0.0);
+	cfra= bsystem_time(ob, framenr, 0.0);
 	efra= (float)sb->efra;
 	dfra= (float)sb->interval;
 
@@ -2948,7 +2948,7 @@ static void softbody_baked_add(Object *ob, float framenr)
 	/* convert cfra time to system time */
 	sfra= (float)sb->sfra;
 	fac1= ob->sf; ob->sf= 0.0f;	/* disable startframe */
-	cfra= bsystem_time(ob, NULL, framenr, 0.0);
+	cfra= bsystem_time(ob, framenr, 0.0);
 	ob->sf= fac1;
 	efra= (float)sb->efra;
 	dfra= (float)sb->interval;
@@ -3126,7 +3126,7 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts
 
 	/* checking time: */
 
-	ctime= bsystem_time(ob, NULL, framenr, 0.0);
+	ctime= bsystem_time(ob, framenr, 0.0);
 
 	if (ob->softflag&OB_SB_RESET) {
 		dtime = 0.0;

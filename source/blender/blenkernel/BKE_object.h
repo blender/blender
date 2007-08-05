@@ -81,7 +81,7 @@ void set_mblur_offs(float blur);
 void set_field_offs(float field);
 void disable_speed_curve(int val);
 
-float bsystem_time(struct Object *ob, struct Object *par, float cfra, float ofs);
+float bsystem_time(struct Object *ob, float cfra, float ofs);
 void object_to_mat3(struct Object *ob, float mat[][3]);
 void object_to_mat4(struct Object *ob, float mat[][4]);
 

@@ -1132,20 +1132,23 @@ void disable_speed_curve(int val)
 }
 
 /* ob can be NULL */
-float bsystem_time(Object *ob, Object *par, float cfra, float ofs)
+float bsystem_time(Object *ob, float cfra, float ofs)
 {
 	/* returns float ( see frame_to_float in ipo.c) */
-
+	
+	/* bluroffs and fieldoffs are ugly globals that are set by render */
 	cfra+= bluroffs+fieldoffs;
 
 	/* global time */
 	cfra*= G.scene->r.framelen;	
 	
-	if(no_speed_curve==0) if(ob && ob->ipo) cfra= calc_ipo_time(ob->ipo, cfra);
-	
-	/* ofset frames */
-	if(ob && (ob->ipoflag & OB_OFFS_PARENT)) {
-		if((ob->partype & PARSLOW)==0) cfra-= ob->sf;
+	if (ob) {
+		if (no_speed_curve==0 && ob->ipo) 
+			cfra= calc_ipo_time(ob->ipo, cfra);
+		
+		/* ofset frames */
+		if ((ob->ipoflag & OB_OFFS_PARENT) && (ob->partype & PARSLOW)==0) 
+			cfra-= ob->sf;
 	}
 	
 	cfra-= ofs;
@@ -1236,7 +1239,7 @@ static void ob_parcurve(Object *ob, Object *par, float mat[][4])
 	}
 	/* catch exceptions: curve paths used as a duplicator */
 	else if(enable_cu_speed) {
-		ctime= bsystem_time(ob, par, (float)G.scene->r.cfra, 0.0);
+		ctime= bsystem_time(ob, (float)G.scene->r.cfra, 0.0);
 		
 		if(calc_ipo_spec(cu->ipo, CU_SPEED, &ctime)==0) {
 			ctime /= cu->pathlen;
@@ -1488,7 +1491,7 @@ void where_is_object_time(Object *ob, float ctime)
 	if(ob==NULL) return;
 	
 	/* this is needed to be able to grab objects with ipos, otherwise it always freezes them */
-	stime= bsystem_time(ob, 0, ctime, 0.0);
+	stime= bsystem_time(ob, ctime, 0.0);
 	if(stime != ob->ctime) {
 		
 		ob->ctime= stime;

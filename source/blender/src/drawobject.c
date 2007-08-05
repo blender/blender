@@ -2610,7 +2610,7 @@ static void draw_particle_system(Base *base, PartEff *paf)
 	
 	if(ob->ipoflag & OB_OFFS_PARTICLE) ptime= ob->sf;
 	else ptime= 0.0;
-	ctime= bsystem_time(ob, 0, (float)(G.scene->r.cfra), ptime);
+	ctime= bsystem_time(ob, (float)(G.scene->r.cfra), ptime);
 
 	glPointSize(1.0);
 	
@@ -4191,7 +4191,7 @@ void draw_object(Base *base, int flag)
 
 			for (curcon = list->first; curcon; curcon=curcon->next){
 				if ((curcon->flag & CONSTRAINT_EXPAND)&&(curcon->type!=CONSTRAINT_TYPE_NULL)&&(constraint_has_target(curcon))){
-					get_constraint_target_matrix(curcon, TARGET_OBJECT, NULL, tmat, bsystem_time(ob, 0, (float)(G.scene->r.cfra), ob->sf));
+					get_constraint_target_matrix(curcon, TARGET_OBJECT, NULL, tmat, bsystem_time(ob, (float)(G.scene->r.cfra), ob->sf));
 					setlinestyle(3);
 					glBegin(GL_LINES);
 					glVertex3fv(tmat[3]);

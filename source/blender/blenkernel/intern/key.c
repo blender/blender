@@ -1025,7 +1025,7 @@ static int do_mesh_key(Object *ob, Mesh *me)
 		
 		for(a=0; a<me->totvert; a+=step, cfra+= delta) {
 			
-			ctime= bsystem_time(0, 0, cfra, 0.0);
+			ctime= bsystem_time(0, cfra, 0.0);
 			if(calc_ipo_spec(me->key->ipo, KEY_SPEED, &ctime)==0) {
 				ctime /= 100.0;
 				CLAMP(ctime, 0.0, 1.0);
@@ -1060,7 +1060,7 @@ static int do_mesh_key(Object *ob, Mesh *me)
 			}
 		}
 		else {
-			ctime= bsystem_time(ob, 0, G.scene->r.cfra, 0.0);
+			ctime= bsystem_time(ob, G.scene->r.cfra, 0.0);
 
 			if(calc_ipo_spec(me->key->ipo, KEY_SPEED, &ctime)==0) {
 				ctime /= 100.0;
@@ -1180,7 +1180,7 @@ static int do_curve_key(Curve *cu)
 		
 		for(a=0; a<tot; a+=step, cfra+= delta) {
 			
-			ctime= bsystem_time(0, 0, cfra, 0.0);
+			ctime= bsystem_time(0, cfra, 0.0);
 			if(calc_ipo_spec(cu->key->ipo, KEY_SPEED, &ctime)==0) {
 				ctime /= 100.0;
 				CLAMP(ctime, 0.0, 1.0);
@@ -1202,7 +1202,7 @@ static int do_curve_key(Curve *cu)
 	}
 	else {
 		
-		ctime= bsystem_time(NULL, 0, (float)G.scene->r.cfra, 0.0);
+		ctime= bsystem_time(NULL, (float)G.scene->r.cfra, 0.0);
 		
 		if(cu->key->type==KEY_RELATIVE) {
 			do_rel_cu_key(cu, ctime);
@@ -1244,7 +1244,7 @@ static int do_latt_key(Object *ob, Lattice *lt)
 		
 		for(a=0; a<tot; a++, cfra+= delta) {
 			
-			ctime= bsystem_time(0, 0, cfra, 0.0);
+			ctime= bsystem_time(0, cfra, 0.0);
 			if(calc_ipo_spec(lt->key->ipo, KEY_SPEED, &ctime)==0) {
 				ctime /= 100.0;
 				CLAMP(ctime, 0.0, 1.0);
@@ -1261,7 +1261,7 @@ static int do_latt_key(Object *ob, Lattice *lt)
 		}		
 	}
 	else {
-		ctime= bsystem_time(NULL, 0, (float)G.scene->r.cfra, 0.0);
+		ctime= bsystem_time(NULL, (float)G.scene->r.cfra, 0.0);
 	
 		if(lt->key->type==KEY_RELATIVE) {
 			KeyBlock *kb;
@@ -1342,7 +1342,7 @@ int do_ob_key(Object *ob)
 		if(ob->ipoflag & OB_ACTION_KEY)
 			do_all_object_actions(ob);
 		else {
-			calc_ipo(key->ipo, bsystem_time(ob, 0, G.scene->r.cfra, 0.0));
+			calc_ipo(key->ipo, bsystem_time(ob, G.scene->r.cfra, 0.0));
 			execute_ipo((ID *)key, key->ipo);
 		}
 		

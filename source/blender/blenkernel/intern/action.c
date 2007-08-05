@@ -1111,7 +1111,7 @@ static void do_nla(Object *ob, int blocktype)
 								if(cu->path) {
 									
 									/* Find the position on the path */
-									ctime= bsystem_time(ob, parent, scene_cfra, 0.0);
+									ctime= bsystem_time(ob, scene_cfra, 0.0);
 									
 									if(calc_ipo_spec(cu->ipo, CU_SPEED, &ctime)==0) {
 										/* correct for actions not starting on zero */
@@ -1133,7 +1133,7 @@ static void do_nla(Object *ob, int blocktype)
 									}
 									
 									frametime = (striptime * actlength) + strip->actstart;
-									frametime= bsystem_time(ob, 0, frametime, 0.0);
+									frametime= bsystem_time(ob, frametime, 0.0);
 									
 									if(blocktype==ID_AR) {
 										extract_pose_from_action (tpose, strip->act, frametime);
@@ -1184,7 +1184,7 @@ static void do_nla(Object *ob, int blocktype)
 						
 						frametime = actlength * (strip->repeat-(int)strip->repeat);
 						if(frametime<=0.000001f) frametime= actlength;	/* rounding errors... */
-						frametime= bsystem_time(ob, 0, frametime+strip->actstart, 0.0);
+						frametime= bsystem_time(ob, frametime+strip->actstart, 0.0);
 						
 						if(blocktype==ID_AR)
 							extract_pose_from_action (tpose, strip->act, frametime);
@@ -1267,7 +1267,7 @@ void do_all_pose_actions(Object *ob)
 		
 		cframe= get_action_frame(ob, cframe);
 		
-		extract_pose_from_action (ob->pose, ob->action, bsystem_time(ob, 0, cframe, 0.0));
+		extract_pose_from_action (ob->pose, ob->action, bsystem_time(ob, cframe, 0.0));
 	}
 	else if(ob->nlastrips.first) {
 		do_nla(ob, ID_AR);
@@ -1288,9 +1288,9 @@ void do_all_object_actions(Object *ob)
 		
 		cframe= get_action_frame(ob, cframe);
 		
-		extract_ipochannels_from_action(&tchanbase, &ob->id, ob->action, "Object", bsystem_time(ob, 0, cframe, 0.0));
+		extract_ipochannels_from_action(&tchanbase, &ob->id, ob->action, "Object", bsystem_time(ob, cframe, 0.0));
 		if(key)
-			extract_ipochannels_from_action(&tchanbase, &key->id, ob->action, "Shape", bsystem_time(ob, 0, cframe, 0.0));
+			extract_ipochannels_from_action(&tchanbase, &key->id, ob->action, "Shape", bsystem_time(ob, cframe, 0.0));
 		
 		if(tchanbase.first) {
 			execute_ipochannels(&tchanbase);

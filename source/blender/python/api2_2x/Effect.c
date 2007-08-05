@@ -1338,7 +1338,7 @@ static PyObject *Effect_getParticlesLoc( BPy_Effect * self )
 	if( !list )
 		return EXPP_ReturnPyObjError( PyExc_MemoryError, "PyList() failed" );
 
-	c_time= bsystem_time( ob, 0, cfra, p_time );
+	c_time= bsystem_time( ob, cfra, p_time );
 
 	for( a=0; a < paf->totpart; a++, pa += paf->totkey ) {
 		

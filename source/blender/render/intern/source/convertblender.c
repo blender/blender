@@ -1116,7 +1116,7 @@ static void render_particle_system(Render *re, Object *ob, Object *par, PartEff 
 
 	if(ob->ipoflag & OB_OFFS_PARTICLE) ptime= ob->sf;
 	else ptime= 0.0;
-	ctime= bsystem_time(ob, 0, (float)re->scene->r.cfra, ptime);
+	ctime= bsystem_time(ob, (float)re->scene->r.cfra, ptime);
 	seed= ma->seed1;
 	
 	for(a=0; a<paf->totpart; a++, pa+=paf->totkey, seed++) {
@@ -1353,7 +1353,7 @@ static void render_static_particle_system(Render *re, Object *ob, PartEff *paf)
 	
 	if(ob->ipoflag & OB_OFFS_PARTICLE) ptime= ob->sf;
 	else ptime= 0.0;
-	ctime= bsystem_time(ob, 0, (float)re->scene->r.cfra, ptime);
+	ctime= bsystem_time(ob, (float)re->scene->r.cfra, ptime);
 	seed= ma->seed1;
 
 	for(a=0; a<paf->totpart; a++, pa+=paf->totkey) {

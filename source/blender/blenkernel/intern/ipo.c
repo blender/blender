@@ -2000,7 +2000,7 @@ void do_ob_ipo(Object *ob)
 
 	/* do not set ob->ctime here: for example when parent in invisible layer */
 	
-	ctime= bsystem_time(ob, 0, (float) G.scene->r.cfra, 0.0);
+	ctime= bsystem_time(ob, (float) G.scene->r.cfra, 0.0);
 
 	calc_ipo(ob->ipo, ctime);
 

@@ -383,7 +383,7 @@ static DerivedMesh *buildModifier_applyModifier(ModifierData *md, Object *ob,
 	for(i = 0; i < maxFaces; ++i) faceMap[i] = i;
 
 	if (ob) {
-		frac = bsystem_time(ob, 0, (float)G.scene->r.cfra,
+		frac = bsystem_time(ob, (float)G.scene->r.cfra,
 		                    bmd->start - 1.0f) / bmd->length;
 	} else {
 		frac = G.scene->r.cfra - bmd->start / bmd->length;
@@ -4330,7 +4330,7 @@ static void waveModifier_do(
 	MVert *mvert = NULL;
 	MDeformVert *dvert = NULL;
 	int defgrp_index;
-	float ctime = bsystem_time(ob, 0, (float)G.scene->r.cfra, 0.0);
+	float ctime = bsystem_time(ob, (float)G.scene->r.cfra, 0.0);
 	float minfac =
 	  (float)(1.0 / exp(wmd->width * wmd->narrow * wmd->width * wmd->narrow));
 	float lifefac = wmd->height;

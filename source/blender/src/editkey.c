@@ -381,7 +381,7 @@ static KeyBlock *add_keyblock(Key *key)
 	if(key->type == KEY_RELATIVE) 
 		kb->pos= curpos+0.1;
 	else {
-		curpos= bsystem_time(0, 0, (float)CFRA, 0.0);
+		curpos= bsystem_time(0, (float)CFRA, 0.0);
 		if(calc_ipo_spec(key->ipo, KEY_SPEED, &curpos)==0) {
 			curpos /= 100.0;
 		}

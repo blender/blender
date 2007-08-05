@@ -1029,7 +1029,37 @@ void childof_const_setinv (void *conv, void *unused)
 		/* for now, just use pchan->constinv.
 		 * NOTE: bad hack... doesn't work in many cases
 		 */
+		//Mat4CpyMat4(data->invmat, pchan->constinv);
+		
+		bConstraintOb *cob;
+		float ctime= bsystem_time(ob, (float)G.scene->r.cfra, 0.0);	/* not accurate... */
+		float pmat[4][4], chmat[4][4], cimat[4][4];
+		float vec0[3]={0,0,0}, vec1[3]={1,1,1};
+		
+		/* make copies of pchan's original matrices */
+		Mat4CpyMat4(pmat, pchan->pose_mat);
+		Mat4CpyMat4(chmat, pchan->chan_mat);
+		Mat4CpyMat4(cimat, pchan->constinv);
+		
+		
+		/* clear pchan's transform (for constraint solving) */
+		LocEulSizeToMat4(pchan->chan_mat, vec0, vec0, vec1);
+		Mat4MulMat4(pchan->pose_mat, pmat, cimat);
+		Mat4One(pchan->constinv);
+		Mat4One(data->invmat);
+		
+		/* do constraint solving - code copied from armature.c (where_is_pose_bone) */
+		cob= constraints_make_evalob(ob, pchan, TARGET_BONE);
+		solve_constraints(&pchan->constraints, cob, ctime);
+		constraints_clear_evalob(cob);
+		
+		/* now set inverse */
 		Mat4CpyMat4(data->invmat, pchan->constinv);
+		
+		/* reset data */
+		Mat4CpyMat4(pchan->pose_mat, pmat);
+		Mat4CpyMat4(pchan->chan_mat, chmat);
+		Mat4CpyMat4(pchan->constinv, cimat);
 	}
 	else if (ob) {
 		/* use what_does_parent to find inverse - just like for normal parenting.

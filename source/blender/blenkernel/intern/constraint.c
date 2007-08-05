@@ -1454,7 +1454,7 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void *own
 				if (cu->path==NULL || cu->path->data==NULL) /* only happens on reload file, but violates depsgraph still... fix! */
 					makeDispListCurveTypes(data->tar, 0);
 				if (cu->path && cu->path->data) {
-					curvetime= bsystem_time(data->tar, data->tar->parent, (float)ctime, 0.0) - data->offset;
+					curvetime= bsystem_time(data->tar, (float)ctime, 0.0) - data->offset;
 					
 					if (calc_ipo_spec(cu->ipo, CU_SPEED, &curvetime)==0) {
 						curvetime /= cu->pathlen;

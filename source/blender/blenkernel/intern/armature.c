@@ -1922,7 +1922,7 @@ void where_is_pose (Object *ob)
 	Bone *bone;
 	bPoseChannel *pchan;
 	float imat[4][4];
-	float ctime= bsystem_time(ob, NULL, (float)G.scene->r.cfra, 0.0);	/* not accurate... */
+	float ctime= bsystem_time(ob, (float)G.scene->r.cfra, 0.0);	/* not accurate... */
 	
 	arm = get_armature(ob);
 	

@@ -582,7 +582,7 @@ static void particle_duplilist(ListBase *lb, Scene *sce, Object *par, PartEff *p
 		if(pa==NULL) return;
 	}
 	
-	ctime= bsystem_time(par, 0, (float)G.scene->r.cfra, 0.0);
+	ctime= bsystem_time(par, (float)G.scene->r.cfra, 0.0);
 	
 	lay= G.scene->lay;
 
