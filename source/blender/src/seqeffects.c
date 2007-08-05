@@ -1926,6 +1926,8 @@ static void init_transform_effect(Sequence *seq)
 	scale->rotIni=0;
 	scale->rotFin=0;
 	
+	scale->interpolation=1;
+	scale->percent=1;
 }
 
 static int num_inputs_transform()
@@ -1944,49 +1946,8 @@ static void copy_transform_effect(Sequence *dst, Sequence *src)
 	dst->effectdata = MEM_dupallocN(src->effectdata);
 }
 
-/* function assumes out to be zero'ed, only does RGBA */
-static void bilinear_interpolation_transform_float(ImBuf *in, float *out, float u, float v)
-{
-	float *row1, *row2, *row3, *row4, a, b;
-	float a_b, ma_b, a_mb, ma_mb;
-	float empty[4]= {0.0f, 0.0f, 0.0f, 0.0f};
-	int y1, y2, x1, x2;
-
-	x1= (int)floor(u);
-	x2= (int)ceil(u);
-	y1= (int)floor(v);
-	y2= (int)ceil(v);
-
-	/* sample area entirely outside image? */
-	if(x2<0 || x1>in->x-1 || y2<0 || y1>in->y-1)
-		return;
-	
-	/* sample including outside of edges of image */
-	if(x1<0 || y1<0) row1= empty;
-	else row1= in->rect_float + in->x * y1 * 4 + 4*x1;
-	
-	if(x1<0 || y2>in->y-1) row2= empty;
-	else row2= in->rect_float + in->x * y2 * 4 + 4*x1;
-	
-	if(x2>in->x-1 || y1<0) row3= empty;
-	else row3= in->rect_float + in->x * y1 * 4 + 4*x2;
-	
-	if(x2>in->x-1 || y2>in->y-1) row4= empty;
-	else row4= in->rect_float + in->x * y2 * 4 + 4*x2;
-	
-	a= u-floor(u);
-	b= v-floor(v);
-	a_b= a*b; ma_b= (1.0f-a)*b; a_mb= a*(1.0f-b); ma_mb= (1.0f-a)*(1.0f-b);
-	
-	out[0]= ma_mb*row1[0] + a_mb*row3[0] + ma_b*row2[0]+ a_b*row4[0];
-	out[1]= ma_mb*row1[1] + a_mb*row3[1] + ma_b*row2[1]+ a_b*row4[1];
-	out[2]= ma_mb*row1[2] + a_mb*row3[2] + ma_b*row2[2]+ a_b*row4[2];
-	out[3]= ma_mb*row1[3] + a_mb*row3[3] + ma_b*row2[3]+ a_b*row4[3];
-}
-
-
-static void do_transform_effect_float(Sequence * seq,float facf0, int x, int y, 
-			   struct ImBuf *ibuf1,float *out)
+static void do_transform(Sequence * seq,float facf0, int x, int y, 
+			  struct ImBuf *ibuf1,struct ImBuf *out)
 {
 	int xo, yo, xi, yi;
 	float xs,ys,factxScale,factyScale,tx,ty,rad,s,c,xaux,yaux,factRot,px,py;
@@ -1996,15 +1957,20 @@ static void do_transform_effect_float(Sequence * seq,float facf0, int x, int y,
 	xo = x;
 	yo = y;
 
-	/*factor scale*/
+	//factor scale
 	factxScale = scale->ScalexIni + (scale->ScalexFin - scale->ScalexIni) * facf0;
 	factyScale = scale->ScaleyIni + (scale->ScaleyFin - scale->ScaleyIni) * facf0;
 
-	/*Factor translate*/
-	tx = scale->xIni+(xo / 2.0f) + (scale->xFin-(xo / 2.0f) - scale->xIni+(xo / 2.0f)) * facf0;
-	ty = scale->yIni+(yo / 2.0f) + (scale->yFin-(yo / 2.0f) - scale->yIni+(yo / 2.0f)) * facf0;
+	//Factor translate
+	if(!scale->percent){
+		tx = scale->xIni+(xo / 2.0f) + (scale->xFin-(xo / 2.0f) - scale->xIni+(xo / 2.0f)) * facf0;
+		ty = scale->yIni+(yo / 2.0f) + (scale->yFin-(yo / 2.0f) - scale->yIni+(yo / 2.0f)) * facf0;
+	}else{
+		tx = xo*(scale->xIni/100.0)+(xo / 2.0f) + (xo*(scale->xFin/100.0)-(xo / 2.0f) - xo*(scale->xIni/100.0)+(xo / 2.0f)) * facf0;
+		ty = yo*(scale->yIni/100.0)+(yo / 2.0f) + (yo*(scale->yFin/100.0)-(yo / 2.0f) - yo*(scale->yIni/100.0)+(yo / 2.0f)) * facf0;
+	}
 
-	/*factor Rotate*/
+	//factor Rotate
 	factRot = scale->rotIni + (scale->rotFin - scale->rotIni) * facf0;
 	rad = (M_PI * factRot) / 180.0f;
 	s= sin(rad);
@@ -2012,162 +1978,29 @@ static void do_transform_effect_float(Sequence * seq,float facf0, int x, int y,
 
 	for (yi = 0; yi < yo; yi++) {
 		for (xi = 0; xi < xo; xi++) {
-			/*tranlate point*/
+			//tranlate point
 			px = xi-tx;
 			py = yi-ty;
 
-			/*rotate point with center ref*/
+			//rotate point with center ref
 			xaux = c*px + py*s ;
 			yaux = -s*px + c*py;
 
-			/*scale point with center ref*/
+			//scale point with center ref
 			xs = xaux / factxScale;
 			ys = yaux / factyScale;
 
-			/*undo reference center point */
+			//undo reference center point 
 			xs += (xo / 2.0f);
 			ys += (yo / 2.0f);
 
-			/*interpolate*/
-			bilinear_interpolation_transform_float(ibuf1,out, xs,ys);
-			
-			out+=4;
-		}
-	}	
-	
-}
-
-/* function assumes out to be zero'ed, only does RGBA */
-static void bilinear_interpolation_transform_byte(unsigned char *in, unsigned char *out, float u, float v,int x,int y)
-{
-	float a, b;
-	float a_b, ma_b, a_mb, ma_mb;
-	int y1, y2, x1, x2;
-
-	int row1R,row1G,row1B,row1A;
-	int row2R,row2G,row2B,row2A;
-	int row3R,row3G,row3B,row3A;
-	int row4R,row4G,row4B,row4A;
-
-	x1= (int)floor(u);
-	x2= (int)ceil(u);
-	y1= (int)floor(v);
-	y2= (int)ceil(v);
-
-	/* sample area entirely outside image? */
-	if(x2<0 || x1>x-1 || y2<0 || y1>y-1)
-		return;
-	
-	/* sample including outside of edges of image */
-	if(x1<0 || y1<0){
-		row1R = 0;
-		row1G = 0;
-		row1B = 0;
-		row1A = 0;
-	}
-	else{ 
-		row1R= in[x * y1 * 4 + 4 * x1];
-		row1G= in[x * y1 * 4 + 4 * x1 + 1];
-		row1B= in[x * y1 * 4 + 4 * x1 + 2];
-		row1A= in[x * y1 * 4 + 4 * x1 + 3];
-	}
-	
-	if(x1<0 || y2>y-1){
-		row2R = 0;
-		row2G = 0;
-		row2B = 0;
-		row2A = 0;
-	}
-	else{ 
-		row2R= in[x * y2 * 4 + 4 * x1];
-		row2G= in[x * y2 * 4 + 4 * x1 + 1];
-		row2B= in[x * y2 * 4 + 4 * x1 + 2];
-		row2A= in[x * y2 * 4 + 4 * x1 + 3];
-	}
-	
-	if(x2>x-1 || y1<0){
-		row3R = 0;
-		row3G = 0;
-		row3B = 0;
-		row3A = 0;
-	}
-	else{ 
-		row3R= in[x * y1 * 4 + 4 * x2];
-		row3G= in[x * y1 * 4 + 4 * x2 + 1];
-		row3B= in[x * y1 * 4 + 4 * x2 + 2];
-		row3A= in[x * y1 * 4 + 4 * x2 + 3];
-	}
-	
-	if(x2>x-1 || y2>y-1){
-		row4R = 0;
-		row4G = 0;
-		row4B = 0;
-		row4A = 0;
-	}
-	else{ 
-		row4R= in[x * y2 * 4 + 4 * x2];
-		row4G= in[x * y2 * 4 + 4 * x2 + 1];
-		row4B= in[x * y2 * 4 + 4 * x2 + 2];
-		row4A= in[x * y2 * 4 + 4 * x2 + 3];
-	}
-	
-	a= u-floor(u);
-	b= v-floor(v);
-	a_b= a*b; ma_b= (1-a)*b; a_mb= a*(1-b); ma_mb= (1-a)*(1-b);
-	
-	out[0]= (int)(ma_mb*row1R + a_mb*row3R + ma_b*row2R + a_b*row4R);
-	out[1]= (int)(ma_mb*row1G + a_mb*row3G + ma_b*row2G + a_b*row4G);
-	out[2]= (int)(ma_mb*row1B + a_mb*row3B + ma_b*row2B + a_b*row4B);
-	out[3]= (int)(ma_mb*row1A + a_mb*row3A + ma_b*row2A + a_b*row4A);
-}
-
-static void do_transform_effect_byte(Sequence * seq,float facf0, int x, int y, 
-			  unsigned char *ibuf1,unsigned char *out)
-{
-	int xo, yo, xi, yi;
-	float xs,ys,factxScale,factyScale,tx,ty,rad,s,c,xaux,yaux,factRot,px,py;
-	TransformVars *scale;
-	
-	scale = (TransformVars *)seq->effectdata;
-	xo = x;
-	yo = y;
-
-	/*factor scale*/
-	factxScale = scale->ScalexIni + (scale->ScalexFin - scale->ScalexIni) * facf0;
-	factyScale = scale->ScaleyIni + (scale->ScaleyFin - scale->ScaleyIni) * facf0;
-
-	/*Factor translate*/
-	tx = scale->xIni+(xo / 2.0f) + (scale->xFin-(xo / 2.0f) - scale->xIni+(xo / 2.0f)) * facf0;
-	ty = scale->yIni+(yo / 2.0f) + (scale->yFin-(yo / 2.0f) - scale->yIni+(yo / 2.0f)) * facf0;
-
-	/*factor Rotate*/
-	factRot = scale->rotIni + (scale->rotFin - scale->rotIni) * facf0;
-	rad = (M_PI * factRot) / 180.0f;
-	s= sin(rad);
-	c= cos(rad);
-
-	for (yi = 0; yi < yo; yi++) {
-		for (xi = 0; xi < xo; xi++) {
-			/*tranlate point*/
-			px = xi-tx;
-			py = yi-ty;
-
-			/*rotate point with center ref*/
-			xaux = c*px + py*s ;
-			yaux = -s*px + c*py;
-
-			/*scale point with center ref*/
-			xs = xaux / factxScale;
-			ys = yaux / factyScale;
-
-			/*undo reference center point */
-			xs += (xo / 2.0f);
-			ys += (yo / 2.0f);
-
-			/*interpolate*/
-			bilinear_interpolation_transform_byte(ibuf1,out, xs,ys,x,y);
-			
-			out+=4;
+			//interpolate
+			if(scale->interpolation==0)
+				neareast_interpolation(ibuf1,out, xs,ys,xi,yi);
+			if(scale->interpolation==1)
+				bilinear_interpolation(ibuf1,out, xs,ys,xi,yi);
+			if(scale->interpolation==2)
+				bicubic_interpolation(ibuf1,out, xs,ys,xi,yi);
 		}
 	}	
 
@@ -2177,17 +2010,7 @@ static void do_transform_effect(Sequence * seq,int cfra,
 			   struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
 			   struct ImBuf *ibuf3, struct ImBuf *out)
 {
-	if (out->rect_float) {
-		do_transform_effect_float(seq,
-			facf0,x, y,
-			ibuf1,
-			out->rect_float);
-	} else {
-		do_transform_effect_byte(seq,
-			facf0,x, y,
-			(unsigned char*) ibuf1->rect,
-			(unsigned char*) out->rect);
-	}
+	do_transform(seq, facf0, x, y, ibuf1, out);
 }
 
 

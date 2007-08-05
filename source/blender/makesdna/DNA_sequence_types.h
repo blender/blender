@@ -170,6 +170,8 @@ typedef struct TransformVars {
 	float yFin;
 	float rotIni;
 	float rotFin;
+	int percent;
+	int interpolation;
 } TransformVars;
 
 typedef struct SolidColorVars {

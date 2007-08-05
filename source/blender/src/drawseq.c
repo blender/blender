@@ -1192,14 +1192,29 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "yScale Start:",	10,50,150,19, &transform->ScaleyIni, 0.0, 10.0, 0, 0, "Y Scale Start");
 			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "yScale End:", 	160,50,150,19, &transform->ScaleyFin, 0.0, 10.0, 0, 0, "Y Scale End");
 			
-			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "x Start:", 	10,30,150,19, &transform->xIni, -1000.0, 1000.0, 0, 0, "X Position Start");
-			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "x End:", 	160,30,150,19, &transform->xFin, -1000.0, 1000.0, 0, 0, "X Position End");
+			uiDefButI(block, ROW, SEQ_BUT_EFFECT, "Percent", 10, 30, 150, 19, &transform->percent, 0.0, 1.0, 0.0, 0.0, "Percent Translate");
+			uiDefButI(block, ROW, SEQ_BUT_EFFECT, "Pixels", 160, 30, 150, 19, &transform->percent, 0.0, 0.0, 0.0, 0.0, "Pixels Translate");
+			if(transform->percent==1){
+				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "x Start:", 	10,10,150,19, &transform->xIni, -100.0, 100.0, 0, 0, "X Position Start");
+				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "x End:", 	160,10,150,19, &transform->xFin, -100.0, 100.0, 0, 0, "X Position End");
+				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "y Start:", 	10,-10,150,19, &transform->yIni, -100.0, 100.0, 0, 0, "Y Position Start");
+				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "y End:", 	160,-10,150,19, &transform->yFin, -100.0, 100.0, 0, 0, "Y Position End");
+			}else{
+				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "x Start:", 	10,10,150,19, &transform->xIni, -10000.0, 10000.0, 0, 0, "X Position Start");
+				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "x End:", 	160,10,150,19, &transform->xFin, -10000.0, 10000.0, 0, 0, "X Position End");
+				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "y Start:", 	10,-10,150,19, &transform->yIni, -10000.0, 10000.0, 0, 0, "Y Position Start");
+				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "y End:", 	160,-10,150,19, &transform->yFin, -10000.0, 10000.0, 0, 0, "Y Position End");
 
-			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "y Start:", 	10,10,150,19, &transform->yIni, -1000.0, 1000.0, 0, 0, "Y Position Start");
-			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "y End:", 	160,10,150,19, &transform->yFin, -1000.0, 1000.0, 0, 0, "Y Position End");
+			}
+			
 
-			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "rot Start:",10,-10,150,19, &transform->rotIni, 0.0, 360.0, 0, 0, "Rotation Start");
-			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "rot End:",160,-10,150,19, &transform->rotFin, 0.0, 360.0, 0, 0, "Rotation End");
+			
+			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "rot Start:",10,-30,150,19, &transform->rotIni, 0.0, 360.0, 0, 0, "Rotation Start");
+			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "rot End:",160,-30,150,19, &transform->rotFin, 0.0, 360.0, 0, 0, "Rotation End");
+
+			uiDefButI(block, ROW, SEQ_BUT_EFFECT, "No Interpolat", 10, -50, 100, 19, &transform->interpolation, 0.0, 0.0, 0.0, 0.0, "No interpolation");
+			uiDefButI(block, ROW, SEQ_BUT_EFFECT, "Bilinear", 101, -50, 100, 19, &transform->interpolation, 0.0, 1.0, 0.0, 0.0, "Bilinear interpolation");
+			uiDefButI(block, ROW, SEQ_BUT_EFFECT, "Bicubic", 202, -50, 100, 19, &transform->interpolation, 0.0, 2.0, 0.0, 0.0, "Bicubic interpolation");
 		} else if(last_seq->type==SEQ_COLOR) {
 			SolidColorVars *colvars = (SolidColorVars *)last_seq->effectdata;
 			uiDefButF(block, COL, SEQ_BUT_RELOAD, "",10,90,150,19, colvars->col, 0, 0, 0, 0, "");
