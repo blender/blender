@@ -2860,9 +2860,12 @@ void seq_snap(short event)
 			}
 		}
 		else if(seq->type & SEQ_EFFECT) {
-			if(seq->seq1->flag & SELECT) calc_sequence(seq);
-			else if(seq->seq2->flag & SELECT) calc_sequence(seq);
-			else if(seq->seq3->flag & SELECT) calc_sequence(seq);
+			if(seq->seq1 && (seq->seq1->flag & SELECT)) 
+				calc_sequence(seq);
+			else if(seq->seq2 && (seq->seq2->flag & SELECT)) 
+				calc_sequence(seq);
+			else if(seq->seq3 && (seq->seq3->flag & SELECT)) 
+				calc_sequence(seq);
 		}
 	}
 	END_SEQ;
