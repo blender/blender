@@ -1611,7 +1611,7 @@ void multires_edge_level_update(void *ob, void *me_v)
 				if(me->mr->edgelvl >= me->mr->current || i<threshold)
 					me->medge[ndx].flag |= ME_EDGEDRAW | ME_EDGERENDER;
 				else
-					me->medge[ndx].flag &= ~ME_EDGEDRAW | ~ME_EDGERENDER;
+					me->medge[ndx].flag &= ~ME_EDGEDRAW & ~ME_EDGERENDER;
 			}
 		}
 		
