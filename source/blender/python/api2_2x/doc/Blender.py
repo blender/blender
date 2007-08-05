@@ -222,7 +222,7 @@ def PackAll ():
   Pack all files.
   """
 
-def Blender_CountPackedFiles():
+def CountPackedFiles():
   """
   Returns the number of packed files.
   """
