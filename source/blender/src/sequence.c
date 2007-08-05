@@ -832,8 +832,8 @@ static void do_build_seq_ibuf(Sequence * seq, int cfra)
 			re= RE_NewRender(sce->id.name);
 			
 			/* prevent eternal loop */
-			doseq= sce->r.scemode & R_DOSEQ;
-			sce->r.scemode &= ~R_DOSEQ;
+			doseq= G.scene->r.scemode & R_DOSEQ;
+			G.scene->r.scemode &= ~R_DOSEQ;
 			
 			BIF_init_render_callbacks(re, 0);	/* 0= no display callbacks */
 			
@@ -856,12 +856,15 @@ static void do_build_seq_ibuf(Sequence * seq, int cfra)
 					addzbuffloatImBuf(se->ibuf);
 					memcpy(se->ibuf->zbuf_float, rres.rectz, sizeof(float)*rres.rectx*rres.recty);
 				}
+			} else if (rres.rect32) {
+				se->ibuf= IMB_allocImBuf(rres.rectx, rres.recty, 32, IB_rect, 0);
+				memcpy(se->ibuf->rect, rres.rect32, 4*rres.rectx*rres.recty);
 			}
 			
 			BIF_end_render_callbacks();
 			
 			/* restore */
-			sce->r.scemode |= doseq;
+			G.scene->r.scemode |= doseq;
 			
 			if((G.f & G_PLAYANIM)==0) /* bad, is set on do_render_seq */
 				waitcursor(0);

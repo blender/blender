@@ -203,7 +203,7 @@ int sequence_is_free_transformable(Sequence * seq)
 
 Sequence *find_neighboring_sequence(Sequence *test, int lr) {
 /* looks to the left on lr==1, to the right on lr==2 */
-	Sequence *seq,*foundneighbor;
+	Sequence *seq,*foundneighbor = 0;
 	int found=0;
 	Editing *ed;
 
