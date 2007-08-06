@@ -599,6 +599,8 @@ void anim_previewrange_set()
 		areamouseco_to_ipoco(G.v2d, mval, &rectf.xmax, &rectf.ymax);
 			
 		/* set preview-range */
+		if (rectf.xmin < 1) rectf.xmin = 1.0f;
+		if (rectf.xmax < 1) rectf.xmax = 1.0f;
 		G.scene->r.psfra= rectf.xmin;
 		G.scene->r.pefra= rectf.xmax;
 		
