@@ -460,10 +460,10 @@ PyObject *M_Mathutils_DotVecs(PyObject * self, PyObject * args)
 
 	if(!PyArg_ParseTuple(args, "O!O!", &vector_Type, &vec1, &vector_Type, &vec2))
 		return EXPP_ReturnPyObjError(PyExc_TypeError, 
-			"Mathutils.DotVec(): expects (2) vector objects of the same size\n");
+			"Mathutils.DotVecs(): expects (2) vector objects of the same size\n");
 	if(vec1->size != vec2->size)
 		return EXPP_ReturnPyObjError(PyExc_AttributeError, 
-			"Mathutils.DotVec(): expects (2) vector objects of the same size\n");
+			"Mathutils.DotVecs(): expects (2) vector objects of the same size\n");
 
 	for(x = 0; x < vec1->size; x++) {
 		dot += vec1->vec[x] * vec2->vec[x];
