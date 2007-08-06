@@ -48,6 +48,41 @@ import BPySys
 import BPyMessages
 import time
 from math import degrees, atan, pi
+from Blender.Mathutils import Matrix, Vector, Euler, RotationMatrix
+
+
+
+# Change the order rotation is applied.
+'''
+ROT_ORDER = [\
+(0,1,2),\
+(1,2,0),\
+(2,0,1),\
+(2,1,0),\
+(1,0,2),\
+(0,2,1),\
+]
+MATRIX_IDENTITY_3x3 = Matrix([1,0,0],[0,1,0],[0,0,1])
+MATRIX_IDENTITY_4x4 = Matrix([1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1])
+
+def eulerRotate(x,y,z, rot_order): 
+	# Clamp all values between 0 and 360, values outside this raise an error.
+	mats=[RotationMatrix(x%360,3,'x'), RotationMatrix(y%360,3,'y'), RotationMatrix(z%360,3,'z')]
+	# print rot_order
+	# Standard BVH multiplication order, apply the rotation in the order Z,X,Y
+	return (mats[rot_order[2]]*(mats[rot_order[1]]* (mats[rot_order[0]]* MATRIX_IDENTITY_3x3))).toEuler()
+	
+def eulerMat(mat, rot_order): 
+	x,y,z = tuple(mat.toEuler())
+	# Clamp all values between 0 and 360, values outside this raise an error.
+	mats=[RotationMatrix(x%360,3,'x'), RotationMatrix(y%360,3,'y'), RotationMatrix(z%360,3,'z')]
+	# print rot_order
+	# Standard BVH multiplication order, apply the rotation in the order Z,X,Y
+	return mats[rot_order[2]]*(mats[rot_order[1]]* (mats[rot_order[0]]* MATRIX_IDENTITY_3x3))
+'''
+
+
+
 # Used to add the scene name into the filename without using odd chars
 
 sane_name_mapping_ob = {}
@@ -118,6 +153,31 @@ def write_header(file):
 
 
 
+mtx_z90 = RotationMatrix(90, 3, 'z')
+mtx_x90 = RotationMatrix(90, 3, 'x')
+
+# testing
+mtx_x90		= RotationMatrix( 90, 3, 'x')
+mtx_x90n	= RotationMatrix(-90, 3, 'x')
+mtx_y90		= RotationMatrix( 90, 3, 'y')
+mtx_y90n	= RotationMatrix(-90, 3, 'y')
+mtx_z90		= RotationMatrix( 90, 3, 'z')
+mtx_z90n	= RotationMatrix(-90, 3, 'z')
+
+
+mtx4_x90	= RotationMatrix( 90, 4, 'x')
+mtx4_x90n	= RotationMatrix(-90, 4, 'x')
+mtx4_y90	= RotationMatrix( 90, 4, 'y')
+mtx4_y90n	= RotationMatrix(-90, 4, 'y')
+mtx4_z90	= RotationMatrix( 90, 4, 'z')
+mtx4_z90n	= RotationMatrix(-90, 4, 'z')
+
+XVEC  = Vector(1,  0, 0)
+XVECN = Vector(-1, 0, 0)
+YVEC  = Vector(0,  1, 0)
+YVECN = Vector(0, -1, 0)
+ZVEC  = Vector(0, 0,  1)
+ZVECN = Vector(0, 0, -1)
 
 def write_scene(file, sce, world):
 	
@@ -125,33 +185,49 @@ def write_scene(file, sce, world):
 		'''
 		We have loc to set the location if non blender objects that have a location
 		'''
-		
-		if ob and not matrix:	matrix = ob.matrixWorld
-		matrix_rot = matrix
-		#if matrix:
-		#	matrix = matrix_scale * matrix
-		
-		if matrix:
-			loc = tuple(matrix.translationPart())
-			scale = tuple(matrix.scalePart())
+		if type(ob) == Blender.Types.BoneType:
+			# we know we have a matrix
+			matrix = mtx4_z90 * ob.matrix['ARMATURESPACE']
 			
-			matrix_rot = matrix.rotationPart()
-			# Lamps need to be rotated
-			if ob and ob.type =='Lamp':
-				matrix_rot = Blender.Mathutils.RotationMatrix(90, 4, 'x') * matrix
-				rot = tuple(matrix_rot.toEuler())
-			elif ob and ob.type =='Camera':
-				y = Blender.Mathutils.Vector(0,1,0) * matrix_rot
-				matrix_rot = matrix_rot * Blender.Mathutils.RotationMatrix(90, 3, 'r', y)
-				rot = tuple(matrix_rot.toEuler())
-			else:
-				rot = tuple(matrix_rot.toEuler())
+			parent = ob.parent
+			if parent:
+				par_matrix = mtx4_z90 * parent.matrix['ARMATURESPACE'].copy()
+				matrix = matrix * par_matrix.copy().invert()
+				
+			matrix_rot =	matrix.rotationPart()
+			
+			loc =			tuple(matrix.translationPart())
+			scale =			tuple(matrix.scalePart())
+			rot =			tuple(matrix_rot.toEuler())
+			
 		else:
-			if not loc:
-				loc = 0,0,0
-			scale = 1,1,1
-			rot = 0,0,0
+			if ob and not matrix:	matrix = ob.matrixWorld
+			matrix_rot = matrix
+			#if matrix:
+			#	matrix = matrix_scale * matrix
+			
+			if matrix:
+				loc = tuple(matrix.translationPart())
+				scale = tuple(matrix.scalePart())
+				
+				matrix_rot = matrix.rotationPart()
+				# Lamps need to be rotated
+				if ob and ob.type =='Lamp':
+					matrix_rot = mtx_x90 * matrix.rotationPart()
+					rot = tuple(matrix_rot.toEuler())
+				elif ob and ob.type =='Camera':
+					y = Vector(0,1,0) * matrix_rot
+					matrix_rot = matrix_rot * RotationMatrix(90, 3, 'r', y)
+					rot = tuple(matrix_rot.toEuler())
+				else:
+					rot = tuple(matrix_rot.toEuler())
+			else:
+				if not loc:
+					loc = 0,0,0
+				scale = 1,1,1
+				rot = 0,0,0
 		
+		# print rot
 		file.write('\n\t\t\tProperty: "Lcl Translation", "Lcl Translation", "A+",%.15f,%.15f,%.15f' % loc)
 		file.write('\n\t\t\tProperty: "Lcl Rotation", "Lcl Rotation", "A+",%.15f,%.15f,%.15f' % rot)
 		file.write('\n\t\t\tProperty: "Lcl Scaling", "Lcl Scaling", "A+",%.15f,%.15f,%.15f' % scale)
@@ -247,6 +323,25 @@ def write_scene(file, sce, world):
 			file.write('\n\t\t\tProperty: "Look", "enum", "",1')
 		
 		return loc, rot, scale, matrix, matrix_rot
+	
+	
+	# -------------------------------------------- Armatures
+	def write_bone(bone, name):
+		file.write('\n\tModel: "Model::%s", "Limb" {' % name)
+		file.write('\n\t\tVersion: 232')
+		write_object_props(bone)
+		
+		file.write('\n\t\t\tProperty: "Size", "double", "",100')
+		file.write('\n\t\t\tProperty: "LimbLength", "double", "",%.6f' % (bone.head['ARMATURESPACE']-bone.tail['ARMATURESPACE']).length)
+		file.write('\n\t\t\tProperty: "Color", "ColorRGB", "",0.8,0.8,0.8')
+		file.write('\n\t\t\tProperty: "Color", "Color", "A",0.8,0.8,0.8')
+		file.write('\n\t\t}')
+		file.write('\n\t\tMultiLayer: 0')
+		file.write('\n\t\tMultiTake: 1')
+		file.write('\n\t\tShading: Y')
+		file.write('\n\t\tCulling: "CullingOff"')
+		file.write('\n\t\tTypeFlags: "Skeleton"')
+		file.write('\n\t}')
 	
 	def write_camera_switch():
 		file.write('''
@@ -471,8 +566,8 @@ def write_scene(file, sce, world):
 		file.write('\n\t\tTypeFlags: "Camera"')
 		file.write('\n\t\tGeometryVersion: 124')
 		file.write('\n\t\tPosition: %.6f,%.6f,%.6f' % loc)
-		file.write('\n\t\tUp: %.6f,%.6f,%.6f' % tuple(Blender.Mathutils.Vector(0,1,0) * matrix_rot) )
-		file.write('\n\t\tLookAt: %.6f,%.6f,%.6f' % tuple(Blender.Mathutils.Vector(0,0,-1)*matrix_rot) )
+		file.write('\n\t\tUp: %.6f,%.6f,%.6f' % tuple(Vector(0,1,0) * matrix_rot) )
+		file.write('\n\t\tLookAt: %.6f,%.6f,%.6f' % tuple(Vector(0,0,-1)*matrix_rot) )
 		
 		#file.write('\n\t\tUp: 0,0,0' )
 		#file.write('\n\t\tLookAt: 0,0,0' )
@@ -702,11 +797,12 @@ def write_scene(file, sce, world):
 	ob_meshes = []
 	ob_lights = []
 	ob_cameras = []
+	ob_bones = [] # in fbx we treat bones as root level objects - be carefull!
 	materials = {}
 	textures = {}
-	armatures = [] # We should export standalone armatures also
-	armatures_totbones = 0 # we need this because each bone is a model
-	ob_type = None # incase no objects are exported, so as not to raise an error 
+	
+	ob_type = None # incase no objects are exported, so as not to raise an error
+	
 	for ob_base in sce.objects.context:
 		for ob, mtx in BPyObject.getDerivedObjects(ob_base):
 			#for ob in [ob_base,]:
@@ -740,9 +836,14 @@ def write_scene(file, sce, world):
 					
 					if arm:
 						armname = sane_obname(arm)
-						bones = arm.bones.values()
-						armatures_totbones += len(bones)
-						armatures.append((arm, armname, bones))
+						bones = arm.data.bones.values()
+						# armatures.append((arm, armname, bones))
+						# arm_name = BPySys.cleanName(arm.name)
+						
+						for b in bones:
+							#name = sane_obname(arm_name + ' ' + b.name)
+							name = sane_obname(b)
+							ob_bones.append( (name, b) )
 					else:
 						armname = None
 					
@@ -752,6 +853,8 @@ def write_scene(file, sce, world):
 					ob_meshes.append( (sane_obname(ob), ob, mtx, me, mats, arm, armname) )
 	
 	del ob_type
+	#print ob_bones
+	
 	
 	materials = [(sane_matname(mat), mat) for mat in materials.itervalues()]
 	textures = [(sane_texname(img), img) for img in textures.itervalues()]
@@ -789,8 +892,7 @@ Definitions:  {
 		len(ob_meshes)+\
 		len(ob_lights)+\
 		len(ob_cameras)+\
-		len(armatures)+\
-		armatures_totbones+\
+		len(ob_bones)+\
 		len(materials)+\
 		(len(textures)*2))) # add 1 for the root model 1 for global settings
 	
@@ -802,8 +904,7 @@ Definitions:  {
 		len(ob_meshes)+\
 		len(ob_lights)+\
 		len(ob_cameras)+\
-		len(armatures)+\
-		armatures_totbones)) # add 1 for the root model
+		len(ob_bones))) # add 1 for the root model
 	
 	file.write('''
 	ObjectType: "Geometry" {
@@ -839,6 +940,10 @@ Definitions:  {
 ;------------------------------------------------------------------
 
 Objects:  {''')
+	
+	for obname, ob in ob_bones:
+		write_bone(ob, obname)
+	
 	
 	# To comply with other FBX FILES
 	write_camera_switch()
@@ -1248,6 +1353,10 @@ Objects:  {''')
 Relations:  {''')
 
 	file.write('\n\tModel: "Model::blend_root", "Null" {\n\t}')
+	
+	for obname, ob in ob_bones:
+		file.write('\n\tModel: "Model::%s", "Limb" {\n\t}' % obname)
+	
 	for obname, ob in ob_cameras:
 		file.write('\n\tModel: "Model::%s", "Camera" {\n\t}' % obname)
 	
@@ -1295,6 +1404,16 @@ Connections:  {''')
 	# write the fake root node
 	file.write('\n\tConnect: "OO", "Model::blend_root", "Model::Scene"')
 	
+	for obname, ob in ob_bones:
+		blend_parent = ob.parent
+		if blend_parent:
+			file.write('\n\tConnect: "OO", "Model::%s", "Model::%s"' % (obname, sane_obname(blend_parent)) )
+		else:
+			file.write('\n\tConnect: "OO", "Model::%s", "Model::blend_root"' % obname)
+	
+	for obname, ob in ob_cameras:
+		file.write('\n\tConnect: "OO", "Model::%s", "Model::blend_root"' % obname)
+
 	for obname, ob in ob_cameras:
 		file.write('\n\tConnect: "OO", "Model::%s", "Model::blend_root"' % obname)
 	
@@ -1398,4 +1517,4 @@ def write_ui(filename):
 
 if __name__ == '__main__':
 	Blender.Window.FileSelector(write_ui, 'Export FBX', Blender.sys.makename(ext='.fbx'))
-	#write_ui('/test.fbx')
+	#write_ui('/scratch/test.fbx')
