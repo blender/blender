@@ -1801,8 +1801,12 @@ void DQuatMulVecfl(DualQuat *dq, float *co, float mat[][3])
 
 	/* compute crazyspace correction mat */
 	if(mat) {
-		Mat3CpyMat4(scalemat, dq->scale);
-		Mat3MulMat3(mat, M, scalemat);
+		if(dq->scale_weight) {
+			Mat3CpyMat4(scalemat, dq->scale);
+			Mat3MulMat3(mat, M, scalemat);
+		}
+		else
+			Mat3CpyMat3(mat, M);
 		Mat3MulFloat((float*)mat, len2);
 	}
 }
