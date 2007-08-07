@@ -992,7 +992,8 @@ class Mesh:
 		@type group: string
 		@param group: the group name.
 		@type weightsFlag: bool
-		@param weightsFlag: if 1, the weight is returned along with the index. 
+		@param weightsFlag: if 1, each item in the list returned contains a
+			tuple pair (index, weight), the weight is a float between 0.0 and 1.0.
 		@type vertList: list of ints
 		@param vertList: if given, only those vertex points that are both in the
 				list and group passed in are returned.
