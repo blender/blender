@@ -522,7 +522,7 @@ int main(int argc, char** argv)
 		printf("error: window size too small.\n");
 	}
 	
-	if (error || argc == 1) 
+	if (error )
 	{
 		usage(argv[0]);
 		return 0;
