@@ -3393,51 +3393,54 @@ void clean_ipo(void)
 
 void clean_ipo_curve(IpoCurve *icu)
 {
-	BezTriple *bezt=NULL, *beztn=NULL;
-	BezTriple *newb, *newbs;
-	int totCount, newCount, i;
+	BezTriple *old_bezts, *bezt, *beztn;
+	BezTriple *lastb;
+	int totCount, i;
 	float thresh;
 	
 	/* check if any points  */
-	if (!icu) return;
-	totCount= icu->totvert;
-	newCount= 1;
-	if (totCount<=1) return;
+	if (icu == NULL || icu->totvert <= 1) 
+		return;
 	
 	/* get threshold for match-testing */
 	thresh= G.scene->toolsettings->clean_thresh;
 	
-	/* add first keyframe and setup tempolary array of beztriples */
-	newb = newbs = MEM_callocN(sizeof(BezTriple)*totCount, "NewBezTriples");
-	bezt= icu->bezt;
-	*newb= *bezt;
-	bezt++;
+	/* make a copy of the old BezTriples, and clear IPO curve */
+	old_bezts = icu->bezt;
+	totCount = icu->totvert;	
+	icu->bezt = NULL;
+	icu->totvert = 0;
+	
+	/* now insert first vertex */
+	bezt = old_bezts;
+	insert_vert_ipo(icu, bezt->vec[1][0], bezt->vec[1][1]);
 	
 	/* loop through beztriples, comparing them */
-	for (i=0; i<totCount && newCount<totCount; i++, bezt++) {	
+	for (i=1; i<totCount; i++) {	
 		float prev[2], cur[2], next[2];
 		
-		/* get references for quicker access */
-		memcpy(prev, newb->vec[1], sizeof(float)*2);
-		memcpy(cur, bezt->vec[1], sizeof(float)*2);
-		
+		/* get BezTriples and their values */
 		if (i < (totCount - 1)) {
-			beztn = (bezt + 1);
-			memcpy(next, beztn->vec[1], sizeof(float)*2);
+			beztn = (old_bezts + (i+1));
+			next[0]= beztn->vec[1][0]; next[1]= beztn->vec[1][1];
 		}
 		else {
 			beztn = NULL;
 			next[0] = next[1] = 0.0f;
 		}
+		lastb= (icu->bezt + (icu->totvert - 1));
+		bezt= (old_bezts + i);
+		
+		/* get references for quicker access */
+		prev[0] = lastb->vec[1][0]; prev[1] = lastb->vec[1][1];
+		cur[0] = bezt->vec[1][0]; cur[1] = bezt->vec[1][1];
 		
 		/* check if current bezt occurs at same time as last ok */
 		if ((cur[0] - prev[0]) <= thresh) {
 			/* only add if values are a considerable distance apart */
 			if (IS_EQT(cur[1], prev[1], thresh) == 0) {
 				/* add new keyframe */
-				newCount++;
-				newb++;
-				*newb = *bezt;
+				insert_vert_ipo(icu, cur[0], cur[1]);
 			}
 		}
 		else {
@@ -3446,51 +3449,26 @@ void clean_ipo_curve(IpoCurve *icu)
 				/* does current have same value as previous and next? */
 				if (IS_EQT(cur[1], prev[1], thresh) == 0) {
 					/* add new keyframe*/
-					newb++;
-					*newb = *bezt;
-					newCount++;
+					insert_vert_ipo(icu, cur[0], cur[1]);
 				}
 				else if (IS_EQT(cur[1], next[1], thresh) == 0) {
 					/* add new keyframe */
-					newb++;
-					*newb = *bezt;
-					newCount++;
+					insert_vert_ipo(icu, cur[0], cur[1]);
 				}
 			}
 			else {	
 				/* add if value doesn't equal that of previous */
 				if (IS_EQT(cur[1], prev[1], thresh) == 0) {
 					/* add new keyframe */
-					newb++;
-					*newb = *bezt;
-					newCount++;
+					insert_vert_ipo(icu, cur[0], cur[1]);
 				}
 			}
 		}
 	}
-
-	/* we only need to free stuff if the number of verts changed */
-	if (totCount != newCount) {
-		BezTriple *newbz;
-		
-		/* make a copy of the array which uses only as much memory as is needed */	
-		newbz= MEM_callocN(sizeof(BezTriple)*newCount, "BezTriples");
-		memcpy(newbz, newbs, sizeof(BezTriple)*newCount);
-		
-		/* free old arrays and assign new */
-		MEM_freeN(icu->bezt);
-		MEM_freeN(newbs);
-		icu->bezt= newbz;
-		icu->totvert= newCount;
-	}
-	else {
-		/* free temporary memory we used */
-		MEM_freeN(newbs);
-	}
 	
-	/* fix up handles and make sure points are in order */
-	sort_time_ipocurve(icu);
-	calchandles_ipocurve(icu);
+	/* now free the memory used by the old BezTriples */
+	if (old_bezts)
+		MEM_freeN(old_bezts);
 }
 
 void smooth_ipo(void)
