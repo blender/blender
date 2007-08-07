@@ -1641,6 +1641,10 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 		glPixelZoom((float)sima->zoom, (float)sima->zoom);
 				
 		if(sima->flag & SI_EDITTILE) {
+			/* create char buffer from float if needed */
+			if(ibuf->rect_float && ibuf->rect==NULL)
+				IMB_rect_from_float(ibuf);
+
 			glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
 			
 			glPixelZoom(1.0, 1.0);
@@ -1681,6 +1685,10 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 				sx*= dx;
 				sy*= dy;
 				
+				/* create char buffer from float if needed */
+				if(ibuf->rect_float && ibuf->rect==NULL)
+					IMB_rect_from_float(ibuf);
+
 				rect= get_part_from_ibuf(ibuf, sx, sy, sx+dx, sy+dy);
 				
 				/* rect= ibuf->rect; */

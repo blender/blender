@@ -1502,80 +1502,73 @@ void set_texturepaint() /* toggle */
 	allqueue(REDRAWBUTSEDIT, 0);
 }
 
-/* Get the barycentric coordinates of 2d point p in 2d triangle (v1, v2, v3) */
-static void texpaint_barycentric_2d(float *v1, float *v2, float *v3, float *p, float *w)
+static void texpaint_project(Object *ob, float *model, float *proj, float *co, float *pco)
 {
-	float b[2], c[2], h[2], div;
+	VECCOPY(pco, co);
+	pco[3]= 1.0f;
 
-	Vec2Subf(b, v1, v3);
-	Vec2Subf(c, v2, v3);
-	Vec2Subf(h, p, v3);
-
-	div= b[0]*c[1] - b[1]*c[0];
-
-	if (div == 0.0) {
-		w[0]= w[1]= w[2]= 1.0f/3.0f;
-	}
-	else {
-		div = 1.0/div;
-		w[0] = (h[0]*c[1] - h[1]*c[0])*div;
-		w[1] = (b[0]*h[1] - b[1]*h[0])*div;
-		w[2] = 1.0 - w[0] - w[1];
-	}
+	Mat4MulVecfl(ob->obmat, pco);
+	Mat4MulVecfl((float(*)[4])model, pco);
+	Mat4MulVec4fl((float(*)[4])proj, pco);
 }
 
-/* Get 2d vertex coordinates of tface projected onto screen */
-static void texpaint_project(Object *ob, double *model, double *proj, GLint *view, float *co, float *pco)
+static void texpaint_tri_weights(Object *ob, float *v1, float *v2, float *v3, float *co, float *w)
 {
-	float obco[3];
-	double winx, winy, winz;
-
-	VecCopyf(obco, co);
-	Mat4MulVecfl(ob->obmat, obco);
-	gluProject(obco[0], obco[1], obco[2], model, proj, view, &winx, &winy, &winz);
-
-	pco[0]= (float)winx;
-	pco[1]= (float)winy;
-}
-
-static int texpaint_projected_verts(Object *ob, MFace *mf, MTFace *tf, MVert *mv, float *v1, float *v2, float *v3, float *v4)
-{
-	double model[16], proj[16];
+	float pv1[4], pv2[4], pv3[4], h[3], divw;
+	float model[16], proj[16], wmat[3][3], invwmat[3][3];
 	GLint view[4];
 
-	persp(PERSP_VIEW);
+	/* compute barycentric coordinates */
 
 	/* get the needed opengl matrices */
 	glGetIntegerv(GL_VIEWPORT, view);
-	glGetDoublev(GL_MODELVIEW_MATRIX, model);
-	glGetDoublev(GL_PROJECTION_MATRIX, proj);
+	glGetFloatv(GL_MODELVIEW_MATRIX, model);
+	glGetFloatv(GL_PROJECTION_MATRIX, proj);
 	view[0] = view[1] = 0;
 
 	/* project the verts */
-	texpaint_project(ob, model, proj, view, mv[0].co, v1);
-	texpaint_project(ob, model, proj, view, mv[1].co, v2);
-	texpaint_project(ob, model, proj, view, mv[2].co, v3);
-	if(mf->v4)
-		texpaint_project(ob, model, proj, view, mv[3].co, v4);
+	texpaint_project(ob, model, proj, v1, pv1);
+	texpaint_project(ob, model, proj, v2, pv2);
+	texpaint_project(ob, model, proj, v3, pv3);
 
-	return (mf->v4? 4: 3);
+	/* do inverse view mapping, see gluProject man page */
+	h[0]= (co[0] - view[0])*2.0f/view[2] - 1;
+	h[1]= (co[1] - view[1])*2.0f/view[3] - 1;
+	h[2]= 1.0f;
+
+	/* solve for (w1,w2,w3)/perspdiv in:
+	   h*perspdiv = Project*Model*(w1*v1 + w2*v2 + w3*v3) */
+
+	wmat[0][0]= pv1[0];  wmat[1][0]= pv2[0];  wmat[2][0]= pv3[0];
+	wmat[0][1]= pv1[1];  wmat[1][1]= pv2[1];  wmat[2][1]= pv3[1];
+	wmat[0][2]= pv1[3];  wmat[1][2]= pv2[3];  wmat[2][2]= pv3[3];
+
+	Mat3Inv(invwmat, wmat);
+	Mat3MulVecfl(invwmat, h);
+
+	VECCOPY(w, h);
+
+	/* w is still divided by perspdiv, make it sum to one */
+	divw= w[0] + w[1] + w[2];
+	if(divw != 0.0f)
+		VecMulf(w, 1.0f/divw);
 }
 
 /* compute uv coordinates of mouse in face */
 void texpaint_pick_uv(Object *ob, Mesh *mesh, unsigned int faceindex, short *xy, float *uv)
 {
-	float v1[2], v2[2], v3[2], v4[2], p[2], w[3];
-	float absw, minabsw;
-	int nvert;
 	DerivedMesh *dm = mesh_get_derived_final(ob, CD_MASK_BAREMESH);
 	int *index = dm->getFaceDataArray(dm, CD_ORIGINDEX);
 	MTFace *tface = dm->getFaceDataArray(dm, CD_MTFACE), *tf;
 	int numfaces = dm->getNumFaces(dm), a;
+	float p[2], w[3], absw, minabsw;
 	MFace mf;
 	MVert mv[4];
 
 	minabsw = 1e10;
 	uv[0] = uv[1] = 0.0;
+
+	persp(PERSP_VIEW);
 
 	/* test all faces in the derivedmesh with the original index of the picked face */
 	for (a = 0; a < numfaces; a++) {
@@ -1590,18 +1583,13 @@ void texpaint_pick_uv(Object *ob, Mesh *mesh, unsigned int faceindex, short *xy,
 
 			tf= &tface[a];
 
-			/* compute barycentric coordinates of point in face and interpolate uv's.
-			   it's ok to compute the barycentric coords on the projected positions,
-			   because they are invariant under affine transform */
-			nvert= texpaint_projected_verts(ob, &mf, tf, mv, v1, v2, v3, v4);
-
 			p[0]= xy[0];
 			p[1]= xy[1];
 
-			if (nvert == 4) {
-				/* the triangle with the largest absolute values is the one with the
-				   most negative weights */
-				texpaint_barycentric_2d(v1, v2, v4, p, w);
+			if (mf.v4) {
+				/* the triangle with the largest absolute values is the one
+				   with the most negative weights */
+				texpaint_tri_weights(ob, mv[0].co, mv[1].co, mv[3].co, p, w);
 				absw= fabs(w[0]) + fabs(w[1]) + fabs(w[2]);
 				if(absw < minabsw) {
 					uv[0]= tf->uv[0][0]*w[0] + tf->uv[1][0]*w[1] + tf->uv[3][0]*w[2];
@@ -1609,7 +1597,7 @@ void texpaint_pick_uv(Object *ob, Mesh *mesh, unsigned int faceindex, short *xy,
 					minabsw = absw;
 				}
 
-				texpaint_barycentric_2d(v2, v3, v4, p, w);
+				texpaint_tri_weights(ob, mv[1].co, mv[2].co, mv[3].co, p, w);
 				absw= fabs(w[0]) + fabs(w[1]) + fabs(w[2]);
 				if (absw < minabsw) {
 					uv[0]= tf->uv[1][0]*w[0] + tf->uv[2][0]*w[1] + tf->uv[3][0]*w[2];
@@ -1618,7 +1606,7 @@ void texpaint_pick_uv(Object *ob, Mesh *mesh, unsigned int faceindex, short *xy,
 				}
 			}
 			else {
-				texpaint_barycentric_2d(v1, v2, v3, p, w);
+				texpaint_tri_weights(ob, mv[0].co, mv[1].co, mv[2].co, p, w);
 				absw= fabs(w[0]) + fabs(w[1]) + fabs(w[2]);
 				if (absw < minabsw) {
 					uv[0]= tf->uv[0][0]*w[0] + tf->uv[1][0]*w[1] + tf->uv[2][0]*w[2];
