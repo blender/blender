@@ -6152,7 +6152,6 @@ static PyObject *Mesh_getVertsFromGroup( BPy_Mesh* self, PyObject * args )
 	PyObject *vertexList;
 	Object *object;
 	Mesh *mesh;
-	PyObject *tempVertexList;
 
 	int num = 0;
 	int weightRet = 0;
@@ -6191,15 +6190,14 @@ static PyObject *Mesh_getVertsFromGroup( BPy_Mesh* self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_AttributeError,
 					      "no deform groups assigned to mesh" );
 
-	/* temporary list */
-	tempVertexList = PyList_New( mesh->totvert );
-	if( !tempVertexList )
-		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
-					      "getVertsFromGroup: can't create pylist!" );
-
 	count = 0;
 
 	if( !listObject ) {	/* do entire group */
+		vertexList = PyList_New( mesh->totvert );
+		if( !vertexList )
+			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+							  "getVertsFromGroup: can't create pylist!" );
+		
 		dvert = mesh->dvert;
 		for( num = 0; num < mesh->totvert; num++, ++dvert ) {
 			for( i = 0; i < dvert->totweight; i++ ) {
@@ -6210,23 +6208,31 @@ static PyObject *Mesh_getVertsFromGroup( BPy_Mesh* self, PyObject * args )
 								dvert->dw[i].weight );
 					else
 						attr = PyInt_FromLong ( num );
-					PyList_SetItem( tempVertexList, count, attr );
+					PyList_SetItem( vertexList, count, attr );
 					count++;
 				}
 			}
 		}
+		
+		if (count < mesh->totvert)
+			PyList_SetSlice(vertexList, count, mesh->totvert, NULL);
+		
 	} else {			/* do individual vertices */
-		for( i = 0; i < PyList_Size( listObject ); i++ ) {
+		int listObjectLen = PyList_Size( listObject );
+		
+		vertexList = PyList_New( listObjectLen );
+		for( i = 0; i < listObjectLen; i++ ) {
 			PyObject *attr = NULL;
 
-			if( !PyArg_Parse( PyList_GetItem( listObject, i ), "i", &num ) ) {
-				Py_DECREF(tempVertexList);
+			num = PyInt_AsLong( PyList_GetItem( listObject, i ) );
+			if (num == -1) {/* -1 is an error AND an invalid range, we dont care which */
+				Py_DECREF(vertexList);
 				return EXPP_ReturnPyObjError( PyExc_TypeError,
 							      "python list integer not parseable" );
 			}
 
 			if( num < 0 || num >= mesh->totvert ) {
-				Py_DECREF(tempVertexList);
+				Py_DECREF(vertexList);
 				return EXPP_ReturnPyObjError( PyExc_ValueError,
 							      "bad vertex index in list" );
 			}
@@ -6238,17 +6244,15 @@ static PyObject *Mesh_getVertsFromGroup( BPy_Mesh* self, PyObject * args )
 								dvert->dw[k].weight );
 					else
 						attr = PyInt_FromLong ( num );
-					PyList_SetItem( tempVertexList, count, attr );
+					PyList_SetItem( vertexList, count, attr );
 					count++;
 				}
 			}
 		}
+		if (count < listObjectLen)
+			PyList_SetSlice(vertexList, count, listObjectLen, NULL);
 	}
-	/* only return what we need */
-	vertexList = PyList_GetSlice( tempVertexList, 0, count );
-
-	Py_DECREF( tempVertexList );
-
+	
 	return vertexList;
 }
 
