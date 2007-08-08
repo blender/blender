@@ -91,15 +91,15 @@ typedef struct BevPoint {
 typedef struct BezTriple {
 	float vec[3][3];
 	float alfa, weight, radius;	/* alfa: tilt in 3D View, weight: used for softbody goal weight, radius: for bevel tapering */
-	short h1, h2;
-	char f1, f2, f3, hide;
+	short h1, h2; 				/* h1, h2: the handle type of the two handles */
+	char f1, f2, f3, hide;		/* f1, f2, f3: used for selection status,  hide: used to indicate whether BezTriple is hidden */
 } BezTriple;
 
 /* note; alfa location in struct is abused by Key system */
 typedef struct BPoint {
 	float vec[4];
 	float alfa, weight;		/* alfa: tilt in 3D View, weight: used for softbody goal weight */
-	short f1, hide;
+	short f1, hide;			/* f1: selection status,  hide: is point hidden or not */
 	float radius, pad;		/* user-set radius per point for bevelling etc */
 } BPoint;
 
