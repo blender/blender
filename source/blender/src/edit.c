@@ -884,7 +884,7 @@ static void special_transvert_update(void)
 }
 
 /* copied from editobject.c, needs to be replaced with new transform code still */
-/* mode: 1 = proportional */
+/* mode: 1 = proportional, 2 = all joints (for bones only) */
 static void make_trans_verts(float *min, float *max, int mode)	
 {
 	extern ListBase editNurb;
@@ -956,7 +956,7 @@ static void make_trans_verts(float *min, float *max, int mode)
 		}
 		
 		/* proportional edit exception... */
-		if(mode==1 && tottrans) {
+		if((mode & 1) && tottrans) {
 			for(eve= em->verts.first; eve; eve= eve->next) {
 				if(eve->h==0) {
 					eve->f1 |= 2;
@@ -992,8 +992,9 @@ static void make_trans_verts(float *min, float *max, int mode)
 				short rootok= (!(ebo->parent && (ebo->flag & BONE_CONNECTED) && ebo->parent->flag & BONE_TIPSEL));
 				
 				if ((tipsel && rootsel) || (rootsel)) {
-					/* Only add the root if there is no connection.
-					 * Don't add the tip, otherwise we get zero-length bones.
+					/* Don't add the tip (unless mode & 2, for getting all joints), 
+					 * otherwise we get zero-length bones as tips will snap to the same
+					 * location as heads. 
 					 */
 					if (rootok) {
 						VECCOPY (tv->oldloc, ebo->head);
@@ -1003,6 +1004,15 @@ static void make_trans_verts(float *min, float *max, int mode)
 						tv++;
 						tottrans++;
 					}	
+					
+					if (mode & 2) {
+						VECCOPY (tv->oldloc, ebo->tail);
+						tv->loc= ebo->tail;
+						tv->nor= NULL;
+						tv->flag= 1;
+						tv++;
+						tottrans++;
+					}					
 				}
 				else if (tipsel) {
 					VECCOPY (tv->oldloc, ebo->tail);
@@ -1023,14 +1033,14 @@ static void make_trans_verts(float *min, float *max, int mode)
 				bezt= nu->bezt;
 				while(a--) {
 					if(bezt->hide==0) {
-						if(mode==1 || (bezt->f1 & 1)) {
+						if((mode & 1) || (bezt->f1 & 1)) {
 							VECCOPY(tv->oldloc, bezt->vec[0]);
 							tv->loc= bezt->vec[0];
 							tv->flag= bezt->f1 & 1;
 							tv++;
 							tottrans++;
 						}
-						if(mode==1 || (bezt->f2 & 1)) {
+						if((mode & 1) || (bezt->f2 & 1)) {
 							VECCOPY(tv->oldloc, bezt->vec[1]);
 							tv->loc= bezt->vec[1];
 							tv->val= &(bezt->alfa);
@@ -1039,7 +1049,7 @@ static void make_trans_verts(float *min, float *max, int mode)
 							tv++;
 							tottrans++;
 						}
-						if(mode==1 || (bezt->f3 & 1)) {
+						if((mode & 1) || (bezt->f3 & 1)) {
 							VECCOPY(tv->oldloc, bezt->vec[2]);
 							tv->loc= bezt->vec[2];
 							tv->flag= bezt->f3 & 1;
@@ -1055,7 +1065,7 @@ static void make_trans_verts(float *min, float *max, int mode)
 				bp= nu->bp;
 				while(a--) {
 					if(bp->hide==0) {
-						if(mode==1 || (bp->f1 & 1)) {
+						if((mode & 1) || (bp->f1 & 1)) {
 							VECCOPY(tv->oldloc, bp->vec);
 							tv->loc= bp->vec;
 							tv->val= &(bp->alfa);
@@ -1093,7 +1103,7 @@ static void make_trans_verts(float *min, float *max, int mode)
 		a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
 		
 		while(a--) {
-			if(mode==1 || (bp->f1 & 1)) {
+			if((mode & 1) || (bp->f1 & 1)) {
 				if(bp->hide==0) {
 					VECCOPY(tv->oldloc, bp->vec);
 					tv->loc= bp->vec;
@@ -1398,7 +1408,7 @@ void snap_curs_to_sel()
 		tottrans=0;
 
 		if ELEM6(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) 
-			make_trans_verts(bmat[0], bmat[1], 0);
+			make_trans_verts(bmat[0], bmat[1], 2);
 		if(tottrans==0) return;
 
 		Mat3CpyMat4(bmat, G.obedit->obmat);
