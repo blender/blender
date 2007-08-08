@@ -3411,11 +3411,13 @@ void clean_ipo_curve(IpoCurve *icu)
 	icu->bezt = NULL;
 	icu->totvert = 0;
 	
-	/* now insert first vertex */
+	/* now insert first keyframe, as it should be ok */
 	bezt = old_bezts;
 	insert_vert_ipo(icu, bezt->vec[1][0], bezt->vec[1][1]);
 	
-	/* loop through beztriples, comparing them */
+	/* Loop through BezTriples, comparing them. Skip any that do 
+	 * not fit the criteria for "ok" points.
+	 */
 	for (i=1; i<totCount; i++) {	
 		float prev[2], cur[2], next[2];
 		
@@ -3436,11 +3438,28 @@ void clean_ipo_curve(IpoCurve *icu)
 		cur[0] = bezt->vec[1][0]; cur[1] = bezt->vec[1][1];
 		
 		/* check if current bezt occurs at same time as last ok */
-		if ((cur[0] - prev[0]) <= thresh) {
-			/* only add if values are a considerable distance apart */
-			if (IS_EQT(cur[1], prev[1], thresh) == 0) {
-				/* add new keyframe */
-				insert_vert_ipo(icu, cur[0], cur[1]);
+		if (IS_EQT(cur[0], prev[0], thresh)) {
+			/* If there is a next beztriple, and if occurs at the same time, only insert 
+			 * if there is a considerable distance between the points, and also if the 
+			 * current is further away than the next one is to the previous.
+			 */
+			if (beztn && (IS_EQT(cur[0], next[0], thresh)) && 
+				(IS_EQT(next[1], prev[1], thresh)==0)) 
+			{
+				/* only add if current is further away from previous */
+				if (cur[1] > next[1]) {
+					if (IS_EQT(cur[1], prev[1], thresh) == 0) {
+						/* add new keyframe */
+						insert_vert_ipo(icu, cur[0], cur[1]);
+					}
+				}
+			}
+			else {
+				/* only add if values are a considerable distance apart */
+				if (IS_EQT(cur[1], prev[1], thresh) == 0) {
+					/* add new keyframe */
+					insert_vert_ipo(icu, cur[0], cur[1]);
+				}
 			}
 		}
 		else {
@@ -3802,7 +3821,7 @@ void ipo_mirror(short mode)
 	BezTriple *bezt;
 	
 	int a, b;
-	int ok, ok2;
+	short ok, ok2, i;
 	float diff;
 	
 	/* what's this for? */
@@ -3842,20 +3861,26 @@ void ipo_mirror(short mode)
 						switch (mode) {
 							case 1: /* mirror over current frame */
 							{
-								diff= ((float)CFRA - bezt->vec[1][0]);
-								bezt->vec[1][0]= ((float)CFRA + diff);
+								for (i=0; i<3; i++) {
+									diff= ((float)CFRA - bezt->vec[i][0]);
+									bezt->vec[i][0]= ((float)CFRA + diff);
+								}
 							}
 								break;
 							case 2: /* mirror over vertical axis (frame 0) */
 							{
-								diff= (0.0f - bezt->vec[1][0]);
-								bezt->vec[1][0]= (0.0f + diff);
+								for (i=0; i<3; i++) {
+									diff= (0.0f - bezt->vec[i][0]);
+									bezt->vec[i][0]= (0.0f + diff);
+								}
 							}
 								break;
 							case 3: /* mirror over horizontal axis */
 							{
-								diff= (0.0f - bezt->vec[1][1]);
-								bezt->vec[1][1]= (0.0f + diff);
+								for (i=0; i<3; i++) {
+									diff= (0.0f - bezt->vec[i][1]);
+									bezt->vec[i][1]= (0.0f + diff);
+								}
 							}
 								break;
 						}
