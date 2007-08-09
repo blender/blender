@@ -81,9 +81,12 @@ void BIF_setSingleAxisConstraint(float vec[3], char *text);
 void BIF_setDualAxisConstraint(float vec1[3], float vec2[3], char *text);
 void BIF_setLocalAxisConstraint(char axis, char *text);
 void BIF_setLocalLockConstraint(char axis, char *text);
+
+/* Drawing callbacks */
 void BIF_drawConstraint(void);
 void BIF_drawPropCircle(void);
 void BIF_drawSnap(void);
+
 void BIF_getPropCenter(float *center);
 
 void BIF_TransformSetUndo(char *str);

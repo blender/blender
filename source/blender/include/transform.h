@@ -161,6 +161,8 @@ typedef struct TransInfo {
     float       fac;            /* factor for distance based transform  */
     int       (*transform)(struct TransInfo *, short *);
                                 /* transform function pointer           */
+	int       (*handleEvent)(struct TransInfo *, unsigned short event, short val);
+								/* event handler function pointer  RETURN 1 if redraw is needed */
     int         total;          /* total number of transformed data     */
     TransData  *data;           /* transformed data (array)             */
 	TransDataExtension *ext;	/* transformed data extension (array)   */
@@ -194,6 +196,8 @@ typedef struct TransInfo {
 	char		spacename[32];	/* name of the current space				*/
 	
 	struct Object *poseobj;		/* if t->flag & T_POSE, this denotes pose object */
+	
+	void       *customData;		/* Per Transform custom data */
 } TransInfo;
 
 
@@ -212,32 +216,37 @@ typedef struct TransInfo {
 #define TRANS_CANCEL	2
 
 /* transinfo->flag */
-#define T_OBJECT		1
-#define T_EDIT			2
-#define T_POSE			4
-#define T_TEXTURE		8
-#define T_CAMERA		16
+#define T_OBJECT		(1 << 0)
+#define T_EDIT			(1 << 1)
+#define T_POSE			(1 << 2)
+#define T_TEXTURE		(1 << 3)
+#define T_CAMERA		(1 << 4)
 		// when shift pressed, higher resolution transform. cannot rely on G.qual, need event!
-#define T_SHIFT_MOD		32
+#define T_SHIFT_MOD		(1 << 5)
 	 	// trans on points, having no rotation/scale 
-#define T_POINTS		64
+#define T_POINTS		(1 << 6)
 		// for manipulator exceptions, like scaling using center point, drawing help lines
-#define T_USES_MANIPULATOR	128
+#define T_USES_MANIPULATOR	(1 << 7)
 
 /* restrictions flags */
-#define T_ALL_RESTRICTIONS	(256|512|1024)
-#define T_NO_CONSTRAINT		256
-#define T_NULL_ONE			512
-#define T_NO_ZERO			1024
+#define T_ALL_RESTRICTIONS	((1 << 8)|(1 << 9)|(1 << 10))
+#define T_NO_CONSTRAINT		(1 << 8)
+#define T_NULL_ONE			(1 << 9)
+#define T_NO_ZERO			(1 << 10)
 
-#define T_PROP_EDIT			2048
-#define T_PROP_CONNECTED	4096
+#define T_PROP_EDIT			(1 << 11)
+#define T_PROP_CONNECTED	(1 << 12)
 
 /* if MMB is pressed or not */
-#define	T_MMB_PRESSED		8192
-#define T_V3D_ALIGN			16384
-#define T_2D_EDIT			32768 /* for 2d views like uv or ipo */
-#define T_CLIP_UV			65536
+#define	T_MMB_PRESSED		(1 << 13)
+
+#define T_V3D_ALIGN			(1 << 14)
+#define T_2D_EDIT			(1 << 15) /* for 2d views like uv or ipo */
+#define T_CLIP_UV			(1 << 16)
+
+#define T_FREE_CUSTOMDATA	(1 << 17)
+
+/* ******************************************************************************** */
 
 /* transinfo->con->mode */
 #define CON_APPLY		1
@@ -288,6 +297,7 @@ void initWarp(TransInfo *t);
 int Warp(TransInfo *t, short mval[2]);
 
 void initShear(TransInfo *t);
+int handleEventShear(TransInfo *t, unsigned short evenl, short val);
 int Shear(TransInfo *t, short mval[2]);
 
 void initResize(TransInfo *t);

@@ -541,7 +541,6 @@ static void transformEvent(unsigned short event, short val) {
 						setLocalConstraint(&Trans, (CON_AXIS2), "along local Z");
 					else if (Trans.mode==TFM_ROTATION) {
 						restoreTransObjects(&Trans);
-						initTransModeFlags(&Trans, TFM_TRACKBALL);
 						initTrackball(&Trans);
 					}
 				}
@@ -578,7 +577,6 @@ static void transformEvent(unsigned short event, short val) {
 			/* only switch when... */
 			if( ELEM3(Trans.mode, TFM_ROTATION, TFM_RESIZE, TFM_TRACKBALL) ) { 
 				restoreTransObjects(&Trans);
-				initTransModeFlags(&Trans, TFM_TRANSLATION);
 				initTranslation(&Trans);
 				Trans.redraw = 1;
 			}
@@ -587,7 +585,6 @@ static void transformEvent(unsigned short event, short val) {
 			/* only switch when... */
 			if( ELEM3(Trans.mode, TFM_ROTATION, TFM_TRANSLATION, TFM_TRACKBALL) ) { 
 				restoreTransObjects(&Trans);
-				initTransModeFlags(&Trans, TFM_RESIZE);
 				initResize(&Trans);
 				Trans.redraw = 1;
 			}
@@ -598,12 +595,10 @@ static void transformEvent(unsigned short event, short val) {
 				
 				if (Trans.mode == TFM_ROTATION) {
 					restoreTransObjects(&Trans);
-					initTransModeFlags(&Trans, TFM_TRACKBALL);
 					initTrackball(&Trans);
 				}
 				else {
 					restoreTransObjects(&Trans);
-					initTransModeFlags(&Trans, TFM_ROTATION);
 					initRotation(&Trans);
 				}
 				Trans.redraw = 1;
@@ -727,8 +722,13 @@ static void transformEvent(unsigned short event, short val) {
 			Trans.redraw= 1;
 			break;
 		}
+		
+		// Numerical input events
 		Trans.redraw |= handleNumInput(&(Trans.num), event);
+		
+		// Snapping events
 		Trans.redraw |= handleSnapping(&Trans, event);
+		
 		arrows_move_cursor(event);
 	}
 	else {
@@ -754,6 +754,10 @@ static void transformEvent(unsigned short event, short val) {
 			break;
 		}
 	}
+	
+	// Per transform event, if present
+	if (Trans.handleEvent)
+		Trans.redraw |= Trans.handleEvent(&Trans, event, val);
 }
 
 int calculateTransformCenter(int centerMode, float *vec)
@@ -764,12 +768,12 @@ int calculateTransformCenter(int centerMode, float *vec)
 	Trans.state = TRANS_RUNNING;
 
 	Trans.context = CTX_NONE;
+	
+	Trans.mode = TFM_DUMMY;
 
 	initTrans(&Trans);					// internal data, mouse, vectors
 
 	createTransData(&Trans);			// make TransData structs from selection
-
-	initTransModeFlags(&Trans, TFM_DUMMY);	// modal settings in struct Trans
 
 	Trans.around = centerMode; 			// override userdefined mode
 
@@ -800,6 +804,8 @@ void initTransform(int mode, int context) {
 	Trans.state = TRANS_RUNNING;
 
 	Trans.context = context;
+	
+	Trans.mode = mode;
 
 	initTrans(&Trans);					// internal data, mouse, vectors
 
@@ -809,8 +815,6 @@ void initTransform(int mode, int context) {
 	}
 	else
 		Mat3One(Trans.spacemtx);
-
-	initTransModeFlags(&Trans, mode);	// modal settings in struct Trans
 
 	createTransData(&Trans);			// make TransData structs from selection
 
@@ -823,7 +827,7 @@ void initTransform(int mode, int context) {
 
 	/* EVIL! posemode code can switch translation to rotate when 1 bone is selected. will be removed (ton) */
 	/* EVIL2: we gave as argument also texture space context bit... was cleared */
-	mode= Trans.mode;
+	mode = Trans.mode;
 	
 	calculatePropRatio(&Trans);
 	calculateCenter(&Trans);
@@ -960,6 +964,8 @@ void initManipulator(int mode)
 
 	Trans.context = CTX_NONE;
 	
+	Trans.mode = mode;
+	
 	/* automatic switch to scaling bone envelopes */
 	if(mode==TFM_RESIZE && G.obedit && G.obedit->type==OB_ARMATURE) {
 		bArmature *arm= G.obedit->data;
@@ -968,8 +974,6 @@ void initManipulator(int mode)
 	}
 
 	initTrans(&Trans);					// internal data, mouse, vectors
-
-	initTransModeFlags(&Trans, mode);	// modal settings in struct Trans
 
 	G.moving |= G_TRANSFORM_MANIP;		// signal to draw manipuls while transform
 	createTransData(&Trans);			// make TransData structs from selection
@@ -981,7 +985,7 @@ void initManipulator(int mode)
 
 	/* EVIL! posemode code can switch translation to rotate when 1 bone is selected. will be removed (ton) */
 	/* EVIL2: we gave as argument also texture space context bit... was cleared */
-	mode= Trans.mode;
+	mode = Trans.mode;
 	
 	calculatePropRatio(&Trans);
 	calculateCenter(&Trans);
@@ -1176,20 +1180,24 @@ static void protectedQuaternionBits(short protectflag, float *quat, float *oldqu
 
 /* ************************** WARP *************************** */
 
-/* warp is done fully in view space */
 void initWarp(TransInfo *t) 
 {
 	float max[3], min[3];
 	int i;
 	
-	calculateCenterCursor(t);
+	t->mode = TFM_WARP;
+	t->transform = Warp;
+	
 	t->idx_max = 0;
 	t->num.idx_max = 0;
-	t->transform = Warp;
 	t->snap[0] = 0.0f;
 	t->snap[1] = 5.0f;
 	t->snap[2] = 1.0f;
 	
+	t->flag |= T_NO_CONSTRAINT;
+
+/* warp is done fully in view space */
+	calculateCenterCursor(t);
 	t->fac = (float)(t->center2d[0] - t->imval[0]);
 	
 	/* we need min/max in view space */
@@ -1213,7 +1221,6 @@ void initWarp(TransInfo *t)
 	
 	t->val= (max[0]-min[0])/2.0f;	// t->val is free variable
 }
-
 
 int Warp(TransInfo *t, short mval[2])
 {
@@ -1312,13 +1319,37 @@ int Warp(TransInfo *t, short mval[2])
 
 void initShear(TransInfo *t) 
 {
+	t->mode = TFM_SHEAR;
+	t->transform = Shear;
+	t->handleEvent = handleEventShear;
+	
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
 	t->snap[1] = 0.1f;
 	t->snap[2] = t->snap[1] * 0.1f;
-	t->transform = Shear;
+	
+	t->flag |= T_NO_CONSTRAINT;
 }
+
+int handleEventShear(TransInfo *t, unsigned short event, short val)
+{
+	int status = 0;
+	
+	if (event == MIDDLEMOUSE && val)
+	{
+		// Use customData pointer to signal Shear direction
+		if	(t->customData == 0)
+			t->customData = (void*)1;
+		else
+			t->customData = 0;
+			
+		status = 1;
+	}
+	
+	return status;
+}
+
 
 int Shear(TransInfo *t, short mval[2]) 
 {
@@ -1332,7 +1363,11 @@ int Shear(TransInfo *t, short mval[2])
 	Mat3CpyMat4(persmat, t->viewmat);
 	Mat3Inv(persinv, persmat);
 
-	value = 0.05f * InputHorizontalAbsolute(t, mval);
+	// Custom data signals shear direction
+	if (t->customData == 0)
+		value = 0.05f * InputHorizontalAbsolute(t, mval);
+	else
+		value = 0.05f * InputVerticalAbsolute(t, mval);
 
 	snapGrid(t, &value);
 
@@ -1352,7 +1387,13 @@ int Shear(TransInfo *t, short mval[2])
 	}
 	
 	Mat3One(smat);
-	smat[1][0] = value;
+	
+	// Custom data signals shear direction
+	if (t->customData == 0)
+		smat[1][0] = value;
+	else
+		smat[0][1] = value;
+	
 	Mat3MulMat3(tmat, smat, persmat);
 	Mat3MulMat3(totmat, persinv, tmat);
 	
@@ -1395,6 +1436,23 @@ int Shear(TransInfo *t, short mval[2])
 
 void initResize(TransInfo *t) 
 {
+	t->mode = TFM_RESIZE;
+	t->transform = Resize;
+	
+	t->flag |= T_NULL_ONE;
+	t->num.flag |= NUM_NULL_ONE;
+	t->num.flag |= NUM_AFFECT_ALL;
+	if (!G.obedit) {
+		t->flag |= T_NO_ZERO;
+		t->num.flag |= NUM_NO_ZERO;
+	}
+	
+	t->idx_max = 2;
+	t->num.idx_max = 2;
+	t->snap[0] = 0.0f;
+	t->snap[1] = 0.1f;
+	t->snap[2] = t->snap[1] * 0.1f;
+
 	t->fac = (float)sqrt(
 		(
 			((float)(t->center2d[1] - t->imval[1]))*((float)(t->center2d[1] - t->imval[1]))
@@ -1403,13 +1461,6 @@ void initResize(TransInfo *t)
 		) );
 
 	if(t->fac==0.0f) t->fac= 1.0f;	// prevent Inf
-	
-	t->idx_max = 2;
-	t->num.idx_max = 2;
-	t->snap[0] = 0.0f;
-	t->snap[1] = 0.1f;
-	t->snap[2] = t->snap[1] * 0.1f;
-	t->transform = Resize;
 }
 
 static void headerResize(TransInfo *t, float vec[3], char *str) {
@@ -1661,22 +1712,25 @@ void initToSphere(TransInfo *t)
 	TransData *td = t->data;
 	int i;
 
-	// Calculate average radius
-	for(i = 0 ; i < t->total; i++, td++) {
-		t->val += VecLenf(t->center, td->iloc);
-	}
-
-	t->val /= (float)t->total;
+	t->mode = TFM_TOSPHERE;
+	t->transform = ToSphere;
 
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
 	t->snap[1] = 0.1f;
 	t->snap[2] = t->snap[1] * 0.1f;
-	t->transform = ToSphere;
+	
+	t->num.flag |= NUM_NULL_ONE | NUM_NO_NEGATIVE;
+	t->flag |= T_NO_CONSTRAINT;
+
+	// Calculate average radius
+	for(i = 0 ; i < t->total; i++, td++) {
+		t->val += VecLenf(t->center, td->iloc);
+	}
+
+	t->val /= (float)t->total;
 }
-
-
 
 int ToSphere(TransInfo *t, short mval[2]) 
 {
@@ -1742,13 +1796,15 @@ int ToSphere(TransInfo *t, short mval[2])
 
 void initRotation(TransInfo *t) 
 {
+	t->mode = TFM_ROTATION;
+	t->transform = Rotation;
+	
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
 	t->snap[1] = (float)((5.0/180)*M_PI);
 	t->snap[2] = t->snap[1] * 0.2f;
 	t->fac = 0;
-	t->transform = Rotation;
 }
 
 static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3]) {
@@ -2055,15 +2111,17 @@ int Rotation(TransInfo *t, short mval[2])
 
 void initTrackball(TransInfo *t) 
 {
+	t->mode = TFM_TRACKBALL;
+	t->transform = Trackball;
+
 	t->idx_max = 1;
 	t->num.idx_max = 1;
 	t->snap[0] = 0.0f;
 	t->snap[1] = (float)((5.0/180)*M_PI);
 	t->snap[2] = t->snap[1] * 0.2f;
 	t->fac = 0;
-	t->transform = Trackball;
 	
-	t->flag |= T_NO_CONSTRAINT; /* making sure the flag is always set */
+	t->flag |= T_NO_CONSTRAINT;
 }
 
 static void applyTrackball(TransInfo *t, float axis1[3], float axis2[3], float angles[2])
@@ -2158,10 +2216,14 @@ int Trackball(TransInfo *t, short mval[2])
 	
 void initTranslation(TransInfo *t) 
 {
-	t->idx_max = (t->flag & T_2D_EDIT)? 1: 2;
-	t->num.idx_max = t->idx_max;
+	t->mode = TFM_TRANSLATION;
 	t->transform = Translation;
+
+	t->idx_max = (t->flag & T_2D_EDIT)? 1: 2;
+	t->num.flag = 0;
+	t->num.idx_max = t->idx_max;
 	
+
 	if(t->spacetype == SPACE_VIEW3D) {
 		/* initgrabz() defines a factor for perspective depth correction, used in window_to_3d() */
 		if(t->flag & (T_EDIT|T_POSE)) {
@@ -2172,7 +2234,9 @@ void initTranslation(TransInfo *t)
 			Mat4MulVecfl(ob->obmat, vec);
 			initgrabz(vec[0], vec[1], vec[2]);
 		}
-		else initgrabz(t->center[0], t->center[1], t->center[2]); 
+		else {
+			initgrabz(t->center[0], t->center[1], t->center[2]);
+		} 
 
 		t->snap[0] = 0.0f;
 		t->snap[1] = G.vd->gridview * 1.0f;
@@ -2317,18 +2381,22 @@ int Translation(TransInfo *t, short mval[2])
 
 void initShrinkFatten(TransInfo *t) 
 {
+	// If not in mesh edit mode, fallback to Resize
 	if (G.obedit==NULL || G.obedit->type != OB_MESH) {
-		initTransModeFlags(t, TFM_RESIZE);
 		initResize(t);
-		return;
 	}
-
-	t->idx_max = 0;
-	t->num.idx_max = 0;
-	t->snap[0] = 0.0f;
-	t->snap[1] = 1.0f;
-	t->snap[2] = t->snap[1] * 0.1f;
-	t->transform = ShrinkFatten;
+	else {
+		t->mode = TFM_SHRINKFATTEN;
+		t->transform = ShrinkFatten;
+	
+		t->idx_max = 0;
+		t->num.idx_max = 0;
+		t->snap[0] = 0.0f;
+		t->snap[1] = 1.0f;
+		t->snap[2] = t->snap[1] * 0.1f;
+		
+		t->flag |= T_NO_CONSTRAINT;
+	}
 }
 
 
@@ -2385,13 +2453,17 @@ int ShrinkFatten(TransInfo *t, short mval[2])
 
 void initTilt(TransInfo *t) 
 {
+	t->mode = TFM_TILT;
+	t->transform = Tilt;
+
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
 	t->snap[1] = (float)((5.0/180)*M_PI);
 	t->snap[2] = t->snap[1] * 0.2f;
 	t->fac = 0;
-	t->transform = Tilt;
+	
+	t->flag |= T_NO_CONSTRAINT;
 }
 
 
@@ -2534,12 +2606,17 @@ int CurveShrinkFatten(TransInfo *t, short mval[2])
 
 void initCurveShrinkFatten(TransInfo *t)
 {
+	t->mode = TFM_CURVE_SHRINKFATTEN;
+	t->transform = CurveShrinkFatten;
+	
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
 	t->snap[1] = 0.1f;
 	t->snap[2] = t->snap[1] * 0.1f;
-	t->transform = CurveShrinkFatten;
+	
+	t->flag |= T_NO_CONSTRAINT;
+
 	t->fac = (float)sqrt( (
 		   ((float)(t->center2d[1] - t->imval[1]))*((float)(t->center2d[1] - t->imval[1]))
 		   +
@@ -2551,14 +2628,15 @@ void initCurveShrinkFatten(TransInfo *t)
 
 void initPushPull(TransInfo *t) 
 {
+	t->mode = TFM_PUSHPULL;
+	t->transform = PushPull;
+	
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
 	t->snap[1] = 1.0f;
 	t->snap[2] = t->snap[1] * 0.1f;
-	t->transform = PushPull;
 }
-
 
 
 int PushPull(TransInfo *t, short mval[2]) 
@@ -2628,12 +2706,17 @@ int PushPull(TransInfo *t, short mval[2])
 
 void initCrease(TransInfo *t) 
 {
+	t->mode = TFM_CREASE;
+	t->transform = Crease;
+	
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
 	t->snap[1] = 0.1f;
 	t->snap[2] = t->snap[1] * 0.1f;
-	t->transform = Crease;
+	
+	t->flag |= T_NO_CONSTRAINT;
+
 	t->fac = (float)sqrt(
 		(
 			((float)(t->center2d[1] - t->imval[1]))*((float)(t->center2d[1] - t->imval[1]))
@@ -2721,12 +2804,17 @@ int Crease(TransInfo *t, short mval[2])
 
 void initBoneSize(TransInfo *t)
 {
+	t->mode = TFM_BONESIZE;
+	t->transform = BoneSize;
+	
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
 	t->snap[1] = 0.1f;
 	t->snap[2] = t->snap[1] * 0.1f;
-	t->transform = BoneSize;
+
+	t->flag |= T_NO_CONSTRAINT;
+
 	t->fac = (float)sqrt( (
 					   ((float)(t->center2d[1] - t->imval[1]))*((float)(t->center2d[1] - t->imval[1]))
 					   +
@@ -2835,12 +2923,17 @@ int BoneSize(TransInfo *t, short mval[2])
 
 void initBoneEnvelope(TransInfo *t)
 {
+	t->mode = TFM_BONE_ENVELOPE;
+	t->transform = BoneEnvelope;
+	
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
 	t->snap[1] = 0.1f;
 	t->snap[2] = t->snap[1] * 0.1f;
-	t->transform = BoneEnvelope;
+
+	t->flag |= T_NO_CONSTRAINT;
+
 	t->fac = (float)sqrt( (
 						   ((float)(t->center2d[1] - t->imval[1]))*((float)(t->center2d[1] - t->imval[1]))
 						   +
@@ -2912,6 +3005,9 @@ int BoneEnvelope(TransInfo *t, short mval[2])
 
 void initBoneRoll(TransInfo *t)
 {
+	t->mode = TFM_BONE_ROLL;
+	t->transform = BoneRoll;
+
 	t->idx_max = 0;
 	t->num.idx_max = 0;
 	t->snap[0] = 0.0f;
@@ -2920,7 +3016,7 @@ void initBoneRoll(TransInfo *t)
 	
 	t->fac = 0.0f;
 	
-	t->transform = BoneRoll;
+	t->flag |= T_NO_CONSTRAINT;
 }
 
 int BoneRoll(TransInfo *t, short mval[2]) 
@@ -3011,8 +3107,6 @@ void Mirror(short mode)
 	Mat3One(mati);
 	Mat3CpyMat4(matview, Trans.viewinv); // t->viewinv was set in initTrans
 	Mat3Ortho(matview);
-
-	initTransModeFlags(&Trans, TFM_MIRROR);	// modal settings in struct Trans
 
 	createTransData(&Trans);	// make TransData structs from selection
 

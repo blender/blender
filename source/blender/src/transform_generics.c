@@ -376,39 +376,6 @@ void recalcData(TransInfo *t)
 	
 }
 
-void initTransModeFlags(TransInfo *t, int mode) 
-{
-	t->mode = mode;
-	t->num.flag = 0;
-
-	/* REMOVING RESTRICTIONS FLAGS */
-	t->flag &= ~T_ALL_RESTRICTIONS;
-	
-	switch (mode) {
-	case TFM_RESIZE:
-		t->flag |= T_NULL_ONE;
-		t->num.flag |= NUM_NULL_ONE;
-		t->num.flag |= NUM_AFFECT_ALL;
-		if (!G.obedit) {
-			t->flag |= T_NO_ZERO;
-			t->num.flag |= NUM_NO_ZERO;
-		}
-		break;
-	case TFM_TOSPHERE:
-		t->num.flag |= NUM_NULL_ONE;
-		t->num.flag |= NUM_NO_NEGATIVE;
-		t->flag |= T_NO_CONSTRAINT;
-		break;
-	case TFM_SHEAR:
-	case TFM_CREASE:
-	case TFM_BONE_ENVELOPE:
-	case TFM_CURVE_SHRINKFATTEN:
-	case TFM_BONE_ROLL:
-		t->flag |= T_NO_CONSTRAINT;
-		break;
-	}
-}
-
 void drawLine(float *center, float *dir, char axis, short options)
 {
 	extern void make_axis_color(char *col, char *col2, char axis);	// drawview.c
@@ -443,7 +410,6 @@ void drawLine(float *center, float *dir, char axis, short options)
 
 void initTrans (TransInfo *t)
 {
-	
 	/* moving: is shown in drawobject() (transform color) */
 	if(G.obedit || (t->flag & T_POSE) ) G.moving= G_TRANSFORM_EDIT;
 	else G.moving= G_TRANSFORM_OBJ;
@@ -452,6 +418,8 @@ void initTrans (TransInfo *t)
 	t->ext = NULL;
 
 	t->flag = 0;
+	t->num.flag = 0;
+
 
 	/* setting PET flag */
 	if ((t->context & CTX_NO_PET) == 0 && (G.scene->proportional)) {
@@ -464,6 +432,8 @@ void initTrans (TransInfo *t)
 	t->con.imval[1] = t->imval[1];
 
 	t->transform		= NULL;
+	t->handleEvent		= NULL;
+	t->customData		= NULL;
 
 	t->total			=
 		t->num.idx		=
@@ -541,6 +511,10 @@ void postTrans (TransInfo *t)
 	if (t->data2d) {
 		MEM_freeN(t->data2d);
 		t->data2d= NULL;
+	}
+	
+	if ((t->flag & T_FREE_CUSTOMDATA) && t->customData != NULL) {
+		MEM_freeN(t->customData);
 	}
 
 	if(t->spacetype==SPACE_IMAGE) {
