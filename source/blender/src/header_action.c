@@ -89,6 +89,7 @@
 #define ACTMENU_VIEW_SLIDERS	7
 #define ACTMENU_VIEW_NEXTMARKER	8
 #define ACTMENU_VIEW_PREVMARKER	9
+#define ACTMENU_VIEW_TIME		10
 
 #define ACTMENU_SEL_BORDER      		0
 #define ACTMENU_SEL_BORDERM      		1
@@ -255,6 +256,9 @@ static void do_action_viewmenu(void *arg, int event)
 		case ACTMENU_VIEW_PREVMARKER: /* jump to previous marker */
 			nextprev_marker(-1);
 			break;
+		case ACTMENU_VIEW_TIME: /* switch between frames and seconds display */
+			G.saction->flag ^= SACTION_DRAWTIME;
+			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -275,6 +279,21 @@ static uiBlock *action_viewmenu(void *arg_unused)
 		
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+			 
+	if (G.saction->flag & SACTION_DRAWTIME) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+						"Show Frames|T", 0, yco-=20, 
+						menuwidth, 19, NULL, 0.0, 0.0, 1, 
+						ACTMENU_VIEW_TIME, "");
+	}
+	else {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+						"Show Seconds|T", 0, yco-=20, 
+						menuwidth, 19, NULL, 0.0, 0.0, 1, 
+						ACTMENU_VIEW_TIME, "");
+	}
+	
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, (G.saction->flag & SACTION_SLIDERS)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
 					 "Show Sliders|", 0, yco-=20, 

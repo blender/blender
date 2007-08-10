@@ -150,6 +150,7 @@ typedef struct SpaceAction {
 /* SpaceAction flag */
 #define SACTION_MOVING		1	/* during transform */
 #define SACTION_SLIDERS		2	/* show sliders (if relevant) - limited to shape keys for now */
+#define SACTION_DRAWTIME	4	/* draw time in seconds instead of time in frames */
 
 /* SpaceAction AutoSnap Settings */
 #define SACTSNAP_OFF	0	/* no auto-snap */

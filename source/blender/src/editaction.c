@@ -2831,12 +2831,12 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		
 		case HKEY:
-			if(G.qual & LR_SHIFTKEY) {
-				if(okee("Set Keys to Auto Handle"))
+			if (G.qual & LR_SHIFTKEY) {
+				if (okee("Set Keys to Auto Handle"))
 					sethandles_action_keys(HD_AUTO);
 			}
 			else {
-				if(okee("Toggle Keys Aligned Handle"))
+				if (okee("Toggle Keys Aligned Handle"))
 					sethandles_action_keys(HD_ALIGN);
 			}
 			break;
@@ -2899,6 +2899,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				anim_previewrange_set();
 			else if (G.qual & LR_ALTKEY) /* clear preview range */
 				anim_previewrange_clear();
+				
 			allqueue(REDRAWTIME, 0);
 			allqueue(REDRAWBUTSALL, 0);
 			allqueue(REDRAWACTION, 0);
@@ -2908,7 +2909,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			
 		case SKEY: 
 			if (mval[0]>=ACTWIDTH) {
-				if(G.qual & LR_SHIFTKEY) {
+				if (G.qual & LR_SHIFTKEY) {
 					if (data) {
 						val = pupmenu("Snap Keys To%t|Nearest Frame%x1|Current Frame%x2|Nearest Marker %x3");
 						snap_action_keys(val);
@@ -2920,17 +2921,27 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		
 		case TKEY:
-			if(G.qual & LR_SHIFTKEY)
+			if (G.qual & LR_SHIFTKEY)
 				action_set_ipo_flags(SET_IPO_POPUP);
+			else if (G.qual & LR_CTRLKEY) {
+				val= pupmenu("Time value%t|Frames %x1|Seconds%x2");
+				
+				if (val > 0) {
+					if (val == 2) saction->flag |= SACTION_DRAWTIME;
+					else saction->flag &= ~SACTION_DRAWTIME;
+					
+					doredraw= 1;
+				}
+			}				
 			else
 				transform_action_keys ('t', 0);
 			break;
-
+		
 		case VKEY:
-			if(okee("Set Keys to Vector Handle"))
+			if (okee("Set Keys to Vector Handle"))
 				sethandles_action_keys(HD_VECT);
 			break;
-
+		
 		case PAGEUPKEY:
 			if (datatype == ACTCONT_ACTION) {
 				if(G.qual & LR_SHIFTKEY)
@@ -3044,7 +3055,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			view2d_zoom(G.v2d, 0.1154, sa->winx, sa->winy);
 			test_view2d(G.v2d, sa->winx, sa->winy);
 			view2d_do_locks(curarea, V2D_LOCK_COPY);
-
+			
 			doredraw= 1;
 			break;
 		case PADMINUS:
