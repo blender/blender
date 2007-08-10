@@ -154,8 +154,8 @@ typedef struct SpaceAction {
 
 /* SpaceAction AutoSnap Settings */
 #define SACTSNAP_OFF	0	/* no auto-snap */
-#define SACTSNAP_STEP	1	/* snap to 1.0 frame intervals */
-#define SACTSNAP_FRAME	2	/* snap to actual frames (nla-action time) */
+#define SACTSNAP_STEP	1	/* snap to 1.0 frame/second intervals */
+#define SACTSNAP_FRAME	2	/* snap to actual frames/seconds (nla-action time) */
 
 /* Pose->flag */
 #define POSE_RECALC		1
