@@ -797,7 +797,7 @@ static short transform_action_loop (TransVert *tv, int tvtot, char mode, short c
 	float deltax, startx;
 	float cenf[2];
 	float sval[2], cval[2], lastcval[2]={0,0};
-	float fac=0.0f;
+	float fac=0.0f, secf= ((float)G.scene->r.frs_sec);
 	int	loop=1, invert=0;
 	int	i;
 	short cancel=0, firsttime=1;
@@ -921,8 +921,12 @@ static short transform_action_loop (TransVert *tv, int tvtot, char mode, short c
 							deltax = get_action_frame_inv(OBACT, cval[0]);
 							deltax -= get_action_frame_inv(OBACT, sval[0]);
 							
-							if (autosnap == SACTSNAP_STEP) 
-								deltax= 1.0f*floor(deltax/1.0f + 0.5f);
+							if (autosnap == SACTSNAP_STEP) {
+								if (G.saction->flag & SACTION_DRAWTIME) 
+									deltax= (float)( floor((deltax/secf) + 0.5f) * secf );
+								else
+									deltax= (float)( floor(deltax + 0.5f) );
+							}
 							
 							fac = get_action_frame_inv(OBACT, tv[i].loc[0]);
 							fac += deltax;
@@ -932,8 +936,12 @@ static short transform_action_loop (TransVert *tv, int tvtot, char mode, short c
 							deltax = cval[0] - sval[0];
 							fac= deltax;
 							
-							if (autosnap == SACTSNAP_STEP)
-								fac= 1.0f*floor(fac/1.0f + 0.5f);
+							if (autosnap == SACTSNAP_STEP) {
+								if (G.saction->flag & SACTION_DRAWTIME)
+									fac= (float)( floor((deltax/secf) + 0.5f) * secf );
+								else
+									fac= (float)( floor(fac + 0.5f) );
+							}
 							
 							tv[i].loc[0]+=fac;
 						}
@@ -944,18 +952,21 @@ static short transform_action_loop (TransVert *tv, int tvtot, char mode, short c
 						fac= fabs(deltax/startx);
 						
 						if (autosnap == SACTSNAP_STEP) {
-							fac= 1.0f*floor(fac/1.0f + 0.5f);
+							if (G.saction->flag & SACTION_DRAWTIME)
+								fac= (float)( floor(fac/secf + 0.5f) * secf );
+							else
+								fac= (float)( floor(fac + 0.5f) );
 						}
 						
-						if (invert){
-							if (i % 03 == 0){
+						if (invert) {
+							if (i % 03 == 0) {
 								memcpy (tv[i].loc, tv[i].oldloc, sizeof(tv[i+2].oldloc));
 							}
-							if (i % 03 == 2){
+							if (i % 03 == 2) {
 								memcpy (tv[i].loc, tv[i].oldloc, sizeof(tv[i-2].oldloc));
 							}
 	
-							fac*=-1;
+							fac *= -1;
 						}
 						startx= (G.scene->r.cfra);
 						if(NLA_ACTION_SCALED && context==ACTCONT_ACTION)
@@ -979,7 +990,10 @@ static short transform_action_loop (TransVert *tv, int tvtot, char mode, short c
 							snapval= tv[i].loc[0];
 						
 						/* snap to nearest frame */
-						snapval= (float)(floor(snapval+0.5));
+						if (G.saction->flag & SACTION_DRAWTIME)
+							snapval= (float)( floor((snapval/secf) + 0.5f) * secf );
+						else
+							snapval= (float)( floor(snapval+0.5f) );
 							
 						/* convert frame out of nla-action time */
 						if (NLA_ACTION_SCALED && context==ACTCONT_ACTION)
@@ -999,9 +1013,30 @@ static short transform_action_loop (TransVert *tv, int tvtot, char mode, short c
 						fac = get_action_frame_inv(OBACT, cval[0]);
 						fac -= get_action_frame_inv(OBACT, sval[0]);
 						
-						if (autosnap == SACTSNAP_STEP) 
-							fac= 1.0f*floor(fac/1.0f + 0.5f);
+						if (autosnap == SACTSNAP_STEP) {
+							if (G.saction->flag & SACTION_DRAWTIME)
+								fac= floor(fac/secf + 0.5f);
+							else
+								fac= floor(fac + 0.5f);
+						}
+						else if (autosnap == SACTSNAP_FRAME) {
+							if (G.saction->flag & SACTION_DRAWTIME)
+								fac= fac / secf;
+						}
 					}
+					else {
+						if (autosnap == SACTSNAP_STEP) {
+							if (G.saction->flag & SACTION_DRAWTIME)
+								fac= floor(fac/secf + 0.5f);
+							else
+								fac= floor(fac + 0.5f);
+						}
+						else if (autosnap == SACTSNAP_FRAME) {
+							if (G.saction->flag & SACTION_DRAWTIME)
+								fac= fac / secf;
+						}
+					}
+					
 					sprintf(str, "deltaX: %.3f", fac);
 					headerprint(str);
 				}
@@ -1157,10 +1192,16 @@ void snap_action_keys(short mode)
 			strcpy(str, "Snap Keys To Nearest Frame");
 			break;
 		case 2:
-			strcpy(str, "Snap Keys To Current Frame");
+			if (G.saction->flag & SACTION_DRAWTIME)
+				strcpy(str, "Snap Keys To Current Time");
+			else
+				strcpy(str, "Snap Keys To Current Frame");
 			break;
 		case 3:
 			strcpy(str, "Snap Keys To Nearest Marker");
+			break;
+		case 4:
+			strcpy(str, "Snap Keys To Nearest Second");
 			break;
 		default:
 			return;
@@ -2860,7 +2901,11 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if (G.qual & LR_SHIFTKEY) {
 				/* mirror keyframes */
 				if (data) {
-					val = pupmenu("Mirror Keys Over%t|Current Frame%x1|Vertical Axis%x2|Horizontal Axis %x3|Selected Marker %x4");
+					if (G.saction->flag & SACTION_DRAWTIME)
+						val = pupmenu("Mirror Keys Over%t|Current Time%x1|Vertical Axis%x2|Horizontal Axis %x3|Selected Marker %x4");
+					else
+						val = pupmenu("Mirror Keys Over%t|Current Frame%x1|Vertical Axis%x2|Horizontal Axis %x3|Selected Marker %x4");
+					
 					mirror_action_keys(val);
 				}
 			}
@@ -2911,12 +2956,17 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if (mval[0]>=ACTWIDTH) {
 				if (G.qual & LR_SHIFTKEY) {
 					if (data) {
-						val = pupmenu("Snap Keys To%t|Nearest Frame%x1|Current Frame%x2|Nearest Marker %x3");
+						if (G.saction->flag & SACTION_DRAWTIME)
+							val = pupmenu("Snap Keys To%t|Nearest Second%x4|Current Time%x2|Nearest Marker %x3");
+						else
+							val = pupmenu("Snap Keys To%t|Nearest Frame%x1|Current Frame%x2|Nearest Marker %x3");
+						
 						snap_action_keys(val);
 					}
 				}
-				else
-					transform_action_keys ('s', 0);	
+				else {
+					transform_action_keys('s', 0);	
+				}
 			}
 			break;
 		

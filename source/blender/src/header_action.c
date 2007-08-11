@@ -134,6 +134,7 @@
 #define ACTMENU_KEY_SNAP_NEARFRAME  1
 #define ACTMENU_KEY_SNAP_CURFRAME 2
 #define ACTMENU_KEY_SNAP_NEARMARK 3
+#define ACTMENU_KEY_SNAP_NEARTIME 4
 
 #define ACTMENU_KEY_MIRROR_CURFRAME 1
 #define ACTMENU_KEY_MIRROR_YAXIS 2
@@ -282,13 +283,13 @@ static uiBlock *action_viewmenu(void *arg_unused)
 			 
 	if (G.saction->flag & SACTION_DRAWTIME) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-						"Show Frames|T", 0, yco-=20, 
+						"Show Frames|Ctrl T", 0, yco-=20, 
 						menuwidth, 19, NULL, 0.0, 0.0, 1, 
 						ACTMENU_VIEW_TIME, "");
 	}
 	else {
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-						"Show Seconds|T", 0, yco-=20, 
+						"Show Seconds|Ctrl T", 0, yco-=20, 
 						menuwidth, 19, NULL, 0.0, 0.0, 1, 
 						ACTMENU_VIEW_TIME, "");
 	}
@@ -811,6 +812,7 @@ static void do_action_keymenu_snapmenu(void *arg, int event)
 		case ACTMENU_KEY_SNAP_NEARFRAME:
 		case ACTMENU_KEY_SNAP_CURFRAME:
 		case ACTMENU_KEY_SNAP_NEARMARK:
+		case ACTMENU_KEY_SNAP_NEARTIME:
 			snap_action_keys(event);
 			break;
 	}
@@ -827,14 +829,27 @@ static uiBlock *action_keymenu_snapmenu(void *arg_unused)
 					  UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_action_keymenu_snapmenu, NULL);
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Nearest Frame|Shift S, 1", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
-					 ACTMENU_KEY_SNAP_NEARFRAME, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Current Frame|Shift S, 2", 0, yco-=20, 
-					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
-					 ACTMENU_KEY_SNAP_CURFRAME, "");
+	if (G.saction->flag & SACTION_DRAWTIME) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+						 "Nearest Second|Shift S, 1", 0, yco-=20, 
+						 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+						 ACTMENU_KEY_SNAP_NEARTIME, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+						 "Current Time|Shift S, 2", 0, yco-=20, 
+						 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+						 ACTMENU_KEY_SNAP_CURFRAME, "");
+
+	}
+	else {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+						 "Nearest Frame|Shift S, 1", 0, yco-=20, 
+						 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+						 ACTMENU_KEY_SNAP_NEARFRAME, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+						 "Current Frame|Shift S, 2", 0, yco-=20, 
+						 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+						 ACTMENU_KEY_SNAP_CURFRAME, "");
+	}
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
 					 "Nearest Marker|Shift S, 3", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
@@ -1154,12 +1169,20 @@ void action_buttons(void)
 	/* draw AUTOSNAP */
 	xco+= 8;
 	
-	uiDefIconTextButS(block, ICONTEXTROW,B_REDR, ICON_PROP_OFF, 
-						"Auto-Snap Keys %t|Off %x0|Frame Step %x1|Nearest Frame %x2", 
-						xco,0,XIC+10,YIC, &(G.saction->autosnap), 0, 1, 0, 0, 
-						"Auto-snapping mode for keys when transforming");
+	if (G.saction->flag & SACTION_DRAWTIME) {
+		uiDefButS(block, MENU, B_REDR,
+				"Auto-Snap Keyframes %t|Off %x0|Second Step %x1|Nearest Second %x2", 
+				xco,0,70,YIC, &(G.saction->autosnap), 0, 1, 0, 0, 
+				"Auto-snapping mode for keyframes when transforming");
+	}
+	else {
+		uiDefButS(block, MENU, B_REDR, 
+				"Auto-Snap Keyframes %t|Off %x0|Frame Step %x1|Nearest Frame %x2", 
+				xco,0,70,YIC, &(G.saction->autosnap), 0, 1, 0, 0, 
+				"Auto-snapping mode for keyframes when transforming");
+	}
 	
-	xco+= (XIC + 18);
+	xco+= (70 + 8);
 	
 	/* draw LOCK*/
 		

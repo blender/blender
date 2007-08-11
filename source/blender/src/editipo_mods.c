@@ -575,6 +575,14 @@ static int snap_bezier_nearest(BezTriple *bezt)
 	return 0;
 }
 
+static int snap_bezier_nearestsec(BezTriple *bezt)
+{
+	float secf = (float)(G.scene->r.frs_sec);
+	if(bezt->f2 & SELECT)
+		bezt->vec[1][0]= (float)(floor(bezt->vec[1][0]/secf + 0.5f) * secf);
+	return 0;
+}
+
 static int snap_bezier_cframe(BezTriple *bezt)
 {
 	if(bezt->f2 & SELECT)
@@ -593,7 +601,7 @@ static int snap_bezier_nearmarker(BezTriple *bezt)
 void snap_ipo_keys(Ipo *ipo, short snaptype)
 {
 	switch (snaptype) {
-		case 1: /* snap to nearest */
+		case 1: /* snap to nearest frame */
 			ipo_keys_bezier_loop(ipo, snap_bezier_nearest, calchandles_ipocurve);
 			break;
 		case 2: /* snap to current frame */
@@ -601,6 +609,9 @@ void snap_ipo_keys(Ipo *ipo, short snaptype)
 			break;
 		case 3: /* snap to nearest marker */
 			ipo_keys_bezier_loop(ipo, snap_bezier_nearmarker, calchandles_ipocurve);
+			break;
+		case 4: /* snap to nearest second */
+			ipo_keys_bezier_loop(ipo, snap_bezier_nearestsec, calchandles_ipocurve);
 			break;
 		default: /* just in case */
 			ipo_keys_bezier_loop(ipo, snap_bezier_nearest, calchandles_ipocurve);

@@ -167,6 +167,7 @@ void transform_markers(int mode, int smode)	// mode and smode unused here, for c
 {
 	SpaceLink *slink= curarea->spacedata.first;
 	SpaceTime *stime= curarea->spacedata.first;
+	SpaceAction *saction = curarea->spacedata.first;
 	TimeMarker *marker, *selmarker=NULL;
 	float dx, fac;
 	int a, ret_val= 0, totmark=0, *oldframe, offs, firsttime=1;
@@ -219,10 +220,16 @@ void transform_markers(int mode, int smode)	// mode and smode unused here, for c
 			
 			if(totmark==1) {	// we print current marker value
 				if (ELEM(slink->spacetype, SPACE_TIME, SPACE_SOUND)) {
-					if(stime->flag & TIME_DRAWFRAMES) 
+					if (stime->flag & TIME_DRAWFRAMES) 
 						sprintf(str, "Marker %d offset %d", selmarker->frame, offs);
 					else 
 						sprintf(str, "Marker %.2f offset %.2f", (selmarker->frame/(float)G.scene->r.frs_sec), (offs/(float)G.scene->r.frs_sec));
+				}
+				else if (slink->spacetype == SPACE_ACTION) {
+					if (saction->flag & SACTION_DRAWTIME)
+						sprintf(str, "Marker %.2f offset %.2f", (selmarker->frame/(float)G.scene->r.frs_sec), (offs/(float)G.scene->r.frs_sec));
+					else
+						sprintf(str, "Marker %.2f offset %.2f", (double)(selmarker->frame), (double)(offs));
 				}
 				else {
 					sprintf(str, "Marker %.2f offset %.2f", (double)(selmarker->frame), (double)(offs));
@@ -230,10 +237,16 @@ void transform_markers(int mode, int smode)	// mode and smode unused here, for c
 			}
 			else {
 				if (ELEM(slink->spacetype, SPACE_TIME, SPACE_SOUND)) { 
-					if(stime->flag & TIME_DRAWFRAMES) 
+					if (stime->flag & TIME_DRAWFRAMES) 
 						sprintf(str, "Marker offset %d ", offs);
 					else 
 						sprintf(str, "Marker offset %.2f ", (offs/(float)G.scene->r.frs_sec));
+				}
+				else if (slink->spacetype == SPACE_ACTION) {
+					if (saction->flag & SACTION_DRAWTIME)
+						sprintf(str, "Marker offset %.2f ", (offs/(float)G.scene->r.frs_sec));
+					else
+						sprintf(str, "Marker offset %.2f ", (double)(offs));
 				}
 				else {
 					sprintf(str, "Marker offset %.2f ", (double)(offs));
