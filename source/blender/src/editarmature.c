@@ -1816,8 +1816,9 @@ void make_bone_parent(void)
 {
 	bArmature *arm= G.obedit->data;
 	EditBone *actbone, *ebone, *selbone;
-	short foundselbone= 0, val;
+	short allchildbones= 0, foundselbone= 0;
 	float offset[3];
+	short val;
 	
 	/* find active bone to parent to */
 	for (actbone = G.edbo.first; actbone; actbone=actbone->next) {
@@ -1836,6 +1837,7 @@ void make_bone_parent(void)
 		if (arm->layer & ebone->layer) {
 			if ((ebone->flag & BONE_SELECTED) && (ebone != actbone)) {
 				foundselbone++;
+				if (ebone->parent != actbone) allchildbones= 1; 
 			}	
 		}
 	}
@@ -1845,8 +1847,12 @@ void make_bone_parent(void)
 		return;
 	}
 	
+	/* 'Keep Offset' option is only displayed if it's likely to be useful */
+	if (allchildbones)
+		val= pupmenu("Make Parent%t|Connected%x1|Keep Offset%x2");
+	else
+		val= pupmenu("Make Parent%t|Connected%x1");
 	
-	val= pupmenu("Make Parent%t|Connected%x1|Keep Offset%x2");
 	if (val < 1) return;
 
 	if (foundselbone==0 && actbone->parent) {
