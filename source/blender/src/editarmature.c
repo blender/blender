@@ -1815,95 +1815,108 @@ void show_all_armature_bones(void)
 void make_bone_parent(void)
 {
 	bArmature *arm= G.obedit->data;
-	EditBone *ebone;
+	EditBone *actbone, *ebone, *selbone;
+	short foundselbone= 0, val;
 	float offset[3];
-	short val;
 	
-	val= pupmenu("Make Parent%t|Connected%x1|Keep Offset%x2");
-	
-	if(val<1) return;
-	
-	/* find active */
-	for (ebone = G.edbo.first; ebone; ebone=ebone->next)
-		if(arm->layer & ebone->layer)
-			if(ebone->flag & BONE_ACTIVE) break;
-	
-	if(ebone) {
-		EditBone *actbone= ebone, *selbone= NULL;
-		
-		/* find selected */
-		for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
-			if(arm->layer & ebone->layer) {
-				if(ebone->flag & BONE_SELECTED) {
-					if(ebone!=actbone) {
-						if(selbone==NULL) selbone= ebone;
-						else {
-							error("Need one active and one selected bone");
-							return;
-						}
-					}
-				}
-			}
-		}
-		if(selbone==NULL) {
-			/* we make sure bone is connected */
-			if(val==1 && actbone->parent) {
-				actbone->flag |= BONE_CONNECTED;
-				VECCOPY(actbone->head, actbone->parent->tail);
-				actbone->rad_head= actbone->parent->rad_tail;
-				countall(); // checks selection
-				allqueue(REDRAWVIEW3D, 0);
-				BIF_undo_push("Connect to Parent");
-			}
-			else error("Need one active and one selected bone");
-		}
-		else {
-			/* if selbone had a parent we clear parent tip */
-			if(selbone->parent && (selbone->flag & BONE_CONNECTED))
-			   selbone->parent->flag &= ~(BONE_TIPSEL);
-			
-			selbone->parent= actbone;
-			
-			/* in actbone tree we cannot have a loop */
-			for(ebone= actbone->parent; ebone; ebone= ebone->parent) {
-				if(ebone->parent==selbone) {
-					ebone->parent= NULL;
-					ebone->flag &= ~BONE_CONNECTED;
-				}
-			}
-			
-			if(val==1) {	// connected
-				selbone->flag |= BONE_CONNECTED;
-				VecSubf(offset, actbone->tail, selbone->head);
-				
-				VECCOPY(selbone->head, actbone->tail);
-				selbone->rad_head= actbone->rad_tail;
-
-				VecAddf(selbone->tail, selbone->tail, offset);
-				
-				// offset for all its children 
-				for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
-					EditBone *par;
-					for(par= ebone->parent; par; par= par->parent) {
-						if(par==selbone) {
-							VecAddf(ebone->head, ebone->head, offset);
-							VecAddf(ebone->tail, ebone->tail, offset);
-							break;
-						}
-					}
-				}
-			}
-			else {
-				selbone->flag &= ~BONE_CONNECTED;
-			}
-			
-			countall(); // checks selection
-			allqueue(REDRAWVIEW3D, 0);
-			allqueue(REDRAWBUTSEDIT, 0);
-			allqueue(REDRAWOOPS, 0);
-			BIF_undo_push("Make Parent");
+	/* find active bone to parent to */
+	for (actbone = G.edbo.first; actbone; actbone=actbone->next) {
+		if (arm->layer & actbone->layer) {
+			if (actbone->flag & BONE_ACTIVE)
+				break;
 		}
 	}
+	if (actbone == NULL) {
+		error("Needs an active bone");
+		return; 
+	}
+
+	/* find selected bones */
+	for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
+		if (arm->layer & ebone->layer) {
+			if ((ebone->flag & BONE_SELECTED) && (ebone != actbone)) {
+				foundselbone++;
+			}	
+		}
+	}
+	/* abort if no selected bones, and active bone doesn't have a parent to work with instead */
+	if (foundselbone==0 && actbone->parent==NULL) {
+		error("Need selected bone(s)");
+		return;
+	}
+	
+	
+	val= pupmenu("Make Parent%t|Connected%x1|Keep Offset%x2");
+	if (val < 1) return;
+
+	if (foundselbone==0 && actbone->parent) {
+		/* When only the active bone is selected, and it has a parent,
+		 * connect it to the parent, as that is the only possible outcome. 
+		 */
+		actbone->flag |= BONE_CONNECTED;
+		VECCOPY(actbone->head, actbone->parent->tail);
+		actbone->rad_head= actbone->parent->rad_tail;
+	}
+	else {
+		/* loop through all editbones, parenting all selected bones to the active bone */
+		for (selbone = G.edbo.first; selbone; selbone=selbone->next) {
+			if (arm->layer & selbone->layer) {
+				if ((selbone->flag & BONE_SELECTED) && (selbone!=actbone)) {
+					/* if selbone had a parent we clear parent tip */
+					if (selbone->parent && (selbone->flag & BONE_CONNECTED))
+						selbone->parent->flag &= ~(BONE_TIPSEL);
+					
+					/* make actbone the parent of selbone */
+					selbone->parent= actbone;
+					
+					/* in actbone tree we cannot have a loop */
+					for (ebone= actbone->parent; ebone; ebone= ebone->parent) {
+						if (ebone->parent==selbone) {
+							ebone->parent= NULL;
+							ebone->flag &= ~BONE_CONNECTED;
+						}
+					}
+					
+					if (val == 1) {	
+						/* Connected: Child bones will be moved to the parent tip */
+						selbone->flag |= BONE_CONNECTED;
+						VecSubf(offset, actbone->tail, selbone->head);
+						
+						VECCOPY(selbone->head, actbone->tail);
+						selbone->rad_head= actbone->rad_tail;
+						
+						VecAddf(selbone->tail, selbone->tail, offset);
+						
+						/* offset for all its children */
+						for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
+							EditBone *par;
+							
+							for (par= ebone->parent; par; par= par->parent) {
+								if (par==selbone) {
+									VecAddf(ebone->head, ebone->head, offset);
+									VecAddf(ebone->tail, ebone->tail, offset);
+									break;
+								}
+							}
+						}
+					}
+					else {
+						/* Offset: Child bones will retain their distance from the parent tip */
+						selbone->flag &= ~BONE_CONNECTED;
+					}
+				}
+				
+			}
+		}
+	}
+
+	countall(); /* checks selection */
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWOOPS, 0);
+	BIF_undo_push("Make Parent");
+
+	return;
 }
 
 void clear_bone_parent(void)
@@ -3010,4 +3023,5 @@ void transform_armature_mirror_update(void)
 		}
 	}
 }
+
 
