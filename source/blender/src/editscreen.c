@@ -3113,7 +3113,7 @@ static void splitarea_interactive(ScrArea *area, ScrEdge *onedge)
 			}
 		}
 		
-		if (first || mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
+		if (first || (dir=='v' && mval[0]!=mvalo[0]) || (dir=='h' && mval[1]!=mvalo[1])) {
 			if (!first) {
 				scrarea_draw_splitpoint(sa, dir, fac);
 			}
@@ -3389,7 +3389,7 @@ static void moveareas(ScrEdge *edge)
 {
 	ScrVert *v1;
 	ScrArea *sa;
-	short mvalo[2];
+	short mvalo[2], mval_prev=-1;
 	short edge_start, edge_end, edge_position;
 	short bigger, smaller, headery, areaminy;
 	int delta, doit;
@@ -3478,13 +3478,18 @@ static void moveareas(ScrEdge *edge)
 			short mval[2];
 			
 			getmouseco_sc(mval);
-			
-			draw_front_xor_dirdist_line(dir, edge_position+delta, edge_start, edge_end);
+			if ((dir=='h' && mval_prev != mval[1]) || (dir=='v' && mval_prev != mval[0])) {
+				/* update the previous val with this one for comparison next loop */
+				if (dir=='h')	mval_prev = mval[1];
+				else			mval_prev = mval[0];
+				
+				draw_front_xor_dirdist_line(dir, edge_position+delta, edge_start, edge_end);
 
-			delta= (dir=='h')?(mval[1]-mvalo[1]):(mval[0]-mvalo[0]);
-			delta= CLAMPIS(delta, -smaller, bigger);
-			draw_front_xor_dirdist_line(dir, edge_position+delta, edge_start, edge_end);
-			bglFlush();
+				delta= (dir=='h')?(mval[1]-mvalo[1]):(mval[0]-mvalo[0]);
+				delta= CLAMPIS(delta, -smaller, bigger);
+				draw_front_xor_dirdist_line(dir, edge_position+delta, edge_start, edge_end);
+				bglFlush();
+			}
 		} 
 		else if (event==LEFTMOUSE) {
 			doit= 1;
