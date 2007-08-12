@@ -70,6 +70,7 @@ struct rctf;
 #include "BKE_idprop.h"
 #include "BKE_object.h"
 #include "BKE_key.h" /* for setting the activeShape */
+#include "BKE_displist.h"
 
 #include "BSE_editipo.h"
 #include "BSE_edit.h"
@@ -1556,8 +1557,11 @@ static PyObject *Object_makeDisplayList( BPy_Object * self )
 {
 	Object *ob = self->object;
 
-	if( ob->type == OB_FONT )
+	if( ob->type == OB_FONT ) {
+		Curve *cu = ob->data;
+		freedisplist( &cu->disp );
 		text_to_curve( ob, 0 );
+	}
 
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 
