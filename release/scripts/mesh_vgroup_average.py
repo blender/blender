@@ -38,11 +38,11 @@ def faceGroups2VertSets(face_groups):
 
 
 def vgroup_average(ob_orig, me, sce):
+	if not me.getVertGroupNames():
+		return
+	
 	weight_names, weight_list = meshWeight2List(me)
 	
-	if not weight_names:
-		return
-		
 	weight_names_len = len(weight_names)
 	vgroup_dummy = [0.0] * weight_names_len
 	vgroup_range = range(weight_names_len)
@@ -59,7 +59,6 @@ def vgroup_average(ob_orig, me, sce):
 			weight_list[i] = collected_group	# replace with the collected group
 			
 			for j in vgroup_range: # iter through the vgroups
-				print collected_group, vert_group[j]
 				collected_group[j] += vert_group[j]
 		
 		for j in vgroup_range:

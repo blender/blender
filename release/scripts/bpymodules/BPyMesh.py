@@ -56,7 +56,7 @@ def meshWeight2List(me):
 	
 	if not len_groupNames:
 		# no verts? return a vert aligned empty list
-		return [[] for i in xrange(len(me.verts))]
+		return [[] for i in xrange(len(me.verts))], []
 	
 	else:
 		vWeightList= [[0.0]*len_groupNames for i in xrange(len(me.verts))]
