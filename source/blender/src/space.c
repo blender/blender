@@ -904,21 +904,30 @@ static void select_object_grouped_menu(void)
 void join_menu(void)
 {
 	Object *ob= OBACT;
-	if (ob && !G.obedit) {
-		if(ob->type == OB_MESH) {
-			if(okee("Join selected meshes")==0) return;
-			join_mesh();
-		} else if(ob->type == OB_CURVE) {
-			if(okee("Join selected curves")==0) return;
-			join_curve(OB_CURVE);
-		} else if(ob->type == OB_SURF) {
-			if(okee("Join selected NURBS")==0) return;
-			join_curve(OB_SURF);
-		} else if(ob->type == OB_ARMATURE) {
-			/*	Make sure the user wants to continue*/
-			if(okee("Join selected armatures")==0) return;
-			join_armature ();
-		}
+	if (G.obedit) {
+		error("This data does not support joining in editmode");
+		return;
+	}
+	if (!ob) {
+		error("Can't join unless there is an active object");
+		return;
+	}
+	
+	if(ob->type == OB_MESH) {
+		if(okee("Join selected meshes")==0) return;
+		join_mesh();
+	} else if(ob->type == OB_CURVE) {
+		if(okee("Join selected curves")==0) return;
+		join_curve(OB_CURVE);
+	} else if(ob->type == OB_SURF) {
+		if(okee("Join selected NURBS")==0) return;
+		join_curve(OB_SURF);
+	} else if(ob->type == OB_ARMATURE) {
+		/*	Make sure the user wants to continue*/
+		if(okee("Join selected armatures")==0) return;
+		join_armature ();
+	} else {
+		error("This object type doesn't support joining");
 	}
 }
 
@@ -1976,8 +1985,12 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					if( ob ) {
 						join_menu();
 					}
-					else if ((G.obedit) && ELEM(G.obedit->type, OB_CURVE, OB_SURF))
+					else if ((G.obedit) && ELEM(G.obedit->type, OB_CURVE, OB_SURF)) {
 						addsegment_nurb();
+					} else {
+						error("Can't join unless there is an active object");
+					}
+					
 				}
 				else if(G.obedit) {
 					if(G.obedit->type==OB_MESH) {
