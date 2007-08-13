@@ -1049,7 +1049,7 @@ static uiBlock *view3d_select_meshmenu(void *arg_unused)
 					 "Non-Triangles/Quads|Ctrl Alt Shift 5", 
 					 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Group From Selection|Shift G", 
+					 "Similar to Selection...|Shift G", 
 					 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 21, "");
 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 

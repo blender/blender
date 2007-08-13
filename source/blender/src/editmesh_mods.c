@@ -933,6 +933,8 @@ EDGE GROUP
  mode 3: same number of face users
  mode 4: similar face angles.
  mode 5: similar crease
+ mode 6: similar seam
+ mode 7: similar sharp
 */
 
 /* this function is only used by edgegroup_select's edge angle */
@@ -1104,6 +1106,34 @@ int edgegroup_select(short mode)
 							return selcount;
 					}
 				}
+			} else if (mode==6) { /* edge seam */
+				for(eed= em->edges.first; eed; eed= eed->next) {
+					if (
+						!(eed->f & SELECT) &&
+						!eed->h &&
+						(eed->seam == base_eed->seam)
+					) {
+						EM_select_edge(eed, 1);
+						selcount++;
+						deselcount--;
+						if (!deselcount) /*have we selected all posible faces?, if so return*/
+							return selcount;
+					}
+				}
+			} else if (mode==7) { /* edge sharp */
+				for(eed= em->edges.first; eed; eed= eed->next) {
+					if (
+						!(eed->f & SELECT) &&
+						!eed->h &&
+						(eed->sharp == base_eed->sharp)
+					) {
+						EM_select_edge(eed, 1);
+						selcount++;
+						deselcount--;
+						if (!deselcount) /*have we selected all posible faces?, if so return*/
+							return selcount;
+					}
+				}
 			}
 		}
 	} 
@@ -1239,24 +1269,35 @@ facegroup_select/edgegroup_select/vertgroup_select do all the work
 void select_mesh_group_menu()
 {
 	short ret;
-	int selcount, first_item=1;
-	char str[512] = "Select Grouped%t"; /* total max length is 404 at the moment */
-
+	int selcount, first_item=1, multi=0;
+	char str[512] = "Select Similar "; /* total max length is 404 at the moment */
+	
+	if (!ELEM3(G.scene->selectmode, SCE_SELECT_VERTEX, SCE_SELECT_EDGE, SCE_SELECT_FACE)) {
+		multi=1;
+	}
+	
 	if(G.scene->selectmode & SCE_SELECT_VERTEX) {
+		if (multi) strcat(str, "%t|Vertices%x-1|");
+		else strcat(str, "Vertices %t|");
+		strcat(str, "    Normal %x1|    Face Users %x2|    Shared Vertex Groups%x3");
 		first_item=0;
-		strcat(str, "|Verts...%x-1|    Similar Normal %x1|    Same Face Users %x2|    Shared Vertex Groups%x3");
 	}
 
 	if(G.scene->selectmode & SCE_SELECT_EDGE) {
-		if (!first_item)	strcat(str, "|%l");
-		else				first_item=1;
+		if (multi) {
+			if (first_item) strcat(str, "%t|Edges%x-1|");
+			else strcat(str, "|%l|Edges%x-1|");
+		} else strcat(str, "Edges %t|");
 		
-		strcat(str, "|Edges...%x-1|    Similar Length %x10|    Similar Direction %x20|    Same Face Users%x30|    Similar Face Angle%x40|    Similar Crease%x50");
+		strcat(str, "    Length %x10|    Direction %x20|    Face Users%x30|    Face Angle%x40|    Crease%x50|    Seam%x60|    Sharp%x70");
+		first_item=0;
 	}
 	
 	if(G.scene->selectmode & SCE_SELECT_FACE) {
-		if (!first_item)	strcat(str, "|%l");
-		strcat(str, "|Faces...%x-1|    Same Material %x100|    Same Image %x200|    Similar Area %x300|    Similar Perimeter %x400|    Similar Normal %x500|    Similar Co-Planer %x600");
+		if (multi) {
+			strcat(str, "|%l|Faces%x-1|");
+		} else strcat(str, "Faces %t|");
+		strcat(str, "    Material %x100|    Image %x200|    Area %x300|    Perimeter %x400|    Normal %x500|    Co-Planar %x600");
 	
 	}
 	
@@ -1269,7 +1310,7 @@ void select_mesh_group_menu()
 			EM_select_flush(); /* so that selected verts, go onto select faces */
 			G.totvertsel += selcount;
 			allqueue(REDRAWVIEW3D, 0);
-			BIF_undo_push("Select Grouped Verts");
+			BIF_undo_push("Select Similar Vertices");
 		}
 		return;
 	}
@@ -1281,7 +1322,7 @@ void select_mesh_group_menu()
 			/*EM_select_flush();*/ /* dont use because it can end up selecting more edges and is not usefull*/
 			G.totedgesel+=selcount;
 			allqueue(REDRAWVIEW3D, 0);
-			BIF_undo_push("Select Grouped Edges");
+			BIF_undo_push("Select Similar Edges");
 		}
 		return;
 	}
@@ -1291,7 +1332,7 @@ void select_mesh_group_menu()
 		if (selcount) { /* update if data was selected */
 			G.totfacesel+=selcount;
 			allqueue(REDRAWVIEW3D, 0);
-			BIF_undo_push("Select Grouped Faces");
+			BIF_undo_push("Select Similar Faces");
 		}
 		return;
 	}

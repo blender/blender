@@ -930,7 +930,7 @@ static TBitem tb_mesh_select[]= {
 {	0, "Triangles|Shift Ctrl Alt 3",    11, NULL},
 {	0, "Quads|Shift Ctrl Alt 4",        12, NULL},
 {	0, "Non-Triangles/Quads|Shift Ctrl Alt 5", 13, NULL},
-{	0, "Group From Selection|Shift G", 21, NULL},
+{	0, "Similar to Selection|Shift G", 21, NULL},
 {	0, "SEPR",                          0, NULL},
 {	0, "More|Ctrl NumPad +",            7, NULL},
 {	0, "Less|Ctrl NumPad -",            8, NULL},
