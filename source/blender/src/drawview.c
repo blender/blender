@@ -2253,7 +2253,11 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 		uiBlockBeginAlign(block);
 		uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_OBJECTPANELPARENT, "Par:", 160, 180, 140, 20, &ob->parent, "Parent Object"); 
 		if((ob->parent) && (ob->partype == PARBONE)) {
-			uiDefBut(block, TEX, B_OBJECTPANELPARENT, "ParBone:", 160, 160, 140, 20, ob->parsubstr, 0.0, 32.0, 0, 0, "");
+			bt= uiDefBut(block, TEX, B_OBJECTPANELPARENT, "ParBone:", 160, 160, 140, 20, ob->parsubstr, 0, 30, 0, 0, "");
+			uiButSetCompleteFunc(bt, autocomplete_bone, (void *)ob->parent);
+		}
+		else {
+			strcpy(ob->parsubstr, "");
 		}
 		uiBlockEndAlign(block);
 	}
