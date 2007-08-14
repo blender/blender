@@ -1922,6 +1922,33 @@ void node_read_renderlayers(SpaceNode *snode)
 	snode_handle_recalc(snode);
 }
 
+/* called from header_info, when deleting a scene
+ * goes over all scenes other than the input, checks if they have
+ * render layer nodes referencing the to-be-deleted scene, and
+ * resets them to NULL. */
+void clear_scene_in_nodes(Scene *sce)
+{
+	Scene *sce1;
+	bNode *node;
+
+	sce1= G.main->scene.first;
+	while(sce1) {
+		if(sce1!=sce) {
+			if (sce1->nodetree) {
+				for(node= sce1->nodetree->nodes.first; node; node= node->next) {
+					if(node->type==CMP_NODE_R_LAYERS) {
+						Scene *nodesce= (Scene *)node->id;
+						
+						if (nodesce==sce) node->id = NULL;
+					}
+				}
+			}
+		}
+		sce1= sce1->id.next;
+	}
+}
+
+
 /* gets active viewer user */
 struct ImageUser *ntree_get_active_iuser(bNodeTree *ntree)
 {

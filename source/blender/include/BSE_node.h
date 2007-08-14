@@ -71,6 +71,7 @@ void node_ungroup(struct SpaceNode *snode);
 void snode_make_group_editable(struct SpaceNode *snode, struct bNode *gnode);
 void node_hide(struct SpaceNode *snode);
 void node_read_renderlayers(struct SpaceNode *snode);
+void clear_scene_in_nodes(struct Scene *sce);
 
 void node_transform_ext(int mode, int unused);
 void node_shader_default(struct Material *ma);
