@@ -90,6 +90,8 @@ void set_constraint_target(struct bConstraint *con, struct Object *ob, char *sub
 struct bConstraintOb *constraints_make_evalob(struct Object *ob, void *subdata, short datatype);
 void constraints_clear_evalob(struct bConstraintOb *cob);
 
+void constraint_mat_convertspace(struct Object *ob, struct bPoseChannel *pchan, float mat[][4], short from, short to);
+
 short get_constraint_target_matrix(struct bConstraint *con, short ownertype, void *ownerdata, float mat[][4], float time);
 void solve_constraints (struct ListBase *conlist, struct bConstraintOb *cob, float ctime);
 

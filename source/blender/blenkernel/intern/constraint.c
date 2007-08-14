@@ -914,7 +914,7 @@ void do_constraint_channels (ListBase *conbase, ListBase *chanbase, float ctime)
  * of a matrix from one space to another for constraint evaluation.
  * For now, this is only implemented for Objects and PoseChannels.
  */
-static void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4], short from, short to)
+void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4], short from, short to)
 {
 	float tempmat[4][4];
 	float diff_mat[4][4];
