@@ -2250,14 +2250,12 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 		uiButSetFunc(bt, test_idbutton_cb, ob->id.name, NULL);
 #endif
 
-
+		uiBlockBeginAlign(block);
 		uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_OBJECTPANELPARENT, "Par:", 160, 180, 140, 20, &ob->parent, "Parent Object"); 
 		if((ob->parent) && (ob->partype == PARBONE)) {
-			if (G.f & G_SCULPTMODE)
-				uiDefBut(block, TEX, B_OBJECTPANELPARENT, "ParBone:", 310, 180, 140, 20, ob->parsubstr, 0.0, 32.0, 0, 0, "");
-			else
-				uiDefBut(block, TEX, B_OBJECTPANELPARENT, "ParBone:", 160, 160, 140, 20, ob->parsubstr, 0.0, 32.0, 0, 0, "");
+			uiDefBut(block, TEX, B_OBJECTPANELPARENT, "ParBone:", 160, 160, 140, 20, ob->parsubstr, 0.0, 32.0, 0, 0, "");
 		}
+		uiBlockEndAlign(block);
 	}
 
 	lim= 10000.0f*MAX2(1.0, G.vd->grid);
@@ -2396,12 +2394,12 @@ static void view3d_panel_background(short cntrl)	// VIEW3D_HANDLER_BACKGROUND
 	}
 	
 	if(!(vd->flag & V3D_DISPBGPIC)) {
-		uiDefButBitS(block, TOG, V3D_DISPBGPIC, B_REDR, "Use Background Image", 10, 180, 150, 20, &vd->flag, 0, 0, 0, 0, "Display an image in the background of the 3D View");
+		uiDefButBitS(block, TOG, V3D_DISPBGPIC, B_REDR, "Use Background Image", 10, 180, 150, 20, &vd->flag, 0, 0, 0, 0, "Display an image in the background of this 3D View");
 		uiDefBut(block, LABEL, 1, " ",	160, 180, 150, 20, NULL, 0.0, 0.0, 0, 0, "");
 	}
 	else {
 		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, V3D_DISPBGPIC, B_REDR, "Use", 10, 225, 50, 20, &vd->flag, 0, 0, 0, 0, "Display an image in the background of the 3D View");
+		uiDefButBitS(block, TOG, V3D_DISPBGPIC, B_REDR, "Use", 10, 225, 50, 20, &vd->flag, 0, 0, 0, 0, "Display an image in the background of this 3D View");
 		uiDefButF(block, NUMSLI, B_REDR, "Blend:",	60, 225, 150, 20, &vd->bgpic->blend, 0.0,1.0, 0, 0, "Set the transparency of the background image");
 		uiDefButF(block, NUM, B_REDR, "Size:",		210, 225, 100, 20, &vd->bgpic->size, 0.1, 250.0*vd->grid, 100, 0, "Set the size (width) of the background image");
 
@@ -2436,7 +2434,7 @@ static void view3d_panel_properties(short cntrl)	// VIEW3D_HANDLER_SETTINGS
 	uiDefBut(block, LABEL, 1, "Grid:",					10, 220, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, REDRAWVIEW3D, "Spacing:",		10, 200, 140, 19, &vd->grid, 0.001, 100.0, 10, 0, "Set the distance between grid lines");
-	uiDefButS(block, NUM, REDRAWVIEW3D, "Lines:",		10, 180, 140, 19, &vd->gridlines, 0.0, 100.0, 100, 0, "Set the number of grid lines");
+	uiDefButS(block, NUM, REDRAWVIEW3D, "Lines:",		10, 180, 140, 19, &vd->gridlines, 0.0, 100.0, 100, 0, "Set the number of grid lines in perspective view");
 	uiDefButS(block, NUM, REDRAWVIEW3D, "Divisions:",		10, 160, 140, 19, &vd->gridsubdiv, 0.0, 100.0, 100, 0, "Set the number of grid lines");
 	uiBlockEndAlign(block);
 
@@ -2473,7 +2471,7 @@ static void view3d_panel_properties(short cntrl)	// VIEW3D_HANDLER_SETTINGS
 
 	uiDefBut(block, LABEL, 1, "View Locking:",				160, 50, 150, 19, NULL, 0.0, 0.0, 0, 0, "");
 	uiBlockBeginAlign(block);
-	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, REDRAWVIEW3D, "Object:", 160, 30, 140, 19, &vd->ob_centre, "Lock view to center always on this Object"); 
+	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, REDRAWVIEW3D, "Object:", 160, 30, 140, 19, &vd->ob_centre, "Lock view to center to this Object"); 
 	uiDefBut(block, TEX, REDRAWVIEW3D, "Bone:",						160, 10, 140, 19, vd->ob_centre_bone, 1, 31, 0, 0, "If view locked to Object, use this Bone to lock to view to");
 
 }
