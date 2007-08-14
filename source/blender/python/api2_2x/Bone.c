@@ -761,6 +761,14 @@ static PyObject *EditBone_repr(BPy_EditBone *self)
 		return PyString_FromFormat( "[EditBone \"%s\"]", self->name ); 
 }
 
+static int EditBone_compare( BPy_EditBone * a, BPy_EditBone * b )
+{
+	/* if they are not wrapped, then they cant be the same */
+	if (a->editbone==NULL && b->editbone==NULL) return -1;
+	return ( a->editbone == b->editbone ) ? 0 : -1;
+}
+
+
 //------------------------tp_doc
 //The __doc__ string for this object
 static char BPy_EditBone_doc[] = "This is an internal subobject of armature\
@@ -828,8 +836,8 @@ PyTypeObject EditBone_Type = {
 	0,											//tp_print
 	0,											//tp_getattr
 	0,											//tp_setattr
-	0,											//tp_compare
-	(reprfunc)EditBone_repr,			//tp_repr
+	(cmpfunc)EditBone_compare,					//tp_compare
+	(reprfunc)EditBone_repr,					//tp_repr
 	0,											//tp_as_number
 	0,											//tp_as_sequence
 	0,											//tp_as_mapping
@@ -1224,6 +1232,10 @@ static PyObject *Bone_repr(BPy_Bone *self)
 {
 	return PyString_FromFormat( "[Bone \"%s\"]", self->bone->name ); 
 }
+static int Bone_compare( BPy_Bone * a, BPy_Bone * b )
+{
+	return ( a->bone == b->bone ) ? 0 : -1;
+}
 //------------------------tp_dealloc
 //This tells how to 'tear-down' our object when ref count hits 0
 static void Bone_dealloc(BPy_Bone * self)
@@ -1247,8 +1259,8 @@ PyTypeObject Bone_Type = {
 	0,										//tp_print
 	0,										//tp_getattr
 	0,										//tp_setattr
-	0,										//tp_compare
-	(reprfunc) Bone_repr,			//tp_repr
+	(cmpfunc)Bone_compare,					//tp_compare
+	(reprfunc) Bone_repr,					//tp_repr
 	0,										//tp_as_number
 	0,										//tp_as_sequence
 	0,										//tp_as_mapping
