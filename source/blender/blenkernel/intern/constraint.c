@@ -772,8 +772,9 @@ bConstraintChannel *verify_constraint_channel (ListBase *list, const char *name)
 {
 	bConstraintChannel *chan;
 	
-	chan= get_constraint_channel (list, name);
-	if(chan==NULL) {
+	chan= get_constraint_channel(list, name);
+	
+	if(chan == NULL) {
 		chan= MEM_callocN(sizeof(bConstraintChannel), "new constraint chan");
 		BLI_addtail(list, chan);
 		strcpy(chan->name, name);
@@ -887,9 +888,12 @@ void do_constraint_channels (ListBase *conbase, ListBase *chanbase, float ctime)
 	
 	/* for each Constraint, calculate its Influence from the corresponding ConstraintChannel */
 	for (con=conbase->first; con; con=con->next) {
+		
 		chan = get_constraint_channel(chanbase, con->name);
+		
 		if (chan && chan->ipo) {
 			calc_ipo(chan->ipo, ctime);
+			
 			for (icu=chan->ipo->curve.first; icu; icu=icu->next) {
 				switch (icu->adrcode) {
 					case CO_ENFORCE:

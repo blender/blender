@@ -66,31 +66,31 @@ typedef struct bConstraintOb {
 /* ---------------------------------------------------------------------------- */
 
 /* Constraint function prototypes */
-void unique_constraint_name (struct bConstraint *con, struct ListBase *list);
-void *new_constraint_data (short type);
-void free_constraints (struct ListBase *conlist);
-void copy_constraints (struct ListBase *dst, struct ListBase *src);
-void relink_constraints (struct ListBase *list);
-void free_constraint_data (struct bConstraint *con);
+void unique_constraint_name(struct bConstraint *con, struct ListBase *list);
+void *new_constraint_data(short type);
+void free_constraints(struct ListBase *conlist);
+void copy_constraints(struct ListBase *dst, struct ListBase *src);
+void relink_constraints(struct ListBase *list);
+void free_constraint_data(struct bConstraint *con);
 
 /* Constraint Channel function prototypes */
-struct bConstraintChannel *get_constraint_channel (ListBase *list, const char *name);
-struct bConstraintChannel *verify_constraint_channel (ListBase *list, const char *name);
-void do_constraint_channels (struct ListBase *conbase, struct ListBase *chanbase, float ctime);
-void copy_constraint_channels (ListBase *dst, ListBase *src);
-void clone_constraint_channels (struct ListBase *dst, struct ListBase *src);
-void free_constraint_channels (ListBase *chanbase);
+struct bConstraintChannel *get_constraint_channel(ListBase *list, const char *name);
+struct bConstraintChannel *verify_constraint_channel(ListBase *list, const char *name);
+void do_constraint_channels(struct ListBase *conbase, struct ListBase *chanbase, float ctime);
+void copy_constraint_channels(ListBase *dst, ListBase *src);
+void clone_constraint_channels(struct ListBase *dst, struct ListBase *src);
+void free_constraint_channels(ListBase *chanbase);
 
 /* Target function prototypes  */
-char constraint_has_target (struct bConstraint *con);
+char constraint_has_target(struct bConstraint *con);
 struct Object *get_constraint_target(struct bConstraint *con, char **subtarget);
 void set_constraint_target(struct bConstraint *con, struct Object *ob, char *subtarget);
 
 /* Constraint Evaluation function prototypes */
-struct bConstraintOb *constraints_make_evalob (struct Object *ob, void *subdata, short datatype);
+struct bConstraintOb *constraints_make_evalob(struct Object *ob, void *subdata, short datatype);
 void constraints_clear_evalob(struct bConstraintOb *cob);
 
-short get_constraint_target_matrix (struct bConstraint *con, short ownertype, void *ownerdata, float mat[][4], float time);
+short get_constraint_target_matrix(struct bConstraint *con, short ownertype, void *ownerdata, float mat[][4], float time);
 void solve_constraints (struct ListBase *conlist, struct bConstraintOb *cob, float ctime);
 
 
