@@ -429,7 +429,9 @@ if not env['WITH_BF_GAMEENGINE']:
 Depends(nsiscmd, allinstall)
 
 Default(B.program_list)
-Default(installtarget)
+
+if not env['WITHOUT_BF_INSTALL']:
+	Default(installtarget)
 
 #------------ RELEASE
 # TODO: zipup the installation

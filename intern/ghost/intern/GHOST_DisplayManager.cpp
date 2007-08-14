@@ -116,7 +116,7 @@ GHOST_DisplayManager::getDisplaySetting(
 	GHOST_TUns8 numDisplays;
 	success = getNumDisplays(numDisplays);
 	if (success == GHOST_kSuccess) {
-		if (display < numDisplays && index < m_settings[display].size()) {
+		if (display < numDisplays && ((GHOST_TUns8)index < m_settings[display].size())) {
 			setting = m_settings[display][index];
 		}
 		else {

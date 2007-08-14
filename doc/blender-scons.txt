@@ -160,6 +160,17 @@ $Id$
     for example, setting BF_QUICKDEBUG won't overwrite the contents of BF_DEBUG_LIBS.
 
 
+    Not installing
+    --------------
+
+    If you dont want to install the build result, you can use the following option either
+    on the commandline or in your user-config.py :
+
+        WITHOUT_BF_INSTALL='true'
+
+    by default, this is set to 'false', and so the build is installed
+
+
     Supported toolset
     -----------------
 

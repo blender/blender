@@ -328,7 +328,7 @@ def AppIt(target=None, source=None, env=None):
     commands.getoutput(cmd)
     cmd = 'chmod +x  %s/%s.app/Contents/MacOS/%s'%(builddir,binary, binary)
     commands.getoutput(cmd)
-    cmd = 'find %s/%s.app -name CVS -prune -exec rm -rf {} \;'%(builddir, binary)
+    cmd = 'find %s/%s.app -name .svn -prune -exec rm -rf {} \;'%(builddir, binary)
     commands.getoutput(cmd)
     cmd = 'find %s/%s.app -name .DS_Store -exec rm -rf {} \;'%(builddir, binary)
     commands.getoutput(cmd)
