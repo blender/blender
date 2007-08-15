@@ -842,13 +842,20 @@ void multires_add_level(void *ob, void *me_v)
 {
 	int i,j, curf, cure;
 	Mesh *me= me_v;
-	MultiresLevel *lvl= MEM_callocN(sizeof(MultiresLevel), "multireslevel");
+	MultiresLevel *lvl= NULL;
 	MultiApplyData data;
 	
 	multires_check_state();
 
+	if(CustomData_number_of_layers(G.obedit ? &G.editMesh->fdata : &me->fdata, CD_MCOL) > 1) {
+		int ret= okee("Adding a level will delete all but the active vertex color layer, proceed?");
+		if(!ret)
+			return;
+	}
+
 	waitcursor(1);
 
+	lvl= MEM_callocN(sizeof(MultiresLevel), "multireslevel");
 	if(me->pv) sculptmode_pmv_off(me);
 
 	check_colors(me);

@@ -343,12 +343,17 @@ void apply_rot_armature (Object *ob, float mat[3][3])
 	ListBase	list;
 	EditBone *ebone;
 	bArmature *arm;
-
+	float scale;	/* store the scale of the matrix here to use on envelopes */
 	arm = get_armature(ob);
 
-	if (!arm)
+	if (!arm) {
 		return;
-
+	} else {
+		float tmp[3] = {1.0, 1.0, 1.0};
+		Mat3MulVecfl(mat, tmp);
+		scale = (fabs(tmp[0]) + fabs(tmp[1]) + fabs(tmp[2])) / 3.0f;
+	}
+	
 	/* Put the armature into editmode */
 	list.first= list.last = NULL;
 	make_boneList(&list, &arm->bonebase, NULL);
@@ -357,6 +362,10 @@ void apply_rot_armature (Object *ob, float mat[3][3])
 	for (ebone = list.first; ebone; ebone=ebone->next){
 		Mat3MulVecfl(mat, ebone->head);
 		Mat3MulVecfl(mat, ebone->tail);
+		
+		ebone->rad_head	*= scale;
+		ebone->rad_tail	*= scale;
+		ebone->dist		*= scale;
 	}
 	
 	/* Turn the list into an armature */

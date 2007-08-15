@@ -2208,7 +2208,8 @@ void outliner_find_panel(struct ScrArea *sa, int again, int flags)
 		}
 	}
 	else {
-		if (name) error("Not found: %s", name);
+		/* no tree-element found */
+		error("Not found: %s", name);
 	}
 }
 

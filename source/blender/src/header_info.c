@@ -106,6 +106,7 @@
 #include "BSE_editipo.h"
 #include "BSE_filesel.h"
 #include "BSE_headerbuttons.h"
+#include "BSE_node.h"
 #include "BSE_sequence.h"
 #include "BSE_edit.h"
 
@@ -496,6 +497,9 @@ void do_info_buttons(unsigned short event)
 			/* check all sequences */
 			clear_scene_in_allseqs(G.scene);
 
+			/* check render layer nodes in other scenes */
+			clear_scene_in_nodes(G.scene);
+			
 			/* al screens */
 			sc= G.main->screen.first;
 			while(sc) {

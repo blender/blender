@@ -2223,10 +2223,14 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 		uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_OBJECTPANELPARENT, "Par:", 160, 180, 140, 20, &ob->parent, "Parent Object"); 
 		if((ob->parent) && (ob->partype == PARBONE)) {
 			if (G.f & G_SCULPTMODE)
-				uiDefBut(block, TEX, B_OBJECTPANELPARENT, "ParBone:", 310, 180, 140, 20, ob->parsubstr, 0.0, 32.0, 0, 0, "");
+				uiDefBut(block, TEX, B_OBJECTPANELPARENT, "ParBone:", 310, 180, 140, 20, ob->parsubstr, 0, 30, 0, 0, "");
 			else
-				uiDefBut(block, TEX, B_OBJECTPANELPARENT, "ParBone:", 160, 160, 140, 20, ob->parsubstr, 0.0, 32.0, 0, 0, "");
+				uiDefBut(block, TEX, B_OBJECTPANELPARENT, "ParBone:", 160, 160, 140, 20, ob->parsubstr, 0, 30, 0, 0, "");
 		}
+		else {
+			strcpy(ob->parsubstr, "");
+		}
+		uiBlockEndAlign(block);
 	}
 
 	lim= 10000.0f*MAX2(1.0, G.vd->grid);
@@ -2912,7 +2916,6 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 
 			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_REPLACE);
 			
 			glPushMatrix();
 			glTranslatef(pd->origloc[0], pd->origloc[1], 0);
