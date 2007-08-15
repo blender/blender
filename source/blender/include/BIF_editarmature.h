@@ -109,7 +109,9 @@ void	select_bone_parent(void);
 void    unique_editbone_name (struct ListBase *ebones, char *name);
 
 void	auto_align_armature(short mode);
-void	create_vgroups_from_armature(Object *ob, Object *par);
+
+void	create_vgroups_from_armature(struct Object *ob, struct Object *par);
+void 	add_verts_to_dgroups(struct Object *ob, struct Object *par, int heat, int mirror);
 
 void	hide_selected_pose_bones(void);
 void	hide_unselected_pose_bones(void);
