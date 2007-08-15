@@ -1026,17 +1026,12 @@ void childof_const_setinv (void *conv, void *unused)
 	
 	/* calculate/set inverse matrix */
 	if (pchan) {
-		/* for now, just use pchan->constinv.
-		 * NOTE: bad hack... doesn't work in many cases
-		 */
-		//Mat4CpyMat4(data->invmat, pchan->constinv);
-		
 		bConstraintOb *cob;
 		float ctime= bsystem_time(ob, (float)G.scene->r.cfra, 0.0);	/* not accurate... */
 		float pmat[4][4], chmat[4][4], cimat[4][4];
 		float vec0[3]={0,0,0}, vec1[3]={1,1,1};
 		
-		/* make copies of pchan's original matrices */
+		/* make copies of pchan's original matrices (to be restored later) */
 		Mat4CpyMat4(pmat, pchan->pose_mat);
 		Mat4CpyMat4(chmat, pchan->chan_mat);
 		Mat4CpyMat4(cimat, pchan->constinv);
@@ -1048,15 +1043,28 @@ void childof_const_setinv (void *conv, void *unused)
 		Mat4One(pchan->constinv);
 		Mat4One(data->invmat);
 		
-		/* do constraint solving - code copied from armature.c (where_is_pose_bone) */
+		
+		/* do constraint solving on pose-matrix containing no transforms
+		 *	 N.B. code is copied from armature.c (where_is_pose_bone) 
+		 */
 		cob= constraints_make_evalob(ob, pchan, TARGET_BONE);
 		solve_constraints(&pchan->constraints, cob, ctime);
 		constraints_clear_evalob(cob);
 		
-		/* now set inverse */
-		Mat4CpyMat4(data->invmat, pchan->constinv);
 		
-		/* reset data */
+		/* parent-inverse matrix for this constraint is given by taking the 
+		 * local-space (i.e. without any standard parents + restpose) pose_matrix
+		 * (that was calulated with no transforms applied), and inverting it.
+		 */
+		Mat4CpyMat4(pchan->constinv, pchan->pose_mat);
+		
+		constraint_mat_convertspace(ob, pchan, pchan->constinv, 
+				CONSTRAINT_SPACE_POSE, CONSTRAINT_SPACE_LOCAL);
+				
+		Mat4Invert(data->invmat, pchan->constinv);
+		
+		
+		/* restore original matrices of pchan */
 		Mat4CpyMat4(pchan->pose_mat, pmat);
 		Mat4CpyMat4(pchan->chan_mat, chmat);
 		Mat4CpyMat4(pchan->constinv, cimat);
