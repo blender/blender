@@ -48,7 +48,177 @@ import BPySys
 import BPyMessages
 import time
 from math import degrees, atan, pi
-from Blender.Mathutils import Matrix, Vector, Euler, RotationMatrix
+from Blender.Mathutils import Matrix, Vector, Euler, RotationMatrix, TranslationMatrix
+
+
+mtx_z90 = RotationMatrix(90, 3, 'z')
+mtx_x90 = RotationMatrix(90, 3, 'x')
+
+# testing
+mtx_x90		= RotationMatrix( 90, 3, 'x')
+mtx_x90n	= RotationMatrix(-90, 3, 'x')
+mtx_y90		= RotationMatrix( 90, 3, 'y')
+mtx_y90n	= RotationMatrix(-90, 3, 'y')
+mtx_z90		= RotationMatrix( 90, 3, 'z')
+mtx_z90n	= RotationMatrix(-90, 3, 'z')
+
+
+mtx4_x90	= RotationMatrix( 90, 4, 'x')
+mtx4_x90n	= RotationMatrix(-90, 4, 'x')
+mtx4_y90	= RotationMatrix( 90, 4, 'y')
+mtx4_y90n	= RotationMatrix(-90, 4, 'y')
+mtx4_z90	= RotationMatrix( 90, 4, 'z')
+mtx4_z90n	= RotationMatrix(-90, 4, 'z')
+
+XVEC  = Vector(1,  0, 0)
+XVECN = Vector(-1, 0, 0)
+YVEC  = Vector(0,  1, 0)
+YVECN = Vector(0, -1, 0)
+ZVEC  = Vector(0, 0,  1)
+ZVECN = Vector(0, 0, -1)
+
+# Used to add the scene name into the filename without using odd chars
+
+sane_name_mapping_ob = {}
+sane_name_mapping_mat = {}
+sane_name_mapping_tex = {}
+
+def strip_path(p):
+	return p.split('\\')[-1].split('/')[-1]
+
+# todo - Disallow the name 'Scene' and 'blend_root' - it will bugger things up.
+def sane_name(data, dct):
+	if not data: return None
+	name = data.name
+	try:		return dct[name]
+	except:		pass
+	
+	orig_name = name
+	name = BPySys.cleanName(name)
+	dct[orig_name] = name
+	return name
+
+def sane_obname(data):		return sane_name(data, sane_name_mapping_ob)
+def sane_matname(data):		return sane_name(data, sane_name_mapping_mat)
+def sane_texname(data):		return sane_name(data, sane_name_mapping_tex)
+
+
+# storage classes
+class my_bone_class:
+	def __init__(self, blenBone, blenArmature, blenMesh, fbxObName):
+		self.blenName =			blenBone.name
+		self.blenBone =			blenBone
+		self.blenBoneParent =	blenBone.parent
+		self.blenMesh =			blenMesh
+		self.blenArmature =		blenArmature
+		self.restMatrix =		blenBone.matrix['ARMATURESPACE']
+		self.restMatrixInv =	self.restMatrix.copy().invert()
+		self.restMatrixLocal =	None # set later, need parent matrix
+		self.parent =			None
+		self.fbxName =			sane_obname(blenBone)
+		self.fbxObName =		fbxObName
+		
+		# not public
+		pose = blenArmature.getPose()
+		self.__pose_bone =		pose.bones[self.blenName]
+		self.__bone_parent =	blenBone.parent
+		self.__anim_poselist = {} # store a list if matricies here, (poseMatrix, head, tail)
+	
+	def calcRestMatrixLocal(self):
+		if self.parent:
+			self.restMatrixLocal = self.restMatrix * self.parent.restMatrix.copy().invert()
+		else:
+			self.restMatrixLocal = self.restMatrix.copy()
+	
+	def setPoseFrame(self, f):
+		# cache pose info here, frame must be set beforehand
+		self.__anim_poselist[f] = (\
+			self.__pose_bone.poseMatrix.copy(),\
+			self.__pose_bone.head.copy(),\
+			self.__pose_bone.tail.copy() )
+	
+	# get pose from frame.
+	def getPoseMatrix(self, f):
+		#return mtx4_z90 * self.__pose_bone.poseMatrix
+		#return self.__pose_bone.poseMatrix.copy()
+		return self.__anim_poselist[f][0].copy()
+	def getPoseHead(self, f):
+		#return self.__pose_bone.head.copy()
+		return self.__anim_poselist[f][1].copy()
+	def getPoseTail(self, f):
+		#return self.__pose_bone.tail.copy()
+		return self.__anim_poselist[f][2].copy()
+	# end
+
+	def getPoseMatrixLocal(self, frame):
+		if self.parent:
+			return self.getPoseMatrix(frame) * self.parent.getPoseMatrix(frame).invert()
+		else:
+			return self.getPoseMatrix(frame)
+		#return mtx4_z90 * mat
+	
+	def getPoseMatrixLocalTip(self):
+		#print "ASAS"
+		if self.parent:
+			
+			vec = self.parent.getPoseTail(frame) - self.parent.getPoseHead(frame)
+			#vec = self.parent.getPoseHead(frame) - self.parent.getPoseTail(frame)
+			mat = TranslationMatrix(vec) * self.parent.getPoseMatrix(frame)
+			#mat = self.parent.getPoseMatrix() * TranslationMatrix(vec).invert()
+			#print "  ASAS"
+			return mat * self.getPoseMatrix(frame)
+		else:
+			return self.getPoseMatrix(frame)
+	
+	def getPoseMatrixLocal_RestRelative(self, frame):
+		
+		matrix= self.getPoseMatrix(frame)
+		rest_matrix = self.restMatrix.copy()
+		
+		if self.parent:
+			matrix=						matrix * self.parent.getPoseMatrix(frame).invert()
+			rest_matrix=				rest_matrix * self.parent.restMatrixInv
+			rest_matrix = mtx4_x90n * rest_matrix
+		else:
+			rest_matrix = mtx4_z90 * rest_matrix
+		
+		# print rest_matrix.toEuler()
+		return matrix * rest_matrix.invert()
+	
+	def getSomeMatrix(self, frame):
+		return self.restMatrixLocal * self.getPoseMatrixLocal(frame).invert()
+	
+	def getSomeMatrix2(self, frame):
+		return self.getPoseMatrixLocal(frame) * self.restMatrixLocal.copy()
+	
+	def getAnimMatrix(self, frame):
+		
+		# return mtx4_z90 * self.getPoseMatrix(frame)
+		
+		#if not self.parent:
+		#	return mtx4_z90 * self.getPoseMatrix()
+		
+		#return (mtx4_z90n * self.getPoseMatrixLocal()).invert()
+		#return mtx4_z90n * self.getPoseMatrixLocal_RestRelative()
+		#mod = Euler(90,0,90).toMatrix().resize4x4()
+		
+		# Verry good except initial rotations are wrong.
+		# attempt to seperate the rotation and translation 
+		#return mtx4_z90 * (mtx4_x90 * (mtx4_y90 * self.getPoseMatrixLocal_RestRelative(frame)))
+		#return mtx4_z90 * (mtx4_y90 * self.getPoseMatrixLocal_RestRelative())
+		#return mtx4_x90 * (mtx4_y90 * ( mtx4_z90 * self.getPoseMatrixLocal_RestRelative(frame)))
+		return mtx4_z90 * self.getPoseMatrixLocal_RestRelative(frame)
+		
+		'''
+		mat = self.getPoseMatrixLocal_RestRelative()
+		tx = (mtx4_z90 * (mtx4_x90 * (mtx4_y90 * mat))).translationPart()
+		mat = TranslationMatrix(tx) * mat.rotationPart().resize4x4()
+		return mat
+		'''
+	def getAnimMatrixRot(self, frame):
+		#return self.getPoseMatrixLocal_RestRelative()
+		return self.getAnimMatrix(frame)
+		#return Matrix()
 
 
 
@@ -83,30 +253,6 @@ def eulerMat(mat, rot_order):
 
 
 
-# Used to add the scene name into the filename without using odd chars
-
-sane_name_mapping_ob = {}
-sane_name_mapping_mat = {}
-sane_name_mapping_tex = {}
-
-def strip_path(p):
-	return p.split('\\')[-1].split('/')[-1]
-
-# todo - Disallow the name 'Scene' and 'blend_root' - it will bugger things up.
-def sane_name(data, dct):
-	if not data: return None
-	name = data.name
-	try:		return dct[name]
-	except:		pass
-	
-	orig_name = name
-	name = BPySys.cleanName(name)
-	dct[orig_name] = name
-	return name
-
-def sane_obname(data):		return sane_name(data, sane_name_mapping_ob)
-def sane_matname(data):		return sane_name(data, sane_name_mapping_mat)
-def sane_texname(data):		return sane_name(data, sane_name_mapping_tex)
 
 def mat4x4str(mat):
 	return '%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f' % tuple([ f for v in mat for f in v ])
@@ -157,31 +303,6 @@ def write_header(file):
 
 
 
-mtx_z90 = RotationMatrix(90, 3, 'z')
-mtx_x90 = RotationMatrix(90, 3, 'x')
-
-# testing
-mtx_x90		= RotationMatrix( 90, 3, 'x')
-mtx_x90n	= RotationMatrix(-90, 3, 'x')
-mtx_y90		= RotationMatrix( 90, 3, 'y')
-mtx_y90n	= RotationMatrix(-90, 3, 'y')
-mtx_z90		= RotationMatrix( 90, 3, 'z')
-mtx_z90n	= RotationMatrix(-90, 3, 'z')
-
-
-mtx4_x90	= RotationMatrix( 90, 4, 'x')
-mtx4_x90n	= RotationMatrix(-90, 4, 'x')
-mtx4_y90	= RotationMatrix( 90, 4, 'y')
-mtx4_y90n	= RotationMatrix(-90, 4, 'y')
-mtx4_z90	= RotationMatrix( 90, 4, 'z')
-mtx4_z90n	= RotationMatrix(-90, 4, 'z')
-
-XVEC  = Vector(1,  0, 0)
-XVECN = Vector(-1, 0, 0)
-YVEC  = Vector(0,  1, 0)
-YVECN = Vector(0, -1, 0)
-ZVEC  = Vector(0, 0,  1)
-ZVECN = Vector(0, 0, -1)
 
 def write_scene(file, sce, world):
 	
@@ -665,16 +786,10 @@ def write_scene(file, sce, world):
 		Culling: "CullingOff"
 		TypeFlags: "Null"
 	}''')
-		
-		
-	
-	
 	
 	# Material Settings
-	if world:
-		world_amb = world.getAmb()
-	else:
-		world_amb = (0,0,0) # Default value
+	if world:	world_amb = world.getAmb()
+	else:		world_amb = (0,0,0) # Default value
 	
 	def write_material(matname, mat):
 		file.write('\n\tMaterial: "Material::%s", "" {' % matname)
@@ -828,8 +943,7 @@ def write_scene(file, sce, world):
 		Texture_Alpha_Source: "None"
 		Cropping: 0,0,0,0
 	}''')
-	
-	
+
 	def write_deformer_skin(obname):
 		file.write('\n\tDeformer: "Deformer::Skin %s", "Skin" {' % obname)
 		file.write('''
@@ -896,222 +1010,8 @@ def write_scene(file, sce, world):
 		file.write('\n\t\tTransformLink: %s' % matstr)
 		file.write('\n\t}')
 	
-	ob_meshes = []
-	ob_lights = []
-	ob_cameras = []
-	# in fbx we export bones as children of the mesh
-	# armatures not a part of a mesh, will be added to ob_arms
-	ob_bones = [] 
-	ob_arms = []
-	ob_null = [] # emptys
-	materials = {}
-	textures = {}
-	
-	ob_type = None # incase no objects are exported, so as not to raise an error
-	
-	for ob_base in sce.objects.context:
-		for ob, mtx in BPyObject.getDerivedObjects(ob_base):
-			#for ob in [ob_base,]:
-			ob_type = ob.type
-			if ob_type == 'Camera':
-				ob_cameras.append((sane_obname(ob), ob))
-			elif ob_type == 'Lamp':
-				ob_lights.append((sane_obname(ob), ob))
-			elif ob_type == 'Armature':
-				#ob_arms.append(sane_obname(ob), ob)
-				ob_arms.append(ob) # replace later.
-			elif ob_type == 'Empty':
-				ob_null.append((sane_obname(ob), ob))
-			else:
-				if ob_type == 'Mesh':	me = ob.getData(mesh=1)
-				else:					me = BPyMesh.getMeshFromObject(ob)
-				
-				if me:
-					mats = me.materials
-					for mat in mats:
-						# 2.44 use mat.lib too for uniqueness
-						if mat: materials[mat.name] = mat
-					
-					if me.faceUV:
-						uvlayer_orig = me.activeUVLayer
-						for uvlayer in me.getUVLayerNames():
-							me.activeUVLayer = uvlayer
-							for f in me.faces:
-								img = f.image
-								if img: textures[img.name] = img
-							
-							me.activeUVLayer = uvlayer_orig
-					
-					obname = sane_obname(ob)
-					
-					armob = BPyObject.getObjectArmature(ob)
-					
-					if armob:
-						armname = sane_obname(armob)
-						bones = armob.data.bones.values()
-						# armatures.append((arm, armname, bones))
-						# arm_name = BPySys.cleanName(arm.name)
-						
-						for bone in bones:
-							#name = sane_obname(arm_name + ' ' + b.name)
-							ob_bones.append( (sane_obname(bone), bone, obname, me, armob) )
-					else:
-						armname = None
-					
-					#### me.transform(ob.matrixWorld) # Export real ob coords.
-					#### High Quality, not realy needed for now.
-					#BPyMesh.meshCalcNormals(me) # high quality normals nice for realtime engines.
-					ob_meshes.append( (obname, ob, mtx, me, mats, armob, armname) )
-	
-	del ob_type
-	#print ob_bones
-	
-	
-	# this sucks a bit, remove all armatures that are used by a mesh.
-	for obname, ob, mtx, me, mats, arm, armname in ob_meshes:
-		if arm:
-			try:	ob_arms.remove(arm)
-			except:	pass
-	
-	# now we have removed, get the unique names
-	for i, ob in enumerate(ob_arms):
-		name = sane_obname(ob)
-		ob_arms[i] = name, ob
-		
-		for bone in ob.data.bones.values():
-			ob_bones.append( (sane_obname(bone), bone, name, None, ob) )
-	
-	materials = [(sane_matname(mat), mat) for mat in materials.itervalues()]
-	textures = [(sane_texname(img), img) for img in textures.itervalues()]
-	materials.sort() # sort by name
-	textures.sort()
-	
-	if not materials:
-		materials = [('null', None)]
-	
-	material_mapping = {} # blen name : index
-	if textures:
-		texture_mapping_local = {None:0} # ditto
-		i = 0
-		for texname, tex in textures:
-			texture_mapping_local[tex.name] = i
-			i+=1
-		textures.insert(0, ('_empty_', None))
-	
-	i = 0
-	for matname, mat in materials:
-		if mat: mat = mat.name
-		material_mapping[mat] = i
-		i+=1
-	
-	camera_count = 8
-	file.write('''
+	def write_mesh(obname, ob, mtx, me, mats, arm, armname):
 
-; Object definitions
-;------------------------------------------------------------------
-
-Definitions:  {
-	Version: 100
-	Count: %i''' % (\
-		1+1+camera_count+\
-		len(ob_meshes)+\
-		len(ob_lights)+\
-		len(ob_cameras)+\
-		len(ob_arms)+\
-		len(ob_null)+\
-		len(ob_bones)+\
-		len(materials)+\
-		(len(textures)*2))) # add 1 for the root model 1 for global settings
-	
-	file.write('''
-	ObjectType: "Model" {
-		Count: %i
-	}''' % (\
-		1+camera_count+\
-		len(ob_meshes)+\
-		len(ob_lights)+\
-		len(ob_cameras)+\
-		len(ob_arms)+\
-		len(ob_null)+\
-		len(ob_bones))) # add 1 for the root model
-	
-	file.write('''
-	ObjectType: "Geometry" {
-		Count: %i
-	}''' % len(ob_meshes))
-	
-	if materials:
-		file.write('''
-	ObjectType: "Material" {
-		Count: %i
-	}''' % len(materials))
-	
-	if textures:
-		file.write('''
-	ObjectType: "Texture" {
-		Count: %i
-	}''' % len(textures)) # add 1 for an empty tex
-		file.write('''
-	ObjectType: "Video" {
-		Count: %i
-	}''' % len(textures)) # add 1 for an empty tex
-	
-	tmp = 0
-	for obname, ob, mtx, me, mats, arm, armname in ob_meshes:
-		if armname:
-			tmp+=1
-	
-	for bonename, bone, obname, me, armob in ob_bones:
-		if me:
-			tmp += 1
-	
-	if tmp:
-		file.write('''
-	ObjectType: "Deformer" {
-		Count: %i
-	}''' % tmp)
-	del tmp
-	
-	# we could avoid writing this possibly but for now just write it
-	"""
-	file.write('''
-	ObjectType: "Pose" {
-		Count: 1
-	}''')
-	"""
-	
-	file.write('''
-	ObjectType: "GlobalSettings" {
-		Count: 1
-	}
-}''')
-	
-	file.write('''
-
-; Object properties
-;------------------------------------------------------------------
-
-Objects:  {''')
-	
-	# To comply with other FBX FILES
-	write_camera_switch()
-	
-	# Write the null object
-	write_null(None, 'blend_root')
-	
-	for obname, ob in ob_null:
-		write_null(ob, obname)
-	
-	for obname, ob in ob_arms:
-		write_null(ob, obname) # armatures are just null's with bone children.
-	
-	for obname, ob in ob_cameras:
-		write_camera(ob, obname)
-
-	for obname, ob in ob_lights:
-		write_light(ob, obname)
-	
-	for obname, ob, mtx, me, mats, arm, armname in ob_meshes:
 		file.write('\n\tModel: "Model::%s", "Mesh" {' % sane_obname(ob))
 		file.write('\n\t\tVersion: 232') # newline is added in write_object_props
 		write_object_props(ob, None, mtx)
@@ -1456,8 +1356,244 @@ Objects:  {''')
 				file.write('\n\t\t}')
 		file.write('\n\t}')
 	
-	for bonename, bone, obname, me, armob in ob_bones:
-		write_bone(bone, bonename, armob.matrixWorld)
+	
+	ob_meshes = []
+	ob_lights = []
+	ob_cameras = []
+	# in fbx we export bones as children of the mesh
+	# armatures not a part of a mesh, will be added to ob_arms
+	ob_bones = [] 
+	ob_arms = []
+	ob_null = [] # emptys
+	materials = {}
+	textures = {}
+	
+	ob_type = None # incase no objects are exported, so as not to raise an error
+	
+	for ob_base in sce.objects.context:
+		for ob, mtx in BPyObject.getDerivedObjects(ob_base):
+			#for ob in [ob_base,]:
+			ob_type = ob.type
+			if ob_type == 'Camera':
+				ob_cameras.append((sane_obname(ob), ob))
+			elif ob_type == 'Lamp':
+				ob_lights.append((sane_obname(ob), ob))
+			elif ob_type == 'Armature':
+				#ob_arms.append(sane_obname(ob), ob)
+				ob_arms.append(ob) # replace later.
+			elif ob_type == 'Empty':
+				ob_null.append((sane_obname(ob), ob))
+			else:
+				if ob_type == 'Mesh':	me = ob.getData(mesh=1)
+				else:					me = BPyMesh.getMeshFromObject(ob)
+				
+				if me:
+					mats = me.materials
+					for mat in mats:
+						# 2.44 use mat.lib too for uniqueness
+						if mat: materials[mat.name] = mat
+					
+					if me.faceUV:
+						uvlayer_orig = me.activeUVLayer
+						for uvlayer in me.getUVLayerNames():
+							me.activeUVLayer = uvlayer
+							for f in me.faces:
+								img = f.image
+								if img: textures[img.name] = img
+							
+							me.activeUVLayer = uvlayer_orig
+					
+					obname = sane_obname(ob)
+					
+					armob = BPyObject.getObjectArmature(ob)
+					
+					if armob:
+						armname = sane_obname(armob)
+						bones = armob.data.bones.values()
+						# armatures.append((arm, armname, bones))
+						# arm_name = BPySys.cleanName(arm.name)
+						
+						for bone in bones:
+							#name = sane_obname(arm_name + ' ' + b.name)
+							#ob_bones.append( (sane_obname(bone), bone, obname, me, armob) )
+							ob_bones.append( my_bone_class(bone, armob, me, obname) )
+					else:
+						armname = None
+					
+					#### me.transform(ob.matrixWorld) # Export real ob coords.
+					#### High Quality, not realy needed for now.
+					#BPyMesh.meshCalcNormals(me) # high quality normals nice for realtime engines.
+					ob_meshes.append( (obname, ob, mtx, me, mats, armob, armname) )
+	
+	del ob_type
+	#print ob_bones
+	
+	
+	# this sucks a bit, remove all armatures that are used by a mesh.
+	for obname, ob, mtx, me, mats, arm, armname in ob_meshes:
+		if arm:
+			try:	ob_arms.remove(arm)
+			except:	pass
+	
+	# now we have removed, get the unique names
+	for i, ob in enumerate(ob_arms):
+		name = sane_obname(ob)
+		ob_arms[i] = name, ob
+		
+		for bone in ob.data.bones.values():
+			#ob_bones.append( (sane_obname(bone), bone, name, None, ob) )
+			ob_bones.append( my_bone_class(bone, ob, None, None) )
+	
+	for mybone in ob_bones:
+		if mybone.blenBoneParent:
+			print "print 'has parent'"
+			for mybone_parent in ob_bones:
+				#print mybone.blenBoneParent, mybone_parent.blenBone
+				if mybone.blenBoneParent.name == mybone_parent.blenBone.name and mybone.blenArmature == mybone_parent.blenArmature:
+					mybone.parent = mybone_parent
+					#print "FOUND BODE"
+					break
+		
+		mybone.calcRestMatrixLocal()
+	
+	
+	materials = [(sane_matname(mat), mat) for mat in materials.itervalues()]
+	textures = [(sane_texname(img), img) for img in textures.itervalues()]
+	materials.sort() # sort by name
+	textures.sort()
+	
+	if not materials:
+		materials = [('null', None)]
+	
+	material_mapping = {} # blen name : index
+	if textures:
+		texture_mapping_local = {None:0} # ditto
+		i = 0
+		for texname, tex in textures:
+			texture_mapping_local[tex.name] = i
+			i+=1
+		textures.insert(0, ('_empty_', None))
+	
+	i = 0
+	for matname, mat in materials:
+		if mat: mat = mat.name
+		material_mapping[mat] = i
+		i+=1
+	
+	camera_count = 8
+	file.write('''
+
+; Object definitions
+;------------------------------------------------------------------
+
+Definitions:  {
+	Version: 100
+	Count: %i''' % (\
+		1+1+camera_count+\
+		len(ob_meshes)+\
+		len(ob_lights)+\
+		len(ob_cameras)+\
+		len(ob_arms)+\
+		len(ob_null)+\
+		len(ob_bones)+\
+		len(materials)+\
+		(len(textures)*2))) # add 1 for the root model 1 for global settings
+	
+	file.write('''
+	ObjectType: "Model" {
+		Count: %i
+	}''' % (\
+		1+camera_count+\
+		len(ob_meshes)+\
+		len(ob_lights)+\
+		len(ob_cameras)+\
+		len(ob_arms)+\
+		len(ob_null)+\
+		len(ob_bones))) # add 1 for the root model
+	
+	file.write('''
+	ObjectType: "Geometry" {
+		Count: %i
+	}''' % len(ob_meshes))
+	
+	if materials:
+		file.write('''
+	ObjectType: "Material" {
+		Count: %i
+	}''' % len(materials))
+	
+	if textures:
+		file.write('''
+	ObjectType: "Texture" {
+		Count: %i
+	}''' % len(textures)) # add 1 for an empty tex
+		file.write('''
+	ObjectType: "Video" {
+		Count: %i
+	}''' % len(textures)) # add 1 for an empty tex
+	
+	tmp = 0
+	for obname, ob, mtx, me, mats, arm, armname in ob_meshes:
+		if armname:
+			tmp+=1
+	
+	for mybone in ob_bones:
+		if mybone.blenMesh:
+			tmp += 1
+	
+	if tmp:
+		file.write('''
+	ObjectType: "Deformer" {
+		Count: %i
+	}''' % tmp)
+	del tmp
+	
+	# we could avoid writing this possibly but for now just write it
+	"""
+	file.write('''
+	ObjectType: "Pose" {
+		Count: 1
+	}''')
+	"""
+	
+	file.write('''
+	ObjectType: "GlobalSettings" {
+		Count: 1
+	}
+}''')
+	
+	file.write('''
+
+; Object properties
+;------------------------------------------------------------------
+
+Objects:  {''')
+	
+	# To comply with other FBX FILES
+	write_camera_switch()
+	
+	# Write the null object
+	write_null(None, 'blend_root')
+	
+	for obname, ob in ob_null:
+		write_null(ob, obname)
+	
+	for obname, ob in ob_arms:
+		write_null(ob, obname) # armatures are just null's with bone children.
+	
+	for obname, ob in ob_cameras:
+		write_camera(ob, obname)
+
+	for obname, ob in ob_lights:
+		write_light(ob, obname)
+	
+	for obname, ob, mtx, me, mats, arm, armname in ob_meshes:
+		write_mesh(obname, ob, mtx, me, mats, arm, armname)
+
+	#for bonename, bone, obname, me, armob in ob_bones:
+	for mybone in ob_bones:
+		#write_bone(bone, bonename, armob.matrixWorld)
+		write_bone(mybone.blenBone, mybone.fbxName, mybone.blenArmature.matrixWorld)
 	
 	write_camera_default()
 	
@@ -1478,9 +1614,11 @@ Objects:  {''')
 		if armname:
 			write_deformer_skin(obname)
 		
-		for bonename, bone, obname, bone_mesh, armob in ob_bones:
-			if bone_mesh == me:
-				write_sub_deformer_skin(obname, bonename, bone, me, armob.matrixWorld)
+		#for bonename, bone, obname, bone_mesh, armob in ob_bones:
+		for mybone in ob_bones:
+			if mybone.blenMesh == me:
+				#write_sub_deformer_skin(obname, bonename, bone, me, armob.matrixWorld)
+				write_sub_deformer_skin(obname, mybone.blenName, mybone.blenBone, mybone.blenMesh, mybone.blenArmature.matrixWorld)
 	
 	# Write pose's really weired, only needed when an armature and mesh are used together
 	# each by themselves dont need pose data. for now only pose meshes and bones
@@ -1547,8 +1685,9 @@ Relations:  {''')
 		file.write('\n\tModel: "Model::%s", "Mesh" {\n\t}' % obname)
 
 	# TODO - limbs can have the same name for multiple armatures, should prefix.
-	for bonename, bone, obname, me, armob in ob_bones:
-		file.write('\n\tModel: "Model::%s", "Limb" {\n\t}' % bonename)
+	#for bonename, bone, obname, me, armob in ob_bones:
+	for mybone in ob_bones:
+		file.write('\n\tModel: "Model::%s", "Limb" {\n\t}' % mybone.fbxName)
 	
 	for obname, ob in ob_cameras:
 		file.write('\n\tModel: "Model::%s", "Camera" {\n\t}' % obname)
@@ -1588,9 +1727,10 @@ Relations:  {''')
 		if arm:
 			file.write('\n\tDeformer: "Deformer::Skin %s", "Skin" {\n\t}' % obname)
 	
-	for bonename, bone, obname, me, armob in ob_bones:
-		if me: # is this bone effecting a mesh?
-			file.write('\n\tDeformer: "SubDeformer::Cluster %s", "Cluster" {\n\t}' % bonename)
+	#for bonename, bone, obname, me, armob in ob_bones:
+	for mybone in ob_bones:
+		if mybone.blenMesh:	# is this bone effecting a mesh?
+			file.write('\n\tDeformer: "SubDeformer::Cluster %s", "Cluster" {\n\t}' % mybone.fbxName)
 	
 	
 	# This should be at the end
@@ -1646,38 +1786,210 @@ Connections:  {''')
 		if arm:
 			file.write('\n\tConnect: "OO", "Deformer::Skin %s", "Model::%s"' % (obname, obname))
 	
-	for bonename, bone, obname, me, armob in ob_bones:
-		if me:
-			file.write('\n\tConnect: "OO", "SubDeformer::Cluster %s", "Deformer::Skin %s"' % (bonename, obname))
+	#for bonename, bone, obname, me, armob in ob_bones:
+	for mybone in ob_bones:
+		if mybone.blenMesh:
+			file.write('\n\tConnect: "OO", "SubDeformer::Cluster %s", "Deformer::Skin %s"' % (mybone.fbxName, mybone.fbxObName))
 	
 	
 	# limbs -> deformers
-	for bonename, bone, obname, me, armob in ob_bones:
-		if me:
-			file.write('\n\tConnect: "OO", "Model::%s", "SubDeformer::Cluster %s"' % (bonename, bonename))
+	# for bonename, bone, obname, me, armob in ob_bones:
+	for mybone in ob_bones:
+		if mybone.blenMesh:
+			file.write('\n\tConnect: "OO", "Model::%s", "SubDeformer::Cluster %s"' % (mybone.fbxName, mybone.fbxName))
 	
 	
 	
 	
-	for bonename, bone, obname, me, armob in ob_bones:
-		blend_parent = bone.parent
-		if blend_parent:
-			file.write('\n\tConnect: "OO", "Model::%s", "Model::%s"' % (bonename, sane_obname(blend_parent)) )
+	#for bonename, bone, obname, me, armob in ob_bones:
+	for mybone in ob_bones:
+		if mybone.blenBone.parent:
+			file.write('\n\tConnect: "OO", "Model::%s", "Model::%s"' % (mybone.fbxName, sane_obname(mybone.blenBone.parent)) )
 		else:
 			# NOTE, when 'me' is None, the obname is the armature-object,
 			# the armature object is written as an empty and all root level bones connect to it
-			file.write('\n\tConnect: "OO", "Model::%s", "Model::%s"' % (bonename, obname) )
+			file.write('\n\tConnect: "OO", "Model::%s", "Model::%s"' % (mybone.fbxName, mybone.fbxObName) )
 	
-	for obname, ob, mtx, me, mats, arm, armname in ob_meshes:
-		file.write('\n\tConnect: "OO", "Model::%s", "Model::blend_root"' % obname)
+	#for obname, ob, mtx, me, mats, arm, armname in ob_meshes:
+	for mybone in ob_bones:
+		file.write('\n\tConnect: "OO", "Model::%s", "Model::blend_root"' % mybone.fbxObName)
 	
 	file.write('\n}')
 	
 	
+	#del bone
+	#del armob
+	
+	
+	if 1:
+		
+		# WRITE ANIMATION
+		#define KTIME_ONE_SECOND        KTime (K_LONGLONG(46186158000))
+		
+		sec = 46186158000 # weired FBX standard
+		render = sce.render
+		fps = float(render.fps)
+		
+		# set pose data for all bones
+		start =	render.sFrame
+		end =	render.eFrame
+		
+		
+		i = start
+		while i <= end:
+			Blender.Set('curframe', i)
+			for mybone in ob_bones:
+				mybone.setPoseFrame(i)
+			i+=1
+		
+		
+		# 0.5 + val is the same as rounding.
+		def fbx_time(t): return int(0.5 + ((t/fps) * sec))
+		
+		file.write('''
+;Takes and animation section
+;----------------------------------------------------
+
+Takes:  {''')
+		
+		# todo - support actions
+		file.write('\n\tCurrent: "Default Take"')
+		file.write('\n\tTake: "Default Take" {')
+		
+		# TODO - export multiple actions
+		# TODO - no attempt at being optinal so far!!
+		
+		file.write('\n\t\tFileName: "Default_Take.tak"') # ??? - not sure why this is needed
+		file.write('\n\t\tLocalTime: %i,%i"' % (fbx_time(start), fbx_time(end))) # ??? - not sure why this is needed
+		file.write('\n\t\tReferenceTime: %i,%i"' % (fbx_time(start), fbx_time(end))) # ??? - not sure why this is needed
+		
+		file.write('''
+
+		;Models animation
+		;----------------------------------------------------''')
+		
+		
+		#for bonename, bone, obname, me, armob in ob_bones:
+		for mybone in ob_bones:
+			
+			
+			file.write('\n\t\tModel: "Model::%s" {' % mybone.fbxName) # ??? - not sure why this is needed
+			file.write('\n\t\t\tVersion: 1.1')
+			file.write('\n\t\t\tChannel: "Transform" {')
+			
+			# ----------------
+			
+			file.write('\n\t\t\t\tChannel: "T" {') # translation
+			matrix = mybone.getAnimMatrix(start)
+			for i in xrange(3):
+				#Blender.Set('curframe', start)
+				#matrix = mybone.getAnimMatrix()
+				#matrix = mybone.getPoseMatrix()
+				
+				file.write('\n\t\t\t\t\tChannel: "%s" {'% ('XYZ'[i])) # translation
+				file.write('\n\t\t\t\t\t\tDefault: %.15f' % matrix.translationPart()[i] )
+				file.write('\n\t\t\t\t\t\tKeyVer: 4004')
+				file.write('\n\t\t\t\t\t\tKeyCount: %i' % (1 + end - start))
+				file.write('\n\t\t\t\t\t\tKey: ')
+				frame = start
+				while frame <= end:
+					
+					if frame!=start:
+						file.write(',')
+					
+					#Blender.Set('curframe', frame)
+					#Blender.Window.RedrawAll()
+					matrix = mybone.getAnimMatrix(frame)
+					file.write('\n\t\t\t\t\t\t\t%i,%.15f,C,n'  % (fbx_time(frame), matrix.translationPart()[i] ))
+					frame+=1
+				
+				if i==0:	file.write('\n\t\t\t\t\t\tColor: 1,0,0')
+				elif i==1:	file.write('\n\t\t\t\t\t\tColor: 0,1,0')
+				elif i==2:	file.write('\n\t\t\t\t\t\tColor: 0,0,1')
+					
+				file.write('\n\t\t\t\t\t}')
+			file.write('\n\t\t\t\t}')
+			# ---------------
+			
+			
+			
+			
+			# ----------------
+			file.write('\n\t\t\t\tChannel: "R" {') # translation
+			matrix = mybone.getAnimMatrixRot(start)
+			for i in xrange(3):
+				#Blender.Set('curframe', start)
+				# matrix = mybone.getAnimMatrixRot()
+				#matrix = mybone.getPoseMatrixLocal()
+				#matrix = mybone.getPoseMatrix()
+				
+				file.write('\n\t\t\t\t\tChannel: "%s" {'% ('XYZ'[i])) # translation
+				file.write('\n\t\t\t\t\t\tDefault: %.15f' % matrix.toEuler()[i] )
+				file.write('\n\t\t\t\t\t\tKeyVer: 4004')
+				file.write('\n\t\t\t\t\t\tKeyCount: %i' % (1 + end - start))
+				file.write('\n\t\t\t\t\t\tKey: ')
+				frame = start
+				while frame <= end:
+					
+					if frame!=start:
+						file.write(',')
+					
+					# Blender.Set('curframe', frame)
+					#Blender.Window.RedrawAll()
+					matrix = mybone.getAnimMatrixRot(frame)
+					file.write('\n\t\t\t\t\t\t\t%i,%.15f,C,n'  % (fbx_time(frame), matrix.toEuler()[i] ))
+					frame+=1
+				
+				if i==0:	file.write('\n\t\t\t\t\t\tColor: 1,0,0')
+				elif i==1:	file.write('\n\t\t\t\t\t\tColor: 0,1,0')
+				elif i==2:	file.write('\n\t\t\t\t\t\tColor: 0,0,1')
+					
+				file.write('\n\t\t\t\t\t}')
+			file.write('\n\t\t\t\t}')
+			# ---------------
+			
+			
+			
+			
+			
+			
+			
+			'''
+			file.write('\n\t\t\t\t}')
+			file.write('\n\t\t\t\tChannel: "R" {') # translation
+			file.write('\n\t\t\t\t}')
+			file.write('\n\t\t\t\tChannel: "S" {') # translation
+			file.write('\n\t\t\t\t}')
+			'''
+			
+			file.write('\n\t\t\t}')
+			file.write('\n\t\t}')
+		
+		file.write('\n\t}')
+		file.write('\n}')
+		
+	else:
+		# no animation
+		file.write('\n;Takes and animation section')
+		file.write('\n;----------------------------------------------------')
+		file.write('\n')
+		file.write('\nTakes:  {')
+		file.write('\n\tCurrent: ""')
+		file.write('\n}')
+	
+	
+	# write meshes animation
+	#for obname, ob, mtx, me, mats, arm, armname in ob_meshes:
+		
+	
 	# Clear mesh data Only when writing with modifiers applied
 	#for obname, ob, me, mats, arm, armname in objects:
 	#	me.verts = None
-
+	
+	
+	
+	
+	
 
 def write_footer(file, sce, world):
 	
@@ -1690,12 +2002,6 @@ def write_footer(file, sce, world):
 	
 	render = sce.render
 	
-	file.write('\n;Takes and animation section')
-	file.write('\n;----------------------------------------------------')
-	file.write('\n')
-	file.write('\nTakes:  {')
-	file.write('\n\tCurrent: ""')
-	file.write('\n}')
 	file.write('\n;Version 5 settings')
 	file.write('\n;------------------------------------------------------------------')
 	file.write('\n')
@@ -1750,5 +2056,5 @@ def write_ui(filename):
 	Blender.Window.WaitCursor(0)
 
 if __name__ == '__main__':
-	Blender.Window.FileSelector(write_ui, 'Export FBX', Blender.sys.makename(ext='.fbx'))
-	#write_ui('/scratch/test.fbx')
+	#Blender.Window.FileSelector(write_ui, 'Export FBX', Blender.sys.makename(ext='.fbx'))
+	write_ui('/scratch/test.fbx')
