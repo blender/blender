@@ -1523,7 +1523,7 @@ void *get_ipo_poin(ID *id, IpoCurve *icu, int *type)
 
 void set_icu_vars(IpoCurve *icu)
 {
-	
+	/* defaults. 0.0 for y-extents makes these ignored */
 	icu->ymin= icu->ymax= 0.0;
 	icu->ipo= IPO_BEZ;
 	
@@ -1812,6 +1812,14 @@ void set_icu_vars(IpoCurve *icu)
 			break;
 		}
 	}
+	else if(icu->blocktype==ID_CO) {
+		icu->ymin= 0.0;
+		icu->ymax= 1.0f;
+	}
+	
+	/* by default, slider limits will be icu->ymin and icu->ymax */
+	icu->slide_min= icu->ymin;
+	icu->slide_max= icu->ymax;
 }
 
 /* not for actions or constraints! */

@@ -480,6 +480,7 @@ void actdata_filter (ListBase *act_data, int filter_mode, void *data, short data
  * returns key data for RVK type meshes). If there
  * is an action that is pinned, return null
  */
+/* Note: there's a similar function in key.c (ob_get_key) */
 Key *get_action_mesh_key(void) 
 {
     Object *ob;
@@ -1720,7 +1721,10 @@ static void clever_achannel_names (short *mval)
 	else if (chantype == ACTTYPE_ICU) {
 		icu= (IpoCurve *)act_channel;
 		
-		strcpy(str, getname_ipocurve(icu));
+		if (G.saction->pin)
+			sprintf(str, getname_ipocurve(icu, NULL));
+		else
+			sprintf(str, getname_ipocurve(icu, OBACT));
 		
 		if (IS_EQ(icu->slide_max, icu->slide_min)) {
 			if (IS_EQ(icu->ymax, icu->ymin)) {

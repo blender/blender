@@ -949,13 +949,43 @@ void do_global_buttons(unsigned short event)
 		else {
 
 			/* Store current action */
-			if (!idtest){
+			if (!idtest) {
+				/* 'Add New' option: 
+				 * 	- make a copy of an exisiting action
+				 *	- or make a new empty action if no existing action
+				 */
 				if (act) {
 					idtest= (ID *)copy_action(act);
-				} else { 
+				} 
+				else { 
 					if (ID_OB==ob->type) {
+						/* for empties */
 						idtest=(ID *)add_empty_action("ObAction");
-					} else {
+					} 
+					else if (ELEM(ob->type, OB_MESH, OB_LATTICE) && ob_get_key(ob)) {
+						/* shapekey - like if B_IPO_ACTION_KEY is triggered */
+						bActionChannel *achan;
+						Key *key= ob_get_key(ob);
+						
+						ob->ipoflag |= OB_ACTION_KEY;
+						
+						act = add_empty_action("ShapeAction");
+						idtest=(ID *)act;
+						
+						achan= verify_action_channel(act, "Shape");
+						achan->flag = (ACHAN_HILIGHTED|ACHAN_SELECTED|ACHAN_EXPANDED|ACHAN_SHOWIPO);
+						
+						if(achan->ipo==NULL && key->ipo) {
+							achan->ipo= key->ipo;
+							key->ipo= NULL;
+							
+							allqueue(REDRAWVIEW3D, 0);
+							allqueue(REDRAWIPO, 0);
+							allqueue(REDRAWOOPS, 0);
+						}
+					}
+					else {
+						/* a plain action */
 						idtest=(ID *)add_empty_action("Action");
 					}
 				}

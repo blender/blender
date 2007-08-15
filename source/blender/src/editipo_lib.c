@@ -34,12 +34,15 @@
 
 #include "DNA_curve_types.h"
 #include "DNA_ipo_types.h"
+#include "DNA_key_types.h"
+#include "DNA_object_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
 
 #include "BKE_global.h"
 #include "BKE_ipo.h"
+#include "BKE_key.h"
 #include "BKE_utildefines.h"
 
 #include "BIF_resources.h"
@@ -130,8 +133,11 @@ int geticon_ipo_blocktype(short blocktype)
 	}
 }
 
-/* get name of ipo-curve (icu should be valid pointer) */
-char *getname_ipocurve(IpoCurve *icu)
+/* get name of ipo-curve
+ * 	- icu should be valid pointer
+ *	- ob is only needed for a shapekey-related hack
+ */
+char *getname_ipocurve(IpoCurve *icu, Object *ob)
 {
 	switch (icu->blocktype) {
 		case ID_OB: 
@@ -140,11 +146,29 @@ char *getname_ipocurve(IpoCurve *icu)
 			return getname_ac_ei(icu->adrcode);
 		case ID_KE:
 			{
-				/* quick 'hack' - must find a better solution to this
-				 * although shapekey ipo-curves can have names,
-				 * we don't have access to that info yet.
-				 */
 				static char name[32];
+				Key *key= ob_get_key(ob);
+				
+				if (key) {
+					KeyBlock *kb= key->block.first;
+					int i;
+					
+					for (i= 1; i < key->totkey; i++) {
+						kb= kb->next;
+						
+						if (icu->adrcode == i) {
+							/* only return name if it has been set, otherwise use 
+							 * default method using static string (Key #)
+							 */
+							if (kb->name[0] == '\0')
+								break; /* stop looping through keyblocks */
+							else
+								return kb->name; /* return keyblock's name  */
+						}
+					}
+				}
+				
+				/* in case keyblock is not named or no key/keyblock was found */
 				sprintf(name, "Key %d", icu->adrcode);
 				return name;
 			}

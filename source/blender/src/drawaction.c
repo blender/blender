@@ -228,8 +228,8 @@ static void make_icu_slider(uiBlock *block, IpoCurve *icu,
 	
 	if (IS_EQ(icu->slide_max, icu->slide_min)) {
 		if (IS_EQ(icu->ymax, icu->ymin)) {
-			if (icu->blocktype == ID_CO) {
-				/* hack for constraints (and maybe a few others) */
+			if (ELEM(icu->blocktype, ID_CO, ID_KE)) {
+				/* hack for constraints and shapekeys (and maybe a few others) */
 				icu->slide_min= 0.0;
 				icu->slide_max= 1.0;
 			}
@@ -491,7 +491,10 @@ static void draw_channel_names(void)
 					mute = ICON_MUTE_IPO_OFF;
 				
 				sel = SEL_ICU(icu);
-				sprintf(name, getname_ipocurve(icu));
+				if (G.saction->pin)
+					sprintf(name, getname_ipocurve(icu, NULL));
+				else
+					sprintf(name, getname_ipocurve(icu, OBACT));
 			}
 				break;
 			case ACTTYPE_SHAPEKEY: /* shapekey channel */
@@ -827,18 +830,20 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 	short ofsx = 0, ofsy = 0;
 	float col[3];
 
-	if (!G.saction)
+	/* this is unlikely to occur, but it may */
+	if (G.saction == NULL)
 		return;
 
 	/* warning: blocks need to be freed each time, handlers dont remove  */
 	uiFreeBlocksWin(&sa->uiblocks, sa->win);
 
-	if (!G.saction->pin) {
+	/* only try to refresh action that's displayed if not pinned */
+	if (G.saction->pin==0) {
 		/* TODO: allow more than one active action sometime? */
 		if (OBACT)
 			G.saction->action = OBACT->action;
 		else
-			G.saction->action=NULL;
+			G.saction->action= NULL;
 	}
 	
 	/* get data */
