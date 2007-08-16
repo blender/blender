@@ -3184,13 +3184,7 @@ void ndof_do_transform(float *fval)
 		special_aftertrans_update(&Trans);
 		
 	}
-	
-
-	
-	if (change) {	
-		;
-	}
-		
+			
 		/* send events out for redraws */
 		viewRedrawPost(&Trans);
 		

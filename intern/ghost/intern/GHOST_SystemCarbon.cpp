@@ -486,7 +486,9 @@ bool GHOST_SystemCarbon::processEvents(bool waitForEvent)
 					 * are, but we get a lot of them
 					 */
 				if (i!='cgs ') {
-					printf("Missed - Class: '%.4s', Kind: %d\n", &i, ::GetEventKind(event));
+					if (i!='tblt') {  // tablet event. we use the one packaged in the mouse event
+						printf("Missed - Class: '%.4s', Kind: %d\n", &i, ::GetEventKind(event));
+					}
 				}
 			}
 			::ReleaseEvent(event);
