@@ -1319,12 +1319,6 @@ PyObject *Material_CreatePyObject( struct Material *mat )
 	pymat->spec = ( BPy_rgbTuple * ) rgbTuple_New( spec );
 	pymat->mir = ( BPy_rgbTuple * ) rgbTuple_New( mir );
 	pymat->sss = ( BPy_rgbTuple * ) rgbTuple_New( sss );
-	
-	Py_INCREF(pymat->col);
-	Py_INCREF(pymat->amb);
-	Py_INCREF(pymat->spec);
-	Py_INCREF(pymat->mir);
-	Py_INCREF(pymat->sss);
 
 	return ( PyObject * ) pymat;
 }
