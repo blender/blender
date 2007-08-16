@@ -1029,7 +1029,9 @@ void viewmoveNDOF(int mode)
     float m[3][3];
     float m_inv[3][3];
     float xvec[3] = {1,0,0};
-    float phi, si;
+    float yvec[3] = {0,-1,0};
+    float zvec[3] = {0,0,1};
+	float phi, si;
     float q1[4];
     float obofs[3];
     float reverse;
@@ -1162,6 +1164,8 @@ void viewmoveNDOF(int mode)
     /* Determine the direction of the x vector (for rotating up and down) */
     /* This can likely be compuated directly from the quaternion. */
     Mat3MulVecfl(m_inv,xvec);
+    Mat3MulVecfl(m_inv,yvec);
+    Mat3MulVecfl(m_inv,zvec);
 
     /* Perform the up/down rotation */
     phi = sbadjust * rsens * /*0.5f * */ fval[3]; /* spin vertically half as fast as horizontally */
@@ -1180,7 +1184,18 @@ void viewmoveNDOF(int mode)
     }
 
     /* Perform the orbital rotation */
-    phi = sbadjust * rsens * reverse * fval[4];     /* twist the knob, y axis */
+    /* Perform the orbital rotation 
+       If the seen Up axis is parallel to the zoom axis, rotation should be
+       achieved with a pure Roll motion (no Spin) on the device. When you start 
+       to tilt, moving from Top to Side view, Spinning will increasingly become 
+       more relevant while the Roll component will decrease. When a full 
+       Side view is reached, rotations around the world's Up axis are achieved
+       with a pure Spin-only motion.  In other words the control of the spinning
+       around the world's Up axis should move from the device's Spin axis to the
+       device's Roll axis depending on the orientation of the world's Up axis 
+       relative to the screen. */
+    //phi = sbadjust * rsens * reverse * fval[4];  /* spin the knob, y axis */
+    phi = sbadjust * rsens * (yvec[2] * fval[4] + zvec[2] * fval[5]);
     q1[0] = cos(phi);
     q1[1] = q1[2] = 0.0;
     q1[3] = sin(phi);
