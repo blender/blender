@@ -45,6 +45,8 @@
 #include "DNA_object_types.h"
 #include "DNA_action_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_meshdata_types.h"
+#include "DNA_lattice_types.h"
 #include "DNA_scene_types.h"
 
 #include "BKE_utildefines.h"
@@ -54,11 +56,14 @@
 #include "BKE_blender.h"
 #include "BKE_constraint.h"
 #include "BKE_displist.h"
+#include "BKE_deform.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_object.h"
 #include "BKE_ipo.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_idprop.h"
+
 
 #include "BPY_extern.h"
 
@@ -1106,9 +1111,111 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 
 /* ------------------------------- Target ---------------------------- */
 
+/* function that sets the given matrix based on given vertex group in mesh */
+static void contarget_get_mesh_mat (Object *ob, char *substring, float mat[][4])
+{
+	DerivedMesh *dm = (DerivedMesh *)ob->derivedFinal;
+	float vec[3] = {0.0f, 0.0f, 0.0f}, tvec[3];
+	int dgroup;
+	
+	/* initialize target matrix using target matrix */
+	Mat4CpyMat4(mat, ob->obmat);
+	
+	/* get index of vertex group */
+	dgroup = get_named_vertexgroup_num(ob, substring);
+	if (dgroup < 0) return;
+	
+	/* only continue if there's a valid DerivedMesh */
+	if (dm) {
+		MDeformVert *dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
+		int *index = (int *)dm->getVertDataArray(dm, CD_ORIGINDEX);
+		int numVerts = dm->getNumVerts(dm);
+		int i, j, count = 0;
+		float co[3];
+		
+		/* get the average of all verts with that are in the vertex-group */
+		for (i = 0; i < numVerts; i++, index++) {	
+			for (j = 0; j < dvert[i].totweight; j++) {
+				/* does this vertex belong to nominated vertex group? */
+				if (dvert[i].dw[j].def_nr == dgroup) {
+					dm->getVertCo(dm, i, co);
+					VecAddf(vec, vec, co);
+					count++;
+					break;
+				}
+				
+			}
+		}
+		
+		/* calculate average, and apply as new location for matrix */
+		if (count > 0)
+			VecMulf(vec, 1.0f / count);
+		VecMat4MulVecfl(tvec, ob->obmat, vec);
+		
+		/* copy new location to matrix */
+		VECCOPY(mat[3], tvec);
+	}
+}
+
+/* function that sets the given matrix based on given vertex group in lattice */
+static void contarget_get_lattice_mat (Object *ob, char *substring, float mat[][4])
+{
+	Lattice *lt= (Lattice *)ob->data;
+	
+	DispList *dl = find_displist(&ob->disp, DL_VERTS);
+	float *co = dl?dl->verts:NULL;
+	BPoint *bp = lt->def;
+	
+	MDeformVert *dvert = lt->dvert;
+	int tot_verts= lt->pntsu*lt->pntsv*lt->pntsw;
+	float vec[3]= {0.0f, 0.0f, 0.0f}, tvec[3];
+	int dgroup=0, grouped=0;
+	int i, n;
+	
+	/* initialize target matrix using target matrix */
+	Mat4CpyMat4(mat, ob->obmat);
+	
+	/* get index of vertex group */
+	dgroup = get_named_vertexgroup_num(ob, substring);
+	if (dgroup < 0) return;
+	
+	/* 1. Loop through control-points checking if in nominated vertex-group.
+	 * 2. If it is, add it to vec to find the average point.
+	 */
+	for (i=0; i < tot_verts; i++, dvert++) {
+		for (n= 0; n < dvert->totweight; n++) {
+			/* found match - vert is in vgroup */
+			if (dvert->dw[n].def_nr == dgroup) {
+				/* copy coordinates of point to temporary vector, then add to find average */
+				if (co)
+					memcpy(tvec, co, 3*sizeof(float));
+				else
+					memcpy(tvec, bp->vec, 3*sizeof(float));
+					
+				VecAddf(vec, vec, tvec);
+				grouped++;
+				
+				break;
+			}
+		}
+		
+		/* advance pointer to coordinate data */
+		if (co) co+= 3;
+		else bp++;
+	}
+	
+	/* find average location, then multiply by ob->obmat to find world-space location */
+	if (grouped)
+		VecMulf(vec, 1.0f / grouped);
+	VecMat4MulVecfl(tvec, ob->obmat, vec);
+	
+	/* copy new location to matrix */
+	VECCOPY(mat[3], tvec);
+}
+
 /* generic function to get the appropriate matrix for most target cases */
 /* The cases where the target can be object data have not been implemented */
-static void constraint_target_to_mat4 (Object *ob, const char *substring, float mat[][4], short from, short to)
+static void constraint_target_to_mat4 (Object *ob, char *substring, float mat[][4], short from, short to)
 {
 	/*	Case OBJECT */
 	if (!strlen(substring)) {
@@ -1116,9 +1223,27 @@ static void constraint_target_to_mat4 (Object *ob, const char *substring, float 
 		constraint_mat_convertspace(ob, NULL, mat, from, to);
 	}
 	/* 	Case VERTEXGROUP */
-	else if (ELEM(ob->type, OB_MESH, OB_LATTICE)) {
-		/* devise a matrix from the data in the vertexgroup */
-		/* TODO: will be handled in other files */
+	/* Current method just takes the average location of all the points in the
+	 * VertexGroup, and uses that as the location value of the target's matrix 
+	 * instead. 
+	 *
+	 * TODO: figure out a way to find 3-points to define a rotation plane based
+	 *		on the normal of the triangle formed by those three points.
+	 * NOTE: editmode is not currently taken into consideration when doing this
+	 */
+	else if (ob->type == OB_MESH) {
+		/* devise a matrix from the vertices in the vertexgroup */
+		contarget_get_mesh_mat(ob, substring, mat);
+		
+		/* make sure it's in the right space for evaluation */
+		constraint_mat_convertspace(ob, NULL, mat, from, to);
+	}
+	else if (ob->type == OB_LATTICE) {
+		/* devise a matrix from the vertices in the vertexgroup */
+		contarget_get_lattice_mat(ob, substring, mat);
+		
+		/* make sure it's in the right space for evaluation */
+		constraint_mat_convertspace(ob, NULL, mat, from, to);
 	}
 	/*	Case BONE */
 	else {
@@ -1313,7 +1438,10 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void *own
 			Object *ob= data->tar;
 			
 			if (data->tar) {
-				if (strlen(data->subtarget)) {
+				if (data->tar->type==OB_ARMATURE && strlen(data->subtarget)) {
+					/* Pose-Channels for the CopyLoc target are handled specially, so that
+					 * we can support using the bone-tip as an option.
+					 */
 					bPoseChannel *pchan;
 					float tmat[4][4];
 					
@@ -1334,10 +1462,8 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void *own
 					constraint_mat_convertspace(ob, pchan, mat, CONSTRAINT_SPACE_WORLD, con->tarspace);
 				}
 				else {
-					Mat4CpyMat4(mat, ob->obmat);
-					
-					/* convert matrix space as required */
-					constraint_mat_convertspace(ob, NULL, mat, CONSTRAINT_SPACE_WORLD, con->tarspace);
+					/* get target matrix as is done normally for other constraints */
+					constraint_target_to_mat4(data->tar, data->subtarget, mat, CONSTRAINT_SPACE_WORLD, con->tarspace);
 				}
 				valid=1;
 			}
@@ -2664,10 +2790,10 @@ void solve_constraints (ListBase *conlist, bConstraintOb *cob, float ctime)
 		/* value should have been set from IPO's/Constraint Channels already */
 		enf = con->enforce;
 		
-		/* move target/owner into right spaces */
+		/* move owner into right space */
 		constraint_mat_convertspace(cob->ob, cob->pchan, cob->matrix, CONSTRAINT_SPACE_WORLD, con->ownspace);
 		
-		/* Get the target matrix */
+		/* Get the target matrix - in right space to be used */
 		ownerdata= ((cob->pchan)? (void *)cob->pchan : (void *)cob->ob);
 		get_constraint_target_matrix(con, cob->type, ownerdata, tarmat, ctime);
 		

@@ -113,14 +113,31 @@ bDeformGroup *get_named_vertexgroup (Object *ob, char *name)
 	return NULL;
 }
 
-int get_defgroup_num (Object *ob, bDeformGroup	*dg)
+int get_named_vertexgroup_num (Object *ob, char *name)
+{
+	/* Return the location of the named deform group within the list of
+	 * deform groups. This function is a combination of get_defgroup_num and
+	 * get_named_vertexgroup. The other two could be called instead, but that
+	 * require looping over the vertexgroups twice.
+	 */
+	bDeformGroup *curdef;
+	int def_nr;
+	
+	for (curdef=ob->defbase.first, def_nr=0; curdef; curdef=curdef->next, def_nr++) {
+		if (!strcmp(curdef->name, name))
+			return def_nr;
+	}
+	
+	return -1;
+}
+
+int get_defgroup_num (Object *ob, bDeformGroup *dg)
 {
 	/* Fetch the location of this deform group
 	 * within the linked list of deform groups.
 	 * (this number is stored in the deform
 	 * weights of the deform verts to link them
-	 * to this deform group) deform deform
-	 * deform blah blah deform
+	 * to this deform group).
 	 */
 
 	bDeformGroup *eg;
@@ -129,8 +146,7 @@ int get_defgroup_num (Object *ob, bDeformGroup	*dg)
 	eg = ob->defbase.first;
 	def_nr = 0;
 
-	/* loop through all deform groups
-	 */
+	/* loop through all deform groups */
 	while (eg != NULL) {
 
 		/* if the current deform group is

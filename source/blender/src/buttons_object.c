@@ -540,12 +540,13 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 	uiBut *but;
 	char typestr[64], *subtarget;
 	short height, width = 265;
-	short is_armature_target, is_armature_owner;
+	short is_armature_target, is_geom_target, is_armature_owner;
 	int rb_col;
 
 	target= get_constraint_target(con, &subtarget);
 	is_armature_target= (target && target->type==OB_ARMATURE);
 	is_armature_owner= ((ob->type == OB_ARMATURE) && (ob->flag & OB_POSEMODE));
+	is_geom_target= (target && (ELEM(target->type, OB_MESH, OB_LATTICE)) );
 	
 	/* unless button has own callback, it adds this callback to button */
 	uiBlockSetFunc(block, constraint_active_func, ob, con);
@@ -638,6 +639,10 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 					if (is_armature_target) {
 						but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-66,150,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 						uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
+					}
+					else if (is_geom_target) {
+						but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-66,150,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
+						uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
 					}
 					else {
 						strcpy (data->subtarget, "");
@@ -737,6 +742,10 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone to use as Parent");
 					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
 				}
+				else if (is_geom_target) {
+					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
+					uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
+				}
 				else {
 					strcpy (data->subtarget, "");
 				}
@@ -791,6 +800,10 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
 				}
+				else if (is_geom_target) {
+					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
+					uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
+				}
 				else {
 					strcpy (data->subtarget, "");
 				}
@@ -834,6 +847,10 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
 				}
+				else if (is_geom_target) { 
+					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
+					uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
+				}
 				else {
 					strcpy (data->subtarget, "");
 				}
@@ -872,6 +889,10 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
 				}
+				else if (is_geom_target) {
+					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
+					uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
+				}
 				else {
 					strcpy (data->subtarget, "");
 				}
@@ -908,6 +929,10 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,19, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
 				}
+				else if (is_geom_target) {
+					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
+					uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
+				}
 				else {
 					strcpy (data->subtarget, "");
 				}
@@ -943,6 +968,10 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				if (is_armature_target) {
 					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
+				}
+				else if (is_geom_target) {
+					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
+					uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
 				}
 				else {
 					strcpy (data->subtarget, "");
@@ -998,6 +1027,10 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
 				}
+				else if (is_geom_target) {
+					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
+					uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
+				}
 				else {
 					strcpy (data->subtarget, "");
 				}
@@ -1034,6 +1067,10 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				if (is_armature_target) {
 					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
+				}
+				else if (is_geom_target) {
+					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
+					uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
 				}
 				else {
 					strcpy (data->subtarget, "");
@@ -1115,6 +1152,10 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				if (is_armature_target) {
 					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
+				}
+				else if (is_geom_target) {
+					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
+					uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
 				}
 				else {
 					strcpy (data->subtarget, "");
@@ -1402,6 +1443,10 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				if (is_armature_target) {
 					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone to use as Parent");
 					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
+				}
+				else if (is_geom_target) {
+					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-66,150,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
+					uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
 				}
 				else {
 					strcpy(data->subtarget, "");
