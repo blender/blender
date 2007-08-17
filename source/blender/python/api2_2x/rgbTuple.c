@@ -89,7 +89,7 @@ PyTypeObject rgbTuple_Type = {
 	sizeof( BPy_rgbTuple ),	/* tp_basicsize */
 	0,			/* tp_itemsize */
 	/* methods */
-	( destructor )PyObject_Del,		/* tp_dealloc */
+	NULL,			/* tp_dealloc */
 	0,			/* tp_print */
 	( getattrfunc ) rgbTuple_getAttr,	/* tp_getattr */
 	( setattrfunc ) rgbTuple_setAttr,	/* tp_setattr */
@@ -114,7 +114,7 @@ PyObject *rgbTuple_New( float *rgb[3] )
 	BPy_rgbTuple *rgbTuple;
 
 	rgbTuple_Type.ob_type = &PyType_Type;
-
+	rgbTuple_Type.tp_dealloc = (destructor)&PyObject_Del;
 	rgbTuple =
 		( BPy_rgbTuple * ) PyObject_NEW( BPy_rgbTuple,
 						 &rgbTuple_Type );
