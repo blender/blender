@@ -86,7 +86,7 @@ PyTypeObject rgbTuple_Type = {
 	PyObject_HEAD_INIT( NULL ) 
 	0,	/* ob_size */
 	"rgbTuple",		/* tp_name */
-	NULL,			/* tp_basicsize */
+	0,			/* tp_basicsize */
 	0,			/* tp_itemsize */
 	/* methods */
 	( destructor )PyObject_Del,		/* tp_dealloc */
