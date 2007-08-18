@@ -1116,6 +1116,8 @@ static void contarget_get_mesh_mat (Object *ob, char *substring, float mat[][4])
 {
 	DerivedMesh *dm = (DerivedMesh *)ob->derivedFinal;
 	float vec[3] = {0.0f, 0.0f, 0.0f}, tvec[3];
+	float normal[3] = {0.0f, 0.0f, 0.0f}, plane[3];
+	float imat[3][3], tmat[3][3];
 	int dgroup;
 	
 	/* initialize target matrix using target matrix */
@@ -1131,7 +1133,8 @@ static void contarget_get_mesh_mat (Object *ob, char *substring, float mat[][4])
 		int *index = (int *)dm->getVertDataArray(dm, CD_ORIGINDEX);
 		int numVerts = dm->getNumVerts(dm);
 		int i, j, count = 0;
-		float co[3];
+		float co[3], nor[3];
+		
 		
 		/* get the average of all verts with that are in the vertex-group */
 		for (i = 0; i < numVerts; i++, index++) {	
@@ -1139,7 +1142,9 @@ static void contarget_get_mesh_mat (Object *ob, char *substring, float mat[][4])
 				/* does this vertex belong to nominated vertex group? */
 				if (dvert[i].dw[j].def_nr == dgroup) {
 					dm->getVertCo(dm, i, co);
+					dm->getVertNo(dm, i, nor);
 					VecAddf(vec, vec, co);
+					VecAddf(normal, normal, nor);
 					count++;
 					break;
 				}
@@ -1147,12 +1152,38 @@ static void contarget_get_mesh_mat (Object *ob, char *substring, float mat[][4])
 			}
 		}
 		
-		/* calculate average, and apply as new location for matrix */
-		if (count > 0)
-			VecMulf(vec, 1.0f / count);
-		VecMat4MulVecfl(tvec, ob->obmat, vec);
 		
-		/* copy new location to matrix */
+		/* calculate averages of normal and coordinates */
+		if (count > 0) {
+			VecMulf(vec, 1.0f / count);
+			VecMulf(normal, 1.0f / count);
+		}
+		
+		
+		/* derive the rotation from the average normal: 
+		 *		- code taken from transform_manipulator.c, 
+		 *			calc_manipulator_stats, V3D_MANIP_NORMAL case
+		 */
+		/*	we need the transpose of the inverse for a normal... */
+		Mat3CpyMat4(imat, ob->obmat);
+		
+		Mat3Inv(tmat, imat);
+		Mat3Transp(tmat);
+		Mat3MulVecfl(tmat, normal);
+
+		Normalize(normal);
+		VECCOPY(plane, tmat[1]);
+		
+		VECCOPY(tmat[2], normal);
+		Crossf(tmat[0], normal, plane);
+		Crossf(tmat[1], tmat[2], tmat[0]);
+		
+		Mat4CpyMat3(mat, tmat);
+		Mat4Ortho(mat);
+		
+		
+		/* apply the average coordinate as the new location */
+		VecMat4MulVecfl(tvec, ob->obmat, vec);
 		VECCOPY(mat[3], tvec);
 	}
 }
@@ -1224,25 +1255,19 @@ static void constraint_target_to_mat4 (Object *ob, char *substring, float mat[][
 	}
 	/* 	Case VERTEXGROUP */
 	/* Current method just takes the average location of all the points in the
-	 * VertexGroup, and uses that as the location value of the target's matrix 
-	 * instead. 
+	 * VertexGroup, and uses that as the location value of the targets. Where 
+	 * possible, the orientation will also be calculated, by calculating an
+	 * 'average' vertex normal, and deriving the rotaation from that.
 	 *
-	 * TODO: figure out a way to find 3-points to define a rotation plane based
-	 *		on the normal of the triangle formed by those three points.
-	 * NOTE: editmode is not currently taken into consideration when doing this
+	 * NOTE: EditMode is not currently supported, and will most likely remain that
+	 *		way as constraints can only really affect things on object/bone level.
 	 */
 	else if (ob->type == OB_MESH) {
-		/* devise a matrix from the vertices in the vertexgroup */
 		contarget_get_mesh_mat(ob, substring, mat);
-		
-		/* make sure it's in the right space for evaluation */
 		constraint_mat_convertspace(ob, NULL, mat, from, to);
 	}
 	else if (ob->type == OB_LATTICE) {
-		/* devise a matrix from the vertices in the vertexgroup */
 		contarget_get_lattice_mat(ob, substring, mat);
-		
-		/* make sure it's in the right space for evaluation */
 		constraint_mat_convertspace(ob, NULL, mat, from, to);
 	}
 	/*	Case BONE */

@@ -569,7 +569,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 		}
 	}
 	
-	for (con = ob->constraints.first; con; con=con->next){
+	for (con = ob->constraints.first; con; con=con->next) {
 		if (constraint_has_target(con)) {
 			char *str;
 			Object *obt= get_constraint_target(con, &str);
@@ -578,7 +578,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 			if(ELEM(con->type, CONSTRAINT_TYPE_FOLLOWPATH, CONSTRAINT_TYPE_CLAMPTO))
 				dag_add_relation(dag, node2, node, DAG_RL_DATA_OB|DAG_RL_OB_OB);
 			else {
-				if(obt->type==OB_ARMATURE && str[0])
+				if(ELEM3(obt->type, OB_ARMATURE, OB_MESH, OB_LATTICE) && str[0])
 					dag_add_relation(dag, node2, node, DAG_RL_DATA_OB|DAG_RL_OB_OB);
 				else
 					dag_add_relation(dag, node2, node, DAG_RL_OB_OB);
