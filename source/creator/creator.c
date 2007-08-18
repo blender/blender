@@ -216,6 +216,8 @@ static void print_help(void)
 	printf ("  -R\t\tRegister .blend extension\n");
 #endif
 	printf ("  -v\t\tPrint Blender version and exit\n");
+	printf ("  --\t\tEnds option processing.  Following arguments are \n");
+	printf ("    \t\t   passed unchanged.  Access via Python's sys.argv\n");
 }
 
 
@@ -312,6 +314,12 @@ int main(int argc, char **argv)
 		if ((!strcmp(argv[a], "--help")) || (!strcmp(argv[a], "/?"))){
 			print_help();
 			exit(0);
+		}
+
+		/* end argument processing after -- */
+		if (!strcmp( argv[a], "--")){
+			a = argc;
+			break;
 		}
 
 		/* Handle long version request */
@@ -500,6 +508,10 @@ int main(int argc, char **argv)
 
 		if(argv[a][0] == '-') {
 			switch(argv[a][1]) {
+			case '-':  /* -- ends argument processing */
+				a = argc;
+				break;
+				
 			case 'p':	/* prefsize */
 				a+= 4;
 				break;
