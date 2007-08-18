@@ -2815,16 +2815,29 @@ void solve_constraints (ListBase *conlist, bConstraintOb *cob, float ctime)
 		/* value should have been set from IPO's/Constraint Channels already */
 		enf = con->enforce;
 		
-		/* move owner into right space */
+		/* move owner matrix into right space */
 		constraint_mat_convertspace(cob->ob, cob->pchan, cob->matrix, CONSTRAINT_SPACE_WORLD, con->ownspace);
+		Mat4CpyMat4(oldmat, cob->matrix);
 		
-		/* Get the target matrix - in right space to be used */
+		/* get the target matrix - in right space to be used */
 		ownerdata= ((cob->pchan)? (void *)cob->pchan : (void *)cob->ob);
 		get_constraint_target_matrix(con, cob->type, ownerdata, tarmat, ctime);
 		
-		Mat4CpyMat4(oldmat, cob->matrix);
 		
-		/* solve the constraint */
+		/* Special Hack for PyConstraints to be able to set settings on the owner and/or
+		 * target. Technically, this violates the design of constraints (as constraints should
+		 * only act on matrices to alter the final transform of an owner), but on the other
+		 * hand, this makes PyConstraints more powerful as it enables certain setups to be created
+		 * and work reliably. 
+		 */
+		if (con->type == CONSTRAINT_TYPE_PYTHON) {
+			bPythonConstraint *pycon= (bPythonConstraint *)con->data;
+			
+			/* as usual, the function for this is defined in BPY_interface.c  */
+			BPY_pyconstraint_driver(pycon, cob, pycon->tar, pycon->subtarget);
+		}
+		
+		/* Solve the constraint */
 		evaluate_constraint(con, cob->matrix, tarmat);
 		
 		/* Interpolate the enforcement, to blend result of constraint into final owner transform */

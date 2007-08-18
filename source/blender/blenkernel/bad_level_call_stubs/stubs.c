@@ -125,8 +125,11 @@ int BPY_button_eval(char *expr, double *value)
 	return 0;
 }
 
-/* constraint.c */
+/* PyConstraints - BPY_interface.c */
 void BPY_pyconstraint_eval(struct bPythonConstraint *con, float ownermat[][4], float targetmat[][4])
+{
+}
+void BPY_pyconstraint_driver(struct bPythonConstraint *con, struct bConstraintOb *cob, struct Object *target, char subtarget[])
 {
 }
 int BPY_pyconstraint_targets(struct bPythonConstraint *con, float targetmat[][4])

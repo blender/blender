@@ -44,6 +44,7 @@
 #include "BKE_library.h"
 #include "BKE_object.h"		/* during_scriptlink() */
 #include "BKE_text.h"
+#include "BKE_constraint.h" /* for bConstraintOb */
 
 #include "DNA_curve_types.h" /* for struct IpoDriver */
 #include "DNA_ID.h" /* ipo driver */
@@ -1163,7 +1164,9 @@ int BPY_is_pyconstraint(Text *text)
 	return 0;
 }
 
-/* This evals py constraints. It is passed all the arguments the normal constraints recieve */
+/* PyConstraints Evaluation Function (only called from evaluate_constraint)
+ * This function is responsible for modifying the ownermat that it is passed. 
+ */
 void BPY_pyconstraint_eval(bPythonConstraint *con, float ownermat[][4], float targetmat[][4])
 {
 	PyObject *srcmat, *tarmat, *idprop;
@@ -1290,6 +1293,110 @@ void BPY_pyconstraint_eval(bPythonConstraint *con, float ownermat[][4], float ta
 	Py_XDECREF( retval );
 }
 
+/* PyConstraints 'Driver' Function
+ * This function is responsible for running any code that requires full access to the owner and the target
+ * It should be used sparringly, and only for doing 'hacks' which are not possible any other way.
+ */
+void BPY_pyconstraint_driver(bPythonConstraint *con, bConstraintOb *cob, Object *target, char subtarget[])
+{
+	PyObject *owner, *subowner, *tar, *subtar; 
+	PyObject *idprop;
+	PyObject *globals, *gval;
+	PyObject *pyargs, *retval;
+	
+	if ( !con->text ) return;
+	if ( con->flag & PYCON_SCRIPTERROR) return;
+	
+	globals = CreateGlobalDictionary();
+	
+	owner = Object_CreatePyObject( cob->ob );
+	subowner = PyPoseBone_FromPosechannel( cob->pchan );
+	
+	tar = Object_CreatePyObject( target );
+	if ( (target) && (target->type==OB_ARMATURE) ) {
+		bPoseChannel *pchan;
+		pchan = get_pose_channel( target->pose, subtarget );
+		subtar = PyPoseBone_FromPosechannel( pchan );
+	}
+	else
+		subtar = PyString_FromString(subtarget);
+	
+	idprop = BPy_Wrap_IDProperty( NULL, con->prop, NULL);
+	
+/*  since I can't remember what the armature weakrefs do, I'll just leave this here
+    commented out.  This function was based on pydrivers, and it might still be relevent.
+	if( !setup_armature_weakrefs()){
+		fprintf( stderr, "Oops - weakref dict setup\n");
+		return result;
+	}
+*/
+	retval = RunPython( con->text, globals );
+
+	if ( retval == NULL ) {
+		BPY_Err_Handle(con->text->id.name);
+		ReleaseGlobalDictionary( globals );
+		con->flag |= PYCON_SCRIPTERROR;
+	
+		/* free temp objects */
+		Py_XDECREF( idprop );
+		Py_XDECREF( owner );
+		Py_XDECREF( subowner );
+		Py_XDECREF( tar );
+		Py_XDECREF( subtar );
+		return;
+	}
+
+	if (retval) {Py_XDECREF( retval );}
+	retval = NULL;
+	
+	gval = PyDict_GetItemString(globals, "doDriver");
+	if (!gval) {
+		ReleaseGlobalDictionary( globals );
+	
+		/* free temp objects */
+		Py_XDECREF( idprop );
+		Py_XDECREF( owner );
+		Py_XDECREF( subowner );
+		Py_XDECREF( tar );
+		Py_XDECREF( subtar );
+		return;
+	}
+	
+	/* Now for the fun part! Try and find the functions we need. */
+	if (PyFunction_Check(gval) ) {
+		pyargs = Py_BuildValue("OOOOO", owner, subowner, tar, subtar, idprop);
+		retval = PyObject_CallObject(gval, pyargs);
+		Py_XDECREF( pyargs );
+	} else {
+		printf("ERROR: doDriver is supposed to be a function!\n");
+		con->flag |= PYCON_SCRIPTERROR;
+		ReleaseGlobalDictionary( globals );
+		
+		Py_XDECREF( idprop );
+		Py_XDECREF( owner );
+		Py_XDECREF( subowner );
+		Py_XDECREF( tar );
+		Py_XDECREF( subtar );
+		return;
+	}
+	
+	/* an error occurred while running the function? */
+	if (!retval) {
+		BPY_Err_Handle(con->text->id.name);
+		con->flag |= PYCON_SCRIPTERROR;
+	}
+	
+	/* clear globals */
+	ReleaseGlobalDictionary( globals );
+	
+	/* free temp objects */
+	Py_XDECREF( idprop );
+	Py_XDECREF( owner );
+	Py_XDECREF( subowner );
+	Py_XDECREF( tar );
+	Py_XDECREF( subtar );
+}
+
 /* This evaluates whether constraint uses targets, and also the target matrix 
  * Return code of 0 = doesn't use targets, 1 = uses targets + matrix set, -1 = uses targets + matrix not set
  */
@@ -1310,10 +1417,13 @@ int BPY_pyconstraint_targets(bPythonConstraint *con, float targetmat[][4])
 	globals = CreateGlobalDictionary();
 	
 	tar = Object_CreatePyObject( con->tar );
-	if ( con->tar )
+	if ( (con->tar) && (con->tar->type==OB_ARMATURE) ) {
+		bPoseChannel *pchan;
 		pchan = get_pose_channel( con->tar->pose, con->subtarget );
+		subtar = PyPoseBone_FromPosechannel( pchan );
+	}
 	else
-		pchan = NULL;
+		subtar = PyString_FromString(subtarget);
 	subtar = PyPoseBone_FromPosechannel( pchan );
 	
 	tarmat = newMatrixObject( (float*)targetmat, 4, 4, Py_NEW );
