@@ -42,9 +42,8 @@
 #include <unistd.h>
 #else
 #include <io.h>
-#endif   
+#endif
 
-#include "BMF_Api.h"
 #include "MEM_guardedalloc.h"
 
 #include "BLI_blenlib.h"
@@ -80,6 +79,7 @@
 #include "BIF_glutil.h"
 #include "BIF_editseq.h"
 #include "BIF_editaction.h"
+#include "BIF_language.h"
 
 #include "BSE_drawipo.h"
 #include "BSE_view.h"
@@ -93,6 +93,7 @@
 #include "mydevice.h"
 #include "blendef.h"
 #include "butspace.h"	// shouldnt be...
+#include "interface.h"	/* for ui_rasterpos_safe */
 #include "winlay.h"
 
 /* local define... also used in editipo ... */
@@ -133,8 +134,8 @@ static void scroll_prstr(float x, float y, float val, char dir, int disptype)
 		str[len+1]= 0;
 	}
 	
-	glRasterPos2f(x,  y);
-	BMF_DrawString(G.fonts, str);
+	ui_rasterpos_safe(x, y, 1.0);
+	BIF_DrawString(G.fonts, str, 0);
 }
 
 static void step_to_grid(float *step, int *macht)
@@ -709,6 +710,7 @@ static int calc_ipobuttonswidth(ScrArea *sa)
 	EditIpo *ei;
 	int ipowidth = IPOBUTX;
 	int a;
+	float textwidth = 0;
 	
 	/* default width when no space ipo or no channels */
 	if (sipo == NULL) return IPOBUTX;
@@ -717,8 +719,9 @@ static int calc_ipobuttonswidth(ScrArea *sa)
 	ei= sipo->editipo;
 	
 	for(a=0; a<sipo->totipo; a++, ei++) {
-		if (BMF_GetStringWidth(G.font, ei->name) + 18 > ipowidth) 
-			ipowidth = BMF_GetStringWidth(G.font, ei->name) + 18;
+		textwidth = BIF_GetStringWidth(G.font, ei->name, 0);
+		if (textwidth + 18 > ipowidth) 
+			ipowidth = textwidth + 18;
 	}
 	return ipowidth;
 

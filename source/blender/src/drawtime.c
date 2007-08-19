@@ -55,16 +55,18 @@
 #include "BKE_global.h"
 
 #include "BIF_gl.h"
+#include "BIF_interface.h"
 #include "BIF_interface_icons.h"
 #include "BIF_mywindow.h"
 #include "BIF_screen.h"
 #include "BIF_resources.h"
+#include "BIF_language.h"
 
 #include "BSE_drawipo.h"
 #include "BSE_view.h"
-#include "BMF_Api.h"
 
 #include "blendef.h"
+#include "interface.h"	/* for ui_rasterpos_safe */
 
 /* ---- prototypes ------ */
 void drawtimespace(ScrArea *, void *);
@@ -92,6 +94,7 @@ static void draw_cfra_time(SpaceTime *stime)
 	if(stime->flag & TIME_CFRA_NUM) {
 		short mval[2];
 		float x,  y;
+		float xscale, yscale;
 		char str[32];
 		/* little box with frame */
 		
@@ -107,61 +110,68 @@ static void draw_cfra_time(SpaceTime *stime)
 		areamouseco_to_ipoco(G.v2d, mval, &x, &y);
 		
 		if(stime->flag & TIME_DRAWFRAMES) 
-			sprintf(str, "   %d\n", (G.scene->r.cfra));
-		else sprintf(str, "   %.2f\n", (G.scene->r.cfra/(float)G.scene->r.frs_sec));
+			sprintf(str, "   %d", (G.scene->r.cfra));
+		else sprintf(str, "   %.2f", (G.scene->r.cfra/(float)G.scene->r.frs_sec));
 		
 		/* HACK! somehow the green color won't go away... */
 		glColor4ub(0, 0, 0, 0);
 		BIF_ThemeColor(TH_TEXT);
 		
-		glRasterPos2f(x, y);
-		BMF_DrawString(G.fonts, str);
+		xscale = (G.v2d->mask.xmax-G.v2d->mask.xmin)/(G.v2d->cur.xmax-G.v2d->cur.xmin);
+		yscale = (G.v2d->mask.ymax-G.v2d->mask.ymin)/(G.v2d->cur.ymax-G.v2d->cur.ymin);
 		
+		/* because the frame number text is subject to the same scaling as the contents of the view */
+		glScalef( 1.0/xscale, 1.0/yscale, 1.0);
+		
+		ui_rasterpos_safe(x * xscale, y * yscale, 1.0);
+		BIF_DrawString(G.fonts, str, 0);
+		
+		glScalef(xscale, yscale, 1.0);
 	}
 	
 }
 
 static void draw_marker(TimeMarker *marker)
 {
-	float xpos, xspace, yspace, xpixels, ypixels;
+	float xpos, ypixels, xscale, yscale;
 
 	xpos = marker->frame;
 	/* no time correction for framelen! space is drawn with old values */
 	
-	xspace= G.v2d->cur.xmax - G.v2d->cur.xmin;
-	yspace= G.v2d->cur.ymax - G.v2d->cur.ymin;
-	xpixels= G.v2d->mask.xmax-G.v2d->mask.xmin;
 	ypixels= G.v2d->mask.ymax-G.v2d->mask.ymin;
+	xscale = (G.v2d->mask.xmax-G.v2d->mask.xmin)/(G.v2d->cur.xmax-G.v2d->cur.xmin);
+	yscale = (G.v2d->mask.ymax-G.v2d->mask.ymin)/(G.v2d->cur.ymax-G.v2d->cur.ymin);
+
+	glScalef( 1.0/xscale, 1.0/yscale, 1.0);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);			
 	
 	/* 5 px to offset icon to align properly, space / pixels corrects for zoom */
 	if(marker->flag & SELECT)
-		BIF_icon_draw(xpos-(5.0*(xspace/xpixels)), 12.0*yspace/ypixels, ICON_MARKER_HLT);
+		BIF_icon_draw(xpos*xscale-5.0, 12.0, ICON_MARKER_HLT);
 	else
-		BIF_icon_draw(xpos-(5.0*(xspace/xpixels)), 12.0*yspace/ypixels, ICON_MARKER);
+		BIF_icon_draw(xpos*xscale-5.0, 12.0, ICON_MARKER);
 	
 	glBlendFunc(GL_ONE, GL_ZERO);
-	glDisable(GL_BLEND);		
-
+	glDisable(GL_BLEND);
+			
 	/* and the marker name too, shifted slightly to the top-right */
 	if(marker->name && marker->name[0]) {
 		if(marker->flag & SELECT) {
 			BIF_ThemeColor(TH_TEXT_HI);
-			glRasterPos2f(xpos+(4.0*(xspace/xpixels)),
-					((ypixels<=39.0)?(ypixels-10.0):29.0)*yspace/ypixels);
+			ui_rasterpos_safe(xpos*xscale+4.0, (ypixels<=39.0)?(ypixels-10.0):29.0, 1.0);
 		}
 		else {
 			BIF_ThemeColor(TH_TEXT);
 			if((marker->frame <= G.scene->r.cfra) && (marker->frame+5 > G.scene->r.cfra))
-				glRasterPos2f(xpos+(4.0*(xspace/xpixels)),
-						((ypixels<=39.0)?(ypixels-10.0):29.0)*yspace/ypixels);
+				ui_rasterpos_safe(xpos*xscale+4.0, (ypixels<=39.0)?(ypixels-10.0):29.0, 1.0);
 			else
-				glRasterPos2f(xpos+(4.0*(xspace/xpixels)), 17.0*yspace/ypixels);
+				ui_rasterpos_safe(xpos*xscale+4.0, 17.0, 1.0);
 		}
-		BMF_DrawString(G.font, marker->name);
+		BIF_DrawString(G.font, marker->name, 0);
 	}
+	glScalef(xscale, yscale, 1.0);
 }
 
 static void draw_markers_time(void)
