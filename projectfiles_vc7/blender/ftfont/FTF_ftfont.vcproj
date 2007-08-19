@@ -74,7 +74,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\lib\windows\freetype\include;..\..\..\..\build\msvc_7\extern\ftgl\include;..\..\..\..\lib\windows\gettext\include;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna"
+				AdditionalIncludeDirectories="..\..\..\..\lib\windows\freetype\include;..\..\..\..\build\msvc_7\extern\ftgl\include;..\..\..\..\lib\windows\gettext\include;..\..\..\source\blender\blenlib;..\..\..\source\blender\makesdna;..\..\..\source\blender\include"
 				PreprocessorDefinitions="WIN32,_DEBUG,_LIB,WCHAR_T16,HAVE_LC_MESSAGES,FTGL_LIBRARY_STATIC"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"

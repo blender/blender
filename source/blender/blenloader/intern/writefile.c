@@ -1226,7 +1226,7 @@ static void write_images(WriteData *wd, ListBase *idbase)
 {
 	Image *ima;
 	PackedFile * pf;
-	PreviewImage *prv;
+
 
 	ima= idbase->first;
 	while(ima) {
@@ -1242,7 +1242,7 @@ static void write_images(WriteData *wd, ListBase *idbase)
 			}
 
 			if (ima->preview) {
-				prv = ima->preview;
+				PreviewImage *prv = ima->preview;
 				writestruct(wd, DATA, "PreviewImage", 1, prv);
 				writedata(wd, DATA, prv->w*prv->h*sizeof(unsigned int), prv->rect);
 			}
