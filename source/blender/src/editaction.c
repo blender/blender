@@ -2310,6 +2310,11 @@ void column_select_action_keys(int mode)
 	BLI_freelistN(&elems);
 }
 
+/* some quick defines for borderselect modes */
+#define ACTEDIT_BORDERSEL_ALL 0
+#define ACTEDIT_BORDERSEL_FRA 1
+#define ACTEDIT_BORDERSEL_CHA 2
+
 /* borderselect: for keyframes only */
 void borderselect_action (void)
 {
@@ -2321,14 +2326,23 @@ void borderselect_action (void)
 	
 	rcti rect;
 	rctf rectf;
-	int val, selectmode;
+	int val, selectmode, mode;
 	int (*select_function)(BezTriple *);
-	short	mval[2];
-	float	ymin, ymax;
+	short mval[2];
+	float ymin, ymax;
 	
 	/* determine what type of data we are operating on */
 	data = get_action_context(&datatype);
 	if (data == NULL) return;
+	
+	/* what should be selected (based on the starting location of cursor) */
+	getmouseco_areawin(mval);
+	if (IN_2D_VERT_SCROLL(mval)) 
+		mode = ACTEDIT_BORDERSEL_CHA;
+	else if (IN_2D_HORIZ_SCROLL(mval))
+		mode = ACTEDIT_BORDERSEL_FRA;
+	else
+		mode = ACTEDIT_BORDERSEL_ALL;
 	
 	/* draw and handle the borderselect stuff (ui) and get the select rect */
 	if ( (val = get_border(&rect, 3)) ) {
@@ -2363,14 +2377,38 @@ void borderselect_action (void)
 		/* loop over data, doing border select */
 		for (ale= act_data.first; ale; ale= ale->next) {
 			ymin=ymax-(CHANNELHEIGHT+CHANNELSKIP);
-			if (!((ymax < rectf.ymin) || (ymin > rectf.ymax))) {
+			
+			/* what gets selected depends on the mode (based on initial position of cursor) */
+			switch (mode) {
+			case ACTEDIT_BORDERSEL_FRA: /* all in frame(s) */
 				if (ale->key_data) {
 					if (ale->datatype == ALE_IPO)
 						borderselect_ipo_key(ale->key_data, rectf.xmin, rectf.xmax, selectmode);
 					else if (ale->datatype == ALE_ICU)
 						borderselect_icu_key(ale->key_data, rectf.xmin, rectf.xmax, select_function);
 				}
+				break;
+			case ACTEDIT_BORDERSEL_CHA: /* all in channel(s) */
+				if (!((ymax < rectf.ymin) || (ymin > rectf.ymax))) {
+					if (ale->key_data) {
+						if (ale->datatype == ALE_IPO)
+							select_ipo_bezier_keys(ale->key_data, selectmode);
+						else if (ale->datatype == ALE_ICU)
+							select_icu_bezier_keys(ale->key_data, selectmode);
+					}
+				}
+				break;
+			default: /* any keyframe inside region defined by region */
+				if (!((ymax < rectf.ymin) || (ymin > rectf.ymax))) {
+					if (ale->key_data) {
+						if (ale->datatype == ALE_IPO)
+							borderselect_ipo_key(ale->key_data, rectf.xmin, rectf.xmax, selectmode);
+						else if (ale->datatype == ALE_ICU)
+							borderselect_icu_key(ale->key_data, rectf.xmin, rectf.xmax, select_function);
+					}
+				}
 			}
+			
 			ymax=ymin;
 		}
 		
@@ -2392,11 +2430,13 @@ static void mouse_action (int selectmode)
 {
 	void *data;
 	short datatype;
+	
 	bAction	*act= NULL;
 	bActionChannel *achan= NULL;
 	bConstraintChannel *conchan= NULL;
 	IpoCurve *icu= NULL;
 	TimeMarker *marker;
+	
 	void *act_channel;
 	short sel, act_type;
 	float selx;
