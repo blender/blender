@@ -54,7 +54,9 @@ struct IpoCurve;
 struct FluidsimSettings;
 struct Render;
 struct RenderResult;
+struct Object;
 struct bPythonConstraint;
+struct bConstraintOb;
 
 char *getIpoCurveName( struct IpoCurve * icu );
 void insert_vert_ipo(struct IpoCurve *icu, float x, float y);
