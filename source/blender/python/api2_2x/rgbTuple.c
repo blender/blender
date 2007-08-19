@@ -86,10 +86,10 @@ PyTypeObject rgbTuple_Type = {
 	PyObject_HEAD_INIT( NULL ) 
 	0,	/* ob_size */
 	"rgbTuple",		/* tp_name */
-	0,			/* tp_basicsize */
+	sizeof( BPy_rgbTuple ),			/* tp_basicsize */
 	0,			/* tp_itemsize */
 	/* methods */
-	( destructor )PyObject_Del,		/* tp_dealloc */
+	0,			/* tp_dealloc */
 	0,			/* tp_print */
 	( getattrfunc ) rgbTuple_getAttr,	/* tp_getattr */
 	( setattrfunc ) rgbTuple_setAttr,	/* tp_setattr */
@@ -99,11 +99,31 @@ PyTypeObject rgbTuple_Type = {
 	&rgbTupleAsSequence,	/* tp_as_sequence */
 	&rgbTupleAsMapping,	/* tp_as_mapping */
 	0,			/* tp_as_hash */
-	0, 0, 0, 0, 0, 0,
+	0, 0, 0, 0, 0, Py_TPFLAGS_DEFAULT,
 	0,			/* tp_doc */
 	0, 0, 0, 0, 0, 0,
 	0,			/* tp_methods */
 	0,			/* tp_members */
+	0,     /* struct PyGetSetDef *tp_getset; */
+	0,                       /* struct _typeobject *tp_base; */
+	0,                       /* PyObject *tp_dict; */
+	0,                       /* descrgetfunc tp_descr_get; */
+	0,                       /* descrsetfunc tp_descr_set; */
+	0,                          /* long tp_dictoffset; */
+	0,                       /* initproc tp_init; */
+	0,                       /* allocfunc tp_alloc; */
+	0,                       /* newfunc tp_new; */
+	/*  Low-level free-memory routine */
+	0,                       /* freefunc tp_free;  */
+	/* For PyObject_IS_GC */
+	0,                       /* inquiry tp_is_gc;  */
+	0,                       /* PyObject *tp_bases; */
+	/* method resolution order */
+	0,                       /* PyObject *tp_mro;  */
+	0,                       /* PyObject *tp_cache; */
+	0,                       /* PyObject *tp_subclasses; */
+	0,                       /* PyObject *tp_weaklist; */
+	0
 };
 
 /*****************************************************************************/
@@ -111,13 +131,7 @@ PyTypeObject rgbTuple_Type = {
 /*****************************************************************************/
 PyObject *rgbTuple_New( float *rgb[3] )
 {
-	BPy_rgbTuple *rgbTuple;
-
-	rgbTuple_Type.ob_type = &PyType_Type;
-	rgbTuple_Type.tp_dealloc = (destructor)&PyObject_Del;
-	rgbTuple =
-		( BPy_rgbTuple * ) PyObject_NEW( BPy_rgbTuple,
-						 &rgbTuple_Type );
+	BPy_rgbTuple *rgbTuple = PyObject_NEW( BPy_rgbTuple, &rgbTuple_Type );
 
 	if( rgbTuple == NULL )
 		return EXPP_ReturnPyObjError( PyExc_MemoryError,
