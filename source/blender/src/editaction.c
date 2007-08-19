@@ -324,6 +324,10 @@ static void actdata_filter_action (ListBase *act_data, bAction *act, int filter_
 						if (ale) BLI_addtail(act_data, ale);
 					}
 				}
+				else {
+					/* only consider selected channels - achan not selected */
+					continue;
+				}	
 				
 				/* check if expanded - if not, continue on to next action channel */
 				if (EXPANDED_ACHAN(achan) == 0 && (filter_mode & ACTFILTER_ONLYICU)==0) 
@@ -1320,7 +1324,7 @@ void insertkey_action(void)
 	
 		/* ask user what to keyframe */
 		mode = pupmenu("Insert Key%t|All Channels%x1|Only Selected Channels%x2");
-		if (mode == 0) return;
+		if (mode <= 0) return;
 		
 		/* filter data */
 		filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT | ACTFILTER_ONLYICU );
@@ -1351,7 +1355,7 @@ void insertkey_action(void)
 		
 		/* ask user if they want to insert a keyframe */
 		mode = okee("Insert Keyframe?");
-		if (mode == 0) return;
+		if (mode <= 0) return;
 		
 		if (key->ipo) {
 			for (icu= key->ipo->curve.first; icu; icu=icu->next) {
