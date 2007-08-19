@@ -775,7 +775,7 @@ histIndex = cursor = -1 # How far back from the first letter are we? - in curren
 # Autoexec, startup code.
 scriptDir = Get('scriptsdir')
 if scriptDir:
-	if scriptDir.endswith(Blender.sys.sep):
+	if not scriptDir.endswith(Blender.sys.sep):
 		scriptDir += Blender.sys.sep
 	
 	console_autoexec  = '%s%s' % (scriptDir, 'console_autoexec.py')
