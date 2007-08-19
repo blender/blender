@@ -1408,7 +1408,6 @@ int BPY_pyconstraint_targets(bPythonConstraint *con, float targetmat[][4])
 	PyObject *gval, *gval2;
 	PyObject *pyargs, *retval;
 	MatrixObject *retmat;
-	bPoseChannel *pchan;
 	int row, col;
 	
 	if ( !con->text ) return 0;
@@ -1423,8 +1422,7 @@ int BPY_pyconstraint_targets(bPythonConstraint *con, float targetmat[][4])
 		subtar = PyPoseBone_FromPosechannel( pchan );
 	}
 	else
-		subtar = PyString_FromString(subtarget);
-	subtar = PyPoseBone_FromPosechannel( pchan );
+		subtar = PyString_FromString(con->subtarget);
 	
 	tarmat = newMatrixObject( (float*)targetmat, 4, 4, Py_NEW );
 	idprop = BPy_Wrap_IDProperty( NULL, con->prop, NULL);
