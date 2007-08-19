@@ -7,7 +7,7 @@ Group: 'Import'
 Tooltip: 'Import for DXF geometry data (Drawing eXchange Format).'
 """
 __author__ = 'Kitsu(Ed Blake) & migius(Remigiusz Fiedler)'
-__version__ = '1.0.beta09 by migius 17.08.2007'
+__version__ = '1.0.beta09 by migius 19.08.2007'
 __url__ = ["http://blenderartists.org/forum/showthread.php?t=84319",
 	 "http://wiki.blender.org/index.php/Scripts/Manual/Import/DXF-3D"]
 __email__ = ["Kitsune_e(at)yahoo.com", "remi_(at)gmx.de"]
@@ -75,20 +75,24 @@ History:
  -- to-check: obj/mat/group/_mapping-idea from ideasman42:
  -- better support for long dxf-layer-names 
  -- support width_force for LINEs/ARCs/CIRCLEs/ELLIPSEs = "solidify"
-
- beta09: 17.08.2007 by migius
+ beta09: 19.08.2007 by migius
+ -- redesign UI: grouping of buttons
+ g- added multi-import-mode: (path/*) for importing many dxf-files at once
+ g- added import into newScene
+ g- redesign UI: user presets, into newScene-import  
  f- cleanup code
  f- bugfix: thickness for Bezier/Bsplines into Blender-curves
+ f- BlenderWiki documentation, on-line Manual
  f- added import POLYLINE-Bsplines into Blender-NURBSCurves
  f- added import POLYLINE-arc-segments into Blender-BezierCurves
  f- added import POLYLINE-Bezier-curves into Blender-Curves
- d5 rewrite: Optimisations Levels, added 'directDrawing'
+ d5 rewrite: Optimization Levels, added 'directDrawing'
  d4 added: f_set_thick(cntrolled by ini-parameters)
  d4 bugfix: face-normals in objects with minus thickness
  d4 added: placeholder'Empty'-size in f_Insert.draw
  d3 rewrite f_Text.Draw: added suport for all Text's parameters
  d2 redesign: progressbar 
- e- tuning by ideasman42
+ e- tuning by ideasman42: better use of the Py API.
  c- tuning by ideasman42
  b- rewrite f_Text.Draw rotation/transform
  b- bugfix: POLYLINE-segment-intersection more reliable now
@@ -214,7 +218,7 @@ GROUP_BYLAYER = 0   #(0/1) all entities from same layer import into one blender-
 
 FILENAME_MAX = 180    #max length of path+file_name string  (FILE_MAXDIR + FILE_MAXFILE)
 MAX_NAMELENGTH = 17   #max_effective_obnamelength in blender =21=17+(.001)
-INIFILE_DEFAULT_NAME = 'importDXF.ini'
+INIFILE_DEFAULT_NAME = 'importDXF'
 INIFILE_EXTENSION = '.ini'
 INIFILE_HEADER = 'ImportDXF.py ver.1.0 config data'
 
@@ -562,7 +566,7 @@ class Line:  #-----------------------------------------------------------------
 			activObjectLayer = self.layer
 			#print ('deb:line.draw new line.ob+mesh:"%s" created!' %ob.name) #---------------------
 
-		#if settings.var['width_force']: # todo-----------
+		#if settings.var['width_force']: # -todo-----------
 
 		faces, edges = [], []
 		n = len(me.verts)
@@ -1131,12 +1135,8 @@ class Polyline:  #--------------------------------------------------------------
 			ob.LocZ = thic + LocZ
 
 		transform(self.extrusion, 0, ob)
-		# scaleZ to the thickness
 		if thic != 0.0:
-			#old_LocZ = ob.LocZ
-			#ob.LocZ = 0.0
 			ob.SizeZ *= abs(thic)
-			#ob.LocZ = old_LocZ
 
 		#print 'deb:polyline2dCurve.draw.END:----------------' #-----
 		return ob
@@ -1579,7 +1579,7 @@ class Text:  #-----------------------------------------------------------------
 		self.width_factor = getit(obj, 41, 1) # Scaling factor along local x axis
 		self.oblique = getit(obj, 51, 0) # oblique angle: skew in degrees -90 <= oblique <= 90
 
-		#self.style = getit(obj, 7, 'STANDARD') # todo---- Text style name (optional, default = STANDARD)
+		#self.style = getit(obj, 7, 'STANDARD') # --todo---- Text style name (optional, default = STANDARD)
 
 		#Text generation flags (optional, default = 0):
 		#2 = backward (mirrored in X),
@@ -1870,6 +1870,18 @@ class Circle:  #----------------------------------------------------------------
 			curve.flagU = 1 # Set curve cyclic=closed
 			c.update()
 
+			#remi --todo-----to check---------------------------
+			ob = SCENE.objects.new(c) # create a new circle_mesh_object
+			ob.loc = tuple(self.loc)
+			if thic != 0.0: #hack: Blender<2.45 curve-extrusion
+				thic = thic * 0.5
+				c.setExt1(1.0)  # curve-extrusion accepts only (0.0 - 2.0)
+				ob.LocZ = thic + self.loc[2]
+			transform(self.extrusion, 0, ob)
+			if thic != 0.0:
+				ob.SizeZ *= abs(thic)
+			return ob
+
 		else:
 			if radius < 2 * settings.var['dist_min']: # if circumfence is very small
 				verts_num = settings.var['thin_res'] # set a fixed number of verts
@@ -1885,10 +1897,10 @@ class Circle:  #----------------------------------------------------------------
 			else:
 				c = Mesh.Primitives.Circle(int(verts_num), radius*2)
 
-		ob = SCENE.objects.new(c, obname) # create a new circle_mesh_object
-		ob.loc = tuple(self.loc)
-		transform(self.extrusion, 0, ob)
-		return ob
+			ob = SCENE.objects.new(c, obname) # create a new circle_mesh_object
+			ob.loc = tuple(self.loc)
+			transform(self.extrusion, 0, ob)
+			return ob
 
 
 
@@ -1965,6 +1977,18 @@ class Arc:  #-----------------------------------------------------------------
 			curve.flagU = 0 # Set curve not cyclic=open
 			arc.update()
 
+			#remi --todo-----to check---------------------------
+			ob = SCENE.objects.new(arc) # create a new circle_mesh_object
+			ob.loc = tuple(self.loc)
+			if thic != 0.0: #hack: Blender<2.45 curve-extrusion
+				thic = thic * 0.5
+				arc.setExt1(1.0)  # curve-extrusion accepts only (0.0 - 2.0)
+				ob.LocZ = thic + self.loc[2]
+			transform(self.extrusion, 0, ob)
+			if thic != 0.0:
+				ob.SizeZ *= abs(thic)
+			return ob
+
 		else:
 			arc = Mesh.New(obname)		   # create a new mesh
 			verts, edges = drawArc(None, radius, start, end, settings.var['arc_res'])
@@ -1988,12 +2012,12 @@ class Arc:  #-----------------------------------------------------------------
 				arc.verts.extend(verts)	# add vertices to mesh
 				arc.edges.extend(edges)	 # add edges to the mesh
 
-		ob = SCENE.objects.new(arc) # create a new arc_object
-		ob.loc = tuple(center)
-		transform(self.extrusion, 0, ob)
-		#ob.size = (1,1,1)
-
-		return ob
+			ob = SCENE.objects.new(arc) # create a new arc_object
+			ob.loc = tuple(center)
+			transform(self.extrusion, 0, ob)
+			#ob.size = (1,1,1)
+	
+			return ob
 
 
 class BlockRecord:  #-----------------------------------------------------------------
@@ -2437,7 +2461,7 @@ def objectify(data):  #---------------------------------------------------------
 		if type(item) != list and item.type == 'table':
 			item.data = objectify(item.data) # tables have sub-objects
 			objects.append(item)
-		elif type(item) != list and item.type == 'polyline': #remi todo-----------
+		elif type(item) != list and item.type == 'polyline': #remi --todo-----------
 			#print 'deb:gosub Polyline\n' #-------------
 			pline = Polyline(item)
 			while 1:
@@ -2528,9 +2552,10 @@ class MatColors:  #-------------------------------------------------------------
 		global color_map
 		mat = Material.New('ColorNr-%s' %color)
 		mat.setRGBCol(color_map[color])
-		try:
-			mat.setMode('Shadeless', 'Wire') #work-around for 2.45rc-bug
-		except: pass
+		mat.mode |= Material.Modes.SHADELESS
+		mat.mode |= Material.Modes.WIRE
+#		try: mat.setMode('Shadeless', 'Wire') #work-around for 2.45rc-bug
+#		except: pass
 		self.colMaterials[color] = mat
 
 
@@ -2575,9 +2600,10 @@ class MatLayers:  #-------------------------------------------------------------
 		#print 'deb:MatLayers layer_color: ', color  #-----------
 		global color_map
 		mat.setRGBCol(color_map[color])
-		try:
-			mat.setMode('Shadeless', 'Wire') #work-around for 2.45rc-bug
-		except: pass
+		mat.mode |= Material.Modes.SHADELESS
+		mat.mode |= Material.Modes.WIRE
+#		try: mat.setMode('Shadeless', 'Wire') #work-around for 2.45rc-bug
+#		except: pass
 		self.layMaterials[layername] = mat
 
 
@@ -2793,17 +2819,16 @@ class Settings:  #--------------------------------------------------------------
 
 
 
-def main():  #---------------#############################-----------
+def main(dxfFile):  #---------------#############################-----------
 	#print 'deb:filename:', filename #--------------
 	global SCENE
 	editmode = Window.EditMode()	# are we in edit mode?  If so ...
 	if editmode:
 		Window.EditMode(0) # leave edit mode before
 
-	#SCENE = Scene.GetCurrent()
 	SCENE = bpy.data.scenes.active
 	SCENE.objects.selected = [] # deselect all
-
+	
 	global cur_COUNTER  #counter for progress_bar
 	cur_COUNTER = 0
 
@@ -2831,9 +2856,11 @@ def main():  #---------------#############################-----------
 		if not settings:
 			#Draw.PupMenu('DXF importer:  EXIT!%t')
 			print '\nDXF Import: terminated by user!'
+			Window.WaitCursor(False)
+			if editmode: Window.EditMode(1) # and put things back how we fond them
 			return None
 
-		dxfFile = dxfFileName.val
+		#no more used dxfFile = dxfFileName.val
 		#print 'deb: dxfFile file: ', dxfFile #----------------------
 		if dxfFile.lower().endswith('.dxf') and sys.exists(dxfFile):
 			Window.WaitCursor(True)   # Let the user know we are thinking
@@ -2845,6 +2872,8 @@ def main():  #---------------#############################-----------
 		else:
 			if UI_MODE: Draw.PupMenu('DXF importer:  EXIT----------!%t| no valid DXF-file selected!')
 			print "DXF importer: error, no DXF-file selected. Abort!"
+			Window.WaitCursor(False)
+			if editmode: Window.EditMode(1) # and put things back how we fond them
 			return None
 
 		settings.validate(drawing)
@@ -2866,14 +2895,18 @@ def main():  #---------------#############################-----------
 		# Set the visable layers
 		SCENE.setLayers([i+1 for i in range(18)])
 		Blender.Redraw(-1)
+
+		time_text = Blender.sys.time() - time2
 		Window.WaitCursor(False)
-		settings.write("Import DXF to Blender:  *** DONE ***")
+		message = 'DXF Import to Blender: done in %.4f sec.  --------------------' % time_text
 		settings.progress(1.0/settings.obj_number, 'DXF import done!')
-		print 'DXF importer: done in %.4f sec.' % (Blender.sys.time()-time2)
-		if UI_MODE: Draw.PupMenu('DXF importer:	   Done!|finished in %.4f sec.' % (Blender.sys.time()-time2))
+		print message
+		#settings.write(message)
+		if UI_MODE: Draw.PupMenu('DXF importer:	   Done!|finished in %.4f sec.' % time_text)
 
 	finally:
 		# restore state even if things didn't work
+		#print 'deb:drawEntities finally!' #-----------------------
 		Window.WaitCursor(False)
 		if editmode: Window.EditMode(1) # and put things back how we fond them
 
@@ -3193,9 +3226,10 @@ def setMaterial_from(entity, ob, settings, block_def):  #-----------------------
 			mat = Material.Get('dxf-neutral')
 		except:
 			mat = Material.New('dxf-neutral')
-			try:
-				mat.setMode('Shadeless', 'Wire') #work-around for 2.45rc-bug
-			except: pass
+			mat.mode |= Material.Modes.SHADELESS
+			mat.mode |= Material.Modes.WIRE
+#			try:mat.setMode('Shadeless', 'Wire') #work-around for 2.45rc1-bug
+#			except: pass
 	try:
 		#print 'deb:material mat:', mat #-----------
 		ob.setMaterials([mat])  #assigns Blender-material to object
@@ -3384,7 +3418,9 @@ EVENT_CHOOSE_INI = 7
 EVENT_CHOOSE_DXF = 8
 EVENT_HELP = 9
 EVENT_CONFIG = 10
-EVENT_PRESET2D = 11
+EVENT_PRESETS = 11
+EVENT_CHOOSE_DIR = 12
+EVENT_PRESET2D = 20
 EVENT_EXIT = 100
 GUI_EVENT = EVENT_NONE
 
@@ -3406,7 +3442,8 @@ material_from_menu= "material from: %t|COLOR %x1|LAYER %x2|*LAYER+COLOR %x3|*BLO
 g_scale_list	= "scale factor: %t|x 1000 %x3|x 100 %x2|x 10 %x1|x 1 %x0|x 0.1 %x-1|x 0.01 %x-2|x 0.001 %x-3|x 0.0001 %x-4|x 0.00001 %x-5"
 
 dxfFileName = Draw.Create("")
-iniFileName = Draw.Create(INIFILE_DEFAULT_NAME)
+iniFileName = Draw.Create(INIFILE_DEFAULT_NAME + INIFILE_EXTENSION)
+user_preset = 1
 config_UI = Draw.Create(0)   #switch_on/off extended config_UI
 
 keywords_org = {
@@ -3415,6 +3452,7 @@ keywords_org = {
 	'one_mesh_on': 1,
 	'vGroup_on' : 1,
 	'dummy_on' : 0,
+	'newScene_on' : 0,
 	'target_layer' : TARGET_LAYER,
 	'group_bylayer_on' : GROUP_BYLAYER,
 	'g_scale'   : float(G_SCALE),
@@ -3544,7 +3582,7 @@ def loadConfig():  #remi--todo-----------------------------------------------
 		else:
 			data_str = f.read()
 			f.close()
-			#print 'deb:loadConfig data_str from %s: \n' %iniFile , data_str #-----------------------------------
+			#print 'deb:loadConfig data_str from %s: \n' %iniFile , data_str #--------------------------
 			data = eval(data_str)
 			for k, v in data[0].iteritems():
 				try:
@@ -3565,19 +3603,19 @@ def loadConfig():  #remi--todo-----------------------------------------------
 
 
 
-def resetDefaultConfig():  #remi--todo-----------------------------------------------
+def resetDefaultConfig():  #-----------------------------------------------
 	"""Resets settings/config/materials to defaults.
 
 	"""
 	global GUI_A, GUI_B
-	#print 'deb:lresetDefaultConfig keywords_org: \n', keywords_org #-----------------------------------
+	#print 'deb:lresetDefaultConfig keywords_org: \n', keywords_org #---------
 	for k, v in keywords_org.iteritems():
 		GUI_A[k].val = v
 	for k, v in drawTypes_org.iteritems():
 		GUI_B[k].val = v
 
 
-def resetDefaultConfig_2D():  #remi--todo-----------------------------------------------
+def resetDefaultConfig_2D():  #-----------------------------------------------
 	"""Sets settings/config/materials to defaults 2D.
 
 	"""
@@ -3607,10 +3645,9 @@ def resetDefaultConfig_2D():  #remi--todo---------------------------------------
 		'curves_on' : 0,
 		'one_mesh_on': 1,
 		'vGroup_on' : 1,
-		'dummy_on' : 0,
 		'thick_on'  : 0,
 		'thick_force': 0,
-		'width_on'  : 0,
+		'width_on'  : 1,
 		'width_force': 0,
 		'dist_on'   : 1,
 		'dist_force': 0,
@@ -3636,7 +3673,7 @@ def draw_UI():  #---------------------------------------------------------------
 	""" Draw startUI and setup Settings.
 	"""
 	global GUI_A, GUI_B #__version__
-	global iniFileName, dxfFileName, config_UI
+	global user_preset, iniFileName, dxfFileName, config_UI
 
 	# This is for easy layout changes
 	but_1c = 140	#button 1.column width
@@ -3737,17 +3774,8 @@ def draw_UI():  #---------------------------------------------------------------
 
 		y -= 30
 		Draw.BeginAlign()
-		GUI_A['group_bylayer_on'] = Draw.Toggle('oneGroup', EVENT_NONE, but1c, y, but_1c/2, 20, GUI_A['group_bylayer_on'].val, "group entities from the same layer on/off")
-		GUI_A['curves_on'] = Draw.Toggle('to Curve', EVENT_NONE, but1c+ but_1c/2, y, but_1c/2, 20, GUI_A['curves_on'].val, "draw LINE/ARC/*PLINE into Blender-Curves instead of Meshes on/off")
-		GUI_A['dummy_on'] = Draw.Toggle('-', EVENT_NONE, but2c, y, (but_2c+but_3c)/2, 20, GUI_A['dummy_on'].val, "dummy on/off")
-		GUI_A['target_layer'] = Draw.Number('layer', EVENT_NONE, but2c+(but_2c+but_3c)/2, y, (but_2c+but_3c)/2, 20, GUI_A['target_layer'].val, 1, 18, "draw all into this Blender-layer (except <19> for block_definitios)")
-		Draw.EndAlign()
-
-
-		y -= 20
-		Draw.BeginAlign()
-		GUI_A['one_mesh_on'] = Draw.Toggle('oneMesh', EVENT_NONE, but1c, y, but_1c/2, 20, GUI_A['one_mesh_on'].val, "draw LINEs/3DFACEs from the same layer into one mesh-object on/off")
-		GUI_A['vGroup_on'] = Draw.Toggle('vGroups', EVENT_NONE, but1c+ but_1c/2, y, but_1c/2, 20, GUI_A['vGroup_on'].val, "support Blender-VertexGroups on/off")
+		GUI_A['group_bylayer_on'] = Draw.Toggle('oneGroup', EVENT_NONE, but1c, y, but_1c/2, 20, GUI_A['group_bylayer_on'].val, "grouping entities from the same layer on/off")
+		GUI_A['curves_on'] = Draw.Toggle('to Curves', EVENT_NONE, but1c+ but_1c/2, y, but_1c/2, 20, GUI_A['curves_on'].val, "drawing LINE/ARC/*PLINE into Blender-Curves instead of Meshes on/off")
 		GUI_A['g_scale_on'] = Draw.Toggle('glob.Scale', EVENT_NONE, but2c, y, (but_2c+but_3c)/2, 20, GUI_A['g_scale_on'].val, "scaling all DXF objects on/off")
 		GUI_A['g_scale_as'] = Draw.Menu(g_scale_list, EVENT_NONE, but2c+(but_2c+but_3c)/2, y, (but_2c+but_3c)/2, 20, GUI_A['g_scale_as'].val, "10^ factor for scaling the DXFdata")
 		Draw.EndAlign()
@@ -3755,15 +3783,17 @@ def draw_UI():  #---------------------------------------------------------------
 
 		y -= 20
 		Draw.BeginAlign()
-		Draw.Label('', but1c+but_1c/2, y, but_1c/2, 20)
+		#Draw.Label('', but1c+but_1c/2, y, but_1c/2, 20)
+		GUI_A['one_mesh_on'] = Draw.Toggle('oneMesh', EVENT_NONE, but1c, y, but_1c/2, 20, GUI_A['one_mesh_on'].val, "drawing DXF-entities into one mesh-object. Recommended for big DXF-files. on/off")
+		GUI_A['vGroup_on'] = Draw.Toggle('vGroups', EVENT_NONE, but1c+ but_1c/2, y, but_1c/2, 20, GUI_A['vGroup_on'].val, "support Blender-VertexGroups on/off")
 		GUI_A['dist_on'] = Draw.Toggle('dist.:', EVENT_NONE, but2c, y, but_2c-20, 20, GUI_A['dist_on'].val, "support distance on/off")
-		GUI_A['dist_force'] = Draw.Toggle('F', EVENT_NONE, but2c+but_2c-20, y,  20, 20, GUI_A['dist_force'].val, "force minimal distance on/off (double.vertex removing)")
-		GUI_A['dist_min'] = Draw.Number('', EVENT_NONE, but2c+(but_2c+but_3c)/2, y, (but_2c+but_3c)/2, 20, GUI_A['dist_min'].val, 0, 10, "minimal distance for double.vertex removing")
+		GUI_A['dist_force'] = Draw.Toggle('F', EVENT_NONE, but2c+but_2c-20, y,  20, 20, GUI_A['dist_force'].val, "force minimal distance on/off")
+		GUI_A['dist_min'] = Draw.Number('', EVENT_NONE, but2c+(but_2c+but_3c)/2, y, (but_2c+but_3c)/2, 20, GUI_A['dist_min'].val, 0, 10, "minimal lenght/distance (double.vertex removing)")
 		Draw.EndAlign()
 
 		y -= 20
 		Draw.BeginAlign()
-		GUI_A['pl_section_on'] = Draw.Toggle('self.cut:', EVENT_NONE, but1c, y, but_1c/2, 20, GUI_A['pl_section_on'].val, "support POLYLINE-wide-segment-intersection on/off")
+		GUI_A['pl_section_on'] = Draw.Toggle('int.section', EVENT_NONE, but1c, y, but_1c/2, 20, GUI_A['pl_section_on'].val, "support POLYLINE-wide-segment-intersection on/off")
 		GUI_A['angle_cut'] = Draw.Number('', EVENT_NONE, but1c+but_1c/2, y, but_1c/2, 20, GUI_A['angle_cut'].val, 1, 5, "it limits POLYLINE-wide-segment-intersection: 1.0-5.0")
 		GUI_A['thick_on'] = Draw.Toggle('thick:', EVENT_NONE, but2c, y, but_2c-20, 20, GUI_A['thick_on'].val, "support thickness on/off")
 		GUI_A['thick_force'] = Draw.Toggle('F', EVENT_NONE, but2c+but_2c-20, y,  20, 20, GUI_A['thick_force'].val, "force minimal thickness on/off")
@@ -3780,32 +3810,41 @@ def draw_UI():  #---------------------------------------------------------------
 		GUI_A['width_min'] = Draw.Number('', EVENT_NONE, but2c+(but_2c+but_3c)/2, y, (but_2c+but_3c)/2, 20, GUI_A['width_min'].val, 0, 10, "minimal width")
 		Draw.EndAlign()
 
-		y -= 30
-		Draw.BeginAlign()
-		Draw.PushButton('Load', EVENT_LOAD_INI, but1c, y, but_1c/2, 20, '     Load configuration from ini-file: %s' % iniFileName.val)
-		Draw.PushButton('Save', EVENT_SAVE_INI, but1c+but_1c/2, y, but_1c/2, 20, 'Save configuration to ini-file: %s' % iniFileName.val)
-		GUI_A['optimization'] = Draw.Number('optim:', EVENT_NONE, but2c, y, but_2c, 20, GUI_A['optimization'].val, 0, 3, "Optimisation Level: 0=Debug/directDrawing, 1=Verbose, 2=ProgressBar, 3=silentMode/fastest")
-		Draw.PushButton('3D', EVENT_PRESET, but3c, y, but_3c/2, 20, 'reset configuration to 3D-defaults')
-		Draw.PushButton('2D', EVENT_PRESET2D, but3c+but_3c/2, y, but_3c/2, 20, 'reset configuration to 2D-defaults')
-		Draw.EndAlign()
-
 		y -= 20
+		GUI_A['dummy_on'] = Draw.Toggle(' - ', EVENT_NONE, but1c, y, but_1c/2, 20, GUI_A['dummy_on'].val, "reserved")
+		GUI_A['newScene_on'] = Draw.Toggle('newScene', EVENT_NONE, but1c+ but_1c/2, y, but_1c/2, 20, GUI_A['newScene_on'].val, "creates new Blender-Scene for each import on/off")
+		GUI_A['target_layer'] = Draw.Number('layer', EVENT_NONE, but2c, y, but_2c, 20, GUI_A['target_layer'].val, 1, 18, "imports into this Blender-layer (<19> reserved for block_definitions)")
+		GUI_A['optimization'] = Draw.Number('optim:', EVENT_NONE, but3c, y, but_3c, 20, GUI_A['optimization'].val, 0, 3, "Optimization Level: 0=Debug/directDrawing, 1=Verbose, 2=ProgressBar, 3=silentMode/fastest")
+
+		y -= 30
 		Draw.BeginAlign()
 		Draw.PushButton('INI file >', EVENT_CHOOSE_INI, but1c, y, but_1c/2, 20, 'Select INI-file from project directory')
 		iniFileName = Draw.String(' : ', EVENT_NONE, but1c+(but_1c/2), y, but_1c/2+but_2c+but_3c, 20, iniFileName.val, FILENAME_MAX, "write here the name of the INI-file")
 		Draw.EndAlign()
 
+		y -= 20
+		Draw.BeginAlign()
+		Draw.PushButton('Presets', EVENT_PRESETS, but1c, y, but_1c/2, 20, "calls the names of Preset-INI-files")
+		Draw.PushButton('Load', EVENT_LOAD_INI, but1c+but_1c/2, y, but_1c/2, 20, '     Loads configuration from ini-file: %s' % iniFileName.val)
+		Draw.PushButton('Save', EVENT_SAVE_INI, but2c, y, but_2c, 20, 'Saves configuration to ini-file: %s' % iniFileName.val)
+#		user_preset = Draw.Number('preset:', EVENT_PRESETS, but2c, y, but_2c, 20, user_preset.val, 0, 5, "call user Preset-INI-files")
+		Draw.PushButton('2D', EVENT_PRESET2D, but3c, y, but_3c/2, 20, 'resets configuration to 2D-defaults')
+		Draw.PushButton('3D', EVENT_PRESET, but3c+ but_3c/2, y, but_3c/2, 20, 'resets configuration to 3D-defaults')
+		Draw.EndAlign()
+
+
 	y -= 30
 	Draw.BeginAlign()
 	Draw.PushButton('DXFfile >', EVENT_CHOOSE_DXF, but1c, y, but_1c/2, 20, 'Select DXF-file from project directory')
-	dxfFileName = Draw.String(' :', EVENT_NONE, but1c+(but_1c/2), y, but_1c/2+but_2c+but_3c, 20, dxfFileName.val, FILENAME_MAX, "write here the name of the imported DXF-file")
+	dxfFileName = Draw.String(' :', EVENT_NONE, but1c+(but_1c/2), y, but_1c/2+but_2c+but_3c-20, 20, dxfFileName.val, FILENAME_MAX, "type the name of DXF-file or * for multi-import")
+	Draw.PushButton('*', EVENT_CHOOSE_DIR, but3c+but_3c-20, y, 20, 20, 'Set asterisk * as filter')
 	Draw.EndAlign()
 
 	y -= 50
 	Draw.BeginAlign()
 	Draw.Label('  ', but1c-menu_margin, y, menu_margin, 40)
 	Draw.PushButton('EXIT', EVENT_EXIT, but1c, y, but_1c/2, 40, '' )
-	Draw.PushButton('HELP', EVENT_HELP, but1c+but_1c/2, y, but_1c/2, 20, 'manual-page on Blender-Wiki, support at www.blenderartists.org')
+	Draw.PushButton('HELP', EVENT_HELP, but1c+but_1c/2, y, but_1c/2, 20, 'calls BlenderWiki for Manual, Updates and Support.')
 	Draw.PushButton('START IMPORT', EVENT_START, but2c, y, but_2c+but_3c, 40, 'Start the import procedure')
 	Draw.Label('  ', but1c+menu_w, y, menu_margin, 40)
 	Draw.EndAlign()
@@ -3837,13 +3876,24 @@ def event(evt, val):
 
 def bevent(evt):
 #	global EVENT_NONE,EVENT_LOAD_DXF,EVENT_LOAD_INI,EVENT_SAVE_INI,EVENT_EXIT
-	global config_UI
+	global config_UI, user_preset
 
 	######### Manages GUI events
 	if (evt==EVENT_EXIT):
 		Blender.Draw.Exit()
 	elif (evt==EVENT_CHOOSE_INI):
 		Window.FileSelector(ini_callback, "INI-file Selection", '*.ini')
+	elif (evt==EVENT_CHOOSE_DIR):
+#		dxfFile = dxfFileName.val
+#		dxfFile = reverse(dxfFile)
+#		_dxf_file= dxfFile.split('/')[1].split('\\')[1]
+#		_dxf_file= dxfFile.split('/')[1].split('\\')[1]
+#		_dxf_file = reverse(_dxf_file)
+#		print 'deb: dxfFile file: ', dxfFile #----------------------
+#		print 'deb: : ', _dxf_file #----------------------
+#		global dxfFileName
+#		dxfFileName.val = _dxf_file
+		Draw.Redraw()
 	elif (evt==EVENT_CONFIG):
 		Draw.Redraw()
 	elif (evt==EVENT_PRESET):
@@ -3851,6 +3901,11 @@ def bevent(evt):
 		Draw.Redraw()
 	elif (evt==EVENT_PRESET2D):
 		resetDefaultConfig_2D()
+		Draw.Redraw()
+	elif (evt==EVENT_PRESETS):
+		user_preset += 1
+		if user_preset > 5: user_preset = 1
+		iniFileName.val = INIFILE_DEFAULT_NAME + str(user_preset) + INIFILE_EXTENSION
 		Draw.Redraw()
 	elif (evt==EVENT_HELP):
 		try:
@@ -3872,13 +3927,52 @@ http://wiki.blender.org/index.php?title=Scripts/Manual/Import/DXF-3D')
 		dxfFile = dxfFileName.val
 		#print 'deb: dxfFile file: ', dxfFile #----------------------
 		if dxfFile.lower().endswith('.dxf') and sys.exists(dxfFile):
-			main()
+			if GUI_A['newScene_on'].val:
+				_dxf_file= dxfFile.split('/')[-1].split('\\')[-1]
+				SCENE = bpy.data.scenes.new(_dxf_file[-MAX_NAMELENGTH:])
+				bpy.data.scenes.active = SCENE
+			main(dxfFile)
 			#Blender.Draw.Exit()
 			Draw.Redraw()
+		elif dxfFile.lower().endswith('*'):
+			if Draw.PupMenu('DXF importer:	OK?|will import all DXF-files from:|%s' % dxfFile) == 1:
+				global UI_MODE
+				UI_MODE = False
+				multi_import(dxfFile[:-1])  # cut last char:'*'
+			Blender.Draw.Exit()
 		else:
 			Draw.PupMenu('DXF importer:	 Alert!%t|no valid DXF-file selected!')
 			print "DXF importer: error, no valid DXF-file selected! try again"
 			Draw.Redraw()
+
+
+
+
+def multi_import(DIR):
+	"""Imports all DXF-files from directory DIR.
+	
+	"""
+	batchTIME = Blender.sys.time()
+	print 'Searching for DXF-files in %s' %DIR
+	files = \
+		[sys.join(DIR, f) for f in os.listdir(DIR) if f.lower().endswith('.dxf')] 
+	if not files:
+		print '...None DXF-files found. Abort!'
+		return
+	
+	i = 0
+	for dxfFile in files:
+		i += 1
+		print 'Importing', dxfFile, '  NUMBER', i, 'of', len(files)
+		_dxf_file= dxfFile.split('/')[-1].split('\\')[-1]
+		if GUI_A['newScene_on'].val:
+			SCENE = bpy.data.scenes.new(_dxf_file)
+			bpy.data.scenes.active = SCENE
+		main(dxfFile)
+
+	print 'TOTAL TIME: %.6f' % (Blender.sys.time() - batchTIME)
+
+
 
 
 if __name__ == "__main__":
@@ -3889,6 +3983,7 @@ if __name__ == "__main__":
 """
 if 1:
 	# DEBUG ONLY
+	UI_MODE = False
 	TIME= Blender.sys.time()
 	#DIR = '/dxf_r12_testfiles/'
 	DIR = '/metavr/'
@@ -3912,11 +4007,11 @@ if 1:
 			#if 1:
 			print 'Importing', _dxf, '\nNUMBER', i, 'of', len(lines)
 			_dxf_file= _dxf.split('/')[-1].split('\\')[-1]
-			newScn= bpy.data.scenes.new(_dxf_file)
-			bpy.data.scenes.active = newScn
+			SCENE= bpy.data.scenes.new(_dxf_file)
+			bpy.data.scenes.active = SCENE
 			# load_dxf(_dxf, False)
 			dxfFileName.val = _dxf
-			main()
+			main(_dxf)
 
 	print 'TOTAL TIME: %.6f' % (Blender.sys.time() - TIME)
 """
