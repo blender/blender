@@ -287,7 +287,7 @@ char *getname_fluidsim_ei(int nr)
 }
 
 
-void boundbox_ipocurve(IpoCurve *icu)
+void boundbox_ipocurve(IpoCurve *icu, int selectedonly)
 {
 	BezTriple *bezt;
 	float vec[3]={0.0,0.0,0.0};
@@ -302,20 +302,25 @@ void boundbox_ipocurve(IpoCurve *icu)
 			bezt= icu->bezt;
 			while(a--) {
 				if(icu->vartype & IPO_BITS) {
-					vec[0]= bezt->vec[1][0];
-					vec[1]= 0.0;
-					DO_MINMAX(vec, min, max);
-					
-					vec[1]= 16.0;
-					DO_MINMAX(vec, min, max);
+					if((bezt->f2 & 1) || !selectedonly) {
+						vec[0]= bezt->vec[1][0];
+						vec[1]= 0.0;
+						DO_MINMAX(vec, min, max);
+						
+						vec[1]= 16.0;
+						DO_MINMAX(vec, min, max);
+					}
 				}
 				else {
-					if(icu->ipo==IPO_BEZ && a!=icu->totvert-1) {
-						DO_MINMAX(bezt->vec[0], min, max);
+					if((bezt->f1 & 1) || !selectedonly) {
+						if(icu->ipo==IPO_BEZ && a!=icu->totvert-1)
+							DO_MINMAX(bezt->vec[0], min, max);
 					}
-					DO_MINMAX(bezt->vec[1], min, max);
-					if(icu->ipo==IPO_BEZ && a!=0) {
-						DO_MINMAX(bezt->vec[2], min, max);
+					if((bezt->f2 & 1) || !selectedonly)
+						DO_MINMAX(bezt->vec[1], min, max);
+					if((bezt->f3 & 1) || !selectedonly) {
+						if(icu->ipo==IPO_BEZ && a!=0)
+							DO_MINMAX(bezt->vec[2], min, max);
 					}
 				}
 				
@@ -337,7 +342,7 @@ void boundbox_ipocurve(IpoCurve *icu)
 	}
 }
 
-void boundbox_ipo(Ipo *ipo, rctf *bb)
+void boundbox_ipo(Ipo *ipo, rctf *bb, int selectedonly)
 {
 	IpoCurve *icu;
 	int first= 1;
@@ -345,7 +350,7 @@ void boundbox_ipo(Ipo *ipo, rctf *bb)
 	icu= ipo->curve.first;
 	while(icu) {
 		
-		boundbox_ipocurve(icu);
+		boundbox_ipocurve(icu, selectedonly);
 		
 		if(first) {
 			*bb= icu->totrct;

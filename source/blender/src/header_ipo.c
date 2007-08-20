@@ -713,6 +713,9 @@ static void do_ipo_viewmenu(void *arg, int event)
 		center_currframe();
 		scrarea_queue_winredraw(curarea);
 		break;
+	case 11:
+		do_ipo_buttons(B_IPOVIEWCENTER);
+		break;
 	}
 }
 
@@ -748,7 +751,7 @@ static uiBlock *ipo_viewmenu(void *arg_unused)
 
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View All|Home", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Center on Current Frame|Shift C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 10, "");
 	uiDefIconTextBut(block, BUTM, 1, (G.v2d->flag & V2D_VIEWLOCK)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
 					 "Lock Time to Other Windows|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
@@ -757,6 +760,10 @@ static uiBlock *ipo_viewmenu(void *arg_unused)
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Move Current Frame to Selected|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 3, "");
 	}
 
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View Selected|NumPad .",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 11, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View All|Home", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
 	if(!curarea->full) uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Maximize Window|Ctrl UpArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0,20, "");
 	else uiDefIconTextBut(block, BUTM, B_FULL, ICON_BLANK1, "Tile Window|Ctrl DownArrow", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 20, "");
 
@@ -951,6 +958,7 @@ void do_ipo_buttons(short event)
 	if(curarea->win==0) return;
 
 	switch(event) {
+	case B_IPOVIEWCENTER:
 	case B_IPOHOME:
 
 		/* boundbox */
@@ -969,7 +977,7 @@ void do_ipo_buttons(short event)
 		for(a=0; a<G.sipo->totipo; a++, ei++) {
 			if ISPOIN(ei, flag & IPO_VISIBLE, icu) {
 			
-				boundbox_ipocurve(ei->icu);
+				boundbox_ipocurve(ei->icu, (event==B_IPOVIEWCENTER));
 				
 				if(first) {
 					v2d->tot= ei->icu->totrct;

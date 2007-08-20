@@ -1654,7 +1654,7 @@ static void boundbox_ipo_curves(SpaceIpo *si)
 		if(ei->icu) {
 			if(ei->flag & IPO_VISIBLE) {
 	
-				boundbox_ipocurve(ei->icu);
+				boundbox_ipocurve(ei->icu, 0);
 				if(first) {
 					si->v2d.tot= ei->icu->totrct;
 					first= 0;

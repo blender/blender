@@ -65,8 +65,8 @@ int geticon_ipo_blocktype(short blocktype);
 
 struct EditIpo *get_active_editipo(void);
 
-void boundbox_ipocurve(struct IpoCurve *icu);
-void boundbox_ipo(struct Ipo *ipo, struct rctf *bb);
+void boundbox_ipocurve(struct IpoCurve *icu, int selectedonly);
+void boundbox_ipo(struct Ipo *ipo, struct rctf *bb, int selectedonly);
 void editipo_changed(struct SpaceIpo *si, int doredraw);
 void scale_editipo(void);
 

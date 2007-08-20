@@ -2739,6 +2739,10 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if((G.qual==0))
 				do_ipo_buttons(B_IPOHOME);
 			break;
+		case PADPERIOD:
+			if((G.qual==0))
+				do_ipo_buttons(B_IPOVIEWCENTER);
+			break;
 			
 		case AKEY:
 			if (G.qual & LR_CTRLKEY) {

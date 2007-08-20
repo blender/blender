@@ -248,7 +248,7 @@ void editipo_changed(SpaceIpo *si, int doredraw)
 			
 			if(ei->flag & IPO_VISIBLE) {
 		
-				boundbox_ipocurve(ei->icu);
+				boundbox_ipocurve(ei->icu, 0);
 				sort_time_ipocurve(ei->icu);
 				if(first) {
 					si->v2d.tot= ei->icu->totrct;
