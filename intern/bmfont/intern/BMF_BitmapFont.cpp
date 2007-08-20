@@ -107,13 +107,34 @@ int BMF_BitmapFont::GetStringWidth(char* str)
 	return length;
 }
 
-void BMF_BitmapFont::GetBoundingBox(int & xMin, int & yMin, int & xMax, int & yMax)
+void BMF_BitmapFont::GetFontBoundingBox(int & xMin, int & yMin, int & xMax, int & yMax)
 {
 	xMin = m_fontData->xmin;
 	yMin = m_fontData->ymin;
 	xMax = m_fontData->xmax;
 	yMax = m_fontData->ymax;
 }
+
+void BMF_BitmapFont::GetStringBoundingBox(char* str, float*llx, float *lly, float *urx, float *ury)
+{
+	unsigned char c;
+	int length = 0;
+	int ascent = 0;
+	int descent = 0;
+
+	while ( (c = (unsigned char) *str++) ) {
+		length += m_fontData->chars[c].advance;
+		int d = m_fontData->chars[c].yorig;
+		int a = m_fontData->chars[c].height - m_fontData->chars[c].yorig;
+		if(a > ascent) ascent = a;
+		if(d > descent) descent = d;
+	}
+	*llx = (float)0;
+	*lly = (float)-descent;
+	*urx = (float)length;
+	*ury = (float)ascent;
+}
+
 
 int BMF_BitmapFont::GetTexture()
 {

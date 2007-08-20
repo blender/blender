@@ -33,6 +33,7 @@
 
 #include "DNA_listBase.h"
 #include "DNA_userdef_types.h"
+#include "DNA_vec_types.h"
 
 #include "BKE_global.h"		/* G */
 #include "BKE_utildefines.h"
@@ -167,6 +168,21 @@ float BIF_GetStringWidth(BMF_Font* font, char *str, int translate)
 #endif
 
 	return rt;
+}
+
+void BIF_GetBoundingBox(struct BMF_Font* font, char* str, int translate, rctf *bbox){
+	float dummy;
+#ifdef INTERNATIONAL
+	if(G.ui_international == TRUE)
+		if(translate && (U.transopts & USER_TR_BUTTONS))
+			FTF_GetBoundingBox(str, &bbox->xmin, &bbox->ymin, &dummy, &bbox->xmax, &bbox->ymax, &dummy, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
+		else
+			FTF_GetBoundingBox(str, &bbox->xmin, &bbox->ymin, &dummy, &bbox->xmax, &bbox->ymax, &dummy, FTF_NO_TRANSCONV | FTF_INPUT_UTF8);
+	else
+		BMF_GetStringBoundingBox(font, str, &bbox->xmin, &bbox->ymin, &bbox->xmax, &bbox->ymax);
+#else
+	BMF_GetStringBoundingBox(font, str, &bbox->xmin, &bbox->ymin, &bbox->xmax, &bbox->ymax);
+#endif
 }
 
 

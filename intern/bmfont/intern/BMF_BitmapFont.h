@@ -76,7 +76,19 @@ public:
 	 * box represent the extent of the font and its positioning
 	 * about the origin.
 	 */
-	void GetBoundingBox(int & xMin, int & yMin, int & xMax, int & yMax);
+	void GetFontBoundingBox(int & xMin, int & yMin, int & xMax, int & yMax);
+	
+	/**
+	 * Returns the bounding box of a string of characters.
+	 * @param font	The font to use.
+	 * @param str	The string.
+	 * @param llx   Lower left x coord
+	 * @param lly   Lower left y coord
+	 * @param urx   Upper right x coord
+	 * @param ury   Upper right y coord
+	 */
+	void GetStringBoundingBox(char* str, float*llx, float *lly, float *urx, float *ury);
+
 
 	/**
 	 * Convert the font to a texture, and return the GL texture

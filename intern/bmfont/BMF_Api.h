@@ -89,13 +89,25 @@ int BMF_GetCharacterWidth(BMF_Font* font, char c);
 int BMF_GetStringWidth(BMF_Font* font, char* str);
 
 /**
+ * Returns the bounding box of a string of characters.
+ * @param font	The font to use.
+ * @param str	The string.
+ * @param llx   Lower left x coord
+ * @param lly   Lower left y coord
+ * @param urx   Upper right x coord
+ * @param ury   Upper right y coord
+ */
+void BMF_GetStringBoundingBox(BMF_Font* font, char* str, float*llx, float *lly, float *urx, float *ury);
+
+
+/**
  * Returns the bounding box of the font. The width and
  * height represent the bounding box of the union of
  * all glyps. The minimum and maximum values of the
  * box represent the extent of the font and its positioning
  * about the origin.
  */
-void BMF_GetBoundingBox(BMF_Font* font, int *xmin_r, int *ymin_r, int *xmax_r, int *ymax_r);
+void BMF_GetFontBoundingBox(BMF_Font* font, int *xmin_r, int *ymin_r, int *xmax_r, int *ymax_r);
 
 /**
  * Convert the given @a font to a texture, and return the GL texture

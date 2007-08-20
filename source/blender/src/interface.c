@@ -4805,30 +4805,15 @@ static uiOverDraw *ui_draw_but_tip(uiBut *but)
 {
 	uiOverDraw *od;
 	float x1, x2, y1, y2;
+	rctf tip_bbox;
 
-#ifdef INTERNATIONAL
-	if(G.ui_international == TRUE) {
-		float llx,lly,llz,urx,ury,urz;  //for FTF_GetBoundingBox()
+	BIF_GetBoundingBox(but->font, but->tip, (U.transopts & USER_TR_TOOLTIPS), &tip_bbox);
+	
+	x1= (but->x1+but->x2)/2;
+	x2= x1+but->aspect*((tip_bbox.xmax-tip_bbox.xmin) + 8);
+	y2= but->y1-10;
+	y1= y2-but->aspect*((tip_bbox.ymax+(tip_bbox.ymax-tip_bbox.ymin)));
 
-		if(U.transopts & USER_TR_TOOLTIPS) {
-			FTF_GetBoundingBox(but->tip, &llx,&lly,&llz,&urx,&ury,&urz, FTF_USE_GETTEXT | FTF_INPUT_UTF8);
-
-			x1= (but->x1+but->x2)/2; x2= 10+x1+ but->aspect*FTF_GetStringWidth(but->tip, FTF_USE_GETTEXT | FTF_INPUT_UTF8);  //BMF_GetStringWidth(but->font, but->tip);
-			y1= but->y1-(ury+FTF_GetSize())-12; y2= but->y1-12;
-		} else {
-			FTF_GetBoundingBox(but->tip, &llx,&lly,&llz,&urx,&ury,&urz, FTF_NO_TRANSCONV | FTF_INPUT_UTF8);
-
-			x1= (but->x1+but->x2)/2; x2= 10+x1+ but->aspect*FTF_GetStringWidth(but->tip, FTF_NO_TRANSCONV | FTF_INPUT_UTF8);  //BMF_GetStringWidth(but->font, but->tip);
-			y1= but->y1-(ury+FTF_GetSize())-12; y2= but->y1-12;
-		}
-	} else {
-		x1= (but->x1+but->x2)/2; x2= 10+x1+ but->aspect*BMF_GetStringWidth(but->font, but->tip);
-		y1= but->y1-30; y2= but->y1-12;
-	}
-#else
-	x1= (but->x1+but->x2)/2; x2= 10+x1+ but->aspect*BMF_GetStringWidth(but->font, but->tip);
-	y1= but->y1-30; y2= but->y1-12;
-#endif
 
 	/* for pulldown menus it doesnt work */
 	if(mywinget()==G.curscreen->mainwin);
@@ -4845,13 +4830,6 @@ static uiOverDraw *ui_draw_but_tip(uiBut *but)
 		y1 += 36;
 		y2 += 36;
 	}
-
-	// adjust tooltip heights
-	if(mywinget()==G.curscreen->mainwin)
-		y2 -= G.ui_international ? 4:1;		//tip is from pulldownmenu
-	else if(curarea->win != mywinget())
-		y2 -= G.ui_international ? 5:1;		//tip is from a windowheader
-//	else y2 += 1;							//tip is from button area
 
 	od= ui_begin_overdraw((int)(x1-1), (int)(y1-2), (int)(x2+4), (int)(y2+4));
 
@@ -4874,7 +4852,10 @@ static uiOverDraw *ui_draw_but_tip(uiBut *but)
 	glRectf(x1, y1, x2, y2);
 	
 	glColor3ub(0,0,0);
-	ui_rasterpos_safe( x1+3, y1+5.0/but->aspect, but->aspect);
+	/* set the position for drawing text +4 in from the left edge, and leaving an equal gap between the top of the background box
+	 * and the top of the string's tip_bbox, and the bottom of the background box, and the bottom of the string's tip_bbox
+	 */
+	ui_rasterpos_safe(x1+4, ((y2-tip_bbox.ymax)+(y1+tip_bbox.ymin))/2 - tip_bbox.ymin, but->aspect);
 	BIF_SetScale(1.0);
 
 	BIF_DrawString(but->font, but->tip, (U.transopts & USER_TR_TOOLTIPS));

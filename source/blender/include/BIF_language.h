@@ -33,6 +33,8 @@
 #ifndef BIF_LANGUAGE_H
 #define BIF_LANGUAGE_H
 
+#include "DNA_vec_types.h"
+
 struct BMF_Font;
 
 int  read_languagefile(void);		/* usiblender.c */
@@ -47,6 +49,7 @@ char *fontsize_pup(void);
 
 int BIF_DrawString(struct BMF_Font* font, char *str, int translate);
 float BIF_GetStringWidth(struct BMF_Font* font, char *str, int translate);
+void BIF_GetBoundingBox(struct BMF_Font* font, char* str, int translate, rctf* bbox);
 
 void BIF_RasterPos(float x, float y);
 void BIF_SetScale(float aspect);
