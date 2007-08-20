@@ -918,3 +918,31 @@ int EXPP_dict_set_item_str( PyObject *dict, char *key, PyObject *value)
 	Py_DECREF( value ); /* delete original */
 	return ret;
 }
+
+/*
+ * Helper function for subtypes that what the base types methods.
+ * The command below needs to have args modified to have 'self' added at the start
+ * ret = PyObject_Call(PyDict_GetItemString(PyList_Type.tp_dict, "sort"), newargs, keywds);
+ * 
+ * This is not easy with the python API so adding a function here,
+ * remember to Py_DECREF the tuple after
+ */
+
+PyObject * EXPP_PyTuple_New_Prepend(PyObject *tuple, PyObject *value)
+{
+	PyObject *item;
+	PyObject *new_tuple;
+	int i;
+	
+	i = PyTuple_Size(tuple);
+	new_tuple = PyTuple_New(i+1);
+	PyTuple_SetItem(new_tuple, 0, value);
+	Py_INCREF(value);
+	while (i) {
+		i--;
+		item = PyTuple_GetItem(tuple, i);
+		PyTuple_SetItem(new_tuple, i+1, item);
+		Py_INCREF(item);
+	}
+	return new_tuple;
+}

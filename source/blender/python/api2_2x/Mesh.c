@@ -5548,6 +5548,70 @@ static PyObject *MFaceSeq_delete( BPy_MFaceSeq * self, PyObject *args )
 	Py_RETURN_NONE;
 }
 
+/* copied from meshtools.c - should make generic? */
+static void permutate(void *list, int num, int size, int *index)
+{
+	void *buf;
+	int len;
+	int i;
+
+	len = num * size;
+
+	buf = MEM_mallocN(len, "permutate");
+	memcpy(buf, list, len);
+	
+	for (i = 0; i < num; i++) {
+		memcpy((char *)list + (i * size), (char *)buf + (index[i] * size), size);
+	}
+	MEM_freeN(buf);
+}
+
+/* this wrapps list sorting then applies back to the mesh */
+static PyObject *MFaceSeq_sort( BPy_MEdgeSeq * self, PyObject *args,
+	  PyObject *keywds )
+{
+	PyObject *ret, *sort_func, *newargs;
+	
+	Mesh *mesh = self->mesh;
+	PyObject *sorting_list;
+	CustomDataLayer *layer;
+	int i, *index;
+	
+	/* get a list for internal use */
+	sorting_list = PySequence_List( (PyObject *)self );
+	if( !sorting_list )
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"PyList_New() failed" );
+	
+	/* create index list */
+	index = (int *) MEM_mallocN(sizeof(int) * mesh->totface, "sort faces");
+	if (!index)
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"faces.sort(...) failed to allocate memory" );
+	
+	newargs = EXPP_PyTuple_New_Prepend(args, sorting_list);
+	sort_func = PyObject_GetAttrString( ((PyObject *)&PyList_Type), "sort");
+	
+	ret = PyObject_Call(sort_func, newargs, keywds);
+	
+	Py_DECREF(newargs);
+	Py_DECREF(sort_func);
+	
+	if (ret) {
+		/* copy the faces indicies to index */
+		for (i = 0; i < mesh->totface; i++)
+			index[i] = ((BPy_MFace *)PyList_GET_ITEM(sorting_list, i))->index;
+		
+		for(i = 0; i < mesh->fdata.totlayer; i++) {
+			layer = &mesh->fdata.layers[i];
+			permutate(layer->data, mesh->totface, CustomData_sizeof(layer->type), index);
+		}
+	}
+	Py_DECREF(sorting_list);
+	MEM_freeN(index);
+	return ret;
+}
+
 static PyObject *MFaceSeq_selected( BPy_MFaceSeq * self )
 {
 	int i, count;
@@ -5611,6 +5675,8 @@ static struct PyMethodDef BPy_MFaceSeq_methods[] = {
 		"add faces to mesh"},
 	{"delete", (PyCFunction)MFaceSeq_delete, METH_VARARGS,
 		"delete faces from mesh"},
+	{"sort", (PyCFunction)MFaceSeq_sort, METH_VARARGS|METH_KEYWORDS,
+		"sort the faces using list sorts syntax"},
 	{"selected", (PyCFunction)MFaceSeq_selected, METH_NOARGS,
 		"returns a list containing indices of selected faces"},
 	{"addPropertyLayer",(PyCFunction)MFaceSeq_add_layertype, METH_VARARGS,
@@ -5618,7 +5684,7 @@ static struct PyMethodDef BPy_MFaceSeq_methods[] = {
 	{"removePropertyLayer",(PyCFunction)MFaceSeq_del_layertype, METH_O,
 		"removes a property layer"},
 	{"renamePropertyLayer",(PyCFunction)MFaceSeq_rename_layertype, METH_VARARGS,
-		"renames an existing property layer"},
+		"renames an existing property layer"},		
 	{NULL, NULL, 0, NULL}
 };
 static PyGetSetDef BPy_MFaceSeq_getseters[] = {

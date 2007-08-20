@@ -690,6 +690,22 @@ class MFaceSeq:
 			- a integer, specifying an index into the mesh's face list
 		"""
 
+	def sort():
+		"""
+		Sorts the faces using exactly the same syntax as pythons own list sorting function.
+
+		Example::
+			import Blender
+			from Blender import Mesh
+			me = Mesh.Get('mymesh')
+			
+			me.faces.sort(key=lambda f: f.area)
+			
+			me.faces.sort(key=lambda f: f.cent)
+		
+		@note: Internally faces only refer to their index, so after sorting, faces you alredy have will not have their index changed to match the new sorted order. 
+		"""
+		
 	def selected():
 		"""
 		Get selected faces.
