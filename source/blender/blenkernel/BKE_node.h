@@ -206,6 +206,8 @@ struct ShadeResult;
 #define SH_NODE_SQUEEZE		117
 #define SH_NODE_MATERIAL_EXT	118
 #define SH_NODE_INVERT		119
+#define SH_NODE_SEPRGB		120
+#define SH_NODE_COMBRGB		121
 
 
 /* custom defines options for Material node */
