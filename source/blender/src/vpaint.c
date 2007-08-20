@@ -1089,7 +1089,7 @@ void weight_paint(void)
 	float vpimat[3][3];
 	int *indexar, index, totindex, alpha, totw;
 	int vgroup_mirror= -1;
-	short mval[2], mvalo[2], firsttime=1, mousebut;
+	short mval[2], mvalo[2], firsttime=1;
 
 	if((G.f & G_WEIGHTPAINT)==0) return;
 	if(G.obedit) return;
@@ -1162,9 +1162,6 @@ void weight_paint(void)
 	mvalo[0]= mval[0];
 	mvalo[1]= mval[1];
 	
-	if (U.flag & USER_LMOUSESELECT) mousebut = R_MOUSE;
-	else mousebut = L_MOUSE;
-	
 	/* if mirror painting, find the other group */
 	if(Gwp.flag & VP_MIRROR_X) {
 		bDeformGroup *defgroup= BLI_findlink(&ob->defbase, ob->actdef-1);
@@ -1190,7 +1187,7 @@ void weight_paint(void)
 		}
 	}
 	
-	while (get_mbut() & mousebut) {
+	while (get_mbut() & L_MOUSE) {
 		getmouseco_areawin(mval);
 		
 		if(firsttime || mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {
@@ -1362,7 +1359,7 @@ void vertex_paint()
 	float vpimat[3][3];
 	unsigned int paintcol=0, *mcol, *mcolorig, fcol1, fcol2;
 	int *indexar, index, alpha, totindex;
-	short mval[2], mvalo[2], firsttime=1, mousebut;
+	short mval[2], mvalo[2], firsttime=1;
 	
 	if((G.f & G_VERTEXPAINT)==0) return;
 	if(G.obedit) return;
@@ -1405,10 +1402,7 @@ void vertex_paint()
 	mvalo[0]= mval[0];
 	mvalo[1]= mval[1];
 	
-	if (U.flag & USER_LMOUSESELECT) mousebut = R_MOUSE;
-	else mousebut = L_MOUSE;
-	
-	while (get_mbut() & mousebut) {
+	while (get_mbut() & L_MOUSE) {
 		getmouseco_areawin(mval);
 		
 		if(firsttime || mval[0]!=mvalo[0] || mval[1]!=mvalo[1]) {

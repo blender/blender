@@ -1131,7 +1131,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	Object *ob= OBACT;	/* do not change! */
 	float *curs;
 	int doredraw= 0, pupval;
-	unsigned short event= evt->event, origevent= evt->event;
+	unsigned short event= evt->event;
 	short val= evt->val;
 	char ascii= evt->ascii;
 	
@@ -1148,8 +1148,15 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		
 		/* swap mouse buttons based on user preference */
 		if (U.flag & USER_LMOUSESELECT) {
-			if (event==LEFTMOUSE) event = RIGHTMOUSE;
-			else if (event==RIGHTMOUSE) event = LEFTMOUSE;
+			/* only swap mouse button for selection, in modes where it is relevant.
+			 * painting/sculpting stays on LEFTMOUSE */
+			if (   !((G.f & G_SCULPTMODE) || (G.f & G_WEIGHTPAINT) ||
+				(G.f & G_VERTEXPAINT) || (G.f & G_TEXTUREPAINT)) ||
+				(G.obedit) )
+			{			
+				if (event==LEFTMOUSE) event = RIGHTMOUSE;
+				else if (event==RIGHTMOUSE) event = LEFTMOUSE;
+			}
 		}
 
 		if(!mouse_in_header(sa)) {
@@ -1538,7 +1545,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					vertex_paint();
 				}
 				else if (G.f & G_TEXTUREPAINT) {
-					imagepaint_paint(origevent==LEFTMOUSE? L_MOUSE: R_MOUSE, 1);
+					imagepaint_paint(L_MOUSE, 1);
 				}
 				break;
 			case MIDDLEMOUSE:
@@ -4739,7 +4746,7 @@ static void changeimagepace(ScrArea *sa, void *spacedata)
 static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	SpaceImage *sima= spacedata;
-	unsigned short event= evt->event, origevent= evt->event;
+	unsigned short event= evt->event;
 	short val= evt->val;
 	
 	if(val==0) return;
@@ -4761,10 +4768,10 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				scrarea_queue_winredraw(sa);
 				break;
 			case LEFTMOUSE:
-				imagepaint_paint(origevent==LEFTMOUSE? L_MOUSE: R_MOUSE, 0);
+				imagepaint_paint(L_MOUSE, 0);
 				break;
 			case RIGHTMOUSE:
-				imagepaint_pick(origevent==LEFTMOUSE? L_MOUSE: R_MOUSE);
+				imagepaint_pick(R_MOUSE);
 				break;
 		}
 	}

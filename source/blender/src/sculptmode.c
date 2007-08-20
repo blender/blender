@@ -1700,8 +1700,7 @@ void sculpt(void)
 	mvalo[0]= mouse[0];
 	mvalo[1]= mouse[1];
 
-	if (U.flag & USER_LMOUSESELECT) mousebut = R_MOUSE;
-	else mousebut = L_MOUSE;
+	mousebut = L_MOUSE;
 
 	/* If modifier_calculations is true, then extra time must be spent
 	   updating the mesh. This takes a *lot* longer, so it's worth
