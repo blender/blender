@@ -3089,7 +3089,7 @@ static void object_panel_particles(Object *ob)
 	
 	uiDefBut(block, LABEL, 0, "Emit:",					0,150,75,20, NULL, 0.0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
-	uiDefButI(block, NUM, B_CALCEFFECT, "Amount:",		0,130,150,20, &paf->totpart, 1.0, 100000.0, 0, 0, "The total number of particles");
+	uiDefButI(block, NUM, B_CALCEFFECT, "Amount:",		0,130,150,20, &paf->totpart, 1.0, 1000000.0, 0, 0, "The total number of particles");
 	if(paf->flag & PAF_STATIC) {
 		uiDefButS(block, NUM, REDRAWVIEW3D, "Step:",	0,110,150,20, &paf->staticstep, 1.0, 100.0, 10, 0, "For static duplicators, the Step value skips particles");
 	}
