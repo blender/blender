@@ -1098,6 +1098,24 @@ static PyObject *Method_UIBlock( PyObject * self, PyObject * args )
 		PyErr_Print(  );
 		error( "Python script error: check console" );
 	} else {
+		/* copied from do_clever_numbuts in toolbox.c */
+		
+		/* Clear all events so tooltips work, this is not ideal and
+		only needed because calls from the menu still have some events
+		left over when do_clever_numbuts is called.
+		Calls from keyshortcuts do not have this problem.*/
+		ScrArea *sa;
+		BWinEvent temp_bevt;
+		for (sa= G.curscreen->areabase.first; sa; sa= sa->next) {
+			if(sa->win) {
+				while( bwin_qread( sa->win, &temp_bevt ) ) {}
+			}
+			if(sa->headwin) {
+				while( bwin_qread( sa->headwin, &temp_bevt ) ) {}
+			}
+		}
+		/* Done clearing events */
+		
 		uiBoundsBlock(uiblock, 5);
 		uiDoBlocks(&listb, 0);
 	}
