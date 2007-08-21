@@ -1445,7 +1445,7 @@ static void alfa_bezpart(BezTriple *prevbezt, BezTriple *bezt, Nurb *nu, float *
 	
 	for(a=0; a<resolu; a++, fac+= dfac) {
 		
-		set_four_ipo(fac, t, KEY_LINEAR);
+		set_four_ipo(fac, t, nu->tilt_interp);
 		
 		data_a[a]= t[0]*pprev->alfa + t[1]*prevbezt->alfa + t[2]*bezt->alfa + t[3]*next->alfa;
 	}

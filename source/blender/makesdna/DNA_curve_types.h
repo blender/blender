@@ -116,9 +116,11 @@ typedef struct Nurb {
 	float *knotsu, *knotsv;
 	BPoint *bp;
 	BezTriple *bezt;
+
+	short tilt_interp;	/* KEY_LINEAR, KEY_CARDINAL, KEY_BSPLINE */
+	short pad;
 	
 	int charidx;
-	int pad;
 } Nurb;
 
 typedef struct CharInfo {

@@ -2794,6 +2794,10 @@ void do_curvebuts(unsigned short event)
 			allqueue(REDRAWVIEW3D, 0);
 		}
 		break;
+	case B_TILTINTERP:
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+		allqueue(REDRAWVIEW3D, 0);
+		break;
 	case B_SUBSURFTYPE:
 		/* fallthrough */
 	case B_MAKEDISP:
@@ -2904,6 +2908,14 @@ static void editing_panel_curve_tools(Object *ob, Curve *cu)
 		nu= lastnu;
 		if(nu==NULL) nu= editNurb.first;
 		if(nu) {
+			if (ob->type==OB_CURVE) {
+				uiDefBut(block, LABEL, 0, "Tilt",
+					467,87,72, 18, 0, 0, 0, 0, 0, "");
+				/* KEY_LINEAR, KEY_CARDINAL, KEY_BSPLINE */
+				uiDefButS(block, MENU, B_TILTINTERP, "Tilt Interpolation %t|Linear %x0|Cardinal %x1|BSpline %x2",
+					467,67,72, 18, &(nu->tilt_interp), 0, 0, 0, 0, "Tilt interpolation");
+			}
+						
 			uiBlockBeginAlign(block);
 			sp= &(nu->orderu);
 			uiDefButS(block, NUM, B_SETORDER, "Order U:", 565,90,102, 19, sp, 2.0, 6.0, 0, 0, "Nurbs only; the amount of control points involved");
