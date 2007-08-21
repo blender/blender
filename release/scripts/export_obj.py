@@ -512,8 +512,8 @@ def write_ui(filename):
 	if not filename.lower().endswith('.obj'):
 		filename += '.obj'
 	
-	#if not BPyMessages.Warning_SaveOver(filename):
-	#	return
+	if not BPyMessages.Warning_SaveOver(filename):
+		return
 	
 	EXPORT_APPLY_MODIFIERS = Draw.Create(1)
 	EXPORT_ROTX90 = Draw.Create(1)
