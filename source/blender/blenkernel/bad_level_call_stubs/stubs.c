@@ -323,6 +323,4 @@ void antialias_tagbuf(int xsize, int ysize, char *rectmove) {}
 /* imagetexture.c stub */
 void ibuf_sample(struct ImBuf *ibuf, float fx, float fy, float dx, float dy, float *result) {}
 
-void update_for_newframe()
-{
-}
+void update_for_newframe() {}

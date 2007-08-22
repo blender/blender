@@ -63,6 +63,8 @@ struct Script;
 struct Text;
 struct IpoDriver; /* DNA_curve_types.h */
 struct Object;
+struct bPythonConstraint;
+struct bConstraintOb;
 void BPY_do_pyscript (struct ID *id, short int event);
 void BPY_clear_script (struct Script *script);
 void BPY_free_compiled_text (struct Text *text);
@@ -72,6 +74,10 @@ float BPY_pydriver_eval(struct IpoDriver *driver);
 void BPY_pydriver_update(void);
 /* button python evaluation */
 int BPY_button_eval(char *expr, double *value);
+void BPY_pyconstraint_eval(struct bPythonConstraint *con, float ownermat[][4], float targetmat[][4]);
+void BPY_pyconstraint_driver(struct bPythonConstraint *con, struct bConstraintOb *cob, struct Object *target, char subtarget[]);
+int BPY_pyconstraint_targets(struct bPythonConstraint *con, float targetmat[][4]);
+
 
 /* writefile.c */
 struct Oops;
@@ -179,6 +185,9 @@ void post_tag_change(struct VTag *vtag);
 void post_taggroup_create(struct VTagGroup *vtaggroup);
 char *verse_client_name(void);
 void post_transform(struct VNode *vnode);
+void post_transform_pos(struct VNode *vnode);
+void post_transform_rot(struct VNode *vnode);
+void post_transform_scale(struct VNode *vnode);
 void post_object_free_constraint(struct VNode *vnode);
 void post_link_set(struct VLink *vlink);
 void post_link_destroy(struct VLink *vlink);
