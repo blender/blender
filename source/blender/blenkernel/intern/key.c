@@ -1386,3 +1386,23 @@ KeyBlock *ob_get_keyblock(Object *ob)
 
 	return NULL;
 }
+
+/* get the appropriate KeyBlock given an index */
+KeyBlock *key_get_keyblock(Key *key, int index)
+{
+	KeyBlock *kb;
+	int i;
+	
+	if (key) {
+		kb= key->block.first;
+		
+		for (i= 1; i < key->totkey; i++) {
+			kb= kb->next;
+			
+			if (index==i)
+				return kb;
+		}
+	}
+	
+	return NULL;
+}

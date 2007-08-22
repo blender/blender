@@ -1652,20 +1652,20 @@ static void clever_keyblock_names (Key *key, short *mval)
 	 * an invalid key number (and we don't deal
 	 * with the speed ipo).
 	 */
-
+	
     keynum = get_nearest_key_num(key, mval, &x);
     if ( (keynum < 1) || (keynum >= key->totkey) )
         return;
-
-	kb= key->block.first;
-	for (i=0; i<keynum; ++i) kb = kb->next; 
-
-	if (kb->name[0] == '\0') {
+		
+	kb= key_get_keyblock(key, keynum);
+	if (kb == NULL)
+		return;
+	
+	
+	if (kb->name[0] == '\0')
 		sprintf(str, "Key %d", keynum);
-	}
-	else {
+	else
 		strcpy(str, kb->name);
-	}
 
 	if ( (kb->slidermin >= kb->slidermax) ) {
 		kb->slidermin = 0.0;

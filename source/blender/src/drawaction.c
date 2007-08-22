@@ -160,14 +160,14 @@ static void meshactionbuts(SpaceAction *saction, Object *ob, Key *key)
 
 		glRects(NAMEWIDTH,  0,  NAMEWIDTH+SLIDERWIDTH,  curarea->winy);
 		uiBlockSetEmboss(block, UI_EMBOSS);
-		for (i=1 ; i < key->totkey ; ++ i) {
+		for (i=1; i < key->totkey; i++) {
 			make_rvk_slider(block, ob, i, 
 							x, y, SLIDERWIDTH-2, CHANNELHEIGHT-1, "Slider to control Shape Keys");
 
 			y-=CHANNELHEIGHT+CHANNELSKIP;
 			
 			/* see sliderval array in editkey.c */
-			if(i>=255) break;
+			if(i >= 255) break;
 		}
 	}
 	uiDrawBlock(block);
