@@ -25,7 +25,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): 2007, Joshua Leung, Action Editor Recode
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -41,14 +41,16 @@
 #define ACTWIDTH 		(G.saction->actwidth)
 
 /* Some types for easier type-testing */
-#define ACTTYPE_NONE		0
-#define ACTTYPE_ACHAN		1
-#define ACTTYPE_CONCHAN		2
-#define ACTTYPE_ICU			3
-#define ACTTYPE_FILLIPO		4
-#define ACTTYPE_FILLCON		5
-#define ACTTYPE_IPO			6
-#define ACTTYPE_SHAPEKEY	7
+enum {
+	ACTTYPE_NONE= 0,
+	ACTTYPE_ACHAN,
+	ACTTYPE_CONCHAN,
+	ACTTYPE_ICU,
+	ACTTYPE_FILLIPO,
+	ACTTYPE_FILLCON,
+	ACTTYPE_IPO,
+	ACTTYPE_SHAPEKEY
+};
 
 /* Macros for easier/more consistant state testing */
 #define VISIBLE_ACHAN(achan) ((achan->flag & ACHAN_HIDDEN)==0)
@@ -68,17 +70,27 @@
 #define NLA_IPO_SCALED (OBACT && OBACT->action && G.sipo->pin==0 && G.sipo->actname)
 
 /* constants for setting ipo-interpolation type */
-#define SET_IPO_POPUP    0
-#define SET_IPO_CONSTANT 1
-#define SET_IPO_LINEAR   2
-#define SET_IPO_BEZIER   3
+enum {
+	SET_IPO_MENU = -1,
+	SET_IPO_POPUP = 0,
+	
+	SET_IPO_CONSTANT,
+	SET_IPO_LINEAR,
+	SET_IPO_BEZIER,
+};
+
 
 /* constants for setting ipo-extrapolation type */
-#define SET_EXTEND_POPUP    		10
-#define SET_EXTEND_CONSTANT 		11
-#define SET_EXTEND_EXTRAPOLATION  	12
-#define SET_EXTEND_CYCLIC   		13
-#define SET_EXTEND_CYCLICEXTRAPOLATION   14
+enum {
+	
+	SET_EXTEND_MENU = 9,
+	SET_EXTEND_POPUP = 10,
+	
+	SET_EXTEND_CONSTANT,
+	SET_EXTEND_EXTRAPOLATION,
+	SET_EXTEND_CYCLIC,
+	SET_EXTEND_CYCLICEXTRAPOLATION
+};
 
 struct bAction;
 struct bActionChannel;
@@ -112,7 +124,7 @@ void bottom_sel_action(void);
 
 /* IPO/Handle Types  */
 void sethandles_action_keys(int code);
-void action_set_ipo_flags(int mode);
+void action_set_ipo_flags(short mode, short event);
 
 /* Select */
 void borderselect_action(void);
@@ -122,7 +134,7 @@ void deselect_actionchannels(struct bAction *act, short test);
 int select_channel(struct bAction *act, struct bActionChannel *achan, int selectmode);
 void select_actionchannel_by_name (struct bAction *act, char *name, int select);
 
-/* */
+/* ShapeKey stuff */
 struct Key *get_action_mesh_key(void);
 int get_nearest_key_num(struct Key *key, short *mval, float *x);
 void *get_nearest_act_channel(short mval[], short *ret_type);

@@ -682,13 +682,13 @@ static void do_action_keymenu_intpolmenu(void *arg, int event)
 	switch(event)
 	{
 		case ACTMENU_KEY_INTERP_CONST:
-			action_set_ipo_flags(SET_IPO_CONSTANT);
+			action_set_ipo_flags(SET_IPO_MENU, SET_IPO_CONSTANT);
 			break;
 		case ACTMENU_KEY_INTERP_LINEAR:
-			action_set_ipo_flags(SET_IPO_LINEAR);
+			action_set_ipo_flags(SET_IPO_MENU, SET_IPO_LINEAR);
 			break;
 		case ACTMENU_KEY_INTERP_BEZIER:
-			action_set_ipo_flags(SET_IPO_BEZIER);
+			action_set_ipo_flags(SET_IPO_MENU, SET_IPO_BEZIER);
 			break;
 	}
 
@@ -705,15 +705,15 @@ static uiBlock *action_keymenu_intpolmenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_action_keymenu_intpolmenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Constant", 0, yco-=20, 
+					 "Constant|Shift T, 1", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_KEY_INTERP_CONST, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Linear", 0, yco-=20, 
+					 "Linear|Shift T, 2", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_KEY_INTERP_LINEAR, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Bezier", 0, yco-=20, 
+					 "Bezier|Shift T, 3", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_KEY_INTERP_BEZIER, "");
 
@@ -728,16 +728,16 @@ static void do_action_keymenu_extendmenu(void *arg, int event)
 	switch(event)
 	{
 		case ACTMENU_KEY_EXTEND_CONST:
-			action_set_ipo_flags(SET_EXTEND_CONSTANT);
+			action_set_ipo_flags(SET_EXTEND_MENU, SET_EXTEND_CONSTANT);
 			break;
 		case ACTMENU_KEY_EXTEND_EXTRAPOLATION:
-			action_set_ipo_flags(SET_EXTEND_EXTRAPOLATION);
+			action_set_ipo_flags(SET_EXTEND_MENU, SET_EXTEND_EXTRAPOLATION);
 			break;
 		case ACTMENU_KEY_EXTEND_CYCLIC:
-			action_set_ipo_flags(SET_EXTEND_CYCLIC);
+			action_set_ipo_flags(SET_EXTEND_MENU, SET_EXTEND_CYCLIC);
 			break;
 		case ACTMENU_KEY_EXTEND_CYCLICEXTRAPOLATION:
-			action_set_ipo_flags(SET_EXTEND_CYCLICEXTRAPOLATION);
+			action_set_ipo_flags(SET_EXTEND_MENU, SET_EXTEND_CYCLICEXTRAPOLATION);
 			break;
 	}
 

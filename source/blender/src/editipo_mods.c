@@ -872,9 +872,8 @@ void setipotype_ipo(Ipo *ipo, int code)
 void setexprap_ipoloop(Ipo *ipo, int code)
 {
 	IpoCurve *icu;
-
-    	/* Loop through each curve in the Ipo
-     	*/
+	
+    	/* Loop through each curve in the Ipo */
     	for (icu=ipo->curve.first; icu; icu=icu->next)
         	icu->extrap= code;
 }

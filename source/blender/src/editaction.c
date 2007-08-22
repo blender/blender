@@ -1507,13 +1507,13 @@ void clean_action (void)
 /* this function combines several features related to setting 
  * various ipo extrapolation/interpolation
  */
-void action_set_ipo_flags (int mode)
+void action_set_ipo_flags (short mode, short event)
 {
 	ListBase act_data = {NULL, NULL};
 	bActListElem *ale;
 	void *data;
 	short datatype;
-	int filter, event;
+	int filter;
 	
 	/* determine what type of data we are operating on */
 	data = get_action_context(&datatype);
@@ -1530,7 +1530,7 @@ void action_set_ipo_flags (int mode)
 						   "Extrapolation %x12|"
 						   "Cyclic %x13|"
 						   "Cyclic extrapolation %x14");
-			if(event < 1) return;
+			if (event < 1) return;
 		}
 			break;
 		case SET_IPO_POPUP:
@@ -1541,8 +1541,12 @@ void action_set_ipo_flags (int mode)
 						   "Constant %x1|"
 						   "Linear %x2|"
 						   "Bezier %x3");
-			if(event < 1) return;
+			if (event < 1) return;
 		}
+			break;
+			
+		case SET_IPO_MENU:	/* called from menus */
+		case SET_EXTEND_MENU:
 			break;
 			
 		default: /* weird, unhandled case */
@@ -1550,7 +1554,7 @@ void action_set_ipo_flags (int mode)
 	}
 	
 	/* filter data */
-	filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT | ACTFILTER_IPOKEYS);
+	filter= (ACTFILTER_VISIBLE | ACTFILTER_SEL | ACTFILTER_FOREDIT | ACTFILTER_IPOKEYS);
 	actdata_filter(&act_data, filter, data, datatype);
 	
 	/* loop through setting flags */
@@ -1560,6 +1564,7 @@ void action_set_ipo_flags (int mode)
 		/* depending on the mode */
 		switch (mode) {
 			case SET_EXTEND_POPUP: /* extrapolation */
+			case SET_EXTEND_MENU:
 			{
 				switch (event) {
 					case SET_EXTEND_CONSTANT:
@@ -1578,6 +1583,7 @@ void action_set_ipo_flags (int mode)
 			}
 				break;
 			case SET_IPO_POPUP: /* interpolation */
+			case SET_IPO_MENU:
 			{
 				setipotype_ipo(ipo, event);
 			}
@@ -2824,7 +2830,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	short val= evt->val;
 	short mousebut = L_MOUSE;
 
-	if(curarea->win==0) return;
+	if (curarea->win==0) return;
 
 	saction= curarea->spacedata.first;
 	if (!saction)
@@ -3020,7 +3026,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		
 		case TKEY:
 			if (G.qual & LR_SHIFTKEY)
-				action_set_ipo_flags(SET_IPO_POPUP);
+				action_set_ipo_flags(SET_IPO_POPUP, 0);
 			else if (G.qual & LR_CTRLKEY) {
 				val= pupmenu("Time value%t|Frames %x1|Seconds%x2");
 				
