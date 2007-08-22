@@ -2084,29 +2084,29 @@ static void world_panel_mistaph(World *wrld)
 #endif
 
 	uiBlockSetCol(block, TH_BUT_SETTING1);
-	uiDefButBitS(block, TOG, WO_MIST, REDRAWVIEW3D,"Mist",	10,120,140,19, &wrld->mode, 0, 0, 0, 0, "Toggles mist simulation");
+	uiDefButBitS(block, TOG, WO_MIST, B_WORLDPRV2,"Mist",	10,120,140,19, &wrld->mode, 0, 0, 0, 0, "Toggles mist simulation");
 	uiBlockSetCol(block, TH_AUTO);
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, B_DIFF, "Qua", 10, 90, 40, 19, &wrld->mistype, 1.0, 0.0, 0, 0, "Mist uses quadratic progression");
-	uiDefButS(block, ROW, B_DIFF, "Lin", 50, 90, 50, 19, &wrld->mistype, 1.0, 1.0, 0, 0, "Mist uses linear progression");
-	uiDefButS(block, ROW, B_DIFF, "Sqr", 100, 90, 50, 19, &wrld->mistype, 1.0, 2.0, 0, 0, "Mist uses inverse quadratic progression");
+	uiDefButS(block, ROW, B_WORLDPRV2, "Qua", 10, 90, 40, 19, &wrld->mistype, 1.0, 0.0, 0, 0, "Mist uses quadratic progression");
+	uiDefButS(block, ROW, B_WORLDPRV2, "Lin", 50, 90, 50, 19, &wrld->mistype, 1.0, 1.0, 0, 0, "Mist uses linear progression");
+	uiDefButS(block, ROW, B_WORLDPRV2, "Sqr", 100, 90, 50, 19, &wrld->mistype, 1.0, 2.0, 0, 0, "Mist uses inverse quadratic progression");
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM,REDRAWVIEW3D, "Sta:",10,70,140,19, &wrld->miststa, 0.0, 1000.0, 10, 0, "Specifies the starting distance of the mist");
-	uiDefButF(block, NUM,REDRAWVIEW3D, "Di:",10,50,140,19, &wrld->mistdist, 0.0,1000.0, 10, 00, "Specifies the depth of the mist");
-	uiDefButF(block, NUM,B_DIFF,"Hi:",		10,30,140,19, &wrld->misthi,0.0,100.0, 10, 0, "Specifies the factor for a less dense mist with increasing height");
-	uiDefButF(block, NUMSLI, B_DIFF, "Misi ",		10,10,140,19,	&(wrld->misi), 0., 1.0, 0, 0, "Sets the mist intensity");
+	uiDefButF(block, NUM,B_WORLDPRV2, "Sta:",10,70,140,19, &wrld->miststa, 0.0, 1000.0, 10, 0, "Specifies the starting distance of the mist");
+	uiDefButF(block, NUM,B_WORLDPRV2, "Di:",10,50,140,19, &wrld->mistdist, 0.0,1000.0, 10, 00, "Specifies the depth of the mist");
+	uiDefButF(block, NUM,B_WORLDPRV2,"Hi:",		10,30,140,19, &wrld->misthi,0.0,100.0, 10, 0, "Specifies the factor for a less dense mist with increasing height");
+	uiDefButF(block, NUMSLI, B_WORLDPRV2, "Misi ",		10,10,140,19,	&(wrld->misi), 0., 1.0, 0, 0, "Sets the mist intensity");
 	uiBlockEndAlign(block);
 
 	uiBlockSetCol(block, TH_BUT_SETTING1);
-	uiDefButBitS(block, TOG, WO_STARS, REDRAWVIEW3D,	"Stars",160,120,140,19, &wrld->mode, 0, 0, 0, 0, "Toggles starfield generation");
+	uiDefButBitS(block, TOG, WO_STARS, B_WORLDPRV2,	"Stars",160,120,140,19, &wrld->mode, 0, 0, 0, 0, "Toggles starfield generation");
 	uiBlockSetCol(block, TH_AUTO);
 	
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM,B_DIFF,"StarDist:",	160,70,140,19, &(wrld->stardist), 2.0, 1000.0, 100, 0, "Specifies the average distance between any two stars");
-	uiDefButF(block, NUM,B_DIFF,"MinDist:",		160,50,140,19, &(wrld->starmindist), 0.0, 1000.0, 100, 0, "Specifies the minimum distance to the camera for stars");
-	uiDefButF(block, NUMSLI,B_DIFF,"Size:",		160,30,140,19, &(wrld->starsize), 0.0, 10.0, 10, 0, "Specifies the average screen dimension of stars");
-	uiDefButF(block, NUMSLI,B_DIFF,"Colnoise:",	160,10,140,19, &(wrld->starcolnoise), 0.0, 1.0, 100, 0, "Randomizes star color");
+	uiDefButF(block, NUM,B_WORLDPRV2,"StarDist:",	160,70,140,19, &(wrld->stardist), 2.0, 1000.0, 100, 0, "Specifies the average distance between any two stars");
+	uiDefButF(block, NUM,B_WORLDPRV2,"MinDist:",		160,50,140,19, &(wrld->starmindist), 0.0, 1000.0, 100, 0, "Specifies the minimum distance to the camera for stars");
+	uiDefButF(block, NUMSLI,B_WORLDPRV2,"Size:",		160,30,140,19, &(wrld->starsize), 0.0, 10.0, 10, 0, "Specifies the average screen dimension of stars");
+	uiDefButF(block, NUMSLI,B_WORLDPRV2,"Colnoise:",	160,10,140,19, &(wrld->starcolnoise), 0.0, 1.0, 100, 0, "Randomizes star color");
 	uiBlockEndAlign(block);
 
 }
@@ -2827,6 +2827,11 @@ void do_matbuts(unsigned short event)
 	case B_WORLDPRV:
 		BIF_preview_changed(ID_WO);
 		allqueue(REDRAWBUTSSHADING, 0);
+		break;
+	case B_WORLDPRV2:
+		BIF_preview_changed(ID_WO);
+		allqueue(REDRAWBUTSSHADING, 0);
+		allqueue(REDRAWVIEW3D, 0);
 		break;
 	case B_MATHALO:
 		/* when halo is disabled, clear star flag, this is the same as MA_FACETEXTURE <blush> */

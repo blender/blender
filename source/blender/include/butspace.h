@@ -209,6 +209,9 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_MAT_VCOL_PAINT	1222
 #define B_MAT_VCOL_LIGHT	1223
 
+	/* world buttons: buttons-preview update, and redraw 3dview */
+#define B_WORLDPRV2		1224
+
 /* *********************** */
 #define B_TEXBUTS		1400
 
