@@ -36,10 +36,12 @@
 
 #include "DNA_action_types.h"
 #include "DNA_color_types.h"
+#include "DNA_customdata_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_ID.h"
 #include "DNA_image_types.h"
 #include "DNA_material_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_node_types.h"
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
@@ -88,6 +90,49 @@
 #include "interface.h"	/* urm...  for rasterpos_safe, roundbox */
 #include "mydevice.h"
 
+extern void autocomplete_uv(char *str, void *arg_v);
+extern int verify_valid_uv_name(char *str);
+
+/* autocomplete callback for buttons */
+static void autocomplete_vcol(char *str, void *arg_v)
+{
+	Mesh *me;
+	CustomDataLayer *layer;
+	AutoComplete *autocpl;
+	int a;
+
+	if(str[0]==0)
+		return;
+
+	autocpl= autocomplete_begin(str, 32);
+		
+	/* search if str matches the beginning of name */
+	for(me= G.main->mesh.first; me; me=me->id.next)
+		for(a=0, layer= me->fdata.layers; a<me->fdata.totlayer; a++, layer++)
+			if(layer->type == CD_MCOL)
+				autocomplete_do_name(autocpl, layer->name);
+	
+	autocomplete_end(autocpl, str);
+}
+
+static int verify_valid_vcol_name(char *str)
+{
+	Mesh *me;
+	CustomDataLayer *layer;
+	int a;
+	
+	if(str[0]==0)
+		return 1;
+
+	/* search if str matches the name */
+	for(me= G.main->mesh.first; me; me=me->id.next)
+		for(a=0, layer= me->fdata.layers; a<me->fdata.totlayer; a++, layer++)
+			if(layer->type == CD_MCOL)
+				if(strcmp(layer->name, str)==0)
+					return 1;
+	
+	return 0;
+}
 
 static void snode_drawstring(SpaceNode *snode, char *str, int okwidth)
 {
@@ -606,10 +651,20 @@ static int node_shader_buts_vect_math(uiBlock *block, bNodeTree *ntree, bNode *n
 static int node_shader_buts_geometry(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
+		uiBut *but;
 		NodeGeometry *ngeo= (NodeGeometry*)node->storage;
 
-		uiDefBut(block, TEX, B_NODE_EXEC+node->nr, "UV:", butr->xmin, butr->ymin+20, butr->xmax-butr->xmin, 20, ngeo->uvname, 0, 31, 0, 0, "Set name of UV layer to use, default is active UV layer");
-		uiDefBut(block, TEX, B_NODE_EXEC+node->nr, "Col:", butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, ngeo->colname, 0, 31, 0, 0, "Set name of vertex color layer to use, default is active vertex color layer");
+		if(!verify_valid_uv_name(ngeo->uvname))
+            		uiBlockSetCol(block, TH_REDALERT);
+		but= uiDefBut(block, TEX, B_NODE_EXEC+node->nr, "UV:", butr->xmin, butr->ymin+20, butr->xmax-butr->xmin, 20, ngeo->uvname, 0, 31, 0, 0, "Set name of UV layer to use, default is active UV layer");
+		uiButSetCompleteFunc(but, autocomplete_uv, NULL);
+		uiBlockSetCol(block, TH_AUTO);
+
+		if(!verify_valid_vcol_name(ngeo->colname))
+            		uiBlockSetCol(block, TH_REDALERT);
+		but= uiDefBut(block, TEX, B_NODE_EXEC+node->nr, "Col:", butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, ngeo->colname, 0, 31, 0, 0, "Set name of vertex color layer to use, default is active vertex color layer");
+		uiButSetCompleteFunc(but, autocomplete_vcol, NULL);
+		uiBlockSetCol(block, TH_AUTO);
 	}
 
 	return 40;

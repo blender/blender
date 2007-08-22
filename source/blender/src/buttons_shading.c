@@ -3029,7 +3029,7 @@ static void material_panel_map_to(Material *ma, int from_nodes)
 }
 
 /* autocomplete callback for buttons */
-static void autocomplete_uv(char *str, void *arg_v)
+void autocomplete_uv(char *str, void *arg_v)
 {
 	Mesh *me;
 	CustomDataLayer *layer;
@@ -3050,7 +3050,7 @@ static void autocomplete_uv(char *str, void *arg_v)
 	autocomplete_end(autocpl, str);
 }
 
-static int verify_valid_uv_name(char *str)
+int verify_valid_uv_name(char *str)
 {
 	Mesh *me;
 	CustomDataLayer *layer;
