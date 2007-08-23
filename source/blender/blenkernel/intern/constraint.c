@@ -2126,7 +2126,7 @@ static void evaluate_constraint (bConstraint *constraint, float ownermat[][4], f
 							VecSubf(totmat[0], vec, vec2);
 							Normalize(totmat[0]);
 							VecMulf(totmat[0],-1);
-
+							
 							/* the y axis is fixed */
 							totmat[1][0] = ownermat[1][0];
 							totmat[1][1] = ownermat[1][1];
@@ -2144,7 +2144,7 @@ static void evaluate_constraint (bConstraint *constraint, float ownermat[][4], f
 							VecSubf(totmat[2], vec, vec2);
 							Normalize(totmat[2]);
 							VecMulf(totmat[2],-1);
-
+							
 							/* the y axis is fixed */
 							totmat[1][0] = ownermat[1][0];
 							totmat[1][1] = ownermat[1][1];
@@ -2268,19 +2268,18 @@ static void evaluate_constraint (bConstraint *constraint, float ownermat[][4], f
 				totmat[0][0] = tmpmat[0][0];totmat[0][1] = tmpmat[0][1];totmat[0][2] = tmpmat[0][2];
 				totmat[1][0] = tmpmat[1][0];totmat[1][1] = tmpmat[1][1];totmat[1][2] = tmpmat[1][2];
 				totmat[2][0] = tmpmat[2][0];totmat[2][1] = tmpmat[2][1];totmat[2][2] = tmpmat[2][2];
-
+				
 				Mat4CpyMat4(tmat, ownermat);
-
+				
 				mdet = Det3x3(	totmat[0][0],totmat[0][1],totmat[0][2],
 								totmat[1][0],totmat[1][1],totmat[1][2],
 								totmat[2][0],totmat[2][1],totmat[2][2]);
-				if (mdet==0)
-				{
+				if (mdet==0) {
 					totmat[0][0] = 1;totmat[0][1] = 0;totmat[0][2] = 0;
 					totmat[1][0] = 0;totmat[1][1] = 1;totmat[1][2] = 0;
 					totmat[2][0] = 0;totmat[2][1] = 0;totmat[2][2] = 1;
 				}
-
+				
 				/* apply out transformaton to the object */
 				Mat4MulMat34(ownermat, totmat, tmat);
 			}
@@ -2349,7 +2348,7 @@ static void evaluate_constraint (bConstraint *constraint, float ownermat[][4], f
                 //dist = VecLenf( ob->obmat[3], targetmat[3]);
 
                 if (data->orglength == 0)  data->orglength = dist;
-                if (data->bulge ==0) data->bulge = 1.0;
+                if (data->bulge == 0) data->bulge = 1.0;
 
                 scale[1] = dist/data->orglength;
                 switch (data->volmode) {

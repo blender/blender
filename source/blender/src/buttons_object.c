@@ -564,13 +564,15 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 	/* open/close */
 	uiDefIconButBitS(block, ICONTOG, CONSTRAINT_EXPAND, B_CONSTRAINT_TEST, ICON_DISCLOSURE_TRI_RIGHT, *xco-10, *yco, 20, 20, &con->flag, 0.0, 0.0, 0.0, 0.0, "Collapse/Expand Constraint");
 	
-	/* up down */
+	/* up/down */
+	uiBlockBeginAlign(block);
 	uiBlockSetEmboss(block, UI_EMBOSS);
-	but = uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, VICON_MOVE_UP, *xco+width-50, *yco, 16, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Move modifier up in stack");
+	but = uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, VICON_MOVE_UP, *xco+width-50, *yco, 16, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Move constraint up in constraint stack");
 	uiButSetFunc(but, constraint_moveUp, ob, con);
 	
-	but = uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, VICON_MOVE_DOWN, *xco+width-50+20, *yco, 16, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Move modifier down in stack");
+	but = uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, VICON_MOVE_DOWN, *xco+width-50+18, *yco, 16, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Move constraint down in constraint stack");
 	uiButSetFunc(but, constraint_moveDown, ob, con);
+	uiBlockEndAlign(block);
 	
 	if (con->flag & CONSTRAINT_EXPAND) {
 		if (con->flag & CONSTRAINT_DISABLE)

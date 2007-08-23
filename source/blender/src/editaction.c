@@ -1643,7 +1643,7 @@ void sethandles_action_keys (int code)
 static void clever_keyblock_names (Key *key, short *mval)
 {
     KeyBlock   *kb;
-	int        but=0, i, keynum;
+	int        but=0, keynum;
     char       str[64];
 	float      x;
 	
@@ -1660,7 +1660,6 @@ static void clever_keyblock_names (Key *key, short *mval)
 	kb= key_get_keyblock(key, keynum);
 	if (kb == NULL)
 		return;
-	
 	
 	if (kb->name[0] == '\0')
 		sprintf(str, "Key %d", keynum);
