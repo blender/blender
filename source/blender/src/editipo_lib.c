@@ -150,15 +150,11 @@ char *getname_ipocurve(IpoCurve *icu, Object *ob)
 				Key *key= ob_get_key(ob);
 				KeyBlock *kb= key_get_keyblock(key, icu->adrcode);
 				
-				if (kb) {
-					/* only return name if it has been set, otherwise use 
-					 * default method using static string (Key #)
-					 */
-					if (kb->name[0] == '\0')
-						break; /* stop looping through keyblocks */
-					else
-						return kb->name; /* return keyblock's name  */
-				}
+				/* only return name if it has been set, otherwise use 
+				 * default method using static string (Key #)
+				 */
+				if ((kb) && (kb->name[0] != '\0'))
+					return kb->name; /* return keyblock's name  */
 				
 				/* in case keyblock is not named or no key/keyblock was found */
 				sprintf(name, "Key %d", icu->adrcode);
