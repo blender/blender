@@ -161,7 +161,6 @@ def increment_string(t):
 		name = name[:-1]
 	if num:	return '%s%d' % (name, int(num)+1)	
 	else:	return name + '_0'
-	
 
 # storage classes
 class my_bone_class:
@@ -256,6 +255,25 @@ class my_bone_class:
 def mat4x4str(mat):
 	return '%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f,%.15f' % tuple([ f for v in mat for f in v ])
 
+def meshNormalizedWeights(me):
+	try: # account for old bad BPyMesh
+		groupNames, vWeightList = BPyMesh.meshWeight2List(me)
+	except:
+		return [],[]
+	
+	if not groupNames:
+		return [],[]
+	
+	for i, vWeights in enumerate(vWeightList):
+		tot = 0.0
+		for w in vWeights:
+			tot+=w
+		
+		if tot:
+			for j, w in enumerate(vWeights):
+				vWeights[j] = w/tot
+	
+	return groupNames, vWeightList
 
 header_comment = \
 '''; FBX 6.1.0 project file
@@ -1007,7 +1025,8 @@ def write(filename, batch_objects = None, \
 	}''')
 	
 	# in the example was 'Bip01 L Thigh_2'
-	def write_sub_deformer_skin(obname, group_name, bone, me, matrix_mod):
+	#def write_sub_deformer_skin(obname, group_name, bone, me, matrix_mod):
+	def write_sub_deformer_skin(obname, group_name, bone, weights, matrix_mod):
 		'''
 		Each subdeformer is spesific to a mesh, but the bone it links to can be used by many sub-deformers
 		So the SubDeformer needs the mesh-object name as a prefix to make it unique
@@ -1028,7 +1047,10 @@ def write(filename, batch_objects = None, \
 		UserData: "", ""''')
 		
 		try:
-			vgroup_data = me.getVertsFromGroup(bone.name, 1)
+			# Before we used normalized wright list
+			#vgroup_data = me.getVertsFromGroup(bone.name, 1)
+			group_index = weights[0].index(bone.name)
+			vgroup_data = [(j, weight[group_index]) for j, weight in enumerate(weights[1]) if weight[group_index]] 
 		except:
 			vgroup_data = []
 		
@@ -1040,7 +1062,7 @@ def write(filename, batch_objects = None, \
 				file.write('%i'  % vg[0])
 				i=0
 			else:
-				if i==38:
+				if i==23:
 					file.write('\n\t\t')
 					i=0
 				file.write(',%i' % vg[0])
@@ -1699,6 +1721,10 @@ Objects:  {''')
 		write_texture(texname, tex, i)
 		i+=1
 	
+	# Get normalized weights for temorary use
+	# NOTE - c4d and motionbuilder dont need normalized weights, but deep-exploration 5 does and (max?) do.
+	tmp_normalized_weights = dict([(me.name, meshNormalizedWeights(me)) for obname, ob, mtx, me, mats, arm, armname in ob_meshes])
+	
 	# Write armature modifiers
 	# TODO - add another MODEL? - because of this skin definition.
 	for obname, ob, mtx, me, mats, arm, armname in ob_meshes:
@@ -1709,7 +1735,8 @@ Objects:  {''')
 		for mybone in ob_bones:
 			if me in mybone.blenMeshes.itervalues():
 				#write_sub_deformer_skin(obname, bonename, bone, me, armob.matrixWorld)
-				write_sub_deformer_skin(obname, mybone.fbxName, mybone.blenBone, me, mybone.blenArmature.matrixWorld)
+				#write_sub_deformer_skin(obname, mybone.fbxName, mybone.blenBone, me, mybone.blenArmature.matrixWorld)
+				write_sub_deformer_skin(obname, mybone.fbxName, mybone.blenBone, tmp_normalized_weights[me.name], mybone.blenArmature.matrixWorld)
 	
 	# Write pose's really weired, only needed when an armature and mesh are used together
 	# each by themselves dont need pose data. for now only pose meshes and bones
@@ -1964,11 +1991,6 @@ Connections:  {''')
 				# unlikely to ever happen but if no actions applied to armatures, just use the last compatible armature.
 				if not action_default:
 					action_default = action_lastcompat
-				
-		if action_default:
-			file.write('\n\tCurrent: "%s"' % sane_takename(action_default))
-		else:
-			file.write('\n\tCurrent: "Default Take"')
 		
 		del action_lastcompat
 		
@@ -1977,6 +1999,11 @@ Connections:  {''')
 ;----------------------------------------------------
 
 Takes:  {''')
+		
+		if action_default:
+			file.write('\n\tCurrent: "%s"' % sane_takename(action_default))
+		else:
+			file.write('\n\tCurrent: "Default Take"')
 		
 		for blenAction in tmp_actions:
 			# we have tagged all actious that are used be selected armatures
@@ -2006,9 +2033,9 @@ Takes:  {''')
 						# print '\t\tSetting Action!', blenAction
 				# sce.update(1)
 			
-			# file.write('\n\t\tFileName: "Default_Take.tak"') # ??? - not sure why this is needed
-			file.write('\n\t\tLocalTime: %i,%i"' % (fbx_time(act_start-1), fbx_time(act_end-1))) # ??? - not sure why this is needed
-			file.write('\n\t\tReferenceTime: %i,%i"' % (fbx_time(act_start-1), fbx_time(act_end-1))) # ??? - not sure why this is needed
+			file.write('\n\t\tFileName: "Default_Take.tak"') # ??? - not sure why this is needed
+			file.write('\n\t\tLocalTime: %i,%i' % (fbx_time(act_start-1), fbx_time(act_end-1))) # ??? - not sure why this is needed
+			file.write('\n\t\tReferenceTime: %i,%i' % (fbx_time(act_start-1), fbx_time(act_end-1))) # ??? - not sure why this is needed
 			
 			file.write('''
 
@@ -2053,7 +2080,7 @@ Takes:  {''')
 						# Loop on each axis of the bone
 						file.write('\n\t\t\t\t\tChannel: "%s" {'% ('XYZ'[i])) # translation
 						file.write('\n\t\t\t\t\t\tDefault: %.15f' % context_bone_anim_vecs[0][i] )
-						file.write('\n\t\t\t\t\t\tKeyVer: 4004')
+						file.write('\n\t\t\t\t\t\tKeyVer: 4005')
 						
 						if not ANIM_OPTIMIZE:
 							# Just write all frames, simple but in-eficient
@@ -2064,7 +2091,10 @@ Takes:  {''')
 								if frame!=act_start:
 									file.write(',')
 								
+								# Curve types are 
+								# C,n is for bezier? - linear is best for now so we can do simple keyframe removal
 								file.write('\n\t\t\t\t\t\t\t%i,%.15f,C,n'  % (fbx_time(frame-1), context_bone_anim_vecs[frame-act_start][i] ))
+								#file.write('\n\t\t\t\t\t\t\t%i,%.15f,L'  % (fbx_time(frame-1), context_bone_anim_vecs[frame-act_start][i] ))
 								frame+=1
 						else:
 							# remove unneeded keys, j is the frame, needed when some frames are removed.
@@ -2079,16 +2109,18 @@ Takes:  {''')
 									del context_bone_anim_keys[j]
 							
 							if len(context_bone_anim_keys) == 2 and context_bone_anim_keys[0][0] == context_bone_anim_keys[1][0]:
-								# This axis has no moton
-								context_bone_anim_keys = []
-							
-							file.write('\n\t\t\t\t\t\tKeyCount: %i' % len(context_bone_anim_keys))
-							file.write('\n\t\t\t\t\t\tKey: ')					
-							for val, frame in context_bone_anim_keys: 
-								if frame!=act_start:
-									file.write(',')
-								# frame is alredy one less then blenders frame
-								file.write('\n\t\t\t\t\t\t\t%i,%.15f,C,n'  % (fbx_time(frame), val ))
+								# This axis has no moton, its okay to skip KeyCount and Keys in this case
+								pass
+							else:
+								# We only need to write these if there is at least one 
+								file.write('\n\t\t\t\t\t\tKeyCount: %i' % len(context_bone_anim_keys))
+								file.write('\n\t\t\t\t\t\tKey: ')					
+								for val, frame in context_bone_anim_keys: 
+									if frame!=act_start:
+										file.write(',')
+									# frame is alredy one less then blenders frame
+									file.write('\n\t\t\t\t\t\t\t%i,%.15f,C,n'  % (fbx_time(frame), val ))
+									#file.write('\n\t\t\t\t\t\t\t%i,%.15f,L'  % (fbx_time(frame), val ))
 						
 						if		i==0:	file.write('\n\t\t\t\t\t\tColor: 1,0,0')
 						elif	i==1:	file.write('\n\t\t\t\t\t\tColor: 0,1,0')
@@ -2248,7 +2280,7 @@ def fbx_ui_write(filename):
 	
 	# Keep the order the same as above for simplicity
 	# the [] is a dummy arg used for objects
-	print GLOBALS.keys()
+	
 	write(\
 		filename, None,\
 		GLOBALS['EXP_OBS_SELECTED'].val,\
@@ -2417,7 +2449,7 @@ def write_ui():
 #test = [write_ui]
 if __name__ == '__main__':
 	# Cant call the file selector first because of a bug in the interface that crashes it.
-	#Blender.Window.FileSelector(write_ui, 'Export FBX', Blender.sys.makename(ext='.fbx'))
+	# Blender.Window.FileSelector(write_ui, 'Export FBX', Blender.sys.makename(ext='.fbx'))
 	#write('/scratch/test.fbx')
 	#write_ui('/scratch/test.fbx')
 	write_ui()
