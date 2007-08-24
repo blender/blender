@@ -3024,7 +3024,7 @@ static void object_panel_particles_motion(Object *ob)
 	uiBlockSetCol(block, TH_BUT_SETTING2);
 	uiDefButF(block, NUM, B_CALCEFFECT, "Normal:",		0,140,150,18, &paf->normfac, -2.0, 2.0, 1, 3, "Let the mesh give the particle a starting speed");
 	uiDefButF(block, NUM, B_CALCEFFECT, "Object:",		0,122,150,18, &paf->obfac, -1.0, 1.0, 1, 3, "Let the object give the particle a starting speed");
-	uiDefButF(block, NUM, B_CALCEFFECT, "Random:",		0,104,150,18, &paf->randfac, 0.0, 2.0, 1, 3, "Give the startingspeed a random variation");
+	uiDefButF(block, NUM, B_CALCEFFECT, "Random:",		0,104,150,18, &paf->randfac, 0.0, 2.0, 1, 3, "Give the starting speed a random variation");
 	uiDefButF(block, NUM, B_CALCEFFECT, "Texture:",		0,86,150,18, &paf->texfac, 0.0, 2.0, 1, 3, "Let the texture give the particle a starting speed");
 	uiDefButF(block, NUM, B_CALCEFFECT, "Damping:",		0,68,150,18, &paf->damp, 0.0, 1.0, 1, 3, "Specify the damping factor");
 	uiBlockSetCol(block, TH_AUTO);
