@@ -18,14 +18,16 @@ try:
 	from math import *
 	import sys
 	import random
-	from decimal import *
 	import xml.sax, xml.sax.handler, xml.sax.saxutils
+	
+	# annoying but need so classes dont raise errors
+	xml_sax_handler_ContentHandler = xml.sax.handler.ContentHandler
 
 except:
-	print "One of the Python modules required can't be found."
-	print sys.exc_info()[1]
-	traceback.print_exc(file=sys.stdout)
-	
+	Draw.PupMenu('Error%t|A full python installation is required to run this script.')
+	xml = None
+	xml_sax_handler_ContentHandler = type(0)
+
 __author__ = 'Matthew Chadwick'
 __version__ = '2.2.4 24032007'
 __url__ = ["http://celeriac.net/unfolder/", "blender", "blenderartist"]
@@ -1243,7 +1245,7 @@ class SVGExporter:
 	fileSelected = staticmethod(fileSelected)	
 
 
-class NetHandler(xml.sax.handler.ContentHandler):
+class NetHandler(xml_sax_handler_ContentHandler):
 	def __init__(self, net):
 		self.net = net
 		self.first = (41==41)
@@ -1601,10 +1603,12 @@ class FlowLayout:
 		self.y-=self.ch+self.margin
 		self.x = self.margin
 
-try:
-	sys.setrecursionlimit(10000)
-	gui = GUI()
-	gui.makeStandardGUI()
-	#gui.makePopupGUI()
-except:
-	traceback.print_exc(file=sys.stdout)
+# if xml is None, then dont bother running the script
+if xml:
+	try:
+		sys.setrecursionlimit(10000)
+		gui = GUI()
+		gui.makeStandardGUI()
+		#gui.makePopupGUI()
+	except:
+		traceback.print_exc(file=sys.stdout)
