@@ -40,16 +40,28 @@ will be exported as mesh data.
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
 
+try:
+	import time
+	# import os # only needed for batch export, nbot used yet
+except:
+	time = None # use this to check if they have python modules installed
 
-from math import degrees, atan, pi
-import time
-import os # only needed for batch export
+# for python 2.3 support
+try:
+	set()
+except:
+	try:
+		from sets import Set as set
+	except:
+		set = None # so it complains you dont have a !
+
 
 import Blender
 import bpy
 from Blender.Mathutils import Matrix, Vector, Euler, RotationMatrix, TranslationMatrix
 
 import BPyObject
+reload(BPyObject)
 import BPyMesh
 import BPySys
 import BPyMessages
@@ -243,10 +255,11 @@ class my_bone_class:
 	# end
 	
 	def getAnimMatrix(self, frame):
+		arm_mat = self.blenArmature.matrixWorld
 		if not self.parent:
-			return mtx4_z90 * self.getPoseMatrix(frame)
+			return mtx4_z90 * (self.getPoseMatrix(frame) * arm_mat)
 		else:
-			return (mtx4_z90 * self.getPoseMatrix(frame)) * (mtx4_z90 * self.parent.getPoseMatrix(frame)).invert()
+			return (mtx4_z90 * ((self.getPoseMatrix(frame) * arm_mat)))  *  (mtx4_z90 * (self.parent.getPoseMatrix(frame) * arm_mat)).invert()
 	
 	def flushAnimData(self):
 		self.__anim_poselist.clear()
@@ -345,7 +358,10 @@ def write(filename, batch_objects = None, \
 	
 	# ---------------------------- Write the header first
 	file.write(header_comment)
-	curtime = time.localtime()[0:6]
+	if time:
+		curtime = time.localtime()[0:6]
+	else:
+		curtime = [0,0,0,0,0,0]
 	# 
 	file.write(\
 '''FBXHeaderExtension:  {
@@ -371,7 +387,6 @@ def write(filename, batch_objects = None, \
 	file.write('\nCreator: "Blender3D version %.2f"' % Blender.Get('version'))
 	
 	
-	
 	# --------------- funcs for exporting
 	def object_tx(ob, loc, matrix, matrix_mod = None):
 		'''
@@ -380,11 +395,11 @@ def write(filename, batch_objects = None, \
 		if isinstance(ob, Blender.Types.BoneType):
 			
 			# we know we have a matrix
-			matrix = mtx4_z90 * (matrix_mod * ob.matrix['ARMATURESPACE'])
+			matrix = mtx4_z90 * (ob.matrix['ARMATURESPACE'] * matrix_mod)
 			
 			parent = ob.parent
 			if parent:
-				par_matrix = mtx4_z90 * (matrix_mod * parent.matrix['ARMATURESPACE'].copy())
+				par_matrix = mtx4_z90 * (parent.matrix['ARMATURESPACE'] * matrix_mod)
 				matrix = matrix * par_matrix.copy().invert()
 				
 			matrix_rot =	matrix.rotationPart()
@@ -536,7 +551,7 @@ def write(filename, batch_objects = None, \
 		
 		#file.write('\n\t\t\tProperty: "Size", "double", "",%.6f' % ((bone.head['ARMATURESPACE']-bone.tail['ARMATURESPACE']) * matrix_mod).length)
 		file.write('\n\t\t\tProperty: "Size", "double", "",1')
-		file.write('\n\t\t\tProperty: "LimbLength", "double", "",%.6f' % (bone.head['ARMATURESPACE']-bone.tail['ARMATURESPACE']).length)
+		file.write('\n\t\t\tProperty: "LimbLength", "double", "",%.6f' % ((bone.head['ARMATURESPACE'] * matrix_mod) - (bone.tail['ARMATURESPACE'] * matrix_mod)).length)
 		#file.write('\n\t\t\tProperty: "LimbLength", "double", "",1')
 		file.write('\n\t\t\tProperty: "Color", "ColorRGB", "",0.8,0.8,0.8')
 		file.write('\n\t\t\tProperty: "Color", "Color", "A",0.8,0.8,0.8')
@@ -1082,7 +1097,7 @@ def write(filename, batch_objects = None, \
 			i+=1
 		
 		
-		m = mtx4_z90 * (matrix_mod * bone.matrix['ARMATURESPACE'])
+		m = mtx4_z90 * (bone.matrix['ARMATURESPACE'] * matrix_mod)
 		matstr = mat4x4str(m)
 		matstr_i = mat4x4str(m.invert())
 		
@@ -1097,7 +1112,13 @@ def write(filename, batch_objects = None, \
 
 		file.write('\n\tModel: "Model::%s", "Mesh" {' % obname)
 		file.write('\n\t\tVersion: 232') # newline is added in write_object_props
-		write_object_props(ob, None, mtx)
+		
+		# Apply the mesh matrix because bones arnt applied correctly if we use object transformation
+		# Other then that, object matricies work well on meshes.
+		# if this can be fixd, be sure to remove matrix multiplication on the verts.
+		#write_object_props(ob, None, mtx)
+		write_object_props(ob, None, Matrix()) 
+		
 		file.write('\n\t\t}')
 		file.write('\n\t\tMultiLayer: 0')
 		file.write('\n\t\tMultiTake: 1')
@@ -1109,13 +1130,13 @@ def write(filename, batch_objects = None, \
 		i=-1
 		for v in me.verts:
 			if i==-1:
-				file.write('%.6f,%.6f,%.6f' % tuple(v.co))
+				file.write('%.6f,%.6f,%.6f' % tuple(v.co * mtx))
 				i=0
 			else:
 				if i==7:
 					file.write('\n\t\t')
 					i=0
-				file.write(',%.6f,%.6f,%.6f'% tuple(v.co))
+				file.write(',%.6f,%.6f,%.6f'% tuple(v.co * mtx))
 			i+=1
 		file.write('\n\t\tPolygonVertexIndex: ')
 		i=-1
@@ -1163,17 +1184,19 @@ def write(filename, batch_objects = None, \
 			MappingInformationType: "ByVertice"
 			ReferenceInformationType: "Direct"
 			Normals: ''')
-
+		
+		mtx_rot = mtx.rotationPart()
+		
 		i=-1
 		for v in me.verts:
 			if i==-1:
-				file.write('%.15f,%.15f,%.15f' % tuple(v.no))
+				file.write('%.15f,%.15f,%.15f' % tuple(v.no * mtx_rot))
 				i=0
 			else:
 				if i==2:
 					file.write('\n			 ')
 					i=0
-				file.write(',%.15f,%.15f,%.15f' % tuple(v.no))
+				file.write(',%.15f,%.15f,%.15f' % tuple(v.no * mtx_rot))
 			i+=1
 		file.write('\n\t\t}')
 		
@@ -1515,6 +1538,12 @@ def write(filename, batch_objects = None, \
 					
 					if EXP_ARMATURE:
 						armob = BPyObject.getObjectArmature(ob)
+						
+						# Note - Fixed in BPyObject but for now just copy the function because testers wont have up to date modukes,
+						# TODO - remove this for 2.45 release since getObjectArmature has been fixed
+						if (not armob) and ob.parent and ob.parent.type == 'Armature' and ob.parentType == Blender.Object.ParentTypes.ARMATURE:
+							armob = ob.parent
+						
 						if armob:
 							if armob not in ob_arms: ob_arms.append(armob)
 							armname = sane_obname(armob)
@@ -1692,7 +1721,8 @@ Objects:  {''')
 		write_null(ob, obname)
 	
 	for obname, ob, arm_my_bones, blenActions in ob_arms:
-		write_null(ob, obname) # armatures are just null's with bone children.
+		# Dont pass the object because that writes the armature transformation which is alredy applied to the bones.
+		write_null(None, obname) # armatures are just null's with bone children.
 	
 	for obname, ob in ob_cameras:
 		write_camera(ob, obname)
@@ -1976,7 +2006,9 @@ Connections:  {''')
 					action_default = ob.action
 				
 				arm_bone_names = set([mybone.blenName for mybone in arm_my_bones])
+				
 				for action in tmp_actions:
+					
 					action_chan_names = arm_bone_names.intersection( set(action.getChannelNames()) )
 					
 					if action_chan_names: # at least one channel matches.
@@ -2281,6 +2313,8 @@ def fbx_ui_write(filename):
 	# Keep the order the same as above for simplicity
 	# the [] is a dummy arg used for objects
 	
+	Blender.Window.WaitCursor(1)
+	
 	write(\
 		filename, None,\
 		GLOBALS['EXP_OBS_SELECTED'].val,\
@@ -2302,6 +2336,8 @@ def fbx_ui_write(filename):
 		GLOBALS['BATCH_FILE_PREFIX'].val,\
 		GLOBALS['BATCH_OWN_DIR'].val,\
 	)
+	
+	Blender.Window.WaitCursor(0)
 	GLOBALS.clear()
 	
 
@@ -2452,7 +2488,11 @@ if __name__ == '__main__':
 	# Blender.Window.FileSelector(write_ui, 'Export FBX', Blender.sys.makename(ext='.fbx'))
 	#write('/scratch/test.fbx')
 	#write_ui('/scratch/test.fbx')
-	write_ui()
+	
+	if not set:
+		Draw.PupMenu('Error%t|A full install of python2.3 or python 2.4+ is needed to run this script.')
+	else:
+		write_ui()
 
 
 	
