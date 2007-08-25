@@ -1318,7 +1318,28 @@ PyObject *Armature_CreatePyObject(struct bArmature *armature)
 	PyObject *maindict = NULL, *weakref = NULL;
 	PyObject *armlist = NULL;  /* list of armature weak refs */
 	char *list_name = ARM_WEAKREF_LIST_NAME;
+	int i;
 
+	//put a weakreference in __main__
+	maindict= PyModule_GetDict(PyImport_AddModule(	"__main__"));
+
+	armlist = PyDict_GetItemString(maindict, list_name);
+	if(!armlist) {
+		printf("Oops - can't get the armature weakref list\n");
+		goto RuntimeError;
+	}
+
+	/* see if we alredy have it */
+	for (i=0; i< PyList_Size(armlist); i++) { 
+		py_armature = (BPy_Armature *)PyWeakref_GetObject(PyList_GET_ITEM(armlist, i));
+		if (BPy_Armature_Check(py_armature) && py_armature->armature == armature) {
+			Py_INCREF(py_armature);
+			/*printf("reusing armature\n");*/
+			return (PyObject *)py_armature;
+		}
+	}
+
+	
 	/*create armature type*/
 	py_armature = PyObject_NEW( BPy_Armature, &Armature_Type );
 	
@@ -1336,19 +1357,13 @@ PyObject *Armature_CreatePyObject(struct bArmature *armature)
 		printf("Oops - creating armature.bones\n");
 		goto RuntimeError;
 	}
-
-	//put a weakreference in __main__
-	maindict= PyModule_GetDict(PyImport_AddModule(	"__main__"));
-
-	armlist = PyDict_GetItemString(maindict, list_name);
-	if( armlist){
-		weakref = PyWeakref_NewProxy((PyObject*)py_armature, arm_weakref_callback_weakref_dealloc__pyfunc);
-		if (PyList_Append(armlist, weakref) == -1){
-			printf("Oops - list-append failed\n");
-			goto RuntimeError;
-		}
-		Py_DECREF(weakref);
+	
+	weakref = PyWeakref_NewProxy((PyObject*)py_armature, arm_weakref_callback_weakref_dealloc__pyfunc);
+	if (PyList_Append(armlist, weakref) == -1){
+		printf("Oops - list-append failed\n");
+		goto RuntimeError;
 	}
+	Py_DECREF(weakref);
 
 	return (PyObject *) py_armature;
 
