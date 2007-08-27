@@ -1358,7 +1358,7 @@ PyObject *Armature_CreatePyObject(struct bArmature *armature)
 		goto RuntimeError;
 	}
 	
-	weakref = PyWeakref_NewProxy((PyObject*)py_armature, arm_weakref_callback_weakref_dealloc__pyfunc);
+	weakref = PyWeakref_NewRef((PyObject*)py_armature, arm_weakref_callback_weakref_dealloc__pyfunc);
 	if (PyList_Append(armlist, weakref) == -1){
 		printf("Oops - list-append failed\n");
 		goto RuntimeError;
