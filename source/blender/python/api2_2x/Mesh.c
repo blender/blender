@@ -6146,13 +6146,16 @@ static PyObject *Mesh_getFromObject( BPy_Mesh * self, PyObject * args )
 		/* get updated display list, and convert to a mesh */
 		makeDispListCurveTypes( tmpobj, 0 );
 		nurbs_to_mesh( tmpobj );
-		tmpmesh = tmpobj->data;
-		free_libblock_us( &G.main->object, tmpobj );
 		
-		if (ob->type != OB_MESH)
+		/* nurbs_to_mesh changes the type tp a mesh, check it worked */
+		if (tmpobj->type != OB_MESH) {
+			free_libblock_us( &G.main->object, tmpobj );
 			return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"cant convert curve to mesh. Does the curve have any segments?" );
- 		break;
+		}
+		tmpmesh = tmpobj->data;
+		free_libblock_us( &G.main->object, tmpobj );
+		break;
  	case OB_MBALL:
 		/* metaballs don't have modifiers, so just convert to mesh */
 		ob = find_basis_mball( ob );
