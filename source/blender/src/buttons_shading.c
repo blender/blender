@@ -3547,7 +3547,7 @@ static uiBlock *strand_menu(void *mat_v)
 	uiDefButF(block, NUMSLI, 0, "Shape ",	10, 10, 230,20,  &ma->strand_ease, -0.9, 0.9, 2, 0, "Shape of strands, positive value makes it rounder, negative makes it spiky");
 
 	uiBlockSetDirection(block, UI_TOP);
-	
+	BIF_preview_changed(ID_MA);
 	return block;
 }
 

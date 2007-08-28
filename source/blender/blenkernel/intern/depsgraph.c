@@ -576,7 +576,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 			if(con->type==CONSTRAINT_TYPE_FOLLOWPATH)
 				dag_add_relation(dag, node2, node, DAG_RL_DATA_OB|DAG_RL_OB_OB);
 			else {
-				if(obt->type==OB_ARMATURE && str[0])
+				if(obt->type==OB_ARMATURE && str && str[0])
 					dag_add_relation(dag, node2, node, DAG_RL_DATA_OB|DAG_RL_OB_OB);
 				else
 					dag_add_relation(dag, node2, node, DAG_RL_OB_OB);
