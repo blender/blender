@@ -1187,7 +1187,7 @@ void draw_mesh_textured(Object *ob, DerivedMesh *dm, int faceselect)
 	}
 	else {
 #endif
-		if(G.obedit)
+		if(ob==G.obedit)
 			dm->drawMappedFacesTex(dm, draw_em_tf_mapped__set_draw, G.editMesh);
 		else if(faceselect) {
 			if(G.f & G_WEIGHTPAINT)
