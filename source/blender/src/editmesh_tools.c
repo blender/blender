@@ -756,14 +756,15 @@ void spin_mesh(int steps, float degr, float *dvec, int mode)
 	if(G.scene->toolsettings->editbutflag & B_CLOCKWISE) phi= -phi;
 
 	if(dvec) {
-		n[0]=n[1]= 0.0;
-		n[2]= 1.0;
+		n[0]= G.vd->viewinv[1][0];
+		n[1]= G.vd->viewinv[1][1];
+		n[2]= G.vd->viewinv[1][2];
 	} else {
 		n[0]= G.vd->viewinv[2][0];
 		n[1]= G.vd->viewinv[2][1];
 		n[2]= G.vd->viewinv[2][2];
-		Normalize(n);
 	}
+	Normalize(n);
 
 	q[0]= (float)cos(phi);
 	si= (float)sin(phi);
@@ -824,12 +825,6 @@ void screw_mesh(int steps, int turns)
 
 	TEST_EDITMESH
 	if(multires_test()) return;
-
-	/* first condition: we need frontview! */
-	if(G.vd->view!=1) {
-		error("Must be in Front View");
-		return;
-	}
 	
 	/* clear flags */
 	eve= em->verts.first;
