@@ -38,6 +38,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_edgehash.h"
+#include "BLI_editVert.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -66,7 +67,7 @@
 #include "BKE_property.h"
 #include "BKE_utildefines.h"
 
-#include "BIF_resources.h"
+#include "BIF_editmesh.h"
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 #include "BIF_mywindow.h"
@@ -941,25 +942,81 @@ static int set_draw_settings_cached(int clearcache, int textured, MTFace *texfac
 
 /* Icky globals, fix with userdata parameter */
 
-static Object *g_draw_tface_mesh_ob = NULL;
-static int g_draw_tface_mesh_islight = 0;
-static int g_draw_tface_mesh_istex = 0;
-static unsigned char g_draw_tface_mesh_obcol[4];
+struct TextureDrawState {
+	Object *ob;
+	int islit, istex;
+	unsigned char obcol[4];
+} Gtexdraw = {NULL, 0, 0, {0, 0, 0, 0}};
+
+static void draw_textured_begin(Object *ob)
+{
+	unsigned char obcol[4];
+	int istex, solidtex= 0;
+
+	if(G.vd->drawtype==OB_SOLID || ob==G.obedit) {
+		/* draw with default lights in solid draw mode and edit mode */
+		solidtex= 1;
+		Gtexdraw.islit= -1;
+	}
+	else
+		/* draw with lights in the scene otherwise */
+		Gtexdraw.islit= set_gl_light(ob);
+	
+	obcol[0]= CLAMPIS(ob->col[0]*255, 0, 255);
+	obcol[1]= CLAMPIS(ob->col[1]*255, 0, 255);
+	obcol[2]= CLAMPIS(ob->col[2]*255, 0, 255);
+	obcol[3]= CLAMPIS(ob->col[3]*255, 0, 255);
+	
+	glCullFace(GL_BACK); glEnable(GL_CULL_FACE);
+	if(solidtex || G.vd->drawtype==OB_TEXTURE) istex= 1;
+	else istex= 0;
+
+	Gtexdraw.ob = ob;
+	Gtexdraw.istex = istex;
+	memcpy(Gtexdraw.obcol, obcol, sizeof(obcol));
+	set_draw_settings_cached(1, 0, 0, Gtexdraw.islit, 0, 0, 0);
+
+	glShadeModel(GL_SMOOTH);
+}
+
+static void draw_textured_end()
+{
+	/* switch off textures */
+	set_tpage(0);
+
+	glShadeModel(GL_FLAT);
+	glDisable(GL_CULL_FACE);
+
+	/* XXX, bad patch - default_gl_light() calls
+	 * glLightfv(GL_LIGHT_POSITION, ...) which
+	 * is transformed by the current matrix... we
+	 * need to make sure that matrix is identity.
+	 * 
+	 * It would be better if drawmesh.c kept track
+	 * of and restored the light settings it changed.
+	 *  - zr
+	 */
+	glPushMatrix();
+	glLoadIdentity();	
+	default_gl_light();
+	glPopMatrix();
+}
+
 
 static int draw_tface__set_draw(MTFace *tface, MCol *mcol, int matnr)
 {
 	if (tface && (tface->mode&TF_INVISIBLE)) return 0;
 
-	if (tface && set_draw_settings_cached(0, g_draw_tface_mesh_istex, tface, g_draw_tface_mesh_islight, g_draw_tface_mesh_ob, matnr, TF_TWOSIDE)) {
+	if (tface && set_draw_settings_cached(0, Gtexdraw.istex, tface, Gtexdraw.islit, Gtexdraw.ob, matnr, TF_TWOSIDE)) {
 		glColor3ub(0xFF, 0x00, 0xFF);
 		return 2; /* Don't set color */
 	} else if (tface && tface->mode&TF_OBCOL) {
-		glColor3ubv(g_draw_tface_mesh_obcol);
+		glColor3ubv(Gtexdraw.obcol);
 		return 2; /* Don't set color */
 	} else if (!mcol) {
 		if (tface) glColor3f(1.0, 1.0, 1.0);
 		else {
-			Material *ma= give_current_material(g_draw_tface_mesh_ob, matnr+1);
+			Material *ma= give_current_material(Gtexdraw.ob, matnr+1);
 			if(ma) glColor3f(ma->r, ma->g, ma->b);
 			else glColor3f(1.0, 1.0, 1.0);
 		}
@@ -980,6 +1037,24 @@ static int draw_tface_mapped__set_draw(void *userData, int index)
 	return draw_tface__set_draw(tface, mcol, matnr);
 }
 
+static int draw_em_tf_mapped__set_draw(void *userData, int index)
+{
+	EditMesh *em = userData;
+	EditFace *efa = EM_get_face_for_index(index);
+	MTFace *tface;
+	MCol *mcol;
+	int matnr;
+
+	if (efa==NULL || efa->h)
+		return 0;
+
+	tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+	mcol = CustomData_em_get(&em->fdata, efa->data, CD_MCOL);
+	matnr = efa->mat_nr;
+
+	return draw_tface__set_draw(tface, mcol, matnr);
+}
+
 static int wpaint__setSolidDrawOptions(void *userData, int index, int *drawSmooth_r)
 {
 	Mesh *me = (Mesh*)userData;
@@ -994,199 +1069,158 @@ static int wpaint__setSolidDrawOptions(void *userData, int index, int *drawSmoot
 	return 1;
 }
 
-void draw_tface_mesh(Object *ob, Mesh *me, int dt)
-/* maximum dt (drawtype): exactly according values that have been set */
+static void draw_game_text_mesh(Object *ob, Mesh *me)
 {
-	unsigned char obcol[4];
-	int a;
-	short istex, solidtex=0;
-	DerivedMesh *dm;
+	DerivedMesh *ddm = mesh_get_derived_deform(ob, CD_MASK_BAREMESH);
+	MFace *mface= me->mface;
+	MTFace *tface= me->mtface;
+	MCol *mcol= me->mcol;	/* why does mcol exist? */
+	bProperty *prop = get_property(ob, "Text");
+	int a, start= 0, totface= me->totface;
+
+	tface+= start;
+	mcol+= start*4;
+	for (a=start; a<totface; a++, tface++, mcol+=4) {
+		MFace *mf= &mface[a];
+		int mode= tface->mode;
+		int matnr= mf->mat_nr;
+		int mf_smooth= mf->flag & ME_SMOOTH;
+
+		if (!(mf->flag&ME_HIDE) && !(mode&TF_INVISIBLE) && (mode&TF_BMFONT)) {
+			int badtex= set_draw_settings_cached(0, Gtexdraw.istex, tface, Gtexdraw.islit, Gtexdraw.ob, matnr, TF_TWOSIDE);
+			float v1[3], v2[3], v3[3], v4[3];
+			char string[MAX_PROPSTRING];
+			int characters, index;
+			ImBuf *ibuf;
+			float curpos;
+
+			if (badtex)
+				continue;
+
+			ddm->getVertCo(ddm, mf->v1, v1);
+			ddm->getVertCo(ddm, mf->v2, v2);
+			ddm->getVertCo(ddm, mf->v3, v3);
+			if (mf->v4) ddm->getVertCo(ddm, mf->v4, v4);
+
+			// The BM_FONT handling code is duplicated in the gameengine
+			// Search for 'Frank van Beek' ;-)
+			// string = "Frank van Beek";
+
+			set_property_valstr(prop, string);
+			characters = strlen(string);
+			
+			ibuf= BKE_image_get_ibuf(tface->tpage, NULL);
+			if (ibuf == NULL) {
+				characters = 0;
+			}
+
+			if (!mf_smooth) {
+				float nor[3];
+
+				CalcNormFloat(v1, v2, v3, nor);
+
+				glNormal3fv(nor);
+			}
+
+			curpos= 0.0;
+			glBegin(mf->v4?GL_QUADS:GL_TRIANGLES);
+			for (index = 0; index < characters; index++) {
+				float centerx, centery, sizex, sizey, transx, transy, movex, movey, advance;
+				int character = string[index];
+				char *cp= NULL;
+
+				// lets calculate offset stuff
+				// space starts at offset 1
+				// character = character - ' ' + 1;
+				
+				matrixGlyph(ibuf, character, & centerx, &centery, &sizex, &sizey, &transx, &transy, &movex, &movey, &advance);
+				movex+= curpos;
+
+				if (tface->mode & TF_OBCOL)
+					glColor3ubv(Gtexdraw.obcol);
+				else if (me->mcol) cp= (char *)mcol;
+				else glColor3ub(255, 255, 255);
+
+				glTexCoord2f((tface->uv[0][0] - centerx) * sizex + transx, (tface->uv[0][1] - centery) * sizey + transy);
+				if (cp) glColor3ub(cp[3], cp[2], cp[1]);
+				glVertex3f(sizex * v1[0] + movex, sizey * v1[1] + movey, v1[2]);
+				
+				glTexCoord2f((tface->uv[1][0] - centerx) * sizex + transx, (tface->uv[1][1] - centery) * sizey + transy);
+				if (cp) glColor3ub(cp[7], cp[6], cp[5]);
+				glVertex3f(sizex * v2[0] + movex, sizey * v2[1] + movey, v2[2]);
 	
-	if(me==NULL) return;
+				glTexCoord2f((tface->uv[2][0] - centerx) * sizex + transx, (tface->uv[2][1] - centery) * sizey + transy);
+				if (cp) glColor3ub(cp[11], cp[10], cp[9]);
+				glVertex3f(sizex * v3[0] + movex, sizey * v3[1] + movey, v3[2]);
+	
+				if(mf->v4) {
+					glTexCoord2f((tface->uv[3][0] - centerx) * sizex + transx, (tface->uv[3][1] - centery) * sizey + transy);
+					if (cp) glColor3ub(cp[15], cp[14], cp[13]);
+					glVertex3f(sizex * v4[0] + movex, sizey * v4[1] + movey, v4[2]);
+				}
 
-	dm = mesh_get_derived_final(ob, get_viewedit_datamask());
-
-	glShadeModel(GL_SMOOTH);
-
-	/* option to draw solid texture with default lights */
-	if(dt>OB_WIRE && G.vd->drawtype==OB_SOLID) {
-		solidtex= 1;
-		g_draw_tface_mesh_islight= -1;
+				curpos+= advance;
+			}
+			glEnd();
+		}
 	}
-	else
-		g_draw_tface_mesh_islight= set_gl_light(ob);
+
+	ddm->release(ddm);
+}
+
+void draw_mesh_textured(Object *ob, DerivedMesh *dm, int faceselect)
+{
+	Mesh *me= ob->data;
+	int editing= 0;
 	
-	obcol[0]= CLAMPIS(ob->col[0]*255, 0, 255);
-	obcol[1]= CLAMPIS(ob->col[1]*255, 0, 255);
-	obcol[2]= CLAMPIS(ob->col[2]*255, 0, 255);
-	obcol[3]= CLAMPIS(ob->col[3]*255, 0, 255);
-	
-	/* first all texture polys */
-	
+	/* correct for negative scale */
 	if(ob->transflag & OB_NEG_SCALE) glFrontFace(GL_CW);
 	else glFrontFace(GL_CCW);
 	
-	glCullFace(GL_BACK); glEnable(GL_CULL_FACE);
-	if(solidtex || G.vd->drawtype==OB_TEXTURE) istex= 1;
-	else istex= 0;
-
-	g_draw_tface_mesh_ob = ob;
-	g_draw_tface_mesh_istex = istex;
-	memcpy(g_draw_tface_mesh_obcol, obcol, sizeof(obcol));
-	set_draw_settings_cached(1, 0, 0, g_draw_tface_mesh_islight, 0, 0, 0);
-
-	if(dt > OB_SOLID || g_draw_tface_mesh_islight==-1) {
-		bProperty *prop = get_property(ob, "Text");
-		int editing= (G.f & (G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT+G_WEIGHTPAINT)) && (ob==((G.scene->basact) ? (G.scene->basact->object) : 0));
+	/* draw the textured mesh */
+	draw_textured_begin(ob);
 
 #ifdef WITH_VERSE
-		if(me->vnode) {
-			/* verse-blender doesn't support uv mapping of textures yet */
-			dm->drawFacesTex(dm, NULL);
-		}
-		else if(ob==OBACT && (G.f & G_FACESELECT) && me && me->mtface) {
-#else
-		if(ob==OBACT && (G.f & G_FACESELECT) && me && me->mtface) {
-#endif		
+	if(me->vnode) {
+		/* verse-blender doesn't support uv mapping of textures yet */
+		dm->drawFacesTex(dm, NULL);
+	}
+	else {
+#endif
+		if(G.obedit)
+			dm->drawMappedFacesTex(dm, draw_em_tf_mapped__set_draw, G.editMesh);
+		else if(faceselect) {
 			if(G.f & G_WEIGHTPAINT)
-				dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, (void*)me, 1);
+				dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, me, 1);
 			else
-				dm->drawMappedFacesTex(dm, draw_tface_mapped__set_draw, (void*)me);
+				dm->drawMappedFacesTex(dm, draw_tface_mapped__set_draw, me);
 		}
 		else
 			dm->drawFacesTex(dm, draw_tface__set_draw);
-
-		/* drawing game engine text hack */
-		if (!editing && prop && me->mtface) {
-			DerivedMesh *ddm = mesh_get_derived_deform(ob, CD_MASK_BAREMESH);
-			MFace *mface= me->mface;
-			MTFace *tface= me->mtface;
-			MCol *mcol= me->mcol;	/* why does mcol exist? */
-			int start= 0, totface= me->totface;
-
-			tface+= start;
-			mcol+= start*4;
-			for (a=start; a<totface; a++, tface++, mcol+=4) {
-				MFace *mf= &mface[a];
-				int mode= tface->mode;
-				int matnr= mf->mat_nr;
-				int mf_smooth= mf->flag & ME_SMOOTH;
-
-				if (!(mf->flag&ME_HIDE) && !(mode&TF_INVISIBLE) && (mode&TF_BMFONT)) {
-					int badtex= set_draw_settings_cached(0, g_draw_tface_mesh_istex, tface, g_draw_tface_mesh_islight, g_draw_tface_mesh_ob, matnr, TF_TWOSIDE);
-					float v1[3], v2[3], v3[3], v4[3];
-					char string[MAX_PROPSTRING];
-					int characters, index;
-					ImBuf *ibuf;
-					float curpos;
-
-					if (badtex)
-						continue;
-
-					ddm->getVertCo(ddm, mf->v1, v1);
-					ddm->getVertCo(ddm, mf->v2, v2);
-					ddm->getVertCo(ddm, mf->v3, v3);
-					if (mf->v4) ddm->getVertCo(ddm, mf->v4, v4);
-
-					// The BM_FONT handling code is duplicated in the gameengine
-					// Search for 'Frank van Beek' ;-)
-					// string = "Frank van Beek";
-
-					set_property_valstr(prop, string);
-					characters = strlen(string);
-					
-					ibuf= BKE_image_get_ibuf(tface->tpage, NULL);
-					if (ibuf == NULL) {
-						characters = 0;
-					}
-
-					if (!mf_smooth) {
-						float nor[3];
-
-						CalcNormFloat(v1, v2, v3, nor);
-
-						glNormal3fv(nor);
-					}
-
-					curpos= 0.0;
-					glBegin(mf->v4?GL_QUADS:GL_TRIANGLES);
-					for (index = 0; index < characters; index++) {
-						float centerx, centery, sizex, sizey, transx, transy, movex, movey, advance;
-						int character = string[index];
-						char *cp= NULL;
-
-						// lets calculate offset stuff
-						// space starts at offset 1
-						// character = character - ' ' + 1;
-						
-						matrixGlyph(ibuf, character, & centerx, &centery, &sizex, &sizey, &transx, &transy, &movex, &movey, &advance);
-						movex+= curpos;
-
-						if (tface->mode & TF_OBCOL) glColor3ubv(obcol);
-						else if (mcol) cp= (char *)mcol;
-						else glColor3ub(255, 255, 255);
-
-						glTexCoord2f((tface->uv[0][0] - centerx) * sizex + transx, (tface->uv[0][1] - centery) * sizey + transy);
-						if (cp) glColor3ub(cp[3], cp[2], cp[1]);
-						glVertex3f(sizex * v1[0] + movex, sizey * v1[1] + movey, v1[2]);
-						
-						glTexCoord2f((tface->uv[1][0] - centerx) * sizex + transx, (tface->uv[1][1] - centery) * sizey + transy);
-						if (cp) glColor3ub(cp[7], cp[6], cp[5]);
-						glVertex3f(sizex * v2[0] + movex, sizey * v2[1] + movey, v2[2]);
-			
-						glTexCoord2f((tface->uv[2][0] - centerx) * sizex + transx, (tface->uv[2][1] - centery) * sizey + transy);
-						if (cp) glColor3ub(cp[11], cp[10], cp[9]);
-						glVertex3f(sizex * v3[0] + movex, sizey * v3[1] + movey, v3[2]);
-			
-						if(mf->v4) {
-							glTexCoord2f((tface->uv[3][0] - centerx) * sizex + transx, (tface->uv[3][1] - centery) * sizey + transy);
-							if (cp) glColor3ub(cp[15], cp[14], cp[13]);
-							glVertex3f(sizex * v4[0] + movex, sizey * v4[1] + movey, v4[2]);
-						}
-
-						curpos+= advance;
-					}
-					glEnd();
-				}
-			}
-
-			ddm->release(ddm);
-		}
-
-		/* switch off textures */
-		set_tpage(0);
+#ifdef WITH_VERSE
 	}
-	glShadeModel(GL_FLAT);
-	glDisable(GL_CULL_FACE);
+#endif
+
+	/* draw game engine text hack - but not if we are editing the mesh */
+	if (get_property(ob, "Text") && me->mtface) {
+		if(ob==G.obedit)
+			editing= 1;
+		else if(ob==OBACT)
+			if(G.f & (G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT+G_WEIGHTPAINT))
+				editing= 1;
+
+		if(!editing)
+			draw_game_text_mesh(ob, me);
+	}
+
+	draw_textured_end();
 	
-	if(ob==OBACT && (G.f & G_FACESELECT) && me && me->mtface) {
+	/* draw edges and selected faces over textured mesh */
+	if(!G.obedit && faceselect)
 		draw_tfaces3D(ob, me, dm);
-	}
-	
-		/* XXX, bad patch - default_gl_light() calls
-		 * glLightfv(GL_LIGHT_POSITION, ...) which
-		 * is transformed by the current matrix... we
-		 * need to make sure that matrix is identity.
-		 * 
-		 * It would be better if drawmesh.c kept track
-		 * of and restored the light settings it changed.
-		 *  - zr
-		 */
-	glPushMatrix();
-	glLoadIdentity();	
-	default_gl_light();
-	glPopMatrix();
-	
-	glFrontFace(GL_CCW);
 
-	if(dt > OB_SOLID && !(ob==OBACT && (G.f & G_FACESELECT) && me && me->mtface)) {
-		if(ob->flag & SELECT) {
-			BIF_ThemeColor((ob==OBACT)?TH_ACTIVE:TH_SELECT);
-		} else {
-			BIF_ThemeColor(TH_WIRE);
-		}
-		dm->drawLooseEdges(dm);
-	}
+	/* reset from negative scale correction */
+	glFrontFace(GL_CCW);
 
 	dm->release(dm);
 }
@@ -1196,6 +1230,5 @@ void init_realtime_GL(void)
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
 	glMatrixMode(GL_MODELVIEW);
-
 }
 

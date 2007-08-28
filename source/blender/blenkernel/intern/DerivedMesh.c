@@ -701,6 +701,172 @@ static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 	}
 }
 
+static void emDM_drawFacesTex_common(DerivedMesh *dm,
+               int (*drawParams)(MTFace *tface, MCol *mcol, int matnr),
+               int (*drawParamsMapped)(void *userData, int index),
+               void *userData) 
+{
+	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
+	EditMesh *em= emdm->em;
+	float (*vertexCos)[3]= emdm->vertexCos;
+	float (*vertexNos)[3]= emdm->vertexNos;
+	EditFace *efa;
+	int i;
+
+	if (vertexCos) {
+		EditVert *eve;
+
+		for (i=0,eve=em->verts.first; eve; eve= eve->next)
+			eve->tmp.l = (long) i++;
+
+		for (i=0,efa= em->faces.first; efa; i++,efa= efa->next) {
+			MTFace *tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			MCol *mcol= CustomData_em_get(&em->fdata, efa->data, CD_MCOL);
+			unsigned char *cp= NULL;
+			int drawSmooth= (efa->flag & ME_SMOOTH);
+			int flag;
+
+			if(drawParams)
+				flag= drawParams(tf, mcol, efa->mat_nr);
+			else if(drawParamsMapped)
+				flag= drawParamsMapped(userData, i);
+			else
+				flag= 1;
+
+			if(flag != 0) { /* flag 0 == the face is hidden or invisible */
+				if (flag==1 && mcol)
+					cp= (unsigned char*)mcol;
+
+				glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
+
+				glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
+				if (!drawSmooth) {
+					glNormal3fv(emdm->faceNos[i]);
+
+					if(tf) glTexCoord2fv(tf->uv[0]);
+					if(cp) glColor3ub(cp[3], cp[2], cp[1]);
+					glVertex3fv(vertexCos[(int) efa->v1->tmp.l]);
+
+					if(tf) glTexCoord2fv(tf->uv[1]);
+					if(cp) glColor3ub(cp[7], cp[6], cp[5]);
+					glVertex3fv(vertexCos[(int) efa->v2->tmp.l]);
+
+					if(tf) glTexCoord2fv(tf->uv[2]);
+					if(cp) glColor3ub(cp[11], cp[10], cp[9]);
+					glVertex3fv(vertexCos[(int) efa->v3->tmp.l]);
+
+					if(efa->v4) {
+						if(tf) glTexCoord2fv(tf->uv[3]);
+						if(cp) glColor3ub(cp[15], cp[14], cp[13]);
+						glVertex3fv(vertexCos[(int) efa->v4->tmp.l]);
+					}
+				} else {
+					if(tf) glTexCoord2fv(tf->uv[0]);
+					if(cp) glColor3ub(cp[3], cp[2], cp[1]);
+					glNormal3fv(vertexNos[(int) efa->v1->tmp.l]);
+					glVertex3fv(vertexCos[(int) efa->v1->tmp.l]);
+
+					if(tf) glTexCoord2fv(tf->uv[1]);
+					if(cp) glColor3ub(cp[7], cp[6], cp[5]);
+					glNormal3fv(vertexNos[(int) efa->v2->tmp.l]);
+					glVertex3fv(vertexCos[(int) efa->v2->tmp.l]);
+
+					if(tf) glTexCoord2fv(tf->uv[2]);
+					if(cp) glColor3ub(cp[11], cp[10], cp[9]);
+					glNormal3fv(vertexNos[(int) efa->v3->tmp.l]);
+					glVertex3fv(vertexCos[(int) efa->v3->tmp.l]);
+
+					if(efa->v4) {
+						if(tf) glTexCoord2fv(tf->uv[3]);
+						if(cp) glColor3ub(cp[15], cp[14], cp[13]);
+						glNormal3fv(vertexNos[(int) efa->v4->tmp.l]);
+						glVertex3fv(vertexCos[(int) efa->v4->tmp.l]);
+					}
+				}
+				glEnd();
+			}
+		}
+	} else {
+		for (i=0,efa= em->faces.first; efa; i++,efa= efa->next) {
+			MTFace *tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			MCol *mcol= CustomData_em_get(&em->fdata, efa->data, CD_MCOL);
+			unsigned char *cp= NULL;
+			int drawSmooth= (efa->flag & ME_SMOOTH);
+			int flag;
+
+			if(drawParams)
+				flag= drawParams(tf, mcol, efa->mat_nr);
+			else if(drawParamsMapped)
+				flag= drawParamsMapped(userData, i);
+			else
+				flag= 1;
+
+			if(flag != 0) { /* flag 0 == the face is hidden or invisible */
+				if (flag==1 && mcol)
+					cp= (unsigned char*)mcol;
+
+				glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
+
+				glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
+				if (!drawSmooth) {
+					glNormal3fv(efa->n);
+
+					if(tf) glTexCoord2fv(tf->uv[0]);
+					if(cp) glColor3ub(cp[3], cp[2], cp[1]);
+					glVertex3fv(efa->v1->co);
+
+					if(tf) glTexCoord2fv(tf->uv[1]);
+					if(cp) glColor3ub(cp[7], cp[6], cp[5]);
+					glVertex3fv(efa->v2->co);
+
+					if(tf) glTexCoord2fv(tf->uv[2]);
+					if(cp) glColor3ub(cp[11], cp[10], cp[9]);
+					glVertex3fv(efa->v3->co);
+
+					if(efa->v4) {
+						if(tf) glTexCoord2fv(tf->uv[3]);
+						if(cp) glColor3ub(cp[15], cp[14], cp[13]);
+						glVertex3fv(efa->v4->co);
+					}
+				} else {
+					if(tf) glTexCoord2fv(tf->uv[0]);
+					if(cp) glColor3ub(cp[3], cp[2], cp[1]);
+					glNormal3fv(efa->v1->no);
+					glVertex3fv(efa->v1->co);
+
+					if(tf) glTexCoord2fv(tf->uv[1]);
+					if(cp) glColor3ub(cp[7], cp[6], cp[5]);
+					glNormal3fv(efa->v2->no);
+					glVertex3fv(efa->v2->co);
+
+					if(tf) glTexCoord2fv(tf->uv[2]);
+					if(cp) glColor3ub(cp[11], cp[10], cp[9]);
+					glNormal3fv(efa->v3->no);
+					glVertex3fv(efa->v3->co);
+
+					if(efa->v4) {
+						if(tf) glTexCoord2fv(tf->uv[3]);
+						if(cp) glColor3ub(cp[15], cp[14], cp[13]);
+						glNormal3fv(efa->v4->no);
+						glVertex3fv(efa->v4->co);
+					}
+				}
+				glEnd();
+			}
+		}
+	}
+}
+
+static void emDM_drawFacesTex(DerivedMesh *dm, int (*setDrawOptions)(MTFace *tface, MCol *mcol, int matnr))
+{
+	emDM_drawFacesTex_common(dm, setDrawOptions, NULL, NULL);
+}
+
+static void emDM_drawMappedFacesTex(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index), void *userData)
+{
+	emDM_drawFacesTex_common(dm, NULL, setDrawOptions, userData);
+}
+
 static void emDM_getMinMax(DerivedMesh *dm, float min_r[3], float max_r[3])
 {
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
@@ -946,6 +1112,8 @@ static DerivedMesh *getEditMeshDerivedMesh(EditMesh *em, Object *ob,
 	emdm->dm.drawMappedEdges = emDM_drawMappedEdges;
 	emdm->dm.drawMappedEdgesInterp = emDM_drawMappedEdgesInterp;
 	emdm->dm.drawMappedFaces = emDM_drawMappedFaces;
+	emdm->dm.drawMappedFacesTex = emDM_drawMappedFacesTex;
+	emdm->dm.drawFacesTex = emDM_drawFacesTex;
 	emdm->dm.drawUVEdges = emDM_drawUVEdges;
 
 	emdm->dm.release = emDM_release;

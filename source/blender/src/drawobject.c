@@ -1836,16 +1836,21 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, Derived
 	EM_init_index_arrays(1, 1, 1);
 
 	if(dt>OB_WIRE) {
-		glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, me->flag & ME_TWOSIDED);
+		if(G.vd->drawtype==OB_TEXTURE && dt>OB_SOLID) {
+			draw_mesh_textured(ob, finalDM, 0);
+		}
+		else {
+			glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, me->flag & ME_TWOSIDED);
 
-		glEnable(GL_LIGHTING);
-		glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
+			glEnable(GL_LIGHTING);
+			glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 
-		finalDM->drawMappedFaces(finalDM, draw_em_fancy__setFaceOpts, NULL, 0);
+			finalDM->drawMappedFaces(finalDM, draw_em_fancy__setFaceOpts, 0, 0);
 
-		glFrontFace(GL_CCW);
-		glDisable(GL_LIGHTING);
-		
+			glFrontFace(GL_CCW);
+			glDisable(GL_LIGHTING);
+		}
+			
 		// Setup for drawing wire over, disable zbuffer
 		// write to show selected edge wires better
 		BIF_ThemeColor(TH_WIRE);
@@ -2020,12 +2025,22 @@ static void draw_mesh_fancy(Base *base, int dt, int flag)
 		draw_wire = 1;
 	}
 	else if( (ob==OBACT && (G.f & (G_FACESELECT|G_TEXTUREPAINT))) || (G.vd->drawtype==OB_TEXTURE && dt>OB_SOLID)) {
-		
+		int faceselect= (ob==OBACT && (G.f & G_FACESELECT) && me->mtface);
+
 		if ((G.vd->flag&V3D_SELECT_OUTLINE) && (base->flag&SELECT) && !(G.f&(G_FACESELECT|G_PICKSEL)) && !draw_wire) {
 			draw_mesh_object_outline(ob, dm);
 		}
 
-		draw_tface_mesh(ob, ob->data, dt);
+		draw_mesh_textured(ob, dm, faceselect);
+
+		if(!faceselect) {
+			if(base->flag & SELECT)
+				BIF_ThemeColor((ob==OBACT)?TH_ACTIVE:TH_SELECT);
+			else
+				BIF_ThemeColor(TH_WIRE);
+
+			dm->drawLooseEdges(dm);
+		}
 	}
 	else if(dt==OB_SOLID ) {
 		
