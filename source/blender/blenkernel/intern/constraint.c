@@ -51,13 +51,14 @@
 
 #include "BKE_utildefines.h"
 #include "BKE_action.h"
-#include "BKE_anim.h" // for the curve calculation part
+#include "BKE_anim.h" /* for the curve calculation part */
 #include "BKE_armature.h"
 #include "BKE_blender.h"
 #include "BKE_constraint.h"
 #include "BKE_displist.h"
 #include "BKE_deform.h"
-#include "BKE_DerivedMesh.h"
+#include "BKE_DerivedMesh.h"	/* for geometry targets */
+#include "BKE_cdderivedmesh.h" /* for geometry targets */
 #include "BKE_object.h"
 #include "BKE_ipo.h"
 #include "BKE_global.h"
@@ -1114,7 +1115,7 @@ void constraint_mat_convertspace (Object *ob, bPoseChannel *pchan, float mat[][4
 /* function that sets the given matrix based on given vertex group in mesh */
 static void contarget_get_mesh_mat (Object *ob, char *substring, float mat[][4])
 {
-	DerivedMesh *dm = (DerivedMesh *)ob->derivedFinal;
+	DerivedMesh *dm;
 	float vec[3] = {0.0f, 0.0f, 0.0f}, tvec[3];
 	float normal[3] = {0.0f, 0.0f, 0.0f}, plane[3];
 	float imat[3][3], tmat[3][3];
@@ -1126,6 +1127,16 @@ static void contarget_get_mesh_mat (Object *ob, char *substring, float mat[][4])
 	/* get index of vertex group */
 	dgroup = get_named_vertexgroup_num(ob, substring);
 	if (dgroup < 0) return;
+	
+	/* get DerivedMesh */
+	if (G.obedit && G.editMesh) {
+		/* we are in editmode, so get a special derived mesh */
+		dm = CDDM_from_editmesh(G.editMesh, ob->data);
+	}
+	else {
+		/* when not in EditMode, this should exist */
+		dm = (DerivedMesh *)ob->derivedFinal;
+	}
 	
 	/* only continue if there's a valid DerivedMesh */
 	if (dm) {
@@ -1185,6 +1196,11 @@ static void contarget_get_mesh_mat (Object *ob, char *substring, float mat[][4])
 		/* apply the average coordinate as the new location */
 		VecMat4MulVecfl(tvec, ob->obmat, vec);
 		VECCOPY(mat[3], tvec);
+	}
+	
+	/* free temporary DerivedMesh created (in EditMode case) */
+	if (G.editMesh) {
+		if (dm) dm->release(dm);
 	}
 }
 
