@@ -1701,11 +1701,11 @@ def write(filename, batch_objects = None, \
 						
 						# Support object colors
 						tmp_colbits = ob.colbits
-						if colbits:
+						if tmp_colbits:
 							tmp_ob_mats = ob.getMaterials(1) # 1 so we get None's too.
 							for i in xrange(16):
-								if colbits & (1<<i):
-									cols[i] = tmp_ob_mats[i]
+								if tmp_colbits & (1<<i):
+									mats[i] = tmp_ob_mats[i]
 							del tmp_ob_mats
 						del tmp_colbits
 							
