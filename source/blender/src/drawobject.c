@@ -135,6 +135,9 @@ extern ListBase editelems;
 
 static void draw_bounding_volume(Object *ob);
 
+static void drawcube_size(float size);
+static void drawcircle_size(float size);
+
 /* ************* Setting OpenGL Material ************ */
 
 // Materials start counting at # one....
@@ -264,6 +267,79 @@ static float cube[8][3] = {
 	{ 1.0,  1.0, -1.0},
 };
 
+/* ----------------- OpenGL Circle Drawing - Tables for Optimised Drawing Speed ------------------ */
+/* 32 values of sin function (still same result!) */
+static float sinval[32] = {
+	0.00000000,
+	0.20129852,
+	0.39435585,
+	0.57126821,
+	0.72479278,
+	0.84864425,
+	0.93775213,
+	0.98846832,
+	0.99871650,
+	0.96807711,
+	0.89780453,
+	0.79077573,
+	0.65137248,
+	0.48530196,
+	0.29936312,
+	0.10116832,
+	-0.10116832,
+	-0.29936312,
+	-0.48530196,
+	-0.65137248,
+	-0.79077573,
+	-0.89780453,
+	-0.96807711,
+	-0.99871650,
+	-0.98846832,
+	-0.93775213,
+	-0.84864425,
+	-0.72479278,
+	-0.57126821,
+	-0.39435585,
+	-0.20129852,
+	0.00000000
+};
+
+/* 32 values of cos function (still same result!) */
+static float cosval[32] ={
+	1.00000000,
+	0.97952994,
+	0.91895781,
+	0.82076344,
+	0.68896691,
+	0.52896401,
+	0.34730525,
+	0.15142777,
+	-0.05064916,
+	-0.25065253,
+	-0.44039415,
+	-0.61210598,
+	-0.75875812,
+	-0.87434661,
+	-0.95413925,
+	-0.99486932,
+	-0.99486932,
+	-0.95413925,
+	-0.87434661,
+	-0.75875812,
+	-0.61210598,
+	-0.44039415,
+	-0.25065253,
+	-0.05064916,
+	0.15142777,
+	0.34730525,
+	0.52896401,
+	0.68896691,
+	0.82076344,
+	0.91895781,
+	0.97952994,
+	1.00000000
+};
+
 /* flag is same as for draw_object */
 void drawaxes(float size, int flag, char drawtype)
 {
@@ -322,6 +398,14 @@ void drawaxes(float size, int flag, char drawtype)
 		glEnd();
 		
 		break;
+	case OB_CUBE:
+		drawcube_size(size);
+		break;
+		
+	case OB_CIRCLE:
+		drawcircle_size(size);
+		break;
+	
 	case OB_ARROWS:
 	default:
 		for (axis=0; axis<3; axis++) {
@@ -475,6 +559,31 @@ static void drawcube(void)
 	glEnd();
 }
 
+/* draws a cube on given the scaling of the cube, assuming that 
+ * all required matrices have been set (used for drawing empties)
+ */
+static void drawcube_size(float size)
+{
+	glBegin(GL_LINE_STRIP);
+		glVertex3f(-size,-size,-size); glVertex3f(-size,-size,size);glVertex3f(-size,size,size); glVertex3f(-size,size,-size);
+		glVertex3f(-size,-size,-size); glVertex3f(size,-size,-size);glVertex3f(size,-size,size); glVertex3f(size,size,size);
+		glVertex3f(size,size,-size); glVertex3f(size,-size,-size);
+	glEnd();
+
+	glBegin(GL_LINE_STRIP);
+		glVertex3f(-size,-size,size); glVertex3f(size,-size,size);
+	glEnd();
+
+	glBegin(GL_LINE_STRIP);
+		glVertex3f(-size,size,size); glVertex3f(size,size,size);
+	glEnd();
+
+	glBegin(GL_LINE_STRIP);
+		glVertex3f(-size,size,-size); glVertex3f(size,size,-size);
+	glEnd();
+}
+
+/* this is an unused (old) cube-drawing function based on a given size */
 #if 0
 static void drawcube_size(float *size)
 {
@@ -3056,72 +3165,6 @@ static void drawspiral(float *cent, float rad, float tmat[][4], int start)
 	float vec[3], vx[3], vy[3];
 	int a, tot=32;
 	char inverse=0;
-	/* 32 values of sin function (still same result!) */
-	static float si[32] = {0.00000000,
-		0.20129852,
-		0.39435585,
-		0.57126821,
-		0.72479278,
-		0.84864425,
-		0.93775213,
-		0.98846832,
-		0.99871650,
-		0.96807711,
-		0.89780453,
-		0.79077573,
-		0.65137248,
-		0.48530196,
-		0.29936312,
-		0.10116832,
-		-0.10116832,
-                -0.29936312,
-                -0.48530196,
-                -0.65137248,
-                -0.79077573,
-                -0.89780453,
-                -0.96807711,
-                -0.99871650,
-                -0.98846832,
-                -0.93775213,
-                -0.84864425,
-                -0.72479278,
-                -0.57126821,
-                -0.39435585,
-                -0.20129852,
-		0.00000000};
-	/* 32 values of cos function (still same result!) */
-	static float co[32] ={1.00000000,
-                0.97952994,
-                0.91895781,
-                0.82076344,
-                0.68896691,
-                0.52896401,
-                0.34730525,
-                0.15142777,
-                -0.05064916,
-                -0.25065253,
-                -0.44039415,
-                -0.61210598,
-                -0.75875812,
-                -0.87434661,
-                -0.95413925,
-                -0.99486932,
-                -0.99486932,
-                -0.95413925,
-                -0.87434661,
-                -0.75875812,
-                -0.61210598,
-                -0.44039415,
-                -0.25065253,
-                -0.05064916,
-                0.15142777,
-                0.34730525,
-                0.52896401,
-                0.68896691,
-                0.82076344,
-                0.91895781,
-                0.97952994,
-                1.00000000};
 		
 	if (start < 0) {
 		inverse = 1;
@@ -3141,103 +3184,58 @@ static void drawspiral(float *cent, float rad, float tmat[][4], int start)
 				start=-a + 1;
 			glBegin(GL_LINES);							
 			glVertex3fv(vec);
-			vec[0]= cent[0] + *(si+a+start) * (vx[0] * (float)a/(float)tot) + *(co+a+start) * (vy[0] * (float)a/(float)tot);
-			vec[1]= cent[1] + *(si+a+start) * (vx[1] * (float)a/(float)tot) + *(co+a+start) * (vy[1] * (float)a/(float)tot);
-			vec[2]= cent[2] + *(si+a+start) * (vx[2] * (float)a/(float)tot) + *(co+a+start) * (vy[2] * (float)a/(float)tot);
+			vec[0]= cent[0] + *(sinval+a+start) * (vx[0] * (float)a/(float)tot) + *(cosval+a+start) * (vy[0] * (float)a/(float)tot);
+			vec[1]= cent[1] + *(sinval+a+start) * (vx[1] * (float)a/(float)tot) + *(cosval+a+start) * (vy[1] * (float)a/(float)tot);
+			vec[2]= cent[2] + *(sinval+a+start) * (vx[2] * (float)a/(float)tot) + *(cosval+a+start) * (vy[2] * (float)a/(float)tot);
 			glVertex3fv(vec);
 			glEnd();
 		}
 	}
 	else {
 		a=0;
-		vec[0]= cent[0] + *(si+a+start) * (vx[0] * (float)(-a+31)/(float)tot) + *(co+a+start) * (vy[0] * (float)(-a+31)/(float)tot);
-		vec[1]= cent[1] + *(si+a+start) * (vx[1] * (float)(-a+31)/(float)tot) + *(co+a+start) * (vy[1] * (float)(-a+31)/(float)tot);
-		vec[2]= cent[2] + *(si+a+start) * (vx[2] * (float)(-a+31)/(float)tot) + *(co+a+start) * (vy[2] * (float)(-a+31)/(float)tot);
+		vec[0]= cent[0] + *(sinval+a+start) * (vx[0] * (float)(-a+31)/(float)tot) + *(cosval+a+start) * (vy[0] * (float)(-a+31)/(float)tot);
+		vec[1]= cent[1] + *(sinval+a+start) * (vx[1] * (float)(-a+31)/(float)tot) + *(cosval+a+start) * (vy[1] * (float)(-a+31)/(float)tot);
+		vec[2]= cent[2] + *(sinval+a+start) * (vx[2] * (float)(-a+31)/(float)tot) + *(cosval+a+start) * (vy[2] * (float)(-a+31)/(float)tot);
 		for(a=0; a<tot; a++) {
 			if (a+start>31)
 				start=-a + 1;
 			glBegin(GL_LINES);							
 			glVertex3fv(vec);
-			vec[0]= cent[0] + *(si+a+start) * (vx[0] * (float)(-a+31)/(float)tot) + *(co+a+start) * (vy[0] * (float)(-a+31)/(float)tot);
-			vec[1]= cent[1] + *(si+a+start) * (vx[1] * (float)(-a+31)/(float)tot) + *(co+a+start) * (vy[1] * (float)(-a+31)/(float)tot);
-			vec[2]= cent[2] + *(si+a+start) * (vx[2] * (float)(-a+31)/(float)tot) + *(co+a+start) * (vy[2] * (float)(-a+31)/(float)tot);
+			vec[0]= cent[0] + *(sinval+a+start) * (vx[0] * (float)(-a+31)/(float)tot) + *(cosval+a+start) * (vy[0] * (float)(-a+31)/(float)tot);
+			vec[1]= cent[1] + *(sinval+a+start) * (vx[1] * (float)(-a+31)/(float)tot) + *(cosval+a+start) * (vy[1] * (float)(-a+31)/(float)tot);
+			vec[2]= cent[2] + *(sinval+a+start) * (vx[2] * (float)(-a+31)/(float)tot) + *(cosval+a+start) * (vy[2] * (float)(-a+31)/(float)tot);
 			glVertex3fv(vec);
 			glEnd();
 		}
 	}
 }
 
+/* draws a circle on x-z plane given the scaling of the circle, assuming that 
+ * all required matrices have been set (used for drawing empties)
+ */
+static void drawcircle_size(float size)
+{
+    float x, y;
+	short degrees;
+
+	glBegin(GL_LINE_LOOP);
+    
+	/* coordinates are: cos(degrees*11.25)=x, sin(degrees*11.25)=y, 0.0f=z */
+	for (degrees=0; degrees<32; degrees++) {
+		x= *(cosval + degrees);
+		y= *(sinval + degrees);
+		
+		glVertex3f(x*size, 0.0f, y*size);
+	}
+	
+	glEnd();
+
+}
+
 void drawcircball(int mode, float *cent, float rad, float tmat[][4])
 {
 	float vec[3], vx[3], vy[3];
 	int a, tot=32;
-
-	/* 32 values of sin function (still same result!) */
-	static float si[32] = {0.00000000,
-		0.20129852,
-		0.39435585,
-		0.57126821,
-		0.72479278,
-		0.84864425,
-		0.93775213,
-		0.98846832,
-		0.99871650,
-		0.96807711,
-		0.89780453,
-		0.79077573,
-		0.65137248,
-		0.48530196,
-		0.29936312,
-		0.10116832,
-		-0.10116832,
-                -0.29936312,
-                -0.48530196,
-                -0.65137248,
-                -0.79077573,
-                -0.89780453,
-                -0.96807711,
-                -0.99871650,
-                -0.98846832,
-                -0.93775213,
-                -0.84864425,
-                -0.72479278,
-                -0.57126821,
-                -0.39435585,
-                -0.20129852,
-		0.00000000};
-	/* 32 values of cos function (still same result!) */
-	static float co[32] ={1.00000000,
-                0.97952994,
-                0.91895781,
-                0.82076344,
-                0.68896691,
-                0.52896401,
-                0.34730525,
-                0.15142777,
-                -0.05064916,
-                -0.25065253,
-                -0.44039415,
-                -0.61210598,
-                -0.75875812,
-                -0.87434661,
-                -0.95413925,
-                -0.99486932,
-                -0.99486932,
-                -0.95413925,
-                -0.87434661,
-                -0.75875812,
-                -0.61210598,
-                -0.44039415,
-                -0.25065253,
-                -0.05064916,
-                0.15142777,
-                0.34730525,
-                0.52896401,
-                0.68896691,
-                0.82076344,
-                0.91895781,
-                0.97952994,
-                1.00000000};
 		
 	VECCOPY(vx, tmat[0]);
 	VECCOPY(vy, tmat[1]);
@@ -3246,9 +3244,9 @@ void drawcircball(int mode, float *cent, float rad, float tmat[][4])
 	
 	glBegin(mode);
 	for(a=0; a<tot; a++) {
-		vec[0]= cent[0] + *(si+a) * vx[0] + *(co+a) * vy[0];
-		vec[1]= cent[1] + *(si+a) * vx[1] + *(co+a) * vy[1];
-		vec[2]= cent[2] + *(si+a) * vx[2] + *(co+a) * vy[2];
+		vec[0]= cent[0] + *(sinval+a) * vx[0] + *(cosval+a) * vy[0];
+		vec[1]= cent[1] + *(sinval+a) * vx[1] + *(cosval+a) * vy[1];
+		vec[2]= cent[2] + *(sinval+a) * vx[2] + *(cosval+a) * vy[2];
 		glVertex3fv(vec);
 	}
 	glEnd();
@@ -4444,11 +4442,10 @@ void draw_object_backbufsel(Object *ob)
 /* ************* draw object instances for bones, for example ****************** */
 /*               assumes all matrices/etc set OK */
 
-void draw_object_instance(Object *ob, int dt, int outline)
+/* helper function for drawing object instances - meshes */
+static void draw_object_mesh_instance(Object *ob, int dt, int outline)
 {
 	DerivedMesh *dm=NULL, *edm=NULL;
-	
-	if(ob==NULL || ob->type!=OB_MESH) return;
 	
 	if(G.obedit && ob->data==G.obedit->data)
 		edm= editmesh_get_derived_base();
@@ -4487,5 +4484,20 @@ void draw_object_instance(Object *ob, int dt, int outline)
 
 	if(edm) edm->release(edm);
 	if(dm) dm->release(dm);
+}
+
+void draw_object_instance(Object *ob, int dt, int outline)
+{
+	if (ob == NULL) 
+		return;
+		
+	switch (ob->type) {
+		case OB_MESH:
+			draw_object_mesh_instance(ob, dt, outline);
+			break;
+		case OB_EMPTY:
+			drawaxes(ob->empty_drawsize, 0, ob->empty_drawtype);
+			break;
+	}
 }
 

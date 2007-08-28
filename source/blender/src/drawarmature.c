@@ -1074,7 +1074,7 @@ static void draw_bone(int dt, int armflag, int boneflag, int constflag, unsigned
 static void draw_custom_bone(Object *ob, int dt, int armflag, int boneflag, unsigned int id, float length)
 {
 	
-	if(ob==NULL || ob->type!=OB_MESH) return;
+	if(ob==NULL) return;
 	
 	glScalef(length, length, length);
 	

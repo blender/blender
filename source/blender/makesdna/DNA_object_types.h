@@ -325,6 +325,7 @@ extern Object workob;
 #define OB_PLAINAXES	2
 #define OB_CIRCLE		3
 #define OB_SINGLE_ARROW	4
+#define OB_CUBE			5
 
 /* boundtype */
 #define OB_BOUND_BOX		0
