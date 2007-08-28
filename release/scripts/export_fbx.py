@@ -2102,7 +2102,7 @@ Relations:  {''')
 	Model: "Model::Camera Switcher", "CameraSwitcher" {
 	}''')
 	
-	for matname, mat in reversed(materials):
+	for matname, mat in materials:
 		file.write('\n\tMaterial: "Material::%s", "" {\n\t}' % matname)
 
 	if textures:
