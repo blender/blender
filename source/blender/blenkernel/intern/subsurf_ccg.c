@@ -1744,7 +1744,6 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 	char *faceFlags = DM_get_face_data_layer(dm, CD_FLAGS);
 	int i, totface, flag, gridSize = ccgSubSurf_getGridSize(ss);
 	int gridFaces = gridSize - 1;
-	unsigned char *cp;
 
 	totface = ccgSubSurf_getNumFaces(ss);
 	for(i = 0; i < totface; i++) {
@@ -1752,6 +1751,7 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 		int S, x, y, numVerts = ccgSubSurf_getFaceNumVerts(ss, f);
 		int drawSmooth, index = ccgDM_getFaceMapIndex(ccgdm, ss, f);
 		int origIndex = (int)ccgSubSurf_getFaceFaceHandle(ss, f);
+		unsigned char *cp= NULL;
 		int mat_nr;
 
 		if(faceFlags) {
@@ -1775,7 +1775,10 @@ static void ccgDM_drawFacesTex_common(DerivedMesh *dm,
 		}
 
 		/* flag 1 == use vertex colors */
-		cp= (flag==1 && mcol)? (unsigned char*)&mcol[i*4]: NULL;
+		if(mcol) {
+			if(flag==1) cp= (unsigned char*)mcol;
+			mcol += gridFaces*gridFaces*numVerts*4;
+		}
 
 		for (S=0; S<numVerts; S++) {
 			VertData *faceGridData = ccgSubSurf_getFaceGridDataArray(ss, f, S);
