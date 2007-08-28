@@ -55,22 +55,18 @@ except:
 	except:
 		set = None # so it complains you dont have a !
 
+# os is only needed for batch 'own dir' option
 try:
 	import os
 except:
 	os = None
 
-
-
-
-
 import Blender
 import bpy
-from Blender.Mathutils import Matrix, Vector, Euler, RotationMatrix, TranslationMatrix
+from Blender.Mathutils import Matrix, Vector, RotationMatrix
 
 import BPyObject
 import BPyMesh
-reload(BPyMesh)
 import BPySys
 import BPyMessages
 
@@ -88,16 +84,15 @@ def copy_file(source, dest):
 
 def copy_images(dest_dir, textures):
 	if not dest_dir.endswith(Blender.sys.sep):
-		dest_dir += sys.sep
+		dest_dir += Blender.sys.sep
 	
-	image_paths = {} # use set() later
+	image_paths = set()
 	for img in textures:
-		image_paths[Blender.sys.expendpath(img.filename)] = None
-
-
+		image_paths.add(Blender.sys.expandpath(img.filename))
+	
 	# Now copy images
 	copyCount = 0
-	for image_path in image_paths.itervalues():
+	for image_path in image_paths:
 		if Blender.sys.exists(image_path):
 			# Make a name for the target path.
 			dest_image_path = dest_dir + image_path.split('\\')[-1].split('/')[-1]
@@ -1123,15 +1118,21 @@ def write(filename, batch_objects = None, \
 			Property: "Rotation", "Vector", "A+",0,0,0
 			Property: "Scaling", "Vector", "A+",1,1,1''')
 		file.write('\n\t\t\tProperty: "Texture alpha", "Number", "A+",%i' % num)
+		
+		
+		# WrapModeU/V 0==rep, 1==clamp, TODO add support
 		file.write('''
 			Property: "TextureTypeUse", "enum", "",0
 			Property: "CurrentTextureBlendMode", "enum", "",1
 			Property: "UseMaterial", "bool", "",0
 			Property: "UseMipMap", "bool", "",0
 			Property: "CurrentMappingType", "enum", "",0
-			Property: "UVSwap", "bool", "",0
-			Property: "WrapModeU", "enum", "",0
-			Property: "WrapModeV", "enum", "",0
+			Property: "UVSwap", "bool", "",0''')
+		
+		file.write('\n\t\t\tProperty: "WrapModeU", "enum", "",%i' % tex.clampX)
+		file.write('\n\t\t\tProperty: "WrapModeV", "enum", "",%i' % tex.clampY)
+		
+		file.write('''
 			Property: "TextureRotationPivot", "Vector3D", "",0,0,0
 			Property: "TextureScalingPivot", "Vector3D", "",0,0,0
 			Property: "VideoProperty", "object", ""
@@ -1844,12 +1845,12 @@ def write(filename, batch_objects = None, \
 	
 	material_mapping = {} # blen name : index
 	if textures:
-		texture_mapping_local = {None:0} # ditto
+		texture_mapping_local = {None:-1} # ditto
 		i = 0
 		for texname, tex in textures:
 			texture_mapping_local[tex.name] = i
 			i+=1
-		textures.insert(0, ('_empty_', None))
+		#textures.insert(0, ('_empty_', None))
 	
 	i = 0
 	for matname, mat in materials:
@@ -2760,7 +2761,6 @@ def write_ui():
 	GLOBALS['_XROT90'] =					Draw.Create(True)
 	GLOBALS['_YROT90'] =					Draw.Create(False)
 	GLOBALS['_ZROT90'] =					Draw.Create(False)
-	
 	
 	# horrible ugly hack so tooltips draw, dosnt always work even
 	# Fixed in Draw.UIBlock for 2.45rc2, but keep this until 2.45 is released
