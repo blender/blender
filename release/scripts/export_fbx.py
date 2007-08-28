@@ -55,6 +55,14 @@ except:
 	except:
 		set = None # so it complains you dont have a !
 
+try:
+	import os
+except:
+	os = None
+
+
+
+
 
 import Blender
 import bpy
@@ -62,6 +70,7 @@ from Blender.Mathutils import Matrix, Vector, Euler, RotationMatrix, Translation
 
 import BPyObject
 import BPyMesh
+reload(BPyMesh)
 import BPySys
 import BPyMessages
 
@@ -152,6 +161,7 @@ def increment_string(t):
 	else:	return name + '_0'
 
 
+
 # todo - Disallow the name 'Scene' and 'blend_root' - it will bugger things up.
 def sane_name(data, dct):
 	#if not data: return None
@@ -179,95 +189,6 @@ def sane_texname(data):		return sane_name(data, sane_name_mapping_tex)
 def sane_takename(data):	return sane_name(data, sane_name_mapping_take)
 
 
-# storage classes
-class my_bone_class:
-	__slots__ =(\
-	  'blenName',\
-	  'blenBone',\
-	  'blenMeshes',\
-	  'restMatrix',\
-	  'parent',\
-	  'blenName',\
-	  'fbxName',\
-	  'fbxArm',\
-	  '__pose_bone',\
-	  '__anim_poselist')
-	
-	def __init__(self, blenBone, fbxArm):
-		
-		# This is so 2 armatures dont have naming conflicts since FBX bones use object namespace
-		self.fbxName = sane_obname(blenBone)
-		
-		self.blenName =			blenBone.name
-		self.blenBone =			blenBone
-		self.blenMeshes =		{}					# fbxMeshObName : mesh
-		self.fbxArm =			fbxArm
-		self.restMatrix =		blenBone.matrix['ARMATURESPACE']
-		
-		# not used yet
-		# self.restMatrixInv =	self.restMatrix.copy().invert()
-		# self.restMatrixLocal =	None # set later, need parent matrix
-		
-		self.parent =			None
-		
-		# not public
-		pose = fbxArm.blenObject.getPose()
-		self.__pose_bone =		pose.bones[self.blenName]
-		
-		# store a list if matricies here, (poseMatrix, head, tail)
-		# {frame:posematrix, frame:posematrix, ...}
-		self.__anim_poselist = {}
-	
-	'''
-	def calcRestMatrixLocal(self):
-		if self.parent:
-			self.restMatrixLocal = self.restMatrix * self.parent.restMatrix.copy().invert()
-		else:
-			self.restMatrixLocal = self.restMatrix.copy()
-	'''
-	def setPoseFrame(self, f):
-		# cache pose info here, frame must be set beforehand
-		
-		# Didnt end up needing head or tail, if we do - here it is.
-		'''
-		self.__anim_poselist[f] = (\
-			self.__pose_bone.poseMatrix.copy(),\
-			self.__pose_bone.head.copy(),\
-			self.__pose_bone.tail.copy() )
-		'''
-		
-		self.__anim_poselist[f] = self.__pose_bone.poseMatrix.copy()
-	
-	# get pose from frame.
-	def getPoseMatrix(self, f):
-		return self.__anim_poselist[f]
-	'''
-	def getPoseHead(self, f):
-		#return self.__pose_bone.head.copy()
-		return self.__anim_poselist[f][1].copy()
-	def getPoseTail(self, f):
-		#return self.__pose_bone.tail.copy()
-		return self.__anim_poselist[f][2].copy()
-	'''
-	# end
-	
-	def getAnimMatrix(self, frame):
-		arm_mat = self.fbxArm.matrixWorld
-		if not self.parent:
-			return mtx4_z90 * (self.getPoseMatrix(frame) * arm_mat)
-		else:
-			return (mtx4_z90 * ((self.getPoseMatrix(frame) * arm_mat)))  *  (mtx4_z90 * (self.parent.getPoseMatrix(frame) * arm_mat)).invert()
-	
-	def flushAnimData(self):
-		self.__anim_poselist.clear()
-
-
-class my_object_generic:
-	# Other settings can be applied for each type - mesh, armature etc.
-	def __init__(self, ob):
-		self.fbxName = sane_obname(ob)
-		self.blenObject = ob
-		self.matrixWorld = ob.matrixWorld
 
 
 def mat4x4str(mat):
@@ -312,44 +233,221 @@ def write(filename, batch_objects = None, \
 		EXP_CAMERA =				True,
 		EXP_EMPTY =					True,
 		EXP_IMAGE_COPY =			False,
+		GLOBAL_MATRIX =				Matrix(),
 		ANIM_ENABLE =				True,
 		ANIM_OPTIMIZE =				True,
 		ANIM_OPTIMIZE_PRECISSION =	6,
-		ANIM_ACTION_ALL =			True,
+		ANIM_ACTION_ALL =			False,
 		BATCH_ENABLE =				False,
 		BATCH_GROUP =				True,
 		BATCH_SCENE =				False,
 		BATCH_FILE_PREFIX =			'',
 		BATCH_OWN_DIR =				False
 	):
+
 	
-	"""
+	
+	
 	# ----------------- Batch support!
 	if BATCH_ENABLE:
+		if os == None:	BATCH_OWN_DIR = False
+		
+		fbxpath = filename
+		
 		# get the path component of filename
 		
+		tmp_exists = Blender.sys.exists(fbxpath)
+		
+		if tmp_exists != 2: # a file, we want a path
+			while fbxpath and fbxpath[-1] not in ('/', '\\'):
+				fbxpath = fbxpath[:-1]
+			if not filename:
+				Draw.PupMenu('Error%t|Directory does not exist!')
+				return
+			
+			tmp_exists = Blender.sys.exists(fbxpath)
+		
+		if tmp_exists != 2:
+			Draw.PupMenu('Error%t|Directory does not exist!')
+			return
+		
+		if not fbxpath.endswith(Blender.sys.sep):
+			fbxpath += Blender.sys.sep
+		del tmp_exists
 		
 		
-		# call this function within a loop with BATCH_ENABLE == False
 		if BATCH_GROUP:
 			data_seq = bpy.data.groups
-		else: # must be scene
+		else:
 			data_seq = bpy.data.scenes
 		
+		# call this function within a loop with BATCH_ENABLE == False
+		orig_sce = bpy.data.scenes.active
 		
 		
-		
-		
+		new_fbxpath = fbxpath # own dir option modifies, we need to keep an original
 		for data in data_seq: # scene or group
-			newname = BATCH_FILE_PREFIX + BPySys.cleanName(data)
+			newname = BATCH_FILE_PREFIX + BPySys.cleanName(data.name)
 			
 			if BATCH_OWN_DIR:
-				# make dir
-
-		return
+				new_fbxpath = fbxpath + newname + Blender.sys.sep
+				# path may alredy exist
+				# TODO - might exist but be a file. unlikely but should probably account for it.
+				
+				if Blender.sys.exists(new_fbxpath) == 0:
+					os.mkdir(new_fbxpath)
+				
+			
+			filename = new_fbxpath + newname + '.fbx'
+			
+			print '\nBatch exporting %s as...\n\t"%s"' % (data, filename)
+			
+			if BATCH_GROUP: #group
+				# group, so objects update properly, add a dummy scene.
+				sce = bpy.data.scenes.new()
+				sce.Layers = (1<<20) -1
+				bpy.data.scenes.active = sce
+				for ob_base in data.objects:
+					sce.objects.link(ob_base)
+				
+				sce.update(1)
+				
+				# TODO - BUMMER! Armatures not in the group wont animate the mesh
+				
+			else:# scene
+				
+				
+				data_seq.active = data
+			
+			
+			# Call self with modified args
+			# Dont pass batch options since we alredy usedt them
+			write(filename, data.objects,
+				False,
+				EXP_MESH,
+				EXP_MESH_APPLY_MOD,
+				EXP_MESH_HQ_NORMALS,
+				EXP_ARMATURE,
+				EXP_LAMP,
+				EXP_CAMERA,
+				EXP_EMPTY,
+				EXP_IMAGE_COPY,
+				GLOBAL_MATRIX,
+				ANIM_ENABLE,
+				ANIM_OPTIMIZE,
+				ANIM_OPTIMIZE_PRECISSION,
+				ANIM_ACTION_ALL
+			)
+			
+			if BATCH_GROUP:
+				# remove temp group scene
+				bpy.data.scenes.unlink(sce)
+		
+		bpy.data.scenes.active = orig_sce
+		
+		return # so the script wont run after we have batch exported.
 	
 	# end batch support
-	"""
+	
+	
+	
+	
+	
+	# ----------------------------------------------
+	# storage classes
+	class my_bone_class:
+		__slots__ =(\
+		  'blenName',\
+		  'blenBone',\
+		  'blenMeshes',\
+		  'restMatrix',\
+		  'parent',\
+		  'blenName',\
+		  'fbxName',\
+		  'fbxArm',\
+		  '__pose_bone',\
+		  '__anim_poselist')
+		
+		def __init__(self, blenBone, fbxArm):
+			
+			# This is so 2 armatures dont have naming conflicts since FBX bones use object namespace
+			self.fbxName = sane_obname(blenBone)
+			
+			self.blenName =			blenBone.name
+			self.blenBone =			blenBone
+			self.blenMeshes =		{}					# fbxMeshObName : mesh
+			self.fbxArm =			fbxArm
+			self.restMatrix =		blenBone.matrix['ARMATURESPACE']
+			
+			# not used yet
+			# self.restMatrixInv =	self.restMatrix.copy().invert()
+			# self.restMatrixLocal =	None # set later, need parent matrix
+			
+			self.parent =			None
+			
+			# not public
+			pose = fbxArm.blenObject.getPose()
+			self.__pose_bone =		pose.bones[self.blenName]
+			
+			# store a list if matricies here, (poseMatrix, head, tail)
+			# {frame:posematrix, frame:posematrix, ...}
+			self.__anim_poselist = {}
+		
+		'''
+		def calcRestMatrixLocal(self):
+			if self.parent:
+				self.restMatrixLocal = self.restMatrix * self.parent.restMatrix.copy().invert()
+			else:
+				self.restMatrixLocal = self.restMatrix.copy()
+		'''
+		def setPoseFrame(self, f):
+			# cache pose info here, frame must be set beforehand
+			
+			# Didnt end up needing head or tail, if we do - here it is.
+			'''
+			self.__anim_poselist[f] = (\
+				self.__pose_bone.poseMatrix.copy(),\
+				self.__pose_bone.head.copy(),\
+				self.__pose_bone.tail.copy() )
+			'''
+			
+			self.__anim_poselist[f] = self.__pose_bone.poseMatrix.copy()
+		
+		# get pose from frame.
+		def getPoseMatrix(self, f):# ----------------------------------------------
+			return self.__anim_poselist[f]
+		'''
+		def getPoseHead(self, f):
+			#return self.__pose_bone.head.copy()
+			return self.__anim_poselist[f][1].copy()
+		def getPoseTail(self, f):
+			#return self.__pose_bone.tail.copy()
+			return self.__anim_poselist[f][2].copy()
+		'''
+		# end
+		
+		def getAnimMatrix(self, frame):
+			arm_mat = self.fbxArm.matrixWorld
+			if not self.parent:
+				return mtx4_z90 * (self.getPoseMatrix(frame) * arm_mat)
+			else:
+				return (mtx4_z90 * ((self.getPoseMatrix(frame) * arm_mat)))  *  (mtx4_z90 * (self.parent.getPoseMatrix(frame) * arm_mat)).invert()
+		
+		def flushAnimData(self):
+			self.__anim_poselist.clear()
+
+
+	class my_object_generic:
+		# Other settings can be applied for each type - mesh, armature etc.
+		def __init__(self, ob):
+			self.fbxName = sane_obname(ob)
+			self.blenObject = ob
+			self.matrixWorld = ob.matrixWorld * GLOBAL_MATRIX
+	# ----------------------------------------------
+	
+	
+	
+	
 	
 	
 	
@@ -391,7 +489,6 @@ def write(filename, batch_objects = None, \
 	file.write('\nCreationTime: "%.4i-%.2i-%.2i %.2i:%.2i:%.2i:000"' % curtime)
 	file.write('\nCreator: "Blender3D version %.2f"' % Blender.Get('version'))
 	
-	
 	# --------------- funcs for exporting
 	def object_tx(ob, loc, matrix, matrix_mod = None):
 		'''
@@ -414,7 +511,7 @@ def write(filename, batch_objects = None, \
 			rot =			tuple(matrix_rot.toEuler())
 			
 		else:
-			if ob and not matrix:	matrix = ob.matrixWorld
+			if ob and not matrix:	matrix = ob.matrixWorld * GLOBAL_MATRIX
 			matrix_rot = matrix
 			#if matrix:
 			#	matrix = matrix_scale * matrix
@@ -560,8 +657,13 @@ def write(filename, batch_objects = None, \
 		
 		#((my_bone.blenData.head['ARMATURESPACE'] * my_bone.fbxArm.matrixWorld) - (my_bone.blenData.tail['ARMATURESPACE'] * my_bone.fbxArm.matrixWorld)).length)
 		
+		"""
 		file.write('\n\t\t\tProperty: "LimbLength", "double", "",%.6f' %\
 			((my_bone.blenBone.head['ARMATURESPACE'] - my_bone.blenBone.tail['ARMATURESPACE']) * my_bone.fbxArm.matrixWorld).length)
+		"""
+		
+		file.write('\n\t\t\tProperty: "LimbLength", "double", "",%.6f' %\
+			(my_bone.blenBone.head['ARMATURESPACE'] - my_bone.blenBone.tail['ARMATURESPACE']).length)
 		
 		#file.write('\n\t\t\tProperty: "LimbLength", "double", "",1')
 		file.write('\n\t\t\tProperty: "Color", "ColorRGB", "",0.8,0.8,0.8')
@@ -825,7 +927,18 @@ def write(filename, batch_objects = None, \
 		#eSPOT
 		light_type = light.type
 		if light_type > 3: light_type = 0
-			
+		
+		mode = light.mode
+		if mode & Blender.Lamp.Modes.RayShadow or mode & Blender.Lamp.Modes.Shadows:
+			do_shadow = 1
+		else:
+			do_shadow = 0
+		
+		if mode & Blender.Lamp.Modes.OnlyShadow or (mode & Blender.Lamp.Modes.NoDiffuse and mode & Blender.Lamp.Modes.NoSpecular):
+			do_light = 0
+		else:
+			do_light = 1
+		
 		file.write('\n\t\t\tProperty: "LightType", "enum", "",%i' % light_type)
 		file.write('\n\t\t\tProperty: "CastLightOnObject", "bool", "",1')
 		file.write('\n\t\t\tProperty: "DrawVolumetricLight", "bool", "",1')
@@ -841,7 +954,7 @@ def write(filename, batch_objects = None, \
 		file.write('\n\t\t\tProperty: "Cone angle", "Cone angle", "A+",%.2f' % light.spotSize)
 		file.write('\n\t\t\tProperty: "Fog", "Fog", "A+",50')
 		file.write('\n\t\t\tProperty: "LightType", "enum", "",%i' % light_type)
-		file.write('\n\t\t\tProperty: "CastLightOnObject", "bool", "",1')
+		file.write('\n\t\t\tProperty: "CastLightOnObject", "bool", "",%i' % do_light)
 		file.write('\n\t\t\tProperty: "DrawGroundProjection", "bool", "",1')
 		file.write('\n\t\t\tProperty: "DrawFrontFacingVolumetricLight", "bool", "",0')
 		file.write('\n\t\t\tProperty: "DrawVolumetricLight", "bool", "",1')
@@ -854,7 +967,7 @@ def write(filename, batch_objects = None, \
 		file.write('\n\t\t\tProperty: "EnableFarAttenuation", "bool", "",0')
 		file.write('\n\t\t\tProperty: "FarAttenuationStart", "double", "",0')
 		file.write('\n\t\t\tProperty: "FarAttenuationEnd", "double", "",0')
-		file.write('\n\t\t\tProperty: "CastShadows", "bool", "",0') # TODO
+		file.write('\n\t\t\tProperty: "CastShadows", "bool", "",%i' % do_shadow)
 		file.write('\n\t\t\tProperty: "ShadowColor", "ColorRGBA", "",0,0,0,1')
 		file.write('\n\t\t}')
 		file.write('\n\t\tMultiLayer: 0')
@@ -1078,13 +1191,26 @@ def write(filename, batch_objects = None, \
 		}
 		UserData: "", ""''')
 		
-		try:
-			# Before we used normalized wright list
-			#vgroup_data = me.getVertsFromGroup(bone.name, 1)
-			group_index = weights[0].index(my_bone.blenName)
-			vgroup_data = [(j, weight[group_index]) for j, weight in enumerate(weights[1]) if weight[group_index]] 
-		except:
-			vgroup_data = []
+		# Support for bone parents
+		if my_mesh.fbxBoneParent:
+			if my_mesh.fbxBoneParent == my_bone:
+				# TODO - this is a bit lazy, we could have a simple write loop
+				# for this case because all weights are 1.0 but for now this is ok
+				# Parent Bones arent used all that much anyway.
+				vgroup_data = [(j, 1.0) for j in xrange(len(my_mesh.blenData.verts))]
+			else:
+				# This bone is not a parent of this mesh object, no weights
+				vgroup_data = []
+			
+		else:
+			# Normal weight painted mesh
+			if my_bone.blenName in weights[0]:
+				# Before we used normalized wright list
+				#vgroup_data = me.getVertsFromGroup(bone.name, 1)
+				group_index = weights[0].index(my_bone.blenName)
+				vgroup_data = [(j, weight[group_index]) for j, weight in enumerate(weights[1]) if weight[group_index]] 
+			else:
+				vgroup_data = []
 		
 		file.write('\n\t\tIndexes: ')
 		
@@ -1146,13 +1272,13 @@ def write(filename, batch_objects = None, \
 		i=-1
 		for v in me.verts:
 			if i==-1:
-				file.write('%.6f,%.6f,%.6f' % tuple(v.co * my_mesh.matrix))
+				file.write('%.6f,%.6f,%.6f' % tuple(v.co * my_mesh.matrixWorld))
 				i=0
 			else:
 				if i==7:
 					file.write('\n\t\t')
 					i=0
-				file.write(',%.6f,%.6f,%.6f'% tuple(v.co * my_mesh.matrix))
+				file.write(',%.6f,%.6f,%.6f'% tuple(v.co * my_mesh.matrixWorld))
 			i+=1
 		file.write('\n\t\tPolygonVertexIndex: ')
 		i=-1
@@ -1202,7 +1328,7 @@ def write(filename, batch_objects = None, \
 			Normals: ''')
 		
 		# wont handle non uniform scaling properly
-		mtx_rot = my_mesh.matrix.rotationPart()
+		mtx_rot = my_mesh.matrixWorld.rotationPart()
 		
 		i=-1
 		for v in me.verts:
@@ -1366,12 +1492,13 @@ def write(filename, batch_objects = None, \
 			Materials: ''')
 			
 			# Build a material mapping for this 
-			material_mapping_local = {} # local-index : global index.
-			for i, mat in enumerate(my_mesh.blenMaterials):
+			material_mapping_local = [-1] * 16 # local-index : global index.
+			i= 0
+			for j, mat in enumerate(my_mesh.blenMaterials):
 				if mat:
-					material_mapping_local[i] = material_mapping[mat.name]
-				else:
-					material_mapping_local[i] = 0 # None material is zero for now.
+					material_mapping_local[j] = i
+					i+=1
+				# else leave as -1
 			
 			if not material_mapping_local:
 				material_mapping_local[0] = 0
@@ -1386,13 +1513,15 @@ def write(filename, batch_objects = None, \
 				
 				if i==-1:
 					i=0
-					file.write( '%s' % material_mapping_local[f_mat])
+					file.write( '%s' % (material_mapping_local[f_mat]))
+					#file.write( '%s' % -1)
 				else:
 					if i==55:
 						file.write('\n\t\t\t\t')
 						i=0
 					
-					file.write(',%s' % material_mapping_local[f_mat])
+					file.write(',%s' % (material_mapping_local[f_mat]))
+					#file.write(',%s' % -1)
 				i+=1
 			
 			file.write('\n\t\t}')
@@ -1496,9 +1625,30 @@ def write(filename, batch_objects = None, \
 	tmp_ob_type = ob_type = None # incase no objects are exported, so as not to raise an error
 	
 	# if EXP_OBS_SELECTED is false, use sceens objects
-	if EXP_OBS_SELECTED:	tmp_objects = sce.objects.context
-	else:					tmp_objects = sce.objects
+	if not batch_objects:
+		if EXP_OBS_SELECTED:	tmp_objects = sce.objects.context
+		else:					tmp_objects = sce.objects
+	else:
+		tmp_objects = batch_objects
 	
+	if EXP_ARMATURE:
+		# This is needed so applying modifiers dosnt apply the armature deformation, its also needed
+		# ...so mesh objects return their rest worldspace matrix when bone-parents are exported as weighted meshes.
+		# set every armature to its rest, backup the original values so we done mess up the scene
+		ob_arms_orig_rest = [arm.restPosition for arm in bpy.data.armatures]
+		
+		for arm in bpy.data.armatures:
+			arm.restPosition = True
+		
+		if ob_arms_orig_rest:
+			for ob_base in bpy.data.objects:
+				#if ob_base.type == 'Armature':
+				ob_base.makeDisplayList()
+					
+			# This causes the makeDisplayList command to effect the mesh
+			Blender.Set('curframe', Blender.Get('curframe'))
+			
+		
 	for ob_base in tmp_objects:
 		for ob, mtx in BPyObject.getDerivedObjects(ob_base):
 			#for ob in [ob_base,]:
@@ -1517,17 +1667,48 @@ def write(filename, batch_objects = None, \
 				if EXP_EMPTY:
 					ob_null.append(my_object_generic(ob))
 			elif EXP_MESH:
-				if EXP_MESH_APPLY_MOD:
-					me = BPyMesh.getMeshFromObject(ob)
+				if tmp_ob_type != 'Mesh':
+					me = bpy.data.meshes.new()
+					try:	me.getFromObject(ob)
+					except:	me = None
 					if me:
 						meshes_to_clear.append( me )
+						mats = me.materials
 				else:
-					if tmp_ob_type == 'Mesh':
-						me = ob.getData(mesh=1)
-					else:
-						me = BPyMesh.getMeshFromObject(ob)
+					# Mesh Type!
+					if EXP_MESH_APPLY_MOD:
+						me = bpy.data.meshes.new()
+						me.getFromObject(ob)
+						
+						# so we keep the vert groups
+						if EXP_ARMATURE:
+							orig_mesh = ob.getData(mesh=1)
+							if orig_mesh.getVertGroupNames():
+								ob.copy().link(me)
+								# If new mesh has no vgroups we can try add if verts are teh same
+								if not me.getVertGroupNames(): # vgroups were not kept by the modifier
+									if len(me.verts) == len(orig_mesh.verts):
+										groupNames, vWeightDict = BPyMesh.meshWeight2Dict(orig_mesh)
+										BPyMesh.dict2MeshWeight(me, groupNames, vWeightDict)
+						
+						# print ob, me, me.getVertGroupNames()
 						meshes_to_clear.append( me )
-				
+						mats = me.materials
+					else:
+						me = ob.getData(mesh=1)
+						mats = me.materials
+						
+						# Support object colors
+						tmp_colbits = ob.colbits
+						if colbits:
+							tmp_ob_mats = ob.getMaterials(1) # 1 so we get None's too.
+							for i in xrange(16):
+								if colbits & (1<<i):
+									cols[i] = tmp_ob_mats[i]
+							del tmp_ob_mats
+						del tmp_colbits
+							
+					
 				if me:
 					# This WILL modify meshes in blender if EXP_MESH_APPLY_MOD is disabled.
 					# so strictly this is bad. but only in rare cases would it have negative results
@@ -1535,7 +1716,6 @@ def write(filename, batch_objects = None, \
 					if EXP_MESH_HQ_NORMALS:
 						BPyMesh.meshCalcNormals(me) # high quality normals nice for realtime engines.
 					
-					mats = me.materials
 					for mat in mats:
 						# 2.44 use mat.lib too for uniqueness
 						if mat: materials[mat.name] = mat
@@ -1552,31 +1732,48 @@ def write(filename, batch_objects = None, \
 					
 					if EXP_ARMATURE:
 						armob = BPyObject.getObjectArmature(ob)
+						blenParentBoneName = None
 						
 						# Note - Fixed in BPyObject but for now just copy the function because testers wont have up to date modukes,
 						# TODO - remove this for 2.45 release since getObjectArmature has been fixed
 						if (not armob) and ob.parent and ob.parent.type == 'Armature' and ob.parentType == Blender.Object.ParentTypes.ARMATURE:
 							armob = ob.parent
 						
-						if armob:
-							if armob not in ob_arms:
-								ob_arms.append(armob)
+						# parent bone - special case
+						if (not armob) and ob.parent and ob.parent.type == 'Armature' and ob.parentType == Blender.Object.ParentTypes.BONE:
+							armob = ob.parent
+							blenParentBoneName = ob.parentbonename
 						
+							
+						if armob and armob not in ob_arms:
+							ob_arms.append(armob)
+							
 					else:
-						armob = None
+						blenParentBoneName = armob = None
 					
 					#ob_meshes.append( (obname, ob, mtx, me, mats, armob, armname) )
 					
 					my_mesh = my_object_generic(ob)
-					my_mesh.matrix =		mtx
 					my_mesh.blenData =		me
 					my_mesh.blenMaterials =	mats
-					my_mesh.fbxArm =	armob # replace with my_armature class later
+					my_mesh.fbxArm =	armob					# replace with my_object_generic armature instance later
+					my_mesh.fbxBoneParent = blenParentBoneName	# replace with my_bone instance later
 					
 					ob_meshes.append( my_mesh )
 	
-	del tmp_ob_type, tmp_objects
+	if EXP_ARMATURE:
+		# now we have the meshes, restore the rest arm position
+		for i, arm in enumerate(bpy.data.armatures):
+			arm.restPosition = ob_arms_orig_rest[i]
+			
+		if ob_arms_orig_rest:
+			for ob_base in bpy.data.objects:
+				if ob_base.type == 'Armature':
+					ob_base.makeDisplayList()
+			# This causes the makeDisplayList command to effect the mesh
+			Blender.Set('curframe', Blender.Get('curframe'))
 	
+	del tmp_ob_type, tmp_objects
 	
 	# now we have collected all armatures, add bones
 	for i, ob in enumerate(ob_arms):
@@ -1609,8 +1806,16 @@ def write(filename, batch_objects = None, \
 					break
 		
 		for my_bone in ob_bones:
+			
+			# The mesh uses this bones armature!
 			if my_bone.fbxArm == my_mesh.fbxArm:
 				my_bone.blenMeshes[my_mesh.fbxName] = me
+				
+				
+				# parent bone: replace bone names with our class instances
+				# my_mesh.fbxBoneParent is None or a blender bone name initialy, replacing if the names match.
+				if my_mesh.fbxBoneParent == my_bone.blenName:
+					my_mesh.fbxBoneParent = my_bone
 	
 	bone_deformer_count = 0 # count how many bones deform a mesh
 	my_bone_blenParent = None
@@ -1794,12 +1999,14 @@ Objects:  {''')
 			write_deformer_skin(my_mesh.fbxName)
 			
 			# Get normalized weights for temorary use
-			weights = meshNormalizedWeights(my_mesh.blenData)
+			if my_mesh.fbxBoneParent:
+				weights = None
+			else:
+				weights = meshNormalizedWeights(my_mesh.blenData)
 			
 			#for bonename, bone, obname, bone_mesh, armob in ob_bones:
 			for my_bone in ob_bones:
 				if me in my_bone.blenMeshes.itervalues():
-					#write_sub_deformer_skin(my_mesh.fbxName, my_bone.fbxName, my_bone.blenBone, meshNormalizedWeights, my_bone.fbxArm.matrixWorld)
 					write_sub_deformer_skin(my_mesh, my_bone, weights)
 	
 	# Write pose's really weired, only needed when an armature and mesh are used together
@@ -1894,7 +2101,7 @@ Relations:  {''')
 	Model: "Model::Camera Switcher", "CameraSwitcher" {
 	}''')
 	
-	for matname, mat in materials:
+	for matname, mat in reversed(materials):
 		file.write('\n\tMaterial: "Material::%s", "" {\n\t}' % matname)
 
 	if textures:
@@ -1954,7 +2161,8 @@ Connections:  {''')
 	for my_mesh in ob_meshes:
 		# Connect all materials to all objects, not good form but ok for now.
 		for mat in my_mesh.blenMaterials:
-			file.write('\n\tConnect: "OO", "Material::%s", "Model::%s"' % (sane_name_mapping_mat[mat.name], my_mesh))
+			if mat:
+				file.write('\n\tConnect: "OO", "Material::%s", "Model::%s"' % (sane_name_mapping_mat[mat.name], my_mesh.fbxName))
 	
 	if textures:
 		for my_mesh in ob_meshes:
@@ -2232,12 +2440,13 @@ Takes:  {''')
 	
 	
 	# --------------------------- Footer
-	tuple(world.hor)
-	tuple(world.amb)
-	
-	has_mist = world.mode & 1
-	
-	mist_intense, mist_start, mist_end, mist_height = world.mist
+	if world:
+		has_mist = world.mode & 1
+		mist_intense, mist_start, mist_end, mist_height = world.mist
+		world_hor = world.hor
+	else:
+		has_mist = mist_intense = mist_start = mist_end = mist_height = 0
+		world_hor = 0,0,0
 	
 	file.write('\n;Version 5 settings')
 	file.write('\n;------------------------------------------------------------------')
@@ -2245,7 +2454,7 @@ Takes:  {''')
 	file.write('\nVersion5:  {')
 	file.write('\n\tAmbientRenderSettings:  {')
 	file.write('\n\t\tVersion: 101')
-	file.write('\n\t\tAmbientLightColor: %.1f,%.1f,%.1f,0' % tuple(world.amb))
+	file.write('\n\t\tAmbientLightColor: %.1f,%.1f,%.1f,0' % tuple(world_amb))
 	file.write('\n\t}')
 	file.write('\n\tFogOptions:  {')
 	file.write('\n\t\tFlogEnable: %i' % has_mist)
@@ -2253,7 +2462,7 @@ Takes:  {''')
 	file.write('\n\t\tFogDensity: %.3f' % mist_intense)
 	file.write('\n\t\tFogStart: %.3f' % mist_start)
 	file.write('\n\t\tFogEnd: %.3f' % mist_end)
-	file.write('\n\t\tFogColor: %.1f,%.1f,%.1f,1' % tuple(world.hor))
+	file.write('\n\t\tFogColor: %.1f,%.1f,%.1f,1' % tuple(world_hor))
 	file.write('\n\t}')
 	file.write('\n\tSettings:  {')
 	file.write('\n\t\tFrameRate: "%i"' % int(fps))
@@ -2275,12 +2484,17 @@ Takes:  {''')
 	sane_name_mapping_mat.clear()
 	sane_name_mapping_tex.clear()
 	
+	ob_arms[:] =	[]
+	ob_bones[:] =	[]
+	ob_cameras[:] =	[]
+	ob_lights[:] =	[]
+	ob_meshes[:] =	[]
+	ob_null[:] =	[]
+	
+	
 	# copy images if enabled
 	if EXP_IMAGE_COPY:
-		copy_images( Blender.sys.dirname(filename),  [ tex[1] for tex in textures if tex[1] != None ])
-	
-	
-	
+		copy_images( Blender.sys.dirname(filename),  [ tex[1] for tex in textures if tex[1] != None ])	
 	
 	print 'export finished in %.4f sec.' % (Blender.sys.time() - start_time)
 	
@@ -2332,23 +2546,51 @@ def do_anim_act_all(e,v):
 	GLOBALS['ANIM_ACTION_ALL'][1].val = 0
 
 def do_anim_act_cur(e,v):
-	GLOBALS['EVENT'] = e
-	GLOBALS['ANIM_ACTION_ALL'][0].val = 0
-	GLOBALS['ANIM_ACTION_ALL'][1].val = 1
+	if GLOBALS['BATCH_ENABLE'].val and GLOBALS['BATCH_GROUP'].val:
+		Draw.PupMenu('Warning%t|Cant use this with batch export group option')
+	else:
+		GLOBALS['EVENT'] = e
+		GLOBALS['ANIM_ACTION_ALL'][0].val = 0
+		GLOBALS['ANIM_ACTION_ALL'][1].val = 1
 
 def fbx_ui_exit(e,v):
 	GLOBALS['EVENT'] = e
 
+def do_help(e,v):
+	url = 'http://wiki.blender.org/index.php/Scripts/Manual/Export/autodesk_fbx'
+	print 'Trying to open web browser with documentation at this address...'
+	print '\t' + url
+	
+	try:
+		import webbrowser
+		webbrowser.open(url)
+	except:
+		print '...could not open a browser window.'
+
+	
+
 # run when export is pressed
 #def fbx_ui_write(e,v):
 def fbx_ui_write(filename):
-	#filename = GLOBALS['FILENAME']
+	
+	# Dont allow overwriting files when saving normally
+	if not GLOBALS['BATCH_ENABLE'].val:
+		if not BPyMessages.Warning_SaveOver(filename):
+			return
+	
 	GLOBALS['EVENT'] = EVENT_EXIT
 	
 	# Keep the order the same as above for simplicity
 	# the [] is a dummy arg used for objects
 	
 	Blender.Window.WaitCursor(1)
+	
+	# Make the matrix
+	GLOBAL_MATRIX = Matrix()
+	GLOBAL_MATRIX[0][0] = GLOBAL_MATRIX[1][1] = GLOBAL_MATRIX[2][2] = GLOBALS['_SCALE'].val
+	if GLOBALS['_XROT90'].val:	GLOBAL_MATRIX = GLOBAL_MATRIX * mtx4_x90n
+	if GLOBALS['_YROT90'].val:	GLOBAL_MATRIX = GLOBAL_MATRIX * mtx4_y90n
+	if GLOBALS['_ZROT90'].val:	GLOBAL_MATRIX = GLOBAL_MATRIX * mtx4_z90n
 	
 	write(\
 		filename, None,\
@@ -2361,6 +2603,7 @@ def fbx_ui_write(filename):
 		GLOBALS['EXP_CAMERA'].val,\
 		GLOBALS['EXP_EMPTY'].val,\
 		GLOBALS['EXP_IMAGE_COPY'].val,\
+		GLOBAL_MATRIX,\
 		GLOBALS['ANIM_ENABLE'].val,\
 		GLOBALS['ANIM_OPTIMIZE'].val,\
 		GLOBALS['ANIM_OPTIMIZE_PRECISSION'].val,\
@@ -2374,7 +2617,7 @@ def fbx_ui_write(filename):
 	
 	Blender.Window.WaitCursor(0)
 	GLOBALS.clear()
-	
+
 
 def fbx_ui():
 	# Only to center the UI
@@ -2383,10 +2626,20 @@ def fbx_ui():
 	
 	Draw.Label('Export Objects...', x+20,y+165, 200, 20)
 	
+	if not GLOBALS['BATCH_ENABLE'].val:
+		Draw.BeginAlign()
+		GLOBALS['EXP_OBS_SELECTED'] =	Draw.Toggle('Selected Objects',	EVENT_REDRAW, x+20,  y+145, 160, 20, GLOBALS['EXP_OBS_SELECTED'].val,	'Export selected objects on visible layers', do_obs_sel)
+		GLOBALS['EXP_OBS_SCENE'] =		Draw.Toggle('Scene Objects',	EVENT_REDRAW, x+180,  y+145, 160, 20, GLOBALS['EXP_OBS_SCENE'].val,		'Export all objects in this scene', do_obs_sce)
+		Draw.EndAlign()
+	
 	Draw.BeginAlign()
-	GLOBALS['EXP_OBS_SELECTED'] =	Draw.Toggle('Selected Objects',	EVENT_REDRAW, x+20,  y+145, 160, 20, GLOBALS['EXP_OBS_SELECTED'].val,	'Export selected objects on visible layers', do_obs_sel)
-	GLOBALS['EXP_OBS_SCENE'] =		Draw.Toggle('Scene Objects',	EVENT_REDRAW, x+180,  y+145, 160, 20, GLOBALS['EXP_OBS_SCENE'].val,		'Export all objects in this scene', do_obs_sce)
+	GLOBALS['_SCALE'] =		Draw.Number('Scale:',	EVENT_NONE, x+20, y+120, 140, 20, GLOBALS['_SCALE'].val,	0.01, 1000.0, 'Export empty objects')
+	GLOBALS['_XROT90'] =	Draw.Toggle('Rot X90',	EVENT_NONE, x+160, y+120, 60, 20, GLOBALS['_XROT90'].val,		'Export empty objects')
+	GLOBALS['_YROT90'] =	Draw.Toggle('Rot Y90',	EVENT_NONE, x+220, y+120, 60, 20, GLOBALS['_YROT90'].val,		'Export empty objects')
+	GLOBALS['_ZROT90'] =	Draw.Toggle('Rot Z90',	EVENT_NONE, x+280, y+120, 60, 20, GLOBALS['_ZROT90'].val,		'Export empty objects')
 	Draw.EndAlign()
+	
+	y -= 35
 	
 	Draw.BeginAlign()
 	GLOBALS['EXP_EMPTY'] =		Draw.Toggle('Empty',	EVENT_NONE, x+20, y+120, 60, 20, GLOBALS['EXP_EMPTY'].val,		'Export empty objects')
@@ -2421,43 +2674,49 @@ def fbx_ui():
 		GLOBALS['ANIM_ACTION_ALL'][0] =		Draw.Toggle('All Actions',	EVENT_REDRAW, x+180,y-25, 160, 20, GLOBALS['ANIM_ACTION_ALL'][0].val,		'Use all actions for armatures', do_anim_act_all)
 		Draw.EndAlign()
 	
-	'''
-	Draw.Label('Export Batch...(not implimented!)', x+20,y-60, 300, 20)
-	GLOBALS['BATCH_ENABLE'] =	Draw.Toggle('Enable Batch',		EVENT_REDRAW, x+20,  y-80, 160, 20, GLOBALS['BATCH_ENABLE'].val,		'Automate exporting multiple files', do_redraw)
+	
+	Draw.Label('Export Batch...', x+20,y-60, 300, 20)
+	GLOBALS['BATCH_ENABLE'] =	Draw.Toggle('Enable Batch',		EVENT_REDRAW, x+20,  y-80, 160, 20, GLOBALS['BATCH_ENABLE'].val,		'Automate exporting multiple scenes or groups to files', do_redraw)
 	
 	if GLOBALS['BATCH_ENABLE'].val:
 		Draw.BeginAlign()
 		GLOBALS['BATCH_GROUP'] =	Draw.Toggle('Group > File',	EVENT_REDRAW, x+20,  y-105, 160, 20, GLOBALS['BATCH_GROUP'].val,		'Export each group as an FBX file', do_batch_type_grp)
 		GLOBALS['BATCH_SCENE'] =	Draw.Toggle('Scene > File',	EVENT_REDRAW, x+180,  y-105, 160, 20, GLOBALS['BATCH_SCENE'].val,	'Export each scene as an FBX file', do_batch_type_sce)
 		
-		GLOBALS['BATCH_OWN_DIR'] =		Draw.Toggle('Own Dir',	EVENT_NONE, x+20,  y-125, 80, 20, GLOBALS['BATCH_OWN_DIR'].val,		'Create a dir for each export')
-		GLOBALS['BATCH_FILE_PREFIX'] =	Draw.String('Prefix: ',	EVENT_NONE, x+100,  y-125, 240, 20, GLOBALS['BATCH_FILE_PREFIX'].val, 64,	'Prefix each file with this name ')
+		# Own dir requires OS module
+		if os:
+			GLOBALS['BATCH_OWN_DIR'] =		Draw.Toggle('Own Dir',	EVENT_NONE, x+20,  y-125, 80, 20, GLOBALS['BATCH_OWN_DIR'].val,		'Create a dir for each exported file')
+			GLOBALS['BATCH_FILE_PREFIX'] =	Draw.String('Prefix: ',	EVENT_NONE, x+100,  y-125, 240, 20, GLOBALS['BATCH_FILE_PREFIX'].val, 64,	'Prefix each file with this name ')
+		else:
+			GLOBALS['BATCH_FILE_PREFIX'] =	Draw.String('Prefix: ',	EVENT_NONE, x+20,  y-125, 320, 20, GLOBALS['BATCH_FILE_PREFIX'].val, 64,	'Prefix each file with this name ')
+		
+		
 		Draw.EndAlign()
-	'''
-	
+
+	#y+=80
+		
 	'''
 	Draw.BeginAlign()
 	GLOBALS['FILENAME'] =	Draw.String('path: ',	EVENT_NONE, x+20,  y-170, 300, 20, GLOBALS['FILENAME'].val, 64,	'Prefix each file with this name ')
 	Draw.PushButton('..',	EVENT_FILESEL, x+320,  y-170, 20, 20,		'Select the path', do_redraw)
 	'''
 	# Until batch is added
-	y+=80
+	#
 	
 	
-	Draw.BeginAlign()
-	Draw.PushButton('Cancel',	EVENT_EXIT, x+20, y-160, 160, 20,	'Exit the exporter', fbx_ui_exit)
+	#Draw.BeginAlign()
+	Draw.PushButton('Online Help',	EVENT_REDRAW, x+20, y-160, 100, 20,	'Open online help in a browser window', do_help)
+	Draw.PushButton('Cancel',		EVENT_EXIT, x+130, y-160, 100, 20,	'Exit the exporter', fbx_ui_exit)
+	Draw.PushButton('Export',		EVENT_FILESEL, x+240, y-160, 100, 20,	'Export the fbx file', do_redraw)
+	
 	#Draw.PushButton('Export',	EVENT_EXIT, x+180, y-160, 160, 20,	'Export the fbx file', fbx_ui_write)
-	Draw.PushButton('Export',	EVENT_FILESEL, x+180, y-160, 160, 20,	'Export the fbx file', do_redraw)
-	Draw.EndAlign()
+	#Draw.EndAlign()
 	
 	# exit when mouse out of the view?
 	# GLOBALS['EVENT'] = EVENT_EXIT
 
 #def write_ui(filename):
 def write_ui():
-	
-	#if not BPyMessages.Warning_SaveOver(filename):
-	#	return
 	
 	# globals
 	GLOBALS['EVENT'] = 2
@@ -2475,7 +2734,7 @@ def write_ui():
 	GLOBALS['EXP_OBS_SCENE'] =				Draw.Create(0)
 
 	GLOBALS['EXP_MESH'] =					Draw.Create(1)
-	GLOBALS['EXP_MESH_APPLY_MOD'] =			Draw.Create(0)
+	GLOBALS['EXP_MESH_APPLY_MOD'] =			Draw.Create(1)
 	GLOBALS['EXP_MESH_HQ_NORMALS'] =		Draw.Create(0)
 	GLOBALS['EXP_ARMATURE'] =				Draw.Create(1)
 	GLOBALS['EXP_LAMP'] =					Draw.Create(1)
@@ -2496,6 +2755,13 @@ def write_ui():
 	GLOBALS['BATCH_OWN_DIR'] =				Draw.Create(0)
 	# done setting globals
 	
+	# Used by the user interface
+	GLOBALS['_SCALE'] =						Draw.Create(10.0)
+	GLOBALS['_XROT90'] =					Draw.Create(True)
+	GLOBALS['_YROT90'] =					Draw.Create(False)
+	GLOBALS['_ZROT90'] =					Draw.Create(False)
+	
+	
 	# horrible ugly hack so tooltips draw, dosnt always work even
 	# Fixed in Draw.UIBlock for 2.45rc2, but keep this until 2.45 is released
 	Window.SetKeyQualifiers(0)
@@ -2509,8 +2775,20 @@ def write_ui():
 	# hack so the toggle buttons redraw. this is not nice at all
 	while GLOBALS['EVENT'] != EVENT_EXIT:
 		
+		if GLOBALS['BATCH_ENABLE'].val and GLOBALS['BATCH_GROUP'].val and GLOBALS['ANIM_ACTION_ALL'][1].val:
+			#Draw.PupMenu("Warning%t|Cant batch export groups with 'Current Action' ")
+			GLOBALS['ANIM_ACTION_ALL'][0].val = 1
+			GLOBALS['ANIM_ACTION_ALL'][1].val = 0
+		
 		if GLOBALS['EVENT'] == EVENT_FILESEL:
-			Blender.Window.FileSelector(fbx_ui_write, 'Export FBX', Blender.sys.makename(ext='.fbx'))
+			if GLOBALS['BATCH_ENABLE'].val:
+				txt = 'Batch FBX Dir'
+				name = ''
+			else:
+				txt = 'Export FBX'
+				name = Blender.sys.makename(ext='.fbx')
+			
+			Blender.Window.FileSelector(fbx_ui_write, txt, name)
 			break
 		
 		Draw.UIBlock(fbx_ui)
@@ -2528,6 +2806,3 @@ if __name__ == '__main__':
 		Draw.PupMenu('Error%t|A full install of python2.3 or python 2.4+ is needed to run this script.')
 	else:
 		write_ui()
-
-
-	
