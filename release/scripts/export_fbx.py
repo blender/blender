@@ -2757,7 +2757,7 @@ def write_ui():
 	# done setting globals
 	
 	# Used by the user interface
-	GLOBALS['_SCALE'] =						Draw.Create(10.0)
+	GLOBALS['_SCALE'] =						Draw.Create(1.0)
 	GLOBALS['_XROT90'] =					Draw.Create(True)
 	GLOBALS['_YROT90'] =					Draw.Create(False)
 	GLOBALS['_ZROT90'] =					Draw.Create(False)
