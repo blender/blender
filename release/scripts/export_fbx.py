@@ -1865,7 +1865,7 @@ def write(filename, batch_objects = None, \
 							
 						if armob and armob not in ob_arms:
 							ob_arms.append(armob)
-							
+					
 					else:
 						blenParentBoneName = armob = None
 					
@@ -2319,7 +2319,10 @@ Connections:  {''')
 	end =	render.eFrame
 	if end < start: start, end = end, start
 	
-	if ANIM_ENABLE and ob_bones: # at the moment can only export bone anim
+	# animations for these object types
+	ob_anim_lists = ob_bones, ob_meshes, ob_null, ob_cameras, ob_lights
+	
+	if ANIM_ENABLE and [tmp for tmp in ob_anim_lists if tmp]:
 		
 		frame_orig = Blender.Get('curframe')
 		
@@ -2435,7 +2438,7 @@ Takes:  {''')
 			i = act_start
 			while i <= act_end:
 				Blender.Set('curframe', i)
-				for ob_generic in (ob_bones, ob_meshes, ob_null, ob_cameras, ob_lights):
+				for ob_generic in ob_anim_lists:
 					for my_ob in ob_generic:
 						#Blender.Window.RedrawAll()
 						if ob_generic == ob_meshes and my_ob.fbxArm:
