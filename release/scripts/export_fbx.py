@@ -495,6 +495,8 @@ def write(filename, batch_objects = None, \
 	file.write('\nCreationTime: "%.4i-%.2i-%.2i %.2i:%.2i:%.2i:000"' % curtime)
 	file.write('\nCreator: "Blender3D version %.2f"' % Blender.Get('version'))
 	
+	pose_items = [] # list of (fbxName, matrix) to write pose data for, easier to collect allong the way
+	
 	# --------------- funcs for exporting
 	def object_tx(ob, loc, matrix, matrix_mod = None):
 		'''
@@ -656,7 +658,9 @@ def write(filename, batch_objects = None, \
 		file.write('\n\tModel: "Model::%s", "Limb" {' % my_bone.fbxName)
 		file.write('\n\t\tVersion: 232')
 		
-		write_object_props(my_bone.blenBone, None, None, my_bone.fbxArm.matrixWorld)
+		poseMatrix = write_object_props(my_bone.blenBone, None, None, my_bone.fbxArm.matrixWorld)[3]
+		pose_items.append( (my_bone.fbxName, poseMatrix) )
+		
 		
 		# file.write('\n\t\t\tProperty: "Size", "double", "",%.6f' % ((my_bone.blenData.head['ARMATURESPACE'] - my_bone.blenData.tail['ARMATURESPACE']) * my_bone.fbxArm.matrixWorld).length)
 		file.write('\n\t\t\tProperty: "Size", "double", "",1')
@@ -994,12 +998,14 @@ def write(filename, batch_objects = None, \
 		
 		# only use this for the root matrix at the moment
 		if matrixOnly:
-			write_object_props(None, None, matrixOnly)
+			poseMatrix = write_object_props(None, None, matrixOnly)[3]
 		
 		else: # all other Null's
-			if my_null:		write_object_props(my_null.blenObject)
-			else:			write_object_props()
-			
+			if my_null:		poseMatrix = write_object_props(my_null.blenObject)[3]
+			else:			poseMatrix = write_object_props()[3]
+		
+		pose_items.append((fbxName, poseMatrix))
+		
 		file.write('''
 		}
 		MultiLayer: 0
@@ -1028,6 +1034,7 @@ def write(filename, batch_objects = None, \
 			mat_hard = (float(mat.hard)-1)/5.10
 			mat_spec = mat.spec/2.0
 			mat_alpha = mat.alpha
+			mat_emit = mat.emit
 			mat_shadeless = mat.mode & Blender.Material.Modes.SHADELESS
 			if mat_shadeless:
 				mat_shader = 'Lambert'
@@ -1045,6 +1052,7 @@ def write(filename, batch_objects = None, \
 			mat_hard = 20.0
 			mat_spec = 0.2
 			mat_alpha = 1.0
+			mat_emit = 0.0
 			mat_shadeless = False
 			mat_shader = 'Phong'
 		
@@ -1055,19 +1063,19 @@ def write(filename, batch_objects = None, \
 		file.write('\n\t\tProperties60:  {')
 		file.write('\n\t\t\tProperty: "ShadingModel", "KString", "", "%s"' % mat_shader)
 		file.write('\n\t\t\tProperty: "MultiLayer", "bool", "",0')
-		file.write('\n\t\t\tProperty: "EmissiveColor", "ColorRGB", "",0,0,0')
-		file.write('\n\t\t\tProperty: "EmissiveFactor", "double", "",1')
+		file.write('\n\t\t\tProperty: "EmissiveColor", "ColorRGB", "",%.4f,%.4f,%.4f' % mat_cold) # emit and diffuse color are he same in blender
+		file.write('\n\t\t\tProperty: "EmissiveFactor", "double", "",%.4f' % mat_dif)
 		
-		file.write('\n\t\t\tProperty: "AmbientColor", "ColorRGB", "",%.1f,%.1f,%.1f' % mat_colamb)
-		file.write('\n\t\t\tProperty: "AmbientFactor", "double", "",%.1f' % mat_amb)
-		file.write('\n\t\t\tProperty: "DiffuseColor", "ColorRGB", "",%.1f,%.1f,%.1f' % mat_cold)
-		file.write('\n\t\t\tProperty: "DiffuseFactor", "double", "",%.1f' % mat_dif)
+		file.write('\n\t\t\tProperty: "AmbientColor", "ColorRGB", "",%.4f,%.4f,%.4f' % mat_colamb)
+		file.write('\n\t\t\tProperty: "AmbientFactor", "double", "",%.4f' % mat_amb)
+		file.write('\n\t\t\tProperty: "DiffuseColor", "ColorRGB", "",%.4f,%.4f,%.4f' % mat_cold)
+		file.write('\n\t\t\tProperty: "DiffuseFactor", "double", "",%.4f' % mat_emit)
 		file.write('\n\t\t\tProperty: "Bump", "Vector3D", "",0,0,0')
 		file.write('\n\t\t\tProperty: "TransparentColor", "ColorRGB", "",1,1,1')
-		file.write('\n\t\t\tProperty: "TransparencyFactor", "double", "",0')
+		file.write('\n\t\t\tProperty: "TransparencyFactor", "double", "",%.4f' % (1.0 - mat_alpha))
 		if not mat_shadeless:
-			file.write('\n\t\t\tProperty: "SpecularColor", "ColorRGB", "",%.1f,%.1f,%.1f' % mat_cols)
-			file.write('\n\t\t\tProperty: "SpecularFactor", "double", "",%.1f' % mat_spec)
+			file.write('\n\t\t\tProperty: "SpecularColor", "ColorRGB", "",%.4f,%.4f,%.4f' % mat_cols)
+			file.write('\n\t\t\tProperty: "SpecularFactor", "double", "",%.4f' % mat_spec)
 			file.write('\n\t\t\tProperty: "ShininessExponent", "double", "",80.0')
 			file.write('\n\t\t\tProperty: "ReflectionColor", "ColorRGB", "",0,0,0')
 			file.write('\n\t\t\tProperty: "ReflectionFactor", "double", "",1')
@@ -1965,12 +1973,12 @@ Definitions:  {
 	del tmp
 	
 	# we could avoid writing this possibly but for now just write it
-	"""
+	
 	file.write('''
 	ObjectType: "Pose" {
 		Count: 1
 	}''')
-	"""
+	
 	
 	file.write('''
 	ObjectType: "GlobalSettings" {
@@ -2045,7 +2053,7 @@ Objects:  {''')
 	
 	# Write pose's really weired, only needed when an armature and mesh are used together
 	# each by themselves dont need pose data. for now only pose meshes and bones
-	"""
+	
 	file.write('''
 	Pose: "Pose::BIND_POSES", "BindPose" {
 		Type: "BindPose"
@@ -2053,21 +2061,17 @@ Objects:  {''')
 		Properties60:  {
 		}
 		NbPoseNodes: ''')
-		
-	file.write(str(\
-	 len(ob_meshes)+\
-	 len(ob_bones)
-	))
+	file.write(str(len(pose_items)))
 	
-	for tmp in 	(ob_meshes, ob_bones):
-		for ob in tmp:
-			file.write('\n\t\tPoseNode:  {')
-			file.write('\n\t\t\tNode: "Model::%s"' % ob[0] )					# the first item is the fbx-name
-			file.write('\n\t\t\tMatrix: %s' % mat4x4str(object_tx(ob[1], None, None)[3]))	# second item is the object or bone
-			file.write('\n\t\t}')
+
+	for fbxName, matrix in pose_items:
+		file.write('\n\t\tPoseNode:  {')
+		file.write('\n\t\t\tNode: "Model::%s"' % fbxName )
+		if matrix:		file.write('\n\t\t\tMatrix: %s' % mat4x4str(matrix))
+		else:			file.write('\n\t\t\tMatrix: %s' % mat4x4str(Matrix()))
+		file.write('\n\t\t}')
 	
 	file.write('\n\t}')
-	"""
 	
 	
 	# Finish Writing Objects
