@@ -72,6 +72,18 @@ import BPyMessages
 
 import sys
 
+## This was used to make V, but faster not to do all that
+##valid = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_,.()[]{}'
+##v = range(255)
+##for c in valid: v.remove(ord(c))
+v = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,42,43,47,58,59,60,61,62,63,64,92,94,96,124,126,127,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175,176,177,178,179,180,181,182,183,184,185,186,187,188,189,190,191,192,193,194,195,196,197,198,199,200,201,202,203,204,205,206,207,208,209,210,211,212,213,214,215,216,217,218,219,220,221,222,223,224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239,240,241,242,243,244,245,246,247,248,249,250,251,252,253,254]
+invalid = ''.join([chr(i) for i in v])
+def cleanName(name):
+	for ch in invalid:	name = name.replace(ch, '_')
+	return name
+del v, i
+
+
 def copy_file(source, dest):
 	file = open(source, 'rb')
 	data = file.read()
@@ -105,6 +117,8 @@ def copy_images(dest_dir, textures):
 					print '\t\tWarning, file failed to copy, skipping.'
 	
 	print '\tCopied %d images' % copyCount
+
+mtx4_identity = Matrix()
 
 mtx_z90 = RotationMatrix(90, 3, 'z')
 mtx_x90 = RotationMatrix(90, 3, 'x')
@@ -171,7 +185,8 @@ def sane_name(data, dct):
 	if not name:
 		name = 'unnamed' # blank string, ASKING FOR TROUBLE!
 	else:
-		name = BPySys.cleanName(name)
+		#name = BPySys.cleanName(name)
+		name = cleanName(name) # use our own
 	
 	while name in dct.itervalues():	name = increment_string(name)
 	
@@ -284,6 +299,7 @@ def write(filename, batch_objects = None, \
 		for data in data_seq: # scene or group
 			newname = BATCH_FILE_PREFIX + BPySys.cleanName(data.name)
 			
+			
 			if BATCH_OWN_DIR:
 				new_fbxpath = fbxpath + newname + Blender.sys.sep
 				# path may alredy exist
@@ -343,9 +359,6 @@ def write(filename, batch_objects = None, \
 		return # so the script wont run after we have batch exported.
 	
 	# end batch support
-	
-	
-	
 	
 	
 	# ----------------------------------------------
@@ -428,6 +441,10 @@ def write(filename, batch_objects = None, \
 			else:
 				return (mtx4_z90 * ((self.getPoseMatrix(frame) * arm_mat)))  *  (mtx4_z90 * (self.parent.getPoseMatrix(frame) * arm_mat)).invert()
 		
+		# we need thes because cameras and lights modified rotations
+		def getAnimMatrixRot(self, frame):
+			return self.getAnimMatrix(frame)
+		
 		def flushAnimData(self):
 			self.__anim_poselist.clear()
 
@@ -438,10 +455,28 @@ def write(filename, batch_objects = None, \
 			self.fbxName = sane_obname(ob)
 			self.blenObject = ob
 			self.matrixWorld = ob.matrixWorld * GLOBAL_MATRIX
+			self.__anim_poselist = {}
+		
+		def setPoseFrame(self, f):
+			self.__anim_poselist[f] =  self.blenObject.matrixWorld.copy()
+		
+		def getAnimMatrix(self, frame):
+			return self.__anim_poselist[frame] * GLOBAL_MATRIX
+		
+		def getAnimMatrixRot(self, frame):
+			type = self.blenObject.type
+			matrix_rot = (self.__anim_poselist[frame] * GLOBAL_MATRIX).rotationPart()
+			
+			# Lamps need to be rotated
+			if type =='Lamp':
+				matrix_rot = mtx_x90 * matrix_rot
+			elif ob and type =='Camera':
+				y = Vector(0,1,0) * matrix_rot
+				matrix_rot = matrix_rot * RotationMatrix(90, 3, 'r', y)
+			
+			return matrix_rot
+			
 	# ----------------------------------------------
-	
-	
-	
 	
 	
 	
@@ -484,6 +519,8 @@ def write(filename, batch_objects = None, \
 	file.write('\nCreationTime: "%.4i-%.2i-%.2i %.2i:%.2i:%.2i:000"' % curtime)
 	file.write('\nCreator: "Blender3D version %.2f"' % Blender.Get('version'))
 	
+	pose_items = [] # list of (fbxName, matrix) to write pose data for, easier to collect allong the way
+	
 	# --------------- funcs for exporting
 	def object_tx(ob, loc, matrix, matrix_mod = None):
 		'''
@@ -518,7 +555,7 @@ def write(filename, batch_objects = None, \
 				matrix_rot = matrix.rotationPart()
 				# Lamps need to be rotated
 				if ob and ob.type =='Lamp':
-					matrix_rot = mtx_x90 * matrix.rotationPart()
+					matrix_rot = mtx_x90 * matrix_rot
 					rot = tuple(matrix_rot.toEuler())
 				elif ob and ob.type =='Camera':
 					y = Vector(0,1,0) * matrix_rot
@@ -645,7 +682,9 @@ def write(filename, batch_objects = None, \
 		file.write('\n\tModel: "Model::%s", "Limb" {' % my_bone.fbxName)
 		file.write('\n\t\tVersion: 232')
 		
-		write_object_props(my_bone.blenBone, None, None, my_bone.fbxArm.matrixWorld)
+		poseMatrix = write_object_props(my_bone.blenBone, None, None, my_bone.fbxArm.matrixWorld)[3]
+		pose_items.append( (my_bone.fbxName, poseMatrix) )
+		
 		
 		# file.write('\n\t\t\tProperty: "Size", "double", "",%.6f' % ((my_bone.blenData.head['ARMATURESPACE'] - my_bone.blenData.tail['ARMATURESPACE']) * my_bone.fbxArm.matrixWorld).length)
 		file.write('\n\t\t\tProperty: "Size", "double", "",1')
@@ -941,11 +980,11 @@ def write(filename, batch_objects = None, \
 		file.write('\n\t\t\tProperty: "DrawFrontFacingVolumetricLight", "bool", "",0')
 		file.write('\n\t\t\tProperty: "GoboProperty", "object", ""')
 		file.write('\n\t\t\tProperty: "Color", "Color", "A+",1,1,1')
-		file.write('\n\t\t\tProperty: "Intensity", "Intensity", "A+",%.2f' % (light.energy*100))
+		file.write('\n\t\t\tProperty: "Intensity", "Intensity", "A+",%.2f' % (min(light.energy*100, 200))) # clamp below 200
 		file.write('\n\t\t\tProperty: "Cone angle", "Cone angle", "A+",%.2f' % light.spotSize)
 		file.write('\n\t\t\tProperty: "Fog", "Fog", "A+",50')
 		file.write('\n\t\t\tProperty: "Color", "Color", "A",%.2f,%.2f,%.2f' % tuple(light.col))
-		file.write('\n\t\t\tProperty: "Intensity", "Intensity", "A+",%.2f' % (light.energy*100))
+		file.write('\n\t\t\tProperty: "Intensity", "Intensity", "A+",%.2f' % (min(light.energy*100, 200))) # clamp below 200
 		file.write('\n\t\t\tProperty: "Cone angle", "Cone angle", "A+",%.2f' % light.spotSize)
 		file.write('\n\t\t\tProperty: "Fog", "Fog", "A+",50')
 		file.write('\n\t\t\tProperty: "LightType", "enum", "",%i' % light_type)
@@ -973,15 +1012,24 @@ def write(filename, batch_objects = None, \
 		file.write('\n\t\tGeometryVersion: 124')
 		file.write('\n\t}')
 	
-	def write_null(my_null, fbxName = None):
+	# matrixOnly is not used at the moment
+	def write_null(my_null = None, fbxName = None, matrixOnly = None):
 		# ob can be null
 		if not fbxName: fbxName = my_null.fbxName
 		
 		file.write('\n\tModel: "Model::%s", "Null" {' % fbxName)
 		file.write('\n\t\tVersion: 232')
-		if my_null:		write_object_props(my_null.blenObject)
-		else:			write_object_props()
-			
+		
+		# only use this for the root matrix at the moment
+		if matrixOnly:
+			poseMatrix = write_object_props(None, None, matrixOnly)[3]
+		
+		else: # all other Null's
+			if my_null:		poseMatrix = write_object_props(my_null.blenObject)[3]
+			else:			poseMatrix = write_object_props()[3]
+		
+		pose_items.append((fbxName, poseMatrix))
+		
 		file.write('''
 		}
 		MultiLayer: 0
@@ -1010,6 +1058,7 @@ def write(filename, batch_objects = None, \
 			mat_hard = (float(mat.hard)-1)/5.10
 			mat_spec = mat.spec/2.0
 			mat_alpha = mat.alpha
+			mat_emit = mat.emit
 			mat_shadeless = mat.mode & Blender.Material.Modes.SHADELESS
 			if mat_shadeless:
 				mat_shader = 'Lambert'
@@ -1027,6 +1076,7 @@ def write(filename, batch_objects = None, \
 			mat_hard = 20.0
 			mat_spec = 0.2
 			mat_alpha = 1.0
+			mat_emit = 0.0
 			mat_shadeless = False
 			mat_shader = 'Phong'
 		
@@ -1037,19 +1087,19 @@ def write(filename, batch_objects = None, \
 		file.write('\n\t\tProperties60:  {')
 		file.write('\n\t\t\tProperty: "ShadingModel", "KString", "", "%s"' % mat_shader)
 		file.write('\n\t\t\tProperty: "MultiLayer", "bool", "",0')
-		file.write('\n\t\t\tProperty: "EmissiveColor", "ColorRGB", "",0,0,0')
-		file.write('\n\t\t\tProperty: "EmissiveFactor", "double", "",1')
+		file.write('\n\t\t\tProperty: "EmissiveColor", "ColorRGB", "",%.4f,%.4f,%.4f' % mat_cold) # emit and diffuse color are he same in blender
+		file.write('\n\t\t\tProperty: "EmissiveFactor", "double", "",%.4f' % mat_dif)
 		
-		file.write('\n\t\t\tProperty: "AmbientColor", "ColorRGB", "",%.1f,%.1f,%.1f' % mat_colamb)
-		file.write('\n\t\t\tProperty: "AmbientFactor", "double", "",%.1f' % mat_amb)
-		file.write('\n\t\t\tProperty: "DiffuseColor", "ColorRGB", "",%.1f,%.1f,%.1f' % mat_cold)
-		file.write('\n\t\t\tProperty: "DiffuseFactor", "double", "",%.1f' % mat_dif)
+		file.write('\n\t\t\tProperty: "AmbientColor", "ColorRGB", "",%.4f,%.4f,%.4f' % mat_colamb)
+		file.write('\n\t\t\tProperty: "AmbientFactor", "double", "",%.4f' % mat_amb)
+		file.write('\n\t\t\tProperty: "DiffuseColor", "ColorRGB", "",%.4f,%.4f,%.4f' % mat_cold)
+		file.write('\n\t\t\tProperty: "DiffuseFactor", "double", "",%.4f' % mat_emit)
 		file.write('\n\t\t\tProperty: "Bump", "Vector3D", "",0,0,0')
 		file.write('\n\t\t\tProperty: "TransparentColor", "ColorRGB", "",1,1,1')
-		file.write('\n\t\t\tProperty: "TransparencyFactor", "double", "",0')
+		file.write('\n\t\t\tProperty: "TransparencyFactor", "double", "",%.4f' % (1.0 - mat_alpha))
 		if not mat_shadeless:
-			file.write('\n\t\t\tProperty: "SpecularColor", "ColorRGB", "",%.1f,%.1f,%.1f' % mat_cols)
-			file.write('\n\t\t\tProperty: "SpecularFactor", "double", "",%.1f' % mat_spec)
+			file.write('\n\t\t\tProperty: "SpecularColor", "ColorRGB", "",%.4f,%.4f,%.4f' % mat_cols)
+			file.write('\n\t\t\tProperty: "SpecularFactor", "double", "",%.4f' % mat_spec)
 			file.write('\n\t\t\tProperty: "ShininessExponent", "double", "",80.0')
 			file.write('\n\t\t\tProperty: "ReflectionColor", "ColorRGB", "",0,0,0')
 			file.write('\n\t\t\tProperty: "ReflectionFactor", "double", "",1')
@@ -1249,16 +1299,41 @@ def write(filename, batch_objects = None, \
 		file.write('\n\t\tTransformLink: %s' % matstr)
 		file.write('\n\t}')
 	
-	#def write_mesh(obname, ob, mtx, me, mats, arm, armname):
 	def write_mesh(my_mesh):
+		
+		me = my_mesh.blenData
+		
+		# if there are non NULL materials on this mesh
+		if [mat for mat in my_mesh.blenMaterials if mat]: 	do_materials = True
+		else:												do_materials = False
+		
+		if my_mesh.blenTextures:	do_textures = True
+		else:						do_textures = False			
+		
+		
 		file.write('\n\tModel: "Model::%s", "Mesh" {' % my_mesh.fbxName)
 		file.write('\n\t\tVersion: 232') # newline is added in write_object_props
 		
-		# Apply the mesh matrix because bones arnt applied correctly if we use object transformation
-		# Other then that, object matricies work well on meshes.
-		# if this can be fixd, be sure to remove matrix multiplication on the verts.
-		#write_object_props(ob, None, mtx)
-		write_object_props(my_mesh.blenObject, None, Matrix()) 
+		if my_mesh.fbxArm:
+			if my_mesh.origData:
+				do_tx_write = True
+			else:
+				do_tx_write = False
+				me.transform(my_mesh.matrixWorld)
+			
+		else:
+			do_tx_write = False
+		
+		
+		# When we have an armature...
+		if my_mesh.fbxArm:
+			# Apply the mesh matrix because bones arnt applied correctly if we use object transformation
+			# Other then that, object matricies work well on meshes.
+			# if this can be fixd, be sure to remove matrix multiplication on the verts.
+			
+			write_object_props(my_mesh.blenObject, None, mtx4_identity)
+		else:
+			write_object_props(my_mesh.blenObject, None, my_mesh.matrixWorld)
 		
 		file.write('\n\t\t}')
 		file.write('\n\t\tMultiLayer: 0')
@@ -1266,21 +1341,30 @@ def write(filename, batch_objects = None, \
 		file.write('\n\t\tShading: Y')
 		file.write('\n\t\tCulling: "CullingOff"')
 		
-		me = my_mesh.blenData
 		
 		# Write the Real Mesh data here
 		file.write('\n\t\tVertices: ')
 		i=-1
-		for v in me.verts:
-			if i==-1:
-				file.write('%.6f,%.6f,%.6f' % tuple(v.co * my_mesh.matrixWorld))
-				i=0
-			else:
-				if i==7:
-					file.write('\n\t\t')
-					i=0
-				file.write(',%.6f,%.6f,%.6f'% tuple(v.co * my_mesh.matrixWorld))
-			i+=1
+		
+		if do_tx_write :# transform verts on write?
+			for v in me.verts:
+				if i==-1:
+					file.write('%.6f,%.6f,%.6f' % tuple(v.co * my_mesh.matrixWorld));	i=0
+				else:
+					if i==7:
+						file.write('\n\t\t');	i=0
+					file.write(',%.6f,%.6f,%.6f'% tuple(v.co * my_mesh.matrixWorld))
+				i+=1
+		else:	# same as above but has alredy been transformed
+			for v in me.verts:
+				if i==-1:
+					file.write('%.6f,%.6f,%.6f' % tuple(v.co));	i=0
+				else:
+					if i==7:
+						file.write('\n\t\t');	i=0
+					file.write(',%.6f,%.6f,%.6f'% tuple(v.co))
+				i+=1
+				
 		file.write('\n\t\tPolygonVertexIndex: ')
 		i=-1
 		for f in me.faces:
@@ -1328,21 +1412,32 @@ def write(filename, batch_objects = None, \
 			ReferenceInformationType: "Direct"
 			Normals: ''')
 		
-		# wont handle non uniform scaling properly
-		mtx_rot = my_mesh.matrixWorld.rotationPart()
-		
 		i=-1
-		for v in me.verts:
-			if i==-1:
-				file.write('%.15f,%.15f,%.15f' % tuple(v.no * mtx_rot))
-				i=0
-			else:
-				if i==2:
-					file.write('\n			 ')
-					i=0
-				file.write(',%.15f,%.15f,%.15f' % tuple(v.no * mtx_rot))
-			i+=1
-		file.write('\n\t\t}')
+		if do_tx_write: # transform normals on write?
+			mtx_rot = my_mesh.matrixWorld.rotationPart()
+			for v in me.verts:
+				if i==-1:
+					file.write('%.15f,%.15f,%.15f' % tuple(v.no * mtx_rot));	i=0
+				else:
+					if i==2:
+						file.write('\n			 ');	i=0
+					file.write(',%.15f,%.15f,%.15f' % tuple(v.no * mtx_rot))
+				i+=1
+			file.write('\n\t\t}')
+			
+		
+		else:	# same as above but has alredy been transformed
+			# wont handle non uniform scaling properly
+			for v in me.verts:
+				if i==-1:
+					file.write('%.15f,%.15f,%.15f' % tuple(v.no));	i=0
+				else:
+					if i==2:
+						file.write('\n			 ');	i=0
+					file.write(',%.15f,%.15f,%.15f' % tuple(v.no))
+				i+=1
+			file.write('\n\t\t}')
+		
 		
 		
 		# Write VertexColor Layers
@@ -1441,32 +1536,47 @@ def write(filename, batch_objects = None, \
 				
 				file.write('\n\t\t}')
 				
-				if textures:
+				if do_textures:
 					file.write('\n\t\tLayerElementTexture: %i {' % uvindex)
 					file.write('\n\t\t\tVersion: 101')
 					file.write('\n\t\t\tName: "%s"' % uvlayer)
 					
-					file.write('''
-			MappingInformationType: "ByPolygon"
-			ReferenceInformationType: "IndexToDirect"
-			BlendMode: "Translucent"
-			TextureAlpha: 1
-			TextureId: ''')
-					i=-1
-					for f in me.faces:
-						img_key = f.image
-						if img_key: img_key = img_key.name
+					if len(my_mesh.blenTextures) == 1:
+						file.write('\n\t\t\tMappingInformationType: "AllSame"')
+					else:
+						file.write('\n\t\t\tMappingInformationType: "ByPolygon"')
+					
+					file.write('\n\t\t\tReferenceInformationType: "IndexToDirect"')
+					file.write('\n\t\t\tBlendMode: "Translucent"')
+					file.write('\n\t\t\tTextureAlpha: 1')
+					file.write('\n\t\t\tTextureId: ')
+					
+					if len(my_mesh.blenTextures) == 1:
+						file.write('0')
+					else:
+						#texture_mapping_local = {None:0}
+						texture_mapping_local = {None:-1}
 						
-						if i==-1:
-							i=0
-							file.write( '%s' % texture_mapping_local[img_key])
-						else:
-							if i==55:
-								file.write('\n			 ')
-								i=0
+						i = 0 # 1 for dummy
+						for tex in my_mesh.blenTextures:
+							texture_mapping_local[tex] = i
+							i+=1
+						
+						i=-1
+						for f in me.faces:
+							img_key = f.image
 							
-							file.write(',%s' % texture_mapping_local[img_key])
-						i+=1
+							if i==-1:
+								i=0
+								file.write( '%s' % texture_mapping_local[img_key])
+							else:
+								if i==55:
+									file.write('\n			 ')
+									i=0
+								
+								file.write(',%s' % texture_mapping_local[img_key])
+							i+=1
+				
 				else:
 					file.write('''
 		LayerElementTexture: 0 {
@@ -1483,47 +1593,50 @@ def write(filename, batch_objects = None, \
 			
 		# Done with UV/textures.
 		
-		if materials:
-			file.write('''
-		LayerElementMaterial: 0 {
-			Version: 101
-			Name: ""
-			MappingInformationType: "ByPolygon"
-			ReferenceInformationType: "IndexToDirect"
-			Materials: ''')
+		if do_materials:
+			file.write('\n\t\tLayerElementMaterial: 0 {')
+			file.write('\n\t\t\tVersion: 101')
+			file.write('\n\t\t\tName: ""')
 			
-			# Build a material mapping for this 
-			material_mapping_local = [-1] * 16 # local-index : global index.
-			i= 0
-			for j, mat in enumerate(my_mesh.blenMaterials):
-				if mat:
-					material_mapping_local[j] = i
-					i+=1
-				# else leave as -1
+			if len(my_mesh.blenMaterials) == 1:
+				file.write('\n\t\t\tMappingInformationType: "AllSame"')
+			else:
+				file.write('\n\t\t\tMappingInformationType: "ByPolygon"')
 			
-			if not material_mapping_local:
-				material_mapping_local[0] = 0
+			file.write('\n\t\t\tReferenceInformationType: "IndexToDirect"')
+			file.write('\n\t\t\tMaterials: ')
 			
-			len_material_mapping_local = len(material_mapping_local)
-			
-			i=-1
-			for f in me.faces:
-				f_mat = f.mat
-				if f_mat >= len_material_mapping_local:
-					f_mat = 0
+			if len(my_mesh.blenMaterials) == 1:
+				file.write('0')
+			else:
+				# Build a material mapping for this 
+				#material_mapping_local = [0] * 16 # local-index : global index.
+				material_mapping_local = [-1] * 16 # local-index : global index.
+				i= 0 # 1
+				for j, mat in enumerate(my_mesh.blenMaterials):
+					if mat:
+						material_mapping_local[j] = i
+						i+=1
+					# else leave as -1
 				
-				if i==-1:
-					i=0
-					file.write( '%s' % (material_mapping_local[f_mat]))
-					#file.write( '%s' % -1)
-				else:
-					if i==55:
-						file.write('\n\t\t\t\t')
-						i=0
+				len_material_mapping_local = len(material_mapping_local)
+				
+				i=-1
+				for f in me.faces:
+					f_mat = f.mat
+					if f_mat >= len_material_mapping_local:
+						f_mat = 0
 					
-					file.write(',%s' % (material_mapping_local[f_mat]))
-					#file.write(',%s' % -1)
-				i+=1
+					if i==-1:
+						i=0
+						file.write( '%s' % (material_mapping_local[f_mat]))
+					else:
+						if i==55:
+							file.write('\n\t\t\t\t')
+							i=0
+						
+						file.write(',%s' % (material_mapping_local[f_mat]))
+					i+=1
 			
 			file.write('\n\t\t}')
 		
@@ -1535,7 +1648,7 @@ def write(filename, batch_objects = None, \
 				TypedIndex: 0
 			}''')
 		
-		if materials:
+		if do_materials:
 			file.write('''
 			LayerElement:  {
 				Type: "LayerElementMaterial"
@@ -1543,7 +1656,7 @@ def write(filename, batch_objects = None, \
 			}''')
 			
 		# Always write this
-		if textures:
+		if do_textures:
 			file.write('''
 			LayerElement:  {
 				Type: "LayerElementTexture"
@@ -1580,7 +1693,7 @@ def write(filename, batch_objects = None, \
 				file.write('\n\t\t\t\tTypedIndex: %i' % i)
 				file.write('\n\t\t\t}')
 				
-				if textures:
+				if do_textures:
 					
 					file.write('''
 			LayerElement:  {
@@ -1668,6 +1781,7 @@ def write(filename, batch_objects = None, \
 				if EXP_EMPTY:
 					ob_null.append(my_object_generic(ob))
 			elif EXP_MESH:
+				origData = True
 				if tmp_ob_type != 'Mesh':
 					me = bpy.data.meshes.new()
 					try:	me.getFromObject(ob)
@@ -1675,6 +1789,7 @@ def write(filename, batch_objects = None, \
 					if me:
 						meshes_to_clear.append( me )
 						mats = me.materials
+						origData = False
 				else:
 					# Mesh Type!
 					if EXP_MESH_APPLY_MOD:
@@ -1694,6 +1809,7 @@ def write(filename, batch_objects = None, \
 						
 						# print ob, me, me.getVertGroupNames()
 						meshes_to_clear.append( me )
+						origData = False
 						mats = me.materials
 					else:
 						me = ob.getData(mesh=1)
@@ -1719,15 +1835,16 @@ def write(filename, batch_objects = None, \
 					
 					for mat in mats:
 						# 2.44 use mat.lib too for uniqueness
-						if mat: materials[mat.name] = mat
+						if mat: materials[mat] = mat
 					
+					texture_mapping_local = {}
 					if me.faceUV:
 						uvlayer_orig = me.activeUVLayer
 						for uvlayer in me.getUVLayerNames():
 							me.activeUVLayer = uvlayer
 							for f in me.faces:
 								img = f.image
-								if img: textures[img.name] = img
+								textures[img] = texture_mapping_local[img] = img
 							
 							me.activeUVLayer = uvlayer_orig
 					
@@ -1752,11 +1869,16 @@ def write(filename, batch_objects = None, \
 					else:
 						blenParentBoneName = armob = None
 					
-					#ob_meshes.append( (obname, ob, mtx, me, mats, armob, armname) )
-					
 					my_mesh = my_object_generic(ob)
 					my_mesh.blenData =		me
+					my_mesh.origData = 		origData
 					my_mesh.blenMaterials =	mats
+					my_mesh.blenTextures =	texture_mapping_local.values()
+					
+					# if only 1 null texture then empty the list
+					if len(my_mesh.blenTextures) == 1 and my_mesh.blenTextures[0] == None:
+						my_mesh.blenTextures = []
+					
 					my_mesh.fbxArm =	armob					# replace with my_object_generic armature instance later
 					my_mesh.fbxBoneParent = blenParentBoneName	# replace with my_bone instance later
 					
@@ -1835,28 +1957,10 @@ def write(filename, batch_objects = None, \
 	
 	del my_bone_blenParent 
 	
-	materials = [(sane_matname(mat), mat) for mat in materials.itervalues()]
-	textures = [(sane_texname(img), img) for img in textures.itervalues()]
+	materials =	[(sane_matname(mat), mat) for mat in materials.itervalues() if mat]
+	textures =	[(sane_texname(img), img) for img in textures.itervalues()  if img]
 	materials.sort() # sort by name
 	textures.sort()
-	
-	if not materials:
-		materials = [('null', None)]
-	
-	material_mapping = {} # blen name : index
-	if textures:
-		texture_mapping_local = {None:-1} # ditto
-		i = 0
-		for texname, tex in textures:
-			texture_mapping_local[tex.name] = i
-			i+=1
-		#textures.insert(0, ('_empty_', None))
-	
-	i = 0
-	for matname, mat in materials:
-		if mat: mat = mat.name
-		material_mapping[mat] = i
-		i+=1
 	
 	camera_count = 8
 	file.write('''
@@ -1931,12 +2035,12 @@ Definitions:  {
 	del tmp
 	
 	# we could avoid writing this possibly but for now just write it
-	"""
+	
 	file.write('''
 	ObjectType: "Pose" {
 		Count: 1
 	}''')
-	"""
+	
 	
 	file.write('''
 	ObjectType: "GlobalSettings" {
@@ -1955,7 +2059,7 @@ Objects:  {''')
 	write_camera_switch()
 	
 	# Write the null object
-	write_null(None, 'blend_root')
+	write_null(None, 'blend_root')# , GLOBAL_MATRIX) 
 	
 	for my_null in ob_null:
 		write_null(my_null)
@@ -1971,7 +2075,6 @@ Objects:  {''')
 		write_light(my_light)
 	
 	for my_mesh in ob_meshes:
-		#write_mesh(obname, ob, mtx, me, mats, arm, armname)
 		write_mesh(my_mesh)
 
 	#for bonename, bone, obname, me, armob in ob_bones:
@@ -2012,7 +2115,7 @@ Objects:  {''')
 	
 	# Write pose's really weired, only needed when an armature and mesh are used together
 	# each by themselves dont need pose data. for now only pose meshes and bones
-	"""
+	
 	file.write('''
 	Pose: "Pose::BIND_POSES", "BindPose" {
 		Type: "BindPose"
@@ -2020,21 +2123,17 @@ Objects:  {''')
 		Properties60:  {
 		}
 		NbPoseNodes: ''')
-		
-	file.write(str(\
-	 len(ob_meshes)+\
-	 len(ob_bones)
-	))
+	file.write(str(len(pose_items)))
 	
-	for tmp in 	(ob_meshes, ob_bones):
-		for ob in tmp:
-			file.write('\n\t\tPoseNode:  {')
-			file.write('\n\t\t\tNode: "Model::%s"' % ob[0] )					# the first item is the fbx-name
-			file.write('\n\t\t\tMatrix: %s' % mat4x4str(object_tx(ob[1], None, None)[3]))	# second item is the object or bone
-			file.write('\n\t\t}')
+
+	for fbxName, matrix in pose_items:
+		file.write('\n\t\tPoseNode:  {')
+		file.write('\n\t\t\tNode: "Model::%s"' % fbxName )
+		if matrix:		file.write('\n\t\t\tMatrix: %s' % mat4x4str(matrix))
+		else:			file.write('\n\t\t\tMatrix: %s' % mat4x4str(mtx4_identity))
+		file.write('\n\t\t}')
 	
 	file.write('\n\t}')
-	"""
 	
 	
 	# Finish Writing Objects
@@ -2102,7 +2201,7 @@ Relations:  {''')
 	Model: "Model::Camera Switcher", "CameraSwitcher" {
 	}''')
 	
-	for matname, mat in reversed(materials):
+	for matname, mat in materials:
 		file.write('\n\tMaterial: "Material::%s", "" {\n\t}' % matname)
 
 	if textures:
@@ -2159,16 +2258,21 @@ Connections:  {''')
 	for my_light in ob_lights:
 		file.write('\n\tConnect: "OO", "Model::%s", "Model::blend_root"' % my_light.fbxName)
 	
-	for my_mesh in ob_meshes:
-		# Connect all materials to all objects, not good form but ok for now.
-		for mat in my_mesh.blenMaterials:
-			if mat:
-				file.write('\n\tConnect: "OO", "Material::%s", "Model::%s"' % (sane_name_mapping_mat[mat.name], my_mesh.fbxName))
+	if materials:
+		for my_mesh in ob_meshes:
+			# Connect all materials to all objects, not good form but ok for now.
+			for mat in my_mesh.blenMaterials:
+				if mat:
+					file.write('\n\tConnect: "OO", "Material::%s", "Model::%s"' % (sane_name_mapping_mat[mat.name], my_mesh.fbxName))
+			
 	
 	if textures:
 		for my_mesh in ob_meshes:
-			for texname, tex in textures:
-				file.write('\n\tConnect: "OO", "Texture::%s", "Model::%s"' % (texname, my_mesh.fbxName))
+			if my_mesh.blenTextures:
+				# file.write('\n\tConnect: "OO", "Texture::_empty_", "Model::%s"' % my_mesh.fbxName)
+				for tex in my_mesh.blenTextures:
+					if tex:
+						file.write('\n\tConnect: "OO", "Texture::%s", "Model::%s"' % (sane_name_mapping_tex[tex.name], my_mesh.fbxName))
 		
 		for texname, tex in textures:
 			file.write('\n\tConnect: "OO", "Video::%s", "Texture::%s"' % (texname, texname))
@@ -2325,88 +2429,103 @@ Takes:  {''')
 			i = act_start
 			while i <= act_end:
 				Blender.Set('curframe', i)
-				#Blender.Window.RedrawAll()
-				for my_bone in ob_bones:
-					my_bone.setPoseFrame(i)
+				for ob_generic in (ob_bones, ob_meshes, ob_null, ob_cameras, ob_lights):
+					for my_ob in ob_generic:
+						#Blender.Window.RedrawAll()
+						if ob_generic == ob_meshes and my_ob.fbxArm:
+							# We cant animate armature meshes!
+							pass
+						else:
+							my_ob.setPoseFrame(i)
+						
 				i+=1
 			
 			
 			#for bonename, bone, obname, me, armob in ob_bones:
-			for my_bone in ob_bones:
-				
-				file.write('\n\t\tModel: "Model::%s" {' % my_bone.fbxName) # ??? - not sure why this is needed
-				file.write('\n\t\t\tVersion: 1.1')
-				file.write('\n\t\t\tChannel: "Transform" {')
-				
-				context_bone_anim_mats = [ my_bone.getAnimMatrix(frame) for frame in xrange(act_start, act_end+1) ]
-				
-				# ----------------
-				for TX_LAYER, TX_CHAN in enumerate('TRS'): # transform, rotate, scale
+			for ob_generic in (ob_bones, ob_meshes, ob_null, ob_cameras, ob_lights):
 					
-					if		TX_CHAN=='T':	context_bone_anim_vecs = [mtx.translationPart()	for mtx in context_bone_anim_mats]
-					elif 	TX_CHAN=='R':	context_bone_anim_vecs = [mtx.toEuler()			for mtx in context_bone_anim_mats]
-					else:					context_bone_anim_vecs = [mtx.scalePart()		for mtx in context_bone_anim_mats]
+				for my_ob in ob_generic:
 					
-					file.write('\n\t\t\t\tChannel: "%s" {' % TX_CHAN) # translation
 					
-					for i in xrange(3):
-						# Loop on each axis of the bone
-						file.write('\n\t\t\t\t\tChannel: "%s" {'% ('XYZ'[i])) # translation
-						file.write('\n\t\t\t\t\t\tDefault: %.15f' % context_bone_anim_vecs[0][i] )
-						file.write('\n\t\t\t\t\t\tKeyVer: 4005')
+					if ob_generic == ob_meshes and my_ob.fbxArm:
+						# do nothing,
+						pass
+					else:
+							
+						file.write('\n\t\tModel: "Model::%s" {' % my_ob.fbxName) # ??? - not sure why this is needed
+						file.write('\n\t\t\tVersion: 1.1')
+						file.write('\n\t\t\tChannel: "Transform" {')
 						
-						if not ANIM_OPTIMIZE:
-							# Just write all frames, simple but in-eficient
-							file.write('\n\t\t\t\t\t\tKeyCount: %i' % (1 + act_end - act_start))
-							file.write('\n\t\t\t\t\t\tKey: ')
-							frame = act_start
-							while frame <= act_end:
-								if frame!=act_start:
-									file.write(',')
+						context_bone_anim_mats = [ (my_ob.getAnimMatrix(frame), my_ob.getAnimMatrixRot(frame)) for frame in xrange(act_start, act_end+1) ]
+						
+						# ----------------
+						# ----------------
+						for TX_LAYER, TX_CHAN in enumerate('TRS'): # transform, rotate, scale
+							
+							if		TX_CHAN=='T':	context_bone_anim_vecs = [mtx[0].translationPart()	for mtx in context_bone_anim_mats]
+							elif 	TX_CHAN=='R':	context_bone_anim_vecs = [mtx[1].toEuler()			for mtx in context_bone_anim_mats]
+							else:					context_bone_anim_vecs = [mtx[0].scalePart()		for mtx in context_bone_anim_mats]
+							
+							file.write('\n\t\t\t\tChannel: "%s" {' % TX_CHAN) # translation
+							
+							for i in xrange(3):
+								# Loop on each axis of the bone
+								file.write('\n\t\t\t\t\tChannel: "%s" {'% ('XYZ'[i])) # translation
+								file.write('\n\t\t\t\t\t\tDefault: %.15f' % context_bone_anim_vecs[0][i] )
+								file.write('\n\t\t\t\t\t\tKeyVer: 4005')
 								
-								# Curve types are 
-								# C,n is for bezier? - linear is best for now so we can do simple keyframe removal
-								file.write('\n\t\t\t\t\t\t\t%i,%.15f,C,n'  % (fbx_time(frame-1), context_bone_anim_vecs[frame-act_start][i] ))
-								#file.write('\n\t\t\t\t\t\t\t%i,%.15f,L'  % (fbx_time(frame-1), context_bone_anim_vecs[frame-act_start][i] ))
-								frame+=1
-						else:
-							# remove unneeded keys, j is the frame, needed when some frames are removed.
-							context_bone_anim_keys = [ (vec[i], j) for j, vec in enumerate(context_bone_anim_vecs) ]
-							
-							# last frame to fisrt frame, missing 1 frame on either side.
-							# removeing in a backwards loop is faster
-							for j in xrange( (act_end-act_start)-1, 0, -1 ):
-								# Is this key reduenant?
-								if	abs(context_bone_anim_keys[j][0] - context_bone_anim_keys[j-1][0]) < ANIM_OPTIMIZE_PRECISSION_FLOAT and\
-									abs(context_bone_anim_keys[j][0] - context_bone_anim_keys[j+1][0]) < ANIM_OPTIMIZE_PRECISSION_FLOAT:
-									del context_bone_anim_keys[j]
-							
-							if len(context_bone_anim_keys) == 2 and context_bone_anim_keys[0][0] == context_bone_anim_keys[1][0]:
-								# This axis has no moton, its okay to skip KeyCount and Keys in this case
-								pass
-							else:
-								# We only need to write these if there is at least one 
-								file.write('\n\t\t\t\t\t\tKeyCount: %i' % len(context_bone_anim_keys))
-								file.write('\n\t\t\t\t\t\tKey: ')					
-								for val, frame in context_bone_anim_keys: 
-									if frame!=act_start:
-										file.write(',')
-									# frame is alredy one less then blenders frame
-									file.write('\n\t\t\t\t\t\t\t%i,%.15f,C,n'  % (fbx_time(frame), val ))
-									#file.write('\n\t\t\t\t\t\t\t%i,%.15f,L'  % (fbx_time(frame), val ))
+								if not ANIM_OPTIMIZE:
+									# Just write all frames, simple but in-eficient
+									file.write('\n\t\t\t\t\t\tKeyCount: %i' % (1 + act_end - act_start))
+									file.write('\n\t\t\t\t\t\tKey: ')
+									frame = act_start
+									while frame <= act_end:
+										if frame!=act_start:
+											file.write(',')
+										
+										# Curve types are 
+										# C,n is for bezier? - linear is best for now so we can do simple keyframe removal
+										file.write('\n\t\t\t\t\t\t\t%i,%.15f,C,n'  % (fbx_time(frame-1), context_bone_anim_vecs[frame-act_start][i] ))
+										#file.write('\n\t\t\t\t\t\t\t%i,%.15f,L'  % (fbx_time(frame-1), context_bone_anim_vecs[frame-act_start][i] ))
+										frame+=1
+								else:
+									# remove unneeded keys, j is the frame, needed when some frames are removed.
+									context_bone_anim_keys = [ (vec[i], j) for j, vec in enumerate(context_bone_anim_vecs) ]
+									
+									# last frame to fisrt frame, missing 1 frame on either side.
+									# removeing in a backwards loop is faster
+									for j in xrange( (act_end-act_start)-1, 0, -1 ):
+										# Is this key reduenant?
+										if	abs(context_bone_anim_keys[j][0] - context_bone_anim_keys[j-1][0]) < ANIM_OPTIMIZE_PRECISSION_FLOAT and\
+											abs(context_bone_anim_keys[j][0] - context_bone_anim_keys[j+1][0]) < ANIM_OPTIMIZE_PRECISSION_FLOAT:
+											del context_bone_anim_keys[j]
+									
+									if len(context_bone_anim_keys) == 2 and context_bone_anim_keys[0][0] == context_bone_anim_keys[1][0]:
+										# This axis has no moton, its okay to skip KeyCount and Keys in this case
+										pass
+									else:
+										# We only need to write these if there is at least one 
+										file.write('\n\t\t\t\t\t\tKeyCount: %i' % len(context_bone_anim_keys))
+										file.write('\n\t\t\t\t\t\tKey: ')					
+										for val, frame in context_bone_anim_keys: 
+											if frame!=act_start:
+												file.write(',')
+											# frame is alredy one less then blenders frame
+											file.write('\n\t\t\t\t\t\t\t%i,%.15f,C,n'  % (fbx_time(frame), val ))
+											#file.write('\n\t\t\t\t\t\t\t%i,%.15f,L'  % (fbx_time(frame), val ))
+								
+								if		i==0:	file.write('\n\t\t\t\t\t\tColor: 1,0,0')
+								elif	i==1:	file.write('\n\t\t\t\t\t\tColor: 0,1,0')
+								elif	i==2:	file.write('\n\t\t\t\t\t\tColor: 0,0,1')
+								
+								file.write('\n\t\t\t\t\t}')
+							file.write('\n\t\t\t\t\tLayerType: %i' % (TX_LAYER+1) )
+							file.write('\n\t\t\t\t}')
 						
-						if		i==0:	file.write('\n\t\t\t\t\t\tColor: 1,0,0')
-						elif	i==1:	file.write('\n\t\t\t\t\t\tColor: 0,1,0')
-						elif	i==2:	file.write('\n\t\t\t\t\t\tColor: 0,0,1')
+						# --------------- 
 						
-						file.write('\n\t\t\t\t\t}')
-					file.write('\n\t\t\t\t\tLayerType: %i' % (TX_LAYER+1) )
-					file.write('\n\t\t\t\t}')
-				
-				# ---------------
-				
-				file.write('\n\t\t\t}')
-				file.write('\n\t\t}')
+						file.write('\n\t\t\t}')
+						file.write('\n\t\t}')
 			
 			# end the take
 			file.write('\n\t}')
@@ -2587,7 +2706,7 @@ def fbx_ui_write(filename):
 	Blender.Window.WaitCursor(1)
 	
 	# Make the matrix
-	GLOBAL_MATRIX = Matrix()
+	GLOBAL_MATRIX = mtx4_identity
 	GLOBAL_MATRIX[0][0] = GLOBAL_MATRIX[1][1] = GLOBAL_MATRIX[2][2] = GLOBALS['_SCALE'].val
 	if GLOBALS['_XROT90'].val:	GLOBAL_MATRIX = GLOBAL_MATRIX * mtx4_x90n
 	if GLOBALS['_YROT90'].val:	GLOBAL_MATRIX = GLOBAL_MATRIX * mtx4_y90n
@@ -2634,10 +2753,10 @@ def fbx_ui():
 		Draw.EndAlign()
 	
 	Draw.BeginAlign()
-	GLOBALS['_SCALE'] =		Draw.Number('Scale:',	EVENT_NONE, x+20, y+120, 140, 20, GLOBALS['_SCALE'].val,	0.01, 1000.0, 'Export empty objects')
-	GLOBALS['_XROT90'] =	Draw.Toggle('Rot X90',	EVENT_NONE, x+160, y+120, 60, 20, GLOBALS['_XROT90'].val,		'Export empty objects')
-	GLOBALS['_YROT90'] =	Draw.Toggle('Rot Y90',	EVENT_NONE, x+220, y+120, 60, 20, GLOBALS['_YROT90'].val,		'Export empty objects')
-	GLOBALS['_ZROT90'] =	Draw.Toggle('Rot Z90',	EVENT_NONE, x+280, y+120, 60, 20, GLOBALS['_ZROT90'].val,		'Export empty objects')
+	GLOBALS['_SCALE'] =		Draw.Number('Scale:',	EVENT_NONE, x+20, y+120, 140, 20, GLOBALS['_SCALE'].val,	0.01, 1000.0, 'Scale all data, (Note! some imports dont support scaled armatures)')
+	GLOBALS['_XROT90'] =	Draw.Toggle('Rot X90',	EVENT_NONE, x+160, y+120, 60, 20, GLOBALS['_XROT90'].val,		'Rotate all objects 90 degrese about the X axis')
+	GLOBALS['_YROT90'] =	Draw.Toggle('Rot Y90',	EVENT_NONE, x+220, y+120, 60, 20, GLOBALS['_YROT90'].val,		'Rotate all objects 90 degrese about the Y axis')
+	GLOBALS['_ZROT90'] =	Draw.Toggle('Rot Z90',	EVENT_NONE, x+280, y+120, 60, 20, GLOBALS['_ZROT90'].val,		'Rotate all objects 90 degrese about the Z axis')
 	Draw.EndAlign()
 	
 	y -= 35
@@ -2757,7 +2876,7 @@ def write_ui():
 	# done setting globals
 	
 	# Used by the user interface
-	GLOBALS['_SCALE'] =						Draw.Create(10.0)
+	GLOBALS['_SCALE'] =						Draw.Create(1.0)
 	GLOBALS['_XROT90'] =					Draw.Create(True)
 	GLOBALS['_YROT90'] =					Draw.Create(False)
 	GLOBALS['_ZROT90'] =					Draw.Create(False)
