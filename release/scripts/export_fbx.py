@@ -72,6 +72,18 @@ import BPyMessages
 
 import sys
 
+## This was used to make V, but faster not to do all that
+##valid = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_,.()[]{}'
+##v = range(255)
+##for c in valid: v.remove(ord(c))
+v = [0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23,24,25,26,27,28,29,30,31,32,33,34,35,36,37,38,39,42,43,47,58,59,60,61,62,63,64,92,94,96,124,126,127,128,129,130,131,132,133,134,135,136,137,138,139,140,141,142,143,144,145,146,147,148,149,150,151,152,153,154,155,156,157,158,159,160,161,162,163,164,165,166,167,168,169,170,171,172,173,174,175,176,177,178,179,180,181,182,183,184,185,186,187,188,189,190,191,192,193,194,195,196,197,198,199,200,201,202,203,204,205,206,207,208,209,210,211,212,213,214,215,216,217,218,219,220,221,222,223,224,225,226,227,228,229,230,231,232,233,234,235,236,237,238,239,240,241,242,243,244,245,246,247,248,249,250,251,252,253,254]
+invalid = ''.join([chr(i) for i in v])
+def cleanName(name):
+	for ch in invalid:	name = name.replace(ch, '_')
+	return name
+del v, i
+
+
 def copy_file(source, dest):
 	file = open(source, 'rb')
 	data = file.read()
@@ -171,7 +183,8 @@ def sane_name(data, dct):
 	if not name:
 		name = 'unnamed' # blank string, ASKING FOR TROUBLE!
 	else:
-		name = BPySys.cleanName(name)
+		#name = BPySys.cleanName(name)
+		name = cleanName(name) # use our own
 	
 	while name in dct.itervalues():	name = increment_string(name)
 	
@@ -284,6 +297,7 @@ def write(filename, batch_objects = None, \
 		for data in data_seq: # scene or group
 			newname = BATCH_FILE_PREFIX + BPySys.cleanName(data.name)
 			
+			
 			if BATCH_OWN_DIR:
 				new_fbxpath = fbxpath + newname + Blender.sys.sep
 				# path may alredy exist
@@ -343,9 +357,6 @@ def write(filename, batch_objects = None, \
 		return # so the script wont run after we have batch exported.
 	
 	# end batch support
-	
-	
-	
 	
 	
 	# ----------------------------------------------
@@ -941,11 +952,11 @@ def write(filename, batch_objects = None, \
 		file.write('\n\t\t\tProperty: "DrawFrontFacingVolumetricLight", "bool", "",0')
 		file.write('\n\t\t\tProperty: "GoboProperty", "object", ""')
 		file.write('\n\t\t\tProperty: "Color", "Color", "A+",1,1,1')
-		file.write('\n\t\t\tProperty: "Intensity", "Intensity", "A+",%.2f' % (light.energy*100))
+		file.write('\n\t\t\tProperty: "Intensity", "Intensity", "A+",%.2f' % (min(light.energy*100, 200))) # clamp below 200
 		file.write('\n\t\t\tProperty: "Cone angle", "Cone angle", "A+",%.2f' % light.spotSize)
 		file.write('\n\t\t\tProperty: "Fog", "Fog", "A+",50')
 		file.write('\n\t\t\tProperty: "Color", "Color", "A",%.2f,%.2f,%.2f' % tuple(light.col))
-		file.write('\n\t\t\tProperty: "Intensity", "Intensity", "A+",%.2f' % (light.energy*100))
+		file.write('\n\t\t\tProperty: "Intensity", "Intensity", "A+",%.2f' % (min(light.energy*100, 200))) # clamp below 200
 		file.write('\n\t\t\tProperty: "Cone angle", "Cone angle", "A+",%.2f' % light.spotSize)
 		file.write('\n\t\t\tProperty: "Fog", "Fog", "A+",50')
 		file.write('\n\t\t\tProperty: "LightType", "enum", "",%i' % light_type)
@@ -973,14 +984,21 @@ def write(filename, batch_objects = None, \
 		file.write('\n\t\tGeometryVersion: 124')
 		file.write('\n\t}')
 	
-	def write_null(my_null, fbxName = None):
+	# matrixOnly is not used at the moment
+	def write_null(my_null = None, fbxName = None, matrixOnly = None):
 		# ob can be null
 		if not fbxName: fbxName = my_null.fbxName
 		
 		file.write('\n\tModel: "Model::%s", "Null" {' % fbxName)
 		file.write('\n\t\tVersion: 232')
-		if my_null:		write_object_props(my_null.blenObject)
-		else:			write_object_props()
+		
+		# only use this for the root matrix at the moment
+		if matrixOnly:
+			write_object_props(None, None, matrixOnly)
+		
+		else: # all other Null's
+			if my_null:		write_object_props(my_null.blenObject)
+			else:			write_object_props()
 			
 		file.write('''
 		}
@@ -1251,6 +1269,15 @@ def write(filename, batch_objects = None, \
 	
 	#def write_mesh(obname, ob, mtx, me, mats, arm, armname):
 	def write_mesh(my_mesh):
+		
+		# if there are non NULL materials on this mesh
+		if [mat for mat in my_mesh.blenMaterials if mat]: 	do_materials = True
+		else:												do_materials = False
+		
+		if my_mesh.blenTextures:	do_textures = True
+		else:						do_textures = False			
+		
+		
 		file.write('\n\tModel: "Model::%s", "Mesh" {' % my_mesh.fbxName)
 		file.write('\n\t\tVersion: 232') # newline is added in write_object_props
 		
@@ -1441,32 +1468,47 @@ def write(filename, batch_objects = None, \
 				
 				file.write('\n\t\t}')
 				
-				if textures:
+				if do_textures:
 					file.write('\n\t\tLayerElementTexture: %i {' % uvindex)
 					file.write('\n\t\t\tVersion: 101')
 					file.write('\n\t\t\tName: "%s"' % uvlayer)
 					
-					file.write('''
-			MappingInformationType: "ByPolygon"
-			ReferenceInformationType: "IndexToDirect"
-			BlendMode: "Translucent"
-			TextureAlpha: 1
-			TextureId: ''')
-					i=-1
-					for f in me.faces:
-						img_key = f.image
-						if img_key: img_key = img_key.name
+					if len(my_mesh.blenTextures) == 1:
+						file.write('\n\t\t\tMappingInformationType: "AllSame"')
+					else:
+						file.write('\n\t\t\tMappingInformationType: "ByPolygon"')
+					
+					file.write('\n\t\t\tReferenceInformationType: "IndexToDirect"')
+					file.write('\n\t\t\tBlendMode: "Translucent"')
+					file.write('\n\t\t\tTextureAlpha: 1')
+					file.write('\n\t\t\tTextureId: ')
+					
+					if len(my_mesh.blenTextures) == 1:
+						file.write('0')
+					else:
+						#texture_mapping_local = {None:0}
+						texture_mapping_local = {None:-1}
 						
-						if i==-1:
-							i=0
-							file.write( '%s' % texture_mapping_local[img_key])
-						else:
-							if i==55:
-								file.write('\n			 ')
-								i=0
+						i = 0 # 1 for dummy
+						for tex in my_mesh.blenTextures:
+							texture_mapping_local[tex] = i
+							i+=1
+						
+						i=-1
+						for f in me.faces:
+							img_key = f.image
 							
-							file.write(',%s' % texture_mapping_local[img_key])
-						i+=1
+							if i==-1:
+								i=0
+								file.write( '%s' % texture_mapping_local[img_key])
+							else:
+								if i==55:
+									file.write('\n			 ')
+									i=0
+								
+								file.write(',%s' % texture_mapping_local[img_key])
+							i+=1
+				
 				else:
 					file.write('''
 		LayerElementTexture: 0 {
@@ -1483,47 +1525,50 @@ def write(filename, batch_objects = None, \
 			
 		# Done with UV/textures.
 		
-		if materials:
-			file.write('''
-		LayerElementMaterial: 0 {
-			Version: 101
-			Name: ""
-			MappingInformationType: "ByPolygon"
-			ReferenceInformationType: "IndexToDirect"
-			Materials: ''')
+		if do_materials:
+			file.write('\n\t\tLayerElementMaterial: 0 {')
+			file.write('\n\t\t\tVersion: 101')
+			file.write('\n\t\t\tName: ""')
 			
-			# Build a material mapping for this 
-			material_mapping_local = [-1] * 16 # local-index : global index.
-			i= 0
-			for j, mat in enumerate(my_mesh.blenMaterials):
-				if mat:
-					material_mapping_local[j] = i
-					i+=1
-				# else leave as -1
+			if len(my_mesh.blenMaterials) == 1:
+				file.write('\n\t\t\tMappingInformationType: "AllSame"')
+			else:
+				file.write('\n\t\t\tMappingInformationType: "ByPolygon"')
 			
-			if not material_mapping_local:
-				material_mapping_local[0] = 0
+			file.write('\n\t\t\tReferenceInformationType: "IndexToDirect"')
+			file.write('\n\t\t\tMaterials: ')
 			
-			len_material_mapping_local = len(material_mapping_local)
-			
-			i=-1
-			for f in me.faces:
-				f_mat = f.mat
-				if f_mat >= len_material_mapping_local:
-					f_mat = 0
+			if len(my_mesh.blenMaterials) == 1:
+				file.write('0')
+			else:
+				# Build a material mapping for this 
+				#material_mapping_local = [0] * 16 # local-index : global index.
+				material_mapping_local = [-1] * 16 # local-index : global index.
+				i= 0 # 1
+				for j, mat in enumerate(my_mesh.blenMaterials):
+					if mat:
+						material_mapping_local[j] = i
+						i+=1
+					# else leave as -1
 				
-				if i==-1:
-					i=0
-					file.write( '%s' % (material_mapping_local[f_mat]))
-					#file.write( '%s' % -1)
-				else:
-					if i==55:
-						file.write('\n\t\t\t\t')
-						i=0
+				len_material_mapping_local = len(material_mapping_local)
+				
+				i=-1
+				for f in me.faces:
+					f_mat = f.mat
+					if f_mat >= len_material_mapping_local:
+						f_mat = 0
 					
-					file.write(',%s' % (material_mapping_local[f_mat]))
-					#file.write(',%s' % -1)
-				i+=1
+					if i==-1:
+						i=0
+						file.write( '%s' % (material_mapping_local[f_mat]))
+					else:
+						if i==55:
+							file.write('\n\t\t\t\t')
+							i=0
+						
+						file.write(',%s' % (material_mapping_local[f_mat]))
+					i+=1
 			
 			file.write('\n\t\t}')
 		
@@ -1535,7 +1580,7 @@ def write(filename, batch_objects = None, \
 				TypedIndex: 0
 			}''')
 		
-		if materials:
+		if do_materials:
 			file.write('''
 			LayerElement:  {
 				Type: "LayerElementMaterial"
@@ -1543,7 +1588,7 @@ def write(filename, batch_objects = None, \
 			}''')
 			
 		# Always write this
-		if textures:
+		if do_textures:
 			file.write('''
 			LayerElement:  {
 				Type: "LayerElementTexture"
@@ -1580,7 +1625,7 @@ def write(filename, batch_objects = None, \
 				file.write('\n\t\t\t\tTypedIndex: %i' % i)
 				file.write('\n\t\t\t}')
 				
-				if textures:
+				if do_textures:
 					
 					file.write('''
 			LayerElement:  {
@@ -1719,15 +1764,16 @@ def write(filename, batch_objects = None, \
 					
 					for mat in mats:
 						# 2.44 use mat.lib too for uniqueness
-						if mat: materials[mat.name] = mat
+						if mat: materials[mat] = mat
 					
+					texture_mapping_local = {}
 					if me.faceUV:
 						uvlayer_orig = me.activeUVLayer
 						for uvlayer in me.getUVLayerNames():
 							me.activeUVLayer = uvlayer
 							for f in me.faces:
 								img = f.image
-								if img: textures[img.name] = img
+								textures[img] = texture_mapping_local[img] = img
 							
 							me.activeUVLayer = uvlayer_orig
 					
@@ -1757,6 +1803,12 @@ def write(filename, batch_objects = None, \
 					my_mesh = my_object_generic(ob)
 					my_mesh.blenData =		me
 					my_mesh.blenMaterials =	mats
+					my_mesh.blenTextures =	texture_mapping_local.values()
+					
+					# if only 1 null texture then empty the list
+					if len(my_mesh.blenTextures) == 1 and my_mesh.blenTextures[0] == None:
+						my_mesh.blenTextures = []
+					
 					my_mesh.fbxArm =	armob					# replace with my_object_generic armature instance later
 					my_mesh.fbxBoneParent = blenParentBoneName	# replace with my_bone instance later
 					
@@ -1835,28 +1887,10 @@ def write(filename, batch_objects = None, \
 	
 	del my_bone_blenParent 
 	
-	materials = [(sane_matname(mat), mat) for mat in materials.itervalues()]
-	textures = [(sane_texname(img), img) for img in textures.itervalues()]
+	materials =	[(sane_matname(mat), mat) for mat in materials.itervalues() if mat]
+	textures =	[(sane_texname(img), img) for img in textures.itervalues()  if img]
 	materials.sort() # sort by name
 	textures.sort()
-	
-	if not materials:
-		materials = [('null', None)]
-	
-	material_mapping = {} # blen name : index
-	if textures:
-		texture_mapping_local = {None:-1} # ditto
-		i = 0
-		for texname, tex in textures:
-			texture_mapping_local[tex.name] = i
-			i+=1
-		#textures.insert(0, ('_empty_', None))
-	
-	i = 0
-	for matname, mat in materials:
-		if mat: mat = mat.name
-		material_mapping[mat] = i
-		i+=1
 	
 	camera_count = 8
 	file.write('''
@@ -1955,7 +1989,7 @@ Objects:  {''')
 	write_camera_switch()
 	
 	# Write the null object
-	write_null(None, 'blend_root')
+	write_null(None, 'blend_root')# , GLOBAL_MATRIX) 
 	
 	for my_null in ob_null:
 		write_null(my_null)
@@ -1971,7 +2005,6 @@ Objects:  {''')
 		write_light(my_light)
 	
 	for my_mesh in ob_meshes:
-		#write_mesh(obname, ob, mtx, me, mats, arm, armname)
 		write_mesh(my_mesh)
 
 	#for bonename, bone, obname, me, armob in ob_bones:
@@ -2159,16 +2192,21 @@ Connections:  {''')
 	for my_light in ob_lights:
 		file.write('\n\tConnect: "OO", "Model::%s", "Model::blend_root"' % my_light.fbxName)
 	
-	for my_mesh in ob_meshes:
-		# Connect all materials to all objects, not good form but ok for now.
-		for mat in my_mesh.blenMaterials:
-			if mat:
-				file.write('\n\tConnect: "OO", "Material::%s", "Model::%s"' % (sane_name_mapping_mat[mat.name], my_mesh.fbxName))
+	if materials:
+		for my_mesh in ob_meshes:
+			# Connect all materials to all objects, not good form but ok for now.
+			for mat in my_mesh.blenMaterials:
+				if mat:
+					file.write('\n\tConnect: "OO", "Material::%s", "Model::%s"' % (sane_name_mapping_mat[mat.name], my_mesh.fbxName))
+			
 	
 	if textures:
 		for my_mesh in ob_meshes:
-			for texname, tex in textures:
-				file.write('\n\tConnect: "OO", "Texture::%s", "Model::%s"' % (texname, my_mesh.fbxName))
+			if my_mesh.blenTextures:
+				# file.write('\n\tConnect: "OO", "Texture::_empty_", "Model::%s"' % my_mesh.fbxName)
+				for tex in my_mesh.blenTextures:
+					if tex:
+						file.write('\n\tConnect: "OO", "Texture::%s", "Model::%s"' % (sane_name_mapping_tex[tex.name], my_mesh.fbxName))
 		
 		for texname, tex in textures:
 			file.write('\n\tConnect: "OO", "Video::%s", "Texture::%s"' % (texname, texname))
@@ -2634,10 +2672,10 @@ def fbx_ui():
 		Draw.EndAlign()
 	
 	Draw.BeginAlign()
-	GLOBALS['_SCALE'] =		Draw.Number('Scale:',	EVENT_NONE, x+20, y+120, 140, 20, GLOBALS['_SCALE'].val,	0.01, 1000.0, 'Export empty objects')
-	GLOBALS['_XROT90'] =	Draw.Toggle('Rot X90',	EVENT_NONE, x+160, y+120, 60, 20, GLOBALS['_XROT90'].val,		'Export empty objects')
-	GLOBALS['_YROT90'] =	Draw.Toggle('Rot Y90',	EVENT_NONE, x+220, y+120, 60, 20, GLOBALS['_YROT90'].val,		'Export empty objects')
-	GLOBALS['_ZROT90'] =	Draw.Toggle('Rot Z90',	EVENT_NONE, x+280, y+120, 60, 20, GLOBALS['_ZROT90'].val,		'Export empty objects')
+	GLOBALS['_SCALE'] =		Draw.Number('Scale:',	EVENT_NONE, x+20, y+120, 140, 20, GLOBALS['_SCALE'].val,	0.01, 1000.0, 'Scale all data, (Note! some imports dont support scaled armatures)')
+	GLOBALS['_XROT90'] =	Draw.Toggle('Rot X90',	EVENT_NONE, x+160, y+120, 60, 20, GLOBALS['_XROT90'].val,		'Rotate all objects 90 degrese about the X axis')
+	GLOBALS['_YROT90'] =	Draw.Toggle('Rot Y90',	EVENT_NONE, x+220, y+120, 60, 20, GLOBALS['_YROT90'].val,		'Rotate all objects 90 degrese about the Y axis')
+	GLOBALS['_ZROT90'] =	Draw.Toggle('Rot Z90',	EVENT_NONE, x+280, y+120, 60, 20, GLOBALS['_ZROT90'].val,		'Rotate all objects 90 degrese about the Z axis')
 	Draw.EndAlign()
 	
 	y -= 35
