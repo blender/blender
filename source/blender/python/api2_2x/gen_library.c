@@ -325,17 +325,8 @@ PyObject *GetPyObjectFromID( ID * id )
 	Py_RETURN_NONE;
 }
 
-/* return a unique tuple for this libdata*/
-long GenericLib_hash(PyObject * pydata)
+long GenericLib_hash(BPy_GenericLib * pydata)
 {
-	ID *id = ((BPy_GenericLib *)pydata)->id;
-	PyObject *pyhash = PyTuple_New( 2 );
-	long hash;
-	PyTuple_SetItem( pyhash, 0, PyString_FromString(id->name) );
-	if (id->lib) PyTuple_SetItem( pyhash, 1, PyString_FromString(id->lib->name) );
-	else		PyTuple_SetItem( pyhash, 1, EXPP_incr_ret(Py_None) );
-	hash = PyObject_Hash(pyhash);
-	Py_DECREF(pyhash);
-	return hash;
+	return (long)pydata->id;
 }
 
