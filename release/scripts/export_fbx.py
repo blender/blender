@@ -2148,7 +2148,7 @@ Objects:  {''')
 			Property: "FrontAxisSign", "int", "",1
 			Property: "CoordAxis", "int", "",0
 			Property: "CoordAxisSign", "int", "",1
-			Property: "UnitScaleFactor", "double", "",1
+			Property: "UnitScaleFactor", "double", "",100
 		}
 	}
 ''')	
@@ -2399,9 +2399,15 @@ Takes:  {''')
 					file.write('\n\tTake: "%s" {' % sane_takename(blenAction))
 					
 				tmp = blenAction.getFrameNumbers()
-				act_start =	min(tmp)
-				act_end =	max(tmp)
-				del tmp
+				if tmp:
+					act_start =	min(tmp)
+					act_end =	max(tmp)
+					del tmp
+				else:
+					# Fallback on this, theres not much else we can do? :/
+					# when an action has no length
+					act_start =	start
+					act_end =	end
 				
 				# Set the action active
 				for my_bone in ob_arms:
@@ -2902,7 +2908,7 @@ def write_ui():
 		if GLOBALS['EVENT'] == EVENT_FILESEL:
 			if GLOBALS['BATCH_ENABLE'].val:
 				txt = 'Batch FBX Dir'
-				name = ''
+				name = Blender.sys.expandpath('//')
 			else:
 				txt = 'Export FBX'
 				name = Blender.sys.makename(ext='.fbx')
