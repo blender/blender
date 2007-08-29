@@ -90,5 +90,5 @@ short GenericLib_getType(PyObject * pydata);
 /* Other ID functions */
 ID			*GetIdFromList( ListBase * list, char *name );
 PyObject	*GetPyObjectFromID( ID * id );
-long GenericLib_hash(PyObject * pydata);
+long GenericLib_hash(BPy_GenericLib * pydata);
 #endif				/* EXPP_gen_library_h */
