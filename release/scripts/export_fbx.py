@@ -1412,13 +1412,9 @@ def write(filename, batch_objects = None, \
 			ReferenceInformationType: "Direct"
 			Normals: ''')
 		
-		# wont handle non uniform scaling properly
-		mtx_rot = my_mesh.matrixWorld.rotationPart()
-		
 		i=-1
-		
-		
 		if do_tx_write: # transform normals on write?
+			mtx_rot = my_mesh.matrixWorld.rotationPart()
 			for v in me.verts:
 				if i==-1:
 					file.write('%.15f,%.15f,%.15f' % tuple(v.no * mtx_rot));	i=0
@@ -1431,6 +1427,7 @@ def write(filename, batch_objects = None, \
 			
 		
 		else:	# same as above but has alredy been transformed
+			# wont handle non uniform scaling properly
 			for v in me.verts:
 				if i==-1:
 					file.write('%.15f,%.15f,%.15f' % tuple(v.no));	i=0
@@ -1868,7 +1865,7 @@ def write(filename, batch_objects = None, \
 							
 						if armob and armob not in ob_arms:
 							ob_arms.append(armob)
-							
+					
 					else:
 						blenParentBoneName = armob = None
 					
@@ -2151,7 +2148,7 @@ Objects:  {''')
 			Property: "FrontAxisSign", "int", "",1
 			Property: "CoordAxis", "int", "",0
 			Property: "CoordAxisSign", "int", "",1
-			Property: "UnitScaleFactor", "double", "",1
+			Property: "UnitScaleFactor", "double", "",100
 		}
 	}
 ''')	
@@ -2322,7 +2319,10 @@ Connections:  {''')
 	end =	render.eFrame
 	if end < start: start, end = end, start
 	
-	if ANIM_ENABLE and ob_bones: # at the moment can only export bone anim
+	# animations for these object types
+	ob_anim_lists = ob_bones, ob_meshes, ob_null, ob_cameras, ob_lights
+	
+	if ANIM_ENABLE and [tmp for tmp in ob_anim_lists if tmp]:
 		
 		frame_orig = Blender.Get('curframe')
 		
@@ -2402,9 +2402,15 @@ Takes:  {''')
 					file.write('\n\tTake: "%s" {' % sane_takename(blenAction))
 					
 				tmp = blenAction.getFrameNumbers()
-				act_start =	min(tmp)
-				act_end =	max(tmp)
-				del tmp
+				if tmp:
+					act_start =	min(tmp)
+					act_end =	max(tmp)
+					del tmp
+				else:
+					# Fallback on this, theres not much else we can do? :/
+					# when an action has no length
+					act_start =	start
+					act_end =	end
 				
 				# Set the action active
 				for my_bone in ob_arms:
@@ -2432,7 +2438,7 @@ Takes:  {''')
 			i = act_start
 			while i <= act_end:
 				Blender.Set('curframe', i)
-				for ob_generic in (ob_bones, ob_meshes, ob_null, ob_cameras, ob_lights):
+				for ob_generic in ob_anim_lists:
 					for my_ob in ob_generic:
 						#Blender.Window.RedrawAll()
 						if ob_generic == ob_meshes and my_ob.fbxArm:
@@ -2905,7 +2911,7 @@ def write_ui():
 		if GLOBALS['EVENT'] == EVENT_FILESEL:
 			if GLOBALS['BATCH_ENABLE'].val:
 				txt = 'Batch FBX Dir'
-				name = ''
+				name = Blender.sys.expandpath('//')
 			else:
 				txt = 'Export FBX'
 				name = Blender.sys.makename(ext='.fbx')
