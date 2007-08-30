@@ -1113,6 +1113,7 @@ float lamp_get_visibility(LampRen *lar, float *co, float *lv, float *dist)
 				}
 			}
 		}
+		if (visifac <= 0.001) visifac = 0.0f;
 		return visifac;
 	}
 }
