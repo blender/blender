@@ -155,6 +155,7 @@ sane_name_mapping_ob = {}
 sane_name_mapping_mat = {}
 sane_name_mapping_tex = {}
 sane_name_mapping_take = {}
+sane_name_mapping_group = {}
 
 # Make sure reserved names are not used
 sane_name_mapping_ob['Scene'] = 'Scene_'
@@ -197,6 +198,7 @@ def sane_obname(data):		return sane_name(data, sane_name_mapping_ob)
 def sane_matname(data):		return sane_name(data, sane_name_mapping_mat)
 def sane_texname(data):		return sane_name(data, sane_name_mapping_tex)
 def sane_takename(data):	return sane_name(data, sane_name_mapping_take)
+def sane_groupname(data):	return sane_name(data, sane_name_mapping_group)
 
 
 
@@ -451,10 +453,12 @@ def write(filename, batch_objects = None, \
 
 	class my_object_generic:
 		# Other settings can be applied for each type - mesh, armature etc.
-		def __init__(self, ob):
+		def __init__(self, ob, matrixWorld = None):
 			self.fbxName = sane_obname(ob)
 			self.blenObject = ob
-			self.matrixWorld = ob.matrixWorld * GLOBAL_MATRIX
+			self.fbxGroupNames = []
+			if matrixWorld:		self.matrixWorld = matrixWorld * GLOBAL_MATRIX
+			else:				self.matrixWorld = ob.matrixWorld * GLOBAL_MATRIX
 			self.__anim_poselist = {}
 		
 		def setPoseFrame(self, f):
@@ -1722,6 +1726,20 @@ def write(filename, batch_objects = None, \
 				file.write('\n\t\t}')
 		file.write('\n\t}')
 	
+	def write_group(name):
+		file.write('\n\tGroupSelection: "GroupSelection::%s", "Default" {' % name)
+		
+		file.write('''
+		Properties60:  {
+			Property: "MultiLayer", "bool", "",0
+			Property: "Pickable", "bool", "",1
+			Property: "Transformable", "bool", "",1
+			Property: "Show", "bool", "",1
+		}
+		MultiLayer: 0
+	}''')
+	
+	
 	# add meshes here to clear because they are not used anywhere.
 	meshes_to_clear = []
 	
@@ -1733,6 +1751,8 @@ def write(filename, batch_objects = None, \
 	ob_bones = [] 
 	ob_arms = []
 	ob_null = [] # emptys
+	
+	groups = [] # blender groups, only add ones that have objects in the selections
 	materials = {}
 	textures = {}
 	
@@ -1769,17 +1789,18 @@ def write(filename, batch_objects = None, \
 			tmp_ob_type = ob.type
 			if tmp_ob_type == 'Camera':
 				if EXP_CAMERA:
-					ob_cameras.append(my_object_generic(ob))
+					ob_cameras.append(my_object_generic(ob, mtx))
 			elif tmp_ob_type == 'Lamp':
 				if EXP_LAMP:
-					ob_lights.append(my_object_generic(ob))
+					ob_lights.append(my_object_generic(ob, mtx))
 			elif tmp_ob_type == 'Armature':
 				if EXP_ARMATURE:
+					# TODO - armatures dont work in dupligroups!
 					if ob not in ob_arms: ob_arms.append(ob)
 					# ob_arms.append(ob) # replace later. was "ob_arms.append(sane_obname(ob), ob)"
 			elif tmp_ob_type == 'Empty':
 				if EXP_EMPTY:
-					ob_null.append(my_object_generic(ob))
+					ob_null.append(my_object_generic(ob, mtx))
 			elif EXP_MESH:
 				origData = True
 				if tmp_ob_type != 'Mesh':
@@ -1869,7 +1890,7 @@ def write(filename, batch_objects = None, \
 					else:
 						blenParentBoneName = armob = None
 					
-					my_mesh = my_object_generic(ob)
+					my_mesh = my_object_generic(ob, mtx)
 					my_mesh.blenData =		me
 					my_mesh.origData = 		origData
 					my_mesh.blenMaterials =	mats
@@ -1957,6 +1978,33 @@ def write(filename, batch_objects = None, \
 	
 	del my_bone_blenParent 
 	
+	
+	
+	
+	# Build a list of groups we use.
+	bpy.data.objects.tag = False
+	tmp_obmapping = {}
+	for ob_generic in (ob_meshes, ob_arms, ob_cameras, ob_lights, ob_null):
+		for ob_base in ob_generic:
+			ob_base.blenObject.tag = True
+			tmp_obmapping[ob_base.blenObject] = ob_base.fbxGroupNames
+	
+	for blenGroup in bpy.data.groups:
+		fbxGroupName = None
+		for ob in blenGroup.objects:
+			if ob.tag:
+				if fbxGroupName == None:
+					fbxGroupName = sane_groupname(blenGroup)
+					groups.append((fbxGroupName, blenGroup))
+				
+				tmp_obmapping[ob].append(fbxGroupName) # also adds to the objects fbxGroupNames
+	
+	groups.sort() # not really needed
+	del tmp_obmapping
+	# Finished finding groups we use
+	
+	
+	
 	materials =	[(sane_matname(mat), mat) for mat in materials.itervalues() if mat]
 	textures =	[(sane_texname(img), img) for img in textures.itervalues()  if img]
 	materials.sort() # sort by name
@@ -2041,6 +2089,11 @@ Definitions:  {
 		Count: 1
 	}''')
 	
+	if groups:
+		file.write('''
+	ObjectType: "GroupSelection" {
+		Count: %i
+	}''' % len(groups))
 	
 	file.write('''
 	ObjectType: "GlobalSettings" {
@@ -2093,6 +2146,9 @@ Objects:  {''')
 	for texname, tex in textures:
 		write_texture(texname, tex, i)
 		i+=1
+	
+	for groupname, group in groups:
+		write_group(groupname)
 	
 	# NOTE - c4d and motionbuilder dont need normalized weights, but deep-exploration 5 does and (max?) do.
 	
@@ -2224,6 +2280,9 @@ Relations:  {''')
 	# This should be at the end
 	# file.write('\n\tPose: "Pose::BIND_POSES", "BindPose" {\n\t}')
 	
+	for groupname, group in groups:
+		file.write('\n\tGroupSelection: "GroupSelection::%s", "Default" {\n\t}' % groupname)
+	
 	file.write('\n}')
 	file.write('''
 
@@ -2301,6 +2360,16 @@ Connections:  {''')
 		else:
 			# the armature object is written as an empty and all root level bones connect to it
 			file.write('\n\tConnect: "OO", "Model::%s", "Model::%s"' % (my_bone.fbxName, my_bone.fbxArm.fbxName) )
+	
+	# groups
+	if groups:
+		for ob_generic in (ob_meshes, ob_arms, ob_cameras, ob_lights, ob_null):
+			for ob_base in ob_generic:
+				for fbxGroupName in ob_base.fbxGroupNames:
+					file.write('\n\tConnect: "OO", "Model::%s", "GroupSelection::%s"' % (ob_base.fbxName, fbxGroupName))
+	
+	for my_arm in ob_arms:
+		file.write('\n\tConnect: "OO", "Model::%s", "Model::blend_root"' % my_arm.fbxName)
 	
 	file.write('\n}')
 	
