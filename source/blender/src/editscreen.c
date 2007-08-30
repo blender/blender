@@ -2163,10 +2163,23 @@ short get_activedevice(void)
 	return window_get_activedevice(mainwin);
 }
 
-short getndof(short *sbval)
+void getndof(float *sbval)
 {
     winlay_process_events(0);
-    return window_get_ndof(mainwin, sbval);
+    window_get_ndof(mainwin, sbval);
+}
+
+void filterNDOFvalues(float *sbval)
+{
+	int i=0;
+	float max  = 0.0;
+	
+	for (i =0; i<5;i++)
+		if (fabs(sbval[i]) > max)
+			max = fabs(sbval[i]);
+	for (i =0; i<5;i++)
+		if (fabs(sbval[i]) != max )
+			sbval[i]=0.0;
 }
 
 void add_to_mainqueue(Window *win, void *user_data, short evt, short val, char ascii)

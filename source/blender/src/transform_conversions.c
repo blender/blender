@@ -2575,7 +2575,7 @@ void createTransData(TransInfo *t)
 			createTransArmatureVerts(t);
   		}					  		
 		else {
-			printf("not done yet! only have mesh surface curve\n");
+			printf("not done yet! only have mesh surface curve lattice mball armature\n");
 		}
 
 		if(t->data && t->flag & T_PROP_EDIT) {

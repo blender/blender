@@ -572,21 +572,6 @@ float ndof_axis_scale[6] = {
 int dz_flag = 0;
 float m_dist;
 
-void getndof(float *sbval);
-
-static void filterNDOFvalues(float *sbval)
-{
-	int i=0;
-	float max  = 0.0;
-	
-	for (i =0; i<5;i++)
-		if (fabs(sbval[i]) > max)
-			max = fabs(sbval[i]);
-	for (i =0; i<5;i++)
-		if (fabs(sbval[i]) != max )
-			sbval[i]=0.0;
-}
-
 void viewmoveNDOFfly(int mode)
 {
     int i;
@@ -2228,23 +2213,4 @@ void smooth_view_to_camera(View3D *v3d)
 		v3d->camera = ob;
 		v3d->persp=2;
 	}
-}
-
-void ndof_transform(void)
-{
-    float fval[7];
-
-	getndof(fval);
-
-	if (G.vd->ndoffilter)
-		filterNDOFvalues(fval);
-	
-	fval[0] =  fval[0] * (1.0f/1024.0f);
-	fval[1] = -fval[1] * (1.0f/1024.0f);	// axis inversion
-	fval[2] = -fval[2] * (1.0f/1024.0f);	// axis inversion
-	fval[3] =  fval[3] * (1.0f/8024.0f);
-	fval[4] =  fval[4] * (1.0f/8024.0f);
-	fval[5] =  fval[5] * (1.0f/8024.0f);
-	
-	ndof_do_transform(fval);
 }

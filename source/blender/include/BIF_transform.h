@@ -62,10 +62,12 @@
 #define CTX_EDGE			2
 #define CTX_NO_PET			4
 #define CTX_TWEAK			8
+#define CTX_NDOF			16
 
 void initTransform(int mode, int context);
 void Transform(void);
 void Mirror(short mode);
+void NDofTransform();
 
 /* Standalone call to get the transformation center corresponding to the current situation
  * returns 1 if successful, 0 otherwise (usually means there's no selection)
@@ -81,9 +83,12 @@ void BIF_setSingleAxisConstraint(float vec[3], char *text);
 void BIF_setDualAxisConstraint(float vec1[3], float vec2[3], char *text);
 void BIF_setLocalAxisConstraint(char axis, char *text);
 void BIF_setLocalLockConstraint(char axis, char *text);
+
+/* Drawing callbacks */
 void BIF_drawConstraint(void);
 void BIF_drawPropCircle(void);
 void BIF_drawSnap(void);
+
 void BIF_getPropCenter(float *center);
 
 void BIF_TransformSetUndo(char *str);
