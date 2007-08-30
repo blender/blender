@@ -48,8 +48,9 @@ WITH_BF_FMOD = 'false'
 BF_FMOD = LIBDIR + '/fmod'
 
 WITH_BF_OPENEXR = 'true'
-BF_OPENEXR = '/usr/local'
-BF_OPENEXR_INC = '${BF_OPENEXR}/include/OpenEXR'
+#BF_OPENEXR = '/usr/local'
+BF_OPENEXR = '${LCGDIR}/openexr'
+BF_OPENEXR_INC = '${BF_OPENEXR}/include ${BF_OPENEXR}/include/OpenEXR'
 BF_OPENEXR_LIB = ' Iex Half IlmImf Imath IlmThread'
 
 
