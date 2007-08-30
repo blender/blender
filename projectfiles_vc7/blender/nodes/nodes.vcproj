@@ -385,6 +385,9 @@
 					RelativePath="..\..\..\source\blender\nodes\intern\SHD_nodes\SHD_rgb.c">
 				</File>
 				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\SHD_nodes\SHD_sepcombRGB.c">
+				</File>
+				<File
 					RelativePath="..\..\..\source\blender\nodes\intern\SHD_nodes\SHD_squeeze.c">
 				</File>
 				<File

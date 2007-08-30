@@ -207,7 +207,8 @@ static void image_free_buffers(Image *ima)
 	ima->anim= NULL;
 	
 	if (ima->preview) {
-		MEM_freeN(ima->preview->rect);
+		if (ima->preview->rect)
+			MEM_freeN(ima->preview->rect);
 		MEM_freeN(ima->preview);
 		ima->preview = NULL;
 	}
