@@ -241,13 +241,16 @@ if 'clean' in B.targets:
     do_clean = True
 
 if not quickie and do_clean:
-    print B.bc.HEADER+'Cleaning...'+B.bc.ENDC
-    dirs = os.listdir(B.root_build_dir)
-    for dir in dirs:
-        if os.path.isdir(B.root_build_dir + dir) == 1:
-            print "clean dir %s"%(B.root_build_dir+dir)
-            shutil.rmtree(B.root_build_dir+dir)
-    print B.bc.OKGREEN+'...done'+B.bc.ENDC
+    if os.path.exists(B.root_build_dir):
+        print B.bc.HEADER+'Cleaning...'+B.bc.ENDC
+        dirs = os.listdir(B.root_build_dir)
+        for dir in dirs:
+            if os.path.isdir(B.root_build_dir + dir) == 1:
+                print "clean dir %s"%(B.root_build_dir+dir)
+                shutil.rmtree(B.root_build_dir+dir)
+        print B.bc.OKGREEN+'...done'+B.bc.ENDC
+    else:
+        print B.bc.HEADER+'Already Clean, nothing to do.'+B.bc.ENDC
     Exit()
 
 if not os.path.isdir ( B.root_build_dir):
