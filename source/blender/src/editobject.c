@@ -5486,14 +5486,17 @@ int object_data_is_libdata(Object *ob)
 void hide_objects(int select)
 {
 	Base *base;
-	int changed = 0;
+	short changed = 0, changed_act = 0;
 	for(base = FIRSTBASE; base; base=base->next){
 		if(TESTBASELIB(base)==select){
 			base->flag &= ~SELECT;
 			base->object->flag = base->flag;
 			base->object->restrictflag |= OB_RESTRICT_VIEW;
 			changed = 1;
-			if (base==BASACT) BASACT= NULL;
+			if (base==BASACT) {
+				BASACT= NULL;
+				changed_act = 1;
+			}
 		}
 	}
 	if (changed) {
@@ -5502,6 +5505,12 @@ void hide_objects(int select)
 		DAG_scene_sort(G.scene);
 		allqueue(REDRAWVIEW3D,0);
 		allqueue(REDRAWOOPS,0);
+		allqueue(REDRAWDATASELECT,0);
+		if (changed_act) { /* these spaces depend on the active object */
+			allqueue(REDRAWBUTSALL,0);
+			allqueue(REDRAWIPO,0);
+			allqueue(REDRAWACTION,0);
+		}
 		countall();
 	}
 }
