@@ -2391,6 +2391,7 @@ static void registerShaderNodes(ListBase *ntypelist)
 	nodeRegisterType(ntypelist, &sh_node_invert);
 	nodeRegisterType(ntypelist, &sh_node_seprgb);
 	nodeRegisterType(ntypelist, &sh_node_combrgb);
+	nodeRegisterType(ntypelist, &sh_node_hue_sat);
 }
 
 void init_nodesystem(void) 

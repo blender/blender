@@ -60,6 +60,7 @@ extern bNodeType sh_node_material_ext;
 extern bNodeType sh_node_invert;
 extern bNodeType sh_node_seprgb;
 extern bNodeType sh_node_combrgb;
+extern bNodeType sh_node_hue_sat;
 
 
 #endif
