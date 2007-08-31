@@ -30,9 +30,8 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#include <stdio.h>
 #include "IK_QJacobianSolver.h"
-
-//#include "analyze.h"
 
 void IK_QJacobianSolver::AddSegmentList(IK_QSegment *seg)
 {

@@ -41,6 +41,7 @@
 #include <stdarg.h>
 #include <stdlib.h> 
 #include <ctype.h>
+#include <string.h>
 #include "STR_String.h"
 
 /*-------------------------------------------------------------------------------------------------
