@@ -50,10 +50,6 @@ include nan_compile.mk
 CFLAGS += $(LEVEL_1_C_WARNINGS) 
 #CFLAGS += $(LEVEL_1_C_WARNINGS) -diag_error 1196
 
-ifeq ($(OS),$(findstring $(OS), "beos darwin freebsd linux openbsd solaris windows"))
-    CFLAGS += -funsigned-char
-endif
-
 # PreProcessor stuff ------------------------------------------
 
 CPPFLAGS += -I$(NAN_PYTHON)/include/python$(NAN_PYTHON_VERSION)

@@ -65,8 +65,8 @@ DBG_CCFLAGS	+= -g
 ifeq ($(OS),beos)
     CC	= gcc
     CCC	= g++
-    CFLAGS	+= -pipe -fPIC
-    CFLAGS	+= -pipe -fPIC
+    CFLAGS	+= -pipe -fPIC -funsigned-char -fno-strict-aliasing
+    CCFLAGS	+= -pipe -fPIC -funsigned-char -fno-strict-aliasing
     REL_CFLAGS	+= -O2
     REL_CCFLAGS	+= -O2
     NAN_DEPEND	= true
@@ -81,11 +81,11 @@ ifeq ($(OS),darwin)
     CC	= gcc
     CCC	= g++
 	ifeq ($(CPU),powerpc)
-        CFLAGS	+= -pipe -fPIC -ffast-math -mcpu=7450 -mtune=G5
-        CCFLAGS	+= -pipe -fPIC 
+        CFLAGS	+= -pipe -fPIC -ffast-math -mcpu=7450 -mtune=G5 -funsigned-char -fno-strict-aliasing
+        CCFLAGS	+= -pipe -fPIC  -funsigned-char -fno-strict-aliasing
 	else
-        CFLAGS	+= -pipe -fPIC -ffast-math -march=pentium-m
-        CCFLAGS	+= -pipe -fPIC 
+        CFLAGS	+= -pipe -fPIC -ffast-math -march=pentium-m -funsigned-char -fno-strict-aliasing
+        CCFLAGS	+= -pipe -fPIC  -funsigned-char -fno-strict-aliasing
 	endif
     REL_CFLAGS	+= -O2
     REL_CCFLAGS	+= -O2
@@ -103,8 +103,8 @@ ifeq ($(OS),freebsd)
     CCC	= g++
     JAVAC = javac
     JAVAH = javah
-    CFLAGS	+= -pipe -fPIC
-    CCFLAGS	+= -pipe -fPIC
+    CFLAGS	+= -pipe -fPIC -funsigned-char -fno-strict-aliasing
+    CCFLAGS	+= -pipe -fPIC -funsigned-char -fno-strict-aliasing
     REL_CFLAGS	+= -O2
     REL_CCFLAGS	+= -O2
     CPPFLAGS	+= -D_THREAD_SAFE
@@ -140,8 +140,8 @@ ifeq ($(OS),linux)
     CC	= gcc
     CCC	= g++
 #    CFLAGS	+= -pipe
-    CFLAGS	+= -pipe -fPIC 
-    CCFLAGS	+= -pipe -fPIC
+    CFLAGS	+= -pipe -fPIC  -funsigned-char -fno-strict-aliasing
+    CCFLAGS	+= -pipe -fPIC -funsigned-char -fno-strict-aliasing
 #    CCFLAGS	+= -pipe
     REL_CFLAGS	+= -O2
     REL_CCFLAGS	+= -O2
@@ -158,8 +158,8 @@ endif
 ifeq ($(OS),openbsd)
     CC	= gcc
     CCC = g++
-    CFLAGS	+= -pipe -fPIC
-    CCFLAGS	+= -pipe -fPIC
+    CFLAGS	+= -pipe -fPIC -funsigned-char -fno-strict-aliasing
+    CCFLAGS	+= -pipe -fPIC -funsigned-char -fno-strict-aliasing
     REL_CFLAGS	+= -O2
     REL_CCFLAGS += -O2
     NAN_DEPEND = true
@@ -173,10 +173,14 @@ endif
 ifeq ($(OS),solaris)
     CC	= gcc
     CCC = g++
+#    CC	= cc
+#    CCC = CC
     JAVAC = javac
     JAVAH = javah
-    CFLAGS	+= -pipe -fPIC
-    CCFLAGS	+= -pipe -fPIC
+    CFLAGS	+= -pipe -fPIC -funsigned-char -fno-strict-aliasing
+    CCFLAGS	+= -pipe -fPIC -funsigned-char -fno-strict-aliasing
+#    CFLAGS	+= "-fast -xdepend -xarch=v8plus -xO3 -xlibmil -KPIC -DPIC -xchar=unsigned"
+#    CCFLAGS	+= "-fast -xdepend -xarch=v8plus -xO3 -xlibmil -xlibmopt -features=tmplife -norunpath -KPIC -DPIC -xchar=unsigned"
     REL_CFLAGS	+= -O1
     REL_CCFLAGS += -O1
     NAN_DEPEND = true
@@ -197,8 +201,8 @@ ifeq ($(OS),windows)
   ifeq ($(FREE_WINDOWS),true)
     CC  = gcc
     CCC = g++
-    CFLAGS += -pipe -mno-cygwin -mwindows
-    CCFLAGS += -pipe -mno-cygwin -mwindows
+    CFLAGS += -pipe -mno-cygwin -mwindows -funsigned-char -fno-strict-aliasing
+    CCFLAGS += -pipe -mno-cygwin -mwindows -funsigned-char -fno-strict-aliasing
     CPPFLAGS += -DFREE_WINDOWS
     REL_CFLAGS += -O2
     REL_CCFLAGS += -O2

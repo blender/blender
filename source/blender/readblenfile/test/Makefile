@@ -37,10 +37,6 @@ ALLTARGETS = $(OBJS) $(DIR)/$(DEBUG_DIR)test$(EXT)
 
 include nan_compile.mk
 
-ifeq ($(OS),$(findstring $(OS), "beos darwin freebsd linux openbsd solaris windows"))
-    CFLAGS += -funsigned-char
-endif
-
 CFLAGS += $(LEVEL_2_C_WARNINGS)
 
 # path to our own external headerfiles
