@@ -221,18 +221,20 @@ static PyObject *Action_getFrameNumbers(BPy_Action *self)
 	
 	py_list = PyList_New(0);
 	for(achan = self->action->chanbase.first; achan; achan = achan->next){
-		for (icu = achan->ipo->curve.first; icu; icu = icu->next){
-			bezt= icu->bezt;
-			if(bezt) {
-				verts = icu->totvert;
-				while(verts--) {
-					PyObject *value;
-					value = PyInt_FromLong((int)bezt->vec[1][0]);
-					if ( PySequence_Contains(py_list, value) == 0){
-						PyList_Append(py_list, value);
+		if (achan->ipo) {
+			for (icu = achan->ipo->curve.first; icu; icu = icu->next){
+				bezt= icu->bezt;
+				if(bezt) {
+					verts = icu->totvert;
+					while(verts--) {
+						PyObject *value;
+						value = PyInt_FromLong((int)bezt->vec[1][0]);
+						if ( PySequence_Contains(py_list, value) == 0){
+							PyList_Append(py_list, value);
+						}
+						Py_DECREF(value);
+						bezt++;
 					}
-					Py_DECREF(value);
-					bezt++;
 				}
 			}
 		}
