@@ -1286,7 +1286,7 @@ static PyObject *Object_getIpo( BPy_Object * self )
 static PyObject *Object_getLocation( BPy_Object * self, PyObject * args )
 {
 	char *space = "localspace";	/* default to local */
-	
+	PyObject *attr;
 	if( !PyArg_ParseTuple( args, "|s", &space ) ) 
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected a string or nothing" );
@@ -1295,20 +1295,23 @@ static PyObject *Object_getLocation( BPy_Object * self, PyObject * args )
 		disable_where_script( 1 );
 		where_is_object( self->object );
 		
-		return Py_BuildValue( "fff",
+		attr = Py_BuildValue( "fff",
 					self->object->obmat[3][0],
 					self->object->obmat[3][1],
 					self->object->obmat[3][2] );
 		
 		disable_where_script( 0 );
 	} else if( BLI_streq( space, "localspace" ) ) {	/* Localspace matrix */
-		return Py_BuildValue( "fff",
+		attr = Py_BuildValue( "fff",
 					self->object->loc[0],
 					self->object->loc[1],
 					self->object->loc[2] );
-	}
-	return EXPP_ReturnPyObjError( PyExc_ValueError,
+	} else {
+		return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"expected either nothing, 'localspace' (default) or 'worldspace'" );
+	}
+
+	return attr;
 }
 
 static PyObject *Object_getMaterials( BPy_Object * self, PyObject * args )
