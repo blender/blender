@@ -1005,7 +1005,7 @@ static void make_trans_verts(float *min, float *max, int mode)
 						tottrans++;
 					}	
 					
-					if (mode & 2) {
+					if ((mode & 2) && (tipsel)) {
 						VECCOPY (tv->oldloc, ebo->tail);
 						tv->loc= ebo->tail;
 						tv->nor= NULL;
