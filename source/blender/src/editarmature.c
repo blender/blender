@@ -2488,7 +2488,7 @@ static void add_vgroups__mapFunc(void *userData, int index, float *co, float *no
 	VECCOPY(verts[index], co);
 }
 
-static void envelope_bone_weighting(Object *ob, Mesh *mesh, float (*verts)[3], int numbones, Bone **bonelist, bDeformGroup **dgrouplist, bDeformGroup **dgroupflip, float (*root)[3], float (*tip)[3], int *selected)
+static void envelope_bone_weighting(Object *ob, Mesh *mesh, float (*verts)[3], int numbones, Bone **bonelist, bDeformGroup **dgrouplist, bDeformGroup **dgroupflip, float (*root)[3], float (*tip)[3], int *selected, float scale)
 {
 	/* Create vertex group weights from envelopes */
 
@@ -2511,7 +2511,7 @@ static void envelope_bone_weighting(Object *ob, Mesh *mesh, float (*verts)[3], i
 
 			/* store the distance-factor from the vertex to the bone */
 			distance = distfactor_to_bone (verts[i], root[j], tip[j],
-				bone->rad_head, bone->rad_tail, bone->dist);
+				bone->rad_head * scale, bone->rad_tail * scale, bone->dist * scale);
 
 			/* add the vert to the deform group if weight!=0.0 */
 			if (distance!=0.0)
@@ -2653,13 +2653,22 @@ void add_verts_to_dgroups(Object *ob, Object *par, int heat, int mirror)
 	}
 
 	/* compute the weights based on gathered vertices and bones */
-	if (heat)
+	if (heat) {
 		heat_bone_weighting(ob, mesh, verts, numbones, dgrouplist, dgroupflip,
 			root, tip, selected);
-	else
+	} else {
+		float scale;
+		float tmp[3] = {1.0, 1.0, 1.0};
+		float mat[3][3];
+		
+		/* scale value from matrix, wont account for non uniform scale but ok */
+		Mat3CpyMat4(mat, par->obmat);
+		Mat3MulVecfl(mat, tmp);
+		scale = (fabs(tmp[0]) + fabs(tmp[1]) + fabs(tmp[2])) / 3.0f;
+		
 		envelope_bone_weighting(ob, mesh, verts, numbones, bonelist, dgrouplist,
-			dgroupflip, root, tip, selected);
-
+			dgroupflip, root, tip, selected, scale);
+	}
     /* free the memory allocated */
     MEM_freeN(bonelist);
     MEM_freeN(dgrouplist);
