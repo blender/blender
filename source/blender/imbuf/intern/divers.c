@@ -174,7 +174,7 @@ void IMB_gamwarp(struct ImBuf *ibuf, double gamma)
 	}
 }
 
-#define FTOCHAR(val) val<=0.0f?0: (val>=1.0f?255: (char)(255.0f*val))
+#define FTOCHAR(val) val<=0.0f?0: (val>=1.0f?255: (char)(255.99f*val))
 
 void IMB_rect_from_float(struct ImBuf *ibuf)
 {
