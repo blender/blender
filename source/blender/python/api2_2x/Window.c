@@ -40,6 +40,7 @@
 #include "BKE_scene.h"		/* scene_find_camera() */
 #include "BPI_script.h"
 #include "BIF_mywindow.h"
+#include "BIF_imasel.h"
 #include "BSE_headerbuttons.h"
 #include "BSE_filesel.h"
 #include "BIF_editmesh.h"	/* for undo_push_mesh() */

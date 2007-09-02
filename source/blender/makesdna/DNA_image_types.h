@@ -41,11 +41,6 @@ struct anim;
 struct ImBuf;
 struct RenderResult;
 
-typedef struct PreviewImage {
-	unsigned int w;
-	unsigned int h;
-	unsigned int * rect;
-} PreviewImage;
 
 /* ImageUser is in Texture, in Nodes, Background Image, Image Window, .... */
 /* should be used in conjunction with an ID * to Image. */

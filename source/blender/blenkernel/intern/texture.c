@@ -390,6 +390,7 @@ void free_texture(Tex *tex)
 	free_plugin_tex(tex->plugin);
 	if(tex->coba) MEM_freeN(tex->coba);
 	if(tex->env) BKE_free_envmap(tex->env);
+	BKE_previewimg_free(&tex->preview);
 	BKE_icon_delete((struct ID*)tex);
 	tex->id.icon_id = 0;
 }
@@ -462,6 +463,8 @@ void default_tex(Tex *tex)
 	tex->iuser.fie_ima= 2;
 	tex->iuser.ok= 1;
 	tex->iuser.frames= 100;
+	
+	tex->preview = NULL;
 }
 
 /* ------------------------------------------------------------------------- */
@@ -541,6 +544,8 @@ Tex *copy_texture(Tex *tex)
 	if(texn->coba) texn->coba= MEM_dupallocN(texn->coba);
 	if(texn->env) texn->env= BKE_copy_envmap(texn->env);
 	
+	if(tex->preview) texn->preview = BKE_previewimg_copy(tex->preview);
+
 	return texn;
 }
 

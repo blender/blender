@@ -598,7 +598,7 @@ void *add_lamp(char *name)
 	la->area_size=la->area_sizey=la->area_sizez= 1.0; 
 	la->buffers= 1;
 	la->buftype= LA_SHADBUF_HALFWAY;
-	
+	la->preview=NULL;
 	return la;
 }
 
@@ -618,6 +618,8 @@ Lamp *copy_lamp(Lamp *la)
 	}
 	
 	id_us_plus((ID *)lan->ipo);
+
+	if (la->preview) lan->preview = BKE_previewimg_copy(la->preview);
 
 	BPY_copy_scriptlink(&la->scriptlink);
 	
@@ -696,7 +698,8 @@ void free_lamp(Lamp *la)
 		if(mtex) MEM_freeN(mtex);
 	}
 	la->ipo= 0;
-
+	
+	BKE_previewimg_free(&la->preview);
 	BKE_icon_delete(&la->id);
 	la->id.icon_id = 0;
 }

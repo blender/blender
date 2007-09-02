@@ -43,6 +43,7 @@
 
 #include "IMB_divers.h"
 #include "IMB_allocimbuf.h"
+#include "IMB_imginfo.h"
 #include "MEM_CacheLimiterC-Api.h"
 
 static unsigned int dfltcmap[16] = {
@@ -163,6 +164,7 @@ void IMB_freeImBuf(struct ImBuf * ibuf)
 			IMB_freecmapImBuf(ibuf);
 			freeencodedbufferImBuf(ibuf);
 			IMB_cache_limiter_unmanage(ibuf);
+			IMB_imginfo_free(ibuf);
 			MEM_freeN(ibuf);
 		}
 	}
@@ -475,6 +477,9 @@ struct ImBuf *IMB_dupImBuf(struct ImBuf *ibuf1)
 	// set malloc flag
 	tbuf.mall		= ibuf2->mall;
 	tbuf.c_handle           = 0;
+
+	// for now don't duplicate image info
+	tbuf.img_info = 0;
 
 	*ibuf2 = tbuf;
 	

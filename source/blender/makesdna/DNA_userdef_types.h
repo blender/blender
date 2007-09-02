@@ -205,6 +205,7 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_NONUMPAD			8192
 #define USER_LMOUSESELECT		16384
 #define USER_FILECOMPRESS		32768
+#define USER_SAVE_PREVIEWS		65536
 
 /* viewzom */
 #define USER_ZOOM_CONT			0

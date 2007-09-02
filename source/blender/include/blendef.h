@@ -344,7 +344,10 @@
 #define B_CONTEXT_SWITCH	406
 
 /* IMASEL: 450 */
-/* in imasel.h */
+/* in imasel.h - not any more - elubie */
+#define B_SORTIMASELLIST	451
+#define B_RELOADIMASELDIR	452
+#define B_FILTERIMASELDIR	453
 
 /* TEXT: 500 */
 #define B_TEXTBROWSE		501

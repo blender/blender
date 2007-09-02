@@ -44,6 +44,7 @@ struct EnvMap;
 struct Object;
 struct Tex;
 struct Image;
+struct PreviewImage;
 struct ImBuf;
 
 typedef struct MTex {
@@ -171,7 +172,7 @@ typedef struct Tex {
 	struct PluginTex *plugin;
 	struct ColorBand *coba;
 	struct EnvMap *env;
-	
+	struct PreviewImage * preview;
 	
 } Tex;
 

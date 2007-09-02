@@ -2431,3 +2431,33 @@ void ui_draw_but(uiBut *but)
 	}
 }
 
+void ui_dropshadow(rctf *rct, float radius, float aspect, int select)
+{
+	float rad;
+	float a;
+	char alpha= 2;
+	
+	glEnable(GL_BLEND);
+	
+	if(radius > (rct->ymax-rct->ymin-10.0f)/2.0f)
+		rad= (rct->ymax-rct->ymin-10.0f)/2.0f;
+	else
+		rad= radius;
+	
+	if(select) a= 12.0f*aspect; else a= 12.0f*aspect;
+	for(; a>0.0f; a-=aspect) {
+		/* alpha ranges from 2 to 20 or so */
+		glColor4ub(0, 0, 0, alpha);
+		alpha+= 2;
+		
+		gl_round_box(GL_POLYGON, rct->xmin - a, rct->ymin - a, rct->xmax + a, rct->ymax-10.0f + a, rad+a);
+	}
+	
+	/* outline emphasis */
+	glEnable( GL_LINE_SMOOTH );
+	glColor4ub(0, 0, 0, 100);
+	gl_round_box(GL_LINE_LOOP, rct->xmin-0.5f, rct->ymin-0.5f, rct->xmax+0.5f, rct->ymax+0.5f, radius);
+	glDisable( GL_LINE_SMOOTH );
+	
+	glDisable(GL_BLEND);
+}

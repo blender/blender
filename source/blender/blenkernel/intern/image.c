@@ -206,13 +206,6 @@ static void image_free_buffers(Image *ima)
 	if(ima->anim) IMB_free_anim(ima->anim);
 	ima->anim= NULL;
 	
-	if (ima->preview) {
-		if (ima->preview->rect)
-			MEM_freeN(ima->preview->rect);
-		MEM_freeN(ima->preview);
-		ima->preview = NULL;
-	}
-	
 	if(ima->rr) {
 		RE_FreeRenderResult(ima->rr);
 		ima->rr= NULL;
@@ -234,6 +227,10 @@ void free_image(Image *ima)
 	}
 	BKE_icon_delete(&ima->id);
 	ima->id.icon_id = 0;
+	if (ima->preview) {
+		BKE_previewimg_free(&ima->preview);
+	}
+	
 }
 
 /* only image block itself */

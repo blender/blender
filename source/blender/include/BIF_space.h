@@ -75,6 +75,9 @@ struct SpaceOops;
 /* sequence handler codes */
 #define SEQ_HANDLER_PROPERTIES	60
 
+/* imasel handler codes */
+#define IMASEL_HANDLER_IMAGE	70
+
 /* theme codes */
 #define B_ADD_THEME 	3301
 #define B_DEL_THEME 	3302

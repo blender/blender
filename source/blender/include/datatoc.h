@@ -44,6 +44,9 @@ extern char datatoc_Bfs[];
 extern int datatoc_blenderbuttons_size;
 extern char datatoc_blenderbuttons[];
 
+extern int datatoc_prvicons_size;
+extern char datatoc_prvicons[];
+
 extern int datatoc_Bfont_size;
 extern char datatoc_Bfont[];
 

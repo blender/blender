@@ -100,6 +100,7 @@
 #include "BIF_editmesh.h"
 #include "BIF_editmode_undo.h"
 #include "BIF_editsound.h"
+#include "BIF_filelist.h"
 #include "BIF_poseobject.h"
 #include "BIF_previewrender.h"
 #include "BIF_renderwin.h"
@@ -626,19 +627,19 @@ static void readBlog(void)
 				tmps[2]='\\';
 				tmps[3]=0;
 				
-				fsmenu_insert_entry(tmps, 0);
+				fsmenu_insert_entry(tmps, 0, 0);
 			}
 		}
 
 		/* Adding Desktop and My Documents */
-		fsmenu_append_seperator();
+		fsmenu_append_separator();
 
 		SHGetSpecialFolderPath(0, folder, CSIDL_PERSONAL, 0);
-		fsmenu_insert_entry(folder, 0);
+		fsmenu_insert_entry(folder, 0, 0);
 		SHGetSpecialFolderPath(0, folder, CSIDL_DESKTOPDIRECTORY, 0);
-		fsmenu_insert_entry(folder, 0);
+		fsmenu_insert_entry(folder, 0, 0);
 
-		fsmenu_append_seperator();
+		fsmenu_append_separator();
 	}
 #endif
 
@@ -649,16 +650,16 @@ static void readBlog(void)
 		char *line= l->link;
 			
 		if (!BLI_streq(line, "")) {
-			fsmenu_insert_entry(line, 0);
+			fsmenu_insert_entry(line, 0, 1);
 		}
 	}
 
-	fsmenu_append_seperator();
+	fsmenu_append_separator();
 	
 	/* add last saved file */
 	BLI_split_dirfile(G.sce, name, filename); /* G.sce shouldn't be relative */
 	
-	fsmenu_insert_entry(name, 0);
+	fsmenu_insert_entry(name, 0, 0);
 	
 	BLI_free_file_lines(lines);
 }
@@ -884,6 +885,8 @@ void BIF_init(void)
 
 	BIF_resources_init();	/* after homefile, to dynamically load an icon file based on theme settings */
 	
+	BIF_filelist_init_icons();
+
 	init_gl_stuff();	/* drawview.c, after homefile */
 	readBlog();
 	BLI_strncpy(G.lib, G.sce, FILE_MAX);
@@ -965,7 +968,9 @@ void exit_usiblender(void)
 
 	if (!G.background) {
 		BIF_resources_free();
-	
+		
+		BIF_filelist_free_icons();
+
 		BIF_close_render_display();
 		mainwindow_close();
 	}

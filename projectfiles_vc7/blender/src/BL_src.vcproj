@@ -329,10 +329,16 @@
 				RelativePath="..\..\..\source\blender\src\eventdebug.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\src\filelist.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\src\filesel.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\src\fluidsim.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\src\fsmenu.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\src\ghostwinlay.c">
@@ -462,6 +468,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\src\previewrender.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\src\prvicons.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\src\renderwin.c">
@@ -679,6 +688,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\include\BIF_editview.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\include\BIF_filelist.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\include\BIF_fsmenu.h">

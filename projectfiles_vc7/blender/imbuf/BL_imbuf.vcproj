@@ -383,10 +383,16 @@
 				RelativePath="..\..\..\source\blender\imbuf\intern\imageprocess.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\imbuf\intern\imginfo.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\imbuf\intern\iris.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\imbuf\intern\jpeg.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\imbuf\intern\md5.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\imbuf\intern\openexr\openexr_api.cpp">
@@ -417,6 +423,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\imbuf\intern\targa.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\imbuf\intern\thumbs.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\imbuf\intern\tiff.c">
@@ -534,6 +543,9 @@
 				RelativePath="..\..\..\source\blender\imbuf\IMB_imbuf_types.h">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\imbuf\intern\IMB_imginfo.h">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\imbuf\intern\IMB_iris.h">
 			</File>
 			<File
@@ -547,6 +559,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\imbuf\intern\IMB_targa.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\imbuf\IMB_thumbs.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\imbuf\intern\IMB_tiff.h">

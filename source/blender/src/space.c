@@ -110,6 +110,7 @@
 #include "BIF_editsima.h"
 #include "BIF_editsound.h"
 #include "BIF_editview.h"
+#include "BIF_filelist.h"
 #include "BIF_gl.h"
 #include "BIF_imasel.h"
 #include "BIF_interface.h"
@@ -3673,6 +3674,11 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgsp+(2*mpref)+(3*midsp)),y3,(mpref),buth,
 			&U.recent_files, 0, 30, 0, 0,
 			"Maximum number of recently opened files to remember");
+
+		uiDefButBitI(block, TOG, USER_SAVE_PREVIEWS, 0, "Save Preview Images",
+			(xpos+edgsp+(3*mpref)+(4*midsp)),y3,mpref,buth,
+			&(U.flag), 0, 0, 0, 0,
+			"Enables automatic saving of preview images in the .blend file");
 		
 	} else if (U.userpref == 4) { /* system & opengl */
 
@@ -4657,39 +4663,6 @@ static void init_filespace(ScrArea *sa)
 	sfile->spacetype= SPACE_FILE;
 }
 
-static void init_imaselspace(ScrArea *sa)
-{
-	SpaceImaSel *simasel;
-	
-	simasel= MEM_callocN(sizeof(SpaceImaSel), "initimaselspace");
-	BLI_addhead(&sa->spacedata, simasel);
-
-	simasel->spacetype= SPACE_IMASEL;
-	simasel->blockscale= 0.7;
-	simasel->mode = 7;
-	strcpy (simasel->dir,  U.textudir);	/* TON */
-	strcpy (simasel->file, "");
-	strcpy(simasel->fole, simasel->file);
-	strcpy(simasel->dor,  simasel->dir);
-
-	simasel->first_sel_ima	=  0;
-	simasel->hilite_ima	    =  0;
-	simasel->firstdir		=  0;
-	simasel->firstfile		=  0;
-	simasel->cmap           =  0;
-	simasel->returnfunc     =  NULL;
-	
-	simasel->title[0]       =  0;
-	
-	clear_ima_dir(simasel);
-	
-	/* simasel->cmap= IMB_loadiffmem((int*)datatoc_cmap_tga, IB_rect|IB_cmap); */
-	simasel->cmap= IMB_ibImageFromMemory((int *)datatoc_cmap_tga, datatoc_cmap_tga_size, IB_rect|IB_cmap);
-	if (!simasel->cmap) {
-		error("in console");
-		printf("Image select cmap file not found \n");
-	}
-}
 
 /* ******************** SPACE: SOUND ********************** */
 
@@ -5009,9 +4982,61 @@ static void init_imagespace(ScrArea *sa)
 extern void drawimaselspace(ScrArea *sa, void *spacedata);
 extern void winqreadimaselspace(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
 
+static void changeimaselspace(ScrArea *sa, void *spacedata)
+{
+	if(G.v2d==0) return;
 
-/* everything to imasel.c */
+	test_view2d(G.v2d, curarea->winx, curarea->winy);
+	myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
+}
 
+static void init_imaselspace(ScrArea *sa)
+{
+	SpaceImaSel *simasel;
+	
+	simasel= MEM_callocN(sizeof(SpaceImaSel), "init imaselspace");
+	BLI_addhead(&sa->spacedata, simasel);
+
+	simasel->spacetype= SPACE_IMASEL;
+	simasel->blockscale= 0.7;
+
+	/* view 2D */
+	simasel->v2d.tot.xmin=  -10.0;
+	simasel->v2d.tot.ymin=  -10.0;
+	simasel->v2d.tot.xmax= (float)sa->winx + 10.0f;
+	simasel->v2d.tot.ymax= (float)sa->winy + 10.0f;
+	
+	simasel->v2d.cur.xmin=  0.0;
+	simasel->v2d.cur.ymin=  0.0;
+	simasel->v2d.cur.xmax= (float)sa->winx;
+	simasel->v2d.cur.ymax= (float)sa->winy;
+	
+	simasel->v2d.min[0]= 1.0;
+	simasel->v2d.min[1]= 1.0;
+	
+	simasel->v2d.max[0]= 32000.0f;
+	simasel->v2d.max[1]= 32000.0f;
+	
+	simasel->v2d.minzoom= 0.5f;
+	simasel->v2d.maxzoom= 1.21f;
+	
+	simasel->v2d.scroll= 0;
+	simasel->v2d.keepaspect= 1;
+	simasel->v2d.keepzoom= 1;
+	simasel->v2d.keeptot= 0;
+
+	simasel->prv_h = 96;
+	simasel->prv_w = 96;
+
+	simasel->flag = 7; /* ??? elubie */
+	strcpy (simasel->dir,  U.textudir);	/* TON */
+	strcpy (simasel->file, "");
+
+	simasel->returnfunc     =  0;	
+	simasel->title[0]       =  0;
+	simasel->type = FILE_UNIX;
+	simasel->files = BIF_filelist_new();
+}
 
 /* ******************** SPACE: OOPS ********************** */
 
@@ -5496,11 +5521,7 @@ void newspace(ScrArea *sa, int type)
 			scrarea_queue_headredraw(sa);
 
 			addqueue(sa->win, CHANGED, 1);
-			scrarea_queue_winredraw(sa);
-
-			areawinset(sa->win);
-
-			bwin_clear_viewmat(sa->win);
+			scrarea_queue_winredraw(sa);			
 			
 			for (sl= sa->spacedata.first; sl; sl= sl->next)
 				if(sl->spacetype==type)
@@ -5546,6 +5567,9 @@ void newspace(ScrArea *sa, int type)
 				sl= sa->spacedata.first;
 				sl->area= sa;
 			}
+
+			areawinset(sa->win);
+			bwin_clear_viewmat(sa->win);
 		}
 	}
 
@@ -5567,6 +5591,17 @@ void newspace(ScrArea *sa, int type)
 	/* exception: imasel space */
 	else if(sa->spacetype==SPACE_IMASEL) {
 		SpaceImaSel *simasel= sa->spacedata.first;
+		if(simasel->type==FILE_MAIN) {
+			if (simasel->files) {
+				BIF_filelist_free(simasel->files);
+				BIF_filelist_settype(simasel->files, FILE_MAIN);
+			}
+		} else {
+			if (simasel->files) {
+				simasel->type= FILE_UNIX;
+				BIF_filelist_settype(simasel->files, simasel->type);
+			}
+		}
 		simasel->returnfunc= NULL;
 		simasel->title[0]= 0;
 	}
@@ -5634,7 +5669,8 @@ void freespacelist(ScrArea *sa)
 			free_oopspace(so);
 		}
 		else if(sl->spacetype==SPACE_IMASEL) {
-			free_imasel((SpaceImaSel *)sl);
+			SpaceImaSel *simasel= (SpaceImaSel*) sl;
+			free_imasel(simasel);
 		}
 		else if(sl->spacetype==SPACE_ACTION) {
 			free_actionspace((SpaceAction*)sl);
@@ -5701,11 +5737,13 @@ void duplicatespacelist(ScrArea *newarea, ListBase *lb1, ListBase *lb2)
 			so->treestore= NULL;
 		}
 		else if(sl->spacetype==SPACE_IMASEL) {
-			check_imasel_copy((SpaceImaSel *) sl);
-		}
-		else if(sl->spacetype==SPACE_IMAGE) {
-			SpaceImage *sima= (SpaceImage *)sl;
-			sima->spare= NULL;
+			SpaceImaSel *simasel= (SpaceImaSel*) sl;
+			simasel->pupmenu= NULL;
+			simasel->menup= NULL;
+			simasel->files = BIF_filelist_new();	
+			BIF_filelist_setdir(simasel->files, simasel->dir);
+			BIF_filelist_settype(simasel->files, simasel->type);
+			/* see SPACE_FILE - elubie */
 		}
 		else if(sl->spacetype==SPACE_NODE) {
 			SpaceNode *snode= (SpaceNode *)sl;
@@ -6177,7 +6215,7 @@ SpaceType *spaceimasel_get_type(void)
 	
 	if (!st) {
 		st= spacetype_new("Imasel");
-		spacetype_set_winfuncs(st, drawimaselspace, NULL, winqreadimaselspace);
+		spacetype_set_winfuncs(st, drawimaselspace, changeimaselspace, winqreadimaselspace);
 	}
 
 	return st;

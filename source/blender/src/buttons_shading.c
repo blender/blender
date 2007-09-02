@@ -94,6 +94,7 @@
 #include "BIF_mywindow.h"
 #include "BIF_space.h"
 #include "BIF_glutil.h"
+#include "BIF_imasel.h"
 #include "BIF_interface.h"
 #include "BIF_toolbox.h"
 #include "BIF_space.h"
@@ -876,7 +877,12 @@ static void image_load_fs_cb(void *ima_pp_v, void *iuser_v)
 #else
 	else name = U.textudir;
 #endif
-	activate_fileselect_args(FILE_SPECIAL, "SELECT IMAGE", name, load_image_cb, ima_pp_v, iuser_v);
+	if (G.qual & LR_CTRLKEY) {
+		activate_imageselect_args(FILE_SPECIAL, "SELECT IMAGE", name, load_image_cb, ima_pp_v, iuser_v);
+	}
+	else  {
+		activate_fileselect_args(FILE_SPECIAL, "SELECT IMAGE", name, load_image_cb, ima_pp_v, iuser_v);
+	}
 }
 
 /* 5 layer button callbacks... */

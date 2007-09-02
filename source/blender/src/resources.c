@@ -486,8 +486,16 @@ void BIF_InitTheme(void)
 
 	/* space imageselect */
 	btheme->timasel= btheme->tv3d;
+	SETCOL(btheme->timasel.active, 	195, 195, 195, 255); /* active tile */
+	SETCOL(btheme->timasel.grid,  94, 94, 94, 255); /* active file text */
 	SETCOL(btheme->timasel.back, 	110, 110, 110, 255);
-	SETCOL(btheme->timasel.shade1, 	0xaa, 0xaa, 0xba, 255);
+	SETCOL(btheme->timasel.header,	195, 195, 195, 255);	
+	SETCOL(btheme->timasel.shade1,  94, 94, 94, 255);	/* bar */
+	SETCOL(btheme->timasel.shade2,  172, 172, 172, 255); /* sliders */
+	SETCOL(btheme->timasel.hilite,  17, 27, 60, 100);	/* selected tile */
+	SETCOL(btheme->timasel.text, 	0, 0, 0, 255);
+	SETCOL(btheme->timasel.text_hi, 255, 255, 255, 255);
+	SETCOL(btheme->timasel.panel, 	132, 132, 132, 255);
 
 	/* space text */
 	btheme->text= btheme->tv3d;
@@ -658,7 +666,12 @@ char *BIF_ThemeColorsPup(int spacetype)
 			str += sprintf(str, "Panel %%x%d|", TH_PANEL);
 			break;
 		case SPACE_IMASEL:
-			str += sprintf(str, "Main Shade %%x%d|", TH_SHADE1);
+			str += sprintf(str, "Tiles %%x%d|", TH_PANEL);
+			str += sprintf(str, "Scrollbar %%x%d|", TH_SHADE1);
+			str += sprintf(str, "Scroll Handle %%x%d|", TH_SHADE2);
+			str += sprintf(str, "Selected File %%x%d|", TH_HILITE);
+			str += sprintf(str, "Active File %%x%d|", TH_ACTIVE);
+			str += sprintf(str, "Active File Text%%x%d|", TH_GRID);			
 			break;
 		case SPACE_TEXT:
 			str += sprintf(str, "Scroll Bar %%x%d|", TH_SHADE1);

@@ -86,6 +86,7 @@
 #include "BKE_utildefines.h"
 
 #include "BIF_editview.h"
+#include "BIF_filelist.h"
 #include "BIF_gl.h"
 #include "BIF_interface.h"
 #include "BIF_language.h"
@@ -116,7 +117,7 @@
 #endif
 
 #if defined WIN32 || defined __BeOS
-int fnmatch(const char *pattern, const char *string, int flags)
+static int fnmatch(const char *pattern, const char *string, int flags)
 {
 	return 0;
 }
@@ -169,155 +170,6 @@ static int filetoname= 0;
 static float pixels_to_ofs;
 static char otherdir[FILE_MAX];
 static ScrArea *otherarea;
-
-/* FSMENU HANDLING */
-
-	/* FSMenuEntry's without paths indicate seperators */
-typedef struct _FSMenuEntry FSMenuEntry;
-struct _FSMenuEntry {
-	FSMenuEntry *next;
-
-	char *path;
-};
-
-static FSMenuEntry *fsmenu= 0;
-
-int fsmenu_get_nentries(void)
-{
-	FSMenuEntry *fsme;
-	int count= 0;
-
-	for (fsme= fsmenu; fsme; fsme= fsme->next) 
-		count++;
-
-	return count;
-}
-int fsmenu_is_entry_a_seperator(int idx)
-{
-	FSMenuEntry *fsme;
-
-	for (fsme= fsmenu; fsme && idx; fsme= fsme->next)
-		idx--;
-
-	return (fsme && !fsme->path)?1:0;
-}
-char *fsmenu_get_entry(int idx)
-{
-	FSMenuEntry *fsme;
-
-	for (fsme= fsmenu; fsme && idx; fsme= fsme->next)
-		idx--;
-
-	return fsme?fsme->path:NULL;
-}
-char *fsmenu_build_menu(void)
-{
-	DynStr *ds= BLI_dynstr_new();
-	FSMenuEntry *fsme;
-	char *menustr;
-
-	for (fsme= fsmenu; fsme; fsme= fsme->next) {
-		if (!fsme->path) {
-				/* clean consecutive seperators and ignore trailing ones */
-			if (fsme->next) {
-				if (fsme->next->path) {
-					BLI_dynstr_append(ds, "%l|");
-				} else {
-					FSMenuEntry *next= fsme->next;
-					fsme->next= next->next;
-					MEM_freeN(next);
-				}
-			}
-		} else {
-			BLI_dynstr_append(ds, fsme->path);
-			if (fsme->next) BLI_dynstr_append(ds, "|");
-		}
-	}
-
-	menustr= BLI_dynstr_get_cstring(ds);
-	BLI_dynstr_free(ds);
-	return menustr;
-}
-static FSMenuEntry *fsmenu_get_last_separator(void) 
-{
-	FSMenuEntry *fsme, *lsep=NULL;
-
-	for (fsme= fsmenu; fsme; fsme= fsme->next)
-		if (!fsme->path)
-			lsep= fsme;
-
-	return lsep;
-}
-void fsmenu_insert_entry(char *path, int sorted)
-{
-	FSMenuEntry *prev= fsmenu_get_last_separator();
-	FSMenuEntry *fsme= prev?prev->next:fsmenu;
-
-	for (; fsme; prev= fsme, fsme= fsme->next) {
-		if (fsme->path) {
-			if (BLI_streq(path, fsme->path)) {
-				return;
-			} else if (sorted && strcmp(path, fsme->path)<0) {
-				break;
-			}
-		}
-	}
-	
-	fsme= MEM_mallocN(sizeof(*fsme), "fsme");
-	fsme->path= BLI_strdup(path);
-
-	if (prev) {
-		fsme->next= prev->next;
-		prev->next= fsme;
-	} else {
-		fsme->next= fsmenu;
-		fsmenu= fsme;
-	}
-}
-void fsmenu_append_seperator(void)
-{
-	if (fsmenu) {
-		FSMenuEntry *fsme= fsmenu;
-
-		while (fsme->next) fsme= fsme->next;
-
-		fsme->next= MEM_mallocN(sizeof(*fsme), "fsme");
-		fsme->next->next= NULL;
-		fsme->next->path= NULL;
-	}
-}
-void fsmenu_remove_entry(int idx)
-{
-	FSMenuEntry *prev= NULL, *fsme= fsmenu;
-
-	for (fsme= fsmenu; fsme && idx; prev= fsme, fsme= fsme->next)
-		if (fsme->path)
-			idx--;
-
-	if (fsme) {
-		if (prev) {
-			prev->next= fsme->next;
-		} else {
-			fsmenu= fsme->next;
-		}
-
-		MEM_freeN(fsme->path);
-		MEM_freeN(fsme);
-	}
-}
-void fsmenu_free(void)
-{
-	FSMenuEntry *fsme= fsmenu;
-
-	while (fsme) {
-		FSMenuEntry *n= fsme->next;
-
-		if (fsme->path) MEM_freeN(fsme->path);
-		MEM_freeN(fsme);
-
-		fsme= n;
-	}
-}
 
 /* ******************* SORT ******************* */
 
@@ -1399,41 +1251,6 @@ void activate_fileselect_args(int type, char *title, char *file, void (*func)(ch
 	activate_fileselect_(type, title, file, NULL, NULL, NULL, NULL, func, arg1, arg2);
 }
 
-
-void activate_imageselect(int type, char *title, char *file, void (*func)(char *))
-{
-	SpaceImaSel *simasel;
-	char dir[FILE_MAX], name[FILE_MAX];
-	
-	if(curarea==NULL) return;
-	if(curarea->win==0) return;
-	
-	newspace(curarea, SPACE_IMASEL);
-	
-	/* sometimes double, when area is already SPACE_FILE with a different file name */
-	addqueue(curarea->headwin, CHANGED, 1);
-	addqueue(curarea->win, CHANGED, 1);
-
-	name[2]= 0;
-	BLI_strncpy(name, file, sizeof(name));
-
-	simasel= curarea->spacedata.first;
-	simasel->returnfunc= func;
-
-	if(BLI_convertstringcode(name, G.sce, G.scene->r.cfra)) simasel->mode |= IMS_STRINGCODE;
-	else simasel->mode &= ~IMS_STRINGCODE;
-	
-	BLI_split_dirfile(name, dir, simasel->file);
-	BLI_cleanup_dir(G.sce, simasel->dir);
-	if(strcmp(dir, simasel->dir)!=0) simasel->fase= 0;
-
-	BLI_strncpy(simasel->dir, dir, sizeof(simasel->dir));
-	BLI_strncpy(simasel->title, title, sizeof(simasel->title));
-	
-	/* filetoname= 1; */
-}
-
-
 void activate_databrowse(ID *id, int idcode, int fromcode, int retval, short *menup, void (*func)(unsigned short))
 {
 	ListBase *lb;
@@ -1603,7 +1420,7 @@ static void filesel_execute(SpaceFile *sfile)
 		allqueue(REDRAWALL, 1);
 	}
 	else if(filesel_has_func(sfile)) {
-		fsmenu_insert_entry(sfile->dir, 1);
+		fsmenu_insert_entry(sfile->dir, 1, 0);
 	
 		if(sfile->type==FILE_MAIN) { /* DATABROWSE */
 			if (sfile->menup) {	/* with value pointing to ID block index */
@@ -2017,7 +1834,7 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						strcat(sfile->dir, sfile->filelist[act].relname);
 						strcat(sfile->dir,"/");
 						BLI_cleanup_dir(G.sce, sfile->dir);
-						freefilelist(sfile);
+						freefilelist(sfile);						
 						sfile->ofs= 0;
 						do_draw= 1;
 					}

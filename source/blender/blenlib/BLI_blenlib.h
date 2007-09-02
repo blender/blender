@@ -217,6 +217,11 @@ int BLI_streq(char *a, char *b);
 	 */
 int BLI_strcaseeq(char *a, char *b);
 
+/* in util.c */
+#ifdef WITH_ICONV
+void BLI_string_to_utf8(char *original, char *utf_8, char *code);
+#endif
+
 	/**
 	 * Read a file as ASCII lines. An empty list is
 	 * returned if the file cannot be opened or read.

@@ -47,811 +47,613 @@
 #endif
 
 #include "MEM_guardedalloc.h"
-#include "BMF_Api.h"
-#include "BLI_blenlib.h"
-#include "IMB_imbuf_types.h"
+
+#include "DNA_ID.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
-#include "BKE_global.h"
+#include "DNA_scene_types.h"
+#include "DNA_userdef_types.h"
+#include "DNA_object_types.h"
+#include "DNA_material_types.h"
 
-#include "BIF_fsmenu.h"
+#include "BLI_blenlib.h"
+#ifdef WIN32
+#include "BLI_winstuff.h"
+#endif
+#include "BLI_storage_types.h"
+
+#include "BKE_global.h"
+#include "BKE_library.h"
+#include "BKE_icons.h"
+#include "BKE_utildefines.h"
+#include "BIF_filelist.h"
+
 #include "BIF_gl.h"
-#include "BIF_resources.h"
+#include "BIF_glutil.h"
+#include "BIF_mywindow.h"
 #include "BIF_screen.h"
+#include "BIF_resources.h"
+#include "BIF_language.h"
+
 #include "BIF_interface.h"
 #include "BIF_interface_icons.h"
-#include "BIF_imasel.h"
-#include "BIF_mywindow.h"
+#include "BIF_previewrender.h"
+#include "BIF_fsmenu.h"
 #include "BIF_space.h"
-#include "BIF_resources.h"
+#include "BIF_gl.h"
+#include "BIF_glutil.h"
 
 #include "BSE_drawimasel.h"
-#include "BSE_filesel.h"
+#include "BSE_drawipo.h" /* for v2d functions */ 
+#include "BSE_view.h"
+
+#include "BLO_readfile.h"
+
+#include "IMB_imbuf.h"
+#include "IMB_imbuf_types.h"
+
+#include "PIL_time.h"
 
 #include "blendef.h"
 #include "mydevice.h"
 
-#define IMALINESIZE 16
-/* well, who would have thought ... */
-#define lrectwrite(a, b, c, d, rect)	{glRasterPos2i(a,  b);glDrawPixels((c)-(a)+1, (d)-(b)+1, GL_RGBA, GL_UNSIGNED_BYTE,  rect);}
+#include "interface.h"	/* urm...  for rasterpos_safe, roundbox */
 
-/* GLOBALS */
-extern char *fsmenu;
+#define BUTTONWIDTH 20
+#define BOOKMARKWIDTH_MAX 240
 
-void rectwrite_imasel(int , int , int , int , int , int , int , int , float , float , unsigned int *);
+void calc_imasel_rcts(SpaceImaSel *simasel, int winx, int winy)
+{	
+	int width = (int)16.0f*simasel->aspect;
+	int numtiles;
+	int numfiles = 0;
+	int tilewidth = simasel->prv_w + TILE_BORDER_X*4;
+	int tileheight = simasel->prv_h + TILE_BORDER_Y*4 + U.fontsize;
 
-void rectwrite_imasel(int winxmin, int winymin, int winxmax, int winymax, int x1, int y1, int xim, int yim, float zoomx, float zoomy, unsigned int *rect)
-{
-	int cx, cy, oldxim, x2, y2;
+	// complete area of the space
+	simasel->v2d.mask.xmin= simasel->v2d.mask.ymin = 0;
+	simasel->v2d.mask.xmax= winx;
+	simasel->v2d.mask.ymax= winy;
+
+	// vertical scroll bar
+	simasel->v2d.vert= simasel->v2d.mask;
+	simasel->v2d.vert.xmax -= TILE_BORDER_X + 2;
+	simasel->v2d.vert.xmin= simasel->v2d.vert.xmax- width - TILE_BORDER_X - 2;
+	simasel->v2d.vert.ymax -= IMASEL_BUTTONS_HEIGHT + TILE_BORDER_Y + 2;
+	simasel->v2d.vert.ymin += TILE_BORDER_Y + 2;
+	// simasel->v2d.mask.xmax= simasel->v2d.vert.xmin;
 	
-	oldxim= xim;
-		
-	/* coordinates how it will be put at screen */
-	x2= x1+ zoomx*xim;
-	y2= y1+ zoomy*yim;
+	if (simasel->flag & FILE_BOOKMARKS) {
+		int bmwidth = (simasel->v2d.vert.xmin - simasel->v2d.mask.xmin)/4.0f;
+		if (bmwidth > BOOKMARKWIDTH_MAX) bmwidth = BOOKMARKWIDTH_MAX;
 
-	/* partial clip */
-	if(x1<=winxmin) {
-		/* with OpenGL, rects are not allowed to start outside of the left/bottom window edge */
-		cx= winxmin-x1+(int)zoomx;
-		/* make sure the rect will be drawn pixel-exact */
-		cx/= zoomx;
-		cx++;
-		x1+= zoomx*cx;
-		xim-= cx;
-		rect+= cx;
+		simasel->bookmarkrect.xmin = simasel->v2d.mask.xmin + TILE_BORDER_X;
+		simasel->bookmarkrect.xmax = simasel->v2d.mask.xmin + bmwidth - TILE_BORDER_X;
+		simasel->bookmarkrect.ymax = simasel->v2d.mask.ymax - IMASEL_BUTTONS_HEIGHT - TILE_BORDER_Y;	
+		simasel->bookmarkrect.ymin = simasel->v2d.mask.ymin + TILE_BORDER_Y;
+
+		simasel->viewrect.xmin = simasel->bookmarkrect.xmax + TILE_BORDER_X;
+		simasel->viewrect.xmax = simasel->v2d.vert.xmin - TILE_BORDER_X;
+		simasel->viewrect.ymax = simasel->v2d.mask.ymax - IMASEL_BUTTONS_HEIGHT - TILE_BORDER_Y;	
+		simasel->viewrect.ymin = simasel->v2d.mask.ymin + TILE_BORDER_Y;	
+	} else {
+		simasel->viewrect.xmin = simasel->v2d.mask.xmin + TILE_BORDER_X;
+		simasel->viewrect.xmax = simasel->v2d.vert.xmin - TILE_BORDER_X;
+		simasel->viewrect.ymax = simasel->v2d.mask.ymax - IMASEL_BUTTONS_HEIGHT - TILE_BORDER_Y;	
+		simasel->viewrect.ymin = simasel->v2d.mask.ymin + TILE_BORDER_Y;		
 	}
-	if(y1<=winymin) {
-		cy= winymin-y1+(int)zoomy;
-		cy/= zoomy;
-		cy++;
-		y1+= zoomy*cy;
-		rect+= cy*oldxim;
-		yim-= cy;
+
+	simasel->numtilesx = (simasel->viewrect.xmax - simasel->viewrect.xmin) / tilewidth;
+	simasel->numtilesy = (simasel->viewrect.ymax - simasel->viewrect.ymin) / tileheight;
+	numtiles = simasel->numtilesx*simasel->numtilesy;
+
+	if (simasel->files) {
+		numfiles = BIF_filelist_numfiles(simasel->files);
 	}
-	if(x2>=winxmax) {
-		cx= x2-winxmax;
-		cx/= zoomx;
-		xim-= cx+3;
+	if (numtiles > numfiles) numtiles = numfiles;
+
+	simasel->scrollarea = ((float)simasel->v2d.vert.ymax - (float)simasel->v2d.vert.ymin);
+	if (numtiles < numfiles) {
+		simasel->scrollheight = ((float)numtiles / (float)numfiles)*simasel->scrollarea;
+		simasel->scrollarea -= simasel->scrollheight;	
+	} else {
+		simasel->scrollheight = simasel->scrollarea;
 	}
-	if(y2>=winymax) {
-		cy= y2-winymax;
-		cy/= zoomy;
-		yim-= cy+3;
-	}
-	
-	if(xim<=0) return;
-	if(yim<=0) return;
-
-//	mywinset(curarea->win);
-	glScissor(winxmin, winymin, winxmax-winxmin+1, winymax-winymin+1);
-	
-	glPixelStorei(GL_UNPACK_ROW_LENGTH,  oldxim);
-	
-	glPixelZoom(zoomx,  zoomy);
-
-	glRasterPos2i(x1, y1);
-	glDrawPixels(xim, yim, GL_RGBA, GL_UNSIGNED_BYTE,  rect);
-
-	glPixelZoom(1.0,  1.0);
-
-	glPixelStorei(GL_UNPACK_ROW_LENGTH,  0);
+	if (simasel->scrollarea < 0) simasel->scrollarea = 0;
 }
 
-void viewgate(short sx, short sy, short ex, short ey) 
+void draw_imasel_scroll(SpaceImaSel *simasel)
 {
-	short wx, wy;
-	wx = curarea->winrct.xmin; wy = curarea->winrct.ymin;
-	glViewport(wx+sx, wy+sy, (wx+ex )-(wx+sx)+1, (wy+ey )-(wy+sy)+1); 
-	glScissor(wx+sx, wy+sy, (wx+ex )-(wx+sx)+1, (wy+ey )-(wy+sy)+1);
-	myortho2((float)sx-0.375 , (float)ex-0.375, (float)sy-0.375, (float)ey-0.375);
-}	
-	
-void areaview (void) 
-{
-	short wx, wy;
-	wx = curarea->winrct.xmin; wy = curarea->winrct.ymin;
-	glViewport(wx,  wy, curarea->winx, curarea->winy); 
-	glScissor(wx,  wy, curarea->winx, curarea->winy); 
-	myortho2(-0.375, (float)(curarea->winx)-0.375, -0.375, (float)(curarea->winy)-0.375);
+	rcti scrollbar;
+	rcti scrollhandle;
 
-}
-		
-void calc_hilite(SpaceImaSel *simasel)
-{
-	OneSelectableIma *ima;
-	ImaDir  *direntry;
-	short   mx, my;
-	int     i, area_event;
+	scrollbar.xmin= simasel->v2d.cur.xmin + simasel->v2d.vert.xmin;		
+	scrollbar.ymin = simasel->v2d.cur.ymin + simasel->v2d.vert.ymin;
+	scrollbar.xmax= simasel->v2d.cur.xmin + simasel->v2d.vert.xmax;
+	scrollbar.ymax = simasel->v2d.cur.ymin + simasel->v2d.vert.ymax;
+
+	scrollhandle.xmin= scrollbar.xmin;		
+	scrollhandle.ymin = scrollbar.ymax - simasel->scrollpos -1;
+	scrollhandle.xmax= scrollbar.xmax-1;
+	scrollhandle.ymax = scrollbar.ymax - simasel->scrollpos - simasel->scrollheight;
+
+	BIF_ThemeColor(TH_SHADE1);
+	glRecti(scrollbar.xmin,  scrollbar.ymin, scrollbar.xmax, scrollbar.ymax);
+	uiEmboss(scrollbar.xmin-2,  scrollbar.ymin-2, scrollbar.xmax+2, scrollbar.ymax+2, 1);
+
+	BIF_ThemeColor(TH_SHADE2);
+	glRecti(scrollhandle.xmin,  scrollhandle.ymin,  scrollhandle.xmax,  scrollhandle.ymax);
 	
-	if (simasel->hilite > -1) {
-		direntry = simasel->firstdir; 
-		while(direntry){
-			direntry->hilite = 0;
-			direntry = direntry->next;
-		}	
-		simasel->hilite = -1;
-	}
-	
-	if (simasel->totalima){
-		simasel->hilite_ima =  0;
-		ima = simasel->first_sel_ima;
-		while (ima){
-			ima->selectable = 0;
-			ima = ima->next;
-		}
-	}
-		
-	area_event = 0;
-	mx = simasel->mx;
-	my = simasel->my;
-		
-	if (simasel->desx > 0){
-		if ( (mx > simasel->desx) && (mx < simasel->deex) && (my > simasel->desy) && (my < simasel->deey) ) area_event = IMS_INDIR;
-	}
-	if (simasel->fesx > 0){
-		if ( (mx > simasel->fesx) && (mx < simasel->feex) && (my > simasel->fesy) && (my < simasel->feey) ) area_event = IMS_INFILE;
-	}	
-	
-	switch(area_event){
-	case IMS_INDIR:
-		simasel->hilite = simasel->topdir + ((simasel->deey - my - 4) / IMALINESIZE);
-		
-		if (my >= simasel->deey)					simasel->hilite = -1;
-		if (simasel->hilite >= simasel->totaldirs)  simasel->hilite = -1;
-	
-		if (simasel->hilite > -1){
-			direntry = simasel->firstdir; 
-			for (i = simasel->hilite; i>0; i--){
-				direntry = direntry->next;
-			}
-			direntry->hilite = 1;
-			
-		}
-		simasel->mouse_move_redraw = 1;
-		break;
-	
-	case IMS_INFILE:
-		if (simasel->totalima){
-			ima = simasel->first_sel_ima;
-			while (ima){
-				ima->selectable = 0;
-				
-				if (ima->draw_me) {
-					if ((mx > ima->sx) && (mx < ima->sx+76) && (my > ima->sy-16) && (my < ima->sy+76)) {
-						ima->selectable = 1;
-						simasel->hilite_ima = ima;
-						simasel->mouse_move_redraw = 1;
-					}
-				}
-				
-				ima = ima->next;
-			}	
-		}
-		break;
-	}
+	uiEmboss(scrollhandle.xmin, scrollhandle.ymin, scrollhandle.xmax, scrollhandle.ymax, 1); 
 }
 
-
-void make_sima_area(SpaceImaSel *simasel)
+static void draw_tile(SpaceImaSel *simasel, short sx, short sy, int colorid)
 {
-	OneSelectableIma *ima;
-	short rh, dm, sc;
-	short boxperline, boxlines, boxlinesinview, boxlinesleft;
-
-/*  ima slider  box */
-	simasel->fssx =  8; 
-	simasel->fssy = 8; 
-	simasel->fsex = 30; 
-	simasel->fsey = curarea->winy-64;
-/*  ima entry's  box */
-	simasel->fesx = simasel->fsex + 8; 
-	simasel->fesy = simasel->fssy; 
-	simasel->feex = curarea->winx- 8;  
-	simasel->feey = curarea->winy-64;
-/*  ima names */
-	simasel->dnsx = 38; 
-	simasel->dnsy = curarea->winy - 29; 
-	simasel->dnw  = curarea->winx - 8 - 38; 
-	simasel->dnh  = 21;
-	simasel->fnsx = simasel->fesx; 
-	simasel->fnsy = curarea->winy - 29 - 29; 
-	simasel->fnw  = curarea->winx - 8 - simasel->fnsx; 
-	simasel->fnh  = 21;
+	/* TODO: BIF_ThemeColor seems to need this to show the color, not sure why? - elubie */
+	glEnable(GL_BLEND);
+	glColor4ub(0, 0, 0, 100);
+	glDisable(GL_BLEND);
 	
-	if ((simasel->mode & 1)==1){
-	/*  dir slider  box */
-		simasel->dssx =   8; 
-		
-		simasel->dsex =  30; 
-		simasel->dsey = curarea->winy-64;
-	/*  dir entry's  box */
-		simasel->desx =  38;
-		simasel->desy =   8; 
-		
-		simasel->deex = 208; 
-		simasel->deey = curarea->winy-64;
-		simasel->dssy = simasel->desy; 
-		if (simasel->deex > (curarea->winx -8) ) simasel->deex = curarea->winx - 8;
-		if (simasel->deex <= simasel->desx ) simasel->dssx =  0;
-	/*  file slider & entry & name box ++ */
-		simasel->fssx += 216; 
-		simasel->fsex += 216;
-		simasel->fesx += 216;
-		simasel->fnsx += 216;
-		simasel->fnw  -= 216;
-	}else{
-		simasel->desx =  0;
-	}
-	
-	if ((simasel->mode & 2) == 2){	
-		simasel->fesy += 32;
-		simasel->infsx = simasel->fesx; simasel->infsy =  8;
-		simasel->infex = simasel->feex; simasel->infey = 28;
-	}else{
-		simasel->infsx = 0;
-	}
-	
-	simasel->dsdh = simasel->deey - simasel->desy - 4;
-	
-	if (simasel->dsdh  <= 16)  { simasel->desx  = 0; }
-	if ((simasel->feex-16)  <= simasel->fesx)  { simasel->fesx  = 0; }
-	if ((simasel->infex-16) <= simasel->infsx) { simasel->infsx = 0; }
-	
-	if ((simasel->deey  ) <= simasel->desy)	   { simasel->desx  = 0; }
-	if ((simasel->feey  ) <= simasel->fesy)	   { simasel->fesx  = 0; }
-	if ((simasel->infey )  > simasel->feey)    { simasel->infsx  = 0;}
-	
-	/* Dir Slider */
-	if (simasel->desx  != 0){
-		simasel->dirsli = 0;
-		
-		simasel->dirsli_lines = (simasel->dsdh / IMALINESIZE);
-		simasel->dirsli_h  = 0;
-		
-		if (simasel->topdir < 0) simasel->topdir = 0;
-		if (simasel->topdir > (simasel->totaldirs - simasel->dirsli_lines) ) simasel->topdir = (simasel->totaldirs - simasel->dirsli_lines);
-		
-		if ( (simasel->totaldirs * IMALINESIZE) >= simasel->dsdh ){
-			simasel->dirsli = 1;
-			simasel->dirsli_sx = simasel->dssx+2;
-			simasel->dirsli_ex = simasel->dsex-2;	
-			
-			simasel->dirsli_h   = (simasel->dsdh) * (float)simasel->dirsli_lines / (float)simasel->totaldirs;
-			simasel->dirsli_ey  = simasel->dsey - 2;
-			if (simasel->topdir) {
-				rh = (simasel->dsdh - simasel->dirsli_h);
-				simasel->dirsli_ey -= rh * (float)((float)simasel->topdir / (float)(simasel->totaldirs - simasel->dirsli_lines ));
-			}
-			
-			if (simasel->dirsli_h < 4) simasel->dirsli_h = 4;
-			
-		}else{
-			simasel->topdir = 0;
-		}
-	}
-	
-	if (simasel->totalima){
-		/* there are images */
-		
-		ima = simasel->first_sel_ima;
-		
-		
-		boxperline      =   (simasel->feex - simasel->fesx) /  80;
-		if (boxperline) boxlines = 1 + (simasel->totalima / boxperline); else boxlines = 1;
-		boxlinesinview  =   (simasel->feey - simasel->fesy) / 100;
-		boxlinesleft    =   boxlines - boxlinesinview;
-		
-		if (boxlinesleft > 0){
-			/* slider needed */
-			
-			simasel->slider_height = boxlinesinview / (float)(boxlines+1);
-			simasel->slider_space  = 1.0 - simasel->slider_height;
-			
-			simasel->imasli_sx = simasel->fssx+1; 
-			simasel->imasli_ex = simasel->fsex-1; 
-			simasel->fsdh	   = simasel->fsey -  simasel->fssy - 4;
-		
-			simasel->imasli_h  = simasel->fsdh * simasel->slider_height;
-			if (simasel->imasli_h < 6) simasel->imasli_h = 6;
-			simasel->imasli_ey = simasel->fsey - 2 - (simasel->fsdh * simasel->slider_space * simasel->image_slider);
-			
-			simasel->imasli = 1;
-		
-		}else{
-			simasel->image_slider = 0;
-			simasel->imasli = 0;
-		}
-		
-		sc = simasel->image_slider * (boxlinesleft * 100);
-		
-		simasel->curimax = simasel->fesx + 8;
-		simasel->curimay = simasel->feey - 90 + sc;
-		
-		dm = 1;
-		if (simasel->curimay-2  < simasel->fesy) dm = 0;
-		// let first row of icons remain selectable
-		if(OLD_IMASEL) if (simasel->curimay+80 > simasel->feey) dm = 0;
-		if (simasel->curimax+72 > simasel->feex) dm = 0;
-		
-		simasel->total_selected = 0;
-		while (ima){
-			ima->draw_me = dm;
-			
-			if (ima->selected) simasel->total_selected++;
-	
-			ima->sx = simasel->curimax;
-			ima->sy = simasel->curimay+16;
-			
-			ima->ex = ima->sx + ima->dw;
-			ima->ey = ima->sy + ima->dh;
-			
-			simasel->curimax += 80;
-			if (simasel->curimax + 72 > simasel->feex){
-				
-				simasel->curimax  = simasel->fesx + 8;
-				simasel->curimay -= 100;
-				
-				dm = 1;
-				// let icons that fall off (top/bottom) be selectable
-				if(OLD_IMASEL) {
-					if (simasel->curimay+80 > simasel->feey) dm = 0;
-					if (simasel->curimay-8  < simasel->fesy) dm = 0;
-				}
-				
-			}
-			ima = ima->next;
-		}
-	}
+	BIF_ThemeColor4(colorid);
+	uiSetRoundBox(15);	
+	uiRoundBox(sx+TILE_BORDER_X, sy - simasel->prv_h - TILE_BORDER_Y*3 - U.fontsize, sx + simasel->prv_w + TILE_BORDER_X*3, sy, 6);
 }
 
-static void str_image_type(int ftype, char *name)
+static float shorten_string(SpaceImaSel *simasel, char* string, float w)
+{	
+	short shortened = 0;
+	float sw = 0;
+	
+	sw = BIF_GetStringWidth(simasel->curfont, string, 0);
+	while (sw>w) {
+		int slen = strlen(string);
+		string[slen-1] = '\0';
+		sw = BIF_GetStringWidth(simasel->curfont, string, 0);
+		shortened = 1;
+	}
+	if (shortened) {
+		int slen = strlen(string);
+		if (slen > 3) {
+			BLI_strncpy(string+slen-3, "...", 4);				
+		}
+	}
+	return sw;
+}
+
+static void draw_file(SpaceImaSel *simasel, short sx, short sy, struct direntry *file)
 {
-	strcpy(name, "");
+	short soffs;
+	char fname[FILE_MAXFILE];
+	float sw;
+
+	BLI_strncpy(fname,file->relname, FILE_MAXFILE);
+	sw = shorten_string(simasel, fname, simasel->prv_w );
+	soffs = (simasel->prv_w + TILE_BORDER_X*4 - sw) / 2;	
 	
-	if((ftype & JPG_MSK) == JPG_STD) strcat(name, "std ");
-	if((ftype & JPG_MSK) == JPG_VID) strcat(name, "video ");
-	if((ftype & JPG_MSK) == JPG_JST) strcat(name, "amiga ");
-	if((ftype & JPG_MSK) == JPG_MAX) strcat(name, "max ");
-	
-	if( ftype == AN_hamx)   { strcat(name, "hamx "); return; }
-	
-	if( ftype == IMAGIC )   { strcat(name, "sgi ");  return; }
-	if( ftype & JPG )       { strcat(name, "jpeg ");  }
-	if( ftype & TGA )       { strcat(name, "targa "); }
-	if( ftype & PNG )       { strcat(name, "png "); }
-	if( ftype & BMP )       { strcat(name, "bmp "); }
-	if( ftype & AMI )       { strcat(name, "iff ");	  }
-#ifdef WITH_QUICKTIME
-	if( ftype & QUICKTIME ) { strcat(name, "quicktime "); }
+	ui_rasterpos_safe(sx+soffs, sy - simasel->prv_h - TILE_BORDER_Y*2 - U.fontsize, simasel->aspect);
+#ifdef WIN32
+	BIF_DrawString(simasel->curfont, fname, ((U.transopts & USER_TR_MENUS) | CONVERT_TO_UTF8));
+#else
+	BIF_DrawString(simasel->curfont, fname, (U.transopts & USER_TR_MENUS));
 #endif
 }
 
-void draw_sima_area(SpaceImaSel *simasel)
-{		
+static void draw_imasel_bookmarks(ScrArea *sa, SpaceImaSel *simasel)
+{
+	char bookmark[FILE_MAX];
+	float sw;
+
+	if (simasel->flag & FILE_BOOKMARKS) {
+		int nentries = fsmenu_get_nentries();
+		int i;
+		short sx, sy;
+		int bmwidth;
+		int linestep = U.fontsize*3/2;
+		
+		sx = simasel->bookmarkrect.xmin + TILE_BORDER_X;
+		sy = simasel->bookmarkrect.ymax - TILE_BORDER_Y - linestep;
+		bmwidth = simasel->bookmarkrect.xmax - simasel->bookmarkrect.xmin - 2*TILE_BORDER_X;
+		
+		if (bmwidth < 0) return;
+
+		for (i=0; i< nentries && sy > linestep ;++i) {
+			char *fname = fsmenu_get_entry(i);
+			char *sname = NULL;
+			
+			if (fname) {
+				int sl;
+				BLI_strncpy(bookmark, fname, FILE_MAX);
+			
+				sl = strlen(bookmark)-1;
+				if (bookmark[sl] == '\\' || bookmark[sl] == '/') {
+					bookmark[sl] = '\0';
+					sl--;
+				}
+				while (sl) {
+					if (bookmark[sl] == '\\' || bookmark[sl] == '/'){
+						sl++;
+						break;
+					};
+					sl--;
+				}
+				sname = &bookmark[sl];
+				sw = shorten_string(simasel, sname, bmwidth);
+				if (simasel->active_bookmark == i ) {
+					BIF_ThemeColor(TH_TEXT_HI);
+				} else {
+					BIF_ThemeColor(TH_TEXT);
+				}
+				ui_rasterpos_safe(sx, sy, simasel->aspect);
+#ifdef WIN32
+				BIF_DrawString(simasel->curfont, sname, ((U.transopts & USER_TR_MENUS) | CONVERT_TO_UTF8));
+#else
+				BIF_DrawString(simasel->curfont, sname, (U.transopts & USER_TR_MENUS));
+#endif
+				sy -= linestep;
+			} else {
+				cpack(0xB0B0B0);
+				sdrawline(sx,  sy + U.fontsize/2 ,  sx + bmwidth,  sy + U.fontsize/2); 
+				cpack(0x303030);				
+				sdrawline(sx,  sy + 1 + U.fontsize/2 ,  sx + bmwidth,  sy + 1 + U.fontsize/2);
+				sy -= linestep;
+			}
+		}
+
+		uiEmboss(simasel->bookmarkrect.xmin, simasel->bookmarkrect.ymin, simasel->bookmarkrect.xmax-1, simasel->bookmarkrect.ymax-1, 1);
+	}
+}
+
+static void draw_imasel_previews(ScrArea *sa, SpaceImaSel *simasel)
+{
+	static double lasttime= 0;
+	struct FileList* files = simasel->files;
+	int numfiles;
+	struct direntry *file;
+	int numtiles;
+	
+	int tilewidth = simasel->prv_w + TILE_BORDER_X*4;
+	int tileheight = simasel->prv_h + TILE_BORDER_Y*4 + U.fontsize;
+	short sx, sy;
+	int do_load = 1;
+	
+	ImBuf* imb=0;
+	int i,j;
+	short type;
+	int colorid = 0;
+	int todo;
+	int fileoffset, rowoffset, columnoffset;
+	float scrollofs;
+	
+
+	rcti viewrect = simasel->viewrect;
+
+	if (!files) return;
+	/* Reload directory */
+	BLI_strncpy(simasel->dir, BIF_filelist_dir(files), FILE_MAXDIR);	
+	
+	type = BIF_filelist_gettype(simasel->files);	
+	
+	if (BIF_filelist_empty(files))
+	{
+		unsigned int filter = 0;
+		BIF_filelist_hidedot(simasel->files, simasel->flag & FILE_HIDE_DOT);
+		if (simasel->flag & FILE_FILTER) {
+			filter = simasel->filter ;
+		} else {
+			filter = 0;
+		}
+
+		BIF_filelist_setfilter(simasel->files, filter);
+		BIF_filelist_readdir(files);
+		
+		if(simasel->sort!=FILE_SORTALPHA) BIF_filelist_sort(simasel->files, simasel->sort);		
+	}
+
+	BIF_filelist_imgsize(simasel->files,simasel->prv_w,simasel->prv_h);
+
+	numfiles = BIF_filelist_numfiles(files);
+	numtiles = simasel->numtilesx*simasel->numtilesy;
+
+	if (numtiles > numfiles) numtiles = numfiles;
+	
+	todo = 0;
+	if (lasttime < 0.001) lasttime = PIL_check_seconds_timer();
+
+	
+	if (simasel->numtilesx > 0) {
+		/* calculate the offset to start drawing */
+		if ((numtiles < numfiles) && (simasel->scrollarea > 0)) {
+			fileoffset = numfiles*( (simasel->scrollpos) / simasel->scrollarea) + 0.5;		
+		} else {
+			fileoffset = 0;
+		}
+		rowoffset = (fileoffset / simasel->numtilesx)*simasel->numtilesx;
+		columnoffset = fileoffset % simasel->numtilesx;
+		scrollofs = (float)tileheight*(float)columnoffset/(float)simasel->numtilesx;
+	} else {
+		rowoffset = 0;
+		scrollofs = 0;
+	}
+	/* add partially visible row */
+	numtiles += simasel->numtilesx;
+	for (i=rowoffset, j=0 ; (i < numfiles) && (j < numtiles); ++i, ++j)
+	{
+		sx = simasel->v2d.cur.xmin + viewrect.xmin + (j % simasel->numtilesx)*tilewidth;
+		sy = simasel->v2d.cur.ymin + viewrect.ymax + (short)scrollofs - (viewrect.ymin + (j / simasel->numtilesx)*tileheight);
+
+		file = BIF_filelist_file(files, i);				
+
+		if (simasel->active_file == i) {
+			colorid = TH_ACTIVE;
+			draw_tile(simasel, sx, sy, colorid);
+		} else if (file->flags & ACTIVE) {
+			colorid = TH_HILITE;
+			draw_tile(simasel, sx, sy, colorid);
+		} else {
+			/*
+			colorid = TH_PANEL;
+			draw_tile(simasel, sx, sy, colorid);
+			*/
+		}
+
+		if ( type == FILE_MAIN) {
+			ID *id;
+			int icon_id = 0;
+			int idcode;
+			idcode= BIF_groupname_to_code(simasel->dir);
+			if (idcode == ID_MA || idcode == ID_TE || idcode == ID_LA || idcode == ID_WO || idcode == ID_IM) {
+				id = (ID *)file->poin;
+				icon_id = BKE_icon_getid(id);
+			}		
+			if (icon_id) {
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				if (do_load) {
+					BIF_icon_draw_preview(sx+2*TILE_BORDER_X, sy-simasel->prv_w-TILE_BORDER_X, icon_id, 0);			
+				} else {
+					BIF_icon_draw_preview(sx+2*TILE_BORDER_X, sy-simasel->prv_w-TILE_BORDER_X, icon_id, 1);
+					todo++;
+				}
+				
+				glDisable(GL_BLEND);
+			}		
+		}
+		else {
+			if ( (file->flags & IMAGEFILE) || (file->flags & MOVIEFILE))
+			{
+				if (do_load) {					
+					BIF_filelist_loadimage(simasel->files, i);				
+				} else {
+					todo++;
+				}
+				imb = BIF_filelist_getimage(simasel->files, i);
+			} else {
+				imb = BIF_filelist_getimage(simasel->files, i);
+			}
+
+			if (imb) {		
+					float fx = ((float)simasel->prv_w - (float)imb->x)/2.0f;
+					float fy = ((float)simasel->prv_h - (float)imb->y)/2.0f;
+					short dx = (short)(fx + 0.5f);
+					short dy = (short)(fy + 0.5f);
+					
+					glEnable(GL_BLEND);
+					glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA);													
+					// glaDrawPixelsSafe((float)sx+8 + dx, (float)sy - imgwidth + dy - 8, imb->x, imb->y, imb->x, GL_RGBA, GL_UNSIGNED_BYTE, imb->rect);
+					glColor4f(1.0, 1.0, 1.0, 1.0);
+					glaDrawPixelsTex((float)sx+2*TILE_BORDER_X + dx, (float)sy - simasel->prv_h + dy - 2*TILE_BORDER_Y, imb->x, imb->y,GL_UNSIGNED_BYTE, imb->rect);
+					// glDisable(GL_BLEND);
+					imb = 0;
+			}			
+		}		
+
+		if (type == FILE_MAIN) {
+			glColor3f(1.0f, 1.0f, 1.0f);			
+		}
+		else {
+			if (S_ISDIR(file->type)) {
+				glColor3f(1.0f, 1.0f, 0.9f);
+			}
+			else if (file->flags & IMAGEFILE) {
+				BIF_ThemeColor(TH_SEQ_IMAGE);
+			}
+			else if (file->flags & MOVIEFILE) {
+				BIF_ThemeColor(TH_SEQ_MOVIE);
+			}
+			else if (file->flags & BLENDERFILE) {
+				BIF_ThemeColor(TH_SEQ_SCENE);
+			}
+			else {
+				if (simasel->active_file == i) {
+					BIF_ThemeColor(TH_GRID); /* grid used for active text */
+				} else if (file->flags & ACTIVE) {
+					BIF_ThemeColor(TH_TEXT_HI);			
+				} else {
+					BIF_ThemeColor(TH_TEXT);
+				}
+			}
+		}
+			
+		draw_file(simasel, sx, sy, file);
+		
+		if(do_load && (PIL_check_seconds_timer() - lasttime > 0.3)) {
+			lasttime= PIL_check_seconds_timer();
+			do_load = 0;
+		}
+	}
+
+	if (!do_load && todo > 0) /* we broke off loading */
+		addafterqueue(sa->win, RENDERPREVIEW, 1);
+}
+
+
+/* in panel space! */
+static void imasel_imgdraw(ScrArea *sa, uiBlock *block)
+{
+	SpaceImaSel *simasel= sa->spacedata.first;
+	rctf dispf;
+	rcti winrect;
+	struct direntry *file;
+	char path[FILE_MAX];
+	float tsize;
+	short ofsx=0;
+	short ofsy=0;
+	short ex, ey;
+	float scaledx, scaledy;
+	int index;	
+
+	BLI_init_rctf(&dispf, 0.0f, (block->maxx - block->minx)-0.0f, 0.0f, (block->maxy - block->miny)-0.0f);
+	ui_graphics_to_window_rct(sa->win, &dispf, &winrect);
+
+	if (!simasel->img) {
+		BLI_join_dirfile(path, simasel->dir, simasel->file);
+		if (!BLI_exists(path))
+			return;
+	
+		index = BIF_filelist_find(simasel->files, simasel->file);
+		if (index >= 0) {
+			file = BIF_filelist_file(simasel->files,index);
+			if (file->flags & IMAGEFILE || file->flags & MOVIEFILE) {
+				simasel->img = IMB_loadiffname(path, IB_rect);
+
+				if (simasel->img) {
+					tsize = MIN2(winrect.xmax - winrect.xmin,winrect.ymax - winrect.ymin);
+					
+					if (simasel->img->x > simasel->img->y) {
+						scaledx = (float)tsize;
+						scaledy =  ( (float)simasel->img->y/(float)simasel->img->x )*tsize;
+						ofsy = (scaledx - scaledy) / 2.0;
+						ofsx = 0;
+					}
+					else {
+						scaledy = (float)tsize;
+						scaledx =  ( (float)simasel->img->x/(float)simasel->img->y )*tsize;
+						ofsx = (scaledy - scaledx) / 2.0;
+						ofsy = 0;
+					}
+					ex = (short)scaledx;
+					ey = (short)scaledy;
+
+					IMB_scaleImBuf(simasel->img, ex, ey);
+				}
+			}
+		}
+	}
+	if (simasel->img == NULL) 
+		return;
+	if(simasel->img->rect==NULL)
+		return;
+
+	/* correction for gla draw */
+	BLI_translate_rcti(&winrect, -curarea->winrct.xmin, -curarea->winrct.ymin);
+		
+	glaDefine2DArea(&sa->winrct);
+	glaDrawPixelsSafe(winrect.xmin+ofsx, winrect.ymin+ofsy, simasel->img->x, simasel->img->y, simasel->img->x, GL_RGBA, GL_UNSIGNED_BYTE, simasel->img->rect);	
+}
+
+static void imasel_panel_image(ScrArea *sa, short cntrl)
+{
 	uiBlock *block;
-	OneSelectableIma *ima;
-	ImaDir      *direntry;
-	float col[3];
-	int   i, info;
-	short sx, sy, ex, ey, sc;
-	char naam[256], infostr[256];
-	
-	BIF_GetThemeColor3fv(TH_BACK, col);
-	glClearColor(col[0], col[1], col[2], 0.0);
-	glClear(GL_COLOR_BUFFER_BIT);
-	
-	sprintf(naam, "win %d", curarea->win);
-	block= uiNewBlock(&curarea->uiblocks, naam, UI_EMBOSS, UI_HELV, curarea->win);
-	uiBlockSetCol(block, TH_BUT_SETTING1);
-	
-	if (simasel->desx >  0){
-		/*  DIR ENTRYS */
-		BIF_ThemeColorShade(TH_SHADE1, -70);
-		glRecti(simasel->dssx,  simasel->dssy,  simasel->dsex,  simasel->dsey);
-		glRecti(simasel->desx,  simasel->desy,  simasel->deex,  simasel->deey);
-	
-		uiEmboss(simasel->dssx, simasel->dssy, simasel->dsex, simasel->dsey,1);
-		uiEmboss(simasel->desx, simasel->desy, simasel->deex, simasel->deey,1);
-		
-		if (simasel->dirsli == 1) {
-			sx = simasel->dirsli_sx+2;
-			sy = simasel->dirsli_ey - simasel->dirsli_h+2;
-			ex = simasel->dirsli_ex-2;
-			ey = simasel->dirsli_ey-2;
-			
-			BIF_ThemeColor(TH_SHADE1); 
-			
-			glRecti(sx,  sy,  ex,  ey);
-			uiEmboss(sx, sy, ex,ey,0);
-		}
-		if (simasel->totaldirs) {
-			sx = simasel->desx+8;
-			sy = simasel->deey-IMALINESIZE;
-			
-			direntry = simasel->firstdir; 
-			if (simasel->topdir){
-				for(i = simasel->topdir; i>0; i--){
-					direntry = direntry->next;
-				}
-			}
-			viewgate(simasel->desx, simasel->desy, simasel->deex-4, simasel->deey);
-			
-			i = simasel->dirsli_lines;
-			if (i > simasel->totaldirs) i = simasel->totaldirs;
-			for(;i > 0; i--){
-				strcpy(naam,  direntry->name);
-				
-				cpack(0xFFFFFF);
-				if (direntry->selected == 1){
-					cpack(0x7777CC);
-					glRecti(simasel->desx+2,  sy-4,  simasel->deex-4,  sy+IMALINESIZE-4);
-					cpack(0xFFFFFF);
-				}
-				if (direntry->hilite == 1){
-					cpack(0x999999);
-					glRecti(simasel->desx+2,  sy-4,  simasel->deex-4,  sy+IMALINESIZE-4);
-					cpack(0xFFFFFF);
-				}
-				
-				glRasterPos2i(sx,  sy);
-				BMF_DrawString(G.font, naam);
-				
-				direntry = direntry->next;
-				sy-=IMALINESIZE;
-			}
-			areaview();
-			
-		}
-		
-		/* status icons */
-		
-		sx = simasel->desx;
-		sy = simasel->deey+6;
-		
-		if (bitset(simasel->fase, IMS_FOUND_BIP)) {
-			BIF_icon_draw(sx+16*0, sy, ICON_BPIBFOLDER_HLT);
-		} else if (bitset(simasel->fase, IMS_WRITE_NO_BIP)) {
-			BIF_icon_draw(sx+16*0, sy, ICON_BPIBFOLDER_DEHLT);
-		} else {
-			BIF_icon_draw(sx+16*0, sy, ICON_BPIBFOLDER_DEHLT);
-		}
+	SpaceImaSel *simasel= sa->spacedata.first;
+	short w = 300;
+	short h = 300;
+	short offsx, offsy;
 
-		if (bitset(simasel->fase, IMS_KNOW_INF)) {
-			BIF_icon_draw(sx+16*1, sy, ICON_FOLDER_HLT);
-		} else {
-			BIF_icon_draw(sx+16*1, sy, ICON_FOLDER_DEHLT);
-		}
-		
-		if (bitset(simasel->fase, IMS_KNOW_IMA)) {
-			BIF_icon_draw(sx+16*2, sy, ICON_BLUEIMAGE_HLT);
-		} else {
-			BIF_icon_draw(sx+16*2, sy, ICON_BLUEIMAGE_DEHLT);
-		}
+	if (simasel->img) {
+		w = simasel->img->x;
+		h = simasel->img->y;
 	}
 	
-	if (simasel->fesx >  0) {
-		int extrabutsize;
+	offsx = -150 + (simasel->v2d.mask.xmax - simasel->v2d.mask.xmin)/2;
+	offsy = -150 + (simasel->v2d.mask.ymax - simasel->v2d.mask.ymin)/2;
+
+	block= uiNewBlock(&curarea->uiblocks, "imasel_panel_image", UI_EMBOSS, UI_HELV, curarea->win);
+	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
+	uiSetPanelHandler(IMASEL_HANDLER_IMAGE);  // for close and esc
+	if(uiNewPanel(curarea, block, "Image Preview", "Image Browser", offsx, offsy, w, h)==0) 
+		return;
+	uiBlockSetDrawExtraFunc(block, imasel_imgdraw); 
+}
+
+static void imasel_blockhandlers(ScrArea *sa)
+{
+	SpaceImaSel *simasel= sa->spacedata.first;
+	short a;
 		
-		BIF_ThemeColorShade(TH_SHADE1, -80);
+	for(a=0; a<SPACE_MAXHANDLER; a+=2) {
+		switch(simasel->blockhandler[a]) {
 
-		glRecti(simasel->fssx,  simasel->fssy,  simasel->fsex,  simasel->fsey);
-
-		glRecti(simasel->fesx,  simasel->fesy,  simasel->feex,  simasel->feey);
-
-		uiEmboss(simasel->fssx-1, simasel->fssy-1, simasel->fsex+1, simasel->fsey+1,1);
-		uiEmboss(simasel->fesx-1, simasel->fesy-1, simasel->feex+1, simasel->feey+1,1);
+		case IMASEL_HANDLER_IMAGE:
+			imasel_panel_image(sa, simasel->blockhandler[a+1]);
+			break;
 		
-		if (simasel->imasli == 1){
-			sx = simasel->imasli_sx;
-			sy = simasel->imasli_ey - simasel->imasli_h;
-			ex = simasel->imasli_ex;
-			ey = simasel->imasli_ey;
-			
-			BIF_ThemeColor(TH_SHADE1); 
-
-			glRecti(sx,  sy,  ex,  ey);
-			uiEmboss(sx, sy, ex, ey, 1);
 		}
+		/* clear action value for event */
+		simasel->blockhandler[a+1]= 0;
+	}
+	uiDrawBlocksPanels(sa, 0);
+}
+
+
+static void draw_imasel_buttons(ScrArea *sa, SpaceImaSel* simasel)
+{
+	uiBlock *block;
+	int loadbutton;
+	char name[20];
+	char *menu;
+	float slen;
+	float parentbut_width = 20;
+	float bookmarkbut_width = 0.0f;
+	int filebuty1, filebuty2;
+
+	float xmin = simasel->v2d.mask.xmin + 10;
+	float xmax = simasel->v2d.mask.xmax - 10;
+
+	filebuty1= simasel->v2d.mask.ymax - IMASEL_BUTTONS_HEIGHT;
+	filebuty2= filebuty1+IMASEL_BUTTONS_HEIGHT/2 -6;
+
+	/* HEADER */
+	sprintf(name, "win %d", sa->win);
+	block = uiNewBlock(&sa->uiblocks, name, UI_EMBOSS, UI_HELV, sa->win);
 	
-		info = 0;
-		strcpy(infostr, "");
-		if (simasel->totalima){
-			viewgate(simasel->fesx, simasel->fesy, simasel->feex, simasel->feey);
-		
-			ima = simasel->first_sel_ima;
-			
-			while (ima){
-				sc = 0;
-				
-				sx = ima->sx- 6; sy = ima->sy-20 + sc; 
-				ex = ima->sx+71; ey = ima->sy+70 + sc;  
-				
-				if(ima->selected == 1){
-					cpack(0xCC6666);
-					glRecti(sx, sy,  ex, ey);
-				}
-				if(ima->selectable == 1){
-					if (ima->selected ) cpack(0xEE8888); else cpack(0x999999);
-					
-					if (((simasel->mode & 8) != 8) && (simasel->hilite_ima == ima)){
-						glRecti(sx, sy,  ex, ey); uiEmboss(sx,sy, ex,ey, 1);
-					}
-					if (ima->disksize/1000 > 1000){ sprintf(infostr,  "%s  %.2fMb  x%i y%i  %i bits ",ima->file_name,(ima->disksize/1024)/1024.0, ima->orgx, ima->orgy, ima->orgd);
-					}else{ sprintf(infostr,  "%s  %dKb  %ix%i  %i bits ",  ima->file_name,ima->disksize/1024,          ima->orgx, ima->orgy, ima->orgd);
-					}	
-					if (ima->anim == 1){ strcat (infostr, "movie"); }else{
-						str_image_type(ima->ibuf_type, naam);
-						strcat (infostr, naam);
-					}
-					info = 1;
-				}
-				
-				sx = ima->sx; sy = ima->sy + sc;
-				ex = ima->ex; ey = ima->ey + sc;
-				
-				if (ima->anim == 0) BIF_ThemeColorShade(TH_SHADE1, -80);
-				else BIF_ThemeColorShade(TH_SHADE1, -70);
-				
-				glRecti(sx, sy,  ex, ey);
-				uiEmboss(sx-1,sy-1, ex+1,ey+1, 1);
-				
-				cpack(0);
-				strcpy(naam, ima->file_name);
-				naam[11] = 0;
-			
-				glRasterPos2i(sx+32-BMF_GetStringWidth(G.fonts, naam) / 2  ,  sy-16);
-				BMF_DrawString(G.fonts, naam);
-				
-				if ((ima) && (ima->pict) && (ima->pict->rect)){
-					if ( (ey > simasel->fesy) && (sy < simasel->feey)){
-						if(OLD_IMASEL) {
-							lrectwrite(sx, sy, ex-1, ey-1, ima->pict->rect);
-						} else
-							rectwrite_imasel(simasel->fesx, simasel->fesy,
-								curarea->winrct.xmax, curarea->winrct.ymax - 64, //simasel->feey*1.5,
-								sx, sy, ima->pict->x, ima->pict->y, 1.0, 1.0, ima->pict->rect);
-					}
-				}
-			
-				ima = ima->next;
-			}
-			
-			if ((simasel->mode & 8) == 8) {	 /* if magnify */
-				
-				if (bitset(simasel->fase, IMS_KNOW_IMA) && (simasel->hilite_ima)) {
-			
-				 	ima = simasel->hilite_ima;
-					glPixelZoom(2.0,  2.0);
-					
-					sx = ima->sx + (ima->ex - ima->sx)/2 - (ima->ex - ima->sx);
-					sy = ima->sy + (ima->ey - ima->sy)/2 - (ima->ey - ima->sy);
-					
-					ex = sx + 2*(ima->ex - ima->sx);
-					ey = sy + 2*(ima->ey - ima->sy);
-					
-					uiEmboss(sx-1,sy-1, ex+1,ey+1, 0);
-				
-					if(OLD_IMASEL) {
-						lrectwrite(sx, sy, sx+ (ima->ex - ima->sx)-1, sy+ (ima->ey - ima->sy)-1, ima->pict->rect);
-					} else
-						rectwrite_imasel(simasel->fesx, simasel->fesy,
-							curarea->winrct.xmax, curarea->winrct.ymax - 64, //simasel->feey*1.5,
-							sx, sy, ima->pict->x, ima->pict->y, 2.0, 2.0, ima->pict->rect);
-					
-					glPixelZoom(1.0,  1.0);
-				}
-			}
-			areaview();  /*  reset viewgate */
-		}
-		
-		
-		/* INFO */
-		if (simasel->infsx > 0){
-			BIF_ThemeColorShade(TH_SHADE1, -80);
+	uiSetButLock( BIF_filelist_gettype(simasel->files)==FILE_MAIN && simasel->returnfunc, NULL); 
 
-			glRecti(simasel->infsx,  simasel->infsy,  simasel->infex,  simasel->infey);
-			uiEmboss(simasel->infsx, simasel->infsy, simasel->infex, simasel->infey,1);
-		
-			if ((info)&&(strlen(infostr) > 0)){
-				
-				sx = curarea->winrct.xmin;
-				sy = curarea->winrct.ymin;
-				
-				viewgate(simasel->infsx, simasel->infsy, simasel->infex, simasel->infey);
-			
-				cpack(0xAAAAAA);
-				glRasterPos2i(simasel->infsx+4,  simasel->infsy+6);
-				BMF_DrawString(G.font, infostr);
-				
-				areaview();  /*  reset viewgate */
-	
-			}
-		}
-
-		extrabutsize= (simasel->returnfunc)?60:0;
-		if (simasel->dnw > extrabutsize+8) {
-			simasel->dnw-= extrabutsize;
-			uiDefBut(block, TEX, 1,"", simasel->dnsx, simasel->dnsy, simasel->dnw, simasel->dnh, simasel->dir,  0.0, (float)FILE_MAXFILE-1, 0, 0, "");
-			if (extrabutsize)
-				uiDefBut(block, BUT, 5, "Load",	simasel->dnsx+simasel->dnw, simasel->dnsy, extrabutsize, 21, NULL, 0.0, 0.0, 0, 0, "Load the selected image");
-		}
-		if (simasel->fnw > extrabutsize+8) {
-			simasel->fnw-= extrabutsize;
-			uiDefBut(block, TEX, 2,"", simasel->fnsx, simasel->fnsy, simasel->fnw, simasel->fnh, simasel->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
-			if (extrabutsize)
-				uiDefBut(block, BUT, 6, "Cancel",	simasel->fnsx+simasel->fnw, simasel->fnsy, extrabutsize, 21, NULL, 0.0, 0.0, 0, 0, "Cancel image loading");
+	/* space available for load/save buttons? */
+	slen = BIF_GetStringWidth(G.font, simasel->title, simasel->aspect);
+	loadbutton= slen > 60 ? slen + 20 : 80; /* MAX2(80, 20+BIF_GetStringWidth(G.font, simasel->title)); */
+	if(simasel->v2d.mask.xmax-simasel->v2d.mask.xmin > loadbutton+20) {
+		if(simasel->title[0]==0) {
+			loadbutton= 0;
 		}
 	}
-	
-	if (curarea->winx > 16) {
-		char *menu= fsmenu_build_menu();
-
-		uiDefBut(block, BUT, 13, "P", 8, (short)(curarea->winy-29), 20, 21, 0, 0, 0, 0, 0, "");
-		uiDefButS(block, MENU, 3 , menu, 8, (short)(curarea->winy-58), 20, 21, &simasel->fileselmenuitem, 0, 0, 0, 0, "");
-
-		MEM_freeN(menu);
+	else {
+		loadbutton= 0;
 	}
-	
+
+	menu= fsmenu_build_menu();
+
+	if (menu[0]) {
+		bookmarkbut_width = parentbut_width;
+	}
+
+	uiDefBut(block, TEX, B_FS_FILENAME,"",	xmin+parentbut_width+bookmarkbut_width+2, filebuty1, xmax-xmin-loadbutton-parentbut_width-bookmarkbut_width, 21, simasel->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
+	uiDefBut(block, TEX, B_FS_DIRNAME,"",	xmin+parentbut_width, filebuty2, xmax-xmin-loadbutton-parentbut_width, 21, simasel->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
+
+	if(loadbutton) {
+		uiSetCurFont(block, UI_HELV);
+		uiDefBut(block, BUT,B_FS_LOAD, simasel->title,	xmax-loadbutton, filebuty2, loadbutton, 21, simasel->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
+		uiDefBut(block, BUT,B_FS_CANCEL, "Cancel",		xmax-loadbutton, filebuty1, loadbutton, 21, simasel->file, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
+	}
+
+	if(menu[0])	{ // happens when no .Bfs is there, and first time browse
+		uiDefButS(block, MENU,B_FS_DIR_MENU, menu, xmin, filebuty1, parentbut_width, 21, &simasel->menu, 0, 0, 0, 0, "");
+		uiDefBut(block, BUT, B_FS_BOOKMARK, "B", xmin+22, filebuty1, bookmarkbut_width, 21, 0, 0, 0, 0, 0, "Bookmark current directory");
+	}
+	MEM_freeN(menu);
+
+	uiDefBut(block, BUT, B_FS_PARDIR, "P", xmin, filebuty2, parentbut_width, 21, 0, 0, 0, 0, 0, "Move to the parent directory (PKEY)");	
+
 	uiDrawBlock(block);
-}
-
-void select_ima_files(SpaceImaSel *simasel)
-{
-	short set_reset;
-	short mval[2], oval[2];
-	
-	set_reset =  1 - (simasel->hilite_ima->selected);
-	
-	getmouseco_areawin(mval);
-	oval[0] = mval[0] + 1;
-	oval[1] = 0; /* Just give it a value to stop warnings */
-	
-	while(get_mbut()&R_MOUSE) { 
-		getmouseco_areawin(mval);
-		if ((oval[0] != mval[0]) || (oval[1] != mval[1])){
-			simasel->mx = mval[0];
-			simasel->my = mval[1];
-			
-			calc_hilite(simasel);
-			
-			if (simasel->hilite_ima){
-				simasel->hilite_ima->selected = set_reset;
-				scrarea_do_windraw(curarea);
-				screen_swapbuffers();	
-			}
-			oval[0] = mval[0];
-			oval[1] = mval[1];
-		}
-	}
-}
-
-void move_imadir_sli(SpaceImaSel *simasel)
-{
-	
-	short mval[2], lval[2], fh;
-	float rh;
-	
-	getmouseco_areawin(mval);
-	
-	if ((mval[0] > simasel->dirsli_sx) && 
-	    (mval[0] < simasel->dirsli_ex) && 
-		(mval[1] > simasel->dirsli_ey - simasel->dirsli_h) &&
-		(mval[1] < simasel->dirsli_ey) ){
-		
-		/*  extactly in the slider  */
-		fh = simasel->dirsli_ey - mval[1];
-		lval[1]=1;
-		while(get_mbut()&L_MOUSE) { 
-			getmouseco_areawin(mval);
-			if (mval[1] != lval[1]){
-				
-				rh = (float)(simasel->dsey - mval[1] - fh - simasel->dssy) / (simasel->dsdh - simasel->dirsli_h);
-				
-				simasel->topdir = 1 + rh * (simasel->totaldirs - simasel->dirsli_lines);
-				
-				scrarea_do_windraw(curarea);
-				uiEmboss(simasel->dirsli_sx, simasel->dirsli_ey - simasel->dirsli_h, 
-						   simasel->dirsli_ex, simasel->dirsli_ey,1);
-			    screen_swapbuffers();
-				lval[1] = mval[1];
-			}
-		}	
-	}else{
-		if (mval[1] < simasel->dirsli_ey - simasel->dirsli_h)
-			simasel->topdir += (simasel->dirsli_lines - 1); 
-		else
-			simasel->topdir -= (simasel->dirsli_lines - 1); 
-			
-		while(get_mbut()&L_MOUSE) {  }
-	}
-}
-
-void move_imafile_sli(SpaceImaSel *simasel)
-{
-	short mval[2], cmy, omy = 0;
-	short ssl, sdh, ssv;
-	
-	getmouseco_areawin(mval);
-	cmy = mval[1];
-	
-	if ((mval[0] > simasel->imasli_sx) && 
-	    (mval[0] < simasel->imasli_ex) && 
-		(mval[1] > simasel->imasli_ey - simasel->imasli_h) &&
-		(mval[1] < simasel->imasli_ey) ){
-		
-		ssv = simasel->fsey - simasel->imasli_ey - 2;
-		
-		while(get_mbut() & L_MOUSE) { 
-			getmouseco_areawin(mval);
-			if (mval[1] != omy){
-				sdh = simasel->fsdh - simasel->imasli_h;
-				ssl = cmy -  mval[1] + ssv;
-				
-				if (ssl < 0)   { ssl = 0; }
-				if (ssl > sdh) { ssl = sdh; }
-				
-				simasel->image_slider = ssl / (float)sdh;
-				
-				scrarea_do_windraw(curarea);
-				uiEmboss(simasel->imasli_sx, simasel->imasli_ey - simasel->imasli_h, 
-						   simasel->imasli_ex, simasel->imasli_ey, 1);
-			   
-				screen_swapbuffers();
-				omy = mval[1];
-			}
-		}
-	}else{
-		while(get_mbut() & L_MOUSE) {  }
-	}
-}
-
-void ima_select_all(SpaceImaSel *simasel)
-{
-	OneSelectableIma *ima;
-	int reselect = 0;
-	
-	ima = simasel->first_sel_ima;
-	if (!ima) return;
-	
-	while(ima){
-		if (ima->selected == 1) reselect = 1;
-		ima = ima->next;
-	}
-	ima = simasel->first_sel_ima;
-	if (reselect == 1){
-		while(ima){
-			ima->selected = 0;
-			ima = ima->next;
-		}
-	}else{
-		while(ima){
-			ima->selected = 1;
-			ima = ima->next;
-		}
-	}
-}
-
-void pibplay(SpaceImaSel *simasel)
-{
-	OneSelectableIma *ima;
-	int sx= 8, sy= 8;
-	
-	ima = simasel->first_sel_ima;
-	if (!ima) return ;
-	
-	sx = curarea->winrct.xmin + 8; 
-	sy = curarea->winrct.ymin + 8;
-	
-	while(!(get_mbut()&L_MOUSE)){
-		scrarea_do_windraw(curarea);	 
-		
-		lrectwrite(sx, sy, sx+ima->dw-1, sy+ima->dh-1, ima->pict->rect);
-		
-		ima = ima->next;
-		if (!ima) ima = simasel->first_sel_ima;
-		screen_swapbuffers();	
-	}
 }
 
 
@@ -860,65 +662,71 @@ void pibplay(SpaceImaSel *simasel)
 
 void drawimaselspace(ScrArea *sa, void *spacedata)
 {
-	SpaceImaSel *simasel;
-	simasel= curarea->spacedata.first;
+	float col[3];
+	SpaceImaSel *simasel= curarea->spacedata.first;
 	
-	/* ortho: xmin xmax, ymin, ymax! */
-	myortho2(-0.375, (float)(curarea->winx)-0.375, -0.375, (float)(curarea->winy)-0.375);
+	BIF_GetThemeColor3fv(TH_BACK, col);
+	glClearColor(col[0], col[1], col[2], 0.0);
+	glClear(GL_COLOR_BUFFER_BIT);	
 	
-	if (simasel->fase == 0){
-		BLI_cleanup_dir(G.sce, simasel->dir);
-		clear_ima_dir(simasel);
+	/* HACK: somehow when going fullscreen, v2d isn't set correctly */
+	simasel->v2d.cur.xmin= simasel->v2d.cur.ymin= 0.0f;
+	simasel->v2d.cur.xmax= sa->winx;
+	simasel->v2d.cur.ymax= sa->winy;	
+	simasel->v2d.tot= simasel->v2d.cur;
+	test_view2d(G.v2d, sa->winx, sa->winy);
+
+	calc_imasel_rcts(simasel, sa->winx, sa->winy);
+
+	myortho2(simasel->v2d.cur.xmin, simasel->v2d.cur.xmax, simasel->v2d.cur.ymin, simasel->v2d.cur.ymax);
+	bwin_clear_viewmat(sa->win);	/* clear buttons view */
+	glLoadIdentity();
+	
+	/* warning; blocks need to be freed each time, handlers dont remove  */
+	uiFreeBlocksWin(&sa->uiblocks, sa->win); 
+
+	/* aspect+font, set each time */
+	simasel->aspect= (simasel->v2d.cur.xmax - simasel->v2d.cur.xmin)/((float)sa->winx);
+	simasel->curfont= uiSetCurFont_ext(simasel->aspect);	
+	
+	if (!simasel->files) {
+		simasel->files = BIF_filelist_new();
+		BIF_filelist_setdir(simasel->files, simasel->dir);
+		BIF_filelist_settype(simasel->files, simasel->type);
 	}
 
-	if (!bitset(simasel->fase, IMS_KNOW_DIR)){
-		if(simasel->firstdir)	free_ima_dir(simasel->firstdir);
-		if(simasel->firstfile) 	free_ima_dir(simasel->firstfile);
-		simasel->firstdir   = 0;
-		simasel->firstfile  = 0;
+	/* Buttons */
+	draw_imasel_buttons(sa, simasel);	
 	
-		if (get_ima_dir(simasel->dir, IMS_DIR,  &simasel->totaldirs,  &simasel->firstdir) < 0){
-			/* error */
-			strcpy(simasel->dir, simasel->dor);
-			get_ima_dir(simasel->dir, IMS_DIR,  &simasel->totaldirs,  &simasel->firstdir);
-		}
-		
-		if (get_ima_dir(simasel->dir, IMS_FILE, &simasel->totalfiles, &simasel->firstfile) < 0){
-			/* error */
-			strcpy(simasel->file, simasel->fole);
-			get_ima_dir(simasel->dir, IMS_FILE, &simasel->totalfiles, &simasel->firstfile);
-		}
-		
-		simasel->topdir  = 0;
-		simasel->topfile = 0;
-		simasel->fase |= IMS_KNOW_DIR;
-		
-		check_for_pib(simasel);
-		
-		strcpy(simasel->fole, simasel->file);
-		strcpy(simasel->dor,  simasel->dir);
-	}
-		
-	if (!bitset(simasel->fase, IMS_FOUND_BIP)){
-		/* Make the first Bip file ever in this directory */
-		if ( !bitset(simasel->fase, IMS_KNOW_INF)){
-			if (!bitset(simasel->fase, IMS_DOTHE_INF)){
-				if(simasel->first_sel_ima)	free_sel_ima(simasel->first_sel_ima);
-				simasel->first_sel_ima   = 0;
-				simasel->fase |= IMS_DOTHE_INF;
-				addafterqueue(curarea->win, AFTERIMASELIMA, 1);
-			}
-		}
-	}else{
-		if (!bitset(simasel->fase, IMS_KNOW_BIP)){
-			addafterqueue(curarea->win, AFTERPIBREAD, 1);
-		}
-	}
+	/* scrollbar */
+	draw_imasel_scroll(simasel);	
+
+	/* bookmarks */
+	draw_imasel_bookmarks(sa, simasel);
+
+	uiEmboss(simasel->viewrect.xmin, simasel->viewrect.ymin, simasel->v2d.mask.xmax-TILE_BORDER_X, simasel->viewrect.ymax, 1);
+
+
+	glScissor(sa->winrct.xmin + simasel->viewrect.xmin , 
+			  sa->winrct.ymin + simasel->viewrect.ymin, 
+			  simasel->viewrect.xmax - simasel->viewrect.xmin , 
+			  simasel->viewrect.ymax - simasel->viewrect.ymin);
+
+	/* previews */	
+	draw_imasel_previews(sa, simasel);
 	
-	make_sima_area(simasel);
-	calc_hilite(simasel);
-	draw_sima_area(simasel);
+	/* BIF_ThemeColor(TH_HEADER);*/
+	/* glRecti(simasel->viewrect.xmin,  simasel->viewrect.ymin,  simasel->viewrect.xmax,  simasel->viewrect.ymax);*/
 	
+	/* restore viewport (not needed yet) */
+	mywinset(sa->win);
+
+	/* ortho at pixel level curarea */
+	myortho2(-0.375, curarea->winx-0.375, -0.375, curarea->winy-0.375);
+
+	draw_area_emboss(sa);
+
+	imasel_blockhandlers(sa);
+
 	curarea->win_swap= WIN_BACK_OK;
 }
-

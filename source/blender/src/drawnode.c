@@ -1773,37 +1773,6 @@ static void draw_nodespace_back(ScrArea *sa, SpaceNode *snode)
 	}
 }
 
-static void nodeshadow(rctf *rct, float radius, float aspect, int select)
-{
-	float rad;
-	float a;
-	char alpha= 2;
-	
-	glEnable(GL_BLEND);
-	
-	if(radius > (rct->ymax-rct->ymin-10.0f)/2.0f)
-		rad= (rct->ymax-rct->ymin-10.0f)/2.0f;
-	else
-		rad= radius;
-	
-	if(select) a= 10.0f*aspect; else a= 7.0f*aspect;
-	for(; a>0.0f; a-=aspect) {
-		/* alpha ranges from 2 to 20 or so */
-		glColor4ub(0, 0, 0, alpha);
-		alpha+= 2;
-		
-		gl_round_box(GL_POLYGON, rct->xmin - a, rct->ymin - a, rct->xmax + a, rct->ymax-10.0f + a, rad+a);
-	}
-	
-	/* outline emphasis */
-	glEnable( GL_LINE_SMOOTH );
-	glColor4ub(0, 0, 0, 100);
-	gl_round_box(GL_LINE_LOOP, rct->xmin-0.5f, rct->ymin-0.5f, rct->xmax+0.5f, rct->ymax+0.5f, radius);
-	glDisable( GL_LINE_SMOOTH );
-	
-	glDisable(GL_BLEND);
-}
-
 /* nice AA filled circle */
 static void socket_circle_draw(float x, float y, float size, int type, int select)
 {
@@ -2148,7 +2117,7 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 	int ofs, color_id= node_get_colorid(node);
 	
 	uiSetRoundBox(15-4);
-	nodeshadow(rct, BASIS_RAD, snode->aspect, node->flag & SELECT);
+	ui_dropshadow(rct, BASIS_RAD, snode->aspect, node->flag & SELECT);
 	
 	/* header */
 	if(color_id==TH_NODE)
@@ -2352,7 +2321,7 @@ void node_draw_hidden(SpaceNode *snode, bNode *node)
 	
 	/* shadow */
 	uiSetRoundBox(15);
-	nodeshadow(rct, hiddenrad, snode->aspect, node->flag & SELECT);
+	ui_dropshadow(rct, hiddenrad, snode->aspect, node->flag & SELECT);
 
 	/* body */
 	BIF_ThemeColor(color_id);	

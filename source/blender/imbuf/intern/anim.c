@@ -819,6 +819,18 @@ static struct ImBuf * anim_getnew(struct anim * anim) {
 	return(ibuf);
 }
 
+struct ImBuf * IMB_anim_previewframe(struct anim * anim) {
+	struct ImBuf * ibuf = 0;
+	int position = 0;
+	
+	ibuf = IMB_anim_absolute(anim, 0);
+	if (ibuf) {
+		IMB_freeImBuf(ibuf);
+		position = anim->duration / 2;
+		ibuf = IMB_anim_absolute(anim, position);
+	}
+	return ibuf;
+}
 
 struct ImBuf * IMB_anim_absolute(struct anim * anim, int position) {
 	struct ImBuf * ibuf = 0;

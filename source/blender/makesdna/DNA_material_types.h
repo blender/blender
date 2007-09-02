@@ -105,7 +105,8 @@ typedef struct Material {
 	struct bNodeTree *nodetree;	
 	struct Ipo *ipo;
 	struct Group *group;	/* light group */
-	
+	struct PreviewImage * preview;
+
 	/* dynamic properties */
 	float friction, fh, reflect;
 	float fhdist, xyfrict;

@@ -90,6 +90,7 @@ void free_material(Material *ma)
 	if(ma->ramp_col) MEM_freeN(ma->ramp_col);
 	if(ma->ramp_spec) MEM_freeN(ma->ramp_spec);
 	
+	BKE_previewimg_free(&ma->preview);
 	BKE_icon_delete((struct ID*)ma);
 	ma->id.icon_id = 0;
 	
@@ -159,6 +160,8 @@ void init_material(Material *ma)
 	ma->sss_back= 1.0f;
 
 	ma->mode= MA_TRACEBLE|MA_SHADBUF|MA_SHADOW|MA_RADIO|MA_RAYBIAS|MA_TANGENT_STR;
+
+	ma->preview = NULL;
 }
 
 Material *add_material(char *name)
@@ -196,6 +199,8 @@ Material *copy_material(Material *ma)
 	if(ma->ramp_col) man->ramp_col= MEM_dupallocN(ma->ramp_col);
 	if(ma->ramp_spec) man->ramp_spec= MEM_dupallocN(ma->ramp_spec);
 	
+	if (ma->preview) man->preview = BKE_previewimg_copy(ma->preview);
+
 	if(ma->nodetree) {
 		man->nodetree= ntreeCopyTree(ma->nodetree, 0);	/* 0 == full new tree */
 	}

@@ -280,6 +280,13 @@ struct ImBuf * IMB_anim_absolute(struct anim * anim, int position);
 /**
  *
  * @attention Defined in anim.c
+ * fetches a define previewframe, usually half way into the movie
+ */
+struct ImBuf * IMB_anim_previewframe(struct anim * anim);
+
+/**
+ *
+ * @attention Defined in anim.c
  */
 void IMB_free_anim_ibuf(struct anim * anim);
 

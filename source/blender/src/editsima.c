@@ -79,6 +79,7 @@
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
+#include "BIF_imasel.h"
 #include "BIF_interface.h"
 #include "BIF_drawimage.h"
 #include "BIF_editview.h"

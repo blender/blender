@@ -79,6 +79,9 @@ typedef struct Lamp {
 	struct MTex *mtex[10];
 	struct Ipo *ipo;
 	
+	/* preview */
+	struct PreviewImage *preview;
+
 	ScriptLink scriptlink;
 } Lamp;
 

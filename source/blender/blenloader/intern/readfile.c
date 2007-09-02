@@ -137,6 +137,7 @@
 #include "BKE_idprop.h"
 
 #include "BIF_butspace.h" // badlevel, for do_versions, patching event codes
+#include "BIF_filelist.h" // badlevel too, where to move this? - elubie
 #include "BIF_previewrender.h" // bedlelvel, for struct RenderInfo
 #include "BLO_readfile.h"
 #include "BLO_undofile.h"
@@ -1541,7 +1542,12 @@ static PreviewImage *direct_link_preview_image(FileData *fd, PreviewImage *old_p
 	PreviewImage *prv= newdataadr(fd, old_prv);
 
 	if (prv) {
-		prv->rect = newdataadr(fd, prv->rect);
+		int i;
+		for (i=0; i < PREVIEW_MIPMAPS; ++i) {
+			if (prv->rect[i]) {
+				prv->rect[i] = newdataadr(fd, prv->rect[i]);
+			}
+		}
 	}
 
 	return prv;
@@ -1911,6 +1917,7 @@ static void direct_link_lamp(FileData *fd, Lamp *la)
 	for(a=0; a<MAX_MTEX; a++) {
 		la->mtex[a]= newdataadr(fd, la->mtex[a]);
 	}
+	la->preview = direct_link_preview_image(fd, la->preview);
 }
 
 /* ************ READ keys ***************** */
@@ -2058,6 +2065,7 @@ static void direct_link_world(FileData *fd, World *wrld)
 	for(a=0; a<MAX_MTEX; a++) {
 		wrld->mtex[a]= newdataadr(fd, wrld->mtex[a]);
 	}
+	wrld->preview = direct_link_preview_image(fd, wrld->preview);
 }
 
 
@@ -2367,6 +2375,8 @@ static void direct_link_texture(FileData *fd, Tex *tex)
 		memset(tex->env->cube, 0, 6*sizeof(void *));
 		tex->env->ok= 0;
 	}
+	tex->preview = direct_link_preview_image(fd, tex->preview);
+
 	tex->iuser.ok= 1;
 }
 
@@ -2424,6 +2434,8 @@ static void direct_link_material(FileData *fd, Material *ma)
 	ma->nodetree= newdataadr(fd, ma->nodetree);
 	if(ma->nodetree)
 		direct_link_nodetree(fd, ma->nodetree);
+
+	ma->preview = direct_link_preview_image(fd, ma->preview);
 }
 
 /* ************ READ MESH ***************** */
@@ -3448,7 +3460,13 @@ static void lib_link_screen(FileData *fd, Main *main)
 						sfile->pupmenu= NULL;
 					}
 					else if(sl->spacetype==SPACE_IMASEL) {
-						check_imasel_copy((SpaceImaSel *)sl);
+						SpaceImaSel *simasel= (SpaceImaSel *)sl;
+
+						simasel->files = NULL;						
+						simasel->returnfunc= NULL;
+						simasel->menup= NULL;
+						simasel->pupmenu= NULL;
+						simasel->img= NULL;
 					}
 					else if(sl->spacetype==SPACE_ACTION) {
 						SpaceAction *saction= (SpaceAction *)sl;
@@ -3618,7 +3636,10 @@ void lib_link_screen_restore(Main *newmain, Scene *curscene)
 					sfile->libfiledata= 0;
 				}
 				else if(sl->spacetype==SPACE_IMASEL) {
-					;
+                    SpaceImaSel *simasel= (SpaceImaSel *)sl;
+					if (simasel->files) {
+						BIF_filelist_freelib(simasel->files);
+					}
 				}
 				else if(sl->spacetype==SPACE_ACTION) {
 					SpaceAction *saction= (SpaceAction *)sl;
@@ -6481,6 +6502,62 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			Mesh *me;
 			for(me=main->mesh.first; me; me=me->id.next)
 				customdata_version_243(me);
+		}		
+
+	}
+
+
+	if (main->versionfile < 244) {
+		bScreen *sc;
+		Image* ima;
+
+		/* repair preview from 242 */
+		for(ima= main->image.first; ima; ima= ima->id.next) {
+			ima->preview = NULL;
+		}
+		
+		/* repair imasel space - completely reworked */
+		for(sc= main->screen.first; sc; sc= sc->id.next) {
+			ScrArea *sa;
+			sa= sc->areabase.first;
+			while(sa) {
+				SpaceLink *sl;
+
+				for (sl= sa->spacedata.first; sl; sl= sl->next) {
+					if(sl->spacetype==SPACE_IMASEL) {
+						SpaceImaSel *simasel= (SpaceImaSel*) sl;
+						simasel->blockscale= 0.7;
+						/* view 2D */
+						simasel->v2d.tot.xmin=  -10.0;
+						simasel->v2d.tot.ymin=  -10.0;
+						simasel->v2d.tot.xmax= (float)sa->winx + 10.0f;
+						simasel->v2d.tot.ymax= (float)sa->winy + 10.0f;						
+						simasel->v2d.cur.xmin=  0.0;
+						simasel->v2d.cur.ymin=  0.0;
+						simasel->v2d.cur.xmax= (float)sa->winx;
+						simasel->v2d.cur.ymax= (float)sa->winy;						
+						simasel->v2d.min[0]= 1.0;
+						simasel->v2d.min[1]= 1.0;						
+						simasel->v2d.max[0]= 32000.0f;
+						simasel->v2d.max[1]= 32000.0f;						
+						simasel->v2d.minzoom= 0.5f;
+						simasel->v2d.maxzoom= 1.21f;						
+						simasel->v2d.scroll= 0;
+						simasel->v2d.keepaspect= 1;
+						simasel->v2d.keepzoom= 1;
+						simasel->v2d.keeptot= 0;
+						simasel->prv_h = 96;
+						simasel->prv_w = 96;
+						simasel->flag = 7; /* ??? elubie */
+						strcpy (simasel->dir,  U.textudir);	/* TON */
+						strcpy (simasel->file, "");
+
+						simasel->returnfunc     =  0;	
+						simasel->title[0]       =  0;
+					}
+				}
+				sa = sa->next;
+			}
 		}
 	}
 	if(main->versionfile <= 244) {
@@ -7550,8 +7627,8 @@ static void append_id_part(FileData *fd, Main *mainvar, ID *id, ID **id_r)
 
 /* common routine to append/link something from a library */
 
-static Library* library_append( Scene *scene, SpaceFile *sfile, char *dir, int idcode,
-		int totsel, FileData *fd)
+static Library* library_append( Scene *scene, char* file, char *dir, int idcode,
+		int totsel, FileData *fd, struct direntry* filelist, int totfile, short flag)
 {
 	Main *mainl;
 	Library *curlib;
@@ -7567,13 +7644,13 @@ static Library* library_append( Scene *scene, SpaceFile *sfile, char *dir, int i
 	curlib= mainl->curlib;
 	
 	if(totsel==0) {
-		append_named_part(fd, mainl, scene, sfile->file, idcode, sfile->flag);
+		append_named_part(fd, mainl, scene, file, idcode, flag);
 	}
 	else {
 		int a;
-		for(a=0; a<sfile->totfile; a++) {
-			if(sfile->filelist[a].flags & ACTIVE) {
-				append_named_part(fd, mainl, scene, sfile->filelist[a].relname, idcode, sfile->flag);
+		for(a=0; a<totfile; a++) {
+			if(filelist[a].flags & ACTIVE) {
+				append_named_part(fd, mainl, scene, filelist[a].relname, idcode, flag);
 			}
 		}
 	}
@@ -7584,7 +7661,7 @@ static Library* library_append( Scene *scene, SpaceFile *sfile, char *dir, int i
 	/* do this when expand found other libs */
 	read_libraries(fd, &fd->mainlist);
 
-	if(sfile->flag & FILE_STRINGCODE) {
+	if(flag & FILE_STRINGCODE) {
 
 		/* use the full path, this could have been read by other library even */
 		BLI_strncpy(mainl->curlib->name, mainl->curlib->filename, sizeof(mainl->curlib->name));
@@ -7601,7 +7678,7 @@ static Library* library_append( Scene *scene, SpaceFile *sfile, char *dir, int i
 
 	/* give a base to loose objects. If group append, do it for objects too */
 	if(idcode==ID_GR)
-		give_base_to_objects(scene, &(G.main->object), (sfile->flag & FILE_LINK)?NULL:curlib);
+		give_base_to_objects(scene, &(G.main->object), (flag & FILE_LINK)?NULL:curlib);
 	else
 		give_base_to_objects(scene, &(G.main->object), NULL);
 	
@@ -7612,8 +7689,7 @@ static Library* library_append( Scene *scene, SpaceFile *sfile, char *dir, int i
 	/* patch to prevent switch_endian happens twice */
 	if(fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
 		blo_freefiledata( fd );
-		sfile->libfiledata= 0;
-	}
+	}	
 
 	return curlib;
 }
@@ -7626,16 +7702,8 @@ static Library* library_append( Scene *scene, SpaceFile *sfile, char *dir, int i
 void BLO_script_library_append(BlendHandle *bh, char *dir, char *name, 
 		int idcode, short flag, Scene *scene )
 {
-	SpaceFile sfile;
-
-	/* build a minimal "fake" SpaceFile object */
-	sfile.flag = flag;
-	sfile.totfile = 0;
-	strcpy(sfile.file, name);
-
 	/* try to append the requested object */
-
-	library_append( scene, &sfile, dir, idcode, 0, (FileData *)bh );
+	library_append( scene, name, dir, idcode, 0, (FileData *)bh, NULL, 0, flag );
 
 	/* do we need to do this? */
 	DAG_scene_sort(G.scene);
@@ -7645,26 +7713,31 @@ void BLO_script_library_append(BlendHandle *bh, char *dir, char *name,
 /* dir is a full path */	
 void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 {
-	FileData *fd= (FileData*) sfile->libfiledata;
+	BLO_library_append_(&sfile->libfiledata, sfile->filelist, sfile->totfile, dir, sfile->file, sfile->flag, idcode);
+}
+
+void BLO_library_append_(BlendHandle** libfiledata, struct direntry* filelist, int totfile, char *dir, char* file, short flag, int idcode)
+{
+	FileData *fd= (FileData*) (*libfiledata);
 	Library *curlib;
 	Base *centerbase;
 	Object *ob;
 	int a, totsel=0;
 	
 	/* are there files selected? */
-	for(a=0; a<sfile->totfile; a++) {
-		if(sfile->filelist[a].flags & ACTIVE) {
+	for(a=0; a<totfile; a++) {
+		if(filelist[a].flags & ACTIVE) {
 			totsel++;
 		}
 	}
 
 	if(totsel==0) {
 		/* is the indicated file in the filelist? */
-		if(sfile->file[0]) {
-			for(a=0; a<sfile->totfile; a++) {
-				if( strcmp(sfile->filelist[a].relname, sfile->file)==0) break;
+		if(file[0]) {
+			for(a=0; a<totfile; a++) {
+				if( strcmp(filelist[a].relname, file)==0) break;
 			}
-			if(a==sfile->totfile) {
+			if(a==totfile) {
 				error("Wrong indicated name");
 				return;
 			}
@@ -7676,13 +7749,18 @@ void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
 	}
 	/* now we have or selected, or an indicated file */
 	
-	if(sfile->flag & FILE_AUTOSELECT) scene_deselect_all(G.scene);
+	if(flag & FILE_AUTOSELECT) scene_deselect_all(G.scene);
 
-	curlib = library_append( G.scene, sfile, dir, idcode, totsel, fd );
+	curlib = library_append( G.scene, file, dir, idcode, totsel, fd, filelist, totfile,flag );
+
+	/* patch to prevent switch_endian happens twice */
+	if(fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
+		(*libfiledata)= 0;
+	}	
 
 	/* when not linking (appending)... */
-	if((sfile->flag & FILE_LINK)==0) {
-		if(sfile->flag & FILE_ATCURSOR) {
+	if((flag & FILE_LINK)==0) {
+		if(flag & FILE_ATCURSOR) {
 			float *curs, centerloc[3], vec[3], min[3], max[3];
 			int count= 0;
 			

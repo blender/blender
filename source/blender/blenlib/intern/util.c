@@ -1491,6 +1491,38 @@ int BLI_strncasecmp(const char *s1, const char *s2, int n) {
 	return 0;
 }
 
+
+#ifdef WITH_ICONV
+#include "iconv.h"
+#include "localcharset.h"
+
+void BLI_string_to_utf8(char *original, char *utf_8, char *code)
+{
+	size_t inbytesleft=strlen(original);
+	size_t outbytesleft=512;
+	size_t rv=0;
+	iconv_t cd;
+	
+	if (NULL == code) {
+		code = locale_charset();
+	}
+	cd=iconv_open("UTF-8", code);
+
+	if (cd == (iconv_t)(-1)) {
+		printf("iconv_open Error");
+		*utf_8='\0';
+		return ;
+	}
+	rv=iconv(cd, &original, &inbytesleft, &utf_8, &outbytesleft);
+	if (rv == (size_t) -1) {
+		printf("iconv Error\n");
+		return ;
+	}
+	*utf_8 = '\0';
+	iconv_close(cd);
+}
+#endif // WITH_ICONV
+
 void BLI_timestr(double time, char *str)
 {
 	/* format 00:00:00.00 (hr:min:sec) string has to be 12 long */

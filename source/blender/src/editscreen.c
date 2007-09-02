@@ -358,6 +358,11 @@ void areawinset(short win)
 			G.v2d= &snode->v2d;
 		}
 			break;
+		case SPACE_IMASEL:
+		{
+			SpaceImaSel *simasel= curarea->spacedata.first;
+			G.v2d= &simasel->v2d;
+		}
 		default:
 			break;
 		}

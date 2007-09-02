@@ -73,6 +73,7 @@
 #include "BIF_editseq.h"
 #include "BIF_editsound.h"
 #include "BIF_editmesh.h"
+#include "BIF_imasel.h"
 #include "BIF_interface.h"
 #include "BKE_object.h"
 #include "BIF_poseobject.h"
@@ -466,6 +467,10 @@ int blenderqread(unsigned short event, short val)
 			activate_fileselect(FILE_LOADLIB, "Load Library", G.lib, 0);
 			return 0;
 		}
+		else if(G.qual==LR_CTRLKEY) {
+			activate_imageselect(FILE_LOADLIB, "Load Library", G.lib, 0);
+			return 0;
+		}
 		break;
 	case F2KEY:
 		if(G.qual==0) {
@@ -504,6 +509,15 @@ int blenderqread(unsigned short event, short val)
 			if(ob) strcpy(str, ob->id.name);
 
 			activate_fileselect(FILE_MAIN, "Data Select", str, NULL);
+			return 0;
+		}
+		else if(G.qual==LR_CTRLKEY) {
+
+			memset(str, 0, 16);
+			ob= OBACT;
+			if(ob) strcpy(str, ob->id.name);
+
+			activate_imageselect(FILE_MAIN, "Data Select", str, 0);
 			return 0;
 		}
 		else if(G.qual==0) {

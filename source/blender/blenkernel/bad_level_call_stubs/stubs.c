@@ -324,3 +324,7 @@ void antialias_tagbuf(int xsize, int ysize, char *rectmove) {}
 void ibuf_sample(struct ImBuf *ibuf, float fx, float fy, float dx, float dy, float *result) {}
 
 void update_for_newframe() {}
+
+struct FileList;
+void BIF_filelist_freelib(struct FileList* filelist) {};
+

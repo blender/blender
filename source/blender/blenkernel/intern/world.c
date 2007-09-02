@@ -75,6 +75,8 @@ void free_world(World *wrld)
 		if(mtex && mtex->tex) mtex->tex->id.us--;
 		if(mtex) MEM_freeN(mtex);
 	}
+	BKE_previewimg_free(&wrld->preview);
+
 	wrld->ipo= 0;
 	BKE_icon_delete((struct ID*)wrld);
 	wrld->id.icon_id = 0;
@@ -102,7 +104,8 @@ World *add_world(char *name)
 	wrld->aobias= 0.05;
 	
 	wrld->physicsEngine= WOPHY_BULLET;//WOPHY_SUMO; Bullet by default
-	
+	wrld->preview = NULL;
+
 	return wrld;
 }
 
@@ -121,6 +124,8 @@ World *copy_world(World *wrld)
 		}
 	}
 	
+	if (wrld->preview) wrldn->preview = BKE_previewimg_copy(wrld->preview);
+
 	BPY_copy_scriptlink(&wrld->scriptlink);
 
 	id_us_plus((ID *)wrldn->ipo);

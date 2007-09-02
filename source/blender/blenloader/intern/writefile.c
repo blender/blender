@@ -1222,6 +1222,31 @@ static void write_lattices(WriteData *wd, ListBase *idbase)
 	}
 }
 
+static void write_previews(WriteData *wd, PreviewImage *prv)
+{
+	if (prv) {
+		short w = prv->w[1];
+		short h = prv->h[1];
+		unsigned int *rect = prv->rect[1];
+		/* don't write out large previews if not requested */
+		if (!(U.flag & USER_SAVE_PREVIEWS) ) {
+			prv->w[1] = 0;
+			prv->h[1] = 0;
+			prv->rect[1] = NULL;
+		}
+		writestruct(wd, DATA, "PreviewImage", 1, prv);
+		if (prv->rect[0]) writedata(wd, DATA, prv->w[0]*prv->h[0]*sizeof(unsigned int), prv->rect[0]);
+		if (prv->rect[1]) writedata(wd, DATA, prv->w[1]*prv->h[1]*sizeof(unsigned int), prv->rect[1]);
+
+		/* restore preview, we still want to keep it in memory even if not saved to file */
+		if (!(U.flag & USER_SAVE_PREVIEWS) ) {
+			prv->w[1] = w;
+			prv->h[1] = h;
+			prv->rect[1] = rect;
+		}
+	}
+}
+
 static void write_images(WriteData *wd, ListBase *idbase)
 {
 	Image *ima;
@@ -1241,12 +1266,9 @@ static void write_images(WriteData *wd, ListBase *idbase)
 				writedata(wd, DATA, pf->size, pf->data);
 			}
 
-			if (ima->preview) {
-				PreviewImage *prv = ima->preview;
-				writestruct(wd, DATA, "PreviewImage", 1, prv);
-				writedata(wd, DATA, prv->w*prv->h*sizeof(unsigned int), prv->rect);
+			write_previews(wd, ima->preview);
+
 			}
-		}
 		ima= ima->id.next;
 	}
 	/* flush helps the compression for undo-save */
@@ -1268,6 +1290,8 @@ static void write_textures(WriteData *wd, ListBase *idbase)
 			if(tex->plugin) writestruct(wd, DATA, "PluginTex", 1, tex->plugin);
 			if(tex->coba) writestruct(wd, DATA, "ColorBand", 1, tex->coba);
 			if(tex->env) writestruct(wd, DATA, "EnvMap", 1, tex->env);
+			
+			write_previews(wd, tex->preview);
 		}
 		tex= tex->id.next;
 	}
@@ -1307,6 +1331,8 @@ static void write_materials(WriteData *wd, ListBase *idbase)
 				writestruct(wd, DATA, "bNodeTree", 1, ma->nodetree);
 				write_nodetree(wd, ma->nodetree);
 			}
+
+			write_previews(wd, ma->preview);			
 		}
 		ma= ma->id.next;
 	}
@@ -1329,6 +1355,9 @@ static void write_worlds(WriteData *wd, ListBase *idbase)
 			}
 
 			write_scriptlink(wd, &wrld->scriptlink);
+
+			write_previews(wd, wrld->preview);
+
 		}
 		wrld= wrld->id.next;
 	}
@@ -1352,6 +1381,9 @@ static void write_lamps(WriteData *wd, ListBase *idbase)
 			}
 
 			write_scriptlink(wd, &la->scriptlink);
+
+			write_previews(wd, la->preview);
+
 		}
 		la= la->id.next;
 	}

@@ -108,6 +108,9 @@ typedef struct World {
 	struct Ipo *ipo;
 	struct MTex *mtex[10];
 
+	/* previews */
+	struct PreviewImage *preview;
+
 	ScriptLink scriptlink;
 
 } World;

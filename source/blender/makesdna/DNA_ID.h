@@ -120,6 +120,18 @@ typedef struct Library {
 	struct Library *parent;	/* for outliner, showing dependency */
 } Library;
 
+#define PREVIEW_MIPMAPS 2
+#define PREVIEW_MIPMAP_ZERO 0
+#define PREVIEW_MIPMAP_LARGE 1
+
+typedef struct PreviewImage {
+	unsigned int w[2];
+	unsigned int h[2];	
+	short changed[2];
+	short pad0, pad1;
+	unsigned int * rect[2];
+} PreviewImage;
+
 /**
  * Defines for working with IDs.
  *

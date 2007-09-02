@@ -52,6 +52,7 @@ struct BlendHandle;
 struct RenderInfo;
 struct bNodeTree;
 struct uiBlock;
+struct FileList;
 
 	/**
 	 * The base structure all the other spaces
@@ -336,89 +337,63 @@ typedef struct SpaceNode {
 #define SNODE_DO_PREVIEW	1
 #define SNODE_BACKDRAW		2
 
-#
-#
-typedef struct OneSelectableIma {
-	int   header;						
-	int   ibuf_type;
-	struct ImBuf *pict;					
-	struct OneSelectableIma *next;		
-	struct OneSelectableIma *prev;		
-	
-	short  cmap, image, draw_me, rt;
-	short  sx, sy, ex, ey, dw, dh;				
-	short  selectable, selected;		
-	int   mtime, disksize;				
-	char   file_name[64];
-	
-	short  orgx, orgy, orgd, anim;		/* same as ibuf->x...*/
-	char   dummy[4];					/* 128 */
-
-	char   pict_rect[3968];				/* 4096   (RECT = 64 * 62) */
-	
-} OneSelectableIma;
-
-#
-#
-typedef struct ImaDir {
-	struct ImaDir *next, *prev;
-	int  selected, hilite; 
-	int  type,  size;
-	int mtime;
-	char name[100];
-} ImaDir;
-
 typedef struct SpaceImaSel {
 	SpaceLink *next, *prev;
 	int spacetype;
 	float blockscale;
 	struct ScrArea *area;
 	
-	char   title[28];
-	
-	int   fase; 
-	short  mode, subfase;
-	short  mouse_move_redraw, imafase;
-	short  mx, my;
-	
-	short  dirsli, dirsli_lines;
-	short  dirsli_sx, dirsli_ey , dirsli_ex, dirsli_h;
-	short  imasli, fileselmenuitem;
-	short  imasli_sx, imasli_ey , imasli_ex, imasli_h;
-	
-	short  dssx, dssy, dsex, dsey; 
-	short  desx, desy, deex, deey; 
-	short  fssx, fssy, fsex, fsey; 
-	short  dsdh, fsdh; 
-	short  fesx, fesy, feex, feey; 
-	short  infsx, infsy, infex, infey; 
-	short  dnsx, dnsy, dnw, dnh;
-	short  fnsx, fnsy, fnw, fnh;
+	short blockhandler[8];
 
-	
-	char   fole[128], dor[128];
-	char   file[128], dir[128];
-	ImaDir *firstdir, *firstfile;
-	int    topdir,  totaldirs,  hilite; 
-	int    topfile, totalfiles;
-	
-	float  image_slider;
-	float  slider_height;
-	float  slider_space;
-	short  topima,  totalima;
-	short  curimax, curimay;
-	OneSelectableIma *first_sel_ima;
-	OneSelectableIma *hilite_ima;
-	short  total_selected, ima_redraw;
-	int pad2;
-	
-	struct ImBuf  *cmap;
+	View2D v2d;
 
-	/* Also fucked. Needs to change so things compile, but breaks sdna
-	* ... */	
-/*  	void (*returnfunc)(void); */
-	void (*returnfunc)(char*);
-	void *arg1;
+	struct FileList *files;
+
+	/* specific stuff for drawing */
+	char title[24];
+	char dir[160];
+	char file[80];
+
+	short type, menu, flag, sort;
+
+	void *curfont;
+	int	active_file;
+
+	int numtilesx;
+	int numtilesy;
+
+	int selstate;
+
+	struct rcti viewrect;
+	struct rcti bookmarkrect;
+
+	float scrollpos; /* current position of scrollhandle */
+	float scrollheight; /* height of the scrollhandle */
+	float scrollarea; /* scroll region, scrollpos is from 0 to scrollarea */
+
+	float aspect;
+	unsigned short retval;		/* event */
+
+	short ipotype;
+	
+	short filter;
+	short active_bookmark;
+	short pad, pad1;
+
+	/* view settings */
+	short prv_w;
+	short prv_h;
+
+	/* one day we'll add unions to dna */
+	void (*returnfunc)(char *);
+	void (*returnfunc_event)(unsigned short);
+	void (*returnfunc_args)(char *, void *, void *);
+	
+	void *arg1, *arg2;
+	short *menup;	/* pointer to menu result or ID browsing */
+	char *pupmenu;	/* optional menu in header */
+
+	struct ImBuf *img;
 } SpaceImaSel;
 
 
@@ -447,7 +422,7 @@ typedef struct SpaceImaSel {
 #define FILE_MAIN			2
 #define FILE_LOADFONT		3
 
-/* sfile->flag */
+/* sfile->flag and simasel->flag */
 #define FILE_SHOWSHORT		1
 #define FILE_STRINGCODE		2
 #define FILE_LINK			4
@@ -456,6 +431,8 @@ typedef struct SpaceImaSel {
 #define FILE_ACTIVELAY		32
 #define FILE_ATCURSOR		64
 #define FILE_SYNCPOSE		128
+#define FILE_FILTER			256
+#define FILE_BOOKMARKS		512
 
 /* sfile->sort */
 #define FILE_SORTALPHA		0
@@ -472,6 +449,9 @@ typedef struct SpaceImaSel {
 #define PYSCRIPTFILE		64
 #define FTFONTFILE			128
 #define SOUNDFILE			256
+#define TEXTFILE			512
+#define MOVIEFILE_ICON		1024 /* movie file that preview can't load */
+#define FOLDERFILE			2048 /* represents folders for filtering */
 
 #define SCROLLH	16			/* height scrollbar */
 #define SCROLLB	16			/* width scrollbar */

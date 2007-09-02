@@ -56,6 +56,8 @@
 struct _AviMovie;
 struct Mdec;
 
+struct ImgInfo;
+
 #define IB_MIPMAP_LEVELS	10
 
 /**
@@ -103,6 +105,7 @@ typedef struct ImBuf {
 	float dither;			/**< random dither value, for conversion from float -> byte rect */
 	
 	struct MEM_CacheLimiterHandle_s * c_handle; /**< handle for cache limiter */
+	struct ImgInfo * img_info;
 	int refcounter;			/**< Refcounter for multiple users */
 	int index;				/**< reference index for ImBuf lists */
 	
@@ -148,6 +151,7 @@ typedef enum {
 #define IB_rectfloat	(1 << 15)
 #define IB_zbuffloat	(1 << 16)
 #define IB_multilayer	(1 << 17)
+#define IB_imginfo		(1 << 18)
 
 /*
  * The bit flag is stored in the ImBuf.ftype variable.

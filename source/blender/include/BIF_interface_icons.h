@@ -48,6 +48,7 @@ typedef struct IconFile {
 
 
 #define ICON_DEFAULT_HEIGHT 16
+#define PREVIEW_DEFAULT_HEIGHT 96
 
 /*
  Resizable Icons for Blender
@@ -57,6 +58,8 @@ int BIF_icon_get_width(int icon_id);
 int BIF_icon_get_height(int icon_id);
 
 void BIF_icon_draw(float x, float y, int icon_id);
+void BIF_icon_draw_preview(float x, float y, int icon_id, int nocreate);
+
 void BIF_icon_draw_aspect(float x, float y, int icon_id, float aspect);
 void BIF_icon_draw_aspect_blended(float x, float y, int icon_id, float aspect, int shade);
 void BIF_icons_free();

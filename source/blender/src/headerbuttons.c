@@ -709,7 +709,12 @@ void do_global_buttons(unsigned short event)
 		else return;
 		
 		if(*menunr== -2) {
-			activate_databrowse((ID *)lockpoin, ID_MA, 0, B_MATBROWSE, menunr, do_global_buttons);
+			if(G.qual & LR_CTRLKEY) {
+				activate_databrowse_imasel((ID *)lockpoin, ID_MA, 0, B_MATBROWSE, menunr, do_global_buttons);
+			}
+			else {
+				activate_databrowse((ID *)lockpoin, ID_MA, 0, B_MATBROWSE, menunr, do_global_buttons);
+			}
 			return;
 		}
 		

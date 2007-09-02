@@ -53,8 +53,6 @@ void activate_fileselect(int type, char *title, char *file, void (*func)(char *)
 void activate_fileselect_menu(int type, char *title, char *file, char *pupmenu, short *menup, void (*func)(char *));
 void activate_fileselect_args(int type, char *title, char *file, void (*func)(char *, void *, void *), void *arg1, void *arg2);
 
-void activate_imageselect(int type, char *title, char *file, void (*func)(char *));
-
 void activate_databrowse(struct ID *id, int idcode, int fromcode, int retval, short *menup, void (*func)(unsigned short));
 void activate_databrowse_args(struct ID *id, int idcode, int fromcode, short *menup, void (*func)(char *, void *, void *), void *arg1, void *arg2);
 

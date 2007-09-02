@@ -61,6 +61,7 @@
 #include "BIF_graphics.h"
 #include "BIF_glutil.h"
 #include "BIF_interface.h"
+#include "BIF_imasel.h"
 #include "BIF_keyval.h"
 #include "BIF_mainqueue.h"
 #include "BIF_mywindow.h"

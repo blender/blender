@@ -244,6 +244,7 @@ static OSErr QT_get_frameIndexes(struct anim *anim)
 	TimeValue nextTime = 0;
 	TimeValue	startPoint;
 	TimeValue	tmpstartPoint;
+	long sampleCount = 0;
 
 	startPoint = -1;
 
@@ -254,12 +255,12 @@ static OSErr QT_get_frameIndexes(struct anim *anim)
 
 	anim->qtime->framecount = 0;
 
-	while(tmpstartPoint != -1) {
-		nextTime = 0;
-		GetMovieNextInterestingTime(anim->qtime->movie, nextTimeMediaSample, 1, &media, tmpstartPoint, 0, &nextTime, NULL);
-		tmpstartPoint = nextTime;
-		anim->qtime->framecount ++;
-	}
+	sampleCount = GetMediaSampleCount(anim->qtime->theMedia);
+	anErr = GetMoviesError();
+	if (anErr != noErr) return anErr;
+
+	anim->qtime->framecount = sampleCount;
+
 	anim->qtime->frameIndex = (TimeValue *) MEM_callocN(sizeof(TimeValue) * anim->qtime->framecount, "qtframeindex");
 
 	//rewind
@@ -403,6 +404,7 @@ int startquicktime (struct anim *anim)
 	char		*qtname;
 	Str255		dst;
 #endif
+	short depth = 0;
 
 	anim->qtime = MEM_callocN (sizeof(QuicktimeMovie),"animqt");
 	anim->qtime->have_gw = FALSE;
@@ -483,6 +485,9 @@ int startquicktime (struct anim *anim)
 				 anim->qtime->offscreenGWorld,
 				 GetGWorldDevice(anim->qtime->offscreenGWorld));
 		SetMoviePlayHints(anim->qtime->movie, hintsHighQuality, hintsHighQuality);
+		
+		// sets Media and Track!
+		depth = GetFirstVideoTrackPixelDepth(anim);
 
 		QT_get_frameIndexes(anim);
 	}
@@ -491,7 +496,7 @@ int startquicktime (struct anim *anim)
 	LockPixels(anim->qtime->offscreenPixMap);
 
 	//fill blender's anim struct
-	anim->qtime->depth = GetFirstVideoTrackPixelDepth(anim);
+	anim->qtime->depth = depth;
 	
 	anim->duration = anim->qtime->framecount;
 	anim->params = 0;

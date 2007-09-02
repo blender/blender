@@ -50,6 +50,7 @@
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_ID.h"
+#include "DNA_material_types.h"
 
 #include "BKE_utildefines.h" // for ENDB
 
@@ -61,6 +62,7 @@
 #include "BLO_undofile.h"
 
 #include "readfile.h"
+#include "genfile.h"
 
 #include "BLO_readblenfile.h"
 
@@ -216,6 +218,70 @@ LinkNode *BLO_blendhandle_get_datablock_names(BlendHandle *bh, int ofblocktype)
 	}
 	
 	return names;
+}
+
+LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype) 
+{
+	FileData *fd= (FileData*) bh;
+	LinkNode *previews= NULL;
+	BHead *bhead;
+	int looking=0;
+	int npreviews = 0;
+	PreviewImage* prv = NULL;
+	PreviewImage* new_prv = NULL;
+	
+	for (bhead= blo_firstbhead(fd); bhead; bhead= blo_nextbhead(fd, bhead)) {
+		if (bhead->code==ofblocktype) {
+			ID *id= (ID*) (bhead+1);
+			if (GS(id->name) == ID_MA) {
+				new_prv = MEM_callocN(sizeof(PreviewImage), "newpreview");
+				BLI_linklist_prepend(&previews, new_prv);
+				looking = 1;
+			}
+		} else if (bhead->code==DATA) {
+			if (looking) {
+				if (bhead->SDNAnr == dna_findstruct_nr(fd->filesdna, "PreviewImage") ) {
+					prv = (PreviewImage*) (bhead+1);
+					npreviews = 0;				
+					memcpy(new_prv, prv, sizeof(PreviewImage));
+					if (prv->rect[0]) {
+						unsigned int *rect = NULL;
+						int rectlen = 0;
+						new_prv->rect[0] = MEM_callocN(new_prv->w[0]*new_prv->h[0]*sizeof(unsigned int), "prvrect");
+						bhead= blo_nextbhead(fd, bhead);
+						rect = (unsigned int*)(bhead+1);
+						rectlen = new_prv->w[0]*new_prv->h[0]*sizeof(unsigned int);
+						memcpy(new_prv->rect[0], rect, bhead->len);					
+					} else {
+						new_prv->rect[0] = NULL;
+					}
+					
+					if (prv->rect[1]) {
+						unsigned int *rect = NULL;
+						int rectlen = 0;
+						new_prv->rect[1] = MEM_callocN(new_prv->w[1]*new_prv->h[1]*sizeof(unsigned int), "prvrect");
+						bhead= blo_nextbhead(fd, bhead);
+						rect = (unsigned int*)(bhead+1);
+						rectlen = new_prv->w[1]*new_prv->h[1]*sizeof(unsigned int);					
+						memcpy(new_prv->rect[1], rect, bhead->len);							
+					} else {
+						new_prv->rect[1] = NULL;
+					}
+				}
+			}
+		} else if (bhead->code==ENDB) {
+			break;
+		} else if (bhead->code==DATA) {
+			/* DATA blocks between IDBlock and Preview */
+		} else {
+			looking = 0;
+			new_prv = NULL;
+			prv = NULL;
+		}
+		
+	}
+	
+	return previews;
 }
 
 LinkNode *BLO_blendhandle_get_linkable_groups(BlendHandle *bh) 

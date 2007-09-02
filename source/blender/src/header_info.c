@@ -105,6 +105,7 @@
 
 #include "BSE_editipo.h"
 #include "BSE_filesel.h"
+#include "BIF_imasel.h"
 #include "BSE_headerbuttons.h"
 #include "BSE_node.h"
 #include "BSE_sequence.h"
@@ -839,6 +840,9 @@ static void do_info_filemenu(void *arg, int event)
 	case 6: /* save image */
 		BIF_save_rendered_image_fs();
 		break;
+	case 7:
+		activate_imageselect(FILE_LOADLIB, "Load Library", G.lib, 0);
+		break;
 	case 22: /* save runtime */
 		activate_fileselect(FILE_SPECIAL, "Save Runtime", "", write_runtime_check);
 		break;
@@ -991,6 +995,7 @@ static uiBlock *info_filemenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Append or Link|Shift F1",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Append or Link (Image Browser)|Ctrl F1",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
 	uiDefIconTextBlockBut(block, info_file_importmenu, NULL, ICON_RIGHTARROW_THIN, "Import", 0, yco-=20, menuwidth, 19, "");
 	uiDefIconTextBlockBut(block, info_file_exportmenu, NULL, ICON_RIGHTARROW_THIN, "Export", 0, yco-=20, menuwidth, 19, "");
 	
