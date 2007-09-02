@@ -281,12 +281,14 @@ ImBuf* IMB_thumb_create(const char* dir, const char* file, ThumbSize size, Thumb
 			if (THB_SOURCE_IMAGE == source) {
 				BLI_getwdN(wdir);
 				chdir(dir);
-				img = IMB_loadiffname(file, IB_rect);				
-				stat(file, &info);
-				sprintf(mtime, "%ld", info.st_mtime);
-				sprintf(cwidth, "%d", img->x);
-				sprintf(cheight, "%d", img->y);
-				chdir(wdir);
+				img = IMB_loadiffname(file, IB_rect);
+				if (img != NULL) {
+					stat(file, &info);
+					sprintf(mtime, "%ld", info.st_mtime);
+					sprintf(cwidth, "%d", img->x);
+					sprintf(cheight, "%d", img->y);
+					chdir(wdir);
+				}
 			} else if (THB_SOURCE_MOVIE == source) {
 				struct anim * anim = NULL;
 				BLI_getwdN(wdir);
