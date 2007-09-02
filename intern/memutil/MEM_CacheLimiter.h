@@ -68,6 +68,7 @@ extern "C" {
 	extern int MEM_CacheLimiter_get_maximum();
         // this is rather _ugly_!
         extern int mem_in_use;
+	extern int mmap_in_use;
 };
 #endif
 
@@ -148,7 +149,7 @@ public:
 			return;
 		}
 		for (iterator it = queue.begin(); 
-		     it != queue.end() && mem_in_use > max;) {
+		     it != queue.end() && mem_in_use + mmap_in_use > max;) {
 			iterator jt = it;
 			++it;
 			(*jt)->destroy_if_possible();
