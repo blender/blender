@@ -2678,7 +2678,7 @@ void outliner_operation_menu(ScrArea *sa)
 		//else pupmenu("Scene Operations%t|Delete");
 	}
 	else if(objectlevel) {
-		short event= pupmenu("Select%x1|Deselect%x2|Delete%x4|Make Local%x5");
+		short event= pupmenu("Select%x1|Deselect%x2|Delete%x4");	/* make local: does not work... it doesn't set lib_extern flags... so data gets lost */
 		if(event>0) {
 			char *str="";
 			
@@ -2698,7 +2698,7 @@ void outliner_operation_menu(ScrArea *sa)
 				DAG_scene_sort(G.scene);
 				str= "Delete Objects";
 			}
-			else if(event==5) {
+			else if(event==5) {	/* disabled, see above (ton) */
 				outliner_do_object_operation(soops, &soops->tree, id_local_cb);
 				str= "Localized Objects";
 			}
