@@ -3728,7 +3728,9 @@ void apply_object()
 				where_is_object(ob);
 			}
 			else if ELEM(ob->type, OB_CURVE, OB_SURF) {
+				float scale;
 				object_to_mat3(ob, mat);
+				scale = Mat3ToScalef(mat);
 				cu= ob->data;
 				
 				if(cu->id.us>1) {
@@ -3749,6 +3751,7 @@ void apply_object()
 							Mat3MulVecfl(mat, bezt->vec[0]);
 							Mat3MulVecfl(mat, bezt->vec[1]);
 							Mat3MulVecfl(mat, bezt->vec[2]);
+							bezt->radius *= scale;
 							bezt++;
 						}
 					}

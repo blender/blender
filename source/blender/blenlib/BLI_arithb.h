@@ -333,6 +333,9 @@ void MinMax3(float *min, float *max, float *vec);
 void SizeToMat3(float *size, float mat[][3]);
 void SizeToMat4(float *size, float mat[][4]);
 
+float Mat3ToScalef(float mat[][3]);
+float Mat4ToScalef(float mat[][4]);
+
 void printmatrix3(char *str, float m[][3]);
 void printmatrix4(char *str, float m[][4]);
 

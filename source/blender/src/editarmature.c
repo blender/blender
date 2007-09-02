@@ -346,16 +346,11 @@ void apply_rot_armature (Object *ob, float mat[3][3])
 	ListBase	list;
 	EditBone *ebone;
 	bArmature *arm;
-	float scale;	/* store the scale of the matrix here to use on envelopes */
+	float scale = Mat3ToScalef(mat);	/* store the scale of the matrix here to use on envelopes */
 	arm = get_armature(ob);
 
-	if (!arm) {
-		return;
-	} else {
-		float tmp[3] = {1.0, 1.0, 1.0};
-		Mat3MulVecfl(mat, tmp);
-		scale = (fabs(tmp[0]) + fabs(tmp[1]) + fabs(tmp[2])) / 3.0f;
-	}
+	if (!arm)
+		return;	
 	
 	/* Put the armature into editmode */
 	list.first= list.last = NULL;
@@ -2653,22 +2648,13 @@ void add_verts_to_dgroups(Object *ob, Object *par, int heat, int mirror)
 	}
 
 	/* compute the weights based on gathered vertices and bones */
-	if (heat) {
+	if (heat)
 		heat_bone_weighting(ob, mesh, verts, numbones, dgrouplist, dgroupflip,
 			root, tip, selected);
-	} else {
-		float scale;
-		float tmp[3] = {1.0, 1.0, 1.0};
-		float mat[3][3];
-		
-		/* scale value from matrix, wont account for non uniform scale but ok */
-		Mat3CpyMat4(mat, par->obmat);
-		Mat3MulVecfl(mat, tmp);
-		scale = (fabs(tmp[0]) + fabs(tmp[1]) + fabs(tmp[2])) / 3.0f;
-		
+	else
 		envelope_bone_weighting(ob, mesh, verts, numbones, bonelist, dgrouplist,
-			dgroupflip, root, tip, selected, scale);
-	}
+			dgroupflip, root, tip, selected, Mat4ToScalef(par->obmat));
+	
     /* free the memory allocated */
     MEM_freeN(bonelist);
     MEM_freeN(dgrouplist);

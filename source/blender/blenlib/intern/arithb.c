@@ -2866,6 +2866,25 @@ void Mat4ToSize( float mat[][4], float *size)
 	size[2]= VecLength(mat[2]);
 }
 
+/* this gets the average scale of a matrix, only use when your scaling
+ * data that has no idea of scale axis, examples are bone-envelope-radius
+ * and curve radius */
+float Mat3ToScalef(float mat[][3])
+{
+	/* unit length vector */
+	float unit_vec[3] = {0.577350269189626, 0.577350269189626, 0.577350269189626};
+	Mat3MulVecfl(mat, unit_vec);
+	return VecLength(unit_vec);
+}
+
+float Mat4ToScalef(float mat[][4])
+{
+	float tmat[3][3];
+	Mat3CpyMat4(tmat, mat);
+	return Mat3ToScalef(tmat);
+}
+
+
 /* ************* SPECIALS ******************* */
 
 void triatoquat( float *v1,  float *v2,  float *v3, float *quat)
@@ -3581,4 +3600,3 @@ void LocQuatSizeToMat4(float mat[][4], float loc[3], float quat[4], float size[3
 	mat[3][1] = loc[1];
 	mat[3][2] = loc[2];
 }
-
