@@ -2141,6 +2141,11 @@ void do_object_panels(unsigned short event)
 		allqueue(REDRAWVIEW3D, 0);
 		break;
 		
+	case B_OBJECT_IPOFLAG:
+		if(ob->ipo) ob->ipo->showkey= (ob->ipoflag & OB_DRAWKEY)?1:0;
+		allqueue(REDRAWVIEW3D, 0);
+		break;
+		
 	default:
 		if(event>=B_SELEFFECT && event<B_SELEFFECT+MAX_EFFECT) {
 			int a=B_SELEFFECT;
@@ -2321,7 +2326,7 @@ static void object_panel_anim(Object *ob)
 	uiDefButS(block, ROW,REDRAWVIEW3D,"Z",		298,180,19,19, &ob->upflag, 13.0, 2.0, 0, 0, "Specify the axis that points up");
 	
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, OB_DRAWKEY, REDRAWVIEW3D, "Draw Key",		24,155,71,19, &ob->ipoflag, 0, 0, 0, 0, "Draw object as key position");
+	uiDefButBitS(block, TOG, OB_DRAWKEY, B_OBJECT_IPOFLAG, "Draw Key",		24,155,71,19, &ob->ipoflag, 0, 0, 0, 0, "Draw object as key position");
 	uiDefButBitS(block, TOG, OB_DRAWKEYSEL, REDRAWVIEW3D, "Draw Key Sel",	97,155,81,19, &ob->ipoflag, 0, 0, 0, 0, "Limit the drawing of object keys");
 	uiDefButBitS(block, TOG, OB_POWERTRACK, REDRAWVIEW3D, "Powertrack",		180,155,78,19, &ob->transflag, 0, 0, 0, 0, "Switch objects rotation off");
 	uiDefButBitS(block, TOG, PARSLOW, 0, "SlowPar",					260,155,56,19, &ob->partype, 0, 0, 0, 0, "Create a delay in the parent relationship");
