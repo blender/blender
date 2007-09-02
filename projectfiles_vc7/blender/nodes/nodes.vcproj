@@ -361,6 +361,9 @@
 					RelativePath="..\..\..\source\blender\nodes\intern\SHD_nodes\SHD_geom.c">
 				</File>
 				<File
+					RelativePath="..\..\..\source\blender\nodes\intern\SHD_nodes\SHD_hueSatVal.c">
+				</File>
+				<File
 					RelativePath="..\..\..\source\blender\nodes\intern\SHD_nodes\SHD_invert.c">
 				</File>
 				<File
