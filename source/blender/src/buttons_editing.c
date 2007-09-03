@@ -3038,7 +3038,7 @@ static void editing_panel_curve_type(Object *ob, Curve *cu)
 
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUM, B_MAKEDISP, "Width:",		760,90,150,19, &cu->width, 0.0, 2.0, 1, 0, "Make interpolated result thinner or fatter");
-		uiDefButF(block, NUM, B_MAKEDISP, "Extrude:",		760,70,150,19, &cu->ext1, 0.0, 5.0, 10, 0, "Curve extrusion size when not using a bevel object");
+		uiDefButF(block, NUM, B_MAKEDISP, "Extrude:",		760,70,150,19, &cu->ext1, 0.0, 100.0, 10, 0, "Curve extrusion size when not using a bevel object");
 		uiDefButF(block, NUM, B_MAKEDISP, "Bevel Depth:",		760,50,150,19, &cu->ext2, 0.0, 2.0, 1, 0, "Bevel depth when not using a bevel object");
 		uiDefButS(block, NUM, B_MAKEDISP, "BevResol:",	760,30,150,19, &cu->bevresol, 0.0, 32.0, 0, 0, "Bevel resolution when depth is non-zero and not using a bevel object");
 		uiDefIDPoinBut(block, test_obcurpoin_but, ID_OB, B_CHANGEDEP, "BevOb:",		760,10,150,19, &cu->bevobj, "Curve object name that defines the bevel shape");
