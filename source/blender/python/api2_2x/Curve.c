@@ -338,9 +338,9 @@ static int Curve_newsetExt1( BPy_Curve * self, PyObject * args )
 	value = (float)PyFloat_AS_DOUBLE( num );
 	Py_DECREF( num );
 
-	if(value > 5.0f || value < 0.0f)
+	if(value > 100.0f || value < 0.0f)
 		return EXPP_ReturnIntError( PyExc_ValueError,
-				"acceptable values are between 0.0 and 5.0" );
+				"acceptable values are between 0.0 and 100.0" );
 	self->curve->ext1 = value;
 
 	return 0;
