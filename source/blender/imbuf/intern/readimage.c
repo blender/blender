@@ -268,7 +268,7 @@ struct ImBuf *IMB_loadifffile(int file, int flags) {
 }
 
 
-struct ImBuf *IMB_loadiffname(char *naam, int flags) {
+struct ImBuf *IMB_loadiffname(const char *naam, int flags) {
 	int file;
 	struct ImBuf *ibuf;
 	int buf[1];

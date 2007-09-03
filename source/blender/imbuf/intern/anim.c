@@ -338,12 +338,12 @@ void IMB_close_anim(struct anim * anim) {
 }
 
 
-struct anim * IMB_open_anim(char * name, int ib_flags) {
+struct anim * IMB_open_anim( const char * name, int ib_flags) {
 	struct anim * anim;
 
 	anim = (struct anim*)MEM_callocN(sizeof(struct anim), "anim struct");
 	if (anim != NULL) {
-		strcpy(anim->name, name);
+		strcpy(anim->name, name);  /* fixme: possible buffer overflow here? */
 		anim->ib_flags = ib_flags;
 	}
 	return(anim);

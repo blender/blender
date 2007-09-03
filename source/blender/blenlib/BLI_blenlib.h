@@ -173,7 +173,7 @@ void BLI_clean(char *path);
 	 * @param str The string to be duplicated
 	 * @retval Returns the duplicated string
 	 */
-char* BLI_strdup(char *str);
+char* BLI_strdup(const char *str);
 
 	/**
 	 * Duplicates the first @a len bytes of cstring @a str 

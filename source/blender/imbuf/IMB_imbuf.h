@@ -158,7 +158,7 @@ struct ImBuf *IMB_testiffname(char *naam,int flags);
  *
  * @attention Defined in readimage.c
  */
-struct ImBuf *IMB_loadiffname(char *naam, int flags);
+struct ImBuf *IMB_loadiffname(const char *naam, int flags);
 
 /**
  *
@@ -258,7 +258,7 @@ int IMB_anim_get_duration(struct anim *anim);
  *
  * @attention Defined in anim.c
  */
-struct anim * IMB_open_anim(char * name, int ib_flags);
+struct anim * IMB_open_anim(const char * name, int ib_flags);
 void IMB_close_anim(struct anim * anim);
 
 /**

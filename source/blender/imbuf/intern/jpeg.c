@@ -345,7 +345,7 @@ static ImBuf * ibJpegImageFromCinfo(struct jpeg_decompress_struct * cinfo, int f
 	return(ibuf);
 }
 
-ImBuf * imb_ibJpegImageFromFilename (char * filename, int flags)
+ImBuf * imb_ibJpegImageFromFilename (const char * filename, int flags)
 {
 	struct jpeg_decompress_struct _cinfo, *cinfo = &_cinfo;
 	struct jpeg_error_mgr jerr;

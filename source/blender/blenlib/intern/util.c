@@ -633,7 +633,7 @@ char *BLI_strdupn(char *str, int len) {
 	
 	return n;
 }
-char *BLI_strdup(char *str) {
+char *BLI_strdup(const char *str) {
 	return BLI_strdupn(str, strlen(str));
 }
 
