@@ -1155,7 +1155,14 @@ void do_ipo_buttons(short event)
 			}
 		}
 		break;
-	} 
+	case B_IPOVIEWALL:
+		/* set visible active */
+		for(a=0, ei=G.sipo->editipo; a<G.sipo->totipo; a++, ei++) {
+			if (ei->icu)	ei->flag |= IPO_VISIBLE;
+			else			ei->flag &= ~IPO_VISIBLE;
+		}
+		break;
+	}
 }
 
 void ipo_buttons(void)

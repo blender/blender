@@ -2882,6 +2882,13 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				allqueue(REDRAWSOUND, 0);
 			}
 			break;
+		case ACCENTGRAVEKEY:
+			if((G.qual==0)) {
+				do_ipo_buttons(B_IPOVIEWALL);
+				allqueue(REDRAWIPO, 0);
+			}
+			break;
+			
 		}
 	}
 

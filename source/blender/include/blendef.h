@@ -247,6 +247,7 @@
 #define B_IPO_ACTION_OB		213
 #define B_IPO_ACTION_KEY	214
 #define B_IPOVIEWCENTER		215
+#define B_IPOVIEWALL		216
 
 
 /* OOPS: 250 */
