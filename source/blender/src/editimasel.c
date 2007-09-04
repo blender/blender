@@ -1058,15 +1058,18 @@ void winqreadimaselspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case XKEY:
 			getmouseco_areawin(mval);			
 			if (simasel->flag & FILE_BOOKMARKS) {
-					if(mval[0]>simasel->bookmarkrect.xmin && mval[0]<simasel->bookmarkrect.xmax && mval[1]>simasel->bookmarkrect.ymin && mval[1]<simasel->bookmarkrect.ymax) {			
-						int nentries = fsmenu_get_nentries();
-						set_active_bookmark(simasel, mval[1]);
-						if (simasel->active_bookmark >= 0 && simasel->active_bookmark < nentries) {
-							fsmenu_remove_entry(simasel->active_bookmark);
-							simasel->active_bookmark = -1;
-							do_draw = 1;
-						}
+				if(mval[0]>simasel->bookmarkrect.xmin && mval[0]<simasel->bookmarkrect.xmax && mval[1]>simasel->bookmarkrect.ymin && mval[1]<simasel->bookmarkrect.ymax) {			
+					int nentries = fsmenu_get_nentries();
+					set_active_bookmark(simasel, mval[1]);
+					if (simasel->active_bookmark >= 0 && simasel->active_bookmark < nentries) {
+						char name[FILE_MAX];
+						BLI_make_file_string(G.sce, name, BLI_gethome(), ".Bfs");
+						fsmenu_remove_entry(simasel->active_bookmark);
+						fsmenu_write_file(name);
+						simasel->active_bookmark = -1;
+						do_draw = 1;
 					}
+				}
 			}			
 			break;
 		}		

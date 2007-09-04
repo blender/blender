@@ -206,24 +206,21 @@ void fsmenu_remove_entry(int idx)
 		idx--;
 
 	if (fsme) {
-		if (prev) {
-			prev->next= fsme->next;
-		} else {
-			fsmenu= fsme->next;
-			if (fsme->save) {
-				if (prev) {
-					prev->next= fsme->next;
-				} else {
-					fsmenu= fsme->next;
-				}
-				// you should only be able to remove entries that were 
-				// not added by default
-				if (fsme->path) {
-					MEM_freeN(fsme->path);
-				}
-				MEM_freeN(fsme);
+		/* you should only be able to remove entries that were 
+		   not added by default, like windows drives.
+		   also separators (where path == NULL) shouldn't be removed */
+		if (fsme->save && fsme->path) {
+
+			/* remove fsme from list */
+			if (prev) {
+				prev->next= fsme->next;
+			} else {
+				fsmenu= fsme->next;
 			}
-		}		
+			/* free entry */
+			MEM_freeN(fsme->path);
+			MEM_freeN(fsme);
+		}
 	}
 }
 
