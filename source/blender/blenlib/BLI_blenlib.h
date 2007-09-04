@@ -184,7 +184,7 @@ char* BLI_strdup(const char *str);
 	 * @param len The number of bytes to duplicate
 	 * @retval Returns the duplicated string
 	 */
-char* BLI_strdupn(char *str, int len);
+char* BLI_strdupn(const char *str, int len);
 
 	/**
 	 * Like strncpy but ensures dst is always

@@ -438,7 +438,10 @@ GETFUNC( getWeight1 );
 GETFUNC( getWeight2 );
 GETFUNC( getWeight3 );
 GETFUNC( getWeight4 );
+#if 0
+/* not defined */
 GETFUNC( getUsers );
+#endif
 
 OLDSETFUNC( setDistMetric );
 OLDSETFUNC( setDistNoise );	/* special case used for ".noisebasis = ...  */

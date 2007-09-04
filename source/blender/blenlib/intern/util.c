@@ -626,7 +626,7 @@ void BLI_dlist_reinit(DynamicList *dlist)
 
 /*=====================================================================================*/
 
-char *BLI_strdupn(char *str, int len) {
+char *BLI_strdupn(const char *str, int len) {
 	char *n= MEM_mallocN(len+1, "strdup");
 	memcpy(n, str, len);
 	n[len]= '\0';

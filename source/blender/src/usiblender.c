@@ -528,8 +528,10 @@ int BIF_read_homefile(int from_memory)
 static void get_autosave_location(char buf[FILE_MAXDIR+FILE_MAXFILE])
 {
 	char pidstr[32];
+#ifdef WIN32
 	char subdir[9];
 	char savedir[FILE_MAXDIR];
+#endif
 
 	sprintf(pidstr, "%d.blend", abs(getpid()));
 	
