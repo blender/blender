@@ -30,12 +30,6 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#ifdef __sgi
-#define OLD_IMASEL	1
-#else
-#define OLD_IMASEL	0
-#endif
-
 #include <string.h>
 
 #ifdef HAVE_CONFIG_H
@@ -278,7 +272,15 @@ static void draw_imasel_bookmarks(ScrArea *sa, SpaceImaSel *simasel)
 				}
 				sname = &bookmark[sl];
 				sw = shorten_string(simasel, sname, bmwidth);
+
+				
 				if (simasel->active_bookmark == i ) {
+					glEnable(GL_BLEND);
+					glColor4ub(0, 0, 0, 100);
+					glDisable(GL_BLEND);
+					BIF_ThemeColor(TH_HILITE);
+					uiSetRoundBox(15);	
+					uiRoundBox(simasel->bookmarkrect.xmin + TILE_BORDER_X - 1, sy - linestep*0.25, simasel->bookmarkrect.xmax - TILE_BORDER_X + 1, sy + linestep*0.75, 6);
 					BIF_ThemeColor(TH_TEXT_HI);
 				} else {
 					BIF_ThemeColor(TH_TEXT);

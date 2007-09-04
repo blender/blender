@@ -325,8 +325,8 @@ static void set_active_file(SpaceImaSel *simasel, short x, short y)
 static void set_active_bookmark(SpaceImaSel *simasel, short y)
 {
 	int nentries = fsmenu_get_nentries();
-	short posy = simasel->bookmarkrect.ymax - U.fontsize*3/2 - TILE_BORDER_Y - y;
-	simasel->active_bookmark = ((float)posy / (U.fontsize*3.0f/2.0f)) + 0.5;	
+	short posy = simasel->bookmarkrect.ymax - TILE_BORDER_Y - y;
+	simasel->active_bookmark = ((float)posy / (U.fontsize*3.0f/2.0f));	
 	if (simasel->active_bookmark < 0 || simasel->active_bookmark > nentries) {
 		simasel->active_bookmark = -1;
 	}
@@ -1005,6 +1005,7 @@ void winqreadimaselspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			getmouseco_areawin(mval);
 			if(mval[0]>simasel->viewrect.xmin && mval[0]<simasel->viewrect.xmax && mval[1]>simasel->viewrect.ymin && mval[1]<simasel->viewrect.ymax) {
 				set_active_file(simasel, mval[0], mval[1]);
+				simasel->active_bookmark = -1;
 				if(simasel->active_file >=0 && simasel->active_file<numfiles) {
 					file = BIF_filelist_file(simasel->files, simasel->active_file);
 					if (simasel->selstate == INACTIVATE) {
@@ -1016,15 +1017,15 @@ void winqreadimaselspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					do_draw= 1;
 				}
 			} else {
-				simasel->active_file = -1;
+				simasel->active_file = -1;			
 				if (simasel->flag & FILE_BOOKMARKS) {
 					if(mval[0]>simasel->bookmarkrect.xmin && mval[0]<simasel->bookmarkrect.xmax && mval[1]>simasel->bookmarkrect.ymin && mval[1]<simasel->bookmarkrect.ymax) {
-						set_active_bookmark(simasel, mval[1]);
-						do_draw= 1;
+						set_active_bookmark(simasel, mval[1]);						
 					} else {
 						simasel->active_bookmark = -1;
-					}					
-				}				
+					}
+					do_draw= 1;
+				}
 			}
 			break;
 		case AKEY:
