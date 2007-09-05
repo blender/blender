@@ -1,5 +1,5 @@
 /**
- * $Id: $ 
+ * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -71,3 +71,4 @@ ImBuf* IMB_thumb_manage(const char* dir, const char* file, ThumbSize size, Thumb
 
 
 #endif /* _IMB_THUMBS_H */
+

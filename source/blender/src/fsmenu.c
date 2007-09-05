@@ -1,5 +1,5 @@
 /**
- * $Id: fsmenu.c 11698 2007-08-19 12:22:51Z elubie $
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

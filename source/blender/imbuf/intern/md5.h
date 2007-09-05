@@ -113,3 +113,4 @@ int md5_stream __P ((FILE *stream, void *resblock));
 void *md5_buffer __P ((const char *buffer, size_t len, void *resblock));
 
 #endif
+

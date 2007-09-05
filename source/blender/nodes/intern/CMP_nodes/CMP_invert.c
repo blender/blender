@@ -1,5 +1,5 @@
 /**
- * $Id: CMP_mixrgb.c,v 1.4 2007/04/04 13:58:10 jesterking Exp $
+ * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *

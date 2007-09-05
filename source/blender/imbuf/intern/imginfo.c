@@ -1,5 +1,5 @@
 /**
- * $Id: $ 
+ * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -106,3 +106,4 @@ int IMB_imginfo_add_field(struct ImBuf* img, const char* key, const char* field)
 	info->value = BLI_strdup(field);
 	return 1;
 }
+

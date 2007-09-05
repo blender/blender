@@ -1,5 +1,5 @@
 /**
- * $Id: $ 
+ * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
  *
@@ -76,3 +76,4 @@ int IMB_imginfo_add_field(struct ImBuf* img, const char* key, const char* field)
 
 
 #endif /* _IMB_IMGINFO_H */
+
