@@ -204,11 +204,13 @@ void BME_select_poly(struct BME_Mesh *bm, struct BME_Poly *f, int select);
 /*Vertex Tools*/
 void BME_connect_verts(struct BME_Mesh *bm);
 void BME_delete_verts(struct BME_Mesh *bm);
+int BME_extrude_verts(struct BME_Mesh *bm);
 /*Edge Tools*/
 void BME_cut_edge(struct BME_Mesh *bm, BME_Edge *e, int numcuts);
 void BME_cut_edges(struct BME_Mesh *bm, int numcuts);
 void BME_dissolve_edges(struct BME_Mesh *bm);
 void BME_delete_edges(struct BME_Mesh *bm);
+int BME_extrude_edges(struct BME_Mesh *bm);
 /*Face Tools*/
 struct BME_Poly *BME_inset_poly(struct BME_Mesh *bm, struct BME_Poly *f);
 void BME_split_face(struct BME_Mesh *bm, struct BME_Poly *f);

@@ -1776,8 +1776,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case EKEY:
 				if (G.qual==0){
 					if(G.obedit) {
-						//if(G.obedit->type==OB_MESH)
-							//EDITBMESHGREP extrude_mesh();
+						if(G.obedit->type==OB_MESH)
+							EM_extrude_mesh();
 						if(G.obedit->type==OB_CURVE)
 							addvert_Nurb('e');
 						else if(G.obedit->type==OB_SURF)

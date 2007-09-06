@@ -47,7 +47,7 @@
 #include "BKE_bmesh.h"
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
-#include <windows.h> // for sleep, debug
+
 
 
 
@@ -412,7 +412,88 @@ void BME_delete_polys(BME_Mesh *bm){
 	remove_tagged_polys(bm);
 }
 	
+int BME_extrude_verts(BME_Mesh *bm){
+	BME_Vert *v, *nv = NULL;
+	BME_Edge *ne = NULL;
+	float vec[3];
+	short retval = 0; 
+	
+	//extrude the vertices
+	for(v=BME_first(bm,BME_VERT);v;v=BME_next(bm,BME_VERT,v)){
+		if(BME_SELECTED(v)){
+			retval = 1;
+			VECCOPY(vec,v->co);
+			nv = BME_MV(bm,vec);
+			ne = BME_ME(bm,v,nv);
+			BME_VISIT(nv);
+			BME_select_vert(bm,v,0);
+		}
+	}
+	//clean up selection
+	for(v=BME_first(bm,BME_VERT);v;v=BME_next(bm,BME_VERT,v)){
+		if(BME_ISVISITED(v)) BME_select_vert(bm, v,1);
+	}
+	return retval;
+}
 
+int BME_extrude_edges(BME_Mesh *bm){
+	BME_Poly *nf=NULL;
+	BME_Edge *e, *l=NULL, *r=NULL, *edar[4], *ne;
+	BME_Vert *v, *v1, *v2, *lv, *rv, *nv;
+	float vec[3];
+	short retval = 0;
+	
+	for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
+		if(BME_SELECTED(e)){
+			e->tflag1 = 1; //mark as original
+			e->v1->tflag1 = 1;//mark for dupe
+			e->v2->tflag1 = 1;//mark for dupe
+			BME_select_edge(bm,e,0); //clear selection
+			retval = 1;
+		}
+	}
+	
+	for(v=BME_first(bm,BME_VERT);v;v=BME_next(bm,BME_VERT,v)){
+		if(v->tflag1){
+			VECCOPY(vec,v->co);
+			nv = BME_MV(bm,vec);
+			ne = BME_ME(bm,v,nv);
+			ne->tflag1 = 2; //mark as new
+		}
+	}
+
+	for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
+		if(e->tflag1==1){
+			/*find one face incident upon e and use it for winding of new face*/
+			if(e->loop){
+				v1 = e->loop->next->v;
+				v2 = e->loop->v;
+			}
+			else{
+				v1 = e->v1;
+				v2 = e->v2;
+			}
+			
+			if(v1->edge->tflag1 == 2) l = v1->edge;
+			else l = BME_disk_next_edgeflag(v1->edge, v1, 0, 2);
+			if(v2->edge->tflag1 == 2) r = v2->edge;
+			else r = BME_disk_next_edgeflag(v2->edge, v2, 0, 2);
+			
+			lv = BME_edge_getothervert(l,v1);
+			rv = BME_edge_getothervert(r,v2);
+			
+			ne = BME_ME(bm,lv,rv);
+			
+			edar[0] = e;
+			edar[1] = l;
+			edar[2] = ne;
+			edar[3] = r;
+			BME_MF(bm,v1,v2,edar,4);
+			BME_select_edge(bm,ne,1);
+		}
+	}
+	return retval;
+}
 
 
 

@@ -44,6 +44,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_depsgraph.h"
 #include "BKE_utildefines.h"
+#include "BKE_object.h"
 
 #include "DNA_meshdata_types.h"
 #include "DNA_mesh_types.h"
@@ -62,6 +63,7 @@
 #include "BIF_screen.h"
 #include "BIF_resources.h"
 #include "BIF_language.h"
+#include "BIF_transform.h"
 
 #include "BDR_editobject.h"
 #include "BDR_drawobject.h"
@@ -102,3 +104,52 @@ void EM_delete_context(void){
 	DAG_object_flush_update(G.scene,G.obedit,OB_RECALC_DATA);
 	allqueue(REDRAWVIEW3D,0);
 }
+
+void EM_extrude_mesh(void){
+	float nor[3]= {0.0, 0.0, 0.0};
+	short transmode=0,extrudemode=0; //1 = verts, 2, = edges, 3 = faces, 4 = individual faces... should actually be inset then move along individual normals?
+	
+	BME_model_begin(G.editMesh);
+	if(G.scene->selectmode == SCE_SELECT_VERTEX){ 
+		transmode = BME_extrude_verts(G.editMesh);
+		if(transmode) extrudemode = 1;
+	}
+	else if(G.scene->selectmode == SCE_SELECT_EDGE){
+		transmode = BME_extrude_edges(G.editMesh);
+		if(transmode) extrudemode = 2;
+	}
+	
+	if(transmode){
+		/* We need to force immediate calculation here because 
+		* transform may use derived objects (which are now stale).
+		*
+		* This shouldn't be necessary, derived queries should be
+		* automatically building this data if invalid. Or something.
+		*/
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	
+		object_handle_update(G.obedit);
+
+		/* individual faces? */
+		BIF_TransformSetUndo("Extrude");
+		/*if(nr==2) {
+			initTransform(TFM_SHRINKFATTEN, CTX_NO_PET);
+			Transform();
+		}
+		else {
+			initTransform(TFM_TRANSLATION, CTX_NO_PET);
+			if(transmode=='n') {
+				Mat4MulVecfl(G.obedit->obmat, nor);
+				VecSubf(nor, nor, G.obedit->obmat[3]);
+				BIF_setSingleAxisConstraint(nor, NULL);
+			}
+			Transform();
+		}*/
+		
+		initTransform(TFM_TRANSLATION,CTX_NO_PET);
+		Transform();
+	}	
+	BME_model_end(G.editMesh);
+	DAG_object_flush_update(G.scene,G.obedit,OB_RECALC_DATA);
+	allqueue(REDRAWVIEW3D,0);
+}
+
