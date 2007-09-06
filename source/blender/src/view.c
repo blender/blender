@@ -152,6 +152,11 @@ void initgrabz(float x, float y, float z)
 	 * (accounting for near zero values)
 	 * */
 	if (G.vd->zfac < 1.e-6f && G.vd->zfac > -1.e-6f) G.vd->zfac = 1.0f;
+	
+	/* Negative zfac means x, y, z was behind the camera (in perspective).
+	 * This gives flipped directions, so revert back to ok default case.
+	 */
+	if (G.vd->zfac < 0.0f) G.vd->zfac = 1.0f;
 }
 
 void window_to_3d(float *vec, short mx, short my)
