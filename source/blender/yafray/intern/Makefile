@@ -33,10 +33,6 @@ DIR = $(OCGDIR)/blender/yafray
 
 include nan_compile.mk
 
-ifeq ($(OS),$(findstring $(OS), "beos darwin freebsd linux openbsd solaris windows"))
-    CFLAGS += -funsigned-char
-endif
-
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include

@@ -15,6 +15,7 @@
 #include "solver_interface.h"
 #include "particletracer.h"
 #include "elbeem.h"
+#include <stdlib.h> /* exit(3) - also in linux */
 
 #ifdef _WIN32
 #else

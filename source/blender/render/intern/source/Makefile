@@ -36,11 +36,6 @@ DIR = $(OCGDIR)/blender/$(LIBNAME)
 
 include nan_compile.mk
 
-ifeq ($(OS),$(findstring $(OS), "beos darwin freebsd linux openbsd solaris windows"))
-    CFLAGS += -funsigned-char
-    CCFLAGS += -funsigned-char
-endif
-
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 
 # first /include is my own includes, second is the external interface. 

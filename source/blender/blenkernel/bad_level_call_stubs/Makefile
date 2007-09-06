@@ -39,10 +39,6 @@ include nan_compile.mk
 CFLAGS += $(LEVEL_2_C_WARNINGS)
 CFLAGS += $(FIX_STUBS_WARNINGS)
 
-ifeq ($(OS),$(findstring $(OS), "beos darwin freebsd linux openbsd solaris windows"))
-    CFLAGS += -funsigned-char
-endif
-
 CPPFLAGS += $(OGL_CPPFLAGS)
 CPPFLAGS += -I../../makesdna
 CPPFLAGS += -I../../include

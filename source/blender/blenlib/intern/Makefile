@@ -36,10 +36,6 @@ DIR = $(OCGDIR)/blender/$(LIBNAME)
 
 include nan_compile.mk
 
-ifeq ($(OS),$(findstring $(OS), "beos darwin freebsd linux openbsd solaris windows"))
-    CFLAGS += -funsigned-char
-endif
-
 # CPPFLAGS += $(LEVEL_2_CPP_WARNINGS)
 
 # path to SDNA types

@@ -17,6 +17,7 @@
 #include "ntl_world.h"
 #include "elbeem.h"
 
+#include <stdlib.h> /* getenv(3) - also in linux */
 
 
 

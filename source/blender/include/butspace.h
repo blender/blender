@@ -280,6 +280,7 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_FLUIDSIM_MAKEPART	    1453
 
 #define B_GROUP_RELINK			1460
+#define B_OBJECT_IPOFLAG		1461
 
 /* *********************** */
 #define B_WORLDBUTS		1600

@@ -292,6 +292,31 @@ static int node_buts_mix_rgb(uiBlock *block, bNodeTree *ntree, bNode *node, rctf
 	return 20;
 }
 
+static int node_buts_time(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		CurveMapping *cumap= node->storage;
+		short dx= (short)((butr->xmax-butr->xmin)/2);
+		butr->ymin += 26;
+
+		curvemap_buttons(block, node->storage, 's', B_NODE_EXEC+node->nr, B_REDR, butr);
+		
+		if(cumap) cumap->flag |= CUMA_DRAW_CFRA;
+		if(node->custom1<node->custom2)
+			cumap->black[0]= (float)(CFRA - node->custom1)/(float)(node->custom2-node->custom1);
+
+		uiBlockBeginAlign(block);
+		uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Sta:",
+				  butr->xmin, butr->ymin-22, dx, 19, 
+				  &node->custom1, 1.0, 20000.0, 0, 0, "Start frame");
+		uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "End:",
+				  butr->xmin+dx, butr->ymin-22, dx, 19, 
+				  &node->custom2, 1.0, 20000.0, 0, 0, "End frame");
+	}
+	
+	return node->width-NODE_DY;
+}
+
 static int node_buts_valtorgb(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
@@ -1146,35 +1171,6 @@ static int node_composit_buts_map_value(uiBlock *block, bNodeTree *ntree, bNode 
 	return 80;
 }
 
-static int node_composit_buts_time(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
-{
-	if(block) {
-		CurveMapping *cumap= node->storage;
-		short dx= (butr->xmax-butr->xmin)/2;
-		rctf *curvebutr;
-		
-		memcpy(&curvebutr, &butr, sizeof(rctf));
-		curvebutr->ymin += 26;
-		
-		curvemap_buttons(block, node->storage, 's', B_NODE_EXEC+node->nr, B_REDR, curvebutr);
-		
-		cumap->flag |= CUMA_DRAW_CFRA;
-		if(node->custom1<node->custom2)
-			cumap->black[0]= (float)(CFRA - node->custom1)/(float)(node->custom2-node->custom1);
-		
-		uiBlockBeginAlign(block);
-		uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Sta:",
-				  butr->xmin, butr->ymin-22, dx, 19, 
-				  &node->custom1, 1.0, 20000.0, 0, 0, "Start frame");
-		uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "End:",
-				  butr->xmin+dx, butr->ymin-22, dx, 19, 
-				  &node->custom2, 1.0, 20000.0, 0, 0, "End frame");
-		
-	}
-	
-	return node->width-NODE_DY;
-}
-
 static int node_composit_buts_alphaover(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
@@ -1564,7 +1560,7 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			ntype->butfunc= node_composit_buts_map_value;
 			break;
 		case CMP_NODE_TIME:
-			ntype->butfunc= node_composit_buts_time;
+			ntype->butfunc= node_buts_time;
 			break;
 		case CMP_NODE_ALPHAOVER:
 			ntype->butfunc= node_composit_buts_alphaover;

@@ -7,6 +7,7 @@
  *
  *****************************************************************************/
 
+#include <stdlib.h> /* rand(3) - also in linux */
 #include "solver_class.h"
 #include "solver_relax.h"
 #include "particletracer.h"

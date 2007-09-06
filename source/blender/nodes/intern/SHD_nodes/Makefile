@@ -36,10 +36,6 @@ DIR = $(OCGDIR)/blender/$(LIBNAME)
 
 include nan_compile.mk
 
-ifeq ($(OS),$(findstring $(OS), "beos darwin freebsd openbsd linux solaris windows"))
-    CFLAGS += -funsigned-char
-endif
-
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 
 CPPFLAGS += -I$(OPENGL_HEADERS)

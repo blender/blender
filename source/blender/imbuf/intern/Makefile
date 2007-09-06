@@ -47,10 +47,6 @@ ifeq ($(WITH_OPENEXR), true)
 endif
 
 
-ifeq ($(OS),$(findstring $(OS), "beos darwin freebsd linux openbsd solaris windows"))
-    CFLAGS += -funsigned-char
-endif
-
 CFLAGS += $(LEVEL_1_C_WARNINGS)
 
 CPPFLAGS += -I$(NAN_JPEG)/include

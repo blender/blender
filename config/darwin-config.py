@@ -52,6 +52,7 @@ WITH_BF_OPENEXR = 'true'
 BF_OPENEXR = '${LCGDIR}/openexr'
 BF_OPENEXR_INC = '${BF_OPENEXR}/include ${BF_OPENEXR}/include/OpenEXR'
 BF_OPENEXR_LIB = ' Iex Half IlmImf Imath IlmThread'
+BF_OPENEXR_LIBPATH = '${BF_OPENEXR}/lib'
 
 
 WITH_BF_JPEG = 'true'
