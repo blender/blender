@@ -198,11 +198,19 @@ void BME_select_edge(struct BME_Mesh *bm, struct BME_Edge *e, int select);
 void BME_select_poly(struct BME_Mesh *bm, struct BME_Poly *f, int select);
 #define BME_SELECTED(element) (element->flag & SELECT)
 #define BME_NEWELEM(element) (element->flag & BME_NEW)
-
+#define BME_ISVISITED(element) (element->flag & BME_VISITED)
+#define BME_VISIT(element) (element->flag |= BME_VISITED)
 /*TOOLS CODE*/
+/*Vertex Tools*/
+void BME_connect_verts(struct BME_Mesh *bm);
+void BME_delete_verts(struct BME_Mesh *bm);
+/*Edge Tools*/
 void BME_cut_edge(struct BME_Mesh *bm, BME_Edge *e, int numcuts);
 void BME_cut_edges(struct BME_Mesh *bm, int numcuts);
-struct BME_Loop *BME_inset_edge(struct BME_Mesh *bm, struct BME_Loop *l, struct BME_Poly *f);
-struct BME_Poly *BME_inset_poly(struct BME_Mesh *bm, struct BME_Poly *f);
 void BME_dissolve_edges(struct BME_Mesh *bm);
+void BME_delete_edges(struct BME_Mesh *bm);
+/*Face Tools*/
+struct BME_Poly *BME_inset_poly(struct BME_Mesh *bm, struct BME_Poly *f);
+void BME_split_face(struct BME_Mesh *bm, struct BME_Poly *f);
+void BME_delete_polys(struct BME_Mesh *bm);
 #endif

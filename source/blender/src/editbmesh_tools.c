@@ -85,3 +85,20 @@ void EM_dissolve_edges(void){
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	allqueue(REDRAWVIEW3D, 0);
 }
+void EM_connect_verts(void){
+	BME_model_begin(G.editMesh);
+	BME_connect_verts(G.editMesh);
+	BME_model_end(G.editMesh);
+	DAG_object_flush_update(G.scene,G.obedit,OB_RECALC_DATA);
+	allqueue(REDRAWVIEW3D,0);
+}
+
+void EM_delete_context(void){
+	BME_model_begin(G.editMesh);
+	if(G.scene->selectmode == SCE_SELECT_VERTEX) BME_delete_verts(G.editMesh);
+	else if(G.scene->selectmode == SCE_SELECT_EDGE) BME_delete_edges(G.editMesh);
+	else if(G.scene->selectmode == SCE_SELECT_FACE) BME_delete_polys(G.editMesh);
+	BME_model_end(G.editMesh);
+	DAG_object_flush_update(G.scene,G.obedit,OB_RECALC_DATA);
+	allqueue(REDRAWVIEW3D,0);
+}

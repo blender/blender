@@ -1780,8 +1780,8 @@ void mergemenu(void)
 void delete_context_selected(void) 
 {
 	if(G.obedit) {
-		/*//EDITBMESHGREP if(G.obedit->type==OB_MESH) delete_mesh();
-		else */if ELEM(G.obedit->type, OB_CURVE, OB_SURF) delNurb();
+		if(G.obedit->type==OB_MESH) EM_delete_context();
+		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) delNurb();
 		else if(G.obedit->type==OB_MBALL) delete_mball();
 		else if (G.obedit->type==OB_ARMATURE) delete_armature();
 	}

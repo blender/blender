@@ -37,22 +37,61 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_listBase.h"
+#include "DNA_object_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_mesh_types.h"
 
+#include "BKE_global.h"
+#include "BKE_depsgraph.h"
 #include "BKE_utildefines.h"
 #include "BKE_bmesh.h"
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
+#include <windows.h> // for sleep, debug
+
+
+
+
+
+/*Vertex Tools*/
+void BME_connect_verts(BME_Mesh *bm)
+{
+	BME_Poly *f;
+	BME_Loop *l;
+	int split;
+	
+	/*visit the faces with selected verts*/
+	for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){
+		split = 0;
+		if(!(BME_NEWELEM(f))){
+			l = f->loopbase;
+			do{
+				if(BME_SELECTED(l->v)){ 
+					BME_VISIT(l->v);
+					split ++;
+				}
+				l = l->next;
+			}while(l != f->loopbase);
+			
+			if(split>1){ 
+				BME_split_face(bm,f);
+			}
+		}
+	}
+}
+
+
+
 
 /**
  *			BME_dissolve_edge
  *
  *	Edge Dissolve Function:
  *	
- *	Dissolves a 2-manifold edge by joining it's two faces. if 
- *	they have opposite windings it first makes them consistent 
- *	by calling BME_loop_reverse()
+ *	Dissolves a 2-manifold edge by joining it's two faces. 
+*	
+*	TODO:if  the two adjacent faces have opposite windings, first 
+*	make them consistent by calling BME_loop_reverse()?
  *
  *	Returns -
 */
@@ -79,8 +118,7 @@ void BME_dissolve_edges(BME_Mesh *bm)
 /**
  *			BME_cut_edge
  *
- *
- *
+ *	Cuts a single edge in a mesh into multiple parts
  *
  */
 
@@ -130,22 +168,52 @@ void BME_cut_edges(BME_Mesh *bm, int numcuts)
 			BME_cut_edge(bm,e,numcuts);
 	}
 }
-/**
- *			BME_inset_edge
- *
- *	Edge Inset Function:
- *	
- *	Splits a face in two along an edge and returns the next loop 
- *
- *	Returns -
- *	A BME_Poly pointer.
- */
 
-BME_Loop *BME_inset_edge(BME_Mesh *bm, BME_Loop *l, BME_Poly *f){
-	BME_Loop *nloop;
-	BME_SFME(bm, f, l->v, l->next->v, &nloop);
-	return nloop->next; 
+
+/**
+ *			BME_split_face
+ *
+ *	Face Split Tool:
+ *	
+ *	Splits a face into multiple other faces depending oh how 
+ *	many of its vertices have been visited.
+*	
+*	TODO: This is only one 'fill type' for face subdivisions. Need to 
+*	port over all the old subdivision fill types from editmesh and figure
+*	out best strategy for dealing with n-gons.
+*
+ *	Returns -
+ *	Nothing
+ */
+void BME_split_face(BME_Mesh *bm, BME_Poly *f)
+{
+	return;
 }
+
+/*
+
+{
+	BME_Loop *l, *scanloop, *nextl;
+	int len, i,j;
+	len = f->len;
+	for(i=0,l=f->loopbase; i <= len; ){
+		nextl = l->next;
+		j=2;
+		//printf("Face ID is%i, BM->Nextp is %i",f->EID,bm->nextp);
+		if(BME_ISVISITED(l->v)){
+			for(scanloop = l->next->next; j < (len-1); j++ , scanloop = scanloop->next){
+				if(BME_ISVISITED(scanloop->v)){
+					f = BME_SFME(bm,f,l->v,scanloop->v,NULL);
+					nextl=scanloop;
+					break;
+				}
+			}
+		}
+		l=nextl;
+		i+=j;
+	}
+}
+*/
 
 /**
  *			BME_inset_poly
@@ -154,7 +222,9 @@ BME_Loop *BME_inset_edge(BME_Mesh *bm, BME_Loop *l, BME_Poly *f){
  *	
  *	Insets a single face and returns a pointer to the face at the 
  *	center of the newly created region
- *
+*	
+*	TODO: Rewrite this. It's a mess. Especially take out the geometry modification stuff and make it a topo only thingy.
+*
  *	Returns -
  *	A BME_Poly pointer.
  */
@@ -254,3 +324,96 @@ BME_Poly *BME_inset_poly(BME_Mesh *bm,BME_Poly *f){
 	}
 	return NULL;
 }
+
+static void remove_tagged_polys(BME_Mesh *bm){
+	BME_Poly *f, *nextf;
+	f=BME_first(bm,BME_POLY);
+	while(f){
+		nextf = BME_next(bm,BME_POLY,f);
+		if(BME_ISVISITED(f)) BME_KF(bm,f);
+		f = nextf;
+	}
+}
+static void remove_tagged_edges(BME_Mesh *bm){
+	BME_Edge *e, *nexte;
+	e=BME_first(bm,BME_EDGE);
+	while(e){
+		nexte = BME_next(bm,BME_EDGE,e);
+		if(BME_ISVISITED(e)) BME_KE(bm,e);
+		e = nexte;
+	}
+}
+static void remove_tagged_verts(BME_Mesh *bm){
+	BME_Vert *v, *nextv;
+	v=BME_first(bm,BME_VERT);
+	while(v){
+		nextv = BME_next(bm,BME_VERT,v);
+		if(BME_ISVISITED(v)) BME_KV(bm,v);
+		v=nextv;
+	}
+}
+
+void BME_delete_verts(BME_Mesh *bm){
+	BME_Vert *v;
+	BME_Edge *e, *curedge;
+	BME_Loop *curloop;
+	
+	for(v=BME_first(bm,BME_VERT);v;v=BME_next(bm,BME_VERT,v)){
+		if(BME_SELECTED(v)){
+			BME_VISIT(v); // mark for delete
+			/*visit edges and faces of edges*/
+			if(v->edge){
+				curedge = v->edge;
+				do{
+					BME_VISIT(curedge); // mark for delete
+					if(curedge->loop){
+						curloop = curedge->loop;
+						do{
+							BME_VISIT(curloop->f); // mark for delete
+							curloop = curloop->radial.next->data;
+						} while(curloop != curedge->loop);
+					}
+					curedge = BME_disk_nextedge(curedge,v);
+				} while(curedge != v->edge);
+			}
+		}
+	}
+
+	remove_tagged_polys(bm);
+	remove_tagged_edges(bm);
+	remove_tagged_verts(bm);
+}
+
+void BME_delete_edges(BME_Mesh *bm){
+	BME_Edge *e;
+	BME_Loop *curloop;
+	
+	for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
+		if(BME_SELECTED(e)){
+			BME_VISIT(e); //mark for delete
+			if(e->loop){
+				curloop = e->loop;
+				do{
+					BME_VISIT(curloop->f); //mark for delete
+					curloop = curloop->radial.next->data;
+				} while(curloop != e->loop);
+			}
+		}
+	}
+	remove_tagged_polys(bm);
+	remove_tagged_edges(bm);
+}
+
+void BME_delete_polys(BME_Mesh *bm){
+	BME_Poly *f;
+	for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){
+		if(BME_SELECTED(f)) BME_VISIT(f);
+	}
+	remove_tagged_polys(bm);
+}
+	
+
+
+
+
+

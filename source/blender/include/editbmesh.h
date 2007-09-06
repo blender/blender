@@ -28,3 +28,4 @@ void mouse_bmesh(void);
 /*editbmesh_tools.c*/
 void EM_cut_edges(int numcuts);
 void EM_dissolve_edges(void);
+void EM_delete_context(void);

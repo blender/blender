@@ -2354,7 +2354,15 @@ void special_editmenu(void)
 				BIF_undo_push("Dissolve Edges");
 			}
 			break;
+		
+		case 100:
+			{
+				EM_connect_verts();
+				BIF_undo_push("Connect Vertices");
+			}
+			break;
 		}
+		
 		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		
 	}
