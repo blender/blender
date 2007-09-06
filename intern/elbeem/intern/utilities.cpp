@@ -10,6 +10,7 @@
 
 #include <iostream>
 #include <sstream>
+#include <stdlib.h> /* getenv(3), strtol(3) */
 #ifdef WIN32
 // for timing
 #include <windows.h>
