@@ -354,7 +354,7 @@ def bvh_node_dict2objects(bvh_nodes, IMPORT_START_FRAME= 1, IMPORT_LOOP= False):
 			
 			bvh_node.temp.rot= rx*DEG2RAD,ry*DEG2RAD,rz*DEG2RAD
 			
-			bvh_node.temp.insertIpoKey(Blender.Object.IpoKeys.LOCROT)
+			bvh_node.temp.insertIpoKey(Blender.Object.IpoKeyTypes.LOCROT)
 	
 	scn.update(1)
 	return objects

@@ -57,6 +57,8 @@
 
 #include "DNA_armature_types.h" /*used for pose bone select*/
 
+#include "MEM_guardedalloc.h"
+
 extern void chan_calc_mat(bPoseChannel *chan);
 
 //------------------------ERROR CODES---------------------------------
@@ -143,11 +145,14 @@ static int PoseBonesDict_InitBones(BPy_PoseBonesDict *self)
 //This is the string representation of the object
 static PyObject *PoseBonesDict_repr(BPy_PoseBonesDict *self)
 {
-	char buffer[128], str[4096];
+	char buffer[128], *str;
 	PyObject *key, *value;
 	int pos = 0;
-
-	BLI_strncpy(str,"",4096);
+	
+	/* probably a bit of overkill but better then crashing */
+	str = MEM_mallocN( 64 + ( PyDict_Size( self->bonesMap ) * 128), "PoseBonesDict_repr" );
+	str[0] = '\0';
+	
 	sprintf(buffer, "[Pose Bone Dict: {");
 	strcat(str,buffer);
 	while (PyDict_Next(self->bonesMap, &pos, &key, &value)) {
@@ -157,6 +162,9 @@ static PyObject *PoseBonesDict_repr(BPy_PoseBonesDict *self)
 	}
 	sprintf(buffer, "}]\n");
 	strcat(str,buffer);
+	
+	MEM_freeN( str );
+	
 	return PyString_FromString(str);
 }
 

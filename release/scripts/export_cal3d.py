@@ -616,7 +616,8 @@ class Cal3DVertex(object):
 			sum = 0.0
 			
 			for bone_name, weight in blend_influences:
-				sum += weight
+				if BONES.get(bone_name):
+					sum += weight
 			
 			for bone_name, weight in blend_influences:
 				bone = BONES.get(bone_name)

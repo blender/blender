@@ -343,16 +343,11 @@ void apply_rot_armature (Object *ob, float mat[3][3])
 	ListBase	list;
 	EditBone *ebone;
 	bArmature *arm;
-	float scale;	/* store the scale of the matrix here to use on envelopes */
+	float scale = Mat3ToScalef(mat);	/* store the scale of the matrix here to use on envelopes */
 	arm = get_armature(ob);
 
-	if (!arm) {
-		return;
-	} else {
-		float tmp[3] = {1.0, 1.0, 1.0};
-		Mat3MulVecfl(mat, tmp);
-		scale = (fabs(tmp[0]) + fabs(tmp[1]) + fabs(tmp[2])) / 3.0f;
-	}
+	if (!arm)
+		return;	
 	
 	/* Put the armature into editmode */
 	list.first= list.last = NULL;

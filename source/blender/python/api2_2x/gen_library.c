@@ -325,7 +325,6 @@ PyObject *GetPyObjectFromID( ID * id )
 	Py_RETURN_NONE;
 }
 
-/* return a unique tuple for this libdata*/
 long GenericLib_hash(BPy_GenericLib * pydata)
 {
 	return (long)pydata->id;
