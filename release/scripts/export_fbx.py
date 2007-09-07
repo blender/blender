@@ -2584,9 +2584,9 @@ Takes:  {''')
 									else:
 										# We only need to write these if there is at least one 
 										file.write('\n\t\t\t\t\t\tKeyCount: %i' % len(context_bone_anim_keys))
-										file.write('\n\t\t\t\t\t\tKey: ')					
-										for val, frame in context_bone_anim_keys: 
-											if frame!=act_start:
+										file.write('\n\t\t\t\t\t\tKey: ')
+										for val, frame in context_bone_anim_keys:
+											if frame != context_bone_anim_keys[0][1]: # not the first
 												file.write(',')
 											# frame is alredy one less then blenders frame
 											file.write('\n\t\t\t\t\t\t\t%i,%.15f,C,n'  % (fbx_time(frame), val ))
