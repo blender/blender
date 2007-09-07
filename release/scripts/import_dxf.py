@@ -1,13 +1,13 @@
 #!BPY
 
 """
-Name: 'DXF (.dxf)'
+Name: 'Autodesk DXF (.dxf)'
 Blender: 244
 Group: 'Import'
 Tooltip: 'Import for DXF geometry data (Drawing eXchange Format).'
 """
 __author__ = 'Kitsu(Ed Blake) & migius(Remigiusz Fiedler)'
-__version__ = '1.0.beta09 by migius 19.08.2007'
+__version__ = '1.0.beta09 by migius 02.09.2007'
 __url__ = ["http://blenderartists.org/forum/showthread.php?t=84319",
 	 "http://wiki.blender.org/index.php/Scripts/Manual/Import/DXF-3D"]
 __email__ = ["Kitsune_e(at)yahoo.com", "remi_(at)gmx.de"]
@@ -18,41 +18,44 @@ This script imports 2d and 3d Geometery from DXFr12 format files.
 This version is focused on import of 3d-objects.
 
 Supported DXF Objects:
- LINE
- POINT
- SOLID
- TRACE
- INSERT  (=block)
- MINSERT (=array)
- CIRCLE
- ARC
- 3DFACE
- 2d-POLYLINE (incl.:arc-segments, variable-width-segments)
- 2d-POLYLINE (curved, spline)
- 3d-POLYLINE (curved, spline)
- 3d-POLYMESH
- 3d-POLYFACE
- TEXT
+LINE
+POINT
+SOLID
+TRACE
+TEXT
+INSERT (=block)
+MINSERT (=array)
+CIRCLE
+ARC
+3DFACE
+2d-POLYLINE (=plane, incl. arc, variable-width, curve, spline)
+3d-POLYLINE (=no-plane)
+3d-POLYMESH
+3d-POLYFACE
+under construction, partly supported DXF>r12:
+LWPOLYLINE (LightWeight), MLINE, MTEXT, ELLIPSE
 
-Supported DXF Objects: (*)-under construction
- *LWPOLYLINE (DXF>r12 LightWeight POLYLINE)
- *MTEXT   (DXF>r12)
- *ELLIPSE (DXF>r12)
+Unsupported DXF Objects:
+DXF r12: DIMENSION, XREF (External Reference)
+DXF>r12: SPLINE, GROUP, RAY/XLINE, LEADER, 3DSOLID, BODY, REGION, dynamic BLOCK
 
-Not supported DXF Objects:
- DIMENSION
- XREF (External Reference)
- SPLINE  (DXF>r12)
- GROUP   (DXF>r12)
- RAY/XLINE  (DXF>r12)
- LEADER  (DXF>r12)
- 3DSOLID, BODY, REGION (DXF>r12)
- dynamic BLOCK (DXF 2006)
+Supported Properties:
+Hierarchy: Entire DXF BLOCKs hierarchy is preserved after import into Blender
+visibility, frozen
+COLOR
+LAYER
+thickness
+width
+(todo: grouped, XDATA)
+It is recommended to use DXF-object properties for coding Blender materials.
 
 Notes:
 - Recommend that you run 'RemoveDoubles' on each imported mesh after using this script
 - Blocks are created on layer 19 then referenced at each insert point.
-
+* Big DXF-files (over 1500 objects) decrease import performance. The problem is not the inefficiency of python-scripting but Blenders performance in creating new objects in his database - probably a database management problem.
+* The Blender curves of imported ARCs and POLYLINE-arc-segments have light malformed ends.(to fix in beta10)
+- Bug in newScene-option: ARCs and CIRCLEs are drawn at (0,0,0). (wip)
+	
 TODO:  
 - filtering of unused/not-inserted Blocks
 - the new style object visibility
@@ -62,7 +65,7 @@ TODO:
 
 
 History:
- v1.0 by migius 08.2007: "full 3d"-release
+ v1.0 08.2007 by migius: "full 3d"-release
     TODO:
  -- command-line-mode/batch-mode
  -- human-formating of data in INI-File
@@ -70,13 +73,18 @@ History:
  -- suport for Ellipse
  -- suport for Mtext
  -- blender_object.ID.properties[dxf_layer_name]
+ -- Configuration files(.ini) can handle various material setups
  -- added f_layerFilter
  -- to-check: new_scene-idea from ideasman42: each import create a new scene
  -- to-check: obj/mat/group/_mapping-idea from ideasman42:
  -- better support for long dxf-layer-names 
  -- support width_force for LINEs/ARCs/CIRCLEs/ELLIPSEs = "solidify"
- beta09: 19.08.2007 by migius
- -- redesign UI: grouping of buttons
+ -- added fill/non-fill option for closed curves: CIRCLEs,PLINEs
+ -- bug:? Circle/Arcs in each "newScene" drawn at <0,0,0>
+ -- bug:? object = Object.Get(obname) -> = SCENE.getChildren(obname)
+ beta09: 02.09.2007 by migius
+ g5 redesign UI: grouping of buttons
+ g3 update multi-import-mode: <*.*> button
  g- added multi-import-mode: (path/*) for importing many dxf-files at once
  g- added import into newScene
  g- redesign UI: user presets, into newScene-import  
@@ -209,6 +217,7 @@ WORLDZ = Mathutils.Vector((0,0,1))
 G_SCALE = 1.0		#(0.0001-1000) global scaling factor for all dxf data
 MIN_DIST = 0.001	#cut-off value for sort out short-distance polyline-"duoble_vertex"
 ARC_RESOLUTION = 64   #(4-500) arc/circle resolution - number of segments
+ARC_RADIUS = 1.0   #(0.01-100) arc/circle radius for number of segments algorithm
 THIN_RESOLUTION = 8   #(4-500) thin_cylinder arc_resolution - number of segments
 MIN_THICK = MIN_DIST * 10.0  #minimal thickness by forced thickness
 MIN_WIDTH = MIN_DIST * 10.0  #minimal width by forced width
@@ -556,6 +565,7 @@ class Line:  #-----------------------------------------------------------------
 			obname = activObjectName
 			#print 'deb:line.draw obname from activObjectName: ', obname #---------------------
 			ob = Object.Get(obname)  # open an existing mesh_object
+			#ob = SCENE.getChildren(obname)  # open an existing mesh_object
 			me = Mesh.Get(ob.name)	 # open objects mesh data
 		else:
 			obname = 'li_%s' %self.layer  # create object name from layer name
@@ -672,6 +682,7 @@ class Point:  #-----------------------------------------------------------------
 				obname = activObjectName
 				#print 'deb:draw:point.ob obname from activObjectName: ', obname #---------------------
 				ob = Object.Get(obname)  # open an existing mesh_object
+				#ob = SCENE.getChildren(obname)  # open an existing mesh_object
 				me = Mesh.Get(ob.name)	 # open objects mesh data
 			else:
 				me = Mesh.New(obname)		   # create a new mesh
@@ -779,7 +790,8 @@ class LWpolyline:  #------------------------------------------------------------
 					point2 = self.points[0]
 				else:
 					point2 = self.points[i+1]
-				verts = drawBulge(point, point2, settings.var['arc_res'])
+				arc_res = settings.var['arc_res']/sqrt(settings.var['arc_rad'])
+				verts = drawBulge(point, point2, arc_res)
 #				if i == len(self.points)-1:
 #					if self.closed:
 #						verts.pop() #remove last(=first) vertex
@@ -1105,8 +1117,7 @@ class Polyline:  #--------------------------------------------------------------
 				point1 = d_points[i]
 				point2 = d_points[i+1]
 				if point1.bulge and (i < len(d_points)-2 or self.closed):
-					arc_res = 8
-					verts = drawBulge(point1, point2, arc_res) #calculate additional points for bulge
+					verts = drawBulge(point1, point2, arc_res=8, curve_on=True) #calculate additional points for bulge
 					if i == 0: curve = pline.appendNurb(BezTriple.New(verts[0]))
 					else: curve.append(BezTriple.New(verts[0]))
 					curve[-1].handleTypes = [VECT, VECT]  #--todo--calculate bezier-tangents
@@ -1221,7 +1232,8 @@ class Polyline:  #--------------------------------------------------------------
 					ewidth = settings.var['width_min']
 
 			if point1.bulge and (i < (len(d_points)-2) or self.closed):
-				verts = drawBulge(point1, point2, settings.var['arc_res']) #calculate additional points for bulge
+				arc_res = settings.var['arc_res']/sqrt(settings.var['arc_rad'])
+				verts = drawBulge(point1, point2, arc_res) #calculate additional points for bulge
 				points.extend(verts)
 				delta_width = (ewidth - swidth) / len(verts)
 				width_list = [swidth + (delta_width * ii) for ii in xrange(len(verts)+1)]
@@ -1683,6 +1695,8 @@ class Text:  #-----------------------------------------------------------------
 def set_thick(thickness, settings):
 	"""Set thickness relative to settings variables.
 	
+	Set thickness relative to settings variables:
+	'thick_on','thick_force','thick_min'.
 	python trick: sign(x)=cmp(x,0)
 	"""
 	if settings.var['thick_force']:
@@ -1883,12 +1897,14 @@ class Circle:  #----------------------------------------------------------------
 			return ob
 
 		else:
-			if radius < 2 * settings.var['dist_min']: # if circumfence is very small
-				verts_num = settings.var['thin_res'] # set a fixed number of verts
-			else:
-				#verts = circ/settings.var['dist_min'] # figure out how many verts we need
-				verts_num = settings.var['arc_res'] # figure out how many verts we need
-				if verts_num > 500: verts_num = 500 # Blender accepts only values [3:500]
+#			if False: #if radius < 2 * settings.var['dist_min']: # if circumfence is very small
+#				verts_num = settings.var['thin_res'] # set a fixed number of verts
+#			else:
+#				#verts = circ/settings.var['dist_min'] # figure out how many verts we need
+#				verts_num = settings.var['arc_res'] # figure out how many verts we need
+			verts_num = settings.var['arc_res'] * sqrt(radius / settings.var['arc_rad'])
+			if verts_num > 100: verts_num = 100 # Blender accepts only values [3:500]
+			if verts_num < 4: verts_num = 4 # Blender accepts only values [3:500]
 			if thic != 0:
 				loc2 = thic * 0.5	#-----blenderAPI draw Cylinder with 2*thickness
 				self.loc[2] += loc2  #---new location for the basis of cylinder
@@ -1897,6 +1913,7 @@ class Circle:  #----------------------------------------------------------------
 			else:
 				c = Mesh.Primitives.Circle(int(verts_num), radius*2)
 
+			c.update()
 			ob = SCENE.objects.new(c, obname) # create a new circle_mesh_object
 			ob.loc = tuple(self.loc)
 			transform(self.extrusion, 0, ob)
@@ -1991,7 +2008,9 @@ class Arc:  #-----------------------------------------------------------------
 
 		else:
 			arc = Mesh.New(obname)		   # create a new mesh
-			verts, edges = drawArc(None, radius, start, end, settings.var['arc_res'])
+			# set a number of segments in entire circle
+			arc_res = settings.var['arc_res'] * sqrt(radius) / sqrt(settings.var['arc_rad'])
+			verts, edges = drawArc(None, radius, start, end, arc_res)
 			if thic != 0:
 				len1 = len(verts)
 				thic_verts = []
@@ -2012,11 +2031,13 @@ class Arc:  #-----------------------------------------------------------------
 				arc.verts.extend(verts)	# add vertices to mesh
 				arc.edges.extend(edges)	 # add edges to the mesh
 
+			arc.update()
 			ob = SCENE.objects.new(arc) # create a new arc_object
+			#ob.link(arc)
 			ob.loc = tuple(center)
+			ob.loc = Mathutils.Vector(ob.loc)
 			transform(self.extrusion, 0, ob)
 			#ob.size = (1,1,1)
-	
 			return ob
 
 
@@ -2282,7 +2303,10 @@ class Ellipse:  #---------------------------------------------------------------
 			radius = major.length
 			start = degrees(self.start_angle)
 			end = degrees(self.end_angle)
-			verts, edges = drawArc(None, radius, start, end, settings.var['arc_res'])
+
+			# set a number of segments in entire circle
+			arc_res = settings.var['arc_res'] * sqrt(radius) / sqrt(settings.var['arc_rad'])
+			verts, edges = drawArc(None, radius, start, end, arc_res)
 
 			if thic != 0:
 				len1 = len(verts)
@@ -2380,6 +2404,7 @@ class Face:  #-----------------------------------------------------------------
 			obname = activObjectName
 			#print 'deb:face.draw obname from activObjectName: ', obname #---------------------
 			ob = Object.Get(obname)  # open an existing mesh_object
+			#ob = SCENE.getChildren(obname)  # open an existing mesh_object
 		else:
 			obname = 'fa_%s' %self.layer  # create object name from layer name
 			obname = obname[:MAX_NAMELENGTH]
@@ -2894,7 +2919,9 @@ def main(dxfFile):  #---------------#############################-----------
 
 		# Set the visable layers
 		SCENE.setLayers([i+1 for i in range(18)])
-		Blender.Redraw(-1)
+		SCENE.update(1)
+		#Blender.Redraw(-1)
+		Blender.Redraw()
 
 		time_text = Blender.sys.time() - time2
 		Window.WaitCursor(False)
@@ -3239,7 +3266,7 @@ def setMaterial_from(entity, ob, settings, block_def):  #-----------------------
 
 
 
-def drawBulge(p1, p2, ARC_RESOLUTION=120):   #-------------------------------------------------
+def drawBulge(p1, p2, arc_res, curve_on=False):   #-------------------------------------------------
 	"""return the center, radius, start angle, and end angle given two points.
 
 	Needs to take into account bulge sign.
@@ -3268,8 +3295,13 @@ def drawBulge(p1, p2, ARC_RESOLUTION=120):   #----------------------------------
 	s = (bulge * clength)/2.0 # sagitta (height)
 	radius = abs(((clength/2.0)**2.0 + s**2.0)/(2.0*s)) # magic formula
 	angle = (degrees(4.0*atan(bulge))) # theta (included angle)
-
-	pieces = int(abs(angle)/(360.0/ARC_RESOLUTION)) # set a fixed step of ARC_RESOLUTION
+	if curve_on:
+		verts_num = 8
+	else:
+		verts_num = arc_res * sqrt(radius)  # set a number of segments in entire circle
+		if verts_num > 1024: verts_num = 1024 # Blender accepts only values [3:500]
+		if verts_num < 4: verts_num = 4 # Blender accepts only values [3:500]
+	pieces = int(abs(angle)/(360.0/verts_num))
 	if pieces < 3: pieces = 3  #bulge under arc_resolution
 	#if pieces < 3: points = [p1, p2] ;return points
 	step = angle/pieces  # set step so pieces * step = degrees in arc
@@ -3295,7 +3327,7 @@ def drawBulge(p1, p2, ARC_RESOLUTION=120):   #----------------------------------
 
 
 
-def drawArc(center, radius, start, end, ARC_RESOLUTION=120):  #-----------------------------------------
+def drawArc(center, radius, start, end, arc_res):  #-----------------------------------------
 	"""Draw a mesh arc with the given parameters.
 	"""
 	# center is currently set by object
@@ -3309,10 +3341,12 @@ def drawArc(center, radius, start, end, ARC_RESOLUTION=120):  #-----------------
 
 	if end < start: end +=360.0
 	angle = end - start
-	length = radians(angle) * radius
+	#length = radians(angle) * radius
 
 	#if radius < MIN_DIST * 10: # if circumfence is too small
-	pieces = int(abs(angle)/(360.0/ARC_RESOLUTION)) # set a fixed step of ARC_RESOLUTION
+	if arc_res > 1024: arc_res = 1024 
+	if arc_res < 4: arc_res = 4 
+	pieces = int(abs(angle)/(360.0/arc_res)) # set a fixed step of ARC_RESOLUTION
 	if pieces < 3: pieces = 3  #cambo-----
 	step = angle/pieces # set step so pieces * step = degrees in arc
 
@@ -3419,7 +3453,7 @@ EVENT_CHOOSE_DXF = 8
 EVENT_HELP = 9
 EVENT_CONFIG = 10
 EVENT_PRESETS = 11
-EVENT_CHOOSE_DIR = 12
+EVENT_DXF_DIR = 12
 EVENT_PRESET2D = 20
 EVENT_EXIT = 100
 GUI_EVENT = EVENT_NONE
@@ -3471,6 +3505,7 @@ keywords_org = {
 	'material_from': 2,
 	'pl_3d'	 : 1,
 	'arc_res'   : ARC_RESOLUTION,
+	'arc_rad'   : ARC_RADIUS,
 	'thin_res'  : THIN_RESOLUTION,
 	'angle_cut' : ANGLECUT_LIMIT,
 	'pl_section_on': 1,
@@ -3676,89 +3711,92 @@ def draw_UI():  #---------------------------------------------------------------
 	global user_preset, iniFileName, dxfFileName, config_UI
 
 	# This is for easy layout changes
-	but_1c = 140	#button 1.column width
+	but_0c = 70  #button 1.column width
+	but_1c = 70  #button 1.column width
 	but_2c = 70  #button 2.column
 	but_3c = 70  #button 3.column
 	menu_margin = 10
-	menu_w = but_1c + but_2c + but_3c  #menu width
+	butt_margin = 10
+	menu_w = (3 * butt_margin) + but_0c + but_1c + but_2c + but_3c  #menu width
 
-	simlpe_menu_h = 110
-	extend_menu_h = 370
-	y = simlpe_menu_h         # y is menu upper.y
+	simple_menu_h = 110
+	extend_menu_h = 380
+	y = simple_menu_h         # y is menu upper.y
 	if config_UI.val: y += extend_menu_h
-	x = 10 #menu left.x
-	but1c = x + menu_margin  #buttons 1.column position.x
-	but2c = but1c + but_1c
-	but3c = but2c + but_2c
+	x = 20 #menu left.x
+	but0c = x + menu_margin  #buttons 0.column position.x
+	but1c = but0c + but_0c + butt_margin
+	but2c = but1c + but_1c + butt_margin
+	but3c = but2c + but_2c + butt_margin
 
 	# Here starts menu -----------------------------------------------------
 	#glClear(GL_COLOR_BUFFER_BIT)
 	#glRasterPos2d(8, 125)
 
 	colorbox(x, y+20, x+menu_w+menu_margin*2, menu_margin)
-	Draw.Label("ImportDXF-3D v" + __version__, but1c, y, menu_w, 20)
+	Draw.Label("ImportDXF-3D v" + __version__, but0c, y, menu_w, 20)
 
 	if config_UI.val:
 		y -= 30
 		Draw.BeginAlign()
-		GUI_B['point'] = Draw.Toggle('POINT', EVENT_NONE, but1c, y, but_1c, 20, GUI_B['point'].val, "support dxf-POINT on/off")
+		GUI_B['point'] = Draw.Toggle('POINT', EVENT_NONE, but0c, y, but_0c+but_1c, 20, GUI_B['point'].val, "support dxf-POINT on/off")
 		Draw.Label('-->', but2c, y, but_2c, 20)
 		GUI_A['points_as'] = Draw.Menu(points_as_menu, EVENT_NONE, but3c, y, but_3c, 20, GUI_A['points_as'].val, "select target Blender-object")
 		Draw.EndAlign()
 
 		y -= 20
 		Draw.BeginAlign()
-		GUI_B['line'] = Draw.Toggle('LINE.ARC.CIRCLE', EVENT_NONE, but1c, y, but_1c, 20, GUI_B['line'].val, "support dxf-LINE,ARC,CIRCLE,ELLIPSE on/off")
+		GUI_B['line'] = Draw.Toggle('LINE.ARC.CIRCLE', EVENT_NONE, but0c, y, but_0c+but_1c, 20, GUI_B['line'].val, "support dxf-LINE,ARC,CIRCLE,ELLIPSE on/off")
 		Draw.Label('-->', but2c, y, but_2c, 20)
 		GUI_A['lines_as'] = Draw.Menu(lines_as_menu, EVENT_NONE, but3c, y, but_3c, 20, GUI_A['lines_as'].val, "select target Blender-object")
 		Draw.EndAlign()
 
 		y -= 20
 		Draw.BeginAlign()
-		GUI_B['mline'] = Draw.Toggle('*MLINE', EVENT_NONE, but1c, y, but_1c, 20, GUI_B['mline'].val, "(*wip)support dxf-MLINE on/off")
+		GUI_B['mline'] = Draw.Toggle('*MLINE', EVENT_NONE, but0c, y, but_0c+but_1c, 20, GUI_B['mline'].val, "(*wip)support dxf-MLINE on/off")
 		Draw.Label('-->', but2c, y, but_2c, 20)
 		GUI_A['mlines_as'] = Draw.Menu(mlines_as_menu, EVENT_NONE, but3c, y, but_3c, 20, GUI_A['mlines_as'].val, "select target Blender-object")
 		Draw.EndAlign()
 
 		y -= 20
 		Draw.BeginAlign()
-		GUI_B['polyline'] = Draw.Toggle('2D-POLYLINE', EVENT_NONE, but1c, y, but_1c, 20, GUI_B['polyline'].val, "support dxf-2D-POLYLINE on/off")
+		GUI_B['polyline'] = Draw.Toggle('2D-POLYLINE', EVENT_NONE, but0c, y, but_0c+but_1c, 20, GUI_B['polyline'].val, "support dxf-2D-POLYLINE on/off")
 		Draw.Label('-->', but2c, y, but_2c, 20)
 		GUI_A['plines_as'] = Draw.Menu(plines_as_menu,   EVENT_NONE, but3c, y, but_3c, 20, GUI_A['plines_as'].val, "select target Blender-object")
 		Draw.EndAlign()
 
 		y -= 20
 		Draw.BeginAlign()
-		GUI_B['pline3'] = Draw.Toggle('3D-POLYLINE', EVENT_NONE, but1c, y, but_1c, 20, GUI_B['pline3'].val, "support dxf-3D-POLYLINE on/off")
+		GUI_B['pline3'] = Draw.Toggle('3D-POLYLINE', EVENT_NONE, but0c, y, but_0c+but_1c, 20, GUI_B['pline3'].val, "support dxf-3D-POLYLINE on/off")
 		Draw.Label('-->', but2c, y, but_2c, 20)
 		GUI_A['plines3_as'] = Draw.Menu(plines3_as_menu,   EVENT_NONE, but3c, y, but_3c, 20, GUI_A['plines3_as'].val, "select target Blender-object")
 		Draw.EndAlign()
 
 		y -= 20
 		Draw.BeginAlign()
-		GUI_B['plmesh'] = Draw.Toggle('POLYMESH/-FACE', EVENT_NONE, but1c, y, but_1c, 20, GUI_B['plmesh'].val, "support dxf-POLYMESH/POLYFACE on/off")
+		GUI_B['plmesh'] = Draw.Toggle('POLYMESH/-FACE', EVENT_NONE, but0c, y, but_0c+but_1c, 20, GUI_B['plmesh'].val, "support dxf-POLYMESH/POLYFACE on/off")
 		Draw.Label('-->', but2c, y, but_2c, 20)
 		GUI_A['plmesh_as'] = Draw.Menu(plmesh_as_menu,   EVENT_NONE, but3c, y, but_3c, 20, GUI_A['plmesh_as'].val, "select target Blender-object")
 		Draw.EndAlign()
 
 		y -= 20
 		Draw.BeginAlign()
-		GUI_B['solid'] = Draw.Toggle('3DFACE.SOLID.TRACE', EVENT_NONE, but1c, y, but_1c, 20, GUI_B['solid'].val, "support dxf-3DFACE, SOLID and TRACE on/off")
+		GUI_B['solid'] = Draw.Toggle('3DFACE.SOLID.TRACE', EVENT_NONE, but0c, y, but_0c+but_1c, 20, GUI_B['solid'].val, "support dxf-3DFACE, SOLID and TRACE on/off")
 		Draw.Label('-->', but2c, y, but_2c, 20)
 		GUI_A['solids_as'] = Draw.Menu(solids_as_menu, EVENT_NONE, but3c, y, but_3c, 20, GUI_A['solids_as'].val, "select target Blender-object")
 		Draw.EndAlign()
 
 		y -= 20
 		Draw.BeginAlign()
-		GUI_B['text'] = Draw.Toggle('TEXT', EVENT_NONE, but1c, y, but_1c/2, 20, GUI_B['text'].val, "support dxf-TEXT on/off")
-		GUI_B['mtext'] = Draw.Toggle('*MTEXT', EVENT_NONE, but1c+but_1c/2, y, but_1c/2, 20, GUI_B['mtext'].val, "(*wip)support dxf-MTEXT on/off")
+		GUI_B['text'] = Draw.Toggle('TEXT', EVENT_NONE, but0c, y, but_0c, 20, GUI_B['text'].val, "support dxf-TEXT on/off")
+		GUI_B['mtext'] = Draw.Toggle('*MTEXT', EVENT_NONE, but1c, y, but_1c-butt_margin, 20, GUI_B['mtext'].val, "(*wip)support dxf-MTEXT on/off")
 		Draw.Label('-->', but2c, y, but_2c, 20)
 		GUI_A['texts_as'] = Draw.Menu(texts_as_menu, EVENT_NONE, but3c, y, but_3c, 20, GUI_A['texts_as'].val, "select target Blender-object")
 		Draw.EndAlign()
 
 		y -= 20
 		Draw.BeginAlign()
-		GUI_B['block'] = Draw.Toggle('BLOCK / ARRAY', EVENT_NONE, but1c, y, but_1c, 20, GUI_B['block'].val, "support dxf-BLOCK and ARRAY on/off")
+		GUI_B['block'] = Draw.Toggle('BLOCK / ARRAY', EVENT_NONE, but0c, y, but_0c+but_1c, 20, GUI_B['block'].val, "support dxf-BLOCK and ARRAY on/off")
 		Draw.Label('-->', but2c, y, but_2c, 20)
 		GUI_A['blocks_as'] = Draw.Menu(blocks_as_menu, EVENT_NONE, but3c, y, but_3c, 20, GUI_A['blocks_as'].val, "select target Blender-object")
 		Draw.EndAlign()
@@ -3766,94 +3804,100 @@ def draw_UI():  #---------------------------------------------------------------
 
 		y -= 20
 		Draw.BeginAlign()
-		GUI_A['material_from'] = Draw.Menu(material_from_menu,   EVENT_NONE, but1c, y, but_1c, 20, GUI_A['material_from'].val, "material assignment from?")
+		GUI_A['material_from'] = Draw.Menu(material_from_menu,   EVENT_NONE, but0c, y, but_0c+but_1c, 20, GUI_A['material_from'].val, "material assignment from?")
 		Draw.Label('-->', but2c, y, but_2c, 20)
 		GUI_A['material_on'] = Draw.Toggle('material', EVENT_NONE, but3c, y, but_3c, 20, GUI_A['material_on'].val, "support for material assignment on/off")
 		Draw.EndAlign()
 
 
 		y -= 30
+		GUI_A['group_bylayer_on'] = Draw.Toggle('oneGroup', EVENT_NONE, but0c, y, but_0c, 20, GUI_A['group_bylayer_on'].val, "grouping entities from the same layer on/off")
+		GUI_A['curves_on'] = Draw.Toggle('to Curves', EVENT_NONE, but1c, y, but_1c, 20, GUI_A['curves_on'].val, "drawing LINE/ARC/POLYLINE into Blender-Curves instead of Meshes on/off")
 		Draw.BeginAlign()
-		GUI_A['group_bylayer_on'] = Draw.Toggle('oneGroup', EVENT_NONE, but1c, y, but_1c/2, 20, GUI_A['group_bylayer_on'].val, "grouping entities from the same layer on/off")
-		GUI_A['curves_on'] = Draw.Toggle('to Curves', EVENT_NONE, but1c+ but_1c/2, y, but_1c/2, 20, GUI_A['curves_on'].val, "drawing LINE/ARC/*PLINE into Blender-Curves instead of Meshes on/off")
-		GUI_A['g_scale_on'] = Draw.Toggle('glob.Scale', EVENT_NONE, but2c, y, (but_2c+but_3c)/2, 20, GUI_A['g_scale_on'].val, "scaling all DXF objects on/off")
-		GUI_A['g_scale_as'] = Draw.Menu(g_scale_list, EVENT_NONE, but2c+(but_2c+but_3c)/2, y, (but_2c+but_3c)/2, 20, GUI_A['g_scale_as'].val, "10^ factor for scaling the DXFdata")
+		GUI_A['g_scale_on'] = Draw.Toggle('glob.Scale', EVENT_NONE, but2c, y, but_2c, 20, GUI_A['g_scale_on'].val, "scaling all DXF objects on/off")
+		GUI_A['g_scale_as'] = Draw.Menu(g_scale_list, EVENT_NONE, but3c, y, but_3c, 20, GUI_A['g_scale_as'].val, "10^ factor for scaling the DXFdata")
 		Draw.EndAlign()
 
 
 		y -= 20
-		Draw.BeginAlign()
 		#Draw.Label('', but1c+but_1c/2, y, but_1c/2, 20)
-		GUI_A['one_mesh_on'] = Draw.Toggle('oneMesh', EVENT_NONE, but1c, y, but_1c/2, 20, GUI_A['one_mesh_on'].val, "drawing DXF-entities into one mesh-object. Recommended for big DXF-files. on/off")
-		GUI_A['vGroup_on'] = Draw.Toggle('vGroups', EVENT_NONE, but1c+ but_1c/2, y, but_1c/2, 20, GUI_A['vGroup_on'].val, "support Blender-VertexGroups on/off")
+		GUI_A['one_mesh_on'] = Draw.Toggle('oneMesh', EVENT_NONE, but0c, y, but_0c, 20, GUI_A['one_mesh_on'].val, "drawing DXF-entities into one mesh-object. Recommended for big DXF-files. on/off")
+		GUI_A['vGroup_on'] = Draw.Toggle('vGroups', EVENT_NONE, but1c, y, but_1c, 20, GUI_A['vGroup_on'].val, "support Blender-VertexGroups on/off")
+		Draw.BeginAlign()
 		GUI_A['dist_on'] = Draw.Toggle('dist.:', EVENT_NONE, but2c, y, but_2c-20, 20, GUI_A['dist_on'].val, "support distance on/off")
 		GUI_A['dist_force'] = Draw.Toggle('F', EVENT_NONE, but2c+but_2c-20, y,  20, 20, GUI_A['dist_force'].val, "force minimal distance on/off")
-		GUI_A['dist_min'] = Draw.Number('', EVENT_NONE, but2c+(but_2c+but_3c)/2, y, (but_2c+but_3c)/2, 20, GUI_A['dist_min'].val, 0, 10, "minimal lenght/distance (double.vertex removing)")
+		GUI_A['dist_min'] = Draw.Number('', EVENT_NONE, but3c, y, but_3c, 20, GUI_A['dist_min'].val, 0, 10, "minimal lenght/distance (double.vertex removing)")
 		Draw.EndAlign()
 
 		y -= 20
 		Draw.BeginAlign()
-		GUI_A['pl_section_on'] = Draw.Toggle('int.section', EVENT_NONE, but1c, y, but_1c/2, 20, GUI_A['pl_section_on'].val, "support POLYLINE-wide-segment-intersection on/off")
-		GUI_A['angle_cut'] = Draw.Number('', EVENT_NONE, but1c+but_1c/2, y, but_1c/2, 20, GUI_A['angle_cut'].val, 1, 5, "it limits POLYLINE-wide-segment-intersection: 1.0-5.0")
+		GUI_A['pl_section_on'] = Draw.Toggle('int.section', EVENT_NONE, but0c, y, but_0c, 20, GUI_A['pl_section_on'].val, "support POLYLINE-wide-segment-intersection on/off")
+		GUI_A['angle_cut'] = Draw.Number('', EVENT_NONE, but1c, y, but_1c, 20, GUI_A['angle_cut'].val, 1, 5, "it limits POLYLINE-wide-segment-intersection: 1.0-5.0")
+		Draw.EndAlign()
+		Draw.BeginAlign()
 		GUI_A['thick_on'] = Draw.Toggle('thick:', EVENT_NONE, but2c, y, but_2c-20, 20, GUI_A['thick_on'].val, "support thickness on/off")
 		GUI_A['thick_force'] = Draw.Toggle('F', EVENT_NONE, but2c+but_2c-20, y,  20, 20, GUI_A['thick_force'].val, "force minimal thickness on/off")
-		GUI_A['thick_min'] = Draw.Number('', EVENT_NONE, but2c+(but_2c+but_3c)/2, y, (but_2c+but_3c)/2, 20, GUI_A['thick_min'].val, 0, 10, "minimal thickness")
+		GUI_A['thick_min'] = Draw.Number('', EVENT_NONE, but3c, y, but_3c, 20, GUI_A['thick_min'].val, 0, 10, "minimal thickness")
 		Draw.EndAlign()
 
 
 		y -= 20
 		Draw.BeginAlign()
-		GUI_A['arc_res'] = Draw.Number('arc:''', EVENT_NONE, but1c, y, but_1c/2, 20, GUI_A['arc_res'].val, 4, 500, "arc/circle resolution - number of segments")
-		GUI_A['thin_res'] = Draw.Number('thin:', EVENT_NONE, but1c+but_1c/2, y, but_1c/2, 20, GUI_A['thin_res'].val, 4, 500, "thin cylinder resolution - number of segments")
+#		GUI_A['thin_res'] = Draw.Number('thin:', EVENT_NONE, but0c, y, but_0c, 20, GUI_A['thin_res'].val, 4, 500, "thin cylinder resolution - number of segments")
+		GUI_A['arc_rad'] = Draw.Number('rad:', EVENT_NONE, but0c, y, but_0c, 20, GUI_A['arc_rad'].val, 0.01, 100, "basis radius for number of segments")
+		GUI_A['arc_res'] = Draw.Number('res:', EVENT_NONE, but1c, y, but_1c, 20, GUI_A['arc_res'].val, 4, 500, "arc/circle resolution - number of segments")
+		Draw.EndAlign()
+		Draw.BeginAlign()
 		GUI_A['width_on'] = Draw.Toggle('width:', EVENT_NONE, but2c, y, but_2c-20, 20, GUI_A['width_on'].val, "support width on/off")
 		GUI_A['width_force'] = Draw.Toggle('F', EVENT_NONE, but2c+but_2c-20, y, 20, 20, GUI_A['width_force'].val, "force minimal width on/off")
-		GUI_A['width_min'] = Draw.Number('', EVENT_NONE, but2c+(but_2c+but_3c)/2, y, (but_2c+but_3c)/2, 20, GUI_A['width_min'].val, 0, 10, "minimal width")
+		GUI_A['width_min'] = Draw.Number('', EVENT_NONE, but3c, y, but_3c, 20, GUI_A['width_min'].val, 0, 10, "minimal width")
 		Draw.EndAlign()
 
-		y -= 20
-		GUI_A['dummy_on'] = Draw.Toggle(' - ', EVENT_NONE, but1c, y, but_1c/2, 20, GUI_A['dummy_on'].val, "reserved")
-		GUI_A['newScene_on'] = Draw.Toggle('newScene', EVENT_NONE, but1c+ but_1c/2, y, but_1c/2, 20, GUI_A['newScene_on'].val, "creates new Blender-Scene for each import on/off")
+		y -= 30
+		GUI_A['dummy_on'] = Draw.Toggle(' - ', EVENT_NONE, but0c, y, but_0c, 20, GUI_A['dummy_on'].val, "reserved")
+		GUI_A['newScene_on'] = Draw.Toggle('newScene', EVENT_NONE, but1c, y, but_1c, 20, GUI_A['newScene_on'].val, "creates new Blender-Scene for each import on/off")
 		GUI_A['target_layer'] = Draw.Number('layer', EVENT_NONE, but2c, y, but_2c, 20, GUI_A['target_layer'].val, 1, 18, "imports into this Blender-layer (<19> reserved for block_definitions)")
 		GUI_A['optimization'] = Draw.Number('optim:', EVENT_NONE, but3c, y, but_3c, 20, GUI_A['optimization'].val, 0, 3, "Optimization Level: 0=Debug/directDrawing, 1=Verbose, 2=ProgressBar, 3=silentMode/fastest")
 
 		y -= 30
 		Draw.BeginAlign()
-		Draw.PushButton('INI file >', EVENT_CHOOSE_INI, but1c, y, but_1c/2, 20, 'Select INI-file from project directory')
-		iniFileName = Draw.String(' : ', EVENT_NONE, but1c+(but_1c/2), y, but_1c/2+but_2c+but_3c, 20, iniFileName.val, FILENAME_MAX, "write here the name of the INI-file")
+		Draw.PushButton('INI file >', EVENT_CHOOSE_INI, but0c, y, but_0c, 20, 'Select INI-file from project directory')
+		iniFileName = Draw.String(' :', EVENT_NONE, but1c, y, menu_w-but_0c-butt_margin, 20, iniFileName.val, FILENAME_MAX, "write here the name of the INI-file")
 		Draw.EndAlign()
 
 		y -= 20
 		Draw.BeginAlign()
-		Draw.PushButton('Presets', EVENT_PRESETS, but1c, y, but_1c/2, 20, "calls the names of Preset-INI-files")
-		Draw.PushButton('Load', EVENT_LOAD_INI, but1c+but_1c/2, y, but_1c/2, 20, '     Loads configuration from ini-file: %s' % iniFileName.val)
+		Draw.PushButton('Presets', EVENT_PRESETS, but0c, y, but_0c, 20, "calls the names of Preset-INI-files")
+		Draw.PushButton('Load', EVENT_LOAD_INI, but1c, y, but_1c, 20, '     Loads configuration from ini-file: %s' % iniFileName.val)
 		Draw.PushButton('Save', EVENT_SAVE_INI, but2c, y, but_2c, 20, 'Saves configuration to ini-file: %s' % iniFileName.val)
 #		user_preset = Draw.Number('preset:', EVENT_PRESETS, but2c, y, but_2c, 20, user_preset.val, 0, 5, "call user Preset-INI-files")
 		Draw.PushButton('2D', EVENT_PRESET2D, but3c, y, but_3c/2, 20, 'resets configuration to 2D-defaults')
-		Draw.PushButton('3D', EVENT_PRESET, but3c+ but_3c/2, y, but_3c/2, 20, 'resets configuration to 3D-defaults')
+		Draw.PushButton('3D', EVENT_PRESET, but3c+but_3c/2, y, but_3c/2, 20, 'resets configuration to 3D-defaults')
 		Draw.EndAlign()
 
 
 	y -= 30
 	Draw.BeginAlign()
-	Draw.PushButton('DXFfile >', EVENT_CHOOSE_DXF, but1c, y, but_1c/2, 20, 'Select DXF-file from project directory')
-	dxfFileName = Draw.String(' :', EVENT_NONE, but1c+(but_1c/2), y, but_1c/2+but_2c+but_3c-20, 20, dxfFileName.val, FILENAME_MAX, "type the name of DXF-file or * for multi-import")
-	Draw.PushButton('*', EVENT_CHOOSE_DIR, but3c+but_3c-20, y, 20, 20, 'Set asterisk * as filter')
+	Draw.PushButton('DXFfile >', EVENT_CHOOSE_DXF, but0c, y, but_0c, 20, 'Select DXF-file from project directory')
+	dxfFileName = Draw.String(' :', EVENT_NONE, but1c, y, but_1c+but_2c+but_3c-20, 20, dxfFileName.val, FILENAME_MAX, "type the name of DXF-file or * for multi-import")
+	Draw.PushButton('*.*', EVENT_DXF_DIR, but3c+but_3c-20, y, 20, 20, 'Set asterisk * as filter')
 	Draw.EndAlign()
+
 
 	y -= 50
 	Draw.BeginAlign()
-	Draw.Label('  ', but1c-menu_margin, y, menu_margin, 40)
-	Draw.PushButton('EXIT', EVENT_EXIT, but1c, y, but_1c/2, 40, '' )
-	Draw.PushButton('HELP', EVENT_HELP, but1c+but_1c/2, y, but_1c/2, 20, 'calls BlenderWiki for Manual, Updates and Support.')
-	Draw.PushButton('START IMPORT', EVENT_START, but2c, y, but_2c+but_3c, 40, 'Start the import procedure')
-	Draw.Label('  ', but1c+menu_w, y, menu_margin, 40)
+	Draw.PushButton('EXIT', EVENT_EXIT, but0c, y, but_0c, 40, '' )
+	Draw.PushButton('HELP', EVENT_HELP, but1c, y, but_1c, 20, 'calls BlenderWiki for Manual, Updates and Support.')
+	Draw.PushButton('START IMPORT', EVENT_START, but2c, y, but_2c+but_3c+butt_margin, 40, 'Start the import procedure')
 	Draw.EndAlign()
 
-	config_UI = Draw.Toggle('CONFIG', EVENT_CONFIG, but1c+but_1c/2, y+20, but_1c/2, 20, config_UI.val, 'Advanced configuration on/off' )
+	config_UI = Draw.Toggle('CONFIG', EVENT_CONFIG, but1c-butt_margin/2, y+20, but_1c+butt_margin, 20, config_UI.val, 'Advanced configuration on/off' )
 
 	y -= 20
 	Draw.BeginAlign()
-	Draw.Label("*) parts under construction", but1c, y, menu_w, 20)
+	Draw.Label(' ', but0c-menu_margin, y, menu_margin, 20)
+	Draw.Label("*) parts under construction", but0c, y, menu_w, 20)
+	Draw.Label(' ', but0c+menu_w, y, menu_margin, 20)
 	Draw.EndAlign()
 
 #-- END GUI Stuf-----------------------------------------------------
@@ -3865,7 +3909,7 @@ def colorbox(x,y,xright,bottom):
 def dxf_callback(input_filename):
 	global dxfFileName
 	dxfFileName.val=input_filename
-
+	
 def ini_callback(input_texture):
 	global iniFileName
 	iniFileName.val=input_texture
@@ -3883,17 +3927,6 @@ def bevent(evt):
 		Blender.Draw.Exit()
 	elif (evt==EVENT_CHOOSE_INI):
 		Window.FileSelector(ini_callback, "INI-file Selection", '*.ini')
-	elif (evt==EVENT_CHOOSE_DIR):
-#		dxfFile = dxfFileName.val
-#		dxfFile = reverse(dxfFile)
-#		_dxf_file= dxfFile.split('/')[1].split('\\')[1]
-#		_dxf_file= dxfFile.split('/')[1].split('\\')[1]
-#		_dxf_file = reverse(_dxf_file)
-#		print 'deb: dxfFile file: ', dxfFile #----------------------
-#		print 'deb: : ', _dxf_file #----------------------
-#		global dxfFileName
-#		dxfFileName.val = _dxf_file
-		Draw.Redraw()
 	elif (evt==EVENT_CONFIG):
 		Draw.Redraw()
 	elif (evt==EVENT_PRESET):
@@ -3921,25 +3954,43 @@ http://wiki.blender.org/index.php?title=Scripts/Manual/Import/DXF-3D')
 	elif (evt==EVENT_SAVE_INI):
 		saveConfig()
 		Draw.Redraw()
+	elif (evt==EVENT_DXF_DIR):
+		dxfFile = dxfFileName.val
+		dxfPathName = ''
+		if '/' in dxfFile:
+			dxfPathName = '/'.join(dxfFile.split('/')[:-1]) + '/'
+		elif '\\' in dxfFile:
+			dxfPathName = '\\'.join(dxfFile.split('\\')[:-1]) + '\\'
+		dxfFileName.val = dxfPathName + '*.dxf'
+		global GUI_A
+		GUI_A['newScene_on'].val = 1
+		Draw.Redraw()
 	elif (evt==EVENT_CHOOSE_DXF):
 		Window.FileSelector(dxf_callback, "DXF-file Selection", '*.dxf')
 	elif (evt==EVENT_START):
 		dxfFile = dxfFileName.val
 		#print 'deb: dxfFile file: ', dxfFile #----------------------
-		if dxfFile.lower().endswith('.dxf') and sys.exists(dxfFile):
-			if GUI_A['newScene_on'].val:
-				_dxf_file= dxfFile.split('/')[-1].split('\\')[-1]
-				SCENE = bpy.data.scenes.new(_dxf_file[-MAX_NAMELENGTH:])
-				bpy.data.scenes.active = SCENE
-			main(dxfFile)
-			#Blender.Draw.Exit()
-			Draw.Redraw()
-		elif dxfFile.lower().endswith('*'):
+		if dxfFile.lower().endswith('*.dxf'):
 			if Draw.PupMenu('DXF importer:	OK?|will import all DXF-files from:|%s' % dxfFile) == 1:
 				global UI_MODE
 				UI_MODE = False
-				multi_import(dxfFile[:-1])  # cut last char:'*'
-			Blender.Draw.Exit()
+				multi_import(dxfFile[:-5])  # cut last char:'*.dxf'
+				Draw.Exit()
+			else:
+				Draw.Redraw()
+		elif dxfFile.lower().endswith('.dxf') and sys.exists(dxfFile):
+			if GUI_A['newScene_on'].val:
+				_dxf_file = dxfFile.split('/')[-1].split('\\')[-1]
+				_dxf_file = _dxf_file[:-4]  # cut last char:'.dxf'
+				_dxf_file = _dxf_file[:MAX_NAMELENGTH]  #? [-MAX_NAMELENGTH:])
+				#sce = Blender.Scene.New(_dxf_file)
+				#sce.makeCurrent()
+				#or so? Blender.Scene.makeCurrent(_dxf_file)
+				sce = bpy.data.scenes.new(_dxf_file)
+				bpy.data.scenes.active = sce
+			main(dxfFile)
+			#Blender.Draw.Exit()
+			Draw.Redraw()
 		else:
 			Draw.PupMenu('DXF importer:	 Alert!%t|no valid DXF-file selected!')
 			print "DXF importer: error, no valid DXF-file selected! try again"
@@ -3953,6 +4004,8 @@ def multi_import(DIR):
 	
 	"""
 	batchTIME = Blender.sys.time()
+	#if #DIR == "": DIR = os.path.curdir
+	if DIR == "": DIR = Blender.sys.dirname(Blender.Get('filename'))
 	print 'Searching for DXF-files in %s' %DIR
 	files = \
 		[sys.join(DIR, f) for f in os.listdir(DIR) if f.lower().endswith('.dxf')] 
@@ -3964,10 +4017,15 @@ def multi_import(DIR):
 	for dxfFile in files:
 		i += 1
 		print 'Importing', dxfFile, '  NUMBER', i, 'of', len(files)
-		_dxf_file= dxfFile.split('/')[-1].split('\\')[-1]
 		if GUI_A['newScene_on'].val:
-			SCENE = bpy.data.scenes.new(_dxf_file)
-			bpy.data.scenes.active = SCENE
+			_dxf_file = dxfFile.split('/')[-1].split('\\')[-1]
+			_dxf_file = _dxf_file[:-4]  # cut last char:'.dxf'
+			_dxf_file = _dxf_file[:MAX_NAMELENGTH]  #? [-MAX_NAMELENGTH:])
+			#sce = Blender.Scene.New(_dxf_file)
+			#sce.makeCurrent()
+			#or so? Blender.Scene.makeCurrent(_dxf_file)
+			sce = bpy.data.scenes.new(_dxf_file)
+			bpy.data.scenes.active = sce
 		main(dxfFile)
 
 	print 'TOTAL TIME: %.6f' % (Blender.sys.time() - batchTIME)
@@ -4000,16 +4058,16 @@ if 1:
 	lines_size.sort()
 	lines = [f[1] for f in lines_size]
 
-
-
 	for i, _dxf in enumerate(lines):
 		if i >= 70:
 			#if 1:
 			print 'Importing', _dxf, '\nNUMBER', i, 'of', len(lines)
-			_dxf_file= _dxf.split('/')[-1].split('\\')[-1]
-			SCENE= bpy.data.scenes.new(_dxf_file)
-			bpy.data.scenes.active = SCENE
-			# load_dxf(_dxf, False)
+			if True:
+				_dxf_file= _dxf.split('/')[-1].split('\\')[-1]
+				_dxf_file = _dxf_file[:-4]  # cut last char:'.dxf'
+				_dxf_file = _dxf_file[:MAX_NAMELENGTH]  #? [-MAX_NAMELENGTH:])
+				sce = bpy.data.scenes.new(_dxf_file)
+				bpy.data.scenes.active = sce
 			dxfFileName.val = _dxf
 			main(_dxf)
 
