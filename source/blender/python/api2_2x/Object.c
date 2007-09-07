@@ -1368,29 +1368,40 @@ static int Object_setParentBoneName( BPy_Object * self, PyObject *value )
 static PyObject *Object_getSize( BPy_Object * self, PyObject * args )
 {
 	char *space = "localspace";	/* default to local */
-	
+	PyObject *attr;
 	if( !PyArg_ParseTuple( args, "|s", &space ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					"expected a string or nothing" );
 
 	if( BLI_streq( space, "worldspace" ) ) {	/* Worldspace matrix */
-		float scale[3];
+		float rot[3];
+		float mat[3][3], imat[3][3], tmat[3][3];
 		disable_where_script( 1 );
 		where_is_object( self->object );
-		Mat4ToSize(self->object->obmat, scale);
-		return Py_BuildValue( "fff",
-					self->object->size[0],
-					self->object->size[1],
-					self->object->size[2] );
+		
+		Mat3CpyMat4(mat, self->object->obmat);
+		
+		/* functionality copied from editobject.c apply_obmat */
+		Mat3ToEul(mat, rot);
+		EulToMat3(rot, tmat);
+		Mat3Inv(imat, tmat);
+		Mat3MulMat3(tmat, imat, mat);
+		
+		attr = Py_BuildValue( "fff",
+					tmat[0][0],
+					tmat[1][1],
+					tmat[2][2] );
 		disable_where_script( 0 );
 	} else if( BLI_streq( space, "localspace" ) ) {	/* Localspace matrix */
-		return Py_BuildValue( "fff",
+		attr = Py_BuildValue( "fff",
 					self->object->size[0],
 					self->object->size[1],
 					self->object->size[2] );
-	}
-	return EXPP_ReturnPyObjError( PyExc_ValueError,
+	} else {
+		return EXPP_ReturnPyObjError( PyExc_ValueError,
 			"expected either nothing, 'localspace' (default) or 'worldspace'" );
+	}
+	return attr;
 }
 
 static PyObject *Object_getTimeOffset( BPy_Object * self )
