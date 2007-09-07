@@ -2135,13 +2135,17 @@ static void world_panel_amb_occ(World *wrld)
 	if(wrld->mode & WO_AMB_OCC) {
 
 		/* aolight: samples */
-		uiBlockBeginAlign(block);
-		uiDefButS(block, NUM, B_REDR, "Samples:", 10, 120, 150, 19, &wrld->aosamp, 1.0, 16.0, 100, 0, "Sets the number of samples used for AO  (actual number: squared)");
-		/* enable/disable total random sampling */
-		uiDefButBitS(block, TOG, WO_AORNDSMP, 0, "Random Sampling", 160, 120, 150, 19, &wrld->aomode, 0, 0, 0, 0, "When enabled, total random sampling will be used for an even noisier effect");
-		uiBlockEndAlign(block);
-
-		uiDefButF(block, NUM, B_REDR, "Dist:", 10, 95, 150, 19, &wrld->aodist, 0.001, 5000.0, 100, 0, "Sets length of AO rays, defines how far away other faces give occlusion effect");
+		uiDefButS(block, MENU, B_REDR, "Constant QMC %x2|Adaptive QMC %x1|Constant Jittered %x0",
+				10, 120, 145, 19, &wrld->ao_samp_method, 0, 0, 0, 0, "Method for generating shadow samples: Constant QMC: best quality, Adaptive QMC: fast in high contrast areas");
+		uiDefButS(block, NUM, B_REDR, "Samples:",
+				165, 120, 145, 19, &wrld->aosamp, 1.0, 32.0, 100, 0, "Sets the number of samples used for AO  (actual number: squared)");
+		
+		if (wrld->ao_samp_method == WO_AOSAMP_HALTON) {
+			uiDefButF(block, NUM, B_REDR, "Threshold:",
+				10, 95, 145, 19, &wrld->ao_adapt_thresh, 0.0, 1.0, 100, 0, "Samples below this threshold will be considered fully shadowed/unshadowed and skipped");
+		}
+		uiDefButF(block, NUM, B_REDR, "Dist:",
+			165, 95, 145, 19, &wrld->aodist, 0.001, 5000.0, 100, 0, "Sets length of AO rays, defines how far away other faces give occlusion effect");
 
 		uiBlockBeginAlign(block);
 		uiDefButBitS(block, TOG, WO_AODIST, B_AO_DISTANCES, "Use Distances", 10, 70, 150, 19, &wrld->aomode, 0, 0, 0, 0, "When enabled, distances to objects will be used to attenuate shadows. Only for Plain AO.");
@@ -2163,7 +2167,8 @@ static void world_panel_amb_occ(World *wrld)
 		
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUMSLI, B_REDR, "Energy:", 10, 0, 150, 19, &wrld->aoenergy, 0.01, 3.0, 100, 0, "Sets global energy scale for AO");
-		uiDefButF(block, NUMSLI, B_REDR, "Bias:", 160, 0, 150, 19, &wrld->aobias, 0.0, 0.5, 10, 0, "Sets bias to prevent smoothed faces to show banding (in radians)");
+		if (wrld->ao_samp_method == WO_AOSAMP_CONSTANT)
+			uiDefButF(block, NUMSLI, B_REDR, "Bias:", 160, 0, 150, 19, &wrld->aobias, 0.0, 0.5, 10, 0, "Sets bias to prevent smoothed faces to show banding (in radians)");
 	}
 
 }
@@ -2483,7 +2488,6 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 		uiDefButBitS(block, TOG, LA_SQUARE, B_LAMPREDRAW,"Square",	10,60,80,19,&la->mode, 0, 0, 0, 0, "Sets square spotbundles");
 		uiDefButBitS(block, TOG, LA_HALO, B_LAMPREDRAW,"Halo",		10,40,80,19,&la->mode, 0, 0, 0, 0, "Renders spotlight with a volumetric halo"); 
 
-		uiBlockSetCol(block, TH_AUTO);
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUMSLI,B_LAMPREDRAW,"SpotSi ",	100,180,200,19,&la->spotsize, 1.0, 180.0, 0, 0, "Sets the angle of the spotlight beam in degrees");
 		uiDefButF(block, NUMSLI,B_LAMPREDRAW,"SpotBl ",		100,160,200,19,&la->spotblend, 0.0, 1.0, 0, 0, "Sets the softness of the spotlight edge");
@@ -2528,25 +2532,46 @@ static void lamp_panel_spot(Object *ob, Lamp *la)
 			
 		}
 	}
-	else if(la->type==LA_AREA && (la->mode & LA_SHAD_RAY)) {
-		uiBlockBeginAlign(block);
-		uiBlockSetCol(block, TH_AUTO);
-		if(la->area_shape==LA_AREA_SQUARE) 
-			uiDefButS(block, NUM,0,"Samples:",	100,180,200,19,	&la->ray_samp, 1.0, 16.0, 100, 0, "Sets the amount of samples taken extra (samp x samp)");
-		if(la->area_shape==LA_AREA_CUBE) 
-			uiDefButS(block, NUM,0,"Samples:",	100,160,200,19,	&la->ray_samp, 1.0, 16.0, 100, 0, "Sets the amount of samples taken extra (samp x samp x samp)");
+	if(ELEM4(la->type, LA_AREA, LA_SPOT, LA_SUN, LA_LOCAL) && (la->mode & LA_SHAD_RAY)) {
+		
+		if (ELEM3(la->type, LA_SPOT, LA_SUN, LA_LOCAL)) {
+			if (la->ray_samp_method == LA_SAMP_CONSTANT) la->ray_samp_method = LA_SAMP_HALTON;
+		
+			uiDefButS(block, MENU, B_REDR, "Adaptive QMC %x1|Constant QMC %x2",
+				100,110,200,19, &la->ray_samp_method, 0, 0, 0, 0, "Method for generating shadow samples: Adaptive QMC is fastest, Constant QMC is less noisy but slower");
+		
+			uiDefButF(block, NUM,B_LAMPREDRAW,"Soft Size",	100,80,200,19, &la->area_size, 0.01, 100.0, 10, 0, "Area light size, doesn't affect energy amount");
+			
+			uiDefButS(block, NUM,0,"Samples:",	100,60,200,19,	&la->ray_samp, 1.0, 16.0, 100, 0, "Sets the amount of samples taken extra (samp x samp)");
+			uiDefButF(block, NUM,0,"Threshold:",	100,40,200,19,	&la->adapt_thresh, 0.0, 1.0, 100, 0, "Threshold for adaptive sampling, to control what level is considered already in shadow");
+		}
+		else if (la->type == LA_AREA) {
+			uiDefButS(block, MENU, B_REDR, "Adaptive QMC %x1|Constant QMC %x2|Constant Jittered %x0",
+				100,180,200,19, &la->ray_samp_method, 0, 0, 0, 0, "Method for generating shadow samples: Adaptive QMC is fastest");
+		
+			if(la->area_shape==LA_AREA_SQUARE) 
+				uiDefButS(block, NUM,0,"Samples:",	100,150,200,19,	&la->ray_samp, 1.0, 16.0, 100, 0, "Sets the amount of samples taken extra (samp x samp)");
+			else if(la->area_shape==LA_AREA_CUBE) 
+				uiDefButS(block, NUM,0,"Samples:",	100,130,200,19,	&la->ray_samp, 1.0, 16.0, 100, 0, "Sets the amount of samples taken extra (samp x samp x samp)");
 
-		if (ELEM(la->area_shape, LA_AREA_RECT, LA_AREA_BOX)) {
-			uiDefButS(block, NUM,0,"SamplesX:",	100,180,200,19,	&la->ray_samp, 1.0, 16.0, 100, 0, "Sets the amount of X samples taken extra");
-			uiDefButS(block, NUM,0,"SamplesY:",	100,160,200,19,	&la->ray_sampy, 1.0, 16.0, 100, 0, "Sets the amount of Y samples taken extra");
-			if(la->area_shape==LA_AREA_BOX)
-				uiDefButS(block, NUM,0,"SamplesZ:",	100,140,200,19,	&la->ray_sampz, 1.0, 8.0, 100, 0, "Sets the amount of Z samples taken extra");
+			if (ELEM(la->area_shape, LA_AREA_RECT, LA_AREA_BOX)) {
+				uiDefButS(block, NUM,0,"SamplesX:",	100,150,200,19,	&la->ray_samp, 1.0, 16.0, 100, 0, "Sets the amount of X samples taken extra");
+				uiDefButS(block, NUM,0,"SamplesY:",	100,130,200,19,	&la->ray_sampy, 1.0, 16.0, 100, 0, "Sets the amount of Y samples taken extra");
+				if(la->area_shape==LA_AREA_BOX)
+					uiDefButS(block, NUM,0,"SamplesZ:",	100,110,200,19,	&la->ray_sampz, 1.0, 8.0, 100, 0, "Sets the amount of Z samples taken extra");
+			}
+			
+			if (la->ray_samp_method == LA_SAMP_CONSTANT) {
+				uiBlockBeginAlign(block);
+				uiDefButBitS(block, TOG, LA_SAMP_UMBRA, 0,"Umbra",			100,90,200,19,&la->ray_samp_type, 0, 0, 0, 0, "Emphasis parts that are fully shadowed");
+				uiDefButBitS(block, TOG, LA_SAMP_DITHER, 0,"Dither",			100,70,100,19,&la->ray_samp_type, 0, 0, 0, 0, "Use 2x2 dithering for sampling");
+				uiDefButBitS(block, TOG, LA_SAMP_JITTER, 0,"Noise",			200,70,100,19,&la->ray_samp_type, 0, 0, 0, 0, "Use noise for sampling");
+			} else if (la->ray_samp_method == LA_SAMP_HALTON) {
+				uiDefButF(block, NUM,0,"Threshold:",	100,90,200,19,	&la->adapt_thresh, 0.0, 1.0, 100, 0, "Threshold for adaptive sampling, to control what level is considered already in shadow");
+			}
 		}
 		
-		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, LA_SAMP_UMBRA, 0,"Umbra",			100,110,200,19,&la->ray_samp_type, 0, 0, 0, 0, "Emphasis parts that are fully shadowed");
-		uiDefButBitS(block, TOG, LA_SAMP_DITHER, 0,"Dither",			100,90,100,19,&la->ray_samp_type, 0, 0, 0, 0, "Use 2x2 dithering for sampling");
-		uiDefButBitS(block, TOG, LA_SAMP_JITTER, 0,"Noise",			200,90,100,19,&la->ray_samp_type, 0, 0, 0, 0, "Use noise for sampling");
+		
 	}
 	else uiDefBut(block, LABEL,0," ",	100,180,200,19,NULL, 0, 0, 0, 0, "");
 
@@ -3237,44 +3262,102 @@ static void material_panel_texture(Material *ma)
 
 static void material_panel_tramir(Material *ma)
 {
-	uiBlock *block;
+ 	uiBlock *block;
+	short yco=PANEL_YMAX;
+ 	
+ 	block= uiNewBlock(&curarea->uiblocks, "material_panel_tramir", UI_EMBOSS, UI_HELV, curarea->win);
+ 	uiNewPanelTabbed("Shaders", "Material");
+	if(uiNewPanel(curarea, block, "Mirror Transp", "Material", PANELX, PANELY, PANELW, PANELH+80)==0) return;
+ 
+ 	uiSetButLock(ma->id.lib!=NULL, ERROR_LIBDATA_MESSAGE);
+ 	
+	uiDefButBitI(block, TOG, MA_RAYMIRROR, B_MATPRV, "Ray Mirror",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->mode), 0, 0, 0, 0, "Enables raytracing for mirror reflection rendering");
+ 
+	yco -= YSPACE;
 	
-	block= uiNewBlock(&curarea->uiblocks, "material_panel_tramir", UI_EMBOSS, UI_HELV, curarea->win);
-	uiNewPanelTabbed("Shaders", "Material");
-	if(uiNewPanel(curarea, block, "Mirror Transp", "Material", 640, 0, 318, 204)==0) return;
-
-	uiSetButLock(ma->id.lib!=NULL, ERROR_LIBDATA_MESSAGE);
-	
-	uiDefButBitI(block, TOG, MA_RAYMIRROR, B_MATPRV,"Ray Mirror",210,180,100,20, &(ma->mode), 0, 0, 0, 0, "Enables raytracing for mirror reflection rendering");
-
-	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, B_MATPRV, "RayMir ",	10,160,200,20, &(ma->ray_mirror), 0.0, 1.0, 100, 2, "Sets the amount mirror reflection for raytrace");
-	uiDefButS(block, NUM, B_MATPRV, "Depth:",		210,160,100,20, &(ma->ray_depth), 0.0, 10.0, 100, 0, "Amount of inter-reflections calculated maximal ");
-
-	uiDefButF(block, NUMSLI, B_MATPRV, "Fresnel ",	10,140,160,20, &(ma->fresnel_mir), 0.0, 5.0, 10, 2, "Power of Fresnel for mirror reflection");
-	uiDefButF(block, NUMSLI, B_MATPRV, "Fac ",		170,140,140,20, &(ma->fresnel_mir_i), 1.0, 5.0, 10, 2, "Blending factor for Fresnel");
-
-	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_MATPRV, "Filt:",		10,110,150,20, &(ma->filter), 0.0, 1.0, 10, 0, "Amount of filtering for transparent raytrace");
-	uiDefButBitI(block, TOG, MA_RAYTRANSP, B_MATRAYTRANSP,"Ray Transp",160,110,150,20, &(ma->mode), 0, 0, 0, 0, "Enables raytracing for transparency rendering");
-
-	/* uiBlockBeginAlign(block); */
-	uiDefButF(block, NUMSLI, B_MATPRV, "IOR ",	10,90,200,20, &(ma->ang), 1.0, 3.0, 100, 2, "Sets the angular index of refraction for raytrace");
-	uiDefButS(block, NUM, B_MATPRV, "Depth:",	210,90,100,20, &(ma->ray_depth_tra), 0.0, 10.0, 100, 0, "Amount of refractions calculated maximal ");
-
-	uiDefButF(block, NUMSLI, B_MATPRV, "Limit ",	10,70,160,20, &(ma->tx_limit), 0.0, 100.0, 10, 2, "Depth limit for transmissivity (0.0 is disabled)");
-	uiDefButF(block, NUMSLI, B_MATPRV, "Falloff ",	170,70,140,20, &(ma->tx_falloff), 0.1, 10.0, 10, 2, "Falloff power for transmissivity (1.0 is linear)");
-
-	uiDefButF(block, NUMSLI, B_MATPRV, "Fresnel ",	10,50,160,20, &(ma->fresnel_tra), 0.0, 5.0, 10, 2, "Power of Fresnel for transparency");
-	uiDefButF(block, NUMSLI, B_MATPRV, "Fac ",		170,50,140,20, &(ma->fresnel_tra_i), 1.0, 5.0, 10, 2, "Blending factor for Fresnel");
-
-	uiBlockBeginAlign(block);
-	uiDefButF(block, NUMSLI, B_MATPRV, "SpecTra ",	10,20,150,20, &(ma->spectra), 0.0, 1.0, 0, 0, "Makes specular areas opaque on transparent materials");
-//	uiDefButF(block, NUMSLI, B_MATPRV, "Add ",		160,20,150,20, &(ma->add), 0.0, 1.0, 0, 0, "Uses additive blending for Z-transparant materials");
-
+ 	uiBlockBeginAlign(block);
+	uiDefButF(block, NUMSLI, B_MATPRV, "RayMir: ",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->ray_mirror), 0.0, 1.0, 100, 2, "Sets the amount mirror reflection for raytrace");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Fresnel: ",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->fresnel_mir), 0.0, 5.0, 10, 2, "Power of Fresnel for mirror reflection");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Fac: ",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->fresnel_mir_i), 1.0, 5.0, 10, 2, "Blending factor for Fresnel");
 	uiBlockEndAlign(block);
-}
+ 
+	yco -= YSPACE;
+	
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUMSLI, B_MATPRV, "Gloss: ",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->gloss_mir), 0.0, 1.0, 100, 0, "The shininess of the reflection. Values < 1.0 give diffuse, blurry reflections ");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Aniso: ",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->aniso_gloss_mir), 0.0, 1.0, 100, 0, "The shape of the reflection, from 0. (circular) to 1.0 (fully stretched along the tangent)");
+	uiDefButS(block, NUM, B_MATPRV, "Samples:",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->samp_gloss_mir), 0.0, 1024.0, 100, 0, "Number of cone samples averaged for blurry reflections");	
+	uiDefButF(block, NUM, B_MATPRV, "Thresh: ",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->adapt_thresh_mir), 0.0, 1.0, 100, 0, "Threshold for adaptive sampling. If a sample contributes less than this amount (as a percentage), sampling is stopped");
+	uiBlockEndAlign(block);
+ 
+	yco -= YSPACE;
+	uiDefButS(block, NUM, B_MATPRV, "Depth:",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->ray_depth), 0.0, 10.0, 100, 0, "Maximum allowed number of light inter-reflections");
+		
+	yco -= YSPACE;
+ 	uiBlockBeginAlign(block);
+	uiDefButF(block, NUM, B_MATPRV, "Max Dist:",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->dist_mir), 0.0, 100.0, 100, 0, "Maximum distance of reflected rays. Reflections further than this range fade to sky color");
+	uiDefButS(block, MENU, B_MATPRV, "Ray end fade-out: %t|Fade to Sky Color %x0|Fade to Material Color %x1",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->fadeto_mir), 0, 0, 0, 0, "The color that rays with no intersection within the Max Distance take. Material color can be best for indoor scenes, sky color for outdoor.");
+	uiBlockEndAlign(block);
+ 
+	yco=PANEL_YMAX;
 
+	uiDefButBitI(block, TOG, MA_RAYTRANSP, B_MATRAYTRANSP,"Ray Transp",
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->mode), 0, 0, 0, 0, "Enables raytracing for transparent refraction rendering");
+	
+	yco -= YSPACE;
+	
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUMSLI, B_MATPRV, "IOR: ",
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->ang), 1.0, 3.0, 100, 2, "Sets angular index of refraction for raytraced refraction");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Fresnel: ",
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->fresnel_tra), 0.0, 5.0, 10, 2, "Power of Fresnel for mirror reflection");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Fac: ",
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->fresnel_tra_i), 1.0, 5.0, 10, 2, "Blending factor for Fresnel");
+	uiBlockEndAlign(block);
+ 
+	yco -= YSPACE;
+	
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUMSLI, B_MATPRV, "Gloss: ",
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->gloss_tra), 0.0, 1.0, 100, 0, "The clarity of the refraction. Values < 1.0 give diffuse, blurry reflections ");
+	uiDefButS(block, NUM, B_MATPRV, "Samples:",
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->samp_gloss_tra), 0.0, 1024.0, 100, 0, "Number of cone samples averaged for blurry refractions");	
+	uiDefButF(block, NUM, B_MATPRV, "Thresh: ",
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->adapt_thresh_tra), 0.0, 1.0, 100, 0, "Threshold for adaptive sampling. If a sample contributes less than this amount (as a percentage), sampling is stopped");
+ 	uiBlockEndAlign(block);
+
+	yco -= YSPACE;
+	
+	uiDefButS(block, NUM, B_MATPRV, "Depth:",
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->ray_depth_tra), 0.0, 10.0, 100, 0, "Maximum allowed number of light inter-refractions");
+
+	yco -= YSPACE;
+	
+ 	uiBlockBeginAlign(block);
+	uiDefButF(block, NUM, B_MATPRV, "Filter:",
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->filter), 0.0, 1.0, 10, 0, "Amount to blend in the material's diffuse colour in raytraced transparency (simulating absorption)");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Limit: ",
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->tx_limit), 0.0, 100.0, 10, 2, "Maximum depth for light to travel through the transparent material before becoming fully filtered (0.0 is disabled)");
+	uiDefButF(block, NUMSLI, B_MATPRV, "Falloff: ",
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->tx_falloff), 0.1, 10.0, 10, 2, "Falloff power for transmissivity filter effect (1.0 is linear)");
+	uiBlockEndAlign(block);
+
+	yco -= YSPACE;
+	
+	uiDefButF(block, NUMSLI, B_MATPRV, "SpecTra: ",
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->spectra), 0.0, 1.0, 0, 0, "Makes specular areas opaque on transparent materials");
+}
 
 /* yafray: adapted version of Blender's tramir panel.
  * Only removed the buttons not needed, so only the ones that are important for yafray are left.

@@ -2243,15 +2243,23 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 	lar->ray_samp= la->ray_samp;
 	lar->ray_sampy= la->ray_sampy;
 	lar->ray_sampz= la->ray_sampz;
-
+	
 	lar->area_size= la->area_size;
 	lar->area_sizey= la->area_sizey;
 	lar->area_sizez= la->area_sizez;
 
 	lar->area_shape= la->area_shape;
+	lar->ray_samp_method= la->ray_samp_method;
 	lar->ray_samp_type= la->ray_samp_type;
-
-	if(lar->type==LA_AREA) {
+	
+	lar->adapt_thresh= la->adapt_thresh;
+	
+	if( ELEM3(lar->type, LA_SPOT, LA_SUN, LA_LOCAL)) {
+		lar->ray_totsamp= lar->ray_samp*lar->ray_samp;
+		lar->area_shape = LA_AREA_SQUARE;
+		lar->area_sizey= lar->area_size;
+	}
+	else if(lar->type==LA_AREA) {
 		switch(lar->area_shape) {
 		case LA_AREA_SQUARE:
 			lar->ray_totsamp= lar->ray_samp*lar->ray_samp;
@@ -2369,15 +2377,20 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 	
 
 		if(re->r.mode & R_SHADOW) {
-			if (la->type==LA_SPOT && (lar->mode & LA_SHAD_BUF) ) {
+			
+			if ((lar->mode & LA_SHAD_RAY) && (lar->ray_samp_method == LA_SAMP_HAMMERSLEY)) {
+				init_lamp_hammersley(lar);
+			}
+			if(la->type==LA_AREA && (lar->mode & LA_SHAD_RAY) && (lar->ray_samp_method == LA_SAMP_CONSTANT)) {
+				init_jitter_plane(lar);
+			}
+			else if (la->type==LA_SPOT && (lar->mode & LA_SHAD_BUF) ) {
 				/* Per lamp, one shadow buffer is made. */
 				lar->bufflag= la->bufflag;
 				Mat4CpyMat4(mat, ob->obmat);
 				initshadowbuf(re, lar, mat);	// mat is altered
 			}
-			else if(la->type==LA_AREA && (lar->mode & LA_SHAD_RAY) ) {
-				init_jitter_plane(lar);
-			}
+			
 			
 			/* this is the way used all over to check for shadow */
 			if(lar->shb || (lar->mode & LA_SHAD_RAY)) {
@@ -2951,6 +2964,7 @@ void RE_Database_Free(Render *re)
 		freeshadowbuf(lar);
 		if(lar->jitter) MEM_freeN(lar->jitter);
 		if(lar->shadsamp) MEM_freeN(lar->shadsamp);
+		if(lar->qsa) free_lamp_qmcsampler(lar);
 	}
 	
 	BLI_freelistN(&re->lampren);
@@ -2987,6 +3001,9 @@ void RE_Database_Free(Render *re)
 		re->wrld.aotables= NULL;
 		re->scene->world->aotables= NULL;
 	}
+	if((re->r.mode & R_RAYTRACE) && (re->wrld.mode & WO_AMB_OCC) &&
+	    (re->wrld.ao_samp_method == WO_AOSAMP_HAMMERSLEY) && (re->qsa))
+		free_render_qmcsampler(re);
 	
 	if(re->r.mode & R_RAYTRACE) freeraytree(re);
 
@@ -3024,8 +3041,11 @@ static void set_fullsample_flag(Render *re)
 		if(vlr->mat->mode & MA_FULL_OSA) vlr->flag |= R_FULL_OSA;
 		else if(trace) {
 			if(vlr->mat->mode & MA_SHLESS);
-			else if(vlr->mat->mode & (MA_RAYTRANSP|MA_RAYMIRROR|MA_SHADOW))
-				vlr->flag |= R_FULL_OSA;
+			else if(vlr->mat->mode & (MA_RAYTRANSP|MA_RAYMIRROR))
+				/* for blurry reflect/refract, better to take more samples 
+				 * inside the raytrace than as OSA samples */
+				if ((vlr->mat->gloss_mir == 1.0) && (vlr->mat->gloss_tra == 1.0)) 
+					vlr->flag |= R_FULL_OSA;
 		}
 	}
 }
@@ -3278,8 +3298,12 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 	}
 	
 	init_render_world(re);	/* do first, because of ambient. also requires re->osa set correct */
-	if(re->wrld.mode & WO_AMB_OCC)
-		init_ao_sphere(&re->wrld);
+	if(re->wrld.mode & WO_AMB_OCC) {
+		if (re->wrld.ao_samp_method == WO_AOSAMP_HAMMERSLEY)
+			init_render_hammersley(re);
+		else if (re->wrld.ao_samp_method == WO_AOSAMP_CONSTANT)
+			init_ao_sphere(&re->wrld);
+	}
 	
 	/* still bad... doing all */
 	init_render_textures(re);

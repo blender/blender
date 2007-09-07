@@ -98,10 +98,12 @@ World *add_world(char *name)
 	wrld->exp= 0.0f;
 	wrld->exposure=wrld->range= 1.0f;
 
-	wrld->aodist= 10.0;
+	wrld->aodist= 5.0;
 	wrld->aosamp= 5;
 	wrld->aoenergy= 1.0;
 	wrld->aobias= 0.05;
+	wrld->ao_samp_method = WO_AOSAMP_HAMMERSLEY;	
+
 	
 	wrld->physicsEngine= WOPHY_BULLET;//WOPHY_SUMO; Bullet by default
 	wrld->preview = NULL;

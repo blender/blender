@@ -59,6 +59,18 @@ typedef struct SampleTables
 	
 } SampleTables;
 
+typedef struct QMCSampler
+{
+	int type;
+	int tot;
+	double *samp2d;
+	double offs[BLENDER_MAX_THREADS][2];
+} QMCSampler;
+
+#define SAMP_TYPE_JITTERED		0
+#define SAMP_TYPE_HALTON		1
+#define SAMP_TYPE_HAMMERSLEY	2
+
 /* this is handed over to threaded hiding/passes/shading engine */
 typedef struct RenderPart
 {
@@ -130,6 +142,7 @@ struct Render
 	/* samples */
 	SampleTables *samples;
 	float jit[32][2];
+	QMCSampler *qsa;
 	
 	/* scene, and its full copy of renderdata and world */
 	Scene *scene;
@@ -335,12 +348,14 @@ typedef struct LampRen {
 	/** A small depth offset to prevent self-shadowing. */
 	float bias;
 	
-	short ray_samp, ray_sampy, ray_sampz, ray_samp_type, area_shape, ray_totsamp;
+	short ray_samp, ray_sampy, ray_sampz, ray_samp_method, ray_samp_type, area_shape, ray_totsamp;
 	short xold[BLENDER_MAX_THREADS], yold[BLENDER_MAX_THREADS];	/* last jitter table for area lights */
 	float area_size, area_sizey, area_sizez;
-	
+	float adapt_thresh;
+		
 	struct ShadBuf *shb;
 	float *jitter;
+	QMCSampler *qsa;
 	
 	float imat[3][3];
 	float spottexfac;
@@ -351,7 +366,7 @@ typedef struct LampRen {
 	
 	/* passes & node shader support: all shadow info for a pixel */
 	LampShadowSample *shadsamp;
-	
+		
 	/* yafray: photonlight params */
 	int YF_numphotons, YF_numsearch;
 	short YF_phdepth, YF_useqmc, YF_bufsize;

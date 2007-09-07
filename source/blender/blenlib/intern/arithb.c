@@ -2093,6 +2093,30 @@ void VecMulf(float *v1, float f)
 	v1[2]*= f;
 }
 
+void VecOrthoBasisf(float *v, float *v1, float *v2)
+{
+	if (v[0] == 0.0f && v[1] == 0.0f)
+	{
+		// degenerate case
+		v1[0] = 0.0f; v1[1] = 1.0f; v1[2] = 0.0f;
+		if (v[2] > 0.0f) {
+			v2[0] = 1.0f; v2[1] = v2[2] = 0.0f;
+		}
+		else {
+			v2[0] = -1.0f; v2[1] = v2[2] = 0.0f;
+		}
+	}
+	else 
+	{
+		float f = 1.0f/sqrt(v[0]*v[0] + v[1]*v[1]);
+		v1[0] = v[1]*f;
+		v1[1] = -v[0]*f;
+		v1[2] = 0.0f;
+
+		Crossf(v2, v, v1);
+	}
+}
+
 int VecLenCompare(float *v1, float *v2, float limit)
 {
     float x,y,z;

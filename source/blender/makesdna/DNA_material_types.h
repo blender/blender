@@ -73,6 +73,14 @@ typedef struct Material {
 	short har;
 	char seed1, seed2;
 	
+	float gloss_mir, gloss_tra;
+	short samp_gloss_mir, samp_gloss_tra;
+	float adapt_thresh_mir, adapt_thresh_tra;
+	float aniso_gloss_mir;
+	float dist_mir;
+	short fadeto_mir;
+	short pad1;
+		
 	int mode, mode_l;		/* mode_l is the or-ed result of all layer modes */
 	short flarec, starc, linec, ringc;
 	float hasize, flaresize, subsize, flareboost;
@@ -182,6 +190,10 @@ typedef struct Material {
 #define MA_GROUP_NOLAY	0x10000000
 
 #define	MA_MODE_MASK	0x1fffffff	/* all valid mode bits */
+
+/* ray mirror fadeout */
+#define MA_RAYMIR_FADETOSKY	0
+#define MA_RAYMIR_FADETOMAT	1
 
 /* diff_shader */
 #define MA_DIFF_LAMBERT		0

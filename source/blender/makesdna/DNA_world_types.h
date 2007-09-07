@@ -103,7 +103,13 @@ typedef struct World {
 	/* ambient occlusion */
 	float aodist, aodistfac, aoenergy, aobias;
 	short aomode, aosamp, aomix, aocolor;
+	float ao_adapt_thresh;
+	float pad2[3];
+	short ao_samp_method;
+	short pad1[3];
+	
 	float *aosphere, *aotables;
+	
 	
 	struct Ipo *ipo;
 	struct MTex *mtex[10];
@@ -136,6 +142,11 @@ typedef struct World {
 #define WO_AOADD	0
 #define WO_AOSUB	1
 #define WO_AOADDSUB	2
+
+/* ao_samp_method - methods for sampling the AO hemi */
+#define WO_AOSAMP_CONSTANT			0
+#define WO_AOSAMP_HALTON			1
+#define WO_AOSAMP_HAMMERSLEY		2
 
 /* aomode (use distances & random sampling modes) */
 #define WO_AODIST		1

@@ -140,6 +140,12 @@ void init_material(Material *ma)
 	ma->tx_falloff= 1.0;
 	ma->shad_alpha= 1.0f;
 	
+	ma->gloss_mir = ma->gloss_tra= 1.0;
+	ma->samp_gloss_mir = ma->samp_gloss_tra= 18;
+	ma->adapt_thresh_mir = ma->adapt_thresh_tra = 0.005;
+	ma->dist_mir = 0.0;
+	ma->fadeto_mir = MA_RAYMIR_FADETOSKY;
+	
 	ma->rampfac_col= 1.0;
 	ma->rampfac_spec= 1.0;
 	ma->pr_lamp= 3;			/* two lamps, is bits */

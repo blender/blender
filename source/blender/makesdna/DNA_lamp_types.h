@@ -61,9 +61,13 @@ typedef struct Lamp {
 	short bufsize, samp, buffers, filtertype;
 	char bufflag, buftype;
 	
-	short ray_samp, ray_sampy, ray_sampz, ray_samp_type;
+	short ray_samp, ray_sampy, ray_sampz;
+	short ray_samp_type;
 	short area_shape;
 	float area_size, area_sizey, area_sizez;
+	float adapt_thresh;
+	short ray_samp_method;
+	short pad1;
 	
 	/* texact is for buttons */
 	short texact, shadhalostep;
@@ -134,6 +138,12 @@ typedef struct Lamp {
 #define LA_AREA_RECT	1
 #define LA_AREA_CUBE	2
 #define LA_AREA_BOX		3
+
+/* ray_samp_method */
+#define LA_SAMP_CONSTANT			0
+#define LA_SAMP_HALTON				1
+#define LA_SAMP_HAMMERSLEY			2
+
 
 /* ray_samp_type */
 #define LA_SAMP_ROUND	1

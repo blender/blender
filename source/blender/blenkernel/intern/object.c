@@ -598,6 +598,8 @@ void *add_lamp(char *name)
 	la->area_size=la->area_sizey=la->area_sizez= 1.0; 
 	la->buffers= 1;
 	la->buftype= LA_SHADBUF_HALFWAY;
+	la->ray_samp_method = LA_SAMP_HALTON;
+	la->adapt_thresh = 0.001;
 	la->preview=NULL;
 	return la;
 }

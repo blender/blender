@@ -6562,9 +6562,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 	if(main->versionfile <= 244) {
 		Scene *sce;
+		Material *ma;
 		bScreen *sc;
 		Object *ob;
-
+		Lamp *la;
+		World *wrld;
+		
 		if(main->versionfile != 244 || main->subversionfile < 2) {
 			Mesh *me;
 			
@@ -6588,7 +6591,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					}
 				}
 			}
-			
+	
 			/* correct older action editors - incorrect scrolling */
 			for(sc= main->screen.first; sc; sc= sc->id.next) {
 				ScrArea *sa;
@@ -6691,6 +6694,33 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						}
 					}
 				}
+			}
+			
+			for(ma=main->mat.first; ma; ma= ma->id.next) {
+				ma->gloss_mir = ma->gloss_tra= 1.0;
+				ma->aniso_gloss_mir = 1.0;
+				ma->samp_gloss_mir = ma->samp_gloss_tra= 18;
+				ma->adapt_thresh_mir = ma->adapt_thresh_tra = 0.005;
+				ma->dist_mir = 0.0;
+				ma->fadeto_mir = MA_RAYMIR_FADETOSKY;
+			}
+			
+			for(wrld=main->world.first; wrld; wrld= wrld->id.next) {
+				if (wrld->mode & WO_AMB_OCC)
+					wrld->ao_samp_method = WO_AOSAMP_CONSTANT;
+				else
+					wrld->ao_samp_method = WO_AOSAMP_HAMMERSLEY;
+				
+				wrld->ao_adapt_thresh = 0.005;
+			}
+			
+			for(la=main->lamp.first; la; la= la->id.next) {
+				if (la->type == LA_AREA)
+					la->ray_samp_method = LA_SAMP_CONSTANT;
+				else
+					la->ray_samp_method = LA_SAMP_HALTON;
+				
+				la->adapt_thresh = 0.001;
 			}
 		}
 	}

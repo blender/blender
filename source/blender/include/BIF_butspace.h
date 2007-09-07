@@ -102,6 +102,38 @@ extern void validate_editbonebutton_cb(void *bonev, void *namev);
 #define BUTS_ACT_LINK		256
 
 
+/* buttons grid */
+#define PANELX		320
+#define PANELY		0
+#define PANELW		318
+#define PANELH		204
+  
+#define BUTW1		300
+#define BUTW2		145
+#define BUTW3		93
+#define BUTW4		67
+#define ICONBUTW	20
+#define BUTH		22
+ 
+#define YSPACE		6
+#define XSPACE		10
+#define PANEL_YMAX	210
+#define PANEL_XMAX	310
+ 
+#define X1CLM		10
+ 
+#define X2CLM1		X1CLM
+#define X2CLM2		165
+ 
+#define X3CLM1		X1CLM
+#define X3CLM2		113
+#define X3CLM3		217
+
+#define X4CLM1		X1CLM
+#define X4CLM2		77
+#define X4CLM3		165
+#define X4CLM4		232
+ 
 
 #endif
 

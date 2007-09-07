@@ -99,6 +99,10 @@ extern void ray_trace(ShadeInput *, ShadeResult *);
 extern void ray_ao(ShadeInput *, float *);
 extern void init_jitter_plane(LampRen *lar);
 extern void init_ao_sphere(struct World *wrld);
+extern void init_lamp_hammersley(LampRen *lar);
+extern void free_lamp_qmcsampler(LampRen *lar);
+extern void init_render_hammersley(Render *re);
+extern void free_render_qmcsampler(Render *re);
 
 #endif /* RENDER_EXT_H */
 
