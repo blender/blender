@@ -1383,14 +1383,23 @@ static PyObject *Object_getSize( BPy_Object * self, PyObject * args )
 					"expected a string or nothing" );
 
 	if( BLI_streq( space, "worldspace" ) ) {	/* Worldspace matrix */
-		float scale[3];
+		float rot[3];
+		float mat[3][3], imat[3][3], tmat[3][3];
 		disable_where_script( 1 );
 		where_is_object( self->object );
-		Mat4ToSize(self->object->obmat, scale);
+		
+		Mat3CpyMat4(mat, self->object->obmat);
+		
+		/* functionality copied from editobject.c apply_obmat */
+		Mat3ToEul(mat, rot);
+		EulToMat3(rot, tmat);
+		Mat3Inv(imat, tmat);
+		Mat3MulMat3(tmat, imat, mat);
+		
 		attr = Py_BuildValue( "fff",
-					self->object->size[0],
-					self->object->size[1],
-					self->object->size[2] );
+					tmat[0][0],
+					tmat[1][1],
+					tmat[2][2] );
 		disable_where_script( 0 );
 	} else if( BLI_streq( space, "localspace" ) ) {	/* Localspace matrix */
 		attr = Py_BuildValue( "fff",

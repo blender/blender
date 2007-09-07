@@ -257,27 +257,8 @@ def write(filename, batch_objects = None, \
 		BATCH_OWN_DIR =				False
 	):
 
-	# Extreamly evil hack, only keep here for now until the python API's improved.
-	# to solve this we should add a function like matrix.toLocScaleRot() that copies code from 
-	# editobject.c's apply_obmat function.
-	# for now this will do.
-	DUMMY_OB = Blender.Object.New('Empty') # dont add to a scene, will be removed later...
-	def matrix_to_LocScaRot(matrix):
-		RAD2DEG = 0.017453292519943295
-		DUMMY_OB.setMatrix(matrix)
-		return (\
-		(DUMMY_OB.LocX,			DUMMY_OB.LocY,			DUMMY_OB.LocZ),\
-		(DUMMY_OB.SizeX,		DUMMY_OB.SizeY,			DUMMY_OB.SizeZ),\
-		(DUMMY_OB.RotX/RAD2DEG,	DUMMY_OB.RotY/RAD2DEG,	DUMMY_OB.RotZ/RAD2DEG)\
-		)
-
-	def matrix_translationPart(matrix):
-		return matrix_to_LocScaRot(matrix)[0]
-	def matrix_scalePart(matrix):
-		return matrix_to_LocScaRot(matrix)[1]
-	def matrix_toEuler(matrix):
-		return matrix_to_LocScaRot(matrix)[2]
-	# end evil hack
+	
+	
 	
 	# ----------------- Batch support!
 	if BATCH_ENABLE:
@@ -561,15 +542,9 @@ def write(filename, batch_objects = None, \
 				
 			matrix_rot =	matrix.rotationPart()
 			
-			''' # use hack instead
 			loc =			tuple(matrix.translationPart())
 			scale =			tuple(matrix.scalePart())
 			rot =			tuple(matrix_rot.toEuler())
-			'''
-			
-			loc =			tuple(matrix_translationPart(matrix))
-			scale =			tuple(matrix_scalePart(matrix))
-			rot =			tuple(matrix_toEuler(matrix_rot))
 			
 		else:
 			if ob and not matrix:	matrix = ob.matrixWorld * GLOBAL_MATRIX
@@ -578,37 +553,26 @@ def write(filename, batch_objects = None, \
 			#	matrix = matrix_scale * matrix
 			
 			if matrix:
-				''' # use hack instead
-				loc = tuple(matrix.translationPart()) 
+				loc = tuple(matrix.translationPart())
 				scale = tuple(matrix.scalePart())
-				'''
-				loc =			tuple(matrix_translationPart(matrix))
-				scale =			tuple(matrix_scalePart(matrix))
-				
 				
 				matrix_rot = matrix.rotationPart()
 				# Lamps need to be rotated
 				if ob and ob.type =='Lamp':
 					matrix_rot = mtx_x90 * matrix_rot
-					# use hack instead
-					#rot = tuple(matrix_rot.toEuler())
-					rot =			tuple(matrix_toEuler(matrix_rot))
+					rot = tuple(matrix_rot.toEuler())
 				elif ob and ob.type =='Camera':
 					y = Vector(0,1,0) * matrix_rot
 					matrix_rot = matrix_rot * RotationMatrix(90, 3, 'r', y)
-					# use hack instead
-					#rot = tuple(matrix_rot.toEuler())
-					rot =			tuple(matrix_toEuler(matrix_rot))
+					rot = tuple(matrix_rot.toEuler())
 				else:
-					# use hack instead
-					# rot = tuple(matrix_rot.toEuler())
-					rot =			tuple(matrix_toEuler(matrix_rot))
+					rot = tuple(matrix_rot.toEuler())
 			else:
 				if not loc:
 					loc = 0,0,0
 				scale = 1,1,1
 				rot = 0,0,0
-			
+		
 		return loc, rot, scale, matrix, matrix_rot
 	
 	def write_object_tx(ob, loc, matrix, matrix_mod= None):
@@ -2575,16 +2539,10 @@ Takes:  {''')
 						# ----------------
 						# ----------------
 						for TX_LAYER, TX_CHAN in enumerate('TRS'): # transform, rotate, scale
-							''' # use hack instead
+							
 							if		TX_CHAN=='T':	context_bone_anim_vecs = [mtx[0].translationPart()	for mtx in context_bone_anim_mats]
 							elif 	TX_CHAN=='R':	context_bone_anim_vecs = [mtx[1].toEuler()			for mtx in context_bone_anim_mats]
 							else:					context_bone_anim_vecs = [mtx[0].scalePart()		for mtx in context_bone_anim_mats]
-							'''
-							
-							if		TX_CHAN=='T':	context_bone_anim_vecs = [matrix_translationPart(mtx[0])	for mtx in context_bone_anim_mats]
-							elif 	TX_CHAN=='R':	context_bone_anim_vecs = [matrix_toEuler(mtx[1])			for mtx in context_bone_anim_mats]
-							else:					context_bone_anim_vecs = [matrix_scalePart(mtx[0])			for mtx in context_bone_anim_mats]
-							
 							
 							file.write('\n\t\t\t\tChannel: "%s" {' % TX_CHAN) # translation
 							

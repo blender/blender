@@ -202,16 +202,27 @@ PyObject *Matrix_RotationPart(MatrixObject * self)
 /*---------------------------Matrix.scalePart() --------------------*/
 PyObject *Matrix_scalePart(MatrixObject * self)
 {
-	float scale[3];
-	
+	float scale[3], rot[3];
+	float mat[3][3], imat[3][3], tmat[3][3];
+
 	/*must be 3-4 cols, 3-4 rows, square matrix*/
 	if(self->colSize == 4 && self->rowSize == 4)
-		Mat4ToSize((float (*)[4])*self->matrix, scale);
+		Mat3CpyMat4(mat, (float (*)[4])*self->matrix);
 	else if(self->colSize == 3 && self->rowSize == 3)
-		Mat3ToSize((float (*)[3])*self->matrix, scale);
+		Mat3CpyMat3(mat, (float (*)[3])*self->matrix);
 	else
 		return EXPP_ReturnPyObjError(PyExc_AttributeError,
 			"Matrix.scalePart(): inappropriate matrix size - expects 3x3 or 4x4 matrix\n");
+	
+	/* functionality copied from editobject.c apply_obmat */
+	Mat3ToEul(mat, rot);
+	EulToMat3(rot, tmat);
+	Mat3Inv(imat, tmat);
+	Mat3MulMat3(tmat, imat, mat);
+	
+	scale[0]= tmat[0][0];
+	scale[1]= tmat[1][1];
+	scale[2]= tmat[2][2];
 	return newVectorObject(scale, 3, Py_NEW);
 }
 /*---------------------------Matrix.invert() ---------------------*/
