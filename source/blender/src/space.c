@@ -1660,7 +1660,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else {
 					if(G.obedit) {
 						if(G.obedit->type==OB_MESH)
-							deselectall_mesh();
+							EM_deselectall_mesh();
 						else if ELEM(G.obedit->type, OB_CURVE, OB_SURF)
 							deselectall_nurb();
 						else if(G.obedit->type==OB_MBALL)

@@ -1,5 +1,7 @@
 #include "MEM_guardedalloc.h"
 
+#include "BSE_edit.h"
+
 #include "BKE_bmesh.h"
 #include "BKE_mesh.h"
 #include "BKE_global.h"
@@ -390,6 +392,7 @@ void mouse_bmesh(void)
 			allqueue(REDRAWVIEW3D, 1);
 		}
 	}
+	countall();
 	makeDerivedMesh(G.obedit,CD_MASK_EDITMESH);
 	rightmouse_transform();
 }

@@ -652,10 +652,26 @@ void countall()
 		
 		if(G.obedit->type==OB_MESH) {
 			BME_Mesh *em = G.editMesh;
-
+			BME_Vert *v;
+			BME_Edge *e;
+			BME_Poly *f;
+			
+			for(v=BME_first(G.editMesh,BME_VERT);v;v=BME_next(G.editMesh,BME_VERT,v)){
+				if(BME_SELECTED(v)) G.totvertsel++;
+			}
+			for(e=BME_first(G.editMesh,BME_EDGE);e;e=BME_next(G.editMesh,BME_EDGE,e)){
+				if(BME_SELECTED(e)) G.totedgesel++;
+			}
+			for(f=BME_first(G.editMesh,BME_POLY);f;f=BME_next(G.editMesh,BME_POLY,f)){
+				if(BME_SELECTED(f)) G.totfacesel++;
+			}
+			
 			G.totvert = em->totvert;
 			G.totedge = em->totedge;
 			G.totface = em->totpoly;
+		
+			
+			
 		}
 		else if (G.obedit->type==OB_ARMATURE){
 			for (ebo=G.edbo.first;ebo;ebo=ebo->next){

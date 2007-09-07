@@ -30,3 +30,7 @@ void EM_cut_edges(int numcuts);
 void EM_dissolve_edges(void);
 void EM_delete_context(void);
 void EM_extrude_mesh(void);
+
+
+/*editbmesh_select.c*/
+void EM_deselectall_mesh(void);
