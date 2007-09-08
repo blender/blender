@@ -113,9 +113,12 @@ class KeyBlock:
 			 
 		
 		A word on relative shape keys; relative shape keys are not actually
-		stored as offsets to the base shape key (like you'd expect).  Instead, 
-		the additive relative offset is calculated on the fly by comparing a 
-		shape key with its base key, which is always the very first shapekey 
-		in the keyblock list.
+		stored as offsets to the base shape key (like you'd expect).  Instead,
+		each shape key stores an entire model (actually the state of the mesh 
+		vertices after exiting editmode with any given key active).
+		 
+		The additive offset for a shape key is calculated (when needed) by 
+		comparing the shape key with its base key, which is always the very 
+		first in the keyblock list.
 		"""
 
