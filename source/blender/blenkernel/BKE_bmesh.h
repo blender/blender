@@ -67,6 +67,7 @@ typedef struct BME_Mesh
 {
 	ListBase 			verts, edges, polys, loops;
 	int 				lock;									/*if set, all calls to eulers will fail.*/
+	short			selectmode;							/*selection mode. Technically a copy of G.scene->selectmode*/
 	struct BME_Mesh 	*backup;								/*full copy of the mesh*/
 	int 				totvert, totedge, totpoly, totloop;				/*record keeping*/
 	int 				nextv, nexte, nextp, nextl;					/*Next element ID for verts/edges/faces/loops. Never reused*/
@@ -196,6 +197,8 @@ void *BME_next(struct BME_Mesh *bm, int type, void *element);
 void BME_select_vert(struct BME_Mesh *bm, struct BME_Vert *v, int select);
 void BME_select_edge(struct BME_Mesh *bm, struct BME_Edge *e, int select);
 void BME_select_poly(struct BME_Mesh *bm, struct BME_Poly *f, int select);
+void BME_change_mode_exclusive(struct BME_Mesh *bm,  int newmode);
+void BME_strip_selections(struct BME_Mesh *bm);
 #define BME_SELECTED(element) (element->flag & SELECT)
 #define BME_NEWELEM(element) (element->flag & BME_NEW)
 #define BME_ISVISITED(element) (element->flag & BME_VISITED)

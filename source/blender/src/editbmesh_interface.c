@@ -145,7 +145,9 @@ BME_Mesh *BME_FromMesh(Mesh *me)
 	PointerArray edgearr = {0};
 	int i, j;
 	
+	
 	BME_model_begin(bmesh);
+	bmesh->selectmode = G.scene->selectmode;
 	
 	if (me->totface && !me->totpoly) {
 		printf("ERROR: paranoia mesh conversion function was called!\n");
@@ -194,6 +196,7 @@ BME_Mesh *BME_FromMesh(Mesh *me)
 	if (edge_table) MEM_freeN(edge_table);
 	
 	BME_model_end(bmesh);
+	BME_strip_selections(bmesh);
 	return bmesh;
 }
 
@@ -331,7 +334,7 @@ void EditBME_loadEditMesh(Mesh *mesh)
 	Mesh_FromBMesh(G.editMesh, mesh);
 }
 
-void EditBME_FlushSelUpward(BME_Mesh *mesh)
+void EditBME_FlushSelUpward(BME_Mesh *mesh) /*remove this, its not used...*/
 {
 	BME_Edge *eed;
 	BME_Loop *loop;
@@ -352,7 +355,7 @@ void EditBME_FlushSelUpward(BME_Mesh *mesh)
 	}
 }
 
-void mouse_bmesh(void)
+void mouse_bmesh(void) /*rewrite me like the old mouse_mesh from editmesh....*/
 {
 	if (G.scene->selectmode == SCE_SELECT_VERTEX) {
 		int dis = 75;
@@ -366,7 +369,6 @@ void mouse_bmesh(void)
 				for(eve=BME_first(G.editMesh,BME_VERT);eve;eve=BME_next(G.editMesh,BME_VERT,eve)) BME_select_vert(G.editMesh,eve,0);
 				BME_select_vert(G.editMesh,vert,1);
 			}
-			//EditBME_FlushSelUpward(G.editMesh);
 			allqueue(REDRAWVIEW3D, 1);
 		}
 	} else if (G.scene->selectmode == SCE_SELECT_EDGE) {
@@ -699,4 +701,6 @@ EditFace *EM_face_from_faces(EditFace *efa1, EditFace *efa2, int i1, int i2, int
 	
 	return efan;
 }
+
+
 #endif

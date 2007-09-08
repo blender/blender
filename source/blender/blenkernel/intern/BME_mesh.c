@@ -94,7 +94,7 @@ void *BME_next(BME_Mesh *bm, int type, void *element){
 /*	
  *	BME SELECT VERT/EDGE/POLY
  *
- * Selects elements.
+ * Selects elements. Flushes downwards if multi-select.
 */
 void BME_select_vert(BME_Mesh *bm, BME_Vert *v, int select){
 	if(select) v->flag |= SELECT;
@@ -110,6 +110,115 @@ void BME_select_poly(BME_Mesh *bm, BME_Poly *f, int select){
 }
 
 
+#define MULTISELECT(mode) (mode != SCE_SELECT_VERTEX && mode!= SCE_SELECT_EDGE && mode != SCE_SELECT_FACE)
+/*	
+ *	BME CHANGE MODE
+ *
+ * Changes the selection mode for the mesh.
+*/
+void BME_change_mode_exclusive(BME_Mesh *bm,  int newmode){
+	BME_Vert *v;
+	BME_Edge *e;
+	BME_Loop *l;
+	BME_Poly *f;
+	int faceflush;
+	
+	if(MULTISELECT(newmode)) return;
+	
+	if(newmode == SCE_SELECT_VERTEX){
+		/*flush faces to verts*/
+		for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){
+			if(BME_SELECTED(f)){
+				l=f->loopbase;
+				do{
+					BME_select_vert(bm,l->v,1);
+					l = l->next;
+				}while(l!=f->loopbase);
+				
+				
+			}
+		}
+		/*flush edges to verts*/
+		for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
+			if(BME_SELECTED(e)){
+				BME_select_vert(bm,e->v1,1);
+				BME_select_vert(bm,e->v2,1);
+			}
+		}
+		bm->selectmode = newmode;
+	}
+	
+	else if(newmode == SCE_SELECT_EDGE){
+		/*flush verts to edges*/
+		for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
+			if(BME_SELECTED(e->v1) && BME_SELECTED(e->v2)) BME_select_edge(bm,e,1);
+		}
+		/*flush faces to edges*/
+		for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){
+			if(BME_SELECTED(f)){
+				l=f->loopbase;
+				do{
+					BME_select_edge(bm,l->e,1);
+					l=l->next;
+				}while(l!=f->loopbase);
+				
+			}
+		}
+		bm->selectmode = newmode;
+	}
+
+	else if(newmode == SCE_SELECT_FACE){
+		/*flush vertices to faces*/
+		for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){
+			faceflush = 1;
+			l = f->loopbase;
+			do{
+				if(!(BME_SELECTED(l->v))){
+					faceflush = 0;
+					break;
+				}
+				l = l->next;
+			}while(l!=f->loopbase);
+			
+			if(faceflush) BME_select_poly(bm,f,1);
+		}
+		
+		/*flush edges to faces*/	
+		for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){
+			faceflush = 1;
+			l = f->loopbase;
+			do{
+				if(!(BME_SELECTED(l->e))){
+					faceflush = 0;
+					break;
+				}
+				l = l->next;
+			}while(l!=f->loopbase);
+			
+			if(faceflush) BME_select_poly(bm,f,1);
+		}
+		bm->selectmode = newmode;
+	}
+	BME_strip_selections(bm);
+}
+
+void BME_strip_selections(BME_Mesh *bm){
+	
+	BME_Vert *v;
+	BME_Edge *e;
+	BME_Poly *f;
+	
+	/*strip invalid selections. Make this a seperate function!*/
+	if(!(bm->selectmode & SCE_SELECT_VERTEX)){
+		for(v=BME_first(bm,BME_VERT);v;v=BME_next(bm,BME_VERT,v)) BME_select_vert(bm,v,0);
+	}
+	if(!(bm->selectmode & SCE_SELECT_EDGE)){
+		for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)) BME_select_edge(bm,e,0);
+	}
+	if(!(bm->selectmode & SCE_SELECT_FACE)){
+		for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)) BME_select_poly(bm,f,0);
+	}	
+}
 
 /*	
  *	BME MAKE MESH

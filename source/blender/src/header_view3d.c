@@ -70,6 +70,7 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_bmesh.h"
 
 #ifdef WITH_VERSE
 #include "BKE_verse.h"
@@ -4806,11 +4807,15 @@ void do_view3d_buttons(short event)
 		break;
 		
 	case B_SEL_VERT:
-		if( (G.qual & LR_SHIFTKEY)==0 || G.scene->selectmode==0)
+		if( (G.qual & LR_SHIFTKEY)==0 || G.scene->selectmode==0){
 			G.scene->selectmode= SCE_SELECT_VERTEX;
+			BME_change_mode_exclusive(G.editMesh,SCE_SELECT_VERTEX);
+		}
+		else BME_strip_selections(G.editMesh);
 		//EDITBMESHGREP EM_selectmode_set();
 		countall();
 		BIF_undo_push("Selectmode Set: Vertex");
+		DAG_object_flush_update(G.scene,G.obedit,OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 1);
 		break;
 	case B_SEL_EDGE:
@@ -4819,10 +4824,13 @@ void do_view3d_buttons(short event)
 				//EDITBMESHGREP if(G.qual==LR_CTRLKEY) EM_convertsel(SCE_SELECT_VERTEX,SCE_SELECT_EDGE); 
 			}
 			G.scene->selectmode = SCE_SELECT_EDGE;
+			BME_change_mode_exclusive(G.editMesh,SCE_SELECT_EDGE);
 		}
+		else BME_strip_selections(G.editMesh);
 		//EDITBMESHGREP EM_selectmode_set();
 		countall();
 		BIF_undo_push("Selectmode Set: Edge");
+		DAG_object_flush_update(G.scene,G.obedit,OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 1);
 		break;
 	case B_SEL_FACE:
@@ -4831,10 +4839,13 @@ void do_view3d_buttons(short event)
 				//EDITBMESHGREP if(G.qual==LR_CTRLKEY) EM_convertsel((G.scene->selectmode ^ SCE_SELECT_FACE),SCE_SELECT_FACE);
 			}
 			G.scene->selectmode = SCE_SELECT_FACE;
+			BME_change_mode_exclusive(G.editMesh,SCE_SELECT_FACE);
 		}
+		else BME_strip_selections(G.editMesh);
 		//EDITBMESHGREP EM_selectmode_set();
 		countall();
 		BIF_undo_push("Selectmode Set: Face");
+		DAG_object_flush_update(G.scene,G.obedit,OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 1);
 		break;	
 	
