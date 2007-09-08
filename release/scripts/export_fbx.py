@@ -12,11 +12,7 @@ __version__ = "1.1"
 __bpydoc__ = """\
 This script is an exporter to the FBX file format.
 
-Usage:
-
-Select the objects you wish to export and run this script from "File->Export" menu.
-All objects that can be represented as a mesh (mesh, curve, metaball, surface, text3d)
-will be exported as mesh data.
+http://wiki.blender.org/index.php/Scripts/Manual/Export/autodesk_fbx
 """
 # --------------------------------------------------------------------------
 # FBX Export v0.1 by Campbell Barton (AKA Ideasman)
@@ -120,32 +116,20 @@ def copy_images(dest_dir, textures):
 
 mtx4_identity = Matrix()
 
-mtx_z90 = RotationMatrix(90, 3, 'z')
-mtx_x90 = RotationMatrix(90, 3, 'x')
-
 # testing
-mtx_x90		= RotationMatrix( 90, 3, 'x')
-mtx_x90n	= RotationMatrix(-90, 3, 'x')
-mtx_y90		= RotationMatrix( 90, 3, 'y')
-mtx_y90n	= RotationMatrix(-90, 3, 'y')
-mtx_z90		= RotationMatrix( 90, 3, 'z')
-mtx_z90n	= RotationMatrix(-90, 3, 'z')
+mtx_x90		= RotationMatrix( 90, 3, 'x') # used
+#mtx_x90n	= RotationMatrix(-90, 3, 'x')
+#mtx_y90	= RotationMatrix( 90, 3, 'y')
+#mtx_y90n	= RotationMatrix(-90, 3, 'y')
+#mtx_z90	= RotationMatrix( 90, 3, 'z')
+#mtx_z90n	= RotationMatrix(-90, 3, 'z')
 
-
-mtx4_x90	= RotationMatrix( 90, 4, 'x')
-mtx4_x90n	= RotationMatrix(-90, 4, 'x')
-mtx4_y90	= RotationMatrix( 90, 4, 'y')
-mtx4_y90n	= RotationMatrix(-90, 4, 'y')
-mtx4_z90	= RotationMatrix( 90, 4, 'z')
-mtx4_z90n	= RotationMatrix(-90, 4, 'z')
-
-XVEC  = Vector(1,  0, 0)
-XVECN = Vector(-1, 0, 0)
-YVEC  = Vector(0,  1, 0)
-YVECN = Vector(0, -1, 0)
-ZVEC  = Vector(0, 0,  1)
-ZVECN = Vector(0, 0, -1)
-
+#mtx4_x90	= RotationMatrix( 90, 4, 'x')
+mtx4_x90n	= RotationMatrix(-90, 4, 'x') # used
+#mtx4_y90	= RotationMatrix( 90, 4, 'y')
+mtx4_y90n	= RotationMatrix(-90, 4, 'y') # used
+mtx4_z90	= RotationMatrix( 90, 4, 'z') # used
+mtx4_z90n	= RotationMatrix(-90, 4, 'z') # used
 
 def strip_path(p):
 	return p.split('\\')[-1].split('/')[-1]
@@ -256,9 +240,6 @@ def write(filename, batch_objects = None, \
 		BATCH_FILE_PREFIX =			'',
 		BATCH_OWN_DIR =				False
 	):
-
-	
-	
 	
 	# ----------------- Batch support!
 	if BATCH_ENABLE:
@@ -267,7 +248,6 @@ def write(filename, batch_objects = None, \
 		fbxpath = filename
 		
 		# get the path component of filename
-		
 		tmp_exists = Blender.sys.exists(fbxpath)
 		
 		if tmp_exists != 2: # a file, we want a path
