@@ -47,7 +47,7 @@
 #include "BKE_bmesh.h"
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
-
+#include "BLI_ghash.h"
 
 
 
@@ -496,5 +496,158 @@ int BME_extrude_edges(BME_Mesh *bm){
 }
 
 
+static BME_Vert *BME_dupevert(BME_Mesh *bm, BME_Vert *ov){
+	BME_Vert *nv = BME_MV(bm,ov->co);
+	/*copy info about ov*/
+	if(BME_SELECTED(ov))BME_select_vert(bm,nv,1);
+	return nv;
+}
+static BME_Edge *BME_dupedge(BME_Mesh *bm, BME_Edge *oe,BME_Vert *v1, BME_Vert *v2){
+	BME_Edge *ne = BME_ME(bm,v1,v2);
+	if(BME_SELECTED(oe))BME_select_edge(bm,ne,1);
+	/*copy info about oe*/
+	return ne;
+}
+static BME_Poly *BME_dupepoly(BME_Mesh *bm, BME_Poly *of, BME_Vert *v1, BME_Vert *v2, BME_Edge **edar){
 
+	BME_Poly *nf = NULL;
+	nf = BME_MF(bm,v1,v2,edar,of->len);
+	/*copy info about of*/
+	if(BME_SELECTED(of))BME_select_poly(bm,nf,1);
+	return nf;
+}
+void BME_duplicate(BME_Mesh *bm){
+	
+	BME_Vert *v, *nv, *ev1, *ev2;
+	BME_Edge *e, *ne, **edar;
+	BME_Loop *l;
+	BME_Poly *f;
+	struct GHash *vhash, *ehash;//pointer hashes
+	int edarlength, i;
+	
+	/*Build a hash table of old pointers and new pointers.*/
+	vhash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	ehash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	
+	/*Edge pointer array, realloc if too small (unlikely)*/
+	edarlength = 4096;
+	edar = MEM_callocN(sizeof(BME_Edge*)*edarlength,"Mesh duplicate tool \n");
+	
+	/*first search for selected faces, dupe all verts*/
+	for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){
+		if(BME_SELECTED(f)){
+			/*dupe each vertex*/
+			l=f->loopbase;
+			do{
+				if(!(BME_ISVISITED(l->v))){
+					nv = BME_dupevert(bm,l->v);
+					BLI_ghash_insert(vhash,l->v,nv);
+					BME_VISIT(l->v);
+				}
+				l=l->next;
+			}while(l!=f->loopbase);
+		}
+	}
+	
+	/*now search for selected edges, dupe all verts (if nessecary)*/
+	for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
+		if(BME_SELECTED(e)){
+			if(!(BME_ISVISITED(e->v1))){
+				nv = BME_dupevert(bm,e->v1);
+				BLI_ghash_insert(vhash,e->v1,nv);
+				BME_VISIT(e->v1);
+			}
+			if(!(BME_ISVISITED(e->v2))){
+				nv = BME_dupevert(bm,e->v2);
+				BLI_ghash_insert(vhash,e->v2,nv);
+				BME_VISIT(e->v2);
+			}
+		}
+	}
+	/*finally, any unvisited vertices should be duped (loose)*/
+	for(v=BME_first(bm,BME_VERT);v;v=BME_next(bm,BME_VERT,v)){
+		if(BME_SELECTED(v) && (!(BME_NEWELEM(v)))){
+			if(!(BME_ISVISITED(v))){
+				nv = BME_dupevert(bm,v);
+				BLI_ghash_insert(vhash,v,nv);
+				BME_VISIT(v);
+			}
+		}
+	}
+		
+	/*go through selected edges and dupe using vert hash as lookup.*/
+	for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
+		if(BME_SELECTED(e) && (!(BME_NEWELEM(e)))){
+			ev1 = ev2 = NULL;
+			ev1 = BLI_ghash_lookup(vhash,e->v1);
+			ev2 = BLI_ghash_lookup(vhash,e->v2);
+			
+			ne = BME_dupedge(bm,e,ev1,ev2);
+			BLI_ghash_insert(ehash,e,ne);
+			BME_VISIT(e);
+		}
+	}
+	/*go through selected faces and dupe edges*/
+	for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){
+		if(BME_SELECTED(f)){
+			l=f->loopbase;
+			do{
+				if(!(BME_ISVISITED(l->e))){
+					ev1 = ev2 = NULL;
+					ev1 = BLI_ghash_lookup(vhash,l->e->v1);
+					ev2 = BLI_ghash_lookup(vhash,l->e->v2);
+					
+					ne = BME_dupedge(bm,l->e,ev1,ev2);
+					BLI_ghash_insert(ehash,l->e,ne);
+					BME_VISIT(l->e);
+				}
+				l=l->next;
+			}while(l!=f->loopbase);
+		}
+	}
+	
+	
+	/*go through faces and dupe using edge hash as lookup*/
+	for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){
+		if(BME_SELECTED(f) && (!(BME_NEWELEM(f)))){
+			/*first check facelen and see if edar needs to be reallocated. Highly unlikely.*/
+			if(f->len > edarlength){
+				MEM_freeN(edar);
+				edarlength = edarlength * 2;
+				edar = MEM_callocN(sizeof(BME_Edge*)*edarlength,"Mesh duplicate tool");
+			}
+			/*now loop through face, looking up the edge that should go in edar, and placing in there.*/
+			l = f->loopbase;
+			i = 0;
+			do{
+				edar[i] = BLI_ghash_lookup(ehash, l->e);
+				BME_VISIT(l->e);
+				i++;
+				l=l->next;
+			}while(l!=f->loopbase);
+			ev1=ev2=NULL;
+			ev1 = BLI_ghash_lookup(vhash,f->loopbase->v);
+			ev2 = BLI_ghash_lookup(vhash,f->loopbase->next->v);
+			
+			BME_VISIT(f);
+			BME_dupepoly(bm,f,ev1,ev2,edar);
+		}
+	}	
+	
+	/*finally go through and unselect all 'visited' elements*/
+	for(v=BME_first(bm,BME_VERT);v;v=BME_next(bm,BME_VERT,v)){
+		if(BME_ISVISITED(v)) BME_select_vert(bm,v,0);
+	}
+	for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
+		if(BME_ISVISITED(e)) BME_select_edge(bm,e,0);
+	}
+	for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){
+		if(BME_ISVISITED(f)) BME_select_poly(bm,f,0);
+	}
+	
+	/*free memory*/
+	if(edar) MEM_freeN(edar);
+	BLI_ghash_free(vhash,NULL, NULL); //check usage!
+	BLI_ghash_free(ehash,NULL, NULL); //check usage!
+}
 

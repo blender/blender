@@ -1807,8 +1807,8 @@ void delete_context_selected(void)
 void duplicate_context_selected(void) 
 {
 	if(G.obedit) {
-		/*//EDITBMESHGREP if(G.obedit->type==OB_MESH) adduplicate_mesh();
-		else */if(G.obedit->type==OB_ARMATURE) adduplicate_armature();
+		if(G.obedit->type==OB_MESH)EM_clone_mesh();
+		else if(G.obedit->type==OB_ARMATURE) adduplicate_armature();
 		else if(G.obedit->type==OB_MBALL) adduplicate_mball();
 		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) adduplicate_nurb();
 	}

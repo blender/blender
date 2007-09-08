@@ -152,4 +152,11 @@ void EM_extrude_mesh(void){
 	DAG_object_flush_update(G.scene,G.obedit,OB_RECALC_DATA);
 	allqueue(REDRAWVIEW3D,0);
 }
+void EM_clone_mesh(void){
+	BME_model_begin(G.editMesh);
+	BME_duplicate(G.editMesh);
+	BME_model_end(G.editMesh);
+	DAG_object_flush_update(G.scene,G.obedit,OB_RECALC_DATA);
+	allqueue(REDRAWVIEW3D,0);
+}
 

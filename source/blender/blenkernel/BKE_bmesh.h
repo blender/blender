@@ -134,9 +134,9 @@ typedef struct BME_Poly
 {
 	struct BME_Poly 		*next, *prev;
 	int 				EID;
+	unsigned short 		flag, h; 
 	int 				eflag1, eflag2;							/*reserved for use by eulers*/
 	int 				tflag1, tflag2;							/*reserved for use by tools*/
-	unsigned short 		flag, h; 
 	unsigned short 		mat_nr;
 	struct BME_Loop 	*loopbase;								/*First editloop around Polygon.*/
 	struct ListBase 		holes;								/*list of inner loops in the face*/
@@ -218,4 +218,6 @@ int BME_extrude_edges(struct BME_Mesh *bm);
 struct BME_Poly *BME_inset_poly(struct BME_Mesh *bm, struct BME_Poly *f);
 void BME_split_face(struct BME_Mesh *bm, struct BME_Poly *f);
 void BME_delete_polys(struct BME_Mesh *bm);
+/*mixed tools*/
+void BME_duplicate(struct BME_Mesh *bm);
 #endif

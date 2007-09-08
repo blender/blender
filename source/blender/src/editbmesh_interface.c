@@ -369,6 +369,7 @@ void mouse_bmesh(void) /*rewrite me like the old mouse_mesh from editmesh....*/
 				for(eve=BME_first(G.editMesh,BME_VERT);eve;eve=BME_next(G.editMesh,BME_VERT,eve)) BME_select_vert(G.editMesh,eve,0);
 				BME_select_vert(G.editMesh,vert,1);
 			}
+
 			allqueue(REDRAWVIEW3D, 1);
 		}
 	} else if (G.scene->selectmode == SCE_SELECT_EDGE) {
