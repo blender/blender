@@ -226,7 +226,6 @@ def main():
 	ob_sel= list(scn.objects.context)
 	
 	PREF_KEEP_ASPECT= False
-	print ob_sel
 	
 	# Error Checking
 	if len(ob_sel) < 2:
@@ -253,8 +252,6 @@ def main():
 		if len(f) != 4:
 			B.Draw.PupMenu("Error%t|Active mesh must have only quads")
 			return
-	
-	
 	
 	
 	# Get user input
