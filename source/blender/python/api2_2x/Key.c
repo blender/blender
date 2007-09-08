@@ -32,6 +32,7 @@
  */
 
 #include "Key.h" /*This must come first*/
+#include "vector.h"
 
 #include "DNA_scene_types.h"
 
