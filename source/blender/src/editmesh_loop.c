@@ -515,13 +515,12 @@ static CutCurve *get_mouse_trail(int *len, char mode, char cutmode, struct GHash
 			G.scene->selectmode = oldmode;
 		}
 		glDrawBuffer(GL_FRONT);
-		headerprint("LMB to draw, CTRL while drawing for vertex snap. Enter to finish (with CTRL to leave only the "
-					"cut line selected), ESC to abort.");
+		headerprint("(LMB) draw, (Ctrl held while drawing) snap to vertex, (MMB) constrain to x/y screen axis, (Enter) cut "
+					"(with Ctrl to select cut line), (Esc) cancel");
 	}
 	else{
 		glDrawBuffer(GL_FRONT);
-		headerprint("LMB to draw, Enter to finish (with CTRL to leave only the "
-					"cut line selected), ESC to abort.");
+		headerprint("(LMB) draw, (MMB) constrain to x/y screen axis, (Enter) cut (with Ctrl to select cut line), (Esc) cancel");
 	}
 	
 	persp(PERSP_WIN);
