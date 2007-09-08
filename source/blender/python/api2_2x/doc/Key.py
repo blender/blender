@@ -89,16 +89,33 @@ class KeyBlock:
 	def getData():
 		"""
 		Get the data of a KeyBlock, as a list of data items. Each item
-		will have a different data type depending on the type of this
+		will have a different data format depending on the type of this
 		Key.
-			- Mesh keys have a list of L{NMVert<NMesh.NMVert>} objects in the data
+		
+		Note that prior to 2.45 the behaviour of this function
+		was different (and very wrong).  Old scripts might need to be
+		updated.
+		
+			- Mesh keys have a list of L{Vectors<Mathutils.Vector>} objects in the data
 			block.
-			- Lattice keys have a list of BPoints in the data block. These
-			don't have corresponding Python objects yet, so each BPoint is
-			represented using a list of three floating-point numbers (the
-			coordinate for each lattice vertex).
-			- Curve keys return either a list of L{BezTriple<BezTriple.BezTriple>}
-			objects in the data if the curve is a Bezier curve, otherwise it 
-			returns lists of three floats for each NURB or poly coordinate.
+			- Lattice keys have a list of L{Vectors<Mathutils.Vector>} objects in the data
+			block.
+			- Curve keys return either a list of tuples, eacn containing
+			 four L{Vectors<Mathutils.Vector>} (if the curve is a Bezier curve),
+			 or otherwise just a list of L{Vectors<Mathutils.Vector>}.
+			 
+			 For bezier keys, the first three vectors in the tuple are the Bezier
+			 triple vectors, while the fourth vector's first element is the curve tilt
+			 (the other two elements are reserved and are currently unused).
+			 
+			 For non-Bezier keys, the first three elements of the returned vector is
+			 the curve handle point, while the fourth element is the tilt.
+			 
+		
+		A word on relative shape keys; relative shape keys are not actually
+		stored as offsets to the base shape key (like you'd expect).  Instead, 
+		the additive relative offset is calculated on the fly by comparing a 
+		shape key with its base key, which is always the very first shapekey 
+		in the keyblock list.
 		"""
 

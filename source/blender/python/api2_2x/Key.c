@@ -519,23 +519,12 @@ static PyObject *KeyBlock_getData( PyObject * self )
 	case ID_ME:
 
 		for (i=0, datap = kb->keyblock->data; i<kb->keyblock->totelem; i++) {
+			PyObject *vec = newVectorObject((float*)datap, 3, Py_WRAP);
+			
+			if (!vec) return EXPP_ReturnPyObjError( PyExc_MemoryError,
+					  "could not allocate memory for Blender.Mathutils.Vector wrapper!" );
 
-			BPy_NMVert *mv = PyObject_NEW( BPy_NMVert, &NMVert_Type );
-			MVert *vert = (MVert *) datap;
-
-			mv->co[0]=vert->co[0];
-			mv->co[1]=vert->co[1];
-			mv->co[2]=vert->co[2];
-			mv->no[0] = 0.0;
-			mv->no[1] = 0.0;
-			mv->no[2] = 0.0;
-
-			mv->uvco[0] = mv->uvco[1] = mv->uvco[2] = 0.0;
-			mv->index = i;
-			mv->flag = 0;
-
-			PyList_SetItem(l, i, ( PyObject * ) mv);
-
+			PyList_SetItem(l, i, vec);
 			datap += kb->key->elemsize;
 		}
 		break;
@@ -552,44 +541,63 @@ static PyObject *KeyBlock_getData( PyObject * self )
 			Py_DECREF (l);	
 			l = PyList_New( datasize );
 			for( i = 0, datap = kb->keyblock->data; i < datasize;
-					i++, datap += sizeof(float)*12 ) {
-				/* 
-				 * since the key only stores the control point and not the
-				 * other BezTriple attributes, build a Py_NEW BezTriple
-				 */
-				PyObject *pybt = newBezTriple( (float *)datap );
-				PyList_SetItem( l, i, pybt );
+					i++, datap += sizeof(float)*3*4) {
+				PyObject *tuple = PyTuple_New(4), *vec;
+				float *vecs = (float*)datap;
+				
+				if (!tuple) return EXPP_ReturnPyObjError( PyExc_MemoryError,
+					  "PyTuple_New() failed!" );
+					  
+				vec = newVectorObject(vecs, 3, Py_WRAP);
+				if (!vec) return EXPP_ReturnPyObjError( PyExc_MemoryError,
+					  "Could not allocate memory for Blender.Mathutils.Vector wrapper!" );
+					  
+				PyTuple_SET_ITEM( tuple, 0, vec);
+				
+				vecs += 3;
+				vec = newVectorObject(vecs, 3, Py_WRAP);
+				if (!vec) return EXPP_ReturnPyObjError( PyExc_MemoryError,
+					  "Could not allocate memory for Blender.Mathutils.Vector wrapper!" );
+
+				PyTuple_SET_ITEM( tuple, 1, vec);
+				
+				vecs += 3;
+				vec = newVectorObject(vecs, 3, Py_WRAP);
+				if (!vec) return EXPP_ReturnPyObjError( PyExc_MemoryError,
+					  "Could not allocate memory for Blender.Mathutils.Vector wrapper!" );
+
+				PyTuple_SET_ITEM( tuple, 2, vec);
+				
+				/*tilts*/
+				vecs += 3;				
+				vec = newVectorObject(vecs, 3, Py_WRAP);
+				if (!vec) return EXPP_ReturnPyObjError( PyExc_MemoryError,
+					  "Could not allocate memory for Blender.Mathutils.Vector wrapper!" );
+
+				PyTuple_SET_ITEM( tuple, 3, vec);
+				
+				PyList_SetItem( l, i, tuple );
 			}
 		} else {
 			for( i = 0, datap = kb->keyblock->data; i < datasize;
 					i++, datap += kb->key->elemsize ) {
-				PyObject *pybt;
-				float *fp = (float *)datap;
-				pybt = Py_BuildValue( "[f,f,f]", fp[0],fp[1],fp[2]);
-				if( !pybt ) {
-					Py_DECREF( l );
-					return EXPP_ReturnPyObjError( PyExc_MemoryError,
-					      "Py_BuildValue() failed" );							
-				}
-				PyList_SetItem( l, i, pybt );
+				PyObject *vec = newVectorObject((float*)datap, 4, Py_WRAP);
+				if (!vec) return EXPP_ReturnPyObjError( PyExc_MemoryError,
+					  "could not allocate memory for Blender.Mathutils.Vector wrapper!" );
+				
+				PyList_SetItem( l, i, vec );
 			}
 		}
 		break;
 
 	case ID_LT:
-
 		for( i = 0, datap = kb->keyblock->data; i < kb->keyblock->totelem;
 				i++, datap += kb->key->elemsize ) {
-			/* Lacking a python class for BPoint, use a list of three floats */
-			PyObject *pybt;
-			float *fp = (float *)datap;
-			pybt = Py_BuildValue( "[f,f,f]", fp[0],fp[1],fp[2]);
-			if( !pybt ) {
-				Py_DECREF( l );
-				return EXPP_ReturnPyObjError( PyExc_MemoryError,
-					  "Py_BuildValue() failed" );							
-			}
-			PyList_SetItem( l, i, pybt );
+			PyObject *vec = newVectorObject((float*)datap, 3, Py_WRAP);
+			if (!vec) return EXPP_ReturnPyObjError( PyExc_MemoryError,
+					  "Could not allocate memory for Blender.Mathutils.Vector wrapper!" );
+			
+			PyList_SetItem( l, i, vec );
 		}
 		break;
 	}
