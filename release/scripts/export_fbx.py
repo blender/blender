@@ -416,16 +416,19 @@ def write(filename, batch_objects = None, \
 		'''
 		# end
 		
-		def getAnimMatrix(self, frame):
-			arm_mat = self.fbxArm.matrixWorld
+		def getAnimParRelMatrix(self, frame):
+			#arm_mat = self.fbxArm.matrixWorld
+			#arm_mat = self.fbxArm.parRelMatrix()
 			if not self.parent:
-				return mtx4_z90 * (self.getPoseMatrix(frame) * arm_mat)
+				#return mtx4_z90 * (self.getPoseMatrix(frame) * arm_mat) # dont apply arm matrix anymore
+				return mtx4_z90 * self.getPoseMatrix(frame)
 			else:
-				return (mtx4_z90 * ((self.getPoseMatrix(frame) * arm_mat)))  *  (mtx4_z90 * (self.parent.getPoseMatrix(frame) * arm_mat)).invert()
+				#return (mtx4_z90 * ((self.getPoseMatrix(frame) * arm_mat)))  *  (mtx4_z90 * (self.parent.getPoseMatrix(frame) * arm_mat)).invert()
+				return (mtx4_z90 * (self.getPoseMatrix(frame)))  *  (mtx4_z90 * self.parent.getPoseMatrix(frame)).invert()
 		
 		# we need thes because cameras and lights modified rotations
-		def getAnimMatrixRot(self, frame):
-			return self.getAnimMatrix(frame)
+		def getAnimParRelMatrixRot(self, frame):
+			return self.getAnimParRelMatrix(frame)
 		
 		def flushAnimData(self):
 			self.__anim_poselist.clear()
@@ -437,19 +440,33 @@ def write(filename, batch_objects = None, \
 			self.fbxName = sane_obname(ob)
 			self.blenObject = ob
 			self.fbxGroupNames = []
+			self.fbxParent = None # set later on IF the parent is in the selection.
 			if matrixWorld:		self.matrixWorld = matrixWorld * GLOBAL_MATRIX
 			else:				self.matrixWorld = ob.matrixWorld * GLOBAL_MATRIX
-			self.__anim_poselist = {}
+			self.__anim_poselist = {} # we should only access this
+		
+		def parRelMatrix(self):
+			if self.fbxParent:
+				return self.matrixWorld * self.fbxParent.matrixWorld.copy().invert()
+			else:
+				return self.matrixWorld
 		
 		def setPoseFrame(self, f):
 			self.__anim_poselist[f] =  self.blenObject.matrixWorld.copy()
 		
-		def getAnimMatrix(self, frame):
-			return self.__anim_poselist[frame] * GLOBAL_MATRIX
+		def getAnimParRelMatrix(self, frame):
+			if self.fbxParent:
+				#return (self.__anim_poselist[frame] * self.fbxParent.__anim_poselist[frame].copy().invert() ) * GLOBAL_MATRIX
+				return (self.__anim_poselist[frame] * GLOBAL_MATRIX) * (self.fbxParent.__anim_poselist[frame] * GLOBAL_MATRIX).invert()
+			else:
+				return self.__anim_poselist[frame] * GLOBAL_MATRIX
 		
-		def getAnimMatrixRot(self, frame):
+		def getAnimParRelMatrixRot(self, frame):
 			type = self.blenObject.type
-			matrix_rot = (self.__anim_poselist[frame] * GLOBAL_MATRIX).rotationPart()
+			if self.fbxParent:
+				matrix_rot = (((self.__anim_poselist[frame] * GLOBAL_MATRIX) * (self.fbxParent.__anim_poselist[frame] * GLOBAL_MATRIX).invert())).rotationPart()
+			else:
+				matrix_rot = (self.__anim_poselist[frame] * GLOBAL_MATRIX).rotationPart()
 			
 			# Lamps need to be rotated
 			if type =='Lamp':
@@ -468,7 +485,11 @@ def write(filename, batch_objects = None, \
 	
 	print '\nFBX export starting...', filename
 	start_time = Blender.sys.time()
-	file = open(filename, 'w')
+	try:
+		file = open(filename, 'w')
+	except:
+		return False
+	
 	sce = bpy.data.scenes.active
 	world = sce.world
 	
@@ -513,11 +534,13 @@ def write(filename, batch_objects = None, \
 		if isinstance(ob, Blender.Types.BoneType):
 			
 			# we know we have a matrix
-			matrix = mtx4_z90 * (ob.matrix['ARMATURESPACE'] * matrix_mod)
+			# matrix = mtx4_z90 * (ob.matrix['ARMATURESPACE'] * matrix_mod)
+			matrix = mtx4_z90 * ob.matrix['ARMATURESPACE'] # dont apply armature matrix anymore
 			
 			parent = ob.parent
 			if parent:
-				par_matrix = mtx4_z90 * (parent.matrix['ARMATURESPACE'] * matrix_mod)
+				#par_matrix = mtx4_z90 * (parent.matrix['ARMATURESPACE'] * matrix_mod)
+				par_matrix = mtx4_z90 * parent.matrix['ARMATURESPACE'] # dont apply armature matrix anymore
 				matrix = matrix * par_matrix.copy().invert()
 				
 			matrix_rot =	matrix.rotationPart()
@@ -527,7 +550,10 @@ def write(filename, batch_objects = None, \
 			rot =			tuple(matrix_rot.toEuler())
 			
 		else:
-			if ob and not matrix:	matrix = ob.matrixWorld * GLOBAL_MATRIX
+			# This is bad because we need the parent relative matrix from the fbx parent (if we have one), dont use anymore
+			#if ob and not matrix: matrix = ob.matrixWorld * GLOBAL_MATRIX
+			if ob and not matrix: raise "error: this should never happen!"
+			
 			matrix_rot = matrix
 			#if matrix:
 			#	matrix = matrix_scale * matrix
@@ -666,18 +692,19 @@ def write(filename, batch_objects = None, \
 		file.write('\n\tModel: "Model::%s", "Limb" {' % my_bone.fbxName)
 		file.write('\n\t\tVersion: 232')
 		
-		poseMatrix = write_object_props(my_bone.blenBone, None, None, my_bone.fbxArm.matrixWorld)[3]
+		#poseMatrix = write_object_props(my_bone.blenBone, None, None, my_bone.fbxArm.parRelMatrix())[3]
+		poseMatrix = write_object_props(my_bone.blenBone)[3] # dont apply bone matricies anymore
 		pose_items.append( (my_bone.fbxName, poseMatrix) )
 		
 		
-		# file.write('\n\t\t\tProperty: "Size", "double", "",%.6f' % ((my_bone.blenData.head['ARMATURESPACE'] - my_bone.blenData.tail['ARMATURESPACE']) * my_bone.fbxArm.matrixWorld).length)
+		# file.write('\n\t\t\tProperty: "Size", "double", "",%.6f' % ((my_bone.blenData.head['ARMATURESPACE'] - my_bone.blenData.tail['ARMATURESPACE']) * my_bone.fbxArm.parRelMatrix()).length)
 		file.write('\n\t\t\tProperty: "Size", "double", "",1')
 		
-		#((my_bone.blenData.head['ARMATURESPACE'] * my_bone.fbxArm.matrixWorld) - (my_bone.blenData.tail['ARMATURESPACE'] * my_bone.fbxArm.matrixWorld)).length)
+		#((my_bone.blenData.head['ARMATURESPACE'] * my_bone.fbxArm.matrixWorld) - (my_bone.blenData.tail['ARMATURESPACE'] * my_bone.fbxArm.parRelMatrix())).length)
 		
 		"""
 		file.write('\n\t\t\tProperty: "LimbLength", "double", "",%.6f' %\
-			((my_bone.blenBone.head['ARMATURESPACE'] - my_bone.blenBone.tail['ARMATURESPACE']) * my_bone.fbxArm.matrixWorld).length)
+			((my_bone.blenBone.head['ARMATURESPACE'] - my_bone.blenBone.tail['ARMATURESPACE']) * my_bone.fbxArm.parRelMatrix()).length)
 		"""
 		
 		file.write('\n\t\t\tProperty: "LimbLength", "double", "",%.6f' %\
@@ -829,7 +856,7 @@ def write(filename, batch_objects = None, \
 		
 		file.write('\n\tModel: "Model::%s", "Camera" {' % my_cam.fbxName )
 		file.write('\n\t\tVersion: 232')
-		loc, rot, scale, matrix, matrix_rot = write_object_props(my_cam.blenObject)
+		loc, rot, scale, matrix, matrix_rot = write_object_props(my_cam.blenObject, None, my_cam.parRelMatrix())
 		
 		file.write('\n\t\t\tProperty: "Roll", "Roll", "A+",0')
 		file.write('\n\t\t\tProperty: "FieldOfView", "FieldOfView", "A+",%.6f' % data.angle)
@@ -934,7 +961,7 @@ def write(filename, batch_objects = None, \
 		file.write('\n\tModel: "Model::%s", "Light" {' % my_light.fbxName)
 		file.write('\n\t\tVersion: 232')
 		
-		write_object_props(my_light.blenObject)
+		write_object_props(my_light.blenObject, None, my_light.parRelMatrix())
 		
 		# Why are these values here twice?????? - oh well, follow the holy sdk's output
 		
@@ -957,6 +984,8 @@ def write(filename, batch_objects = None, \
 		else:
 			do_light = 1
 		
+		scale = abs(GLOBAL_MATRIX.scalePart()[0]) # scale is always uniform in this case
+		
 		file.write('\n\t\t\tProperty: "LightType", "enum", "",%i' % light_type)
 		file.write('\n\t\t\tProperty: "CastLightOnObject", "bool", "",1')
 		file.write('\n\t\t\tProperty: "DrawVolumetricLight", "bool", "",1')
@@ -965,11 +994,11 @@ def write(filename, batch_objects = None, \
 		file.write('\n\t\t\tProperty: "GoboProperty", "object", ""')
 		file.write('\n\t\t\tProperty: "Color", "Color", "A+",1,1,1')
 		file.write('\n\t\t\tProperty: "Intensity", "Intensity", "A+",%.2f' % (min(light.energy*100, 200))) # clamp below 200
-		file.write('\n\t\t\tProperty: "Cone angle", "Cone angle", "A+",%.2f' % light.spotSize)
+		file.write('\n\t\t\tProperty: "Cone angle", "Cone angle", "A+",%.2f' % light.spotSize * scale)
 		file.write('\n\t\t\tProperty: "Fog", "Fog", "A+",50')
 		file.write('\n\t\t\tProperty: "Color", "Color", "A",%.2f,%.2f,%.2f' % tuple(light.col))
 		file.write('\n\t\t\tProperty: "Intensity", "Intensity", "A+",%.2f' % (min(light.energy*100, 200))) # clamp below 200
-		file.write('\n\t\t\tProperty: "Cone angle", "Cone angle", "A+",%.2f' % light.spotSize)
+		file.write('\n\t\t\tProperty: "Cone angle", "Cone angle", "A+",%.2f' % (light.spotSize * scale))
 		file.write('\n\t\t\tProperty: "Fog", "Fog", "A+",50')
 		file.write('\n\t\t\tProperty: "LightType", "enum", "",%i' % light_type)
 		file.write('\n\t\t\tProperty: "CastLightOnObject", "bool", "",%i' % do_light)
@@ -1009,7 +1038,7 @@ def write(filename, batch_objects = None, \
 			poseMatrix = write_object_props(None, None, matrixOnly)[3]
 		
 		else: # all other Null's
-			if my_null:		poseMatrix = write_object_props(my_null.blenObject)[3]
+			if my_null:		poseMatrix = write_object_props(my_null.blenObject, None, my_null.parRelMatrix())[3]
 			else:			poseMatrix = write_object_props()[3]
 		
 		pose_items.append((fbxName, poseMatrix))
@@ -1203,8 +1232,6 @@ def write(filename, batch_objects = None, \
 	}''')
 	
 	# in the example was 'Bip01 L Thigh_2'
-	#def write_sub_deformer_skin(obname, group_name, bone, me, matrix_mod):
-	#def write_sub_deformer_skin(obname, group_name, bone, weights, matrix_mod):
 	def write_sub_deformer_skin(my_mesh, my_bone, weights):
 	
 		'''
@@ -1274,8 +1301,14 @@ def write(filename, batch_objects = None, \
 				file.write(',%.8f' % vg[1])
 			i+=1
 		
+		if my_mesh.fbxParent:
+			# TODO FIXME, this case is broken in some cases. skinned meshes just shouldnt have parents where possible!
+			m = mtx4_z90 * (my_bone.restMatrix * my_bone.fbxArm.matrixWorld.copy() * my_mesh.matrixWorld.copy().invert() )
+		else:
+			# Yes! this is it...  - but dosnt work when the mesh is a.
+			m = mtx4_z90 * (my_bone.restMatrix * my_bone.fbxArm.matrixWorld.copy() * my_mesh.matrixWorld.copy().invert() )
 		
-		m = mtx4_z90 * (my_bone.restMatrix * my_bone.fbxArm.matrixWorld)
+		#m = mtx4_z90 * my_bone.restMatrix
 		matstr = mat4x4str(m)
 		matstr_i = mat4x4str(m.invert())
 		
@@ -1298,26 +1331,7 @@ def write(filename, batch_objects = None, \
 		file.write('\n\tModel: "Model::%s", "Mesh" {' % my_mesh.fbxName)
 		file.write('\n\t\tVersion: 232') # newline is added in write_object_props
 		
-		if my_mesh.fbxArm:
-			if my_mesh.origData:
-				do_tx_write = True
-			else:
-				do_tx_write = False
-				me.transform(my_mesh.matrixWorld)
-			
-		else:
-			do_tx_write = False
-		
-		
-		# When we have an armature...
-		if my_mesh.fbxArm:
-			# Apply the mesh matrix because bones arnt applied correctly if we use object transformation
-			# Other then that, object matricies work well on meshes.
-			# if this can be fixd, be sure to remove matrix multiplication on the verts.
-			
-			write_object_props(my_mesh.blenObject, None, mtx4_identity)
-		else:
-			write_object_props(my_mesh.blenObject, None, my_mesh.matrixWorld)
+		write_object_props(my_mesh.blenObject, None, my_mesh.parRelMatrix())
 		
 		file.write('\n\t\t}')
 		file.write('\n\t\tMultiLayer: 0')
@@ -1330,24 +1344,14 @@ def write(filename, batch_objects = None, \
 		file.write('\n\t\tVertices: ')
 		i=-1
 		
-		if do_tx_write :# transform verts on write?
-			for v in me.verts:
-				if i==-1:
-					file.write('%.6f,%.6f,%.6f' % tuple(v.co * my_mesh.matrixWorld));	i=0
-				else:
-					if i==7:
-						file.write('\n\t\t');	i=0
-					file.write(',%.6f,%.6f,%.6f'% tuple(v.co * my_mesh.matrixWorld))
-				i+=1
-		else:	# same as above but has alredy been transformed
-			for v in me.verts:
-				if i==-1:
-					file.write('%.6f,%.6f,%.6f' % tuple(v.co));	i=0
-				else:
-					if i==7:
-						file.write('\n\t\t');	i=0
-					file.write(',%.6f,%.6f,%.6f'% tuple(v.co))
-				i+=1
+		for v in me.verts:
+			if i==-1:
+				file.write('%.6f,%.6f,%.6f' % tuple(v.co));	i=0
+			else:
+				if i==7:
+					file.write('\n\t\t');	i=0
+				file.write(',%.6f,%.6f,%.6f'% tuple(v.co))
+			i+=1
 				
 		file.write('\n\t\tPolygonVertexIndex: ')
 		i=-1
@@ -1397,34 +1401,18 @@ def write(filename, batch_objects = None, \
 			Normals: ''')
 		
 		i=-1
-		if do_tx_write: # transform normals on write?
-			mtx_rot = my_mesh.matrixWorld.rotationPart()
-			for v in me.verts:
-				if i==-1:
-					file.write('%.15f,%.15f,%.15f' % tuple(v.no * mtx_rot));	i=0
-				else:
-					if i==2:
-						file.write('\n			 ');	i=0
-					file.write(',%.15f,%.15f,%.15f' % tuple(v.no * mtx_rot))
-				i+=1
-			file.write('\n\t\t}')
-			
-		
-		else:	# same as above but has alredy been transformed
-			# wont handle non uniform scaling properly
-			for v in me.verts:
-				if i==-1:
-					file.write('%.15f,%.15f,%.15f' % tuple(v.no));	i=0
-				else:
-					if i==2:
-						file.write('\n			 ');	i=0
-					file.write(',%.15f,%.15f,%.15f' % tuple(v.no))
-				i+=1
-			file.write('\n\t\t}')
-		
-		
+		for v in me.verts:
+			if i==-1:
+				file.write('%.15f,%.15f,%.15f' % tuple(v.no));	i=0
+			else:
+				if i==2:
+					file.write('\n			 ');	i=0
+				file.write(',%.15f,%.15f,%.15f' % tuple(v.no))
+			i+=1
+		file.write('\n\t\t}')
 		
 		# Write VertexColor Layers
+		# note, no programs seem to use this info :/
 		collayers = []
 		if me.vertexColors:
 			collayers = me.getColorLayerNames()
@@ -1732,6 +1720,9 @@ def write(filename, batch_objects = None, \
 	ob_arms = []
 	ob_null = [] # emptys
 	
+	# List of types that have blender objects (not bones)
+	ob_all_typegroups = [ob_meshes, ob_lights, ob_cameras, ob_arms, ob_null]
+	
 	groups = [] # blender groups, only add ones that have objects in the selections
 	materials = {}
 	textures = {}
@@ -1762,7 +1753,7 @@ def write(filename, batch_objects = None, \
 			# This causes the makeDisplayList command to effect the mesh
 			Blender.Set('curframe', Blender.Get('curframe'))
 			
-		
+	
 	for ob_base in tmp_objects:
 		for ob, mtx in BPyObject.getDerivedObjects(ob_base):
 			#for ob in [ob_base,]:
@@ -1959,16 +1950,16 @@ def write(filename, batch_objects = None, \
 	del my_bone_blenParent 
 	
 	
-	
-	
-	# Build a list of groups we use.
+	# Build blenObject -> fbxObject mapping
+	# this is needed for groups as well as fbxParenting
 	bpy.data.objects.tag = False
 	tmp_obmapping = {}
-	for ob_generic in (ob_meshes, ob_arms, ob_cameras, ob_lights, ob_null):
+	for ob_generic in ob_all_typegroups:
 		for ob_base in ob_generic:
 			ob_base.blenObject.tag = True
-			tmp_obmapping[ob_base.blenObject] = ob_base.fbxGroupNames
+			tmp_obmapping[ob_base.blenObject] = ob_base
 	
+	# Build Groups from objects we export
 	for blenGroup in bpy.data.groups:
 		fbxGroupName = None
 		for ob in blenGroup.objects:
@@ -1977,12 +1968,20 @@ def write(filename, batch_objects = None, \
 					fbxGroupName = sane_groupname(blenGroup)
 					groups.append((fbxGroupName, blenGroup))
 				
-				tmp_obmapping[ob].append(fbxGroupName) # also adds to the objects fbxGroupNames
+				tmp_obmapping[ob].fbxGroupNames.append(fbxGroupName) # also adds to the objects fbxGroupNames
 	
 	groups.sort() # not really needed
+	
+	# Assign parents using this mapping
+	for ob_generic in ob_all_typegroups:
+		for my_ob in ob_generic:
+			parent = my_ob.blenObject.parent
+			if parent and parent.tag: # does it exist and is it in the mapping
+				my_ob.fbxParent = tmp_obmapping[parent]
+	
+	
 	del tmp_obmapping
 	# Finished finding groups we use
-	
 	
 	
 	materials =	[(sane_matname(mat), mat) for mat in materials.itervalues() if mat]
@@ -2098,8 +2097,7 @@ Objects:  {''')
 		write_null(my_null)
 	
 	for my_arm in ob_arms:
-		# Dont pass the object because that writes the armature transformation which is alredy applied to the bones.
-		write_null(None, my_arm.fbxName) # armatures are just null's with bone children.
+		write_null(my_arm)
 	
 	for my_cam in ob_cameras:
 		write_camera(my_cam)
@@ -2279,23 +2277,12 @@ Connections:  {''')
 	# write the fake root node
 	file.write('\n\tConnect: "OO", "Model::blend_root", "Model::Scene"')
 	
-	for my_null in ob_null:
-		#if ob.parent:
-		#	file.write('\n\tConnect: "OO", "Model::%s", "Model::%s"' % (obname, sane_name_mapping_ob[ob.parent.name]))
-		#else:
-		file.write('\n\tConnect: "OO", "Model::%s", "Model::blend_root"' % my_null.fbxName)
-
-	for my_mesh in ob_meshes:
-		file.write('\n\tConnect: "OO", "Model::%s", "Model::blend_root"' % my_mesh.fbxName)
-
-	for my_arm in ob_arms:
-		file.write('\n\tConnect: "OO", "Model::%s", "Model::blend_root"' % my_arm.fbxName)
-
-	for my_cam in ob_cameras:
-		file.write('\n\tConnect: "OO", "Model::%s", "Model::blend_root"' % my_cam.fbxName)
-	
-	for my_light in ob_lights:
-		file.write('\n\tConnect: "OO", "Model::%s", "Model::blend_root"' % my_light.fbxName)
+	for ob_generic in ob_all_typegroups: # all blender 'Object's we support
+		for my_ob in ob_generic:
+			if my_ob.fbxParent:
+				file.write('\n\tConnect: "OO", "Model::%s", "Model::%s"' % (my_ob.fbxName, my_ob.fbxParent.fbxName))
+			else:
+				file.write('\n\tConnect: "OO", "Model::%s", "Model::blend_root"' % my_ob.fbxName)
 	
 	if materials:
 		for my_mesh in ob_meshes:
@@ -2303,7 +2290,6 @@ Connections:  {''')
 			for mat in my_mesh.blenMaterials:
 				if mat:
 					file.write('\n\tConnect: "OO", "Material::%s", "Model::%s"' % (sane_name_mapping_mat[mat.name], my_mesh.fbxName))
-			
 	
 	if textures:
 		for my_mesh in ob_meshes:
@@ -2343,7 +2329,7 @@ Connections:  {''')
 	
 	# groups
 	if groups:
-		for ob_generic in (ob_meshes, ob_arms, ob_cameras, ob_lights, ob_null):
+		for ob_generic in ob_all_typegroups:
 			for ob_base in ob_generic:
 				for fbxGroupName in ob_base.fbxGroupNames:
 					file.write('\n\tConnect: "OO", "Model::%s", "GroupSelection::%s"' % (ob_base.fbxName, fbxGroupName))
@@ -2367,9 +2353,10 @@ Connections:  {''')
 	start =	render.sFrame
 	end =	render.eFrame
 	if end < start: start, end = end, start
+	if start==end: ANIM_ENABLE = False
 	
 	# animations for these object types
-	ob_anim_lists = ob_bones, ob_meshes, ob_null, ob_cameras, ob_lights
+	ob_anim_lists = ob_bones, ob_meshes, ob_null, ob_cameras, ob_lights, ob_arms
 	
 	if ANIM_ENABLE and [tmp for tmp in ob_anim_lists if tmp]:
 		
@@ -2500,10 +2487,9 @@ Takes:  {''')
 			
 			
 			#for bonename, bone, obname, me, armob in ob_bones:
-			for ob_generic in (ob_bones, ob_meshes, ob_null, ob_cameras, ob_lights):
+			for ob_generic in (ob_bones, ob_meshes, ob_null, ob_cameras, ob_lights, ob_arms):
 					
 				for my_ob in ob_generic:
-					
 					
 					if ob_generic == ob_meshes and my_ob.fbxArm:
 						# do nothing,
@@ -2514,7 +2500,7 @@ Takes:  {''')
 						file.write('\n\t\t\tVersion: 1.1')
 						file.write('\n\t\t\tChannel: "Transform" {')
 						
-						context_bone_anim_mats = [ (my_ob.getAnimMatrix(frame), my_ob.getAnimMatrixRot(frame)) for frame in xrange(act_start, act_end+1) ]
+						context_bone_anim_mats = [ (my_ob.getAnimParRelMatrix(frame), my_ob.getAnimParRelMatrixRot(frame)) for frame in xrange(act_start, act_end+1) ]
 						
 						# ----------------
 						# ----------------
@@ -2675,6 +2661,7 @@ Takes:  {''')
 		copy_images( Blender.sys.dirname(filename),  [ tex[1] for tex in textures if tex[1] != None ])	
 	
 	print 'export finished in %.4f sec.' % (Blender.sys.time() - start_time)
+	return True
 	
 
 # --------------------------------------------
@@ -2770,7 +2757,7 @@ def fbx_ui_write(filename):
 	if GLOBALS['_YROT90'].val:	GLOBAL_MATRIX = GLOBAL_MATRIX * mtx4_y90n
 	if GLOBALS['_ZROT90'].val:	GLOBAL_MATRIX = GLOBAL_MATRIX * mtx4_z90n
 	
-	write(\
+	ret = write(\
 		filename, None,\
 		GLOBALS['EXP_OBS_SELECTED'].val,\
 		GLOBALS['EXP_MESH'].val,\
@@ -2795,6 +2782,9 @@ def fbx_ui_write(filename):
 	
 	Blender.Window.WaitCursor(0)
 	GLOBALS.clear()
+	
+	if ret == False:
+		Draw.PupMenu('Error%t|Path cannot be written to!')
 
 
 def fbx_ui():
@@ -2966,6 +2956,7 @@ def write_ui():
 				name = Blender.sys.makename(ext='.fbx')
 			
 			Blender.Window.FileSelector(fbx_ui_write, txt, name)
+			#fbx_ui_write('/test.fbx')
 			break
 		
 		Draw.UIBlock(fbx_ui)
