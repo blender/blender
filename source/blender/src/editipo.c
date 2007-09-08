@@ -4095,44 +4095,113 @@ void paste_editipo(void)
 {
 	EditIpo *ei;
 	IpoCurve *icu;
-	int a, ok;
+	int a;
 	
-	if(G.sipo->showkey) return;
+	if (G.sipo->showkey) return;
 	
-	if(totipocopybuf==0) return;
-	if(G.sipo->ipo==0) return;
-	if(G.sipo->ipo && G.sipo->ipo->id.lib) return;
+	if (totipocopybuf==0) return;
+	if (G.sipo->ipo==0) return;
+	if (G.sipo->ipo && G.sipo->ipo->id.lib) return;
 
 	get_status_editipo();
 	
-	if(totipo_vis==0) {
+	if (totipo_vis==0) {
 		error("No visible channels");
 	}
-	else if(totipo_vis!=totipocopybuf && totipo_sel!=totipocopybuf) {
+	else if (totipo_vis!=totipocopybuf && totipo_sel!=totipocopybuf) {
 		error("Incompatible paste");
 	}
 	else {
-		/* prevent problems: splines visible that are not selected */
-		if(totipo_vis==totipo_sel) totipo_vis= 0;
-		
 		icu= ipocopybuf.first;
-		if(icu==0) return;
-
-		ei= G.sipo->editipo;
-		for(a=0; a<G.sipo->totipo; a++, ei++) {
-			if(ei->flag & IPO_VISIBLE) {
-				ok= 0;
-				if(totipo_vis==totipocopybuf) ok= 1;
-				if(totipo_sel==totipocopybuf && (ei->flag & IPO_SELECT)) ok= 1;
-	
-				if(ok) {
-			
-					ei->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, ei->adrcode);
-					if(ei->icu==NULL) return;
+		if (icu==0) return;
+		
+		for (a=0, ei=G.sipo->editipo; a<G.sipo->totipo; a++, ei++) {
+			if (ei->flag & IPO_VISIBLE) {
+				
+				/* if in editmode, paste keyframes */ 
+				if (ei->flag & IPO_EDIT) {
+					BezTriple *src, *dst, *newb;
+					float offset= 0.0f;
+					short offsetInit= 0;
+					int i, j;
 					
-					if(ei->icu->bezt) MEM_freeN(ei->icu->bezt);
+					/* make sure an ipo-curve exists (it may not, as this is an editipo) */
+					ei->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, ei->adrcode);
+					if (ei->icu==NULL) return;
+					
+					/* Copy selected beztriples from source icu onto this edit-icu,
+					 * with all added keyframes being offsetted by the difference between
+					 * the first source keyframe and the current frame.
+					 */
+					for (i=0, src=icu->bezt; i < icu->totvert; i++, src++) {
+						/* skip if not selected */
+						if (BEZSELECTED(src) == 0) continue;
+						
+						/* initialise offset (if not already done) */
+						if (offsetInit==0) {
+							offset= CFRA - src->vec[1][0];
+							offsetInit= 1;
+						}
+						/* temporarily apply offset to src beztriple while copying */
+						src->vec[0][0] += offset;
+						src->vec[1][0] += offset;
+						src->vec[2][0] += offset;
+							
+						/* find place to insert */
+						if (ei->icu->bezt == NULL) {
+							ei->icu->bezt= MEM_callocN( sizeof(BezTriple), "beztriple");
+							*(ei->icu->bezt)= *src;
+							ei->icu->totvert= 1;
+						}
+						else {
+							dst= ei->icu->bezt;
+							for (j=0; j <= ei->icu->totvert; j++, dst++) {
+								/* no double points - threshold to determine this should be good enough */
+								if ((j < ei->icu->totvert) && IS_EQT(dst->vec[1][0], src->vec[1][0], 0.00001)) {
+									*(dst)= *src;
+									break;
+								}
+								/* if we've reached the end of the ei->icu array, or src is to be pasted before current */
+								if (j==icu->totvert || dst->vec[1][0] > src->vec[1][0]) {
+									newb= MEM_callocN( (ei->icu->totvert+1)*sizeof(BezTriple), "beztriple");
+									
+									if (j > 0) 
+										memcpy(newb, ei->icu->bezt, j*sizeof(BezTriple));
+									
+									dst= newb+j;
+									*(dst)= *src;
+									
+									if (j < ei->icu->totvert) 
+										memcpy(newb+j+1, ei->icu->bezt+j, (ei->icu->totvert-j)*sizeof(BezTriple));
+									
+									MEM_freeN(ei->icu->bezt);
+									ei->icu->bezt= newb;
+									
+									ei->icu->totvert++;
+									break;
+								}
+							}
+						}
+						
+						/* un-apply offset from src beztriple after copying */
+						src->vec[0][0] -= offset;
+						src->vec[1][0] -= offset;
+						src->vec[2][0] -= offset;
+						
+						calchandles_ipocurve(icu);
+					}
+				}
+				
+				/* otherwise paste entire curve data if selected */
+				else if (ei->flag & IPO_SELECT) {
+					/* make sure an ipo-curve exists (it may not, as this is an editipo) */
+					ei->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, ei->adrcode);
+					if (ei->icu==NULL) return;
+					
+					/* clear exisiting dynamic memory (keyframes, driver) */
+					if (ei->icu->bezt) MEM_freeN(ei->icu->bezt);
 					ei->icu->bezt= NULL;
-					if(ei->icu->driver) MEM_freeN(ei->icu->driver);
+					if (ei->icu->driver) MEM_freeN(ei->icu->driver);
 					ei->icu->driver= NULL;
 					
 					ei->icu->totvert= icu->totvert;
@@ -4140,16 +4209,18 @@ void paste_editipo(void)
 					ei->icu->extrap= icu->extrap;
 					ei->icu->ipo= icu->ipo;
 					
-					if(icu->bezt)
+					/* make a copy of the source icu's data */
+					if (icu->bezt)
 						ei->icu->bezt= MEM_dupallocN(icu->bezt);
-					if(icu->driver)
+					if (icu->driver)
 						ei->icu->driver= MEM_dupallocN(icu->driver);
 					
+					/* advance to next copy/paste buffer ipo-curve */
 					icu= icu->next;
-					
 				}
 			}
 		}
+		
 		editipo_changed(G.sipo, 1);
 		BIF_undo_push("Paste Ipo curves");
 	}
