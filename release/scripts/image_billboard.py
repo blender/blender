@@ -48,11 +48,8 @@ Usage
 
 import Blender as B
 import BPyMathutils
-# reload(BPyMathutils)
+import bpy
 import BPyRender
-reload(BPyRender)
-import boxpack2d
-# reload(boxpack2d) # for developing.
 from Blender.Scene import Render
 
 import os
@@ -60,11 +57,11 @@ Vector= B.Mathutils.Vector
 
 def alpha_mat(image):
 	# returns a material useable for 
-	mtl= B.Material.New()
+	mtl= bpy.data.materials.new()
 	mtl.mode |= (B.Material.Modes.SHADELESS | B.Material.Modes.ZTRANSP | B.Material.Modes.FULLOSA )
 	mtl.alpha= 0.0 # so image sets the alpha
 	
-	tex= B.Texture.New()
+	tex= bpy.data.textures.new()
 	tex.type= B.Texture.Types.IMAGE
 	image.antialias = True
 	tex.setImageFlags('InterPol', 'UseAlpha')
@@ -126,7 +123,7 @@ def save_billboard(PREF_IMAGE_PATH):
 		camera_matrix= BPyMathutils.plane2mat(plane)
 		tmp_path= '%s_%d' % (PREF_IMAGE_PATH, i)
 		img= BPyRender.imageFromObjectsOrtho(ob_sel, tmp_path, PREF_TILE_RES.val, PREF_TILE_RES.val, PREF_AA.val, PREF_ALPHA.val, camera_matrix)
-		# img.reload()
+		img.reload()
 		#img.pack() # se we can keep overwriting the path
 		#img.filename= ""
 		
@@ -143,24 +140,25 @@ def save_billboard(PREF_IMAGE_PATH):
 			h= ((plane[1]-plane[2]).length + (plane[3]-plane[0]).length)/2
 			
 			face_data.append( (f, img, rot90) )
-			boxes2Pack.append( (i, h, w) )
+			boxes2Pack.append( [0.0,0.0,h, w, i] )
 	
 	if PREF_IMG_PACK.val:
 		# pack the quads into a square
+		packWidth, packHeight = B.Geometry.BoxPack2D(boxes2Pack)
 		
-		packWidth, packHeight, packedLs = boxpack2d.boxPackIter(boxes2Pack)
 		render_obs= []
 		
 		# Add geometry to the mesh
-		for box in packedLs:
-			i= box[0]
+		for box in boxes2Pack:
+			i= box[4]
 			
 			orig_f, img, rot90= face_data[i]
 			
 			# New Mesh and Object
 			render_mat= alpha_mat(img)
 			
-			render_me= B.Mesh.New()
+			render_me= bpy.data.meshes.new()
+			
 			render_ob= B.Object.New('Mesh')
 			render_me.materials= [render_mat]
 			render_ob.link(render_me)
@@ -168,10 +166,10 @@ def save_billboard(PREF_IMAGE_PATH):
 			render_obs.append(render_ob)
 			
 			# Add verts clockwise from the bottom left.
-			_x= box[1] / packWidth
-			_y= box[2] / packHeight
-			_w= box[3] / packWidth
-			_h= box[4] / packHeight
+			_x= box[0] / packWidth
+			_y= box[1] / packHeight
+			_w= box[2] / packWidth
+			_h= box[3] / packHeight
 			
 			
 			render_me.verts.extend([\
@@ -224,11 +222,10 @@ def save_billboard(PREF_IMAGE_PATH):
 
 
 def main():
-	scn= B.Scene.GetCurrent()
+	scn= bpy.data.scenes.active
 	ob_sel= list(scn.objects.context)
 	
 	PREF_KEEP_ASPECT= False
-	
 	
 	# Error Checking
 	if len(ob_sel) < 2:
@@ -255,8 +252,6 @@ def main():
 		if len(f) != 4:
 			B.Draw.PupMenu("Error%t|Active mesh must have only quads")
 			return
-	
-	
 	
 	
 	# Get user input
