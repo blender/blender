@@ -2453,7 +2453,42 @@ static void split_sharp_edges(SmoothMesh *mesh, float split_angle, int flags)
 
 }
 
-static void split_single_verts(SmoothMesh *mesh)
+static int count_bridge_verts(SmoothMesh *mesh)
+{
+	int i, j, count = 0;
+
+	for(i = 0; i < mesh->num_faces; i++) {
+		SmoothFace *face = &mesh->faces[i];
+
+		for(j = 0; j < SMOOTHFACE_MAX_EDGES && face->edges[j]; j++) {
+			SmoothEdge *edge = face->edges[j];
+			SmoothEdge *next_edge;
+			SmoothVert *vert = edge->verts[1 - face->flip[j]];
+			int next = (j + 1) % SMOOTHFACE_MAX_EDGES;
+
+			/* wrap next around if at last edge */
+			if(!face->edges[next]) next = 0;
+
+			next_edge = face->edges[next];
+
+			/* if there are other faces sharing this vertex but not
+			 * these edges, the vertex will be split, so count it
+			 */
+			/* vert has to have at least one face (this one), so faces != 0 */
+			if(!edge->faces->next && !next_edge->faces->next
+			    && vert->faces->next) {
+				count++;
+			}
+		}
+	}
+
+	/* each bridge vert will be counted once per face that uses it,
+	 * so count is too high, but it's ok for now
+	 */
+	return count;
+}
+
+static void split_bridge_verts(SmoothMesh *mesh)
 {
 	int i,j;
 
@@ -2501,6 +2536,7 @@ static DerivedMesh *edgesplitModifier_do(EdgeSplitModifierData *emd,
 	/* 2. count max number of elements to add */
 	tag_and_count_extra_edges(mesh, emd->split_angle, emd->flags, &max_edges);
 	max_verts = max_edges * 2 + mesh->max_verts;
+	max_verts += count_bridge_verts(mesh);
 	max_edges += mesh->max_edges;
 
 	/* 3. reallocate smoothmesh arrays & copy elements across */
@@ -2518,9 +2554,8 @@ static DerivedMesh *edgesplitModifier_do(EdgeSplitModifierData *emd,
 	printf("********** Post-edge-split **********\n");
 	smoothmesh_print(mesh);
 #endif
-#if 1
-	split_single_verts(mesh);
-#endif
+
+	split_bridge_verts(mesh);
 
 #ifdef EDGESPLIT_DEBUG_1
 	printf("********** Post-vert-split **********\n");

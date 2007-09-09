@@ -1069,10 +1069,10 @@ static void do_nla(Object *ob, int blocktype)
 		}
 	}
 	if(strip==NULL) {	/* extend */
-		if(stripfirst)
-			scene_cfra= stripfirst->start;
-		else if(striplast)
+		if(striplast)
 			scene_cfra= striplast->end;
+		else if(stripfirst)
+			scene_cfra= stripfirst->start;
 	}
 	
 	/* and now go over all strips */
