@@ -2133,53 +2133,77 @@ void extrude_armature(int forked)
 }
 
 /* context; editmode armature */
-void subdivide_armature(void)
+void subdivide_armature(int numcuts)
 {
 	bArmature *arm= G.obedit->data;
 	EditBone *ebone, *newbone, *tbone, *mbone;
-	int a;
+	int a, i;
 	
+	if(numcuts < 1) return;
+
 	for (mbone = G.edbo.last; mbone; mbone= mbone->prev) {
 		if(arm->layer & mbone->layer) {
 			if(mbone->flag & BONE_SELECTED) {
-				
-				/* take care of mirrored stuff */
-				for(a=0; a<2; a++) {
-					if(a==0) ebone= mbone;
-					else {
-						if(arm->flag & ARM_MIRROR_EDIT)
-							ebone= armature_bone_get_mirrored(mbone);
-						else ebone= NULL;
-					}
-					if(ebone) {
-
-						newbone= MEM_mallocN(sizeof(EditBone), "ebone subdiv");
-						*newbone = *ebone;
-						BLI_addtail(&G.edbo, newbone);
+				for(i=numcuts+1; i>1; i--) {
+					/* compute cut ratio first */
+					float cutratio= 1/(float)i;
+					float cutratioI= 1-cutratio;
+					
+					/* take care of mirrored stuff */
+					for(a=0; a<2; a++) {
+						float val1[3];
+						float val2[3];
+						float val3[3];
 						
-						VecMidf(newbone->head, ebone->head, ebone->tail);
-						VECCOPY(newbone->tail, ebone->tail);
-						VECCOPY(ebone->tail, newbone->head);
-						
-						newbone->rad_head= 0.5*(ebone->rad_head+ebone->rad_tail);
-						ebone->rad_tail= newbone->rad_head;
-
-						newbone->flag |= BONE_CONNECTED;
-						
-						unique_editbone_name (&G.edbo, newbone->name);
-						
-						/* correct parent bones */
-						for (tbone = G.edbo.first; tbone; tbone=tbone->next){
-							if(tbone->parent==ebone)
-								tbone->parent= newbone;
+						/* try to find mirrored bone on a != 0 */
+						if(a) {
+							if(arm->flag & ARM_MIRROR_EDIT)
+								ebone= armature_bone_get_mirrored(mbone);
+							else ebone= NULL;
 						}
-						newbone->parent= ebone;
+						else
+							ebone= mbone;
+							
+						if(ebone) {
+							newbone= MEM_mallocN(sizeof(EditBone), "ebone subdiv");
+							*newbone = *ebone;
+							BLI_addtail(&G.edbo, newbone);
+							
+							/* calculate location of newbone->head */
+							VECCOPY(val1, ebone->head);
+							VECCOPY(val2, ebone->tail);
+							VECCOPY(val3, newbone->head);
+							
+							val3[0]= val1[0]*cutratio+val2[0]*cutratioI;
+							val3[1]= val1[1]*cutratio+val2[1]*cutratioI;
+							val3[2]= val1[2]*cutratio+val2[2]*cutratioI;
+							
+							VECCOPY(newbone->head, val3);
+							VECCOPY(newbone->tail, ebone->tail);
+							VECCOPY(ebone->tail, newbone->head);
+							
+							newbone->rad_head= 0.5*(ebone->rad_head+ebone->rad_tail);
+							ebone->rad_tail= newbone->rad_head;
+							
+							newbone->flag |= BONE_CONNECTED;
+							
+							unique_editbone_name (&G.edbo, newbone->name);
+							
+							/* correct parent bones */
+							for (tbone = G.edbo.first; tbone; tbone=tbone->next){
+								if(tbone->parent==ebone)
+									tbone->parent= newbone;
+							}
+							newbone->parent= ebone;
+						}
 					}
 				}
 			}
 		}
 	}
-	BIF_undo_push("Subdivide");
+	
+	if(numcuts==1) BIF_undo_push("Subdivide");
+	else BIF_undo_push("Subdivide multi");
 }
 
 /* ***************** Pose tools ********************* */

@@ -3672,6 +3672,8 @@ static uiBlock *view3d_edit_armature_rollmenu(void *arg_unused)
 
 static void do_view3d_edit_armaturemenu(void *arg, int event)
 {
+	static short numcuts= 2;
+
 	switch(event) {
 	
 	case 0: /* Undo Editing */
@@ -3700,11 +3702,16 @@ static void do_view3d_edit_armaturemenu(void *arg, int event)
 		extrude_armature(1);
 		break;
 	case 12: /* subdivide */
-		subdivide_armature();
+		subdivide_armature(1);
 		break;
 	case 13: /* flip left and right names */
 		armature_flip_names();
 		break;
+		break;
+	case 15: /* subdivide multi */
+		if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
+		waitcursor(1);
+		subdivide_armature(numcuts);
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -3774,7 +3781,8 @@ static uiBlock *view3d_edit_armaturemenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Subdivide|W, 1",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Flip Left & Right Names|W, 2",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Subdivide Multi|W, 2",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 15, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Flip Left & Right Names|W, 3",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	

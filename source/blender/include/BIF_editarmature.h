@@ -85,7 +85,7 @@ void	deselectall_armature(int toggle, int doundo);
 void	deselectall_posearmature (struct Object *ob, int test, int doundo);
 int		draw_armature(struct Base *base, int dt);
 void	extrude_armature(int forked);
-void	subdivide_armature(void);
+void	subdivide_armature(int numcuts);
 
 void	free_editArmature(void);
 
@@ -138,4 +138,5 @@ void	show_all_armature_bones(void);
 #define BONESEL_NOSEL	0x80000000	/* Indicates a negative number */
 
 #endif
+
 

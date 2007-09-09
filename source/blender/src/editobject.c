@@ -2508,10 +2508,15 @@ void special_editmenu(void)
 		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	}
 	else if(G.obedit->type==OB_ARMATURE) {
-		nr= pupmenu("Specials%t|Subdivide %x1|Flip Left-Right Names%x2");
+		nr= pupmenu("Specials%t|Subdivide %x1|Subdivide Multi%x2|Flip Left-Right Names%x3");
 		if(nr==1)
-			subdivide_armature();
-		else if(nr==2)
+			subdivide_armature(1);
+		if(nr==2) {
+			if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
+			waitcursor(1);
+			subdivide_armature(numcuts);
+		}
+		else if(nr==3)
 			armature_flip_names();
 	}
 	else if(G.obedit->type==OB_LATTICE) {
