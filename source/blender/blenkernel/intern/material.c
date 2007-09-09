@@ -165,7 +165,7 @@ void init_material(Material *ma)
 	ma->sss_front= 1.0f;
 	ma->sss_back= 1.0f;
 
-	ma->mode= MA_TRACEBLE|MA_SHADBUF|MA_SHADOW|MA_SHADOW_TRA|MA_RADIO|MA_RAYBIAS|MA_TANGENT_STR;
+	ma->mode= MA_TRACEBLE|MA_SHADBUF|MA_SHADOW|MA_RADIO|MA_RAYBIAS|MA_TANGENT_STR;
 
 	ma->preview = NULL;
 }
