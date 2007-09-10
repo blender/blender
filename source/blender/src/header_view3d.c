@@ -5203,7 +5203,7 @@ void view3d_buttons(void)
  			uiBlockEndAlign(block);
  		}
  	} else {
- 		if (G.f & (G_VERTEXPAINT|G_WEIGHTPAINT|G_TEXTUREPAINT)) {
+ 		if (G.obedit==NULL && (G.f & (G_VERTEXPAINT|G_WEIGHTPAINT|G_TEXTUREPAINT))) {
  			uiDefIconButBitI(block, TOG, G_FACESELECT, B_REDR, ICON_FACESEL_HLT,xco,0,XIC,YIC, &G.f, 0, 0, 0, 0, "Painting Mask (FKey)");
  			xco+= XIC+10;
  		} else {

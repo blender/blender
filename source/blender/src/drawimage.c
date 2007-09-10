@@ -390,7 +390,7 @@ void draw_tfaces(void)
 			glLoadIdentity();
 			
 			/* draw shadow mesh */
-			if ((G.sima->flag & SI_DRAWSHADOW) && !(G.obedit==OBACT)) { /* TODO - editmesh */
+			if ((G.sima->flag & SI_DRAWSHADOW) && (G.obedit==OBACT)) { /* TODO - editmesh */
 				DerivedMesh *dm;
 
 				/* draw final mesh with modifiers applied */
