@@ -781,7 +781,7 @@ static TransVert *transform_action_init (int *tvtot, float *minx, float *maxx)
 		
 	/* min max, only every other three */
 	min= max= tv[1].loc[0];
-	for (i=1; i<count; i+=3){
+	for (i=1; i<count; i+=3) {
 		if(min>tv[i].loc[0]) min= tv[i].loc[0];
 		if(max<tv[i].loc[0]) max= tv[i].loc[0];
 	}
@@ -795,7 +795,10 @@ static TransVert *transform_action_init (int *tvtot, float *minx, float *maxx)
 	return tv;
 } 
 
-/* main transform loop for action editor */
+/* main transform loop for action editor 
+ * NOTE: yes, this is a very long function that really should be converted to
+ * using the transform system proper 
+ */
 static short transform_action_loop (TransVert *tv, int tvtot, char mode, short context, float minx, float maxx)
 {
 	Object *ob= OBACT;
@@ -821,20 +824,21 @@ static short transform_action_loop (TransVert *tv, int tvtot, char mode, short c
 		sval[0]= get_action_frame(OBACT, sval[0]);
 	
 	/* used for drawing */
-	if(mode=='t') {
+	if (mode=='t') {
 		G.saction->flag |= SACTION_MOVING;
 		G.saction->timeslide= sval[0];
 	}
 	
 	startx=sval[0];
 	while (loop) {
-		if(mode=='t' && minx==maxx)
+		if (mode=='t' && minx==maxx)
 			break;
 		
-		/*		Get the input */
-		/*		If we're cancelling, reset transformations */
-		/*			Else calc new transformation */
-		/*		Perform the transformations */
+		/* Get the input:
+		 * - If we're cancelling, reset transformations
+		 * - Else calc new transformation
+		 * Perform the transformations
+		 */
 		while (qtest()) {
 			short val;
 			unsigned short event= extern_qread(&val);
@@ -974,13 +978,13 @@ static short transform_action_loop (TransVert *tv, int tvtot, char mode, short c
 							fac *= -1;
 						}
 						startx= (G.scene->r.cfra);
-						if(NLA_ACTION_SCALED && context==ACTCONT_ACTION)
+						if (NLA_ACTION_SCALED && context==ACTCONT_ACTION)
 							startx= get_action_frame(OBACT, startx);
 							
 						tv[i].loc[0]-= startx;
 						tv[i].loc[0]*=fac;
 						tv[i].loc[0]+= startx;
-		
+						
 						break;
 					}
 					
@@ -1017,37 +1021,26 @@ static short transform_action_loop (TransVert *tv, int tvtot, char mode, short c
 						/* recalculate the delta based on 'visual' times */
 						fac = get_action_frame_inv(OBACT, cval[0]);
 						fac -= get_action_frame_inv(OBACT, sval[0]);
-						
-						if (autosnap == SACTSNAP_STEP) {
-							if (G.saction->flag & SACTION_DRAWTIME)
-								fac= floor(fac/secf + 0.5f);
-							else
-								fac= floor(fac + 0.5f);
-						}
-						else if (autosnap == SACTSNAP_FRAME) {
-							if (G.saction->flag & SACTION_DRAWTIME)
-								fac= fac / secf;
-						}
 					}
-					else {
-						if (autosnap == SACTSNAP_STEP) {
-							if (G.saction->flag & SACTION_DRAWTIME)
-								fac= floor(fac/secf + 0.5f);
-							else
-								fac= floor(fac + 0.5f);
-						}
-						else if (autosnap == SACTSNAP_FRAME) {
-							if (G.saction->flag & SACTION_DRAWTIME)
-								fac= fac / secf;
-						}
+					
+					if (autosnap == SACTSNAP_STEP) {
+						if (G.saction->flag & SACTION_DRAWTIME)
+							fac= floor(fac/secf + 0.5f);
+						else
+							fac= floor(fac + 0.5f);
+					}
+					else if (autosnap == SACTSNAP_FRAME) {
+						if (G.saction->flag & SACTION_DRAWTIME)
+							fac= fac / secf;
 					}
 					
 					sprintf(str, "deltaX: %.3f", fac);
 					headerprint(str);
 				}
 				else if (mode=='t') {
-					float fac= 2.0*(cval[0]-sval[0])/(maxx-minx);
+					fac= 2.0*(cval[0]-sval[0])/(maxx-minx);
 					CLAMP(fac, -1.0f, 1.0f);
+					
 					sprintf(str, "TimeSlide: %.3f", fac);
 					headerprint(str);
 				}
