@@ -614,17 +614,23 @@ void test_view2d(View2D *v2d, int winx, int winy)
 			else if( dy > 1.0) do_x= 0; else do_x= 1;
 		}
 		
-		v2d->oldwinx= winx; 
-		v2d->oldwiny= winy;
-		
 		if( do_x ) {
-			
-			/* portrait window: correct for x */
-			dx= cur->ymax-cur->ymin;
-			temp= (cur->xmax+cur->xmin);
-			
-			cur->xmin= temp/2.0 - 0.5*dx/dy;
-			cur->xmax= temp/2.0 + 0.5*dx/dy;
+			if (v2d->keeptot == 2 && winx < v2d->oldwinx) {
+				/* This is a special hack for the outliner, to ensure that the 
+				 * outliner contents will not eventually get pushed out of view
+				 * when shrinking the view. 
+				 */
+				cur->xmax -= cur->xmin;
+				cur->xmin= 0.0f;
+			}
+			else {
+				/* portrait window: correct for x */
+				dx= cur->ymax-cur->ymin;
+				temp= (cur->xmax+cur->xmin);
+				
+				cur->xmin= temp/2.0 - 0.5*dx/dy;
+				cur->xmax= temp/2.0 + 0.5*dx/dy;
+			}
 		}
 		else {
 			dx= cur->xmax-cur->xmin;
@@ -633,6 +639,9 @@ void test_view2d(View2D *v2d, int winx, int winy)
 			cur->ymin= temp/2.0 - 0.5*dy*dx;
 			cur->ymax= temp/2.0 + 0.5*dy*dx;
 		}
+		
+		v2d->oldwinx= winx; 
+		v2d->oldwiny= winy;
 	}
 	
 	if(v2d->keeptot) {
@@ -664,6 +673,7 @@ void test_view2d(View2D *v2d, int winx, int winy)
 				cur->xmax+= dx;
 			}
 			else if((v2d->keeptot!=2) && (cur->xmax > tot->xmax)) {
+				/* keeptot==2 is a special case for the outliner. see space.c, init_v2d_oops for details */
 				dx= cur->xmax-tot->xmax;
 				cur->xmin-= dx;
 				cur->xmax-= dx;
