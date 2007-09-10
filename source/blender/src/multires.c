@@ -1065,7 +1065,7 @@ void multires_level_to_mesh(Object *ob, Mesh *me, const int render)
 		/* Remove editmesh elements */
 		free_editMesh(em);
 		
-		eves= MEM_callocN(sizeof(EditVert)*lvl->totvert, "editvert pointers");
+		eves= MEM_callocN(sizeof(EditVert*)*lvl->totvert, "editvert pointers");
 	} else {
 		CustomData_free_layer_active(&me->vdata, CD_MVERT, me->totvert);
 		CustomData_free_layer_active(&me->edata, CD_MEDGE, me->totedge);
