@@ -2164,3 +2164,16 @@ EditFace *EM_get_face_for_index(int index)
 {
 	return g_em_face_array?g_em_face_array[index]:NULL;
 }
+
+/* can we edit UV's for this mesh?*/
+int EM_texFaceCheck(void)
+{
+	/* some of these checks could be a touch overkill */
+	if (	(G.obedit) &&
+			(G.obedit->type == OB_MESH) &&
+			(G.editMesh) &&
+			(G.editMesh->faces.first) &&
+			(CustomData_has_layer(&G.editMesh->fdata, CD_MTFACE)))
+		return 1;
+	return 0;
+}

@@ -1847,26 +1847,31 @@ static void createTransUVs(TransInfo *t)
 {
 	TransData *td = NULL;
 	TransData2D *td2d = NULL;
-	Mesh *me;
-	MFace *mf;
 	MTFace *tf;
-	int a, count=0, countsel=0;
+	int count=0, countsel=0;
 	int propmode = t->flag & T_PROP_EDIT;
 	
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
+	
 	if(is_uv_tface_editing_allowed()==0) return;
-	me= get_mesh(OBACT);
 
 	/* count */
+	/*
 	tf= me->mtface;
 	mf= me->mface;
 	for(a=me->totface; a>0; a--, tf++, mf++) {
 		if(mf->v3 && mf->flag & ME_FACE_SEL) {
+	*/
+	for (efa= em->faces.first; efa; efa= efa->next) {
+		if (efa->f & SELECT) {
+			tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 			if(tf->flag & TF_SEL1) countsel++;
 			if(tf->flag & TF_SEL2) countsel++;
 			if(tf->flag & TF_SEL3) countsel++;
-			if(mf->v4 && (tf->flag & TF_SEL4)) countsel++;
+			if(efa->v4 && (tf->flag & TF_SEL4)) countsel++;
 			if(propmode)
-				count += (mf->v4)? 4: 3;
+				count += (efa->v4)? 4: 3;
 		}
 	}
 
@@ -1884,10 +1889,15 @@ static void createTransUVs(TransInfo *t)
 
 	td= t->data;
 	td2d= t->data2d;
+	/*
 	tf= me->mtface;
 	mf= me->mface;
 	for(a=me->totface; a>0; a--, tf++, mf++) {
 		if(mf->v3 && mf->flag & ME_FACE_SEL) {
+		*/
+	for (efa= em->faces.first; efa; efa= efa->next) {
+		if (efa->f & SELECT) {
+			tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 			if(tf->flag & TF_SEL1 || propmode)
 				UVsToTransData(td++, td2d++, tf->uv[0], (tf->flag & TF_SEL1));
 			if(tf->flag & TF_SEL2 || propmode)
@@ -1895,7 +1905,7 @@ static void createTransUVs(TransInfo *t)
 			if(tf->flag & TF_SEL3 || propmode)
 				UVsToTransData(td++, td2d++, tf->uv[2], (tf->flag & TF_SEL3));
 
-			if(mf->v4 && (tf->flag & TF_SEL4 || propmode))
+			if(efa->v4 && (tf->flag & TF_SEL4 || propmode))
 				UVsToTransData(td++, td2d++, tf->uv[3], (tf->flag & TF_SEL4));
 		}
 	}
@@ -1909,7 +1919,7 @@ void flushTransUVs(TransInfo *t)
 	TransData2D *td;
 	int a, width, height;
 	Object *ob= OBACT;
-	Mesh *me= get_mesh(ob);
+	EditMesh *em = G.editMesh;
 	float aspx, aspy, invx, invy;
 
 	transform_aspect_ratio_tface_uv(&aspx, &aspy);
@@ -1930,7 +1940,7 @@ void flushTransUVs(TransInfo *t)
 
 	/* always call this, also for cancel (it transforms non-selected vertices...) */
 	if((G.sima->flag & SI_BE_SQUARE))
-		be_square_tface_uv(me);
+		be_square_tface_uv(em);
 
 	/* this is overkill if G.sima->lock is not set, but still needed */
 	object_uvs_changed(ob);

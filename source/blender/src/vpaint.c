@@ -177,7 +177,7 @@ void do_shared_vertexcol(Mesh *me)
 	mface= me->mface;
 	mcol= (char *)me->mcol;
 	for(a=me->totface; a>0; a--, mface++, mcol+=16) {
-		if(tface==0 || (tface->mode & TF_SHAREDCOL) || (G.f & G_FACESELECT)==0) {
+		if((tface && tface->mode & TF_SHAREDCOL) || (G.f & G_FACESELECT)==0) {
 			scol= scolmain+4*mface->v1;
 			scol[0]++; scol[1]+= mcol[1]; scol[2]+= mcol[2]; scol[3]+= mcol[3];
 			scol= scolmain+4*mface->v2;
@@ -207,7 +207,7 @@ void do_shared_vertexcol(Mesh *me)
 	mface= me->mface;
 	mcol= (char *)me->mcol;
 	for(a=me->totface; a>0; a--, mface++, mcol+=16) {
-		if(tface==0 || (tface->mode & TF_SHAREDCOL) || (G.f & G_FACESELECT)==0) {
+		if((tface && tface->mode & TF_SHAREDCOL) || (G.f & G_FACESELECT)==0) {
 			scol= scolmain+4*mface->v1;
 			mcol[1]= scol[1]; mcol[2]= scol[2]; mcol[3]= scol[3];
 			scol= scolmain+4*mface->v2;
@@ -329,7 +329,7 @@ void clear_vpaint_selectedfaces()
 
 	ob= OBACT;
 	me= get_mesh(ob);
-	if(me==0 || me->mtface==0 || me->totface==0) return;
+	if(me==0 || me->totface==0) return;
 
 	if(!me->mcol)
 		make_vertexcol(0);
@@ -1371,9 +1371,9 @@ void vertex_paint()
 	if(me==NULL || me->totface==0) return;
 	if(ob->lay & G.vd->lay); else error("Active object is not in this layer");
 	
-	if(me->mtface==NULL && me->mcol==NULL) make_vertexcol(1);
+	if(me->mcol==NULL) make_vertexcol(1);
 
-	if(me->mtface==NULL && me->mcol==NULL) return;
+	if(me->mcol==NULL) return;
 	
 	/* ALLOCATIONS! No return after his line */
 	

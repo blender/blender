@@ -34,10 +34,11 @@
 #define BDR_EDITFACE_H
 
 struct MTFace;
+struct EditFace;
 struct Mesh;
 struct MCol;
 
-struct MTFace *get_active_tface(struct MCol **mcol);
+struct MTFace *get_active_tface(struct EditFace **efa, struct MCol **mcol);
 void calculate_uv_map(unsigned short mapmode);
 void default_uv(float uv[][2], float size);
 void make_tfaces(struct Mesh *me);

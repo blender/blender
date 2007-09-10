@@ -93,8 +93,12 @@ float (*mesh_getVertexCos(struct Mesh *me, int *numVerts_r))[3];
 
 /* map from uv vertex to face (for select linked, stitch, uv suburf) */
 
-struct UvVertMap;
-typedef struct UvVertMap UvVertMap;
+/* UvVertMap */
+
+typedef struct UvVertMap {
+	struct UvMapVert **vert;
+	struct UvMapVert *buf;
+} UvVertMap;
 
 typedef struct UvMapVert {
 	struct UvMapVert *next;

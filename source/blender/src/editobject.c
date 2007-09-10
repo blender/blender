@@ -1613,7 +1613,10 @@ void enter_editmode(int wc)
 		G.obedit= ob;
 		make_editMesh();
 		allqueue(REDRAWBUTSLOGIC, 0);
-		if(G.f & G_FACESELECT) allqueue(REDRAWIMAGE, 0);
+		/*if(G.f & G_FACESELECT) allqueue(REDRAWIMAGE, 0);*/
+		if (EM_texFaceCheck())
+			allqueue(REDRAWIMAGE, 0);
+		
 	}
 	if (ob->type==OB_ARMATURE){
 		arm= base->object->data;
@@ -1688,7 +1691,10 @@ void exit_editmode(int flag)	/* freedata==0 at render, 1= freedata, 2= do undo b
 
 		/* temporal */
 		countall();
-
+		
+		if(EM_texFaceCheck())
+			allqueue(REDRAWIMAGE, 0);
+		
 		if(retopo_mesh_paint_check())
 			retopo_end_okee();
 
@@ -1699,9 +1705,7 @@ void exit_editmode(int flag)	/* freedata==0 at render, 1= freedata, 2= do undo b
 		load_editMesh();
 
 		if(freedata) free_editMesh(G.editMesh);
-			
-		if(G.f & G_FACESELECT)
-			allqueue(REDRAWIMAGE, 0);
+		
 		if(G.f & G_WEIGHTPAINT)
 			mesh_octree_table(G.obedit, NULL, 'e');
 	}
@@ -3365,7 +3369,7 @@ void copy_attr_tface(short event)
 	MTFace *tface;
 	MFace *mface;
 	MCol *activemcol;
-	MTFace *activetf= get_active_tface(&activemcol);
+	MTFace *activetf= get_active_tface(NULL, &activemcol);
 	int a;
 	
 	if(activetf==NULL) return;

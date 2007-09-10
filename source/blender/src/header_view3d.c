@@ -1396,10 +1396,7 @@ void do_view3d_select_faceselmenu(void *arg, int event)
 		case 3: /* Select Inverse */
 			selectswap_tface();
 			break;
-		case 4: /* Select Same UV */
-			get_same_uv();
-			break;
-		case 5: /* Select Linked */
+		case 4: /* Select Linked */
 			select_linked_tfaces(2);
 			break;
 	}
@@ -1422,10 +1419,9 @@ static uiBlock *view3d_select_faceselmenu(void *arg_unused)
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Select/Deselect All|A",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Inverse",                0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Same UV",                0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Linked Faces|Ctrl L",                0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Linked Faces|Ctrl L",                0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
@@ -4391,7 +4387,7 @@ uiBlock *view3d_sculptmenu(void *arg_unused)
 
 static void do_view3d_facesel_propertiesmenu(void *arg, int event)
 {
-	MTFace *tf = get_active_tface(NULL);
+	MTFace *tf = get_active_tface(NULL, NULL);
 
 	if (tf) {
 		switch(event) {
@@ -4448,7 +4444,7 @@ static void do_view3d_facesel_propertiesmenu(void *arg, int event)
 
 static uiBlock *view3d_facesel_propertiesmenu(void *arg_unused)
 {
-	MTFace *tf = get_active_tface(NULL);
+	MTFace *tf = get_active_tface(NULL, NULL);
 	uiBlock *block;
 	short yco = 20, menuwidth = 120;
 
@@ -4559,7 +4555,7 @@ static void do_view3d_faceselmenu(void *arg, int event)
 	case 1: /* copy UVs */
 	case 2: /* copy vertex colors */
 		me= get_mesh(OBACT);
-		activetf = get_active_tface(&activemcol);
+		activetf = get_active_tface(NULL, &activemcol);
 
 		if (me && activetf) {
 			mf = me->mface;
@@ -4588,9 +4584,7 @@ static void do_view3d_faceselmenu(void *arg, int event)
 	case 3: /* set vertex colors */
 		clear_vpaint_selectedfaces();
 		break;
-	case 8: /* uv calculation */
-		uv_autocalc_tface();
-		break;
+	/*case 8: uv calculation - removed */
 	case 7: /* rotate UVs */
 		rotate_uv_tface();
 		break;
@@ -4621,7 +4615,7 @@ static uiBlock *view3d_faceselmenu(void *arg_unused)
 
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Unwrap UVs|U",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
+
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Rotate UVs|R",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Mirror UVs|M",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");
 
@@ -4677,7 +4671,7 @@ static char *view3d_modeselect_pup(void)
 	if (ob->type == OB_MESH) {
 
 		str += sprintf(str, formatstr, "Sculpt Mode", V3D_SCULPTMODE_SEL, ICON_SCULPTMODE_HLT);
-		str += sprintf(str, formatstr, "UV Face Select", V3D_FACESELECTMODE_SEL, ICON_FACESEL_HLT);
+		str += sprintf(str, formatstr, "Face Select", V3D_FACESELECTMODE_SEL, ICON_FACESEL_HLT);
 		str += sprintf(str, formatstr, "Vertex Paint", V3D_VERTEXPAINTMODE_SEL, ICON_VPAINT_HLT);
 		str += sprintf(str, formatstr, "Texture Paint", V3D_TEXTUREPAINTMODE_SEL, ICON_TPAINT_HLT);
 		str += sprintf(str, formatstr, "Weight Paint", V3D_WEIGHTPAINTMODE_SEL, ICON_WPAINT_HLT);

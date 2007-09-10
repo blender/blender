@@ -72,6 +72,7 @@
 #include "BIF_space.h"
 #include "BIF_transform.h"
 #include "BIF_toolbox.h"
+#include "BIF_editmesh.h"
 
 #include "BSE_drawview.h"
 #include "BSE_filesel.h"
@@ -137,7 +138,7 @@ void do_image_buttons(unsigned short event)
 		break;
 		
 	case B_SIMAGEDRAW:
-		if(G.f & G_FACESELECT) {
+		if (EM_texFaceCheck()) {
 			make_repbind(G.sima->image);
 			image_changed(G.sima, 1);
 		}
@@ -1132,7 +1133,7 @@ void image_buttons(void)
 		uiDefPulldownBut(block, image_viewmenu, NULL, "View", xco, -2, xmax-3, 24, "");
 		xco+= xmax;
 		
-		if((G.f & G_FACESELECT) && !(ima && (G.sima->flag & SI_DRAWTOOL))) {
+		if((EM_texFaceCheck()) && !(ima && (G.sima->flag & SI_DRAWTOOL))) {
 			xmax= GetButStringLength("Select");
 			uiDefPulldownBut(block, image_selectmenu, NULL, "Select", xco, -2, xmax-3, 24, "");
 			xco+= xmax;
@@ -1145,8 +1146,7 @@ void image_buttons(void)
 		xmax= GetButStringLength(menuname);
 		uiDefPulldownBut(block, image_imagemenu, NULL, menuname, xco, -2, xmax-3, 24, "");
 		xco+= xmax;
-		
-		if((G.f & G_FACESELECT) && !(ima && (G.sima->flag & SI_DRAWTOOL))) {
+		if((EM_texFaceCheck()) && !(ima && (G.sima->flag & SI_DRAWTOOL))) {
 			xmax= GetButStringLength("UVs");
 			uiDefPulldownBut(block, image_uvsmenu, NULL, "UVs", xco, -2, xmax-3, 24, "");
 			xco+= xmax;

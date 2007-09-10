@@ -218,18 +218,25 @@ void recalcData(TransInfo *t)
 		
 	if (G.obedit) {
 		if (G.obedit->type == OB_MESH) {
-			retopo_do_all();
-
-			/* mirror modifier clipping? */
-			if(t->state != TRANS_CANCEL)
-				clipMirrorModifier(t, G.obedit);
+			if(t->spacetype==SPACE_IMAGE) {
+				flushTransUVs(t);
+				if (G.sima->flag & SI_LIVE_UNWRAP)
+					unwrap_lscm_live_re_solve();
+			} else {
 			
-			if(G.scene->toolsettings->editbutflag & B_MESH_X_MIRROR)
-				editmesh_apply_to_mirror(t);
-			
-			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);  /* sets recalc flags */
-			
-			recalc_editnormals();
+				retopo_do_all();
+	
+				/* mirror modifier clipping? */
+				if(t->state != TRANS_CANCEL)
+					clipMirrorModifier(t, G.obedit);
+				
+				if(G.scene->toolsettings->editbutflag & B_MESH_X_MIRROR)
+					editmesh_apply_to_mirror(t);
+				
+				DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);  /* sets recalc flags */
+				
+				recalc_editnormals();
+			}
 		}
 		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
 			Nurb *nu= editNurb.first;
@@ -313,11 +320,6 @@ void recalcData(TransInfo *t)
 		}
 		else
 			where_is_pose(ob);
-	}
-	else if(t->spacetype==SPACE_IMAGE) {
-		flushTransUVs(t);
-		if (G.sima->flag & SI_LIVE_UNWRAP)
-			unwrap_lscm_live_re_solve();
 	}
 	else {
 		for(base= FIRSTBASE; base; base= base->next) {

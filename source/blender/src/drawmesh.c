@@ -622,16 +622,19 @@ EdgeHash *get_tface_mesh_marked_edge_info(Mesh *me)
 {
 	EdgeHash *eh = BLI_edgehash_new();
 	int i;
-
+	MFace *mf;
+	MTFace *tf = NULL;
+	
 	for (i=0; i<me->totface; i++) {
-		MFace *mf = &me->mface[i];
-		MTFace *tf = &me->mtface[i];
+		mf = &me->mface[i];
+		if (me->mtface)
+			tf = &me->mtface[i];
 		
 		if (mf->v3) {
 			if (!(mf->flag&ME_HIDE)) {
 				unsigned int flags = eEdge_Visible;
 				if (mf->flag&ME_FACE_SEL) flags |= eEdge_Select;
-				if (tf->flag&TF_ACTIVE) {
+				if (tf && tf->flag&TF_ACTIVE) {
 					flags |= eEdge_Active;
 					if (mf->flag&ME_FACE_SEL) flags |= eEdge_SelectAndActive;
 				}
@@ -645,7 +648,7 @@ EdgeHash *get_tface_mesh_marked_edge_info(Mesh *me)
 					get_marked_edge_info__orFlags(eh, mf->v3, mf->v1, flags);
 				}
 
-				if (tf->flag&TF_ACTIVE) {
+				if (tf && tf->flag&TF_ACTIVE) {
 					get_marked_edge_info__orFlags(eh, mf->v1, mf->v2, eEdge_ActiveFirst);
 					get_marked_edge_info__orFlags(eh, mf->v1, mf->v4?mf->v4:mf->v3, eEdge_ActiveLast);
 				}
@@ -725,13 +728,10 @@ static int draw_tfaces3D__drawFaceOpts(void *userData, int index)
 {
 	Mesh *me = (Mesh*)userData;
 
-	if (me->mtface) {
-		MFace *mface = &me->mface[index];
-		if (!(mface->flag&ME_HIDE) && (mface->flag&ME_FACE_SEL))
-			return 2; /* Don't set color */
-		else
-			return 0;
-	} else
+	MFace *mface = &me->mface[index];
+	if (!(mface->flag&ME_HIDE) && (mface->flag&ME_FACE_SEL))
+		return 2; /* Don't set color */
+	else
 		return 0;
 }
 static void draw_tfaces3D(Object *ob, Mesh *me, DerivedMesh *dm)
@@ -1061,10 +1061,9 @@ static int wpaint__setSolidDrawOptions(void *userData, int index, int *drawSmoot
 	MTFace *tface = (me->mtface)? &me->mtface[index]: NULL;
 	MFace *mface = (me->mface)? &me->mface[index]: NULL;
 	
-	if (tface) {
-		if ((mface->flag&ME_HIDE) || (tface->mode&TF_INVISIBLE)) 
+	if ((mface->flag&ME_HIDE) || (tface && (tface->mode&TF_INVISIBLE))) 
 			return 0;
-	}
+	
 	*drawSmooth_r = 1;
 	return 1;
 }

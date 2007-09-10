@@ -35,6 +35,8 @@
 #ifndef BIF_EDITMESH_H
 #define BIF_EDITMESH_H
 
+#include "BKE_mesh.h"
+
 struct EditMesh;
 struct EditFace;
 struct EditEdge;
@@ -238,4 +240,11 @@ int merge_target( int target, int uvmerge);
 void pathselect(void);
 void loop_to_region(void);
 void region_to_loop(void);
+
+UvVertMap *make_uv_vert_map_EM(int selected, int do_face_idx_array, float *limit);
+UvMapVert *get_uv_map_vert_EM(UvVertMap *vmap, unsigned int v);
+void free_uv_vert_map_EM(UvVertMap *vmap);
+
+int EM_texFaceCheck(void); /* can we edit UV's for this mesh?*/
+
 #endif

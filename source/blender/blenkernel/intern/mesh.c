@@ -1130,13 +1130,6 @@ float (*mesh_getVertexCos(Mesh *me, int *numVerts_r))[3]
 #endif
 }
 
-/* UvVertMap */
-
-struct UvVertMap {
-	struct UvMapVert **vert;
-	struct UvMapVert *buf;
-};
-
 UvVertMap *make_uv_vert_map(struct MFace *mface, struct MTFace *tface, unsigned int totface, unsigned int totvert, int selected, float *limit)
 {
 	UvVertMap *vmap;

@@ -85,6 +85,7 @@ editmesh_mods.c, UI level access, no geometry changes
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
+#include "BIF_editsima.h"
 
 #ifdef WITH_VERSE
 #include "BIF_verse.h"
@@ -1332,6 +1333,8 @@ void select_mesh_group_menu()
 		if (selcount) { /* update if data was selected */
 			G.totfacesel+=selcount;
 			allqueue(REDRAWVIEW3D, 0);
+			if (EM_texFaceCheck())
+				allqueue(REDRAWIMAGE, 0);
 			BIF_undo_push("Select Similar Faces");
 		}
 		return;
@@ -1613,6 +1616,8 @@ void loop_multiselect(int looptype)
 	}
 	MEM_freeN(edarray);
 	allqueue(REDRAWVIEW3D,0);
+	if (EM_texFaceCheck())
+		allqueue(REDRAWIMAGE, 0);
 }
 		
 /* ***************** MAIN MOUSE SELECTION ************** */
@@ -1708,8 +1713,10 @@ void mouse_mesh(void)
 	
 		EM_selectmode_flush();
 		countall();
-
+		  
 		allqueue(REDRAWVIEW3D, 0);
+		if (EM_texFaceCheck())
+			allqueue(REDRAWIMAGE, 0);
 	}
 
 	rightmouse_transform();
@@ -1837,6 +1844,9 @@ void selectconnected_mesh(int qual)
 	countall();
 	
 	allqueue(REDRAWVIEW3D, 0);
+	if (EM_texFaceCheck())
+		allqueue(REDRAWIMAGE, 0);
+	
 	BIF_undo_push("Select Linked");
 	
 }
@@ -1937,6 +1947,8 @@ void hide_mesh(int swap)
 	
 	G.totedgesel= G.totfacesel= G.totvertsel= 0;
 	allqueue(REDRAWVIEW3D, 0);
+	if(EM_texFaceCheck())
+		allqueue(REDRAWIMAGE, 0);
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	
 	BIF_undo_push("Hide");
 }
@@ -1981,6 +1993,72 @@ void reveal_mesh(void)
 	BIF_undo_push("Reveal");
 }
 
+void hide_tface_uv(int swap)
+{
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
+	MTFace *tface;
+	
+	if( is_uv_tface_editing_allowed()==0 ) return;
+
+	if(swap) {
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			if(efa->f & SELECT) {
+				tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				if((tface->flag & (TF_SEL1|TF_SEL2|TF_SEL3))==0) {
+					if(!efa->v4)
+						EM_select_face(efa, 0);
+					else if(!(tface->flag & TF_SEL4))
+						EM_select_face(efa, 0);
+				}
+			}
+		}
+	} else {
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			if(efa->f & SELECT) {
+				tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				if(tface->flag & (TF_SEL1|TF_SEL2|TF_SEL3))
+					EM_select_face(efa, 0);
+				else if(efa->v4 && tface->flag & TF_SEL4)
+					EM_select_face(efa, 0);
+			}
+		}
+	}
+	
+	/*deselects too many but ok for now*/
+	EM_deselect_flush();
+	EM_validate_selections();
+	
+	BIF_undo_push("Hide UV");
+
+	object_tface_flags_changed(OBACT, 0);
+}
+
+void reveal_tface_uv(void)
+{
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
+	MTFace *tface;
+
+	if( is_uv_tface_editing_allowed()==0 ) return;
+	
+	for (efa= em->faces.first; efa; efa= efa->next) {
+		if (!(efa->h)) {
+			if (!(efa->f & SELECT)) {
+				EM_select_face(efa, 1);
+				tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				tface->flag |= (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
+			}
+		}
+	}
+	
+	EM_selectmode_flush();
+	
+	BIF_undo_push("Reveal UV");
+	
+	object_tface_flags_changed(OBACT, 0);
+}
+
 void select_faces_by_numverts(int numverts)
 {
 	EditMesh *em = G.editMesh;
@@ -2009,7 +2087,9 @@ void select_faces_by_numverts(int numverts)
 
 	countall();
 	addqueue(curarea->win,  REDRAW, 0);
-
+	if (EM_texFaceCheck())
+		allqueue(REDRAWIMAGE, 0);
+	
 	if (numverts==3)
 		BIF_undo_push("Select Triangles");
 	else if (numverts==4)
@@ -2116,6 +2196,9 @@ void select_sharp_edges(void)
 
 	countall();
 	addqueue(curarea->win,  REDRAW, 0);
+	if (EM_texFaceCheck())
+		allqueue(REDRAWIMAGE, 0);
+	
 	BIF_undo_push("Select Sharp Edges");
 }
 
@@ -2259,6 +2342,8 @@ void select_linked_flat_faces(void)
 
 	countall();
 	addqueue(curarea->win,  REDRAW, 0);
+	if (EM_texFaceCheck())
+		allqueue(REDRAWIMAGE, 0);
 	BIF_undo_push("Select Linked Flat Faces");
 }
 
@@ -2329,6 +2414,8 @@ void select_non_manifold(void)
 
 	countall();
 	addqueue(curarea->win,  REDRAW, 0);
+	if (EM_texFaceCheck())
+		allqueue(REDRAWIMAGE, 0);
 	BIF_undo_push("Select Non Manifold");
 }
 
@@ -2367,6 +2454,8 @@ void selectswap_mesh(void) /* UI level */
 	
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
+	if (EM_texFaceCheck())
+		allqueue(REDRAWIMAGE, 0);
 
 	BIF_undo_push("Select Swap");
 	
@@ -2387,6 +2476,10 @@ void deselectall_mesh(void)	 /* this toggles!!!, UI level */
 		}
 		
 		countall();
+		
+		if (EM_texFaceCheck())
+			allqueue(REDRAWIMAGE, 0);
+		
 		allqueue(REDRAWVIEW3D, 0);
 	}
 }
@@ -2432,6 +2525,8 @@ void select_more(void)
 
 	countall();
 	addqueue(curarea->win,  REDRAW, 0);
+	if (EM_texFaceCheck())
+		allqueue(REDRAWIMAGE, 0);
 	BIF_undo_push("Select More");
 }
 
@@ -2499,6 +2594,8 @@ void select_less(void)
 	countall();
 	BIF_undo_push("Select Less");
 	allqueue(REDRAWVIEW3D, 0);
+	if (EM_texFaceCheck())
+		allqueue(REDRAWIMAGE, 0);
 }
 
 
@@ -2552,6 +2649,8 @@ void selectrandom_mesh(void) /* randomly selects a user-set % of vertices/edges/
 		BIF_undo_push("Select Random:Faces");
 	}
 	allqueue(REDRAWVIEW3D, 0);
+	if (EM_texFaceCheck())
+		allqueue(REDRAWIMAGE, 0);
 }
 
 void editmesh_select_by_material(int index) 

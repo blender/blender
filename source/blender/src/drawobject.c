@@ -2134,7 +2134,7 @@ static void draw_mesh_fancy(Base *base, int dt, int flag)
 		draw_wire = 1;
 	}
 	else if( (ob==OBACT && (G.f & (G_FACESELECT|G_TEXTUREPAINT))) || (G.vd->drawtype==OB_TEXTURE && dt>OB_SOLID)) {
-		int faceselect= (ob==OBACT && (G.f & G_FACESELECT) && me->mtface);
+		int faceselect= (ob==OBACT && (G.f & G_FACESELECT));
 
 		if ((G.vd->flag&V3D_SELECT_OUTLINE) && (base->flag&SELECT) && !(G.f&(G_FACESELECT|G_PICKSEL)) && !draw_wire) {
 			draw_mesh_object_outline(ob, dm);
@@ -2199,7 +2199,7 @@ static void draw_mesh_fancy(Base *base, int dt, int flag)
 			else if((G.f & (G_VERTEXPAINT+G_TEXTUREPAINT)) && me->mcol) {
 				dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, NULL, 1);
 			}
-			else if((G.f & (G_VERTEXPAINT+G_TEXTUREPAINT)) && me->mtface) {
+			else if(G.f & (G_VERTEXPAINT+G_TEXTUREPAINT)) {
 				glColor3f(1.0f, 1.0f, 1.0f);
 				dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, NULL, 0);
 			}
@@ -4346,7 +4346,7 @@ static int bbs_mesh_solid__setDrawOpts(void *userData, int index, int *drawSmoot
 {
 	Mesh *me = userData;
 
-	if (!me->mtface || !(me->mface[index].flag&ME_HIDE)) {
+	if (!(me->mface[index].flag&ME_HIDE)) {
 		set_framebuffer_index_color(index+1);
 		return 1;
 	} else {
@@ -4377,7 +4377,7 @@ static void bbs_mesh_solid(Object *ob)
 
 	/* draw edges for seam marking in faceselect mode, but not when painting,
 	   so that painting doesn't get interrupted on an edge */
-	if ((G.f & G_FACESELECT) && !(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT)) && me->mtface) {
+	if ((G.f & G_FACESELECT) && !(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT))) {
 		struct { Mesh *me; EdgeHash *eh; int offset; } userData;
 
 		userData.me = me;

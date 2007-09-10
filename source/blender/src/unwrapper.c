@@ -49,9 +49,11 @@
 #include "BKE_global.h"
 #include "BKE_mesh.h"
 #include "BKE_utildefines.h"
+#include "BKE_customdata.h"
 
 #include "BLI_arithb.h"
 #include "BLI_edgehash.h"
+#include "BLI_editVert.h"
 
 #include "BIF_editsima.h"
 #include "BIF_space.h"
@@ -189,44 +191,52 @@ void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int index)
 
 /* Parametrizer */
 
-ParamHandle *construct_param_handle(Mesh *me, short implicit, short fill, short sel)
+ParamHandle *construct_param_handle(EditMesh *em, short implicit, short fill, short sel)
 {
 	int a;
 	MTFace *tf;
-	MFace *mf;
+	/*MFace *mf;
 	MVert *mv;
-	MEdge *medge;
+	MEdge *medge;*/
+	
+	EditFace *efa;
+	EditEdge *eed;
+	EditVert *ev;
+	
 	ParamHandle *handle;
 	
 	handle = param_construct_begin();
 	
-	mv= me->mvert;
-	mf= me->mface;
-	tf= me->mtface;
-	for (a=0; a<me->totface; a++, mf++, tf++) {
+	/* we need the vert */
+	for (ev= em->verts.first, a=0; ev; ev= ev->next, a++)
+		ev->tmp.l = a;
+	
+	for (efa= em->faces.first; efa; efa= efa->next) {
 		ParamKey key, vkeys[4];
 		ParamBool pin[4], select[4];
 		float *co[4];
 		float *uv[4];
 		int nverts;
 
-		if (mf->flag & ME_HIDE)
+		tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+		
+		if (efa->h)
 			continue;
 
-		if (sel && !(mf->flag & ME_FACE_SEL))
+		if (sel && !(efa->f & SELECT))
 			continue;
 
 		if (implicit && !(tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4)))
 			continue;
 
-		key = (ParamKey)mf;
-		vkeys[0] = (ParamKey)mf->v1;
-		vkeys[1] = (ParamKey)mf->v2;
-		vkeys[2] = (ParamKey)mf->v3;
+		key = (ParamKey)efa;
+		vkeys[0] = (ParamKey)efa->v1->tmp.l;
+		vkeys[1] = (ParamKey)efa->v2->tmp.l;
+		vkeys[2] = (ParamKey)efa->v3->tmp.l;
 
-		co[0] = (mv+mf->v1)->co;
-		co[1] = (mv+mf->v2)->co;
-		co[2] = (mv+mf->v3)->co;
+		co[0] = efa->v1->co;
+		co[1] = efa->v2->co;
+		co[2] = efa->v3->co;
 
 		uv[0] = tf->uv[0];
 		uv[1] = tf->uv[1];
@@ -240,9 +250,9 @@ ParamHandle *construct_param_handle(Mesh *me, short implicit, short fill, short 
 		select[1] = ((tf->flag & TF_SEL2) != 0);
 		select[2] = ((tf->flag & TF_SEL3) != 0);
 
-		if (mf->v4) {
-			vkeys[3] = (ParamKey)mf->v4;
-			co[3] = (mv+mf->v4)->co;
+		if (efa->v4) {
+			vkeys[3] = (ParamKey)efa->v4->tmp.l;
+			co[3] = efa->v4->co;
 			uv[3] = tf->uv[3];
 			pin[3] = ((tf->unwrap & TF_PIN4) != 0);
 			select[3] = ((tf->flag & TF_SEL4) != 0);
@@ -255,12 +265,11 @@ ParamHandle *construct_param_handle(Mesh *me, short implicit, short fill, short 
 	}
 
 	if (!implicit) {
-		for(medge=me->medge, a=me->totedge; a>0; a--, medge++) {
-			if(medge->flag & ME_SEAM) {
+		for (eed= em->edges.first; eed; eed= eed->next) {
+			if(eed->seam) {
 				ParamKey vkeys[2];
-
-				vkeys[0] = (ParamKey)medge->v1;
-				vkeys[1] = (ParamKey)medge->v2;
+				vkeys[0] = (ParamKey)eed->v1->tmp.l;
+				vkeys[1] = (ParamKey)eed->v2->tmp.l;
 				param_edge_set_seam(handle, vkeys);
 			}
 		}
@@ -271,17 +280,19 @@ ParamHandle *construct_param_handle(Mesh *me, short implicit, short fill, short 
 	return handle;
 }
 
+
+extern int EM_texFaceCheck();
+
 void unwrap_lscm(short seamcut)
 {
-	Mesh *me;
+	EditMesh *em = G.editMesh;
 	ParamHandle *handle;
 	short abf = G.scene->toolsettings->unwrapper == 1;
 	short fillholes = G.scene->toolsettings->uvcalc_flag & 1;
 	
-	me= get_mesh(OBACT);
-	if(me==0 || me->mtface==0) return;
+	if(!EM_texFaceCheck()) return;
 
-	handle = construct_param_handle(me, 0, fillholes, seamcut == 0);
+	handle = construct_param_handle(em, 0, fillholes, seamcut == 0);
 
 	param_lscm_begin(handle, PARAM_FALSE, abf);
 	param_lscm_solve(handle);
@@ -304,17 +315,16 @@ void unwrap_lscm(short seamcut)
 
 void minimize_stretch_tface_uv(void)
 {
-	Mesh *me;
+	EditMesh *em = G.editMesh;
 	ParamHandle *handle;
 	double lasttime;
 	short doit = 1, escape = 0, val, blend = 0;
 	unsigned short event = 0;
 	short fillholes = G.scene->toolsettings->uvcalc_flag & 1;
 	
-	me = get_mesh(OBACT);
-	if(me==0 || me->mtface==0) return;
+	if(!EM_texFaceCheck()) return;
 
-	handle = construct_param_handle(me, 1, fillholes, 1);
+	handle = construct_param_handle(em, 1, fillholes, 1);
 
 	lasttime = PIL_check_seconds_timer();
 
@@ -397,13 +407,12 @@ void minimize_stretch_tface_uv(void)
 
 void pack_charts_tface_uv(void)
 {
-	Mesh *me;
+	EditMesh *em = G.editMesh;
 	ParamHandle *handle;
 	
-	me = get_mesh(OBACT);
-	if(me==0 || me->mtface==0) return;
+	if(!EM_texFaceCheck()) return;
 
-	handle = construct_param_handle(me, 1, 0, 1);
+	handle = construct_param_handle(em, 1, 0, 1);
 	param_pack(handle);
 	param_flush(handle);
 	param_delete(handle);
@@ -422,14 +431,13 @@ static ParamHandle *liveHandle = NULL;
 
 void unwrap_lscm_live_begin(void)
 {
-	Mesh *me;
+	EditMesh *em = G.editMesh;
 	short abf = G.scene->toolsettings->unwrapper == 1;
 	short fillholes = G.scene->toolsettings->uvcalc_flag & 1;
 
-	me= get_mesh(OBACT);
-	if(me==0 || me->mtface==0) return;
+	if(!EM_texFaceCheck()) return;
 
-	liveHandle = construct_param_handle(me, 0, fillholes, 1);
+	liveHandle = construct_param_handle(em, 0, fillholes, 1);
 
 	param_lscm_begin(liveHandle, PARAM_TRUE, abf);
 }

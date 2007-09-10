@@ -47,6 +47,7 @@
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
+#include "BLI_editVert.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -91,6 +92,7 @@
 #include "BIF_toolbox.h"
 #include "BIF_transform.h"
 #include "BIF_writeimage.h"
+#include "BIF_editmesh.h"
 
 #include "BSE_drawipo.h"
 #include "BSE_edit.h"
@@ -107,9 +109,9 @@
 #include "blendef.h"
 #include "multires.h"
 #include "mydevice.h"
+#include "editmesh.h"
 
 /* local prototypes */
-void clever_numbuts_sima(void);
 void sel_uvco_inside_radius(short , MTFace *, int , float *, float *, short);
 void uvedit_selectionCB(short , Object *, short *, float ); /* used in edit.c*/ 
 
@@ -130,21 +132,15 @@ void object_tface_flags_changed(Object *ob, int updateButtons)
 
 int is_uv_tface_editing_allowed_silent(void)
 {
-	Mesh *me;
-
-	if(G.obedit) return 0;
+	if(!EM_texFaceCheck()) return 0;
 	if(G.sima->mode!=SI_TEXTURE) return 0;
-	if(!(G.f & G_FACESELECT)) return 0;  
-	me= get_mesh(OBACT);
-	if(me==0 || me->mtface==0) return 0;
-	if(multires_level1_test()) return 0;
-	
+	if(multires_level1_test()) return 0;	
 	return 1;
 }
 
 int is_uv_tface_editing_allowed(void)
 {
-	if(G.obedit) error("Unable to perform action in Edit Mode");
+	if(!G.obedit) error("Unable to perform action in Edit Mode");
 
 	return is_uv_tface_editing_allowed_silent();
 }
@@ -160,110 +156,15 @@ void get_connected_limit_tface_uv(float *limit)
 		limit[0]= limit[1]= 0.05/256.0;
 }
 
-void clever_numbuts_sima(void)
+void be_square_tface_uv(EditMesh *em)
 {
-	float ocent[2], cent[2]= {0.0, 0.0};
-	int imx= 256, imy= 256;
-	int i, nactive= 0;
-	Mesh *me;
-	
-	if( is_uv_tface_editing_allowed()==0 ) return;
-	me= get_mesh(OBACT);
-	
-	if (G.sima->image) {
-		ImBuf *ibuf= BKE_image_get_ibuf(G.sima->image, &G.sima->iuser);
-		if(ibuf) {
-			imx= ibuf->x;
-			imy= ibuf->y;
-		}
-	}
-	
-	for (i=0; i<me->totface; i++) {
-		MFace *mf= &((MFace*) me->mface)[i];
-		MTFace *tf= &((MTFace*) me->mtface)[i];
-		
-		if (!(mf->flag & ME_FACE_SEL))
-			continue;
-		
-		if (tf->flag & TF_SEL1) {
-			cent[0]+= tf->uv[0][0];
-			cent[1]+= tf->uv[0][1];
-			nactive++;
-		}
-		if (tf->flag & TF_SEL2) {
-			cent[0]+= tf->uv[1][0];
-			cent[1]+= tf->uv[1][1];
-			nactive++;
-		}
-		if (tf->flag & TF_SEL3) {
-			cent[0]+= tf->uv[2][0];
-			cent[1]+= tf->uv[2][1];
-			nactive++;
-		}
-		if (mf->v4 && (tf->flag & TF_SEL4)) {
-			cent[0]+= tf->uv[3][0];
-			cent[1]+= tf->uv[3][1];
-			nactive++;
-		}
-	}
-	
-	if (nactive) {
-		cent[0]= (cent[0]*imx)/nactive;
-		cent[1]= (cent[1]*imy)/nactive;
-
-		add_numbut(0, NUM|FLO, "LocX:", -imx*20, imx*20, &cent[0], NULL);
-		add_numbut(1, NUM|FLO, "LocY:", -imy*20, imy*20, &cent[1], NULL);
-		
-		ocent[0]= cent[0];
-		ocent[1]= cent[1];
-		if (do_clever_numbuts((nactive==1)?"Active Vertex":"Selected Center", 2, REDRAW)) {
-			float delta[2];
-			
-			delta[0]= (cent[0]-ocent[0])/imx;
-			delta[1]= (cent[1]-ocent[1])/imy;
-
-			for (i=0; i<me->totface; i++) {
-				MFace *mf= &((MFace*) me->mface)[i];
-				MTFace *tf= &((MTFace*) me->mtface)[i];
-			
-				if (!(mf->flag & ME_FACE_SEL))
-					continue;
-			
-				if (tf->flag & TF_SEL1) {
-					tf->uv[0][0]+= delta[0];
-					tf->uv[0][1]+= delta[1];
-				}
-				if (tf->flag & TF_SEL2) {
-					tf->uv[1][0]+= delta[0];
-					tf->uv[1][1]+= delta[1];
-				}
-				if (tf->flag & TF_SEL3) {
-					tf->uv[2][0]+= delta[0];
-					tf->uv[2][1]+= delta[1];
-				}
-				if (mf->v4 && (tf->flag & TF_SEL4)) {
-					tf->uv[3][0]+= delta[0];
-					tf->uv[3][1]+= delta[1];
-				}
-			}
-			
-			object_uvs_changed(OBACT);
-		}
-	}
-}
-
-void be_square_tface_uv(Mesh *me)
-{
+	EditFace *efa;
 	MTFace *tface;
-	MFace *mface;
-	int a;
-	
 	/* if 1 vertex selected: doit (with the selected vertex) */
-	mface= (MFace*)me->mface;
-	tface= (MTFace*)me->mtface;
-	for(a=me->totface; a>0; a--, tface++, mface++) {
-		if(mface->v4) {
-			if(mface->flag & ME_FACE_SEL) {
+	for (efa= em->faces.first; efa; efa= efa->next) {
+		if (efa->v4) {
+			if (efa->f & SELECT) {
+				tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 				if(tface->flag & TF_SEL1) {
 					if( tface->uv[1][0] == tface->uv[2][0] ) {
 						tface->uv[1][1]= tface->uv[0][1];
@@ -361,14 +262,13 @@ void mirrormenu_tface_uv(void)
 
 void weld_align_tface_uv(char tool)
 {
-	MFace *mface;
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
 	MTFace *tface;
-	Mesh *me;
 	float min[2], max[2], cent[2];
 	int a;
 	
 	if( is_uv_tface_editing_allowed()==0 ) return;
-	me= get_mesh(OBACT);
 
 	if (!minmax_tface_uv(min, max))
 		return;
@@ -377,34 +277,32 @@ void weld_align_tface_uv(char tool)
 	cent[1]= (min[1]+max[1])/2.0;
 
 	if(tool == 'x' || tool == 'w') {
-		tface= me->mtface;
-		mface= me->mface;
-		for(a=me->totface; a>0; a--, tface++, mface++) {
-			if(mface->flag & ME_FACE_SEL) {
+		for (a=0, efa= em->faces.first; efa; efa= efa->next, a++) {
+			if(efa->f & SELECT) {
+				tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 				if(tface->flag & TF_SEL1)
 					tface->uv[0][0]= cent[0];
 				if(tface->flag & TF_SEL2)
 					tface->uv[1][0]= cent[0];
 				if(tface->flag & TF_SEL3)
 					tface->uv[2][0]= cent[0];
-				if(mface->v4 && (tface->flag & TF_SEL4))
+				if(efa->v4 && (tface->flag & TF_SEL4))
 					tface->uv[3][0]= cent[0];
 			}
 		}
 	}
 
 	if(tool == 'y' || tool == 'w') {
-		tface= me->mtface;
-		mface= me->mface;
-		for(a=me->totface; a>0; a--, tface++, mface++) {
-			if(mface->flag & ME_FACE_SEL) {
+		for (a=0, efa= em->faces.first; efa; efa= efa->next, a++) {
+			if(efa->f & SELECT) {
+				tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 				if(tface->flag & TF_SEL1)
 					tface->uv[0][1]= cent[1];
 				if(tface->flag & TF_SEL2)
 					tface->uv[1][1]= cent[1];
 				if(tface->flag & TF_SEL3)
 					tface->uv[2][1]= cent[1];
-				if(mface->v4 && (tface->flag & TF_SEL4))
+				if(efa->v4 && (tface->flag & TF_SEL4))
 					tface->uv[3][1]= cent[1];
 			}
 		}
@@ -433,17 +331,17 @@ void weld_align_menu_tface_uv(void)
 
 void select_invert_tface_uv(void)
 {
-	Mesh *me;
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
 	MTFace *tface;
 	MFace *mface;
 	int a;
 	
 	if( is_uv_tface_editing_allowed()==0 ) return;
-	me= get_mesh(OBACT);
-	mface= me->mface;
 
-	for(a=me->totface, tface= me->mtface; a>0; a--, tface++, mface++) {
-		if(mface->flag & ME_FACE_SEL) {	
+	for (a=0, efa= em->faces.first; efa; efa= efa->next, a++) {
+		if(efa->f & SELECT) {
+			tface = CustomData_em_get(&G.editMesh->fdata, efa->data, CD_MTFACE);
 			tface->flag ^= TF_SEL1;
 			tface->flag ^= TF_SEL2;
 			tface->flag ^= TF_SEL3;
@@ -458,28 +356,27 @@ void select_invert_tface_uv(void)
 
 void select_swap_tface_uv(void)
 {
-	Mesh *me;
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
 	MTFace *tface;
-	MFace *mface;
-	int a, sel=0;
+	int sel=0;
 	
 	if( is_uv_tface_editing_allowed()==0 ) return;
-	me= get_mesh(OBACT);
-
-	mface= me->mface;
-	for(a=me->totface, tface= me->mtface; a>0; a--, tface++, mface++) {
-		if(mface->flag & ME_FACE_SEL) {	
+	
+	for (efa= em->faces.first; efa; efa= efa->next) {
+		if (efa->f & SELECT) {
+			tface = CustomData_em_get(&G.editMesh->fdata, efa->data, CD_MTFACE);
 			if(tface->flag & (TF_SEL1+TF_SEL2+TF_SEL3+TF_SEL4)) {
 				sel= 1;
 				break;
 			}
 		}
 	}
-	
-	mface= me->mface;
-	for(a=me->totface, tface= me->mtface; a>0; a--, tface++, mface++) {
-		if(mface->flag & ME_FACE_SEL) {
-			if(mface->v4) {
+
+	for (efa= em->faces.first; efa; efa= efa->next) {
+		if (efa->f & SELECT) {
+			tface = CustomData_em_get(&G.editMesh->fdata, efa->data, CD_MTFACE);
+			if(efa->v4) {
 				if(sel) tface->flag &= ~(TF_SEL1+TF_SEL2+TF_SEL3+TF_SEL4);
 				else tface->flag |= (TF_SEL1+TF_SEL2+TF_SEL3+TF_SEL4);
 			}
@@ -490,7 +387,7 @@ void select_swap_tface_uv(void)
 		}
 	}
 	
-	BIF_undo_push("Select swap UV");
+	BIF_undo_push("Select swap");
 
 	allqueue(REDRAWIMAGE, 0);
 }
@@ -511,29 +408,26 @@ static int msel_hit(float *limit, unsigned int *hitarray, unsigned int vertexid,
 	return 0;
 }
 
-static void find_nearest_tface(MTFace **nearesttf, MFace **nearestmf)
+static void find_nearest_tface(MTFace **nearesttf, EditFace **nearestefa)
 {
-	Mesh *me;
+	EditMesh *em= G.editMesh;
 	MTFace *tf;
-	MFace *mf;
-	int a, i, nverts, mindist, dist, fcenter[2], uval[2];
+	EditFace *efa;
+	/*MFace *mf;*/
+	int i, nverts, mindist, dist, fcenter[2], uval[2];
 	short mval[2];
 
 	getmouseco_areawin(mval);	
 
 	mindist= 0x7FFFFFF;
 	*nearesttf= NULL;
-	*nearestmf= NULL;
-
-	me= get_mesh(OBACT);
-	mf= (MFace*)me	->mface;
-	tf= (MTFace*)me->mtface;
-
-	for(a=me->totface; a>0; a--, tf++, mf++) {
-		if(mf->flag & ME_FACE_SEL) {
-
+	*nearestefa= NULL;
+	
+	for (efa= em->faces.first; efa; efa= efa->next) {
+		if (efa->f & SELECT) {
+			tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 			fcenter[0]= fcenter[1]= 0;
-			nverts= mf->v4? 4: 3;
+			nverts= efa->v4? 4: 3;
 			for(i=0; i<nverts; i++) {
 				uvco_to_areaco_noclip(tf->uv[i], uval);
 				fcenter[0] += uval[0];
@@ -546,7 +440,7 @@ static void find_nearest_tface(MTFace **nearesttf, MFace **nearestmf)
 			dist= abs(mval[0]- fcenter[0])+ abs(mval[1]- fcenter[1]);
 			if (dist < mindist) {
 				*nearesttf= tf;
-				*nearestmf= mf;
+				*nearestefa= efa;
 				mindist= dist;
 			}
 		}
@@ -582,25 +476,22 @@ static int nearest_uv_between(MTFace *tf, int nverts, int id, short *mval, int *
 
 static void find_nearest_uv(MTFace **nearesttf, unsigned int *nearestv, int *nearestuv)
 {
-	Mesh *me;
+	EditMesh *em= G.editMesh;
+	EditFace *efa;
 	MTFace *tf;
-	MFace *mf;
-	int a, i, nverts, mindist, dist, uval[2];
+	/*MFace *mf;*/
+	int i, nverts, mindist, dist, uval[2];
 	short mval[2];
 
 	getmouseco_areawin(mval);	
 
 	mindist= 0x7FFFFFF;
 	*nearesttf= NULL;
-
-	me= get_mesh(OBACT);
-	mf= (MFace*)me->mface;
-	tf= (MTFace*)me->mtface;
-
-	for(a=me->totface; a>0; a--, tf++, mf++) {
-		if(mf->flag & ME_FACE_SEL) {
-
-			nverts= mf->v4? 4: 3;
+	
+	for (efa= em->faces.first; efa; efa= efa->next) {
+		if (efa->f & SELECT) {
+			tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			nverts= efa->v4? 4: 3;
 			for(i=0; i<nverts; i++) {
 				uvco_to_areaco_noclip(tf->uv[i], uval);
 				dist= abs(mval[0]-uval[0]) + abs(mval[1]-uval[1]);
@@ -618,10 +509,10 @@ static void find_nearest_uv(MTFace **nearesttf, unsigned int *nearestv, int *nea
 					*nearesttf= tf;
 					*nearestuv= i;
 
-					if (i==0) *nearestv=  mf->v1;
-					else if (i==1) *nearestv=  mf->v2;
-					else if (i==2) *nearestv=  mf->v3;
-					else *nearestv=  mf->v4;
+					if (i==0) *nearestv=  efa->v1->tmp.l;
+					else if (i==1) *nearestv=  efa->v2->tmp.l;
+					else if (i==2) *nearestv=  efa->v3->tmp.l;
+					else *nearestv=  efa->v4->tmp.l;
 				}
 			}
 		}
@@ -630,15 +521,15 @@ static void find_nearest_uv(MTFace **nearesttf, unsigned int *nearestv, int *nea
 
 void mouse_select_sima(void)
 {
-	Mesh *me;
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
 	MTFace *tf, *nearesttf;
-	MFace *mf, *nearestmf=NULL;
+	EditFace *nearestefa=NULL;
 	int a, selectsticky, sticky, actface, nearestuv, i;
 	unsigned int hitv[4], nearestv;
 	float *hituv[4], limit[2];
 	
 	if( is_uv_tface_editing_allowed()==0 ) return;
-	me= get_mesh(OBACT);
 
 	get_connected_limit_tface_uv(limit);
 	actface= (G.qual & LR_ALTKEY || G.sima->flag & SI_SELACTFACE);
@@ -654,7 +545,7 @@ void mouse_select_sima(void)
 	}
 
 	if(actface) {
-		find_nearest_tface(&nearesttf, &nearestmf);
+		find_nearest_tface(&nearesttf, &nearestefa);
 		if(nearesttf==NULL)
 			return;
 
@@ -663,10 +554,12 @@ void mouse_select_sima(void)
 		for (i=0; i<4; i++)
 			hituv[i]= nearesttf->uv[i];
 
-		hitv[0]= nearestmf->v1;
-		hitv[1]= nearestmf->v2;
-		hitv[2]= nearestmf->v3;
-		hitv[3]= nearestmf->v4? nearestmf->v4: 0xFFFFFFFF;
+		hitv[0]= nearestefa->v1->tmp.l;
+		hitv[1]= nearestefa->v2->tmp.l;
+		hitv[2]= nearestefa->v3->tmp.l;
+		
+		if (nearestefa->v4)	hitv[3]= nearestefa->v4->tmp.l;
+		else				hitv[3]= 0xFFFFFFFF;
 	}
 	else {
 		find_nearest_uv(&nearesttf, &nearestv, &nearestuv);
@@ -685,7 +578,7 @@ void mouse_select_sima(void)
 		/* (de)select face */
 		if(actface) {
 			if(!(~nearesttf->flag & (TF_SEL1|TF_SEL2|TF_SEL3))
-			   && (!nearestmf->v4 || nearesttf->flag & TF_SEL4)) {
+			   && (!nearestefa->v4 || nearesttf->flag & TF_SEL4)) {
 				nearesttf->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
 				selectsticky= 0;
 			}
@@ -708,42 +601,47 @@ void mouse_select_sima(void)
 
 		/* (de)select sticky uv nodes */
 		if(sticky || actface) {
-			mf= (MFace*)me->mface;
-			tf= (MTFace*)me->mtface;
+			EditVert *ev;
+			
+			for (a=0, ev=em->verts.first; ev; ev = ev->next, a++)
+				ev->tmp.l = a;
+			
 			/* deselect */
 			if(selectsticky==0) {
-				for(a=me->totface; a>0; a--, tf++, mf++) {
-					if(!(mf->flag & ME_FACE_SEL)) continue;
+				for (efa= em->faces.first; efa; efa= efa->next) {
+					if(!(efa->f & SELECT)) continue;
+					tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 					if(nearesttf && tf!=nearesttf) tf->flag &=~ TF_ACTIVE;
 					if (!sticky) continue;
 
-					if(msel_hit(limit, hitv, mf->v1, hituv, tf->uv[0], sticky))
+					if(msel_hit(limit, hitv, efa->v1->tmp.l, hituv, tf->uv[0], sticky))
 						tf->flag &= ~TF_SEL1;
-					if(msel_hit(limit, hitv, mf->v2, hituv, tf->uv[1], sticky))
+					if(msel_hit(limit, hitv, efa->v2->tmp.l, hituv, tf->uv[1], sticky))
 						tf->flag &= ~TF_SEL2;
-					if(msel_hit(limit, hitv, mf->v3, hituv, tf->uv[2], sticky))
+					if(msel_hit(limit, hitv, efa->v3->tmp.l, hituv, tf->uv[2], sticky))
 						tf->flag &= ~TF_SEL3;
-					if (mf->v4)
-						if(msel_hit(limit, hitv, mf->v4, hituv, tf->uv[3], sticky))
+					if (efa->v4)
+						if(msel_hit(limit, hitv, efa->v4->tmp.l, hituv, tf->uv[3], sticky))
 							tf->flag &= ~TF_SEL4;
 				}
 			}
 			/* select */
 			else {
-				for(a=me->totface; a>0; a--, tf++, mf++) {
-					if(!(mf->flag & ME_FACE_SEL)) continue;
+				for (efa= em->faces.first; efa; efa= efa->next) {
+					if(!(efa->f & SELECT)) continue;
+					tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 					if(nearesttf && tf!=nearesttf)
 						tf->flag &=~ TF_ACTIVE;
 					if (!sticky) continue;
 
-					if(msel_hit(limit, hitv, mf->v1, hituv, tf->uv[0], sticky))
+					if(msel_hit(limit, hitv, efa->v1->tmp.l, hituv, tf->uv[0], sticky))
 						tf->flag |= TF_SEL1;
-					if(msel_hit(limit, hitv, mf->v2, hituv, tf->uv[1], sticky))
+					if(msel_hit(limit, hitv, efa->v2->tmp.l, hituv, tf->uv[1], sticky))
 						tf->flag |= TF_SEL2;
-					if(msel_hit(limit, hitv, mf->v3, hituv, tf->uv[2], sticky))
+					if(msel_hit(limit, hitv, efa->v3->tmp.l, hituv, tf->uv[2], sticky))
 						tf->flag |= TF_SEL3;
-					if (mf->v4)
-						if(msel_hit(limit, hitv, mf->v4, hituv, tf->uv[3], sticky))
+					if (efa->v4)
+						if(msel_hit(limit, hitv, efa->v4->tmp.l, hituv, tf->uv[3], sticky))
 							tf->flag |= TF_SEL4;
 				}
 			}
@@ -752,9 +650,8 @@ void mouse_select_sima(void)
 	else {
 		/* select face and deselect other faces */ 
 		if(actface) {
-			mf= (MFace*)me->mface;
-			tf= (MTFace*)me->mtface;
-			for(a=me->totface; a>0; a--, tf++, mf++) {
+			for (efa= em->faces.first; efa; efa= efa->next) {
+				tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 				tf->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
 				if(nearesttf && tf!=nearesttf)
 					tf->flag &= ~TF_ACTIVE;
@@ -764,21 +661,20 @@ void mouse_select_sima(void)
 		}
 
 		/* deselect uvs, and select sticky uvs */
-		mf= (MFace*)me->mface;
-		tf= (MTFace*)me->mtface;
-		for(a=me->totface; a>0; a--, tf++, mf++) {
-			if(mf->flag & ME_FACE_SEL) {
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			if(efa->f & SELECT) {
+				tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 				if(!actface) tf->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
 				if(!sticky) continue;
 
-				if(msel_hit(limit, hitv, mf->v1, hituv, tf->uv[0], sticky))
+				if(msel_hit(limit, hitv, efa->v1->tmp.l, hituv, tf->uv[0], sticky))
 					tf->flag |= TF_SEL1;
-				if(msel_hit(limit, hitv, mf->v2, hituv, tf->uv[1], sticky))
+				if(msel_hit(limit, hitv, efa->v2->tmp.l, hituv, tf->uv[1], sticky))
 					tf->flag |= TF_SEL2;
-				if(msel_hit(limit, hitv, mf->v3, hituv, tf->uv[2], sticky))
+				if(msel_hit(limit, hitv, efa->v3->tmp.l, hituv, tf->uv[2], sticky))
 					tf->flag |= TF_SEL3;
-				if(mf->v4)
-					if(msel_hit(limit, hitv, mf->v4, hituv, tf->uv[3], sticky))
+				if(efa->v4)
+					if(msel_hit(limit, hitv, efa->v4->tmp.l, hituv, tf->uv[3], sticky))
 						tf->flag |= TF_SEL4;
 			}
 		}
@@ -795,16 +691,15 @@ void mouse_select_sima(void)
 
 void borderselect_sima(short whichuvs)
 {
-	Mesh *me;
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
 	MTFace *tface;
-	MFace *mface;
 	rcti rect;
 	rctf rectf;
-	int a, val;
+	int val;
 	short mval[2];
 
-	if( is_uv_tface_editing_allowed()==0 ) return;
-	me= get_mesh(OBACT);
+	if( is_uv_tface_editing_allowed()==0) return;
 
 	val= get_border(&rect, 3);
 
@@ -816,10 +711,9 @@ void borderselect_sima(short whichuvs)
 		mval[1]= rect.ymax;
 		areamouseco_to_ipoco(G.v2d, mval, &rectf.xmax, &rectf.ymax);
 
-		mface= me->mface;
-		for(a=me->totface, tface= me->mtface; a>0; a--, tface++, mface++) {
-		
-			if(mface->flag & ME_FACE_SEL) {
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			if(efa->f & SELECT) {
+				tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 				
 				if (whichuvs == UV_SELECT_ALL) {
 				
@@ -835,7 +729,7 @@ void borderselect_sima(short whichuvs)
 						if(val==LEFTMOUSE) tface->flag |= TF_SEL3;
 						else tface->flag &= ~TF_SEL3;
 					}
-					if(mface->v4 && BLI_in_rctf(&rectf, (float)tface->uv[3][0], (float)tface->uv[3][1])) {
+					if(efa->v4 && BLI_in_rctf(&rectf, (float)tface->uv[3][0], (float)tface->uv[3][1])) {
 						if(val==LEFTMOUSE) tface->flag |= TF_SEL4;
 						else tface->flag &= ~TF_SEL4;
 					}
@@ -858,7 +752,7 @@ void borderselect_sima(short whichuvs)
 						if(val==LEFTMOUSE) tface->flag |= TF_SEL3;
 						else tface->flag &= ~TF_SEL3;
 					}
-					if ((mface->v4) && (tface->unwrap & TF_PIN4) && BLI_in_rctf(&rectf, (float)tface->uv[3][0], (float)tface->uv[3][1])) {
+					if ((efa->v4) && (tface->unwrap & TF_PIN4) && BLI_in_rctf(&rectf, (float)tface->uv[3][0], (float)tface->uv[3][1])) {
 						if(val==LEFTMOUSE) tface->flag |= TF_SEL4;
 						else tface->flag &= ~TF_SEL4;
 					}
@@ -920,37 +814,29 @@ static void getSpaceImageDimension(SpaceImage *sima, float *xy)
 
 void uvedit_selectionCB(short selecting, Object *editobj, short *mval, float rad) 
 {
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
 	float offset[2];
-	Mesh *me;
-	MFace *mface;
 	MTFace *tface;
-	int i;
 
 	float ellipse[2]; // we need to deal with ellipses, as
 	                  // non square textures require for circle
 					  // selection. this ellipse is normalized; r = 1.0
-	
-	me = get_mesh(editobj);
 
 	getSpaceImageDimension(curarea->spacedata.first, ellipse);
 	ellipse[0] /= rad;
 	ellipse[1] /= rad;
 
 	areamouseco_to_ipoco(G.v2d, mval, &offset[0], &offset[1]);
-
-	mface= me->mface;
-	tface= me->mtface;
-
+	
 	if (selecting) {
-		for(i = 0; i < me->totface; i++) {
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 			sel_uvco_inside_radius(selecting, tface, 0, offset, ellipse, TF_SEL1);
 			sel_uvco_inside_radius(selecting, tface, 1, offset, ellipse, TF_SEL2);
 			sel_uvco_inside_radius(selecting, tface, 2, offset, ellipse, TF_SEL3);
-			if (mface->v4)
+			if (efa->v4)
 				sel_uvco_inside_radius(selecting, tface, 3, offset, ellipse, TF_SEL4);
-			
-			tface++; mface++;
-
 		}
 
 		if(G.f & G_DRAWFACES) { /* full redraw only if necessary */
@@ -1009,78 +895,18 @@ void mouseco_to_curtile(void)
 	}
 }
 
-void hide_tface_uv(int swap)
-{
-	Mesh *me;
-	MTFace *tface;
-	MFace *mface;
-	int a;
-
-	if( is_uv_tface_editing_allowed()==0 ) return;
-	me= get_mesh(OBACT);
-
-	if(swap) {
-		mface= me->mface;
-		for(a=me->totface, tface= me->mtface; a>0; a--, tface++, mface++) {
-			if(mface->flag & ME_FACE_SEL) {
-				if((tface->flag & (TF_SEL1|TF_SEL2|TF_SEL3))==0) {
-					if(!mface->v4)
-						mface->flag &= ~ME_FACE_SEL;
-					else if(!(tface->flag & TF_SEL4))
-						mface->flag &= ~ME_FACE_SEL;
-				}
-			}
-		}
-	} else {
-		mface= me->mface;
-		for(a=me->totface, tface= me->mtface; a>0; a--, tface++, mface++) {
-			if(mface->flag & ME_FACE_SEL) {
-				if(tface->flag & (TF_SEL1|TF_SEL2|TF_SEL3))
-						mface->flag &= ~ME_FACE_SEL;
-				else if(mface->v4 && tface->flag & TF_SEL4)
-						mface->flag &= ~ME_FACE_SEL;
-			}
-		}
-	}
-
-	BIF_undo_push("Hide UV");
-
-	object_tface_flags_changed(OBACT, 0);
-}
-
-void reveal_tface_uv(void)
-{
-	Mesh *me;
-	MTFace *tface;
-	MFace *mface;
-	int a;
-
-	if( is_uv_tface_editing_allowed()==0 ) return;
-	me= get_mesh(OBACT);
-
-	mface= me->mface;
-	for(a=me->totface, tface= me->mtface; a>0; a--, tface++, mface++) {
-		if(!(mface->flag & ME_HIDE)) {
-			if(!(mface->flag & ME_FACE_SEL)) {
-				mface->flag |= ME_FACE_SEL;
-				tface->flag |= (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
-			}
-		}
-	}
-	
-	BIF_undo_push("Reveal UV");
-
-	object_tface_flags_changed(OBACT, 0);
-}
-
 void stitch_uv_tface(int mode)
 {
-	Mesh *me;
 	MTFace *tf;
 	int a, vtot;
 	float newuv[2], limit[2];
 	UvMapVert *vlist, *iterv, *v;
-	UvVertMap *vmap;
+	EditMesh *em = G.editMesh;
+	EditVert *ev;
+	EditFace *efa;
+	
+	struct UvVertMap *vmap;
+	
 	
 	if(is_uv_tface_editing_allowed()==0)
 		return;
@@ -1102,16 +928,15 @@ void stitch_uv_tface(int mode)
 		}
 	}
 
-	me= get_mesh(OBACT);
-	tf= me->mtface;
-
-	vmap= make_uv_vert_map(me->mface, tf, me->totface, me->totvert, 1, limit);
+	/*vmap= make_uv_vert_map(me->mface, tf, me->totface, me->totvert, 1, limit);*/
+	EM_init_index_arrays(0, 0, 1);
+	vmap= make_uv_vert_map_EM(1, 0, limit);
 	if(vmap == NULL)
 		return;
 
 	if(mode==0) {
-		for(a=0; a<me->totvert; a++) {
-			v = get_uv_map_vert(vmap, a);
+		for(a=0, ev= em->verts.first; ev; a++, ev= ev->next) {
+			v = get_uv_map_vert_EM(vmap, a);
 
 			if(v == NULL)
 				continue;
@@ -1120,9 +945,11 @@ void stitch_uv_tface(int mode)
 			vtot= 0;
 
 			for(iterv=v; iterv; iterv=iterv->next) {
-				if (tf[iterv->f].flag & TF_SEL_MASK(iterv->tfindex)) {
-					newuv[0] += tf[iterv->f].uv[iterv->tfindex][0];
-					newuv[1] += tf[iterv->f].uv[iterv->tfindex][1];
+				efa = EM_get_face_for_index(iterv->f);
+				tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				if (tf->flag & TF_SEL_MASK(iterv->tfindex)) {
+					newuv[0] += tf->uv[iterv->tfindex][0];
+					newuv[1] += tf->uv[iterv->tfindex][1];
 					vtot++;
 				}
 			}
@@ -1131,16 +958,18 @@ void stitch_uv_tface(int mode)
 				newuv[0] /= vtot; newuv[1] /= vtot;
 
 				for(iterv=v; iterv; iterv=iterv->next) {
-					if (tf[iterv->f].flag & TF_SEL_MASK(iterv->tfindex)) {
-						tf[iterv->f].uv[iterv->tfindex][0]= newuv[0];
-						tf[iterv->f].uv[iterv->tfindex][1]= newuv[1];
+					efa = EM_get_face_for_index(iterv->f);
+					tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+					if (tf->flag & TF_SEL_MASK(iterv->tfindex)) {
+						tf->uv[iterv->tfindex][0]= newuv[0];
+						tf->uv[iterv->tfindex][1]= newuv[1];
 					}
 				}
 			}
 		}
 	} else if(mode==1) {
-		for(a=0; a<me->totvert; a++) {
-			vlist= get_uv_map_vert(vmap, a);
+		for(a=0, ev= em->verts.first; ev; a++, ev= ev->next) {
+			vlist= get_uv_map_vert_EM(vmap, a);
 
 			while(vlist) {
 				newuv[0]= 0; newuv[1]= 0;
@@ -1149,9 +978,12 @@ void stitch_uv_tface(int mode)
 				for(iterv=vlist; iterv; iterv=iterv->next) {
 					if((iterv != vlist) && iterv->separate)
 						break;
+					efa = EM_get_face_for_index(iterv->f);
+					tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+					
 					if (tf[iterv->f].flag & TF_SEL_MASK(iterv->tfindex)) {
-						newuv[0] += tf[iterv->f].uv[iterv->tfindex][0];
-						newuv[1] += tf[iterv->f].uv[iterv->tfindex][1];
+						newuv[0] += tf->uv[iterv->tfindex][0];
+						newuv[1] += tf->uv[iterv->tfindex][1];
 						vtot++;
 					}
 				}
@@ -1162,21 +994,23 @@ void stitch_uv_tface(int mode)
 					for(iterv=vlist; iterv; iterv=iterv->next) {
 						if((iterv != vlist) && iterv->separate)
 							break;
-						if (tf[iterv->f].flag & TF_SEL_MASK(iterv->tfindex)) {
-							tf[iterv->f].uv[iterv->tfindex][0]= newuv[0];
-							tf[iterv->f].uv[iterv->tfindex][1]= newuv[1];
+						efa = EM_get_face_for_index(iterv->f);
+						tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+						if (tf->flag & TF_SEL_MASK(iterv->tfindex)) {
+							tf->uv[iterv->tfindex][0]= newuv[0];
+							tf->uv[iterv->tfindex][1]= newuv[1];
 						}
 					}
 				}
-
 				vlist= iterv;
 			}
 		}
 	}
 
-	free_uv_vert_map(vmap);
-
-	if(G.sima->flag & SI_BE_SQUARE) be_square_tface_uv(me);
+	free_uv_vert_map_EM(vmap);
+	EM_free_index_arrays();
+	
+	if(G.sima->flag & SI_BE_SQUARE) be_square_tface_uv(em);
 
 	BIF_undo_push("Stitch UV");
 
@@ -1185,20 +1019,17 @@ void stitch_uv_tface(int mode)
 
 void select_linked_tface_uv(int mode)
 {
-	Mesh *me;
-	MFace *mf;
+	EditMesh *em= G.editMesh;
+	EditFace *efa;
 	MTFace *tf, *nearesttf=NULL;
 	UvVertMap *vmap;
 	UvMapVert *vlist, *iterv, *startv;
 	unsigned int *stack, stacksize= 0, nearestv;
 	char *flag;
-	int a, nearestuv, i, nverts;
+	int a, nearestuv, i, nverts, j;
 	float limit[2];
-	
 	if(is_uv_tface_editing_allowed()==0)
 		return;
-
-	me= get_mesh(OBACT);
 
 	if (mode == 2) {
 		nearesttf= NULL;
@@ -1211,45 +1042,53 @@ void select_linked_tface_uv(int mode)
 	}
 
 	get_connected_limit_tface_uv(limit);
-	vmap= make_uv_vert_map(me->mface, me->mtface, me->totface, me->totvert, 1, limit);
+	vmap= make_uv_vert_map_EM(1, 1, limit);
 	if(vmap == NULL)
 		return;
 
-	stack= MEM_mallocN(sizeof(*stack)*me->totface, "UvLinkStack");
-	flag= MEM_callocN(sizeof(*flag)*me->totface, "UvLinkFlag");
+	stack= MEM_mallocN(sizeof(*stack)* BLI_countlist(&em->faces), "UvLinkStack");
+	flag= MEM_callocN(sizeof(*flag)*BLI_countlist(&em->faces), "UvLinkFlag");
 
 	if (mode == 2) {
-		tf= me->mtface;
-		mf= me->mface;
-		for(a=0; a<me->totface; a++, tf++, mf++)
-			if(!(mf->flag & ME_HIDE) && (mf->flag & ME_FACE_SEL))
+		for (a=0, efa= em->faces.first; efa; efa= efa->next, a++) {
+			if(!(efa->h) && (efa->f & SELECT)) {
+				tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 				if(tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4)) {
 					stack[stacksize]= a;
 					stacksize++;
 					flag[a]= 1;
 				}
-	}
-	else {
-		tf= me->mtface;
-		for(a=0; a<me->totface; a++, tf++)
+			}
+		}
+	} else {
+		for (a=0, efa= em->faces.first; efa; efa= efa->next, a++) {
+			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 			if(tf == nearesttf) {
 				stack[stacksize]= a;
 				stacksize++;
 				flag[a]= 1;
 				break;
 			}
+		}
 	}
 
 	while(stacksize > 0) {
 		stacksize--;
 		a= stack[stacksize];
-		mf= me->mface+a;
-		tf= me->mtface+a;
+		
+		for (j=0, efa= em->faces.first; efa; efa= efa->next, j++) {
+			if (j==a) {
+				tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				break;
+			}
+		}
 
-		nverts= mf->v4? 4: 3;
+		nverts= efa->v4? 4: 3;
 
 		for(i=0; i<nverts; i++) {
-			vlist= get_uv_map_vert(vmap, *(&mf->v1 + i));
+			/* make_uv_vert_map_EM sets verts tmp.l to the indicies */
+			vlist= get_uv_map_vert_EM(vmap, (*(&efa->v1 + i))->tmp.l);
+			
 			startv= vlist;
 
 			for(iterv=vlist; iterv; iterv=iterv->next) {
@@ -1272,17 +1111,19 @@ void select_linked_tface_uv(int mode)
 	}
 
 	if(mode==0 || mode==2) {
-		for(a=0, tf=me->mtface; a<me->totface; a++, tf++)
+		for (a=0, efa= em->faces.first; efa; efa= efa->next, a++) {
+			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 			if(flag[a])
 				tf->flag |= (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
 			else
 				tf->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
+		}
 	}
 	else if(mode==1) {
-		mf= me->mface;
-		for(a=0, tf=me->mtface; a<me->totface; a++, tf++, mf++) {
+		for (a=0, efa= em->faces.first; efa; efa= efa->next, a++) {
 			if(flag[a]) {
-				if (mf->v4) {
+				tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				if (efa->v4) {
 					if((tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4)))
 						break;
 				}
@@ -1291,21 +1132,28 @@ void select_linked_tface_uv(int mode)
 			}
 		}
 
-		if (a<me->totface) {
-			for(a=0, tf=me->mtface; a<me->totface; a++, tf++)
-				if(flag[a])
+		/*if (a<me->totface) {*/
+		if (efa) {
+			for (a=0, efa= em->faces.first; efa; efa= efa->next, a++) {
+				if(flag[a]) {
+					tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 					tf->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
+				}
+			}
 		}
 		else {
-			for(a=0, tf=me->mtface; a<me->totface; a++, tf++)
-				if(flag[a])
+			for (a=0, efa= em->faces.first; efa; efa= efa->next, a++) {
+				if(flag[a]) {
+					tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 					tf->flag |= (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
+				}
+			}
 		}
 	}
 	
 	MEM_freeN(stack);
 	MEM_freeN(flag);
-	free_uv_vert_map(vmap);
+	free_uv_vert_map_EM(vmap);
 
 	BIF_undo_push("Select linked UV");
 	scrarea_queue_winredraw(curarea);
@@ -1313,18 +1161,17 @@ void select_linked_tface_uv(int mode)
 
 void unlink_selection(void)
 {
-	Mesh *me;
+	EditMesh *em= G.editMesh;
+	EditFace *efa;
 	MTFace *tface;
-	MFace *mface;
 	int a;
 
 	if( is_uv_tface_editing_allowed()==0 ) return;
-	me= get_mesh(OBACT);
 
-	mface= me->mface;
-	for(a=me->totface, tface= me->mtface; a>0; a--, tface++, mface++) {
-		if(mface->flag & ME_FACE_SEL) {
-			if(mface->v4) {
+	for (a=0, efa= em->faces.first; efa; efa= efa->next, a++) {
+		if(efa->f & SELECT) {
+			tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			if(efa->v4) {
 				if(~tface->flag & (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4))
 					tface->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
 			} else {
@@ -1363,30 +1210,28 @@ void toggle_uv_select(int mode)
 
 void pin_tface_uv(int mode)
 {
-	Mesh *me;
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
 	MTFace *tface;
-	MFace *mface;
 	int a;
 	
 	if( is_uv_tface_editing_allowed()==0 ) return;
-	me= get_mesh(OBACT);
 	
-	mface= me->mface;
-	tface= me->mtface;
-	for(a=me->totface; a>0; a--, tface++, mface++) {
-		if(mface->flag & ME_FACE_SEL) {
+	for (a=0, efa= em->faces.first; efa; efa= efa->next, a++) {
+		if(efa->f & SELECT) {
+			tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 			if(mode ==1){
 				if(tface->flag & TF_SEL1) tface->unwrap |= TF_PIN1;
 				if(tface->flag & TF_SEL2) tface->unwrap |= TF_PIN2;
 				if(tface->flag & TF_SEL3) tface->unwrap |= TF_PIN3;
-				if(mface->v4)
+				if(efa->v4)
 					if(tface->flag & TF_SEL4) tface->unwrap |= TF_PIN4;
 			}
 			else if (mode ==0){
 				if(tface->flag & TF_SEL1) tface->unwrap &= ~TF_PIN1;
 				if(tface->flag & TF_SEL2) tface->unwrap &= ~TF_PIN2;
 				if(tface->flag & TF_SEL3) tface->unwrap &= ~TF_PIN3;
-				if(mface->v4)
+				if(efa->v4)
 					if(tface->flag & TF_SEL4) tface->unwrap &= ~TF_PIN4;
 			}
 		}
@@ -1398,23 +1243,20 @@ void pin_tface_uv(int mode)
 
 void select_pinned_tface_uv(void)
 {
-	Mesh *me;
+	EditMesh *em= G.editMesh;
+	EditFace *efa;
 	MTFace *tface;
-	MFace *mface;
 	int a;
 	
 	if( is_uv_tface_editing_allowed()==0 ) return;
-	me= get_mesh(OBACT);
 	
-	mface= me->mface;
-	tface= me->mtface;
-	for(a=me->totface; a>0; a--, tface++, mface++) {
-		if(mface->flag & ME_FACE_SEL) {
-		
+	for (a=0, efa= em->faces.first; efa; efa= efa->next, a++) {
+		if(efa->f & SELECT) {
+			tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 			if (tface->unwrap & TF_PIN1) tface->flag |= TF_SEL1;
 			if (tface->unwrap & TF_PIN2) tface->flag |= TF_SEL2;
 			if (tface->unwrap & TF_PIN3) tface->flag |= TF_SEL3;
-			if(mface->v4) {
+			if(efa->v4) {
 				if (tface->unwrap & TF_PIN4) tface->flag |= TF_SEL4;
 			}
 			
@@ -1427,36 +1269,24 @@ void select_pinned_tface_uv(void)
 
 int minmax_tface_uv(float *min, float *max)
 {
-	Mesh *me;
+	EditMesh *em= G.editMesh;
+	EditFace *efa;
 	MTFace *tf;
-	MFace *mf;
-	int a, sel;
-
+	int sel;
+	
 	if( is_uv_tface_editing_allowed()==0 ) return 0;
-	me= get_mesh(OBACT);
 
 	INIT_MINMAX2(min, max);
 
 	sel= 0;
-	mf= (MFace*)me->mface;
-	tf= (MTFace*)me->mtface;
-	for(a=me->totface; a>0; a--, tf++, mf++) {
-		if(mf->flag & ME_HIDE);
-		else if(mf->flag & ME_FACE_SEL) {
-
-			if (tf->flag & TF_SEL1) {
-				DO_MINMAX2(tf->uv[0], min, max);
-			}
-			if (tf->flag & TF_SEL2) {
-				DO_MINMAX2(tf->uv[1], min, max);
-			}
-			if (tf->flag & TF_SEL3) {
-				DO_MINMAX2(tf->uv[2], min, max);
-			}
-			if (mf->v4 && tf->flag & TF_SEL4) {
-				DO_MINMAX2(tf->uv[3], min, max);
-			}
-
+	for (efa= em->faces.first; efa; efa= efa->next) {
+		if (efa->h);
+		else if(efa->f & SELECT) {
+			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			if (tf->flag & TF_SEL1)	DO_MINMAX2(tf->uv[0], min, max);
+			if (tf->flag & TF_SEL2)	DO_MINMAX2(tf->uv[1], min, max);
+			if (tf->flag & TF_SEL3)	DO_MINMAX2(tf->uv[2], min, max);
+			if (efa->v4 && tf->flag & TF_SEL4)	DO_MINMAX2(tf->uv[3], min, max);
 			sel = 1;
 		}
 	}
@@ -1578,11 +1408,6 @@ void sima_sample_color(void)
 static void load_image_filesel(char *str)	/* called from fileselect */
 {
 	Image *ima= NULL;
- 
-	if(G.obedit) {
-		error("Can't perfom this in editmode");
-		return;
-	}
 
 	ima= BKE_add_image_file(str);
 	if(ima) {
@@ -1609,6 +1434,9 @@ static void image_replace(Image *old, Image *new)
 	new->xrep= old->xrep;
 	new->yrep= old->yrep;
  
+	/* TODO - This is incorrect!! -
+	 * replace should take all layers into account,
+	 * should also work with editmode */
 	me= G.main->mesh.first;
 	while(me) {
 
@@ -1637,12 +1465,7 @@ static void image_replace(Image *old, Image *new)
 static void replace_image_filesel(char *str)		/* called from fileselect */
 {
 	Image *ima=0;
-
-	if(G.obedit) {
-		error("Can't perfom this in editmode");
-		return;
-	}
-
+	
 	ima= BKE_add_image_file(str);
 	if(ima) {
  

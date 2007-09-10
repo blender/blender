@@ -719,8 +719,8 @@ static void delete_customdata_layer(void *data1, void *data2)
 	if(!CustomData_has_layer(data, type)) {
 		if(type == CD_MCOL && (G.f & G_VERTEXPAINT))
 			G.f &= ~G_VERTEXPAINT; /* get out of vertexpaint mode */
-		if(type == CD_MTFACE && (G.f & G_FACESELECT))
-			set_faceselect();  /* get out of faceselect mode */
+		/*if(type == CD_MTFACE && (G.f & G_FACESELECT))
+			set_faceselect();*/  /* get out of faceselect mode */
 	}
 
 	/*reconstruct active layer*/
@@ -4378,7 +4378,7 @@ static void editing_panel_mesh_tools1(Object *ob, Mesh *me)
 	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, G_DRAWFACES, REDRAWVIEW3D, "Draw Faces",		955,88,150,19, &G.f, 0, 0, 0, 0, "Displays all faces as shades");
+	uiDefButBitI(block, TOG, G_DRAWFACES, REDRAWVIEW3D|REDRAWIMAGE, "Draw Faces",		955,88,150,19, &G.f, 0, 0, 0, 0, "Displays all faces as shades");
 	uiDefButBitI(block, TOG, G_DRAWEDGES, REDRAWVIEW3D, "Draw Edges", 	955,66,150,19, &G.f, 0, 0, 0, 0, "Displays selected edges using hilights");
 	uiDefButBitI(block, TOG, G_DRAWCREASES, REDRAWVIEW3D, "Draw Creases",	955,44,150,19, &G.f, 0, 0, 0, 0, "Displays creases created for subsurf weighting");
 	uiDefButBitI(block, TOG, G_DRAWSEAMS, REDRAWVIEW3D, "Draw Seams",	955,22,150,19, &G.f, 0, 0, 0, 0, "Displays UV unwrapping seams");
@@ -4838,7 +4838,7 @@ void do_fpaintbuts(unsigned short event)
 	case B_COPY_TF_COL:
 	case B_COPY_TF_TEX:
 		me= get_mesh(OBACT);
-		activetf= get_active_tface(&activemcol);
+		activetf= get_active_tface(NULL, &activemcol);
 
 		if(me && activetf) {
 			for (a=0, tf=me->mtface, mf=me->mface; a < me->totface; a++, tf++, mf++) {
@@ -4892,7 +4892,7 @@ void do_fpaintbuts(unsigned short event)
 		break;
 
 	case B_TFACE_HALO:
-		activetf = get_active_tface(NULL);
+		activetf = get_active_tface(NULL, NULL);
 		if(activetf) {
 			activetf->mode &= ~TF_BILLBOARD2;
 			allqueue(REDRAWBUTSEDIT, 0);
@@ -4900,7 +4900,7 @@ void do_fpaintbuts(unsigned short event)
 		break;
 
 	case B_TFACE_BILLB:
-		activetf = get_active_tface(NULL);
+		activetf = get_active_tface(NULL, NULL);
 		if(activetf) {
 			activetf->mode &= ~TF_BILLBOARD;
 			allqueue(REDRAWBUTSEDIT, 0);
@@ -5272,7 +5272,7 @@ static void editing_panel_mesh_texface(void)
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_texface", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Texture face", "Editing", 960, 0, 318, 204)==0) return;
 
-	tf = get_active_tface(NULL);
+	tf = get_active_tface(NULL, NULL);
 	if(tf) {
 		uiBlockBeginAlign(block);
 		uiDefButBitS(block, TOG, TF_TEX, B_REDR_3D_IMA, "Tex",	600,160,60,19, &tf->mode, 0, 0, 0, 0, "Render face with texture");
@@ -5465,6 +5465,7 @@ void editing_panels()
 		if(G.obedit) {
 			editing_panel_mesh_tools(ob, ob->data);
 			editing_panel_mesh_tools1(ob, ob->data);
+			editing_panel_mesh_uvautocalculation();
 		}
 		else if(G.f & G_SCULPTMODE) {
 			uiNewPanelTabbed("Multires", "Editing");
@@ -5474,7 +5475,7 @@ void editing_panels()
 		} else {
 			if(G.f & G_FACESELECT) {
 				editing_panel_mesh_texface();
-				editing_panel_mesh_uvautocalculation();
+				editing_panel_mesh_uvautocalculation(); /* draw hidden edge option from this needs to be elsewhere */
 			}
 			if(G.f & (G_VERTEXPAINT | G_TEXTUREPAINT | G_WEIGHTPAINT) ) {
 				editing_panel_mesh_paint();

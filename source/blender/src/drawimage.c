@@ -43,6 +43,7 @@
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
+#include "BLI_editVert.h"
 
 #include "IMB_imbuf.h"
 #include "IMB_imbuf_types.h"
@@ -242,19 +243,16 @@ void calc_image_view(SpaceImage *sima, char mode)
 void what_image(SpaceImage *sima)
 {
 	MTFace *activetf;
-	Mesh *me;
 		
 	if(sima->mode==SI_TEXTURE) {
 		
 		/* viewer overrides faceselect */
-		if(sima->image && sima->image->source==IMA_SRC_VIEWER);
-		else if((G.f & G_FACESELECT)) {
-			
+		if(sima->image && sima->image->source==IMA_SRC_VIEWER) {}
+		else if (G.obedit == OBACT) {
 			sima->image= NULL;
-			me= get_mesh(OBACT);
-			activetf = get_active_tface(NULL);
+			activetf = get_active_tface(NULL, NULL);
 			
-			if(me && me->mtface && activetf && activetf->mode & TF_TEX) {
+			if(activetf && activetf->mode & TF_TEX) {
 				sima->image= activetf->tpage;
 				
 				if(sima->flag & SI_EDITTILE);
@@ -267,7 +265,6 @@ void what_image(SpaceImage *sima)
 				}
 			}
 		}
-		
 	}
 }
 
@@ -285,22 +282,20 @@ ImBuf *imagewindow_get_ibuf(SpaceImage *sima)
 	return NULL;
 }
 
-
+extern int EM_texFaceCheck(void); /* from editmesh.c */
 /* called to assign images to UV faces */
 void image_changed(SpaceImage *sima, int dotile)
 {
 	MTFace *tface;
-	MFace *mface;
-	Mesh *me;
-	int a;
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
 
 	if(sima->image==NULL)
 		sima->flag &= ~SI_DRAWTOOL;
 	
 	if(sima->mode==SI_TEXTURE) {
 		
-		if(G.f & G_FACESELECT) {
-			
+		if(EM_texFaceCheck()) {
 			/* skip assigning these procedural images... */
 			if(sima->image) {
 				if(sima->image->type==IMA_TYPE_R_RESULT)
@@ -308,41 +303,38 @@ void image_changed(SpaceImage *sima, int dotile)
 				if(sima->image->type==IMA_TYPE_COMPOSITE)
 					return;
 			}
-			
-			me= get_mesh(OBACT);
-			if(me && me->mtface) {
+			/*
+			tface= me->mtface;
+			mface = me->mface;
+			a= me->totface;
+			while(a--) {
+				if(mface->flag & ME_FACE_SEL) {
+			*/
+			for (efa= em->faces.first; efa; efa= efa->next) {
+				if (efa->f & SELECT) {
+					tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 				
-				tface= me->mtface;
-				mface = me->mface;
-				a= me->totface;
-				while(a--) {
-					if(mface->flag & ME_FACE_SEL) {
-						
-						if(dotile==2) {
-							tface->mode &= ~TF_TILES;
-						}
-						else {
-							tface->tpage= sima->image;
-							tface->mode |= TF_TEX;
-						
-							if(dotile) tface->tile= sima->curtile;
-						}
-						
-						if(sima->image) {
-							if(sima->image->tpageflag & IMA_TILES) tface->mode |= TF_TILES;
-							else tface->mode &= ~TF_TILES;
-						
-							if(sima->image->id.us==0) id_us_plus(&sima->image->id);
-							else id_lib_extern(&sima->image->id);
-						}
+					if(dotile==2) {
+						tface->mode &= ~TF_TILES;
 					}
-					tface++;
-					mface++;
+					else {
+						tface->tpage= sima->image;
+						tface->mode |= TF_TEX;
+					
+						if(dotile) tface->tile= sima->curtile;
+					}
+					
+					if(sima->image) {
+						if(sima->image->tpageflag & IMA_TILES) tface->mode |= TF_TILES;
+						else tface->mode &= ~TF_TILES;
+					
+						if(sima->image->id.us==0) id_us_plus(&sima->image->id);
+						else id_lib_extern(&sima->image->id);
+					}
 				}
-
-				object_uvs_changed(OBACT);
-				allqueue(REDRAWBUTSEDIT, 0);
 			}
+			object_uvs_changed(OBACT);
+			allqueue(REDRAWBUTSEDIT, 0);
 		}
 	}
 }
@@ -384,27 +376,26 @@ void uvco_to_areaco_noclip(float *vec, int *mval)
 void draw_tfaces(void)
 {
 	MTFace *tface,*activetface = NULL;
-	MFace *mface,*activemface = NULL;
-	Mesh *me;
-	int a;
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
+	
+	/*int a;*/
 	char col1[4], col2[4];
 	float pointsize= BIF_GetThemeValuef(TH_VERTEX_SIZE);
  	
-	if(G.f & G_FACESELECT) {
-		me= get_mesh(OBACT);
-
-		if(me && me->mtface) {
+	if (G.obedit) {
+		if (CustomData_has_layer(&em->fdata, CD_MTFACE)) {
 			calc_image_view(G.sima, 'f');	/* float */
 			myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
 			glLoadIdentity();
 			
 			/* draw shadow mesh */
-			if ((G.sima->flag & SI_DRAWSHADOW) && !(G.obedit==OBACT)) {
+			if ((G.sima->flag & SI_DRAWSHADOW) && !(G.obedit==OBACT)) { /* TODO - editmesh */
 				DerivedMesh *dm;
 
 				/* draw final mesh with modifiers applied */
-				dm = mesh_get_derived_final(OBACT,
-				                            CD_MASK_BAREMESH | CD_MASK_MTFACE);
+				/* should test - editmesh_get_derived_cage_and_final */
+				dm = editmesh_get_derived_base();
 
 				glColor3ub(112, 112, 112);
 				if (dm->drawUVEdges) dm->drawUVEdges(dm);
@@ -414,36 +405,24 @@ void draw_tfaces(void)
 			else if((G.sima->flag & SI_DRAWTOOL) || (G.obedit==OBACT)) {
 				/* draw mesh without modifiers applied */
 
-				if (G.obedit) {
-					DerivedMesh *dm = editmesh_get_derived_base();
-
+				if (G.obedit) {		
 					glColor3ub(112, 112, 112);
-					dm->drawUVEdges(dm);
-
-					dm->release(dm);
-				}
-				else {
-					tface= me->mtface;
-					mface= me->mface;
-					a= me->totface;			
-
-					glColor3ub(112, 112, 112);
-					while(a--) {
-						if(!(mface->flag & ME_HIDE) && (mface->flag & ME_FACE_SEL)) {
+					for (efa= em->faces.first; efa; efa= efa->next) {
+						/*if(!(mface->flag & ME_HIDE) && (mface->flag & ME_FACE_SEL)) {*/
+						if(!(efa->flag & ME_HIDE) && (efa->f & SELECT)) {
+							tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 							glBegin(GL_LINE_LOOP);
 							glVertex2fv(tface->uv[0]);
 							glVertex2fv(tface->uv[1]);
 							glVertex2fv(tface->uv[2]);
-							if(mface->v4) glVertex2fv(tface->uv[3]);
+							if(efa->v4) glVertex2fv(tface->uv[3]);
 							glEnd();
-						} 
-						tface++;
-						mface++;					
+						}					
 					}
 				}
 			}
 
-			if((G.sima->flag & SI_DRAWTOOL) || (G.obedit==OBACT))
+			if((G.sima->flag & SI_DRAWTOOL) || !(G.obedit==OBACT))
 				return; /* only draw shadow mesh */
 			
 			/* draw transparent faces */
@@ -452,47 +431,37 @@ void draw_tfaces(void)
 				BIF_GetThemeColor4ubv(TH_FACE_SELECT, col2);
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 				glEnable(GL_BLEND);
-				tface= me->mtface;
-				mface= me->mface;
-				a= me->totface;			
-				while(a--) {
-					if(mface->flag & ME_FACE_SEL) {
+				
+				for (efa= em->faces.first; efa; efa= efa->next) {
+					if(efa->f & SELECT) {
+						tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 						if(!(~tface->flag & (TF_SEL1|TF_SEL2|TF_SEL3)) &&
-						   (!mface->v4 || tface->flag & TF_SEL4))
+						   (!efa->v4 || tface->flag & TF_SEL4))
 							glColor4ubv((GLubyte *)col2);
 						else
 							glColor4ubv((GLubyte *)col1);
 							
-						glBegin(mface->v4?GL_QUADS:GL_TRIANGLES);
+						glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
 							glVertex2fv(tface->uv[0]);
 							glVertex2fv(tface->uv[1]);
 							glVertex2fv(tface->uv[2]);
-							if(mface->v4) glVertex2fv(tface->uv[3]);
+							if(efa->v4) glVertex2fv(tface->uv[3]);
 						glEnd();
 					}
-					tface++;
-					mface++;					
 				}
 				glDisable(GL_BLEND);
 			}
-
-
-			tface= me->mtface;
-			mface= me->mface;
-			a= me->totface;
-			while(a--) {
-				if(mface->flag & ME_FACE_SEL) {
-					if(tface->flag & TF_ACTIVE){
-						activetface= tface; 
-						activemface= mface; 
-					}
-
+			
+			for (efa= em->faces.first; efa; efa= efa->next) {
+				if (efa->f & SELECT) {
+					tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+					
 					cpack(0x0);
  					glBegin(GL_LINE_LOOP);
 						glVertex2fv(tface->uv[0]);
 						glVertex2fv(tface->uv[1]);
 						glVertex2fv(tface->uv[2]);
-						if(mface->v4) glVertex2fv(tface->uv[3]);
+						if(efa->v4) glVertex2fv(tface->uv[3]);
 					glEnd();
 				
 					setlinestyle(2);
@@ -504,36 +473,34 @@ void draw_tfaces(void)
 
 					glBegin(GL_LINE_STRIP);
 						glVertex2fv(tface->uv[0]);
-						if(mface->v4) glVertex2fv(tface->uv[3]);
+						if(efa->v4) glVertex2fv(tface->uv[3]);
 						else glVertex2fv(tface->uv[2]);
 					glEnd();
 	
 					glBegin(GL_LINE_STRIP);
 						glVertex2fv(tface->uv[1]);
 						glVertex2fv(tface->uv[2]);
-						if(mface->v4) glVertex2fv(tface->uv[3]);
+						if(efa->v4) glVertex2fv(tface->uv[3]);
 					glEnd();
 					setlinestyle(0);
 				}
-					
-				tface++;
-				mface++;
 			}
 
 			/* draw active face edges */
-			if (activetface){
+			/*if (activetface){*/
 				/* colors: R=u G=v */
-
+			activetface = get_active_tface(&efa, NULL);
+			if (activetface) {
 				setlinestyle(2);
 				tface=activetface; 
-				mface=activemface; 
+				/*mface=activemface;*/ 
 
 				cpack(0x0);
 				glBegin(GL_LINE_LOOP);
 				glVertex2fv(tface->uv[0]);
 					glVertex2fv(tface->uv[1]);
 					glVertex2fv(tface->uv[2]);
-					if(mface->v4) glVertex2fv(tface->uv[3]);
+					if(efa->v4) glVertex2fv(tface->uv[3]);
 				glEnd();
 					
 				cpack(0xFF00);
@@ -545,7 +512,7 @@ void draw_tfaces(void)
 				cpack(0xFF);
 				glBegin(GL_LINE_STRIP);
 					glVertex2fv(tface->uv[0]);
-					if(mface->v4) glVertex2fv(tface->uv[3]);
+					if(efa->v4) glVertex2fv(tface->uv[3]);
 					else glVertex2fv(tface->uv[2]);
 				glEnd();
 
@@ -553,7 +520,7 @@ void draw_tfaces(void)
 				glBegin(GL_LINE_STRIP);
 					glVertex2fv(tface->uv[1]);
 					glVertex2fv(tface->uv[2]);
-					if(mface->v4) glVertex2fv(tface->uv[3]);
+					if(efa->v4) glVertex2fv(tface->uv[3]);
 				glEnd();
  				
 				setlinestyle(0);
@@ -564,21 +531,16 @@ void draw_tfaces(void)
  			glPointSize(pointsize);
 
 			bglBegin(GL_POINTS);
-			tface= me->mtface;
-			mface= me->mface;
-			a= me->totface;
-			while(a--) {
-				if(mface->flag & ME_FACE_SEL) {
-					
+			for (efa= em->faces.first; efa; efa= efa->next) {
+				if (efa->f & SELECT) {
+					tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 					if(tface->flag & TF_SEL1); else bglVertex2fv(tface->uv[0]);
 					if(tface->flag & TF_SEL2); else bglVertex2fv(tface->uv[1]);
 					if(tface->flag & TF_SEL3); else bglVertex2fv(tface->uv[2]);
-					if(mface->v4) {
+					if(efa->v4) {
 						if(tface->flag & TF_SEL4); else bglVertex2fv(tface->uv[3]);
 					}
 				}
-				tface++;
-				mface++;
 			}
 			bglEnd();
 
@@ -588,21 +550,16 @@ void draw_tfaces(void)
 			cpack(0xFF);
 
 			bglBegin(GL_POINTS);
-			tface= me->mtface;
-			mface= me->mface;
-			a= me->totface;
-			while(a--) {
-				if(mface->flag & ME_FACE_SEL) {
-					
+			for (efa= em->faces.first; efa; efa= efa->next) {
+				if (efa->f & SELECT) {
+					tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 					if(tface->unwrap & TF_PIN1) bglVertex2fv(tface->uv[0]);
 					if(tface->unwrap & TF_PIN2) bglVertex2fv(tface->uv[1]);
 					if(tface->unwrap & TF_PIN3) bglVertex2fv(tface->uv[2]);
-					if(mface->v4) {
+					if(efa->v4) {
 						if(tface->unwrap & TF_PIN4) bglVertex2fv(tface->uv[3]);
 					}
 				}
-				tface++;
-				mface++;
 			}
 			bglEnd();
 
@@ -611,21 +568,16 @@ void draw_tfaces(void)
  	        glPointSize(pointsize);
 
 			bglBegin(GL_POINTS);
-			tface= me->mtface;
-			mface= me->mface;
-			a= me->totface;
-			while(a--) {
-				if(mface->flag & ME_FACE_SEL) {
-					
+			for (efa= em->faces.first; efa; efa= efa->next) {
+				if (efa->f & SELECT) {
+					tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 					if(tface->flag & TF_SEL1) bglVertex2fv(tface->uv[0]);
 					if(tface->flag & TF_SEL2) bglVertex2fv(tface->uv[1]);
 					if(tface->flag & TF_SEL3) bglVertex2fv(tface->uv[2]);
-					if(mface->v4) {
+					if(efa->v4) {
 						if(tface->flag & TF_SEL4) bglVertex2fv(tface->uv[3]);
 					}
 				}
-				tface++;
-				mface++;
 			}
 			bglEnd();
 
@@ -748,11 +700,12 @@ void image_editvertex_buts(uiBlock *block)
 	static float ocent[2];
 	float cent[2]= {0.0, 0.0};
 	int imx= 256, imy= 256;
-	int i, nactive= 0, step, digits;
-	Mesh *me;
+	int nactive= 0, step, digits;
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
+	MTFace *tf;
 	
 	if( is_uv_tface_editing_allowed_silent()==0 ) return;
-	me= get_mesh(OBACT);
 	
 	if (G.sima->image) {
 		ImBuf *ibuf= imagewindow_get_ibuf(G.sima);
@@ -762,12 +715,9 @@ void image_editvertex_buts(uiBlock *block)
 		}
 	}
 	
-	for (i=0; i<me->totface; i++) {
-		MFace *mf= &((MFace*) me->mface)[i];
-		MTFace *tf= &((MTFace*) me->mtface)[i];
-		
-		if (!(mf->flag & ME_FACE_SEL))
-			continue;
+	for (efa= em->faces.first; efa; efa= efa->next) {
+		if (!(efa->f & SELECT)) continue;
+		tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 		
 		if (tf->flag & TF_SEL1) {
 			cent[0]+= tf->uv[0][0];
@@ -784,7 +734,7 @@ void image_editvertex_buts(uiBlock *block)
 			cent[1]+= tf->uv[2][1];
 			nactive++;
 		}
-		if (mf->v4 && (tf->flag & TF_SEL4)) {
+		if (efa->v4 && (tf->flag & TF_SEL4)) {
 			cent[0]+= tf->uv[3][0];
 			cent[1]+= tf->uv[3][1];
 			nactive++;
@@ -834,13 +784,13 @@ void image_editvertex_buts(uiBlock *block)
 			delta[1]= ocent[1]/imy - cent[1];
 		}
 
-		for (i=0; i<me->totface; i++) {
+		/*for (i=0; i<me->totface; i++) {
 			MFace *mf= &((MFace*) me->mface)[i];
-			MTFace *tf= &((MTFace*) me->mtface)[i];
-		
-			if (!(mf->flag & ME_FACE_SEL))
-				continue;
-		
+			MTFace *tf= &((MTFace*) me->mtface)[i];*/
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			if (!(efa->f & SELECT)) continue;
+			tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			
 			if (tf->flag & TF_SEL1) {
 				tf->uv[0][0]+= delta[0];
 				tf->uv[0][1]+= delta[1];
@@ -853,7 +803,7 @@ void image_editvertex_buts(uiBlock *block)
 				tf->uv[2][0]+= delta[0];
 				tf->uv[2][1]+= delta[1];
 			}
-			if (mf->v4 && (tf->flag & TF_SEL4)) {
+			if (efa->v4 && (tf->flag & TF_SEL4)) {
 				tf->uv[3][0]+= delta[0];
 				tf->uv[3][1]+= delta[1];
 			}

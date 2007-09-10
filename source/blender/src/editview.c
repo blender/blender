@@ -74,6 +74,7 @@
 #include "BKE_mesh.h"
 #include "BKE_object.h" /* fly mode where_is_object to get camera location */
 #include "BKE_utildefines.h"
+#include "BKE_customdata.h"
 
 #include "BIF_butspace.h"
 #include "BIF_editaction.h"
@@ -591,7 +592,10 @@ static void do_lasso_select(short mcords[][2], short moves, short select)
 		do_lasso_select_armature(mcords, moves, select);
 	
 	BIF_undo_push("Lasso select");
-
+	
+	if (EM_texFaceCheck())
+		allqueue(REDRAWIMAGE, 0);
+	
 	allqueue(REDRAWVIEW3D, 0);
 	countall();
 }
@@ -1686,6 +1690,9 @@ void borderselect(void)
 		if(G.obedit->type==OB_MESH) {
 			do_mesh_box_select(&rect, (val==LEFTMOUSE));
 			allqueue(REDRAWVIEW3D, 0);
+			if (EM_texFaceCheck())
+				allqueue(REDRAWIMAGE, 0);
+			
 		}
 		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
 			do_nurbs_box_select(&rect, val==LEFTMOUSE);

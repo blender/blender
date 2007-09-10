@@ -5837,7 +5837,7 @@ static void collapse_edgeuvs(void)
 	int curtag, balanced, collectionfound= 0, vcount;
 	float avg[2];
 
-	if (!CustomData_has_layer(&G.editMesh->fdata, CD_MTFACE))
+	if (!EM_texFaceCheck())
 		return;
 	
 	uvverts.first = uvverts.last = uvedges.first = uvedges.last = allcollections.first = allcollections.last = NULL;
@@ -5939,7 +5939,7 @@ static void collapseuvs(void)
 	int uvcount;
 	float uvav[2];
 
-	if (!CustomData_has_layer(&G.editMesh->fdata, CD_MTFACE))
+	if (!EM_texFaceCheck())
 		return;
 	
 	uvcount = 0;
@@ -6047,7 +6047,7 @@ int collapseEdges(void)
 			VECCOPY(((EditEdge*)curredge->eed)->v2->co,avgcount);
 		}
 		
-		if (CustomData_has_layer(&G.editMesh->fdata, CD_MTFACE)) {
+		if (EM_texFaceCheck()) {
 			/*uv collapse*/
 			for(eve=G.editMesh->verts.first; eve; eve=eve->next) eve->f1 = 0;
 			for(eed=G.editMesh->edges.first; eed; eed=eed->next) eed->f1 = 0;
@@ -6066,6 +6066,8 @@ int collapseEdges(void)
 	countall();
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	allqueue(REDRAWVIEW3D, 0);
+	if (EM_texFaceCheck())
+		allqueue(REDRAWIMAGE, 0);
 	return mergecount;
 }
 
@@ -6294,6 +6296,8 @@ void pathselect(void)
 			countall();
 			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);
+			if (EM_texFaceCheck())
+				allqueue(REDRAWIMAGE, 0);
 		}
 	}
 	else{
@@ -6331,6 +6335,8 @@ void region_to_loop(void)
 		countall();
 		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 0);
+		if (EM_texFaceCheck())
+			allqueue(REDRAWIMAGE, 0);
 		BIF_undo_push("Face Region to Edge Loop");
 
 	}
@@ -6489,6 +6495,8 @@ void loop_to_region(void)
 	freecollections(&allcollections);
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	allqueue(REDRAWVIEW3D, 0);
+	if (EM_texFaceCheck())
+		allqueue(REDRAWIMAGE, 0);
 	BIF_undo_push("Edge Loop to Face Region");
 }
 

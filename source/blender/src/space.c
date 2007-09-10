@@ -652,11 +652,8 @@ static void align_view_to_selected(View3D *v3d)
 			Object *obact= OBACT;
 			if (obact && obact->type==OB_MESH) {
 				Mesh *me= obact->data;
-
-				if (me->mtface) {
-					faceselect_align_view_to_selected(v3d, me, axis);
-					addqueue(v3d->area->win, REDRAW, 1);
-				}
+				faceselect_align_view_to_selected(v3d, me, axis);
+				addqueue(v3d->area->win, REDRAW, 1);
 			}
 		}
 	}
@@ -2360,8 +2357,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						BIF_undo();
 					else if(G.f & G_TEXTUREPAINT)
 						imagepaint_undo();
-					else if (G.f & G_FACESELECT)
-						uv_autocalc_tface();
+					/*else if (G.f & G_FACESELECT)
+						uv_autocalc_tface();*/
 					else {
 						single_user();
 					}
@@ -2401,7 +2398,9 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					Transform();
 				}
 				else if(G.qual==LR_ALTKEY) {
-					/* if(G.obedit && G.obedit->type==OB_MESH) write_videoscape(); */
+					if(G.obedit) {
+						uv_autocalc_tface();
+					}
 				}
 				else if(G.qual==LR_CTRLKEY) {
 					if(G.obedit) {
@@ -4743,8 +4742,8 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		} else if (event == RIGHTMOUSE) {
 			event = LEFTMOUSE;
 		}
-	}
-
+	}		
+	
 	if (sima->image && (sima->flag & SI_DRAWTOOL)) {
 		switch(event) {
 			case CKEY:
@@ -4769,13 +4768,13 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else
 						sima_sample_color();
 				}
-				else if(G.f & G_FACESELECT)
+				else if(EM_texFaceCheck())
 					gesture();
 				else 
 					sima_sample_color();
 				break;
 			case RIGHTMOUSE:
-				if(G.f & G_FACESELECT)
+				if(EM_texFaceCheck())
 					mouse_select_sima();
 				else if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT))
 					sample_vpaint();
@@ -4845,7 +4844,8 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				break;
 			case PKEY:
-				if(G.f & G_FACESELECT) {
+				/*if(G.f & G_FACESELECT) {*/
+				if (EM_texFaceCheck()) {
 					if(G.qual==LR_CTRLKEY)
 						pack_charts_tface_uv();
 					else if(G.qual==LR_SHIFTKEY)
@@ -4854,8 +4854,7 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						pin_tface_uv(0);
 					else
 						pin_tface_uv(1);
-				}
-				else {
+				} else {
 					if(G.qual==LR_SHIFTKEY) {
 						toggle_blockhandler(sa, IMAGE_HANDLER_PREVIEW, 0);
 						scrarea_queue_winredraw(sa);

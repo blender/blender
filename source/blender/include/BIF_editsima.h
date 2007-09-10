@@ -31,7 +31,7 @@
  */
 
 struct Mesh;
-
+struct EditMesh;
 #define TF_PIN_MASK(id) (TF_PIN1 << id)
 #define TF_SEL_MASK(id) (TF_SEL1 << id)
 
@@ -65,7 +65,7 @@ void toggle_uv_select(int mode);
 void pin_tface_uv(int mode);
 void weld_align_menu_tface_uv(void);
 void weld_align_tface_uv(char tool);
-void be_square_tface_uv(struct Mesh *me);
+void be_square_tface_uv(struct EditMesh *em);
 void select_pinned_tface_uv(void);
 
 void sima_sample_color(void);
