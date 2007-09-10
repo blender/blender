@@ -4188,7 +4188,11 @@ void paste_editipo(void)
 						src->vec[1][0] -= offset;
 						src->vec[2][0] -= offset;
 						
-						calchandles_ipocurve(icu);
+						/* recalculate handles of curve that data was pasted into */
+						calchandles_ipocurve(ei->icu);
+						
+						/* advance to next copy/paste buffer ipo-curve */
+						icu= icu->next;
 					}
 				}
 				
