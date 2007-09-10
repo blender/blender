@@ -140,7 +140,7 @@ int is_uv_tface_editing_allowed_silent(void)
 
 int is_uv_tface_editing_allowed(void)
 {
-	if(!G.obedit) error("Unable to perform action in Edit Mode");
+	if(!G.obedit) error("Enter Edit Mode to perform this action");
 
 	return is_uv_tface_editing_allowed_silent();
 }

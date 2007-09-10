@@ -6925,7 +6925,7 @@ static PyObject *Mesh_removeLayer_internal( BPy_Mesh * self, PyObject * value, i
 			if(type == CD_MCOL && (G.f & G_VERTEXPAINT))
 				G.f &= ~G_VERTEXPAINT; /* get out of vertexpaint mode */
 			if(type == CD_MTFACE && (G.f & G_FACESELECT))
-				set_faceselect();  /* get out of faceselect mode */
+				G.f |= ~G_FACESELECT; /* get out of faceselect mode */
 		}
 	}
 	

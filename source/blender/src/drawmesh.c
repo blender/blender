@@ -1205,7 +1205,7 @@ void draw_mesh_textured(Object *ob, DerivedMesh *dm, int faceselect)
 		if(ob==G.obedit)
 			editing= 1;
 		else if(ob==OBACT)
-			if(G.f & (G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT+G_WEIGHTPAINT))
+			if(FACESEL_PAINT_TEST)
 				editing= 1;
 
 		if(!editing)

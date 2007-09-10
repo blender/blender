@@ -186,7 +186,7 @@ void add_object_draw(int type)	/* for toolbox or menus, only non-editmode stuff 
 {
 	Object *ob;
 	
-	G.f &= ~(G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT+G_WEIGHTPAINT+G_SCULPTMODE);
+	G.f &= ~(G_VERTEXPAINT+G_TEXTUREPAINT+G_WEIGHTPAINT+G_SCULPTMODE);
 	setcursor_space(SPACE_VIEW3D, CURSOR_STD);
 
 	if ELEM3(curarea->spacetype, SPACE_VIEW3D, SPACE_BUTS, SPACE_INFO) {
@@ -306,7 +306,7 @@ void delete_obj(int ok)
 	}
 	countall();
 
-	G.f &= ~(G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT+G_WEIGHTPAINT);
+	G.f &= ~(G_VERTEXPAINT+G_TEXTUREPAINT+G_WEIGHTPAINT);
 	setcursor_space(SPACE_VIEW3D, CURSOR_STD);
 	
 	if(islamp) reshadeall_displist();	/* only frees displist */
@@ -2201,7 +2201,7 @@ void special_editmenu(void)
 		if(ob->flag & OB_POSEMODE) {
 			pose_special_editmenu();
 		}
-		else if(G.f & G_FACESELECT) {
+		else if(FACESEL_PAINT_TEST) {
 			Mesh *me= get_mesh(ob);
 			MTFace *tface;
 			MFace *mface;
@@ -3411,7 +3411,7 @@ void copy_attr_menu()
 	
 	if ((G.obedit)) return; /* no editmode copy yet */
 	
-	if(G.f & G_FACESELECT) {
+	if(FACESEL_PAINT_TEST) {
 		event= pupmenu("Copy Active Texface%t|Image%x1|UV Coords%x2|Color%x3|Mode%x4|Transp%x5");
 		copy_attr_tface(event);
 	

@@ -1632,7 +1632,7 @@ static void draw_em_fancy_verts(EditMesh *em, DerivedMesh *cageDM)
 				draw_dm_verts(cageDM, sel);
 			}
 			
-			if(G.scene->selectmode & SCE_SELECT_FACE) {
+			if(G.scene->selectmode & SCE_SELECT_FACE && G.vd->drawtype!=OB_TEXTURE) {
 				glPointSize(fsize);
 				glColor4ubv((GLubyte *)fcol);
 				draw_dm_face_centers(cageDM, sel);
@@ -1974,7 +1974,7 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, Derived
 		}
 	}
 	
-	if((G.f & (G_FACESELECT+G_DRAWFACES))) {	/* transp faces */
+	if((G.f & (G_DRAWFACES)) || FACESEL_PAINT_TEST) {	/* transp faces */
 		unsigned char col1[4], col2[4];
 			
 		BIF_GetThemeColor4ubv(TH_FACE, (char *)col1);
@@ -2120,7 +2120,7 @@ static void draw_mesh_fancy(Base *base, int dt, int flag)
 		glFrontFace((ob->transflag&OB_NEG_SCALE)?GL_CW:GL_CCW);
 
 		// Unwanted combination.
-	if (ob==OBACT && (G.f&G_FACESELECT)) draw_wire = 0;
+	if (ob==OBACT && FACESEL_PAINT_TEST) draw_wire = 0;
 
 	if(dt==OB_BOUNDBOX) {
 		draw_bounding_volume(ob);
@@ -2133,10 +2133,10 @@ static void draw_mesh_fancy(Base *base, int dt, int flag)
 	else if(dt==OB_WIRE || totface==0) {
 		draw_wire = 1;
 	}
-	else if( (ob==OBACT && (G.f & (G_FACESELECT|G_TEXTUREPAINT))) || (G.vd->drawtype==OB_TEXTURE && dt>OB_SOLID)) {
-		int faceselect= (ob==OBACT && (G.f & G_FACESELECT));
+	else if( (ob==OBACT && (G.f & G_TEXTUREPAINT || FACESEL_PAINT_TEST)) || (G.vd->drawtype==OB_TEXTURE && dt>OB_SOLID)) {
+		int faceselect= (ob==OBACT && FACESEL_PAINT_TEST);
 
-		if ((G.vd->flag&V3D_SELECT_OUTLINE) && (base->flag&SELECT) && !(G.f&(G_FACESELECT|G_PICKSEL)) && !draw_wire) {
+		if ((G.vd->flag&V3D_SELECT_OUTLINE) && (base->flag&SELECT) && !(G.f&G_PICKSEL || FACESEL_PAINT_TEST) && !draw_wire) {
 			draw_mesh_object_outline(ob, dm);
 		}
 
@@ -3881,7 +3881,7 @@ void draw_object(Base *base, int flag)
 	dtx= 0;
 
 	/* faceselect exception: also draw solid when dt==wire, except in editmode */
-	if(ob==OBACT && (G.f & (G_FACESELECT+G_VERTEXPAINT+G_TEXTUREPAINT+G_WEIGHTPAINT))) {
+	if(ob==OBACT && (G.f & (G_VERTEXPAINT+G_TEXTUREPAINT+G_WEIGHTPAINT))) {
 		if(ob->type==OB_MESH) {
 
 			if(ob==G.obedit);
@@ -4142,7 +4142,7 @@ void draw_object(Base *base, int flag)
 	if(G.f & G_SIMULATION) return;
 
 	/* object centers, need to be drawn in viewmat space for speed, but OK for picking select */
-	if(ob!=OBACT || (G.f & (G_VERTEXPAINT|G_FACESELECT|G_TEXTUREPAINT|G_WEIGHTPAINT))==0) {
+	if(ob!=OBACT || (G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT))==0) {
 		int do_draw_center= -1;	/* defines below are zero or positive... */
 
 		if((G.scene->basact)==base) 
@@ -4327,7 +4327,7 @@ static int bbs_mesh_solid_EM(DerivedMesh *dm, int facecol)
 	if (facecol) {
 		dm->drawMappedFaces(dm, bbs_mesh_solid__setSolidDrawOptions, (void*)(long) 1, 0);
 
-		if(G.scene->selectmode & SCE_SELECT_FACE) {
+		if(G.scene->selectmode & SCE_SELECT_FACE && G.vd->drawtype!=OB_TEXTURE) {
 			glPointSize(BIF_GetThemeValuef(TH_FACEDOT_SIZE));
 		
 			bglBegin(GL_POINTS);
@@ -4367,6 +4367,7 @@ static int bbs_mesh_wire__setDrawOpts(void *userData, int index)
 		return 0;
 }
 
+/* TODO remove this - since face select mode now only works with painting */
 static void bbs_mesh_solid(Object *ob)
 {
 	DerivedMesh *dm = mesh_get_derived_final(ob, get_viewedit_datamask());

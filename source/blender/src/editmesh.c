@@ -838,7 +838,7 @@ void make_editMesh()
 		evlist[a]= eve;
 		
 		// face select sets selection in next loop
-		if( (G.f & G_FACESELECT)==0 )
+		if( (FACESEL_PAINT_TEST)==0 )
 			eve->f |= (mvert->flag & 1);
 		
 		if (mvert->flag & ME_HIDE) eve->h= 1;		
@@ -904,7 +904,7 @@ void make_editMesh()
 				}
 				if(mface->flag & ME_HIDE) efa->h= 1;
 
-				if((G.f & G_FACESELECT) && (efa->f & SELECT))
+				if((FACESEL_PAINT_TEST) && (efa->f & SELECT))
 					EM_select_face(efa, 1); /* flush down */
 			}
 		}

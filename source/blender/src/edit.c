@@ -422,7 +422,7 @@ int get_border(rcti *rect, short flag)
 					circle_selectCB(&obedit_selectionCB);
 				}
 			}
-			else if (G.f&G_FACESELECT) {
+			else if (FACESEL_PAINT_TEST) {
 				circle_selectCB(&obedit_selectionCB);
 			}
 			return 0;
@@ -769,7 +769,7 @@ void countall()
 		allqueue(REDRAWINFO, 1);	/* 1, because header->win==0! */
 		return;
 	}
-	else if(G.f & (G_FACESELECT + G_VERTEXPAINT + G_TEXTUREPAINT +G_WEIGHTPAINT)) {
+	else if(FACESEL_PAINT_TEST) {
 		me= get_mesh((G.scene->basact) ? (G.scene->basact->object) : 0);
 		if(me) {
 			G.totface= me->totface;

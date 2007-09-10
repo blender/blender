@@ -66,6 +66,7 @@
 #include "BKE_object.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
+#include "BKE_customdata.h"
 
 #include "BSE_view.h"
 #include "BSE_edit.h"
@@ -340,7 +341,6 @@ static void uv_calc_shift_project(float *target, float *shift, float rotmat[][4]
 void calculate_uv_map(unsigned short mapmode)
 {
 	MTFace *tface;
-	/*MFace *mface;*/
 	Object *ob;
 	float dx, dy, rotatematrix[4][4], radius= 1.0, min[3], cent[3], max[3];
 	float fac= 1.0, upangledeg= 0.0, sideangledeg= 90.0;
@@ -358,8 +358,16 @@ void calculate_uv_map(unsigned short mapmode)
 		else sideangledeg= 90.0;
 	}
 	
+	/* add uvs if there not here */
+	if (!EM_texFaceCheck()) {
+		if (em && em->faces.first)
+			EM_add_data_layer(&em->fdata, CD_MTFACE);
+		
+		if (!EM_texFaceCheck())
+			return;
+	}
+	
 	ob=OBACT;
-	if (!EM_texFaceCheck()) return;
 	
 	switch(mapmode) {
 	case B_UVAUTO_BOUNDS:
@@ -1413,51 +1421,6 @@ void uv_autocalc_tface()
 	case UV_UNWRAP_MAPPING:
 		unwrap_lscm(0); break;
 	}
-}
-
-void set_faceselect()	/* toggle */
-{
-	Object *ob = OBACT;
-	Mesh *me = 0;
-	
-	if(ob==NULL) return;
-	if(object_data_is_libdata(ob)) {
-		error_libdata();
-		return;
-	}
-	
-	me= get_mesh(ob);
-	
-	scrarea_queue_headredraw(curarea);
-	
-	if(me) /* make sure modifiers are updated for mapping requirements */
-		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-
-	if(G.f & G_FACESELECT) {
-		G.f &= ~G_FACESELECT;
-
-		if((G.f & (G_WEIGHTPAINT|G_VERTEXPAINT|G_TEXTUREPAINT))==0) {
-			if(me)
-				reveal_tface();
-			setcursor_space(SPACE_VIEW3D, CURSOR_STD);
-			BIF_undo_push("End UV Faceselect");
-		}
-	}
-	else if (me && (ob->lay & G.vd->lay)) {
-		G.f |= G_FACESELECT;
-		/*
-		if(me->mtface==NULL)
-			make_tfaces(me);
-		*/
-		setcursor_space(SPACE_VIEW3D, CURSOR_FACESEL);
-		BIF_undo_push("Set UV Faceselect");
-	}
-
-	countall();
-
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSEDIT, 0);
-	/*allqueue(REDRAWIMAGE, 0);*/
 }
 
 /* Texture Paint */

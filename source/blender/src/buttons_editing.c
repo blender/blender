@@ -536,7 +536,7 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 			if(G.obedit->type == OB_MESH) reveal_mesh();
 			else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) revealNurb();
 		}
-		else if(G.f & G_FACESELECT) reveal_tface();
+		else if(FACESEL_PAINT_TEST) reveal_tface();
 		
 		break;
 	case B_SELSWAP:
@@ -719,8 +719,6 @@ static void delete_customdata_layer(void *data1, void *data2)
 	if(!CustomData_has_layer(data, type)) {
 		if(type == CD_MCOL && (G.f & G_VERTEXPAINT))
 			G.f &= ~G_VERTEXPAINT; /* get out of vertexpaint mode */
-		/*if(type == CD_MTFACE && (G.f & G_FACESELECT))
-			set_faceselect();*/  /* get out of faceselect mode */
 	}
 
 	/*reconstruct active layer*/
@@ -4875,7 +4873,7 @@ void do_fpaintbuts(unsigned short event)
 		}
 		break;
 	case B_SET_VCOL:
-		if(G.f & G_FACESELECT) 
+		if(FACESEL_PAINT_TEST) 
 			clear_vpaint_selectedfaces();
 		else
 			clear_vpaint();
@@ -5473,7 +5471,7 @@ void editing_panels()
 			uiNewPanelTabbed("Multires", "Editing");
 			editing_panel_sculpting_textures();
 		} else {
-			if(G.f & G_FACESELECT) {
+			if(FACESEL_PAINT_TEST) {
 				editing_panel_mesh_texface();
 				editing_panel_mesh_uvautocalculation(); /* draw hidden edge option from this needs to be elsewhere */
 			}

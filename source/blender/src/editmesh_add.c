@@ -1188,8 +1188,8 @@ void add_primitiveMesh(int type)
 	/* if editmode exists for other type, it exits */
 	check_editmode(OB_MESH);
 	
-	if(G.f & (G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT)) {
-		G.f &= ~(G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT);
+	if(G.f & (G_VERTEXPAINT+G_TEXTUREPAINT)) {
+		G.f &= ~(G_VERTEXPAINT+G_TEXTUREPAINT);
 		setcursor_space(SPACE_VIEW3D, CURSOR_EDIT);
 	}
 

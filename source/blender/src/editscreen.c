@@ -176,7 +176,7 @@ static int choose_cursor(ScrArea *sa)
 		if(G.obedit) return CURSOR_EDIT;
 		else if(G.f & (G_VERTEXPAINT|G_WEIGHTPAINT|G_TEXTUREPAINT))
 				return CURSOR_VPAINT;
-		else if(G.f & G_FACESELECT) return CURSOR_FACESEL;
+		else if(FACESEL_PAINT_TEST) return CURSOR_FACESEL;
 		else if(G.f & G_SCULPTMODE) return CURSOR_EDIT;
 		else return CURSOR_STD;
 	}

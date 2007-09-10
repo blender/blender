@@ -290,7 +290,14 @@ void unwrap_lscm(short seamcut)
 	short abf = G.scene->toolsettings->unwrapper == 1;
 	short fillholes = G.scene->toolsettings->uvcalc_flag & 1;
 	
-	if(!EM_texFaceCheck()) return;
+	/* add uvs if there not here */
+	if (!EM_texFaceCheck()) {
+		if (em && em->faces.first)
+			EM_add_data_layer(&em->fdata, CD_MTFACE);
+		
+		if (!EM_texFaceCheck())
+			return;
+	}
 
 	handle = construct_param_handle(em, 0, fillholes, seamcut == 0);
 

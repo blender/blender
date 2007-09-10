@@ -575,7 +575,7 @@ static void do_lasso_select_facemode(short mcords[][2], short moves, short selec
 static void do_lasso_select(short mcords[][2], short moves, short select)
 {
 	if(G.obedit==NULL) {
-		if(G.f & G_FACESELECT)
+		if(FACESEL_PAINT_TEST)
 			do_lasso_select_facemode(mcords, moves, select);
 		else if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT))
 			;
@@ -1101,10 +1101,6 @@ void set_active_base(Base *base)
 				set_vpaint();	/* toggle */
 			if(G.f & G_TEXTUREPAINT) 
 				set_texturepaint(); /* Switch off tex paint */
-		}
-		/* always end this */
-		if(G.f & G_FACESELECT) {
-			set_faceselect();	/* toggle */
 		}
 	}
 	
@@ -1670,7 +1666,7 @@ void borderselect(void)
 	int a, index;
 	short hits, val;
 
-	if(G.obedit==NULL && (G.f & G_FACESELECT)) {
+	if(G.obedit==NULL && (FACESEL_PAINT_TEST)) {
 		face_borderselect();
 		return;
 	}
@@ -1683,8 +1679,11 @@ void borderselect(void)
 	val= get_border(&rect, 3);
 	if (!a) setlinestyle(0);
 	
-	if(val==0)
+	if(val==0) {
+		if (EM_texFaceCheck())
+			allqueue(REDRAWIMAGE, 0);
 		return;
+	}
 	
 	if(G.obedit) {
 		if(G.obedit->type==OB_MESH) {
@@ -1919,7 +1918,7 @@ static void mesh_selectionCB(int selecting, Object *editobj, short *mval, float 
 	EditMesh *em = G.editMesh;
 	int bbsel;
 
-	if(!G.obedit && (G.f&G_FACESELECT)) {
+	if(!G.obedit && (FACESEL_PAINT_TEST)) {
 		Mesh *me = get_mesh(OBACT);
 
 		if (me) {

@@ -2095,7 +2095,7 @@ void toolbox_n(void)
 				}
 			}
 		}
-		else if (G.f & G_FACESELECT) {
+		else if (FACESEL_PAINT_TEST) {
 			menu3 = tb_face_select;
 		}
 	}

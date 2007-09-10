@@ -2533,7 +2533,7 @@ static void object_delete_cb(TreeElement *te, TreeStoreElem *tsep, TreeStoreElem
 		if(G.obedit==base->object) exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
 		
 		if(base==BASACT) {
-			G.f &= ~(G_VERTEXPAINT+G_FACESELECT+G_TEXTUREPAINT+G_WEIGHTPAINT);
+			G.f &= ~(G_VERTEXPAINT+G_TEXTUREPAINT+G_WEIGHTPAINT);
 			setcursor_space(SPACE_VIEW3D, CURSOR_STD);
 		}
 		

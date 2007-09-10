@@ -53,7 +53,6 @@ int minmax_tface(float *min, float *max);
 void face_select(void);
 void face_borderselect(void);
 void uv_autocalc_tface(void);
-void set_faceselect(void);
 void set_texturepaint(void);
 void get_same_uv(void);  
 void seam_mark_clear_tface(short mode);

@@ -74,8 +74,6 @@ void set_scene(Scene *sce)		/* also see scene.c: set_scene_bg() */
 	if( G.obedit) 
 		exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR);
 	
-	if(G.f & G_FACESELECT)
-		set_faceselect();
 	if(G.f & G_VERTEXPAINT)
 		set_vpaint();
 	if(G.f & G_TEXTUREPAINT)

@@ -176,6 +176,7 @@ typedef struct Global {
 #define G_DRAWSEAMS     (1 << 20)
 #define G_HIDDENEDGES   (1 << 21)
 
+
 /* Measurement info Drawing */
 #define G_DRAW_EDGELEN  (1 << 22) 
 #define G_DRAW_FACEAREA (1 << 23)
@@ -192,6 +193,11 @@ typedef struct Global {
 #define G_SCULPTMODE    (1 << 29)
 
 #define G_AUTOMATKEYS	(1 << 30)
+
+/* macro for testing face select mode
+ * Texture paint could be removed since selected faces are not used
+ * however hiding faces is useful */
+#define FACESEL_PAINT_TEST ((G.f&G_FACESELECT) && (G.f & (G_VERTEXPAINT|G_WEIGHTPAINT|G_TEXTUREPAINT))) 
 
 /* G.fileflags */
 

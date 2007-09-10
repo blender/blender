@@ -240,7 +240,7 @@ int EM_mask_init_backbuf_border(short mcords[][2], short tot, short xmin, short 
 	
 	/* method in use for face selecting too */
 	if(G.obedit==NULL) {
-		if(G.f & G_FACESELECT);
+		if(FACESEL_PAINT_TEST);
 		else return 0;
 	}
 	else if(G.vd->drawtype<OB_SOLID || (G.vd->flag & V3D_ZBUF_SELECT)==0) return 0;
@@ -302,7 +302,7 @@ int EM_init_backbuf_circle(short xs, short ys, short rads)
 	
 	/* method in use for face selecting too */
 	if(G.obedit==NULL) {
-		if(G.f & G_FACESELECT);
+		if(FACESEL_PAINT_TEST);
 		else return 0;
 	}
 	else if(G.vd->drawtype<OB_SOLID || (G.vd->flag & V3D_ZBUF_SELECT)==0) return 0;
@@ -697,7 +697,7 @@ static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 			}
 		}
 		
-		if(G.scene->selectmode & SCE_SELECT_FACE) {
+		if(G.scene->selectmode & SCE_SELECT_FACE && (G.vd->drawtype!=OB_TEXTURE)) {
 			if(efa->fgonf==0) {
 				glPointSize(BIF_GetThemeValuef(TH_FACEDOT_SIZE));
 				BIF_ThemeColor((efa->f & SELECT)?TH_FACE_DOT:TH_WIRE);
@@ -1311,6 +1311,8 @@ void select_mesh_group_menu()
 			EM_select_flush(); /* so that selected verts, go onto select faces */
 			G.totvertsel += selcount;
 			allqueue(REDRAWVIEW3D, 0);
+			if (EM_texFaceCheck())
+				allqueue(REDRAWIMAGE, 0);
 			BIF_undo_push("Select Similar Vertices");
 		}
 		return;
@@ -1323,6 +1325,8 @@ void select_mesh_group_menu()
 			/*EM_select_flush();*/ /* dont use because it can end up selecting more edges and is not usefull*/
 			G.totedgesel+=selcount;
 			allqueue(REDRAWVIEW3D, 0);
+			if (EM_texFaceCheck())
+				allqueue(REDRAWIMAGE, 0);
 			BIF_undo_push("Select Similar Edges");
 		}
 		return;
@@ -1658,8 +1662,9 @@ static void mouse_mesh_loop(void)
 		
 		EM_selectmode_flush();
 		countall();
-		
 		allqueue(REDRAWVIEW3D, 0);
+		if (EM_texFaceCheck())
+			allqueue(REDRAWIMAGE, 0);
 	}
 }
 
@@ -1767,6 +1772,8 @@ static void selectconnectedAll(void)
 	countall();
 
 	allqueue(REDRAWVIEW3D, 0);
+	if (EM_texFaceCheck())
+		allqueue(REDRAWIMAGE, 0);
 	BIF_undo_push("Select Connected (All)");
 }
 
@@ -1989,6 +1996,8 @@ void reveal_mesh(void)
 	countall();
 
 	allqueue(REDRAWVIEW3D, 0);
+	if (EM_texFaceCheck())
+		allqueue(REDRAWIMAGE, 0);
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	
 	BIF_undo_push("Reveal");
 }
@@ -2716,6 +2725,8 @@ void EM_selectmode_menu(void)
 		}
 		
 		allqueue(REDRAWVIEW3D, 1);
+		if (EM_texFaceCheck())
+			allqueue(REDRAWIMAGE, 0);
 	}
 }
 

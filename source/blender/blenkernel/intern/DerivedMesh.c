@@ -1782,7 +1782,7 @@ CustomDataMask get_viewedit_datamask()
 	ScrArea *sa;
 
 	/* check if we need tfaces & mcols due to face select or texture paint */
-	if(G.f & G_FACESELECT || G.f & G_TEXTUREPAINT) {
+	if(FACESEL_PAINT_TEST || G.f & G_TEXTUREPAINT) {
 		mask |= CD_MASK_MTFACE | CD_MASK_MCOL;
 	} else {
 		/* check if we need tfaces & mcols due to view mode */
@@ -2325,7 +2325,7 @@ static void mesh_build_data(Object *ob, CustomDataMask dataMask)
 
 	if(ob!=G.obedit) {
 		Object *obact = G.scene->basact?G.scene->basact->object:NULL;
-		int editing = (G.f & (G_FACESELECT|G_WEIGHTPAINT|G_VERTEXPAINT|G_TEXTUREPAINT));
+		int editing = (FACESEL_PAINT_TEST);
 		int needMapping = editing && (ob==obact);
 
 		if( (G.f & G_WEIGHTPAINT) && ob==obact ) {

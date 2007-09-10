@@ -1398,7 +1398,7 @@ void centerview()	/* like a localview without local! */
 			}
 		}
 	}
-	else if (G.f & G_FACESELECT) {
+	else if (FACESEL_PAINT_TEST) {
 		ok= minmax_tface(min, max);
 	}
 	else {

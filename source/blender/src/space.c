@@ -648,7 +648,7 @@ static void align_view_to_selected(View3D *v3d)
 		if ((G.obedit) && (G.obedit->type == OB_MESH)) {
 			editmesh_align_view_to_selected(v3d, axis);
 			addqueue(v3d->area->win, REDRAW, 1);
-		} else if (G.f & G_FACESELECT) {
+		} else if (FACESEL_PAINT_TEST) {
 			Object *obact= OBACT;
 			if (obact && obact->type==OB_MESH) {
 				Mesh *me= obact->data;
@@ -1568,7 +1568,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					mouse_mesh();	/* loop select for 1 mousebutton dudes */
 				else if(G.qual==LR_CTRLKEY)
 					mouse_select();	/* also allow in editmode, for vertex parenting */
-				else if(G.f & G_FACESELECT)
+				else if(FACESEL_PAINT_TEST)
 					face_select();
 				else if( G.f & (G_VERTEXPAINT|G_TEXTUREPAINT))
 					sample_vpaint();
@@ -1689,7 +1689,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						deselectall_posearmature(ob, 1, 1);
 					}
 					else {
-						if(G.f & G_FACESELECT) deselectall_tface();
+						if(FACESEL_PAINT_TEST) deselectall_tface();
 						else {
 							/* by design, the center of the active object 
 							 * (which need not necessarily by selected) will
@@ -1804,7 +1804,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else if (G.qual==LR_CTRLKEY) {
 					if(G.obedit && G.obedit->type==OB_MESH)
 						Edge_Menu();
-					else if (G.f & G_FACESELECT)
+					else if (FACESEL_PAINT_TEST)
 						seam_mark_clear_tface(0);
 				}
 				else if (G.qual==LR_SHIFTKEY) {
@@ -1848,7 +1848,10 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						fly();
 				}
 				else {
-					set_faceselect();
+					if (G.f & (G_VERTEXPAINT|G_WEIGHTPAINT|G_TEXTUREPAINT)){
+						G.f ^= G_FACESELECT;
+						allqueue(REDRAWVIEW3D, 1);
+					}
 				}
 				
 				break;
@@ -1953,7 +1956,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							show_all_armature_bones();
 					}
 				}
-				else if(G.f & G_FACESELECT)
+				else if(FACESEL_PAINT_TEST)
 					hide_tface();
 				else if(ob && (ob->flag & OB_POSEMODE)) {
 					if (G.qual==0)
@@ -2017,7 +2020,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				else {
 					if((G.qual==LR_SHIFTKEY)) {
-						if(G.f & G_FACESELECT)
+						if(FACESEL_PAINT_TEST)
 							if (G.f & G_WEIGHTPAINT)
 								clear_wpaint_selectedfaces();
 							else
@@ -2045,7 +2048,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					selectconnected_posearmature();
 				}
 				else {
-					if(G.f & G_FACESELECT) {
+					if(FACESEL_PAINT_TEST) {
 						if((G.qual==0))
 							select_linked_tfaces(0);
 						else if((G.qual==LR_SHIFTKEY))
@@ -2064,7 +2067,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				break;
  			case MKEY:
-				if((G.obedit==0) && (G.f & G_FACESELECT) && (G.qual==0))
+				if((G.obedit==0) && (FACESEL_PAINT_TEST) && (G.qual==0))
 					mirror_uv_tface();
 				else if(G.obedit){
 					if(G.qual==LR_ALTKEY) {
@@ -2198,7 +2201,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				break;				
 			case RKEY:
-				if((G.obedit==0) && (G.f & G_FACESELECT) && (G.qual==0) && !(G.f & G_WEIGHTPAINT))
+				if((G.obedit==0) && (FACESEL_PAINT_TEST) && (G.qual==0) && !(G.f & G_WEIGHTPAINT))
 					rotate_uv_tface();
 				else if((G.obedit==0) && G.qual==LR_ALTKEY) {
 					if(okee("Clear rotation")) {
@@ -2342,12 +2345,18 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				
 				break;
 			case UKEY:
+				/*// Use Ctrl Z like everybody else
 				if(G.obedit) {
 					if(G.obedit->type==OB_MESH) {
 						if(G.qual==0) BIF_undo(); else BIF_redo();
 					}
 					else if ELEM5(G.obedit->type, OB_CURVE, OB_SURF, OB_MBALL, OB_LATTICE, OB_ARMATURE) {
 						if(G.qual==0) BIF_undo(); else BIF_redo();
+					}
+				}*/
+				if(G.obedit) {
+					if(G.qual==0) {
+						uv_autocalc_tface();
 					}
 				}
 				else if((G.qual==0)) {
@@ -2357,8 +2366,6 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						BIF_undo();
 					else if(G.f & G_TEXTUREPAINT)
 						imagepaint_undo();
-					/*else if (G.f & G_FACESELECT)
-						uv_autocalc_tface();*/
 					else {
 						single_user();
 					}
@@ -2370,7 +2377,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					if ((G.obedit) && G.obedit->type==OB_MESH) {
 						align_view_to_selected(v3d);
 					}
-					else if (G.f & G_FACESELECT) {
+					else if (FACESEL_PAINT_TEST) {
 						align_view_to_selected(v3d);
 					}
 				}
@@ -2397,11 +2404,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					initTransform(TFM_WARP, CTX_NONE);
 					Transform();
 				}
-				else if(G.qual==LR_ALTKEY) {
-					if(G.obedit) {
-						uv_autocalc_tface();
-					}
-				}
+				/*else if(G.qual==LR_ALTKEY) {}*/
 				else if(G.qual==LR_CTRLKEY) {
 					if(G.obedit) {
 						if ELEM(G.obedit->type,  OB_CURVE, OB_SURF) {
@@ -2479,7 +2482,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						if ((G.obedit) && (G.obedit->type == OB_MESH)) {
 							editmesh_align_view_to_selected(G.vd, 3);
 						} 
-						else if (G.f & G_FACESELECT) {
+						else if (FACESEL_PAINT_TEST) {
 							if(ob->type==OB_MESH) {
 								Mesh *me= ob->data;
 								faceselect_align_view_to_selected(G.vd, me, 3);
