@@ -1433,7 +1433,7 @@ static PyObject *MVert_setProp( BPy_MVert *self,  PyObject *args)
 }
 	
 static struct PyMethodDef BPy_MVert_methods[] = {
-	{"getProperty", (PyCFunction)MVert_getProp, METH_VARARGS,
+	{"getProperty", (PyCFunction)MVert_getProp, METH_O,
 		"get property indicated by name"},
 	{"setProperty", (PyCFunction)MVert_setProp, METH_VARARGS,
 		"set property indicated by name"},
@@ -2720,7 +2720,7 @@ static PyObject *MEdge_setProp( BPy_MEdge *self,  PyObject *args)
 }
 
 static struct PyMethodDef BPy_MEdge_methods[] = {
-	{"getProperty", (PyCFunction)MEdge_getProp, METH_VARARGS,
+	{"getProperty", (PyCFunction)MEdge_getProp, METH_O,
 		"get property indicated by name"},
 	{"setProperty", (PyCFunction)MEdge_setProp, METH_VARARGS,
 		"set property indicated by name"},
@@ -4793,7 +4793,7 @@ static PyObject *MFace_setProp( BPy_MFace *self,  PyObject *args)
 }
 
 static struct PyMethodDef BPy_MFace_methods[] = {
-	{"getProperty", (PyCFunction)MFace_getProp, METH_VARARGS,
+	{"getProperty", (PyCFunction)MFace_getProp, METH_O,
 		"get property indicated by name"},
 	{"setProperty", (PyCFunction)MFace_setProp, METH_VARARGS,
 		"set property indicated by name"},
