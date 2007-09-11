@@ -922,7 +922,7 @@ void make_editMesh()
 		
 		for(a=0; a<me->totselect; a++, mselect++){
 			/*check if recorded selection is still valid, if so copy into editmesh*/
-			if( (mselect->type == EDITVERT && me->mvert[mselect->index].flag & SELECT) || (mselect->type == EDITEDGE && me->medge[mselect->index].flag & SELECT) || (mselect->type == EDITFACE && me->mface[mselect->index].flag & SELECT) ){
+			if( (mselect->type == EDITVERT && me->mvert[mselect->index].flag & SELECT) || (mselect->type == EDITEDGE && me->medge[mselect->index].flag & SELECT) || (mselect->type == EDITFACE && me->mface[mselect->index].flag & ME_FACE_SEL) ){
 				ese = MEM_callocN(sizeof(EditSelection), "Edit Selection");
 				ese->type = mselect->type;	
 				if(ese->type == EDITVERT) ese->data = EM_get_vert_for_index(mselect->index); else
