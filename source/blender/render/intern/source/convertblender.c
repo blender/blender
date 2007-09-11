@@ -3986,8 +3986,13 @@ void RE_Database_Baking(Render *re, Scene *scene, int type)
 	}
 	
 	init_render_world(re);	/* do first, because of ambient. also requires re->osa set correct */
-	if(re->wrld.mode & WO_AMB_OCC)
-		init_ao_sphere(&re->wrld);
+	if(re->wrld.mode & WO_AMB_OCC) {
+		if (re->wrld.ao_samp_method == WO_AOSAMP_HAMMERSLEY)
+			init_render_hammersley(re);
+		else if (re->wrld.ao_samp_method == WO_AOSAMP_CONSTANT)
+			init_ao_sphere(&re->wrld);
+	}
+	
 	
 	/* still bad... doing all */
 	init_render_textures(re);
