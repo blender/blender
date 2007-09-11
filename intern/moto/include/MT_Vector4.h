@@ -52,6 +52,7 @@
 
 class MT_Vector4 : public MT_Tuple4 {
 public:
+    virtual ~MT_Vector4() {}
     MT_Vector4() {}
     MT_Vector4(const float *v) : MT_Tuple4(v) {}
     MT_Vector4(const double *v) : MT_Tuple4(v) {}
