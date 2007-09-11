@@ -774,6 +774,7 @@ histIndex = cursor = -1 # How far back from the first letter are we? - in curren
 
 # Autoexec, startup code.
 scriptDir = Get('scriptsdir')
+console_autoexec = None
 if scriptDir:
 	if not scriptDir.endswith(Blender.sys.sep):
 		scriptDir += Blender.sys.sep
@@ -788,7 +789,10 @@ if scriptDir:
 		except:
 			cmdBuffer.append(cmdLine('...console_autoexec.py could not write, this is ok', 1, None))
 			scriptDir = None # make sure we only use this for console_autoexec.py
-		
+	
+	if not sys.exists(console_autoexec):
+		console_autoexec = None
+	
 	else:
 		cmdBuffer.append(cmdLine('...Using existing console_autoexec.py in scripts dir', 1, None))
 
@@ -811,7 +815,7 @@ def include_console(includeFile):
 	
 	exec('%s%s' % ('__CONSOLE_VAR_DICT__["bpy"]=', 'bpy'))
 	
-if scriptDir:
+if scriptDir and console_autoexec:
 	include_console(console_autoexec) # pass the blender module
 
 #-end autoexec-----------------------------------------------------------------#
