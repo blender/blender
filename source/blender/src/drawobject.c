@@ -2037,6 +2037,129 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, Derived
 		if(em->vnode && (G.f & G_DRAW_VERSE_DEBUG))
 			draw_verse_debug(ob, em);
 #endif
+		
+		/* Draw active editmode vertex edge of face (if any)*/
+		if (em->selected.last) {
+			EditSelection *ese = em->selected.last;
+		
+			if(ese->type == EDITVERT) {
+				EditVert *ev = (EditVert*)ese->data;
+				float size = BIF_GetThemeValuef(TH_VERTEX_SIZE)*4;
+				
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				glDepthMask(0);
+				glColor4ub(255,255,255,64);
+				glPointSize(size);
+				
+				glBegin(GL_POINTS);
+				glVertex3fv(ev->co);
+				glEnd();
+				
+				glPointSize(1.0);
+				
+				glDisable(GL_BLEND);
+				glDepthMask(1);
+				
+			} else if(ese->type == EDITEDGE) {
+				EditEdge *eed = (EditEdge*)ese->data;
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				glDepthMask(0);
+				glColor4ub(255,255,255,128);
+				
+				glLineWidth(2.0);
+				
+				glBegin(GL_LINES);
+				glVertex3fv(eed->v1->co);
+				glVertex3fv(eed->v2->co);
+				glEnd();
+				
+				glLineWidth(1.0);
+
+				glDisable(GL_BLEND);
+				glDepthMask(1);
+				
+				
+			} else if(ese->type == EDITFACE) {
+				EditFace *efa = (EditEdge*)ese->data;
+				
+				/*  repeate this pattern
+				   X000X000 
+				   00000000 
+				   00X000X0 
+				   00000000 */
+				
+				GLubyte stipplepattern[32*32/8] = {
+					136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0,
+					136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0,
+					136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0,
+					136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0,
+					136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0,
+					136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0,
+					136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0,
+					136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0
+				};
+				
+				glEnable(GL_BLEND);
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				glDepthMask(0);
+				glColor4ub(255,255,255,64);
+				
+	  			glEnable(GL_POLYGON_STIPPLE);
+	  			glPolygonStipple(stipplepattern);
+	  			
+				glDisable(GL_LIGHTING);
+				if (((EditFace*)ese->data)->v4) {
+					glBegin(GL_QUADS);
+					glVertex3fv(efa->v1->co);
+					glVertex3fv(efa->v2->co);
+					glVertex3fv(efa->v3->co);
+					glVertex3fv(efa->v4->co);
+					glEnd();
+				} else {
+					glBegin(GL_TRIANGLES);
+					glVertex3fv(efa->v1->co);
+					glVertex3fv(efa->v2->co);
+					glVertex3fv(efa->v3->co);
+					glEnd();
+				}
+				glDisable(GL_POLYGON_STIPPLE);
+				
+				glLineWidth(1.0);
+				glBegin(GL_LINES);
+				
+				glColor4ub(0,	255,0,	128);
+				glVertex3fv(efa->v1->co);
+				glVertex3fv(efa->v2->co);
+				
+				
+				glColor4ub(0,	0,	255,128);
+				glVertex3fv(efa->v2->co);
+				glVertex3fv(efa->v3->co);
+				
+				
+				glColor4ub(255,	255,0,	128);
+				if (efa->v4) {
+					glVertex3fv(efa->v3->co);
+					glVertex3fv(efa->v4->co);
+					
+					
+					glColor4ub(255,	0,	0,	128);
+					glVertex3fv(efa->v4->co);
+					glVertex3fv(efa->v1->co);
+				} else {
+					glVertex3fv(efa->v3->co);
+					glVertex3fv(efa->v1->co);
+				}
+				glEnd();
+				glLineWidth(1.0);
+				
+				glDisable(GL_BLEND);					
+				glDepthMask(1);
+			}
+		}
+		
 	}
 
 	if(dt>OB_WIRE) {

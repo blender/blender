@@ -5484,7 +5484,6 @@ void editing_panels()
 		} else {
 			if(FACESEL_PAINT_TEST) {
 				editing_panel_mesh_texface();
-				editing_panel_mesh_uvautocalculation(); /* draw hidden edge option from this needs to be elsewhere */
 			}
 			if(G.f & (G_VERTEXPAINT | G_TEXTUREPAINT | G_WEIGHTPAINT) ) {
 				editing_panel_mesh_paint();

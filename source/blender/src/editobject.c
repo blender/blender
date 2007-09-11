@@ -3361,101 +3361,59 @@ void copy_attr(short event)
 	BIF_undo_push("Copy Attributes");
 }
 
-void copy_attr_tface(short event)
-{
-	/* Face Select Mode */
-	Object *ob= OBACT;
-	Mesh *me= get_mesh(ob);
-	MTFace *tface;
-	MFace *mface;
-	MCol *activemcol;
-	MTFace *activetf= get_active_tface(NULL, &activemcol);
-	int a;
-	
-	if(activetf==NULL) return;
-	
-	tface= me->mtface;
-	mface= me->mface;
-	for(a=0; a<me->totface; a++, tface++, mface++) {
-		if(mface->flag & ME_FACE_SEL) {
-			switch(event) {
-			case 1:
-				tface->tpage = activetf->tpage;
-				tface->tile= activetf->tile;
-				tface->mode |= TF_TEX;
-				break;
-			case 2:
-				memcpy(tface->uv, activetf->uv, sizeof(tface->uv)); break;
-			case 3:
-				if(activemcol)
-					memcpy(&me->mcol[a*4], activemcol, sizeof(MCol)*4); break;
-			case 4:
-				tface->mode = activetf->mode; break;
-			case 5:
-				tface->transp= activetf->transp; break;
-			}
-		}
-	}
-	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-	allqueue(REDRAWVIEW3D, 0);
-	allqueue(REDRAWBUTSEDIT, 0);
-	BIF_undo_push("Copy texture face");
-}
-
 void copy_attr_menu()
 {
 	Object *ob;
 	short event;
+	char str[512];
 	
 	if(!(ob=OBACT)) return;
 	
-	if ((G.obedit)) return; /* no editmode copy yet */
-	
-	if(FACESEL_PAINT_TEST) {
-		event= pupmenu("Copy Active Texface%t|Image%x1|UV Coords%x2|Color%x3|Mode%x4|Transp%x5");
-		copy_attr_tface(event);
-	
-	} else { /* Object Mode */
-		
-		/* If you change this menu, don't forget to update the menu in header_view3d.c
-		 * view3d_edit_object_copyattrmenu() and in toolbox.c
-		 */
-		
-		char str[512];
-		
-		strcpy(str, "Copy Attributes %t|Location%x1|Rotation%x2|Size%x3|Drawtype%x4|Time Offset%x5|Dupli%x6|%l|Mass%x7|Damping%x8|Properties%x9|Logic Bricks%x10|Protected Transform%x29|%l");
-		
-		strcat (str, "|Object Constraints%x22");
-		strcat (str, "|NLA Strips%x26");
-		
-		if ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL) {
-			strcat(str, "|Texture Space%x17");
-		}	
-		
-		if(ob->type == OB_FONT) strcat(str, "|Font Settings%x18|Bevel Settings%x19");
-		if(ob->type == OB_CURVE) strcat(str, "|Bevel Settings%x19|UV Orco%x28");
-		
-		if((ob->type == OB_FONT) || (ob->type == OB_CURVE)) {
-				strcat(str, "|Curve Resolution%x25");
-		}
-
-		if(ob->type==OB_MESH){
-			strcat(str, "|Subsurf Settings%x21|AutoSmooth%x27");
-		}
-
-		if( give_parteff(ob) ) strcat(str, "|Particle Settings%x20");
-
-		if(ob->soft) strcat(str, "|Soft Body Settings%x23");
-		
-		if(ob->type==OB_MESH || ob->type==OB_CURVE || ob->type==OB_LATTICE || ob->type==OB_SURF){
-			strcat(str, "|Modifiers ...%x24");
-		}
-
-		event= pupmenu(str);
-		if(event<= 0) return;
-		
-		copy_attr(event);
+	if (G.obedit && ob->type == OB_MESH) {
+		mesh_copy_menu();
+		return;
+	} else {
+		return;
 	}
+	
+	/* Object Mode */
+	
+	/* If you change this menu, don't forget to update the menu in header_view3d.c
+	 * view3d_edit_object_copyattrmenu() and in toolbox.c
+	 */
+	
+	strcpy(str, "Copy Attributes %t|Location%x1|Rotation%x2|Size%x3|Drawtype%x4|Time Offset%x5|Dupli%x6|%l|Mass%x7|Damping%x8|Properties%x9|Logic Bricks%x10|Protected Transform%x29|%l");
+	
+	strcat (str, "|Object Constraints%x22");
+	strcat (str, "|NLA Strips%x26");
+	
+	if ELEM5(ob->type, OB_MESH, OB_CURVE, OB_SURF, OB_FONT, OB_MBALL) {
+		strcat(str, "|Texture Space%x17");
+	}	
+	
+	if(ob->type == OB_FONT) strcat(str, "|Font Settings%x18|Bevel Settings%x19");
+	if(ob->type == OB_CURVE) strcat(str, "|Bevel Settings%x19|UV Orco%x28");
+	
+	if((ob->type == OB_FONT) || (ob->type == OB_CURVE)) {
+			strcat(str, "|Curve Resolution%x25");
+	}
+
+	if(ob->type==OB_MESH){
+		strcat(str, "|Subsurf Settings%x21|AutoSmooth%x27");
+	}
+
+	if( give_parteff(ob) ) strcat(str, "|Particle Settings%x20");
+
+	if(ob->soft) strcat(str, "|Soft Body Settings%x23");
+	
+	if(ob->type==OB_MESH || ob->type==OB_CURVE || ob->type==OB_LATTICE || ob->type==OB_SURF){
+		strcat(str, "|Modifiers ...%x24");
+	}
+
+	event= pupmenu(str);
+	if(event<= 0) return;
+	
+	copy_attr(event);
 }
 
 

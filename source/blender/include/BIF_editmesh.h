@@ -219,6 +219,7 @@ extern void edge_flip(void);
 extern void fill_mesh(void);
 extern void bevel_menu();
 extern void mesh_set_smooth_faces(short event);
+void mesh_copy_menu(void);
 void edge_rotate_selected(int dir);
 int EdgeSlide(short immediate, float imperc);
 int EdgeLoopDelete(void);
