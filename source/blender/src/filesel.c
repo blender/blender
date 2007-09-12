@@ -1358,8 +1358,10 @@ static void activate_fileselect_(int type, char *title, char *file, short *menup
 	/* sfile->act is used for databrowse: double names of library objects */
 	sfile->act= -1;
 
-	if(BLI_convertstringcode(name, G.sce, G.scene->r.cfra)) sfile->flag |= FILE_STRINGCODE;
-	else sfile->flag &= ~FILE_STRINGCODE;
+	if(!strstr(G.main->name, ".B.blend") && BLI_convertstringcode(name, G.sce, G.scene->r.cfra))
+		sfile->flag |= FILE_STRINGCODE;
+	else
+		sfile->flag &= ~FILE_STRINGCODE;
 
 	if (U.uiflag & USER_HIDE_DOT)
 		sfile->flag |= FILE_HIDE_DOT;
@@ -1441,8 +1443,11 @@ void activate_imageselect(int type, char *title, char *file, void (*func)(char *
 	simasel= curarea->spacedata.first;
 	simasel->returnfunc= func;
 
-	if(BLI_convertstringcode(name, G.sce, G.scene->r.cfra)) simasel->mode |= IMS_STRINGCODE;
-	else simasel->mode &= ~IMS_STRINGCODE;
+	
+	if(!strstr(G.main->name, ".B.blend") && BLI_convertstringcode(name, G.sce, G.scene->r.cfra))
+		simasel->mode |= IMS_STRINGCODE;
+	else
+		simasel->mode &= ~IMS_STRINGCODE;
 	
 	BLI_split_dirfile(name, dir, simasel->file);
 	BLI_cleanup_dir(G.sce, simasel->dir);
