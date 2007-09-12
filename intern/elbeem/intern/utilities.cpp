@@ -56,7 +56,7 @@ int  isSimworldOk(void) {
 char gElbeemErrorString[256] = {'-','\0' };
 
 // access elbeem simulator error string
-void setElbeemErrorString(char* set) {
+void setElbeemErrorString(const char* set) {
 	strncpy(gElbeemErrorString, set, 256);
 }
 char* getElbeemErrorString(void) { return gElbeemErrorString; }
@@ -77,7 +77,7 @@ int globalFirstEnvCheck = 0;
 void resetGlobalColorSetting() { globalColorSetting = DEF_globalColorSetting; }
 
 // global string for formatting vector output, TODO test!?
-char *globVecFormatStr = "V[%f,%f,%f]";
+const char *globVecFormatStr = "V[%f,%f,%f]";
 
 
 // global mp on/off switch

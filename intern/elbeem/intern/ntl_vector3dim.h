@@ -202,7 +202,7 @@ private:
 
 
 //! global string for formatting vector output in utilities.cpp
-extern char *globVecFormatStr;
+extern const char *globVecFormatStr;
 
 /*************************************************************************
   Outputs the object in human readable form using the format

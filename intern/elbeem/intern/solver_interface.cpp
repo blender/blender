@@ -187,7 +187,7 @@ void calculateMemreqEstimate( int resx,int resy,int resz,
 	// cpdata init check missing...
 
 	double memd = memCnt;
-	char *sizeStr = "";
+	const char *sizeStr = "";
 	const double sfac = 1024.0;
 	if(memd>sfac){ memd /= sfac; sizeStr="KB"; }
 	if(memd>sfac){ memd /= sfac; sizeStr="MB"; }
