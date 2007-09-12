@@ -883,7 +883,7 @@ void BIF_filelist_from_library(struct FileList* filelist)
 	}
 
 	BLI_linklist_free(names, free);
-	if (previews) BLI_linklist_free(previews, MEM_freeN);
+	if (previews) BLI_linklist_free(previews, (void(*)(void*)) MEM_freeN);
 
 	BIF_filelist_sort(filelist, FILE_SORTALPHA);
 

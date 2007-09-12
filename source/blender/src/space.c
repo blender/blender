@@ -1821,11 +1821,13 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case FKEY:
 				if(G.obedit) {
 					if(G.obedit->type==OB_MESH) {
-						if((G.qual==LR_SHIFTKEY))
+						if(G.qual == LR_CTRLKEY)
+							Face_Menu();
+						else if((G.qual==LR_SHIFTKEY))
 							fill_mesh();
 						else if(G.qual==LR_ALTKEY)
 							beauty_fill();
-						else if(G.qual==LR_CTRLKEY)
+						else if(G.qual & (LR_CTRLKEY|LR_SHIFTKEY))
 							edge_flip();
 						else if (G.qual==0)
 							addedgeface_mesh();
@@ -1975,8 +1977,10 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				break;
 			case IKEY:
-				if(G.obedit);
-				else if(G.qual==LR_CTRLKEY) {
+				if(G.obedit) {
+					if(G.qual==LR_CTRLKEY) 
+						selectswap_mesh();
+				} else if(G.qual==LR_CTRLKEY) {
 					if(ob && ob->type==OB_ARMATURE) 
 						if(ob->flag & OB_POSEMODE) 
 							pose_add_IK();
@@ -2067,9 +2071,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				break;
  			case MKEY:
-				if((G.obedit==0) && (FACESEL_PAINT_TEST) && (G.qual==0))
-					mirror_uv_tface();
-				else if(G.obedit){
+				if(G.obedit){
 					if(G.qual==LR_ALTKEY) {
 						if(G.obedit->type==OB_MESH) {
 							mergemenu();
@@ -2201,9 +2203,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				break;				
 			case RKEY:
-				if((G.obedit==0) && (FACESEL_PAINT_TEST) && (G.qual==0) && !(G.f & G_WEIGHTPAINT))
-					rotate_uv_tface();
-				else if((G.obedit==0) && G.qual==LR_ALTKEY) {
+				if((G.obedit==0) && G.qual==LR_ALTKEY) {
 					if(okee("Clear rotation")) {
 						clear_object('r');
 					}
@@ -2373,7 +2373,11 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				
 				break;
 			case VKEY:
-				if((G.qual==LR_SHIFTKEY)) {
+				if ((G.qual==LR_CTRLKEY)) {
+					if ((G.obedit) && G.obedit->type==OB_MESH) {
+						Vertex_Menu();
+					}
+				} else if((G.qual==LR_SHIFTKEY)) {
 					if ((G.obedit) && G.obedit->type==OB_MESH) {
 						align_view_to_selected(v3d);
 					}

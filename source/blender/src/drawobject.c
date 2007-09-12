@@ -2082,7 +2082,7 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, Derived
 				
 				
 			} else if(ese->type == EDITFACE) {
-				EditFace *efa = (EditEdge*)ese->data;
+				EditFace *efa = (EditFace*)ese->data;
 				
 				/*  repeate this pattern
 				   X000X000 

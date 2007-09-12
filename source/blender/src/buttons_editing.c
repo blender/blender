@@ -4364,9 +4364,9 @@ static void editing_panel_mesh_tools1(Object *ob, Mesh *me)
 	if(uiNewPanel(curarea, block, "Mesh Tools 1", "Editing", 960, 0, 318, 204)==0) return;
 
 	uiBlockBeginAlign(block);
-	uiDefBut(block, BUT,B_SELSWAP,	"Select Swap",	955, 200,  106, 19, 0, 0, 0, 0, 0, "Selects unselected faces, and deselects selected faces");
-	uiDefBut(block, BUT,B_HIDE,		"Hide",		1061, 200, 106, 19, 0, 0, 0, 0, 0, "Hides selected faces");
-	uiDefBut(block, BUT,B_REVEAL,	"Reveal",		1167, 200,  107, 19, 0, 0, 0, 0, 0, "Reveals selected faces");
+	uiDefBut(block, BUT,B_SELSWAP,	"Select Swap",	955, 200,  106, 19, 0, 0, 0, 0, 0, "Selects unselected faces, and deselects selected faces (Ctrl+I)");
+	uiDefBut(block, BUT,B_HIDE,		"Hide",		1061, 200, 106, 19, 0, 0, 0, 0, 0, "Hides selected faces (H)");
+	uiDefBut(block, BUT,B_REVEAL,	"Reveal",		1167, 200,  107, 19, 0, 0, 0, 0, 0, "Reveals selected faces (Alt H)");
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);

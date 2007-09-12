@@ -171,7 +171,9 @@ extern void selectrandom_mesh(void);
 extern void editmesh_select_by_material(int index);
 extern void editmesh_deselect_by_material(int index);
 
+extern void Vertex_Menu(void);
 extern void Edge_Menu(void);
+extern void Face_Menu(void);
 extern void select_mesh_group_menu(void);
 extern void editmesh_mark_seam(int clear);
 extern void loop_multiselect(int looptype);
@@ -219,6 +221,10 @@ extern void edge_flip(void);
 extern void fill_mesh(void);
 extern void bevel_menu();
 extern void mesh_set_smooth_faces(short event);
+extern void mesh_rotate_uvs(void);
+extern void mesh_mirror_uvs(void);
+extern void mesh_rotate_colors(void);
+extern void mesh_mirror_colors(void);
 void mesh_copy_menu(void);
 void edge_rotate_selected(int dir);
 int EdgeSlide(short immediate, float imperc);
@@ -247,5 +253,6 @@ UvMapVert *get_uv_map_vert_EM(UvVertMap *vmap, unsigned int v);
 void free_uv_vert_map_EM(UvVertMap *vmap);
 
 int EM_texFaceCheck(void); /* can we edit UV's for this mesh?*/
+int EM_vertColorCheck(void); /* can we edit colors for this mesh?*/
 
 #endif

@@ -3175,6 +3175,38 @@ void BME_Menu()	{
 	}
 }
 
+
+
+void Vertex_Menu() {
+	short ret;
+	ret= pupmenu("Vertex Specials%t|Merge%x4|Remove Doubles%x5|Smooth %x10|Blend From Shape%x16|Propagate To All Shapes%x17|Select Vertex Path%x18");
+
+	switch(ret)
+	{
+		case 4:
+			mergemenu();
+			break;
+		case 5:
+			notice("Removed %d Vertices", removedoublesflag(1, G.scene->toolsettings->doublimit));
+			BIF_undo_push("Remove Doubles");
+			break;
+		case 10:
+			vertexsmooth();
+			break;
+		case 16: 
+			shape_copy_select_from();
+			break;
+		case 17: 
+			shape_propagate();
+			break;
+		case 18:
+			pathselect();
+			BIF_undo_push("Select Vertex Path");
+			break;
+	}
+}
+
+
 void Edge_Menu() {
 	short ret;
 
@@ -3224,6 +3256,45 @@ void Edge_Menu() {
 		BIF_undo_push("Clear Sharp");
 		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		break;
+	}
+}
+
+void Face_Menu() {
+	short ret;
+	ret= pupmenu(
+		"Face Specials%t|Flip Normals %x1|Bevel %x2|Shade Smooth %x3|Shade Flat %x4|%l|"
+		"UV Rotate (Shift - CCW)%x10|UV Mirror (Shift - Switch Axis)%x11|"
+		"Color Rotate (Shift - CCW)%x12|Color Mirror (Shift - Switch Axis)%x13");
+
+	switch(ret)
+	{
+		case 1:
+			flip_editnormals();
+			BIF_undo_push("Flip Normals");
+			break;
+		case 2:
+			bevel_menu();
+			break;
+		case 3:
+			mesh_set_smooth_faces(1);
+			break;
+		case 4:
+			mesh_set_smooth_faces(0);
+			break;
+			
+		/* uv texface options */
+		case 10:
+			mesh_rotate_uvs();
+			break;
+		case 11:
+			mesh_mirror_uvs();
+			break;
+		case 12:
+			mesh_rotate_colors();
+			break;
+		case 13:
+			mesh_mirror_colors();
+			break;
 	}
 }
 

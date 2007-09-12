@@ -1189,8 +1189,10 @@ static void activate_fileselect_(int type, char *title, char *file, short *menup
 	/* sfile->act is used for databrowse: double names of library objects */
 	sfile->act= -1;
 
-	if(BLI_convertstringcode(name, G.sce, G.scene->r.cfra)) sfile->flag |= FILE_STRINGCODE;
-	else sfile->flag &= ~FILE_STRINGCODE;
+	if(G.relbase_valid && BLI_convertstringcode(name, G.sce, G.scene->r.cfra))
+		sfile->flag |= FILE_STRINGCODE;
+	else
+		sfile->flag &= ~FILE_STRINGCODE;
 
 	if (U.uiflag & USER_HIDE_DOT)
 		sfile->flag |= FILE_HIDE_DOT;

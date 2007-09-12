@@ -219,7 +219,7 @@ ParamHandle *construct_param_handle(EditMesh *em, short implicit, short fill, sh
 		float *uv[4];
 		int nverts;
 
-		tf= (TFace *)CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+		tf= (MTFace *)CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 		
 		if (efa->h)
 			continue;

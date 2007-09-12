@@ -2177,3 +2177,17 @@ int EM_texFaceCheck(void)
 		return 1;
 	return 0;
 }
+
+/* can we edit colors for this mesh?*/
+int EM_vertColorCheck(void)
+{
+	/* some of these checks could be a touch overkill */
+	if (	(G.obedit) &&
+			(G.obedit->type == OB_MESH) &&
+			(G.editMesh) &&
+			(G.editMesh->faces.first) &&
+			(CustomData_has_layer(&G.editMesh->fdata, CD_MCOL)))
+		return 1;
+	return 0;
+}
+

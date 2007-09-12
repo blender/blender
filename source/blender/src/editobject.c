@@ -2350,8 +2350,7 @@ void special_editmenu(void)
 		}
 	}
 	else if(G.obedit->type==OB_MESH) {
-
-		nr= pupmenu("Specials%t|Subdivide%x1|Subdivide Multi%x2|Subdivide Multi Fractal%x3|Subdivide Smooth%x12|Merge%x4|Remove Doubles%x5|Hide%x6|Reveal%x7|Select Swap%x8|Flip Normals %x9|Smooth %x10|Bevel %x11|Set Smooth %x14|Set Solid %x15|Blend From Shape%x16|Propagate To All Shapes%x17|Select Vertex Path%x18");
+		nr= pupmenu("Subdivide Mesh%t|Subdivide%x1|Subdivide Multi%x2|Subdivide Multi Fractal%x3|Subdivide Smooth%x4");
 		
 		switch(nr) {
 		case 1:
@@ -2376,7 +2375,7 @@ void special_editmenu(void)
 			BIF_undo_push("Subdivide Fractal");
 			break;
 			
-		case 12:	/* smooth */
+		case 4:	/* smooth */
 			/* if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return; */
 			fac= 1.0f;
 			if(fbutton(&fac, 0.0f, 5.0f, 10, 10, "Smooth:")==0) return;
@@ -2386,49 +2385,6 @@ void special_editmenu(void)
 			esubdivideflag(1, fac, G.scene->toolsettings->editbutflag | B_SMOOTH, 1, 0);
 			BIF_undo_push("Subdivide Smooth");
 			break;		
-			
-		case 4:
-			mergemenu();
-			break;
-		case 5:
-			notice("Removed %d Vertices", removedoublesflag(1, G.scene->toolsettings->doublimit));
-			BIF_undo_push("Remove Doubles");
-			break;
-		case 6:
-			hide_mesh(0);
-			break;
-		case 7:
-			reveal_mesh();
-			break;
-		case 8:
-			selectswap_mesh();
-			break;
-		case 9:
-			flip_editnormals();
-			BIF_undo_push("Flip Normals");
-			break;
-		case 10:
-			vertexsmooth();
-			break;
-		case 11:
-			bevel_menu();
-			break;
-		case 14:
-			mesh_set_smooth_faces(1);
-			break;
-		case 15: 
-			mesh_set_smooth_faces(0);
-			break;
-		case 16: 
-			shape_copy_select_from();
-			break;
-		case 17: 
-			shape_propagate();
-			break;
-		case 18:
-			pathselect();
-			BIF_undo_push("Select Vertex Path");
-			break;
 		}
 		
 		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
@@ -3369,10 +3325,9 @@ void copy_attr_menu()
 	
 	if(!(ob=OBACT)) return;
 	
-	if (G.obedit && ob->type == OB_MESH) {
-		mesh_copy_menu();
-		return;
-	} else {
+	if (G.obedit) {
+		if (ob->type == OB_MESH)
+			mesh_copy_menu();
 		return;
 	}
 	
