@@ -58,6 +58,7 @@
 #include "BIF_editsima.h"
 #include "BIF_space.h"
 #include "BIF_screen.h"
+#include "BIF_editmesh.h"
 
 #include "blendef.h"
 #include "mydevice.h"
