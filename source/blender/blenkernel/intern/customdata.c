@@ -563,6 +563,25 @@ void CustomData_set_layer_render(CustomData *data, int type, int n)
 			data->layers[i].active_rnd = n;
 }
 
+/* for using with an index from CustomData_get_active_layer_index and CustomData_get_render_layer_index */
+void CustomData_set_layer_active_index(CustomData *data, int type, int n)
+{
+	int i;
+
+	for(i=0; i < data->totlayer; ++i)
+		if(data->layers[i].type == type)
+			data->layers[i].active = n-i;
+}
+
+void CustomData_set_layer_render_index(CustomData *data, int type, int n)
+{
+	int i;
+
+	for(i=0; i < data->totlayer; ++i)
+		if(data->layers[i].type == type)
+			data->layers[i].active_rnd = n-i;
+}
+
 
 void CustomData_set_layer_flag(struct CustomData *data, int type, int flag)
 {

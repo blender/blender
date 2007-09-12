@@ -1345,6 +1345,28 @@ void select_mesh_group_menu()
 	}
 }
 
+
+static short customdata_layers_menu(CustomData *data, int type) {
+	int i, ret;
+	char *str;
+	char *str_pt;
+	CustomDataLayer *layer;
+	
+	
+	str = str_pt = MEM_callocN(40 * G.editMesh->fdata.totlayer, "layer menu");
+	
+	/* see if there is a duplicate */
+	for(i=0; i<data->totlayer; i++) {
+		layer = &data->layers[i];
+		if(layer->type == type) {
+			str_pt += sprintf(str_pt, "%s%%x%d|", layer->name, i);
+		}
+	}
+	ret = pupmenu(str);
+	MEM_freeN(str);
+	return ret;
+}
+
 /* ctrl+c in mesh editmode */
 void mesh_copy_menu(void)
 {
@@ -1359,8 +1381,8 @@ void mesh_copy_menu(void)
 	if (!ese) return;
 	
 	if(ese->type == EDITVERT) {
-		EditVert *ev, *ev_act = (EditVert*)ese->data;
-		/*ret= pupmenu("");*/
+		/*EditVert *ev, *ev_act = (EditVert*)ese->data;
+		ret= pupmenu("");*/
 	} else if(ese->type == EDITEDGE) {
 		EditEdge *eed, *eed_act = (EditEdge*)ese->data;
 		float vec[3], vec_mid[3], eed_len, eed_len_act;
@@ -1410,10 +1432,14 @@ void mesh_copy_menu(void)
 						VecMulf(vec, eed_len_act/eed_len);
 						VecAddf(eed->v2->co, vec, vec_mid);
 					}
-					
 					change = 1;
 				}
 			}
+			
+			if (change)
+				recalc_editnormals();
+			
+			
 			break;
 		}
 		
@@ -1422,7 +1448,16 @@ void mesh_copy_menu(void)
 		MTFace *tf, *tf_act;
 		MCol *mcol, *mcol_act;
 		
-		ret= pupmenu("Copy Active Face to Selected%t|Material%x1|Image%x2|UV Coords%x3|Mode%x4|Transp%x5|Vertex Colors%x6");
+		ret= pupmenu(
+			"Copy Face Selected%t|"
+			"Active Material%x1|Active Image%x2|Active UV Coords%x3|"
+			"Active Mode%x4|Active Transp%x5|Active Vertex Colors%x6|%l|"
+			
+			"TexFace UVs from layer%x7|"
+			"TexFace Images from layer%x8|"
+			"TexFace All from layer%x9|"
+			"Vertex Colors from layer%x10");
+		
 		if (ret<1) return;
 		
 		tf_act =	CustomData_em_get(&em->fdata, efa_act->data, CD_MTFACE);
@@ -1472,7 +1507,10 @@ void mesh_copy_menu(void)
 			}
 			break;
 		case 4: /* mode's */
-			if (!tf_act) error("mesh has no uv/image layers");
+			if (!tf_act) {
+				error("mesh has no uv/image layers");
+				return;
+			}
 			for(efa=em->faces.first; efa; efa=efa->next) {
 				if (efa->f & SELECT && efa != efa_act) {
 					tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
@@ -1501,19 +1539,22 @@ void mesh_copy_menu(void)
 				return;
 			} else {
 				/* guess teh 4th color if needs be */
-				char r,g,b;
 				float val =- 1;
 				
 				if (!efa_act->v4) {
-					/* guess the othe vale, we may need to use it */
+					/* guess the othe vale, we may need to use it
+					 * 
+					 * Modifying the 4th value of the mcol is ok here since its not seen
+					 * on a triangle
+					 * */
 					val = ((float)(mcol_act->r +  (mcol_act+1)->r + (mcol_act+2)->r)) / 3; CLAMP(val, 0, 255);
-					r = (char)val;
+					(mcol_act+3)->r = (char)val;
 					
 					val = ((float)(mcol_act->g +  (mcol_act+1)->g + (mcol_act+2)->g)) / 3; CLAMP(val, 0, 255);
-					g = (char)val;
+					(mcol_act+3)->g = (char)val;
 					
 					val = ((float)(mcol_act->b +  (mcol_act+1)->b + (mcol_act+2)->b)) / 3; CLAMP(val, 0, 255);
-					b = (char)val;
+					(mcol_act+3)->b = (char)val;
 				} 
 				
 				
@@ -1521,22 +1562,134 @@ void mesh_copy_menu(void)
 					if (efa->f & SELECT && efa != efa_act) {
 						/* TODO - make copy from tri to quad guess the 4th vert */
 						mcol = CustomData_em_get(&em->fdata, efa->data, CD_MCOL);
-						memcpy(mcol, mcol_act, sizeof(MCol)*4);
-						
-						if (!efa_act->v4 && efa->v4) {
-							/* guess the 4th color */
-							(mcol+3)->r = r;
-							(mcol+3)->g = g;
-							(mcol+3)->b = b;
-						}
-						
+						memcpy(mcol, mcol_act, sizeof(MCol)*4);	
 						change = 1;
 					}
 				}
 			}
 			
 			break;
+		
+		
+		/* copy from layer */
+		case 7:
+		case 8:
+		case 9:
+			if (!tf_act) {
+				error("mesh has no uv/image layers");
+				return;
+			} else if (CustomData_number_of_layers(&em->fdata, CD_MTFACE)<2) {
+				error("mesh does not have multiple uv/image layers");
+				return;
+			} else {
+				int layer_orig_idx, layer_idx;
+				
+				layer_idx = (int)customdata_layers_menu(&em->fdata, CD_MTFACE);
+				if (layer_idx<0) return;
+				
+				/* warning, have not updated mesh pointers however this is not needed since we swicth back */
+				layer_orig_idx = CustomData_get_active_layer_index(&em->fdata, CD_MTFACE);
+				if (layer_idx==layer_orig_idx)
+					return;
+				
+				/* get the tfaces */
+				CustomData_set_layer_active_index(&em->fdata, CD_MTFACE, (int)layer_idx);
+				/* store the tfaces in our temp */
+				for(efa=em->faces.first; efa; efa=efa->next) {
+					if (efa->f & SELECT) {
+						efa->tmp.p = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+					}	
+				}
+				CustomData_set_layer_active_index(&em->fdata, CD_MTFACE, layer_orig_idx);
+			}
+			break;
+			
+		case 10: /* select vcol layers - make sure this stays in sync with above code */
+			if (!mcol_act) {
+				error("mesh has no color layers");
+				return;
+			} else if (CustomData_number_of_layers(&em->fdata, CD_MCOL)<2) {
+				error("mesh does not have multiple color layers");
+				return;
+			} else {
+				int layer_orig_idx, layer_idx;
+				
+				layer_idx = (int)customdata_layers_menu(&em->fdata, CD_MCOL);
+				if (layer_idx<0) return;
+				
+				/* warning, have not updated mesh pointers however this is not needed since we swicth back */
+				layer_orig_idx = CustomData_get_active_layer_index(&em->fdata, CD_MCOL);
+				if (layer_idx==layer_orig_idx)
+					return;
+				
+				/* get the tfaces */
+				CustomData_set_layer_active_index(&em->fdata, CD_MCOL, (int)layer_idx);
+				/* store the tfaces in our temp */
+				for(efa=em->faces.first; efa; efa=efa->next) {
+					if (efa->f & SELECT) {
+						efa->tmp.p = CustomData_em_get(&em->fdata, efa->data, CD_MCOL);
+					}	
+				}
+				CustomData_set_layer_active_index(&em->fdata, CD_MCOL, layer_orig_idx);
+				
+			}
+			break;
 		}
+		
+		/* layer copy only - sanity checks done above */
+		switch (ret) {
+		case 7: /* copy UV's only */
+			for(efa=em->faces.first; efa; efa=efa->next) {
+				if (efa->f & SELECT) {
+					tf_act = (MTFace *)efa->tmp.p; /* not active but easier to use this way */
+					tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+					memcpy(tf->uv, tf_act->uv, sizeof(tf->uv));
+					change = 1;
+				}
+			}
+			break;
+		case 8: /* copy image settings only */
+			for(efa=em->faces.first; efa; efa=efa->next) {
+				if (efa->f & SELECT) {
+					tf_act = (MTFace *)efa->tmp.p; /* not active but easier to use this way */
+					tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+					if (tf_act->tpage) {
+						tf->tpage = tf_act->tpage;
+						tf->mode |= TF_TEX;
+					} else {
+						tf->tpage = NULL;
+						tf->mode &= ~TF_TEX;
+					}
+					tf->tile= tf_act->tile;
+					change = 1;
+				}
+			}
+			break;
+		case 9: /* copy all tface info */
+			for(efa=em->faces.first; efa; efa=efa->next) {
+				if (efa->f & SELECT) {
+					tf_act = (MTFace *)efa->tmp.p; /* not active but easier to use this way */
+					tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+					memcpy(tf->uv, ((MTFace *)efa->tmp.p)->uv, sizeof(tf->uv));
+					tf->tpage = tf_act->tpage;
+					tf->mode = tf_act->mode;
+					tf->transp = tf_act->transp;
+					change = 1;
+				}
+			}
+			break;
+		case 10:
+			for(efa=em->faces.first; efa; efa=efa->next) {
+				if (efa->f & SELECT) {
+					mcol_act = (MCol *)efa->tmp.p; 
+					mcol = CustomData_em_get(&em->fdata, efa->data, CD_MCOL);
+					memcpy(mcol, mcol_act, sizeof(MCol)*4);	
+					change = 1;
+				}
+			}
+			break;
+		}
+		
 	}
 	
 	if (change) {

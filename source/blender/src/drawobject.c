@@ -2126,34 +2126,32 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, Derived
 				}
 				glDisable(GL_POLYGON_STIPPLE);
 				
-				glLineWidth(1.0);
-				glBegin(GL_LINES);
 				
-				glColor4ub(0,	255,0,	128);
-				glVertex3fv(efa->v1->co);
-				glVertex3fv(efa->v2->co);
-				
-				
-				glColor4ub(0,	0,	255,128);
-				glVertex3fv(efa->v2->co);
-				glVertex3fv(efa->v3->co);
-				
-				
-				glColor4ub(255,	255,0,	128);
-				if (efa->v4) {
+				if (G.vd->drawtype==OB_TEXTURE) {
+					glBegin(GL_LINES);
+					glColor4ub(0,	255,0,	128);
+					glVertex3fv(efa->v1->co);
+					glVertex3fv(efa->v2->co);
+					
+					glColor4ub(0,	0,	255,128);
+					glVertex3fv(efa->v2->co);
 					glVertex3fv(efa->v3->co);
-					glVertex3fv(efa->v4->co);
 					
 					
-					glColor4ub(255,	0,	0,	128);
-					glVertex3fv(efa->v4->co);
-					glVertex3fv(efa->v1->co);
-				} else {
-					glVertex3fv(efa->v3->co);
-					glVertex3fv(efa->v1->co);
+					glColor4ub(255,	255,0,	128);
+					if (efa->v4) {
+						glVertex3fv(efa->v3->co);
+						glVertex3fv(efa->v4->co);
+						
+						glColor4ub(255,	0,	0,	128);
+						glVertex3fv(efa->v4->co);
+						glVertex3fv(efa->v1->co);
+					} else {
+						glVertex3fv(efa->v3->co);
+						glVertex3fv(efa->v1->co);
+					}
+					glEnd();
 				}
-				glEnd();
-				glLineWidth(1.0);
 				
 				glDisable(GL_BLEND);					
 				glDepthMask(1);
