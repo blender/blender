@@ -1684,8 +1684,14 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 		shadfac[3]= 1.0f;
 	
 	if (lar->ray_totsamp < 2) do_soft = 0;
-	if (do_soft) max_samples = lar->ray_totsamp;
-	else max_samples = (R.osa > 4)?R.osa:5;
+		
+	if (shi->vlr->flag & R_FULL_OSA) {
+		if (do_soft) max_samples  = max_samples/R.osa + 1;
+		else max_samples = 1;
+	} else {
+		if (do_soft) max_samples = lar->ray_totsamp;
+		else max_samples = (R.osa > 4)?R.osa:5;
+	}
 	
 	/* sampling init */
 	if (lar->ray_samp_method==LA_SAMP_HALTON) {
