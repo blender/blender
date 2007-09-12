@@ -48,7 +48,7 @@
 // file, line, predicate form the message to ask, *do_assert should be set
 // to 0 to ignore.
 // returns 1 to break, false to ignore
-MT_CDECL int MT_QueryAssert(char *file, int line, char *predicate, int *do_assert);
+MT_CDECL int MT_QueryAssert(const char *file, int line, const char *predicate, int *do_assert);
 
 
 #ifdef	NDEBUG

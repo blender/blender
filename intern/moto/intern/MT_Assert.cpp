@@ -45,7 +45,7 @@
 
 // Query the user if they want to break/abort the program, ignore the assert, or ignore all future
 // occurance of the assert.
-int MT_QueryAssert(char *file, int line, char *predicate, int *do_assert)
+int MT_QueryAssert(const char *file, int line, const char *predicate, int *do_assert)
 {
 #ifdef _WIN32
 	if (*do_assert)
