@@ -51,6 +51,7 @@
 
 class MT_Vector3 : public MT_Tuple3 {
 public:
+    virtual ~MT_Vector3() {}
     MT_Vector3() {}
     MT_Vector3(const float *v) : MT_Tuple3(v) {}
     MT_Vector3(const double *v) : MT_Tuple3(v) {}

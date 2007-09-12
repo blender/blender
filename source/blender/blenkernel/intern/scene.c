@@ -197,6 +197,7 @@ Scene *add_scene(char *name)
 	sce->r.images= 100;
 	sce->r.framelen= 1.0;
 	sce->r.frs_sec= 25;
+	sce->r.ocres = 128;
 	
 	sce->r.bake_mode= 1;	/* prevent to include render stuff here */
 	sce->r.bake_filter= 2;
@@ -229,6 +230,7 @@ Scene *add_scene(char *name)
 	sce->toolsettings->uvcalc_mapalign = 1;
 	sce->toolsettings->unwrapper = 1;
 	sce->toolsettings->select_thresh= 0.01f;
+	sce->toolsettings->jointrilimit = 0.8f;
 	
 	sce->jumpframe = 10;
 	sce->audio.mixrate = 44100;
