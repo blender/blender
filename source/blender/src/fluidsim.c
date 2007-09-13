@@ -226,8 +226,8 @@ static Mesh *fluidsimCopyMesh(Mesh *me)
 	Mesh *dup = MEM_dupallocN(me);
 
 	CustomData_copy(&me->vdata, &dup->vdata, CD_MASK_MESH, CD_DUPLICATE, me->totvert);
-	CustomData_copy(&me->vdata, &dup->vdata, CD_MASK_MESH, CD_DUPLICATE, me->totvert);
-	CustomData_copy(&me->vdata, &dup->vdata, CD_MASK_MESH, CD_DUPLICATE, me->totvert);
+	CustomData_copy(&me->edata, &dup->edata, CD_MASK_MESH, CD_DUPLICATE, me->totedge);
+	CustomData_copy(&me->fdata, &dup->fdata, CD_MASK_MESH, CD_DUPLICATE, me->totface);
 
 	return dup;
 }
