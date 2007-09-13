@@ -1869,6 +1869,7 @@ static void node_draw_preview(bNodePreview *preview, rctf *prv)
 	glEnable(GL_BLEND);
 	glBlendFunc( GL_ONE, GL_ONE_MINUS_SRC_ALPHA );	/* premul graphics */
 	
+	glColor4f(1.0, 1.0, 1.0, 1.0);
 	glaDrawPixelsTex(prv->xmin, prv->ymin, preview->xsize, preview->ysize, GL_FLOAT, preview->rect);
 	
 	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );

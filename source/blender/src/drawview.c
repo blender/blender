@@ -436,10 +436,13 @@ static void draw_bgpic(void)
 	glPushMatrix();
 	
 	glaDefine2DArea(&curarea->winrct);
+
 	glEnable(GL_BLEND);
-	glPixelTransferf(GL_ALPHA_SCALE, (1.0f-bgpic->blend));
+
 	glPixelZoom(zoomx, zoomy);
-	glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+	glColor4f(1.0, 1.0, 1.0, 1.0-bgpic->blend);
+	glaDrawPixelsTex(x1, y1, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, ibuf->rect);
+	
 	glPixelZoom(1.0, 1.0);
 	glPixelTransferf(GL_ALPHA_SCALE, 1.0f);
 
