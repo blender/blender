@@ -74,6 +74,7 @@
 #include "DNA_meta_types.h"
 #include "DNA_nla_types.h"
 #include "DNA_object_types.h"
+#include "DNA_object_fluidsim.h"
 #include "DNA_object_force.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
@@ -4735,6 +4736,11 @@ void adduplicate(int mode, int dupflag)
 						ID_NEW_US2( obn->data )
 						else {
 							obn->data= copy_mesh(obn->data);
+							
+							if(obn->fluidsimSettings) {
+							obn->fluidsimSettings->orgMesh = (Mesh *)obn->data;
+							}
+							
 							didit= 1;
 						}
 						id->us--;
