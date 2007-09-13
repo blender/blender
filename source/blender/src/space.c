@@ -2041,8 +2041,21 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			case LKEY:
 				if(G.obedit) {
-					if(G.obedit->type==OB_MESH)
-						selectconnected_mesh(G.qual);
+					if(G.obedit->type==OB_MESH) {
+						if (G.qual & LR_CTRLKEY) {
+							if ((G.scene->selectmode & SCE_SELECT_FACE) == 0) {
+								selectconnected_mesh_all(); /* normal select linked */
+							} else {
+								selectconnected_delimit_mesh_all(); /* select linked with edge crease delimiting */
+							}
+						} else {
+							if ((G.scene->selectmode & SCE_SELECT_FACE) == 0) {
+								selectconnected_mesh();
+							} else {
+								selectconnected_delimit_mesh();
+							}
+						}
+					}
 					if(G.obedit->type==OB_ARMATURE)
 						selectconnected_armature();
 					else if ELEM(G.obedit->type, OB_CURVE, OB_SURF)

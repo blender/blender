@@ -2086,7 +2086,7 @@ void mouse_mesh(void)
 }
 
 
-static void selectconnectedAll(void)
+void selectconnected_mesh_all(void)
 {
 	EditMesh *em = G.editMesh;
 	EditVert *v1,*v2;
@@ -2135,7 +2135,7 @@ static void selectconnectedAll(void)
 	BIF_undo_push("Select Connected (All)");
 }
 
-void selectconnected_mesh(int qual)
+void selectconnected_mesh(void)
 {
 	EditMesh *em = G.editMesh;
 	EditVert *eve, *v1, *v2;
@@ -2144,12 +2144,6 @@ void selectconnected_mesh(int qual)
 	short done=1, sel, toggle=0;
 
 	if(em->edges.first==0) return;
-
-	if(qual & LR_CTRLKEY) {
-		selectconnectedAll();
-		return;
-	}
-
 	
 	if( unified_findnearest(&eve, &eed, &efa)==0 ) {
 		error("Nothing indicated ");
@@ -2157,7 +2151,7 @@ void selectconnected_mesh(int qual)
 	}
 	
 	sel= 1;
-	if(qual & LR_SHIFTKEY) sel=0;
+	if(G.qual & LR_SHIFTKEY) sel=0;
 
 	/* clear test flags */
 	for(v1= em->verts.first; v1; v1= v1->next) v1->f1= 0;
@@ -2216,6 +2210,115 @@ void selectconnected_mesh(int qual)
 	
 }
 
+/* for use with selectconnected_delimit_mesh only! */
+#define is_edge_delimit_ok(eed) ((eed->tmp.l == 1) && (eed->seam==0))
+#define is_face_tag(efa) is_edge_delimit_ok(efa->e1) || is_edge_delimit_ok(efa->e2) || is_edge_delimit_ok(efa->e3) || (efa->v4 && is_edge_delimit_ok(efa->e4))
+
+#define face_tag(efa)\
+	if(efa->v4)	efa->tmp.l=		efa->e1->tmp.l= efa->e2->tmp.l= efa->e3->tmp.l= efa->e4->tmp.l= 1;\
+	else		efa->tmp.l=		efa->e1->tmp.l= efa->e2->tmp.l= efa->e3->tmp.l= 1;
+
+/* all - 1) use all faces for extending the selection  2) only use the mouse face
+ * sel - 1) select  0) deselect 
+ * */
+static void selectconnected_delimit_mesh__internal(short all, short sel)
+{
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
+	short done=1, change=0;
+	int dist = 75;
+	EditEdge *eed;
+	if(em->faces.first==0) return;
+	
+	/* flag all edges as off*/
+	for(eed= em->edges.first; eed; eed= eed->next)
+		eed->tmp.l=0;
+	
+	if (all) {
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			if (efa->f & SELECT) {
+				face_tag(efa);
+			} else {
+				efa->tmp.l = 0;
+			}
+		}
+	} else {
+		EditFace *efa_mouse = findnearestface(&dist);
+		
+		if( !efa_mouse ) {
+			error("Nothing indicated ");
+			return;
+		}
+		
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			efa->tmp.l = 0;
+		}
+		efa_mouse->tmp.l = 1;
+		face_tag(efa_mouse);
+	}
+	
+	while(done==1) {
+		done= 0;
+		/* simple algo - select all faces that have a selected edge
+		 * this intern selects the edge, repeat until nothing is left to do */
+		for(efa= em->faces.first; efa; efa= efa->next) {
+			if ((efa->tmp.l == 0) && (!efa->h)) {
+				if (is_face_tag(efa)) {
+					face_tag(efa);
+					done= 1;
+				}
+			}
+		}
+	}
+	
+	for(efa= em->faces.first; efa; efa= efa->next) {
+		if (efa->tmp.l) {
+			if (sel) {
+				if (!(efa->f & SELECT)) {
+					EM_select_face(efa, 1);
+					change = 1;
+				}
+			} else {
+				if (efa->f & SELECT) {
+					EM_select_face(efa, 0);
+					change = 1;
+				}
+			}
+		}
+	}
+	
+	if (!change)
+		return;
+	
+	if (!sel) /* make sure de-selecting faces didnt de-select the verts/edges connected to selected faces, this is common with boundries */
+		for(efa= em->faces.first; efa; efa= efa->next)
+			if (efa->f & SELECT)
+				EM_select_face(efa, 1);
+	
+	countall();
+	
+	allqueue(REDRAWVIEW3D, 0);
+	if (EM_texFaceCheck())
+		allqueue(REDRAWIMAGE, 0);
+	
+	BIF_undo_push("Select Linked Delimeted");
+	
+}
+
+#undef is_edge_delimit_ok
+#undef is_face_tag
+#undef face_tag
+
+void selectconnected_delimit_mesh(void)
+{
+	selectconnected_delimit_mesh__internal(0, ((G.qual & LR_SHIFTKEY)==0));
+}
+void selectconnected_delimit_mesh_all(void)
+{
+	selectconnected_delimit_mesh__internal(1, 1);
+}	
+	
+	
 /* swap is 0 or 1, if 1 it hides not selected */
 void hide_mesh(int swap)
 {

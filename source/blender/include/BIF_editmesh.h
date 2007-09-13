@@ -143,7 +143,10 @@ extern void righthandfaces(int select);
 extern void mouse_mesh(void);
 
 extern void deselectall_mesh(void);
-extern void selectconnected_mesh(int qual);
+extern void selectconnected_mesh_all(void);
+extern void selectconnected_mesh(void);
+extern void selectconnected_delimit_mesh(void);
+extern void selectconnected_delimit_mesh_all(void);
 extern void selectswap_mesh(void);
 
 extern void hide_mesh(int swap);

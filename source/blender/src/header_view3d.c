@@ -957,7 +957,7 @@ void do_view3d_select_meshmenu(void *arg, int event)
 			selectswap_mesh();
 			break;
 		case 4: /* select linked vertices */
-			selectconnected_mesh(LR_CTRLKEY);
+			selectconnected_mesh_all();
 			break;
 		case 5: /* select random */
 			selectrandom_mesh();
@@ -5025,7 +5025,7 @@ void view3d_buttons(void)
  			uiBlockEndAlign(block);
  		}
  	} else {
- 		if (G.obedit==NULL && (G.f & (G_VERTEXPAINT|G_WEIGHTPAINT|G_TEXTUREPAINT))) {
+ 		if (G.obedit==NULL && (G.f & (G_VERTEXPAINT|G_WEIGHTPAINT|G_TEXTUREPAINT|G_SCULPTMODE))) {
  			uiDefIconButBitI(block, TOG, G_FACESELECT, B_REDR, ICON_FACESEL_HLT,xco,0,XIC,YIC, &G.f, 0, 0, 0, 0, "Painting Mask (FKey)");
  			xco+= XIC+10;
  		} else {
