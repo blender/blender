@@ -825,7 +825,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				/* Draw options */
 				uiDefButBitI(block, TOG, LOCLIKE_OFFSET, B_CONSTRAINT_TEST, "Offset", *xco, *yco-89, (width/2), 18, &data->flag, 0, 24, 0, 0, "Add original location onto copied location");
 				if (is_armature_target) {
-					uiDefButBitI(block, TOG, LOCLIKE_TIP, B_CONSTRAINT_TEST, "Target Bone Tip", *xco+(width/2), *yco-89, (width/2), 18, &data->flag, 0, 24, 0, 0, "Copy Location of Target Bone's Tip");
+					uiDefButBitI(block, TOG, LOCLIKE_TIP, B_CONSTRAINT_TEST, "Target Bone Tail", *xco+(width/2), *yco-89, (width/2), 18, &data->flag, 0, 24, 0, 0, "Copy Location of Target Bone's Tail");
 				}
 				
 				/* constraint space settings */
@@ -844,7 +844,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				/* Draw target parameters */
 				uiBlockBeginAlign(block);
 				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
-
+				
 				if (is_armature_target) {
 					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
@@ -900,7 +900,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				}
 				
 				uiBlockEndAlign(block);
-
+				
 				/* Draw XYZ toggles */
 				uiBlockBeginAlign(block);
 				but=uiDefButBitI(block, TOG, SIZELIKE_X, B_CONSTRAINT_TEST, "X", *xco+((width/2)-48), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy X component");
@@ -920,7 +920,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-
+				
 				/* Draw target parameters */
 				uiDefButBitS(block, TOG, CONSTRAINT_IK_ROT, B_CONSTRAINT_TEST, "Rot", *xco, *yco-24,60,19, &data->flag, 0, 0, 0, 0, "Chain follows rotation of target");
 				
@@ -940,7 +940,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				}
 	
 				uiBlockBeginAlign(block);
-				uiDefButBitS(block, TOG, CONSTRAINT_IK_TIP, B_CONSTRAINT_TEST, "Use Tip", *xco, *yco-64, 137, 19, &data->flag, 0, 0, 0, 0, "Include Bone's tip als last element in Chain");
+				uiDefButBitS(block, TOG, CONSTRAINT_IK_TIP, B_CONSTRAINT_TEST, "Use Tail", *xco, *yco-64, 137, 19, &data->flag, 0, 0, 0, 0, "Include Bone's tail as last element in Chain");
 				uiDefButI(block, NUM, B_CONSTRAINT_TEST, "ChainLen:", *xco, *yco-84,137,19, &data->rootbone, 0, 255, 0, 0, "If not zero, the amount of bones in this chain");
 				
 				uiBlockBeginAlign(block);

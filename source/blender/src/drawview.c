@@ -1958,7 +1958,7 @@ static void v3d_editarmature_buts(uiBlock *block, Object *ob, float lim)
 	uiDefButF(block, NUM, B_ARMATUREPANEL1, "Roll:",	10, 100, 140, 19, tfp->ob_eul, -lim, lim, 1000, 3, "");
 
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_ARMATUREPANEL1, "TipRadius:",	10, 150, 140, 19, &ebone->rad_tail, 0, lim, 10, 3, "");
+	uiDefButF(block, NUM, B_ARMATUREPANEL1, "TailRadius:",	10, 150, 140, 19, &ebone->rad_tail, 0, lim, 10, 3, "");
 	if (ebone->parent && ebone->flag & BONE_CONNECTED )
 		uiDefButF(block, NUM, B_ARMATUREPANEL1, "HeadRadius:",	10, 130, 140, 19, &ebone->parent->rad_tail, 0, lim, 10, 3, "");
 	else
