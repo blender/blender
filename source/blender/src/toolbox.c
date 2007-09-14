@@ -1061,9 +1061,9 @@ static TBitem tb_mesh_edit_face[]= {
 {	0, "SEPR",					0, NULL},
 {	0, "Convert to Triangles|Ctrl T", 	2, 		NULL},
 {	0, "Convert to Quads|Alt J", 		3, 		NULL},
-{	0, "Flip Triangle Edges|Ctrl F", 	4, 		NULL},
-{	0, "Set Smooth|W, Alt 3", 	6, 		NULL},
-{	0, "Set Solid|W, Alt 4", 	7, 		NULL},
+{	0, "Flip Triangle Edges|Ctrl Shift F", 	4, 		NULL},
+{	0, "Set Smooth|Ctrl F, 3", 	6, 		NULL},
+{	0, "Set Solid|Ctrl F, 4", 	7, 		NULL},
 {  -1, "", 			0, do_view3d_edit_mesh_facesmenu}};
 
 
@@ -1071,13 +1071,13 @@ static TBitem tb_mesh_edit_normal[]= {
 {	0, "Recalculate Outside|Ctrl N", 	2, 		NULL},
 {	0, "Recalculate Inside|Ctrl Shift N", 	1, 		NULL},
 {	0, "SEPR",					0, NULL},
-{	0, "Flip|W, 9", 				0, 		NULL},
+{	0, "Flip|Ctrl F, 1", 				0, 		NULL},
 {  -1, "", 			0, do_view3d_edit_mesh_normalsmenu}};
 
 static TBitem tb_mesh_edit[]= {
 {	0, "Exit Editmode|Tab", 	TB_TAB, NULL},
-{	0, "Undo|U", 			'u', 		NULL},
-{	0, "Redo|Shift U", 		'U', 		NULL},
+{	0, "Undo|Ctrl Z", 			'u', 		NULL},
+{	0, "Redo|Ctrl Shift Z", 		'U', 		NULL},
 {	0, "SEPR", 				0, 			NULL},
 {	0, "Extrude|E", 		'e', 		NULL},
 {	0, "Duplicate|Shift D", 'D', 		NULL},

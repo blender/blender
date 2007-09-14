@@ -3282,30 +3282,31 @@ void BME_Menu()	{
 
 void Vertex_Menu() {
 	short ret;
-	ret= pupmenu("Vertex Specials%t|Merge%x4|Remove Doubles%x5|Smooth %x10|Blend From Shape%x16|Propagate To All Shapes%x17|Select Vertex Path%x18");
+	ret= pupmenu("Vertex Specials%t|Remove Doubles%x1|Merge%x2|Smooth %x3|Select Vertex Path%x4|Blend From Shape%x5|Propagate To All Shapes%x6");
 
 	switch(ret)
 	{
-		case 4:
-			mergemenu();
-			break;
-		case 5:
+		case 1:
 			notice("Removed %d Vertices", removedoublesflag(1, G.scene->toolsettings->doublimit));
 			BIF_undo_push("Remove Doubles");
 			break;
-		case 10:
+		case 2:	
+			mergemenu();
+			break;
+		case 3:
 			vertexsmooth();
 			break;
-		case 16: 
-			shape_copy_select_from();
-			break;
-		case 17: 
-			shape_propagate();
-			break;
-		case 18:
+		case 4:
 			pathselect();
 			BIF_undo_push("Select Vertex Path");
 			break;
+		case 5: 
+			shape_copy_select_from();
+			break;
+		case 6: 
+			shape_propagate();
+			break;
+
 	}
 }
 
@@ -3365,7 +3366,8 @@ void Edge_Menu() {
 void Face_Menu() {
 	short ret;
 	ret= pupmenu(
-		"Face Specials%t|Flip Normals %x1|Bevel %x2|Shade Smooth %x3|Shade Flat %x4|%l|"
+		"Face Specials%t|Flip Normals%x1|Bevel%x2|Shade Smooth%x3|Shade Flat%x4|"
+		"Triangulate (Ctrl T)%x5|Quads from Triangles (Alt J)%x6|Flip Triangle Edges (Ctrl Shift F)%x7|%l|"
 		"UV Rotate (Shift - CCW)%x10|UV Mirror (Shift - Switch Axis)%x11|"
 		"Color Rotate (Shift - CCW)%x12|Color Mirror (Shift - Switch Axis)%x13");
 
@@ -3384,6 +3386,20 @@ void Face_Menu() {
 		case 4:
 			mesh_set_smooth_faces(0);
 			break;
+			
+		case 5: /* Quads to Tris */
+			convert_to_triface(0);
+			allqueue(REDRAWVIEW3D, 0);
+			countall();
+			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+			break;
+		case 6: /* Tris to Quads */
+			join_triangles();
+			break;
+		case 7: /* Flip triangle edges */
+			edge_flip();
+			break;
+			
 			
 		/* uv texface options */
 		case 10:

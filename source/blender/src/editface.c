@@ -552,7 +552,7 @@ void calculate_uv_map(unsigned short mapmode)
 	allqueue(REDRAWIMAGE, 0);
 }
 
-MTFace *get_active_tface(EditFace **act_efa, MCol **mcol)
+MTFace *get_active_mtface(EditFace **act_efa, MCol **mcol)
 {
 	EditMesh *em = G.editMesh;
 	EditFace *efa = NULL;
@@ -564,6 +564,9 @@ MTFace *get_active_tface(EditFace **act_efa, MCol **mcol)
 	for (ese = em->selected.last; ese; ese=ese->prev){
 		if(ese->type == EDITFACE) {
 			efa = (EditFace *)ese->data;
+			
+			if (efa->h)
+				efa= NULL; 
 			break;
 		}
 	}

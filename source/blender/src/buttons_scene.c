@@ -1601,8 +1601,8 @@ static void render_panel_format(void)
 		
 		if(G.scene->r.imtype==R_OPENEXR) {
 			uiBlockBeginAlign(block);
-			uiDefButBitS(block, TOG, R_OPENEXR_HALF, B_NOP,"Half",	892,yofs+44,60,20, &G.scene->r.subimtype, 0, 0, 0, 0, "Use 16 bits float 'Half' type");
-			uiDefButBitS(block, TOG, R_OPENEXR_ZBUF, B_NOP,"Zbuf",	952,yofs+44,60,20, &G.scene->r.subimtype, 0, 0, 0, 0, "Save the zbuffer as 32 bits unsigned int");
+			uiDefButBitS(block, TOG, R_OPENEXR_HALF, B_NOP,"Half",	892,yofs+44,60,20, &G.scene->r.subimtype, 0, 0, 0, 0, "Use 16 bit floats instead of 32 bit floats per channel");
+			uiDefButBitS(block, TOG, R_OPENEXR_ZBUF, B_NOP,"Zbuf",	952,yofs+44,60,20, &G.scene->r.subimtype, 0, 0, 0, 0, "Save the z-depth per pixel (32 bit unsigned int zbuffer)");
 			uiBlockEndAlign(block);
 			uiDefButBitS(block, TOG, R_PREVIEW_JPG, B_NOP,"Preview",1027,yofs+44,90,20, &G.scene->r.subimtype, 0, 0, 0, 0, "When animation render, save JPG preview images in same directory");
 		}		

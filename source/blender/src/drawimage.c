@@ -250,7 +250,7 @@ void what_image(SpaceImage *sima)
 		if(sima->image && sima->image->source==IMA_SRC_VIEWER) {}
 		else if (G.obedit == OBACT) {
 			sima->image= NULL;
-			activetf = get_active_tface(NULL, NULL);
+			activetf = get_active_mtface(NULL, NULL);
 			
 			if(activetf && activetf->mode & TF_TEX) {
 				sima->image= activetf->tpage;
@@ -489,7 +489,7 @@ void draw_tfaces(void)
 			/* draw active face edges */
 			/*if (activetface){*/
 				/* colors: R=u G=v */
-			activetface = get_active_tface(&efa, NULL);
+			activetface = get_active_mtface(&efa, NULL);
 			if (activetface) {
 				setlinestyle(2);
 				tface=activetface; 
@@ -756,15 +756,14 @@ void image_editvertex_buts(uiBlock *block)
 				digits= 2;
 			}
 			
-			uiDefBut(block, LABEL, 0, "UV Vertex:",10,55,300,19,0,0,0,0,0,"");
 			uiBlockBeginAlign(block);
 			if(nactive==1) {
-				uiDefButF(block, NUM, B_TRANS_IMAGE, "Vertex X:",	10, 35, 290, 19, &ocent[0], -10*imx, 10.0*imx, step, digits, "");
-				uiDefButF(block, NUM, B_TRANS_IMAGE, "Vertex Y:",	10, 15, 290, 19, &ocent[1], -10*imy, 10.0*imy, step, digits, "");
+				uiDefButF(block, NUM, B_TRANS_IMAGE, "Vertex X:",	10, 10, 150, 19, &ocent[0], -10*imx, 10.0*imx, step, digits, "");
+				uiDefButF(block, NUM, B_TRANS_IMAGE, "Vertex Y:",	160, 10, 150, 19, &ocent[1], -10*imy, 10.0*imy, step, digits, "");
 			}
 			else {
-				uiDefButF(block, NUM, B_TRANS_IMAGE, "Median X:",	10, 35, 290, 19, &ocent[0], -10*imx, 10.0*imx, step, digits, "");
-				uiDefButF(block, NUM, B_TRANS_IMAGE, "Median Y:",	10, 15, 290, 19, &ocent[1], -10*imy, 10.0*imy, step, digits, "");
+				uiDefButF(block, NUM, B_TRANS_IMAGE, "Median X:",	10, 10, 150, 19, &ocent[0], -10*imx, 10.0*imx, step, digits, "");
+				uiDefButF(block, NUM, B_TRANS_IMAGE, "Median Y:",	160, 10, 150, 19, &ocent[1], -10*imy, 10.0*imy, step, digits, "");
 			}
 			uiBlockEndAlign(block);
 		}

@@ -2042,7 +2042,7 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, Derived
 		if (em->selected.last) {
 			EditSelection *ese = em->selected.last;
 		
-			if(ese->type == EDITVERT) {
+			if( ese->type == EDITVERT && ((EditVert *)ese->data)->h==0) {
 				EditVert *ev = (EditVert*)ese->data;
 				float size = BIF_GetThemeValuef(TH_VERTEX_SIZE)*4;
 				
@@ -2061,7 +2061,7 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, Derived
 				glDisable(GL_BLEND);
 				glDepthMask(1);
 				
-			} else if(ese->type == EDITEDGE) {
+			} else if(ese->type == EDITEDGE && ((EditEdge *)ese->data)->h==0) {
 				EditEdge *eed = (EditEdge*)ese->data;
 				glEnable(GL_BLEND);
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -2081,7 +2081,7 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, Derived
 				glDepthMask(1);
 				
 				
-			} else if(ese->type == EDITFACE) {
+			} else if(ese->type == EDITFACE && ((EditFace *)ese->data)->h==0) {
 				EditFace *efa = (EditFace*)ese->data;
 				
 				/*  repeate this pattern
