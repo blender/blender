@@ -293,50 +293,44 @@ void image_changed(SpaceImage *sima, int dotile)
 	if(sima->image==NULL)
 		sima->flag &= ~SI_DRAWTOOL;
 	
-	if(sima->mode==SI_TEXTURE) {
+	if(sima->mode!=SI_TEXTURE || !EM_texFaceCheck())
+		return;
 		
-		if(EM_texFaceCheck()) {
-			/* skip assigning these procedural images... */
-			if(sima->image) {
-				if(sima->image->type==IMA_TYPE_R_RESULT)
-					return;
-				if(sima->image->type==IMA_TYPE_COMPOSITE)
-					return;
-			}
-			/*
-			tface= me->mtface;
-			mface = me->mface;
-			a= me->totface;
-			while(a--) {
-				if(mface->flag & ME_FACE_SEL) {
-			*/
-			for (efa= em->faces.first; efa; efa= efa->next) {
-				if (efa->f & SELECT) {
-					tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-				
-					if(dotile==2) {
-						tface->mode &= ~TF_TILES;
-					}
-					else {
-						tface->tpage= sima->image;
-						tface->mode |= TF_TEX;
+	/* skip assigning these procedural images... */
+	if(sima->image) {
+		if(sima->image->type==IMA_TYPE_R_RESULT)
+			return;
+		if(sima->image->type==IMA_TYPE_COMPOSITE)
+			return;
+	}
+
+	for (efa= em->faces.first; efa; efa= efa->next) {
+		if (efa->f & SELECT) {
+			tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+		
+			if(dotile==2) {
+				tface->mode &= ~TF_TILES;
+			} else {
+				if (sima->image) {
+					tface->tpage= sima->image;
+					tface->mode |= TF_TEX;
 					
-						if(dotile) tface->tile= sima->curtile;
-					}
+					if(sima->image->tpageflag & IMA_TILES) tface->mode |= TF_TILES;
+					else tface->mode &= ~TF_TILES;
 					
-					if(sima->image) {
-						if(sima->image->tpageflag & IMA_TILES) tface->mode |= TF_TILES;
-						else tface->mode &= ~TF_TILES;
-					
-						if(sima->image->id.us==0) id_us_plus(&sima->image->id);
-						else id_lib_extern(&sima->image->id);
-					}
+					if(sima->image->id.us==0) id_us_plus(&sima->image->id);
+					else id_lib_extern(&sima->image->id);
+				} else {
+					tface->tpage= NULL;
+					tface->mode &= ~TF_TEX;
 				}
+			
+				if(dotile) tface->tile= sima->curtile;
 			}
-			object_uvs_changed(OBACT);
-			allqueue(REDRAWBUTSEDIT, 0);
 		}
 	}
+	object_uvs_changed(OBACT);
+	allqueue(REDRAWBUTSEDIT, 0);
 }
 
 
@@ -896,7 +890,7 @@ static void image_panel_game_properties(short cntrl)	// IMAGE_HANDLER_GAME_PROPE
 		uiBlockEndAlign(block);
 
 		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, IMA_TILES, B_SIMAGEDRAW1, "Tiles",	160,150,140,19, &G.sima->image->tpageflag, 0, 0, 0, 0, "Toggles use of tilemode for faces");
+		uiDefButBitS(block, TOG, IMA_TILES, B_SIMAGEDRAW1, "Tiles",	160,150,140,19, &G.sima->image->tpageflag, 0, 0, 0, 0, "Toggles use of tilemode for faces (Shift LMB to pick the tile for selected faces)");
 		uiDefButS(block, NUM, B_SIMAGEDRAW, "X:",		160,130,70,19, &G.sima->image->xrep, 1.0, 16.0, 0, 0, "Sets the degree of repetition in the X direction");
 		uiDefButS(block, NUM, B_SIMAGEDRAW, "Y:",		230,130,70,19, &G.sima->image->yrep, 1.0, 16.0, 0, 0, "Sets the degree of repetition in the Y direction");
 		uiBlockBeginAlign(block);

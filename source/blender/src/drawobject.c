@@ -1632,7 +1632,10 @@ static void draw_em_fancy_verts(EditMesh *em, DerivedMesh *cageDM)
 				draw_dm_verts(cageDM, sel);
 			}
 			
-			if(G.scene->selectmode & SCE_SELECT_FACE && G.vd->drawtype!=OB_TEXTURE) {
+			if(	(G.scene->selectmode & SCE_SELECT_FACE) &&
+				(G.vd->drawtype<=OB_SOLID) &&
+				( !((G.vd->flag & V3D_ZBUF_SELECT) && (G.vd->drawtype==OB_SOLID)) )
+			) {
 				glPointSize(fsize);
 				glColor4ubv((GLubyte *)fcol);
 				draw_dm_face_centers(cageDM, sel);
@@ -1947,8 +1950,9 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, Derived
 	if(dt>OB_WIRE) {
 		if(G.vd->drawtype==OB_TEXTURE && dt>OB_SOLID) {
 			draw_mesh_textured(ob, finalDM, 0);
-		}
-		else {
+		} else if(G.vd->drawtype==OB_SHADED && dt>OB_SOLID) {
+			draw_mesh_textured(ob, finalDM, 0);
+		} else {
 			glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, me->flag & ME_TWOSIDED);
 
 			glEnable(GL_LIGHTING);
@@ -4448,7 +4452,10 @@ static int bbs_mesh_solid_EM(DerivedMesh *dm, int facecol)
 	if (facecol) {
 		dm->drawMappedFaces(dm, bbs_mesh_solid__setSolidDrawOptions, (void*)(long) 1, 0);
 
-		if(G.scene->selectmode & SCE_SELECT_FACE && G.vd->drawtype!=OB_TEXTURE) {
+		if(	(G.scene->selectmode & SCE_SELECT_FACE) &&
+			(G.vd->drawtype<=OB_SOLID) &&
+			( !((G.vd->flag & V3D_ZBUF_SELECT) && (G.vd->drawtype==OB_SOLID)) )
+		) {
 			glPointSize(BIF_GetThemeValuef(TH_FACEDOT_SIZE));
 		
 			bglBegin(GL_POINTS);

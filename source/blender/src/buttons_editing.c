@@ -5286,8 +5286,9 @@ static void editing_panel_mesh_texface(void)
 	MTFace *tf;
 
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_texface", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Texture face", "Editing", 960, 0, 318, 204)==0) return;
-
+	uiNewPanelTabbed("Multires", "Editing");
+	if(uiNewPanel(curarea, block, "Texture Face", "Editing", 960, 0, 318, 204)==0) return;
+	
 	tf = get_active_mtface(NULL, NULL);
 	if(tf) {
 		uiBlockBeginAlign(block);
@@ -5314,17 +5315,6 @@ static void editing_panel_mesh_texface(void)
 		uiDefButC(block, ROW, REDRAWVIEW3D, "Opaque",	600,80,60,19, &tf->transp, 2.0, 0.0, 0, 0, "Render color of textured face as color");
 		uiDefButC(block, ROW, REDRAWVIEW3D, "Add",		660,80,60,19, &tf->transp, 2.0, 1.0, 0, 0, "Render face transparent and add color of face");
 		uiDefButC(block, ROW, REDRAWVIEW3D, "Alpha",	720,80,60,19, &tf->transp, 2.0, 2.0, 0, 0, "Render polygon transparent, depending on alpha channel of the texture");
-
-		uiBlockSetCol(block, TH_AUTO);
-
-		uiBlockBeginAlign(block);
-		uiDefButF(block, COL, B_VPCOLSLI, "",			769,40,40,28, &(Gvp.r), 0, 0, 0, 0, "");
-		uiDefBut(block, BUT, B_SET_VCOL, "Set VertCol",	809,40,103,28, 0, 0, 0, 0, 0, "Set Vertex color of selection to current (Shift+K)");
-
-		uiBlockBeginAlign(block);
-		uiDefBut(block, BUT, B_COPY_TF_MODE, "Copy DrawMode", 600,7,117,28, 0, 0, 0, 0, 0, "Copy the drawmode from active face to selected faces");
-		uiDefBut(block, BUT, B_COPY_TF_UV, "Copy UV+tex",	  721,7,85,28, 0, 0, 0, 0, 0, "Copy UV information and textures from active face to selected faces");
-		uiDefBut(block, BUT, B_COPY_TF_COL, "Copy VertCol",	  809,7,103,28, 0, 0, 0, 0, 0, "Copy vertex colors from active face to selected faces");
 	}
 }
 
@@ -5345,7 +5335,7 @@ static void editing_panel_mesh_uvautocalculation(void)
 
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_uvautocalculation", UI_EMBOSS, UI_HELV, curarea->win);
 	/* make this a tab of "Texture face" to save screen space*/
-	uiNewPanelTabbed("Modifiers", "Editing");
+	uiNewPanelTabbed("Multires", "Editing");
 	if(uiNewPanel(curarea, block, "UV Calculation", "Editing", 960, 0, 318, 204)==0)
 		return;
 	row-= 4*butHB+butS;
@@ -5475,6 +5465,8 @@ void editing_panels()
 			editing_panel_mesh_tools(ob, ob->data);
 			editing_panel_mesh_tools1(ob, ob->data);
 			editing_panel_mesh_uvautocalculation();
+			if (EM_texFaceCheck())
+				editing_panel_mesh_texface();
 		}
 		else if(G.f & G_SCULPTMODE) {
 			uiNewPanelTabbed("Multires", "Editing");
@@ -5482,9 +5474,6 @@ void editing_panels()
 			uiNewPanelTabbed("Multires", "Editing");
 			editing_panel_sculpting_textures();
 		} else {
-			if(FACESEL_PAINT_TEST) {
-				editing_panel_mesh_texface();
-			}
 			if(G.f & (G_VERTEXPAINT | G_TEXTUREPAINT | G_WEIGHTPAINT) ) {
 				editing_panel_mesh_paint();
 			}

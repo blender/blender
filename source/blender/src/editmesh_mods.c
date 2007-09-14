@@ -2078,8 +2078,10 @@ void mouse_mesh(void)
 		countall();
 		  
 		allqueue(REDRAWVIEW3D, 0);
-		if (EM_texFaceCheck())
+		if (EM_texFaceCheck()) {
 			allqueue(REDRAWIMAGE, 0);
+			allqueue(REDRAWBUTSEDIT, 0); /* for the texture face panel */
+		}
 	}
 
 	rightmouse_transform();

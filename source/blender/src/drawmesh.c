@@ -953,7 +953,7 @@ static void draw_textured_begin(Object *ob)
 	unsigned char obcol[4];
 	int istex, solidtex= 0;
 
-	if(G.vd->drawtype==OB_SOLID || ob==G.obedit) {
+	if(G.vd->drawtype==OB_SOLID || (ob==G.obedit && G.vd->drawtype!=OB_TEXTURE)) {
 		/* draw with default lights in solid draw mode and edit mode */
 		solidtex= 1;
 		Gtexdraw.islit= -1;
@@ -1186,9 +1186,9 @@ void draw_mesh_textured(Object *ob, DerivedMesh *dm, int faceselect)
 	}
 	else {
 #endif
-		if(ob==G.obedit)
+		if(ob==G.obedit) {
 			dm->drawMappedFacesTex(dm, draw_em_tf_mapped__set_draw, G.editMesh);
-		else if(faceselect) {
+		} else if(faceselect) {
 			if(G.f & G_WEIGHTPAINT)
 				dm->drawMappedFaces(dm, wpaint__setSolidDrawOptions, me, 1);
 			else
@@ -1220,6 +1220,9 @@ void draw_mesh_textured(Object *ob, DerivedMesh *dm, int faceselect)
 
 	/* reset from negative scale correction */
 	glFrontFace(GL_CCW);
+	
+	/* in editmode, the blend mode needs to be set incase it was ADD */
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	dm->release(dm);
 }
