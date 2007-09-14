@@ -60,6 +60,7 @@
 #include "BIF_editview.h"
 #include "BIF_gl.h"
 #include "BIF_graphics.h"
+#include "BIF_imasel.h"
 #include "BIF_interface.h"
 #include "BIF_mywindow.h"
 #include "BIF_previewrender.h"
@@ -279,8 +280,11 @@ static void composit_node_event(SpaceNode *snode, short event)
 			if(node->id)
 				strcpy(name, ((Image *)node->id)->name);
 			else strcpy(name, U.textudir);
-			
-			activate_fileselect(FILE_SPECIAL, "SELECT IMAGE", name, load_node_image);
+			if (G.qual & LR_CTRLKEY) {
+				activate_imageselect(FILE_SPECIAL, "SELECT IMAGE", name, load_node_image);
+			} else {
+				activate_fileselect(FILE_SPECIAL, "SELECT IMAGE", name, load_node_image);
+			}
 			break;
 		}
 		case B_NODE_TREE_EXEC:
