@@ -6505,61 +6505,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}		
 
 	}
-
-
-	if (main->versionfile < 244) {
-		bScreen *sc;
-		Image* ima;
-
-		/* repair preview from 242 */
-		for(ima= main->image.first; ima; ima= ima->id.next) {
-			ima->preview = NULL;
-		}
-		
-		/* repair imasel space - completely reworked */
-		for(sc= main->screen.first; sc; sc= sc->id.next) {
-			ScrArea *sa;
-			sa= sc->areabase.first;
-			while(sa) {
-				SpaceLink *sl;
-
-				for (sl= sa->spacedata.first; sl; sl= sl->next) {
-					if(sl->spacetype==SPACE_IMASEL) {
-						SpaceImaSel *simasel= (SpaceImaSel*) sl;
-						simasel->blockscale= 0.7;
-						/* view 2D */
-						simasel->v2d.tot.xmin=  -10.0;
-						simasel->v2d.tot.ymin=  -10.0;
-						simasel->v2d.tot.xmax= (float)sa->winx + 10.0f;
-						simasel->v2d.tot.ymax= (float)sa->winy + 10.0f;						
-						simasel->v2d.cur.xmin=  0.0;
-						simasel->v2d.cur.ymin=  0.0;
-						simasel->v2d.cur.xmax= (float)sa->winx;
-						simasel->v2d.cur.ymax= (float)sa->winy;						
-						simasel->v2d.min[0]= 1.0;
-						simasel->v2d.min[1]= 1.0;						
-						simasel->v2d.max[0]= 32000.0f;
-						simasel->v2d.max[1]= 32000.0f;						
-						simasel->v2d.minzoom= 0.5f;
-						simasel->v2d.maxzoom= 1.21f;						
-						simasel->v2d.scroll= 0;
-						simasel->v2d.keepaspect= 1;
-						simasel->v2d.keepzoom= 1;
-						simasel->v2d.keeptot= 0;
-						simasel->prv_h = 96;
-						simasel->prv_w = 96;
-						simasel->flag = 7; /* ??? elubie */
-						strcpy (simasel->dir,  U.textudir);	/* TON */
-						strcpy (simasel->file, "");
-
-						simasel->returnfunc     =  0;	
-						simasel->title[0]       =  0;
-					}
-				}
-				sa = sa->next;
-			}
-		}
-	}
+	
 	if(main->versionfile <= 244) {
 		Scene *sce;
 		Material *ma;
@@ -6723,6 +6669,65 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				la->adapt_thresh = 0.001;
 			}
 		}
+	}
+
+	if (main->versionfile <= 245) {
+		bScreen *sc;
+		Image* ima;
+
+		/* fix all versions before 2.45 */
+		if (main->versionfile != 245) {
+
+			/* repair preview from 242 - 244*/
+			for(ima= main->image.first; ima; ima= ima->id.next) {
+				ima->preview = NULL;
+			}
+			
+			/* repair imasel space - completely reworked */
+			for(sc= main->screen.first; sc; sc= sc->id.next) {
+				ScrArea *sa;
+				sa= sc->areabase.first;
+				while(sa) {
+					SpaceLink *sl;
+
+					for (sl= sa->spacedata.first; sl; sl= sl->next) {
+						if(sl->spacetype==SPACE_IMASEL) {
+							SpaceImaSel *simasel= (SpaceImaSel*) sl;
+							simasel->blockscale= 0.7;
+							/* view 2D */
+							simasel->v2d.tot.xmin=  -10.0;
+							simasel->v2d.tot.ymin=  -10.0;
+							simasel->v2d.tot.xmax= (float)sa->winx + 10.0f;
+							simasel->v2d.tot.ymax= (float)sa->winy + 10.0f;						
+							simasel->v2d.cur.xmin=  0.0;
+							simasel->v2d.cur.ymin=  0.0;
+							simasel->v2d.cur.xmax= (float)sa->winx;
+							simasel->v2d.cur.ymax= (float)sa->winy;						
+							simasel->v2d.min[0]= 1.0;
+							simasel->v2d.min[1]= 1.0;						
+							simasel->v2d.max[0]= 32000.0f;
+							simasel->v2d.max[1]= 32000.0f;						
+							simasel->v2d.minzoom= 0.5f;
+							simasel->v2d.maxzoom= 1.21f;						
+							simasel->v2d.scroll= 0;
+							simasel->v2d.keepaspect= 1;
+							simasel->v2d.keepzoom= 1;
+							simasel->v2d.keeptot= 0;
+							simasel->prv_h = 96;
+							simasel->prv_w = 96;
+							simasel->flag = 7; /* ??? elubie */
+							strcpy (simasel->dir,  U.textudir);	/* TON */
+							strcpy (simasel->file, "");
+
+							simasel->returnfunc     =  0;	
+							simasel->title[0]       =  0;
+						}
+					}
+					sa = sa->next;
+				}
+			}
+		}
+
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

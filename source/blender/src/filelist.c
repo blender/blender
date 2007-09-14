@@ -91,10 +91,10 @@
 typedef struct FileList
 {
 	struct direntry *filelist;
-	struct direntry *unfiltered;
+	int *fidx;
 
 	int numfiles;
-	int numunfiltered;
+	int numfiltered;
 	char dir[FILE_MAXDIR];
 	short type;
 	short ipotype;
@@ -274,49 +274,44 @@ void BIF_filelist_filter(FileList* filelist)
 		return;
 	
 	if (!filelist->filter) {
-		if (filelist->unfiltered) {
-			old_filelist = filelist->filelist;
-			filelist->filelist = filelist->unfiltered;
-			filelist->numfiles = filelist->numunfiltered;
-			filelist->unfiltered = 0;
-			filelist->numunfiltered = 0;
-			free (old_filelist);
+		if (filelist->fidx) {
+			MEM_freeN(filelist->fidx);
+			filelist->fidx = NULL;
 		}
+		filelist->fidx = (int *)MEM_callocN(filelist->numfiles*sizeof(int), "filteridx");
+		for (i = 0; i < filelist->numfiles; ++i) {
+			filelist->fidx[i] = i;
+		}
+		filelist->numfiltered = filelist->numfiles;
 		return;
 	}
 
-	if (!filelist->unfiltered) {
-		filelist->unfiltered = filelist->filelist;
-		filelist->numunfiltered = filelist->numfiles;
-	}
-
-	old_filelist = filelist->unfiltered;
-	num_files = filelist->numunfiltered;
-
-	filelist->filelist = 0;
-
 	// How many files are left after filter ?
-	for (i = 0; i < num_files; ++i) {
-		if (old_filelist[i].flags & filelist->filter) {
+	for (i = 0; i < filelist->numfiles; ++i) {
+		if (filelist->filelist[i].flags & filelist->filter) {
 			num_filtered++;
 		} 
-		else if (old_filelist[i].type & S_IFDIR) {
+		else if (filelist->filelist[i].type & S_IFDIR) {
 			if (filelist->filter & FOLDERFILE) {
 				num_filtered++;
 			}
 		}		
 	}
 	
-	filelist->filelist = (struct direntry *)malloc(num_filtered * sizeof(struct direntry));
-	filelist->numfiles = num_filtered;
+	if (filelist->fidx) {
+			MEM_freeN(filelist->fidx);
+			filelist->fidx = NULL;
+	}
+	filelist->fidx = (int *)MEM_callocN(num_filtered*sizeof(int), "filteridx");
+	filelist->numfiltered = num_filtered;
 
-	for (i = 0, j=0; i < num_files; ++i) {
-		if (old_filelist[i].flags & filelist->filter) {
-			filelist->filelist[j++] = old_filelist[i];
+	for (i = 0, j=0; i < filelist->numfiles; ++i) {
+		if (filelist->filelist[i].flags & filelist->filter) {
+			filelist->fidx[j++] = i;
 		}
-		else if (old_filelist[i].type & S_IFDIR) {
+		else if (filelist->filelist[i].type & S_IFDIR) {
 			if (filelist->filter & FOLDERFILE) {
-				filelist->filelist[j++] = old_filelist[i];
+				filelist->fidx[j++] = i;
 			}
 		}  
 	}
@@ -373,7 +368,7 @@ struct FileList*	BIF_filelist_copy(struct FileList* filelist)
 	FileList* p = BIF_filelist_new();
 	BLI_strncpy(p->dir, filelist->dir, FILE_MAXDIR);
 	p->filelist = NULL;
-	p->unfiltered = NULL;
+	p->fidx = NULL;
 	p->type = filelist->type;
 	p->ipotype = filelist->ipotype;
 	p->has_func = filelist->has_func;
@@ -390,18 +385,15 @@ void BIF_filelist_free(struct FileList* filelist)
 		return;
 	}
 
-	if (filelist->unfiltered) {
-		struct direntry* filtered_files = filelist->filelist;
-		filelist->filelist = filelist->unfiltered;
-		filelist->numfiles = filelist->numunfiltered;
-		filelist->numunfiltered = 0;
-		free (filtered_files);
-		filelist->unfiltered = 0;
+	if (filelist->fidx) {
+		MEM_freeN(filelist->fidx);
+		filelist->fidx = NULL;
 	}
 
 	for (i = 0; i < filelist->numfiles; ++i) {
-		if (filelist->filelist[i].image)
+		if (filelist->filelist[i].image) {			
 			IMB_freeImBuf(filelist->filelist[i].image);
+		}
 		filelist->filelist[i].image = 0;
 		if (filelist->filelist[i].relname)
 			MEM_freeN(filelist->filelist[i].relname);
@@ -414,6 +406,8 @@ void BIF_filelist_free(struct FileList* filelist)
 	filelist->numfiles = 0;
 	free(filelist->filelist);
 	filelist->filelist = 0;	
+	filelist->filter = 0;
+	filelist->numfiltered =0;
 }
 
 void BIF_filelist_freelib(struct FileList* filelist)
@@ -430,7 +424,7 @@ struct BlendHandle *BIF_filelist_lib(struct FileList* filelist)
 
 int	BIF_filelist_numfiles(struct FileList* filelist)
 {
-	return filelist->numfiles;
+	return filelist->numfiltered;
 }
 
 const char * BIF_filelist_dir(struct FileList* filelist)
@@ -462,19 +456,25 @@ void BIF_filelist_loadimage(struct FileList* filelist, int index)
 	int imgheight = filelist->prv_h;
 	short ex, ey, dx, dy;
 	float scaledx, scaledy;
+	int fidx = 0;
+	
+	if ( (index < 0) || (index >= filelist->numfiltered) ) {
+		return;
+	}
+	fidx = filelist->fidx[index];
 
-	if (!filelist->filelist[index].image)
+	if (!filelist->filelist[fidx].image)
 	{
 		if (filelist->type != FILE_MAIN)
 		{
-			if ( filelist->filelist[index].flags & IMAGEFILE ) {
-				imb = IMB_thumb_manage(filelist->dir, filelist->filelist[index].relname, THB_NORMAL, THB_SOURCE_IMAGE);
-			} else if ( filelist->filelist[index].flags & MOVIEFILE ) {
-				imb = IMB_thumb_manage(filelist->dir, filelist->filelist[index].relname, THB_NORMAL, THB_SOURCE_MOVIE);
+			if ( filelist->filelist[fidx].flags & IMAGEFILE ) {				
+				imb = IMB_thumb_manage(filelist->dir, filelist->filelist[fidx].relname, THB_NORMAL, THB_SOURCE_IMAGE);
+			} else if ( filelist->filelist[fidx].flags & MOVIEFILE ) {				
+				imb = IMB_thumb_manage(filelist->dir, filelist->filelist[fidx].relname, THB_NORMAL, THB_SOURCE_MOVIE);
 				if (!imb) {
 					/* remember that file can't be loaded via IMB_open_anim */
-					filelist->filelist[index].flags &= ~MOVIEFILE;
-					filelist->filelist[index].flags |= MOVIEFILE_ICON;
+					filelist->filelist[fidx].flags &= ~MOVIEFILE;
+					filelist->filelist[fidx].flags |= MOVIEFILE_ICON;
 				}
 			}
 			if (imb) {
@@ -495,7 +495,7 @@ void BIF_filelist_loadimage(struct FileList* filelist, int index)
 				IMB_scaleImBuf(imb, ex, ey);
 
 			} 
-			filelist->filelist[index].image = imb;
+			filelist->filelist[fidx].image = imb;
 			
 		}
 	}
@@ -503,13 +503,20 @@ void BIF_filelist_loadimage(struct FileList* filelist, int index)
 
 struct ImBuf * BIF_filelist_getimage(struct FileList* filelist, int index)
 {
-	ImBuf* ibuf = filelist->filelist[index].image;
+	ImBuf* ibuf = NULL;
+	int fidx = 0;	
+	if ( (index < 0) || (index >= filelist->numfiltered) ) {
+		return NULL;
+	}
+	fidx = filelist->fidx[index];
+	ibuf = filelist->filelist[fidx].image;
+
 	if (ibuf == NULL) {
-		struct direntry *file = &filelist->filelist[index];
+		struct direntry *file = &filelist->filelist[fidx];
 		if (file->type & S_IFDIR) {
-			if ( strcmp(filelist->filelist[index].relname, "..") == 0) {
+			if ( strcmp(filelist->filelist[fidx].relname, "..") == 0) {
 				ibuf = gSpecialFileImages[SPECIAL_IMG_PARENT];
-			} else if  ( strcmp(filelist->filelist[index].relname, ".") == 0) {
+			} else if  ( strcmp(filelist->filelist[fidx].relname, ".") == 0) {
 				ibuf = gSpecialFileImages[SPECIAL_IMG_REFRESH];
 			} else {
 				ibuf = gSpecialFileImages[SPECIAL_IMG_FOLDER];
@@ -537,21 +544,40 @@ struct ImBuf * BIF_filelist_getimage(struct FileList* filelist, int index)
 
 struct direntry * BIF_filelist_file(struct FileList* filelist, int index)
 {
-	return &filelist->filelist[index];
+	int fidx = 0;
+	
+	if ( (index < 0) || (index >= filelist->numfiltered) ) {
+		return NULL;
+	}
+	fidx = filelist->fidx[index];
+
+	return &filelist->filelist[fidx];
 }
 
 int BIF_filelist_find(struct FileList* filelist, char *file)
 {
 	int index = -1;
 	int i;
+	int fidx = -1;
+	
+	if (!filelist->fidx) 
+		return;
 
+	
 	for (i = 0; i < filelist->numfiles; ++i) {
 		if ( strcmp(filelist->filelist[i].relname, file) == 0) {
 			index = i;
 			break;
 		}
 	}
-	return index;
+
+	for (i = 0; i < filelist->numfiltered; ++i) {
+		if (filelist->fidx[i] == index) {
+			fidx = i;
+			break;
+		}
+	}
+	return fidx;
 }
 
 void BIF_filelist_hidedot(struct FileList* filelist, short hide)
@@ -570,7 +596,7 @@ void BIF_filelist_readdir(struct FileList* filelist)
 	int finished = 0;
 
 	if (!filelist) return;
-	filelist->unfiltered = 0;
+	filelist->fidx = 0;
 	filelist->filelist = 0;
 
 	if(filelist->type==FILE_MAIN) {
@@ -1078,6 +1104,7 @@ void BIF_filelist_sort(struct FileList* filelist, short sort)
 	for(num=0; num<filelist->numfiles; num++, file++) {
 		file->flags &= ~HILITE;
 	}
+	BIF_filelist_filter(filelist);
 }
 
 

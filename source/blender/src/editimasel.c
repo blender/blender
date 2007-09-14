@@ -589,10 +589,12 @@ static void do_imasel_buttons(short event, SpaceImaSel *simasel)
 				if (okee("Makedir")) {
 					BLI_recurdir_fileops(butname);
 					if (!BLI_exists(butname)) {
+						BIF_filelist_free(simasel->files);
 						BIF_filelist_parent(simasel->files);
 						BLI_strncpy(simasel->dir, BIF_filelist_dir(simasel->files), 80);
 					}
 				} else {
+					BIF_filelist_free(simasel->files);
 					BIF_filelist_parent(simasel->files);
 					BLI_strncpy(simasel->dir, BIF_filelist_dir(simasel->files), 80);
 				}
