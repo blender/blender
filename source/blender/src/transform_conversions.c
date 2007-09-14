@@ -1857,12 +1857,6 @@ static void createTransUVs(TransInfo *t)
 	if(is_uv_tface_editing_allowed()==0) return;
 
 	/* count */
-	/*
-	tf= me->mtface;
-	mf= me->mface;
-	for(a=me->totface; a>0; a--, tf++, mf++) {
-		if(mf->v3 && mf->flag & ME_FACE_SEL) {
-	*/
 	for (efa= em->faces.first; efa; efa= efa->next) {
 		if (efa->f & SELECT) {
 			tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
@@ -1889,12 +1883,6 @@ static void createTransUVs(TransInfo *t)
 
 	td= t->data;
 	td2d= t->data2d;
-	/*
-	tf= me->mtface;
-	mf= me->mface;
-	for(a=me->totface; a>0; a--, tf++, mf++) {
-		if(mf->v3 && mf->flag & ME_FACE_SEL) {
-		*/
 	for (efa= em->faces.first; efa; efa= efa->next) {
 		if (efa->f & SELECT) {
 			tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);

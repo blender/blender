@@ -422,6 +422,7 @@ void calculateCenterBound(TransInfo *t);
 void calculateCenterMedian(TransInfo *t);
 void calculateCenterCursor(TransInfo *t);
 
+void calculateCenterCursor2D(TransInfo *t);
 void calculatePropRatio(TransInfo *t);
 
 void getViewVector(float coord[3], float vec[3]);

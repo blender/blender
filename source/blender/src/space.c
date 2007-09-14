@@ -4788,10 +4788,13 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					else
 						sima_sample_color();
 				}
-				else if(EM_texFaceCheck())
-					gesture();
-				else 
+				else if(EM_texFaceCheck()) {
+					if (!gesture()) {
+						mouseco_to_cursor_sima();
+					}
+				} else { 
 					sima_sample_color();
+				}
 				break;
 			case RIGHTMOUSE:
 				if(EM_texFaceCheck())
@@ -4908,8 +4911,30 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if(G.qual==0)
 					image_viewcenter();
 				break;
+				
+			case COMMAKEY:
+				if(G.qual==LR_SHIFTKEY) {
+					G.v2d->around= V3D_CENTROID;
+				} else if(G.qual==0) {
+					G.v2d->around= V3D_CENTER;
+				}
+				
+				scrarea_queue_headredraw(curarea);
+				scrarea_queue_winredraw(curarea);
+				break;
+				
+			case PERIODKEY:
+				if(G.qual==LR_CTRLKEY) {
+					G.v2d->around= V3D_LOCAL;
+				} 	else if(G.qual==0) {
+					G.v2d->around= V3D_CURSOR;
+				}
+				
+				scrarea_queue_headredraw(curarea);
+				scrarea_queue_winredraw(curarea);
+				break;
 		}
-	}	
+	}
 
 
 	/* least intrusive nonumpad hack, only for plus/minus */

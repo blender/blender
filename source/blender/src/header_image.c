@@ -1083,6 +1083,18 @@ static uiBlock *image_uvsmenu(void *arg_unused)
 	return block;
 }
 
+static char *around_pup(void)
+{
+	static char string[512];
+	char *str = string;
+
+	str += sprintf(str, "%s", "Pivot: %t"); 
+	str += sprintf(str, "%s", "|Bounding Box Center %x0"); 
+	str += sprintf(str, "%s", "|Median Point %x3");
+	str += sprintf(str, "%s", "|2D Cursor %x1");
+	return string;
+}
+
 void image_buttons(void)
 {
 	Image *ima;
@@ -1158,6 +1170,13 @@ void image_buttons(void)
 
 	xco= std_libbuttons(block, xco, 0, 0, NULL, B_SIMABROWSE, ID_IM, 0, (ID *)ima, 0, &(G.sima->imanr), 0, 0, B_IMAGEDELETE, 0, 0);
 
+	/* UV EditMode buttons */
+	if (EM_texFaceCheck()) {
+		xco+=10;
+		uiDefIconTextButS(block, ICONTEXTROW,B_AROUND, ICON_ROTATE, around_pup(), xco,0,XIC+10,YIC, &(G.v2d->around), 0, 3.0, 0, 0, "Rotation/Scaling Pivot (Hotkeys: Comma, Shift Comma, Period) ");
+		xco+= XIC+15;
+	}
+	
 	if (ima) {
 		RenderResult *rr= BKE_image_get_renderresult(ima);
 		

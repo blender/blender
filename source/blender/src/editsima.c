@@ -895,6 +895,15 @@ void mouseco_to_curtile(void)
 	}
 }
 
+/* Could be used for other 2D views also */
+void mouseco_to_cursor_sima(void)
+{
+	short mval[2];
+	getmouseco_areawin(mval);
+	areamouseco_to_ipoco(G.v2d, mval, &G.v2d->cursor[0], &G.v2d->cursor[1]);
+	scrarea_queue_winredraw(curarea);
+}
+
 void stitch_uv_tface(int mode)
 {
 	MTFace *tf;

@@ -49,6 +49,7 @@ int minmax_tface_uv(float *min, float *max);
 void transform_width_height_tface_uv(int *width, int *height);
 void transform_aspect_ratio_tface_uv(float *aspx, float *aspy);
 
+void mouseco_to_cursor_sima(void);
 void borderselect_sima(short whichuvs);
 void mouseco_to_curtile(void);
 void mouse_select_sima(void);

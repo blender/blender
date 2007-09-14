@@ -464,6 +464,8 @@ void initTrans (TransInfo *t)
 	if(t->spacetype==SPACE_VIEW3D) {
 		if(G.vd->flag & V3D_ALIGN) t->flag |= T_V3D_ALIGN;
 		t->around = G.vd->around;
+	} else if(t->spacetype==SPACE_IMAGE) {
+		t->around = G.v2d->around;
 	}
 	else
 		t->around = V3D_CENTER;
@@ -654,6 +656,19 @@ void calculateCenterCursor(TransInfo *t)
 	calculateCenter2D(t);
 }
 
+void calculateCenterCursor2D(TransInfo *t)
+{
+	float aspx=1.0, aspy=1.0;
+	
+	if(t->spacetype==SPACE_IMAGE) /* only space supported right now but may change */
+		transform_aspect_ratio_tface_uv(&aspx, &aspy);
+	if (G.v2d) {
+		t->center[0] = G.v2d->cursor[0] * aspx; 
+		t->center[1] = G.v2d->cursor[1] * aspy; 
+	}
+	calculateCenter2D(t);
+}
+
 void calculateCenterMedian(TransInfo *t)
 {
 	float partial[3] = {0.0f, 0.0f, 0.0f};
@@ -717,7 +732,10 @@ void calculateCenter(TransInfo *t)
 		calculateCenterMedian(t);
 		break;
 	case V3D_CURSOR:
-		calculateCenterCursor(t);
+		if(t->spacetype==SPACE_IMAGE)
+			calculateCenterCursor2D(t);
+		else
+			calculateCenterCursor(t);
 		break;
 	case V3D_LOCAL:
 		/* Individual element center uses median center for helpline and such */

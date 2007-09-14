@@ -367,218 +367,262 @@ void uvco_to_areaco_noclip(float *vec, int *mval)
 	mval[1]= y;
 }
 
+static void drawcursor_sima(void)
+{
+	int wi, hi;
+	float w, h;
+	
+	transform_width_height_tface_uv(&wi, &hi);
+	w = (((float)wi)/256.0f)*G.sima->zoom;
+	h = (((float)hi)/256.0f)*G.sima->zoom;
+	
+	cpack(0xFFFFFF);
+	glTranslatef(G.v2d->cursor[0], G.v2d->cursor[1], 0.0f);  
+	fdrawline(-0.05/w, 0, 0, 0.05/h);
+	fdrawline(0, 0.05/h, 0.05/w, 0);
+	fdrawline(0.05/w, 0, 0, -0.05/h);
+	fdrawline(0, -0.05/h, -0.05/w, 0);
+	
+	setlinestyle(4);
+	cpack(0xFF);
+	fdrawline(-0.05/w, 0, 0, 0.05/h);
+	fdrawline(0, 0.05/h, 0.05/w, 0);
+	fdrawline(0.05/w, 0, 0, -0.05/h);
+	fdrawline(0, -0.05/h, -0.05/w, 0);
+	
+	
+	setlinestyle(0);
+	cpack(0x0);
+	fdrawline(-0.020/w, 0, -0.1/w, 0);
+	fdrawline(0.1/w, 0, .020/w, 0);
+	fdrawline(0, -0.020/h, 0, -0.1/h);
+	fdrawline(0, 0.1/h, 0, 0.020/h);
+	
+	setlinestyle(1);
+	cpack(0xFFFFFF);
+	fdrawline(-0.020/w, 0, -0.1/w, 0);
+	fdrawline(0.1/w, 0, .020/w, 0);
+	fdrawline(0, -0.020/h, 0, -0.1/h);
+	fdrawline(0, 0.1/h, 0, 0.020/h);
+	
+	glTranslatef(-G.v2d->cursor[0], -G.v2d->cursor[1], 0.0f);
+	setlinestyle(0);
+}
+
 void draw_tfaces(void)
 {
 	MTFace *tface,*activetface = NULL;
 	EditMesh *em = G.editMesh;
 	EditFace *efa;
 	
-	/*int a;*/
 	char col1[4], col2[4];
 	float pointsize= BIF_GetThemeValuef(TH_VERTEX_SIZE);
  	
-	if (G.obedit) {
-		if (CustomData_has_layer(&em->fdata, CD_MTFACE)) {
-			calc_image_view(G.sima, 'f');	/* float */
-			myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
-			glLoadIdentity();
-			
-			/* draw shadow mesh */
-			if ((G.sima->flag & SI_DRAWSHADOW) && (G.obedit==OBACT)) { /* TODO - editmesh */
-				DerivedMesh *dm;
-
-				/* draw final mesh with modifiers applied */
-				/* should test - editmesh_get_derived_cage_and_final */
-				dm = editmesh_get_derived_base();
-
-				glColor3ub(112, 112, 112);
-				if (dm->drawUVEdges) dm->drawUVEdges(dm);
-
-				dm->release(dm);
-			}
-			else if((G.sima->flag & SI_DRAWTOOL) || (G.obedit==OBACT)) {
-				/* draw mesh without modifiers applied */
-
-				if (G.obedit) {		
-					glColor3ub(112, 112, 112);
-					for (efa= em->faces.first; efa; efa= efa->next) {
-						/*if(!(mface->flag & ME_HIDE) && (mface->flag & ME_FACE_SEL)) {*/
-						if(!(efa->flag & ME_HIDE) && (efa->f & SELECT)) {
-							tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-							glBegin(GL_LINE_LOOP);
-							glVertex2fv(tface->uv[0]);
-							glVertex2fv(tface->uv[1]);
-							glVertex2fv(tface->uv[2]);
-							if(efa->v4) glVertex2fv(tface->uv[3]);
-							glEnd();
-						}					
-					}
-				}
-			}
-
-			if((G.sima->flag & SI_DRAWTOOL) || !(G.obedit==OBACT))
-				return; /* only draw shadow mesh */
-			
-			/* draw transparent faces */
-			if(G.f & G_DRAWFACES) {
-				BIF_GetThemeColor4ubv(TH_FACE, col1);
-				BIF_GetThemeColor4ubv(TH_FACE_SELECT, col2);
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-				glEnable(GL_BLEND);
-				
-				for (efa= em->faces.first; efa; efa= efa->next) {
-					if(efa->f & SELECT) {
-						tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-						if(!(~tface->flag & (TF_SEL1|TF_SEL2|TF_SEL3)) &&
-						   (!efa->v4 || tface->flag & TF_SEL4))
-							glColor4ubv((GLubyte *)col2);
-						else
-							glColor4ubv((GLubyte *)col1);
-							
-						glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
-							glVertex2fv(tface->uv[0]);
-							glVertex2fv(tface->uv[1]);
-							glVertex2fv(tface->uv[2]);
-							if(efa->v4) glVertex2fv(tface->uv[3]);
-						glEnd();
-					}
-				}
-				glDisable(GL_BLEND);
-			}
-			
-			for (efa= em->faces.first; efa; efa= efa->next) {
-				if (efa->f & SELECT) {
-					tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-					
-					cpack(0x0);
- 					glBegin(GL_LINE_LOOP);
-						glVertex2fv(tface->uv[0]);
-						glVertex2fv(tface->uv[1]);
-						glVertex2fv(tface->uv[2]);
-						if(efa->v4) glVertex2fv(tface->uv[3]);
-					glEnd();
-				
-					setlinestyle(2);
-					cpack(0xFFFFFF);
-					glBegin(GL_LINE_STRIP);
-						glVertex2fv(tface->uv[0]);
-						glVertex2fv(tface->uv[1]);
-					glEnd();
-
-					glBegin(GL_LINE_STRIP);
-						glVertex2fv(tface->uv[0]);
-						if(efa->v4) glVertex2fv(tface->uv[3]);
-						else glVertex2fv(tface->uv[2]);
-					glEnd();
+	if (!G.obedit || !CustomData_has_layer(&em->fdata, CD_MTFACE))
+		return;
 	
-					glBegin(GL_LINE_STRIP);
-						glVertex2fv(tface->uv[1]);
-						glVertex2fv(tface->uv[2]);
-						if(efa->v4) glVertex2fv(tface->uv[3]);
+	
+	calc_image_view(G.sima, 'f');	/* float */
+	myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
+	glLoadIdentity();
+	
+	/* draw shadow mesh */
+	if ((G.sima->flag & SI_DRAWSHADOW) && (G.obedit==OBACT)) { /* TODO - editmesh */
+		DerivedMesh *dm;
+
+		/* draw final mesh with modifiers applied */
+		/* should test - editmesh_get_derived_cage_and_final */
+		dm = editmesh_get_derived_base();
+
+		glColor3ub(112, 112, 112);
+		if (dm->drawUVEdges) dm->drawUVEdges(dm);
+
+		dm->release(dm);
+	}
+	else if((G.sima->flag & SI_DRAWTOOL) || (G.obedit==OBACT)) {
+		/* draw mesh without modifiers applied */
+
+		if (G.obedit) {		
+			glColor3ub(112, 112, 112);
+			for (efa= em->faces.first; efa; efa= efa->next) {
+				/*if(!(mface->flag & ME_HIDE) && (mface->flag & ME_FACE_SEL)) {*/
+				if(!(efa->flag & ME_HIDE) && (efa->f & SELECT)) {
+					tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+					glBegin(GL_LINE_LOOP);
+					glVertex2fv(tface->uv[0]);
+					glVertex2fv(tface->uv[1]);
+					glVertex2fv(tface->uv[2]);
+					if(efa->v4) glVertex2fv(tface->uv[3]);
 					glEnd();
-					setlinestyle(0);
-				}
+				}					
 			}
-
-			/* draw active face edges */
-			/*if (activetface){*/
-				/* colors: R=u G=v */
-			activetface = get_active_mtface(&efa, NULL);
-			if (activetface) {
-				setlinestyle(2);
-				tface=activetface; 
-				/*mface=activemface;*/ 
-
-				cpack(0x0);
-				glBegin(GL_LINE_LOOP);
-				glVertex2fv(tface->uv[0]);
-					glVertex2fv(tface->uv[1]);
-					glVertex2fv(tface->uv[2]);
-					if(efa->v4) glVertex2fv(tface->uv[3]);
-				glEnd();
-					
-				cpack(0xFF00);
-				glBegin(GL_LINE_STRIP);
-					glVertex2fv(tface->uv[0]);
-					glVertex2fv(tface->uv[1]);
-				glEnd();
-
-				cpack(0xFF);
-				glBegin(GL_LINE_STRIP);
-					glVertex2fv(tface->uv[0]);
-					if(efa->v4) glVertex2fv(tface->uv[3]);
-					else glVertex2fv(tface->uv[2]);
-				glEnd();
-
-				cpack(0xFFFFFF);
-				glBegin(GL_LINE_STRIP);
-					glVertex2fv(tface->uv[1]);
-					glVertex2fv(tface->uv[2]);
-					if(efa->v4) glVertex2fv(tface->uv[3]);
-				glEnd();
- 				
-				setlinestyle(0);
-			}
-
-            /* unselected uv's */
-			BIF_ThemeColor(TH_VERTEX);
- 			glPointSize(pointsize);
-
-			bglBegin(GL_POINTS);
-			for (efa= em->faces.first; efa; efa= efa->next) {
-				if (efa->f & SELECT) {
-					tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-					if(tface->flag & TF_SEL1); else bglVertex2fv(tface->uv[0]);
-					if(tface->flag & TF_SEL2); else bglVertex2fv(tface->uv[1]);
-					if(tface->flag & TF_SEL3); else bglVertex2fv(tface->uv[2]);
-					if(efa->v4) {
-						if(tface->flag & TF_SEL4); else bglVertex2fv(tface->uv[3]);
-					}
-				}
-			}
-			bglEnd();
-
-			/* pinned uv's */
-			/* give odd pointsizes odd pin pointsizes */
- 	        glPointSize(pointsize*2 + (((int)pointsize % 2)? (-1): 0));
-			cpack(0xFF);
-
-			bglBegin(GL_POINTS);
-			for (efa= em->faces.first; efa; efa= efa->next) {
-				if (efa->f & SELECT) {
-					tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-					if(tface->unwrap & TF_PIN1) bglVertex2fv(tface->uv[0]);
-					if(tface->unwrap & TF_PIN2) bglVertex2fv(tface->uv[1]);
-					if(tface->unwrap & TF_PIN3) bglVertex2fv(tface->uv[2]);
-					if(efa->v4) {
-						if(tface->unwrap & TF_PIN4) bglVertex2fv(tface->uv[3]);
-					}
-				}
-			}
-			bglEnd();
-
-			/* selected uv's */
-			BIF_ThemeColor(TH_VERTEX_SELECT);
- 	        glPointSize(pointsize);
-
-			bglBegin(GL_POINTS);
-			for (efa= em->faces.first; efa; efa= efa->next) {
-				if (efa->f & SELECT) {
-					tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-					if(tface->flag & TF_SEL1) bglVertex2fv(tface->uv[0]);
-					if(tface->flag & TF_SEL2) bglVertex2fv(tface->uv[1]);
-					if(tface->flag & TF_SEL3) bglVertex2fv(tface->uv[2]);
-					if(efa->v4) {
-						if(tface->flag & TF_SEL4) bglVertex2fv(tface->uv[3]);
-					}
-				}
-			}
-			bglEnd();
-
-			glPointSize(1.0);
 		}
 	}
+
+	if((G.sima->flag & SI_DRAWTOOL) || !(G.obedit==OBACT))
+		return; /* only draw shadow mesh */
 	
+	/* draw transparent faces */
+	if(G.f & G_DRAWFACES) {
+		BIF_GetThemeColor4ubv(TH_FACE, col1);
+		BIF_GetThemeColor4ubv(TH_FACE_SELECT, col2);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glEnable(GL_BLEND);
+		
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			if(efa->f & SELECT) {
+				tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				if(!(~tface->flag & (TF_SEL1|TF_SEL2|TF_SEL3)) &&
+				   (!efa->v4 || tface->flag & TF_SEL4))
+					glColor4ubv((GLubyte *)col2);
+				else
+					glColor4ubv((GLubyte *)col1);
+					
+				glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
+					glVertex2fv(tface->uv[0]);
+					glVertex2fv(tface->uv[1]);
+					glVertex2fv(tface->uv[2]);
+					if(efa->v4) glVertex2fv(tface->uv[3]);
+				glEnd();
+			}
+		}
+		glDisable(GL_BLEND);
+	}
+	
+	for (efa= em->faces.first; efa; efa= efa->next) {
+		if (efa->f & SELECT) {
+			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			
+			cpack(0x0);
+			glBegin(GL_LINE_LOOP);
+				glVertex2fv(tface->uv[0]);
+				glVertex2fv(tface->uv[1]);
+				glVertex2fv(tface->uv[2]);
+				if(efa->v4) glVertex2fv(tface->uv[3]);
+			glEnd();
+		
+			setlinestyle(2);
+			cpack(0xFFFFFF);
+			glBegin(GL_LINE_STRIP);
+				glVertex2fv(tface->uv[0]);
+				glVertex2fv(tface->uv[1]);
+			glEnd();
+
+			glBegin(GL_LINE_STRIP);
+				glVertex2fv(tface->uv[0]);
+				if(efa->v4) glVertex2fv(tface->uv[3]);
+				else glVertex2fv(tface->uv[2]);
+			glEnd();
+
+			glBegin(GL_LINE_STRIP);
+				glVertex2fv(tface->uv[1]);
+				glVertex2fv(tface->uv[2]);
+				if(efa->v4) glVertex2fv(tface->uv[3]);
+			glEnd();
+			setlinestyle(0);
+		}
+	}
+
+	/* draw active face edges */
+	/*if (activetface){*/
+		/* colors: R=u G=v */
+	activetface = get_active_mtface(&efa, NULL);
+	if (activetface) {
+		setlinestyle(2);
+		tface=activetface; 
+		/*mface=activemface;*/ 
+
+		cpack(0x0);
+		glBegin(GL_LINE_LOOP);
+		glVertex2fv(tface->uv[0]);
+			glVertex2fv(tface->uv[1]);
+			glVertex2fv(tface->uv[2]);
+			if(efa->v4) glVertex2fv(tface->uv[3]);
+		glEnd();
+			
+		cpack(0xFF00);
+		glBegin(GL_LINE_STRIP);
+			glVertex2fv(tface->uv[0]);
+			glVertex2fv(tface->uv[1]);
+		glEnd();
+
+		cpack(0xFF);
+		glBegin(GL_LINE_STRIP);
+			glVertex2fv(tface->uv[0]);
+			if(efa->v4) glVertex2fv(tface->uv[3]);
+			else glVertex2fv(tface->uv[2]);
+		glEnd();
+
+		cpack(0xFFFFFF);
+		glBegin(GL_LINE_STRIP);
+			glVertex2fv(tface->uv[1]);
+			glVertex2fv(tface->uv[2]);
+			if(efa->v4) glVertex2fv(tface->uv[3]);
+		glEnd();
+		
+		setlinestyle(0);
+	}
+
+    /* unselected uv's */
+	BIF_ThemeColor(TH_VERTEX);
+	glPointSize(pointsize);
+
+	bglBegin(GL_POINTS);
+	for (efa= em->faces.first; efa; efa= efa->next) {
+		if (efa->f & SELECT) {
+			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			if(tface->flag & TF_SEL1); else bglVertex2fv(tface->uv[0]);
+			if(tface->flag & TF_SEL2); else bglVertex2fv(tface->uv[1]);
+			if(tface->flag & TF_SEL3); else bglVertex2fv(tface->uv[2]);
+			if(efa->v4) {
+				if(tface->flag & TF_SEL4); else bglVertex2fv(tface->uv[3]);
+			}
+		}
+	}
+	bglEnd();
+
+	/* pinned uv's */
+	/* give odd pointsizes odd pin pointsizes */
+    glPointSize(pointsize*2 + (((int)pointsize % 2)? (-1): 0));
+	cpack(0xFF);
+
+	bglBegin(GL_POINTS);
+	for (efa= em->faces.first; efa; efa= efa->next) {
+		if (efa->f & SELECT) {
+			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			if(tface->unwrap & TF_PIN1) bglVertex2fv(tface->uv[0]);
+			if(tface->unwrap & TF_PIN2) bglVertex2fv(tface->uv[1]);
+			if(tface->unwrap & TF_PIN3) bglVertex2fv(tface->uv[2]);
+			if(efa->v4) {
+				if(tface->unwrap & TF_PIN4) bglVertex2fv(tface->uv[3]);
+			}
+		}
+	}
+	bglEnd();
+
+	/* selected uv's */
+	BIF_ThemeColor(TH_VERTEX_SELECT);
+    glPointSize(pointsize);
+
+	bglBegin(GL_POINTS);
+	for (efa= em->faces.first; efa; efa= efa->next) {
+		if (efa->f & SELECT) {
+			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			if(tface->flag & TF_SEL1) bglVertex2fv(tface->uv[0]);
+			if(tface->flag & TF_SEL2) bglVertex2fv(tface->uv[1]);
+			if(tface->flag & TF_SEL3) bglVertex2fv(tface->uv[2]);
+			if(efa->v4) {
+				if(tface->flag & TF_SEL4) bglVertex2fv(tface->uv[3]);
+			}
+		}
+	}
+	bglEnd();
+
+	
+	/* Draw the cursor here, this should be in its own function really but it relys on the previous calls to set the view matrix */
+	drawcursor_sima();
+	
+	glPointSize(1.0);
 }
 
 static unsigned int *get_part_from_ibuf(ImBuf *ibuf, short startx, short starty, short endx, short endy)
@@ -1717,8 +1761,9 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 			
 			glPixelZoom(1.0, 1.0);
 			
-			if(show_viewer==0) 
+			if(show_viewer==0) { 
 				draw_tfaces();
+			}
 		}
 
 		glPixelZoom(1.0, 1.0);
