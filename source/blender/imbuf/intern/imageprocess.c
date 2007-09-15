@@ -105,8 +105,8 @@ void bicubic_interpolation(ImBuf *in, ImBuf *out, float x, float y, int xout, in
 	if (in == NULL) return;
 	if (in->rect == NULL && in->rect_float == NULL) return;
 
-	do_rect= (in->rect != NULL);
-	do_float= (in->rect_float != NULL);
+	do_rect= (out->rect != NULL);
+	do_float= (out->rect_float != NULL);
 
 	i= (int)floor(x);
 	j= (int)floor(y);
@@ -170,8 +170,8 @@ void bilinear_interpolation(ImBuf *in, ImBuf *out, float u, float v, int xout, i
 	if (in==NULL) return;
 	if (in->rect==NULL && in->rect_float==NULL) return;
 
-	do_rect= (in->rect != NULL);
-	do_float= (in->rect_float != NULL);
+	do_rect= (out->rect != NULL);
+	do_float= (out->rect_float != NULL);
 
 	x1= (int)floor(u);
 	x2= (int)ceil(u);
@@ -246,8 +246,8 @@ void neareast_interpolation(ImBuf *in, ImBuf *out, float u, float v,int xout, in
 	if (in==NULL) return;
 	if (in->rect==NULL && in->rect_float==NULL) return;
 
-	do_rect= (in->rect != NULL);
-	do_float= (in->rect_float != NULL);
+	do_rect= (out->rect != NULL);
+	do_float= (out->rect_float != NULL);
 
 	x1= (int)(u);
 	y1= (int)(v);
