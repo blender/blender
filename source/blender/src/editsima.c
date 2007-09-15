@@ -265,16 +265,11 @@ void weld_align_tface_uv(char tool)
 	EditMesh *em = G.editMesh;
 	EditFace *efa;
 	MTFace *tface;
-	float min[2], max[2], cent[2];
+	float cent[2];
 	int a;
 	
 	if( is_uv_tface_editing_allowed()==0 ) return;
-
-	if (!minmax_tface_uv(min, max))
-		return;
-
-	cent[0]= (min[0]+max[0])/2.0;
-	cent[1]= (min[1]+max[1])/2.0;
+	cent_tface_uv(cent, 0);
 
 	if(tool == 'x' || tool == 'w') {
 		for (a=0, efa= em->faces.first; efa; efa= efa->next, a++) {
@@ -764,6 +759,108 @@ void borderselect_sima(short whichuvs)
 		scrarea_queue_winredraw(curarea);
 	}
 }
+
+int snap_uv_sel_to_curs(void)
+{
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
+	MTFace *tface;
+	short change = 0;
+
+	for (efa= em->faces.first; efa; efa= efa->next) {
+		if(efa->f & SELECT) {
+			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			if (tface->flag & TF_SEL1) VECCOPY2D(tface->uv[0], G.v2d->cursor);
+			if (tface->flag & TF_SEL2) VECCOPY2D(tface->uv[1], G.v2d->cursor);
+			if (tface->flag & TF_SEL3) VECCOPY2D(tface->uv[2], G.v2d->cursor);
+			if (efa->v4)
+				if (tface->flag & TF_SEL4) VECCOPY2D(tface->uv[3], G.v2d->cursor);
+			change = 1;
+		}
+	}
+	return change;
+}
+
+void snap_coord_to_pixel(float *uvco, float w, float h)
+{
+	uvco[0] = ((float) ((int)((uvco[0]*w) + 0.5))) / w;  
+	uvco[1] = ((float) ((int)((uvco[1]*h) + 0.5))) / h;  
+}
+
+int snap_uv_sel_to_pixels(void) /* warning, sanity checks must alredy be done */
+{
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
+	MTFace *tface;
+	int wi, hi;
+	float w, h;
+	short change = 0;
+
+	transform_width_height_tface_uv(&wi, &hi);
+	w = (float)wi;
+	h = (float)hi;
+	
+	for (efa= em->faces.first; efa; efa= efa->next) {
+		if(efa->f & SELECT) {
+			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			if (tface->flag & TF_SEL1) snap_coord_to_pixel(tface->uv[0], w, h);
+			if (tface->flag & TF_SEL2) snap_coord_to_pixel(tface->uv[1], w, h);
+			if (tface->flag & TF_SEL3) snap_coord_to_pixel(tface->uv[2], w, h);
+			if (efa->v4)
+				if (tface->flag & TF_SEL4) snap_coord_to_pixel(tface->uv[3], w, h);
+			change = 1;
+		}
+	}
+	return change;
+}
+
+void snap_uv_curs_to_pixels(void)
+{
+	int wi, hi;
+	float w, h;
+
+	transform_width_height_tface_uv(&wi, &hi);
+	w = (float)wi;
+	h = (float)hi;
+	snap_coord_to_pixel(G.v2d->cursor, w, h);
+}
+
+int snap_uv_curs_to_sel(void)
+{
+	if( is_uv_tface_editing_allowed()==0 ) return 0;
+	return cent_tface_uv(G.v2d->cursor, 0);
+}
+
+void snap_menu_sima(void)
+{
+	short event;
+	if( is_uv_tface_editing_allowed()==0 || !G.v2d) return; /* !G.v2d should never happen */
+	
+	event = pupmenu("Snap %t|Selection -> Pixels%x1|Selection -> Cursor%x2|Cursor-> Pixel%x3|Cursor-> Selection%x4");
+	switch (event) {
+		case 1:
+		    if (snap_uv_sel_to_pixels()) {
+		    	BIF_undo_push("Snap UV Selection to Pixels");
+		    	object_uvs_changed(OBACT);
+		    }
+		    break;
+		case 2:
+		    if (snap_uv_sel_to_curs()) {
+		    	BIF_undo_push("Snap UV Selection to Cursor");
+		    	object_uvs_changed(OBACT);
+		    }
+		    break;
+		case 3:
+		    snap_uv_curs_to_pixels();
+		    scrarea_queue_winredraw(curarea);
+		    break;
+		case 4:
+		    if (snap_uv_curs_to_sel())
+		    	allqueue(REDRAWIMAGE, 0);
+		    break;
+	}
+}
+
 
 /** This is an ugly function to set the Tface selection flags depending
   * on whether its UV coordinates are inside the normalized 
@@ -1299,8 +1396,44 @@ int minmax_tface_uv(float *min, float *max)
 			sel = 1;
 		}
 	}
-
 	return sel;
+}
+
+int cent_tface_uv(float *cent, int mode)
+{
+	float min[2], max[2];
+	short change= 0;
+	
+	switch (mode) {
+	case 0:
+		if (minmax_tface_uv(min, max))
+			change = 1;
+		break;
+	case 1:
+	{
+		EditFace *efa;
+		MTFace *tf;
+		INIT_MINMAX2(min, max);
+		
+		for (efa= G.editMesh->faces.first; efa; efa= efa->next) {
+			if(efa->f & SELECT && efa->h==0) {
+				tf = CustomData_em_get(&G.editMesh->fdata, efa->data, CD_MTFACE);
+				if (tf->flag & TF_SEL1)				{ DO_MINMAX2(tf->uv[0], min, max);	change= 1;}
+				if (tf->flag & TF_SEL2)				{ DO_MINMAX2(tf->uv[1], min, max);	change= 1;}
+				if (tf->flag & TF_SEL3)				{ DO_MINMAX2(tf->uv[2], min, max);	change= 1;}
+				if (efa->v4 && tf->flag & TF_SEL4)	{ DO_MINMAX2(tf->uv[3], min, max);	change= 1;}
+			}
+		}
+		break;
+	}
+	}
+	
+	if (change) {
+		cent[0]= (min[0]+max[0])/2.0;
+		cent[1]= (min[1]+max[1])/2.0;
+		return 1;
+	}
+	return 0;
 }
 
 static void sima_show_info(int channels, int x, int y, char *cp, float *fp, int *zp, float *zpf)

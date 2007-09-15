@@ -4532,7 +4532,10 @@ static char *around_pup(void)
 	str += sprintf(str, "%s", "|Median Point %x3");
 	str += sprintf(str, "%s", "|3D Cursor %x1");
 	str += sprintf(str, "%s", "|Individual Centers %x2");
-	str += sprintf(str, "%s", "|Active Object %x4");
+	if ((G.obedit) && (G.obedit->type == OB_MESH))
+		str += sprintf(str, "%s", "|Active Vert/Edge/Face %x4");
+	else
+		str += sprintf(str, "%s", "|Active Object %x4");
 	return string;
 }
 

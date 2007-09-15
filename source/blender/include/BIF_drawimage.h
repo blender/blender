@@ -64,6 +64,7 @@ void imagewin_store_spare(void);
 struct ImBuf *imagewindow_get_ibuf(struct SpaceImage *sima);
 
 void image_editvertex_buts(struct uiBlock *block);
+void image_editcursor_buts(struct uiBlock *block);
 
 #endif
 

@@ -225,6 +225,9 @@ void do_image_buttons(unsigned short event)
 	case B_TRANS_IMAGE:
 		image_editvertex_buts(NULL);
 		break;
+	case B_CURSOR_IMAGE:
+		image_editcursor_buts(NULL);
+		break;
 		
 	case B_TWINANIM:
 	{
@@ -455,7 +458,6 @@ static void do_image_viewmenu(void *arg, int event)
 	case 13: /* Realtime Panel... */
 		add_blockhandler(curarea, IMAGE_HANDLER_GAME_PROPERTIES, UI_PNL_UNSTOW);
 		break;
-		
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -469,7 +471,7 @@ static uiBlock *image_viewmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "image_viewmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_image_viewmenu, NULL);
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Properties...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Image Properties...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Real-time Properties...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 13, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Paint Tool...|C",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Curves Tool...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 11, "");
@@ -968,6 +970,9 @@ static void do_image_uvsmenu(void *arg, int event)
 {
 
 	switch(event) {
+	case 0: /* UV Transform Properties Panel... */
+		add_blockhandler(curarea, IMAGE_HANDLER_TRANSFORM_PROPERTIES, UI_PNL_UNSTOW);
+		break;
 	case 1: /* UVs Constrained Rectangular */
 		if(G.sima->flag & SI_BE_SQUARE) G.sima->flag &= ~SI_BE_SQUARE;
 		else G.sima->flag |= SI_BE_SQUARE;
@@ -1020,9 +1025,9 @@ static uiBlock *image_uvsmenu(void *arg_unused)
 
 	block= uiNewBlock(&curarea->uiblocks, "image_uvsmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_image_uvsmenu, NULL);
-
-	// uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Transform Properties...|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
-	// uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties...|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	if(G.sima->flag & SI_PIXELSNAP) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Snap to Pixels|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Snap to Pixels|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
 
@@ -1171,7 +1176,7 @@ void image_buttons(void)
 	xco= std_libbuttons(block, xco, 0, 0, NULL, B_SIMABROWSE, ID_IM, 0, (ID *)ima, 0, &(G.sima->imanr), 0, 0, B_IMAGEDELETE, 0, 0);
 
 	/* UV EditMode buttons */
-	if (EM_texFaceCheck()) {
+	if (EM_texFaceCheck() && (G.sima->flag & SI_DRAWTOOL)==0) {
 		xco+=10;
 		uiDefIconTextButS(block, ICONTEXTROW,B_AROUND, ICON_ROTATE, around_pup(), xco,0,XIC+10,YIC, &(G.v2d->around), 0, 3.0, 0, 0, "Rotation/Scaling Pivot (Hotkeys: Comma, Shift Comma, Period) ");
 		xco+= XIC+15;

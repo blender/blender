@@ -732,6 +732,26 @@ static void draw_image_view_tool(void)
 
 /* ************ panel stuff ************* */
 
+/* this function gets the values for cursor and vertex number buttons */
+static void image_transform_but_attr(int *imx, int *imy, int *step, int *digits) /*, float *xcoord, float *ycoord)*/
+{
+	ImBuf *ibuf= imagewindow_get_ibuf(G.sima);
+	if(ibuf) {
+		*imx= ibuf->x;
+		*imy= ibuf->y;
+	}
+	
+	if (G.sima->flag & SI_COORDFLOATS) {
+		*step= 1;
+		*digits= 3;
+	}
+	else {
+		*step= 100;
+		*digits= 2;
+	}
+}
+
+
 /* is used for both read and write... */
 void image_editvertex_buts(uiBlock *block)
 {
@@ -745,13 +765,7 @@ void image_editvertex_buts(uiBlock *block)
 	
 	if( is_uv_tface_editing_allowed_silent()==0 ) return;
 	
-	if (G.sima->image) {
-		ImBuf *ibuf= imagewindow_get_ibuf(G.sima);
-		if(ibuf) {
-			imx= ibuf->x;
-			imy= ibuf->y;
-		}
-	}
+	image_transform_but_attr(&imx, &imy, &step, &digits);
 	
 	for (efa= em->faces.first; efa; efa= efa->next) {
 		if (!(efa->f & SELECT)) continue;
@@ -784,24 +798,19 @@ void image_editvertex_buts(uiBlock *block)
 			ocent[0]= cent[0]/nactive;
 			ocent[1]= cent[1]/nactive;
 			if (G.sima->flag & SI_COORDFLOATS) {
-				step= 1;
-				digits= 3;
-			}
-			else {
+			} else {
 				ocent[0] *= imx;
 				ocent[1] *= imy;
-				step= 100;
-				digits= 2;
 			}
 			
 			uiBlockBeginAlign(block);
 			if(nactive==1) {
-				uiDefButF(block, NUM, B_TRANS_IMAGE, "Vertex X:",	10, 10, 150, 19, &ocent[0], -10*imx, 10.0*imx, step, digits, "");
-				uiDefButF(block, NUM, B_TRANS_IMAGE, "Vertex Y:",	160, 10, 150, 19, &ocent[1], -10*imy, 10.0*imy, step, digits, "");
+				uiDefButF(block, NUM, B_TRANS_IMAGE, "Vertex X:",	10, 40, 145, 19, &ocent[0], -10*imx, 10.0*imx, step, digits, "");
+				uiDefButF(block, NUM, B_TRANS_IMAGE, "Vertex Y:",	10, 20, 145, 19, &ocent[1], -10*imy, 10.0*imy, step, digits, "");
 			}
 			else {
-				uiDefButF(block, NUM, B_TRANS_IMAGE, "Median X:",	10, 10, 150, 19, &ocent[0], -10*imx, 10.0*imx, step, digits, "");
-				uiDefButF(block, NUM, B_TRANS_IMAGE, "Median Y:",	160, 10, 150, 19, &ocent[1], -10*imy, 10.0*imy, step, digits, "");
+				uiDefButF(block, NUM, B_TRANS_IMAGE, "Median X:",	10, 40, 145, 19, &ocent[0], -10*imx, 10.0*imx, step, digits, "");
+				uiDefButF(block, NUM, B_TRANS_IMAGE, "Median Y:",	10, 20, 145, 19, &ocent[1], -10*imy, 10.0*imy, step, digits, "");
 			}
 			uiBlockEndAlign(block);
 		}
@@ -821,9 +830,6 @@ void image_editvertex_buts(uiBlock *block)
 			delta[1]= ocent[1]/imy - cent[1];
 		}
 
-		/*for (i=0; i<me->totface; i++) {
-			MFace *mf= &((MFace*) me->mface)[i];
-			MTFace *tf= &((MTFace*) me->mtface)[i];*/
 		for (efa= em->faces.first; efa; efa= efa->next) {
 			if (!(efa->f & SELECT)) continue;
 			tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
@@ -850,6 +856,48 @@ void image_editvertex_buts(uiBlock *block)
 		allqueue(REDRAWIMAGE, 0);
 	}
 }
+
+
+/* is used for both read and write... */
+void image_editcursor_buts(uiBlock *block)
+{
+	static float ocent[2];
+	/*float cent[2]= {0.0, 0.0};*/
+	int imx= 256, imy= 256;
+	int step, digits;
+	
+	if( is_uv_tface_editing_allowed_silent()==0 ) return;
+	
+	image_transform_but_attr(&imx, &imy, &step, &digits);
+		
+	if(block) {	// do the buttons
+		ocent[0]= G.v2d->cursor[0];
+		ocent[1]= G.v2d->cursor[1];
+		if (G.sima->flag & SI_COORDFLOATS) {
+		} else {
+			ocent[0] *= imx;
+			ocent[1] *= imy;
+		}
+		
+		uiBlockBeginAlign(block);
+		uiDefButF(block, NUM, B_CURSOR_IMAGE, "Cursor X:",	165, 40, 145, 19, &ocent[0], -10*imx, 10.0*imx, step, digits, "");
+		uiDefButF(block, NUM, B_CURSOR_IMAGE, "Cursor Y:",	165, 20, 145, 19, &ocent[1], -10*imy, 10.0*imy, step, digits, "");
+		uiBlockEndAlign(block);
+	
+	}
+	else {	// apply event
+		if (G.sima->flag & SI_COORDFLOATS) {
+			G.v2d->cursor[0]= ocent[0];
+			G.v2d->cursor[1]= ocent[1];
+		}
+		else {
+			G.v2d->cursor[0]= ocent[0]/imx;
+			G.v2d->cursor[1]= ocent[1]/imy;
+		}
+		allqueue(REDRAWIMAGE, 0);
+	}
+}
+
 
 void image_info(Image *ima, ImBuf *ibuf, char *str)
 {
@@ -900,13 +948,11 @@ static void image_panel_properties(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 	block= uiNewBlock(&curarea->uiblocks, "image_panel_properties", UI_EMBOSS, UI_HELV, curarea->win);
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
 	uiSetPanelHandler(IMAGE_HANDLER_PROPERTIES);  // for close and esc
-	if(uiNewPanel(curarea, block, "Properties", "Image", 10, 10, 318, 204)==0)
+	if(uiNewPanel(curarea, block, "Image Properties", "Image", 10, 10, 318, 204)==0)
 		return;
 	
 	/* note, it draws no bottom half in facemode, for vertex buttons */
 	uiblock_image_panel(block, &G.sima->image, &G.sima->iuser, B_REDR, B_REDR);
-
-	image_editvertex_buts(block);
 }	
 
 static void image_panel_game_properties(short cntrl)	// IMAGE_HANDLER_GAME_PROPERTIES
@@ -944,6 +990,22 @@ static void image_panel_game_properties(short cntrl)	// IMAGE_HANDLER_GAME_PROPE
 		uiDefButBitS(block, TOG, IMA_CLAMP_V, B_SIMAGEDRAW, "ClampY",	230,100,70,19, &G.sima->image->tpageflag, 0, 0, 0, 0, "Disable texture repeating vertically");
 		uiBlockEndAlign(block);		
 	}
+}
+
+static void image_panel_transform_properties(short cntrl)	// IMAGE_HANDLER_TRANSFORM_PROPERTIES
+{
+	uiBlock *block;
+
+	block= uiNewBlock(&curarea->uiblocks, "image_transform_properties", UI_EMBOSS, UI_HELV, curarea->win);
+	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
+	uiSetPanelHandler(IMAGE_HANDLER_TRANSFORM_PROPERTIES);  // for close and esc
+	if(uiNewPanel(curarea, block, "Transform Properties", "Image", 10, 10, 318, 204)==0)
+		return;
+	
+	uiDefButBitI(block, TOG, SI_COORDFLOATS, B_SIMAGEDRAW1, "Normalized Coords",	10,80,140,19, &G.sima->flag, 0, 0, 0, 0, "Display coords from 0.0 to 1.0 rather then in pixels");
+	
+	image_editvertex_buts(block);
+	image_editcursor_buts(block);
 }
 
 static void image_panel_paint(short cntrl)	// IMAGE_HANDLER_PAINT
@@ -1258,6 +1320,10 @@ static void image_blockhandlers(ScrArea *sa)
 			break;
 		case IMAGE_HANDLER_GAME_PROPERTIES:
 			image_panel_game_properties(sima->blockhandler[a+1]);
+			break;
+		case IMAGE_HANDLER_TRANSFORM_PROPERTIES:
+			if (EM_texFaceCheck())
+				image_panel_transform_properties(sima->blockhandler[a+1]);
 			break;
 		case IMAGE_HANDLER_PAINT:
 			image_panel_paint(sima->blockhandler[a+1]);

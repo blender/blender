@@ -332,9 +332,10 @@
 #define B_SIMANAME		381
 #define B_SIMAMULTI		382
 #define B_TRANS_IMAGE		383
-#define B_SIMA_REPACK		384
-#define B_SIMA_PLAY		385
-#define B_SIMA_RECORD		386
+#define B_CURSOR_IMAGE		384
+#define B_SIMA_REPACK		385
+#define B_SIMA_PLAY		386
+#define B_SIMA_RECORD		387
 
 /* BUTS: 400 */
 #define B_BUTSHOME		401

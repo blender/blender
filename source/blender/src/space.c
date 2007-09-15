@@ -4762,7 +4762,7 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		} else if (event == RIGHTMOUSE) {
 			event = LEFTMOUSE;
 		}
-	}		
+	}
 	
 	if (sima->image && (sima->flag & SI_DRAWTOOL)) {
 		switch(event) {
@@ -4891,13 +4891,18 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				break;
 			case SKEY:
-				if((G.qual==0) && is_uv_tface_editing_allowed()) {
-					initTransform(TFM_RESIZE, CTX_NONE);
-					Transform();
+				if (is_uv_tface_editing_allowed()) {
+					if ( G.qual==LR_SHIFTKEY) {
+						/* Snap */
+						snap_menu_sima();
+					} else if (G.qual==0) {
+						initTransform(TFM_RESIZE, CTX_NONE);
+						Transform();
+					}
 				}
 				break;
 			case VKEY:
-				if((G.qual==0))
+				if(G.qual==LR_SHIFTKEY)
 					stitch_uv_tface(0);
 				else if(G.qual==LR_SHIFTKEY)
 					stitch_uv_tface(1);
@@ -4968,7 +4973,11 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			new_image_sima();
 		}
 		else if(G.qual==0) {
-			toggle_blockhandler(sa, IMAGE_HANDLER_PROPERTIES, UI_PNL_TO_MOUSE);
+			if (EM_texFaceCheck()) {
+				toggle_blockhandler(sa, IMAGE_HANDLER_TRANSFORM_PROPERTIES, UI_PNL_TO_MOUSE);
+			} else {
+				toggle_blockhandler(sa, IMAGE_HANDLER_PROPERTIES, UI_PNL_TO_MOUSE);
+			}
 			scrarea_queue_winredraw(sa);
 		}
 		break;

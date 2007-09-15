@@ -1633,8 +1633,7 @@ static void draw_em_fancy_verts(EditMesh *em, DerivedMesh *cageDM)
 			}
 			
 			if(	(G.scene->selectmode & SCE_SELECT_FACE) &&
-				(G.vd->drawtype<=OB_SOLID) &&
-				( !((G.vd->flag & V3D_ZBUF_SELECT) && (G.vd->drawtype==OB_SOLID)) )
+				(G.vd->drawtype<=OB_SOLID)
 			) {
 				glPointSize(fsize);
 				glColor4ubv((GLubyte *)fcol);
@@ -4453,8 +4452,7 @@ static int bbs_mesh_solid_EM(DerivedMesh *dm, int facecol)
 		dm->drawMappedFaces(dm, bbs_mesh_solid__setSolidDrawOptions, (void*)(long) 1, 0);
 
 		if(	(G.scene->selectmode & SCE_SELECT_FACE) &&
-			(G.vd->drawtype<=OB_SOLID) &&
-			( !((G.vd->flag & V3D_ZBUF_SELECT) && (G.vd->drawtype==OB_SOLID)) )
+			(G.vd->drawtype<=OB_SOLID)
 		) {
 			glPointSize(BIF_GetThemeValuef(TH_FACEDOT_SIZE));
 		
