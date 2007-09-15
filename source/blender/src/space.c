@@ -2327,7 +2327,10 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				break;
 			case TKEY:
-				if(G.obedit){
+				if(G.qual == LR_SHIFTKEY) { /* toggle texture in solid draw mode */
+					G.vd->flag2 ^= V3D_SOLID_TEX;
+					allqueue(REDRAWVIEW3D, 0);
+				} else if(G.obedit){
 					if((G.qual & LR_CTRLKEY) && G.obedit->type==OB_MESH) {
 						convert_to_triface(G.qual & LR_SHIFTKEY);
 						allqueue(REDRAWVIEW3D, 0);

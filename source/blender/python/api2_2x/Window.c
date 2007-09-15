@@ -993,7 +993,6 @@ static PyObject *M_Window_ViewLayers( PyObject * self, PyObject * args )
 		}
 		
 		if (winid==-1) {
-			printf("Doing WINIID NOT!!!\n");
 			/* set scene and viewport */
 			G.scene->lay = layer;
 			if (G.vd) {

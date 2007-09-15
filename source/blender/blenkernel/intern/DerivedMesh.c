@@ -1793,7 +1793,7 @@ CustomDataMask get_viewedit_datamask()
 					/* this includes normals for mesh_create_shadedColors */
 					mask |= CD_MASK_MTFACE | CD_MASK_MCOL | CD_MASK_NORMAL;
 				}
-				if(view->drawtype == OB_TEXTURE) {
+				if((view->drawtype == OB_TEXTURE) || ((view->drawtype == OB_SOLID) && (view->flag2 & V3D_SOLID_TEX))) {
 					mask |= CD_MASK_MTFACE | CD_MASK_MCOL;
 				}
 			}

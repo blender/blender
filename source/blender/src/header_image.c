@@ -1240,7 +1240,7 @@ void image_buttons(void)
 
 	/* draw LOCK */
 	uiDefIconButS(block, ICONTOG, 0, ICON_UNLOCKED,	xco,0,XIC,YIC, &(G.sima->lock), 0, 0, 0, 0, "Updates other affected window spaces automatically to reflect changes in real time");
-
+	
 	/* Always do this last */
 	curarea->headbutlen= xco+2*XIC;
 	

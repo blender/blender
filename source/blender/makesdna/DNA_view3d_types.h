@@ -164,10 +164,12 @@ typedef struct View3D {
 #define V3D_CLIPPING		16384
 #define V3D_DRAW_CENTERS	32768
 
+
 /* View3d->flag2 (short) */
 #define V3D_OPP_DIRECTION_NAME	1
 #define V3D_FLYMODE				2
 #define V3D_TRANSFORM_SNAP		4
+#define V3D_SOLID_TEX			8
 
 /* View3d->snap_target */
 #define V3D_SNAP_TARGET_CLOSEST	0

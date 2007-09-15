@@ -1201,7 +1201,7 @@ void draw_mesh_textured(Object *ob, DerivedMesh *dm, int faceselect)
 #endif
 
 	/* draw game engine text hack - but not if we are editing the mesh */
-	if (get_property(ob, "Text") && me->mtface) {
+	if (me->mtface && get_property(ob, "Text")) {
 		if(ob==G.obedit)
 			editing= 1;
 		else if(ob==OBACT)

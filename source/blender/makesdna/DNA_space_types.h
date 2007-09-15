@@ -461,24 +461,25 @@ typedef struct SpaceImaSel {
 #define SI_SHOW			1
 
 /* SpaceImage->flag */
-#define SI_BE_SQUARE	1
-#define SI_EDITTILE		2
-#define SI_CLIP_UV		4
-#define SI_DRAWTOOL		8
-#define SI_STICKYUVS    16
-#define SI_DRAWSHADOW   32
-#define SI_SELACTFACE   64
-#define SI_DEPRECATED	128
-#define SI_LOCALSTICKY  256
-#define SI_COORDFLOATS  512
-#define SI_PIXELSNAP	1024
-#define SI_LIVE_UNWRAP	2048
-#define SI_USE_ALPHA	0x1000
-#define SI_SHOW_ALPHA	0x2000
-#define SI_SHOW_ZBUF	0x4000
+#define SI_BE_SQUARE	1<<0
+#define SI_EDITTILE		1<<1
+#define SI_CLIP_UV		1<<2
+#define SI_DRAWTOOL		1<<3
+#define SI_STICKYUVS    1<<4
+#define SI_DRAWSHADOW   1<<5
+#define SI_SELACTFACE   1<<6
+#define SI_DEPRECATED	1<<7
+#define SI_LOCALSTICKY  1<<8
+#define SI_COORDFLOATS  1<<9
+#define SI_PIXELSNAP	1<<10
+#define SI_LIVE_UNWRAP	1<<11
+#define SI_USE_ALPHA	1<<12
+#define SI_SHOW_ALPHA	1<<13
+#define SI_SHOW_ZBUF	1<<14
 		/* next two for render window dislay */
-#define SI_PREVSPACE	0x8000
-#define SI_FULLWINDOW	0x10000
+#define SI_PREVSPACE	1<<15
+#define SI_FULLWINDOW	1<<16
+#define SI_SYNC_UVSEL	1<<17
 
 /* SpaceText flags (moved from DNA_text_types.h) */
 

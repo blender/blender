@@ -2474,6 +2474,7 @@ static void view3d_panel_properties(short cntrl)	// VIEW3D_HANDLER_SETTINGS
 	uiDefButBitS(block, TOG, V3D_SELECT_OUTLINE, REDRAWVIEW3D, "Outline Selected", 10, 30, 140, 19, &vd->flag, 0, 0, 0, 0, "Highlight selected objects with an outline, in Solid, Shaded or Textured viewport shading modes");
 	uiDefButBitS(block, TOG, V3D_DRAW_CENTERS, REDRAWVIEW3D, "All Object Centers", 10, 10, 140, 19, &vd->flag, 0, 0, 0, 0, "Draw the center points on all objects");
 	uiDefButBitS(block, TOGN, V3D_HIDE_HELPLINES, REDRAWVIEW3D, "Relationship Lines", 10, -10, 140, 19, &vd->flag, 0, 0, 0, 0, "Draw dashed lines indicating Parent, Constraint, or Hook relationships");
+	uiDefButBitS(block, TOG, V3D_SOLID_TEX, REDRAWVIEW3D, "Solid Tex", 10, -30, 140, 19, &vd->flag2, 0, 0, 0, 0, "Display textures in Solid draw type (Shift T)");
 	uiBlockEndAlign(block);
 
 	uiDefBut(block, LABEL, 1, "View Locking:",				160, 50, 150, 19, NULL, 0.0, 0.0, 0, 0, "");

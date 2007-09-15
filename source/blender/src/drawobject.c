@@ -1947,9 +1947,9 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, Derived
 	EM_init_index_arrays(1, 1, 1);
 
 	if(dt>OB_WIRE) {
-		if(G.vd->drawtype==OB_TEXTURE && dt>OB_SOLID) {
-			draw_mesh_textured(ob, finalDM, 0);
-		} else if(G.vd->drawtype==OB_SHADED && dt>OB_SOLID) {
+		if(		(G.vd->drawtype==OB_TEXTURE && dt>OB_SOLID) ||
+				(G.vd->drawtype==OB_SOLID && G.vd->flag2 & V3D_SOLID_TEX)
+		) {
 			draw_mesh_textured(ob, finalDM, 0);
 		} else {
 			glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, me->flag & ME_TWOSIDED);
@@ -2257,7 +2257,10 @@ static void draw_mesh_fancy(Base *base, int dt, int flag)
 	else if(dt==OB_WIRE || totface==0) {
 		draw_wire = 1;
 	}
-	else if( (ob==OBACT && (G.f & G_TEXTUREPAINT || FACESEL_PAINT_TEST)) || (G.vd->drawtype==OB_TEXTURE && dt>OB_SOLID)) {
+	else if(	(ob==OBACT && (G.f & G_TEXTUREPAINT || FACESEL_PAINT_TEST)) ||
+				(G.vd->drawtype==OB_TEXTURE && dt>OB_SOLID) ||
+				(G.vd->drawtype==OB_SOLID && G.vd->flag2 & V3D_SOLID_TEX))
+	{
 		int faceselect= (ob==OBACT && FACESEL_PAINT_TEST);
 
 		if ((G.vd->flag&V3D_SELECT_OUTLINE) && (base->flag&SELECT) && !(G.f&G_PICKSEL || FACESEL_PAINT_TEST) && !draw_wire) {
@@ -4239,7 +4242,7 @@ void draw_object(Base *base, int flag)
 				BMF_DrawString(G.font, ob->id.name+2);
 			}
 		}
-		if(dtx & OB_DRAWIMAGE) drawDispListwire(&ob->disp);
+		/*if(dtx & OB_DRAWIMAGE) drawDispListwire(&ob->disp);*/
 		if((dtx & OB_DRAWWIRE) && dt>=OB_SOLID) drawWireExtra(ob);
 	}
 
