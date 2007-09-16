@@ -107,6 +107,7 @@ Important to know is that 'streaming' has been added to files, for Blender Publi
 #include "DNA_actuator_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_cloth_types.h"
 #include "DNA_color_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_controller_types.h"
@@ -154,6 +155,7 @@ Important to know is that 'streaming' has been added to files, for Blender Publi
 #include "BKE_action.h"
 #include "BKE_bad_level_calls.h" // build_seqar (from WHILE_SEQ) free_oops error
 #include "BKE_blender.h"
+#include "BKE_cloth.h"
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
 #include "BKE_constraint.h"
@@ -826,6 +828,20 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 			HookModifierData *hmd = (HookModifierData*) md;
 
 			writedata(wd, DATA, sizeof(int)*hmd->totindex, hmd->indexar);
+	}
+	else if (md->type==eModifierType_Cloth) {
+		   int					n;
+		   ClothModifierData	*clmd = (ClothModifierData *) md;
+		/*
+		   if ((clmd->sim_parms.flags & CSIMSETT_FLAG_BAKED) && clmd->baked_data) {
+			  // Compute the number of vertices we're saving.
+			   
+			  n = (clmd->sim_parms.bake_end_frame - clmd->sim_parms.bake_start_frame + 1) *
+				 clmd->sim_parms.bake_num_verts;
+			  writedata (wd, DATA, n *  sizeof (clmd->baked_data [0]), clmd->baked_data);
+			  printf ("write_modifiers: wrote %d elements of size %d for cloth baked data.\n",
+					  n, sizeof (clmd->baked_data [0]));
+		   }*/
 		}
 	}
 }

@@ -283,6 +283,13 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_GROUP_RELINK			1460
 #define B_OBJECT_IPOFLAG		1461
 
+
+/* Cloth sim button defines */
+#define B_CLOTH_CLEARCACHEALL	        1470
+#define B_CLOTH_CLEARCACHEFRAME	        1471
+#define B_CLOTH_CHANGEPREROLL			1472
+#define B_CLOTH_DEL_VG					1473
+
 /* *********************** */
 #define B_WORLDBUTS		1600
 

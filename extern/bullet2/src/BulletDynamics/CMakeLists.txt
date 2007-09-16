@@ -14,6 +14,7 @@ ADD_LIBRARY(LibBulletDynamics
 	Dynamics/btDiscreteDynamicsWorld.cpp
 	Dynamics/btSimpleDynamicsWorld.cpp
 	Dynamics/btRigidBody.cpp
+	Dynamics/Bullet-C-Api.cpp
 	Vehicle/btRaycastVehicle.cpp
 	Vehicle/btWheelInfo.cpp
 )

@@ -127,6 +127,7 @@ char *includefiles[] = {
 	"DNA_color_types.h",
 	"DNA_brush_types.h",
 	"DNA_customdata_types.h",
+	"DNA_cloth_types.h",
 	// if you add files here, please add them at the end
 	// of makesdna.c (this file) as well
 
@@ -1144,4 +1145,5 @@ int main(int argc, char ** argv)
 #include "DNA_color_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_customdata_types.h"
+#include "DNA_cloth_types.h"
 /* end of list */

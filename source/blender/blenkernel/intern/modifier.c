@@ -51,6 +51,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_armature_types.h"
+#include "DNA_cloth_types.h"
 #include "DNA_effect_types.h"
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -84,6 +85,7 @@
 #include "BKE_object.h"
 #include "BKE_mesh.h"
 #include "BKE_softbody.h"
+#include "BKE_cloth.h"
 #include "BKE_material.h"
 #include "depsgraph_private.h"
 
@@ -4855,6 +4857,94 @@ static void softbodyModifier_deformVerts(
 	sbObjectStep(ob, (float)G.scene->r.cfra, vertexCos, numVerts);
 }
 
+
+/* Cloth */
+
+static void clothModifier_initData(ModifierData *md) 
+{
+	ClothModifierData *clmd = (ClothModifierData*) md;
+	cloth_init (clmd);
+}
+
+static void clothModifier_deformVerts(
+		ModifierData *md, Object *ob, DerivedMesh *derivedData,
+		float (*vertexCos)[3], int numVerts)
+{
+	DerivedMesh *dm = NULL;
+
+	// if possible use/create DerivedMesh
+	if(derivedData) dm = CDDM_copy(derivedData);
+	else if(ob->type==OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
+	
+	if(dm)
+	{
+		CDDM_apply_vert_coords(dm, vertexCos);
+		CDDM_calc_normals(dm);
+	}
+	
+	clothModifier_do((ClothModifierData *)md, ob, dm, vertexCos, numVerts);
+	
+	if(dm)
+		dm->release(dm);
+}
+
+static void clothModifier_updateDepgraph(
+                ModifierData *md, DagForest *forest, Object *ob,
+                DagNode *obNode)
+{
+	ClothModifierData *clmd = (ClothModifierData*) md;
+	
+	Base *base;
+	
+	if(clmd)
+	{
+		for(base = G.scene->base.first; base; base= base->next) 
+		{
+			Object *ob1= base->object;
+			if(ob1 != ob)
+			{
+				ClothModifierData *coll_clmd = (ClothModifierData *)modifiers_findByType(ob1, eModifierType_Cloth);
+				if(coll_clmd)
+				{					
+					if (coll_clmd->sim_parms.flags & CSIMSETT_FLAG_COLLOBJ) 
+					{
+						DagNode *curNode = dag_get_node(forest, ob1);					
+						dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA);
+					}
+				}
+			}
+		}
+	}
+	
+}
+
+CustomDataMask clothModifier_requiredDataMask(ModifierData *md)
+{
+	ClothModifierData *clmd = (HookModifierData *)md;
+	CustomDataMask dataMask = 0;
+
+	/* ask for vertexgroups if we need them */
+	if(clmd->sim_parms.flags & CSIMSETT_FLAG_GOAL)
+		if (clmd->sim_parms.vgroup_mass > 0)
+	 		dataMask |= (1 << CD_MDEFORMVERT);
+
+	return dataMask;
+}
+
+
+static int clothModifier_dependsOnTime(ModifierData *md)
+{
+	return 1;
+}
+
+static void clothModifier_freeData(ModifierData *md)
+{
+	ClothModifierData *clmd = (ClothModifierData*) md;
+
+	if (clmd) 
+	    cloth_free_modifier (clmd);  
+}
+
 /* Boolean */
 
 static void booleanModifier_copyData(ModifierData *md, ModifierData *target)
@@ -5139,6 +5229,21 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->flags = eModifierTypeFlag_AcceptsCVs
 		             | eModifierTypeFlag_RequiresOriginalData;
 		mti->deformVerts = softbodyModifier_deformVerts;
+	
+		mti = INIT_TYPE(Cloth);
+		mti->type = eModifierTypeType_OnlyDeform;
+		mti->initData = clothModifier_initData;
+		mti->flags = eModifierTypeFlag_AcceptsCVs;
+					// | eModifierTypeFlag_RequiresOriginalData;
+		 			// | eModifierTypeFlag_SupportsMapping
+					// | eModifierTypeFlag_SupportsEditmode 
+					// | eModifierTypeFlag_EnableInEditmode;
+		mti->dependsOnTime = clothModifier_dependsOnTime;
+		mti->freeData = clothModifier_freeData; 
+		mti->requiredDataMask = clothModifier_requiredDataMask;
+		// mti->copyData = clothModifier_copyData;
+		mti->deformVerts = clothModifier_deformVerts;
+		mti->updateDepgraph = clothModifier_updateDepgraph;
 
 		mti = INIT_TYPE(Boolean);
 		mti->type = eModifierTypeType_Nonconstructive;

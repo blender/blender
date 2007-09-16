@@ -60,6 +60,7 @@
 #include "DNA_actuator_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_cloth_types.h"
 #include "DNA_color_types.h"
 #include "DNA_controller_types.h"
 #include "DNA_constraint_types.h"
@@ -112,6 +113,7 @@
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
+#include "BKE_cloth.h"
 #include "BKE_colortools.h"
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
@@ -2871,7 +2873,18 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			SubsurfModifierData *smd = (SubsurfModifierData*) md;
 
 			smd->emCache = smd->mCache = 0;
-		} else if (md->type==eModifierType_Hook) {
+		} 
+		else if (md->type==eModifierType_Cloth) {
+		   ClothModifierData	*clmd = (ClothModifierData*) md;
+
+		   clmd->clothObject = NULL;
+			/*
+		   if (clmd->sim_parms.flags & CSIMSETT_FLAG_BAKED) {
+			  clmd->baked_data = newdataadr (fd, clmd->baked_data);
+			  printf ("direct_link_modifiers: read cloth baked_data.\n");
+		   }*/
+		} 
+		else if (md->type==eModifierType_Hook) {
 			HookModifierData *hmd = (HookModifierData*) md;
 
 			hmd->indexar= newdataadr(fd, hmd->indexar);

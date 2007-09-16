@@ -9,6 +9,8 @@
 
 /* WARNING ALERT! TYPEDEF VALUES ARE WRITTEN IN FILES! SO DO NOT CHANGE! */
 
+#include "DNA_cloth_types.h"
+
 typedef enum ModifierType {
 	eModifierType_None = 0,
 	eModifierType_Subsurf,
@@ -28,6 +30,7 @@ typedef enum ModifierType {
 	eModifierType_UVProject,
 	eModifierType_Smooth,
 	eModifierType_Cast,
+	eModifierType_Cloth,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -334,6 +337,14 @@ typedef struct HookModifierData {
 typedef struct SoftbodyModifierData {
 	ModifierData modifier;
 } SoftbodyModifierData;
+
+typedef struct ClothModifierData {
+   ModifierData		modifier;
+    	
+   Cloth		*clothObject;	/* The internal data structure for cloth.		*/
+   SimulationSettings	sim_parms;	/* definition is in DNA_cloth_types.h			*/
+   CollisionSettings	coll_parms;	/* definition is in DNA_cloth_types.h			*/
+} ClothModifierData;
 
 typedef enum {
 	eBooleanModifierOp_Intersect,

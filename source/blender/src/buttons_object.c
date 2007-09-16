@@ -86,6 +86,7 @@
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_camera_types.h"
+#include "DNA_cloth_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_effect_types.h"
@@ -113,6 +114,7 @@
 
 #include "BKE_anim.h"
 #include "BKE_armature.h"
+#include "BKE_cloth.h"
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
 #include "BKE_deform.h"
@@ -844,7 +846,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				/* Draw target parameters */
 				uiBlockBeginAlign(block);
 				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
-				
+
 				if (is_armature_target) {
 					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
@@ -900,7 +902,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				}
 				
 				uiBlockEndAlign(block);
-				
+
 				/* Draw XYZ toggles */
 				uiBlockBeginAlign(block);
 				but=uiDefButBitI(block, TOG, SIZELIKE_X, B_CONSTRAINT_TEST, "X", *xco+((width/2)-48), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy X component");
@@ -920,7 +922,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-				
+
 				/* Draw target parameters */
 				uiDefButBitS(block, TOG, CONSTRAINT_IK_ROT, B_CONSTRAINT_TEST, "Rot", *xco, *yco-24,60,19, &data->flag, 0, 0, 0, 0, "Chain follows rotation of target");
 				
@@ -2144,8 +2146,61 @@ void do_object_panels(unsigned short event)
 	case B_OBJECT_IPOFLAG:
 		if(ob->ipo) ob->ipo->showkey= (ob->ipoflag & OB_DRAWKEY)?1:0;
 		allqueue(REDRAWVIEW3D, 0);
+	case B_CLOTH_CLEARCACHEALL:
+		{
+			ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+			if(clmd)
+			{
+				CFRA= 1;
+				update_for_newframe_muted();
+				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA); 
+				clmd->sim_parms.flags |= CSIMSETT_FLAG_CCACHE_FREE_PART;
+				cloth_cache_free(clmd, 1); 
+				allqueue(REDRAWBUTSOBJECT, 0);
+				allqueue(REDRAWVIEW3D, 0);
+			}	
+		}
+		break;	
+	case B_CLOTH_CLEARCACHEFRAME:
+		{
+			ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+			if(clmd)
+			{
+				clmd->sim_parms.flags |= CSIMSETT_FLAG_CCACHE_FREE_PART;
+				cloth_cache_free(clmd, G.scene->r.cfra);
+				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA); 
+				allqueue(REDRAWBUTSOBJECT, 0);
+				allqueue(REDRAWVIEW3D, 0);
+			}
+		}
+		break;	
+	case B_CLOTH_CHANGEPREROLL:
+		{
+			ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+			if(clmd)
+			{
+				if(clmd->sim_parms.cache)
+				{
+					CFRA= 1;
+					update_for_newframe_muted();
+					DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA); 
+					allqueue(REDRAWBUTSOBJECT, 0);
+					allqueue(REDRAWVIEW3D, 0);
+				}
+			}
+		}
 		break;
-		
+	case B_CLOTH_DEL_VG:
+		{
+			ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+			if(clmd)
+			{
+				clmd->sim_parms.vgroup_mass = 0;
+			}
+			
+			allqueue(REDRAWBUTSOBJECT, 0);
+		}
+		break;	
 	default:
 		if(event>=B_SELEFFECT && event<B_SELEFFECT+MAX_EFFECT) {
 			int a=B_SELEFFECT;
@@ -3000,6 +3055,231 @@ static void object_softbodies(Object *ob)
 	uiBlockEndAlign(block);
 }
 
+/* Panel for cloth */
+static void object_cloth__enabletoggle(void *ob_v, void *arg2)
+{
+	Object *ob = ob_v;
+	ModifierData *md = modifiers_findByType(ob, eModifierType_Cloth);
+
+	if (!md) {
+		md = modifier_new(eModifierType_Cloth);
+		BLI_addhead(&ob->modifiers, md);
+	}
+	else {
+		BLI_remlink(&ob->modifiers, md);
+		modifier_free(md);
+	}
+
+	allqueue(REDRAWBUTSEDIT, 0);
+}
+
+static void object_panel_cloth(Object *ob)
+{
+	uiBlock *block;
+	static int val, val2;
+	uiBut *but;
+	ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+	block= uiNewBlock(&curarea->uiblocks, "object_panel_cloth", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Cloth", "Physics", 640, 0, 318, 204)==0) return;
+
+	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
+	val = ((clmd)?(1):(0));
+
+	but = uiDefButI(block, TOG, REDRAWBUTSOBJECT, "Cloth Object",	10,200,130,20, &val, 0, 0, 0, 0, "Sets object to become cloth");
+	uiButSetFunc(but, object_cloth__enabletoggle, ob, NULL);
+	uiDefBut(block, LABEL, 0, "",10,10,300,0, NULL, 0.0, 0, 0, 0, ""); /* tell UI we go to 10,10*/
+	
+	if(clmd)
+	{
+		but = uiDefButBitI(block, TOG, CSIMSETT_FLAG_COLLOBJ, B_EFFECT_DEP, "Collision Object",	170,200,130,20, &clmd->sim_parms.flags, 0, 0, 0, 0, "Sets object to become a cloth collision object");
+		// uiButSetFunc(but, object_cloth__enabletoggle, ob, NULL);
+
+		if (!(clmd->sim_parms.flags & CSIMSETT_FLAG_COLLOBJ))
+		{
+			Cloth *cloth = clmd->clothObject;
+			int defCount;
+			char *clvg1, *clvg2;
+			char clmvg [] = "Mass Vertex Group%t|None%x0|";
+	
+			val2=0;
+	
+	//		uiDefButBitI(block, TOG, CSIMSETT_FLAG_ADVANCED, REDRAWBUTSOBJECT, "Advanced",	180,200,130,20, &clmd->sim_parms.flags, 0, 0, 0, 0, "Enable advanced mode");
+			
+			/* GENERAL STUFF */
+			uiClearButLock();
+			uiBlockBeginAlign(block);
+			uiDefButF(block, NUM, B_DIFF, "StructStiff:",	   10,170,150,20, &clmd->sim_parms.structural, 1.0, 5000.0, 100, 0, "Overall stiffness of structure");
+			uiDefButF(block, NUM, B_DIFF, "BendStiff:",	   160,170,150,20, &clmd->sim_parms.bending, 0.0, 1000.0, 1000, 0, "Wrinkle possibility");
+			uiDefButI(block, NUM, B_DIFF, "Steps per Frame:",	   10,150,150,20, &clmd->sim_parms.stepsPerFrame, 1.0, 100.0, 5, 0, "Quality of the simulation (higher=better=slower)");
+			uiBlockEndAlign(block);
+			uiBlockBeginAlign(block);
+			uiDefButF(block, NUM, B_DIFF, "Spring Damp:",	   160,150,150,20, &clmd->sim_parms.Cdis, 0.0, 10.0, 10, 0, "Apply gravitation to point movement");
+			uiDefButF(block, NUM, B_DIFF, "Air Damp:",	   10,130,150,20, &clmd->sim_parms.Cvi, 0.0, 10.0, 10, 0, "Apply gravitation to point movement");
+			uiBlockEndAlign(block);			
+			
+			uiClearButLock();
+			
+			uiBlockBeginAlign(block);
+			uiDefBut(block, LABEL, 0, "Gravity:",  10,100,60,20, NULL, 0.0, 0, 0, 0, "");
+			// uiClearButLock();
+			
+			uiDefButF(block, NUM, B_DIFF, "X:",	   70,100,80,20, &clmd->sim_parms.gravity[0], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
+			uiDefButF(block, NUM, B_DIFF, "Y:",	   150,100,80,20, &clmd->sim_parms.gravity[1], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
+			uiDefButF(block, NUM, B_DIFF, "Z:",	   230,100,80,20, &clmd->sim_parms.gravity[2], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
+			uiBlockEndAlign(block);
+			
+			/* GOAL STUFF */
+			uiBlockBeginAlign(block);
+			uiDefButBitI(block, TOG, CSIMSETT_FLAG_GOAL, REDRAWVIEW3D, "Use Goal",	10,70,130,20, &clmd->sim_parms.flags, 0, 0, 0, 0, "Define forces for vertices to stick to animated position");
+			if (clmd->sim_parms.flags & CSIMSETT_FLAG_GOAL)
+			{
+				if(ob->type==OB_MESH) 
+				{
+					
+					defCount = sizeof (clmvg);
+					clvg1 = get_vertexgroup_menustr (ob);
+					clvg2 = MEM_callocN (strlen (clvg1) + 1 + defCount, "clothVgMS");
+					if (! clvg2) {
+						printf ("draw_modifier: error allocating memory for cloth vertex group menu string.\n");
+						return;
+					}
+					defCount = BLI_countlist (&ob->defbase);
+					if (defCount == 0) 
+					{
+						clmd->sim_parms.vgroup_mass = 0;
+					}
+					sprintf (clvg2, "%s%s", clmvg, clvg1);
+					
+					uiDefButS(block, MENU, REDRAWVIEW3D, clvg2,	140,70,20,20, &clmd->sim_parms.vgroup_mass, 0, defCount, 0, 0, "Browses available vertex groups");	
+					MEM_freeN (clvg1);
+					MEM_freeN (clvg2);
+					
+					if(clmd->sim_parms.vgroup_mass) 
+					{
+						bDeformGroup *defGroup = BLI_findlink(&ob->defbase, clmd->sim_parms.vgroup_mass-1);
+						if(defGroup)
+							uiDefBut(block, BUT, B_DIFF, defGroup->name,	160,70,130,20, NULL, 0.0, 0.0, 0, 0, "Name of current vertex group");
+						else
+							uiDefBut(block, BUT, B_DIFF, "(no group)",	160,70,130,20, NULL, 0.0, 0.0, 0, 0, "Vertex Group doesn't exist anymore");
+						
+						uiDefIconBut(block, BUT, B_CLOTH_DEL_VG, ICON_X, 290,70,20,20, 0, 0, 0, 0, 0, "Disable use of vertex group");
+						
+					}
+					else
+						uiDefButF(block, NUM, REDRAWVIEW3D, "Goal:",	160,70,150,20, &clmd->sim_parms.defgoal, 0.0, 1.0, 10, 0, "Default Goal (vertex target position) value, when no Vertex Group used");
+				
+				}
+				else 
+				{
+					uiDefButS(block, TOG, REDRAWVIEW3D, "W",			140,70,20,20, &clmd->sim_parms.vgroup_mass, 0, 1, 0, 0, "Use control point weight values");
+					uiDefButF(block, NUM, REDRAWVIEW3D, "Goal:",	160,70,150,20, &clmd->sim_parms.defgoal, 0.0, 1.0, 10, 0, "Default Goal (vertex target position) value, when no Vertex Group used");
+				}
+				
+				uiDefButF(block, NUM, B_DIFF, "G Stiff:",	10,50,150,20, &clmd->sim_parms.goalspring, 0.0, 500.0, 10, 0, "Goal (vertex target position) spring stiffness");
+				uiDefButF(block, NUM, B_DIFF, "G Damp:",	160,50,150,20, &clmd->sim_parms.goalfrict  , 0.0, 50.0, 10, 0, "Goal (vertex target position) friction");
+				uiDefButF(block, NUM, REDRAWVIEW3D, "G Min:",		10,30,150,20, &clmd->sim_parms.mingoal, 0.0, 1.0, 10, 0, "Goal minimum, vertex group weights are scaled to match this range");
+				uiDefButF(block, NUM, REDRAWVIEW3D, "G Max:",		160,30,150,20, &clmd->sim_parms.maxgoal, 0.0, 1.0, 10, 0, "Goal maximum, vertex group weights are scaled to match this range");
+			}
+			uiBlockEndAlign(block);	
+			
+			/*
+			// no tearing supported anymore since modifier stack restrictions 
+			uiBlockBeginAlign(block);
+			uiDefButBitI(block, TOG, CSIMSETT_FLAG_TEARING_ENABLED, B_EFFECT_DEP, "Tearing",	10,0,150,20, &clmd->sim_parms.flags, 0, 0, 0, 0, "Sets object to become a cloth collision object");
+			
+			if (clmd->sim_parms.flags & CSIMSETT_FLAG_TEARING_ENABLED)
+			{
+				uiDefButI(block, NUM, B_DIFF, "Max extent:",	   160,0,150,20, &clmd->sim_parms.maxspringlen, 1.0, 1000.0, 10, 0, "Maximum extension before spring gets cut");
+			}
+			
+			uiBlockEndAlign(block);	
+			*/
+		}
+	}
+}
+
+
+static void object_panel_cloth_II(Object *ob)
+{
+	uiBlock *block;
+	static int val;
+	uiBut *but;
+	ClothModifierData *clmd = NULL;
+	
+	clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+	if(clmd)
+	{
+		if (!(clmd->sim_parms.flags & CSIMSETT_FLAG_COLLOBJ))
+		{
+			Cloth *cloth = clmd->clothObject;
+			char str[128];
+			
+			block= uiNewBlock(&curarea->uiblocks, "object_panel_cloth_II", UI_EMBOSS, UI_HELV, curarea->win);
+			uiNewPanelTabbed("Cloth", "Physics");
+			if(uiNewPanel(curarea, block, "Cloth Cache", "Physics", 651, 0, 318, 204)==0) return;
+		
+			uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+
+			if(clmd->sim_parms.cache)
+			{
+				int length = BLI_linklist_length(clmd->sim_parms.cache);
+				
+				/* correct spelling if only 1 frame cacheed --> only gimmick  */
+				if(length-clmd->sim_parms.preroll>1)
+					sprintf (str, "Frame 1 - %d cached. [%d in preroll, %d in total]", length-clmd->sim_parms.preroll, clmd->sim_parms.preroll, length);
+				else
+					sprintf (str, "Frame %d cached. [%d in preroll, %d in total]", length-clmd->sim_parms.preroll, clmd->sim_parms.preroll, length);
+				
+				uiDefBut(block, LABEL, 0, str,  10,160,290,20, NULL, 0.0, 0, 0, 0, "");
+				uiDefBut(block, LABEL, 0, "Clear cache:",  10,140,290,20, NULL, 0.0, 0, 0, 0, "");
+				uiBlockBeginAlign (block);
+				uiDefBut(block, BUT, B_CLOTH_CLEARCACHEALL, "All", 10, 120,145,20, NULL, 0.0, 0.0, 0, 0, "Free cloth cache without preroll");
+				uiDefBut(block, BUT, B_CLOTH_CLEARCACHEFRAME, "From next frame", 155, 120,145,20, NULL, 0.0, 0.0, 0, 0, "Free cloth cache");	
+				if(length>1) // B_CLOTH_CHANGEPREROLL
+					uiDefButI(block, NUM, B_CLOTH_CHANGEPREROLL, "Preroll:", 10,100,145,20, &clmd->sim_parms.preroll, 0, length-1, 1, 0, "Simulation starts on this frame");
+			}
+			else
+			{
+				uiDefBut(block, LABEL, 0, "No frames cached.",  10,140,290,20, NULL, 0.0, 0, 0, 0, "");
+			}
+			uiBlockEndAlign(block);
+		}
+	}
+	// uiBlockEndAlign(block);
+}
+
+static void object_panel_cloth_III(Object *ob)
+{
+	uiBlock *block;
+	static int val;
+	uiBut *but;
+	ClothModifierData *clmd = NULL;
+	
+	clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+	if(clmd)
+	{
+		if (!(clmd->sim_parms.flags & CSIMSETT_FLAG_COLLOBJ))
+		{
+			Cloth *cloth = clmd->clothObject;
+			char str[128];
+			
+			block= uiNewBlock(&curarea->uiblocks, "object_panel_cloth_III", UI_EMBOSS, UI_HELV, curarea->win);
+			uiNewPanelTabbed("Cloth", "Physics");
+			if(uiNewPanel(curarea, block, "Cloth Collisions", "Physics", 651, 0, 318, 204)==0) return;
+		
+			uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+			
+			uiBlockBeginAlign(block);
+			// uiDefBut(block, LABEL, 0, "",10,10,300,20, NULL, 0.0, 0, 0, 0, ""); /* tell UI we go to 10,10*/
+			uiDefButF(block, NUM, B_DIFF, "Min Distance:",	   10,10,150,20, &clmd->coll_parms.epsilon, 0.001f, 1.0, 0.01f, 0, "Minimum distance between collision objects before collision response takes in");
+			uiDefBut(block, LABEL, 0, "",160,10,150,20, NULL, 0.0, 0, 0, 0, "");
+			uiBlockEndAlign(block);
+		}
+	}
+	// uiBlockEndAlign(block);
+}
+
+
 static void object_panel_particles_motion(Object *ob)
 {
 	uiBlock *block;
@@ -3503,6 +3783,9 @@ void physics_panels()
 		object_panel_particles_motion(ob);
 		object_softbodies(ob);
 		object_softbodies_II(ob);
+		object_panel_cloth(ob);
+		object_panel_cloth_II(ob);
+		object_panel_cloth_III(ob);
 		object_panel_fluidsim(ob);
 	}
 }
