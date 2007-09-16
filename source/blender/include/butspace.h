@@ -180,6 +180,7 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_SHADRAY		1106
 #define B_LMTEXPASTE	1107
 #define B_LMTEXCOPY		1108
+#define B_LFALLOFFCHANGED	1109
 
 /* *********************** */
 #define B_MATBUTS		1300

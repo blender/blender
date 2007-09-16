@@ -32,6 +32,7 @@
 #include "MTC_matrixops.h"
 #include "BLI_arithb.h"
 
+#include "BKE_colortools.h"
 #include "BKE_material.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
@@ -1056,14 +1057,26 @@ float lamp_get_visibility(LampRen *lar, float *co, float *lv, float *dist)
 				visifac= 0.0f;
 		}
 		else {
-			if(lar->mode & LA_QUAD) {
-				if(lar->ld1>0.0f)
-					visifac= lar->dist/(lar->dist+lar->ld1*dist[0]);
-				if(lar->ld2>0.0f)
-					visifac*= lar->distkw/(lar->distkw+lar->ld2*dist[0]*dist[0]);
-			}
-			else {
-				visifac= (lar->dist/(lar->dist+dist[0]));
+			switch(lar->falloff_type)
+			{
+				case LA_FALLOFF_CONSTANT:
+					visifac = 1.0f;
+					break;
+				case LA_FALLOFF_INVLINEAR:
+					visifac = lar->dist/(lar->dist + dist[0]);
+					break;
+				case LA_FALLOFF_INVSQUARE:
+					visifac = lar->dist / (lar->dist + dist[0]*dist[0]);
+					break;
+				case LA_FALLOFF_SLIDERS:
+					if(lar->ld1>0.0f)
+						visifac= lar->dist/(lar->dist+lar->ld1*dist[0]);
+					if(lar->ld2>0.0f)
+						visifac*= lar->distkw/(lar->distkw+lar->ld2*dist[0]*dist[0]);
+					break;
+				case LA_FALLOFF_CURVE:
+					visifac = curvemapping_evaluateF(lar->curfalloff, 0, dist[0]/lar->dist);
+					break;
 			}
 			
 			if(lar->mode & LA_SPHERE) {
@@ -1129,6 +1142,8 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 	
 	vn= shi->vn;
 	view= shi->view;
+	
+	if (lar->energy == 0.0) return;
 	
 	/* lampdist, spot angle, area side, ... */
 	visifac= lamp_get_visibility(lar, shi->co, lv, &lampdist);

@@ -70,6 +70,7 @@
 
 #include "BKE_armature.h"
 #include "BKE_action.h"
+#include "BKE_colortools.h"
 #include "BKE_deform.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_nla.h"
@@ -601,6 +602,9 @@ void *add_lamp(char *name)
 	la->ray_samp_method = LA_SAMP_HALTON;
 	la->adapt_thresh = 0.001;
 	la->preview=NULL;
+	la->falloff_type = LA_FALLOFF_INVLINEAR;
+	la->curfalloff = curvemapping_add(1, 0.0f, 1.0f, 1.0f, 0.0f);
+	curvemapping_initialize(la->curfalloff);
 	return la;
 }
 
@@ -618,6 +622,8 @@ Lamp *copy_lamp(Lamp *la)
 			id_us_plus((ID *)lan->mtex[a]->tex);
 		}
 	}
+	
+	lan->curfalloff = curvemapping_copy(la->curfalloff);
 	
 	id_us_plus((ID *)lan->ipo);
 
@@ -693,13 +699,15 @@ void free_lamp(Lamp *la)
 	/* scriptlinks */
 		
 	BPY_free_scriptlink(&la->scriptlink);
-	
+
 	for(a=0; a<MAX_MTEX; a++) {
 		mtex= la->mtex[a];
 		if(mtex && mtex->tex) mtex->tex->id.us--;
 		if(mtex) MEM_freeN(mtex);
 	}
 	la->ipo= 0;
+
+	curvemapping_free(la->curfalloff);
 	
 	BKE_previewimg_free(&la->preview);
 	BKE_icon_delete(&la->id);

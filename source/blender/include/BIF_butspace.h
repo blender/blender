@@ -120,16 +120,16 @@ extern void validate_editbonebutton_cb(void *bonev, void *namev);
 #define PANEL_YMAX	210
 #define PANEL_XMAX	310
  
-#define X1CLM		10
+#define X1CLM1		10
  
-#define X2CLM1		X1CLM
+#define X2CLM1		X1CLM1
 #define X2CLM2		165
  
-#define X3CLM1		X1CLM
+#define X3CLM1		X1CLM1
 #define X3CLM2		113
 #define X3CLM3		217
 
-#define X4CLM1		X1CLM
+#define X4CLM1		X1CLM1
 #define X4CLM2		77
 #define X4CLM3		165
 #define X4CLM4		232

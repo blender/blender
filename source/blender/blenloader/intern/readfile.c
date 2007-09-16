@@ -112,6 +112,7 @@
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
+#include "BKE_colortools.h"
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
@@ -1917,6 +1918,11 @@ static void direct_link_lamp(FileData *fd, Lamp *la)
 	for(a=0; a<MAX_MTEX; a++) {
 		la->mtex[a]= newdataadr(fd, la->mtex[a]);
 	}
+	
+	la->curfalloff= newdataadr(fd, la->curfalloff);
+	if(la->curfalloff)
+		direct_link_curvemapping(fd, la->curfalloff);
+	
 	la->preview = direct_link_preview_image(fd, la->preview);
 }
 
@@ -6667,6 +6673,18 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					la->ray_samp_method = LA_SAMP_HALTON;
 				
 				la->adapt_thresh = 0.001;
+			}
+		}
+	}
+	if(main->versionfile <= 245) {
+		Lamp *la;
+		if (main->versionfile != 245 || main->subversionfile < 1) {
+			for(la=main->lamp.first; la; la= la->id.next) {
+				if (la->mode & LA_QUAD) la->falloff_type = LA_FALLOFF_SLIDERS;
+				else la->falloff_type = LA_FALLOFF_INVLINEAR;
+					
+				la->curfalloff = curvemapping_add(1, 0.0f, 1.0f, 1.0f, 0.0f);
+				curvemapping_initialize(la->curfalloff);
 			}
 		}
 	}

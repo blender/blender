@@ -62,12 +62,18 @@ CurveMapping *curvemapping_add(int tot, float minx, float miny, float maxx, floa
 {
 	CurveMapping *cumap;
 	int a;
+	float clipminx, clipminy, clipmaxx, clipmaxy;
 	
 	cumap= MEM_callocN(sizeof(CurveMapping), "new curvemap");
 	cumap->flag= CUMA_DO_CLIP;
 	if(tot==4) cumap->cur= 3;		/* rhms, hack for 'col' curve? */
 	
-	BLI_init_rctf(&cumap->curr, minx, maxx, miny, maxy);
+	clipminx = MIN2(minx, maxx);
+	clipminy = MIN2(miny, maxy);
+	clipmaxx = MAX2(minx, maxx);
+	clipmaxy = MAX2(miny, maxy);
+	
+	BLI_init_rctf(&cumap->curr, clipminx, clipmaxx, clipminy, clipmaxy);
 	cumap->clipr= cumap->curr;
 	
 	cumap->white[0]= cumap->white[1]= cumap->white[2]= 1.0f;

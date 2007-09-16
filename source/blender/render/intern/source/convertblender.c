@@ -66,6 +66,7 @@
 #include "BKE_action.h"
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
+#include "BKE_colortools.h"
 #include "BKE_constraint.h"
 #include "BKE_displist.h"
 #include "BKE_deform.h"
@@ -2221,7 +2222,6 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 	lar->mode= la->mode;
 
 	lar->energy= la->energy;
-	lar->energy= la->energy;
 	if(la->mode & LA_NEG) lar->energy= -lar->energy;
 
 	lar->vec[0]= -mat[2][0];
@@ -2312,8 +2312,10 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 
 	lar->lay= ob->lay & 0xFFFFFF;	// higher 8 bits are localview layers
 
+	lar->falloff_type = la->falloff_type;
 	lar->ld1= la->att1;
 	lar->ld2= la->att2;
+	lar->curfalloff = curvemapping_copy(la->curfalloff);
 
 	if(lar->type==LA_SPOT) {
 
@@ -2965,6 +2967,7 @@ void RE_Database_Free(Render *re)
 		if(lar->jitter) MEM_freeN(lar->jitter);
 		if(lar->shadsamp) MEM_freeN(lar->shadsamp);
 		if(lar->qsa) free_lamp_qmcsampler(lar);
+		curvemapping_free(lar->curfalloff);
 	}
 	
 	BLI_freelistN(&re->lampren);

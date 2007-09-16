@@ -32,6 +32,7 @@
 /* exposed internal in render module only! */
 /* ------------------------------------------------------------------------- */
 
+#include "DNA_color_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_world_types.h"
 #include "DNA_object_types.h"
@@ -324,7 +325,10 @@ typedef struct LampRen {
 	float vec[3];
 	float xsp, ysp, distkw, inpr;
 	float halokw, halo;
+	
+	short falloff_type;
 	float ld1,ld2;
+	struct CurveMapping *curfalloff;
 
 	/* copied from Lamp, to decouple more rendering stuff */
 	/** Size of the shadowbuffer */

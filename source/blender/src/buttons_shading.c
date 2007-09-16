@@ -61,6 +61,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_world_types.h"
 
+#include "BKE_colortools.h"
 #include "BKE_displist.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
@@ -2317,6 +2318,13 @@ void do_lampbuts(unsigned short event)
 			scrarea_queue_winredraw(curarea);
 		}
 		break;
+	case B_LFALLOFFCHANGED:
+		la= G.buts->lockpoin;
+		curvemapping_changed(la->curfalloff, 1);
+		BIF_undo_push("Edit Lamp falloff curve");
+		BIF_preview_changed(ID_LA);
+		scrarea_queue_winredraw(curarea);
+		break;
 		
 	}
 }
@@ -2664,6 +2672,28 @@ static void lamp_panel_yafray(Object *ob, Lamp *la)
 
 }
 
+static void lamp_panel_falloff(Object *ob, Lamp *la)
+{
+	uiBlock *block;
+	rctf butr;
+	short yco=PANEL_YMAX;
+	float grid= 0.0;
+	
+	/* name "Preview" is abused to detect previewrender offset panel */
+	block= uiNewBlock(&curarea->uiblocks, "lamp_panel_falloff", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Lamp", "Lamp");
+	if(uiNewPanel(curarea, block, "Falloff Curve", "Lamp", PANELX, PANELY, PANELW, PANELH)==0) return;
+	
+	if(G.vd) grid= G.vd->grid; 
+	if(grid<1.0) grid= 1.0;
+	
+	uiSetButLock(la->id.lib!=0, ERROR_LIBDATA_MESSAGE);
+	
+	BLI_init_rctf(&butr, 10.0, 310.0, 10.0, (float)yco);
+	curvemap_buttons(block, la->curfalloff, 's', B_LFALLOFFCHANGED, B_LAMPREDRAW, &butr);
+	
+}
+
 static void lamp_panel_lamp(Object *ob, Lamp *la)
 {
 	uiBlock *block;
@@ -2701,7 +2731,8 @@ static void lamp_panel_lamp(Object *ob, Lamp *la)
 	}
 	else if( ELEM(la->type, LA_LOCAL, LA_SPOT)) {
 		uiBlockSetCol(block, TH_BUT_SETTING1);
-		uiDefButBitS(block, TOG, LA_QUAD, B_LAMPPRV,"Quad",		10,150,100,19,&la->mode, 0, 0, 0, 0, "Uses inverse quadratic proportion for light attenuation");
+		uiDefButS(block, MENU, B_LAMPREDRAW,  "Falloff %t|Constant %x0|Inverse Linear %x1|Inverse Square %x2|Custom Curve %x3|Lin/Quad Weighted %x4|",
+			10,150,100,19, &la->falloff_type, 0,0,0,0, "Lamp falloff - intensity decay with distance");	
 		uiDefButBitS(block, TOG, LA_SPHERE, REDRAWVIEW3D,"Sphere",	10,130,100,19,&la->mode, 0, 0, 0, 0, "Sets light intensity to zero for objects beyond the distance value");
 	}
 
@@ -2725,9 +2756,9 @@ static void lamp_panel_lamp(Object *ob, Lamp *la)
 	uiDefButF(block, COL, B_LAMPPRV, "",		120,52,180,24, &la->r, 0, 0, 0, B_COLLAMP, "");
 	
 	uiBlockBeginAlign(block);
-	if (ELEM(la->type, LA_LOCAL, LA_SPOT)) {
-		uiDefButF(block, NUMSLI,B_LAMPPRV,"Quad1 ",	120,30,180,19,&la->att1, 0.0, 1.0, 0, 0, "Set the linear distance attenuatation for a quad lamp");
-		uiDefButF(block, NUMSLI,B_LAMPPRV,"Quad2 ",  120,10,180,19,&la->att2, 0.0, 1.0, 0, 0, "Set the quadratic distance attenuatation for a quad lamp");
+	if (ELEM(la->type, LA_LOCAL, LA_SPOT) && (la->falloff_type == LA_FALLOFF_SLIDERS)) {
+		uiDefButF(block, NUMSLI,B_LAMPPRV,"Linear ",	120,30,180,19,&la->att1, 0.0, 1.0, 0, 0, "Set the linear distance attenuatation for a quad lamp");
+		uiDefButF(block, NUMSLI,B_LAMPPRV,"Quad ",  120,10,180,19,&la->att2, 0.0, 1.0, 0, 0, "Set the quadratic distance attenuatation for a quad lamp");
 	}
 	else if(la->type==LA_AREA) {
 		if(la->k==0.0) la->k= 1.0;
@@ -3992,11 +4023,16 @@ void material_panels()
 void lamp_panels()
 {
 	Object *ob= OBACT;
+	Lamp *la = ob->data;
 	
 	if(ob==NULL || ob->type!= OB_LAMP) return;
 
 	lamp_panel_preview(ob, ob->data);
 	lamp_panel_lamp(ob, ob->data);
+	
+	if (ELEM(la->type, LA_SPOT, LA_LOCAL) && (la->falloff_type == LA_FALLOFF_CURVE))
+		lamp_panel_falloff(ob, ob->data);
+	
 	/* switch to yafray lamp panel if yafray enabled */
 	if (G.scene->r.renderer==R_INTERN)
 		lamp_panel_spot(ob, ob->data);

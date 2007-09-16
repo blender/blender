@@ -1380,6 +1380,9 @@ static void write_lamps(WriteData *wd, ListBase *idbase)
 				if(la->mtex[a]) writestruct(wd, DATA, "MTex", 1, la->mtex[a]);
 			}
 
+			if(la->curfalloff)
+				write_curvemapping(wd, la->curfalloff);	
+			
 			write_scriptlink(wd, &la->scriptlink);
 
 			write_previews(wd, la->preview);
