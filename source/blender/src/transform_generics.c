@@ -67,6 +67,7 @@
 #include "BKE_action.h"
 #include "BKE_anim.h"
 #include "BKE_armature.h"
+#include "BKE_cloth.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
 #include "BKE_displist.h"
@@ -313,8 +314,16 @@ void recalcData(TransInfo *t)
 			/* bah, softbody exception... recalcdata doesnt reset */
 			for(base= FIRSTBASE; base; base= base->next) {
 				if(base->object->recalc & OB_RECALC_DATA)
+				{					
+					ClothModifierData *clmd = NULL;
+					
 					if(modifiers_isSoftbodyEnabled(base->object)) {
 						base->object->softflag |= OB_SB_REDO;
+					}
+					else if(modifiers_isClothEnabled(ob)) {
+						cloth_free_modifier(modifiers_isClothEnabled(ob));
+					}
+					
 				}
 			}
 		}
@@ -347,10 +356,17 @@ void recalcData(TransInfo *t)
 				}				
 			}
 			
-			/* softbody exception */
-			if(modifiers_isSoftbodyEnabled(ob)) {
-				if(ob->recalc & OB_RECALC_DATA)
-					ob->softflag |= OB_SB_REDO;
+			/* softbody & cloth exception */
+			if(ob->recalc & OB_RECALC_DATA)
+			{
+				ClothModifierData *clmd = NULL;
+				
+				if(modifiers_isSoftbodyEnabled(ob)) {
+						ob->softflag |= OB_SB_REDO;
+				}
+				else if(modifiers_isClothEnabled(ob)) {
+					cloth_free_modifier(modifiers_isClothEnabled(ob));
+				}
 			}
 			
 			/* proxy exception */

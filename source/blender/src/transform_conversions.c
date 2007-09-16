@@ -75,6 +75,7 @@
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_blender.h"
+#include "BKE_cloth.h"
 #include "BKE_curve.h"
 #include "BKE_constraint.h"
 #include "BKE_depsgraph.h"
@@ -2414,7 +2415,7 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 	}
 }
 
-/* inserting keys, refresh ipo-keys, softbody, redraw events... (ton) */
+/* inserting keys, refresh ipo-keys, softbody, cloth, redraw events... (ton) */
 /* note; transdata has been freed already! */
 void special_aftertrans_update(TransInfo *t)
 {
@@ -2476,13 +2477,15 @@ void special_aftertrans_update(TransInfo *t)
 	}
 	else {
 		base= FIRSTBASE;
-		while(base) {	
-			
+		while(base) {						
 			if(base->flag & BA_DO_IPO) redrawipo= 1;
 			
 			ob= base->object;
 
 			if(modifiers_isSoftbodyEnabled(ob)) ob->softflag |= OB_SB_REDO;
+			else if(modifiers_isClothEnabled(ob)) {
+				cloth_free_modifier(modifiers_isClothEnabled(ob));
+			}
 			
 			/* Set autokey if necessary */
 			if ((!cancelled) && (base->flag & SELECT)){

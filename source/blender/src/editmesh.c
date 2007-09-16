@@ -65,6 +65,7 @@
 
 #include "BKE_DerivedMesh.h"
 #include "BKE_depsgraph.h"
+#include "BKE_cloth.h"
 #include "BKE_customdata.h"
 #include "BKE_global.h"
 #include "BKE_key.h"
@@ -72,6 +73,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
+#include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
@@ -1312,7 +1314,11 @@ void load_editMesh(void)
 	if(me->id.us>1) {
 		Base *base;
 		for(base= G.scene->base.first; base; base= base->next) {
-			if(base->object->data==me) {
+			if(base->object->data==me) {				
+				if(modifiers_isClothEnabled(base->object)) {
+					cloth_free_modifier(modifiers_isClothEnabled(base->object));
+				}
+				
 				base->object->softflag |= OB_SB_REDO;
 				base->object->recalc |= OB_RECALC_DATA;
 			}

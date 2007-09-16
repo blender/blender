@@ -1746,6 +1746,10 @@ void exit_editmode(int flag)	/* freedata==0 at render, 1= freedata, 2= do undo b
 		sbObjectToSoftbody(ob);
 	}
 	
+	if(modifiers_isClothEnabled(ob)) {
+		cloth_free_modifier(modifiers_isClothEnabled(ob));
+	}
+	
 	if(ob->type==OB_MESH && get_mesh(ob)->mr)
 		multires_edge_level_update(ob, get_mesh(ob));
 	

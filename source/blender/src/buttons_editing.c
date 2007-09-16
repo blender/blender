@@ -949,7 +949,7 @@ static uiBlock *modifiers_add_menu(void *ob_v)
 		ModifierTypeInfo *mti = modifierType_getInfo(i);
 
 		/* Only allow adding through appropriate other interfaces */
-		if(ELEM(i, eModifierType_Softbody, eModifierType_Hook)) continue;
+		if(ELEM3(i, eModifierType_Softbody, eModifierType_Hook, eModifierType_Cloth)) continue;
 
 		if((mti->flags&eModifierTypeFlag_AcceptsCVs) ||
 		   (ob->type==OB_MESH && (mti->flags&eModifierTypeFlag_AcceptsMesh))) {
@@ -1600,6 +1600,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 				height += 20;
 		} else if (md->type==eModifierType_Softbody) {
 			height = 26;
+		} else if (md->type==eModifierType_Cloth) {
+			height = 26;
 		} else if (md->type==eModifierType_Boolean) {
 			height = 48;
 		} else if (md->type==eModifierType_Array) {
@@ -1615,7 +1617,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiBlockBeginAlign(block);
 			but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Apply",	lx,(cy-=19),60,19, 0, 0, 0, 0, 0, "Apply the current modifier and remove from the stack");
 			uiButSetFunc(but, modifiers_applyModifier, ob, md);
-			if (md->type!=eModifierType_Softbody) {
+			if ((md->type!=eModifierType_Softbody) && (md->type!=eModifierType_Cloth)) {
 				but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Copy",	lx,(cy-=19),60,19, 0, 0, 0, 0, 0, "Duplicate the current modifier at the same position in the stack");
 				uiButSetFunc(but, modifiers_copyModifier, ob, md);
 			}
@@ -3308,6 +3310,9 @@ void do_latticebuts(unsigned short event)
 			if(ob==G.obedit) resizelattice(editLatt, lt->opntsu, lt->opntsv, lt->opntsw, NULL);
 			else resizelattice(ob->data, lt->opntsu, lt->opntsv, lt->opntsw, NULL);
 			ob->softflag |= OB_SB_REDO;
+			if(modifiers_isClothEnabled(ob)) {
+				cloth_free_modifier(modifiers_isClothEnabled(ob));
+			}
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);
 		}
@@ -3316,6 +3321,9 @@ void do_latticebuts(unsigned short event)
 			lt = ob->data;
 			resizelattice(ob->data, lt->opntsu, lt->opntsv, lt->opntsw, ob);
 			ob->softflag |= OB_SB_REDO;
+			if(modifiers_isClothEnabled(ob)) {
+				cloth_free_modifier(modifiers_isClothEnabled(ob));
+			}
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);
 		}

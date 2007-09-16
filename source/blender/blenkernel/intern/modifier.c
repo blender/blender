@@ -5233,8 +5233,8 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti = INIT_TYPE(Cloth);
 		mti->type = eModifierTypeType_OnlyDeform;
 		mti->initData = clothModifier_initData;
-		mti->flags = eModifierTypeFlag_AcceptsCVs;
-					// | eModifierTypeFlag_RequiresOriginalData;
+		mti->flags = eModifierTypeFlag_AcceptsCVs
+			 | eModifierTypeFlag_RequiresOriginalData;
 		 			// | eModifierTypeFlag_SupportsMapping
 					// | eModifierTypeFlag_SupportsEditmode 
 					// | eModifierTypeFlag_EnableInEditmode;
@@ -5444,6 +5444,13 @@ int modifiers_isSoftbodyEnabled(Object *ob)
 	ModifierData *md = modifiers_findByType(ob, eModifierType_Softbody);
 
 	return (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render));
+}
+
+ModifierData * modifiers_isClothEnabled(Object *ob)
+{
+	ModifierData *md = modifiers_findByType(ob, eModifierType_Cloth);
+
+	return md;
 }
 
 LinkNode *modifiers_calcDataMasks(ModifierData *md, CustomDataMask dataMask)

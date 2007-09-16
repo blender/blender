@@ -689,14 +689,15 @@ typedef struct Implicit_Data
 	lfVector *X, *V, *Xnew, *Vnew, *olddV, *F, *B, *dV, *z;
 	fmatrix3x3 *A, *dFdV, *dFdX, *S, *P, *Pinv, *bigI; 
 } Implicit_Data;
+
 int implicit_init (Object *ob, ClothModifierData *clmd)
 {
 	unsigned int i = 0;
 	unsigned int pinned = 0;
-	Cloth *cloth;
-	ClothVertex *verts;
-	ClothSpring *springs;
-	Implicit_Data *id;
+	Cloth *cloth = NULL;
+	ClothVertex *verts = NULL;
+	ClothSpring *springs = NULL;
+	Implicit_Data *id = NULL;
 
 	// init memory guard
 	// MEMORY_BASE.first = MEMORY_BASE.last = NULL;
@@ -727,6 +728,7 @@ int implicit_init (Object *ob, ClothModifierData *clmd)
 	id->B = create_lfvector(cloth->numverts);
 	id->dV = create_lfvector(cloth->numverts);
 	id->z = create_lfvector(cloth->numverts);
+	
 	for(i=0;i<cloth->numverts;i++) 
 	{
 		id->A[i].r = id->A[i].c = id->dFdV[i].r = id->dFdV[i].c = id->dFdX[i].r = id->dFdX[i].c = id->P[i].c = id->P[i].r = id->Pinv[i].c = id->Pinv[i].r = id->bigI[i].c = id->bigI[i].r = i;
@@ -1503,9 +1505,23 @@ void implicit_set_positions (ClothModifierData *clmd)
 	ClothVertex *verts = cloth->verts;
 	unsigned int numverts = cloth->numverts, i;
 	Implicit_Data *id = cloth->implicit;
+	unsigned int pinned = 0;
+	
+	// reset pinned verts in S matrix to zero
+	// id->S[0].vcount = 0; id->S[0].scount = 0;
+	
 	for(i = 0; i < numverts; i++)
 	{				
 		VECCOPY(id->X[i], verts[i].x);
 		VECCOPY(id->V[i], verts[i].v);
+		/*
+		if(verts [i].flags & CVERT_FLAG_PINNED)
+		{
+			id->S[pinned].pinned = 1;
+			id->S[pinned].c = id->S[pinned].r = i;
+			pinned++;
+		}
+		*/
 	}	
+	// id->S[0].vcount = pinned;
 }

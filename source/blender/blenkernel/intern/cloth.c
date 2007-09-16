@@ -119,6 +119,8 @@ static CM_SOLVER_DEF	solvers [] = {
 
 #define DEBUG_CLOTH_VERBOSE	1000
 static int	DEBUG_CLOTH = 0;
+
+
 /* ********** cloth engine ******* */
 /* Prototypes for internal functions.
 */
@@ -128,6 +130,8 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 static int collobj_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *dm, float (*vertexCos)[3], unsigned int numverts);
 int cloth_build_springs(Cloth *cloth, DerivedMesh *dm);
 static void cloth_apply_vgroup(ClothModifierData *clmd, DerivedMesh *dm, short vgroup);
+
+
 /******************************************************************************
 *
 * External interface called by modifier.c clothModifier functions.
@@ -157,6 +161,8 @@ void cloth_init (ClothModifierData *clmd)
 	clmd->sim_parms.solver_type = 0; 
 	clmd->sim_parms.preroll = 0;
 	clmd->sim_parms.maxspringlen = 10;
+	clmd->sim_parms.firstframe = 1;
+	clmd->sim_parms.lastframe = 250;
 	clmd->coll_parms.self_friction = 5.0;
 	clmd->coll_parms.friction = 10.0;
 	clmd->coll_parms.loop_count = 1;
@@ -614,8 +620,13 @@ void clothModifier_do(ClothModifierData *clmd, Object *ob, DerivedMesh *dm,
 	Frame *frame = NULL;
 	LinkNode *search = NULL;
 	float deltaTime = current_time - clmd->sim_parms.sim_time;	
-
-	clmd->sim_parms.dt = 1.0f / (clmd->sim_parms.stepsPerFrame * G.scene->r.frs_sec);
+	
+	// only be active during a specific period
+	if((current_time < clmd->sim_parms.firstframe)||(current_time > clmd->sim_parms.lastframe))
+		return;
+	
+	// unused in the moment
+	clmd->sim_parms.dt = 1.0f / clmd->sim_parms.stepsPerFrame;
 	
 	clmd->sim_parms.sim_time = current_time;
 	
@@ -707,7 +718,6 @@ void clothModifier_do(ClothModifierData *clmd, Object *ob, DerivedMesh *dm,
 				tstart();
 
 				/* Call the solver. */
-
 				if (solvers [clmd->sim_parms.solver_type].solver)
 					solvers [clmd->sim_parms.solver_type].solver (ob, framenr, clmd, effectors,0,0);
 
@@ -754,9 +764,6 @@ void cloth_free_modifier (ClothModifierData *clmd)
 	clmd->sim_parms.flags |= CSIMSETT_FLAG_CCACHE_FREE_ALL;
 	cloth_cache_free(clmd, 0);
 
-	/* Calls the solver and collision frees first as they
-	* might depend on data in clmd->clothObject. */
-
 	if (cloth) 
 	{	
 		// If our solver provides a free function, call it
@@ -793,9 +800,7 @@ void cloth_free_modifier (ClothModifierData *clmd)
 		MEM_freeN (cloth);
 		clmd->clothObject = NULL;
 	}
-
 }
-
 
 
 /******************************************************************************
@@ -826,8 +831,6 @@ static void cloth_to_object (Object *ob, ClothModifierData *clmd, float (*vertex
 			Mat4MulVecfl (ob->imat, vertexCos[i]);	/* softbody is in global coords */
 		}
 	}
-	else if (DEBUG_CLOTH)
-		printf ("cloth_to_object: clmd->clothObject was NULL.\n");
 }
 
 
@@ -837,15 +840,20 @@ static void cloth_to_object (Object *ob, ClothModifierData *clmd, float (*vertex
 **/
 static void cloth_apply_vgroup(ClothModifierData *clmd, DerivedMesh *dm, short vgroup)
 {
-	unsigned int	i;
-	int j;
-	MDeformVert	*dvert = NULL;
-	Cloth		*clothObj;
+	unsigned int i = 0;
+	unsigned int j = 0;
+	MDeformVert *dvert = NULL;
+	Cloth *clothObj = NULL;
 	unsigned int numverts = dm->getNumVerts(dm);
 	float goalfac = 0;
 	ClothVertex *verts = NULL;
 
 	clothObj = clmd->clothObject;
+	
+	if(!dm)
+		return;
+	
+	numverts = dm->getNumVerts(dm);
 
 	/* vgroup is 1 based, decrement so we can match the right group. */
 	--vgroup;

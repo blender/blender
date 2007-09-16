@@ -289,6 +289,7 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_CLOTH_CLEARCACHEFRAME	        1471
 #define B_CLOTH_CHANGEPREROLL			1472
 #define B_CLOTH_DEL_VG					1473
+#define B_CLOTH_RENEW 	1474
 
 /* *********************** */
 #define B_WORLDBUTS		1600

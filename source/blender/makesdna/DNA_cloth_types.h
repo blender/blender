@@ -106,7 +106,9 @@ typedef struct SimulationSettings {
 	float	defgoal;
 	int	goalfrict;
 	float	goalspring;
-	int	maxspringlen; /* in percent!; if tearing enabled, a spring will get cut */
+	int	maxspringlen; 	/* in percent!; if tearing enabled, a spring will get cut */
+	int 	lastframe; 	/* frame on which simulation stops */
+	int	firstframe;	/* frame on which simulation starts */
 } SimulationSettings;
 
 
@@ -144,7 +146,7 @@ typedef struct Cloth {
 	int 			pad4;
 	void			*tree;			/* collision tree for this cloth object */
 	struct MFace 		*mfaces;
-	void			*implicit; 	
+	void			*implicit; 		/* our implicit solver connects to this pointer */
 } Cloth;
 
 #endif
