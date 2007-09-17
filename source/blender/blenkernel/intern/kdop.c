@@ -728,7 +728,7 @@ DO_INLINE int bvh_overlap(float *bv1, float *bv2)
  */
 int bvh_traverse(ClothModifierData * clmd, ClothModifierData * coll_clmd, Tree * tree1, Tree * tree2, float step, CM_COLLISION_RESPONSE collision_response)
 {
-	int i = 0, ret=0;
+	int i = 0, j = 0, ret=0;
 	
 	/*
 	// Shouldn't be possible
@@ -737,8 +737,7 @@ int bvh_traverse(ClothModifierData * clmd, ClothModifierData * coll_clmd, Tree *
 	printf("Error: no tree there\n");
 	return 0;
 }
-	*/
-			
+	*/	
 	if (bvh_overlap(tree1->bv, tree2->bv)) 
 	{		
 		// Check if this node in the first tree is a leaf
@@ -751,7 +750,7 @@ int bvh_traverse(ClothModifierData * clmd, ClothModifierData * coll_clmd, Tree *
 				
 				if(collision_response)
 					collision_response (clmd, coll_clmd, tree1, tree2);
-				return 1;
+				ret = 1;
 			}
 			else 
 			{
@@ -767,14 +766,15 @@ int bvh_traverse(ClothModifierData * clmd, ClothModifierData * coll_clmd, Tree *
 		else 
 		{
 			// Process the quad tree.
-			for (i = 0; i < 4; i++)
+			for (j = 0; j < 4; j++)
 			{
 				// Only traverse nodes that exist.
-				if (tree1->nodes [i] && bvh_traverse (clmd, coll_clmd, tree1->nodes[i], tree2, step, collision_response))
+				if (tree1->nodes [j] && bvh_traverse (clmd, coll_clmd, tree1->nodes[j], tree2, step, collision_response))
 					ret = 1;
 			}
 		}
 	}
+
 	return ret;
 }
 

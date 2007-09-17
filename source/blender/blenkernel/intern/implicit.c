@@ -89,7 +89,7 @@ double itval()
 // intrinsics need better compile flag checking
 // #include <xmmintrin.h>
 // #include <pmmintrin.h>
-#include <pthread.h>
+// #include <pthread.h>
 
 static struct timeval _itstart, _itend;
 static struct timezone itz;
@@ -247,14 +247,9 @@ DO_INLINE void submul_lfvectorS(float (*to)[3], float (*fLongVector)[3], float s
 DO_INLINE float dot_lfvector(float (*fLongVectorA)[3], float (*fLongVectorB)[3], unsigned int verts)
 {
 	unsigned int i = 0;
-
-#ifndef _WIN32
-	float temp  __attribute__ ((aligned (16) ) )= 0.0f; //   __declspec(align(16)) 
-#else
-	float temp = 0.0f;
-#endif
-
-#pragma omp parallel for reduction(+: temp) schedule(guided, 1)
+	float temp = 0.0;
+// schedule(guided, 2)
+#pragma omp parallel for reduction(+: temp)
 	for(i = 0; i < verts; i++)
 	{
 		temp += INPR(fLongVectorA[i], fLongVectorB[i]);
@@ -264,7 +259,6 @@ DO_INLINE float dot_lfvector(float (*fLongVectorA)[3], float (*fLongVectorB)[3],
 /* A = B + C  --> for big vector */
 DO_INLINE void add_lfvector_lfvector(float (*to)[3], float (*fLongVectorA)[3], float (*fLongVectorB)[3], unsigned int verts)
 {
-
 	unsigned int i = 0;
 
 	for(i = 0; i < verts; i++)
@@ -576,7 +570,7 @@ DO_INLINE void mul_bfmatrix_S(fmatrix3x3 *matrix, float scalar)
 /* STATUS: verified */
 DO_INLINE void mul_bfmatrix_lfvector( float (*to)[3], fmatrix3x3 *from, float (*fLongVector)[3])
 {
-	unsigned int i = 0,j=0;
+	int i = 0,j=0;
 	zero_lfvector(to, from[0].vcount);
 	/* process diagonal elements */	
 	for(i = 0; i < from[0].vcount; i++)
@@ -585,12 +579,21 @@ DO_INLINE void mul_bfmatrix_lfvector( float (*to)[3], fmatrix3x3 *from, float (*
 	}
 
 	/* process off-diagonal entries (every off-diagonal entry needs to be symmetric) */
-	for(j = from[0].vcount; j < from[0].vcount+from[0].scount; j++)
+#pragma parallel for shared(to,from, fLongVector) private(i) 
+	for(i = from[0].vcount; i < from[0].vcount+from[0].scount; i++)
 	{
-		muladd_fmatrix_fvector(to[from[j].c], from[j].m, fLongVector[from[j].r]);
-		muladd_fmatrix_fvector(to[from[j].r], from[j].m, fLongVector[from[j].c]);	
-	}	
-
+		// muladd_fmatrix_fvector(to[from[i].c], from[i].m, fLongVector[from[i].r]);
+		
+		to[from[i].c][0] += INPR(from[i].m[0],fLongVector[from[i].r]);
+		to[from[i].c][1] += INPR(from[i].m[1],fLongVector[from[i].r]);
+		to[from[i].c][2] += INPR(from[i].m[2],fLongVector[from[i].r]);	
+		
+		// muladd_fmatrix_fvector(to[from[i].r], from[i].m, fLongVector[from[i].c]);
+		
+		to[from[i].r][0] += INPR(from[i].m[0],fLongVector[from[i].c]);
+		to[from[i].r][1] += INPR(from[i].m[1],fLongVector[from[i].c]);
+		to[from[i].r][2] += INPR(from[i].m[2],fLongVector[from[i].c]);	
+	}
 }
 /* SPARSE SYMMETRIC add big matrix with big matrix: A = B + C*/
 DO_INLINE void add_bfmatrix_bfmatrix( fmatrix3x3 *to, fmatrix3x3 *from,  fmatrix3x3 *matrix)
@@ -1195,12 +1198,13 @@ DO_INLINE void calc_spring_force(ClothModifierData *clmd, ClothSpring *s, lfVect
 
 			dfdx_spring_type1(dfdx, dir,length,L,k);
 
-			dfdv_damp(dfdv, dir,clmd->sim_parms.Cdis);			
+			dfdv_damp(dfdv, dir,clmd->sim_parms.Cdis);	
+					
 			sub_fmatrix_fmatrix(dFdV[s->ij].m, dFdV[s->ij].m, dfdv);
 			sub_fmatrix_fmatrix(dFdV[s->kl].m, dFdV[s->kl].m, dfdv);
 
 			add_fmatrix_fmatrix(dFdV[s->matrix_index].m, dFdV[s->matrix_index].m, dfdv);	
-
+			
 		}
 	}
 	else // calculate force of bending springs
@@ -1424,7 +1428,7 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 		}
 
 		// call collision function
-		// result = cloth_bvh_objcollision(clmd, step + dt, bvh_collision_response, dt);
+		result = cloth_bvh_objcollision(clmd, step + dt, bvh_collision_response, dt);
 
 		// copy corrected positions back to simulation
 		for(i = 0; i < numverts; i++)

@@ -3231,8 +3231,8 @@ static void object_panel_cloth_II(Object *ob)
 		
 			uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 			
-			uiDefButI(block, NUM, B_CLOTH_RENEW, "First Frame:",		10,160,150,20, &clmd->sim_parms.firstframe, 0, MAXFRAME, 1, 0, "Frame on which the simulation starts");
-			uiDefButI(block, NUM, B_CLOTH_RENEW, "Last Frame:",		160,160,150,20, &clmd->sim_parms.lastframe, 0, MAXFRAME, 10, 0, "Frame on which the simulation stops");
+			uiDefButI(block, NUM, B_DIFF, "First Frame:",		10,160,150,20, &clmd->sim_parms.firstframe, 0, MAXFRAME, 1, 0, "Frame on which the simulation starts");
+			uiDefButI(block, NUM, B_DIFF, "Last Frame:",		160,160,150,20, &clmd->sim_parms.lastframe, 0, MAXFRAME, 10, 0, "Frame on which the simulation stops");
 
 			if(clmd->sim_parms.cache)
 			{

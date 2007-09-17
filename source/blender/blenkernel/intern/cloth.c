@@ -444,6 +444,43 @@ int cloth_cache_search_frame(ClothModifierData *clmd, float time)
 	return 1;
 }
 
+int cloth_cache_last_frame(ClothModifierData *clmd)
+{
+	Frame *frame = NULL;
+	LinkNode *search = NULL;
+	int temptime = 0;
+
+	Cloth *cloth = NULL;
+
+	if(!clmd)
+		return 0;
+
+	cloth = clmd->clothObject;
+
+	if(!cloth)
+		return 0;
+
+	if(clmd->sim_parms.cache)
+	{		
+		search = clmd->sim_parms.cache;
+
+		// check if frame exists
+		while(search)
+		{
+			frame = search->link;
+
+			if(frame->time > temptime)
+			{
+				temptime = frame->time;
+			}
+
+			search = search->next;
+		}
+	}	
+
+	return temptime;
+}
+
 void cloth_cache_get_frame(ClothModifierData *clmd, float time)
 {
 	Frame *frame = NULL;
@@ -622,8 +659,23 @@ void clothModifier_do(ClothModifierData *clmd, Object *ob, DerivedMesh *dm,
 	float deltaTime = current_time - clmd->sim_parms.sim_time;	
 	
 	// only be active during a specific period
-	if((current_time < clmd->sim_parms.firstframe)||(current_time > clmd->sim_parms.lastframe))
+	if(current_time < clmd->sim_parms.firstframe)
 		return;
+	else if(current_time > clmd->sim_parms.lastframe)
+	{
+		int frametime = cloth_cache_last_frame(clmd);
+		if(cloth_cache_search_frame(clmd, frametime))
+		{
+			cloth_cache_get_frame(clmd, frametime);
+			cloth_to_object (ob, clmd, vertexCos, numverts);
+		}
+		return;
+	}
+	else if(ABS(deltaTime) >= 2.0f ) // no timewarps allowed
+	{
+		if(!cloth_cache_search_frame(clmd, framenr))
+			return;
+	}
 	
 	// unused in the moment
 	clmd->sim_parms.dt = 1.0f / clmd->sim_parms.stepsPerFrame;
@@ -668,7 +720,7 @@ void clothModifier_do(ClothModifierData *clmd, Object *ob, DerivedMesh *dm,
 			VECCOPY (verts->txold, verts->x);
 
 			// Get the current position. 
-			VECCOPY (verts->x, mvert[i].co);
+			VECCOPY (verts->x, vertexCos[i]);
 			Mat4MulVecfl(ob->obmat, verts->x);
 
 			// Compute the vertices velocity. 
@@ -902,6 +954,23 @@ static int collobj_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh 
 	unsigned int i;
 	MVert *mvert = NULL; 
 	ClothVertex *verts = NULL;
+	
+	/* If we have a clothObject, free it. */
+	if (clmd->clothObject != NULL)
+		cloth_free_modifier (clmd);
+
+	/* Allocate a new cloth object. */
+	clmd->clothObject = MEM_callocN (sizeof(Cloth), "cloth");
+	if (clmd->clothObject) 
+	{
+		clmd->clothObject->old_solver_type = -1;
+		clmd->clothObject->old_collision_type = -1;
+	}
+	else if (clmd->clothObject == NULL) 
+	{
+		modifier_setError (&(clmd->modifier), "Out of memory on allocating clmd->clothObject.");
+		return 0;
+	}
 
 	switch (ob->type)
 	{

@@ -403,7 +403,7 @@ double implicit_tri_check_coherence (ClothModifierData *clmd, ClothModifierData 
 	VECCOPY(b[0], cloth2->verts[face2->v1].txold);
 	VECCOPY(b[1], cloth2->verts[face2->v2].txold);
 	VECCOPY(b[2], cloth2->verts[face2->v3].txold);
-
+#pragma omp critical
 	distance = plNearestPoints(a,b,pa,pb,normal);
 	
 	quadA = quadB = 0;
@@ -450,7 +450,7 @@ double implicit_tri_check_coherence (ClothModifierData *clmd, ClothModifierData 
 		VECCOPY(b[0], cloth2->verts[indexD].txold);
 		VECCOPY(b[1], cloth2->verts[indexE].txold);
 		VECCOPY(b[2], cloth2->verts[indexF].txold);
-		
+#pragma omp critical		
 		tempdistance = plNearestPoints(a,b,tpa,tpb,tnormal);
 		
 		if(tempdistance < distance)
@@ -483,7 +483,7 @@ void bvh_collision_response(ClothModifierData *clmd, ClothModifierData *coll_clm
 	LinkNode **linknode;
 	double distance = 0;
 	float epsilon = clmd->coll_parms.epsilon;
-	
+
 	collpair = (CollPair *)MEM_callocN(sizeof(CollPair), "cloth coll pair");
 	linknode = clmd->coll_parms.temp;
 	
@@ -505,7 +505,6 @@ void bvh_collision_response(ClothModifierData *clmd, ClothModifierData *coll_clm
 		// printf("normal x: %f, y: %f, z: %f\n", collpair->normal[0], collpair->normal[1], collpair->normal[2]);
 		
 		collpair->distance = distance;
-		
 		BLI_linklist_append(&linknode[tree1->tri_index], collpair);	
 	}
 	else
