@@ -806,8 +806,8 @@ static void print_line(SpaceFile *sfile, struct direntry *files, int x, int y)
 			struct LANGMenuEntry *lme;
        		lme = find_language(U.language);
 
-			if (!strcmp(lme->code, "ja_JP") || 
-				!strcmp(lme->code, "zh_CN"))
+			if ((lme !=NULL) && (!strcmp(lme->code, "ja_JP") || 
+				!strcmp(lme->code, "zh_CN")))
 			{
 				BIF_RasterPos((float)x, (float)y);
 #ifdef WIN32
