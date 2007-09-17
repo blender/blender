@@ -265,9 +265,7 @@ static int compare_extension(const void *a1, const void *a2) {
 
 void BIF_filelist_filter(FileList* filelist)
 {
-	int num_files = 0;
 	int num_filtered = 0;
-	struct direntry *old_filelist;
 	int i, j;
 
 	if (!filelist->filelist)
@@ -561,7 +559,7 @@ int BIF_filelist_find(struct FileList* filelist, char *file)
 	int fidx = -1;
 	
 	if (!filelist->fidx) 
-		return;
+		return fidx;
 
 	
 	for (i = 0; i < filelist->numfiles; ++i) {
