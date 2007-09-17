@@ -48,6 +48,7 @@
 #include <shlobj.h> /* for SHGetSpecialFolderPath, has to be done before BLI_winstuff because 'near' is disabled through BLI_windstuff */
 #include "BLI_winstuff.h"
 #include <process.h> /* getpid */
+#include <direct.h> /* chdir */
 #else
 #include <unistd.h>
 #endif
@@ -64,8 +65,6 @@
 
 static int get_thumb_dir( char* dir , ThumbSize size)
 {
-	char* home;
-
 #ifdef WIN32
 	/* yes, applications shouldn't store data there, but so does GIMP :)*/
 	SHGetSpecialFolderPath(0, dir, CSIDL_PROFILE, 0);
@@ -120,7 +119,7 @@ static const unsigned char acceptable[96] = {
   0x3F,0x3F,0x3F,0x3F,0x3F,0x3F,0x3F,0x3F,0x3F,0x3F,0x3F,0x20,0x20,0x20,0x3F,0x20
 };
 
-static const char hex[16] = "0123456789abcdef";
+static const char hex[17] = "0123456789abcdef";
 
 /* Note: This escape function works on file: URIs, but if you want to
  * escape something else, please read RFC-2396 */
@@ -180,7 +179,7 @@ static int uri_from_filename( const char *dir, const char *file, char *uri )
 			return 0;
 		}
 		/* on windows, using always uppercase drive/volume letter in uri */
-		vol[0] = toupper(dir[0]);
+		vol[0] = (unsigned char)toupper(dir[0]);
 		vol[1] = ':';
 		vol[2] = '\0';
 		strcat(orig_uri, vol);

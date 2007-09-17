@@ -481,7 +481,7 @@ void BIF_filelist_loadimage(struct FileList* filelist, int index)
 					scaledy =  ( (float)imb->y/(float)imb->x )*imgwidth;
 				}
 				else {
-					scaledy = imgheight;
+					scaledy = (float)imgheight;
 					scaledx =  ( (float)imb->x/(float)imb->y )*imgheight;
 				}
 				ex = (short)scaledx;
