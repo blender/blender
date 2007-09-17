@@ -1972,6 +1972,9 @@ static void applyRotation(TransInfo *t, float angle, float axis[3])
 	if (t->around == V3D_LOCAL) {
 		VECCOPY(center, t->center);
 	}
+	else {
+		center[0] = center[1] = center[2] = 0.0f;
+	}
 
 	VecRotToMat3(axis, angle, mat);
 	

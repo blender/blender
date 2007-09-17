@@ -3,9 +3,8 @@
 	int i=0; 
 	ADVANCE_POINTERS(2*gridLoopBound); 
 } /* j */ 
-	/* COMPRESSGRIDS!=1 */ 
 #pragma omp barrier 
-
+	/* COMPRESSGRIDS!=1 */ 
 	/* int i=0;  */ 
 	/* ADVANCE_POINTERS(mLevel[lev].lSizex*2);  */ 
 } /* all cell loop k,j,i */ 

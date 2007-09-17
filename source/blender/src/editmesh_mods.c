@@ -1538,7 +1538,7 @@ void mesh_copy_menu(void)
 				error("mesh has no color layers");
 				return;
 			} else {
-				/* guess teh 4th color if needs be */
+				/* guess the 4th color if needs be */
 				float val =- 1;
 				
 				if (!efa_act->v4) {

@@ -4023,9 +4023,10 @@ void material_panels()
 void lamp_panels()
 {
 	Object *ob= OBACT;
-	Lamp *la = ob->data;
+	Lamp *la;
 	
 	if(ob==NULL || ob->type!= OB_LAMP) return;
+	la= ob->data;
 
 	lamp_panel_preview(ob, ob->data);
 	lamp_panel_lamp(ob, ob->data);
@@ -4038,14 +4039,13 @@ void lamp_panels()
 		lamp_panel_spot(ob, ob->data);
 	else {
 		/* init vars */
-		Lamp* lp = ob->data;
-		if (lp->YF_numphotons==0) lp->YF_numphotons=1000;
-		if (lp->YF_numsearch==0) lp->YF_numsearch=10;
-		if (lp->YF_phdepth==0) lp->YF_phdepth=1;
-		if (lp->YF_causticblur==0.0) lp->YF_causticblur=0.001;
-		if (lp->YF_bufsize==0) lp->YF_bufsize=128;
+		if (la->YF_numphotons==0) la->YF_numphotons=1000;
+		if (la->YF_numsearch==0) la->YF_numsearch=10;
+		if (la->YF_phdepth==0) la->YF_phdepth=1;
+		if (la->YF_causticblur==0.0) la->YF_causticblur=0.001;
+		if (la->YF_bufsize==0) la->YF_bufsize=128;
 		/* spherelight radius default is zero, so nothing to do */
-		lamp_panel_yafray(ob, lp);
+		lamp_panel_yafray(ob, la);
 	}
 	lamp_panel_texture(ob, ob->data);
 	lamp_panel_mapto(ob, ob->data);

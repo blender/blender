@@ -32,7 +32,6 @@ mpParticles->addFullParticle( x ); } \
 	{ \
 	jend = mLevel[mMaxRefine].lSizey-gridLoopBound; \
 	} \
-	if(jstart<1) jstart = 1; \
 	LbmFloat *ccel = NULL, *tcel = NULL; \
 	CellFlagType *pFlagSrc=NULL, *pFlagDst=NULL; \
 	if(mLevel[mMaxRefine].setCurr==1) { \
@@ -43,7 +42,7 @@ mpParticles->addFullParticle( x ); } \
 	temp = id; /* dummy remove warning */ \
 } \
 
-
+// if(jstart<1) jstart = 1; 
 
 #define unused_GRID_REGION_END() \
 } /* main_region */  \

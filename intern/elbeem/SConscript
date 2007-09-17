@@ -5,7 +5,7 @@ Import('env')
 
 sources = env.Glob('intern/*.cpp')
 
-defs = 'NOGUI ELBEEM_BLENDER=1'
+defs = 'PARALLEL NOGUI ELBEEM_BLENDER=1'
 if env['OURPLATFORM']=='win32-vc':
     defs += ' USE_MSVC6FIXES'
 incs = env['BF_PNG_INC'] + ' ' + env['BF_ZLIB_INC'] + ' ' +env['BF_SDL_INC']

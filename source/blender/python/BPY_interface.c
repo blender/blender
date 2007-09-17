@@ -273,25 +273,32 @@ void BPY_end_python( void )
 
 void syspath_append( char *dirname )
 {
-	PyObject *mod_sys, *dict, *path, *dir;
-
+	PyObject *mod_sys= NULL, *dict= NULL, *path= NULL, *dir= NULL;
+	short ok=1;
 	PyErr_Clear(  );
 
 	dir = Py_BuildValue( "s", dirname );
 
 	mod_sys = PyImport_ImportModule( "sys" );	/* new ref */
-	dict = PyModule_GetDict( mod_sys );	/* borrowed ref */
-	path = PyDict_GetItemString( dict, "path" );	/* borrowed ref */
+	
+	if (mod_sys) {
+		dict = PyModule_GetDict( mod_sys );	/* borrowed ref */
+		path = PyDict_GetItemString( dict, "path" );	/* borrowed ref */
+		if ( !PyList_Check( path ) ) {
+			ok = 0;
+		}
+	} else {
+		/* cant get the sys module */
+		ok = 0;
+	}
 
-	if( !PyList_Check( path ) )
-		return;
+	if (ok && PyList_Append( path, dir ) != 0)
+		ok = 0; /* append failed */
 
-	PyList_Append( path, dir );
+	if( (ok==0) || PyErr_Occurred(  ) )
+		Py_FatalError( "could import or build sys.path, can't continue" );
 
-	if( PyErr_Occurred(  ) )
-		Py_FatalError( "could not build sys.path" );
-
-	Py_DECREF( mod_sys );
+	Py_XDECREF( mod_sys );
 }
 
 void init_syspath( int first_time )

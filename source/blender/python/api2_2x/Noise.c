@@ -199,7 +199,7 @@ static PyObject *Noise_random( PyObject * self )
 
 static PyObject *Noise_randuvec( PyObject * self )
 {
-	float v[3];
+	float v[3] = {0.0f, 0.0f, 0.0f};
 	randuvec( v );
 	return Py_BuildValue( "[fff]", v[0], v[1], v[2] );
 }

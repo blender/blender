@@ -1636,7 +1636,7 @@ static void render_panel_format(void)
 	uiBlockEndAlign(block);
 }
 
-
+#ifndef DISABLE_YAFRAY /* disable yafray stuff */
 /* yafray: global illumination options panel */
 static void render_panel_yafrayGI()
 {
@@ -1739,7 +1739,7 @@ static void render_panel_yafrayGlobal()
 		uiDefButF(block, NUMSLI, B_DIFF, "Thr ", 160,90,150,20, &G.scene->r.YF_AAthreshold, 0.000001, 1.0, 0, 0, "AA threshold");
 	}
 }
-
+#endif /* disable yafray stuff */
 
 static void layer_copy_func(void *lay_v, void *lay_p)
 {

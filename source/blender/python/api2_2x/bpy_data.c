@@ -407,7 +407,7 @@ PyObject *LibBlockSeq_new(BPy_LibBlockSeq *self, PyObject * args, PyObject *kwd)
 		static char *kwlist[] = {"name", "filename", NULL};
 		
 		if(PyArg_ParseTupleAndKeywords(args, kwd, "|ss", kwlist, &name, &filename) && filename ) {
-			PyObject *ret;
+			PyObject *ret= NULL;
 			
 			if (strlen(filename) > FILE_MAXDIR + FILE_MAXFILE - 1)
 					return ( EXPP_ReturnPyObjError( PyExc_IOError,

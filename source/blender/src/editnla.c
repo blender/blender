@@ -980,7 +980,7 @@ void transform_nlachannel_keys(int mode, int dummy)
 	bActionChannel *chan;
 	bActionStrip *strip;
 	bConstraintChannel *conchan;
-	float	sval[2], cval[2], lastcval[2];
+	float	sval[2], cval[2], lastcval[2]= {0.0f, 0.0f};
 	float	fac=0.0F;
 	float	deltax, startx;
 	int i;
@@ -1077,7 +1077,7 @@ void transform_nlachannel_keys(int mode, int dummy)
 				for (chan=base->object->action->chanbase.first; chan; chan=chan->next){
 					if (EDITABLE_ACHAN(chan)) {
 						tvtot=add_trans_ipo_keys(chan->ipo, tv, tvtot);
-
+						
 						/* Manipulate action constraint ipos */
 						if (EXPANDED_ACHAN(chan) && FILTER_CON_ACHAN(chan)) {
 							for (conchan=chan->constraintChannels.first; conchan; conchan=conchan->next) {

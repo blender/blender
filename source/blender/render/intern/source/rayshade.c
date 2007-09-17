@@ -850,21 +850,6 @@ static int adaptive_sample_variance(int samples, float *col, float *colsq, float
 		return 0;
 }
 
-static int adaptive_sample_contrast(int samples, float *prevcol, float *curcol, float thresh)
-{
-	/* if the last sample's contribution to the total  colour was below a small threshold
-	 * (i.e. the samples taken are very similar), then taking more samples that are probably 
-	 * going to be the same is wasting effort */
-	if ( (fabs( prevcol[0]/(float)(samples-1) - curcol[0]/(float)(samples) ) < thresh) &&
-		(fabs( prevcol[1]/(float)(samples-1) - curcol[1]/(float)(samples) ) < thresh) &&
-		(fabs( prevcol[2]/(float)(samples-1) - curcol[2]/(float)(samples) ) < thresh) ) 
-	{
-		return 1;
-	}
-	else
-		return 0;
-}
-
 static int adaptive_sample_contrast_val(int samples, float prev, float val, float thresh)
 {
 	/* if the last sample's contribution to the total value was below a small threshold

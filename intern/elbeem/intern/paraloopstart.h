@@ -1,3 +1,3 @@
 
-#pragma omp parallel section num_threads(MAX_THREADS) \
-reduction(+: calcCurrentMass, calcCurrentVolume, calcCellsFilled, calcCellsEmptied, calcNumUsedCells)
+#pragma omp parallel num_threads(MAX_THREADS) \
+reduction(+: calcCurrentMass, calcCurrentVolume, calcCellsFilled, calcCellsEmptied, calcNumUsedCells) 
