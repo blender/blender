@@ -1989,6 +1989,9 @@ static void evaluate_constraint (bConstraint *constraint, float ownermat[][4], f
 				ownermat[2][1]=0;
 				ownermat[2][2]=size[2];
 				
+				/* targetmat[2] instead of ownermat[2] is passed to vectomat
+				 * for backwards compatability it seems... (Aligorith)
+				 */
 				VecSubf(vec, ownermat[3], targetmat[3]);
 				vectomat(vec, ownermat[2], 
 						(short)data->reserved1, (short)data->reserved2, 
