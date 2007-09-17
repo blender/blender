@@ -5234,7 +5234,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->type = eModifierTypeType_OnlyDeform;
 		mti->initData = clothModifier_initData;
 		mti->flags = eModifierTypeFlag_AcceptsCVs
-			 | eModifierTypeFlag_RequiresOriginalData;
+					// | eModifierTypeFlag_RequiresOriginalData;
 		 			// | eModifierTypeFlag_SupportsMapping
 					// | eModifierTypeFlag_SupportsEditmode 
 					// | eModifierTypeFlag_EnableInEditmode;

@@ -69,7 +69,7 @@ static int get_thumb_dir( char* dir , ThumbSize size)
 	/* yes, applications shouldn't store data there, but so does GIMP :)*/
 	SHGetSpecialFolderPath(0, dir, CSIDL_PROFILE, 0);
 #else
-	home = getenv("HOME");
+	char* home = getenv("HOME");
 	if (!home) return 0;
 	BLI_strncpy(dir, home, FILE_MAX);
 #endif
