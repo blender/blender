@@ -2517,7 +2517,7 @@ static PyObject *Object_setConstraintInfluenceForBone( BPy_Object * self,
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"cannot get a curve from this IPO, may be using libdata" );		
 	
-	insert_vert_ipo(icu, (float)CFRA, influence);
+	insert_vert_icu(icu, (float)CFRA, influence);
 	self->object->recalc |= OB_RECALC_OB;  
 
 	Py_RETURN_NONE;

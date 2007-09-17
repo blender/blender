@@ -94,6 +94,7 @@
 #include "BIF_interface.h"
 #include "BIF_usiblender.h"
 #include "BIF_drawtext.h"
+#include "BIF_editaction.h"
 #include "BIF_editarmature.h"
 #include "BIF_editlattice.h"
 #include "BIF_editfont.h"
@@ -942,6 +943,7 @@ void exit_usiblender(void)
 	free_blender();				/* blender.c, does entire library */
 	free_matcopybuf();
 	free_ipocopybuf();
+	free_actcopybuf();
 	free_vertexpaint();
 	free_imagepaint();
 	

@@ -1335,7 +1335,7 @@ void insertkey_action(void)
 				if (ob)
 					insertkey((ID *)ob, icu->blocktype, achan->name, NULL, icu->adrcode);
 				else
-					insert_vert_ipo(icu, cfra, icu->curval);
+					insert_vert_icu(icu, cfra, icu->curval);
 			}
 		}
 		
@@ -1352,7 +1352,7 @@ void insertkey_action(void)
 		
 		if (key->ipo) {
 			for (icu= key->ipo->curve.first; icu; icu=icu->next) {
-				insert_vert_ipo(icu, cfra, icu->curval);
+				insert_vert_icu(icu, cfra, icu->curval);
 			}
 		}
 	}
@@ -1495,9 +1495,172 @@ void clean_action (void)
 }
 
 /* **************************************************** */
+/* COPY/PASTE FOR ACTIONS */
+/* - The copy/paste buffer currently stores a set of IPO curves, with no
+ *   repeating curve-types (i.e.  no curves with the same adrcode). 
+ * - Only selected keyframes from the source curves are placed here. 
+ * - Only 'compatible' pastes are done.
+ */
+
+/* globals for copy/paste data (like for other copy/paste buffers) */
+ListBase actcopybuf = {NULL, NULL};
+
+/* This function frees any MEM_calloc'ed copy/paste buffer data */
+void free_actcopybuf ()
+{
+	IpoCurve *icu;
+	
+	while( (icu= actcopybuf.first) ) {
+		BLI_remlink(&actcopybuf, icu);
+		free_ipo_curve(icu);
+	}
+}
+
+/* This function adds data to the copy/paste buffer, freeing existing data first
+ * Only the active action channel gets its selected keyframes copied.
+ */
+void copy_actdata ()
+{
+	ListBase act_data = {NULL, NULL};
+	bActListElem *ale;
+	int filter;
+	void *data;
+	short datatype;
+	
+	/* clear buffer first */
+	free_actcopybuf();
+	
+	/* get data */
+	data= get_action_context(&datatype);
+	if (data == NULL) return;
+	
+	/* filter data */
+	filter= (ACTFILTER_VISIBLE | ACTFILTER_SEL | ACTFILTER_ONLYICU);
+	actdata_filter(&act_data, filter, data, datatype);
+	
+	/* each of these entries should be an ipo curve */
+	for (ale= act_data.first; ale; ale= ale->next) {
+		IpoCurve *icu= ale->key_data;
+		IpoCurve *icn;
+		BezTriple *bezt;
+		short nin_buffer= 1;
+		int i;
+		
+		/* check if a curve like this exists already in buffer */
+		for (icn= actcopybuf.first; icn; icn= icn->next) {
+			if ((icn->blocktype==icu->blocktype) && (icn->adrcode==icu->adrcode)) {
+				nin_buffer= 0;
+				break;
+			}
+		}
+		/* allocate memory for a new curve if a valid one wasn't found */
+		if (nin_buffer) {
+			icn= MEM_callocN(sizeof(IpoCurve), "actcopybuf");
+			
+			*icn= *icu;
+			icn->totvert= 0;
+			icn->bezt = NULL;
+			icn->driver = NULL;
+			
+			BLI_addtail(&actcopybuf, icn);
+		}
+		
+		/* find selected BezTriples to add to the buffer */
+		for (i=0, bezt=icu->bezt; i < icu->totvert; i++, bezt++) {
+			if (BEZSELECTED(bezt))
+				insert_bezt_icu(icn, bezt);
+		}
+	}
+	
+	/* check if anything ended up in the buffer */
+	if (actcopybuf.first==NULL || actcopybuf.last==NULL)
+		error("Nothing copied to buffer");
+	
+	/* free temp memory */
+	BLI_freelistN(&act_data);
+}
+
+void paste_actdata ()
+{
+	ListBase act_data = {NULL, NULL};
+	bActListElem *ale;
+	int filter;
+	void *data;
+	short datatype;
+	
+	/* check if buffer is empty */
+	if (actcopybuf.first==NULL || actcopybuf.last==NULL) {
+		error("No data in buffer to paste");
+		return;
+	}
+	
+	/* get data */
+	data= get_action_context(&datatype);
+	if (data == NULL) return;
+	
+	/* filter data */
+	filter= (ACTFILTER_VISIBLE | ACTFILTER_SEL | ACTFILTER_FOREDIT | ACTFILTER_ONLYICU);
+	actdata_filter(&act_data, filter, data, datatype);
+	
+	/* from selected channels */
+	for (ale= act_data.first; ale; ale= ale->next) {
+		IpoCurve *icu= ale->key_data;
+		IpoCurve *ico;
+		BezTriple *bezt;
+		int i;
+		float offset= 0.0f;
+		short offsetInit= 1;
+		
+		/* find matching ipo-curve */
+		for (ico= actcopybuf.first; ico; ico= ico->next) {
+			if ((ico->blocktype==icu->blocktype) && (ico->adrcode==icu->adrcode)) {
+				/* just start pasting, with the the first keyframe on the current frame, and so on */
+				for (i=0, bezt=ico->bezt; i < ico->totvert; i++, bezt++) {
+					/* initialise offset (if not already done) */
+					if (offsetInit) {
+						offset= CFRA - bezt->vec[1][0];
+						offsetInit= 0;
+					}
+					
+					/* temporarily apply offset to src beztriple while copying */
+					bezt->vec[0][0] += offset;
+					bezt->vec[1][0] += offset;
+					bezt->vec[2][0] += offset;
+					
+					/* insert the keyframe */
+					insert_bezt_icu(icu, bezt);
+					
+					/* un-apply offset from src beztriple after copying */
+					bezt->vec[0][0] -= offset;
+					bezt->vec[1][0] -= offset;
+					bezt->vec[2][0] -= offset;
+				}
+				
+				/* recalculate channel's handles? */
+				calchandles_ipocurve(icu);
+				
+				/* done for this channel */
+				break;
+			}
+		}
+	}
+	
+	/* free temp memory */
+	BLI_freelistN(&act_data);
+	
+	/* undo and redraw stuff */
+	allqueue(REDRAWVIEW3D, 0);
+	allspace(REMAKEIPO, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWIPO, 0);
+	allqueue(REDRAWNLA, 0);
+	BIF_undo_push("Paste Action Keyframes");
+}
+
+/* **************************************************** */
 /* VARIOUS SETTINGS */
 
-/* this function combines several features related to setting 
+/* This function combines several features related to setting 
  * various ipo extrapolation/interpolation
  */
 void action_set_ipo_flags (short mode, short event)

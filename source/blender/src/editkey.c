@@ -184,8 +184,8 @@ static void rvk_slider_func(void *voidob, void *voidkeynum)
 		/* create the bezier triple if one doesn't exist,
 		 * otherwise modify it's value
 		 */
-		if (!bezt) {
-			insert_vert_ipo(icu, cfra, meshslidervals[keynum]);
+		if (bezt == NULL) {
+			insert_vert_icu(icu, cfra, meshslidervals[keynum]);
 		}
 		else {
 			bezt->vec[1][1] = meshslidervals[keynum];

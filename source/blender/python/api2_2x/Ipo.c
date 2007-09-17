@@ -1483,7 +1483,7 @@ static int Ipo_setIpoCurveByName( BPy_Ipo * self, PyObject * key,
 		icu->flag |= IPO_VISIBLE|IPO_AUTO_HORIZ;
 		set_icu_vars( icu );
 		BLI_addtail( &(ipo->curve), icu);
-		insert_vert_ipo( icu, time, curval );
+		insert_vert_icu( icu, time, curval );
 
 		allspace( REMAKEIPO, 0 );
 		EXPP_allqueue( REDRAWIPO, 0 );

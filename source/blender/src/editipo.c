@@ -1893,13 +1893,73 @@ IpoCurve *verify_ipocurve(ID *from, short blocktype, char *actname, char *constn
 	return icu;
 }
 
-void insert_vert_ipo(IpoCurve *icu, float x, float y)
+/* This function adds a given BezTriple to an IPO-Curve. It will allocate 
+ * memory for the array if needed, and will insert the BezTriple into a
+ * suitable place in chronological order.
+ * 
+ * NOTE: any recalculate of the IPO-Curve that needs to be done will need to 
+ * 		be done by the caller.
+ */
+int insert_bezt_icu (IpoCurve *icu, BezTriple *bezt)
 {
-	BezTriple *bezt, beztr, *newbezt;
-	int a = 0, h1, h2;
+	BezTriple *newb, *beztd;
+	int i= 0;
 	
+	if (icu->bezt == NULL) {
+		icu->bezt= MEM_callocN(sizeof(BezTriple), "beztriple");
+		*(icu->bezt)= *bezt;
+		icu->totvert= 1;
+	}
+	else {
+		beztd= icu->bezt;
+		for (i = 0; i <= icu->totvert; i++, beztd++) {
+			/* no double points - threshold to determine this should be good enough */
+			if ((i < icu->totvert) && IS_EQT(beztd->vec[1][0], bezt->vec[1][0], 0.00001)) {
+				*(beztd)= *bezt;
+				break;
+			}
+			/* if we've reached the end of the icu array, or bezt is to be pasted before current */
+			if (i==icu->totvert || beztd->vec[1][0] > bezt->vec[1][0]) {
+				newb= MEM_callocN( (icu->totvert+1)*sizeof(BezTriple), "beztriple");
+				
+				/* add the beztriples that should occur before the beztriple to be pasted (originally in ei->icu) */
+				if (i > 0) 
+					memcpy(newb, icu->bezt, i*sizeof(BezTriple));
+				
+				/* add beztriple to paste at index j */
+				*(newb+i)= *bezt;
+				
+				/* add the beztriples that occur after the beztriple to be pasted (originally in icu) */
+				if (i < icu->totvert) 
+					memcpy(newb+i+1, icu->bezt+i, (icu->totvert-i)*sizeof(BezTriple));
+				
+				MEM_freeN(icu->bezt);
+				icu->bezt= newb;
+				
+				icu->totvert++;
+				break;
+			}
+		}
+	}
+	
+	/* we need to return the index, so that some tools which do post-processing can 
+	 * detect where we added the BezTriple in the array
+	 */
+	return i;
+}
+
+/* This function is a wrapper for insert_bezt_icu, and should be used when
+ * adding a new keyframe to a curve, when the keyframe doesn't exist anywhere
+ * else yet. 
+ */
+void insert_vert_icu (IpoCurve *icu, float x, float y)
+{
+	BezTriple beztr;
+	int a, h1, h2;
+	
+	/* set all three points, for nicer start position */
 	memset(&beztr, 0, sizeof(BezTriple));
-	beztr.vec[0][0]= x; // set all three points, for nicer start position
+	beztr.vec[0][0]= x; 
 	beztr.vec[0][1]= y;
 	beztr.vec[1][0]= x;
 	beztr.vec[1][1]= y;
@@ -1908,58 +1968,24 @@ void insert_vert_ipo(IpoCurve *icu, float x, float y)
 	beztr.hide= IPO_BEZ;
 	beztr.f1= beztr.f2= beztr.f3= SELECT;
 	beztr.h1= beztr.h2= HD_AUTO;
-		
-	bezt= icu->bezt;
-		
-	if(bezt==NULL) {
-		icu->bezt= MEM_callocN( sizeof(BezTriple), "beztriple");
-		*(icu->bezt)= beztr;
-		icu->totvert= 1;
-	}
-	else {
-		/* all vertices deselect */
-		for(a=0; a<icu->totvert; a++, bezt++) {
-			bezt->f1= bezt->f2= bezt->f3= 0;
-		}
 	
-		bezt= icu->bezt;
-		for(a=0; a<=icu->totvert; a++, bezt++) {
-			
-			/* no double points - threshold to determine this should be good enough */
-			if(a<icu->totvert && IS_EQT(bezt->vec[1][0], x, 0.00001)) {
-				*(bezt)= beztr;
-				break;
-			}
-			if(a==icu->totvert || bezt->vec[1][0] > x) {
-				newbezt= MEM_callocN( (icu->totvert+1)*sizeof(BezTriple), "beztriple");
-				
-				if(a>0) memcpy(newbezt, icu->bezt, a*sizeof(BezTriple));
-				
-				bezt= newbezt+a;
-				*(bezt)= beztr;
-				
-				if(a<icu->totvert) memcpy(newbezt+a+1, icu->bezt+a, (icu->totvert-a)*sizeof(BezTriple));
-				
-				MEM_freeN(icu->bezt);
-				icu->bezt= newbezt;
-				
-				icu->totvert++;
-				break;
-			}
-		}
-	}
-	
-	
+	/* add temp beztriple to keyframes */
+	a= insert_bezt_icu(icu, &beztr);
 	calchandles_ipocurve(icu);
 	
 	/* set handletype */
-	if(icu->totvert>2) {
+	if (icu->totvert > 2) {
+		BezTriple *bezt;
+		
 		h1= h2= HD_AUTO;
-		if(a>0) h1= (bezt-1)->h2;
-		if(a<icu->totvert-1) h2= (bezt+1)->h1;
+		bezt= (icu->bezt + a);
+		
+		if (a > 0) h1= (bezt-1)->h2;
+		if (a < icu->totvert-1) h2= (bezt+1)->h1;
+		
 		bezt->h1= h1;
 		bezt->h2= h2;
-
+		
 		calchandles_ipocurve(icu);
 	}
 }
@@ -2013,7 +2039,7 @@ void add_vert_ipo(void)
 		y= (float)(1 << val);
 	}
 	
-	insert_vert_ipo(ei->icu, x, y);
+	insert_vert_icu(ei->icu, x, y);
 
 	/* to be sure: if icu was 0, or only 1 curve visible */
 	ei->flag |= IPO_SELECT;
@@ -2190,7 +2216,7 @@ static void insertkey_nonrecurs(ID *id, int blocktype, char *actname, char *cons
 					}
 				}
 				
-				insert_vert_ipo(icu, cfra, curval);
+				insert_vert_icu(icu, cfra, curval);
 			}
 		}
 	}
@@ -2412,7 +2438,7 @@ void insertkey(ID *id, int blocktype, char *actname, char *constname, int adrcod
 					}
 				}
 				
-				insert_vert_ipo(icu, cfra, curval);
+				insert_vert_icu(icu, cfra, curval);
 			}
 		}
 	}
@@ -2459,7 +2485,7 @@ void insertkey_smarter(ID *id, int blocktype, char *actname, char *constname, in
 			
 			/* insert new keyframe at current frame */
 			if (insert_mode) 
-				insert_vert_ipo(icu, cfra, curval);
+				insert_vert_icu(icu, cfra, curval);
 			
 			/* delete keyframe immediately before/after newly added */
 			switch (insert_mode) {
@@ -2506,7 +2532,7 @@ void insertfloatkey(ID *id, int blocktype, char *actname, char *constname, int a
  			}
 			
 			/* insert new keyframe at current frame */
-			insert_vert_ipo(icu, cfra, floatkey);
+			insert_vert_icu(icu, cfra, floatkey);
  		}
  	}
 }
@@ -2537,16 +2563,16 @@ void insertkey_editipo(void)
 		ei->icu->totvert= 0;
 		ei->icu->bezt= NULL;
 		
-		insert_vert_ipo(ei->icu, 0.0f, 0.0f);
+		insert_vert_icu(ei->icu, 0.0f, 0.0f);
 		
 		if(ELEM3(driver->adrcode, OB_ROT_X, OB_ROT_Y, OB_ROT_Z)) {
 			if(ei->disptype==IPO_DISPDEGR)
-				insert_vert_ipo(ei->icu, 18.0f, 18.0f);
+				insert_vert_icu(ei->icu, 18.0f, 18.0f);
 			else
-				insert_vert_ipo(ei->icu, 18.0f, 1.0f);
+				insert_vert_icu(ei->icu, 18.0f, 1.0f);
 		}
 		else
-			insert_vert_ipo(ei->icu, 1.0f, 1.0f);
+			insert_vert_icu(ei->icu, 1.0f, 1.0f);
 		
 		ei->flag |= IPO_SELECT|IPO_VISIBLE;
 		ei->icu->flag= ei->flag;
@@ -2623,7 +2649,7 @@ void insertkey_editipo(void)
 						}
 						fp= insertvals;
 						for(a=0; a<tot; a++, fp+=2) {
-							insert_vert_ipo(ei->icu, fp[0], fp[1]);
+							insert_vert_icu(ei->icu, fp[0], fp[1]);
 						}
 						
 						MEM_freeN(insertvals);
@@ -3413,7 +3439,7 @@ void clean_ipo_curve(IpoCurve *icu)
 	
 	/* now insert first keyframe, as it should be ok */
 	bezt = old_bezts;
-	insert_vert_ipo(icu, bezt->vec[1][0], bezt->vec[1][1]);
+	insert_vert_icu(icu, bezt->vec[1][0], bezt->vec[1][1]);
 	
 	/* Loop through BezTriples, comparing them. Skip any that do 
 	 * not fit the criteria for "ok" points.
@@ -3450,7 +3476,7 @@ void clean_ipo_curve(IpoCurve *icu)
 				if (cur[1] > next[1]) {
 					if (IS_EQT(cur[1], prev[1], thresh) == 0) {
 						/* add new keyframe */
-						insert_vert_ipo(icu, cur[0], cur[1]);
+						insert_vert_icu(icu, cur[0], cur[1]);
 					}
 				}
 			}
@@ -3458,7 +3484,7 @@ void clean_ipo_curve(IpoCurve *icu)
 				/* only add if values are a considerable distance apart */
 				if (IS_EQT(cur[1], prev[1], thresh) == 0) {
 					/* add new keyframe */
-					insert_vert_ipo(icu, cur[0], cur[1]);
+					insert_vert_icu(icu, cur[0], cur[1]);
 				}
 			}
 		}
@@ -3468,18 +3494,18 @@ void clean_ipo_curve(IpoCurve *icu)
 				/* does current have same value as previous and next? */
 				if (IS_EQT(cur[1], prev[1], thresh) == 0) {
 					/* add new keyframe*/
-					insert_vert_ipo(icu, cur[0], cur[1]);
+					insert_vert_icu(icu, cur[0], cur[1]);
 				}
 				else if (IS_EQT(cur[1], next[1], thresh) == 0) {
 					/* add new keyframe */
-					insert_vert_ipo(icu, cur[0], cur[1]);
+					insert_vert_icu(icu, cur[0], cur[1]);
 				}
 			}
 			else {	
 				/* add if value doesn't equal that of previous */
 				if (IS_EQT(cur[1], prev[1], thresh) == 0) {
 					/* add new keyframe */
-					insert_vert_ipo(icu, cur[0], cur[1]);
+					insert_vert_icu(icu, cur[0], cur[1]);
 				}
 			}
 		}
@@ -4123,10 +4149,10 @@ void paste_editipo(void)
 			
 			/* if in editmode, paste keyframes */ 
 			if (ei->flag & IPO_EDIT) {
-				BezTriple *src, *dst, *newb;
+				BezTriple *bezt;
 				float offset= 0.0f;
 				short offsetInit= 0;
-				int i, j;
+				int i;
 				
 				/* make sure an ipo-curve exists (it may not, as this is an editipo) */
 				ei->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, ei->adrcode);
@@ -4136,62 +4162,27 @@ void paste_editipo(void)
 				 * with all added keyframes being offsetted by the difference between
 				 * the first source keyframe and the current frame.
 				 */
-				for (i=0, src=icu->bezt; i < icu->totvert; i++, src++) {
+				for (i=0, bezt=icu->bezt; i < icu->totvert; i++, bezt++) {
 					/* skip if not selected */
-					if (BEZSELECTED(src) == 0) continue;
+					if (BEZSELECTED(bezt) == 0) continue;
 					
 					/* initialise offset (if not already done) */
 					if (offsetInit==0) {
-						offset= CFRA - src->vec[1][0];
+						offset= CFRA - bezt->vec[1][0];
 						offsetInit= 1;
 					}
 					/* temporarily apply offset to src beztriple while copying */
-					src->vec[0][0] += offset;
-					src->vec[1][0] += offset;
-					src->vec[2][0] += offset;
+					bezt->vec[0][0] += offset;
+					bezt->vec[1][0] += offset;
+					bezt->vec[2][0] += offset;
 						
-					/* find place to insert */
-					if (ei->icu->bezt == NULL) {
-						ei->icu->bezt= MEM_callocN( sizeof(BezTriple), "beztriple");
-						*(ei->icu->bezt)= *src;
-						ei->icu->totvert= 1;
-					}
-					else {
-						dst= ei->icu->bezt;
-						for (j=0; j <= ei->icu->totvert; j++, dst++) {
-							/* no double points - threshold to determine this should be good enough */
-							if ((j < ei->icu->totvert) && IS_EQT(dst->vec[1][0], src->vec[1][0], 0.00001)) {
-								*(dst)= *src;
-								break;
-							}
-							/* if we've reached the end of the ei->icu array, or src is to be pasted before current */
-							if (j==ei->icu->totvert || dst->vec[1][0] > src->vec[1][0]) {
-								newb= MEM_callocN( (ei->icu->totvert+1)*sizeof(BezTriple), "beztriple");
-								
-								/* add the beztriples that should occur before the beztriple to be pasted (originally in ei->icu) */
-								if (j > 0) 
-									memcpy(newb, ei->icu->bezt, j*sizeof(BezTriple));
-								
-								/* add beztriple to paste at index j */
-								*(newb+j)= *src;
-								
-								/* add the beztriples that occur after the beztriple to be pasted (originally in ei->icu) */
-								if (j < ei->icu->totvert) 
-									memcpy(newb+j+1, ei->icu->bezt+j, (ei->icu->totvert-j)*sizeof(BezTriple));
-								
-								MEM_freeN(ei->icu->bezt);
-								ei->icu->bezt= newb;
-								
-								ei->icu->totvert++;
-								break;
-							}
-						}
-					}
+					/* insert the keyframe */
+					insert_bezt_icu(ei->icu, bezt);
 					
 					/* un-apply offset from src beztriple after copying */
-					src->vec[0][0] -= offset;
-					src->vec[1][0] -= offset;
-					src->vec[2][0] -= offset;
+					bezt->vec[0][0] -= offset;
+					bezt->vec[1][0] -= offset;
+					bezt->vec[2][0] -= offset;
 				}
 				
 				/* recalculate handles of curve that data was pasted into */

@@ -112,7 +112,6 @@ static void make_local_action_channels(bAction *act)
 			}
 		}
 	}
-					
 }
 
 void make_local_action(bAction *act)
@@ -165,27 +164,27 @@ void make_local_action(bAction *act)
 }
 
 
-void free_action(bAction *act)
+void free_action (bAction *act)
 {
 	bActionChannel *chan;
 	
 	/* Free channels */
-	for (chan=act->chanbase.first; chan; chan=chan->next){
+	for (chan=act->chanbase.first; chan; chan=chan->next) {
 		if (chan->ipo)
 			chan->ipo->id.us--;
 		free_constraint_channels(&chan->constraintChannels);
 	}
 	
 	if (act->chanbase.first)
-		BLI_freelistN (&act->chanbase);
+		BLI_freelistN(&act->chanbase);
 }
 
-bAction* copy_action(bAction *src)
+bAction *copy_action (bAction *src)
 {
 	bAction *dst = NULL;
 	bActionChannel *dchan, *schan;
 	
-	if(!src) return NULL;
+	if (!src) return NULL;
 	
 	dst= copy_libblock(src);
 	duplicatelist(&(dst->chanbase), &(src->chanbase));

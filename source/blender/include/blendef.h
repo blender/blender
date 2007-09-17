@@ -390,6 +390,8 @@
 #define B_ACTMAIN		707
 #define	B_ACTPIN		708
 #define B_ACTBAKE		709
+#define B_ACTCOPYKEYS		710
+#define B_ACTPASTEKEYS		711
 
 /* TIME: 751 - 800 */
 #define B_TL_REW		751
