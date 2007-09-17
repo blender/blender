@@ -2063,15 +2063,23 @@ void set_render_border(void)
 		G.scene->r.border.ymin= ((float)rect.ymin-vb.ymin)/(vb.ymax-vb.ymin);
 		G.scene->r.border.xmax= ((float)rect.xmax-vb.xmin)/(vb.xmax-vb.xmin);
 		G.scene->r.border.ymax= ((float)rect.ymax-vb.ymin)/(vb.ymax-vb.ymin);
-		
+				
 		CLAMP(G.scene->r.border.xmin, 0.0, 1.0);
 		CLAMP(G.scene->r.border.ymin, 0.0, 1.0);
 		CLAMP(G.scene->r.border.xmax, 0.0, 1.0);
 		CLAMP(G.scene->r.border.ymax, 0.0, 1.0);
-		
+	
 		allqueue(REDRAWVIEWCAM, 1);
-		/* if it was not set, we do this */
-		G.scene->r.mode |= R_BORDER;
+		
+		/* drawing a border surrounding the entire camera view switches off border rendering */
+		if (G.scene->r.border.xmin <= 0.0 && G.scene->r.border.xmax >= 1.0 &&
+			G.scene->r.border.ymin <= 0.0 && G.scene->r.border.ymax >= 1.0)
+		{
+			G.scene->r.mode &= ~R_BORDER;
+		} else {
+			G.scene->r.mode |= R_BORDER;
+		}
+		
 		allqueue(REDRAWBUTSSCENE, 1);
 	}
 }
