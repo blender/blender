@@ -52,6 +52,7 @@ editmesh_mods.c, UI level access, no geometry changes
 #include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 
 #include "BLI_blenlib.h"
@@ -2473,6 +2474,12 @@ void hide_tface_uv(int swap)
 	
 	if( is_uv_tface_editing_allowed()==0 ) return;
 
+	/* call the mesh function if we are in mesh sync sel */
+	if (G.sima->flag & SI_SYNC_UVSEL) {
+		hide_mesh(swap);
+		return;
+	}
+	
 	if(swap) {
 		for (efa= em->faces.first; efa; efa= efa->next) {
 			if(efa->f & SELECT) {
@@ -2513,6 +2520,12 @@ void reveal_tface_uv(void)
 	MTFace *tface;
 
 	if( is_uv_tface_editing_allowed()==0 ) return;
+	
+	/* call the mesh function if we are in mesh sync sel */
+	if (G.sima->flag & SI_SYNC_UVSEL) {
+		reveal_mesh();
+		return;
+	}
 	
 	for (efa= em->faces.first; efa; efa= efa->next) {
 		if (!(efa->h)) {

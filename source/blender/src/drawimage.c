@@ -250,7 +250,7 @@ void what_image(SpaceImage *sima)
 		if(sima->image && sima->image->source==IMA_SRC_VIEWER) {}
 		else if (G.obedit == OBACT) {
 			sima->image= NULL;
-			activetf = get_active_mtface(NULL, NULL);
+			activetf = get_active_mtface(NULL, NULL, 1); /* partially selected face is ok */
 			
 			if(activetf && activetf->mode & TF_TEX) {
 				sima->image= activetf->tpage;
@@ -305,7 +305,8 @@ void image_changed(SpaceImage *sima, int dotile)
 	}
 
 	for (efa= em->faces.first; efa; efa= efa->next) {
-		if (efa->f & SELECT) {
+		/*if (efa->f & SELECT) {*/
+		if (SIMA_FACEDRAW_CHECK(efa)) {
 			tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 		
 			if(dotile==2) {
@@ -446,7 +447,8 @@ void draw_tfaces(void)
 			glColor3ub(112, 112, 112);
 			for (efa= em->faces.first; efa; efa= efa->next) {
 				/*if(!(mface->flag & ME_HIDE) && (mface->flag & ME_FACE_SEL)) {*/
-				if(!(efa->flag & ME_HIDE) && (efa->f & SELECT)) {
+				/*if(!(efa->flag & ME_HIDE) && (efa->f & SELECT)) {*/
+				if (SIMA_FACEDRAW_CHECK(efa)) {
 					tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 					glBegin(GL_LINE_LOOP);
 					glVertex2fv(tface->uv[0]);
@@ -470,10 +472,10 @@ void draw_tfaces(void)
 		glEnable(GL_BLEND);
 		
 		for (efa= em->faces.first; efa; efa= efa->next) {
-			if(efa->f & SELECT) {
+			/*if(efa->f & SELECT) {*/
+			if (SIMA_FACEDRAW_CHECK(efa)) {
 				tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-				if(!(~tface->flag & (TF_SEL1|TF_SEL2|TF_SEL3)) &&
-				   (!efa->v4 || tface->flag & TF_SEL4))
+				if( SIMA_FACESEL_CHECK(efa, tface) )
 					glColor4ubv((GLubyte *)col2);
 				else
 					glColor4ubv((GLubyte *)col1);
@@ -490,7 +492,8 @@ void draw_tfaces(void)
 	}
 	
 	for (efa= em->faces.first; efa; efa= efa->next) {
-		if (efa->f & SELECT) {
+		/*if (efa->f & SELECT) {*/
+		if (SIMA_FACEDRAW_CHECK(efa)) {
 			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 			
 			cpack(0x0);
@@ -526,7 +529,7 @@ void draw_tfaces(void)
 	/* draw active face edges */
 	/*if (activetface){*/
 		/* colors: R=u G=v */
-	activetface = get_active_mtface(&efa, NULL);
+	activetface = get_active_mtface(&efa, NULL, 0);
 	if (activetface) {
 		setlinestyle(2);
 		tface=activetface; 
@@ -569,13 +572,14 @@ void draw_tfaces(void)
 
 	bglBegin(GL_POINTS);
 	for (efa= em->faces.first; efa; efa= efa->next) {
-		if (efa->f & SELECT) {
+		/*if (efa->f & SELECT) {*/
+		if (SIMA_FACEDRAW_CHECK(efa)) {
 			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			if(tface->flag & TF_SEL1); else bglVertex2fv(tface->uv[0]);
-			if(tface->flag & TF_SEL2); else bglVertex2fv(tface->uv[1]);
-			if(tface->flag & TF_SEL3); else bglVertex2fv(tface->uv[2]);
+			if(SIMA_UVSEL_CHECK(efa, tface, 0)); else bglVertex2fv(tface->uv[0]);
+			if(SIMA_UVSEL_CHECK(efa, tface, 1)); else bglVertex2fv(tface->uv[1]);
+			if(SIMA_UVSEL_CHECK(efa, tface, 2)); else bglVertex2fv(tface->uv[2]);
 			if(efa->v4) {
-				if(tface->flag & TF_SEL4); else bglVertex2fv(tface->uv[3]);
+				if(SIMA_UVSEL_CHECK(efa, tface, 3)); else bglVertex2fv(tface->uv[3]);
 			}
 		}
 	}
@@ -588,7 +592,8 @@ void draw_tfaces(void)
 
 	bglBegin(GL_POINTS);
 	for (efa= em->faces.first; efa; efa= efa->next) {
-		if (efa->f & SELECT) {
+		/*if (efa->f & SELECT) {*/
+		if (SIMA_FACEDRAW_CHECK(efa)) {
 			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 			if(tface->unwrap & TF_PIN1) bglVertex2fv(tface->uv[0]);
 			if(tface->unwrap & TF_PIN2) bglVertex2fv(tface->uv[1]);
@@ -606,13 +611,14 @@ void draw_tfaces(void)
 
 	bglBegin(GL_POINTS);
 	for (efa= em->faces.first; efa; efa= efa->next) {
-		if (efa->f & SELECT) {
+		/*if (efa->f & SELECT) {*/
+		if (SIMA_FACEDRAW_CHECK(efa)) {
 			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			if(tface->flag & TF_SEL1) bglVertex2fv(tface->uv[0]);
-			if(tface->flag & TF_SEL2) bglVertex2fv(tface->uv[1]);
-			if(tface->flag & TF_SEL3) bglVertex2fv(tface->uv[2]);
+			if(!SIMA_UVSEL_CHECK(efa, tface, 0)); else bglVertex2fv(tface->uv[0]);
+			if(!SIMA_UVSEL_CHECK(efa, tface, 1)); else bglVertex2fv(tface->uv[1]);
+			if(!SIMA_UVSEL_CHECK(efa, tface, 2)); else bglVertex2fv(tface->uv[2]);
 			if(efa->v4) {
-				if(tface->flag & TF_SEL4) bglVertex2fv(tface->uv[3]);
+				if(!SIMA_UVSEL_CHECK(efa, tface, 3)); else bglVertex2fv(tface->uv[3]);
 			}
 		}
 	}
@@ -683,17 +689,34 @@ static void draw_image_view_icon(void)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA,  GL_ONE_MINUS_SRC_ALPHA); 
 	
-	if(G.sima->flag & SI_STICKYUVS) {
-		BIF_icon_draw_aspect(xPos, 5.0, ICON_STICKY2_UVS, 1.0f);
+	
+	if (G.sima->flag & SI_SYNC_UVSEL) {
+		/* take settings from the editmesh */
+		if (G.scene->selectmode == SCE_SELECT_FACE) {
+			BIF_icon_draw_aspect(xPos, 5.0, ICON_STICKY_UVS, 1.0f);
+		} else {
+			BIF_icon_draw_aspect(xPos, 5.0, ICON_STICKY2_UVS, 1.0f);
+		}
 		xPos = 25.0;
-	}
-	else if(!(G.sima->flag & SI_LOCALSTICKY)) {
-		BIF_icon_draw_aspect(xPos, 5.0, ICON_STICKY_UVS, 1.0f);
-		xPos = 25.0;
-	}
-
-	if(G.sima->flag & SI_SELACTFACE) {
-		BIF_icon_draw_aspect(xPos, 5.0, ICON_DRAW_UVFACES, 1.0f);
+		
+		if (G.scene->selectmode == SCE_SELECT_FACE || G.sima->flag & SI_SELACTFACE) {
+			BIF_icon_draw_aspect(xPos, 5.0, ICON_DRAW_UVFACES, 1.0f);
+		}
+		
+	} else {
+		/* use the flags for UV mode - normal operation */	
+		if(G.sima->flag & SI_STICKYUVS) {
+			BIF_icon_draw_aspect(xPos, 5.0, ICON_STICKY2_UVS, 1.0f);
+			xPos = 25.0;
+		}
+		else if(!(G.sima->flag & SI_LOCALSTICKY)) {
+			BIF_icon_draw_aspect(xPos, 5.0, ICON_STICKY_UVS, 1.0f);
+			xPos = 25.0;
+		}
+	
+		if(G.sima->flag & SI_SELACTFACE) {
+			BIF_icon_draw_aspect(xPos, 5.0, ICON_DRAW_UVFACES, 1.0f);
+		}
 	}
 	
 	glBlendFunc(GL_ONE,  GL_ZERO); 
@@ -768,28 +791,30 @@ void image_editvertex_buts(uiBlock *block)
 	image_transform_but_attr(&imx, &imy, &step, &digits);
 	
 	for (efa= em->faces.first; efa; efa= efa->next) {
-		if (!(efa->f & SELECT)) continue;
-		tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-		
-		if (tf->flag & TF_SEL1) {
-			cent[0]+= tf->uv[0][0];
-			cent[1]+= tf->uv[0][1];
-			nactive++;
-		}
-		if (tf->flag & TF_SEL2) {
-			cent[0]+= tf->uv[1][0];
-			cent[1]+= tf->uv[1][1];
-			nactive++;
-		}
-		if (tf->flag & TF_SEL3) {
-			cent[0]+= tf->uv[2][0];
-			cent[1]+= tf->uv[2][1];
-			nactive++;
-		}
-		if (efa->v4 && (tf->flag & TF_SEL4)) {
-			cent[0]+= tf->uv[3][0];
-			cent[1]+= tf->uv[3][1];
-			nactive++;
+		/*if ((efa->f & SELECT)) { */
+		if (SIMA_FACEDRAW_CHECK(efa)) {
+			tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			
+			if (SIMA_UVSEL_CHECK(efa, tf, 0)) {
+				cent[0]+= tf->uv[0][0];
+				cent[1]+= tf->uv[0][1];
+				nactive++;
+			}
+			if (SIMA_UVSEL_CHECK(efa, tf, 1)) {
+				cent[0]+= tf->uv[1][0];
+				cent[1]+= tf->uv[1][1];
+				nactive++;
+			}
+			if (SIMA_UVSEL_CHECK(efa, tf, 2)) {
+				cent[0]+= tf->uv[2][0];
+				cent[1]+= tf->uv[2][1];
+				nactive++;
+			}
+			if (efa->v4 && SIMA_UVSEL_CHECK(efa, tf, 3)) {
+				cent[0]+= tf->uv[3][0];
+				cent[1]+= tf->uv[3][1];
+				nactive++;
+			}
 		}
 	}
 		
@@ -831,24 +856,26 @@ void image_editvertex_buts(uiBlock *block)
 		}
 
 		for (efa= em->faces.first; efa; efa= efa->next) {
-			if (!(efa->f & SELECT)) continue;
-			tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			
-			if (tf->flag & TF_SEL1) {
-				tf->uv[0][0]+= delta[0];
-				tf->uv[0][1]+= delta[1];
-			}
-			if (tf->flag & TF_SEL2) {
-				tf->uv[1][0]+= delta[0];
-				tf->uv[1][1]+= delta[1];
-			}
-			if (tf->flag & TF_SEL3) {
-				tf->uv[2][0]+= delta[0];
-				tf->uv[2][1]+= delta[1];
-			}
-			if (efa->v4 && (tf->flag & TF_SEL4)) {
-				tf->uv[3][0]+= delta[0];
-				tf->uv[3][1]+= delta[1];
+			/*if (!(efa->f & SELECT)) continue;*/
+			if (SIMA_FACEDRAW_CHECK(efa)) {
+				tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				
+				if (SIMA_UVSEL_CHECK(efa, tf, 0)) {
+					tf->uv[0][0]+= delta[0];
+					tf->uv[0][1]+= delta[1];
+				}
+				if (SIMA_UVSEL_CHECK(efa, tf, 1)) {
+					tf->uv[1][0]+= delta[0];
+					tf->uv[1][1]+= delta[1];
+				}
+				if (SIMA_UVSEL_CHECK(efa, tf, 2)) {
+					tf->uv[2][0]+= delta[0];
+					tf->uv[2][1]+= delta[1];
+				}
+				if (efa->v4 && SIMA_UVSEL_CHECK(efa, tf, 3)) {
+					tf->uv[3][0]+= delta[0];
+					tf->uv[3][1]+= delta[1];
+				}
 			}
 		}
 			
@@ -1623,7 +1650,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 	if (!G.obedit && OBACT && (sima->flag & SI_DRAWSHADOW)) {
 		object_handle_update(OBACT);
 	}
-
+	
 	BIF_GetThemeColor3fv(TH_BACK, col);
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -1761,7 +1788,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 					else if(ibuf->rect_float && ibuf->channels==4)
 						sima_draw_alpha_pixelsf(x1, y1, ibuf->x, ibuf->y, ibuf->rect_float);
 				}
-				else if(sima->flag & SI_SHOW_ZBUF) {
+				else if(sima->flag & SI_SHOW_ZBUF && ((ibuf->zbuf || ibuf->zbuf_float || (ibuf->channels==1)) == 0)) {
 					if(ibuf->zbuf)
 						sima_draw_zbuf_pixels(x1, y1, ibuf->x, ibuf->y, ibuf->zbuf);
 					else if(ibuf->zbuf_float)

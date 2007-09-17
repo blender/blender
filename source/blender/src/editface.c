@@ -552,10 +552,11 @@ void calculate_uv_map(unsigned short mapmode)
 	allqueue(REDRAWIMAGE, 0);
 }
 
-MTFace *get_active_mtface(EditFace **act_efa, MCol **mcol)
+MTFace *get_active_mtface(EditFace **act_efa, MCol **mcol, short partsel)
 {
 	EditMesh *em = G.editMesh;
 	EditFace *efa = NULL;
+	EditFace *efa_vertsel = NULL; /* use this if one of the faces verts are selected */
 	EditSelection *ese;
 	
 	if(!EM_texFaceCheck())
@@ -565,9 +566,8 @@ MTFace *get_active_mtface(EditFace **act_efa, MCol **mcol)
 		if(ese->type == EDITFACE) {
 			efa = (EditFace *)ese->data;
 			
-			if (efa->h)
-				efa= NULL; 
-			break;
+			if (efa->h)	efa= NULL;
+			else		break;
 		}
 	}
 	
@@ -575,8 +575,16 @@ MTFace *get_active_mtface(EditFace **act_efa, MCol **mcol)
 		for (efa= em->faces.first; efa; efa= efa->next) {
 			if (efa->f & SELECT)
 				break;
+			
+			/* use a face that has 1 vert selected as a last resort
+			 * This is so selecting verts in editmode does not always make the UV window flicker */
+			if (partsel && ((efa->v1->f & SELECT) || (efa->v2->f & SELECT) || (efa->v3->f & SELECT) || (efa->v4 && efa->v4->f & SELECT)))
+				efa_vertsel = efa;
 		}
 	}
+	
+	if (partsel && !efa)
+		efa= efa_vertsel;
 	
 	if (efa) {
 		if (mcol) {

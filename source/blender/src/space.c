@@ -4815,14 +4815,41 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					borderselect_sima(UV_SELECT_ALL);
 				break;
 			case CKEY:
-				if(G.qual==LR_CTRLKEY)
-					toggle_uv_select('s');
-				else if(G.qual==LR_SHIFTKEY)
-					toggle_uv_select('l');
-				else if(G.qual==LR_ALTKEY)
-					toggle_uv_select('o');
-				else
-					toggle_uv_select('f');
+				if (G.sima->flag & SI_SYNC_UVSEL) {
+					/* operate on the editmesh */
+					if (G.qual==0) {
+						if (G.scene->selectmode != SCE_SELECT_FACE)
+							toggle_uv_select('f');
+						
+						/* we could do this too but better not to */
+						/*if ((G.scene->selectmode & SCE_SELECT_FACE)==0) {
+							G.scene->selectmode= SCE_SELECT_FACE;
+							EM_selectmode_set();
+							BIF_undo_push("Selectmode Set: Face");
+							
+						} else {
+							G.scene->selectmode= SCE_SELECT_VERTEX;
+							EM_selectmode_set();
+							BIF_undo_push("Selectmode Set: Vertex");
+						}
+						countall();
+						allqueue(REDRAWVIEW3D, 1); */
+
+					} else {
+						error("Sync selection to Edit Mesh disables UV select options");
+					}
+					
+				} else {
+					/* normal operaton */
+					if(G.qual==LR_CTRLKEY)
+						toggle_uv_select('s');
+					else if(G.qual==LR_SHIFTKEY)
+						toggle_uv_select('l');
+					else if(G.qual==LR_ALTKEY)
+						toggle_uv_select('o');
+					else
+						toggle_uv_select('f');
+				}
 				break;
 			case EKEY :
 				if(okee("Unwrap"))
@@ -4840,7 +4867,7 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else if((G.qual==LR_SHIFTKEY))
 					hide_tface_uv(1);
 				else if((G.qual==0))
-					hide_tface_uv(0);
+					hide_tface_uv(0);		
 				break;
 			case LKEY:
 				if(G.qual==0)

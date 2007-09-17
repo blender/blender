@@ -191,14 +191,10 @@ void select_linked_tfaces_with_seams(int mode, Mesh *me, unsigned int index)
 }
 
 /* Parametrizer */
-
 ParamHandle *construct_param_handle(EditMesh *em, short implicit, short fill, short sel)
 {
 	int a;
 	MTFace *tf;
-	/*MFace *mf;
-	MVert *mv;
-	MEdge *medge;*/
 	
 	EditFace *efa;
 	EditEdge *eed;
@@ -208,7 +204,7 @@ ParamHandle *construct_param_handle(EditMesh *em, short implicit, short fill, sh
 	
 	handle = param_construct_begin();
 	
-	/* we need the vert */
+	/* we need the vert indicies */
 	for (ev= em->verts.first, a=0; ev; ev= ev->next, a++)
 		ev->tmp.l = a;
 	
@@ -218,17 +214,23 @@ ParamHandle *construct_param_handle(EditMesh *em, short implicit, short fill, sh
 		float *co[4];
 		float *uv[4];
 		int nverts;
-
-		tf= (MTFace *)CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 		
 		if (efa->h)
 			continue;
 
-		if (sel && !(efa->f & SELECT))
+		tf= (MTFace *)CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+		
+		if (sel && !SIMA_FACESEL_CHECK(efa, tf))
 			continue;
 
-		if (implicit && !(tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4)))
+		if (implicit &&
+			!(	SIMA_UVSEL_CHECK(efa, tf, 0) ||
+				SIMA_UVSEL_CHECK(efa, tf, 1) ||
+				SIMA_UVSEL_CHECK(efa, tf, 2) ||
+				(efa->v4 && SIMA_UVSEL_CHECK(efa, tf, 3)) )
+		) {
 			continue;
+		}
 
 		key = (ParamKey)efa;
 		vkeys[0] = (ParamKey)efa->v1->tmp.l;
@@ -247,16 +249,16 @@ ParamHandle *construct_param_handle(EditMesh *em, short implicit, short fill, sh
 		pin[1] = ((tf->unwrap & TF_PIN2) != 0);
 		pin[2] = ((tf->unwrap & TF_PIN3) != 0);
 
-		select[0] = ((tf->flag & TF_SEL1) != 0);
-		select[1] = ((tf->flag & TF_SEL2) != 0);
-		select[2] = ((tf->flag & TF_SEL3) != 0);
+		select[0] = ((SIMA_UVSEL_CHECK(efa, tf, 0)) != 0);
+		select[1] = ((SIMA_UVSEL_CHECK(efa, tf, 1)) != 0);
+		select[2] = ((SIMA_UVSEL_CHECK(efa, tf, 2)) != 0);
 
 		if (efa->v4) {
 			vkeys[3] = (ParamKey)efa->v4->tmp.l;
 			co[3] = efa->v4->co;
 			uv[3] = tf->uv[3];
 			pin[3] = ((tf->unwrap & TF_PIN4) != 0);
-			select[3] = ((tf->flag & TF_SEL4) != 0);
+			select[3] = (SIMA_UVSEL_CHECK(efa, tf, 3) != 0);
 			nverts = 4;
 		}
 		else

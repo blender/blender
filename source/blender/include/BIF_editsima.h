@@ -32,8 +32,27 @@
 
 struct Mesh;
 struct EditMesh;
+
+/* id can be from 0 to 3 */
 #define TF_PIN_MASK(id) (TF_PIN1 << id)
 #define TF_SEL_MASK(id) (TF_SEL1 << id)
+
+
+#define SIMA_FACEDRAW_CHECK(efa) \
+	((G.sima->flag & SI_SYNC_UVSEL) ? (efa->h==0) : (efa->h==0 && efa->f & SELECT))
+#define SIMA_FACESEL_CHECK(efa, tf) \
+	((G.sima->flag & SI_SYNC_UVSEL) ? (efa->f & SELECT) : (!(~tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3)) &&(!efa->v4 || tf->flag & TF_SEL4)))
+#define SIMA_FACESEL_SET(efa, tf) \
+	((G.sima->flag & SI_SYNC_UVSEL) ? (EM_select_face(efa, 1))	: (tf->flag |=  (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4)))
+#define SIMA_FACESEL_UNSET(efa, tf) \
+	((G.sima->flag & SI_SYNC_UVSEL) ? (EM_select_face(efa, 0))	: (tf->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4)))
+
+#define SIMA_UVSEL_CHECK(efa, tf, i)	(G.sima->flag & SI_SYNC_UVSEL ? \
+	(G.scene->selectmode == SCE_SELECT_FACE ? efa->f & SELECT :		((*(&efa->v1 + i))->f & SELECT) )	: (tf->flag &   TF_SEL_MASK(i) ))
+#define SIMA_UVSEL_SET(efa, tf, i)		(G.sima->flag & SI_SYNC_UVSEL ? \
+	(G.scene->selectmode == SCE_SELECT_FACE ? EM_select_face(efa, 1) : ((*(&efa->v1 + i))->f |=  SELECT) ) : (tf->flag |=  TF_SEL_MASK(i) ))
+#define SIMA_UVSEL_UNSET(efa, tf, i)	(G.sima->flag & SI_SYNC_UVSEL ? \
+	(G.scene->selectmode == SCE_SELECT_FACE ? EM_select_face(efa, 0) : ((*(&efa->v1 + i))->f &= ~SELECT) ) : (tf->flag &= ~TF_SEL_MASK(i) ))
 
 struct Object;
 
@@ -88,3 +107,5 @@ void pack_image_sima(void);
 
 /* checks images for forced updates on frame change */
 void BIF_image_update_frame(void);
+
+

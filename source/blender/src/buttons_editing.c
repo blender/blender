@@ -4836,7 +4836,7 @@ void do_fpaintbuts(unsigned short event)
 	case B_COPY_TF_COL:
 	case B_COPY_TF_TEX:
 		me= get_mesh(OBACT);
-		activetf= get_active_mtface(NULL, &activemcol);
+		activetf= get_active_mtface(NULL, &activemcol, 0);
 
 		if(me && activetf) {
 			for (a=0, tf=me->mtface, mf=me->mface; a < me->totface; a++, tf++, mf++) {
@@ -4890,7 +4890,7 @@ void do_fpaintbuts(unsigned short event)
 		break;
 
 	case B_TFACE_HALO:
-		activetf = get_active_mtface(NULL, NULL);
+		activetf = get_active_mtface(NULL, NULL, 0);
 		if(activetf) {
 			activetf->mode &= ~TF_BILLBOARD2;
 			allqueue(REDRAWBUTSEDIT, 0);
@@ -4898,7 +4898,7 @@ void do_fpaintbuts(unsigned short event)
 		break;
 
 	case B_TFACE_BILLB:
-		activetf = get_active_mtface(NULL, NULL);
+		activetf = get_active_mtface(NULL, NULL, 0);
 		if(activetf) {
 			activetf->mode &= ~TF_BILLBOARD;
 			allqueue(REDRAWBUTSEDIT, 0);
@@ -5289,7 +5289,7 @@ static void editing_panel_mesh_texface(void)
 	uiNewPanelTabbed("Multires", "Editing");
 	if(uiNewPanel(curarea, block, "Texture Face", "Editing", 960, 0, 318, 204)==0) return;
 	
-	tf = get_active_mtface(NULL, NULL);
+	tf = get_active_mtface(NULL, NULL, 0);
 	if(tf) {
 		uiBlockBeginAlign(block);
 		uiDefButBitS(block, TOG, TF_TEX, B_REDR_3D_IMA, "Tex",	600,160,60,19, &tf->mode, 0, 0, 0, 0, "Render face with texture");
