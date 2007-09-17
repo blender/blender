@@ -55,8 +55,9 @@ def validate_arguments(args, bc):
             'BF_VERSE_INCLUDE',
             'VERSE_BUILD_BINARY', 'VERSE_BUILD_DIR', 'VERSE_REGEN_PROTO',
             'BF_TWEAK_MODE',
-            'WITHOUT_BF_INSTALL'
-            ]
+            'WITHOUT_BF_INSTALL',
+            'WITH_BF_OPENMP'
+	    ]
 
     arg_list = ['BF_DEBUG', 'BF_QUIET', 'BF_CROSS', 'BF_UPDATE',
             'BF_INSTALLDIR', 'BF_TOOLSET', 'BF_BINNAME',
@@ -246,6 +247,8 @@ def read_opts(cfg, args):
         ('BF_FREETYPE_INC', 'Freetype include path', ''),
         ('BF_FREETYPE_LIB', 'Freetype library', ''),
         ('BF_FREETYPE_LIBPATH', 'Freetype library path', ''),
+
+	(BoolOption('WITH_BF_OPENMP', 'Use OpenMP if true', 'false')),
 
         (BoolOption('WITH_BF_QUICKTIME', 'Use QuickTime if true', 'false')),
         ('BF_QUICKTIME', 'QuickTime base path', ''),
