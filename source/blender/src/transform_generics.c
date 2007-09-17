@@ -139,7 +139,7 @@ void getViewVector(float coord[3], float vec[3])
 static void clipMirrorModifier(TransInfo *t, Object *ob)
 {
 	ModifierData *md= ob->modifiers.first;
-	float tolerance[3];
+	float tolerance[3] = {0.0f, 0.0f, 0.0f};
 	int axis = 0;
 
 	for (; md; md=md->next) {

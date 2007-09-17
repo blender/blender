@@ -693,8 +693,11 @@ static int PoseBone_setLocalMatrix(BPy_PoseBone *self, PyObject *value, void *cl
 	}
 
 	//get loc
-	if (matsize == 4){
+	if (matsize == 4) {
 		VECCOPY(loc, matrix->matrix[3]);
+	}
+	else {
+		loc[0]= loc[1]= loc[2]= 0.0f;
 	}
 
 	//copy new attributes

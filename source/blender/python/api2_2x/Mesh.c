@@ -1345,8 +1345,8 @@ static PyObject *Mesh_getProperty_internal(CustomData *data, int eindex, PyObjec
 static PyObject *Mesh_setProperty_internal(CustomData *data, int eindex, PyObject *args)
 {
 	CustomDataLayer *layer;
-	int i,index, type = -1;
-	float f;
+	int i = 0, index, type = -1;
+	float f = 0.0f;
 	char *s=NULL, *name=NULL;
 	MFloatProperty *pf;
 	MIntProperty  *pi;

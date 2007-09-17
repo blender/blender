@@ -325,6 +325,7 @@ void ParticleTracer::getTriangles(double time, vector<ntlTriangle> *triangles,
 	// suppress warnings...
 	vertices = NULL; triangles = NULL;
 	normals = NULL; objectId = 0;
+	time = 0.0;
 #else // ELBEEM_PLUGIN
 	int pcnt = 0;
 	// currently not used in blender

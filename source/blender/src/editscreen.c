@@ -3074,7 +3074,7 @@ static void splitarea_interactive(ScrArea *area, ScrEdge *onedge)
 	ScrArea *scr, *sa= area;
 	float fac= 0.0;
 	unsigned short event;
-	short ok= 0, val, split = 0, mval[2], mvalo[2], first= 1;
+	short ok= 0, val, split = 0, mval[2], mvalo[2]= {-1, -1}, first= 1;
 	char dir;
 	
 	if(sa->win==0) return;
