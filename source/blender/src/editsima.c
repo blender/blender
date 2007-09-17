@@ -1070,7 +1070,7 @@ void stitch_uv_tface(int mode)
 	if(is_uv_tface_editing_allowed()==0)
 		return;
 	if(G.sima->flag & SI_SYNC_UVSEL) {
-		error("Can't stitch when Mesh Sync selection is enabled");
+		error("Can't stitch when Sync Mesh Selection is enabled");
 		return;
 	}
 	
@@ -1195,7 +1195,7 @@ void select_linked_tface_uv(int mode) /* TODO */
 		return;
 
 	if(G.sima->flag & SI_SYNC_UVSEL) {
-		error("Can't stitch when Mesh Sync selection is enabled");
+		error("Can't select linked when Sync Mesh Selection is enabled");
 		return;
 	}
 	
@@ -1336,7 +1336,7 @@ void unlink_selection(void)
 	if( is_uv_tface_editing_allowed()==0 ) return;
 
 	if(G.sima->flag & SI_SYNC_UVSEL) {
-		error("Can't stitch when Mesh Sync selection is enabled");
+		error("Can't select unlinked when Sync Mesh Selection is enabled");
 		return;
 	}
 	

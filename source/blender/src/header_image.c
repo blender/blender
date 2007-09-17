@@ -1188,7 +1188,7 @@ void image_buttons(void)
 		xco+=10;
 		uiDefIconTextButS(block, ICONTEXTROW,B_AROUND, ICON_ROTATE, around_pup(), xco,0,XIC+10,YIC, &(G.v2d->around), 0, 3.0, 0, 0, "Rotation/Scaling Pivot (Hotkeys: Comma, Shift Comma, Period) ");
 		xco+= XIC + 12;
-		uiDefIconButBitI(block, TOG, SI_SYNC_UVSEL, B_REDR,			ICON_MESH_HLT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Sync from mesh selection");
+		uiDefIconButBitI(block, TOG, SI_SYNC_UVSEL, B_REDR,			ICON_MESH_HLT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Sync Mesh Selection");
 		xco+= XIC+16;
 	}
 	
