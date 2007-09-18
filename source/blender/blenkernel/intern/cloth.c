@@ -764,7 +764,7 @@ void clothModifier_do(ClothModifierData *clmd, Object *ob, DerivedMesh *dm,
 					Mat4MulVecfl(ob->obmat, verts->xconst);
 
 					/* Compute the vertices velocity. */
-					VECSUB (verts->v, verts->x, verts->xold);
+					VECSUB (verts->v, verts->xconst, verts->xold);
 				}
 
 				tstart();
