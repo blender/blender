@@ -6507,7 +6507,7 @@ void mesh_rotate_uvs(void)
 {
 	EditMesh *em = G.editMesh;
 	EditFace *efa;
-	short change;
+	short change = 0;
 	MTFace *tf;
 	float u1, v1;
 	
@@ -6553,7 +6553,7 @@ void mesh_mirror_uvs(void)
 {
 	EditMesh *em = G.editMesh;
 	EditFace *efa;
-	short change;
+	short change = 0;
 	MTFace *tf;
 	float u1, v1;
 	
@@ -6603,7 +6603,7 @@ void mesh_rotate_colors(void)
 {
 	EditMesh *em = G.editMesh;
 	EditFace *efa;
-	short change;
+	short change = 0;
 	MCol tmpcol, *mcol;
 	if (!EM_vertColorCheck()) {
 		error("mesh has no color layers");
@@ -6638,7 +6638,7 @@ void mesh_mirror_colors(void)
 {
 	EditMesh *em = G.editMesh;
 	EditFace *efa;
-	short change;
+	short change = 0;
 	MCol tmpcol, *mcol;
 	if (!EM_vertColorCheck()) {
 		error("mesh has no color layers");
