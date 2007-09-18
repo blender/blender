@@ -518,12 +518,13 @@ void cloth_cache_get_frame(ClothModifierData *clmd, float time)
 					memcpy(cloth->verts, frame->verts, cloth->numverts*sizeof(ClothVertex));
 					implicit_set_positions(clmd);
 				}
-				
+				/*
 				if(frame->springs)
 				{
 					// copy ClothSpring struct
 					memcpy(cloth->springs, frame->springs, cloth->numsprings*sizeof(ClothSpring));
 				}
+				*/
 			}
 		}
 	}
@@ -546,7 +547,10 @@ void cloth_cache_set_frame(ClothModifierData *clmd, float time)
 			// creat new frame cache
 			frame = (Frame *)MEM_callocN(sizeof(Frame), "cloth frame cache");
 			frame->verts = (ClothVertex *)MEM_callocN(sizeof(ClothVertex)*cloth->numverts, "cloth frame vertex cache");
+			frame->springs = NULL;
+			/*
 			frame->springs = (ClothSpring *)MEM_callocN(sizeof(ClothSpring)*cloth->numsprings, "cloth frame spring cache");
+			*/
 			frame->time = newtime;
 
 			// copy ClothVertex struct
@@ -554,13 +558,13 @@ void cloth_cache_set_frame(ClothModifierData *clmd, float time)
 			{
 				memcpy(&frame->verts[i], &cloth->verts[i], sizeof(ClothVertex));
 			}
-			
+			/*
 			// copy ClothSpring struct
 			for(i = 0; i < cloth->numsprings; i++)
 			{
 				memcpy(&frame->springs[i], &cloth->springs[i], sizeof(ClothSpring));
 			}
-			
+			*/
 		}
 		if(frame)
 		{
@@ -600,7 +604,7 @@ void cloth_cache_free(ClothModifierData *clmd, float time)
 					&& (frame->time > newtime)) // do not delete the first frame
 				{
 					MEM_freeN(frame->verts);
-					MEM_freeN(frame->springs);
+					// MEM_freeN(frame->springs);
 					MEM_freeN(frame);	
 					MEM_freeN(search);
 					last_search->next = next;
@@ -608,7 +612,7 @@ void cloth_cache_free(ClothModifierData *clmd, float time)
 				else if(clmd->sim_parms.flags & CSIMSETT_FLAG_CCACHE_FREE_ALL) // free COMPLETE cache
 				{
 					MEM_freeN(frame->verts);
-					MEM_freeN(frame->springs);
+					// MEM_freeN(frame->springs);
 					MEM_freeN(frame);	
 				}
 				else
@@ -770,7 +774,7 @@ void clothModifier_do(ClothModifierData *clmd, Object *ob, DerivedMesh *dm,
 					solvers [clmd->sim_parms.solver_type].solver (ob, framenr, clmd, effectors,0,0);
 
 				tend();
-				// printf("Cloth simulation time: %f\n", (float)tval());
+				printf("Cloth simulation time: %f\n", (float)tval());
 
 				cloth_cache_set_frame(clmd, framenr);
 
