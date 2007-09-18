@@ -570,7 +570,7 @@ DO_INLINE void mul_bfmatrix_S(fmatrix3x3 *matrix, float scalar)
 /* STATUS: verified */
 DO_INLINE void mul_bfmatrix_lfvector( float (*to)[3], fmatrix3x3 *from, float (*fLongVector)[3])
 {
-	int i = 0,j=0;
+	unsigned int i = 0,j=0;
 	zero_lfvector(to, from[0].vcount);
 	/* process diagonal elements */	
 	for(i = 0; i < from[0].vcount; i++)

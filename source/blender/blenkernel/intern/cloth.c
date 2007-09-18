@@ -913,13 +913,10 @@ static void cloth_apply_vgroup(ClothModifierData *clmd, DerivedMesh *dm, short v
 	verts = clothObj->verts;
 
 	for (i = 0; i < numverts; i++, verts++)
-	{				
-		/* so this will definily be below SOFTGOALSNAP */
-		verts->goal= 0.0f; 
-		
+	{					
 		// LATER ON, support also mass painting here
 		if(clmd->sim_parms.flags & CSIMSETT_FLAG_GOAL) 
-		{			
+		{						
 			dvert = dm->getVertData(dm, i, CD_MDEFORMVERT);
 			if(dvert)	
 			{		
@@ -1211,7 +1208,12 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 				Mat4MulVecfl(ob->obmat, verts->x);
 
 				verts->mass = clmd->sim_parms.mass;
-				verts->goal= clmd->sim_parms.defgoal;
+				
+				if(clmd->sim_parms.flags & CSIMSETT_FLAG_GOAL) 
+					verts->goal= clmd->sim_parms.defgoal;
+				else
+					verts->goal= 0.0f;
+				
 				verts->flags = 0;
 				VECCOPY(verts->xold, verts->x);
 				VECCOPY(verts->xconst, verts->x);

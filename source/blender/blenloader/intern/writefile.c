@@ -813,6 +813,23 @@ static void write_constraint_channels(WriteData *wd, ListBase *chanbase)
 
 }
 
+/*
+// TODO: finish this
+static void write_cloth_cache(WriteData *wd, LinkNode *ln)
+{
+	
+	while(ln) {
+		writestruct(wd, DATA, "cloth_cache", 1, ln);		
+		writestruct(wd, DATA, "cloth_cache_frame", 1, ln->link);
+		writestruct(wd, DATA, "cloth_cache_frame_verts", 1, ln->link);
+		writestruct(wd, DATA, "cloth_cache_frame_springs", 1, ln->link);
+		}
+
+		ln = ln->next;
+	}
+}
+*/
+		
 static void write_modifiers(WriteData *wd, ListBase *modbase)
 {
 	ModifierData *md;
@@ -832,16 +849,20 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 	else if (md->type==eModifierType_Cloth) {
 		   int					n;
 		   ClothModifierData	*clmd = (ClothModifierData *) md;
-		/*
-		   if ((clmd->sim_parms.flags & CSIMSETT_FLAG_BAKED) && clmd->baked_data) {
+
+		   if (clmd->sim_parms.cache) {
 			  // Compute the number of vertices we're saving.
-			   
+			   // TODO
+			   // write_cloth_cache();
+			  /*
+			   // old code
 			  n = (clmd->sim_parms.bake_end_frame - clmd->sim_parms.bake_start_frame + 1) *
 				 clmd->sim_parms.bake_num_verts;
 			  writedata (wd, DATA, n *  sizeof (clmd->baked_data [0]), clmd->baked_data);
 			  printf ("write_modifiers: wrote %d elements of size %d for cloth baked data.\n",
 					  n, sizeof (clmd->baked_data [0]));
-		   }*/
+			   */
+		   }
 		}
 	}
 }

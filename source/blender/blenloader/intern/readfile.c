@@ -2878,11 +2878,13 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 		   ClothModifierData	*clmd = (ClothModifierData*) md;
 
 		   clmd->clothObject = NULL;
-			/*
-		   if (clmd->sim_parms.flags & CSIMSETT_FLAG_BAKED) {
-			  clmd->baked_data = newdataadr (fd, clmd->baked_data);
+		   clmd->sim_parms.cache = NULL;
+		
+		   if (clmd->sim_parms.cache) {
+			   // TODO 
+			  // clmd->cache = newdataadr (fd, clmd->cache);
 			  printf ("direct_link_modifiers: read cloth baked_data.\n");
-		   }*/
+		   }
 		} 
 		else if (md->type==eModifierType_Hook) {
 			HookModifierData *hmd = (HookModifierData*) md;

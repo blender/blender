@@ -4873,6 +4873,7 @@ static void clothModifier_deformVerts(
 	DerivedMesh *dm = NULL;
 
 	// if possible use/create DerivedMesh
+	
 	if(derivedData) dm = CDDM_copy(derivedData);
 	else if(ob->type==OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
 	
