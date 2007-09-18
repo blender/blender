@@ -1346,23 +1346,48 @@ void select_mesh_group_menu()
 	}
 }
 
+int mesh_layers_menu_charlen(CustomData *data, int type)
+{
+ 	int i, len = 0;
+	/* see if there is a duplicate */
+	for(i=0; i<data->totlayer; i++) {
+		if((&data->layers[i])->type == type) {
+			/* we could count the chars here but we'll just assumeme each
+			 * is 32 chars with some room for the menu text - 40 should be fine */
+			len+=40; 
+		}
+	}
+	return len;
+}
 
-static short customdata_layers_menu(CustomData *data, int type) {
-	int i, ret;
-	char *str;
-	char *str_pt;
+/* this function adds menu text into an existing string.
+ * this string's size should be allocated with mesh_layers_menu_charlen */
+void mesh_layers_menu_concat(CustomData *data, int type, char *str) {
+	int i, count = 0;
+	char *str_pt = str;
 	CustomDataLayer *layer;
-	
-	
-	str = str_pt = MEM_callocN(40 * G.editMesh->fdata.totlayer, "layer menu");
 	
 	/* see if there is a duplicate */
 	for(i=0; i<data->totlayer; i++) {
 		layer = &data->layers[i];
 		if(layer->type == type) {
-			str_pt += sprintf(str_pt, "%s%%x%d|", layer->name, i);
+			str_pt += sprintf(str_pt, "%s%%x%d|", layer->name, count);
+			count++;
 		}
 	}
+}
+
+int mesh_layers_menu(CustomData *data, int type) {
+	int ret;
+	char *str_pt, *str;
+	
+	str_pt = str = MEM_mallocN(mesh_layers_menu_charlen(data, type) + 18, "layer menu");
+	str[0] = '\0';
+	
+	str_pt += sprintf(str_pt, "Layers%%t|");
+	
+	mesh_layers_menu_concat(data, type, str_pt);
+	
 	ret = pupmenu(str);
 	MEM_freeN(str);
 	return ret;
@@ -1585,23 +1610,23 @@ void mesh_copy_menu(void)
 			} else {
 				int layer_orig_idx, layer_idx;
 				
-				layer_idx = (int)customdata_layers_menu(&em->fdata, CD_MTFACE);
+				layer_idx = mesh_layers_menu(&em->fdata, CD_MTFACE);
 				if (layer_idx<0) return;
 				
 				/* warning, have not updated mesh pointers however this is not needed since we swicth back */
-				layer_orig_idx = CustomData_get_active_layer_index(&em->fdata, CD_MTFACE);
+				layer_orig_idx = CustomData_get_active_layer(&em->fdata, CD_MTFACE);
 				if (layer_idx==layer_orig_idx)
 					return;
 				
 				/* get the tfaces */
-				CustomData_set_layer_active_index(&em->fdata, CD_MTFACE, (int)layer_idx);
+				CustomData_set_layer_active(&em->fdata, CD_MTFACE, (int)layer_idx);
 				/* store the tfaces in our temp */
 				for(efa=em->faces.first; efa; efa=efa->next) {
 					if (efa->f & SELECT) {
 						efa->tmp.p = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 					}	
 				}
-				CustomData_set_layer_active_index(&em->fdata, CD_MTFACE, layer_orig_idx);
+				CustomData_set_layer_active(&em->fdata, CD_MTFACE, layer_orig_idx);
 			}
 			break;
 			
@@ -1615,23 +1640,23 @@ void mesh_copy_menu(void)
 			} else {
 				int layer_orig_idx, layer_idx;
 				
-				layer_idx = (int)customdata_layers_menu(&em->fdata, CD_MCOL);
+				layer_idx = mesh_layers_menu(&em->fdata, CD_MCOL);
 				if (layer_idx<0) return;
 				
 				/* warning, have not updated mesh pointers however this is not needed since we swicth back */
-				layer_orig_idx = CustomData_get_active_layer_index(&em->fdata, CD_MCOL);
+				layer_orig_idx = CustomData_get_active_layer(&em->fdata, CD_MCOL);
 				if (layer_idx==layer_orig_idx)
 					return;
 				
 				/* get the tfaces */
-				CustomData_set_layer_active_index(&em->fdata, CD_MCOL, (int)layer_idx);
+				CustomData_set_layer_active(&em->fdata, CD_MCOL, (int)layer_idx);
 				/* store the tfaces in our temp */
 				for(efa=em->faces.first; efa; efa=efa->next) {
 					if (efa->f & SELECT) {
 						efa->tmp.p = CustomData_em_get(&em->fdata, efa->data, CD_MCOL);
 					}	
 				}
-				CustomData_set_layer_active_index(&em->fdata, CD_MCOL, layer_orig_idx);
+				CustomData_set_layer_active(&em->fdata, CD_MCOL, layer_orig_idx);
 				
 			}
 			break;

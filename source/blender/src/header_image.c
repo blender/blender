@@ -50,6 +50,7 @@
 #include "DNA_space_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_customdata_types.h" /* for UV layer menu */
 
 #include "BLI_blenlib.h"
 
@@ -62,6 +63,8 @@
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_utildefines.h"
+#include "BLI_editVert.h" /* for UV layer menu */
+#include "BKE_customdata.h" /* ditto */
 
 #include "BIF_butspace.h"
 #include "BIF_drawimage.h"
@@ -348,6 +351,16 @@ void do_image_buttons(unsigned short event)
 		imagespace_composite_flipbook(curarea);
 		break;
 	}
+}
+
+static void do_image_buttons_set_uvlayer_callback(void *act, void *data)
+{
+	CustomData_set_layer_active(&G.editMesh->fdata, CD_MTFACE, *((int *)act));
+	
+	BIF_undo_push("Set Active UV Texture");
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWIMAGE, 0);
 }
 
 static void do_image_view_viewnavmenu(void *arg, int event)
@@ -1195,11 +1208,36 @@ void image_buttons(void)
 
 	/* UV EditMode buttons, not painting or rencering or compositing */
 	if ( EM_texFaceCheck() && (G.sima->flag & SI_DRAWTOOL)==0 && !is_render) {
+		int layercount;
 		xco+=10;
 		uiDefIconTextButS(block, ICONTEXTROW,B_AROUND, ICON_ROTATE, around_pup(), xco,0,XIC+10,YIC, &(G.v2d->around), 0, 3.0, 0, 0, "Rotation/Scaling Pivot (Hotkeys: Comma, Shift Comma, Period) ");
 		xco+= XIC + 12;
 		uiDefIconButBitI(block, TOG, SI_SYNC_UVSEL, B_REDR,			ICON_MESH_HLT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Sync Mesh Selection");
-		xco+= XIC+16;
+		
+		
+		/* Layer Menu */
+		layercount = CustomData_number_of_layers(&G.editMesh->fdata, CD_MTFACE); 
+		if (layercount>1 && layercount < 12) { /* could allow any number but limit of 11 means no malloc needed */
+			uiBut *ubut;
+			char str_menu[384], *str_pt; /*384 allows for 11 layers */
+			static int act;
+			
+			act = CustomData_get_active_layer(&G.editMesh->fdata, CD_MTFACE);
+			
+			/*str_pt = (char *)MEM_mallocN(layercount*40 , "uvmenu"); str[0]='\0';*/
+			str_pt = str_menu;
+			str_pt[0]='\0';
+			mesh_layers_menu_concat(&G.editMesh->fdata, CD_MTFACE, str_pt);
+			xco+= XIC+8;
+			ubut = uiDefButI(block, MENU, B_NOP, str_menu ,xco,0,115,YIC, &act, 0, 0, 0, 0, "Active UV Layer for editing");
+			uiButSetFunc(ubut, do_image_buttons_set_uvlayer_callback, &act, NULL);
+			
+			/*MEM_freeN(str);*/
+			xco+= 120;
+			
+		} else {
+			xco+= XIC+16;
+		}
 	}
 	
 	if (ima) {
