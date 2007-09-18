@@ -964,7 +964,6 @@ void uvedit_selectionCB(short selecting, Object *editobj, short *mval, float rad
 	EditFace *efa;
 	float offset[2];
 	MTFace *tface;
-
 	float ellipse[2]; // we need to deal with ellipses, as
 	                  // non square textures require for circle
 					  // selection. this ellipse is normalized; r = 1.0
@@ -995,11 +994,14 @@ void uvedit_selectionCB(short selecting, Object *editobj, short *mval, float rad
 			bglFlush();
 			glDrawBuffer(GL_BACK);
 		}
+		
+		
+		if (selecting == LEFTMOUSE)	EM_select_flush();
+		else						EM_deselect_flush();
+		
+		if (G.sima->lock && (G.sima->flag & SI_SYNC_UVSEL))
+			force_draw_plus(SPACE_VIEW3D, 0);
 	}
-	
-	if (selecting == LEFTMOUSE)	EM_select_flush();
-	else						EM_deselect_flush();
-	allqueue(REDRAWVIEW3D, 0);
 }
 
 

@@ -215,14 +215,11 @@ ParamHandle *construct_param_handle(EditMesh *em, short implicit, short fill, sh
 		float *uv[4];
 		int nverts;
 		
-		if (efa->h)
+		if ((efa->h) || (sel && (efa->f & SELECT)==0)) 
 			continue;
 
 		tf= (MTFace *)CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 		
-		if (sel && !SIMA_FACESEL_CHECK(efa, tf))
-			continue;
-
 		if (implicit &&
 			!(	SIMA_UVSEL_CHECK(efa, tf, 0) ||
 				SIMA_UVSEL_CHECK(efa, tf, 1) ||
@@ -284,7 +281,7 @@ ParamHandle *construct_param_handle(EditMesh *em, short implicit, short fill, sh
 }
 
 
-extern int EM_texFaceCheck();
+extern int EM_texFaceCheck(void);
 
 void unwrap_lscm(short seamcut)
 {
@@ -300,6 +297,16 @@ void unwrap_lscm(short seamcut)
 		
 		if (!EM_texFaceCheck())
 			return;
+		
+		/* select new UV's */
+		if ((G.sima->flag & SI_SYNC_UVSEL)==0) {
+			EditFace *efa;
+			MTFace *tf;
+			for(efa=em->faces.first; efa; efa=efa->next) {
+				tf= (MTFace *)CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				SIMA_FACESEL_SET(efa, tf);
+			}
+		}
 	}
 
 	handle = construct_param_handle(em, 0, fillholes, seamcut == 0);

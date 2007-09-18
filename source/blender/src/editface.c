@@ -365,6 +365,14 @@ void calculate_uv_map(unsigned short mapmode)
 		
 		if (!EM_texFaceCheck())
 			return;
+		
+		/* select new UV's */
+		if ((G.sima->flag & SI_SYNC_UVSEL)==0) {
+			for(efa=em->faces.first; efa; efa=efa->next) {
+				MTFace *tf= (MTFace *)CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				SIMA_FACESEL_SET(efa, tf);
+			}
+		}
 	}
 	
 	ob=OBACT;
