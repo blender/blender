@@ -64,6 +64,9 @@ typedef struct ClothSpring {
 	int	matrix_index; 	/* needed for implicit */
 	int	type;
 	int	flags; 		/* defined in BKE_cloth.h, e.g. deactivated due to tearing */
+	float dfdx[3][3];
+	float dfdv[3][3];
+	float f[3];
 } ClothSpring;
 
 

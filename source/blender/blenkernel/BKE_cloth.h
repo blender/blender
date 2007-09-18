@@ -52,6 +52,8 @@ struct DerivedMesh;
 	#define DO_INLINE
 #endif
 
+#define CLOTH_MAX_THREAD 2
+
 
 /* goal defines */
 #define SOFTGOALSNAP  0.999f 
@@ -103,6 +105,7 @@ typedef enum
 typedef enum 
 {
 	CSPRING_FLAG_DEACTIVATE = (1 << 1),
+	CSPRING_FLAG_NEEDED = (1 << 2), // springs has values to be applied
 } CSPRINGS_FLAGS;
 
 // needed for buttons_object.c

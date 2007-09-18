@@ -117,10 +117,6 @@ static CM_SOLVER_DEF	solvers [] = {
 	// { "Implicit C++", CM_IMPLICITCPP, implicitcpp_init, implicitcpp_solver, implicitcpp_free },
 };
 
-#define DEBUG_CLOTH_VERBOSE	1000
-static int	DEBUG_CLOTH = 0;
-
-
 /* ********** cloth engine ******* */
 /* Prototypes for internal functions.
 */
@@ -774,7 +770,7 @@ void clothModifier_do(ClothModifierData *clmd, Object *ob, DerivedMesh *dm,
 					solvers [clmd->sim_parms.solver_type].solver (ob, framenr, clmd, effectors,0,0);
 
 				tend();
-				printf("Cloth simulation time: %f\n", (float)tval());
+				// printf("Cloth simulation time: %f\n", (float)tval());
 
 				cloth_cache_set_frame(clmd, framenr);
 
