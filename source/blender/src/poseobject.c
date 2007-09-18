@@ -711,20 +711,20 @@ void paste_posebuf (int flip)
 
 					/* Set keys on pose */
 					if (chan->flag & POSE_ROT){
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X, 0);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y, 0);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z, 0);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W, 0);
 					}
 					if (chan->flag & POSE_SIZE){
-						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_X);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Y);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Z);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_X, 0);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Y, 0);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Z, 0);
 					}
 					if (chan->flag & POSE_LOC){
-						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_X);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_X, 0);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y, 0);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z, 0);
 					}
 				}
 			}

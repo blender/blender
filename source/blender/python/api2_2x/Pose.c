@@ -422,7 +422,11 @@ static PyObject *PoseBone_insertKey(BPy_PoseBone *self, PyObject *args)
 
 	if (!PyArg_ParseTuple(args, "O!i|Oi", &Object_Type, &parent_object, &frame, &constants, &no_ipo_update ))
 		goto AttributeError;
-
+	
+	/* incase we ever have a value other then 1 for fast */
+	if (no_ipo_update)
+		no_ipo_update = 1;
+	
 	//verify that this pchannel is part of the object->pose
 	for (pchan = ((BPy_Object*)parent_object)->object->pose->chanbase.first; 
 		pchan; pchan = pchan->next){
@@ -487,40 +491,40 @@ static PyObject *PoseBone_insertKey(BPy_PoseBone *self, PyObject *args)
 	//add the action channel if it's not there
 	verify_action_channel(((BPy_Object*)parent_object)->object->action, 
 		self->posechannel->name);
-
+	
 	//insert the pose keys
 	if (self->posechannel->flag & POSE_ROT){
 		insertkey(&((BPy_Object*)parent_object)->object->id, 
-			ID_PO, self->posechannel->name, NULL, AC_QUAT_X);
+			ID_PO, self->posechannel->name, NULL, AC_QUAT_X, no_ipo_update);
 		insertkey(&((BPy_Object*)parent_object)->object->id, 
-			ID_PO, self->posechannel->name, NULL, AC_QUAT_Y);
+			ID_PO, self->posechannel->name, NULL, AC_QUAT_Y, no_ipo_update);
 		insertkey(&((BPy_Object*)parent_object)->object->id, 
-			ID_PO, self->posechannel->name, NULL, AC_QUAT_Z);
+			ID_PO, self->posechannel->name, NULL, AC_QUAT_Z, no_ipo_update);
 		insertkey(&((BPy_Object*)parent_object)->object->id, 
-			ID_PO, self->posechannel->name, NULL, AC_QUAT_W);
+			ID_PO, self->posechannel->name, NULL, AC_QUAT_W, no_ipo_update);
 	}
 	if (self->posechannel->flag & POSE_LOC){
 		insertkey(&((BPy_Object*)parent_object)->object->id, 
-			ID_PO, self->posechannel->name, NULL, AC_LOC_X);
+			ID_PO, self->posechannel->name, NULL, AC_LOC_X, no_ipo_update);
 		insertkey(&((BPy_Object*)parent_object)->object->id, 
-			ID_PO, self->posechannel->name, NULL, AC_LOC_Y);
+			ID_PO, self->posechannel->name, NULL, AC_LOC_Y, no_ipo_update);
 		insertkey(&((BPy_Object*)parent_object)->object->id, 
-			ID_PO, self->posechannel->name, NULL, AC_LOC_Z);
+			ID_PO, self->posechannel->name, NULL, AC_LOC_Z, no_ipo_update);
 	}
 	if (self->posechannel->flag & POSE_SIZE){
 		insertkey(&((BPy_Object*)parent_object)->object->id, 
-			ID_PO, self->posechannel->name, NULL, AC_SIZE_X);
+			ID_PO, self->posechannel->name, NULL, AC_SIZE_X, no_ipo_update);
 		insertkey(&((BPy_Object*)parent_object)->object->id, 
-			ID_PO, self->posechannel->name, NULL, AC_SIZE_Y);
+			ID_PO, self->posechannel->name, NULL, AC_SIZE_Y, no_ipo_update);
 		insertkey(&((BPy_Object*)parent_object)->object->id, 
-			ID_PO, self->posechannel->name, NULL, AC_SIZE_Z);
+			ID_PO, self->posechannel->name, NULL, AC_SIZE_Z, no_ipo_update);
 	}
 
 	//flip the frame back
 	G.scene->r.cfra = oldframe;
 
 	//update the IPOs
-	if (!no_ipo_update)
+	if (no_ipo_update==0)
 		remake_action_ipos (((BPy_Object*)parent_object)->object->action);
 
 	Py_RETURN_NONE;

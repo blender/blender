@@ -2289,7 +2289,7 @@ void autokeyframe_ob_cb_func(Object *ob, int tmode)
 					if (U.uiflag & USER_KEYINSERTNEED)
 						insertkey_smarter(id, ID_OB, actname, NULL, icu->adrcode);
 					else
-						insertkey(id, ID_OB, actname, NULL, icu->adrcode);
+						insertkey(id, ID_OB, actname, NULL, icu->adrcode, 0);
 					icu= icu->next;
 				}
 			}
@@ -2312,17 +2312,17 @@ void autokeyframe_ob_cb_func(Object *ob, int tmode)
 			}
 		}
 		else {
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_ROT_X);
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_ROT_Y);
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_ROT_Z);
+			insertkey(&ob->id, ID_OB, actname, NULL, OB_ROT_X, 0);
+			insertkey(&ob->id, ID_OB, actname, NULL, OB_ROT_Y, 0);
+			insertkey(&ob->id, ID_OB, actname, NULL, OB_ROT_Z, 0);
 
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_LOC_X);
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_LOC_Y);
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_LOC_Z);
+			insertkey(&ob->id, ID_OB, actname, NULL, OB_LOC_X, 0);
+			insertkey(&ob->id, ID_OB, actname, NULL, OB_LOC_Y, 0);
+			insertkey(&ob->id, ID_OB, actname, NULL, OB_LOC_Z, 0);
 
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_SIZE_X);
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_SIZE_Y);
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_SIZE_Z);
+			insertkey(&ob->id, ID_OB, actname, NULL, OB_SIZE_X, 0);
+			insertkey(&ob->id, ID_OB, actname, NULL, OB_SIZE_Y, 0);
+			insertkey(&ob->id, ID_OB, actname, NULL, OB_SIZE_Z, 0);
 		}
 
 		remake_object_ipos(ob);
@@ -2364,7 +2364,7 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 								if (U.uiflag & USER_KEYINSERTNEED)
 									insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, icu->adrcode);
 								else
-									insertkey(&ob->id, ID_PO, pchan->name, NULL, icu->adrcode);
+									insertkey(&ob->id, ID_PO, pchan->name, NULL, icu->adrcode, 0);
 							}
 							break;
 						}
@@ -2389,18 +2389,18 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 					}
 				}
 				else {
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_X);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Y);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Z);
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_X, 0);
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Y, 0);
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Z, 0);
 
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_W);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_X);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_W, 0);
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_X, 0);
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Y, 0);
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Z, 0);
 
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_X);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Y);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Z);
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_X, 0);
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Y, 0);
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Z, 0);
 				}
 			}
 		}

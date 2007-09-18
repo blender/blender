@@ -2564,14 +2564,14 @@ void fly(void)
 					cfra = G.scene->r.cfra;
 					
 					if (xlock || zlock || moffset[0] || moffset[1]) {
-						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_ROT_X);
-						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_ROT_Y);
-						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_ROT_Z);
+						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_ROT_X, 0);
+						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_ROT_Y, 0);
+						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_ROT_Z, 0);
 					}
 					if (speed) {
-						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_LOC_X);
-						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_LOC_Y);
-						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_LOC_Z);
+						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_LOC_X, 0);
+						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_LOC_Y, 0);
+						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_LOC_Z, 0);
 					}
 				}
 			}

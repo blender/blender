@@ -431,9 +431,9 @@ static PyObject *Constraint_insertKey( BPy_Constraint * self, PyObject * value )
 				"cannot get a curve from this IPO, may be using libdata" );
 	
 	if( ob->action )
-		insert_vert_icu( icu, get_action_frame(ob, cfra), con->enforce);
+		insert_vert_icu( icu, get_action_frame(ob, cfra), con->enforce, 0);
 	else
-		insert_vert_icu( icu, cfra, con->enforce);
+		insert_vert_icu( icu, cfra, con->enforce, 0);
 
 	Py_RETURN_NONE;
 }

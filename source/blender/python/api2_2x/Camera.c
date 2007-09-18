@@ -1040,11 +1040,11 @@ static PyObject *Camera_insertIpoKey( BPy_Camera * self, PyObject * args )
 										"expected int argument" ) );
 
 	if (key == IPOKEY_LENS){
-		insertkey((ID *)self->camera, ID_CA, NULL, NULL, CAM_LENS);     
+		insertkey((ID *)self->camera, ID_CA, NULL, NULL, CAM_LENS, 0);     
 	}
 	else if (key == IPOKEY_CLIPPING){
-		insertkey((ID *)self->camera, ID_CA, NULL, NULL, CAM_STA);
-		insertkey((ID *)self->camera, ID_CA, NULL, NULL, CAM_END);   
+		insertkey((ID *)self->camera, ID_CA, NULL, NULL, CAM_STA, 0);
+		insertkey((ID *)self->camera, ID_CA, NULL, NULL, CAM_END, 0);   
 	}
 
 	allspace(REMAKEIPO, 0);

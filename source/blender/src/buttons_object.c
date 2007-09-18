@@ -263,9 +263,9 @@ static void add_influence_key_to_constraint_func (void *ob_v, void *con_v)
 	}
 	
 	if(ob->action)
-		insert_vert_icu(icu, get_action_frame(ob, (float)CFRA), con->enforce);
+		insert_vert_icu(icu, get_action_frame(ob, (float)CFRA), con->enforce, 0);
 	else
-		insert_vert_icu(icu, CFRA, con->enforce);
+		insert_vert_icu(icu, CFRA, con->enforce, 0);
 	
 	/* make sure ipowin shows it */
 	ob->ipowin= ID_CO;

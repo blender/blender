@@ -198,7 +198,7 @@ static void icu_slider_func(void *voidicu, void *voidignore)
 	 * otherwise modify it's value
 	 */
 	if (!bezt) {
-		insert_vert_icu(icu, cfra, icu->curval);
+		insert_vert_icu(icu, cfra, icu->curval, 0);
 	}
 	else {
 		bezt->vec[1][1] = icu->curval;

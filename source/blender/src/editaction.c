@@ -1333,9 +1333,9 @@ void insertkey_action(void)
 				IpoCurve *icu= (IpoCurve *)ale->key_data;
 				
 				if (ob)
-					insertkey((ID *)ob, icu->blocktype, achan->name, NULL, icu->adrcode);
+					insertkey((ID *)ob, icu->blocktype, achan->name, NULL, icu->adrcode, 0);
 				else
-					insert_vert_icu(icu, cfra, icu->curval);
+					insert_vert_icu(icu, cfra, icu->curval, 0);
 			}
 		}
 		
@@ -1352,7 +1352,7 @@ void insertkey_action(void)
 		
 		if (key->ipo) {
 			for (icu= key->ipo->curve.first; icu; icu=icu->next) {
-				insert_vert_icu(icu, cfra, icu->curval);
+				insert_vert_icu(icu, cfra, icu->curval, 0);
 			}
 		}
 	}

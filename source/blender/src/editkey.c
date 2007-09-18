@@ -185,7 +185,7 @@ static void rvk_slider_func(void *voidob, void *voidkeynum)
 		 * otherwise modify it's value
 		 */
 		if (bezt == NULL) {
-			insert_vert_icu(icu, cfra, meshslidervals[keynum]);
+			insert_vert_icu(icu, cfra, meshslidervals[keynum], 0);
 		}
 		else {
 			bezt->vec[1][1] = meshslidervals[keynum];

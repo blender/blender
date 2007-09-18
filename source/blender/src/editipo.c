@@ -1951,8 +1951,10 @@ int insert_bezt_icu (IpoCurve *icu, BezTriple *bezt)
 /* This function is a wrapper for insert_bezt_icu, and should be used when
  * adding a new keyframe to a curve, when the keyframe doesn't exist anywhere
  * else yet. 
+ * 
+ * 'fast' - is only for the python API where importing BVH's would take an extreamly long time.
  */
-void insert_vert_icu (IpoCurve *icu, float x, float y)
+void insert_vert_icu (IpoCurve *icu, float x, float y, short fast)
 {
 	BezTriple beztr;
 	int a, h1, h2;
@@ -1971,7 +1973,7 @@ void insert_vert_icu (IpoCurve *icu, float x, float y)
 	
 	/* add temp beztriple to keyframes */
 	a= insert_bezt_icu(icu, &beztr);
-	calchandles_ipocurve(icu);
+	if (!fast) calchandles_ipocurve(icu);
 	
 	/* set handletype */
 	if (icu->totvert > 2) {
@@ -1986,7 +1988,7 @@ void insert_vert_icu (IpoCurve *icu, float x, float y)
 		bezt->h1= h1;
 		bezt->h2= h2;
 		
-		calchandles_ipocurve(icu);
+		if (!fast) calchandles_ipocurve(icu);
 	}
 }
 
@@ -2039,7 +2041,7 @@ void add_vert_ipo(void)
 		y= (float)(1 << val);
 	}
 	
-	insert_vert_icu(ei->icu, x, y);
+	insert_vert_icu(ei->icu, x, y, 0);
 
 	/* to be sure: if icu was 0, or only 1 curve visible */
 	ei->flag |= IPO_SELECT;
@@ -2216,7 +2218,7 @@ static void insertkey_nonrecurs(ID *id, int blocktype, char *actname, char *cons
 					}
 				}
 				
-				insert_vert_icu(icu, cfra, curval);
+				insert_vert_icu(icu, cfra, curval, 0);
 			}
 		}
 	}
@@ -2402,7 +2404,7 @@ static int match_adr_constraint(ID * id, int blocktype, char *actname, int adrco
 			
 }
 
-void insertkey(ID *id, int blocktype, char *actname, char *constname, int adrcode)
+void insertkey(ID *id, int blocktype, char *actname, char *constname, int adrcode, short fast)
 {
 	IpoCurve *icu;
 	Object *ob;
@@ -2438,7 +2440,7 @@ void insertkey(ID *id, int blocktype, char *actname, char *constname, int adrcod
 					}
 				}
 				
-				insert_vert_icu(icu, cfra, curval);
+				insert_vert_icu(icu, cfra, curval, fast);
 			}
 		}
 	}
@@ -2485,7 +2487,7 @@ void insertkey_smarter(ID *id, int blocktype, char *actname, char *constname, in
 			
 			/* insert new keyframe at current frame */
 			if (insert_mode) 
-				insert_vert_icu(icu, cfra, curval);
+				insert_vert_icu(icu, cfra, curval, 0);
 			
 			/* delete keyframe immediately before/after newly added */
 			switch (insert_mode) {
@@ -2532,7 +2534,7 @@ void insertfloatkey(ID *id, int blocktype, char *actname, char *constname, int a
  			}
 			
 			/* insert new keyframe at current frame */
-			insert_vert_icu(icu, cfra, floatkey);
+			insert_vert_icu(icu, cfra, floatkey, 0);
  		}
  	}
 }
@@ -2563,16 +2565,16 @@ void insertkey_editipo(void)
 		ei->icu->totvert= 0;
 		ei->icu->bezt= NULL;
 		
-		insert_vert_icu(ei->icu, 0.0f, 0.0f);
+		insert_vert_icu(ei->icu, 0.0f, 0.0f, 0);
 		
 		if(ELEM3(driver->adrcode, OB_ROT_X, OB_ROT_Y, OB_ROT_Z)) {
 			if(ei->disptype==IPO_DISPDEGR)
-				insert_vert_icu(ei->icu, 18.0f, 18.0f);
+				insert_vert_icu(ei->icu, 18.0f, 18.0f, 0);
 			else
-				insert_vert_icu(ei->icu, 18.0f, 1.0f);
+				insert_vert_icu(ei->icu, 18.0f, 1.0f, 0);
 		}
 		else
-			insert_vert_icu(ei->icu, 1.0f, 1.0f);
+			insert_vert_icu(ei->icu, 1.0f, 1.0f, 0);
 		
 		ei->flag |= IPO_SELECT|IPO_VISIBLE;
 		ei->icu->flag= ei->flag;
@@ -2649,7 +2651,7 @@ void insertkey_editipo(void)
 						}
 						fp= insertvals;
 						for(a=0; a<tot; a++, fp+=2) {
-							insert_vert_icu(ei->icu, fp[0], fp[1]);
+							insert_vert_icu(ei->icu, fp[0], fp[1], 0);
 						}
 						
 						MEM_freeN(insertvals);
@@ -2702,58 +2704,58 @@ void common_insertkey(void)
 					map= texchannel_to_adrcode(ma->texact);
 
 					if(event==0 || event==10) {
-						insertkey(id, ID_MA, NULL, NULL, MA_COL_R);
-						insertkey(id, ID_MA, NULL, NULL, MA_COL_G);
-						insertkey(id, ID_MA, NULL, NULL, MA_COL_B);
+						insertkey(id, ID_MA, NULL, NULL, MA_COL_R, 0);
+						insertkey(id, ID_MA, NULL, NULL, MA_COL_G, 0);
+						insertkey(id, ID_MA, NULL, NULL, MA_COL_B, 0);
 					}
 					if(event==1 || event==10) {
-						insertkey(id, ID_MA, NULL, NULL, MA_ALPHA);
+						insertkey(id, ID_MA, NULL, NULL, MA_ALPHA, 0);
 					}
 					if(event==2 || event==10) {
-						insertkey(id, ID_MA, NULL, NULL, MA_HASIZE);
+						insertkey(id, ID_MA, NULL, NULL, MA_HASIZE, 0);
 					}
 					if(event==3 || event==10) {
-						insertkey(id, ID_MA, NULL, NULL, MA_MODE);
+						insertkey(id, ID_MA, NULL, NULL, MA_MODE, 0);
 					}
 					if(event==10) {
-						insertkey(id, ID_MA, NULL, NULL, MA_SPEC_R);
-						insertkey(id, ID_MA, NULL, NULL, MA_SPEC_G);
-						insertkey(id, ID_MA, NULL, NULL, MA_SPEC_B);
-						insertkey(id, ID_MA, NULL, NULL, MA_REF);
-						insertkey(id, ID_MA, NULL, NULL, MA_EMIT);
-						insertkey(id, ID_MA, NULL, NULL, MA_AMB);
-						insertkey(id, ID_MA, NULL, NULL, MA_SPEC);
-						insertkey(id, ID_MA, NULL, NULL, MA_HARD);
-						insertkey(id, ID_MA, NULL, NULL, MA_MODE);
-						insertkey(id, ID_MA, NULL, NULL, MA_TRANSLU);
-						insertkey(id, ID_MA, NULL, NULL, MA_ADD);
+						insertkey(id, ID_MA, NULL, NULL, MA_SPEC_R, 0);
+						insertkey(id, ID_MA, NULL, NULL, MA_SPEC_G, 0);
+						insertkey(id, ID_MA, NULL, NULL, MA_SPEC_B, 0);
+						insertkey(id, ID_MA, NULL, NULL, MA_REF, 0);
+						insertkey(id, ID_MA, NULL, NULL, MA_EMIT, 0);
+						insertkey(id, ID_MA, NULL, NULL, MA_AMB, 0);
+						insertkey(id, ID_MA, NULL, NULL, MA_SPEC, 0);
+						insertkey(id, ID_MA, NULL, NULL, MA_HARD, 0);
+						insertkey(id, ID_MA, NULL, NULL, MA_MODE, 0);
+						insertkey(id, ID_MA, NULL, NULL, MA_TRANSLU, 0);
+						insertkey(id, ID_MA, NULL, NULL, MA_ADD, 0);
 					}
 					if(event==14) {
-						insertkey(id, ID_MA, NULL, NULL, MA_RAYM);
-						insertkey(id, ID_MA, NULL, NULL, MA_FRESMIR);
-						insertkey(id, ID_MA, NULL, NULL, MA_FRESMIRI);
-						insertkey(id, ID_MA, NULL, NULL, MA_FRESTRA);
-						insertkey(id, ID_MA, NULL, NULL, MA_FRESTRAI);
+						insertkey(id, ID_MA, NULL, NULL, MA_RAYM, 0);
+						insertkey(id, ID_MA, NULL, NULL, MA_FRESMIR, 0);
+						insertkey(id, ID_MA, NULL, NULL, MA_FRESMIRI, 0);
+						insertkey(id, ID_MA, NULL, NULL, MA_FRESTRA, 0);
+						insertkey(id, ID_MA, NULL, NULL, MA_FRESTRAI, 0);
 					}
 					if(event==12 || event==11) {
-						insertkey(id, ID_MA, NULL, NULL, map+MAP_OFS_X);
-						insertkey(id, ID_MA, NULL, NULL, map+MAP_OFS_Y);
-						insertkey(id, ID_MA, NULL, NULL, map+MAP_OFS_Z);
+						insertkey(id, ID_MA, NULL, NULL, map+MAP_OFS_X, 0);
+						insertkey(id, ID_MA, NULL, NULL, map+MAP_OFS_Y, 0);
+						insertkey(id, ID_MA, NULL, NULL, map+MAP_OFS_Z, 0);
 					}
 					if(event==13 || event==11) {
-						insertkey(id, ID_MA, NULL, NULL, map+MAP_SIZE_X);
-						insertkey(id, ID_MA, NULL, NULL, map+MAP_SIZE_Y);
-						insertkey(id, ID_MA, NULL, NULL, map+MAP_SIZE_Z);
+						insertkey(id, ID_MA, NULL, NULL, map+MAP_SIZE_X, 0);
+						insertkey(id, ID_MA, NULL, NULL, map+MAP_SIZE_Y, 0);
+						insertkey(id, ID_MA, NULL, NULL, map+MAP_SIZE_Z, 0);
 					}
 					if(event==11) {
-						insertkey(id, ID_MA, NULL, NULL, map+MAP_R);
-						insertkey(id, ID_MA, NULL, NULL, map+MAP_G);
-						insertkey(id, ID_MA, NULL, NULL, map+MAP_B);
-						insertkey(id, ID_MA, NULL, NULL, map+MAP_DVAR);
-						insertkey(id, ID_MA, NULL, NULL, map+MAP_COLF);
-						insertkey(id, ID_MA, NULL, NULL, map+MAP_NORF);
-						insertkey(id, ID_MA, NULL, NULL, map+MAP_VARF);
-						insertkey(id, ID_MA, NULL, NULL, map+MAP_DISP);
+						insertkey(id, ID_MA, NULL, NULL, map+MAP_R, 0);
+						insertkey(id, ID_MA, NULL, NULL, map+MAP_G, 0);
+						insertkey(id, ID_MA, NULL, NULL, map+MAP_B, 0);
+						insertkey(id, ID_MA, NULL, NULL, map+MAP_DVAR, 0);
+						insertkey(id, ID_MA, NULL, NULL, map+MAP_COLF, 0);
+						insertkey(id, ID_MA, NULL, NULL, map+MAP_NORF, 0);
+						insertkey(id, ID_MA, NULL, NULL, map+MAP_VARF, 0);
+						insertkey(id, ID_MA, NULL, NULL, map+MAP_DISP, 0);
 					}
 				}
 			}
@@ -2767,37 +2769,37 @@ void common_insertkey(void)
 					map= texchannel_to_adrcode(wo->texact);
 
 					if(event==0) {
-						insertkey(id, ID_WO, NULL, NULL, WO_ZEN_R);
-						insertkey(id, ID_WO, NULL, NULL, WO_ZEN_G);
-						insertkey(id, ID_WO, NULL, NULL, WO_ZEN_B);
+						insertkey(id, ID_WO, NULL, NULL, WO_ZEN_R, 0);
+						insertkey(id, ID_WO, NULL, NULL, WO_ZEN_G, 0);
+						insertkey(id, ID_WO, NULL, NULL, WO_ZEN_B, 0);
 					}
 					if(event==1) {
-						insertkey(id, ID_WO, NULL, NULL, WO_HOR_R);
-						insertkey(id, ID_WO, NULL, NULL, WO_HOR_G);
-						insertkey(id, ID_WO, NULL, NULL, WO_HOR_B);
+						insertkey(id, ID_WO, NULL, NULL, WO_HOR_R, 0);
+						insertkey(id, ID_WO, NULL, NULL, WO_HOR_G, 0);
+						insertkey(id, ID_WO, NULL, NULL, WO_HOR_B, 0);
 					}
 					if(event==2) {
-						insertkey(id, ID_WO, NULL, NULL, WO_MISI);
-						insertkey(id, ID_WO, NULL, NULL, WO_MISTDI);
-						insertkey(id, ID_WO, NULL, NULL, WO_MISTSTA);
-						insertkey(id, ID_WO, NULL, NULL, WO_MISTHI);
+						insertkey(id, ID_WO, NULL, NULL, WO_MISI, 0);
+						insertkey(id, ID_WO, NULL, NULL, WO_MISTDI, 0);
+						insertkey(id, ID_WO, NULL, NULL, WO_MISTSTA, 0);
+						insertkey(id, ID_WO, NULL, NULL, WO_MISTHI, 0);
 					}
 					if(event==3) {
-						insertkey(id, ID_WO, NULL, NULL, WO_STAR_R);
-						insertkey(id, ID_WO, NULL, NULL, WO_STAR_G);
-						insertkey(id, ID_WO, NULL, NULL, WO_STAR_B);
-						insertkey(id, ID_WO, NULL, NULL, WO_STARDIST);
-						insertkey(id, ID_WO, NULL, NULL, WO_STARSIZE);
+						insertkey(id, ID_WO, NULL, NULL, WO_STAR_R, 0);
+						insertkey(id, ID_WO, NULL, NULL, WO_STAR_G, 0);
+						insertkey(id, ID_WO, NULL, NULL, WO_STAR_B, 0);
+						insertkey(id, ID_WO, NULL, NULL, WO_STARDIST, 0);
+						insertkey(id, ID_WO, NULL, NULL, WO_STARSIZE, 0);
 					}
 					if(event==12) {
-						insertkey(id, ID_WO, NULL, NULL, map+MAP_OFS_X);
-						insertkey(id, ID_WO, NULL, NULL, map+MAP_OFS_Y);
-						insertkey(id, ID_WO, NULL, NULL, map+MAP_OFS_Z);
+						insertkey(id, ID_WO, NULL, NULL, map+MAP_OFS_X, 0);
+						insertkey(id, ID_WO, NULL, NULL, map+MAP_OFS_Y, 0);
+						insertkey(id, ID_WO, NULL, NULL, map+MAP_OFS_Z, 0);
 					}
 					if(event==13) {
-						insertkey(id, ID_WO, NULL, NULL, map+MAP_SIZE_X);
-						insertkey(id, ID_WO, NULL, NULL, map+MAP_SIZE_Y);
-						insertkey(id, ID_WO, NULL, NULL, map+MAP_SIZE_Z);
+						insertkey(id, ID_WO, NULL, NULL, map+MAP_SIZE_X, 0);
+						insertkey(id, ID_WO, NULL, NULL, map+MAP_SIZE_Y, 0);
+						insertkey(id, ID_WO, NULL, NULL, map+MAP_SIZE_Z, 0);
 					}
 				}
 			}
@@ -2811,25 +2813,25 @@ void common_insertkey(void)
 					map= texchannel_to_adrcode(la->texact);
 
 					if(event==0) {
-						insertkey(id, ID_LA, NULL, NULL, LA_COL_R);
-						insertkey(id, ID_LA, NULL, NULL, LA_COL_G);
-						insertkey(id, ID_LA, NULL, NULL, LA_COL_B);
+						insertkey(id, ID_LA, NULL, NULL, LA_COL_R, 0);
+						insertkey(id, ID_LA, NULL, NULL, LA_COL_G, 0);
+						insertkey(id, ID_LA, NULL, NULL, LA_COL_B, 0);
 					}
 					if(event==1) {
-						insertkey(id, ID_LA, NULL, NULL, LA_ENERGY);
+						insertkey(id, ID_LA, NULL, NULL, LA_ENERGY, 0);
 					}
 					if(event==2) {
-						insertkey(id, ID_LA, NULL, NULL, LA_SPOTSI);
+						insertkey(id, ID_LA, NULL, NULL, LA_SPOTSI, 0);
 					}
 					if(event==12) {
-						insertkey(id, ID_LA, NULL, NULL, map+MAP_OFS_X);
-						insertkey(id, ID_LA, NULL, NULL, map+MAP_OFS_Y);
-						insertkey(id, ID_LA, NULL, NULL, map+MAP_OFS_Z);
+						insertkey(id, ID_LA, NULL, NULL, map+MAP_OFS_X, 0);
+						insertkey(id, ID_LA, NULL, NULL, map+MAP_OFS_Y, 0);
+						insertkey(id, ID_LA, NULL, NULL, map+MAP_OFS_Z, 0);
 					}
 					if(event==13) {
-						insertkey(id, ID_LA, NULL, NULL, map+MAP_SIZE_X);
-						insertkey(id, ID_LA, NULL, NULL, map+MAP_SIZE_Y);
-						insertkey(id, ID_LA, NULL, NULL, map+MAP_SIZE_Z);
+						insertkey(id, ID_LA, NULL, NULL, map+MAP_SIZE_X, 0);
+						insertkey(id, ID_LA, NULL, NULL, map+MAP_SIZE_Y, 0);
+						insertkey(id, ID_LA, NULL, NULL, map+MAP_SIZE_Z, 0);
 					}
 
 				}
@@ -2842,74 +2844,74 @@ void common_insertkey(void)
 					if(event== -1) return;
 
 					if(event==0) {
-						insertkey(id, ID_TE, NULL, NULL, TE_NSIZE);
-						insertkey(id, ID_TE, NULL, NULL, TE_NDEPTH);
-						insertkey(id, ID_TE, NULL, NULL, TE_NTYPE);
-						insertkey(id, ID_TE, NULL, NULL, TE_MG_TYP);
-						insertkey(id, ID_TE, NULL, NULL, TE_N_BAS1);
+						insertkey(id, ID_TE, NULL, NULL, TE_NSIZE, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_NDEPTH, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_NTYPE, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_MG_TYP, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_N_BAS1, 0);
 					}
 					if(event==1) {
-						insertkey(id, ID_TE, NULL, NULL, TE_NSIZE);
-						insertkey(id, ID_TE, NULL, NULL, TE_NDEPTH);
-						insertkey(id, ID_TE, NULL, NULL, TE_NTYPE);
-						insertkey(id, ID_TE, NULL, NULL, TE_TURB);
-						insertkey(id, ID_TE, NULL, NULL, TE_MG_TYP);
-						insertkey(id, ID_TE, NULL, NULL, TE_N_BAS1);
-						insertkey(id, ID_TE, NULL, NULL, TE_N_BAS2);
+						insertkey(id, ID_TE, NULL, NULL, TE_NSIZE, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_NDEPTH, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_NTYPE, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_TURB, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_MG_TYP, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_N_BAS1, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_N_BAS2, 0);
 					}
 					if(event==2) {
-						insertkey(id, ID_TE, NULL, NULL, TE_NSIZE);
-						insertkey(id, ID_TE, NULL, NULL, TE_NTYPE);
-						insertkey(id, ID_TE, NULL, NULL, TE_TURB);
-						insertkey(id, ID_TE, NULL, NULL, TE_MG_TYP);
-						insertkey(id, ID_TE, NULL, NULL, TE_N_BAS1);
+						insertkey(id, ID_TE, NULL, NULL, TE_NSIZE, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_NTYPE, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_TURB, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_MG_TYP, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_N_BAS1, 0);
 					}
 					if(event==3) {
-						insertkey(id, ID_TE, NULL, NULL, TE_NSIZE);
-						insertkey(id, ID_TE, NULL, NULL, TE_NTYPE);
-						insertkey(id, ID_TE, NULL, NULL, TE_TURB);
-						insertkey(id, ID_TE, NULL, NULL, TE_MG_TYP);
-						insertkey(id, ID_TE, NULL, NULL, TE_N_BAS1);
-						insertkey(id, ID_TE, NULL, NULL, TE_N_BAS2);
+						insertkey(id, ID_TE, NULL, NULL, TE_NSIZE, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_NTYPE, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_TURB, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_MG_TYP, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_N_BAS1, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_N_BAS2, 0);
 					}
 					if(event==4) {
-						insertkey(id, ID_TE, NULL, NULL, TE_NDEPTH);
-						insertkey(id, ID_TE, NULL, NULL, TE_TURB);
+						insertkey(id, ID_TE, NULL, NULL, TE_NDEPTH, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_TURB, 0);
 					}
 					if(event==5) {
-						insertkey(id, ID_TE, NULL, NULL, TE_MG_TYP);
+						insertkey(id, ID_TE, NULL, NULL, TE_MG_TYP, 0);
 					} 
 					if(event==6) {
-						insertkey(id, ID_TE, NULL, NULL, TE_MG_TYP);
-						insertkey(id, ID_TE, NULL, NULL, TE_MGH);
-						insertkey(id, ID_TE, NULL, NULL, TE_MG_LAC);
-						insertkey(id, ID_TE, NULL, NULL, TE_MG_OCT);
-						insertkey(id, ID_TE, NULL, NULL, TE_MG_OFF);
-						insertkey(id, ID_TE, NULL, NULL, TE_MG_GAIN);
+						insertkey(id, ID_TE, NULL, NULL, TE_MG_TYP, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_MGH, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_MG_LAC, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_MG_OCT, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_MG_OFF, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_MG_GAIN, 0);
 					}
 					if(event==7) {
-						insertkey(id, ID_TE, NULL, NULL, TE_VNW1);
-						insertkey(id, ID_TE, NULL, NULL, TE_VNW2);
-						insertkey(id, ID_TE, NULL, NULL, TE_VNW3);
-						insertkey(id, ID_TE, NULL, NULL, TE_VNW4);
-						insertkey(id, ID_TE, NULL, NULL, TE_VNMEXP);
-						insertkey(id, ID_TE, NULL, NULL, TE_VN_DISTM);
-						insertkey(id, ID_TE, NULL, NULL, TE_VN_COLT);
-						insertkey(id, ID_TE, NULL, NULL, TE_ISCA);
-						insertkey(id, ID_TE, NULL, NULL, TE_NSIZE);
+						insertkey(id, ID_TE, NULL, NULL, TE_VNW1, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_VNW2, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_VNW3, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_VNW4, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_VNMEXP, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_VN_DISTM, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_VN_COLT, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_ISCA, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_NSIZE, 0);
 					}
 					if(event==8) {
-						insertkey(id, ID_TE, NULL, NULL, TE_MG_OCT);
-						insertkey(id, ID_TE, NULL, NULL, TE_MG_OFF);
-						insertkey(id, ID_TE, NULL, NULL, TE_MG_GAIN);
-						insertkey(id, ID_TE, NULL, NULL, TE_DISTA);
+						insertkey(id, ID_TE, NULL, NULL, TE_MG_OCT, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_MG_OFF, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_MG_GAIN, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_DISTA, 0);
 					}
 					if(event==9) {
-						insertkey(id, ID_TE, NULL, NULL, TE_COL_R);
-						insertkey(id, ID_TE, NULL, NULL, TE_COL_G);
-						insertkey(id, ID_TE, NULL, NULL, TE_COL_B);
-						insertkey(id, ID_TE, NULL, NULL, TE_BRIGHT);
-						insertkey(id, ID_TE, NULL, NULL, TE_CONTRA);
+						insertkey(id, ID_TE, NULL, NULL, TE_COL_R, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_COL_G, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_COL_B, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_BRIGHT, 0);
+						insertkey(id, ID_TE, NULL, NULL, TE_CONTRA, 0);
 					}
 				}
 			}
@@ -2926,19 +2928,19 @@ void common_insertkey(void)
 					if(event == -1) return;
 
 					if(event==0) {
-						insertkey(id, ID_OB, NULL, NULL, OB_PD_SDAMP);
+						insertkey(id, ID_OB, NULL, NULL, OB_PD_SDAMP, 0);
 					}
 					if(event==1) {
-						insertkey(id, ID_OB, NULL, NULL, OB_PD_RDAMP);
+						insertkey(id, ID_OB, NULL, NULL, OB_PD_RDAMP, 0);
 					}
 					if(event==2) {
-						insertkey(id, ID_OB, NULL, NULL, OB_PD_PERM);
+						insertkey(id, ID_OB, NULL, NULL, OB_PD_PERM, 0);
 					}
 					if(event==3) {
-						insertkey(id, ID_OB, NULL, NULL, OB_PD_FSTR);
+						insertkey(id, ID_OB, NULL, NULL, OB_PD_FSTR, 0);
 					}
 					if(event==4) {
-						insertkey(id, ID_OB, NULL, NULL, OB_PD_FFALL);
+						insertkey(id, ID_OB, NULL, NULL, OB_PD_FFALL, 0);
 					}
 
 				}
@@ -2958,21 +2960,21 @@ void common_insertkey(void)
 					if(event== -1) return;
 
 					if(event==0) {
-						insertkey(id, ID_CA, NULL, NULL, CAM_LENS);
+						insertkey(id, ID_CA, NULL, NULL, CAM_LENS, 0);
 					}
 					else if(event==1) {
-						insertkey(id, ID_CA, NULL, NULL, CAM_STA);
-						insertkey(id, ID_CA, NULL, NULL, CAM_END);
+						insertkey(id, ID_CA, NULL, NULL, CAM_STA, 0);
+						insertkey(id, ID_CA, NULL, NULL, CAM_END, 0);
 					}
 					else if(event==2) {
-						insertkey(id, ID_CA, NULL, NULL, CAM_YF_APERT);
+						insertkey(id, ID_CA, NULL, NULL, CAM_YF_APERT, 0);
 					}
 					else if(event==3) {
-						insertkey(id, ID_CA, NULL, NULL, CAM_YF_FDIST);
+						insertkey(id, ID_CA, NULL, NULL, CAM_YF_FDIST, 0);
 					}
 					else if(event==4) {
-						insertkey(id, ID_CA, NULL, NULL, CAM_SHIFT_X);
-						insertkey(id, ID_CA, NULL, NULL, CAM_SHIFT_Y);
+						insertkey(id, ID_CA, NULL, NULL, CAM_SHIFT_X, 0);
+						insertkey(id, ID_CA, NULL, NULL, CAM_SHIFT_Y, 0);
 					}
 				}
 			}
@@ -2985,16 +2987,16 @@ void common_insertkey(void)
 					if(event== -1) return;
 
 					if(event==0) {
-						insertkey(id, ID_SO, NULL, NULL, SND_VOLUME);
+						insertkey(id, ID_SO, NULL, NULL, SND_VOLUME, 0);
 					}
 					if(event==1) {
-						insertkey(id, ID_SO, NULL, NULL, SND_PITCH);
+						insertkey(id, ID_SO, NULL, NULL, SND_PITCH, 0);
 					}
 					if(event==2) {
-						insertkey(id, ID_SO, NULL, NULL, SND_PANNING);
+						insertkey(id, ID_SO, NULL, NULL, SND_PANNING, 0);
 					}
 					if(event==3) {
-						insertkey(id, ID_SO, NULL, NULL, SND_ATTEN);
+						insertkey(id, ID_SO, NULL, NULL, SND_ATTEN, 0);
 					}
 				}
 			}
@@ -3058,20 +3060,20 @@ void common_insertkey(void)
 			for (pchan=ob->pose->chanbase.first; pchan; pchan=pchan->next) {
 				if (pchan->flag & POSE_KEY){
 					if(event==0 || event==3 ||event==4) {
-						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_X);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_X, 0);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y, 0);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z, 0);
 					}
 					if(event==1 || event==3 ||event==4) {
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X, 0);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y, 0);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z, 0);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W, 0);
 					}
 					if(event==2 || event==4) {
-						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_X);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Y);
-						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Z);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_X, 0);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Y, 0);
+						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Z, 0);
 					}
 					if (event==9 && ob->action) {
 						bActionChannel *achan;
@@ -3079,7 +3081,7 @@ void common_insertkey(void)
 						for (achan = ob->action->chanbase.first; achan; achan=achan->next){
 							if (achan->ipo && !strcmp (achan->name, pchan->name)){
 								for (icu = achan->ipo->curve.first; icu; icu=icu->next){
-									insertkey(id, ID_PO, achan->name, NULL, icu->adrcode);
+									insertkey(id, ID_PO, achan->name, NULL, icu->adrcode, 0);
 								}
 								break;
 							}
@@ -3101,10 +3103,10 @@ void common_insertkey(void)
 						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
 						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
 						if (matsuccess==0) {
-							insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X);
-							insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
-							insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
-							insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W);
+							insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X, 0);
+							insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y, 0);
+							insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z, 0);
+							insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W, 0);
 						}
  					}
 					if (event==15 && ob->action) {
@@ -3159,7 +3161,7 @@ void common_insertkey(void)
 							
 							switch (event) {
 								case 9: 
-									insertkey(id, ID_OB, actname, NULL, icu->adrcode);
+									insertkey(id, ID_OB, actname, NULL, icu->adrcode, 0);
 									break;
 								case 15:
 									insertkey_smarter(id, ID_OB, actname, NULL, icu->adrcode);
@@ -3170,25 +3172,25 @@ void common_insertkey(void)
 					}
 
 					if(event==0 || event==3 ||event==4) {
-						insertkey(id, ID_OB, actname, NULL, OB_LOC_X);
-						insertkey(id, ID_OB, actname, NULL, OB_LOC_Y);
-						insertkey(id, ID_OB, actname, NULL, OB_LOC_Z);
+						insertkey(id, ID_OB, actname, NULL, OB_LOC_X, 0);
+						insertkey(id, ID_OB, actname, NULL, OB_LOC_Y, 0);
+						insertkey(id, ID_OB, actname, NULL, OB_LOC_Z, 0);
 					}
 					if(event==1 || event==3 ||event==4) {
-						insertkey(id, ID_OB, actname, NULL, OB_ROT_X);
-						insertkey(id, ID_OB, actname, NULL, OB_ROT_Y);
-						insertkey(id, ID_OB, actname, NULL, OB_ROT_Z);
+						insertkey(id, ID_OB, actname, NULL, OB_ROT_X, 0);
+						insertkey(id, ID_OB, actname, NULL, OB_ROT_Y, 0);
+						insertkey(id, ID_OB, actname, NULL, OB_ROT_Z, 0);
 					}
 					if(event==2 || event==4) {
-						insertkey(id, ID_OB, actname, NULL, OB_SIZE_X);
-						insertkey(id, ID_OB, actname, NULL, OB_SIZE_Y);
-						insertkey(id, ID_OB, actname, NULL, OB_SIZE_Z);
+						insertkey(id, ID_OB, actname, NULL, OB_SIZE_X, 0);
+						insertkey(id, ID_OB, actname, NULL, OB_SIZE_Y, 0);
+						insertkey(id, ID_OB, actname, NULL, OB_SIZE_Z, 0);
 					}
 					if(event==5) {
 						/* remove localview  */
 						tlay= base->object->lay;
 						base->object->lay &= 0xFFFFFF;
-						insertkey(id, ID_OB, actname, NULL, OB_LAY);
+						insertkey(id, ID_OB, actname, NULL, OB_LAY, 0);
 						base->object->lay= tlay;
 					}
  					if(event==11 || event==13) {
@@ -3439,7 +3441,7 @@ void clean_ipo_curve(IpoCurve *icu)
 	
 	/* now insert first keyframe, as it should be ok */
 	bezt = old_bezts;
-	insert_vert_icu(icu, bezt->vec[1][0], bezt->vec[1][1]);
+	insert_vert_icu(icu, bezt->vec[1][0], bezt->vec[1][1], 0);
 	
 	/* Loop through BezTriples, comparing them. Skip any that do 
 	 * not fit the criteria for "ok" points.
@@ -3476,7 +3478,7 @@ void clean_ipo_curve(IpoCurve *icu)
 				if (cur[1] > next[1]) {
 					if (IS_EQT(cur[1], prev[1], thresh) == 0) {
 						/* add new keyframe */
-						insert_vert_icu(icu, cur[0], cur[1]);
+						insert_vert_icu(icu, cur[0], cur[1], 0);
 					}
 				}
 			}
@@ -3484,7 +3486,7 @@ void clean_ipo_curve(IpoCurve *icu)
 				/* only add if values are a considerable distance apart */
 				if (IS_EQT(cur[1], prev[1], thresh) == 0) {
 					/* add new keyframe */
-					insert_vert_icu(icu, cur[0], cur[1]);
+					insert_vert_icu(icu, cur[0], cur[1], 0);
 				}
 			}
 		}
@@ -3494,18 +3496,18 @@ void clean_ipo_curve(IpoCurve *icu)
 				/* does current have same value as previous and next? */
 				if (IS_EQT(cur[1], prev[1], thresh) == 0) {
 					/* add new keyframe*/
-					insert_vert_icu(icu, cur[0], cur[1]);
+					insert_vert_icu(icu, cur[0], cur[1], 0);
 				}
 				else if (IS_EQT(cur[1], next[1], thresh) == 0) {
 					/* add new keyframe */
-					insert_vert_icu(icu, cur[0], cur[1]);
+					insert_vert_icu(icu, cur[0], cur[1], 0);
 				}
 			}
 			else {	
 				/* add if value doesn't equal that of previous */
 				if (IS_EQT(cur[1], prev[1], thresh) == 0) {
 					/* add new keyframe */
-					insert_vert_icu(icu, cur[0], cur[1]);
+					insert_vert_icu(icu, cur[0], cur[1], 0);
 				}
 			}
 		}
