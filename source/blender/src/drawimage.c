@@ -244,26 +244,28 @@ void what_image(SpaceImage *sima)
 {
 	MTFace *activetf;
 		
-	if(sima->mode==SI_TEXTURE) {
+	if(		(sima->pin != 0) ||
+			(sima->mode!=SI_TEXTURE) ||
+			(sima->image && sima->image->source==IMA_SRC_VIEWER) ||
+			(G.obedit != OBACT)
+	) {
+		return;
+	}
+	
+	/* viewer overrides faceselect */
+	sima->image= NULL;
+	activetf = get_active_mtface(NULL, NULL, 1); /* partially selected face is ok */
+	
+	if(activetf && activetf->mode & TF_TEX) {
+		sima->image= activetf->tpage;
 		
-		/* viewer overrides faceselect */
-		if(sima->image && sima->image->source==IMA_SRC_VIEWER) {}
-		else if (G.obedit == OBACT) {
-			sima->image= NULL;
-			activetf = get_active_mtface(NULL, NULL, 1); /* partially selected face is ok */
-			
-			if(activetf && activetf->mode & TF_TEX) {
-				sima->image= activetf->tpage;
-				
-				if(sima->flag & SI_EDITTILE);
-				else sima->curtile= activetf->tile;
-				
-				if(sima->image) {
-					if(activetf->mode & TF_TILES)
-						sima->image->tpageflag |= IMA_TILES;
-					else sima->image->tpageflag &= ~IMA_TILES;
-				}
-			}
+		if(sima->flag & SI_EDITTILE);
+		else sima->curtile= activetf->tile;
+		
+		if(sima->image) {
+			if(activetf->mode & TF_TILES)
+				sima->image->tpageflag |= IMA_TILES;
+			else sima->image->tpageflag &= ~IMA_TILES;
 		}
 	}
 }

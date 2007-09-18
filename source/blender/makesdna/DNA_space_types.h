@@ -235,7 +235,7 @@ typedef struct SpaceImage {
 	short imanr, curtile;
 	int flag;
 	short imtypenr, lock;
-	short showspare, pad2;
+	short showspare, pin;
 	float zoom;
 	
 	float xof, yof;					/* user defined offset, image is centered */

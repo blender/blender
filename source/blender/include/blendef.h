@@ -283,7 +283,7 @@
 #define B_UITHEMEIMPORT		323
 #define B_UITHEMEEXPORT		324
 
-#define B_MEMCACHELIMIT         325
+#define B_MEMCACHELIMIT		325
 
 /* Definitions for the fileselect buttons in user prefs */
 #define B_FONTDIRFILESEL  	330
@@ -304,11 +304,11 @@
 #define B_SIMABROWSE		352
 #define B_SIMAGELOAD		353
 #define B_SIMAGEDRAW		354
-#define B_BE_SQUARE		355
+#define B_BE_SQUARE			355
 #define B_SIMAGEDRAW1		356
-#define B_TWINANIM		357
+#define B_TWINANIM			357
 #define B_SIMAGEREPLACE		358
-#define B_CLIP_UV		359
+#define B_CLIP_UV			359
 #define B_SIMAGELOAD1		360
 #define B_SIMAGEREPLACE1	361
 #define B_SIMAGEPAINTTOOL	362
@@ -318,7 +318,7 @@
 #define B_SIMACLONEDELETE	366
 #define B_SIMANOTHING		368
 #define B_SIMACURVES		369
-#define B_SIMARANGE		370
+#define B_SIMARANGE			370
 #define B_SIMA_USE_ALPHA	371
 #define B_SIMA_SHOW_ALPHA	372
 #define B_SIMA_SHOW_ZBUF	373
@@ -329,20 +329,21 @@
 #define B_SIMABTEXBROWSE	378
 #define B_SIMABTEXDELETE	379
 #define B_SIMARELOAD		380
-#define B_SIMANAME		381
-#define B_SIMAMULTI		382
+#define B_SIMANAME			381
+#define B_SIMAMULTI			382
 #define B_TRANS_IMAGE		383
 #define B_CURSOR_IMAGE		384
 #define B_SIMA_REPACK		385
-#define B_SIMA_PLAY		386
+#define B_SIMA_PLAY			386
 #define B_SIMA_RECORD		387
+#define B_SIMAPIN			388
 
 /* BUTS: 400 */
-#define B_BUTSHOME		401
+#define B_BUTSHOME			401
 #define B_BUTSPREVIEW		402
-#define B_MATCOPY		403
-#define B_MATPASTE		404
-#define B_MESHTYPE		405
+#define B_MATCOPY			403
+#define B_MATPASTE			404
+#define B_MESHTYPE			405
 #define B_CONTEXT_SWITCH	406
 
 /* IMASEL: 450 */

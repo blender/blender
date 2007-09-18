@@ -105,6 +105,9 @@ void do_image_buttons(unsigned short event)
 	}
 	
 	switch(event) {
+	case B_SIMAPIN:
+		allqueue (REDRAWIMAGE, 0);
+		break;
 	case B_SIMAGEHOME:
 		image_home();
 		break;
@@ -1112,8 +1115,15 @@ void image_buttons(void)
 	uiBlock *block;
 	short xco, xmax;
 	char naam[256], *menuname;
+	char is_render; /* true if the image is a render or composite */
+	
+	int allow_pin= B_SIMAPIN;
+	
 	/* This should not be a static var */
 	static int headerbuttons_packdummy;
+	
+	
+	is_render = ((G.sima->image!=NULL) && ((G.sima->image->type == IMA_TYPE_R_RESULT) || (G.sima->image->type == IMA_TYPE_COMPOSITE)));
 
 	headerbuttons_packdummy = 0;
 		
@@ -1178,13 +1188,13 @@ void image_buttons(void)
 	/* other buttons: */
 	uiBlockSetEmboss(block, UI_EMBOSS);
 
-	xco= std_libbuttons(block, xco, 0, 0, NULL, B_SIMABROWSE, ID_IM, 0, (ID *)ima, 0, &(G.sima->imanr), 0, 0, B_IMAGEDELETE, 0, 0);
+	if (is_render)
+		allow_pin = 0;
+	
+	xco= std_libbuttons(block, xco, 0, allow_pin, &G.sima->pin, B_SIMABROWSE, ID_IM, 0, (ID *)ima, 0, &(G.sima->imanr), 0, 0, B_IMAGEDELETE, 0, 0);
 
 	/* UV EditMode buttons, not painting or rencering or compositing */
-	if (	EM_texFaceCheck() &&
-			(G.sima->flag & SI_DRAWTOOL)==0 && 
-			((G.sima->image==NULL) || ((G.sima->image->type != IMA_TYPE_R_RESULT) && (G.sima->image->type != IMA_TYPE_COMPOSITE)))
-	) {
+	if ( EM_texFaceCheck() && (G.sima->flag & SI_DRAWTOOL)==0 && !is_render) {
 		xco+=10;
 		uiDefIconTextButS(block, ICONTEXTROW,B_AROUND, ICON_ROTATE, around_pup(), xco,0,XIC+10,YIC, &(G.v2d->around), 0, 3.0, 0, 0, "Rotation/Scaling Pivot (Hotkeys: Comma, Shift Comma, Period) ");
 		xco+= XIC + 12;
@@ -1247,7 +1257,7 @@ void image_buttons(void)
 		uiBlockEndAlign(block);
 		xco+= 8;
 	}
-
+	
 	/* draw LOCK */
 	uiDefIconButS(block, ICONTOG, 0, ICON_UNLOCKED,	xco,0,XIC,YIC, &(G.sima->lock), 0, 0, 0, 0, "Updates other affected window spaces automatically to reflect changes in real time");
 
