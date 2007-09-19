@@ -382,7 +382,7 @@ def process_next_chunk(file, previous_chunk, importedObjects, IMAGE_SEARCH):
 			# +1 because of DUMMYVERT
 			face_mapping= bmesh.faces.extend( [ [ bmesh_verts[ myVertMapping[vindex]+1] for vindex in myContextMesh_facels[fIdx]] for fIdx in faces ], indexList=True )
 			
-			if contextMeshUV or img:
+			if bmesh.faces and (contextMeshUV or img):
 				bmesh.faceUV= 1
 				for ii, i in enumerate(faces):
 					
