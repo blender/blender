@@ -482,6 +482,9 @@ typedef struct SpaceImaSel {
 #define SI_FULLWINDOW	1<<16
 #define SI_SYNC_UVSEL	1<<17
 #define SI_LOCAL_UV		1<<18
+		/* this means that the image is drawn until it reaches the view edge,
+		 * in the image view, its unrelated to the 'tile' mode for texface */
+#define SI_DRAW_TILE	1<<19 
 
 /* SpaceText flags (moved from DNA_text_types.h) */
 

@@ -425,6 +425,9 @@ static void do_image_viewmenu(void *arg, int event)
 	case 2: /* Maximize Window */
 		/* using event B_FULL */
 		break;
+	case 4: /* Realtime Panel... */
+		add_blockhandler(curarea, IMAGE_HANDLER_VIEW_PROPERTIES, UI_PNL_UNSTOW);
+		break;
 	case 5: /* Draw Shadow Mesh */
 		G.sima->flag ^= SI_DRAWSHADOW;
 		allqueue(REDRAWIMAGE, 0);
@@ -472,6 +475,7 @@ static uiBlock *image_viewmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "image_viewmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_image_viewmenu, NULL);
 
+	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "View Properties...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Image Properties...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Real-time Properties...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 13, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Paint Tool...|C",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");

@@ -1719,6 +1719,7 @@ void mesh_copy_menu(void)
 	}
 	
 	if (change) {
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWBUTSEDIT, 0);
 		
@@ -3416,6 +3417,7 @@ void Face_Menu() {
 	{
 		case 1:
 			flip_editnormals();
+			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 			BIF_undo_push("Flip Normals");
 			break;
 		case 2:

@@ -5148,7 +5148,7 @@ void mesh_set_face_flags(short mode)
 	
 	if (change) {
 		BIF_undo_push((mode ? "Set Flags" : "Clear Flags"));
-
+		
 		allqueue(REDRAWIMAGE, 0);
 		allqueue(REDRAWVIEW3D, 0);
 	}
@@ -6595,6 +6595,7 @@ void mesh_rotate_uvs(void)
 	}
 	
 	if (change) {
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 0);
 		BIF_undo_push("Rotate UV face");
 	}
@@ -6645,6 +6646,7 @@ void mesh_mirror_uvs(void)
 	}
 	
 	if (change) {
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 0);
 		BIF_undo_push("Mirror UV face");
 	}
@@ -6680,6 +6682,7 @@ void mesh_rotate_colors(void)
 	}
 	
 	if (change) {
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 0);
 		BIF_undo_push("Rotate Color face");
 	}	
@@ -6716,6 +6719,7 @@ void mesh_mirror_colors(void)
 	}
 	
 	if (change) {
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 0);
 		BIF_undo_push("Mirror Color face");
 	}

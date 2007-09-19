@@ -1048,9 +1048,26 @@ static void image_panel_transform_properties(short cntrl)	// IMAGE_HANDLER_TRANS
 	if(uiNewPanel(curarea, block, "Transform Properties", "Image", 10, 10, 318, 204)==0)
 		return;
 	
-	uiDefButBitI(block, TOG, SI_COORDFLOATS, B_REDR, "Normalized Coords",	10,80,140,19, &G.sima->flag, 0, 0, 0, 0, "Display coords from 0.0 to 1.0 rather then in pixels");
+	//uiDefButBitI(block, TOG, SI_COORDFLOATS, B_REDR, "Normalized Coords",	10,80,140,19, &G.sima->flag, 0, 0, 0, 0, "Display coords from 0.0 to 1.0 rather then in pixels");
 	
 	image_editvertex_buts(block);
+	//image_editcursor_buts(block);
+}
+
+static void image_panel_view_properties(short cntrl)	// IMAGE_HANDLER_VIEW_PROPERTIES
+{
+	uiBlock *block;
+
+	block= uiNewBlock(&curarea->uiblocks, "image_view_properties", UI_EMBOSS, UI_HELV, curarea->win);
+	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
+	uiSetPanelHandler(IMAGE_HANDLER_VIEW_PROPERTIES);  // for close and esc
+	if(uiNewPanel(curarea, block, "View Properties", "Image", 10, 10, 318, 204)==0)
+		return;
+	
+	uiDefButBitI(block, TOG, SI_COORDFLOATS, B_REDR, "Normalized Coords",	10,100,140,19, &G.sima->flag, 0, 0, 0, 0, "Display coords from 0.0 to 1.0 rather then in pixels");
+	uiDefButBitI(block, TOG, SI_DRAW_TILE, B_REDR, "Repeat Image",	10,80,140,19, &G.sima->flag, 0, 0, 0, 0, "Repeat/Tile the image display");
+	
+	//image_editvertex_buts(block);
 	image_editcursor_buts(block);
 }
 
@@ -1370,6 +1387,9 @@ static void image_blockhandlers(ScrArea *sa)
 		case IMAGE_HANDLER_TRANSFORM_PROPERTIES:
 			if (EM_texFaceCheck())
 				image_panel_transform_properties(sima->blockhandler[a+1]);
+			break;
+		case IMAGE_HANDLER_VIEW_PROPERTIES:
+			image_panel_view_properties(sima->blockhandler[a+1]);
 			break;
 		case IMAGE_HANDLER_PAINT:
 			image_panel_paint(sima->blockhandler[a+1]);
@@ -1800,52 +1820,81 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 				MEM_freeN(rect);
 			}
 			else {
-				/* this part is generic image display */
-				if(sima->flag & SI_SHOW_ALPHA) {
-					if(ibuf->rect)
-						sima_draw_alpha_pixels(x1, y1, ibuf->x, ibuf->y, ibuf->rect);
-					else if(ibuf->rect_float && ibuf->channels==4)
-						sima_draw_alpha_pixelsf(x1, y1, ibuf->x, ibuf->y, ibuf->rect_float);
-				}
-				else if(sima->flag & SI_SHOW_ZBUF && ((ibuf->zbuf || ibuf->zbuf_float || (ibuf->channels==1)) == 0)) {
-					if(ibuf->zbuf)
-						sima_draw_zbuf_pixels(x1, y1, ibuf->x, ibuf->y, ibuf->zbuf);
-					else if(ibuf->zbuf_float)
-						sima_draw_zbuffloat_pixels(x1, y1, ibuf->x, ibuf->y, ibuf->zbuf_float);
-					else if(ibuf->channels==1)
-						sima_draw_zbuffloat_pixels(x1, y1, ibuf->x, ibuf->y, ibuf->rect_float);
-				}
-				else {
-					if(sima->flag & SI_USE_ALPHA) {
-						sima_draw_alpha_backdrop(sima, x1, y1, (float)ibuf->x, (float)ibuf->y);
-						glEnable(GL_BLEND);
-						glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-					}
-					
-					/* detect if we need to redo the curve map. 
-					   ibuf->rect is zero for compositor and render results after change 
-					   convert to 32 bits always... drawing float rects isnt supported well (atis)
-					
-					   NOTE: if float buffer changes, we have to manually remove the rect
-					*/
-					
-					if(ibuf->rect_float) {
-						if(ibuf->rect==NULL) {
-							if(image_curves_active(sa))
-								curvemapping_do_ibuf(G.sima->cumap, ibuf);
-							else 
-								IMB_rect_from_float(ibuf);
+				float x1_rep, y1_rep;
+				int x_rep, y_rep;
+				
+				/* Loop for drawing repeating images */
+				for (x_rep= ((int)G.v2d->cur.xmin)-1; x_rep < G.v2d->cur.xmax; x_rep++) {
+					x1_rep=x1+  (x_rep* ibuf->x * sima->zoom);
+					for (y_rep= ((int)G.v2d->cur.ymin)-1; y_rep < G.v2d->cur.ymax; y_rep++) {
+						y1_rep=y1+  (y_rep * ibuf->y *sima->zoom);
+				/* end repeating image loop */
+						
+						if((sima->flag & SI_DRAW_TILE)==0) {
+							y1_rep = y1;
+							x1_rep = x1;
 						}
+						
+						/*printf("Drawing %d %d zoom:%.6f (%.6f %.6f), (%.6f %.6f)\n", x_rep, y_rep, sima->zoom, G.v2d->cur.xmin, G.v2d->cur.ymin, G.v2d->cur.xmax, G.v2d->cur.ymax);*/
+						
+						/* this part is generic image display */
+						if(sima->flag & SI_SHOW_ALPHA) {
+							if(ibuf->rect)
+								sima_draw_alpha_pixels(x1_rep, y1_rep, ibuf->x, ibuf->y, ibuf->rect);
+							else if(ibuf->rect_float && ibuf->channels==4)
+								sima_draw_alpha_pixelsf(x1_rep, y1_rep, ibuf->x, ibuf->y, ibuf->rect_float);
+						}
+						else if(sima->flag & SI_SHOW_ZBUF && ((ibuf->zbuf || ibuf->zbuf_float || (ibuf->channels==1)) == 0)) {
+							if(ibuf->zbuf)
+								sima_draw_zbuf_pixels(x1_rep, y1_rep, ibuf->x, ibuf->y, ibuf->zbuf);
+							else if(ibuf->zbuf_float)
+								sima_draw_zbuffloat_pixels(x1_rep, y1_rep, ibuf->x, ibuf->y, ibuf->zbuf_float);
+							else if(ibuf->channels==1)
+								sima_draw_zbuffloat_pixels(x1_rep, y1_rep, ibuf->x, ibuf->y, ibuf->rect_float);
+						}
+						else {
+							if(sima->flag & SI_USE_ALPHA) {
+								sima_draw_alpha_backdrop(sima, x1_rep, y1_rep, (float)ibuf->x, (float)ibuf->y);
+								glEnable(GL_BLEND);
+								glBlendFunc(GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+							}
+							
+							/* detect if we need to redo the curve map. 
+							   ibuf->rect is zero for compositor and render results after change 
+							   convert to 32 bits always... drawing float rects isnt supported well (atis)
+							
+							   NOTE: if float buffer changes, we have to manually remove the rect
+							*/
+							
+							if(ibuf->rect_float) {
+								if(ibuf->rect==NULL) {
+									if(image_curves_active(sa))
+										curvemapping_do_ibuf(G.sima->cumap, ibuf);
+									else 
+										IMB_rect_from_float(ibuf);
+								}
+							}
+		
+							if(ibuf->rect)
+								glaDrawPixelsSafe(x1_rep, y1_rep, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
+		//					else
+		//						glaDrawPixelsSafe(x1_rep, y1_rep, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_FLOAT, ibuf->rect_float);
+							
+							if(sima->flag & SI_USE_ALPHA)
+								glDisable(GL_BLEND);
+						}
+				
+						/* only draw once */
+						if((sima->flag & SI_DRAW_TILE)==0) {
+							x_rep = G.v2d->cur.xmax+1;
+							y_rep = G.v2d->cur.ymax+1;
+						}
+				
+				/* tile draw loop */
 					}
-
-					if(ibuf->rect)
-						glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
-//					else
-//						glaDrawPixelsSafe(x1, y1, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_FLOAT, ibuf->rect_float);
-					
-					if(sima->flag & SI_USE_ALPHA)
-						glDisable(GL_BLEND);
 				}
+				/* tile draw loop */
+				
 			}
 			
 			brush= G.scene->toolsettings->imapaint.brush;
@@ -1928,7 +1977,7 @@ static void image_zoom_set_factor(float zoomfac)
 
 	/* check zoom limits */
 
-	calc_image_view(G.sima, 'p');
+	calc_image_view(G.sima, 'f'); /* was 'p' are there any cases where this should be 'p'?*/
 	width= 256;
 	height= 256;
 	if (sima->image) {
@@ -2078,8 +2127,9 @@ void image_home(void)
 
 	G.sima->xof= G.sima->yof= 0.0f;
 	
-	calc_image_view(G.sima, 'p');
-	
+	calc_image_view(G.sima, 'f'); /* was 'p' are there any cases where this should be 'p'?*/
+	/*calc_arearcts(curarea);*/
+	scrarea_queue_winredraw(curarea);
 	scrarea_queue_winredraw(curarea);
 }
 
@@ -2108,7 +2158,7 @@ void image_viewcenter(void)
 
 	G.sima->zoom= 0.7/size;
 
-	calc_image_view(G.sima, 'p');
+	calc_image_view(G.sima, 'f'); /* was 'p' are there any cases where 'p' is still needed? */
 
 	scrarea_queue_winredraw(curarea);
 }
