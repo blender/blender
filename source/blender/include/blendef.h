@@ -303,9 +303,9 @@
 #define B_SIMAGEHOME		351
 #define B_SIMABROWSE		352
 #define B_SIMAGELOAD		353
-#define B_SIMAGEDRAW		354
-#define B_BE_SQUARE			355
-#define B_SIMAGEDRAW1		356
+#define B_SIMAGETILE1		354
+#define B_SIMAGETILE2		355
+#define B_BE_SQUARE			356
 #define B_TWINANIM			357
 #define B_SIMAGEREPLACE		358
 #define B_CLIP_UV			359
@@ -337,6 +337,8 @@
 #define B_SIMA_PLAY			386
 #define B_SIMA_RECORD		387
 #define B_SIMAPIN			388
+#define B_SIMA3DVIEWDRAW	389
+
 
 /* BUTS: 400 */
 #define B_BUTSHOME			401

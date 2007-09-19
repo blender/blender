@@ -480,6 +480,7 @@ typedef struct SpaceImaSel {
 #define SI_PREVSPACE	1<<15
 #define SI_FULLWINDOW	1<<16
 #define SI_SYNC_UVSEL	1<<17
+#define SI_LOCAL_UV		1<<18
 
 /* SpaceText flags (moved from DNA_text_types.h) */
 

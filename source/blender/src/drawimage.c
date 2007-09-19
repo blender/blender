@@ -286,55 +286,76 @@ ImBuf *imagewindow_get_ibuf(SpaceImage *sima)
 
 extern int EM_texFaceCheck(void); /* from editmesh.c */
 /* called to assign images to UV faces */
-void image_changed(SpaceImage *sima, int dotile)
+void image_changed(SpaceImage *sima, Image *image)
 {
 	MTFace *tface;
 	EditMesh *em = G.editMesh;
 	EditFace *efa;
 
-	if(sima->image==NULL)
+	if(image==NULL)
 		sima->flag &= ~SI_DRAWTOOL;
 	
 	if(sima->mode!=SI_TEXTURE || !EM_texFaceCheck())
 		return;
 		
 	/* skip assigning these procedural images... */
-	if(sima->image) {
-		if(sima->image->type==IMA_TYPE_R_RESULT)
-			return;
-		if(sima->image->type==IMA_TYPE_COMPOSITE)
-			return;
-	}
+	if(image && (image->type==IMA_TYPE_R_RESULT || image->type==IMA_TYPE_COMPOSITE))
+		return;
 
 	for (efa= em->faces.first; efa; efa= efa->next) {
-		/*if (efa->f & SELECT) {*/
-		if (SIMA_FACEDRAW_CHECK(efa)) {
-			tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-		
-			if(dotile==2) {
-				tface->mode &= ~TF_TILES;
+		tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+		if (efa->h==0 && efa->f & SELECT) {
+			if (image) {
+				tface->tpage= image;
+				tface->mode |= TF_TEX;
+				
+				if(image->tpageflag & IMA_TILES) tface->mode |= TF_TILES;
+				else tface->mode &= ~TF_TILES;
+				
+				if(image->id.us==0) id_us_plus(&image->id);
+				else id_lib_extern(&image->id);
 			} else {
-				if (sima->image) {
-					tface->tpage= sima->image;
-					tface->mode |= TF_TEX;
-					
-					if(sima->image->tpageflag & IMA_TILES) tface->mode |= TF_TILES;
-					else tface->mode &= ~TF_TILES;
-					
-					if(sima->image->id.us==0) id_us_plus(&sima->image->id);
-					else id_lib_extern(&sima->image->id);
-				} else {
-					tface->tpage= NULL;
-					tface->mode &= ~TF_TEX;
-				}
-			
-				if(dotile) tface->tile= sima->curtile;
+				tface->tpage= NULL;
+				tface->mode &= ~TF_TEX;
 			}
 		}
 	}
+	/* change the space image after because SIMA_FACEDRAW_CHECK uses the space image
+	 * to check if the face is displayed in UV-localview */
+	sima->image = image;
+	
 	object_uvs_changed(OBACT);
 	allqueue(REDRAWBUTSEDIT, 0);
 }
+
+void image_set_tile(SpaceImage *sima, int dotile)
+{
+	MTFace *tface;
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
+	
+	if(sima->mode!=SI_TEXTURE || !EM_texFaceCheck())
+		return;
+	
+	/* skip assigning these procedural images... */
+	if(sima->image && (sima->image->type==IMA_TYPE_R_RESULT || sima->image->type==IMA_TYPE_COMPOSITE))
+		return;
+	
+	for (efa= em->faces.first; efa; efa= efa->next) {
+		tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+		if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+			if(dotile==2) {
+				tface->mode &= ~TF_TILES;
+			} else if (dotile) {
+				tface->tile= sima->curtile;
+			}
+		}
+	}
+	
+	object_uvs_changed(OBACT);
+	allqueue(REDRAWBUTSEDIT, 0);
+}
+
 
 
 void uvco_to_areaco(float *vec, short *mval)
@@ -448,10 +469,8 @@ void draw_tfaces(void)
 		if (G.obedit) {		
 			glColor3ub(112, 112, 112);
 			for (efa= em->faces.first; efa; efa= efa->next) {
-				/*if(!(mface->flag & ME_HIDE) && (mface->flag & ME_FACE_SEL)) {*/
-				/*if(!(efa->flag & ME_HIDE) && (efa->f & SELECT)) {*/
-				if (SIMA_FACEDRAW_CHECK(efa)) {
-					tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				if (SIMA_FACEDRAW_CHECK(efa, tface)) {
 					glBegin(GL_LINE_LOOP);
 					glVertex2fv(tface->uv[0]);
 					glVertex2fv(tface->uv[1]);
@@ -474,9 +493,8 @@ void draw_tfaces(void)
 		glEnable(GL_BLEND);
 		
 		for (efa= em->faces.first; efa; efa= efa->next) {
-			/*if(efa->f & SELECT) {*/
-			if (SIMA_FACEDRAW_CHECK(efa)) {
-				tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			if (SIMA_FACEDRAW_CHECK(efa, tface)) {
 				if( SIMA_FACESEL_CHECK(efa, tface) )
 					glColor4ubv((GLubyte *)col2);
 				else
@@ -494,10 +512,8 @@ void draw_tfaces(void)
 	}
 	
 	for (efa= em->faces.first; efa; efa= efa->next) {
-		/*if (efa->f & SELECT) {*/
-		if (SIMA_FACEDRAW_CHECK(efa)) {
-			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			
+		tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+		if (SIMA_FACEDRAW_CHECK(efa, tface)) {
 			cpack(0x0);
 			glBegin(GL_LINE_LOOP);
 				glVertex2fv(tface->uv[0]);
@@ -529,14 +545,12 @@ void draw_tfaces(void)
 	}
 
 	/* draw active face edges */
-	/*if (activetface){*/
 		/* colors: R=u G=v */
 	activetface = get_active_mtface(&efa, NULL, 0);
 	if (activetface) {
 		setlinestyle(2);
-		tface=activetface; 
-		/*mface=activemface;*/ 
-
+		tface=activetface;
+		
 		cpack(0x0);
 		glBegin(GL_LINE_LOOP);
 		glVertex2fv(tface->uv[0]);
@@ -574,9 +588,8 @@ void draw_tfaces(void)
 
 	bglBegin(GL_POINTS);
 	for (efa= em->faces.first; efa; efa= efa->next) {
-		/*if (efa->f & SELECT) {*/
-		if (SIMA_FACEDRAW_CHECK(efa)) {
-			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+		tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+		if (SIMA_FACEDRAW_CHECK(efa, tface)) {
 			if(SIMA_UVSEL_CHECK(efa, tface, 0)); else bglVertex2fv(tface->uv[0]);
 			if(SIMA_UVSEL_CHECK(efa, tface, 1)); else bglVertex2fv(tface->uv[1]);
 			if(SIMA_UVSEL_CHECK(efa, tface, 2)); else bglVertex2fv(tface->uv[2]);
@@ -594,9 +607,8 @@ void draw_tfaces(void)
 
 	bglBegin(GL_POINTS);
 	for (efa= em->faces.first; efa; efa= efa->next) {
-		/*if (efa->f & SELECT) {*/
-		if (SIMA_FACEDRAW_CHECK(efa)) {
-			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+		tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+		if (SIMA_FACEDRAW_CHECK(efa, tface)) {
 			if(tface->unwrap & TF_PIN1) bglVertex2fv(tface->uv[0]);
 			if(tface->unwrap & TF_PIN2) bglVertex2fv(tface->uv[1]);
 			if(tface->unwrap & TF_PIN3) bglVertex2fv(tface->uv[2]);
@@ -613,9 +625,8 @@ void draw_tfaces(void)
 
 	bglBegin(GL_POINTS);
 	for (efa= em->faces.first; efa; efa= efa->next) {
-		/*if (efa->f & SELECT) {*/
-		if (SIMA_FACEDRAW_CHECK(efa)) {
-			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+		tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+		if (SIMA_FACEDRAW_CHECK(efa, tface)) {
 			if(!SIMA_UVSEL_CHECK(efa, tface, 0)); else bglVertex2fv(tface->uv[0]);
 			if(!SIMA_UVSEL_CHECK(efa, tface, 1)); else bglVertex2fv(tface->uv[1]);
 			if(!SIMA_UVSEL_CHECK(efa, tface, 2)); else bglVertex2fv(tface->uv[2]);
@@ -793,9 +804,8 @@ void image_editvertex_buts(uiBlock *block)
 	image_transform_but_attr(&imx, &imy, &step, &digits);
 	
 	for (efa= em->faces.first; efa; efa= efa->next) {
-		/*if ((efa->f & SELECT)) { */
-		if (SIMA_FACEDRAW_CHECK(efa)) {
-			tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+		tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+		if (SIMA_FACEDRAW_CHECK(efa, tf)) {
 			
 			if (SIMA_UVSEL_CHECK(efa, tf, 0)) {
 				cent[0]+= tf->uv[0][0];
@@ -858,10 +868,8 @@ void image_editvertex_buts(uiBlock *block)
 		}
 
 		for (efa= em->faces.first; efa; efa= efa->next) {
-			/*if (!(efa->f & SELECT)) continue;*/
-			if (SIMA_FACEDRAW_CHECK(efa)) {
-				tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-				
+			tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			if (SIMA_FACEDRAW_CHECK(efa, tf)) {
 				if (SIMA_UVSEL_CHECK(efa, tf, 0)) {
 					tf->uv[0][0]+= delta[0];
 					tf->uv[0][1]+= delta[1];
@@ -891,7 +899,6 @@ void image_editvertex_buts(uiBlock *block)
 void image_editcursor_buts(uiBlock *block)
 {
 	static float ocent[2];
-	/*float cent[2]= {0.0, 0.0};*/
 	int imx= 256, imy= 256;
 	int step, digits;
 	
@@ -1009,14 +1016,14 @@ static void image_panel_game_properties(short cntrl)	// IMAGE_HANDLER_GAME_PROPE
 		uiBlockEndAlign(block);
 
 		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, IMA_TILES, B_SIMAGEDRAW1, "Tiles",	160,150,140,19, &G.sima->image->tpageflag, 0, 0, 0, 0, "Toggles use of tilemode for faces (Shift LMB to pick the tile for selected faces)");
-		uiDefButS(block, NUM, B_SIMAGEDRAW, "X:",		160,130,70,19, &G.sima->image->xrep, 1.0, 16.0, 0, 0, "Sets the degree of repetition in the X direction");
-		uiDefButS(block, NUM, B_SIMAGEDRAW, "Y:",		230,130,70,19, &G.sima->image->yrep, 1.0, 16.0, 0, 0, "Sets the degree of repetition in the Y direction");
+		uiDefButBitS(block, TOG, IMA_TILES, B_SIMAGETILE2, "Tiles",	160,150,140,19, &G.sima->image->tpageflag, 0, 0, 0, 0, "Toggles use of tilemode for faces (Shift LMB to pick the tile for selected faces)");
+		uiDefButS(block, NUM, B_SIMAGETILE1, "X:",		160,130,70,19, &G.sima->image->xrep, 1.0, 16.0, 0, 0, "Sets the degree of repetition in the X direction");
+		uiDefButS(block, NUM, B_SIMAGETILE1, "Y:",		230,130,70,19, &G.sima->image->yrep, 1.0, 16.0, 0, 0, "Sets the degree of repetition in the Y direction");
 		uiBlockBeginAlign(block);
 
 		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, IMA_CLAMP_U, B_SIMAGEDRAW, "ClampX",	160,100,70,19, &G.sima->image->tpageflag, 0, 0, 0, 0, "Disable texture repeating horizontaly");
-		uiDefButBitS(block, TOG, IMA_CLAMP_V, B_SIMAGEDRAW, "ClampY",	230,100,70,19, &G.sima->image->tpageflag, 0, 0, 0, 0, "Disable texture repeating vertically");
+		uiDefButBitS(block, TOG, IMA_CLAMP_U, B_SIMA3DVIEWDRAW, "ClampX",	160,100,70,19, &G.sima->image->tpageflag, 0, 0, 0, 0, "Disable texture repeating horizontaly");
+		uiDefButBitS(block, TOG, IMA_CLAMP_V, B_SIMA3DVIEWDRAW, "ClampY",	230,100,70,19, &G.sima->image->tpageflag, 0, 0, 0, 0, "Disable texture repeating vertically");
 		uiBlockEndAlign(block);		
 	}
 }
@@ -1031,7 +1038,7 @@ static void image_panel_transform_properties(short cntrl)	// IMAGE_HANDLER_TRANS
 	if(uiNewPanel(curarea, block, "Transform Properties", "Image", 10, 10, 318, 204)==0)
 		return;
 	
-	uiDefButBitI(block, TOG, SI_COORDFLOATS, B_SIMAGEDRAW1, "Normalized Coords",	10,80,140,19, &G.sima->flag, 0, 0, 0, 0, "Display coords from 0.0 to 1.0 rather then in pixels");
+	uiDefButBitI(block, TOG, SI_COORDFLOATS, B_REDR, "Normalized Coords",	10,80,140,19, &G.sima->flag, 0, 0, 0, 0, "Display coords from 0.0 to 1.0 rather then in pixels");
 	
 	image_editvertex_buts(block);
 	image_editcursor_buts(block);
@@ -1166,7 +1173,7 @@ static void image_panel_curves(short cntrl)	// IMAGE_HANDLER_CURVES
 		
 		rect.xmin= 110; rect.xmax= 310;
 		rect.ymin= 10; rect.ymax= 200;
-		curvemap_buttons(block, G.sima->cumap, 'c', B_SIMACURVES, B_SIMAGEDRAW, &rect);
+		curvemap_buttons(block, G.sima->cumap, 'c', B_SIMACURVES, B_REDR, &rect);
 		
 		bt=uiDefBut(block, BUT, B_SIMARANGE, "Reset",	10, 160, 90, 19, NULL, 0.0f, 0.0f, 0, 0, "Reset Black/White point and curves");
 		uiButSetFunc(bt, image_panel_curves_reset, G.sima->cumap, ibuf);

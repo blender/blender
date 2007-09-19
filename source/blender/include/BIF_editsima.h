@@ -37,9 +37,15 @@ struct EditMesh;
 #define TF_PIN_MASK(id) (TF_PIN1 << id)
 #define TF_SEL_MASK(id) (TF_SEL1 << id)
 
-
-#define SIMA_FACEDRAW_CHECK(efa) \
+  
+/* this checks weather a face is drarn without the local image check */
+#define SIMA_FACEDRAW_CHECK_NOLOCAL(efa) \
 	((G.sima->flag & SI_SYNC_UVSEL) ? (efa->h==0) : (efa->h==0 && efa->f & SELECT))
+
+/* this check includes the local image check - (does the faces image match the space image?) */
+#define SIMA_FACEDRAW_CHECK(efa, tf) \
+	((G.sima->flag & SI_LOCAL_UV) ? ((tf->tpage==G.sima->image) ? SIMA_FACEDRAW_CHECK_NOLOCAL(efa):0) : (SIMA_FACEDRAW_CHECK_NOLOCAL(efa)))
+
 #define SIMA_FACESEL_CHECK(efa, tf) \
 	((G.sima->flag & SI_SYNC_UVSEL) ? (efa->f & SELECT) : (!(~tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3)) &&(!efa->v4 || tf->flag & TF_SEL4)))
 #define SIMA_FACESEL_SET(efa, tf) \

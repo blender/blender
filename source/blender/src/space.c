@@ -4931,6 +4931,11 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				
 				break;
+			case PADSLASHKEY:
+				if(G.qual==0)
+					G.sima->flag ^= SI_LOCAL_UV;
+				scrarea_queue_winredraw(curarea);
+				break;
 			}
 		}
 	} else {

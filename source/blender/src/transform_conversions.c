@@ -1858,8 +1858,8 @@ static void createTransUVs(TransInfo *t)
 
 	/* count */
 	for (efa= em->faces.first; efa; efa= efa->next) {
-		if SIMA_FACEDRAW_CHECK(efa) {
-			tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+		tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+		if SIMA_FACEDRAW_CHECK(efa, tf) {
 			if (SIMA_UVSEL_CHECK(efa, tf, 0)) countsel++; 
 			if (SIMA_UVSEL_CHECK(efa, tf, 1)) countsel++; 
 			if (SIMA_UVSEL_CHECK(efa, tf, 2)) countsel++; 
@@ -1884,8 +1884,8 @@ static void createTransUVs(TransInfo *t)
 	td= t->data;
 	td2d= t->data2d;
 	for (efa= em->faces.first; efa; efa= efa->next) {
-		if SIMA_FACEDRAW_CHECK(efa) {
-			tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+		tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+		if SIMA_FACEDRAW_CHECK(efa, tf) {
 			if(propmode || SIMA_UVSEL_CHECK(efa, tf, 0))
 				UVsToTransData(td++, td2d++, tf->uv[0], SIMA_UVSEL_CHECK(efa, tf, 0));
 			if(propmode || SIMA_UVSEL_CHECK(efa, tf, 1))

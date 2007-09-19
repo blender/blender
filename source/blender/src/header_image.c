@@ -138,15 +138,15 @@ void do_image_buttons(unsigned short event)
 			allqueue(REDRAWIMAGE, 0);
 		}
 		/* also when image is the same: assign! 0==no tileflag: */
-		image_changed(G.sima, 0);
+		image_changed(G.sima, (Image *)idtest);
 		BIF_undo_push("Assign image UV");
 
 		break;
 		
-	case B_SIMAGEDRAW:
+	case B_SIMAGETILE1:
 		if (EM_texFaceCheck()) {
 			make_repbind(G.sima->image);
-			image_changed(G.sima, 1);
+			image_set_tile(G.sima, 1);
 		}
 		/* XXX might be another event needed for this? */
 		if(G.sima->image)
@@ -156,13 +156,14 @@ void do_image_buttons(unsigned short event)
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWIMAGE, 0);
 		break;
-		
-	case B_SIMAGEDRAW1:
-		image_changed(G.sima, 2);		/* 2: only tileflag */
+	case B_SIMAGETILE2:
+		image_set_tile(G.sima, 2);		/* 2: only tileflag */
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWIMAGE, 0);
 		break;
-		
+	case B_SIMA3DVIEWDRAW:
+		allqueue(REDRAWVIEW3D, 0);
+		break;
 	case B_SIMAGEPAINTTOOL:
 		if(G.sima->flag & SI_DRAWTOOL)
 			/* add new brush if none exists */
@@ -211,12 +212,8 @@ void do_image_buttons(unsigned short event)
 			BLI_strncpy(str, G.sima->image->name, sizeof(str));
 			ima= BKE_add_image_file(str);
 			if(ima) {
-				
-				G.sima->image= ima;
-				
 				BKE_image_signal(ima, &G.sima->iuser, IMA_SIGNAL_RELOAD);
-				image_changed(G.sima, 0);
-				
+				image_changed(G.sima, ima);
 			}
 			BIF_undo_push("Load image");
 			allqueue(REDRAWIMAGE, 0);
@@ -439,17 +436,11 @@ static void do_image_viewmenu(void *arg, int event)
 		/* using event B_FULL */
 		break;
 	case 5: /* Draw Shadow Mesh */
-		if(G.sima->flag & SI_DRAWSHADOW)
-			G.sima->flag &= ~SI_DRAWSHADOW;
-		else
-			G.sima->flag |= SI_DRAWSHADOW;
+		G.sima->flag ^= SI_DRAWSHADOW;
 		allqueue(REDRAWIMAGE, 0);
 		break;
 	case 6: /* Draw Faces */
-		if(G.f & G_DRAWFACES)
-			G.f &= ~G_DRAWFACES;
-		else
-			G.f |= G_DRAWFACES;
+		G.f ^= G_DRAWFACES;
 		allqueue(REDRAWIMAGE, 0);
 		break;
 	case 7: /* Properties  Panel */
@@ -473,6 +464,10 @@ static void do_image_viewmenu(void *arg, int event)
 		break;
 	case 13: /* Realtime Panel... */
 		add_blockhandler(curarea, IMAGE_HANDLER_GAME_PROPERTIES, UI_PNL_UNSTOW);
+		break;
+	case 14: /* Draw active image UV's only*/
+		G.sima->flag ^= SI_LOCAL_UV;
+		allqueue(REDRAWIMAGE, 0);
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -501,6 +496,14 @@ static uiBlock *image_viewmenu(void *arg_unused)
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Draw Shadow Mesh|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
 
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	if(G.sima->flag & SI_LOCAL_UV) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "UV Local View|NumPad /",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 14, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "UV Local View|NumPad /", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 14, "");
+	if(!(G.sima->flag & SI_LOCAL_UV)) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "UV Global View|NumPad /",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 14, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "UV Global View|NumPad /",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 14, "");
+	
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
 	uiDefIconTextBlockBut(block, image_view_viewnavmenu, NULL, ICON_RIGHTARROW_THIN, "View Navigation", 0, yco-=20, 120, 19, "");
 
 	if(G.sima->lock) {
