@@ -216,18 +216,18 @@ DO_INLINE void interpolateOnTriangle(float to[3], float v1[3], float v2[3], floa
 	VECADDMUL(to, v3, w3);
 }
 
+
 DO_INLINE void calculateFrictionImpulse(float to[3], float vrel[3], float normal[3], double normalVelocity,
 	double frictionConstant, double delta_V_n) 
 {
 	float vrel_t_pre[3];
 	float vrel_t[3];
 	VECSUBS(vrel_t_pre, vrel, normal, normalVelocity);
-	VECCOPY(vrel_t, vrel_t_pre);
-	VecMulf(vrel_t, MAX2(1.0f - frictionConstant * delta_V_n / INPR(vrel_t_pre,vrel_t_pre), 0.0f));
-	VECSUB(to, vrel_t_pre, vrel_t);
-	VecMulf(to, 1.0f / 2.0f);
+	VECCOPY(to, vrel_t_pre);
+	VecMulf(to, MAX2(1.0f - frictionConstant * delta_V_n / INPR(vrel_t_pre,vrel_t_pre), 0.0f));
 }
 
+		
 int collision_static(ClothModifierData *clmd, ClothModifierData *coll_clmd, LinkNode **collision_list)
 {
 	unsigned int i = 0, numverts=0;
@@ -271,6 +271,7 @@ int collision_static(ClothModifierData *clmd, ClothModifierData *coll_clmd, Link
 			face2 = &(cloth2->mfaces[collpair->face2]);
 			
 			// compute barycentric coordinates for both collision points
+			
 			if(!collpair->quadA)
 				bvh_compute_barycentric(collpair->p1,
 							cloth1->verts[face1->v1].txold,
@@ -297,16 +298,17 @@ int collision_static(ClothModifierData *clmd, ClothModifierData *coll_clmd, Link
 							cloth2->verts[face2->v3].txold, 
 							&u1, &u2, &u3);
 			
-			// Calculate relative velocity.
+			// Calculate relative "velocity".
+			
 			if(!collpair->quadA)
-				interpolateOnTriangle(v1, cloth1->verts[face1->v1].v, cloth1->verts[face1->v2].v, cloth1->verts[face1->v3].v, w1, w2, w3);
+				interpolateOnTriangle(v1, cloth1->verts[face1->v1].tv, cloth1->verts[face1->v2].tv, cloth1->verts[face1->v3].tv, w1, w2, w3);
 			else
-				interpolateOnTriangle(v1, cloth1->verts[face1->v4].v, cloth1->verts[face1->v1].v, cloth1->verts[face1->v3].v, w1, w2, w3);
+				interpolateOnTriangle(v1, cloth1->verts[face1->v4].tv, cloth1->verts[face1->v1].tv, cloth1->verts[face1->v3].tv, w1, w2, w3);
 			
 			if(!collpair->quadB)
-				interpolateOnTriangle(v2, cloth2->verts[face2->v1].v, cloth2->verts[face2->v2].v, cloth2->verts[face2->v3].v, u1, u2, u3);
+				interpolateOnTriangle(v2, cloth2->verts[face2->v1].tv, cloth2->verts[face2->v2].tv, cloth2->verts[face2->v3].tv, u1, u2, u3);
 			else
-				interpolateOnTriangle(v2, cloth2->verts[face2->v4].v, cloth2->verts[face2->v1].v, cloth2->verts[face2->v3].v, u1, u2, u3);
+				interpolateOnTriangle(v2, cloth2->verts[face2->v4].tv, cloth2->verts[face2->v1].tv, cloth2->verts[face2->v3].tv, u1, u2, u3);
 			
 			VECSUB(relativeVelocity, v1, v2);
 				
@@ -323,18 +325,22 @@ int collision_static(ClothModifierData *clmd, ClothModifierData *coll_clmd, Link
 				// Calculate Impulse magnitude to stop all motion in normal direction.
 				// const double I_mag = v_n_mag / (1/m1 + 1/m2);
 				float magnitude_i = magrelVel / 2.0f; // TODO implement masses
-				float tangential[3], magtangent;
+				float tangential[3], magtangent, magnormal, collvel[3];
+				float vrel_t_pre[3];
+				float vrel_t[3], impulse;
+				float epsilon = clmd->coll_parms.epsilon;
 				
-				calculateFrictionImpulse(tangential, relativeVelocity, collpair->normal, magrelVel, clmd->coll_parms.friction*0.01, magrelVel);
+				// calculateFrictionImpulse(tangential, relativeVelocity, collpair->normal, magrelVel, clmd->coll_parms.friction*0.01, magrelVel);
 				
-				magtangent = INPR(tangential, tangential);
+				// magtangent = INPR(tangential, tangential);
 				
 				// Apply friction impulse.
 				if (magtangent > ALMOST_ZERO) 
 				{
-					/*
-					printf("friction applied: %f\n", magtangent);
+					
+					// printf("friction applied: %f\n", magtangent);
 					// TODO check original code 
+					/*
 					VECSUB(cloth1->verts[face1->v1].tv, cloth1->verts[face1->v1].tv,tangential);
 					VECSUB(cloth1->verts[face1->v1].tv, cloth1->verts[face1->v2].tv,tangential);
 					VECSUB(cloth1->verts[face1->v1].tv, cloth1->verts[face1->v3].tv,tangential);
@@ -345,26 +351,52 @@ int collision_static(ClothModifierData *clmd, ClothModifierData *coll_clmd, Link
 				// printf("magnitude_i: %f\n", magnitude_i); // negative before collision in my case
 				
 				// Apply the impulse and increase impulse counters.
-				/*
-				VECADDMUL(cloth1->verts[face1->v1].tv,collpair->normal, -magnitude_i);
-				VECADDMUL(cloth1->verts[face1->v2].tv,collpair->normal, -magnitude_i);
-				VECADDMUL(cloth1->verts[face1->v3].tv,collpair->normal, -magnitude_i);
-				VECADDMUL(cloth1->verts[face1->v4].tv,collpair->normal, -magnitude_i);
-				*/
+				// my try, works better than the papers ones (maybe i did just something wrong)
+				VECSUB(collvel, cloth1->verts[face1->v1].tv, v2);
+				magnormal = INPR(collvel, collpair->normal);
+				if(magnormal<ALMOST_ZERO)
+					magnormal = 0.0f;
 				
-				// my try
-				magtangent = INPR(cloth1->verts[face1->v1].tv, collpair->normal);
-				VECADDMUL(cloth1->verts[face1->v1].tv, collpair->normal, -magtangent); 
+				impulse = (epsilon + ALMOST_ZERO-collpair->distance) / 4.0f;
+				VECADDMUL(cloth1->verts[face1->v1].tv, collpair->normal, -magnormal + impulse); 
 				
-				magtangent = INPR(cloth1->verts[face1->v2].tv, collpair->normal);
-				VECADDMUL(cloth1->verts[face1->v2].tv, collpair->normal, -magtangent); 
+				// calculateFrictionImpulse(tangential, collvel, collpair->normal, magtangent, clmd->coll_parms.friction*0.01, magtangent);
 				
-				magtangent = INPR(cloth1->verts[face1->v3].tv, collpair->normal);
-				VECADDMUL(cloth1->verts[face1->v3].tv, collpair->normal, -magtangent); 
+/*
+				VECSUBS(vrel_t_pre, collvel, collpair->normal, magnormal);
+				// VecMulf(vrel_t_pre, clmd->coll_parms.friction*0.01f/INPR(vrel_t_pre,vrel_t_pre));
+				magtangent = Normalize(vrel_t_pre);
+				VecMulf(vrel_t_pre, MIN2(clmd->coll_parms.friction*0.01f*magnormal,magtangent));
 				
-				magtangent = INPR(cloth1->verts[face1->v4].tv, collpair->normal);
-				VECADDMUL(cloth1->verts[face1->v4].tv, collpair->normal, -magtangent); 
+				VECSUB(cloth1->verts[face1->v1].tv, cloth1->verts[face1->v1].tv,vrel_t_pre);
+*/				
 				
+				VECSUB(collvel, cloth1->verts[face1->v2].tv, v2);
+				magnormal = INPR(collvel, collpair->normal);
+				if(magnormal<ALMOST_ZERO)
+					magnormal = 0.0f;
+				
+				impulse = (epsilon + ALMOST_ZERO-collpair->distance) / 4.0f;
+				VECADDMUL(cloth1->verts[face1->v2].tv, collpair->normal, -magnormal+ impulse); 
+				
+				
+				VECSUB(collvel, cloth1->verts[face1->v3].tv, v2);
+				magnormal = INPR(collvel, collpair->normal);
+				if(magnormal<ALMOST_ZERO)
+					magnormal = 0.0f;
+				
+				impulse = (epsilon + ALMOST_ZERO-collpair->distance) / 4.0f;
+				VECADDMUL(cloth1->verts[face1->v3].tv, collpair->normal, -magnormal+ impulse); 
+				
+				
+				VECSUB(collvel, cloth1->verts[face1->v4].tv, v2);
+				magnormal = INPR(collvel, collpair->normal);
+				if(magnormal<ALMOST_ZERO)
+					magnormal = 0.0f;
+				
+				impulse = (epsilon + ALMOST_ZERO-collpair->distance) / 4.0f;
+				VECADDMUL(cloth1->verts[face1->v4].tv, collpair->normal, -magnormal+ impulse); 
+			
 				result = 1;
 				
 			}
@@ -586,7 +618,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, CM_COLLISION_RE
 					bvh_traverse(clmd, coll_clmd, cloth_bvh->root, coll_bvh->root, step, collision_response);
 					
 					result += collision_static(clmd, coll_clmd, collision_list);
-					printf("result: %d\n", result);
+					
 					// calculate velocities
 					
 					// free temporary list 

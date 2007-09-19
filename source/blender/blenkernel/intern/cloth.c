@@ -657,24 +657,28 @@ void clothModifier_do(ClothModifierData *clmd, Object *ob, DerivedMesh *dm,
 	Frame *frame = NULL;
 	LinkNode *search = NULL;
 	float deltaTime = current_time - clmd->sim_parms.sim_time;	
+		
 	
 	// only be active during a specific period
-	if(current_time < clmd->sim_parms.firstframe)
-		return;
-	else if(current_time > clmd->sim_parms.lastframe)
+	if (!(clmd->sim_parms.flags & CSIMSETT_FLAG_COLLOBJ))
 	{
-		int frametime = cloth_cache_last_frame(clmd);
-		if(cloth_cache_search_frame(clmd, frametime))
-		{
-			cloth_cache_get_frame(clmd, frametime);
-			cloth_to_object (ob, clmd, vertexCos, numverts);
-		}
-		return;
-	}
-	else if(ABS(deltaTime) >= 2.0f ) // no timewarps allowed
-	{
-		if(!cloth_cache_search_frame(clmd, framenr))
+		if(current_time < clmd->sim_parms.firstframe)
 			return;
+		else if(current_time > clmd->sim_parms.lastframe)
+		{
+			int frametime = cloth_cache_last_frame(clmd);
+			if(cloth_cache_search_frame(clmd, frametime))
+			{
+				cloth_cache_get_frame(clmd, frametime);
+				cloth_to_object (ob, clmd, vertexCos, numverts);
+			}
+			return;
+		}
+		else if(ABS(deltaTime) >= 2.0f ) // no timewarps allowed
+		{
+			if(!cloth_cache_search_frame(clmd, framenr))
+				return;
+		}
 	}
 	
 	// unused in the moment
@@ -693,8 +697,7 @@ void clothModifier_do(ClothModifierData *clmd, Object *ob, DerivedMesh *dm,
 
 	// This is for collisions objects: check special case CSIMSETT_FLAG_COLLOBJ
 	if (clmd->sim_parms.flags & CSIMSETT_FLAG_COLLOBJ)
-	{				
-		
+	{
 		// save next position + time		
 		if ((clmd->clothObject == NULL) || (numverts != clmd->clothObject->numverts) )
 		{
@@ -723,7 +726,8 @@ void clothModifier_do(ClothModifierData *clmd, Object *ob, DerivedMesh *dm,
 			VECCOPY (verts->x, vertexCos[i]);
 			Mat4MulVecfl(ob->obmat, verts->x);
 
-			// Compute the vertices velocity. 
+			// Compute the vertices "velocity".
+			// (no dt correction here because of float error)
 			VECSUB (verts->v, verts->x, verts->xold);
 		}
 		
@@ -762,9 +766,6 @@ void clothModifier_do(ClothModifierData *clmd, Object *ob, DerivedMesh *dm,
 					/* Get the current position. */
 					VECCOPY (verts->xconst, vertexCos[i]);
 					Mat4MulVecfl(ob->obmat, verts->xconst);
-
-					/* Compute the vertices velocity. */
-					VECSUB (verts->v, verts->xconst, verts->xold);
 				}
 
 				tstart();

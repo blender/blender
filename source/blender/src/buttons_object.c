@@ -3103,7 +3103,6 @@ static void object_panel_cloth(Object *ob)
 	if(clmd)
 	{
 		but = uiDefButBitI(block, TOG, CSIMSETT_FLAG_COLLOBJ, B_EFFECT_DEP, "Collision Object",	170,200,130,20, &clmd->sim_parms.flags, 0, 0, 0, 0, "Sets object to become a cloth collision object");
-		// uiButSetFunc(but, object_cloth__enabletoggle, ob, NULL);
 
 		if (!(clmd->sim_parms.flags & CSIMSETT_FLAG_COLLOBJ))
 		{

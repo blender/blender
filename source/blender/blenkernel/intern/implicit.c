@@ -1484,6 +1484,7 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 			VECCOPY(verts[i].tx, id->Xnew[i]);
 			
 			VECSUB(verts[i].tv, verts[i].tx, verts[i].txold);
+			VECSUB(verts[i].v, verts[i].tx, verts[i].txold);
 		}
 
 		// call collision function
