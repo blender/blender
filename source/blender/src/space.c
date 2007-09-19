@@ -4795,8 +4795,13 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		if (EM_texFaceCheck() && (G.sima->image==0 || (G.sima->image->type != IMA_TYPE_R_RESULT && G.sima->image->type != IMA_TYPE_COMPOSITE))) {
 			switch(event) {
 			case LEFTMOUSE:
-				if (!gesture())
+				if(G.qual == LR_SHIFTKEY) {
+					if(G.sima->image && G.sima->image->tpageflag & IMA_TILES) {
+						mouseco_to_curtile();
+					}
+				} else if (!gesture()) {
 					mouseco_to_cursor_sima();
+				}
 				break;
 			case RIGHTMOUSE:
 				mouse_select_sima();
@@ -4921,6 +4926,10 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				scrarea_queue_headredraw(curarea);
 				scrarea_queue_winredraw(curarea);
 				break;
+			case PADPERIOD:
+				if(G.qual==0)
+					image_viewcenter();
+				break;
 			case OKEY:
 				if(G.qual==0) {
 					G.scene->proportional= !G.scene->proportional;
@@ -4942,14 +4951,7 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		/* Draw and editmode are inactive */
 		switch(event) {
 		case LEFTMOUSE:
-			if(G.qual & LR_SHIFTKEY) {
-				if(G.sima->image && G.sima->image->tpageflag & IMA_TILES)
-					mouseco_to_curtile();
-				else
-					sima_sample_color();
-			} else { 
-				sima_sample_color();
-			}
+			sima_sample_color();
 			break;
 		case RIGHTMOUSE:
 			if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT))
@@ -4964,10 +4966,6 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				toggle_blockhandler(sa, IMAGE_HANDLER_PREVIEW, 0);
 				scrarea_queue_winredraw(sa);
 			}
-			break;
-		case PADPERIOD:
-			if(G.qual==0)
-				image_viewcenter();
 			break;
 		}
 	}

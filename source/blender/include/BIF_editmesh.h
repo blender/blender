@@ -223,6 +223,7 @@ extern void join_triangles(void);
 extern void edge_flip(void);
 extern void fill_mesh(void);
 extern void bevel_menu();
+void mesh_set_face_flags(short mode);
 extern void mesh_set_smooth_faces(short event);
 extern void mesh_rotate_uvs(void);
 extern void mesh_mirror_uvs(void);

@@ -244,8 +244,7 @@ void what_image(SpaceImage *sima)
 {
 	MTFace *activetf;
 		
-	if(		(sima->pin != 0) ||
-			(sima->mode!=SI_TEXTURE) ||
+	if(		(sima->mode!=SI_TEXTURE) ||
 			(sima->image && sima->image->source==IMA_SRC_VIEWER) ||
 			(G.obedit != OBACT)
 	) {
@@ -253,11 +252,14 @@ void what_image(SpaceImage *sima)
 	}
 	
 	/* viewer overrides faceselect */
-	sima->image= NULL;
+	if (!sima->pin)
+		sima->image= NULL;
+	
 	activetf = get_active_mtface(NULL, NULL, 1); /* partially selected face is ok */
 	
 	if(activetf && activetf->mode & TF_TEX) {
-		sima->image= activetf->tpage;
+		if (!sima->pin)
+			sima->image= activetf->tpage;
 		
 		if(sima->flag & SI_EDITTILE);
 		else sima->curtile= activetf->tile;
@@ -327,14 +329,17 @@ void image_changed(SpaceImage *sima, Image *image)
 	object_uvs_changed(OBACT);
 	allqueue(REDRAWBUTSEDIT, 0);
 }
-
+/*
+ * dotile -	1, set the tile flag (from the space image)
+ * 			2, set the tile index for the faces. 
+ * */
 void image_set_tile(SpaceImage *sima, int dotile)
 {
 	MTFace *tface;
 	EditMesh *em = G.editMesh;
 	EditFace *efa;
 	
-	if(sima->mode!=SI_TEXTURE || !EM_texFaceCheck())
+	if(!sima->image || sima->mode!=SI_TEXTURE || !EM_texFaceCheck())
 		return;
 	
 	/* skip assigning these procedural images... */
@@ -343,15 +348,20 @@ void image_set_tile(SpaceImage *sima, int dotile)
 	
 	for (efa= em->faces.first; efa; efa= efa->next) {
 		tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-		if (SIMA_FACEDRAW_CHECK(efa, tface)) {
-			if(dotile==2) {
-				tface->mode &= ~TF_TILES;
-			} else if (dotile) {
+		if (efa->h==0 && efa->f & SELECT) {
+			if (dotile==1) {
+				/* set tile flag */
+				if (sima->image->tpageflag & IMA_TILES) {
+					tface->mode |= TF_TILES;
+				} else {
+					tface->mode &= ~TF_TILES;
+				}
+			} else if (dotile==2) {
+				/* set tile index */
 				tface->tile= sima->curtile;
 			}
 		}
 	}
-	
 	object_uvs_changed(OBACT);
 	allqueue(REDRAWBUTSEDIT, 0);
 }
@@ -1016,9 +1026,9 @@ static void image_panel_game_properties(short cntrl)	// IMAGE_HANDLER_GAME_PROPE
 		uiBlockEndAlign(block);
 
 		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, IMA_TILES, B_SIMAGETILE2, "Tiles",	160,150,140,19, &G.sima->image->tpageflag, 0, 0, 0, 0, "Toggles use of tilemode for faces (Shift LMB to pick the tile for selected faces)");
-		uiDefButS(block, NUM, B_SIMAGETILE1, "X:",		160,130,70,19, &G.sima->image->xrep, 1.0, 16.0, 0, 0, "Sets the degree of repetition in the X direction");
-		uiDefButS(block, NUM, B_SIMAGETILE1, "Y:",		230,130,70,19, &G.sima->image->yrep, 1.0, 16.0, 0, 0, "Sets the degree of repetition in the Y direction");
+		uiDefButBitS(block, TOG, IMA_TILES, B_SIMAGETILE, "Tiles",	160,150,140,19, &G.sima->image->tpageflag, 0, 0, 0, 0, "Toggles use of tilemode for faces (Shift LMB to pick the tile for selected faces)");
+		uiDefButS(block, NUM, B_SIMA_REDR_IMA_3D, "X:",		160,130,70,19, &G.sima->image->xrep, 1.0, 16.0, 0, 0, "Sets the degree of repetition in the X direction");
+		uiDefButS(block, NUM, B_SIMA_REDR_IMA_3D, "Y:",		230,130,70,19, &G.sima->image->yrep, 1.0, 16.0, 0, 0, "Sets the degree of repetition in the Y direction");
 		uiBlockBeginAlign(block);
 
 		uiBlockBeginAlign(block);

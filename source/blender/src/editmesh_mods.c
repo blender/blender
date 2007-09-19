@@ -3408,6 +3408,7 @@ void Face_Menu() {
 	ret= pupmenu(
 		"Face Specials%t|Flip Normals%x1|Bevel%x2|Shade Smooth%x3|Shade Flat%x4|"
 		"Triangulate (Ctrl T)%x5|Quads from Triangles (Alt J)%x6|Flip Triangle Edges (Ctrl Shift F)%x7|%l|"
+		"Face Mode Set%x8|Face Mode Clear%x9|%l|"
 		"UV Rotate (Shift - CCW)%x10|UV Mirror (Shift - Switch Axis)%x11|"
 		"Color Rotate (Shift - CCW)%x12|Color Mirror (Shift - Switch Axis)%x13");
 
@@ -3439,7 +3440,12 @@ void Face_Menu() {
 		case 7: /* Flip triangle edges */
 			edge_flip();
 			break;
-			
+		case 8:
+			mesh_set_face_flags(1);
+			break;
+		case 9:
+			mesh_set_face_flags(0);
+			break;
 			
 		/* uv texface options */
 		case 10:

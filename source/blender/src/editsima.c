@@ -1038,7 +1038,7 @@ void mouseco_to_curtile(void)
 		
 		G.sima->flag &= ~SI_EDITTILE;
 
-		image_set_tile(G.sima, 1);
+		image_set_tile(G.sima, 2);
 
 		allqueue(REDRAWVIEW3D, 0);
 		scrarea_queue_winredraw(curarea);
@@ -1622,65 +1622,16 @@ static void load_image_filesel(char *str)	/* called from fileselect */
 	allqueue(REDRAWIMAGE, 0);
 }
 
-static void image_replace(Image *old, Image *new)
-{
-	MTFace *tface;
-	Mesh *me;
-	int a, rep=0;
-
-	new->tpageflag= old->tpageflag;
-	new->twsta= old->twsta;
-	new->twend= old->twend;
-	new->xrep= old->xrep;
-	new->yrep= old->yrep;
- 
-	/* TODO - This is incorrect!! -
-	 * replace should take all layers into account,
-	 * should also work with editmode */
-	me= G.main->mesh.first;
-	while(me) {
-
-		if(me->id.lib==NULL && me->mtface) {
-			tface= me->mtface;
-			a= me->totface;
-			while(a--) {
-				if(tface->tpage==old) {
-					tface->tpage= new;
-					rep++;
-				}
-				tface++;
-			}
-		}
-		me= me->id.next;
- 
-	}
-	if(rep) {
-		if(new->id.us==0) id_us_plus(&new->id);
-		else id_lib_extern(&new->id);
-		
-	}
-	else error("Nothing replaced");
-}
-
 static void replace_image_filesel(char *str)		/* called from fileselect */
 {
-	Image *ima=0;
+	if (!G.sima->image)
+		return;
 	
-	ima= BKE_add_image_file(str);
-	if(ima) {
- 
-		if(G.sima->image && G.sima->image != ima) {
-			image_replace(G.sima->image, ima);
-		}
-
-		BKE_image_signal(ima, &G.sima->iuser, IMA_SIGNAL_RELOAD);
-
-		/* replace also assigns: */
-		image_changed(G.sima, ima);
-
-	}
+	strncpy(G.sima->image->name, str, sizeof(G.sima->image->name)-1); /* we cant do much if the str is longer then 240 :/ */
+	BKE_image_signal(G.sima->image, &G.sima->iuser, IMA_SIGNAL_RELOAD);
 	BIF_undo_push("Replace image UV");
 	allqueue(REDRAWIMAGE, 0);
+	allqueue(REDRAWVIEW3D, 0);
 }
 
 
@@ -1918,7 +1869,6 @@ void save_image_sequence_sima(void)
 
 void reload_image_sima(void)
 {
-
 	if (G.sima ) {
 		BKE_image_signal(G.sima->image, &G.sima->iuser, IMA_SIGNAL_RELOAD);
 		/* image_changed(G.sima, 0); - do we really need this? */

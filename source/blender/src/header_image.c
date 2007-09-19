@@ -142,27 +142,17 @@ void do_image_buttons(unsigned short event)
 		BIF_undo_push("Assign image UV");
 
 		break;
-		
-	case B_SIMAGETILE1:
-		if (EM_texFaceCheck()) {
-			make_repbind(G.sima->image);
-			image_set_tile(G.sima, 1);
-		}
-		/* XXX might be another event needed for this? */
-		if(G.sima->image)
-			if(ELEM(G.sima->image->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE))
-				if(G.sima->iuser.flag & IMA_ANIM_ALWAYS)
-					BKE_image_user_calc_imanr(&G.sima->iuser, G.scene->r.cfra, 0);
-		allqueue(REDRAWVIEW3D, 0);
-		allqueue(REDRAWIMAGE, 0);
-		break;
-	case B_SIMAGETILE2:
-		image_set_tile(G.sima, 2);		/* 2: only tileflag */
+	case B_SIMAGETILE:
+		image_set_tile(G.sima, 1);		/* 1: only tileflag */
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWIMAGE, 0);
 		break;
 	case B_SIMA3DVIEWDRAW:
 		allqueue(REDRAWVIEW3D, 0);
+		break;
+	case B_SIMA_REDR_IMA_3D:
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWIMAGE, 0);
 		break;
 	case B_SIMAGEPAINTTOOL:
 		if(G.sima->flag & SI_DRAWTOOL)

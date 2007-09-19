@@ -232,7 +232,8 @@ typedef struct SpaceImage {
 	
 	struct CurveMapping *cumap;
 	short mode, menunr;
-	short imanr, curtile;
+	short imanr;
+	short curtile; /* the currently active tile of the image when tile is enabled, is kept in sync with the active faces tile */
 	int flag;
 	short imtypenr, lock;
 	short showspare, pin;
