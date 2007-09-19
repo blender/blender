@@ -1342,7 +1342,7 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 			Normalize(wind_normalized);
 
 			calculateWeightedVertexNormal(clmd, mfaces, vertexnormal, i, lX);
-			VECADDS(lF[i], lF[i], wind_normalized, -calculateVertexWindForce(i, wind, vertexnormal));
+			VECADDS(lF[i], lF[i], wind_normalized, calculateVertexWindForce(i, wind, vertexnormal));
 		}
 	}
 	

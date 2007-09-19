@@ -403,7 +403,7 @@ double implicit_tri_check_coherence (ClothModifierData *clmd, ClothModifierData 
 	VECCOPY(b[0], cloth2->verts[face2->v1].txold);
 	VECCOPY(b[1], cloth2->verts[face2->v2].txold);
 	VECCOPY(b[2], cloth2->verts[face2->v3].txold);
-#pragma omp critical
+
 	distance = plNearestPoints(a,b,pa,pb,normal);
 	
 	quadA = quadB = 0;
@@ -450,7 +450,7 @@ double implicit_tri_check_coherence (ClothModifierData *clmd, ClothModifierData 
 		VECCOPY(b[0], cloth2->verts[indexD].txold);
 		VECCOPY(b[1], cloth2->verts[indexE].txold);
 		VECCOPY(b[2], cloth2->verts[indexF].txold);
-#pragma omp critical		
+
 		tempdistance = plNearestPoints(a,b,tpa,tpb,tnormal);
 		
 		if(tempdistance < distance)
@@ -531,7 +531,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, CM_COLLISION_RE
 	cloth = clmd->clothObject;
 	cloth_bvh = (BVH *) cloth->tree;
 	numverts = clmd->clothObject->numverts;
-
+	
 	////////////////////////////////////////////////////////////
 	// static collisions
 	////////////////////////////////////////////////////////////
@@ -586,7 +586,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, CM_COLLISION_RE
 					bvh_traverse(clmd, coll_clmd, cloth_bvh->root, coll_bvh->root, step, collision_response);
 					
 					result += collision_static(clmd, coll_clmd, collision_list);
-					
+					printf("result: %d\n", result);
 					// calculate velocities
 					
 					// free temporary list 
