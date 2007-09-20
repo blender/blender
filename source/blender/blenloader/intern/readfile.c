@@ -6648,15 +6648,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 			
-			for(ma=main->mat.first; ma; ma= ma->id.next) {
-				ma->gloss_mir = ma->gloss_tra= 1.0;
-				ma->aniso_gloss_mir = 1.0;
-				ma->samp_gloss_mir = ma->samp_gloss_tra= 18;
-				ma->adapt_thresh_mir = ma->adapt_thresh_tra = 0.005;
-				ma->dist_mir = 0.0;
-				ma->fadeto_mir = MA_RAYMIR_FADETOSKY;
-			}
-			
 			for(wrld=main->world.first; wrld; wrld= wrld->id.next) {
 				if (wrld->mode & WO_AMB_OCC)
 					wrld->ao_samp_method = WO_AOSAMP_CONSTANT;
@@ -6677,22 +6668,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 	if(main->versionfile <= 245) {
-		Lamp *la;
-		if (main->versionfile != 245 || main->subversionfile < 1) {
-			for(la=main->lamp.first; la; la= la->id.next) {
-				if (la->mode & LA_QUAD) la->falloff_type = LA_FALLOFF_SLIDERS;
-				else la->falloff_type = LA_FALLOFF_INVLINEAR;
-					
-				la->curfalloff = curvemapping_add(1, 0.0f, 1.0f, 1.0f, 0.0f);
-				curvemapping_initialize(la->curfalloff);
-			}
-		}
-	}
-
-	if (main->versionfile <= 245) {
 		bScreen *sc;
 		Image* ima;
-
+		Lamp *la;
+		Material *ma;
+		
 		/* fix all versions before 2.45 */
 		if (main->versionfile != 245) {
 
@@ -6745,7 +6725,30 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
-
+		
+		if (main->versionfile != 245 || main->subversionfile < 1) {
+			for(la=main->lamp.first; la; la= la->id.next) {
+				if (la->mode & LA_QUAD) la->falloff_type = LA_FALLOFF_SLIDERS;
+				else la->falloff_type = LA_FALLOFF_INVLINEAR;
+				
+				if (la->curfalloff == NULL) {
+					la->curfalloff = curvemapping_add(1, 0.0f, 1.0f, 1.0f, 0.0f);
+					curvemapping_initialize(la->curfalloff);
+				}
+			}
+		}		
+		
+		for(ma=main->mat.first; ma; ma= ma->id.next) {
+			if (ma->samp_gloss_mir == 0) {
+				ma->gloss_mir = ma->gloss_tra= 1.0;
+				ma->aniso_gloss_mir = 1.0;
+				ma->samp_gloss_mir = ma->samp_gloss_tra= 18;
+				ma->adapt_thresh_mir = ma->adapt_thresh_tra = 0.005;
+				ma->dist_mir = 0.0;
+				ma->fadeto_mir = MA_RAYMIR_FADETOSKY;
+			}
+		}
+		
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

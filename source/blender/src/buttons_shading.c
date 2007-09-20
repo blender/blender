@@ -1361,7 +1361,7 @@ static void texture_panel_envmap(Tex *tex)
 		uiDefButF(block, NUM, B_TEXPRV, "Filter :",				10,65,150,20, &tex->filtersize, 0.1, 25.0, 0, 3, "Adjusts sharpness or blurriness of the reflection"),
 			uiDefButS(block, NUM, B_ENV_FREE, "Depth:",				160,65,150,20, &env->depth, 0, 5.0, 0, 0, "Sets the number of times a map will be rendered recursively mirror effects"),
 			uiDefButF(block, NUM, REDRAWVIEW3D, 	"ClipSta", 		10,40,150,20, &env->clipsta, 0.01, 50.0, 100, 0, "Sets start value for clipping: objects nearer than this are not visible to map");
-		uiDefButF(block, NUM, B_NOP, 	"ClipEnd", 					160,40,150,20, &env->clipend, 0.1, 10000.0, 1000, 0, "Sets end value for clipping beyond which objects are not visible to map");
+		uiDefButF(block, NUM, B_NOP, 	"ClipEnd", 					160,40,150,20, &env->clipend, 0.1, 20000.0, 1000, 0, "Sets end value for clipping beyond which objects are not visible to map");
 		uiBlockEndAlign(block);
 		
 		uiDefBut(block, LABEL, 0, "Don't render layer:",		10,10,140,22, 0, 0.0, 0.0, 0, 0, "");	
@@ -3324,7 +3324,7 @@ static void material_panel_tramir(Material *ma)
 	uiDefButF(block, NUMSLI, B_MATPRV, "Aniso: ",
 		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->aniso_gloss_mir), 0.0, 1.0, 100, 0, "The shape of the reflection, from 0. (circular) to 1.0 (fully stretched along the tangent)");
 	uiDefButS(block, NUM, B_MATPRV, "Samples:",
-		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->samp_gloss_mir), 0.0, 1024.0, 100, 0, "Number of cone samples averaged for blurry reflections");	
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->samp_gloss_mir), 1.0, 1024.0, 100, 0, "Number of cone samples averaged for blurry reflections");	
 	uiDefButF(block, NUM, B_MATPRV, "Thresh: ",
 		X2CLM1, yco-=BUTH, BUTW2, BUTH, &(ma->adapt_thresh_mir), 0.0, 1.0, 100, 0, "Threshold for adaptive sampling. If a sample contributes less than this amount (as a percentage), sampling is stopped");
 	uiBlockEndAlign(block);
@@ -3925,7 +3925,7 @@ static void material_panel_links(Object *ob, Material *ma)
 	uiBlockBeginAlign(block);
 	uiDefButBitI(block, TOG, MA_HALO, B_MATHALO, "Halo",		10,50,100,19, &(ma->mode), 0, 0, 0, 0, "Renders material as a halo");
 	uiDefButBitI(block, TOG, MA_ZTRA, B_MATZTRANSP,"ZTransp",	110,50,100,19, &(ma->mode), 0, 0, 0, 0, "Enables Z-Buffering of transparent faces");
-	uiDefButF(block, NUM, B_DIFF, "Zoffs:",						210,50,100,19, &(ma->zoffs), 0.0, 10.0, 100, 0, "Gives faces an artificial offset in the Z buffer for Ztransp option");
+	uiDefButF(block, NUM, B_DIFF, "Zoffs:",						210,50,100,19, &(ma->zoffs), 0.0, 100.0, 100, 0, "Gives faces an artificial offset in the Z buffer for Ztransp option");
 				  
 	uiDefButBitI(block, TOG, MA_FULL_OSA, 0, "Full Osa",		10,30,75,19, &(ma->mode), 0.0, 10.0, 0, 0, "Forces to render all OSA samples, for shading and texture antialiasing");
 	uiDefButBitI(block, TOG, MA_WIRE, B_MATPRV,	"Wire",				85,30,75,19, &(ma->mode), 0, 0, 0, 0, "Renders only the edges of faces as a wireframe");
