@@ -6514,7 +6514,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	
 	if(main->versionfile <= 244) {
 		Scene *sce;
-		Material *ma;
 		bScreen *sc;
 		Object *ob;
 		Lamp *la;
@@ -6749,6 +6748,14 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 		
+	}
+
+	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 2)) {
+		Image *ima;	
+		/* initialize 1:1 Aspect */
+		for(ima= main->image.first; ima; ima= ima->id.next) {
+			ima->aspx = ima->aspy = 1.0f;				
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

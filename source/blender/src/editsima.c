@@ -216,10 +216,13 @@ void be_square_tface_uv(EditMesh *em)
 void transform_aspect_ratio_tface_uv(float *aspx, float *aspy)
 {
 	int w, h;
-
+	float xuser_asp, yuser_asp;
+	
+	aspect_sima(G.sima, &xuser_asp, &yuser_asp);
+	
 	transform_width_height_tface_uv(&w, &h);
-	*aspx= (float)w/256.0f;
-	*aspy= (float)h/256.0f;
+	*aspx= (float)w/256.0f * xuser_asp;
+	*aspy= (float)h/256.0f * yuser_asp;
 }
 
 void transform_width_height_tface_uv(int *width, int *height)
@@ -1990,3 +1993,19 @@ void BIF_image_update_frame(void)
 	}
 }
 
+void aspect_sima(SpaceImage *sima, float *x, float *y)
+{
+	*x = *y = 1.0;
+	
+	if(		(sima->image == 0) ||
+			(sima->image->type == IMA_TYPE_R_RESULT) ||
+			(sima->image->type == IMA_TYPE_COMPOSITE) ||
+			(sima->image->tpageflag & IMA_TILES) ||
+			(sima->image->aspx==0.0 || sima->image->aspy==0.0)
+	) {
+		return;
+	}
+	
+	/* x is always 1 */
+	*y = sima->image->aspy / sima->image->aspx;
+}

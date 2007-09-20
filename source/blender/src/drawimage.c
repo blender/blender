@@ -108,6 +108,8 @@
 #include "RE_pipeline.h"
 #include "BMF_Api.h"
 
+#include "PIL_time.h"
+
 /* Modules used */
 #include "mydevice.h"
 #include "blendef.h"
@@ -190,10 +192,12 @@ void calc_image_view(SpaceImage *sima, char mode)
 	if(image_preview_active(curarea, &xim, &yim));
 	else if(sima->image) {
 		ImBuf *ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
+		float xuser_asp, yuser_asp;
 		
+		aspect_sima(sima, &xuser_asp, &yuser_asp);
 		if(ibuf) {
-			xim= ibuf->x;
-			yim= ibuf->y;
+			xim= ibuf->x * xuser_asp;
+			yim= ibuf->y * yuser_asp;
 		}
 		else if( sima->image->type==IMA_TYPE_R_RESULT ) {
 			/* not very important, just nice */
@@ -401,14 +405,14 @@ void uvco_to_areaco_noclip(float *vec, int *mval)
 	mval[1]= y;
 }
 
-static void drawcursor_sima(void)
+static void drawcursor_sima(float xuser_asp, float yuser_asp)
 {
 	int wi, hi;
 	float w, h;
 	
 	transform_width_height_tface_uv(&wi, &hi);
-	w = (((float)wi)/256.0f)*G.sima->zoom;
-	h = (((float)hi)/256.0f)*G.sima->zoom;
+	w = (((float)wi)/256.0f)*G.sima->zoom * xuser_asp;
+	h = (((float)hi)/256.0f)*G.sima->zoom * yuser_asp;
 	
 	cpack(0xFFFFFF);
 	glTranslatef(G.v2d->cursor[0], G.v2d->cursor[1], 0.0f);  
@@ -645,12 +649,7 @@ void draw_tfaces(void)
 			}
 		}
 	}
-	bglEnd();
-
-	
-	/* Draw the cursor here, this should be in its own function really but it relys on the previous calls to set the view matrix */
-	drawcursor_sima();
-	
+	bglEnd();	
 	glPointSize(1.0);
 }
 
@@ -676,7 +675,7 @@ static unsigned int *get_part_from_ibuf(ImBuf *ibuf, short startx, short starty,
 	return rectmain;
 }
 
-static void draw_image_transform(ImBuf *ibuf)
+static void draw_image_transform(ImBuf *ibuf, float xuser_asp, float yuser_asp)
 {
 	if(G.moving) {
 		float aspx, aspy, center[3];
@@ -687,10 +686,9 @@ static void draw_image_transform(ImBuf *ibuf)
 			aspx= aspy= 1.0;
 		}
 		else {
-			aspx= 256.0/ibuf->x;
-			aspy= 256.0/ibuf->y;
+			aspx= (256.0/ibuf->x) * xuser_asp;
+			aspy= (256.0/ibuf->y) * yuser_asp;
 		}
-
 		BIF_getPropCenter(center);
 
 		/* scale and translate the circle into place and draw it */
@@ -926,10 +924,9 @@ void image_editcursor_buts(uiBlock *block)
 		}
 		
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUM, B_CURSOR_IMAGE, "Cursor X:",	165, 40, 145, 19, &ocent[0], -10*imx, 10.0*imx, step, digits, "");
-		uiDefButF(block, NUM, B_CURSOR_IMAGE, "Cursor Y:",	165, 20, 145, 19, &ocent[1], -10*imy, 10.0*imy, step, digits, "");
+		uiDefButF(block, NUM, B_CURSOR_IMAGE, "Cursor X:",	165, 60, 145, 19, &ocent[0], -10*imx, 10.0*imx, step, digits, "");
+		uiDefButF(block, NUM, B_CURSOR_IMAGE, "Cursor Y:",	165, 40, 145, 19, &ocent[1], -10*imy, 10.0*imy, step, digits, "");
 		uiBlockEndAlign(block);
-	
 	}
 	else {	// apply event
 		if (G.sima->flag & SI_COORDFLOATS) {
@@ -1034,7 +1031,7 @@ static void image_panel_game_properties(short cntrl)	// IMAGE_HANDLER_GAME_PROPE
 		uiBlockBeginAlign(block);
 		uiDefButBitS(block, TOG, IMA_CLAMP_U, B_SIMA3DVIEWDRAW, "ClampX",	160,100,70,19, &G.sima->image->tpageflag, 0, 0, 0, 0, "Disable texture repeating horizontaly");
 		uiDefButBitS(block, TOG, IMA_CLAMP_V, B_SIMA3DVIEWDRAW, "ClampY",	230,100,70,19, &G.sima->image->tpageflag, 0, 0, 0, 0, "Disable texture repeating vertically");
-		uiBlockEndAlign(block);		
+		uiBlockEndAlign(block);
 	}
 }
 
@@ -1064,9 +1061,18 @@ static void image_panel_view_properties(short cntrl)	// IMAGE_HANDLER_VIEW_PROPE
 	if(uiNewPanel(curarea, block, "View Properties", "Image", 10, 10, 318, 204)==0)
 		return;
 	
-	uiDefButBitI(block, TOG, SI_COORDFLOATS, B_REDR, "Normalized Coords",	10,100,140,19, &G.sima->flag, 0, 0, 0, 0, "Display coords from 0.0 to 1.0 rather then in pixels");
-	uiDefButBitI(block, TOG, SI_DRAW_TILE, B_REDR, "Repeat Image",	10,80,140,19, &G.sima->flag, 0, 0, 0, 0, "Repeat/Tile the image display");
 	
+	uiDefButBitI(block, TOG, SI_DRAW_TILE, B_REDR, "Repeat Image",	10,100,140,19, &G.sima->flag, 0, 0, 0, 0, "Repeat/Tile the image display");
+	uiDefButBitI(block, TOG, SI_COORDFLOATS, B_REDR, "Normalized Coords",	165,100,140,19, &G.sima->flag, 0, 0, 0, 0, "Display coords from 0.0 to 1.0 rather then in pixels");
+	
+	
+	if (G.sima->image) {
+		uiDefBut(block, LABEL, B_NOP, "Image Display...",		10,80,140,19, 0, 0, 0, 0, 0, "");
+		uiBlockBeginAlign(block);
+		uiDefButF(block, NUM, B_REDR, "AspX:", 10,60,140,19, &G.sima->image->aspx, 0.1, 5000.0, 100, 0, "X Display Aspect for this image, does not affect renderingm 0 disables.");
+		uiDefButF(block, NUM, B_REDR, "AspY:", 10,40,140,19, &G.sima->image->aspy, 0.1, 5000.0, 100, 0, "X Display Aspect for this image, does not affect rendering 0 disables.");
+		uiBlockEndAlign(block);
+	}
 	//image_editvertex_buts(block);
 	image_editcursor_buts(block);
 }
@@ -1680,7 +1686,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 	unsigned int *rect;
 	float x1, y1;
 	short sx, sy, dx, dy, show_render= 0, show_viewer= 0;
-	
+	float xuser_asp, yuser_asp;
 		/* If derived data is used then make sure that object
 		 * is up-to-date... might not be the case because updates
 		 * are normally done in drawview and could get here before
@@ -1704,6 +1710,8 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 	}
 	what_image(sima);
 	
+	aspect_sima(sima, &xuser_asp, &yuser_asp);
+	
 	if(sima->image) {
 		
 		/* UGLY hack? until now iusers worked fine... but for flipbook viewer we need this */
@@ -1720,8 +1728,10 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 	
 	if(ibuf==NULL || (ibuf->rect==NULL && ibuf->rect_float==NULL)) {
 		imagespace_grid(sima);
-		if(show_viewer==0)
+		if(show_viewer==0) {
 			draw_tfaces();
+			drawcursor_sima(xuser_asp, yuser_asp);
+		}
 	}
 	else {
 		float xim, yim, xoffs=0.0f, yoffs= 0.0f;
@@ -1736,7 +1746,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 			glLoadIdentity();
 		}
 		else {
-			xim= ibuf->x; yim= ibuf->y;
+			xim= ibuf->x * xuser_asp; yim= ibuf->y * yuser_asp;
 		}
 		
 		/* calc location */
@@ -1757,7 +1767,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 		}
 		else glaDefine2DArea(&sa->winrct);
 		
-		glPixelZoom((float)sima->zoom, (float)sima->zoom);
+		glPixelZoom(sima->zoom * xuser_asp, sima->zoom * yuser_asp);
 				
 		if(sima->flag & SI_EDITTILE) {
 			/* create char buffer from float if needed */
@@ -1822,15 +1832,23 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 			else {
 				float x1_rep, y1_rep;
 				int x_rep, y_rep;
+				double time_current;
+				short loop_draw_ok = 0;
 				
-				/* Loop for drawing repeating images */
+				if (sima->flag & SI_DRAW_TILE) {
+					loop_draw_ok= 1;
+				}
+				
+				time_current = PIL_check_seconds_timer();
+				
 				for (x_rep= ((int)G.v2d->cur.xmin)-1; x_rep < G.v2d->cur.xmax; x_rep++) {
-					x1_rep=x1+  (x_rep* ibuf->x * sima->zoom);
+					x1_rep=x1+  ((x_rep* ibuf->x * sima->zoom)  *xuser_asp);
 					for (y_rep= ((int)G.v2d->cur.ymin)-1; y_rep < G.v2d->cur.ymax; y_rep++) {
-						y1_rep=y1+  (y_rep * ibuf->y *sima->zoom);
+						y1_rep=y1+  ((y_rep * ibuf->y *sima->zoom)  *yuser_asp);
+				
 				/* end repeating image loop */
 						
-						if((sima->flag & SI_DRAW_TILE)==0) {
+						if(!loop_draw_ok) {
 							y1_rep = y1;
 							x1_rep = x1;
 						}
@@ -1883,15 +1901,19 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 							if(sima->flag & SI_USE_ALPHA)
 								glDisable(GL_BLEND);
 						}
-				
+						
 						/* only draw once */
-						if((sima->flag & SI_DRAW_TILE)==0) {
-							x_rep = G.v2d->cur.xmax+1;
-							y_rep = G.v2d->cur.ymax+1;
+						if(!loop_draw_ok) {
+							break; /* only draw once */
+						} else if ((PIL_check_seconds_timer() - time_current) > 0.25) {
+							loop_draw_ok = 0;
+							break;
 						}
 				
 				/* tile draw loop */
 					}
+					/* only draw once */
+					if(!loop_draw_ok) break;
 				}
 				/* tile draw loop */
 				
@@ -1924,6 +1946,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 			
 			if(show_viewer==0) { 
 				draw_tfaces();
+				drawcursor_sima(xuser_asp, yuser_asp);
 			}
 		}
 
@@ -1932,7 +1955,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 		calc_image_view(sima, 'f');	/* float */
 	}
 
-	draw_image_transform(ibuf);
+	draw_image_transform(ibuf, xuser_asp, yuser_asp);
 
 	mywinset(sa->win);	/* restore scissor after gla call... */
 	myortho2(-0.375, sa->winx-0.375, -0.375, sa->winy-0.375);
