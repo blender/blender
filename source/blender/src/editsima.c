@@ -942,16 +942,13 @@ void sel_uvco_inside_radius(short sel, EditFace *efa, MTFace *tface, int index, 
 static void getSpaceImageDimension(SpaceImage *sima, float *xy)
 {
 	ImBuf *ibuf= BKE_image_get_ibuf(sima->image, &sima->iuser);
-	float z;
-
-	z = sima->zoom;
 
 	if (ibuf) {
-		xy[0] = ibuf->x * z;
-		xy[1] = ibuf->y * z;
+		xy[0] = ibuf->x * sima->zoom;
+		xy[1] = ibuf->y * sima->zoom;
 	} else {
-		xy[0] = 256 * z;
-		xy[1] = 256 * z;
+		xy[0] = 256 * sima->zoom;
+		xy[1] = 256 * sima->zoom;
 	}
 }
 
@@ -991,7 +988,7 @@ void uvedit_selectionCB(short selecting, Object *editobj, short *mval, float rad
 		}
 		else { /* force_draw() is no good here... */
 			glDrawBuffer(GL_FRONT);
-			draw_tfaces();
+			draw_uvs_sima();
 			bglFlush();
 			glDrawBuffer(GL_BACK);
 		}

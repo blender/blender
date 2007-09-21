@@ -238,12 +238,14 @@ typedef struct SpaceImage {
 	short imtypenr, lock;
 	short showspare, pin;
 	float zoom;
+	char dt_uv; char pad[7]; /* UV draw type */
 	
 	float xof, yof;					/* user defined offset, image is centered */
 	float centx, centy;				/* storage for offset while render drawing */
 	
 	char *info_str, *info_spare;	/* info string for render */
 	struct ImBuf *spare;
+	
 } SpaceImage;
 
 typedef struct SpaceNla{
@@ -485,6 +487,7 @@ typedef struct SpaceImaSel {
 		/* this means that the image is drawn until it reaches the view edge,
 		 * in the image view, its unrelated to the 'tile' mode for texface */
 #define SI_DRAW_TILE	1<<19 
+#define SI_SMOOTH_UV	1<<20 
 
 /* SpaceText flags (moved from DNA_text_types.h) */
 

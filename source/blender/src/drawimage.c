@@ -187,7 +187,6 @@ void calc_image_view(SpaceImage *sima, char mode)
 {
 	float xim=256, yim=256;
 	float x1, y1;
-	float zoom;
 	
 	if(image_preview_active(curarea, &xim, &yim));
 	else if(sima->image) {
@@ -223,17 +222,14 @@ void calc_image_view(SpaceImage *sima, char mode)
 
 	x1-= sima->zoom*sima->xof;
 	y1-= sima->zoom*sima->yof;
-
-	/* float! */
-	zoom= sima->zoom;
 	
 	/* relative display right */
-	sima->v2d.cur.xmin= ((curarea->winrct.xmin - (float)x1)/zoom);
-	sima->v2d.cur.xmax= sima->v2d.cur.xmin + ((float)curarea->winx/zoom);
+	sima->v2d.cur.xmin= ((curarea->winrct.xmin - (float)x1)/sima->zoom);
+	sima->v2d.cur.xmax= sima->v2d.cur.xmin + ((float)curarea->winx/sima->zoom);
 	
 	/* relative display left */
-	sima->v2d.cur.ymin= ((curarea->winrct.ymin-(float)y1)/zoom);
-	sima->v2d.cur.ymax= sima->v2d.cur.ymin + ((float)curarea->winy/zoom);
+	sima->v2d.cur.ymin= ((curarea->winrct.ymin-(float)y1)/sima->zoom);
+	sima->v2d.cur.ymax= sima->v2d.cur.ymin + ((float)curarea->winy/sima->zoom);
 	
 	if(mode=='f') {		
 		sima->v2d.cur.xmin/= xim;
@@ -447,57 +443,58 @@ static void drawcursor_sima(float xuser_asp, float yuser_asp)
 	setlinestyle(0);
 }
 
-void draw_tfaces(void)
+/* draws uv's in the image space */
+
+
+
+void draw_uvs_sima(void)
 {
 	MTFace *tface,*activetface = NULL;
 	EditMesh *em = G.editMesh;
 	EditFace *efa;
 	
-	char col1[4], col2[4];
+	char col1[4], col2[4], efaset = 0;
 	float pointsize= BIF_GetThemeValuef(TH_VERTEX_SIZE);
  	
 	if (!G.obedit || !CustomData_has_layer(&em->fdata, CD_MTFACE))
 		return;
 	
-	
 	calc_image_view(G.sima, 'f');	/* float */
 	myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
 	glLoadIdentity();
 	
-	/* draw shadow mesh */
-	if ((G.sima->flag & SI_DRAWSHADOW) && (G.obedit==OBACT)) { /* TODO - editmesh */
-		DerivedMesh *dm;
-
-		/* draw final mesh with modifiers applied */
-		/* should test - editmesh_get_derived_cage_and_final */
-		dm = editmesh_get_derived_base();
-
+	
+	if(G.sima->flag & SI_DRAWTOOL || G.sima->flag & SI_DRAWSHADOW) {
 		glColor3ub(112, 112, 112);
-		if (dm->drawUVEdges) dm->drawUVEdges(dm);
-
-		dm->release(dm);
-	}
-	else if((G.sima->flag & SI_DRAWTOOL) || (G.obedit==OBACT)) {
-		/* draw mesh without modifiers applied */
-
-		if (G.obedit) {		
-			glColor3ub(112, 112, 112);
-			for (efa= em->faces.first; efa; efa= efa->next) {
-				tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-				if (SIMA_FACEDRAW_CHECK(efa, tface)) {
-					glBegin(GL_LINE_LOOP);
-					glVertex2fv(tface->uv[0]);
-					glVertex2fv(tface->uv[1]);
-					glVertex2fv(tface->uv[2]);
-					if(efa->v4) glVertex2fv(tface->uv[3]);
-					glEnd();
-				}					
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+				efa->tmp.p = tface;
+			} else {
+				glBegin(GL_LINE_LOOP);
+				glVertex2fv(tface->uv[0]);
+				glVertex2fv(tface->uv[1]);
+				glVertex2fv(tface->uv[2]);
+				if(efa->v4) glVertex2fv(tface->uv[3]);
+				glEnd();
+				
+				efa->tmp.p = NULL;
+			}
+		}
+		if(G.sima->flag & SI_DRAWTOOL)
+			return; /* only draw shadow mesh */
+		
+	} else {
+		/* would be nice to do this within a draw loop but most below are optional, so it would involve too many checks */
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			if (SIMA_FACEDRAW_CHECK(efa, tface)) {		
+				efa->tmp.p = tface;
+			} else {
+				efa->tmp.p = NULL;
 			}
 		}
 	}
-
-	if((G.sima->flag & SI_DRAWTOOL) || !(G.obedit==OBACT))
-		return; /* only draw shadow mesh */
 	
 	/* draw transparent faces */
 	if(G.f & G_DRAWFACES) {
@@ -507,8 +504,13 @@ void draw_tfaces(void)
 		glEnable(GL_BLEND);
 		
 		for (efa= em->faces.first; efa; efa= efa->next) {
-			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+			
+//			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+//			if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+			
+			/*this is a shortcut to do the same as above but a faster for drawing */
+			if ((tface=(MTFace *)efa->tmp.p)) {
+			
 				if( SIMA_FACESEL_CHECK(efa, tface) )
 					glColor4ubv((GLubyte *)col2);
 				else
@@ -524,40 +526,117 @@ void draw_tfaces(void)
 		}
 		glDisable(GL_BLEND);
 	}
-	
-	for (efa= em->faces.first; efa; efa= efa->next) {
-		tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-		if (SIMA_FACEDRAW_CHECK(efa, tface)) {
-			cpack(0x0);
-			glBegin(GL_LINE_LOOP);
-				glVertex2fv(tface->uv[0]);
-				glVertex2fv(tface->uv[1]);
-				glVertex2fv(tface->uv[2]);
-				if(efa->v4) glVertex2fv(tface->uv[3]);
-			glEnd();
-		
-			setlinestyle(2);
-			cpack(0xFFFFFF);
-			glBegin(GL_LINE_STRIP);
-				glVertex2fv(tface->uv[0]);
-				glVertex2fv(tface->uv[1]);
-			glEnd();
 
-			glBegin(GL_LINE_STRIP);
-				glVertex2fv(tface->uv[0]);
-				if(efa->v4) glVertex2fv(tface->uv[3]);
-				else glVertex2fv(tface->uv[2]);
-			glEnd();
-
-			glBegin(GL_LINE_STRIP);
-				glVertex2fv(tface->uv[1]);
-				glVertex2fv(tface->uv[2]);
-				if(efa->v4) glVertex2fv(tface->uv[3]);
-			glEnd();
-			setlinestyle(0);
-		}
+	if (G.sima->flag & SI_SMOOTH_UV) {
+		glEnable( GL_LINE_SMOOTH );
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
 
+	switch (G.sima->dt_uv) {
+	case 0:
+		for (efa= em->faces.first; efa; efa= efa->next) {
+//			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+//			if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+			
+			/*this is a shortcut to do the same as above but a faster for drawing */
+			if ((tface=(MTFace *)efa->tmp.p)) {
+			
+				cpack(0x0);
+				glBegin(GL_LINE_LOOP);
+					glVertex2fv(tface->uv[0]);
+					glVertex2fv(tface->uv[1]);
+					glVertex2fv(tface->uv[2]);
+					if(efa->v4) glVertex2fv(tface->uv[3]);
+				glEnd();
+			
+				setlinestyle(2);
+				cpack(0xFFFFFF);
+				glBegin(GL_LINE_STRIP);
+					glVertex2fv(tface->uv[0]);
+					glVertex2fv(tface->uv[1]);
+				glEnd();
+	
+				glBegin(GL_LINE_STRIP);
+					glVertex2fv(tface->uv[0]);
+					if(efa->v4) glVertex2fv(tface->uv[3]);
+					else glVertex2fv(tface->uv[2]);
+				glEnd();
+	
+				glBegin(GL_LINE_STRIP);
+					glVertex2fv(tface->uv[1]);
+					glVertex2fv(tface->uv[2]);
+					if(efa->v4) glVertex2fv(tface->uv[3]);
+				glEnd();
+				setlinestyle(0);
+			}
+		}
+		break;
+	case 1: /* black/white */
+	case 2: 
+		cpack((G.sima->dt_uv==1) ? 0x0 : 0xFFFFFF);
+		for (efa= em->faces.first; efa; efa= efa->next) {
+//			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+//			if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+			
+			/*this is a shortcut to do the same as above but a faster for drawing */
+			if ((tface=(MTFace *)efa->tmp.p)) {
+			
+				glBegin(GL_LINE_LOOP);
+					glVertex2fv(tface->uv[0]);
+					glVertex2fv(tface->uv[1]);
+					glVertex2fv(tface->uv[2]);
+					if(efa->v4) glVertex2fv(tface->uv[3]);
+				glEnd();
+			}
+		}
+		break;
+	case 3:
+		glLineWidth(3);
+		cpack(0x0);
+		
+		for (efa= em->faces.first; efa; efa= efa->next) {
+//			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+//			if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+			
+			/*this is a shortcut to do the same as above but a faster for drawing */
+			if ((tface=(MTFace *)efa->tmp.p)) {
+				
+				glBegin(GL_LINE_LOOP);
+					glVertex2fv(tface->uv[0]);
+					glVertex2fv(tface->uv[1]);
+					glVertex2fv(tface->uv[2]);
+					if(efa->v4) glVertex2fv(tface->uv[3]);
+				glEnd();
+			}
+		}
+		
+		glLineWidth(1);
+		cpack(0xFFFFFF);
+		for (efa= em->faces.first; efa; efa= efa->next) {
+//			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+//			if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+			
+			/*this is a shortcut to do the same as above but a faster for drawing */
+			if ((tface=(MTFace *)efa->tmp.p)) {
+				
+				glBegin(GL_LINE_LOOP);
+					glVertex2fv(tface->uv[0]);
+					glVertex2fv(tface->uv[1]);
+					glVertex2fv(tface->uv[2]);
+					if(efa->v4) glVertex2fv(tface->uv[3]);
+				glEnd();
+			}
+		}
+		break;
+	}
+
+	if (G.sima->flag & SI_SMOOTH_UV) {
+		glDisable( GL_LINE_SMOOTH);
+		glDisable(GL_BLEND);
+	}
+	
+	
 	/* draw active face edges */
 		/* colors: R=u G=v */
 	activetface = get_active_mtface(&efa, NULL, 0);
@@ -602,8 +681,13 @@ void draw_tfaces(void)
 
 	bglBegin(GL_POINTS);
 	for (efa= em->faces.first; efa; efa= efa->next) {
-		tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-		if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+		
+//		tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+//		if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+		
+		/*this is a shortcut to do the same as above but a faster for drawing */
+		if ((tface=(MTFace *)efa->tmp.p)) {
+		
 			if(SIMA_UVSEL_CHECK(efa, tface, 0)); else bglVertex2fv(tface->uv[0]);
 			if(SIMA_UVSEL_CHECK(efa, tface, 1)); else bglVertex2fv(tface->uv[1]);
 			if(SIMA_UVSEL_CHECK(efa, tface, 2)); else bglVertex2fv(tface->uv[2]);
@@ -621,8 +705,12 @@ void draw_tfaces(void)
 
 	bglBegin(GL_POINTS);
 	for (efa= em->faces.first; efa; efa= efa->next) {
-		tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-		if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+//		tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+//		if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+		
+		/*this is a shortcut to do the same as above but a faster for drawing */
+		if ((tface=(MTFace *)efa->tmp.p)) {
+			
 			if(tface->unwrap & TF_PIN1) bglVertex2fv(tface->uv[0]);
 			if(tface->unwrap & TF_PIN2) bglVertex2fv(tface->uv[1]);
 			if(tface->unwrap & TF_PIN3) bglVertex2fv(tface->uv[2]);
@@ -639,8 +727,12 @@ void draw_tfaces(void)
 
 	bglBegin(GL_POINTS);
 	for (efa= em->faces.first; efa; efa= efa->next) {
-		tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-		if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+//		tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+//		if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+		
+		/*this is a shortcut to do the same as above but a faster for drawing */
+		if ((tface=(MTFace *)efa->tmp.p)) {
+		
 			if(!SIMA_UVSEL_CHECK(efa, tface, 0)); else bglVertex2fv(tface->uv[0]);
 			if(!SIMA_UVSEL_CHECK(efa, tface, 1)); else bglVertex2fv(tface->uv[1]);
 			if(!SIMA_UVSEL_CHECK(efa, tface, 2)); else bglVertex2fv(tface->uv[2]);
@@ -924,8 +1016,8 @@ void image_editcursor_buts(uiBlock *block)
 		}
 		
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUM, B_CURSOR_IMAGE, "Cursor X:",	165, 60, 145, 19, &ocent[0], -10*imx, 10.0*imx, step, digits, "");
-		uiDefButF(block, NUM, B_CURSOR_IMAGE, "Cursor Y:",	165, 40, 145, 19, &ocent[1], -10*imy, 10.0*imy, step, digits, "");
+		uiDefButF(block, NUM, B_CURSOR_IMAGE, "Cursor X:",	165, 120, 145, 19, &ocent[0], -10*imx, 10.0*imx, step, digits, "");
+		uiDefButF(block, NUM, B_CURSOR_IMAGE, "Cursor Y:",	165, 100, 145, 19, &ocent[1], -10*imy, 10.0*imy, step, digits, "");
 		uiBlockEndAlign(block);
 	}
 	else {	// apply event
@@ -1045,10 +1137,8 @@ static void image_panel_transform_properties(short cntrl)	// IMAGE_HANDLER_TRANS
 	if(uiNewPanel(curarea, block, "Transform Properties", "Image", 10, 10, 318, 204)==0)
 		return;
 	
-	//uiDefButBitI(block, TOG, SI_COORDFLOATS, B_REDR, "Normalized Coords",	10,80,140,19, &G.sima->flag, 0, 0, 0, 0, "Display coords from 0.0 to 1.0 rather then in pixels");
-	
 	image_editvertex_buts(block);
-	//image_editcursor_buts(block);
+	
 }
 
 static void image_panel_view_properties(short cntrl)	// IMAGE_HANDLER_VIEW_PROPERTIES
@@ -1062,18 +1152,29 @@ static void image_panel_view_properties(short cntrl)	// IMAGE_HANDLER_VIEW_PROPE
 		return;
 	
 	
-	uiDefButBitI(block, TOG, SI_DRAW_TILE, B_REDR, "Repeat Image",	10,100,140,19, &G.sima->flag, 0, 0, 0, 0, "Repeat/Tile the image display");
-	uiDefButBitI(block, TOG, SI_COORDFLOATS, B_REDR, "Normalized Coords",	165,100,140,19, &G.sima->flag, 0, 0, 0, 0, "Display coords from 0.0 to 1.0 rather then in pixels");
+	uiDefButBitI(block, TOG, SI_DRAW_TILE, B_REDR, "Repeat Image",	10,160,140,19, &G.sima->flag, 0, 0, 0, 0, "Repeat/Tile the image display");
+	uiDefButBitI(block, TOG, SI_COORDFLOATS, B_REDR, "Normalized Coords",	165,160,145,19, &G.sima->flag, 0, 0, 0, 0, "Display coords from 0.0 to 1.0 rather then in pixels");
 	
 	
 	if (G.sima->image) {
-		uiDefBut(block, LABEL, B_NOP, "Image Display...",		10,80,140,19, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, LABEL, B_NOP, "Image Display:",		10,140,140,19, 0, 0, 0, 0, 0, "");
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUM, B_REDR, "AspX:", 10,60,140,19, &G.sima->image->aspx, 0.1, 5000.0, 100, 0, "X Display Aspect for this image, does not affect renderingm 0 disables.");
-		uiDefButF(block, NUM, B_REDR, "AspY:", 10,40,140,19, &G.sima->image->aspy, 0.1, 5000.0, 100, 0, "X Display Aspect for this image, does not affect rendering 0 disables.");
+		uiDefButF(block, NUM, B_REDR, "AspX:", 10,120,140,19, &G.sima->image->aspx, 0.1, 5000.0, 100, 0, "X Display Aspect for this image, does not affect renderingm 0 disables.");
+		uiDefButF(block, NUM, B_REDR, "AspY:", 10,100,140,19, &G.sima->image->aspy, 0.1, 5000.0, 100, 0, "X Display Aspect for this image, does not affect rendering 0 disables.");
 		uiBlockEndAlign(block);
 	}
-	//image_editvertex_buts(block);
+	
+	
+	if (EM_texFaceCheck()) {
+		uiDefBut(block, LABEL, B_NOP, "Draw Type:",		10, 20,120,19, 0, 0, 0, 0, 0, "");
+		uiBlockBeginAlign(block);
+		uiDefButC(block,  ROW, B_REDR, "Dash",			10, 0,58,19, &G.sima->dt_uv, 0.0, 0.0, 0, 0, "Dashed Wire UV drawtype");
+		uiDefButC(block,  ROW, B_REDR, "Black",			68, 0,58,19, &G.sima->dt_uv, 0.0, 1.0, 0, 0, "Black Wire UV drawtype");
+		uiDefButC(block,  ROW, B_REDR, "White",			126,0,58,19, &G.sima->dt_uv, 0.0, 2.0, 0, 0, "White Wire UV drawtype");
+		uiDefButC(block,  ROW, B_REDR, "Outline",		184,0,58,19, &G.sima->dt_uv, 0.0, 3.0, 0, 0, "Outline Wire UV drawtype");
+		uiBlockBeginAlign(block);
+		uiDefButBitI(block, TOG, SI_SMOOTH_UV, B_REDR, "Smooth",	250,0,60,19,  &G.sima->flag, 0, 0, 0, 0, "Display smooth lines in the UV view");
+	}
 	image_editcursor_buts(block);
 }
 
@@ -1729,7 +1830,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 	if(ibuf==NULL || (ibuf->rect==NULL && ibuf->rect_float==NULL)) {
 		imagespace_grid(sima);
 		if(show_viewer==0) {
-			draw_tfaces();
+			draw_uvs_sima();
 			drawcursor_sima(xuser_asp, yuser_asp);
 		}
 	}
@@ -1945,7 +2046,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 			glPixelZoom(1.0, 1.0);
 			
 			if(show_viewer==0) { 
-				draw_tfaces();
+				draw_uvs_sima();
 				drawcursor_sima(xuser_asp, yuser_asp);
 			}
 		}
@@ -2253,7 +2354,7 @@ static void imagewindow_progress(ScrArea *sa, RenderResult *rr, volatile rcti *r
 	/* needed for gla draw */
 	{ rcti rct= sa->winrct; rct.ymax-= RW_HEADERY; glaDefine2DArea(&rct);}
 
-	glPixelZoom((float)sima->zoom, (float)sima->zoom);
+	glPixelZoom(sima->zoom, sima->zoom);
 	
 	if(rect32)
 		glaDrawPixelsSafe(x1, y1, xmax, ymax, rr->rectx, GL_RGBA, GL_UNSIGNED_BYTE, rect32);
