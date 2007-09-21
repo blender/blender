@@ -299,7 +299,7 @@ void unwrap_lscm(short seamcut)
 			return;
 		
 		/* select new UV's */
-		if ((G.sima->flag & SI_SYNC_UVSEL)==0) {
+		if ((G.sima==0 || G.sima->flag & SI_SYNC_UVSEL)==0) {
 			EditFace *efa;
 			MTFace *tf;
 			for(efa=em->faces.first; efa; efa=efa->next) {

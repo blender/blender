@@ -453,7 +453,7 @@ void draw_uvs_sima(void)
 	EditMesh *em = G.editMesh;
 	EditFace *efa;
 	
-	char col1[4], col2[4], efaset = 0;
+	char col1[4], col2[4];
 	float pointsize= BIF_GetThemeValuef(TH_VERTEX_SIZE);
  	
 	if (!G.obedit || !CustomData_has_layer(&em->fdata, CD_MTFACE))
