@@ -153,7 +153,7 @@ void cloth_init (ClothModifierData *clmd)
 	clmd->sim_parms.mass = 1.0f;
 	clmd->sim_parms.stepsPerFrame = 5;
 	clmd->sim_parms.sim_time = 1.0;
-	clmd->sim_parms.flags = CSIMSETT_FLAG_RESET;
+	clmd->sim_parms.flags = CSIMSETT_FLAG_RESET | CSIMSETT_FLAG_CCACHE_PROTECT;
 	clmd->sim_parms.solver_type = 0; 
 	clmd->sim_parms.preroll = 0;
 	clmd->sim_parms.maxspringlen = 10;
@@ -576,6 +576,7 @@ void cloth_cache_set_frame(ClothModifierData *clmd, float time)
 	}
 }
 
+// free cloth cache
 void cloth_cache_free(ClothModifierData *clmd, float time)
 {
 	Frame *frame = NULL;
@@ -659,7 +660,8 @@ void clothModifier_do(ClothModifierData *clmd, Object *ob, DerivedMesh *dm,
 	float deltaTime = current_time - clmd->sim_parms.sim_time;	
 		
 	
-	// only be active during a specific period
+	// only be active during a specific period:
+	// that's "first frame" and "last frame" on GUI
 	if (!(clmd->sim_parms.flags & CSIMSETT_FLAG_COLLOBJ))
 	{
 		if(current_time < clmd->sim_parms.firstframe)
@@ -681,7 +683,7 @@ void clothModifier_do(ClothModifierData *clmd, Object *ob, DerivedMesh *dm,
 		}
 	}
 	
-	// unused in the moment
+	// unused in the moment, calculated seperately in implicit.c
 	clmd->sim_parms.dt = 1.0f / clmd->sim_parms.stepsPerFrame;
 	
 	clmd->sim_parms.sim_time = current_time;
@@ -812,46 +814,49 @@ void cloth_free_modifier (ClothModifierData *clmd)
 		return;
 
 	cloth = clmd->clothObject;
-
-	// free our frame cache
-	clmd->sim_parms.flags |= CSIMSETT_FLAG_CCACHE_FREE_ALL;
-	cloth_cache_free(clmd, 0);
-
-	if (cloth) 
-	{	
-		// If our solver provides a free function, call it
-		if (cloth->old_solver_type < 255 && solvers [cloth->old_solver_type].free) 
-		{	
-			solvers [cloth->old_solver_type].free (clmd);
-		}
-		
-		// Free the verts.
-		if (cloth->verts != NULL)
-			MEM_freeN (cloth->verts);
-
-		cloth->verts = NULL;
-		cloth->numverts = -1;
-		
-		// Free the springs.
-		if (cloth->springs != NULL)
-			MEM_freeN (cloth->springs);
-
-		cloth->springs = NULL;
-		cloth->numsprings = -1;		
-		
-		// free BVH collision tree
-		if(cloth->tree)
-			bvh_free((BVH *)cloth->tree);
-		
-		// we save our faces for collision objects
-		if(cloth->mfaces)
-			MEM_freeN(cloth->mfaces);
 	
-		if(clmd->clothObject->facemarks)
-			MEM_freeN(clmd->clothObject->facemarks);
+	if(!(clmd->sim_parms.flags & CSIMSETT_FLAG_CCACHE_PROTECT))
+	{
+		// free our frame cache
+		clmd->sim_parms.flags |= CSIMSETT_FLAG_CCACHE_FREE_ALL;
+		cloth_cache_free(clmd, 0);
+	
+		if (cloth) 
+		{	
+			// If our solver provides a free function, call it
+			if (cloth->old_solver_type < 255 && solvers [cloth->old_solver_type].free) 
+			{	
+				solvers [cloth->old_solver_type].free (clmd);
+			}
+			
+			// Free the verts.
+			if (cloth->verts != NULL)
+				MEM_freeN (cloth->verts);
+	
+			cloth->verts = NULL;
+			cloth->numverts = -1;
+			
+			// Free the springs.
+			if (cloth->springs != NULL)
+				MEM_freeN (cloth->springs);
+	
+			cloth->springs = NULL;
+			cloth->numsprings = -1;		
+			
+			// free BVH collision tree
+			if(cloth->tree)
+				bvh_free((BVH *)cloth->tree);
+			
+			// we save our faces for collision objects
+			if(cloth->mfaces)
+				MEM_freeN(cloth->mfaces);
 		
-		MEM_freeN (cloth);
-		clmd->clothObject = NULL;
+			if(clmd->clothObject->facemarks)
+				MEM_freeN(clmd->clothObject->facemarks);
+			
+			MEM_freeN (cloth);
+			clmd->clothObject = NULL;
+		}
 	}
 }
 
@@ -952,6 +957,7 @@ static int collobj_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh 
 	unsigned int i;
 	MVert *mvert = NULL; 
 	ClothVertex *verts = NULL;
+	float tnull[3] = {0,0,0}; 
 	
 	/* If we have a clothObject, free it. */
 	if (clmd->clothObject != NULL)
@@ -993,7 +999,9 @@ static int collobj_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh 
 				VECCOPY(verts->xold, verts->x);
 				VECCOPY(verts->txold, verts->x);
 				VECCOPY(verts->tx, verts->x);
-				VecMulf(verts->v, 0.0f);				
+				VecMulf(verts->v, 0.0f);
+				verts->impulse_count = 0;
+				VECCOPY(verts->impulse, tnull);
 			}
 			clmd->clothObject->tree =  bvh_build(clmd,clmd->coll_parms.epsilon);
 			
@@ -1159,6 +1167,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	// dm->getNumVerts(dm);
 	MVert *mvert = NULL; // CDDM_get_verts(dm);
 	ClothVertex *verts = NULL;
+	float tnull[3] = {0,0,0};
 	
 	/* If we have a clothObject, free it. */
 	if (clmd->clothObject != NULL)
@@ -1220,6 +1229,9 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 				VECCOPY(verts->xconst, verts->x);
 				VECCOPY(verts->txold, verts->x);
 				VecMulf(verts->v, 0.0f);
+				
+				verts->impulse_count = 0;
+				VECCOPY(verts->impulse, tnull);
 			}
 
 			/* apply / set vertex groups */
@@ -1363,17 +1375,20 @@ int cloth_build_springs(Cloth *cloth, DerivedMesh *dm)
 
 		shear_springs++;
 		temp_index++;
-
-		springs[temp_index].ij = mface[i].v2;
-		springs[temp_index].kl = mface[i].v4;
-		VECSUB(temp, mvert[springs[temp_index].kl].co, mvert[springs[temp_index].ij].co);
-		springs[temp_index].restlen =  sqrt(INPR(temp, temp));
-		springs[temp_index].type = SHEAR;
-
-		BLI_linklist_append(&edgelist[springs[temp_index].ij], &(springs[temp_index]));		
-		BLI_linklist_append(&edgelist[springs[temp_index].kl], &(springs[temp_index]));
-
-		shear_springs++;
+		
+		if(mface[i].v4)
+		{
+			springs[temp_index].ij = mface[i].v2;
+			springs[temp_index].kl = mface[i].v4;
+			VECSUB(temp, mvert[springs[temp_index].kl].co, mvert[springs[temp_index].ij].co);
+			springs[temp_index].restlen =  sqrt(INPR(temp, temp));
+			springs[temp_index].type = SHEAR;
+	
+			BLI_linklist_append(&edgelist[springs[temp_index].ij], &(springs[temp_index]));		
+			BLI_linklist_append(&edgelist[springs[temp_index].kl], &(springs[temp_index]));
+	
+			shear_springs++;
+		}
 	}
 
 	// bending springs

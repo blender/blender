@@ -60,7 +60,7 @@ struct DerivedMesh;
 
 /* This is approximately the smallest number that can be
 * represented by a float, given its precision. */
-#define ALMOST_ZERO		0.0000001
+#define ALMOST_ZERO		0.00001
 
 /* Bits to or into the ClothVertex.flags. */
 #define CVERT_FLAG_PINNED	1
@@ -91,6 +91,7 @@ typedef enum
 	CSIMSETT_FLAG_CCACHE_FREE_ALL = (1 << 4),  // delete all from cache
 	CSIMSETT_FLAG_CCACHE_FREE_PART = (1 << 5), // delete some part of cache
 	CSIMSETT_FLAG_TEARING_ENABLED = (1 << 6), // true if tearing is enabled
+	CSIMSETT_FLAG_CCACHE_PROTECT = (1 << 7), // true if tearing is enabled
 } CSIMSETT_FLAGS;
 
 /* Spring types as defined in the paper.*/

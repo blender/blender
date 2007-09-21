@@ -4941,9 +4941,12 @@ static int clothModifier_dependsOnTime(ModifierData *md)
 static void clothModifier_freeData(ModifierData *md)
 {
 	ClothModifierData *clmd = (ClothModifierData*) md;
-
+	
 	if (clmd) 
-	    cloth_free_modifier (clmd);  
+	{
+		clmd->sim_parms.flags &= ~CSIMSETT_FLAG_CCACHE_PROTECT;
+		cloth_free_modifier (clmd);
+	}
 }
 
 /* Boolean */

@@ -3118,8 +3118,8 @@ static void object_panel_cloth(Object *ob)
 			/* GENERAL STUFF */
 			uiClearButLock();
 			uiBlockBeginAlign(block);
-			uiDefButF(block, NUM, B_CLOTH_RENEW, "StructStiff:",	   10,170,150,20, &clmd->sim_parms.structural, 1.0, 5000.0, 100, 0, "Overall stiffness of structure");
-			uiDefButF(block, NUM, B_CLOTH_RENEW, "BendStiff:",	   160,170,150,20, &clmd->sim_parms.bending, 0.0, 1000.0, 1000, 0, "Wrinkle possibility");
+			uiDefButF(block, NUM, B_CLOTH_RENEW, "StructStiff:",	   10,170,150,20, &clmd->sim_parms.structural, 1.0, 10000.0, 100, 0, "Overall stiffness of structure");
+			uiDefButF(block, NUM, B_CLOTH_RENEW, "BendStiff:",	   160,170,150,20, &clmd->sim_parms.bending, 0.0, 10000.0, 1000, 0, "Wrinkle possibility");
 			uiDefButI(block, NUM, B_CLOTH_RENEW, "Steps per Frame:",	   10,150,150,20, &clmd->sim_parms.stepsPerFrame, 1.0, 100.0, 5, 0, "Quality of the simulation (higher=better=slower)");
 			uiBlockEndAlign(block);
 			uiBlockBeginAlign(block);
@@ -3249,12 +3249,13 @@ static void object_panel_cloth_II(Object *ob)
 				uiDefBut(block, BUT, B_CLOTH_CLEARCACHEALL, "All", 10, 100,145,20, NULL, 0.0, 0.0, 0, 0, "Free cloth cache without preroll");
 				uiDefBut(block, BUT, B_CLOTH_CLEARCACHEFRAME, "From next frame", 155, 100,145,20, NULL, 0.0, 0.0, 0, 0, "Free cloth cache");	
 				if(length>1) // B_CLOTH_CHANGEPREROLL
-					uiDefButI(block, NUM, B_CLOTH_CHANGEPREROLL, "Preroll:", 10,80,145,20, &clmd->sim_parms.preroll, 0, length-1, 1, 0, "Simulation starts on this frame");
+					uiDefButI(block, NUM, B_CLOTH_CHANGEPREROLL, "Preroll:", 10,80,145,20, &clmd->sim_parms.preroll, 0, length-1, 1, 0, "Simulation starts on this frame");	
 			}
 			else
 			{
 				uiDefBut(block, LABEL, 0, "No frames cached.",  10,120,290,20, NULL, 0.0, 0, 0, 0, "");
 			}
+			uiDefButBitI(block, TOG, CSIMSETT_FLAG_CCACHE_PROTECT, REDRAWVIEW3D, "Protect Cache",	10,50,145,20, &clmd->sim_parms.flags, 0, 0, 0, 0, "Protect cache from automatic freeing when scene changed");
 			uiBlockEndAlign(block);
 		}
 	}

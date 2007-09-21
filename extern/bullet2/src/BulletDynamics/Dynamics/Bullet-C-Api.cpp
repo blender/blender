@@ -41,11 +41,10 @@ double plNearestPoints(float p[3][3], float q[3][3], float *pa, float *pb, float
 	
 	static btGjkEpaPenetrationDepthSolver Solver0;
 	static btMinkowskiPenetrationDepthSolver Solver1;
-	
+		
 	btConvexPenetrationDepthSolver* Solver = NULL;
 	
-	Solver = &Solver1;
-	
+	Solver = &Solver0;	
 		
 	btGjkPairDetector convexConvex(&trishapeA ,&trishapeB,&sGjkSimplexSolver,Solver);
 	
