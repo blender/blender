@@ -1208,7 +1208,7 @@ void uiblock_image_panel(uiBlock *block, Image **ima_pp, ImageUser *iuser,
 			 uiBlockSetFunc(block, NULL, NULL, NULL);
 		 }
 	 }
-
+	 uiBlockEndAlign(block);
 }	
 
 static void texture_panel_image(Image **ima, ImageUser *iuser)

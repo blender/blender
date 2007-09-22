@@ -1174,13 +1174,16 @@ void image_buttons(void)
 		xco+= XIC + 18;
 		
 		uiBlockBeginAlign(block);
-		uiDefIconButBitI(block, TOG, SI_SYNC_UVSEL, B_REDR, ICON_MESH_HLT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Sync Mesh Selection");
+		uiDefIconButBitI(block, TOG, SI_SYNC_UVSEL, B_REDR, ICON_MESH_HLT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Sync Mesh Selection (vert & face selection mode override sticky)");
+		xco+= XIC;
 		if ((G.sima->flag & SI_SYNC_UVSEL)==0) {
-			xco+= XIC;
 			ubut = uiDefIconTextButC(block, ICONTEXTROW, B_REDR, ICON_STICKY_UVS_LOC,
 					"Sticky UV Selection: %t|Disable%x1|Shared Location%x0|Shared Vertex%x2",
 					xco,0,XIC+10,YIC, &(G.sima->sticky), 0, 3.0, 0, 0,
 					"Sticky UV Selection (Hotkeys: Shift C, Alt C, Ctrl C)");
+			xco+= XIC + 16;
+		} else {
+			xco+= 6;
 		}
 		uiBlockEndAlign(block);
 		
@@ -1197,15 +1200,11 @@ void image_buttons(void)
 			str_pt = str_menu;
 			str_pt[0]='\0';
 			mesh_layers_menu_concat(&G.editMesh->fdata, CD_MTFACE, str_pt);
-			xco+= XIC+8;
 			ubut = uiDefButI(block, MENU, B_NOP, str_menu ,xco,0,115,YIC, &act, 0, 0, 0, 0, "Active UV Layer for editing");
 			uiButSetFunc(ubut, do_image_buttons_set_uvlayer_callback, &act, NULL);
 			
 			/*MEM_freeN(str);*/
-			xco+= 80;
-			
-		} else {
-			xco+= XIC+16;
+			xco+= 120;
 		}
 	}
 	
