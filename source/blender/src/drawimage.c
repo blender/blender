@@ -805,30 +805,14 @@ static void draw_image_view_icon(void)
 	
 	if (G.sima->flag & SI_SYNC_UVSEL) {
 		/* take settings from the editmesh */
-		if (G.scene->selectmode == SCE_SELECT_FACE) {
-			BIF_icon_draw_aspect(xPos, 5.0, ICON_STICKY_UVS, 1.0f);
-		} else {
-			BIF_icon_draw_aspect(xPos, 5.0, ICON_STICKY2_UVS, 1.0f);
-		}
-		xPos = 25.0;
-		
 		if (G.scene->selectmode == SCE_SELECT_FACE || G.sima->flag & SI_SELACTFACE) {
-			BIF_icon_draw_aspect(xPos, 5.0, ICON_DRAW_UVFACES, 1.0f);
+			BIF_icon_draw_aspect(xPos, 5.0, ICON_FACESEL_HLT, 1.0f);
 		}
 		
 	} else {
-		/* use the flags for UV mode - normal operation */	
-		if(G.sima->flag & SI_STICKYUVS) {
-			BIF_icon_draw_aspect(xPos, 5.0, ICON_STICKY2_UVS, 1.0f);
-			xPos = 25.0;
-		}
-		else if(!(G.sima->flag & SI_LOCALSTICKY)) {
-			BIF_icon_draw_aspect(xPos, 5.0, ICON_STICKY_UVS, 1.0f);
-			xPos = 25.0;
-		}
-	
+		/* use the flags for UV mode - normal operation */
 		if(G.sima->flag & SI_SELACTFACE) {
-			BIF_icon_draw_aspect(xPos, 5.0, ICON_DRAW_UVFACES, 1.0f);
+			BIF_icon_draw_aspect(xPos, 5.0, ICON_FACESEL_HLT, 1.0f);
 		}
 	}
 	
@@ -940,16 +924,16 @@ void image_editvertex_buts(uiBlock *block)
 				ocent[1] *= imy;
 			}
 			
-			uiBlockBeginAlign(block);
+			//uiBlockBeginAlign(block);
 			if(nactive==1) {
-				uiDefButF(block, NUM, B_TRANS_IMAGE, "Vertex X:",	10, 40, 145, 19, &ocent[0], -10*imx, 10.0*imx, step, digits, "");
-				uiDefButF(block, NUM, B_TRANS_IMAGE, "Vertex Y:",	10, 20, 145, 19, &ocent[1], -10*imy, 10.0*imy, step, digits, "");
+				uiDefButF(block, NUM, B_TRANS_IMAGE, "Vertex X:",	10, 10, 145, 19, &ocent[0], -10*imx, 10.0*imx, step, digits, "");
+				uiDefButF(block, NUM, B_TRANS_IMAGE, "Vertex Y:",	165, 10, 145, 19, &ocent[1], -10*imy, 10.0*imy, step, digits, "");
 			}
 			else {
-				uiDefButF(block, NUM, B_TRANS_IMAGE, "Median X:",	10, 40, 145, 19, &ocent[0], -10*imx, 10.0*imx, step, digits, "");
-				uiDefButF(block, NUM, B_TRANS_IMAGE, "Median Y:",	10, 20, 145, 19, &ocent[1], -10*imy, 10.0*imy, step, digits, "");
+				uiDefButF(block, NUM, B_TRANS_IMAGE, "Median X:",	10, 10, 145, 19, &ocent[0], -10*imx, 10.0*imx, step, digits, "");
+				uiDefButF(block, NUM, B_TRANS_IMAGE, "Median Y:",	165, 10, 145, 19, &ocent[1], -10*imy, 10.0*imy, step, digits, "");
 			}
-			uiBlockEndAlign(block);
+			//uiBlockEndAlign(block);
 		}
 	}
 	else {	// apply event
@@ -1088,6 +1072,7 @@ static void image_panel_properties(short cntrl)	// IMAGE_HANDLER_PROPERTIES
 	
 	/* note, it draws no bottom half in facemode, for vertex buttons */
 	uiblock_image_panel(block, &G.sima->image, &G.sima->iuser, B_REDR, B_REDR);
+	image_editvertex_buts(block);
 }	
 
 static void image_panel_game_properties(short cntrl)	// IMAGE_HANDLER_GAME_PROPERTIES
@@ -1127,19 +1112,18 @@ static void image_panel_game_properties(short cntrl)	// IMAGE_HANDLER_GAME_PROPE
 	}
 }
 
-static void image_panel_transform_properties(short cntrl)	// IMAGE_HANDLER_TRANSFORM_PROPERTIES
-{
-	uiBlock *block;
-
-	block= uiNewBlock(&curarea->uiblocks, "image_transform_properties", UI_EMBOSS, UI_HELV, curarea->win);
-	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
-	uiSetPanelHandler(IMAGE_HANDLER_TRANSFORM_PROPERTIES);  // for close and esc
-	if(uiNewPanel(curarea, block, "Transform Properties", "Image", 10, 10, 318, 204)==0)
-		return;
-	
-	image_editvertex_buts(block);
-	
-}
+//static void image_panel_transform_properties(short cntrl)	// IMAGE_HANDLER_TRANSFORM_PROPERTIES
+//{
+//	uiBlock *block;
+//
+//	block= uiNewBlock(&curarea->uiblocks, "image_transform_properties", UI_EMBOSS, UI_HELV, curarea->win);
+//	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
+//	uiSetPanelHandler(IMAGE_HANDLER_TRANSFORM_PROPERTIES);  // for close and esc
+//	if(uiNewPanel(curarea, block, "Transform Properties", "Image", 10, 10, 318, 204)==0)
+//		return;
+//	
+//	image_editvertex_buts(block);
+//}
 
 static void image_panel_view_properties(short cntrl)	// IMAGE_HANDLER_VIEW_PROPERTIES
 {
@@ -1491,10 +1475,10 @@ static void image_blockhandlers(ScrArea *sa)
 		case IMAGE_HANDLER_GAME_PROPERTIES:
 			image_panel_game_properties(sima->blockhandler[a+1]);
 			break;
-		case IMAGE_HANDLER_TRANSFORM_PROPERTIES:
-			if (EM_texFaceCheck())
-				image_panel_transform_properties(sima->blockhandler[a+1]);
-			break;
+//		case IMAGE_HANDLER_TRANSFORM_PROPERTIES:
+//			if (EM_texFaceCheck())
+//				image_panel_transform_properties(sima->blockhandler[a+1]);
+//			break;
 		case IMAGE_HANDLER_VIEW_PROPERTIES:
 			image_panel_view_properties(sima->blockhandler[a+1]);
 			break;

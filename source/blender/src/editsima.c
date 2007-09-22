@@ -531,7 +531,8 @@ void mouse_select_sima(void) /* TODO - SYNCSEL */
 	EditFace *efa;
 	MTFace *tf, *nearesttf;
 	EditFace *nearestefa=NULL;
-	int a, selectsticky, sticky, actface, nearestuv, i;
+	int a, selectsticky, actface, nearestuv, i;
+	char sticky;
 	short flush = 0; /* 0 == dont flush, 1 == sel, -1 == desel;  only use when selection sync is enabled */
 	unsigned int hitv[4], nearestv;
 	float *hituv[4], limit[2];
@@ -553,14 +554,20 @@ void mouse_select_sima(void) /* TODO - SYNCSEL */
 		/* normal operation */
 		actface= (G.qual & LR_ALTKEY || G.sima->flag & SI_SELACTFACE);
 		
-		if(G.qual & LR_CTRLKEY) {
-			if(G.sima->flag & SI_STICKYUVS) sticky= 0;
-			else sticky= 1;
-		}
-		else {
-			if(G.sima->flag & SI_STICKYUVS) sticky= 1;
-			else if(G.sima->flag & SI_LOCALSTICKY) sticky= 2;
-			else sticky= 0;
+		switch(G.sima->sticky) {
+		case 0:
+			sticky=2;
+			break;
+		case 1:
+			sticky=0;
+			break;
+		case 2:
+			if(G.qual & LR_CTRLKEY) {
+				sticky=0;
+			} else {  
+				sticky=1;
+			}
+			break;
 		}
 	}
 
@@ -1356,6 +1363,7 @@ void unlink_selection(void)
 	scrarea_queue_winredraw(curarea);
 }
 
+/*
 void toggle_uv_select(int mode)
 {
 	switch(mode){
@@ -1363,21 +1371,21 @@ void toggle_uv_select(int mode)
 		G.sima->flag ^= SI_SELACTFACE;
 		break;
 	case 's':
-		G.sima->flag ^= SI_STICKYUVS; 
-		if (G.sima->flag & SI_STICKYUVS) G.sima->flag &= ~SI_LOCALSTICKY;
-		else G.sima->flag |= SI_LOCALSTICKY;
+		G.sima->flag &= ~SI_LOCALSTICKY;
+		G.sima->flag |= SI_STICKYUVS;
 		break;
-	case 'l': 
-		 G.sima->flag ^= SI_LOCALSTICKY;
-		 if (G.sima->flag & SI_LOCALSTICKY) G.sima->flag &= ~SI_STICKYUVS;
+	case 'l':
+		G.sima->flag &= ~SI_STICKYUVS;
+		G.sima->flag &= ~SI_LOCALSTICKY;
 		break;
 	case 'o':
-		G.sima->flag &= ~SI_STICKYUVS; 
-		G.sima->flag &= ~SI_LOCALSTICKY;
+		 G.sima->flag &= ~SI_STICKYUVS;
+		 G.sima->flag |= SI_LOCALSTICKY;
 		break;
 	}
 	allqueue(REDRAWIMAGE, 0);
 }
+*/
 
 void pin_tface_uv(int mode)
 {

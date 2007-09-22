@@ -6101,20 +6101,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				sce->toolsettings->unwrapper = 1;
 			}
 
-			/* enable uv editor local sticky by default */
-			for (sc= main->screen.first; sc; sc= sc->id.next) {
-				ScrArea *sa;
-				for (sa= sc->areabase.first; sa; sa= sa->next) {
-					SpaceLink *sl;
-					for (sl= sa->spacedata.first; sl; sl= sl->next) {
-						if(sl->spacetype==SPACE_IMAGE) {
-							SpaceImage *sima= (SpaceImage*)sl;
-							if(!(sima->flag & SI_STICKYUVS))
-								sima->flag |= SI_LOCALSTICKY;
-						}
-					}
-				}
-			}
 			if(sce->r.mode & R_PANORAMA) {
 				/* all these checks to ensure saved files with cvs version keep working... */
 				if(sce->r.xsch < sce->r.ysch) {

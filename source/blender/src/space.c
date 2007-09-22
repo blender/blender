@@ -4820,21 +4820,28 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if (G.sima->flag & SI_SYNC_UVSEL) {
 					/* operate on the editmesh */
 					if (G.qual==0) {
-						if (G.scene->selectmode != SCE_SELECT_FACE)
-							toggle_uv_select('f');
+						if (G.scene->selectmode != SCE_SELECT_FACE) {
+							G.sima->flag ^= SI_SELACTFACE;
+							scrarea_queue_winredraw(curarea);
+						}
 					} else {
 						error("Sync selection to Edit Mesh disables UV select options");
 					}
 				} else {
 					/* normal operaton */
-					if(G.qual==LR_CTRLKEY)
-						toggle_uv_select('s');
-					else if(G.qual==LR_SHIFTKEY)
-						toggle_uv_select('l');
-					else if(G.qual==LR_ALTKEY)
-						toggle_uv_select('o');
-					else
-						toggle_uv_select('f');
+					if(G.qual==LR_CTRLKEY) {
+						G.sima->sticky = 2;
+						scrarea_do_headdraw(curarea);
+					} else if(G.qual==LR_SHIFTKEY) {
+						G.sima->sticky = 1;
+						scrarea_do_headdraw(curarea);
+					} else if(G.qual==LR_ALTKEY) {
+						G.sima->sticky = 0;
+						scrarea_do_headdraw(curarea);
+					} else {
+						G.sima->flag ^= SI_SELACTFACE;
+						scrarea_queue_winredraw(curarea);
+					}
 				}
 				break;
 			case EKEY :
@@ -5000,13 +5007,13 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	case NKEY:
 		if(G.qual==LR_ALTKEY) {
 			new_image_sima();
-		}
-		else if(G.qual==0) {
-			if (EM_texFaceCheck()) {
+		} else if(G.qual==0) {
+			/*if (EM_texFaceCheck()) {
 				toggle_blockhandler(sa, IMAGE_HANDLER_TRANSFORM_PROPERTIES, UI_PNL_TO_MOUSE);
-			} else {
+			} else {				
 				toggle_blockhandler(sa, IMAGE_HANDLER_PROPERTIES, UI_PNL_TO_MOUSE);
-			}
+			}*/
+			toggle_blockhandler(sa, IMAGE_HANDLER_PROPERTIES, UI_PNL_TO_MOUSE);
 			scrarea_queue_winredraw(sa);
 		}
 		break;
@@ -5058,7 +5065,6 @@ static void init_imagespace(ScrArea *sa)
 	sima->spacetype= SPACE_IMAGE;
 	sima->zoom= 1;
 	sima->blockscale= 0.7;
-	sima->flag = SI_LOCALSTICKY;
 
 	sima->iuser.ok= 1;
 	sima->iuser.fie_ima= 2;

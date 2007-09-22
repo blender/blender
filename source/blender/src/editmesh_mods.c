@@ -3347,8 +3347,9 @@ void Vertex_Menu() {
 		case 6: 
 			shape_propagate();
 			break;
-
 	}
+	/* some items crashed because this is in the original W menu but not here. should really manage this better */
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 }
 
 
@@ -3402,6 +3403,8 @@ void Edge_Menu() {
 		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		break;
 	}
+	/* some items crashed because this is in the original W menu but not here. should really manage this better */
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 }
 
 void Face_Menu() {
@@ -3463,6 +3466,8 @@ void Face_Menu() {
 			mesh_mirror_colors();
 			break;
 	}
+	/* some items crashed because this is in the original W menu but not here. should really manage this better */
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 }
 
 

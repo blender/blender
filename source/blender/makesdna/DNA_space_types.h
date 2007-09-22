@@ -238,7 +238,9 @@ typedef struct SpaceImage {
 	short imtypenr, lock;
 	short showspare, pin;
 	float zoom;
-	char dt_uv; char pad[7]; /* UV draw type */
+	char dt_uv; /* UV draw type */
+	char sticky; /* sticky selection type */ 
+	char pad[6]; 
 	
 	float xof, yof;					/* user defined offset, image is centered */
 	float centx, centy;				/* storage for offset while render drawing */
@@ -468,11 +470,11 @@ typedef struct SpaceImaSel {
 #define SI_EDITTILE		1<<1
 #define SI_CLIP_UV		1<<2
 #define SI_DRAWTOOL		1<<3
-#define SI_STICKYUVS    1<<4
+#define SI_DEPRECATED1    1<<4	/* stick UVs to others in the same location */
 #define SI_DRAWSHADOW   1<<5
 #define SI_SELACTFACE   1<<6
-#define SI_DEPRECATED	1<<7
-#define SI_LOCALSTICKY  1<<8
+#define SI_DEPRECATED2	1<<7
+#define SI_DEPRECATED3  1<<8	/* stick UV selection to mesh vertex (UVs wont always be touching) */
 #define SI_COORDFLOATS  1<<9
 #define SI_PIXELSNAP	1<<10
 #define SI_LIVE_UNWRAP	1<<11

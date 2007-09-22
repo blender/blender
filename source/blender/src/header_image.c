@@ -476,7 +476,7 @@ static uiBlock *image_viewmenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_image_viewmenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "View Properties...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Image Properties...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Image Properties...|N",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Real-time Properties...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 13, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Paint Tool...|C",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Curves Tool...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 11, "");
@@ -549,26 +549,6 @@ static void do_image_selectmenu(void *arg, int event)
 	case 3: /* Linked UVs */
 		select_linked_tface_uv(2);
 		break;
-	case 4: /* Toggle Local UVs Stick to Vertex in Mesh */
-		if(G.sima->flag & SI_LOCALSTICKY)
-			G.sima->flag &= ~SI_LOCALSTICKY;
-		else {
-			G.sima->flag |= SI_LOCALSTICKY;
-			G.sima->flag &= ~SI_STICKYUVS;
-		}
-		allqueue(REDRAWIMAGE, 0);
-		break;  
-	case 5: /* Toggle UVs Stick to Vertex in Mesh */
-		if(G.sima->flag & SI_STICKYUVS) {
-			G.sima->flag &= ~SI_STICKYUVS;
-			G.sima->flag |= SI_LOCALSTICKY;
-		}
-		else {
-			G.sima->flag |= SI_STICKYUVS;
-			G.sima->flag &= ~SI_LOCALSTICKY;
-		}
-		allqueue(REDRAWIMAGE, 0);
-		break;  
 	case 6: /* Toggle Active Face Select */
 		if(G.sima->flag & SI_SELACTFACE)
 			G.sima->flag &= ~SI_SELACTFACE;
@@ -595,16 +575,6 @@ static uiBlock *image_selectmenu(void *arg_unused)
 		if(G.sima->flag & SI_SELACTFACE) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Active Face Select|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
 		else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Active Face Select|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
 	
-		uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-	}
-	
-	if ((G.sima->flag & SI_SYNC_UVSEL)==0) {
-		if(G.sima->flag & SI_LOCALSTICKY) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Stick Local UVs to Mesh Vertex|Shift C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
-		else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Stick Local UVs to Mesh Vertex|Shift C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
-	
-		if(G.sima->flag & SI_STICKYUVS) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Stick UVs to Mesh Vertex|Ctrl C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
-		else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Stick UVs to Mesh Vertex|Ctrl C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
-		
 		uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	}
 	
@@ -988,9 +958,9 @@ static void do_image_uvsmenu(void *arg, int event)
 {
 
 	switch(event) {
-	case 0: /* UV Transform Properties Panel... */
-		add_blockhandler(curarea, IMAGE_HANDLER_TRANSFORM_PROPERTIES, UI_PNL_UNSTOW);
-		break;
+//	case 0: /* UV Transform Properties Panel... */
+//		add_blockhandler(curarea, IMAGE_HANDLER_TRANSFORM_PROPERTIES, UI_PNL_UNSTOW);
+//		break;
 	case 1: /* UVs Constrained Rectangular */
 		if(G.sima->flag & SI_BE_SQUARE) G.sima->flag &= ~SI_BE_SQUARE;
 		else G.sima->flag |= SI_BE_SQUARE;
@@ -1044,7 +1014,7 @@ static uiBlock *image_uvsmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "image_uvsmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_image_uvsmenu, NULL);
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties...|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+	//uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties...|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	if(G.sima->flag & SI_PIXELSNAP) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Snap to Pixels|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Snap to Pixels|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
@@ -1104,18 +1074,6 @@ static uiBlock *image_uvsmenu(void *arg_unused)
 	uiTextBoundsBlock(block, 50);
 
 	return block;
-}
-
-static char *around_pup(void)
-{
-	static char string[512];
-	char *str = string;
-
-	str += sprintf(str, "%s", "Pivot: %t"); 
-	str += sprintf(str, "%s", "|Bounding Box Center %x0"); 
-	str += sprintf(str, "%s", "|Median Point %x3");
-	str += sprintf(str, "%s", "|2D Cursor %x1");
-	return string;
 }
 
 void image_buttons(void)
@@ -1205,19 +1163,33 @@ void image_buttons(void)
 
 	/* UV EditMode buttons, not painting or rencering or compositing */
 	if ( EM_texFaceCheck() && (G.sima->flag & SI_DRAWTOOL)==0 && !is_render) {
+		uiBut *ubut;
 		int layercount;
 		xco+=10;
-		uiDefIconTextButS(block, ICONTEXTROW,B_AROUND, ICON_ROTATE, around_pup(), xco,0,XIC+10,YIC, &(G.v2d->around), 0, 3.0, 0, 0, "Rotation/Scaling Pivot (Hotkeys: Comma, Shift Comma, Period) ");
-		xco+= XIC + 12;
-		uiDefIconButBitI(block, TOG, SI_SYNC_UVSEL, B_REDR,			ICON_MESH_HLT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Sync Mesh Selection");
 		
+		uiDefIconTextButS(block, ICONTEXTROW, B_NOP, ICON_ROTATE,
+				"Pivot: %t|Bounding Box Center %x0|Median Point %x3|2D Cursor %x1",
+				xco,0,XIC+10,YIC, &(G.v2d->around), 0, 3.0, 0, 0,
+				"Rotation/Scaling Pivot (Hotkeys: Comma, Shift Comma, Period)");
+		xco+= XIC + 18;
+		
+		uiBlockBeginAlign(block);
+		uiDefIconButBitI(block, TOG, SI_SYNC_UVSEL, B_REDR, ICON_MESH_HLT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Sync Mesh Selection");
+		if ((G.sima->flag & SI_SYNC_UVSEL)==0) {
+			xco+= XIC;
+			ubut = uiDefIconTextButC(block, ICONTEXTROW, B_REDR, ICON_STICKY_UVS_LOC,
+					"Sticky UV Selection: %t|Disable%x1|Shared Location%x0|Shared Vertex%x2",
+					xco,0,XIC+10,YIC, &(G.sima->sticky), 0, 3.0, 0, 0,
+					"Sticky UV Selection (Hotkeys: Shift C, Alt C, Ctrl C)");
+		}
+		uiBlockEndAlign(block);
 		
 		/* Layer Menu */
 		layercount = CustomData_number_of_layers(&G.editMesh->fdata, CD_MTFACE); 
 		if (layercount>1 && layercount < 12) { /* could allow any number but limit of 11 means no malloc needed */
-			uiBut *ubut;
-			char str_menu[384], *str_pt; /*384 allows for 11 layers */
 			static int act;
+			char str_menu[384], *str_pt; /*384 allows for 11 layers */
+			
 			
 			act = CustomData_get_active_layer(&G.editMesh->fdata, CD_MTFACE);
 			
@@ -1230,7 +1202,7 @@ void image_buttons(void)
 			uiButSetFunc(ubut, do_image_buttons_set_uvlayer_callback, &act, NULL);
 			
 			/*MEM_freeN(str);*/
-			xco+= 120;
+			xco+= 80;
 			
 		} else {
 			xco+= XIC+16;

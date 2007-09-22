@@ -94,7 +94,6 @@ void reveal_tface_uv(void);
 void stitch_uv_tface(int mode);
 void unlink_selection(void);
 void select_linked_tface_uv(int mode);
-void toggle_uv_select(int mode);
 void pin_tface_uv(int mode);
 void weld_align_menu_tface_uv(void);
 void weld_align_tface_uv(char tool);
