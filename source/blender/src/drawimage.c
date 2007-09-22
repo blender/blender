@@ -454,7 +454,7 @@ void draw_uvs_sima(void)
 	EditFace *efa;
 	
 	char col1[4], col2[4];
-	float pointsize= BIF_GetThemeValuef(TH_VERTEX_SIZE);
+	float pointsize;
  	
 	if (!G.obedit || !CustomData_has_layer(&em->fdata, CD_MTFACE))
 		return;
@@ -464,36 +464,43 @@ void draw_uvs_sima(void)
 	glLoadIdentity();
 	
 	
-	if(G.sima->flag & SI_DRAWTOOL || G.sima->flag & SI_DRAWSHADOW) {
+	if(G.sima->flag & SI_DRAWTOOL) {
+		/* draws the grey mesh when painting */
 		glColor3ub(112, 112, 112);
 		for (efa= em->faces.first; efa; efa= efa->next) {
 			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			if (SIMA_FACEDRAW_CHECK(efa, tface)) {
-				efa->tmp.p = tface;
-			} else {
-				glBegin(GL_LINE_LOOP);
-				glVertex2fv(tface->uv[0]);
-				glVertex2fv(tface->uv[1]);
-				glVertex2fv(tface->uv[2]);
-				if(efa->v4) glVertex2fv(tface->uv[3]);
-				glEnd();
-				
-				efa->tmp.p = NULL;
-			}
+			glBegin(GL_LINE_LOOP);
+			glVertex2fv(tface->uv[0]);
+			glVertex2fv(tface->uv[1]);
+			glVertex2fv(tface->uv[2]);
+			if(efa->v4) glVertex2fv(tface->uv[3]);
+			glEnd();
 		}
-		if(G.sima->flag & SI_DRAWTOOL)
-			return; /* only draw shadow mesh */
+		return; /* only draw shadow mesh */
+	} else if (G.sima->flag & SI_DRAWSHADOW) {
+		/* draw shadow mesh - this is the mesh with the modifier applied */
+		DerivedMesh *finalDM, *cageDM;
 		
-	} else {
-		/* would be nice to do this within a draw loop but most below are optional, so it would involve too many checks */
-		for (efa= em->faces.first; efa; efa= efa->next) {
-			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			if (SIMA_FACEDRAW_CHECK(efa, tface)) {		
-				efa->tmp.p = tface;
-			} else {
-				efa->tmp.p = NULL;
-			}
+		glColor3ub(112, 112, 112);
+		if (G.editMesh->derivedFinal && G.editMesh->derivedFinal->drawUVEdges) {
+			G.editMesh->derivedFinal->drawUVEdges(G.editMesh->derivedFinal);
 		}
+
+		/* draw final mesh with modifiers applied */
+		cageDM = editmesh_get_derived_cage_and_final(&finalDM, CD_MASK_BAREMESH | CD_MASK_MTFACE);
+		
+		if 		(finalDM->drawUVEdges &&
+				/* When sync selection is enabled, all faces are drawn (except for hidden)
+				 * so if cage is the same as the final, theres no point in drawing the shadowmesh. */
+				!((G.sima->flag & SI_SYNC_UVSEL && cageDM==finalDM))
+		) {
+			glColor3ub(112, 112, 112);
+			finalDM->drawUVEdges(finalDM);
+		}
+		
+		if (cageDM != finalDM)
+			cageDM->release(cageDM);
+		finalDM->release(finalDM);
 	}
 	
 	/* draw transparent faces */
@@ -504,13 +511,8 @@ void draw_uvs_sima(void)
 		glEnable(GL_BLEND);
 		
 		for (efa= em->faces.first; efa; efa= efa->next) {
-			
-//			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-//			if (SIMA_FACEDRAW_CHECK(efa, tface)) {
-			
-			/*this is a shortcut to do the same as above but a faster for drawing */
-			if ((tface=(MTFace *)efa->tmp.p)) {
-			
+			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			if (SIMA_FACEDRAW_CHECK(efa, tface)) {
 				if( SIMA_FACESEL_CHECK(efa, tface) )
 					glColor4ubv((GLubyte *)col2);
 				else
@@ -522,6 +524,19 @@ void draw_uvs_sima(void)
 					glVertex2fv(tface->uv[2]);
 					if(efa->v4) glVertex2fv(tface->uv[3]);
 				glEnd();
+				efa->tmp.p = tface;
+			} else {
+				efa->tmp.p = NULL;
+			}
+		}
+	} else {
+		/* would be nice to do this within a draw loop but most below are optional, so it would involve too many checks */
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			if (SIMA_FACEDRAW_CHECK(efa, tface)) {		
+				efa->tmp.p = tface;
+			} else {
+				efa->tmp.p = NULL;
 			}
 		}
 		glDisable(GL_BLEND);
@@ -677,6 +692,7 @@ void draw_uvs_sima(void)
 
     /* unselected uv's */
 	BIF_ThemeColor(TH_VERTEX);
+	pointsize = BIF_GetThemeValuef(TH_VERTEX_SIZE);
 	glPointSize(pointsize);
 
 	bglBegin(GL_POINTS);

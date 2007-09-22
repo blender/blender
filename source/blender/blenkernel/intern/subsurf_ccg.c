@@ -1874,6 +1874,37 @@ static void ccgDM_drawMappedFacesTex(DerivedMesh *dm, int (*setDrawOptions)(void
 	ccgDM_drawFacesTex_common(dm, NULL, setDrawOptions, userData);
 }
 
+static void ccgDM_drawUVEdges(DerivedMesh *dm)
+{
+
+	MFace *mf = dm->getFaceArray(dm);
+	MTFace *tf = DM_get_face_data_layer(dm, CD_MTFACE);
+	int i;
+	
+	glBegin(GL_LINES);
+	for(i = 0; i < dm->numFaceData; i++, mf++, tf++) {
+		if(!(mf->flag&ME_HIDE)) {
+			glVertex2fv(tf->uv[0]);
+			glVertex2fv(tf->uv[1]);
+
+			glVertex2fv(tf->uv[1]);
+			glVertex2fv(tf->uv[2]);
+
+			if(!mf->v4) {
+				glVertex2fv(tf->uv[2]);
+				glVertex2fv(tf->uv[0]);
+			} else {
+				glVertex2fv(tf->uv[2]);
+				glVertex2fv(tf->uv[3]);
+
+				glVertex2fv(tf->uv[3]);
+				glVertex2fv(tf->uv[0]);
+			}
+		}
+	}
+	glEnd();
+}
+
 static void ccgDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), void *userData, int useColors) {
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
 	CCGSubSurf *ss = ccgdm->ss;
@@ -2101,7 +2132,7 @@ static CCGDerivedMesh *getCCGDerivedMesh(CCGSubSurf *ss,
 	ccgdm->dm.drawFacesTex = ccgDM_drawFacesTex;
 	ccgdm->dm.drawMappedFaces = ccgDM_drawMappedFaces;
 	ccgdm->dm.drawMappedFacesTex = ccgDM_drawMappedFacesTex;
-	/* todo: drawUVEdges */
+	ccgdm->dm.drawUVEdges = ccgDM_drawUVEdges;
 
 	ccgdm->dm.drawMappedEdgesInterp = ccgDM_drawMappedEdgesInterp;
 	ccgdm->dm.drawMappedEdges = ccgDM_drawMappedEdges;
