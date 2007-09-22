@@ -1978,20 +1978,11 @@ static BPy_NMVert *nmvert_from_data( MVert * vert, MSticky * st, float *co,
 
 static int get_active_faceindex( Mesh * me )
 {
-	MTFace *tf;
-	int i;
-
 	if( me == NULL )
 		return -1;
 
-	tf = me->mtface;
-	if( tf == 0 )
-		return -1;
-
-	for( i = 0; i < me->totface; i++ )
-		if( tf[i].flag & TF_ACTIVE )
-			return i;
-
+	if (me->act_face != -1 && me->act_face < me->totface)
+		return me->act_face; 
 	return -1;
 }
 

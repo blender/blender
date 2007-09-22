@@ -2067,6 +2067,8 @@ void mouse_mesh(void)
 		if((G.qual & LR_SHIFTKEY)==0) EM_clear_flag_all(SELECT);
 		
 		if(efa) {
+			/* set the last selected face */
+			EM_set_actFace(efa);
 			
 			if( (efa->f & SELECT)==0 ) {
 				EM_store_selection(efa, EDITFACE);

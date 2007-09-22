@@ -164,6 +164,13 @@ typedef struct EditMesh
 		/* DerivedMesh caches... note that derived cage can be equivalent
 		 * to derived final, care should be taken on release.
 		 */
+	
+	/* used for keeping track of the last clicked on face - so the space image
+	 * when using the last selected face - (EditSelection) the space image flickered too much
+	 * 
+	 * never access this directly, use EM_set_actFace and EM_get_actFace */
+	EditFace *act_face; 
+	
 	struct DerivedMesh *derivedCage, *derivedFinal;
 	/* the custom data layer mask that was last used to calculate
 	 * derivedCage and derivedFinal

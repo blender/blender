@@ -490,6 +490,7 @@ void draw_uvs_sima(void)
 		cageDM = editmesh_get_derived_cage_and_final(&finalDM, CD_MASK_BAREMESH | CD_MASK_MTFACE);
 		
 		if 		(finalDM->drawUVEdges &&
+				DM_get_face_data_layer(finalDM, CD_MTFACE) &&
 				/* When sync selection is enabled, all faces are drawn (except for hidden)
 				 * so if cage is the same as the final, theres no point in drawing the shadowmesh. */
 				!((G.sima->flag & SI_SYNC_UVSEL && cageDM==finalDM))

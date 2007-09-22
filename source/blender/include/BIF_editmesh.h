@@ -259,4 +259,7 @@ void free_uv_vert_map_EM(UvVertMap *vmap);
 int EM_texFaceCheck(void); /* can we edit UV's for this mesh?*/
 int EM_vertColorCheck(void); /* can we edit colors for this mesh?*/
 
+void EM_set_actFace(struct EditFace *efa);
+struct EditFace * EM_get_actFace(void);
+
 #endif

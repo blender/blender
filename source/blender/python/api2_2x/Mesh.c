@@ -4077,7 +4077,7 @@ static int MFace_setImage( BPy_MFace *self, PyObject *value )
 	return 0;
 }
 
-#define MFACE_FLAG_BITMASK ( TF_SELECT | TF_ACTIVE | TF_SEL1 | \
+#define MFACE_FLAG_BITMASK ( TF_SELECT | TF_SEL1 | \
 		TF_SEL2 | TF_SEL3 | TF_SEL4 | TF_HIDE )
 
 /*
@@ -4086,6 +4086,7 @@ static int MFace_setImage( BPy_MFace *self, PyObject *value )
 
 static PyObject *MFace_getFlag( BPy_MFace *self )
 {
+	int flag;
 	if( !self->mesh->mtface )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"face has no texture values" );
@@ -4093,8 +4094,13 @@ static PyObject *MFace_getFlag( BPy_MFace *self )
 	if( !MFace_get_pointer( self ) )
 		return NULL;
 
-	return PyInt_FromLong( (long) ( self->mesh->mtface[self->index].flag
-			& MFACE_FLAG_BITMASK ) );
+	flag = self->mesh->mtface[self->index].flag & MFACE_FLAG_BITMASK;
+	
+	/* so old scripts still work */
+	if (self->index == self->mesh->act_face)
+		flag |= TF_ACTIVE;
+		
+	return PyInt_FromLong( (long)( flag ) );
 }
 
 /*
@@ -4128,7 +4134,7 @@ static int MFace_setFlag( BPy_MFace *self, PyObject *value )
 						"invalid bit(s) set in mask" );
 
 	/* merge active setting with other new params */
-	param |= (self->mesh->mtface[self->index].flag & TF_ACTIVE);
+	param |= (self->mesh->mtface[self->index].flag);
 	self->mesh->mtface[self->index].flag = (char)param;
 
 	return 0;
@@ -7869,27 +7875,19 @@ static PyObject *Mesh_getKey( BPy_Mesh * self )
 
 static PyObject *Mesh_getActiveFace( BPy_Mesh * self )
 {
-	MTFace *face;
-	int i, totface;
-
+	/* not needed but keep incase exceptions make use of it */
 	if( !self->mesh->mtface )
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 				"face has no texture values" );
 
-	face = self->mesh->mtface;
-	totface = self->mesh->totface;
-
-	for( i = 0; i < totface; ++face, ++i )
-		if( face->flag & TF_ACTIVE ) {
-			return PyInt_FromLong( i );
-		}
-
+	if (self->mesh->act_face != -1 && self->mesh->act_face <= self->mesh->totface)
+		return PyInt_FromLong( self->mesh->act_face );
+	
 	Py_RETURN_NONE;
 }
 
 static int Mesh_setActiveFace( BPy_Mesh * self, PyObject * value )
 {
-	MTFace *face;
 	int param;
 
 	/* if no texture faces, error */
@@ -7910,18 +7908,8 @@ static int Mesh_setActiveFace( BPy_Mesh * self, PyObject * value )
 	if( param < 0 || param > self->mesh->totface )
 		return EXPP_ReturnIntError( PyExc_TypeError,
 				"face index out of range" );
-
-	face = self->mesh->mtface;
-
-	/* if requested face isn't already active, then inactivate all
-	 * faces and activate the requested one */
-
-	if( !( face[param].flag & TF_ACTIVE ) ) {
-		int i;
-		for( i = self->mesh->totface; i > 0; ++face, --i )
-			face->flag &= ~TF_ACTIVE;
-		self->mesh->mtface[param].flag |= TF_ACTIVE;
-	}
+	
+	self->mesh->act_face = param;
 	return 0;
 }
 
@@ -8500,7 +8488,7 @@ static PyObject *M_Mesh_FaceFlagsDict( void )
 
 		PyConstant_Insert( d, "SELECT", PyInt_FromLong( TF_SELECT ) );
 		PyConstant_Insert( d, "HIDE", PyInt_FromLong( TF_HIDE ) );
-		PyConstant_Insert( d, "ACTIVE", PyInt_FromLong( TF_ACTIVE ) );
+		PyConstant_Insert( d, "ACTIVE", PyInt_FromLong( TF_ACTIVE ) ); /* deprecated */
 	}
 
 	return FF;

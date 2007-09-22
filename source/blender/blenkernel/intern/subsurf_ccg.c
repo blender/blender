@@ -1881,28 +1881,30 @@ static void ccgDM_drawUVEdges(DerivedMesh *dm)
 	MTFace *tf = DM_get_face_data_layer(dm, CD_MTFACE);
 	int i;
 	
-	glBegin(GL_LINES);
-	for(i = 0; i < dm->numFaceData; i++, mf++, tf++) {
-		if(!(mf->flag&ME_HIDE)) {
-			glVertex2fv(tf->uv[0]);
-			glVertex2fv(tf->uv[1]);
-
-			glVertex2fv(tf->uv[1]);
-			glVertex2fv(tf->uv[2]);
-
-			if(!mf->v4) {
-				glVertex2fv(tf->uv[2]);
+	if (tf) {
+		glBegin(GL_LINES);
+		for(i = 0; i < dm->numFaceData; i++, mf++, tf++) {
+			if(!(mf->flag&ME_HIDE)) {
 				glVertex2fv(tf->uv[0]);
-			} else {
+				glVertex2fv(tf->uv[1]);
+	
+				glVertex2fv(tf->uv[1]);
 				glVertex2fv(tf->uv[2]);
-				glVertex2fv(tf->uv[3]);
-
-				glVertex2fv(tf->uv[3]);
-				glVertex2fv(tf->uv[0]);
+	
+				if(!mf->v4) {
+					glVertex2fv(tf->uv[2]);
+					glVertex2fv(tf->uv[0]);
+				} else {
+					glVertex2fv(tf->uv[2]);
+					glVertex2fv(tf->uv[3]);
+	
+					glVertex2fv(tf->uv[3]);
+					glVertex2fv(tf->uv[0]);
+				}
 			}
 		}
+		glEnd();
 	}
-	glEnd();
 }
 
 static void ccgDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), void *userData, int useColors) {

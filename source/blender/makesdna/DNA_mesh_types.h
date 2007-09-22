@@ -74,7 +74,14 @@ typedef struct Mesh {
 
 	struct CustomData vdata, edata, fdata;
 
-	int totvert, totedge, totface, totselect, pad2;
+	int totvert, totedge, totface, totselect;
+	
+	/* the last selected vertex/edge/face are used for the active face however
+	 * this means the active face must always be selected, this is to keep track
+	 * of the last selected face and is similar to the old active face flag where
+	 * the face does not need to be selected, -1 is inactive */
+	int act_face; 
+	
 	int texflag;
 	
 	/* texture space, copied as one block in editobject.c */

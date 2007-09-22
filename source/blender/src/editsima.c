@@ -575,8 +575,8 @@ void mouse_select_sima(void) /* TODO - SYNCSEL */
 		find_nearest_tface(&nearesttf, &nearestefa);
 		if(nearesttf==NULL)
 			return;
-
-		nearesttf->flag |= TF_ACTIVE;
+		
+		EM_set_actFace(nearestefa);
 
 		for (i=0; i<4; i++)
 			hituv[i]= nearesttf->uv[i];
@@ -660,10 +660,7 @@ void mouse_select_sima(void) /* TODO - SYNCSEL */
 				for (efa= em->faces.first; efa; efa= efa->next) {
 					tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 					if (SIMA_FACEDRAW_CHECK(efa, tf)) {
-						if(nearesttf && tf!=nearesttf)
-							tf->flag &=~ TF_ACTIVE;
 						if (!sticky) continue;
-	
 						if(msel_hit(limit, hitv, efa->v1->tmp.l, hituv, tf->uv[0], sticky))
 							SIMA_UVSEL_SET(efa, tf, 0);
 						if(msel_hit(limit, hitv, efa->v2->tmp.l, hituv, tf->uv[1], sticky))
@@ -675,6 +672,7 @@ void mouse_select_sima(void) /* TODO - SYNCSEL */
 								SIMA_UVSEL_SET(efa, tf, 3);
 					}
 				}
+				EM_set_actFace(nearestefa);
 				flush = 1;
 			}			
 		}
@@ -685,11 +683,12 @@ void mouse_select_sima(void) /* TODO - SYNCSEL */
 			for (efa= em->faces.first; efa; efa= efa->next) {
 				tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 				SIMA_FACESEL_UNSET(efa, tf);
-				//if(nearesttf && tf!=nearesttf) /* TODO - deal with editmesh active face */
-				//	tf->flag &= ~TF_ACTIVE;
 			}
-			if(nearesttf)
+			if(nearesttf) {
 				SIMA_FACESEL_SET(nearestefa, nearesttf);
+				EM_set_actFace(nearestefa);
+			}
+				
 		}
 
 		/* deselect uvs, and select sticky uvs */
