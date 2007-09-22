@@ -837,6 +837,134 @@ int snap_uv_sel_to_curs(void)
 	return change;
 }
 
+int snap_uv_sel_to_adj_unsel(void)
+{
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
+	EditVert *eve;
+	MTFace *tface;
+	short change = 0;
+	int count = 0;
+	float *coords;
+	short *usercount, users;
+	
+	/* set all verts to -1 : an unused index*/
+	for (eve= em->verts.first; eve; eve= eve->next)
+		eve->tmp.l=-1;
+	
+	/* index every vert that has a selected UV using it, but only once so as to
+	 * get unique indicies and to count how much to malloc */
+	for (efa= em->faces.first; efa; efa= efa->next) {
+		tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+		if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+			if (SIMA_UVSEL_CHECK(efa, tface, 0) && efa->v1->tmp.l==-1)		efa->v1->tmp.l= count++;
+			if (SIMA_UVSEL_CHECK(efa, tface, 1) && efa->v2->tmp.l==-1)		efa->v2->tmp.l= count++;
+			if (SIMA_UVSEL_CHECK(efa, tface, 2) && efa->v3->tmp.l==-1)		efa->v3->tmp.l= count++;
+			if (efa->v4)
+				if (SIMA_UVSEL_CHECK(efa, tface, 3) && efa->v4->tmp.l==-1)	efa->v4->tmp.l= count++;
+			change = 1;
+			
+			/* optional speedup */
+			efa->tmp.p = tface;
+		} else {
+			efa->tmp.p = NULL;
+		}
+	}
+	
+	coords = MEM_callocN(sizeof(float)*count*2, "snap to adjacent coords");
+	usercount = MEM_callocN(sizeof(short)*count, "snap to adjacent counts");
+	
+	/* add all UV coords from visible, unselected UV coords as well as counting them to average later */
+	for (efa= em->faces.first; efa; efa= efa->next) {
+//		tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+//		if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+		if ((tface=(MTFace *)efa->tmp.p)) {
+			
+			/* is this an unselected UV we can snap to? */
+			if (efa->v1->tmp.l >= 0 && (!SIMA_UVSEL_CHECK(efa, tface, 0))) {
+				coords[efa->v1->tmp.l*2] +=		tface->uv[0][0];
+				coords[(efa->v1->tmp.l*2)+1] +=	tface->uv[0][1];
+				usercount[efa->v1->tmp.l]++;
+				change = 1;
+			}
+			if (efa->v2->tmp.l >= 0 && (!SIMA_UVSEL_CHECK(efa, tface, 1))) {
+				coords[efa->v2->tmp.l*2] +=		tface->uv[1][0];
+				coords[(efa->v2->tmp.l*2)+1] +=	tface->uv[1][1];
+				usercount[efa->v2->tmp.l]++;
+				change = 1;
+			}
+			if (efa->v3->tmp.l >= 0 && (!SIMA_UVSEL_CHECK(efa, tface, 2))) {
+				coords[efa->v3->tmp.l*2] +=		tface->uv[2][0];
+				coords[(efa->v3->tmp.l*2)+1] +=	tface->uv[2][1];
+				usercount[efa->v3->tmp.l]++;
+				change = 1;
+			}
+			
+			if (efa->v4) {
+				if (efa->v4->tmp.l >= 0 && (!SIMA_UVSEL_CHECK(efa, tface, 3))) {
+					coords[efa->v4->tmp.l*2] +=		tface->uv[3][0];
+					coords[(efa->v4->tmp.l*2)+1] +=	tface->uv[3][1];
+					usercount[efa->v4->tmp.l]++;
+					change = 1;
+				}
+			}
+		}
+	}
+	
+	/* no other verts selected, bail out */
+	if (!change) {
+		MEM_freeN(coords);
+		MEM_freeN(usercount);
+		return change;
+	}
+	
+	/* copy the averaged unselected UVs back to the selected UVs */
+	for (efa= em->faces.first; efa; efa= efa->next) {
+//		tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+//		if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+		if ((tface=(MTFace *)efa->tmp.p)) {
+			
+			if (	SIMA_UVSEL_CHECK(efa, tface, 0) &&
+					efa->v1->tmp.l >= 0 &&
+					(users = usercount[efa->v1->tmp.l])
+			) {
+				tface->uv[0][0] = coords[efa->v1->tmp.l*2]		/ users;
+				tface->uv[0][1] = coords[(efa->v1->tmp.l*2)+1]	/ users;
+			}
+
+			if (	SIMA_UVSEL_CHECK(efa, tface, 1) &&
+					efa->v2->tmp.l >= 0 &&
+					(users = usercount[efa->v2->tmp.l])
+			) {
+				tface->uv[1][0] = coords[efa->v2->tmp.l*2]		/ users;
+				tface->uv[1][1] = coords[(efa->v2->tmp.l*2)+1]	/ users;
+			}
+			
+			if (	SIMA_UVSEL_CHECK(efa, tface, 2) &&
+					efa->v3->tmp.l >= 0 &&
+					(users = usercount[efa->v3->tmp.l])
+			) {
+				tface->uv[2][0] = coords[efa->v3->tmp.l*2]		/ users;
+				tface->uv[2][1] = coords[(efa->v3->tmp.l*2)+1]	/ users;
+			}
+			
+			if (efa->v4) {
+				if (	SIMA_UVSEL_CHECK(efa, tface, 3) &&
+						efa->v4->tmp.l >= 0 &&
+						(users = usercount[efa->v4->tmp.l])
+				) {
+					tface->uv[3][0] = coords[efa->v4->tmp.l*2]		/ users;
+					tface->uv[3][1] = coords[(efa->v4->tmp.l*2)+1]	/ users;
+				}
+			}
+		}
+	}
+	
+	MEM_freeN(coords);
+	MEM_freeN(usercount);
+	return change;
+}
+
 void snap_coord_to_pixel(float *uvco, float w, float h)
 {
 	uvco[0] = ((float) ((int)((uvco[0]*w) + 0.5))) / w;  
@@ -892,7 +1020,7 @@ void snap_menu_sima(void)
 	short event;
 	if( is_uv_tface_editing_allowed()==0 || !G.v2d) return; /* !G.v2d should never happen */
 	
-	event = pupmenu("Snap %t|Selection -> Pixels%x1|Selection -> Cursor%x2|Cursor-> Pixel%x3|Cursor-> Selection%x4");
+	event = pupmenu("Snap %t|Selection -> Pixels%x1|Selection -> Cursor%x2|Selection -> Adjacent Unselected%x3|Cursor-> Pixel%x3|Cursor-> Selection%x4");
 	switch (event) {
 		case 1:
 		    if (snap_uv_sel_to_pixels()) {
@@ -907,10 +1035,16 @@ void snap_menu_sima(void)
 		    }
 		    break;
 		case 3:
+		    if (snap_uv_sel_to_adj_unsel()) {
+		    	BIF_undo_push("Snap UV Selection to Cursor");
+		    	object_uvs_changed(OBACT);
+		    }
+		    break;
+		case 4:
 		    snap_uv_curs_to_pixels();
 		    scrarea_queue_winredraw(curarea);
 		    break;
-		case 4:
+		case 5:
 		    if (snap_uv_curs_to_sel())
 		    	allqueue(REDRAWIMAGE, 0);
 		    break;
