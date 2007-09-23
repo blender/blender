@@ -119,7 +119,7 @@ WITH_BF_FFMPEG = 'false'  # -DWITH_FFMPEG
 BF_FFMPEG = '/usr'
 BF_FFMPEG_INC = '${BF_FFMPEG}/include'
 BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
-BF_FFMPEG_LIB = 'avformat avcodec avutil'
+BF_FFMPEG_LIB = 'avformat avcodec swscale avutil'
 
 # Mesa Libs should go here if your using them as well....
 WITH_BF_STATICOPENGL = 'false'
