@@ -525,6 +525,7 @@ enum {
 	TH_SEQ_META,
 	
 	TH_EDGE_SHARP,
+	TH_EDITMESH_ACTIVE,
 };
 /* XXX WARNING: previous is saved in file, so do not change order! */
 
