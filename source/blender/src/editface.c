@@ -367,7 +367,7 @@ void calculate_uv_map(unsigned short mapmode)
 			return;
 		
 		/* select new UV's */
-		if ((G.sima->flag & SI_SYNC_UVSEL)==0) {
+		if ((G.sima && G.sima->flag & SI_SYNC_UVSEL)==0) {
 			for(efa=em->faces.first; efa; efa=efa->next) {
 				MTFace *tf= (MTFace *)CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 				SIMA_FACESEL_SET(efa, tf);
@@ -396,7 +396,7 @@ void calculate_uv_map(unsigned short mapmode)
 			}
 		}
 		
-		/* rescale UV to be in 0..1,1/2,1/4,1/8 */
+		/* rescale UV to be in 1/1 */
 		dx= (max[0]-min[0]);
 		dy= (max[1]-min[1]);
 
