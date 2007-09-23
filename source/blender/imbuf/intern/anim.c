@@ -617,7 +617,7 @@ static int startffmpeg(struct anim * anim) {
 		anim->pCodecCtx->pix_fmt,
 		anim->pCodecCtx->width,
 		anim->pCodecCtx->height,
-		PIX_FMT_RGBA32,
+		PIX_FMT_RGBA,
 		SWS_FAST_BILINEAR | SWS_PRINT_INFO,
 		NULL, NULL, NULL);
 				
