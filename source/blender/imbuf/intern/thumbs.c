@@ -195,9 +195,9 @@ static int uri_from_filename( const char *dir, const char *file, char *uri )
 	
 #ifdef WITH_ICONV
 	{
+		char uri_utf8[FILE_MAX*3+8];
 		escape_uri_string(orig_uri, uri_utf8, FILE_MAX*3+8, UNSAFE_PATH);
 		BLI_string_to_utf8(uri_utf8, uri, NULL);
-		char uri_utf8[FILE_MAX*3+8];
 	}
 #else 
 	escape_uri_string(orig_uri, uri, FILE_MAX*3+8, UNSAFE_PATH);

@@ -736,8 +736,8 @@ static void QMC_freeSampler(QMCSampler *qsa)
 static void QMC_getSample(double *s, QMCSampler *qsa, int thread, int num)
 {
 	if (qsa->type == SAMP_TYPE_HAMMERSLEY) {
-		s[0] = fmodf(qsa->samp2d[2*num+0] + qsa->offs[thread][0], 1.0f);
-		s[1] = fmodf(qsa->samp2d[2*num+1] + qsa->offs[thread][1], 1.0f);
+		s[0] = fmod(qsa->samp2d[2*num+0] + qsa->offs[thread][0], 1.0f);
+		s[1] = fmod(qsa->samp2d[2*num+1] + qsa->offs[thread][1], 1.0f);
 	}
 	else { /* SAMP_TYPE_HALTON */
 		s[0] = qsa->samp2d[2*num+0];

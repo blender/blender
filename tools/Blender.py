@@ -391,12 +391,13 @@ class BlenderEnvironment(SConsEnvironment):
             # debug or not
             # CXXFLAGS defaults to CCFLAGS, therefore
             #  we Replace() rather than Append() to CXXFLAGS the first time
+            lenv.Replace(CXXFLAGS = lenv['CCFLAGS'])
             if lenv['BF_DEBUG'] or (libname in quickdebug):
                     lenv.Append(CCFLAGS = Split(lenv['BF_DEBUG_FLAGS']))
-                    lenv.Replace( CXXFLAGS = Split(lenv['BF_DEBUG_FLAGS']))
+                    lenv.Append( CXXFLAGS = Split(lenv['BF_DEBUG_FLAGS']))
             else:
                     lenv.Append(CCFLAGS = lenv['REL_CFLAGS'])
-                    lenv.Replace(CXXFLAGS = lenv['REL_CCFLAGS'])
+                    lenv.Append(CXXFLAGS = lenv['REL_CCFLAGS'])
             if lenv['BF_PROFILE']:
                     lenv.Append(CCFLAGS = Split(lenv['BF_PROFILE_FLAGS']),
                                 CXXFLAGS = Split(lenv['BF_PROFILE_FLAGS']))
