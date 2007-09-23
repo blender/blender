@@ -1096,7 +1096,7 @@ static void drawcamera(Object *ob, int flag)
 			if(cam->flag & CAM_SHOWLIMITS) {
 				draw_limit_line(cam->clipsta, cam->clipend, 0x77FFFF);
 				/* qdn: was yafray only, now also enabled for Blender to be used with defocus composit node */
-				draw_focus_cross(cam->YF_dofdist, cam->drawsize);
+				draw_focus_cross(dof_camera(ob), cam->drawsize);
 			}
 
 			wrld= G.scene->world;

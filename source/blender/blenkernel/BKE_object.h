@@ -63,6 +63,7 @@ int exist_object(struct Object *obtest);
 void *add_camera(char *name);
 struct Camera *copy_camera(struct Camera *cam);
 void make_local_camera(struct Camera *cam);
+float dof_camera(struct Object *ob);
 void *add_lamp(char *name);
 struct Lamp *copy_lamp(struct Lamp *la);
 void make_local_lamp(struct Lamp *la);

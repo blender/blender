@@ -1864,7 +1864,9 @@ static void lib_link_camera(FileData *fd, Main *main)
 		if(ca->id.flag & LIB_NEEDLINK) {
 
 			ca->ipo= newlibadr_us(fd, ca->id.lib, ca->ipo);
-
+			
+			ca->dof_ob= newlibadr_us(fd, ca->id.lib, ca->dof_ob);
+			
 			lib_link_scriptlink(fd, &ca->id, &ca->scriptlink);
 
 			ca->id.flag -= LIB_NEEDLINK;
@@ -6067,8 +6069,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if(arm->layer==0) arm->layer= 1;
 		}
 		for(sce= main->scene.first; sce; sce= sce->id.next) {
-			bScreen *sc;
-			
 			if(sce->jumpframe==0) sce->jumpframe= 10;
 			if(sce->audio.mixrate==0) sce->audio.mixrate= 44100;
 

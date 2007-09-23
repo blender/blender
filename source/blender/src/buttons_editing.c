@@ -3097,6 +3097,7 @@ static void editing_panel_camera_type(Object *ob, Camera *cam)
 	
 	uiDefBut(block, LABEL, 10, "Lens:", 10, 180, 150, 20, 0, 0.0, 0.0, 0, 0, "");
 	
+	uiBlockBeginAlign(block);
 	if(cam->type==CAM_ORTHO) {
 		uiDefButF(block, NUM,REDRAWVIEW3D, "Scale:",
 				  10, 160, 150, 20, &cam->ortho_scale, 0.01, 1000.0, 50, 0, "Specify the ortho scaling of the used camera");
@@ -3115,59 +3116,57 @@ static void editing_panel_camera_type(Object *ob, Camera *cam)
 		uiDefButS(block, TOG|BIT|5, B_REDR, "D",
 			140, 160, 20, 20, &cam->flag, 0, 0, 0, 0, "Use degree as the unit of the camera lens");
 	}
+	uiDefButS(block, TOG, REDRAWVIEW3D, "Orthographic",
+		  10, 140, 150, 20, &cam->type, 0, 0, 0, 0, "Render with orthographic projection (no prespective)");
+	uiBlockEndAlign(block);
 
 /* qdn: focal dist. param. from yafray now enabled for Blender as well, to use with defocus composit node */
-	uiDefButF(block, NUM, REDRAWVIEW3D, "DoFDist:", 10, 140, 150, 20 /*0, 125, 150, 20*/, &cam->YF_dofdist, 0.0, 5000.0, 50, 0, "Sets distance to point of focus (enable 'Limits' to make visible in 3Dview)");
-
-	uiDefButS(block, TOG, REDRAWVIEW3D, "Orthographic",
-			  10, 115, 150, 20, &cam->type, 0, 0, 0, 0, "Render orthogonally");
-			  //10, 135, 150, 20, &cam->type, 0, 0, 0, 0, "Render orthogonally");
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUM, REDRAWVIEW3D, "Dof Dist:", 10, 110, 150, 20 /*0, 125, 150, 20*/, &cam->YF_dofdist, 0.0, 5000.0, 50, 0, "Sets distance to point of focus (enable 'Limits' to make visible in 3Dview)");
+	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, REDRAWVIEW3D, "Dof Ob:",	10, 90, 150, 20, &cam->dof_ob, "Focus on this object (overrides the 'Dof Dist')");
+	uiBlockEndAlign(block);
 	
-	uiDefBut(block, LABEL, 0, "Clipping:", 10, 90, 150, 20, 0, 0.0, 0.0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "Clipping Start/End:", 10, 45, 150, 20, 0, 0.0, 0.0, 0, 0, "");
 	
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM,REDRAWVIEW3D, "Start:",
-			  10, 70, 150, 20, &cam->clipsta, 0.001*grid, 100.0*grid, 10, 0, "Specify the startvalue of the the field of view");
+			  10, 25, 150, 20, &cam->clipsta, 0.001*grid, 100.0*grid, 10, 0, "Clip out geometry closer then this distance to the camera");
 	uiDefButF(block, NUM,REDRAWVIEW3D, "End:",
-			  10, 50, 150, 20, &cam->clipend, 1.0, 5000.0*grid, 100, 0, "Specify the endvalue of the the field of view");
-	uiBlockEndAlign(block);
-			
-	uiDefButF(block, NUM,REDRAWVIEW3D, "Size:",
-			  170, 25, 150, 20, &cam->drawsize, 0.1*grid, 10.0, 10, 0, "The size that the camera is displayed in the 3D View (different from the object's scale)");
-
-	uiDefBut(block, LABEL, 0, "Shift:", 10, 25, 150, 20, 0, 0.0, 0.0, 0, 0, "");
-				  
-	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM,REDRAWVIEW3D, "X:",
-		10, 5, 75, 20, &cam->shiftx, -2.0, 2.0, 1, 2, "Horizontally shifts the camera view, without changing the perspective");
-	uiDefButF(block, NUM,REDRAWVIEW3D, "Y:",
-		85, 5, 75, 20, &cam->shifty, -2.0, 2.0, 1, 2, "Vertically shifts the camera view, without changing the perspective");
+			  10, 5, 150, 20, &cam->clipend, 1.0, 5000.0*grid, 100, 0, "Clip out geometry further then this distance to the camera");
 	uiBlockEndAlign(block);
 	
 	uiDefBut(block, LABEL, 0, "Show:", 170, 180, 150, 20, 0, 0.0, 0.0, 0, 0, "");
 
 	uiBlockBeginAlign(block);
 	uiDefButS(block, TOG|BIT|0, REDRAWVIEW3D, "Limits",
-			  170, 160, 150, 20, &cam->flag, 0, 0, 0, 0, "Draw the field of view");
+			  170, 160, 75, 20, &cam->flag, 0, 0, 0, 0, "Draw the clipping range and the focal point");
 	uiDefButS(block, TOG|BIT|1, REDRAWVIEW3D, "Mist",
-			  170, 140, 150, 20, &cam->flag, 0, 0, 0, 0, "Draw a line that indicates the mist area");
+			  245, 160, 75, 20, &cam->flag, 0, 0, 0, 0, "Draw a line that indicates the mist area");
+	
+	uiDefButS(block, TOG|BIT|4, REDRAWVIEW3D, "Name",
+			  170, 140, 75, 20, &cam->flag, 0, 0, 0, 0, "Draw the active camera's name in camera view");
+		uiDefButS(block, TOG|BIT|3, REDRAWVIEW3D, "Title Safe",
+			  245, 140, 75, 20, &cam->flag, 0, 0, 0, 0, "Draw a the title safe zone in camera view");
 	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
-	uiDefButS(block, TOG|BIT|4, REDRAWVIEW3D, "Name",
-			  170, 115, 150, 20, &cam->flag, 0, 0, 0, 0, "Draw the active camera's name in camera view");
-		uiDefButS(block, TOG|BIT|3, REDRAWVIEW3D, "Title Safe",
-			  170, 95, 150, 20, &cam->flag, 0, 0, 0, 0, "Draw a the title safe zone in camera view");
-	uiBlockEndAlign(block);
-	
-	uiBlockBeginAlign(block);	
 	uiDefButS(block, TOG|BIT|2, REDRAWVIEW3D, "Passepartout",
-			  170, 70, 150, 20, &cam->flag, 0, 0, 0, 0, "Draw a darkened passepartout over the off-screen area in camera view");
+			  170, 110, 150, 20, &cam->flag, 0, 0, 0, 0, "Draw a darkened passepartout over the off-screen area in camera view");
 	uiDefButF(block, NUMSLI, REDRAWVIEW3D, "Alpha: ",
-			170, 50, 150, 20, &cam->passepartalpha, 0.0, 1.0, 0, 0, "The opacity (darkness) of the passepartout");
+			170, 90, 150, 20, &cam->passepartalpha, 0.0, 1.0, 0, 0, "The opacity (darkness) of the passepartout");
 	uiBlockEndAlign(block);
 
-
+	uiDefButF(block, NUM,REDRAWVIEW3D, "Size:",
+			  170, 50, 150, 20, &cam->drawsize, 0.1*grid, 10.0, 10, 0, "The size that the camera is displayed in the 3D View (different from the object's scale)");
+	
+	uiDefBut(block, LABEL, 0, "Shift:", 170, 25, 150, 20, 0, 0.0, 0.0, 0, 0, "");
+				  
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUM,REDRAWVIEW3D, "X:",
+		170, 5, 75, 20, &cam->shiftx, -2.0, 2.0, 1, 2, "Horizontally shift the camera view, without changing the perspective");
+	uiDefButF(block, NUM,REDRAWVIEW3D, "Y:",
+		245, 5, 75, 20, &cam->shifty, -2.0, 2.0, 1, 2, "Vertically shift the camera view, without changing the perspective");
+	uiBlockEndAlign(block);
 }
 
 /* yafray: extra camera panel to set Depth-of-Field parameters */

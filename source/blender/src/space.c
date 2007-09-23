@@ -2475,7 +2475,9 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case PERIODKEY:
 				if(G.qual==LR_CTRLKEY) {
 					G.vd->around= V3D_LOCAL;
-				} 	else if(G.qual==0) {
+				} else if(G.qual==LR_ALTKEY) {
+					G.vd->around= V3D_ACTIVE;
+				} else if(G.qual==0) {
 					G.vd->around= V3D_CURSOR;
 				}
 				handle_view3d_around();

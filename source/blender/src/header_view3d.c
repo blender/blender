@@ -4986,7 +4986,7 @@ void view3d_buttons(void)
 	if(FACESEL_PAINT_TEST) G.vd->flag |= V3D_FACESELECT;
 	
 	uiDefIconTextButS(block, MENU, B_MODESELECT, (G.vd->modeselect),view3d_modeselect_pup() , 
-																xco,0,126,20, &(G.vd->modeselect), 0, 0, 0, 0, "Mode (Hotkeys: Tab, F, V, Ctrl Tab)");
+																xco,0,126,20, &(G.vd->modeselect), 0, 0, 0, 0, "Mode (Hotkeys: Tab, V, Ctrl Tab)");
 	
 	xco+= 126+8;
 	
@@ -5033,7 +5033,7 @@ void view3d_buttons(void)
  			xco+= XIC+10;
  		} else {
  			/* Manipulators arnt used in weight paint mode */
-			uiDefIconTextButS(block, ICONTEXTROW,B_AROUND, ICON_ROTATE, around_pup(), xco,0,XIC+10,YIC, &(G.vd->around), 0, 3.0, 0, 0, "Rotation/Scaling Pivot (Hotkeys: Comma, Shift Comma, Period) ");
+			uiDefIconTextButS(block, ICONTEXTROW,B_AROUND, ICON_ROTATE, around_pup(), xco,0,XIC+10,YIC, &(G.vd->around), 0, 3.0, 0, 0, "Rotation/Scaling Pivot (Hotkeys: Comma, Shift Comma, Period, Ctrl Period, Alt Period)");
 
 			xco+= XIC+10;
 		
@@ -5083,7 +5083,7 @@ void view3d_buttons(void)
 			xco+= (a-2)*(XIC/2)+3;
 
 			/* LOCK */
-			uiDefIconButS(block, ICONTOG, B_SCENELOCK, ICON_UNLOCKED, xco+=XIC,0,XIC,YIC, &(G.vd->scenelock), 0, 0, 0, 0, "Locks layers and used Camera to Scene (Ctrl `)");
+			uiDefIconButS(block, ICONTOG, B_SCENELOCK, ICON_UNLOCKED, xco+=XIC,0,XIC,YIC, &(G.vd->scenelock), 0, 0, 0, 0, "Locks Active Camera and layers to Scene (Ctrl `)");
 			xco+= XIC+10;
 
 		}
@@ -5115,7 +5115,7 @@ void view3d_buttons(void)
 				}
 			else
 				{
-				uiDefIconButBitS(block, TOG, V3D_TRANSFORM_SNAP, B_REDR, ICON_SNAP_GEAR,xco,0,XIC,YIC, &G.vd->flag2, 0, 0, 0, 0, "Use Snap or Grid (Shift Tab)");	
+				uiDefIconButBitS(block, TOG, V3D_TRANSFORM_SNAP, B_REDR, ICON_SNAP_GEAR,xco,0,XIC,YIC, &G.vd->flag2, 0, 0, 0, 0, "Snap while Ctrl is held during transform (Shift Tab)");	
 				xco+= XIC;
 				}
 
@@ -5134,7 +5134,7 @@ void view3d_buttons(void)
 			xco+= XIC;
 			uiBlockEndAlign(block);
 			if(G.vd->drawtype > OB_WIRE) {
-				uiDefIconButBitS(block, TOG, V3D_ZBUF_SELECT, B_REDR, ICON_ORTHO, xco,0,XIC,YIC, &G.vd->flag, 1.0, 0.0, 0, 0, "Limit selection to visible (clipped with depth buffer)");
+				uiDefIconButBitS(block, TOG, V3D_ZBUF_SELECT, B_REDR, ICON_ORTHO, xco,0,XIC,YIC, &G.vd->flag, 1.0, 0.0, 0, 0, "Occlude background geometry");
 				xco+= XIC;
 			}
 			xco+= 20;

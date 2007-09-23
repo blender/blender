@@ -44,6 +44,7 @@
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_camera_types.h"
 #include "DNA_ID.h"
 #include "DNA_effect_types.h"
 #include "DNA_group_types.h"
@@ -479,7 +480,13 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 		dag_add_relation(dag, node, node2, DAG_RL_DATA_DATA|DAG_RL_OB_OB);
 		/* inverted relation, so addtoroot shouldn't be set to zero */
 	}
-	
+	if (ob->type==OB_CAMERA) {
+		Camera *cam = (Camera *)ob->data;
+		if (cam->dof_ob) {
+			node2 = dag_get_node(dag, cam->dof_ob);
+			dag_add_relation(dag,node2,node,DAG_RL_OB_OB);
+		}
+	}
 	if (ob->transflag & OB_DUPLI) {
 		if((ob->transflag & OB_DUPLIGROUP) && ob->dup_group) {
 			GroupObject *go;
