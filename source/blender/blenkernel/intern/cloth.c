@@ -153,7 +153,7 @@ void cloth_init (ClothModifierData *clmd)
 	clmd->sim_parms.mass = 1.0f;
 	clmd->sim_parms.stepsPerFrame = 5;
 	clmd->sim_parms.sim_time = 1.0;
-	clmd->sim_parms.flags = CSIMSETT_FLAG_RESET | CSIMSETT_FLAG_CCACHE_PROTECT;
+	clmd->sim_parms.flags = CSIMSETT_FLAG_RESET;
 	clmd->sim_parms.solver_type = 0; 
 	clmd->sim_parms.preroll = 0;
 	clmd->sim_parms.maxspringlen = 10;

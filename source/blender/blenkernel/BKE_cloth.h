@@ -60,7 +60,7 @@ struct DerivedMesh;
 
 /* This is approximately the smallest number that can be
 * represented by a float, given its precision. */
-#define ALMOST_ZERO		0.00001
+#define ALMOST_ZERO		0.000001
 
 /* Bits to or into the ClothVertex.flags. */
 #define CVERT_FLAG_PINNED	1
@@ -240,7 +240,7 @@ typedef struct CollPair
 	float p1[3], p2[3]; // collision point p1 on face1, p2 on face2
 	int lastsign; // indicates if the distance sign has changed, unused itm
 	float time; // collision time, from 0 up to 1
-	int quadA, quadB; // indicates the used triangle of the quad: 0 means verts 1,2,3; 1 means verts 4,1,3
+	unsigned int Aindex1, Aindex2, Aindex3, Aindex4, Bindex1, Bindex2, Bindex3, Bindex4;
 } CollPair;
 
 
