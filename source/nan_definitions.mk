@@ -102,7 +102,7 @@ endif
     else
       export NAN_FTGL ?= $(LCGDIR)/ftgl
       export NAN_FFMPEG ?= $(LCGDIR)/ffmpeg
-      export NAN_FFMPEGLIBS ?= $(NAN_FFMPEG)/lib/libavformat.a $(NAN_FFMPEG)/lib/libavutil.a $(NAN_FFMPEG)/lib/libavcodec.a
+      export NAN_FFMPEGLIBS ?= $(NAN_FFMPEG)/lib/libavformat.a $(NAN_FFMPEG)/lib/libavcodec.a $(NAN_FFMPEG)/lib/libswscale.a $(NAN_FFMPEG)/lib/libavutil.a
       export NAN_FFMPEGCFLAGS ?= -I$(NAN_FFMPEG)/include
     endif
 
@@ -136,9 +136,9 @@ endif
       else
         ifeq ($(OS),linux)
 		 	ifeq ($(WITH_OPENEXR), true)
-         		NAN_OPENEXR?=$(shell pkg-config --variable=prefix OpenEXR )
-         		NAN_OPENEXR_INC?=$(shell pkg-config --cflags OpenEXR )
-         		NAN_OPENEXR_LIBS?=$(addprefix ${NAN_OPENEXR}/lib/lib,$(addsuffix .a,$(shell pkg-config --libs OpenEXR | sed -s "s/-l//g" )))
+			NAN_OPENEXR?=$(shell pkg-config --variable=prefix OpenEXR )
+			NAN_OPENEXR_INC?=$(shell pkg-config --cflags OpenEXR )
+			NAN_OPENEXR_LIBS?=$(addprefix ${NAN_OPENEXR}/lib/lib,$(addsuffix .a,$(shell pkg-config --libs OpenEXR | sed -s "s/-l//g" )))
 			endif
         else
           export NAN_OPENEXR ?= /usr/local
@@ -146,7 +146,7 @@ endif
         endif
       endif
 		 	ifeq ($(WITH_OPENEXR), true)
-      			export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/OpenEXR
+				export NAN_OPENEXR_INC ?= -I$(NAN_OPENEXR)/include -I$(NAN_OPENEXR)/include/OpenEXR
 			endif
 
     endif
@@ -380,7 +380,7 @@ endif
 
 ifneq ($(NAN_USE_FFMPEG_CONFIG), true)
     export NAN_FFMPEG ?= /usr
-    export NAN_FFMPEGLIBS ?= -L$(NAN_FFMPEG)/lib -lavformat -lavcodec -lavutil -ldts -lz
+    export NAN_FFMPEGLIBS ?= -L$(NAN_FFMPEG)/lib -lavformat -lavcodec -lavutil -lswscale -ldts -lz
     export NAN_FFMPEGCFLAGS ?= -I$(NAN_FFMPEG)/include
 endif
 
