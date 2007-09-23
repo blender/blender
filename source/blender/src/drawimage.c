@@ -406,6 +406,8 @@ static void drawcursor_sima(float xuser_asp, float yuser_asp)
 	int wi, hi;
 	float w, h;
 	
+	if (!G.obedit) return;
+	
 	transform_width_height_tface_uv(&wi, &hi);
 	w = (((float)wi)/256.0f)*G.sima->zoom * xuser_asp;
 	h = (((float)hi)/256.0f)*G.sima->zoom * yuser_asp;
@@ -1794,7 +1796,7 @@ void drawimagespace(ScrArea *sa, void *spacedata)
 		 * are normally done in drawview and could get here before
 		 * drawing a View3D.
 		 */
-	if (!G.obedit && OBACT && (sima->flag & SI_DRAWSHADOW)) {
+	if (G.obedit && OBACT && (sima->flag & SI_DRAWSHADOW)) {
 		object_handle_update(OBACT);
 	}
 	
