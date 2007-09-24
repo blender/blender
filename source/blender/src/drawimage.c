@@ -481,29 +481,34 @@ void draw_uvs_sima(void)
 		return; /* only draw shadow mesh */
 	} else if (G.sima->flag & SI_DRAWSHADOW) {
 		/* draw shadow mesh - this is the mesh with the modifier applied */
-		DerivedMesh *finalDM, *cageDM;
-		
 		glColor3ub(112, 112, 112);
-		if (G.editMesh->derivedFinal && G.editMesh->derivedFinal->drawUVEdges) {
-			G.editMesh->derivedFinal->drawUVEdges(G.editMesh->derivedFinal);
-		}
-
-		/* draw final mesh with modifiers applied */
-		cageDM = editmesh_get_derived_cage_and_final(&finalDM, CD_MASK_BAREMESH | CD_MASK_MTFACE);
-		
-		if 		(finalDM->drawUVEdges &&
-				DM_get_face_data_layer(finalDM, CD_MTFACE) &&
-				/* When sync selection is enabled, all faces are drawn (except for hidden)
-				 * so if cage is the same as the final, theres no point in drawing the shadowmesh. */
-				!((G.sima->flag & SI_SYNC_UVSEL && cageDM==finalDM))
+		if (	em->derivedFinal &&
+				em->derivedFinal->drawUVEdges &&
+				CustomData_has_layer(&em->derivedFinal->faceData, CD_MTFACE)
 		) {
+			/* we can use the existing final mesh */
 			glColor3ub(112, 112, 112);
-			finalDM->drawUVEdges(finalDM);
+			G.editMesh->derivedFinal->drawUVEdges(G.editMesh->derivedFinal);
+		} else {
+			DerivedMesh *finalDM, *cageDM;
+			
+			/* draw final mesh with modifiers applied */
+			cageDM = editmesh_get_derived_cage_and_final(&finalDM, CD_MASK_BAREMESH | CD_MASK_MTFACE);
+			
+			if 		(finalDM->drawUVEdges &&
+					DM_get_face_data_layer(finalDM, CD_MTFACE) &&
+					/* When sync selection is enabled, all faces are drawn (except for hidden)
+					 * so if cage is the same as the final, theres no point in drawing the shadowmesh. */
+					!((G.sima->flag & SI_SYNC_UVSEL && cageDM==finalDM))
+			) {
+				glColor3ub(112, 112, 112);
+				finalDM->drawUVEdges(finalDM);
+			}
+			
+			if (cageDM != finalDM)
+				cageDM->release(cageDM);
+			finalDM->release(finalDM);
 		}
-		
-		if (cageDM != finalDM)
-			cageDM->release(cageDM);
-		finalDM->release(finalDM);
 	}
 	
 	/* draw transparent faces */

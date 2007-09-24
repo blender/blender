@@ -183,12 +183,16 @@ def ExportCallback(f):
 	
 	time1= Blender.sys.time()
 
-	if obj.type != "Mesh":
+	if not obj or obj.type != "Mesh":
 		BPyMessages.Error_NoMeshActive()
 		return
-
+	
+	is_editmode = Blender.Window.EditMode()
+	if is_editmode: Blender.Window.EditMode(0)
+	
 	mesh = obj.getData(mesh=1)
 	if not mesh.faceUV:
+		if is_editmode: Blender.Window.EditMode(1)
 		BPyMessages.Error_NoMeshUvActive()
 		return
 
@@ -207,6 +211,8 @@ def ExportCallback(f):
 	
 	UVFaces = ExtractUVFaces(mesh, bAllFaces.val)
 	
+	if is_editmode: Blender.Window.EditMode(1)
+		
 	if not bSVG.val:
 		print "TGA export is running..."
 		UV_Export_TGA(UVFaces, bSize.val, bWSize.val, bWrap.val, name)
