@@ -54,8 +54,10 @@
 #include "BIF_resources.h"
 #include "BIF_mywindow.h"
 #include "BIF_gl.h"
+#include "BIF_editaction.h"
 #include "BIF_editarmature.h"
 #include "BIF_editmesh.h"
+#include "BIF_editnla.h"
 #include "BIF_editsima.h"
 #include "BIF_meshtools.h"
 #include "BIF_retopo.h"
@@ -75,6 +77,7 @@
 #include "BKE_group.h"
 #include "BKE_ipo.h"
 #include "BKE_lattice.h"
+#include "BKE_key.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
@@ -85,6 +88,7 @@
 #endif
 
 #include "BSE_view.h"
+#include "BSE_editaction_types.h"
 #include "BDR_unwrapper.h"
 
 #include "BLI_arithb.h"
@@ -215,8 +219,47 @@ void recalcData(TransInfo *t)
 #ifdef WITH_VERSE
 	struct TransData *td;
 #endif
+	
+	if (t->spacetype == SPACE_ACTION) {
+		Object *ob= OBACT;
+		void *data;
+		short context;
 		
-	if (G.obedit) {
+		/* determine what type of data we are operating on */
+		data = get_action_context(&context);
+		if (data == NULL) return;
+	
+		if (G.saction->lock) {
+			if (context == ACTCONT_ACTION) {
+				if(ob) {
+					ob->ctime= -1234567.0f;
+					if(ob->pose || ob_get_key(ob))
+						DAG_object_flush_update(G.scene, ob, OB_RECALC);
+					else
+						DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
+				}
+			}
+			else if (context == ACTCONT_SHAPEKEY) {
+				DAG_object_flush_update(G.scene, OBACT, OB_RECALC_OB|OB_RECALC_DATA);
+			}
+		}
+	}	
+	else if (t->spacetype == SPACE_NLA) {
+		if (G.snla->lock) {
+			for (base=G.scene->base.first; base; base=base->next) {
+				if (base->flag & BA_HAS_RECALC_OB)
+					base->object->recalc |= OB_RECALC_OB;
+				if (base->flag & BA_HAS_RECALC_DATA)
+					base->object->recalc |= OB_RECALC_DATA;
+				
+				if (base->object->recalc) 
+					base->object->ctime= -1234567.0f;	// eveil! 
+			}
+			
+			DAG_scene_flush_update(G.scene, screen_view3d_layers());
+		}
+	}
+	else if (G.obedit) {
 		if (G.obedit->type == OB_MESH) {
 			if(t->spacetype==SPACE_IMAGE) {
 				flushTransUVs(t);

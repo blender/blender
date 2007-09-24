@@ -597,10 +597,10 @@ static void do_action_keymenu_transformmenu(void *arg, int event)
 			transform_action_keys('g', 0);
 			break;
 		case ACTMENU_KEY_TRANSFORM_SCALE:
-			transform_action_keys ('s', 0);
+			transform_action_keys('s', 0);
 			break;
 		case ACTMENU_KEY_TRANSFORM_SLIDE:
-			transform_action_keys ('t', 0);
+			transform_action_keys('t', 0);
 			break;
 	}
 

@@ -339,6 +339,15 @@ int BoneEnvelope(TransInfo *t, short mval[2]);
 void initBoneRoll(TransInfo *t);
 int BoneRoll(TransInfo *t, short mval[2]);
 
+void initTimeTranslate(TransInfo *t);
+int TimeTranslate(TransInfo *t, short mval[2]);
+
+void initTimeSlide(TransInfo *t);
+int TimeSlide(TransInfo *t, short mval[2]);
+
+void initTimeScale(TransInfo *t);
+int TimeScale(TransInfo *t, short mval[2]);
+
 /*********************** transform_conversions.c ********** */
 struct ListBase;
 void flushTransUVs(TransInfo *t);
