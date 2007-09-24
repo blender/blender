@@ -89,8 +89,19 @@ static void node_composit_exec_texture(void *data, bNode *node, bNodeStack **in,
 	/* outputs: value, color, normal */
 	
 	if(node->id) {
+		RenderResult *rr= RE_GetResult(RE_GetRender(G.scene->id.name)); /* G.scene is WEAK! */
+		short sizex, sizey;
+		
 		/* first make the preview image */
 		CompBuf *prevbuf= alloc_compbuf(140, 140, CB_RGBA, 1); /* alloc */
+		
+		if (rr) {
+			sizex = rr->rectx;
+			sizey = rr->recty;
+		} else {
+			sizex = G.scene->r.xsch;
+			sizey = G.scene->r.ysch;
+		}
 		
 		prevbuf->rect_procedural= texture_procedural;
 		prevbuf->node= node;
@@ -99,15 +110,15 @@ static void node_composit_exec_texture(void *data, bNode *node, bNodeStack **in,
 		free_compbuf(prevbuf);
 		
 		if(out[0]->hasoutput) {
-			CompBuf *stackbuf= alloc_compbuf(140, 140, CB_VAL, 1); /* alloc */
+			CompBuf *stackbuf= alloc_compbuf(sizex, sizey, CB_VAL, 1); /* alloc */
 			
 			stackbuf->rect_procedural= texture_procedural;
 			stackbuf->node= node;
 			
-			out[0]->data= stackbuf;
+			out[0]->data= stackbuf; 
 		}
 		if(out[1]->hasoutput) {
-			CompBuf *stackbuf= alloc_compbuf(140, 140, CB_RGBA, 1); /* alloc */
+			CompBuf *stackbuf= alloc_compbuf(sizex, sizey, CB_RGBA, 1); /* alloc */
 			
 			stackbuf->rect_procedural= texture_procedural;
 			stackbuf->node= node;
