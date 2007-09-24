@@ -3291,7 +3291,7 @@ static short getAnimEdit_DrawTime(TransInfo *t)
 	if (t->spacetype == SPACE_ACTION && G.saction) {
 		drawtime = (G.saction->flag & SACTION_DRAWTIME)? 1 : 0;
 	}
-	else if (t->spacetype == SPACE_NLA && G.snla) {=
+	else if (t->spacetype == SPACE_NLA && G.snla) {
 		drawtime = (G.snla->flag & SNLA_DRAWTIME)? 1 : 0;
 	}
 	else {
