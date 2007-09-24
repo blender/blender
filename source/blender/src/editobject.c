@@ -2059,7 +2059,7 @@ void docenter(int centermode)
 	/* Warn if any errors occured */
 	if (tot_lib_error+tot_key_error+tot_multiuser_arm_error) {
 		char err[512];
-		sprintf(err, "Warning %i Object(s) Not Centered, %i Changed%%t", tot_lib_error+tot_key_error+tot_multiuser_arm_error, tot_change);
+		sprintf(err, "Warning %i Object(s) Not Centered, %i Changed:", tot_lib_error+tot_key_error+tot_multiuser_arm_error, tot_change);
 		
 		if (tot_lib_error)
 			sprintf(err+strlen(err), "|%i linked library objects", tot_lib_error);
@@ -2068,7 +2068,7 @@ void docenter(int centermode)
 		if (tot_multiuser_arm_error)
 			sprintf(err+strlen(err), "|%i multiuser armature object(s)", tot_multiuser_arm_error);
 		
-		pupmenu(err);
+		error(err);
 	}
 }
 
@@ -3535,7 +3535,7 @@ void make_links(short event)
 			return;			
 		}
 		else {
-			event= pupmenu(strp);
+			event= pupmenu_col(strp, 20);
 			MEM_freeN(strp);
 		
 			if(event<= 0) return;
