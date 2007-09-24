@@ -250,7 +250,7 @@ typedef struct SpaceImage {
 	
 } SpaceImage;
 
-typedef struct SpaceNla{
+typedef struct SpaceNla {
 	struct SpaceLink *next, *prev;
 	int spacetype;
 	float blockscale;
@@ -259,7 +259,8 @@ typedef struct SpaceNla{
 	short blockhandler[8];
 
 	short menunr, lock;
-	int flag;
+	short autosnap;			/* this uses the same settings as autosnap for Action Editor */
+	short flag;
 	
 	View2D v2d;	
 } SpaceNla;
@@ -580,6 +581,7 @@ typedef struct SpaceImaSel {
 /* nla->flag */
 #define SNLA_ALLKEYED		1
 #define SNLA_ACTIVELAYERS	2
+#define SNLA_DRAWTIME		4
 
 /* time->flag */
 #define TIME_DRAWFRAMES		1

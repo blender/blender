@@ -173,21 +173,6 @@ void remake_action_ipos (bAction *act)
 	synchronize_action_strips();
 }
 
-static void remake_meshaction_ipos (Ipo *ipo)
-{
-	/* this puts the bezier triples in proper
-	 * order and makes sure the bezier handles
-	 * aren't too strange.
-	 */
-	IpoCurve *icu;
-
-	for (icu = ipo->curve.first; icu; icu=icu->next) {
-		sort_time_ipocurve(icu);
-		testhandles_ipocurve(icu);
-	}
-}
-
-
 /* **************************************************** */
 /* FILTER->EDIT STRUCTURES */
 /* 

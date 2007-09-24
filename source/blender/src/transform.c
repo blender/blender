@@ -3249,6 +3249,24 @@ static short getAnimEdit_SnapMode(TransInfo *t)
 			break;
 		}
 	}
+	else if (t->spacetype == SPACE_NLA && G.snla) {
+		switch (G.snla->autosnap) {
+		case SACTSNAP_OFF:
+			if (G.qual == LR_CTRLKEY) 
+				autosnap= SACTSNAP_STEP;
+			else if (G.qual == LR_SHIFTKEY)
+				autosnap= SACTSNAP_FRAME;
+			else
+				autosnap= SACTSNAP_OFF;
+			break;
+		case SACTSNAP_STEP:
+			autosnap= (G.qual==LR_CTRLKEY)? SACTSNAP_OFF: SACTSNAP_STEP;
+			break;
+		case SACTSNAP_FRAME:
+			autosnap= (G.qual==LR_SHIFTKEY)? SACTSNAP_OFF: SACTSNAP_FRAME;
+			break;
+		}
+	}
 	else {
 		if (G.qual == LR_CTRLKEY) 
 			autosnap= SACTSNAP_STEP;
@@ -3271,10 +3289,10 @@ static short getAnimEdit_DrawTime(TransInfo *t)
 	
 	/* currently, some of these are only for the action editor */
 	if (t->spacetype == SPACE_ACTION && G.saction) {
-		if (G.saction->flag & SACTION_DRAWTIME) 
-			drawtime = 1;
-		else
-			drawtime = 0;
+		drawtime = (G.saction->flag & SACTION_DRAWTIME)? 1 : 0;
+	}
+	else if (t->spacetype == SPACE_NLA && G.snla) {=
+		drawtime = (G.snla->flag & SNLA_DRAWTIME)? 1 : 0;
 	}
 	else {
 		drawtime = 0;

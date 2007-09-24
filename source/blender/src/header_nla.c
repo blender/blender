@@ -122,6 +122,9 @@ static void do_nla_viewmenu(void *arg, int event)
 	case 6: /* Show all objects that have keyframes? */
 		G.snla->flag ^= SNLA_ALLKEYED;
 		break;
+	case 7:	/* Show timing in Frames or Seconds */
+		G.snla->flag ^= SNLA_DRAWTIME;
+		break;
 	}
 }
 
@@ -136,6 +139,12 @@ static uiBlock *nla_viewmenu(void *arg_unused)
 		
 	uiDefIconTextBut(block, BUTM, 1, (G.snla->flag & SNLA_ALLKEYED)?ICON_CHECKBOX_DEHLT:ICON_CHECKBOX_HLT, 
 					 "Only Objects On Visible Layers|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+		
+	if (G.snla->flag & SNLA_DRAWTIME) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Frames|Ctrl T", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
+	} else {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Seconds|Ctrl T", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
+	}
 		
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 		
@@ -501,6 +510,24 @@ void nla_buttons(void)
 	uiBlockSetEmboss(block, UI_EMBOSS);
 
 
+	/* draw AUTOSNAP */
+	xco += 8;
+	
+	if (G.snla->flag & SNLA_DRAWTIME) {
+		uiDefButS(block, MENU, B_REDR,
+				"Auto-Snap Strips/Keyframes %t|Off %x0|Second Step %x1|Nearest Second %x2", 
+				xco,0,70,YIC, &(G.snla->autosnap), 0, 1, 0, 0, 
+				"Auto-snapping mode for strips and keyframes when transforming");
+	}
+	else {
+		uiDefButS(block, MENU, B_REDR, 
+				"Auto-Snap Strips/Keyframes %t|Off %x0|Frame Step %x1|Nearest Frame %x2", 
+				xco,0,70,YIC, &(G.snla->autosnap), 0, 1, 0, 0, 
+				"Auto-snapping mode for strips and keyframes when transforming");
+	}
+	
+	xco += (70 + 8);
+	
 	/* FULL WINDOW */
 	
 	

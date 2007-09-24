@@ -230,6 +230,14 @@ void calc_ipogrid()
 		}
 		break;
 	}
+	case SPACE_NLA: {
+		SpaceNla *snla = curarea->spacedata.first;
+		if (snla->flag & SNLA_DRAWTIME) {
+			secondgrid = 1;
+			secondiv = 0.01 * (float)G.scene->r.frs_sec;
+		}
+		break;
+	}
 	default:
 		break;
 	}
@@ -241,7 +249,7 @@ void calc_ipogrid()
 	step_to_grid(&ipogrid_dx, &ipomachtx);
 	ipogrid_dx*= secondiv;
 	
-	if ELEM4(curarea->spacetype, SPACE_SEQ, SPACE_SOUND, SPACE_TIME, SPACE_ACTION) {
+	if ELEM5(curarea->spacetype, SPACE_SEQ, SPACE_SOUND, SPACE_TIME, SPACE_ACTION, SPACE_NLA) {
 		if(ipogrid_dx < 0.1) ipogrid_dx= 0.1;
 		ipomachtx-= 2;
 		if(ipomachtx<-2) ipomachtx= -2;
@@ -252,7 +260,7 @@ void calc_ipogrid()
 	ipogrid_dy= IPOSTEP*space/pixels;
 	step_to_grid(&ipogrid_dy, &ipomachty);
 	
-	if ELEM4(curarea->spacetype, SPACE_SEQ, SPACE_SOUND, SPACE_TIME, SPACE_ACTION) {
+	if ELEM5(curarea->spacetype, SPACE_SEQ, SPACE_SOUND, SPACE_TIME, SPACE_ACTION, SPACE_NLA) {
 		if(ipogrid_dy < 1.0) ipogrid_dy= 1.0;
 		if(ipomachty<1) ipomachty= 1;
 	}
@@ -975,6 +983,18 @@ void drawscroll(int disptype)
 				SpaceAction *saction= curarea->spacedata.first;
 				
 				if (saction->flag & SACTION_DRAWTIME) {
+					fac2= val/(float)G.scene->r.frs_sec;
+					scroll_prstr(fac, 3.0+(float)(hor.ymin), fac2, 'h', disptype);
+				}
+				else {
+					ipomachtx= 1;
+					scroll_prstr(fac, 3.0+(float)(hor.ymin), val, 'h', disptype);
+				}
+			}
+			else if (curarea->spacetype==SPACE_NLA) {
+				SpaceNla *snla= curarea->spacedata.first;
+				
+				if (snla->flag & SNLA_DRAWTIME) {
 					fac2= val/(float)G.scene->r.frs_sec;
 					scroll_prstr(fac, 3.0+(float)(hor.ymin), fac2, 'h', disptype);
 				}

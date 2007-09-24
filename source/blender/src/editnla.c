@@ -427,6 +427,12 @@ void snap_action_strips(int snap_mode)
 						strip->end += diff;
 					}
 				}
+				else if (snap_mode==3) {
+					/* nearest second */
+					float secf = (float)(G.scene->r.frs_sec);
+					strip->start= (float)(floor(strip->start/secf + 0.5f) * secf);
+					strip->end= (float)(floor(strip->end/secf + 0.5f) * secf);
+				}
 			}
 		}
 		
@@ -1866,8 +1872,11 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						reset_action_strips(2);
 				}
 				else if(G.qual & LR_SHIFTKEY) {
-					val= pupmenu("Snap To%t|Nearest Frame%x1|Current Frame%x2");
-					if (val==1 || val==2)
+					if (snla->flag & SNLA_DRAWTIME)
+						val= pupmenu("Snap To%t|Nearest Second%x3|Current Time%x2");
+					else
+						val= pupmenu("Snap To%t|Nearest Frame%x1|Current Frame%x2");
+					if (ELEM3(val, 1, 2, 3))
 						snap_action_strips(val);
 				}
 				else {
@@ -1875,6 +1884,19 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						transform_nlachannel_keys ('s', 0);
 					update_for_newframe_muted();
 				}
+				break;
+				
+			case TKEY:
+				if (G.qual & LR_CTRLKEY) {
+					val= pupmenu("Time value%t|Frames %x1|Seconds%x2");
+					
+					if (val > 0) {
+						if (val == 2) snla->flag |= SNLA_DRAWTIME;
+						else snla->flag &= ~SNLA_DRAWTIME;
+						
+						doredraw= 1;
+					}
+				}				
 				break;
 				
 			case DELKEY:

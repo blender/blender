@@ -152,7 +152,7 @@ typedef struct SpaceAction {
 #define SACTION_SLIDERS		2	/* show sliders (if relevant) - limited to shape keys for now */
 #define SACTION_DRAWTIME	4	/* draw time in seconds instead of time in frames */
 
-/* SpaceAction AutoSnap Settings */
+/* SpaceAction AutoSnap Settings (also used by SpaceNLA) */
 #define SACTSNAP_OFF	0	/* no auto-snap */
 #define SACTSNAP_STEP	1	/* snap to 1.0 frame/second intervals */
 #define SACTSNAP_FRAME	2	/* snap to actual frames/seconds (nla-action time) */
