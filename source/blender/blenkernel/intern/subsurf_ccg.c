@@ -1908,6 +1908,7 @@ static void ccgDM_drawUVEdges(DerivedMesh *dm)
 }
 
 static void ccgDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), void *userData, int useColors) {
+	GLubyte act_face_stipple[32*32/8] = DM_FACE_STIPPLE;
 	CCGDerivedMesh *ccgdm = (CCGDerivedMesh*) dm;
 	CCGSubSurf *ss = ccgdm->ss;
 	CCGFaceIterator *fi = ccgSubSurf_getFaceIterator(ss);
@@ -1924,51 +1925,63 @@ static void ccgDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *u
 
 		if(faceFlags) drawSmooth = (faceFlags[origIndex*4] & ME_SMOOTH);
 		else drawSmooth = 1;
-
-		if (index!=-1 && (!setDrawOptions || setDrawOptions(userData, index, &drawSmooth))) {
-			for (S=0; S<numVerts; S++) {
-				VertData *faceGridData = ccgSubSurf_getFaceGridDataArray(ss, f, S);
-				if (drawSmooth) {
-					glShadeModel(GL_SMOOTH);
-					for (y=0; y<gridSize-1; y++) {
-						glBegin(GL_QUAD_STRIP);
-						for (x=0; x<gridSize; x++) {
-							VertData *a = &faceGridData[(y+0)*gridSize + x];
-							VertData *b = &faceGridData[(y+1)*gridSize + x];
-
-							glNormal3fv(a->no);
-							glVertex3fv(a->co);
-							glNormal3fv(b->no);
-							glVertex3fv(b->co);
+		
+		if (index!=-1) {
+			int draw;
+			draw = setDrawOptions==NULL ? 1 : setDrawOptions(userData, index, &drawSmooth);
+			
+			if (draw) {
+				if (draw==2) {
+		  			glEnable(GL_POLYGON_STIPPLE);
+		  			glPolygonStipple(act_face_stipple);
+				}
+				
+				for (S=0; S<numVerts; S++) {
+					VertData *faceGridData = ccgSubSurf_getFaceGridDataArray(ss, f, S);
+					if (drawSmooth) {
+						glShadeModel(GL_SMOOTH);
+						for (y=0; y<gridSize-1; y++) {
+							glBegin(GL_QUAD_STRIP);
+							for (x=0; x<gridSize; x++) {
+								VertData *a = &faceGridData[(y+0)*gridSize + x];
+								VertData *b = &faceGridData[(y+1)*gridSize + x];
+	
+								glNormal3fv(a->no);
+								glVertex3fv(a->co);
+								glNormal3fv(b->no);
+								glVertex3fv(b->co);
+							}
+							glEnd();
+						}
+					} else {
+						glShadeModel(GL_FLAT);
+						glBegin(GL_QUADS);
+						for (y=0; y<gridSize-1; y++) {
+							for (x=0; x<gridSize-1; x++) {
+								float *a = faceGridData[(y+0)*gridSize + x].co;
+								float *b = faceGridData[(y+0)*gridSize + x + 1].co;
+								float *c = faceGridData[(y+1)*gridSize + x + 1].co;
+								float *d = faceGridData[(y+1)*gridSize + x].co;
+								float a_cX = c[0]-a[0], a_cY = c[1]-a[1], a_cZ = c[2]-a[2];
+								float b_dX = d[0]-b[0], b_dY = d[1]-b[1], b_dZ = d[2]-b[2];
+								float no[3];
+	
+								no[0] = b_dY*a_cZ - b_dZ*a_cY;
+								no[1] = b_dZ*a_cX - b_dX*a_cZ;
+								no[2] = b_dX*a_cY - b_dY*a_cX;
+								glNormal3fv(no);
+	
+								glVertex3fv(d);
+								glVertex3fv(c);
+								glVertex3fv(b);
+								glVertex3fv(a);
+							}
 						}
 						glEnd();
 					}
-				} else {
-					glShadeModel(GL_FLAT);
-					glBegin(GL_QUADS);
-					for (y=0; y<gridSize-1; y++) {
-						for (x=0; x<gridSize-1; x++) {
-							float *a = faceGridData[(y+0)*gridSize + x].co;
-							float *b = faceGridData[(y+0)*gridSize + x + 1].co;
-							float *c = faceGridData[(y+1)*gridSize + x + 1].co;
-							float *d = faceGridData[(y+1)*gridSize + x].co;
-							float a_cX = c[0]-a[0], a_cY = c[1]-a[1], a_cZ = c[2]-a[2];
-							float b_dX = d[0]-b[0], b_dY = d[1]-b[1], b_dZ = d[2]-b[2];
-							float no[3];
-
-							no[0] = b_dY*a_cZ - b_dZ*a_cY;
-							no[1] = b_dZ*a_cX - b_dX*a_cZ;
-							no[2] = b_dX*a_cY - b_dY*a_cX;
-							glNormal3fv(no);
-
-							glVertex3fv(d);
-							glVertex3fv(c);
-							glVertex3fv(b);
-							glVertex3fv(a);
-						}
-					}
-					glEnd();
 				}
+				if (draw==2)
+					glDisable(GL_POLYGON_STIPPLE);
 			}
 		}
 	}

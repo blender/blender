@@ -360,6 +360,12 @@ static void init_userdef_file(void)
 		/* set default number of recently-used files (if not set) */
 		if (U.recent_files == 0) U.recent_files = 10;
 	}
+	if (G.main->versionfile < 245 || (G.main->versionfile == 245 && G.main->subversionfile < 3)) {
+		bTheme *btheme;
+		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
+			SETCOL(btheme->tv3d.editmesh_active, 255, 255, 255, 128);
+		}
+	}
 	
 	/* GL Texture Garbage Collection (variable abused above!) */
 	if (U.textimeout == 0) {

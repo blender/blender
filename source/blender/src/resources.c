@@ -252,6 +252,8 @@ char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 				cp= ts->edge_seam; break;
 			case TH_EDGE_SHARP:
 				cp= ts->edge_sharp; break;
+			case TH_EDITMESH_ACTIVE:
+				cp= ts->editmesh_active; break;
 			case TH_EDGE_FACESEL:
 				cp= ts->edge_facesel; break;
 			case TH_FACE:

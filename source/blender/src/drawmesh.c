@@ -597,10 +597,6 @@ void update_realtime_textures()
 enum {
 	eEdge_Visible = (1<<0),
 	eEdge_Select = (1<<1),
-	eEdge_Active = (1<<2),
-	eEdge_SelectAndActive = (1<<3),
-	eEdge_ActiveFirst = (1<<4),
-	eEdge_ActiveLast = (1<<5)
 };
 
 	/* Creates a hash of edges to flags indicating
@@ -634,10 +630,6 @@ EdgeHash *get_tface_mesh_marked_edge_info(Mesh *me)
 			if (!(mf->flag&ME_HIDE)) {
 				unsigned int flags = eEdge_Visible;
 				if (mf->flag&ME_FACE_SEL) flags |= eEdge_Select;
-				if (i==me->act_face) {
-					flags |= eEdge_Active;
-					if (mf->flag&ME_FACE_SEL) flags |= eEdge_SelectAndActive;
-				}
 
 				get_marked_edge_info__orFlags(eh, mf->v1, mf->v2, flags);
 				get_marked_edge_info__orFlags(eh, mf->v2, mf->v3, flags);
@@ -646,11 +638,6 @@ EdgeHash *get_tface_mesh_marked_edge_info(Mesh *me)
 					get_marked_edge_info__orFlags(eh, mf->v4, mf->v1, flags);
 				} else {
 					get_marked_edge_info__orFlags(eh, mf->v3, mf->v1, flags);
-				}
-				
-				if (i==me->act_face) {
-					get_marked_edge_info__orFlags(eh, mf->v1, mf->v2, eEdge_ActiveFirst);
-					get_marked_edge_info__orFlags(eh, mf->v1, mf->v4?mf->v4:mf->v3, eEdge_ActiveLast);
 				}
 			}
 		}
@@ -708,17 +695,7 @@ static int draw_tfaces3D__setActiveOpts(void *userData, int index)
 	MEdge *med = &data->me->medge[index];
 	unsigned long flags = (long) BLI_edgehash_lookup(data->eh, med->v1, med->v2);
 
-	if (flags & eEdge_Active) {
-		if (flags & eEdge_ActiveLast) {
-			glColor3ub(255, 0, 0);
-		} else if (flags & eEdge_ActiveFirst) {
-			glColor3ub(0, 255, 0);
-		} else if (flags & eEdge_SelectAndActive) {
-			glColor3ub(255, 255, 0);
-		} else {
-			glColor3ub(255, 0, 255);
-		}
-
+	if (flags & eEdge_Select) {
 		return 1;
 	} else {
 		return 0;
@@ -1040,7 +1017,7 @@ static int draw_tface_mapped__set_draw(void *userData, int index)
 static int draw_em_tf_mapped__set_draw(void *userData, int index)
 {
 	EditMesh *em = userData;
-	EditFace *efa = EM_get_face_for_index(index);
+	EditFace *efa = EM_get_face_for_index(index), *efa_act = userData;
 	MTFace *tface;
 	MCol *mcol;
 	int matnr;

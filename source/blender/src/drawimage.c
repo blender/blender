@@ -453,7 +453,7 @@ void draw_uvs_sima(void)
 {
 	MTFace *tface,*activetface = NULL;
 	EditMesh *em = G.editMesh;
-	EditFace *efa;
+	EditFace *efa, *efa_act;
 	
 	char col1[4], col2[4];
 	float pointsize;
@@ -511,6 +511,8 @@ void draw_uvs_sima(void)
 		}
 	}
 	
+	activetface = get_active_mtface(&efa_act, NULL, 0); /* will be set to NULL if hidden */
+		
 	/* draw transparent faces */
 	if(G.f & G_DRAWFACES) {
 		BIF_GetThemeColor4ubv(TH_FACE, col1);
@@ -520,7 +522,10 @@ void draw_uvs_sima(void)
 		
 		for (efa= em->faces.first; efa; efa= efa->next) {
 			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			
 			if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+				efa->tmp.p = tface;
+				if (tface==activetface) continue; /* important the temp pointer is set above */
 				if( SIMA_FACESEL_CHECK(efa, tface) )
 					glColor4ubv((GLubyte *)col2);
 				else
@@ -532,8 +537,10 @@ void draw_uvs_sima(void)
 					glVertex2fv(tface->uv[2]);
 					if(efa->v4) glVertex2fv(tface->uv[3]);
 				glEnd();
-				efa->tmp.p = tface;
+				
 			} else {
+				if (tface == activetface)
+					activetface= NULL;
 				efa->tmp.p = NULL;
 			}
 		}
@@ -544,12 +551,32 @@ void draw_uvs_sima(void)
 			if (SIMA_FACEDRAW_CHECK(efa, tface)) {		
 				efa->tmp.p = tface;
 			} else {
+				if (tface == activetface)
+					activetface= NULL;
 				efa->tmp.p = NULL;
 			}
 		}
 		glDisable(GL_BLEND);
 	}
-
+	
+	if (activetface) {
+		GLubyte act_face_stipple[32*32/8] = DM_FACE_STIPPLE;
+		
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		BIF_ThemeColor4(TH_EDITMESH_ACTIVE);
+		glEnable(GL_POLYGON_STIPPLE);
+		glPolygonStipple(act_face_stipple);
+		glBegin(efa_act->v4?GL_QUADS:GL_TRIANGLES);
+			glVertex2fv(activetface->uv[0]);
+			glVertex2fv(activetface->uv[1]);
+			glVertex2fv(activetface->uv[2]);
+			if(efa_act->v4) glVertex2fv(activetface->uv[3]);
+		glEnd();
+		glDisable(GL_POLYGON_STIPPLE);
+		glDisable(GL_BLEND);
+	}
+	
 	if (G.sima->flag & SI_SMOOTH_UV) {
 		glEnable( GL_LINE_SMOOTH );
 		glEnable(GL_BLEND);
@@ -661,41 +688,38 @@ void draw_uvs_sima(void)
 	
 	
 	/* draw active face edges */
-		/* colors: R=u G=v */
-	activetface = get_active_mtface(&efa, NULL, 0);
+	
 	if (activetface) {
-		setlinestyle(2);
-		tface=activetface;
 		
-		cpack(0x0);
-		glBegin(GL_LINE_LOOP);
-		glVertex2fv(tface->uv[0]);
-			glVertex2fv(tface->uv[1]);
-			glVertex2fv(tface->uv[2]);
-			if(efa->v4) glVertex2fv(tface->uv[3]);
-		glEnd();
-			
-		cpack(0xFF00);
-		glBegin(GL_LINE_STRIP);
-			glVertex2fv(tface->uv[0]);
-			glVertex2fv(tface->uv[1]);
-		glEnd();
-
-		cpack(0xFF);
-		glBegin(GL_LINE_STRIP);
-			glVertex2fv(tface->uv[0]);
-			if(efa->v4) glVertex2fv(tface->uv[3]);
-			else glVertex2fv(tface->uv[2]);
-		glEnd();
-
-		cpack(0xFFFFFF);
-		glBegin(GL_LINE_STRIP);
-			glVertex2fv(tface->uv[1]);
-			glVertex2fv(tface->uv[2]);
-			if(efa->v4) glVertex2fv(tface->uv[3]);
-		glEnd();
 		
-		setlinestyle(0);
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
 	}
 
     /* unselected uv's */

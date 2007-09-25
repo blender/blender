@@ -560,21 +560,23 @@ void calculate_uv_map(unsigned short mapmode)
 	allqueue(REDRAWIMAGE, 0);
 }
 
-MTFace *get_active_mtface(EditFace **act_efa, MCol **mcol, short partsel)
+/* last_sel, use em->act_face otherwise get the last selected face in the editselections
+ * at the moment, last_sel is mainly useful for gaking sure the space image dosnt flicker */
+MTFace *get_active_mtface(EditFace **act_efa, MCol **mcol, short sloppy)
 {
 	EditMesh *em = G.editMesh;
 	EditFace *efa = NULL;
-	EditFace *efa_vertsel = NULL; /* use this if one of the faces verts are selected */
 	EditSelection *ese;
 	
 	if(!EM_texFaceCheck())
 		return NULL;
 	
 	/* first check the active face */
-	if (em->act_face) {
+	if (sloppy && em->act_face) {
 		efa = em->act_face;
 	} else {
-		for (ese = em->selected.last; ese; ese=ese->prev){
+		ese = em->selected.last;
+		for (; ese; ese=ese->prev){
 			if(ese->type == EDITFACE) {
 				efa = (EditFace *)ese->data;
 				
@@ -584,20 +586,12 @@ MTFace *get_active_mtface(EditFace **act_efa, MCol **mcol, short partsel)
 		}
 	}
 	
-	if (!efa) {
+	if (sloppy && !efa) {
 		for (efa= em->faces.first; efa; efa= efa->next) {
 			if (efa->f & SELECT)
 				break;
-			
-			/* use a face that has 1 vert selected as a last resort
-			 * This is so selecting verts in editmode does not always make the UV window flicker */
-			if (partsel && ((efa->v1->f & SELECT) || (efa->v2->f & SELECT) || (efa->v3->f & SELECT) || (efa->v4 && efa->v4->f & SELECT)))
-				efa_vertsel = efa;
 		}
 	}
-	
-	if (partsel && !efa)
-		efa= efa_vertsel;
 	
 	if (efa) {
 		if (mcol) {
