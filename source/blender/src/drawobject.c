@@ -1457,17 +1457,16 @@ static void draw_dm_verts__mapFunc(void *userData, int index, float *co, float *
 		/* draw active larger - need to stop/start point drawing for this :/ */
 		if (eve==data->eve_act) {
 			float size = BIF_GetThemeValuef(TH_VERTEX_SIZE);
-			unsigned char col[3];
-			BIF_GetThemeColor4ubv(TH_EDITMESH_ACTIVE, (char *)col);
-			glColor4ubv(col);
+			BIF_ThemeColor4(TH_EDITMESH_ACTIVE);
 			
 			bglEnd();
+			
 			glPointSize(size+3);
 			bglBegin(GL_POINTS);
-			  
 			bglVertex3fv(co);
-			
 			bglEnd();
+			
+			BIF_ThemeColor4(TH_VERTEX_SELECT);
 			glPointSize(size);
 			bglBegin(GL_POINTS);
 		} else {
