@@ -802,7 +802,7 @@ void do_render_panels(unsigned short event)
 			Scene *newset= (Scene*) BLI_findlink(&G.main->scene, G.buts->menunr-1);
 			
 			if (newset==G.scene)
-				error("Not allowed");
+				error("Can't use the same scene as its own set");
 			else if (newset) {
 				G.scene->set= newset;
 				if (scene_check_setscene(G.scene)==0)
