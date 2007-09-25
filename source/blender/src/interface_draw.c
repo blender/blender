@@ -2240,7 +2240,9 @@ static void ui_draw_but_CURVE(uiBut *but)
 	}
 	
 	/* the curve */
-	BIF_ThemeColor(TH_TEXT);
+	BIF_ThemeColorBlend(TH_TEXT, TH_BUT_NEUTRAL, 0.35);
+	glEnable(GL_LINE_SMOOTH);
+	glEnable(GL_BLEND);
 	glBegin(GL_LINE_STRIP);
 	
 	if(cuma->table==NULL)
@@ -2269,6 +2271,8 @@ static void ui_draw_but_CURVE(uiBut *but)
 		glVertex2f(fx, fy);
 	}
 	glEnd();
+	glDisable(GL_LINE_SMOOTH);
+	glEnable(GL_BLEND);
 
 	/* the points, use aspect to make them visible on edges */
 	cmp= cuma->curve;
