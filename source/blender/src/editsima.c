@@ -479,7 +479,7 @@ static int nearest_uv_between(MTFace *tf, int nverts, int id, short *mval, int *
 	return (c1*c2 >= 0.0f);
 }
 
-static void find_nearest_uv(MTFace **nearesttf, EditFace **nearestefa, unsigned int *nearestv, int *nearestuv)
+void find_nearest_uv(MTFace **nearesttf, EditFace **nearestefa, unsigned int *nearestv, int *nearestuv)
 {
 	EditMesh *em= G.editMesh;
 	EditFace *efa;
@@ -490,8 +490,14 @@ static void find_nearest_uv(MTFace **nearesttf, EditFace **nearestefa, unsigned 
 	getmouseco_areawin(mval);	
 
 	mindist= 0x7FFFFFF;
-	*nearesttf= NULL;
-	*nearestefa= NULL;
+	if (nearesttf) *nearesttf= NULL;
+	if (nearestefa) *nearestefa= NULL;
+	
+	if (nearestv) {
+		EditVert *ev;
+		for (i=0, ev=em->verts.first; ev; ev = ev->next, i++)
+			ev->tmp.l = i;
+	}
 	
 	for (efa= em->faces.first; efa; efa= efa->next) {
 		tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
@@ -509,16 +515,17 @@ static void find_nearest_uv(MTFace **nearesttf, EditFace **nearestefa, unsigned 
 						if (!nearest_uv_between(tf, nverts, i, mval, uval))
 							continue;
 
-					mindist= dist; 
-
-					*nearesttf= tf;
-					*nearestefa= efa;
+					mindist= dist;
 					*nearestuv= i;
-
-					if (i==0) *nearestv=  efa->v1->tmp.l;
-					else if (i==1) *nearestv=  efa->v2->tmp.l;
-					else if (i==2) *nearestv=  efa->v3->tmp.l;
-					else *nearestv=  efa->v4->tmp.l;
+					
+					if (nearesttf)		*nearesttf= tf;
+					if (nearestefa)		*nearestefa= efa;
+					if (nearestv) {
+						if (i==0) *nearestv=  efa->v1->tmp.l;
+						else if (i==1) *nearestv=  efa->v2->tmp.l;
+						else if (i==2) *nearestv=  efa->v3->tmp.l;
+						else *nearestv=  efa->v4->tmp.l;
+					}
 				}
 			}
 		}

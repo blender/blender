@@ -33,6 +33,8 @@
 struct Mesh;
 struct EditMesh;
 struct SpaceImage;
+struct EditFace;
+struct MTFace;
 
 /* id can be from 0 to 3 */
 #define TF_PIN_MASK(id) (TF_PIN1 << id)
@@ -117,4 +119,4 @@ void pack_image_sima(void);
 /* checks images for forced updates on frame change */
 void BIF_image_update_frame(void);
 
-
+void find_nearest_uv(struct MTFace **nearesttf, struct EditFace **nearestefa, unsigned int *nearestv, int *nearestuv);

@@ -4954,6 +4954,12 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					G.sima->flag ^= SI_LOCAL_UV;
 				scrarea_queue_winredraw(curarea);
 				break;
+			case TABKEY:
+				if (G.qual == LR_SHIFTKEY) {
+					G.scene->snap_flag ^= SCE_SNAP;
+					allqueue(REDRAWHEADERS, 0);
+				}
+				break;
 			}
 		}
 	} else {

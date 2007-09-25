@@ -1187,6 +1187,23 @@ void image_buttons(void)
 		}
 		uiBlockEndAlign(block);
 		
+		/* Snap copied right out of view3d header */
+			uiBlockBeginAlign(block);
+
+			if (G.scene->snap_flag & SCE_SNAP) {
+				uiDefIconButBitS(block, TOG, SCE_SNAP, B_REDR, ICON_SNAP_GEO,xco,0,XIC,YIC, &G.scene->snap_flag, 0, 0, 0, 0, "Use Snap or Grid (Shift Tab)");	
+				xco+= XIC;
+				uiDefButS(block, MENU, B_NOP, "Mode%t|Closest%x0|Center%x1|Median%x2",xco,0,70,YIC, &G.scene->snap_target, 0, 0, 0, 0, "Snap Target Mode");
+				xco+= 70;
+			} else {
+				uiDefIconButBitS(block, TOG, SCE_SNAP, B_REDR, ICON_SNAP_GEAR,xco,0,XIC,YIC, &G.scene->snap_flag, 0, 0, 0, 0, "Snap while Ctrl is held during transform (Shift Tab)");	
+				xco+= XIC;
+			}
+
+			uiBlockEndAlign(block);
+			xco+= 10;
+		/* end snap */
+			
 		/* Layer Menu */
 		layercount = CustomData_number_of_layers(&G.editMesh->fdata, CD_MTFACE); 
 		if (layercount>1 && layercount < 12) { /* could allow any number but limit of 11 means no malloc needed */
