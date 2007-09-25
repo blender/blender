@@ -1017,7 +1017,7 @@ static int draw_tface_mapped__set_draw(void *userData, int index)
 static int draw_em_tf_mapped__set_draw(void *userData, int index)
 {
 	EditMesh *em = userData;
-	EditFace *efa = EM_get_face_for_index(index), *efa_act = userData;
+	EditFace *efa = EM_get_face_for_index(index);
 	MTFace *tface;
 	MCol *mcol;
 	int matnr;

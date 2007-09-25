@@ -438,8 +438,8 @@ typedef struct Scene {
 	
 	ListBase markers;
 	
-	short jumpframe;
-	short pad1, pad2, pad3;
+	short jumpframe, pad1;
+	short snap_flag, snap_target;
 	
 	/* none of the dependancy graph  vars is mean to be saved */
 	struct  DagForest *theDag;
@@ -568,8 +568,12 @@ typedef struct Scene {
 
 /* base->flag is in DNA_object_types.h */
 
-/* sce->flag */
-#define SCE_ADDSCENAME		1
+/* scene->snap_flag */
+#define SCE_SNAP				1
+/* scene->snap_target */
+#define SCE_SNAP_TARGET_CLOSEST	0
+#define SCE_SNAP_TARGET_CENTER	1
+#define SCE_SNAP_TARGET_MEDIAN	2
 
 /* sce->selectmode */
 #define SCE_SELECT_VERTEX	1

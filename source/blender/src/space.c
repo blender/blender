@@ -1524,7 +1524,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					/* Snap toggle (only edit mesh right now) */
 					if (G.obedit && G.obedit->type==OB_MESH)
 					{
-						G.vd->flag2 ^= V3D_TRANSFORM_SNAP;
+						G.scene->snap_flag ^= SCE_SNAP;
 						allqueue(REDRAWHEADERS, 0);
 					}					
 				}

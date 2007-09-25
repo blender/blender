@@ -174,7 +174,7 @@ void initSnapping(TransInfo *t)
 
 		if (t->tsnap.applySnap != NULL && // A snapping function actually exist
 			(G.obedit != NULL && G.obedit->type==OB_MESH) && // Temporary limited to edit mode meshes
-			(G.vd->flag2 & V3D_TRANSFORM_SNAP) && // Only if the snap flag is on
+			(G.scene->snap_flag & SCE_SNAP) && // Only if the snap flag is on
 			(t->flag & T_PROP_EDIT) == 0) // No PET, obviously
 		{
 			t->tsnap.status |= SNAP_ON;
@@ -197,17 +197,17 @@ void setSnappingCallback(TransInfo *t)
 {
 	t->tsnap.calcSnap = CalcSnapGeometry;
 
-	switch(G.vd->snap_target)
+	switch(G.scene->snap_target)
 	{
-		case V3D_SNAP_TARGET_CLOSEST:
+		case SCE_SNAP_TARGET_CLOSEST:
 			t->tsnap.modeTarget = SNAP_CLOSEST;
 			t->tsnap.targetSnap = TargetSnapClosest;
 			break;
-		case V3D_SNAP_TARGET_CENTER:
+		case SCE_SNAP_TARGET_CENTER:
 			t->tsnap.modeTarget = SNAP_CENTER;
 			t->tsnap.targetSnap = TargetSnapCenter;
 			break;
-		case V3D_SNAP_TARGET_MEDIAN:
+		case SCE_SNAP_TARGET_MEDIAN:
 			t->tsnap.modeTarget = SNAP_MEDIAN;
 			t->tsnap.targetSnap = TargetSnapMedian;
 			break;
@@ -224,7 +224,7 @@ void setSnappingCallback(TransInfo *t)
 		t->tsnap.distance = RotationBetween;
 		
 		// Can't do TARGET_CENTER with rotation, use TARGET_MEDIAN instead
-		if (G.vd->snap_target == V3D_SNAP_TARGET_CENTER) {
+		if (G.scene->snap_target == SCE_SNAP_TARGET_CENTER) {
 			t->tsnap.modeTarget = SNAP_MEDIAN;
 			t->tsnap.targetSnap = TargetSnapMedian;
 		}

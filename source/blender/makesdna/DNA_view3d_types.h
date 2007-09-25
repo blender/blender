@@ -137,7 +137,7 @@ typedef struct View3D {
 	
 	short gridsubdiv;	/* Number of subdivisions in the grid between each highlighted grid line */
 	
-	short snap_target;
+	short pad3;
 	
 	short pad2;
 	
@@ -168,14 +168,8 @@ typedef struct View3D {
 /* View3d->flag2 (short) */
 #define V3D_OPP_DIRECTION_NAME	1
 #define V3D_FLYMODE				2
-#define V3D_TRANSFORM_SNAP		4
+#define V3D_DEPRECATED			4 /* V3D_TRANSFORM_SNAP, moved to a scene setting */
 #define V3D_SOLID_TEX			8
-
-/* View3d->snap_target */
-#define V3D_SNAP_TARGET_CLOSEST	0
-#define V3D_SNAP_TARGET_CENTER	1
-#define V3D_SNAP_TARGET_MEDIAN	2
-
 
 /* View3D->around */
 #define V3D_CENTER		 0
