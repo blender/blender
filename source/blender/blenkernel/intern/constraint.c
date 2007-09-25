@@ -1962,7 +1962,7 @@ static void evaluate_constraint (bConstraint *constraint, float ownermat[][4], f
 			
 			if (data->tar) {
 				/* Get size property, since ob->size is only the object's own relative size, not its global one */
-				Mat4ToSize (ownermat, size);
+				Mat4ToSize(ownermat, size);
 				
 				/* Clear the object's rotation */ 	
 				ownermat[0][0]=size[0];
@@ -1979,7 +1979,7 @@ static void evaluate_constraint (bConstraint *constraint, float ownermat[][4], f
 				 * for backwards compatability it seems... (Aligorith)
 				 */
 				VecSubf(vec, ownermat[3], targetmat[3]);
-				vectomat(vec, ownermat[2], 
+				vectomat(vec, targetmat[2], 
 						(short)data->reserved1, (short)data->reserved2, 
 						data->flags, totmat);
 				
