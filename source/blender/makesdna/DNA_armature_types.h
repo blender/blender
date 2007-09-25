@@ -145,6 +145,7 @@ typedef struct bArmature {
 			/* multiplies vgroup with envelope */
 #define		BONE_MULT_VG_ENV	2048
 #define		BONE_NO_DEFORM		4096
-
+			/* set to prevent destruction of its unkeyframed pose (after transform) */
+#define 	BONE_UNKEYED		8192
 
 #endif

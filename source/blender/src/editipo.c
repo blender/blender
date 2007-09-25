@@ -3016,7 +3016,7 @@ void common_insertkey(void)
 		if (ob && (ob->flag & OB_POSEMODE)) {
 			bPoseChannel *pchan;
 			
-			set_pose_keys(ob);  // sets pchan->flag to POSE_KEY if bone selected
+			set_pose_keys(ob);  /* sets pchan->flag to POSE_KEY if bone selected, and clears if not */
 			for (pchan=ob->pose->chanbase.first; pchan; pchan=pchan->next)
 				if (pchan->flag & POSE_KEY)
 					break;
@@ -3058,13 +3058,14 @@ void common_insertkey(void)
 
 			id= &ob->id;
 			for (pchan=ob->pose->chanbase.first; pchan; pchan=pchan->next) {
-				if (pchan->flag & POSE_KEY){
+				if (pchan->flag & POSE_KEY) {
+					/* insert relevant keyframes */
 					if(event==0 || event==3 ||event==4) {
 						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_X, 0);
 						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y, 0);
 						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z, 0);
 					}
-					if(event==1 || event==3 ||event==4) {
+					if(event==1 || event==3 || event==4) {
 						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X, 0);
 						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y, 0);
 						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z, 0);
@@ -3077,7 +3078,7 @@ void common_insertkey(void)
 					}
 					if (event==9 && ob->action) {
 						bActionChannel *achan;
-
+						
 						for (achan = ob->action->chanbase.first; achan; achan=achan->next){
 							if (achan->ipo && !strcmp (achan->name, pchan->name)){
 								for (icu = achan->ipo->curve.first; icu; icu=icu->next){
@@ -3088,11 +3089,9 @@ void common_insertkey(void)
 						}
 					}
  					if(event==11 || event==13) {
- 						
 						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_LOC_X);
 						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y);
 						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z);
-						
  					}
  					if(event==12 || event==13) {
  						int matsuccess=0; 
@@ -3111,7 +3110,7 @@ void common_insertkey(void)
  					}
 					if (event==15 && ob->action) {
 						bActionChannel *achan;
-
+						
 						for (achan = ob->action->chanbase.first; achan; achan=achan->next){
 							if (achan->ipo && !strcmp (achan->name, pchan->name)){
 								for (icu = achan->ipo->curve.first; icu; icu=icu->next){
@@ -3120,7 +3119,11 @@ void common_insertkey(void)
 								break;
 							}
 						}
-					}	
+					}
+					
+					/* clear unkeyed flag (it doesn't matter if it's set or not) */
+					if (pchan->bone)
+						pchan->bone->flag &= ~BONE_UNKEYED;
 				}
 			}
 			if(ob->action)

@@ -101,6 +101,9 @@ struct bPoseChannel *verify_pose_channel(struct bPose* pose,
 /* sets constraint flags */
 void update_pose_constraint_flags(struct bPose *pose);
 
+/* clears BONE_UNKEYED flags for frame changing */
+void framechange_poses_clear_unkeyed(void);
+
 /**
  * Allocate a new bAction on the heap and copy 
  * the contents of src into it. If src is NULL NULL is returned.

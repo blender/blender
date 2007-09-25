@@ -2607,15 +2607,19 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 		if (!act)
 			act= ob->action= add_empty_action("Action");
 		
-		for (pchan=pose->chanbase.first; pchan; pchan=pchan->next){
-			if (pchan->bone->flag & BONE_TRANSFORM){
-
+		for (pchan=pose->chanbase.first; pchan; pchan=pchan->next) {
+			if (pchan->bone->flag & BONE_TRANSFORM) {
+				/* clear any 'unkeyed' flag it may have */
+				pchan->bone->flag &= ~BONE_UNKEYED;
+				
+				/* only insert into available channels? */
 				if(U.uiflag & USER_KEYINSERTAVAI) {
 					bActionChannel *achan; 
-
+					
 					for (achan = act->chanbase.first; achan; achan=achan->next){
 						if (achan->ipo && !strcmp (achan->name, pchan->name)){
 							for (icu = achan->ipo->curve.first; icu; icu=icu->next){
+								/* only insert keyframe if needed? */
 								if (U.uiflag & USER_KEYINSERTNEED)
 									insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, icu->adrcode);
 								else
@@ -2625,6 +2629,7 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 						}
 					}
 				}
+				/* only insert keyframe if needed? */
 				else if (U.uiflag & USER_KEYINSERTNEED) {
 					if ((tmode==TFM_TRANSLATION) && (targetless_ik==0)) {
 						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_X);
@@ -2643,16 +2648,17 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Z);
 					}
 				}
+				/* insert keyframe in any channel that's appropriate */
 				else {
 					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_X, 0);
 					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Y, 0);
 					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Z, 0);
-
+					
 					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_W, 0);
 					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_X, 0);
 					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Y, 0);
 					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Z, 0);
-
+					
 					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_X, 0);
 					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Y, 0);
 					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Z, 0);
@@ -2666,6 +2672,15 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 		allqueue(REDRAWIPO, 0);
 		allqueue(REDRAWNLA, 0);
 		allqueue(REDRAWTIME, 0);
+	}
+	else {
+		/* tag channels that should have unkeyed data */
+		for (pchan=pose->chanbase.first; pchan; pchan=pchan->next) {
+			if (pchan->bone->flag & BONE_TRANSFORM) {
+				/* tag this channel */
+				pchan->bone->flag |= BONE_UNKEYED;
+			}
+		}
 	}
 }
 
@@ -2775,8 +2790,8 @@ void special_aftertrans_update(TransInfo *t)
 		
 		if(t->mode==TFM_TRANSLATION)
 			pose_grab_with_ik_clear(ob);
-		
-		/* automatic inserting of keys */
+			
+		/* automatic inserting of keys and unkeyed tagging - only if transform wasn't cancelled */
 		if(!cancelled) {
 			autokeyframe_pose_cb_func(ob, t->mode, targetless_ik);
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);

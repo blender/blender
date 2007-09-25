@@ -680,7 +680,7 @@ void paste_posebuf (int flip)
 	
 	/* Safely merge all of the channels in this pose into
 	any existing pose */
-	for (chan=g_posebuf->chanbase.first; chan; chan=chan->next){
+	for (chan=g_posebuf->chanbase.first; chan; chan=chan->next) {
 		if (chan->flag & POSE_KEY) {
 			BLI_strncpy(name, chan->name, sizeof(name));
 			if (flip)
@@ -689,7 +689,7 @@ void paste_posebuf (int flip)
 			/* only copy when channel exists, poses are not meant to add random channels to anymore */
 			pchan= get_pose_channel(ob->pose, name);
 			
-			if(pchan) {
+			if (pchan) {
 				/* only loc rot size */
 				/* only copies transform info for the pose */
 				VECCOPY(pchan->loc, chan->loc);
@@ -697,35 +697,44 @@ void paste_posebuf (int flip)
 				QUATCOPY(pchan->quat, chan->quat);
 				pchan->flag= chan->flag;
 				
-				if (flip){
+				if (flip) {
 					pchan->loc[0]*= -1;
-
+					
 					QuatToEul(pchan->quat, eul);
 					eul[1]*= -1;
 					eul[2]*= -1;
 					EulToQuat(eul, pchan->quat);
 				}
-
-				if (G.flags & G_RECORDKEYS){
+				
+				if (G.flags & G_RECORDKEYS) {
 					ID *id= &ob->id;
-
+					
 					/* Set keys on pose */
-					if (chan->flag & POSE_ROT){
+					if (chan->flag & POSE_ROT) {
 						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X, 0);
 						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y, 0);
 						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z, 0);
 						insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W, 0);
 					}
-					if (chan->flag & POSE_SIZE){
+					if (chan->flag & POSE_SIZE) {
 						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_X, 0);
 						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Y, 0);
 						insertkey(id, ID_PO, pchan->name, NULL, AC_SIZE_Z, 0);
 					}
-					if (chan->flag & POSE_LOC){
+					if (chan->flag & POSE_LOC) {
 						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_X, 0);
 						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y, 0);
 						insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z, 0);
 					}
+					
+					/* clear any unkeyed tags */
+					if (chan->bone)
+						chan->bone->flag &= ~BONE_UNKEYED;
+				}
+				else {
+					/* add unkeyed tags */
+					if (chan->bone)
+						chan->bone->flag |= BONE_UNKEYED;
 				}
 			}
 		}
