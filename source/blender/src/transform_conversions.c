@@ -2102,7 +2102,7 @@ static void createTransActionData(TransInfo *t)
 		 * in postTrans (T_FREE_CUSTOMDATA). 
 		 */
 		*((float *)(t->customData)) = min;
-		*((float *)(t->customData + 1)) = max;
+		*((float *)(t->customData) + 1) = max;
 	}
 	
 	/* cleanup temp list */

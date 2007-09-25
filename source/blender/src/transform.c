@@ -3510,7 +3510,7 @@ static void headerTimeSlide(TransInfo *t, float sval, char *str)
 	}
 	else {
 		float minx= *((float *)(t->customData));
-		float maxx= *((float *)(t->customData + 1));
+		float maxx= *((float *)(t->customData) + 1);
 		float cval= t->fac;
 		float val;
 			
@@ -3529,7 +3529,7 @@ static void applyTimeSlide(TransInfo *t, float sval)
 	int i;
 	
 	float minx= *((float *)(t->customData));
-	float maxx= *((float *)(t->customData + 1));
+	float maxx= *((float *)(t->customData) + 1);
 	
 	/* set value for drawing black line */
 	if (t->spacetype == SPACE_ACTION) {
