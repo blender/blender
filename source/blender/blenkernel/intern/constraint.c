@@ -1819,7 +1819,6 @@ static void evaluate_constraint (bConstraint *constraint, float ownermat[][4], f
 			float	loc[3];
 			float	eul[3], obeul[3];
 			float	size[3];
-			short changed= 0;
 			
 			data = constraint->data;
 			
@@ -1831,40 +1830,27 @@ static void evaluate_constraint (bConstraint *constraint, float ownermat[][4], f
 			
 			if ((data->flag & ROTLIKE_X)==0) {
 				eul[0] = obeul[0];
-				changed = 1;
 			}
 			else if (data->flag & ROTLIKE_X_INVERT) {
 				eul[0] *= -1;
-				changed = 1;
 			}	
+			
 			if ((data->flag & ROTLIKE_Y)==0) {
 				eul[1] = obeul[1];
-				changed = 1;
 			}
 			else if (data->flag & ROTLIKE_Y_INVERT) {
 				eul[1] *= -1;
-				changed = 1;
 			}
+			
 			if ((data->flag & ROTLIKE_Z)==0) {
 				eul[2] = obeul[2];
-				changed = 1;
 			}
 			else if (data->flag & ROTLIKE_Z_INVERT) {
 				eul[2] *= -1;
-				changed = 1;
 			}
 			
-			
-			if (changed) {
-				compatible_eul(eul, obeul);
-				LocEulSizeToMat4(ownermat, loc, eul, size);
-			}
-			else {
-				float quat[4];
-				
-				Mat4ToQuat(targetmat, quat);
-				LocQuatSizeToMat4(ownermat, loc, quat, size);
-			}	
+			compatible_eul(eul, obeul);
+			LocEulSizeToMat4(ownermat, loc, eul, size);
 		}
 		break;
  	case CONSTRAINT_TYPE_SIZELIKE:
