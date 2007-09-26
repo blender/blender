@@ -582,14 +582,6 @@ void draw_uvs_sima(void)
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
-
-
-#define SI_UVDT_DASH	0
-#define SI_UVDT_BLACK	1
-#define SI_UVDT_WHITE	2
-#define SI_UVDT_OUTLINE	3
-
-	
 	
 	switch (G.sima->dt_uv) {
 	case SI_UVDT_DASH:
@@ -632,7 +624,7 @@ void draw_uvs_sima(void)
 		break;
 	case SI_UVDT_BLACK: /* black/white */
 	case SI_UVDT_WHITE: 
-		cpack((G.sima->dt_uv==1) ? 0x0 : 0xFFFFFF);
+		cpack((G.sima->dt_uv==SI_UVDT_WHITE) ? 0x0 : 0xFFFFFF);
 		for (efa= em->faces.first; efa; efa= efa->next) {
 //			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 //			if (SIMA_FACEDRAW_CHECK(efa, tface)) {
