@@ -466,6 +466,11 @@ typedef struct SpaceImaSel {
 #define SI_TEXTURE		0
 #define SI_SHOW			1
 
+#define SI_UVDT_DASH	0
+#define SI_UVDT_BLACK	1
+#define SI_UVDT_WHITE	2
+#define SI_UVDT_OUTLINE	3
+
 /* SpaceImage->flag */
 #define SI_BE_SQUARE	1<<0
 #define SI_EDITTILE		1<<1

@@ -1159,13 +1159,25 @@ void image_buttons(void)
 	if (is_render)
 		allow_pin = 0;
 	
-	xco= std_libbuttons(block, xco, 0, allow_pin, &G.sima->pin, B_SIMABROWSE, ID_IM, 0, (ID *)ima, 0, &(G.sima->imanr), 0, 0, B_IMAGEDELETE, 0, 0);
+	xco= 8 + std_libbuttons(block, xco, 0, allow_pin, &G.sima->pin, B_SIMABROWSE, ID_IM, 0, (ID *)ima, 0, &(G.sima->imanr), 0, 0, B_IMAGEDELETE, 0, 0);
+	
+	if( ima && !ELEM3(ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE, IMA_SRC_VIEWER) && ima->ok) {
 
+		if (ima->packedfile) {
+			headerbuttons_packdummy = 1;
+		}
+		if (ima->packedfile && ibuf && (ibuf->userflags & IB_BITMAPDIRTY))
+			uiDefIconButBitI(block, TOG, 1, B_SIMA_REPACK, ICON_UGLYPACKAGE,	xco,0,XIC,YIC, &headerbuttons_packdummy, 0, 0, 0, 0, "Re-Pack this image as PNG");
+		else
+			uiDefIconButBitI(block, TOG, 1, B_SIMAPACKIMA, ICON_PACKAGE,	xco,0,XIC,YIC, &headerbuttons_packdummy, 0, 0, 0, 0, "Pack/Unpack this image");
+			
+		xco+= XIC+8;
+	}
+	
 	/* UV EditMode buttons, not painting or rencering or compositing */
 	if ( EM_texFaceCheck() && (G.sima->flag & SI_DRAWTOOL)==0 && !is_render) {
 		uiBut *ubut;
 		int layercount;
-		xco+=10;
 		
 		uiDefIconTextButS(block, ICONTEXTROW, B_NOP, ICON_ROTATE,
 				"Pivot: %t|Bounding Box Center %x0|Median Point %x3|2D Cursor %x1",
@@ -1174,7 +1186,7 @@ void image_buttons(void)
 		xco+= XIC + 18;
 		
 		uiBlockBeginAlign(block);
-		uiDefIconButBitI(block, TOG, SI_SYNC_UVSEL, B_REDR, ICON_MESH_HLT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Sync Mesh Selection (vert & face selection mode override sticky)");
+		uiDefIconButBitI(block, TOGN, SI_SYNC_UVSEL, B_REDR, ICON_NO_GO_LEFT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Mesh independant selection");
 		xco+= XIC;
 		if ((G.sima->flag & SI_SYNC_UVSEL)==0) {
 			ubut = uiDefIconTextButC(block, ICONTEXTROW, B_REDR, ICON_STICKY_UVS_LOC,
@@ -1217,11 +1229,11 @@ void image_buttons(void)
 			str_pt = str_menu;
 			str_pt[0]='\0';
 			mesh_layers_menu_concat(&G.editMesh->fdata, CD_MTFACE, str_pt);
-			ubut = uiDefButI(block, MENU, B_NOP, str_menu ,xco,0,115,YIC, &act, 0, 0, 0, 0, "Active UV Layer for editing");
+			ubut = uiDefButI(block, MENU, B_NOP, str_menu ,xco,0,85,YIC, &act, 0, 0, 0, 0, "Active UV Layer for editing");
 			uiButSetFunc(ubut, do_image_buttons_set_uvlayer_callback, &act, NULL);
 			
 			/*MEM_freeN(str);*/
-			xco+= 120;
+			xco+= 90;
 		}
 	}
 	
@@ -1236,19 +1248,6 @@ void image_buttons(void)
 			uiBlockEndAlign(block);
 			xco+= 166;
 		}
-		if( !ELEM3(ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE, IMA_SRC_VIEWER) && ima->ok) {
-
-			if (ima->packedfile) {
-				headerbuttons_packdummy = 1;
-			}
-			if (ima->packedfile && ibuf && (ibuf->userflags & IB_BITMAPDIRTY))
-				uiDefIconButBitI(block, TOG, 1, B_SIMA_REPACK, ICON_UGLYPACKAGE,	xco,0,XIC,YIC, &headerbuttons_packdummy, 0, 0, 0, 0, "Re-Pack this image as PNG");
-			else
-				uiDefIconButBitI(block, TOG, 1, B_SIMAPACKIMA, ICON_PACKAGE,	xco,0,XIC,YIC, &headerbuttons_packdummy, 0, 0, 0, 0, "Pack/Unpack this image");
-				
-			xco+= XIC+8;
-		}
-		
 		uiDefIconButBitI(block, TOG, SI_DRAWTOOL, B_SIMAGEPAINTTOOL, ICON_TPAINT_HLT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Enables painting textures on the image with left mouse button");
 		
 		xco+= XIC+8;

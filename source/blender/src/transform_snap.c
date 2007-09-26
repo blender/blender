@@ -400,17 +400,10 @@ void CalcSnapGeometry(TransInfo *t, float *vec)
 			}
 		}
 		else if (t->spacetype == SPACE_IMAGE)
-		{
-			
+		{	/* same as above but for UV's */
 			MTFace *nearesttf=NULL;
-			unsigned int face_corner;
+			int face_corner;
 			
-			float vec[3];
-			int found = 0;
-			int dist = 40; // Use a user defined value here
-			
-			// use findnearestverts in vert mode, others in other modes
-			//nearest = findnearestvert(&dist, SELECT, 1);
 			find_nearest_uv(&nearesttf, NULL, NULL, &face_corner);
 			
 			if (nearesttf != NULL)
@@ -424,8 +417,6 @@ void CalcSnapGeometry(TransInfo *t, float *vec)
 			{
 				t->tsnap.status &= ~POINT_INIT;
 			}
-			
-			
 		}
 		
 		
