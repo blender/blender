@@ -42,6 +42,7 @@ extern "C" {
 #endif
 
 struct Ipo;
+struct Object;
 
 typedef struct Camera {
 	ID id;
@@ -62,6 +63,7 @@ typedef struct Camera {
 	struct Ipo *ipo;
 	
 	ScriptLink scriptlink;
+	struct Object *dof_ob;
 } Camera;
 
 /* **************** CAMERA ********************* */

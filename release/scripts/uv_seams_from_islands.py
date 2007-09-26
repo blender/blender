@@ -37,7 +37,6 @@ def seams_from_islands(me):
 	# add seams
 	SEAM = Mesh.EdgeFlags.SEAM
 	for ed in me.edges:
-		print len(set(edge_uvs[ed.key]))
 		if len(set(edge_uvs[ed.key])) > 1:
 			ed.flag |= SEAM
 
@@ -59,7 +58,7 @@ def main():
 	# editmode if its enabled, we cant make
 	# changes to the mesh data while in editmode.
 	is_editmode = Window.EditMode()
-	if is_editmode: Window.EditMode(1)
+	if is_editmode: Window.EditMode(0)
 	
 	Window.WaitCursor(1)
 	
@@ -68,8 +67,10 @@ def main():
 	# Run the mesh editing function
 	seams_from_islands(me)
 	
+	if is_editmode: Window.EditMode(1)
+	
 	# Timing the script is a good way to be aware on any speed hits when scripting
-	print 'My Script finished in %.2f seconds' % (sys.time()-t)
+	print 'UV Seams from Islands finished in %.2f seconds' % (sys.time()-t)
 	Window.WaitCursor(0)
 	
 	

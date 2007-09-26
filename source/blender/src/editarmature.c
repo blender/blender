@@ -2221,7 +2221,7 @@ void clear_armature(Object *ob, char mode)
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		if(pchan->bone && (pchan->bone->flag & BONE_SELECTED)) {
 			if(arm->layer & pchan->bone->layer) {
-				switch (mode){
+				switch (mode) {
 					case 'r':
 						pchan->quat[1]=pchan->quat[2]=pchan->quat[3]=0.0F; pchan->quat[0]=1.0F;
 						break;
@@ -2233,6 +2233,9 @@ void clear_armature(Object *ob, char mode)
 						break;
 						
 				}
+				
+				/* the current values from IPO's may not be zero, so tag as unkeyed */
+				pchan->bone->flag |= BONE_UNKEYED;
 			}
 		}
 	}

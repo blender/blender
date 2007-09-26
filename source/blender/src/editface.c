@@ -365,6 +365,14 @@ void calculate_uv_map(unsigned short mapmode)
 		
 		if (!EM_texFaceCheck())
 			return;
+		
+		/* select new UV's */
+		if ((G.sima && G.sima->flag & SI_SYNC_UVSEL)==0) {
+			for(efa=em->faces.first; efa; efa=efa->next) {
+				MTFace *tf= (MTFace *)CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				SIMA_FACESEL_SET(efa, tf);
+			}
+		}
 	}
 	
 	ob=OBACT;
@@ -388,7 +396,7 @@ void calculate_uv_map(unsigned short mapmode)
 			}
 		}
 		
-		/* rescale UV to be in 0..1,1/2,1/4,1/8 */
+		/* rescale UV to be in 1/1 */
 		dx= (max[0]-min[0]);
 		dy= (max[1]-min[1]);
 
@@ -552,7 +560,9 @@ void calculate_uv_map(unsigned short mapmode)
 	allqueue(REDRAWIMAGE, 0);
 }
 
-MTFace *get_active_mtface(EditFace **act_efa, MCol **mcol)
+/* last_sel, use em->act_face otherwise get the last selected face in the editselections
+ * at the moment, last_sel is mainly useful for gaking sure the space image dosnt flicker */
+MTFace *get_active_mtface(EditFace **act_efa, MCol **mcol, short sloppy)
 {
 	EditMesh *em = G.editMesh;
 	EditFace *efa = NULL;
@@ -560,18 +570,23 @@ MTFace *get_active_mtface(EditFace **act_efa, MCol **mcol)
 	
 	if(!EM_texFaceCheck())
 		return NULL;
-
-	for (ese = em->selected.last; ese; ese=ese->prev){
-		if(ese->type == EDITFACE) {
-			efa = (EditFace *)ese->data;
-			
-			if (efa->h)
-				efa= NULL; 
-			break;
+	
+	/* first check the active face */
+	if (sloppy && em->act_face) {
+		efa = em->act_face;
+	} else {
+		ese = em->selected.last;
+		for (; ese; ese=ese->prev){
+			if(ese->type == EDITFACE) {
+				efa = (EditFace *)ese->data;
+				
+				if (efa->h)	efa= NULL;
+				else		break;
+			}
 		}
 	}
 	
-	if (!efa) {
+	if (sloppy && !efa) {
 		for (efa= em->faces.first; efa; efa= efa->next) {
 			if (efa->f & SELECT)
 				break;
@@ -1091,7 +1106,6 @@ void face_select()
 {
 	Object *ob;
 	Mesh *me;
-	MTFace *tface, *tsel;
 	MFace *mface, *msel;
 	short mval[2];
 	unsigned int a, index;
@@ -1111,33 +1125,20 @@ void face_select()
 
 	if (!facesel_face_pick(me, mval, &index, 1)) return;
 	
-	tsel= (((MTFace*)me->mtface)+index); /* check me->mtface before using */
 	msel= (((MFace*)me->mface)+index);
-
 	if (msel->flag & ME_HIDE) return;
 	
 	/* clear flags */
-	tface = me->mtface;
 	mface = me->mface;
 	a = me->totface;
-	while (a--) {
-		if (G.qual & LR_SHIFTKEY) {
-			if (me->mtface) {
-				tface->flag &= ~TF_ACTIVE;
-			}
-		} else {
-			if (me->mtface) {
-				tface->flag &= ~TF_ACTIVE;
-			}
+	if ((G.qual & LR_SHIFTKEY)==0) {
+		while (a--) {
 			mface->flag &= ~ME_FACE_SEL;
+			mface++;
 		}
-		if (me->mtface) {
-			tface++;
-		}
-		mface++;
 	}
-	if (me->mtface)
-		tsel->flag |= TF_ACTIVE;
+	
+	me->act_face = (int)index;
 
 	if (G.qual & LR_SHIFTKEY) {
 		if (msel->flag & ME_FACE_SEL)

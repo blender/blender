@@ -32,8 +32,38 @@
 
 struct Mesh;
 struct EditMesh;
+struct SpaceImage;
+struct EditFace;
+struct MTFace;
+
+/* id can be from 0 to 3 */
 #define TF_PIN_MASK(id) (TF_PIN1 << id)
 #define TF_SEL_MASK(id) (TF_SEL1 << id)
+
+  
+/* this checks weather a face is drarn without the local image check
+ * - warning - no check for G.sima->flag, use SIMA_FACEDRAW_CHECK
+ */
+#define SIMA_FACEDRAW_CHECK_NOLOCAL(efa) \
+	((G.sima->flag & SI_SYNC_UVSEL) ? (efa->h==0) : (efa->h==0 && efa->f & SELECT))
+
+/* this check includes the local image check - (does the faces image match the space image?) */
+#define SIMA_FACEDRAW_CHECK(efa, tf) \
+	((G.sima && G.sima->flag & SI_LOCAL_UV) ? ((tf->tpage==G.sima->image) ? SIMA_FACEDRAW_CHECK_NOLOCAL(efa):0) : (SIMA_FACEDRAW_CHECK_NOLOCAL(efa)))
+
+#define SIMA_FACESEL_CHECK(efa, tf) \
+	((G.sima && G.sima->flag & SI_SYNC_UVSEL) ? (efa->f & SELECT) : (!(~tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3)) &&(!efa->v4 || tf->flag & TF_SEL4)))
+#define SIMA_FACESEL_SET(efa, tf) \
+	((G.sima && G.sima->flag & SI_SYNC_UVSEL) ? (EM_select_face(efa, 1))	: (tf->flag |=  (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4)))
+#define SIMA_FACESEL_UNSET(efa, tf) \
+	((G.sima && G.sima->flag & SI_SYNC_UVSEL) ? (EM_select_face(efa, 0))	: (tf->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4)))
+
+#define SIMA_UVSEL_CHECK(efa, tf, i)	((G.sima && G.sima->flag & SI_SYNC_UVSEL) ? \
+	(G.scene->selectmode == SCE_SELECT_FACE ? efa->f & SELECT :		((*(&efa->v1 + i))->f & SELECT) )	: (tf->flag &   TF_SEL_MASK(i) ))
+#define SIMA_UVSEL_SET(efa, tf, i)		((G.sima && G.sima->flag & SI_SYNC_UVSEL) ? \
+	(G.scene->selectmode == SCE_SELECT_FACE ? EM_select_face(efa, 1) : ((*(&efa->v1 + i))->f |=  SELECT) ) : (tf->flag |=  TF_SEL_MASK(i) ))
+#define SIMA_UVSEL_UNSET(efa, tf, i)	((G.sima && G.sima->flag & SI_SYNC_UVSEL) ? \
+	(G.scene->selectmode == SCE_SELECT_FACE ? EM_select_face(efa, 0) : ((*(&efa->v1 + i))->f &= ~SELECT) ) : (tf->flag &= ~TF_SEL_MASK(i) ))
 
 struct Object;
 
@@ -55,6 +85,7 @@ void borderselect_sima(short whichuvs);
 void mouseco_to_curtile(void);
 void mouse_select_sima(void);
 void snap_menu_sima(void);
+void aspect_sima(struct SpaceImage *sima, float *x, float *y);
 
 void select_invert_tface_uv(void);
 void select_swap_tface_uv(void);
@@ -65,7 +96,6 @@ void reveal_tface_uv(void);
 void stitch_uv_tface(int mode);
 void unlink_selection(void);
 void select_linked_tface_uv(int mode);
-void toggle_uv_select(int mode);
 void pin_tface_uv(int mode);
 void weld_align_menu_tface_uv(void);
 void weld_align_tface_uv(char tool);
@@ -88,3 +118,5 @@ void pack_image_sima(void);
 
 /* checks images for forced updates on frame change */
 void BIF_image_update_frame(void);
+
+void find_nearest_uv(struct MTFace **nearesttf, struct EditFace **nearestefa, unsigned int *nearestv, int *nearestuv);

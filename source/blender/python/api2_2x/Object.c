@@ -2358,31 +2358,31 @@ static PyObject *Object_insertIpoKey( BPy_Object * self, PyObject * args )
 		actname= "Object";
 	
 	if (key == IPOKEY_LOC || key == IPOKEY_LOCROT || key == IPOKEY_LOCROTSIZE){
-		insertkey((ID *)ob, ID_OB, actname, NULL,OB_LOC_X);
-		insertkey((ID *)ob, ID_OB, actname, NULL,OB_LOC_Y);
-		insertkey((ID *)ob, ID_OB, actname, NULL,OB_LOC_Z);      
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_LOC_X, 0);
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_LOC_Y, 0);
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_LOC_Z, 0);      
 	}
 	if (key == IPOKEY_ROT || key == IPOKEY_LOCROT || key == IPOKEY_LOCROTSIZE){
-		insertkey((ID *)ob, ID_OB, actname, NULL,OB_ROT_X);
-		insertkey((ID *)ob, ID_OB, actname, NULL,OB_ROT_Y);
-		insertkey((ID *)ob, ID_OB, actname, NULL,OB_ROT_Z);      
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_ROT_X, 0);
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_ROT_Y, 0);
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_ROT_Z, 0);      
 	}
 	if (key == IPOKEY_SIZE || key == IPOKEY_LOCROTSIZE ){
-		insertkey((ID *)ob, ID_OB, actname, NULL,OB_SIZE_X);
-		insertkey((ID *)ob, ID_OB, actname, NULL,OB_SIZE_Y);
-		insertkey((ID *)ob, ID_OB, actname, NULL,OB_SIZE_Z);      
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_SIZE_X, 0);
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_SIZE_Y, 0);
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_SIZE_Z, 0);      
 	}
 
 	if (key == IPOKEY_PI_STRENGTH ){
-		insertkey((ID *)ob, ID_OB, actname, NULL, OB_PD_FSTR);   
+		insertkey((ID *)ob, ID_OB, actname, NULL, OB_PD_FSTR, 0);   
 	} else if (key == IPOKEY_PI_FALLOFF ){
-		insertkey((ID *)ob, ID_OB, actname, NULL, OB_PD_FFALL);   
+		insertkey((ID *)ob, ID_OB, actname, NULL, OB_PD_FFALL, 0);   
 	} else if (key == IPOKEY_PI_SURFACEDAMP ){
-		insertkey((ID *)ob, ID_OB, actname, NULL, OB_PD_SDAMP);   
+		insertkey((ID *)ob, ID_OB, actname, NULL, OB_PD_SDAMP, 0);   
 	} else if (key == IPOKEY_PI_RANDOMDAMP ){
-		insertkey((ID *)ob, ID_OB, actname, NULL, OB_PD_RDAMP);   
+		insertkey((ID *)ob, ID_OB, actname, NULL, OB_PD_RDAMP, 0);   
 	} else if (key == IPOKEY_PI_PERM ){
-		insertkey((ID *)ob, ID_OB, actname, NULL, OB_PD_PERM);   
+		insertkey((ID *)ob, ID_OB, actname, NULL, OB_PD_PERM, 0);   
 	}
 
 	allspace(REMAKEIPO, 0);
@@ -2425,16 +2425,16 @@ static PyObject *Object_insertPoseKey( BPy_Object * self, PyObject * args )
 	/* XXX: must check chanName actually exists, otherwise segfaults! */
 	//achan = get_action_channel(sourceact->action, chanName);
 
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_X);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_Y);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_Z);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_X);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_Y);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_Z);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_W);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_X);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_Y);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_Z);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_X, 0);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_Y, 0);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_Z, 0);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_X, 0);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_Y, 0);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_Z, 0);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_W, 0);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_X, 0);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_Y, 0);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_Z, 0);
 	
 	G.scene->r.cfra = oldframe;
 
@@ -2471,16 +2471,16 @@ static PyObject *Object_insertCurrentPoseKey( BPy_Object * self, PyObject * args
 
 	/* XXX: must check chanName actually exists, otherwise segfaults! */
 
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_X);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_Y);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_Z);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_X);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_Y);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_Z);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_W);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_X);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_Y);
-	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_Z);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_X, 0);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_Y, 0);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_LOC_Z, 0);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_X, 0);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_Y, 0);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_Z, 0);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_QUAT_W, 0);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_X, 0);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_Y, 0);
+	insertkey(&ob->id, ID_PO, chanName, NULL, AC_SIZE_Z, 0);
 
 	G.scene->r.cfra = oldframe;
 
@@ -2517,7 +2517,7 @@ static PyObject *Object_setConstraintInfluenceForBone( BPy_Object * self,
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"cannot get a curve from this IPO, may be using libdata" );		
 	
-	insert_vert_ipo(icu, (float)CFRA, influence);
+	insert_vert_icu(icu, (float)CFRA, influence, 0);
 	self->object->recalc |= OB_RECALC_OB;  
 
 	Py_RETURN_NONE;

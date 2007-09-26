@@ -1096,7 +1096,7 @@ static void drawcamera(Object *ob, int flag)
 			if(cam->flag & CAM_SHOWLIMITS) {
 				draw_limit_line(cam->clipsta, cam->clipend, 0x77FFFF);
 				/* qdn: was yafray only, now also enabled for Blender to be used with defocus composit node */
-				draw_focus_cross(cam->YF_dofdist, cam->drawsize);
+				draw_focus_cross(dof_camera(ob), cam->drawsize);
 			}
 
 			wrld= G.scene->world;
@@ -1450,17 +1450,38 @@ static void draw_dm_vert_normals(DerivedMesh *dm) {
 	/* Draw verts with color set based on selection */
 static void draw_dm_verts__mapFunc(void *userData, int index, float *co, float *no_f, short *no_s)
 {
+	struct { int sel; EditVert *eve_act; } * data = userData;
 	EditVert *eve = EM_get_vert_for_index(index);
-	int sel = *((int*) userData);
 
-	if (eve->h==0 && (eve->f&SELECT)==sel) {
-		bglVertex3fv(co);
+	if (eve->h==0 && (eve->f&SELECT)==data->sel) {
+		/* draw active larger - need to stop/start point drawing for this :/ */
+		if (eve==data->eve_act) {
+			float size = BIF_GetThemeValuef(TH_VERTEX_SIZE);
+			BIF_ThemeColor4(TH_EDITMESH_ACTIVE);
+			
+			bglEnd();
+			
+			glPointSize(size+3);
+			bglBegin(GL_POINTS);
+			bglVertex3fv(co);
+			bglEnd();
+			
+			BIF_ThemeColor4(TH_VERTEX_SELECT);
+			glPointSize(size);
+			bglBegin(GL_POINTS);
+		} else {
+			bglVertex3fv(co);
+		}
 	}
 }
-static void draw_dm_verts(DerivedMesh *dm, int sel)
+static void draw_dm_verts(DerivedMesh *dm, int sel, EditVert *eve_act)
 {
+	struct { int sel; EditVert *eve_act; } data;
+	data.sel = sel;
+	data.eve_act = eve_act;
+	
 	bglBegin(GL_POINTS);
-	dm->foreachMappedVert(dm, draw_dm_verts__mapFunc, &sel);
+	dm->foreachMappedVert(dm, draw_dm_verts__mapFunc, &data);
 	bglEnd();
 }
 
@@ -1468,21 +1489,38 @@ static void draw_dm_verts(DerivedMesh *dm, int sel)
 static int draw_dm_edges_sel__setDrawOptions(void *userData, int index)
 {
 	EditEdge *eed = EM_get_edge_for_index(index);
-	unsigned char **cols = userData;
+	//unsigned char **cols = userData, *col;
+	struct { unsigned char *baseCol, *selCol, *actCol; EditEdge *eed_act; } * data = userData;
+	unsigned char *col;
 
 	if (eed->h==0) {
-		glColor4ubv(cols[(eed->f&SELECT)?1:0]);
+		if (eed==data->eed_act) {
+			glColor4ubv(data->actCol);
+		} else {
+			if (eed->f&SELECT) {
+				col = data->selCol;
+			} else {
+				col = data->baseCol;
+			}
+			/* no alpha, this is used so a transparent color can disable drawing unselected edges in editmode  */
+			if (col[3]==0) return 0;
+			
+			glColor4ubv(col);
+		}
 		return 1;
 	} else {
 		return 0;
 	}
 }
-static void draw_dm_edges_sel(DerivedMesh *dm, unsigned char *baseCol, unsigned char *selCol) 
+static void draw_dm_edges_sel(DerivedMesh *dm, unsigned char *baseCol, unsigned char *selCol, unsigned char *actCol, EditEdge *eed_act) 
 {
-	unsigned char *cols[2];
-	cols[0] = baseCol;
-	cols[1] = selCol;
-	dm->drawMappedEdges(dm, draw_dm_edges_sel__setDrawOptions, cols);
+	struct { unsigned char *baseCol, *selCol, *actCol; EditEdge *eed_act; } data;
+	
+	data.baseCol = baseCol;
+	data.selCol = selCol;
+	data.actCol = actCol;
+	data.eed_act = eed_act;
+	dm->drawMappedEdges(dm, draw_dm_edges_sel__setDrawOptions, &data);
 }
 
 	/* Draw edges */
@@ -1545,25 +1583,38 @@ static void draw_dm_edges_sharp(DerivedMesh *dm)
 }
 
 
-	/* Draw faces with color set based on selection */
+	/* Draw faces with color set based on selection
+	 * return 2 for the active face so it renders with stipple enabled */
 static int draw_dm_faces_sel__setDrawOptions(void *userData, int index, int *drawSmooth_r)
 {
+	struct { unsigned char *cols[3]; EditFace *efa_act; } * data = userData;
 	EditFace *efa = EM_get_face_for_index(index);
-	unsigned char **cols = userData;
-
+	unsigned char *col;
+	
 	if (efa->h==0) {
-		glColor4ubv(cols[(efa->f&SELECT)?1:0]);
-		return 1;
-	} else {
-		return 0;
+		if (efa == data->efa_act) {
+			glColor4ubv(data->cols[2]);
+			return 2; /* stipple */
+		} else {
+			col = data->cols[(efa->f&SELECT)?1:0];
+			if (col[3]==0) return 0;
+			glColor4ubv(col);
+			return 1;
+		}
 	}
+	return 0;
 }
-static void draw_dm_faces_sel(DerivedMesh *dm, unsigned char *baseCol, unsigned char *selCol) 
+
+/* also draws the active face */
+static void draw_dm_faces_sel(DerivedMesh *dm, unsigned char *baseCol, unsigned char *selCol, unsigned char *actCol, EditFace *efa_act) 
 {
-	unsigned char *cols[2];
-	cols[0] = baseCol;
-	cols[1] = selCol;
-	dm->drawMappedFaces(dm, draw_dm_faces_sel__setDrawOptions, cols, 0);
+	struct { unsigned char *cols[3]; EditFace *efa_act; } data;
+	data.cols[0] = baseCol;
+	data.cols[1] = selCol;
+	data.cols[2] = actCol;
+	data.efa_act = efa_act;
+	
+	dm->drawMappedFaces(dm, draw_dm_faces_sel__setDrawOptions, &data, 0);
 }
 
 static int draw_dm_creases__setDrawOptions(void *userData, int index)
@@ -1593,7 +1644,7 @@ static void draw_dm_creases(DerivedMesh *dm)
 
 /* EditMesh drawing routines*/
 
-static void draw_em_fancy_verts(EditMesh *em, DerivedMesh *cageDM)
+static void draw_em_fancy_verts(EditMesh *em, DerivedMesh *cageDM, EditVert *eve_act)
 {
 	int sel;
 
@@ -1629,7 +1680,7 @@ static void draw_em_fancy_verts(EditMesh *em, DerivedMesh *cageDM)
 			if(G.scene->selectmode & SCE_SELECT_VERTEX) {
 				glPointSize(size);
 				glColor4ubv((GLubyte *)col);
-				draw_dm_verts(cageDM, sel);
+				draw_dm_verts(cageDM, sel, eve_act);
 			}
 			
 			if(	(G.scene->selectmode & SCE_SELECT_FACE) &&
@@ -1651,14 +1702,20 @@ static void draw_em_fancy_verts(EditMesh *em, DerivedMesh *cageDM)
 	glPointSize(1.0);
 }
 
-static void draw_em_fancy_edges(DerivedMesh *cageDM)
+static void draw_em_fancy_edges(DerivedMesh *cageDM, short sel_only, EditEdge *eed_act)
 {
 	int pass;
-	unsigned char wire[4], sel[4];
+	unsigned char wireCol[4], selCol[4], actCol[4];
 
 	/* since this function does transparant... */
-	BIF_GetThemeColor3ubv(TH_EDGE_SELECT, (char *)sel);
-	BIF_GetThemeColor3ubv(TH_WIRE, (char *)wire);
+	BIF_GetThemeColor3ubv(TH_EDGE_SELECT, (char *)selCol);
+	BIF_GetThemeColor3ubv(TH_WIRE, (char *)wireCol);
+	BIF_GetThemeColor3ubv(TH_EDITMESH_ACTIVE, (char *)actCol);
+	
+	/* when sel only is used, dont render wire, only selected, this is used for
+	 * textured draw mode when the 'edges' option is disabled */
+	if (sel_only)
+		wireCol[3] = 0;
 
 	for (pass=0; pass<2; pass++) {
 			/* show wires in transparant when no zbuf clipping for select */
@@ -1666,30 +1723,33 @@ static void draw_em_fancy_edges(DerivedMesh *cageDM)
 			if (G.vd->zbuf && (G.vd->flag & V3D_ZBUF_SELECT)==0) {
 				glEnable(GL_BLEND);
 				glDisable(GL_DEPTH_TEST);
-
-				wire[3] = sel[3] = 85;
+				selCol[3] = 85;
+				if (!sel_only) wireCol[3] = 85;
 			} else {
 				continue;
 			}
 		} else {
-			wire[3] = sel[3] = 255;
+			selCol[3] = 255;
+			if (!sel_only) wireCol[3] = 255;
 		}
 
 		if(G.scene->selectmode == SCE_SELECT_FACE) {
-			draw_dm_edges_sel(cageDM, wire, sel);
+			draw_dm_edges_sel(cageDM, wireCol, selCol, actCol, eed_act);
 		}	
 		else if( (G.f & G_DRAWEDGES) || (G.scene->selectmode & SCE_SELECT_EDGE) ) {	
 			if(cageDM->drawMappedEdgesInterp && (G.scene->selectmode & SCE_SELECT_VERTEX)) {
 				glShadeModel(GL_SMOOTH);
-				draw_dm_edges_sel_interp(cageDM, wire, sel);
+				draw_dm_edges_sel_interp(cageDM, wireCol, selCol);
 				glShadeModel(GL_FLAT);
 			} else {
-				draw_dm_edges_sel(cageDM, wire, sel);
+				draw_dm_edges_sel(cageDM, wireCol, selCol, actCol, eed_act);
 			}
 		}
 		else {
-			glColor4ubv(wire);
-			draw_dm_edges(cageDM);
+			if (!sel_only) {
+				glColor4ubv(wireCol);
+				draw_dm_edges(cageDM);
+			}
 		}
 
 		if (pass==0) {
@@ -1943,7 +2003,21 @@ static int draw_em_fancy__setFaceOpts(void *userData, int index, int *drawSmooth
 static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, DerivedMesh *finalDM, int dt)
 {
 	Mesh *me = ob->data;
-
+	EditFace *efa_act = NULL;
+	EditEdge *eed_act = NULL;
+	EditVert *eve_act = NULL;
+	
+	if (G.editMesh->selected.last) {
+		EditSelection *ese = G.editMesh->selected.last;
+		if ( ese->type == EDITFACE ) {
+			efa_act = (EditFace *)ese->data;
+		} else if ( ese->type == EDITEDGE ) {
+			eed_act = (EditEdge *)ese->data;
+		} else if ( ese->type == EDITVERT ) {
+			eve_act = (EditVert *)ese->data;
+		}
+	}
+	
 	EM_init_index_arrays(1, 1, 1);
 
 	if(dt>OB_WIRE) {
@@ -1978,52 +2052,78 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, Derived
 	}
 	
 	if((G.f & (G_DRAWFACES)) || FACESEL_PAINT_TEST) {	/* transp faces */
-		unsigned char col1[4], col2[4];
+		unsigned char col1[4], col2[4], col3[4];
 			
 		BIF_GetThemeColor4ubv(TH_FACE, (char *)col1);
 		BIF_GetThemeColor4ubv(TH_FACE_SELECT, (char *)col2);
+		BIF_GetThemeColor4ubv(TH_EDITMESH_ACTIVE, (char *)col3);
 		
 		glEnable(GL_BLEND);
 		glDepthMask(0);		// disable write in zbuffer, needed for nice transp
 		
-		draw_dm_faces_sel(cageDM, col1, col2);
+		draw_dm_faces_sel(cageDM, col1, col2, col3, efa_act);
 
 		glDisable(GL_BLEND);
 		glDepthMask(1);		// restore write in zbuffer
+	} else if (efa_act) {
+		/* even if draw faces is off it would be nice to draw the stipple face
+		 * Make all other faces zero alpha except for the active
+		 * */
+		unsigned char col1[4], col2[4], col3[4];
+		col1[3] = col2[3] = 0; /* dont draw */
+		BIF_GetThemeColor4ubv(TH_EDITMESH_ACTIVE, (char *)col3);
+		
+		glEnable(GL_BLEND);
+		glDepthMask(0);		// disable write in zbuffer, needed for nice transp
+		
+		draw_dm_faces_sel(cageDM, col1, col2, col3, efa_act);
+
+		glDisable(GL_BLEND);
+		glDepthMask(1);		// restore write in zbuffer
+		
 	}
 
 	/* here starts all fancy draw-extra over */
-
-	if(G.f & G_DRAWSEAMS) {
-		BIF_ThemeColor(TH_EDGE_SEAM);
-		glLineWidth(2);
-
-		draw_dm_edges_seams(cageDM);
-
-		glColor3ub(0,0,0);
-		glLineWidth(1);
-	}
+	if(		(G.f & G_DRAWEDGES)==0 &&
+			((G.vd->drawtype==OB_TEXTURE && dt>OB_SOLID) ||
+			(G.vd->drawtype==OB_SOLID && G.vd->flag2 & V3D_SOLID_TEX)) 
+	) {
+		/* we are drawing textures and 'G_DRAWEDGES' is disabled, dont draw any edges */
+		
+		/* only draw selected edges otherwise there is no way of telling if a face is selected */
+		draw_em_fancy_edges(cageDM, 1, eed_act);
+		
+	} else {
+		if(G.f & G_DRAWSEAMS) {
+			BIF_ThemeColor(TH_EDGE_SEAM);
+			glLineWidth(2);
 	
-	if(G.f & G_DRAWSHARP) {
-		BIF_ThemeColor(TH_EDGE_SHARP);
-		glLineWidth(2);
-
-		draw_dm_edges_sharp(cageDM);
-
-		glColor3ub(0,0,0);
-		glLineWidth(1);
+			draw_dm_edges_seams(cageDM);
+	
+			glColor3ub(0,0,0);
+			glLineWidth(1);
+		}
+		
+		if(G.f & G_DRAWSHARP) {
+			BIF_ThemeColor(TH_EDGE_SHARP);
+			glLineWidth(2);
+	
+			draw_dm_edges_sharp(cageDM);
+	
+			glColor3ub(0,0,0);
+			glLineWidth(1);
+		}
+	
+		if(G.f & G_DRAWCREASES) {
+			draw_dm_creases(cageDM);
+		}
+	
+		draw_em_fancy_edges(cageDM, 0, eed_act);
 	}
-
-	if(G.f & G_DRAWCREASES) {
-		draw_dm_creases(cageDM);
-	}
-
-	draw_em_fancy_edges(cageDM);
-
 	if(ob==G.obedit) {
 		retopo_matrix_update(G.vd);
 
-		draw_em_fancy_verts(em, cageDM);
+		draw_em_fancy_verts(em, cageDM, eve_act);
 
 		if(G.f & G_DRAWNORMALS) {
 			BIF_ThemeColor(TH_NORMAL);
@@ -2040,127 +2140,6 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, Derived
 		if(em->vnode && (G.f & G_DRAW_VERSE_DEBUG))
 			draw_verse_debug(ob, em);
 #endif
-		
-		/* Draw active editmode vertex edge of face (if any)*/
-		if (em->selected.last) {
-			EditSelection *ese = em->selected.last;
-		
-			if( ese->type == EDITVERT && ((EditVert *)ese->data)->h==0) {
-				EditVert *ev = (EditVert*)ese->data;
-				float size = BIF_GetThemeValuef(TH_VERTEX_SIZE)*4;
-				
-				glEnable(GL_BLEND);
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-				glDepthMask(0);
-				glColor4ub(255,255,255,64);
-				glPointSize(size);
-				
-				glBegin(GL_POINTS);
-				glVertex3fv(ev->co);
-				glEnd();
-				
-				glPointSize(1.0);
-				
-				glDisable(GL_BLEND);
-				glDepthMask(1);
-				
-			} else if(ese->type == EDITEDGE && ((EditEdge *)ese->data)->h==0) {
-				EditEdge *eed = (EditEdge*)ese->data;
-				glEnable(GL_BLEND);
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-				glDepthMask(0);
-				glColor4ub(255,255,255,128);
-				
-				glLineWidth(2.0);
-				
-				glBegin(GL_LINES);
-				glVertex3fv(eed->v1->co);
-				glVertex3fv(eed->v2->co);
-				glEnd();
-				
-				glLineWidth(1.0);
-
-				glDisable(GL_BLEND);
-				glDepthMask(1);
-				
-				
-			} else if(ese->type == EDITFACE && ((EditFace *)ese->data)->h==0) {
-				EditFace *efa = (EditFace*)ese->data;
-				
-				/*  repeate this pattern
-				   X000X000 
-				   00000000 
-				   00X000X0 
-				   00000000 */
-				
-				GLubyte stipplepattern[32*32/8] = {
-					136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0,
-					136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0,
-					136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0,
-					136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0,
-					136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0,
-					136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0,
-					136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0,
-					136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0
-				};
-				
-				glEnable(GL_BLEND);
-				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-				glDepthMask(0);
-				glColor4ub(255,255,255,64);
-				
-	  			glEnable(GL_POLYGON_STIPPLE);
-	  			glPolygonStipple(stipplepattern);
-	  			
-				glDisable(GL_LIGHTING);
-				if (((EditFace*)ese->data)->v4) {
-					glBegin(GL_QUADS);
-					glVertex3fv(efa->v1->co);
-					glVertex3fv(efa->v2->co);
-					glVertex3fv(efa->v3->co);
-					glVertex3fv(efa->v4->co);
-					glEnd();
-				} else {
-					glBegin(GL_TRIANGLES);
-					glVertex3fv(efa->v1->co);
-					glVertex3fv(efa->v2->co);
-					glVertex3fv(efa->v3->co);
-					glEnd();
-				}
-				glDisable(GL_POLYGON_STIPPLE);
-				
-				
-				if (G.vd->drawtype==OB_TEXTURE) {
-					glBegin(GL_LINES);
-					glColor4ub(0,	255,0,	128);
-					glVertex3fv(efa->v1->co);
-					glVertex3fv(efa->v2->co);
-					
-					glColor4ub(0,	0,	255,128);
-					glVertex3fv(efa->v2->co);
-					glVertex3fv(efa->v3->co);
-					
-					
-					glColor4ub(255,	255,0,	128);
-					if (efa->v4) {
-						glVertex3fv(efa->v3->co);
-						glVertex3fv(efa->v4->co);
-						
-						glColor4ub(255,	0,	0,	128);
-						glVertex3fv(efa->v4->co);
-						glVertex3fv(efa->v1->co);
-					} else {
-						glVertex3fv(efa->v3->co);
-						glVertex3fv(efa->v1->co);
-					}
-					glEnd();
-				}
-				
-				glDisable(GL_BLEND);					
-				glDepthMask(1);
-			}
-		}
-		
 	}
 
 	if(dt>OB_WIRE) {

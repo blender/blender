@@ -1121,6 +1121,9 @@ def main():
 	print "Smart Projection time: %.2f" % (sys.time() - time1)
 	# Window.DrawProgressBar(0.9, "Smart Projections done, time: %.2f sec." % (sys.time() - time1))
 	
+	if is_editmode:
+		Window.EditMode(1)
+	
 	Window.DrawProgressBar(1.0, "")
 	Window.WaitCursor(0)
 	Window.RedrawAll()

@@ -229,6 +229,14 @@ void do_action_buttons(unsigned short event)
 			paste_posebuf(1);
 			allqueue(REDRAWVIEW3D, 1);
 			break;
+			
+		/* copy/paste buttons in Action Editor header */
+		case B_ACTCOPYKEYS:
+			copy_actdata();
+			break;
+		case B_ACTPASTEKEYS:
+			paste_actdata();
+			break;
 
 		case B_ACTPIN:	/* __PINFAKE */
 /*		if (G.saction->flag & SACTION_PIN) {
@@ -589,10 +597,10 @@ static void do_action_keymenu_transformmenu(void *arg, int event)
 			transform_action_keys('g', 0);
 			break;
 		case ACTMENU_KEY_TRANSFORM_SCALE:
-			transform_action_keys ('s', 0);
+			transform_action_keys('s', 0);
 			break;
 		case ACTMENU_KEY_TRANSFORM_SLIDE:
-			transform_action_keys ('t', 0);
+			transform_action_keys('t', 0);
 			break;
 	}
 
@@ -1102,23 +1110,23 @@ void action_buttons(void)
 {
 	uiBlock *block;
 	short xco, xmax;
-	char naam[256];
+	char name[256];
 	Object *ob;
 	ID *from;
 
-	if (!G.saction)
+	if (G.saction == NULL)
 		return;
 
-	// copy from drawactionspace....
+	/* copied from drawactionspace.... */
 	if (!G.saction->pin) {
 		if (OBACT)
 			G.saction->action = OBACT->action;
 		else
-			G.saction->action=NULL;
+			G.saction->action= NULL;
 	}
 
-	sprintf(naam, "header %d", curarea->headwin);
-	block= uiNewBlock(&curarea->uiblocks, naam, 
+	sprintf(name, "header %d", curarea->headwin);
+	block= uiNewBlock(&curarea->uiblocks, name, 
 					  UI_EMBOSS, UI_HELV, curarea->headwin);
 
 	if (area_is_active_area(curarea)) 
@@ -1156,10 +1164,10 @@ void action_buttons(void)
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	xco+=XIC;
 
-	if((curarea->flag & HEADER_NO_PULLDOWN)==0) {
+	if ((curarea->flag & HEADER_NO_PULLDOWN)==0) {
 		/* pull down menus */
 		uiBlockSetEmboss(block, UI_EMBOSSP);
-	
+		
 		xmax= GetButStringLength("View");
 		uiDefPulldownBut(block, action_viewmenu, NULL, 
 					  "View", xco, -2, xmax-3, 24, "");
@@ -1184,8 +1192,8 @@ void action_buttons(void)
 	uiBlockSetEmboss(block, UI_EMBOSS);
 	
 	/* NAME ETC */
-	ob=OBACT;
-	from = (ID*) ob;
+	ob= OBACT;
+	from = (ID *)ob;
 
 	xco= std_libbuttons(block, xco, 0, B_ACTPIN, &G.saction->pin, 
 						B_ACTIONBROWSE, ID_AC, 0, (ID*)G.saction->action, 
@@ -1195,7 +1203,7 @@ void action_buttons(void)
 	uiClearButLock();
 
 	/* draw AUTOSNAP */
-	xco+= 8;
+	xco += 8;
 	
 	if (G.saction->flag & SACTION_DRAWTIME) {
 		uiDefButS(block, MENU, B_REDR,
@@ -1210,15 +1218,27 @@ void action_buttons(void)
 				"Auto-snapping mode for keyframes when transforming");
 	}
 	
-	xco+= (70 + 8);
+	xco += (70 + 8);
 	
-	/* draw LOCK*/
-		
+	/* COPY PASTE */
+	uiBlockBeginAlign(block);
+	if (curarea->headertype==HEADERTOP) {
+		uiDefIconBut(block, BUT, B_ACTCOPYKEYS, ICON_COPYUP,	xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Copies the selected keyframes from the selected channel(s) to the buffer");
+		uiDefIconBut(block, BUT, B_ACTPASTEKEYS, ICON_PASTEUP,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Pastes the keyframes from the buffer");
+	}
+	else {
+		uiDefIconBut(block, BUT, B_ACTCOPYKEYS, ICON_COPYDOWN,	xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Copies the selected keyframes from the selected channel(s) to the buffer");
+		uiDefIconBut(block, BUT, B_ACTPASTEKEYS, ICON_PASTEDOWN,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Pastes the keyframes from the buffer");
+	}
+	uiBlockEndAlign(block);
+	xco += (XIC + 8);
+	
+	/* draw LOCK */
 	uiDefIconButS(block, ICONTOG, 1, ICON_UNLOCKED,	xco, 0, XIC, YIC, 
 				  &(G.saction->lock), 0, 0, 0, 0, 
 				  "Updates other affected window spaces automatically "
 				  "to reflect changes in real time");
-
+	
 	/* always as last  */
 	curarea->headbutlen = xco + 2*XIC;
 

@@ -260,6 +260,7 @@ void unlink_object(Object *ob)
 	Tex *tex;
 	Ipo *ipo;
 	Group *group;
+	Camera *camera;
 	bConstraint *con;
 	bActionStrip *strip;
 	int a;
@@ -473,6 +474,15 @@ void unlink_object(Object *ob)
 		rem_from_group(group, ob);
 		group= group->id.next;
 	}
+	
+	/* cameras */
+	camera= G.main->camera.first;
+	while(camera) {
+		if (camera->dof_ob==ob) {
+			camera->dof_ob = NULL;
+		}
+		camera= camera->id.next;
+	}
 }
 
 int exist_object(Object *obtest)
@@ -573,7 +583,23 @@ void make_local_camera(Camera *cam)
 	}
 }
 
-
+/* get the camera's dof value, takes the dof object into account */
+float dof_camera(Object *ob)
+{
+	Camera *cam = (Camera *)ob->data; 
+	if (ob->type != OB_CAMERA)
+		return 0.0;
+	if (cam->dof_ob) {	
+		/* too simple, better to return the distance on the view axis only
+		 * return VecLenf(ob->obmat[3], cam->dof_ob->obmat[3]); */
+		
+		float mat[4][4];
+		Mat4Invert(ob->imat, ob->obmat);
+		Mat4MulMat4(mat, cam->dof_ob->obmat, ob->imat);
+		return fabs(mat[3][2]);
+	}
+	return cam->YF_dofdist;
+}
 
 void *add_lamp(char *name)
 {

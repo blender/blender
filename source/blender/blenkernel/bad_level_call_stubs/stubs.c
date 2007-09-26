@@ -59,7 +59,7 @@ struct bPythonConstraint;
 struct bConstraintOb;
 
 char *getIpoCurveName( struct IpoCurve * icu );
-void insert_vert_ipo(struct IpoCurve *icu, float x, float y);
+void insert_vert_icu(struct IpoCurve *icu, float x, float y, short fast);
 struct IpoCurve *verify_ipocurve(struct ID *id, short a, char *b, char *d, int e);
 void elbeemDebugOut(char *msg);
 void fluidsimSettingsFree(struct FluidsimSettings* sb);
@@ -83,7 +83,7 @@ char *getIpoCurveName( struct IpoCurve * icu )
 	return 0;
 }
 
-void insert_vert_ipo(struct IpoCurve *icu, float x, float y)
+void insert_vert_icu(struct IpoCurve *icu, float x, float y, short fast)
 {
 }
 

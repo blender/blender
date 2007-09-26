@@ -5103,6 +5103,57 @@ int EdgeSlide(short immediate, float imperc)
 
 /* -------------------- More tools ------------------ */
 
+void mesh_set_face_flags(short mode)
+{
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
+	MTFace *tface;
+	short m_tex=0, m_tiles=0, m_shared=0, m_light=0, m_invis=0, m_collision=0, m_twoside=0, m_obcolor=0; 
+	short flag = 0, change = 0;
+	
+	if(G.obedit==0) return;
+	
+	if(G.obedit->type != OB_MESH) return;
+	
+	add_numbut(0, TOG|SHO, "Texture", 0, 0, &m_tex, NULL);
+	add_numbut(1, TOG|SHO, "Tiles", 0, 0, &m_tiles, NULL);
+	add_numbut(2, TOG|SHO, "Shared", 0, 0, &m_shared, NULL);
+	add_numbut(3, TOG|SHO, "Light", 0, 0, &m_light, NULL);
+	add_numbut(4, TOG|SHO, "Invisible", 0, 0, &m_invis, NULL);
+	add_numbut(5, TOG|SHO, "Collision", 0, 0, &m_collision, NULL);
+	add_numbut(6, TOG|SHO, "Twoside", 0, 0, &m_twoside, NULL);
+	add_numbut(7, TOG|SHO, "ObColor", 0, 0, &m_obcolor, NULL);
+	
+	if (!do_clever_numbuts((mode ? "Set Flags" : "Clear Flags"), 8, REDRAW))
+ 		return;
+	
+	if (m_tex)			flag |= TF_TEX;
+	if (m_tiles)		flag |= TF_TILES;
+	if (m_shared)		flag |= TF_SHAREDCOL;
+	if (m_light)		flag |= TF_LIGHT;
+	if (m_invis)		flag |= TF_INVISIBLE;
+	if (m_collision)	flag |= TF_DYNAMIC;
+	if (m_twoside)		flag |= TF_TWOSIDE;
+	if (m_obcolor)		flag |= TF_OBCOL;
+	
+	efa= em->faces.first;
+	while(efa) {
+		if(efa->f & SELECT) {
+			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			if (mode)	tface->mode |= flag;
+			else		tface->mode &= ~flag;
+		}
+		efa= efa->next;
+	}
+	
+	if (change) {
+		BIF_undo_push((mode ? "Set Flags" : "Clear Flags"));
+		
+		allqueue(REDRAWIMAGE, 0);
+		allqueue(REDRAWVIEW3D, 0);
+	}
+}
+
 void mesh_set_smooth_faces(short event)
 {
 	EditMesh *em = G.editMesh;
@@ -6507,7 +6558,7 @@ void mesh_rotate_uvs(void)
 {
 	EditMesh *em = G.editMesh;
 	EditFace *efa;
-	short change;
+	short change = 0;
 	MTFace *tf;
 	float u1, v1;
 	
@@ -6544,6 +6595,7 @@ void mesh_rotate_uvs(void)
 	}
 	
 	if (change) {
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 0);
 		BIF_undo_push("Rotate UV face");
 	}
@@ -6553,7 +6605,7 @@ void mesh_mirror_uvs(void)
 {
 	EditMesh *em = G.editMesh;
 	EditFace *efa;
-	short change;
+	short change = 0;
 	MTFace *tf;
 	float u1, v1;
 	
@@ -6594,6 +6646,7 @@ void mesh_mirror_uvs(void)
 	}
 	
 	if (change) {
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 0);
 		BIF_undo_push("Mirror UV face");
 	}
@@ -6603,7 +6656,7 @@ void mesh_rotate_colors(void)
 {
 	EditMesh *em = G.editMesh;
 	EditFace *efa;
-	short change;
+	short change = 0;
 	MCol tmpcol, *mcol;
 	if (!EM_vertColorCheck()) {
 		error("mesh has no color layers");
@@ -6629,6 +6682,7 @@ void mesh_rotate_colors(void)
 	}
 	
 	if (change) {
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 0);
 		BIF_undo_push("Rotate Color face");
 	}	
@@ -6638,7 +6692,7 @@ void mesh_mirror_colors(void)
 {
 	EditMesh *em = G.editMesh;
 	EditFace *efa;
-	short change;
+	short change = 0;
 	MCol tmpcol, *mcol;
 	if (!EM_vertColorCheck()) {
 		error("mesh has no color layers");
@@ -6665,6 +6719,7 @@ void mesh_mirror_colors(void)
 	}
 	
 	if (change) {
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 0);
 		BIF_undo_push("Mirror Color face");
 	}

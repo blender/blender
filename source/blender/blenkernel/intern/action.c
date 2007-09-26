@@ -112,7 +112,6 @@ static void make_local_action_channels(bAction *act)
 			}
 		}
 	}
-					
 }
 
 void make_local_action(bAction *act)
@@ -165,27 +164,27 @@ void make_local_action(bAction *act)
 }
 
 
-void free_action(bAction *act)
+void free_action (bAction *act)
 {
 	bActionChannel *chan;
 	
 	/* Free channels */
-	for (chan=act->chanbase.first; chan; chan=chan->next){
+	for (chan=act->chanbase.first; chan; chan=chan->next) {
 		if (chan->ipo)
 			chan->ipo->id.us--;
 		free_constraint_channels(&chan->constraintChannels);
 	}
 	
 	if (act->chanbase.first)
-		BLI_freelistN (&act->chanbase);
+		BLI_freelistN(&act->chanbase);
 }
 
-bAction* copy_action(bAction *src)
+bAction *copy_action (bAction *src)
 {
 	bAction *dst = NULL;
 	bActionChannel *dchan, *schan;
 	
-	if(!src) return NULL;
+	if (!src) return NULL;
 	
 	dst= copy_libblock(src);
 	duplicatelist(&(dst->chanbase), &(src->chanbase));
@@ -352,6 +351,28 @@ void update_pose_constraint_flags(bPose *pose)
 	}
 }
 
+/* Clears all BONE_UNKEYED flags for every pose channel in every pose 
+ * This should only be called on frame changing, when it is acceptable to
+ * do this. Otherwise, these flags should not get cleared as poses may get lost.
+ */
+void framechange_poses_clear_unkeyed(void)
+{
+	Object *ob;
+	bPose *pose;
+	bPoseChannel *pchan;
+	
+	/* This needs to be done for each object that has a pose */
+	// TODO: proxies may/may not be correctly handled here... (this needs checking) 
+	for (ob= G.main->object.first; ob; ob= ob->id.next) {
+		/* we only need to do this on objects with a pose */
+		if ( (pose= ob->pose) ) {
+			for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
+				if (pchan->bone) 
+					pchan->bone->flag &= ~BONE_UNKEYED;
+			}
+		}
+	}
+}
 
 /* ************************ END Pose channels *************** */
 
@@ -681,9 +702,15 @@ void extract_pose_from_action(bPose *pose, bAction *act, float ctime)
 	
 	/* Copy the data from the action into the pose */
 	for (pchan= pose->chanbase.first; pchan; pchan=pchan->next) {
+		/* skip this pose channel if it has been tagged as having unkeyed poses */
+		if ((pchan->bone) && (pchan->bone->flag & BONE_UNKEYED)) 
+			continue;
+		
+		/* get action channel and clear pchan-transform flags */
 		achan= get_action_channel(act, pchan->name);
 		pchan->flag &= ~(POSE_LOC|POSE_ROT|POSE_SIZE);
-		if(achan) {
+		
+		if (achan) {
 			ipo = achan->ipo;
 			if (ipo) {
 				/* Evaluates and sets the internal ipo value */
@@ -1253,12 +1280,11 @@ static void do_nla(Object *ob, int blocktype)
 
 void do_all_pose_actions(Object *ob)
 {
-
-	// only to have safe calls from editor
+	/* only to have safe calls from editor */
 	if(ob==NULL) return;
 	if(ob->type!=OB_ARMATURE || ob->pose==NULL) return;
 
-	if(ob->pose->flag & POSE_LOCKED) {  // no actions to execute while transform
+	if(ob->pose->flag & POSE_LOCKED) {  /*  no actions to execute while transform */
 		if(ob->pose->flag & POSE_DO_UNLOCK)
 			ob->pose->flag &= ~(POSE_LOCKED|POSE_DO_UNLOCK);
 	}
@@ -1272,6 +1298,9 @@ void do_all_pose_actions(Object *ob)
 	else if(ob->nlastrips.first) {
 		do_nla(ob, ID_AR);
 	}
+	
+	/* clear POSE_DO_UNLOCK flags that might have slipped through (just in case) */
+	ob->pose->flag &= ~POSE_DO_UNLOCK;
 }
 
 /* called from where_is_object */

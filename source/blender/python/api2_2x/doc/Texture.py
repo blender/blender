@@ -60,6 +60,9 @@ Example::
 		- CHECKER_ODD - Fill the "odd" checkerboard tiles
 		- CHECKER_EVEN - Fill the "even" checkerboard tiles
 		- COLORBAND - Enable colorband for this texture
+        - PREVIEW_ALPHA - Show alpha in preview
+        - REPEAT_XMIR - Mirrors X direction repeat
+        - REPEAT_YMIR - Mirrors Y direction repeat
 
 @type ImageFlags: readonly dictionary
 @var ImageFlags: The available image flags for Texture.imageFlags:

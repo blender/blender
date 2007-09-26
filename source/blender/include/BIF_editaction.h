@@ -79,7 +79,6 @@ enum {
 	SET_IPO_BEZIER,
 };
 
-
 /* constants for setting ipo-extrapolation type */
 enum {
 	
@@ -91,6 +90,7 @@ enum {
 	SET_EXTEND_CYCLIC,
 	SET_EXTEND_CYCLICEXTRAPOLATION
 };
+
 
 struct bAction;
 struct bActionChannel;
@@ -116,6 +116,11 @@ void column_select_action_keys(int mode);
 void selectall_action_keys(short mval[], short mode, short selectmode);
 void markers_selectkeys_between(void);
 
+/* Action Data Copying */
+void free_actcopybuf(void);
+void copy_actdata(void);
+void paste_actdata(void);
+
 /* channel/strip operations */
 void up_sel_action(void);
 void down_sel_action(void);
@@ -132,11 +137,12 @@ void deselect_action_keys(short test, short sel);
 void deselect_action_channels(short test);
 void deselect_actionchannels(struct bAction *act, short test);
 int select_channel(struct bAction *act, struct bActionChannel *achan, int selectmode);
-void select_actionchannel_by_name (struct bAction *act, char *name, int select);
+void select_actionchannel_by_name(struct bAction *act, char *name, int select);
 
 /* ShapeKey stuff */
 struct Key *get_action_mesh_key(void);
 int get_nearest_key_num(struct Key *key, short *mval, float *x);
+
 void *get_nearest_act_channel(short mval[], short *ret_type);
 
 /* Action */

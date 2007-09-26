@@ -1686,7 +1686,9 @@ void build_particle_system(Object *ob)
 	float *volengths= NULL, *folengths= NULL;
 	int deform=0, a, totpart, paf_sta, paf_end;
 	int waitcursor_set= 0, totvert, totface, curface, curvert;
+#ifndef DISABLE_ELBEEM
 	int readMask, activeParts, fileParts;
+#endif
 	
 	/* return conditions */
 	if(ob->type!=OB_MESH) return;

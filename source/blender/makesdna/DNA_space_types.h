@@ -232,20 +232,25 @@ typedef struct SpaceImage {
 	
 	struct CurveMapping *cumap;
 	short mode, menunr;
-	short imanr, curtile;
+	short imanr;
+	short curtile; /* the currently active tile of the image when tile is enabled, is kept in sync with the active faces tile */
 	int flag;
 	short imtypenr, lock;
-	short showspare, pad2;
+	short showspare, pin;
 	float zoom;
+	char dt_uv; /* UV draw type */
+	char sticky; /* sticky selection type */ 
+	char pad[6]; 
 	
 	float xof, yof;					/* user defined offset, image is centered */
 	float centx, centy;				/* storage for offset while render drawing */
 	
 	char *info_str, *info_spare;	/* info string for render */
 	struct ImBuf *spare;
+	
 } SpaceImage;
 
-typedef struct SpaceNla{
+typedef struct SpaceNla {
 	struct SpaceLink *next, *prev;
 	int spacetype;
 	float blockscale;
@@ -254,7 +259,8 @@ typedef struct SpaceNla{
 	short blockhandler[8];
 
 	short menunr, lock;
-	int flag;
+	short autosnap;			/* this uses the same settings as autosnap for Action Editor */
+	short flag;
 	
 	View2D v2d;	
 } SpaceNla;
@@ -460,16 +466,21 @@ typedef struct SpaceImaSel {
 #define SI_TEXTURE		0
 #define SI_SHOW			1
 
+#define SI_UVDT_DASH	0
+#define SI_UVDT_BLACK	1
+#define SI_UVDT_WHITE	2
+#define SI_UVDT_OUTLINE	3
+
 /* SpaceImage->flag */
 #define SI_BE_SQUARE	1<<0
 #define SI_EDITTILE		1<<1
 #define SI_CLIP_UV		1<<2
 #define SI_DRAWTOOL		1<<3
-#define SI_STICKYUVS    1<<4
+#define SI_DEPRECATED1    1<<4	/* stick UVs to others in the same location */
 #define SI_DRAWSHADOW   1<<5
 #define SI_SELACTFACE   1<<6
-#define SI_DEPRECATED	1<<7
-#define SI_LOCALSTICKY  1<<8
+#define SI_DEPRECATED2	1<<7
+#define SI_DEPRECATED3  1<<8	/* stick UV selection to mesh vertex (UVs wont always be touching) */
 #define SI_COORDFLOATS  1<<9
 #define SI_PIXELSNAP	1<<10
 #define SI_LIVE_UNWRAP	1<<11
@@ -480,6 +491,11 @@ typedef struct SpaceImaSel {
 #define SI_PREVSPACE	1<<15
 #define SI_FULLWINDOW	1<<16
 #define SI_SYNC_UVSEL	1<<17
+#define SI_LOCAL_UV		1<<18
+		/* this means that the image is drawn until it reaches the view edge,
+		 * in the image view, its unrelated to the 'tile' mode for texface */
+#define SI_DRAW_TILE	1<<19 
+#define SI_SMOOTH_UV	1<<20 
 
 /* SpaceText flags (moved from DNA_text_types.h) */
 
@@ -570,6 +586,7 @@ typedef struct SpaceImaSel {
 /* nla->flag */
 #define SNLA_ALLKEYED		1
 #define SNLA_ACTIVELAYERS	2
+#define SNLA_DRAWTIME		4
 
 /* time->flag */
 #define TIME_DRAWFRAMES		1

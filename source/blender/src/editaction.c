@@ -80,6 +80,7 @@
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
+#include "BIF_transform.h"
 
 #include "BSE_edit.h"
 #include "BSE_drawipo.h"
@@ -170,34 +171,6 @@ void remake_action_ipos (bAction *act)
 	}
 	
 	synchronize_action_strips();
-}
-
-static void remake_meshaction_ipos (Ipo *ipo)
-{
-	/* this puts the bezier triples in proper
-	 * order and makes sure the bezier handles
-	 * aren't too strange.
-	 */
-	IpoCurve *icu;
-
-	for (icu = ipo->curve.first; icu; icu=icu->next) {
-		sort_time_ipocurve(icu);
-		testhandles_ipocurve(icu);
-	}
-}
-
-static void meshkey_do_redraw (Key *key)
-{
-	if(key->ipo)
-		remake_meshaction_ipos(key->ipo);
-
-	DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
-	
-	allspace(REMAKEIPO, 0);
-	allqueue(REDRAWACTION, 0);
-	allqueue(REDRAWIPO, 0);
-	allqueue(REDRAWNLA, 0);
-
 }
 
 /* **************************************************** */
@@ -737,361 +710,9 @@ void *get_action_context (short *datatype)
 /* **************************************************** */
 /* TRANSFORM TOOLS */
 
-/* initialise the transform data - create transverts */
-static TransVert *transform_action_init (int *tvtot, float *minx, float *maxx)
-{
-	ListBase act_data = {NULL, NULL};
-	bActListElem *ale;
-	TransVert *tv;
-	void *data;
-	short datatype;
-	int filter;
-	int count= 0;
-	float min= 0, max= 0;
-	int i;
-	
-	/* initialise the values being passed by reference */
-	*tvtot = *minx = *maxx = 0;
-	
-	/* determine what type of data we are operating on */
-	data = get_action_context(&datatype);
-	if (data == NULL) return NULL;
-	
-	/* filter data */
-	filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT | ACTFILTER_IPOKEYS);
-	actdata_filter(&act_data, filter, data, datatype);
-	
-	/* loop 1: fully select ipo-keys and count how many BezTriples are selected */
-	for (ale= act_data.first; ale; ale= ale->next)
-		count += fullselect_ipo_keys(ale->key_data);
-	
-	/* stop if trying to build list if nothing selected */
-	if (count == 0) {
-		/* cleanup temp list */
-		BLI_freelistN(&act_data);
-		return NULL;
-	}
-		
-	/* Build the transvert structure */
-	tv = MEM_callocN (sizeof(TransVert) * count, "transVert");
-	
-	/* loop 2: build transvert structure */
-	for (ale= act_data.first; ale; ale= ale->next)
-		*tvtot = add_trans_ipo_keys(ale->key_data, tv, *tvtot);
-		
-	/* min max, only every other three */
-	min= max= tv[1].loc[0];
-	for (i=1; i<count; i+=3) {
-		if(min>tv[i].loc[0]) min= tv[i].loc[0];
-		if(max<tv[i].loc[0]) max= tv[i].loc[0];
-	}
-	*minx= min;
-	*maxx= max;
-	
-	/* cleanup temp list */
-	BLI_freelistN(&act_data);
-	
-	/* return created transverts */
-	return tv;
-} 
-
-/* main transform loop for action editor 
- * NOTE: yes, this is a very long function that really should be converted to
- * using the transform system proper 
- */
-static short transform_action_loop (TransVert *tv, int tvtot, char mode, short context, float minx, float maxx)
-{
-	Object *ob= OBACT;
-	float deltax, startx;
-	float cenf[2];
-	float sval[2], cval[2], lastcval[2]={0,0};
-	float fac=0.0f, secf= ((float)G.scene->r.frs_sec);
-	int	loop=1, invert=0;
-	int	i;
-	short cancel=0, firsttime=1;
-	short mvals[2], mvalc[2], cent[2];
-	char str[256];
-	
-	/* Do the event loop */
-	cent[0] = curarea->winx + (G.saction->v2d.hor.xmax)/2;
-	cent[1] = curarea->winy + (G.saction->v2d.hor.ymax)/2;
-	areamouseco_to_ipoco(G.v2d, cent, &cenf[0], &cenf[1]);
-
-	getmouseco_areawin (mvals);
-	areamouseco_to_ipoco(G.v2d, mvals, &sval[0], &sval[1]);
-
-	if (NLA_ACTION_SCALED)
-		sval[0]= get_action_frame(OBACT, sval[0]);
-	
-	/* used for drawing */
-	if (mode=='t') {
-		G.saction->flag |= SACTION_MOVING;
-		G.saction->timeslide= sval[0];
-	}
-	
-	startx=sval[0];
-	while (loop) {
-		if (mode=='t' && minx==maxx)
-			break;
-		
-		/* Get the input:
-		 * - If we're cancelling, reset transformations
-		 * - Else calc new transformation
-		 * Perform the transformations
-		 */
-		while (qtest()) {
-			short val;
-			unsigned short event= extern_qread(&val);
-
-			if (val) {
-				switch (event) {
-				case LEFTMOUSE:
-				case SPACEKEY:
-				case RETKEY:
-					loop=0;
-					break;
-				case XKEY:
-					break;
-				case ESCKEY:
-				case RIGHTMOUSE:
-					cancel=1;
-					loop=0;
-					break;
-				default:
-					arrows_move_cursor(event);
-					break;
-				};
-			}
-		}
-
-		if (cancel) {
-			for (i=0; i<tvtot; i++) {
-				tv[i].loc[0]=tv[i].oldloc[0];
-				tv[i].loc[1]=tv[i].oldloc[1];
-			}
-		} 
-		else {
-			getmouseco_areawin (mvalc);
-			areamouseco_to_ipoco(G.v2d, mvalc, &cval[0], &cval[1]);
-			
-			if (NLA_ACTION_SCALED)
-				cval[0]= get_action_frame(OBACT, cval[0]);
-
-			if (mode=='t')
-				G.saction->timeslide= cval[0];
-			
-			if (!firsttime && lastcval[0]==cval[0] && lastcval[1]==cval[1]) {
-				PIL_sleep_ms(1);
-			} 
-			else {
-				short autosnap= 0;
-				
-				/* determine mode of keyframe snapping/autosnap */
-				if (mode != 't') {
-					switch (G.saction->autosnap) {
-					case SACTSNAP_OFF:
-						if (G.qual == LR_CTRLKEY) 
-							autosnap= SACTSNAP_STEP;
-						else if (G.qual == LR_SHIFTKEY)
-							autosnap= SACTSNAP_FRAME;
-						else
-							autosnap= SACTSNAP_OFF;
-						break;
-					case SACTSNAP_STEP:
-						autosnap= (G.qual==LR_CTRLKEY)? SACTSNAP_OFF: SACTSNAP_STEP;
-						break;
-					case SACTSNAP_FRAME:
-						autosnap= (G.qual==LR_SHIFTKEY)? SACTSNAP_OFF: SACTSNAP_FRAME;
-						break;
-					}
-				}
-				
-				for (i=0; i<tvtot; i++) {
-					tv[i].loc[0]=tv[i].oldloc[0];
-
-					switch (mode) {
-					case 't':
-						if( sval[0] > minx && sval[0] < maxx) {
-							float timefac, cvalc= CLAMPIS(cval[0], minx, maxx);
-							
-							/* left half */
-							if(tv[i].oldloc[0] < sval[0]) {
-								timefac= ( sval[0] - tv[i].oldloc[0])/(sval[0] - minx);
-								tv[i].loc[0]= cvalc - timefac*( cvalc - minx);
-							}
-							else {
-								timefac= (tv[i].oldloc[0] - sval[0])/(maxx - sval[0]);
-								tv[i].loc[0]= cvalc + timefac*(maxx- cvalc);
-							}
-						}
-						break;
-					case 'g':
-						if (NLA_ACTION_SCALED && context==ACTCONT_ACTION) {
-							deltax = get_action_frame_inv(OBACT, cval[0]);
-							deltax -= get_action_frame_inv(OBACT, sval[0]);
-							
-							if (autosnap == SACTSNAP_STEP) {
-								if (G.saction->flag & SACTION_DRAWTIME) 
-									deltax= (float)( floor((deltax/secf) + 0.5f) * secf );
-								else
-									deltax= (float)( floor(deltax + 0.5f) );
-							}
-							
-							fac = get_action_frame_inv(OBACT, tv[i].loc[0]);
-							fac += deltax;
-							tv[i].loc[0] = get_action_frame(OBACT, fac);
-						}
-						else {
-							deltax = cval[0] - sval[0];
-							fac= deltax;
-							
-							if (autosnap == SACTSNAP_STEP) {
-								if (G.saction->flag & SACTION_DRAWTIME)
-									fac= (float)( floor((deltax/secf) + 0.5f) * secf );
-								else
-									fac= (float)( floor(fac + 0.5f) );
-							}
-							
-							tv[i].loc[0]+=fac;
-						}
-						break;
-					case 's':
-						startx=mvals[0]-(ACTWIDTH/2+(curarea->winrct.xmax-curarea->winrct.xmin)/2);
-						deltax=mvalc[0]-(ACTWIDTH/2+(curarea->winrct.xmax-curarea->winrct.xmin)/2);
-						fac= fabs(deltax/startx);
-						
-						if (autosnap == SACTSNAP_STEP) {
-							if (G.saction->flag & SACTION_DRAWTIME)
-								fac= (float)( floor(fac/secf + 0.5f) * secf );
-							else
-								fac= (float)( floor(fac + 0.5f) );
-						}
-						
-						if (invert) {
-							if (i % 03 == 0) {
-								memcpy (tv[i].loc, tv[i].oldloc, sizeof(tv[i+2].oldloc));
-							}
-							if (i % 03 == 2) {
-								memcpy (tv[i].loc, tv[i].oldloc, sizeof(tv[i-2].oldloc));
-							}
-	
-							fac *= -1;
-						}
-						startx= (G.scene->r.cfra);
-						if (NLA_ACTION_SCALED && context==ACTCONT_ACTION)
-							startx= get_action_frame(OBACT, startx);
-							
-						tv[i].loc[0]-= startx;
-						tv[i].loc[0]*=fac;
-						tv[i].loc[0]+= startx;
-						
-						break;
-					}
-					
-					/* snap key to nearest frame? */
-					if (autosnap == SACTSNAP_FRAME) {
-						float snapval;
-						
-						/* convert frame to nla-action time (if needed) */
-						if (NLA_ACTION_SCALED && context==ACTCONT_ACTION) 
-							snapval= get_action_frame_inv(OBACT, tv[i].loc[0]);
-						else
-							snapval= tv[i].loc[0];
-						
-						/* snap to nearest frame */
-						if (G.saction->flag & SACTION_DRAWTIME)
-							snapval= (float)( floor((snapval/secf) + 0.5f) * secf );
-						else
-							snapval= (float)( floor(snapval+0.5f) );
-							
-						/* convert frame out of nla-action time */
-						if (NLA_ACTION_SCALED && context==ACTCONT_ACTION)
-							tv[i].loc[0]= get_action_frame(OBACT, snapval);
-						else
-							tv[i].loc[0]= snapval;
-					}
-				}
-	
-				if (mode=='s') {
-					sprintf(str, "scaleX: %.3f", fac);
-					headerprint(str);
-				}
-				else if (mode=='g') {
-					if (NLA_ACTION_SCALED && context==ACTCONT_ACTION) {
-						/* recalculate the delta based on 'visual' times */
-						fac = get_action_frame_inv(OBACT, cval[0]);
-						fac -= get_action_frame_inv(OBACT, sval[0]);
-					}
-					
-					if (autosnap == SACTSNAP_STEP) {
-						if (G.saction->flag & SACTION_DRAWTIME)
-							fac= floor(fac/secf + 0.5f);
-						else
-							fac= floor(fac + 0.5f);
-					}
-					else if (autosnap == SACTSNAP_FRAME) {
-						if (G.saction->flag & SACTION_DRAWTIME)
-							fac= fac / secf;
-					}
-					
-					sprintf(str, "deltaX: %.3f", fac);
-					headerprint(str);
-				}
-				else if (mode=='t') {
-					fac= 2.0*(cval[0]-sval[0])/(maxx-minx);
-					CLAMP(fac, -1.0f, 1.0f);
-					
-					sprintf(str, "TimeSlide: %.3f", fac);
-					headerprint(str);
-				}
-		
-				if (G.saction->lock) {
-					if (context == ACTCONT_ACTION) {
-						if(ob) {
-							ob->ctime= -1234567.0f;
-							if(ob->pose || ob_get_key(ob))
-								DAG_object_flush_update(G.scene, ob, OB_RECALC);
-							else
-								DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
-						}
-						force_draw_plus(SPACE_VIEW3D, 0);
-					}
-					else if (context == ACTCONT_SHAPEKEY) {
-						DAG_object_flush_update(G.scene, OBACT, OB_RECALC_OB|OB_RECALC_DATA);
-		                allqueue (REDRAWVIEW3D, 0);
-		                allqueue (REDRAWACTION, 0);
-		                allqueue (REDRAWIPO, 0);
-		                allqueue(REDRAWNLA, 0);
-						allqueue(REDRAWTIME, 0);
-		                force_draw_all(0);
-					}
-				}
-				else {
-					force_draw(0);
-				}
-			}
-		}
-		
-		lastcval[0]= cval[0];
-		lastcval[1]= cval[1];
-		firsttime= 0;
-	}
-	
-	return cancel;
-}
-
 /* main call to start transforming keyframes */
-/* 	NOTE: someday, this should be integrated with the transform system
- * 		instead of relying on our own methods
- */
 void transform_action_keys (int mode, int dummy)
 {
-	Object *ob= OBACT;
-	TransVert *tv;
-	int tvtot= 0;
-	short cancel;
-	float minx, maxx;
-	
 	void *data;
 	short datatype;
 	
@@ -1099,44 +720,26 @@ void transform_action_keys (int mode, int dummy)
 	data = get_action_context(&datatype);
 	if (data == NULL) return;
 	
-	/* initialise transform */
-	tv= transform_action_init(&tvtot, &minx, &maxx);
-	if (tv == NULL) return;
-	
-	/* do transform loop */
-	cancel= transform_action_loop(tv, tvtot, mode, datatype, minx, maxx); 
-	
-	/* cleanup */
-	if (datatype == ACTCONT_ACTION) {
-		/* Update the curve */
-		/* Depending on the lock status, draw necessary views */
-		if(ob) {
-			ob->ctime= -1234567.0f;
-
-			if(ob->pose || ob_get_key(ob))
-				DAG_object_flush_update(G.scene, ob, OB_RECALC);
-			else
-				DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
+	switch (mode) {
+		case 'g':
+		{
+			initTransform(TFM_TIME_TRANSLATE, CTX_NONE);
+			Transform();
 		}
-		
-		remake_action_ipos((bAction *)data);
-
-		G.saction->flag &= ~SACTION_MOVING;
-		
-		if (cancel==0) BIF_undo_push("Transform Action"); // does it have to be here?
-		allqueue(REDRAWVIEW3D, 0);
-		allqueue(REDRAWACTION, 0);
-		allqueue(REDRAWNLA, 0);
-		allqueue(REDRAWIPO, 0);
-		allqueue(REDRAWTIME, 0);
+			break;
+		case 's':
+		{
+			initTransform(TFM_TIME_SCALE, CTX_NONE);
+			Transform();
+		}
+			break;
+		case 't':
+		{
+			initTransform(TFM_TIME_SLIDE, CTX_NONE);
+			Transform();
+		}
+			break;
 	}
-	else if (datatype == ACTCONT_SHAPEKEY) {
-		/* fix up the Ipocurves and redraw stuff */
-	    meshkey_do_redraw((Key *)data);
-		if (cancel==0) BIF_undo_push("Transform Action");
-	}
-	
-	MEM_freeN(tv);
 }
 
 /* ----------------------------------------- */
@@ -1333,9 +936,9 @@ void insertkey_action(void)
 				IpoCurve *icu= (IpoCurve *)ale->key_data;
 				
 				if (ob)
-					insertkey((ID *)ob, icu->blocktype, achan->name, NULL, icu->adrcode);
+					insertkey((ID *)ob, icu->blocktype, achan->name, NULL, icu->adrcode, 0);
 				else
-					insert_vert_ipo(icu, cfra, icu->curval);
+					insert_vert_icu(icu, cfra, icu->curval, 0);
 			}
 		}
 		
@@ -1352,7 +955,7 @@ void insertkey_action(void)
 		
 		if (key->ipo) {
 			for (icu= key->ipo->curve.first; icu; icu=icu->next) {
-				insert_vert_ipo(icu, cfra, icu->curval);
+				insert_vert_icu(icu, cfra, icu->curval, 0);
 			}
 		}
 	}
@@ -1495,9 +1098,172 @@ void clean_action (void)
 }
 
 /* **************************************************** */
+/* COPY/PASTE FOR ACTIONS */
+/* - The copy/paste buffer currently stores a set of IPO curves, with no
+ *   repeating curve-types (i.e.  no curves with the same adrcode). 
+ * - Only selected keyframes from the source curves are placed here. 
+ * - Only 'compatible' pastes are done.
+ */
+
+/* globals for copy/paste data (like for other copy/paste buffers) */
+ListBase actcopybuf = {NULL, NULL};
+
+/* This function frees any MEM_calloc'ed copy/paste buffer data */
+void free_actcopybuf ()
+{
+	IpoCurve *icu;
+	
+	while( (icu= actcopybuf.first) ) {
+		BLI_remlink(&actcopybuf, icu);
+		free_ipo_curve(icu);
+	}
+}
+
+/* This function adds data to the copy/paste buffer, freeing existing data first
+ * Only the active action channel gets its selected keyframes copied.
+ */
+void copy_actdata ()
+{
+	ListBase act_data = {NULL, NULL};
+	bActListElem *ale;
+	int filter;
+	void *data;
+	short datatype;
+	
+	/* clear buffer first */
+	free_actcopybuf();
+	
+	/* get data */
+	data= get_action_context(&datatype);
+	if (data == NULL) return;
+	
+	/* filter data */
+	filter= (ACTFILTER_VISIBLE | ACTFILTER_SEL | ACTFILTER_ONLYICU);
+	actdata_filter(&act_data, filter, data, datatype);
+	
+	/* each of these entries should be an ipo curve */
+	for (ale= act_data.first; ale; ale= ale->next) {
+		IpoCurve *icu= ale->key_data;
+		IpoCurve *icn;
+		BezTriple *bezt;
+		short nin_buffer= 1;
+		int i;
+		
+		/* check if a curve like this exists already in buffer */
+		for (icn= actcopybuf.first; icn; icn= icn->next) {
+			if ((icn->blocktype==icu->blocktype) && (icn->adrcode==icu->adrcode)) {
+				nin_buffer= 0;
+				break;
+			}
+		}
+		/* allocate memory for a new curve if a valid one wasn't found */
+		if (nin_buffer) {
+			icn= MEM_callocN(sizeof(IpoCurve), "actcopybuf");
+			
+			*icn= *icu;
+			icn->totvert= 0;
+			icn->bezt = NULL;
+			icn->driver = NULL;
+			
+			BLI_addtail(&actcopybuf, icn);
+		}
+		
+		/* find selected BezTriples to add to the buffer */
+		for (i=0, bezt=icu->bezt; i < icu->totvert; i++, bezt++) {
+			if (BEZSELECTED(bezt))
+				insert_bezt_icu(icn, bezt);
+		}
+	}
+	
+	/* check if anything ended up in the buffer */
+	if (actcopybuf.first==NULL || actcopybuf.last==NULL)
+		error("Nothing copied to buffer");
+	
+	/* free temp memory */
+	BLI_freelistN(&act_data);
+}
+
+void paste_actdata ()
+{
+	ListBase act_data = {NULL, NULL};
+	bActListElem *ale;
+	int filter;
+	void *data;
+	short datatype;
+	
+	/* check if buffer is empty */
+	if (actcopybuf.first==NULL || actcopybuf.last==NULL) {
+		error("No data in buffer to paste");
+		return;
+	}
+	
+	/* get data */
+	data= get_action_context(&datatype);
+	if (data == NULL) return;
+	
+	/* filter data */
+	filter= (ACTFILTER_VISIBLE | ACTFILTER_SEL | ACTFILTER_FOREDIT | ACTFILTER_ONLYICU);
+	actdata_filter(&act_data, filter, data, datatype);
+	
+	/* from selected channels */
+	for (ale= act_data.first; ale; ale= ale->next) {
+		IpoCurve *icu= ale->key_data;
+		IpoCurve *ico;
+		BezTriple *bezt;
+		int i;
+		float offset= 0.0f;
+		short offsetInit= 1;
+		
+		/* find matching ipo-curve */
+		for (ico= actcopybuf.first; ico; ico= ico->next) {
+			if ((ico->blocktype==icu->blocktype) && (ico->adrcode==icu->adrcode)) {
+				/* just start pasting, with the the first keyframe on the current frame, and so on */
+				for (i=0, bezt=ico->bezt; i < ico->totvert; i++, bezt++) {
+					/* initialise offset (if not already done) */
+					if (offsetInit) {
+						offset= CFRA - bezt->vec[1][0];
+						offsetInit= 0;
+					}
+					
+					/* temporarily apply offset to src beztriple while copying */
+					bezt->vec[0][0] += offset;
+					bezt->vec[1][0] += offset;
+					bezt->vec[2][0] += offset;
+					
+					/* insert the keyframe */
+					insert_bezt_icu(icu, bezt);
+					
+					/* un-apply offset from src beztriple after copying */
+					bezt->vec[0][0] -= offset;
+					bezt->vec[1][0] -= offset;
+					bezt->vec[2][0] -= offset;
+				}
+				
+				/* recalculate channel's handles? */
+				calchandles_ipocurve(icu);
+				
+				/* done for this channel */
+				break;
+			}
+		}
+	}
+	
+	/* free temp memory */
+	BLI_freelistN(&act_data);
+	
+	/* undo and redraw stuff */
+	allqueue(REDRAWVIEW3D, 0);
+	allspace(REMAKEIPO, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWIPO, 0);
+	allqueue(REDRAWNLA, 0);
+	BIF_undo_push("Paste Action Keyframes");
+}
+
+/* **************************************************** */
 /* VARIOUS SETTINGS */
 
-/* this function combines several features related to setting 
+/* This function combines several features related to setting 
  * various ipo extrapolation/interpolation
  */
 void action_set_ipo_flags (short mode, short event)

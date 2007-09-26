@@ -80,6 +80,10 @@ def main():
 	if not ob or ob.type!='Mesh':
 		return
 	
+	is_editmode = Window.EditMode()
+	if is_editmode:
+		Window.EditMode(0)
+	
 	mousedown_wait() # so the menu items clicking dosnt trigger the mouseclick
 	
 	Window.DrawProgressBar (0.0, '')
@@ -100,9 +104,7 @@ def main():
 		mouse_buttons = Window.GetMouseButtons()
 	
 	
-	
 	Window.DrawProgressBar (0.2, '(2 of 3 ) Click confirms the U coords')
-	
 	
 	mousedown_wait()
 	
@@ -112,7 +114,7 @@ def main():
 	
 	if not mouseInView or not OriginA:
 		return
-		
+	
 	me = ob.getData(mesh=1)
 	
 	# Get the face under the mouse
@@ -255,6 +257,9 @@ def main():
 		Window.Redraw(Window.Types.VIEW3D)
 	
 	Window.SetCursorPos(*orig_cursor)
+	if is_editmode:
+		Window.EditMode(1)
+	
 	Window.RedrawAll()
 	
 if __name__=='__main__':

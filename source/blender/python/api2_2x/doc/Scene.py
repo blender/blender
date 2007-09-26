@@ -357,6 +357,8 @@ class SceneObjects:
 	@type context: sequence of L{Object}
 	@ivar active: the active object in the scene.
 	@type active: L{Object}
+	@ivar camera: the active camera in the scene.
+	@type camera: L{Object}
 	"""
 
 	def new(data):

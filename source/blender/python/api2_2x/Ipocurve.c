@@ -531,7 +531,7 @@ static PyObject *IpoCurve_append( C_IpoCurve * self, PyObject * value )
 		Py_DECREF( xobj );
 		y = (float)PyFloat_AsDouble( yobj );
 		Py_DECREF( yobj );
-		insert_vert_ipo( icu, x, y);
+		insert_vert_icu( icu, x, y, 0);
 	}
 
 	Py_RETURN_NONE;
@@ -745,7 +745,7 @@ static int IpoCurve_setCurval( C_IpoCurve * self, PyObject * key,
 
 	/* insert a key at the specified time */
 
-	insert_vert_ipo( self->ipocurve, time, curval );
+	insert_vert_icu( self->ipocurve, time, curval, 0);
 	allspace(REMAKEIPO, 0);
 	return 0;
 }

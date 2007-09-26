@@ -265,9 +265,9 @@ static void add_influence_key_to_constraint_func (void *ob_v, void *con_v)
 	}
 	
 	if(ob->action)
-		insert_vert_ipo(icu, get_action_frame(ob, (float)CFRA), con->enforce);
+		insert_vert_icu(icu, get_action_frame(ob, (float)CFRA), con->enforce, 0);
 	else
-		insert_vert_ipo(icu, CFRA, con->enforce);
+		insert_vert_icu(icu, CFRA, con->enforce, 0);
 	
 	/* make sure ipowin shows it */
 	ob->ipowin= ID_CO;
@@ -1411,11 +1411,11 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 			{
 				bClampToConstraint *data = con->data;
 				
-				height = 66;
+				height = 90;
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-
+				
 				/* Draw target parameters */
 				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
 				
@@ -1426,6 +1426,12 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiDefButI(block, ROW, B_CONSTRAINT_TEST, "X", *xco+150, *yco-64, 32, 18, &data->flag, 12.0, CLAMPTO_X, 0, 0, "Main axis of movement is x-axis");
 				uiDefButI(block, ROW, B_CONSTRAINT_TEST, "Y", *xco+182, *yco-64, 32, 18, &data->flag, 12.0, CLAMPTO_Y, 0, 0, "Main axis of movement is y-axis");
 				uiDefButI(block, ROW, B_CONSTRAINT_TEST, "Z", *xco+214, *yco-64, 32, 18, &data->flag, 12.0, CLAMPTO_Z, 0, 0, "Main axis of movement is z-axis");
+				uiBlockEndAlign(block);
+				
+				/* Extra Options Controlling Behaviour */
+				uiBlockBeginAlign(block);
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Options:", *xco, *yco-86, 90, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				uiDefButBitI(block, TOG, CLAMPTO_CYCLIC, B_CONSTRAINT_TEST, "Cyclic", *xco+((width/2)), *yco-86,60,19, &data->flag2, 0, 0, 0, 0, "Treat curve as cyclic curve (no clamping to curve bounding box)");
 				uiBlockEndAlign(block);
 			}
 			break;

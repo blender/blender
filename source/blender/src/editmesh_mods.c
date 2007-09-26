@@ -52,6 +52,7 @@ editmesh_mods.c, UI level access, no geometry changes
 #include "DNA_texture_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
 #include "DNA_view3d_types.h"
 
 #include "BLI_blenlib.h"
@@ -1345,23 +1346,48 @@ void select_mesh_group_menu()
 	}
 }
 
+int mesh_layers_menu_charlen(CustomData *data, int type)
+{
+ 	int i, len = 0;
+	/* see if there is a duplicate */
+	for(i=0; i<data->totlayer; i++) {
+		if((&data->layers[i])->type == type) {
+			/* we could count the chars here but we'll just assumeme each
+			 * is 32 chars with some room for the menu text - 40 should be fine */
+			len+=40; 
+		}
+	}
+	return len;
+}
 
-static short customdata_layers_menu(CustomData *data, int type) {
-	int i, ret;
-	char *str;
-	char *str_pt;
+/* this function adds menu text into an existing string.
+ * this string's size should be allocated with mesh_layers_menu_charlen */
+void mesh_layers_menu_concat(CustomData *data, int type, char *str) {
+	int i, count = 0;
+	char *str_pt = str;
 	CustomDataLayer *layer;
-	
-	
-	str = str_pt = MEM_callocN(40 * G.editMesh->fdata.totlayer, "layer menu");
 	
 	/* see if there is a duplicate */
 	for(i=0; i<data->totlayer; i++) {
 		layer = &data->layers[i];
 		if(layer->type == type) {
-			str_pt += sprintf(str_pt, "%s%%x%d|", layer->name, i);
+			str_pt += sprintf(str_pt, "%s%%x%d|", layer->name, count);
+			count++;
 		}
 	}
+}
+
+int mesh_layers_menu(CustomData *data, int type) {
+	int ret;
+	char *str_pt, *str;
+	
+	str_pt = str = MEM_mallocN(mesh_layers_menu_charlen(data, type) + 18, "layer menu");
+	str[0] = '\0';
+	
+	str_pt += sprintf(str_pt, "Layers%%t|");
+	
+	mesh_layers_menu_concat(data, type, str_pt);
+	
 	ret = pupmenu(str);
 	MEM_freeN(str);
 	return ret;
@@ -1584,23 +1610,23 @@ void mesh_copy_menu(void)
 			} else {
 				int layer_orig_idx, layer_idx;
 				
-				layer_idx = (int)customdata_layers_menu(&em->fdata, CD_MTFACE);
+				layer_idx = mesh_layers_menu(&em->fdata, CD_MTFACE);
 				if (layer_idx<0) return;
 				
 				/* warning, have not updated mesh pointers however this is not needed since we swicth back */
-				layer_orig_idx = CustomData_get_active_layer_index(&em->fdata, CD_MTFACE);
+				layer_orig_idx = CustomData_get_active_layer(&em->fdata, CD_MTFACE);
 				if (layer_idx==layer_orig_idx)
 					return;
 				
 				/* get the tfaces */
-				CustomData_set_layer_active_index(&em->fdata, CD_MTFACE, (int)layer_idx);
+				CustomData_set_layer_active(&em->fdata, CD_MTFACE, (int)layer_idx);
 				/* store the tfaces in our temp */
 				for(efa=em->faces.first; efa; efa=efa->next) {
 					if (efa->f & SELECT) {
 						efa->tmp.p = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 					}	
 				}
-				CustomData_set_layer_active_index(&em->fdata, CD_MTFACE, layer_orig_idx);
+				CustomData_set_layer_active(&em->fdata, CD_MTFACE, layer_orig_idx);
 			}
 			break;
 			
@@ -1614,23 +1640,23 @@ void mesh_copy_menu(void)
 			} else {
 				int layer_orig_idx, layer_idx;
 				
-				layer_idx = (int)customdata_layers_menu(&em->fdata, CD_MCOL);
+				layer_idx = mesh_layers_menu(&em->fdata, CD_MCOL);
 				if (layer_idx<0) return;
 				
 				/* warning, have not updated mesh pointers however this is not needed since we swicth back */
-				layer_orig_idx = CustomData_get_active_layer_index(&em->fdata, CD_MCOL);
+				layer_orig_idx = CustomData_get_active_layer(&em->fdata, CD_MCOL);
 				if (layer_idx==layer_orig_idx)
 					return;
 				
 				/* get the tfaces */
-				CustomData_set_layer_active_index(&em->fdata, CD_MCOL, (int)layer_idx);
+				CustomData_set_layer_active(&em->fdata, CD_MCOL, (int)layer_idx);
 				/* store the tfaces in our temp */
 				for(efa=em->faces.first; efa; efa=efa->next) {
 					if (efa->f & SELECT) {
 						efa->tmp.p = CustomData_em_get(&em->fdata, efa->data, CD_MCOL);
 					}	
 				}
-				CustomData_set_layer_active_index(&em->fdata, CD_MCOL, layer_orig_idx);
+				CustomData_set_layer_active(&em->fdata, CD_MCOL, layer_orig_idx);
 				
 			}
 			break;
@@ -1693,6 +1719,7 @@ void mesh_copy_menu(void)
 	}
 	
 	if (change) {
+		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWBUTSEDIT, 0);
 		
@@ -2040,6 +2067,8 @@ void mouse_mesh(void)
 		if((G.qual & LR_SHIFTKEY)==0) EM_clear_flag_all(SELECT);
 		
 		if(efa) {
+			/* set the last selected face */
+			EM_set_actFace(efa);
 			
 			if( (efa->f & SELECT)==0 ) {
 				EM_store_selection(efa, EDITFACE);
@@ -2473,6 +2502,12 @@ void hide_tface_uv(int swap)
 	
 	if( is_uv_tface_editing_allowed()==0 ) return;
 
+	/* call the mesh function if we are in mesh sync sel */
+	if (G.sima->flag & SI_SYNC_UVSEL) {
+		hide_mesh(swap);
+		return;
+	}
+	
 	if(swap) {
 		for (efa= em->faces.first; efa; efa= efa->next) {
 			if(efa->f & SELECT) {
@@ -2513,6 +2548,12 @@ void reveal_tface_uv(void)
 	MTFace *tface;
 
 	if( is_uv_tface_editing_allowed()==0 ) return;
+	
+	/* call the mesh function if we are in mesh sync sel */
+	if (G.sima->flag & SI_SYNC_UVSEL) {
+		reveal_mesh();
+		return;
+	}
 	
 	for (efa= em->faces.first; efa; efa= efa->next) {
 		if (!(efa->h)) {
@@ -3308,8 +3349,9 @@ void Vertex_Menu() {
 		case 6: 
 			shape_propagate();
 			break;
-
 	}
+	/* some items crashed because this is in the original W menu but not here. should really manage this better */
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 }
 
 
@@ -3363,6 +3405,8 @@ void Edge_Menu() {
 		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		break;
 	}
+	/* some items crashed because this is in the original W menu but not here. should really manage this better */
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 }
 
 void Face_Menu() {
@@ -3370,6 +3414,7 @@ void Face_Menu() {
 	ret= pupmenu(
 		"Face Specials%t|Flip Normals%x1|Bevel%x2|Shade Smooth%x3|Shade Flat%x4|"
 		"Triangulate (Ctrl T)%x5|Quads from Triangles (Alt J)%x6|Flip Triangle Edges (Ctrl Shift F)%x7|%l|"
+		"Face Mode Set%x8|Face Mode Clear%x9|%l|"
 		"UV Rotate (Shift - CCW)%x10|UV Mirror (Shift - Switch Axis)%x11|"
 		"Color Rotate (Shift - CCW)%x12|Color Mirror (Shift - Switch Axis)%x13");
 
@@ -3377,6 +3422,7 @@ void Face_Menu() {
 	{
 		case 1:
 			flip_editnormals();
+			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 			BIF_undo_push("Flip Normals");
 			break;
 		case 2:
@@ -3401,7 +3447,12 @@ void Face_Menu() {
 		case 7: /* Flip triangle edges */
 			edge_flip();
 			break;
-			
+		case 8:
+			mesh_set_face_flags(1);
+			break;
+		case 9:
+			mesh_set_face_flags(0);
+			break;
 			
 		/* uv texface options */
 		case 10:
@@ -3417,6 +3468,8 @@ void Face_Menu() {
 			mesh_mirror_colors();
 			break;
 	}
+	/* some items crashed because this is in the original W menu but not here. should really manage this better */
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 }
 
 

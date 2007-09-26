@@ -56,6 +56,8 @@
 #include "BIF_mywindow.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
+#include "BIF_editsima.h"
+#include "BIF_drawimage.h"
 
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
@@ -96,32 +98,69 @@ void drawSnapping(TransInfo *t)
 {
 	if ((t->tsnap.status & (SNAP_ON|POINT_INIT|TARGET_INIT)) == (SNAP_ON|POINT_INIT|TARGET_INIT) &&
 		(G.qual & LR_CTRLKEY)) {
-		float unitmat[4][4];
-		float size;
+		
 		char col[4];
-		
-		glDisable(GL_DEPTH_TEST);
-
-		size = get_drawsize(G.vd);
-		
-		size *= 0.5f * BIF_GetThemeValuef(TH_VERTEX_SIZE);
-		
 		BIF_GetThemeColor3ubv(TH_TRANSFORM, col);
 		glColor4ub(col[0], col[1], col[2], 128);
 		
-		glPushMatrix();
-		
-		glTranslatef(t->tsnap.snapPoint[0], t->tsnap.snapPoint[1], t->tsnap.snapPoint[2]);
-		
-		/* sets view screen aligned */
-		glRotatef( -360.0f*saacos(G.vd->viewquat[0])/(float)M_PI, G.vd->viewquat[1], G.vd->viewquat[2], G.vd->viewquat[3]);
-		
-		Mat4One(unitmat);
-		drawcircball(GL_LINE_LOOP, unitmat[3], size, unitmat);
-		
-		glPopMatrix();
-		
-		if(G.vd->zbuf) glEnable(GL_DEPTH_TEST);		
+		if (t->spacetype==SPACE_VIEW3D) {
+			float unitmat[4][4];
+			float size;
+			
+			glDisable(GL_DEPTH_TEST);
+	
+			size = get_drawsize(G.vd);
+			
+			size *= 0.5f * BIF_GetThemeValuef(TH_VERTEX_SIZE);
+			
+			glPushMatrix();
+			
+			glTranslatef(t->tsnap.snapPoint[0], t->tsnap.snapPoint[1], t->tsnap.snapPoint[2]);
+			
+			/* sets view screen aligned */
+			glRotatef( -360.0f*saacos(G.vd->viewquat[0])/(float)M_PI, G.vd->viewquat[1], G.vd->viewquat[2], G.vd->viewquat[3]);
+			
+			Mat4One(unitmat);
+			drawcircball(GL_LINE_LOOP, unitmat[3], size, unitmat);
+			
+			glPopMatrix();
+			
+			if(G.vd->zbuf) glEnable(GL_DEPTH_TEST);
+		} else if (t->spacetype==SPACE_IMAGE) {
+			/*This will not draw, and Im nor sure why - campbell */
+			
+			/*			
+			float xuser_asp, yuser_asp;
+			int wi, hi;
+			float w, h;
+			
+			calc_image_view(G.sima, 'f');	// float
+			myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
+			glLoadIdentity();
+			
+			aspect_sima(G.sima, &xuser_asp, &yuser_asp);
+			
+			transform_width_height_tface_uv(&wi, &hi);
+			w = (((float)wi)/256.0f)*G.sima->zoom * xuser_asp;
+			h = (((float)hi)/256.0f)*G.sima->zoom * yuser_asp;
+			
+			cpack(0xFFFFFF);
+			glTranslatef(t->tsnap.snapPoint[0], t->tsnap.snapPoint[1], 0.0f);
+			
+			//glRectf(0,0,1,1);
+			
+			setlinestyle(0);
+			cpack(0x0);
+			fdrawline(-0.020/w, 0, -0.1/w, 0);
+			fdrawline(0.1/w, 0, .020/w, 0);
+			fdrawline(0, -0.020/h, 0, -0.1/h);
+			fdrawline(0, 0.1/h, 0, 0.020/h);
+			
+			glTranslatef(-t->tsnap.snapPoint[0], -t->tsnap.snapPoint[1], 0.0f);
+			setlinestyle(0);
+			*/
+			
+		}
 	}
 }
 
@@ -169,12 +208,12 @@ void initSnapping(TransInfo *t)
 {
 	resetSnapping(t);
 	
-	if (t->spacetype == SPACE_VIEW3D) { // Only 3D view (not UV)
+	if (t->spacetype == SPACE_VIEW3D || t->spacetype == SPACE_IMAGE) { // Only 3D view or UV
 		setSnappingCallback(t);
 
 		if (t->tsnap.applySnap != NULL && // A snapping function actually exist
 			(G.obedit != NULL && G.obedit->type==OB_MESH) && // Temporary limited to edit mode meshes
-			(G.vd->flag2 & V3D_TRANSFORM_SNAP) && // Only if the snap flag is on
+			(G.scene->snap_flag & SCE_SNAP) && // Only if the snap flag is on
 			(t->flag & T_PROP_EDIT) == 0) // No PET, obviously
 		{
 			t->tsnap.status |= SNAP_ON;
@@ -197,17 +236,17 @@ void setSnappingCallback(TransInfo *t)
 {
 	t->tsnap.calcSnap = CalcSnapGeometry;
 
-	switch(G.vd->snap_target)
+	switch(G.scene->snap_target)
 	{
-		case V3D_SNAP_TARGET_CLOSEST:
+		case SCE_SNAP_TARGET_CLOSEST:
 			t->tsnap.modeTarget = SNAP_CLOSEST;
 			t->tsnap.targetSnap = TargetSnapClosest;
 			break;
-		case V3D_SNAP_TARGET_CENTER:
+		case SCE_SNAP_TARGET_CENTER:
 			t->tsnap.modeTarget = SNAP_CENTER;
 			t->tsnap.targetSnap = TargetSnapCenter;
 			break;
-		case V3D_SNAP_TARGET_MEDIAN:
+		case SCE_SNAP_TARGET_MEDIAN:
 			t->tsnap.modeTarget = SNAP_MEDIAN;
 			t->tsnap.targetSnap = TargetSnapMedian;
 			break;
@@ -224,7 +263,7 @@ void setSnappingCallback(TransInfo *t)
 		t->tsnap.distance = RotationBetween;
 		
 		// Can't do TARGET_CENTER with rotation, use TARGET_MEDIAN instead
-		if (G.vd->snap_target == V3D_SNAP_TARGET_CENTER) {
+		if (G.scene->snap_target == SCE_SNAP_TARGET_CENTER) {
 			t->tsnap.modeTarget = SNAP_MEDIAN;
 			t->tsnap.targetSnap = TargetSnapMedian;
 		}
@@ -328,6 +367,8 @@ void CalcSnapGeometry(TransInfo *t, float *vec)
 	if (G.obedit != NULL && G.obedit->type==OB_MESH)
 	{
 		/*if (G.scene->selectmode & B_SEL_VERT)*/
+		
+		if (t->spacetype == SPACE_VIEW3D)
 		{
 			EditVert *nearest=NULL;
 			float vec[3];
@@ -358,6 +399,27 @@ void CalcSnapGeometry(TransInfo *t, float *vec)
 				t->tsnap.status &= ~POINT_INIT;
 			}
 		}
+		else if (t->spacetype == SPACE_IMAGE)
+		{	/* same as above but for UV's */
+			MTFace *nearesttf=NULL;
+			int face_corner;
+			
+			find_nearest_uv(&nearesttf, NULL, NULL, &face_corner);
+			
+			if (nearesttf != NULL)
+			{
+				VECCOPY2D(t->tsnap.snapPoint, nearesttf->uv[face_corner]);
+				//Mat4MulVecfl(G.obedit->obmat, t->tsnap.snapPoint);
+				
+				t->tsnap.status |=  POINT_INIT;
+			}
+			else
+			{
+				t->tsnap.status &= ~POINT_INIT;
+			}
+		}
+		
+		
 		/*
 		if (G.scene->selectmode & B_SEL_EDGE)
 		{

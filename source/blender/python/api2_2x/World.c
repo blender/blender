@@ -991,37 +991,37 @@ static PyObject *World_insertIpoKey( BPy_World * self, PyObject * args )
 	map = texchannel_to_adrcode(self->world->texact);
 
 	if(key == IPOKEY_ZENITH) {
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_ZEN_R);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_ZEN_G);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_ZEN_B);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_ZEN_R, 0);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_ZEN_G, 0);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_ZEN_B, 0);
 	}
 	if(key == IPOKEY_HORIZON) {
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_HOR_R);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_HOR_G);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_HOR_B);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_HOR_R, 0);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_HOR_G, 0);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_HOR_B, 0);
 	}
 	if(key == IPOKEY_MIST) {
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_MISI);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_MISTDI);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_MISTSTA);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_MISTHI);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_MISI, 0);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_MISTDI, 0);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_MISTSTA, 0);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_MISTHI, 0);
 	}
 	if(key == IPOKEY_STARS) {
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_STAR_R);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_STAR_G);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_STAR_B);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_STARDIST);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_STARSIZE);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_STAR_R, 0);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_STAR_G, 0);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_STAR_B, 0);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_STARDIST, 0);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, WO_STARSIZE, 0);
 	}
 	if(key == IPOKEY_OFFSET) {
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, map+MAP_OFS_X);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, map+MAP_OFS_Y);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, map+MAP_OFS_Z);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, map+MAP_OFS_X, 0);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, map+MAP_OFS_Y, 0);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, map+MAP_OFS_Z, 0);
 	}
 	if(key == IPOKEY_SIZE) {
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, map+MAP_SIZE_X);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, map+MAP_SIZE_Y);
-		insertkey((ID *)self->world, ID_WO, NULL, NULL, map+MAP_SIZE_Z);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, map+MAP_SIZE_X, 0);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, map+MAP_SIZE_Y, 0);
+		insertkey((ID *)self->world, ID_WO, NULL, NULL, map+MAP_SIZE_Z, 0);
 	}
 
 	allspace(REMAKEIPO, 0);

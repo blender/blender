@@ -204,7 +204,7 @@ typedef struct PartialVisibility {
 
 /* mtface->flag */
 #define TF_SELECT	1 /* use MFace hide flag (after 2.43), should be able to reuse after 2.44 */
-#define TF_ACTIVE	2
+#define TF_ACTIVE	2 /* deprecated! */
 #define TF_SEL1		4
 #define TF_SEL2		8
 #define TF_SEL3		16

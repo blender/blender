@@ -128,10 +128,12 @@ int BIF_DrawString(BMF_Font* font, char *str, int translate)
 				struct LANGMenuEntry *lme;
 				lme = find_language(U.language);
 
-				if (!strcmp(lme->code, "ja_JP"))
-					string_to_utf8(str, utf_8, "Shift_JIS");	/* Japanese */
-				else if (!strcmp(lme->code, "zh_CN"))
-					string_to_utf8(str, utf_8, "GB2312");		/* Chinese */
+				if (lme !=NULL) {
+					if (!strcmp(lme->code, "ja_JP"))
+						string_to_utf8(str, utf_8, "Shift_JIS");	/* Japanese */
+					else if (!strcmp(lme->code, "zh_CN"))
+						string_to_utf8(str, utf_8, "GB2312");		/* Chinese */
+				}
 	
 				return FTF_DrawString(utf_8, FTF_INPUT_UTF8);
 			}

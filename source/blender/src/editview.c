@@ -76,6 +76,7 @@
 #include "BKE_utildefines.h"
 #include "BKE_customdata.h"
 
+#include "BIF_drawimage.h"
 #include "BIF_butspace.h"
 #include "BIF_editaction.h"
 #include "BIF_editarmature.h"
@@ -468,6 +469,42 @@ static void do_lasso_select_mesh(short mcords[][2], short moves, short select)
 	EM_selectmode_flush();	
 }
 
+/* this is an exception in that its the only lasso that dosnt use the 3d view (uses space image view) */
+static void do_lasso_select_mesh_uv(short mcords[][2], short moves, short select)
+{
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
+	MTFace *tf;
+	int screenUV[2], nverts, i;
+	rcti rect;
+	
+	lasso_select_boundbox(&rect, mcords, moves);
+	
+	for (efa= em->faces.first; efa; efa= efa->next) {
+		tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+		if (SIMA_FACEDRAW_CHECK(efa, tf)) {		
+			nverts= efa->v4? 4: 3;
+			for(i=0; i<nverts; i++) {
+				if ((select) != (SIMA_UVSEL_CHECK(efa, tf, i))) {
+					uvco_to_areaco_noclip(tf->uv[i], screenUV);
+					if (BLI_in_rcti(&rect, screenUV[0], screenUV[1]) && lasso_inside(mcords, moves, screenUV[0], screenUV[1])) {
+						if (select) {
+							SIMA_UVSEL_SET(efa, tf, i);
+						} else {
+							SIMA_UVSEL_UNSET(efa, tf, i);
+						}
+					}
+				}
+			}
+		}
+	}
+	
+	if (G.sima->flag & SI_SYNC_UVSEL) {
+		if (select) EM_select_flush();
+		else		EM_deselect_flush();
+	}
+}
+
 static void do_lasso_select_curve__doSelect(void *userData, Nurb *nu, BPoint *bp, BezTriple *bezt, int beztindex, int x, int y)
 {
 	struct { short (*mcords)[2]; short moves; short select; } *data = userData;
@@ -582,9 +619,13 @@ static void do_lasso_select(short mcords[][2], short moves, short select)
 		else  
 			do_lasso_select_objects(mcords, moves, select);
 	}
-	else if(G.obedit->type==OB_MESH) 
-		do_lasso_select_mesh(mcords, moves, select);
-	else if(G.obedit->type==OB_CURVE || G.obedit->type==OB_SURF) 
+	else if(G.obedit->type==OB_MESH) {
+		if(curarea->spacetype==SPACE_VIEW3D) {
+			do_lasso_select_mesh(mcords, moves, select);
+		} else if (EM_texFaceCheck()){
+			do_lasso_select_mesh_uv(mcords, moves, select);
+		}
+	} else if(G.obedit->type==OB_CURVE || G.obedit->type==OB_SURF) 
 		do_lasso_select_curve(mcords, moves, select);
 	else if(G.obedit->type==OB_LATTICE) 
 		do_lasso_select_lattice(mcords, moves, select);
@@ -752,6 +793,10 @@ int gesture(void)
 				if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT)) return 0;
 			}
 			lasso= 1;
+		} else if (curarea->spacetype==SPACE_IMAGE) {
+			if(G.obedit) {
+				lasso= 1;
+			}
 		}
 	}
 	
@@ -2564,14 +2609,14 @@ void fly(void)
 					cfra = G.scene->r.cfra;
 					
 					if (xlock || zlock || moffset[0] || moffset[1]) {
-						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_ROT_X);
-						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_ROT_Y);
-						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_ROT_Z);
+						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_ROT_X, 0);
+						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_ROT_Y, 0);
+						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_ROT_Z, 0);
 					}
 					if (speed) {
-						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_LOC_X);
-						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_LOC_Y);
-						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_LOC_Z);
+						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_LOC_X, 0);
+						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_LOC_Y, 0);
+						insertkey(&G.vd->camera->id, ID_OB, actname, NULL, OB_LOC_Z, 0);
 					}
 				}
 			}

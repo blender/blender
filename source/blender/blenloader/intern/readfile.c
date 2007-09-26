@@ -1866,7 +1866,9 @@ static void lib_link_camera(FileData *fd, Main *main)
 		if(ca->id.flag & LIB_NEEDLINK) {
 
 			ca->ipo= newlibadr_us(fd, ca->id.lib, ca->ipo);
-
+			
+			ca->dof_ob= newlibadr_us(fd, ca->id.lib, ca->dof_ob);
+			
 			lib_link_scriptlink(fd, &ca->id, &ca->scriptlink);
 
 			ca->id.flag -= LIB_NEEDLINK;
@@ -6082,8 +6084,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			if(arm->layer==0) arm->layer= 1;
 		}
 		for(sce= main->scene.first; sce; sce= sce->id.next) {
-			bScreen *sc;
-			
 			if(sce->jumpframe==0) sce->jumpframe= 10;
 			if(sce->audio.mixrate==0) sce->audio.mixrate= 44100;
 
@@ -6116,20 +6116,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				sce->toolsettings->unwrapper = 1;
 			}
 
-			/* enable uv editor local sticky by default */
-			for (sc= main->screen.first; sc; sc= sc->id.next) {
-				ScrArea *sa;
-				for (sa= sc->areabase.first; sa; sa= sa->next) {
-					SpaceLink *sl;
-					for (sl= sa->spacedata.first; sl; sl= sl->next) {
-						if(sl->spacetype==SPACE_IMAGE) {
-							SpaceImage *sima= (SpaceImage*)sl;
-							if(!(sima->flag & SI_STICKYUVS))
-								sima->flag |= SI_LOCALSTICKY;
-						}
-					}
-				}
-			}
 			if(sce->r.mode & R_PANORAMA) {
 				/* all these checks to ensure saved files with cvs version keep working... */
 				if(sce->r.xsch < sce->r.ysch) {
@@ -6529,7 +6515,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	
 	if(main->versionfile <= 244) {
 		Scene *sce;
-		Material *ma;
 		bScreen *sc;
 		Object *ob;
 		Lamp *la;
@@ -6663,15 +6648,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 			
-			for(ma=main->mat.first; ma; ma= ma->id.next) {
-				ma->gloss_mir = ma->gloss_tra= 1.0;
-				ma->aniso_gloss_mir = 1.0;
-				ma->samp_gloss_mir = ma->samp_gloss_tra= 18;
-				ma->adapt_thresh_mir = ma->adapt_thresh_tra = 0.005;
-				ma->dist_mir = 0.0;
-				ma->fadeto_mir = MA_RAYMIR_FADETOSKY;
-			}
-			
 			for(wrld=main->world.first; wrld; wrld= wrld->id.next) {
 				if (wrld->mode & WO_AMB_OCC)
 					wrld->ao_samp_method = WO_AOSAMP_CONSTANT;
@@ -6692,22 +6668,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 	if(main->versionfile <= 245) {
-		Lamp *la;
-		if (main->versionfile != 245 || main->subversionfile < 1) {
-			for(la=main->lamp.first; la; la= la->id.next) {
-				if (la->mode & LA_QUAD) la->falloff_type = LA_FALLOFF_SLIDERS;
-				else la->falloff_type = LA_FALLOFF_INVLINEAR;
-					
-				la->curfalloff = curvemapping_add(1, 0.0f, 1.0f, 1.0f, 0.0f);
-				curvemapping_initialize(la->curfalloff);
-			}
-		}
-	}
-
-	if (main->versionfile <= 245) {
 		bScreen *sc;
 		Image* ima;
-
+		Lamp *la;
+		Material *ma;
+		
 		/* fix all versions before 2.45 */
 		if (main->versionfile != 245) {
 
@@ -6760,7 +6725,38 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
+		
+		if (main->versionfile != 245 || main->subversionfile < 1) {
+			for(la=main->lamp.first; la; la= la->id.next) {
+				if (la->mode & LA_QUAD) la->falloff_type = LA_FALLOFF_SLIDERS;
+				else la->falloff_type = LA_FALLOFF_INVLINEAR;
+				
+				if (la->curfalloff == NULL) {
+					la->curfalloff = curvemapping_add(1, 0.0f, 1.0f, 1.0f, 0.0f);
+					curvemapping_initialize(la->curfalloff);
+				}
+			}
+		}		
+		
+		for(ma=main->mat.first; ma; ma= ma->id.next) {
+			if (ma->samp_gloss_mir == 0) {
+				ma->gloss_mir = ma->gloss_tra= 1.0;
+				ma->aniso_gloss_mir = 1.0;
+				ma->samp_gloss_mir = ma->samp_gloss_tra= 18;
+				ma->adapt_thresh_mir = ma->adapt_thresh_tra = 0.005;
+				ma->dist_mir = 0.0;
+				ma->fadeto_mir = MA_RAYMIR_FADETOSKY;
+			}
+		}
+		
+	}
 
+	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 2)) {
+		Image *ima;	
+		/* initialize 1:1 Aspect */
+		for(ima= main->image.first; ima; ima= ima->id.next) {
+			ima->aspx = ima->aspy = 1.0f;				
+		}
 	}
 
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */

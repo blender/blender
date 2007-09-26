@@ -545,6 +545,29 @@ int CustomData_get_render_layer_index(const CustomData *data, int type)
 	return -1;
 }
 
+int CustomData_get_active_layer(const CustomData *data, int type)
+{
+	int i;
+
+	for(i=0; i < data->totlayer; ++i)
+		if(data->layers[i].type == type)
+			return data->layers[i].active;
+
+	return -1;
+}
+
+int CustomData_get_render_layer(const CustomData *data, int type)
+{
+	int i;
+
+	for(i=0; i < data->totlayer; ++i)
+		if(data->layers[i].type == type)
+			return data->layers[i].active_rnd;
+
+	return -1;
+}
+
+
 void CustomData_set_layer_active(CustomData *data, int type, int n)
 {
 	int i;

@@ -530,6 +530,9 @@ void scene_update_for_newframe(Scene *sce, unsigned int lay)
 {
 	Scene *scene= sce;
 	
+	/* clears all BONE_UNKEYED flags for every pose's pchans */
+	framechange_poses_clear_unkeyed();
+	
 	/* object ipos are calculated in where_is_object */
 	do_all_data_ipos();
 	
@@ -540,7 +543,6 @@ void scene_update_for_newframe(Scene *sce, unsigned int lay)
 		scene_update(sce, lay);
 
 	scene_update(scene, lay);
-	
 }
 
 /* return default layer, also used to patch old files */

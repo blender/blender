@@ -203,11 +203,14 @@ static const EXPP_map_pair tex_type_map[] = {
 
 static const EXPP_map_pair tex_flag_map[] = {
 /* NOTE "CheckerOdd" and "CheckerEven" are new */
-    {"ColorBand",  TEX_COLORBAND },
+	{"ColorBand",  TEX_COLORBAND },
 	{"FlipBlend", TEX_FLIPBLEND},
 	{"NegAlpha", TEX_NEGALPHA},
 	{"CheckerOdd",TEX_CHECKER_ODD},
 	{"CheckerEven",TEX_CHECKER_EVEN},
+	{"PreviewAlpha",TEX_PRV_ALPHA},
+	{"RepeatXMirror",TEX_REPEAT_XMIR},
+	{"RepeatYMirror",TEX_REPEAT_YMIR}, 
 	{NULL, 0}
 };
 
@@ -1162,6 +1165,9 @@ static PyObject *M_Texture_FlagsDict( void )
 		PyConstant_Insert(d, "NEGALPHA", PyInt_FromLong(TEX_NEGALPHA));
 		PyConstant_Insert(d, "CHECKER_ODD", PyInt_FromLong(TEX_CHECKER_ODD)); 
 		PyConstant_Insert(d, "CHECKER_EVEN", PyInt_FromLong(TEX_CHECKER_EVEN));
+		PyConstant_Insert(d, "PREVIEW_ALPHA", PyInt_FromLong(TEX_PRV_ALPHA));
+		PyConstant_Insert(d, "REPEAT_XMIR", PyInt_FromLong(TEX_REPEAT_XMIR));
+		PyConstant_Insert(d, "REPEAT_YMIR", PyInt_FromLong(TEX_REPEAT_YMIR));
 	}
 	return Flags;
 }
@@ -1528,20 +1534,15 @@ static int Texture_setFilterSize( BPy_Texture * self, PyObject * value )
 static int Texture_setFlags( BPy_Texture * self, PyObject * value )
 {
 	int param;
-	int bitmask = TEX_FLIPBLEND
-					| TEX_COLORBAND
-					| TEX_NEGALPHA
-					| TEX_CHECKER_ODD
-					| TEX_CHECKER_EVEN;
 
 	if( !PyInt_Check( value ) ) {
 		char errstr[128];
-		sprintf ( errstr , "expected int bitmask of 0x%08x", bitmask );
+		sprintf ( errstr , "expected int bitmask of 0x%08x", TEX_FLAG_MASK );
 		return EXPP_ReturnIntError( PyExc_TypeError, errstr );
 	}
 	param = PyInt_AS_LONG ( value );
 
-	if ( ( param & bitmask ) != param )
+	if ( ( param & TEX_FLAG_MASK ) != param )
 		return EXPP_ReturnIntError( PyExc_ValueError,
 						"invalid bit(s) set in mask" );
 

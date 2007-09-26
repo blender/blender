@@ -1203,7 +1203,7 @@ void BLI_split_dirfile(const char *string, char *dir, char *file)
 		if(a>=4 && dir[a-1]=='\\') dir[a-1] = 0;
 
 		if (is_relative) {
-			printf("WARNING: BLI_split_dirfile needs absolute dir");
+			printf("WARNING: BLI_split_dirfile needs absolute dir\n");
 		}
 		else {
 			BLI_make_exist(dir);

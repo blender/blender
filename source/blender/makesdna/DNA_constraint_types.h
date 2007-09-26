@@ -205,7 +205,7 @@ typedef struct bRigidBodyJointConstraint {
 typedef struct bClampToConstraint {
 	Object 		*tar;			/* 'target' must be a curve */
 	int			flag;			/* which axis/plane to compare owner's location on  */
-	int			pad;
+	int			flag2;			/* for legacy reasons, this is flag2. used for any extra settings */
 } bClampToConstraint;
 
 /* Child Of Constraint */
@@ -372,6 +372,9 @@ typedef struct bSizeLimitConstraint {
 #define CLAMPTO_X		1
 #define	CLAMPTO_Y		2
 #define CLAMPTO_Z		3
+
+/* ClampTo Constraint ->flag2 */
+#define CLAMPTO_CYCLIC	1
 
 /* bKinematicConstraint->flag */
 #define CONSTRAINT_IK_TIP		1

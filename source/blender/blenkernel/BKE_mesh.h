@@ -110,6 +110,14 @@ UvVertMap *make_uv_vert_map(struct MFace *mface, struct MTFace *tface, unsigned 
 UvMapVert *get_uv_map_vert(UvVertMap *vmap, unsigned int v);
 void free_uv_vert_map(UvVertMap *vmap);
 
+
+/* functions for making menu's from customdata layers */
+int mesh_layers_menu_charlen(struct CustomData *data, int type); /* use this to work out how many chars to allocate */
+void mesh_layers_menu_concat(struct CustomData *data, int type, char *str);
+int mesh_layers_menu(struct CustomData *data, int type);
+
+
+
 #ifdef __cplusplus
 }
 #endif

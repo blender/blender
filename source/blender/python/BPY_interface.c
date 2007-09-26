@@ -1915,7 +1915,12 @@ void BPY_do_pyscript( ID * id, short event )
 		/* invalid scriptlinks (new .blend was just loaded), return */
 		if( during_slink < 0 )
 			return;
-
+		
+		if( !setup_armature_weakrefs()){
+			printf("Oops - weakref dict\n");
+			return;
+		}
+		
 		/* tell we're running a scriptlink.  The sum also tells if this script
 		 * is running nested inside another.  Blender.Load needs this info to
 		 * avoid trouble with invalid slink pointers. */

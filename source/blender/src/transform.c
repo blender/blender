@@ -48,6 +48,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_armature_types.h"
+#include "DNA_action_types.h"  /* for some special action-editor settings */
 #include "DNA_ipo_types.h"		/* some silly ipo flag	*/
 #include "DNA_listBase.h"
 #include "DNA_meshdata_types.h"
@@ -75,11 +76,15 @@
 #include "BIF_editmesh.h"
 #include "BIF_editsima.h"
 #include "BIF_drawimage.h"		/* uvco_to_areaco_noclip */
+#include "BIF_editaction.h" 
 
+#include "BKE_action.h" /* get_action_frame */
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 #include "BKE_bad_level_calls.h"/* popmenu and error	*/
 
+#include "BSE_drawipo.h"
+#include "BSE_editnla_types.h"	/* for NLAWIDTH */
 #include "BSE_view.h"
 
 #include "BLI_arithb.h"
@@ -350,7 +355,7 @@ void convertDisplayNumToVec(float *num, float *vec)
 
 static void viewRedrawForce(TransInfo *t)
 {
-	if(t->spacetype==SPACE_VIEW3D)
+	if(ELEM4(t->spacetype, SPACE_VIEW3D, SPACE_ACTION, SPACE_NLA, SPACE_IPO))
 		force_draw(0);
 	else if(t->spacetype==SPACE_IMAGE) {
 		if(G.sima->lock) force_draw_plus(SPACE_VIEW3D, 0);
@@ -367,6 +372,14 @@ static void viewRedrawPost(TransInfo *t)
 	else if(t->spacetype==SPACE_IMAGE) {
 		allqueue(REDRAWIMAGE, 0);
 		allqueue(REDRAWVIEW3D, 0);
+	}
+	else if(ELEM3(t->spacetype, SPACE_ACTION, SPACE_NLA, SPACE_IPO)) {
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWACTION, 0);
+		allqueue(REDRAWNLA, 0);
+		allqueue(REDRAWIPO, 0);
+		allqueue(REDRAWTIME, 0);
+		allqueue(REDRAWBUTSOBJECT, 0);
 	}
 
 	scrarea_queue_headredraw(curarea);
@@ -492,6 +505,12 @@ static char *transform_to_undostr(TransInfo *t)
 			return "Bone Width";
 		case TFM_BONE_ENVELOPE:
 			return "Bone Envelope";
+		case TFM_TIME_TRANSLATE:
+			return "Translate Anim. Data";
+		case TFM_TIME_SCALE:
+			return "Scale Anim. Data";
+		case TFM_TIME_SLIDE:
+			return "Time Slide";
 	}
 	return "Transform";
 }
@@ -883,6 +902,15 @@ void initTransform(int mode, int context) {
 		break;
 	case TFM_BONE_ROLL:
 		initBoneRoll(&Trans);
+		break;
+	case TFM_TIME_TRANSLATE:
+		initTimeTranslate(&Trans);
+		break;
+	case TFM_TIME_SLIDE:
+		initTimeSlide(&Trans);
+		break;
+	case TFM_TIME_SCALE:
+		initTimeScale(&Trans);
 		break;
 	}
 }
@@ -3189,6 +3217,495 @@ void Mirror(short mode)
 
 	/* send events out for redraws */
 	viewRedrawPost(&Trans);
+}
+
+/* ************************** ANIM EDITORS - TRANSFORM TOOLS *************************** */
+
+/* ---------------- Special Helpers for Various Settings ------------- */
+
+/* This function returns the snapping 'mode' for Animation Editors only 
+ * We cannot use the standard snapping due to NLA-strip scaling complexities.
+ */
+static short getAnimEdit_SnapMode(TransInfo *t)
+{
+	short autosnap= SACTSNAP_OFF;
+	
+	/* currently, some of these are only for the action editor */
+	if (t->spacetype == SPACE_ACTION && G.saction) {
+		switch (G.saction->autosnap) {
+		case SACTSNAP_OFF:
+			if (G.qual == LR_CTRLKEY) 
+				autosnap= SACTSNAP_STEP;
+			else if (G.qual == LR_SHIFTKEY)
+				autosnap= SACTSNAP_FRAME;
+			else
+				autosnap= SACTSNAP_OFF;
+			break;
+		case SACTSNAP_STEP:
+			autosnap= (G.qual==LR_CTRLKEY)? SACTSNAP_OFF: SACTSNAP_STEP;
+			break;
+		case SACTSNAP_FRAME:
+			autosnap= (G.qual==LR_SHIFTKEY)? SACTSNAP_OFF: SACTSNAP_FRAME;
+			break;
+		}
+	}
+	else if (t->spacetype == SPACE_NLA && G.snla) {
+		switch (G.snla->autosnap) {
+		case SACTSNAP_OFF:
+			if (G.qual == LR_CTRLKEY) 
+				autosnap= SACTSNAP_STEP;
+			else if (G.qual == LR_SHIFTKEY)
+				autosnap= SACTSNAP_FRAME;
+			else
+				autosnap= SACTSNAP_OFF;
+			break;
+		case SACTSNAP_STEP:
+			autosnap= (G.qual==LR_CTRLKEY)? SACTSNAP_OFF: SACTSNAP_STEP;
+			break;
+		case SACTSNAP_FRAME:
+			autosnap= (G.qual==LR_SHIFTKEY)? SACTSNAP_OFF: SACTSNAP_FRAME;
+			break;
+		}
+	}
+	else {
+		if (G.qual == LR_CTRLKEY) 
+			autosnap= SACTSNAP_STEP;
+		else if (G.qual == LR_SHIFTKEY)
+			autosnap= SACTSNAP_FRAME;
+		else
+			autosnap= SACTSNAP_OFF;
+	}
+	
+	return autosnap;
+}
+
+/* This function is used for testing if an Animation Editor is displaying
+ * its data in frames or seconds (and the data needing to be edited as such).
+ * Returns 1 if in seconds, 0 if in frames 
+ */
+static short getAnimEdit_DrawTime(TransInfo *t)
+{
+	short drawtime;
+	
+	/* currently, some of these are only for the action editor */
+	if (t->spacetype == SPACE_ACTION && G.saction) {
+		drawtime = (G.saction->flag & SACTION_DRAWTIME)? 1 : 0;
+	}
+	else if (t->spacetype == SPACE_NLA && G.snla) {
+		drawtime = (G.snla->flag & SNLA_DRAWTIME)? 1 : 0;
+	}
+	else {
+		drawtime = 0;
+	}
+	
+	return drawtime;
+}	
+
+
+/* This function is used by Animation Editor specific transform functions to do 
+ * the Snap Keyframe to Nearest Keyframe
+ */
+static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, Object *ob, short autosnap)
+{
+	/* snap key to nearest frame? */
+	if (autosnap == SACTSNAP_FRAME) {
+		short doTime= getAnimEdit_DrawTime(t);
+		float secf= ((float)G.scene->r.frs_sec);
+		float val;
+		
+		/* convert frame to nla-action time (if needed) */
+		if (ob) 
+			val= get_action_frame_inv(ob, *(td->val));
+		else
+			val= *(td->val);
+		
+		/* do the snapping to nearest frame/second */
+		if (doTime)
+			val= (float)( floor((val/secf) + 0.5f) * secf );
+		else
+			val= (float)( floor(val+0.5f) );
+			
+		/* convert frame out of nla-action time */
+		if (ob)
+			*(td->val)= get_action_frame(ob, val);
+		else
+			*(td->val)= val;
+	}
+}
+
+/* ----------------- Translation ----------------------- */
+
+void initTimeTranslate(TransInfo *t) 
+{
+	t->mode = TFM_TIME_TRANSLATE;
+	t->transform = TimeTranslate;
+
+	/* num-input has max of (n-1) */
+	t->idx_max = 0;
+	t->num.flag = 0;
+	t->num.idx_max = t->idx_max;
+	
+	/* initialise snap like for everything else */
+	t->snap[0] = 0.0f; 
+	t->snap[1] = t->snap[2] = 1.0f;
+}
+
+static void headerTimeTranslate(TransInfo *t, char *str) 
+{
+	char tvec[60];
+	
+	/* if numeric input is active, use results from that, otherwise apply snapping to result */
+	if (hasNumInput(&t->num)) {
+		outputNumInput(&(t->num), tvec);
+	}
+	else {
+		short autosnap= getAnimEdit_SnapMode(t);
+		short doTime = getAnimEdit_DrawTime(t);
+		float secf= ((float)G.scene->r.frs_sec);
+		float val= t->fac;
+		
+		/* take into account scaling (for Action Editor only) */
+		if ((t->spacetype == SPACE_ACTION) && (NLA_ACTION_SCALED)) {
+			float cval, sval[2];
+			
+			/* recalculate the delta based on 'visual' times */
+			areamouseco_to_ipoco(G.v2d, t->imval, &sval[0], &sval[1]);
+			cval= sval[0] + t->fac;
+			
+			val = get_action_frame_inv(OBACT, cval);
+			val -= get_action_frame_inv(OBACT, sval[0]);
+		}	
+		
+		/* apply snapping + frame->seconds conversions */
+		if (autosnap == SACTSNAP_STEP) {
+			if (doTime)
+				val= floor(val/secf + 0.5f);
+			else
+				val= floor(val + 0.5f);
+		}
+		else {
+			if (doTime)
+				val= val / secf;
+		}
+		
+		sprintf(&tvec[0], "%.4f", val);
+	}
+		
+	sprintf(str, "DeltaX: %s", &tvec[0]);
+}
+
+static void applyTimeTranslate(TransInfo *t, float sval) 
+{
+	TransData *td = t->data;
+	int i;
+	
+	short doTime= getAnimEdit_DrawTime(t);
+	float secf= ((float)G.scene->r.frs_sec);
+	
+	short autosnap= getAnimEdit_SnapMode(t);
+	float cval= sval + t->fac;
+	
+	float deltax, val;
+	
+	/* it doesn't matter whether we apply to t->data or t->data2d, but t->data2d is more convenient */
+	for (i = 0 ; i < t->total; i++, td++) {
+		/* it is assumed that td->ob is a pointer to the object,
+		 * whose active action is where this keyframe comes from 
+		 */
+		Object *ob= td->ob;
+		
+		/* check if any need to apply nla-scaling */
+		if (ob) {
+			deltax = get_action_frame_inv(ob, cval);
+			deltax -= get_action_frame_inv(ob, sval);
+			
+			if (autosnap == SACTSNAP_STEP) {
+				if (doTime) 
+					deltax= (float)( floor((deltax/secf) + 0.5f) * secf );
+				else
+					deltax= (float)( floor(deltax + 0.5f) );
+			}
+			
+			val = get_action_frame_inv(ob, td->ival);
+			val += deltax;
+			*(td->val) = get_action_frame(ob, val);
+		}
+		else {
+			deltax = val = t->fac;
+			
+			if (autosnap == SACTSNAP_STEP) {
+				if (doTime)
+					val= (float)( floor((deltax/secf) + 0.5f) * secf );
+				else
+					val= (float)( floor(val + 0.5f) );
+			}
+			
+			*(td->val) = td->ival + val;
+		}
+		
+		/* apply snap-to-nearest-frame? */
+		doAnimEdit_SnapFrame(t, td, ob, autosnap);
+	}
+}
+
+int TimeTranslate(TransInfo *t, short mval[2]) 
+{
+	float cval[2], sval[2];
+	char str[200];
+	
+	/* calculate translation amount from mouse movement - in 'time-grid space' */
+	areamouseco_to_ipoco(G.v2d, mval, &cval[0], &cval[1]);
+	areamouseco_to_ipoco(G.v2d, t->imval, &sval[0], &sval[1]);
+	
+	/* we only need to calculate effect for time (applyTimeTranslate only needs that) */
+	t->fac= cval[0] - sval[0];
+	
+	/* handle numeric-input stuff */
+	t->vec[0] = t->fac;
+	applyNumInput(&t->num, &t->vec[0]);
+	t->fac = t->vec[0];
+	headerTimeTranslate(t, str);
+	
+	applyTimeTranslate(t, sval[0]);
+
+	recalcData(t);
+
+	headerprint(str);
+	
+	viewRedrawForce(t);
+
+	return 1;
+}
+
+/* ----------------- Time Slide ----------------------- */
+
+void initTimeSlide(TransInfo *t) 
+{
+	/* this tool is only really available in the Action Editor... */
+	if (t->spacetype == SPACE_ACTION) {
+		/* set flag for drawing stuff*/
+		G.saction->flag |= SACTION_MOVING;
+	}
+	
+	t->mode = TFM_TIME_SLIDE;
+	t->transform = TimeSlide;
+	t->flag |= T_FREE_CUSTOMDATA;
+
+	/* num-input has max of (n-1) */
+	t->idx_max = 0;
+	t->num.flag = 0;
+	t->num.idx_max = t->idx_max;
+	
+	/* initialise snap like for everything else */
+	t->snap[0] = 0.0f; 
+	t->snap[1] = t->snap[2] = 1.0f;
+}
+
+static void headerTimeSlide(TransInfo *t, float sval, char *str) 
+{
+	char tvec[60];
+	
+	if (hasNumInput(&t->num)) {
+		outputNumInput(&(t->num), tvec);
+	}
+	else {
+		float minx= *((float *)(t->customData));
+		float maxx= *((float *)(t->customData) + 1);
+		float cval= t->fac;
+		float val;
+			
+		val= 2.0*(cval-sval) / (maxx-minx);
+		CLAMP(val, -1.0f, 1.0f);
+		
+		sprintf(&tvec[0], "%.4f", val);
+	}
+		
+	sprintf(str, "TimeSlide: %s", &tvec[0]);
+}
+
+static void applyTimeSlide(TransInfo *t, float sval) 
+{
+	TransData *td = t->data;
+	int i;
+	
+	float minx= *((float *)(t->customData));
+	float maxx= *((float *)(t->customData) + 1);
+	
+	/* set value for drawing black line */
+	if (t->spacetype == SPACE_ACTION) {
+		G.saction->timeslide= t->fac;
+		
+		if (NLA_ACTION_SCALED)
+			sval= get_action_frame(OBACT, sval);
+	}
+	
+	/* it doesn't matter whether we apply to t->data or t->data2d, but t->data2d is more convenient */
+	for (i = 0 ; i < t->total; i++, td++) {
+		/* it is assumed that td->ob is a pointer to the object,
+		 * whose active action is where this keyframe comes from 
+		 */
+		Object *ob= td->ob;
+		float cval = t->fac;
+		
+		/* apply scaling to necessary values */
+		if (ob)
+			cval= get_action_frame(ob, cval);
+		
+		/* only apply to data if in range */
+		if (sval > minx && sval < maxx) {
+			float cvalc= CLAMPIS(cval, minx, maxx);
+			float timefac;
+			
+			/* left half? */
+			if (td->ival < sval) {
+				timefac= (sval - td->ival) / (sval - minx);
+				*(td->val)= cvalc - timefac * (cvalc - minx);
+			}
+			else {
+				timefac= (td->ival - sval) / (maxx - sval);
+				*(td->val)= cvalc + timefac * (maxx - cvalc);
+			}
+		}
+	}
+}
+
+int TimeSlide(TransInfo *t, short mval[2]) 
+{
+	float cval[2], sval[2];
+	char str[200];
+	
+	/* calculate mouse co-ordinates */
+	areamouseco_to_ipoco(G.v2d, mval, &cval[0], &cval[1]);
+	areamouseco_to_ipoco(G.v2d, t->imval, &sval[0], &sval[1]);
+	
+	/* calculate fake value to work with */
+	t->fac= cval[0];
+	
+	/* handle numeric-input stuff */
+	t->vec[0] = t->fac;
+	applyNumInput(&t->num, &t->vec[0]);
+	t->fac = t->vec[0];
+	headerTimeSlide(t, sval[0], str);
+	
+	applyTimeSlide(t, sval[0]);
+
+	recalcData(t);
+
+	headerprint(str);
+	
+	viewRedrawForce(t);
+
+	return 1;
+}
+
+/* ----------------- Scaling ----------------------- */
+
+void initTimeScale(TransInfo *t) 
+{
+	t->mode = TFM_TIME_SCALE;
+	t->transform = TimeScale;
+
+	t->flag |= T_NULL_ONE;
+	t->num.flag |= NUM_NULL_ONE;
+	
+	/* num-input has max of (n-1) */
+	t->idx_max = 0;
+	t->num.flag = 0;
+	t->num.idx_max = t->idx_max;
+	
+	/* initialise snap like for everything else */
+	t->snap[0] = 0.0f; 
+	t->snap[1] = t->snap[2] = 1.0f;
+}
+
+static void headerTimeScale(TransInfo *t, char *str) {
+	char tvec[60];
+	
+	if (hasNumInput(&t->num))
+		outputNumInput(&(t->num), tvec);
+	else
+		sprintf(&tvec[0], "%.4f", t->fac);
+		
+	sprintf(str, "ScaleX: %s", &tvec[0]);
+}
+
+static void applyTimeScale(TransInfo *t) {
+	TransData *td = t->data;
+	int i;
+	
+	short autosnap= getAnimEdit_SnapMode(t);
+	short doTime= getAnimEdit_DrawTime(t);
+	float secf= ((float)G.scene->r.frs_sec);
+	
+	
+	for (i = 0 ; i < t->total; i++, td++) {
+		/* it is assumed that td->ob is a pointer to the object,
+		 * whose active action is where this keyframe comes from 
+		 */
+		Object *ob= td->ob;
+		float startx= CFRA;
+		float fac= t->fac;
+		
+		if (autosnap == SACTSNAP_STEP) {
+			if (doTime)
+				fac= (float)( floor(fac/secf + 0.5f) * secf );
+			else
+				fac= (float)( floor(fac + 0.5f) );
+		}
+		
+		/* check if any need to apply nla-scaling */
+		if (ob)
+			startx= get_action_frame(ob, startx);
+			
+		/* now, calculate the new value */
+		*(td->val) = td->ival - startx;
+		*(td->val) *= fac;
+		*(td->val) += startx;
+		
+		/* apply snap-to-nearest-frame? */
+		doAnimEdit_SnapFrame(t, td, ob, autosnap);
+	}
+}
+
+int TimeScale(TransInfo *t, short mval[2]) 
+{
+	float cval, sval;
+	float deltax, startx;
+	float width= 0.0f;
+	char str[200];
+	
+	sval= t->imval[0];
+	cval= mval[0];
+	
+	switch (t->spacetype) {
+		case SPACE_ACTION:
+			width= ACTWIDTH;
+			break;
+		case SPACE_NLA:
+			width= NLAWIDTH;
+			break;
+	}
+	
+	/* calculate scaling factor */
+	startx= sval-(width/2+(curarea->winrct.xmax-curarea->winrct.xmin)/2);
+	deltax= cval-(width/2+(curarea->winrct.xmax-curarea->winrct.xmin)/2);
+	t->fac = deltax / startx;
+	
+	/* handle numeric-input stuff */
+	t->vec[0] = t->fac;
+	applyNumInput(&t->num, &t->vec[0]);
+	t->fac = t->vec[0];
+	headerTimeScale(t, str);
+	
+	applyTimeScale(t);
+
+	recalcData(t);
+
+	headerprint(str);
+	
+	viewRedrawForce(t);
+
+	return 1;
 }
 
 /* ************************************ */

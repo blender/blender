@@ -86,6 +86,7 @@ Or to print all the constraints attached to each bone in a pose::
 		- LOCK (int): values are LOCKX, LOCKY, LOCKZ
 	- Used by Clamp To (CLAMPTO) constraint:
 		- CLAMP (int): values are CLAMPAUTO, CLAMPX, CLAMPY, CLAMPZ
+		- CLAMPCYCLIC (bool)
 	- Used by Floor (FLOOR) constraint:
 		- MINMAX (int): values are MINX, MINY, MINZ, MAXX, MAXY, MAXZ
 		- OFFSET (float): clamped to [-100.0,100.0]

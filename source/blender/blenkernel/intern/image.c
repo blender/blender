@@ -243,6 +243,7 @@ static Image *image_alloc(const char *name, short source, short type)
 		ima->ok= IMA_OK;
 		
 		ima->xrep= ima->yrep= 1;
+		ima->aspx= ima->aspy= 1.0;
 		ima->gen_x= 256; ima->gen_y= 256;
 		ima->gen_type= 1;	/* no defines yet? */
 		

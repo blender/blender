@@ -252,6 +252,8 @@ char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 				cp= ts->edge_seam; break;
 			case TH_EDGE_SHARP:
 				cp= ts->edge_sharp; break;
+			case TH_EDITMESH_ACTIVE:
+				cp= ts->editmesh_active; break;
 			case TH_EDGE_FACESEL:
 				cp= ts->edge_facesel; break;
 			case TH_FACE:
@@ -599,6 +601,7 @@ char *BIF_ThemeColorsPup(int spacetype)
 			str += sprintf(str, "Face Selected (transp) %%x%d|", TH_FACE_SELECT);
 			str += sprintf(str, "Face Dot Selected %%x%d|", TH_FACE_DOT);
 			str += sprintf(str, "Face Dot Size %%x%d|", TH_FACEDOT_SIZE);
+			str += sprintf(str, "Active Vert/Edge/Face %%x%d|", TH_EDITMESH_ACTIVE);
 			str += sprintf(str, "Normal %%x%d|", TH_NORMAL);
 			str += sprintf(str, "Bone Solid %%x%d|", TH_BONE_SOLID);
 			str += sprintf(str, "Bone Pose %%x%d", TH_BONE_POSE);

@@ -427,7 +427,7 @@ int calc_manipulator_stats(ScrArea *sa)
 		/* restore, mode can be TFM_INIT */
 		Trans.mode= mode;
 	}
-	else if(G.f & (G_VERTEXPAINT + G_TEXTUREPAINT +G_WEIGHTPAINT)) {
+	else if(G.f & (G_VERTEXPAINT + G_TEXTUREPAINT + G_WEIGHTPAINT + G_SCULPTMODE)) {
 		;
 	}
 	else {

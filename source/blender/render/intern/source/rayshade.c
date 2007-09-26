@@ -736,8 +736,8 @@ static void QMC_freeSampler(QMCSampler *qsa)
 static void QMC_getSample(double *s, QMCSampler *qsa, int thread, int num)
 {
 	if (qsa->type == SAMP_TYPE_HAMMERSLEY) {
-		s[0] = fmodf(qsa->samp2d[2*num+0] + qsa->offs[thread][0], 1.0f);
-		s[1] = fmodf(qsa->samp2d[2*num+1] + qsa->offs[thread][1], 1.0f);
+		s[0] = fmod(qsa->samp2d[2*num+0] + qsa->offs[thread][0], 1.0f);
+		s[1] = fmod(qsa->samp2d[2*num+1] + qsa->offs[thread][1], 1.0f);
 	}
 	else { /* SAMP_TYPE_HALTON */
 		s[0] = qsa->samp2d[2*num+0];
@@ -831,7 +831,7 @@ void free_render_qmcsampler(Render *re)
 static int adaptive_sample_variance(int samples, float *col, float *colsq, float thresh)
 {
 	float var[3], mean[3];
-	
+
 	/* scale threshold just to give a bit more precision in input rather than dealing with 
 	 * tiny tiny numbers in the UI */
 	thresh /= 2;
@@ -843,7 +843,7 @@ static int adaptive_sample_variance(int samples, float *col, float *colsq, float
 	var[0] = (colsq[0] / (float)samples) - (mean[0]*mean[0]);
 	var[1] = (colsq[1] / (float)samples) - (mean[1]*mean[1]);
 	var[2] = (colsq[2] / (float)samples) - (mean[2]*mean[2]);
-
+	
 	if ((var[0] * 0.4 < thresh) && (var[1] * 0.3 < thresh) && (var[2] * 0.6 < thresh))
 		return 1;
 	else
@@ -1658,11 +1658,13 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 	float samp3d[3], jit[3];
 
 	float fac=0.0f, vec[3];
+	float colsq[4];
 	float adapt_thresh = lar->adapt_thresh;
 	int max_samples = lar->ray_totsamp;
 	float pos[3];
 	int do_soft=1;
 
+	colsq[0] = colsq[1] = colsq[2] = 0.0;
 	if(isec->mode==RE_RAY_SHADOW_TRA) {
 		shadfac[0]= shadfac[1]= shadfac[2]= shadfac[3]= 0.0f;
 	} else
@@ -1756,6 +1758,11 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 			shadfac[1] += isec->col[1];
 			shadfac[2] += isec->col[2];
 			shadfac[3] += isec->col[3];
+			
+			/* for variance calc */
+			colsq[0] += isec->col[0]*isec->col[0];
+			colsq[1] += isec->col[1]*isec->col[1];
+			colsq[2] += isec->col[2]*isec->col[2];
 		}
 		else {
 			if( RE_ray_tree_intersect(R.raytree, isec) ) fac+= 1.0f;
@@ -1764,9 +1771,18 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 		samples++;
 		
 		if ((lar->ray_samp_method == LA_SAMP_HALTON)) {
+		
 			/* adaptive sampling - consider samples below threshold as in shadow (or vice versa) and exit early */
-			if ((do_soft) && (adapt_thresh > 0.0)) {
-				if ( (samples > max_samples/3) && ((fac / samples > (1.0-adapt_thresh)) || (fac / samples < adapt_thresh)) ) break;
+			if ((max_samples > 4) && (adapt_thresh > 0.0) && (samples > max_samples / 3)) {
+				if (isec->mode==RE_RAY_SHADOW_TRA) {
+					if ((shadfac[3] / samples > (1.0-adapt_thresh)) || (shadfac[3] / samples < adapt_thresh))
+						break;
+					else if (adaptive_sample_variance(samples, shadfac, colsq, adapt_thresh))
+						break;
+				} else {
+					if ((fac / samples > (1.0-adapt_thresh)) || (fac / samples < adapt_thresh))
+						break;
+				}
 			}
 		}
 	}

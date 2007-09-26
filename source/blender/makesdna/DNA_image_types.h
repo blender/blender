@@ -90,6 +90,9 @@ typedef struct Image {
 	
 	short gen_x, gen_y, gen_type;	/* for generated images */
 	
+	/* display aspect - for UV editing images resized for faster openGL display */
+	float aspx, aspy;
+	
 /*#ifdef WITH_VERSE*/
 	void *vnode;		/* pointer at verse bitmap node */
 /*#endif*/

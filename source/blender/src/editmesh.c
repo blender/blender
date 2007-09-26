@@ -335,6 +335,10 @@ void free_editface(EditFace *efa)
 	}
 #endif
 	EM_remove_selection(efa, EDITFACE);
+	
+	if (G.editMesh->act_face==efa)
+		EM_set_actFace(NULL);
+		
 	CustomData_em_free_block(&G.editMesh->fdata, &efa->data);
 	if(efa->fast==0)
 		free(efa);
@@ -811,10 +815,11 @@ void make_editMesh()
 	/* because of reload */
 	free_editMesh(em);
 	
+	em->act_face = NULL;
 	G.totvert= tot= me->totvert;
 	G.totedge= me->totedge;
 	G.totface= me->totface;
-
+	
 	if(tot==0) {
 		countall();
 		return;
@@ -908,6 +913,9 @@ void make_editMesh()
 
 				if((FACESEL_PAINT_TEST) && (efa->f & SELECT))
 					EM_select_face(efa, 1); /* flush down */
+				
+				if (a==me->act_face)
+					em->act_face = efa;
 			}
 		}
 	}
@@ -1142,6 +1150,9 @@ void load_editMesh(void)
 
 		/* no index '0' at location 3 or 4 */
 		test_index_face(mface, &me->fdata, i, efa->v4?4:3);
+		
+		if (a==me->act_face)
+			EM_set_actFace(efa);
 
 #ifdef WITH_VERSE
 		if(efa->vface) {

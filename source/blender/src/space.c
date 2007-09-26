@@ -87,6 +87,7 @@
 #include "BKE_node.h"
 #include "BKE_scene.h"
 #include "BKE_utildefines.h"
+#include "BKE_image.h" /* for IMA_TYPE_COMPOSITE and IMA_TYPE_R_RESULT */
 
 #include "BIF_spacetypes.h"  /* first, nasty dependency with typedef */
 
@@ -1523,7 +1524,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					/* Snap toggle (only edit mesh right now) */
 					if (G.obedit && G.obedit->type==OB_MESH)
 					{
-						G.vd->flag2 ^= V3D_TRANSFORM_SNAP;
+						G.scene->snap_flag ^= SCE_SNAP;
 						allqueue(REDRAWHEADERS, 0);
 					}					
 				}
@@ -2474,7 +2475,9 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case PERIODKEY:
 				if(G.qual==LR_CTRLKEY) {
 					G.vd->around= V3D_LOCAL;
-				} 	else if(G.qual==0) {
+				} else if(G.qual==LR_ALTKEY) {
+					G.vd->around= V3D_ACTIVE;
+				} else if(G.qual==0) {
 					G.vd->around= V3D_CURSOR;
 				}
 				handle_view3d_around();
@@ -3128,7 +3131,7 @@ static void info_user_themebuts(uiBlock *block, short y1, short y2, short y3)
 	}
 	else {
 		uiBlockBeginAlign(block);
-		if ELEM8(th_curcol, TH_PANEL, TH_LAMP, TH_FACE, TH_FACE_SELECT, TH_MENU_BACK, TH_MENU_HILITE, TH_MENU_ITEM, TH_NODE) {
+		if ELEM9(th_curcol, TH_PANEL, TH_LAMP, TH_FACE, TH_FACE_SELECT, TH_EDITMESH_ACTIVE, TH_MENU_BACK, TH_MENU_HILITE, TH_MENU_ITEM, TH_NODE) {
 			uiDefButC(block, NUMSLI, B_UPDATE_THEME,"A ",	465,y3+25,200,20,  col+3, 0.0, 255.0, B_THEMECOL, 0, "");
 		}
 		uiDefButC(block, NUMSLI, B_UPDATE_THEME,"R ",	465,y3,200,20,  col, 0.0, 255.0, B_THEMECOL, 0, "");
@@ -3780,7 +3783,15 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgsp+(1*mpref)+(1*midsp)),y2,mpref,buth,
 			&(U.uiflag), 0, 0, 0, 0, "Allows all codecs for rendering (not guaranteed)");
 #endif
+		
+		uiDefBut(block, LABEL,0,"Auto Run Python Scripts",
+			(xpos+edgsp+(1*midsp)+(1*mpref)),y6label,mpref,buth,
+			0, 0, 0, 0, 0, "");
 
+		uiDefButBitI(block, TOG, G_DOSCRIPTLINKS, REDRAWBUTSSCRIPT, "Enabled by Default",
+			(xpos+edgsp+(1*mpref)+(1*midsp)),y5,mpref,buth,
+			&(G.f), 0, 0, 0, 0, "Allow any .blend file to run scripts automatically (unsafe with blend files from an untrusted source)");
+		
 		uiDefBut(block, LABEL,0,"Keyboard:",
 			(xpos+edgsp+(3*midsp)+(3*mpref)),y3label,mpref,buth,
 			0, 0, 0, 0, 0, "");
@@ -4781,29 +4792,21 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 		}
 	}
-	else {
-		/* Draw tool is inactive */
-		switch(event) {
+	else if (G.obedit) {
+		/* Draw tool is inactive, editmode is enabled and the image is not a render or composite  */
+		if (EM_texFaceCheck() && (G.sima->image==0 || (G.sima->image->type != IMA_TYPE_R_RESULT && G.sima->image->type != IMA_TYPE_COMPOSITE))) {
+			switch(event) {
 			case LEFTMOUSE:
-				if(G.qual & LR_SHIFTKEY) {
-					if(G.sima->image && G.sima->image->tpageflag & IMA_TILES)
+				if(G.qual == LR_SHIFTKEY) {
+					if(G.sima->image && G.sima->image->tpageflag & IMA_TILES) {
 						mouseco_to_curtile();
-					else
-						sima_sample_color();
-				}
-				else if(EM_texFaceCheck()) {
-					if (!gesture()) {
-						mouseco_to_cursor_sima();
 					}
-				} else { 
-					sima_sample_color();
+				} else if (!gesture()) {
+					mouseco_to_cursor_sima();
 				}
 				break;
 			case RIGHTMOUSE:
-				if(EM_texFaceCheck())
-					mouse_select_sima();
-				else if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT))
-					sample_vpaint();
+				mouse_select_sima();
 				break;
 			case AKEY:
 				select_swap_tface_uv();
@@ -4814,25 +4817,38 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else if((G.qual==0))
 					borderselect_sima(UV_SELECT_ALL);
 				break;
+				
 			case CKEY:
-				if(G.qual==LR_CTRLKEY)
-					toggle_uv_select('s');
-				else if(G.qual==LR_SHIFTKEY)
-					toggle_uv_select('l');
-				else if(G.qual==LR_ALTKEY)
-					toggle_uv_select('o');
-				else
-					toggle_uv_select('f');
+				if (G.sima->flag & SI_SYNC_UVSEL) {
+					/* operate on the editmesh */
+					if (G.qual==0) {
+						if (G.scene->selectmode != SCE_SELECT_FACE) {
+							G.sima->flag ^= SI_SELACTFACE;
+							scrarea_queue_winredraw(curarea);
+						}
+					} else {
+						error("Sync selection to Edit Mesh disables UV select options");
+					}
+				} else {
+					/* normal operaton */
+					if(G.qual==LR_CTRLKEY) {
+						G.sima->sticky = 2;
+						scrarea_do_headdraw(curarea);
+					} else if(G.qual==LR_SHIFTKEY) {
+						G.sima->sticky = 1;
+						scrarea_do_headdraw(curarea);
+					} else if(G.qual==LR_ALTKEY) {
+						G.sima->sticky = 0;
+						scrarea_do_headdraw(curarea);
+					} else {
+						G.sima->flag ^= SI_SELACTFACE;
+						scrarea_queue_winredraw(curarea);
+					}
+				}
 				break;
 			case EKEY :
 				if(okee("Unwrap"))
 					unwrap_lscm(0);
-				break;
-			case GKEY:
-				if((G.qual==0) && is_uv_tface_editing_allowed()) {
-					initTransform(TFM_TRANSLATION, CTX_NONE);
-					Transform();
-				}
 				break;
 			case HKEY:
 				if(G.qual==LR_ALTKEY)
@@ -4840,7 +4856,7 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else if((G.qual==LR_SHIFTKEY))
 					hide_tface_uv(1);
 				else if((G.qual==0))
-					hide_tface_uv(0);
+					hide_tface_uv(0);		
 				break;
 			case LKEY:
 				if(G.qual==0)
@@ -4852,39 +4868,19 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else if(G.qual==LR_ALTKEY)
 					unlink_selection();
 				break;
-			case MKEY:
-				if((G.qual==0))
-					mirrormenu_tface_uv();
-				break;
-			case NKEY:
-				if(G.qual==LR_CTRLKEY)
-					replace_names_but();
-				break;
-			case OKEY:
-				if (G.qual==LR_SHIFTKEY) {
-					G.scene->prop_mode = (G.scene->prop_mode+1)%7;
-					allqueue(REDRAWHEADERS, 0);
-				}
-				else if((G.qual==0)) {
-					G.scene->proportional= !G.scene->proportional;
-				}
-				break;
 			case PKEY:
-				/*if(G.f & G_FACESELECT) {*/
-				if (EM_texFaceCheck()) {
-					if(G.qual==LR_CTRLKEY)
-						pack_charts_tface_uv();
-					else if(G.qual==LR_SHIFTKEY)
-						select_pinned_tface_uv();
-					else if(G.qual==LR_ALTKEY)
-						pin_tface_uv(0);
-					else
-						pin_tface_uv(1);
-				} else {
-					if(G.qual==LR_SHIFTKEY) {
-						toggle_blockhandler(sa, IMAGE_HANDLER_PREVIEW, 0);
-						scrarea_queue_winredraw(sa);
-					}
+				if(G.qual==LR_CTRLKEY)
+					pack_charts_tface_uv();
+				else if(G.qual==LR_SHIFTKEY)
+					select_pinned_tface_uv();
+				else if(G.qual==LR_ALTKEY)
+					pin_tface_uv(0);
+				else
+					pin_tface_uv(1);
+			case GKEY:
+				if((G.qual==0) && is_uv_tface_editing_allowed()) {
+					initTransform(TFM_TRANSLATION, CTX_NONE);
+					Transform();
 				}
 				break;
 			case RKEY:
@@ -4915,11 +4911,10 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case WKEY:
 				weld_align_menu_tface_uv();
 				break;
-			case PADPERIOD:
-				if(G.qual==0)
-					image_viewcenter();
+			case MKEY:
+				if((G.qual==0))
+					mirrormenu_tface_uv();
 				break;
-				
 			case COMMAKEY:
 				if(G.qual==LR_SHIFTKEY) {
 					G.v2d->around= V3D_CENTROID;
@@ -4937,10 +4932,56 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				} 	else if(G.qual==0) {
 					G.v2d->around= V3D_CURSOR;
 				}
-				
 				scrarea_queue_headredraw(curarea);
 				scrarea_queue_winredraw(curarea);
 				break;
+			case PADPERIOD:
+				if(G.qual==0)
+					image_viewcenter();
+				break;
+			case OKEY:
+				if(G.qual==0) {
+					G.scene->proportional= !G.scene->proportional;
+					allqueue(REDRAWHEADERS, 0);
+				} else if (G.qual==LR_SHIFTKEY) {
+					G.scene->prop_mode = (G.scene->prop_mode+1)%7;
+					allqueue(REDRAWHEADERS, 0);
+				}
+				
+				break;
+			case PADSLASHKEY:
+				if(G.qual==0)
+					G.sima->flag ^= SI_LOCAL_UV;
+				scrarea_queue_winredraw(curarea);
+				break;
+			case TABKEY:
+				if (G.qual == LR_SHIFTKEY) {
+					G.scene->snap_flag ^= SCE_SNAP;
+					allqueue(REDRAWHEADERS, 0);
+				}
+				break;
+			}
+		}
+	} else {
+		/* Draw and editmode are inactive */
+		switch(event) {
+		case LEFTMOUSE:
+			sima_sample_color();
+			break;
+		case RIGHTMOUSE:
+			if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT))
+				sample_vpaint();
+			break;
+		case NKEY:
+			if(G.qual==LR_CTRLKEY)
+				replace_names_but();
+			break;
+		case PKEY:
+			if(G.qual==LR_SHIFTKEY) {
+				toggle_blockhandler(sa, IMAGE_HANDLER_PREVIEW, 0);
+				scrarea_queue_winredraw(sa);
+			}
+			break;
 		}
 	}
 
@@ -4974,13 +5015,13 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	case NKEY:
 		if(G.qual==LR_ALTKEY) {
 			new_image_sima();
-		}
-		else if(G.qual==0) {
-			if (EM_texFaceCheck()) {
+		} else if(G.qual==0) {
+			/*if (EM_texFaceCheck()) {
 				toggle_blockhandler(sa, IMAGE_HANDLER_TRANSFORM_PROPERTIES, UI_PNL_TO_MOUSE);
-			} else {
+			} else {				
 				toggle_blockhandler(sa, IMAGE_HANDLER_PROPERTIES, UI_PNL_TO_MOUSE);
-			}
+			}*/
+			toggle_blockhandler(sa, IMAGE_HANDLER_PROPERTIES, UI_PNL_TO_MOUSE);
 			scrarea_queue_winredraw(sa);
 		}
 		break;
@@ -5032,7 +5073,6 @@ static void init_imagespace(ScrArea *sa)
 	sima->spacetype= SPACE_IMAGE;
 	sima->zoom= 1;
 	sima->blockscale= 0.7;
-	sima->flag = SI_LOCALSTICKY;
 
 	sima->iuser.ok= 1;
 	sima->iuser.fie_ima= 2;

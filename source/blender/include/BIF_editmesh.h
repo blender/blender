@@ -223,6 +223,7 @@ extern void join_triangles(void);
 extern void edge_flip(void);
 extern void fill_mesh(void);
 extern void bevel_menu();
+void mesh_set_face_flags(short mode);
 extern void mesh_set_smooth_faces(short event);
 extern void mesh_rotate_uvs(void);
 extern void mesh_mirror_uvs(void);
@@ -257,5 +258,8 @@ void free_uv_vert_map_EM(UvVertMap *vmap);
 
 int EM_texFaceCheck(void); /* can we edit UV's for this mesh?*/
 int EM_vertColorCheck(void); /* can we edit colors for this mesh?*/
+
+void EM_set_actFace(struct EditFace *efa);
+struct EditFace * EM_get_actFace(void);
 
 #endif

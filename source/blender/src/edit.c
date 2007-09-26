@@ -1158,13 +1158,13 @@ void snap_sel_to_grid()
 		if ELEM6(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) 
 			make_trans_verts(bmat[0], bmat[1], 0);
 		if(tottrans==0) return;
-
+		
 		Mat3CpyMat4(bmat, G.obedit->obmat);
 		Mat3Inv(imat, bmat);
-
+		
 		tv= transvmain;
 		for(a=0; a<tottrans; a++, tv++) {
-
+			
 			VECCOPY(vec, tv->loc);
 			Mat3MulVecfl(bmat, vec);
 			VecAddf(vec, vec, G.obedit->obmat[3]);
@@ -1172,17 +1172,17 @@ void snap_sel_to_grid()
 			vec[1]= G.vd->gridview*floor(.5+ vec[1]/gridf);
 			vec[2]= G.vd->gridview*floor(.5+ vec[2]/gridf);
 			VecSubf(vec, vec, G.obedit->obmat[3]);
-
+			
 			Mat3MulVecfl(imat, vec);
 			VECCOPY(tv->loc, vec);
-
+			
 		}
-
+		
 		special_transvert_update();
 		
 		MEM_freeN(transvmain);
 		transvmain= 0;
-
+	
 		allqueue(REDRAWVIEW3D, 0);
 		return;
 	}
@@ -1274,31 +1274,29 @@ void snap_sel_to_curs()
 
 	if(G.obedit) {
 		tottrans= 0;
-
+		
 		if ELEM6(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) 
 			make_trans_verts(bmat[0], bmat[1], 0);
 		if(tottrans==0) return;
-
+		
 		Mat3CpyMat4(bmat, G.obedit->obmat);
 		Mat3Inv(imat, bmat);
-
+		
 		tv= transvmain;
 		for(a=0; a<tottrans; a++, tv++) {
-
 			vec[0]= curs[0]-G.obedit->obmat[3][0];
 			vec[1]= curs[1]-G.obedit->obmat[3][1];
 			vec[2]= curs[2]-G.obedit->obmat[3][2];
-
+			
 			Mat3MulVecfl(imat, vec);
 			VECCOPY(tv->loc, vec);
-
 		}
 		
 		special_transvert_update();
 		
 		MEM_freeN(transvmain);
 		transvmain= 0;
-
+		
 		allqueue(REDRAWVIEW3D, 0);
 		return;
 	}
@@ -1346,10 +1344,10 @@ void snap_sel_to_curs()
 				vec[0]= -ob->obmat[3][0] + curs[0];
 				vec[1]= -ob->obmat[3][1] + curs[1];
 				vec[2]= -ob->obmat[3][2] + curs[2];
-
+				
 				if(ob->parent) {
 					where_is_object(ob);
-
+					
 					Mat3Inv(imat, originmat);
 					Mat3MulVecfl(imat, vec);
 					ob->loc[0]+= vec[0];
@@ -1388,7 +1386,6 @@ void snap_curs_to_grid()
 	curs[2]= G.vd->gridview*floor(.5+curs[2]/gridf);
 
 	allqueue(REDRAWVIEW3D, 0);
-
 }
 
 void snap_curs_to_sel()
@@ -1406,13 +1403,13 @@ void snap_curs_to_sel()
 
 	if(G.obedit) {
 		tottrans=0;
-
+		
 		if ELEM6(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) 
 			make_trans_verts(bmat[0], bmat[1], 2);
 		if(tottrans==0) return;
-
+		
 		Mat3CpyMat4(bmat, G.obedit->obmat);
-
+		
 		tv= transvmain;
 		for(a=0; a<tottrans; a++, tv++) {
 			VECCOPY(vec, tv->loc);
@@ -1421,7 +1418,7 @@ void snap_curs_to_sel()
 			VecAddf(centroid, centroid, vec);
 			DO_MINMAX(vec, min, max);
 		}
-
+		
 		if(G.vd->around==V3D_CENTROID) {
 			VecMulf(centroid, 1.0/(float)tottrans);
 			VECCOPY(curs, centroid);
@@ -1492,20 +1489,20 @@ void snap_curs_to_firstsel()
 
 	if(G.obedit) {
 		tottrans=0;
-
+		
 		if ELEM6(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) 
 			make_trans_verts(bmat[0], bmat[1], 0);
 		if(tottrans==0) return;
-
+		
 		Mat3CpyMat4(bmat, G.obedit->obmat);
-
+		
 		tv= transvmain;
 		VECCOPY(vec, tv->loc);
 			/*Mat3MulVecfl(bmat, vec);
 			VecAddf(vec, vec, G.obedit->obmat[3]);
 			VecAddf(centroid, centroid, vec);
 			DO_MINMAX(vec, min, max);*/
-
+		
 		if(G.vd->around==V3D_CENTROID) {
 			VecMulf(vec, 1.0/(float)tottrans);
 			VECCOPY(curs, vec);
@@ -1561,14 +1558,14 @@ void snap_to_center()
 
 	if(G.obedit) {
 		tottrans= 0;
-
+		
 		if ELEM6(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) 
 			make_trans_verts(bmat[0], bmat[1], 0);
 		if(tottrans==0) return;
-
+		
 		Mat3CpyMat4(bmat, G.obedit->obmat);
 		Mat3Inv(imat, bmat);
-
+		
 		tv= transvmain;
 		for(a=0; a<tottrans; a++, tv++) {
 			VECCOPY(vec, tv->loc);
@@ -1577,7 +1574,7 @@ void snap_to_center()
 			VecAddf(centroid, centroid, vec);
 			DO_MINMAX(vec, min, max);
 		}
-
+		
 		if(G.vd->around==V3D_CENTROID) {
 			VecMulf(centroid, 1.0/(float)tottrans);
 			VECCOPY(snaploc, centroid);
@@ -1590,7 +1587,6 @@ void snap_to_center()
 		
 		MEM_freeN(transvmain);
 		transvmain= 0;
-
 	}
 	else {
 		base= (G.scene->base.first);
@@ -1638,21 +1634,20 @@ void snap_to_center()
 	/* Snap the selection to the snaplocation (duh!) */
 	if(G.obedit) {
 		tottrans= 0;
-
+		
 		if ELEM6(G.obedit->type, OB_ARMATURE, OB_LATTICE, OB_MESH, OB_SURF, OB_CURVE, OB_MBALL) 
 			make_trans_verts(bmat[0], bmat[1], 0);
 		if(tottrans==0) return;
-
+		
 		Mat3CpyMat4(bmat, G.obedit->obmat);
 		Mat3Inv(imat, bmat);
-
+		
 		tv= transvmain;
 		for(a=0; a<tottrans; a++, tv++) {
-
 			vec[0]= snaploc[0]-G.obedit->obmat[3][0];
 			vec[1]= snaploc[1]-G.obedit->obmat[3][1];
 			vec[2]= snaploc[2]-G.obedit->obmat[3][2];
-
+			
 			Mat3MulVecfl(imat, vec);
 			VECCOPY(tv->loc, vec);
 		}
@@ -1661,7 +1656,7 @@ void snap_to_center()
 		
 		MEM_freeN(transvmain);
 		transvmain= 0;
-
+		
 		allqueue(REDRAWVIEW3D, 0);
 		return;
 	}
@@ -1702,10 +1697,10 @@ void snap_to_center()
 				vec[0]= -ob->obmat[3][0] + snaploc[0];
 				vec[1]= -ob->obmat[3][1] + snaploc[1];
 				vec[2]= -ob->obmat[3][2] + snaploc[2];
-
+				
 				if(ob->parent) {
 					where_is_object(ob);
-
+					
 					Mat3Inv(imat, originmat);
 					Mat3MulVecfl(imat, vec);
 					ob->loc[0]+= vec[0];
@@ -1725,7 +1720,7 @@ void snap_to_center()
 				autokeyframe_ob_cb_func(ob, TFM_TRANSLATION);
 			}
 		}
-
+		
 		base= base->next;
 	}
 	DAG_scene_flush_update(G.scene, screen_view3d_layers());

@@ -91,8 +91,10 @@ struct IpoCurve *verify_ipocurve(struct ID *, short, char *, char *, int);
 struct Ipo *verify_ipo(struct ID *, short, char *, char *);
 int texchannel_to_adrcode(int channel);
 
-void insert_vert_ipo(struct IpoCurve *icu, float x, float y);
+int insert_bezt_icu(struct IpoCurve *icu, struct BezTriple *bezt);
+void insert_vert_icu(struct IpoCurve *icu, float x, float y, short fast);
 void add_vert_ipo(void);
+
 void add_duplicate_editipo(void);
 void remove_doubles_ipo(void);
 void clean_ipo(void);
@@ -119,7 +121,7 @@ void paste_editipo(void);
 void set_exprap_ipo(int mode);
 
 void set_speed_editipo(float speed);
-void insertkey(ID *id, int blocktype, char *actname, char *constname, int adrcode);
+void insertkey(ID *id, int blocktype, char *actname, char *constname, int adrcode, short fast);
 void insertkey_smarter(ID *id, int blocktype, char *actname, char *constname, int adrcode);
 void insertkey_editipo(void);
 void common_insertkey(void);

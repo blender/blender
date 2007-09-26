@@ -1743,19 +1743,19 @@ static void do_view3d_transformmenu(void *arg, int event)
 		Transform();
 		break;
 	case 15:
-		G.vd->flag2 &= ~V3D_TRANSFORM_SNAP;
+		G.scene->snap_flag &= ~SCE_SNAP;
 		break;
 	case 16:
-		G.vd->flag2 |= V3D_TRANSFORM_SNAP;
+		G.scene->snap_flag |= SCE_SNAP;
 		break;
 	case 17:
-		G.vd->snap_target = V3D_SNAP_TARGET_CLOSEST;
+		G.scene->snap_target = SCE_SNAP_TARGET_CLOSEST;
 		break;
 	case 18:
-		G.vd->snap_target = V3D_SNAP_TARGET_CENTER;
+		G.scene->snap_target = SCE_SNAP_TARGET_CENTER;
 		break;
 	case 19:
-		G.vd->snap_target = V3D_SNAP_TARGET_MEDIAN;
+		G.scene->snap_target = SCE_SNAP_TARGET_MEDIAN;
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -1812,7 +1812,7 @@ static uiBlock *view3d_transformmenu(void *arg_unused)
 	{
 		uiDefBut(block, SEPR, 0, "",                    0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-		if (G.vd->flag2 & V3D_TRANSFORM_SNAP)
+		if (G.scene->snap_flag & SCE_SNAP)
 		{
 			uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Grid",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 15, "");
 			uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Snap",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 16, "");
@@ -1825,19 +1825,19 @@ static uiBlock *view3d_transformmenu(void *arg_unused)
 			
 		uiDefBut(block, SEPR, 0, "",                    0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
-		switch(G.vd->snap_target)
+		switch(G.scene->snap_target)
 		{
-			case V3D_SNAP_TARGET_CLOSEST:
+			case SCE_SNAP_TARGET_CLOSEST:
 				uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Snap Closest",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
 				uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Snap Center",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 18, "");
 				uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Snap Median",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 19, "");
 				break;
-			case V3D_SNAP_TARGET_CENTER:
+			case SCE_SNAP_TARGET_CENTER:
 				uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Snap Closest",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
 				uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Snap Center",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 18, "");
 				uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Snap Median",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 19, "");
 				break;
-			case V3D_SNAP_TARGET_MEDIAN:
+			case SCE_SNAP_TARGET_MEDIAN:
 				uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Snap Closest",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
 				uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Snap Center",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 18, "");
 				uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Snap Median",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 19, "");
@@ -4986,7 +4986,7 @@ void view3d_buttons(void)
 	if(FACESEL_PAINT_TEST) G.vd->flag |= V3D_FACESELECT;
 	
 	uiDefIconTextButS(block, MENU, B_MODESELECT, (G.vd->modeselect),view3d_modeselect_pup() , 
-																xco,0,126,20, &(G.vd->modeselect), 0, 0, 0, 0, "Mode (Hotkeys: Tab, F, V, Ctrl Tab)");
+																xco,0,126,20, &(G.vd->modeselect), 0, 0, 0, 0, "Mode (Hotkeys: Tab, V, Ctrl Tab)");
 	
 	xco+= 126+8;
 	
@@ -5033,7 +5033,7 @@ void view3d_buttons(void)
  			xco+= XIC+10;
  		} else {
  			/* Manipulators arnt used in weight paint mode */
-			uiDefIconTextButS(block, ICONTEXTROW,B_AROUND, ICON_ROTATE, around_pup(), xco,0,XIC+10,YIC, &(G.vd->around), 0, 3.0, 0, 0, "Rotation/Scaling Pivot (Hotkeys: Comma, Shift Comma, Period) ");
+			uiDefIconTextButS(block, ICONTEXTROW,B_AROUND, ICON_ROTATE, around_pup(), xco,0,XIC+10,YIC, &(G.vd->around), 0, 3.0, 0, 0, "Rotation/Scaling Pivot (Hotkeys: Comma, Shift Comma, Period, Ctrl Period, Alt Period)");
 
 			xco+= XIC+10;
 		
@@ -5083,7 +5083,7 @@ void view3d_buttons(void)
 			xco+= (a-2)*(XIC/2)+3;
 
 			/* LOCK */
-			uiDefIconButS(block, ICONTOG, B_SCENELOCK, ICON_UNLOCKED, xco+=XIC,0,XIC,YIC, &(G.vd->scenelock), 0, 0, 0, 0, "Locks layers and used Camera to Scene (Ctrl `)");
+			uiDefIconButS(block, ICONTOG, B_SCENELOCK, ICON_UNLOCKED, xco+=XIC,0,XIC,YIC, &(G.vd->scenelock), 0, 0, 0, 0, "Locks Active Camera and layers to Scene (Ctrl `)");
 			xco+= XIC+10;
 
 		}
@@ -5106,18 +5106,15 @@ void view3d_buttons(void)
 		if(G.obedit && (G.obedit->type == OB_MESH)) { // Only Mesh for now
 			uiBlockBeginAlign(block);
 
-			if (G.vd->flag2 & V3D_TRANSFORM_SNAP)
-				{
-				uiDefIconButBitS(block, TOG, V3D_TRANSFORM_SNAP, B_REDR, ICON_SNAP_GEO,xco,0,XIC,YIC, &G.vd->flag2, 0, 0, 0, 0, "Use Snap or Grid (Shift Tab)");	
+			if (G.scene->snap_flag & SCE_SNAP) {
+				uiDefIconButBitS(block, TOG, SCE_SNAP, B_REDR, ICON_SNAP_GEO,xco,0,XIC,YIC, &G.scene->snap_flag, 0, 0, 0, 0, "Use Snap or Grid (Shift Tab)");	
 				xco+= XIC;
-				uiDefButS(block, MENU, B_NOP, "Mode%t|Closest%x0|Center%x1|Median%x2",xco,0,70,YIC, &G.vd->snap_target, 0, 0, 0, 0, "Snap Target Mode");
+				uiDefButS(block, MENU, B_NOP, "Mode%t|Closest%x0|Center%x1|Median%x2",xco,0,70,YIC, &G.scene->snap_target, 0, 0, 0, 0, "Snap Target Mode");
 				xco+= 70;
-				}
-			else
-				{
-				uiDefIconButBitS(block, TOG, V3D_TRANSFORM_SNAP, B_REDR, ICON_SNAP_GEAR,xco,0,XIC,YIC, &G.vd->flag2, 0, 0, 0, 0, "Use Snap or Grid (Shift Tab)");	
+			} else {
+				uiDefIconButBitS(block, TOG, SCE_SNAP, B_REDR, ICON_SNAP_GEAR,xco,0,XIC,YIC, &G.scene->snap_flag, 0, 0, 0, 0, "Snap while Ctrl is held during transform (Shift Tab)");	
 				xco+= XIC;
-				}
+			}
 
 			uiBlockEndAlign(block);
 			xco+= 10;
@@ -5134,7 +5131,7 @@ void view3d_buttons(void)
 			xco+= XIC;
 			uiBlockEndAlign(block);
 			if(G.vd->drawtype > OB_WIRE) {
-				uiDefIconButBitS(block, TOG, V3D_ZBUF_SELECT, B_REDR, ICON_ORTHO, xco,0,XIC,YIC, &G.vd->flag, 1.0, 0.0, 0, 0, "Limit selection to visible (clipped with depth buffer)");
+				uiDefIconButBitS(block, TOG, V3D_ZBUF_SELECT, B_REDR, ICON_ORTHO, xco,0,XIC,YIC, &G.vd->flag, 1.0, 0.0, 0, 0, "Occlude background geometry");
 				xco+= XIC;
 			}
 			xco+= 20;

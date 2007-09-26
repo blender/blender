@@ -58,6 +58,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_nla_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_scene_types.h"
@@ -86,6 +87,8 @@
 #include "BKE_global.h"
 #include "BKE_ipo.h"
 #include "BKE_lattice.h"
+#include "BKE_key.h"
+#include "BKE_main.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
@@ -99,6 +102,7 @@
 #include "BIF_editconstraint.h"
 #include "BIF_editarmature.h"
 #include "BIF_editmesh.h"
+#include "BIF_editnla.h"
 #include "BIF_editsima.h"
 #include "BIF_gl.h"
 #include "BIF_poseobject.h"
@@ -113,6 +117,7 @@
 #include "BSE_edit.h"
 #include "BSE_editipo.h"
 #include "BSE_editipo_types.h"
+#include "BSE_editaction_types.h"
 
 #include "BDR_editobject.h"		// reset_slowparents()
 #include "BDR_unwrapper.h"
@@ -1859,12 +1864,12 @@ static void createTransUVs(TransInfo *t)
 
 	/* count */
 	for (efa= em->faces.first; efa; efa= efa->next) {
-		if (efa->f & SELECT) {
-			tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			if(tf->flag & TF_SEL1) countsel++;
-			if(tf->flag & TF_SEL2) countsel++;
-			if(tf->flag & TF_SEL3) countsel++;
-			if(efa->v4 && (tf->flag & TF_SEL4)) countsel++;
+		tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+		if SIMA_FACEDRAW_CHECK(efa, tf) {
+			if (SIMA_UVSEL_CHECK(efa, tf, 0)) countsel++; 
+			if (SIMA_UVSEL_CHECK(efa, tf, 1)) countsel++; 
+			if (SIMA_UVSEL_CHECK(efa, tf, 2)) countsel++; 
+			if (efa->v4 && SIMA_UVSEL_CHECK(efa, tf, 3)) countsel++;
 			if(propmode)
 				count += (efa->v4)? 4: 3;
 		}
@@ -1885,17 +1890,17 @@ static void createTransUVs(TransInfo *t)
 	td= t->data;
 	td2d= t->data2d;
 	for (efa= em->faces.first; efa; efa= efa->next) {
-		if (efa->f & SELECT) {
-			tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			if(tf->flag & TF_SEL1 || propmode)
-				UVsToTransData(td++, td2d++, tf->uv[0], (tf->flag & TF_SEL1));
-			if(tf->flag & TF_SEL2 || propmode)
-				UVsToTransData(td++, td2d++, tf->uv[1], (tf->flag & TF_SEL2));
-			if(tf->flag & TF_SEL3 || propmode)
-				UVsToTransData(td++, td2d++, tf->uv[2], (tf->flag & TF_SEL3));
+		tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+		if SIMA_FACEDRAW_CHECK(efa, tf) {
+			if(propmode || SIMA_UVSEL_CHECK(efa, tf, 0))
+				UVsToTransData(td++, td2d++, tf->uv[0], SIMA_UVSEL_CHECK(efa, tf, 0));
+			if(propmode || SIMA_UVSEL_CHECK(efa, tf, 1))
+				UVsToTransData(td++, td2d++, tf->uv[1], SIMA_UVSEL_CHECK(efa, tf, 1));
+			if(propmode || SIMA_UVSEL_CHECK(efa, tf, 2))
+				UVsToTransData(td++, td2d++, tf->uv[2], SIMA_UVSEL_CHECK(efa, tf, 2));
 
-			if(efa->v4 && (tf->flag & TF_SEL4 || propmode))
-				UVsToTransData(td++, td2d++, tf->uv[3], (tf->flag & TF_SEL4));
+			if(efa->v4 && (propmode || SIMA_UVSEL_CHECK(efa, tf, 3)))
+				UVsToTransData(td++, td2d++, tf->uv[3], SIMA_UVSEL_CHECK(efa, tf, 3));
 		}
 	}
 
@@ -1981,6 +1986,256 @@ int clipUVTransform(TransInfo *t, float *vec, int resize)
 	}	
 
 	return (clipx || clipy);
+}
+
+/* ********************* ACTION/NLA EDITOR ****************** */
+
+
+static void TimeToTransData(TransData *td, float *time, Object *ob)
+{
+	/* memory is calloc'ed, so that should zero everything nicely for us */
+	td->val = time;
+	td->ival = *(time);
+	
+	/* store the Object where this keyframe exists as a keyframe of the 
+	 * active action as td->ob. Usually, this member is only used for constraints 
+	 * drawing
+	 */
+	td->ob= ob;
+}
+
+/* This function advances the address to which td points to, so it must return
+ * the new address so that the next time new transform data is added, it doesn't
+ * overwrite the existing ones...  i.e.   td = IpoToTransData(td, ipo, ob);
+ */
+static TransData *IpoToTransData(TransData *td, Ipo *ipo, Object *ob)
+{
+	IpoCurve *icu;
+	BezTriple *bezt;
+	int i;
+	
+	if (ipo == NULL)
+		return td;
+	
+	for (icu= ipo->curve.first; icu; icu= icu->next) {
+		/* only add selected keyframes (for now, proportional edit is not enabled) */
+		for (i=0, bezt=icu->bezt; i < icu->totvert; i++, bezt++) {
+			if (BEZSELECTED(bezt)) {
+				/* each control point needs to be added separetely */
+				TimeToTransData(td, bezt->vec[0], ob);
+				td++;
+				
+				TimeToTransData(td, bezt->vec[1], ob);
+				td++;
+				
+				TimeToTransData(td, bezt->vec[2], ob);
+				td++;
+			}	
+		}
+	}
+	
+	return td;
+}
+
+static void createTransActionData(TransInfo *t)
+{
+	TransData *td = NULL;
+	Object *ob= NULL;
+	
+	ListBase act_data = {NULL, NULL};
+	bActListElem *ale;
+	void *data;
+	short datatype;
+	int filter;
+	
+	int count=0;
+	
+	/* determine what type of data we are operating on */
+	data = get_action_context(&datatype);
+	if (data == NULL) return;
+	
+	/* filter data */
+	filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT | ACTFILTER_IPOKEYS);
+	actdata_filter(&act_data, filter, data, datatype);
+	
+	/* is the action scaled? if so, the it should belong to the active object */
+	if (NLA_ACTION_SCALED)
+		ob= OBACT;
+	
+	/* loop 1: fully select ipo-keys and count how many BezTriples are selected */
+	for (ale= act_data.first; ale; ale= ale->next)
+		count += fullselect_ipo_keys(ale->key_data);
+	
+	/* stop if trying to build list if nothing selected */
+	if (count == 0) {
+		/* cleanup temp list */
+		BLI_freelistN(&act_data);
+		return;
+	}
+	
+	/* allocate memory for data */
+	t->total= count;
+	t->data= MEM_callocN(t->total*sizeof(TransData), "TransData(Action Editor)");
+	if (t->mode == TFM_TIME_SLIDE)
+		t->customData= MEM_callocN(sizeof(float)*2, "TimeSlide Min/Max");
+	
+	td= t->data;
+	/* loop 2: build transdata array */
+	for (ale= act_data.first; ale; ale= ale->next) {
+		Ipo *ipo= (Ipo *)ale->key_data;
+		
+		td= IpoToTransData(td, ipo, ob);
+	}
+	
+	/* check if we're supposed to be setting minx/maxx for TimeSlide */
+	if (t->mode == TFM_TIME_SLIDE) {
+		float min = 0, max = 0;
+		int i;
+		
+		td= (t->data + 1);
+		for (i=1; i < count; i+=3, td+=3) {
+			if (min > *(td->val)) min= *(td->val);
+			if (max < *(td->val)) max= *(td->val);
+		}
+		
+		/* minx/maxx values used by TimeSlide are stored as a 
+		 * calloced 2-float array in t->customData. This gets freed
+		 * in postTrans (T_FREE_CUSTOMDATA). 
+		 */
+		*((float *)(t->customData)) = min;
+		*((float *)(t->customData) + 1) = max;
+	}
+	
+	/* cleanup temp list */
+	BLI_freelistN(&act_data);
+}
+
+static void createTransNLAData(TransInfo *t)
+{
+	Base *base;
+	bActionStrip *strip;
+	bActionChannel *achan;
+	bConstraintChannel *conchan;
+	
+	TransData *td = NULL;
+	int count=0, i;
+	
+	/* Ensure that partial selections result in beztriple selections */
+	for (base=G.scene->base.first; base; base=base->next) {
+		/* Check object ipos */
+		i= fullselect_ipo_keys(base->object->ipo);
+		if (i) base->flag |= BA_HAS_RECALC_OB;
+		count += i;
+		
+		/* Check object constraint ipos */
+		for (conchan=base->object->constraintChannels.first; conchan; conchan=conchan->next)
+			count += fullselect_ipo_keys(conchan->ipo);			
+		
+		/* skip actions and nlastrips if object is collapsed */
+		if (base->object->nlaflag & OB_NLA_COLLAPSED)
+			continue;
+		
+		/* Check action ipos */
+		if (base->object->action) {
+			/* exclude if strip is selected too */
+			for (strip=base->object->nlastrips.first; strip; strip=strip->next) {
+				if (strip->flag & ACTSTRIP_SELECT)
+					if (strip->act == base->object->action)
+						break;
+			}
+			if (strip==NULL) {
+				for (achan=base->object->action->chanbase.first; achan; achan=achan->next) {
+					if (EDITABLE_ACHAN(achan)) {
+						i= fullselect_ipo_keys(achan->ipo);
+						if (i) base->flag |= BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA;
+						count += i;
+						
+						/* Check action constraint ipos */
+						if (EXPANDED_ACHAN(achan) && FILTER_CON_ACHAN(achan)) {
+							for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
+								if (EDITABLE_CONCHAN(conchan))
+									count += fullselect_ipo_keys(conchan->ipo);
+							}
+						}
+					}
+				}
+			}		
+		}
+		
+		/* Check nlastrips */
+		for (strip=base->object->nlastrips.first; strip; strip=strip->next) {
+			if (strip->flag & ACTSTRIP_SELECT) {
+				base->flag |= BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA;
+				count += 2;
+			}
+		}
+	}
+	
+	/* If nothing is selected, bail out */
+	if (count == 0)
+		return;
+	
+	/* allocate memory for data */
+	t->total= count;
+	t->data= MEM_callocN(t->total*sizeof(TransData), "TransData (NLA Editor)");
+	
+	/* build the transdata structure */
+	td= t->data;
+	for (base=G.scene->base.first; base; base=base->next) {
+		/* Manipulate object ipos */
+		/* 	- no scaling of keyframe times is allowed here  */
+		td= IpoToTransData(td, base->object->ipo, NULL);
+		
+		/* Manipulate object constraint ipos */
+		/* 	- no scaling of keyframe times is allowed here  */
+		for (conchan=base->object->constraintChannels.first; conchan; conchan=conchan->next)
+			td= IpoToTransData(td, conchan->ipo, NULL);
+		
+		/* skip actions and nlastrips if object collapsed */
+		if (base->object->nlaflag & OB_NLA_COLLAPSED)
+			continue;
+			
+		/* Manipulate action ipos */
+		if (base->object->action) {
+			/* exclude if strip that active action belongs to is selected too */
+			for (strip=base->object->nlastrips.first; strip; strip=strip->next) {
+				if (strip->flag & ACTSTRIP_SELECT)
+					if (strip->act == base->object->action)
+						break;
+			}
+			
+			/* can include if no strip found */
+			if (strip==NULL) {
+				for (achan=base->object->action->chanbase.first; achan; achan=achan->next) {
+					if (EDITABLE_ACHAN(achan)) {
+						td= IpoToTransData(td, achan->ipo, base->object);
+						
+						/* Manipulate action constraint ipos */
+						if (EXPANDED_ACHAN(achan) && FILTER_CON_ACHAN(achan)) {
+							for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
+								if (EDITABLE_CONCHAN(conchan))
+									td= IpoToTransData(td, conchan->ipo, base->object);
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		/* Manipulate nlastrips */
+		for (strip=base->object->nlastrips.first; strip; strip=strip->next) {
+			if (strip->flag & ACTSTRIP_SELECT) {
+				/* first TransData is the start, second is the end */
+				td->val = &strip->start;
+				td->ival = strip->start;
+				td++;
+				
+				td->val = &strip->end;
+				td->ival = strip->end;
+				td++;
+			}
+		}
+	}
 }
 
 /* **************** IpoKey stuff, for Object TransData ********** */
@@ -2290,7 +2545,7 @@ void autokeyframe_ob_cb_func(Object *ob, int tmode)
 					if (U.uiflag & USER_KEYINSERTNEED)
 						insertkey_smarter(id, ID_OB, actname, NULL, icu->adrcode);
 					else
-						insertkey(id, ID_OB, actname, NULL, icu->adrcode);
+						insertkey(id, ID_OB, actname, NULL, icu->adrcode, 0);
 					icu= icu->next;
 				}
 			}
@@ -2313,17 +2568,17 @@ void autokeyframe_ob_cb_func(Object *ob, int tmode)
 			}
 		}
 		else {
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_ROT_X);
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_ROT_Y);
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_ROT_Z);
+			insertkey(&ob->id, ID_OB, actname, NULL, OB_ROT_X, 0);
+			insertkey(&ob->id, ID_OB, actname, NULL, OB_ROT_Y, 0);
+			insertkey(&ob->id, ID_OB, actname, NULL, OB_ROT_Z, 0);
 
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_LOC_X);
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_LOC_Y);
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_LOC_Z);
+			insertkey(&ob->id, ID_OB, actname, NULL, OB_LOC_X, 0);
+			insertkey(&ob->id, ID_OB, actname, NULL, OB_LOC_Y, 0);
+			insertkey(&ob->id, ID_OB, actname, NULL, OB_LOC_Z, 0);
 
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_SIZE_X);
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_SIZE_Y);
-			insertkey(&ob->id, ID_OB, actname, NULL, OB_SIZE_Z);
+			insertkey(&ob->id, ID_OB, actname, NULL, OB_SIZE_X, 0);
+			insertkey(&ob->id, ID_OB, actname, NULL, OB_SIZE_Y, 0);
+			insertkey(&ob->id, ID_OB, actname, NULL, OB_SIZE_Z, 0);
 		}
 
 		remake_object_ipos(ob);
@@ -2353,24 +2608,29 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 		if (!act)
 			act= ob->action= add_empty_action("Action");
 		
-		for (pchan=pose->chanbase.first; pchan; pchan=pchan->next){
-			if (pchan->bone->flag & BONE_TRANSFORM){
-
+		for (pchan=pose->chanbase.first; pchan; pchan=pchan->next) {
+			if (pchan->bone->flag & BONE_TRANSFORM) {
+				/* clear any 'unkeyed' flag it may have */
+				pchan->bone->flag &= ~BONE_UNKEYED;
+				
+				/* only insert into available channels? */
 				if(U.uiflag & USER_KEYINSERTAVAI) {
 					bActionChannel *achan; 
-
+					
 					for (achan = act->chanbase.first; achan; achan=achan->next){
 						if (achan->ipo && !strcmp (achan->name, pchan->name)){
 							for (icu = achan->ipo->curve.first; icu; icu=icu->next){
+								/* only insert keyframe if needed? */
 								if (U.uiflag & USER_KEYINSERTNEED)
 									insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, icu->adrcode);
 								else
-									insertkey(&ob->id, ID_PO, pchan->name, NULL, icu->adrcode);
+									insertkey(&ob->id, ID_PO, pchan->name, NULL, icu->adrcode, 0);
 							}
 							break;
 						}
 					}
 				}
+				/* only insert keyframe if needed? */
 				else if (U.uiflag & USER_KEYINSERTNEED) {
 					if ((tmode==TFM_TRANSLATION) && (targetless_ik==0)) {
 						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_X);
@@ -2389,19 +2649,20 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Z);
 					}
 				}
+				/* insert keyframe in any channel that's appropriate */
 				else {
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_X);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Y);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Z);
-
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_W);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_X);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
-
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_X);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Y);
-					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Z);
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_X, 0);
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Y, 0);
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Z, 0);
+					
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_W, 0);
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_X, 0);
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Y, 0);
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Z, 0);
+					
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_X, 0);
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Y, 0);
+					insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Z, 0);
 				}
 			}
 		}
@@ -2413,10 +2674,34 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 		allqueue(REDRAWNLA, 0);
 		allqueue(REDRAWTIME, 0);
 	}
+	else {
+		/* tag channels that should have unkeyed data */
+		for (pchan=pose->chanbase.first; pchan; pchan=pchan->next) {
+			if (pchan->bone->flag & BONE_TRANSFORM) {
+				/* tag this channel */
+				pchan->bone->flag |= BONE_UNKEYED;
+			}
+		}
+	}
 }
 
-/* inserting keys, refresh ipo-keys, softbody, cloth, redraw events... (ton) */
-/* note; transdata has been freed already! */
+/* very bad call!!! - copied from editnla.c!  */
+static void recalc_all_ipos(void)
+{
+	Ipo *ipo;
+	IpoCurve *icu;
+	
+	/* Go to each ipo */
+	for (ipo=G.main->ipo.first; ipo; ipo=ipo->id.next){
+		for (icu = ipo->curve.first; icu; icu=icu->next){
+			sort_time_ipocurve(icu);
+			testhandles_ipocurve(icu);
+		}
+	}
+}
+
+/* inserting keys, refresh ipo-keys, softbody, redraw events... (ton) */
+/* note: transdata has been freed already! */
 void special_aftertrans_update(TransInfo *t)
 {
 	Object *ob;
@@ -2424,7 +2709,56 @@ void special_aftertrans_update(TransInfo *t)
 	int redrawipo=0;
 	int cancelled= (t->state == TRANS_CANCEL);
 		
-	if(G.obedit) {
+	if(t->spacetype == SPACE_ACTION) {
+		void *data;
+		short datatype;
+		
+		/* determine what type of data we are operating on */
+		data = get_action_context(&datatype);
+		if (data == NULL) return;
+		ob = OBACT;
+		
+		if (datatype == ACTCONT_ACTION) {
+			/* Update the curve */
+			/* Depending on the lock status, draw necessary views */
+			if (ob) {
+				ob->ctime= -1234567.0f;
+				
+				if(ob->pose || ob_get_key(ob))
+					DAG_object_flush_update(G.scene, ob, OB_RECALC);
+				else
+					DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
+			}
+			
+			remake_action_ipos((bAction *)data);
+			
+			G.saction->flag &= ~SACTION_MOVING;
+		}
+		else if (datatype == ACTCONT_SHAPEKEY) {
+			/* fix up the Ipocurves and redraw stuff */
+			Key *key= (Key *)data;
+			if (key->ipo) {
+				IpoCurve *icu;
+				
+				for (icu = key->ipo->curve.first; icu; icu=icu->next) {
+					sort_time_ipocurve(icu);
+					testhandles_ipocurve(icu);
+				}
+			}
+			
+			DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
+		}
+	}
+	else if(t->spacetype == SPACE_NLA) {
+		synchronize_action_strips();
+	
+		/* cleanup */
+		for (base=G.scene->base.first; base; base=base->next)
+			base->flag &= ~(BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA);
+		
+		recalc_all_ipos();	// bad
+	}
+	else if(G.obedit) {
 		if(t->mode==TFM_BONESIZE || t->mode==TFM_BONE_ENVELOPE)
 			allqueue(REDRAWBUTSEDIT, 0);
 		
@@ -2457,8 +2791,8 @@ void special_aftertrans_update(TransInfo *t)
 		
 		if(t->mode==TFM_TRANSLATION)
 			pose_grab_with_ik_clear(ob);
-		
-		/* automatic inserting of keys */
+			
+		/* automatic inserting of keys and unkeyed tagging - only if transform wasn't cancelled */
 		if(!cancelled) {
 			autokeyframe_pose_cb_func(ob, t->mode, targetless_ik);
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
@@ -2659,6 +2993,14 @@ void createTransData(TransInfo *t)
 			set_prop_dist(t, 1);
 			sort_trans_data_dist(t);
 		}
+	}
+	else if (t->spacetype == SPACE_ACTION) {
+		t->flag |= T_POINTS|T_2D_EDIT;
+		createTransActionData(t);
+	}
+	else if (t->spacetype == SPACE_NLA) {
+		t->flag |= T_POINTS|T_2D_EDIT;
+		createTransNLAData(t);
 	}
 	else if (G.obedit) {
 		t->ext = NULL;

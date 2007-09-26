@@ -796,7 +796,7 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 						if (icu1)
 						{
 							float curVal = position.x();
-							insert_vert_ipo(icu1, frameNumber, curVal);
+							insert_vert_icu(icu1, frameNumber, curVal, 0);
 #ifdef TEST_HANDLES_GAME2IPO
 							testhandles_ipocurve(icu1);
 #endif
@@ -805,7 +805,7 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 						if (icu1)
 						{
 							float curVal = position.y();
-							insert_vert_ipo(icu1, frameNumber, curVal);
+							insert_vert_icu(icu1, frameNumber, curVal, 0);
 #ifdef TEST_HANDLES_GAME2IPO
 
 							testhandles_ipocurve(icu1);
@@ -815,7 +815,7 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 						if (icu1)
 						{
 							float curVal = position.z();
-							insert_vert_ipo(icu1, frameNumber, curVal);
+							insert_vert_icu(icu1, frameNumber, curVal, 0);
 #ifdef TEST_HANDLES_GAME2IPO
 							testhandles_ipocurve(icu1);
 #endif
@@ -824,7 +824,7 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 						if (icu1)
 						{
 							float curVal = eulerAngles[0];
-							insert_vert_ipo(icu1, frameNumber, curVal);
+							insert_vert_icu(icu1, frameNumber, curVal, 0);
 #ifdef TEST_HANDLES_GAME2IPO
 
 							testhandles_ipocurve(icu1);
@@ -834,7 +834,7 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 						if (icu1)
 						{
 							float curVal = eulerAngles[1];
-							insert_vert_ipo(icu1, frameNumber, curVal);
+							insert_vert_icu(icu1, frameNumber, curVal, 0);
 #ifdef TEST_HANDLES_GAME2IPO
 
 							testhandles_ipocurve(icu1);
@@ -844,7 +844,7 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 						if (icu1)
 						{
 							float curVal = eulerAngles[2];
-							insert_vert_ipo(icu1, frameNumber, curVal);
+							insert_vert_icu(icu1, frameNumber, curVal, 0);
 #ifdef TEST_HANDLES_GAME2IPO
 							
 							testhandles_ipocurve(icu1);

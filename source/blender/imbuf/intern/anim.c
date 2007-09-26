@@ -89,6 +89,7 @@
 #include <ffmpeg/avformat.h>
 #include <ffmpeg/avcodec.h>
 #include <ffmpeg/rational.h>
+#include <ffmpeg/swscale.h>
 
 #if LIBAVFORMAT_VERSION_INT < (49 << 16)
 #define FFMPEG_OLD_FRAME_RATE 1
@@ -609,7 +610,17 @@ static int startffmpeg(struct anim * anim) {
 	} else {
 		anim->preseek = 0;
 	}
-
+	
+	anim->img_convert_ctx = sws_getContext(
+		anim->pCodecCtx->width,
+		anim->pCodecCtx->height,
+		anim->pCodecCtx->pix_fmt,
+		anim->pCodecCtx->width,
+		anim->pCodecCtx->height,
+		PIX_FMT_RGBA,
+		SWS_FAST_BILINEAR | SWS_PRINT_INFO,
+		NULL, NULL, NULL);
+				
 	return (0);
 }
 
@@ -703,34 +714,21 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 			} 
 
 			if(frameFinished && pos_found == 1) {
-				unsigned char * p =(unsigned char*) ibuf->rect;
-				unsigned char * e = p + anim->x * anim->y * 4;
+				int * dstStride = anim->pFrameRGB->linesize;
+				uint8_t** dst = anim->pFrameRGB->data;
+				int dstStride2[4]= { -dstStride[0], 0, 0, 0 };
+				uint8_t* dst2[4]= {
+					dst[0] + (anim->y - 1)*dstStride[0],
+					0, 0, 0 };
 
-				img_convert((AVPicture *)anim->pFrameRGB, 
-					    PIX_FMT_RGBA32, 
-					    (AVPicture*)anim->pFrame, 
-					    anim->pCodecCtx->pix_fmt, 
-					    anim->pCodecCtx->width, 
-					    anim->pCodecCtx->height);
-				IMB_flipy(ibuf);
-				if (G.order == L_ENDIAN) {
-					/* BGRA -> RGBA */
-					while (p != e) {
-						unsigned char a = p[0];
-						p[0] = p[2];
-						p[2] = a;
-						p += 4;
-					}
-				} else {
-					/* ARGB -> RGBA */
-					while (p != e) {
-						unsigned long a =
-							*(unsigned long*) p;
-						a = (a << 8) | p[0];
-						*(unsigned long*) p = a;
-						p += 4;
-					}
-				}
+				sws_scale(anim->img_convert_ctx,
+					  anim->pFrame->data,
+					  anim->pFrame->linesize,
+					  0,
+					  anim->pCodecCtx->height,
+					  dst2,
+					  dstStride2);
+
 				av_free_packet(&packet);
 				break;
 			}
@@ -750,6 +748,7 @@ static void free_anim_ffmpeg(struct anim * anim) {
 		av_close_input_file(anim->pFormatCtx);
 		av_free(anim->pFrameRGB);
 		av_free(anim->pFrame);
+		sws_freeContext(anim->img_convert_ctx);
 	}
 	anim->duration = 0;
 }

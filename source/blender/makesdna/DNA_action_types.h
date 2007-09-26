@@ -148,18 +148,27 @@ typedef struct SpaceAction {
 #define ACHAN_MOVED     0x80000000
 
 /* SpaceAction flag */
-#define SACTION_MOVING		1	/* during transform */
-#define SACTION_SLIDERS		2	/* show sliders (if relevant) - limited to shape keys for now */
-#define SACTION_DRAWTIME	4	/* draw time in seconds instead of time in frames */
+	/* during transform */
+#define SACTION_MOVING		1	
+	/* show sliders (if relevant) - limited to shape keys for now */
+#define SACTION_SLIDERS		2	
+	/* draw time in seconds instead of time in frames */
+#define SACTION_DRAWTIME	4	
 
-/* SpaceAction AutoSnap Settings */
-#define SACTSNAP_OFF	0	/* no auto-snap */
-#define SACTSNAP_STEP	1	/* snap to 1.0 frame/second intervals */
-#define SACTSNAP_FRAME	2	/* snap to actual frames/seconds (nla-action time) */
+/* SpaceAction AutoSnap Settings (also used by SpaceNLA) */
+	/* no auto-snap */
+#define SACTSNAP_OFF	0	
+	/* snap to 1.0 frame/second intervals */
+#define SACTSNAP_STEP	1
+	/* snap to actual frames/seconds (nla-action time) */
+#define SACTSNAP_FRAME	2	
 
 /* Pose->flag */
+	/* results in armature_rebuild_pose being called */
 #define POSE_RECALC		1
+	/* prevents any channel from getting overridden by anim from IPO */
 #define POSE_LOCKED		2
+	/* clears the POSE_LOCKED flag for the next time the pose is evaluated */
 #define POSE_DO_UNLOCK	4
 
 /* PoseChannel (transform) flags */

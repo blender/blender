@@ -2771,8 +2771,6 @@ static void p_chart_lscm_begin(PChart *chart, PBool live, PBool abf)
 #endif
 
 		if (abf) {
-			PBool p_chart_abf_solve(PChart *chart);
-
 			if (!p_chart_abf_solve(chart))
 				param_warning("ABF solving failed: falling back to LSCM.\n");
 		}

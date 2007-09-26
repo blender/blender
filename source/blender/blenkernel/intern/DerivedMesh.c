@@ -633,9 +633,10 @@ static void emDM_foreachMappedFaceCenter(DerivedMesh *dm, void (*func)(void *use
 }
 static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), void *userData, int useColors)
 {
+	GLubyte act_face_stipple[32*32/8] = DM_FACE_STIPPLE;
 	EditMeshDerivedMesh *emdm= (EditMeshDerivedMesh*) dm;
 	EditFace *efa;
-	int i;
+	int i, draw;
 
 	if (emdm->vertexCos) {
 		EditVert *eve;
@@ -645,7 +646,13 @@ static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 
 		for (i=0,efa= emdm->em->faces.first; efa; i++,efa= efa->next) {
 			int drawSmooth = (efa->flag & ME_SMOOTH);
-			if(!setDrawOptions || setDrawOptions(userData, i, &drawSmooth)) {
+			draw = setDrawOptions==NULL ? 1 : setDrawOptions(userData, i, &drawSmooth);
+			if(draw) {
+				if (draw==2) { /* enabled with stipple */
+		  			glEnable(GL_POLYGON_STIPPLE);
+		  			glPolygonStipple(act_face_stipple);
+				}
+				
 				glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
 
 				glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
@@ -668,12 +675,20 @@ static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 					}
 				}
 				glEnd();
+				
+				if (draw==2)
+					glDisable(GL_POLYGON_STIPPLE);
 			}
 		}
 	} else {
 		for (i=0,efa= emdm->em->faces.first; efa; i++,efa= efa->next) {
 			int drawSmooth = (efa->flag & ME_SMOOTH);
-			if(!setDrawOptions || setDrawOptions(userData, i, &drawSmooth)) {
+			draw = setDrawOptions==NULL ? 1 : setDrawOptions(userData, i, &drawSmooth);
+			if(draw) {
+				if (draw==2) { /* enabled with stipple */
+		  			glEnable(GL_POLYGON_STIPPLE);
+		  			glPolygonStipple(act_face_stipple);
+				}
 				glShadeModel(drawSmooth?GL_SMOOTH:GL_FLAT);
 
 				glBegin(efa->v4?GL_QUADS:GL_TRIANGLES);
@@ -696,6 +711,9 @@ static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *us
 					}
 				}
 				glEnd();
+				
+				if (draw==2)
+					glDisable(GL_POLYGON_STIPPLE);
 			}
 		}
 	}

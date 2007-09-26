@@ -38,7 +38,7 @@ struct EditFace;
 struct Mesh;
 struct MCol;
 
-struct MTFace *get_active_mtface(struct EditFace **efa, struct MCol **mcol);
+struct MTFace *get_active_mtface(struct EditFace **efa, struct MCol **mcol, short sloppy);
 void calculate_uv_map(unsigned short mapmode);
 void default_uv(float uv[][2], float size);
 void make_tfaces(struct Mesh *me);

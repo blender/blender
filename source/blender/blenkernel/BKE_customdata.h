@@ -185,6 +185,8 @@ int CustomData_get_layer_index(const struct CustomData *data, int type);
 int CustomData_get_named_layer_index(const struct CustomData *data, int type, char *name);
 int CustomData_get_active_layer_index(const struct CustomData *data, int type);
 int CustomData_get_render_layer_index(const struct CustomData *data, int type);
+int CustomData_get_active_layer(const struct CustomData *data, int type);
+int CustomData_get_render_layer(const struct CustomData *data, int type);
 
 /* copies the data from source to the data element at index in the first
  * layer of type

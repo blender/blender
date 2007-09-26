@@ -50,6 +50,7 @@
 #include "DNA_space_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_customdata_types.h" /* for UV layer menu */
 
 #include "BLI_blenlib.h"
 
@@ -62,6 +63,8 @@
 #include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_utildefines.h"
+#include "BLI_editVert.h" /* for UV layer menu */
+#include "BKE_customdata.h" /* ditto */
 
 #include "BIF_butspace.h"
 #include "BIF_drawimage.h"
@@ -105,6 +108,9 @@ void do_image_buttons(unsigned short event)
 	}
 	
 	switch(event) {
+	case B_SIMAPIN:
+		allqueue (REDRAWIMAGE, 0);
+		break;
 	case B_SIMAGEHOME:
 		image_home();
 		break;
@@ -132,31 +138,22 @@ void do_image_buttons(unsigned short event)
 			allqueue(REDRAWIMAGE, 0);
 		}
 		/* also when image is the same: assign! 0==no tileflag: */
-		image_changed(G.sima, 0);
+		image_changed(G.sima, (Image *)idtest);
 		BIF_undo_push("Assign image UV");
 
 		break;
-		
-	case B_SIMAGEDRAW:
-		if (EM_texFaceCheck()) {
-			make_repbind(G.sima->image);
-			image_changed(G.sima, 1);
-		}
-		/* XXX might be another event needed for this? */
-		if(G.sima->image)
-			if(ELEM(G.sima->image->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE))
-				if(G.sima->iuser.flag & IMA_ANIM_ALWAYS)
-					BKE_image_user_calc_imanr(&G.sima->iuser, G.scene->r.cfra, 0);
+	case B_SIMAGETILE:
+		image_set_tile(G.sima, 1);		/* 1: only tileflag */
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWIMAGE, 0);
 		break;
-		
-	case B_SIMAGEDRAW1:
-		image_changed(G.sima, 2);		/* 2: only tileflag */
+	case B_SIMA3DVIEWDRAW:
+		allqueue(REDRAWVIEW3D, 0);
+		break;
+	case B_SIMA_REDR_IMA_3D:
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWIMAGE, 0);
 		break;
-		
 	case B_SIMAGEPAINTTOOL:
 		if(G.sima->flag & SI_DRAWTOOL)
 			/* add new brush if none exists */
@@ -205,12 +202,8 @@ void do_image_buttons(unsigned short event)
 			BLI_strncpy(str, G.sima->image->name, sizeof(str));
 			ima= BKE_add_image_file(str);
 			if(ima) {
-				
-				G.sima->image= ima;
-				
 				BKE_image_signal(ima, &G.sima->iuser, IMA_SIGNAL_RELOAD);
-				image_changed(G.sima, 0);
-				
+				image_changed(G.sima, ima);
 			}
 			BIF_undo_push("Load image");
 			allqueue(REDRAWIMAGE, 0);
@@ -347,6 +340,16 @@ void do_image_buttons(unsigned short event)
 	}
 }
 
+static void do_image_buttons_set_uvlayer_callback(void *act, void *data)
+{
+	CustomData_set_layer_active(&G.editMesh->fdata, CD_MTFACE, *((int *)act));
+	
+	BIF_undo_push("Set Active UV Texture");
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWIMAGE, 0);
+}
+
 static void do_image_view_viewnavmenu(void *arg, int event)
 {
 	switch(event) {
@@ -422,18 +425,15 @@ static void do_image_viewmenu(void *arg, int event)
 	case 2: /* Maximize Window */
 		/* using event B_FULL */
 		break;
+	case 4: /* Realtime Panel... */
+		add_blockhandler(curarea, IMAGE_HANDLER_VIEW_PROPERTIES, UI_PNL_UNSTOW);
+		break;
 	case 5: /* Draw Shadow Mesh */
-		if(G.sima->flag & SI_DRAWSHADOW)
-			G.sima->flag &= ~SI_DRAWSHADOW;
-		else
-			G.sima->flag |= SI_DRAWSHADOW;
+		G.sima->flag ^= SI_DRAWSHADOW;
 		allqueue(REDRAWIMAGE, 0);
 		break;
 	case 6: /* Draw Faces */
-		if(G.f & G_DRAWFACES)
-			G.f &= ~G_DRAWFACES;
-		else
-			G.f |= G_DRAWFACES;
+		G.f ^= G_DRAWFACES;
 		allqueue(REDRAWIMAGE, 0);
 		break;
 	case 7: /* Properties  Panel */
@@ -458,6 +458,10 @@ static void do_image_viewmenu(void *arg, int event)
 	case 13: /* Realtime Panel... */
 		add_blockhandler(curarea, IMAGE_HANDLER_GAME_PROPERTIES, UI_PNL_UNSTOW);
 		break;
+	case 14: /* Draw active image UV's only*/
+		G.sima->flag ^= SI_LOCAL_UV;
+		allqueue(REDRAWIMAGE, 0);
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -471,7 +475,8 @@ static uiBlock *image_viewmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "image_viewmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_image_viewmenu, NULL);
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Image Properties...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "View Properties...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Image Properties...|N",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Real-time Properties...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 13, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Paint Tool...|C",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Curves Tool...",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 11, "");
@@ -485,6 +490,14 @@ static uiBlock *image_viewmenu(void *arg_unused)
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Draw Shadow Mesh|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
 
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	if(G.sima->flag & SI_LOCAL_UV) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "UV Local View|NumPad /",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 14, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "UV Local View|NumPad /", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 14, "");
+	if(!(G.sima->flag & SI_LOCAL_UV)) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "UV Global View|NumPad /",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 14, "");
+	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "UV Global View|NumPad /",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 14, "");
+	
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
 	uiDefIconTextBlockBut(block, image_view_viewnavmenu, NULL, ICON_RIGHTARROW_THIN, "View Navigation", 0, yco-=20, 120, 19, "");
 
 	if(G.sima->lock) {
@@ -536,26 +549,6 @@ static void do_image_selectmenu(void *arg, int event)
 	case 3: /* Linked UVs */
 		select_linked_tface_uv(2);
 		break;
-	case 4: /* Toggle Local UVs Stick to Vertex in Mesh */
-		if(G.sima->flag & SI_LOCALSTICKY)
-			G.sima->flag &= ~SI_LOCALSTICKY;
-		else {
-			G.sima->flag |= SI_LOCALSTICKY;
-			G.sima->flag &= ~SI_STICKYUVS;
-		}
-		allqueue(REDRAWIMAGE, 0);
-		break;  
-	case 5: /* Toggle UVs Stick to Vertex in Mesh */
-		if(G.sima->flag & SI_STICKYUVS) {
-			G.sima->flag &= ~SI_STICKYUVS;
-			G.sima->flag |= SI_LOCALSTICKY;
-		}
-		else {
-			G.sima->flag |= SI_STICKYUVS;
-			G.sima->flag &= ~SI_LOCALSTICKY;
-		}
-		allqueue(REDRAWIMAGE, 0);
-		break;  
 	case 6: /* Toggle Active Face Select */
 		if(G.sima->flag & SI_SELACTFACE)
 			G.sima->flag &= ~SI_SELACTFACE;
@@ -576,20 +569,15 @@ static uiBlock *image_selectmenu(void *arg_unused)
 
 	block= uiNewBlock(&curarea->uiblocks, "image_selectmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_image_selectmenu, NULL);
-
-	if(G.sima->flag & SI_SELACTFACE) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Active Face Select|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
-	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Active Face Select|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
-
-	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");	
-
-	if(G.sima->flag & SI_LOCALSTICKY) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Stick Local UVs to Mesh Vertex|Shift C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
-	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Stick Local UVs to Mesh Vertex|Shift C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
-
-	if(G.sima->flag & SI_STICKYUVS) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Stick UVs to Mesh Vertex|Ctrl C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
-	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Stick UVs to Mesh Vertex|Ctrl C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 5, "");
-
-	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-
+	
+	
+	if ((G.sima->flag & SI_SYNC_UVSEL)==0 || (G.sima->flag & SI_SYNC_UVSEL && (G.scene->selectmode != SCE_SELECT_FACE))) {
+		if(G.sima->flag & SI_SELACTFACE) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Active Face Select|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
+		else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Active Face Select|C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 6, "");
+	
+		uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	}
+	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Border Select|B", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Border Select Pinned|Shift B", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
 
@@ -970,9 +958,9 @@ static void do_image_uvsmenu(void *arg, int event)
 {
 
 	switch(event) {
-	case 0: /* UV Transform Properties Panel... */
-		add_blockhandler(curarea, IMAGE_HANDLER_TRANSFORM_PROPERTIES, UI_PNL_UNSTOW);
-		break;
+//	case 0: /* UV Transform Properties Panel... */
+//		add_blockhandler(curarea, IMAGE_HANDLER_TRANSFORM_PROPERTIES, UI_PNL_UNSTOW);
+//		break;
 	case 1: /* UVs Constrained Rectangular */
 		if(G.sima->flag & SI_BE_SQUARE) G.sima->flag &= ~SI_BE_SQUARE;
 		else G.sima->flag |= SI_BE_SQUARE;
@@ -1026,7 +1014,7 @@ static uiBlock *image_uvsmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "image_uvsmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_image_uvsmenu, NULL);
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties...|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
+	//uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Transform Properties...|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	if(G.sima->flag & SI_PIXELSNAP) uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Snap to Pixels|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
 	else uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Snap to Pixels|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
@@ -1088,18 +1076,6 @@ static uiBlock *image_uvsmenu(void *arg_unused)
 	return block;
 }
 
-static char *around_pup(void)
-{
-	static char string[512];
-	char *str = string;
-
-	str += sprintf(str, "%s", "Pivot: %t"); 
-	str += sprintf(str, "%s", "|Bounding Box Center %x0"); 
-	str += sprintf(str, "%s", "|Median Point %x3");
-	str += sprintf(str, "%s", "|2D Cursor %x1");
-	return string;
-}
-
 void image_buttons(void)
 {
 	Image *ima;
@@ -1107,8 +1083,15 @@ void image_buttons(void)
 	uiBlock *block;
 	short xco, xmax;
 	char naam[256], *menuname;
+	char is_render; /* true if the image is a render or composite */
+	
+	int allow_pin= B_SIMAPIN;
+	
 	/* This should not be a static var */
 	static int headerbuttons_packdummy;
+	
+	
+	is_render = ((G.sima->image!=NULL) && ((G.sima->image->type == IMA_TYPE_R_RESULT) || (G.sima->image->type == IMA_TYPE_COMPOSITE)));
 
 	headerbuttons_packdummy = 0;
 		
@@ -1173,13 +1156,85 @@ void image_buttons(void)
 	/* other buttons: */
 	uiBlockSetEmboss(block, UI_EMBOSS);
 
-	xco= std_libbuttons(block, xco, 0, 0, NULL, B_SIMABROWSE, ID_IM, 0, (ID *)ima, 0, &(G.sima->imanr), 0, 0, B_IMAGEDELETE, 0, 0);
+	if (is_render)
+		allow_pin = 0;
+	
+	xco= 8 + std_libbuttons(block, xco, 0, allow_pin, &G.sima->pin, B_SIMABROWSE, ID_IM, 0, (ID *)ima, 0, &(G.sima->imanr), 0, 0, B_IMAGEDELETE, 0, 0);
+	
+	if( ima && !ELEM3(ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE, IMA_SRC_VIEWER) && ima->ok) {
 
-	/* UV EditMode buttons */
-	if (EM_texFaceCheck() && (G.sima->flag & SI_DRAWTOOL)==0) {
-		xco+=10;
-		uiDefIconTextButS(block, ICONTEXTROW,B_AROUND, ICON_ROTATE, around_pup(), xco,0,XIC+10,YIC, &(G.v2d->around), 0, 3.0, 0, 0, "Rotation/Scaling Pivot (Hotkeys: Comma, Shift Comma, Period) ");
-		xco+= XIC+15;
+		if (ima->packedfile) {
+			headerbuttons_packdummy = 1;
+		}
+		if (ima->packedfile && ibuf && (ibuf->userflags & IB_BITMAPDIRTY))
+			uiDefIconButBitI(block, TOG, 1, B_SIMA_REPACK, ICON_UGLYPACKAGE,	xco,0,XIC,YIC, &headerbuttons_packdummy, 0, 0, 0, 0, "Re-Pack this image as PNG");
+		else
+			uiDefIconButBitI(block, TOG, 1, B_SIMAPACKIMA, ICON_PACKAGE,	xco,0,XIC,YIC, &headerbuttons_packdummy, 0, 0, 0, 0, "Pack/Unpack this image");
+			
+		xco+= XIC+8;
+	}
+	
+	/* UV EditMode buttons, not painting or rencering or compositing */
+	if ( EM_texFaceCheck() && (G.sima->flag & SI_DRAWTOOL)==0 && !is_render) {
+		uiBut *ubut;
+		int layercount;
+		
+		uiDefIconTextButS(block, ICONTEXTROW, B_NOP, ICON_ROTATE,
+				"Pivot: %t|Bounding Box Center %x0|Median Point %x3|2D Cursor %x1",
+				xco,0,XIC+10,YIC, &(G.v2d->around), 0, 3.0, 0, 0,
+				"Rotation/Scaling Pivot (Hotkeys: Comma, Shift Comma, Period)");
+		xco+= XIC + 18;
+		
+		uiBlockBeginAlign(block);
+		uiDefIconButBitI(block, TOGN, SI_SYNC_UVSEL, B_REDR, ICON_NO_GO_LEFT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Mesh independant selection");
+		xco+= XIC;
+		if ((G.sima->flag & SI_SYNC_UVSEL)==0) {
+			ubut = uiDefIconTextButC(block, ICONTEXTROW, B_REDR, ICON_STICKY_UVS_LOC,
+					"Sticky UV Selection: %t|Disable%x1|Shared Location%x0|Shared Vertex%x2",
+					xco,0,XIC+10,YIC, &(G.sima->sticky), 0, 3.0, 0, 0,
+					"Sticky UV Selection (Hotkeys: Shift C, Alt C, Ctrl C)");
+			xco+= XIC + 16;
+		} else {
+			xco+= 6;
+		}
+		uiBlockEndAlign(block);
+		
+		/* Snap copied right out of view3d header */
+			uiBlockBeginAlign(block);
+
+			if (G.scene->snap_flag & SCE_SNAP) {
+				uiDefIconButBitS(block, TOG, SCE_SNAP, B_REDR, ICON_SNAP_GEO,xco,0,XIC,YIC, &G.scene->snap_flag, 0, 0, 0, 0, "Use Snap or Grid (Shift Tab)");	
+				xco+= XIC;
+				uiDefButS(block, MENU, B_NOP, "Mode%t|Closest%x0|Center%x1|Median%x2",xco,0,70,YIC, &G.scene->snap_target, 0, 0, 0, 0, "Snap Target Mode");
+				xco+= 70;
+			} else {
+				uiDefIconButBitS(block, TOG, SCE_SNAP, B_REDR, ICON_SNAP_GEAR,xco,0,XIC,YIC, &G.scene->snap_flag, 0, 0, 0, 0, "Snap while Ctrl is held during transform (Shift Tab)");	
+				xco+= XIC;
+			}
+
+			uiBlockEndAlign(block);
+			xco+= 10;
+		/* end snap */
+			
+		/* Layer Menu */
+		layercount = CustomData_number_of_layers(&G.editMesh->fdata, CD_MTFACE); 
+		if (layercount>1 && layercount < 12) { /* could allow any number but limit of 11 means no malloc needed */
+			static int act;
+			char str_menu[384], *str_pt; /*384 allows for 11 layers */
+			
+			
+			act = CustomData_get_active_layer(&G.editMesh->fdata, CD_MTFACE);
+			
+			/*str_pt = (char *)MEM_mallocN(layercount*40 , "uvmenu"); str[0]='\0';*/
+			str_pt = str_menu;
+			str_pt[0]='\0';
+			mesh_layers_menu_concat(&G.editMesh->fdata, CD_MTFACE, str_pt);
+			ubut = uiDefButI(block, MENU, B_NOP, str_menu ,xco,0,85,YIC, &act, 0, 0, 0, 0, "Active UV Layer for editing");
+			uiButSetFunc(ubut, do_image_buttons_set_uvlayer_callback, &act, NULL);
+			
+			/*MEM_freeN(str);*/
+			xco+= 90;
+		}
 	}
 	
 	if (ima) {
@@ -1193,20 +1248,8 @@ void image_buttons(void)
 			uiBlockEndAlign(block);
 			xco+= 166;
 		}
-		if( !ELEM3(ima->source, IMA_SRC_SEQUENCE, IMA_SRC_MOVIE, IMA_SRC_VIEWER) && ima->ok) {
-
-			if (ima->packedfile) {
-				headerbuttons_packdummy = 1;
-			}
-			if (ima->packedfile && ibuf && (ibuf->userflags & IB_BITMAPDIRTY))
-				uiDefIconButBitI(block, TOG, 1, B_SIMA_REPACK, ICON_UGLYPACKAGE,	xco,0,XIC,YIC, &headerbuttons_packdummy, 0, 0, 0, 0, "Re-Pack this image as PNG");
-			else
-				uiDefIconButBitI(block, TOG, 1, B_SIMAPACKIMA, ICON_PACKAGE,	xco,0,XIC,YIC, &headerbuttons_packdummy, 0, 0, 0, 0, "Pack/Unpack this image");
-				
-			xco+= XIC+8;
-		}
-		
 		uiDefIconButBitI(block, TOG, SI_DRAWTOOL, B_SIMAGEPAINTTOOL, ICON_TPAINT_HLT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Enables painting textures on the image with left mouse button");
+		
 		xco+= XIC+8;
 
 		uiBlockBeginAlign(block);
@@ -1221,7 +1264,6 @@ void image_buttons(void)
 				uiDefIconButBitI(block, TOG, SI_SHOW_ZBUF, B_SIMA_SHOW_ZBUF, ICON_SOLID, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Draws zbuffer values");
 				xco+= XIC;
 			}
-			else G.sima->flag &= ~SI_SHOW_ZBUF;	/* no confusing display for non-zbuf images */
 		}		
 		xco+= 8;
 		
@@ -1237,10 +1279,10 @@ void image_buttons(void)
 		uiBlockEndAlign(block);
 		xco+= 8;
 	}
-
+	
 	/* draw LOCK */
 	uiDefIconButS(block, ICONTOG, 0, ICON_UNLOCKED,	xco,0,XIC,YIC, &(G.sima->lock), 0, 0, 0, 0, "Updates other affected window spaces automatically to reflect changes in real time");
-	
+
 	/* Always do this last */
 	curarea->headbutlen= xco+2*XIC;
 	
