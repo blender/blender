@@ -2599,7 +2599,7 @@ static void evaluate_constraint (bConstraint *constraint, float ownermat[][4], f
 				
 				/* find best position on curve */
 				/* 1. determine which axis to sample on? */
-				if (data->flag==CLAMPTO_AUTO) {
+				if (data->flag == CLAMPTO_AUTO) {
 					float size[3];
 					VecSubf(size, curveMax, curveMin);
 					
@@ -2608,23 +2608,60 @@ static void evaluate_constraint (bConstraint *constraint, float ownermat[][4], f
 					 * frequently used.
 					 */
 					if ((size[2]>size[0]) && (size[2]>size[1]))
-						clamp_axis= CLAMPTO_Z;
+						clamp_axis= CLAMPTO_Z - 1;
 					else if ((size[1]>size[0]) && (size[1]>size[2]))
-						clamp_axis= CLAMPTO_Y;
+						clamp_axis= CLAMPTO_Y - 1;
 					else
-						clamp_axis = CLAMPTO_X;
+						clamp_axis = CLAMPTO_X - 1;
 				}
 				else 
-					clamp_axis= data->flag;
+					clamp_axis= data->flag - 1;
 					
-				/* 2. determine position relative to curve on a 0-1 scale */
-				if (clamp_axis > 0) clamp_axis--;
-				if (ownLoc[clamp_axis] <= curveMin[clamp_axis])
-					curvetime = 0.0;
-				else if (ownLoc[clamp_axis] >= curveMax[clamp_axis])
-					curvetime = 1.0;
-				else
-					curvetime = (ownLoc[clamp_axis] - curveMin[clamp_axis]) / (curveMax[clamp_axis] - curveMin[clamp_axis]);
+				/* 2. determine position relative to curve on a 0-1 scale based on bounding box */
+				if (data->flag2 & CLAMPTO_CYCLIC) {
+					/* cyclic, so offset within relative bounding box is used */
+					float len= (curveMax[clamp_axis] - curveMin[clamp_axis]);
+					float offset;
+					
+					/* find bounding-box range where target is located */
+					if (ownLoc[clamp_axis] < curveMin[clamp_axis]) {
+						/* bounding-box range is before */
+						offset= curveMin[clamp_axis];
+						
+						while (ownLoc[clamp_axis] < offset)
+							offset -= len;
+						
+						/* now, we calculate as per normal, except using offset instead of curveMin[clamp_axis] */
+						curvetime = (ownLoc[clamp_axis] - offset) / (len);
+					}
+					else if (ownLoc[clamp_axis] > curveMax[clamp_axis]) {
+						/* bounding-box range is after */
+						offset= curveMax[clamp_axis];
+						
+						while (ownLoc[clamp_axis] > offset) {
+							if ((offset + len) > ownLoc[clamp_axis])
+								break;
+							else
+								offset += len;
+						}
+						
+						/* now, we calculate as per normal, except using offset instead of curveMax[clamp_axis] */
+						curvetime = (ownLoc[clamp_axis] - offset) / (len);
+					}
+					else {
+						/* as the location falls within bounds, just calculate */
+						curvetime = (ownLoc[clamp_axis] - curveMin[clamp_axis]) / (len);
+					}
+				}
+				else {
+					/* no cyclic, so position is clamped to within the bounding box */
+					if (ownLoc[clamp_axis] <= curveMin[clamp_axis])
+						curvetime = 0.0;
+					else if (ownLoc[clamp_axis] >= curveMax[clamp_axis])
+						curvetime = 1.0;
+					else
+						curvetime = (ownLoc[clamp_axis] - curveMin[clamp_axis]) / (curveMax[clamp_axis] - curveMin[clamp_axis]);
+				}
 				
 				/* 3. position on curve */
 				if(where_on_path(data->tar, curvetime, vec, dir) ) {

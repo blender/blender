@@ -125,6 +125,8 @@ enum constraint_constants {
 	EXPP_CONSTR_LIMYROT = LIMIT_YROT,
 	EXPP_CONSTR_LIMZROT = LIMIT_ZROT,
 	
+	EXPP_CONSTR_CLAMPCYCLIC,
+	
 	EXPP_CONSTR_XMIN,
 	EXPP_CONSTR_XMAX,
 	EXPP_CONSTR_YMIN,
@@ -887,6 +889,8 @@ static PyObject *clampto_getter( BPy_Constraint * self, int type )
 		return Object_CreatePyObject( con->tar );
 	case EXPP_CONSTR_CLAMP:
 		return PyInt_FromLong( (long)con->flag );
+	case EXPP_CONSTR_CLAMPCYCLIC:
+		return PyBool_FromLong( (long)(con->flag2 & CLAMPTO_CYCLIC) );
 	default:
 		return EXPP_ReturnPyObjError( PyExc_KeyError, "key not found" );
 	}
@@ -908,6 +912,8 @@ static int clampto_setter( BPy_Constraint *self, int type, PyObject *value )
 	case EXPP_CONSTR_CLAMP:
 		return EXPP_setIValueRange( value, &con->flag,
 				CLAMPTO_AUTO, CLAMPTO_Z, 'i' );
+	case EXPP_CONSTR_CLAMPCYCLIC:
+		return EXPP_setBitfield( value, &con->flag2, CLAMPTO_CYCLIC, 'i' );
 	default:
 		return EXPP_ReturnIntError( PyExc_KeyError, "key not found" );
 	}
@@ -2418,6 +2424,8 @@ static PyObject *M_Constraint_SettingsDict( void )
 				PyInt_FromLong( CLAMPTO_Y ) );
 		PyConstant_Insert( d, "CLAMPZ",
 				PyInt_FromLong( CLAMPTO_Z ) );
+		PyConstant_Insert( d, "CLAMPCYCLIC",
+				PyInt_FromLong( EXPP_CONSTR_CLAMPCYCLIC ));
 
 		PyConstant_Insert( d, "TARGET",
 				PyInt_FromLong( EXPP_CONSTR_TARGET ) );
