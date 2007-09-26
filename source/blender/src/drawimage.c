@@ -600,7 +600,7 @@ void draw_uvs_sima(void)
 			/*this is a shortcut to do the same as above but a faster for drawing */
 			if ((tface=(MTFace *)efa->tmp.p)) {
 			
-				cpack(0x0);
+				cpack(0x111111);
 				glBegin(GL_LINE_LOOP);
 					glVertex2fv(tface->uv[0]);
 					glVertex2fv(tface->uv[1]);
@@ -609,7 +609,7 @@ void draw_uvs_sima(void)
 				glEnd();
 			
 				setlinestyle(2);
-				cpack(0xFFFFFF);
+				cpack(0x909090);
 				glBegin(GL_LINE_STRIP);
 					glVertex2fv(tface->uv[0]);
 					glVertex2fv(tface->uv[1]);
