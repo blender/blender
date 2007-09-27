@@ -5111,9 +5111,10 @@ void mesh_set_face_flags(short mode)
 	short m_tex=0, m_tiles=0, m_shared=0, m_light=0, m_invis=0, m_collision=0, m_twoside=0, m_obcolor=0; 
 	short flag = 0, change = 0;
 	
-	if(G.obedit==0) return;
-	
-	if(G.obedit->type != OB_MESH) return;
+	if (!EM_texFaceCheck()) {
+		error("not a mesh with uv/image layers");
+		return;
+	}
 	
 	add_numbut(0, TOG|SHO, "Texture", 0, 0, &m_tex, NULL);
 	add_numbut(1, TOG|SHO, "Tiles", 0, 0, &m_tiles, NULL);
