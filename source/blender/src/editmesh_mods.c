@@ -3894,7 +3894,7 @@ void vertexsmooth(void)
 	eve= em->verts.first;
 	while(eve) {
 		if(eve->f & SELECT) {
-			eve->tmp.fp = adr;
+			eve->tmp.p = (void*)adr;
 			eve->f1= 0;
 			eve->f2= 0;
 			adr+= 3;
@@ -3942,11 +3942,11 @@ void vertexsmooth(void)
 			
 			if((eed->v1->f & SELECT) && eed->v1->f1<255) {
 				eed->v1->f1++;
-				VecAddf(eed->v1->tmp.fp, eed->v1->tmp.fp, fvec);
+				VecAddf(eed->v1->tmp.p, eed->v1->tmp.p, fvec);
 			}
 			if((eed->v2->f & SELECT) && eed->v2->f1<255) {
 				eed->v2->f1++;
-				VecAddf(eed->v2->tmp.fp, eed->v2->tmp.fp, fvec);
+				VecAddf(eed->v2->tmp.p, eed->v2->tmp.p, fvec);
 			}
 		}
 		eed= eed->next;
@@ -3956,7 +3956,7 @@ void vertexsmooth(void)
 	while(eve) {
 		if(eve->f & SELECT) {
 			if(eve->f1) {
-				adr = eve->tmp.fp;
+				adr = eve->tmp.p;
 				fac= 0.5/(float)eve->f1;
 				
 				eve->co[0]= 0.5*eve->co[0]+fac*adr[0];
@@ -3976,7 +3976,7 @@ void vertexsmooth(void)
 					}
 				}
 			}
-			eve->tmp.fp= 0;
+			eve->tmp.p= NULL;
 		}
 		eve= eve->next;
 	}
