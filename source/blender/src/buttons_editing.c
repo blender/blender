@@ -1856,11 +1856,11 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 
 			uiBlockBeginAlign(block);
 			if(wmd->speed >= 0)
-				uiDefButF(block, NUM, B_MODIFIER_RECALC, "Time sta:",	lx,(cy-=19),buttonWidth,19, &wmd->timeoffs, -1000.0, 1000.0, 100, 0, "Specify starting frame of the wave");
+				uiDefButF(block, NUM, B_MODIFIER_RECALC, "Time sta:",	lx,(cy-=19),buttonWidth,19, &wmd->timeoffs, -MAXFRAMEF, MAXFRAMEF, 100, 0, "Specify starting frame of the wave");
 			else
-				uiDefButF(block, NUM, B_MODIFIER_RECALC, "Time end:",	lx,(cy-=19),buttonWidth,19, &wmd->timeoffs, -1000.0, 1000.0, 100, 0, "Specify ending frame of the wave");
-			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Lifetime:",	lx,(cy-=19),buttonWidth,19, &wmd->lifetime,  -1000.0, 1000.0, 100, 0, "Specify the lifespan of the wave");
-			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Damptime:",	lx,(cy-=19),buttonWidth,19, &wmd->damp,  -1000.0, 1000.0, 100, 0, "Specify the dampingtime of the wave");
+				uiDefButF(block, NUM, B_MODIFIER_RECALC, "Time end:",	lx,(cy-=19),buttonWidth,19, &wmd->timeoffs, -MAXFRAMEF, MAXFRAMEF, 100, 0, "Specify ending frame of the wave");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Lifetime:",	lx,(cy-=19),buttonWidth,19, &wmd->lifetime,  -MAXFRAMEF, MAXFRAMEF, 100, 0, "Specify the lifespan of the wave");
+			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Damptime:",	lx,(cy-=19),buttonWidth,19, &wmd->damp,  -MAXFRAMEF, MAXFRAMEF, 100, 0, "Specify the dampingtime of the wave");
 			cy -= 9;
 			uiBlockBeginAlign(block);
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Sta x:",		lx,(cy-=19),113,19, &wmd->startx, -100.0, 100.0, 100, 0, "Starting position for the X axis");
