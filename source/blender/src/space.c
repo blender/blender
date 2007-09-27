@@ -4817,7 +4817,6 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else if((G.qual==0))
 					borderselect_sima(UV_SELECT_ALL);
 				break;
-				
 			case CKEY:
 				if (G.sima->flag & SI_SYNC_UVSEL) {
 					/* operate on the editmesh */
@@ -4877,6 +4876,7 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					pin_tface_uv(0);
 				else
 					pin_tface_uv(1);
+				break;
 			case GKEY:
 				if((G.qual==0) && is_uv_tface_editing_allowed()) {
 					initTransform(TFM_TRANSLATION, CTX_NONE);
@@ -4925,7 +4925,6 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				scrarea_queue_headredraw(curarea);
 				scrarea_queue_winredraw(curarea);
 				break;
-				
 			case PERIODKEY:
 				if(G.qual==LR_CTRLKEY) {
 					G.v2d->around= V3D_LOCAL;
@@ -4947,7 +4946,6 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					G.scene->prop_mode = (G.scene->prop_mode+1)%7;
 					allqueue(REDRAWHEADERS, 0);
 				}
-				
 				break;
 			case PADSLASHKEY:
 				if(G.qual==0)

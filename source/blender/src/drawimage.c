@@ -624,7 +624,7 @@ void draw_uvs_sima(void)
 		break;
 	case SI_UVDT_BLACK: /* black/white */
 	case SI_UVDT_WHITE: 
-		cpack((G.sima->dt_uv==SI_UVDT_WHITE) ? 0x0 : 0xFFFFFF);
+		cpack((G.sima->dt_uv==SI_UVDT_WHITE) ? 0xFFFFFF : 0x0);
 		for (efa= em->faces.first; efa; efa= efa->next) {
 //			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 //			if (SIMA_FACEDRAW_CHECK(efa, tface)) {
@@ -1165,8 +1165,8 @@ static void image_panel_view_properties(short cntrl)	// IMAGE_HANDLER_VIEW_PROPE
 		uiDefBut(block, LABEL, B_NOP, "Draw Type:",		10, 20,120,19, 0, 0, 0, 0, 0, "");
 		uiBlockBeginAlign(block);
 		uiDefButC(block,  ROW, B_REDR, "Dash",			10, 0,58,19, &G.sima->dt_uv, 0.0, SI_UVDT_DASH, 0, 0, "Dashed Wire UV drawtype");
-		uiDefButC(block,  ROW, B_REDR, "Black",			68, 0,58,19, &G.sima->dt_uv, 0.0, SI_UVDT_WHITE, 0, 0, "Black Wire UV drawtype");
-		uiDefButC(block,  ROW, B_REDR, "White",			126,0,58,19, &G.sima->dt_uv, 0.0, SI_UVDT_BLACK, 0, 0, "White Wire UV drawtype");
+		uiDefButC(block,  ROW, B_REDR, "Black",			68, 0,58,19, &G.sima->dt_uv, 0.0, SI_UVDT_BLACK, 0, 0, "Black Wire UV drawtype");
+		uiDefButC(block,  ROW, B_REDR, "White",			126,0,58,19, &G.sima->dt_uv, 0.0, SI_UVDT_WHITE, 0, 0, "White Wire UV drawtype");
 		uiDefButC(block,  ROW, B_REDR, "Outline",		184,0,58,19, &G.sima->dt_uv, 0.0, SI_UVDT_OUTLINE, 0, 0, "Outline Wire UV drawtype");
 		uiBlockBeginAlign(block);
 		uiDefButBitI(block, TOG, SI_SMOOTH_UV, B_REDR, "Smooth",	250,0,60,19,  &G.sima->flag, 0, 0, 0, 0, "Display smooth lines in the UV view");

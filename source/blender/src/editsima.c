@@ -1027,7 +1027,7 @@ void snap_menu_sima(void)
 	short event;
 	if( is_uv_tface_editing_allowed()==0 || !G.v2d) return; /* !G.v2d should never happen */
 	
-	event = pupmenu("Snap %t|Selection -> Pixels%x1|Selection -> Cursor%x2|Selection -> Adjacent Unselected%x3|Cursor-> Pixel%x3|Cursor-> Selection%x4");
+	event = pupmenu("Snap %t|Selection -> Pixels%x1|Selection -> Cursor%x2|Selection -> Adjacent Unselected%x3|Cursor -> Pixel%x4|Cursor -> Selection%x5");
 	switch (event) {
 		case 1:
 		    if (snap_uv_sel_to_pixels()) {
