@@ -749,11 +749,11 @@ static int wave_setter( BPy_Modifier *self, int type, PyObject *value )
 	case EXPP_MOD_SPEED:
 		return EXPP_setFloatClamped( value, &md->speed, -2.0, 2.0 );
 	case EXPP_MOD_DAMP:
-		return EXPP_setFloatClamped( value, &md->damp, -1000.0, 1000.0 );
+		return EXPP_setFloatClamped( value, &md->damp, -MAXFRAMEF, MAXFRAMEF );
 	case EXPP_MOD_LIFETIME:
-		return EXPP_setFloatClamped( value, &md->lifetime, -1000.0, 1000.0 );
+		return EXPP_setFloatClamped( value, &md->lifetime, -MAXFRAMEF, MAXFRAMEF );
 	case EXPP_MOD_TIMEOFFS:
-		return EXPP_setFloatClamped( value, &md->timeoffs, -1000.0, 1000.0 );
+		return EXPP_setFloatClamped( value, &md->timeoffs, -MAXFRAMEF, MAXFRAMEF );
 	case EXPP_MOD_FLAG:
 		return EXPP_setIValueRange( value, &md->flag, 0, 
 				MOD_WAVE_X | MOD_WAVE_Y | MOD_WAVE_CYCL, 'h' );
