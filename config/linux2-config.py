@@ -115,11 +115,13 @@ BF_ICONV_LIB = 'iconv'
 BF_ICONV_LIBPATH = '${BF_ICONV}/lib'
 
 # enable ffmpeg  support
-WITH_BF_FFMPEG = 'false'  # -DWITH_FFMPEG
-BF_FFMPEG = '/usr'
+WITH_BF_FFMPEG = 'true'  # -DWITH_FFMPEG
+BF_FFMPEG = '#extern/ffmpeg'
 BF_FFMPEG_INC = '${BF_FFMPEG}/include'
 BF_FFMPEG_LIBPATH='${BF_FFMPEG}/lib'
-BF_FFMPEG_LIB = 'avformat avcodec swscale avutil'
+BF_FFMPEG_LIB = ''
+# Uncomment the following line to use external ffmpeg
+# BF_FFMPEG_LIB = 'avformat avcodec swscale avutil'
 
 # Mesa Libs should go here if your using them as well....
 WITH_BF_STATICOPENGL = 'false'
