@@ -1261,7 +1261,7 @@ void calculateWeightedVertexNormal(ClothModifierData *clmd, MFace *mfaces, float
 		}
 	}
 }
-float calculateVertexWindForce(int index, float wind[3], float vertexnormal[3])  
+float calculateVertexWindForce(float wind[3], float vertexnormal[3])  
 {
 	return fabs(INPR(wind, vertexnormal) * 0.5f);
 }
@@ -1328,21 +1328,25 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 	/* handle external forces like wind */
 	if(effectors)
 	{
-		float wind[3] = {0.0f,1.0f,0.0f};
+		float speed[3] = {0.0f, 0.0f,0.0f};
 		float force[3]= {0.0f, 0.0f, 0.0f};
 		
 		#pragma omp parallel for private (i) shared(lF)
 		for(i = 0; i < cloth->numverts; i++)
 		{
 			float vertexnormal[3]={0,0,0};
+			float fieldfactor = 1000.0f, windfactor  = 250.0f; // from sb
+			
+			pdDoEffectors(effectors, lX[i], force, speed, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);		
+			
+			// TODO apply forcefields here
+			VECADDS(lF[i], lF[i], force, fieldfactor*0.01f);
 
-			pdDoEffectors(effectors, lX[i], force, wind, (float)G.scene->r.cfra, 0.0f, PE_WIND_AS_SPEED);		
-
-			VECCOPY(wind_normalized, wind);
+			VECCOPY(wind_normalized, speed);
 			Normalize(wind_normalized);
-
+			
 			calculateWeightedVertexNormal(clmd, mfaces, vertexnormal, i, lX);
-			VECADDS(lF[i], lF[i], wind_normalized, calculateVertexWindForce(i, wind, vertexnormal));
+			VECADDS(lF[i], lF[i], wind_normalized, -calculateVertexWindForce(speed, vertexnormal));
 		}
 	}
 	
