@@ -149,6 +149,8 @@ public:
 	int applyLights(int objectlayer);
 
 	bool RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_point, MT_Vector3& hit_normal, void * const data);
+
+	virtual void MotionBlur(RAS_IRasterizer* rasterizer);
 protected:
 	/** 
 	 * Copied from KX_BlenderGL.cpp in KX_blenderhook
@@ -172,4 +174,5 @@ protected:
 };
 
 #endif  // __GPC_RENDERTOOLS_H
+
 

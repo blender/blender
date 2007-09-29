@@ -966,6 +966,9 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 	scene->CalculateVisibleMeshes(m_rasterizer,cam);
 
 	scene->RenderBuckets(camtrans, m_rasterizer, m_rendertools);
+
+	m_rendertools->MotionBlur(m_rasterizer);
+
 }
 
 
@@ -1462,4 +1465,5 @@ void KX_KetsjiEngine::GetOverrideFrameColor(float& r, float& g, float& b) const
 	g = m_overrideFrameColorG;
 	b = m_overrideFrameColorB;
 }
+
 

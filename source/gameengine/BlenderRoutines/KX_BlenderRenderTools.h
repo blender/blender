@@ -100,7 +100,10 @@ public:
 									void* tface);
 	
 	bool RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_point, MT_Vector3& hit_normal, void * const data);
+
+	virtual void MotionBlur(RAS_IRasterizer* rasterizer);
 };
 
 #endif //__KX_BLENDERRENDERTOOLS
+
 
