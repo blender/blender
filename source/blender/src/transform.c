@@ -267,14 +267,24 @@ void convertViewVec(TransInfo *t, float *vec, short dx, short dy)
 	}
 	else if(t->spacetype==SPACE_IMAGE) {
 		float divx, divy, aspx, aspy;
-
+		
 		transform_aspect_ratio_tface_uv(&aspx, &aspy);
-
+		
 		divx= G.v2d->mask.xmax-G.v2d->mask.xmin;
 		divy= G.v2d->mask.ymax-G.v2d->mask.ymin;
-
+		
 		vec[0]= aspx*(G.v2d->cur.xmax-G.v2d->cur.xmin)*(dx)/divx;
 		vec[1]= aspy*(G.v2d->cur.ymax-G.v2d->cur.ymin)*(dy)/divy;
+		vec[2]= 0.0f;
+	}
+	else if(t->spacetype==SPACE_IPO) {
+		float divx, divy;
+		
+		divx= G.v2d->mask.xmax-G.v2d->mask.xmin;
+		divy= G.v2d->mask.ymax-G.v2d->mask.ymin;
+		
+		vec[0]= (G.v2d->cur.xmax-G.v2d->cur.xmin)*(dx) / (divx);
+		vec[1]= (G.v2d->cur.ymax-G.v2d->cur.ymin)*(dy) / (divy);
 		vec[2]= 0.0f;
 	}
 }
@@ -638,14 +648,19 @@ static void transformEvent(unsigned short event, short val) {
 		case XKEY:
 			if ((Trans.flag & T_NO_CONSTRAINT)==0) {
 				if (cmode == 'X') {
-					if (Trans.con.mode & CON_USER) {
+					if (Trans.flag & T_2D_EDIT) {
 						stopConstraint(&Trans);
 					}
 					else {
-						if (G.qual == 0)
-							setUserConstraint(&Trans, (CON_AXIS0), "along %s X");
-						else if ((G.qual == LR_SHIFTKEY) && ((Trans.flag & T_2D_EDIT)==0))
-							setUserConstraint(&Trans, (CON_AXIS1|CON_AXIS2), "locking %s X");
+						if (Trans.con.mode & CON_USER) {
+							stopConstraint(&Trans);
+						}
+						else {
+							if (G.qual == 0)
+								setUserConstraint(&Trans, (CON_AXIS0), "along %s X");
+							else if (G.qual == LR_SHIFTKEY)
+								setUserConstraint(&Trans, (CON_AXIS1|CON_AXIS2), "locking %s X");
+						}
 					}
 				}
 				else {
@@ -660,14 +675,19 @@ static void transformEvent(unsigned short event, short val) {
 		case YKEY:
 			if ((Trans.flag & T_NO_CONSTRAINT)==0) {
 				if (cmode == 'Y') {
-					if (Trans.con.mode & CON_USER) {
+					if (Trans.flag & T_2D_EDIT) {
 						stopConstraint(&Trans);
 					}
 					else {
-						if (G.qual == 0)
-							setUserConstraint(&Trans, (CON_AXIS1), "along %s Y");
-						else if ((G.qual == LR_SHIFTKEY) && ((Trans.flag & T_2D_EDIT)==0))
-							setUserConstraint(&Trans, (CON_AXIS0|CON_AXIS2), "locking %s Y");
+						if (Trans.con.mode & CON_USER) {
+							stopConstraint(&Trans);
+						}
+						else {
+							if (G.qual == 0)
+								setUserConstraint(&Trans, (CON_AXIS1), "along %s Y");
+							else if (G.qual == LR_SHIFTKEY)
+								setUserConstraint(&Trans, (CON_AXIS0|CON_AXIS2), "locking %s Y");
+						}
 					}
 				}
 				else {
