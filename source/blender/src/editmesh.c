@@ -1094,6 +1094,7 @@ void load_editMesh(void)
 	a = 0;
 	efa= em->faces.first;
 	i = 0;
+	me->act_face = -1;
 	while(efa) {
 		mface= &((MFace *) me->mface)[i];
 		
@@ -1149,8 +1150,8 @@ void load_editMesh(void)
 		/* no index '0' at location 3 or 4 */
 		test_index_face(mface, &me->fdata, i, efa->v4?4:3);
 		
-		if (a==me->act_face)
-			EM_set_actFace(efa);
+		if (EM_get_actFace() == efa)
+			me->act_face = a;
 
 #ifdef WITH_VERSE
 		if(efa->vface) {
