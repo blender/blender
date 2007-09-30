@@ -295,12 +295,16 @@ void projectIntView(TransInfo *t, float *vec, int *adr)
 		project_int(vec, adr);
 	else if(t->spacetype==SPACE_IMAGE) {
 		float aspx, aspy, v[2];
-
+		
 		transform_aspect_ratio_tface_uv(&aspx, &aspy);
 		v[0]= vec[0]/aspx;
 		v[1]= vec[1]/aspy;
-
+		
 		uvco_to_areaco_noclip(v, adr);
+	}
+	else if(t->spacetype==SPACE_IPO) {
+		adr[0]= vec[0];
+		adr[1]= vec[1];
 	}
 }
 
@@ -314,6 +318,10 @@ void projectFloatView(TransInfo *t, float *vec, float *adr)
 		projectIntView(t, vec, a);
 		adr[0]= a[0];
 		adr[1]= a[1];
+	}
+	else if(t->spacetype==SPACE_IPO) {
+		adr[0]= vec[0];
+		adr[1]= vec[1];
 	}
 }
 
@@ -1731,7 +1739,7 @@ int Resize(TransInfo *t, short mval[2])
 		ElementResize(t, td, mat);
 	}
 
-	/* evil hack - redo resize if cliiping needeed */
+	/* evil hack - redo resize if cliping needed */
 	if (t->flag & T_CLIP_UV && clipUVTransform(t, size, 1)) {
 		SizeToMat3(size, mat);
 

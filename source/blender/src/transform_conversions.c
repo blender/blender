@@ -1881,7 +1881,7 @@ static void createTransUVs(TransInfo *t)
 	t->data= MEM_callocN(t->total*sizeof(TransData), "TransObData(UV Editing)");
 	/* for each 2d uv coord a 3d vector is allocated, so that they can be
 	   treated just as if they were 3d verts */
-	t->data2d= MEM_mallocN(t->total*sizeof(TransData2D), "TransObData2D(UV Editing)");
+	t->data2d= MEM_callocN(t->total*sizeof(TransData2D), "TransObData2D(UV Editing)");
 
 	if(G.sima->flag & SI_CLIP_UV)
 		t->flag |= T_CLIP_UV;
@@ -1985,6 +1985,39 @@ int clipUVTransform(TransInfo *t, float *vec, int resize)
 	}	
 
 	return (clipx || clipy);
+}
+
+/* ********************* IPO EDITOR ************************* */
+
+/* for IPO Editor transform - but actual creation of transform structures is not performed here
+ * due to bad globals that would need to be imported specially for this
+ */
+static void createTransIpoData(TransInfo *t)
+{
+	/* in editipo.c due to some globals that are defined in that file... */
+	make_ipo_transdata(t);
+}
+
+/* this function is called on recalcData to apply the transforms applied
+ * to the transdata on to the actual keyframe data 
+ */
+void flushTransIpoData(TransInfo *t)
+{
+	TransData2D *td;
+	int a;
+	
+	/* flush to 2d vector from internally used 3d vector */
+	for (a=0, td= t->data2d; a<t->total; a++, td++) {
+		/* we need to unapply the nla-scaling from the time in some situations */
+		if (NLA_IPO_SCALED)
+			td->loc2d[0]= get_action_frame(OBACT, td->loc[0]);
+		else
+			td->loc2d[0]= td->loc[0];
+		
+		/* when the icu that point comes from is a bitflag holder, don't allow adjusting values */
+		if ((t->data[a].flag & TD_TIMEONLY)==0)
+			td->loc2d[1]= td->loc[1];
+	}
 }
 
 /* ********************* ACTION/NLA EDITOR ****************** */
@@ -2109,7 +2142,7 @@ static void createTransActionData(TransInfo *t)
 	BLI_freelistN(&act_data);
 }
 
-static void createTransNLAData(TransInfo *t)
+static void createTransNlaData(TransInfo *t)
 {
 	Base *base;
 	bActionStrip *strip;
@@ -2997,7 +3030,16 @@ void createTransData(TransInfo *t)
 	}
 	else if (t->spacetype == SPACE_NLA) {
 		t->flag |= T_POINTS|T_2D_EDIT;
-		createTransNLAData(t);
+		createTransNlaData(t);
+	}
+	else if (t->spacetype == SPACE_IPO) {
+		t->flag |= T_POINTS|T_2D_EDIT;
+		createTransIpoData(t); 
+		if (t->data && (t->flag & T_PROP_EDIT)) {
+			sort_trans_data(t);	// makes selected become first in array
+			set_prop_dist(t, 1);
+			sort_trans_data_dist(t);
+		}
 	}
 	else if (G.obedit) {
 		t->ext = NULL;
