@@ -6559,7 +6559,7 @@ void mesh_rotate_uvs(void)
 {
 	EditMesh *em = G.editMesh;
 	EditFace *efa;
-	short change = 0;
+	short change = 0, ccw;
 	MTFace *tf;
 	float u1, v1;
 	
@@ -6568,28 +6568,49 @@ void mesh_rotate_uvs(void)
 		return;
 	}
 	
+	ccw = (G.qual == LR_SHIFTKEY);
+	
 	for(efa=em->faces.first; efa; efa=efa->next) {
 		if (efa->f & SELECT) {
 			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 			u1= tf->uv[0][0];
 			v1= tf->uv[0][1];
 			
-			tf->uv[0][0]= tf->uv[1][0];
-			tf->uv[0][1]= tf->uv[1][1];
-
-			tf->uv[1][0]= tf->uv[2][0];
-			tf->uv[1][1]= tf->uv[2][1];
-			
-			if(efa->v4) {
-				tf->uv[2][0]= tf->uv[3][0];
-				tf->uv[2][1]= tf->uv[3][1];
-			
-				tf->uv[3][0]= u1;
-				tf->uv[3][1]= v1;
-			}
-			else {
-				tf->uv[2][0]= u1;
-				tf->uv[2][1]= v1;
+			if (ccw) {
+				if(efa->v4) {
+					tf->uv[0][0]= tf->uv[3][0];
+					tf->uv[0][1]= tf->uv[3][1];
+					
+					tf->uv[3][0]= tf->uv[2][0];
+					tf->uv[3][1]= tf->uv[2][1];
+				} else {
+					tf->uv[0][0]= tf->uv[2][0];
+					tf->uv[0][1]= tf->uv[2][1];
+				}
+				
+				tf->uv[2][0]= tf->uv[1][0];
+				tf->uv[2][1]= tf->uv[1][1];
+				
+				tf->uv[1][0]= u1;
+				tf->uv[1][1]= v1;
+			} else {	
+				tf->uv[0][0]= tf->uv[1][0];
+				tf->uv[0][1]= tf->uv[1][1];
+	
+				tf->uv[1][0]= tf->uv[2][0];
+				tf->uv[1][1]= tf->uv[2][1];
+				
+				if(efa->v4) {
+					tf->uv[2][0]= tf->uv[3][0];
+					tf->uv[2][1]= tf->uv[3][1];
+				
+					tf->uv[3][0]= u1;
+					tf->uv[3][1]= v1;
+				}
+				else {
+					tf->uv[2][0]= u1;
+					tf->uv[2][1]= v1;
+				}
 			}
 			change = 1;
 		}
@@ -6657,27 +6678,40 @@ void mesh_rotate_colors(void)
 {
 	EditMesh *em = G.editMesh;
 	EditFace *efa;
-	short change = 0;
+	short change = 0, ccw;
 	MCol tmpcol, *mcol;
 	if (!EM_vertColorCheck()) {
 		error("mesh has no color layers");
 		return;
 	}
 	
+	ccw = (G.qual == LR_SHIFTKEY);
+	
 	for(efa=em->faces.first; efa; efa=efa->next) {
 		if (efa->f & SELECT) {
 			mcol = CustomData_em_get(&em->fdata, efa->data, CD_MCOL);
 			tmpcol= mcol[0];
 			
-			mcol[0]= mcol[1];
-			mcol[1]= mcol[2];
-
-			if(efa->v4) {
-				mcol[2]= mcol[3];
-				mcol[3]= tmpcol;
+			if (ccw) {
+				if(efa->v4) {
+					mcol[0]= mcol[3];
+					mcol[3]= mcol[2];
+				} else {
+					mcol[0]= mcol[2];
+				}
+				mcol[2]= mcol[1];
+				mcol[1]= tmpcol;
+			} else {
+				mcol[0]= mcol[1];
+				mcol[1]= mcol[2];
+	
+				if(efa->v4) {
+					mcol[2]= mcol[3];
+					mcol[3]= tmpcol;
+				}
+				else
+					mcol[2]= tmpcol;
 			}
-			else
-				mcol[2]= tmpcol;
 			change = 1;
 		}
 	}

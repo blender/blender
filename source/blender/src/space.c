@@ -4901,10 +4901,10 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				break;
 			case VKEY:
-				if(G.qual==LR_SHIFTKEY)
-					stitch_uv_tface(0);
+				if(G.qual == 0)
+					stitch_vert_uv_tface();
 				else if(G.qual==LR_SHIFTKEY)
-					stitch_uv_tface(1);
+					stitch_limit_uv_tface();
 				else if(G.qual==LR_CTRLKEY)
 					minimize_stretch_tface_uv();
 				break;

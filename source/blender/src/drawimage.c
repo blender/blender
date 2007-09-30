@@ -445,10 +445,31 @@ static void drawcursor_sima(float xuser_asp, float yuser_asp)
 	setlinestyle(0);
 }
 
+// checks if we are selecting only faces
+static int draw_uvs_face_check(void)
+{
+	if (G.sima==NULL)
+		return 0;
+	if (G.sima->flag & SI_SYNC_UVSEL && G.scene->selectmode == SCE_SELECT_FACE)
+		return 1;
+	if (G.sima->flag & SI_SELACTFACE)
+		return 1;
+	return 0;
+}
+
+void tface_center(MTFace *tf, float cent[2], void * isquad)
+{
+
+	if (isquad) {
+		cent[0] = (tf->uv[0][0] + tf->uv[1][0] + tf->uv[2][0] + tf->uv[3][0]) / 4.0;
+		cent[1] = (tf->uv[0][1] + tf->uv[1][1] + tf->uv[2][1] + tf->uv[3][1]) / 4.0;		
+	} else {
+		cent[0] = (tf->uv[0][0] + tf->uv[1][0] + tf->uv[2][0]) / 3.0;
+		cent[1] = (tf->uv[0][1] + tf->uv[1][1] + tf->uv[2][1]) / 3.0;		
+	}
+}
+
 /* draws uv's in the image space */
-
-
-
 void draw_uvs_sima(void)
 {
 	MTFace *tface,*activetface = NULL;
@@ -457,9 +478,12 @@ void draw_uvs_sima(void)
 	
 	char col1[4], col2[4];
 	float pointsize;
+	int drawface;
  	
 	if (!G.obedit || !CustomData_has_layer(&em->fdata, CD_MTFACE))
 		return;
+	
+	drawface = draw_uvs_face_check();
 	
 	calc_image_view(G.sima, 'f');	/* float */
 	myortho2(G.v2d->cur.xmin, G.v2d->cur.xmax, G.v2d->cur.ymin, G.v2d->cur.ymax);
@@ -686,74 +710,120 @@ void draw_uvs_sima(void)
 		glDisable(GL_BLEND);
 	}
 
-    /* unselected uv's */
-	BIF_ThemeColor(TH_VERTEX);
-	pointsize = BIF_GetThemeValuef(TH_VERTEX_SIZE);
-	glPointSize(pointsize);
-
-	bglBegin(GL_POINTS);
-	for (efa= em->faces.first; efa; efa= efa->next) {
+	if (drawface) {
+		// draw UV face points
+		float cent[2];
 		
-//		tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-//		if (SIMA_FACEDRAW_CHECK(efa, tface)) {
 		
-		/*this is a shortcut to do the same as above but a faster for drawing */
-		if ((tface=(MTFace *)efa->tmp.p)) {
+	    /* unselected faces's */
+		pointsize = BIF_GetThemeValuef(TH_FACEDOT_SIZE);
+		// TODO - drawobject.c changes this value after - Investiagate!
+		glPointSize(pointsize);
 		
-			if(SIMA_UVSEL_CHECK(efa, tface, 0)); else bglVertex2fv(tface->uv[0]);
-			if(SIMA_UVSEL_CHECK(efa, tface, 1)); else bglVertex2fv(tface->uv[1]);
-			if(SIMA_UVSEL_CHECK(efa, tface, 2)); else bglVertex2fv(tface->uv[2]);
-			if(efa->v4) {
-				if(SIMA_UVSEL_CHECK(efa, tface, 3)); else bglVertex2fv(tface->uv[3]);
-			}
-		}
-	}
-	bglEnd();
-
-	/* pinned uv's */
-	/* give odd pointsizes odd pin pointsizes */
-    glPointSize(pointsize*2 + (((int)pointsize % 2)? (-1): 0));
-	cpack(0xFF);
-
-	bglBegin(GL_POINTS);
-	for (efa= em->faces.first; efa; efa= efa->next) {
-//		tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-//		if (SIMA_FACEDRAW_CHECK(efa, tface)) {
-		
-		/*this is a shortcut to do the same as above but a faster for drawing */
-		if ((tface=(MTFace *)efa->tmp.p)) {
+		BIF_ThemeColor(TH_WIRE);
+		bglBegin(GL_POINTS);
+		for (efa= em->faces.first; efa; efa= efa->next) {
 			
-			if(tface->unwrap & TF_PIN1) bglVertex2fv(tface->uv[0]);
-			if(tface->unwrap & TF_PIN2) bglVertex2fv(tface->uv[1]);
-			if(tface->unwrap & TF_PIN3) bglVertex2fv(tface->uv[2]);
-			if(efa->v4) {
-				if(tface->unwrap & TF_PIN4) bglVertex2fv(tface->uv[3]);
+//			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+//			if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+			
+			/*this is a shortcut to do the same as above but a faster for drawing */
+			if ((tface=(MTFace *)efa->tmp.p)) {
+				if( ! SIMA_FACESEL_CHECK(efa, tface) ) {
+					tface_center(tface, cent, (void *)efa->v4);
+					bglVertex2fv(cent);
+				}
 			}
 		}
-	}
-	bglEnd();
-
-	/* selected uv's */
-	BIF_ThemeColor(TH_VERTEX_SELECT);
-    glPointSize(pointsize);
-
-	bglBegin(GL_POINTS);
-	for (efa= em->faces.first; efa; efa= efa->next) {
-//		tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-//		if (SIMA_FACEDRAW_CHECK(efa, tface)) {
-		
-		/*this is a shortcut to do the same as above but a faster for drawing */
-		if ((tface=(MTFace *)efa->tmp.p)) {
-		
-			if(!SIMA_UVSEL_CHECK(efa, tface, 0)); else bglVertex2fv(tface->uv[0]);
-			if(!SIMA_UVSEL_CHECK(efa, tface, 1)); else bglVertex2fv(tface->uv[1]);
-			if(!SIMA_UVSEL_CHECK(efa, tface, 2)); else bglVertex2fv(tface->uv[2]);
-			if(efa->v4) {
-				if(!SIMA_UVSEL_CHECK(efa, tface, 3)); else bglVertex2fv(tface->uv[3]);
+		bglEnd();
+		/* selected faces's */
+		BIF_ThemeColor(TH_FACE_DOT);
+		bglBegin(GL_POINTS);
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			
+//			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+//			if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+			
+			/*this is a shortcut to do the same as above but a faster for drawing */
+			if ((tface=(MTFace *)efa->tmp.p)) {
+				if( SIMA_FACESEL_CHECK(efa, tface) ) {
+					tface_center(tface, cent, (void *)efa->v4);
+					bglVertex2fv(cent);
+				}
 			}
 		}
+		bglEnd();
+	} else {
+		
+	    /* unselected uv's */
+		BIF_ThemeColor(TH_VERTEX);
+		pointsize = BIF_GetThemeValuef(TH_VERTEX_SIZE);
+		glPointSize(pointsize);
+	
+		bglBegin(GL_POINTS);
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			
+//			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+//			if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+			
+			/*this is a shortcut to do the same as above but a faster for drawing */
+			if ((tface=(MTFace *)efa->tmp.p)) {
+			
+				if(SIMA_UVSEL_CHECK(efa, tface, 0)); else bglVertex2fv(tface->uv[0]);
+				if(SIMA_UVSEL_CHECK(efa, tface, 1)); else bglVertex2fv(tface->uv[1]);
+				if(SIMA_UVSEL_CHECK(efa, tface, 2)); else bglVertex2fv(tface->uv[2]);
+				if(efa->v4) {
+					if(SIMA_UVSEL_CHECK(efa, tface, 3)); else bglVertex2fv(tface->uv[3]);
+				}
+			}
+		}
+		bglEnd();
+	
+		/* pinned uv's */
+		/* give odd pointsizes odd pin pointsizes */
+	    glPointSize(pointsize*2 + (((int)pointsize % 2)? (-1): 0));
+		cpack(0xFF);
+	
+		bglBegin(GL_POINTS);
+		for (efa= em->faces.first; efa; efa= efa->next) {
+//			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+//			if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+			
+			/*this is a shortcut to do the same as above but a faster for drawing */
+			if ((tface=(MTFace *)efa->tmp.p)) {
+				
+				if(tface->unwrap & TF_PIN1) bglVertex2fv(tface->uv[0]);
+				if(tface->unwrap & TF_PIN2) bglVertex2fv(tface->uv[1]);
+				if(tface->unwrap & TF_PIN3) bglVertex2fv(tface->uv[2]);
+				if(efa->v4) {
+					if(tface->unwrap & TF_PIN4) bglVertex2fv(tface->uv[3]);
+				}
+			}
+		}
+		bglEnd();
+	
+		/* selected uv's */
+		BIF_ThemeColor(TH_VERTEX_SELECT);
+	    glPointSize(pointsize);
+	
+		bglBegin(GL_POINTS);
+		for (efa= em->faces.first; efa; efa= efa->next) {
+//			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+//			if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+			
+			/*this is a shortcut to do the same as above but a faster for drawing */
+			if ((tface=(MTFace *)efa->tmp.p)) {
+			
+				if(!SIMA_UVSEL_CHECK(efa, tface, 0)); else bglVertex2fv(tface->uv[0]);
+				if(!SIMA_UVSEL_CHECK(efa, tface, 1)); else bglVertex2fv(tface->uv[1]);
+				if(!SIMA_UVSEL_CHECK(efa, tface, 2)); else bglVertex2fv(tface->uv[2]);
+				if(efa->v4) {
+					if(!SIMA_UVSEL_CHECK(efa, tface, 3)); else bglVertex2fv(tface->uv[3]);
+				}
+			}
+		}
+		bglEnd();	
 	}
-	bglEnd();	
 	glPointSize(1.0);
 }
 
