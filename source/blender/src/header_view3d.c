@@ -4715,6 +4715,7 @@ void do_view3d_buttons(short event)
 		countall();
 		BIF_undo_push("Selectmode Set: Vertex");
 		allqueue(REDRAWVIEW3D, 1);
+		allqueue(REDRAWIMAGE, 0); /* only needed in cases where mesh and UV selection are in sync */
 		break;
 	case B_SEL_EDGE:
 		if( (G.qual & LR_SHIFTKEY)==0 || G.scene->selectmode==0){
@@ -4727,6 +4728,7 @@ void do_view3d_buttons(short event)
 		countall();
 		BIF_undo_push("Selectmode Set: Edge");
 		allqueue(REDRAWVIEW3D, 1);
+		allqueue(REDRAWIMAGE, 0); /* only needed in cases where mesh and UV selection are in sync */
 		break;
 	case B_SEL_FACE:
 		if( (G.qual & LR_SHIFTKEY)==0 || G.scene->selectmode==0){
@@ -4739,6 +4741,7 @@ void do_view3d_buttons(short event)
 		countall();
 		BIF_undo_push("Selectmode Set: Face");
 		allqueue(REDRAWVIEW3D, 1);
+		allqueue(REDRAWIMAGE, 0); /* only needed in cases where mesh and UV selection are in sync */
 		break;	
 	
 	case B_MAN_TRANS:

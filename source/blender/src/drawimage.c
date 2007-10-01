@@ -451,7 +451,7 @@ static int draw_uvs_face_check(void)
 	if (G.sima==NULL)
 		return 0;
 	if (G.sima->flag & SI_SYNC_UVSEL && G.scene->selectmode == SCE_SELECT_FACE)
-		return 1;
+		return 2;
 	if (G.sima->flag & SI_SELACTFACE)
 		return 1;
 	return 0;
@@ -753,8 +753,9 @@ void draw_uvs_sima(void)
 			}
 		}
 		bglEnd();
-	} else {
-		
+	}
+	
+	if (drawface != 2) { /* 2 means Mesh Face Mode */
 	    /* unselected uv's */
 		BIF_ThemeColor(TH_VERTEX);
 		pointsize = BIF_GetThemeValuef(TH_VERTEX_SIZE);
