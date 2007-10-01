@@ -303,8 +303,11 @@ void projectIntView(TransInfo *t, float *vec, int *adr)
 		uvco_to_areaco_noclip(v, adr);
 	}
 	else if(t->spacetype==SPACE_IPO) {
-		adr[0]= vec[0];
-		adr[1]= vec[1];
+		short out[2] = {0.0f, 0.0f};
+		
+		ipoco_to_areaco(G.v2d, vec, out);
+		adr[0]= out[0];
+		adr[1]= out[1];
 	}
 }
 
@@ -314,14 +317,17 @@ void projectFloatView(TransInfo *t, float *vec, float *adr)
 		project_float(vec, adr);
 	else if(t->spacetype==SPACE_IMAGE) {
 		int a[2];
-
+		
 		projectIntView(t, vec, a);
 		adr[0]= a[0];
 		adr[1]= a[1];
 	}
 	else if(t->spacetype==SPACE_IPO) {
-		adr[0]= vec[0];
-		adr[1]= vec[1];
+		int a[2];
+		
+		projectIntView(t, vec, a);
+		adr[0]= a[0];
+		adr[1]= a[1];
 	}
 }
 
@@ -1861,6 +1867,9 @@ void initRotation(TransInfo *t)
 	t->snap[1] = (float)((5.0/180)*M_PI);
 	t->snap[2] = t->snap[1] * 0.2f;
 	t->fac = 0;
+	
+	if (t->flag & T_2D_EDIT)
+		t->flag |= T_NO_CONSTRAINT;
 }
 
 static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3]) {
