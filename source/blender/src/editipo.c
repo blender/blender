@@ -4933,31 +4933,167 @@ void make_ipo_transdata (TransInfo *t)
 	}
 }
 
+/* ------------------------ */
+
+/* struct for use in re-sorting BezTriples during IPO transform */
+typedef struct BeztMap {
+	BezTriple *bezt;
+	int oldIndex;
+	int newIndex;
+	short handles;
+} BeztMap;
+
+#define BEZM_FLIPH 		1
+#define BEZM_CLEARH1	2
+#define BEZM_CLEARH2	4
+
+/* This function converts an IpoCurve's BezTriple array to a BeztMap array
+ * NOTE: this allocates memory that will need to get freed later
+ */
+static BeztMap *bezt_to_beztmaps (BezTriple *bezts, int totvert)
+{
+	BezTriple *bezt= bezts;
+	BeztMap *bezm, *bezms;
+	int i;
+	
+	/* allocate memory for this array */
+	if (totvert==0 || bezts==NULL)
+		return NULL;
+	bezm= bezms= MEM_callocN(sizeof(BeztMap)*totvert, "BeztMaps");
+	
+	/* assign beztriples to beztmaps */
+	for (i=0; i < totvert; i++, bezm++, bezt++) {
+		bezm->bezt= bezt;
+		bezm->oldIndex= i;
+		bezm->newIndex= i;
+	}
+	
+	return bezms;
+}
+
+/* This function copies the code of sort_time_ipocurve, but acts on BeztMap structs instead */
+static void sort_time_beztmaps (BeztMap *bezms, int totvert)
+{
+	BeztMap *bezm;
+	int i, ok= 1;
+	
+	/* keep repeating the process until nothing is out of place anymore */
+	while (ok) {
+		ok= 0;
+		
+		bezm= bezms;
+		i= totvert;
+		while (i--) {
+			/* is current bezm out of order (i.e. occurs later than next)? */
+			if (i > 0) {
+				if ( bezm->bezt->vec[1][0] > (bezm+1)->bezt->vec[1][0]) {
+					bezm->newIndex++;
+					(bezm+1)->newIndex--;
+					
+					SWAP(BeztMap, *bezm, *(bezm+1));
+					
+					ok= 1;
+				}
+			}
+			
+			/* swap order of handles or snap handles to centre-point? */
+			if (bezm->bezt->vec[0][0]>bezm->bezt->vec[1][0] && bezm->bezt->vec[2][0]<bezm->bezt->vec[1][0]) {
+				bezm->handles ^= BEZM_FLIPH;
+			}
+			else {
+				if (bezm->bezt->vec[0][0]>bezm->bezt->vec[1][0]) bezm->handles ^= BEZM_CLEARH1;
+				if (bezm->bezt->vec[2][0]<bezm->bezt->vec[1][0]) bezm->handles ^= BEZM_CLEARH2;
+			}
+			
+			bezm++;
+		}	
+	}
+}
+
+/* This function firstly adjusts the pointers that the transdata has to each BezTriple*/
+static void beztmap_to_data (TransInfo *t, EditIpo *ei, BeztMap *bezms, int totvert)
+{
+	BezTriple *bezts = ei->icu->bezt;
+	BeztMap *bezm;
+	TransData2D *td;
+	int i, j;
+	
+	/* for each beztmap item, find if it is used anywhere */
+	bezm= bezms;
+	for (i= 0; i < totvert; i++, bezm++) {
+		/* loop through transdata, testing if we have a hit */
+		td= t->data2d;
+		for (j= 0; j < t->total; j++, td++) {
+			if (totipo_vertsel) {
+				/* only selected verts */
+				if (ei->icu->ipo==IPO_BEZ) {
+					if (bezm->bezt->f1 & 1) {
+						if (td->loc2d == bezm->bezt->vec[0])
+							td->loc2d= (bezts + bezm->newIndex)->vec[0];
+					}
+					if (bezm->bezt->f3 & 1) {
+						if (td->loc2d == bezm->bezt->vec[2])
+							td->loc2d= (bezts + bezm->newIndex)->vec[2];
+					}
+				}
+				if (bezm->bezt->f2 & 1) {
+					if (td->loc2d == bezm->bezt->vec[1])
+						td->loc2d= (bezts + bezm->newIndex)->vec[1];
+				}
+			}
+			else {
+				/* whole curve */
+				if (ei->icu->ipo==IPO_BEZ) {
+					if (td->loc2d == bezm->bezt->vec[0]) {
+						td->loc2d= (bezts + bezm->newIndex)->vec[0];
+					}
+					
+					if (td->loc2d == bezm->bezt->vec[2]) {
+						td->loc2d= (bezts + bezm->newIndex)->vec[2];
+					}
+				}
+				if (td->loc2d == bezm->bezt->vec[1]) {
+					td->loc2d= (bezts + bezm->newIndex)->vec[1];
+				}
+			}
+		}
+		
+	}
+}
 
 /* This function is called by recalcData during the Transform loop to recalculate 
  * the handles of curves and sort the keyframes so that the curves draw correctly.
  * It is only called if some keyframes have moved out of order.
  */
-/* FIXME! There's a bug with this, which causes 'old-loc' values to get overridden. 
-   ("mapping" hack is possible, but needs more debugging... in the meantime, this is used) */
 void remake_ipo_transdata (TransInfo *t)
 {
 	EditIpo *ei;
 	int a;
 	
-	/* bubble-sort the beztriples */
+	/* sort and reassign verts */
 	ei= G.sipo->editipo;
 	for (a=0; a<G.sipo->totipo; a++, ei++) {
 		if (ISPOIN(ei, flag & IPO_VISIBLE, icu)) {
 			if (ei->icu->bezt) {
+				BeztMap *bezm;
+				
+				/* adjust transform-data pointers */
+				bezm= bezt_to_beztmaps(ei->icu->bezt, ei->icu->totvert);
+				sort_time_beztmaps(bezm, ei->icu->totvert);
+				beztmap_to_data(t, ei, bezm, ei->icu->totvert);
+				
+				/* re-sort actual beztriples (perhaps this could be done using the beztmaps to save time?) */
 				sort_time_ipocurve(ei->icu);
+				
+				/* free mapping stuff */
+				MEM_freeN(bezm);
+				
+				/* make sure handles are all set correctly */
+				testhandles_ipocurve(ei->icu);
 			}
 		}
 	}
-	
-	/* remake transdata - bad! */
-	make_ipo_transdata(t);
-	
+		
 	/* remake ipokeys */
 	if (G.sipo->showkey) make_ipokey();
 }
@@ -5011,6 +5147,8 @@ void transform_ipo (int mode)
 	/* cleanup */
 	editipo_changed(G.sipo, 1);
 }
+
+/**************************************************/
 
 void filter_sampledata(float *data, int sfra, int efra)
 {
