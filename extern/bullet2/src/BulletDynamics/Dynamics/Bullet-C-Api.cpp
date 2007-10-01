@@ -25,13 +25,13 @@
 
 
 extern "C"
-double plNearestPoints(float p[3][3], float q[3][3], float *pa, float *pb, float normal[3])
+double plNearestPoints(float p1[3], float p2[3], float p3[3], float q1[3], float q2[3], float q3[3], float *pa, float *pb, float normal[3])
 {
-	btTriangleShape trishapeA(btVector3(p[0][0], p[0][1], p[0][2]), btVector3(p[1][0], p[1][1], p[1][2]), btVector3(p[2][0], p[2][1], p[2][2]));
-	trishapeA.setMargin(0.001f);
+	btTriangleShape trishapeA(btVector3(p1[0], p1[1], p1[2]), btVector3(p2[0], p2[1], p2[2]), btVector3(p3[0], p3[1], p3[2]));
+	trishapeA.setMargin(0.000001f);
 	
-	btTriangleShape trishapeB(btVector3(q[0][0], q[0][1], q[0][2]), btVector3(q[1][0], q[1][1], q[1][2]), btVector3(q[2][0], q[2][1], q[2][2]));
-	trishapeB.setMargin(0.001f);
+	btTriangleShape trishapeB(btVector3(q1[0], q1[1], q1[2]), btVector3(q2[0], q2[1], q2[2]), btVector3(q3[0], q3[1], q3[2]));
+	trishapeB.setMargin(0.000001f);
 	
 	// btVoronoiSimplexSolver sGjkSimplexSolver;
 	// btGjkEpaPenetrationDepthSolver penSolverPtr;	
@@ -44,7 +44,7 @@ double plNearestPoints(float p[3][3], float q[3][3], float *pa, float *pb, float
 		
 	btConvexPenetrationDepthSolver* Solver = NULL;
 	
-	Solver = &Solver0;	
+	Solver = &Solver1;	
 		
 	btGjkPairDetector convexConvex(&trishapeA ,&trishapeB,&sGjkSimplexSolver,Solver);
 	

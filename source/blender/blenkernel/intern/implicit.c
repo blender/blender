@@ -1431,8 +1431,7 @@ void simulate_implicit_euler(lfVector *Vnew, lfVector *lX, lfVector *lV, lfVecto
 	del_lfvector(dFdXmV);
 }
 
-int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors,
-					 CM_COLLISION_SELF self_collision, CM_COLLISION_OBJ obj_collision)
+int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors)
 { 	 	
 	unsigned int i=0, j;
 	float step=0.0f, tf=1.0f;
@@ -1492,14 +1491,14 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 		}
 
 		// call collision function
-		result = cloth_bvh_objcollision(clmd, step + dt, bvh_collision_response, dt);
+		result = cloth_bvh_objcollision(clmd, step + dt, dt);
 
 		// copy corrected positions back to simulation
 		for(i = 0; i < numverts; i++)
 		{		
 			if(result)
 			{
-				VECADD(verts[i].tx, verts[i].txold, verts[i].tv);
+				// VECADD(verts[i].tx, verts[i].txold, verts[i].tv);
 				
 				VECCOPY(verts[i].txold, verts[i].tx);
 				

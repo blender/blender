@@ -123,7 +123,7 @@ static float KDOP_AXES[13][3] =
 // #define KDOP_8
 
 // OBB: 
-#define KDOP_14
+#define KDOP_6
 
 
 
@@ -424,54 +424,52 @@ DO_INLINE void bvh_calc_DOP_hull_static(BVH * bvh, Tree **tri, int numfaces, flo
 		}
 	}
 }
-/*
+
 DO_INLINE void bvh_calc_DOP_hull_moving(BVH * bvh, Tree **tri, int numfaces, float *bv)
 {
-ClothVertex *tempMVert = bvh->verts;
-MFace *tempMFace = bvh->mfaces;
-float *tempBV = bv;
-float newminmax;
-int i, j, k;
-for (j = 0; j < numfaces; j++)
-{
-tempMFace = bvh->mfaces + (tri [j])->tri_index;
-// 3 or 4 vertices per face.
-for (k = 0; k < 4; k++)
-{
-int temp = 0;  
-// If this is a triangle.
-if (k == 3 && !tempMFace->v4)
-continue;
-// TODO: other name for "temp" this gets all vertices of a face
-if (k == 0)
-temp = tempMFace->v1;
-else if (k == 1)
-temp = tempMFace->v2;
-else if (k == 2)
-temp = tempMFace->v3;
-else if (k == 3)
-temp = tempMFace->v4;
-// for all Axes.
-for (i = KDOP_START; i < KDOP_END; i++)
-{
-newminmax = INPR(tempMVert[temp].tx, KDOP_AXES[i]);	
-if ((newminmax < tempBV[(2 * i)]) || (k == 0 && j == 0))
-tempBV[(2 * i)] = newminmax;
-// the same like some "else if" but with that condition I
-// don't need to insert the first entry manually
-if ((newminmax > tempBV[(2 * i) + 1])|| (k == 0 && j == 0))
-tempBV[(2 * i) + 1] = newminmax;
+	ClothVertex *tempMVert = bvh->verts;
+	MFace *tempMFace = bvh->mfaces;
+	float *tempBV = bv;
+	float newminmax;
+	int i, j, k;
+	for (j = 0; j < numfaces; j++)
+	{
+		tempMFace = bvh->mfaces + (tri [j])->tri_index;
+		// 3 or 4 vertices per face.
+		for (k = 0; k < 4; k++)
+		{
+			int temp = 0;  
+			// If this is a triangle.
+			if (k == 3 && !tempMFace->v4)
+				continue;
+			// TODO: other name for "temp" this gets all vertices of a face
+			if (k == 0)
+				temp = tempMFace->v1;
+			else if (k == 1)
+				temp = tempMFace->v2;
+			else if (k == 2)
+				temp = tempMFace->v3;
+			else if (k == 3)
+				temp = tempMFace->v4;
+			// for all Axes.
+			for (i = KDOP_START; i < KDOP_END; i++)
+			{				
+				newminmax = INPR(tempMVert[temp].txold, KDOP_AXES[i]);
+				if ((newminmax < tempBV[(2 * i)]) || (k == 0 && j == 0))
+					tempBV[(2 * i)] = newminmax;
+				if ((newminmax > tempBV[(2 * i) + 1])|| (k == 0 && j == 0))
+					tempBV[(2 * i) + 1] = newminmax;
+				
+				newminmax = INPR(tempMVert[temp].tx, KDOP_AXES[i]);
+				if ((newminmax < tempBV[(2 * i)]) || (k == 0 && j == 0))
+					tempBV[(2 * i)] = newminmax;
+				if ((newminmax > tempBV[(2 * i) + 1])|| (k == 0 && j == 0))
+					tempBV[(2 * i) + 1] = newminmax;
+			}
+		}
+	}
+}
 
-newminmax = INPR(tempMVert[temp].txold, KDOP_AXES[i]);
-if (newminmax < tempBV[(2 * i)])
-tempBV[(2 * i)] = newminmax;
-if (newminmax > tempBV[(2 * i) + 1])
-tempBV[(2 * i) + 1] = newminmax;
-}
-}
-}
-}
-*/
 static void bvh_div_env_node(BVH * bvh, TreeNode *tree, Tree **face_list, unsigned int start, unsigned int end, int lastaxis, LinkNode *nlink)
 {
 	int		i = 0;
@@ -810,7 +808,7 @@ void bvh_join(Tree * tree)
 }
 
 // update static bvh
-void bvh_update_static(ClothModifierData * clmd, BVH * bvh)
+void bvh_update(ClothModifierData *clmd, BVH * bvh, int moving)
 {
 	TreeNode *leaf, *parent;
 	int traversecheck = 1;	// if this is zero we don't go further 
@@ -823,7 +821,10 @@ void bvh_update_static(ClothModifierData * clmd, BVH * bvh)
 		{			
 			leaf->parent->traversed = 0;
 		}
-		bvh_calc_DOP_hull_static(bvh, &leaf, 1, leaf->bv);
+		if(!moving)
+			bvh_calc_DOP_hull_static(bvh, &leaf, 1, leaf->bv);
+		else
+			bvh_calc_DOP_hull_moving(bvh, &leaf, 1, leaf->bv);
 
 		// inflate the bv with some epsilon
 		for (j = KDOP_START; j < KDOP_END; j++)
@@ -859,3 +860,4 @@ void bvh_update_static(ClothModifierData * clmd, BVH * bvh)
 		}
 	}	
 }
+

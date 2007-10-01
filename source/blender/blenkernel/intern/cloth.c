@@ -473,7 +473,6 @@ int cloth_cache_last_frame(ClothModifierData *clmd)
 			search = search->next;
 		}
 	}	
-
 	return temptime;
 }
 
@@ -567,12 +566,7 @@ void cloth_cache_set_frame(ClothModifierData *clmd, float time)
 			*/
 		}
 		if(frame)
-		{
-			if(!clmd->sim_parms.cache)
-				BLI_linklist_prepend(&clmd->sim_parms.cache, frame);
-			else
-				BLI_linklist_append(&clmd->sim_parms.cache, frame);
-		}
+			BLI_linklist_append(&clmd->sim_parms.cache, frame);
 	}
 }
 
@@ -683,6 +677,7 @@ void clothModifier_do(ClothModifierData *clmd, Object *ob, DerivedMesh *dm,
 		}
 	}
 	
+	
 	// unused in the moment, calculated seperately in implicit.c
 	clmd->sim_parms.dt = 1.0f / clmd->sim_parms.stepsPerFrame;
 	
@@ -774,7 +769,7 @@ void clothModifier_do(ClothModifierData *clmd, Object *ob, DerivedMesh *dm,
 
 				/* Call the solver. */
 				if (solvers [clmd->sim_parms.solver_type].solver)
-					solvers [clmd->sim_parms.solver_type].solver (ob, framenr, clmd, effectors,0,0);
+					solvers [clmd->sim_parms.solver_type].solver (ob, framenr, clmd, effectors);
 
 				tend();
 				printf("Cloth simulation time: %f\n", (float)tval());
@@ -797,10 +792,13 @@ void clothModifier_do(ClothModifierData *clmd, Object *ob, DerivedMesh *dm,
 	}
 	else if((deltaTime <= 0.0f)||(deltaTime > 1.0f))
 	{
-		if(cloth_cache_search_frame(clmd, framenr))
+		if((clmd->clothObject != NULL) && (clmd->sim_parms.cache)) 
 		{
-			cloth_cache_get_frame(clmd, framenr);
-			cloth_to_object (ob, clmd, vertexCos, numverts);
+			if(cloth_cache_search_frame(clmd, framenr))
+			{
+				cloth_cache_get_frame(clmd, framenr);
+				cloth_to_object (ob, clmd, vertexCos, numverts);
+			}
 		}
 	}
 }

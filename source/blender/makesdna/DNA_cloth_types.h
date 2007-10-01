@@ -123,7 +123,7 @@ typedef struct CollisionSettings {
 	float	friction;		/* Friction/damping applied on contact with other object.*/
 	short	collision_type;		/* which collision system is used.			*/
 	short	loop_count;		/* How many iterations for the collision loop.		*/
-	void	*temp; /* e.g. pointer to temp memory for collisions */
+	struct	LinkNode *collision_list; 	/* e.g. pointer to temp memory for collisions */
 } CollisionSettings;     
 
 

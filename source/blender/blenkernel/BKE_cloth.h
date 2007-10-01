@@ -1,36 +1,36 @@
 /**
-* BKE_cloth.h 
-*	
-* $Id: BKE_cloth.h,v 1.1 2007/08/01 02:07:27 daniel Exp $
-*
-* ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
-*
-* This program is free software; you can redistribute it and/or
-* modify it under the terms of the GNU General Public License
-* as published by the Free Software Foundation; either version 2
-* of the License, or (at your option) any later version. The Blender
-* Foundation also sells licenses for use in proprietary software under
-* the Blender License.  See http://www.blender.org/BL/ for information
-* about this.
-*
-* This program is distributed in the hope that it will be useful,
-* but WITHOUT ANY WARRANTY; without even the implied warranty of
-* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-* GNU General Public License for more details.
-*
-* You should have received a copy of the GNU General Public License
-* along with this program; if not, write to the Free Software Foundation,
-* Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
-*
-* The Original Code is Copyright (C) Blender Foundation.
-* All rights reserved.
-*
-* The Original Code is: all of this file.
-*
-* Contributor(s): none yet.
-*
-* ***** END GPL/BL DUAL LICENSE BLOCK *****
-*/
+ * BKE_cloth.h 
+ *	
+ * $Id: BKE_cloth.h,v 1.1 2007/08/01 02:07:27 daniel Exp $
+ *
+ * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version. The Blender
+ * Foundation also sells licenses for use in proprietary software under
+ * the Blender License.  See http://www.blender.org/BL/ for information
+ * about this.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * The Original Code is Copyright (C) Blender Foundation.
+ * All rights reserved.
+ *
+ * The Original Code is: all of this file.
+ *
+ * Contributor(s): none yet.
+ *
+ * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ */
 #ifndef BKE_CLOTH_H
 #define BKE_CLOTH_H
 
@@ -46,10 +46,10 @@ struct DerivedMesh;
 
 // this is needed for inlining behaviour
 #ifndef _WIN32
-	#define LINUX 
-	#define DO_INLINE inline
+#define LINUX 
+#define DO_INLINE inline
 #else
-	#define DO_INLINE
+#define DO_INLINE
 #endif
 
 #define CLOTH_MAX_THREAD 2
@@ -86,27 +86,27 @@ struct DerivedMesh;
 typedef enum 
 {
 	CSIMSETT_FLAG_RESET = (1 << 1),		// The CM object requires a reinitializaiton.
-	CSIMSETT_FLAG_COLLOBJ = (1 << 2), 	// object is only collision object, no cloth simulation is done
-	CSIMSETT_FLAG_GOAL = (1 << 3), 		// we have goals enabled
-	CSIMSETT_FLAG_CCACHE_FREE_ALL = (1 << 4),  // delete all from cache
-	CSIMSETT_FLAG_CCACHE_FREE_PART = (1 << 5), // delete some part of cache
-	CSIMSETT_FLAG_TEARING_ENABLED = (1 << 6), // true if tearing is enabled
-	CSIMSETT_FLAG_CCACHE_PROTECT = (1 << 7), // true if tearing is enabled
+			       CSIMSETT_FLAG_COLLOBJ = (1 << 2), 	// object is only collision object, no cloth simulation is done
+					       CSIMSETT_FLAG_GOAL = (1 << 3), 		// we have goals enabled
+							       CSIMSETT_FLAG_CCACHE_FREE_ALL = (1 << 4),  // delete all from cache
+									       CSIMSETT_FLAG_CCACHE_FREE_PART = (1 << 5), // delete some part of cache
+										CSIMSETT_FLAG_TEARING_ENABLED = (1 << 6), // true if tearing is enabled
+										CSIMSETT_FLAG_CCACHE_PROTECT = (1 << 7), // true if tearing is enabled
 } CSIMSETT_FLAGS;
 
 /* Spring types as defined in the paper.*/
 typedef enum 
 {
 	STRUCTURAL = 0,
-	SHEAR,
-	BENDING,
+ SHEAR,
+ BENDING,
 } springType;
 
 /* SPRING FLAGS */
 typedef enum 
 {
 	CSPRING_FLAG_DEACTIVATE = (1 << 1),
-	CSPRING_FLAG_NEEDED = (1 << 2), // springs has values to be applied
+				   CSPRING_FLAG_NEEDED = (1 << 2), // springs has values to be applied
 } CSPRINGS_FLAGS;
 
 // needed for buttons_object.c
@@ -156,7 +156,7 @@ typedef void (*CM_COLLISION_RESPONSE) (ClothModifierData *clmd, ClothModifierDat
 
 // needed for implicit.c
 void bvh_collision_response(ClothModifierData *clmd, ClothModifierData *coll_clmd, Tree * tree1, Tree * tree2);
-int cloth_bvh_objcollision(ClothModifierData * clmd, float step, CM_COLLISION_RESPONSE collision_response, float dt);
+int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt);
 
 ////////////////////////////////////////////////
 
@@ -165,16 +165,13 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, CM_COLLISION_RE
 // kdop.c
 ////////////////////////////////////////////////
 
-// needed for implicit.c
-void bvh_update_static(ClothModifierData * clmd, BVH * bvh);
-void bvh_update_moving(ClothModifierData * clmd, BVH * bvh);
-
 // needed for cloth.c
 void bvh_free(BVH * bvh);
 BVH *bvh_build (ClothModifierData *clmd, float epsilon);
 
 // needed for collision.c
 int bvh_traverse(ClothModifierData * clmd, ClothModifierData * coll_clmd, Tree * tree1, Tree * tree2, float step, CM_COLLISION_RESPONSE collision_response);
+void bvh_update(ClothModifierData * clmd, BVH * bvh, int moving);
 
 ////////////////////////////////////////////////
 
@@ -209,8 +206,7 @@ typedef struct {
 	char		*name;
 	CM_SOLVER_ID	id;
 	int		(*init) (Object *ob, ClothModifierData *clmd);
-	int		(*solver) (Object *ob, float framenr, ClothModifierData *clmd, ListBase *effectors,
-	CM_COLLISION_SELF self_collision, CM_COLLISION_OBJ obj_collision);
+	int		(*solver) (Object *ob, float framenr, ClothModifierData *clmd, ListBase *effectors);
 	int		(*free) (ClothModifierData *clmd);
 } CM_SOLVER_DEF;
 
@@ -218,8 +214,7 @@ typedef struct {
 /* new C implicit simulator */
 int implicit_init (Object *ob, ClothModifierData *clmd);
 int implicit_free (ClothModifierData *clmd);
-int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors,
-						CM_COLLISION_SELF self_collision, CM_COLLISION_OBJ obj_collision);
+int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors);
 
 /* used for caching in implicit.c */
 typedef struct Frame
@@ -237,10 +232,10 @@ typedef struct CollPair
 	double distance; // magnitude of vector
 	float normal[3]; 
 	float vector[3]; // unnormalized collision vector: p2-p1
-	float p1[3], p2[3]; // collision point p1 on face1, p2 on face2
+	float pa[3], pb[3]; // collision point p1 on face1, p2 on face2
 	int lastsign; // indicates if the distance sign has changed, unused itm
 	float time; // collision time, from 0 up to 1
-	unsigned int Aindex1, Aindex2, Aindex3, Aindex4, Bindex1, Bindex2, Bindex3, Bindex4;
+	unsigned int ap1, ap2, ap3, bp1, bp2, bp3;
 } CollPair;
 
 
