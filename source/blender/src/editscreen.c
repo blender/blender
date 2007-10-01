@@ -1119,7 +1119,9 @@ static void animated_screen(bScreen *sc, short val)
 	}
 	if(val & TIME_ALL_ANIM_WIN) allqueue(REDRAWANIM, 0);
 	if(val & TIME_ALL_BUTS_WIN) allqueue(REDRAWBUTSALL, 0);
-	if(val & TIME_SEQ) allqueue(REDRAWSEQ, 0);
+	if(val & TIME_SEQ) {
+		allqueue(REDRAWSEQ, 0);
+	}
 	
 	allqueue(REDRAWTIME, 0);
 }

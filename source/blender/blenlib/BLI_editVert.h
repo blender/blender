@@ -55,9 +55,9 @@ typedef struct EditVert
 		struct EditVert *v;
 		struct EditEdge *e;
 		struct EditFace *f;
-		float           *fp;
 		void            *p;
 		long             l;
+		float            fp;
 	} tmp;
 	float no[3]; /*vertex normal */
 	float co[3]; /*vertex location */

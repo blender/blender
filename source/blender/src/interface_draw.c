@@ -2272,7 +2272,7 @@ static void ui_draw_but_CURVE(uiBut *but)
 	}
 	glEnd();
 	glDisable(GL_LINE_SMOOTH);
-	glEnable(GL_BLEND);
+	glDisable(GL_BLEND);
 
 	/* the points, use aspect to make them visible on edges */
 	cmp= cuma->curve;

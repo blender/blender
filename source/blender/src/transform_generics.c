@@ -62,6 +62,9 @@
 #include "BIF_meshtools.h"
 #include "BIF_retopo.h"
 
+#include "BSE_editipo.h"
+#include "BSE_editipo_types.h"
+
 #ifdef WITH_VERSE
 #include "BIF_verse.h"
 #endif
@@ -229,7 +232,7 @@ void recalcData(TransInfo *t)
 		/* determine what type of data we are operating on */
 		data = get_action_context(&context);
 		if (data == NULL) return;
-	
+		
 		if (G.saction->lock) {
 			if (context == ACTCONT_ACTION) {
 				if(ob) {
@@ -258,6 +261,66 @@ void recalcData(TransInfo *t)
 			}
 			
 			DAG_scene_flush_update(G.scene, screen_view3d_layers());
+		}
+	}
+	else if (t->spacetype == SPACE_IPO) {
+		EditIpo *ei;
+		int dosort = 0;
+		int a;
+		
+		/* do the flush first */
+		flushTransIpoData(t);
+		
+		/* now test if there is a need to re-sort */
+		ei= G.sipo->editipo;
+		for (a=0; a<G.sipo->totipo; a++, ei++) {
+			if (ISPOIN(ei, flag & IPO_VISIBLE, icu)) {
+				
+				/* watch it: if the time is wrong: do not correct handles */
+				if (test_time_ipocurve(ei->icu) ) dosort++;
+				else testhandles_ipocurve(ei->icu);
+			}
+		}
+		
+		/* do resort and other updates? */
+		if (dosort) remake_ipo_transdata(t);
+		if (G.sipo->showkey) update_ipokey_val();
+		
+		calc_ipo(G.sipo->ipo, (float)CFRA);
+		
+		/* update realtime - not working? */
+		if (G.sipo->lock) {
+			if (G.sipo->blocktype==ID_MA || G.sipo->blocktype==ID_TE) {
+				do_ipo(G.sipo->ipo);
+			}
+			else if(G.sipo->blocktype==ID_CA) {
+				do_ipo(G.sipo->ipo);
+			}
+			else if(G.sipo->blocktype==ID_KE) {
+				Object *ob= OBACT;
+				if(ob) {
+					ob->shapeflag &= ~OB_SHAPE_TEMPLOCK;
+					DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+				}
+			}
+			else if(G.sipo->blocktype==ID_PO) {
+				Object *ob= OBACT;
+				if(ob && ob->pose) {
+					DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+				}
+			}
+			else if(G.sipo->blocktype==ID_OB) {
+				Base *base= FIRSTBASE;
+				
+				while(base) {
+					if(base->object->ipo==G.sipo->ipo) {
+						do_ob_ipo(base->object);
+						base->object->recalc |= OB_RECALC_OB;
+					}
+					base= base->next;
+				}
+				DAG_scene_flush_update(G.scene, screen_view3d_layers());
+			}
 		}
 	}
 	else if (G.obedit) {

@@ -970,10 +970,10 @@ static void do_image_uvsmenu(void *arg, int event)
 		else G.sima->flag |= SI_CLIP_UV;
 		break;
 	case 3: /* Limit Stitch UVs */
-		stitch_uv_tface(1);
+		stitch_limit_uv_tface();
 		break;
 	case 4: /* Stitch UVs */
-		stitch_uv_tface(0);
+		stitch_vert_uv_tface();
 		break;
 	case 5: /* Proportional Edit (toggle) */
 		if(G.scene->proportional)

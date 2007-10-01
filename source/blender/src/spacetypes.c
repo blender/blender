@@ -52,6 +52,7 @@
 struct _SpaceType {
 	char			name[32];
 	
+	SpacePrefetchDrawFP winprefetchdraw;
 	SpaceDrawFP		windraw;
 	SpaceChangeFP	winchange;
 	SpaceHandleFP	winhandle;
@@ -70,8 +71,9 @@ SpaceType *spacetype_new(char *name)
 	return st;
 }
 
-void spacetype_set_winfuncs(SpaceType *st, SpaceDrawFP draw, SpaceChangeFP change, SpaceHandleFP handle) 
+void spacetype_set_winfuncs(SpaceType *st, SpacePrefetchDrawFP prefetchdraw, SpaceDrawFP draw, SpaceChangeFP change, SpaceHandleFP handle) 
 {
+	st->winprefetchdraw = prefetchdraw;
 	st->windraw= draw;
 	st->winchange= change;
 	st->winhandle= handle;
@@ -102,6 +104,17 @@ static SpaceType *spacetype_from_area(ScrArea *area)
 		newspace(area, SPACE_VIEW3D);
 		return spaceview3d_get_type();
 		return NULL;
+	}
+}
+
+void scrarea_do_winprefetchdraw(ScrArea *area)
+{
+	SpaceType *st= spacetype_from_area(area);
+	
+	areawinset(area->win);
+
+	if(area->win && st->winprefetchdraw) {
+		st->winprefetchdraw(area, area->spacedata.first);
 	}
 }
 

@@ -2410,9 +2410,14 @@ static int draw_mesh_object(Base *base, int dt, int flag)
 		if(dt>OB_WIRE) init_gl_materials(ob, 0);	// no transp in editmode, the fancy draw over goes bad then
 		draw_em_fancy(ob, G.editMesh, cageDM, finalDM, dt);
 
-		if (cageDM != finalDM)
+		/* TODO, not 100% sure this is correct,
+		 * however I could not make it crash or leak ram with different
+		 * linked-dup/modifier configurtions,
+		 * should double check whats going on before release - Campbell */
+		if (cageDM != finalDM) {
 			cageDM->release(cageDM);
-		finalDM->release(finalDM);
+			finalDM->release(finalDM);
+		}
 	}
 	else if(!G.obedit && (G.f & G_SCULPTMODE) &&(G.scene->sculptdata.flags & SCULPT_DRAW_FAST) &&
 	        OBACT==ob && !sculpt_modifiers_active(ob)) {

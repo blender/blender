@@ -94,6 +94,7 @@ struct SpaceOops;
 #define B_RECALCLIGHT 	3310
 
 
+void	scrarea_do_winprefetchdraw	(struct ScrArea *sa);
 void	scrarea_do_windraw		(struct ScrArea *sa);
 void	scrarea_do_winchange	(struct ScrArea *sa);
 void	scrarea_do_winhandle	(struct ScrArea *sa, struct BWinEvent *evt);

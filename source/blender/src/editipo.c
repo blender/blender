@@ -117,6 +117,7 @@
 
 #include "blendef.h"
 #include "mydevice.h"
+#include "transform.h"
 
 extern int ob_ar[];
 extern int ma_ar[];
@@ -4763,484 +4764,391 @@ void movekey_obipo(int dir)		/* only call external from view3d queue */
 
 }
 /* **************************************************** */
+/* IPO TRANSFORM TOOLS 
+ * 
+ * Only the helper functions are stored here these days. They are here as
+ * there are heaps of ugly globals which the IPO editor relies on. 
+ * However, the actual transforms go through the transform system these days.
+ */
 
-
-void remake_ipo_transverts(TransVert *transmain, float *dvec, int tot)
+/* Helper function for make_ipo_transdata, which is reponsible for associating
+ * source data with transform data
+ */
+static void bezt_to_transdata (TransData *td, TransData2D *td2d, float *loc, float *cent, short selected, short onlytime)
 {
+	/* New location from td gets dumped onto the old-location of td2d, which then
+	 * gets copied to the actual data at td2d->loc2d (bezt->vec[n])
+	 *
+	 * Due to NLA scaling, we apply NLA scaling to some of the verts here,
+	 * and then that scaling will be undone after transform is done.
+	 */
+	
+	if (NLA_IPO_SCALED) {
+		td2d->loc[0] = get_action_frame_inv(OBACT, loc[0]);
+		td2d->loc[1] = loc[1];
+		td2d->loc[2] = 0.0f;
+		td2d->loc2d = loc;
+		
+		td->flag = 0;
+		td->loc = td2d->loc;
+		VECCOPY(td->center, cent);
+		VECCOPY(td->iloc, td->loc);
+	}
+	else {
+		td2d->loc[0] = loc[0];
+		td2d->loc[1] = loc[1];
+		td2d->loc[2] = 0.0f;
+		td2d->loc2d = loc;
+		
+		td->flag = 0;
+		td->loc = td2d->loc;
+		VECCOPY(td->center, cent);
+		VECCOPY(td->iloc, td->loc);
+	}
+
+	memset(td->axismtx, 0, sizeof(td->axismtx));
+	td->axismtx[2][2] = 1.0f;
+
+	td->ext= NULL; td->tdi= NULL; td->val= NULL;
+
+	if (selected) {
+		td->flag |= TD_SELECTED;
+		td->dist= 0.0;
+	}
+	else
+		td->dist= MAXFLOAT;
+	
+	if (onlytime)
+		td->flag |= TD_TIMEONLY;
+	
+	Mat3One(td->mtx);
+	Mat3One(td->smtx);
+}	
+ 
+/* This function is called by createTransIpoData and remake_ipo_transdata to
+ * create the TransData and TransData2D arrays for transform. The costly counting
+ * stage is only performed for createTransIpoData case, and is indicated by t->total==-1;
+ */
+void make_ipo_transdata (TransInfo *t)
+{
+	TransData *td = NULL;
+	TransData2D *td2d = NULL;
+	
 	EditIpo *ei;
-	TransVert *tv;
 	BezTriple *bezt;
 	int a, b;
 	
-	ei= G.sipo->editipo;
-	for(a=0; a<G.sipo->totipo; a++, ei++) {
-		
-		if (ISPOIN(ei, flag & IPO_VISIBLE, icu)) {
-				
-			if(ei->icu->bezt) {
-				sort_time_ipocurve(ei->icu);
-			}
+	/* countsel and propmode are used for proportional edit, which is not yet available */
+	int count=0/*, countsel=0*/;
+	/*int propmode = t->flag & T_PROP_EDIT;*/
+	
+	/* count data and allocate memory (if needed) */
+	if (t->total == 0) {
+		/* count data first */
+		if (totipo_vertsel) {
+			/* we're probably in editmode, so only selected verts */
+			count= totipo_vertsel;
 		}
-	}
-
-	ei= G.sipo->editipo;
-	tv= transmain;
-	for(a=0; a<G.sipo->totipo; a++, ei++) {
-		
-		if (ISPOIN(ei, flag & IPO_VISIBLE, icu)) {
-			if( (ei->flag & IPO_EDIT) || G.sipo->showkey) {
-				if(ei->icu->bezt) {
-					bezt= ei->icu->bezt;
-					b= ei->icu->totvert;
-					while(b--) {
-						if(ei->icu->ipo==IPO_BEZ) {
-							if(bezt->f1 & 1) {
-								tv->loc= bezt->vec[0];
-								tv++;
-							}
-							if(bezt->f3 & 1) {
-								tv->loc= bezt->vec[2];
-								tv++;
-							}
-						}
-						if(bezt->f2 & 1) {
-							tv->loc= bezt->vec[1];
-							tv++;
-						}
-						
-						bezt++;
-					}
-					testhandles_ipocurve(ei->icu);
+		else if (totipo_edit==0 && totipo_sel!=0) {
+			/* we're not in editmode, so entire curves get moved */
+			ei= G.sipo->editipo;
+			for (a=0; a<G.sipo->totipo; a++, ei++) {
+				if (ISPOIN3(ei, flag & IPO_VISIBLE, flag & IPO_SELECT, icu)) {
+					if (ei->icu->bezt && ei->icu->ipo==IPO_BEZ)
+						count+= 3*ei->icu->totvert;
+					else 
+						count+= ei->icu->totvert;
 				}
 			}
-		}
-	}
-	
-	if(G.sipo->showkey) make_ipokey();
-	
-	if(dvec==0) return;
-	
-	tv= transmain;
-	for(a=0; a<tot; a++, tv++) {
-		if (NLA_IPO_SCALED) {
-			tv->oldloc[0] = get_action_frame_inv(OBACT, tv->loc[0]);
-			tv->oldloc[0]-= dvec[0];
-			tv->oldloc[0] = get_action_frame(OBACT, tv->oldloc[0]);
+			if (count==0) return;
 		}
 		else {
-			tv->oldloc[0]= tv->loc[0]-dvec[0];
+			/* this case should not happen */
+			return;
 		}
-		tv->oldloc[1]= tv->loc[1]-dvec[1];
-	}
-}
-
-#define CLAMP_OFF	0
-#define CLAMP_X		1
-#define CLAMP_Y		2
-
-void transform_ipo(int mode)
-{
-	EditIpo *ei;
-	BezTriple *bezt;
-	TransVert *transmain = NULL, *tv;
-	float dx, dy, dvec[2], min[3], max[3], vec[2], div, cent[2], size[2], sizefac;
-	int tot=0, a, b, firsttime=1, afbreek=0, dosort, clampAxis=CLAMP_OFF;
-	unsigned short event = 0;
-	short mval[2], val, xo, yo, xn, yn, xc, yc;
-	char str[64];
-	
-	if(G.sipo->ipo && G.sipo->ipo->id.lib) return;
-	if(G.sipo->editipo==0) return;
-	if(mode=='r') return;	/* from gesture */
-	
-	INIT_MINMAX(min, max);
-	
-	/* which vertices are involved */
-	get_status_editipo();
-	if(totipo_vertsel) {
-		tot= totipo_vertsel;
-		tv=transmain= MEM_callocN(tot*sizeof(TransVert), "transmain");
 		
+		/* memory allocation */
+		/*t->total= (propmode)? count: countsel;*/
+		t->total= count;
+		t->data= MEM_callocN(t->total*sizeof(TransData), "TransData (IPO Editor)");
+			/* for each 2d vert a 3d vector is allocated, so that they can be treated just as if they were 3d verts */
+		t->data2d= MEM_callocN(t->total*sizeof(TransData2D), "TransData2D (IPO Editor)");
+	}
+	
+	td= t->data;
+	td2d= t->data2d;
+	
+	/* add verts */
+	if (totipo_vertsel) {
+		/* we're probably in editmode, so only selected verts */
 		ei= G.sipo->editipo;
-		for(a=0; a<G.sipo->totipo; a++, ei++) {
-			
+		for (a=0; a<G.sipo->totipo; a++, ei++) {
+			/* only consider those curves that are visible and are being edited/used for showkeys */
 			if (ISPOIN(ei, flag & IPO_VISIBLE, icu)) {
-				if( (ei->flag & IPO_EDIT) || G.sipo->showkey) {
-
-				
-					if(ei->icu->bezt) {
+				if ( (ei->flag & IPO_EDIT) || G.sipo->showkey) {
+					if (ei->icu->bezt) {
 						bezt= ei->icu->bezt;
-						b= ei->icu->totvert;
-						while(b--) {
-							if(ei->icu->ipo==IPO_BEZ) {
-								if(bezt->f1 & 1) {
-									tv->loc= bezt->vec[0];
-									VECCOPY(tv->oldloc, tv->loc);
-									if(ei->disptype==IPO_DISPBITS) tv->flag= 1;
-									
-									/* we take the middle vertex */
-									DO_MINMAX2(bezt->vec[1], min, max);
-
-									tv++;
-								}
-								if(bezt->f3 & 1) {
-									tv->loc= bezt->vec[2];
-									VECCOPY(tv->oldloc, tv->loc);
-									if(ei->disptype==IPO_DISPBITS) tv->flag= 1;
-									
-									/* we take the middle vertex */
-									DO_MINMAX2(bezt->vec[1], min, max);
-
-									tv++;
-								}
+						
+						for (b=0; b < ei->icu->totvert; b++, bezt++) {
+							/* only include handles if selected, and interpolaton mode uses beztriples */
+							if (ei->icu->ipo==IPO_BEZ) {
+								if (bezt->f1 & 1)
+									bezt_to_transdata(td++, td2d++, bezt->vec[0], bezt->vec[1], 1, (ei->disptype==IPO_DISPBITS));
+								if (bezt->f3 & 1)
+									bezt_to_transdata(td++, td2d++, bezt->vec[2], bezt->vec[1], 1, (ei->disptype==IPO_DISPBITS));
 							}
-							if(bezt->f2 & 1) {
-								tv->loc= bezt->vec[1];
-								VECCOPY(tv->oldloc, tv->loc);
-								if(ei->disptype==IPO_DISPBITS) tv->flag= 1;
-								DO_MINMAX2(bezt->vec[1], min, max);
-								tv++;
+							
+							/* only include main vert if selected */
+							if (bezt->f2 & 1) {
+								bezt_to_transdata(td++, td2d++, bezt->vec[1], bezt->vec[1], 1, (ei->disptype==IPO_DISPBITS));
 							}
-							bezt++;
 						}
 					}
 				}
 			}
 		}
-		
 	}
-	else if(totipo_edit==0 && totipo_sel!=0) {
-		
+	else if (totipo_edit==0 && totipo_sel!=0) {
+		/* we're not in editmode, so entire curves get moved */
 		ei= G.sipo->editipo;
-		for(a=0; a<G.sipo->totipo; a++, ei++) {
+		for (a=0; a<G.sipo->totipo; a++, ei++) {
+			/* only include curves that are visible and selected */
 			if (ISPOIN3(ei, flag & IPO_VISIBLE, flag & IPO_SELECT, icu)) {
-				if(ei->icu->bezt && ei->icu->ipo==IPO_BEZ) tot+= 3*ei->icu->totvert;
-				else tot+= ei->icu->totvert;
-			}
-		}
-		if(tot==0) return;
-		
-		tv=transmain= MEM_callocN(tot*sizeof(TransVert), "transmain");
-
-		ei= G.sipo->editipo;
-		for(a=0; a<G.sipo->totipo; a++, ei++) {
-			if (ISPOIN3(ei, flag & IPO_VISIBLE, flag & IPO_SELECT, icu)) {
-				if(ei->icu->bezt) {
-					
+				if (ei->icu->bezt) {
 					bezt= ei->icu->bezt;
 					b= ei->icu->totvert;
-					while(b--) {
-						if(ei->icu->ipo==IPO_BEZ) {
-							tv->loc= bezt->vec[0];
-							VECCOPY(tv->oldloc, tv->loc);
-							if(ei->disptype==IPO_DISPBITS) tv->flag= 1;
-							tv++;
-						
-							tv->loc= bezt->vec[2];
-							VECCOPY(tv->oldloc, tv->loc);
-							if(ei->disptype==IPO_DISPBITS) tv->flag= 1;
-							tv++;
+					for (b=0; b < ei->icu->totvert; b++, bezt++) {
+						/* only include handles if interpolation mode is bezier not bpoint */
+						if (ei->icu->ipo==IPO_BEZ) {
+							bezt_to_transdata(td++, td2d++, bezt->vec[0], bezt->vec[1], 1, (ei->disptype==IPO_DISPBITS));
+							bezt_to_transdata(td++, td2d++, bezt->vec[2], bezt->vec[1], 1, (ei->disptype==IPO_DISPBITS));
 						}
-						tv->loc= bezt->vec[1];
-						VECCOPY(tv->oldloc, tv->loc);
-						if(ei->disptype==IPO_DISPBITS) tv->flag= 1;
 						
-						DO_MINMAX2(bezt->vec[1], min, max);
-						
-						tv++;
-						
-						bezt++;
+						/* always include the main handle */
+						bezt_to_transdata(td++, td2d++, bezt->vec[1], bezt->vec[1], 1, (ei->disptype==IPO_DISPBITS));
 					}
 				}
 			}
 		}
-
 	}
+}
 
-	if(tot==0) {
-		if(totipo_edit==0) move_keys(OBACT);
-		return;
+/* ------------------------ */
+
+/* struct for use in re-sorting BezTriples during IPO transform */
+typedef struct BeztMap {
+	BezTriple *bezt;
+	int oldIndex;
+	int newIndex;
+	short handles;
+} BeztMap;
+
+#define BEZM_FLIPH 		1
+#define BEZM_CLEARH1	2
+#define BEZM_CLEARH2	4
+
+/* This function converts an IpoCurve's BezTriple array to a BeztMap array
+ * NOTE: this allocates memory that will need to get freed later
+ */
+static BeztMap *bezt_to_beztmaps (BezTriple *bezts, int totvert)
+{
+	BezTriple *bezt= bezts;
+	BeztMap *bezm, *bezms;
+	int i;
+	
+	/* allocate memory for this array */
+	if (totvert==0 || bezts==NULL)
+		return NULL;
+	bezm= bezms= MEM_callocN(sizeof(BeztMap)*totvert, "BeztMaps");
+	
+	/* assign beztriples to beztmaps */
+	for (i=0; i < totvert; i++, bezm++, bezt++) {
+		bezm->bezt= bezt;
+		bezm->oldIndex= i;
+		bezm->newIndex= i;
 	}
-
-	cent[0]= (float)((min[0]+max[0])/2.0);
-	cent[1]= (float)((min[1]+max[1])/2.0);
-
-	if(G.sipo->showkey) {
-		clampAxis = CLAMP_Y;
-	}
 	
-	ipoco_to_areaco(G.v2d, cent, mval);
-	xc= mval[0];
-	yc= mval[1];
-	
-	getmouseco_areawin(mval);
-	xo= xn= mval[0];
-	yo= yn= mval[1];
-	dvec[0]= dvec[1]= 0.0;
-	
-	sizefac= (float)(sqrt( (float)((yc-yn)*(yc-yn)+(xn-xc)*(xn-xc)) ));
-	if(sizefac<2.0) sizefac= 2.0;
+	return bezms;
+}
 
-	while(afbreek==0) {
-		getmouseco_areawin(mval);
-		if(mval[0]!=xo || mval[1]!=yo || firsttime) {
-			
-			if(mode=='g') {
-			
-				dx= (float)(mval[0]- xo);
-				dy= (float)(mval[1]- yo);
+/* This function copies the code of sort_time_ipocurve, but acts on BeztMap structs instead */
+static void sort_time_beztmaps (BeztMap *bezms, int totvert)
+{
+	BeztMap *bezm;
+	int i, ok= 1;
 	
-				div= (float)(G.v2d->mask.xmax-G.v2d->mask.xmin);
-				dvec[0]+= (G.v2d->cur.xmax-G.v2d->cur.xmin)*(dx)/div;
-	
-				div= (float)(G.v2d->mask.ymax-G.v2d->mask.ymin);
-				dvec[1]+= (G.v2d->cur.ymax-G.v2d->cur.ymin)*(dy)/div;
-				
-				if(clampAxis) dvec[clampAxis-1]= 0.0;
-				
-				/* vec is reused below: remake_ipo_transverts */
-				vec[0]= dvec[0];
-				vec[1]= dvec[1];
-				
-				apply_keyb_grid(vec, 0.0, (float)1.0, (float)0.1, U.flag & USER_AUTOGRABGRID);
-				apply_keyb_grid(vec+1, 0.0, (float)1.0, (float)0.1, 0);
-				
-				tv= transmain;
-				for(a=0; a<tot; a++, tv++) {
-					/* adjust times for scaled ipos */
-					if (NLA_IPO_SCALED) {
-						tv->loc[0] = get_action_frame_inv(OBACT, tv->oldloc[0]);
-						tv->loc[0]+= vec[0];
-						tv->loc[0] = get_action_frame(OBACT, tv->loc[0]);
-					}
-					else {
-						tv->loc[0]= tv->oldloc[0]+vec[0];
-					}
-
-					if(tv->flag==0) tv->loc[1]= tv->oldloc[1]+vec[1];
-				}
-				
-				if (clampAxis == CLAMP_Y)
-					sprintf(str, "X: %.3f  ", vec[0]);
-				else if (clampAxis == CLAMP_X)
-					sprintf(str, "Y: %.3f  ", vec[1]);
-				else
-					sprintf(str, "X: %.3f   Y: %.3f  ", vec[0], vec[1]);
-				
-				headerprint(str);
-			}
-			else if(mode=='s') {
-				
-				size[0]=size[1]=(float)( (sqrt( (float)((yc-mval[1])*(yc-mval[1])+(mval[0]-xc)*(mval[0]-xc)) ))/sizefac);
-				
-				if(clampAxis) size[clampAxis-1]= 1.0;
-				
-				apply_keyb_grid(size, 0.0, (float)0.2, (float)0.1, U.flag & USER_AUTOSIZEGRID);
-				apply_keyb_grid(size+1, 0.0, (float)0.2, (float)0.1, U.flag & USER_AUTOSIZEGRID);
-
-				tv= transmain;
-
-				for(a=0; a<tot; a++, tv++) {
-					/* adjust times for scaled ipo's */
-					if (NLA_IPO_SCALED) {
-						tv->loc[0] = get_action_frame_inv(OBACT, tv->oldloc[0]) - get_action_frame_inv(OBACT, cent[0]);
-						tv->loc[0]*= size[0];
-						tv->loc[0]+= get_action_frame_inv(OBACT, cent[0]);
-						tv->loc[0] = get_action_frame(OBACT, tv->loc[0]);
-					}
-					else {
-						tv->loc[0]= size[0]*(tv->oldloc[0]-cent[0])+ cent[0];
-					}
+	/* keep repeating the process until nothing is out of place anymore */
+	while (ok) {
+		ok= 0;
+		
+		bezm= bezms;
+		i= totvert;
+		while (i--) {
+			/* is current bezm out of order (i.e. occurs later than next)? */
+			if (i > 0) {
+				if ( bezm->bezt->vec[1][0] > (bezm+1)->bezt->vec[1][0]) {
+					bezm->newIndex++;
+					(bezm+1)->newIndex--;
 					
-					if(tv->flag==0) tv->loc[1]= size[1]*(tv->oldloc[1]-cent[1])+ cent[1];
-				}
-				
-				if (clampAxis == CLAMP_Y)
-					sprintf(str, "scaleX: %.3f  ", size[0]);
-				else if (clampAxis == CLAMP_X)
-					sprintf(str, "scaleY: %.3f  ", size[1]);
-				else
-					sprintf(str, "scaleX: %.3f   scaleY: %.3f  ", size[0], size[1]);
-				
-				headerprint(str);
-				
-			}
-			
-			xo= mval[0];
-			yo= mval[1];
-				
-			dosort= 0;
-			ei= G.sipo->editipo;
-			for(a=0; a<G.sipo->totipo; a++, ei++) {
-				if (ISPOIN(ei, flag & IPO_VISIBLE, icu)) {
+					SWAP(BeztMap, *bezm, *(bezm+1));
 					
-					/* watch it: if the time is wrong: do not correct handles */
-					if (test_time_ipocurve(ei->icu) ) dosort++;
-					else testhandles_ipocurve(ei->icu);
+					ok= 1;
 				}
 			}
 			
-			if(dosort) {
-				if(mode=='g') remake_ipo_transverts(transmain, vec, tot);
-				else remake_ipo_transverts(transmain, 0, tot);
-			}
-			if(G.sipo->showkey) update_ipokey_val();
-			
-			calc_ipo(G.sipo->ipo, (float)CFRA);
-
-			/* update realtime */
-			if(G.sipo->lock) {
-				if(G.sipo->blocktype==ID_MA || G.sipo->blocktype==ID_TE) {
-					do_ipo(G.sipo->ipo);
-					force_draw_plus(SPACE_BUTS, 0);
-				}
-				else if(G.sipo->blocktype==ID_CA) {
-					do_ipo(G.sipo->ipo);
-					force_draw_plus(SPACE_VIEW3D, 0);
-				}
-				else if(G.sipo->blocktype==ID_KE) {
-					Object *ob= OBACT;
-					if(ob) {
-						ob->shapeflag &= ~OB_SHAPE_TEMPLOCK;
-						DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-					}
-					force_draw_plus(SPACE_VIEW3D, 0);
-				}
-				else if(G.sipo->blocktype==ID_PO) {
-					Object *ob= OBACT;
-					if(ob && ob->pose) {
-						DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-					}
-					force_draw_plus(SPACE_VIEW3D, 0);
-				}
-				else if(G.sipo->blocktype==ID_OB) {
-					Base *base= FIRSTBASE;
-					
-					while(base) {
-						if(base->object->ipo==G.sipo->ipo) {
-							do_ob_ipo(base->object);
-							base->object->recalc |= OB_RECALC_OB;
-						}
-						base= base->next;
-					}
-					DAG_scene_flush_update(G.scene, screen_view3d_layers());
-					force_draw_plus(SPACE_VIEW3D, 0);
-				}
-				else force_draw(0);
+			/* swap order of handles or snap handles to centre-point? */
+			if (bezm->bezt->vec[0][0]>bezm->bezt->vec[1][0] && bezm->bezt->vec[2][0]<bezm->bezt->vec[1][0]) {
+				bezm->handles ^= BEZM_FLIPH;
 			}
 			else {
-				force_draw(0);
+				if (bezm->bezt->vec[0][0]>bezm->bezt->vec[1][0]) bezm->handles ^= BEZM_CLEARH1;
+				if (bezm->bezt->vec[2][0]<bezm->bezt->vec[1][0]) bezm->handles ^= BEZM_CLEARH2;
 			}
-			firsttime= 0;
-		}
-		else BIF_wait_for_statechange();
-		
-		while(qtest()) {
-			event= extern_qread(&val);
-			if(val) {
-				switch(event) {
-				case ESCKEY:
-				case LEFTMOUSE:
-				case RIGHTMOUSE:
-				case SPACEKEY:
-				case RETKEY:
-					afbreek= 1;
-					break;
-				case MIDDLEMOUSE:
-					if(G.sipo->showkey==0) {
-						if (clampAxis == CLAMP_OFF)
-						{
-							if( abs(mval[0]-xn) > abs(mval[1]-yn))
-								clampAxis = CLAMP_Y;
-							else
-								clampAxis = CLAMP_X;
-						}
-						else
-						{
-							clampAxis = CLAMP_OFF;
-						}
-						firsttime= 1;
+			
+			bezm++;
+		}	
+	}
+}
+
+/* This function firstly adjusts the pointers that the transdata has to each BezTriple*/
+static void beztmap_to_data (TransInfo *t, EditIpo *ei, BeztMap *bezms, int totvert)
+{
+	BezTriple *bezts = ei->icu->bezt;
+	BeztMap *bezm;
+	TransData2D *td;
+	int i, j;
+	
+	/* for each beztmap item, find if it is used anywhere */
+	bezm= bezms;
+	for (i= 0; i < totvert; i++, bezm++) {
+		/* loop through transdata, testing if we have a hit */
+		td= t->data2d;
+		for (j= 0; j < t->total; j++, td++) {
+			if (totipo_vertsel) {
+				/* only selected verts */
+				if (ei->icu->ipo==IPO_BEZ) {
+					if (bezm->bezt->f1 & 1) {
+						if (td->loc2d == bezm->bezt->vec[0])
+							td->loc2d= (bezts + bezm->newIndex)->vec[0];
 					}
-					break;
-				case XKEY:
-					/* clampAxis is the axis that will be Zeroed out, which is why we clamp
-					 * on Y when pressing X
-					 */
-					if (clampAxis == CLAMP_Y) 
-						clampAxis = CLAMP_OFF; // Clamp Off if already on Y
-					else 
-						clampAxis = CLAMP_Y; // On otherwise
-					firsttime= 1;
-					break;
-				case YKEY:
-					/* clampAxis is the axis that will be Zeroed out, which is why we clamp
-					 * on X when pressing Y
-					 */
-					if (clampAxis == CLAMP_X) 
-						clampAxis = CLAMP_OFF; // Clamp Off if already on X
-					else 
-						clampAxis = CLAMP_X; // On otherwise
-					firsttime= 1;
-					break;
-				case LEFTCTRLKEY:
-				case RIGHTCTRLKEY:
-					firsttime= 1;
-					break;
-				default:
-					if(mode=='g') {
-						if(G.qual & LR_CTRLKEY) {
-							if(event==LEFTARROWKEY) {dvec[0]-= 1.0; firsttime= 1;}
-							else if(event==RIGHTARROWKEY) {dvec[0]+= 1.0; firsttime= 1;}
-							else if(event==UPARROWKEY) {dvec[1]+= 1.0; firsttime= 1;}
-							else if(event==DOWNARROWKEY) {dvec[1]-= 1.0; firsttime= 1;}
-						}
-						else arrows_move_cursor(event);
+					if (bezm->bezt->f3 & 1) {
+						if (td->loc2d == bezm->bezt->vec[2])
+							td->loc2d= (bezts + bezm->newIndex)->vec[2];
 					}
-					else arrows_move_cursor(event);
+				}
+				if (bezm->bezt->f2 & 1) {
+					if (td->loc2d == bezm->bezt->vec[1])
+						td->loc2d= (bezts + bezm->newIndex)->vec[1];
 				}
 			}
-			if(afbreek) break;
+			else {
+				/* whole curve */
+				if (ei->icu->ipo==IPO_BEZ) {
+					if (td->loc2d == bezm->bezt->vec[0]) {
+						td->loc2d= (bezts + bezm->newIndex)->vec[0];
+					}
+					
+					if (td->loc2d == bezm->bezt->vec[2]) {
+						td->loc2d= (bezts + bezm->newIndex)->vec[2];
+					}
+				}
+				if (td->loc2d == bezm->bezt->vec[1]) {
+					td->loc2d= (bezts + bezm->newIndex)->vec[1];
+				}
+			}
 		}
+		
+	}
+}
+
+/* This function is called by recalcData during the Transform loop to recalculate 
+ * the handles of curves and sort the keyframes so that the curves draw correctly.
+ * It is only called if some keyframes have moved out of order.
+ */
+void remake_ipo_transdata (TransInfo *t)
+{
+	EditIpo *ei;
+	int a;
+	
+	/* sort and reassign verts */
+	ei= G.sipo->editipo;
+	for (a=0; a<G.sipo->totipo; a++, ei++) {
+		if (ISPOIN(ei, flag & IPO_VISIBLE, icu)) {
+			if (ei->icu->bezt) {
+				BeztMap *bezm;
+				
+				/* adjust transform-data pointers */
+				bezm= bezt_to_beztmaps(ei->icu->bezt, ei->icu->totvert);
+				sort_time_beztmaps(bezm, ei->icu->totvert);
+				beztmap_to_data(t, ei, bezm, ei->icu->totvert);
+				
+				/* re-sort actual beztriples (perhaps this could be done using the beztmaps to save time?) */
+				sort_time_ipocurve(ei->icu);
+				
+				/* free mapping stuff */
+				MEM_freeN(bezm);
+				
+				/* make sure handles are all set correctly */
+				testhandles_ipocurve(ei->icu);
+			}
+		}
+	}
+		
+	/* remake ipokeys */
+	if (G.sipo->showkey) make_ipokey();
+}
+
+/* This function acts as the entrypoint for transforms in the IPO editor (as for
+ * the Action and NLA editors). The actual transform loop is not here anymore.
+ */
+void transform_ipo (int mode)
+{
+	short tmode;
+	
+	/* data-validation */
+	if (G.sipo->ipo && G.sipo->ipo->id.lib) return;
+	if (G.sipo->editipo==0) return;
+	
+	/* convert ascii-based mode to transform system constants (mode) */
+	switch (mode) {
+		case 'g':	
+			tmode= TFM_TRANSLATION;
+			break;
+		case 'r':
+			tmode= TFM_ROTATION;
+			break;
+		case 's':
+			tmode= TFM_RESIZE;
+			break;
+		default:
+			tmode= 0;
+			return;
 	}
 	
-	if(event==ESCKEY || event==RIGHTMOUSE) {
-		tv= transmain;
-		for(a=0; a<tot; a++, tv++) {
-			tv->loc[0]= tv->oldloc[0];
-			tv->loc[1]= tv->oldloc[1];
-		}
-		
-		dosort= 0;
-		ei= G.sipo->editipo;
-		for(a=0; a<G.sipo->totipo; a++, ei++) {
-			if (ISPOIN(ei, flag & IPO_VISIBLE, icu)) {
-				if( (ei->flag & IPO_EDIT) || G.sipo->showkey) {
-					if( test_time_ipocurve(ei->icu)) {
-						dosort= 1;
-						break;
-					}
-				}
-			}
-		}
-		
-		if(dosort) remake_ipo_transverts(transmain, 0, tot);
-		
-		ei= G.sipo->editipo;
-		for(a=0; a<G.sipo->totipo; a++, ei++) {
-			if (ISPOIN(ei, flag & IPO_VISIBLE, icu)) {
-				if( (ei->flag & IPO_EDIT) || G.sipo->showkey) {
-					testhandles_ipocurve(ei->icu);
-				}
-			}
-		}
-		calc_ipo(G.sipo->ipo, (float)CFRA);
+	/* the transform system method involved depends on the selection */
+	get_status_editipo();
+	if (totipo_vertsel) {
+		/* we're probably in editmode, so only selected verts - transform system */
+		initTransform(tmode, CTX_NONE);
+		Transform();
 	}
-	else BIF_undo_push("Transform Ipo");
-
+	else if (totipo_edit==0 && totipo_sel!=0) {
+		/* we're not in editmode, so entire curves get moved - transform system*/
+		initTransform(tmode, CTX_NONE);
+		Transform();
+	}
+	else {
+		/* shapekey mode? special transform code */
+		if (totipo_edit==0) 
+			move_keys(OBACT);
+		return;
+	}
+	
+	/* cleanup */
 	editipo_changed(G.sipo, 1);
-
-	MEM_freeN(transmain);
 }
+
+/**************************************************/
 
 void filter_sampledata(float *data, int sfra, int efra)
 {

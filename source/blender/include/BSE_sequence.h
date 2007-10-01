@@ -60,6 +60,15 @@ void set_meta_stripdata(struct Sequence *seqm);
 struct ImBuf *give_ibuf_seq(int rectx, int recty, int cfra, int chansel); 
 /* chansel: render this channel. Default=0 (renders end result)*/
 
+/* sequence prefetch API */
+void seq_start_threads();
+void seq_stop_threads();
+void give_ibuf_prefetch_request(int rectx, int recty, int cfra, int chanshown);
+void seq_wait_for_prefetch_ready();
+struct ImBuf * give_ibuf_threaded(int rectx, int recty, int cfra, 
+				  int chanshown);
+
+
 void free_imbuf_seq_except(int cfra);
 void free_imbuf_seq_with_ipo(struct Ipo * ipo);
 void free_imbuf_seq(void);

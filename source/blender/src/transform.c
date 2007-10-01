@@ -267,14 +267,24 @@ void convertViewVec(TransInfo *t, float *vec, short dx, short dy)
 	}
 	else if(t->spacetype==SPACE_IMAGE) {
 		float divx, divy, aspx, aspy;
-
+		
 		transform_aspect_ratio_tface_uv(&aspx, &aspy);
-
+		
 		divx= G.v2d->mask.xmax-G.v2d->mask.xmin;
 		divy= G.v2d->mask.ymax-G.v2d->mask.ymin;
-
+		
 		vec[0]= aspx*(G.v2d->cur.xmax-G.v2d->cur.xmin)*(dx)/divx;
 		vec[1]= aspy*(G.v2d->cur.ymax-G.v2d->cur.ymin)*(dy)/divy;
+		vec[2]= 0.0f;
+	}
+	else if(t->spacetype==SPACE_IPO) {
+		float divx, divy;
+		
+		divx= G.v2d->mask.xmax-G.v2d->mask.xmin;
+		divy= G.v2d->mask.ymax-G.v2d->mask.ymin;
+		
+		vec[0]= (G.v2d->cur.xmax-G.v2d->cur.xmin)*(dx) / (divx);
+		vec[1]= (G.v2d->cur.ymax-G.v2d->cur.ymin)*(dy) / (divy);
 		vec[2]= 0.0f;
 	}
 }
@@ -285,12 +295,19 @@ void projectIntView(TransInfo *t, float *vec, int *adr)
 		project_int(vec, adr);
 	else if(t->spacetype==SPACE_IMAGE) {
 		float aspx, aspy, v[2];
-
+		
 		transform_aspect_ratio_tface_uv(&aspx, &aspy);
 		v[0]= vec[0]/aspx;
 		v[1]= vec[1]/aspy;
-
+		
 		uvco_to_areaco_noclip(v, adr);
+	}
+	else if(t->spacetype==SPACE_IPO) {
+		short out[2] = {0.0f, 0.0f};
+		
+		ipoco_to_areaco(G.v2d, vec, out);
+		adr[0]= out[0];
+		adr[1]= out[1];
 	}
 }
 
@@ -300,7 +317,14 @@ void projectFloatView(TransInfo *t, float *vec, float *adr)
 		project_float(vec, adr);
 	else if(t->spacetype==SPACE_IMAGE) {
 		int a[2];
-
+		
+		projectIntView(t, vec, a);
+		adr[0]= a[0];
+		adr[1]= a[1];
+	}
+	else if(t->spacetype==SPACE_IPO) {
+		int a[2];
+		
 		projectIntView(t, vec, a);
 		adr[0]= a[0];
 		adr[1]= a[1];
@@ -638,14 +662,19 @@ static void transformEvent(unsigned short event, short val) {
 		case XKEY:
 			if ((Trans.flag & T_NO_CONSTRAINT)==0) {
 				if (cmode == 'X') {
-					if (Trans.con.mode & CON_USER) {
+					if (Trans.flag & T_2D_EDIT) {
 						stopConstraint(&Trans);
 					}
 					else {
-						if (G.qual == 0)
-							setUserConstraint(&Trans, (CON_AXIS0), "along %s X");
-						else if ((G.qual == LR_SHIFTKEY) && ((Trans.flag & T_2D_EDIT)==0))
-							setUserConstraint(&Trans, (CON_AXIS1|CON_AXIS2), "locking %s X");
+						if (Trans.con.mode & CON_USER) {
+							stopConstraint(&Trans);
+						}
+						else {
+							if (G.qual == 0)
+								setUserConstraint(&Trans, (CON_AXIS0), "along %s X");
+							else if (G.qual == LR_SHIFTKEY)
+								setUserConstraint(&Trans, (CON_AXIS1|CON_AXIS2), "locking %s X");
+						}
 					}
 				}
 				else {
@@ -660,14 +689,19 @@ static void transformEvent(unsigned short event, short val) {
 		case YKEY:
 			if ((Trans.flag & T_NO_CONSTRAINT)==0) {
 				if (cmode == 'Y') {
-					if (Trans.con.mode & CON_USER) {
+					if (Trans.flag & T_2D_EDIT) {
 						stopConstraint(&Trans);
 					}
 					else {
-						if (G.qual == 0)
-							setUserConstraint(&Trans, (CON_AXIS1), "along %s Y");
-						else if ((G.qual == LR_SHIFTKEY) && ((Trans.flag & T_2D_EDIT)==0))
-							setUserConstraint(&Trans, (CON_AXIS0|CON_AXIS2), "locking %s Y");
+						if (Trans.con.mode & CON_USER) {
+							stopConstraint(&Trans);
+						}
+						else {
+							if (G.qual == 0)
+								setUserConstraint(&Trans, (CON_AXIS1), "along %s Y");
+							else if (G.qual == LR_SHIFTKEY)
+								setUserConstraint(&Trans, (CON_AXIS0|CON_AXIS2), "locking %s Y");
+						}
 					}
 				}
 				else {
@@ -1711,7 +1745,7 @@ int Resize(TransInfo *t, short mval[2])
 		ElementResize(t, td, mat);
 	}
 
-	/* evil hack - redo resize if cliiping needeed */
+	/* evil hack - redo resize if cliping needed */
 	if (t->flag & T_CLIP_UV && clipUVTransform(t, size, 1)) {
 		SizeToMat3(size, mat);
 
@@ -1833,6 +1867,9 @@ void initRotation(TransInfo *t)
 	t->snap[1] = (float)((5.0/180)*M_PI);
 	t->snap[2] = t->snap[1] * 0.2f;
 	t->fac = 0;
+	
+	if (t->flag & T_2D_EDIT)
+		t->flag |= T_NO_CONSTRAINT;
 }
 
 static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3]) {

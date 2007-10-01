@@ -174,6 +174,10 @@ public:
 		struct RAS_LightObject* lightobject
 	);
 
+	virtual
+		void
+	MotionBlur(RAS_IRasterizer* rasterizer)=0;
+
 	virtual 
 		class RAS_IPolyMaterial*	
 	CreateBlenderPolyMaterial(
@@ -194,4 +198,5 @@ public:
 };
 
 #endif //__RAS_IRENDERTOOLS
+
 

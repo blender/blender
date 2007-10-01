@@ -14,3 +14,6 @@ if env['WITH_BF_INTERNATIONAL']:
 
 if env['WITH_BF_VERSE']:
     SConscript(['verse/dist/SConstruct'])
+
+if env['WITH_BF_FFMPEG'] and env['BF_FFMPEG_LIB'] == '':
+    SConscript(['ffmpeg/SConscript']);

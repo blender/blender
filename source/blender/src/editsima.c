@@ -308,16 +308,100 @@ void weld_align_tface_uv(char tool)
 	object_uvs_changed(OBACT);
 }
 
+// just for averaging UV's
+typedef struct UVVertAverage {
+	float uv[2];
+	int count;
+} UVVertAverage;
+
+void stitch_vert_uv_tface(void)
+{
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
+	EditVert *eve;
+	MTFace *tface;
+	int count;
+	UVVertAverage *uv_average, *uvav;
+	
+	if( is_uv_tface_editing_allowed()==0 ) return;
+	
+	// index and count verts
+	for (count=0, eve=em->verts.first; eve; count++, eve= eve->next) {
+		eve->tmp.l = count;
+	}
+	
+	uv_average = MEM_callocN(sizeof(UVVertAverage) * count, "Stitch");
+	
+	// gather uv averages per vert
+	for (efa= em->faces.first; efa; efa= efa->next) {
+		tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+		if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+			if (SIMA_UVSEL_CHECK(efa, tface, 0)) {
+				uvav = uv_average + efa->v1->tmp.l;
+				uvav->count++;
+				uvav->uv[0] += tface->uv[0][0];
+				uvav->uv[1] += tface->uv[0][1];
+			}
+			if (SIMA_UVSEL_CHECK(efa, tface, 1)) {
+				uvav = uv_average + efa->v2->tmp.l;
+				uvav->count++;
+				uvav->uv[0] += tface->uv[1][0];
+				uvav->uv[1] += tface->uv[1][1];
+			}
+			if (SIMA_UVSEL_CHECK(efa, tface, 2)) {
+				uvav = uv_average + efa->v3->tmp.l;
+				uvav->count++;
+				uvav->uv[0] += tface->uv[2][0];
+				uvav->uv[1] += tface->uv[2][1];
+			}
+			if (efa->v4 && SIMA_UVSEL_CHECK(efa, tface, 3)) {
+				uvav = uv_average + efa->v4->tmp.l;
+				uvav->count++;
+				uvav->uv[0] += tface->uv[3][0];
+				uvav->uv[1] += tface->uv[3][1];
+			}
+		}
+	}
+	
+	// apply uv welding
+	for (efa= em->faces.first; efa; efa= efa->next) {
+		tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+		if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+			if (SIMA_UVSEL_CHECK(efa, tface, 0)) {
+				uvav = uv_average + efa->v1->tmp.l;
+				tface->uv[0][0] = uvav->uv[0]/uvav->count;
+				tface->uv[0][1] = uvav->uv[1]/uvav->count;
+			}
+			if (SIMA_UVSEL_CHECK(efa, tface, 1)) {
+				uvav = uv_average + efa->v2->tmp.l;
+				tface->uv[1][0] = uvav->uv[0]/uvav->count;
+				tface->uv[1][1] = uvav->uv[1]/uvav->count;
+			}
+			if (SIMA_UVSEL_CHECK(efa, tface, 2)) {
+				uvav = uv_average + efa->v3->tmp.l;
+				tface->uv[2][0] = uvav->uv[0]/uvav->count;
+				tface->uv[2][1] = uvav->uv[1]/uvav->count;
+			}
+			if (efa->v4 && SIMA_UVSEL_CHECK(efa, tface, 3)) {
+				uvav = uv_average + efa->v4->tmp.l;
+				tface->uv[3][0] = uvav->uv[0]/uvav->count;
+				tface->uv[3][1] = uvav->uv[1]/uvav->count;
+			}
+		}
+	}
+	MEM_freeN(uv_average);
+	object_uvs_changed(OBACT);
+}
+
 void weld_align_menu_tface_uv(void)
 {
 	short mode= 0;
 
 	if( is_uv_tface_editing_allowed()==0 ) return;
 
-	mode= pupmenu("Weld/Align%t|Weld%x1|Align X%x2|Align Y%x3|");
+	mode= pupmenu("Weld/Align%t|Weld%x1|Align X%x2|Align Y%x3");
 
 	if(mode==-1) return;
-
 	if(mode==1) weld_align_tface_uv('w');
 	else if(mode==2) weld_align_tface_uv('x');
 	else if(mode==3) weld_align_tface_uv('y');
@@ -1027,7 +1111,7 @@ void snap_menu_sima(void)
 	short event;
 	if( is_uv_tface_editing_allowed()==0 || !G.v2d) return; /* !G.v2d should never happen */
 	
-	event = pupmenu("Snap %t|Selection -> Pixels%x1|Selection -> Cursor%x2|Selection -> Adjacent Unselected%x3|Cursor-> Pixel%x3|Cursor-> Selection%x4");
+	event = pupmenu("Snap %t|Selection -> Pixels%x1|Selection -> Cursor%x2|Selection -> Adjacent Unselected%x3|Cursor -> Pixel%x4|Cursor -> Selection%x5");
 	switch (event) {
 		case 1:
 		    if (snap_uv_sel_to_pixels()) {
@@ -1201,12 +1285,12 @@ void mouseco_to_cursor_sima(void)
 	scrarea_queue_winredraw(curarea);
 }
 
-void stitch_uv_tface(int mode)
+void stitch_limit_uv_tface(void)
 {
 	MTFace *tf;
 	int a, vtot;
 	float newuv[2], limit[2];
-	UvMapVert *vlist, *iterv, *v;
+	UvMapVert *vlist, *iterv;
 	EditMesh *em = G.editMesh;
 	EditVert *ev;
 	EditFace *efa;
@@ -1222,11 +1306,9 @@ void stitch_uv_tface(int mode)
 	}
 	
 	limit[0]= limit[1]= 20.0;
-	if(mode==1) {
-		add_numbut(0, NUM|FLO, "Limit:", 0.1, 1000.0, &limit[0], NULL);
-		if (!do_clever_numbuts("Stitch UVs", 1, REDRAW))
-			return;
-	}
+	add_numbut(0, NUM|FLO, "Limit:", 0.1, 1000.0, &limit[0], NULL);
+	if (!do_clever_numbuts("Stitch UVs", 1, REDRAW))
+		return;
 
 	limit[0]= limit[1]= limit[0]/256.0;
 	if(G.sima->image) {
@@ -1244,20 +1326,20 @@ void stitch_uv_tface(int mode)
 	if(vmap == NULL)
 		return;
 
-	if(mode==0) {
-		for(a=0, ev= em->verts.first; ev; a++, ev= ev->next) {
-			v = get_uv_map_vert_EM(vmap, a);
+	for(a=0, ev= em->verts.first; ev; a++, ev= ev->next) {
+		vlist= get_uv_map_vert_EM(vmap, a);
 
-			if(v == NULL)
-				continue;
-
+		while(vlist) {
 			newuv[0]= 0; newuv[1]= 0;
 			vtot= 0;
 
-			for(iterv=v; iterv; iterv=iterv->next) {
+			for(iterv=vlist; iterv; iterv=iterv->next) {
+				if((iterv != vlist) && iterv->separate)
+					break;
 				efa = EM_get_face_for_index(iterv->f);
 				tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-				if (tf->flag & TF_SEL_MASK(iterv->tfindex)) {
+				
+				if (tf[iterv->f].flag & TF_SEL_MASK(iterv->tfindex)) {
 					newuv[0] += tf->uv[iterv->tfindex][0];
 					newuv[1] += tf->uv[iterv->tfindex][1];
 					vtot++;
@@ -1267,7 +1349,9 @@ void stitch_uv_tface(int mode)
 			if (vtot > 1) {
 				newuv[0] /= vtot; newuv[1] /= vtot;
 
-				for(iterv=v; iterv; iterv=iterv->next) {
+				for(iterv=vlist; iterv; iterv=iterv->next) {
+					if((iterv != vlist) && iterv->separate)
+						break;
 					efa = EM_get_face_for_index(iterv->f);
 					tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 					if (tf->flag & TF_SEL_MASK(iterv->tfindex)) {
@@ -1276,44 +1360,7 @@ void stitch_uv_tface(int mode)
 					}
 				}
 			}
-		}
-	} else if(mode==1) {
-		for(a=0, ev= em->verts.first; ev; a++, ev= ev->next) {
-			vlist= get_uv_map_vert_EM(vmap, a);
-
-			while(vlist) {
-				newuv[0]= 0; newuv[1]= 0;
-				vtot= 0;
-
-				for(iterv=vlist; iterv; iterv=iterv->next) {
-					if((iterv != vlist) && iterv->separate)
-						break;
-					efa = EM_get_face_for_index(iterv->f);
-					tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-					
-					if (tf[iterv->f].flag & TF_SEL_MASK(iterv->tfindex)) {
-						newuv[0] += tf->uv[iterv->tfindex][0];
-						newuv[1] += tf->uv[iterv->tfindex][1];
-						vtot++;
-					}
-				}
-
-				if (vtot > 1) {
-					newuv[0] /= vtot; newuv[1] /= vtot;
-
-					for(iterv=vlist; iterv; iterv=iterv->next) {
-						if((iterv != vlist) && iterv->separate)
-							break;
-						efa = EM_get_face_for_index(iterv->f);
-						tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-						if (tf->flag & TF_SEL_MASK(iterv->tfindex)) {
-							tf->uv[iterv->tfindex][0]= newuv[0];
-							tf->uv[iterv->tfindex][1]= newuv[1];
-						}
-					}
-				}
-				vlist= iterv;
-			}
+			vlist= iterv;
 		}
 	}
 

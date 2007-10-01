@@ -95,6 +95,7 @@ static int audio_pos;
 static int audio_scrub=0;
 static int audio_playing=0;
 static int audio_initialised=0;
+static int audio_startframe=0;
 /////
 //
 /* local protos ------------------- */
@@ -506,8 +507,9 @@ void audiostream_play(Uint32 startframe, Uint32 duration, int mixdown)
    		}
    	}
 
-	audio_pos = ( ((int)( (((float)startframe)
-			       /(float)G.scene->r.frs_sec)
+	audio_startframe = startframe;
+	audio_pos = ( ((int)( (( (double)startframe)
+			       /(double)G.scene->r.frs_sec)
 			      *(G.scene->audio.mixrate)*4 )) & (~3) );
 	
 	audio_scrub = duration;
@@ -537,8 +539,11 @@ int audiostream_pos(void)
 {
 	int pos;
 	
-	pos = (int) ( ((float)(audio_pos-U.mixbufsize)/( G.scene->audio.mixrate*4 ))*(float)G.scene->r.frs_sec );
-	if (pos<1) pos=1;
+	pos = (int) (((double)(audio_pos-U.mixbufsize)
+		      / ( G.scene->audio.mixrate*4 ))
+		     * (double)G.scene->r.frs_sec );
+
+	if (pos < audio_startframe) pos = audio_startframe;
 	return ( pos );
 }
 

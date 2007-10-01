@@ -1146,56 +1146,58 @@ static void contarget_get_mesh_mat (Object *ob, char *substring, float mat[][4])
 		int i, j, count = 0;
 		float co[3], nor[3];
 		
-		
-		/* get the average of all verts with that are in the vertex-group */
-		for (i = 0; i < numVerts; i++, index++) {	
-			for (j = 0; j < dvert[i].totweight; j++) {
-				/* does this vertex belong to nominated vertex group? */
-				if (dvert[i].dw[j].def_nr == dgroup) {
-					dm->getVertCo(dm, i, co);
-					dm->getVertNo(dm, i, nor);
-					VecAddf(vec, vec, co);
-					VecAddf(normal, normal, nor);
-					count++;
-					break;
+		/* check that dvert and index are valid pointers (just in case) */
+		if (dvert && index) {
+			/* get the average of all verts with that are in the vertex-group */
+			for (i = 0; i < numVerts; i++, index++) {	
+				for (j = 0; j < dvert[i].totweight; j++) {
+					/* does this vertex belong to nominated vertex group? */
+					if (dvert[i].dw[j].def_nr == dgroup) {
+						dm->getVertCo(dm, i, co);
+						dm->getVertNo(dm, i, nor);
+						VecAddf(vec, vec, co);
+						VecAddf(normal, normal, nor);
+						count++;
+						break;
+					}
+					
 				}
-				
 			}
+			
+			
+			/* calculate averages of normal and coordinates */
+			if (count > 0) {
+				VecMulf(vec, 1.0f / count);
+				VecMulf(normal, 1.0f / count);
+			}
+			
+			
+			/* derive the rotation from the average normal: 
+			 *		- code taken from transform_manipulator.c, 
+			 *			calc_manipulator_stats, V3D_MANIP_NORMAL case
+			 */
+			/*	we need the transpose of the inverse for a normal... */
+			Mat3CpyMat4(imat, ob->obmat);
+			
+			Mat3Inv(tmat, imat);
+			Mat3Transp(tmat);
+			Mat3MulVecfl(tmat, normal);
+			
+			Normalize(normal);
+			VECCOPY(plane, tmat[1]);
+			
+			VECCOPY(tmat[2], normal);
+			Crossf(tmat[0], normal, plane);
+			Crossf(tmat[1], tmat[2], tmat[0]);
+			
+			Mat4CpyMat3(mat, tmat);
+			Mat4Ortho(mat);
+			
+			
+			/* apply the average coordinate as the new location */
+			VecMat4MulVecfl(tvec, ob->obmat, vec);
+			VECCOPY(mat[3], tvec);
 		}
-		
-		
-		/* calculate averages of normal and coordinates */
-		if (count > 0) {
-			VecMulf(vec, 1.0f / count);
-			VecMulf(normal, 1.0f / count);
-		}
-		
-		
-		/* derive the rotation from the average normal: 
-		 *		- code taken from transform_manipulator.c, 
-		 *			calc_manipulator_stats, V3D_MANIP_NORMAL case
-		 */
-		/*	we need the transpose of the inverse for a normal... */
-		Mat3CpyMat4(imat, ob->obmat);
-		
-		Mat3Inv(tmat, imat);
-		Mat3Transp(tmat);
-		Mat3MulVecfl(tmat, normal);
-
-		Normalize(normal);
-		VECCOPY(plane, tmat[1]);
-		
-		VECCOPY(tmat[2], normal);
-		Crossf(tmat[0], normal, plane);
-		Crossf(tmat[1], tmat[2], tmat[0]);
-		
-		Mat4CpyMat3(mat, tmat);
-		Mat4Ortho(mat);
-		
-		
-		/* apply the average coordinate as the new location */
-		VecMat4MulVecfl(tvec, ob->obmat, vec);
-		VECCOPY(mat[3], tvec);
 	}
 	
 	/* free temporary DerivedMesh created (in EditMode case) */
@@ -1225,6 +1227,7 @@ static void contarget_get_lattice_mat (Object *ob, char *substring, float mat[][
 	/* get index of vertex group */
 	dgroup = get_named_vertexgroup_num(ob, substring);
 	if (dgroup < 0) return;
+	if (dvert == NULL) return;
 	
 	/* 1. Loop through control-points checking if in nominated vertex-group.
 	 * 2. If it is, add it to vec to find the average point.

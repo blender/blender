@@ -265,9 +265,10 @@ typedef struct TransInfo {
 #define TD_NOTCONNECTED		8
 #define TD_SINGLESIZE		16	/* used for scaling of MetaElem->rad */
 #ifdef WITH_VERSE
-#define TD_VERSE_OBJECT		32
-#define TD_VERSE_VERT		64
+	#define TD_VERSE_OBJECT		32
+	#define TD_VERSE_VERT		64
 #endif
+#define TD_TIMEONLY			128
 
 /* transsnap->status */
 #define SNAP_ON			1
@@ -350,6 +351,7 @@ int TimeScale(TransInfo *t, short mval[2]);
 
 /*********************** transform_conversions.c ********** */
 struct ListBase;
+void flushTransIpoData(TransInfo *t);
 void flushTransUVs(TransInfo *t);
 int clipUVTransform(TransInfo *t, float *vec, int resize);
 

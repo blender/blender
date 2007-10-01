@@ -136,6 +136,7 @@
 #include "BSE_filesel.h"
 #include "BSE_headerbuttons.h"
 #include "BSE_seqaudio.h"
+#include "BSE_sequence.h"
 #include "BSE_trans_types.h"
 #include "BSE_time.h"
 #include "BSE_view.h"
@@ -3172,13 +3173,20 @@ void drawview3d_render(struct View3D *v3d, int winx, int winy)
 
 
 double tottime = 0.0;
+static ScrArea *oldsa;
+static double swaptime;
+static int curmode;
 
 int update_time(void)
 {
 	static double ltime;
 	double time;
 
-	if ((U.mixbufsize)&&(audiostream_pos() != CFRA)&&(G.scene->audio.flag & AUDIO_SYNC)) return 0;
+	if ((U.mixbufsize)
+	    && (audiostream_pos() != CFRA)
+	    && (G.scene->audio.flag & AUDIO_SYNC)) {
+		return 0;
+	}
 
 	time = PIL_check_seconds_timer();
 	
@@ -3187,12 +3195,71 @@ int update_time(void)
 	return (tottime < 0.0);
 }
 
+static void inner_play_prefetch_frame(int mode, int cfra)
+{
+	ScrArea *sa;
+	int oldcfra = CFRA;
+	ScrArea *oldcurarea = curarea;
+
+	if (!U.prefetchframes) {
+		return;
+	}
+
+	CFRA = cfra;
+
+	sa= G.curscreen->areabase.first;
+	while(sa) {
+		if(sa==oldsa) {
+			scrarea_do_winprefetchdraw(sa);
+		}
+		else if(mode & 1) { /* all view3d and seq spaces */
+			if ELEM(sa->spacetype, SPACE_VIEW3D, SPACE_SEQ) {
+				scrarea_do_winprefetchdraw(sa);
+			}
+		}
+		else if(mode & 4) { /* all seq spaces */
+			if (sa->spacetype == SPACE_SEQ) {
+				scrarea_do_winprefetchdraw(sa);
+			}
+		}		
+		
+		sa= sa->next;	
+	}
+
+	CFRA = oldcfra;
+	curarea = oldcurarea;
+}
+
+static void inner_play_prefetch_startup(int mode)
+{
+	int i;
+
+	if (!U.prefetchframes) {
+		return;
+	}
+
+	seq_start_threads();
+
+	for (i = 0; i <= U.prefetchframes; i++) {
+		int cfra = CFRA + i;
+		inner_play_prefetch_frame(mode, cfra);
+	}
+
+	seq_wait_for_prefetch_ready();
+}
+
+static void inner_play_prefetch_shutdown(int mode)
+{
+	if (!U.prefetchframes) {
+		return;
+	}
+	seq_stop_threads();
+}
+
 void inner_play_anim_loop(int init, int mode)
 {
 	ScrArea *sa;
-	static ScrArea *oldsa;
-	static double swaptime;
-	static int curmode;
+	static int last_cfra = -1;
 
 	/* init */
 	if(init) {
@@ -3200,47 +3267,97 @@ void inner_play_anim_loop(int init, int mode)
 		swaptime= 1.0/(float)G.scene->r.frs_sec;
 		tottime= 0.0;
 		curmode= mode;
+		last_cfra = -1;
 
 		return;
 	}
 
-	set_timecursor(CFRA);
+	if (CFRA != last_cfra) {
+		int pf;
+		set_timecursor(CFRA);
 	
-	update_for_newframe_nodraw(1);	/* adds no events in UI */
+		update_for_newframe_nodraw(1);	/* adds no events in UI */
 
-	sa= G.curscreen->areabase.first;
-	while(sa) {
-		if(sa==oldsa) {
-			scrarea_do_windraw(sa);
-		}
-		else if(curmode & 1) { /* all view3d and seq spaces */
-			if ELEM(sa->spacetype, SPACE_VIEW3D, SPACE_SEQ) {
+		sa= G.curscreen->areabase.first;
+		while(sa) {
+			if(sa==oldsa) {
 				scrarea_do_windraw(sa);
 			}
-		}
-		else if(curmode & 4) { /* all seq spaces */
-			if (sa->spacetype == SPACE_SEQ) {
-				scrarea_do_windraw(sa);
+			else if(curmode & 1) { /* all view3d and seq spaces */
+				if ELEM(sa->spacetype, SPACE_VIEW3D, SPACE_SEQ) {
+					scrarea_do_windraw(sa);
+				}
 			}
-		}		
+			else if(curmode & 4) { /* all seq spaces */
+				if (sa->spacetype == SPACE_SEQ) {
+					scrarea_do_windraw(sa);
+				}
+			}		
 		
-		sa= sa->next;	
+			sa= sa->next;	
+		}
+
+		if (last_cfra == -1) {
+			last_cfra = CFRA - 1;
+		}
+		
+		if (U.prefetchframes) {
+			pf = last_cfra;
+
+			if (CFRA - last_cfra >= U.prefetchframes || 
+			    CFRA - last_cfra < 0) {
+				pf = CFRA - U.prefetchframes;
+				fprintf(stderr, 
+					"SEQ-THREAD: Lost sync, "
+					"stopping threads, "
+					"back to skip mode...\n");
+				seq_stop_threads();
+			} else {
+				while (pf < CFRA) {
+					int c;
+					pf++;
+					c = pf + U.prefetchframes;
+					if (c >= PEFRA) {
+						c -= PEFRA;
+						c += PSFRA;
+					}
+
+					inner_play_prefetch_frame(curmode, c);
+				}
+			}
+			
+		}
 	}
-	
+
+	last_cfra = CFRA;
+
 	/* make sure that swaptime passed by */
 	tottime -= swaptime;
-	while (update_time()) PIL_sleep_ms(1);
-
-	if(CFRA>=PEFRA) {
-		if (tottime > 0.0) tottime = 0.0;
-		CFRA= PSFRA;
+	while (update_time()) {
+		PIL_sleep_ms(1);
+	}
+	
+	if (CFRA >= PEFRA) {
+		if (tottime > 0.0) {
+			tottime = 0.0;
+		}
+		CFRA = PSFRA;
 		audiostream_stop();
 		audiostream_start( CFRA );
+	} else {
+		if (U.mixbufsize 
+		    && (G.scene->audio.flag & AUDIO_SYNC)) {
+			CFRA = audiostream_pos();
+		} else {
+			CFRA++;
+		}
+		if (CFRA < last_cfra) {
+			fprintf(stderr, 
+				"SEQ-THREAD: CFRA running backwards: %d\n",
+				CFRA);
+		}
 	}
-	else {
-		if (U.mixbufsize && (G.scene->audio.flag & AUDIO_SYNC)) CFRA = audiostream_pos();
-		else CFRA++;
-	}
+
 }
 
 /* play_anim: 'mode' defines where to play and if repeat is on (now bitfield):
@@ -3261,22 +3378,24 @@ int play_anim(int mode)
 
 	if(PSFRA>PEFRA) return 0;
 	
-	update_time();
-
 	/* waitcursor(1); */
 	G.f |= G_PLAYANIM;		/* in sequence.c and view.c this is handled */
 
 	cfraont= CFRA;
 	oldsa= curarea;
 
-	audiostream_start( CFRA );
-	
 	if (curarea && curarea->spacetype == SPACE_SEQ) {
 		SpaceSeq *sseq = curarea->spacedata.first;
 		if (sseq->mainb == 0) mode |= 4;
 	}
+
+	inner_play_prefetch_startup(mode);
+
+	update_time();
 	
 	inner_play_anim_loop(1, mode);	/* 1==init */
+
+	audiostream_start( CFRA );
 	
 	 /* forces all buffers to be OK for current frame (otherwise other windows get redrawn with CFRA+1) */
 	curarea->win_swap= WIN_BACK_OK;
@@ -3317,6 +3436,7 @@ int play_anim(int mode)
 	if(event==SPACEKEY);
 	else CFRA= cfraont;
 	
+	inner_play_prefetch_shutdown(mode);
 	audiostream_stop();
 
 	if(oldsa!=curarea) areawinset(oldsa->win);

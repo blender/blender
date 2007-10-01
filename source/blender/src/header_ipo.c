@@ -262,7 +262,10 @@ static void do_ipo_editmenu_transformmenu(void *arg, int event)
 	case 0: /* grab/move */
 		transform_ipo('g');
 		break;
-	case 1: /* scale */
+	case 1: /* rotate */
+		transform_ipo('r');
+		break;
+	case 2: /* scale */
 		transform_ipo('s');
 		break;
 	}
@@ -277,7 +280,8 @@ static uiBlock *ipo_editmenu_transformmenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_ipo_editmenu_transformmenu, NULL);
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move|G", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Scale|S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Rotate|R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Scale|S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
@@ -639,7 +643,7 @@ static uiBlock *ipo_editmenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Duplicate|Shift D", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Record Mouse Movement|R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Record Mouse Movement|Ctrl R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Clean IPO Curves|O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Smooth IPO Curves|Shift O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 9, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete|X", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");

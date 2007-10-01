@@ -44,6 +44,7 @@ struct Object;
 struct IpoKey;
 struct TransOb;
 struct Tex;
+struct TransInfo;
 
 void remake_object_ipos(struct Object *ob);
 char *getname_ac_ei(int nr);
@@ -138,11 +139,13 @@ void movekey_ipo(int dir);
 void movekey_obipo(int dir);
 void nextkey_ipo(int dir);
 void nextkey_obipo(int dir);
-void remake_ipo_transverts(struct TransVert *transmain, float *dvec, int tot);
-void transform_ipo(int mode);
 void filter_sampledata(float *data, int sfra, int efra);
 void sampledata_to_ipocurve(float *data, int sfra, int efra, struct IpoCurve *icu);
-void ipo_record(void);    
+void ipo_record(void); 
+
+void make_ipo_transdata(struct TransInfo *t);
+void remake_ipo_transdata(struct TransInfo *t);
+void transform_ipo(int mode);   
 
 void actstrip_map_ipo_keys(struct Object *ob, struct Ipo *ipo, short restore, short only_keys);
 

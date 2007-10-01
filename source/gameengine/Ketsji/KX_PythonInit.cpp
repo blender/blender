@@ -618,7 +618,31 @@ static PyObject* gPyMakeScreenshot(PyObject*,
 	Py_Return;
 }
 
+static PyObject* gPyEnableMotionBlur(PyObject*,
+									PyObject* args,
+									PyObject*)
+{
+	float motionblurvalue;
+	if (PyArg_ParseTuple(args,"f",&motionblurvalue))
+	{
+		if(gp_Rasterizer)
+		{
+			gp_Rasterizer->EnableMotionBlur(motionblurvalue);
+		}
+	}
+	Py_Return;
+}
 
+static PyObject* gPyDisableMotionBlur(PyObject*,
+									PyObject* args,
+									PyObject*)
+{
+	if(gp_Rasterizer)
+	{
+		gp_Rasterizer->DisableMotionBlur();
+	}
+	Py_Return;
+}
 
 STR_String	gPyGetWindowHeight__doc__="getWindowHeight doc";
 STR_String	gPyGetWindowWidth__doc__="getWindowWidth doc";
@@ -645,6 +669,9 @@ static struct PyMethodDef rasterizer_methods[] = {
  {"setMistColor",(PyCFunction)gPySetMistColor,METH_VARARGS,"set Mist Color (rgb)"},
   {"setMistStart",(PyCFunction)gPySetMistStart,METH_VARARGS,"set Mist Start(rgb)"},
   {"setMistEnd",(PyCFunction)gPySetMistEnd,METH_VARARGS,"set Mist End(rgb)"},
+  {"enableMotionBlur",(PyCFunction)gPyEnableMotionBlur,METH_VARARGS,"enable motion blur"},
+  {"disableMotionBlur",(PyCFunction)gPyDisableMotionBlur,METH_VARARGS,"disable motion blur"},
+
   
   {"setEyeSeparation", (PyCFunction) gPySetEyeSeparation, METH_VARARGS, "set the eye separation for stereo mode"},
   {"getEyeSeparation", (PyCFunction) gPyGetEyeSeparation, METH_VARARGS, "get the eye separation for stereo mode"},

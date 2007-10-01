@@ -91,6 +91,10 @@ class RAS_OpenGLRasterizer : public RAS_IRasterizer
 	int				m_noOfScanlines;
 	bool			InterlacedStereo() const;
 
+	//motion blur
+	int	m_motionblur;
+	float	m_motionblurvalue;
+
 protected:
 	int				m_drawingmode;
 	TexCoGen		m_texco[RAS_MAX];
@@ -293,8 +297,22 @@ public:
 					const RAS_TexVert& v2,
 					const RAS_TexVert& v3,
 					const MT_Vector3 &no);
-
+	
+	virtual void	EnableMotionBlur(float motionblurvalue);
+	virtual void	DisableMotionBlur();
+	virtual float	GetMotionBlurValue(){return m_motionblurvalue;};
+	virtual int	GetMotionBlurState(){return m_motionblur;};
+	virtual void SetMotionBlurState(int newstate)
+	{
+		if(newstate<0) 
+			m_motionblur = 0;
+		else if(newstate>2)
+			m_motionblur = 2;
+		else 
+			m_motionblur = newstate;
+	};
 };
 
 #endif //__RAS_OPENGLRASTERIZER
+
 

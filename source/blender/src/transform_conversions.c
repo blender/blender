@@ -1581,7 +1581,7 @@ static void set_crazyspace_quats(float *origcos, float *mappedcos, float *quats)
 	
 	/* two abused locations in vertices */
 	for(eve= em->verts.first; eve; eve= eve->next, index++) {
-		eve->tmp.fp = NULL;
+		eve->tmp.p = NULL;
 		eve->prev= (EditVert *)index;
 	}
 	
@@ -1597,9 +1597,9 @@ static void set_crazyspace_quats(float *origcos, float *mappedcos, float *quats)
 		co2= (origcos)? origcos + 3*(long)(efa->v2->prev): efa->v2->co;
 		co3= (origcos)? origcos + 3*(long)(efa->v3->prev): efa->v3->co;
 
-		if(efa->v2->tmp.fp==NULL && efa->v2->f1) {
+		if(efa->v2->tmp.p==NULL && efa->v2->f1) {
 			set_crazy_vertex_quat(quats, co2, co3, co1, v2, v3, v1);
-			efa->v2->tmp.fp= quats;
+			efa->v2->tmp.p= (void*)quats;
 			quats+= 4;
 		}
 		
@@ -1607,31 +1607,31 @@ static void set_crazyspace_quats(float *origcos, float *mappedcos, float *quats)
 			v4= mappedcos + 3*(long)(efa->v4->prev);
 			co4= (origcos)? origcos + 3*(long)(efa->v4->prev): efa->v4->co;
 
-			if(efa->v1->tmp.fp==NULL && efa->v1->f1) {
+			if(efa->v1->tmp.p==NULL && efa->v1->f1) {
 				set_crazy_vertex_quat(quats, co1, co2, co4, v1, v2, v4);
-				efa->v1->tmp.fp= quats;
+				efa->v1->tmp.p= (void*)quats;
 				quats+= 4;
 			}
-			if(efa->v3->tmp.fp==NULL && efa->v3->f1) {
+			if(efa->v3->tmp.p==NULL && efa->v3->f1) {
 				set_crazy_vertex_quat(quats, co3, co4, co2, v3, v4, v2);
-				efa->v3->tmp.fp= quats;
+				efa->v3->tmp.p= (void*)quats;
 				quats+= 4;
 			}
-			if(efa->v4->tmp.fp==NULL && efa->v4->f1) {
+			if(efa->v4->tmp.p==NULL && efa->v4->f1) {
 				set_crazy_vertex_quat(quats, co4, co1, co3, v4, v1, v3);
-				efa->v4->tmp.fp= quats;
+				efa->v4->tmp.p= (void*)quats;
 				quats+= 4;
 			}
 		}
 		else {
-			if(efa->v1->tmp.fp==NULL && efa->v1->f1) {
+			if(efa->v1->tmp.p==NULL && efa->v1->f1) {
 				set_crazy_vertex_quat(quats, co1, co2, co3, v1, v2, v3);
-				efa->v1->tmp.fp= quats;
+				efa->v1->tmp.p= (void*)quats;
 				quats+= 4;
 			}
-			if(efa->v3->tmp.fp==NULL && efa->v3->f1) {
+			if(efa->v3->tmp.p==NULL && efa->v3->f1) {
 				set_crazy_vertex_quat(quats, co3, co1, co2, v3, v1, v2);
-				efa->v3->tmp.fp= quats;
+				efa->v3->tmp.p= (void*)quats;
 				quats+= 4;
 			}
 		}
@@ -1765,12 +1765,12 @@ static void createTransEditVerts(TransInfo *t)
 				}
 				
 				/* CrazySpace */
-				if(defmats || (quats && eve->tmp.fp)) {
+				if(defmats || (quats && eve->tmp.p)) {
 					float mat[3][3], imat[3][3], qmat[3][3];
 					
 					/* use both or either quat and defmat correction */
 					if(quats && eve->tmp.f) {
-						QuatToMat3(eve->tmp.fp, qmat);
+						QuatToMat3(eve->tmp.p, qmat);
 
 						if(defmats)
 							Mat3MulSerie(mat, mtx, qmat, defmats[a],
@@ -1882,7 +1882,7 @@ static void createTransUVs(TransInfo *t)
 	t->data= MEM_callocN(t->total*sizeof(TransData), "TransObData(UV Editing)");
 	/* for each 2d uv coord a 3d vector is allocated, so that they can be
 	   treated just as if they were 3d verts */
-	t->data2d= MEM_mallocN(t->total*sizeof(TransData2D), "TransObData2D(UV Editing)");
+	t->data2d= MEM_callocN(t->total*sizeof(TransData2D), "TransObData2D(UV Editing)");
 
 	if(G.sima->flag & SI_CLIP_UV)
 		t->flag |= T_CLIP_UV;
@@ -1986,6 +1986,39 @@ int clipUVTransform(TransInfo *t, float *vec, int resize)
 	}	
 
 	return (clipx || clipy);
+}
+
+/* ********************* IPO EDITOR ************************* */
+
+/* for IPO Editor transform - but actual creation of transform structures is not performed here
+ * due to bad globals that would need to be imported specially for this
+ */
+static void createTransIpoData(TransInfo *t)
+{
+	/* in editipo.c due to some globals that are defined in that file... */
+	make_ipo_transdata(t);
+}
+
+/* this function is called on recalcData to apply the transforms applied
+ * to the transdata on to the actual keyframe data 
+ */
+void flushTransIpoData(TransInfo *t)
+{
+	TransData2D *td;
+	int a;
+	
+	/* flush to 2d vector from internally used 3d vector */
+	for (a=0, td= t->data2d; a<t->total; a++, td++) {
+		/* we need to unapply the nla-scaling from the time in some situations */
+		if (NLA_IPO_SCALED)
+			td->loc2d[0]= get_action_frame(OBACT, td->loc[0]);
+		else
+			td->loc2d[0]= td->loc[0];
+		
+		/* when the icu that point comes from is a bitflag holder, don't allow adjusting values */
+		if ((t->data[a].flag & TD_TIMEONLY)==0)
+			td->loc2d[1]= td->loc[1];
+	}
 }
 
 /* ********************* ACTION/NLA EDITOR ****************** */
@@ -2110,7 +2143,7 @@ static void createTransActionData(TransInfo *t)
 	BLI_freelistN(&act_data);
 }
 
-static void createTransNLAData(TransInfo *t)
+static void createTransNlaData(TransInfo *t)
 {
 	Base *base;
 	bActionStrip *strip;
@@ -3000,7 +3033,16 @@ void createTransData(TransInfo *t)
 	}
 	else if (t->spacetype == SPACE_NLA) {
 		t->flag |= T_POINTS|T_2D_EDIT;
-		createTransNLAData(t);
+		createTransNlaData(t);
+	}
+	else if (t->spacetype == SPACE_IPO) {
+		t->flag |= T_POINTS|T_2D_EDIT;
+		createTransIpoData(t); 
+		if (t->data && (t->flag & T_PROP_EDIT)) {
+			sort_trans_data(t);	// makes selected become first in array
+			set_prop_dist(t, 1);
+			sort_trans_data_dist(t);
+		}
 	}
 	else if (G.obedit) {
 		t->ext = NULL;

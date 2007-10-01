@@ -2876,8 +2876,10 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			allqueue(REDRAWIPO, 0);
 			break;
 		case RKEY:
-			if (G.qual==0)
+			if (G.qual==LR_CTRLKEY)
 				ipo_record();
+			else 
+				transform_ipo('r');
 			break;
 		case SKEY:
 			if (G.qual==LR_SHIFTKEY) {		
@@ -3158,8 +3160,8 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 	uiBlock *block;
 	static short cur_light=0;
 	float fac, col[3];
-	short xpos, ypos, ypostab,  buth, rspace, dx, y1, y2, y3, y4, y5, y6;
-	short y2label, y3label, y4label, y5label, y6label;
+	short xpos, ypos, ypostab,  buth, rspace, dx, y1, y2, y3, y4, y5, y6, y7;
+	short y2label, y3label, y4label, y5label, y6label, y7label;
 	short spref, mpref, lpref, smfileselbut;
 	short edgsp, midsp;
 	char naam[32];
@@ -3210,6 +3212,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 	y4 = ypos+3*(buth+rspace);
 	y5 = ypos+4*(buth+rspace);
 	y6 = ypos+5*(buth+rspace);
+	y7 = ypos+6*(buth+rspace);
 
 
 	y2label = y2-2;		/* adjustments to offset the labels down to align better */
@@ -3217,6 +3220,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 	y4label = y4-2;
 	y5label = y5-2;
 	y6label = y6-2;
+	y7label = y7-2;
 
 
 	/* set the color to blue and draw the main 'tab' controls */
@@ -3808,8 +3812,13 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 
 
 		uiDefBut(block, LABEL,0,"System:",
-			(xpos+edgsp+(4*midsp)+(4*mpref)),y6label,mpref,buth,
+			(xpos+edgsp+(4*midsp)+(4*mpref)),y7label,mpref,buth,
 			0, 0, 0, 0, 0, "");
+		uiDefButI(block, NUM, B_REDR, "Prefetch frames ",
+			  (xpos+edgsp+(4*mpref)+(4*midsp)), y6, mpref, buth, 
+			  &U.prefetchframes, 0.0, 50.0, 20, 2, 
+			  "Number of frames to render ahead during playback.");
+
 		uiDefButI(block, NUM, B_MEMCACHELIMIT, "MEM Cache Limit ",
 			  (xpos+edgsp+(4*mpref)+(4*midsp)), y5, mpref, buth, 
 			  &U.memcachelimit, 0.0, 1024.0, 30, 2, 
@@ -4817,7 +4826,6 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else if((G.qual==0))
 					borderselect_sima(UV_SELECT_ALL);
 				break;
-				
 			case CKEY:
 				if (G.sima->flag & SI_SYNC_UVSEL) {
 					/* operate on the editmesh */
@@ -4877,6 +4885,7 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					pin_tface_uv(0);
 				else
 					pin_tface_uv(1);
+				break;
 			case GKEY:
 				if((G.qual==0) && is_uv_tface_editing_allowed()) {
 					initTransform(TFM_TRANSLATION, CTX_NONE);
@@ -4901,10 +4910,10 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				break;
 			case VKEY:
-				if(G.qual==LR_SHIFTKEY)
-					stitch_uv_tface(0);
+				if(G.qual == 0)
+					stitch_vert_uv_tface();
 				else if(G.qual==LR_SHIFTKEY)
-					stitch_uv_tface(1);
+					stitch_limit_uv_tface();
 				else if(G.qual==LR_CTRLKEY)
 					minimize_stretch_tface_uv();
 				break;
@@ -4925,7 +4934,6 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				scrarea_queue_headredraw(curarea);
 				scrarea_queue_winredraw(curarea);
 				break;
-				
 			case PERIODKEY:
 				if(G.qual==LR_CTRLKEY) {
 					G.v2d->around= V3D_LOCAL;
@@ -4947,7 +4955,6 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					G.scene->prop_mode = (G.scene->prop_mode+1)%7;
 					allqueue(REDRAWHEADERS, 0);
 				}
-				
 				break;
 			case PADSLASHKEY:
 				if(G.qual==0)
@@ -6274,7 +6281,7 @@ SpaceType *spaceaction_get_type(void)
 	
 	if (!st) {
 		st= spacetype_new("Action");
-		spacetype_set_winfuncs(st, drawactionspace, changeactionspace, winqreadactionspace);
+		spacetype_set_winfuncs(st, NULL, drawactionspace, changeactionspace, winqreadactionspace);
 	}
 
 	return st;
@@ -6285,7 +6292,7 @@ SpaceType *spacebuts_get_type(void)
 	
 	if (!st) {
 		st= spacetype_new("Buts");
-		spacetype_set_winfuncs(st, drawbutspace, changebutspace, winqreadbutspace);
+		spacetype_set_winfuncs(st, NULL, drawbutspace, changebutspace, winqreadbutspace);
 	}
 
 	return st;
@@ -6296,7 +6303,7 @@ SpaceType *spacefile_get_type(void)
 	
 	if (!st) {
 		st= spacetype_new("File");
-		spacetype_set_winfuncs(st, drawfilespace, NULL, winqreadfilespace);
+		spacetype_set_winfuncs(st, NULL, drawfilespace, NULL, winqreadfilespace);
 	}
 
 	return st;
@@ -6307,7 +6314,7 @@ SpaceType *spaceimage_get_type(void)
 	
 	if (!st) {
 		st= spacetype_new("Image");
-		spacetype_set_winfuncs(st, drawimagespace, changeimagepace, winqreadimagespace);
+		spacetype_set_winfuncs(st, NULL, drawimagespace, changeimagepace, winqreadimagespace);
 	}
 
 	return st;
@@ -6318,7 +6325,7 @@ SpaceType *spaceimasel_get_type(void)
 	
 	if (!st) {
 		st= spacetype_new("Imasel");
-		spacetype_set_winfuncs(st, drawimaselspace, changeimaselspace, winqreadimaselspace);
+		spacetype_set_winfuncs(st, NULL, drawimaselspace, changeimaselspace, winqreadimaselspace);
 	}
 
 	return st;
@@ -6329,7 +6336,7 @@ SpaceType *spaceinfo_get_type(void)
 	
 	if (!st) {
 		st= spacetype_new("Info");
-		spacetype_set_winfuncs(st, drawinfospace, NULL, winqreadinfospace);
+		spacetype_set_winfuncs(st, NULL, drawinfospace, NULL, winqreadinfospace);
 	}
 
 	return st;
@@ -6340,7 +6347,7 @@ SpaceType *spaceipo_get_type(void)
 	
 	if (!st) {
 		st= spacetype_new("Ipo");
-		spacetype_set_winfuncs(st, drawipospace, changeview2dspace, winqreadipospace);
+		spacetype_set_winfuncs(st, NULL, drawipospace, changeview2dspace, winqreadipospace);
 	}
 
 	return st;
@@ -6351,7 +6358,7 @@ SpaceType *spacenla_get_type(void)
 	
 	if (!st) {
 		st= spacetype_new("Nla");
-		spacetype_set_winfuncs(st, drawnlaspace, changeview2dspace, winqreadnlaspace);
+		spacetype_set_winfuncs(st, NULL, drawnlaspace, changeview2dspace, winqreadnlaspace);
 	}
 
 	return st;
@@ -6362,7 +6369,7 @@ SpaceType *spaceoops_get_type(void)
 	
 	if (!st) {
 		st= spacetype_new("Oops");
-		spacetype_set_winfuncs(st, drawoopsspace, changeview2dspace, winqreadoopsspace);
+		spacetype_set_winfuncs(st, NULL, drawoopsspace, changeview2dspace, winqreadoopsspace);
 	}
 
 	return st;
@@ -6373,7 +6380,7 @@ SpaceType *spaceseq_get_type(void)
 	
 	if (!st) {
 		st= spacetype_new("Sequence");
-		spacetype_set_winfuncs(st, drawseqspace, changeview2dspace, winqreadseqspace);
+		spacetype_set_winfuncs(st, drawprefetchseqspace, drawseqspace, changeview2dspace, winqreadseqspace);
 	}
 
 	return st;
@@ -6384,7 +6391,7 @@ SpaceType *spacesound_get_type(void)
 	
 	if (!st) {
 		st= spacetype_new("Sound");
-		spacetype_set_winfuncs(st, drawsoundspace, changeview2dspace, winqreadsoundspace);
+		spacetype_set_winfuncs(st, NULL, drawsoundspace, changeview2dspace, winqreadsoundspace);
 	}
 
 	return st;
@@ -6395,7 +6402,7 @@ SpaceType *spacetext_get_type(void)
 	
 	if (!st) {
 		st= spacetype_new("Text");
-		spacetype_set_winfuncs(st, drawtextspace, NULL, winqreadtextspace);
+		spacetype_set_winfuncs(st, NULL, drawtextspace, NULL, winqreadtextspace);
 	}
 
 	return st;
@@ -6419,7 +6426,7 @@ SpaceType *spacescript_get_type(void)
 
 	if (!st) {
 		st = spacetype_new("Script");
-		spacetype_set_winfuncs(st, drawscriptspace, spacescript_change, winqreadscriptspace);
+		spacetype_set_winfuncs(st, NULL, drawscriptspace, spacescript_change, winqreadscriptspace);
 	}
 
 	return st;
@@ -6430,7 +6437,7 @@ SpaceType *spaceview3d_get_type(void)
 	
 	if (!st) {
 		st= spacetype_new("View3D");
-		spacetype_set_winfuncs(st, drawview3dspace, changeview3dspace, winqreadview3dspace);
+		spacetype_set_winfuncs(st, NULL, drawview3dspace, changeview3dspace, winqreadview3dspace);
 	}
 
 	return st;
@@ -6441,7 +6448,7 @@ SpaceType *spacetime_get_type(void)
 	
 	if (!st) {
 		st= spacetype_new("Time");
-		spacetype_set_winfuncs(st, drawtimespace, NULL, winqreadtimespace);
+		spacetype_set_winfuncs(st, NULL, drawtimespace, NULL, winqreadtimespace);
 	}
 	
 	return st;
@@ -6453,7 +6460,7 @@ SpaceType *spacenode_get_type(void)
 	
 	if (!st) {
 		st= spacetype_new("Node");
-		spacetype_set_winfuncs(st, drawnodespace, changeview2dspace, winqreadnodespace);
+		spacetype_set_winfuncs(st, NULL, drawnodespace, changeview2dspace, winqreadnodespace);
 	}
 	
 	return st;

@@ -82,7 +82,9 @@ RAS_OpenGLRasterizer::RAS_OpenGLRasterizer(RAS_ICanvas* canvas)
 	m_setfocallength(false),
 	m_noOfScanlines(32),
 	m_useTang(false),
-	m_materialCachingInfo(0)
+	m_materialCachingInfo(0),
+	m_motionblur(0),
+	m_motionblurvalue(-1.0)
 {
 	m_viewmatrix.Identity();
 	
@@ -1978,4 +1980,16 @@ void RAS_OpenGLRasterizer::SetPolygonOffset(float mult, float add)
 		glEnable(mode);
 	else
 		glDisable(mode);
+}
+
+void RAS_OpenGLRasterizer::EnableMotionBlur(float motionblurvalue)
+{
+	m_motionblur = 1;
+	m_motionblurvalue = motionblurvalue;
+}
+
+void RAS_OpenGLRasterizer::DisableMotionBlur()
+{
+	m_motionblur = 0;
+	m_motionblurvalue = -1.0;
 }
