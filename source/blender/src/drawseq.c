@@ -51,6 +51,7 @@
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_view2d_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_global.h"
 #include "BKE_plugin_types.h"
@@ -788,7 +789,11 @@ static void draw_image_seq(ScrArea *sa)
 		return;
 	else {
 		recursive= 1;
-		ibuf= (ImBuf *)give_ibuf_seq(rectx, recty, (G.scene->r.cfra), sseq->chanshown);
+		if (!U.prefetchframes || (G.f & G_PLAYANIM) == 0) {
+			ibuf= (ImBuf *)give_ibuf_seq(rectx, recty, (G.scene->r.cfra), sseq->chanshown);
+		} else {
+			ibuf= (ImBuf *)give_ibuf_threaded(rectx, recty, (G.scene->r.cfra), sseq->chanshown);
+		}
 		recursive= 0;
 		
 		/* HURMF! the give_ibuf_seq can call image display in this window */
@@ -1274,6 +1279,20 @@ static void seq_blockhandlers(ScrArea *sa)
 	}
 	uiDrawBlocksPanels(sa, 0);
 
+}
+
+void drawprefetchseqspace(ScrArea *sa, void *spacedata)
+{
+	SpaceSeq *sseq= sa->spacedata.first;
+	int rectx, recty;
+
+	rectx= (G.scene->r.size*G.scene->r.xsch)/100;
+	recty= (G.scene->r.size*G.scene->r.ysch)/100;
+
+	if(sseq->mainb) {
+		give_ibuf_prefetch_request(
+			rectx, recty, (G.scene->r.cfra), sseq->chanshown);
+	}
 }
 
 void drawseqspace(ScrArea *sa, void *spacedata)

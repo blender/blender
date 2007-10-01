@@ -35,6 +35,7 @@ struct BWinEvent;
 
 typedef struct _SpaceType	SpaceType;
 
+typedef	void	(*SpacePrefetchDrawFP)	(struct ScrArea *sa, void *spacedata);
 typedef	void	(*SpaceDrawFP)		(struct ScrArea *sa, void *spacedata);
 typedef	void	(*SpaceChangeFP)	(struct ScrArea *sa, void *spacedata);
 typedef	void	(*SpaceHandleFP)	(struct ScrArea *sa, void *spacedata, struct BWinEvent *evt);
@@ -43,7 +44,7 @@ typedef	void	(*SpaceHandleFP)	(struct ScrArea *sa, void *spacedata, struct BWinE
 
 SpaceType*	spacetype_new			(char *name);
 
-void		spacetype_set_winfuncs	(SpaceType *st, SpaceDrawFP draw, SpaceChangeFP change, SpaceHandleFP handle);
+void		spacetype_set_winfuncs	(SpaceType *st, SpacePrefetchDrawFP prefetch, SpaceDrawFP draw, SpaceChangeFP change, SpaceHandleFP handle);
 
 	/***/
 

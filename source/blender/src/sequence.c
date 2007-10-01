@@ -70,6 +70,7 @@
 #include "RE_pipeline.h"		// talks to entire render API
 
 #include "blendef.h"
+#include <pthread.h>
 
 int seqrectx, seqrecty;
 
@@ -1179,6 +1180,325 @@ ImBuf *give_ibuf_seq(int rectx, int recty, int cfra, int chanshown)
 
 }
 
+/* threading api */
+
+static ListBase running_threads;
+static ListBase prefetch_wait;
+static ListBase prefetch_done;
+
+static pthread_mutex_t queue_lock          = PTHREAD_MUTEX_INITIALIZER;
+static pthread_mutex_t wakeup_lock         = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t  wakeup_cond         = PTHREAD_COND_INITIALIZER;
+
+static pthread_mutex_t prefetch_ready_lock = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t  prefetch_ready_cond = PTHREAD_COND_INITIALIZER;
+
+static pthread_mutex_t frame_done_lock     = PTHREAD_MUTEX_INITIALIZER;
+static pthread_cond_t  frame_done_cond     = PTHREAD_COND_INITIALIZER;
+
+static volatile int seq_thread_shutdown = FALSE;
+static volatile int seq_last_given_monoton_cfra = 0;
+static int monoton_cfra = 0;
+
+typedef struct PrefetchThread {
+	struct PrefetchThread *next, *prev;
+	struct PrefetchQueueElem *current;
+	pthread_t pthread;
+	int running;
+} PrefetchThread;
+
+typedef struct PrefetchQueueElem {
+	struct PrefetchQueueElem *next, *prev;
+	
+	int rectx;
+	int recty;
+	int cfra;
+	int chanshown;
+
+	int monoton_cfra;
+
+	struct ImBuf * ibuf;
+} PrefetchQueueElem;
+
+
+static void * seq_prefetch_thread(void * This_)
+{
+	PrefetchThread * This = This_;
+
+	while (!seq_thread_shutdown) {
+		PrefetchQueueElem * e;
+		int s_last;
+
+		pthread_mutex_lock(&queue_lock);
+		e = prefetch_wait.first;
+		if (e) {
+			BLI_remlink(&prefetch_wait, e);
+		}
+		s_last = seq_last_given_monoton_cfra;
+
+		This->current = e;
+
+		pthread_mutex_unlock(&queue_lock);
+
+		if (!e) {
+			pthread_mutex_lock(&prefetch_ready_lock);
+
+			This->running = FALSE;
+
+			pthread_cond_signal(&prefetch_ready_cond);
+			pthread_mutex_unlock(&prefetch_ready_lock);
+
+			pthread_mutex_lock(&wakeup_lock);
+			if (!seq_thread_shutdown) {
+				pthread_cond_wait(&wakeup_cond, &wakeup_lock);
+			}
+			pthread_mutex_unlock(&wakeup_lock);
+			continue;
+		}
+
+		This->running = TRUE;
+		
+		if (e->cfra >= s_last) { 
+			e->ibuf = give_ibuf_seq(e->rectx, e->recty, e->cfra, 
+						e->chanshown);
+		}
+
+		if (e->ibuf) {
+			IMB_cache_limiter_ref(e->ibuf);
+		}
+
+		pthread_mutex_lock(&queue_lock);
+
+		BLI_addtail(&prefetch_done, e);
+
+		for (e = prefetch_wait.first; e; e = e->next) {
+			if (s_last > e->monoton_cfra) {
+				BLI_remlink(&prefetch_wait, e);
+				MEM_freeN(e);
+			}
+		}
+
+		for (e = prefetch_done.first; e; e = e->next) {
+			if (s_last > e->monoton_cfra) {
+				if (e->ibuf) {
+					IMB_cache_limiter_unref(e->ibuf);
+				}
+				BLI_remlink(&prefetch_done, e);
+				MEM_freeN(e);
+			}
+		}
+
+		pthread_mutex_unlock(&queue_lock);
+
+		pthread_mutex_lock(&frame_done_lock);
+		pthread_cond_signal(&frame_done_cond);
+		pthread_mutex_unlock(&frame_done_lock);
+	}
+	return 0;
+}
+
+void seq_start_threads()
+{
+	int i;
+
+	running_threads.first = running_threads.last = NULL;
+	prefetch_wait.first = prefetch_wait.last = NULL;
+	prefetch_done.first = prefetch_done.last = NULL;
+
+	seq_thread_shutdown = FALSE;
+	seq_last_given_monoton_cfra = monoton_cfra = 0;
+
+	/* since global structures are modified during the processing
+	   of one frame, only one render thread is currently possible... 
+
+	   (but we code, in the hope, that we can remove this restriction
+	   soon...)
+	*/
+
+	fprintf(stderr, "SEQ-THREAD: seq_start_threads\n");
+
+	for (i = 0; i < 1; i++) {
+		PrefetchThread *t = MEM_callocN(sizeof(PrefetchThread), 
+						"prefetch_thread");
+		t->running = TRUE;
+		BLI_addtail(&running_threads, t);
+
+		pthread_create(&t->pthread, NULL, seq_prefetch_thread, t);
+	}
+}
+
+void seq_stop_threads()
+{
+	PrefetchThread *tslot;
+	PrefetchQueueElem * e;
+
+	fprintf(stderr, "SEQ-THREAD: seq_stop_threads()\n");
+
+	if (seq_thread_shutdown) {
+		fprintf(stderr, "SEQ-THREAD: ... already stopped\n");
+		return;
+	}
+	
+	pthread_mutex_lock(&wakeup_lock);
+
+	seq_thread_shutdown = TRUE;
+
+        pthread_cond_broadcast(&wakeup_cond);
+        pthread_mutex_unlock(&wakeup_lock);
+
+	for(tslot = running_threads.first; tslot; tslot= tslot->next) {
+		pthread_join(tslot->pthread, NULL);
+	}
+
+
+	for (e = prefetch_wait.first; e; e = e->next) {
+		BLI_remlink(&prefetch_wait, e);
+		MEM_freeN(e);
+	}
+
+	for (e = prefetch_done.first; e; e = e->next) {
+		if (e->ibuf) {
+			IMB_cache_limiter_unref(e->ibuf);
+		}
+		BLI_remlink(&prefetch_done, e);
+		MEM_freeN(e);
+	}
+
+	BLI_freelistN(&running_threads);
+}
+
+void give_ibuf_prefetch_request(int rectx, int recty, int cfra, int chanshown)
+{
+	PrefetchQueueElem * e;
+	if (seq_thread_shutdown) {
+		return;
+	}
+
+	e = MEM_callocN(sizeof(PrefetchQueueElem), "prefetch_queue_elem");
+	e->rectx = rectx;
+	e->recty = recty;
+	e->cfra = cfra;
+	e->chanshown = chanshown;
+	e->monoton_cfra = monoton_cfra++;
+
+	pthread_mutex_lock(&queue_lock);
+	BLI_addtail(&prefetch_wait, e);
+	pthread_mutex_unlock(&queue_lock);
+	
+	pthread_mutex_lock(&wakeup_lock);
+	pthread_cond_signal(&wakeup_cond);
+	pthread_mutex_unlock(&wakeup_lock);
+}
+
+void seq_wait_for_prefetch_ready()
+{
+	if (seq_thread_shutdown) {
+		return;
+	}
+
+	fprintf(stderr, "SEQ-THREAD: rendering prefetch frames...\n");
+
+	PrefetchThread *tslot;
+
+	pthread_mutex_lock(&prefetch_ready_lock);
+
+	for(;;) {
+		for(tslot = running_threads.first; tslot; tslot= tslot->next) {
+			if (tslot->running) {
+				break;
+			}
+		}
+		if (!tslot) {
+			break;
+		}
+		pthread_cond_wait(&prefetch_ready_cond, &prefetch_ready_lock);
+	}
+
+	pthread_mutex_unlock(&prefetch_ready_lock);
+
+	fprintf(stderr, "SEQ-THREAD: prefetch done\n");
+}
+
+ImBuf * give_ibuf_threaded(int rectx, int recty, int cfra, int chanshown)
+{
+	PrefetchQueueElem * e = 0;
+	int found_something = FALSE;
+
+	if (seq_thread_shutdown) {
+		return give_ibuf_seq(rectx, recty, cfra, chanshown);
+	}
+
+	while (!e) {
+		int success = FALSE;
+		pthread_mutex_lock(&queue_lock);
+
+		for (e = prefetch_done.first; e; e = e->next) {
+			if (cfra == e->cfra &&
+			    chanshown == e->chanshown &&
+			    rectx == e->rectx && 
+			    recty == e->recty) {
+				success = TRUE;
+				found_something = TRUE;
+				break;
+			}
+		}
+
+		if (!e) {
+			for (e = prefetch_wait.first; e; e = e->next) {
+				if (cfra == e->cfra &&
+				    chanshown == e->chanshown &&
+				    rectx == e->rectx && 
+				    recty == e->recty) {
+					found_something = TRUE;
+					break;
+				}
+			}
+		}
+
+		if (!e) {
+			PrefetchThread *tslot;
+
+			for(tslot = running_threads.first; 
+			    tslot; tslot= tslot->next) {
+				if (tslot->current &&
+				    cfra == tslot->current->cfra &&
+				    chanshown == tslot->current->chanshown &&
+				    rectx == tslot->current->rectx && 
+				    recty == tslot->current->recty) {
+					found_something = TRUE;
+					break;
+				}
+			}
+		}
+
+		/* e->ibuf is unrefed by render thread on next round. */
+
+		if (e) {
+			seq_last_given_monoton_cfra = e->monoton_cfra;
+		}
+
+		pthread_mutex_unlock(&queue_lock);
+
+		if (!success) {
+			e = NULL;
+
+			if (!found_something) {
+				fprintf(stderr, 
+					"SEQ-THREAD: Requested frame "
+					"not in queue ???\n");
+				break;
+			}
+			pthread_mutex_lock(&frame_done_lock);
+			pthread_cond_wait(&frame_done_cond, &frame_done_lock);
+			pthread_mutex_unlock(&frame_done_lock);
+		}
+	}
+	
+	return e ? e->ibuf : 0;
+}
+
+
+
 /* Functions to free imbuf and anim data on changes */
 
 static void free_imbuf_strip_elem(StripElem *se)
@@ -1371,11 +1691,12 @@ void do_render_seq(RenderResult *rr, int cfra)
 		*/
 		{
 			extern int mem_in_use;
+			extern int mmap_in_use;
 
 			int max = MEM_CacheLimiter_get_maximum();
-			if (max != 0 && mem_in_use > max) {
+			if (max != 0 && mem_in_use + mmap_in_use > max) {
 				fprintf(stderr, "mem_in_use = %d, max = %d\n",
-					mem_in_use, max);
+					mem_in_use + mmap_in_use, max);
 				fprintf(stderr, "Cleaning up, please wait...\n"
 					"If this happens very often,\n"
 					"consider "

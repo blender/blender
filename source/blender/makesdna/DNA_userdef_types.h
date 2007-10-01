@@ -171,6 +171,7 @@ typedef struct UserDef {
 	short tw_hotspot, tw_flag, tw_handlesize, tw_size;
 	int textimeout, texcollectrate;
 	int memcachelimit;
+	int prefetchframes;
 	short frameserverport;
 	short pad_rot_angle;	/*control the rotation step of the view when PAD2,PAD4,PAD6&PAD8 is use*/
 	short obcenter_dia;
@@ -181,7 +182,6 @@ typedef struct UserDef {
 	short recent_files;		/* maximum number of recently used files to remember  */
 	short smooth_viewtx;	/* miliseconds to spend spinning the view */
 	short glreslimit;
-	char pad[4];
 } UserDef;
 
 extern UserDef U; /* from usiblender.c !!!! */

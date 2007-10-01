@@ -115,10 +115,22 @@ static uiBlock *seq_viewmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "seq_viewmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_seq_viewmenu, NULL);
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Play Back Animation|Alt A", 0, yco-=20,
-					 menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Play Back Animation in 3D View|Alt Shift A", 0, yco-=20,
-					 menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	if (sseq->mainb == 0) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+				 "Play Back Animation "
+				 "in all Sequence Areas|Alt A", 0, yco-=20,
+				 menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	} else {
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+				 "Play Back Animation "
+				 "in this window|Alt A", 0, yco-=20,
+				 menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	}
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+			 "Play Back Animation in all "
+			 "3D Views and Sequence Areas|Alt Shift A", 
+			 0, yco-=20,
+			 menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
