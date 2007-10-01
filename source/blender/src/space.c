@@ -2876,8 +2876,10 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			allqueue(REDRAWIPO, 0);
 			break;
 		case RKEY:
-			if (G.qual==0)
+			if (G.qual==LR_CTRLKEY)
 				ipo_record();
+			else 
+				transform_ipo('r');
 			break;
 		case SKEY:
 			if (G.qual==LR_SHIFTKEY) {		
