@@ -70,7 +70,10 @@
 #include "RE_pipeline.h"		// talks to entire render API
 
 #include "blendef.h"
+
+#ifdef WITH_FFMPEG
 #include <pthread.h>
+#endif
 
 int seqrectx, seqrecty;
 
@@ -1180,6 +1183,7 @@ ImBuf *give_ibuf_seq(int rectx, int recty, int cfra, int chanshown)
 
 }
 
+#ifdef WITH_FFMPEG /* threading api only available if ffmpeg is being compiled */
 /* threading api */
 
 static ListBase running_threads;
@@ -1496,8 +1500,34 @@ ImBuf * give_ibuf_threaded(int rectx, int recty, int cfra, int chanshown)
 	
 	return e ? e->ibuf : 0;
 }
+#else /* if ffmpeg not in use, here are dummy functions to prevent linking errors */
 
+void seq_start_threads()
+{
+	
+}
 
+void seq_stop_threads()
+{
+	
+}
+
+void give_ibuf_prefetch_request(int rectx, int recty, int cfra, int chanshown)
+{
+	
+}
+
+void seq_wait_for_prefetch_ready()
+{
+	
+}
+
+ImBuf * give_ibuf_threaded(int rectx, int recty, int cfra, int chanshown)
+{
+	return 0;
+}
+
+#endif 
 
 /* Functions to free imbuf and anim data on changes */
 
