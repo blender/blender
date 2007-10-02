@@ -165,7 +165,7 @@ static int size_threshold = 16;
 /*
 * Common methods for all algorithms
 */
-DO_INLINE void exchange(Tree **a, int i, int j)
+DO_INLINE void bvh_exchange(Tree **a, int i, int j)
 {
 	Tree *t=a[i];
 	a[i]=a[j];
@@ -179,7 +179,7 @@ DO_INLINE int floor_lg(int a)
 /*
 * Insertion sort algorithm
 */
-static void insertionsort(Tree **a, int lo, int hi, int axis)
+static void bvh_insertionsort(Tree **a, int lo, int hi, int axis)
 {
 	int i,j;
 	Tree *t;
@@ -196,7 +196,7 @@ static void insertionsort(Tree **a, int lo, int hi, int axis)
 	}
 }
 
-static int partition(Tree **a, int lo, int hi, Tree * x, int axis)
+static int bvh_partition(Tree **a, int lo, int hi, Tree * x, int axis)
 {
 	int i=lo, j=hi;
 	while (1)
@@ -206,7 +206,7 @@ static int partition(Tree **a, int lo, int hi, Tree * x, int axis)
 		while (x->bv[axis] < (a[j])->bv[axis]) j=j-1;
 		if(!(i < j))
 			return i;
-		exchange(a, i,j);
+		bvh_exchange(a, i,j);
 		i++;
 	}
 }
@@ -214,7 +214,7 @@ static int partition(Tree **a, int lo, int hi, Tree * x, int axis)
 /*
 * Heapsort algorithm
 */
-static void downheap(Tree **a, int i, int n, int lo, int axis)
+static void bvh_downheap(Tree **a, int i, int n, int lo, int axis)
 {
 	Tree * d = a[lo+i-1];
 	int child;
@@ -232,21 +232,21 @@ static void downheap(Tree **a, int i, int n, int lo, int axis)
 	a[lo+i-1] = d;
 }
 
-static void heapsort(Tree **a, int lo, int hi, int axis)
+static void bvh_heapsort(Tree **a, int lo, int hi, int axis)
 {
 	int n = hi-lo, i;
 	for (i=n/2; i>=1; i=i-1)
 	{
-		downheap(a, i,n,lo, axis);
+		bvh_downheap(a, i,n,lo, axis);
 	}
 	for (i=n; i>1; i=i-1)
 	{
-		exchange(a, lo,lo+i-1);
-		downheap(a, 1,i-1,lo, axis);
+		bvh_exchange(a, lo,lo+i-1);
+		bvh_downheap(a, 1,i-1,lo, axis);
 	}
 }
 
-static Tree *medianof3(Tree **a, int lo, int mid, int hi, int axis) // returns Sortable
+static Tree *bvh_medianof3(Tree **a, int lo, int mid, int hi, int axis) // returns Sortable
 {
 	if ((a[mid])->bv[axis] < (a[lo])->bv[axis])
 	{
@@ -276,7 +276,7 @@ static Tree *medianof3(Tree **a, int lo, int mid, int hi, int axis) // returns S
 /*
 * Quicksort algorithm modified for Introsort
 */
-static void introsort_loop (Tree **a, int lo, int hi, int depth_limit, int axis)
+static void bvh_introsort_loop (Tree **a, int lo, int hi, int depth_limit, int axis)
 {
 	int p;
 
@@ -284,28 +284,28 @@ static void introsort_loop (Tree **a, int lo, int hi, int depth_limit, int axis)
 	{
 		if (depth_limit == 0)
 		{
-			heapsort(a, lo, hi, axis);
+			bvh_heapsort(a, lo, hi, axis);
 			return;
 		}
 		depth_limit=depth_limit-1;
-		p=partition(a, lo, hi, medianof3(a, lo, lo+((hi-lo)/2)+1, hi-1, axis), axis);
-		introsort_loop(a, p, hi, depth_limit, axis);
+		p=bvh_partition(a, lo, hi, bvh_medianof3(a, lo, lo+((hi-lo)/2)+1, hi-1, axis), axis);
+		bvh_introsort_loop(a, p, hi, depth_limit, axis);
 		hi=p;
 	}
 }
 
-DO_INLINE void sort(Tree **a0, int begin, int end, int axis)
+DO_INLINE void bvh_sort(Tree **a0, int begin, int end, int axis)
 {
 	if (begin < end)
 	{
 		Tree **a=a0;
-		introsort_loop(a, begin, end, 2*floor_lg(end-begin), axis);
-		insertionsort(a, begin, end, axis);
+		bvh_introsort_loop(a, begin, end, 2*floor_lg(end-begin), axis);
+		bvh_insertionsort(a, begin, end, axis);
 	}
 }
 DO_INLINE void bvh_sort_along_axis(Tree **face_list, int start, int end, int axis)
 {
-	sort(face_list, start, end, axis);
+	bvh_sort(face_list, start, end, axis);
 }
 ////////////////////////////////////////////////////////////////////////////////////////////////
 void bvh_free(BVH * bvh)
