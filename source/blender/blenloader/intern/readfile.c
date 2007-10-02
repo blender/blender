@@ -6501,7 +6501,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	if(main->versionfile <= 244) {
 		Scene *sce;
 		bScreen *sc;
-		Object *ob;
 		Lamp *la;
 		World *wrld;
 		
@@ -6551,12 +6550,43 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 			}
 		}
-		if (main->versionfile != 244 || main->subversionfile < 3) {
-			for(ob = main->object.first; ob; ob= ob->id.next) {
+		if (main->versionfile != 244 || main->subversionfile < 3) {	
+			/* constraints recode version patch used to be here. Moved to 245 now... */
+			
+			
+			for(wrld=main->world.first; wrld; wrld= wrld->id.next) {
+				if (wrld->mode & WO_AMB_OCC)
+					wrld->ao_samp_method = WO_AOSAMP_CONSTANT;
+				else
+					wrld->ao_samp_method = WO_AOSAMP_HAMMERSLEY;
+				
+				wrld->ao_adapt_thresh = 0.005;
+			}
+			
+			for(la=main->lamp.first; la; la= la->id.next) {
+				if (la->type == LA_AREA)
+					la->ray_samp_method = LA_SAMP_CONSTANT;
+				else
+					la->ray_samp_method = LA_SAMP_HALTON;
+				
+				la->adapt_thresh = 0.001;
+			}
+		}
+	}
+	if(main->versionfile <= 245) {
+		bScreen *sc;
+		Object *ob;
+		Image *ima;
+		Lamp *la;
+		Material *ma;
+		
+		/* unless the file was created 2.44.3 but not 2.45, update the constraints */
+		if (!(main->versionfile==244 && main->subversionfile==3)) {
+			for (ob = main->object.first; ob; ob= ob->id.next) {
 				ListBase *list;
 				list = &ob->constraints;
 				
-				/* fix up constraints due to constraint recode changes */
+				/* fix up constraints due to constraint recode changes (originally at 2.44.3) */
 				if (list) {
 					bConstraint *curcon;
 					for (curcon = list->first; curcon; curcon=curcon->next) {
@@ -6590,7 +6620,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				
 				/* correctly initialise constinv matrix */
 				Mat4One(ob->constinv);
-
+				
 				if (ob->type == OB_ARMATURE) {
 					if (ob->pose) {
 						bConstraint *curcon;
@@ -6632,31 +6662,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					}
 				}
 			}
-			
-			for(wrld=main->world.first; wrld; wrld= wrld->id.next) {
-				if (wrld->mode & WO_AMB_OCC)
-					wrld->ao_samp_method = WO_AOSAMP_CONSTANT;
-				else
-					wrld->ao_samp_method = WO_AOSAMP_HAMMERSLEY;
-				
-				wrld->ao_adapt_thresh = 0.005;
-			}
-			
-			for(la=main->lamp.first; la; la= la->id.next) {
-				if (la->type == LA_AREA)
-					la->ray_samp_method = LA_SAMP_CONSTANT;
-				else
-					la->ray_samp_method = LA_SAMP_HALTON;
-				
-				la->adapt_thresh = 0.001;
-			}
 		}
-	}
-	if(main->versionfile <= 245) {
-		bScreen *sc;
-		Image* ima;
-		Lamp *la;
-		Material *ma;
 		
 		/* fix all versions before 2.45 */
 		if (main->versionfile != 245) {
@@ -6672,7 +6678,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				sa= sc->areabase.first;
 				while(sa) {
 					SpaceLink *sl;
-
+					
 					for (sl= sa->spacedata.first; sl; sl= sl->next) {
 						if(sl->spacetype==SPACE_IMASEL) {
 							SpaceImaSel *simasel= (SpaceImaSel*) sl;
@@ -6701,7 +6707,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 							simasel->flag = 7; /* ??? elubie */
 							strcpy (simasel->dir,  U.textudir);	/* TON */
 							strcpy (simasel->file, "");
-
+							
 							simasel->returnfunc     =  0;	
 							simasel->title[0]       =  0;
 						}
