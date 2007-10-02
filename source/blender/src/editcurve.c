@@ -2702,6 +2702,7 @@ void addvert_Nurb(int mode)
 			newbp->f1= 1;
 			MEM_freeN(nu->bp);
 			nu->bp= newbp;
+			bp= newbp + 1;
 		}
 		else if(bp== (nu->bp+nu->pntsu-1)) {  /* last */
 			bp->f1= 0;
@@ -2713,15 +2714,16 @@ void addvert_Nurb(int mode)
 			nu->bp= newbp;
 			newbp+= nu->pntsu;
 			newbp->f1= 1;
+			bp= newbp - 1;
 		}
 		else bp= 0;
 
 		if(bp) {
 			nu->pntsu++;
-
+			
 			if(nu->resolu<3) nu->resolu++;
 			makeknots(nu, 1, nu->flagu>>1);
-
+			
 			if(mode=='e') {
 				VECCOPY(newbp->vec, bp->vec);
 			}
