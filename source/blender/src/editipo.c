@@ -4887,20 +4887,21 @@ void make_ipo_transdata (TransInfo *t)
 			if (ISPOIN(ei, flag & IPO_VISIBLE, icu)) {
 				if ( (ei->flag & IPO_EDIT) || G.sipo->showkey) {
 					if (ei->icu->bezt) {
+						short onlytime= (ei->disptype==IPO_DISPBITS) ? 1 : (G.sipo->showkey) ? 1 : 0;
 						bezt= ei->icu->bezt;
 						
 						for (b=0; b < ei->icu->totvert; b++, bezt++) {
 							/* only include handles if selected, and interpolaton mode uses beztriples */
 							if (ei->icu->ipo==IPO_BEZ) {
 								if (bezt->f1 & 1)
-									bezt_to_transdata(td++, td2d++, bezt->vec[0], bezt->vec[1], 1, (ei->disptype==IPO_DISPBITS));
+									bezt_to_transdata(td++, td2d++, bezt->vec[0], bezt->vec[1], 1, onlytime);
 								if (bezt->f3 & 1)
-									bezt_to_transdata(td++, td2d++, bezt->vec[2], bezt->vec[1], 1, (ei->disptype==IPO_DISPBITS));
+									bezt_to_transdata(td++, td2d++, bezt->vec[2], bezt->vec[1], 1, onlytime);
 							}
 							
 							/* only include main vert if selected */
 							if (bezt->f2 & 1) {
-								bezt_to_transdata(td++, td2d++, bezt->vec[1], bezt->vec[1], 1, (ei->disptype==IPO_DISPBITS));
+								bezt_to_transdata(td++, td2d++, bezt->vec[1], bezt->vec[1], 1, onlytime);
 							}
 						}
 					}
@@ -4915,17 +4916,19 @@ void make_ipo_transdata (TransInfo *t)
 			/* only include curves that are visible and selected */
 			if (ISPOIN3(ei, flag & IPO_VISIBLE, flag & IPO_SELECT, icu)) {
 				if (ei->icu->bezt) {
+					short onlytime= (ei->disptype==IPO_DISPBITS) ? 1 : (G.sipo->showkey) ? 1 : 0;
 					bezt= ei->icu->bezt;
 					b= ei->icu->totvert;
+					
 					for (b=0; b < ei->icu->totvert; b++, bezt++) {
 						/* only include handles if interpolation mode is bezier not bpoint */
 						if (ei->icu->ipo==IPO_BEZ) {
-							bezt_to_transdata(td++, td2d++, bezt->vec[0], bezt->vec[1], 1, (ei->disptype==IPO_DISPBITS));
-							bezt_to_transdata(td++, td2d++, bezt->vec[2], bezt->vec[1], 1, (ei->disptype==IPO_DISPBITS));
+							bezt_to_transdata(td++, td2d++, bezt->vec[0], bezt->vec[1], 1, onlytime);
+							bezt_to_transdata(td++, td2d++, bezt->vec[2], bezt->vec[1], 1, onlytime);
 						}
 						
 						/* always include the main handle */
-						bezt_to_transdata(td++, td2d++, bezt->vec[1], bezt->vec[1], 1, (ei->disptype==IPO_DISPBITS));
+						bezt_to_transdata(td++, td2d++, bezt->vec[1], bezt->vec[1], 1, onlytime);
 					}
 				}
 			}
@@ -4940,12 +4943,8 @@ typedef struct BeztMap {
 	BezTriple *bezt;
 	int oldIndex;
 	int newIndex;
-	short handles;
 } BeztMap;
 
-#define BEZM_FLIPH 		1
-#define BEZM_CLEARH1	2
-#define BEZM_CLEARH2	4
 
 /* This function converts an IpoCurve's BezTriple array to a BeztMap array
  * NOTE: this allocates memory that will need to get freed later
@@ -4994,15 +4993,6 @@ static void sort_time_beztmaps (BeztMap *bezms, int totvert)
 					
 					ok= 1;
 				}
-			}
-			
-			/* swap order of handles or snap handles to centre-point? */
-			if (bezm->bezt->vec[0][0]>bezm->bezt->vec[1][0] && bezm->bezt->vec[2][0]<bezm->bezt->vec[1][0]) {
-				bezm->handles ^= BEZM_FLIPH;
-			}
-			else {
-				if (bezm->bezt->vec[0][0]>bezm->bezt->vec[1][0]) bezm->handles ^= BEZM_CLEARH1;
-				if (bezm->bezt->vec[2][0]<bezm->bezt->vec[1][0]) bezm->handles ^= BEZM_CLEARH2;
 			}
 			
 			bezm++;
