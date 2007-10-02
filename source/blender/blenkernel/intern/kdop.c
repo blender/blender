@@ -572,6 +572,7 @@ BVH *bvh_build (ClothModifierData *clmd, float epsilon)
 	bvh->flags = 0;
 	bvh->leaf_tree = NULL;
 	bvh->leaf_root = NULL;
+	bvh->tree = NULL;
 
 	bvh->epsilon = epsilon;
 	bvh->numfaces = cloth->numfaces;
@@ -581,7 +582,7 @@ BVH *bvh_build (ClothModifierData *clmd, float epsilon)
 	bvh->verts = cloth->verts;	
 	tree = (Tree *)MEM_callocN(sizeof(Tree), "Tree");
 	// TODO: check succesfull alloc
-	BLI_linklist_prepend(&bvh->tree, tree);
+	BLI_linklist_append(&bvh->tree, tree);
 
 	nlink = bvh->tree;
 

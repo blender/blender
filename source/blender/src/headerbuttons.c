@@ -1067,6 +1067,7 @@ void do_global_buttons(unsigned short event)
 					else if(nr==ID_LA) idtest= (ID *)add_ipo("LaIpo", nr);
 					else if(nr==ID_CA) idtest= (ID *)add_ipo("CaIpo", nr);
 					else if(nr==ID_SO) idtest= (ID *)add_ipo("SndIpo", nr);
+					else if(nr==ID_FLUIDSIM) idtest= (ID *)add_ipo("FluidsimIpo", nr);
 					else error("Warn bugtracker!");
 				}
 				idtest->us--;

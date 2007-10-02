@@ -656,6 +656,7 @@ void clothModifier_do(ClothModifierData *clmd, Object *ob, DerivedMesh *dm,
 	
 	// only be active during a specific period:
 	// that's "first frame" and "last frame" on GUI
+	
 	if (!(clmd->sim_parms.flags & CSIMSETT_FLAG_COLLOBJ))
 	{
 		if(current_time < clmd->sim_parms.firstframe)
@@ -699,7 +700,11 @@ void clothModifier_do(ClothModifierData *clmd, Object *ob, DerivedMesh *dm,
 		if ((clmd->clothObject == NULL) || (numverts != clmd->clothObject->numverts) )
 		{
 			if(!collobj_from_object (ob, clmd, dm, vertexCos, framenr))
+			{
+				clmd->sim_parms.flags |= CSIMSETT_FLAG_COLLOBJ;
+				cloth_free_modifier(clmd);
 				return;
+			}
 
 			if(clmd->clothObject == NULL)
 				return;
@@ -712,7 +717,7 @@ void clothModifier_do(ClothModifierData *clmd, Object *ob, DerivedMesh *dm,
 		clmd->sim_parms.sim_time = current_time; 
 		
 		verts = cloth->verts;
-
+		
 		for (i = 0; i < clmd->clothObject->numverts; i++, verts++)
 		{
 			// Save the previous position. 
@@ -753,24 +758,24 @@ void clothModifier_do(ClothModifierData *clmd, Object *ob, DerivedMesh *dm,
 			{
 				verts = cloth->verts;
 				
-				/* Force any pinned verts to their constrained location. */
+				// Force any pinned verts to their constrained location. 
 				for (i = 0; i < clmd->clothObject->numverts; i++, verts++)
 				{
-					/* Save the previous position. */
+					// Save the previous position. 
 					VECCOPY (verts->xold, verts->xconst);
 					VECCOPY (verts->txold, verts->x);
 
-					/* Get the current position. */
+					// Get the current position. 
 					VECCOPY (verts->xconst, vertexCos[i]);
 					Mat4MulVecfl(ob->obmat, verts->xconst);
 				}
 
 				tstart();
 
-				/* Call the solver. */
+				// Call the solver.
 				if (solvers [clmd->sim_parms.solver_type].solver)
 					solvers [clmd->sim_parms.solver_type].solver (ob, framenr, clmd, effectors);
-
+				
 				tend();
 				printf("Cloth simulation time: %f\n", (float)tval());
 
@@ -801,6 +806,7 @@ void clothModifier_do(ClothModifierData *clmd, Object *ob, DerivedMesh *dm,
 			}
 		}
 	}
+	
 }
 
 /* frees all */
@@ -815,7 +821,7 @@ void cloth_free_modifier (ClothModifierData *clmd)
 	
 	if(!(clmd->sim_parms.flags & CSIMSETT_FLAG_CCACHE_PROTECT))
 	{
-		// free our frame cache
+		// free our frame cache, TODO: but get to first position before
 		clmd->sim_parms.flags |= CSIMSETT_FLAG_CCACHE_FREE_ALL;
 		cloth_cache_free(clmd, 0);
 	
@@ -848,10 +854,10 @@ void cloth_free_modifier (ClothModifierData *clmd)
 			// we save our faces for collision objects
 			if(cloth->mfaces)
 				MEM_freeN(cloth->mfaces);
-		
+			/*
 			if(clmd->clothObject->facemarks)
 				MEM_freeN(clmd->clothObject->facemarks);
-			
+			*/
 			MEM_freeN (cloth);
 			clmd->clothObject = NULL;
 		}
@@ -965,8 +971,8 @@ static int collobj_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh 
 	clmd->clothObject = MEM_callocN (sizeof(Cloth), "cloth");
 	if (clmd->clothObject) 
 	{
-		clmd->clothObject->old_solver_type = -1;
-		clmd->clothObject->old_collision_type = -1;
+		clmd->clothObject->old_solver_type = 255;
+		clmd->clothObject->old_collision_type = 255;
 	}
 	else if (clmd->clothObject == NULL) 
 	{
@@ -986,8 +992,12 @@ static int collobj_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh 
 		
 		if (clmd->clothObject != NULL) 
 		{
-			mvert = CDDM_get_verts(dm);
+			if (!dm) return 0;
+			if (!dm->getNumVerts(dm) || !dm->getNumFaces(dm)) return 0;
+			
+			mvert = dm->getVertArray(dm);
 			verts = clmd->clothObject->verts;
+			numverts = clmd->clothObject->numverts = dm->getNumVerts(dm);
 			
 			for (i = 0; i < numverts; i++, verts++)
 			{
@@ -1004,7 +1014,7 @@ static int collobj_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh 
 			clmd->clothObject->tree =  bvh_build(clmd,clmd->coll_parms.epsilon);
 			
 		}
-
+		
 		return 1;
 	default: return 0; // TODO - we do not support changing meshes
 	}
@@ -1175,8 +1185,8 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	clmd->clothObject = MEM_callocN (sizeof(Cloth), "cloth");
 	if (clmd->clothObject) 
 	{
-		clmd->clothObject->old_solver_type = -1;
-		clmd->clothObject->old_collision_type = -1;
+		clmd->clothObject->old_solver_type = 255;
+		clmd->clothObject->old_collision_type = 255;
 	}
 	else if (clmd->clothObject == NULL) 
 	{
@@ -1242,7 +1252,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 
 			clmd->clothObject->tree = bvh_build(clmd, clmd->coll_parms.epsilon);
 
-			cloth_cache_set_frame(clmd, 1);
+			// cloth_cache_set_frame(clmd, 1);
 		}
 
 		return 1;
@@ -1265,7 +1275,7 @@ static void cloth_from_mesh (Object *ob, ClothModifierData *clmd, DerivedMesh *d
 {
 	unsigned int numverts = dm->getNumVerts(dm);
 	unsigned int numfaces = dm->getNumFaces(dm);
-	MFace *mface = CDDM_get_faces(dm);
+	MFace *mface = dm->getFaceArray(dm);
 	unsigned int i = 0;
 
 	/* Allocate our vertices.
