@@ -2875,14 +2875,13 @@ void initBoneSize(TransInfo *t)
 	t->mode = TFM_BONESIZE;
 	t->transform = BoneSize;
 	
-	t->idx_max = 0;
-	t->num.idx_max = 0;
+	t->idx_max = 2;
+	t->num.idx_max = 2;
+	t->num.flag |= NUM_NULL_ONE;
 	t->snap[0] = 0.0f;
 	t->snap[1] = 0.1f;
 	t->snap[2] = t->snap[1] * 0.1f;
-
-	t->flag |= T_NO_CONSTRAINT;
-
+	
 	t->fac = (float)sqrt( (
 					   ((float)(t->center2d[1] - t->imval[1]))*((float)(t->center2d[1] - t->imval[1]))
 					   +
@@ -2890,6 +2889,29 @@ void initBoneSize(TransInfo *t)
 					   ) );
 	
 	if(t->fac==0.0f) t->fac= 1.0f;	// prevent Inf
+}
+
+static void headerBoneSize(TransInfo *t, float vec[3], char *str) {
+	char tvec[60];
+	if (hasNumInput(&t->num)) {
+		outputNumInput(&(t->num), tvec);
+	}
+	else {
+		sprintf(&tvec[0], "%.4f", vec[0]);
+		sprintf(&tvec[20], "%.4f", vec[1]);
+		sprintf(&tvec[40], "%.4f", vec[2]);
+	}
+
+	/* hmm... perhaps the y-axis values don't need to be shown? */
+	if (t->con.mode & CON_APPLY) {
+		if (t->num.idx_max == 0)
+			sprintf(str, "ScaleB: %s%s %s", &tvec[0], t->con.text, t->proptext);
+		else 
+			sprintf(str, "ScaleB: %s : %s : %s%s %s", &tvec[0], &tvec[20], &tvec[40], t->con.text, t->proptext);
+	}
+	else {
+		sprintf(str, "ScaleB X: %s  Y: %s  Z: %s%s %s", &tvec[0], &tvec[20], &tvec[40], t->con.text, t->proptext);
+	}
 }
 
 static void ElementBoneSize(TransInfo *t, TransData *td, float mat[3][3]) 
@@ -2918,7 +2940,7 @@ int BoneSize(TransInfo *t, short mval[2])
 	float size[3], mat[3][3];
 	float ratio;
 	int i;
-	char str[50];
+	char str[60];
 	
 	/* for manipulator, center handle, the scaling can't be done relative to center */
 	if( (t->flag & T_USES_MANIPULATOR) && t->con.mode==0) {
@@ -2966,7 +2988,7 @@ int BoneSize(TransInfo *t, short mval[2])
 	
 	Mat3CpyMat3(t->mat, mat);	// used in manipulator
 	
-	headerResize(t, size, str);
+	headerBoneSize(t, size, str);
 	
 	for(i = 0 ; i < t->total; i++, td++) {
 		if (td->flag & TD_NOACTION)

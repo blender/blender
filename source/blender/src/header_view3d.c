@@ -3703,12 +3703,17 @@ static void do_view3d_edit_armaturemenu(void *arg, int event)
 	case 13: /* flip left and right names */
 		armature_flip_names();
 		break;
-		break;
 	case 15: /* subdivide multi */
 		if(button(&numcuts, 1, 128, "Number of Cuts:")==0) return;
 		waitcursor(1);
 		subdivide_armature(numcuts);
+		break;
+	case 16: /* Alt-S transform (BoneSize) */
+		initTransform(TFM_BONESIZE, CTX_NONE);
+		Transform();
+		break;
 	}
+	
 	allqueue(REDRAWVIEW3D, 0);
 }
 
@@ -3764,6 +3769,11 @@ static uiBlock *view3d_edit_armaturemenu(void *arg_unused)
 	uiDefIconTextBlockBut(block, view3d_edit_mirrormenu, NULL, ICON_RIGHTARROW_THIN, "Mirror", 0, yco-=20, menuwidth, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_snapmenu, NULL, ICON_RIGHTARROW_THIN, "Snap", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_edit_armature_rollmenu, NULL, ICON_RIGHTARROW_THIN, "Bone Roll", 0, yco-=20, 120, 19, "");
+	
+	if (arm->drawtype==ARM_ENVELOPE)
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Scale Envelope Distance|Alt S",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 16, "");
+	else if (arm->drawtype==ARM_B_BONE)
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Scale B-Bone Width|Alt S",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 16, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
