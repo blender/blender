@@ -3054,7 +3054,13 @@ int BoneEnvelope(TransInfo *t, short mval[2])
 		if (td->flag & TD_NOACTION)
 			break;
 		
-		if(td->val) *td->val= td->ival*ratio;
+		if (td->val) {
+			/* if the old/original value was 0.0f, then just use ratio */
+			if (td->ival)
+				*td->val= td->ival*ratio;
+			else
+				*td->val= ratio;
+		}
 	}
 	
 	recalcData(t);
