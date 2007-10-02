@@ -859,8 +859,12 @@ void do_global_buttons(unsigned short event)
 					if(mtex) id= (ID *)mtex->tex;
 				}
 			}
-			
-			activate_databrowse(id, ID_TE, 0, B_TEXBROWSE, &G.buts->texnr, do_global_buttons);
+			if(G.qual & LR_CTRLKEY) {
+				activate_databrowse_imasel(id, ID_TE, 0, B_TEXBROWSE, &G.buts->texnr, do_global_buttons);
+			}
+			else {
+				activate_databrowse(id, ID_TE, 0, B_TEXBROWSE, &G.buts->texnr, do_global_buttons);
+			}
 			return;
 		}
 		if(G.buts->texnr < 0) break;

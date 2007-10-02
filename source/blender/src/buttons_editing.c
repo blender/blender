@@ -5064,7 +5064,11 @@ void do_fpaintbuts(unsigned short event)
 			if(G.buts->menunr==-2) {
 				MTex *mtex= brush->mtex[brush->texact];
 				ID *id= (ID*)((mtex)? mtex->tex: NULL);
-				activate_databrowse(id, ID_TE, 0, B_BTEXBROWSE, &G.buts->menunr, do_global_buttons);
+				if(G.qual & LR_CTRLKEY) {
+					activate_databrowse_imasel(id, ID_TE, 0, B_BTEXBROWSE, &G.buts->menunr, do_fpaintbuts);
+				} else {
+					activate_databrowse(id, ID_TE, 0, B_BTEXBROWSE, &G.buts->menunr, do_fpaintbuts);
+				}
 				break;
 			}
 			else if(G.buts->menunr < 0) break;

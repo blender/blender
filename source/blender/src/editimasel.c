@@ -619,7 +619,7 @@ static void do_imasel_buttons(short event, SpaceImaSel *simasel)
 			simasel->file[0] = '\0';			
 			simasel->scrollpos = 0;
 			simasel->active_file = -1;
-			scrarea_queue_winredraw(curarea);
+			scrarea_queue_redraw(curarea);
 		}
 
 		simasel->active_file = -1;
@@ -632,7 +632,7 @@ static void do_imasel_buttons(short event, SpaceImaSel *simasel)
 		simasel->file[0] = '\0';
 		simasel->active_file = -1;
 		simasel->scrollpos = 0;
-		scrarea_queue_winredraw(curarea);
+		scrarea_queue_redraw(curarea);
 	}
 	else if(event== B_FS_LOAD) {
 		if(simasel->type) 
@@ -812,6 +812,7 @@ void winqreadimaselspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	char str[FILE_MAXDIR+FILE_MAXFILE+12];
 	short mval[2];
 	short do_draw = 0;
+	short do_headdraw = 0;
 	int numfiles;
 	struct direntry *file;
 	float scrollstep = 0;
@@ -931,6 +932,7 @@ void winqreadimaselspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						simasel->active_file = -1;
 						simasel->scrollpos = 0;
 						do_draw = 1;
+						do_headdraw = 1;
 						
 					}
 					else if (file)
@@ -972,7 +974,7 @@ void winqreadimaselspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 								simasel->file[0] = '\0';			
 								simasel->scrollpos = 0;
 								simasel->active_file = -1;
-								scrarea_queue_winredraw(curarea);
+								do_headdraw = 1;
 							}
 						}
 					} else {
@@ -1054,6 +1056,7 @@ void winqreadimaselspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				simasel->file[0] = '\0';
 				simasel->active_file = -1;
 				simasel->scrollpos = 0;
+				do_headdraw = 1;
 			}
 			do_draw = 1;	
 			break;
@@ -1089,7 +1092,10 @@ void winqreadimaselspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		/* XXX, stupid patch, curarea can become undone
 		 * because of file loading... fixme zr
 		 */
-	if(do_draw && curarea) scrarea_queue_winredraw(curarea);
+	if(curarea) {
+		if(do_draw) scrarea_queue_winredraw(curarea);
+		if(do_headdraw) scrarea_queue_headredraw(curarea);
+	}
 }
 
 

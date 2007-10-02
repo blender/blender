@@ -117,8 +117,13 @@ void do_image_buttons(unsigned short event)
 
 	case B_SIMABROWSE:	
 		if(G.sima->imanr== -2) {
-			activate_databrowse((ID *)G.sima->image, ID_IM, 0, B_SIMABROWSE,
+			if(G.qual & LR_CTRLKEY) {
+				activate_databrowse_imasel((ID *)G.sima->image, ID_IM, 0, B_SIMABROWSE,
 											&G.sima->imanr, do_image_buttons);
+			} else {
+				activate_databrowse((ID *)G.sima->image, ID_IM, 0, B_SIMABROWSE,
+											&G.sima->imanr, do_image_buttons);
+			}
 			return;
 		}
 		if(G.sima->imanr < 0) break;
@@ -308,7 +313,11 @@ void do_image_buttons(unsigned short event)
 			if(G.sima->menunr==-2) {
 				MTex *mtex= brush->mtex[brush->texact];
 				ID *id= (ID*)((mtex)? mtex->tex: NULL);
-				activate_databrowse(id, ID_TE, 0, B_SIMABTEXBROWSE, &G.sima->menunr, do_global_buttons);
+				if(G.qual & LR_CTRLKEY) {
+					activate_databrowse_imasel(id, ID_TE, 0, B_SIMABTEXBROWSE, &G.sima->menunr, do_image_buttons);
+				} else {
+					activate_databrowse(id, ID_TE, 0, B_SIMABTEXBROWSE, &G.sima->menunr, do_image_buttons);
+				}
 				break;
 			}
 			else if(G.sima->menunr < 0) break;
