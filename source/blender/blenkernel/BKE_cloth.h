@@ -34,6 +34,7 @@
 #ifndef BKE_CLOTH_H
 #define BKE_CLOTH_H
 
+#include "BLI_linklist.h"
 #include "BKE_DerivedMesh.h"
 #include "DNA_customdata_types.h"
 #include "BKE_customdata.h"
@@ -88,10 +89,8 @@ typedef enum
 	CSIMSETT_FLAG_RESET = (1 << 1),		// The CM object requires a reinitializaiton.
 			CSIMSETT_FLAG_COLLOBJ = (1 << 2), 	// object is only collision object, no cloth simulation is done
 			CSIMSETT_FLAG_GOAL = (1 << 3), 		// we have goals enabled
-			CSIMSETT_FLAG_CCACHE_FREE_ALL = (1 << 4),  // delete all from cache
-			CSIMSETT_FLAG_CCACHE_FREE_PART = (1 << 5), // delete some part of cache
-			CSIMSETT_FLAG_TEARING_ENABLED = (1 << 6), // true if tearing is enabled
-			CSIMSETT_FLAG_CCACHE_PROTECT = (1 << 7), // true if tearing is enabled
+			CSIMSETT_FLAG_TEARING_ENABLED = (1 << 4), // true if tearing is enabled
+			CSIMSETT_FLAG_CCACHE_PROTECT = (1 << 5), // true if tearing is enabled
 } CSIMSETT_FLAGS;
 
 /* Spring types as defined in the paper.*/
@@ -221,6 +220,7 @@ typedef struct Frame
 {
 	ClothVertex *verts;
 	ClothSpring *springs;
+	unsigned int numverts, numsprings;
 	float time; /* we need float since we want to support sub-frames */
 } Frame;
 

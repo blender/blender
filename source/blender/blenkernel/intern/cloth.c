@@ -403,230 +403,198 @@ DerivedMesh *CDDM_create_tearing(ClothModifierData *clmd, DerivedMesh *dm)
 int cloth_cache_search_frame(ClothModifierData *clmd, float time)
 {
 	Frame *frame = NULL;
-	LinkNode *search = NULL;
-	int newtime = time + clmd->sim_parms.preroll;
-
-	Cloth *cloth = NULL;
-
-	if(!clmd)
-		return 0;
-
-	cloth = clmd->clothObject;
-
-	if(!cloth)
-		return 0;
-
-	if(clmd->sim_parms.cache)
-	{		
+	LinkNode *search = NULL;	
+	
+	if(clmd->clothObject)
+	{
 		search = clmd->sim_parms.cache;
-
-		// check if frame exists
+		
 		while(search)
 		{
-			frame = search->link;
-
-			if(frame->time == newtime)
-				break;
-
-			frame = NULL;
-
-			search = search->next;   
-		}
-	}	
-
-	if(!frame) 
-		return 0;
-
-	return 1;
-}
-
-int cloth_cache_last_frame(ClothModifierData *clmd)
-{
-	Frame *frame = NULL;
-	LinkNode *search = NULL;
-	int temptime = 0;
-
-	Cloth *cloth = NULL;
-
-	if(!clmd)
-		return 0;
-
-	cloth = clmd->clothObject;
-
-	if(!cloth)
-		return 0;
-
-	if(clmd->sim_parms.cache)
-	{		
-		search = clmd->sim_parms.cache;
-
-		// check if frame exists
-		while(search)
-		{
-			frame = search->link;
-
-			if(frame->time > temptime)
+			frame = (Frame *)search->link;
+			
+			if(frame)
 			{
-				temptime = frame->time;
+				if(frame->time == time)
+					return 1;
 			}
-
+			
 			search = search->next;
 		}
-	}	
-	return temptime;
+	}
+	
+	return 0;
+	
+}
+
+float cloth_cache_last_frame(ClothModifierData *clmd)
+{
+	Frame *frame = NULL;
+	LinkNode *search = NULL;	
+	float time = 0;
+	
+	if(clmd->clothObject)
+	{
+		search = clmd->sim_parms.cache;
+		
+		while(search)
+		{
+			frame = (Frame *)search->link;
+			
+			if(frame)
+			{
+				if(frame->time > time)
+					time = frame->time;
+			}
+		}
+	}
+	return time;
+}
+
+float cloth_cache_first_frame(ClothModifierData *clmd)
+{
+	Frame *frame = NULL;
+	LinkNode *search = NULL;	
+	float time = -1.0;
+	
+	if(clmd->clothObject)
+	{
+		search = clmd->sim_parms.cache;
+		
+		while(search)
+		{
+			frame = (Frame *)search->link;
+			
+			if(frame)
+			{
+				if(time < 0.0)
+					time = frame->time;
+				else
+				{
+					if(frame->time < time)
+						time = frame->time;
+				}
+			}
+		}
+	}
+	return time;
 }
 
 void cloth_cache_get_frame(ClothModifierData *clmd, float time)
 {
 	Frame *frame = NULL;
 	LinkNode *search = NULL;
-	unsigned int i = 0;
-	Cloth *cloth = NULL;
-	int newtime = time + clmd->sim_parms.preroll;
-
-	if(clmd)
+	float newtime = time + clmd->sim_parms.preroll;	
+	
+	if(clmd->clothObject)
 	{
-		cloth = clmd->clothObject;
-
-		if(!cloth)
-			return;
-
-		// get cache
-		if(clmd->sim_parms.cache)
+		search = clmd->sim_parms.cache;
+		
+		while(search)
 		{
-			search = clmd->sim_parms.cache;
-			frame = NULL;
-			// check if frame exists
-			while(search)
-			{
-				frame = search->link;
-				if(frame->time == newtime)
-					break;
-
-				frame = NULL;
-
-				search = search->next;   
-			}
-
+			frame = (Frame *)search->link;
+			
 			if(frame)
 			{
-				if(frame->verts)
+				if(frame->time == newtime)
 				{
-
-					// copy ClothVertex struct
-					memcpy(cloth->verts, frame->verts, cloth->numverts*sizeof(ClothVertex));
+					// something changed, free cache!
+					if(clmd->clothObject->numverts != frame->numverts)
+					{
+						cloth_cache_free(clmd, 0);
+						printf("clmd->clothObject->numverts != frame->numverts\n");
+						return;
+					}
+					
+					memcpy(clmd->clothObject->verts, frame->verts, sizeof(ClothVertex)*frame->numverts);
 					implicit_set_positions(clmd);
+					
+					return;
 				}
-				/*
-				if(frame->springs)
-				{
-					// copy ClothSpring struct
-					memcpy(cloth->springs, frame->springs, cloth->numsprings*sizeof(ClothSpring));
-				}
-				*/
 			}
+			
+			search = search->next;
 		}
 	}
-
 }
 
 void cloth_cache_set_frame(ClothModifierData *clmd, float time)
 {
 	Frame *frame = NULL;
-	unsigned int i = 0;
-	Cloth *cloth = NULL;
-	int newtime = time + clmd->sim_parms.preroll;
-
-	if(clmd)
+	LinkNode *search = NULL;
+	
+	if(clmd->clothObject)
 	{
-		cloth = clmd->clothObject;
-
-		if(cloth)
-		{
-			// creat new frame cache
-			frame = (Frame *)MEM_callocN(sizeof(Frame), "cloth frame cache");
-			frame->verts = (ClothVertex *)MEM_callocN(sizeof(ClothVertex)*cloth->numverts, "cloth frame vertex cache");
-			frame->springs = NULL;
-			/*
-			frame->springs = (ClothSpring *)MEM_callocN(sizeof(ClothSpring)*cloth->numsprings, "cloth frame spring cache");
-			*/
-			frame->time = newtime;
-
-			// copy ClothVertex struct
-			for(i = 0; i < cloth->numverts; i++)
-			{
-				memcpy(&frame->verts[i], &cloth->verts[i], sizeof(ClothVertex));
-			}
-			/*
-			// copy ClothSpring struct
-			for(i = 0; i < cloth->numsprings; i++)
-			{
-				memcpy(&frame->springs[i], &cloth->springs[i], sizeof(ClothSpring));
-			}
-			*/
-		}
+		frame = (Frame *)MEM_callocN (sizeof (Frame), "cloth_cache_frame");
+		
 		if(frame)
+		{
+			frame->time = time;
+			frame->numverts = clmd->clothObject->numverts;
+			frame->verts = MEM_dupallocN(clmd->clothObject->verts); 
+			
+			if(!frame->verts)
+			{
+				MEM_freeN(frame);
+				return;
+			}
+			
 			BLI_linklist_append(&clmd->sim_parms.cache, frame);
-	}
+			
+		}
+	}	
+	
 }
 
 // free cloth cache
 void cloth_cache_free(ClothModifierData *clmd, float time)
 {
 	Frame *frame = NULL;
-	LinkNode *search, *last_search;
-	int newtime = time + clmd->sim_parms.preroll;
+	LinkNode *search = NULL, *lastsearch = NULL;	
+	float newtime = time + clmd->sim_parms.preroll;
+	
+	if(time <= 2.0)
+		newtime = time;
 
-	// do never free first cached frame
-	if((newtime<1.0f) && !(clmd->sim_parms.flags & CSIMSETT_FLAG_CCACHE_FREE_ALL))
-		return;
-
-	/* Calls the solver and collision frees first as they
-	* might depend on data in clmd->clothObject. */
-
-	if (clmd) 
+	if(clmd->clothObject)
 	{
 		if(clmd->sim_parms.cache)
-		{			
-			last_search = search = clmd->sim_parms.cache;
+		{	
+			lastsearch = search = clmd->sim_parms.cache;
+			
 			while(search)
 			{
-				LinkNode *next= search->next;
-				frame = search->link;
-
-				// free part of cache, but not preroll cache and first framer
-				if((clmd->sim_parms.flags & CSIMSETT_FLAG_CCACHE_FREE_PART)  
-					&& (frame->time > newtime)) // do not delete the first frame
+				frame = (Frame *)search->link;
+				
+				if(frame->time >= newtime)
 				{
-					MEM_freeN(frame->verts);
-					// MEM_freeN(frame->springs);
-					MEM_freeN(frame);	
+					if(frame->verts)
+					{
+						MEM_freeN(frame->verts);
+					}
+					MEM_freeN(frame);
+					
+					lastsearch->next = search->next;
 					MEM_freeN(search);
-					last_search->next = next;
-				}
-				else if(clmd->sim_parms.flags & CSIMSETT_FLAG_CCACHE_FREE_ALL) // free COMPLETE cache
-				{
-					MEM_freeN(frame->verts);
-					// MEM_freeN(frame->springs);
-					MEM_freeN(frame);	
+					search = lastsearch->next;
+					lastsearch->next = NULL;
 				}
 				else
-					last_search = search;
-				search = next;
+				{
+					lastsearch = search;
+					search = search->next;
+				}
 			}
-
-			if(clmd->sim_parms.flags & CSIMSETT_FLAG_CCACHE_FREE_ALL)
+			
+			if(time <= 1.0)
 			{
-				BLI_linklist_free(clmd->sim_parms.cache,NULL); 
 				clmd->sim_parms.cache = NULL;
 			}
+			
+			if(time <= 2.0)	
+				clmd->sim_parms.preroll = 0;
 		}
 	}
-
-	/* clear flags */
-	clmd->sim_parms.flags &= ~CSIMSETT_FLAG_CCACHE_FREE_ALL;
-	clmd->sim_parms.flags &= ~CSIMSETT_FLAG_CCACHE_FREE_PART;
-
 }
 
 
@@ -656,25 +624,44 @@ void clothModifier_do(ClothModifierData *clmd, Object *ob, DerivedMesh *dm,
 	
 	// only be active during a specific period:
 	// that's "first frame" and "last frame" on GUI
-	
 	if (!(clmd->sim_parms.flags & CSIMSETT_FLAG_COLLOBJ))
 	{
-		if(current_time < clmd->sim_parms.firstframe)
-			return;
-		else if(current_time > clmd->sim_parms.lastframe)
+		if(clmd->clothObject)
 		{
-			int frametime = cloth_cache_last_frame(clmd);
-			if(cloth_cache_search_frame(clmd, frametime))
+			if(clmd->sim_parms.cache)
 			{
-				cloth_cache_get_frame(clmd, frametime);
-				cloth_to_object (ob, clmd, vertexCos, numverts);
+				if(current_time < clmd->sim_parms.firstframe)
+				{
+					int frametime = cloth_cache_first_frame(clmd);
+					if(cloth_cache_search_frame(clmd, frametime))
+					{
+						cloth_cache_get_frame(clmd, frametime);
+						cloth_to_object (ob, clmd, vertexCos, numverts);
+					}
+					return;
+				}
+				else if(current_time > clmd->sim_parms.lastframe)
+				{
+					int frametime = cloth_cache_last_frame(clmd);
+					if(cloth_cache_search_frame(clmd, frametime))
+					{
+						cloth_cache_get_frame(clmd, frametime);
+						cloth_to_object (ob, clmd, vertexCos, numverts);
+					}
+					return;
+				}
+				else if(ABS(deltaTime) >= 2.0f ) // no timewarps allowed
+				{
+					if(cloth_cache_search_frame(clmd, framenr))
+					{
+						cloth_cache_get_frame(clmd, framenr);
+						cloth_to_object (ob, clmd, vertexCos, numverts);
+					}
+					clmd->sim_parms.sim_time = current_time;
+					return;
+				}
 			}
-			return;
-		}
-		else if(ABS(deltaTime) >= 2.0f ) // no timewarps allowed
-		{
-			if(!cloth_cache_search_frame(clmd, framenr))
-				return;
+			
 		}
 	}
 	
@@ -822,7 +809,6 @@ void cloth_free_modifier (ClothModifierData *clmd)
 	if(!(clmd->sim_parms.flags & CSIMSETT_FLAG_CCACHE_PROTECT))
 	{
 		// free our frame cache, TODO: but get to first position before
-		clmd->sim_parms.flags |= CSIMSETT_FLAG_CCACHE_FREE_ALL;
 		cloth_cache_free(clmd, 0);
 	
 		if (cloth) 
@@ -838,14 +824,14 @@ void cloth_free_modifier (ClothModifierData *clmd)
 				MEM_freeN (cloth->verts);
 	
 			cloth->verts = NULL;
-			cloth->numverts = -1;
+			cloth->numverts = 0;
 			
 			// Free the springs.
 			if (cloth->springs != NULL)
 				MEM_freeN (cloth->springs);
 	
 			cloth->springs = NULL;
-			cloth->numsprings = -1;		
+			cloth->numsprings = 0;	
 			
 			// free BVH collision tree
 			if(cloth->tree)
@@ -1242,17 +1228,17 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 				VECCOPY(verts->impulse, tnull);
 			}
 
-			/* apply / set vertex groups */
+			// apply / set vertex groups 
 			if (clmd->sim_parms.vgroup_mass > 0)
 				cloth_apply_vgroup (clmd, dm, clmd->sim_parms.vgroup_mass);
 
-			/* init our solver */
+			// init our solver
 			if (solvers [clmd->sim_parms.solver_type].init)
 				solvers [clmd->sim_parms.solver_type].init (ob, clmd);
 
 			clmd->clothObject->tree = bvh_build(clmd, clmd->coll_parms.epsilon);
 
-			// cloth_cache_set_frame(clmd, 1);
+			cloth_cache_set_frame(clmd, 1);
 		}
 
 		return 1;
@@ -1392,7 +1378,7 @@ int cloth_build_springs(Cloth *cloth, DerivedMesh *dm)
 			springs[temp_index].restlen =  sqrt(INPR(temp, temp));
 			springs[temp_index].type = SHEAR;
 	
-			BLI_linklist_append(&edgelist[springs[temp_index].ij], &(springs[temp_index]));		
+			BLI_linklist_append(&edgelist[springs[temp_index].ij], &(springs[temp_index]));
 			BLI_linklist_append(&edgelist[springs[temp_index].kl], &(springs[temp_index]));
 	
 			shear_springs++;

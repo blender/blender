@@ -2160,8 +2160,7 @@ void do_object_panels(unsigned short event)
 				CFRA= 1;
 				update_for_newframe_muted();
 				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA); 
-				clmd->sim_parms.flags |= CSIMSETT_FLAG_CCACHE_FREE_PART;
-				cloth_cache_free(clmd, 1); 
+				cloth_cache_free(clmd, 2); 
 				allqueue(REDRAWBUTSOBJECT, 0);
 				allqueue(REDRAWVIEW3D, 0);
 			}	
@@ -2172,11 +2171,8 @@ void do_object_panels(unsigned short event)
 			ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
 			if(clmd)
 			{
-				clmd->sim_parms.flags |= CSIMSETT_FLAG_CCACHE_FREE_PART;
-				cloth_cache_free(clmd, G.scene->r.cfra);
-				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA); 
+				cloth_cache_free(clmd, MAX2(2.0,G.scene->r.cfra+1.0));
 				allqueue(REDRAWBUTSOBJECT, 0);
-				allqueue(REDRAWVIEW3D, 0);
 			}
 		}
 		break;	
@@ -3256,6 +3252,8 @@ static void object_panel_cloth_II(Object *ob)
 				uiDefBut(block, BUT, B_CLOTH_CLEARCACHEFRAME, "From next frame", 155, 100,145,20, NULL, 0.0, 0.0, 0, 0, "Free cloth cache");	
 				if(length>1) // B_CLOTH_CHANGEPREROLL
 					uiDefButI(block, NUM, B_CLOTH_CHANGEPREROLL, "Preroll:", 10,80,145,20, &clmd->sim_parms.preroll, 0, length-1, 1, 0, "Simulation starts on this frame");	
+				else
+					uiDefBut(block, LABEL, 0, " ",  10,80,145,20, NULL, 0.0, 0, 0, 0, "");
 			}
 			else
 			{
