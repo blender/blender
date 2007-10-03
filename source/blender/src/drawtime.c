@@ -54,6 +54,7 @@
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
 
+#include "BIF_editaction.h"
 #include "BIF_gl.h"
 #include "BIF_interface.h"
 #include "BIF_interface_icons.h"
@@ -96,7 +97,8 @@ static void draw_cfra_time(SpaceTime *stime)
 		float x,  y;
 		float xscale, yscale;
 		char str[32];
-		/* little box with frame */
+		
+		/* little box with frame drawn beside */
 		
 		glFlush();	// huhh... without this glColor won't work for the text...
 		getmouseco_areawin(mval);
@@ -277,66 +279,84 @@ static void draw_key_list(ListBase elems, char col[3])
 	}
 }
 
+/* This function draws keyframes that the active object has (as long as
+ * it is not in EditMode). Some filters are available to optimise the
+ * drawing efficiency.
+ */
 static void draw_ob_keys()
 {
-	/*mostly copied from drawobject.c, draw_object() */
-	Object *ob;
-	bActionChannel *achan;
-	bAction *act;
-	ListBase elems;
-	int a;
+	/* mostly copied from drawobject.c, draw_object() */
+	SpaceTime *stime= curarea->spacedata.first;
+	ListBase elems= {0, 0};
+	
+	Object *ob= OBACT;
+	short filter, ok;
 	char col[3];
+	int a;
 
-	if (OBACT) {
-		ob = OBACT;
+	if (ob && ob!=G.obedit) {
+		/* Object's IPO block - show all keys */
+		if (ob->ipo) {
+			/* convert the ipo to a list of 'current frame elements' */
+			elems.first= elems.last= NULL;
+			make_cfra_list(ob->ipo, &elems);
+			
+			/* draw the list of current frame elements */
+			col[0] = 0xDD; col[1] = 0xD7; col[2] = 0x00;
+			draw_key_list(elems, col);
+			
+			BLI_freelistN(&elems);
+		}
 		
-		if(ob) {
-			if(ob!=G.obedit) {
-				if(ob->ipo) {
-					/* convert the ipo to a list of 'current frame elements' */
-						
+		/* Object's Action block - may be filtered in some cases */
+		if (ob->action) {
+			bAction *act = ob->action;
+			bActionChannel *achan;
+			
+			/* only apply filter if action is likely to be for pose channels + filter is on */
+			filter= ((stime->flag & TIME_ONLYACTSEL) && 
+					 (ob->pose) && (ob->flag & OB_POSEMODE));
+			
+			/* go through each channel in the action */
+			for (achan=act->chanbase.first; achan; achan=achan->next) {
+				/* if filtering, check if this channel passes */
+				if (filter) {
+					ok= (SEL_ACHAN(achan))? 1 : 0;
+				}
+				else ok= 1;
+				
+				/* convert the ipo to a list of 'current frame elements' */
+				if (achan->ipo && ok) {
 					elems.first= elems.last= NULL;
-					make_cfra_list(ob->ipo, &elems);
+					make_cfra_list(achan->ipo, &elems);
 					
-					/* draw the list of current frame elements */
-					col[0] = 0xDD; col[1] = 0xD7; col[2] = 0x00;
+					col[0] = 0x00; col[1] = 0x82; col[2] = 0x8B;
 					draw_key_list(elems, col);
 					
 					BLI_freelistN(&elems);
 				}
+			}
+		}
+		
+		/* Materials (only relevant for geometry objects) - some filtering might occur */
+		filter= (stime->flag & TIME_ONLYACTSEL);
+		for (a=0; a<ob->totcol; a++) {
+			Material *ma= give_current_material(ob, a+1);
+			
+			/* the only filter we apply right now is only showing the active material */
+			if (filter) {
+				ok= (ob->actcol==a)? 1 : 0;
+			}
+			else ok= 1;
+			
+			if (ma && ma->ipo && ok) {
+				elems.first= elems.last= NULL;
+				make_cfra_list(ma->ipo, &elems);
 				
-				if(ob->action) {
-					act = ob->action;
-
-					/* go through each channel in the action */
-					for (achan=act->chanbase.first; achan; achan=achan->next){
-						/* convert the ipo to a list of 'current frame elements' */
-						if(achan->ipo) {
-							elems.first= elems.last= NULL;
-							make_cfra_list(achan->ipo, &elems);
-
-							col[0] = 0x00; col[1] = 0x82; col[2] = 0x8B;
-							draw_key_list(elems, col);
-							
-							BLI_freelistN(&elems);
-						}
-					}
-				}
+				col[0] = 0xDD; col[1] = 0xA7; col[2] = 0x00;
+				draw_key_list(elems, col);
 				
-				for(a=0; a<ob->totcol; a++) {
-					Material *ma= give_current_material(ob, a+1);
-					
-					if(ma && ma->ipo) {
-						elems.first= elems.last= NULL;
-						make_cfra_list(ma->ipo, &elems);
-						
-						col[0] = 0xDD; col[1] = 0xA7; col[2] = 0x00;
-						draw_key_list(elems, col);
-						
-						BLI_freelistN(&elems);
-					}
-				}
-				
+				BLI_freelistN(&elems);
 			}
 		}
 	}

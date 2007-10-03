@@ -2406,12 +2406,13 @@ static void mouse_actionchannels (short mval[])
 			return;
 	}
 	
-	allqueue (REDRAWIPO, 0);
-	allqueue (REDRAWVIEW3D, 0);
-	allqueue (REDRAWACTION, 0);
-	allqueue (REDRAWNLA, 0);
-	allqueue (REDRAWOOPS, 0);
-	allqueue (REDRAWBUTSALL, 0);
+	allqueue(REDRAWIPO, 0);
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWNLA, 0);
+	allqueue(REDRAWTIME, 0);
+	allqueue(REDRAWOOPS, 0);
+	allqueue(REDRAWBUTSALL, 0);
 }
 
 /* **************************************************** */

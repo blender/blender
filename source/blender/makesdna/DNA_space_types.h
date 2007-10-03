@@ -589,8 +589,12 @@ typedef struct SpaceImaSel {
 #define SNLA_DRAWTIME		4
 
 /* time->flag */
+	/* show timing in frames instead of in seconds */
 #define TIME_DRAWFRAMES		1
+	/* temporary flag set when scrubbing time */
 #define TIME_CFRA_NUM		2
+	/* only keyframes from active/selected channels get shown */
+#define TIME_ONLYACTSEL		4
 
 /* time->redraws */
 #define TIME_LEFTMOST_3D_WIN	1
