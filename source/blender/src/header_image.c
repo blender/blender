@@ -69,6 +69,7 @@
 #include "BIF_butspace.h"
 #include "BIF_drawimage.h"
 #include "BIF_editsima.h"
+#include "BIF_imasel.h"
 #include "BIF_interface.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"

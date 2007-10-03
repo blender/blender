@@ -105,6 +105,7 @@
 #include "BIF_editfont.h"
 #include "BIF_editkey.h"
 #include "BIF_editmesh.h"
+#include "BIF_imasel.h"
 #include "BIF_interface.h"
 #include "BIF_meshtools.h"
 #include "BIF_mywindow.h"
