@@ -71,123 +71,254 @@
 #include "Bullet-C-Api.h"
 
 
-#define DERANDOMIZE 1
 
+/**
+ * gsl_poly_solve_cubic -
+ *
+ * copied from SOLVE_CUBIC.C --> GSL
+ */
+#define mySWAP(a,b) do { float tmp = b ; b = a ; a = tmp ; } while(0)
 
-enum TRIANGLE_MARK 
-{ 
-	TM_MV = 1,
- TM_ME = 2,
- TM_V1 = 4,
- TM_V2 = 8,
- TM_V3 = 16,
- TM_E1 = 32,
- TM_E2 = 64,
- TM_E3 = 128 
-};
-
-DO_INLINE int hasTriangleMark(unsigned char mark, unsigned char bit) { return mark & bit; }
-DO_INLINE void setTriangleMark(unsigned char *mark, unsigned char bit) { mark[0] |= bit; }
-DO_INLINE void clearTriangleMark(unsigned char *mark, unsigned char bit) { mark[0] &= ~bit; }
-
-
-void generateTriangleMarks() 
+int gsl_poly_solve_cubic (float a, float b, float c, float *x0, float *x1, float *x2)
 {
-	/*
-	unsigned int firstEdge = 0;
+	float q = (a * a - 3 * b);
+	float r = (2 * a * a * a - 9 * a * b + 27 * c);
+
+	float Q = q / 9;
+	float R = r / 54;
+
+	float Q3 = Q * Q * Q;
+	float R2 = R * R;
+
+	float CR2 = 729 * r * r;
+	float CQ3 = 2916 * q * q * q;
+
+	if (R == 0 && Q == 0)
+	{
+		*x0 = - a / 3 ;
+		*x1 = - a / 3 ;
+		*x2 = - a / 3 ;
+		return 3 ;
+	}
+	else if (CR2 == CQ3) 
+	{
+	  /* this test is actually R2 == Q3, written in a form suitable
+		for exact computation with integers */
+
+	  /* Due to finite precision some float roots may be missed, and
+		considered to be a pair of complex roots z = x +/- epsilon i
+		close to the real axis. */
+
+		float sqrtQ = sqrtf (Q);
+
+		if (R > 0)
+		{
+			*x0 = -2 * sqrtQ  - a / 3;
+			*x1 = sqrtQ - a / 3;
+			*x2 = sqrtQ - a / 3;
+		}
+		else
+		{
+			*x0 = - sqrtQ  - a / 3;
+			*x1 = - sqrtQ - a / 3;
+			*x2 = 2 * sqrtQ - a / 3;
+		}
+		return 3 ;
+	}
+	else if (CR2 < CQ3) /* equivalent to R2 < Q3 */
+	{
+		float sqrtQ = sqrtf (Q);
+		float sqrtQ3 = sqrtQ * sqrtQ * sqrtQ;
+		float theta = acosf (R / sqrtQ3);
+		float norm = -2 * sqrtQ;
+		*x0 = norm * cosf (theta / 3) - a / 3;
+		*x1 = norm * cosf ((theta + 2.0 * M_PI) / 3) - a / 3;
+		*x2 = norm * cosf ((theta - 2.0 * M_PI) / 3) - a / 3;
+      
+		/* Sort *x0, *x1, *x2 into increasing order */
+
+		if (*x0 > *x1)
+			mySWAP(*x0, *x1) ;
+      
+		if (*x1 > *x2)
+		{
+			mySWAP(*x1, *x2) ;
+          
+			if (*x0 > *x1)
+				mySWAP(*x0, *x1) ;
+		}
+      
+		return 3;
+	}
+	else
+	{
+		float sgnR = (R >= 0 ? 1 : -1);
+		float A = -sgnR * powf (fabs (R) + sqrtf (R2 - Q3), 1.0/3.0);
+		float B = Q / A ;
+		*x0 = A + B - a / 3;
+		return 1;
+	}
+}
+
+
+/**
+ * gsl_poly_solve_quadratic
+ *
+ * copied from GSL
+ */
+int gsl_poly_solve_quadratic (float a, float b, float c,  float *x0, float *x1)
+{
+	float disc = b * b - 4 * a * c;
+
+	if (disc > 0)
+	{
+		if (b == 0)
+		{
+			float r = fabs (0.5 * sqrtf (disc) / a);
+			*x0 = -r;
+			*x1 =  r;
+		}
+		else
+		{
+			float sgnb = (b > 0 ? 1 : -1);
+			float temp = -0.5 * (b + sgnb * sqrtf (disc));
+			float r1 = temp / a ;
+			float r2 = c / temp ;
+
+			if (r1 < r2) 
+			{
+				*x0 = r1 ;
+				*x1 = r2 ;
+			} 
+			else 
+			{
+				*x0 = r2 ;
+				*x1 = r1 ;
+			}
+		}
+		return 2;
+	}
+	else if (disc == 0) 
+	{
+		*x0 = -0.5 * b / a ;
+		*x1 = -0.5 * b / a ;
+		return 2 ;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+
+
+/*
+ * See Bridson et al. "Robust Treatment of Collision, Contact and Friction for Cloth Animation"
+ *     page 4, left column
+ */
+
+int cloth_get_collision_time(float a[3], float b[3], float c[3], float d[3], float e[3], float f[3], float solution[3]) 
+{
+	int num_sols = 0;
 	
-	// 1. Initialization
-	memset(m_triangleMarks, 0, sizeof(unsigned char) * m_triangleCount);
+	float g = -a[2] * c[1] * e[0] + a[1] * c[2] * e[0] +
+			a[2] * c[0] * e[1] - a[0] * c[2] * e[1] -
+			a[1] * c[0] * e[2] + a[0] * c[1] * e[2];
 
-	// 2. The Marking Process
-	
-	// 2.1 Randomly mark triangles for covering vertices.
-	for (unsigned int v = 0; v < m_vertexCount; ++v) 
+	float h = -b[2] * c[1] * e[0] + b[1] * c[2] * e[0] - a[2] * d[1] * e[0] +
+			a[1] * d[2] * e[0] + b[2] * c[0] * e[1] - b[0] * c[2] * e[1] +
+			a[2] * d[0] * e[1] - a[0] * d[2] * e[1] - b[1] * c[0] * e[2] +
+			b[0] * c[1] * e[2] - a[1] * d[0] * e[2] + a[0] * d[1] * e[2] -
+			a[2] * c[1] * f[0] + a[1] * c[2] * f[0] + a[2] * c[0] * f[1] -
+			a[0] * c[2] * f[1] - a[1] * c[0] * f[2] + a[0] * c[1] * f[2];
+
+	float i = -b[2] * d[1] * e[0] + b[1] * d[2] * e[0] +
+			b[2] * d[0] * e[1] - b[0] * d[2] * e[1] -
+			b[1] * d[0] * e[2] + b[0] * d[1] * e[2] -
+			b[2] * c[1] * f[0] + b[1] * c[2] * f[0] -
+			a[2] * d[1] * f[0] + a[1] * d[2] * f[0] +
+			b[2] * c[0] * f[1] - b[0] * c[2] * f[1] + 
+			a[2] * d[0] * f[1] - a[0] * d[2] * f[1] -
+			b[1] * c[0] * f[2] + b[0] * c[1] * f[2] -
+			a[1] * d[0] * f[2] + a[0] * d[1] * f[2];
+
+	float j = -b[2] * d[1] * f[0] + b[1] * d[2] * f[0] +
+			b[2] * d[0] * f[1] - b[0] * d[2] * f[1] -
+			b[1] * d[0] * f[2] + b[0] * d[1] * f[2];
+
+	// Solve cubic equation to determine times t1, t2, t3, when the collision will occur.
+	if(ABS(j) > ALMOST_ZERO)
 	{
-	if (vertexCover(v) == 0) 
+		i /= j;
+		h /= j;
+		g /= j;
+		
+		num_sols = gsl_poly_solve_cubic(i, h, g, &solution[0], &solution[1], &solution[2]);
+	}
+	else if(ABS(i) > ALMOST_ZERO)
+	{	
+		num_sols = gsl_poly_solve_quadratic(i, h, g, &solution[0], &solution[1]);
+		solution[2] = -1.0;
+	}
+	else if(ABS(h) > ALMOST_ZERO)
+	{
+		solution[0] = -g / h;
+		solution[1] = solution[2] = -1.0;
+		num_sols = 1;
+	}
+	else if(ABS(g) > ALMOST_ZERO)
+	{
+		solution[0] = 0;
+		solution[1] = solution[2] = -1.0;
+		num_sols = 1;
+	}
+
+	// Discard negative solutions
+	if ((num_sols >= 1) && (solution[0] < 0)) 
+	{
+		--num_sols;
+		solution[0] = solution[num_sols];
+	}
+	if ((num_sols >= 2) && (solution[1] < 0)) 
+	{
+		--num_sols;
+		solution[1] = solution[num_sols];
+	}
+	if ((num_sols == 3) && (solution[2] < 0)) 
+	{
+		--num_sols;
+	}
+
+	// Sort
+	if (num_sols == 2) 
+	{
+		if (solution[0] > solution[1]) 
+		{
+			double tmp = solution[0];
+			solution[0] = solution[1];
+			solution[1] = tmp;
+		}
+	}
+	else if (num_sols == 3) 
 	{
 
-			// Randomly select an edge whose first triangle we're going to flag. 
+		// Bubblesort
+		if (solution[0] > solution[1]) {
+			double tmp = solution[0]; solution[0] = solution[1]; solution[1] = tmp;
+		}
+		if (solution[1] > solution[2]) {
+			double tmp = solution[1]; solution[1] = solution[2]; solution[2] = tmp;
+		}
+		if (solution[0] > solution[1]) {
+			double tmp = solution[0]; solution[0] = solution[1]; solution[1] = tmp;
+		}
+	}
 
-#ifndef DERANDOMIZE
-	firstEdge = (unsigned int)((float)(random() & 0x7FFFFFFF) /
-	(float)(0x80000000) *
-	(float)(m_vertices[v].getEdgeCount()));
-#endif
-	for (unsigned int ofs = 0; ofs < m_vertices[v].getEdgeCount(); ++ofs) 
-	{
-	unsigned int edgeIdx = (firstEdge + ofs) % m_vertices[v].getEdgeCount();
-	if (m_edges[m_vertices[v].getEdge(edgeIdx)].getTriangleCount())
-	setTriangleMark(m_triangleMarks[m_edges[m_vertices[v].getEdge(edgeIdx)].getTriangle(0)], TM_MV);
-}
-}
-}
-	*/
-	/* If the Cloth is malformed (vertices without adjacent triangles) there might still be uncovered vertices. (Bad luck.) */
-	/*
-	// 2.2 Randomly mark triangles for covering edges.
-	for (unsigned int e = 0; e < m_edgeCount; ++e) 
-	{
-	if (m_edges[e].getTriangleCount() && (edgeCover(e) == 0)) 
-	{
-#ifndef DERANDOMIZE
-	setTriangleMark(m_triangleMarks[m_edges[e].getTriangle(static_cast<UINT32>((float)(random() & 0x7FFFFFFF) /
-	(float)(0x80000000) *
-	(float)(m_edges[e].getTriangleCount())))], TM_ME);
-#else
-	setTriangleMark(m_triangleMarks[m_edges[e].getTriangle(0)], TM_ME);
-#endif
-}
-}
-
-	
-	// 3. The Unmarking Process
-	for (unsigned int t = 0; (t < m_triangleCount); ++t) 
-	{
-	bool overCoveredVertices = true;
-	bool overCoveredEdges = true;
-	for (unsigned char i = 0; (i < 3) && (overCoveredVertices || overCoveredEdges); ++i) 
-	{
-
-	if (vertexCover(m_triangles[t].getVertex(i)) == 1)
-	overCoveredVertices = false;
-	if (edgeCover(m_triangles[t].getEdge(i)) == 1)
-	overCoveredEdges = false;
-
-	assert(vertexCover(m_triangles[t].getVertex(i)) > 0);
-	assert(edgeCover(m_triangles[t].getEdge(i)) > 0);
-}
-	if (overCoveredVertices)
-	clearTriangleMark(m_triangleMarks[t], TM_MV);
-	if (overCoveredEdges)
-	clearTriangleMark(m_triangleMarks[t], TM_ME);
-}
-
-
-	// 4. The Bit Masking Process
-	vector<bool> vertexAssigned(m_vertexCount, false);
-	vector<bool> edgeAssigned(m_edgeCount, false);
-	for (unsigned int t = 0; (t < m_triangleCount); ++t) 
-	{
-	for (unsigned char i = 0; i < 3; ++i) 
-	{
-	if (!vertexAssigned[m_triangles[t].getVertex(i)]) 
-	{
-	vertexAssigned[m_triangles[t].getVertex(i)] = true;
-	setTriangleMark(m_triangleMarks[t], 1 << (2 + i));
-}
-	if (!edgeAssigned[m_triangles[t].getEdge(i)]) 
-	{
-	edgeAssigned[m_triangles[t].getEdge(i)] = true;
-	setTriangleMark(m_triangleMarks[t], 1 << (5 + i));
-}
-}
-}
-	*/
+	return num_sols;
 }
 
 // w3 is not perfect
-void bvh_compute_barycentric (float pv[3], float p1[3], float p2[3], float p3[3], float *w1, float *w2, float *w3)
+void cloth_compute_barycentric (float pv[3], float p1[3], float p2[3], float p3[3], float *w1, float *w2, float *w3)
 {
 	double	tempV1[3], tempV2[3], tempV4[3];
 	double	a,b,c,d,e,f;
@@ -231,6 +362,8 @@ DO_INLINE void interpolateOnTriangle(float to[3], float v1[3], float v2[3], floa
 }
 
 
+
+// unused in the moment, has some bug in
 DO_INLINE void calculateFrictionImpulse(float to[3], float vrel[3], float normal[3], double normalVelocity,
 					double frictionConstant, double delta_V_n) 
 {
@@ -241,8 +374,7 @@ DO_INLINE void calculateFrictionImpulse(float to[3], float vrel[3], float normal
 	VecMulf(to, MAX2(1.0f - frictionConstant * delta_V_n / INPR(vrel_t_pre,vrel_t_pre), 0.0f));
 }
 
-		
-int collision_static(ClothModifierData *clmd, ClothModifierData *coll_clmd)
+int cloth_collision_response_static(ClothModifierData *clmd, ClothModifierData *coll_clmd)
 {
 	unsigned int i = 0;
 	int result = 0;
@@ -263,17 +395,17 @@ int collision_static(ClothModifierData *clmd, ClothModifierData *coll_clmd)
 		collpair = search->link;
 		
 		// compute barycentric coordinates for both collision points
-		bvh_compute_barycentric(collpair->pa,
+		cloth_compute_barycentric(collpair->pa,
 					cloth1->verts[collpair->ap1].txold,
-     cloth1->verts[collpair->ap2].txold,
-     cloth1->verts[collpair->ap3].txold, 
-     &w1, &w2, &w3);
+					cloth1->verts[collpair->ap2].txold,
+					cloth1->verts[collpair->ap3].txold, 
+					&w1, &w2, &w3);
 	
-		bvh_compute_barycentric(collpair->pb,
+		cloth_compute_barycentric(collpair->pb,
 					cloth2->verts[collpair->bp1].txold,
-     cloth2->verts[collpair->bp2].txold,
-     cloth2->verts[collpair->bp3].txold,
-     &u1, &u2, &u3);
+					cloth2->verts[collpair->bp2].txold,
+					cloth2->verts[collpair->bp3].txold,
+					&u1, &u2, &u3);
 	
 		// Calculate relative "velocity".
 		interpolateOnTriangle(v1, cloth1->verts[collpair->ap1].tv, cloth1->verts[collpair->ap2].tv, cloth1->verts[collpair->ap3].tv, w1, w2, w3);
@@ -378,7 +510,7 @@ int collision_static(ClothModifierData *clmd, ClothModifierData *coll_clmd)
 	return result;
 }
 
-void bvh_collision_response_static(ClothModifierData *clmd, ClothModifierData *coll_clmd, Tree *tree1, Tree *tree2)
+void cloth_collision_static(ClothModifierData *clmd, ClothModifierData *coll_clmd, Tree *tree1, Tree *tree2)
 {
 	CollPair *collpair = NULL;
 	Cloth *cloth1=NULL, *cloth2=NULL;
@@ -468,8 +600,7 @@ void bvh_collision_response_static(ClothModifierData *clmd, ClothModifierData *c
 		{
 			// calc distance + normal 	
 			distance = plNearestPoints(
-					verts1[collpair->ap1].txold, verts1[collpair->ap2].txold, verts1[collpair->ap3].txold, verts2[collpair->bp1].txold, verts2[collpair->bp2].txold, verts2[collpair->bp3].txold, 
-     collpair->pa, collpair->pb, collpair->vector);
+					verts1[collpair->ap1].txold, verts1[collpair->ap2].txold, verts1[collpair->ap3].txold, verts2[collpair->bp1].txold, verts2[collpair->bp2].txold, verts2[collpair->bp3].txold, collpair->pa,collpair->pb,collpair->vector);
 			
 			if (distance <= (epsilon + ALMOST_ZERO))
 			{
@@ -496,20 +627,20 @@ void bvh_collision_response_static(ClothModifierData *clmd, ClothModifierData *c
 	}
 }
 
-void bvh_collision_response_moving(ClothModifierData *clmd, ClothModifierData *coll_clmd, Tree *tree1, Tree *tree2)
+void cloth_collision_moving_tris(ClothModifierData *clmd, ClothModifierData *coll_clmd, Tree *tree1, Tree *tree2)
 {
-	CollPair *collpair = NULL;
+	CollPair collpair;
 	Cloth *cloth1=NULL, *cloth2=NULL;
 	MFace *face1=NULL, *face2=NULL;
 	ClothVertex *verts1=NULL, *verts2=NULL;
 	double distance = 0;
 	float epsilon = clmd->coll_parms.epsilon;
-	unsigned int i = 0;
+	unsigned int i = 0, j = 0, k = 0;
+	int numsolutions = 0;
+	float a[3], b[3], c[3], d[3], e[3], f[3], solution[3];
 
-	for(i = 0; i < 4; i++)
-	{
-		collpair = (CollPair *)MEM_callocN(sizeof(CollPair), "cloth coll pair");		
-		
+	for(i = 0; i < 2; i++)
+	{		
 		cloth1 = clmd->clothObject;
 		cloth2 = coll_clmd->clothObject;
 		
@@ -522,59 +653,28 @@ void bvh_collision_response_moving(ClothModifierData *clmd, ClothModifierData *c
 		// check all possible pairs of triangles
 		if(i == 0)
 		{
-			collpair->ap1 = face1->v1;
-			collpair->ap2 = face1->v2;
-			collpair->ap3 = face1->v3;
+			collpair.ap1 = face1->v1;
+			collpair.ap2 = face1->v2;
+			collpair.ap3 = face1->v3;
 			
-			collpair->bp1 = face2->v1;
-			collpair->bp2 = face2->v2;
-			collpair->bp3 = face2->v3;
-			
+			collpair.pointsb[0] = face2->v1;
+			collpair.pointsb[1] = face2->v2;
+			collpair.pointsb[2] = face2->v3;
+			collpair.pointsb[3] = face2->v4;
 		}
 		
 		if(i == 1)
 		{
 			if(face1->v4)
 			{
-				collpair->ap1 = face1->v3;
-				collpair->ap2 = face1->v4;
-				collpair->ap3 = face1->v1;
+				collpair.ap1 = face1->v3;
+				collpair.ap2 = face1->v4;
+				collpair.ap3 = face1->v1;
 				
-				collpair->bp1 = face2->v1;
-				collpair->bp2 = face2->v2;
-				collpair->bp3 = face2->v3;
-			}
-			else
-				i++;
-		}
-		
-		if(i == 2)
-		{
-			if(face2->v4)
-			{
-				collpair->ap1 = face1->v1;
-				collpair->ap2 = face1->v2;
-				collpair->ap3 = face1->v3;
-				
-				collpair->bp1 = face2->v3;
-				collpair->bp2 = face2->v4;
-				collpair->bp3 = face2->v1;
-			}
-			else
-				i+=2;
-		}
-		
-		if(i == 3)
-		{
-			if((face1->v4)&&(face2->v4))
-			{
-				collpair->ap1 = face1->v3;
-				collpair->ap2 = face1->v4;
-				collpair->ap3 = face1->v1;
-				
-				collpair->bp1 = face2->v3;
-				collpair->bp2 = face2->v4;
-				collpair->bp3 = face2->v1;
+				collpair.pointsb[0] = face2->v1;
+				collpair.pointsb[1] = face2->v2;
+				collpair.pointsb[2] = face2->v3;
+				collpair.pointsb[3] = face2->v4;
 			}
 			else
 				i++;
@@ -582,34 +682,40 @@ void bvh_collision_response_moving(ClothModifierData *clmd, ClothModifierData *c
 		
 		// calc SIPcode (?)
 		
-		if(i < 4)
+		if(i < 2)
 		{
-			// calc distance + normal 	
-			distance = plNearestPoints(
-					verts1[collpair->ap1].txold, verts1[collpair->ap2].txold, verts1[collpair->ap3].txold, verts2[collpair->bp1].txold, verts2[collpair->bp2].txold, verts2[collpair->bp3].txold, 
-     collpair->pa, collpair->pb, collpair->vector);
+			VECSUB(a, verts1[collpair.ap2].xold, verts1[collpair.ap1].xold);
+			VECSUB(b, verts1[collpair.ap2].v, verts1[collpair.ap1].v);
+			VECSUB(c, verts1[collpair.ap3].xold, verts1[collpair.ap1].xold);
+			VECSUB(d, verts1[collpair.ap3].v, verts1[collpair.ap1].v);
+				
+			for(j = 0; j < 4; j++)
+				{					
+					if((j==3) && !(face2->v4))
+						break;
+					
+					VECSUB(e, verts2[collpair.pointsb[j]].xold, verts1[collpair.ap1].xold);
+					VECSUB(f, verts2[collpair.pointsb[j]].v, verts1[collpair.ap1].v);
+					
+					numsolutions = cloth_get_collision_time(a, b, c, d, e, f, solution);
+					
+					for (k = 0; k < numsolutions; k++) 
+					{								
+						if ((solution[k] >= 0.0) && (solution[k] <= 1.0)) 
+						{
+							float out_collisionTime = solution[k];
+							
+							// TODO: check for collisions 
+							
+							// TODO: put into collision list
+							
+							printf("Moving found!\n");
+						}
+					}
+					
+					// TODO: check borders for collisions
+				}
 			
-			if (distance <= (epsilon + ALMOST_ZERO))
-			{
-				// printf("dist: %f\n", (float)distance);
-				
-				// collpair->face1 = tree1->tri_index;
-				// collpair->face2 = tree2->tri_index;
-				
-				VECCOPY(collpair->normal, collpair->vector);
-				Normalize(collpair->normal);
-				
-				collpair->distance = distance;
-				BLI_linklist_append(&clmd->coll_parms.collision_list, collpair);
-			}
-			else
-			{
-				MEM_freeN(collpair);
-			}
-		}
-		else
-		{
-			MEM_freeN(collpair);
 		}
 	}
 }
@@ -719,7 +825,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 				{
 					BVH *coll_bvh = coll_clmd->clothObject->tree;
 					
-					bvh_traverse(clmd, coll_clmd, cloth_bvh->root, coll_bvh->root, step, bvh_collision_response_static);
+					bvh_traverse(clmd, coll_clmd, cloth_bvh->root, coll_bvh->root, step, cloth_collision_static);
 				}
 				else
 					printf ("cloth_bvh_objcollision: found a collision object with clothObject or collData NULL.\n");
@@ -745,7 +851,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 				if (coll_clmd->sim_parms.flags & CSIMSETT_FLAG_COLLOBJ)
 				{
 					if (coll_clmd->clothObject) 
-						result += collision_static(clmd, coll_clmd);
+						result += cloth_collision_response_static(clmd, coll_clmd);
 					else
 						printf ("cloth_bvh_objcollision: found a collision object with clothObject or collData NULL.\n");
 				}
@@ -855,7 +961,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 				{
 					BVH *coll_bvh = coll_clmd->clothObject->tree;
 					
-					bvh_traverse(clmd, coll_clmd, cloth_bvh->root, coll_bvh->root, step, bvh_collision_response_moving);
+					bvh_traverse(clmd, coll_clmd, cloth_bvh->root, coll_bvh->root, step, cloth_collision_moving_tris);
 				}
 				else
 					printf ("cloth_bvh_objcollision: found a collision object with clothObject or collData NULL.\n");
@@ -882,7 +988,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 		if (coll_clmd->sim_parms.flags & CSIMSETT_FLAG_COLLOBJ)
 		{
 		if (coll_clmd->clothObject) 
-		result += collision_moving(clmd, coll_clmd);
+		result += cloth_collision_response_moving_tris(clmd, coll_clmd);
 		else
 		printf ("cloth_bvh_objcollision: found a collision object with clothObject or collData NULL.\n");
 	}

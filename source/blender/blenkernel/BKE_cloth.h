@@ -235,9 +235,31 @@ typedef struct CollPair
 	float pa[3], pb[3]; // collision point p1 on face1, p2 on face2
 	int lastsign; // indicates if the distance sign has changed, unused itm
 	float time; // collision time, from 0 up to 1
-	unsigned int ap1, ap2, ap3, bp1, bp2, bp3;
+	unsigned int ap1, ap2, ap3, bp1, bp2, bp3, bp4;
+	unsigned int pointsb[4];
 } CollPair;
 
+/* used for collisions in collision.c */
+typedef struct EdgeCollPair
+{
+	unsigned int p11, p12, p21, p22;
+	float normal[3];
+	float vector[3];
+	float time;
+	int lastsign;
+	float pa[3], pb[3]; // collision point p1 on face1, p2 on face2
+} EdgeCollPair;
+
+/* used for collisions in collision.c */
+typedef struct FaceCollPair
+{
+	unsigned int p11, p12, p13, p21;
+	float normal[3];
+	float vector[3];
+	float time;
+	int lastsign;
+	float pa[3], pb[3]; // collision point p1 on face1, p2 on face2
+} FaceCollPair;
 
 #endif
 
