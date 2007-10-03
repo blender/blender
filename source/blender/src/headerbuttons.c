@@ -587,7 +587,10 @@ void do_global_buttons(unsigned short event)
 	ScrArea *sa;
 	Brush *br;
 	int nr= 1;
+	
+#ifdef INTERNATIONAL
 	char buf[FILE_MAX];
+#endif
 
 	ob= OBACT;
 

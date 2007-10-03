@@ -2580,6 +2580,7 @@ void do_fontbuts(unsigned short event)
 	}
 }
 
+#ifdef INTERNATIONAL
 static void editing_panel_char_type(Object *ob, Curve *cu)
 {
 	uiBlock *block;
@@ -2605,6 +2606,7 @@ static void editing_panel_char_type(Object *ob, Curve *cu)
 	uiDefButI(block, BUT, B_SETUPCHAR, "U", 280, 185, 15, 15, &G.charstart, 0, 0xffff, 0, 0, "Scroll character table up");
 	uiDefButI(block, BUT, B_SETDOWNCHAR, "D", 280, 0, 15, 15, &G.charstart, 0, 0xffff, 0, 0, "Scroll character table down");
 }
+#endif
 
 static void editing_panel_font_type(Object *ob, Curve *cu)
 {

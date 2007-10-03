@@ -1199,11 +1199,15 @@ void image_buttons(void)
 		uiDefIconButBitI(block, TOGN, SI_SYNC_UVSEL, B_REDR, ICON_NO_GO_LEFT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Mesh independant selection");
 		xco+= XIC;
 		if ((G.sima->flag & SI_SYNC_UVSEL)==0) {
+			
+			/* would use these if const's could go in strings 
+			 * SI_STICKY_LOC SI_STICKY_DISABLE SI_STICKY_VERTEX */
 			ubut = uiDefIconTextButC(block, ICONTEXTROW, B_REDR, ICON_STICKY_UVS_LOC,
 					"Sticky UV Selection: %t|Disable%x1|Shared Location%x0|Shared Vertex%x2",
 					xco,0,XIC+10,YIC, &(G.sima->sticky), 0, 3.0, 0, 0,
 					"Sticky UV Selection (Hotkeys: Shift C, Alt C, Ctrl C)");
 			xco+= XIC + 16;
+			
 		} else {
 			xco+= 6;
 		}

@@ -4843,13 +4843,13 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				} else {
 					/* normal operaton */
 					if(G.qual==LR_CTRLKEY) {
-						G.sima->sticky = 2;
+						G.sima->sticky = SI_STICKY_VERTEX;
 						scrarea_do_headdraw(curarea);
 					} else if(G.qual==LR_SHIFTKEY) {
-						G.sima->sticky = 1;
+						G.sima->sticky = SI_STICKY_DISABLE;
 						scrarea_do_headdraw(curarea);
 					} else if(G.qual==LR_ALTKEY) {
-						G.sima->sticky = 0;
+						G.sima->sticky = SI_STICKY_LOC;
 						scrarea_do_headdraw(curarea);
 					} else {
 						G.sima->flag ^= SI_SELACTFACE;

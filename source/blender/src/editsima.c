@@ -616,7 +616,7 @@ void find_nearest_uv(MTFace **nearesttf, EditFace **nearestefa, unsigned int *ne
 	}
 }
 
-void mouse_select_sima(void) /* TODO - SYNCSEL */
+void mouse_select_sima(void)
 {
 	EditMesh *em = G.editMesh;
 	EditFace *efa;
@@ -646,13 +646,13 @@ void mouse_select_sima(void) /* TODO - SYNCSEL */
 		actface= (G.qual & LR_ALTKEY || G.sima->flag & SI_SELACTFACE);
 		
 		switch(G.sima->sticky) {
-		case 0:
+		case SI_STICKY_LOC:
 			sticky=2;
 			break;
-		case 1:
+		case SI_STICKY_DISABLE:
 			sticky=0;
 			break;
-		case 2:
+		case SI_STICKY_VERTEX:
 			if(G.qual & LR_CTRLKEY) {
 				sticky=0;
 			} else {  
