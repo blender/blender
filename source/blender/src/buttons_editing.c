@@ -3788,13 +3788,13 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 			uiBlockBeginAlign(block);
 			for(a=0; a<8; a++) {
 				short dx= 21;
-				but= uiDefButBitS(block, TOG, 1<<a, REDRAWVIEW3D, "", -10+a*dx, by-57, dx, 15, &curBone->layer, 0, 0, 0, 0, "Don't draw this layer for group-duplicators");
+				but= uiDefButBitS(block, TOG, 1<<a, REDRAWVIEW3D, "", -10+a*dx, by-57, dx, 15, &curBone->layer, 0, 0, 0, 0, "Armature layer that bone exists on");
 				uiButSetFunc(but, armature_layer_cb, &curBone->layer, (void *)(1<<a));
 			}
 			uiBlockBeginAlign(block);
 			for(a=8; a<16; a++) {
 				short dx= 21;
-				but= uiDefButBitS(block, TOG, 1<<a, REDRAWVIEW3D, "", -6+a*dx, by-57, dx, 15, &curBone->layer, 0, 0, 0, 0, "Don't draw this layer for group-duplicators");
+				but= uiDefButBitS(block, TOG, 1<<a, REDRAWVIEW3D, "", -6+a*dx, by-57, dx, 15, &curBone->layer, 0, 0, 0, 0, "Armature layer that bone exists on");
 				uiButSetFunc(but, armature_layer_cb, &curBone->layer, (void *)(1<<a));
 			}
 			
@@ -3885,13 +3885,13 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 			uiBlockBeginAlign(block);
 			for(a=0; a<8; a++) {
 				short dx= 21;
-				but= uiDefButBitS(block, TOG, 1<<a, REDRAWVIEW3D, "", -10+a*dx, by-57, dx, 15, &curBone->layer, 0, 0, 0, 0, "");
+				but= uiDefButBitS(block, TOG, 1<<a, REDRAWVIEW3D, "", -10+a*dx, by-57, dx, 15, &curBone->layer, 0, 0, 0, 0, "Armature layer that bone exists on");
 				uiButSetFunc(but, armature_layer_cb, &curBone->layer, (void *)(1<<a));
 			}
 			uiBlockBeginAlign(block);
 			for(a=8; a<16; a++) {
 				short dx= 21;
-				but= uiDefButBitS(block, TOG, 1<<a, REDRAWVIEW3D, "", -6+a*dx, by-57, dx, 15, &curBone->layer, 0, 0, 0, 0, "");
+				but= uiDefButBitS(block, TOG, 1<<a, REDRAWVIEW3D, "", -6+a*dx, by-57, dx, 15, &curBone->layer, 0, 0, 0, 0, "Armature layer that bone exists on");
 				uiButSetFunc(but, armature_layer_cb, &curBone->layer, (void *)(1<<a));
 			}
 			uiBlockEndAlign(block);
