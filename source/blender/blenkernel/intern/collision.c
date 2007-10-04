@@ -627,6 +627,175 @@ void cloth_collision_static(ClothModifierData *clmd, ClothModifierData *coll_clm
 	}
 }
 
+int cloth_are_edges_adjacent(ClothModifierData *clmd, ClothModifierData *coll_clmd, EdgeCollPair *edgecollpair)
+{
+	Cloth *cloth1, *cloth2;
+	ClothVertex *verts1, *verts2;
+	float temp[3];
+	 
+	cloth1 = clmd->clothObject;
+	cloth2 = coll_clmd->clothObject;
+	
+	verts1 = cloth1->verts;
+	verts2 = cloth2->verts;
+	
+	VECSUB(temp, verts1[edgecollpair->p11].xold, verts2[edgecollpair->p21].xold);
+	if(ABS(INPR(temp, temp)) < ALMOST_ZERO)
+		return 1;
+	
+	VECSUB(temp, verts1[edgecollpair->p11].xold, verts2[edgecollpair->p22].xold);
+	if(ABS(INPR(temp, temp)) < ALMOST_ZERO)
+		return 1;
+	
+	VECSUB(temp, verts1[edgecollpair->p12].xold, verts2[edgecollpair->p21].xold);
+	if(ABS(INPR(temp, temp)) < ALMOST_ZERO)
+		return 1;
+	
+	VECSUB(temp, verts1[edgecollpair->p12].xold, verts2[edgecollpair->p22].xold);
+	if(ABS(INPR(temp, temp)) < ALMOST_ZERO)
+		return 1;
+		
+	return 0;
+}
+
+void cloth_collision_moving_edges(ClothModifierData *clmd, ClothModifierData *coll_clmd, Tree *tree1, Tree *tree2)
+{
+	EdgeCollPair edgecollpair;
+	Cloth *cloth1=NULL, *cloth2=NULL;
+	MFace *face1=NULL, *face2=NULL;
+	ClothVertex *verts1=NULL, *verts2=NULL;
+	double distance = 0;
+	float epsilon = clmd->coll_parms.epsilon;
+	unsigned int i = 0, j = 0, k = 0;
+	int numsolutions = 0;
+	float a[3], b[3], c[3], d[3], e[3], f[3], solution[3];
+	
+	cloth1 = clmd->clothObject;
+	cloth2 = coll_clmd->clothObject;
+	
+	verts1 = cloth1->verts;
+	verts2 = cloth2->verts;
+
+	face1 = &(cloth1->mfaces[tree1->tri_index]);
+	face2 = &(cloth2->mfaces[tree2->tri_index]);
+	
+	for( i = 0; i < 5; i++)
+	{
+		if(i == 0) 
+		{
+			edgecollpair.p11 = face1->v1;
+			edgecollpair.p12 = face1->v2;
+		}
+		else if(i == 1) 
+		{
+			edgecollpair.p11 = face1->v2;
+			edgecollpair.p12 = face1->v3;
+		}
+		else if(i == 2) 
+		{
+			if(face1->v4) 
+			{
+				edgecollpair.p11 = face1->v3;
+				edgecollpair.p12 = face1->v4;
+			}
+			else 
+			{
+				edgecollpair.p11 = face1->v3;
+				edgecollpair.p12 = face1->v1;
+				i+=5; // get out of here!
+			}
+		}
+		else if(i == 3) 
+		{
+			if(face1->v4) 
+			{
+				edgecollpair.p11 = face1->v4;
+				edgecollpair.p12 = face1->v1;
+			}	
+			else
+				continue;
+		}
+		else
+		{
+			edgecollpair.p11 = face1->v3;
+			edgecollpair.p12 = face1->v1;
+		}
+
+		
+		for( j = 0; j < 5; j++)
+		{
+			if(j == 0)
+			{
+				edgecollpair.p21 = face2->v1;
+				edgecollpair.p22 = face2->v2;
+			}
+			else if(j == 1)
+			{
+				edgecollpair.p21 = face2->v2;
+				edgecollpair.p22 = face2->v3;
+			}
+			else if(j == 2)
+			{
+				if(face2->v4) 
+				{
+					edgecollpair.p21 = face2->v3;
+					edgecollpair.p22 = face2->v4;
+				}
+				else 
+				{
+					edgecollpair.p21 = face2->v3;
+					edgecollpair.p22 = face2->v1;
+				}
+			}
+			else if(j == 3)
+			{
+				if(face2->v4) 
+				{
+					edgecollpair.p21 = face2->v4;
+					edgecollpair.p22 = face2->v1;
+				}
+				else
+					continue;
+			}
+			else
+			{
+				edgecollpair.p21 = face2->v3;
+				edgecollpair.p22 = face2->v1;
+			}
+			
+			
+			if(!cloth_are_edges_adjacent(clmd, coll_clmd, &edgecollpair))
+			{
+				VECSUB(a, verts1[edgecollpair.p12].xold, verts1[edgecollpair.p11].xold);
+				VECSUB(b, verts1[edgecollpair.p12].v, verts1[edgecollpair.p11].v);
+				VECSUB(c, verts1[edgecollpair.p21].xold, verts1[edgecollpair.p11].xold);
+				VECSUB(d, verts1[edgecollpair.p21].v, verts1[edgecollpair.p11].v);
+				VECSUB(e, verts2[edgecollpair.p22].xold, verts1[edgecollpair.p11].xold);
+				VECSUB(f, verts2[edgecollpair.p22].v, verts1[edgecollpair.p11].v);
+				
+				numsolutions = cloth_get_collision_time(a, b, c, d, e, f, solution);
+				
+				for (k = 0; k < numsolutions; k++) 
+				{								
+					if ((solution[k] >= 0.0) && (solution[k] <= 1.0)) 
+					{
+						float out_collisionTime = solution[k];
+						
+						// TODO: check for collisions 
+						
+						// TODO: put into collision list
+						
+						printf("Moving edge found!\n");
+					}
+				}
+			}
+		}
+	}
+		
+		
+	
+}
+
 void cloth_collision_moving_tris(ClothModifierData *clmd, ClothModifierData *coll_clmd, Tree *tree1, Tree *tree2)
 {
 	CollPair collpair;
@@ -690,34 +859,43 @@ void cloth_collision_moving_tris(ClothModifierData *clmd, ClothModifierData *col
 			VECSUB(d, verts1[collpair.ap3].v, verts1[collpair.ap1].v);
 				
 			for(j = 0; j < 4; j++)
-				{					
-					if((j==3) && !(face2->v4))
-						break;
-					
-					VECSUB(e, verts2[collpair.pointsb[j]].xold, verts1[collpair.ap1].xold);
-					VECSUB(f, verts2[collpair.pointsb[j]].v, verts1[collpair.ap1].v);
-					
-					numsolutions = cloth_get_collision_time(a, b, c, d, e, f, solution);
-					
-					for (k = 0; k < numsolutions; k++) 
-					{								
-						if ((solution[k] >= 0.0) && (solution[k] <= 1.0)) 
-						{
-							float out_collisionTime = solution[k];
-							
-							// TODO: check for collisions 
-							
-							// TODO: put into collision list
-							
-							printf("Moving found!\n");
-						}
+			{					
+				if((j==3) && !(face2->v4))
+					break;
+				
+				VECSUB(e, verts2[collpair.pointsb[j]].xold, verts1[collpair.ap1].xold);
+				VECSUB(f, verts2[collpair.pointsb[j]].v, verts1[collpair.ap1].v);
+				
+				numsolutions = cloth_get_collision_time(a, b, c, d, e, f, solution);
+				
+				for (k = 0; k < numsolutions; k++) 
+				{								
+					if ((solution[k] >= 0.0) && (solution[k] <= 1.0)) 
+					{
+						float out_collisionTime = solution[k];
+						
+						// TODO: check for collisions 
+						
+						// TODO: put into collision list
+						
+						printf("Moving found!\n");
 					}
-					
-					// TODO: check borders for collisions
 				}
+				
+				// TODO: check borders for collisions
+			}
 			
 		}
 	}
+}
+
+void cloth_collision_moving(ClothModifierData *clmd, ClothModifierData *coll_clmd, Tree *tree1, Tree *tree2)
+{
+	// TODO: check for adjacent
+	cloth_collision_moving_edges(clmd, coll_clmd, tree1, tree2);
+	
+	cloth_collision_moving_tris(clmd, coll_clmd, tree1, tree2);
+	// cloth_collision_moving_tris(coll_clmd, clmd, tree2, tree1);
 }
 
 // move collision objects forward in time and update static bounding boxes
@@ -961,7 +1139,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 				{
 					BVH *coll_bvh = coll_clmd->clothObject->tree;
 					
-					bvh_traverse(clmd, coll_clmd, cloth_bvh->root, coll_bvh->root, step, cloth_collision_moving_tris);
+					bvh_traverse(clmd, coll_clmd, cloth_bvh->root, coll_bvh->root, step, cloth_collision_moving);
 				}
 				else
 					printf ("cloth_bvh_objcollision: found a collision object with clothObject or collData NULL.\n");
