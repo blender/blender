@@ -117,6 +117,10 @@ ifeq ($(WITH_FFMPEG),true)
         CPPFLAGS += $(NAN_FFMPEGCFLAGS)
 endif
 
+ifdef NAN_PTHREADS
+	CPPFLAGS += -I$(NAN_PTHREADS)/include
+endif
+
 ifeq ($(WITH_OPENEXR),true)
 	CPPFLAGS += -DWITH_OPENEXR
 endif

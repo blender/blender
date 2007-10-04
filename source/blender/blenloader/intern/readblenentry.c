@@ -233,7 +233,7 @@ LinkNode *BLO_blendhandle_get_previews(BlendHandle *bh, int ofblocktype)
 	for (bhead= blo_firstbhead(fd); bhead; bhead= blo_nextbhead(fd, bhead)) {
 		if (bhead->code==ofblocktype) {
 			ID *id= (ID*) (bhead+1);
-			if (GS(id->name) == ID_MA) {
+			if ( (GS(id->name) == ID_MA) || (GS(id->name) == ID_TE)) {
 				new_prv = MEM_callocN(sizeof(PreviewImage), "newpreview");
 				BLI_linklist_prepend(&previews, new_prv);
 				looking = 1;

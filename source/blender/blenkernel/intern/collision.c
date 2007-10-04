@@ -702,7 +702,7 @@ void cloth_collision_moving_edges(ClothModifierData *clmd, ClothModifierData *co
 			{
 				edgecollpair.p11 = face1->v3;
 				edgecollpair.p12 = face1->v1;
-				i+=5; // get out of here!
+				i+=5; // get out of here after this edge pair is handled
 			}
 		}
 		else if(i == 3) 
@@ -790,9 +790,7 @@ void cloth_collision_moving_edges(ClothModifierData *clmd, ClothModifierData *co
 				}
 			}
 		}
-	}
-		
-		
+	}	
 	
 }
 

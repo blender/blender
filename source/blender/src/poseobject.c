@@ -872,20 +872,23 @@ void pose_activate_flipped_bone(void)
 	}
 }
 
-
+/* This function pops up the move-to-layer popup widgets when the user
+ * presses either SHIFT-MKEY or MKEY in PoseMode OR EditMode (for Armatures)
+ */
 void pose_movetolayer(void)
 {
 	Object *ob= OBACT;
 	bArmature *arm;
 	short lay= 0;
 	
-	if(ob==NULL) return;
+	if (ob==NULL) return;
 	arm= ob->data;
 	
-	if(G.qual & LR_SHIFTKEY) {
+	if (G.qual & LR_SHIFTKEY) {
+		/* armature layers */
 		lay= arm->layer;
-		if( movetolayer_short_buts(&lay, "Armature Layers")==0 ) return;
-		if(lay==0) return;
+		if ( movetolayer_short_buts(&lay, "Armature Layers")==0 ) return;
+		if (lay==0) return;
 		arm->layer= lay;
 		if(ob->pose)
 			ob->pose->proxy_layer= lay;
@@ -893,33 +896,59 @@ void pose_movetolayer(void)
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWACTION, 0);
 		allqueue(REDRAWBUTSEDIT, 0);
-		
 	}
-	else if(ob->flag & OB_POSEMODE) {
+	else if (G.obedit) {
+		/* the check for editbone layer moving needs to occur before posemode one to work */
+		EditBone *ebo;
+		
+		for (ebo= G.edbo.first; ebo; ebo= ebo->next) {
+			if (arm->layer & ebo->layer) {
+				if (ebo->flag & BONE_SELECTED)
+					lay |= ebo->layer;
+			}
+		}
+		if (lay==0) return;
+		
+		if ( movetolayer_short_buts(&lay, "Bone Layers")==0 ) return;
+		if (lay==0) return;
+		
+		for (ebo= G.edbo.first; ebo; ebo= ebo->next) {
+			if (arm->layer & ebo->layer) {
+				if (ebo->flag & BONE_SELECTED)
+					ebo->layer= lay;
+			}
+		}
+		
+		BIF_undo_push("Move Bone Layer");
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWBUTSEDIT, 0);
+	}
+	else if (ob->flag & OB_POSEMODE) {
+		/* pose-channel layers */
 		bPoseChannel *pchan;
 		
-		if(pose_has_protected_selected(ob, 0))
+		if (pose_has_protected_selected(ob, 0))
 			return;
 		
-		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-			if(arm->layer & pchan->bone->layer) {
-				if(pchan->bone->flag & BONE_SELECTED)
+		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+			if (arm->layer & pchan->bone->layer) {
+				if (pchan->bone->flag & BONE_SELECTED)
 					lay |= pchan->bone->layer;
 			}
 		}
-		if(lay==0) return;
+		if (lay==0) return;
 		
-		if( movetolayer_short_buts(&lay, "Bone Layers")==0 ) return;
-		if(lay==0) return;
-
-		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-			if(arm->layer & pchan->bone->layer) {
-				if(pchan->bone->flag & BONE_SELECTED)
+		if ( movetolayer_short_buts(&lay, "Bone Layers")==0 ) return;
+		if (lay==0) return;
+		
+		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+			if (arm->layer & pchan->bone->layer) {
+				if (pchan->bone->flag & BONE_SELECTED)
 					pchan->bone->layer= lay;
 			}
 		}
 		
-		BIF_undo_push("Move Bone layer");
+		BIF_undo_push("Move Bone Layer");
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWACTION, 0);
 		allqueue(REDRAWBUTSEDIT, 0);

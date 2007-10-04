@@ -102,13 +102,14 @@ void BLI_join_dirfile(char *string, const char *dir, const char *file);
 int BLI_testextensie(const char *str, const char *ext);
 void addlisttolist(ListBase *list1, ListBase *list2);
 void BLI_insertlink(struct ListBase *listbase, void *vprevlink, void *vnewlink);
-void * BLI_findlink(struct ListBase *listbase, int number);
+void *BLI_findlink(struct ListBase *listbase, int number);
+int BLI_findindex(struct ListBase *listbase, void *vlink);
 void BLI_freelistN(struct ListBase *listbase);
 void BLI_addtail(struct ListBase *listbase, void *vlink);
 void BLI_remlink(struct ListBase *listbase, void *vlink);
 void BLI_newname(char * name, int add);
-int BLI_stringdec(char *string, char *kop, char *staart, unsigned short *numlen);
-void BLI_stringenc(char *string, char *kop, char *staart, unsigned short numlen, int pic);
+int BLI_stringdec(char *string, char *kop, char *start, unsigned short *numlen);
+void BLI_stringenc(char *string, char *kop, char *start, unsigned short numlen, int pic);
 void BLI_addhead(struct ListBase *listbase, void *vlink);
 void BLI_insertlinkbefore(struct ListBase *listbase, void *vnextlink, void *vnewlink);
 void BLI_freelist(struct ListBase *listbase);
@@ -173,7 +174,7 @@ void BLI_clean(char *path);
 	 * @param str The string to be duplicated
 	 * @retval Returns the duplicated string
 	 */
-char* BLI_strdup(const char *str);
+char *BLI_strdup(const char *str);
 
 	/**
 	 * Duplicates the first @a len bytes of cstring @a str 
@@ -184,7 +185,7 @@ char* BLI_strdup(const char *str);
 	 * @param len The number of bytes to duplicate
 	 * @retval Returns the duplicated string
 	 */
-char* BLI_strdupn(const char *str, int len);
+char *BLI_strdupn(const char *str, int len);
 
 	/**
 	 * Like strncpy but ensures dst is always
@@ -196,7 +197,7 @@ char* BLI_strdupn(const char *str, int len);
 	 *   the size of dst)
 	 * @retval Returns dst
 	 */
-char* BLI_strncpy(char *dst, const char *src, int maxncpy);
+char *BLI_strncpy(char *dst, const char *src, int maxncpy);
 
 	/* 
 	 * Replacement for snprintf
@@ -262,15 +263,15 @@ char* BLI_getbundle(void);
 #endif
 
 #ifdef WIN32
-int BLI_getInstallationDir( char * str );
+int BLI_getInstallationDir(char *str);
 #endif
 		
 /* BLI_storage.h */
 int    BLI_filesize(int file);
 double BLI_diskfree(char *dir);
-char * BLI_getwdN(char * dir);
+char *BLI_getwdN(char *dir);
 void BLI_hide_dot_files(int set);
-unsigned int BLI_getdir(char *dirname,  struct direntry **filelist);
+unsigned int BLI_getdir(char *dirname, struct direntry **filelist);
 
 /**
  * @attention Do not confuse with BLI_exists
@@ -303,12 +304,12 @@ char *BLI_last_slash(char *string);
  *
  * @return True if @a rect is empty.
  */
-int  BLI_rcti_is_empty(struct rcti * rect);
+int  BLI_rcti_is_empty(struct rcti *rect);
 void BLI_init_rctf(struct rctf *rect, float xmin, float xmax, float ymin, float ymax);
 void BLI_init_rcti(struct rcti *rect, int xmin, int xmax, int ymin, int ymax);
 void BLI_translate_rctf(struct rctf *rect, float x, float y);
 void BLI_translate_rcti(struct rcti *rect, int x, int y);
-int  BLI_in_rcti(struct rcti * rect, int x, int y);
+int  BLI_in_rcti(struct rcti *rect, int x, int y);
 int  BLI_in_rctf(struct rctf *rect, float x, float y);
 int  BLI_isect_rctf(struct rctf *src1, struct rctf *src2, struct rctf *dest);
 int  BLI_isect_rcti(struct rcti *src1, struct rcti *src2, struct rcti *dest);

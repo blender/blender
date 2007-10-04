@@ -69,6 +69,7 @@
 #include "BIF_butspace.h"
 #include "BIF_drawimage.h"
 #include "BIF_editsima.h"
+#include "BIF_imasel.h"
 #include "BIF_interface.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
@@ -117,8 +118,13 @@ void do_image_buttons(unsigned short event)
 
 	case B_SIMABROWSE:	
 		if(G.sima->imanr== -2) {
-			activate_databrowse((ID *)G.sima->image, ID_IM, 0, B_SIMABROWSE,
+			if(G.qual & LR_CTRLKEY) {
+				activate_databrowse_imasel((ID *)G.sima->image, ID_IM, 0, B_SIMABROWSE,
 											&G.sima->imanr, do_image_buttons);
+			} else {
+				activate_databrowse((ID *)G.sima->image, ID_IM, 0, B_SIMABROWSE,
+											&G.sima->imanr, do_image_buttons);
+			}
 			return;
 		}
 		if(G.sima->imanr < 0) break;
@@ -308,7 +314,11 @@ void do_image_buttons(unsigned short event)
 			if(G.sima->menunr==-2) {
 				MTex *mtex= brush->mtex[brush->texact];
 				ID *id= (ID*)((mtex)? mtex->tex: NULL);
-				activate_databrowse(id, ID_TE, 0, B_SIMABTEXBROWSE, &G.sima->menunr, do_global_buttons);
+				if(G.qual & LR_CTRLKEY) {
+					activate_databrowse_imasel(id, ID_TE, 0, B_SIMABTEXBROWSE, &G.sima->menunr, do_image_buttons);
+				} else {
+					activate_databrowse(id, ID_TE, 0, B_SIMABTEXBROWSE, &G.sima->menunr, do_image_buttons);
+				}
 				break;
 			}
 			else if(G.sima->menunr < 0) break;
@@ -1189,11 +1199,15 @@ void image_buttons(void)
 		uiDefIconButBitI(block, TOGN, SI_SYNC_UVSEL, B_REDR, ICON_NO_GO_LEFT, xco,0,XIC,YIC, &G.sima->flag, 0, 0, 0, 0, "Mesh independant selection");
 		xco+= XIC;
 		if ((G.sima->flag & SI_SYNC_UVSEL)==0) {
+			
+			/* would use these if const's could go in strings 
+			 * SI_STICKY_LOC SI_STICKY_DISABLE SI_STICKY_VERTEX */
 			ubut = uiDefIconTextButC(block, ICONTEXTROW, B_REDR, ICON_STICKY_UVS_LOC,
 					"Sticky UV Selection: %t|Disable%x1|Shared Location%x0|Shared Vertex%x2",
 					xco,0,XIC+10,YIC, &(G.sima->sticky), 0, 3.0, 0, 0,
 					"Sticky UV Selection (Hotkeys: Shift C, Alt C, Ctrl C)");
 			xco+= XIC + 16;
+			
 		} else {
 			xco+= 6;
 		}

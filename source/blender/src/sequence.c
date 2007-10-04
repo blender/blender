@@ -70,6 +70,7 @@
 #include "RE_pipeline.h"		// talks to entire render API
 
 #include "blendef.h"
+
 #include <pthread.h>
 
 int seqrectx, seqrecty;
@@ -1392,13 +1393,13 @@ void give_ibuf_prefetch_request(int rectx, int recty, int cfra, int chanshown)
 
 void seq_wait_for_prefetch_ready()
 {
+	PrefetchThread *tslot;
+
 	if (seq_thread_shutdown) {
 		return;
 	}
 
 	fprintf(stderr, "SEQ-THREAD: rendering prefetch frames...\n");
-
-	PrefetchThread *tslot;
 
 	pthread_mutex_lock(&prefetch_ready_lock);
 
@@ -1496,8 +1497,6 @@ ImBuf * give_ibuf_threaded(int rectx, int recty, int cfra, int chanshown)
 	
 	return e ? e->ibuf : 0;
 }
-
-
 
 /* Functions to free imbuf and anim data on changes */
 

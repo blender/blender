@@ -2086,16 +2086,19 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
  			case MKEY:
 				if(G.obedit){
-					if(G.qual==LR_ALTKEY) {
+					if (ELEM(G.qual, 0, LR_SHIFTKEY) && (G.obedit->type==OB_ARMATURE)) {
+						pose_movetolayer();
+					}
+					else if (G.qual==LR_ALTKEY) {
 						if(G.obedit->type==OB_MESH) {
 							mergemenu();
 							DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 						}
 					}
-					else if((G.qual==0) || (G.qual==LR_CTRLKEY)) {
+					else if ((G.qual==0) || (G.qual==LR_CTRLKEY)) {
 						mirrormenu();
 					}
-					if ( G.qual == (LR_SHIFTKEY | LR_ALTKEY | LR_CTRLKEY) ) {
+					else if ( G.qual == (LR_SHIFTKEY | LR_ALTKEY | LR_CTRLKEY) ) {
 						if(G.obedit->type==OB_MESH) select_non_manifold();
 					}
 				}
@@ -4840,13 +4843,13 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				} else {
 					/* normal operaton */
 					if(G.qual==LR_CTRLKEY) {
-						G.sima->sticky = 2;
+						G.sima->sticky = SI_STICKY_VERTEX;
 						scrarea_do_headdraw(curarea);
 					} else if(G.qual==LR_SHIFTKEY) {
-						G.sima->sticky = 1;
+						G.sima->sticky = SI_STICKY_DISABLE;
 						scrarea_do_headdraw(curarea);
 					} else if(G.qual==LR_ALTKEY) {
-						G.sima->sticky = 0;
+						G.sima->sticky = SI_STICKY_LOC;
 						scrarea_do_headdraw(curarea);
 					} else {
 						G.sima->flag ^= SI_SELACTFACE;

@@ -241,6 +241,9 @@ static void do_time_viewmenu(void *arg, int event)
 			if(G.v2d->flag & V2D_VIEWLOCK)
 				view2d_do_locks(curarea, 0);
 			break;
+		case 12: /* only show keyframes from selected data */
+			stime->flag ^= TIME_ONLYACTSEL;
+			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -264,6 +267,9 @@ static uiBlock *time_viewmenu(void *arg_unused)
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Seconds|T", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 	else 
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Show Frames|T", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, (stime->flag & TIME_ONLYACTSEL)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
+					 "Only Selected Data Keys|", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
 	
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	

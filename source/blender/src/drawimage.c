@@ -446,7 +446,7 @@ static void drawcursor_sima(float xuser_asp, float yuser_asp)
 }
 
 // checks if we are selecting only faces
-static int draw_uvs_face_check(void)
+int draw_uvs_face_check(void)
 {
 	if (G.sima==NULL)
 		return 0;

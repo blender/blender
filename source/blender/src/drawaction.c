@@ -61,7 +61,9 @@
 #include "DNA_key_types.h"
 
 #include "BKE_action.h"
+#include "BKE_depsgraph.h"
 #include "BKE_ipo.h"
+#include "BKE_key.h"
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 
@@ -69,6 +71,7 @@
 
 #include "BIF_editaction.h"
 #include "BIF_editkey.h"
+#include "BIF_editnla.h"
 #include "BIF_interface.h"
 #include "BIF_interface_icons.h"
 #include "BIF_gl.h"
@@ -197,23 +200,32 @@ static void icu_slider_func(void *voidicu, void *voidignore)
 	/* create the bezier triple if one doesn't exist,
 	 * otherwise modify it's value
 	 */
-	if (!bezt) {
+	if (bezt == NULL) {
 		insert_vert_icu(icu, cfra, icu->curval, 0);
 	}
 	else {
 		bezt->vec[1][1] = icu->curval;
 	}
 
-	/* make sure the Ipo's are properly process and
+	/* make sure the Ipo's are properly processed and
 	 * redraw as necessary
 	 */
 	sort_time_ipocurve(icu);
 	testhandles_ipocurve(icu);
 	
-	allqueue (REDRAWVIEW3D, 0);
-	allqueue (REDRAWACTION, 0);
-	allqueue (REDRAWNLA, 0);
-	allqueue (REDRAWIPO, 0);
+	/* nla-update (in case this affects anything) */
+	synchronize_action_strips();
+	
+	/* do redraw pushes, and also the depsgraph flushes */
+	if (OBACT->pose || ob_get_key(OBACT))
+		DAG_object_flush_update(G.scene, OBACT, OB_RECALC);
+	else
+		DAG_object_flush_update(G.scene, OBACT, OB_RECALC_OB);
+	
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWNLA, 0);
+	allqueue(REDRAWIPO, 0);
 	allspace(REMAKEIPO, 0);
 	allqueue(REDRAWBUTSALL, 0);
 }

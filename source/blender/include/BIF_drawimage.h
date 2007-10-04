@@ -39,11 +39,14 @@ struct Render;
 struct Image;
 struct ImBuf;
 struct uiBlock;
+struct MTFace;
 
 void do_imagebuts(unsigned short event);
 void calc_image_view(struct SpaceImage *sima, char mode);
 void drawimagespace(struct ScrArea *sa, void *spacedata);
 void image_changed(struct SpaceImage *sima, struct Image *image);
+int draw_uvs_face_check(void);
+void tface_center(struct MTFace *tf, float cent[2], void * isquad);
 void draw_uvs_sima(void);
 void image_set_tile(struct SpaceImage *sima, int dotile);
 void image_home(void);

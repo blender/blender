@@ -464,17 +464,17 @@ Key *get_action_mesh_key(void)
     Key    *key;
 
     ob = OBACT;
-    if (!ob) return NULL;
+    if (ob == NULL) 
+		return NULL;
 
 	if (G.saction->pin) return NULL;
 
-    if (ob->type==OB_MESH ) {
+    if (ob->type==OB_MESH) 
 		key = ((Mesh *)ob->data)->key;
-    }
-	else if (ob->type==OB_LATTICE ) {
+	else if (ob->type==OB_LATTICE) 
 		key = ((Lattice *)ob->data)->key;
-	}
-	else return NULL;
+	else 
+		return NULL;
 
 	if (key) {
 		if (key->type == KEY_RELATIVE)
@@ -533,7 +533,7 @@ void *get_nearest_act_channel (short mval[], short *ret_type)
 	}
 	
 	/* filter data */
-	filter= (ACTFILTER_VISIBLE | ACTFILTER_CHANNELS);
+	filter= (ACTFILTER_FORDRAWING | ACTFILTER_VISIBLE | ACTFILTER_CHANNELS);
 	actdata_filter(&act_data, filter, data, datatype);
 	
 	for (ale= act_data.first; ale; ale= ale->next) {
@@ -1399,83 +1399,55 @@ void sethandles_action_keys (int code)
 
 /* ----------------------------------------- */
 
-static void clever_keyblock_names (Key *key, short *mval)
+/* this gets called when nkey is pressed (no Transform Properties panel yet) */
+static void numbuts_action ()
 {
-    KeyBlock   *kb;
-	int        but=0, keynum;
-    char       str[64];
-	float      x;
+	void *data;
+	short datatype;
 	
-	/* get the keynum cooresponding to the y value
-	 * of the mouse pointer, return if this is
-	 * an invalid key number (and we don't deal
-	 * with the speed ipo).
-	 */
-	
-    keynum = get_nearest_key_num(key, mval, &x);
-    if ( (keynum < 1) || (keynum >= key->totkey) )
-        return;
-		
-	kb= key_get_keyblock(key, keynum);
-	if (kb == NULL)
-		return;
-	
-	if (kb->name[0] == '\0')
-		sprintf(str, "Key %d", keynum);
-	else
-		strcpy(str, kb->name);
-
-	if ( (kb->slidermin >= kb->slidermax) ) {
-		kb->slidermin = 0.0;
-		kb->slidermax = 1.0;
-	}
-
-    add_numbut(but++, TEX, "KB: ", 0, 24, str, 
-               "Does this really need a tool tip?");
-	add_numbut(but++, NUM|FLO, "Slider Min:", 
-			   -10000, kb->slidermax, &kb->slidermin, 0);
-	add_numbut(but++, NUM|FLO, "Slider Max:", 
-			   kb->slidermin, 10000, &kb->slidermax, 0);
-
-    if (do_clever_numbuts(str, but, REDRAW)) {
-		strcpy(kb->name, str);
-        allqueue (REDRAWACTION, 0);
-		allspace(REMAKEIPO, 0);
-        allqueue (REDRAWIPO, 0);
-	}
-}
-
-static void clever_achannel_names (short *mval)
-{
 	void *act_channel;
+	short chantype;
+	
 	bActionChannel *achan= NULL;
 	bConstraintChannel *conchan= NULL;
 	IpoCurve *icu= NULL;
+	KeyBlock *kb= NULL;
+	
+	short mval[2];
 	
 	int but=0;
     char str[64];
-	short chantype;
 	short expand, protect, mute;
 	float slidermin, slidermax;
 	
+	
+	/* determine what type of data we are operating on */
+	data = get_action_context(&datatype);
+	if (data == NULL) return;
+	
 	/* figure out what is under cursor */
+	getmouseco_areawin(mval);
+	if (mval[0] < NAMEWIDTH) 
+		return;
 	act_channel= get_nearest_act_channel(mval, &chantype);
 	
 	/* create items for clever-numbut */
 	if (chantype == ACTTYPE_ACHAN) {
+		/* Action Channel */
 		achan= (bActionChannel *)act_channel;
 		
 		strcpy(str, achan->name);
 		protect= (achan->flag & ACHAN_PROTECTED);
 		expand = (achan->flag & ACHAN_EXPANDED);
 		mute = (achan->ipo)? (achan->ipo->muteipo): 0;
-
+		
 		add_numbut(but++, TEX, "ActChan: ", 0, 31, str, "Name of Action Channel");
 		add_numbut(but++, TOG|SHO, "Expanded", 0, 24, &expand, "Action Channel is Expanded");
 		add_numbut(but++, TOG|SHO, "Muted", 0, 24, &mute, "Channel is Muted");
 		add_numbut(but++, TOG|SHO, "Protected", 0, 24, &protect, "Channel is Protected");
 	}
 	else if (chantype == ACTTYPE_CONCHAN) {
+		/* Constraint Channel */
 		conchan= (bConstraintChannel *)act_channel;
 		
 		strcpy(str, conchan->name);
@@ -1487,6 +1459,7 @@ static void clever_achannel_names (short *mval)
 		add_numbut(but++, TOG|SHO, "Protected", 0, 24, &protect, "Channel is Protected");
 	}
 	else if (chantype == ACTTYPE_ICU) {
+		/* IPO Curve */
 		icu= (IpoCurve *)act_channel;
 		
 		if (G.saction->pin)
@@ -1514,6 +1487,31 @@ static void clever_achannel_names (short *mval)
 		add_numbut(but++, NUM|FLO, "Slider Max:", slidermin, 10000, &slidermax, 0);
 		add_numbut(but++, TOG|SHO, "Muted", 0, 24, &mute, "Channel is Muted");
 		//add_numbut(but++, TOG|SHO, "Protected", 0, 24, &protect, "Channel is Protected");
+	}
+	else if (chantype == ACTTYPE_SHAPEKEY) {
+		/* Shape Key */
+		kb= (KeyBlock *)act_channel;
+		
+		if (kb->name[0] == '\0') {
+			Key *key= (Key *)data;
+			int keynum= BLI_findindex(&key->block, kb);
+			
+			sprintf(str, "Key %d", keynum);
+		}
+		else
+			strcpy(str, kb->name);
+		
+		if (kb->slidermin >= kb->slidermax) {
+			kb->slidermin = 0.0;
+			kb->slidermax = 1.0;
+		}
+		
+	    add_numbut(but++, TEX, "KB: ", 0, 24, str, 
+	               "Does this really need a tool tip?");
+		add_numbut(but++, NUM|FLO, "Slider Min:", 
+				   -10000, kb->slidermax, &kb->slidermin, 0);
+		add_numbut(but++, NUM|FLO, "Slider Max:", 
+				   kb->slidermin, 10000, &kb->slidermax, 0);
 	}
 	else {
 		/* nothing under-cursor */
@@ -1554,35 +1552,13 @@ static void clever_achannel_names (short *mval)
 				achan->ipo->muteipo = mute;
 		}
 		
-        allqueue (REDRAWACTION, 0);
-		allqueue (REDRAWVIEW3D, 0);
+        allqueue(REDRAWACTION, 0);
+		allspace(REMAKEIPO, 0);
+		allqueue(REDRAWIPO, 0);
+		allqueue(REDRAWVIEW3D, 0);
 	}
 }
 
-/* this gets called when nkey is pressed (no Transform Properties panel yet) */
-static void numbuts_action (void)
-{
-	/* now called from action window event loop, plus reacts on mouseclick */
-	/* removed Hos grunts for that reason! :) (ton) */
-	void *data;
-	short datatype;
-    short mval[2];
-	
-	/* determine what type of data we are operating on */
-	data = get_action_context(&datatype);
-	getmouseco_areawin(mval);
-	
-	if (mval[0] < NAMEWIDTH) {
-		switch (datatype) {
-			case ACTCONT_ACTION:
-				clever_achannel_names(mval);
-				break;
-			case ACTCONT_SHAPEKEY:
-				clever_keyblock_names(data, mval);
-				break;
-		}
-	}
-}
 
 
 /* **************************************************** */
@@ -2406,12 +2382,13 @@ static void mouse_actionchannels (short mval[])
 			return;
 	}
 	
-	allqueue (REDRAWIPO, 0);
-	allqueue (REDRAWVIEW3D, 0);
-	allqueue (REDRAWACTION, 0);
-	allqueue (REDRAWNLA, 0);
-	allqueue (REDRAWOOPS, 0);
-	allqueue (REDRAWBUTSALL, 0);
+	allqueue(REDRAWIPO, 0);
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWNLA, 0);
+	allqueue(REDRAWTIME, 0);
+	allqueue(REDRAWOOPS, 0);
+	allqueue(REDRAWBUTSALL, 0);
 }
 
 /* **************************************************** */
@@ -2884,7 +2861,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if (datatype == ACTCONT_ACTION) {
 					/* mouse is over action channels */
 					if (G.qual & LR_CTRLKEY)
-						clever_achannel_names(mval);
+						numbuts_action();
 					else 
 						mouse_actionchannels(mval);
 				}

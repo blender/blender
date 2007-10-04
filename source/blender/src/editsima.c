@@ -616,14 +616,14 @@ void find_nearest_uv(MTFace **nearesttf, EditFace **nearestefa, unsigned int *ne
 	}
 }
 
-void mouse_select_sima(void) /* TODO - SYNCSEL */
+void mouse_select_sima(void)
 {
 	EditMesh *em = G.editMesh;
 	EditFace *efa;
 	MTFace *tf, *nearesttf;
 	EditFace *nearestefa=NULL;
 	int a, selectsticky, actface, nearestuv, i;
-	char sticky;
+	char sticky= 0;
 	short flush = 0; /* 0 == dont flush, 1 == sel, -1 == desel;  only use when selection sync is enabled */
 	unsigned int hitv[4], nearestv;
 	float *hituv[4], limit[2];
@@ -646,13 +646,13 @@ void mouse_select_sima(void) /* TODO - SYNCSEL */
 		actface= (G.qual & LR_ALTKEY || G.sima->flag & SI_SELACTFACE);
 		
 		switch(G.sima->sticky) {
-		case 0:
+		case SI_STICKY_LOC:
 			sticky=2;
 			break;
-		case 1:
+		case SI_STICKY_DISABLE:
 			sticky=0;
 			break;
-		case 2:
+		case SI_STICKY_VERTEX:
 			if(G.qual & LR_CTRLKEY) {
 				sticky=0;
 			} else {  

@@ -2869,6 +2869,13 @@ static void object_softbodies_II(Object *ob)
 	uiBlock *block;
 	static int val;
     if(!_can_softbodies_at_all(ob)) return;
+	/*bah that is ugly! creating missing data members in UI code*/
+	if(ob->pd == NULL){
+		ob->pd= MEM_callocN(sizeof(PartDeflect), "PartDeflect");
+		ob->pd->pdef_sbdamp = 0.1f;
+		ob->pd->pdef_sbift  = 0.2f;
+		ob->pd->pdef_sboft  = 0.02f;
+	}
 	block= uiNewBlock(&curarea->uiblocks, "object_softbodies_II", UI_EMBOSS, UI_HELV, curarea->win);
 	uiNewPanelTabbed("Soft Body", "Physics");
 	if(uiNewPanel(curarea, block, "Soft Body Collision", "Physics", 651, 0, 318, 204)==0) return;
@@ -2887,7 +2894,7 @@ static void object_softbodies_II(Object *ob)
 			uiDefButBitS(block, TOG, 1, B_REDR, "Deflection",10,50,150,20, &ob->pd->deflect, 0, 0, 0, 0, "Makes this object visible to softbody objects");
 			if(ob->pd->deflect) {
 				uiDefButF(block, NUM, B_FIELD_CHANGE, "Damping:",	160,50,150,20, &ob->pd->pdef_sbdamp, 0.0, 1.0, 10, 0, "Amount of damping during soft body collision");
-			    uiDefButBitS(block, TOG,OB_SB_COLLFINAL , B_DIFF, "Ev.M.Stack",10,30,150,20, &ob->softflag, 0, 0, 0, 0, "Pick collision object from modifier stack");
+				uiDefButBitS(block, TOG,OB_SB_COLLFINAL , B_DIFF, "Ev.M.Stack",10,30,150,20, &ob->softflag, 0, 0, 0, 0, "Pick collision object from modifier stack");
 				uiDefButF(block, NUM, B_FIELD_CHANGE, "Inner:",	160,30,150,20, &ob->pd->pdef_sbift, 0.001, 1.0, 10, 0, "Inner face thickness");
 				uiDefButF(block, NUM, B_FIELD_CHANGE, "Outer:",	160,10,150,20, &ob->pd->pdef_sboft, 0.001, 1.0, 10, 0, "Outer face thickness");
 			}
@@ -2932,7 +2939,7 @@ static void object_softbodies_II(Object *ob)
 			uiDefButBitS(block, TOG, 1, B_REDR, "Deflection",10,50,150,20, &ob->pd->deflect, 0, 0, 0, 0, "Makes this object visible to other softbody objects");
 			if(ob->pd->deflect) {
 				uiDefButF(block, NUM, B_DIFF, "Damping:",	160,50,150,20, &ob->pd->pdef_sbdamp, 0.0, 1.0, 10, 0, "Amount of damping during soft body collision");
-			    uiDefButBitS(block, TOG,OB_SB_COLLFINAL , B_DIFF, "Ev.M.Stack",10,30,150,20, &ob->softflag, 0, 0, 0, 0, "Pick collision object from modifier stack");
+				uiDefButBitS(block, TOG,OB_SB_COLLFINAL , B_DIFF, "Ev.M.Stack",10,30,150,20, &ob->softflag, 0, 0, 0, 0, "Pick collision object from modifier stack");
 				uiDefButF(block, NUM, B_DIFF, "Inner:",	160,30,150,20, &ob->pd->pdef_sbift, 0.001, 1.0, 10, 0, "Inner face thickness");
 				uiDefButF(block, NUM, B_DIFF, "Outer:",	160,10,150,20, &ob->pd->pdef_sboft, 0.001, 1.0, 10, 0, "Outer face thickness");
 			}

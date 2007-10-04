@@ -105,6 +105,7 @@
 #include "BIF_editfont.h"
 #include "BIF_editkey.h"
 #include "BIF_editmesh.h"
+#include "BIF_imasel.h"
 #include "BIF_interface.h"
 #include "BIF_meshtools.h"
 #include "BIF_mywindow.h"
@@ -2581,6 +2582,7 @@ void do_fontbuts(unsigned short event)
 	}
 }
 
+#ifdef INTERNATIONAL
 static void editing_panel_char_type(Object *ob, Curve *cu)
 {
 	uiBlock *block;
@@ -2606,6 +2608,7 @@ static void editing_panel_char_type(Object *ob, Curve *cu)
 	uiDefButI(block, BUT, B_SETUPCHAR, "U", 280, 185, 15, 15, &G.charstart, 0, 0xffff, 0, 0, "Scroll character table up");
 	uiDefButI(block, BUT, B_SETDOWNCHAR, "D", 280, 0, 15, 15, &G.charstart, 0, 0xffff, 0, 0, "Scroll character table down");
 }
+#endif
 
 static void editing_panel_font_type(Object *ob, Curve *cu)
 {
@@ -3793,13 +3796,13 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 			uiBlockBeginAlign(block);
 			for(a=0; a<8; a++) {
 				short dx= 21;
-				but= uiDefButBitS(block, TOG, 1<<a, REDRAWVIEW3D, "", -10+a*dx, by-57, dx, 15, &curBone->layer, 0, 0, 0, 0, "Don't draw this layer for group-duplicators");
+				but= uiDefButBitS(block, TOG, 1<<a, REDRAWVIEW3D, "", -10+a*dx, by-57, dx, 15, &curBone->layer, 0, 0, 0, 0, "Armature layer that bone exists on");
 				uiButSetFunc(but, armature_layer_cb, &curBone->layer, (void *)(1<<a));
 			}
 			uiBlockBeginAlign(block);
 			for(a=8; a<16; a++) {
 				short dx= 21;
-				but= uiDefButBitS(block, TOG, 1<<a, REDRAWVIEW3D, "", -6+a*dx, by-57, dx, 15, &curBone->layer, 0, 0, 0, 0, "Don't draw this layer for group-duplicators");
+				but= uiDefButBitS(block, TOG, 1<<a, REDRAWVIEW3D, "", -6+a*dx, by-57, dx, 15, &curBone->layer, 0, 0, 0, 0, "Armature layer that bone exists on");
 				uiButSetFunc(but, armature_layer_cb, &curBone->layer, (void *)(1<<a));
 			}
 			
@@ -3890,13 +3893,13 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 			uiBlockBeginAlign(block);
 			for(a=0; a<8; a++) {
 				short dx= 21;
-				but= uiDefButBitS(block, TOG, 1<<a, REDRAWVIEW3D, "", -10+a*dx, by-57, dx, 15, &curBone->layer, 0, 0, 0, 0, "");
+				but= uiDefButBitS(block, TOG, 1<<a, REDRAWVIEW3D, "", -10+a*dx, by-57, dx, 15, &curBone->layer, 0, 0, 0, 0, "Armature layer that bone exists on");
 				uiButSetFunc(but, armature_layer_cb, &curBone->layer, (void *)(1<<a));
 			}
 			uiBlockBeginAlign(block);
 			for(a=8; a<16; a++) {
 				short dx= 21;
-				but= uiDefButBitS(block, TOG, 1<<a, REDRAWVIEW3D, "", -6+a*dx, by-57, dx, 15, &curBone->layer, 0, 0, 0, 0, "");
+				but= uiDefButBitS(block, TOG, 1<<a, REDRAWVIEW3D, "", -6+a*dx, by-57, dx, 15, &curBone->layer, 0, 0, 0, 0, "Armature layer that bone exists on");
 				uiButSetFunc(but, armature_layer_cb, &curBone->layer, (void *)(1<<a));
 			}
 			uiBlockEndAlign(block);
@@ -5072,7 +5075,11 @@ void do_fpaintbuts(unsigned short event)
 			if(G.buts->menunr==-2) {
 				MTex *mtex= brush->mtex[brush->texact];
 				ID *id= (ID*)((mtex)? mtex->tex: NULL);
-				activate_databrowse(id, ID_TE, 0, B_BTEXBROWSE, &G.buts->menunr, do_global_buttons);
+				if(G.qual & LR_CTRLKEY) {
+					activate_databrowse_imasel(id, ID_TE, 0, B_BTEXBROWSE, &G.buts->menunr, do_fpaintbuts);
+				} else {
+					activate_databrowse(id, ID_TE, 0, B_BTEXBROWSE, &G.buts->menunr, do_fpaintbuts);
+				}
 				break;
 			}
 			else if(G.buts->menunr < 0) break;

@@ -480,14 +480,50 @@ static void do_lasso_select_mesh_uv(short mcords[][2], short moves, short select
 	
 	lasso_select_boundbox(&rect, mcords, moves);
 	
-	for (efa= em->faces.first; efa; efa= efa->next) {
-		tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-		if (SIMA_FACEDRAW_CHECK(efa, tf)) {		
-			nverts= efa->v4? 4: 3;
-			for(i=0; i<nverts; i++) {
-				if ((select) != (SIMA_UVSEL_CHECK(efa, tf, i))) {
-					uvco_to_areaco_noclip(tf->uv[i], screenUV);
-					if (BLI_in_rcti(&rect, screenUV[0], screenUV[1]) && lasso_inside(mcords, moves, screenUV[0], screenUV[1])) {
+	if (draw_uvs_face_check()) { /* Face Center Sel */
+		float cent[2];
+		
+		/* selecting UV Faces with some modes requires us to change 
+		 * the selection in other faces (depending on the stickt mode)
+		 * 
+		 * This only needs to be done when the Mesh is not used for selection
+		 * (So for sticky modes - vertex or location based)
+		 *   This shoud be a generic function - so Ill make one but it will
+		 *   Only be used by this at the moment. 
+		 * */
+		
+		if ((G.sima->flag & SI_SYNC_UVSEL)==0 && G.sima->sticky == SI_STICKY_VERTEX) {
+			/* tag all verts as untouched,
+			 * then touch the ones that have a face center in the loop
+			 * and select all MTFace UV's that use a touched vert */
+			
+			EditVert *eve;
+			
+			for (eve= em->verts.first; eve; eve= eve->next)
+				eve->tmp.l = 0;
+			
+			for (efa= em->faces.first; efa; efa= efa->next) {
+				tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				if (SIMA_FACEDRAW_CHECK(efa, tf)) {
+					if ((select) != (SIMA_FACESEL_CHECK(efa, tf))) {
+						tface_center(tf, cent, (void *)efa->v4);
+						uvco_to_areaco_noclip(cent, screenUV);
+						if (BLI_in_rcti(&rect, screenUV[0], screenUV[1]) && lasso_inside(mcords, moves, screenUV[0], screenUV[1])) {
+							if (efa->v4) {
+								efa->v1->tmp.l=	efa->v2->tmp.l= efa->v3->tmp.l= efa->v4->tmp.l=1;
+							} else {
+								efa->v1->tmp.l= efa->v2->tmp.l= efa->v3->tmp.l= 1;
+							}
+						}
+					}
+				}
+			}
+			/* now select tagged verts */
+			for (efa= em->faces.first; efa; efa= efa->next) {
+				tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);		
+				nverts= efa->v4? 4: 3;
+				for(i=0; i<nverts; i++) {
+					if ((*(&efa->v1 + i))->tmp.l) {
 						if (select) {
 							SIMA_UVSEL_SET(efa, tf, i);
 						} else {
@@ -496,9 +532,120 @@ static void do_lasso_select_mesh_uv(short mcords[][2], short moves, short select
 					}
 				}
 			}
+		} else if ((G.sima->flag & SI_SYNC_UVSEL)==0 && G.sima->sticky == SI_STICKY_LOC) {
+			
+			/* This is not that nice! 
+			 * 
+			 * do a proximity based sticky selecion,
+			 *  need to do some odd stuff here
+			 */
+			int j, face_count=0, coord_end = 0; /* so we know what the last coord is */
+			float *coords, limit[2];
+			
+			get_connected_limit_tface_uv(limit);
+			
+			/* count and index */
+			/* would be nice to do this within a draw loop but most below are optional, so it would involve too many checks */
+			for (efa= em->faces.first; efa; efa= efa->next) {
+				tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				if (SIMA_FACEDRAW_CHECK(efa, tf)) {		
+					efa->tmp.p = tf;
+					face_count++;
+				} else {
+					efa->tmp.p = NULL;
+				}
+			}
+			/* assumes worst case where all quads are selected */
+			coords = MEM_mallocN(sizeof(float) * face_count * 8, "lasso sticky coords");
+			
+			
+			for (efa= em->faces.first; efa; efa= efa->next) {
+				if ((tf=(MTFace *)efa->tmp.p)) {
+					if ((select) != (SIMA_FACESEL_CHECK(efa, tf))) {
+						tface_center(tf, cent, (void *)efa->v4);
+						uvco_to_areaco_noclip(cent, screenUV);
+						if (BLI_in_rcti(&rect, screenUV[0], screenUV[1]) && lasso_inside(mcords, moves, screenUV[0], screenUV[1])) {
+							
+							/* select now so as to avoid a location lookup later on */
+							if (select) {
+								SIMA_FACESEL_SET(efa, tf);
+							} else {
+								SIMA_FACESEL_UNSET(efa, tf);
+							}
+							
+							/* add this face's coords so we can select close coords later on */
+							nverts= efa->v4? 4: 3;
+							for(j=0; j<nverts; j++) {
+								coords[coord_end++]	= tf->uv[j][0];
+								coords[coord_end++]	= tf->uv[j][1];
+								
+							}
+						}
+					}
+				}
+			}
+			
+			/* now select verts based on proximity to existing coords */
+			for (efa= em->faces.first; efa; efa= efa->next) {
+				if ((tf=(MTFace *)efa->tmp.p)) {
+					nverts= efa->v4? 4: 3;
+					for(i=0; i<nverts; i++) {
+						if ((SIMA_UVSEL_CHECK(efa, tf, i)) != (select) ) {
+							/* this corner is not selected, check if its next to an adjacent selected uv face */
+							for (j=0; j<coord_end; j+=2) {
+								if (	fabs(coords[j  ]-tf->uv[i][0]) < limit[0] &&
+										fabs(coords[j+1]-tf->uv[i][1]) < limit[1] )	{
+									if (select)
+										tf->flag |= TF_SEL_MASK(i);
+									else
+										tf->flag &= ~TF_SEL_MASK(i);
+									break;
+								}
+							}
+						}
+					}
+				}
+			}
+			MEM_freeN(coords);
+			
+		} else { /* SI_STICKY_DISABLE or G.sima->flag & SI_SYNC_UVSEL */
+			
+			for (efa= em->faces.first; efa; efa= efa->next) {
+				if ((tf=(MTFace *)efa->tmp.p)) {
+					if ((select) != (SIMA_FACESEL_CHECK(efa, tf))) {
+						tface_center(tf, cent, (void *)efa->v4);
+						uvco_to_areaco_noclip(cent, screenUV);
+						if (BLI_in_rcti(&rect, screenUV[0], screenUV[1]) && lasso_inside(mcords, moves, screenUV[0], screenUV[1])) {
+							if (select) {
+								SIMA_FACESEL_SET(efa, tf);
+							} else {
+								SIMA_FACESEL_UNSET(efa, tf);
+							}
+						}
+					}
+				}
+			}
+		}
+	} else { /* Vert Sel*/
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			if (SIMA_FACEDRAW_CHECK(efa, tf)) {		
+				nverts= efa->v4? 4: 3;
+				for(i=0; i<nverts; i++) {
+					if ((select) != (SIMA_UVSEL_CHECK(efa, tf, i))) {
+						uvco_to_areaco_noclip(tf->uv[i], screenUV);
+						if (BLI_in_rcti(&rect, screenUV[0], screenUV[1]) && lasso_inside(mcords, moves, screenUV[0], screenUV[1])) {
+							if (select) {
+								SIMA_UVSEL_SET(efa, tf, i);
+							} else {
+								SIMA_UVSEL_UNSET(efa, tf, i);
+							}
+						}
+					}
+				}
+			}
 		}
 	}
-	
 	if (G.sima->flag & SI_SYNC_UVSEL) {
 		if (select) EM_select_flush();
 		else		EM_deselect_flush();

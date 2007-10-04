@@ -815,7 +815,7 @@ void init_lamp_hammersley(LampRen *lar)
 
 void init_render_hammersley(Render *re)
 {
-	re->qsa = QMC_initSampler(SAMP_TYPE_HAMMERSLEY, R.wrld.aosamp*R.wrld.aosamp);
+	re->qsa = QMC_initSampler(SAMP_TYPE_HAMMERSLEY, (re->wrld.aosamp * re->wrld.aosamp));
 }
 
 void free_lamp_qmcsampler(LampRen *lar)

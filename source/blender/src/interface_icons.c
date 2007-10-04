@@ -1028,7 +1028,7 @@ static void icon_draw_mipmap(float x, float y, int icon_id, float aspect, int mi
 		PreviewImage* pi = BKE_previewimg_get((ID*)icon->obj); 
 
 		if (pi) {			
-			if (!nocreate && pi->changed[miplevel]) /* changed only ever set by dynamic icons */
+			if (!nocreate && (pi->changed[miplevel] ||!pi->rect[miplevel])) /* changed only ever set by dynamic icons */
 			{
 				waitcursor(1);
 				/* create the preview rect if necessary */				

@@ -466,17 +466,25 @@ typedef struct SpaceImaSel {
 #define SI_TEXTURE		0
 #define SI_SHOW			1
 
+/* SpaceImage->dt_uv */
 #define SI_UVDT_DASH	0
 #define SI_UVDT_BLACK	1
 #define SI_UVDT_WHITE	2
 #define SI_UVDT_OUTLINE	3
+
+/* SpaceImage->sticky
+ * Note DISABLE should be 0, however would also need to re-arrange icon order,
+ * also, sticky loc is the default mode so this means we dont need to 'do_versons' */
+#define SI_STICKY_LOC		0
+#define SI_STICKY_DISABLE	1
+#define SI_STICKY_VERTEX	2
 
 /* SpaceImage->flag */
 #define SI_BE_SQUARE	1<<0
 #define SI_EDITTILE		1<<1
 #define SI_CLIP_UV		1<<2
 #define SI_DRAWTOOL		1<<3
-#define SI_DEPRECATED1    1<<4	/* stick UVs to others in the same location */
+#define SI_DEPRECATED1  1<<4	/* stick UVs to others in the same location */
 #define SI_DRAWSHADOW   1<<5
 #define SI_SELACTFACE   1<<6
 #define SI_DEPRECATED2	1<<7
@@ -589,8 +597,12 @@ typedef struct SpaceImaSel {
 #define SNLA_DRAWTIME		4
 
 /* time->flag */
+	/* show timing in frames instead of in seconds */
 #define TIME_DRAWFRAMES		1
+	/* temporary flag set when scrubbing time */
 #define TIME_CFRA_NUM		2
+	/* only keyframes from active/selected channels get shown */
+#define TIME_ONLYACTSEL		4
 
 /* time->redraws */
 #define TIME_LEFTMOST_3D_WIN	1

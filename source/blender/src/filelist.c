@@ -265,12 +265,18 @@ static int compare_extension(const void *a1, const void *a2) {
 
 void BIF_filelist_filter(FileList* filelist)
 {
+	char dir[FILE_MAX], group[GROUP_MAX];
 	int num_filtered = 0;
 	int i, j;
-
+	
 	if (!filelist->filelist)
 		return;
 	
+	if ( ( (filelist->type == FILE_LOADLIB) &&  BIF_filelist_islibrary(filelist, dir, group)) 
+		|| (filelist->type == FILE_MAIN) ) {
+		filelist->filter = 0;
+	}
+
 	if (!filelist->filter) {
 		if (filelist->fidx) {
 			MEM_freeN(filelist->fidx);
@@ -912,6 +918,9 @@ void BIF_filelist_from_library(struct FileList* filelist)
 	BIF_filelist_sort(filelist, FILE_SORTALPHA);
 
 	BLI_strncpy(G.sce, filename, sizeof(filename));	// prevent G.sce to change
+
+	filelist->filter = 0;
+	BIF_filelist_filter(filelist);
 }
 
 void BIF_filelist_append_library(struct FileList *filelist, char *dir, char *file, short flag, int idcode)
@@ -1066,6 +1075,8 @@ void BIF_filelist_from_main(struct FileList *filelist)
 			qsort(firstlib, totlib, sizeof(struct direntry), compare_name);
 		}
 	}
+	filelist->filter = 0;
+	BIF_filelist_filter(filelist);
 }
 
 
