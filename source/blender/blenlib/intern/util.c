@@ -90,31 +90,29 @@ static int add_win32_extension(char *name);
 
 /* implementation */
 
-/* Ripped this from blender.c
- */
+/* Ripped this from blender.c */
 void addlisttolist(ListBase *list1, ListBase *list2)
 {
+	if (list2->first==0) return;
 
-	if(list2->first==0) return;
-
-	if(list1->first==0) {
+	if (list1->first==0) {
 		list1->first= list2->first;
 		list1->last= list2->last;
 	}
 	else {
-		((struct Link *)list1->last)->next= list2->first;
-		((struct Link *)list2->first)->prev= list1->last;
+		((Link *)list1->last)->next= list2->first;
+		((Link *)list2->first)->prev= list1->last;
 		list1->last= list2->last;
 	}
 	list2->first= list2->last= 0;
 }
 
-int BLI_stringdec(char *string, char *kop, char *staart, unsigned short *numlen)
+int BLI_stringdec(char *string, char *kop, char *start, unsigned short *numlen)
 {
 	unsigned short len, len2, nums = 0, nume = 0;
 	short i, found = 0;
 
-	len2 = len =  strlen( string);
+	len2 = len = strlen(string);
 	
 	if (len > 6) {
 		if (BLI_strncasecmp(string + len - 6, ".blend", 6) == 0) len -= 6;
@@ -125,7 +123,6 @@ int BLI_stringdec(char *string, char *kop, char *staart, unsigned short *numlen)
 		if (BLI_strncasecmp(string + len - 9, ".blend.gz", 9) == 0) len -= 9;
 	}
 		
-	
 	if (len == len2) {
 		if (len > 4) {
 			/* handle .jf0 en .jf1 for jstreams */
@@ -143,7 +140,7 @@ int BLI_stringdec(char *string, char *kop, char *staart, unsigned short *numlen)
 		}
 	}
 	
-	for (i = len - 1; i >= 0; i--){
+	for (i = len - 1; i >= 0; i--) {
 		if (string[i] == '/') break;
 		if (isdigit(string[i])) {
 			if (found){
@@ -155,12 +152,12 @@ int BLI_stringdec(char *string, char *kop, char *staart, unsigned short *numlen)
 				found = 1;
 			}
 		}
-		else{
+		else {
 			if (found) break;
 		}
 	}
 	if (found){
-		if (staart) strcpy(staart,&string[nume+1]);
+		if (start) strcpy(start,&string[nume+1]);
 		if (kop) {
 			strcpy(kop,string);
 			kop[nums]=0;
@@ -168,7 +165,7 @@ int BLI_stringdec(char *string, char *kop, char *staart, unsigned short *numlen)
 		if (numlen) *numlen = nume-nums+1;
 		return ((int)atoi(&(string[nums])));
 	}
-	if (staart) strcpy(staart, string + len);
+	if (start) strcpy(start, string + len);
 	if (kop) {
 		strncpy(kop, string, len);
 		kop[len] = 0;
@@ -178,7 +175,7 @@ int BLI_stringdec(char *string, char *kop, char *staart, unsigned short *numlen)
 }
 
 
-void BLI_stringenc(char *string, char *kop, char *staart, unsigned short numlen, int pic)
+void BLI_stringenc(char *string, char *kop, char *start, unsigned short numlen, int pic)
 {
 	char numstr[10]="";
 	unsigned short len,i;
@@ -187,17 +184,17 @@ void BLI_stringenc(char *string, char *kop, char *staart, unsigned short numlen,
 	
 	if (pic>0 || numlen==4) {
 		len= sprintf(numstr,"%d",pic);
-
+		
 		for(i=len;i<numlen;i++){
 			strcat(string,"0");
 		}
 		strcat(string,numstr);
 	}
-	strcat(string,staart);
+	strcat(string, start);
 }
 
 
-void BLI_newname(char * name, int add)
+void BLI_newname(char *name, int add)
 {
 	char head[128], tail[128];
 	int pic;
@@ -215,38 +212,38 @@ void BLI_newname(char * name, int add)
 	
 	pic += add;
 	
-	if(digits==4 && pic<0) pic= 0;
+	if (digits==4 && pic<0) pic= 0;
 	BLI_stringenc(name, head, tail, digits, pic);
 }
 
 
 void BLI_addhead(ListBase *listbase, void *vlink)
 {
-	struct Link *link= vlink;
+	Link *link= vlink;
 
-	if (link == 0) return;
-	if (listbase == 0) return;
+	if (link == NULL) return;
+	if (listbase == NULL) return;
 
 	link->next = listbase->first;
-	link->prev = 0;
+	link->prev = NULL;
 
-	if (listbase->first) ((struct Link *)listbase->first)->prev = link;
-	if (listbase->last == 0) listbase->last = link;
+	if (listbase->first) ((Link *)listbase->first)->prev = link;
+	if (listbase->last == NULL) listbase->last = link;
 	listbase->first = link;
 }
 
 
 void BLI_addtail(ListBase *listbase, void *vlink)
 {
-	struct Link *link= vlink;
+	Link *link= vlink;
 
-	if (link == 0) return;
-	if (listbase == 0) return;
+	if (link == NULL) return;
+	if (listbase == NULL) return;
 
-	link->next = 0;
+	link->next = NULL;
 	link->prev = listbase->last;
 
-	if (listbase->last) ((struct Link *)listbase->last)->next = link;
+	if (listbase->last) ((Link *)listbase->last)->next = link;
 	if (listbase->first == 0) listbase->first = link;
 	listbase->last = link;
 }
@@ -254,10 +251,10 @@ void BLI_addtail(ListBase *listbase, void *vlink)
 
 void BLI_remlink(ListBase *listbase, void *vlink)
 {
-	struct Link *link= vlink;
+	Link *link= vlink;
 
-	if (link == 0) return;
-	if (listbase == 0) return;
+	if (link == NULL) return;
+	if (listbase == NULL) return;
 
 	if (link->next) link->next->prev = link->prev;
 	if (link->prev) link->prev->next = link->next;
@@ -269,10 +266,10 @@ void BLI_remlink(ListBase *listbase, void *vlink)
 
 void BLI_freelinkN(ListBase *listbase, void *vlink)
 {
-	struct Link *link= vlink;
+	Link *link= vlink;
 
-	if (link == 0) return;
-	if (listbase == 0) return;
+	if (link == NULL) return;
+	if (listbase == NULL) return;
 
 	BLI_remlink(listbase,link);
 	MEM_freeN(link);
@@ -281,19 +278,23 @@ void BLI_freelinkN(ListBase *listbase, void *vlink)
 
 void BLI_insertlink(ListBase *listbase, void *vprevlink, void *vnewlink)
 {
-	struct Link *prevlink= vprevlink, *newlink= vnewlink;
+	Link *prevlink= vprevlink;
+	Link *newlink= vnewlink;
 
 	/* newlink comes after prevlink */
-
-	if (newlink == 0) return;
-	if (listbase == 0) return;
-
-	if(listbase->first==0) { /* empty list */
+	if (newlink == NULL) return;
+	if (listbase == NULL) return;
+	
+	/* empty list */
+	if (listbase->first == NULL) { 
+		
 		listbase->first= newlink;
 		listbase->last= newlink;
 		return;
 	}
-	if (prevlink== 0) {	/* insert before first element */
+	
+	/* insert before first element */
+	if (prevlink == NULL) {	
 		newlink->next= listbase->first;
 		newlink->prev= 0;
 		newlink->next->prev= newlink;
@@ -301,96 +302,106 @@ void BLI_insertlink(ListBase *listbase, void *vprevlink, void *vnewlink)
 		return;
 	}
 
-	if (listbase->last== prevlink) /* at end of list */
+	/* at end of list */
+	if (listbase->last== prevlink) 
 		listbase->last = newlink;
 
 	newlink->next= prevlink->next;
 	prevlink->next= newlink;
-	if(newlink->next) newlink->next->prev= newlink;
+	if (newlink->next) newlink->next->prev= newlink;
 	newlink->prev= prevlink;
 }
 
 void BLI_insertlinkbefore(ListBase *listbase, void *vnextlink, void *vnewlink)
 {
-	struct Link *nextlink= vnextlink, *newlink= vnewlink;
+	Link *nextlink= vnextlink;
+	Link *newlink= vnewlink;
 
 	/* newlink before nextlink */
+	if (newlink == NULL) return;
+	if (listbase == NULL) return;
 
-	if (newlink == 0) return;
-	if (listbase == 0) return;
-
-	if(listbase->first==0) { /* empty list */
+	/* empty list */
+	if (listbase->first == NULL) { 
 		listbase->first= newlink;
 		listbase->last= newlink;
 		return;
 	}
-	if (nextlink== 0) {	/* insert at end of list */
+	
+	/* insert at end of list */
+	if (nextlink == NULL) {	
 		newlink->prev= listbase->last;
 		newlink->next= 0;
-		((struct Link *)listbase->last)->next= newlink;
+		((Link *)listbase->last)->next= newlink;
 		listbase->last= newlink;
 		return;
 	}
 
-	if (listbase->first== nextlink) /* at beginning of list */
+	/* at beginning of list */
+	if (listbase->first== nextlink) 
 		listbase->first = newlink;
 
 	newlink->next= nextlink;
 	newlink->prev= nextlink->prev;
 	nextlink->prev= newlink;
-	if(newlink->prev) newlink->prev->next= newlink;
+	if (newlink->prev) newlink->prev->next= newlink;
 }
 
 
 void BLI_freelist(ListBase *listbase)
 {
-	struct Link *link,*next;
+	Link *link, *next;
 
-	if (listbase == 0) return;
+	if (listbase == NULL) 
+		return;
+	
 	link= listbase->first;
-	while(link) {
+	while (link) {
 		next= link->next;
 		free(link);
 		link= next;
 	}
-	listbase->first=0;
-	listbase->last=0;
+	
+	listbase->first= NULL;
+	listbase->last= NULL;
 }
 
 void BLI_freelistN(ListBase *listbase)
 {
-	struct Link *link,*next;
+	Link *link, *next;
 
-	if (listbase == 0) return;
+	if (listbase == NULL) return;
+	
 	link= listbase->first;
-	while(link) {
+	while (link) {
 		next= link->next;
 		MEM_freeN(link);
 		link= next;
 	}
-	listbase->first=0;
-	listbase->last=0;
+	
+	listbase->first= NULL;
+	listbase->last= NULL;
 }
 
 
 int BLI_countlist(ListBase *listbase)
 {
-	Link * link;
+	Link *link;
 	int count = 0;
 	
-	if (listbase){
+	if (listbase) {
 		link = listbase->first;
-		while(link) {
+		while (link) {
 			count++;
 			link= link->next;
 		}
 	}
-	return(count);
+	return count;
 }
 
-void * BLI_findlink(ListBase *listbase, int number)
+void *BLI_findlink(ListBase *listbase, int number)
 {
-	Link * link = NULL;
+	Link *link = NULL;
 
 	if (number >= 0) {
 		link = listbase->first;
@@ -400,7 +411,27 @@ void * BLI_findlink(ListBase *listbase, int number)
 		}
 	}
 
-	return (link);
+	return link;
+}
+
+int BLI_findindex(ListBase *listbase, void *vlink)
+{
+	Link *link= NULL;
+	int number= 0;
+	
+	if (listbase == NULL) return -1;
+	if (vlink == NULL) return -1;
+	
+	link= listbase->first;
+	while (link) {
+		if (link == vlink)
+			return number;
+		
+		number++;
+		link= link->next;
+	}
+	
+	return -1;
 }
 
 /*=====================================================================================*/
@@ -1195,7 +1226,7 @@ void BLI_split_dirfile(const char *string, char *dir, char *file)
 			strcat(dir,string);
 			BLI_strncpy(string,dir,FILE_MAXDIR+FILE_MAXFILE);
 		}
-
+		
 		// BLI_exist doesn't recognize a slashed dirname as a dir
 		//  check if a trailing slash exists, and remove it. Do not do this
 		//  when we are already at root. -jesterKing
@@ -1221,11 +1252,11 @@ void BLI_split_dirfile(const char *string, char *dir, char *file)
 			else
 				BLI_strncpy(file,string,FILE_MAXFILE);
 		    
-			if (strrchr(string,'\\')){
+			if (strrchr(string,'\\')) {
 				BLI_strncpy(file,strrchr(string,'\\')+1,FILE_MAXFILE);
 			}
-
-			if (a = strlen(dir)) {
+			
+			if ( (a = strlen(dir)) ) {
 				if (dir[a-1] != '\\') strcat(dir,"\\");
 			}
 		}
