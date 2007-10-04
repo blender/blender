@@ -881,7 +881,7 @@ void pose_movetolayer(void)
 	bArmature *arm;
 	short lay= 0;
 	
-	if(ob==NULL) return;
+	if (ob==NULL) return;
 	arm= ob->data;
 	
 	if (G.qual & LR_SHIFTKEY) {
@@ -895,6 +895,32 @@ void pose_movetolayer(void)
 		
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWACTION, 0);
+		allqueue(REDRAWBUTSEDIT, 0);
+	}
+	else if (G.obedit) {
+		/* the check for editbone layer moving needs to occur before posemode one to work */
+		EditBone *ebo;
+		
+		for (ebo= G.edbo.first; ebo; ebo= ebo->next) {
+			if (arm->layer & ebo->layer) {
+				if (ebo->flag & BONE_SELECTED)
+					lay |= ebo->layer;
+			}
+		}
+		if (lay==0) return;
+		
+		if ( movetolayer_short_buts(&lay, "Bone Layers")==0 ) return;
+		if (lay==0) return;
+		
+		for (ebo= G.edbo.first; ebo; ebo= ebo->next) {
+			if (arm->layer & ebo->layer) {
+				if (ebo->flag & BONE_SELECTED)
+					ebo->layer= lay;
+			}
+		}
+		
+		BIF_undo_push("Move Bone Layer");
+		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWBUTSEDIT, 0);
 	}
 	else if (ob->flag & OB_POSEMODE) {
@@ -922,35 +948,9 @@ void pose_movetolayer(void)
 			}
 		}
 		
-		BIF_undo_push("Move Bone layer");
+		BIF_undo_push("Move Bone Layer");
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWACTION, 0);
-		allqueue(REDRAWBUTSEDIT, 0);
-	}
-	else if (G.obedit) {
-		/* must be editbone layers then */
-		EditBone *ebo;
-		
-		for (ebo= G.edbo.first; ebo; ebo= ebo->next) {
-			if (arm->layer & ebo->layer) {
-				if (ebo->flag & BONE_SELECTED)
-					lay |= ebo->layer;
-			}
-		}
-		if (lay==0) return;
-		
-		if ( movetolayer_short_buts(&lay, "Bone Layers")==0 ) return;
-		if (lay==0) return;
-		
-		for (ebo= G.edbo.first; ebo; ebo= ebo->next) {
-			if (arm->layer & ebo->layer) {
-				if (ebo->flag & BONE_SELECTED)
-					ebo->layer= lay;
-			}
-		}
-		
-		BIF_undo_push("Move Bone layer");
-		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWBUTSEDIT, 0);
 	}
 }
