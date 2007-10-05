@@ -482,6 +482,7 @@ static int ui_but_copy_paste(uiBut *but, char mode)
 		}
 		else {
 			ui_set_but_val(but, but_copypaste_val);
+			uibut_do_func(but);
 			ui_check_but(but);
 			return 1;
 		}
