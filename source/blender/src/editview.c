@@ -533,20 +533,22 @@ static void do_lasso_select_mesh_uv(short mcords[][2], short moves, short select
 				}
 			}
 		} else if ((G.sima->flag & SI_SYNC_UVSEL)==0 && G.sima->sticky == SI_STICKY_LOC) {
-			EditVert *eve;
 			EditFace *efa_vlist;
 			MTFace *tf_vlist;
 			UvMapVert *vlist;
 			struct UvVertMap *vmap;
 			float limit[2];
-			int a;
-			get_connected_limit_tface_uv(limit);
+			//EditVert *eve; /* removed vert counting for now */ 
+			//int a;
 			
-			for (a=0, eve= em->verts.first; eve; a++, eve= eve->next)
-				eve->tmp.l = a;
+			get_connected_limit_tface_uv(limit);
 			
 			EM_init_index_arrays(0, 0, 1);
 			vmap= make_uv_vert_map_EM(0, 0, limit);
+			
+			/* verts are numbered above in make_uv_vert_map_EM, make sure this stays true! */
+			/*for (a=0, eve= em->verts.first; eve; a++, eve= eve->next)
+				eve->tmp.l = a; */
 			
 			if(vmap == NULL)
 				return;
