@@ -67,6 +67,7 @@
 #include "BIF_interface.h"
 
 #include "BDR_editobject.h"
+#include "BSE_edit.h"
 #include "BDR_drawobject.h"
 
 #include "BSE_drawview.h"
@@ -243,6 +244,15 @@ void EM_extrude_mesh(void){
 void EM_clone_mesh(void){
 	BME_model_begin(G.editMesh);
 	BME_duplicate(G.editMesh);
+	BME_model_end(G.editMesh);
+	countall();
+	DAG_object_flush_update(G.scene,G.obedit,OB_RECALC_DATA);
+	allqueue(REDRAWVIEW3D,0);
+}
+
+void EM_addedgeface(void){
+	BME_model_begin(G.editMesh);
+	BME_make_edgeface(G.editMesh);
 	BME_model_end(G.editMesh);
 	countall();
 	DAG_object_flush_update(G.scene,G.obedit,OB_RECALC_DATA);

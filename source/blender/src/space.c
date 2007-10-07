@@ -1812,8 +1812,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							//EDITBMESHGREP beauty_fill();
 						else if(G.qual==LR_CTRLKEY);
 							//EDITBMESHGREP edge_flip();
-						else if (G.qual==0);
-							//EDITBMESHGREP addedgeface_mesh();
+						else if (G.qual==0) EM_addedgeface();
 						else if ( G.qual == 
 							 (LR_SHIFTKEY | LR_ALTKEY | LR_CTRLKEY) ) {
 							//EDITBMESHGREP select_linked_flat_faces();

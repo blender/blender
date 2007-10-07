@@ -159,7 +159,7 @@ struct BME_Edge *BME_disk_nextedge(struct BME_Edge *e, struct BME_Vert *v);
 struct BME_CycleNode *BME_disk_getpointer(struct BME_Edge *e, struct BME_Vert *v);
 struct BME_Edge *BME_disk_next_edgeflag(struct BME_Edge *e, struct BME_Vert *v, int eflag, int tflag);
 int BME_disk_count_edgeflag(struct BME_Vert *v, int eflag, int tflag);
-int BME_disk_existedge(struct BME_Vert *v1, struct BME_Vert *v2);
+struct BME_Edge *BME_disk_existedge(struct BME_Vert *v1, struct BME_Vert *v2);
 
 /*RADIAL CYCLE*/
 struct BME_Loop *BME_radial_nextloop(struct BME_Loop *l);
@@ -242,4 +242,5 @@ void BME_delete_polys(struct BME_Mesh *bm);
 /*Multimode tools*/
 void BME_duplicate(struct BME_Mesh *bm);
 void BME_extrude_mesh(struct BME_Mesh *bm, int type);
+int BME_make_edgeface(struct BME_Mesh *bm);
 #endif

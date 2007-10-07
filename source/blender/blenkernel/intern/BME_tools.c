@@ -34,12 +34,17 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+
 #include "MEM_guardedalloc.h"
 
 #include "DNA_listBase.h"
 #include "DNA_object_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_mesh_types.h"
+#include "DNA_scene_types.h"
 
 #include "BKE_global.h"
 #include "BKE_depsgraph.h"
@@ -849,4 +854,258 @@ void BME_duplicate(BME_Mesh *bm){
 	BLI_ghash_free(vhash,NULL, NULL); //check usage!
 	BLI_ghash_free(ehash,NULL, NULL); //check usage!
 }
+
+int convex(float *v1, float *v2, float *v3, float *v4)
+{
+	float nor[3], nor1[3], nor2[3], vec[4][2];
+	
+	/* define projection, do both trias apart, quad is undefined! */
+	CalcNormFloat(v1, v2, v3, nor1);
+	CalcNormFloat(v1, v3, v4, nor2);
+	nor[0]= ABS(nor1[0]) + ABS(nor2[0]);
+	nor[1]= ABS(nor1[1]) + ABS(nor2[1]);
+	nor[2]= ABS(nor1[2]) + ABS(nor2[2]);
+
+	if(nor[2] >= nor[0] && nor[2] >= nor[1]) {
+		vec[0][0]= v1[0]; vec[0][1]= v1[1];
+		vec[1][0]= v2[0]; vec[1][1]= v2[1];
+		vec[2][0]= v3[0]; vec[2][1]= v3[1];
+		vec[3][0]= v4[0]; vec[3][1]= v4[1];
+	}
+	else if(nor[1] >= nor[0] && nor[1]>= nor[2]) {
+		vec[0][0]= v1[0]; vec[0][1]= v1[2];
+		vec[1][0]= v2[0]; vec[1][1]= v2[2];
+		vec[2][0]= v3[0]; vec[2][1]= v3[2];
+		vec[3][0]= v4[0]; vec[3][1]= v4[2];
+	}
+	else {
+		vec[0][0]= v1[1]; vec[0][1]= v1[2];
+		vec[1][0]= v2[1]; vec[1][1]= v2[2];
+		vec[2][0]= v3[1]; vec[2][1]= v3[2];
+		vec[3][0]= v4[1]; vec[3][1]= v4[2];
+	}
+	
+	/* linetests, the 2 diagonals have to instersect to be convex */
+	if( IsectLL2Df(vec[0], vec[2], vec[1], vec[3]) > 0 ) return 1;
+	return 0;
+}
+
+
+static BME_Poly *add_quadtri(BME_Mesh *bm, BME_Vert *v1, BME_Vert *v2, BME_Vert *v3, BME_Vert *v4){
+	BME_Poly *nf;
+	BME_Edge *edar[4];
+	edar[0] = edar[1] = edar[2] = edar[3] = NULL;
+	
+	
+	edar[0] = BME_disk_existedge(v1,v2);
+	if(edar[0] == NULL) edar[0] = BME_ME(bm,v1,v2);
+	edar[1] = BME_disk_existedge(v2,v3);
+	if(edar[1] == NULL) edar[1] = BME_ME(bm,v2,v3);
+	if(v4){
+		edar[2] = BME_disk_existedge(v3,v4);
+		if(edar[2] == NULL) edar[2] = BME_ME(bm,v3,v4);
+		edar[3] = BME_disk_existedge(v4,v1);
+		if(edar[3] == NULL) edar[3] = BME_ME(bm,v4,v1);
+	}
+	else{
+		edar[2] = BME_disk_existedge(v3,v1);
+		if(edar[2]==NULL) edar[2] = BME_ME(bm,v3,v1);
+	}
+	if(v4) nf = BME_MF(bm,v1,v2,edar,4);
+	else nf = BME_MF(bm,v1,v2,edar,3);
+	return nf;
+}
+
+/*finds out if any of the faces connected to any of the verts have all other vertices in varr as well. */
+static int exist_face_overlaps(BME_Mesh *bm, BME_Vert **varr, int len){
+	BME_Edge *curedge;
+	BME_Loop *curloop, *l;
+	int i;
+	/*loop through every face in every vert, if it contains all vertices in varr, its an overlap*/ 
+	for(i=0;i<len;i++){
+		if(varr[i]->edge){
+			curedge = varr[i]->edge;
+			do{
+				if(curedge->loop){
+					curloop = curedge->loop;
+					do{
+						int amount = 0;
+						/*if amount of 'visited' verts == len then we have an overlap*/
+						l = curloop->f->loopbase;
+						do{
+							if(BME_SELECTED(l->v)) amount++;
+							l = l->next;
+						}while(l != curloop->f->loopbase);
+						if(amount >= len){
+							if(len == curloop->f->len)  return 2; //existface
+							else return 1; //overlap
+						}
+						curloop = BME_radial_nextloop(curloop);
+					}while(curloop != curedge->loop);
+				}
+				curedge = BME_disk_nextedge(curedge,varr[i]);
+			}while(curedge!=varr[i]->edge);
+		}
+	}
+	return 0;
+}
+
+
+/* precondition; 4 vertices selected, check for 4 edges and create face */
+static BME_Poly *addface_from_edges(BME_Mesh *bm)
+{
+	BME_Edge *e, *eedar[4]={NULL, NULL, NULL, NULL};
+	BME_Vert *v1=NULL, *v2=NULL, *v3=NULL, *v4=NULL;
+	int a;
+	
+	/* find the 4 edges */
+	for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
+		if(BME_SELECTED(e)) {
+			if(eedar[0]==NULL) eedar[0]= e;
+			else if(eedar[1]==NULL) eedar[1]= e;
+			else if(eedar[2]==NULL) eedar[2]= e;
+			else eedar[3]= e;
+		}
+	}
+	
+	if(eedar[3]) {
+		/* first 2 points */
+		v1= eedar[0]->v1;
+		v2= eedar[0]->v2;
+		
+		/* find the 2 edges connected to first edge */
+		for(a=1; a<4; a++) {
+			if( eedar[a]->v1 == v2) v3= eedar[a]->v2;
+			else if(eedar[a]->v2 == v2) v3= eedar[a]->v1;
+			else if( eedar[a]->v1 == v1) v4= eedar[a]->v2;
+			else if(eedar[a]->v2 == v1) v4= eedar[a]->v1;
+		}
+		
+		/* verify if last edge exists */
+		if(v3 && v4) {
+			for(a=1; a<4; a++) {
+				if( eedar[a]->v1==v3 && eedar[a]->v2==v4) break;
+				if( eedar[a]->v2==v3 && eedar[a]->v1==v4) break;
+			}
+			if(a!=4) {
+				return add_quadtri(bm,v1,v2,v3,v4);
+			}
+		}
+	}
+	return NULL;
+}
+
+static BME_Poly *make_ngon_from_selected(BME_Mesh *bm){
+	
+	BME_Edge *e, **edar;
+	BME_Poly *nf= NULL;
+	int i, edsel=0;
+	
+	for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
+		if(BME_SELECTED(e)) edsel++;
+	}		
+	edar = MEM_callocN(sizeof(BME_Edge*)*edsel,"Add edgeface Ngon array");
+	i = 0;		
+	for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
+		if(BME_SELECTED(e)){	
+			edar[i] = e;
+			i++;
+		}
+	}
+	nf =  BME_MF(bm,edar[0]->v1,edar[0]->v2,edar,edsel);
+	if(edar) MEM_freeN(edar);
+	return nf;
+}
+
+int BME_make_edgeface(BME_Mesh *bm){
+
+	BME_Vert *v, *newface[4];
+	BME_Edge *e, **edar=NULL, *halt;
+	BME_Loop *l;
+	BME_Poly *f, *nf=NULL;
+	int i, amount=0, facesel=0;
+
+
+	if(bm->selectmode & SCE_SELECT_EDGE){ 
+		/* in edge mode finding selected vertices means flushing down edge codes... */
+		/* can't make face with only edge selection info... */
+		BME_selectmode_set(bm);
+	}	
+
+	/*special exception here....  if there is one or more faces selected, we want to fuse them into one face*/
+	for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){
+		/*if all vertices of the face are selected, we need to mark it, and count. Run a seperate function on it to fuse faces*/
+		l=f->loopbase;
+		do{
+			if(BME_SELECTED(l->v)) amount++;
+			l=l->next;
+		}while(l!=f->loopbase);
+		
+		if(amount == f->len) facesel++;
+	}	
+
+	//insert face fusing code here in case facesel > 1. if == 1, error.
+
+	amount = 0;
+	/*we make special excepton for quads and tris, only require vertex information to make them. For n-gons we need  closed loop of edges.*/
+	for(v=BME_first(bm,BME_VERT);v;v=BME_next(bm,BME_VERT,v)){
+		if(BME_SELECTED(v)){ 
+			if(amount == 4){ 
+				nf = make_ngon_from_selected(bm);
+				break;
+			}
+			newface[amount] = v;
+			amount++;
+		}
+	}
+	
+	if(!nf){
+		/*if amount == 2, create edge*/
+		if(amount == 2){
+			if(!(BME_disk_existedge(newface[0],newface[1]))) BME_ME(bm,newface[0],newface[1]);
+		}
+		/*if amount == 3, triangle...*/
+		else if(amount == 3){
+			if(exist_face_overlaps(bm,newface,3) == 0) add_quadtri(bm,newface[0],newface[1],newface[2],NULL);
+		}
+		/*if amount == 4, quad...*/
+		else if(amount == 4){
+			if(exist_face_overlaps(bm,newface,4) == 0){
+				/* if 4 edges exist, we just create the face, convex or not */
+				nf= addface_from_edges(bm);
+				if(nf==NULL) {
+					if( convex(newface[0]->co, newface[1]->co, newface[2]->co, newface[3]->co) ) {
+						nf= add_quadtri(bm, newface[0], newface[1], newface[2], newface[3]);
+					}
+					else if( convex(newface[0]->co, newface[2]->co, newface[3]->co, newface[1]->co) ) {
+						nf= add_quadtri(bm, newface[0], newface[2], newface[3], newface[1]);
+					}
+					else if( convex(newface[0]->co, newface[2]->co, newface[1]->co, newface[3]->co) ) {
+						nf= add_quadtri(bm, newface[0], newface[2], newface[1], newface[3]);
+					}
+					else if( convex(newface[1]->co, newface[2]->co, newface[3]->co, newface[0]->co) ) {
+						nf= add_quadtri(bm, newface[1], newface[2], newface[3], newface[0]);
+					}
+					else if( convex(newface[1]->co, newface[3]->co, newface[0]->co, newface[2]->co) ) {
+						nf= add_quadtri(bm, newface[1], newface[3], newface[0], newface[2]);
+					}
+					else if( convex(newface[1]->co, newface[3]->co, newface[2]->co, newface[0]->co) ) {
+						nf= add_quadtri(bm, newface[1], newface[3], newface[2], newface[0]);
+					}
+					return -1;				
+				}
+			}
+			return -1;;
+		}
+	}
+	
+	if(nf) {
+		BME_select_poly(bm,nf, 1);
+		//fix_new_face(efa); fix me!
+		//recalc_editnormals(); fix me too!
+
+	}
+}
+
+
 
