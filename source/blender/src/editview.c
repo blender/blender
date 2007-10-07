@@ -533,80 +533,62 @@ static void do_lasso_select_mesh_uv(short mcords[][2], short moves, short select
 				}
 			}
 		} else if ((G.sima->flag & SI_SYNC_UVSEL)==0 && G.sima->sticky == SI_STICKY_LOC) {
-			
-			/* This is not that nice! 
-			 * 
-			 * do a proximity based sticky selecion,
-			 *  need to do some odd stuff here
-			 */
-			int j, face_count=0, coord_end = 0; /* so we know what the last coord is */
-			float *coords, limit[2];
-			
+			EditVert *eve;
+			EditFace *efa_vlist;
+			MTFace *tf_vlist;
+			UvMapVert *vlist;
+			struct UvVertMap *vmap;
+			float limit[2];
+			int a;
 			get_connected_limit_tface_uv(limit);
 			
-			/* count and index */
-			/* would be nice to do this within a draw loop but most below are optional, so it would involve too many checks */
-			for (efa= em->faces.first; efa; efa= efa->next) {
-				tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-				if (SIMA_FACEDRAW_CHECK(efa, tf)) {		
-					efa->tmp.p = tf;
-					face_count++;
-				} else {
-					efa->tmp.p = NULL;
-				}
-			}
-			/* assumes worst case where all quads are selected */
-			coords = MEM_mallocN(sizeof(float) * face_count * 8, "lasso sticky coords");
+			for (a=0, eve= em->verts.first; eve; a++, eve= eve->next)
+				eve->tmp.l = a;
 			
+			EM_init_index_arrays(0, 0, 1);
+			vmap= make_uv_vert_map_EM(0, 0, limit);
+			
+			if(vmap == NULL)
+				return;
 			
 			for (efa= em->faces.first; efa; efa= efa->next) {
-				if ((tf=(MTFace *)efa->tmp.p)) {
-					if ((select) != (SIMA_FACESEL_CHECK(efa, tf))) {
-						tface_center(tf, cent, (void *)efa->v4);
-						uvco_to_areaco_noclip(cent, screenUV);
-						if (BLI_in_rcti(&rect, screenUV[0], screenUV[1]) && lasso_inside(mcords, moves, screenUV[0], screenUV[1])) {
-							
-							/* select now so as to avoid a location lookup later on */
+				tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				
+				if ((select) != (SIMA_FACESEL_CHECK(efa, tf))) {
+					tface_center(tf, cent, (void *)efa->v4);
+					uvco_to_areaco_noclip(cent, screenUV);
+					
+					if (BLI_in_rcti(&rect, screenUV[0], screenUV[1]) && lasso_inside(mcords, moves, screenUV[0], screenUV[1])) {
+						nverts= efa->v4? 4: 3;
+						for(i=0; i<nverts; i++) {
 							if (select) {
-								SIMA_FACESEL_SET(efa, tf);
+								SIMA_UVSEL_SET(efa, tf, i);
 							} else {
-								SIMA_FACESEL_UNSET(efa, tf);
+								SIMA_UVSEL_UNSET(efa, tf, i);
 							}
 							
-							/* add this face's coords so we can select close coords later on */
-							nverts= efa->v4? 4: 3;
-							for(j=0; j<nverts; j++) {
-								coords[coord_end++]	= tf->uv[j][0];
-								coords[coord_end++]	= tf->uv[j][1];
-								
-							}
-						}
-					}
-				}
-			}
-			
-			/* now select verts based on proximity to existing coords */
-			for (efa= em->faces.first; efa; efa= efa->next) {
-				if ((tf=(MTFace *)efa->tmp.p)) {
-					nverts= efa->v4? 4: 3;
-					for(i=0; i<nverts; i++) {
-						if ((SIMA_UVSEL_CHECK(efa, tf, i)) != (select) ) {
-							/* this corner is not selected, check if its next to an adjacent selected uv face */
-							for (j=0; j<coord_end; j+=2) {
-								if (	fabs(coords[j  ]-tf->uv[i][0]) < limit[0] &&
-										fabs(coords[j+1]-tf->uv[i][1]) < limit[1] )	{
-									if (select)
-										tf->flag |= TF_SEL_MASK(i);
-									else
-										tf->flag &= ~TF_SEL_MASK(i);
-									break;
+							vlist= get_uv_map_vert_EM(vmap, (*(&efa->v1 + i))->tmp.l);
+							while (vlist) {
+								if (!vlist->separate) {
+									efa_vlist = EM_get_face_for_index(vlist->f);
+									if (efa != efa_vlist) {
+										tf_vlist = CustomData_em_get(&em->fdata, efa_vlist->data, CD_MTFACE);
+										
+										if (select) {
+											SIMA_UVSEL_SET(efa_vlist, tf_vlist, vlist->tfindex);
+										} else {
+											SIMA_UVSEL_UNSET(efa_vlist, tf_vlist, vlist->tfindex);
+										}
+									}
 								}
+								vlist = vlist->next;
 							}
 						}
 					}
 				}
 			}
-			MEM_freeN(coords);
+			EM_free_index_arrays();
+			free_uv_vert_map_EM(vmap);
 			
 		} else { /* SI_STICKY_DISABLE or G.sima->flag & SI_SYNC_UVSEL */
 			
