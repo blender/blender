@@ -276,7 +276,7 @@ void recalcData(TransInfo *t)
 			if (ISPOIN(ei, flag & IPO_VISIBLE, icu)) {
 				
 				/* watch it: if the time is wrong: do not correct handles */
-				if (test_time_ipocurve(ei->icu) ) dosort++;
+				if (test_time_ipocurve(ei->icu)) dosort++;
 				else testhandles_ipocurve(ei->icu);
 			}
 		}

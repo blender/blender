@@ -85,6 +85,7 @@
 
 #include "BSE_drawipo.h"
 #include "BSE_editnla_types.h"	/* for NLAWIDTH */
+#include "BSE_editaction_types.h"
 #include "BSE_view.h"
 
 #include "BLI_arithb.h"
@@ -379,11 +380,53 @@ void convertDisplayNumToVec(float *num, float *vec)
 
 static void viewRedrawForce(TransInfo *t)
 {
-	if(ELEM4(t->spacetype, SPACE_VIEW3D, SPACE_ACTION, SPACE_NLA, SPACE_IPO))
+	if (t->spacetype == SPACE_VIEW3D)
 		force_draw(0);
-	else if(t->spacetype==SPACE_IMAGE) {
-		if(G.sima->lock) force_draw_plus(SPACE_VIEW3D, 0);
+	else if (t->spacetype==SPACE_IMAGE) {
+		if (G.sima->lock) force_draw_plus(SPACE_VIEW3D, 0);
 		else force_draw(0);
+	}
+	else if (t->spacetype == SPACE_ACTION) {
+		if (G.saction->lock) {
+			short context= 0;
+			void *data= get_action_context(&context);
+			
+			if (context == ACTCONT_ACTION)
+				force_draw_plus(SPACE_VIEW3D, 0);
+			else if (context == ACTCONT_SHAPEKEY) 
+				force_draw_all(0);
+			else
+				force_draw(0);
+		}
+		else {
+			force_draw(0);
+		}
+	}
+	else if (t->spacetype == SPACE_NLA) {
+		if (G.snla->lock)
+			force_draw_all(0);
+		else
+			force_draw(0);
+	}
+	else if (t->spacetype == SPACE_IPO) {
+		/* update realtime */
+		if (G.sipo->lock) {
+			if (G.sipo->blocktype==ID_MA || G.sipo->blocktype==ID_TE)
+				force_draw_plus(SPACE_BUTS, 0);
+			else if (G.sipo->blocktype==ID_CA)
+				force_draw_plus(SPACE_VIEW3D, 0);
+			else if (G.sipo->blocktype==ID_KE)
+				force_draw_plus(SPACE_VIEW3D, 0);
+			else if (G.sipo->blocktype==ID_PO)
+				force_draw_plus(SPACE_VIEW3D, 0);
+			else if (G.sipo->blocktype==ID_OB) 
+				force_draw_plus(SPACE_VIEW3D, 0);
+			else 
+				force_draw(0);
+		}
+		else {
+			force_draw(0);
+		}
 	}
 }
 
