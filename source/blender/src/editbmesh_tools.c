@@ -64,6 +64,7 @@
 #include "BIF_resources.h"
 #include "BIF_language.h"
 #include "BIF_transform.h"
+#include "BIF_interface.h"
 
 #include "BDR_editobject.h"
 #include "BDR_drawobject.h"
@@ -76,6 +77,7 @@ void EM_cut_edges(int numcuts){
 	BME_model_begin(G.editMesh);
 	BME_cut_edges(G.editMesh,numcuts);
 	BME_model_end(G.editMesh);
+	countall();
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -84,6 +86,7 @@ void EM_dissolve_edges(void){
 	BME_model_begin(G.editMesh);
 	BME_dissolve_edges(G.editMesh);	
 	BME_model_end(G.editMesh);
+	countall();
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -91,33 +94,117 @@ void EM_connect_verts(void){
 	BME_model_begin(G.editMesh);
 	BME_connect_verts(G.editMesh);
 	BME_model_end(G.editMesh);
+	countall();
 	DAG_object_flush_update(G.scene,G.obedit,OB_RECALC_DATA);
 	allqueue(REDRAWVIEW3D,0);
 }
 
 void EM_delete_context(void){
+	char *str="Erase";
+	int event;
 	BME_model_begin(G.editMesh);
-	if(G.scene->selectmode == SCE_SELECT_VERTEX) BME_delete_verts(G.editMesh);
-	else if(G.scene->selectmode == SCE_SELECT_EDGE) BME_delete_edges(G.editMesh);
-	else if(G.scene->selectmode == SCE_SELECT_FACE) BME_delete_polys(G.editMesh);
+
+	event= pupmenu("Erase %t|Vertices%x10|Edges%x1|Faces%x2|All%x3|Edges & Faces%x4|Only Faces%x5|Edge Loop%x6");
+	if(event<1) return;
+	
+	if(event==10){ 
+		str = "Erase Vertices";
+		BME_delete_context(G.editMesh,BME_DEL_VERTS);
+	}
+	else if(event == 4){
+		str = "Erase Edges & Faces";
+		BME_delete_context(G.editMesh,BME_DEL_EDGESFACES);
+	}
+	else if(event == 1){
+		str = "Erase Edges";
+		BME_delete_context(G.editMesh,BME_DEL_EDGES);
+	}
+	else if(event == 2){
+		str = "Erase Faces";
+		BME_delete_context(G.editMesh,BME_DEL_FACES);
+	}
+	else if(event == 3){
+		str = "Erase All";
+		BME_delete_context(G.editMesh,BME_DEL_ALL);
+	}
+	else if(event == 5){
+		str = "Erase only Faces";
+		BME_delete_context(G.editMesh,BME_DEL_ONLYFACES);
+	}
 	BME_model_end(G.editMesh);
+	countall();
 	DAG_object_flush_update(G.scene,G.obedit,OB_RECALC_DATA);
+	BIF_undo_push(str);
 	allqueue(REDRAWVIEW3D,0);
 }
 
 void EM_extrude_mesh(void){
+	BME_Poly *f;
 	float nor[3]= {0.0, 0.0, 0.0};
-	short transmode=0,extrudemode=0; //1 = verts, 2, = edges, 3 = faces, 4 = individual faces... should actually be inset then move along individual normals?
+	short nr, transmode = 0;
+
 	
 	BME_model_begin(G.editMesh);
-	if(G.scene->selectmode == SCE_SELECT_VERTEX){ 
-		transmode = BME_extrude_verts(G.editMesh);
-		if(transmode) extrudemode = 1;
+	
+	if(G.scene->selectmode & SCE_SELECT_VERTEX) {
+		if(G.totvertsel==0) nr= 0;
+		else if(G.totvertsel==1) nr= 4;
+		else if(G.totedgesel==0) nr= 4;
+		else if(G.totfacesel==0) 
+			nr= pupmenu("Extrude %t|Only Edges%x3|Only Vertices%x4");
+		else if(G.totfacesel==1)
+			nr= pupmenu("Extrude %t|Region %x1|Only Edges%x3|Only Vertices%x4");
+		else 
+			nr= pupmenu("Extrude %t|Region %x1||Individual Faces %x2|Only Edges%x3|Only Vertices%x4");
 	}
-	else if(G.scene->selectmode == SCE_SELECT_EDGE){
-		transmode = BME_extrude_edges(G.editMesh);
-		if(transmode) extrudemode = 2;
+	else if(G.scene->selectmode & SCE_SELECT_EDGE) {
+		if (G.totedgesel==0) nr = 0;
+		else if (G.totedgesel==1) nr = 3;
+		else if(G.totfacesel==0) nr = 3;
+		else if(G.totfacesel==1)
+			nr= pupmenu("Extrude %t|Region %x1|Only Edges%x3");
+		else
+			nr= pupmenu("Extrude %t|Region %x1||Individual Faces %x2|Only Edges%x3");
 	}
+	else {
+		if (G.totfacesel == 0) nr = 0;
+		else if (G.totfacesel == 1) nr = 1;
+		else
+			nr= pupmenu("Extrude %t|Region %x1||Individual Faces %x2");
+	}
+		
+	if(nr<1) return;
+	
+	if(nr==1){ 
+		//transmode = 'n';
+		//generate normal for region translation. In reality this really stinks and should be redone.
+		//for(
+		//add_normal_aligned(nor, efa->n);
+		//f(nor[0]==0.0 && nor[1]==0.0 && nor[2]==0.0) 
+		transmode = 'g';
+		BME_extrude_mesh(G.editMesh,BME_EXTRUDE_VERTS|BME_EXTRUDE_EDGES|BME_EXTRUDE_FACES);
+	}
+	else if(nr==4){
+		//transmode= extrudeflag_verts_indiv(SELECT, nor);
+		transmode = 'g';
+		BME_extrude_mesh(G.editMesh,BME_EXTRUDE_VERTS);
+	}
+	else if(nr==3){ 
+		//transmode= extrudeflag_edges_indiv(SELECT, nor);
+		transmode= 'g';
+		BME_extrude_mesh(G.editMesh,BME_EXTRUDE_VERTS|BME_EXTRUDE_EDGES);
+	}
+	else{ 
+		//transmode= extrudeflag_face_indiv(SELECT, nor);
+		//need to insert calls to face inset code here.....
+	}
+		//transmode = BME_extrude_verts(G.editMesh);
+		//if(transmode) extrudemode = 1;
+	//}
+	//else if(G.scene->selectmode == SCE_SELECT_EDGE){
+		//transmode = BME_extrude_edges(G.editMesh);
+		//if(transmode) extrudemode = 2;
+	//}
 	
 	if(transmode){
 		/* We need to force immediate calculation here because 
@@ -149,6 +236,7 @@ void EM_extrude_mesh(void){
 		Transform();
 	}	
 	BME_model_end(G.editMesh);
+	countall();
 	DAG_object_flush_update(G.scene,G.obedit,OB_RECALC_DATA);
 	allqueue(REDRAWVIEW3D,0);
 }
@@ -156,6 +244,7 @@ void EM_clone_mesh(void){
 	BME_model_begin(G.editMesh);
 	BME_duplicate(G.editMesh);
 	BME_model_end(G.editMesh);
+	countall();
 	DAG_object_flush_update(G.scene,G.obedit,OB_RECALC_DATA);
 	allqueue(REDRAWVIEW3D,0);
 }

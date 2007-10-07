@@ -57,6 +57,7 @@ struct DerivedMesh;
 /*defines for element->flag*/
 #define BME_VISITED 2											/*for traversal/selection functions*/
 #define BME_NEW 4											/*for tools*/
+#define BME_DELETE 8
 
 typedef struct BME_CycleNode{
 	struct BME_CycleNode 	*next, *prev;
@@ -158,6 +159,7 @@ struct BME_Edge *BME_disk_nextedge(struct BME_Edge *e, struct BME_Vert *v);
 struct BME_CycleNode *BME_disk_getpointer(struct BME_Edge *e, struct BME_Vert *v);
 struct BME_Edge *BME_disk_next_edgeflag(struct BME_Edge *e, struct BME_Vert *v, int eflag, int tflag);
 int BME_disk_count_edgeflag(struct BME_Vert *v, int eflag, int tflag);
+int BME_disk_existedge(struct BME_Vert *v1, struct BME_Vert *v2);
 
 /*RADIAL CYCLE*/
 struct BME_Loop *BME_radial_nextloop(struct BME_Loop *l);
@@ -197,27 +199,47 @@ void *BME_next(struct BME_Mesh *bm, int type, void *element);
 void BME_select_vert(struct BME_Mesh *bm, struct BME_Vert *v, int select);
 void BME_select_edge(struct BME_Mesh *bm, struct BME_Edge *e, int select);
 void BME_select_poly(struct BME_Mesh *bm, struct BME_Poly *f, int select);
-void BME_change_mode_exclusive(struct BME_Mesh *bm,  int newmode);
-void BME_strip_selections(struct BME_Mesh *bm);
+void BME_select_flush(struct BME_Mesh *bm);
+void BME_selectmode_flush(struct BME_Mesh *bm);
+void BME_selectmode_set(struct BME_Mesh *bm);
+void BME_clear_flag_all(struct BME_Mesh *bm, int flag);
 #define BME_SELECTED(element) (element->flag & SELECT)
 #define BME_NEWELEM(element) (element->flag & BME_NEW)
 #define BME_ISVISITED(element) (element->flag & BME_VISITED)
 #define BME_VISIT(element) (element->flag |= BME_VISITED)
+#define BME_UNVISIT(element) (element->flag &= ~BME_VISITED)
+#define BME_MARK(element) (element->flag |= BME_DELETE)
+#define BME_MARKED(element) (element->flag & BME_DELETE)
+
 /*TOOLS CODE*/
+
+/*tools defines*/
+#define BME_DEL_VERTS 1
+#define BME_DEL_EDGESFACES 2
+#define BME_DEL_EDGES 3
+#define BME_DEL_FACES 4
+#define BME_DEL_ONLYFACES 5
+#define BME_DEL_ALL 6
+
+#define BME_EXTRUDE_VERTS 1
+#define BME_EXTRUDE_EDGES 2
+#define BME_EXTRUDE_FACES 4
+
+void BME_delete_context(struct BME_Mesh *bm, int type);
+
 /*Vertex Tools*/
 void BME_connect_verts(struct BME_Mesh *bm);
 void BME_delete_verts(struct BME_Mesh *bm);
-int BME_extrude_verts(struct BME_Mesh *bm);
 /*Edge Tools*/
 void BME_cut_edge(struct BME_Mesh *bm, BME_Edge *e, int numcuts);
 void BME_cut_edges(struct BME_Mesh *bm, int numcuts);
 void BME_dissolve_edges(struct BME_Mesh *bm);
 void BME_delete_edges(struct BME_Mesh *bm);
-int BME_extrude_edges(struct BME_Mesh *bm);
 /*Face Tools*/
 struct BME_Poly *BME_inset_poly(struct BME_Mesh *bm, struct BME_Poly *f);
 void BME_split_face(struct BME_Mesh *bm, struct BME_Poly *f);
 void BME_delete_polys(struct BME_Mesh *bm);
-/*mixed tools*/
+/*Multimode tools*/
 void BME_duplicate(struct BME_Mesh *bm);
+void BME_extrude_mesh(struct BME_Mesh *bm, int type);
 #endif

@@ -101,123 +101,166 @@ void BME_select_vert(BME_Mesh *bm, BME_Vert *v, int select){
 	else v->flag &= ~SELECT;
 }
 void BME_select_edge(BME_Mesh *bm, BME_Edge *e, int select){
-	if(select) e->flag |= SELECT;
-	else e->flag &= ~SELECT;
+	if(select){ 
+		e->flag |= SELECT;
+		e->v1->flag |= SELECT;
+		e->v2->flag |= SELECT;
+	}
+	else{ 
+		e->flag &= ~SELECT;
+		e->v1->flag &= ~SELECT;
+		e->v2->flag &= ~SELECT;
+	}
 }
 void BME_select_poly(BME_Mesh *bm, BME_Poly *f, int select){
-	if(select) f->flag |= SELECT;
-	else f->flag &= ~SELECT;
+	BME_Loop *l;
+	if(select){ 
+		f->flag |= SELECT;
+		l = f->loopbase;
+		do{
+			l->v->flag |= SELECT;
+			l->e->flag |= SELECT;
+			l=l->next;
+		}while(l != f->loopbase);
+	}
+	else{ 
+		f->flag &= ~SELECT;
+		l=f->loopbase;
+		do{
+			l->v->flag &= ~SELECT;
+			l->e->flag &= ~SELECT;
+			l=l->next;
+		}while(l!=f->loopbase);
+	}
 }
 
-
-#define MULTISELECT(mode) (mode != SCE_SELECT_VERTEX && mode!= SCE_SELECT_EDGE && mode != SCE_SELECT_FACE)
-/*	
- *	BME CHANGE MODE
- *
- * Changes the selection mode for the mesh.
-*/
-void BME_change_mode_exclusive(BME_Mesh *bm,  int newmode){
-	BME_Vert *v;
+void BME_clear_flag_all(BME_Mesh *bm, int flag)
+{
+	BME_Vert  *v;
 	BME_Edge *e;
 	BME_Loop *l;
 	BME_Poly *f;
-	int faceflush;
 	
-	if(MULTISELECT(newmode)) return;
-	
-	if(newmode == SCE_SELECT_VERTEX){
-		/*flush faces to verts*/
-		for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){
-			if(BME_SELECTED(f)){
-				l=f->loopbase;
-				do{
-					BME_select_vert(bm,l->v,1);
-					l = l->next;
-				}while(l!=f->loopbase);
-				
-				
-			}
-		}
-		/*flush edges to verts*/
-		for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
-			if(BME_SELECTED(e)){
-				BME_select_vert(bm,e->v1,1);
-				BME_select_vert(bm,e->v2,1);
-			}
-		}
-		bm->selectmode = newmode;
-	}
-	
-	else if(newmode == SCE_SELECT_EDGE){
-		/*flush verts to edges*/
-		for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
-			if(BME_SELECTED(e->v1) && BME_SELECTED(e->v2)) BME_select_edge(bm,e,1);
-		}
-		/*flush faces to edges*/
-		for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){
-			if(BME_SELECTED(f)){
-				l=f->loopbase;
-				do{
-					BME_select_edge(bm,l->e,1);
-					l=l->next;
-				}while(l!=f->loopbase);
-				
-			}
-		}
-		bm->selectmode = newmode;
-	}
-
-	else if(newmode == SCE_SELECT_FACE){
-		/*flush vertices to faces*/
-		for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){
-			faceflush = 1;
-			l = f->loopbase;
-			do{
-				if(!(BME_SELECTED(l->v))){
-					faceflush = 0;
-					break;
-				}
-				l = l->next;
-			}while(l!=f->loopbase);
-			
-			if(faceflush) BME_select_poly(bm,f,1);
-		}
-		
-		/*flush edges to faces*/	
-		for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){
-			faceflush = 1;
-			l = f->loopbase;
-			do{
-				if(!(BME_SELECTED(l->e))){
-					faceflush = 0;
-					break;
-				}
-				l = l->next;
-			}while(l!=f->loopbase);
-			
-			if(faceflush) BME_select_poly(bm,f,1);
-		}
-		bm->selectmode = newmode;
-	}
-	BME_strip_selections(bm);
+	if(flag & BME_NEW) return; //system flag, tool authors not allowed to clear.
+	for(v=BME_first(bm,BME_VERT);v;v=BME_next(bm,BME_VERT,v)) v->flag &= ~flag;
+	for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e))e->flag &= ~flag;
+	for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f))f->flag &= ~flag;
 }
 
-void BME_strip_selections(BME_Mesh *bm){
+#define MULTISELECT(mode) (mode != SCE_SELECT_VERTEX && mode!= SCE_SELECT_EDGE && mode != SCE_SELECT_FACE)
+
+
+/* flush selection to edges & faces */
+
+/*  this only based on coherent selected vertices, for example when adding new
+    objects. call clear_flag_all() before you select vertices to be sure it ends OK!
 	
+*/
+
+void BME_select_flush(BME_Mesh *bm)
+{
+	BME_Edge *e;
+	BME_Loop *l;
+	BME_Poly *f;
+	int totsel;
+	
+	for(e= BME_first(bm,BME_EDGE); e; e=BME_next(bm,BME_EDGE,e)) {
+		if(BME_SELECTED(e->v1) && BME_SELECTED(e->v2)) e->flag |= SELECT; //replace with a macro!
+	}
+	for(f= BME_first(bm,BME_POLY); f; f=BME_next(bm,BME_POLY,f)) {
+		totsel = 0;
+		l=f->loopbase;
+		do{
+			if(BME_SELECTED(l->v)) totsel++;
+			l=l->next;
+		}while(l!=f->loopbase);
+		
+		if(totsel == f->len) f->flag |= SELECT;	
+	}
+}
+
+
+/* flush to edges & faces */
+
+/* based on select mode it selects edges/faces 
+   assumed is that verts/edges/faces were properly selected themselves
+   with the calls above
+*/
+
+void BME_selectmode_flush(BME_Mesh *bm)
+{
+	BME_Edge *e;
+	BME_Loop *l;
+	BME_Poly  *f;
+	int totsel;
+	
+	// flush to edges & faces
+	if(bm->selectmode & SCE_SELECT_VERTEX) {
+		for(e= BME_first(bm,BME_EDGE); e; e=BME_next(bm,BME_EDGE,e)) {
+			if(BME_SELECTED(e->v1) && BME_SELECTED(e->v2))e->flag |= SELECT; //make macro
+			else e->flag &= ~SELECT;
+		}
+		for(f= BME_first(bm,BME_POLY); f; f=BME_next(bm,BME_POLY,f)) {
+			totsel = 0;
+			l=f->loopbase;
+			do{
+				if(BME_SELECTED(l->v)) totsel++;
+				l=l->next;
+			}while(l!=f->loopbase);
+			
+			if(totsel == f->len) f->flag |= SELECT;
+			else f->flag &= ~ SELECT;
+		}
+	}
+	// flush to faces
+	else if(bm->selectmode & SCE_SELECT_EDGE) {
+		for(f= BME_first(bm,BME_POLY); f; f=BME_next(bm,BME_POLY,f)) {
+			totsel = 0;
+			l=f->loopbase;
+			do{
+				if(BME_SELECTED(l->e)) totsel++;
+				l=l->next;
+			}while(l!=f->loopbase);
+			
+			if(totsel == f->len) f->flag |= SELECT;
+			else f->flag &= ~ SELECT;
+		}
+	}	
+	// make sure selected faces have selected edges and verts too, for extrude (hack?)
+	else if(bm->selectmode & SCE_SELECT_FACE) {
+		for(f= BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)) {
+			if(BME_SELECTED(f)) BME_select_poly(bm,f, 1);
+		}
+	}
+}
+
+
+
+void BME_selectmode_set(BME_Mesh *bm){
 	BME_Vert *v;
 	BME_Edge *e;
 	BME_Poly *f;
 	
-	/*strip invalid selections. Make this a seperate function!*/
-	if(!(bm->selectmode & SCE_SELECT_VERTEX)){
-		for(v=BME_first(bm,BME_VERT);v;v=BME_next(bm,BME_VERT,v)) BME_select_vert(bm,v,0);
+	if(bm->selectmode & SCE_SELECT_VERTEX) {
+		/* vertices -> edges -> faces */
+		for(e= BME_first(bm,BME_EDGE); e; e= BME_next(bm,BME_EDGE,e)) e->flag &= ~SELECT; //bad, replace with a macro
+		for (f= BME_first(bm,BME_POLY); f; f= BME_next(bm,BME_POLY,f)) f->flag &= ~SELECT;  //bad, replace with a macro
+		BME_select_flush(bm);
 	}
-	if(!(bm->selectmode & SCE_SELECT_EDGE)){
-		for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)) BME_select_edge(bm,e,0);
+	else if(bm->selectmode & SCE_SELECT_EDGE) {
+		/* deselect vertices, and select again based on edge select */
+		for(v= BME_first(bm,BME_VERT); v; v= BME_next(bm,BME_VERT,v)) BME_select_vert(bm,v,0);
+		for(e= BME_first(bm,BME_EDGE); e; e= BME_next(bm,BME_EDGE,e)) 
+			if(BME_SELECTED(e)) BME_select_edge(bm,e, 1);
+		/* selects faces based on edge status */
+		BME_selectmode_flush(bm);
 	}
-	if(!(bm->selectmode & SCE_SELECT_FACE)){
-		for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)) BME_select_poly(bm,f,0);
-	}	
+	else if(bm->selectmode & SCE_SELECT_FACE) {
+		/* deselect edges, and select again based on face select */
+		for(e= BME_first(bm,BME_EDGE); e; e= BME_next(bm,BME_EDGE,e)) BME_select_edge(bm,e, 0);
+		for(f= BME_first(bm,BME_POLY); f; f=BME_next(bm,BME_POLY,f)) 
+			if(BME_SELECTED(f)) BME_select_poly(bm,f, 1);
+	}
 }
 
 /*	

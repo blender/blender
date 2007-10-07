@@ -557,6 +557,23 @@ int BME_disk_count_edgeflag(BME_Vert *v, int eflag, int tflag){
 	return count;
 }
 
+int BME_disk_existedge(BME_Vert *v1, BME_Vert *v2){
+	BME_CycleNode *diskbase;
+	BME_Edge *curedge;
+	int i, len=0;
+	
+	if(v1->edge){
+		diskbase = BME_disk_getpointer(v1->edge,v1);
+		len = BME_cycle_length(diskbase);
+		
+		for(i=0,curedge=v1->edge;i<len;i++,curedge = BME_disk_nextedge(curedge,v1)){
+			if(BME_verts_in_edge(v1,v2,curedge)) return 1;
+		}
+	}
+	
+	return 0;
+}
+
 int BME_disk_hasedge(BME_Vert *v, BME_Edge *e){
 	BME_CycleNode *diskbase;
 	BME_Edge *curedge;

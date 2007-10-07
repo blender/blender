@@ -82,21 +82,15 @@ void EM_deselectall_mesh(void){
 	int select;
 
 	if(G.obedit->lay & G.vd->lay){
-		if(G.scene->selectmode & SCE_SELECT_VERTEX){
-			if(G.totvertsel) select = 0;
-			else select = 1;
-			for(v=BME_first(G.editMesh,BME_VERT);v;v=BME_next(G.editMesh,BME_VERT,v))BME_select_vert(G.editMesh,v,select);
-		}
-		if(G.scene->selectmode & SCE_SELECT_EDGE){
-			if(G.totedgesel) select = 0;
-			else select = 1;
-			for(e=BME_first(G.editMesh,BME_EDGE);e;e=BME_next(G.editMesh,BME_EDGE,e))BME_select_edge(G.editMesh,e,select);
-		}
-		if(G.scene->selectmode & SCE_SELECT_FACE){
-			if(G.totfacesel) select = 0;
-			else select = 1;
-			for(f=BME_first(G.editMesh,BME_POLY);f;f=BME_next(G.editMesh,BME_POLY,f))BME_select_poly(G.editMesh,f,select);
-		}
+		if(G.totvertsel) select = 0;
+		else select = 1;
+		for(v=BME_first(G.editMesh,BME_VERT);v;v=BME_next(G.editMesh,BME_VERT,v))BME_select_vert(G.editMesh,v,select);
+		if(G.totedgesel) select = 0;
+		else select = 1;
+		for(e=BME_first(G.editMesh,BME_EDGE);e;e=BME_next(G.editMesh,BME_EDGE,e))BME_select_edge(G.editMesh,e,select);
+		if(G.totfacesel) select = 0;
+		else select = 1;
+		for(f=BME_first(G.editMesh,BME_POLY);f;f=BME_next(G.editMesh,BME_POLY,f))BME_select_poly(G.editMesh,f,select);
 	}
 	
 	countall();

@@ -196,7 +196,6 @@ BME_Mesh *BME_FromMesh(Mesh *me)
 	if (edge_table) MEM_freeN(edge_table);
 	
 	BME_model_end(bmesh);
-	BME_strip_selections(bmesh);
 	return bmesh;
 }
 
@@ -395,6 +394,7 @@ void mouse_bmesh(void) /*rewrite me like the old mouse_mesh from editmesh....*/
 			allqueue(REDRAWVIEW3D, 1);
 		}
 	}
+	BME_selectmode_flush(G.editMesh);
 	countall();
 	makeDerivedMesh(G.obedit,CD_MASK_EDITMESH);
 	rightmouse_transform();
