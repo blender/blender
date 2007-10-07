@@ -388,8 +388,10 @@ static void viewRedrawForce(TransInfo *t)
 	}
 	else if (t->spacetype == SPACE_ACTION) {
 		if (G.saction->lock) {
-			short context= 0;
-			void *data= get_action_context(&context);
+			short context;
+			
+			/* we ignore the pointer this function returns (not needed) */
+			get_action_context(&context);
 			
 			if (context == ACTCONT_ACTION)
 				force_draw_plus(SPACE_VIEW3D, 0);
