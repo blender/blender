@@ -3819,7 +3819,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			0, 0, 0, 0, 0, "");
 		uiDefButI(block, NUM, B_REDR, "Prefetch frames ",
 			  (xpos+edgsp+(4*mpref)+(4*midsp)), y6, mpref, buth, 
-			  &U.prefetchframes, 0.0, 50.0, 20, 2, 
+			  &U.prefetchframes, 0.0, 500.0, 20, 2, 
 			  "Number of frames to render ahead during playback.");
 
 		uiDefButI(block, NUM, B_MEMCACHELIMIT, "MEM Cache Limit ",
