@@ -2494,6 +2494,7 @@ void reveal_mesh(void)
 	BIF_undo_push("Reveal");
 }
 
+/* TODO - improve this with sync sel and selection flushing */
 void hide_tface_uv(int swap)
 {
 	EditMesh *em = G.editMesh;

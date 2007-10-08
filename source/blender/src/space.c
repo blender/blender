@@ -2338,6 +2338,9 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					if((G.qual & LR_CTRLKEY) && G.obedit->type==OB_MESH) {
 						convert_to_triface(G.qual & LR_SHIFTKEY);
 						allqueue(REDRAWVIEW3D, 0);
+						if (EM_texFaceCheck())
+							allqueue(REDRAWIMAGE, 0);
+						
 						countall();
 						DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 					}

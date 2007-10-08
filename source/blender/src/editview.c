@@ -475,141 +475,30 @@ static void do_lasso_select_mesh_uv(short mcords[][2], short moves, short select
 	EditMesh *em = G.editMesh;
 	EditFace *efa;
 	MTFace *tf;
-	int screenUV[2], nverts, i;
+	int screenUV[2], nverts, i, ok = 1;
 	rcti rect;
 	
 	lasso_select_boundbox(&rect, mcords, moves);
 	
 	if (draw_uvs_face_check()) { /* Face Center Sel */
 		float cent[2];
-		
-		/* selecting UV Faces with some modes requires us to change 
-		 * the selection in other faces (depending on the stickt mode)
-		 * 
-		 * This only needs to be done when the Mesh is not used for selection
-		 * (So for sticky modes - vertex or location based)
-		 *   This shoud be a generic function - so Ill make one but it will
-		 *   Only be used by this at the moment. 
-		 * */
-		
-		if ((G.sima->flag & SI_SYNC_UVSEL)==0 && G.sima->sticky == SI_STICKY_VERTEX) {
-			/* tag all verts as untouched,
-			 * then touch the ones that have a face center in the loop
-			 * and select all MTFace UV's that use a touched vert */
-			
-			EditVert *eve;
-			
-			for (eve= em->verts.first; eve; eve= eve->next)
-				eve->tmp.l = 0;
-			
-			for (efa= em->faces.first; efa; efa= efa->next) {
-				tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-				if (SIMA_FACEDRAW_CHECK(efa, tf)) {
-					if ((select) != (SIMA_FACESEL_CHECK(efa, tf))) {
-						tface_center(tf, cent, (void *)efa->v4);
-						uvco_to_areaco_noclip(cent, screenUV);
-						if (BLI_in_rcti(&rect, screenUV[0], screenUV[1]) && lasso_inside(mcords, moves, screenUV[0], screenUV[1])) {
-							if (efa->v4) {
-								efa->v1->tmp.l=	efa->v2->tmp.l= efa->v3->tmp.l= efa->v4->tmp.l=1;
-							} else {
-								efa->v1->tmp.l= efa->v2->tmp.l= efa->v3->tmp.l= 1;
-							}
-						}
-					}
-				}
-			}
-			/* now select tagged verts */
-			for (efa= em->faces.first; efa; efa= efa->next) {
-				tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);		
-				nverts= efa->v4? 4: 3;
-				for(i=0; i<nverts; i++) {
-					if ((*(&efa->v1 + i))->tmp.l) {
-						if (select) {
-							SIMA_UVSEL_SET(efa, tf, i);
-						} else {
-							SIMA_UVSEL_UNSET(efa, tf, i);
-						}
-					}
-				}
-			}
-		} else if ((G.sima->flag & SI_SYNC_UVSEL)==0 && G.sima->sticky == SI_STICKY_LOC) {
-			EditFace *efa_vlist;
-			MTFace *tf_vlist;
-			UvMapVert *vlist;
-			struct UvVertMap *vmap;
-			float limit[2];
-			//EditVert *eve; /* removed vert counting for now */ 
-			//int a;
-			
-			get_connected_limit_tface_uv(limit);
-			
-			EM_init_index_arrays(0, 0, 1);
-			vmap= make_uv_vert_map_EM(0, 0, limit);
-			
-			/* verts are numbered above in make_uv_vert_map_EM, make sure this stays true! */
-			/*for (a=0, eve= em->verts.first; eve; a++, eve= eve->next)
-				eve->tmp.l = a; */
-			
-			if(vmap == NULL)
-				return;
-			
-			for (efa= em->faces.first; efa; efa= efa->next) {
-				tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-				
-				if ((select) != (SIMA_FACESEL_CHECK(efa, tf))) {
-					tface_center(tf, cent, (void *)efa->v4);
-					uvco_to_areaco_noclip(cent, screenUV);
-					
-					if (BLI_in_rcti(&rect, screenUV[0], screenUV[1]) && lasso_inside(mcords, moves, screenUV[0], screenUV[1])) {
-						nverts= efa->v4? 4: 3;
-						for(i=0; i<nverts; i++) {
-							if (select) {
-								SIMA_UVSEL_SET(efa, tf, i);
-							} else {
-								SIMA_UVSEL_UNSET(efa, tf, i);
-							}
-							
-							vlist= get_uv_map_vert_EM(vmap, (*(&efa->v1 + i))->tmp.l);
-							while (vlist) {
-								if (!vlist->separate) {
-									efa_vlist = EM_get_face_for_index(vlist->f);
-									if (efa != efa_vlist) {
-										tf_vlist = CustomData_em_get(&em->fdata, efa_vlist->data, CD_MTFACE);
-										
-										if (select) {
-											SIMA_UVSEL_SET(efa_vlist, tf_vlist, vlist->tfindex);
-										} else {
-											SIMA_UVSEL_UNSET(efa_vlist, tf_vlist, vlist->tfindex);
-										}
-									}
-								}
-								vlist = vlist->next;
-							}
-						}
-					}
-				}
-			}
-			EM_free_index_arrays();
-			free_uv_vert_map_EM(vmap);
-			
-		} else { /* SI_STICKY_DISABLE or G.sima->flag & SI_SYNC_UVSEL */
-			
-			for (efa= em->faces.first; efa; efa= efa->next) {
-				if ((tf=(MTFace *)efa->tmp.p)) {
-					if ((select) != (SIMA_FACESEL_CHECK(efa, tf))) {
-						tface_center(tf, cent, (void *)efa->v4);
-						uvco_to_areaco_noclip(cent, screenUV);
-						if (BLI_in_rcti(&rect, screenUV[0], screenUV[1]) && lasso_inside(mcords, moves, screenUV[0], screenUV[1])) {
-							if (select) {
-								SIMA_FACESEL_SET(efa, tf);
-							} else {
-								SIMA_FACESEL_UNSET(efa, tf);
-							}
-						}
-					}
+		ok = 0;
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			/* assume not touched */
+			efa->tmp.l = 0;
+			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			if ((select) != (SIMA_FACESEL_CHECK(efa, tf))) {
+				tface_center(tf, cent, (void *)efa->v4);
+				uvco_to_areaco_noclip(cent, screenUV);
+				if (BLI_in_rcti(&rect, screenUV[0], screenUV[1]) && lasso_inside(mcords, moves, screenUV[0], screenUV[1])) {
+					efa->tmp.l = ok = 1;
 				}
 			}
 		}
+		/* (de)selects all tagged faces and deals with sticky modes */
+		if (ok)
+			uvface_setsel__internal(select);
+		
 	} else { /* Vert Sel*/
 		for (efa= em->faces.first; efa; efa= efa->next) {
 			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
@@ -630,7 +519,7 @@ static void do_lasso_select_mesh_uv(short mcords[][2], short moves, short select
 			}
 		}
 	}
-	if (G.sima->flag & SI_SYNC_UVSEL) {
+	if (ok && G.sima->flag & SI_SYNC_UVSEL) {
 		if (select) EM_select_flush();
 		else		EM_deselect_flush();
 	}
