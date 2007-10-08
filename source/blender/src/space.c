@@ -2620,6 +2620,8 @@ static void initview3d(ScrArea *sa)
 	vd->far= 500.0f;
 	vd->grid= 1.0f;
 	vd->gridlines= 16;
+	vd->gridsubdiv = 10;
+
 	vd->lay= vd->layact= 1;
 	if(G.scene) {
 		vd->lay= vd->layact= G.scene->lay;
