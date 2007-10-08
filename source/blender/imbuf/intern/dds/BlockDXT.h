@@ -144,24 +144,24 @@ struct AlphaBlockDXT5
 {
 	union {
 		struct {
-			unsigned long long alpha0 : 8;	// 8
-			unsigned long long alpha1 : 8;	// 16
-			unsigned long long bits0 : 3;	// 3 - 19
-			unsigned long long bits1 : 3; 	// 6 - 22
-			unsigned long long bits2 : 3; 	// 9 - 25
-			unsigned long long bits3 : 3;	// 12 - 28
-			unsigned long long bits4 : 3;	// 15 - 31
-			unsigned long long bits5 : 3;	// 18 - 34
-			unsigned long long bits6 : 3;	// 21 - 37
-			unsigned long long bits7 : 3;	// 24 - 40
-			unsigned long long bits8 : 3;	// 27 - 43
-			unsigned long long bits9 : 3; 	// 30 - 46
-			unsigned long long bitsA : 3; 	// 33 - 49
-			unsigned long long bitsB : 3;	// 36 - 52
-			unsigned long long bitsC : 3;	// 39 - 55
-			unsigned long long bitsD : 3;	// 42 - 58
-			unsigned long long bitsE : 3;	// 45 - 61
-			unsigned long long bitsF : 3;	// 48 - 64
+			unsigned int alpha0 : 8;	// 8
+			unsigned int alpha1 : 8;	// 16
+			unsigned int bits0 : 3;		// 3 - 19
+			unsigned int bits1 : 3; 	// 6 - 22
+			unsigned int bits2 : 3; 	// 9 - 25
+			unsigned int bits3 : 3;		// 12 - 28
+			unsigned int bits4 : 3;		// 15 - 31
+			unsigned int bits5 : 3;		// 18 - 34
+			unsigned int bits6 : 3;		// 21 - 37
+			unsigned int bits7 : 3;		// 24 - 40
+			unsigned int bits8 : 3;		// 27 - 43
+			unsigned int bits9 : 3; 	// 30 - 46
+			unsigned int bitsA : 3; 	// 33 - 49
+			unsigned int bitsB : 3;		// 36 - 52
+			unsigned int bitsC : 3;		// 39 - 55
+			unsigned int bitsD : 3;		// 42 - 58
+			unsigned int bitsE : 3;		// 45 - 61
+			unsigned int bitsF : 3;		// 48 - 64
 		};
 		unsigned long long u;
 	};
