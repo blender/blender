@@ -137,11 +137,40 @@ void set_last_seq(Sequence *seq)
 	_last_seq_init = 1;
 }
 
-void clear_last_seq()
+void clear_last_seq(Sequence *seq)
 {
 	_last_seq = NULL;
 	_last_seq_init = 0;
 }
+
+/* used so we can do a quick check for single image seq
+   since they work a bit differently to normal image seq's (during transform) */
+static int check_single_image_seq(Sequence *seq)
+{
+	if (seq->type == SEQ_IMAGE && seq->len == 1 )
+		return 1;
+	else
+		return 0;
+}
+
+static void fix_single_image_seq(Sequence *seq)
+{
+	if (!check_single_image_seq(seq))
+		return;
+	
+	/* locks image to the start */
+	if (seq->startstill != 0) {
+		seq->endstill += seq->startstill;
+		seq->start -= seq->startstill;
+		seq->startstill = 0;
+	}
+	
+	
+	
+	
+}
+
+
 
 static void change_plugin_seq(char *str)	/* called from fileselect */
 {
@@ -2515,57 +2544,43 @@ void transform_seq(int mode, int context)
 				ix= floor(dvec[0]+0.5);
 				iy= floor(dvec[1]+0.5);
 
-
 				ts= transmain;
 
 				WHILE_SEQ(ed->seqbasep) {
 					if(seq->flag & SELECT) {
+						int myofs;
+						//SEQ_DEBUG_INFO(seq);
 						if(seq->flag & SEQ_LEFTSEL) {
-							if(ts->startstill) {
-								seq->startstill= ts->startstill-ix;
-								if(seq->startstill<0) seq->startstill= 0;
+							myofs = (ts->startofs - ts->startstill);
+							SEQ_SET_FINAL_LEFT(seq, ts->start + (myofs + ix));
+							if (SEQ_GET_FINAL_LEFT(seq) >= SEQ_GET_FINAL_RIGHT(seq)) {
+								SEQ_SET_FINAL_LEFT(seq, SEQ_GET_FINAL_RIGHT(seq)-1);
 							}
-							else if(ts->startofs) {
-								seq->startofs= ts->startofs+ix;
-								if(seq->startofs<0) seq->startofs= 0;
-							}
-							else {
-								if(ix>0) {
-									seq->startofs= ix;
-									seq->startstill= 0;
+							//if (check_single_image_seq(seq)==0) {
+								if (SEQ_GET_FINAL_LEFT(seq) >= SEQ_GET_END(seq)) {
+									SEQ_SET_FINAL_LEFT(seq, SEQ_GET_END(seq)-1);
 								}
-								else if (seq->type != SEQ_RAM_SOUND && seq->type != SEQ_HD_SOUND) {
-									seq->startstill= -ix;
-									seq->startofs= 0;
-								}
-							}
-							if(seq->len <= seq->startofs+seq->endofs) {
-								seq->startofs= seq->len-seq->endofs-1;
-							}
+							//}
 						}
 						if(seq->flag & SEQ_RIGHTSEL) {
-							if(ts->endstill) {
-								seq->endstill= ts->endstill+ix;
-								if(seq->endstill<0) seq->endstill= 0;
+							myofs = (ts->endstill - ts->endofs);
+							SEQ_SET_FINAL_RIGHT(seq, ts->start + seq->len + (myofs + ix));
+							if (SEQ_GET_FINAL_RIGHT(seq) <= SEQ_GET_FINAL_LEFT(seq)) {
+								SEQ_SET_FINAL_RIGHT(seq, SEQ_GET_FINAL_LEFT(seq)+1);
 							}
-							else if(ts->endofs) {
-								seq->endofs= ts->endofs-ix;
-								if(seq->endofs<0) seq->endofs= 0;
-							}
-							else {
-								if(ix<0) {
-									seq->endofs= -ix;
-									seq->endstill= 0;
+							
+							//if (check_single_image_seq(seq)==0) {
+								if (SEQ_GET_FINAL_RIGHT(seq) <= SEQ_GET_START(seq)) {
+									SEQ_SET_FINAL_RIGHT(seq, SEQ_GET_START(seq)+1);
 								}
-								else if (seq->type != SEQ_RAM_SOUND && seq->type != SEQ_HD_SOUND) {
-									seq->endstill= ix;
-									seq->endofs= 0;
-								}
-							}
-							if(seq->len <= seq->startofs+seq->endofs) {
-								seq->endofs= seq->len-seq->startofs-1;
-							}
+							//}
 						}
+						
+						if (seq->type == SEQ_RAM_SOUND || seq->type == SEQ_HD_SOUND) {
+ 							seq->startstill= 0;
+							seq->endstill= 0;
+ 						}
+						
 						if( (seq->flag & (SEQ_LEFTSEL+SEQ_RIGHTSEL))==0 ) {
 							if(sequence_is_free_transformable(seq)) seq->start= ts->start+ ix;
 
@@ -2666,6 +2681,12 @@ void transform_seq(int mode, int context)
 
 		/* images, effects and overlap */
 		WHILE_SEQ(ed->seqbasep) {
+			
+			/* fixes single image strips - makes sure their start is not out of bounds
+			ideally this would be done during transform since data is rendered at that time
+			however it ends up being a lot messier! - Campbell */
+			//fix_single_image_seq(seq);
+			
 			if(seq->type == SEQ_META) {
 				calc_sequence(seq);
 				seq->flag &= ~SEQ_OVERLAP;

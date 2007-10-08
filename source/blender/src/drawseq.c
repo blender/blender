@@ -741,10 +741,10 @@ static void draw_seq_strip(Sequence *seq, ScrArea *sa, SpaceSeq *sseq)
 	if(x2<G.v2d->cur.xmin) x2= G.v2d->cur.xmin;
 	else if(x2>G.v2d->cur.xmax) x2= G.v2d->cur.xmax;
 
+	/* nice text here would require changing the view matrix for texture text */
 	if(x1 != x2) {
 		draw_seq_text(seq, x1, x2, y1, y2);
 	}
-		
 }
 
 static Sequence *special_seq_update= 0;
