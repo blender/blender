@@ -576,7 +576,7 @@ void BME_cap_skirt(BME_Mesh *bm, GHash *vhash, GHash *ehash){
 	BME_Poly *f, *nf;
 	MemArena *edgearena = BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);
 	float vec[3];
-	int i;
+	int i, j, del_old =0;
 	
 
 	//loop through faces, then loop through their verts. If the verts havnt been visited yet, duplicate these.
@@ -597,6 +597,25 @@ void BME_cap_skirt(BME_Mesh *bm, GHash *vhash, GHash *ehash){
 			}while(l!=f->loopbase);
 		}
 	}
+	
+	//find out if we delete old faces or not. This needs to be improved a lot.....
+	for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
+		i = 0;
+		j = 0;
+		if(e->loop){
+			l = e->loop;
+			do{
+				if(BME_SELECTED(l->f)) i++;
+				else j++;
+				l=BME_radial_nextloop(l);
+			}while(l!=e->loop);
+		}
+		if(i && (j < i)){
+			del_old = 1;
+			break;
+		}
+	}
+	
 	
 	//build a new edge net, insert the new edges into the edge hash
 	for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){
@@ -628,7 +647,7 @@ void BME_cap_skirt(BME_Mesh *bm, GHash *vhash, GHash *ehash){
 			}
 			nf=BME_MF(bm,v1,v2,edar,f->len);
 			nf->tflag2 = 1; // mark for select
-			f->tflag1 = 1; //mark for delete
+			if(del_old) f->tflag1 = 1; //mark for delete
 			MEM_freeN(edar);
 		}
 	}
