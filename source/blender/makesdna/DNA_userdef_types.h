@@ -189,23 +189,23 @@ extern UserDef U; /* from usiblender.c !!!! */
 /* ***************** USERDEF ****************** */
 
 /* flag */
-#define USER_AUTOSAVE			1
-#define USER_AUTOGRABGRID		2
-#define USER_AUTOROTGRID		4
-#define USER_AUTOSIZEGRID		8
-#define USER_SCENEGLOBAL		16
-#define USER_TRACKBALL			32
-#define USER_DUPLILINK			64
-#define USER_FSCOLLUM			128
-#define USER_MAT_ON_OB			256
-#define USER_NO_CAPSLOCK		512
-#define USER_VIEWMOVE			1024
-#define USER_TOOLTIPS			2048
-#define USER_TWOBUTTONMOUSE		4096
-#define USER_NONUMPAD			8192
-#define USER_LMOUSESELECT		16384
-#define USER_FILECOMPRESS		32768
-#define USER_SAVE_PREVIEWS		65536
+#define USER_AUTOSAVE			(1 << 0)
+#define USER_AUTOGRABGRID		(1 << 1)
+#define USER_AUTOROTGRID		(1 << 2)
+#define USER_AUTOSIZEGRID		(1 << 3)
+#define USER_SCENEGLOBAL		(1 << 4)
+#define USER_TRACKBALL			(1 << 5)
+#define USER_DUPLILINK			(1 << 6)
+#define USER_FSCOLLUM			(1 << 7)
+#define USER_MAT_ON_OB			(1 << 8)
+#define USER_NO_CAPSLOCK		(1 << 9)
+#define USER_VIEWMOVE			(1 << 10)
+#define USER_TOOLTIPS			(1 << 11)
+#define USER_TWOBUTTONMOUSE		(1 << 12)
+#define USER_NONUMPAD			(1 << 13)
+#define USER_LMOUSESELECT		(1 << 14)
+#define USER_FILECOMPRESS		(1 << 15)
+#define USER_SAVE_PREVIEWS		(1 << 16)
 
 /* viewzom */
 #define USER_ZOOM_CONT			0
@@ -214,51 +214,52 @@ extern UserDef U; /* from usiblender.c !!!! */
 
 /* uiflag */
 
-#define	USER_KEYINSERTACT		1
-#define	USER_KEYINSERTOBJ		2
-#define USER_WHEELZOOMDIR		4
-#define USER_FILTERFILEEXTS		8
-#define USER_DRAWVIEWINFO		16
-#define USER_PLAINMENUS			32		// old EVTTOCONSOLE print ghost events, here for tuhopuu compat. --phase
+#define	USER_KEYINSERTACT		(1 << 0)
+#define	USER_KEYINSERTOBJ		(1 << 1)
+#define USER_WHEELZOOMDIR		(1 << 2)
+#define USER_FILTERFILEEXTS		(1 << 3)
+#define USER_DRAWVIEWINFO		(1 << 4)
+#define USER_PLAINMENUS			(1 << 5)		// old EVTTOCONSOLE print ghost events, here for tuhopuu compat. --phase
 								// old flag for hide pulldown was here 
-#define USER_FLIPFULLSCREEN		128
-#define USER_ALLWINCODECS		256
-#define USER_MENUOPENAUTO		512
-#define USER_PANELPINNED		1024
-#define USER_AUTOPERSP     		2048
-#define USER_LOCKAROUND     	4096
-#define USER_GLOBALUNDO     	8192
-#define USER_ORBIT_SELECTION	16384
-#define USER_KEYINSERTAVAI		32768
-#define USER_HIDE_DOT			65536
-#define USER_SHOW_ROTVIEWICON	131072
-#define USER_SHOW_VIEWPORTNAME	262144
-#define USER_KEYINSERTNEED		524288
+#define USER_FLIPFULLSCREEN		(1 << 7)
+#define USER_ALLWINCODECS		(1 << 8)
+#define USER_MENUOPENAUTO		(1 << 9)
+#define USER_PANELPINNED		(1 << 10)
+#define USER_AUTOPERSP     		(1 << 11)
+#define USER_LOCKAROUND     	(1 << 12)
+#define USER_GLOBALUNDO     	(1 << 13)
+#define USER_ORBIT_SELECTION	(1 << 14)
+#define USER_KEYINSERTAVAI		(1 << 15)
+#define USER_HIDE_DOT			(1 << 16)
+#define USER_SHOW_ROTVIEWICON	(1 << 17)
+#define USER_SHOW_VIEWPORTNAME	(1 << 18)
+#define USER_KEYINSERTNEED		(1 << 19)
+#define USER_ZOOM_TO_MOUSEPOS	(1 << 20)
 
 /* transopts */
 
-#define	USER_TR_TOOLTIPS		1
-#define	USER_TR_BUTTONS			2
-#define USER_TR_MENUS			4
-#define USER_TR_FILESELECT		8
-#define USER_TR_TEXTEDIT		16
-#define USER_DOTRANSLATE		32
-#define USER_USETEXTUREFONT		64
-#define CONVERT_TO_UTF8			128
+#define	USER_TR_TOOLTIPS		(1 << 0)
+#define	USER_TR_BUTTONS			(1 << 1)
+#define USER_TR_MENUS			(1 << 2)
+#define USER_TR_FILESELECT		(1 << 3)
+#define USER_TR_TEXTEDIT		(1 << 4)
+#define USER_DOTRANSLATE		(1 << 5)
+#define USER_USETEXTUREFONT		(1 << 6)
+#define CONVERT_TO_UTF8			(1 << 7)
 
 /* dupflag */
 
-#define USER_DUP_MESH			1
-#define USER_DUP_CURVE			2
-#define USER_DUP_SURF			4
-#define USER_DUP_FONT			8
-#define USER_DUP_MBALL			16
-#define USER_DUP_LAMP			32
-#define USER_DUP_IPO			64
-#define USER_DUP_MAT			128
-#define USER_DUP_TEX			256
-#define	USER_DUP_ARM			512
-#define	USER_DUP_ACT			1024
+#define USER_DUP_MESH			(1 << 0)
+#define USER_DUP_CURVE			(1 << 1)
+#define USER_DUP_SURF			(1 << 2)
+#define USER_DUP_FONT			(1 << 3)
+#define USER_DUP_MBALL			(1 << 4)
+#define USER_DUP_LAMP			(1 << 5)
+#define USER_DUP_IPO			(1 << 6)
+#define USER_DUP_MAT			(1 << 7)
+#define USER_DUP_TEX			(1 << 8)
+#define	USER_DUP_ARM			(1 << 9)
+#define	USER_DUP_ACT			(1 << 10)
 
 /* gameflags */
 

@@ -543,7 +543,7 @@ void viewmove(int mode)
 	float reverse, oldquat[4], q1[4], si, phi, dist0;
 	float ofs[3], obofs[3]= {0.0f, 0.0f, 0.0f};
 	int firsttime=1;
-	short mvalball[2], mval[2], mvalo[2];
+	short mvalball[2], mval[2], mvalo[2], mval_area[2];
 	short use_sel = 0;
 	short preview3d_event= 1;
 	
@@ -561,6 +561,7 @@ void viewmove(int mode)
 	
 	QUATCOPY(oldquat, G.vd->viewquat);
 	
+	getmouseco_areawin(mval_area);	/* for zoom to mouse loc */
 	getmouseco_sc(mvalo);		/* work with screen coordinates because of trackball function */
 	mvalball[0]= mvalo[0];			/* needed for turntable to work */
 	mvalball[1]= mvalo[1];
@@ -733,9 +734,10 @@ void viewmove(int mode)
 				}
 			}
 			else if(mode==2) {
+				float zfac=1.0;
 				if(U.viewzoom==USER_ZOOM_CONT) {
 					// oldstyle zoom
-					G.vd->dist*= 1.0+(float)(mvalo[0]-mval[0]+mvalo[1]-mval[1])/1000.0;
+					zfac = 1.0+(float)(mvalo[0]-mval[0]+mvalo[1]-mval[1])/1000.0;
 				}
 				else if(U.viewzoom==USER_ZOOM_SCALE) {
 					int ctr[2], len1, len2;
@@ -747,14 +749,17 @@ void viewmove(int mode)
 					len1 = (int)sqrt((ctr[0] - mval[0])*(ctr[0] - mval[0]) + (ctr[1] - mval[1])*(ctr[1] - mval[1])) + 5;
 					len2 = (int)sqrt((ctr[0] - mvalo[0])*(ctr[0] - mvalo[0]) + (ctr[1] - mvalo[1])*(ctr[1] - mvalo[1])) + 5;
 					
-					G.vd->dist= dist0 * ((float)len2/len1);
+					zfac = dist0 * ((float)len2/len1) / G.vd->dist;
 				}
 				else {	/* USER_ZOOM_DOLLY */
 					float len1 = (curarea->winrct.ymax - mval[1]) + 5;
 					float len2 = (curarea->winrct.ymax - mvalo[1]) + 5;
-					
-					G.vd->dist= dist0 * (2.0*((len2/len1)-1.0) + 1.0);
+					zfac = dist0 * (2.0*((len2/len1)-1.0) + 1.0) / G.vd->dist;
 				}
+
+				if(zfac != 1.0 && zfac*G.vd->dist > 0.001*G.vd->grid && 
+					zfac*G.vd->dist < 10.0*G.vd->far)
+					view_zoom_mouseloc(zfac, mval_area);
 				
 				/* these limits are in toets.c too */
 				if(G.vd->dist<0.001*G.vd->grid) G.vd->dist= 0.001*G.vd->grid;
@@ -803,6 +808,49 @@ void viewmove(int mode)
 	else
 		BIF_view3d_previewrender_signal(curarea, PR_PROJECTED);
 
+}
+ 
+void view_zoom_mouseloc(float dfac, short *mouseloc)
+{
+	if(U.uiflag & USER_ZOOM_TO_MOUSEPOS) {
+		short vb[2];
+		float dvec[3];
+		float tvec[3];
+		float tpos[3];
+		float new_dist;
+
+		/* find the current window width and height */
+		vb[0] = G.vd->area->winx;
+		vb[1] = G.vd->area->winy;
+		
+		tpos[0] = -G.vd->ofs[0];
+		tpos[1] = -G.vd->ofs[1];
+		tpos[2] = -G.vd->ofs[2];
+
+		/* Project cursor position into 3D space */
+		initgrabz(tpos[0], tpos[1], tpos[2]);
+		window_to_3d(dvec, mouseloc[0]-vb[0]/2, mouseloc[1]-vb[1]/2);
+
+		/* Calculate view target position for dolly */
+		tvec[0] = -(tpos[0] + dvec[0]);
+		tvec[1] = -(tpos[1] + dvec[1]);
+		tvec[2] = -(tpos[2] + dvec[2]);
+
+		/* Offset to target position and dolly */
+		new_dist = G.vd->dist * dfac;
+		
+		VECCOPY(G.vd->ofs, tvec);
+		G.vd->dist = new_dist;
+		
+		/* Calculate final offset */
+		dvec[0] = tvec[0] + dvec[0] * dfac;
+		dvec[1] = tvec[1] + dvec[1] * dfac;
+		dvec[2] = tvec[2] + dvec[2] * dfac;
+		
+		VECCOPY(G.vd->ofs, dvec);
+	} else {
+		G.vd->dist *= dfac;
+	}
 }
 
 /* Gets the lens and clipping values from a camera of lamp type object */

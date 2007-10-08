@@ -109,6 +109,9 @@
 
 #include "BIF_poseobject.h"
 
+#define VIEW_ZOOM_OUT_FACTOR (1.15f)
+#define VIEW_ZOOM_IN_FACTOR (1.0f/VIEW_ZOOM_OUT_FACTOR)
+
 /* ------------------------------------------------------------------------- */
 
 static int is_an_active_object(void *ob) {
@@ -156,6 +159,7 @@ void persptoetsen(unsigned short event)
 	float phi, si, q1[4], vec[3];
 	static int perspo=1;
 	int preview3d_event= 1;
+	short mouseloc[2];
 	
 	float new_dist, orig_ofs[3];
 	
@@ -244,14 +248,20 @@ void persptoetsen(unsigned short event)
 			if(G.vd->persp==2) {
 				G.vd->camzoom= MAX2(-30, G.vd->camzoom-5);
 			}
-			else if(G.vd->dist<10.0*G.vd->far) G.vd->dist*=1.2f;
+			else if(G.vd->dist<10.0*G.vd->far) {
+				getmouseco_areawin(mouseloc);
+				view_zoom_mouseloc(VIEW_ZOOM_OUT_FACTOR, mouseloc);
+			}
 			if(G.vd->persp!=1) preview3d_event= 0;
 		}
 		else if(event==PADPLUSKEY) {
 			if(G.vd->persp==2) {
 				G.vd->camzoom= MIN2(300, G.vd->camzoom+5);
 			}
-			else if(G.vd->dist> 0.001*G.vd->grid) G.vd->dist*=.83333f;
+			else if(G.vd->dist> 0.001*G.vd->grid) {
+				getmouseco_areawin(mouseloc);
+				view_zoom_mouseloc(VIEW_ZOOM_IN_FACTOR, mouseloc);
+			}
 			if(G.vd->persp!=1) preview3d_event= 0;
 		}
 		else if(event==PAD5) {

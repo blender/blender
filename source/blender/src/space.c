@@ -3390,55 +3390,34 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiBlockSetCol(block, TH_AUTO);			/* end color */
 		uiBlockEndAlign(block);
 		
+		uiDefButBitI(block, TOG, USER_ZOOM_TO_MOUSEPOS, B_DRAWINFO, "Zoom to Mouse Position",
+			(xpos+edgsp+mpref+(2*spref)+(3*midsp)),y4,mpref,buth,
+			&(U.uiflag), 0, 0, 0, 0,
+			"Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center");
+		
 		uiDefBut(block, LABEL,0,"View rotation:",
-			(xpos+(2*edgsp)+mpref+(2*spref)+(2*midsp)),y4label,mpref,buth,
+			(xpos+(2*edgsp)+mpref+(2*spref)+(2*midsp)),y3label,mpref,buth,
 			0, 0, 0, 0, 0, "");
 		uiBlockBeginAlign(block);
 		uiBlockSetCol(block, TH_BUT_SETTING1);	/* mutually exclusive toggles, start color */
 		uiDefButBitI(block, TOG, USER_TRACKBALL, B_DRAWINFO, "Trackball",
-			(xpos+edgsp+mpref+(2*spref)+(3*midsp)),y3,(mpref/2),buth,
+			(xpos+edgsp+mpref+(2*spref)+(3*midsp)),y2,(mpref/2),buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Allow the view to tumble freely when orbiting with the Middle Mouse Button");
 		uiDefButBitI(block, TOGN, USER_TRACKBALL, B_DRAWINFO, "Turntable",
-			(xpos+edgsp+mpref+(2*spref)+(3*midsp)+(mpref/2)),y3,(mpref/2),buth,
+			(xpos+edgsp+mpref+(2*spref)+(3*midsp)+(mpref/2)),y2,(mpref/2),buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Use fixed up axis for orbiting with Middle Mouse Button");
 		uiBlockSetCol(block, TH_AUTO);			/* end color */
 		uiDefButBitI(block, TOG, USER_AUTOPERSP, B_DRAWINFO, "Auto Perspective",
-			(xpos+edgsp+mpref+(2*spref)+(3*midsp)),y2,(mpref/2),buth,
+			(xpos+edgsp+mpref+(2*spref)+(3*midsp)),y1,(mpref/2),buth,
 			&(U.uiflag), 0, 0, 0, 0,
 			"Automatically switch between orthographic and perspective when changing from top/front/side views");
 		uiDefButBitI(block, TOG, USER_ORBIT_SELECTION, B_DRAWINFO, "Around Selection",
-			(xpos+edgsp+mpref+(2*spref)+(3*midsp)+(mpref/2)),y2,(mpref/2),buth,
+			(xpos+edgsp+mpref+(2*spref)+(3*midsp)+(mpref/2)),y1,(mpref/2),buth,
 			&(U.uiflag), 0, 0, 0, 0,
 			"Use selection as the orbiting center");
 		uiBlockEndAlign(block);
-		
-
-		uiBlockBeginAlign(block);
-		uiDefButBitI(block, TOG, USER_SHOW_ROTVIEWICON, B_DRAWINFO, "Mini Axis",
-			 (xpos+edgsp+(2*mpref)+(2*midsp)),y1,(mpref/3),buth,
-			 &(U.uiflag), 0, 0, 0, 0,
-			 "Show a small rotating 3D axis in the bottom left corner of the 3D View");
-		uiDefButS(block, NUM, B_DRAWINFO, "Size:",
-			(xpos+edgsp+(2*mpref)+(2*midsp)+(mpref/3)),y1,(mpref/3),buth,
-			&U.rvisize, 10, 64, 0, 0,
-			"The axis icon's size");
-		uiDefButS(block, NUM, B_DRAWINFO, "Bright:",
-			(xpos+edgsp+(2*mpref)+(2*midsp)+2*(mpref/3)),y1,(mpref/3),buth,
-			&U.rvibright, 0, 10, 0, 0,
-			"The brightness of the icon");
-		uiBlockEndAlign(block);
-
-        uiDefButS(block, NUM, B_DRAWINFO, "Rotation Angle:",
-			(xpos+edgsp+(3*mpref)+(4*midsp)),y1,(mpref),buth,
-			&U.pad_rot_angle, 0, 90, 0, 0,
-			"The rotation step for numerical pad keys (2 4 6 8)");
-		
-        uiDefButS(block, NUM, B_DRAWINFO, "Smooth View:",
-			(xpos+edgsp+(4*mpref)+(5*midsp)),y1,(mpref),buth,
-			&U.smooth_viewtx, 0, 1000, 0, 0,
-			"The time to animate the view in miliseconds, zero to disable");
 		
 		uiDefBut(block, LABEL,0,"Select with:",
 			(xpos+(2*edgsp)+(3*mpref)+(3*midsp)),y6label,mpref,buth,
@@ -3474,7 +3453,21 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			&(U.flag), 0, 0, 0, 0,
 			"Emulates Middle Mouse with Alt+LeftMouse (doesnt work with Left Mouse Select option)");
 		
-			
+		uiBlockBeginAlign(block);
+		uiDefButBitI(block, TOG, USER_SHOW_ROTVIEWICON, B_DRAWINFO, "Mini Axis",
+			 (xpos+edgsp+(3*mpref)+(4*midsp)),y1,(mpref/3),buth,
+			 &(U.uiflag), 0, 0, 0, 0,
+			 "Show a small rotating 3D axis in the bottom left corner of the 3D View");
+		uiDefButS(block, NUM, B_DRAWINFO, "Size:",
+			(xpos+edgsp+(3*mpref)+(4*midsp)+(mpref/3)),y1,(mpref/3),buth,
+			&U.rvisize, 10, 64, 0, 0,
+			"The axis icon's size");
+		uiDefButS(block, NUM, B_DRAWINFO, "Bright:",
+			(xpos+edgsp+(3*mpref)+(4*midsp)+2*(mpref/3)),y1,(mpref/3),buth,
+			&U.rvibright, 0, 10, 0, 0,
+			"The brightness of the icon");
+		uiBlockEndAlign(block);
+		
 		uiDefBut(block, LABEL,0,"Middle Mouse Button:",
 			(xpos+(2*edgsp)+(4*mpref)+(4*midsp)),y6label,mpref,buth,
 			0, 0, 0, 0, 0, "");
@@ -3488,6 +3481,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			&(U.flag), 0, 0, 0, 0, "Default action for the Middle Mouse Button");
 		uiBlockSetCol(block, TH_AUTO);			/* end color */
 		uiBlockEndAlign(block);
+	
 			
 		uiDefBut(block, LABEL,0,"Mouse Wheel:",
 			(xpos+(2*edgsp)+(4*mpref)+(4*midsp)),y4label,mpref,buth,
@@ -3501,6 +3495,17 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgsp+(4*mpref)+(6*midsp)+spref-edgsp),y3,spref+edgsp,buth,
 			&U.wheellinescroll, 0.0, 32.0, 0, 0,
 			"The number of lines scrolled at a time with the mouse wheel");	
+		uiBlockEndAlign(block);
+		
+			uiBlockBeginAlign(block);		
+		uiDefButS(block, NUM, B_DRAWINFO, "Smooth View:",
+			(xpos+edgsp+(4*mpref)+(5*midsp)),y2,(mpref),buth,
+			&U.smooth_viewtx, 0, 1000, 0, 0,
+			"The time to animate the view in miliseconds, zero to disable");
+		uiDefButS(block, NUM, B_DRAWINFO, "Rotation Angle:",
+			(xpos+edgsp+(4*mpref)+(5*midsp)),y1,(mpref),buth,
+			&U.pad_rot_angle, 0, 90, 0, 0,
+			"The rotation step for numerical pad keys (2 4 6 8)");
 		uiBlockEndAlign(block);
 
 
