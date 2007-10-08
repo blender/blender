@@ -1068,7 +1068,7 @@ static void do_nla(Object *ob, int blocktype)
 	bActionStrip *strip, *striplast=NULL, *stripfirst=NULL;
 	float striptime, frametime, length, actlength;
 	float blendfac, stripframe;
-	float scene_cfra= G.scene->r.cfra;
+	float scene_cfra= frame_to_float(G.scene->r.cfra); 
 	int	doit, dostride;
 	
 	if(blocktype==ID_AR) {
