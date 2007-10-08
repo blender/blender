@@ -82,6 +82,15 @@ void EM_cut_edges(int numcuts){
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	allqueue(REDRAWVIEW3D, 0);
 }
+void EM_connect_edges(void){
+	BME_model_begin(G.editMesh);
+	BME_connect_edges(G.editMesh);
+	BME_model_end(G.editMesh);
+	countall();
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+	allqueue(REDRAWVIEW3D, 0);
+	
+}
 
 void EM_dissolve_edges(void){
 	BME_model_begin(G.editMesh);
@@ -92,7 +101,11 @@ void EM_dissolve_edges(void){
 	allqueue(REDRAWVIEW3D, 0);
 }
 void EM_connect_verts(void){
+	BME_Vert *v;
 	BME_model_begin(G.editMesh);
+	for(v=BME_first(G.editMesh,BME_VERT);v;v=BME_next(G.editMesh,BME_VERT,v)){
+		if(BME_SELECTED(v)) BME_VISIT(v);
+	}
 	BME_connect_verts(G.editMesh);
 	BME_model_end(G.editMesh);
 	countall();

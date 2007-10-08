@@ -63,30 +63,62 @@
 void BME_connect_verts(BME_Mesh *bm)
 {
 	BME_Poly *f;
-	BME_Loop *l;
-	int split;
+	BME_Loop *l, *v1loop, *v2loop;
+	int pass;
 	
 	/*visit the faces with selected verts*/
 	for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){
-		split = 0;
+		v1loop = v2loop = NULL;
+		pass = 0;
 		if(!(BME_NEWELEM(f))){
 			l = f->loopbase;
 			do{
-				if(BME_SELECTED(l->v)){ 
-					BME_VISIT(l->v);
-					split ++;
+				if(BME_ISVISITED(l->v)){ 
+					if(v2loop) pass = 1;
+					else if(v1loop) v2loop = l;
+					else v1loop = l;
 				}
 				l = l->next;
 			}while(l != f->loopbase);
+
+			if(v1loop && v2loop && (!pass) && (v1loop->next != v2loop) && (v2loop->next != v1loop)) BME_SFME(bm,f,v1loop->v, v2loop->v,NULL);
 			
-			if(split>1){ 
-				BME_split_face(bm,f);
-			}
 		}
 	}
 }
 
-
+void BME_connect_edges(BME_Mesh *bm)
+{
+	BME_Vert *nv;
+	BME_Edge *e, *e1, *e2;
+	BME_Loop *l;
+	BME_Poly *f;
+	int pass;
+	
+	for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){
+		e1 = e2 = NULL;
+		pass = 0;
+		l=f->loopbase;
+		do{
+			if(BME_SELECTED(l->e)){
+				if(e2) pass = 1;
+				else if(e1) e2 = l->e;
+				else e1 = l->e;
+			}
+			l = l->next;
+		}while(l!=f->loopbase);
+		
+		//if two edges selected and not pass, mark each one for split
+		if((e1) && (e2) && (pass == 0)) e1->tflag1 = e2->tflag1 = 1;
+	}
+	for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
+		if(e->tflag1){
+			nv= BME_cut_edge(bm,e,1);
+			BME_VISIT(nv);
+		}
+	}
+	BME_connect_verts(bm);
+}
 
 
 /**
@@ -128,7 +160,7 @@ void BME_dissolve_edges(BME_Mesh *bm)
  *
  */
 
-void BME_cut_edge(BME_Mesh *bm, BME_Edge *e, int numcuts)
+BME_Vert  *BME_cut_edge(BME_Mesh *bm, BME_Edge *e, int numcuts)
 {
 	int i;
 	float percent, step,length, vt1[3], v2[3];
@@ -148,6 +180,7 @@ void BME_cut_edge(BME_Mesh *bm, BME_Edge *e, int numcuts)
 		VecMulf(nv->co,percent);
 		VecAddf(nv->co,v2,nv->co);
 	}
+	return nv;
 }
 
 

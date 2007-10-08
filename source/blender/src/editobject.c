@@ -2348,6 +2348,12 @@ void special_editmenu(void)
 				BIF_undo_push("Cut Edges");            
 			}
 			break;
+		case 203:
+			{
+				EM_connect_edges();
+				BIF_undo_push("Connect Edges");
+			}
+			break;
 		case 205:
 			{
 				EM_dissolve_edges();
