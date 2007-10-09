@@ -840,24 +840,40 @@ void postSelectConstraint(TransInfo *t)
 	t->redraw = 1;
 }
 
-void setNearestAxis(TransInfo *t)
+static void setNearestAxis2d(TransInfo *t)
+{
+	short mval[2];
+	short ival[2];
+	
+	getmouseco_areawin(mval);
+	ival[0]= t->imval[0];
+	ival[1]= t->imval[1];
+	
+	/* no correction needed... just use whichever one is lower */
+	if ( abs(mval[0]-ival[0]) > abs(mval[1]-ival[1]) ) {
+		t->con.mode |= CON_AXIS1;
+		sprintf(t->con.text, " along Y axis");
+	}
+	else {
+		t->con.mode |= CON_AXIS0;
+		sprintf(t->con.text, " along X axis");
+	}
+}
+
+static void setNearestAxis3d(TransInfo *t)
 {
 	float zfac;
 	float mvec[3], axis[3], proj[3];
 	float len[3];
 	int i, icoord[2];
 	short coord[2];
-
-	t->con.mode &= ~CON_AXIS0;
-	t->con.mode &= ~CON_AXIS1;
-	t->con.mode &= ~CON_AXIS2;
-
+	
+	/* calculate mouse movement */
 	getmouseco_areawin(coord);
 	mvec[0] = (float)(coord[0] - t->con.imval[0]);
 	mvec[1] = (float)(coord[1] - t->con.imval[1]);
 	mvec[2] = 0.0f;
-
-		
+	
 	/* we need to correct axis length for the current zoomlevel of view,
 	   this to prevent projected values to be clipped behind the camera
 	   and to overflow the short integers.
@@ -920,6 +936,25 @@ void setNearestAxis(TransInfo *t)
 			sprintf(t->con.text, " along %s Z axis", t->spacename);
 		}
 	}
+}
+
+void setNearestAxis(TransInfo *t)
+{
+	/* clear any prior constraint flags */
+	t->con.mode &= ~CON_AXIS0;
+	t->con.mode &= ~CON_AXIS1;
+	t->con.mode &= ~CON_AXIS2;
+
+	/* constraint setting - depends on spacetype */
+	if (t->spacetype == SPACE_VIEW3D) {
+		/* 3d-view */
+		setNearestAxis3d(t);	
+	}
+	else {
+		/* assume that this means a 2D-Editor */
+		setNearestAxis2d(t);
+	}
+	
 	getConstraintMatrix(t);
 }
 
