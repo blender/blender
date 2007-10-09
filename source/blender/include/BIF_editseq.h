@@ -72,6 +72,16 @@ void				select_neighbor_from_last(int lr);
 struct Sequence*	alloc_sequence(ListBase *lb, int cfra, int machine); /*used from python*/
 int 				check_single_image_seq(struct Sequence *seq);
 
+/* sequence transform functions, for internal used */
+int seq_tx_get_start(struct Sequence *seq);
+int seq_tx_get_end(struct Sequence *seq);
+
+int seq_tx_get_final_left(struct Sequence *seq);
+int seq_tx_get_final_right(struct Sequence *seq);
+
+void seq_tx_set_final_left(struct Sequence *seq, int i);
+void seq_tx_set_final_right(struct Sequence *seq, int i);
+
 #define SEQ_DEBUG_INFO(seq) printf("seq into '%s' -- len:%i  start:%i  startstill:%i  endstill:%i  startofs:%i  endofs:%i\n",\
 		    seq->name, seq->len, seq->start, seq->startstill, seq->endstill, seq->startofs, seq->endofs)
 
@@ -81,7 +91,7 @@ int 				check_single_image_seq(struct Sequence *seq);
  left and right are the bounds at which the setuence is rendered,
 start and end are from the start and fixed length of the sequence.
 */
-
+/*
 #define SEQ_GET_START(seq)	(seq->start)
 #define SEQ_GET_END(seq)	(seq->start+seq->len)
 
@@ -90,22 +100,22 @@ start and end are from the start and fixed length of the sequence.
 
 #define SEQ_SET_FINAL_LEFT(seq, val) \
 	if (val < (seq)->start) { \
-		(seq)->startstill = -((seq)->start - val); \
+		(seq)->startstill = abs(val - (seq)->start); \
 		(seq)->startofs = 0; \
 } else { \
-		(seq)->startofs = (val - (seq)->start); \
+		(seq)->startofs = abs(val - (seq)->start); \
 		(seq)->startstill = 0; \
 }
 
 #define SEQ_SET_FINAL_RIGHT(seq, val) \
 	if (val > (seq)->start + (seq)->len) { \
-		(seq)->endstill = (val - ((seq)->start + (seq)->len)); \
+		(seq)->endstill = abs(val - ((seq)->start + (seq)->len)); \
 		(seq)->endofs = 0; \
 } else { \
-		(seq)->endofs = -(val - ((seq)->start + (seq)->len)); \
+		(seq)->endofs = abs(val - ((seq)->start + (seq)->len)); \
 		(seq)->endstill = 0; \
 }
-
+*/
 /* drawseq.c */
 void do_seqbuttons(short);
 

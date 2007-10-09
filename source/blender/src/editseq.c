@@ -143,6 +143,53 @@ void clear_last_seq(Sequence *seq)
 	_last_seq_init = 0;
 }
 
+
+
+/* seq funcs's for transforming internally
+ notice the difference between start/end and left/right.
+ 
+ left and right are the bounds at which the setuence is rendered,
+start and end are from the start and fixed length of the sequence.
+*/
+int seq_tx_get_start(Sequence *seq) {
+	return seq->start;
+}
+int seq_tx_get_end(Sequence *seq)
+{
+	return seq->start+seq->len;
+}
+
+int seq_tx_get_final_left(Sequence *seq)
+{
+	return (seq->start - seq->startstill) + seq->startofs;
+}
+int  seq_tx_get_final_right(Sequence *seq)
+{
+	return ((seq->start+seq->len) + seq->endstill) - seq->endofs;
+}
+
+void seq_tx_set_final_left(Sequence *seq, int val)
+{
+	if (val < (seq)->start) {
+		seq->startstill = abs(val - (seq)->start);
+				(seq)->startofs = 0;
+	} else {
+		seq->startofs = abs(val - (seq)->start);
+		seq->startstill = 0;
+	}
+}
+
+void seq_tx_set_final_right(Sequence *seq, int val)
+{
+	if (val > (seq)->start + (seq)->len) {
+		seq->endstill = abs(val - (seq->start + (seq)->len));
+		(seq)->endofs = 0;
+	} else {
+		seq->endofs = abs(val - ((seq)->start + (seq)->len));
+		seq->endstill = 0;
+	}
+}
+
 /* used so we can do a quick check for single image seq
    since they work a bit differently to normal image seq's (during transform) */
 int check_single_image_seq(Sequence *seq)
@@ -161,12 +208,12 @@ static void fix_single_image_seq(Sequence *seq)
 	
 	/* make sure the image is always at the start since there is only one,
 	   adjusting its start should be ok */
-	left = SEQ_GET_FINAL_LEFT(seq);
+	left = seq_tx_get_final_left(seq);
 	start = seq->start;
 	if (start != left) {
 		offset = left - start;
-		SEQ_SET_FINAL_LEFT( seq, SEQ_GET_FINAL_LEFT(seq) - offset );
-		SEQ_SET_FINAL_RIGHT( seq, SEQ_GET_FINAL_RIGHT(seq) - offset );
+		seq_tx_set_final_left( seq, seq_tx_get_final_left(seq) - offset );
+		seq_tx_set_final_right( seq, seq_tx_get_final_right(seq) - offset );
 		seq->start += offset;
 	}
 }
@@ -2464,8 +2511,53 @@ typedef struct TransSeq {
 	int startstill, endstill;
 	int startdisp, enddisp;
 	int startofs, endofs;
+	int final_left, final_right;
 	int len;
 } TransSeq;
+
+/* use to impose limits when dragging/extending - so impossible situations dont happen */
+static void transform_grab_xlimits(Sequence *seq, int leftflag, int rightflag)
+{
+	if(leftflag) {
+		if (seq_tx_get_final_left(seq) >= seq_tx_get_final_right(seq)) {
+			seq_tx_set_final_left(seq, seq_tx_get_final_right(seq)-1);
+		}
+		
+		if (check_single_image_seq(seq)==0) {
+			if (seq_tx_get_final_left(seq) >= seq_tx_get_end(seq)) {
+				seq_tx_set_final_left(seq, seq_tx_get_end(seq)-1);
+			}
+			
+			/* dosnt work now - TODO */
+			/*
+			if (seq_tx_get_start(seq) >= seq_tx_get_final_right(seq)) {
+				int ofs;
+				ofs = seq_tx_get_start(seq) - seq_tx_get_final_right(seq);
+				seq->start -= ofs;
+				seq_tx_set_final_left(seq, seq_tx_get_final_left(seq) + ofs );
+			}*/
+			
+		}
+	}
+	
+	if(rightflag) {
+		if (seq_tx_get_final_right(seq) <=  seq_tx_get_final_left(seq)) {
+			seq_tx_set_final_right(seq, seq_tx_get_final_left(seq)+1);
+		}
+									
+		if (check_single_image_seq(seq)==0) {
+			if (seq_tx_get_final_right(seq) <= seq_tx_get_start(seq)) {
+				seq_tx_set_final_right(seq, seq_tx_get_start(seq)+1);
+			}
+		}
+	}
+	
+	/* sounds cannot be extended past their endpoints */
+	if (seq->type == SEQ_RAM_SOUND || seq->type == SEQ_HD_SOUND) {
+		seq->startstill= 0;
+		seq->endstill= 0;
+	}
+}
 
 void transform_seq(int mode, int context)
 {
@@ -2473,12 +2565,14 @@ void transform_seq(int mode, int context)
 	Editing *ed;
 	float dx, dy, dvec[2], div;
 	TransSeq *transmain, *ts;
-	int tot=0, ix, iy, firsttime=1, afbreek=0, midtog= 0, proj= 0;
+	int tot=0, firsttime=1, afbreek=0, midtog= 0, proj= 0;
+	int ix, iy; /* these values are used for storing the mouses offset from its original location */
 	unsigned short event = 0;
 	short mval[2], val, xo, yo, xn, yn;
 	char str[32];
-
-	if(mode!='g') return;	/* from gesture */
+	char side; /* for extend mode only - use to know which side to extend on */
+	
+	if(mode!='g' && mode!='e') return;	/* from gesture */
 
 	/* which seqs are involved */
 	ed= G.scene->ed;
@@ -2498,20 +2592,32 @@ void transform_seq(int mode, int context)
 	WHILE_SEQ(ed->seqbasep) {
 
 		if(seq->flag & SELECT) {
-
 			ts->start= seq->start;
 			ts->machine= seq->machine;
 			ts->startstill= seq->startstill;
 			ts->endstill= seq->endstill;
 			ts->startofs= seq->startofs;
 			ts->endofs= seq->endofs;
-
+			
+			/* for extend only */
+			if (mode=='e') {
+				ts->final_left = seq_tx_get_final_left(seq);
+				ts->final_right = seq_tx_get_final_right(seq);
+			}
 			ts++;
 		}
 	}
 	END_SEQ
 
 	getmouseco_areawin(mval);
+	
+	/* choose the side based on which side of the playhead the mouse is on */
+	if (mode=='e') {
+		float xmouse, ymouse;
+		areamouseco_to_ipoco(G.v2d, mval, &xmouse, &ymouse);
+		side = (xmouse > CFRA) ? 'R' : 'L';
+	}
+	
 	xo=xn= mval[0];
 	yo=yn= mval[1];
 	dvec[0]= dvec[1]= 0.0;
@@ -2521,7 +2627,7 @@ void transform_seq(int mode, int context)
 		if(mval[0]!=xo || mval[1]!=yo || firsttime) {
 			firsttime= 0;
 
-			if(mode=='g') {
+			if(mode=='g' || mode=='e') {
 
 				dx= mval[0]- xo;
 				dy= mval[1]- yo;
@@ -2542,60 +2648,135 @@ void transform_seq(int mode, int context)
 				if(midtog) dvec[proj]= 0.0;
 				ix= floor(dvec[0]+0.5);
 				iy= floor(dvec[1]+0.5);
-
+				
 				ts= transmain;
-
-				WHILE_SEQ(ed->seqbasep) {
-					if(seq->flag & SELECT) {
-						int myofs;
-						//SEQ_DEBUG_INFO(seq);
-						if(seq->flag & SEQ_LEFTSEL) {
-							myofs = (ts->startofs - ts->startstill);
-							SEQ_SET_FINAL_LEFT(seq, ts->start + (myofs + ix));
-							if (SEQ_GET_FINAL_LEFT(seq) >= SEQ_GET_FINAL_RIGHT(seq)) {
-								SEQ_SET_FINAL_LEFT(seq, SEQ_GET_FINAL_RIGHT(seq)-1);
-							}
-							if (check_single_image_seq(seq)==0) {
-								if (SEQ_GET_FINAL_LEFT(seq) >= SEQ_GET_END(seq)) {
-									SEQ_SET_FINAL_LEFT(seq, SEQ_GET_END(seq)-1);
-								}
-							}
-						}
-						if(seq->flag & SEQ_RIGHTSEL) {
-							myofs = (ts->endstill - ts->endofs);
-							SEQ_SET_FINAL_RIGHT(seq, ts->start + seq->len + (myofs + ix));
-							if (SEQ_GET_FINAL_RIGHT(seq) <= SEQ_GET_FINAL_LEFT(seq)) {
-								SEQ_SET_FINAL_RIGHT(seq, SEQ_GET_FINAL_LEFT(seq)+1);
-							}
+				
+				if (mode=='g') {
+					/* Grab */
+					WHILE_SEQ(ed->seqbasep) {
+						if(seq->flag & SELECT) {
+							int myofs;
+							// SEQ_DEBUG_INFO(seq);
 							
-							if (check_single_image_seq(seq)==0) {
-								if (SEQ_GET_FINAL_RIGHT(seq) <= SEQ_GET_START(seq)) {
-									SEQ_SET_FINAL_RIGHT(seq, SEQ_GET_START(seq)+1);
+							/* X Transformation */
+							if(seq->flag & SEQ_LEFTSEL) {
+								myofs = (ts->startofs - ts->startstill);
+								seq_tx_set_final_left(seq, ts->start + (myofs + ix));
+							}
+							if(seq->flag & SEQ_RIGHTSEL) {
+								myofs = (ts->endstill - ts->endofs);
+								seq_tx_set_final_right(seq, ts->start + seq->len + (myofs + ix));
+							}
+							transform_grab_xlimits(seq, seq->flag & SEQ_LEFTSEL, seq->flag & SEQ_RIGHTSEL);
+							
+							if( (seq->flag & (SEQ_LEFTSEL+SEQ_RIGHTSEL))==0 ) {
+								if(sequence_is_free_transformable(seq)) seq->start= ts->start+ ix;
+	
+								/* Y Transformation */
+								if(seq->depth==0) seq->machine= ts->machine+ iy;
+	
+								if(seq->machine<1) seq->machine= 1;
+								else if(seq->machine>= MAXSEQ) seq->machine= MAXSEQ;
+							}
+							calc_sequence(seq);
+							ts++;
+						}
+					}
+					END_SEQ
+				/* Extend, grabs one side of the current frame */
+				} else if (mode=='e') {
+					int cfra = CFRA;
+					int myofs; /* offset from start of the seq clip */
+					int xnew, final_left, final_right; /* just to store results from seq_tx_get_final_left/right */
+					
+					/* we dont use seq side selection flags for this,
+					instead we need to calculate which sides to move
+					based on its initial position from the cursor */
+					int move_left, move_right;
+					
+					/* Extend, Similar to grab but operate on one side of the cursor */
+					WHILE_SEQ(ed->seqbasep) {
+						if(seq->flag & SELECT) {
+							if (sequence_is_free_transformable(seq)) {
+								
+								move_left = move_right = 0;
+								
+								//SEQ_DEBUG_INFO(seq);
+								
+								final_left =	seq_tx_get_final_left(seq);
+								final_right =	seq_tx_get_final_right(seq);
+								
+								/* Only X Axis moving */
+								
+								/* work out which sides to move first */
+								if (side=='L') {
+									if (final_left <= cfra || ts->final_left <= cfra)	move_left = 1;
+									if (final_right <= cfra || ts->final_right <= cfra)	move_right = 1;
+								} else {
+									if (final_left >= cfra || ts->final_left >= cfra)	move_left = 1;
+									if (final_right >= cfra || ts->final_right >= cfra)	move_right = 1;
+								}
+								
+								if (move_left && move_right) {
+									/* simple move - dont need to do anything complicated */
+									seq->start= ts->start+ ix;
+								} else {
+									if (side=='L') {
+										if (move_left) {
+											
+											/* Similar to other funcs */
+											myofs = (ts->startofs - ts->startstill);
+											xnew = ts->start + (ix + myofs);
+											
+											/* make sure the we dont resize down to 0 or less in size
+											also include the startstill so the contense dosnt go outside the bounds, 
+											if the seq->startofs is 0 then its ignored */
+											
+											/* TODO remove, add check to transform_grab_xlimits, works ok for now */
+											if (xnew + seq->startstill > final_right-1) {
+												xnew = (final_right-1) - seq->startstill;
+											}
+											/* Note, this is the only case where the start needs to be adjusted
+											since its not needed when modifying the end or when moving the entire sequence  */
+											//seq->start = ts->start+ix;   // This works when xnew is not clamped, line below takes clamping into account
+											seq->start= xnew - myofs;  /* TODO see above */
+											/* done with unique stuff */
+											
+											seq_tx_set_final_left(seq, xnew);
+											transform_grab_xlimits(seq, 1, 0);
+											
+											/* Special case again - setting the end back to what it was */
+											seq_tx_set_final_right(seq, final_right);
+										}
+										if (move_right) {
+											myofs = (ts->endstill - ts->endofs);
+											xnew = ts->start + seq->len + (myofs + ix);
+											seq_tx_set_final_right(seq, xnew);
+											transform_grab_xlimits(seq, 0, 1);
+										}
+									} else { /* R */
+										if (move_left) {
+											myofs = (ts->startofs - ts->startstill);
+											xnew = ts->start + (myofs + ix);
+											seq_tx_set_final_left(seq, xnew);
+											transform_grab_xlimits(seq, 1, 0);
+										}
+										if (move_right) {
+											myofs = (ts->endstill - ts->endofs);
+											xnew = ts->start + seq->len + (myofs + ix);
+											seq_tx_set_final_right(seq, xnew);
+											transform_grab_xlimits(seq, 0, 1);
+										}
+									}
 								}
 							}
+							calc_sequence(seq);
+							ts++;
 						}
-						
-						if (seq->type == SEQ_RAM_SOUND || seq->type == SEQ_HD_SOUND) {
- 							seq->startstill= 0;
-							seq->endstill= 0;
- 						}
-						
-						if( (seq->flag & (SEQ_LEFTSEL+SEQ_RIGHTSEL))==0 ) {
-							if(sequence_is_free_transformable(seq)) seq->start= ts->start+ ix;
-
-							if(seq->depth==0) seq->machine= ts->machine+ iy;
-
-							if(seq->machine<1) seq->machine= 1;
-							else if(seq->machine>= MAXSEQ) seq->machine= MAXSEQ;
-						}
-
-						calc_sequence(seq);
-
-						ts++;
 					}
+					END_SEQ
 				}
-				END_SEQ
-
+				
 				sprintf(str, "X: %d   Y: %d  ", ix, iy);
 				headerprint(str);
 			}
@@ -2621,6 +2802,7 @@ void transform_seq(int mode, int context)
 			END_SEQ;
 
 			force_draw(0);
+			
 		}
 		else BIF_wait_for_statechange();
 
@@ -2675,8 +2857,7 @@ void transform_seq(int mode, int context)
 
 		}
 		END_SEQ
-	}
-	else {
+	} else {
 
 		/* images, effects and overlap */
 		WHILE_SEQ(ed->seqbasep) {
@@ -2706,8 +2887,12 @@ void transform_seq(int mode, int context)
 
 	G.moving= 0;
 	MEM_freeN(transmain);
-
-	BIF_undo_push("Transform Sequencer");
+	
+	if (mode=='g')
+		BIF_undo_push("Transform Grab");
+	else if (mode=='e')
+		BIF_undo_push("Transform Extend");
+	
 	allqueue(REDRAWSEQ, 0);
 }
 

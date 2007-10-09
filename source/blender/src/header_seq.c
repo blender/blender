@@ -398,6 +398,9 @@ static void do_seq_editmenu(void *arg, int event)
 	case 6: /* Delete */
 		del_seq();
 		break;
+	case 7: /* Grab/Extend */
+		transform_seq('e', 0);
+		break;
 	case 8:
 		set_filter_seq();
 		break;
@@ -440,6 +443,7 @@ static uiBlock *seq_editmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Strip Properties...|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move|G", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 11, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Extend from frame|E", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Snap to Current Frame|Shift S, 1", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
 
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");

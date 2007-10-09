@@ -4536,6 +4536,9 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if((G.qual==LR_SHIFTKEY)) add_duplicate_seq();
 			break;
 		case EKEY:
+			if(sseq->mainb) break;
+			if((G.qual==0))
+				transform_seq('e', 0);
 			break;
 		case FKEY:
 			if((G.qual==0))
