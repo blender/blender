@@ -604,11 +604,11 @@ static void transformEvent(unsigned short event, short val) {
 			Trans.flag |= T_SHIFT_MOD;
 			Trans.redraw = 1;
 			break;
-
+			
 		case SPACEKEY:
 			if ((Trans.spacetype==SPACE_VIEW3D) && (G.qual & LR_ALTKEY)) {
 				short mval[2];
-
+				
 				getmouseco_sc(mval);
 				BIF_selectOrientation();
 				calc_manipulator_stats(curarea);
@@ -619,7 +619,7 @@ static void transformEvent(unsigned short event, short val) {
 				Trans.state = TRANS_CONFIRM;
 			}
 			break;
-
+			
 			
 		case MIDDLEMOUSE:
 			if ((Trans.flag & T_NO_CONSTRAINT)==0) {
@@ -723,10 +723,15 @@ static void transformEvent(unsigned short event, short val) {
 					}
 				}
 				else {
-					if (G.qual == 0)
-						setConstraint(&Trans, mati, (CON_AXIS0), "along global X");
-					else if ((G.qual == LR_SHIFTKEY) && ((Trans.flag & T_2D_EDIT)==0))
-						setConstraint(&Trans, mati, (CON_AXIS1|CON_AXIS2), "locking global X");
+					if (Trans.flag & T_2D_EDIT) {
+						setConstraint(&Trans, mati, (CON_AXIS0), "along X axis");
+					}
+					else {
+						if (G.qual == 0)
+							setConstraint(&Trans, mati, (CON_AXIS0), "along global X");
+						else if (G.qual == LR_SHIFTKEY)
+							setConstraint(&Trans, mati, (CON_AXIS1|CON_AXIS2), "locking global X");
+					}
 				}
 				Trans.redraw = 1;
 			}
@@ -750,10 +755,15 @@ static void transformEvent(unsigned short event, short val) {
 					}
 				}
 				else {
-					if (G.qual == 0)
-						setConstraint(&Trans, mati, (CON_AXIS1), "along global Y");
-					else if ((G.qual == LR_SHIFTKEY) && ((Trans.flag & T_2D_EDIT)==0))
-						setConstraint(&Trans, mati, (CON_AXIS0|CON_AXIS2), "locking global Y");
+					if (Trans.flag & T_2D_EDIT) {
+						setConstraint(&Trans, mati, (CON_AXIS1), "along Y axis");
+					}
+					else {
+						if (G.qual == 0)
+							setConstraint(&Trans, mati, (CON_AXIS1), "along global Y");
+						else if (G.qual == LR_SHIFTKEY)
+							setConstraint(&Trans, mati, (CON_AXIS0|CON_AXIS2), "locking global Y");
+					}
 				}
 				Trans.redraw = 1;
 			}
