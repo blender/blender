@@ -1321,12 +1321,13 @@ void initWarp(TransInfo *t)
 			VECCOPY(min, center);
 		}
 	}
-
+	
 	t->center[0]= (min[0]+max[0])/2.0f;
 	t->center[1]= (min[1]+max[1])/2.0f;
 	t->center[2]= (min[2]+max[2])/2.0f;
 	
-	t->val= (max[0]-min[0])/2.0f;	// t->val is free variable
+	if (max[0] == min[0]) max[0] += 0.1; /* not optimal, but flipping is better than invalid garbage (i.e. division by zero!) */
+	t->val= (max[0]-min[0])/2.0f; /* t->val is X dimension projected boundbox */
 }
 
 int Warp(TransInfo *t, short mval[2])
@@ -1357,7 +1358,7 @@ int Warp(TransInfo *t, short mval[2])
 	Mat4MulVecfl(t->viewmat, cursor);
 	VecSubf(cursor, cursor, t->viewmat[3]);
 
-	// amount of degrees for warp
+	/* amount of degrees for warp */
 	circumfac= 360.0f * InputHorizontalRatio(t, mval);
 
 	snapGrid(t, &circumfac);
@@ -1378,21 +1379,21 @@ int Warp(TransInfo *t, short mval[2])
 	
 	circumfac*= (float)(-M_PI/360.0);
 	
-	for(i = 0 ; i < t->total; i++, td++) {
+	for(i = 0; i < t->total; i++, td++) {
 		float loc[3];
 		if (td->flag & TD_NOACTION)
 			break;
-
-		/* translate point to center, rotate in such a way that outline==distance */
 		
+		/* translate point to center, rotate in such a way that outline==distance */
 		VECCOPY(vec, td->iloc);
 		Mat3MulVecfl(td->mtx, vec);
 		Mat4MulVecfl(t->viewmat, vec);
 		VecSubf(vec, vec, t->viewmat[3]);
 		
 		dist= vec[0]-cursor[0];
-
-		phi0= (circumfac*dist/t->val);	// t->val is X dimension projected boundbox
+		
+		/* t->val is X dimension projected boundbox */
+		phi0= (circumfac*dist/t->val);	
 		
 		vec[1]= (vec[1]-cursor[1]);
 		
@@ -1405,7 +1406,7 @@ int Warp(TransInfo *t, short mval[2])
 		Mat4MulVecfl(t->viewinv, loc);
 		VecSubf(loc, loc, t->viewinv[3]);
 		Mat3MulVecfl(td->smtx, loc);
-
+		
 		VecSubf(loc, loc, td->iloc);
 		VecMulf(loc, td->factor);
 		VecAddf(td->loc, td->iloc, loc);
