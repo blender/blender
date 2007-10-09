@@ -2242,6 +2242,7 @@ static void applyTrackball(TransInfo *t, float axis1[3], float axis2[3], float a
 {
 	TransData *td = t->data;
 	float mat[3][3], smat[3][3], totmat[3][3];
+	float center[3];
 	int i;
 
 	VecRotToMat3(axis1, angles[0], smat);
@@ -2253,9 +2254,18 @@ static void applyTrackball(TransInfo *t, float axis1[3], float axis2[3], float a
 		if (td->flag & TD_NOACTION)
 			break;
 		
+		VECCOPY(center, t->center);
+		
 		if (t->around == V3D_LOCAL) {
-			if (t->flag & T_OBJECT)
-				VECCOPY(t->center, td->center);	// not supported in editmode yet
+			/* local-mode shouldn't change center */
+			if (t->flag & (T_OBJECT|T_POSE)) {
+				VECCOPY(t->center, td->center);
+			}
+			else {
+				if(G.vd->around==V3D_LOCAL && (G.scene->selectmode & SCE_SELECT_FACE)) {
+					VECCOPY(t->center, td->center);
+				}
+			}
 		}
 		
 		if (t->flag & T_PROP_EDIT) {
@@ -2264,8 +2274,10 @@ static void applyTrackball(TransInfo *t, float axis1[3], float axis2[3], float a
 			
 			Mat3MulMat3(mat, smat, totmat);
 		}
-
+		
 		ElementRotation(t, td, mat);
+		
+		VECCOPY(t->center, center);
 	}
 }
 
