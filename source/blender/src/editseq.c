@@ -145,7 +145,7 @@ void clear_last_seq(Sequence *seq)
 
 /* used so we can do a quick check for single image seq
    since they work a bit differently to normal image seq's (during transform) */
-static int check_single_image_seq(Sequence *seq)
+int check_single_image_seq(Sequence *seq)
 {
 	if (seq->type == SEQ_IMAGE && seq->len == 1 )
 		return 1;
@@ -155,22 +155,21 @@ static int check_single_image_seq(Sequence *seq)
 
 static void fix_single_image_seq(Sequence *seq)
 {
+	int left, start, offset;
 	if (!check_single_image_seq(seq))
 		return;
 	
-	/* locks image to the start */
-	if (seq->startstill != 0) {
-		seq->endstill += seq->startstill;
-		seq->start -= seq->startstill;
-		seq->startstill = 0;
+	/* make sure the image is always at the start since there is only one,
+	   adjusting its start should be ok */
+	left = SEQ_GET_FINAL_LEFT(seq);
+	start = seq->start;
+	if (start != left) {
+		offset = left - start;
+		SEQ_SET_FINAL_LEFT( seq, SEQ_GET_FINAL_LEFT(seq) - offset );
+		SEQ_SET_FINAL_RIGHT( seq, SEQ_GET_FINAL_RIGHT(seq) - offset );
+		seq->start += offset;
 	}
-	
-	
-	
-	
 }
-
-
 
 static void change_plugin_seq(char *str)	/* called from fileselect */
 {
@@ -1584,7 +1583,7 @@ void add_sequence(int type)
 	}
 	else {
 		event= pupmenu("Add Sequence Strip%t"
-			       "|Images%x1"
+			       "|Image Sequence%x1"
 			       "|Movie%x102"
 #ifdef WITH_FFMPEG
 				   "|Movie + Audio (HD)%x105"
@@ -2556,11 +2555,11 @@ void transform_seq(int mode, int context)
 							if (SEQ_GET_FINAL_LEFT(seq) >= SEQ_GET_FINAL_RIGHT(seq)) {
 								SEQ_SET_FINAL_LEFT(seq, SEQ_GET_FINAL_RIGHT(seq)-1);
 							}
-							//if (check_single_image_seq(seq)==0) {
+							if (check_single_image_seq(seq)==0) {
 								if (SEQ_GET_FINAL_LEFT(seq) >= SEQ_GET_END(seq)) {
 									SEQ_SET_FINAL_LEFT(seq, SEQ_GET_END(seq)-1);
 								}
-							//}
+							}
 						}
 						if(seq->flag & SEQ_RIGHTSEL) {
 							myofs = (ts->endstill - ts->endofs);
@@ -2569,11 +2568,11 @@ void transform_seq(int mode, int context)
 								SEQ_SET_FINAL_RIGHT(seq, SEQ_GET_FINAL_LEFT(seq)+1);
 							}
 							
-							//if (check_single_image_seq(seq)==0) {
+							if (check_single_image_seq(seq)==0) {
 								if (SEQ_GET_FINAL_RIGHT(seq) <= SEQ_GET_START(seq)) {
 									SEQ_SET_FINAL_RIGHT(seq, SEQ_GET_START(seq)+1);
 								}
-							//}
+							}
 						}
 						
 						if (seq->type == SEQ_RAM_SOUND || seq->type == SEQ_HD_SOUND) {
@@ -2685,7 +2684,7 @@ void transform_seq(int mode, int context)
 			/* fixes single image strips - makes sure their start is not out of bounds
 			ideally this would be done during transform since data is rendered at that time
 			however it ends up being a lot messier! - Campbell */
-			//fix_single_image_seq(seq);
+			fix_single_image_seq(seq);
 			
 			if(seq->type == SEQ_META) {
 				calc_sequence(seq);

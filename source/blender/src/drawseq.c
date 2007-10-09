@@ -686,9 +686,12 @@ so wave file sample drawing precission is zoom adjusted
 static void draw_seq_strip(Sequence *seq, ScrArea *sa, SpaceSeq *sseq)
 {
 	float x1, x2, y1, y2;
-	char col[3];
+	char col[3], is_single_image;
 	Sequence *last_seq = get_last_seq();
 
+	/* we need to know if this is a single image or not for drawing */
+	is_single_image = (char)check_single_image_seq(seq);
+	
 	/* body */
 	if(seq->startstill) x1= seq->start;
 	else x1= seq->startdisp;
@@ -702,11 +705,18 @@ static void draw_seq_strip(Sequence *seq, ScrArea *sa, SpaceSeq *sseq)
 	get_seq_color3ubv(seq, col);
 	
 	/* draw the main strip body */
-	draw_shadedstrip(seq, col, x1, y1, x2, y2);
+	if (is_single_image) /* single image */
+		draw_shadedstrip(seq, col, SEQ_GET_FINAL_LEFT(seq), y1, SEQ_GET_FINAL_RIGHT(seq), y2);
+	else /* normal operation */
+		draw_shadedstrip(seq, col, x1, y1, x2, y2);
 	
 	/* draw additional info and controls */
-	if (seq->type == SEQ_RAM_SOUND) drawseqwave(seq, x1, y1, x2, y2, sa->winx);
-	draw_seq_extensions(seq, sseq);
+	if (seq->type == SEQ_RAM_SOUND)
+		drawseqwave(seq, x1, y1, x2, y2, sa->winx);
+	
+	if (!is_single_image)
+		draw_seq_extensions(seq, sseq);
+	
 	draw_seq_handle(seq, sseq, SEQ_LEFTHANDLE);
 	draw_seq_handle(seq, sseq, SEQ_RIGHTHANDLE);
 	

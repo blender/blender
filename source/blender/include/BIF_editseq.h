@@ -70,6 +70,7 @@ void				select_surround_from_last();
 void				select_dir_from_last(int lr);
 void				select_neighbor_from_last(int lr);
 struct Sequence*	alloc_sequence(ListBase *lb, int cfra, int machine); /*used from python*/
+int 				check_single_image_seq(struct Sequence *seq);
 
 #define SEQ_DEBUG_INFO(seq) printf("seq into '%s' -- len:%i  start:%i  startstill:%i  endstill:%i  startofs:%i  endofs:%i\n",\
 		    seq->name, seq->len, seq->start, seq->startstill, seq->endstill, seq->startofs, seq->endofs)
