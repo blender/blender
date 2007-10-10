@@ -2824,8 +2824,8 @@ void special_aftertrans_update(TransInfo *t)
 		if(t->mode==TFM_TRANSLATION)
 			pose_grab_with_ik_clear(ob);
 			
-		/* automatic inserting of keys and unkeyed tagging - only if transform wasn't cancelled */
-		if(!cancelled) {
+		/* automatic inserting of keys and unkeyed tagging - only if transform wasn't cancelled (or TFM_DUMMY) */
+		if(!cancelled && (t->mode != TFM_DUMMY)) {
 			autokeyframe_pose_cb_func(ob, t->mode, targetless_ik);
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		}
@@ -2848,11 +2848,11 @@ void special_aftertrans_update(TransInfo *t)
 			if(base->flag & BA_DO_IPO) redrawipo= 1;
 			
 			ob= base->object;
-
+			
 			if(modifiers_isSoftbodyEnabled(ob)) ob->softflag |= OB_SB_REDO;
 			
 			/* Set autokey if necessary */
-			if ((!cancelled) && (base->flag & SELECT)){
+			if ((!cancelled) && (t->mode != TFM_DUMMY) && (base->flag & SELECT)) {
 				autokeyframe_ob_cb_func(ob, t->mode);
 			}
 			
