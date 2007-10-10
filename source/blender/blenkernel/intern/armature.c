@@ -467,9 +467,9 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan, int rest)
 		
 		/* find the next roll to interpolate as well */
 		if(rest)
-			Mat4MulMat4(difmat, next->pose_mat, imat);
-		else
 			Mat4MulMat4(difmat, next->bone->arm_mat, imat);
+		else
+			Mat4MulMat4(difmat, next->pose_mat, imat);
 		Mat3CpyMat4(result, difmat);				// the desired rotation at beginning of next bone
 		
 		vec_roll_to_mat3(h2, 0.0f, mat3);			// the result of vec_roll without roll
