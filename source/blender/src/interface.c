@@ -4726,7 +4726,7 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 						/* add undo pushes if... */
 						if( !(block->flag & UI_BLOCK_LOOP)) {
 							if(!G.obedit) {
-								if ELEM4(but->type, BLOCK, BUT, LABEL, PULLDOWN); 
+								if ELEM5(but->type, BLOCK, BUT, LABEL, PULLDOWN, ROUNDBOX); 
 								else {
 									/* define which string to use for undo */
 									if ELEM(but->type, LINK, INLINK) screen_delayed_undo_push("Add button link");
