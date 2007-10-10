@@ -510,6 +510,17 @@ int cloth_collision_response_static(ClothModifierData *clmd, ClothModifierData *
 	return result;
 }
 
+int cloth_collision_response_moving_tris(ClothModifierData *clmd, ClothModifierData *coll_clmd)
+{
+	
+}
+
+
+int cloth_collision_response_moving_edges(ClothModifierData *clmd, ClothModifierData *coll_clmd)
+{
+	
+}
+
 void cloth_collision_static(ClothModifierData *clmd, ClothModifierData *coll_clmd, Tree *tree1, Tree *tree2)
 {
 	CollPair *collpair = NULL;
@@ -783,15 +794,14 @@ void cloth_collision_moving_edges(ClothModifierData *clmd, ClothModifierData *co
 						
 						// TODO: check for collisions 
 						
-						// TODO: put into collision list
+						// TODO: put into (edge) collision list
 						
 						printf("Moving edge found!\n");
 					}
 				}
 			}
 		}
-	}	
-	
+	}		
 }
 
 void cloth_collision_moving_tris(ClothModifierData *clmd, ClothModifierData *coll_clmd, Tree *tree1, Tree *tree2)
@@ -874,7 +884,7 @@ void cloth_collision_moving_tris(ClothModifierData *clmd, ClothModifierData *col
 						
 						// TODO: check for collisions 
 						
-						// TODO: put into collision list
+						// TODO: put into (point-face) collision list
 						
 						printf("Moving found!\n");
 					}
@@ -893,7 +903,7 @@ void cloth_collision_moving(ClothModifierData *clmd, ClothModifierData *coll_clm
 	cloth_collision_moving_edges(clmd, coll_clmd, tree1, tree2);
 	
 	cloth_collision_moving_tris(clmd, coll_clmd, tree1, tree2);
-	// cloth_collision_moving_tris(coll_clmd, clmd, tree2, tree1);
+	cloth_collision_moving_tris(coll_clmd, clmd, tree2, tree1);
 }
 
 // move collision objects forward in time and update static bounding boxes
@@ -1010,7 +1020,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 		
 		// process all collisions (calculate impulses, TODO: also repulses if distance too short)
 		result = 1;
-		for(j = 0; j < 50; j++) // 50 is just a value that ensures convergence
+		for(j = 0; j < 10; j++) // 10 is just a value that ensures convergence
 		{
 			result = 0;
 			
@@ -1143,50 +1153,50 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 					printf ("cloth_bvh_objcollision: found a collision object with clothObject or collData NULL.\n");
 			}
 		}
-		/*
+		
 		// process all collisions (calculate impulses, TODO: also repulses if distance too short)
 		result = 1;
-		for(j = 0; j < 50; j++) // 50 is just a value that ensures convergence
+		for(j = 0; j < 10; j++) // 10 is just a value that ensures convergence
 		{
-		result = 0;
-			
+			result = 0;
+				
 			// handle all collision objects
-		for (base = G.scene->base.first; base; base = base->next)
-		{
-		
-		coll_ob = base->object;
-		coll_clmd = (ClothModifierData *) modifiers_findByType (coll_ob, eModifierType_Cloth);
-				
-		if (!coll_clmd)
-		continue;
-		
-				// if collision object go on
-		if (coll_clmd->sim_parms.flags & CSIMSETT_FLAG_COLLOBJ)
-		{
-		if (coll_clmd->clothObject) 
-		result += cloth_collision_response_moving_tris(clmd, coll_clmd);
-		else
-		printf ("cloth_bvh_objcollision: found a collision object with clothObject or collData NULL.\n");
-	}
-	}
+			for (base = G.scene->base.first; base; base = base->next)
+			{
 			
-			// apply impulses in parallel
-		ic=0;
-		for(i = 0; i < numverts; i++)
-		{
-				// calculate "velocities" (just xnew = xold + v; no dt in v)
-		if(verts[i].impulse_count)
-		{
-		VECADDMUL(verts[i].tv, verts[i].impulse, 1.0f / verts[i].impulse_count);
-		VECCOPY(verts[i].impulse, tnull);
-		verts[i].impulse_count = 0;
+				coll_ob = base->object;
+				coll_clmd = (ClothModifierData *) modifiers_findByType (coll_ob, eModifierType_Cloth);
+						
+				if (!coll_clmd)
+				continue;
 				
-		ic++;
-		ret++;
-	}
-	}
-	}
-		*/
+				// if collision object go on
+				if (coll_clmd->sim_parms.flags & CSIMSETT_FLAG_COLLOBJ)
+				{
+					if (coll_clmd->clothObject) 
+					result += cloth_collision_response_moving_tris(clmd, coll_clmd);
+					else
+					printf ("cloth_bvh_objcollision: found a collision object with clothObject or collData NULL.\n");
+				}
+			}
+						
+			// apply impulses in parallel
+			ic=0;
+			for(i = 0; i < numverts; i++)
+			{
+				// calculate "velocities" (just xnew = xold + v; no dt in v)
+				if(verts[i].impulse_count)
+				{
+					VECADDMUL(verts[i].tv, verts[i].impulse, 1.0f / verts[i].impulse_count);
+					VECCOPY(verts[i].impulse, tnull);
+					verts[i].impulse_count = 0;
+							
+					ic++;
+					ret++;
+				}
+			}
+		}
+		
 		
 		// verts come from clmd
 		for(i = 0; i < numverts; i++)
