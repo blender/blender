@@ -1117,12 +1117,16 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 	}
 	else if(last_seq->type==SEQ_IMAGE) {
 
-		uiDefBut(block, LABEL, 0, "Type: Image", 10,140,150,20, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, TEX, B_NOP, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
+		uiDefBut(block, LABEL, 0, "Type: Image", 10,160,150,20, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, TEX, B_NOP, "Name: ", 10,140,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
 		
 		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, SEQ_MAKE_PREMUL, SEQ_BUT_RELOAD, "Convert to Premul", 10,90,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "Converts RGB values to become premultiplied with Alpha");
-		uiDefButBitS(block, TOG, SEQ_FILTERY, SEQ_BUT_RELOAD, "FilterY",	10,70,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "For video movies to remove fields");
+		uiDefButBitS(block, TOG, SEQ_MAKE_PREMUL, SEQ_BUT_RELOAD, "Convert to Premul", 10,110,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "Converts RGB values to become premultiplied with Alpha");
+		uiDefButBitS(block, TOG, SEQ_FILTERY, SEQ_BUT_RELOAD, "FilterY",	10,90,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "For video movies to remove fields");
+		
+		uiDefButBitS(block, TOG, SEQ_FLIPX, SEQ_BUT_RELOAD, "FlipX",	10,70,75,19, &last_seq->flag, 0.0, 21.0, 100, 0, "Flip on the X axis");
+		uiDefButBitS(block, TOG, SEQ_FLIPY, SEQ_BUT_RELOAD, "FlipY",	85,70,75,19, &last_seq->flag, 0.0, 21.0, 100, 0, "Flip on the Y axis");
+		
 		uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Mul:",			10,50,150,19, &last_seq->mul, 0.001, 5.0, 100, 0, "Multiply colors");
 		uiDefButS(block, TOG|BIT|7, SEQ_BUT_RELOAD, "Reverse Frames", 10,30,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "Reverse frame order");
 		uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Strobe:",			10,10,150,19, &last_seq->strobe, 1.0, 30.0, 100, 0, "Only display every nth frame");

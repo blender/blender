@@ -779,6 +779,8 @@ static void do_build_seq_ibuf(Sequence * seq, int cfra)
 					seq->strip->orx= se->ibuf->x;
 					seq->strip->ory= se->ibuf->y;
 					if(seq->flag & SEQ_FILTERY) IMB_filtery(se->ibuf);
+					if(seq->flag & SEQ_FLIPX) IMB_flipx(se->ibuf);
+					if(seq->flag & SEQ_FLIPY) IMB_flipy(se->ibuf);
 					if(seq->mul==0.0) seq->mul= 1.0;
 					if(seq->mul != 1.0) multibuf(se->ibuf, seq->mul);
 				}

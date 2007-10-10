@@ -205,6 +205,8 @@ typedef struct SpeedControlVars {
 #define SEQ_IPO_FRAME_LOCKED	256
 #define SEQ_EFFECT_NOT_LOADED	512
 #define SEQ_FLAG_DELETE			1024
+#define SEQ_FLIPX				2048
+#define SEQ_FLIPY				4096
 
 /* seq->type WATCH IT: SEQ_EFFECT BIT is used to determine if this is an effect strip!!! */
 #define SEQ_IMAGE		0

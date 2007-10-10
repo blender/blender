@@ -418,6 +418,14 @@ void bilinear_interpolation(struct ImBuf *in, struct ImBuf *out, float u, float 
 void IMB_convert_bgra_to_rgba(int size, unsigned int *rect);
 
 /**
+ * Flip the image X/Y
+ *
+ * @attention Defined in imageprocess.c
+ */
+void IMB_xflip(struct ImBuf *ibuf);
+void IMB_yflip(struct ImBuf *ibuf);
+
+/**
  *
  * @attention defined in scaling.c
  */
