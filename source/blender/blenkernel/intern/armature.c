@@ -404,9 +404,11 @@ static void equalize_bezier(float *data, int desired)
 
 /* returns pointer to static array, filled with desired amount of bone->segments elements */
 /* this calculation is done  within unit bone space */
-Mat4 *b_bone_spline_setup(bPoseChannel *pchan)
+Mat4 *b_bone_spline_setup(bPoseChannel *pchan, int rest)
 {
 	static Mat4 bbone_array[MAX_BBONE_SUBDIV];
+	static Mat4 bbone_rest_array[MAX_BBONE_SUBDIV];
+	Mat4 *result_array= (rest)? bbone_rest_array: bbone_array;
 	bPoseChannel *next, *prev;
 	Bone *bone= pchan->bone;
 	float h1[3], h2[3], length, hlength1, hlength2, roll;
@@ -430,11 +432,17 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan)
 		first point = (0,0,0)
 		last point =  (0, length, 0) */
 	
-	Mat4Invert(imat, pchan->pose_mat);
+	if(rest)
+		Mat4Invert(imat, pchan->bone->arm_mat);
+	else
+		Mat4Invert(imat, pchan->pose_mat);
 	
 	if(prev) {
 		/* transform previous point inside this bone space */
-		VECCOPY(h1, prev->pose_head);
+		if(rest)
+			VECCOPY(h1, prev->bone->arm_head)
+		else
+			VECCOPY(h1, prev->pose_head)
 		Mat4MulVecfl(imat, h1);
 		/* if previous bone is B-bone too, use average handle direction */
 		if(prev->bone->segments>1) h1[1]-= length;
@@ -448,14 +456,20 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan)
 		float difmat[4][4], result[3][3], imat3[3][3];
 		
 		/* transform next point inside this bone space */
-		VECCOPY(h2, next->pose_tail);
+		if(rest)
+			VECCOPY(h2, next->bone->arm_tail)
+		else
+			VECCOPY(h2, next->pose_tail)
 		Mat4MulVecfl(imat, h2);
 		/* if next bone is B-bone too, use average handle direction */
 		if(next->bone->segments>1);
 		else h2[1]-= length;
 		
 		/* find the next roll to interpolate as well */
-		Mat4MulMat4(difmat, next->pose_mat, imat);
+		if(rest)
+			Mat4MulMat4(difmat, next->pose_mat, imat);
+		else
+			Mat4MulMat4(difmat, next->bone->arm_mat, imat);
 		Mat3CpyMat4(result, difmat);				// the desired rotation at beginning of next bone
 		
 		vec_roll_to_mat3(h2, 0.0f, mat3);			// the result of vec_roll without roll
@@ -490,19 +504,20 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan)
 	for(a=0, fp= data[0]; a<bone->segments; a++, fp+=4) {
 		VecSubf(h1, fp+4, fp);
 		vec_roll_to_mat3(h1, fp[3], mat3);		// fp[3] is roll
-		Mat4CpyMat3(bbone_array[a].mat, mat3);
-		VECCOPY(bbone_array[a].mat[3], fp);
+		Mat4CpyMat3(result_array[a].mat, mat3);
+		VECCOPY(result_array[a].mat[3], fp);
 	}
 	
-	return bbone_array;
+	return result_array;
 }
 
 /* ************ Armature Deform ******************* */
 
-static void pchan_b_bone_defmats(bPoseChannel *pchan, int use_quaternion)
+static void pchan_b_bone_defmats(bPoseChannel *pchan, int use_quaternion, int rest_def)
 {
 	Bone *bone= pchan->bone;
-	Mat4 *b_bone= b_bone_spline_setup(pchan);
+	Mat4 *b_bone= b_bone_spline_setup(pchan, 0);
+	Mat4 *b_bone_rest= (rest_def)? NULL: b_bone_spline_setup(pchan, 1);
 	Mat4 *b_bone_mats;
 	DualQuat *b_bone_dual_quats= NULL;
 	float tmat[4][4];
@@ -529,7 +544,10 @@ static void pchan_b_bone_defmats(bPoseChannel *pchan, int use_quaternion)
 	Mat4One(tmat);
 
 	for(a=0; a<bone->segments; a++) {
-		tmat[3][1] = -a*(bone->length/(float)bone->segments);
+		if(b_bone_rest)
+			Mat4Invert(tmat, b_bone_rest[a].mat);
+		else
+			tmat[3][1] = -a*(bone->length/(float)bone->segments);
 
 		Mat4MulSerie(b_bone_mats[a+1].mat, pchan->chan_mat, bone->arm_mat,
 			b_bone[a].mat, tmat, b_bone_mats[0].mat, NULL, NULL, NULL);
@@ -726,6 +744,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 	float obinv[4][4], premat[4][4], postmat[4][4];
 	int use_envelope = deformflag & ARM_DEF_ENVELOPE;
 	int use_quaternion = deformflag & ARM_DEF_QUATERNION;
+	int bbone_rest_def = deformflag & ARM_DEF_B_BONE_REST;
 	int numGroups = 0;		/* safety for vertexgroup index overflow */
 	int i, target_totvert = 0;	/* safety for vertexgroup overflow */
 	int use_dverts = 0;
@@ -751,7 +770,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 	for(pchan = armOb->pose->chanbase.first; pchan; pchan = pchan->next) {
 		if(!(pchan->bone->flag & BONE_NO_DEFORM)) {
 			if(pchan->bone->segments > 1)
-				pchan_b_bone_defmats(pchan, use_quaternion);
+				pchan_b_bone_defmats(pchan, use_quaternion, bbone_rest_def);
 
 			if(use_quaternion) {
 				pchan->dual_quat= &dualquats[totchan++];

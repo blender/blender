@@ -112,7 +112,7 @@ typedef struct Mat4 {
 	float mat[4][4];
 } Mat4;
 
-Mat4 *b_bone_spline_setup(struct bPoseChannel *pchan);
+Mat4 *b_bone_spline_setup(struct bPoseChannel *pchan, int rest);
 
 #ifdef __cplusplus
 }

@@ -6750,6 +6750,21 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 
+	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 4)) {
+		bArmature *arm;
+		ModifierData *md;
+		Object *ob;
+
+		for(arm= main->armature.first; arm; arm= arm->id.next)
+			arm->deformflag |= ARM_DEF_B_BONE_REST;
+
+		for(ob = main->object.first; ob; ob= ob->id.next)
+			for(md=ob->modifiers.first; md; md=md->next)
+				if(md->type==eModifierType_Armature)
+					((ArmatureModifierData*)md)->deformflag |= ARM_DEF_B_BONE_REST;
+	}
+
+
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
 

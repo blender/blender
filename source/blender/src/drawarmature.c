@@ -888,7 +888,7 @@ static void draw_b_bone_boxes(int dt, bPoseChannel *pchan, float xwidth, float l
 	
 	if(segments>1 && pchan) {
 		float dlen= length/(float)segments;
-		Mat4 *bbone= b_bone_spline_setup(pchan);
+		Mat4 *bbone= b_bone_spline_setup(pchan, 0);
 		int a;
 		
 		for(a=0; a<segments; a++, bbone++) {
