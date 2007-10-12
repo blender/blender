@@ -94,17 +94,23 @@ void IMB_flipx(struct ImBuf * ibuf)
 	float px_f[4];
 	
 	if (ibuf == NULL) return;
-	if (ibuf->rect == NULL) return;
 
 	x = ibuf->x;
 	y = ibuf->y;
-	for(yi=y-1;yi>=0;yi--) {
-		for(xr=x-1, xl=0; xr>=xl; xr--, xl++) {
-			px =					ibuf->rect[(x*yi)+xr];
-			ibuf->rect[(x*yi)+xr] =	ibuf->rect[(x*yi)+xl];
-			ibuf->rect[(x*yi)+xl] =	px;		
-			
-			if (ibuf->rect_float) {
+
+	if (ibuf->rect) {
+		for(yi=y-1;yi>=0;yi--) {
+			for(xr=x-1, xl=0; xr>=xl; xr--, xl++) {
+				px = ibuf->rect[(x*yi)+xr];
+				ibuf->rect[(x*yi)+xr] =	ibuf->rect[(x*yi)+xl];
+				ibuf->rect[(x*yi)+xl] =	px;		
+			}
+		}
+	}
+	
+	if (ibuf->rect_float) {
+		for(yi=y-1;yi>=0;yi--) {
+			for(xr=x-1, xl=0; xr>=xl; xr--, xl++) {
 				memcpy(&px_f, &ibuf->rect_float[((x*yi)+xr)*4], 4*sizeof(float));
 				memcpy(&ibuf->rect_float[((x*yi)+xr)*4], &ibuf->rect_float[((x*yi)+xl)*4], 4*sizeof(float));
 				memcpy(&ibuf->rect_float[((x*yi)+xl)*4], &px_f, 4*sizeof(float));
