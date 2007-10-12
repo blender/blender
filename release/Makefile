@@ -116,8 +116,9 @@ install: package
     ifneq ($(OS), darwin)
 	@[ ! -d $(OCGDIR)/bin/.blender ] || \
 		cp -r $(OCGDIR)/bin/.blender $(DISTDIR)
-	cp $(NANBLENDERHOME)/bin/.blender/.Blanguages $(CONFDIR)
-	cp $(NANBLENDERHOME)/bin/.blender/.bfont.ttf $(CONFDIR)
+	@rm -rf $(DISTDIR)/.svn $(DISTDIR)/*/.svn $(DISTDIR)/*/*/.svn
+	@cp $(NANBLENDERHOME)/bin/.blender/.Blanguages $(CONFDIR)
+	@cp $(NANBLENDERHOME)/bin/.blender/.bfont.ttf $(CONFDIR)
     endif
 	@echo "----> Copy blender$(EXT0) executable"
     ifeq ($(TYPE),-static)
@@ -141,7 +142,7 @@ ifneq ($(NOPLUGINS),true)
 	@cp ../source/blender/blenpluginapi/*.h $(DISTDIR)/plugins/include/
 	@chmod 755 $(DISTDIR)/plugins/bmake
 	@$(MAKE) -C $(DISTDIR)/plugins all  > /dev/null || exit 1;
-	@rm -fr $(DISTDIR)/plugins/CVS $(DISTDIR)/plugins/*/CVS \
+	@rm -fr $(DISTDIR)/plugins/.svn $(DISTDIR)/plugins/*/.svn \
              $(DISTDIR)/plugins/*/*.o
 
 #on OS X the plugins move to the installation directory
@@ -155,7 +156,7 @@ endif
 
 	@echo "----> Copy python infrastructure"
 	@[ ! -d scripts ] || cp -r scripts $(CONFDIR)/scripts
-	@[ ! -d $(CONFDIR)/scripts ] || rm -fr $(CONFDIR)/scripts/CVS
+	@[ ! -d $(CONFDIR)/scripts ] || rm -fr $(CONFDIR)/scripts/.svn $(CONFDIR)/scripts/*/.svn $(CONFDIR)/scripts/*/*/.svn
 
     ifeq ($(OS),darwin)
 	@echo "----> Move .blender to .app/Contents/MacOS/"
