@@ -86,3 +86,14 @@ unsigned int mem_read(Stream & mem, unsigned char & i)
 	return(1);
 }
 
+unsigned int mem_read(Stream & mem, unsigned char *i, unsigned int cnt)
+{
+	if (mem.pos + cnt > mem.size) {
+		printf("DDS: trying to read beyond end of stream (corrupt file?)");
+		return(0);
+	};
+	memcpy(i, mem.mem + mem.pos, cnt);
+	mem.pos += cnt;
+	return(cnt);
+}
+

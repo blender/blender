@@ -28,8 +28,8 @@
 #include <dds_api.h>
 #include <Stream.h>
 #include <DirectDrawSurface.h>
-
 #include <stdio.h> // printf
+#include <fstream>
 
 extern "C" {
 
@@ -39,12 +39,24 @@ extern "C" {
 #include "IMB_imbuf.h"
 #include "IMB_allocimbuf.h"
 
-/* not supported yet
+
 short imb_save_dds(struct ImBuf * ibuf, char *name, int flags)
 {
-	return(0);
+	return(0); /* todo: finish this function */
+
+	/* check image buffer */
+	if (ibuf == 0) return (0);
+	if (ibuf->rect == 0) return (0);
+
+	/* open file for writing */
+	std::ofstream fildes(name);
+
+	/* write header */
+	fildes << "DDS ";
+	fildes.close();
+
+	return(1);
 }
-*/
 
 int imb_is_a_dds(unsigned char *mem) // note: use at most first 32 bytes
 {
@@ -60,7 +72,7 @@ struct ImBuf *imb_load_dds(unsigned char *mem, int size, int flags)
 {
 	struct ImBuf * ibuf = 0;
 	DirectDrawSurface dds(mem, size); /* reads header */
-	unsigned char bytes_per_pixel;
+	unsigned char bits_per_pixel;
 	unsigned int *rect;
 	Image img;
 	unsigned int numpixels = 0;
@@ -85,9 +97,9 @@ struct ImBuf *imb_load_dds(unsigned char *mem, int size, int flags)
 	}
 
 	/* convert DDS into ImBuf */
-	if (dds.hasAlpha()) bytes_per_pixel = 32;
-	else bytes_per_pixel = 24;
-	ibuf = IMB_allocImBuf(dds.width(), dds.height(), bytes_per_pixel, 0, 0); 
+	if (dds.hasAlpha()) bits_per_pixel = 32;
+	else bits_per_pixel = 24;
+	ibuf = IMB_allocImBuf(dds.width(), dds.height(), bits_per_pixel, 0, 0); 
 	if (ibuf == 0) return(0); /* memory allocation failed */
 
 	ibuf->ftype = DDS;
@@ -107,7 +119,7 @@ struct ImBuf *imb_load_dds(unsigned char *mem, int size, int flags)
 			cp[0] = pixel.r; /* set R component of col */
 			cp[1] = pixel.g; /* set G component of col */
 			cp[2] = pixel.b; /* set B component of col */
-			if (bytes_per_pixel == 32)
+			if (bits_per_pixel == 32)
 				cp[3] = pixel.a; /* set A component of col */
 			rect[i] = col;
 		}
