@@ -449,8 +449,8 @@ DerivedMesh *NewBooleanDerivedMesh_intern(
 	float map_mat[4][4];
 
 	DerivedMesh *dm = NULL;
-	Mesh *me1 = get_mesh(ob);
-	Mesh *me2 = get_mesh(ob_select);
+	Mesh *me1 = get_mesh(ob_select);
+	Mesh *me2 = get_mesh(ob);
 
 	if (me1 == NULL || me2 == NULL) return 0;
 	if (!me1->totface || !me2->totface) return 0;
@@ -458,9 +458,9 @@ DerivedMesh *NewBooleanDerivedMesh_intern(
 	// we map the final object back into ob's local coordinate space. For this
 	// we need to compute the inverse transform from global to ob (inv_mat),
 	// and the transform from ob to ob_select for use in interpolation (map_mat)
-	Mat4Invert(inv_mat, ob_select->obmat);
-	Mat4MulMat4(map_mat, ob->obmat, inv_mat);
 	Mat4Invert(inv_mat, ob->obmat);
+	Mat4MulMat4(map_mat, ob_select->obmat, inv_mat);
+	Mat4Invert(inv_mat, ob_select->obmat);
 
 	{
 		// interface with the boolean module:
@@ -484,8 +484,8 @@ DerivedMesh *NewBooleanDerivedMesh_intern(
 			default : op_type = e_csg_intersection;
 		}
 		
-		BuildMeshDescriptors(ob, 0, &fd_1, &vd_1);
-		BuildMeshDescriptors(ob_select, me1->totface, &fd_2, &vd_2);
+		BuildMeshDescriptors(ob_select, 0, &fd_1, &vd_1);
+		BuildMeshDescriptors(ob, me1->totface, &fd_2, &vd_2);
 
 		bool_op = CSG_NewBooleanFunction();
 
@@ -500,7 +500,7 @@ DerivedMesh *NewBooleanDerivedMesh_intern(
 			// iterate through results of operation and insert
 			// into new object
 			dm = ConvertCSGDescriptorsToDerivedMesh(
-				&fd_o, &vd_o, inv_mat, map_mat, mat, totmat, ob, ob_select);
+				&fd_o, &vd_o, inv_mat, map_mat, mat, totmat, ob_select, ob);
 
 			// free up the memory
 			CSG_FreeVertexDescriptor(&vd_o);
@@ -540,7 +540,7 @@ int NewBooleanMesh(Base *base, Base *base_select, int int_op_type)
 	}
 
 	/* create a new blender mesh object - using 'base' as  a template */
-	ob_new= AddNewBlenderMesh(base);
+	ob_new= AddNewBlenderMesh(base_select);
 	me_new= ob_new->data;
 
 	DM_to_mesh(dm, me_new);
