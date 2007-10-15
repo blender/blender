@@ -1627,6 +1627,7 @@ void BPY_pyconstraint_settings(void *arg1, void *arg2)
 		
 		/* free temp objects */
 		Py_XDECREF( idprop );
+		Py_DECREF( retval );
 		return;
 	}
 }
