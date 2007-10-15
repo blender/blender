@@ -1690,14 +1690,14 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void *own
 			}
 			
 			/* if the script doesn't set the target matrix for any reason, fall back to standard methods */
-			if (BPY_pyconstraint_targets(data, mat) < 1) {
-				if (data->tar) {
-					constraint_target_to_mat4(data->tar, data->subtarget, mat, CONSTRAINT_SPACE_WORLD, con->tarspace);
+			if (data->tar) {
+				constraint_target_to_mat4(data->tar, data->subtarget, mat, CONSTRAINT_SPACE_WORLD, con->tarspace);
+				if (BPY_pyconstraint_targets(data, mat) >= 1) {
 					valid = 1;
 				}
-				else
-					Mat4One(mat);
 			}
+			if (!valid)
+				Mat4One(mat);
 		}
 		break;
 	case CONSTRAINT_TYPE_CLAMPTO:
