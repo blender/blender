@@ -1461,7 +1461,7 @@ int BPY_pyconstraint_targets(bPythonConstraint *con, float targetmat[][4])
 	
 	/* try to find USE_TARGET global constant */
 	gval = PyDict_GetItemString(globals, "USE_TARGET");
-	if (!gval) {
+	if (!gval || PyObject_IsTrue(gval) != 1) {
 		ReleaseGlobalDictionary( globals );
 	
 		/* free temp objects */
