@@ -76,7 +76,7 @@ void free_constraint_data(struct bConstraint *con);
 /* Constraint Channel function prototypes */
 struct bConstraintChannel *get_constraint_channel(ListBase *list, const char *name);
 struct bConstraintChannel *verify_constraint_channel(ListBase *list, const char *name);
-void do_constraint_channels(struct ListBase *conbase, struct ListBase *chanbase, float ctime);
+void do_constraint_channels(struct ListBase *conbase, struct ListBase *chanbase, float ctime, int onlydrivers);
 void copy_constraint_channels(ListBase *dst, ListBase *src);
 void clone_constraint_channels(struct ListBase *dst, struct ListBase *src);
 void free_constraint_channels(ListBase *chanbase);

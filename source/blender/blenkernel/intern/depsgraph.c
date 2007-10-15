@@ -348,6 +348,7 @@ static void dag_add_driver_relation(Ipo *ipo, DagForest *dag, DagNode *node, int
 static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int mask)
 {
 	bConstraint *con;
+	bConstraintChannel *conchan;
 	DagNode * node;
 	DagNode * node2;
 	DagNode * node3;
@@ -401,9 +402,12 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 	if(key && key->ipo)
 		dag_add_driver_relation(key->ipo, dag, node, 1);
 	
+	for (conchan=ob->constraintChannels.first; conchan; conchan=conchan->next)
+		if(conchan->ipo)
+			dag_add_driver_relation(conchan->ipo, dag, node, 0);
+
 	if(ob->action) {
 		bActionChannel *chan;
-		bConstraintChannel *conchan;
 		for (chan = ob->action->chanbase.first; chan; chan=chan->next){
 			if(chan->ipo)
 				dag_add_driver_relation(chan->ipo, dag, node, 1);

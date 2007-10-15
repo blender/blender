@@ -886,7 +886,7 @@ void constraints_clear_evalob (bConstraintOb *cob)
 /* -------------------------------- Constraint Channels ---------------------------- */
 
 /* does IPO's of constraint channels only */
-void do_constraint_channels (ListBase *conbase, ListBase *chanbase, float ctime)
+void do_constraint_channels (ListBase *conbase, ListBase *chanbase, float ctime, int onlydrivers)
 {
 	bConstraint *con;
 	bConstraintChannel *chan;
@@ -901,13 +901,15 @@ void do_constraint_channels (ListBase *conbase, ListBase *chanbase, float ctime)
 			calc_ipo(chan->ipo, ctime);
 			
 			for (icu=chan->ipo->curve.first; icu; icu=icu->next) {
-				switch (icu->adrcode) {
-					case CO_ENFORCE:
-					{
-						/* Influence is clamped to 0.0f -> 1.0f range */
-						con->enforce = CLAMPIS(icu->curval, 0.0f, 1.0f);
+				if(!onlydrivers || icu->driver) {
+					switch (icu->adrcode) {
+						case CO_ENFORCE:
+						{
+							/* Influence is clamped to 0.0f -> 1.0f range */
+							con->enforce = CLAMPIS(icu->curval, 0.0f, 1.0f);
+						}
+							break;
 					}
-						break;
 				}
 			}
 		}

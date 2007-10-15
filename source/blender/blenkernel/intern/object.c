@@ -1542,12 +1542,14 @@ void where_is_object_time(Object *ob, float ctime)
 		else 
 			do_all_object_actions(ob);
 		
-		/* do constraint ipos ..., note it needs stime */
-		do_constraint_channels(&ob->constraints, &ob->constraintChannels, stime);
+		/* do constraint ipos ..., note it needs stime (0 = all ipos) */
+		do_constraint_channels(&ob->constraints, &ob->constraintChannels, stime, 0);
 	}
 	else {
 		/* but, the drivers have to be done */
 		if(ob->ipo) do_ob_ipodrivers(ob, ob->ipo, stime);
+		/* do constraint ipos ..., note it needs stime (1 = only drivers ipos) */
+		do_constraint_channels(&ob->constraints, &ob->constraintChannels, stime, 1);
 	}
 	
 	if(ob->parent) {

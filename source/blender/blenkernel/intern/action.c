@@ -718,7 +718,8 @@ void extract_pose_from_action(bPose *pose, bAction *act, float ctime)
 				/* This call also sets the pchan flags */
 				execute_action_ipo(achan, pchan);
 			}
-			do_constraint_channels(&pchan->constraints, &achan->constraintChannels, ctime);
+			/* 0 = do all ipos, not only drivers */
+			do_constraint_channels(&pchan->constraints, &achan->constraintChannels, ctime, 0);
 		}
 	}
 	
