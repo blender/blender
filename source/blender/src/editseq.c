@@ -2697,7 +2697,8 @@ void transform_seq(int mode, int context)
 					/* Extend, Similar to grab but operate on one side of the cursor */
 					WHILE_SEQ(ed->seqbasep) {
 						if(seq->flag & SELECT) {
-							if (sequence_is_free_transformable(seq)) {
+							/* only move the contents of the metastrip otherwise the transformation is applied twice */
+							if (sequence_is_free_transformable(seq) && seq->type != SEQ_META) {
 								
 								move_left = move_right = 0;
 								
