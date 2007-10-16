@@ -423,6 +423,8 @@ static void viewRedrawForce(TransInfo *t)
 				force_draw_plus(SPACE_VIEW3D, 0);
 			else if (G.sipo->blocktype==ID_OB) 
 				force_draw_plus(SPACE_VIEW3D, 0);
+			else if (G.sipo->blocktype==ID_SEQ) 
+				force_draw_plus(SPACE_SEQ, 0);
 			else 
 				force_draw(0);
 		}

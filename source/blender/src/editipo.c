@@ -4266,7 +4266,7 @@ void set_speed_editipo(float speed)
 	EditIpo *ei;
 	BezTriple *bezt, *beztar[3];
 	float vec1[3], vec2[3];
-	int a, b, totvert, didit=0;
+	int a, b, totvert, didit=0, done_error = 0;
 		
 	if(G.sipo->ipo && G.sipo->ipo->id.lib) return;
 
@@ -4315,7 +4315,10 @@ void set_speed_editipo(float speed)
 						didit= 1;
 					}
 					else {
-						error("Only works for 3 visible curves with handles");
+						if (done_error==0) {
+							error("Only works for 3 visible curves with handles");
+						}
+						done_error = 1;
 					}
 				}
 			}
