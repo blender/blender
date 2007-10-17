@@ -133,7 +133,7 @@ static void draw_cfra_time(SpaceTime *stime)
 	
 }
 
-static void draw_marker(TimeMarker *marker)
+static void draw_marker(TimeMarker *marker, int lines)
 {
 	float xpos, ypixels, xscale, yscale;
 
@@ -145,9 +145,24 @@ static void draw_marker(TimeMarker *marker)
 	yscale = (G.v2d->mask.ymax-G.v2d->mask.ymin)/(G.v2d->cur.ymax-G.v2d->cur.ymin);
 
 	glScalef( 1.0/xscale, 1.0/yscale, 1.0);
-
+	
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);			
+	
+	/* verticle line */
+	if (lines) {
+		setlinestyle(3);
+		if(marker->flag & SELECT)
+			glColor4ub(255,255,255, 96);
+		else
+			glColor4ub(0,0,0, 96);
+		
+		glBegin(GL_LINES);
+		glVertex2f((xpos*xscale)+0.5, 12);
+		glVertex2f((xpos*xscale)+0.5, 34*yscale); /* a bit lazy but we know it cant be greater then 34 strips high*/
+		glEnd();
+		setlinestyle(0);
+	}
 	
 	/* 5 px to offset icon to align properly, space / pixels corrects for zoom */
 	if(marker->flag & SELECT)
@@ -176,24 +191,24 @@ static void draw_marker(TimeMarker *marker)
 	glScalef(xscale, yscale, 1.0);
 }
 
-static void draw_markers_time(void)
+static void draw_markers_time(int lines)
 {
 	TimeMarker *marker;
 
 	/* unselected markers are drawn at the first time */
 	for(marker= G.scene->markers.first; marker; marker= marker->next) {
-		if(!(marker->flag & SELECT)) draw_marker(marker);
+		if(!(marker->flag & SELECT)) draw_marker(marker, lines);
 	}
 
 	/* selected markers are drawn later ... selected markers have to cover unselected
 	 * markers laying at the same position as selected markers
 	 * (jiri: it is hack, it could be solved better) */
 	for(marker= G.scene->markers.first; marker; marker= marker->next) {
-		if(marker->flag & SELECT) draw_marker(marker);
+		if(marker->flag & SELECT) draw_marker(marker, lines);
 	}
 }
 
-void draw_markers_timespace()
+void draw_markers_timespace(int lines)
 {
 	TimeMarker *marker;
 	float yspace, ypixels;
@@ -208,13 +223,13 @@ void draw_markers_timespace()
 		
 	/* unselected markers are drawn at the first time */
 	for(marker= G.scene->markers.first; marker; marker= marker->next) {
-		if(!(marker->flag & SELECT)) draw_marker(marker);
+		if(!(marker->flag & SELECT)) draw_marker(marker, lines);
 	}
 	
 	/* selected markers are drawn later ... selected markers have to cover unselected
 		* markers laying at the same position as selected markers */
 	for(marker= G.scene->markers.first; marker; marker= marker->next) {
-		if(marker->flag & SELECT) draw_marker(marker);
+		if(marker->flag & SELECT) draw_marker(marker, lines);
 	}
 
 	glTranslatef(0.0f, -G.v2d->cur.ymin, 0.0f);
@@ -386,7 +401,7 @@ void drawtimespace(ScrArea *sa, void *spacedata)
 
 	draw_cfra_time(spacedata);
 	draw_ob_keys();
-	draw_markers_time();
+	draw_markers_time(0);
 
 	/* restore viewport */
 	mywinset(curarea->win);

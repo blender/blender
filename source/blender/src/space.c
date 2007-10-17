@@ -4506,12 +4506,17 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 			
 		case AKEY:
-			if(sseq->mainb) break;
-			if((G.qual==LR_SHIFTKEY)) {
-				add_sequence(-1);
+			if (G.qual == LR_CTRLKEY) {
+				deselect_markers(1, 0);
+				allqueue(REDRAWMARKER, 0);
+			} else {
+				if(sseq->mainb) break;
+				if((G.qual==LR_SHIFTKEY)) {
+					add_sequence(-1);
+				} else if((G.qual==0)) {
+					swap_select_seq();
+				}
 			}
-			else if((G.qual==0))
-				swap_select_seq();
 			break;
 		case SPACEKEY:
 			if (G.qual==0) {

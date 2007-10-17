@@ -219,7 +219,7 @@ void drawsoundspace(ScrArea *sa, void *spacedata)
 	}
 	
 	draw_cfra_sound(spacedata);
-	draw_markers_timespace();
+	draw_markers_timespace(0);
 
 	/* restore viewport */
 	mywinset(curarea->win);

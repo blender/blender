@@ -621,6 +621,7 @@ typedef struct SpaceImaSel {
 
 /* sseq->flag */
 #define SEQ_DRAWFRAMES  1
+#define SEQ_MARKER_TRANS 2
 
 /* space types, moved from DNA_screen_types.h */
 enum {

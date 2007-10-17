@@ -76,6 +76,7 @@
 #include "BSE_seqeffects.h"
 #include "BSE_seqscopes.h"
 #include "BSE_seqaudio.h"
+#include "BSE_time.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -883,7 +884,7 @@ static void draw_extra_seqinfo(void)
 
 	yfac= G.v2d->cur.ymax - G.v2d->cur.ymin;
 	yfac/= (float)(G.v2d->mask.ymax-G.v2d->mask.ymin);
-	yco= G.v2d->cur.ymin+10*yfac;
+	yco= G.v2d->cur.ymin+40*yfac;
 	
 	BIF_ThemeColor(TH_TEXT_HI);
 
@@ -1230,10 +1231,10 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 			uiDefButI(block, ROW, SEQ_BUT_EFFECT, "Percent", 10, 30, 150, 19, &transform->percent, 0.0, 1.0, 0.0, 0.0, "Percent Translate");
 			uiDefButI(block, ROW, SEQ_BUT_EFFECT, "Pixels", 160, 30, 150, 19, &transform->percent, 0.0, 0.0, 0.0, 0.0, "Pixels Translate");
 			if(transform->percent==1){
-				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "x Start:", 	10,10,150,19, &transform->xIni, -100.0, 100.0, 0, 0, "X Position Start");
-				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "x End:", 	160,10,150,19, &transform->xFin, -100.0, 100.0, 0, 0, "X Position End");
-				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "y Start:", 	10,-10,150,19, &transform->yIni, -100.0, 100.0, 0, 0, "Y Position Start");
-				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "y End:", 	160,-10,150,19, &transform->yFin, -100.0, 100.0, 0, 0, "Y Position End");
+				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "x Start:", 	10,10,150,19, &transform->xIni, -500.0, 500.0, 0, 0, "X Position Start");
+				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "x End:", 	160,10,150,19, &transform->xFin, -500.0, 500.0, 0, 0, "X Position End");
+				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "y Start:", 	10,-10,150,19, &transform->yIni, -500.0, 500.0, 0, 0, "Y Position Start");
+				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "y End:", 	160,-10,150,19, &transform->yFin, -500.0, 500.0, 0, 0, "Y Position End");
 			}else{
 				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "x Start:", 	10,10,150,19, &transform->xIni, -10000.0, 10000.0, 0, 0, "X Position Start");
 				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "x End:", 	160,10,150,19, &transform->xFin, -10000.0, 10000.0, 0, 0, "X Position End");
@@ -1444,7 +1445,7 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 	draw_extra_seqinfo();
 
 	/* Draw markers */
-	draw_markers_timespace();
+	draw_markers_timespace(1);
 	
 	/* restore viewport */
 	mywinset(sa->win);

@@ -138,12 +138,12 @@ static uiBlock *seq_viewmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "View Selected|NumPad .", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
-
+	
        /* Lock Time */
        uiDefIconTextBut(block, BUTM, 1, (G.v2d->flag & V2D_VIEWLOCK)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT,
 			"Lock Time to Other Windows|", 0, yco-=20, 
 			menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
-
+	
        /* Draw time or frames.*/
        uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
@@ -509,6 +509,8 @@ static uiBlock *seq_editmenu(void *arg_unused)
 
 static void do_seq_markermenu(void *arg, int event)
 {	
+	SpaceSeq *sseq= curarea->spacedata.first;
+	
 	switch(event)
 	{
 		case 1:
@@ -526,6 +528,10 @@ static void do_seq_markermenu(void *arg, int event)
 		case 5:
 			transform_markers('g', 0);
 			break;
+		case 6:
+			sseq->flag ^= SEQ_MARKER_TRANS;
+			break;
+
 	}
 	
 	allqueue(REDRAWMARKER, 0);
@@ -535,6 +541,8 @@ static uiBlock *seq_markermenu(void *arg_unused)
 {
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
+	
+	SpaceSeq *sseq= curarea->spacedata.first;
 
 	block= uiNewBlock(&curarea->uiblocks, "ipo_markermenu", 
 					   UI_EMBOSSP, UI_HELV, curarea->headwin);
@@ -554,10 +562,15 @@ static uiBlock *seq_markermenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move Marker|Ctrl G", 0, yco-=20,
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 	
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, (sseq->flag & SEQ_MARKER_TRANS)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT,
+					 "Transform Markers", 0, yco-=20, 
+	  				menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
-	}
-	else {
+	} else {
 		uiBlockSetDirection(block, UI_TOP);
 		uiBlockFlipOrder(block);
 	}
@@ -693,6 +706,8 @@ void seq_buttons()
 	uiDefIconBut(block, BUT, B_IPOBORDER, ICON_BORDERMOVE,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms view to fit area");
 	uiBlockEndAlign(block);
 
+	/* CLEAR MEM */
+	xco+= 8;
 
 	/* CLEAR MEM */
 	xco+= 8;

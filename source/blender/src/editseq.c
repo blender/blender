@@ -2625,6 +2625,7 @@ static void transform_grab_xlimits(Sequence *seq, int leftflag, int rightflag)
 
 void transform_seq(int mode, int context)
 {
+	SpaceSeq *sseq= curarea->spacedata.first;
 	Sequence *seq;
 	Editing *ed;
 	float dx, dy, dvec[2], div;
@@ -2635,6 +2636,11 @@ void transform_seq(int mode, int context)
 	short mval[2], val, xo, yo, xn, yn;
 	char str[32];
 	char side; /* for extend mode only - use to know which side to extend on */
+	
+	/* for markers */
+	int *oldframe, totmark, a;
+	TimeMarker *marker;
+			
 	
 	if(mode!='g' && mode!='e') return;	/* from gesture */
 
@@ -2672,7 +2678,7 @@ void transform_seq(int mode, int context)
 		}
 	}
 	END_SEQ
-
+			
 	getmouseco_areawin(mval);
 	
 	/* choose the side based on which side of the playhead the mouse is on */
@@ -2680,6 +2686,31 @@ void transform_seq(int mode, int context)
 		float xmouse, ymouse;
 		areamouseco_to_ipoco(G.v2d, mval, &xmouse, &ymouse);
 		side = (xmouse > CFRA) ? 'R' : 'L';
+	}
+	
+	/* Markers */
+	if (sseq->flag & SEQ_MARKER_TRANS) {
+		for(marker= G.scene->markers.first; marker; marker= marker->next) {
+			if(marker->flag & SELECT) totmark++;
+		}
+		
+		oldframe= MEM_mallocN(totmark*sizeof(int), "marker array");
+		for(a=0, marker= G.scene->markers.first; marker; marker= marker->next) {
+			if(marker->flag & SELECT) {
+				if (mode=='e') {
+					
+					/* when extending, invalidate markers on the other side by using an invalid frame value */
+					if ((side == 'L' && marker->frame > CFRA) || (side == 'R' && marker->frame < CFRA)) {
+						oldframe[a] = MAXFRAME+1;
+					} else {
+						oldframe[a]= marker->frame;
+					}
+				} else {
+					oldframe[a]= marker->frame;
+				}
+				a++;
+			}
+		}
 	}
 	
 	xo=xn= mval[0];
@@ -2747,6 +2778,16 @@ void transform_seq(int mode, int context)
 						}
 					}
 					END_SEQ
+					
+					/* Markers */
+					if (sseq->flag & SEQ_MARKER_TRANS) {
+						for(a=0, marker= G.scene->markers.first; marker; marker= marker->next) {
+							if(marker->flag & SELECT) {
+								marker->frame= oldframe[a] + ix;
+								a++;
+							}
+						}
+					}
 				/* Extend, grabs one side of the current frame */
 				} else if (mode=='e') {
 					int cfra = CFRA;
@@ -2840,6 +2881,16 @@ void transform_seq(int mode, int context)
 						}
 					}
 					END_SEQ
+					
+					/* markers */
+					if (sseq->flag & SEQ_MARKER_TRANS) {
+						for(a=0, marker= G.scene->markers.first; marker; marker= marker->next) {
+							if(marker->flag & SELECT && (oldframe[a] != MAXFRAME+1)) {
+								marker->frame= oldframe[a] + ix;
+							}
+							a++;
+						}
+					}
 				}
 				
 				sprintf(str, "X: %d   Y: %d  ", ix, iy);
@@ -2919,9 +2970,19 @@ void transform_seq(int mode, int context)
 				else if(seq->seq2 && seq->seq2->flag & SELECT) calc_sequence(seq);
 				else if(seq->seq3 && seq->seq3->flag & SELECT) calc_sequence(seq);
 			}
-
 		}
 		END_SEQ
+				
+				
+		/* Markers */
+		if (sseq->flag & SEQ_MARKER_TRANS) {
+			for(a=0, marker= G.scene->markers.first; marker; marker= marker->next) {
+				if(marker->flag & SELECT && (oldframe[a] != MAXFRAME+1)) {
+					marker->frame= oldframe[a];
+				}
+				a++;
+			}
+		}		
 	} else {
 
 		/* images, effects and overlap */
@@ -2952,6 +3013,9 @@ void transform_seq(int mode, int context)
 
 	G.moving= 0;
 	MEM_freeN(transmain);
+	
+	if (sseq->flag & SEQ_MARKER_TRANS)
+		MEM_freeN(transmain);
 	
 	if (mode=='g')
 		BIF_undo_push("Transform Grab, Sequencer");

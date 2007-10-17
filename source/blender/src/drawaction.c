@@ -928,7 +928,7 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 	draw_cfra_action();
 	
 	/* Draw markers */
-	draw_markers_timespace();
+	draw_markers_timespace(0);
 	
 	/* Draw 'curtains' for preview */
 	draw_anim_preview_timespace();
