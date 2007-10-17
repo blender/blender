@@ -411,7 +411,7 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan, int rest)
 	Mat4 *result_array= (rest)? bbone_rest_array: bbone_array;
 	bPoseChannel *next, *prev;
 	Bone *bone= pchan->bone;
-	float h1[3], h2[3], length, hlength1, hlength2, roll;
+	float h1[3], h2[3], length, hlength1, hlength2, roll1, roll2;
 	float mat3[3][3], imat[4][4];
 	float data[MAX_BBONE_SUBDIV+1][4], *fp;
 	int a;
@@ -438,19 +438,43 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan, int rest)
 		Mat4Invert(imat, pchan->pose_mat);
 	
 	if(prev) {
+		float difmat[4][4], result[3][3], imat3[3][3];
+
 		/* transform previous point inside this bone space */
 		if(rest)
 			VECCOPY(h1, prev->bone->arm_head)
 		else
 			VECCOPY(h1, prev->pose_head)
 		Mat4MulVecfl(imat, h1);
-		/* if previous bone is B-bone too, use average handle direction */
-		if(prev->bone->segments>1) h1[1]-= length;
+
+		if(prev->bone->segments>1) {
+			/* if previous bone is B-bone too, use average handle direction */
+			h1[1]-= length;
+			roll1= 0.0f;
+		}
+
 		Normalize(h1);
 		VecMulf(h1, -hlength1);
+
+		if(prev->bone->segments==1) {
+			/* find the previous roll to interpolate */
+			if(rest)
+				Mat4MulMat4(difmat, prev->bone->arm_mat, imat);
+			else
+				Mat4MulMat4(difmat, prev->pose_mat, imat);
+			Mat3CpyMat4(result, difmat);				// the desired rotation at beginning of next bone
+			
+			vec_roll_to_mat3(h1, 0.0f, mat3);			// the result of vec_roll without roll
+			
+			Mat3Inv(imat3, mat3);
+			Mat3MulMat3(mat3, result, imat3);			// the matrix transforming vec_roll to desired roll
+			
+			roll1= atan2(mat3[2][0], mat3[2][2]);
+		}
 	}
 	else {
 		h1[0]= 0.0f; h1[1]= hlength1; h1[2]= 0.0f;
+		roll1= 0.0f;
 	}
 	if(next) {
 		float difmat[4][4], result[3][3], imat3[3][3];
@@ -464,6 +488,7 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan, int rest)
 		/* if next bone is B-bone too, use average handle direction */
 		if(next->bone->segments>1);
 		else h2[1]-= length;
+		Normalize(h2);
 		
 		/* find the next roll to interpolate as well */
 		if(rest)
@@ -477,18 +502,16 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan, int rest)
 		Mat3Inv(imat3, mat3);
 		Mat3MulMat3(mat3, imat3, result);			// the matrix transforming vec_roll to desired roll
 		
-		roll= atan2(mat3[2][0], mat3[2][2]);
+		roll2= atan2(mat3[2][0], mat3[2][2]);
 		
 		/* and only now negate handle */
-		Normalize(h2);
 		VecMulf(h2, -hlength2);
-		
 	}
 	else {
 		h2[0]= 0.0f; h2[1]= -hlength2; h2[2]= 0.0f;
-		roll= 0.0;
+		roll2= 0.0;
 	}
-	
+
 	/* make curve */
 	if(bone->segments > MAX_BBONE_SUBDIV)
 		bone->segments= MAX_BBONE_SUBDIV;
@@ -496,7 +519,7 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan, int rest)
 	forward_diff_bezier(0.0, h1[0],		h2[0],			0.0,		data[0],	MAX_BBONE_SUBDIV, 4);
 	forward_diff_bezier(0.0, h1[1],		length + h2[1],	length,		data[0]+1,	MAX_BBONE_SUBDIV, 4);
 	forward_diff_bezier(0.0, h1[2],		h2[2],			0.0,		data[0]+2,	MAX_BBONE_SUBDIV, 4);
-	forward_diff_bezier(0.0, 0.390464f*roll, (1.0f-0.390464f)*roll,	roll,	data[0]+3,	MAX_BBONE_SUBDIV, 4);
+	forward_diff_bezier(roll1, roll1 + 0.390464f*(roll2-roll1), roll2 - 0.390464f*(roll2-roll1),	roll2,	data[0]+3,	MAX_BBONE_SUBDIV, 4);
 	
 	equalize_bezier(data[0], bone->segments);	// note: does stride 4!
 	
