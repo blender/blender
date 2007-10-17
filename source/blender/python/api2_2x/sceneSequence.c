@@ -587,23 +587,7 @@ static PyObject *getIntAttr( BPy_Sequence *self, void *type )
 /* internal functions for recursivly updating metastrip locatons */
 static void intern_pos_update(Sequence * seq) {
 	/* update startdisp and enddisp */
-	if(seq->startofs && seq->startstill) seq->startstill= 0;
-	if(seq->endofs && seq->endstill) seq->endstill= 0;
-
-	seq->startdisp= seq->start + seq->startofs - seq->startstill;
-	seq->enddisp= seq->start+seq->len - seq->endofs + seq->endstill;
-
-	seq->handsize= 10.0;	/* 10 frames */
-	if( seq->enddisp-seq->startdisp < 20 ) {
-		seq->handsize= (float)(0.5*(seq->enddisp-seq->startdisp));
-	}
-	else if(seq->enddisp-seq->startdisp > 250) {
-		seq->handsize= (float)((seq->enddisp-seq->startdisp)/25);
-	}
-	
-	/* original Cambo code; replaced with c&p from function in blenkernel/sequence.c 
-	seq->startdisp = seq->start + seq->startofs - seq->startstill;
-	seq->enddisp = ((seq->start + seq->len) - seq->endofs )+ seq->endstill; */
+	calc_sequence_disp(seq);
 }
 
 void intern_recursive_pos_update(Sequence * seq, int offset) {
