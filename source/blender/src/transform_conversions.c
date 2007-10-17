@@ -2738,7 +2738,7 @@ void special_aftertrans_update(TransInfo *t)
 {
 	Object *ob;
 	Base *base;
-	int redrawipo=0;
+	short redrawipo=0, resetslowpar=1;
 	int cancelled= (t->state == TRANS_CANCEL);
 		
 	if(t->spacetype == SPACE_ACTION) {
@@ -2783,12 +2783,19 @@ void special_aftertrans_update(TransInfo *t)
 	}
 	else if(t->spacetype == SPACE_NLA) {
 		synchronize_action_strips();
-	
+		
 		/* cleanup */
 		for (base=G.scene->base.first; base; base=base->next)
 			base->flag &= ~(BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA);
 		
 		recalc_all_ipos();	// bad
+	}
+	else if(t->spacetype == SPACE_IPO) {
+		// FIXME! is there any code from the old transform_ipo that needs to be added back? 
+		
+		/* resetting slow-parents isn't really necessary when editing sequence ipo's */
+		if (G.sipo->blocktype==ID_SEQ)
+			resetslowpar= 0;
 	}
 	else if(G.obedit) {
 		if(t->mode==TFM_BONESIZE || t->mode==TFM_BONE_ENVELOPE)
@@ -2839,7 +2846,7 @@ void special_aftertrans_update(TransInfo *t)
 		
 		if(t->mode==TFM_BONESIZE || t->mode==TFM_BONE_ENVELOPE)
 			allqueue(REDRAWBUTSEDIT, 0);
-
+		
 	}
 	else {
 		base= FIRSTBASE;
@@ -2869,7 +2876,8 @@ void special_aftertrans_update(TransInfo *t)
 		allqueue(REDRAWIPO, 0);
 	}
 	
-	reset_slowparents();
+	if(resetslowpar)
+		reset_slowparents();
 	
 	/* note; should actually only be done for all objects when a lamp is moved... (ton) */
 	if(t->spacetype==SPACE_VIEW3D && G.vd->drawtype == OB_SHADED)
