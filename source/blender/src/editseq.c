@@ -191,6 +191,33 @@ void seq_tx_set_final_right(Sequence *seq, int val)
 	}
 }
 
+/* check if one side can be transformed */
+int seq_tx_check_left(Sequence *seq)
+{
+	if (seq->flag & SELECT) {
+		if (seq->flag & SEQ_LEFTSEL)
+			return 1;
+		else if (seq->flag & SEQ_RIGHTSEL)
+			return 0;
+		
+		return 1; /* selected and neither left or right handles are, so let us move both */
+	}
+	return 0;
+}
+
+int seq_tx_check_right(Sequence *seq)
+{
+	if (seq->flag & SELECT) {
+		if (seq->flag & SEQ_RIGHTSEL)
+			return 1;
+		else if (seq->flag & SEQ_LEFTSEL)
+			return 0;
+		
+		return 1; /* selected and neither left or right handles are, so let us move both */
+	}
+	return 0;
+}
+
 /* used so we can do a quick check for single image seq
    since they work a bit differently to normal image seq's (during transform) */
 int check_single_image_seq(Sequence *seq)
@@ -2569,6 +2596,18 @@ void enter_meta(void)
 
 /* ****************** END META ************************* */
 
+static int seq_get_snaplimit(void)
+{
+	/* fake mouse coords to get the snap value
+	a bit lazy but its only done once pre transform */
+	float xmouse, ymouse, x;
+	short mval[2] = {24, 0}; /* 24 screen px snap */
+	areamouseco_to_ipoco(G.v2d, mval, &xmouse, &ymouse);
+	x = xmouse;
+	mval[0] = 0;
+	areamouseco_to_ipoco(G.v2d, mval, &xmouse, &ymouse);
+	return (int)(x - xmouse);
+}
 
 typedef struct TransSeq {
 	int start, machine;
@@ -2626,21 +2665,33 @@ static void transform_grab_xlimits(Sequence *seq, int leftflag, int rightflag)
 void transform_seq(int mode, int context)
 {
 	SpaceSeq *sseq= curarea->spacedata.first;
-	Sequence *seq;
+	Sequence *seq, *last_seq;
 	Editing *ed;
 	float dx, dy, dvec[2], div;
 	TransSeq *transmain, *ts;
 	int tot=0, firsttime=1, afbreek=0, midtog= 0, proj= 0;
 	int ix, iy; /* these values are used for storing the mouses offset from its original location */
+	int ix_old = 0;
 	unsigned short event = 0;
 	short mval[2], val, xo, yo, xn, yn;
 	char str[32];
 	char side; /* for extend mode only - use to know which side to extend on */
 	
+	/* used for extend in a number of places */
+	int cfra = CFRA;
+	
+	/* for snapping */
+	char snapskip = 0, snap, snap_old;
+	int snapdist_max = seq_get_snaplimit();
+	/* at the moment there are only 4 possible snap points,
+	last_seq start,end and selected bounds start/end */
+	int snap_points[4], snap_point_num = 0;
+	int j; /* loop on snap_points */
+	
 	/* for markers */
 	int *oldframe, totmark, a;
 	TimeMarker *marker;
-			
+	
 	
 	if(mode!='g' && mode!='e') return;	/* from gesture */
 
@@ -2656,7 +2707,9 @@ void transform_seq(int mode, int context)
 	if(tot==0) return;
 
 	G.moving= 1;
-
+	
+	last_seq = get_last_seq();
+	
 	ts=transmain= MEM_callocN(tot*sizeof(TransSeq), "transseq");
 
 	WHILE_SEQ(ed->seqbasep) {
@@ -2685,7 +2738,7 @@ void transform_seq(int mode, int context)
 	if (mode=='e') {
 		float xmouse, ymouse;
 		areamouseco_to_ipoco(G.v2d, mval, &xmouse, &ymouse);
-		side = (xmouse > CFRA) ? 'R' : 'L';
+		side = (xmouse > cfra) ? 'R' : 'L';
 	}
 	
 	/* Markers */
@@ -2700,7 +2753,7 @@ void transform_seq(int mode, int context)
 				if (mode=='e') {
 					
 					/* when extending, invalidate markers on the other side by using an invalid frame value */
-					if ((side == 'L' && marker->frame > CFRA) || (side == 'R' && marker->frame < CFRA)) {
+					if ((side == 'L' && marker->frame > cfra) || (side == 'R' && marker->frame < cfra)) {
 						oldframe[a] = MAXFRAME+1;
 					} else {
 						oldframe[a]= marker->frame;
@@ -2719,189 +2772,277 @@ void transform_seq(int mode, int context)
 
 	while(afbreek==0) {
 		getmouseco_areawin(mval);
-		if(mval[0]!=xo || mval[1]!=yo || firsttime) {
-			firsttime= 0;
+		G.qual = get_qual();
+		snap = (G.qual & LR_CTRLKEY) ? 1 : 0;
+		
+		if(mval[0]!=xo || mval[1]!=yo || firsttime || snap != snap_old) {
+			if (firsttime) {
+				snap_old = snap;
+				firsttime= 0;
+			}
+			
+			/* run for either grab or extend */
+			dx= mval[0]- xo;
+			dy= mval[1]- yo;
 
-			if(mode=='g' || mode=='e') {
+			div= G.v2d->mask.xmax-G.v2d->mask.xmin;
+			dx= (G.v2d->cur.xmax-G.v2d->cur.xmin)*(dx)/div;
 
-				dx= mval[0]- xo;
-				dy= mval[1]- yo;
+			div= G.v2d->mask.ymax-G.v2d->mask.ymin;
+			dy= (G.v2d->cur.ymax-G.v2d->cur.ymin)*(dy)/div;
 
-				div= G.v2d->mask.xmax-G.v2d->mask.xmin;
-				dx= (G.v2d->cur.xmax-G.v2d->cur.xmin)*(dx)/div;
+			if(G.qual & LR_SHIFTKEY) {
+				if(dx>1.0) dx= 1.0; else if(dx<-1.0) dx= -1.0;
+			}
 
-				div= G.v2d->mask.ymax-G.v2d->mask.ymin;
-				dy= (G.v2d->cur.ymax-G.v2d->cur.ymin)*(dy)/div;
+			dvec[0]+= dx;
+			dvec[1]+= dy;
 
-				if(G.qual & LR_SHIFTKEY) {
-					if(dx>1.0) dx= 1.0; else if(dx<-1.0) dx= -1.0;
+			if(midtog) dvec[proj]= 0.0;
+			ix= floor(dvec[0]+0.5);
+			iy= floor(dvec[1]+0.5);
+			
+			ts= transmain;
+			
+			/* SNAP! use the active Seq */
+			snap = G.qual & LR_CTRLKEY ? 1 : 0;
+			
+			if (!snap) {
+				snapskip = 0;
+			} else {
+				int dist;
+				int snap_ofs;
+				int snap_dist= snapdist_max;
+				
+				/* Get sequence points to snap to the markers */
+				
+				snap_point_num=0;
+				if (last_seq && (last_seq->flag & SELECT)) { /* active seq bounds */
+					if(seq_tx_check_left(last_seq))
+						snap_points[snap_point_num++] = seq_tx_get_final_left(last_seq);
+					if(seq_tx_check_right(last_seq))
+						snap_points[snap_point_num++] = seq_tx_get_final_right(last_seq);
 				}
-
-				dvec[0]+= dx;
-				dvec[1]+= dy;
-
-				if(midtog) dvec[proj]= 0.0;
-				ix= floor(dvec[0]+0.5);
-				iy= floor(dvec[1]+0.5);
-				
-				ts= transmain;
-				
-				if (mode=='g') {
-					/* Grab */
+				if (tot > 1) { /* selection bounds */
+					int bounds_left = MAXFRAME*2;
+					int bounds_right = -(MAXFRAME*2);
+					
 					WHILE_SEQ(ed->seqbasep) {
 						if(seq->flag & SELECT) {
-							int myofs;
-							// SEQ_DEBUG_INFO(seq);
-							
-							/* X Transformation */
-							if(seq->flag & SEQ_LEFTSEL) {
-								myofs = (ts->startofs - ts->startstill);
-								seq_tx_set_final_left(seq, ts->start + (myofs + ix));
-							}
-							if(seq->flag & SEQ_RIGHTSEL) {
-								myofs = (ts->endstill - ts->endofs);
-								seq_tx_set_final_right(seq, ts->start + seq->len + (myofs + ix));
-							}
-							transform_grab_xlimits(seq, seq->flag & SEQ_LEFTSEL, seq->flag & SEQ_RIGHTSEL);
-							
-							if( (seq->flag & (SEQ_LEFTSEL+SEQ_RIGHTSEL))==0 ) {
-								if(sequence_is_free_transformable(seq)) seq->start= ts->start+ ix;
-	
-								/* Y Transformation */
-								if(seq->depth==0) seq->machine= ts->machine+ iy;
-	
-								if(seq->machine<1) seq->machine= 1;
-								else if(seq->machine>= MAXSEQ) seq->machine= MAXSEQ;
-							}
-							calc_sequence(seq);
-							ts++;
+							if(seq_tx_check_left(seq))
+								bounds_left		= MIN2(bounds_left,	seq_tx_get_final_left(seq));
+							if(seq_tx_check_right(seq))
+								bounds_right	= MAX2(bounds_right,seq_tx_get_final_right(seq));
 						}
 					}
 					END_SEQ
 					
-					/* Markers */
-					if (sseq->flag & SEQ_MARKER_TRANS) {
-						for(a=0, marker= G.scene->markers.first; marker; marker= marker->next) {
-							if(marker->flag & SELECT) {
-								marker->frame= oldframe[a] + ix;
-								a++;
+					/* its possible there were no points to set on either side */
+					if (bounds_left != MAXFRAME*2)
+						snap_points[snap_point_num++] = bounds_left;
+					if (bounds_right != -(MAXFRAME*2))
+						snap_points[snap_point_num++] = bounds_right;
+				}
+				
+				/* Detect the best marker to snap to! */
+				for(a=0, marker= G.scene->markers.first; marker; a++, marker= marker->next) {
+					
+					/* dont snap to a marker on the wrong extend side */
+					if (mode=='e' && ((side == 'L' && marker->frame > cfra) || (side == 'R' && marker->frame < cfra)))
+						continue;
+					
+					/* when we are moving markers, dont snap to selected markers, durr */
+					if ((sseq->flag & SEQ_MARKER_TRANS)==0 || (marker->flag & SELECT)==0) {
+						
+						/* loop over the sticky points - max 4 */
+						for(j=0; j<snap_point_num; j++) {
+							/* see if this beats the current best snap point */
+							dist = abs(snap_points[j] - marker->frame);
+							if (dist < snap_dist) {
+								snap_ofs = marker->frame - snap_points[j];
+								snap_dist = dist;
 							}
 						}
+						if (snap_dist == 0) break; /* alredy snapped? - stop looking */
 					}
-				/* Extend, grabs one side of the current frame */
-				} else if (mode=='e') {
-					int cfra = CFRA;
-					int myofs; /* offset from start of the seq clip */
-					int xnew, final_left, final_right; /* just to store results from seq_tx_get_final_left/right */
-					
-					/* we dont use seq side selection flags for this,
-					instead we need to calculate which sides to move
-					based on its initial position from the cursor */
-					int move_left, move_right;
-					
-					/* Extend, Similar to grab but operate on one side of the cursor */
-					WHILE_SEQ(ed->seqbasep) {
-						if(seq->flag & SELECT) {
-							/* only move the contents of the metastrip otherwise the transformation is applied twice */
-							if (sequence_is_free_transformable(seq) && seq->type != SEQ_META) {
-								
-								move_left = move_right = 0;
-								
-								//SEQ_DEBUG_INFO(seq);
-								
-								final_left =	seq_tx_get_final_left(seq);
-								final_right =	seq_tx_get_final_right(seq);
-								
-								/* Only X Axis moving */
-								
-								/* work out which sides to move first */
-								if (side=='L') {
-									if (final_left <= cfra || ts->final_left <= cfra)	move_left = 1;
-									if (final_right <= cfra || ts->final_right <= cfra)	move_right = 1;
-								} else {
-									if (final_left >= cfra || ts->final_left >= cfra)	move_left = 1;
-									if (final_right >= cfra || ts->final_right >= cfra)	move_right = 1;
-								}
-								
-								if (move_left && move_right) {
-									/* simple move - dont need to do anything complicated */
-									seq->start= ts->start+ ix;
-								} else {
-									if (side=='L') {
-										if (move_left) {
-											
-											/* Similar to other funcs */
-											myofs = (ts->startofs - ts->startstill);
-											xnew = ts->start + (ix + myofs);
-											
-											/* make sure the we dont resize down to 0 or less in size
-											also include the startstill so the contense dosnt go outside the bounds, 
-											if the seq->startofs is 0 then its ignored */
-											
-											/* TODO remove, add check to transform_grab_xlimits, works ok for now */
-											if (xnew + seq->startstill > final_right-1) {
-												xnew = (final_right-1) - seq->startstill;
-											}
-											/* Note, this is the only case where the start needs to be adjusted
-											since its not needed when modifying the end or when moving the entire sequence  */
-											//seq->start = ts->start+ix;   // This works when xnew is not clamped, line below takes clamping into account
-											seq->start= xnew - myofs;  /* TODO see above */
-											/* done with unique stuff */
-											
-											seq_tx_set_final_left(seq, xnew);
-											transform_grab_xlimits(seq, 1, 0);
-											
-											/* Special case again - setting the end back to what it was */
-											seq_tx_set_final_right(seq, final_right);
-										}
-										if (move_right) {
-											myofs = (ts->endstill - ts->endofs);
-											xnew = ts->start + seq->len + (myofs + ix);
-											seq_tx_set_final_right(seq, xnew);
-											transform_grab_xlimits(seq, 0, 1);
-										}
-									} else { /* R */
-										if (move_left) {
-											myofs = (ts->startofs - ts->startstill);
-											xnew = ts->start + (myofs + ix);
-											seq_tx_set_final_left(seq, xnew);
-											transform_grab_xlimits(seq, 1, 0);
-										}
-										if (move_right) {
-											myofs = (ts->endstill - ts->endofs);
-											xnew = ts->start + seq->len + (myofs + ix);
-											seq_tx_set_final_right(seq, xnew);
-											transform_grab_xlimits(seq, 0, 1);
-										}
-									}
-								}
-							}
-							calc_sequence(seq);
-							ts++;
+				}
+				
+				if (abs(ix_old-ix) >= snapdist_max) {
+					/* mouse has moved out of snap range */
+					snapskip = 0;
+				} else if (snap_dist==0) {
+					/* nowhere to move, dont do anything */
+					snapskip = 1;
+				} else if (snap_dist < snapdist_max) {
+					/* do the snapping by adjusting the mouse offset value */
+					ix = ix_old + snap_ofs;
+				}
+			}
+			
+			if (mode=='g' && !snapskip) {
+				/* Grab */
+				WHILE_SEQ(ed->seqbasep) {
+					if(seq->flag & SELECT) {
+						int myofs;
+						// SEQ_DEBUG_INFO(seq);
+						
+						/* X Transformation */
+						if(seq->flag & SEQ_LEFTSEL) {
+							myofs = (ts->startofs - ts->startstill);
+							seq_tx_set_final_left(seq, ts->start + (myofs + ix));
 						}
+						if(seq->flag & SEQ_RIGHTSEL) {
+							myofs = (ts->endstill - ts->endofs);
+							seq_tx_set_final_right(seq, ts->start + seq->len + (myofs + ix));
+						}
+						transform_grab_xlimits(seq, seq->flag & SEQ_LEFTSEL, seq->flag & SEQ_RIGHTSEL);
+						
+						if( (seq->flag & (SEQ_LEFTSEL+SEQ_RIGHTSEL))==0 ) {
+							if(sequence_is_free_transformable(seq)) seq->start= ts->start+ ix;
+
+							/* Y Transformation */
+							if(seq->depth==0) seq->machine= ts->machine+ iy;
+
+							if(seq->machine<1) seq->machine= 1;
+							else if(seq->machine>= MAXSEQ) seq->machine= MAXSEQ;
+						}
+						calc_sequence(seq);
+						ts++;
 					}
-					END_SEQ
-					
-					/* markers */
-					if (sseq->flag & SEQ_MARKER_TRANS) {
-						for(a=0, marker= G.scene->markers.first; marker; marker= marker->next) {
-							if(marker->flag & SELECT && (oldframe[a] != MAXFRAME+1)) {
-								marker->frame= oldframe[a] + ix;
-							}
+				}
+				END_SEQ
+				
+				/* Markers */
+				if (sseq->flag & SEQ_MARKER_TRANS) {
+					for(a=0, marker= G.scene->markers.first; marker; marker= marker->next) {
+						if(marker->flag & SELECT) {
+							marker->frame= oldframe[a] + ix;
 							a++;
 						}
 					}
 				}
+			
+			/* Extend, grabs one side of the current frame */
+			} else if (mode=='e' && !snapskip) {
+				int myofs; /* offset from start of the seq clip */
+				int xnew, final_left, final_right; /* just to store results from seq_tx_get_final_left/right */
 				
-				sprintf(str, "X: %d   Y: %d  ", ix, iy);
-				headerprint(str);
+				/* we dont use seq side selection flags for this,
+				instead we need to calculate which sides to move
+				based on its initial position from the cursor */
+				int move_left, move_right;
+				
+				/* Extend, Similar to grab but operate on one side of the cursor */
+				WHILE_SEQ(ed->seqbasep) {
+					if(seq->flag & SELECT) {
+						/* only move the contents of the metastrip otherwise the transformation is applied twice */
+						if (sequence_is_free_transformable(seq) && seq->type != SEQ_META) {
+							
+							move_left = move_right = 0;
+							
+							//SEQ_DEBUG_INFO(seq);
+							
+							final_left =	seq_tx_get_final_left(seq);
+							final_right =	seq_tx_get_final_right(seq);
+							
+							/* Only X Axis moving */
+							
+							/* work out which sides to move first */
+							if (side=='L') {
+								if (final_left <= cfra || ts->final_left <= cfra)	move_left = 1;
+								if (final_right <= cfra || ts->final_right <= cfra)	move_right = 1;
+							} else {
+								if (final_left >= cfra || ts->final_left >= cfra)	move_left = 1;
+								if (final_right >= cfra || ts->final_right >= cfra)	move_right = 1;
+							}
+							
+							if (move_left && move_right) {
+								/* simple move - dont need to do anything complicated */
+								seq->start= ts->start+ ix;
+							} else {
+								if (side=='L') {
+									if (move_left) {
+										
+										/* Similar to other funcs */
+										myofs = (ts->startofs - ts->startstill);
+										xnew = ts->start + (ix + myofs);
+										
+										/* make sure the we dont resize down to 0 or less in size
+										also include the startstill so the contense dosnt go outside the bounds, 
+										if the seq->startofs is 0 then its ignored */
+										
+										/* TODO remove, add check to transform_grab_xlimits, works ok for now */
+										if (xnew + seq->startstill > final_right-1) {
+											xnew = (final_right-1) - seq->startstill;
+										}
+										/* Note, this is the only case where the start needs to be adjusted
+										since its not needed when modifying the end or when moving the entire sequence  */
+										//seq->start = ts->start+ix;   // This works when xnew is not clamped, line below takes clamping into account
+										seq->start= xnew - myofs;  /* TODO see above */
+										/* done with unique stuff */
+										
+										seq_tx_set_final_left(seq, xnew);
+										transform_grab_xlimits(seq, 1, 0);
+										
+										/* Special case again - setting the end back to what it was */
+										seq_tx_set_final_right(seq, final_right);
+									}
+									if (move_right) {
+										myofs = (ts->endstill - ts->endofs);
+										xnew = ts->start + seq->len + (myofs + ix);
+										seq_tx_set_final_right(seq, xnew);
+										transform_grab_xlimits(seq, 0, 1);
+									}
+								} else { /* R */
+									if (move_left) {
+										myofs = (ts->startofs - ts->startstill);
+										xnew = ts->start + (myofs + ix);
+										seq_tx_set_final_left(seq, xnew);
+										transform_grab_xlimits(seq, 1, 0);
+									}
+									if (move_right) {
+										myofs = (ts->endstill - ts->endofs);
+										xnew = ts->start + seq->len + (myofs + ix);
+										seq_tx_set_final_right(seq, xnew);
+										transform_grab_xlimits(seq, 0, 1);
+									}
+								}
+							}
+						}
+						calc_sequence(seq);
+						ts++;
+					}
+				}
+				END_SEQ
+				
+				/* markers */
+				if (sseq->flag & SEQ_MARKER_TRANS) {
+					for(a=0, marker= G.scene->markers.first; marker; marker= marker->next) {
+						if(marker->flag & SELECT && (oldframe[a] != MAXFRAME+1)) {
+							marker->frame= oldframe[a] + ix;
+						}
+						a++;
+					}
+				}
 			}
-
+			
+			sprintf(str, "X: %d   Y: %d  ", ix, iy);
+			headerprint(str);
+			
+			/* remember the last value for snapping,
+			only set if we are not currently snapped,
+			prevents locking on a keyframe */
+			if (!snapskip)
+				ix_old = ix; 
+			
+			/* just to tell if ctrl was pressed, this means we get a recalc when pressing ctrl */
+			snap_old = snap;
+			
+			/* rememver last mouse values so we can skip transform when nothing happens */
 			xo= mval[0];
 			yo= mval[1];
 
 			/* test for effect and overlap */
-
 			WHILE_SEQ(ed->seqbasep) {
 				if(seq->flag & SELECT) {
 					seq->flag &= ~SEQ_OVERLAP;
