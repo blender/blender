@@ -559,6 +559,9 @@ static int imapaint_paint_sub_stroke(ImagePaintState *s, BrushPainter *painter, 
 	ImBuf *ibuf= BKE_image_get_ibuf(image, G.sima?&G.sima->iuser:NULL);
 	float pos[2];
 
+	if(!ibuf)
+		return 0;
+
 	pos[0] = uv[0]*ibuf->x;
 	pos[1] = uv[1]*ibuf->y;
 
