@@ -796,14 +796,11 @@ static void do_ipo_selectmenu(void *arg, int event)
 		break;
 	case 2:
 		borderselect_markers();
+		allqueue(REDRAWMARKER, 0);
 		break;
 	case 3:
 		deselect_markers(1, 0);
-		allqueue(REDRAWTIME, 0);
-		allqueue(REDRAWIPO, 0);
-		allqueue(REDRAWACTION, 0);
-		allqueue(REDRAWNLA, 0);
-		allqueue(REDRAWSOUND, 0);
+		allqueue(REDRAWMARKER, 0);
 		break;
 	}
 }
@@ -858,11 +855,7 @@ static void do_ipo_markermenu(void *arg, int event)
 			break;
 	}
 	
-	allqueue(REDRAWTIME, 0);
-	allqueue(REDRAWIPO, 0);
-	allqueue(REDRAWACTION, 0);
-	allqueue(REDRAWNLA, 0);
-	allqueue(REDRAWSOUND, 0);
+	allqueue(REDRAWMARKER, 0);
 }
 
 static uiBlock *ipo_markermenu(void *arg_unused)

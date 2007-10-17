@@ -269,11 +269,7 @@ static void do_sound_markermenu(void *arg, int event)
 			break;
 	}
 	
-	allqueue(REDRAWTIME, 0);
-	allqueue(REDRAWIPO, 0);
-	allqueue(REDRAWACTION, 0);
-	allqueue(REDRAWNLA, 0);
-	allqueue(REDRAWSOUND, 0);
+	allqueue(REDRAWMARKER, 0);
 }
 
 static uiBlock *sound_markermenu(void *arg_unused)

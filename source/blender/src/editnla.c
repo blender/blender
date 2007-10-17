@@ -1203,11 +1203,7 @@ void borderselect_nla(void)
 			}
 		}	
 		BIF_undo_push("Border select NLA");
-		allqueue(REDRAWTIME, 0);
-		allqueue(REDRAWIPO, 0);
-		allqueue(REDRAWACTION, 0);
-		allqueue(REDRAWNLA, 0);
-		allqueue(REDRAWSOUND, 0);
+		allqueue(REDRAWMARKER, 0);
 	}
 }
 
@@ -1262,11 +1258,7 @@ static void mouse_nla(int selectmode)
 		
 		std_rmouse_transform(transform_markers);
 		
-		allqueue(REDRAWTIME, 0);
-		allqueue(REDRAWIPO, 0);
-		allqueue(REDRAWACTION, 0);
-		allqueue(REDRAWNLA, 0);
-		allqueue(REDRAWSOUND, 0);
+		allqueue(REDRAWMARKER, 0);
 	}
 	else {
 		/* Try action ipo selection */
@@ -1725,11 +1717,7 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					shift_nlastrips_up();
 				else {
 					nextprev_marker(1);
-					allqueue(REDRAWTIME, 0);
-					allqueue(REDRAWIPO, 0);
-					allqueue(REDRAWACTION, 0);
-					allqueue(REDRAWNLA, 0);
-					allqueue(REDRAWSOUND, 0);
+					allqueue(REDRAWMARKER, 0);
 				}				
 				break;
 				
@@ -1742,11 +1730,7 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					shift_nlastrips_down();
 				else {
 					nextprev_marker(-1);
-					allqueue(REDRAWTIME, 0);
-					allqueue(REDRAWIPO, 0);
-					allqueue(REDRAWACTION, 0);
-					allqueue(REDRAWNLA, 0);
-					allqueue(REDRAWSOUND, 0);
+					allqueue(REDRAWMARKER, 0);
 				}
 				break;
 				
@@ -1758,11 +1742,7 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				else if (G.qual & LR_CTRLKEY) {
 					deselect_markers(1, 0);
-					allqueue(REDRAWTIME, 0);
-					allqueue(REDRAWIPO, 0);
-					allqueue(REDRAWACTION, 0);
-					allqueue(REDRAWNLA, 0);
-					allqueue(REDRAWSOUND, 0);
+					allqueue(REDRAWMARKER, 0);
 				}
 				else{
 					if (mval[0]>=NLAWIDTH)
@@ -1831,11 +1811,7 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					rename_marker();
 				else 
 					break;
-				allqueue(REDRAWTIME, 0);
-				allqueue(REDRAWIPO, 0);
-				allqueue(REDRAWACTION, 0);
-				allqueue(REDRAWNLA, 0);
-				allqueue(REDRAWSOUND, 0);
+				allqueue(REDRAWMARKER, 0);
 				break;				
 			
 			case NKEY:
@@ -1856,11 +1832,7 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					anim_previewrange_set();
 				else if (G.qual & LR_ALTKEY) /* clear preview range */
 					anim_previewrange_clear();
-				allqueue(REDRAWTIME, 0);
-				allqueue(REDRAWBUTSALL, 0);
-				allqueue(REDRAWACTION, 0);
-				allqueue(REDRAWNLA, 0);
-				allqueue(REDRAWIPO, 0);
+				allqueue(REDRAWMARKER, 0);
 				break;
 				
 			case SKEY:
@@ -1908,11 +1880,7 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						
 						remove_marker();
 						
-						allqueue(REDRAWTIME, 0);
-						allqueue(REDRAWIPO, 0);
-						allqueue(REDRAWACTION, 0);
-						allqueue(REDRAWNLA, 0);
-						allqueue(REDRAWSOUND, 0);
+						allqueue(REDRAWMARKER, 0);
 					}
 				}
 				break;

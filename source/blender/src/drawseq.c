@@ -945,7 +945,7 @@ static void draw_extra_seqinfo(void)
 			}
 		} else { /* single image */
 			if (last_seq->strip) {
-				sprintf(str, "Single: %s", last_seq->strip->stripdata->name);
+				sprintf(str, "Single: %s   len: %d", last_seq->strip->stripdata->name, last_seq->enddisp-last_seq->startdisp);
 				glRasterPos3f(xco,  yco, 0.0);
 				BMF_DrawString(G.font, str);
 				xco += xfac*BMF_GetStringWidth(G.font, str) +30.0*xfac;
@@ -1443,6 +1443,9 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 
 	draw_extra_seqinfo();
 
+	/* Draw markers */
+	draw_markers_timespace();
+	
 	/* restore viewport */
 	mywinset(sa->win);
 

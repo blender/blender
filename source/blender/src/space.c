@@ -2749,11 +2749,7 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case RIGHTMOUSE:
 			mouse_select_ipo();
-			allqueue(REDRAWTIME, 0);
-			allqueue(REDRAWIPO, 0);
-			allqueue(REDRAWACTION, 0);
-			allqueue(REDRAWNLA, 0);
-			allqueue(REDRAWSOUND, 0);
+			allqueue(REDRAWMARKER, 0);
 			break;
 		case MIDDLEMOUSE:
 			if(in_ipo_buttons()) {
@@ -2801,11 +2797,7 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case AKEY:
 			if (G.qual & LR_CTRLKEY) {
 				deselect_markers(1, 0);
-				allqueue(REDRAWTIME, 0);
-				allqueue(REDRAWIPO, 0);
-				allqueue(REDRAWACTION, 0);
-				allqueue(REDRAWNLA, 0);
-				allqueue(REDRAWSOUND, 0);
+				allqueue(REDRAWMARKER, 0);
 			}
 			else if (G.qual==0) {
 				if(in_ipo_buttons()) {
@@ -2834,15 +2826,18 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				move_to_frame();
 			break;
 		case DKEY:
-			if (G.qual==LR_SHIFTKEY)
+			if (G.qual==LR_SHIFTKEY) {
 				add_duplicate_editipo();
-			else if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY))
+			} else if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY)) {
 				duplicate_marker();
+				allqueue(REDRAWMARKER, 0);
+			}
 			break;
 		case GKEY:
-			if (G.qual & LR_CTRLKEY)
+			if (G.qual & LR_CTRLKEY) {
 				transform_markers('g', 0);
-			else if (G.qual==0)
+				allqueue(REDRAWMARKER, 0);
+			} else if (G.qual==0)
 				transform_ipo('g');
 			break;
 		case HKEY:
@@ -2866,21 +2861,17 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			break;
 		case MKEY:
-			if (G.qual==LR_SHIFTKEY) {
+			if (G.qual==0) {
+				add_marker(CFRA);
+			} else if (G.qual==LR_SHIFTKEY) {
 				ipo_mirror_menu();
 				break;
-			}
-			if (G.qual == 0)
-				add_marker(CFRA);
-			else if (G.qual == LR_CTRLKEY)
+			} else if (G.qual == LR_CTRLKEY) {
 				rename_marker();
-			else 
+			} else { 
 				break;
-			allqueue(REDRAWTIME, 0);
-			allqueue(REDRAWIPO, 0);
-			allqueue(REDRAWACTION, 0);
-			allqueue(REDRAWNLA, 0);
-			allqueue(REDRAWSOUND, 0);
+			}
+			allqueue(REDRAWMARKER, 0);
 			break;
 		case NKEY:
 			toggle_blockhandler(sa, IPO_HANDLER_PROPERTIES, UI_PNL_TO_MOUSE);
@@ -4552,8 +4543,12 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			break;
 		case DKEY:
-			if(sseq->mainb) break;
-			if((G.qual==LR_SHIFTKEY)) add_duplicate_seq();
+			if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY))
+				duplicate_marker();
+			else if ((G.qual==LR_SHIFTKEY)) {
+				if(sseq->mainb) break;
+				add_duplicate_seq();
+			}
 			break;
 		case EKEY:
 			if(sseq->mainb) break;
@@ -4565,9 +4560,12 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				set_filter_seq();
 			break;
 		case GKEY:
-			if(sseq->mainb) break;
-			if((G.qual==0))
+			if (G.qual & LR_CTRLKEY)
+				transform_markers('g', 0);
+			else if (G.qual==0) {
+				if(sseq->mainb) break;
 				transform_seq('g', 0);
+			}
 			break;
 		case KKEY:
 			if((G.qual==0)) { /* Cut at current frame */
@@ -4580,19 +4578,28 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			break;
 		case MKEY:
-			if(G.qual==LR_ALTKEY)
-				un_meta();
-			else if((G.qual==0)){
+			if(G.qual==LR_ALTKEY) {
+				un_meta();	
+				break; /*dont redraw timeline etc */
+			} else if((G.qual==0)){
 				if ((last_seq) && 
 				    (last_seq->type == SEQ_RAM_SOUND
 				     || last_seq->type == SEQ_HD_SOUND)) 
 				{
 					last_seq->flag ^= SEQ_MUTE;
 					doredraw = 1;
-				}
-				else
+				} else {
 					make_meta();
+				}
+				break; /*dont redraw timeline etc */
+			} else if ((G.qual==(LR_CTRLKEY|LR_ALTKEY) )) {
+				add_marker(CFRA);
+			} else if ((G.qual==LR_CTRLKEY)) {
+				rename_marker();
+			} else {
+				break; /* do nothing */
 			}
+			allqueue(REDRAWMARKER, 0);
 			break;
 		case NKEY:
 			if(G.qual==0) {
@@ -6176,6 +6183,11 @@ void allqueue(unsigned short event, short val)
 				break;
 			case REDRAWANIM:
 				if ELEM6(sa->spacetype, SPACE_IPO, SPACE_SOUND, SPACE_TIME, SPACE_NLA, SPACE_ACTION, SPACE_SEQ) {
+					scrarea_queue_winredraw(sa);
+					if(val) scrarea_queue_headredraw(sa);
+				}
+			case REDRAWMARKER: /* markers may not always match animation */
+				if ELEM6(sa->spacetype, SPACE_TIME, SPACE_IPO, SPACE_ACTION, SPACE_NLA, SPACE_SOUND, SPACE_SEQ) {
 					scrarea_queue_winredraw(sa);
 					if(val) scrarea_queue_headredraw(sa);
 				}

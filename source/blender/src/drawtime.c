@@ -127,7 +127,7 @@ static void draw_cfra_time(SpaceTime *stime)
 		
 		ui_rasterpos_safe(x * xscale, y * yscale, 1.0);
 		BIF_DrawString(G.fonts, str, 0);
-		
+		printf("%f -- %f\n", xscale, yscale);
 		glScalef(xscale, yscale, 1.0);
 	}
 	

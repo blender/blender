@@ -63,7 +63,7 @@
 #include "BSE_drawipo.h"
 #include "BSE_headerbuttons.h"
 #include "BSE_sequence.h"
-
+#include "BSE_time.h"
 #include "blendef.h"
 #include "mydevice.h"
 
@@ -507,6 +507,65 @@ static uiBlock *seq_editmenu(void *arg_unused)
 	return block;
 }
 
+static void do_seq_markermenu(void *arg, int event)
+{	
+	switch(event)
+	{
+		case 1:
+			add_marker(CFRA);
+			break;
+		case 2:
+			duplicate_marker();
+			break;
+		case 3:
+			remove_marker();
+			break;
+		case 4:
+			rename_marker();
+			break;
+		case 5:
+			transform_markers('g', 0);
+			break;
+	}
+	
+	allqueue(REDRAWMARKER, 0);
+}
+
+static uiBlock *seq_markermenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco= 0, menuwidth=120;
+
+	block= uiNewBlock(&curarea->uiblocks, "ipo_markermenu", 
+					   UI_EMBOSSP, UI_HELV, curarea->headwin);
+	uiBlockSetButmFunc(block, do_seq_markermenu, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add Marker|Ctrl Alt M", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Duplicate Marker|Ctrl Shift D", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Marker", 0, yco-=20,
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+					 
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "(Re)Name Marker|Ctrl M", 0, yco-=20,
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move Marker|Ctrl G", 0, yco-=20,
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
+	
+	if(curarea->headertype==HEADERTOP) {
+		uiBlockSetDirection(block, UI_DOWN);
+	}
+	else {
+		uiBlockSetDirection(block, UI_TOP);
+		uiBlockFlipOrder(block);
+	}
+
+	uiTextBoundsBlock(block, 50);
+
+	return block;
+}
 
 void do_seq_buttons(short event)
 {
@@ -582,6 +641,10 @@ void seq_buttons()
 		uiDefPulldownBut(block,seq_selectmenu, NULL, "Select", xco, -2, xmax-3, 24, "");
 		xco+=xmax;
 
+		xmax= GetButStringLength("Marker");
+		uiDefPulldownBut(block,seq_markermenu, NULL, "Marker", xco, -2, xmax-3, 24, "");
+		xco+=xmax;
+		
 		xmax= GetButStringLength("Add");
 		uiDefPulldownBut(block, seq_addmenu, NULL, "Add", xco, -2, xmax-3, 24, "");
 		xco+= xmax;

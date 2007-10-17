@@ -83,6 +83,7 @@
 #include "BIF_editview.h"
 #include "BIF_scrarea.h"
 #include "BIF_editsound.h"
+#include "BIF_imasel.h"
 
 #include "BSE_edit.h"
 #include "BSE_sequence.h"
@@ -90,6 +91,7 @@
 #include "BSE_filesel.h"
 #include "BSE_drawipo.h"
 #include "BSE_seqaudio.h"
+#include "BSE_time.h"
 
 #include "BDR_editobject.h"
 
@@ -142,7 +144,6 @@ void clear_last_seq(Sequence *seq)
 	_last_seq = NULL;
 	_last_seq_init = 0;
 }
-
 
 
 /* seq funcs's for transforming internally
@@ -664,99 +665,141 @@ void mouse_select_seq(void)
 {
 	Sequence *seq,*neighbor;
 	int hand,seldir;
-
-	seq= find_nearest_seq(&hand);
-
-	if(!(G.qual & LR_SHIFTKEY)&&!(G.qual & LR_ALTKEY)&&!(G.qual & LR_CTRLKEY)) deselect_all_seq();
-
-	if(seq) {
-		set_last_seq(seq);
-
-		if ((seq->type == SEQ_IMAGE) || (seq->type == SEQ_MOVIE)) {
-			if(seq->strip) {
-				strncpy(last_imagename, seq->strip->dir, FILE_MAXDIR-1);
-			}
-		} else
-		if (seq->type == SEQ_HD_SOUND || seq->type == SEQ_RAM_SOUND) {
-			if(seq->strip) {
-				strncpy(last_sounddir, seq->strip->dir, FILE_MAXDIR-1);
-			}
-		}
-
-		if((G.qual & LR_SHIFTKEY) && (seq->flag & SELECT)) {
-			if(hand==0) seq->flag &= SEQ_DESEL;
-			else if(hand==1) {
-				if(seq->flag & SEQ_LEFTSEL) 
-					seq->flag &= ~SEQ_LEFTSEL;
-				else seq->flag |= SEQ_LEFTSEL;
-			}
-			else if(hand==2) {
-				if(seq->flag & SEQ_RIGHTSEL) 
-					seq->flag &= ~SEQ_RIGHTSEL;
-				else seq->flag |= SEQ_RIGHTSEL;
-			}
+	TimeMarker *marker;
+	
+	marker=find_nearest_marker(1);
+	
+	if (marker) {
+		int oldflag;
+		/* select timeline marker */
+		if ((G.qual & LR_SHIFTKEY)==0) {
+			oldflag= marker->flag;
+			deselect_markers(0, 0);
+			
+			if (oldflag & SELECT)
+				marker->flag &= ~SELECT;
+			else
+				marker->flag |= SELECT;
 		}
 		else {
-			seq->flag |= SELECT;
-			if(hand==1) seq->flag |= SEQ_LEFTSEL;
-			if(hand==2) seq->flag |= SEQ_RIGHTSEL;
+			marker->flag |= SELECT;				
 		}
+		allqueue(REDRAWMARKER, 0);
+		force_draw(0);
+
+		BIF_undo_push("Select Strips, Sequencer");
 		
-		/* On Ctrl-Alt selection, select the strip and bordering handles */
-		if ((G.qual & LR_CTRLKEY) && (G.qual & LR_ALTKEY)) {
-			if (!(G.qual & LR_SHIFTKEY)) deselect_all_seq();
-			seq->flag |= SELECT;
-			select_surrounding_handles(seq);
-			
-		/* Ctrl signals Left, Alt signals Right
-		   First click selects adjacent handles on that side.
-		   Second click selects all strips in that direction.
-		   If there are no adjacent strips, it just selects all in that direction. */
-		} else if (((G.qual & LR_CTRLKEY) || (G.qual & LR_ALTKEY)) && (seq->flag & SELECT)) {
+	} else {
 	
-			if (G.qual & LR_CTRLKEY) seldir=1;
-				else seldir=2;
-			neighbor=find_neighboring_sequence(seq, seldir);
-			if (neighbor) {
-				switch (seldir) {
-				case 1:
-					if ((seq->flag & SEQ_LEFTSEL)&&(neighbor->flag & SEQ_RIGHTSEL)) {
-						if (!(G.qual & LR_SHIFTKEY)) deselect_all_seq();
-						select_channel_direction(seq,1);
-					} else {
-						neighbor->flag |= SELECT;
-						recurs_sel_seq(neighbor);
-						neighbor->flag |= SEQ_RIGHTSEL;
-						seq->flag |= SEQ_LEFTSEL;
-					}
-					break;
-				case 2:
-					if ((seq->flag & SEQ_RIGHTSEL)&&(neighbor->flag & SEQ_LEFTSEL)) {
-						if (!(G.qual & LR_SHIFTKEY)) deselect_all_seq();
-						select_channel_direction(seq,2);
-					} else {
-						neighbor->flag |= SELECT;
-						recurs_sel_seq(neighbor);
-						neighbor->flag |= SEQ_LEFTSEL;
-						seq->flag |= SEQ_RIGHTSEL;
-					}
-					break;
+		seq= find_nearest_seq(&hand);
+		if(!(G.qual & LR_SHIFTKEY)&&!(G.qual & LR_ALTKEY)&&!(G.qual & LR_CTRLKEY)) deselect_all_seq();
+	
+		if(seq) {
+			set_last_seq(seq);
+	
+			if ((seq->type == SEQ_IMAGE) || (seq->type == SEQ_MOVIE)) {
+				if(seq->strip) {
+					strncpy(last_imagename, seq->strip->dir, FILE_MAXDIR-1);
 				}
-			} else {
-				if (!(G.qual & LR_SHIFTKEY)) deselect_all_seq();
-				select_channel_direction(seq,seldir);
+			} else
+			if (seq->type == SEQ_HD_SOUND || seq->type == SEQ_RAM_SOUND) {
+				if(seq->strip) {
+					strncpy(last_sounddir, seq->strip->dir, FILE_MAXDIR-1);
+				}
 			}
-		}
+	
+			if((G.qual & LR_SHIFTKEY) && (seq->flag & SELECT)) {
+				if(hand==0) seq->flag &= SEQ_DESEL;
+				else if(hand==1) {
+					if(seq->flag & SEQ_LEFTSEL) 
+						seq->flag &= ~SEQ_LEFTSEL;
+					else seq->flag |= SEQ_LEFTSEL;
+				}
+				else if(hand==2) {
+					if(seq->flag & SEQ_RIGHTSEL) 
+						seq->flag &= ~SEQ_RIGHTSEL;
+					else seq->flag |= SEQ_RIGHTSEL;
+				}
+			}
+			else {
+				seq->flag |= SELECT;
+				if(hand==1) seq->flag |= SEQ_LEFTSEL;
+				if(hand==2) seq->flag |= SEQ_RIGHTSEL;
+			}
+			
+			/* On Ctrl-Alt selection, select the strip and bordering handles */
+			if ((G.qual & LR_CTRLKEY) && (G.qual & LR_ALTKEY)) {
+				if (!(G.qual & LR_SHIFTKEY)) deselect_all_seq();
+				seq->flag |= SELECT;
+				select_surrounding_handles(seq);
+				
+			/* Ctrl signals Left, Alt signals Right
+			First click selects adjacent handles on that side.
+			Second click selects all strips in that direction.
+			If there are no adjacent strips, it just selects all in that direction. */
+			} else if (((G.qual & LR_CTRLKEY) || (G.qual & LR_ALTKEY)) && (seq->flag & SELECT)) {
 		
-		recurs_sel_seq(seq);
+				if (G.qual & LR_CTRLKEY) seldir=1;
+					else seldir=2;
+				neighbor=find_neighboring_sequence(seq, seldir);
+				if (neighbor) {
+					switch (seldir) {
+					case 1:
+						if ((seq->flag & SEQ_LEFTSEL)&&(neighbor->flag & SEQ_RIGHTSEL)) {
+							if (!(G.qual & LR_SHIFTKEY)) deselect_all_seq();
+							select_channel_direction(seq,1);
+						} else {
+							neighbor->flag |= SELECT;
+							recurs_sel_seq(neighbor);
+							neighbor->flag |= SEQ_RIGHTSEL;
+							seq->flag |= SEQ_LEFTSEL;
+						}
+						break;
+					case 2:
+						if ((seq->flag & SEQ_RIGHTSEL)&&(neighbor->flag & SEQ_LEFTSEL)) {
+							if (!(G.qual & LR_SHIFTKEY)) deselect_all_seq();
+							select_channel_direction(seq,2);
+						} else {
+							neighbor->flag |= SELECT;
+							recurs_sel_seq(neighbor);
+							neighbor->flag |= SEQ_LEFTSEL;
+							seq->flag |= SEQ_RIGHTSEL;
+						}
+						break;
+					}
+				} else {
+					if (!(G.qual & LR_SHIFTKEY)) deselect_all_seq();
+					select_channel_direction(seq,seldir);
+				}
+			}
+
+			recurs_sel_seq(seq);
+		}
+		force_draw(0);
+
+		if(get_last_seq()) allqueue(REDRAWIPO, 0);
+		BIF_undo_push("Select Strips, Sequencer");
+
+		std_rmouse_transform(transform_seq);
 	}
-
-	force_draw(0);
-
-	if(get_last_seq()) allqueue(REDRAWIPO, 0);
-	BIF_undo_push("Select Strips, Sequencer");
-
-	std_rmouse_transform(transform_seq);
+	
+	/* marker transform */
+	if (marker) {
+		short mval[2], xo, yo;
+		getmouseco_areawin(mval);
+		xo= mval[0]; 
+		yo= mval[1];
+		
+		while(get_mbut()&R_MOUSE) {		
+			getmouseco_areawin(mval);
+			if(abs(mval[0]-xo)+abs(mval[1]-yo) > 4) {
+				transform_markers('g', 0);
+				allqueue(REDRAWMARKER, 0);
+				return;
+			}
+			BIF_wait_for_statechange();
+		}
+	}
 }
 
 
@@ -1684,8 +1727,11 @@ void add_sequence(int type)
 
 	switch(event) {
 	case 1:
-
-		activate_fileselect(FILE_SPECIAL, "Select Images", last_imagename, add_image_strips);
+		/* Image Dosnt work at the moment - TODO */
+		//if(G.qual & LR_CTRLKEY)
+		//	activate_imageselect(FILE_SPECIAL, "Select Images", last_imagename, add_image_strips);
+		//else
+			activate_fileselect(FILE_SPECIAL, "Select Images", last_imagename, add_image_strips);
 		break;
 	case 105:
 		activate_fileselect(FILE_SPECIAL, "Select Movie+Audio", last_imagename, add_movie_and_hdaudio_strip);
@@ -3052,7 +3098,7 @@ void seq_separate_images(void)
 	Sequence *seq, *seq_new, *seq_next;
 	Strip *strip_new;
 	StripElem *se, *se_new;
-	int start, start_ofs, cfra, frame_end;	
+	int start_ofs, cfra, frame_end;	
 	static int step= 1;
 	
 	add_numbut(0, NUM|INT, "Image Duration:", 1, 256, &step, NULL);

@@ -202,11 +202,7 @@ static void do_nla_selectmenu(void *arg, int event)
 		break;
 	case 3: /* Select/Deselect All Markers */
 		deselect_markers(1, 0);
-		allqueue(REDRAWTIME, 0);
-		allqueue(REDRAWIPO, 0);
-		allqueue(REDRAWACTION, 0);
-		allqueue(REDRAWNLA, 0);
-		allqueue(REDRAWSOUND, 0);
+		allqueue(REDRAWMARKER, 0);
 		break;
 	case 4: /* Borderselect markers */
 		borderselect_markers();
@@ -405,11 +401,7 @@ static void do_nla_markermenu(void *arg, int event)
 			break;
 	}
 	
-	allqueue(REDRAWTIME, 0);
-	allqueue(REDRAWIPO, 0);
-	allqueue(REDRAWACTION, 0);
-	allqueue(REDRAWNLA, 0);
-	allqueue(REDRAWSOUND, 0);
+	allqueue(REDRAWMARKER, 0);
 }
 
 static uiBlock *nla_markermenu(void *arg_unused)

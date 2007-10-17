@@ -2614,11 +2614,7 @@ void autokeyframe_ob_cb_func(Object *ob, int tmode)
 		}
 
 		remake_object_ipos(ob);
-		allqueue(REDRAWIPO, 0);
-		allspace(REMAKEIPO, 0);
-		allqueue(REDRAWVIEW3D, 0);
-		allqueue(REDRAWNLA, 0);
-		allqueue(REDRAWTIME, 0);
+		allqueue(REDRAWMARKER, 0);
 	}
 }
 
@@ -2700,11 +2696,7 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 		}
 		
 		remake_action_ipos (act);
-		allspace(REMAKEIPO, 0);
-		allqueue(REDRAWACTION, 0);
-		allqueue(REDRAWIPO, 0);
-		allqueue(REDRAWNLA, 0);
-		allqueue(REDRAWTIME, 0);
+		allqueue(REDRAWMARKER, 0);
 	}
 	else {
 		/* tag channels that should have unkeyed data */
