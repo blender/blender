@@ -1082,7 +1082,7 @@ void reset_slowparents(void)
 {
 	/* back to original locations */
 	Base *base;
-	
+
 	base= FIRSTBASE;
 	while(base) {
 		if(base->object->parent) {
@@ -1740,7 +1740,7 @@ void exit_editmode(int flag)	/* freedata==0 at render, 1= freedata, 2= do undo b
 	/* total remake of softbody data */
 	if(modifiers_isSoftbodyEnabled(ob)) {
 		if (ob->soft && ob->soft->keys) {
-			notice("Erased Baked SoftBody");
+			notice("Erase Baked SoftBody");
 		}
 
 		sbObjectToSoftbody(ob);
@@ -3382,6 +3382,9 @@ void copy_attr(short event)
 				else if(event==29) { /* protected bits */
 					base->object->protectflag= ob->protectflag;
 				}
+				else if(event==30) { /* index object */
+					base->object->index= ob->index;
+				}
 			}
 		}
 		base= base->next;
@@ -3443,6 +3446,8 @@ void copy_attr_menu()
 	if( give_parteff(ob) ) strcat(str, "|Particle Settings%x20");
 
 	if(ob->soft) strcat(str, "|Soft Body Settings%x23");
+	
+	strcat(str, "|Pass Index%x30");
 	
 	if(ob->type==OB_MESH || ob->type==OB_CURVE || ob->type==OB_LATTICE || ob->type==OB_SURF){
 		strcat(str, "|Modifiers ...%x24");

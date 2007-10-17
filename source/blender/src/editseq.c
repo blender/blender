@@ -235,7 +235,7 @@ static void change_plugin_seq(char *str)	/* called from fileselect */
 
 	if( test_overlap_seq(last_seq) ) shuffle_seq(last_seq);
 	
-	BIF_undo_push("Load/change Sequencer plugin");
+	BIF_undo_push("Load/Change Plugin, Sequencer");
 }
 
 
@@ -510,7 +510,7 @@ static void deselect_all_seq(void)
 	}
 	END_SEQ
 		
-	BIF_undo_push("(De)select all Sequencer");
+	BIF_undo_push("(De)select all Strips, Sequencer");
 }
 
 static void recurs_sel_seq(Sequence *seqm)
@@ -552,7 +552,7 @@ void swap_select_seq(void)
 	END_SEQ
 
 	allqueue(REDRAWSEQ, 0);
-	BIF_undo_push("Swap select all Sequencer");
+	BIF_undo_push("Swap Selected Strips, Sequencer");
 
 }
 
@@ -585,8 +585,14 @@ void select_channel_direction(Sequence *test,int lr) {
 void select_dir_from_last(int lr)
 {
 	Sequence *seq=get_last_seq();
+	if (seq==NULL)
+		return;
 	
-	if (seq) select_channel_direction(seq,lr);
+	select_channel_direction(seq,lr);
+	allqueue(REDRAWSEQ, 0);
+	
+	if (lr==1)	BIF_undo_push("Select Strips to the Left, Sequencer");
+	else		BIF_undo_push("Select Strips to the Right, Sequencer");
 }
 
 void select_surrounding_handles(Sequence *test) 
@@ -612,14 +618,19 @@ void select_surround_from_last()
 {
 	Sequence *seq=get_last_seq();
 	
-	if (seq) select_surrounding_handles(seq);
+	if (seq==NULL)
+		return;
+	
+	select_surrounding_handles(seq);
+	allqueue(REDRAWSEQ, 0);
+	BIF_undo_push("Select Surrounding Handles, Sequencer");
 }
 
 void select_neighbor_from_last(int lr)
 {
 	Sequence *seq=get_last_seq();
 	Sequence *neighbor;
-	
+	int change = 0;
 	if (seq) {
 		neighbor=find_neighboring_sequence(seq, lr);
 		if (neighbor) {
@@ -638,7 +649,14 @@ void select_neighbor_from_last(int lr)
 				break;
 			}
 		seq->flag |= SELECT;
+		change = 1;
 		}
+	}
+	if (change) {
+		allqueue(REDRAWSEQ, 0);
+		
+		if (lr==1)	BIF_undo_push("Select Left Handles, Sequencer");
+		else		BIF_undo_push("Select Right Handles, Sequencer");
 	}
 }
 
@@ -736,7 +754,7 @@ void mouse_select_seq(void)
 	force_draw(0);
 
 	if(get_last_seq()) allqueue(REDRAWIPO, 0);
-	BIF_undo_push("Select Sequencer");
+	BIF_undo_push("Select Strips, Sequencer");
 
 	std_rmouse_transform(transform_seq);
 }
@@ -1165,7 +1183,7 @@ static void add_image_strips(char *name)
 
 	waitcursor(0);
 
-	BIF_undo_push("Add image strip Sequencer");
+	BIF_undo_push("Add Image Strip, Sequencer");
 	transform_seq('g', 0);
 
 }
@@ -1200,7 +1218,7 @@ static void add_movie_strip(char *name)
 
 	waitcursor(0);
 
-	BIF_undo_push("Add movie strip Sequencer");
+	BIF_undo_push("Add Movie Strip, Sequencer");
 	transform_seq('g', 0);
 
 }
@@ -1236,7 +1254,7 @@ static void add_movie_and_hdaudio_strip(char *name)
 
 	waitcursor(0);
 
-	BIF_undo_push("Add movie and HD-audio strip Sequencer");
+	BIF_undo_push("Add Movie and HD-Audio Strip, Sequencer");
 	transform_seq('g', 0);
 
 }
@@ -1265,7 +1283,7 @@ static void add_sound_strip_ram(char *name)
 
 	waitcursor(0);
 
-	BIF_undo_push("Add ram sound strip Sequencer");
+	BIF_undo_push("Add Sound (RAM) Strip, Sequencer");
 	transform_seq('g', 0);
 }
 
@@ -1293,7 +1311,7 @@ static void add_sound_strip_hd(char *name)
 
 	waitcursor(0);
 
-	BIF_undo_push("Add hd sound strip Sequencer");
+	BIF_undo_push("Add Sound (HD) Strip, Sequencer");
 	transform_seq('g', 0);
 }
 
@@ -1534,9 +1552,9 @@ static int add_seq_effect(int type, char *str)
 
 	/* push undo and go into grab mode */
 	if(newseq->type == SEQ_PLUGIN) {
-		BIF_undo_push("Add plugin strip Sequencer");
+		BIF_undo_push("Add Plugin Strip, Sequencer");
 	} else {
-		BIF_undo_push("Add effect strip Sequencer");
+		BIF_undo_push("Add Effect Strip, Sequencer");
 	}
 
 	transform_seq('g', 0);
@@ -1713,7 +1731,7 @@ void add_sequence(int type)
 				strip->us= 1;
 				if(seq->len>0) strip->stripdata= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
 
-				BIF_undo_push("Add scene strip Sequencer");
+				BIF_undo_push("Add Scene Strip, Sequencer");
 				transform_seq('g', 0);
 			}
 		}
@@ -1819,7 +1837,7 @@ void change_sequence(void)
 
 			update_changed_seq_and_deps(last_seq, 0, 1);
 			allqueue(REDRAWSEQ, 0);
-			BIF_undo_push("Change effect Sequencer");
+			BIF_undo_push("Change Strip Effect, Sequencer");
 		}
 	}
 	else if(last_seq->type == SEQ_IMAGE) {
@@ -1976,7 +1994,7 @@ void del_seq(void)
 		ms= ms->prev;
 	}
 
-	BIF_undo_push("Delete from Sequencer");
+	BIF_undo_push("Delete Strip(s), Sequencer");
 	allqueue(REDRAWSEQ, 0);
 }
 
@@ -2151,7 +2169,7 @@ void add_duplicate_seq(void)
 	recurs_dupli_seq(ed->seqbasep, &new);
 	addlisttolist(ed->seqbasep, &new);
 
-	BIF_undo_push("Add duplicate Sequencer");
+	BIF_undo_push("Add Duplicate, Sequencer");
 	transform_seq('g', 0);
 }
 
@@ -2268,7 +2286,7 @@ void seq_remap_paths(void)
 	}
 	END_SEQ
 		
-	BIF_undo_push("Remap paths in Sequencer");
+	BIF_undo_push("Remap Paths, Sequencer");
 	allqueue(REDRAWSEQ, 0);
 }
 
@@ -2295,7 +2313,7 @@ void no_gaps(void)
 		}
 	}
 
-	BIF_undo_push("No gaps Sequencer");
+	BIF_undo_push("No Gaps, Sequencer");
 	allqueue(REDRAWSEQ, 0);
 }
 
@@ -2380,7 +2398,7 @@ void make_meta(void)
 	if(seqm->len) seqm->strip->stripdata= MEM_callocN(seqm->len*sizeof(StripElem), "metastripdata");
 	set_meta_stripdata(seqm);
 
-	BIF_undo_push("Make Meta Sequencer");
+	BIF_undo_push("Make Meta Strip, Sequencer");
 	allqueue(REDRAWSEQ, 0);
 }
 
@@ -2403,7 +2421,7 @@ void un_meta(void)
 
 	if(last_seq==0 || last_seq->type!=SEQ_META) return;
 
-	if(okee("Un Meta")==0) return;
+	if(okee("Un Meta Strip")==0) return;
 
 	addlisttolist(ed->seqbasep, &last_seq->seqbase);
 
@@ -2433,7 +2451,7 @@ void un_meta(void)
 
 	sort_seq();
 
-	BIF_undo_push("Un-make Meta Sequencer");
+	BIF_undo_push("Un-Make Meta Strip, Sequencer");
 	allqueue(REDRAWSEQ, 0);
 
 }
@@ -2472,7 +2490,7 @@ void exit_meta(void)
 	MEM_freeN(ms);
 	allqueue(REDRAWSEQ, 0);
 
-	BIF_undo_push("Exit meta strip Sequence");
+	BIF_undo_push("Exit Meta Strip, Sequence");
 }
 
 
@@ -2499,7 +2517,7 @@ void enter_meta(void)
 
 	set_last_seq(NULL);
 	allqueue(REDRAWSEQ, 0);
-	BIF_undo_push("Enter meta strip Sequence");
+	BIF_undo_push("Enter Meta Strip, Sequence");
 }
 
 
@@ -2890,9 +2908,9 @@ void transform_seq(int mode, int context)
 	MEM_freeN(transmain);
 	
 	if (mode=='g')
-		BIF_undo_push("Transform Grab");
+		BIF_undo_push("Transform Grab, Sequencer");
 	else if (mode=='e')
-		BIF_undo_push("Transform Extend");
+		BIF_undo_push("Transform Extend, Sequencer");
 	
 	allqueue(REDRAWSEQ, 0);
 }
@@ -2916,7 +2934,7 @@ void seq_cut(int cutframe)
 		}
 	}
 	if(seq) {
-		error("Cannot cut Meta strips");
+		error("Cannot Cut Meta Strips");
 		return;
 	}
 	
@@ -2931,7 +2949,7 @@ void seq_cut(int cutframe)
 	}
 	
 	if(tot==0) {
-		error("No strips to cut");
+		error("No Strips to Cut");
 		return;
 	}
 	
@@ -3025,6 +3043,79 @@ void seq_cut(int cutframe)
 	MEM_freeN(transmain);
 	
 	allqueue(REDRAWSEQ, 0);
+	BIF_undo_push("Cut Strips, Sequencer");
+}
+
+void seq_separate_images(void)
+{
+	Editing *ed;
+	Sequence *seq, *seq_new, *seq_next;
+	Strip *strip_new;
+	StripElem *se, *se_new;
+	int start, start_ofs, cfra, frame_end;	
+	static int step= 1;
+	
+	add_numbut(0, NUM|INT, "Image Duration:", 1, 256, &step, NULL);
+	if (!do_clever_numbuts("Separate Images", 1, REDRAW))
+		return;
+	
+	ed= G.scene->ed;
+	if(ed==0) return;
+	
+	seq= ed->seqbasep->first;
+	
+	while (seq) {
+		if((seq->flag & SELECT) && (seq->type == SEQ_IMAGE) && (seq->len > 1)) {
+			/* remove seq so overlap tests dont conflict,
+			see free_sequence below for the real free'ing */
+			seq_next = seq->next;
+			BLI_remlink(ed->seqbasep, seq); 
+			if(seq->ipo) seq->ipo->id.us--;
+			
+			start_ofs = cfra = seq_tx_get_final_left(seq);
+			frame_end = seq_tx_get_final_right(seq);
+			
+			while (cfra < frame_end) {
+				/* new seq */
+				se = give_stripelem(seq, cfra);
+				
+				seq_new= alloc_sequence(((Editing *)G.scene->ed)->seqbasep, start_ofs, seq->machine);
+				seq_new->type= SEQ_IMAGE;
+				seq_new->len = 1;
+				seq_new->endstill = step-1;
+				
+				/* new strip */
+				seq_new->strip= strip_new= MEM_callocN(sizeof(Strip)*1, "strip");
+				strip_new->len= 1;
+				strip_new->us= 1;
+				strncpy(strip_new->dir, seq->strip->dir, FILE_MAXDIR-1);
+				
+				/* new stripdata */
+				strip_new->stripdata= se_new= MEM_callocN(sizeof(StripElem)*1, "stripelem");
+				strncpy(se_new->name, se->name, FILE_MAXFILE-1);
+				se_new->ok= 1;
+				
+				calc_sequence(seq_new);
+				seq_new->flag &= ~SEQ_OVERLAP;
+				if (test_overlap_seq(seq_new)) {
+					shuffle_seq(seq_new);
+				}
+				
+				cfra++;
+				start_ofs += step;
+			}
+			
+			free_sequence(seq);
+			seq = seq->next;
+		} else {
+			seq = seq->next;
+		}
+	}
+	
+	/* as last: */
+	sort_seq();
+	BIF_undo_push("Separate Image Strips, Sequencer");
+	allqueue(REDRAWSEQ, 0);
 }
 
 void seq_snap_menu(void)
@@ -3079,7 +3170,7 @@ void seq_snap(short event)
 	/* as last: */
 	sort_seq();
 
-	BIF_undo_push("Snap menu Sequencer");
+	BIF_undo_push("Snap Strips, Sequencer");
 	allqueue(REDRAWSEQ, 0);
 }
 
@@ -3128,7 +3219,7 @@ void borderselect_seq(void)
 			seq= seq->next;
 		}
 
-		BIF_undo_push("Border select Sequencer");
+		BIF_undo_push("Border Select, Sequencer");
 		addqueue(curarea->win, REDRAW, 1);
 	}
 }

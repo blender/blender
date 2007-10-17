@@ -854,6 +854,25 @@ static short select_same_layer(Object *ob)
 	return changed;
 }
 
+static short select_same_index_object(Object *ob)
+{
+	char changed = 0;
+	Base *base = FIRSTBASE;
+	
+	if (!ob)
+		return 0;
+	
+	while(base) {
+		if (BASE_SELECTABLE(base) && (base->object->index == ob->index) && !(base->flag & SELECT)) {
+			base->flag |= SELECT;
+			base->object->flag |= SELECT;
+			changed = 1;
+		}
+		base= base->next;
+	}
+	return changed;
+}
+
 void select_object_grouped(short nr)
 {
 	short changed = 0;
@@ -865,6 +884,7 @@ void select_object_grouped(short nr)
 	else if(nr==6)	changed = select_same_layer(OBACT);	
 	else if(nr==7)	changed = select_same_group(OBACT);
 	else if(nr==8)	changed = select_object_hooks(OBACT);
+	else if(nr==9)	changed = select_same_index_object(OBACT);
 	
 	if (changed) {
 		countall();
@@ -890,7 +910,7 @@ static void select_object_grouped_menu(void)
 	            "Objects of Same Type%x5|"
 				"Objects on Shared Layers%x6|"
                 "Objects in Same Group%x7|"
-                "Object Hooks%x8|");
+                "Object Hooks%x8|Object PassIndex%x9");
 
 	/* here we go */
 	
@@ -4552,6 +4572,11 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case KKEY:
 			if((G.qual==0)) { /* Cut at current frame */
 				if(okee("Cut strips")) seq_cut(CFRA);
+			}
+			break;
+		case YKEY:
+			if((G.qual==0)) { /* Cut at current frame */
+				seq_separate_images();
 			}
 			break;
 		case MKEY:

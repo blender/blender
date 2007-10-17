@@ -862,6 +862,7 @@ void do_view3d_select_object_groupedmenu(void *arg, int event)
 	case 6: /* Objects on Shared Layers */
 	case 7: /* Objects in Same Group */
 	case 8: /* Object Hooks*/
+	case 9: /* Object PassIndex*/
 		select_object_grouped((short)event);
 		break;
 	}
@@ -884,7 +885,8 @@ static uiBlock *view3d_select_object_groupedmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Objects on Shared Layers|Shift G, 6",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Objects in Same Group|Shift G, 7",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Object Hooks|Shift G, 8",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
-	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Object PassIndex|Shift G, 9",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");	
+
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
 	return block;
@@ -2090,6 +2092,7 @@ static void do_view3d_edit_object_copyattrmenu(void *arg, int event)
 	case 25:
 	case 26:
 	case 29:
+	case 30:
 		copy_attr((short)event);
 		break;
 		}
@@ -2153,6 +2156,8 @@ static uiBlock *view3d_edit_object_copyattrmenu(void *arg_unused)
 		if( give_parteff(ob) ) {
 			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Particle Settings|Ctrl C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 20, "");
 		}
+
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Object Pass Index|Ctrl C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 30, "");
 	}
 	
 	uiBlockSetDirection(block, UI_RIGHT);
