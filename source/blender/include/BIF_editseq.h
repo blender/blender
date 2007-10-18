@@ -65,6 +65,7 @@ void				swap_select_seq(void);
 void				touch_seq_files(void);
 void				seq_remap_paths(void);
 void				transform_seq(int mode, int context);
+void				transform_seq_nomarker(int mode, int context);
 void				un_meta(void);
 void				seq_cut(int cutframe);
 void				seq_separate_images(void);

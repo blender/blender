@@ -853,7 +853,7 @@ void mouse_select_seq(void)
 		if(get_last_seq()) allqueue(REDRAWIPO, 0);
 		BIF_undo_push("Select Strips, Sequencer");
 
-		std_rmouse_transform(transform_seq);
+		std_rmouse_transform(transform_seq_nomarker);
 	}
 	
 	/* marker transform */
@@ -1300,7 +1300,7 @@ static void add_image_strips(char *name)
 	waitcursor(0);
 
 	BIF_undo_push("Add Image Strip, Sequencer");
-	transform_seq('g', 0);
+	transform_seq_nomarker('g', 0);
 
 }
 
@@ -1335,7 +1335,7 @@ static void add_movie_strip(char *name)
 	waitcursor(0);
 
 	BIF_undo_push("Add Movie Strip, Sequencer");
-	transform_seq('g', 0);
+	transform_seq_nomarker('g', 0);
 
 }
 
@@ -1371,7 +1371,7 @@ static void add_movie_and_hdaudio_strip(char *name)
 	waitcursor(0);
 
 	BIF_undo_push("Add Movie and HD-Audio Strip, Sequencer");
-	transform_seq('g', 0);
+	transform_seq_nomarker('g', 0);
 
 }
 
@@ -1400,7 +1400,7 @@ static void add_sound_strip_ram(char *name)
 	waitcursor(0);
 
 	BIF_undo_push("Add Sound (RAM) Strip, Sequencer");
-	transform_seq('g', 0);
+	transform_seq_nomarker('g', 0);
 }
 
 static void add_sound_strip_hd(char *name)
@@ -1428,7 +1428,7 @@ static void add_sound_strip_hd(char *name)
 	waitcursor(0);
 
 	BIF_undo_push("Add Sound (HD) Strip, Sequencer");
-	transform_seq('g', 0);
+	transform_seq_nomarker('g', 0);
 }
 
 #if 0
@@ -1673,7 +1673,7 @@ static int add_seq_effect(int type, char *str)
 		BIF_undo_push("Add Effect Strip, Sequencer");
 	}
 
-	transform_seq('g', 0);
+	transform_seq_nomarker('g', 0);
 
 	return 1;
 }
@@ -1851,7 +1851,7 @@ void add_sequence(int type)
 				if(seq->len>0) strip->stripdata= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
 
 				BIF_undo_push("Add Scene Strip, Sequencer");
-				transform_seq('g', 0);
+				transform_seq_nomarker('g', 0);
 			}
 		}
 		MEM_freeN(str);
@@ -2289,7 +2289,7 @@ void add_duplicate_seq(void)
 	addlisttolist(ed->seqbasep, &new);
 
 	BIF_undo_push("Add Duplicate, Sequencer");
-	transform_seq('g', 0);
+	transform_seq_nomarker('g', 0);
 }
 
 int insert_gap(int gap, int cfra)
@@ -3240,6 +3240,20 @@ void transform_seq(int mode, int context)
 		BIF_undo_push("Transform Extend, Sequencer");
 	
 	allqueue(REDRAWSEQ, 0);
+}
+
+/*	since grab can move markers, we must turn this off before adding a new sequence
+	I am not so happy with this, but the baddness in contained here - Campbell */
+void transform_seq_nomarker(int mode, int context) {
+	SpaceSeq *sseq= curarea->spacedata.first;
+	int flag_back;
+	if (!sseq) return; /* should never happen */
+	flag_back = sseq->flag;
+	sseq->flag &= ~SEQ_MARKER_TRANS;
+	
+	transform_seq(mode, context);
+	
+	sseq->flag = flag_back;
 }
 
 void seq_cut(int cutframe)
