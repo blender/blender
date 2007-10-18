@@ -90,6 +90,7 @@ typedef struct Sequence {
 
 	struct Sequence *next, *prev;
 	void *tmp; /* tmp var for copying, and tagging for linked selection */
+	void *lib; /* needed (to be like ipo), else it will raise libdata warnings, this should never be used */
 	char name[24]; /* name, not set by default and dosnt need to be unique as with ID's */
 
 	short flag, type;	/*flags bitmap (see below) and the type of sequence*/
