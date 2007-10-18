@@ -2684,7 +2684,10 @@ void transform_seq(int mode, int context)
 	char snapskip = 0, snap, snap_old;
 	int snapdist_max = seq_get_snaplimit();
 	/* at the moment there are only 4 possible snap points,
-	last_seq start,end and selected bounds start/end */
+	-	last_seq (start,end)
+	-	selected bounds (start/end)
+	-	last_seq (next/prev)
+	-	current frame */
 	int snap_points[4], snap_point_num = 0;
 	int j; /* loop on snap_points */
 	
@@ -2731,7 +2734,7 @@ void transform_seq(int mode, int context)
 		}
 	}
 	END_SEQ
-			
+	
 	getmouseco_areawin(mval);
 	
 	/* choose the side based on which side of the playhead the mouse is on */
@@ -2822,6 +2825,7 @@ void transform_seq(int mode, int context)
 						snap_points[snap_point_num++] = seq_tx_get_final_left(last_seq);
 					if(seq_tx_check_right(last_seq))
 						snap_points[snap_point_num++] = seq_tx_get_final_right(last_seq);
+					
 				}
 				if (tot > 1) { /* selection bounds */
 					int bounds_left = MAXFRAME*2;
@@ -2844,6 +2848,20 @@ void transform_seq(int mode, int context)
 						snap_points[snap_point_num++] = bounds_right;
 				}
 				
+				
+				/* Define so we can snap to other points without hassle */
+				
+#define TESTSNAP(test_frame)\
+				for(j=0; j<snap_point_num; j++) {\
+					/* see if this beats the current best snap point */\
+					dist = abs(snap_points[j] - test_frame);\
+					if (dist < snap_dist) {\
+						snap_ofs = test_frame - snap_points[j];\
+						snap_dist = dist;\
+					}\
+				}
+				
+				
 				/* Detect the best marker to snap to! */
 				for(a=0, marker= G.scene->markers.first; marker; a++, marker= marker->next) {
 					
@@ -2855,17 +2873,29 @@ void transform_seq(int mode, int context)
 					if ((sseq->flag & SEQ_MARKER_TRANS)==0 || (marker->flag & SELECT)==0) {
 						
 						/* loop over the sticky points - max 4 */
-						for(j=0; j<snap_point_num; j++) {
-							/* see if this beats the current best snap point */
-							dist = abs(snap_points[j] - marker->frame);
-							if (dist < snap_dist) {
-								snap_ofs = marker->frame - snap_points[j];
-								snap_dist = dist;
-							}
-						}
+						TESTSNAP(marker->frame);
 						if (snap_dist == 0) break; /* alredy snapped? - stop looking */
 					}
 				}
+				
+				if (snap_dist) {
+					TESTSNAP(cfra);
+				}
+				
+				/* check seq's next to the active also - nice for quick snapping */
+				if (snap_dist) {
+					seq = find_neighboring_sequence(last_seq, 1); /* left */
+					if(seq && !seq_tx_check_right(seq))
+						TESTSNAP(seq_tx_get_final_right(seq));
+				}
+				
+				if (snap_dist) {
+					seq = find_neighboring_sequence(last_seq, 2); /* right */
+					if(seq && !seq_tx_check_left(seq))
+						TESTSNAP(seq_tx_get_final_left(seq));
+				}
+
+#undef TESTSNAP
 				
 				if (abs(ix_old-ix) >= snapdist_max) {
 					/* mouse has moved out of snap range */

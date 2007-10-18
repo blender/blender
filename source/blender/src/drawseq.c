@@ -393,7 +393,7 @@ static void draw_seq_handle(Sequence *seq, SpaceSeq *sseq, short direction)
 	/* clamp handles to defined size in pixel space */
 	handsize = seq->handsize;
 	minhandle = 7;
-	maxhandle = 28;
+	maxhandle = 40;
 	CLAMP(handsize, minhandle*pixelx, maxhandle*pixelx);
 	
 	/* set up co-ordinates/dimensions for either left or right handle */
