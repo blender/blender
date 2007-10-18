@@ -3526,7 +3526,7 @@ static PyObject *MEdgeSeq_collapse( BPy_MEdgeSeq * self, PyObject *args )
 	basact = BASACT;
 	BASACT = base;
 	
-	removedoublesflag( 1, 0.0 );
+	removedoublesflag( 1, 0, 0.0 );
 	/* make mesh's object active, enter mesh edit mode */
 	G.obedit = object;
 	
@@ -7214,7 +7214,7 @@ static PyObject *Mesh_Tools( BPy_Mesh * self, int type, void **args )
 		esubdivideflag( 1, 0.0, *((int *)args[0]), 1, 0 );
 		break;
 	case MESH_TOOL_REMDOUB:
-		result = removedoublesflag( 1, *((float *)args[0]) );
+		result = removedoublesflag( 1, 0, *((float *)args[0]) );
 
 		attr = PyInt_FromLong( result );
 		if( !attr )

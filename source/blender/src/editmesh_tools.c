@@ -195,8 +195,15 @@ void convert_to_triface(int direction)
 	
 }
 
-int removedoublesflag(short flag, float limit)		/* return amount */
+int removedoublesflag(short flag, short automerge, float limit)		/* return amount */
 {
+	/*
+		flag -	Test with vert->flags
+		weld -	Alternative operation, merge unselected into selected.
+				Used for "Auto Weld" mode. warning.
+		limit -	Quick manhattan distance between verts.
+	*/
+	
 	EditMesh *em = G.editMesh;
 	/* all verts with (flag & 'flag') are being evaluated */
 	EditVert *eve, *v1, *nextve;
@@ -209,12 +216,15 @@ int removedoublesflag(short flag, float limit)		/* return amount */
 	
 	if(multires_test()) return 0;
 
+	
 	/* flag 128 is cleared, count */
+
+	/* Normal non weld operation */
 	eve= em->verts.first;
 	amount= 0;
 	while(eve) {
 		eve->f &= ~128;
-		if(eve->h==0 && (eve->f & flag)) amount++;
+		if(eve->h==0 && (automerge || (eve->f & flag))) amount++;
 		eve= eve->next;
 	}
 	if(amount==0) return 0;
@@ -223,7 +233,7 @@ int removedoublesflag(short flag, float limit)		/* return amount */
 	sb= sortblock= MEM_mallocN(sizeof(xvertsort)*amount,"sortremovedoub");
 	eve= em->verts.first;
 	while(eve) {
-		if(eve->h==0 && (eve->f & flag)) {
+		if(eve->h==0 && (automerge || (eve->f & flag))) {
 			sb->x= eve->co[0]+eve->co[1]+eve->co[2];
 			sb->v1= eve;
 			sb++;
@@ -232,44 +242,72 @@ int removedoublesflag(short flag, float limit)		/* return amount */
 	}
 	qsort(sortblock, amount, sizeof(xvertsort), vergxco);
 
+	
 	/* test for doubles */
-	sb= sortblock;
-	for(a=0; a<amount; a++) {
-		eve= sb->v1;
-		if( (eve->f & 128)==0 ) {
-			sb1= sb+1;
-			for(b=a+1; b<amount; b++) {
-				/* first test: simpel dist */
-				dist= sb1->x - sb->x;
-				if(dist > limit) break;
-				
-				/* second test: is vertex allowed */
-				v1= sb1->v1;
-				if( (v1->f & 128)==0 ) {
+	sb= sortblock;	
+	if (automerge) {
+		for(a=0; a<amount; a++, sb++) {
+			eve= sb->v1;
+			if( (eve->f & 128)==0 ) {
+				sb1= sb+1;
+				for(b=a+1; b<amount && (eve->f & 128)==0; b++, sb1++) {
+					if(sb1->x - sb->x > limit) break;
 					
-					dist= (float)fabs(v1->co[0]-eve->co[0]);
-					if(dist<=limit) {
-						dist= (float)fabs(v1->co[1]-eve->co[1]);
-						if(dist<=limit) {
-							dist= (float)fabs(v1->co[2]-eve->co[2]);
-							if(dist<=limit) {
+					/* when welding, only allow selected-> unselected*/
+					v1= sb1->v1;
+					if( (v1->f & 128)==0 ) {
+						if ((eve->f & flag)==0 && (v1->f & flag)==1) {
+							if(	(float)fabs(v1->co[0]-eve->co[0])<=limit && 
+								(float)fabs(v1->co[1]-eve->co[1])<=limit &&
+								(float)fabs(v1->co[2]-eve->co[2])<=limit)
+							{	/* unique bit */
+								eve->f|= 128;
+								eve->tmp.v = v1;
+							}
+						} else if(	(eve->f & flag)==1 && (v1->f & flag)==0 ) {
+							if(	(float)fabs(v1->co[0]-eve->co[0])<=limit && 
+								(float)fabs(v1->co[1]-eve->co[1])<=limit &&
+								(float)fabs(v1->co[2]-eve->co[2])<=limit)
+							{	/* unique bit */
 								v1->f|= 128;
 								v1->tmp.v = eve;
 							}
 						}
 					}
 				}
-				sb1++;
 			}
 		}
-		sb++;
+	} else {
+		for(a=0; a<amount; a++, sb++) {
+			eve= sb->v1;
+			if( (eve->f & 128)==0 ) {
+				sb1= sb+1;
+				for(b=a+1; b<amount; b++, sb1++) {
+					/* first test: simpel dist */
+					if(sb1->x - sb->x > limit) break;
+					v1= sb1->v1;
+					
+					/* second test: is vertex allowed */
+					if( (v1->f & 128)==0 ) {
+						if(	(float)fabs(v1->co[0]-eve->co[0])<=limit && 
+							(float)fabs(v1->co[1]-eve->co[1])<=limit &&
+							(float)fabs(v1->co[2]-eve->co[2])<=limit)
+						{
+							v1->f|= 128;
+							v1->tmp.v = eve;
+						}
+					}
+				}
+			}
+		}
 	}
 	MEM_freeN(sortblock);
-
-	for(eve = em->verts.first; eve; eve=eve->next)
-		if((eve->f & flag) && (eve->f & 128))
-			EM_data_interp_from_verts(eve, eve->tmp.v, eve->tmp.v, 0.5f);
-
+	
+	if (!automerge)
+		for(eve = em->verts.first; eve; eve=eve->next)
+			if((eve->f & flag) && (eve->f & 128))
+				EM_data_interp_from_verts(eve, eve->tmp.v, eve->tmp.v, 0.5f);
+	
 	/* test edges and insert again */
 	eed= em->edges.first;
 	while(eed) {
@@ -445,7 +483,7 @@ int removedoublesflag(short flag, float limit)		/* return amount */
 	eve= (struct EditVert *)em->verts.first;
 	while(eve) {
 		nextve= eve->next;
-		if(eve->f & flag) {
+		if(automerge || eve->f & flag) {
 			if(eve->f & 128) {
 				a++;
 				BLI_remlink(&em->verts, eve);
@@ -4023,7 +4061,7 @@ static void bevel_mesh(float bsize, int allfaces)
 
 	waitcursor(1);
 
-	removedoublesflag(1, limit);
+	removedoublesflag(1, 0, limit);
 
 	/* tag all original faces */
 	efa= em->faces.first;
@@ -4378,7 +4416,7 @@ static void bevel_mesh(float bsize, int allfaces)
 	allqueue(REDRAWVIEW3D, 0);
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	
-	removedoublesflag(1, limit);
+	removedoublesflag(1, 0, limit);
 
 	/* flush selected vertices to edges/faces */
 	EM_select_flush();
@@ -4531,7 +4569,7 @@ int EdgeLoopDelete(void) {
 		return 0;
 	}
 	select_more();
-	removedoublesflag(1,0.001);
+	removedoublesflag(1,0, 0.001);
 	EM_select_flush();
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	return 1;
@@ -5079,6 +5117,8 @@ int EdgeSlide(short immediate, float imperc)
 	}
 	
 	force_draw(0);
+	
+	EM_automerge(0);
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	scrarea_queue_winredraw(curarea);		 
 	
@@ -6113,7 +6153,7 @@ int collapseEdges(void)
 		
 	}
 	freecollections(&allcollections);
-	removedoublesflag(1, MERGELIMIT);
+	removedoublesflag(1, 0, MERGELIMIT);
 	/*get rid of this!*/
 	countall();
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
@@ -6157,7 +6197,7 @@ int merge_firstlast(int first, int uvmerge)
 	}
 	
 	countall();
-	return removedoublesflag(1,MERGELIMIT);
+	return removedoublesflag(1, 0, MERGELIMIT);
 }
 
 int merge_target(int target, int uvmerge)
@@ -6180,7 +6220,7 @@ int merge_target(int target, int uvmerge)
 	countall();
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 	allqueue(REDRAWVIEW3D, 0);
-	return removedoublesflag(1,MERGELIMIT);
+	return removedoublesflag(1, 0, MERGELIMIT);
 	
 }
 #undef MERGELIMIT

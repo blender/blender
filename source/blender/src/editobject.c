@@ -2424,12 +2424,12 @@ void special_editmenu(void)
 			esubdivideflag(1, fac, G.scene->toolsettings->editbutflag | B_SMOOTH, 1, 0);
 			BIF_undo_push("Subdivide Smooth");
 			break;		
-			
+
 		case 4:
 			mergemenu();
 			break;
 		case 5:
-			notice("Removed %d Vertices", removedoublesflag(1, G.scene->toolsettings->doublimit));
+			notice("Removed %d Vertices", removedoublesflag(1, 1, G.scene->toolsettings->doublimit));
 			BIF_undo_push("Remove Doubles");
 			break;
 		case 6:

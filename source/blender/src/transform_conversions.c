@@ -125,6 +125,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 
+#include "editmesh.h"
+
 #include "blendef.h"
 
 #include "mydevice.h"
@@ -2732,7 +2734,10 @@ void special_aftertrans_update(TransInfo *t)
 	Base *base;
 	short redrawipo=0, resetslowpar=1;
 	int cancelled= (t->state == TRANS_CANCEL);
-		
+	
+	if (t->spacetype==SPACE_VIEW3D)
+		EM_automerge(1);
+	
 	if(t->spacetype == SPACE_ACTION) {
 		void *data;
 		short datatype;

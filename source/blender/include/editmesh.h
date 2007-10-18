@@ -90,6 +90,7 @@ extern int convex(float *v1, float *v2, float *v3, float *v4);
 
 /* ******************* editmesh_mods.c */
 extern EditEdge *findnearestedge(int *dist);
+extern void EM_automerge(int update);
 
 /**
  * findnearestvert

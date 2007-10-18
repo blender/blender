@@ -418,8 +418,10 @@ typedef struct Scene {
 	float editbutsize;                      /* size of normals */
 	short selectmode;
 	short proportional, prop_mode;
+	short automerge, pad5, pad6, pad7;
 	
 	short use_nodes;
+	
 	struct bNodeTree *nodetree;	
 	
 	void *ed;								/* sequence editor data is allocated here */

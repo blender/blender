@@ -960,7 +960,7 @@ void make_prim(int type, float imat[3][3], int tot, int seg,
 			rotateflag(2, v1->co, cmat);
 		}
 
-		removedoublesflag(4, 0.0001);
+		removedoublesflag(4, 0, 0.0001);
 
 		/* and now do imat */
 		eve= em->verts.first;

@@ -206,7 +206,7 @@ extern short sharesFace(struct EditEdge* e1, struct EditEdge* e2);
 #define SUBDIV_SELECT_LOOPCUT 3
 
 extern void convert_to_triface(int direction);
-extern int removedoublesflag(short flag, float limit);
+extern int removedoublesflag(short flag, short automerge, float limit);
 extern void xsortvert_flag(int flag);
 extern void hashvert_flag(int flag);
 

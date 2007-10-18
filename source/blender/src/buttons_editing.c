@@ -4226,7 +4226,7 @@ void do_meshbuts(unsigned short event)
 		G.f -= G_DISABLE_OK;
 		break;
 	case B_REMDOUB:
-		count= removedoublesflag(1, G.scene->toolsettings->doublimit);
+		count= removedoublesflag(1, 1, G.scene->toolsettings->doublimit);
 		notice("Removed: %d", count);
 		if (count) { /* only undo and redraw if an action is taken */
 			countall ();
