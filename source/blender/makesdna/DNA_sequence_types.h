@@ -88,21 +88,22 @@ typedef struct PluginSeq {
 
 typedef struct Sequence {
 
-	struct Sequence *next, *prev, *newseq;
-	void *lib;
-	char name[24];
+	struct Sequence *next, *prev;
+	void *tmp; /* tmp var for copying, and tagging for linked selection */
+	char name[24]; /* name, not set by default and dosnt need to be unique as with ID's */
 
 	short flag, type;	/*flags bitmap (see below) and the type of sequence*/
-	int len;
+	int len; /* the length of the contense of this strip - before handles are applied */
 	int start, startofs, endofs;
 	int startstill, endstill;
-	int machine, depth;
+	int machine, depth; /*machine - the strip channel, depth - the depth in the sequence when dealing with metastrips */
 	int startdisp, enddisp;	/*starting and ending points in the sequence*/
 	float mul, handsize;
-	int sfra;		/* starting frame according to the timeline of the scene */
+					/* is sfra needed anymore? - it looks like its only used in one place */
+	int sfra;		/* starting frame according to the timeline of the scene. */
 
 	Strip *strip;
-	StripElem *curelem;
+	StripElem *curelem;	/* reference the current frame - value from give_stripelem */
 
 	struct Ipo *ipo;
 	struct Scene *scene;
@@ -114,8 +115,7 @@ typedef struct Sequence {
 	/* pointers for effects: */
 	struct Sequence *seq1, *seq2, *seq3;
 
-	/* meta */
-	ListBase seqbase;
+	ListBase seqbase;	/* list of strips for metastrips */
 
 	struct bSound *sound;	/* the linked "bSound" object */
         struct hdaudio *hdaudio; /* external hdaudio object */

@@ -304,45 +304,91 @@ int sequence_is_free_transformable(Sequence * seq)
 		|| (get_sequence_effect_num_inputs(seq->type) == 0);
 }
 
-Sequence *find_neighboring_sequence(Sequence *test, int lr) {
-/* looks to the left on lr==1, to the right on lr==2 */
-	Sequence *seq,*foundneighbor = 0;
-	int found=0;
+Sequence *find_neighboring_sequence(Sequence *test, int lr, int sel) {
+/*	looks to the left on lr==1, to the right on lr==2
+	sel - 0==unselected, 1==selected, -1==done care*/
+	Sequence *seq;
 	Editing *ed;
 
 	ed= G.scene->ed;
 	if(ed==0) return 0;
 
+	if (sel>0) sel = SELECT;
+	
 	seq= ed->seqbasep->first;
 	while(seq) {
-		if(seq!=test) {
-			if (test->machine==seq->machine) {
-				if(test->depth==seq->depth) {
-					switch (lr) {
-					case 1:
-						if (test->startdisp == (seq->enddisp)) {
-							foundneighbor=seq;
-							found=1;
-						}
-						break;
-					case 2:
-						if (test->enddisp == (seq->startdisp)) {
-							foundneighbor=seq;
-							found=1;
-						}
-						break;
-					}
+		if(	(seq!=test) &&
+			(test->machine==seq->machine) &&
+			(test->depth==seq->depth) && 
+			((sel == -1) || (sel && (seq->flag & SELECT)) || (sel==0 && (seq->flag & SELECT)==0)  ))
+		{
+			switch (lr) {
+			case 1:
+				if (test->startdisp == (seq->enddisp)) {
+					return seq;
 				}
+				break;
+			case 2:
+				if (test->enddisp == (seq->startdisp)) {
+					return seq;
+				}
+				break;
 			}
 		}
 		seq= seq->next;
 	}
-	if (found==1) {
-		return foundneighbor;
-	} else {
-		return 0;
-	}
+	return NULL;
 }
+
+Sequence *find_next_prev_sequence(Sequence *test, int lr, int sel) {
+/*	looks to the left on lr==1, to the right on lr==2
+	sel - 0==unselected, 1==selected, -1==done care*/
+	Sequence *seq,*best_seq = NULL;
+	Editing *ed;
+	
+	int dist, best_dist;
+	best_dist = MAXFRAME*2;
+
+	ed= G.scene->ed;
+	if(ed==0) return 0;
+
+	if (sel) sel = SELECT;
+	
+	seq= ed->seqbasep->first;
+	while(seq) {
+		if(		(seq!=test) &&
+				(test->machine==seq->machine) &&
+				(test->depth==seq->depth) &&
+				((sel == -1) || (sel==(seq->flag & SELECT))))
+		{
+			dist = MAXFRAME*2;
+			
+			switch (lr) {
+			case 1:
+				if (seq->enddisp <= test->startdisp) {
+					dist = test->enddisp - seq->startdisp;
+				}
+				break;
+			case 2:
+				if (seq->startdisp >= test->enddisp) {
+					dist = seq->startdisp - test->enddisp;
+				}
+				break;
+			}
+			
+			if (dist==0) {
+				best_seq = seq;
+				break;
+			} else if (dist < best_dist) {
+				best_dist = dist;
+				best_seq = seq;
+			}
+		}
+		seq= seq->next;
+	}
+	return best_seq; /* can be null */
+}
+
 
 Sequence *find_nearest_seq(int *hand)
 {
@@ -627,13 +673,13 @@ void select_surrounding_handles(Sequence *test)
 {
 	Sequence *neighbor;
 	
-	neighbor=find_neighboring_sequence(test, 1);
+	neighbor=find_neighboring_sequence(test, 1, -1);
 	if (neighbor) {
 		neighbor->flag |= SELECT;
 		recurs_sel_seq(neighbor);
 		neighbor->flag |= SEQ_RIGHTSEL;
 	}
-	neighbor=find_neighboring_sequence(test, 2);
+	neighbor=find_neighboring_sequence(test, 2, -1);
 	if (neighbor) {
 		neighbor->flag |= SELECT;
 		recurs_sel_seq(neighbor);
@@ -660,7 +706,7 @@ void select_neighbor_from_last(int lr)
 	Sequence *neighbor;
 	int change = 0;
 	if (seq) {
-		neighbor=find_neighboring_sequence(seq, lr);
+		neighbor=find_neighboring_sequence(seq, lr, -1);
 		if (neighbor) {
 			switch (lr) {
 			case 1:
@@ -768,7 +814,7 @@ void mouse_select_seq(void)
 		
 				if (G.qual & LR_CTRLKEY) seldir=1;
 					else seldir=2;
-				neighbor=find_neighboring_sequence(seq, seldir);
+				neighbor=find_neighboring_sequence(seq, seldir, -1);
 				if (neighbor) {
 					switch (seldir) {
 					case 1:
@@ -2081,12 +2127,12 @@ static void recurs_dupli_seq(ListBase *old, ListBase *new)
 	seq= old->first;
 
 	while(seq) {
-		seq->newseq= 0;
+		seq->tmp= NULL;
 		if(seq->flag & SELECT) {
 
 			if(seq->type==SEQ_META) {
 				seqn= MEM_dupallocN(seq);
-				seq->newseq= seqn;
+				seq->tmp= seqn;
 				BLI_addtail(new, seqn);
 
 				seqn->strip= MEM_dupallocN(seq->strip);
@@ -2102,7 +2148,7 @@ static void recurs_dupli_seq(ListBase *old, ListBase *new)
 			}
 			else if(seq->type == SEQ_SCENE) {
 				seqn= MEM_dupallocN(seq);
-				seq->newseq= seqn;
+				seq->tmp= seqn;
 				BLI_addtail(new, seqn);
 
 				seqn->strip= MEM_dupallocN(seq->strip);
@@ -2114,7 +2160,7 @@ static void recurs_dupli_seq(ListBase *old, ListBase *new)
 			}
 			else if(seq->type == SEQ_MOVIE) {
 				seqn= MEM_dupallocN(seq);
-				seq->newseq= seqn;
+				seq->tmp= seqn;
 				BLI_addtail(new, seqn);
 
 				seqn->strip= MEM_dupallocN(seq->strip);
@@ -2137,7 +2183,7 @@ static void recurs_dupli_seq(ListBase *old, ListBase *new)
 			}
 			else if(seq->type == SEQ_RAM_SOUND) {
 				seqn= MEM_dupallocN(seq);
-				seq->newseq= seqn;
+				seq->tmp= seqn;
 				BLI_addtail(new, seqn);
 
 				seqn->strip= MEM_dupallocN(seq->strip);
@@ -2162,7 +2208,7 @@ static void recurs_dupli_seq(ListBase *old, ListBase *new)
 			}
 			else if(seq->type == SEQ_HD_SOUND) {
 				seqn= MEM_dupallocN(seq);
-				seq->newseq= seqn;
+				seq->tmp= seqn;
 				BLI_addtail(new, seqn);
 
 				seqn->strip= MEM_dupallocN(seq->strip);
@@ -2187,7 +2233,7 @@ static void recurs_dupli_seq(ListBase *old, ListBase *new)
 			}
 			else if(seq->type < SEQ_EFFECT) {
 				seqn= MEM_dupallocN(seq);
-				seq->newseq= seqn;
+				seq->tmp= seqn;
 				BLI_addtail(new, seqn);
 
 				seqn->strip->us++;
@@ -2197,12 +2243,12 @@ static void recurs_dupli_seq(ListBase *old, ListBase *new)
 			}
 			else {
 				seqn= MEM_dupallocN(seq);
-				seq->newseq= seqn;
+				seq->tmp= seqn;
 				BLI_addtail(new, seqn);
 
-				if(seq->seq1 && seq->seq1->newseq) seqn->seq1= seq->seq1->newseq;
-				if(seq->seq2 && seq->seq2->newseq) seqn->seq2= seq->seq2->newseq;
-				if(seq->seq3 && seq->seq3->newseq) seqn->seq3= seq->seq3->newseq;
+				if(seq->seq1 && seq->seq1->tmp) seqn->seq1= seq->seq1->tmp;
+				if(seq->seq2 && seq->seq2->tmp) seqn->seq2= seq->seq2->tmp;
+				if(seq->seq3 && seq->seq3->tmp) seqn->seq3= seq->seq3->tmp;
 
 				if(seqn->ipo) seqn->ipo->id.us++;
 
@@ -2883,20 +2929,20 @@ void transform_seq(int mode, int context)
 				}
 				
 				/* check seq's next to the active also - nice for quick snapping */
-				if (snap_dist) {
-					seq = find_neighboring_sequence(last_seq, 1); /* left */
+				if (snap_dist && seq_tx_check_left(last_seq)) {
+					seq = find_next_prev_sequence(last_seq, 1, 0); /* left */
 					if(seq && !seq_tx_check_right(seq))
 						TESTSNAP(seq_tx_get_final_right(seq));
 				}
 				
-				if (snap_dist) {
-					seq = find_neighboring_sequence(last_seq, 2); /* right */
+				if (snap_dist && seq_tx_check_right(last_seq)) {
+					seq = find_next_prev_sequence(last_seq, 2, 0); /* right */
 					if(seq && !seq_tx_check_left(seq))
 						TESTSNAP(seq_tx_get_final_left(seq));
 				}
 
 #undef TESTSNAP
-				
+
 				if (abs(ix_old-ix) >= snapdist_max) {
 					/* mouse has moved out of snap range */
 					snapskip = 0;
@@ -3397,6 +3443,106 @@ void seq_separate_images(void)
 	sort_seq();
 	BIF_undo_push("Separate Image Strips, Sequencer");
 	allqueue(REDRAWSEQ, 0);
+}
+
+/* run recursivly to select linked */
+static int select_more_less_seq__internal(int sel, int linked) {
+	Editing *ed;
+	Sequence *seq, *neighbor;
+	int change=0;
+	int isel;
+	
+	ed= G.scene->ed;
+	if(ed==0) return 0;
+	
+	if (sel) {
+		sel = SELECT;
+		isel = 0;
+	} else {
+		sel = 0;
+		isel = SELECT;
+	}
+	
+	if (!linked) {
+		/* if not linked we only want to touch each seq once, newseq */
+		for(seq= ed->seqbasep->first; seq; seq= seq->next) {
+			seq->tmp = NULL;
+		}
+	}
+	
+	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
+		if((int)(seq->flag & SELECT) == sel) {
+			if ((linked==0 && seq->tmp)==0) {
+				/* only get unselected nabours */
+				neighbor = find_neighboring_sequence(seq, 1, isel);
+				if (neighbor) {
+					if (sel) {neighbor->flag |= SELECT; recurs_sel_seq(neighbor);}
+					else		neighbor->flag &= ~SELECT;
+					if (linked==0) neighbor->tmp = (Sequence *)1;
+					change = 1;
+				}
+				neighbor = find_neighboring_sequence(seq, 2, isel);
+				if (neighbor) {
+					if (sel) {neighbor->flag |= SELECT; recurs_sel_seq(neighbor);}
+					else		neighbor->flag &= ~SELECT;
+					if (linked==0) neighbor->tmp = (void *)1;
+					change = 1;
+				}
+			}
+		}
+	}
+	
+	return change;
+}
+
+void select_less_seq(void)
+{
+	if (select_more_less_seq__internal(0, 0)) {
+		BIF_undo_push("Select Less, Sequencer");
+		allqueue(REDRAWSEQ, 0);
+	}
+}
+
+void select_more_seq(void)
+{
+	if (select_more_less_seq__internal(1, 0)) {
+		BIF_undo_push("Select More, Sequencer");
+		allqueue(REDRAWSEQ, 0);
+	}
+}
+
+/* TODO not all modes supported - if you feel like being picky, add them! ;) */
+void select_linked_seq(int mode) {
+	Editing *ed;
+	Sequence *seq, *mouse_seq;
+	int selected, hand;
+	
+	ed= G.scene->ed;
+	if(ed==0) return;
+	
+	/* replace current selection */
+	if (mode==0 || mode==2) {
+		/* this works like UV, not mesh */
+		if (mode==0) {
+			mouse_seq= find_nearest_seq(&hand);
+			if (!mouse_seq)
+				return; /* user error as with mesh?? */
+			
+			for(seq= ed->seqbasep->first; seq; seq= seq->next) {
+				seq->flag &= ~SELECT;
+			}
+			mouse_seq->flag |= SELECT;
+			recurs_sel_seq(mouse_seq);
+		}
+		
+		selected = 1;
+		while (selected) {
+			selected = select_more_less_seq__internal(1, 1);
+		}
+		BIF_undo_push("Select Linked, Sequencer");
+		allqueue(REDRAWSEQ, 0);
+	}
+	/* TODO - more modes... */
 }
 
 void seq_snap_menu(void)

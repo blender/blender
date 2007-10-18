@@ -4445,6 +4445,10 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			mouse_select_seq();
 			break;
 		case PADPLUSKEY:
+			if (G.qual==LR_CTRLKEY) {
+				select_more_seq();
+				break;
+			}
 		case WHEELUPMOUSE:
 			if(sseq->mainb) {
 				sseq->zoom++;
@@ -4473,6 +4477,10 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			doredraw= 1;
 			break;
 		case PADMINUS:
+			if (G.qual==LR_CTRLKEY) {
+				select_less_seq();
+				break;
+			}
 		case WHEELDOWNMOUSE:
 			if(sseq->mainb) {
 				sseq->zoom--;
@@ -4575,6 +4583,13 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case KKEY:
 			if((G.qual==0)) { /* Cut at current frame */
 				if(okee("Cut strips")) seq_cut(CFRA);
+			}
+			break;
+		case LKEY:
+			if((G.qual==0)) { /* Cut at current frame */
+				select_linked_seq( 0 );
+			} else if((G.qual==LR_CTRLKEY)) { /* Cut at current frame */
+				select_linked_seq( 2 );
 			}
 			break;
 		case YKEY:

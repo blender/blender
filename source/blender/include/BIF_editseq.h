@@ -48,11 +48,14 @@ void				clear_last_seq();
 void				del_seq(void);
 void				enter_meta(void);
 void				exit_meta(void);
-struct Sequence*	find_neighboring_sequence(struct Sequence *test, int lr);
+struct Sequence*	find_neighboring_sequence(struct Sequence *test, int lr, int sel);
+struct Sequence*	find_next_prev_sequence(struct Sequence *test, int lr, int sel);
 struct Sequence*	find_nearest_seq(int *hand);
 int					insert_gap(int gap, int cfra);
 void				make_meta(void);
 void				select_channel_direction(struct Sequence *test,int lr);
+void				select_more_seq(void);
+void				select_less_seq(void);
 void				mouse_select_seq(void);
 void				no_gaps(void);
 void				seq_snap(short event);
@@ -70,6 +73,7 @@ void				select_surrounding_handles(struct Sequence *test);
 void				select_surround_from_last();
 void				select_dir_from_last(int lr);
 void				select_neighbor_from_last(int lr);
+void				select_linked_seq(int mode);
 struct Sequence*	alloc_sequence(ListBase *lb, int cfra, int machine); /*used from python*/
 int 				check_single_image_seq(struct Sequence *seq);
 
