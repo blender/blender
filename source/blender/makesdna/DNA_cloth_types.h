@@ -40,7 +40,8 @@
 * They will assume the position they had prior to pinFrame until unpinFrame
 * is reached.
 */
-typedef struct ClothVertex {
+typedef struct ClothVertex
+{
 	int	flags;		/* General flags per vertex.		*/
 	float	v [3];		/* The velocity of the point.		*/
 	float	xconst [3];	/* constrained position			*/
@@ -53,23 +54,26 @@ typedef struct ClothVertex {
 	float 	goal;		/* goal, from SB			*/
 	float	impulse[3];	/* used in collision.c */
 	unsigned int impulse_count; /* same as above */
-} ClothVertex;
+}
+ClothVertex;
 
 
 /**
 * The definition of a spring.
 */
-typedef struct ClothSpring {
+typedef struct ClothSpring
+{
 	int	ij;		/* Pij from the paper, one end of the spring.	*/
 	int	kl;		/* Pkl from the paper, one end of the spring.	*/
 	float	restlen;	/* The original length of the spring.	*/
-	int	matrix_index; 	/* needed for implicit */
-	int	type;
+	int	matrix_index; 	/* needed for implicit solver (fast lookup) */
+	int	type;		/* types defined in BKE_cloth.h ("springType") */
 	int	flags; 		/* defined in BKE_cloth.h, e.g. deactivated due to tearing */
 	float dfdx[3][3];
 	float dfdv[3][3];
 	float f[3];
-} ClothSpring;
+}
+ClothSpring;
 
 
 
@@ -84,10 +88,11 @@ typedef struct ClothSpring {
 * as in stepsPerFrame comapred to the time step in the paper, I've used
 * variables with different names to minimize confusion.
 **/
-typedef struct SimulationSettings {
+typedef struct SimulationSettings
+{
 	short	vgroup_mass;	/* optional vertexgroup name for assigning weight.	*/
 	short	pad;
-	float 	mingoal; /* see SB */
+	float 	mingoal; 	/* see SB */
 	int	preroll;	/* How many frames of simulation to do before we start.	*/
 	float	Cdis;		/* Mechanical damping of springs.		*/
 	float	Cvi;		/* Viscous/fluid damping.			*/
@@ -99,11 +104,11 @@ typedef struct SimulationSettings {
 	float	structural;	/* Structural spring stiffness.			*/
 	float	shear;		/* Shear spring stiffness.			*/
 	float	bending;	/* Flexion spring stiffness.			*/
-	float	sim_time;	
+	float	sim_time;
 	int	flags;		/* flags, see CSIMSETT_FLAGS enum above.	*/
 	short	solver_type; 	/* which solver should be used?				*/
 	short	pad2;
-	float	maxgoal; /* see SB */
+	float	maxgoal; 	/* see SB */
 	float	eff_force_scale;/* Scaling of effector forces (see softbody_calc_forces).*/
 	float	eff_wind_scale;	/* Scaling of effector wind (see softbody_calc_forces).	*/
 	float 	sim_time_old;
@@ -114,17 +119,22 @@ typedef struct SimulationSettings {
 	int	maxspringlen; 	/* in percent!; if tearing enabled, a spring will get cut */
 	int 	lastframe; 	/* frame on which simulation stops */
 	int	firstframe;	/* frame on which simulation starts */
-} SimulationSettings;
+}
+SimulationSettings;
 
 
-typedef struct CollisionSettings {
+typedef struct CollisionSettings
+{
 	float	epsilon;		/* The radius of a particle in the cloth.		*/
 	float	self_friction;		/* Fiction/damping with self contact.		 	*/
 	float	friction;		/* Friction/damping applied on contact with other object.*/
 	short	collision_type;		/* which collision system is used.			*/
 	short	loop_count;		/* How many iterations for the collision loop.		*/
 	struct	LinkNode *collision_list; 	/* e.g. pointer to temp memory for collisions */
-} CollisionSettings;     
+	int	flags;			/* collision flags defined in BKE_cloth.h */
+	int 	pad;
+}
+CollisionSettings;
 
 
 /**
@@ -137,21 +147,20 @@ typedef struct CollisionSettings {
 * own connectivity of the mesh based on the actual edges in the mesh.
 *
 **/
-typedef struct Cloth {
-	struct ClothVertex	*verts;			/* The vertices that represent this cloth.	 */  
-	struct ClothSpring	*springs;		/* The springs connecting the mesh.		 */
-	unsigned int		numverts;		/* The number of verts == m * n.	 	 */
-	unsigned int		numsprings;		/* The count of springs.	 	 	*/
-	unsigned char		*facemarks;
-	char			old_solver_type;	/* Needed to allow call to free if solver changes.	 */
-	char			old_collision_type;	/* Needed to allow call to free if collision changes.*/
-	short 			pad7;
+typedef struct Cloth
+{
+	struct ClothVertex	*verts;			/* The vertices that represent this cloth. */
+	struct	LinkNode	*springs;		/* The springs connecting the mesh. */
+	unsigned int		numverts;		/* The number of verts == m * n. */
+	unsigned int		numsprings;		/* The count of springs. */
 	unsigned int		numfaces;
-	int			pad2;
-	int 			pad4;
+	unsigned char 		old_solver_type;
+	unsigned char 		pad2;
+	short 			pad3;
 	void			*tree;			/* collision tree for this cloth object */
 	struct MFace 		*mfaces;
 	void			*implicit; 		/* our implicit solver connects to this pointer */
-} Cloth;
+}
+Cloth;
 
 #endif

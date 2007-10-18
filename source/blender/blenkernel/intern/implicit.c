@@ -700,15 +700,15 @@ int implicit_init (Object *ob, ClothModifierData *clmd)
 	unsigned int pinned = 0;
 	Cloth *cloth = NULL;
 	ClothVertex *verts = NULL;
-	ClothSpring *springs = NULL;
+	ClothSpring *spring = NULL;
 	Implicit_Data *id = NULL;
+	LinkNode *search = NULL;
 
 	// init memory guard
 	// MEMORY_BASE.first = MEMORY_BASE.last = NULL;
 
 	cloth = (Cloth *)clmd->clothObject;
 	verts = cloth->verts;
-	springs = cloth->springs;
 
 	// create implicit base
 	id = (Implicit_Data *)MEM_callocN (sizeof(Implicit_Data), "implicit vecmat");
@@ -749,17 +749,22 @@ int implicit_init (Object *ob, ClothModifierData *clmd)
 	id->S[0].vcount = pinned; id->S[0].scount = 0;
 
 	// init springs */
+	search = cloth->springs;
 	for(i=0;i<cloth->numsprings;i++) 
 	{
+		spring = search->link;
+		
 		// dFdV_start[i].r = big_I[i].r = big_zero[i].r = 
 		id->A[i+cloth->numverts].r = id->dFdV[i+cloth->numverts].r = id->dFdX[i+cloth->numverts].r = 
-			id->P[i+cloth->numverts].r = id->Pinv[i+cloth->numverts].r = id->bigI[i+cloth->numverts].r = springs[i].ij;
+				id->P[i+cloth->numverts].r = id->Pinv[i+cloth->numverts].r = id->bigI[i+cloth->numverts].r = spring->ij;
 
 		// dFdV_start[i].c = big_I[i].c = big_zero[i].c = 
 		id->A[i+cloth->numverts].c = id->dFdV[i+cloth->numverts].c = id->dFdX[i+cloth->numverts].c = 
-			id->P[i+cloth->numverts].c = id->Pinv[i+cloth->numverts].c = id->bigI[i+cloth->numverts].c = springs[i].kl;
+			id->P[i+cloth->numverts].c = id->Pinv[i+cloth->numverts].c = id->bigI[i+cloth->numverts].c = spring->kl;
 
-		springs[i].matrix_index = i + cloth->numverts;
+		spring->matrix_index = i + cloth->numverts;
+		
+		search = search->next;
 	}
 
 	for(i = 0; i < cloth->numverts; i++)
@@ -1170,7 +1175,7 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 	VECSUB(vel, V[s->kl], V[s->ij]);
 	length = sqrt(INPR(extent, extent));
 	
-	s->flags &= ~CSPRING_FLAG_NEEDED;
+	s->flags &= ~CLOTH_SPRING_FLAG_NEEDED;
 	
 	if(length > ABS(ALMOST_ZERO))
 	{
@@ -1193,12 +1198,12 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 	}
 	
 	
-	// calculate force of structural springs
-	if(s->type != BENDING)
+	// calculate force of structural + shear springs
+	if(s->type != CLOTH_SPRING_TYPE_BENDING)
 	{
 		if(length > L) // only on elonglation
 		{
-			s->flags |= CSPRING_FLAG_NEEDED;
+			s->flags |= CLOTH_SPRING_FLAG_NEEDED;
 
 			k = clmd->sim_parms.structural;	
 
@@ -1219,7 +1224,7 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 	{
 		if(length < L)
 		{
-			s->flags |= CSPRING_FLAG_NEEDED;
+			s->flags |= CLOTH_SPRING_FLAG_NEEDED;
 			
 			k = clmd->sim_parms.bending;	
 
@@ -1231,6 +1236,27 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 	}
 }
 
+DO_INLINE void cloth_apply_spring_force(ClothModifierData *clmd, ClothSpring *s, lfVector *lF, lfVector *X, lfVector *V, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX)
+{
+	if(s->flags & CLOTH_SPRING_FLAG_NEEDED)
+	{
+		if(s->type != CLOTH_SPRING_TYPE_BENDING)
+		{
+			sub_fmatrix_fmatrix(dFdV[s->ij].m, dFdV[s->ij].m, s->dfdv);
+			sub_fmatrix_fmatrix(dFdV[s->kl].m, dFdV[s->kl].m, s->dfdv);
+			add_fmatrix_fmatrix(dFdV[s->matrix_index].m, dFdV[s->matrix_index].m, s->dfdv);	
+		}
+
+		VECADD(lF[s->ij], lF[s->ij], s->f);
+		VECSUB(lF[s->kl], lF[s->kl], s->f);
+
+		sub_fmatrix_fmatrix(dFdX[s->ij].m, dFdX[s->ij].m, s->dfdx);
+		sub_fmatrix_fmatrix(dFdX[s->kl].m, dFdX[s->kl].m, s->dfdx);
+
+		add_fmatrix_fmatrix(dFdX[s->matrix_index].m, dFdX[s->matrix_index].m, s->dfdx);
+	}	
+}
+
 DO_INLINE void calculateTriangleNormal(float to[3], lfVector *X, MFace mface)
 {
 	float v1[3], v2[3];
@@ -1239,6 +1265,7 @@ DO_INLINE void calculateTriangleNormal(float to[3], lfVector *X, MFace mface)
 	VECSUB(v2, X[mface.v3], X[mface.v1]);
 	cross_fvector(to, v1, v2);
 }
+
 DO_INLINE void calculatQuadNormal(float to[3], lfVector *X, MFace mface)
 {
 	float temp = CalcNormFloat4(X[mface.v1],X[mface.v2],X[mface.v3],X[mface.v4],to);
@@ -1280,12 +1307,12 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 	float 		gravity[3];
 	float 		tm2[3][3] 	= {{-spring_air,0,0}, {0,-spring_air,0},{0,0,-spring_air}};
 	ClothVertex *verts = cloth->verts;
-	ClothSpring 	*springs 	= cloth->springs;
 	MFace 		*mfaces 	= cloth->mfaces;
 	float wind_normalized[3];
 	unsigned int numverts = cloth->numverts;
 	float auxvect[3], velgoal[3], tvect[3];
 	float kd, ks;
+	LinkNode *search = cloth->springs;
 
 
 	VECCOPY(gravity, clmd->sim_parms.gravity);
@@ -1301,7 +1328,7 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 	submul_lfvectorS(lF, lV, spring_air, numverts);
 
 	/* do goal stuff */
-	if(clmd->sim_parms.flags & CSIMSETT_FLAG_GOAL) 
+	if(clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_GOAL) 
 	{	
 		for(i = 0; i < numverts; i++)
 		{			
@@ -1350,53 +1377,25 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 		}
 	}
 	
-	/* calculate and apply spring forces */
-#pragma omp parallel private(i)
-{
-#pragma omp for nowait
-	for(i = 0; i < cloth->numsprings/2; i++)
+	// calculate spring forces
+	search = cloth->springs;
+	while(search)
 	{
 		// only handle active springs
-		// if(((clmd->sim_parms.flags & CSIMSETT_FLAG_TEARING_ENABLED) && !(springs[i].flags & CSPRING_FLAG_DEACTIVATE))|| !(clmd->sim_parms.flags & CSIMSETT_FLAG_TEARING_ENABLED))
-		// {
-			cloth_calc_spring_force(clmd, &springs[i], lF, lX, lV, dFdV, dFdX);
-		// }
+		// if(((clmd->sim_parms.flags & CSIMSETT_FLAG_TEARING_ENABLED) && !(springs[i].flags & CSPRING_FLAG_DEACTIVATE))|| !(clmd->sim_parms.flags & CSIMSETT_FLAG_TEARING_ENABLED)){}
+		cloth_calc_spring_force(clmd, search->link, lF, lX, lV, dFdV, dFdX);
+
+		search = search->next;
 	}
-#pragma omp for nowait
-	for(i = cloth->numsprings/2; i < cloth->numsprings; i++)
-	{
-		// only handle active springs
-		// if(((clmd->sim_parms.flags & CSIMSETT_FLAG_TEARING_ENABLED) && !(springs[i].flags & CSPRING_FLAG_DEACTIVATE))|| !(clmd->sim_parms.flags & CSIMSETT_FLAG_TEARING_ENABLED))
-		// {
-		cloth_calc_spring_force(clmd, &springs[i], lF, lX, lV, dFdV, dFdX);
-		// }
-	}
-} // pragma omp parallel
 	
-	for(i = 0; i < cloth->numsprings; i++)
+	// apply spring forces
+	search = cloth->springs;
+	while(search)
 	{
 		// only handle active springs
-		// if(((clmd->sim_parms.flags & CSIMSETT_FLAG_TEARING_ENABLED) && !(springs[i].flags & CSPRING_FLAG_DEACTIVATE))|| !(clmd->sim_parms.flags & CSIMSETT_FLAG_TEARING_ENABLED))
-		{
-			ClothSpring *s = &springs[i];
-			if(s->flags & CSPRING_FLAG_NEEDED)
-			{
-				if(s->type != BENDING)
-				{
-					sub_fmatrix_fmatrix(dFdV[s->ij].m, dFdV[s->ij].m, s->dfdv);
-					sub_fmatrix_fmatrix(dFdV[s->kl].m, dFdV[s->kl].m, s->dfdv);
-					add_fmatrix_fmatrix(dFdV[s->matrix_index].m, dFdV[s->matrix_index].m, s->dfdv);	
-				}
-		
-				VECADD(lF[s->ij], lF[s->ij], s->f);
-				VECSUB(lF[s->kl], lF[s->kl], s->f);
-		
-				sub_fmatrix_fmatrix(dFdX[s->ij].m, dFdX[s->ij].m, s->dfdx);
-				sub_fmatrix_fmatrix(dFdX[s->kl].m, dFdX[s->kl].m, s->dfdx);
-		
-				add_fmatrix_fmatrix(dFdX[s->matrix_index].m, dFdX[s->matrix_index].m, s->dfdx);
-			}	
-		}
+		// if(((clmd->sim_parms.flags & CSIMSETT_FLAG_TEARING_ENABLED) && !(springs[i].flags & CSPRING_FLAG_DEACTIVATE))|| !(clmd->sim_parms.flags & CSIMSETT_FLAG_TEARING_ENABLED))	
+		cloth_apply_spring_force(clmd, search->link, lF, lX, lV, dFdV, dFdX);
+		search = search->next;
 	}
 }
 
@@ -1442,7 +1441,7 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 	Implicit_Data *id = cloth->implicit;
 	int result = 0;
 	
-	if(clmd->sim_parms.flags & CSIMSETT_FLAG_GOAL) /* do goal stuff */
+	if(clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_GOAL) /* do goal stuff */
 	{
 		for(i = 0; i < numverts; i++)
 		{			
@@ -1465,66 +1464,74 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 		
 		add_lfvector_lfvectorS(id->Xnew, id->X, id->Vnew, dt, numverts);
 		
-		// collisions 
-		// itstart();
-		
-		// update verts to current positions
-		for(i = 0; i < numverts; i++)
-		{		
-			if(clmd->sim_parms.flags & CSIMSETT_FLAG_GOAL) /* do goal stuff */
-			{			
-				if(verts [i].goal >= SOFTGOALSNAP)
+		if(clmd->coll_parms.flags & CLOTH_COLLISIONSETTINGS_FLAG_ENABLED)
+		{
+			// collisions 
+			// itstart();
+			
+			// update verts to current positions
+			for(i = 0; i < numverts; i++)
+			{		
+				if(clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_GOAL) /* do goal stuff */
 				{			
-					float tvect[3] = {.0,.0,.0};
-					// VECSUB(tvect, id->Xnew[i], verts[i].xold);
-					mul_fvector_S(tvect, id->V[i], step+dt);
-					VECADD(tvect, tvect, verts[i].xold);
-					VECCOPY(id->Xnew[i], tvect);
+					if(verts [i].goal >= SOFTGOALSNAP)
+					{			
+						float tvect[3] = {.0,.0,.0};
+						// VECSUB(tvect, id->Xnew[i], verts[i].xold);
+						mul_fvector_S(tvect, id->V[i], step+dt);
+						VECADD(tvect, tvect, verts[i].xold);
+						VECCOPY(id->Xnew[i], tvect);
+					}
+						
 				}
+				
+				VECCOPY(verts[i].tx, id->Xnew[i]);
+				
+				VECSUB(verts[i].tv, verts[i].tx, verts[i].txold);
+				VECCOPY(verts[i].v, verts[i].tv);
+			}
+	
+			// call collision function
+			result = cloth_bvh_objcollision(clmd, step + dt, dt);
+	
+			// copy corrected positions back to simulation
+			for(i = 0; i < numverts; i++)
+			{		
+				if(result)
+				{
+					// VECADD(verts[i].tx, verts[i].txold, verts[i].tv);
 					
+					VECCOPY(verts[i].txold, verts[i].tx);
+					
+					VECCOPY(id->Xnew[i], verts[i].tx);
+					
+					VECCOPY(id->Vnew[i], verts[i].tv);
+					VecMulf(id->Vnew[i], 1.0f / dt);
+				}
+				else
+				{
+					VECCOPY(verts[i].txold, id->Xnew[i]);
+				}
 			}
 			
-			VECCOPY(verts[i].tx, id->Xnew[i]);
+			// X = Xnew;
+			cp_lfvector(id->X, id->Xnew, numverts);
 			
-			VECSUB(verts[i].tv, verts[i].tx, verts[i].txold);
-			VECCOPY(verts[i].v, verts[i].tv);
-		}
-
-		// call collision function
-		result = cloth_bvh_objcollision(clmd, step + dt, dt);
-
-		// copy corrected positions back to simulation
-		for(i = 0; i < numverts; i++)
-		{		
+			// if there were collisions, advance the velocity from v_n+1/2 to v_n+1
 			if(result)
 			{
-				// VECADD(verts[i].tx, verts[i].txold, verts[i].tv);
+				// V = Vnew;
+				cp_lfvector(id->V, id->Vnew, numverts);
 				
-				VECCOPY(verts[i].txold, verts[i].tx);
-				
-				VECCOPY(id->Xnew[i], verts[i].tx);
-				
-				VECCOPY(id->Vnew[i], verts[i].tv);
-				VecMulf(id->Vnew[i], 1.0f / dt);
-			}
-			else
-			{
-				VECCOPY(verts[i].txold, id->Xnew[i]);
+				// calculate 
+				cloth_calc_force(clmd, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step);	
+				simulate_implicit_euler(id->Vnew, id->X, id->V, id->F, id->dFdV, id->dFdX, dt / 2.0f, id->A, id->B, id->dV, id->S, id->z, id->olddV, id->P, id->Pinv);
 			}
 		}
-		
-		// X = Xnew;
-		cp_lfvector(id->X, id->Xnew, numverts);
-		
-		// if there were collisions, advance the velocity from v_n+1/2 to v_n+1
-		if(result)
+		else
 		{
-			// V = Vnew;
-			cp_lfvector(id->V, id->Vnew, numverts);
-			
-			// calculate 
-			cloth_calc_force(clmd, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step);	
-			simulate_implicit_euler(id->Vnew, id->X, id->V, id->F, id->dFdV, id->dFdX, dt / 2.0f, id->A, id->B, id->dV, id->S, id->z, id->olddV, id->P, id->Pinv);
+			// X = Xnew;
+			cp_lfvector(id->X, id->Xnew, numverts);
 		}
 		
 		// itend();
@@ -1540,7 +1547,7 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 
 	for(i = 0; i < numverts; i++)
 	{				
-		if(clmd->sim_parms.flags & CSIMSETT_FLAG_GOAL)
+		if(clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_GOAL)
 		{
 			if(verts [i].goal < SOFTGOALSNAP)
 			{

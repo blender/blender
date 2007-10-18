@@ -547,7 +547,7 @@ BVH *bvh_build (ClothModifierData *clmd, float epsilon)
 	Tree *tree=NULL;
 	LinkNode *nlink = NULL;
 	EdgeHash *edgehash = NULL;
-	ClothSpring *springs = NULL;
+	LinkNode *springs = NULL;
 	unsigned int numsprings = 0;
 	MFace *mface = NULL;
 

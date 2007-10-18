@@ -77,7 +77,7 @@
  *
  * copied from SOLVE_CUBIC.C --> GSL
  */
-#define mySWAP(a,b) do { float tmp = b ; b = a ; a = tmp ; } while(0)
+#define mySWAP(a,b) { float tmp = b ; b = a ; a = tmp ; }
 
 int gsl_poly_solve_cubic (float a, float b, float c, float *x0, float *x1, float *x2)
 {
@@ -360,8 +360,6 @@ DO_INLINE void interpolateOnTriangle(float to[3], float v1[3], float v2[3], floa
 	VECADDMUL(to, v2, w2);
 	VECADDMUL(to, v3, w3);
 }
-
-
 
 // unused in the moment, has some bug in
 DO_INLINE void calculateFrictionImpulse(float to[3], float vrel[3], float normal[3], double normalVelocity,
@@ -887,6 +885,7 @@ void cloth_collision_moving_tris(ClothModifierData *clmd, ClothModifierData *col
 						// TODO: put into (point-face) collision list
 						
 						printf("Moving found!\n");
+						
 					}
 				}
 				
@@ -924,7 +923,7 @@ void cloth_update_collision_objects(float step)
 			continue;
 
 		// if collision object go on
-		if (coll_clmd->sim_parms.flags & CSIMSETT_FLAG_COLLOBJ)
+		if (coll_clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ)
 		{
 			if (coll_clmd->clothObject && coll_clmd->clothObject->tree) 
 			{
@@ -969,7 +968,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 	float tnull[3] = {0,0,0};
 	int ret = 0;
 
-	if ((clmd->sim_parms.flags & CSIMSETT_FLAG_COLLOBJ) || !(((Cloth *)clmd->clothObject)->tree))
+	if ((clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ) || !(((Cloth *)clmd->clothObject)->tree))
 	{
 		return 0;
 	}
@@ -1005,7 +1004,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 				continue;
 			
 			// if collision object go on
-			if (coll_clmd->sim_parms.flags & CSIMSETT_FLAG_COLLOBJ)
+			if (coll_clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ)
 			{
 				if (coll_clmd->clothObject && coll_clmd->clothObject->tree) 
 				{
@@ -1034,7 +1033,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 					continue;
 		
 				// if collision object go on
-				if (coll_clmd->sim_parms.flags & CSIMSETT_FLAG_COLLOBJ)
+				if (coll_clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ)
 				{
 					if (coll_clmd->clothObject) 
 						result += cloth_collision_response_static(clmd, coll_clmd);
@@ -1141,7 +1140,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 				continue;
 			
 			// if collision object go on
-			if (coll_clmd->sim_parms.flags & CSIMSETT_FLAG_COLLOBJ)
+			if (coll_clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ)
 			{
 				if (coll_clmd->clothObject && coll_clmd->clothObject->tree) 
 				{
@@ -1171,7 +1170,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt)
 				continue;
 				
 				// if collision object go on
-				if (coll_clmd->sim_parms.flags & CSIMSETT_FLAG_COLLOBJ)
+				if (coll_clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ)
 				{
 					if (coll_clmd->clothObject) 
 					result += cloth_collision_response_moving_tris(clmd, coll_clmd);

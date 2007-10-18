@@ -4907,7 +4907,7 @@ static void clothModifier_updateDepgraph(
 				ClothModifierData *coll_clmd = (ClothModifierData *)modifiers_findByType(ob1, eModifierType_Cloth);
 				if(coll_clmd)
 				{					
-					if (coll_clmd->sim_parms.flags & CSIMSETT_FLAG_COLLOBJ) 
+					if (coll_clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ) 
 					{
 						DagNode *curNode = dag_get_node(forest, ob1);					
 						dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA);
@@ -4915,8 +4915,7 @@ static void clothModifier_updateDepgraph(
 				}
 			}
 		}
-	}
-	
+	}	
 }
 
 CustomDataMask clothModifier_requiredDataMask(ModifierData *md)
@@ -4925,7 +4924,7 @@ CustomDataMask clothModifier_requiredDataMask(ModifierData *md)
 	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */
-	if(clmd->sim_parms.flags & CSIMSETT_FLAG_GOAL)
+	if(clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_GOAL)
 		if (clmd->sim_parms.vgroup_mass > 0)
 	 		dataMask |= (1 << CD_MDEFORMVERT);
 
@@ -4944,7 +4943,7 @@ static void clothModifier_freeData(ModifierData *md)
 	
 	if (clmd) 
 	{
-		clmd->sim_parms.flags &= ~CSIMSETT_FLAG_CCACHE_PROTECT;
+		clmd->sim_parms.flags &= ~CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT;
 		cloth_free_modifier (clmd);
 	}
 }

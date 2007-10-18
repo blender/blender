@@ -1,6 +1,6 @@
 /**
- * BKE_cloth.h 
- *	
+ * BKE_cloth.h
+ *
  * $Id: BKE_cloth.h,v 1.1 2007/08/01 02:07:27 daniel Exp $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
@@ -47,7 +47,7 @@ struct DerivedMesh;
 
 // this is needed for inlining behaviour
 #ifndef _WIN32
-#define LINUX 
+#define LINUX
 #define DO_INLINE inline
 #else
 #define DO_INLINE
@@ -57,16 +57,11 @@ struct DerivedMesh;
 
 
 /* goal defines */
-#define SOFTGOALSNAP  0.999f 
+#define SOFTGOALSNAP  0.999f
 
 /* This is approximately the smallest number that can be
 * represented by a float, given its precision. */
 #define ALMOST_ZERO		0.000001
-
-/* Bits to or into the ClothVertex.flags. */
-#define CVERT_FLAG_PINNED	1
-#define CVERT_FLAG_COLLISION	2
-
 
 // some macro enhancements for vector treatment
 #define VECADDADD(v1,v2,v3) 	{*(v1)+= *(v2) + *(v3); *(v1+1)+= *(v2+1) + *(v3+1); *(v1+2)+= *(v2+2) + *(v3+2);}
@@ -84,56 +79,70 @@ struct DerivedMesh;
 
 /* SIMULATION FLAGS: goal flags,.. */
 /* These are the bits used in SimSettings.flags. */
-typedef enum 
+typedef enum
 {
-	CSIMSETT_FLAG_RESET = (1 << 1),		// The CM object requires a reinitializaiton.
-			CSIMSETT_FLAG_COLLOBJ = (1 << 2), 	// object is only collision object, no cloth simulation is done
-			CSIMSETT_FLAG_GOAL = (1 << 3), 		// we have goals enabled
-			CSIMSETT_FLAG_TEARING_ENABLED = (1 << 4), // true if tearing is enabled
-			CSIMSETT_FLAG_CCACHE_PROTECT = (1 << 5), // true if tearing is enabled
-} CSIMSETT_FLAGS;
-
-/* Spring types as defined in the paper.*/
-typedef enum 
-{
-	STRUCTURAL = 0,
- SHEAR,
- BENDING,
-} springType;
+    CLOTH_SIMSETTINGS_FLAG_RESET = ( 1 << 1 ),		// The CM object requires a reinitializaiton.
+    CLOTH_SIMSETTINGS_FLAG_COLLOBJ = ( 1 << 2 ), 	// object is only collision object, no cloth simulation is done
+    CLOTH_SIMSETTINGS_FLAG_GOAL = ( 1 << 3 ), 		// we have goals enabled
+    CLOTH_SIMSETTINGS_FLAG_TEARING = ( 1 << 4 ), // true if tearing is enabled
+    CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT = ( 1 << 5 ), // true if tearing is enabled
+} CLOTH_SIMSETTINGS_FLAGS;
 
 /* SPRING FLAGS */
-typedef enum 
+typedef enum
 {
-	CSPRING_FLAG_DEACTIVATE = (1 << 1),
-	CSPRING_FLAG_NEEDED = (1 << 2), // springs has values to be applied
-} CSPRINGS_FLAGS;
+    CLOTH_COLLISIONSETTINGS_FLAG_ENABLED = ( 1 << 1 ),
+} CLOTH_COLLISIONSETTINGS_FLAGS;
+
+/* Spring types as defined in the paper.*/
+typedef enum
+{
+    CLOTH_SPRING_TYPE_STRUCTURAL = 0,
+    CLOTH_SPRING_TYPE_SHEAR,
+    CLOTH_SPRING_TYPE_BENDING,
+} CLOTH_SPRING_TYPES;
+
+/* SPRING FLAGS */
+typedef enum
+{
+    CLOTH_SPRING_FLAG_DEACTIVATE = ( 1 << 1 ),
+    CLOTH_SPRING_FLAG_NEEDED = ( 1 << 2 ), // springs has values to be applied
+} CLOTH_SPRINGS_FLAGS;
+
+/* Bits to or into the ClothVertex.flags. */
+#define CVERT_FLAG_PINNED	1
+#define CVERT_FLAG_COLLISION	2
+
 
 // needed for buttons_object.c
-void cloth_cache_free(ClothModifierData *clmd, float time);
-void cloth_free_modifier (ClothModifierData *clmd);
+void cloth_cache_free ( ClothModifierData *clmd, float time );
+void cloth_free_modifier ( ClothModifierData *clmd );
 
 // needed for cloth.c
-void implicit_set_positions (ClothModifierData *clmd);
+void implicit_set_positions ( ClothModifierData *clmd );
 
 // from cloth.c, needed for modifier.c
-void clothModifier_do(ClothModifierData *clmd, Object *ob, DerivedMesh *dm, float (*vertexCos)[3], int numverts);
+void clothModifier_do ( ClothModifierData *clmd, Object *ob, DerivedMesh *dm, float ( *vertexCos ) [3], int numverts );
 
 // used in collision.c
-typedef struct Tree {
+typedef struct Tree
+{
 	struct Tree *nodes[4]; // 4 children --> quad-tree
 	struct Tree *parent;
-	struct Tree *nextLeaf; 
+	struct Tree *nextLeaf;
 	struct Tree *prevLeaf;
 	float	bv[26]; // Bounding volume of all nodes / we have 7 axes on a 14-DOP
 	unsigned int tri_index; // this saves the index of the face
 	int	count_nodes; // how many nodes are used
 	int	traversed;  // how many nodes already traversed until this level?
 	int	isleaf;
-} Tree;
+}
+Tree;
 
 typedef struct Tree TreeNode;
 
-typedef struct BVH{ 
+typedef struct BVH
+{
 	unsigned int 	numfaces;
 	unsigned int 	numverts;
 	ClothVertex 	*verts; // just a pointer to the original datastructure
@@ -143,10 +152,11 @@ typedef struct BVH{
 	TreeNode 	*leaf_tree; /* Tail of the leaf linked list.	*/
 	TreeNode 	*leaf_root;	/* Head of the leaf linked list.	*/
 	float 		epsilon; /* epslion is used for inflation of the k-dop	   */
-	int 		flags; /* bvhFlags */		   
-} BVH;
+	int 		flags; /* bvhFlags */
+}
+BVH;
 
-typedef void (*CM_COLLISION_RESPONSE) (ClothModifierData *clmd, ClothModifierData *coll_clmd, Tree * tree1, Tree * tree2);
+typedef void ( *CM_COLLISION_RESPONSE ) ( ClothModifierData *clmd, ClothModifierData *coll_clmd, Tree * tree1, Tree * tree2 );
 
 
 /////////////////////////////////////////////////
@@ -154,8 +164,8 @@ typedef void (*CM_COLLISION_RESPONSE) (ClothModifierData *clmd, ClothModifierDat
 ////////////////////////////////////////////////
 
 // needed for implicit.c
-void bvh_collision_response(ClothModifierData *clmd, ClothModifierData *coll_clmd, Tree * tree1, Tree * tree2);
-int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt);
+void bvh_collision_response ( ClothModifierData *clmd, ClothModifierData *coll_clmd, Tree * tree1, Tree * tree2 );
+int cloth_bvh_objcollision ( ClothModifierData * clmd, float step, float dt );
 
 ////////////////////////////////////////////////
 
@@ -165,12 +175,13 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float dt);
 ////////////////////////////////////////////////
 
 // needed for cloth.c
-void bvh_free(BVH * bvh);
-BVH *bvh_build (ClothModifierData *clmd, float epsilon);
+void bvh_free ( BVH * bvh );
+BVH *bvh_build ( ClothModifierData *clmd, float epsilon );
+LinkNode *BLI_linklist_append_fast ( LinkNode **listp, void *ptr );
 
 // needed for collision.c
-int bvh_traverse(ClothModifierData * clmd, ClothModifierData * coll_clmd, Tree * tree1, Tree * tree2, float step, CM_COLLISION_RESPONSE collision_response);
-void bvh_update(ClothModifierData * clmd, BVH * bvh, int moving);
+int bvh_traverse ( ClothModifierData * clmd, ClothModifierData * coll_clmd, Tree * tree1, Tree * tree2, float step, CM_COLLISION_RESPONSE collision_response );
+void bvh_update ( ClothModifierData * clmd, BVH * bvh, int moving );
 
 ////////////////////////////////////////////////
 
@@ -179,41 +190,43 @@ void bvh_update(ClothModifierData * clmd, BVH * bvh, int moving);
 /////////////////////////////////////////////////
 // cloth.c
 ////////////////////////////////////////////////
-void cloth_free_modifier (ClothModifierData *clmd);
-void cloth_init (ClothModifierData *clmd);
-void cloth_deform_verts(struct Object *ob, float framenr, float (*vertexCos)[3], int numVerts, void *derivedData, ClothModifierData *clmd);
-void cloth_update_normals (ClothVertex *verts, int nVerts, MFace *face, int totface);
+void cloth_free_modifier ( ClothModifierData *clmd );
+void cloth_init ( ClothModifierData *clmd );
+void cloth_deform_verts ( struct Object *ob, float framenr, float ( *vertexCos ) [3], int numVerts, void *derivedData, ClothModifierData *clmd );
+void cloth_update_normals ( ClothVertex *verts, int nVerts, MFace *face, int totface );
 
 ////////////////////////////////////////////////
 
 
 /* Typedefs for function pointers we need for solvers and collision detection. */
-typedef void (*CM_COLLISION_SELF) (ClothModifierData *clmd, int step);
-typedef void (*CM_COLLISION_OBJ) (ClothModifierData *clmd, int step, CM_COLLISION_RESPONSE collision_response);
+typedef void ( *CM_COLLISION_SELF ) ( ClothModifierData *clmd, int step );
+typedef void ( *CM_COLLISION_OBJ ) ( ClothModifierData *clmd, int step, CM_COLLISION_RESPONSE collision_response );
 
 
 /* This enum provides the IDs for our solvers. */
 // only one available in the moment
 typedef enum {
-	CM_IMPLICIT = 0,
+    CM_IMPLICIT = 0,
 } CM_SOLVER_ID;
 
 
 /* This structure defines how to call the solver.
 */
-typedef struct {
+typedef struct
+{
 	char		*name;
 	CM_SOLVER_ID	id;
-	int		(*init) (Object *ob, ClothModifierData *clmd);
-	int		(*solver) (Object *ob, float framenr, ClothModifierData *clmd, ListBase *effectors);
-	int		(*free) (ClothModifierData *clmd);
-} CM_SOLVER_DEF;
+	int	( *init ) ( Object *ob, ClothModifierData *clmd );
+	int	( *solver ) ( Object *ob, float framenr, ClothModifierData *clmd, ListBase *effectors );
+	int	( *free ) ( ClothModifierData *clmd );
+}
+CM_SOLVER_DEF;
 
 
 /* new C implicit simulator */
-int implicit_init (Object *ob, ClothModifierData *clmd);
-int implicit_free (ClothModifierData *clmd);
-int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors);
+int implicit_init ( Object *ob, ClothModifierData *clmd );
+int implicit_free ( ClothModifierData *clmd );
+int implicit_solver ( Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors );
 
 /* used for caching in implicit.c */
 typedef struct Frame
@@ -222,7 +235,8 @@ typedef struct Frame
 	ClothSpring *springs;
 	unsigned int numverts, numsprings;
 	float time; /* we need float since we want to support sub-frames */
-} Frame;
+}
+Frame;
 
 /* used for collisions in collision.c */
 typedef struct CollPair
@@ -230,14 +244,15 @@ typedef struct CollPair
 	unsigned int face1; // cloth face
 	unsigned int face2; // object face
 	double distance; // magnitude of vector
-	float normal[3]; 
+	float normal[3];
 	float vector[3]; // unnormalized collision vector: p2-p1
 	float pa[3], pb[3]; // collision point p1 on face1, p2 on face2
 	int lastsign; // indicates if the distance sign has changed, unused itm
 	float time; // collision time, from 0 up to 1
 	unsigned int ap1, ap2, ap3, bp1, bp2, bp3, bp4;
 	unsigned int pointsb[4];
-} CollPair;
+}
+CollPair;
 
 /* used for collisions in collision.c */
 typedef struct EdgeCollPair
@@ -248,7 +263,8 @@ typedef struct EdgeCollPair
 	float time;
 	int lastsign;
 	float pa[3], pb[3]; // collision point p1 on face1, p2 on face2
-} EdgeCollPair;
+}
+EdgeCollPair;
 
 /* used for collisions in collision.c */
 typedef struct FaceCollPair
@@ -259,7 +275,8 @@ typedef struct FaceCollPair
 	float time;
 	int lastsign;
 	float pa[3], pb[3]; // collision point p1 on face1, p2 on face2
-} FaceCollPair;
+}
+FaceCollPair;
 
 #endif
 
