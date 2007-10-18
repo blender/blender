@@ -854,6 +854,25 @@ static short select_same_layer(Object *ob)
 	return changed;
 }
 
+static short select_same_index_object(Object *ob)
+{
+	char changed = 0;
+	Base *base = FIRSTBASE;
+	
+	if (!ob)
+		return 0;
+	
+	while(base) {
+		if (BASE_SELECTABLE(base) && (base->object->index == ob->index) && !(base->flag & SELECT)) {
+			base->flag |= SELECT;
+			base->object->flag |= SELECT;
+			changed = 1;
+		}
+		base= base->next;
+	}
+	return changed;
+}
+
 void select_object_grouped(short nr)
 {
 	short changed = 0;
@@ -865,6 +884,7 @@ void select_object_grouped(short nr)
 	else if(nr==6)	changed = select_same_layer(OBACT);	
 	else if(nr==7)	changed = select_same_group(OBACT);
 	else if(nr==8)	changed = select_object_hooks(OBACT);
+	else if(nr==9)	changed = select_same_index_object(OBACT);
 	
 	if (changed) {
 		countall();
@@ -890,7 +910,7 @@ static void select_object_grouped_menu(void)
 	            "Objects of Same Type%x5|"
 				"Objects on Shared Layers%x6|"
                 "Objects in Same Group%x7|"
-                "Object Hooks%x8|");
+                "Object Hooks%x8|Object PassIndex%x9");
 
 	/* here we go */
 	
@@ -2338,6 +2358,9 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					if((G.qual & LR_CTRLKEY) && G.obedit->type==OB_MESH) {
 						convert_to_triface(G.qual & LR_SHIFTKEY);
 						allqueue(REDRAWVIEW3D, 0);
+						if (EM_texFaceCheck())
+							allqueue(REDRAWIMAGE, 0);
+						
 						countall();
 						DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 					}
@@ -2617,6 +2640,8 @@ static void initview3d(ScrArea *sa)
 	vd->far= 500.0f;
 	vd->grid= 1.0f;
 	vd->gridlines= 16;
+	vd->gridsubdiv = 10;
+
 	vd->lay= vd->layact= 1;
 	if(G.scene) {
 		vd->lay= vd->layact= G.scene->lay;
@@ -2724,11 +2749,7 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case RIGHTMOUSE:
 			mouse_select_ipo();
-			allqueue(REDRAWTIME, 0);
-			allqueue(REDRAWIPO, 0);
-			allqueue(REDRAWACTION, 0);
-			allqueue(REDRAWNLA, 0);
-			allqueue(REDRAWSOUND, 0);
+			allqueue(REDRAWMARKER, 0);
 			break;
 		case MIDDLEMOUSE:
 			if(in_ipo_buttons()) {
@@ -2776,11 +2797,7 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case AKEY:
 			if (G.qual & LR_CTRLKEY) {
 				deselect_markers(1, 0);
-				allqueue(REDRAWTIME, 0);
-				allqueue(REDRAWIPO, 0);
-				allqueue(REDRAWACTION, 0);
-				allqueue(REDRAWNLA, 0);
-				allqueue(REDRAWSOUND, 0);
+				allqueue(REDRAWMARKER, 0);
 			}
 			else if (G.qual==0) {
 				if(in_ipo_buttons()) {
@@ -2809,15 +2826,18 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				move_to_frame();
 			break;
 		case DKEY:
-			if (G.qual==LR_SHIFTKEY)
+			if (G.qual==LR_SHIFTKEY) {
 				add_duplicate_editipo();
-			else if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY))
+			} else if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY)) {
 				duplicate_marker();
+				allqueue(REDRAWMARKER, 0);
+			}
 			break;
 		case GKEY:
-			if (G.qual & LR_CTRLKEY)
+			if (G.qual & LR_CTRLKEY) {
 				transform_markers('g', 0);
-			else if (G.qual==0)
+				allqueue(REDRAWMARKER, 0);
+			} else if (G.qual==0)
 				transform_ipo('g');
 			break;
 		case HKEY:
@@ -2841,21 +2861,17 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			break;
 		case MKEY:
-			if (G.qual==LR_SHIFTKEY) {
+			if (G.qual==0) {
+				add_marker(CFRA);
+			} else if (G.qual==LR_SHIFTKEY) {
 				ipo_mirror_menu();
 				break;
-			}
-			if (G.qual == 0)
-				add_marker(CFRA);
-			else if (G.qual == LR_CTRLKEY)
+			} else if (G.qual == LR_CTRLKEY) {
 				rename_marker();
-			else 
+			} else { 
 				break;
-			allqueue(REDRAWTIME, 0);
-			allqueue(REDRAWIPO, 0);
-			allqueue(REDRAWACTION, 0);
-			allqueue(REDRAWNLA, 0);
-			allqueue(REDRAWSOUND, 0);
+			}
+			allqueue(REDRAWMARKER, 0);
 			break;
 		case NKEY:
 			toggle_blockhandler(sa, IPO_HANDLER_PROPERTIES, UI_PNL_TO_MOUSE);
@@ -3385,55 +3401,34 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiBlockSetCol(block, TH_AUTO);			/* end color */
 		uiBlockEndAlign(block);
 		
+		uiDefButBitI(block, TOG, USER_ZOOM_TO_MOUSEPOS, B_DRAWINFO, "Zoom to Mouse Position",
+			(xpos+edgsp+mpref+(2*spref)+(3*midsp)),y4,mpref,buth,
+			&(U.uiflag), 0, 0, 0, 0,
+			"Zoom in towards the mouse pointer's position in the 3D view, rather than the 2D window center");
+		
 		uiDefBut(block, LABEL,0,"View rotation:",
-			(xpos+(2*edgsp)+mpref+(2*spref)+(2*midsp)),y4label,mpref,buth,
+			(xpos+(2*edgsp)+mpref+(2*spref)+(2*midsp)),y3label,mpref,buth,
 			0, 0, 0, 0, 0, "");
 		uiBlockBeginAlign(block);
 		uiBlockSetCol(block, TH_BUT_SETTING1);	/* mutually exclusive toggles, start color */
 		uiDefButBitI(block, TOG, USER_TRACKBALL, B_DRAWINFO, "Trackball",
-			(xpos+edgsp+mpref+(2*spref)+(3*midsp)),y3,(mpref/2),buth,
+			(xpos+edgsp+mpref+(2*spref)+(3*midsp)),y2,(mpref/2),buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Allow the view to tumble freely when orbiting with the Middle Mouse Button");
 		uiDefButBitI(block, TOGN, USER_TRACKBALL, B_DRAWINFO, "Turntable",
-			(xpos+edgsp+mpref+(2*spref)+(3*midsp)+(mpref/2)),y3,(mpref/2),buth,
+			(xpos+edgsp+mpref+(2*spref)+(3*midsp)+(mpref/2)),y2,(mpref/2),buth,
 			&(U.flag), 0, 0, 0, 0,
 			"Use fixed up axis for orbiting with Middle Mouse Button");
 		uiBlockSetCol(block, TH_AUTO);			/* end color */
 		uiDefButBitI(block, TOG, USER_AUTOPERSP, B_DRAWINFO, "Auto Perspective",
-			(xpos+edgsp+mpref+(2*spref)+(3*midsp)),y2,(mpref/2),buth,
+			(xpos+edgsp+mpref+(2*spref)+(3*midsp)),y1,(mpref/2),buth,
 			&(U.uiflag), 0, 0, 0, 0,
 			"Automatically switch between orthographic and perspective when changing from top/front/side views");
 		uiDefButBitI(block, TOG, USER_ORBIT_SELECTION, B_DRAWINFO, "Around Selection",
-			(xpos+edgsp+mpref+(2*spref)+(3*midsp)+(mpref/2)),y2,(mpref/2),buth,
+			(xpos+edgsp+mpref+(2*spref)+(3*midsp)+(mpref/2)),y1,(mpref/2),buth,
 			&(U.uiflag), 0, 0, 0, 0,
 			"Use selection as the orbiting center");
 		uiBlockEndAlign(block);
-		
-
-		uiBlockBeginAlign(block);
-		uiDefButBitI(block, TOG, USER_SHOW_ROTVIEWICON, B_DRAWINFO, "Mini Axis",
-			 (xpos+edgsp+(2*mpref)+(2*midsp)),y1,(mpref/3),buth,
-			 &(U.uiflag), 0, 0, 0, 0,
-			 "Show a small rotating 3D axis in the bottom left corner of the 3D View");
-		uiDefButS(block, NUM, B_DRAWINFO, "Size:",
-			(xpos+edgsp+(2*mpref)+(2*midsp)+(mpref/3)),y1,(mpref/3),buth,
-			&U.rvisize, 10, 64, 0, 0,
-			"The axis icon's size");
-		uiDefButS(block, NUM, B_DRAWINFO, "Bright:",
-			(xpos+edgsp+(2*mpref)+(2*midsp)+2*(mpref/3)),y1,(mpref/3),buth,
-			&U.rvibright, 0, 10, 0, 0,
-			"The brightness of the icon");
-		uiBlockEndAlign(block);
-
-        uiDefButS(block, NUM, B_DRAWINFO, "Rotation Angle:",
-			(xpos+edgsp+(3*mpref)+(4*midsp)),y1,(mpref),buth,
-			&U.pad_rot_angle, 0, 90, 0, 0,
-			"The rotation step for numerical pad keys (2 4 6 8)");
-		
-        uiDefButS(block, NUM, B_DRAWINFO, "Smooth View:",
-			(xpos+edgsp+(4*mpref)+(5*midsp)),y1,(mpref),buth,
-			&U.smooth_viewtx, 0, 1000, 0, 0,
-			"The time to animate the view in miliseconds, zero to disable");
 		
 		uiDefBut(block, LABEL,0,"Select with:",
 			(xpos+(2*edgsp)+(3*mpref)+(3*midsp)),y6label,mpref,buth,
@@ -3469,7 +3464,21 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			&(U.flag), 0, 0, 0, 0,
 			"Emulates Middle Mouse with Alt+LeftMouse (doesnt work with Left Mouse Select option)");
 		
-			
+		uiBlockBeginAlign(block);
+		uiDefButBitI(block, TOG, USER_SHOW_ROTVIEWICON, B_DRAWINFO, "Mini Axis",
+			 (xpos+edgsp+(3*mpref)+(4*midsp)),y1,(mpref/3),buth,
+			 &(U.uiflag), 0, 0, 0, 0,
+			 "Show a small rotating 3D axis in the bottom left corner of the 3D View");
+		uiDefButS(block, NUM, B_DRAWINFO, "Size:",
+			(xpos+edgsp+(3*mpref)+(4*midsp)+(mpref/3)),y1,(mpref/3),buth,
+			&U.rvisize, 10, 64, 0, 0,
+			"The axis icon's size");
+		uiDefButS(block, NUM, B_DRAWINFO, "Bright:",
+			(xpos+edgsp+(3*mpref)+(4*midsp)+2*(mpref/3)),y1,(mpref/3),buth,
+			&U.rvibright, 0, 10, 0, 0,
+			"The brightness of the icon");
+		uiBlockEndAlign(block);
+		
 		uiDefBut(block, LABEL,0,"Middle Mouse Button:",
 			(xpos+(2*edgsp)+(4*mpref)+(4*midsp)),y6label,mpref,buth,
 			0, 0, 0, 0, 0, "");
@@ -3483,6 +3492,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			&(U.flag), 0, 0, 0, 0, "Default action for the Middle Mouse Button");
 		uiBlockSetCol(block, TH_AUTO);			/* end color */
 		uiBlockEndAlign(block);
+	
 			
 		uiDefBut(block, LABEL,0,"Mouse Wheel:",
 			(xpos+(2*edgsp)+(4*mpref)+(4*midsp)),y4label,mpref,buth,
@@ -3496,6 +3506,17 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgsp+(4*mpref)+(6*midsp)+spref-edgsp),y3,spref+edgsp,buth,
 			&U.wheellinescroll, 0.0, 32.0, 0, 0,
 			"The number of lines scrolled at a time with the mouse wheel");	
+		uiBlockEndAlign(block);
+		
+			uiBlockBeginAlign(block);		
+		uiDefButS(block, NUM, B_DRAWINFO, "Smooth View:",
+			(xpos+edgsp+(4*mpref)+(5*midsp)),y2,(mpref),buth,
+			&U.smooth_viewtx, 0, 1000, 0, 0,
+			"The time to animate the view in miliseconds, zero to disable");
+		uiDefButS(block, NUM, B_DRAWINFO, "Rotation Angle:",
+			(xpos+edgsp+(4*mpref)+(5*midsp)),y1,(mpref),buth,
+			&U.pad_rot_angle, 0, 90, 0, 0,
+			"The rotation step for numerical pad keys (2 4 6 8)");
 		uiBlockEndAlign(block);
 
 
@@ -3819,7 +3840,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			0, 0, 0, 0, 0, "");
 		uiDefButI(block, NUM, B_REDR, "Prefetch frames ",
 			  (xpos+edgsp+(4*mpref)+(4*midsp)), y6, mpref, buth, 
-			  &U.prefetchframes, 0.0, 50.0, 20, 2, 
+			  &U.prefetchframes, 0.0, 500.0, 20, 2, 
 			  "Number of frames to render ahead during playback.");
 
 		uiDefButI(block, NUM, B_MEMCACHELIMIT, "MEM Cache Limit ",
@@ -4424,6 +4445,10 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			mouse_select_seq();
 			break;
 		case PADPLUSKEY:
+			if (G.qual==LR_CTRLKEY) {
+				select_more_seq();
+				break;
+			}
 		case WHEELUPMOUSE:
 			if(sseq->mainb) {
 				sseq->zoom++;
@@ -4452,6 +4477,10 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			doredraw= 1;
 			break;
 		case PADMINUS:
+			if (G.qual==LR_CTRLKEY) {
+				select_less_seq();
+				break;
+			}
 		case WHEELDOWNMOUSE:
 			if(sseq->mainb) {
 				sseq->zoom--;
@@ -4485,12 +4514,17 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 			
 		case AKEY:
-			if(sseq->mainb) break;
-			if((G.qual==LR_SHIFTKEY)) {
-				add_sequence(-1);
+			if (G.qual == LR_CTRLKEY) {
+				deselect_markers(1, 0);
+				allqueue(REDRAWMARKER, 0);
+			} else {
+				if(sseq->mainb) break;
+				if((G.qual==LR_SHIFTKEY)) {
+					add_sequence(-1);
+				} else if((G.qual==0)) {
+					swap_select_seq();
+				}
 			}
-			else if((G.qual==0))
-				swap_select_seq();
 			break;
 		case SPACEKEY:
 			if (G.qual==0) {
@@ -4522,39 +4556,70 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			break;
 		case DKEY:
-			if(sseq->mainb) break;
-			if((G.qual==LR_SHIFTKEY)) add_duplicate_seq();
+			if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY))
+				duplicate_marker();
+			else if ((G.qual==LR_SHIFTKEY)) {
+				if(sseq->mainb) break;
+				add_duplicate_seq();
+			}
 			break;
 		case EKEY:
+			if(sseq->mainb) break;
+			if((G.qual==0))
+				transform_seq('e', 0);
 			break;
 		case FKEY:
 			if((G.qual==0))
 				set_filter_seq();
 			break;
 		case GKEY:
-			if(sseq->mainb) break;
-			if((G.qual==0))
+			if (G.qual & LR_CTRLKEY)
+				transform_markers('g', 0);
+			else if (G.qual==0) {
+				if(sseq->mainb) break;
 				transform_seq('g', 0);
+			}
 			break;
 		case KKEY:
 			if((G.qual==0)) { /* Cut at current frame */
 				if(okee("Cut strips")) seq_cut(CFRA);
 			}
 			break;
+		case LKEY:
+			if((G.qual==0)) { /* Cut at current frame */
+				select_linked_seq( 0 );
+			} else if((G.qual==LR_CTRLKEY)) { /* Cut at current frame */
+				select_linked_seq( 2 );
+			}
+			break;
+		case YKEY:
+			if((G.qual==0)) { /* Cut at current frame */
+				seq_separate_images();
+			}
+			break;
 		case MKEY:
-			if(G.qual==LR_ALTKEY)
-				un_meta();
-			else if((G.qual==0)){
+			if(G.qual==LR_ALTKEY) {
+				un_meta();	
+				break; /*dont redraw timeline etc */
+			} else if((G.qual==0)){
 				if ((last_seq) && 
 				    (last_seq->type == SEQ_RAM_SOUND
 				     || last_seq->type == SEQ_HD_SOUND)) 
 				{
 					last_seq->flag ^= SEQ_MUTE;
 					doredraw = 1;
-				}
-				else
+				} else {
 					make_meta();
+				}
+				break; /*dont redraw timeline etc */
+			} else if ((G.qual==(LR_CTRLKEY|LR_ALTKEY) )) {
+				add_marker(CFRA);
+			} else if ((G.qual==LR_CTRLKEY)) {
+				rename_marker();
+			} else {
+				break; /* do nothing */
 			}
+			allqueue(REDRAWMARKER, 0);
 			break;
 		case NKEY:
 			if(G.qual==0) {
@@ -6138,6 +6203,11 @@ void allqueue(unsigned short event, short val)
 				break;
 			case REDRAWANIM:
 				if ELEM6(sa->spacetype, SPACE_IPO, SPACE_SOUND, SPACE_TIME, SPACE_NLA, SPACE_ACTION, SPACE_SEQ) {
+					scrarea_queue_winredraw(sa);
+					if(val) scrarea_queue_headredraw(sa);
+				}
+			case REDRAWMARKER: /* markers may not always match animation */
+				if ELEM6(sa->spacetype, SPACE_TIME, SPACE_IPO, SPACE_ACTION, SPACE_NLA, SPACE_SOUND, SPACE_SEQ) {
 					scrarea_queue_winredraw(sa);
 					if(val) scrarea_queue_headredraw(sa);
 				}

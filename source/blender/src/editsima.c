@@ -830,13 +830,14 @@ void borderselect_sima(short whichuvs)
 	MTFace *tface;
 	rcti rect;
 	rctf rectf;
-	int val;
-	short mval[2];
+	int val, ok = 1;
+	short mval[2], select;
 
 	if( is_uv_tface_editing_allowed()==0) return;
 
 	val= get_border(&rect, 3);
-
+	select = (val==LEFTMOUSE) ? 1 : 0; 
+	
 	if(val) {
 		mval[0]= rect.xmin;
 		mval[1]= rect.ymin;
@@ -844,66 +845,86 @@ void borderselect_sima(short whichuvs)
 		mval[0]= rect.xmax;
 		mval[1]= rect.ymax;
 		areamouseco_to_ipoco(G.v2d, mval, &rectf.xmax, &rectf.ymax);
-
-		for (efa= em->faces.first; efa; efa= efa->next) {
-			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			if (SIMA_FACEDRAW_CHECK(efa, tface)) {
-				if (whichuvs == UV_SELECT_ALL || (G.sima->flag & SI_SYNC_UVSEL) ) {
-					/* SI_SYNC_UVSEL - cant do pinned selection */
-					if(BLI_in_rctf(&rectf, (float)tface->uv[0][0], (float)tface->uv[0][1])) {
-						if(val==LEFTMOUSE)	SIMA_UVSEL_SET(efa, tface, 0);
-						else				SIMA_UVSEL_UNSET(efa, tface, 0);
+		
+		if (draw_uvs_face_check() && whichuvs != UV_SELECT_PINNED) {
+			float cent[2];
+			ok = 0;
+			for (efa= em->faces.first; efa; efa= efa->next) {
+				/* assume not touched */
+				efa->tmp.l = 0;
+				tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+					tface_center(tface, cent, (void *)efa->v4);
+					if(BLI_in_rctf(&rectf, cent[0], cent[1])) {
+						efa->tmp.l = ok = 1;
 					}
-					if(BLI_in_rctf(&rectf, (float)tface->uv[1][0], (float)tface->uv[1][1])) {
-						if(val==LEFTMOUSE)	SIMA_UVSEL_SET(efa, tface, 1);
-						else				SIMA_UVSEL_UNSET(efa, tface, 1);
-					}
-					if(BLI_in_rctf(&rectf, (float)tface->uv[2][0], (float)tface->uv[2][1])) {
-						if(val==LEFTMOUSE)	SIMA_UVSEL_SET(efa, tface, 2);
-						else				SIMA_UVSEL_UNSET(efa, tface, 2);
-					}
-					if(efa->v4 && BLI_in_rctf(&rectf, (float)tface->uv[3][0], (float)tface->uv[3][1])) {
-						if(val==LEFTMOUSE)	SIMA_UVSEL_SET(efa, tface, 3);
-						else				SIMA_UVSEL_UNSET(efa, tface, 3);
-					}
-				} else if (whichuvs == UV_SELECT_PINNED) {
-					if ((tface->unwrap & TF_PIN1) && 
-						BLI_in_rctf(&rectf, (float)tface->uv[0][0], (float)tface->uv[0][1])) {
-						
-						if(val==LEFTMOUSE)	SIMA_UVSEL_SET(efa, tface, 0);
-						else				SIMA_UVSEL_UNSET(efa, tface, 0);
-					}
-					if ((tface->unwrap & TF_PIN2) && 
-						BLI_in_rctf(&rectf, (float)tface->uv[1][0], (float)tface->uv[1][1])) {
-						
-						if(val==LEFTMOUSE)	SIMA_UVSEL_SET(efa, tface, 1);
-						else				SIMA_UVSEL_UNSET(efa, tface, 1);
-					}
-					if ((tface->unwrap & TF_PIN3) && 
-						BLI_in_rctf(&rectf, (float)tface->uv[2][0], (float)tface->uv[2][1])) {
-						
-						if(val==LEFTMOUSE)	SIMA_UVSEL_SET(efa, tface, 2);
-						else				SIMA_UVSEL_UNSET(efa, tface, 2);
-					}
-					if ((efa->v4) && (tface->unwrap & TF_PIN4) && BLI_in_rctf(&rectf, (float)tface->uv[3][0], (float)tface->uv[3][1])) {
-						if(val==LEFTMOUSE)	SIMA_UVSEL_SET(efa, tface, 3);
-						else				SIMA_UVSEL_UNSET(efa, tface, 3);
+				}
+			}
+			/* (de)selects all tagged faces and deals with sticky modes */
+			if (ok)
+				uvface_setsel__internal(select);
+		} else {
+			for (efa= em->faces.first; efa; efa= efa->next) {
+				tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+					if (whichuvs == UV_SELECT_ALL || (G.sima->flag & SI_SYNC_UVSEL) ) {
+						/* SI_SYNC_UVSEL - cant do pinned selection */
+						if(BLI_in_rctf(&rectf, tface->uv[0][0], tface->uv[0][1])) {
+							if(select)	SIMA_UVSEL_SET(efa, tface, 0);
+							else		SIMA_UVSEL_UNSET(efa, tface, 0);
+						}
+						if(BLI_in_rctf(&rectf, tface->uv[1][0], tface->uv[1][1])) {
+							if(select)	SIMA_UVSEL_SET(efa, tface, 1);
+							else		SIMA_UVSEL_UNSET(efa, tface, 1);
+						}
+						if(BLI_in_rctf(&rectf, tface->uv[2][0], tface->uv[2][1])) {
+							if(select)	SIMA_UVSEL_SET(efa, tface, 2);
+							else		SIMA_UVSEL_UNSET(efa, tface, 2);
+						}
+						if(efa->v4 && BLI_in_rctf(&rectf, tface->uv[3][0], tface->uv[3][1])) {
+							if(select)	SIMA_UVSEL_SET(efa, tface, 3);
+							else		SIMA_UVSEL_UNSET(efa, tface, 3);
+						}
+					} else if (whichuvs == UV_SELECT_PINNED) {
+						if ((tface->unwrap & TF_PIN1) && 
+							BLI_in_rctf(&rectf, tface->uv[0][0], tface->uv[0][1])) {
+							
+							if(select)	SIMA_UVSEL_SET(efa, tface, 0);
+							else		SIMA_UVSEL_UNSET(efa, tface, 0);
+						}
+						if ((tface->unwrap & TF_PIN2) && 
+							BLI_in_rctf(&rectf, tface->uv[1][0], tface->uv[1][1])) {
+							
+							if(select)	SIMA_UVSEL_SET(efa, tface, 1);
+							else		SIMA_UVSEL_UNSET(efa, tface, 1);
+						}
+						if ((tface->unwrap & TF_PIN3) && 
+							BLI_in_rctf(&rectf, tface->uv[2][0], tface->uv[2][1])) {
+							
+							if(select)	SIMA_UVSEL_SET(efa, tface, 2);
+							else		SIMA_UVSEL_UNSET(efa, tface, 2);
+						}
+						if ((efa->v4) && (tface->unwrap & TF_PIN4) && BLI_in_rctf(&rectf, tface->uv[3][0], tface->uv[3][1])) {
+							if(select)	SIMA_UVSEL_SET(efa, tface, 3);
+							else		SIMA_UVSEL_UNSET(efa, tface, 3);
+						}
 					}
 				}
 			}
 		}
-		
-		/* make sure newly selected vert selection is updated*/
-		if (G.sima->flag & SI_SYNC_UVSEL) {
-			if (G.scene->selectmode != SCE_SELECT_FACE) {
-				if (val==LEFTMOUSE)	EM_select_flush();
-				else				EM_deselect_flush();
+		if (ok) {
+			/* make sure newly selected vert selection is updated*/
+			if (G.sima->flag & SI_SYNC_UVSEL) {
+				if (G.scene->selectmode != SCE_SELECT_FACE) {
+					if (select)	EM_select_flush();
+					else		EM_deselect_flush();
+				}
 			}
 			allqueue(REDRAWVIEW3D, 0); /* mesh selection has changed */
+			
+			BIF_undo_push("Border select UV");
+			scrarea_queue_winredraw(curarea);
 		}
-		
-		BIF_undo_push("Border select UV");
-		scrarea_queue_winredraw(curarea);
 	}
 }
 
@@ -1550,29 +1571,148 @@ void unlink_selection(void)
 	scrarea_queue_winredraw(curarea);
 }
 
-/*
-void toggle_uv_select(int mode)
+/* this function sets the selection on tagged faces
+ * This is needed because setting the selection on a face is done in
+ * a number of places but it also needs to respect the sticky modes
+ * for the UV verts - dealing with the sticky modes is best done in a seperate function
+ * 
+ * de-selects faces that have been tagged on efa->tmp.l 
+ */
+void uvface_setsel__internal(short select)
 {
-	switch(mode){
-	case 'f':
-		G.sima->flag ^= SI_SELACTFACE;
-		break;
-	case 's':
-		G.sima->flag &= ~SI_LOCALSTICKY;
-		G.sima->flag |= SI_STICKYUVS;
-		break;
-	case 'l':
-		G.sima->flag &= ~SI_STICKYUVS;
-		G.sima->flag &= ~SI_LOCALSTICKY;
-		break;
-	case 'o':
-		 G.sima->flag &= ~SI_STICKYUVS;
-		 G.sima->flag |= SI_LOCALSTICKY;
-		break;
+	
+	/* All functions calling this should call
+	 * draw_uvs_face_check() 
+	 */
+	
+		
+	/* selecting UV Faces with some modes requires us to change 
+	 * the selection in other faces (depending on the stickt mode)
+	 * 
+	 * This only needs to be done when the Mesh is not used for selection
+	 * (So for sticky modes - vertex or location based)
+	 * */
+	
+	EditMesh *em = G.editMesh;
+	EditFace *efa;
+	MTFace *tf;
+	int nverts, i;
+	
+	if ((G.sima->flag & SI_SYNC_UVSEL)==0 && G.sima->sticky == SI_STICKY_VERTEX) {
+		/* tag all verts as untouched,
+		 * then touch the ones that have a face center in the loop
+		 * and select all MTFace UV's that use a touched vert */
+		
+		EditVert *eve;
+		
+		for (eve= em->verts.first; eve; eve= eve->next)
+			eve->tmp.l = 0;
+		
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			if (efa->tmp.l) {
+				if (efa->v4) {
+					efa->v1->tmp.l=	efa->v2->tmp.l= efa->v3->tmp.l= efa->v4->tmp.l=1;
+				} else {
+					efa->v1->tmp.l= efa->v2->tmp.l= efa->v3->tmp.l= 1;
+				}
+			}
+		}
+		/* now select tagged verts */
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);		
+			nverts= efa->v4? 4: 3;
+			for(i=0; i<nverts; i++) {
+				if ((*(&efa->v1 + i))->tmp.l) {
+					if (select) {
+						SIMA_UVSEL_SET(efa, tf, i);
+					} else {
+						SIMA_UVSEL_UNSET(efa, tf, i);
+					}
+				}
+			}
+		}
+	} else if ((G.sima->flag & SI_SYNC_UVSEL)==0 && G.sima->sticky == SI_STICKY_LOC) {
+		EditFace *efa_vlist;
+		MTFace *tf_vlist;
+		UvMapVert *vlist, *start_vlist, *vlist_iter;
+		struct UvVertMap *vmap;
+		float limit[2];
+		int efa_index;
+		//EditVert *eve; /* removed vert counting for now */ 
+		//int a;
+		
+		get_connected_limit_tface_uv(limit);
+		
+		EM_init_index_arrays(0, 0, 1);
+		vmap= make_uv_vert_map_EM(0, 0, limit);
+		
+		/* verts are numbered above in make_uv_vert_map_EM, make sure this stays true! */
+		/*for (a=0, eve= em->verts.first; eve; a++, eve= eve->next)
+			eve->tmp.l = a; */
+		
+		if(vmap == NULL)
+			return;
+		
+		for (efa_index=0, efa= em->faces.first; efa; efa_index++, efa= efa->next) {
+			if (efa->tmp.l) {
+				tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				nverts= efa->v4? 4: 3;
+				for(i=0; i<nverts; i++) {
+					if (select) {
+						SIMA_UVSEL_SET(efa, tf, i);
+					} else {
+						SIMA_UVSEL_UNSET(efa, tf, i);
+					}
+					
+					vlist= vlist_iter= get_uv_map_vert_EM(vmap, (*(&efa->v1 + i))->tmp.l);
+					
+					while (vlist_iter) {
+						if (vlist_iter->separate)
+							start_vlist = vlist_iter;
+						
+						if (efa_index == vlist_iter->f) {
+							break;
+						}
+						vlist_iter = vlist_iter->next;
+					}
+				
+					vlist_iter = start_vlist;
+					while (vlist_iter) {
+						
+						if (vlist_iter != start_vlist && vlist_iter->separate)
+							break;
+						
+						if (efa_index != vlist_iter->f) {
+							efa_vlist = EM_get_face_for_index(vlist_iter->f);
+							tf_vlist = CustomData_em_get(&em->fdata, efa_vlist->data, CD_MTFACE);
+							
+							if (select) {
+								SIMA_UVSEL_SET(efa_vlist, tf_vlist, vlist_iter->tfindex);
+							} else {
+								SIMA_UVSEL_UNSET(efa_vlist, tf_vlist, vlist_iter->tfindex);
+							}
+						}
+						vlist_iter = vlist_iter->next;
+					}
+				}
+			}
+		}
+		EM_free_index_arrays();
+		free_uv_vert_map_EM(vmap);
+		
+	} else { /* SI_STICKY_DISABLE or G.sima->flag & SI_SYNC_UVSEL */
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			if (efa->tmp.l) {
+				tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+				if (select) {
+					SIMA_FACESEL_SET(efa, tf);
+				} else {
+					SIMA_FACESEL_UNSET(efa, tf);
+				}
+			}
+		}
 	}
-	allqueue(REDRAWIMAGE, 0);
 }
-*/
 
 void pin_tface_uv(int mode)
 {

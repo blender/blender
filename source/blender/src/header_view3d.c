@@ -862,6 +862,7 @@ void do_view3d_select_object_groupedmenu(void *arg, int event)
 	case 6: /* Objects on Shared Layers */
 	case 7: /* Objects in Same Group */
 	case 8: /* Object Hooks*/
+	case 9: /* Object PassIndex*/
 		select_object_grouped((short)event);
 		break;
 	}
@@ -884,7 +885,8 @@ static uiBlock *view3d_select_object_groupedmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Objects on Shared Layers|Shift G, 6",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Objects in Same Group|Shift G, 7",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Object Hooks|Shift G, 8",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
-	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Object PassIndex|Shift G, 9",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 9, "");	
+
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
 	return block;
@@ -2090,6 +2092,7 @@ static void do_view3d_edit_object_copyattrmenu(void *arg, int event)
 	case 25:
 	case 26:
 	case 29:
+	case 30:
 		copy_attr((short)event);
 		break;
 		}
@@ -2153,6 +2156,8 @@ static uiBlock *view3d_edit_object_copyattrmenu(void *arg_unused)
 		if( give_parteff(ob) ) {
 			uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Particle Settings|Ctrl C",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 20, "");
 		}
+
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Object Pass Index|Ctrl C", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 30, "");
 	}
 	
 	uiBlockSetDirection(block, UI_RIGHT);
@@ -2531,7 +2536,7 @@ void do_view3d_edit_mesh_verticesmenu(void *arg, int event)
 		make_parent();
 		break;
 	case 1: /* remove doubles */
-		count= removedoublesflag(1, G.scene->toolsettings->doublimit);
+		count= removedoublesflag(1, 0, G.scene->toolsettings->doublimit);
 		notice("Removed: %d", count);
 		if (count) { /* only undo and redraw if an action is taken */
 			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
@@ -2973,8 +2978,12 @@ static void do_view3d_edit_meshmenu(void *arg, int event)
 		if(G.scene->proportional) G.scene->proportional= 0;
 		else G.scene->proportional= 1;
 		break;
+	case 13: /* automerge edit (toggle) */
+		if(G.scene->automerge) G.scene->automerge= 0;
+		else G.scene->automerge= 1;
+		break;
 #ifdef WITH_VERSE
-	case 13:
+	case 14:
 		if(session_list.first != session_list.last) session = session_menu();
 		else session = session_list.first;
 		if(session) b_verse_push_object(session, G.obedit);
@@ -2996,7 +3005,7 @@ static uiBlock *view3d_edit_meshmenu(void *arg_unused)
 #ifdef WITH_VERSE
 	if((session_list.first != NULL) && (!G.obedit->vnode)) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Share at Verse Server",
-				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
+				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 14, "");
 		uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	}
 #endif
@@ -3032,12 +3041,22 @@ static uiBlock *view3d_edit_meshmenu(void *arg_unused)
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 		
+	
+	
 	if(G.scene->proportional) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Proportional Editing|O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
 	} else {
 		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Proportional Editing|O", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
 	}
 	uiDefIconTextBlockBut(block, view3d_edit_propfalloffmenu, NULL, ICON_RIGHTARROW_THIN, "Proportional Falloff", 0, yco-=20, 120, 19, "");
+	
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	if(G.scene->automerge) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "AutoMarge Editing", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
+	} else {
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "AutoMarge Editing", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
+	}
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	

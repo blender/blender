@@ -85,6 +85,7 @@
 
 #include "BSE_drawipo.h"
 #include "BSE_editnla_types.h"	/* for NLAWIDTH */
+#include "BSE_editaction_types.h"
 #include "BSE_view.h"
 
 #include "BLI_arithb.h"
@@ -379,11 +380,57 @@ void convertDisplayNumToVec(float *num, float *vec)
 
 static void viewRedrawForce(TransInfo *t)
 {
-	if(ELEM4(t->spacetype, SPACE_VIEW3D, SPACE_ACTION, SPACE_NLA, SPACE_IPO))
+	if (t->spacetype == SPACE_VIEW3D)
 		force_draw(0);
-	else if(t->spacetype==SPACE_IMAGE) {
-		if(G.sima->lock) force_draw_plus(SPACE_VIEW3D, 0);
+	else if (t->spacetype==SPACE_IMAGE) {
+		if (G.sima->lock) force_draw_plus(SPACE_VIEW3D, 0);
 		else force_draw(0);
+	}
+	else if (t->spacetype == SPACE_ACTION) {
+		if (G.saction->lock) {
+			short context;
+			
+			/* we ignore the pointer this function returns (not needed) */
+			get_action_context(&context);
+			
+			if (context == ACTCONT_ACTION)
+				force_draw_plus(SPACE_VIEW3D, 0);
+			else if (context == ACTCONT_SHAPEKEY) 
+				force_draw_all(0);
+			else
+				force_draw(0);
+		}
+		else {
+			force_draw(0);
+		}
+	}
+	else if (t->spacetype == SPACE_NLA) {
+		if (G.snla->lock)
+			force_draw_all(0);
+		else
+			force_draw(0);
+	}
+	else if (t->spacetype == SPACE_IPO) {
+		/* update realtime */
+		if (G.sipo->lock) {
+			if (G.sipo->blocktype==ID_MA || G.sipo->blocktype==ID_TE)
+				force_draw_plus(SPACE_BUTS, 0);
+			else if (G.sipo->blocktype==ID_CA)
+				force_draw_plus(SPACE_VIEW3D, 0);
+			else if (G.sipo->blocktype==ID_KE)
+				force_draw_plus(SPACE_VIEW3D, 0);
+			else if (G.sipo->blocktype==ID_PO)
+				force_draw_plus(SPACE_VIEW3D, 0);
+			else if (G.sipo->blocktype==ID_OB) 
+				force_draw_plus(SPACE_VIEW3D, 0);
+			else if (G.sipo->blocktype==ID_SEQ) 
+				force_draw_plus(SPACE_SEQ, 0);
+			else 
+				force_draw(0);
+		}
+		else {
+			force_draw(0);
+		}
 	}
 }
 
@@ -559,11 +606,11 @@ static void transformEvent(unsigned short event, short val) {
 			Trans.flag |= T_SHIFT_MOD;
 			Trans.redraw = 1;
 			break;
-
+			
 		case SPACEKEY:
 			if ((Trans.spacetype==SPACE_VIEW3D) && (G.qual & LR_ALTKEY)) {
 				short mval[2];
-
+				
 				getmouseco_sc(mval);
 				BIF_selectOrientation();
 				calc_manipulator_stats(curarea);
@@ -574,7 +621,7 @@ static void transformEvent(unsigned short event, short val) {
 				Trans.state = TRANS_CONFIRM;
 			}
 			break;
-
+			
 			
 		case MIDDLEMOUSE:
 			if ((Trans.flag & T_NO_CONSTRAINT)==0) {
@@ -678,10 +725,15 @@ static void transformEvent(unsigned short event, short val) {
 					}
 				}
 				else {
-					if (G.qual == 0)
-						setConstraint(&Trans, mati, (CON_AXIS0), "along global X");
-					else if ((G.qual == LR_SHIFTKEY) && ((Trans.flag & T_2D_EDIT)==0))
-						setConstraint(&Trans, mati, (CON_AXIS1|CON_AXIS2), "locking global X");
+					if (Trans.flag & T_2D_EDIT) {
+						setConstraint(&Trans, mati, (CON_AXIS0), "along X axis");
+					}
+					else {
+						if (G.qual == 0)
+							setConstraint(&Trans, mati, (CON_AXIS0), "along global X");
+						else if (G.qual == LR_SHIFTKEY)
+							setConstraint(&Trans, mati, (CON_AXIS1|CON_AXIS2), "locking global X");
+					}
 				}
 				Trans.redraw = 1;
 			}
@@ -705,10 +757,15 @@ static void transformEvent(unsigned short event, short val) {
 					}
 				}
 				else {
-					if (G.qual == 0)
-						setConstraint(&Trans, mati, (CON_AXIS1), "along global Y");
-					else if ((G.qual == LR_SHIFTKEY) && ((Trans.flag & T_2D_EDIT)==0))
-						setConstraint(&Trans, mati, (CON_AXIS0|CON_AXIS2), "locking global Y");
+					if (Trans.flag & T_2D_EDIT) {
+						setConstraint(&Trans, mati, (CON_AXIS1), "along Y axis");
+					}
+					else {
+						if (G.qual == 0)
+							setConstraint(&Trans, mati, (CON_AXIS1), "along global Y");
+						else if (G.qual == LR_SHIFTKEY)
+							setConstraint(&Trans, mati, (CON_AXIS0|CON_AXIS2), "locking global Y");
+					}
 				}
 				Trans.redraw = 1;
 			}
@@ -1276,12 +1333,13 @@ void initWarp(TransInfo *t)
 			VECCOPY(min, center);
 		}
 	}
-
+	
 	t->center[0]= (min[0]+max[0])/2.0f;
 	t->center[1]= (min[1]+max[1])/2.0f;
 	t->center[2]= (min[2]+max[2])/2.0f;
 	
-	t->val= (max[0]-min[0])/2.0f;	// t->val is free variable
+	if (max[0] == min[0]) max[0] += 0.1; /* not optimal, but flipping is better than invalid garbage (i.e. division by zero!) */
+	t->val= (max[0]-min[0])/2.0f; /* t->val is X dimension projected boundbox */
 }
 
 int Warp(TransInfo *t, short mval[2])
@@ -1312,7 +1370,7 @@ int Warp(TransInfo *t, short mval[2])
 	Mat4MulVecfl(t->viewmat, cursor);
 	VecSubf(cursor, cursor, t->viewmat[3]);
 
-	// amount of degrees for warp
+	/* amount of degrees for warp */
 	circumfac= 360.0f * InputHorizontalRatio(t, mval);
 
 	snapGrid(t, &circumfac);
@@ -1333,21 +1391,21 @@ int Warp(TransInfo *t, short mval[2])
 	
 	circumfac*= (float)(-M_PI/360.0);
 	
-	for(i = 0 ; i < t->total; i++, td++) {
+	for(i = 0; i < t->total; i++, td++) {
 		float loc[3];
 		if (td->flag & TD_NOACTION)
 			break;
-
-		/* translate point to center, rotate in such a way that outline==distance */
 		
+		/* translate point to center, rotate in such a way that outline==distance */
 		VECCOPY(vec, td->iloc);
 		Mat3MulVecfl(td->mtx, vec);
 		Mat4MulVecfl(t->viewmat, vec);
 		VecSubf(vec, vec, t->viewmat[3]);
 		
 		dist= vec[0]-cursor[0];
-
-		phi0= (circumfac*dist/t->val);	// t->val is X dimension projected boundbox
+		
+		/* t->val is X dimension projected boundbox */
+		phi0= (circumfac*dist/t->val);	
 		
 		vec[1]= (vec[1]-cursor[1]);
 		
@@ -1360,7 +1418,7 @@ int Warp(TransInfo *t, short mval[2])
 		Mat4MulVecfl(t->viewinv, loc);
 		VecSubf(loc, loc, t->viewinv[3]);
 		Mat3MulVecfl(td->smtx, loc);
-
+		
 		VecSubf(loc, loc, td->iloc);
 		VecMulf(loc, td->factor);
 		VecAddf(td->loc, td->iloc, loc);
@@ -2196,6 +2254,7 @@ static void applyTrackball(TransInfo *t, float axis1[3], float axis2[3], float a
 {
 	TransData *td = t->data;
 	float mat[3][3], smat[3][3], totmat[3][3];
+	float center[3];
 	int i;
 
 	VecRotToMat3(axis1, angles[0], smat);
@@ -2207,9 +2266,18 @@ static void applyTrackball(TransInfo *t, float axis1[3], float axis2[3], float a
 		if (td->flag & TD_NOACTION)
 			break;
 		
+		VECCOPY(center, t->center);
+		
 		if (t->around == V3D_LOCAL) {
-			if (t->flag & T_OBJECT)
-				VECCOPY(t->center, td->center);	// not supported in editmode yet
+			/* local-mode shouldn't change center */
+			if (t->flag & (T_OBJECT|T_POSE)) {
+				VECCOPY(t->center, td->center);
+			}
+			else {
+				if(G.vd->around==V3D_LOCAL && (G.scene->selectmode & SCE_SELECT_FACE)) {
+					VECCOPY(t->center, td->center);
+				}
+			}
 		}
 		
 		if (t->flag & T_PROP_EDIT) {
@@ -2218,8 +2286,10 @@ static void applyTrackball(TransInfo *t, float axis1[3], float axis2[3], float a
 			
 			Mat3MulMat3(mat, smat, totmat);
 		}
-
+		
 		ElementRotation(t, td, mat);
+		
+		VECCOPY(t->center, center);
 	}
 }
 

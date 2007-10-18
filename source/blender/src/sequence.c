@@ -213,6 +213,23 @@ void free_editing(Editing *ed)
 
 }
 
+void calc_sequence_disp(Sequence *seq)
+{
+	if(seq->startofs && seq->startstill) seq->startstill= 0;
+	if(seq->endofs && seq->endstill) seq->endstill= 0;
+	
+	seq->startdisp= seq->start + seq->startofs - seq->startstill;
+	seq->enddisp= seq->start+seq->len - seq->endofs + seq->endstill;
+	
+	seq->handsize= 10.0;	/* 10 frames */
+	if( seq->enddisp-seq->startdisp < 10 ) {
+		seq->handsize= (float)(0.5*(seq->enddisp-seq->startdisp));
+	}
+	else if(seq->enddisp-seq->startdisp > 250) {
+		seq->handsize= (float)((seq->enddisp-seq->startdisp)/25);
+	}
+}
+
 void calc_sequence(Sequence *seq)
 {
 	Sequence *seqm;
@@ -244,19 +261,7 @@ void calc_sequence(Sequence *seq)
 			seq->enddisp= MIN3(seq->seq1->enddisp, seq->seq2->enddisp, seq->seq3->enddisp);
 			seq->len= seq->enddisp - seq->startdisp;
 		} else {
-			if(seq->startofs && seq->startstill) seq->startstill= 0;
-			if(seq->endofs && seq->endstill) seq->endstill= 0;
-
-			seq->startdisp= seq->start + seq->startofs - seq->startstill;
-			seq->enddisp= seq->start+seq->len - seq->endofs + seq->endstill;
-
-			seq->handsize= 10.0;	/* 10 frames */
-			if( seq->enddisp-seq->startdisp < 20 ) {
-				seq->handsize= (float)(0.5*(seq->enddisp-seq->startdisp));
-			}
-			else if(seq->enddisp-seq->startdisp > 250) {
-				seq->handsize= (float)((seq->enddisp-seq->startdisp)/25);
-			}
+			calc_sequence_disp(seq);
 		}
 
 		if(seq->strip && seq->len!=seq->strip->len) {
@@ -283,21 +288,7 @@ void calc_sequence(Sequence *seq)
 				}
 			}
 		}
-
-
-		if(seq->startofs && seq->startstill) seq->startstill= 0;
-		if(seq->endofs && seq->endstill) seq->endstill= 0;
-
-		seq->startdisp= seq->start + seq->startofs - seq->startstill;
-		seq->enddisp= seq->start+seq->len - seq->endofs + seq->endstill;
-
-		seq->handsize= 10.0;	/* 10 frames */
-		if( seq->enddisp-seq->startdisp < 20 ) {
-			seq->handsize= (float)(0.5*(seq->enddisp-seq->startdisp));
-		}
-		else if(seq->enddisp-seq->startdisp > 250) {
-			seq->handsize= (float)((seq->enddisp-seq->startdisp)/25);
-		}
+		calc_sequence_disp(seq);
 	}
 }
 
@@ -779,6 +770,8 @@ static void do_build_seq_ibuf(Sequence * seq, int cfra)
 					seq->strip->orx= se->ibuf->x;
 					seq->strip->ory= se->ibuf->y;
 					if(seq->flag & SEQ_FILTERY) IMB_filtery(se->ibuf);
+					if(seq->flag & SEQ_FLIPX) IMB_flipx(se->ibuf);
+					if(seq->flag & SEQ_FLIPY) IMB_flipy(se->ibuf);
 					if(seq->mul==0.0) seq->mul= 1.0;
 					if(seq->mul != 1.0) multibuf(se->ibuf, seq->mul);
 				}

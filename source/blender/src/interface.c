@@ -482,6 +482,7 @@ static int ui_but_copy_paste(uiBut *but, char mode)
 		}
 		else {
 			ui_set_but_val(but, but_copypaste_val);
+			uibut_do_func(but);
 			ui_check_but(but);
 			return 1;
 		}
@@ -4725,7 +4726,7 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 						/* add undo pushes if... */
 						if( !(block->flag & UI_BLOCK_LOOP)) {
 							if(!G.obedit) {
-								if ELEM4(but->type, BLOCK, BUT, LABEL, PULLDOWN); 
+								if ELEM5(but->type, BLOCK, BUT, LABEL, PULLDOWN, ROUNDBOX); 
 								else {
 									/* define which string to use for undo */
 									if ELEM(but->type, LINK, INLINK) screen_delayed_undo_push("Add button link");

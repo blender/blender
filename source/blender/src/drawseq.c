@@ -76,6 +76,7 @@
 #include "BSE_seqeffects.h"
 #include "BSE_seqscopes.h"
 #include "BSE_seqaudio.h"
+#include "BSE_time.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
@@ -392,7 +393,7 @@ static void draw_seq_handle(Sequence *seq, SpaceSeq *sseq, short direction)
 	/* clamp handles to defined size in pixel space */
 	handsize = seq->handsize;
 	minhandle = 7;
-	maxhandle = 28;
+	maxhandle = 40;
 	CLAMP(handsize, minhandle*pixelx, maxhandle*pixelx);
 	
 	/* set up co-ordinates/dimensions for either left or right handle */
@@ -686,9 +687,12 @@ so wave file sample drawing precission is zoom adjusted
 static void draw_seq_strip(Sequence *seq, ScrArea *sa, SpaceSeq *sseq)
 {
 	float x1, x2, y1, y2;
-	char col[3];
+	char col[3], is_single_image;
 	Sequence *last_seq = get_last_seq();
 
+	/* we need to know if this is a single image or not for drawing */
+	is_single_image = (char)check_single_image_seq(seq);
+	
 	/* body */
 	if(seq->startstill) x1= seq->start;
 	else x1= seq->startdisp;
@@ -702,11 +706,18 @@ static void draw_seq_strip(Sequence *seq, ScrArea *sa, SpaceSeq *sseq)
 	get_seq_color3ubv(seq, col);
 	
 	/* draw the main strip body */
-	draw_shadedstrip(seq, col, x1, y1, x2, y2);
+	if (is_single_image) /* single image */
+		draw_shadedstrip(seq, col, seq_tx_get_final_left(seq), y1, seq_tx_get_final_right(seq), y2);
+	else /* normal operation */
+		draw_shadedstrip(seq, col, x1, y1, x2, y2);
 	
 	/* draw additional info and controls */
-	if (seq->type == SEQ_RAM_SOUND) drawseqwave(seq, x1, y1, x2, y2, sa->winx);
-	draw_seq_extensions(seq, sseq);
+	if (seq->type == SEQ_RAM_SOUND)
+		drawseqwave(seq, x1, y1, x2, y2, sa->winx);
+	
+	if (!is_single_image)
+		draw_seq_extensions(seq, sseq);
+	
 	draw_seq_handle(seq, sseq, SEQ_LEFTHANDLE);
 	draw_seq_handle(seq, sseq, SEQ_RIGHTHANDLE);
 	
@@ -741,10 +752,10 @@ static void draw_seq_strip(Sequence *seq, ScrArea *sa, SpaceSeq *sseq)
 	if(x2<G.v2d->cur.xmin) x2= G.v2d->cur.xmin;
 	else if(x2>G.v2d->cur.xmax) x2= G.v2d->cur.xmax;
 
+	/* nice text here would require changing the view matrix for texture text */
 	if(x1 != x2) {
 		draw_seq_text(seq, x1, x2, y1, y2);
 	}
-		
 }
 
 static Sequence *special_seq_update= 0;
@@ -860,7 +871,7 @@ static void draw_extra_seqinfo(void)
 {
 	Sequence *last_seq = get_last_seq();
 	StripElem *se, *last;
-	float xco, xfac;
+	float xco, xfac, yco, yfac;
 	int sta, end;
 	char str[256];
 
@@ -869,61 +880,77 @@ static void draw_extra_seqinfo(void)
 	/* xfac: size of 1 pixel */
 	xfac= G.v2d->cur.xmax - G.v2d->cur.xmin;
 	xfac/= (float)(G.v2d->mask.xmax-G.v2d->mask.xmin);
-	xco= G.v2d->cur.xmin+40*xfac;
+	xco= G.v2d->cur.xmin+10*xfac;
 
-	BIF_ThemeColor(TH_TEXT);
+	yfac= G.v2d->cur.ymax - G.v2d->cur.ymin;
+	yfac/= (float)(G.v2d->mask.ymax-G.v2d->mask.ymin);
+	yco= G.v2d->cur.ymin+40*yfac;
+	
+	BIF_ThemeColor(TH_TEXT_HI);
 
 	/* NAME */
-	glRasterPos3f(xco,  0.3, 0.0);
+	glRasterPos3f(xco,  yco, 0.0);
 	strncpy(str, give_seqname(last_seq), 255);
 	BMF_DrawString(G.font, str);
-	xco += xfac*BMF_GetStringWidth(G.font, str) +30.0*xfac;
+	xco += xfac*BMF_GetStringWidth(G.font, str) +10.0*xfac;
 
 	if(last_seq->type==SEQ_SCENE && last_seq->scene) {
-		glRasterPos3f(xco,  0.3, 0.0);
+		glRasterPos3f(xco,  yco, 0.0);
 		BMF_DrawString(G.font, last_seq->scene->id.name+2);
 		xco += xfac*BMF_GetStringWidth(G.font, last_seq->scene->id.name+2) +30.0*xfac;
 	}
 
-	/* LEN */
-	if(last_seq->type & SEQ_EFFECT)
-		sprintf(str, "len: %d   From %d - %d", last_seq->len, last_seq->startdisp, last_seq->enddisp-1);
-	else
-		sprintf(str, "len: %d (%d)", last_seq->enddisp-last_seq->startdisp, last_seq->len);
+	/* LEN, dont bother with single images */
+	if (check_single_image_seq(last_seq)==0) {
+		if(last_seq->type & SEQ_EFFECT)
+			sprintf(str, "len: %d   From %d - %d", last_seq->len, last_seq->startdisp, last_seq->enddisp-1);
+		else
+			sprintf(str, "len: %d (%d)", last_seq->enddisp-last_seq->startdisp, last_seq->len);
+		
+		glRasterPos3f(xco,  yco, 0.0);
+	
+		BMF_DrawString(G.font, str);
+		xco += xfac*BMF_GetStringWidth(G.font, str) +10.0*xfac;
+	}
 
-	glRasterPos3f(xco,  0.3, 0.0);
-	BMF_DrawString(G.font, str);
-	xco += xfac*BMF_GetStringWidth(G.font, str) +30.0*xfac;
 
 	if(last_seq->type==SEQ_IMAGE) {
-
-		/* CURRENT */
-		se= (StripElem *)give_stripelem(last_seq,  (G.scene->r.cfra));
-		if(se) {
-			sprintf(str, "Cur: %s", se->name);
-			glRasterPos3f(xco,  0.3, 0.0);
-			BMF_DrawString(G.font, str);
-			xco += xfac*BMF_GetStringWidth(G.font, str) +30.0*xfac;
-		}
-
-		/* FIRST AND LAST */
-
-		if(last_seq->strip) {
-			se= last_seq->strip->stripdata;
-			last= se+last_seq->len-1;
-			if(last_seq->startofs) se+= last_seq->startofs;
-			if(last_seq->endofs) last-= last_seq->endofs;
-
-			sprintf(str, "First: %s at %d   Last: %s at %d", se->name, last_seq->startdisp, last->name, last_seq->enddisp-1);
-			glRasterPos3f(xco,  0.3, 0.0);
-			BMF_DrawString(G.font, str);
-			xco += xfac*BMF_GetStringWidth(G.font, str) +30.0*xfac;
-
-			/* orig size */
-			sprintf(str, "OrigSize: %d x %d", last_seq->strip->orx, last_seq->strip->ory);
-			glRasterPos3f(xco,  0.3, 0.0);
-			BMF_DrawString(G.font, str);
-			xco += xfac*BMF_GetStringWidth(G.font, str) +30.0*xfac;
+		if (last_seq->len > 1) {
+			/* CURRENT */
+			se= (StripElem *)give_stripelem(last_seq,  (G.scene->r.cfra));
+			if(se) {
+				sprintf(str, "Cur: %s", se->name);
+				glRasterPos3f(xco,  yco, 0.0);
+				BMF_DrawString(G.font, str);
+				xco += xfac*BMF_GetStringWidth(G.font, str) +10.0*xfac;
+			}
+	
+			/* FIRST AND LAST */
+	
+			if(last_seq->strip) {
+				se= last_seq->strip->stripdata;
+				last= se+last_seq->len-1;
+				if(last_seq->startofs) se+= last_seq->startofs;
+				if(last_seq->endofs) last-= last_seq->endofs;
+	
+				sprintf(str, "First: %s at %d   Last: %s at %d", se->name, last_seq->startdisp, last->name, last_seq->enddisp-1);
+				glRasterPos3f(xco,  yco, 0.0);
+				BMF_DrawString(G.font, str);
+				xco += xfac*BMF_GetStringWidth(G.font, str) +30.0*xfac;
+	
+				/* orig size */
+				sprintf(str, "OrigSize: %d x %d", last_seq->strip->orx, last_seq->strip->ory);
+				glRasterPos3f(xco,  yco, 0.0);
+				BMF_DrawString(G.font, str);
+				xco += xfac*BMF_GetStringWidth(G.font, str) +30.0*xfac;
+			}
+		} else { /* single image */
+			if (last_seq->strip) {
+				sprintf(str, "Single: %s   len: %d", last_seq->strip->stripdata->name, last_seq->enddisp-last_seq->startdisp);
+				glRasterPos3f(xco,  yco, 0.0);
+				BMF_DrawString(G.font, str);
+				xco += xfac*BMF_GetStringWidth(G.font, str) +30.0*xfac;
+			}
 		}
 	}
 	else if(last_seq->type==SEQ_MOVIE) {
@@ -935,14 +962,14 @@ static void draw_extra_seqinfo(void)
 				last_seq->name+2, last_seq->strip->dir, last_seq->strip->stripdata->name,
 				sta, last_seq->startdisp, end, last_seq->enddisp-1,  (G.scene->r.cfra)-last_seq->startdisp);
 
-		glRasterPos3f(xco,  0.3, 0.0);
+		glRasterPos3f(xco,  yco, 0.0);
 		BMF_DrawString(G.font, str);
 	}
 	else if(last_seq->type==SEQ_SCENE) {
 		se= (StripElem *)give_stripelem(last_seq,  (G.scene->r.cfra));
 		if(se && last_seq->scene) {
 			sprintf(str, "Cur: %d  First: %d  Last: %d", last_seq->sfra+se->nr, last_seq->sfra, last_seq->sfra+last_seq->len-1); 
-			glRasterPos3f(xco,  0.3, 0.0);
+			glRasterPos3f(xco,  yco, 0.0);
 			BMF_DrawString(G.font, str);
 		}
 	}
@@ -957,7 +984,7 @@ static void draw_extra_seqinfo(void)
 				sta, last_seq->startdisp, end, last_seq->enddisp-1,  (G.scene->r.cfra)-last_seq->startdisp,
 				last_seq->level, last_seq->pan);
 
-		glRasterPos3f(xco,  0.3, 0.0);
+		glRasterPos3f(xco,  yco, 0.0);
 		BMF_DrawString(G.font, str);
 	}
 }
@@ -1091,12 +1118,16 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 	}
 	else if(last_seq->type==SEQ_IMAGE) {
 
-		uiDefBut(block, LABEL, 0, "Type: Image", 10,140,150,20, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, TEX, B_NOP, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
+		uiDefBut(block, LABEL, 0, "Type: Image", 10,160,150,20, 0, 0, 0, 0, 0, "");
+		uiDefBut(block, TEX, B_NOP, "Name: ", 10,140,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
 		
 		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, SEQ_MAKE_PREMUL, SEQ_BUT_RELOAD, "Convert to Premul", 10,90,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "Converts RGB values to become premultiplied with Alpha");
-		uiDefButBitS(block, TOG, SEQ_FILTERY, SEQ_BUT_RELOAD, "FilterY",	10,70,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "For video movies to remove fields");
+		uiDefButBitS(block, TOG, SEQ_MAKE_PREMUL, SEQ_BUT_RELOAD, "Convert to Premul", 10,110,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "Converts RGB values to become premultiplied with Alpha");
+		uiDefButBitS(block, TOG, SEQ_FILTERY, SEQ_BUT_RELOAD, "FilterY",	10,90,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "For video movies to remove fields");
+		
+		uiDefButBitS(block, TOG, SEQ_FLIPX, SEQ_BUT_RELOAD, "FlipX",	10,70,75,19, &last_seq->flag, 0.0, 21.0, 100, 0, "Flip on the X axis");
+		uiDefButBitS(block, TOG, SEQ_FLIPY, SEQ_BUT_RELOAD, "FlipY",	85,70,75,19, &last_seq->flag, 0.0, 21.0, 100, 0, "Flip on the Y axis");
+		
 		uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Mul:",			10,50,150,19, &last_seq->mul, 0.001, 5.0, 100, 0, "Multiply colors");
 		uiDefButS(block, TOG|BIT|7, SEQ_BUT_RELOAD, "Reverse Frames", 10,30,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "Reverse frame order");
 		uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Strobe:",			10,10,150,19, &last_seq->strobe, 1.0, 30.0, 100, 0, "Only display every nth frame");
@@ -1200,10 +1231,10 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 			uiDefButI(block, ROW, SEQ_BUT_EFFECT, "Percent", 10, 30, 150, 19, &transform->percent, 0.0, 1.0, 0.0, 0.0, "Percent Translate");
 			uiDefButI(block, ROW, SEQ_BUT_EFFECT, "Pixels", 160, 30, 150, 19, &transform->percent, 0.0, 0.0, 0.0, 0.0, "Pixels Translate");
 			if(transform->percent==1){
-				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "x Start:", 	10,10,150,19, &transform->xIni, -100.0, 100.0, 0, 0, "X Position Start");
-				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "x End:", 	160,10,150,19, &transform->xFin, -100.0, 100.0, 0, 0, "X Position End");
-				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "y Start:", 	10,-10,150,19, &transform->yIni, -100.0, 100.0, 0, 0, "Y Position Start");
-				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "y End:", 	160,-10,150,19, &transform->yFin, -100.0, 100.0, 0, 0, "Y Position End");
+				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "x Start:", 	10,10,150,19, &transform->xIni, -500.0, 500.0, 0, 0, "X Position Start");
+				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "x End:", 	160,10,150,19, &transform->xFin, -500.0, 500.0, 0, 0, "X Position End");
+				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "y Start:", 	10,-10,150,19, &transform->yIni, -500.0, 500.0, 0, 0, "Y Position Start");
+				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "y End:", 	160,-10,150,19, &transform->yFin, -500.0, 500.0, 0, 0, "Y Position End");
 			}else{
 				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "x Start:", 	10,10,150,19, &transform->xIni, -10000.0, 10000.0, 0, 0, "X Position Start");
 				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "x End:", 	160,10,150,19, &transform->xFin, -10000.0, 10000.0, 0, 0, "X Position End");
@@ -1413,6 +1444,9 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 
 	draw_extra_seqinfo();
 
+	/* Draw markers */
+	draw_markers_timespace(1);
+	
 	/* restore viewport */
 	mywinset(sa->win);
 

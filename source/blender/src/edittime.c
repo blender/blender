@@ -282,11 +282,7 @@ void transform_markers(int mode, int smode)	// mode and smode unused here, for c
 		BIF_undo_push("Move Markers");
 	}
 	MEM_freeN(oldframe);
-	allqueue(REDRAWTIME, 0);
-	allqueue(REDRAWIPO, 0);
-	allqueue(REDRAWACTION, 0);
-	allqueue(REDRAWNLA, 0);
-	allqueue(REDRAWSOUND, 0);
+	allqueue(REDRAWMARKER, 0);
 }
 
 /* select/deselect all TimeMarkers
@@ -387,11 +383,7 @@ void borderselect_markers(void)
 		borderselect_markers_func(rectf.xmin, rectf.xmax, selectmode);
 		
 		BIF_undo_push("Border Select Markers");
-		allqueue(REDRAWTIME, 0);
-		allqueue(REDRAWIPO, 0);
-		allqueue(REDRAWACTION, 0);
-		allqueue(REDRAWNLA, 0);
-		allqueue(REDRAWSOUND, 0);
+		allqueue(REDRAWMARKER, 0);
 	}
 }
 
@@ -919,11 +911,7 @@ void winqreadtimespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case AKEY:
 			/* deselect all TimeMarkers */
 			deselect_markers(1, 0);
-			allqueue(REDRAWTIME, 0);
-			allqueue(REDRAWIPO, 0);
-			allqueue(REDRAWACTION, 0);
-			allqueue(REDRAWNLA, 0);
-			allqueue(REDRAWSOUND, 0);
+			allqueue(REDRAWMARKER, 0);
 			break;
 		case BKEY:
 			/* borderselect markers */
@@ -954,11 +942,7 @@ void winqreadtimespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				rename_marker();
 			else
 				add_marker(CFRA);
-			allqueue(REDRAWTIME, 0);
-			allqueue(REDRAWIPO, 0);
-			allqueue(REDRAWACTION, 0);
-			allqueue(REDRAWNLA, 0);
-			allqueue(REDRAWSOUND, 0);
+			allqueue(REDRAWMARKER, 0);
 			break;
 		case PKEY:	/* preview-range stuff */
 			if (G.qual & LR_CTRLKEY) /* set preview range */
@@ -989,11 +973,7 @@ void winqreadtimespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if( okee("Erase selected")==0 ) break;
 
 			remove_marker();
-			allqueue(REDRAWTIME, 0);
-			allqueue(REDRAWIPO, 0);
-			allqueue(REDRAWACTION, 0);
-			allqueue(REDRAWNLA, 0);
-			allqueue(REDRAWSOUND, 0);
+			allqueue(REDRAWMARKER, 0);
 			break;
 		}
 	}

@@ -131,6 +131,18 @@ void EM_select_mirrored(void)
 	}
 }
 
+void EM_automerge(int update) {
+	if  (G.scene->automerge) {
+		if (G.obedit && G.obedit->type==OB_MESH) {
+			if (removedoublesflag(1, 1, G.scene->toolsettings->doublimit)) {
+				if (update) {
+					DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+				}
+			}
+		}
+	}
+}
+
 /* ****************************** SELECTION ROUTINES **************** */
 
 unsigned int em_solidoffs=0, em_wireoffs=0, em_vertoffs=0;	/* set in drawobject.c ... for colorindices */
@@ -2494,6 +2506,7 @@ void reveal_mesh(void)
 	BIF_undo_push("Reveal");
 }
 
+/* TODO - improve this with sync sel and selection flushing */
 void hide_tface_uv(int swap)
 {
 	EditMesh *em = G.editMesh;
@@ -3330,7 +3343,7 @@ void Vertex_Menu() {
 	switch(ret)
 	{
 		case 1:
-			notice("Removed %d Vertices", removedoublesflag(1, G.scene->toolsettings->doublimit));
+			notice("Removed %d Vertices", removedoublesflag(1, 0, G.scene->toolsettings->doublimit));
 			BIF_undo_push("Remove Doubles");
 			break;
 		case 2:	

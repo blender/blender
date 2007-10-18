@@ -434,16 +434,15 @@ bool DirectDrawSurface::isSupported() const
 			return false;
 		}
 	}
-	/*
 	else if (header.pf.flags & DDPF_RGB)
 	{
 		if (header.pf.bitcount == 24)
 		{
-			return false;
+			return true;
 		}
 		else if (header.pf.bitcount == 32)
 		{
-			return false;
+			return true;
 		}
 		else
 		{
@@ -451,7 +450,6 @@ bool DirectDrawSurface::isSupported() const
 			return false;
 		}
 	}
-	*/
 	else
 	{
 		return false;
@@ -500,8 +498,18 @@ unsigned int DirectDrawSurface::depth() const
 
 bool DirectDrawSurface::hasAlpha() const
 {
-	if (header.pf.fourcc == FOURCC_DXT1) return false;
-	else return true;
+	if ((header.pf.flags & DDPF_RGB) && (header.pf.amask == 0))
+	{
+		return false;
+	}
+	else if (header.pf.fourcc == FOURCC_DXT1)
+	{
+		return false;
+	}
+	else
+	{
+		return true;
+	}
 }
 
 bool DirectDrawSurface::isTexture2D() const
@@ -545,10 +553,98 @@ void DirectDrawSurface::mipmap(Image * img, unsigned int face, unsigned int mipm
 	}
 }
 
+/* helper function for readLinearImage */
+void maskShiftAndSize(unsigned int mask, unsigned int * shift, unsigned int * size)
+{
+	if (!mask)
+	{
+		*shift = 0;
+		*size = 0;
+		return;
+	}
+
+	*shift = 0;
+	while((mask & 1) == 0) {
+		++(*shift);
+		mask >>= 1;
+	}
+	
+	*size = 0;
+	while((mask & 1) == 1) {
+		++(*size);
+		mask >>= 1;
+	}
+}
+
+/* helper function for readLinearImage */
+unsigned int convert(unsigned int c, unsigned int inbits, unsigned int outbits)
+{
+	if (inbits == 0) {
+		return 0;
+	}
+	else if (inbits == outbits)
+	{
+		return c;
+	}
+	else if (inbits > outbits) 
+	{
+		// truncate
+		return c >> (inbits - outbits);
+	}
+	else
+	{
+		// bitexpand
+		return (c << (outbits - inbits)) | convert(c, inbits, outbits - inbits);
+	}
+}
+
 void DirectDrawSurface::readLinearImage(Image * img)
 {
-	// @@ Read linear RGB images.
-	printf("DDS: linear RGB images not supported\n");
+	const unsigned int w = img->width();
+	const unsigned int h = img->height();
+
+	unsigned int rshift, rsize;
+	maskShiftAndSize(header.pf.rmask, &rshift, &rsize);
+	
+	unsigned int gshift, gsize;
+	maskShiftAndSize(header.pf.gmask, &gshift, &gsize);
+	
+	unsigned int bshift, bsize;
+	maskShiftAndSize(header.pf.bmask, &bshift, &bsize);
+	
+	unsigned int ashift, asize;
+	maskShiftAndSize(header.pf.amask, &ashift, &asize);
+
+	unsigned int byteCount = (header.pf.bitcount + 7) / 8;
+	if (byteCount > 4)
+	{
+		/* just in case... we could have segfaults later on if byteCount > 4 */
+		printf("DDS: bitcount too large (file corrupt?)");
+		return;
+	}
+
+	if (header.pf.amask != 0)
+	{
+		img->setFormat(Image::Format_ARGB);
+	}
+
+	// Read linear RGB images.
+	for (unsigned int y = 0; y < h; y++)
+	{
+		for (unsigned int x = 0; x < w; x++)
+		{
+			unsigned int c = 0;
+			mem_read(stream, (unsigned char *)(&c), byteCount);
+
+			Color32 pixel(0, 0, 0, 0xFF);
+			pixel.r = convert(c >> rshift, rsize, 8);
+			pixel.g = convert(c >> gshift, gsize, 8);
+			pixel.b = convert(c >> bshift, bsize, 8);
+			pixel.a = convert(c >> ashift, asize, 8);
+
+			img->pixel(x, y) = pixel;
+		}
+	}
 }
 
 void DirectDrawSurface::readBlockImage(Image * img)

@@ -2253,11 +2253,7 @@ static void mouse_action (int selectmode)
 		
 		std_rmouse_transform(transform_markers);
 		
-		allqueue(REDRAWTIME, 0);
-		allqueue(REDRAWIPO, 0);
-		allqueue(REDRAWACTION, 0);
-		allqueue(REDRAWNLA, 0);
-		allqueue(REDRAWSOUND, 0);
+		allqueue(REDRAWMARKER, 0);
 	}
 }
 
@@ -2680,10 +2676,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				column_select_action_keys(val);
 			}
 			
-			allqueue(REDRAWTIME, 0);
-			allqueue(REDRAWIPO, 0);
-			allqueue(REDRAWACTION, 0);
-			allqueue(REDRAWNLA, 0);
+			allqueue(REDRAWMARKER, 0);
 			break;
 			
 		case MKEY:
@@ -2706,11 +2699,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					rename_marker();
 				else 
 					break;
-				allqueue(REDRAWTIME, 0);
-				allqueue(REDRAWIPO, 0);
-				allqueue(REDRAWACTION, 0);
-				allqueue(REDRAWNLA, 0);
-				allqueue(REDRAWSOUND, 0);
+				allqueue(REDRAWMARKER, 0);
 			}
 			break;
 			
@@ -2734,11 +2723,8 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			else if (G.qual & LR_ALTKEY) /* clear preview range */
 				anim_previewrange_clear();
 				
-			allqueue(REDRAWTIME, 0);
+			allqueue(REDRAWMARKER, 0);
 			allqueue(REDRAWBUTSALL, 0);
-			allqueue(REDRAWACTION, 0);
-			allqueue(REDRAWNLA, 0);
-			allqueue(REDRAWIPO, 0);
 			break;
 			
 		case SKEY: 

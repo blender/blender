@@ -499,11 +499,7 @@ static void do_action_selectmenu(void *arg, int event)
 			
 		case ACTMENU_SEL_ALL_MARKERS: /* select/deselect all markers */
 			deselect_markers(1, 0);
-			allqueue(REDRAWTIME, 0);
-			allqueue(REDRAWIPO, 0);
-			allqueue(REDRAWACTION, 0);
-			allqueue(REDRAWNLA, 0);
-			allqueue(REDRAWSOUND, 0);
+			allqueue(REDRAWMARKER, 0);
 			break;
 			
 		case ACTMENU_SEL_INVERSE_KEYS: /* invert selection status of keys */
@@ -515,11 +511,7 @@ static void do_action_selectmenu(void *arg, int event)
 			
 		case ACTMENU_SEL_INVERSE_MARKERS: /* invert selection of markers */
 			deselect_markers(0, 2);
-			allqueue(REDRAWTIME, 0);
-			allqueue(REDRAWIPO, 0);
-			allqueue(REDRAWACTION, 0);
-			allqueue(REDRAWNLA, 0);
-			allqueue(REDRAWSOUND, 0);
+			allqueue(REDRAWMARKER, 0);
 			break;
 	}
 }
@@ -1062,11 +1054,7 @@ static void do_action_markermenu(void *arg, int event)
 			break;
 	}
 	
-	allqueue(REDRAWTIME, 0);
-	allqueue(REDRAWIPO, 0);
-	allqueue(REDRAWACTION, 0);
-	allqueue(REDRAWNLA, 0);
-	allqueue(REDRAWSOUND, 0);
+	allqueue(REDRAWMARKER, 0);
 }
 
 static uiBlock *action_markermenu(void *arg_unused)

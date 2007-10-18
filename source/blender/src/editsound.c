@@ -219,11 +219,7 @@ void winqreadsoundspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case AKEY: /* select/deselect all  */
 			deselect_markers(1, 0);
 			
-			allqueue(REDRAWTIME, 0);
-			allqueue(REDRAWIPO, 0);
-			allqueue(REDRAWACTION, 0);
-			allqueue(REDRAWNLA, 0);
-			allqueue(REDRAWSOUND, 0);
+			allqueue(REDRAWMARKER, 0);
 			break;
 			
 		case BKEY: /* borderselect markers */
@@ -234,11 +230,7 @@ void winqreadsoundspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if (G.qual & LR_SHIFTKEY) {
 				duplicate_marker();
 				
-				allqueue(REDRAWTIME, 0);
-				allqueue(REDRAWIPO, 0);
-				allqueue(REDRAWACTION, 0);
-				allqueue(REDRAWNLA, 0);
-				allqueue(REDRAWSOUND, 0);
+				allqueue(REDRAWMARKER, 0);
 			}
 			break;
 			
@@ -252,11 +244,7 @@ void winqreadsoundspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			else
 				add_marker(CFRA);
 			
-			allqueue(REDRAWTIME, 0);
-			allqueue(REDRAWIPO, 0);
-			allqueue(REDRAWACTION, 0);
-			allqueue(REDRAWNLA, 0);
-			allqueue(REDRAWSOUND, 0);
+			allqueue(REDRAWMARKER, 0);
 			break;		
 		
 		case TKEY: /* toggle time display */
@@ -273,12 +261,7 @@ void winqreadsoundspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case XKEY:
 			if (okee("Erase selected")) {
 				remove_marker();
-				
-				allqueue(REDRAWTIME, 0);
-				allqueue(REDRAWIPO, 0);
-				allqueue(REDRAWACTION, 0);
-				allqueue(REDRAWNLA, 0);
-				allqueue(REDRAWSOUND, 0);
+				allqueue(REDRAWMARKER, 0);
 			}
 			break;
 		}

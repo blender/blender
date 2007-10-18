@@ -48,11 +48,14 @@ void				clear_last_seq();
 void				del_seq(void);
 void				enter_meta(void);
 void				exit_meta(void);
-struct Sequence*	find_neighboring_sequence(struct Sequence *test, int lr);
+struct Sequence*	find_neighboring_sequence(struct Sequence *test, int lr, int sel);
+struct Sequence*	find_next_prev_sequence(struct Sequence *test, int lr, int sel);
 struct Sequence*	find_nearest_seq(int *hand);
 int					insert_gap(int gap, int cfra);
 void				make_meta(void);
 void				select_channel_direction(struct Sequence *test,int lr);
+void				select_more_seq(void);
+void				select_less_seq(void);
 void				mouse_select_seq(void);
 void				no_gaps(void);
 void				seq_snap(short event);
@@ -62,15 +65,67 @@ void				swap_select_seq(void);
 void				touch_seq_files(void);
 void				seq_remap_paths(void);
 void				transform_seq(int mode, int context);
+void				transform_seq_nomarker(int mode, int context);
 void				un_meta(void);
 void				seq_cut(int cutframe);
+void				seq_separate_images(void);
 void				reassign_inputs_seq_effect(void);
 void				select_surrounding_handles(struct Sequence *test);
 void				select_surround_from_last();
 void				select_dir_from_last(int lr);
 void				select_neighbor_from_last(int lr);
+void				select_linked_seq(int mode);
 struct Sequence*	alloc_sequence(ListBase *lb, int cfra, int machine); /*used from python*/
+int 				check_single_image_seq(struct Sequence *seq);
 
+/* sequence transform functions, for internal used */
+int seq_tx_get_start(struct Sequence *seq);
+int seq_tx_get_end(struct Sequence *seq);
+
+int seq_tx_get_final_left(struct Sequence *seq);
+int seq_tx_get_final_right(struct Sequence *seq);
+
+void seq_tx_set_final_left(struct Sequence *seq, int i);
+void seq_tx_set_final_right(struct Sequence *seq, int i);
+
+/* check if one side can be transformed */
+int seq_tx_check_left(struct Sequence *seq);
+int seq_tx_check_right(struct Sequence *seq);
+
+#define SEQ_DEBUG_INFO(seq) printf("seq into '%s' -- len:%i  start:%i  startstill:%i  endstill:%i  startofs:%i  endofs:%i\n",\
+		    seq->name, seq->len, seq->start, seq->startstill, seq->endstill, seq->startofs, seq->endofs)
+
+/* seq macro's for transform
+ notice the difference between start/end and left/right.
+ 
+ left and right are the bounds at which the setuence is rendered,
+start and end are from the start and fixed length of the sequence.
+*/
+/*
+#define SEQ_GET_START(seq)	(seq->start)
+#define SEQ_GET_END(seq)	(seq->start+seq->len)
+
+#define SEQ_GET_FINAL_LEFT(seq)		((seq->start - seq->startstill) + seq->startofs)
+#define SEQ_GET_FINAL_RIGHT(seq)	(((seq->start+seq->len) + seq->endstill) - seq->endofs)
+
+#define SEQ_SET_FINAL_LEFT(seq, val) \
+	if (val < (seq)->start) { \
+		(seq)->startstill = abs(val - (seq)->start); \
+		(seq)->startofs = 0; \
+} else { \
+		(seq)->startofs = abs(val - (seq)->start); \
+		(seq)->startstill = 0; \
+}
+
+#define SEQ_SET_FINAL_RIGHT(seq, val) \
+	if (val > (seq)->start + (seq)->len) { \
+		(seq)->endstill = abs(val - ((seq)->start + (seq)->len)); \
+		(seq)->endofs = 0; \
+} else { \
+		(seq)->endofs = abs(val - ((seq)->start + (seq)->len)); \
+		(seq)->endstill = 0; \
+}
+*/
 /* drawseq.c */
 void do_seqbuttons(short);
 

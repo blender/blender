@@ -2443,7 +2443,7 @@ static void view3d_panel_properties(short cntrl)	// VIEW3D_HANDLER_SETTINGS
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, REDRAWVIEW3D, "Spacing:",		10, 200, 140, 19, &vd->grid, 0.001, 100.0, 10, 0, "Set the distance between grid lines");
 	uiDefButS(block, NUM, REDRAWVIEW3D, "Lines:",		10, 180, 140, 19, &vd->gridlines, 0.0, 100.0, 100, 0, "Set the number of grid lines in perspective view");
-	uiDefButS(block, NUM, REDRAWVIEW3D, "Divisions:",		10, 160, 140, 19, &vd->gridsubdiv, 0.0, 100.0, 100, 0, "Set the number of grid lines");
+	uiDefButS(block, NUM, REDRAWVIEW3D, "Divisions:",		10, 160, 140, 19, &vd->gridsubdiv, 1.0, 100.0, 100, 0, "Set the number of grid lines");
 	uiBlockEndAlign(block);
 
 	uiDefBut(block, LABEL, 1, "3D Display:",							160, 220, 150, 19, NULL, 0.0, 0.0, 0, 0, "");

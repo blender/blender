@@ -718,7 +718,8 @@ void extract_pose_from_action(bPose *pose, bAction *act, float ctime)
 				/* This call also sets the pchan flags */
 				execute_action_ipo(achan, pchan);
 			}
-			do_constraint_channels(&pchan->constraints, &achan->constraintChannels, ctime);
+			/* 0 = do all ipos, not only drivers */
+			do_constraint_channels(&pchan->constraints, &achan->constraintChannels, ctime, 0);
 		}
 	}
 	
@@ -1068,7 +1069,7 @@ static void do_nla(Object *ob, int blocktype)
 	bActionStrip *strip, *striplast=NULL, *stripfirst=NULL;
 	float striptime, frametime, length, actlength;
 	float blendfac, stripframe;
-	float scene_cfra= G.scene->r.cfra;
+	float scene_cfra= frame_to_float(G.scene->r.cfra); 
 	int	doit, dostride;
 	
 	if(blocktype==ID_AR) {

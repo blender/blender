@@ -524,6 +524,7 @@ extern float rgb_to_bw[4][4];
  *
  * @attention Defined in rotate.c
  */
+void IMB_flipx(struct ImBuf *ibuf);
 void IMB_flipy(struct ImBuf * ibuf);
 
 /**

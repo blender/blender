@@ -96,6 +96,7 @@ void reveal_tface_uv(void);
 void stitch_limit_uv_tface(void);
 void stitch_vert_uv_tface(void);
 void unlink_selection(void);
+void uvface_setsel__internal(short select);
 void select_linked_tface_uv(int mode);
 void pin_tface_uv(int mode);
 void weld_align_menu_tface_uv(void);

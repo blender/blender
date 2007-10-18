@@ -886,7 +886,7 @@ void constraints_clear_evalob (bConstraintOb *cob)
 /* -------------------------------- Constraint Channels ---------------------------- */
 
 /* does IPO's of constraint channels only */
-void do_constraint_channels (ListBase *conbase, ListBase *chanbase, float ctime)
+void do_constraint_channels (ListBase *conbase, ListBase *chanbase, float ctime, int onlydrivers)
 {
 	bConstraint *con;
 	bConstraintChannel *chan;
@@ -901,13 +901,15 @@ void do_constraint_channels (ListBase *conbase, ListBase *chanbase, float ctime)
 			calc_ipo(chan->ipo, ctime);
 			
 			for (icu=chan->ipo->curve.first; icu; icu=icu->next) {
-				switch (icu->adrcode) {
-					case CO_ENFORCE:
-					{
-						/* Influence is clamped to 0.0f -> 1.0f range */
-						con->enforce = CLAMPIS(icu->curval, 0.0f, 1.0f);
+				if(!onlydrivers || icu->driver) {
+					switch (icu->adrcode) {
+						case CO_ENFORCE:
+						{
+							/* Influence is clamped to 0.0f -> 1.0f range */
+							con->enforce = CLAMPIS(icu->curval, 0.0f, 1.0f);
+						}
+							break;
 					}
-						break;
 				}
 			}
 		}
@@ -1688,14 +1690,14 @@ short get_constraint_target_matrix (bConstraint *con, short ownertype, void *own
 			}
 			
 			/* if the script doesn't set the target matrix for any reason, fall back to standard methods */
-			if (BPY_pyconstraint_targets(data, mat) < 1) {
-				if (data->tar) {
-					constraint_target_to_mat4(data->tar, data->subtarget, mat, CONSTRAINT_SPACE_WORLD, con->tarspace);
+			if (data->tar) {
+				constraint_target_to_mat4(data->tar, data->subtarget, mat, CONSTRAINT_SPACE_WORLD, con->tarspace);
+				if (BPY_pyconstraint_targets(data, mat) >= 1) {
 					valid = 1;
 				}
-				else
-					Mat4One(mat);
 			}
+			if (!valid)
+				Mat4One(mat);
 		}
 		break;
 	case CONSTRAINT_TYPE_CLAMPTO:

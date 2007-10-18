@@ -239,14 +239,22 @@ int set_tpage(MTFace *tface)
 			}
 			else if(alphamode==TF_ALPHA) {
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+				
+				/* added after 2.45 to clip alpha */
+				glEnable ( GL_ALPHA_TEST );
+				glAlphaFunc ( GL_GREATER, 0.001 );
+				
+				
 			/* 	glBlendEquationEXT(GL_FUNC_ADD_EXT); */
 			}
 			/* else { */
 			/* 	glBlendFunc(GL_ONE, GL_ONE); */
 			/* 	glBlendEquationEXT(GL_FUNC_REVERSE_SUBTRACT_EXT); */
 			/* } */
+		} else {
+			glDisable(GL_BLEND);
+			glDisable ( GL_ALPHA_TEST );
 		}
-		else glDisable(GL_BLEND);
 	}
 
 	ima= tface->tpage;

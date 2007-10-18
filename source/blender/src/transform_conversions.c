@@ -126,6 +126,8 @@
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 
+#include "editmesh.h"
+
 #include "blendef.h"
 
 #include "mydevice.h"
@@ -2615,11 +2617,7 @@ void autokeyframe_ob_cb_func(Object *ob, int tmode)
 		}
 
 		remake_object_ipos(ob);
-		allqueue(REDRAWIPO, 0);
-		allspace(REMAKEIPO, 0);
-		allqueue(REDRAWVIEW3D, 0);
-		allqueue(REDRAWNLA, 0);
-		allqueue(REDRAWTIME, 0);
+		allqueue(REDRAWMARKER, 0);
 	}
 }
 
@@ -2701,11 +2699,7 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 		}
 		
 		remake_action_ipos (act);
-		allspace(REMAKEIPO, 0);
-		allqueue(REDRAWACTION, 0);
-		allqueue(REDRAWIPO, 0);
-		allqueue(REDRAWNLA, 0);
-		allqueue(REDRAWTIME, 0);
+		allqueue(REDRAWMARKER, 0);
 	}
 	else {
 		/* tag channels that should have unkeyed data */
@@ -2739,9 +2733,12 @@ void special_aftertrans_update(TransInfo *t)
 {
 	Object *ob;
 	Base *base;
-	int redrawipo=0;
+	short redrawipo=0, resetslowpar=1;
 	int cancelled= (t->state == TRANS_CANCEL);
-		
+	
+	if (t->spacetype==SPACE_VIEW3D)
+		EM_automerge(1);
+	
 	if(t->spacetype == SPACE_ACTION) {
 		void *data;
 		short datatype;
@@ -2784,12 +2781,19 @@ void special_aftertrans_update(TransInfo *t)
 	}
 	else if(t->spacetype == SPACE_NLA) {
 		synchronize_action_strips();
-	
+		
 		/* cleanup */
 		for (base=G.scene->base.first; base; base=base->next)
 			base->flag &= ~(BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA);
 		
 		recalc_all_ipos();	// bad
+	}
+	else if(t->spacetype == SPACE_IPO) {
+		// FIXME! is there any code from the old transform_ipo that needs to be added back? 
+		
+		/* resetting slow-parents isn't really necessary when editing sequence ipo's */
+		if (G.sipo->blocktype==ID_SEQ)
+			resetslowpar= 0;
 	}
 	else if(G.obedit) {
 		if(t->mode==TFM_BONESIZE || t->mode==TFM_BONE_ENVELOPE)
@@ -2825,8 +2829,8 @@ void special_aftertrans_update(TransInfo *t)
 		if(t->mode==TFM_TRANSLATION)
 			pose_grab_with_ik_clear(ob);
 			
-		/* automatic inserting of keys and unkeyed tagging - only if transform wasn't cancelled */
-		if(!cancelled) {
+		/* automatic inserting of keys and unkeyed tagging - only if transform wasn't cancelled (or TFM_DUMMY) */
+		if(!cancelled && (t->mode != TFM_DUMMY)) {
 			autokeyframe_pose_cb_func(ob, t->mode, targetless_ik);
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		}
@@ -2840,7 +2844,7 @@ void special_aftertrans_update(TransInfo *t)
 		
 		if(t->mode==TFM_BONESIZE || t->mode==TFM_BONE_ENVELOPE)
 			allqueue(REDRAWBUTSEDIT, 0);
-
+		
 	}
 	else {
 		base= FIRSTBASE;
@@ -2848,14 +2852,14 @@ void special_aftertrans_update(TransInfo *t)
 			if(base->flag & BA_DO_IPO) redrawipo= 1;
 			
 			ob= base->object;
-
+			
 			if(modifiers_isSoftbodyEnabled(ob)) ob->softflag |= OB_SB_REDO;
 			else if(modifiers_isClothEnabled(ob)) {
 				cloth_free_modifier(modifiers_isClothEnabled(ob));
 			}
 			
 			/* Set autokey if necessary */
-			if ((!cancelled) && (base->flag & SELECT)){
+			if ((!cancelled) && (t->mode != TFM_DUMMY) && (base->flag & SELECT)) {
 				autokeyframe_ob_cb_func(ob, t->mode);
 			}
 			
@@ -2872,7 +2876,8 @@ void special_aftertrans_update(TransInfo *t)
 		allqueue(REDRAWIPO, 0);
 	}
 	
-	reset_slowparents();
+	if(resetslowpar)
+		reset_slowparents();
 	
 	/* note; should actually only be done for all objects when a lamp is moved... (ton) */
 	if(t->spacetype==SPACE_VIEW3D && G.vd->drawtype == OB_SHADED)

@@ -1914,9 +1914,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ob);
 			uiDefButBitS(block, TOG, ARM_DEF_VGROUP, B_ARM_RECALCDATA, "Vert.Groups",	lx,cy-=19,buttonWidth/2,20, &amd->deformflag, 0, 0, 0, 0, "Enable VertexGroups defining deform");
 			uiDefButBitS(block, TOG, ARM_DEF_ENVELOPE, B_ARM_RECALCDATA, "Envelopes",	lx+buttonWidth/2,cy,(buttonWidth + 1)/2,20, &amd->deformflag, 0, 0, 0, 0, "Enable Bone Envelopes defining deform");
-			uiDefButBitS(block, TOG, ARM_DEF_QUATERNION, B_ARM_RECALCDATA, "Quaternion",	lx,(cy-=19),buttonWidth + 1,20, &amd->deformflag, 0, 0, 0, 0, "Enable deform rotation interpolation with Quaternions");
-
-			
+			uiDefButBitS(block, TOG, ARM_DEF_QUATERNION, B_ARM_RECALCDATA, "Quaternion",	lx,(cy-=19),buttonWidth/2,20, &amd->deformflag, 0, 0, 0, 0, "Enable deform rotation interpolation with Quaternions");
+			uiDefButBitS(block, TOG, ARM_DEF_B_BONE_REST, B_ARM_RECALCDATA, "B-Bone Rest", lx+buttonWidth/2,cy,(buttonWidth + 1)/2,20, &amd->deformflag, 0, 0, 0, 0, "Make B-Bones deform already in rest position");
 		} else if (md->type==eModifierType_Hook) {
 			HookModifierData *hmd = (HookModifierData*) md;
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Falloff: ",		lx, (cy-=19), buttonWidth,19, &hmd->falloff, 0.0, 100.0, 100, 0, "If not zero, the distance from hook where influence ends");
@@ -3649,8 +3648,9 @@ static void editing_panel_armature_type(Object *ob, bArmature *arm)
 	uiDefButBitS(block, TOG, ARM_DEF_VGROUP, B_ARM_RECALCDATA, "Vertex Groups",	10, 20,100,20, &arm->deformflag, 0, 0, 0, 0, "Enable VertexGroups defining deform (not for Modifiers)");
 	uiDefButBitS(block, TOG, ARM_DEF_ENVELOPE, B_ARM_RECALCDATA, "Envelopes",	110,20,100,20, &arm->deformflag, 0, 0, 0, 0, "Enable Bone Envelopes defining deform (not for Modifiers)");
 	uiDefButBitS(block, TOG, ARM_DEF_QUATERNION, B_ARM_RECALCDATA, "Quaternion", 210,20,100,20, &arm->deformflag, 0, 0, 0, 0, "Enable deform rotation interpolation with Quaternions (not for Modifiers)");
-	uiDefButBitI(block, TOG, ARM_RESTPOS, B_ARM_RECALCDATA,"Rest Position",		10,0,150,20, &arm->flag, 0, 0, 0, 0, "Show armature rest position, no posing possible");
-	uiDefButBitI(block, TOG, ARM_DELAYDEFORM, REDRAWVIEW3D, "Delay Deform",		160,0,150,20, &arm->flag, 0, 0, 0, 0, "Don't deform children when manipulating bones in pose mode");
+	uiDefButBitI(block, TOG, ARM_RESTPOS, B_ARM_RECALCDATA,"Rest Position",		10,0,100,20, &arm->flag, 0, 0, 0, 0, "Show armature rest position, no posing possible");
+	uiDefButBitI(block, TOG, ARM_DELAYDEFORM, REDRAWVIEW3D, "Delay Deform",		110,0,100,20, &arm->flag, 0, 0, 0, 0, "Don't deform children when manipulating bones in pose mode");
+	uiDefButBitS(block, TOG, ARM_DEF_B_BONE_REST, B_ARM_RECALCDATA,"B-Bone Rest", 210,0,100,20, &arm->deformflag, 0, 0, 0, 0, "Make B-Bones deform already in rest position");
 	uiBlockEndAlign(block);
 }
 
@@ -4234,7 +4234,7 @@ void do_meshbuts(unsigned short event)
 		G.f -= G_DISABLE_OK;
 		break;
 	case B_REMDOUB:
-		count= removedoublesflag(1, G.scene->toolsettings->doublimit);
+		count= removedoublesflag(1, 1, G.scene->toolsettings->doublimit);
 		notice("Removed: %d", count);
 		if (count) { /* only undo and redraw if an action is taken */
 			countall ();

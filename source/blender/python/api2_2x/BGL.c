@@ -618,10 +618,12 @@ BGL_Wrap(2, PolygonMode,      void,     (GLenum, GLenum))
 BGL_Wrap(2, PolygonOffset,    void,     (GLfloat, GLfloat))
 BGL_Wrap(1, PolygonStipple,   void,     (GLubyteP))
 BGL_Wrap(1, PopAttrib,        void,     (void))
+BGL_Wrap(1, PopClientAttrib,  void,     (void))
 BGL_Wrap(1, PopMatrix,        void,     (void))
 BGL_Wrap(1, PopName,          void,     (void))
 BGL_Wrap(3, PrioritizeTextures,   void,   (GLsizei, GLuintP, GLclampfP))
 BGL_Wrap(1, PushAttrib,       void,     (GLbitfield))
+BGL_Wrap(1, PushClientAttrib, void,     (GLbitfield))
 BGL_Wrap(1, PushMatrix,       void,     (void))
 BGL_Wrap(1, PushName,         void,     (GLuint))
 BGL_Wrap(2, RasterPos2d,      void,     (GLdouble, GLdouble))
@@ -951,10 +953,12 @@ static struct PyMethodDef BGL_methods[] = {
 	MethodDef(PolygonOffset),
 	MethodDef(PolygonStipple),
 	MethodDef(PopAttrib),
+	MethodDef(PopClientAttrib),
 	MethodDef(PopMatrix),
 	MethodDef(PopName),
 	MethodDef(PrioritizeTextures), 
 	MethodDef(PushAttrib),
+	MethodDef(PushClientAttrib),
 	MethodDef(PushMatrix),
 	MethodDef(PushName),
 	MethodDef(RasterPos2d),
