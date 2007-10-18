@@ -2738,7 +2738,7 @@ void transform_seq(int mode, int context)
 	int j; /* loop on snap_points */
 	
 	/* for markers */
-	int *oldframe, totmark, a;
+	int *oldframe = NULL, totmark, a;
 	TimeMarker *marker;
 	
 	
@@ -2795,22 +2795,23 @@ void transform_seq(int mode, int context)
 		for(marker= G.scene->markers.first; marker; marker= marker->next) {
 			if(marker->flag & SELECT) totmark++;
 		}
-		
-		oldframe= MEM_mallocN(totmark*sizeof(int), "marker array");
-		for(a=0, marker= G.scene->markers.first; marker; marker= marker->next) {
-			if(marker->flag & SELECT) {
-				if (mode=='e') {
-					
-					/* when extending, invalidate markers on the other side by using an invalid frame value */
-					if ((side == 'L' && marker->frame > cfra) || (side == 'R' && marker->frame < cfra)) {
-						oldframe[a] = MAXFRAME+1;
+		if (totmark) {
+			oldframe= MEM_mallocN(totmark*sizeof(int), "marker array");
+			for(a=0, marker= G.scene->markers.first; marker; marker= marker->next) {
+				if(marker->flag & SELECT) {
+					if (mode=='e') {
+						
+						/* when extending, invalidate markers on the other side by using an invalid frame value */
+						if ((side == 'L' && marker->frame > cfra) || (side == 'R' && marker->frame < cfra)) {
+							oldframe[a] = MAXFRAME+1;
+						} else {
+							oldframe[a]= marker->frame;
+						}
 					} else {
 						oldframe[a]= marker->frame;
 					}
-				} else {
-					oldframe[a]= marker->frame;
+					a++;
 				}
-				a++;
 			}
 		}
 	}
@@ -3093,11 +3094,13 @@ void transform_seq(int mode, int context)
 				
 				/* markers */
 				if (sseq->flag & SEQ_MARKER_TRANS) {
-					for(a=0, marker= G.scene->markers.first; marker; marker= marker->next) {
-						if(marker->flag & SELECT && (oldframe[a] != MAXFRAME+1)) {
-							marker->frame= oldframe[a] + ix;
+					for(a=0, marker= G.scene->markers.first; marker; marker= marker->next) {\
+						if (marker->flag & SELECT) {
+							if(oldframe[a] != MAXFRAME+1) {
+								marker->frame= oldframe[a] + ix;
+							}
+							a++;
 						}
-						a++;
 					}
 				}
 			}
@@ -3194,10 +3197,12 @@ void transform_seq(int mode, int context)
 		/* Markers */
 		if (sseq->flag & SEQ_MARKER_TRANS) {
 			for(a=0, marker= G.scene->markers.first; marker; marker= marker->next) {
-				if(marker->flag & SELECT && (oldframe[a] != MAXFRAME+1)) {
-					marker->frame= oldframe[a];
+				if (marker->flag & SELECT) {
+					if(oldframe[a] != MAXFRAME+1) {
+						marker->frame= oldframe[a];
+					}
+					a++;
 				}
-				a++;
 			}
 		}		
 	} else {
@@ -3231,8 +3236,8 @@ void transform_seq(int mode, int context)
 	G.moving= 0;
 	MEM_freeN(transmain);
 	
-	if (sseq->flag & SEQ_MARKER_TRANS)
-		MEM_freeN(transmain);
+	if (oldframe)
+		MEM_freeN(oldframe);
 	
 	if (mode=='g')
 		BIF_undo_push("Transform Grab, Sequencer");
