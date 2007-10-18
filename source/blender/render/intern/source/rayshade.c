@@ -1098,8 +1098,8 @@ void ray_trace(ShadeInput *shi, ShadeResult *shr)
 		if(shi->passflag & SCE_PASS_REFRACT)
 			VECSUB(shr->refr, diff, olddiff);
 		
-		if(shi->combinedflag & SCE_PASS_REFRACT)
-			VECCOPY(olddiff, diff);
+		if(!(shi->combinedflag & SCE_PASS_REFRACT))
+			VECSUB(diff, diff, shr->refr);
 		
 		shr->alpha= tracol[3];
 	}
