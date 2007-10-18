@@ -1551,7 +1551,8 @@ int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], float *
 	GHash *hash;
 	GHashIterator *ihash;
 	float nv1[3], nv2[3], nv3[3], nv4[3], edge1[3], edge2[3],d_nvect[3], dv1[3],ve[3],avel[3],
-    vv1[3], vv2[3], vv3[3], vv4[3],
+    vv1[3], vv2[3], vv3[3], vv4[3], coledge[3], mindistedge = 1000.0f, 
+	outerforceaccu[3],innerforceaccu[3],
 		facedist,n_mag,force_mag_norm,minx,miny,minz,maxx,maxy,maxz,
 		innerfacethickness = -0.5f, outerfacethickness = 0.2f,
 		ee = 5.0f, ff = 0.1f, fa;
@@ -1560,6 +1561,8 @@ int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], float *
 	*intrusion = 0.0f;
 	hash  = vertexowner->soft->scratch->colliderhash;
 	ihash =	BLI_ghashIterator_new(hash);
+	outerforceaccu[0]=outerforceaccu[1]=outerforceaccu[2]=0.0f;
+	innerforceaccu[0]=innerforceaccu[1]=innerforceaccu[2]=0.0f;
 /* go */
     while (!BLI_ghashIterator_isDone(ihash) ) {
 
@@ -1675,16 +1678,24 @@ int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], float *
 					Crossf(d_nvect, edge2, edge1);
 					n_mag = Normalize(d_nvect);
 					facedist = Inpf(dv1,d_nvect);
+					// so rules are
+					//
 
 					if ((facedist > innerfacethickness) && (facedist < outerfacethickness)){		
 						if (point_in_tri_prism(opco, nv1, nv2, nv3) ){
 							force_mag_norm =(float)exp(-ee*facedist);
 							if (facedist > outerfacethickness*ff)
 								force_mag_norm =(float)force_mag_norm*fa*(facedist - outerfacethickness)*(facedist - outerfacethickness);
-							Vec3PlusStVec(force,force_mag_norm,d_nvect);
 							*damp=ob->pd->pdef_sbdamp;
 							if (facedist > 0.0f){
 								*damp *= (1.0f - facedist/outerfacethickness);
+								Vec3PlusStVec(outerforceaccu,force_mag_norm,d_nvect);
+								deflected = 3;
+
+							}
+							else {
+								Vec3PlusStVec(innerforceaccu,force_mag_norm,d_nvect);
+								if (deflected < 2) deflected = 2;
 							}
 							if ((mprevvert) && (*damp > 0.0f)){
 								choose_winner(ve,opco,nv1,nv2,nv3,vv1,vv2,vv3);
@@ -1693,7 +1704,6 @@ int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], float *
 							}
 							*intrusion += facedist;
 							ci++;
-							deflected = 2;
 						}
 					}		
 					if (mface->v4){ /* quad */
@@ -1711,11 +1721,17 @@ int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], float *
 								force_mag_norm =(float)exp(-ee*facedist);
 								if (facedist > outerfacethickness*ff)
 									force_mag_norm =(float)force_mag_norm*fa*(facedist - outerfacethickness)*(facedist - outerfacethickness);
-								Vec3PlusStVec(force,force_mag_norm,d_nvect);
 								*damp=ob->pd->pdef_sbdamp;
-								if (facedist > 0.0f){
-									*damp *= (1.0f - facedist/outerfacethickness);
-								}
+							if (facedist > 0.0f){
+								*damp *= (1.0f - facedist/outerfacethickness);
+								Vec3PlusStVec(outerforceaccu,force_mag_norm,d_nvect);
+								deflected = 3;
+
+							}
+							else {
+								Vec3PlusStVec(innerforceaccu,force_mag_norm,d_nvect);
+								if (deflected < 2) deflected = 2;
+							}
 
 								if ((mprevvert) && (*damp > 0.0f)){
 									choose_winner(ve,opco,nv1,nv3,nv4,vv1,vv3,vv4);
@@ -1724,8 +1740,60 @@ int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], float *
 								}
 							    *intrusion += facedist;
 								ci++;
-								deflected = 2;
 							}
+
+						}
+						if ((deflected < 2)&& (G.rt != 444)) // we did not hit a face until now
+						{ // see if 'outer' hits an edge
+							float dist;
+
+							PclosestVL3Dfl(ve, opco, nv1, nv2);
+ 				            VECSUB(ve,opco,ve); 
+							dist = Normalize(ve);
+							if ((dist < outerfacethickness)&&(dist < mindistedge )){
+								VECCOPY(coledge,ve);
+								mindistedge = dist,
+								deflected=1;
+							}
+
+							PclosestVL3Dfl(ve, opco, nv2, nv3);
+ 				            VECSUB(ve,opco,ve); 
+							dist = Normalize(ve);
+							if ((dist < outerfacethickness)&&(dist < mindistedge )){
+								VECCOPY(coledge,ve);
+								mindistedge = dist,
+								deflected=1;
+							}
+
+							PclosestVL3Dfl(ve, opco, nv3, nv1);
+ 				            VECSUB(ve,opco,ve); 
+							dist = Normalize(ve);
+							if ((dist < outerfacethickness)&&(dist < mindistedge )){
+								VECCOPY(coledge,ve);
+								mindistedge = dist,
+								deflected=1;
+							}
+							if (mface->v4){ /* quad */
+								PclosestVL3Dfl(ve, opco, nv3, nv4);
+								VECSUB(ve,opco,ve); 
+								dist = Normalize(ve);
+								if ((dist < outerfacethickness)&&(dist < mindistedge )){
+									VECCOPY(coledge,ve);
+									mindistedge = dist,
+										deflected=1;
+								}
+
+								PclosestVL3Dfl(ve, opco, nv1, nv4);
+								VECSUB(ve,opco,ve); 
+								dist = Normalize(ve);
+								if ((dist < outerfacethickness)&&(dist < mindistedge )){
+									VECCOPY(coledge,ve);
+									mindistedge = dist,
+										deflected=1;
+								}
+							
+							}
+
 
 						}
 					}
@@ -1735,6 +1803,25 @@ int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], float *
 			} /* if(ob->pd && ob->pd->deflect) */
 			BLI_ghashIterator_step(ihash);
 	} /* while () */
+
+	if (deflected == 1){ // no face but 'outer' edge cylinder sees vert
+		force_mag_norm =(float)exp(-ee*mindistedge);
+		if (mindistedge > outerfacethickness*ff)
+			force_mag_norm =(float)force_mag_norm*fa*(mindistedge - outerfacethickness)*(mindistedge - outerfacethickness);
+		Vec3PlusStVec(force,force_mag_norm,coledge);
+		*damp=ob->pd->pdef_sbdamp;
+		if (mindistedge > 0.0f){
+			*damp *= (1.0f - mindistedge/outerfacethickness);
+		}
+
+	}
+	if (deflected == 2){ //  face inner detected
+		VECADD(force,force,innerforceaccu);
+	}
+	if (deflected == 3){ //  face outer detected
+		VECADD(force,force,outerforceaccu);
+	}
+
 	BLI_ghashIterator_free(ihash);
 	if (cavel) VecMulf(avel,1.0f/(float)cavel);
 	VECCOPY(vel,avel);
@@ -2313,6 +2400,7 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 				VECCOPY(bp->prevvec, bp->vec);
 				VECCOPY(bp->prevdv, dv);
 			}
+
 			if (mode ==2){
 				/* be optimistic and execute step */
 				bp->vec[0] = bp->prevvec[0] + 0.5f * (dv[0] + bp->prevdv[0]);
@@ -2330,10 +2418,9 @@ static void softbody_apply_forces(Object *ob, float forcetime, int mode, float *
 			/* x(t + dt) = x(t) + v(t) * dt */ 
 			
 			VECCOPY(dx,bp->vec);
-			dx[0]*=forcetime ; 
-			dx[1]*=forcetime ; 
-			dx[2]*=forcetime ; 
-			
+			dx[0]*=forcetime; 
+			dx[1]*=forcetime; 
+			dx[2]*=forcetime; 
 			/* again some nasty if's to have heun in here too */
 			if (mode ==1){
 				VECCOPY(bp->prevpos,bp->pos);
@@ -2492,6 +2579,7 @@ static void springs_from_mesh(Object *ob)
 	Mesh *me= ob->data;
 	BodyPoint *bp;
 	int a;
+	float scale =1.0f;
 	
 	sb= ob->soft;	
 	if (me && sb)
@@ -2509,9 +2597,13 @@ static void springs_from_mesh(Object *ob)
 			
 		}
 		/* recalculate spring length for meshes here */
+		/* special hidden feature! shrink to fit */
+		if (G.rt > 500){
+			scale = (G.rt - 500) / 100.0f;
+		}
 		for(a=0; a<sb->totspring; a++) {
 			BodySpring *bs = &sb->bspring[a];
-			bs->len= VecLenf(sb->bpoint[bs->v1].origS, sb->bpoint[bs->v2].origS);
+			bs->len= scale*VecLenf(sb->bpoint[bs->v1].origS, sb->bpoint[bs->v2].origS);
 		}
 	}
 }
@@ -3035,6 +3127,11 @@ SoftBody *sbNew(void)
 	sb->balldamp = 0.50f;
 	sb->ballstiff= 1.0f;
 	sb->sbc_mode = 1;
+
+
+	sb->minloops = 10;
+
+	sb->choke = 3;
 	sb_new_scratch(sb);
 	return sb;
 }
@@ -3244,9 +3341,12 @@ void sbObjectStep(Object *ob, float framenr, float (*vertexCos)[3], int numVerts
 					/* do predictive euler step */
 					softbody_calc_forces(ob, forcetime,timedone/dtime);
 					softbody_apply_forces(ob, forcetime, 1, NULL);
+
+
 					/* crop new slope values to do averaged slope step */
 					softbody_calc_forces(ob, forcetime,timedone/dtime);
 					softbody_apply_forces(ob, forcetime, 2, &err);
+
 					softbody_apply_goalsnap(ob);
 					
 					if (err > SoftHeunTol) { /* error needs to be scaled to some quantity */
