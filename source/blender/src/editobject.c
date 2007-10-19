@@ -3423,7 +3423,7 @@ void copy_attr_menu()
 	 * view3d_edit_object_copyattrmenu() and in toolbox.c
 	 */
 	
-	strcpy(str, "Copy Attributes %t|Location%x1|Rotation%x2|Size%x3|Drawtype%x4|Time Offset%x5|Dupli%x6|%l|Mass%x7|Damping%x8|Properties%x9|Logic Bricks%x10|Protected Transform%x29|%l");
+	strcpy(str, "Copy Attributes %t|Location%x1|Rotation%x2|Size%x3|Draw Options%x4|Time Offset%x5|Dupli%x6|%l|Mass%x7|Damping%x8|Properties%x9|Logic Bricks%x10|Protected Transform%x29|%l");
 	
 	strcat (str, "|Object Constraints%x22");
 	strcat (str, "|NLA Strips%x26");
