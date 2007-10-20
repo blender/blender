@@ -2715,7 +2715,7 @@ void transform_seq(int mode, int context)
 	Editing *ed;
 	float dx, dy, dvec[2], div;
 	TransSeq *transmain, *ts;
-	int tot=0, firsttime=1, afbreek=0, midtog= 0, proj= 0;
+	int totstrip=0, firsttime=1, afbreek=0, midtog= 0, proj= 0;
 	int ix, iy; /* these values are used for storing the mouses offset from its original location */
 	int ix_old = 0;
 	unsigned short event = 0;
@@ -2738,7 +2738,7 @@ void transform_seq(int mode, int context)
 	int j; /* loop on snap_points */
 	
 	/* for markers */
-	int *oldframe = NULL, totmark, a;
+	int *oldframe = NULL, totmark=0, a;
 	TimeMarker *marker;
 	
 	
@@ -2749,17 +2749,23 @@ void transform_seq(int mode, int context)
 	if(ed==0) return;
 
 	WHILE_SEQ(ed->seqbasep) {
-		if(seq->flag & SELECT) tot++;
+		if(seq->flag & SELECT) totstrip++;
 	}
 	END_SEQ
 
-	if(tot==0) return;
-
+	
+	if (sseq->flag & SEQ_MARKER_TRANS) {
+		for(marker= G.scene->markers.first; marker; marker= marker->next) {
+			if(marker->flag & SELECT) totmark++;
+		}
+	}
+	if(totstrip==0 && totmark==0) return;
+	
 	G.moving= 1;
 	
 	last_seq = get_last_seq();
 	
-	ts=transmain= MEM_callocN(tot*sizeof(TransSeq), "transseq");
+	ts=transmain= MEM_callocN(totstrip*sizeof(TransSeq), "transseq");
 
 	WHILE_SEQ(ed->seqbasep) {
 
@@ -2791,27 +2797,22 @@ void transform_seq(int mode, int context)
 	}
 	
 	/* Markers */
-	if (sseq->flag & SEQ_MARKER_TRANS) {
-		for(marker= G.scene->markers.first; marker; marker= marker->next) {
-			if(marker->flag & SELECT) totmark++;
-		}
-		if (totmark) {
-			oldframe= MEM_mallocN(totmark*sizeof(int), "marker array");
-			for(a=0, marker= G.scene->markers.first; marker; marker= marker->next) {
-				if(marker->flag & SELECT) {
-					if (mode=='e') {
-						
-						/* when extending, invalidate markers on the other side by using an invalid frame value */
-						if ((side == 'L' && marker->frame > cfra) || (side == 'R' && marker->frame < cfra)) {
-							oldframe[a] = MAXFRAME+1;
-						} else {
-							oldframe[a]= marker->frame;
-						}
+	if (sseq->flag & SEQ_MARKER_TRANS && totmark) {
+		oldframe= MEM_mallocN(totmark*sizeof(int), "marker array");
+		for(a=0, marker= G.scene->markers.first; marker; marker= marker->next) {
+			if(marker->flag & SELECT) {
+				if (mode=='e') {
+					
+					/* when extending, invalidate markers on the other side by using an invalid frame value */
+					if ((side == 'L' && marker->frame > cfra) || (side == 'R' && marker->frame < cfra)) {
+						oldframe[a] = MAXFRAME+1;
 					} else {
 						oldframe[a]= marker->frame;
 					}
-					a++;
+				} else {
+					oldframe[a]= marker->frame;
 				}
+				a++;
 			}
 		}
 	}
@@ -2874,7 +2875,7 @@ void transform_seq(int mode, int context)
 						snap_points[snap_point_num++] = seq_tx_get_final_right(last_seq);
 					
 				}
-				if (tot > 1) { /* selection bounds */
+				if (totstrip > 1) { /* selection bounds */
 					int bounds_left = MAXFRAME*2;
 					int bounds_right = -(MAXFRAME*2);
 					
@@ -3236,7 +3237,7 @@ void transform_seq(int mode, int context)
 	G.moving= 0;
 	MEM_freeN(transmain);
 	
-	if (oldframe)
+	if (sseq->flag & SEQ_MARKER_TRANS && totmark)
 		MEM_freeN(oldframe);
 	
 	if (mode=='g')
