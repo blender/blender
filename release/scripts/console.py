@@ -285,6 +285,8 @@ def runUserCode(__USER_CODE_STRING__):
 	# Try and run the user entered line(s)
 	try:
 		# Load all variabls from global dict to local space.
+		__TMP_VAR_NAME__ = __TMP_VAR__ = '' # so as not to raise an error when del'ing
+
 		for __TMP_VAR_NAME__, __TMP_VAR__ in __CONSOLE_VAR_DICT__.items():
 			exec('%s%s' % (__TMP_VAR_NAME__,'=__TMP_VAR__'))
 		del __TMP_VAR_NAME__
@@ -295,7 +297,8 @@ def runUserCode(__USER_CODE_STRING__):
 		
 		# Flush global dict, allow the user to remove items.
 		__CONSOLE_VAR_DICT__ = {}
-		
+
+		__TMP_VAR_NAME__ = '' # so as not to raise an error when del'ing	
 		# Write local veriables to global __CONSOLE_VAR_DICT__
 		for __TMP_VAR_NAME__ in dir():
 			if	__TMP_VAR_NAME__ != '__FILE_LIKE_STRING__' and\
@@ -715,6 +718,15 @@ def draw_gui():
 		else:  
 			BGL.glColor3f(1, 1, 0)
 		
+		if consoleLineIdx == 1: # user input
+			BGL.glRasterPos2i(margin, (__FONT_SIZES__[__FONT_SIZE__][1] * (consoleLineIdx-__CONSOLE_LINE_OFFSET__)) - 8)
+			Draw.Text(cmdBuffer[-consoleLineIdx].cmd, __FONT_SIZES__[__FONT_SIZE__][0])		
+		else:
+			BGL.glRasterPos2i(margin, (__FONT_SIZES__[__FONT_SIZE__][1] * ((consoleLineIdx-__CONSOLE_LINE_OFFSET__)+wrapLineIndex)) - 8)
+			Draw.Text(cmdBuffer[-consoleLineIdx].cmd, __FONT_SIZES__[__FONT_SIZE__][0])
+
+		# Wrapping is totally slow, can even hang blender - dont do it!
+		'''
 		if consoleLineIdx == 1: # NEVER WRAP THE USER INPUT
 			BGL.glRasterPos2i(margin, (__FONT_SIZES__[__FONT_SIZE__][1] * (consoleLineIdx-__CONSOLE_LINE_OFFSET__)) - 8)
 			# BUG, LARGE TEXT DOSENT DISPLAY
@@ -751,7 +763,7 @@ def draw_gui():
 				
 				BGL.glRasterPos2i(margin, (__FONT_SIZES__[__FONT_SIZE__][1] * ((consoleLineIdx-__CONSOLE_LINE_OFFSET__)+wrapLineIndex)) - 8)
 				Draw.Text(cmdBuffer[-consoleLineIdx].cmd, __FONT_SIZES__[__FONT_SIZE__][0])
-		
+		'''
 		consoleLineIdx += 1
 			
 
@@ -806,7 +818,8 @@ def include_console(includeFile):
 	
 	# Execute an external py file as if local
 	exec(include(includeFile))
-	
+
+def standard_imports():
 	# Write local to global __CONSOLE_VAR_DICT__ for reuse,
 	for ls in (dir(), dir(Blender)):
 		for __TMP_VAR_NAME__ in ls:
@@ -814,9 +827,11 @@ def include_console(includeFile):
 			exec('%s%s' % ('__CONSOLE_VAR_DICT__[__TMP_VAR_NAME__]=', __TMP_VAR_NAME__))
 	
 	exec('%s%s' % ('__CONSOLE_VAR_DICT__["bpy"]=', 'bpy'))
-	
+
 if scriptDir and console_autoexec:
 	include_console(console_autoexec) # pass the blender module
+
+standard_imports() # import Blender and bpy
 
 #-end autoexec-----------------------------------------------------------------#
 
