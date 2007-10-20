@@ -2429,7 +2429,7 @@ void special_editmenu(void)
 			mergemenu();
 			break;
 		case 5:
-			notice("Removed %d Vertices", removedoublesflag(1, 1, G.scene->toolsettings->doublimit));
+			notice("Removed %d Vertices", removedoublesflag(1, 0, G.scene->toolsettings->doublimit));
 			BIF_undo_push("Remove Doubles");
 			break;
 		case 6:
