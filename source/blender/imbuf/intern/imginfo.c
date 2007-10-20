@@ -107,3 +107,52 @@ int IMB_imginfo_add_field(struct ImBuf* img, const char* key, const char* field)
 	return 1;
 }
 
+int IMB_imginfo_del_field(struct ImBuf *img, const char *key)
+{
+	ImgInfo *p, *p1;
+
+	if ((!img) || (!img->img_info))
+		return (0);
+
+	p = img->img_info;
+	p1 = NULL;
+	while (p) {
+		if (!strcmp (key, p->key)) {
+			if (p1)
+				p1->next = p->next;
+			else
+				img->img_info = p->next;
+
+			MEM_freeN(p->key);
+			MEM_freeN(p->value);
+			MEM_freeN(p);
+			return (1);
+		}
+		p1 = p;
+		p = p->next;
+	}
+	return (0);
+}
+
+int IMB_imginfo_change_field(struct ImBuf *img, const char *key, const char *field)
+{
+	ImgInfo *p;
+
+	if (!img)
+		return (0);
+
+	if (!img->img_info)
+		return (IMB_imginfo_add_field (img, key, field));
+
+	p = img->img_info;
+	while (p) {
+		if (!strcmp (key, p->key)) {
+			MEM_freeN (p->value);
+			p->value = BLI_strdup (field);
+			return (1);
+		}
+		p = p->next;
+	}
+
+	return (IMB_imginfo_add_field (img, key, field));
+}

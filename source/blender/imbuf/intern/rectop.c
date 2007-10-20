@@ -517,3 +517,56 @@ void IMB_rectfill(struct ImBuf *drect, float col[4])
 	}	
 }
 
+/* maybe we should use BKE_utildefines.h */
+#define FTOCHAR(val) (val<=0.0f ? 0: (val>=1.0f ? 255: (char)(255.99f*val)))
+#define CLAMP(a, b, c)		if((a)<(b)) (a)=(b); else if((a)>(c)) (a)=(c)
+#define SWAP(type, a, b)        { type sw_ap; sw_ap=(a); (a)=(b); (b)=sw_ap; }
+void IMB_rectfill_area(struct ImBuf *ibuf, float *col, int x1, int y1, int x2, int y2)
+{
+	int i, j;
+	
+	if ((!ibuf) || (!col))
+		return;
+	
+	/* sanity checks for coords */
+	CLAMP(x1, 0, ibuf->x);
+	CLAMP(x2, 0, ibuf->x);
+	CLAMP(y1, 0, ibuf->y);
+	CLAMP(y2, 0, ibuf->y);
+
+	if (x1>x2) SWAP(int,x1,x2);
+	if (y1>y2) SWAP(int,y1,y2);
+	if (x1==x2 || y1==y2) return;
+	
+	if (ibuf->rect) {
+		unsigned char *img, *pixel; 
+		unsigned char chr, chg, chb;
+	
+		chr = FTOCHAR(col[0]);
+		chg = FTOCHAR(col[1]);
+		chb = FTOCHAR(col[2]);
+		
+		img = (unsigned char *) ibuf->rect;
+		for (j = 0; j < y2-y1; j++) {
+			for (i = 0; i < x2-x1; i++) {
+				pixel = img + 4 * (((y1 + j) * ibuf->x) + (x1 + i));
+				pixel[0] = chr;
+				pixel[1] = chg;
+				pixel[2] = chb;
+			}
+		}
+	}
+	
+	if (ibuf->rect_float) {
+		float *img, *pixel;
+		img = ibuf->rect_float;
+		for (j = 0; j < y2-y1; j++) {
+			for (i = 0; i < x2-x1; i++) {
+				pixel = img + 4 * (((y1 + j) * ibuf->x) + (x1 + i));
+				pixel[0] = col[0];
+				pixel[1] = col[1];
+				pixel[2] = col[2];
+			}
+		}
+	}
+}

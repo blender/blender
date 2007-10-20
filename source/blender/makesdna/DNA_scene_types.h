@@ -278,6 +278,16 @@ typedef struct RenderData {
 	/* paths to backbufffer, output, ftype */
 	char backbuf[160], pic[160], ftype[160];
 
+	/* stamps flags. */
+	int stamp;
+	short stamp_font_id, pad3; /* select one of blenders bitmap fonts */
+
+	/* stamp info user data. */
+	char stamp_udata[160];
+
+	/* foreground/background color. */
+	float fg_stamp[4];
+	float bg_stamp[4];
 } RenderData;
 
 
@@ -517,7 +527,17 @@ typedef struct Scene {
 #define R_COMP_FREE			0x0800
 #define R_NO_IMAGE_LOAD		0x1000
 #define R_NO_TEX		0x2000
+#define R_STAMP_INFO		0x4000
 
+/* r->stamp */
+#define R_STAMP_TIME 	0x0001
+#define R_STAMP_FRAME	0x0002
+#define R_STAMP_DATE	0x0004
+#define R_STAMP_CAMERA	0x0008
+#define R_STAMP_SCENE	0x0010
+#define R_STAMP_NOTE	0x0020
+#define R_STAMP_DRAW	0x0040 /* draw in the image */
+#define R_STAMP_MARKER	0x0080
 
 /* alphamode */
 #define R_ADDSKY		0

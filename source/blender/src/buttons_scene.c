@@ -1526,6 +1526,71 @@ static void render_panel_ffmpeg_audio(void)
 }
 #endif
 
+static void render_panel_stamp(void)
+{
+	uiBlock *block;
+	int yofs, xofs;
+
+
+	block= uiNewBlock (&curarea->uiblocks, "render_panel_stamp", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed ("Format", "Render");
+	if(uiNewPanel (curarea, block, "Stamp", "Render", 960, 0, 318, 204)==0) return;
+
+	if (G.scene->r.scemode & R_STAMP_INFO) {
+		yofs = 0;
+		xofs = 550;uiBlockBeginAlign(block);
+		
+		uiBlockBeginAlign(block);
+		uiDefButBitI(block, TOG, R_STAMP_NOTE, B_REDR, "Note", xofs, yofs, 100, 19, &G.scene->r.stamp, 0, 0, 0, 0, "Stamp user data");
+		uiDefBut(block, TEX, B_NOP, "", xofs+100, yofs, 200, 19, &G.scene->r.stamp_udata, 0.0, 128.0, 100, 0, "User Note");
+		uiBlockEndAlign(block);
+		yofs += 30; /* gap */
+		
+		
+		yofs += 100;
+		// Order is important for alligning ... grr
+		uiBlockBeginAlign(block);
+		uiDefButBitI(block, TOG, R_STAMP_SCENE, B_REDR, "Scene", xofs, yofs, 100, 19, &G.scene->r.stamp, 0, 0, 0, 0, "Stamp scene name");
+		yofs -= 20;
+		uiDefButBitI(block, TOG, R_STAMP_CAMERA, B_REDR, "Camera", xofs, yofs, 100, 19, &G.scene->r.stamp, 0, 0, 0, 0, "Stamp camera name");
+		yofs -= 20;
+		uiDefButBitI(block, TOG, R_STAMP_DATE, B_REDR, "Date", xofs, yofs, 100, 19, &G.scene->r.stamp, 0, 0, 0, 0, "Stamp date");
+		yofs -= 20;
+		uiDefButBitI(block, TOG, R_STAMP_TIME, B_REDR, "Time", xofs, yofs, 100, 19, &G.scene->r.stamp, 0, 0, 0, 0, "Stamp time (HH:MM:SS)");
+		yofs -= 20;
+		uiDefButBitI(block, TOG, R_STAMP_FRAME, B_REDR, "Frame", xofs, yofs, 100, 19, &G.scene->r.stamp, 0, 0, 0, 0, "Stamp frame number");
+		yofs -= 20;
+		uiDefButBitI(block, TOG, R_STAMP_MARKER, B_REDR, "Marker", xofs, yofs, 100, 19, &G.scene->r.stamp, 0, 0, 0, 0, "Stamp the last marker");
+		uiBlockEndAlign(block);
+		yofs += 100;
+		
+		/* draw font selector */
+		if (G.scene->r.stamp & R_STAMP_DRAW) {
+			uiDefButS(block, MENU, B_REDR, "Stamp Font Size%t|Tiny Text%x1|Small Text%x2|Medium Text%x3|Large Text%x0|Extra Large Text%x4|",
+					xofs+110, yofs, 190, 19, &G.scene->r.stamp_font_id, 0, 0, 0, 0, "Choose rendering engine");
+			
+			/* draw fg/bg next to the scene */
+			yofs -= 25;
+			uiDefBut(block, LABEL, 0, "Text Color", xofs+110, yofs, 80, 19, 0, 0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, "Background", xofs+205, yofs, 80, 19, 0, 0, 0, 0, 0, "");
+			yofs -= 20;
+			uiDefButF(block, COL, B_NOP, "", xofs+110, yofs, 90, 19, G.scene->r.fg_stamp, 0, 0, 0, 0, "Foreground text color");
+			uiDefButF(block, COL, B_NOP, "", xofs+210, yofs, 90, 19, G.scene->r.bg_stamp, 0, 0, 0, 0, "Background color");
+			yofs += 75;
+		} else {
+			yofs += 30;
+		}
+		
+		uiDefButBitS(block, TOG, R_STAMP_INFO, B_REDR, "Enable Stamp", xofs, yofs, 100, 20, &G.scene->r.scemode, 0, 0, 0, 0, "Disable stamp info in images metadata");
+		uiDefButBitI(block, TOG, R_STAMP_DRAW, B_REDR, "Draw Stamp", xofs+110, yofs, 190, 20, &G.scene->r.stamp, 0, 0, 0, 0, "Draw the stamp info into each frame");
+		yofs += 20;
+	}
+	else {
+		uiDefButBitS(block, TOG, R_STAMP_INFO, B_REDR, "Enable Stamp", xofs, 142, 100, 20, &G.scene->r.scemode, 0, 0, 0, 0, "Enable stamp info to image metadata");
+		yofs += 20;
+		uiDefBut(block, LABEL, 0, "", xofs, yofs, 300, 19, 0, 0, 0, 0, 0, "");
+	}
+}
 
 static void render_panel_format(void)
 {
@@ -1927,6 +1992,7 @@ void render_panels()
 	render_panel_bake();
 
 	render_panel_format();
+	render_panel_stamp();
 #ifdef WITH_FFMPEG
        if (G.scene->r.imtype == R_FFMPEG) {
 		   render_panel_ffmpeg_video();

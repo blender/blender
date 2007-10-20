@@ -208,6 +208,7 @@ LIBEXPORT void IMB_rectcpy(struct ImBuf *dbuf, struct ImBuf *sbuf,
 	int destx, int desty, int srcx, int srcy, int width, int height);
 
 LIBEXPORT void IMB_rectfill(struct ImBuf *drect, float col[4]);
+LIBEXPORT void IMB_rectfill_area(struct ImBuf *ibuf, float *col, int x1, int y1, int x2, int y2);
 
 #endif /* IFF_H */
 

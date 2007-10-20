@@ -74,6 +74,12 @@ int IMB_imginfo_get_field(struct ImBuf* img, const char* key, char* value, int l
  */
 int IMB_imginfo_add_field(struct ImBuf* img, const char* key, const char* field);
 
+/** delete the key/field par in the ImgInfo struct.
+ * @param img - the ImBuf that contains the image data
+ * @param key - the key of the field
+ * @return - 1 (true) if delete the key/field, 0 (false) otherwise
+ */
+int IMB_imginfo_del_field(struct ImBuf *img, const char *key);
 
 #endif /* _IMB_IMGINFO_H */
 

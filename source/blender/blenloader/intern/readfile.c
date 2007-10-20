@@ -6764,7 +6764,15 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					((ArmatureModifierData*)md)->deformflag |= ARM_DEF_B_BONE_REST;
 	}
 
-
+	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 5)) {
+		/* foreground color needs to be somthing other then black */
+		Scene *sce;
+		for(sce= main->scene.first; sce; sce=sce->id.next) {
+			sce->r.fg_stamp[0] = sce->r.fg_stamp[1] = sce->r.fg_stamp[2] = 0.8;
+		}
+	}
+	
+	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
 

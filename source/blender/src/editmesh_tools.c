@@ -198,10 +198,10 @@ void convert_to_triface(int direction)
 int removedoublesflag(short flag, short automerge, float limit)		/* return amount */
 {
 	/*
-		flag -	Test with vert->flags
-		weld -	Alternative operation, merge unselected into selected.
-				Used for "Auto Weld" mode. warning.
-		limit -	Quick manhattan distance between verts.
+		flag -		Test with vert->flags
+		automerge -	Alternative operation, merge unselected into selected.
+					Used for "Auto Weld" mode. warning.
+		limit -		Quick manhattan distance between verts.
 	*/
 	
 	EditMesh *em = G.editMesh;
@@ -211,7 +211,6 @@ int removedoublesflag(short flag, short automerge, float limit)		/* return amoun
 	EditFace *efa, *nextvl;
 	xvertsort *sortblock, *sb, *sb1;
 	struct facesort *vlsortblock, *vsb, *vsb1;
-	float dist;
 	int a, b, test, amount;
 	
 	if(multires_test()) return 0;
@@ -253,7 +252,7 @@ int removedoublesflag(short flag, short automerge, float limit)		/* return amoun
 				for(b=a+1; b<amount && (eve->f & 128)==0; b++, sb1++) {
 					if(sb1->x - sb->x > limit) break;
 					
-					/* when welding, only allow selected-> unselected*/
+					/* when automarge, only allow unselected->selected */
 					v1= sb1->v1;
 					if( (v1->f & 128)==0 ) {
 						if ((eve->f & flag)==0 && (v1->f & flag)==1) {

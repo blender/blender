@@ -103,6 +103,8 @@ void add_marker(int frame)
 	BIF_undo_push("Add Marker");
 }
 
+
+
 /* remove selected TimeMarkers */
 void remove_marker(void)
 {
@@ -732,6 +734,27 @@ void nextprev_timeline_key(short dir)
 		allqueue(REDRAWALL, 0);
 	}
 }
+
+/* return the current marker for this frame,
+we can have more then 1 marker per frame, this just returns the first :/ */
+TimeMarker *get_frame_marker(int frame)
+{
+	TimeMarker *marker, *best_marker = NULL;
+	int best_frame = -MAXFRAME*2; 
+	for (marker= G.scene->markers.first; marker; marker= marker->next) {
+		if (marker->frame==frame) {
+			return marker;
+		}
+		
+		if ( marker->frame > best_frame && marker->frame < frame) {
+			best_marker = marker;
+			best_frame = marker->frame;
+		}
+	}
+	
+	return best_marker;
+}
+
 
 void timeline_frame_to_center(void)
 {
