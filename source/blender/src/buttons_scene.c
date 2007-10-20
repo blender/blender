@@ -1529,17 +1529,13 @@ static void render_panel_ffmpeg_audio(void)
 static void render_panel_stamp(void)
 {
 	uiBlock *block;
-	int yofs, xofs;
-
+	int yofs=0, xofs=550;
 
 	block= uiNewBlock (&curarea->uiblocks, "render_panel_stamp", UI_EMBOSS, UI_HELV, curarea->win);
 	uiNewPanelTabbed ("Format", "Render");
 	if(uiNewPanel (curarea, block, "Stamp", "Render", 960, 0, 318, 204)==0) return;
 
 	if (G.scene->r.scemode & R_STAMP_INFO) {
-		yofs = 0;
-		xofs = 550;uiBlockBeginAlign(block);
-		
 		uiBlockBeginAlign(block);
 		uiDefButBitI(block, TOG, R_STAMP_NOTE, B_REDR, "Note", xofs, yofs, 100, 19, &G.scene->r.stamp, 0, 0, 0, 0, "Stamp user data");
 		uiDefBut(block, TEX, B_NOP, "", xofs+100, yofs, 200, 19, &G.scene->r.stamp_udata, 0.0, 128.0, 100, 0, "User Note");
@@ -1567,7 +1563,7 @@ static void render_panel_stamp(void)
 		/* draw font selector */
 		if (G.scene->r.stamp & R_STAMP_DRAW) {
 			uiDefButS(block, MENU, B_REDR, "Stamp Font Size%t|Tiny Text%x1|Small Text%x2|Medium Text%x3|Large Text%x0|Extra Large Text%x4|",
-					xofs+110, yofs, 190, 19, &G.scene->r.stamp_font_id, 0, 0, 0, 0, "Choose rendering engine");
+					xofs+110, yofs, 190, 19, &G.scene->r.stamp_font_id, 0, 0, 0, 0, "Choose stamp text size");
 			
 			/* draw fg/bg next to the scene */
 			yofs -= 25;
