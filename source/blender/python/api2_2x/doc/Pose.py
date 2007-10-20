@@ -175,12 +175,14 @@ class PoseBone:
 	@type localMatrix: Matrix object
 	@ivar poseMatrix: The total transformation of this PoseBone including constraints.
 
-	(not settable).
-
 	This matrix is in armature space, for the current worldspace location of this pose bone, multiply
-	it with its objects worldspace matrix
+	it with its objects worldspace matrix.
 
 	eg. pose_bone.poseMatrix * object.matrixWorld
+	
+	Setting the poseMatrix only sets the loc/size/rot, before constraints are applied (similar to actions).
+	After setting pose matrix, run pose.update() to re-evaluate the pose and see the changes in the 3d view.
+	
 	@type poseMatrix: Matrix object
 	@type constraints: BPy_ConstraintSeq
 	@ivar constraints: a sequence of constraints for the object

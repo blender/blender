@@ -723,14 +723,41 @@ AttributeError:
 //Gets the pose_mat
 static PyObject *PoseBone_getPoseMatrix(BPy_PoseBone *self, void *closure)
 {
+	printmatrix4("posemat GET", self->posechannel->pose_mat );
     return newMatrixObject((float*)self->posechannel->pose_mat, 4, 4, Py_WRAP);
 }
 //------------------------PoseBone.poseMatrix (setter)
 //Sets the pose_mat
-static int PoseBone_setPoseMatrix(BPy_PoseBone *self, PyObject *value, void *closure)
+static int PoseBone_setPoseMatrix(BPy_PoseBone *self, MatrixObject *value, void *closure)
 {
-	return EXPP_intError(PyExc_AttributeError, "%s%s%s",
-		sPoseBoneError, ".poseMatrix: ", "not able to set this property");
+	float loc_mat[4][4];
+	float delta_mat[4][4], quat[4]; /* rotation */
+	float size[4]; /* size only */
+	
+	if( !MatrixObject_Check( value ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+									"expected matrix object as argument" );
+	
+	if( value->colSize != 4 || value->rowSize != 4 )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+			"matrix must be a 4x4 transformation matrix\n"
+			"for example as returned by object.matrixWorld" );
+
+	/* get bone-space cursor matrix and extract location */
+	armature_mat_pose_to_bone(self->posechannel, (float (*)[4]) *value->matrix, delta_mat);
+	
+	/* Visual Location */
+	VECCOPY(self->posechannel->loc, delta_mat[3]);
+
+	/* Visual Size */
+	Mat4ToSize(delta_mat, size);
+	VECCOPY(self->posechannel->size, size);
+	
+	/* Visual Rotation */
+	Mat4ToQuat(delta_mat, quat);
+	QUATCOPY(self->posechannel->quat, quat);
+	
+	return 0;
 }
 //------------------------PoseBone.constraints (getter)
 //Gets the constraints sequence
