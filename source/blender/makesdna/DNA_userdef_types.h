@@ -182,6 +182,7 @@ typedef struct UserDef {
 	short recent_files;		/* maximum number of recently used files to remember  */
 	short smooth_viewtx;	/* miliseconds to spend spinning the view */
 	short glreslimit;
+	float glalphaclip;
 } UserDef;
 
 extern UserDef U; /* from usiblender.c !!!! */
