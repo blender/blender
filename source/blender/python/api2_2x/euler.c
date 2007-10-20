@@ -347,6 +347,7 @@ static PyObject *Euler_slice(EulerObject * self, int begin, int end)
 	int count;
 
 	CLAMP(begin, 0, 3);
+	if (end<0) end= 4+end;
 	CLAMP(end, 0, 3);
 	begin = MIN2(begin,end);
 
@@ -368,6 +369,7 @@ static int Euler_ass_slice(EulerObject * self, int begin, int end,
 	PyObject *e, *f;
 
 	CLAMP(begin, 0, 3);
+	if (end<0) end= 4+end;
 	CLAMP(end, 0, 3);
 	begin = MIN2(begin,end);
 
