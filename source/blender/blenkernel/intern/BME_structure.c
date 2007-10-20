@@ -82,6 +82,40 @@ int BME_edge_swapverts(BME_Edge *e, BME_Vert *orig, BME_Vert *new){
 	return 0;
 }
 
+int BME_vert_in_face(BME_Vert *v, BME_Poly *f){
+	BME_Loop *l;
+	
+	l= f->loopbase;
+	do{
+		if(l->v == v) return 1;
+		l= l->next;
+	}while(l!=f->loopbase);
+
+	return 0;
+}
+
+int BME_edge_shareface(BME_Edge *e1, BME_Edge *e2)
+{
+        BME_Loop *rloop=NULL,*l;
+        BME_Poly *sface=NULL;
+        int i,j,radlen;
+
+        /*loop through e1's radial looking for a face that has e2 in it....*/
+        if(e1->loop && e2->loop){
+                radlen = BME_cycle_length(&(e1->loop->radial));
+                for(rloop = e1->loop,i=0; i < radlen; i++){
+                        sface = rloop->f;
+                        /*loop through sface looking for e2*/
+                        for(l=sface->loopbase,j=0;j < sface->len; j++,l=l->next){
+                                if(l->e == e2) return 1;
+                        }
+                        rloop = BME_radial_nextloop(rloop);
+                }
+        }
+        return 0;
+}
+
+
 /**
  *	ALLOCATION/DEALLOCATION FUNCTIONS
  */

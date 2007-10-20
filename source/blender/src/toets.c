@@ -709,7 +709,7 @@ int blenderqread(unsigned short event, short val)
 					else enter_posemode();
 				}
 				else if(ob->type==OB_MESH) {
-					//EDITBMESHGREP if(ob==G.obedit) EM_selectmode_menu();
+					EM_selectmode_menu();
 					/*else*/ if(G.f & G_SCULPTMODE)
 						sculptmode_selectbrush_menu();
 					else set_wpaint();

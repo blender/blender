@@ -160,6 +160,7 @@ typedef struct TransInfo {
     float       fac;            /* factor for distance based transform  */
     int       (*transform)(struct TransInfo *, short *);
                                 /* transform function pointer           */
+    int       (*handleEvent)(struct TransInfo *, unsigned short event, short val);
     int         total;          /* total number of transformed data     */
     TransData  *data;           /* transformed data (array)             */
 	TransDataExtension *ext;	/* transformed data extension (array)   */

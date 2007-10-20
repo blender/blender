@@ -749,16 +749,50 @@ static void emDM_recalcDrawCache(EditBMeshDerivedMesh *emdm)
 	emdm->cdraw->endCache(emdm->cdraw);
 }
 
-static void emDM__calcFaceCent(EditFace *efa, float cent[3], float (*vertexCos)[3])
+static void emDM__calcFaceCent(BME_Poly *f, float cent[3], float (*vertexCos)[3])
 {
+        BME_Loop *l;
+		int i;
+		
+		l = f->loopbase;
+		cent[0] = cent[1] = cent[2] = 0.0;
+		i = 0;
+		do {
+			if(vertexCos)
+				VecAddf(cent, cent, vertexCos[l->v->eflag1]);
+			else
+				VecAddf(cent, cent, l->v->co);
 
+			
+			i++;
+			l = l->next;
+		} while (l != f->loopbase);
+		VecMulf(cent, 1.0f/(float)i);
 }
+
 static void emDM_foreachMappedFaceCenter(DerivedMesh *dm, void (*func)(void *userData, int index, float *co, float *no), void *userData)
 {
 	EditBMeshDerivedMesh *emdm = (EditBMeshDerivedMesh*) dm;
-	emdm->bmesh = emdm->bmesh;
+	BME_Mesh *bm = emdm->bmesh;
+	BME_Vert *eve;
+	BME_Poly *efa;
+	BME_Loop *l;
+	float cent[3];
+	int i;
 
+	if (emdm->vertexCos) {
+		for (i=0,eve=bm->verts.first; eve; eve= eve->next)
+			eve->eflag1 = i++; //abuse!
+	}
+
+	for(i=0,efa= bm->polys.first; efa; i++,efa= efa->next) {
+		emDM__calcFaceCent(efa, cent, emdm->vertexCos);
+		//func(userData, i, cent, emdm->vertexCos?emdm->faceNos[i]:efa->n);
+		func(userData, i, cent, NULL);
+
+	}
 }
+
 static void emDM_drawMappedFaces(DerivedMesh *dm, int (*setDrawOptions)(void *userData, int index, int *drawSmooth_r), void *userData, int useColors)
 {
 	EditBMeshDerivedMesh *emdm = (EditBMeshDerivedMesh*) dm;
@@ -846,7 +880,7 @@ static void emDM_release(DerivedMesh *dm)
 		}
 		MEM_freeN(dm);
 	}
-	emdm->recalc_cdraw = 1;
+	//emdm->recalc_cdraw = 1;
 }
 
 static DerivedMesh *getEditMeshDerivedMesh(BME_Mesh *em, Object *ob,

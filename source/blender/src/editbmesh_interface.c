@@ -28,6 +28,7 @@
 #include "BIF_screen.h"
 #include "BIF_resources.h"
 #include "BIF_language.h"
+#include "BIF_interface.h"
 
 #include "BDR_editobject.h"
 #include "BDR_drawobject.h"
@@ -354,49 +355,133 @@ void EditBME_FlushSelUpward(BME_Mesh *mesh) /*remove this, its not used...*/
 	}
 }
 
+
+/* best distance based on screen coords. 
+   use g.scene->selectmode to define how to use 
+   selected vertices and edges get disadvantage
+   return 1 if found one
+*/
+int unified_findnearest(BME_Vert **eve, BME_Edge **eed, BME_Poly **efa) 
+{
+	int dist= 75;
+	
+	*eve= NULL;
+	*eed= NULL;
+	*efa= NULL;
+	
+	if(G.scene->selectmode & SCE_SELECT_VERTEX)
+		*eve= EditBME_FindNearestVert(&dist, 1, 0);
+	if(G.scene->selectmode & SCE_SELECT_FACE)
+		*efa= EditBME_FindNearestPoly(&dist);
+
+	dist-= 20;	/* since edges select lines, we give dots advantage of 20 pix */
+	if(G.scene->selectmode & SCE_SELECT_EDGE)
+		*eed=EditBME_FindNearestEdge(&dist);
+
+	/* return only one of 3 pointers, for frontbuffer redraws */
+	if(*eed) {
+		*efa= NULL; *eve= NULL;
+	}
+	else if(*efa) {
+		*eve= NULL;
+	}
+	
+	return (*eve || *eed || *efa);
+}
+
+/* ***************** MAIN MOUSE SELECTION ************** */
+
+/* just to have the functions nice together */
+static void mouse_mesh_loop(void)
+{
+	BME_Edge *eed;
+	int select= 1;
+	int dist= 50;
+	
+	eed= EditBME_FindNearestEdge(&dist);
+	if(eed) {
+		if((G.qual & LR_SHIFTKEY)==0) BME_clear_flag_all(G.editMesh,SELECT);
+		
+		if((BME_SELECTED(eed))==0) select=1;
+		else if(G.qual & LR_SHIFTKEY) select=0;
+
+		if(G.qual == (LR_CTRLKEY | LR_ALTKEY) || G.qual == (LR_CTRLKEY | LR_ALTKEY |LR_SHIFTKEY)){
+		//if(G.qual & LR_ALTKEY){
+			BME_Edge *e;
+			BME_clear_flag_all(G.editMesh,BME_VISITED);
+			BME_MeshRing_walk(G.editMesh, eed, BME_edgering_nextedge, NULL, 0);
+			for(e=BME_first(G.editMesh,BME_EDGE);e;e=BME_next(G.editMesh,BME_EDGE,e)){
+				if(BME_ISVISITED(e)) BME_select_edge(G.editMesh,e,select);
+			}
+			BME_selectmode_flush(G.editMesh); 
+		}
+		else if(G.qual & LR_ALTKEY){
+			BME_Vert *v;
+			BME_Edge *e;
+			
+			BME_clear_flag_all(G.editMesh,BME_VISITED);
+			
+			if(!eed->loop){
+				
+				BME_MeshWalk(G.editMesh, eed->v1, NULL, NULL, BME_RESTRICTWIRE); 
+				for(v=BME_first(G.editMesh,BME_VERT);v;v=BME_next(G.editMesh,BME_VERT,v)){
+					if(BME_ISVISITED(v)) BME_select_vert(G.editMesh,v,select);
+				}
+			}
+			else{
+				int radlen = BME_cycle_length(&(eed->loop->radial));
+				if(radlen == 1) BME_MeshLoop_walk(G.editMesh, eed, BME_edgeshell_nextedge,NULL,NULL);
+				else BME_MeshLoop_walk(G.editMesh, eed, BME_edgeloop_nextedge, NULL, NULL);
+				for(e=BME_first(G.editMesh,BME_EDGE);e;e=BME_next(G.editMesh,BME_EDGE,e)){
+					if(BME_ISVISITED(e)) BME_select_edge(G.editMesh,e,select);
+				}
+			}
+			BME_selectmode_flush(G.editMesh); //nasty
+		}
+		/* frontbuffer draw of last selected only */
+		/*unified_select_draw(NULL, eed, NULL);*/
+		BME_selectmode_flush(G.editMesh);
+		makeDerivedMesh(G.obedit,CD_MASK_EDITMESH);
+		countall();
+		allqueue(REDRAWVIEW3D, 0);
+	}
+}
+
+
+
 void mouse_bmesh(void) /*rewrite me like the old mouse_mesh from editmesh....*/
 {
-	if (G.scene->selectmode == SCE_SELECT_VERTEX) {
-		int dis = 75;
-		BME_Vert *vert = EditBME_FindNearestVert(&dis, 1, 0);
-		if (vert) {
-			if (G.qual & LR_SHIFTKEY) {
-				if (BME_SELECTED(vert)) BME_select_vert(G.editMesh,vert,0);
-				else BME_select_vert(G.editMesh,vert,1);
-			} else {
-				BME_Vert *eve=NULL;
-				for(eve=BME_first(G.editMesh,BME_VERT);eve;eve=BME_next(G.editMesh,BME_VERT,eve)) BME_select_vert(G.editMesh,eve,0);
-				BME_select_vert(G.editMesh,vert,1);
-			}
+	BME_Mesh *bm = G.editMesh;
+	BME_Vert *v,*vsel=NULL;
+	BME_Edge *e,*esel=NULL;
+	BME_Poly *f,*fsel=NULL;
 
-			allqueue(REDRAWVIEW3D, 1);
+	if(G.qual & LR_ALTKEY) mouse_mesh_loop();
+	else if(unified_findnearest(&vsel, &esel, &fsel)) {
+		if((G.qual & LR_SHIFTKEY)==0){
+			//clear selection flags.
+			for(v=BME_first(bm,BME_VERT);v;v=BME_next(bm,BME_VERT,v)) BME_select_vert(bm,v,0);
+			for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_VERT,e)) BME_select_edge(bm,e,0);
+			for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)) BME_select_poly(bm,f,0);
 		}
-	} else if (G.scene->selectmode == SCE_SELECT_EDGE) {
-		BME_Edge *edge;
-		BME_Vert *eve;
-		BME_Edge *eed;
-		BME_Poly *efa;
-		BME_Loop *loop;
-		int dis = 75, stop=0;
-
-		edge = EditBME_FindNearestEdge(&dis);
-
-		if (edge) {
-			if (G.qual & LR_SHIFTKEY) {
-				if (BME_SELECTED(edge)) BME_select_edge(G.editMesh,edge,0);
-				else BME_select_edge(G.editMesh,edge,1);
-			} else {
-				BME_Edge *eed=NULL;
-				for (eed=BME_first(G.editMesh,BME_EDGE); eed; eed=BME_next(G.editMesh,BME_EDGE,eed)) BME_select_edge(G.editMesh, eed,0);
-				BME_select_edge(G.editMesh,edge,1);
-			}
-
-			allqueue(REDRAWVIEW3D, 1);
+		if(fsel){
+			if(BME_SELECTED(fsel)) BME_select_poly(bm,fsel,0);
+			else BME_select_poly(bm,fsel,1);
+		}
+		else if(esel){
+			if(BME_SELECTED(esel)) BME_select_edge(bm,esel,0);
+			else BME_select_edge(bm,esel,1);
+		}
+		else if(vsel){
+			if(BME_SELECTED(vsel)) BME_select_vert(bm,vsel,0);
+			else BME_select_vert(bm,vsel,1);
 		}
 	}
-	BME_selectmode_flush(G.editMesh);
+	
+	BME_selectmode_flush(bm);
 	countall();
 	makeDerivedMesh(G.obedit,CD_MASK_EDITMESH);
+	allqueue(REDRAWVIEW3D,0);
 	rightmouse_transform();
 }
 
@@ -561,9 +646,101 @@ BME_Edge *EditBME_FindNearestEdge(int *dist)
 	return NULL;
 }
 
-BME_Poly *EditBME_FindNearestPoly(int *dis)
+
+
+static void findnearestface__getDistance(void *userData, BME_Poly *f, int x, int y, int index)
 {
-	return NULL;
+	struct { short mval[2]; int dist; BME_Poly *toFace; } *data = userData;
+
+	if (f==data->toFace) {
+		int temp = abs(data->mval[0]-x) + abs(data->mval[1]-y);
+
+		if (temp<data->dist)
+			data->dist = temp;
+	}
+}
+static void findnearestface__doClosest(void *userData, BME_Poly *f, int x, int y, int index)
+{
+	struct { short mval[2], pass; int dist, lastIndex, closestIndex; BME_Poly *closest; } *data = userData;
+
+	if (data->pass==0) {
+		if (index<=data->lastIndex)
+			return;
+	} else {
+		if (index>data->lastIndex)
+			return;
+	}
+
+	if (data->dist>3) {
+		int temp = abs(data->mval[0]-x) + abs(data->mval[1]-y);
+
+		if (temp<data->dist) {
+			data->dist = temp;
+			data->closest = f;
+			data->closestIndex = index;
+		//temp
+		}
+	}
+}
+BME_Poly *EditBME_FindNearestPoly(int *dist)
+{
+	short mval[2];
+
+	getmouseco_areawin(mval);
+
+	if(G.vd->drawtype>OB_WIRE && (G.vd->flag & V3D_ZBUF_SELECT)); //{
+		//unsigned int index = sample_backbuf(mval[0], mval[1]);
+		//EditFace *efa = BLI_findlink(&G.editMesh->faces, index-1);
+
+		//if (efa) {
+		//	struct { short mval[2]; int dist; EditFace *toFace; } data;
+
+		//	data.mval[0] = mval[0];
+		//	data.mval[1] = mval[1];
+		//	data.dist = 0x7FFF;		/* largest short */
+		//	data.toFace = efa;
+
+		//	mesh_foreachScreenFace(findnearestface__getDistance, &data);
+
+		//	if(G.scene->selectmode == SCE_SELECT_FACE || data.dist<*dist) {	/* only faces, no dist check */
+		//		*dist= data.dist;
+		//		return efa;
+		//	}
+		//}
+		
+		//return NULL;
+	//}
+	else {
+		struct { short mval[2], pass; int dist, lastIndex, closestIndex; BME_Poly *closest; } data;
+		static int lastSelectedIndex=0;
+		static BME_Poly *lastSelected=NULL;
+
+		if (lastSelected && BLI_findlink(&G.editMesh->polys, lastSelectedIndex)!=lastSelected) {
+			lastSelectedIndex = 0;
+			lastSelected = NULL;
+		}
+
+		data.lastIndex = lastSelectedIndex;
+		data.mval[0] = mval[0];
+		data.mval[1] = mval[1];
+		data.dist = *dist;
+		data.closest = NULL;
+		data.closestIndex = 0;
+
+		data.pass = 0;
+		mesh_foreachScreenFace(findnearestface__doClosest, &data);
+
+		if (data.dist>3) {
+			data.pass = 1;
+			mesh_foreachScreenFace(findnearestface__doClosest, &data);
+		}
+
+		*dist = data.dist;
+		lastSelected = data.closest;
+		lastSelectedIndex = data.closestIndex;
+
+		return data.closest;
+	}
 }
 
 void undo_push_mesh(char *str)
@@ -702,6 +879,36 @@ EditFace *EM_face_from_faces(EditFace *efa1, EditFace *efa2, int i1, int i2, int
 	
 	return efan;
 }
-
-
 #endif
+
+void EM_selectmode_menu(void){
+	int val;
+	
+	if(G.scene->selectmode & SCE_SELECT_VERTEX) pupmenu_set_active(1);
+	else if(G.scene->selectmode & SCE_SELECT_EDGE) pupmenu_set_active(2);
+	else if(G.scene->selectmode & SCE_SELECT_FACE) pupmenu_set_active(3);
+		
+	val= pupmenu("Select Mode%t|Vertices|Edges|Faces");
+	
+	if(val>0){
+		if(val==1){
+			G.scene->selectmode = G.editMesh->selectmode = SCE_SELECT_VERTEX;
+			BME_selectmode_set(G.editMesh);
+			countall();
+			BIF_undo_push("Selectmode Set: Vertex");
+		}
+		else if(val==2){
+			G.scene->selectmode = G.editMesh->selectmode = SCE_SELECT_EDGE;
+			BME_selectmode_set(G.editMesh);
+			countall();
+			BIF_undo_push("Selectmode Set: Edge");
+		}
+		else if(val==3){
+			G.scene->selectmode = G.editMesh->selectmode = SCE_SELECT_FACE;
+			BME_selectmode_set(G.editMesh);
+			countall();
+			BIF_undo_push("Selectmode Set: Face");
+		}
+	}
+	allqueue(REDRAWVIEW3D,1);
+}

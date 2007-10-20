@@ -120,9 +120,9 @@ void EM_free_data_layer(struct CustomData *data, int type);
 extern void EM_init_index_arrays(int forVert, int forEdge, int forFace);
 extern void EM_free_index_arrays(void);
 
-extern struct EditVert *EM_get_vert_for_index(int index);
-extern struct EditEdge *EM_get_edge_for_index(int index);
-extern struct EditFace *EM_get_face_for_index(int index);
+extern struct BME_Vert *EM_get_vert_for_index(int index);
+extern struct BME_Edge *EM_get_edge_for_index(int index);
+extern struct BME_Poly *EM_get_face_for_index(int index);
 
 extern void EM_select_face_fgon(struct EditFace *efa, int sel);
 
@@ -132,7 +132,6 @@ extern int EM_init_backbuf_circle(short xs, short ys, short rads);
 extern int EM_check_backbuf(unsigned int index);
 extern void EM_free_backbuf(void);
 
-extern void EM_selectmode_menu(void);
 
 
 extern void vertexnoise(void);

@@ -1224,24 +1224,34 @@ void mesh_foreachScreenEdge(void (*func)(void *userData, BME_Edge *eed, int x0, 
 	meshmap_edges = NULL;
 }
 
+static BME_Poly **bpoly_table = NULL;
+
 static void mesh_foreachScreenFace__mapFunc(void *userData, int index, float *cent, float *no)
 {
-#if 0 //EDITBMESHGREP
 	struct { void (*func)(void *userData, EditFace *efa, int x, int y, int index); void *userData; float pmat[4][4], vmat[4][4]; } *data = userData;
-	EditFace *efa = EM_get_face_for_index(index);
+	BME_Poly *f = bpoly_table[index];
 	short s[2];
 
-	if (efa && efa->h==0 && efa->fgonf!=EM_FGON) {
+	//if (efa && efa->h==0 && efa->fgonf!=EM_FGON) {
+	if(f){
 		view3d_project_short_clip(curarea, cent, s, data->pmat, data->vmat);
 
-		data->func(data->userData, efa, s[0], s[1], index);
+		data->func(data->userData, f, s[0], s[1], index);
 	}
-#endif
 }
 void mesh_foreachScreenFace(void (*func)(void *userData, EditFace *efa, int x, int y, int index), void *userData)
 {
-	struct { void (*func)(void *userData, EditFace *efa, int x, int y, int index); void *userData; float pmat[4][4], vmat[4][4]; } data;
+	BME_Poly *f;
+	int i;
+	struct { void (*func)(void *userData, BME_Poly *efa, int x, int y, int index); void *userData; float pmat[4][4], vmat[4][4]; } data;
 	DerivedMesh *dm = editmesh_get_derived_cage(CD_MASK_BAREMESH);
+	bpoly_table = MEM_callocN(sizeof(BME_Poly*)*G.editMesh->totpoly, "meshmap_polys");
+	
+	for(i=0,f=BME_first(G.editMesh,BME_POLY);f;i++,f=BME_next(G.editMesh,BME_POLY,f)){
+		bpoly_table[i] = f;
+	}
+	
+
 
 	data.func = func;
 	data.userData = userData;
@@ -1251,7 +1261,8 @@ void mesh_foreachScreenFace(void (*func)(void *userData, EditFace *efa, int x, i
 	//EDITBMESHGREP EM_init_index_arrays(0, 0, 1);
 	dm->foreachMappedFaceCenter(dm, mesh_foreachScreenFace__mapFunc, &data);
 	//EDITBMESHGREP EM_free_index_arrays();
-
+	
+	if(bpoly_table) MEM_freeN(bpoly_table); //this is dangerous..... need to set to null as well.
 	dm->release(dm);
 }
 

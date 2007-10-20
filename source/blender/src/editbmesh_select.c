@@ -93,7 +93,67 @@ void EM_deselectall_mesh(void){
 		for(f=BME_first(G.editMesh,BME_POLY);f;f=BME_next(G.editMesh,BME_POLY,f))BME_select_poly(G.editMesh,f,select);
 	}
 	
+	BME_selectmode_flush(G.editMesh);
 	countall();
 	DAG_object_flush_update(G.scene,G.obedit,OB_RECALC_DATA);
 	allqueue(REDRAWVIEW3D,0);
 }
+
+
+static void EM_selectconnected_all(void){
+	BME_Vert *v;
+	
+	for(v=BME_first(G.editMesh,BME_VERT);v;v=BME_next(G.editMesh,BME_VERT,v)){
+		if(BME_SELECTED(v) && !(BME_ISVISITED(v))){
+			BME_MeshWalk(G.editMesh, v, NULL, NULL,0);
+		}
+	}
+	
+	for(v=BME_first(G.editMesh,BME_VERT);v;v=BME_next(G.editMesh,BME_VERT,v)){ 
+		if(BME_ISVISITED(v))
+			BME_select_vert(G.editMesh,v,1);
+	}
+
+	BME_selectmode_flush(G.editMesh);
+	countall();
+	DAG_object_flush_update(G.scene,G.obedit,OB_RECALC_DATA);
+	allqueue(REDRAWVIEW3D,0);
+}
+
+void EM_selectconnected_mesh(int qual){
+	BME_Mesh *bm = G.editMesh;
+	BME_Vert *v=NULL, *svert;
+	BME_Edge *e=NULL;
+	BME_Poly *f=NULL;
+	int sel=1;
+	
+	BME_clear_flag_all(bm,BME_VISITED);
+	if(qual & LR_CTRLKEY) {
+		EM_selectconnected_all();
+		return;
+	}
+
+	if(unified_findnearest(&v,&e,&f)==0){
+		error("Nothing indicated");
+		return;
+	}
+	
+	if(f) svert = f->loopbase->v;
+	else if(e) svert = e->v1;
+	else if(v) svert = v;
+	else return;
+
+	BME_MeshWalk(G.editMesh, svert, NULL, NULL,0);	
+	
+	if(qual & LR_SHIFTKEY) sel = 0;
+	for(v=BME_first(bm,BME_VERT);v;v=BME_next(bm,BME_VERT,v)){ 
+		if(BME_ISVISITED(v))
+			BME_select_vert(bm,v,sel);
+	}
+	
+	BME_selectmode_flush(bm);
+	countall();
+	DAG_object_flush_update(G.scene,G.obedit,OB_RECALC_DATA);
+	allqueue(REDRAWVIEW3D,0);
+}
+

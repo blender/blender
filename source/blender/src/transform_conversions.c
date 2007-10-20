@@ -1313,12 +1313,6 @@ static void createTransLatticeVerts(TransInfo *t)
 	}
 } 
 
-/* ********************* mesh ****************** */
-
-/* proportional distance based on connectivity  */
-#define E_VEC(a)	(vectors + (3 * (a)->tmp.l))
-#define E_NEAR(a)	(nears[((a)->tmp.l)])
-#define THRESHOLD	0.0001f
 
 static void VertsToTransData(TransData *td, BME_Vert *eve)
 {
@@ -1383,11 +1377,130 @@ static void modifiers_setOnCage(void *ob_v, void *md_v)
 		}
 }
 
+/* ********************* mesh ****************** */
+
+/* proportional distance based on connectivity  */
+#define E_VEC(a)        (vectors + (3 * (a)->eflag1))
+#define E_NEAR(a)       (nears[((a)->eflag1)])
+#define THRESHOLD       0.0001f
+static void editmesh_set_connectivity_distance(int total, float *vectors, BME_Vert **nears)
+{
+        BME_Mesh *em = G.editMesh;
+        BME_Vert *eve;
+        BME_Edge *eed;
+        int i= 0, done= 1;
+
+		for(eve=BME_first(em,BME_VERT); eve; eve=BME_next(em,BME_VERT,eve)) eve->eflag1 = eve->tflag2 = 0; //abuse! -Geoff
+
+        /* tflag2 flag is used for 'selection' */
+        /* eflag1 is offset on scratch array   */
+        for(eve= BME_first(em,BME_VERT); eve; eve= BME_next(em,BME_VERT,eve)) {
+			if(eve->h==0) {
+				eve->eflag1 = i++;
+
+				if(BME_SELECTED(eve)) {
+					eve->tflag2= 2;
+					E_NEAR(eve) = eve;
+					E_VEC(eve)[0] = 0.0f;
+					E_VEC(eve)[1] = 0.0f;
+					E_VEC(eve)[2] = 0.0f;
+				}
+				else {
+					eve->tflag2 = 0;
+				}
+			}
+		}
+
+		while(done) {
+			done = 0;
+			
+            for(eed= BME_first(em,BME_EDGE); eed; eed= BME_next(em,BME_EDGE,eed)) {
+                        if(eed->h==0) {
+                                BME_Vert *v1= eed->v1, *v2= eed->v2;
+                                float *vec2 = E_VEC(v2);
+                                float *vec1 = E_VEC(v1);
+
+                                if (v1->tflag2 + v2->tflag2 == 4)
+                                        continue;
+
+                                if (v1->tflag2) {
+                                        if (v2->tflag2) {
+                                                float nvec[3];
+                                                float len1 = VecLength(vec1);
+                                                float len2 = VecLength(vec2);
+                                                float lenn;
+                                                /* for v2 if not selected */
+                                                if (v2->tflag2 != 2) {
+                                                        VecSubf(nvec, v2->co, E_NEAR(v1)->co);
+                                                        lenn = VecLength(nvec);
+                                                        /* 1 < n < 2 */
+                                                        if (lenn - len1 > THRESHOLD && len2 - lenn > THRESHOLD) {
+                                                                VECCOPY(vec2, nvec);
+                                                                E_NEAR(v2) = E_NEAR(v1);
+                                                                done = 1;
+                                                        }
+                                                        /* n < 1 < 2 */
+                                                        else if (len2 - len1 > THRESHOLD && len1 - lenn > THRESHOLD) {
+                                                                VECCOPY(vec2, vec1);
+                                                                E_NEAR(v2) = E_NEAR(v1);
+                                                                done = 1;
+                                                        }
+                                                }
+                                                /* for v1 if not selected */
+                                                if (v1->tflag2 != 2) {
+                                                        VecSubf(nvec, v1->co, E_NEAR(v2)->co);
+                                                        lenn = VecLength(nvec);
+                                                        /* 2 < n < 1 */
+                                                        if (lenn - len2 > THRESHOLD && len1 - lenn > THRESHOLD) {
+                                                                VECCOPY(vec1, nvec);
+                                                                E_NEAR(v1) = E_NEAR(v2);
+                                                                done = 1;
+                                                        }
+                                                        /* n < 2 < 1 */
+                                                        else if (len1 - len2 > THRESHOLD && len2 - lenn > THRESHOLD) {
+                                                                VECCOPY(vec1, vec2);
+                                                                E_NEAR(v1) = E_NEAR(v2);
+                                                                done = 1;
+                                                        }
+                                                }
+                                        }
+                                        else {
+                                                v2->tflag2 = 1;
+                                                VecSubf(vec2, v2->co, E_NEAR(v1)->co);
+                                                /* 2 < 1 */
+                                                if (VecLength(vec1) - VecLength(vec2) > THRESHOLD) {
+                                                        VECCOPY(vec2, vec1);
+                                                }
+                                                E_NEAR(v2) = E_NEAR(v1);
+                                                done = 1;
+                                        }
+                                }
+                                else if (v2->tflag2) {
+                                        v1->tflag2 = 1;
+                                        VecSubf(vec1, v1->co, E_NEAR(v2)->co);
+                                        /* 2 < 1 */
+                                        if (VecLength(vec2) - VecLength(vec1) > THRESHOLD) {
+                                                VECCOPY(vec1, vec2);
+                                        }
+                                        E_NEAR(v1) = E_NEAR(v2);
+                                        done = 1;
+                                }
+                        }
+                }
+        }
+}
+
+
+
+
+
 static void createTransEditVerts(TransInfo *t)
 {
 	TransData *tob = NULL;
 	BME_Mesh *em = G.editMesh;
-	BME_Vert *eve;
+	BME_Vert *eve, **nears = NULL;
+	float *vectors = NULL;
+
 	float mtx[3][3], smtx[3][3];
 	int count=0, countsel=0;
 	int propmode = t->flag & T_PROP_EDIT;
@@ -1438,12 +1551,21 @@ static void createTransEditVerts(TransInfo *t)
 	
 	if(propmode) {
 		t->total = count; 
+	
+		/* allocating scratch arrays */
+		vectors = (float *)MEM_mallocN(t->total * 3 * sizeof(float), "scratch vectors");
+		nears = (BME_Vert**)MEM_mallocN(t->total * sizeof(BME_Vert*), "scratch nears");
+	
 	} else t->total = countsel;
 
 	tob= t->data= MEM_callocN(t->total*sizeof(TransData), "TransObData(Mesh EditMode)");
 	
 	Mat3CpyMat4(mtx, G.obedit->obmat);
 	Mat3Inv(smtx, mtx);
+	
+	if(propmode) editmesh_set_connectivity_distance(t->total, vectors, nears);
+
+	
 
 	/* find out which half we do */
 	if(mirror) {
@@ -1461,12 +1583,20 @@ static void createTransEditVerts(TransInfo *t)
 			if(propmode || eve->tflag1) {
 				float mat[3][3], imat[3][3], qmat[3][3];
 				VertsToTransData(tob, eve);
-				//printf("converted! co: [%f, %f, %f], tob: %p\n", tob->loc[0], tob->loc[1], tob->loc[2], tob);
 				if(eve->tflag1) tob->flag |= TD_SELECTED;
 				if(propmode) {
-					tob->flag |= TD_NOTCONNECTED;
-					tob->dist = MAXFLOAT;
+					if (eve->tflag2) {
+						float vec[3];
+						VECCOPY(vec, E_VEC(eve));
+						Mat3MulVecfl(mtx, vec);
+						tob->dist= VecLength(vec);
+					}
+					else {
+						tob->flag |= TD_NOTCONNECTED;
+						tob->dist = MAXFLOAT;
+					}
 				}
+					
 				Mat3CpyMat3(tob->smtx, smtx);
 				Mat3CpyMat3(tob->mtx, mtx);
 				/* Mirror? */
@@ -1478,6 +1608,10 @@ static void createTransEditVerts(TransInfo *t)
 				tob++;
 			}
 		}	
+	}
+	if (propmode) {
+		MEM_freeN(vectors);
+		MEM_freeN(nears);
 	}
 }
 

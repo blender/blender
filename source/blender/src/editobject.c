@@ -2348,10 +2348,21 @@ void special_editmenu(void)
 				BIF_undo_push("Cut Edges");            
 			}
 			break;
+		case 200:
+			{
+				EM_bevel();
+				BIF_undo_push("Bevel Edges");
+			}
 		case 203:
 			{
 				EM_connect_edges();
 				BIF_undo_push("Connect Edges");
+			}
+			break;
+		case 204:
+			{
+				EM_collapse_edges();
+				BIF_undo_push("Collapse Edges");
 			}
 			break;
 		case 205:
@@ -2367,8 +2378,14 @@ void special_editmenu(void)
 				BIF_undo_push("Connect Vertices");
 			}
 			break;
+		case 103:
+			{
+				EM_remove_doubles();
+				BIF_undo_push("Remove Doubles");
+			}
+			break;
 		}
-		
+			
 		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		
 	}

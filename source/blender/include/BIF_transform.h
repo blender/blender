@@ -55,6 +55,8 @@
 #define TFM_BONE_ENVELOPE	16
 #define TFM_CURVE_SHRINKFATTEN		17
 #define TFM_BONE_ROLL		18
+#define TFM_BEVEL			19
+#define TFM_BWEIGHT			20
 
 /* TRANSFORM CONTEXTS */
 #define CTX_NONE			0
@@ -62,6 +64,8 @@
 #define CTX_EDGE			2
 #define CTX_NO_PET			4
 #define CTX_TWEAK			8
+#define CTX_BMESH			16
+
 
 void initTransform(int mode, int context);
 void Transform(void);

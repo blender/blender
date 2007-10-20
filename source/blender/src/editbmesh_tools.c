@@ -65,6 +65,8 @@
 #include "BIF_language.h"
 #include "BIF_transform.h"
 #include "BIF_interface.h"
+#include "transform.h"
+
 
 #include "BDR_editobject.h"
 #include "BSE_edit.h"
@@ -271,4 +273,53 @@ void EM_addedgeface(void){
 	DAG_object_flush_update(G.scene,G.obedit,OB_RECALC_DATA);
 	allqueue(REDRAWVIEW3D,0);
 }
+void EM_remove_doubles(void){
+	BME_model_begin(G.editMesh);
+	BME_remove_doubles(G.editMesh,G.scene->toolsettings->doublimit);
+	BME_model_end(G.editMesh);
+	countall();
+	DAG_object_flush_update(G.scene,G.obedit,OB_RECALC_DATA);
+	allqueue(REDRAWVIEW3D,0);
+}
 
+void EM_bevel(void){
+	BME_Mesh *bm = G.editMesh;
+	BME_TransData_Head *td;
+	TransInfo *t;
+	int options, res;
+
+	t = BIF_GetTransInfo(); //maybe
+
+	bm->options = BME_BEVEL_RUNNING | BME_BEVEL_SELECT;
+	bm->res = 1;
+
+	BME_model_begin(bm);
+	while(bm->options & BME_BEVEL_RUNNING) {
+		options = bm->options;
+		res = bm->res;
+		BME_bevel(bm,0.1f,res,options,0,0,&td);
+		initTransform(TFM_BEVEL,CTX_BMESH);
+		Transform();
+		BME_free_transdata(td);
+		if (t->state != TRANS_CONFIRM) {
+			BIF_undo();
+		}
+		if (options == bm->options) {
+			bm->options &= ~BME_BEVEL_RUNNING;
+		}
+	}
+	BME_model_end(bm);
+	countall();
+	DAG_object_flush_update(G.scene,G.obedit,OB_RECALC_DATA);
+	allqueue(REDRAWVIEW3D,0);
+}
+
+void EM_collapse_edges(void){
+	BME_Mesh *bm = G.editMesh;
+	BME_model_begin(bm);
+	BME_collapse_edges(bm);
+	BME_model_end(bm);
+	countall();
+	DAG_object_flush_update(G.scene,G.obedit,OB_RECALC_DATA);
+	allqueue(REDRAWVIEW3D,0);
+}

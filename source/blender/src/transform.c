@@ -79,6 +79,7 @@
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 #include "BKE_bad_level_calls.h"/* popmenu and error	*/
+#include "BKE_bmesh.h"
 
 #include "BSE_view.h"
 
@@ -793,6 +794,103 @@ int calculateTransformCenter(int centerMode, float *vec)
 	return success;
 }
 
+/* ************************** BEVEL **************************** */
+
+int Bevel(TransInfo *t, short mval[2])
+{
+	float distance,d;
+	int i;
+	char str[128];
+	char *mode;
+	TransData *td = t->data;
+
+	mode = (G.editMesh->options & BME_BEVEL_VERT) ? "verts only" : "normal";
+	distance = InputHorizontalAbsolute(t, mval)/4; /* 4 just seemed a nice value to me, nothing special */
+
+	applyNumInput(&t->num, &distance);
+
+	/* header print for NumInput */
+	if (hasNumInput(&t->num)) {
+		char c[20];
+
+		outputNumInput(&(t->num), c);
+
+		sprintf(str, "Bevel: %s", c);
+	}
+	else {
+		/* default header print */
+		sprintf(str, "Bevel - Dist: %.4f, Mode: %s (MMB to toggle), Recurs: %d (Numpad +/-; 0 = edge extrude)", distance, mode, G.editMesh->res);
+	}
+	
+	if (distance < 0) distance = -distance;
+	for(i = 0 ; i < t->total; i++, td++) {
+		if (td->axismtx[1][0] > 0 && distance > td->axismtx[1][0]) {
+			d = td->axismtx[1][0];
+		}
+		else {
+			d = distance;
+		}
+		VECADDFAC(td->loc,td->center,td->axismtx[0],(*td->val)*d);
+	}
+
+	recalcData(t);
+
+	headerprint(str);
+
+	viewRedrawForce(t);
+
+	return 1;
+}
+int handleEventBevel(TransInfo *t, unsigned short event, short val)
+{
+	if (val) {
+		switch (event) {
+		case MIDDLEMOUSE:
+			G.editMesh->options ^= BME_BEVEL_VERT;
+			t->state = TRANS_CANCEL;
+			return 1;
+		case PADPLUSKEY:
+			G.editMesh->options ^= BME_BEVEL_RES;
+			G.editMesh->res += 1;
+			if (G.editMesh->res > 4) {
+				G.editMesh->res = 4;
+			}
+			t->state = TRANS_CANCEL;
+			return 1;
+		case PADMINUS:
+			G.editMesh->options ^= BME_BEVEL_RES;
+			G.editMesh->res -= 1;
+			if (G.editMesh->res < 0) {
+				G.editMesh->res = 0;
+			}
+			t->state = TRANS_CANCEL;
+			return 1;
+		default:
+			return 0;
+		}
+	}
+	return 0;
+}
+
+
+void initBevel(TransInfo *t) 
+{
+	t->mode = TFM_BEVEL;
+	t->flag |= T_NO_CONSTRAINT;
+	t->transform = Bevel;
+	t->handleEvent = handleEventBevel;
+	if (G.editMesh->imval[0] == 0 && G.editMesh->imval[1] == 0) {
+		/* save the initial mouse co */
+		G.editMesh->imval[0] = t->imval[0];
+		G.editMesh->imval[1] = t->imval[1];
+	}
+	else {
+		/* restore the mouse co from a previous call to initTransform() */
+		t->imval[0] = G.editMesh->imval[0];
+		t->imval[1] = G.editMesh->imval[1];
+	}
+}
+
 void initTransform(int mode, int context) {
 	/* added initialize, for external calls to set stuff in TransInfo, like undo string */
 	checkFirstTime();
@@ -879,6 +977,9 @@ void initTransform(int mode, int context) {
 		break;
 	case TFM_BONE_ROLL:
 		initBoneRoll(&Trans);
+		break;
+	case TFM_BEVEL:
+		initBevel(&Trans);
 		break;
 	}
 }

@@ -6,7 +6,7 @@ struct BME_Edge;
 struct BME_Loop;
 struct BME_Face;
 
-struct BME_Mesh *BME_FromMesh(Mesh *mesh);
+struct BME_Mesh *BME_FromMesh(struct Mesh *mesh);
 void Mesh_FromBMesh(struct BME_Mesh *bmesh, struct Mesh *mesh);
 void EditBME_remakeEditMesh(void);
 void EditBME_makeEditMesh(void);
@@ -33,7 +33,13 @@ void EM_extrude_mesh(void);
 void EM_clone_mesh(void);
 void EM_addedgeface(void);
 void EM_connect_edges(void);
+void EM_remove_doubles(void);	
+void EM_bevel(void);
+void EM_collapse_edges(void);
+
 
 /*editbmesh_select.c*/
 void EM_deselectall_mesh(void);
+void EM_selectconnected_mesh(int qual);
+void EM_selectmode_menu(void);
 

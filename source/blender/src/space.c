@@ -2003,7 +2003,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case LKEY:
 				if(G.obedit) {
 					if(G.obedit->type==OB_MESH);
-						//EDITBMESHGREP selectconnected_mesh(G.qual);
+						EM_selectconnected_mesh(G.qual);
 					if(G.obedit->type==OB_ARMATURE)
 						selectconnected_armature();
 					else if ELEM(G.obedit->type, OB_CURVE, OB_SURF)
