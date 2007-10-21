@@ -257,6 +257,7 @@ void BME_delete_polys(struct BME_Mesh *bm);
 void BME_duplicate(struct BME_Mesh *bm);
 void BME_extrude_mesh(struct BME_Mesh *bm, int type);
 int BME_make_edgeface(struct BME_Mesh *bm);
+void BME_split_mesh(struct BME_Mesh *bm);
 
 /*BME_traversals. c*/
 #define BME_RESTRICTWIRE 1
@@ -268,6 +269,8 @@ struct BME_Edge *BME_edgeloop_nextedge(void *userData, struct BME_Edge *e, struc
 struct BME_Edge *BME_edgeshell_nextedge(void *userData, struct BME_Edge *e, struct BME_Vert *sv);
 void BME_MeshRing_walk(struct BME_Mesh *bm, struct BME_Edge *se, void*(*func)(void *userData, struct BME_Loop *walkloop), void *userData, short restrictflag);	
 struct BME_Edge *BME_edgering_nextedge(void *userData, struct BME_Loop *walkloop);
+void BME_VertEdgeWalk(struct BME_Mesh *bm, struct BME_Vert *v, void(*func)(void *userData, struct BME_Edge *apply), void *userData);
+void BME_VertFaceWalk(struct BME_Mesh *bm, struct BME_Vert *v, void(*func)(void *userData, struct BME_Poly *apply), void *userData);
 
 
 /* bevel tool defines */

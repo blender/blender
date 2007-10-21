@@ -4224,7 +4224,7 @@ void do_meshbuts(unsigned short event)
 		break;
 	case B_SPLIT:
 		G.f |= G_DISABLE_OK;
-		split_mesh();
+		EM_split_mesh();
 		G.f -= G_DISABLE_OK;
 		break;
 	case B_REMDOUB:

@@ -958,6 +958,7 @@ static BME_Poly *add_quadtri(BME_Mesh *bm, BME_Vert *v1, BME_Vert *v2, BME_Vert 
 }
 
 /*finds out if any of the faces connected to any of the verts have all other vertices in varr as well. */
+/*this can be MUCH more compact if we just use BME_VertFaceWalk from BME_traversals.c*/
 static int exist_face_overlaps(BME_Mesh *bm, BME_Vert **varr, int len){
 	BME_Edge *curedge;
 	BME_Loop *curloop, *l;
@@ -1469,3 +1470,36 @@ void BME_collapse_edges(BME_Mesh *bm){
 	BME_selectmode_flush(bm);
 }
 
+void BME_split_mesh(BME_Mesh *bm){
+	BME_Vert *v;
+	BME_Edge *e;
+	BME_Poly *f;
+	
+	/*first mark all selected elements*/
+	for(v=BME_first(bm,BME_VERT);v;v=BME_next(bm,BME_VERT,v)){
+		if(BME_SELECTED(v)) v->tflag1 = 1;
+	}
+	for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
+		if(BME_SELECTED(e)) e->tflag1 = 1;
+	}
+	for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){
+		if(BME_SELECTED(f)) f->tflag1 = 1;
+	}
+	
+	BME_duplicate(bm); //dupe the selected parts.
+	BME_clear_flag_all(bm,BME_VISITED); //clear visited flags set in the duplicate function
+	/*now go through and visit all the previously selected parts and delete them*/
+	for(v=BME_first(bm,BME_VERT);v;v=BME_next(bm,BME_VERT,v)){
+		if(v->tflag1) BME_VISIT(v);
+	}
+	for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
+		if(e->tflag1) BME_VISIT(e);
+	}
+	for(f=BME_first(bm,BME_POLY);f;f=BME_next(bm,BME_POLY,f)){
+		if(f->tflag1) BME_VISIT(f);
+	}
+	
+	remove_tagged_polys(bm);
+	remove_tagged_edges(bm);
+	remove_tagged_verts(bm);
+}

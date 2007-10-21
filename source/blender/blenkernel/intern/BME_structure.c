@@ -46,7 +46,7 @@
 
 #include "BKE_customdata.h"
 /**
- *	MISC utility functions.
+ *	MISC utility functions. Split these off into BME_utilities.c?
  *
  */
  

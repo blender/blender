@@ -59,7 +59,6 @@
 
 #include "BSE_edit.h"
 
-
 /*	
  *	BME FIRST
  *

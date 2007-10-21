@@ -36,7 +36,7 @@ void EM_connect_edges(void);
 void EM_remove_doubles(void);	
 void EM_bevel(void);
 void EM_collapse_edges(void);
-
+void EM_split_mesh(void);
 
 /*editbmesh_select.c*/
 void EM_deselectall_mesh(void);

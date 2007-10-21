@@ -111,6 +111,37 @@ void BME_MeshWalk(BME_Mesh *bm, BME_Vert *v, void (*func)(void *userData, BME_Ed
 	}
 }
 
+void BME_VertEdgeWalk(BME_Mesh *bm, BME_Vert *v, void(*func)(void *userData, BME_Edge *apply), void *userData)
+{
+	BME_Edge *curedge;
+	if(v->edge){
+		curedge = v->edge;
+		do{
+			func(userData,curedge);
+			curedge = BME_disk_nextedge(curedge,v);
+		}while(curedge!=v->edge);
+	}
+}
+
+void BME_VertFaceWalk(BME_Mesh *bm, BME_Vert *v, void(*func)(void *userData, BME_Poly *apply), void *userData)
+{
+	BME_Edge *curedge;
+	BME_Loop *l;
+	
+	if(v->edge){
+		curedge = v->edge;
+		do{
+			if(curedge->loop){
+				l=curedge->loop;
+				do{
+					func(userData,l->f);
+					l = BME_radial_nextloop(l);
+				}while(l!=curedge->loop);
+			}
+			curedge = BME_disk_nextedge(curedge,v);
+		}while(curedge!=v->edge);
+	}
+}
 
 /*Edge Loop Callback for BME_MeshLoop_walk*/
 BME_Edge *BME_edgeloop_nextedge(void *userData, BME_Edge *e, BME_Vert *sv)

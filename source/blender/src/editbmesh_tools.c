@@ -323,3 +323,13 @@ void EM_collapse_edges(void){
 	DAG_object_flush_update(G.scene,G.obedit,OB_RECALC_DATA);
 	allqueue(REDRAWVIEW3D,0);
 }
+
+void EM_split_mesh(void){
+	BME_Mesh *bm = G.editMesh;
+	BME_model_begin(bm);
+	BME_split_mesh(bm);
+	BME_model_end(bm);
+	countall();
+	DAG_object_flush_update(G.scene,G.obedit,OB_RECALC_DATA);
+	allqueue(REDRAWVIEW3D,0);	
+}
