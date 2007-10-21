@@ -3131,7 +3131,7 @@ static void object_panel_cloth(Object *ob)
 	
 	if(clmd)
 	{
-		but = uiDefButBitI(block, TOG, CLOTH_SIMSETTINGS_FLAG_COLLOBJ, B_EFFECT_DEP, "Collision Object",	170,200,130,20, &clmd->sim_parms.flags, 0, 0, 0, 0, "Sets object to become a cloth collision object");
+		// but = uiDefButBitI(block, TOG, CLOTH_SIMSETTINGS_FLAG_COLLOBJ, B_EFFECT_DEP, "Collision Object",	170,200,130,20, &clmd->sim_parms.flags, 0, 0, 0, 0, "Sets object to become a cloth collision object");
 
 		if (!(clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ))
 		{

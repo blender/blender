@@ -88,10 +88,15 @@ CollisionPair;
 // forward declarations
 /////////////////////////////////////////////////
 
-void bvh_free ( BVH *bvh );
+// builds bounding volume hierarchy
 BVH *bvh_build (DerivedMesh *dm, MVert *x, MVert *xold, unsigned int numverts, float epsilon);
+// frees the same
+void bvh_free ( BVH *bvh );
 
+// checks two bounding volume hierarchies for potential collisions and returns some list with those
 int bvh_traverse(Tree *tree1, Tree *tree2, LinkNode *collision_list);
+
+// update bounding volumes, needs updated positions in bvh->x
 void bvh_update(DerivedMesh *dm, BVH * bvh, int moving);
 
 LinkNode *BLI_linklist_append_fast ( LinkNode **listp, void *ptr );

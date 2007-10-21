@@ -621,8 +621,7 @@ void clothModifier_do ( ClothModifierData *clmd, Object *ob, DerivedMesh *dm,
 	Frame *frame = NULL;
 	LinkNode *search = NULL;
 	float deltaTime = current_time - clmd->sim_parms.sim_time;
-
-
+	
 	// only be active during a specific period:
 	// that's "first frame" and "last frame" on GUI
 	if ( ! ( clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ ) )
@@ -671,59 +670,7 @@ void clothModifier_do ( ClothModifierData *clmd, Object *ob, DerivedMesh *dm,
 	clmd->sim_parms.dt = 1.0f / clmd->sim_parms.stepsPerFrame;
 
 	clmd->sim_parms.sim_time = current_time;
-
-	// check if cloth object was some collision object before and needs freeing now
-	if ( ! ( clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ ) && ( clmd->clothObject != NULL ) && ( clmd->clothObject->old_solver_type == 255 ) )
-	{
-		// temporary set CSIMSETT_FLAG_COLLOBJ flag for proper freeing
-		clmd->sim_parms.flags |= CLOTH_SIMSETTINGS_FLAG_COLLOBJ;
-		cloth_free_modifier ( clmd );
-		clmd->sim_parms.flags &= ~CLOTH_SIMSETTINGS_FLAG_COLLOBJ;
-	}
-
-	// This is for collisions objects: check special case CSIMSETT_FLAG_COLLOBJ
-	if ( clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ )
-	{
-		// save next position + time
-		if ( ( clmd->clothObject == NULL ) || ( numverts != clmd->clothObject->numverts ) )
-		{
-			if ( !collobj_from_object ( ob, clmd, dm, vertexCos, framenr ) )
-			{
-				clmd->sim_parms.flags |= CLOTH_SIMSETTINGS_FLAG_COLLOBJ;
-				cloth_free_modifier ( clmd );
-				return;
-			}
-
-			if ( clmd->clothObject == NULL )
-				return;
-
-			cloth = clmd->clothObject;
-		}
-
-		// Save old position
-		clmd->sim_parms.sim_time_old = clmd->sim_parms.sim_time;
-		clmd->sim_parms.sim_time = current_time;
-
-		verts = cloth->verts;
-
-		for ( i = 0; i < clmd->clothObject->numverts; i++, verts++ )
-		{
-			// Save the previous position.
-			VECCOPY ( verts->xold, verts->x );
-			VECCOPY ( verts->txold, verts->x );
-
-			// Get the current position.
-			VECCOPY ( verts->x, vertexCos[i] );
-			Mat4MulVecfl ( ob->obmat, verts->x );
-
-			// Compute the vertices "velocity".
-			// (no dt correction here because of float error)
-			VECSUB ( verts->v, verts->x, verts->xold );
-		}
-
-		return;
-	}
-
+	
 	if ( deltaTime == 1.0f )
 	{
 		if ( ( clmd->clothObject == NULL ) || ( numverts != clmd->clothObject->numverts ) )
@@ -952,72 +899,6 @@ static void cloth_apply_vgroup ( ClothModifierData *clmd, DerivedMesh *dm, short
 				}
 			}
 		}
-	}
-}
-
-// only meshes supported at the moment
-/* collision objects */
-static int collobj_from_object ( Object *ob, ClothModifierData *clmd, DerivedMesh *dm, float ( *vertexCos ) [3], unsigned int numverts )
-{
-	unsigned int i;
-	MVert *mvert = NULL;
-	ClothVertex *verts = NULL;
-	float tnull[3] = {0,0,0};
-
-	/* If we have a clothObject, free it. */
-	if ( clmd->clothObject != NULL )
-		cloth_free_modifier ( clmd );
-
-	/* Allocate a new cloth object. */
-	clmd->clothObject = MEM_callocN ( sizeof ( Cloth ), "cloth" );
-	if ( clmd->clothObject )
-	{
-		clmd->clothObject->old_solver_type = 255;
-		// clmd->clothObject->old_collision_type = 255;
-	}
-	else if ( clmd->clothObject == NULL )
-	{
-		modifier_setError ( & ( clmd->modifier ), "Out of memory on allocating clmd->clothObject." );
-		return 0;
-	}
-
-	switch ( ob->type )
-	{
-		case OB_MESH:
-
-			// mesh input objects need DerivedMesh
-			if ( !dm )
-				return 0;
-
-			cloth_from_mesh ( ob, clmd, dm );
-
-			if ( clmd->clothObject != NULL )
-			{
-				if ( !dm ) return 0;
-				if ( !dm->getNumVerts ( dm ) || !dm->getNumFaces ( dm ) ) return 0;
-
-				mvert = dm->getVertArray ( dm );
-				verts = clmd->clothObject->verts;
-				numverts = clmd->clothObject->numverts = dm->getNumVerts ( dm );
-
-				for ( i = 0; i < numverts; i++, verts++ )
-				{
-					VECCOPY ( verts->x, mvert[i].co );
-					Mat4MulVecfl ( ob->obmat, verts->x );
-					verts->flags = 0;
-					VECCOPY ( verts->xold, verts->x );
-					VECCOPY ( verts->txold, verts->x );
-					VECCOPY ( verts->tx, verts->x );
-					VecMulf ( verts->v, 0.0f );
-					verts->impulse_count = 0;
-					VECCOPY ( verts->impulse, tnull );
-				}
-				// clmd->clothObject->tree =  bvh_build ( dm, clmd->coll_parms.epsilon );
-
-			}
-
-			return 1;
-		default: return 0; // TODO - we do not support changing meshes
 	}
 }
 
