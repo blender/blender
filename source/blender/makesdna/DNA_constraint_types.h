@@ -36,13 +36,11 @@
 
 #include "DNA_ID.h"
 #include "DNA_ipo_types.h"
+#include "DNA_listBase.h"
 #include "DNA_object_types.h"
 
 struct Action;
 struct Text;
-#ifndef __cplusplus
-struct PyObject;
-#endif
 
 /* channels reside in Object or Action (ListBase) constraintChannels */
 typedef struct bConstraintChannel {
@@ -55,29 +53,67 @@ typedef struct bConstraintChannel {
 /* A Constraint */
 typedef struct bConstraint {
 	struct bConstraint *next, *prev;
+	
 	void		*data;		/*	Constraint data	(a valid constraint type) */
 	short		type;		/*	Constraint type	*/
 	short		flag;		/*	Flag - General Settings	*/
 	
 	char 		ownspace;	/* 	Space that owner should be evaluated in 	*/
-	char		tarspace;	/* 	Space that target should be evaluated in 	*/
+	char		tarspace;	/* 	Space that target should be evaluated in (only used if 1 target) */
 	
-	char		name[30];	/*	Constraint name	*/
+	char		name[30];	/*	Constraint name */
 	
 	float		enforce;	/* 	Amount of influence exherted by constraint (0.0-1.0) */
 } bConstraint;
 
 
-/* Python Script Constraint */
-typedef struct bPythonConstraint {
-	Object *tar;			/* object to use as target (if required) */
-	char subtarget[32]; 	/* bone to use as subtarget (if required) */
+/* Multiple-target constraints ---------------------  */
+
+/* This struct defines a constraint target.
+ * It is used during constraint solving regardless of how many targets the
+ * constraint has.
+ */
+typedef struct bConstraintTarget {
+	struct bConstraintTarget *next, *prev;
+
+	Object *tar;			/* object to use as target */
+	char subtarget[32];		/* subtarget - pchan or vgroup name */
 	
+	float matrix[4][4];		/* matrix used during constraint solving - should be cleared before each use */
+	
+	short space;			/* space that target should be evaluated in (overrides bConstraint->tarspace) */
+	short flag;				/* runtime settings (for editor, etc.) */
+	short type;				/* type of target (B_CONSTRAINT_OB_TYPE) */
+	short pad;
+} bConstraintTarget;
+
+/* bConstraintTarget -> flag */
+typedef enum B_CONSTRAINT_TARGET_FLAG {
+	CONSTRAINT_TAR_TEMP = (1<<0),		/* temporary target-struct that needs to be freed after use */
+} B_CONSTRAINT_TARGET_FLAG;
+
+/* bConstraintTarget/bConstraintOb -> type */
+typedef enum B_CONSTRAINT_OB_TYPE {
+	CONSTRAINT_OBTYPE_OBJECT = 1,	/*	string is ""				*/
+	CONSTRAINT_OBTYPE_BONE,			/*	string is bone-name		*/
+	CONSTRAINT_OBTYPE_VERT,			/*	string is vertex-group name 	*/
+	CONSTRAINT_OBTYPE_CV			/* 	string is vertex-group name - is not available until curves get vgroups */
+} B_CONSTRAINT_OB_TYPE;
+
+
+
+/* Python Script Constraint */
+typedef struct bPythonConstraint {	
 	struct Text *text;		/* text-buffer (containing script) to execute */
 	IDProperty *prop;		/* 'id-properties' used to store custom properties for constraint */
 	
 	int flag;				/* general settings/state indicators accessed by bitmapping */
-	int pad;
+	int tarnum;				/* number of targets - usually only 1-3 are needed */
+	
+	ListBase targets;		/* a list of targets that this constraint has (bConstraintTarget-s) */
+	
+	Object *tar;			/* target from previous implementation (version-patch sets this to NULL on file-load) */
+	char subtarget[32];		/* subtarger from previous implentation (version-patch sets this to "" on file-load) */
 } bPythonConstraint;
 
 /* Single-target subobject constraints ---------------------  */
@@ -125,10 +161,10 @@ typedef struct bLocateLikeConstraint {
 typedef struct bMinMaxConstraint {
 	Object		*tar;
 	int			minmaxflag;
-	float			offset;
-	int				flag;
-	short			sticky, stuck, pad1, pad2; /* for backward compatability */
-	float			cache[3];
+	float		offset;
+	int			flag;
+	short		sticky, stuck, pad1, pad2; /* for backward compatability */
+	float		cache[3];
 	char		subtarget[32];
 } bMinMaxConstraint;
 
@@ -143,13 +179,13 @@ typedef struct bSizeLikeConstraint {
 /* Action Constraint */
 typedef struct bActionConstraint {
 	Object		*tar;
-	short		type;
+	short		type;	/* what transform 'channel' drives the result */
 	short		local;	/* was used in versions prior to the Constraints recode */
-	int		start;
-	int		end;
+	int			start;
+	int			end;
 	float		min;
 	float		max;
-	int             pad;
+	int         pad;
 	struct bAction	*act;
 	char		subtarget[32];
 } bActionConstraint;
@@ -261,53 +297,73 @@ typedef struct bSizeLimitConstraint {
 	short		pad1;
 } bSizeLimitConstraint;
 
-/* bConstraint.type */
-#define CONSTRAINT_TYPE_NULL		0
-#define CONSTRAINT_TYPE_CHILDOF		1		/* Unimplemented non longer :) - during constraints recode, Aligorith */
-#define CONSTRAINT_TYPE_TRACKTO		2	
-#define CONSTRAINT_TYPE_KINEMATIC	3	
-#define CONSTRAINT_TYPE_FOLLOWPATH	4
-#define CONSTRAINT_TYPE_ROTLIMIT	5		/* Unimplemented no longer :) - Aligorith */
-#define CONSTRAINT_TYPE_LOCLIMIT	6		/* Unimplemented no longer :) - Aligorith */
-#define CONSTRAINT_TYPE_SIZELIMIT	7		/* Unimplemented no longer :) - Aligorith */
-#define CONSTRAINT_TYPE_ROTLIKE		8	
-#define CONSTRAINT_TYPE_LOCLIKE		9	
-#define CONSTRAINT_TYPE_SIZELIKE	10
-#define CONSTRAINT_TYPE_PYTHON		11		/* Unimplemented no longer :) - Aligorith. Scripts */
-#define CONSTRAINT_TYPE_ACTION		12
-#define CONSTRAINT_TYPE_LOCKTRACK	13		/* New Tracking constraint that locks an axis in place - theeth */
-#define CONSTRAINT_TYPE_DISTANCELIMIT 14 	/* was never properly coded - removed! */
-#define CONSTRAINT_TYPE_STRETCHTO	15  	/* claiming this to be mine :) is in tuhopuu bjornmose */ 
-#define CONSTRAINT_TYPE_MINMAX      16  	/* floor constraint */
-#define CONSTRAINT_TYPE_RIGIDBODYJOINT 17 	/* rigidbody constraint */
-#define CONSTRAINT_TYPE_CLAMPTO		18  	/* clampto constraint */	
-#define CONSTRAINT_TYPE_TRANSFORM	19 		/* transformation constraint */	
+/* ------------------------------------------ */
+
+/* bConstraint->type 
+ * 	- Do not ever change the order of these, or else files could get
+ * 	  broken as their correct value cannot be resolved
+ */
+typedef enum B_CONSTAINT_TYPES {
+	CONSTRAINT_TYPE_NULL = 0,			/* Invalid/legacy constraint */
+	CONSTRAINT_TYPE_CHILDOF,			/* Unimplemented non longer :) - during constraints recode, Aligorith */
+	CONSTRAINT_TYPE_TRACKTO,
+	CONSTRAINT_TYPE_KINEMATIC,
+	CONSTRAINT_TYPE_FOLLOWPATH,
+	CONSTRAINT_TYPE_ROTLIMIT,			/* Unimplemented no longer :) - Aligorith */
+	CONSTRAINT_TYPE_LOCLIMIT,			/* Unimplemented no longer :) - Aligorith */
+	CONSTRAINT_TYPE_SIZELIMIT,			/* Unimplemented no longer :) - Aligorith */
+	CONSTRAINT_TYPE_ROTLIKE,	
+	CONSTRAINT_TYPE_LOCLIKE,	
+	CONSTRAINT_TYPE_SIZELIKE,
+	CONSTRAINT_TYPE_PYTHON,				/* Unimplemented no longer :) - Aligorith. Scripts */
+	CONSTRAINT_TYPE_ACTION,
+	CONSTRAINT_TYPE_LOCKTRACK,			/* New Tracking constraint that locks an axis in place - theeth */
+	CONSTRAINT_TYPE_DISTANCELIMIT,		/* was never properly coded - removed! */
+	CONSTRAINT_TYPE_STRETCHTO, 			/* claiming this to be mine :) is in tuhopuu bjornmose */ 
+	CONSTRAINT_TYPE_MINMAX,  			/* floor constraint */
+	CONSTRAINT_TYPE_RIGIDBODYJOINT,		/* rigidbody constraint */
+	CONSTRAINT_TYPE_CLAMPTO, 			/* clampto constraint */	
+	CONSTRAINT_TYPE_TRANSFORM,			/* transformation (loc/rot/size -> loc/rot/size) constraint */	
+	
+	/* NOTE: everytime a new constraint is added, update this */
+	NUM_CONSTRAINT_TYPES= CONSTRAINT_TYPE_TRANSFORM
+} B_CONSTRAINT_TYPES; 
 
 /* bConstraint->flag */
+/* flags 0x2 (1<<1) and 0x8 (1<<3) were used in past */
+/* flag 0x20 (1<<5) was used to indicate that a constraint was evaluated using a 'local' hack for posebones only  */
+typedef enum B_CONSTRAINT_FLAG {
 		/* expand for UI */
-#define CONSTRAINT_EXPAND		0x01
+	CONSTRAINT_EXPAND =		(1<<0), 
 		/* pre-check for illegal object name or bone name */
-#define CONSTRAINT_DISABLE		0x04
-		/* flags 0x2 and 0x8 were used in past, skip this */
-		/* to indicate which Ipo should be shown, maybe for 3d access later too */
-#define CONSTRAINT_ACTIVE		0x10
-		/* flag 0x20 was used to indicate that a constraint was evaluated using a 'local' hack for posebones only  */
+	CONSTRAINT_DISABLE = 	(1<<2), 
+		/* to indicate which Ipo should be shown, maybe for 3d access later too */	
+	CONSTRAINT_ACTIVE = 	(1<<4), 
 		/* to indicate that the owner's space should only be changed into ownspace, but not out of it */
-#define CONSTRAINT_SPACEONCE	0x40
+	CONSTRAINT_SPACEONCE = 	(1<<6)  
+} B_CONSTRAINT_FLAG;
 
 /* bConstraint->ownspace/tarspace */
-	/* default for all - worldspace */
-#define CONSTRAINT_SPACE_WORLD			0
-	/* for objects (relative to parent/without parent influence), for bones (along normals of bone, without parent/restposi) */
-#define CONSTRAINT_SPACE_LOCAL			1
-	/* for posechannels - pose space  */
-#define CONSTRAINT_SPACE_POSE			2
-	/* for posechannels - local with parent  */
-#define CONSTRAINT_SPACE_PARLOCAL		3
+typedef enum B_CONSTRAINT_SPACETYPES {
+		/* default for all - worldspace */
+	CONSTRAINT_SPACE_WORLD = 0,
+		/* for objects (relative to parent/without parent influence), 
+		 * for bones (along normals of bone, without parent/restpositions) 
+		 */
+	CONSTRAINT_SPACE_LOCAL,
+		/* for posechannels - pose space  */
+	CONSTRAINT_SPACE_POSE,
+		/* for posechannels - local with parent  */
+	CONSTRAINT_SPACE_PARLOCAL,
+} B_CONSTRAINT_SPACETYPES;
 
 /* bConstraintChannel.flag */
-#define CONSTRAINT_CHANNEL_SELECT		0x01
-#define CONSTRAINT_CHANNEL_PROTECTED 	0x02
+typedef enum B_CONSTRAINTCHANNEL_FLAG {
+	CONSTRAINT_CHANNEL_SELECT =		(1<<0),
+	CONSTRAINT_CHANNEL_PROTECTED =	(1<<1)
+} B_CONSTRAINTCHANNEL_FLAG;
+
+/* -------------------------------------- */
 
 /**
  * The flags for ROTLIKE, LOCLIKE and SIZELIKE should be kept identical

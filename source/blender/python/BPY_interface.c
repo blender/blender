@@ -45,6 +45,7 @@
 #include "BKE_object.h"		/* during_scriptlink() */
 #include "BKE_text.h"
 #include "BKE_constraint.h" /* for bConstraintOb */
+#include "BKE_idprop.h"
 
 #include "DNA_curve_types.h" /* for struct IpoDriver */
 #include "DNA_ID.h" /* ipo driver */
@@ -59,6 +60,7 @@
 #include "BPI_script.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_armature.h"
 #include "api2_2x/EXPP_interface.h"
 #include "api2_2x/constant.h"
 #include "api2_2x/gen_utils.h"
@@ -1157,13 +1159,16 @@ static float pydriver_error(IpoDriver *driver) {
 
 /********PyConstraints*********/
 
+/* This function checks whether a text-buffer is a PyConstraint candidate.
+ * It uses simple text parsing that could be easily confused!
+ */
 int BPY_is_pyconstraint(Text *text)
 {
 	TextLine *tline = text->lines.first;
 
 	if (tline && (tline->len > 10)) {
 		char *line = tline->line;
-
+		
 		/* Expected format: #BPYCONSTRAINT
 		 * The actual checks are forgiving, so slight variations also work. */
 		if (line && line[0] == '#' && strstr(line, "BPYCONSTRAINT")) return 1;
@@ -1171,26 +1176,138 @@ int BPY_is_pyconstraint(Text *text)
 	return 0;
 }
 
+/* This function is called to update PyConstraint data so that it is compatible with the script. 
+ * Some of the allocating/freeing of memory for constraint targets occurs here, espcially
+ * if the number of targets changes.
+ */
+void BPY_pyconstraint_update(Object *owner, bConstraint *con)
+{
+	bPythonConstraint *data= con->data;
+	
+	if (data->text) {	
+		/* script does exist. it is assumed that this is a valid pyconstraint script */
+		PyObject *globals;
+		PyObject *retval, *gval;
+		int num;
+		
+		/* clear the flag first */
+		data->flag = 0;
+		
+		/* populate globals dictionary */
+		globals = CreateGlobalDictionary();
+		retval = RunPython(data->text, globals);
+		
+		if (retval == NULL) {
+			BPY_Err_Handle(data->text->id.name);
+			ReleaseGlobalDictionary(globals);
+			data->flag |= PYCON_SCRIPTERROR;
+			return;
+		}
+		
+		Py_XDECREF(retval);
+		retval = NULL;
+		
+		/* try to find NUM_TARGETS */
+		gval = PyDict_GetItemString(globals, "NUM_TARGETS");
+		if ( (gval) && (num= PyInt_AsLong(gval)) ) {
+			/* NUM_TARGETS is defined... and non-zero */
+			bConstraintTarget *ct;
+			
+			/* check if it is valid (just make sure it is not negative)
+			 *	TODO: PyInt_AsLong may return -1 as sign of invalid input... 
+			 */
+			num = abs(num);
+			data->flag |= PYCON_USETARGETS;
+			
+			/* check if the number of targets has changed */
+			if (num < data->tarnum) {
+				/* free a few targets */
+				for (ct=data->targets.last; num > -1; num--, ct=data->targets.last, data->tarnum--)
+					BLI_freelinkN(&data->targets, ct);
+			}
+			else if (num > data->tarnum) {
+				/* add a few targets */
+				for ( ; num > -1; num--, data->tarnum++) {
+					ct= MEM_callocN(sizeof(bConstraintTarget), "PyConTarget");
+					BLI_addtail(&data->targets, ct);
+				}
+			}
+			
+			/* validate targets */
+			for (ct= data->targets.first; ct; ct= ct->next) {
+				if (!exist_object(ct->tar)) {
+					ct->tar = NULL;
+					con->flag |= CONSTRAINT_DISABLE;
+					break;
+				}
+				
+				if ( (ct->tar == owner) &&
+					 (!get_named_bone(get_armature(owner), ct->subtarget)) ) 
+				{
+					con->flag |= CONSTRAINT_DISABLE;
+					break;
+				}
+			}
+			
+			/* clear globals */
+			ReleaseGlobalDictionary(globals);
+		}
+		else {
+			/* NUM_TARGETS is not defined or equals 0 */
+			ReleaseGlobalDictionary(globals);
+			
+			/* free all targets */
+			BLI_freelistN(&data->targets);
+			data->tarnum = 0;
+			data->flag &= ~PYCON_USETARGETS;
+			
+			return;
+		}
+	}
+	else {
+		/* no script, so clear any settings/data now */
+		data->tarnum = 0;
+		data->flag = 0;
+		
+		BLI_freelistN(&data->targets);
+		
+		/* supposedly this should still leave the base struct... */
+		IDP_FreeProperty(data->prop);
+	}
+}
+
 /* PyConstraints Evaluation Function (only called from evaluate_constraint)
  * This function is responsible for modifying the ownermat that it is passed. 
  */
-void BPY_pyconstraint_eval(bPythonConstraint *con, float ownermat[][4], float targetmat[][4])
+void BPY_pyconstraint_eval(bPythonConstraint *con, bConstraintOb *cob, ListBase *targets)
 {
-	PyObject *srcmat, *tarmat, *idprop;
+	PyObject *srcmat, *tarmat, *tarmats, *idprop;
 	PyObject *globals;
 	PyObject *gval;
 	PyObject *pyargs, *retval;
+	bConstraintTarget *ct;
 	MatrixObject *retmat;
-	int row, col;
+	int row, col, index;
 	
-	if ( !con->text ) return;
-	if ( con->flag & PYCON_SCRIPTERROR) return;
+	if (!con->text) return;
+	if (con->flag & PYCON_SCRIPTERROR) return;
 	
 	globals = CreateGlobalDictionary();
 	
-	srcmat = newMatrixObject( (float*)ownermat, 4, 4, Py_NEW );
-	tarmat = newMatrixObject( (float*)targetmat, 4, 4, Py_NEW );
-	idprop = BPy_Wrap_IDProperty( NULL, con->prop, NULL);
+	/* wrap blender-data as PyObjects for evaluation 
+	 * 	- we expose the owner's matrix as pymatrix
+	 *	- id-properties are wrapped using the id-properties pyapi
+	 *	- targets are presented as a list of matrices
+	 */
+	srcmat = newMatrixObject((float *)cob->matrix, 4, 4, Py_NEW);
+	idprop = BPy_Wrap_IDProperty(NULL, con->prop, NULL);
+	
+	tarmats= PyList_New(con->tarnum); 
+	for (ct=targets->first, index=0; ct; ct=ct->next, index++) {
+		tarmat = newMatrixObject((float *)ct->matrix, 4, 4, Py_NEW);
+		PyList_SetItem(tarmats, index, tarmat);
+	}
+	
 	
 /*  since I can't remember what the armature weakrefs do, I'll just leave this here
     commented out.  This function was based on pydrivers, and it might still be relevent.
@@ -1199,17 +1316,20 @@ void BPY_pyconstraint_eval(bPythonConstraint *con, float ownermat[][4], float ta
 		return result;
 	}
 */
-	retval = RunPython( con->text, globals );
-
-	if ( retval == NULL ) {
-		BPY_Err_Handle(con->text->id.name);
-		ReleaseGlobalDictionary( globals );
-		con->flag |= PYCON_SCRIPTERROR;
 	
+	retval = RunPython(con->text, globals);
+	
+	if (retval == NULL) {
+		BPY_Err_Handle(con->text->id.name);
+		con->flag |= PYCON_SCRIPTERROR;
+		
 		/* free temp objects */
-		Py_XDECREF( idprop );
-		Py_XDECREF( srcmat );
-		Py_XDECREF( tarmat );
+		Py_XDECREF(idprop);
+		Py_XDECREF(srcmat);
+		Py_XDECREF(tarmats);
+		
+		ReleaseGlobalDictionary(globals);
+		
 		return;
 	}
 
@@ -1218,29 +1338,34 @@ void BPY_pyconstraint_eval(bPythonConstraint *con, float ownermat[][4], float ta
 	
 	gval = PyDict_GetItemString(globals, "doConstraint");
 	if (!gval) {
-		ReleaseGlobalDictionary( globals );
-	
-		/* free temp objects */
-		Py_XDECREF( idprop );
-		Py_XDECREF( srcmat );
-		Py_XDECREF( tarmat );
 		printf("ERROR: no doConstraint function in constraint!\n");
+		
+		/* free temp objects */
+		Py_XDECREF(idprop);
+		Py_XDECREF(srcmat);
+		Py_XDECREF(tarmats);
+		
+		ReleaseGlobalDictionary(globals);
+		
 		return;
 	}
 	
 	/* Now for the fun part! Try and find the functions we need. */
-	if (PyFunction_Check(gval) ) {
-		pyargs = Py_BuildValue("OOO", srcmat, tarmat, idprop);
+	if (PyFunction_Check(gval)) {
+		pyargs = Py_BuildValue("OOO", srcmat, tarmats, idprop);
 		retval = PyObject_CallObject(gval, pyargs);
-		Py_XDECREF( pyargs );
-	} else {
+		Py_XDECREF(pyargs);
+	} 
+	else {
 		printf("ERROR: doConstraint is supposed to be a function!\n");
 		con->flag |= PYCON_SCRIPTERROR;
-		ReleaseGlobalDictionary( globals );
 		
-		Py_XDECREF( idprop );
-		Py_XDECREF( srcmat );
-		Py_XDECREF( tarmat );
+		Py_XDECREF(idprop);
+		Py_XDECREF(srcmat);
+		Py_XDECREF(tarmats);
+		
+		ReleaseGlobalDictionary(globals);
+		
 		return;
 	}
 	
@@ -1249,11 +1374,12 @@ void BPY_pyconstraint_eval(bPythonConstraint *con, float ownermat[][4], float ta
 		con->flag |= PYCON_SCRIPTERROR;
 		
 		/* free temp objects */
-		ReleaseGlobalDictionary( globals );
+		Py_XDECREF(idprop);
+		Py_XDECREF(srcmat);
+		Py_XDECREF(tarmats);
 		
-		Py_XDECREF( idprop );
-		Py_XDECREF( srcmat );
-		Py_XDECREF( tarmat );
+		ReleaseGlobalDictionary(globals);
+		
 		return;
 	}
 	
@@ -1261,177 +1387,78 @@ void BPY_pyconstraint_eval(bPythonConstraint *con, float ownermat[][4], float ta
 	if (!PyObject_TypeCheck(retval, &matrix_Type)) {
 		printf("Error in PyConstraint - doConstraint: Function not returning a matrix!\n");
 		con->flag |= PYCON_SCRIPTERROR;
-		ReleaseGlobalDictionary( globals );
 		
-		Py_XDECREF( idprop );
-		Py_XDECREF( srcmat );
-		Py_XDECREF( tarmat );
-		Py_XDECREF( retval );
+		Py_XDECREF(idprop);
+		Py_XDECREF(srcmat);
+		Py_XDECREF(tarmats);
+		Py_XDECREF(retval);
+		
+		ReleaseGlobalDictionary(globals);
+		
 		return;
 	}
 	
-	retmat = (MatrixObject*) retval;
+	retmat = (MatrixObject *)retval;
 	if (retmat->rowSize != 4 || retmat->colSize != 4) {
 		printf("Error in PyConstraint - doConstraint: Matrix returned is the wrong size!\n");
 		con->flag |= PYCON_SCRIPTERROR;
-		ReleaseGlobalDictionary( globals );
 		
-		Py_XDECREF( idprop );
-		Py_XDECREF( srcmat );
-		Py_XDECREF( tarmat );
-		Py_XDECREF( retval );
+		Py_XDECREF(idprop);
+		Py_XDECREF(srcmat);
+		Py_XDECREF(tarmats);
+		Py_XDECREF(retval);
+		
+		ReleaseGlobalDictionary(globals);
+		
 		return;
 	}	
 
 	/* this is the reverse of code taken from newMatrix() */
 	for(row = 0; row < 4; row++) {
 		for(col = 0; col < 4; col++) {
-			ownermat[row][col] = retmat->contigPtr[row*4+col];
+			cob->matrix[row][col] = retmat->contigPtr[row*4+col];
 		}
 	}
 	
-	/* clear globals */
-	ReleaseGlobalDictionary( globals );
-	
 	/* free temp objects */
-	Py_XDECREF( idprop );
-	Py_XDECREF( srcmat );
-	Py_XDECREF( tarmat );
-	Py_XDECREF( retval );
-}
-
-/* PyConstraints 'Driver' Function
- * This function is responsible for running any code that requires full access to the owner and the target
- * It should be used sparringly, and only for doing 'hacks' which are not possible any other way.
- */
-void BPY_pyconstraint_driver(bPythonConstraint *con, bConstraintOb *cob, Object *target, char subtarget[])
-{
-	PyObject *owner, *subowner, *tar, *subtar; 
-	PyObject *idprop;
-	PyObject *globals, *gval;
-	PyObject *pyargs, *retval;
-	
-	if ( !con->text ) return;
-	if ( con->flag & PYCON_SCRIPTERROR) return;
-	
-	globals = CreateGlobalDictionary();
-	
-	owner = Object_CreatePyObject( cob->ob );
-	subowner = PyPoseBone_FromPosechannel( cob->pchan );
-	
-	tar = Object_CreatePyObject( target );
-	if ( (target) && (target->type==OB_ARMATURE) ) {
-		bPoseChannel *pchan;
-		pchan = get_pose_channel( target->pose, subtarget );
-		subtar = PyPoseBone_FromPosechannel( pchan );
-	}
-	else
-		subtar = PyString_FromString(subtarget);
-	
-	idprop = BPy_Wrap_IDProperty( NULL, con->prop, NULL);
-	
-/*  since I can't remember what the armature weakrefs do, I'll just leave this here
-    commented out.  This function was based on pydrivers, and it might still be relevent.
-	if( !setup_armature_weakrefs()){
-		fprintf( stderr, "Oops - weakref dict setup\n");
-		return result;
-	}
-*/
-	retval = RunPython( con->text, globals );
-
-	if ( retval == NULL ) {
-		BPY_Err_Handle(con->text->id.name);
-		ReleaseGlobalDictionary( globals );
-		con->flag |= PYCON_SCRIPTERROR;
-	
-		/* free temp objects */
-		Py_XDECREF( idprop );
-		Py_XDECREF( owner );
-		Py_XDECREF( subowner );
-		Py_XDECREF( tar );
-		Py_XDECREF( subtar );
-		return;
-	}
-
-	if (retval) {Py_XDECREF( retval );}
-	retval = NULL;
-	
-	gval = PyDict_GetItemString(globals, "doDriver");
-	if (!gval) {
-		ReleaseGlobalDictionary( globals );
-	
-		/* free temp objects */
-		Py_XDECREF( idprop );
-		Py_XDECREF( owner );
-		Py_XDECREF( subowner );
-		Py_XDECREF( tar );
-		Py_XDECREF( subtar );
-		return;
-	}
-	
-	/* Now for the fun part! Try and find the functions we need. */
-	if (PyFunction_Check(gval) ) {
-		pyargs = Py_BuildValue("OOOOO", owner, subowner, tar, subtar, idprop);
-		retval = PyObject_CallObject(gval, pyargs);
-		Py_XDECREF( pyargs );
-	} else {
-		printf("ERROR: doDriver is supposed to be a function!\n");
-		con->flag |= PYCON_SCRIPTERROR;
-		ReleaseGlobalDictionary( globals );
-		
-		Py_XDECREF( idprop );
-		Py_XDECREF( owner );
-		Py_XDECREF( subowner );
-		Py_XDECREF( tar );
-		Py_XDECREF( subtar );
-		return;
-	}
-	
-	/* an error occurred while running the function? */
-	if (!retval) {
-		BPY_Err_Handle(con->text->id.name);
-		con->flag |= PYCON_SCRIPTERROR;
-	}
+	Py_XDECREF(idprop);
+	Py_XDECREF(srcmat);
+	Py_XDECREF(tarmats);
+	Py_XDECREF(retval);
 	
 	/* clear globals */
-	ReleaseGlobalDictionary( globals );
-	
-	/* free temp objects */
-	Py_XDECREF( idprop );
-	Py_XDECREF( owner );
-	Py_XDECREF( subowner );
-	Py_XDECREF( tar );
-	Py_XDECREF( subtar );
+	ReleaseGlobalDictionary(globals);
 }
 
-/* This evaluates whether constraint uses targets, and also the target matrix 
- * Return code of 0 = doesn't use targets, 1 = uses targets + matrix set, -1 = uses targets + matrix not set
+/* This evaluates the target matrix for each target the PyConstraint uses.
+ * NOTE: it only does one target at a time!
  */
-int BPY_pyconstraint_targets(bPythonConstraint *con, float targetmat[][4])
+void BPY_pyconstraint_target(bPythonConstraint *con, bConstraintTarget *ct)
 {
 	PyObject *tar, *subtar;
 	PyObject *tarmat, *idprop;
 	PyObject *globals;
-	PyObject *gval, *gval2;
+	PyObject *gval;
 	PyObject *pyargs, *retval;
 	MatrixObject *retmat;
 	int row, col;
 	
-	if ( !con->text ) return 0;
-	if ( con->flag & PYCON_SCRIPTERROR) return 0;
+	if (!con->text) return;
+	if (con->flag & PYCON_SCRIPTERROR) return;
+	if (!ct) return;
 	
 	globals = CreateGlobalDictionary();
 	
-	tar = Object_CreatePyObject( con->tar );
-	if ( (con->tar) && (con->tar->type==OB_ARMATURE) ) {
+	tar = Object_CreatePyObject(ct->tar);
+	if ((ct->tar) && (ct->tar->type==OB_ARMATURE)) {
 		bPoseChannel *pchan;
-		pchan = get_pose_channel( con->tar->pose, con->subtarget );
-		subtar = PyPoseBone_FromPosechannel( pchan );
+		pchan = get_pose_channel(ct->tar->pose, ct->subtarget);
+		subtar = PyPoseBone_FromPosechannel(pchan);
 	}
 	else
-		subtar = PyString_FromString(con->subtarget);
+		subtar = PyString_FromString(ct->subtarget);
 	
-	tarmat = newMatrixObject( (float*)targetmat, 4, 4, Py_NEW );
+	tarmat = newMatrixObject((float *)ct->matrix, 4, 4, Py_NEW);
 	idprop = BPy_Wrap_IDProperty( NULL, con->prop, NULL);
 	
 /*  since I can't remember what the armature weakrefs do, I'll just leave this here
@@ -1441,123 +1468,118 @@ int BPY_pyconstraint_targets(bPythonConstraint *con, float targetmat[][4])
 		return result;
 	}
 */
-	retval = RunPython( con->text, globals );
+	retval = RunPython(con->text, globals);
 
-	if ( retval == NULL ) {
+	if (retval == NULL) {
 		BPY_Err_Handle(con->text->id.name);
-		ReleaseGlobalDictionary( globals );
 		con->flag |= PYCON_SCRIPTERROR;
-	
+		
 		/* free temp objects */
-		Py_XDECREF( tar );
-		Py_XDECREF( subtar );
-		Py_XDECREF( idprop );
-		Py_XDECREF( tarmat );
-		return 0;
+		Py_XDECREF(tar);
+		Py_XDECREF(subtar);
+		Py_XDECREF(idprop);
+		Py_XDECREF(tarmat);
+		
+		ReleaseGlobalDictionary(globals);
+		
+		return;
 	}
 
-	Py_XDECREF( retval );
+	Py_XDECREF(retval);
 	retval = NULL;
 	
-	/* try to find USE_TARGET global constant */
-	gval = PyDict_GetItemString(globals, "USE_TARGET");
-	if (!gval || PyObject_IsTrue(gval) != 1) {
-		ReleaseGlobalDictionary( globals );
-	
-		/* free temp objects */
-		Py_XDECREF( tar );
-		Py_XDECREF( subtar );
-		Py_XDECREF( idprop );
-		Py_XDECREF( tarmat );
-		return 0;
-	}
-	
 	/* try to find doTarget function to set the target matrix */
-	gval2 = PyDict_GetItemString(globals, "doTarget");
-	if (!gval2) {
-		ReleaseGlobalDictionary( globals );
-	
+	gval = PyDict_GetItemString(globals, "doTarget");
+	if (!gval) {
 		/* free temp objects */
-		Py_XDECREF( tar );
-		Py_XDECREF( subtar );
-		Py_XDECREF( idprop );
-		Py_XDECREF( tarmat );
-		return -1;
+		Py_XDECREF(tar);
+		Py_XDECREF(subtar);
+		Py_XDECREF(idprop);
+		Py_XDECREF(tarmat);
+		
+		ReleaseGlobalDictionary(globals);
+		
+		return;
 	}
 	
 	/* Now for the fun part! Try and find the functions we need.*/
-	if (PyFunction_Check(gval2) ) {
+	if (PyFunction_Check(gval)) {
 		pyargs = Py_BuildValue("OOOO", tar, subtar, tarmat, idprop);
-		retval = PyObject_CallObject(gval2, pyargs);
-		Py_XDECREF( pyargs );
-	} else {
+		retval = PyObject_CallObject(gval, pyargs);
+		Py_XDECREF(pyargs);
+	} 
+	else {
 		printf("ERROR: doTarget is supposed to be a function!\n");
 		con->flag |= PYCON_SCRIPTERROR;
-		ReleaseGlobalDictionary( globals );
 		
-		Py_XDECREF( tar );
-		Py_XDECREF( subtar );
-		Py_XDECREF( idprop );
-		Py_XDECREF( tarmat );
-		return -1;
+		Py_XDECREF(tar);
+		Py_XDECREF(subtar);
+		Py_XDECREF(idprop);
+		Py_XDECREF(tarmat);
+		
+		ReleaseGlobalDictionary(globals);
+		return;
 	}
 	
 	if (!retval) {
 		BPY_Err_Handle(con->text->id.name);
 		con->flag |= PYCON_SCRIPTERROR;
 		
-		/* free temp objects */
-		ReleaseGlobalDictionary( globals );
 		
-		Py_XDECREF( tar );
-		Py_XDECREF( subtar );
-		Py_XDECREF( idprop );
-		Py_XDECREF( tarmat );
-		return -1;
+		/* free temp objects */
+		Py_XDECREF(tar);
+		Py_XDECREF(subtar);
+		Py_XDECREF(idprop);
+		Py_XDECREF(tarmat);
+		
+		ReleaseGlobalDictionary(globals);
+		return;
 	}
 	
 	if (!PyObject_TypeCheck(retval, &matrix_Type)) {
-		ReleaseGlobalDictionary( globals );
+		con->flag |= PYCON_SCRIPTERROR;
 		
-		Py_XDECREF( tar );
-		Py_XDECREF( subtar );
-		Py_XDECREF( idprop );
-		Py_XDECREF( tarmat );
-		Py_XDECREF( retval );
-		return -1;
+		Py_XDECREF(tar);
+		Py_XDECREF(subtar);
+		Py_XDECREF(idprop);
+		Py_XDECREF(tarmat);
+		Py_XDECREF(retval);
+		
+		ReleaseGlobalDictionary(globals);
+		return;
 	}
 	
-	retmat = (MatrixObject*) retval;
+	retmat = (MatrixObject *)retval;
 	if (retmat->rowSize != 4 || retmat->colSize != 4) {
 		printf("Error in PyConstraint - doTarget: Matrix returned is the wrong size!\n");
 		con->flag |= PYCON_SCRIPTERROR;
-		ReleaseGlobalDictionary( globals );
 		
-		Py_XDECREF( tar );
-		Py_XDECREF( subtar );
-		Py_XDECREF( idprop );
-		Py_XDECREF( tarmat );
-		Py_XDECREF( retval );
-		return -1;
+		Py_XDECREF(tar);
+		Py_XDECREF(subtar);
+		Py_XDECREF(idprop);
+		Py_XDECREF(tarmat);
+		Py_XDECREF(retval);
+		
+		ReleaseGlobalDictionary(globals);
+		return;
 	}	
 
 	/* this is the reverse of code taken from newMatrix() */
 	for(row = 0; row < 4; row++) {
 		for(col = 0; col < 4; col++) {
-			targetmat[row][col] = retmat->contigPtr[row*4+col];
+			ct->matrix[row][col] = retmat->contigPtr[row*4+col];
 		}
 	}
 	
-	/* clear globals */
-	ReleaseGlobalDictionary( globals );
-	
 	/* free temp objects */
-	Py_XDECREF( tar );
-	Py_XDECREF( subtar );
-	Py_XDECREF( idprop );
-	Py_XDECREF( tarmat );
-	Py_XDECREF( retval );
-	return 1;
+	Py_XDECREF(tar);
+	Py_XDECREF(subtar);
+	Py_XDECREF(idprop);
+	Py_XDECREF(tarmat);
+	Py_XDECREF(retval);
+	
+	/* clear globals */
+	ReleaseGlobalDictionary(globals);
 }
 
 /* This draws+handles the user-defined interface for editing pyconstraints idprops */
@@ -1569,22 +1591,22 @@ void BPY_pyconstraint_settings(void *arg1, void *arg2)
 	PyObject *gval;
 	PyObject *retval;
 	
-	if ( !con->text ) return;
-	if ( con->flag & PYCON_SCRIPTERROR) return;
+	if (!con->text) return;
+	if (con->flag & PYCON_SCRIPTERROR) return;
 	
 	globals = CreateGlobalDictionary();
 	
 	idprop = BPy_Wrap_IDProperty( NULL, con->prop, NULL);
 	
-	retval = RunPython( con->text, globals );
+	retval = RunPython(con->text, globals);
 
-	if ( retval == NULL ) {
+	if (retval == NULL) {
 		BPY_Err_Handle(con->text->id.name);
-		ReleaseGlobalDictionary( globals );
+		ReleaseGlobalDictionary(globals);
 		con->flag |= PYCON_SCRIPTERROR;
 	
 		/* free temp objects */
-		Py_XDECREF( idprop );
+		Py_XDECREF(idprop);
 		return;
 	}
 
@@ -1597,18 +1619,19 @@ void BPY_pyconstraint_settings(void *arg1, void *arg2)
 		
 		/* free temp objects */
 		ReleaseGlobalDictionary( globals );
-		Py_XDECREF( idprop );
+		Py_XDECREF(idprop);
 		return;
 	}
 	
 	/* Now for the fun part! Try and find the functions we need. */
-	if (PyFunction_Check(gval) ) {
+	if (PyFunction_Check(gval)) {
 		retval = PyObject_CallFunction(gval, "O", idprop);
-	} else {
+	} 
+	else {
 		printf("ERROR: getSettings is supposed to be a function!\n");
 		ReleaseGlobalDictionary( globals );
 		
-		Py_XDECREF( idprop );
+		Py_XDECREF(idprop);
 		return;
 	}
 	
@@ -1617,17 +1640,17 @@ void BPY_pyconstraint_settings(void *arg1, void *arg2)
 		con->flag |= PYCON_SCRIPTERROR;
 		
 		/* free temp objects */
-		ReleaseGlobalDictionary( globals );
-		Py_XDECREF( idprop );
+		ReleaseGlobalDictionary(globals);
+		Py_XDECREF(idprop);
 		return;
 	}
 	else {
 		/* clear globals */
-		ReleaseGlobalDictionary( globals );
+		ReleaseGlobalDictionary(globals);
 		
 		/* free temp objects */
-		Py_XDECREF( idprop );
-		Py_DECREF( retval );
+		Py_XDECREF(idprop);
+		Py_DECREF(retval);
 		return;
 	}
 }

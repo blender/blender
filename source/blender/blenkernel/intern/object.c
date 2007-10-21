@@ -264,7 +264,6 @@ void unlink_object(Object *ob)
 	bConstraint *con;
 	bActionStrip *strip;
 	int a;
-	char *str;
 	
 	unlink_controllers(&ob->controllers);
 	unlink_actuators(&ob->actuators);
@@ -313,9 +312,23 @@ void unlink_object(Object *ob)
 			bPoseChannel *pchan;
 			for(pchan= obt->pose->chanbase.first; pchan; pchan= pchan->next) {
 				for (con = pchan->constraints.first; con; con=con->next) {
-					if(ob==get_constraint_target(con, &str)) {
-						set_constraint_target(con, NULL, NULL);
-						obt->recalc |= OB_RECALC_DATA;
+					bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+					ListBase targets = {NULL, NULL};
+					bConstraintTarget *ct;
+					
+					if (cti && cti->get_constraint_targets) {
+						cti->get_constraint_targets(con, &targets);
+						
+						for (ct= targets.first; ct; ct= ct->next) {
+							if (ct->tar == ob) {
+								ct->tar = NULL;
+								strcpy(ct->subtarget, "");
+								obt->recalc |= OB_RECALC_DATA;
+							}
+						}
+						
+						if (cti->flush_constraint_targets)
+							cti->flush_constraint_targets(con, &targets, 0);
 					}
 				}
 				if(pchan->custom==ob)
@@ -326,9 +339,23 @@ void unlink_object(Object *ob)
 		sca_remove_ob_poin(obt, ob);
 		
 		for (con = obt->constraints.first; con; con=con->next) {
-			if(ob==get_constraint_target(con, &str)) {
-				set_constraint_target(con, NULL, NULL);
-				obt->recalc |= OB_RECALC_OB;
+			bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+			ListBase targets = {NULL, NULL};
+			bConstraintTarget *ct;
+			
+			if (cti && cti->get_constraint_targets) {
+				cti->get_constraint_targets(con, &targets);
+				
+				for (ct= targets.first; ct; ct= ct->next) {
+					if (ct->tar == ob) {
+						ct->tar = NULL;
+						strcpy(ct->subtarget, "");
+						obt->recalc |= OB_RECALC_DATA;
+					}
+				}
+				
+				if (cti->flush_constraint_targets)
+					cti->flush_constraint_targets(con, &targets, 0);
 			}
 		}
 		
@@ -925,11 +952,27 @@ static void copy_object_pose(Object *obn, Object *ob)
 
 	for (chan = obn->pose->chanbase.first; chan; chan=chan->next){
 		bConstraint *con;
-		char *str;
+		
 		chan->flag &= ~(POSE_LOC|POSE_ROT|POSE_SIZE);
-		for(con= chan->constraints.first; con; con= con->next) {
-			if(ob==get_constraint_target(con, &str))
-				set_constraint_target(con, obn, NULL);
+		
+		for (con= chan->constraints.first; con; con= con->next) {
+			bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+			ListBase targets = {NULL, NULL};
+			bConstraintTarget *ct;
+			
+			if (cti && cti->get_constraint_targets) {
+				cti->get_constraint_targets(con, &targets);
+				
+				for (ct= targets.first; ct; ct= ct->next) {
+					if (ct->tar == ob) {
+						ct->tar = obn;
+						strcpy(ct->subtarget, "");
+					}
+				}
+				
+				if (cti->flush_constraint_targets)
+					cti->flush_constraint_targets(con, &targets, 0);
+			}
 		}
 	}
 }
@@ -1606,7 +1649,7 @@ void where_is_object_time(Object *ob, float ctime)
 	if (ob->constraints.first) {
 		bConstraintOb *cob;
 		
-		cob= constraints_make_evalob(ob, NULL, TARGET_OBJECT);
+		cob= constraints_make_evalob(ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
 		
 		/* constraints need ctime, not stime. Some call where_is_object_time and bsystem_time */
 		solve_constraints (&ob->constraints, cob, ctime);
@@ -1783,7 +1826,7 @@ for a lamp that is the child of another object */
 	if (ob->constraints.first) {
 		bConstraintOb *cob;
 		
-		cob= constraints_make_evalob(ob, NULL, TARGET_OBJECT);
+		cob= constraints_make_evalob(ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
 		solve_constraints (&ob->constraints, cob, G.scene->r.cfra);
 		constraints_clear_evalob(cob);
 	}

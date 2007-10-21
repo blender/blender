@@ -451,16 +451,28 @@ static void joined_armature_fix_links(Object *tarArm, Object *srcArm, bPoseChann
 			pose= ob->pose;
 			for (pchant= pose->chanbase.first; pchant; pchant= pchant->next) {
 				for (con= pchant->constraints.first; con; con= con->next) {
-					Object *conOb;
-					char *subtarget;
+					bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+					ListBase targets = {NULL, NULL};
+					bConstraintTarget *ct;
 					
 					/* constraint targets */
-					conOb= get_constraint_target(con, &subtarget);
-					if (conOb == srcArm) {
-						if (strcmp(subtarget, "")==0)
-							set_constraint_target(con, tarArm, "");
-						else if (strcmp(pchan->name, subtarget)==0)
-							set_constraint_target(con, tarArm, curbone->name);
+					if (cti && cti->get_constraint_targets) {
+						cti->get_constraint_targets(con, &targets);
+						
+						for (ct= targets.first; ct; ct= ct->next) {
+							if (ct->tar == srcArm) {
+								if (strcmp(ct->subtarget, "")==0) {
+									ct->tar = tarArm;
+								}
+								else if (strcmp(ct->subtarget, pchan->name)==0) {
+									ct->tar = tarArm;
+									strcpy(ct->subtarget, curbone->name);
+								}
+							}
+						}
+						
+						if (cti->flush_constraint_targets)
+							cti->flush_constraint_targets(con, &targets, 0);
 					}
 					
 					/* action constraint? */
@@ -486,15 +498,28 @@ static void joined_armature_fix_links(Object *tarArm, Object *srcArm, bPoseChann
 		/* fix object-level constraints */
 		if (ob != srcArm) {
 			for (con= ob->constraints.first; con; con= con->next) {
-				Object *conOb;
-				char *subtarget;
+				bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+				ListBase targets = {NULL, NULL};
+				bConstraintTarget *ct;
 				
-				conOb= get_constraint_target(con, &subtarget);
-				if (conOb == srcArm) {
-					if (strcmp(subtarget, "")==0)
-						set_constraint_target(con, tarArm, "");
-					else if (strcmp(pchan->name, subtarget)==0)
-						set_constraint_target(con, tarArm, curbone->name);
+				/* constraint targets */
+				if (cti && cti->get_constraint_targets) {
+					cti->get_constraint_targets(con, &targets);
+					
+					for (ct= targets.first; ct; ct= ct->next) {
+						if (ct->tar == srcArm) {
+							if (strcmp(ct->subtarget, "")==0) {
+								ct->tar = tarArm;
+							}
+							else if (strcmp(ct->subtarget, pchan->name)==0) {
+								ct->tar = tarArm;
+								strcpy(ct->subtarget, curbone->name);
+							}
+						}
+					}
+					
+					if (cti->flush_constraint_targets)
+						cti->flush_constraint_targets(con, &targets, 0);
 				}
 			}
 		}

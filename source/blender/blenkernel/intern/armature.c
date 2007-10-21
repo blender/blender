@@ -1239,7 +1239,6 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 	bPose *pose= ob->pose, *frompose= from->pose;
 	bPoseChannel *pchan, *pchanp, pchanw;
 	bConstraint *con;
-	char *str;
 	
 	if(frompose==NULL) return;
 	
@@ -1267,8 +1266,23 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 			copy_constraints(&pchanw.constraints, &pchanp->constraints);
 
 			for(con= pchanw.constraints.first; con; con= con->next) {
-				if(from==get_constraint_target(con, &str))
-					set_constraint_target(con, ob, NULL);
+				bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+				ListBase targets = {NULL, NULL};
+				bConstraintTarget *ct;
+				
+				if (cti && cti->get_constraint_targets) {
+					cti->get_constraint_targets(con, &targets);
+					
+					for (ct= targets.first; ct; ct= ct->next) {
+						if (ct->tar == from) {
+							ct->tar = ob;
+							strcpy(ct->subtarget, "");
+						}
+					}
+					
+					if (cti->flush_constraint_targets)
+						cti->flush_constraint_targets(con, &targets, 0);
+				}
 			}
 			
 			/* free stuff from current channel */
@@ -1609,45 +1623,47 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 	Mat4MulMat4 (imat, rootmat, ob->obmat);
 	Mat4Invert (goalinv, imat);
 	
-	for(target=tree->targets.first; target; target=target->next) {
+	for (target=tree->targets.first; target; target=target->next) {
 		data= (bKinematicConstraint*)target->con->data;
-
-		/* 1.0=ctime, we pass on object for auto-ik */
-		get_constraint_target_matrix(target->con, TARGET_BONE, ob, rootmat, 1.0);
-
+		
+		/* 1.0=ctime, we pass on object for auto-ik (owner-type here is object, even though
+		 * strictly speaking, it is a posechannel)
+		 */
+		get_constraint_target_matrix(target->con, CONSTRAINT_OBTYPE_OBJECT, ob, rootmat, 1.0);
+		
 		/* and set and transform goal */
 		Mat4MulMat4(goal, rootmat, goalinv);
-
+		
 		VECCOPY(goalpos, goal[3]);
 		Mat3CpyMat4(goalrot, goal);
-
+		
 		/* do we need blending? */
-		if(target->con->enforce!=1.0) {
+		if (target->con->enforce!=1.0) {
 			float q1[4], q2[4], q[4];
 			float fac= target->con->enforce;
 			float mfac= 1.0-fac;
 			
 			pchan= tree->pchan[target->tip];
-
+			
 			/* end effector in world space */
 			Mat4CpyMat4(end_pose, pchan->pose_mat);
 			VECCOPY(end_pose[3], pchan->pose_tail);
 			Mat4MulSerie(world_pose, goalinv, ob->obmat, end_pose, 0, 0, 0, 0, 0);
-
+			
 			/* blend position */
 			goalpos[0]= fac*goalpos[0] + mfac*world_pose[3][0];
 			goalpos[1]= fac*goalpos[1] + mfac*world_pose[3][1];
 			goalpos[2]= fac*goalpos[2] + mfac*world_pose[3][2];
-
+			
 			/* blend rotation */
 			Mat3ToQuat(goalrot, q1);
 			Mat4ToQuat(world_pose, q2);
 			QuatInterpol(q, q1, q2, mfac);
 			QuatToMat3(q, goalrot);
 		}
-
+		
 		iktarget= iktree[target->tip];
-
+		
 		if(data->weight != 0.0)
 			IK_SolverAddGoal(solver, iktarget, goalpos, data->weight);
 		if((data->flag & CONSTRAINT_IK_ROT) && (data->orientweight != 0.0) && (data->flag & CONSTRAINT_IK_AUTO)==0)
@@ -1932,7 +1948,7 @@ static void where_is_pose_bone(Object *ob, bPoseChannel *pchan, float ctime)
 		/* prepare PoseChannel for Constraint solving 
 		 * - makes a copy of matrix, and creates temporary struct to use 
 		 */
-		cob= constraints_make_evalob(ob, pchan, TARGET_BONE);
+		cob= constraints_make_evalob(ob, pchan, CONSTRAINT_OBTYPE_BONE);
 		
 		/* Solve PoseChannel's Constraints */
 		solve_constraints(&pchan->constraints, cob, ctime);	// ctime doesnt alter objects

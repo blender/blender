@@ -57,6 +57,8 @@ struct RenderResult;
 struct Object;
 struct bPythonConstraint;
 struct bConstraintOb;
+struct bConstraintTarget;
+struct ListBase;
 
 char *getIpoCurveName( struct IpoCurve * icu );
 void insert_vert_icu(struct IpoCurve *icu, float x, float y, short fast);
@@ -128,15 +130,11 @@ int BPY_button_eval(char *expr, double *value)
 }
 
 /* PyConstraints - BPY_interface.c */
-void BPY_pyconstraint_eval(struct bPythonConstraint *con, float ownermat[][4], float targetmat[][4])
+void BPY_pyconstraint_eval(struct bPythonConstraint *con, struct bConstraintOb *cob, struct ListBase *targets)
 {
 }
-void BPY_pyconstraint_driver(struct bPythonConstraint *con, struct bConstraintOb *cob, struct Object *target, char subtarget[])
+void BPY_pyconstraint_target(struct bPythonConstraint *con, struct bConstraintTarget *ct)
 {
-}
-int BPY_pyconstraint_targets(struct bPythonConstraint *con, float targetmat[][4])
-{
-	return 0;
 }
 
 

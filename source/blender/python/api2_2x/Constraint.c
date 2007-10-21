@@ -534,7 +534,10 @@ static int constspace_setter( BPy_Constraint *self, int type, PyObject *value )
 				Object *tar;
 				char *subtarget;
 				
-				tar= get_constraint_target(con, &subtarget);
+				// FIXME!!!
+				//tar= get_constraint_target(con, &subtarget);
+				tar = NULL;
+				subtarget = NULL;
 				
 				/* only copy depending on target-type */
 				if (tar && subtarget[0]) {
@@ -1318,10 +1321,11 @@ static PyObject *script_getter( BPy_Constraint * self, int type )
 	bPythonConstraint *con = (bPythonConstraint *)(self->con->data);
 
 	switch( type ) {
-	case EXPP_CONSTR_TARGET:
-		return Object_CreatePyObject( con->tar );
-	case EXPP_CONSTR_BONE:
-		return PyString_FromString( con->subtarget );
+		// FIXME!!!
+	//case EXPP_CONSTR_TARGET:
+	//	return Object_CreatePyObject( con->tar );
+	//case EXPP_CONSTR_BONE:
+	//	return PyString_FromString( con->subtarget );
 	case EXPP_CONSTR_SCRIPT:
 		return Text_CreatePyObject( con->text );
 	case EXPP_CONSTR_PROPS:
@@ -1336,24 +1340,25 @@ static int script_setter( BPy_Constraint *self, int type, PyObject *value )
 	bPythonConstraint *con = (bPythonConstraint *)(self->con->data);
 
 	switch( type ) {
-	case EXPP_CONSTR_TARGET: {
-		Object *obj = (( BPy_Object * )value)->object;
-		if( !BPy_Object_Check( value ) )
-			return EXPP_ReturnIntError( PyExc_TypeError, 
-					"expected BPy object argument" );
-		con->tar = obj;
-		return 0;
-		}
-	case EXPP_CONSTR_BONE: {
-		char *name = PyString_AsString( value );
-		if( !name )
-			return EXPP_ReturnIntError( PyExc_TypeError,
-					"expected string arg" );
-
-		BLI_strncpy( con->subtarget, name, sizeof( con->subtarget ) );
-
-		return 0;
-		}
+		// FIXME!!!
+	//case EXPP_CONSTR_TARGET: {
+	//	Object *obj = (( BPy_Object * )value)->object;
+	//	if( !BPy_Object_Check( value ) )
+	//		return EXPP_ReturnIntError( PyExc_TypeError, 
+	//				"expected BPy object argument" );
+	//	con->tar = obj;
+	//	return 0;
+	//	}
+	//case EXPP_CONSTR_BONE: {
+	//	char *name = PyString_AsString( value );
+	//	if( !name )
+	//		return EXPP_ReturnIntError( PyExc_TypeError,
+	//				"expected string arg" );
+	//
+	//	BLI_strncpy( con->subtarget, name, sizeof( con->subtarget ) );
+	//
+	//	return 0;
+	//	}
 	case EXPP_CONSTR_SCRIPT: {
 		Text *text = (( BPy_Text * )value)->text;
 		if( !BPy_Object_Check( value ) )
@@ -1852,14 +1857,20 @@ static int Constraint_compare( BPy_Constraint * a, BPy_Constraint * b )
 
 static PyObject *Constraint_repr( BPy_Constraint * self )
 {
-	char type[32];
+	bConstraintTypeInfo *cti;
 
-	if( !self->con )
-		return PyString_FromString( "[Constraint - Removed]");
-
-	get_constraint_typestring (type,  self->con);
-	return PyString_FromFormat( "[Constraint \"%s\", Type \"%s\"]",
-			self->con->name, type );
+	if (!self->con)
+		return PyString_FromString("[Constraint - Removed]");
+	else
+		cti= constraint_get_typeinfo(self->con);
+	
+	if (cti) {
+		return PyString_FromFormat("[Constraint \"%s\", Type \"%s\"]",
+				self->con->name, cti->name);
+	}
+	else {
+		return PyString_FromString("[Constraint \"%s\", Type \"Unknown\"]");
+	}
 }
 
 /* Three Python Constraint_Type helper functions needed by the Object module: */

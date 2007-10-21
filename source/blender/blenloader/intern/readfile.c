@@ -1620,9 +1620,12 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 		switch (con->type) {
 		case CONSTRAINT_TYPE_PYTHON:
 			{
-				bPythonConstraint *data;
-				data= (bPythonConstraint*)con->data;
-				data->tar = newlibadr(fd, id->lib, data->tar);
+				bPythonConstraint *data= (bPythonConstraint*)con->data;
+				bConstraintTarget *ct;
+				
+				for (ct= data->targets.first; ct; ct= ct->next)
+					ct->tar = newlibadr(fd, id->lib, ct->tar);
+					
 				data->text = newlibadr(fd, id->lib, data->text);
 				//IDP_LibLinkProperty(data->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 			}
@@ -5257,7 +5260,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 			if (ob->track){
 				bConstraint *con;
+				bConstraintTypeInfo *cti;
 				bTrackToConstraint *data;
+				void *cdata;
 
 				list = &ob->constraints;
 				if (list)
@@ -5268,9 +5273,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					con->flag |= CONSTRAINT_EXPAND;
 					con->enforce=1.0F;
 					con->type = CONSTRAINT_TYPE_TRACKTO;
-					data = (bTrackToConstraint *)
-						new_constraint_data(CONSTRAINT_TYPE_TRACKTO);
-
+					
+					cti= get_constraint_typeinfo(CONSTRAINT_TYPE_TRACKTO);
+					cdata= MEM_callocN(cti->size, cti->structName);
+					cti->new_data(cdata);
+					data = (bTrackToConstraint *)cdata;
+					
 					data->tar = ob->track;
 					data->reserved1 = ob->trackflag;
 					data->reserved2 = ob->upflag;
@@ -5279,7 +5287,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				}
 				ob->track = 0;
 			}
-
+			
 			ob = ob->id.next;
 		}
 
@@ -6757,14 +6765,16 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		bArmature *arm;
 		ModifierData *md;
 		Object *ob;
-
+		
 		for(arm= main->armature.first; arm; arm= arm->id.next)
 			arm->deformflag |= ARM_DEF_B_BONE_REST;
-
-		for(ob = main->object.first; ob; ob= ob->id.next)
-			for(md=ob->modifiers.first; md; md=md->next)
+		
+		for(ob = main->object.first; ob; ob= ob->id.next) {
+			for(md=ob->modifiers.first; md; md=md->next) {
 				if(md->type==eModifierType_Armature)
 					((ArmatureModifierData*)md)->deformflag |= ARM_DEF_B_BONE_REST;
+			}
+		}
 	}
 
 	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 5)) {
@@ -6782,6 +6792,61 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for(sce= main->scene.first; sce; sce= sce->id.next) {
 			if (sce->r.frs_sec_base == 0) {
 				sce->r.frs_sec_base = 1;
+			}
+		}
+	}
+	
+	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 7)) {
+		Object *ob;
+		bPoseChannel *pchan;
+		bConstraint *con;
+		bConstraintTarget *ct;
+		
+		for(ob = main->object.first; ob; ob= ob->id.next) {
+			if(ob->pose) {
+				for(pchan=ob->pose->chanbase.first; pchan; pchan=pchan->next) {
+					for(con=pchan->constraints.first; con; con=con->next) {
+						if(con->type==CONSTRAINT_TYPE_PYTHON) {
+							bPythonConstraint *data= (bPythonConstraint *)con->data;
+							if (data->tar) {
+								/* version patching needs to be done */
+								ct= MEM_callocN(sizeof(bConstraintTarget), "PyConTarget");
+								
+								ct->tar = data->tar;
+								strcpy(ct->subtarget, data->subtarget);
+								ct->space = con->tarspace;
+								
+								BLI_addtail(&data->targets, ct);
+								data->tarnum++;
+								
+								/* clear old targets to avoid problems */
+								data->tar = NULL;
+								strcpy(data->subtarget, "");
+							}
+						}
+					}
+				}
+			}
+			
+			for(con=ob->constraints.first; con; con=con->next) {
+				if(con->type==CONSTRAINT_TYPE_PYTHON) {
+					bPythonConstraint *data= (bPythonConstraint *)con->data;
+					if (data->tar) {
+						/* version patching needs to be done */
+						ct= MEM_callocN(sizeof(bConstraintTarget), "PyConTarget");
+						
+						ct->tar = data->tar;
+						strcpy(ct->subtarget, data->subtarget);
+						ct->space = con->tarspace;
+						
+						BLI_addtail(&data->targets, ct);
+						data->tarnum++;
+						
+						/* clear old targets to avoid problems */
+						data->tar = NULL;
+						strcpy(data->subtarget, "");
+					}
+				}
 			}
 		}
 	}
@@ -7185,7 +7250,11 @@ static void expand_constraints(FileData *fd, Main *mainvar, ListBase *lb)
 		case CONSTRAINT_TYPE_PYTHON:
 			{
 				bPythonConstraint *data = (bPythonConstraint*)curcon->data;
-				expand_doit(fd, mainvar, data->tar);
+				bConstraintTarget *ct;
+				
+				for (ct= data->targets.first; ct; ct= ct->next)
+					expand_doit(fd, mainvar, ct->tar);
+				
 				expand_doit(fd, mainvar, data->text);
 			}
 			break;

@@ -156,10 +156,10 @@ bConstraint *get_active_constraint(Object *ob)
 {
 	ListBase *lb= get_active_constraints(ob);
 
-	if(lb) {
+	if (lb) {
 		bConstraint *con;
-		for(con= lb->first; con; con=con->next)
-			if(con->flag & CONSTRAINT_ACTIVE)
+		for (con= lb->first; con; con=con->next)
+			if (con->flag & CONSTRAINT_ACTIVE)
 				return con;
 	}
 	return NULL;
@@ -176,15 +176,15 @@ bConstraintChannel *get_active_constraint_channel(Object *ob)
 			bPoseChannel *pchan;
 			
 			pchan = get_active_posechannel(ob);
-			if(pchan) {
-				for(con= pchan->constraints.first; con; con= con->next)
-					if(con->flag & CONSTRAINT_ACTIVE)
+			if (pchan) {
+				for (con= pchan->constraints.first; con; con= con->next)
+					if (con->flag & CONSTRAINT_ACTIVE)
 						break;
-				if(con) {
+				if (con) {
 					bActionChannel *achan = get_action_channel(ob->action, pchan->name);
-					if(achan) {
-						for(chan= achan->constraintChannels.first; chan; chan= chan->next)
-							if(!strcmp(chan->name, con->name))
+					if (achan) {
+						for (chan= achan->constraintChannels.first; chan; chan= chan->next)
+							if (!strcmp(chan->name, con->name))
 								break;
 						return chan;
 					}
@@ -215,16 +215,26 @@ bConstraintChannel *get_active_constraint_channel(Object *ob)
 bConstraint *add_new_constraint(short type)
 {
 	bConstraint *con;
+	bConstraintTypeInfo *cti;
 
 	con = MEM_callocN(sizeof(bConstraint), "constraint");
-
+	
 	/* Set up a generic constraint datablock */
 	con->type = type;
 	con->flag |= CONSTRAINT_EXPAND;
-	con->enforce=1.0F;
-	/* Load the data for it */
-	con->data = new_constraint_data(con->type);
+	con->enforce = 1.0F;
 	strcpy (con->name, "Const");
+	
+	/* Load the data for it */
+	cti = constraint_get_typeinfo(con);
+	if (cti) {
+		con->data = MEM_callocN(cti->size, cti->structName);
+		
+		/* only constraints that change any settings need this */
+		if (cti->new_data)
+			cti->new_data(con->data);
+	}
+	
 	return con;
 }
 
@@ -246,24 +256,51 @@ void add_constraint_to_object(bConstraint *con, Object *ob)
 
 char *get_con_subtarget_name(bConstraint *con, Object *target)
 {
-	/*
-	 * If the target for this constraint is target, return a pointer 
+	bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+	ListBase targets = {NULL, NULL};
+	bConstraintTarget *ct;
+	static char subtarget[32];
+	
+	/* If the target for this constraint is target, return a pointer 
 	 * to the name for this constraints subtarget ... NULL otherwise
 	 */
+	if (target == NULL)
+		return NULL;
 	 
-	if (constraint_has_target(con)) {
-		Object *tar;
-		char *subtarget;
+	if (cti && cti->get_constraint_targets) {
+		cti->get_constraint_targets(con, &targets);
 		
-		tar = get_constraint_target(con, &subtarget);
-		if (tar==target) return subtarget;
+		for (ct= targets.first; ct; ct= ct->next) {
+			if (ct->tar == target) {
+				if (ct->flag & CONSTRAINT_TAR_TEMP) {
+					/* as temporary targets were created, we can't point to thier subtarget, 
+					 * a local copy is made here... this should be ok as long as this function
+					 * is not called twice with expectations that the string will stay the same
+					 */
+					strcpy(subtarget, ct->subtarget);
+					
+					if (cti->flush_constraint_targets)
+						cti->flush_constraint_targets(con, &targets, 1);
+						
+					return &(subtarget[0]);
+				}
+				else {
+					/* not temporary, so we can return a direct pointer to it */
+					return &(ct->subtarget[0]);
+				}
+			}
+		}
+		
+		if (cti->flush_constraint_targets)
+			cti->flush_constraint_targets(con, &targets, 0);
 	}
 	
 	return NULL;  
 }
 
 /* checks validity of object pointers, and NULLs,
-   if Bone doesnt exist it sets the CONSTRAINT_DISABLE flag */
+ * if Bone doesnt exist it sets the CONSTRAINT_DISABLE flag 
+ */
 static void test_constraints (Object *owner, const char* substring)
 {
 	
@@ -279,29 +316,29 @@ static void test_constraints (Object *owner, const char* substring)
 	if (strlen (substring)) {
 		switch (owner->type) {
 			case OB_ARMATURE:
-				type = TARGET_BONE;
+				type = CONSTRAINT_OBTYPE_BONE;
 				break;
 			default:
-				type = TARGET_OBJECT;
+				type = CONSTRAINT_OBTYPE_OBJECT;
 				break;
 		}
 	}
 	else
-		type = TARGET_OBJECT;
+		type = CONSTRAINT_OBTYPE_OBJECT;
 	
 	
 	switch (type) {
-		case TARGET_OBJECT:
+		case CONSTRAINT_OBTYPE_OBJECT:
 			conlist = &owner->constraints;
 			break;
-		case TARGET_BONE:
+		case CONSTRAINT_OBTYPE_BONE:
 			{
 				Bone *bone;
 				bPoseChannel *chan;
 				
-				bone = get_named_bone(((bArmature*)owner->data), substring);
-				chan = get_pose_channel (owner->pose, substring);
-				if (bone && chan){
+				bone = get_named_bone( ((bArmature *)owner->data ), substring );
+				chan = get_pose_channel(owner->pose, substring);
+				if (bone && chan) {
 					conlist = &chan->constraints;
 				}
 			}
@@ -317,7 +354,6 @@ static void test_constraints (Object *owner, const char* substring)
 				case CONSTRAINT_TYPE_PYTHON:
 				{
 					bPythonConstraint *data = curcon->data;
-					float dummy_matrix[4][4];
 					
 					/* is there are valid script? */
 					if (!data->text) {
@@ -328,35 +364,9 @@ static void test_constraints (Object *owner, const char* substring)
 						curcon->flag |= CONSTRAINT_DISABLE;
 						break;
 					}
-					data->flag &= ~PYCON_SCRIPTERROR;
 					
-					/* does the constraint require target input? */
-					if (BPY_pyconstraint_targets(data, dummy_matrix))
-						data->flag |= PYCON_USETARGETS;
-					else
-						data->flag &= ~PYCON_USETARGETS;
-					
-					/* check whether we have a valid target */
-					if (data->flag & PYCON_USETARGETS) {
-						/* validate target */
-						if (!exist_object(data->tar)) {
-							data->tar = NULL;
-							curcon->flag |= CONSTRAINT_DISABLE;
-							break;
-						}
-						
-						if ( (data->tar == owner) &&
-							 (!get_named_bone(get_armature(owner), 
-											  data->subtarget))) {
-							curcon->flag |= CONSTRAINT_DISABLE;
-							break;
-						}
-					}
-					else {
-						/* don't hold onto target */
-						data->tar = NULL;
-						BLI_strncpy(data->subtarget, "", 32);
-					}
+					/* does the constraint require target input... also validates targets */
+					BPY_pyconstraint_update(owner, curcon);
 				}
 					break;
 				case CONSTRAINT_TYPE_ACTION:
@@ -630,6 +640,41 @@ void object_test_constraints (Object *owner)
 
 }
 
+/* helper function for add_constriant - sets the last target for the active constraint */
+static void set_constraint_nth_target(bConstraint *con, Object *target, char subtarget[], int index)
+{
+	bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+	ListBase targets = {NULL, NULL};
+	bConstraintTarget *ct;
+	int num_targets, i;
+		
+	if (cti && cti->get_constraint_targets) {
+		cti->get_constraint_targets(con, &targets);
+		num_targets= BLI_countlist(&targets);
+		
+		if (index < 0) {
+			if (abs(index) < num_targets)
+				index= num_targets - abs(index);
+			else
+				index= num_targets - 1;
+		}
+		else if (index >= num_targets) {
+			index= num_targets - 1;
+		}
+		
+		for (ct=targets.first, i=0; ct; ct= ct->next, i++) {
+			if (i == index) {
+				ct->tar= target;
+				strcpy(ct->subtarget, subtarget);
+				break;
+			}
+		}
+		
+		if (cti->flush_constraint_targets)
+			cti->flush_constraint_targets(con, &targets, 0);
+	}
+}
+
 /* context: active object in posemode, active channel, optional selected channel */
 void add_constraint(int only_IK)
 {
@@ -768,11 +813,10 @@ void add_constraint(int only_IK)
 		}
 		else if (nr==18) {	
 			char *menustr;
-			int scriptint= 0, dummy_int=0;
-			float dummy_matrix[4][4];
+			int scriptint= 0;
 			
 			/* popup a list of usable scripts */
-			menustr = buildmenu_pyconstraints(NULL, &dummy_int);
+			menustr = buildmenu_pyconstraints(NULL, &scriptint);
 			scriptint = pupmenu(menustr);
 			MEM_freeN(menustr);
 			
@@ -783,11 +827,7 @@ void add_constraint(int only_IK)
 				validate_pyconstraint_cb(con->data, &scriptint);
 				
 				/* make sure target allowance is set correctly */
-				dummy_int = BPY_pyconstraint_targets(con->data, dummy_matrix);
-				if (dummy_int) {
-					bPythonConstraint *pycon= (bPythonConstraint *)con->data;
-					pycon->flag |= PYCON_USETARGETS;
-				}
+				BPY_pyconstraint_update(ob, con);
 			}
 		}
 		else if (nr==19) {
@@ -818,10 +858,10 @@ void add_constraint(int only_IK)
 	
 	/* set the target */
 	if (pchansel) {
-		set_constraint_target(con, ob, pchansel->name);
+		set_constraint_nth_target(con, ob, pchansel->name, 0);
 	}
 	else if(obsel) {
-		set_constraint_target(con, obsel, NULL);
+		set_constraint_nth_target(con, obsel, NULL, 0);
 	}
 	else if (ELEM4(nr, 11, 13, 14, 15)==0) {	/* add new empty as target */
 		Base *base= BASACT, *newbase;
@@ -843,7 +883,7 @@ void add_constraint(int only_IK)
 		else
 			VECCOPY(obt->loc, ob->obmat[3]);
 		
-		set_constraint_target(con, obt, NULL);
+		set_constraint_nth_target(con, obt, NULL, 0);
 		
 		/* restore, add_object sets active */
 		BASACT= base;
@@ -1011,6 +1051,16 @@ char *buildmenu_pyconstraints(Text *con_text, int *pyconindex)
 	return menustr;
 }
 
+/* this callback gets called when the 'refresh' button of a pyconstraint gets pressed */
+void update_pyconstraint_cb(void *arg1, void *arg2)
+{
+	Object *owner= (Object *)arg1;
+	bConstraint *con= (bConstraint *)arg2;
+	
+	if (owner && con)
+		BPY_pyconstraint_update(owner, con);
+}
+
 /* ------------- Child-Of Constraint ------------------ */
 
 /* ChildOf Constraint - set inverse callback */
@@ -1047,7 +1097,7 @@ void childof_const_setinv (void *conv, void *unused)
 		/* do constraint solving on pose-matrix containing no transforms
 		 *	 N.B. code is copied from armature.c (where_is_pose_bone) 
 		 */
-		cob= constraints_make_evalob(ob, pchan, TARGET_BONE);
+		cob= constraints_make_evalob(ob, pchan, CONSTRAINT_OBTYPE_BONE);
 		solve_constraints(&pchan->constraints, cob, ctime);
 		constraints_clear_evalob(cob);
 		

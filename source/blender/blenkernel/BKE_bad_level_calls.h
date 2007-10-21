@@ -65,6 +65,7 @@ struct IpoDriver; /* DNA_curve_types.h */
 struct Object;
 struct bPythonConstraint;
 struct bConstraintOb;
+struct bConstraintTarget;
 void BPY_do_pyscript (struct ID *id, short int event);
 void BPY_clear_script (struct Script *script);
 void BPY_free_compiled_text (struct Text *text);
@@ -74,9 +75,9 @@ float BPY_pydriver_eval(struct IpoDriver *driver);
 void BPY_pydriver_update(void);
 /* button python evaluation */
 int BPY_button_eval(char *expr, double *value);
-void BPY_pyconstraint_eval(struct bPythonConstraint *con, float ownermat[][4], float targetmat[][4]);
-void BPY_pyconstraint_driver(struct bPythonConstraint *con, struct bConstraintOb *cob, struct Object *target, char subtarget[]);
-int BPY_pyconstraint_targets(struct bPythonConstraint *con, float targetmat[][4]);
+/* pyconstraints */
+void BPY_pyconstraint_eval(struct bPythonConstraint *con, struct bConstraintOb *cob, struct ListBase *targets);
+void BPY_pyconstraint_targets(struct bPythonConstraint *con, struct bConstraintTarget *ct);
 
 
 /* writefile.c */

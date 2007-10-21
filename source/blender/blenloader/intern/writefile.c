@@ -698,74 +698,27 @@ static void write_constraints(WriteData *wd, ListBase *conlist)
 	bConstraint *con;
 
 	for (con=conlist->first; con; con=con->next) {
+		bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+		
 		/* Write the specific data */
-		switch (con->type) {
-		case CONSTRAINT_TYPE_NULL:
-			break;
-		case CONSTRAINT_TYPE_PYTHON:
-			{
-				bPythonConstraint *data = (bPythonConstraint*) con->data;
-				writestruct(wd, DATA, "bPythonConstraint", 1, data);
-				
-				/* Write ID Properties -- and copy this comment EXACTLY for easy finding
-				 of library blocks that implement this.*/
-				IDP_WriteProperty(data->prop, wd);
+		if (cti && con->data) {
+			/* firstly, just write the plain con->data struct */
+			writestruct(wd, DATA, cti->structName, 1, con->data);
+			
+			/* do any constraint specific stuff */
+			switch (con->type) {
+				case CONSTRAINT_TYPE_PYTHON:
+				{
+					bPythonConstraint *data = (bPythonConstraint*) con->data;
+					
+					/* Write ID Properties -- and copy this comment EXACTLY for easy finding
+					 of library blocks that implement this.*/
+					IDP_WriteProperty(data->prop, wd);
+				}
+				break;
 			}
-			break;
-		case CONSTRAINT_TYPE_CHILDOF:
-			writestruct(wd, DATA, "bChildOfConstraint", 1, con->data);
-			break;
-		case CONSTRAINT_TYPE_TRACKTO:
-			writestruct(wd, DATA, "bTrackToConstraint", 1, con->data);
-			break;
-		case CONSTRAINT_TYPE_KINEMATIC:
-			writestruct(wd, DATA, "bKinematicConstraint", 1, con->data);
-			break;
-		case CONSTRAINT_TYPE_ROTLIKE:
-			writestruct(wd, DATA, "bRotateLikeConstraint", 1, con->data);
-			break;
-		case CONSTRAINT_TYPE_LOCLIKE:
-			writestruct(wd, DATA, "bLocateLikeConstraint", 1, con->data);
-			break;
-		case CONSTRAINT_TYPE_SIZELIKE:
-			writestruct(wd, DATA, "bSizeLikeConstraint", 1, con->data);
-			break;
-		case CONSTRAINT_TYPE_ACTION:
-			writestruct(wd, DATA, "bActionConstraint", 1, con->data);
-			break;
-		case CONSTRAINT_TYPE_LOCKTRACK:
-			writestruct(wd, DATA, "bLockTrackConstraint", 1, con->data);
-			break;
-		case CONSTRAINT_TYPE_FOLLOWPATH:
-			writestruct(wd, DATA, "bFollowPathConstraint", 1, con->data);
-			break;
-		case CONSTRAINT_TYPE_STRETCHTO:
-			writestruct(wd, DATA, "bStretchToConstraint", 1, con->data);
-			break;
-		case CONSTRAINT_TYPE_MINMAX:
-			writestruct(wd, DATA, "bMinMaxConstraint", 1, con->data);
-			break;
-		case CONSTRAINT_TYPE_LOCLIMIT:
-			writestruct(wd, DATA, "bLocLimitConstraint", 1, con->data);
-			break;
-		case CONSTRAINT_TYPE_ROTLIMIT:
-			writestruct(wd, DATA, "bRotLimitConstraint", 1, con->data);
-			break;
-		case CONSTRAINT_TYPE_SIZELIMIT:
-			writestruct(wd, DATA, "bSizeLimitConstraint", 1, con->data);
-			break;
-		case CONSTRAINT_TYPE_RIGIDBODYJOINT:
-			writestruct(wd, DATA, "bRigidBodyJointConstraint", 1, con->data);
-			break;
-		case CONSTRAINT_TYPE_CLAMPTO:
-			writestruct(wd, DATA, "bClampToConstraint", 1, con->data);
-			break;
-		case CONSTRAINT_TYPE_TRANSFORM:
-			writestruct(wd, DATA, "bTransformConstraint", 1, con->data);
-			break;
-		default:
-			break;
 		}
+		
 		/* Write the constraint */
 		writestruct(wd, DATA, "bConstraint", 1, con);
 	}
@@ -819,12 +772,12 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 	for (md=modbase->first; md; md= md->next) {
 		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 		if (mti == NULL) return;
-
+		
 		writestruct(wd, DATA, mti->structName, 1, md);
-
+			
 		if (md->type==eModifierType_Hook) {
 			HookModifierData *hmd = (HookModifierData*) md;
-
+			
 			writedata(wd, DATA, sizeof(int)*hmd->totindex, hmd->indexar);
 		}
 	}

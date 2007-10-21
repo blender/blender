@@ -86,7 +86,6 @@ extern int mod_moveDown(void *ob_v, void *md_v);
 extern void const_moveUp(void *ob_v, void *con_v);
 extern void const_moveDown(void *ob_v, void *con_v);
 extern void del_constr_func (void *ob_v, void *con_v);
-extern void get_constraint_typestring(char *str, void *con_v);
 extern void get_constraint_ipo_context(void *ob_v, char *actname);
 
 /* editing */
