@@ -723,7 +723,6 @@ AttributeError:
 //Gets the pose_mat
 static PyObject *PoseBone_getPoseMatrix(BPy_PoseBone *self, void *closure)
 {
-	printmatrix4("posemat GET", self->posechannel->pose_mat );
     return newMatrixObject((float*)self->posechannel->pose_mat, 4, 4, Py_WRAP);
 }
 //------------------------PoseBone.poseMatrix (setter)
