@@ -79,7 +79,7 @@
 #include "BKE_bad_level_calls.h"	
 
 /* for stamp drawing to an image */
-#include "../bmfont/BMF_Api.h"
+#include "BMF_Api.h"
 
 #include "blendef.h"
 #include "BSE_time.h"
