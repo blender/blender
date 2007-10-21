@@ -240,6 +240,8 @@ typedef struct RenderData {
 	 * The number of samples to use per pixel.
 	 */
 	short osa;
+
+	short frs_sec, edgeint;
 	
 	/* safety, border and display rect */
 	rctf safety, border;
@@ -247,10 +249,8 @@ typedef struct RenderData {
 	
 	/* information on different layers to be rendered */
 	ListBase layers;
-	short actlay, pad2;
+	short actlay, pad;
 
-	short edgeint;
-	short frs_sec;
 	float frs_sec_base;
 	
 	/**
