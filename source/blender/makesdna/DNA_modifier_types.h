@@ -351,7 +351,7 @@ typedef struct CollisionModifierData {
 	ModifierData		modifier;
 	
 	struct MVert *x;
-	struct MVert *xold;
+	struct MVert *xnew;
 	
 	unsigned int numverts;
 	float time;

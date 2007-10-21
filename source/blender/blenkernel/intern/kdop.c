@@ -387,7 +387,7 @@ void bvh_calc_DOP_hull_from_faces(BVH * bvh, Tree **tri, int numfaces, float *bv
 
 void bvh_calc_DOP_hull_static(BVH * bvh, Tree **tri, int numfaces, float *bv)
 {
-	MVert *tempMVert = bvh->xold;
+	MVert *tempMVert = bvh->x;
 	MFace *tempMFace = bvh->mfaces;
 	float *tempBV = bv;
 	float newminmax;
@@ -426,8 +426,8 @@ void bvh_calc_DOP_hull_static(BVH * bvh, Tree **tri, int numfaces, float *bv)
 
 void bvh_calc_DOP_hull_moving(BVH * bvh, Tree **tri, int numfaces, float *bv)
 {
-	MVert *tempMVert = bvh->xold;
-	MVert *tempMVert2 = bvh->x;
+	MVert *tempMVert = bvh->x;
+	MVert *tempMVert2 = bvh->xnew;
 	MFace *tempMFace = bvh->mfaces;
 	float *tempBV = bv;
 	float newminmax;
@@ -538,7 +538,7 @@ static void bvh_div_env_node(BVH * bvh, TreeNode *tree, Tree **face_list, unsign
 	return;
 }
 
-BVH *bvh_build (DerivedMesh *dm, MVert *x, MVert *xold, unsigned int numverts, float epsilon)
+BVH *bvh_build (DerivedMesh *dm, MVert *x, MVert *xnew, unsigned int numverts, float epsilon)
 {
 	unsigned int i = 0, j = 0, k = 0;
 	Tree **face_list=NULL;
@@ -569,8 +569,8 @@ BVH *bvh_build (DerivedMesh *dm, MVert *x, MVert *xold, unsigned int numverts, f
 	mface = bvh->mfaces = dm->getFaceArray(dm);
 
 	bvh->numverts = numverts;
+	bvh->xnew = xnew;	
 	bvh->x = x;	
-	bvh->xold = xold;	
 	tree = (Tree *)MEM_callocN(sizeof(Tree), "Tree");
 	// TODO: check succesfull alloc
 	BLI_linklist_append(&bvh->tree, tree);
@@ -774,7 +774,7 @@ void bvh_join(Tree * tree)
 }
 
 // update static bvh
-// needs new positions in bvh->x, bvh->xold
+// needs new positions in bvh->x, bvh->xnew
 void bvh_update(DerivedMesh *dm, BVH * bvh, int moving)
 {
 	TreeNode *leaf, *parent;

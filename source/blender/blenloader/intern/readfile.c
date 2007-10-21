@@ -2888,6 +2888,15 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			  printf ("direct_link_modifiers: read cloth baked_data.\n");
 		   }
 		} 
+		else if (md->type==eModifierType_Collision) {
+			CollisionModifierData *collmd = (CollisionModifierData*) md;
+			
+			collmd->x = NULL;
+			collmd->xnew = NULL;
+			collmd->time = -1;
+			collmd->numverts = 0;
+			collmd->tree = NULL;
+		}
 		else if (md->type==eModifierType_Hook) {
 			HookModifierData *hmd = (HookModifierData*) md;
 

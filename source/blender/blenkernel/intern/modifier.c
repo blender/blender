@@ -4956,7 +4956,7 @@ static void collisionModifier_initData(ModifierData *md)
 	CollisionModifierData *collmd = (CollisionModifierData*) md;
 	
 	collmd->x = NULL;
-	collmd->xold = NULL;
+	collmd->xnew = NULL;
 	collmd->time = -1;
 	collmd->numverts = 0;
 	collmd->tree = NULL;
@@ -4972,11 +4972,11 @@ static void collisionModifier_freeData(ModifierData *md)
 			bvh_free(collmd->tree);
 		if(collmd->x)
 			MEM_freeN(collmd->x);
-		if(collmd->xold)
-			MEM_freeN(collmd->xold);
+		if(collmd->xnew)
+			MEM_freeN(collmd->xnew);
 		
 		collmd->x = NULL;
-		collmd->xold = NULL;
+		collmd->xnew = NULL;
 		collmd->time = -1;
 		collmd->numverts = 0;
 		collmd->tree = NULL;
@@ -5018,26 +5018,26 @@ static void collisionModifier_deformVerts(
 			if(collmd->time == -1) // first time
 			{
 				collmd->x = dm->dupVertArray(dm);
-				collmd->xold = dm->dupVertArray(dm);
+				collmd->xnew = dm->dupVertArray(dm);
 				collmd->numverts = numverts;
 				
 				// TODO: epsilon
 				// create bounding box hierarchy
-				collmd->tree = bvh_build(dm, collmd->x, collmd->xold,  numverts, 0.01);
+				collmd->tree = bvh_build(dm, collmd->x, collmd->xnew,  numverts, 0.01);
 			}
 			else if(numverts == collmd->numverts)
 			{
 				// put positions to old positions
-				tempVert = collmd->xold;
-				collmd->xold = collmd->x;
-				collmd->x = tempVert;
+				tempVert = collmd->x;
+				collmd->x = collmd->xnew;
+				collmd->xnew = tempVert;
 				
-				memcpy(collmd->x, dm->getVertArray(dm), numverts*sizeof(MVert));
+				memcpy(collmd->xnew, dm->getVertArray(dm), numverts*sizeof(MVert));
 				
 				for ( i = 0; i < numverts; i++ )
 				{
 					// we save global positions
-					Mat4MulVecfl ( ob->obmat, collmd->x[i].co );
+					Mat4MulVecfl ( ob->obmat, collmd->xnew[i].co );
 				}
 				
 				bvh_update(dm, collmd->tree, 0); // recalc static bounding boxes

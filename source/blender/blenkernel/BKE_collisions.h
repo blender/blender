@@ -64,8 +64,8 @@ typedef struct BVH
 {
 	unsigned int 	numfaces;
 	unsigned int 	numverts;
-	MVert	 	*x; // position of verts at time n 
-	MVert	 	*xold; // position of verts at time n-1
+	MVert	 	*xnew; // position of verts at time n 
+	MVert	 	*x; // position of verts at time n-1
 	MFace 		*mfaces; // just a pointer to the original datastructure
 	struct LinkNode *tree;
 	TreeNode 	*root; // TODO: saving the root --> is this really needed? YES!
