@@ -6751,13 +6751,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			ima->aspx = ima->aspy = 1.0f;				
 		}
 
-		/* fix frs_sec_base */
-		for(sce= main->scene.first; sce; sce= sce->id.next) {
-			if (sce->r.frs_sec_base == 0) {
-				sce->r.frs_sec_base = 1;
-			}
-		}
-
 	}
 
 	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 4)) {
@@ -6781,7 +6774,18 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			sce->r.fg_stamp[0] = sce->r.fg_stamp[1] = sce->r.fg_stamp[2] = 0.8;
 		}
 	}
+
 	
+	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 6)) {
+		Scene *sce;
+		/* fix frs_sec_base */
+		for(sce= main->scene.first; sce; sce= sce->id.next) {
+			if (sce->r.frs_sec_base == 0) {
+				sce->r.frs_sec_base = 1;
+			}
+		}
+	}
+
 	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
