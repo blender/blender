@@ -730,7 +730,6 @@ static PyObject *PoseBone_getPoseMatrix(BPy_PoseBone *self, void *closure)
 //Sets the pose_mat
 static int PoseBone_setPoseMatrix(BPy_PoseBone *self, MatrixObject *value, void *closure)
 {
-	float loc_mat[4][4];
 	float delta_mat[4][4], quat[4]; /* rotation */
 	float size[4]; /* size only */
 	
@@ -739,7 +738,7 @@ static int PoseBone_setPoseMatrix(BPy_PoseBone *self, MatrixObject *value, void 
 									"expected matrix object as argument" );
 	
 	if( value->colSize != 4 || value->rowSize != 4 )
-		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+		return (int) EXPP_ReturnPyObjError( PyExc_AttributeError,
 			"matrix must be a 4x4 transformation matrix\n"
 			"for example as returned by object.matrixWorld" );
 
