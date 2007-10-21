@@ -328,3 +328,5 @@ void update_for_newframe() {}
 struct FileList;
 void BIF_filelist_freelib(struct FileList* filelist) {};
 
+/* edittime.c stub */
+TimeMarker *get_frame_marker(int frame){return 0;};
