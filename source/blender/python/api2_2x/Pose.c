@@ -738,7 +738,7 @@ static int PoseBone_setPoseMatrix(BPy_PoseBone *self, MatrixObject *value, void 
 									"expected matrix object as argument" );
 	
 	if( value->colSize != 4 || value->rowSize != 4 )
-		return (int) EXPP_ReturnPyObjError( PyExc_AttributeError,
+		return EXPP_ReturnIntError( PyExc_AttributeError,
 			"matrix must be a 4x4 transformation matrix\n"
 			"for example as returned by object.matrixWorld" );
 
