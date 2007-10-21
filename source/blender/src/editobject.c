@@ -2333,7 +2333,7 @@ void special_editmenu(void)
 	else if(G.obedit->type==OB_MESH) {
 
 		if(G.scene->selectmode == SCE_SELECT_VERTEX)
-			nr= pupmenu("Specials%t|Connect%x100|Extrude%x105|Merge%x102|Remove Doubles%x103|Delete%x104");
+			nr= pupmenu("Specials%t|Connect%x100|Extrude%x105|Merge%x102|Smooth%x105|Remove Doubles%x103|Delete%x104");
 		else if(G.scene->selectmode == SCE_SELECT_EDGE)
 			nr= pupmenu("Specials%t|Bevel%x200|Cut%x201|Cut Multi%x202|Connect%x203|Collapse%x204|Dissolve%x205|Extrude%x207|Subdivide%x209|Subdivide Multi%x210|Delete%x208");	
 		else if(G.scene->selectmode == SCE_SELECT_FACE)
@@ -2384,8 +2384,13 @@ void special_editmenu(void)
 				BIF_undo_push("Remove Doubles");
 			}
 			break;
+		case 105:
+			{
+				EM_vertex_smooth();
+				BIF_undo_push("Vertex Smooth");
+			}
 		}
-			
+		
 		DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 		
 	}

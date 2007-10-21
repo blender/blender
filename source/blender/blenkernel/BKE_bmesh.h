@@ -258,6 +258,7 @@ void BME_duplicate(struct BME_Mesh *bm);
 void BME_extrude_mesh(struct BME_Mesh *bm, int type);
 int BME_make_edgeface(struct BME_Mesh *bm);
 void BME_split_mesh(struct BME_Mesh *bm);
+void BME_vertex_smooth(BME_Mesh *bm);
 
 /*BME_traversals. c*/
 #define BME_RESTRICTWIRE 1

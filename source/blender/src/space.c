@@ -2385,7 +2385,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 			case YKEY:
 				if((G.qual==0) && (G.obedit)) {
-					//EDITBMESHGREP if(G.obedit->type==OB_MESH) split_mesh();
+					if(G.obedit->type==OB_MESH) EM_split_mesh();
 				}
 				break;
 			case ZKEY:

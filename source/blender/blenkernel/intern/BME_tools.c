@@ -1503,3 +1503,73 @@ void BME_split_mesh(BME_Mesh *bm){
 	remove_tagged_edges(bm);
 	remove_tagged_verts(bm);
 }
+
+
+
+void BME_vertex_smooth(BME_Mesh *bm)
+{
+	BME_Vert *v;
+	BME_Edge *e;
+	float *adror, *adr, fac;
+	float fvec[3];
+	int selected=0;
+	GHash *vhash;
+
+	/* count */
+	for(v=BME_first(bm,BME_VERT);v;v=BME_next(bm,BME_VERT,v)){
+		if(BME_SELECTED(v)) selected++;
+	}
+	
+	if(!selected) return 0;
+	
+	vhash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	adr=adror= (float *)MEM_callocN(3*sizeof(float *)*selected, "vertsmooth");
+	for(v=BME_first(bm,BME_VERT);v;v=BME_next(bm,BME_VERT,v)){
+		if(BME_SELECTED(v)){
+			BLI_ghash_insert(vhash,v,adr);
+			adr+= 3;
+		}
+	}
+
+	for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
+		if((BME_SELECTED(e->v1)) || (BME_SELECTED(e->v2))){
+			fvec[0]= (e->v1->co[0]+e->v2->co[0])/2.0;
+			fvec[1]= (e->v1->co[1]+e->v2->co[1])/2.0;
+			fvec[2]= (e->v1->co[2]+e->v2->co[2])/2.0;
+			
+			if((BME_SELECTED(e->v1)) && e->v1->tflag1<255){
+				e->v1->tflag1++;
+				VecAddf(BLI_ghash_lookup(vhash,e->v1), BLI_ghash_lookup(vhash,e->v1), fvec);				
+			}
+			if((BME_SELECTED(e->v2)) && e->v2->tflag1<255){
+				e->v2->tflag1++;
+				VecAddf(BLI_ghash_lookup(vhash,e->v2), BLI_ghash_lookup(vhash,e->v2), fvec);
+			}
+		}
+	}
+	
+	for(e=BME_first(bm,BME_EDGE);e;e=BME_next(bm,BME_EDGE,e)){
+		if( (BME_SELECTED(e->v1)) || (BME_SELECTED(e->v2)) ){
+			fvec[0]= (e->v1->co[0]+e->v2->co[0])/2.0;
+			fvec[1]= (e->v1->co[1]+e->v2->co[1])/2.0;
+			fvec[2]= (e->v1->co[2]+e->v2->co[2])/2.0;
+		}
+	}
+	
+	for(v=BME_first(bm,BME_VERT);v;v=BME_next(bm,BME_VERT,v)){
+		if( (BME_SELECTED(v)) ){
+			if(v->tflag1){
+				adr = BLI_ghash_lookup(vhash,v);
+				fac= 0.5/(float)v->tflag1;
+				
+				v->co[0]= 0.5*v->co[0]+fac*adr[0];
+				v->co[1]= 0.5*v->co[1]+fac*adr[1];
+				v->co[2]= 0.5*v->co[2]+fac*adr[2];
+			}
+		}
+	}
+	BLI_ghash_free(vhash,NULL, NULL);
+	MEM_freeN(adror);
+
+	//recalc_editnormals(); replace me!
+}

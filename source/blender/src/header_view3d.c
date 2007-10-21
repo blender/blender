@@ -2501,7 +2501,7 @@ void do_view3d_edit_mesh_verticesmenu(void *arg, int event)
 		//EDITBMESHGREP separate_mesh();
 		break;
 	case 4: /*split */
-		//EDITBMESHGREP split_mesh();
+		EM_split_mesh();
 		break;
 	case 5: /*merge */
 		//EDITBMESHGREP mergemenu();
