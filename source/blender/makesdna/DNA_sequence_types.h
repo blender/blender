@@ -185,7 +185,7 @@ typedef struct SpeedControlVars {
 	float globalSpeed;
 	int flags;
 	int length;
-	int pad;
+	int lastValidFrame;
 } SpeedControlVars;
 
 /* SpeedControlVars->flags */

@@ -987,6 +987,20 @@ static void draw_extra_seqinfo(void)
 		glRasterPos3f(xco,  yco, 0.0);
 		BMF_DrawString(G.font, str);
 	}
+	else if(last_seq->type == SEQ_SPEED) {
+		SpeedControlVars * vars = 
+			(SpeedControlVars*) last_seq->effectdata;
+
+		if (vars) {
+			sprintf(str, "Last mapped frame: %d at %d", 
+				vars->lastValidFrame, 
+				vars->lastValidFrame 
+				+ last_seq->startdisp);
+
+			glRasterPos3f(xco,  yco, 0.0);
+			BMF_DrawString(G.font, str);
+		}
+	}
 }
 
 void seq_reset_imageofs(SpaceSeq *sseq)

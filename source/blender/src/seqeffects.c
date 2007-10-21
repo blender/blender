@@ -2730,6 +2730,7 @@ void sequence_effect_speed_rebuild_map(struct Sequence * seq, int force)
 		float cursor = 0;
 
 		v->frameMap[0] = 0;
+		v->lastValidFrame = 0;
 
 		for (cfra = 1; cfra < v->length; cfra++) {
 			if(seq->ipo) {
@@ -2756,9 +2757,11 @@ void sequence_effect_speed_rebuild_map(struct Sequence * seq, int force)
 				v->frameMap[cfra] = v->length - 1;
 			} else {
 				v->frameMap[cfra] = cursor;
+				v->lastValidFrame = cfra;
 			}
 		}
 	} else {
+		v->lastValidFrame = 0;
 		for (cfra = 0; cfra < v->length; cfra++) {
 			if(seq->ipo) {
 				if((seq->flag & SEQ_IPO_FRAME_LOCKED) != 0) {
@@ -2784,6 +2787,8 @@ void sequence_effect_speed_rebuild_map(struct Sequence * seq, int force)
 			seq->facf0 *= v->globalSpeed;
 			if (seq->facf0 >= v->length) {
 				seq->facf0 = v->length - 1;
+			} else {
+				v->lastValidFrame = cfra;
 			}
 			v->frameMap[cfra] = seq->facf0;
 		}
