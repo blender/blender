@@ -3264,7 +3264,7 @@ void inner_play_anim_loop(int init, int mode)
 	/* init */
 	if(init) {
 		oldsa= curarea;
-		swaptime= 1.0/(float)G.scene->r.frs_sec;
+		swaptime= 1.0/FPS;
 		tottime= 0.0;
 		curmode= mode;
 		last_cfra = -1;

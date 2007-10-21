@@ -3445,7 +3445,7 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, Object *ob, short 
 	/* snap key to nearest frame? */
 	if (autosnap == SACTSNAP_FRAME) {
 		short doTime= getAnimEdit_DrawTime(t);
-		float secf= ((float)G.scene->r.frs_sec);
+		double secf= FPS;
 		float val;
 		
 		/* convert frame to nla-action time (if needed) */
@@ -3496,7 +3496,7 @@ static void headerTimeTranslate(TransInfo *t, char *str)
 	else {
 		short autosnap= getAnimEdit_SnapMode(t);
 		short doTime = getAnimEdit_DrawTime(t);
-		float secf= ((float)G.scene->r.frs_sec);
+		double secf= FPS;
 		float val= t->fac;
 		
 		/* take into account scaling (for Action Editor only) */
@@ -3535,7 +3535,7 @@ static void applyTimeTranslate(TransInfo *t, float sval)
 	int i;
 	
 	short doTime= getAnimEdit_DrawTime(t);
-	float secf= ((float)G.scene->r.frs_sec);
+	double secf= FPS;
 	
 	short autosnap= getAnimEdit_SnapMode(t);
 	float cval= sval + t->fac;
@@ -3770,7 +3770,7 @@ static void applyTimeScale(TransInfo *t) {
 	
 	short autosnap= getAnimEdit_SnapMode(t);
 	short doTime= getAnimEdit_DrawTime(t);
-	float secf= ((float)G.scene->r.frs_sec);
+	double secf= FPS;
 	
 	
 	for (i = 0 ; i < t->total; i++, td++) {

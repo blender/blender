@@ -241,16 +241,17 @@ typedef struct RenderData {
 	 */
 	short osa;
 	
-	short frs_sec, edgeint;
-
 	/* safety, border and display rect */
 	rctf safety, border;
 	rcti disprect;
 	
 	/* information on different layers to be rendered */
 	ListBase layers;
-	short actlay, pad;
-	int pad2;
+	short actlay, pad2;
+
+	short edgeint;
+	short frs_sec;
+	float frs_sec_base;
 	
 	/**
 	 * Value used to define filter size for all filter options  */

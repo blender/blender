@@ -612,6 +612,7 @@ void do_render_panels(unsigned short event)
 		G.scene->r.yasp= 51;
 		G.scene->r.size= 100;
 		G.scene->r.frs_sec= 25;
+		G.scene->r.frs_sec_base= 1;
 		G.scene->r.mode &= ~R_PANORAMA;
 		G.scene->r.xparts=  G.scene->r.yparts= 4;
 #ifdef WITH_FFMPEG
@@ -718,6 +719,7 @@ void do_render_panels(unsigned short event)
 		G.scene->r.yasp= 45;
 		G.scene->r.size= 100;
 		G.scene->r.frs_sec= 25;
+		G.scene->r.frs_sec_base= 1;
 		G.scene->r.mode &= ~R_PANORAMA;
 		G.scene->r.xparts=  G.scene->r.yparts= 4;
 #ifdef WITH_FFMPEG
@@ -780,6 +782,7 @@ void do_render_panels(unsigned short event)
 		G.scene->r.yasp= 11;
 		G.scene->r.size= 100;
 		G.scene->r.frs_sec= 30;
+		G.scene->r.frs_sec_base = 1.001;
 		G.scene->r.mode &= ~R_PANORAMA;
 		G.scene->r.xparts=  G.scene->r.yparts= 2;
 #ifdef WITH_FFMPEG
@@ -1641,7 +1644,7 @@ static void render_panel_format(void)
 				uiDefBut(block, LABEL, 0, "Codec: not set",  892,yofs+44,225,20, 0, 0, 0, 0, 0, "");
 			else
 				uiDefBut(block, LABEL, 0, G.scene->r.qtcodecdata->qtcodecname,  892,yofs+44,225,20, 0, 0, 0, 0, 0, "");
-			uiDefBut(block, BUT,B_SELECTCODEC, "Set codec",  892,yofs,112,20, 0, 0, 0, 0, 0, "Set codec settings for Quicktime");
+			uiDefBut(block, BUT,B_SELECTCODEC, "Set codec",  892,yofs,74,20, 0, 0, 0, 0, 0, "Set codec settings for Quicktime");
 #endif
 #endif /* WITH_QUICKTIME */
 		} else {
@@ -1653,7 +1656,7 @@ static void render_panel_format(void)
 			else
 				uiDefBut(block, LABEL, 0, avicodec_str(),  892,yofs+43,225,20, 0, 0, 0, 0, 0, "");
 #endif
-			uiDefBut(block, BUT,B_SELECTCODEC, "Set codec",  892,yofs,112,20, 0, 0, 0, 0, 0, "Set codec settings for AVI");
+			uiDefBut(block, BUT,B_SELECTCODEC, "Set codec",  892,yofs,74,20, 0, 0, 0, 0, 0, "Set codec settings for AVI");
 		}
 #ifdef WITH_OPENEXR
 	} 
@@ -1668,15 +1671,16 @@ static void render_panel_format(void)
 			uiDefButBitS(block, TOG, R_PREVIEW_JPG, B_NOP,"Preview",1027,yofs+44,90,20, &G.scene->r.subimtype, 0, 0, 0, 0, "When animation render, save JPG preview images in same directory");
 		}		
 		uiDefButS(block, MENU,B_NOP, "Codec %t|None %x0|Pxr24 (lossy) %x1|ZIP (lossless) %x2|PIZ (lossless) %x3|RLE (lossless) %x4",  
-															892,yofs,112,20, &G.scene->r.quality, 0, 0, 0, 0, "Set codec settings for OpenEXR");
+															892,yofs,74,20, &G.scene->r.quality, 0, 0, 0, 0, "Set codec settings for OpenEXR");
 		
 #endif
 	} else {
 		if(G.scene->r.quality < 5) G.scene->r.quality = 90;	/* restore from openexr */
 		
-		uiDefButS(block, NUM,B_DIFF, "Quality:",           892,yofs,112,20, &G.scene->r.quality, 10.0, 100.0, 0, 0, "Quality setting for JPEG images, AVI Jpeg and SGI movies");
+		uiDefButS(block, NUM,B_DIFF, "Q:",           892,yofs,74,20, &G.scene->r.quality, 10.0, 100.0, 0, 0, "Quality setting for JPEG images, AVI Jpeg and SGI movies");
 	}
-	uiDefButS(block, NUM,B_FRAMEMAP,"Frs/sec:",   1006,yofs,113,20, &G.scene->r.frs_sec, 1.0, 120.0, 100.0, 0, "Frames per second");
+	uiDefButS(block, NUM,B_FRAMEMAP,"FPS:",   968,yofs,75,20, &G.scene->r.frs_sec, 1.0, 120.0, 100.0, 0, "Frames per second");
+	uiDefButF(block, NUM,B_FRAMEMAP,"/",  1043,yofs,75,20, &G.scene->r.frs_sec_base, 1.0, 120.0, 0.1, 3, "Frames per second base");
 
 
 	uiBlockBeginAlign(block);
@@ -2027,7 +2031,9 @@ void anim_panels()
 	uiDefButI(block, NUM,B_FRAMEMAP,"Map New:",	160,160,150,20,&G.scene->r.images,1.0,900.0, 0, 0, "Specify how many frames the Map Old will last");
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM,B_FRAMEMAP,"Frs/sec:",  10,130,150,20, &G.scene->r.frs_sec, 1.0, 120.0, 100.0, 0, "Frames per second");
+	uiDefButS(block, NUM,B_FRAMEMAP,"FPS:",  10,130,75,20, &G.scene->r.frs_sec, 1.0, 120.0, 100.0, 0, "Frames per second");
+	uiDefButF(block, NUM,B_FRAMEMAP,"/",  85,130,75,20, &G.scene->r.frs_sec_base, 1.0, 120.0, 0.1, 3, "Frames per second base");
+
 	uiDefButBitS(block, TOG, AUDIO_SYNC, B_SOUND_CHANGED, "Sync",160,130,150,20, &G.scene->audio.flag, 0, 0, 0, 0, "Use sample clock for syncing animation to audio");
 	
 	uiBlockBeginAlign(block);

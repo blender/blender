@@ -6743,11 +6743,21 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	}
 
 	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 2)) {
-		Image *ima;	
+		Image *ima;
+		Scene *sce;
+
 		/* initialize 1:1 Aspect */
 		for(ima= main->image.first; ima; ima= ima->id.next) {
 			ima->aspx = ima->aspy = 1.0f;				
 		}
+
+		/* fix frs_sec_base */
+		for(sce= main->scene.first; sce; sce= sce->id.next) {
+			if (sce->r.frs_sec_base == 0) {
+				sce->r.frs_sec_base = 1;
+			}
+		}
+
 	}
 
 	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 4)) {

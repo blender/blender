@@ -99,8 +99,8 @@ AviError AVI_set_compress_option (AviMovie *movie, int option_type, int stream, 
 				break;
 				
 			case AVI_OPTION_FRAMERATE:
-				if (1000000/(*((int *) opt_data)))
-					movie->header->MicroSecPerFrame = 1000000/(*((int *) opt_data));					
+				if (1000000/(*((double *) opt_data)))
+					movie->header->MicroSecPerFrame = 1000000/(*((double *) opt_data));					
 
 				for (i=0; i < movie->header->Streams; i++) {
 					if (avi_get_format_type(movie->streams[i].format) == FCC("vids")) {

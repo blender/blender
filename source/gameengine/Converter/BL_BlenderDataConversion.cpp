@@ -1913,10 +1913,14 @@ void BL_ConvertBlenderObjects(struct Main* maggie,
 				eulxyzPrev[0]=blenderobject->rot[0];
 				eulxyzPrev[1]=blenderobject->rot[1];
 				eulxyzPrev[2]=blenderobject->rot[2];
-				tmp.scale((float)blenderscene->r.frs_sec,(float)blenderscene->r.frs_sec,(float)blenderscene->r.frs_sec);
+
+				double fps = (double) blenderscene->r.frs_sec/
+					(double) blenderscene->r.frs_sec_base;
+
+				tmp.scale(fps, fps, fps);
 				inivel.push_back(tmp);
 				tmp=eulxyz-eulxyzPrev;
-				tmp.scale((float)blenderscene->r.frs_sec,(float)blenderscene->r.frs_sec,(float)blenderscene->r.frs_sec);
+				tmp.scale(fps, fps, fps);
 				iniang.push_back(tmp);
 				blenderscene->r.cfra=blenderscene->r.sfra;
 				update_for_newframe();

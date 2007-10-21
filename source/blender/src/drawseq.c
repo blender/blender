@@ -308,8 +308,8 @@ static void drawseqwave(Sequence *seq, float x1, float y1, float x2, float y2, i
 	
 	if (seq->flag & SEQ_MUTE) glColor3ub(0x70, 0x80, 0x80); else glColor3ub(0x70, 0xc0, 0xc0);
 	
-	sofs = ((int)( (((float)(seq->startdisp-seq->start))/(float)G.scene->r.frs_sec)*(float)G.scene->audio.mixrate*4.0 )) & (~3);
-	eofs = ((int)( (((float)(seq->enddisp-seq->start))/(float)G.scene->r.frs_sec)*(float)G.scene->audio.mixrate*4.0 )) & (~3);
+	sofs = ((int)( FRA2TIME(seq->startdisp-seq->start)*(float)G.scene->audio.mixrate*4.0 )) & (~3);
+	eofs = ((int)( FRA2TIME(seq->enddisp-seq->start)*(float)G.scene->audio.mixrate*4.0 )) & (~3);
 	
 	/* clip the drawing area to the screen bounds to save time */
 	sample_step= (G.v2d->cur.xmax - G.v2d->cur.xmin)/winx;

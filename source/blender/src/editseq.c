@@ -1101,7 +1101,8 @@ static Sequence *sfile_to_ramsnd_sequence(SpaceFile *sfile,
 	sound->flags |= SOUND_FLAGS_SEQUENCE;
 	audio_makestream(sound);
 
-	totframe= (int) ( ((float)(sound->streamlen-1)/( (float)G.scene->audio.mixrate*4.0 ))* (float)G.scene->r.frs_sec);
+	totframe= (int) ( ((float)(sound->streamlen-1)/
+			   ( (float)G.scene->audio.mixrate*4.0 ))* FPS);
 
 	/* make seq */
 	seq= alloc_sequence(((Editing *)G.scene->ed)->seqbasep, cfra, machine);
@@ -1168,7 +1169,7 @@ static int sfile_to_hdsnd_sequence_load(SpaceFile *sfile, int cfra,
 		return(cfra);
 	}
 
-	totframe= sound_hdaudio_get_duration(hdaudio, G.scene->r.frs_sec);
+	totframe= sound_hdaudio_get_duration(hdaudio, FPS);
 
 	/* make seq */
 	seq= alloc_sequence(((Editing *)G.scene->ed)->seqbasep, cfra, machine);

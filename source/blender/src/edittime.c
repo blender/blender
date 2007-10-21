@@ -208,7 +208,7 @@ void transform_markers(int mode, int smode)	// mode and smode unused here, for c
 			fac= (((float)(mval[0] - pmval[0]))*dx);
 			
 			if (ELEM(slink->spacetype, SPACE_TIME, SPACE_SOUND)) 
-				apply_keyb_grid(&fac, 0.0, (float)G.scene->r.frs_sec, 0.1*(float)G.scene->r.frs_sec, 0);
+				apply_keyb_grid(&fac, 0.0, FPS, 0.1*FPS, 0);
 			else
 				apply_keyb_grid(&fac, 0.0, 1.0, 0.1, U.flag & USER_AUTOGRABGRID);
 			offs= (int)fac;
@@ -225,11 +225,11 @@ void transform_markers(int mode, int smode)	// mode and smode unused here, for c
 					if (stime->flag & TIME_DRAWFRAMES) 
 						sprintf(str, "Marker %d offset %d", selmarker->frame, offs);
 					else 
-						sprintf(str, "Marker %.2f offset %.2f", (selmarker->frame/(float)G.scene->r.frs_sec), (offs/(float)G.scene->r.frs_sec));
+						sprintf(str, "Marker %.2f offset %.2f", FRA2TIME(selmarker->frame), FRA2TIME(offs));
 				}
 				else if (slink->spacetype == SPACE_ACTION) {
 					if (saction->flag & SACTION_DRAWTIME)
-						sprintf(str, "Marker %.2f offset %.2f", (selmarker->frame/(float)G.scene->r.frs_sec), (offs/(float)G.scene->r.frs_sec));
+						sprintf(str, "Marker %.2f offset %.2f", FRA2TIME(selmarker->frame), FRA2TIME(offs));
 					else
 						sprintf(str, "Marker %.2f offset %.2f", (double)(selmarker->frame), (double)(offs));
 				}
@@ -242,11 +242,11 @@ void transform_markers(int mode, int smode)	// mode and smode unused here, for c
 					if (stime->flag & TIME_DRAWFRAMES) 
 						sprintf(str, "Marker offset %d ", offs);
 					else 
-						sprintf(str, "Marker offset %.2f ", (offs/(float)G.scene->r.frs_sec));
+						sprintf(str, "Marker offset %.2f ", FRA2TIME(offs));
 				}
 				else if (slink->spacetype == SPACE_ACTION) {
 					if (saction->flag & SACTION_DRAWTIME)
-						sprintf(str, "Marker offset %.2f ", (offs/(float)G.scene->r.frs_sec));
+						sprintf(str, "Marker offset %.2f ", FRA2TIME(offs));
 					else
 						sprintf(str, "Marker offset %.2f ", (double)(offs));
 				}
