@@ -31,6 +31,7 @@ typedef enum ModifierType {
 	eModifierType_Smooth,
 	eModifierType_Cast,
 	eModifierType_Cloth,
+ 	eModifierType_Collision,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -345,6 +346,17 @@ typedef struct ClothModifierData {
    SimulationSettings	sim_parms;	/* definition is in DNA_cloth_types.h			*/
    CollisionSettings	coll_parms;	/* definition is in DNA_cloth_types.h			*/
 } ClothModifierData;
+
+typedef struct CollisionModifierData {
+	ModifierData		modifier;
+	
+	struct MVert *x;
+	struct MVert *xold;
+	
+	unsigned int numverts;
+	float time;
+	void *tree;	/* collision tree for this cloth object */
+} CollisionModifierData;
 
 typedef enum {
 	eBooleanModifierOp_Intersect,

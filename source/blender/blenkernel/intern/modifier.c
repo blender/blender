@@ -72,6 +72,7 @@
 #include "BKE_main.h"
 #include "BKE_anim.h"
 #include "BKE_bad_level_calls.h"
+#include "BKE_collisions.h"
 #include "BKE_customdata.h"
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
@@ -4920,7 +4921,7 @@ static void clothModifier_updateDepgraph(
 
 CustomDataMask clothModifier_requiredDataMask(ModifierData *md)
 {
-	ClothModifierData *clmd = (HookModifierData *)md;
+	ClothModifierData *clmd = (ClothModifierData *)md;
 	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */
@@ -4946,6 +4947,113 @@ static void clothModifier_freeData(ModifierData *md)
 		clmd->sim_parms.flags &= ~CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT;
 		cloth_free_modifier (clmd);
 	}
+}
+
+/* Collision */
+
+static void collisionModifier_initData(ModifierData *md) 
+{
+	CollisionModifierData *collmd = (CollisionModifierData*) md;
+	
+	collmd->x = NULL;
+	collmd->xold = NULL;
+	collmd->time = -1;
+	collmd->numverts = 0;
+	collmd->tree = NULL;
+}
+
+static void collisionModifier_freeData(ModifierData *md)
+{
+	CollisionModifierData *collmd = (CollisionModifierData*) md;
+	
+	if (collmd) 
+	{
+		if(collmd->tree)
+			bvh_free(collmd->tree);
+		if(collmd->x)
+			MEM_freeN(collmd->x);
+		if(collmd->xold)
+			MEM_freeN(collmd->xold);
+		
+		collmd->x = NULL;
+		collmd->xold = NULL;
+		collmd->time = -1;
+		collmd->numverts = 0;
+		collmd->tree = NULL;
+	}
+}
+
+static void collisionModifier_deformVerts(
+				      ModifierData *md, Object *ob, DerivedMesh *derivedData,
+	  float (*vertexCos)[3], int numVerts)
+{
+	CollisionModifierData *collmd = (CollisionModifierData*) md;
+	DerivedMesh *dm = NULL;
+	MVert *mvert = NULL;
+	float current_time = 0;
+	unsigned int numverts = 0, i = 0;
+	MVert *tempVert = NULL;
+
+	// if possible use/create DerivedMesh
+	
+	if(derivedData) dm = CDDM_copy(derivedData);
+	else if(ob->type==OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
+	
+	if(dm)
+	{
+		CDDM_apply_vert_coords(dm, vertexCos);
+		CDDM_calc_normals(dm);
+	
+	
+		current_time = bsystem_time ( ob, ( float ) G.scene->r.cfra, 0.0 );
+		
+		if(current_time > collmd->time)
+		{
+			numverts = dm->getNumVerts ( dm );
+			
+			// check if mesh has changed
+			if(collmd->x && (numverts != collmd->numverts))
+				collisionModifier_freeData(collmd);
+			
+			if(collmd->time == -1) // first time
+			{
+				collmd->x = dm->dupVertArray(dm);
+				collmd->xold = dm->dupVertArray(dm);
+				collmd->numverts = numverts;
+				
+				// TODO: epsilon
+				// create bounding box hierarchy
+				collmd->tree = bvh_build(dm, collmd->x, collmd->xold,  numverts, 0.01);
+			}
+			else if(numverts == collmd->numverts)
+			{
+				// put positions to old positions
+				tempVert = collmd->xold;
+				collmd->xold = collmd->x;
+				collmd->x = tempVert;
+				
+				memcpy(collmd->x, dm->getVertArray(dm), numverts*sizeof(MVert));
+				
+				for ( i = 0; i < numverts; i++ )
+				{
+					// we save global positions
+					Mat4MulVecfl ( ob->obmat, collmd->x[i].co );
+				}
+				
+				bvh_update(dm, collmd->tree, 0); // recalc static bounding boxes
+			}
+			
+			collmd->time = current_time;
+		}
+	}
+	
+	if(dm)
+		dm->release(dm);
+}
+
+static int collisionModifier_dependsOnTime(ModifierData *md)
+{
+	return 1;
 }
 
 /* Boolean */
@@ -5247,6 +5355,16 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		// mti->copyData = clothModifier_copyData;
 		mti->deformVerts = clothModifier_deformVerts;
 		mti->updateDepgraph = clothModifier_updateDepgraph;
+		
+		mti = INIT_TYPE(Collision);
+		mti->type = eModifierTypeType_OnlyDeform;
+		mti->initData = collisionModifier_initData;
+		mti->flags = eModifierTypeFlag_AcceptsMesh 
+				| eModifierTypeFlag_RequiresOriginalData;
+		mti->dependsOnTime = collisionModifier_dependsOnTime;
+		mti->freeData = collisionModifier_freeData; 
+		mti->deformVerts = collisionModifier_deformVerts;
+		// mti->copyData = collisionModifier_copyData;
 
 		mti = INIT_TYPE(Boolean);
 		mti->type = eModifierTypeType_Nonconstructive;
@@ -5449,7 +5567,7 @@ int modifiers_isSoftbodyEnabled(Object *ob)
 	return (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render));
 }
 
-ModifierData * modifiers_isClothEnabled(Object *ob)
+ModifierData *modifiers_isClothEnabled(Object *ob)
 {
 	ModifierData *md = modifiers_findByType(ob, eModifierType_Cloth);
 

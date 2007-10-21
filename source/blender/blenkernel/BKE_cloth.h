@@ -124,67 +124,7 @@ void implicit_set_positions ( ClothModifierData *clmd );
 // from cloth.c, needed for modifier.c
 void clothModifier_do ( ClothModifierData *clmd, Object *ob, DerivedMesh *dm, float ( *vertexCos ) [3], int numverts );
 
-// used in collision.c
-typedef struct Tree
-{
-	struct Tree *nodes[4]; // 4 children --> quad-tree
-	struct Tree *parent;
-	struct Tree *nextLeaf;
-	struct Tree *prevLeaf;
-	float	bv[26]; // Bounding volume of all nodes / we have 7 axes on a 14-DOP
-	unsigned int tri_index; // this saves the index of the face
-	int	count_nodes; // how many nodes are used
-	int	traversed;  // how many nodes already traversed until this level?
-	int	isleaf;
-}
-Tree;
-
-typedef struct Tree TreeNode;
-
-typedef struct BVH
-{
-	unsigned int 	numfaces;
-	unsigned int 	numverts;
-	ClothVertex 	*verts; // just a pointer to the original datastructure
-	MFace 		*mfaces; // just a pointer to the original datastructure
-	struct LinkNode *tree;
-	TreeNode 	*root; // TODO: saving the root --> is this really needed? YES!
-	TreeNode 	*leaf_tree; /* Tail of the leaf linked list.	*/
-	TreeNode 	*leaf_root;	/* Head of the leaf linked list.	*/
-	float 		epsilon; /* epslion is used for inflation of the k-dop	   */
-	int 		flags; /* bvhFlags */
-}
-BVH;
-
-typedef void ( *CM_COLLISION_RESPONSE ) ( ClothModifierData *clmd, ClothModifierData *coll_clmd, Tree * tree1, Tree * tree2 );
-
-
-/////////////////////////////////////////////////
-// collision.c
 ////////////////////////////////////////////////
-
-// needed for implicit.c
-void bvh_collision_response ( ClothModifierData *clmd, ClothModifierData *coll_clmd, Tree * tree1, Tree * tree2 );
-int cloth_bvh_objcollision ( ClothModifierData * clmd, float step, float dt );
-
-////////////////////////////////////////////////
-
-
-/////////////////////////////////////////////////
-// kdop.c
-////////////////////////////////////////////////
-
-// needed for cloth.c
-void bvh_free ( BVH * bvh );
-BVH *bvh_build ( ClothModifierData *clmd, float epsilon );
-LinkNode *BLI_linklist_append_fast ( LinkNode **listp, void *ptr );
-
-// needed for collision.c
-int bvh_traverse ( ClothModifierData * clmd, ClothModifierData * coll_clmd, Tree * tree1, Tree * tree2, float step, CM_COLLISION_RESPONSE collision_response );
-void bvh_update ( ClothModifierData * clmd, BVH * bvh, int moving );
-
-////////////////////////////////////////////////
-
 
 
 /////////////////////////////////////////////////
@@ -200,7 +140,7 @@ void cloth_update_normals ( ClothVertex *verts, int nVerts, MFace *face, int tot
 
 /* Typedefs for function pointers we need for solvers and collision detection. */
 typedef void ( *CM_COLLISION_SELF ) ( ClothModifierData *clmd, int step );
-typedef void ( *CM_COLLISION_OBJ ) ( ClothModifierData *clmd, int step, CM_COLLISION_RESPONSE collision_response );
+// typedef void ( *CM_COLLISION_OBJ ) ( ClothModifierData *clmd, int step, CM_COLLISION_RESPONSE collision_response );
 
 
 /* This enum provides the IDs for our solvers. */
@@ -239,6 +179,7 @@ typedef struct Frame
 Frame;
 
 /* used for collisions in collision.c */
+/*
 typedef struct CollPair
 {
 	unsigned int face1; // cloth face
@@ -253,6 +194,7 @@ typedef struct CollPair
 	unsigned int pointsb[4];
 }
 CollPair;
+*/
 
 /* used for collisions in collision.c */
 typedef struct EdgeCollPair

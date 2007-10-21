@@ -950,7 +950,9 @@ static uiBlock *modifiers_add_menu(void *ob_v)
 		ModifierTypeInfo *mti = modifierType_getInfo(i);
 
 		/* Only allow adding through appropriate other interfaces */
-		if(ELEM3(i, eModifierType_Softbody, eModifierType_Hook, eModifierType_Cloth)) continue;
+		if(ELEM(i, eModifierType_Softbody, eModifierType_Hook)) continue;
+		
+		if(ELEM(i, eModifierType_Cloth, eModifierType_Collision)) continue;
 
 		if((mti->flags&eModifierTypeFlag_AcceptsCVs) ||
 		   (ob->type==OB_MESH && (mti->flags&eModifierTypeFlag_AcceptsMesh))) {
@@ -1483,7 +1485,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 	uiBlockSetCol(block, TH_AUTO);
 	
 	/* open/close icon */
-	if (!isVirtual) {
+	if (!isVirtual && md->type!=eModifierType_Collision) {
 		uiBlockSetEmboss(block, UI_EMBOSSN);
 		uiDefIconButBitI(block, ICONTOG, eModifierMode_Expanded, B_MODIFIER_REDRAW, VICON_DISCLOSURE_TRI_RIGHT, x-10, y-2, 20, 20, &md->mode, 0.0, 0.0, 0.0, 0.0, "Collapse/Expand Modifier");
 	}
@@ -1500,8 +1502,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		uiBlockBeginAlign(block);
 		uiDefBut(block, TEX, B_MODIFIER_REDRAW, "", x+10, y-1, buttonWidth-60, 19, md->name, 0.0, sizeof(md->name)-1, 0.0, 0.0, "Modifier name"); 
 
-			/* Softbody not allowed in this situation, enforce! */
-		if (md->type!=eModifierType_Softbody || !(ob->pd && ob->pd->deflect)) {
+		/* Softbody not allowed in this situation, enforce! */
+		if ((md->type!=eModifierType_Softbody && md->type!=eModifierType_Collision) || !(ob->pd && ob->pd->deflect)) {
 			uiDefIconButBitI(block, TOG, eModifierMode_Render, B_MODIFIER_RECALC, ICON_SCENE, x+10+buttonWidth-60, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during rendering");
 			uiDefIconButBitI(block, TOG, eModifierMode_Realtime, B_MODIFIER_RECALC, VICON_VIEW3D, x+10+buttonWidth-40, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during interactive display");
 			if (mti->flags&eModifierTypeFlag_SupportsEditmode) {
@@ -1540,9 +1542,13 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		uiButSetFunc(but, modifiers_moveDown, ob, md);
 		
 		uiBlockSetEmboss(block, UI_EMBOSSN);
-
-		but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, VICON_X, x+width-70+40, y, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Delete modifier");
-		uiButSetFunc(but, modifiers_del, ob, md);
+		
+		// deletion over the deflection panel
+		if(md->type!=eModifierType_Collision)
+		{
+			but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, VICON_X, x+width-70+40, y, 16, 16, NULL, 0.0, 0.0, 0.0, 0.0, "Delete modifier");
+			uiButSetFunc(but, modifiers_del, ob, md);
+		}
 		uiBlockSetCol(block, TH_AUTO);
 	}
 
@@ -1603,6 +1609,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			height = 26;
 		} else if (md->type==eModifierType_Cloth) {
 			height = 26;
+		} else if (md->type==eModifierType_Collision) {
+			height = 19;
 		} else if (md->type==eModifierType_Boolean) {
 			height = 48;
 		} else if (md->type==eModifierType_Array) {
@@ -1614,7 +1622,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 
 		y -= 18;
 
-		if (!isVirtual) {
+		if (!isVirtual && (md->type!=eModifierType_Collision)) {
 			uiBlockBeginAlign(block);
 			but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Apply",	lx,(cy-=19),60,19, 0, 0, 0, 0, 0, "Apply the current modifier and remove from the stack");
 			uiButSetFunc(but, modifiers_applyModifier, ob, md);

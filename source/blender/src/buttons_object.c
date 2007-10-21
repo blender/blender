@@ -2741,10 +2741,29 @@ void do_effects_panels(unsigned short event)
 
 }
 
+/* Panel for collision */
+static void object_collision__enabletoggle(void *ob_v, void *arg2)
+{
+	Object *ob = ob_v;
+	ModifierData *md = modifiers_findByType(ob, eModifierType_Collision);
+
+	if (!md) {
+		md = modifier_new(eModifierType_Collision);
+		BLI_addhead(&ob->modifiers, md);
+	}
+	else {
+		BLI_remlink(&ob->modifiers, md);
+		modifier_free(md);
+	}
+
+	allqueue(REDRAWBUTSEDIT, 0);
+}
+
 /* Panel for particle interaction settings */
 static void object_panel_fields(Object *ob)
 {
 	uiBlock *block;
+	uiBut *but;
 
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_fields", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Fields and Deflection", "Physics", 0, 0, 318, 204)==0) return;
@@ -2804,7 +2823,8 @@ static void object_panel_fields(Object *ob)
 			
 		/* only meshes collide now */
 		if(ob->type==OB_MESH) {
-			uiDefButBitS(block, TOG, 1, B_REDR, "Deflection",160,160,150,20, &pd->deflect, 0, 0, 0, 0, "Deflects particles based on collision");
+			but = uiDefButBitS(block, TOG, 1, B_REDR, "Deflection/Collision",160,160,150,20, &pd->deflect, 0, 0, 0, 0, "Make object collision object for dynamics");
+			uiButSetFunc(but, object_collision__enabletoggle, ob, NULL);
 			if(pd->deflect) {
 				uiDefBut(block, LABEL, 0, "Particles",			160,140,150,20, NULL, 0.0, 0, 0, 0, "");
 				
@@ -3129,7 +3149,7 @@ static void object_panel_cloth(Object *ob)
 			uiBlockBeginAlign(block);
 			uiDefButF(block, NUM, B_CLOTH_RENEW, "StructStiff:",	   10,170,150,20, &clmd->sim_parms.structural, 1.0, 10000.0, 100, 0, "Overall stiffness of structure");
 			uiDefButF(block, NUM, B_CLOTH_RENEW, "BendStiff:",	   160,170,150,20, &clmd->sim_parms.bending, 0.0, 10000.0, 1000, 0, "Wrinkle possibility");
-			uiDefButI(block, NUM, B_CLOTH_RENEW, "Steps per Frame:",	   10,150,150,20, &clmd->sim_parms.stepsPerFrame, 1.0, 100.0, 5, 0, "Quality of the simulation (higher=better=slower)");
+			uiDefButI(block, NUM, B_CLOTH_RENEW, "Quality:",  10,150,150,20, &clmd->sim_parms.stepsPerFrame, 1.0, 100.0, 5, 0, "Quality of the simulation (higher=>better=>slower)");
 			uiBlockEndAlign(block);
 			uiBlockBeginAlign(block);
 			uiDefButF(block, NUM, B_CLOTH_RENEW, "Spring Damp:",	   160,150,150,20, &clmd->sim_parms.Cdis, 0.0, 10.0, 10, 0, "Spring damping");

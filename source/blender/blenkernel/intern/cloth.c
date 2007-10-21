@@ -65,6 +65,7 @@
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_cloth.h"
+#include "BKE_collisions.h"
 #include "BKE_modifier.h"
 #include "BKE_utildefines.h"
 #include "BKE_DerivedMesh.h"
@@ -845,11 +846,11 @@ void cloth_free_modifier ( ClothModifierData *clmd )
 
 			cloth->springs = NULL;
 			cloth->numsprings = 0;
-
+/*
 			// free BVH collision tree
 			if ( cloth->tree )
 				bvh_free ( ( BVH * ) cloth->tree );
-
+*/
 			// we save our faces for collision objects
 			if ( cloth->mfaces )
 				MEM_freeN ( cloth->mfaces );
@@ -1011,27 +1012,13 @@ static int collobj_from_object ( Object *ob, ClothModifierData *clmd, DerivedMes
 					verts->impulse_count = 0;
 					VECCOPY ( verts->impulse, tnull );
 				}
-				clmd->clothObject->tree =  bvh_build ( clmd,clmd->coll_parms.epsilon );
+				// clmd->clothObject->tree =  bvh_build ( dm, clmd->coll_parms.epsilon );
 
 			}
 
 			return 1;
 		default: return 0; // TODO - we do not support changing meshes
 	}
-}
-
-/*
-helper function to get proper spring length
-when object is rescaled
-*/
-float cloth_globallen ( float *v1,float *v2,Object *ob )
-{
-	float p1[3],p2[3];
-	VECCOPY ( p1,v1 );
-	Mat4MulVecfl ( ob->obmat, p1 );
-	VECCOPY ( p2,v2 );
-	Mat4MulVecfl ( ob->obmat, p2 );
-	return VecLenf ( p1,p2 );
 }
 
 // only meshes supported at the moment
@@ -1082,7 +1069,7 @@ static int cloth_from_object ( Object *ob, ClothModifierData *clmd, DerivedMesh 
 					return 0;
 				}
 
-				mvert = CDDM_get_verts ( dm );
+				mvert = dm->getVertArray ( dm ); // CDDM_get_verts ( dm );
 				verts = clmd->clothObject->verts;
 
 				/* set initial values */
@@ -1116,7 +1103,7 @@ static int cloth_from_object ( Object *ob, ClothModifierData *clmd, DerivedMesh 
 				if ( solvers [clmd->sim_parms.solver_type].init )
 					solvers [clmd->sim_parms.solver_type].init ( ob, clmd );
 
-				clmd->clothObject->tree = bvh_build ( clmd, clmd->coll_parms.epsilon );
+				// clmd->clothObject->tree = bvh_build ( dm, clmd->coll_parms.epsilon );
 
 				cloth_cache_set_frame ( clmd, 1 );
 			}

@@ -38,7 +38,6 @@
 #include "DNA_curve_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
-#include "DNA_cloth_types.h"	
 #include "DNA_key_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
@@ -59,7 +58,7 @@
 #include "BKE_key.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
-#include "BKE_cloth.h"
+#include "BKE_collisions.h"
 #include "BKE_modifier.h"
 #include "BKE_utildefines.h"
 #include "BKE_DerivedMesh.h"
@@ -165,13 +164,13 @@ static int size_threshold = 16;
 /*
 * Common methods for all algorithms
 */
-DO_INLINE void bvh_exchange(Tree **a, int i, int j)
+void bvh_exchange(Tree **a, int i, int j)
 {
 	Tree *t=a[i];
 	a[i]=a[j];
 	a[j]=t;
 }
-DO_INLINE int floor_lg(int a)
+int floor_lg(int a)
 {
 	return (int)(floor(log(a)/log(2)));
 }
@@ -294,7 +293,7 @@ static void bvh_introsort_loop (Tree **a, int lo, int hi, int depth_limit, int a
 	}
 }
 
-DO_INLINE void bvh_sort(Tree **a0, int begin, int end, int axis)
+void bvh_sort(Tree **a0, int begin, int end, int axis)
 {
 	if (begin < end)
 	{
@@ -303,7 +302,7 @@ DO_INLINE void bvh_sort(Tree **a0, int begin, int end, int axis)
 		bvh_insertionsort(a, begin, end, axis);
 	}
 }
-DO_INLINE void bvh_sort_along_axis(Tree **face_list, int start, int end, int axis)
+void bvh_sort_along_axis(Tree **face_list, int start, int end, int axis)
 {
 	bvh_sort(face_list, start, end, axis);
 }
@@ -330,7 +329,7 @@ void bvh_free(BVH * bvh)
 
 		BLI_linklist_free(bvh->tree,NULL); 
 		bvh->tree = NULL;
-
+		
 		MEM_freeN(bvh);
 		bvh = NULL;
 	}
@@ -338,7 +337,7 @@ void bvh_free(BVH * bvh)
 
 // only supports x,y,z axis in the moment
 // but we should use a plain and simple function here for speed sake
-DO_INLINE int bvh_largest_axis(float *bv)
+int bvh_largest_axis(float *bv)
 {
 	float middle_point[3];
 
@@ -362,7 +361,7 @@ DO_INLINE int bvh_largest_axis(float *bv)
 }
 
 // depends on the fact that the BVH's for each face is already build
-DO_INLINE void bvh_calc_DOP_hull_from_faces(BVH * bvh, Tree **tri, int numfaces, float *bv)
+void bvh_calc_DOP_hull_from_faces(BVH * bvh, Tree **tri, int numfaces, float *bv)
 {
 	float newmin,newmax;
 	int i, j;
@@ -386,9 +385,9 @@ DO_INLINE void bvh_calc_DOP_hull_from_faces(BVH * bvh, Tree **tri, int numfaces,
 	}
 }
 
-DO_INLINE void bvh_calc_DOP_hull_static(BVH * bvh, Tree **tri, int numfaces, float *bv)
+void bvh_calc_DOP_hull_static(BVH * bvh, Tree **tri, int numfaces, float *bv)
 {
-	ClothVertex *tempMVert = bvh->verts;
+	MVert *tempMVert = bvh->xold;
 	MFace *tempMFace = bvh->mfaces;
 	float *tempBV = bv;
 	float newminmax;
@@ -415,7 +414,7 @@ DO_INLINE void bvh_calc_DOP_hull_static(BVH * bvh, Tree **tri, int numfaces, flo
 			// for all Axes.
 			for (i = KDOP_START; i < KDOP_END; i++)
 			{				
-				newminmax = INPR(tempMVert[temp].txold, KDOP_AXES[i]);
+				newminmax = INPR(tempMVert[temp].co, KDOP_AXES[i]);
 				if ((newminmax < tempBV[(2 * i)]) || (k == 0 && j == 0))
 					tempBV[(2 * i)] = newminmax;
 				if ((newminmax > tempBV[(2 * i) + 1])|| (k == 0 && j == 0))
@@ -425,9 +424,10 @@ DO_INLINE void bvh_calc_DOP_hull_static(BVH * bvh, Tree **tri, int numfaces, flo
 	}
 }
 
-DO_INLINE void bvh_calc_DOP_hull_moving(BVH * bvh, Tree **tri, int numfaces, float *bv)
+void bvh_calc_DOP_hull_moving(BVH * bvh, Tree **tri, int numfaces, float *bv)
 {
-	ClothVertex *tempMVert = bvh->verts;
+	MVert *tempMVert = bvh->xold;
+	MVert *tempMVert2 = bvh->x;
 	MFace *tempMFace = bvh->mfaces;
 	float *tempBV = bv;
 	float newminmax;
@@ -454,13 +454,13 @@ DO_INLINE void bvh_calc_DOP_hull_moving(BVH * bvh, Tree **tri, int numfaces, flo
 			// for all Axes.
 			for (i = KDOP_START; i < KDOP_END; i++)
 			{				
-				newminmax = INPR(tempMVert[temp].txold, KDOP_AXES[i]);
+				newminmax = INPR(tempMVert[temp].co, KDOP_AXES[i]);
 				if ((newminmax < tempBV[(2 * i)]) || (k == 0 && j == 0))
 					tempBV[(2 * i)] = newminmax;
 				if ((newminmax > tempBV[(2 * i) + 1])|| (k == 0 && j == 0))
 					tempBV[(2 * i) + 1] = newminmax;
 				
-				newminmax = INPR(tempMVert[temp].tx, KDOP_AXES[i]);
+				newminmax = INPR(tempMVert2[temp].co, KDOP_AXES[i]);
 				if ((newminmax < tempBV[(2 * i)]) || (k == 0 && j == 0))
 					tempBV[(2 * i)] = newminmax;
 				if ((newminmax > tempBV[(2 * i) + 1])|| (k == 0 && j == 0))
@@ -538,25 +538,18 @@ static void bvh_div_env_node(BVH * bvh, TreeNode *tree, Tree **face_list, unsign
 	return;
 }
 
-BVH *bvh_build (ClothModifierData *clmd, float epsilon)
+BVH *bvh_build (DerivedMesh *dm, MVert *x, MVert *xold, unsigned int numverts, float epsilon)
 {
 	unsigned int i = 0, j = 0, k = 0;
 	Tree **face_list=NULL;
 	BVH	*bvh=NULL;
-	Cloth *cloth = NULL;
 	Tree *tree=NULL;
 	LinkNode *nlink = NULL;
 	EdgeHash *edgehash = NULL;
-	LinkNode *springs = NULL;
 	unsigned int numsprings = 0;
 	MFace *mface = NULL;
 
-	if(!clmd)
-		return NULL;
-
-	cloth = clmd->clothObject;
-
-	if(!cloth)
+	if(!dm)
 		return NULL;
 	
 	bvh = MEM_callocN(sizeof(BVH), "BVH");
@@ -566,20 +559,18 @@ BVH *bvh_build (ClothModifierData *clmd, float epsilon)
 		return NULL;
 	}
 	
-	springs = cloth->springs;
-	numsprings = cloth->numsprings;
-	
 	bvh->flags = 0;
 	bvh->leaf_tree = NULL;
 	bvh->leaf_root = NULL;
 	bvh->tree = NULL;
 
 	bvh->epsilon = epsilon;
-	bvh->numfaces = cloth->numfaces;
-	mface = bvh->mfaces = cloth->mfaces;
+	bvh->numfaces = dm->getNumFaces(dm);
+	mface = bvh->mfaces = dm->getFaceArray(dm);
 
-	bvh->numverts = cloth->numverts;
-	bvh->verts = cloth->verts;	
+	bvh->numverts = numverts;
+	bvh->x = x;	
+	bvh->xold = xold;	
 	tree = (Tree *)MEM_callocN(sizeof(Tree), "Tree");
 	// TODO: check succesfull alloc
 	BLI_linklist_append(&bvh->tree, tree);
@@ -610,21 +601,6 @@ BVH *bvh_build (ClothModifierData *clmd, float epsilon)
 	}
 	else
 	{	
-		// create spring tearing hash
-		/*
-		edgehash = BLI_edgehash_new();
-		if(clmd->sim_parms.flags & CSIMSETT_FLAG_TEARING_ENABLED)
-		for(i = 0; i < numsprings; i++)
-		{
-			if((springs[i].flags & CSPRING_FLAG_DEACTIVATE)
-			&&(!BLI_edgehash_haskey(edgehash, springs[i].ij, springs[i].kl)))
-			{
-				BLI_edgehash_insert(edgehash, springs[i].ij, springs[i].kl, NULL);
-				BLI_edgehash_insert(edgehash, springs[i].kl, springs[i].ij, NULL);
-			}
-		}	
-		*/
-		
 		// create face boxes		
 		face_list = MEM_callocN (bvh->numfaces * sizeof (Tree *), "Tree");
 		if (face_list == NULL) 
@@ -637,50 +613,43 @@ BVH *bvh_build (ClothModifierData *clmd, float epsilon)
 		// create face boxes
 		for(i = 0, k = 0; i < bvh->numfaces; i++)
 		{
-			LinkNode *tnlink;
-			/*
-			if((!BLI_edgehash_haskey(edgehash, mface[i].v1, mface[i].v2))
-			&&(!BLI_edgehash_haskey(edgehash, mface[i].v2, mface[i].v3))
-			&&(!BLI_edgehash_haskey(edgehash, mface[i].v3, mface[i].v4))
-			&&(!BLI_edgehash_haskey(edgehash, mface[i].v4, mface[i].v1))) 
-			*/
+			LinkNode *tnlink = NULL;
+			
+			tree = (Tree *)MEM_callocN(sizeof(Tree), "Tree");
+			// TODO: check succesfull alloc
+
+			tnlink = BLI_linklist_append_fast(&nlink->next, tree);
+
+			face_list[i] = tree;
+			tree->tri_index = i;
+			tree->isleaf = 1;
+			tree->nextLeaf = NULL;
+			tree->prevLeaf = bvh->leaf_tree;
+			tree->parent = NULL;
+			tree->count_nodes = 0;
+
+			if(i==0)
 			{
-				tree = (Tree *)MEM_callocN(sizeof(Tree), "Tree");
-				// TODO: check succesfull alloc
-	
-				tnlink = BLI_linklist_append_fast(&nlink->next, tree);
-	
-				face_list[i] = tree;
-				tree->tri_index = i;
-				tree->isleaf = 1;
-				tree->nextLeaf = NULL;
-				tree->prevLeaf = bvh->leaf_tree;
-				tree->parent = NULL;
-				tree->count_nodes = 0;
-	
-				if(i==0)
-				{
-					bvh->leaf_tree = bvh->leaf_root = tree;
-				}
-				else
-				{
-					bvh->leaf_tree->nextLeaf = tree;
-					bvh->leaf_tree = bvh->leaf_tree->nextLeaf;
-				}		
-	
-				tree->nodes[0] = tree->nodes[1] = tree->nodes[2] = tree->nodes[3] = NULL;		
-	
-				bvh_calc_DOP_hull_static(bvh, &face_list[i], 1, tree->bv);
-	
-				// inflate the bv with some epsilon
-				for (j = KDOP_START; j < KDOP_END; j++)
-				{
-					tree->bv[(2 * j)] -= bvh->epsilon; // minimum 
-					tree->bv[(2 * j) + 1] += bvh->epsilon;	// maximum 
-				}
-				
-				nlink = tnlink;
+				bvh->leaf_tree = bvh->leaf_root = tree;
 			}
+			else
+			{
+				bvh->leaf_tree->nextLeaf = tree;
+				bvh->leaf_tree = bvh->leaf_tree->nextLeaf;
+			}		
+
+			tree->nodes[0] = tree->nodes[1] = tree->nodes[2] = tree->nodes[3] = NULL;		
+
+			bvh_calc_DOP_hull_static(bvh, &face_list[i], 1, tree->bv);
+
+			// inflate the bv with some epsilon
+			for (j = KDOP_START; j < KDOP_END; j++)
+			{
+				tree->bv[(2 * j)] -= bvh->epsilon; // minimum 
+				tree->bv[(2 * j) + 1] += bvh->epsilon;	// maximum 
+			}
+			
+			nlink = tnlink;
 		}
 		
 		// build root bvh
@@ -699,7 +668,7 @@ BVH *bvh_build (ClothModifierData *clmd, float epsilon)
 }
 
 // bvh_overlap - is it possbile for 2 bv's to collide ?
-DO_INLINE int bvh_overlap(float *bv1, float *bv2)
+int bvh_overlap(float *bv1, float *bv2)
 {
 	int i = 0;
 	for (i = KDOP_START; i < KDOP_END; i++)
@@ -725,18 +694,10 @@ DO_INLINE int bvh_overlap(float *bv1, float *bv2)
  * every other triangle that doesn't require any realloc, but uses
  * much memory
  */
-int bvh_traverse(ClothModifierData * clmd, ClothModifierData * coll_clmd, Tree * tree1, Tree * tree2, float step, CM_COLLISION_RESPONSE collision_response)
+int bvh_traverse(Tree * tree1, Tree * tree2, LinkNode *collision_list)
 {
-	int i = 0, ret=0;
-	
-	/*
-	// Shouldn't be possible
-	if(!tree1 || !tree2)
-	{
-	printf("Error: no tree there\n");
-	return 0;
-}
-	*/	
+	int i = 0, ret = 0;
+		
 	if (bvh_overlap(tree1->bv, tree2->bv)) 
 	{		
 		// Check if this node in the first tree is a leaf
@@ -745,10 +706,14 @@ int bvh_traverse(ClothModifierData * clmd, ClothModifierData * coll_clmd, Tree *
 			// Check if this node in the second tree a leaf
 			if (tree2->isleaf) 
 			{
-				// Provide the collision response.
+				// save potential colliding triangles
+				CollisionPair *collpair = (CollisionPair *)MEM_callocN(sizeof(CollisionPair), "CollisionPair");
 				
-				if(collision_response)
-					collision_response (clmd, coll_clmd, tree1, tree2);
+				collpair->indexA = tree1->tri_index;
+				collpair->indexB = tree2->tri_index;
+				
+				BLI_linklist_append(&collision_list, collpair);
+				
 				return 1;
 			}
 			else 
@@ -757,7 +722,7 @@ int bvh_traverse(ClothModifierData * clmd, ClothModifierData * coll_clmd, Tree *
 				for (i = 0; i < 4; i++)
 				{
 					// Only traverse nodes that exist.
-					if (tree2->nodes[i] && bvh_traverse (clmd, coll_clmd, tree1, tree2->nodes[i], step, collision_response))
+					if (tree2->nodes[i] && bvh_traverse (tree1, tree2->nodes[i], collision_list))
 						ret = 1;
 				}
 			}
@@ -768,7 +733,7 @@ int bvh_traverse(ClothModifierData * clmd, ClothModifierData * coll_clmd, Tree *
 			for (i = 0; i < 4; i++)
 			{
 				// Only traverse nodes that exist.
-				if (tree1->nodes [i] && bvh_traverse (clmd, coll_clmd, tree1->nodes[i], tree2, step, collision_response))
+				if (tree1->nodes [i] && bvh_traverse (tree1->nodes[i], tree2, collision_list))
 					ret = 1;
 			}
 		}
@@ -809,11 +774,17 @@ void bvh_join(Tree * tree)
 }
 
 // update static bvh
-void bvh_update(ClothModifierData *clmd, BVH * bvh, int moving)
+// needs new positions in bvh->x, bvh->xold
+void bvh_update(DerivedMesh *dm, BVH * bvh, int moving)
 {
 	TreeNode *leaf, *parent;
 	int traversecheck = 1;	// if this is zero we don't go further 
 	unsigned int j = 0;
+	
+	if(bvh->numfaces != dm->getNumFaces(dm))
+		return;
+	
+	bvh->mfaces = dm->getFaceArray(dm);
 	
 	for (leaf = bvh->leaf_root; leaf; leaf = leaf->nextLeaf)
 	{

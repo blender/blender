@@ -426,8 +426,8 @@ void recalcData(TransInfo *t)
 					if(modifiers_isSoftbodyEnabled(base->object)) {
 						base->object->softflag |= OB_SB_REDO;
 					}
-					else if(modifiers_isClothEnabled(ob)) {
-						cloth_free_modifier(modifiers_isClothEnabled(ob));
+					else if((clmd = (ClothModifierData *)modifiers_isClothEnabled(ob))) {
+						cloth_free_modifier(clmd);
 					}
 					
 				}
@@ -470,8 +470,8 @@ void recalcData(TransInfo *t)
 				if(modifiers_isSoftbodyEnabled(ob)) {
 						ob->softflag |= OB_SB_REDO;
 				}
-				else if(modifiers_isClothEnabled(ob)) {
-					cloth_free_modifier(modifiers_isClothEnabled(ob));
+				else if((clmd = (ClothModifierData *)modifiers_isClothEnabled(ob))) {
+					cloth_free_modifier(clmd);
 				}
 			}
 			
