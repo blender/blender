@@ -188,7 +188,7 @@ void file_buttons(void)
 	
 		BIF_DrawString(G.font, naam, 0);
 	}
-	
+
 	/* always do as last */
 	curarea->headbutlen= xco+2*XIC;
 }
