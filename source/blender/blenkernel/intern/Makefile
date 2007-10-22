@@ -61,8 +61,7 @@ CPPFLAGS += -I../../include
 CPPFLAGS += -I../../render/extern/include
 
 # for image stamping
-CPPFLAGS += -I../../../../intern/bmfont
-
+CPPFLAGS += -I$(NAN_BMFONT)/include
 # for sound
 #CPPFLAGS += -I../../../kernel/gen_system
 CPPFLAGS +=  $(NAN_SDLCFLAGS)
