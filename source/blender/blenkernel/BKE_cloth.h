@@ -122,7 +122,7 @@ void cloth_free_modifier ( ClothModifierData *clmd );
 void implicit_set_positions ( ClothModifierData *clmd );
 
 // from cloth.c, needed for modifier.c
-void clothModifier_do ( ClothModifierData *clmd, Object *ob, DerivedMesh *dm, float ( *vertexCos ) [3], int numverts );
+DerivedMesh *clothModifier_do(ClothModifierData *clmd, Object *ob, DerivedMesh *dm);
 
 ////////////////////////////////////////////////
 
@@ -132,9 +132,7 @@ void clothModifier_do ( ClothModifierData *clmd, Object *ob, DerivedMesh *dm, fl
 ////////////////////////////////////////////////
 void cloth_free_modifier ( ClothModifierData *clmd );
 void cloth_init ( ClothModifierData *clmd );
-void cloth_deform_verts ( struct Object *ob, float framenr, float ( *vertexCos ) [3], int numVerts, void *derivedData, ClothModifierData *clmd );
 void cloth_update_normals ( ClothVertex *verts, int nVerts, MFace *face, int totface );
-
 ////////////////////////////////////////////////
 
 

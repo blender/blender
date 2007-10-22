@@ -350,12 +350,14 @@ typedef struct ClothModifierData {
 typedef struct CollisionModifierData {
 	ModifierData		modifier;
 	
-	struct MVert *x;
-	struct MVert *xnew;
+	struct MVert *x; /* position at the beginning of the frame */
+	struct MVert *xnew; /* position at the end of the frame */
+	struct MVert *current_xnew; /* new position at the actual inter-frame step */
+	struct MVert *current_x; /* position at the actual inter-frame step */
 	
 	unsigned int numverts;
 	float time;
-	void *tree;	/* collision tree for this cloth object */
+	struct BVH *tree;	/* collision tree for this cloth object */
 } CollisionModifierData;
 
 typedef enum {

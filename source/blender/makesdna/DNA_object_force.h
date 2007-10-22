@@ -113,7 +113,6 @@ typedef struct SoftBody {
 		;   
 
 	struct SBScratch *scratch;	/* scratch pad/cache on live time not saved in file */
-
 } SoftBody;
 
 /* pd->forcefield:  Effector Fields types */

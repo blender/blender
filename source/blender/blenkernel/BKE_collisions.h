@@ -44,21 +44,21 @@
 #include "BKE_DerivedMesh.h"
 
 // used in kdop.c and collision.c
-typedef struct Tree
+typedef struct CollisionTree
 {
-	struct Tree *nodes[4]; // 4 children --> quad-tree
-	struct Tree *parent;
-	struct Tree *nextLeaf;
-	struct Tree *prevLeaf;
+	struct CollisionTree *nodes[4]; // 4 children --> quad-tree
+	struct CollisionTree *parent;
+	struct CollisionTree *nextLeaf;
+	struct CollisionTree *prevLeaf;
 	float	bv[26]; // Bounding volume of all nodes / we have 7 axes on a 14-DOP
-	unsigned int tri_index; // this saves the index of the face
+	int point_index[4]; // supports up to 4 points in a leaf
 	int	count_nodes; // how many nodes are used
 	int	traversed;  // how many nodes already traversed until this level?
 	int	isleaf;
 }
-Tree;
+CollisionTree;
 
-typedef struct Tree TreeNode;
+typedef struct CollisionTree TreeNode;
 
 typedef struct BVH
 {
@@ -79,7 +79,7 @@ BVH;
 /* used for collisions in kdop.c and also collision.c*/
 typedef struct CollisionPair
 {
-	unsigned int indexA, indexB;
+	int point_indexA[4], point_indexB[4];
 }
 CollisionPair;
 
@@ -89,18 +89,21 @@ CollisionPair;
 /////////////////////////////////////////////////
 
 // builds bounding volume hierarchy
-BVH *bvh_build (DerivedMesh *dm, MVert *x, MVert *xold, unsigned int numverts, float epsilon);
+BVH *bvh_build (MFace *mfaces, unsigned int numfaces, MVert *x, MVert *xnew, unsigned int numverts, float epsilon);
 // frees the same
 void bvh_free ( BVH *bvh );
 
 // checks two bounding volume hierarchies for potential collisions and returns some list with those
-int bvh_traverse(Tree *tree1, Tree *tree2, LinkNode *collision_list);
+int bvh_traverse(CollisionTree *tree1, CollisionTree *tree2, LinkNode *collision_list);
 
 // update bounding volumes, needs updated positions in bvh->x
-void bvh_update(DerivedMesh *dm, BVH * bvh, int moving);
+void bvh_update(BVH * bvh, int moving);
 
-LinkNode *BLI_linklist_append_fast ( LinkNode **listp, void *ptr );
+LinkNode *BLI_linklist_append_fast (LinkNode **listp, void *ptr);
 
+// move Collision modifier object inter-frame with step = [0,1]
+// defined in collisions.c
+void collision_move_object(CollisionModifierData *collmd, float step);
 
 /////////////////////////////////////////////////
 

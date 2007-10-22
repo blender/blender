@@ -2893,6 +2893,8 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			
 			collmd->x = NULL;
 			collmd->xnew = NULL;
+			collmd->current_x = NULL;
+			collmd->current_xnew = NULL;
 			collmd->time = -1;
 			collmd->numverts = 0;
 			collmd->tree = NULL;
@@ -3009,7 +3011,6 @@ static void direct_link_object(FileData *fd, Object *ob)
 		sb->bpoint= NULL;	// init pointers so it gets rebuilt nicely
 		sb->bspring= NULL;
 		sb->scratch= NULL;
-
 		
 		sb->keys= newdataadr(fd, sb->keys);
 		test_pointer_array(fd, (void **)&sb->keys);

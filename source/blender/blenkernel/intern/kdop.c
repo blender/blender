@@ -164,9 +164,9 @@ static int size_threshold = 16;
 /*
 * Common methods for all algorithms
 */
-void bvh_exchange(Tree **a, int i, int j)
+void bvh_exchange(CollisionTree **a, int i, int j)
 {
-	Tree *t=a[i];
+	CollisionTree *t=a[i];
 	a[i]=a[j];
 	a[j]=t;
 }
@@ -178,10 +178,10 @@ int floor_lg(int a)
 /*
 * Insertion sort algorithm
 */
-static void bvh_insertionsort(Tree **a, int lo, int hi, int axis)
+static void bvh_insertionsort(CollisionTree **a, int lo, int hi, int axis)
 {
 	int i,j;
-	Tree *t;
+	CollisionTree *t;
 	for (i=lo; i < hi; i++)
 	{
 		j=i;
@@ -195,7 +195,7 @@ static void bvh_insertionsort(Tree **a, int lo, int hi, int axis)
 	}
 }
 
-static int bvh_partition(Tree **a, int lo, int hi, Tree * x, int axis)
+static int bvh_partition(CollisionTree **a, int lo, int hi, CollisionTree *x, int axis)
 {
 	int i=lo, j=hi;
 	while (1)
@@ -213,9 +213,9 @@ static int bvh_partition(Tree **a, int lo, int hi, Tree * x, int axis)
 /*
 * Heapsort algorithm
 */
-static void bvh_downheap(Tree **a, int i, int n, int lo, int axis)
+static void bvh_downheap(CollisionTree **a, int i, int n, int lo, int axis)
 {
-	Tree * d = a[lo+i-1];
+	CollisionTree *d = a[lo+i-1];
 	int child;
 	while (i<=n/2)
 	{
@@ -231,7 +231,7 @@ static void bvh_downheap(Tree **a, int i, int n, int lo, int axis)
 	a[lo+i-1] = d;
 }
 
-static void bvh_heapsort(Tree **a, int lo, int hi, int axis)
+static void bvh_heapsort(CollisionTree **a, int lo, int hi, int axis)
 {
 	int n = hi-lo, i;
 	for (i=n/2; i>=1; i=i-1)
@@ -245,7 +245,7 @@ static void bvh_heapsort(Tree **a, int lo, int hi, int axis)
 	}
 }
 
-static Tree *bvh_medianof3(Tree **a, int lo, int mid, int hi, int axis) // returns Sortable
+static CollisionTree *bvh_medianof3(CollisionTree **a, int lo, int mid, int hi, int axis) // returns Sortable
 {
 	if ((a[mid])->bv[axis] < (a[lo])->bv[axis])
 	{
@@ -275,7 +275,7 @@ static Tree *bvh_medianof3(Tree **a, int lo, int mid, int hi, int axis) // retur
 /*
 * Quicksort algorithm modified for Introsort
 */
-static void bvh_introsort_loop (Tree **a, int lo, int hi, int depth_limit, int axis)
+static void bvh_introsort_loop (CollisionTree **a, int lo, int hi, int depth_limit, int axis)
 {
 	int p;
 
@@ -293,16 +293,16 @@ static void bvh_introsort_loop (Tree **a, int lo, int hi, int depth_limit, int a
 	}
 }
 
-void bvh_sort(Tree **a0, int begin, int end, int axis)
+void bvh_sort(CollisionTree **a0, int begin, int end, int axis)
 {
 	if (begin < end)
 	{
-		Tree **a=a0;
+		CollisionTree **a=a0;
 		bvh_introsort_loop(a, begin, end, 2*floor_lg(end-begin), axis);
 		bvh_insertionsort(a, begin, end, axis);
 	}
 }
-void bvh_sort_along_axis(Tree **face_list, int start, int end, int axis)
+void bvh_sort_along_axis(CollisionTree **face_list, int start, int end, int axis)
 {
 	bvh_sort(face_list, start, end, axis);
 }
@@ -310,7 +310,7 @@ void bvh_sort_along_axis(Tree **face_list, int start, int end, int axis)
 void bvh_free(BVH * bvh)
 {
 	LinkNode *search = NULL;
-	Tree *tree = NULL;
+	CollisionTree *tree = NULL;
 
 	if (bvh) 
 	{
@@ -361,7 +361,7 @@ int bvh_largest_axis(float *bv)
 }
 
 // depends on the fact that the BVH's for each face is already build
-void bvh_calc_DOP_hull_from_faces(BVH * bvh, Tree **tri, int numfaces, float *bv)
+void bvh_calc_DOP_hull_from_faces(BVH * bvh, CollisionTree **tri, int numfaces, float *bv)
 {
 	float newmin,newmax;
 	int i, j;
@@ -385,32 +385,22 @@ void bvh_calc_DOP_hull_from_faces(BVH * bvh, Tree **tri, int numfaces, float *bv
 	}
 }
 
-void bvh_calc_DOP_hull_static(BVH * bvh, Tree **tri, int numfaces, float *bv)
+void bvh_calc_DOP_hull_static(BVH * bvh, CollisionTree **tri, int numfaces, float *bv)
 {
 	MVert *tempMVert = bvh->x;
-	MFace *tempMFace = bvh->mfaces;
 	float *tempBV = bv;
 	float newminmax;
 	int i, j, k;
 	for (j = 0; j < numfaces; j++)
 	{
-		tempMFace = bvh->mfaces + (tri [j])->tri_index;
-		// 3 or 4 vertices per face.
+		// 1 up to 4 vertices per leaf. 
 		for (k = 0; k < 4; k++)
 		{
-			int temp = 0;  
-			// If this is a triangle.
-			if (k == 3 && !tempMFace->v4)
+			int temp = tri[j]->point_index[k];
+			
+			if(temp < 0)
 				continue;
-			// TODO: other name for "temp" this gets all vertices of a face
-			if (k == 0)
-				temp = tempMFace->v1;
-			else if (k == 1)
-				temp = tempMFace->v2;
-			else if (k == 2)
-				temp = tempMFace->v3;
-			else if (k == 3)
-				temp = tempMFace->v4;
+			
 			// for all Axes.
 			for (i = KDOP_START; i < KDOP_END; i++)
 			{				
@@ -424,33 +414,23 @@ void bvh_calc_DOP_hull_static(BVH * bvh, Tree **tri, int numfaces, float *bv)
 	}
 }
 
-void bvh_calc_DOP_hull_moving(BVH * bvh, Tree **tri, int numfaces, float *bv)
+void bvh_calc_DOP_hull_moving(BVH * bvh, CollisionTree **tri, int numfaces, float *bv)
 {
 	MVert *tempMVert = bvh->x;
 	MVert *tempMVert2 = bvh->xnew;
-	MFace *tempMFace = bvh->mfaces;
 	float *tempBV = bv;
 	float newminmax;
 	int i, j, k;
 	for (j = 0; j < numfaces; j++)
 	{
-		tempMFace = bvh->mfaces + (tri [j])->tri_index;
 		// 3 or 4 vertices per face.
 		for (k = 0; k < 4; k++)
 		{
-			int temp = 0;  
-			// If this is a triangle.
-			if (k == 3 && !tempMFace->v4)
+			int temp = tri[j]->point_index[k];
+			
+			if(temp < 0)
 				continue;
-			// TODO: other name for "temp" this gets all vertices of a face
-			if (k == 0)
-				temp = tempMFace->v1;
-			else if (k == 1)
-				temp = tempMFace->v2;
-			else if (k == 2)
-				temp = tempMFace->v3;
-			else if (k == 3)
-				temp = tempMFace->v4;
+			
 			// for all Axes.
 			for (i = KDOP_START; i < KDOP_END; i++)
 			{				
@@ -470,10 +450,10 @@ void bvh_calc_DOP_hull_moving(BVH * bvh, Tree **tri, int numfaces, float *bv)
 	}
 }
 
-static void bvh_div_env_node(BVH * bvh, TreeNode *tree, Tree **face_list, unsigned int start, unsigned int end, int lastaxis, LinkNode *nlink)
+static void bvh_div_env_node(BVH * bvh, TreeNode *tree, CollisionTree **face_list, unsigned int start, unsigned int end, int lastaxis, LinkNode *nlink)
 {
 	int		i = 0;
-	Tree *newtree = NULL;
+	CollisionTree *newtree = NULL;
 	int laxis = 0, max_nodes=4;
 	unsigned int tstart, tend;
 	LinkNode *nlink1 = nlink;
@@ -512,7 +492,7 @@ static void bvh_div_env_node(BVH * bvh, TreeNode *tree, Tree **face_list, unsign
 		// Build tree until 4 node left.
 		if ((tend-tstart + 1 ) > 1) 
 		{
-			newtree = (Tree *)MEM_callocN(sizeof(Tree), "Tree");
+			newtree = (CollisionTree *)MEM_callocN(sizeof(CollisionTree), "CollisionTree");
 			tnlink = BLI_linklist_append_fast(&nlink1->next, newtree);
 
 			newtree->nodes[0] = newtree->nodes[1] = newtree->nodes[2] = newtree->nodes[3] = NULL;
@@ -530,7 +510,7 @@ static void bvh_div_env_node(BVH * bvh, TreeNode *tree, Tree **face_list, unsign
 		}
 		else // ok, we have 1 left for this node
 		{
-			Tree *tnode = face_list[tstart];
+			CollisionTree *tnode = face_list[tstart];
 			tree->nodes[i] = tnode;
 			tree->nodes[i]->parent = tree;
 		}
@@ -538,19 +518,16 @@ static void bvh_div_env_node(BVH * bvh, TreeNode *tree, Tree **face_list, unsign
 	return;
 }
 
-BVH *bvh_build (DerivedMesh *dm, MVert *x, MVert *xnew, unsigned int numverts, float epsilon)
+// mfaces is allowed to be null
+// just vertexes are used if mfaces=NULL
+BVH *bvh_build (MFace *mfaces, unsigned int numfaces, MVert *x, MVert *xnew, unsigned int numverts, float epsilon)
 {
-	unsigned int i = 0, j = 0, k = 0;
-	Tree **face_list=NULL;
+	unsigned int i = 0, j = 0;
+	CollisionTree **face_list=NULL;
 	BVH	*bvh=NULL;
-	Tree *tree=NULL;
+	CollisionTree *tree=NULL;
 	LinkNode *nlink = NULL;
-	EdgeHash *edgehash = NULL;
-	unsigned int numsprings = 0;
 	MFace *mface = NULL;
-
-	if(!dm)
-		return NULL;
 	
 	bvh = MEM_callocN(sizeof(BVH), "BVH");
 	if (bvh == NULL) 
@@ -565,13 +542,19 @@ BVH *bvh_build (DerivedMesh *dm, MVert *x, MVert *xnew, unsigned int numverts, f
 	bvh->tree = NULL;
 
 	bvh->epsilon = epsilon;
-	bvh->numfaces = dm->getNumFaces(dm);
-	mface = bvh->mfaces = dm->getFaceArray(dm);
+	bvh->numfaces = numfaces;
+	mface = bvh->mfaces = mfaces;
+	
+	// we have no faces, we save seperate points
+	if(!bvh->mfaces)
+	{
+		bvh->numfaces = numverts;
+	}
 
 	bvh->numverts = numverts;
 	bvh->xnew = xnew;	
 	bvh->x = x;	
-	tree = (Tree *)MEM_callocN(sizeof(Tree), "Tree");
+	tree = (CollisionTree *)MEM_callocN(sizeof(CollisionTree), "CollisionTree");
 	// TODO: check succesfull alloc
 	BLI_linklist_append(&bvh->tree, tree);
 
@@ -590,7 +573,25 @@ BVH *bvh_build (DerivedMesh *dm, MVert *x, MVert *xnew, unsigned int numverts, f
 
 	if(bvh->numfaces<=1)
 	{
-		bvh->root->tri_index = 0;	// Why that? --> only one face there 
+		// Why that? --> only one face there
+		if(bvh->mfaces)
+		{
+			bvh->root->point_index[0] = mfaces[0].v1;
+			bvh->root->point_index[1] = mfaces[0].v2;
+			bvh->root->point_index[2] = mfaces[0].v3;
+			if(mfaces[0].v4)
+				bvh->root->point_index[3] = mfaces[0].v4;
+			else
+				bvh->root->point_index[3] = -1;
+		}
+		else
+		{
+			bvh->root->point_index[0] = 0;
+			bvh->root->point_index[1] = -1;
+			bvh->root->point_index[2] = -1;
+			bvh->root->point_index[3] = -1;
+		}
+		
 		bvh->root->isleaf = 1;
 		bvh->root->traversed = 0;
 		bvh->root->count_nodes = 0;
@@ -602,7 +603,7 @@ BVH *bvh_build (DerivedMesh *dm, MVert *x, MVert *xnew, unsigned int numverts, f
 	else
 	{	
 		// create face boxes		
-		face_list = MEM_callocN (bvh->numfaces * sizeof (Tree *), "Tree");
+		face_list = MEM_callocN (bvh->numfaces * sizeof (CollisionTree *), "CollisionTree");
 		if (face_list == NULL) 
 		{
 			printf("bvh_build: Out of memory for face_list.\n");
@@ -611,17 +612,35 @@ BVH *bvh_build (DerivedMesh *dm, MVert *x, MVert *xnew, unsigned int numverts, f
 		}
 
 		// create face boxes
-		for(i = 0, k = 0; i < bvh->numfaces; i++)
+		for(i = 0; i < bvh->numfaces; i++)
 		{
 			LinkNode *tnlink = NULL;
 			
-			tree = (Tree *)MEM_callocN(sizeof(Tree), "Tree");
+			tree = (CollisionTree *)MEM_callocN(sizeof(CollisionTree), "CollisionTree");
 			// TODO: check succesfull alloc
 
 			tnlink = BLI_linklist_append_fast(&nlink->next, tree);
 
 			face_list[i] = tree;
-			tree->tri_index = i;
+			
+			if(bvh->mfaces)
+			{
+				bvh->root->point_index[0] = mfaces[i].v1; 
+				bvh->root->point_index[1] = mfaces[i].v2;
+				bvh->root->point_index[2] = mfaces[i].v3;
+				if(mfaces[i].v4)
+					bvh->root->point_index[3] = mfaces[i].v4;
+				else
+					bvh->root->point_index[3] = -1;
+			}
+			else
+			{
+				bvh->root->point_index[0] = i; 
+				bvh->root->point_index[1] = -1;
+				bvh->root->point_index[2] = -1;
+				bvh->root->point_index[3] = -1;
+			}
+			
 			tree->isleaf = 1;
 			tree->nextLeaf = NULL;
 			tree->prevLeaf = bvh->leaf_tree;
@@ -694,7 +713,7 @@ int bvh_overlap(float *bv1, float *bv2)
  * every other triangle that doesn't require any realloc, but uses
  * much memory
  */
-int bvh_traverse(Tree * tree1, Tree * tree2, LinkNode *collision_list)
+int bvh_traverse(CollisionTree *tree1, CollisionTree *tree2, LinkNode *collision_list)
 {
 	int i = 0, ret = 0;
 		
@@ -709,8 +728,11 @@ int bvh_traverse(Tree * tree1, Tree * tree2, LinkNode *collision_list)
 				// save potential colliding triangles
 				CollisionPair *collpair = (CollisionPair *)MEM_callocN(sizeof(CollisionPair), "CollisionPair");
 				
-				collpair->indexA = tree1->tri_index;
-				collpair->indexB = tree2->tri_index;
+				VECCOPY(collpair->point_indexA, tree1->point_index);
+				collpair->point_indexA[3] = tree1->point_index[3];
+				
+				VECCOPY(collpair->point_indexB, tree2->point_index);
+				collpair->point_indexB[3] = tree2->point_index[3];
 				
 				BLI_linklist_append(&collision_list, collpair);
 				
@@ -744,7 +766,7 @@ int bvh_traverse(Tree * tree1, Tree * tree2, LinkNode *collision_list)
 
 // bottom up update of bvh tree:
 // join the 4 children here
-void bvh_join(Tree * tree)
+void bvh_join(CollisionTree *tree)
 {
 	int	i = 0, j = 0;
 	if (!tree)
@@ -775,16 +797,11 @@ void bvh_join(Tree * tree)
 
 // update static bvh
 // needs new positions in bvh->x, bvh->xnew
-void bvh_update(DerivedMesh *dm, BVH * bvh, int moving)
+void bvh_update(BVH * bvh, int moving)
 {
 	TreeNode *leaf, *parent;
 	int traversecheck = 1;	// if this is zero we don't go further 
 	unsigned int j = 0;
-	
-	if(bvh->numfaces != dm->getNumFaces(dm))
-		return;
-	
-	bvh->mfaces = dm->getFaceArray(dm);
 	
 	for (leaf = bvh->leaf_root; leaf; leaf = leaf->nextLeaf)
 	{

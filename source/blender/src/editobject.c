@@ -99,6 +99,7 @@
 #include "BKE_customdata.h"
 #include "BKE_blender.h"
 #include "BKE_booleanops.h"
+#include "BKE_cloth.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
 #include "BKE_depsgraph.h"

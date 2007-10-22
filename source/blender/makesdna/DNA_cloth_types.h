@@ -156,9 +156,13 @@ typedef struct Cloth
 	unsigned char 		old_solver_type;
 	unsigned char 		pad2;
 	short 			pad3;
-	void			*tree;			/* collision tree for this cloth object */
+	struct CollisionTree	*tree;		/* collision tree for this cloth object */
 	struct MFace 		*mfaces;
-	void			*implicit; 		/* our implicit solver connects to this pointer */
+	struct Implicit_Data	*implicit; 	/* our implicit solver connects to this pointer */
+	struct MVert 		*x;
+	struct MVert 		*xnew;
+	struct MVert 		*current_x;
+	struct MVert 		*current_xnew;
 }
 Cloth;
 
