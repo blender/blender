@@ -1634,7 +1634,7 @@ void uvface_setsel__internal(short select)
 	} else if ((G.sima->flag & SI_SYNC_UVSEL)==0 && G.sima->sticky == SI_STICKY_LOC) {
 		EditFace *efa_vlist;
 		MTFace *tf_vlist;
-		UvMapVert *vlist, *start_vlist, *vlist_iter;
+		UvMapVert *vlist, *start_vlist=NULL, *vlist_iter;
 		struct UvVertMap *vmap;
 		float limit[2];
 		int efa_index;

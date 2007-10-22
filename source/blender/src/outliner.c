@@ -591,11 +591,11 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 							pchan->prev= (bPoseChannel *)ten;
 							
 							if(pchan->constraints.first) {
-								Object *target;
+								//Object *target;
 								bConstraint *con;
 								TreeElement *ten1;
 								TreeElement *tenla1= outliner_add_element(soops, &ten->subtree, ob, ten, TSE_CONSTRAINT_BASE, 0);
-								char *str;
+								//char *str;
 								
 								tenla1->name= "Constraints";
 								for(con= pchan->constraints.first; con; con= con->next, const_index++) {
@@ -644,12 +644,12 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 					outliner_add_element(soops, &te->subtree, ob->mat[a], te, 0, a);
 				
 				if(ob->constraints.first) {
-					Object *target;
+					//Object *target;
 					bConstraint *con;
 					TreeElement *ten;
 					TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TSE_CONSTRAINT_BASE, 0);
 					int a= 0;
-					char *str;
+					//char *str;
 					
 					tenla->name= "Constraints";
 					for(con= ob->constraints.first; con; con= con->next, a++) {

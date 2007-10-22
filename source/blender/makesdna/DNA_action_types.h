@@ -162,7 +162,7 @@ typedef enum SACTION_FLAG {
 /* SpaceAction AutoSnap Settings (also used by SpaceNLA) */
 typedef enum SACTSNAP_MODES {
 		/* no auto-snap */
-	SACTSNAP_OFF = 0	
+	SACTSNAP_OFF = 0,	
 		/* snap to 1.0 frame/second intervals */
 	SACTSNAP_STEP,
 		/* snap to actual frames/seconds (nla-action time) */
@@ -199,7 +199,7 @@ enum	{
 };
 
 /* PoseChannel constflag (constraint detection) */
-typedef PCHAN_CONSTFLAG {
+typedef enum PCHAN_CONSTFLAG {
 	PCHAN_HAS_IK		= (1<<0),
 	PCHAN_HAS_CONST		= (1<<1),
 		/* only used for drawing Posemode, not stored in channel */
@@ -210,7 +210,7 @@ typedef PCHAN_CONSTFLAG {
 } PCHAN_CONSTFLAG;
 
 /* PoseChannel->ikflag */
-typedef PCHAN_IKFLAG {
+typedef enum PCHAN_IKFLAG {
 	BONE_IK_NO_XDOF = (1<<0),
 	BONE_IK_NO_YDOF = (1<<1),
 	BONE_IK_NO_ZDOF = (1<<2),

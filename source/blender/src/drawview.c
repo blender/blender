@@ -1509,8 +1509,8 @@ static void draw_viewport_name(ScrArea *sa)
 				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Bottom Ortho" : "Top Ortho";
 			break;
 		default:
-			if(G.vd->persp==V3D_PERSP_USE_THE_CAMERA) {
-				if (G.vd->camera->type == OB_CAMERA) {
+			if (G.vd->persp==V3D_PERSP_USE_THE_CAMERA) {
+				if ((G.vd->camera) && (G.vd->camera->type == OB_CAMERA)) {
 					Camera *cam;
 					cam = G.vd->camera->data;
 					name = (cam->type != CAM_ORTHO) ? "Camera Persp" : "Camera Ortho";

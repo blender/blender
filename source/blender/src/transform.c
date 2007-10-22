@@ -86,6 +86,7 @@
 #include "BSE_drawipo.h"
 #include "BSE_editnla_types.h"	/* for NLAWIDTH */
 #include "BSE_editaction_types.h"
+#include "BSE_time.h"
 #include "BSE_view.h"
 
 #include "BLI_arithb.h"
