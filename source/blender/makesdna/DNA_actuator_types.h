@@ -191,6 +191,17 @@ typedef struct bVisibilityActuator {
 	int flag;
 } bVisibilityActuator;
 
+typedef struct bTwoDFilterActuator{
+	/* Tells what type of 2D Filter*/
+	short type;
+	/* (flag == 0) means 2D filter is activate and
+	   (flag != 0) means 2D filter is inactive*/
+	short flag;
+	/* a float argument */
+	float float_arg;
+	int   int_arg;
+}bTwoDFilterActuator;
+
 typedef struct bActuator {
 	struct bActuator *next, *prev, *mynew;
 	short type;
@@ -259,6 +270,7 @@ typedef struct FreeCamera {
 #define ACT_CD			16
 #define ACT_GAME		17
 #define ACT_VISIBILITY          18
+#define ACT_2DFILTER	19
 
 /* actuator flag */
 #define ACT_SHOW		1
@@ -391,5 +403,20 @@ typedef struct FreeCamera {
 /* Set means the object will become invisible */
 #define ACT_VISIBILITY_INVISIBLE       (1 << 0)
 
+/* twodfilter->type */
+#define ACT_2DFILTER_NOFILTER			-1
+#define ACT_2DFILTER_MOTIONBLUR			0
+#define ACT_2DFILTER_BLUR				1
+#define ACT_2DFILTER_SHARPEN			2
+#define ACT_2DFILTER_DILATION			3
+#define ACT_2DFILTER_EROSION			4
+#define ACT_2DFILTER_LAPLACIAN			5
+#define ACT_2DFILTER_SOBEL				6
+#define ACT_2DFILTER_PREWITT			7
+#define ACT_2DFILTER_GRAYSCALE			8
+#define ACT_2DFILTER_SEPIA				9
+#define ACT_2DFILTER_INVERT				10
+#define ACT_2DFILTER_NUMBER_OF_FILTERS	11
 #endif
+
 

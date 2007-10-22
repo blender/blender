@@ -712,6 +712,8 @@ static char *actuator_name(int type)
 		return "Game";
 	case ACT_VISIBILITY:
 		return "Visibility";
+	case ACT_2DFILTER:
+		return "2D Filter";
 	}
 	return "unknown";
 }
@@ -727,13 +729,13 @@ static char *actuator_pup(Object *owner)
 		return "Actuators  %t|Action %x15|Motion %x0|Constraint %x9|Ipo %x1"
 			"|Camera %x3|Sound %x5|Property %x6|Edit Object %x10"
 			"|Scene %x11|Random %x13|Message %x14|CD %x16|Game %x17"
-			"|Visibility %x18";
+			"|Visibility %x18|2D Filter %x19";
 		break;
 	default:
 		return "Actuators  %t|Motion %x0|Constraint %x9|Ipo %x1"
 			"|Camera %x3|Sound %x5|Property %x6|Edit Object %x10"
 			"|Scene %x11|Random %x13|Message %x14|CD %x16|Game %x17"
-			"|Visibility %x18";
+			"|Visibility %x18|2D Filter %x19";
 	}
 }
 
@@ -1476,6 +1478,7 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
 	bActionActuator	    *aa	     = NULL;
 	bGameActuator	    *gma     = NULL;
 	bVisibilityActuator *visAct  = NULL;
+	bTwoDFilterActuator	*tdfa	 = NULL;
 	
 	float *fp;
 	short ysize = 0, wval;
@@ -2172,6 +2175,47 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
 		
 		yco -= ysize;
 		break;
+	case ACT_2DFILTER:
+		tdfa = act->data;
+
+		ysize= 50;
+        glRects( xco, yco-ysize, xco+width, yco ); 
+		uiEmboss( (float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1 );
+
+		switch(tdfa->type)
+		{
+			case ACT_2DFILTER_MOTIONBLUR:
+				if(!tdfa->flag)
+				{
+					uiDefButS(block, TOG, B_REDR, "D",	xco+30,yco-44,19, 19, &tdfa->flag, 0.0, 0.0, 0.0, 0.0, "Disable Motion Blur");
+					uiDefButF(block, NUM, B_REDR, "Value:", xco+52,yco-44,width-82,19,&tdfa->float_arg,0.0,1.0,0.0,0.0,"Set motion blur value");
+				}
+				else
+				{
+					uiDefButS(block, TOG, B_REDR, "Disabled",	xco+30,yco-44,width-60, 19, &tdfa->flag, 0.0, 0.0, 0.0, 0.0, "Enable Motion Blur");
+				}
+				break;
+			case ACT_2DFILTER_BLUR:
+			case ACT_2DFILTER_SHARPEN:
+			case ACT_2DFILTER_DILATION:
+			case ACT_2DFILTER_EROSION:
+			case ACT_2DFILTER_LAPLACIAN:
+			case ACT_2DFILTER_SOBEL:
+			case ACT_2DFILTER_PREWITT:
+			case ACT_2DFILTER_GRAYSCALE:
+			case ACT_2DFILTER_SEPIA:
+			case ACT_2DFILTER_INVERT:
+			case ACT_2DFILTER_NOFILTER:
+				uiDefButI(block, NUM, B_REDR, "Pass Number:", xco+30,yco-44,width-60,19,&tdfa->int_arg,-1.0,MAX_RENDER_PASS-1,0.0,0.0,"Set motion blur value");
+				break;
+		}
+		
+		str= "2D Filter   %t|Motion Blur   %x0|Blur %x1|Sharpen %x2|Dilation %x3|Erosion %x4|"
+				"Laplacian %x5|Sobel %x6|Prewitt %x7|Gray Scale %x8|Sepia %x9|Invert %x10|No Filter %x-1|";
+		uiDefButS(block, MENU, B_REDR, str,	xco+30,yco-24,width-60, 19, &tdfa->type, 0.0, 0.0, 0.0, 0.0, "2D filter type");
+		
+		yco -= ysize;
+        break;
  	default:
 		ysize= 4;
 
@@ -2811,4 +2855,5 @@ void logic_buts(void)
 
 	if(idar) MEM_freeN(idar);
 }
+
 

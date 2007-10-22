@@ -966,12 +966,17 @@ void KX_KetsjiEngine::RenderFrame(KX_Scene* scene, KX_Camera* cam)
 	scene->CalculateVisibleMeshes(m_rasterizer,cam);
 
 	scene->RenderBuckets(camtrans, m_rasterizer, m_rendertools);
-
-	m_rendertools->MotionBlur(m_rasterizer);
-
+	
+	PostRenderFrame();
 }
 
-
+void KX_KetsjiEngine::PostRenderFrame()
+{
+	m_rendertools->PushMatrix();
+	m_rendertools->Render2DFilters(m_canvas);
+	m_rendertools->MotionBlur(m_rasterizer);
+	m_rendertools->PopMatrix();
+}
 
 void KX_KetsjiEngine::StopEngine()
 {
@@ -1465,5 +1470,6 @@ void KX_KetsjiEngine::GetOverrideFrameColor(float& r, float& g, float& b) const
 	g = m_overrideFrameColorG;
 	b = m_overrideFrameColorB;
 }
+
 
 

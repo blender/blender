@@ -179,6 +179,7 @@ private:
 
 	void					SetupRenderFrame(KX_Scene *scene, KX_Camera* cam);
 	void					RenderFrame(KX_Scene* scene, KX_Camera* cam);
+	void					PostRenderFrame();
 	void					RenderDebugProperties();
 	void					SetBackGround(KX_WorldInfo* worldinfo);
 	void					SetWorldSettings(KX_WorldInfo* worldinfo);
@@ -200,6 +201,8 @@ public:
 	void			SetPythonDictionary(PyObject* pythondictionary);
 	void			SetSceneConverter(KX_ISceneConverter* sceneconverter);
 	void			SetGame2IpoMode(bool game2ipo,int startFrame);
+
+	RAS_IRasterizer*		GetRasterizer(){return m_rasterizer;};
 
 	///returns true if an update happened to indicate -> Render
 	bool			NextFrame();
@@ -341,4 +344,5 @@ protected:
 };
 
 #endif //__KX_KETSJI_ENGINE
+
 

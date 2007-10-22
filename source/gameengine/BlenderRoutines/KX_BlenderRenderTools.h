@@ -55,6 +55,7 @@ class KX_BlenderRenderTools  : public RAS_IRenderTools
 	bool	m_lastlighting;
 	static unsigned int m_numgllights;
 	
+	
 public:
 	
 						KX_BlenderRenderTools();
@@ -102,8 +103,14 @@ public:
 	bool RayHit(KX_ClientObjectInfo* client, MT_Point3& hit_point, MT_Vector3& hit_normal, void * const data);
 
 	virtual void MotionBlur(RAS_IRasterizer* rasterizer);
+
+	virtual void Update2DFilter(RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass);
+
+	virtual	void Render2DFilters(RAS_ICanvas* canvas);
+
 };
 
 #endif //__KX_BLENDERRENDERTOOLS
+
 
 
