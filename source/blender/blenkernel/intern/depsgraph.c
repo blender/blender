@@ -379,7 +379,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 						cti->get_constraint_targets(con, &targets);
 						
 						for (ct= targets.first; ct; ct= ct->next) {
-							if (ct->tar != ob) {
+							if (ct->tar && ct->tar != ob) {
 								// fprintf(stderr,"armature %s target :%s \n", ob->id.name, target->id.name);
 								node3 = dag_get_node(dag, ct->tar);
 								
