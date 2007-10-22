@@ -579,19 +579,20 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 					/* Draw target parameters */ 
 					for (ct=data->targets.first, tarnum=1; ct; ct=ct->next, tarnum++) {
 						char tarstr[32];
+						short yoffset= ((tarnum-1) * 38);
 						
 						/* target label */
 						sprintf(tarstr, "Target %02d:", tarnum);
-						uiDefBut(block, LABEL, B_CONSTRAINT_TEST, tarstr, *xco+60, *yco-48, 55, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+						uiDefBut(block, LABEL, B_CONSTRAINT_TEST, tarstr, *xco+60, *yco-(48+yoffset), 55, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 						
 						/* target space-selector - per target */
 						if (is_armature_target(ct->tar)) {
 							uiDefButS(block, MENU, B_CONSTRAINT_TEST, "Target Space %t|World Space %x0|Pose Space %x3|Local with Parent %x4|Local Space %x1", 
-															*xco+60, *yco-66, 55, 18, &ct->space, 0, 0, 0, 0, "Choose space that target is evaluated in");	
+															*xco+60, *yco-(66+yoffset), 55, 18, &ct->space, 0, 0, 0, 0, "Choose space that target is evaluated in");	
 						}
 						else {
 							uiDefButS(block, MENU, B_CONSTRAINT_TEST, "Target Space %t|World Space %x0|Local (Without Parent) Space %x1", 
-															*xco+60, *yco-66, 55, 18, &ct->space, 0, 0, 0, 0, "Choose space that target is evaluated in");	
+															*xco+60, *yco-(66+yoffset), 55, 18, &ct->space, 0, 0, 0, 0, "Choose space that target is evaluated in");	
 						}
 						
 						uiBlockBeginAlign(block);
@@ -600,11 +601,11 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 							
 							/* subtarget */
 							if (is_armature_target(ct->tar)) {
-								but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-66,150,18, &ct->subtarget, 0, 24, 0, 0, "Subtarget Bone");
+								but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-(66+yoffset),150,18, &ct->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 								uiButSetCompleteFunc(but, autocomplete_bone, (void *)ct->tar);
 							}
 							else if (is_geom_target(ct->tar)) {
-								but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-66,150,18, &ct->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
+								but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-(66+yoffset),150,18, &ct->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
 								uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ct->tar);
 							}
 							else {
@@ -625,7 +626,6 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 					uiButSetFunc(but, BPY_pyconstraint_settings, data, NULL);
 					
 					but=uiDefBut(block, BUT, B_CONSTRAINT_TEST, "Refresh", *xco+((width/2)+10), *yco-(52+theight), (width/2),18, NULL, 0, 24, 0, 0, "Force constraint to refresh it's settings");
-					uiButSetFunc(but, update_pyconstraint_cb, ob, con);
 				uiBlockEndAlign(block);
 				
 				/* constraint space settings */

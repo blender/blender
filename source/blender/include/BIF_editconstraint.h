@@ -56,8 +56,6 @@ void object_test_constraints(struct Object *owner);
 void add_constraint(int only_IK);
 void ob_clear_constraints(void);
 
-char *get_con_subtarget_name(struct bConstraint *con, struct Object *target);
-
 void rename_constraint(struct Object *ob, struct bConstraint *con, char *newname);
 
 

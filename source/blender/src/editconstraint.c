@@ -253,51 +253,6 @@ void add_constraint_to_object(bConstraint *con, Object *ob)
 	}
 }
 
-
-char *get_con_subtarget_name(bConstraint *con, Object *target)
-{
-	bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
-	ListBase targets = {NULL, NULL};
-	bConstraintTarget *ct;
-	static char subtarget[32];
-	
-	/* If the target for this constraint is target, return a pointer 
-	 * to the name for this constraints subtarget ... NULL otherwise
-	 */
-	if (target == NULL)
-		return NULL;
-	 
-	if (cti && cti->get_constraint_targets) {
-		cti->get_constraint_targets(con, &targets);
-		
-		for (ct= targets.first; ct; ct= ct->next) {
-			if (ct->tar == target) {
-				if (ct->flag & CONSTRAINT_TAR_TEMP) {
-					/* as temporary targets were created, we can't point to thier subtarget, 
-					 * a local copy is made here... this should be ok as long as this function
-					 * is not called twice with expectations that the string will stay the same
-					 */
-					strcpy(subtarget, ct->subtarget);
-					
-					if (cti->flush_constraint_targets)
-						cti->flush_constraint_targets(con, &targets, 1);
-						
-					return &(subtarget[0]);
-				}
-				else {
-					/* not temporary, so we can return a direct pointer to it */
-					return &(ct->subtarget[0]);
-				}
-			}
-		}
-		
-		if (cti->flush_constraint_targets)
-			cti->flush_constraint_targets(con, &targets, 0);
-	}
-	
-	return NULL;  
-}
-
 /* checks validity of object pointers, and NULLs,
  * if Bone doesnt exist it sets the CONSTRAINT_DISABLE flag 
  */
