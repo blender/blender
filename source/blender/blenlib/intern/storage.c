@@ -180,12 +180,15 @@ double BLI_diskfree(char *dir)
 	return (double) (freec*bytesps*sectorspc);
 #else
 	struct statfs disk;
-	char name[100],*slash;
-
-
+	char name[FILE_MAXDIR],*slash;
+	int len = strlen(dir);
+	
+	if (len >= FILE_MAXDIR) /* path too long */
+		return -1;
+	
 	strcpy(name,dir);
 
-	if(strlen(name)){
+	if(len){
 		slash = strrchr(name,'/');
 		if (slash) slash[1] = 0;
 	} else strcpy(name,"/");

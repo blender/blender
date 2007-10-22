@@ -56,14 +56,13 @@ void object_test_constraints(struct Object *owner);
 void add_constraint(int only_IK);
 void ob_clear_constraints(void);
 
-char *get_con_subtarget_name(struct bConstraint *con, struct Object *target);
-
 void rename_constraint(struct Object *ob, struct bConstraint *con, char *newname);
 
 
-/* two special functions for PyConstraints */
+/* a few special functions for PyConstraints */
 char *buildmenu_pyconstraints(struct Text *con_text, int *pyconindex);
 void validate_pyconstraint_cb(void *arg1, void *arg2);
+void update_pyconstraint_cb(void *arg1, void *arg2);
 
 /* two special functions for ChildOf Constriant */
 void childof_const_setinv (void *conv, void *unused);

@@ -8,6 +8,7 @@ incs += ' ../python ../render/extern/include #/intern/decimation/extern'
 incs += ' ../imbuf ../avi #/intern/elbeem/extern ../nodes'
 incs += ' #/intern/iksolver/extern ../blenloader ../quicktime'
 incs += ' #/extern/bullet2/src '
+incs += ' #/intern/bmfont'
 
 incs += ' ' + env['BF_OPENGL_INC']
 incs += ' ' + env['BF_ZLIB_INC']

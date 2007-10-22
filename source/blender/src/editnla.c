@@ -429,7 +429,7 @@ void snap_action_strips(int snap_mode)
 				}
 				else if (snap_mode==3) {
 					/* nearest second */
-					float secf = (float)(G.scene->r.frs_sec);
+					float secf = FPS;
 					strip->start= (float)(floor(strip->start/secf + 0.5f) * secf);
 					strip->end= (float)(floor(strip->end/secf + 0.5f) * secf);
 				}

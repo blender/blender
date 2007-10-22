@@ -1039,7 +1039,7 @@ void drawfilespace(ScrArea *sa, void *spacedata)
 	else loadbutton= 0;
 
 	uiBlockBeginAlign(block);
-	uiDefBut(block, TEX, B_FS_DIRNAME,"",	textrct.xmin + (strp?20:0), filebuty2, textrct.xmax-textrct.xmin-loadbutton - (strp?20:0), 21, sfile->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, "Directory, enter a directory and press enter to create it"); /* Directory input */
+	uiDefBut(block, TEX, B_FS_DIRNAME,"",	textrct.xmin + (strp?20:0), filebuty2, textrct.xmax-textrct.xmin-loadbutton - (strp?20:0), 21, sfile->dir, 0.0, (float)FILE_MAXDIR-1, 0, 0, "Directory, enter a directory and press enter to create it"); /* Directory input */
 	if(loadbutton) {
 		uiSetCurFont(block, UI_HELV);
 		uiDefBut(block, BUT, B_FS_LOAD, sfile->title,	textrct.xmax-loadbutton, filebuty2, loadbutton, 21, sfile->dir, 0.0, (float)FILE_MAXFILE-1, 0, 0, "");
@@ -1833,12 +1833,20 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				
 				if(act>=0 && act<sfile->totfile) {
 					if(S_ISDIR(sfile->filelist[act].type)) {
-						strcat(sfile->dir, sfile->filelist[act].relname);
-						strcat(sfile->dir,"/");
-						BLI_cleanup_dir(G.sce, sfile->dir);
-						freefilelist(sfile);						
-						sfile->ofs= 0;
-						do_draw= 1;
+						/* the path is too long and we are not going up! */
+						if (strcmp(sfile->filelist[act].relname, ".") &&
+							strcmp(sfile->filelist[act].relname, "..") &&
+							strlen(sfile->dir) + strlen(sfile->filelist[act].relname) >= FILE_MAXDIR ) 
+						{
+							error("Path too long, cannot enter this directory");
+						} else {
+							strcat(sfile->dir, sfile->filelist[act].relname);
+							strcat(sfile->dir,"/");
+							BLI_cleanup_dir(G.sce, sfile->dir);
+							freefilelist(sfile);						
+							sfile->ofs= 0;
+							do_draw= 1;
+						}
 					}
 					else {
 						if( strcmp(sfile->file, sfile->filelist[act].relname)) {

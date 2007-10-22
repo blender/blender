@@ -138,7 +138,8 @@ void start_avi(RenderData *rd, int rectx, int recty)
 	int x, y;
 	char name[256];
 	AviFormat format;
-	int quality, framerate;
+	int quality;
+	double framerate;
 	
 	makeavistring(rd, name);
 
@@ -147,7 +148,7 @@ void start_avi(RenderData *rd, int rectx, int recty)
 	y = recty;
 
 	quality= rd->quality;
-	framerate= rd->frs_sec;
+	framerate= (double) rd->frs_sec / (double) rd->frs_sec_base;
 	
 	avi = MEM_mallocN (sizeof(AviMovie), "avimovie");
 

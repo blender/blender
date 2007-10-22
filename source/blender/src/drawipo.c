@@ -210,7 +210,7 @@ void calc_ipogrid()
 		SpaceTime *stime= curarea->spacedata.first;
 		if(!(stime->flag & TIME_DRAWFRAMES)) {
 			secondgrid= 1;
-			secondiv= 0.01 * (float)G.scene->r.frs_sec;
+			secondiv= 0.01 * FPS;
 		}
 		break;
 	}
@@ -218,7 +218,7 @@ void calc_ipogrid()
 		SpaceSeq * sseq = curarea->spacedata.first;
 		if (!(sseq->flag & SEQ_DRAWFRAMES)) {
 			secondgrid = 1;
-			secondiv = 0.01 * (float)G.scene->r.frs_sec;
+			secondiv = 0.01 * FPS;
 		}
 		break;
 	}
@@ -226,7 +226,7 @@ void calc_ipogrid()
 		SpaceAction *saction = curarea->spacedata.first;
 		if (saction->flag & SACTION_DRAWTIME) {
 			secondgrid = 1;
-			secondiv = 0.01 * (float)G.scene->r.frs_sec;
+			secondiv = 0.01 * FPS;
 		}
 		break;
 	}
@@ -234,7 +234,7 @@ void calc_ipogrid()
 		SpaceNla *snla = curarea->spacedata.first;
 		if (snla->flag & SNLA_DRAWTIME) {
 			secondgrid = 1;
-			secondiv = 0.01 * (float)G.scene->r.frs_sec;
+			secondiv = 0.01 * FPS;
 		}
 		break;
 	}
@@ -863,7 +863,7 @@ void draw_view2d_numbers_horiz(int drawframes)
 			scroll_prstr(fac, 2.0+(float)(G.v2d->mask.ymin), val, 'h', 0);
 		}
 		else {
-			fac2= val/(float)G.scene->r.frs_sec;
+			fac2= val/FPS;
 			scroll_prstr(fac, 2.0+(float)(G.v2d->mask.ymin), fac2, 'h', 0);
 		}
 		
@@ -934,10 +934,10 @@ void drawscroll(int disptype)
 					ipomachtx = 1;
 					scroll_prstr(fac, 3.0+(float)(hor.ymin), val, 'h', disptype);
 				} else {
-					fac2= val/(float)G.scene->r.frs_sec;
+					fac2= val/FPS;
 					tim= floor(fac2);
 					fac2= fac2-tim;
-					scroll_prstr(fac, 3.0+(float)(hor.ymin), tim+G.scene->r.frs_sec*fac2/100.0, 'h', disptype);
+					scroll_prstr(fac, 3.0+(float)(hor.ymin), tim+FPS*fac2/100.0, 'h', disptype);
 				}
 			}
 			else if (curarea->spacetype==SPACE_SOUND) {
@@ -948,7 +948,7 @@ void drawscroll(int disptype)
 					scroll_prstr(fac, 3.0+(float)(hor.ymin), val, 'h', disptype);
 				}
 				else {
-					fac2= val/(float)G.scene->r.frs_sec;
+					fac2= val/FPS;
 					scroll_prstr(fac, 3.0+(float)(hor.ymin), fac2, 'h', disptype);
 				}
 			}
@@ -960,7 +960,7 @@ void drawscroll(int disptype)
 					scroll_prstr(fac, 3.0+(float)(hor.ymin), val, 'h', disptype);
 				}
 				else {
-					fac2= val/(float)G.scene->r.frs_sec;
+					fac2= val/FPS;
 					scroll_prstr(fac, 3.0+(float)(hor.ymin), fac2, 'h', disptype);
 				}
 			}
@@ -983,7 +983,7 @@ void drawscroll(int disptype)
 				SpaceAction *saction= curarea->spacedata.first;
 				
 				if (saction->flag & SACTION_DRAWTIME) {
-					fac2= val/(float)G.scene->r.frs_sec;
+					fac2= val/FPS;
 					scroll_prstr(fac, 3.0+(float)(hor.ymin), fac2, 'h', disptype);
 				}
 				else {
@@ -995,7 +995,7 @@ void drawscroll(int disptype)
 				SpaceNla *snla= curarea->spacedata.first;
 				
 				if (snla->flag & SNLA_DRAWTIME) {
-					fac2= val/(float)G.scene->r.frs_sec;
+					fac2= val/FPS;
 					scroll_prstr(fac, 3.0+(float)(hor.ymin), fac2, 'h', disptype);
 				}
 				else {

@@ -110,6 +110,11 @@ void BMF_GetStringBoundingBox(BMF_Font* font, char* str, float*llx, float *lly, 
 void BMF_GetFontBoundingBox(BMF_Font* font, int *xmin_r, int *ymin_r, int *xmax_r, int *ymax_r);
 
 /**
+ * Same as GetFontBoundingBox but only returns the height
+ */
+int BMF_GetFontHeight(BMF_Font* font);
+
+/**
  * Convert the given @a font to a texture, and return the GL texture
  * ID of the texture. If the texture ID is bound, text can
  * be drawn using the texture by calling DrawStringTexture.
@@ -133,6 +138,23 @@ int BMF_GetFontTexture(BMF_Font* font);
  * @param z The z coordinate to start drawing at.
  */
 void BMF_DrawStringTexture(BMF_Font* font, char* string, float x, float y, float z);
+
+	/**
+ * Draw the given @a string at the point @a xpos, @a ypos using
+ * char and float buffers.
+ * 
+ * @param string The c-string to draw.
+ * @param xpos The x coordinate to start drawing at.
+ * @param ypos The y coordinate to start drawing at.
+ * @param fgcol The forground color.
+ * @param bgcol The background color.
+ * @param buf Unsigned char image buffer, when NULL to not operate on it.
+ * @param fbuf float image buffer, when NULL to not operate on it.
+ * @param w image buffer width.
+ * @param h image buffer height.
+	 */
+void BMF_DrawStringBuf(BMF_Font* font, char *str, int posx, int posy, float *col, unsigned char *buf, float *fbuf, int w, int h);
+
 
 #ifdef __cplusplus
 }

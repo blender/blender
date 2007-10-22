@@ -75,6 +75,7 @@ enum rend_constants {
 	EXPP_RENDER_ATTR_SFRAME,
 	EXPP_RENDER_ATTR_EFRAME,
 	EXPP_RENDER_ATTR_FPS,
+	EXPP_RENDER_ATTR_FPS_BASE,
 	EXPP_RENDER_ATTR_SIZEX,
 	EXPP_RENDER_ATTR_SIZEY,
 	EXPP_RENDER_ATTR_GAUSSFILTER,
@@ -285,7 +286,8 @@ static PyObject *M_Render_GetSetAttributeInt( PyObject * args, int *structure,
 static void M_Render_DoSizePreset( BPy_RenderData * self, short xsch,
 				   short ysch, short xasp, short yasp,
 				   short size, short xparts, short yparts,
-				   short frames, float a, float b, float c,
+				   short fps, float fps_base,
+				   float a, float b, float c,
 				   float d )
 {
 	self->renderContext->xsch = xsch;
@@ -293,7 +295,8 @@ static void M_Render_DoSizePreset( BPy_RenderData * self, short xsch,
 	self->renderContext->xasp = xasp;
 	self->renderContext->yasp = yasp;
 	self->renderContext->size = size;
-	self->renderContext->frs_sec = frames;
+	self->renderContext->frs_sec = fps;
+	self->renderContext->frs_sec_base = fps_base;
 	self->renderContext->xparts = xparts;
 	self->renderContext->yparts = yparts;
 
@@ -1022,6 +1025,12 @@ PyObject *RenderData_FramesPerSec( BPy_RenderData * self, PyObject * args )
 					      120 );
 }
 
+PyObject *RenderData_FramesPerSecBase( BPy_RenderData * self, PyObject * args )
+{
+	return M_Render_GetSetAttributeFloat( 
+		args, &self->renderContext->frs_sec_base, 1.0f, 120.0f );
+}
+
 PyObject *RenderData_EnableGrayscale( BPy_RenderData * self )
 {
 	self->renderContext->planes = R_PLANESBW;
@@ -1057,20 +1066,24 @@ PyObject *RenderData_SizePreset( BPy_RenderData * self, PyObject * args )
 	if( type == B_PR_PAL ) {
 		M_Render_DoSizePreset( self, 720, 576, 54, 51, 100,
 				       self->renderContext->xparts,
-				       self->renderContext->yparts, 25, 0.1f,
+				       self->renderContext->yparts, 25, 1.0f,
+				       0.1f,
 				       0.9f, 0.1f, 0.9f );
 		self->renderContext->mode &= ~R_PANORAMA;
 		BLI_init_rctf( &self->renderContext->safety, 0.1f, 0.9f, 0.1f,
 			       0.9f );
 	} else if( type == B_PR_NTSC ) {
 		M_Render_DoSizePreset( self, 720, 480, 10, 11, 100, 1, 1,
-				       30, 0.1f, 0.9f, 0.1f, 0.9f );
+				       30, 1.001f, 
+				       0.1f, 0.9f, 0.1f, 0.9f );
 		self->renderContext->mode &= ~R_PANORAMA;
 		BLI_init_rctf( &self->renderContext->safety, 0.1f, 0.9f, 0.1f,
 			       0.9f );
 	} else if( type == B_PR_PRESET ) {
 		M_Render_DoSizePreset( self, 720, 576, 54, 51, 100, 1, 1,
-				       self->renderContext->frs_sec, 0.1f, 0.9f,
+				       self->renderContext->frs_sec, 
+				       self->renderContext->frs_sec_base, 
+				       0.1f, 0.9f,
 				       0.1f, 0.9f );
 		self->renderContext->mode = R_OSA + R_SHADOW + R_FIELDS;
 		self->renderContext->imtype = R_TARGA;
@@ -1078,34 +1091,42 @@ PyObject *RenderData_SizePreset( BPy_RenderData * self, PyObject * args )
 			       0.9f );
 	} else if( type == B_PR_PRV ) {
 		M_Render_DoSizePreset( self, 640, 512, 1, 1, 50, 1, 1,
-				       self->renderContext->frs_sec, 0.1f, 0.9f,
+				       self->renderContext->frs_sec, 
+				       self->renderContext->frs_sec_base, 
+				       0.1f, 0.9f,
 				       0.1f, 0.9f );
 		self->renderContext->mode &= ~R_PANORAMA;
 		BLI_init_rctf( &self->renderContext->safety, 0.1f, 0.9f, 0.1f,
 			       0.9f );
 	} else if( type == B_PR_PC ) {
 		M_Render_DoSizePreset( self, 640, 480, 100, 100, 100, 1, 1,
-				       self->renderContext->frs_sec, 0.0f, 1.0f,
+				       self->renderContext->frs_sec, 
+				       self->renderContext->frs_sec_base, 
+				       0.0f, 1.0f,
 				       0.0f, 1.0f );
 		self->renderContext->mode &= ~R_PANORAMA;
 		BLI_init_rctf( &self->renderContext->safety, 0.0f, 1.0f, 0.0f,
 			       1.0f );
 	} else if( type == B_PR_PAL169 ) {
 		M_Render_DoSizePreset( self, 720, 576, 64, 45, 100, 1, 1,
-				       25, 0.1f, 0.9f, 0.1f, 0.9f );
+				       25, 1.0f, 0.1f, 0.9f, 0.1f, 0.9f );
 		self->renderContext->mode &= ~R_PANORAMA;
 		BLI_init_rctf( &self->renderContext->safety, 0.1f, 0.9f, 0.1f,
 			       0.9f );
 	} else if( type == B_PR_PANO ) {
 		M_Render_DoSizePreset( self, 36, 176, 115, 100, 100, 16, 1,
-				       self->renderContext->frs_sec, 0.1f, 0.9f,
+				       self->renderContext->frs_sec, 
+				       self->renderContext->frs_sec_base, 
+				       0.1f, 0.9f,
 				       0.1f, 0.9f );
 		self->renderContext->mode |= R_PANORAMA;
 		BLI_init_rctf( &self->renderContext->safety, 0.1f, 0.9f, 0.1f,
 			       0.9f );
 	} else if( type == B_PR_FULL ) {
 		M_Render_DoSizePreset( self, 1280, 1024, 1, 1, 100, 1, 1,
-				       self->renderContext->frs_sec, 0.1f, 0.9f,
+				       self->renderContext->frs_sec, 
+				       self->renderContext->frs_sec_base, 
+				       0.1f, 0.9f,
 				       0.1f, 0.9f );
 		self->renderContext->mode &= ~R_PANORAMA;
 		BLI_init_rctf( &self->renderContext->safety, 0.1f, 0.9f, 0.1f,
@@ -1729,9 +1750,11 @@ PyObject *RenderData_NewMapValue( BPy_RenderData * self, PyObject * args )
 
 static PyObject *RenderData_getTimeCode( BPy_RenderData * self) {
     char tc[12];
-    int h, m, s, fps, cfa;
+    int h, m, s, cfa;
+    double fps;
     
-    fps = self->renderContext->frs_sec;
+    fps = (double) self->renderContext->frs_sec / 
+	    self->renderContext->frs_sec_base;
     cfa = self->renderContext->cfra-1;
 	s = cfa / fps;
 	m = s / 60;
@@ -1739,7 +1762,8 @@ static PyObject *RenderData_getTimeCode( BPy_RenderData * self) {
     if( h > 99 )
         return PyString_FromString("Time Greater than 99 Hours!");	
 
-	sprintf( tc, "%02d:%02d:%02d:%02d", h%60, m%60, s%60, cfa%fps);
+	sprintf( tc, "%02d:%02d:%02d:%02d", h%60, m%60, s%60, 
+		 (int) (cfa - ((int) (cfa / fps) * fps)));
 	return PyString_FromString(tc);
 }            
 
@@ -1761,6 +1785,9 @@ static PyObject *RenderData_getFloatAttr( BPy_RenderData *self, void *type )
 		break;
 	case EXPP_RENDER_ATTR_MBLURFACTOR:
 		param = self->renderContext->blurfac;
+		break;
+	case EXPP_RENDER_ATTR_FPS_BASE:
+		param = self->renderContext->frs_sec_base;
 		break;
 	default:
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
@@ -1789,6 +1816,11 @@ static int RenderData_setFloatAttrClamp( BPy_RenderData *self, PyObject *value,
 	    min = 0.01f;
 		max = 5.0f;
 		param = &self->renderContext->blurfac;
+		break;
+	case EXPP_RENDER_ATTR_FPS_BASE:
+		min = 1.0f;
+		max = 120.0f;
+		param = &self->renderContext->frs_sec_base;
 		break;
 	default:
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
@@ -2540,6 +2572,10 @@ static PyGetSetDef BPy_RenderData_getseters[] = {
 	 (getter)RenderData_getIValueAttr, (setter)RenderData_setIValueAttrClamp,
 	 "Frames per second",
 	 (void *)EXPP_RENDER_ATTR_FPS},
+	{"fps_base",
+	 (getter)RenderData_getFloatAttr, (setter)RenderData_setFloatAttrClamp,
+	 "Frames per second base",
+	 (void *)EXPP_RENDER_ATTR_FPS_BASE},
 	{"sizeX",
 	 (getter)RenderData_getIValueAttr, (setter)RenderData_setIValueAttrClamp,
 	 "Image width (in pixels)",
@@ -2782,6 +2818,8 @@ static PyMethodDef BPy_RenderData_methods[] = {
 	 "(int) - get/set quality get/setting for JPEG images, AVI Jpeg and SGI movies"},
 	{"framesPerSec", ( PyCFunction ) RenderData_FramesPerSec, METH_VARARGS,
 	 "(int) - get/set frames per second"},
+	{"framesPerSecBase", ( PyCFunction ) RenderData_FramesPerSecBase, METH_VARARGS,
+	 "(float) - get/set frames per second base"},
 	{"enableGrayscale", ( PyCFunction ) RenderData_EnableGrayscale,
 	 METH_NOARGS,
 	 "() - images are saved with BW (grayscale) data"},

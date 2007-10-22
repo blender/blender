@@ -1379,9 +1379,6 @@ void make_parent(void)
 		}
 	}
 	else if(par->type == OB_CURVE){
-		bConstraint *con;
-		bFollowPathConstraint *data;
-
 		mode= pupmenu("Make Parent %t|Normal Parent %x1|Follow Path %x2|Curve Deform %x3|Path Constraint %x4");
 		if(mode<=0){
 			return;
@@ -1403,24 +1400,26 @@ void make_parent(void)
 			mode= PARSKEL;
 		}
 		else if(mode==4) {
-
+			bConstraint *con;
+			bFollowPathConstraint *data;
+				
 			base= FIRSTBASE;
 			while(base) {
 				if TESTBASELIB(base) {
 					if(base!=BASACT) {
 						float cmat[4][4], vec[3];
-
+						
 						con = add_new_constraint(CONSTRAINT_TYPE_FOLLOWPATH);
 						strcpy (con->name, "AutoPath");
-
+						
 						data = con->data;
 						data->tar = BASACT->object;
-
+						
 						add_constraint_to_object(con, base->object);
-
-						get_constraint_target_matrix(con, TARGET_OBJECT, NULL, cmat, G.scene->r.cfra - base->object->sf);
+						
+						get_constraint_target_matrix(con, CONSTRAINT_OBTYPE_OBJECT, NULL, cmat, G.scene->r.cfra - base->object->sf);
 						VecSubf(vec, base->object->obmat[3], cmat[3]);
-
+						
 						base->object->loc[0] = vec[0];
 						base->object->loc[1] = vec[1];
 						base->object->loc[2] = vec[2];
@@ -2434,7 +2433,7 @@ void special_editmenu(void)
 			mergemenu();
 			break;
 		case 5:
-			notice("Removed %d Vertices", removedoublesflag(1, 1, G.scene->toolsettings->doublimit));
+			notice("Removed %d Vertices", removedoublesflag(1, 0, G.scene->toolsettings->doublimit));
 			BIF_undo_push("Remove Doubles");
 			break;
 		case 6:
@@ -3428,7 +3427,7 @@ void copy_attr_menu()
 	 * view3d_edit_object_copyattrmenu() and in toolbox.c
 	 */
 	
-	strcpy(str, "Copy Attributes %t|Location%x1|Rotation%x2|Size%x3|Drawtype%x4|Time Offset%x5|Dupli%x6|%l|Mass%x7|Damping%x8|Properties%x9|Logic Bricks%x10|Protected Transform%x29|%l");
+	strcpy(str, "Copy Attributes %t|Location%x1|Rotation%x2|Size%x3|Draw Options%x4|Time Offset%x5|Dupli%x6|%l|Mass%x7|Damping%x8|Properties%x9|Logic Bricks%x10|Protected Transform%x29|%l");
 	
 	strcat (str, "|Object Constraints%x22");
 	strcat (str, "|NLA Strips%x26");

@@ -605,7 +605,9 @@ extern "C" void StartKetsjiShellSimulation(struct ScrArea *area,
 				
 				ketsjiengine->SetUseFixedTime(true);
 				
-				ketsjiengine->SetTicRate(blscene->r.frs_sec);
+				ketsjiengine->SetTicRate(
+					(double) blscene->r.frs_sec /
+					(double) blscene->r.frs_sec_base);
 
 				// the mainloop
 				while ((blscene->r.cfra<=blscene->r.efra)&&(!exitrequested))

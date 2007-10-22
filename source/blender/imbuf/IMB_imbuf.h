@@ -545,6 +545,10 @@ void IMB_freezbuffloatImBuf(struct ImBuf * ibuf);
  * @attention Defined in rectop.c
  */
 void IMB_rectfill(struct ImBuf *drect, float col[4]);
+void IMB_rectfill_area(struct ImBuf *ibuf, float *col, int x1, int y1, int x2, int y2);
+
+/* defined in imginfo.c */
+int IMB_imginfo_change_field(struct ImBuf *img, const char *key, const char *field);
 
 /* exported for image tools in blender, to quickly allocate 32 bits rect */
 short imb_addrectImBuf(struct ImBuf * ibuf);

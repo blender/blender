@@ -169,7 +169,7 @@ static PyObject *NewSeq_internal(ListBase *seqbase, PyObject * args, Scene *sce)
 		seq->type= SEQ_RAM_SOUND;
 		seq->sound = sound;
 		
-		totframe= (int) ( ((float)(sound->streamlen-1)/( (float)sce->audio.mixrate*4.0 ))* (float)sce->r.frs_sec);
+		totframe= (int) ( ((float)(sound->streamlen-1)/( (float)sce->audio.mixrate*4.0 ))* (float)sce->r.frs_sec / sce->r.frs_sec_base);
 		
 		sound->flags |= SOUND_FLAGS_SEQUENCE;
 		

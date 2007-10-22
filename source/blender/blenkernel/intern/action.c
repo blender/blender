@@ -819,7 +819,7 @@ static void extract_ipochannels_from_action(ListBase *lb, ID *id, bAction *act, 
 			
 			if(conchan && conchan->ipo) {
 				calc_ipo(conchan->ipo, ctime);
-
+				
 				icu= conchan->ipo->curve.first;	// only one ipo now
 				if(icu) {
 					nic= MEM_callocN(sizeof(NlaIpoChannel), "NlaIpoChannel constr");
@@ -1060,6 +1060,46 @@ static Object *get_parent_path(Object *ob)
 }
 
 /* ************** do the action ************ */
+
+/* For the calculation of the effects of an action at the given frame on an object 
+ * This is currently only used for the action constraint 
+ */
+void what_does_obaction (Object *ob, bAction *act, float cframe)
+{
+	ListBase tchanbase= {NULL, NULL};
+	
+	clear_workob();
+	Mat4CpyMat4(workob.obmat, ob->obmat);
+	Mat4CpyMat4(workob.parentinv, ob->parentinv);
+	Mat4CpyMat4(workob.constinv, ob->constinv);
+	workob.parent= ob->parent;
+	workob.track= ob->track;
+
+	workob.trackflag= ob->trackflag;
+	workob.upflag= ob->upflag;
+	
+	workob.partype= ob->partype;
+	workob.par1= ob->par1;
+	workob.par2= ob->par2;
+	workob.par3= ob->par3;
+
+	workob.constraints.first = ob->constraints.first;
+	workob.constraints.last = ob->constraints.last;
+
+	strcpy(workob.parsubstr, ob->parsubstr); 
+	
+	/* extract_ipochannels_from_action needs id's! */
+	workob.action= act;
+	
+	extract_ipochannels_from_action(&tchanbase, &ob->id, act, "Object", bsystem_time(&workob, cframe, 0.0));
+	
+	if (tchanbase.first) {
+		execute_ipochannels(&tchanbase);
+		BLI_freelistN(&tchanbase);
+	}
+}
+
+/* ----- nla, etc. --------- */
 
 static void do_nla(Object *ob, int blocktype)
 {
@@ -1331,5 +1371,3 @@ void do_all_object_actions(Object *ob)
 		do_nla(ob, ID_OB);
 	}
 }
-
-

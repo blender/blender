@@ -136,7 +136,7 @@ static void do_time_redrawmenu(void *arg, int event)
 	}
 	else {
 		if(event==1001) {
-			button(&G.scene->r.frs_sec,1,120,"Frames/Second:");
+			button(&G.scene->r.frs_sec,1,120,"FPS:");
 		}
 	}
 }
@@ -180,7 +180,7 @@ static uiBlock *time_redrawmenu(void *arg_unused)
 
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
-	sprintf(str, "Set Frames/Sec (%d)", G.scene->r.frs_sec);
+	sprintf(str, "Set Frames/Sec (%d/%f)", G.scene->r.frs_sec, G.scene->r.frs_sec_base);
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, str,	 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1001, "");
 	
 	

@@ -113,6 +113,9 @@
 #define	EFRA			(G.scene->r.efra)
 #define PSFRA			((G.scene->r.psfra != 0)? (G.scene->r.psfra): (G.scene->r.sfra))
 #define PEFRA			((G.scene->r.psfra != 0)? (G.scene->r.pefra): (G.scene->r.efra))
+#define FRA2TIME(a)           ((((double) G.scene->r.frs_sec_base) * (a)) / G.scene->r.frs_sec)
+#define TIME2FRA(a)           ((((double) G.scene->r.frs_sec) * (a)) / G.scene->r.frs_sec_base)
+#define FPS                     (((double) G.scene->r.frs_sec) / G.scene->r.frs_sec_base)
 
 #define ISPOIN(a, b, c)			( (a->b) && (a->c) )
 #define ISPOIN3(a, b, c, d)		( (a->b) && (a->c) && (a->d) )

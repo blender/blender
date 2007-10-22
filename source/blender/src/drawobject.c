@@ -4285,10 +4285,10 @@ void draw_object(Base *base, int flag)
 	/* not for sets, duplicators or picking */
 	if(flag==0 && (!(G.vd->flag & V3D_HIDE_HELPLINES))) {
 		ListBase *list;
-
+		
 		/* draw hook center and offset line */
 		if(ob!=G.obedit) draw_hooks(ob);
-
+		
 		/* help lines and so */
 		if(ob!=G.obedit && ob->parent && (ob->parent->lay & G.vd->lay)) {
 			setlinestyle(3);
@@ -4301,29 +4301,46 @@ void draw_object(Base *base, int flag)
 
 		/* Drawing the constraint lines */
 		list = &ob->constraints;
-		if (list){
-			/*
-		 extern void make_axis_color(char *col, char *col2, char axis);	// drawview.c
-		 */
+		if (list) {
 			bConstraint *curcon;
-			float tmat[4][4];
+			bConstraintOb *cob;
 			char col[4], col2[4];
-
+			
 			BIF_GetThemeColor3ubv(TH_GRID, col);
 			make_axis_color(col, col2, 'z');
 			glColor3ubv((GLubyte *)col2);
-
-			for (curcon = list->first; curcon; curcon=curcon->next){
-				if ((curcon->flag & CONSTRAINT_EXPAND)&&(curcon->type!=CONSTRAINT_TYPE_NULL)&&(constraint_has_target(curcon))){
-					get_constraint_target_matrix(curcon, TARGET_OBJECT, NULL, tmat, bsystem_time(ob, (float)(G.scene->r.cfra), ob->sf));
-					setlinestyle(3);
-					glBegin(GL_LINES);
-					glVertex3fv(tmat[3]);
-					glVertex3fv(ob->obmat[3]);
-					glEnd();
-					setlinestyle(0);
+			
+			cob= constraints_make_evalob(ob, NULL, CONSTRAINT_OBTYPE_OBJECT);
+			
+			for (curcon = list->first; curcon; curcon=curcon->next) {
+				bConstraintTypeInfo *cti= constraint_get_typeinfo(curcon);
+				ListBase targets = {NULL, NULL};
+				bConstraintTarget *ct;
+				
+				if ((curcon->flag & CONSTRAINT_EXPAND) && (cti->get_constraint_targets)) {
+					cti->get_constraint_targets(curcon, &targets);
+					
+					for (ct= targets.first; ct; ct= ct->next) {
+						/* calculate target's matrix */
+						if (cti->get_target_matrix) 
+							cti->get_target_matrix(curcon, cob, ct, bsystem_time(ob, (float)(G.scene->r.cfra), ob->sf));
+						else
+							Mat4One(ct->matrix);
+						
+						setlinestyle(3);
+						glBegin(GL_LINES);
+						glVertex3fv(ct->matrix[3]);
+						glVertex3fv(ob->obmat[3]);
+						glEnd();
+						setlinestyle(0);
+					}
+					
+					if (cti->flush_constraint_targets)
+						cti->flush_constraint_targets(curcon, &targets, 1);
 				}
 			}
+			
+			constraints_clear_evalob(cob);
 		}
 	}
 

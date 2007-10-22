@@ -281,7 +281,7 @@ ImBuf* IMB_thumb_create(const char* dir, const char* file, ThumbSize size, Thumb
 			if (THB_SOURCE_IMAGE == source) {
 				BLI_getwdN(wdir);
 				chdir(dir);
-				img = IMB_loadiffname(file, IB_rect);
+				img = IMB_loadiffname(file, IB_rect | IB_imginfo);
 				if (img != NULL) {
 					stat(file, &info);
 					sprintf(mtime, "%ld", info.st_mtime);
@@ -324,13 +324,13 @@ ImBuf* IMB_thumb_create(const char* dir, const char* file, ThumbSize size, Thumb
 			IMB_scaleImBuf(img, ex, ey);
 		}
 		sprintf(desc, "Thumbnail for %s", uri);
-		IMB_imginfo_add_field(img, "Description", desc);
-		IMB_imginfo_add_field(img, "Software", "Blender");
-		IMB_imginfo_add_field(img, "Thumb::URI", uri);
-		IMB_imginfo_add_field(img, "Thumb::MTime", mtime);
+		IMB_imginfo_change_field(img, "Description", desc);
+		IMB_imginfo_change_field(img, "Software", "Blender");
+		IMB_imginfo_change_field(img, "Thumb::URI", uri);
+		IMB_imginfo_change_field(img, "Thumb::MTime", mtime);
 		if (THB_SOURCE_IMAGE == source) {
-			IMB_imginfo_add_field(img, "Thumb::Image::Width", cwidth);
-			IMB_imginfo_add_field(img, "Thumb::Image::Height", cheight);
+			IMB_imginfo_change_field(img, "Thumb::Image::Width", cwidth);
+			IMB_imginfo_change_field(img, "Thumb::Image::Height", cheight);
 		}
 		img->ftype = PNG;
 		img->depth = 32;		

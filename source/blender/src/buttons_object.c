@@ -327,74 +327,6 @@ static void verify_constraint_name_func (void *con_v, void *name_v)
 	allqueue(REDRAWACTION, 0); 
 }
 
-void get_constraint_typestring (char *str, void *con_v)
-{
-	bConstraint *con= con_v;
-
-	switch (con->type) {
-	case CONSTRAINT_TYPE_PYTHON:
-		strcpy(str, "Script");
-		return;
-	case CONSTRAINT_TYPE_CHILDOF:
-		strcpy(str, "Child Of");
-		return;
-	case CONSTRAINT_TYPE_NULL:
-		strcpy(str, "Null");
-		return;
-	case CONSTRAINT_TYPE_TRACKTO:
-		strcpy(str, "Track To");
-		return;
-	case CONSTRAINT_TYPE_MINMAX:
-		strcpy(str, "Floor");
-		return;
-	case CONSTRAINT_TYPE_KINEMATIC:
-		strcpy(str, "IK Solver");
-		return;
-	case CONSTRAINT_TYPE_ROTLIKE:
-		strcpy(str, "Copy Rotation");
-		return;
-	case CONSTRAINT_TYPE_LOCLIKE:
-		strcpy(str, "Copy Location");
-		return;
-	case CONSTRAINT_TYPE_SIZELIKE:
-		strcpy(str, "Copy Scale");
-		return;
-	case CONSTRAINT_TYPE_ACTION:
-		strcpy(str, "Action");
-		return;
-	case CONSTRAINT_TYPE_LOCKTRACK:
-		strcpy(str, "Locked Track");
-		return;
-	case CONSTRAINT_TYPE_FOLLOWPATH:
-		strcpy(str, "Follow Path");
-		return;
-	case CONSTRAINT_TYPE_STRETCHTO:
-		strcpy(str, "Stretch To");
-		return;
-	case CONSTRAINT_TYPE_LOCLIMIT:
-		strcpy(str, "Limit Location");
-		return;
-	case CONSTRAINT_TYPE_ROTLIMIT:
-		strcpy(str, "Limit Rotation");
-		return;
-	case CONSTRAINT_TYPE_SIZELIMIT:
-		strcpy(str, "Limit Scale");
-		return;
-	case CONSTRAINT_TYPE_RIGIDBODYJOINT:
-		strcpy(str, "Rigid Body");
-		return;
-	case CONSTRAINT_TYPE_CLAMPTO:
-		strcpy(str, "Clamp To");
-		return;
-	case CONSTRAINT_TYPE_TRANSFORM:
-		strcpy(str, "Transformation");
-		break;
-	default:
-		strcpy (str, "Unknown");
-		return;
-	}
-}
-
 void const_moveUp(void *ob_v, void *con_v)
 {
 	bConstraint *con, *constr= con_v;
@@ -480,6 +412,11 @@ void autocomplete_vgroup(char *str, void *arg_v)
 	}
 }
 
+/* some commonly used macros in the constraints drawing code */
+#define is_armature_target(target) (target && target->type==OB_ARMATURE)
+#define is_armature_owner(ob) ((ob->type == OB_ARMATURE) && (ob->flag & OB_POSEMODE))
+#define is_geom_target(target) (target && (ELEM(target->type, OB_MESH, OB_LATTICE)) )
+
 /* Helper function for draw constraint - draws constraint space stuff 
  * This function should not be called if no menus are required 
  * owner/target: -1 = don't draw menu; 0= not posemode, 1 = posemode 
@@ -538,22 +475,24 @@ static void draw_constraint_spaceselect (uiBlock *block, bConstraint *con, short
 /* draw panel showing settings for a constraint */
 static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, short *xco, short *yco)
 {
-	Object *ob= OBACT, *target;
+	Object *ob= OBACT;
+	bConstraintTypeInfo *cti;
 	uiBut *but;
-	char typestr[64], *subtarget;
+	char typestr[64];
 	short height, width = 265;
-	short is_armature_target, is_geom_target, is_armature_owner;
 	int rb_col;
 
-	target= get_constraint_target(con, &subtarget);
-	is_armature_target= (target && target->type==OB_ARMATURE);
-	is_armature_owner= ((ob->type == OB_ARMATURE) && (ob->flag & OB_POSEMODE));
-	is_geom_target= (target && (ELEM(target->type, OB_MESH, OB_LATTICE)) );
-	
+	cti= constraint_get_typeinfo(con);
+	if (cti == NULL) {
+		printf("Argh! No valid constraint type-info... aborting constraint drawing. \n");
+		return;
+	}
+	else {
+		strcpy(typestr, cti->name);
+	}
+		
 	/* unless button has own callback, it adds this callback to button */
 	uiBlockSetFunc(block, constraint_active_func, ob, con);
-	
-	get_constraint_typestring(typestr, con);
 
 	/* Draw constraint header */
 	uiBlockSetEmboss(block, UI_EMBOSSN);
@@ -617,11 +556,14 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 		case CONSTRAINT_TYPE_PYTHON:
 			{
 				bPythonConstraint *data = con->data;
+				bConstraintTarget *ct;
 				uiBut *but2;
+				int tarnum, theight;
 				static int pyconindex=0;
 				char *menustr;
 				
-				height = 110;
+				theight = (data->tarnum)? (data->tarnum * 38) : (38);
+				height = theight + 78;
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40, height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Script:", *xco+60, *yco-24, 55, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
@@ -634,42 +576,62 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiButSetFunc(but2, validate_pyconstraint_cb, data, &pyconindex);
 				MEM_freeN(menustr);	
 				
-				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+60, *yco-48, 55, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				/* draw target(s) */
 				if (data->flag & PYCON_USETARGETS) {
 					/* Draw target parameters */ 
-					uiBlockBeginAlign(block);
-					uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-48, 150, 18, &data->tar, "Target Object"); 
-					
-					if (is_armature_target) {
-						but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-66,150,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
-						uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
+					for (ct=data->targets.first, tarnum=1; ct; ct=ct->next, tarnum++) {
+						char tarstr[32];
+						short yoffset= ((tarnum-1) * 38);
+						
+						/* target label */
+						sprintf(tarstr, "Target %02d:", tarnum);
+						uiDefBut(block, LABEL, B_CONSTRAINT_TEST, tarstr, *xco+60, *yco-(48+yoffset), 55, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+						
+						/* target space-selector - per target */
+						if (is_armature_target(ct->tar)) {
+							uiDefButS(block, MENU, B_CONSTRAINT_TEST, "Target Space %t|World Space %x0|Pose Space %x3|Local with Parent %x4|Local Space %x1", 
+															*xco+60, *yco-(66+yoffset), 55, 18, &ct->space, 0, 0, 0, 0, "Choose space that target is evaluated in");	
+						}
+						else {
+							uiDefButS(block, MENU, B_CONSTRAINT_TEST, "Target Space %t|World Space %x0|Local (Without Parent) Space %x1", 
+															*xco+60, *yco-(66+yoffset), 55, 18, &ct->space, 0, 0, 0, 0, "Choose space that target is evaluated in");	
+						}
+						
+						uiBlockBeginAlign(block);
+							/* target object */
+							uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-48, 150, 18, &ct->tar, "Target Object"); 
+							
+							/* subtarget */
+							if (is_armature_target(ct->tar)) {
+								but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-(66+yoffset),150,18, &ct->subtarget, 0, 24, 0, 0, "Subtarget Bone");
+								uiButSetCompleteFunc(but, autocomplete_bone, (void *)ct->tar);
+							}
+							else if (is_geom_target(ct->tar)) {
+								but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-(66+yoffset),150,18, &ct->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
+								uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ct->tar);
+							}
+							else {
+								strcpy(ct->subtarget, "");
+							}
+						uiBlockEndAlign(block);
 					}
-					else if (is_geom_target) {
-						but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-66,150,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
-						uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
-					}
-					else {
-						strcpy (data->subtarget, "");
-					}
-					
-					uiBlockEndAlign(block);
 				}
 				else {
 					/* Draw indication that no target needed */
+					uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+60, *yco-48, 55, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 					uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Not Applicable", *xco+120, *yco-48, 150, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 				}
 				
 				/* settings */
 				uiBlockBeginAlign(block);
-				but=uiDefBut(block, BUT, B_CONSTRAINT_TEST, "Options", *xco, *yco-88, (width/2),18, NULL, 0, 24, 0, 0, "Change some of the constraint's settings.");
-				uiButSetFunc(but, BPY_pyconstraint_settings, data, NULL);
-				
-				uiDefBut(block, BUT, B_CONSTRAINT_TEST, "Refresh", *xco+((width/2)+10), *yco-88, (width/2),18, NULL, 0, 24, 0, 0, "Force constraint to refresh it's settings");
+					but=uiDefBut(block, BUT, B_CONSTRAINT_TEST, "Options", *xco, *yco-(52+theight), (width/2),18, NULL, 0, 24, 0, 0, "Change some of the constraint's settings.");
+					uiButSetFunc(but, BPY_pyconstraint_settings, data, NULL);
+					
+					but=uiDefBut(block, BUT, B_CONSTRAINT_TEST, "Refresh", *xco+((width/2)+10), *yco-(52+theight), (width/2),18, NULL, 0, 24, 0, 0, "Force constraint to refresh it's settings");
 				uiBlockEndAlign(block);
 				
 				/* constraint space settings */
-				if ((data->flag & PYCON_USETARGETS)==0) is_armature_target = -1;
-				draw_constraint_spaceselect(block, con, *xco, *yco-109, is_armature_owner, is_armature_target);
+				draw_constraint_spaceselect(block, con, *xco, *yco-(73+theight), is_armature_owner(ob), -1);
 			}
 			break;
 		case CONSTRAINT_TYPE_ACTION:
@@ -684,48 +646,50 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				
 				/* Draw target parameters */
 				uiBlockBeginAlign(block);
-				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
-				
-				if (is_armature_target) {
-					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
-					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
-				}
-				else {
-					strcpy (data->subtarget, "");
-				}
+					uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
+					
+					if (is_armature_target(data->tar)) {
+						but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
+						uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
+					}
+					else {
+						strcpy(data->subtarget, "");
+					}
 				
 				uiBlockEndAlign(block);
 				
 				/* Draw action/type buttons */
 				uiBlockBeginAlign(block);
-				uiDefIDPoinBut(block, test_actionpoin_but, ID_AC, B_CONSTRAINT_TEST, "AC:",	*xco+((width/2)-117), *yco-64, 78, 18, &data->act, "Action containing the keyed motion for this bone"); 
-				uiDefButS(block, MENU, B_CONSTRAINT_TEST, "Key on%t|Loc X%x20|Loc Y%x21|Loc Z%x22|Rot X%x0|Rot Y%x1|Rot Z%x2|Size X%x10|Size Y%x11|Size Z%x12", *xco+((width/2)-117), *yco-84, 78, 18, &data->type, 0, 24, 0, 0, "Specify which transformation channel from the target is used to key the action");
+					uiDefIDPoinBut(block, test_actionpoin_but, ID_AC, B_CONSTRAINT_TEST, "AC:",	*xco+((width/2)-117), *yco-64, 78, 18, &data->act, "Action containing the keyed motion for this bone"); 
+					uiDefButS(block, MENU, B_CONSTRAINT_TEST, "Key on%t|Loc X%x20|Loc Y%x21|Loc Z%x22|Rot X%x0|Rot Y%x1|Rot Z%x2|Size X%x10|Size Y%x11|Size Z%x12", *xco+((width/2)-117), *yco-84, 78, 18, &data->type, 0, 24, 0, 0, "Specify which transformation channel from the target is used to key the action");
+				uiBlockEndAlign(block);
 				
 				/* Draw start/end frame buttons */
 				uiBlockBeginAlign(block);
-				uiDefButI(block, NUM, B_CONSTRAINT_TEST, "Start:", *xco+((width/2)-36), *yco-64, 78, 18, &data->start, 1, MAXFRAME, 0.0, 0.0, "Starting frame of the keyed motion"); 
-				uiDefButI(block, NUM, B_CONSTRAINT_TEST, "End:", *xco+((width/2)-36), *yco-84, 78, 18, &data->end, 1, MAXFRAME, 0.0, 0.0, "Ending frame of the keyed motion"); 
+					uiDefButI(block, NUM, B_CONSTRAINT_TEST, "Start:", *xco+((width/2)-36), *yco-64, 78, 18, &data->start, 1, MAXFRAME, 0.0, 0.0, "Starting frame of the keyed motion"); 
+					uiDefButI(block, NUM, B_CONSTRAINT_TEST, "End:", *xco+((width/2)-36), *yco-84, 78, 18, &data->end, 1, MAXFRAME, 0.0, 0.0, "Ending frame of the keyed motion"); 
+				uiBlockEndAlign(block);
 				
 				/* Draw minimum/maximum transform range buttons */
 				uiBlockBeginAlign(block);
-				if (data->type < 10) { /* rotation */
-					minval = -180.0f;
-					maxval = 180.0f;
-				}
-				else if (data->type < 20) { /* scaling */
-					minval = 0.0001f;
-					maxval = 1000.0f;
-				}
-				else { /* location */
-					minval = -1000.0f;
-					maxval = 1000.0f;
-				}
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Min:", *xco+((width/2)+45), *yco-64, 78, 18, &data->min, minval, maxval, 0, 0, "Minimum value for target channel range");
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Max:", *xco+((width/2)+45), *yco-84, 78, 18, &data->max, minval, maxval, 0, 0, "Maximum value for target channel range");
+					if (data->type < 10) { /* rotation */
+						minval = -180.0f;
+						maxval = 180.0f;
+					}
+					else if (data->type < 20) { /* scaling */
+						minval = 0.0001f;
+						maxval = 1000.0f;
+					}
+					else { /* location */
+						minval = -1000.0f;
+						maxval = 1000.0f;
+					}
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Min:", *xco+((width/2)+45), *yco-64, 78, 18, &data->min, minval, maxval, 0, 0, "Minimum value for target channel range");
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Max:", *xco+((width/2)+45), *yco-84, 78, 18, &data->max, minval, maxval, 0, 0, "Maximum value for target channel range");
 				uiBlockEndAlign(block);
 				
 				/* constraint space settings */
-				draw_constraint_spaceselect(block, con, *xco, *yco-104, -1, is_armature_target);
+				draw_constraint_spaceselect(block, con, *xco, *yco-104, -1, is_armature_target(data->tar));
 			}
 			break;
 		case CONSTRAINT_TYPE_CHILDOF:
@@ -737,53 +701,52 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Parent:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-
+				
 				/* Draw target parameters */
 				uiBlockBeginAlign(block);
-				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object to use as Parent"); 
-
-				if (is_armature_target) {
-					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone to use as Parent");
-					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
-				}
-				else if (is_geom_target) {
-					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
-					uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
-				}
-				else {
-					strcpy (data->subtarget, "");
-				}
-				
+					uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object to use as Parent"); 
+					
+					if (is_armature_target(data->tar)) {
+						but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone to use as Parent");
+						uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
+					}
+					else if (is_geom_target(data->tar)) {
+						but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
+						uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
+					}
+					else {
+						strcpy(data->subtarget, "");
+					}
 				uiBlockEndAlign(block);
 				
 				/* Draw triples of channel toggles */
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Use Channel(s):", *xco+65, *yco-64, 150, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 				uiBlockBeginAlign(block); 
-				uiDefButBitI(block, TOG, CHILDOF_LOCX, B_CONSTRAINT_TEST, "Loc X", *xco, *yco-84, normButWidth, 18, &data->flag, 0, 24, 0, 0, "Parent affects x-location"); 
-				uiDefButBitI(block, TOG, CHILDOF_LOCY, B_CONSTRAINT_TEST, "Loc Y", *xco+normButWidth, *yco-84, normButWidth, 18, &data->flag, 0, 24, 0, 0, "Parent affects y-location"); 
-				uiDefButBitI(block, TOG, CHILDOF_LOCZ, B_CONSTRAINT_TEST, "Loc Z", *xco+(normButWidth * 2), *yco-84, normButWidth, 18, &data->flag, 0, 24, 0, 0, "Parent affects z-location"); 
+					uiDefButBitI(block, TOG, CHILDOF_LOCX, B_CONSTRAINT_TEST, "Loc X", *xco, *yco-84, normButWidth, 18, &data->flag, 0, 24, 0, 0, "Parent affects x-location"); 
+					uiDefButBitI(block, TOG, CHILDOF_LOCY, B_CONSTRAINT_TEST, "Loc Y", *xco+normButWidth, *yco-84, normButWidth, 18, &data->flag, 0, 24, 0, 0, "Parent affects y-location"); 
+					uiDefButBitI(block, TOG, CHILDOF_LOCZ, B_CONSTRAINT_TEST, "Loc Z", *xco+(normButWidth * 2), *yco-84, normButWidth, 18, &data->flag, 0, 24, 0, 0, "Parent affects z-location"); 
 				uiBlockEndAlign(block); 
 				
 				uiBlockBeginAlign(block); 
-				uiDefButBitI(block, TOG, CHILDOF_ROTX, B_CONSTRAINT_TEST, "Rot X", *xco, *yco-105, normButWidth, 18, &data->flag, 0, 24, 0, 0, "Parent affects x-rotation"); 
-				uiDefButBitI(block, TOG, CHILDOF_ROTY, B_CONSTRAINT_TEST, "Rot Y", *xco+normButWidth, *yco-105, normButWidth, 18, &data->flag, 0, 24, 0, 0, "Parent affects y-rotation"); 
-				uiDefButBitI(block, TOG, CHILDOF_ROTZ, B_CONSTRAINT_TEST, "Rot Z", *xco+(normButWidth * 2), *yco-105, normButWidth, 18, &data->flag, 0, 24, 0, 0, "Parent affects z-rotation"); 
+					uiDefButBitI(block, TOG, CHILDOF_ROTX, B_CONSTRAINT_TEST, "Rot X", *xco, *yco-105, normButWidth, 18, &data->flag, 0, 24, 0, 0, "Parent affects x-rotation"); 
+					uiDefButBitI(block, TOG, CHILDOF_ROTY, B_CONSTRAINT_TEST, "Rot Y", *xco+normButWidth, *yco-105, normButWidth, 18, &data->flag, 0, 24, 0, 0, "Parent affects y-rotation"); 
+					uiDefButBitI(block, TOG, CHILDOF_ROTZ, B_CONSTRAINT_TEST, "Rot Z", *xco+(normButWidth * 2), *yco-105, normButWidth, 18, &data->flag, 0, 24, 0, 0, "Parent affects z-rotation"); 
 				uiBlockEndAlign(block); 
 				
 				uiBlockBeginAlign(block); 
-				uiDefButBitI(block, TOG, CHILDOF_SIZEX, B_CONSTRAINT_TEST, "Scale X", *xco, *yco-126, normButWidth, 18, &data->flag, 0, 24, 0, 0, "Parent affects x-scaling"); 
-				uiDefButBitI(block, TOG, CHILDOF_SIZEY, B_CONSTRAINT_TEST, "Scale Y", *xco+normButWidth, *yco-126, normButWidth, 18, &data->flag, 0, 24, 0, 0, "Parent affects y-scaling"); 
-				uiDefButBitI(block, TOG, CHILDOF_SIZEZ, B_CONSTRAINT_TEST, "Scale Z", *xco+(normButWidth * 2), *yco-126, normButWidth, 18, &data->flag, 0, 24, 0, 0, "Parent affects z-scaling"); 
+					uiDefButBitI(block, TOG, CHILDOF_SIZEX, B_CONSTRAINT_TEST, "Scale X", *xco, *yco-126, normButWidth, 18, &data->flag, 0, 24, 0, 0, "Parent affects x-scaling"); 
+					uiDefButBitI(block, TOG, CHILDOF_SIZEY, B_CONSTRAINT_TEST, "Scale Y", *xco+normButWidth, *yco-126, normButWidth, 18, &data->flag, 0, 24, 0, 0, "Parent affects y-scaling"); 
+					uiDefButBitI(block, TOG, CHILDOF_SIZEZ, B_CONSTRAINT_TEST, "Scale Z", *xco+(normButWidth * 2), *yco-126, normButWidth, 18, &data->flag, 0, 24, 0, 0, "Parent affects z-scaling"); 
 				uiBlockEndAlign(block);
 				
 				
 				/* Inverse options */
 				uiBlockBeginAlign(block);
-				but=uiDefBut(block, BUT, B_CONSTRAINT_TEST, "Set Offset", *xco, *yco-151, (width/2),18, NULL, 0, 24, 0, 0, "Calculate current Parent-Inverse Matrix (i.e. restore offset from parent)");
-				uiButSetFunc(but, childof_const_setinv, data, NULL);
-				
-				but=uiDefBut(block, BUT, B_CONSTRAINT_TEST, "Clear Offset", *xco+((width/2)+10), *yco-151, (width/2),18, NULL, 0, 24, 0, 0, "Clear Parent-Inverse Matrix (i.e. clear offset from parent)");
-				uiButSetFunc(but, childof_const_clearinv, data, NULL);
+					but=uiDefBut(block, BUT, B_CONSTRAINT_TEST, "Set Offset", *xco, *yco-151, (width/2),18, NULL, 0, 24, 0, 0, "Calculate current Parent-Inverse Matrix (i.e. restore offset from parent)");
+					uiButSetFunc(but, childof_const_setinv, data, NULL);
+					
+					but=uiDefBut(block, BUT, B_CONSTRAINT_TEST, "Clear Offset", *xco+((width/2)+10), *yco-151, (width/2),18, NULL, 0, 24, 0, 0, "Clear Parent-Inverse Matrix (i.e. clear offset from parent)");
+					uiButSetFunc(but, childof_const_clearinv, data, NULL);
 				uiBlockEndAlign(block);
 			}
 			break;
@@ -798,40 +761,39 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				
 				/* Draw target parameters */
 				uiBlockBeginAlign(block);
-				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
-				
-				if (is_armature_target) {
-					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
-					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
-				}
-				else if (is_geom_target) {
-					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
-					uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
-				}
-				else {
-					strcpy (data->subtarget, "");
-				}
-				
+					uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
+					
+					if (is_armature_target(data->tar)) {
+						but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
+						uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
+					}
+					else if (is_geom_target(data->tar)) {
+						but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
+						uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
+					}
+					else {
+						strcpy(data->subtarget, "");
+					}
 				uiBlockEndAlign(block);
 				
 				/* Draw XYZ toggles */
 				uiBlockBeginAlign(block);
-				but=uiDefButBitI(block, TOG, LOCLIKE_X, B_CONSTRAINT_TEST, "X", *xco+((width/2)-48), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy X component");
-				but=uiDefButBitI(block, TOG, LOCLIKE_X_INVERT, B_CONSTRAINT_TEST, "-", *xco+((width/2)-16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Invert X component");
-				but=uiDefButBitI(block, TOG, LOCLIKE_Y, B_CONSTRAINT_TEST, "Y", *xco+((width/2)+16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Y component");
-				but=uiDefButBitI(block, TOG, LOCLIKE_Y_INVERT, B_CONSTRAINT_TEST, "-", *xco+((width/2)+48), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Invert Y component");
-				but=uiDefButBitI(block, TOG, LOCLIKE_Z, B_CONSTRAINT_TEST, "Z", *xco+((width/2)+96), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Z component");
-				but=uiDefButBitI(block, TOG, LOCLIKE_Z_INVERT, B_CONSTRAINT_TEST, "-", *xco+((width/2)+128), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Invert Z component");
+					uiDefButBitI(block, TOG, LOCLIKE_X, B_CONSTRAINT_TEST, "X", *xco+((width/2)-48), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy X component");
+					uiDefButBitI(block, TOG, LOCLIKE_X_INVERT, B_CONSTRAINT_TEST, "-", *xco+((width/2)-16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Invert X component");
+					uiDefButBitI(block, TOG, LOCLIKE_Y, B_CONSTRAINT_TEST, "Y", *xco+((width/2)+16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Y component");
+					uiDefButBitI(block, TOG, LOCLIKE_Y_INVERT, B_CONSTRAINT_TEST, "-", *xco+((width/2)+48), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Invert Y component");
+					uiDefButBitI(block, TOG, LOCLIKE_Z, B_CONSTRAINT_TEST, "Z", *xco+((width/2)+96), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Z component");
+					uiDefButBitI(block, TOG, LOCLIKE_Z_INVERT, B_CONSTRAINT_TEST, "-", *xco+((width/2)+128), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Invert Z component");
 				uiBlockEndAlign(block);
 				
 				/* Draw options */
 				uiDefButBitI(block, TOG, LOCLIKE_OFFSET, B_CONSTRAINT_TEST, "Offset", *xco, *yco-89, (width/2), 18, &data->flag, 0, 24, 0, 0, "Add original location onto copied location");
-				if (is_armature_target) {
+				if (is_armature_target(data->tar)) {
 					uiDefButBitI(block, TOG, LOCLIKE_TIP, B_CONSTRAINT_TEST, "Target Bone Tail", *xco+(width/2), *yco-89, (width/2), 18, &data->flag, 0, 24, 0, 0, "Copy Location of Target Bone's Tail");
 				}
 				
 				/* constraint space settings */
-				draw_constraint_spaceselect(block, con, *xco, *yco-109, is_armature_owner, is_armature_target);
+				draw_constraint_spaceselect(block, con, *xco, *yco-109, is_armature_owner(ob), is_armature_target(data->tar));
 			}
 			break;
 		case CONSTRAINT_TYPE_ROTLIKE:
@@ -842,37 +804,38 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-
+				
 				/* Draw target parameters */
 				uiBlockBeginAlign(block);
-				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
 
-				if (is_armature_target) {
+				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
+				
+				if (is_armature_target(data->tar)) {
 					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
 					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
 				}
-				else if (is_geom_target) { 
+				else if (is_geom_target(data->tar)) { 
 					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
 					uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
 				}
 				else {
-					strcpy (data->subtarget, "");
+					strcpy(data->subtarget, "");
 				}
-				
+
 				uiBlockEndAlign(block);
 				
 				/* Draw XYZ toggles */
 				uiBlockBeginAlign(block);
-				but=uiDefButBitI(block, TOG, ROTLIKE_X, B_CONSTRAINT_TEST, "X", *xco+((width/2)-48), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy X component");
-				but=uiDefButBitI(block, TOG, ROTLIKE_X_INVERT, B_CONSTRAINT_TEST, "-", *xco+((width/2)-16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Invert X component");
-				but=uiDefButBitI(block, TOG, ROTLIKE_Y, B_CONSTRAINT_TEST, "Y", *xco+((width/2)+16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Y component");
-				but=uiDefButBitI(block, TOG, ROTLIKE_Y_INVERT, B_CONSTRAINT_TEST, "-", *xco+((width/2)+48), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Invert Y component");
-				but=uiDefButBitI(block, TOG, ROTLIKE_Z, B_CONSTRAINT_TEST, "Z", *xco+((width/2)+96), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Z component");
-				but=uiDefButBitI(block, TOG, ROTLIKE_Z_INVERT, B_CONSTRAINT_TEST, "-", *xco+((width/2)+128), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Invert Z component");
+					uiDefButBitI(block, TOG, ROTLIKE_X, B_CONSTRAINT_TEST, "X", *xco+((width/2)-48), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy X component");
+					uiDefButBitI(block, TOG, ROTLIKE_X_INVERT, B_CONSTRAINT_TEST, "-", *xco+((width/2)-16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Invert X component");
+					uiDefButBitI(block, TOG, ROTLIKE_Y, B_CONSTRAINT_TEST, "Y", *xco+((width/2)+16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Y component");
+					uiDefButBitI(block, TOG, ROTLIKE_Y_INVERT, B_CONSTRAINT_TEST, "-", *xco+((width/2)+48), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Invert Y component");
+					uiDefButBitI(block, TOG, ROTLIKE_Z, B_CONSTRAINT_TEST, "Z", *xco+((width/2)+96), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Z component");
+					uiDefButBitI(block, TOG, ROTLIKE_Z_INVERT, B_CONSTRAINT_TEST, "-", *xco+((width/2)+128), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Invert Z component");
 				uiBlockEndAlign(block);
 				
 				/* constraint space settings */
-				draw_constraint_spaceselect(block, con, *xco, *yco-94, is_armature_owner, is_armature_target);
+				draw_constraint_spaceselect(block, con, *xco, *yco-94, is_armature_owner(ob), is_armature_target(data->tar));
 			}
 			break;
 		case CONSTRAINT_TYPE_SIZELIKE:
@@ -887,31 +850,30 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				
 				/* Draw target parameters */
 				uiBlockBeginAlign(block);
-				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
-				
-				if (is_armature_target) {
-					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
-					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
-				}
-				else if (is_geom_target) {
-					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
-					uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
-				}
-				else {
-					strcpy (data->subtarget, "");
-				}
-				
+					uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
+					
+					if (is_armature_target(data->tar)) {
+						but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
+						uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
+					}
+					else if (is_geom_target(data->tar)) {
+						but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
+						uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
+					}
+					else {
+						strcpy(data->subtarget, "");
+					}
 				uiBlockEndAlign(block);
 
 				/* Draw XYZ toggles */
 				uiBlockBeginAlign(block);
-				but=uiDefButBitI(block, TOG, SIZELIKE_X, B_CONSTRAINT_TEST, "X", *xco+((width/2)-48), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy X component");
-				but=uiDefButBitI(block, TOG, SIZELIKE_Y, B_CONSTRAINT_TEST, "Y", *xco+((width/2)-16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Y component");
-				but=uiDefButBitI(block, TOG, SIZELIKE_Z, B_CONSTRAINT_TEST, "Z", *xco+((width/2)+16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Z component");
+					uiDefButBitI(block, TOG, SIZELIKE_X, B_CONSTRAINT_TEST, "X", *xco+((width/2)-48), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy X component");
+					uiDefButBitI(block, TOG, SIZELIKE_Y, B_CONSTRAINT_TEST, "Y", *xco+((width/2)-16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Y component");
+					uiDefButBitI(block, TOG, SIZELIKE_Z, B_CONSTRAINT_TEST, "Z", *xco+((width/2)+16), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy Z component");
 				uiBlockEndAlign(block);
 				
 				/* constraint space settings */
-				draw_constraint_spaceselect(block, con, *xco, *yco-94, is_armature_owner, is_armature_target);
+				draw_constraint_spaceselect(block, con, *xco, *yco-94, is_armature_owner(ob), is_armature_target(data->tar));
 			}
  			break;
 		case CONSTRAINT_TYPE_KINEMATIC:
@@ -927,33 +889,38 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiDefButBitS(block, TOG, CONSTRAINT_IK_ROT, B_CONSTRAINT_TEST, "Rot", *xco, *yco-24,60,19, &data->flag, 0, 0, 0, 0, "Chain follows rotation of target");
 				
 				uiBlockBeginAlign(block);
-				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 19, &data->tar, "Target Object"); 
-
-				if (is_armature_target) {
-					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,19, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
-					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
-				}
-				else if (is_geom_target) {
-					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
-					uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
-				}
-				else {
-					strcpy (data->subtarget, "");
-				}
-	
-				uiBlockBeginAlign(block);
-				uiDefButBitS(block, TOG, CONSTRAINT_IK_TIP, B_CONSTRAINT_TEST, "Use Tail", *xco, *yco-64, 137, 19, &data->flag, 0, 0, 0, 0, "Include Bone's tail as last element in Chain");
-				uiDefButI(block, NUM, B_CONSTRAINT_TEST, "ChainLen:", *xco, *yco-84,137,19, &data->rootbone, 0, 255, 0, 0, "If not zero, the amount of bones in this chain");
+					uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 19, &data->tar, "Target Object"); 
+					
+					if (is_armature_target(data->tar)) {
+						but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,19, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
+						uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
+					}
+					else if (is_geom_target(data->tar)) {
+						but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
+						uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
+					}
+					else {
+						strcpy(data->subtarget, "");
+					}
+				uiBlockEndAlign(block);
 				
 				uiBlockBeginAlign(block);
-				uiDefButF(block, NUMSLI, B_CONSTRAINT_TEST, "PosW ", *xco+147, *yco-64, 137, 19, &data->weight, 0.01, 1.0, 2, 2, "For Tree-IK: weight of position control for this target");
-				uiDefButF(block, NUMSLI, B_CONSTRAINT_TEST, "RotW ", *xco+147, *yco-84, 137, 19, &data->orientweight, 0.01, 1.0, 2, 2, "For Tree-IK: Weight of orientation control for this target");
-
-				uiBlockBeginAlign(block);
-				uiDefButS(block, NUM, B_CONSTRAINT_TEST, "Iterations:", *xco, *yco-109, 137, 19, &data->iterations, 1, 10000, 0, 0, "Maximum number of solving iterations"); 
-				uiBlockBeginAlign(block);
-				uiDefButBitS(block, TOG, CONSTRAINT_IK_STRETCH, B_CONSTRAINT_TEST, "Stretch", *xco+147, *yco-109,137,19, &data->flag, 0, 0, 0, 0, "Enable IK stretching");
+					uiDefButBitS(block, TOG, CONSTRAINT_IK_TIP, B_CONSTRAINT_TEST, "Use Tail", *xco, *yco-64, 137, 19, &data->flag, 0, 0, 0, 0, "Include Bone's tail as last element in Chain");
+					uiDefButI(block, NUM, B_CONSTRAINT_TEST, "ChainLen:", *xco, *yco-84,137,19, &data->rootbone, 0, 255, 0, 0, "If not zero, the amount of bones in this chain");
+				uiBlockEndAlign(block);
 				
+				uiBlockBeginAlign(block);
+					uiDefButF(block, NUMSLI, B_CONSTRAINT_TEST, "PosW ", *xco+147, *yco-64, 137, 19, &data->weight, 0.01, 1.0, 2, 2, "For Tree-IK: weight of position control for this target");
+					uiDefButF(block, NUMSLI, B_CONSTRAINT_TEST, "RotW ", *xco+147, *yco-84, 137, 19, &data->orientweight, 0.01, 1.0, 2, 2, "For Tree-IK: Weight of orientation control for this target");
+				uiBlockEndAlign(block);
+				
+				uiBlockBeginAlign(block);
+					uiDefButS(block, NUM, B_CONSTRAINT_TEST, "Iterations:", *xco, *yco-109, 137, 19, &data->iterations, 1, 10000, 0, 0, "Maximum number of solving iterations"); 
+				uiBlockEndAlign(block);
+				
+				uiBlockBeginAlign(block);
+					uiDefButBitS(block, TOG, CONSTRAINT_IK_STRETCH, B_CONSTRAINT_TEST, "Stretch", *xco+147, *yco-109,137,19, &data->flag, 0, 0, 0, 0, "Enable IK stretching");
+				uiBlockEndAlign(block);
 			}
 			break;
 		case CONSTRAINT_TYPE_TRACKTO:
@@ -964,95 +931,93 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-
+				
 				/* Draw target parameters */
 				uiBlockBeginAlign(block);
-				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
-
-				if (is_armature_target) {
-					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
-					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
-				}
-				else if (is_geom_target) {
-					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
-					uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
-				}
-				else {
-					strcpy (data->subtarget, "");
-				}
-				
+					uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
+					
+					if (is_armature_target(data->tar)) {
+						but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
+						uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
+					}
+					else if (is_geom_target(data->tar)) {
+						but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
+						uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
+					}
+					else {
+						strcpy(data->subtarget, "");
+					}
 				uiBlockEndAlign(block);
 				
 				uiBlockBeginAlign(block);
-				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Align:", *xco+5, *yco-42, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, "");
-				
-				uiDefButBitI(block, TOG, 1, B_CONSTRAINT_TEST, "TargetZ", *xco+60, *yco-42, 50, 18, &data->flags, 0, 1, 0, 0, "Target Z axis, not world Z axis, will constrain up direction");
-				uiBlockEndAlign(block);
-
-				uiBlockBeginAlign(block);
-				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "To:", *xco+12, *yco-64, 25, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-				
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"X",	*xco+39, *yco-64,17,18, &data->reserved1, 12.0, 0.0, 0, 0, "X axis points to the target object");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Y",	*xco+56, *yco-64,17,18, &data->reserved1, 12.0, 1.0, 0, 0, "Y axis points to the target object");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Z",	*xco+73, *yco-64,17,18, &data->reserved1, 12.0, 2.0, 0, 0, "Z axis points to the target object");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"-X",	*xco+90, *yco-64,24,18, &data->reserved1, 12.0, 3.0, 0, 0, "-X axis points to the target object");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"-Y",	*xco+114, *yco-64,24,18, &data->reserved1, 12.0, 4.0, 0, 0, "-Y axis points to the target object");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"-Z",	*xco+138, *yco-64,24,18, &data->reserved1, 12.0, 5.0, 0, 0, "-Z axis points to the target object");
+					uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Align:", *xco+5, *yco-42, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, "");
+					
+					uiDefButBitI(block, TOG, 1, B_CONSTRAINT_TEST, "TargetZ", *xco+60, *yco-42, 50, 18, &data->flags, 0, 1, 0, 0, "Target Z axis, not world Z axis, will constrain up direction");
 				uiBlockEndAlign(block);
 				
 				uiBlockBeginAlign(block);
-				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Up:", *xco+174, *yco-64, 30, 18, NULL, 0.0, 0.0, 0.0, 0.0, "");
+					uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "To:", *xco+12, *yco-64, 25, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+					
+					uiDefButI(block, ROW,B_CONSTRAINT_TEST,"X",	*xco+39, *yco-64,17,18, &data->reserved1, 12.0, 0.0, 0, 0, "X axis points to the target object");
+					uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Y",	*xco+56, *yco-64,17,18, &data->reserved1, 12.0, 1.0, 0, 0, "Y axis points to the target object");
+					uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Z",	*xco+73, *yco-64,17,18, &data->reserved1, 12.0, 2.0, 0, 0, "Z axis points to the target object");
+					uiDefButI(block, ROW,B_CONSTRAINT_TEST,"-X",	*xco+90, *yco-64,24,18, &data->reserved1, 12.0, 3.0, 0, 0, "-X axis points to the target object");
+					uiDefButI(block, ROW,B_CONSTRAINT_TEST,"-Y",	*xco+114, *yco-64,24,18, &data->reserved1, 12.0, 4.0, 0, 0, "-Y axis points to the target object");
+					uiDefButI(block, ROW,B_CONSTRAINT_TEST,"-Z",	*xco+138, *yco-64,24,18, &data->reserved1, 12.0, 5.0, 0, 0, "-Z axis points to the target object");
+				uiBlockEndAlign(block);
 				
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"X",	*xco+204, *yco-64,17,18, &data->reserved2, 13.0, 0.0, 0, 0, "X axis points upward");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Y",	*xco+221, *yco-64,17,18, &data->reserved2, 13.0, 1.0, 0, 0, "Y axis points upward");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Z",	*xco+238, *yco-64,17,18, &data->reserved2, 13.0, 2.0, 0, 0, "Z axis points upward");
+				uiBlockBeginAlign(block);
+					uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Up:", *xco+174, *yco-64, 30, 18, NULL, 0.0, 0.0, 0.0, 0.0, "");
+					
+					uiDefButI(block, ROW,B_CONSTRAINT_TEST,"X",	*xco+204, *yco-64,17,18, &data->reserved2, 13.0, 0.0, 0, 0, "X axis points upward");
+					uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Y",	*xco+221, *yco-64,17,18, &data->reserved2, 13.0, 1.0, 0, 0, "Y axis points upward");
+					uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Z",	*xco+238, *yco-64,17,18, &data->reserved2, 13.0, 2.0, 0, 0, "Z axis points upward");
 				uiBlockEndAlign(block);
 				
 				/* constraint space settings */
-				draw_constraint_spaceselect(block, con, *xco, *yco-94, is_armature_owner, is_armature_target);
+				draw_constraint_spaceselect(block, con, *xco, *yco-94, is_armature_owner(ob), is_armature_target(data->tar));
 			}
 			break;
 		case CONSTRAINT_TYPE_MINMAX:
 			{
 				bMinMaxConstraint *data = con->data;
-
+				
 				height = 66;
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-
+				
 				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Offset:", *xco, *yco-44, 100, 18, &data->offset, -100, 100, 100.0, 0.0, "Offset from the position of the object center"); 
-
+				
 				/* Draw target parameters */
 				uiBlockBeginAlign(block);
-				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
-
-				if (is_armature_target) {
-					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
-					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
-				}
-				else if (is_geom_target) {
-					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
-					uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
-				}
-				else {
-					strcpy (data->subtarget, "");
-				}
-				
+					uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
+					
+					if (is_armature_target(data->tar)) {
+						but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
+						uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
+					}
+					else if (is_geom_target(data->tar)) {
+						but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
+						uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
+					}
+					else {
+						strcpy(data->subtarget, "");
+					}
 				uiBlockEndAlign(block);
-
-				but=uiDefButI(block, TOG|BIT|0, B_CONSTRAINT_TEST, "Sticky", *xco, *yco-24, 44, 18, &data->flag, 0, 24, 0, 0, "Immobilize object while constrained");
-				but=uiDefButI(block, TOG|BIT|2, B_CONSTRAINT_TEST, "Use Rot", *xco+44, *yco-24, 64, 18, &data->flag, 0, 24, 0, 0, "Use target object rotation");
+				
+				uiDefButBitI(block, TOG, 0, B_CONSTRAINT_TEST, "Sticky", *xco, *yco-24, 44, 18, &data->flag, 0, 24, 0, 0, "Immobilize object while constrained");
+				uiDefButBitI(block, TOG, 2, B_CONSTRAINT_TEST, "Use Rot", *xco+44, *yco-24, 64, 18, &data->flag, 0, 24, 0, 0, "Use target object rotation");
 				
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Max/Min:", *xco-8, *yco-64, 54, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-
+				
 				uiBlockBeginAlign(block);			
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"X",	*xco+51, *yco-64,17,18, &data->minmaxflag, 12.0, 0.0, 0, 0, "Will not pass below X of target");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Y",	*xco+67, *yco-64,17,18, &data->minmaxflag, 12.0, 1.0, 0, 0, "Will not pass below Y of target");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Z",	*xco+85, *yco-64,17,18, &data->minmaxflag, 12.0, 2.0, 0, 0, "Will not pass below Z of target");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"-X",	*xco+102, *yco-64,24,18, &data->minmaxflag, 12.0, 3.0, 0, 0, "Will not pass above X of target");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"-Y",	*xco+126, *yco-64,24,18, &data->minmaxflag, 12.0, 4.0, 0, 0, "Will not pass above Y of target");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"-Z",	*xco+150, *yco-64,24,18, &data->minmaxflag, 12.0, 5.0, 0, 0, "Will not pass above Z of target");
+					uiDefButI(block, ROW, B_CONSTRAINT_TEST,"X",	*xco+51, *yco-64,17,18, &data->minmaxflag, 12.0, 0.0, 0, 0, "Will not pass below X of target");
+					uiDefButI(block, ROW, B_CONSTRAINT_TEST,"Y",	*xco+67, *yco-64,17,18, &data->minmaxflag, 12.0, 1.0, 0, 0, "Will not pass below Y of target");
+					uiDefButI(block, ROW, B_CONSTRAINT_TEST,"Z",	*xco+85, *yco-64,17,18, &data->minmaxflag, 12.0, 2.0, 0, 0, "Will not pass below Z of target");
+					uiDefButI(block, ROW, B_CONSTRAINT_TEST,"-X",	*xco+102, *yco-64,24,18, &data->minmaxflag, 12.0, 3.0, 0, 0, "Will not pass above X of target");
+					uiDefButI(block, ROW, B_CONSTRAINT_TEST,"-Y",	*xco+126, *yco-64,24,18, &data->minmaxflag, 12.0, 4.0, 0, 0, "Will not pass above Y of target");
+					uiDefButI(block, ROW, B_CONSTRAINT_TEST,"-Z",	*xco+150, *yco-64,24,18, &data->minmaxflag, 12.0, 5.0, 0, 0, "Will not pass above Z of target");
 				uiBlockEndAlign(block);
 			}
 			break;
@@ -1066,39 +1031,38 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				
 				/* Draw target parameters */
 				uiBlockBeginAlign(block);
-				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
-				
-				if (is_armature_target) {
-					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
-					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
-				}
-				else if (is_geom_target) {
-					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
-					uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
-				}
-				else {
-					strcpy (data->subtarget, "");
-				}
-				
+					uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
+					
+					if (is_armature_target(data->tar)) {
+						but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
+						uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
+					}
+					else if (is_geom_target(data->tar)) {
+						but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
+						uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
+					}
+					else {
+						strcpy(data->subtarget, "");
+					}
 				uiBlockEndAlign(block);
 				
 				uiBlockBeginAlign(block);
-				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "To:", *xco+12, *yco-64, 25, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-				
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"X",	*xco+39, *yco-64,17,18, &data->trackflag, 12.0, 0.0, 0, 0, "X axis points to the target object");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Y",	*xco+56, *yco-64,17,18, &data->trackflag, 12.0, 1.0, 0, 0, "Y axis points to the target object");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Z",	*xco+73, *yco-64,17,18, &data->trackflag, 12.0, 2.0, 0, 0, "Z axis points to the target object");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"-X",	*xco+90, *yco-64,24,18, &data->trackflag, 12.0, 3.0, 0, 0, "-X axis points to the target object");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"-Y",	*xco+114, *yco-64,24,18, &data->trackflag, 12.0, 4.0, 0, 0, "-Y axis points to the target object");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"-Z",	*xco+138, *yco-64,24,18, &data->trackflag, 12.0, 5.0, 0, 0, "-Z axis points to the target object");
+					uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "To:", *xco+12, *yco-64, 25, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+					
+					uiDefButI(block, ROW, B_CONSTRAINT_TEST,"X",	*xco+39, *yco-64,17,18, &data->trackflag, 12.0, 0.0, 0, 0, "X axis points to the target object");
+					uiDefButI(block, ROW, B_CONSTRAINT_TEST,"Y",	*xco+56, *yco-64,17,18, &data->trackflag, 12.0, 1.0, 0, 0, "Y axis points to the target object");
+					uiDefButI(block, ROW, B_CONSTRAINT_TEST,"Z",	*xco+73, *yco-64,17,18, &data->trackflag, 12.0, 2.0, 0, 0, "Z axis points to the target object");
+					uiDefButI(block, ROW, B_CONSTRAINT_TEST,"-X",	*xco+90, *yco-64,24,18, &data->trackflag, 12.0, 3.0, 0, 0, "-X axis points to the target object");
+					uiDefButI(block, ROW, B_CONSTRAINT_TEST,"-Y",	*xco+114, *yco-64,24,18, &data->trackflag, 12.0, 4.0, 0, 0, "-Y axis points to the target object");
+					uiDefButI(block, ROW, B_CONSTRAINT_TEST,"-Z",	*xco+138, *yco-64,24,18, &data->trackflag, 12.0, 5.0, 0, 0, "-Z axis points to the target object");
 				uiBlockEndAlign(block);
 				
 				uiBlockBeginAlign(block);
-				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Lock:", *xco+166, *yco-64, 38, 18, NULL, 0.0, 0.0, 0.0, 0.0, "");
-				
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"X",	*xco+204, *yco-64,17,18, &data->lockflag, 13.0, 0.0, 0, 0, "X axis is locked");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Y",	*xco+221, *yco-64,17,18, &data->lockflag, 13.0, 1.0, 0, 0, "Y axis is locked");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Z",	*xco+238, *yco-64,17,18, &data->lockflag, 13.0, 2.0, 0, 0, "Z axis is locked");
+					uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Lock:", *xco+166, *yco-64, 38, 18, NULL, 0.0, 0.0, 0.0, 0.0, "");
+					
+					uiDefButI(block, ROW, B_CONSTRAINT_TEST,"X",	*xco+204, *yco-64,17,18, &data->lockflag, 13.0, 0.0, 0, 0, "X axis is locked");
+					uiDefButI(block, ROW, B_CONSTRAINT_TEST,"Y",	*xco+221, *yco-64,17,18, &data->lockflag, 13.0, 1.0, 0, 0, "Y axis is locked");
+					uiDefButI(block, ROW, B_CONSTRAINT_TEST,"Z",	*xco+238, *yco-64,17,18, &data->lockflag, 13.0, 2.0, 0, 0, "Z axis is locked");
 				uiBlockEndAlign(block);
 			}
 			break;
@@ -1115,28 +1079,28 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
 				
 				/* Draw Curve Follow toggle */
-				but=uiDefButBitI(block, TOG, 1, B_CONSTRAINT_TEST, "CurveFollow", *xco+39, *yco-44, 100, 18, &data->followflag, 0, 24, 0, 0, "Object will follow the heading and banking of the curve");
+				uiDefButBitI(block, TOG, 1, B_CONSTRAINT_TEST, "CurveFollow", *xco+39, *yco-44, 100, 18, &data->followflag, 0, 24, 0, 0, "Object will follow the heading and banking of the curve");
 				
 				/* Draw Offset number button */
 				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Offset:", *xco+155, *yco-44, 100, 18, &data->offset, -MAXFRAMEF, MAXFRAMEF, 100.0, 0.0, "Offset from the position corresponding to the time frame"); 
 				
 				uiBlockBeginAlign(block);
-				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Fw:", *xco+12, *yco-64, 27, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-				
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"X",	*xco+39, *yco-64,17,18, &data->trackflag, 12.0, 0.0, 0, 0, "The axis that points forward along the path");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Y",	*xco+56, *yco-64,17,18, &data->trackflag, 12.0, 1.0, 0, 0, "The axis that points forward along the path");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Z",	*xco+73, *yco-64,17,18, &data->trackflag, 12.0, 2.0, 0, 0, "The axis that points forward along the path");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"-X",	*xco+90, *yco-64,24,18, &data->trackflag, 12.0, 3.0, 0, 0, "The axis that points forward along the path");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"-Y",	*xco+114, *yco-64,24,18, &data->trackflag, 12.0, 4.0, 0, 0, "The axis that points forward along the path");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"-Z",	*xco+138, *yco-64,24,18, &data->trackflag, 12.0, 5.0, 0, 0, "The axis that points forward along the path");
+					uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Fw:", *xco+12, *yco-64, 27, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+					
+					uiDefButI(block, ROW, B_CONSTRAINT_TEST,"X",	*xco+39, *yco-64,17,18, &data->trackflag, 12.0, 0.0, 0, 0, "The axis that points forward along the path");
+					uiDefButI(block, ROW, B_CONSTRAINT_TEST,"Y",	*xco+56, *yco-64,17,18, &data->trackflag, 12.0, 1.0, 0, 0, "The axis that points forward along the path");
+					uiDefButI(block, ROW, B_CONSTRAINT_TEST,"Z",	*xco+73, *yco-64,17,18, &data->trackflag, 12.0, 2.0, 0, 0, "The axis that points forward along the path");
+					uiDefButI(block, ROW, B_CONSTRAINT_TEST,"-X",	*xco+90, *yco-64,24,18, &data->trackflag, 12.0, 3.0, 0, 0, "The axis that points forward along the path");
+					uiDefButI(block, ROW, B_CONSTRAINT_TEST,"-Y",	*xco+114, *yco-64,24,18, &data->trackflag, 12.0, 4.0, 0, 0, "The axis that points forward along the path");
+					uiDefButI(block, ROW, B_CONSTRAINT_TEST,"-Z",	*xco+138, *yco-64,24,18, &data->trackflag, 12.0, 5.0, 0, 0, "The axis that points forward along the path");
 				uiBlockEndAlign(block);
 				
 				uiBlockBeginAlign(block);
-				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Up:", *xco+174, *yco-64, 30, 18, NULL, 0.0, 0.0, 0.0, 0.0, "");
-				
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"X",	*xco+204, *yco-64,17,18, &data->upflag, 13.0, 0.0, 0, 0, "The axis that points upward");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Y",	*xco+221, *yco-64,17,18, &data->upflag, 13.0, 1.0, 0, 0, "The axis that points upward");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Z",	*xco+238, *yco-64,17,18, &data->upflag, 13.0, 2.0, 0, 0, "The axis that points upward");
+					uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Up:", *xco+174, *yco-64, 30, 18, NULL, 0.0, 0.0, 0.0, 0.0, "");
+					
+					uiDefButI(block, ROW, B_CONSTRAINT_TEST,"X",	*xco+204, *yco-64,17,18, &data->upflag, 13.0, 0.0, 0, 0, "The axis that points upward");
+					uiDefButI(block, ROW, B_CONSTRAINT_TEST,"Y",	*xco+221, *yco-64,17,18, &data->upflag, 13.0, 1.0, 0, 0, "The axis that points upward");
+					uiDefButI(block, ROW, B_CONSTRAINT_TEST,"Z",	*xco+238, *yco-64,17,18, &data->upflag, 13.0, 2.0, 0, 0, "The axis that points upward");
 				uiBlockEndAlign(block);
 			}
 			break;
@@ -1148,46 +1112,44 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-
+				
 				/* Draw target parameters */
 				uiBlockBeginAlign(block);
-				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
-
-				if (is_armature_target) {
-					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
-					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
-				}
-				else if (is_geom_target) {
-					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
-					uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
-				}
-				else {
-					strcpy (data->subtarget, "");
-				}
-				
+					uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
+					
+					if (is_armature_target(data->tar)) {
+						but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
+						uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
+					}
+					else if (is_geom_target(data->tar)) {
+						but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
+						uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
+					}
+					else {
+						strcpy(data->subtarget, "");
+					}
 				uiBlockEndAlign(block);
-
+				
 				
 				uiBlockBeginAlign(block);
-				uiDefButF(block,BUTM,B_CONSTRAINT_TEST,"R",*xco, *yco-60,20,18,&(data->orglength),0.0,0,0,0,"Recalculate RLength");
-				uiDefButF(block,NUM,B_CONSTRAINT_TEST,"Rest Length:",*xco+18, *yco-60,237,18,&(data->orglength),0.0,100,0.5,0.5,"Length at Rest Position");
+					uiDefButF(block,BUTM,B_CONSTRAINT_TEST,"R",*xco, *yco-60,20,18,&(data->orglength),0.0,0,0,0,"Recalculate RLength");
+					uiDefButF(block,NUM,B_CONSTRAINT_TEST,"Rest Length:",*xco+18, *yco-60,237,18,&(data->orglength),0.0,100,0.5,0.5,"Length at Rest Position");
 				uiBlockEndAlign(block);
-
+				
 				uiDefButF(block,NUM,B_CONSTRAINT_TEST,"Volume Variation:",*xco+18, *yco-82,237,18,&(data->bulge),0.0,100,0.5,0.5,"Factor between volume variation and stretching");
-
-				uiBlockBeginAlign(block);
-				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Vol:",*xco+14, *yco-104,30,18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"XZ",	 *xco+44, *yco-104,30,18, &data->volmode, 12.0, 0.0, 0, 0, "Keep Volume: Scaling X & Z");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"X",	 *xco+74, *yco-104,20,18, &data->volmode, 12.0, 1.0, 0, 0, "Keep Volume: Scaling X");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Z",	 *xco+94, *yco-104,20,18, &data->volmode, 12.0, 2.0, 0, 0, "Keep Volume: Scaling Z");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"NONE", *xco+114, *yco-104,50,18, &data->volmode, 12.0, 3.0, 0, 0, "Ignore Volume");
-				uiBlockEndAlign(block);
-
 				
 				uiBlockBeginAlign(block);
-				uiDefBut(block, LABEL, B_CONSTRAINT_TEST,"Plane:",*xco+175, *yco-104,40,18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"X",	  *xco+215, *yco-104,20,18, &data->plane, 12.0, 0.0, 0, 0, "Keep X axis");
-				uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Z",	  *xco+235, *yco-104,20,18, &data->plane, 12.0, 2.0, 0, 0, "Keep Z axis");
+					uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Vol:",*xco+14, *yco-104,30,18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+					uiDefButI(block, ROW,B_CONSTRAINT_TEST,"XZ",	 *xco+44, *yco-104,30,18, &data->volmode, 12.0, 0.0, 0, 0, "Keep Volume: Scaling X & Z");
+					uiDefButI(block, ROW,B_CONSTRAINT_TEST,"X",	 *xco+74, *yco-104,20,18, &data->volmode, 12.0, 1.0, 0, 0, "Keep Volume: Scaling X");
+					uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Z",	 *xco+94, *yco-104,20,18, &data->volmode, 12.0, 2.0, 0, 0, "Keep Volume: Scaling Z");
+					uiDefButI(block, ROW,B_CONSTRAINT_TEST,"NONE", *xco+114, *yco-104,50,18, &data->volmode, 12.0, 3.0, 0, 0, "Ignore Volume");
+				uiBlockEndAlign(block);
+				
+				uiBlockBeginAlign(block);
+					uiDefBut(block, LABEL, B_CONSTRAINT_TEST,"Plane:",*xco+175, *yco-104,40,18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+					uiDefButI(block, ROW,B_CONSTRAINT_TEST,"X",	  *xco+215, *yco-104,20,18, &data->plane, 12.0, 0.0, 0, 0, "Keep X axis");
+					uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Z",	  *xco+235, *yco-104,20,18, &data->plane, 12.0, 2.0, 0, 0, "Keep Z axis");
 				uiBlockEndAlign(block);
 				}
 			break;
@@ -1203,37 +1165,37 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				
 				/* Draw Pairs of LimitToggle+LimitValue */
 				uiBlockBeginAlign(block); 
-				uiDefButBitS(block, TOG, LIMIT_XMIN, B_CONSTRAINT_TEST, "minX", *xco, *yco-28, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum x value"); 
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-28, (textButWidth-5), 18, &(data->xmin), -1000, 1000, 0.1,0.5,"Lowest x value to allow"); 
+					uiDefButBitS(block, TOG, LIMIT_XMIN, B_CONSTRAINT_TEST, "minX", *xco, *yco-28, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum x value"); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-28, (textButWidth-5), 18, &(data->xmin), -1000, 1000, 0.1,0.5,"Lowest x value to allow"); 
 				uiBlockEndAlign(block); 
 				
 				uiBlockBeginAlign(block); 
-				uiDefButBitS(block, TOG, LIMIT_XMAX, B_CONSTRAINT_TEST, "maxX", *xco+(width-(textButWidth-5)-togButWidth), *yco-28, 50, 18, &data->flag, 0, 24, 0, 0, "Use maximum x value"); 
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-28, (textButWidth-5), 18, &(data->xmax), -1000, 1000, 0.1,0.5,"Highest x value to allow"); 
+					uiDefButBitS(block, TOG, LIMIT_XMAX, B_CONSTRAINT_TEST, "maxX", *xco+(width-(textButWidth-5)-togButWidth), *yco-28, 50, 18, &data->flag, 0, 24, 0, 0, "Use maximum x value"); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-28, (textButWidth-5), 18, &(data->xmax), -1000, 1000, 0.1,0.5,"Highest x value to allow"); 
 				uiBlockEndAlign(block); 
 				
 				uiBlockBeginAlign(block); 
-				uiDefButBitS(block, TOG, LIMIT_YMIN, B_CONSTRAINT_TEST, "minY", *xco, *yco-50, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum y value"); 
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-50, (textButWidth-5), 18, &(data->ymin), -1000, 1000, 0.1,0.5,"Lowest y value to allow"); 
+					uiDefButBitS(block, TOG, LIMIT_YMIN, B_CONSTRAINT_TEST, "minY", *xco, *yco-50, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum y value"); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-50, (textButWidth-5), 18, &(data->ymin), -1000, 1000, 0.1,0.5,"Lowest y value to allow"); 
 				uiBlockEndAlign(block);
 				
 				uiBlockBeginAlign(block); 
-				uiDefButBitS(block, TOG, LIMIT_YMAX, B_CONSTRAINT_TEST, "maxY", *xco+(width-(textButWidth-5)-togButWidth), *yco-50, 50, 18, &data->flag, 0, 24, 0, 0, "Use maximum y value"); 
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-50, (textButWidth-5), 18, &(data->ymax), -1000, 1000, 0.1,0.5,"Highest y value to allow"); 
+					uiDefButBitS(block, TOG, LIMIT_YMAX, B_CONSTRAINT_TEST, "maxY", *xco+(width-(textButWidth-5)-togButWidth), *yco-50, 50, 18, &data->flag, 0, 24, 0, 0, "Use maximum y value"); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-50, (textButWidth-5), 18, &(data->ymax), -1000, 1000, 0.1,0.5,"Highest y value to allow"); 
 				uiBlockEndAlign(block); 
 				
 				uiBlockBeginAlign(block); 
-				uiDefButBitS(block, TOG, LIMIT_ZMIN, B_CONSTRAINT_TEST, "minZ", *xco, *yco-72, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum z value"); 
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-72, (textButWidth-5), 18, &(data->zmin), -1000, 1000, 0.1,0.5,"Lowest z value to allow"); 
+					uiDefButBitS(block, TOG, LIMIT_ZMIN, B_CONSTRAINT_TEST, "minZ", *xco, *yco-72, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum z value"); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-72, (textButWidth-5), 18, &(data->zmin), -1000, 1000, 0.1,0.5,"Lowest z value to allow"); 
 				uiBlockEndAlign(block);
 				
 				uiBlockBeginAlign(block); 
-				uiDefButBitS(block, TOG, LIMIT_ZMAX, B_CONSTRAINT_TEST, "maxZ", *xco+(width-(textButWidth-5)-togButWidth), *yco-72, 50, 18, &data->flag, 0, 24, 0, 0, "Use maximum z value"); 
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-72, (textButWidth-5), 18, &(data->zmax), -1000, 1000, 0.1,0.5,"Highest z value to allow"); 
+					uiDefButBitS(block, TOG, LIMIT_ZMAX, B_CONSTRAINT_TEST, "maxZ", *xco+(width-(textButWidth-5)-togButWidth), *yco-72, 50, 18, &data->flag, 0, 24, 0, 0, "Use maximum z value"); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-72, (textButWidth-5), 18, &(data->zmax), -1000, 1000, 0.1,0.5,"Highest z value to allow"); 
 				uiBlockEndAlign(block);
 				
 				/* constraint space settings */
-				draw_constraint_spaceselect(block, con, *xco, *yco-100, is_armature_owner, -1);
+				draw_constraint_spaceselect(block, con, *xco, *yco-100, is_armature_owner(ob), -1);
 			}
 			break;
 		case CONSTRAINT_TYPE_ROTLIMIT:
@@ -1247,25 +1209,25 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				
 				/* Draw Pairs of LimitToggle+LimitValue */
 				uiBlockBeginAlign(block); 
-				uiDefButBitS(block, TOG, LIMIT_XROT, B_CONSTRAINT_TEST, "LimitX", *xco, *yco-28, normButWidth, 18, &data->flag, 0, 24, 0, 0, "Limit rotation on x-axis"); 
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "min:", *xco+normButWidth, *yco-28, normButWidth, 18, &(data->xmin), -360, 360, 0.1,0.5,"Lowest x value to allow"); 
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "max:", *xco+(normButWidth * 2), *yco-28, normButWidth, 18, &(data->xmax), -360, 360, 0.1,0.5,"Highest x value to allow"); 
+					uiDefButBitS(block, TOG, LIMIT_XROT, B_CONSTRAINT_TEST, "LimitX", *xco, *yco-28, normButWidth, 18, &data->flag, 0, 24, 0, 0, "Limit rotation on x-axis"); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "min:", *xco+normButWidth, *yco-28, normButWidth, 18, &(data->xmin), -360, 360, 0.1,0.5,"Lowest x value to allow"); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "max:", *xco+(normButWidth * 2), *yco-28, normButWidth, 18, &(data->xmax), -360, 360, 0.1,0.5,"Highest x value to allow"); 
 				uiBlockEndAlign(block); 
 				
 				uiBlockBeginAlign(block); 
-				uiDefButBitS(block, TOG, LIMIT_YROT, B_CONSTRAINT_TEST, "LimitY", *xco, *yco-50, normButWidth, 18, &data->flag, 0, 24, 0, 0, "Limit rotation on y-axis"); 
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "min:", *xco+normButWidth, *yco-50, normButWidth, 18, &(data->ymin), -360, 360, 0.1,0.5,"Lowest y value to allow"); 
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "max:", *xco+(normButWidth * 2), *yco-50, normButWidth, 18, &(data->ymax), -360, 360, 0.1,0.5,"Highest y value to allow"); 
+					uiDefButBitS(block, TOG, LIMIT_YROT, B_CONSTRAINT_TEST, "LimitY", *xco, *yco-50, normButWidth, 18, &data->flag, 0, 24, 0, 0, "Limit rotation on y-axis"); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "min:", *xco+normButWidth, *yco-50, normButWidth, 18, &(data->ymin), -360, 360, 0.1,0.5,"Lowest y value to allow"); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "max:", *xco+(normButWidth * 2), *yco-50, normButWidth, 18, &(data->ymax), -360, 360, 0.1,0.5,"Highest y value to allow"); 
 				uiBlockEndAlign(block); 
 				
 				uiBlockBeginAlign(block); 
-				uiDefButBitS(block, TOG, LIMIT_ZROT, B_CONSTRAINT_TEST, "LimitZ", *xco, *yco-72, normButWidth, 18, &data->flag, 0, 24, 0, 0, "Limit rotation on z-axis"); 
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "min:", *xco+normButWidth, *yco-72, normButWidth, 18, &(data->zmin), -360, 360, 0.1,0.5,"Lowest z value to allow"); 
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "max:", *xco+(normButWidth * 2), *yco-72, normButWidth, 18, &(data->zmax), -360, 360, 0.1,0.5,"Highest z value to allow"); 
+					uiDefButBitS(block, TOG, LIMIT_ZROT, B_CONSTRAINT_TEST, "LimitZ", *xco, *yco-72, normButWidth, 18, &data->flag, 0, 24, 0, 0, "Limit rotation on z-axis"); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "min:", *xco+normButWidth, *yco-72, normButWidth, 18, &(data->zmin), -360, 360, 0.1,0.5,"Lowest z value to allow"); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "max:", *xco+(normButWidth * 2), *yco-72, normButWidth, 18, &(data->zmax), -360, 360, 0.1,0.5,"Highest z value to allow"); 
 				uiBlockEndAlign(block); 
 				
 				/* constraint space settings */
-				draw_constraint_spaceselect(block, con, *xco, *yco-100, is_armature_owner, -1);
+				draw_constraint_spaceselect(block, con, *xco, *yco-100, is_armature_owner(ob), -1);
 			}
 			break;
 		case CONSTRAINT_TYPE_SIZELIMIT:
@@ -1281,39 +1243,39 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				
 				/* Draw Pairs of LimitToggle+LimitValue */
 				uiBlockBeginAlign(block); 
-				uiDefButBitS(block, TOG, LIMIT_XMIN, B_CONSTRAINT_TEST, "minX", *xco, *yco-28, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum x value"); 
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-28, (textButWidth-5), 18, &(data->xmin), 0.0001, 1000, 0.1,0.5,"Lowest x value to allow"); 
-				uiBlockEndAlign(block); 
-
-				uiBlockBeginAlign(block); 
-				uiDefButBitS(block, TOG, LIMIT_XMAX, B_CONSTRAINT_TEST, "maxX", *xco+(width-(textButWidth-5)-togButWidth), *yco-28, 50, 18, &data->flag, 0, 24, 0, 0, "Use maximum x value"); 
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-28, (textButWidth-5), 18, &(data->xmax), 0.0001, 1000, 0.1,0.5,"Highest x value to allow"); 
-				uiBlockEndAlign(block); 
-				
-				
-				uiBlockBeginAlign(block); 
-				uiDefButBitS(block, TOG, LIMIT_YMIN, B_CONSTRAINT_TEST, "minY", *xco, *yco-50, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum y value"); 
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-50, (textButWidth-5), 18, &(data->ymin), 0.0001, 1000, 0.1,0.5,"Lowest y value to allow"); 
+					uiDefButBitS(block, TOG, LIMIT_XMIN, B_CONSTRAINT_TEST, "minX", *xco, *yco-28, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum x value"); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-28, (textButWidth-5), 18, &(data->xmin), 0.0001, 1000, 0.1,0.5,"Lowest x value to allow"); 
 				uiBlockEndAlign(block); 
 				
 				uiBlockBeginAlign(block); 
-				uiDefButBitS(block, TOG, LIMIT_YMAX, B_CONSTRAINT_TEST, "maxY", *xco+(width-(textButWidth-5)-togButWidth), *yco-50, 50, 18, &data->flag, 0, 24, 0, 0, "Use maximum y value"); 
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-50, (textButWidth-5), 18, &(data->ymax), 0.0001, 1000, 0.1,0.5,"Highest y value to allow"); 
+					uiDefButBitS(block, TOG, LIMIT_XMAX, B_CONSTRAINT_TEST, "maxX", *xco+(width-(textButWidth-5)-togButWidth), *yco-28, 50, 18, &data->flag, 0, 24, 0, 0, "Use maximum x value"); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-28, (textButWidth-5), 18, &(data->xmax), 0.0001, 1000, 0.1,0.5,"Highest x value to allow"); 
 				uiBlockEndAlign(block); 
 				
 				
 				uiBlockBeginAlign(block); 
-				uiDefButBitS(block, TOG, LIMIT_ZMIN, B_CONSTRAINT_TEST, "minZ", *xco, *yco-72, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum z value"); 
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-72, (textButWidth-5), 18, &(data->zmin), 0.0001, 1000, 0.1,0.5,"Lowest z value to allow"); 
+					uiDefButBitS(block, TOG, LIMIT_YMIN, B_CONSTRAINT_TEST, "minY", *xco, *yco-50, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum y value"); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-50, (textButWidth-5), 18, &(data->ymin), 0.0001, 1000, 0.1,0.5,"Lowest y value to allow"); 
 				uiBlockEndAlign(block); 
 				
 				uiBlockBeginAlign(block); 
-				uiDefButBitS(block, TOG, LIMIT_ZMAX, B_CONSTRAINT_TEST, "maxZ", *xco+(width-(textButWidth-5)-togButWidth), *yco-72, 50, 18, &data->flag, 0, 24, 0, 0, "Use maximum z value"); 
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-72, (textButWidth-5), 18, &(data->zmax), 0.0001, 1000, 0.1,0.5,"Highest z value to allow"); 
+					uiDefButBitS(block, TOG, LIMIT_YMAX, B_CONSTRAINT_TEST, "maxY", *xco+(width-(textButWidth-5)-togButWidth), *yco-50, 50, 18, &data->flag, 0, 24, 0, 0, "Use maximum y value"); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-50, (textButWidth-5), 18, &(data->ymax), 0.0001, 1000, 0.1,0.5,"Highest y value to allow"); 
+				uiBlockEndAlign(block); 
+				
+				
+				uiBlockBeginAlign(block); 
+					uiDefButBitS(block, TOG, LIMIT_ZMIN, B_CONSTRAINT_TEST, "minZ", *xco, *yco-72, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum z value"); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-72, (textButWidth-5), 18, &(data->zmin), 0.0001, 1000, 0.1,0.5,"Lowest z value to allow"); 
+				uiBlockEndAlign(block); 
+				
+				uiBlockBeginAlign(block); 
+					uiDefButBitS(block, TOG, LIMIT_ZMAX, B_CONSTRAINT_TEST, "maxZ", *xco+(width-(textButWidth-5)-togButWidth), *yco-72, 50, 18, &data->flag, 0, 24, 0, 0, "Use maximum z value"); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-72, (textButWidth-5), 18, &(data->zmax), 0.0001, 1000, 0.1,0.5,"Highest z value to allow"); 
 				uiBlockEndAlign(block);
 				
 				/* constraint space settings */
-				draw_constraint_spaceselect(block, con, *xco, *yco-100, is_armature_owner, -1);
+				draw_constraint_spaceselect(block, con, *xco, *yco-100, is_armature_owner(ob), -1);
 			}
 			break;
 		case CONSTRAINT_TYPE_RIGIDBODYJOINT:
@@ -1326,7 +1288,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				int togButWidth = 70;
 				int offsetY = 150;
 				int textButWidth = ((width/2)-togButWidth);
-
+				
 				uiDefButI(block, MENU, B_CONSTRAINT_TEST, "Joint Types%t|Ball%x1|Hinge%x2|Cone Twist%x4|Generic (experimental)%x12",//|Extra Force%x6",
 												*xco, *yco-25, 150, 18, &data->type, 0, 0, 0, 0, "Choose the joint type");
                 height = 140;
@@ -1336,10 +1298,10 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 					height = 200;
 				
                 uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, "");
-
+				
 				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "toObject:", *xco, *yco-50, 130, 18, &data->tar, "Child Object");
 				uiDefButBitS(block, TOG, CONSTRAINT_DRAW_PIVOT, B_CONSTRAINT_TEST, "ShowPivot", *xco+135, *yco-50, 130, 18, &data->flag, 0, 24, 0, 0, "Show pivot position and rotation"); 				
-
+				
 				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Pivot X:", *xco, *yco-75, 130, 18, &data->pivX, -1000, 1000, 100, 0.0, "Offset pivot on X");
 				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Pivot Y:", *xco, *yco-100, 130, 18, &data->pivY, -1000, 1000, 100, 0.0, "Offset pivot on Y");
 				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Pivot Z:", *xco, *yco-125, 130, 18, &data->pivZ, -1000, 1000, 100, 0.0, "Offset pivot on z");
@@ -1351,58 +1313,69 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				if (data->type==CONSTRAINT_RB_GENERIC6DOF) {
 					/* Draw Pairs of LimitToggle+LimitValue */
 					uiBlockBeginAlign(block); 
-					uiDefButBitS(block, TOG, 1, B_CONSTRAINT_TEST, "LinMinX", *xco, *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum x limit"); 
-					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-offsetY, (textButWidth-5), 18, &(data->minLimit[0]), -extremeLin, extremeLin, 0.1,0.5,"min x limit"); 
-
+						uiDefButBitS(block, TOG, 1, B_CONSTRAINT_TEST, "LinMinX", *xco, *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum x limit"); 
+						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-offsetY, (textButWidth-5), 18, &(data->minLimit[0]), -extremeLin, extremeLin, 0.1,0.5,"min x limit"); 
+					uiBlockEndAlign(block);
+					
 					uiBlockBeginAlign(block); 
-					uiDefButBitS(block, TOG, 1, B_CONSTRAINT_TEST, "LinMaxX", *xco+(width-(textButWidth-5)-togButWidth), *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use maximum x limit"); 
-					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-offsetY, (textButWidth), 18, &(data->maxLimit[0]), -extremeLin, extremeLin, 0.1,0.5,"max x limit"); 
-
+						uiDefButBitS(block, TOG, 1, B_CONSTRAINT_TEST, "LinMaxX", *xco+(width-(textButWidth-5)-togButWidth), *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use maximum x limit"); 
+						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-offsetY, (textButWidth), 18, &(data->maxLimit[0]), -extremeLin, extremeLin, 0.1,0.5,"max x limit"); 
+					uiBlockEndAlign(block);
+					
 					offsetY += 20;
 					uiBlockBeginAlign(block); 
-					uiDefButBitS(block, TOG, 2, B_CONSTRAINT_TEST, "LinMinY", *xco, *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum y limit"); 
-					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-offsetY, (textButWidth-5), 18, &(data->minLimit[1]), -extremeLin, extremeLin, 0.1,0.5,"min y limit"); 
-
+						uiDefButBitS(block, TOG, 2, B_CONSTRAINT_TEST, "LinMinY", *xco, *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum y limit"); 
+						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-offsetY, (textButWidth-5), 18, &(data->minLimit[1]), -extremeLin, extremeLin, 0.1,0.5,"min y limit"); 
+					uiBlockEndAlign(block);
+					
 					uiBlockBeginAlign(block); 
-					uiDefButBitS(block, TOG, 2, B_CONSTRAINT_TEST, "LinMaxY", *xco+(width-(textButWidth-5)-togButWidth), *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use maximum y limit"); 
-					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-offsetY, (textButWidth), 18, &(data->maxLimit[1]), -extremeLin, extremeLin, 0.1,0.5,"max y limit"); 
-
+						uiDefButBitS(block, TOG, 2, B_CONSTRAINT_TEST, "LinMaxY", *xco+(width-(textButWidth-5)-togButWidth), *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use maximum y limit"); 
+						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-offsetY, (textButWidth), 18, &(data->maxLimit[1]), -extremeLin, extremeLin, 0.1,0.5,"max y limit"); 
+					uiBlockEndAlign(block);
+					
 					offsetY += 20;
 					uiBlockBeginAlign(block); 
-					uiDefButBitS(block, TOG, 4, B_CONSTRAINT_TEST, "LinMinZ", *xco, *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum z limit"); 
-					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-offsetY, (textButWidth-5), 18, &(data->minLimit[2]), -extremeLin, extremeLin, 0.1,0.5,"min z limit"); 
-
+						uiDefButBitS(block, TOG, 4, B_CONSTRAINT_TEST, "LinMinZ", *xco, *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum z limit"); 
+						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-offsetY, (textButWidth-5), 18, &(data->minLimit[2]), -extremeLin, extremeLin, 0.1,0.5,"min z limit"); 
+					uiBlockEndAlign(block);
+					
 					uiBlockBeginAlign(block); 
-					uiDefButBitS(block, TOG, 4, B_CONSTRAINT_TEST, "LinMaxZ", *xco+(width-(textButWidth-5)-togButWidth), *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use maximum z limit"); 
-					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-offsetY, (textButWidth), 18, &(data->maxLimit[2]), -extremeLin, extremeLin, 0.1,0.5,"max z limit"); 
+						uiDefButBitS(block, TOG, 4, B_CONSTRAINT_TEST, "LinMaxZ", *xco+(width-(textButWidth-5)-togButWidth), *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use maximum z limit"); 
+						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-offsetY, (textButWidth), 18, &(data->maxLimit[2]), -extremeLin, extremeLin, 0.1,0.5,"max z limit"); 
+					uiBlockEndAlign(block);
 					offsetY += 20;
 				}
 				if ((data->type==CONSTRAINT_RB_GENERIC6DOF) || (data->type==CONSTRAINT_RB_CONETWIST)) {
 					/* Draw Pairs of LimitToggle+LimitValue */
 					uiBlockBeginAlign(block); 
-					uiDefButBitS(block, TOG, 8, B_CONSTRAINT_TEST, "AngMinX", *xco, *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum x limit"); 
-					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-offsetY, (textButWidth-5), 18, &(data->minLimit[3]), -extremeAngX, extremeAngX, 0.1,0.5,"min x limit"); 
+						uiDefButBitS(block, TOG, 8, B_CONSTRAINT_TEST, "AngMinX", *xco, *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum x limit"); 
+						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-offsetY, (textButWidth-5), 18, &(data->minLimit[3]), -extremeAngX, extremeAngX, 0.1,0.5,"min x limit"); 
+					uiBlockEndAlign(block);
 					uiBlockBeginAlign(block); 
-					uiDefButBitS(block, TOG, 8, B_CONSTRAINT_TEST, "AngMaxX", *xco+(width-(textButWidth-5)-togButWidth), *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use maximum x limit"); 
-					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-offsetY, (textButWidth), 18, &(data->maxLimit[3]), -extremeAngX, extremeAngX, 0.1,0.5,"max x limit"); 
-
+						uiDefButBitS(block, TOG, 8, B_CONSTRAINT_TEST, "AngMaxX", *xco+(width-(textButWidth-5)-togButWidth), *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use maximum x limit"); 
+						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-offsetY, (textButWidth), 18, &(data->maxLimit[3]), -extremeAngX, extremeAngX, 0.1,0.5,"max x limit"); 
+					uiBlockEndAlign(block);
+					
 					offsetY += 20;
 					uiBlockBeginAlign(block); 
-					uiDefButBitS(block, TOG, 16, B_CONSTRAINT_TEST, "AngMinY", *xco, *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum y limit"); 
-					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-offsetY, (textButWidth-5), 18, &(data->minLimit[4]), -extremeAngY, extremeAngY, 0.1,0.5,"min y limit"); 
-
+						uiDefButBitS(block, TOG, 16, B_CONSTRAINT_TEST, "AngMinY", *xco, *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum y limit"); 
+						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-offsetY, (textButWidth-5), 18, &(data->minLimit[4]), -extremeAngY, extremeAngY, 0.1,0.5,"min y limit"); 
+					uiBlockEndAlign(block);
+					
 					uiBlockBeginAlign(block); 
-					uiDefButBitS(block, TOG, 16, B_CONSTRAINT_TEST, "AngMaxY", *xco+(width-(textButWidth-5)-togButWidth), *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use maximum y limit"); 
-					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-offsetY, (textButWidth), 18, &(data->maxLimit[4]), -extremeAngY, extremeAngY, 0.1,0.5,"max y limit"); 
-
+						uiDefButBitS(block, TOG, 16, B_CONSTRAINT_TEST, "AngMaxY", *xco+(width-(textButWidth-5)-togButWidth), *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use maximum y limit"); 
+						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-offsetY, (textButWidth), 18, &(data->maxLimit[4]), -extremeAngY, extremeAngY, 0.1,0.5,"max y limit"); 
+					uiBlockEndAlign(block);
+					
 					offsetY += 20;
 					uiBlockBeginAlign(block); 
-					uiDefButBitS(block, TOG, 32, B_CONSTRAINT_TEST, "AngMinZ", *xco, *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum z limit"); 
-					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-offsetY, (textButWidth-5), 18, &(data->minLimit[5]), -extremeAngZ, extremeAngZ, 0.1,0.5,"min z limit"); 
-
+						uiDefButBitS(block, TOG, 32, B_CONSTRAINT_TEST, "AngMinZ", *xco, *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use minimum z limit"); 
+						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+togButWidth, *yco-offsetY, (textButWidth-5), 18, &(data->minLimit[5]), -extremeAngZ, extremeAngZ, 0.1,0.5,"min z limit"); 
+					uiBlockEndAlign(block);
+					
 					uiBlockBeginAlign(block); 
-					uiDefButBitS(block, TOG, 32, B_CONSTRAINT_TEST, "AngMaxZ", *xco+(width-(textButWidth-5)-togButWidth), *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use maximum z limit"); 
-					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-offsetY, (textButWidth), 18, &(data->maxLimit[5]), -extremeAngZ, extremeAngZ, 0.1,0.5,"max z limit"); 
+						uiDefButBitS(block, TOG, 32, B_CONSTRAINT_TEST, "AngMaxZ", *xco+(width-(textButWidth-5)-togButWidth), *yco-offsetY, togButWidth, 18, &data->flag, 0, 24, 0, 0, "Use maximum z limit"); 
+						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-offsetY, (textButWidth), 18, &(data->maxLimit[5]), -extremeAngZ, extremeAngZ, 0.1,0.5,"max z limit"); 
 					uiBlockEndAlign(block);
 				}
 			}
@@ -1421,17 +1394,17 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				
 				/* Draw XYZ toggles */
 				uiBlockBeginAlign(block);
-				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Main Axis:", *xco, *yco-64, 90, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-				uiDefButI(block, ROW, B_CONSTRAINT_TEST, "Auto", *xco+100, *yco-64, 50, 18, &data->flag, 12.0, CLAMPTO_AUTO, 0, 0, "Automatically determine main-axis of movement");
-				uiDefButI(block, ROW, B_CONSTRAINT_TEST, "X", *xco+150, *yco-64, 32, 18, &data->flag, 12.0, CLAMPTO_X, 0, 0, "Main axis of movement is x-axis");
-				uiDefButI(block, ROW, B_CONSTRAINT_TEST, "Y", *xco+182, *yco-64, 32, 18, &data->flag, 12.0, CLAMPTO_Y, 0, 0, "Main axis of movement is y-axis");
-				uiDefButI(block, ROW, B_CONSTRAINT_TEST, "Z", *xco+214, *yco-64, 32, 18, &data->flag, 12.0, CLAMPTO_Z, 0, 0, "Main axis of movement is z-axis");
+					uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Main Axis:", *xco, *yco-64, 90, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+					uiDefButI(block, ROW, B_CONSTRAINT_TEST, "Auto", *xco+100, *yco-64, 50, 18, &data->flag, 12.0, CLAMPTO_AUTO, 0, 0, "Automatically determine main-axis of movement");
+					uiDefButI(block, ROW, B_CONSTRAINT_TEST, "X", *xco+150, *yco-64, 32, 18, &data->flag, 12.0, CLAMPTO_X, 0, 0, "Main axis of movement is x-axis");
+					uiDefButI(block, ROW, B_CONSTRAINT_TEST, "Y", *xco+182, *yco-64, 32, 18, &data->flag, 12.0, CLAMPTO_Y, 0, 0, "Main axis of movement is y-axis");
+					uiDefButI(block, ROW, B_CONSTRAINT_TEST, "Z", *xco+214, *yco-64, 32, 18, &data->flag, 12.0, CLAMPTO_Z, 0, 0, "Main axis of movement is z-axis");
 				uiBlockEndAlign(block);
 				
 				/* Extra Options Controlling Behaviour */
 				uiBlockBeginAlign(block);
-				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Options:", *xco, *yco-86, 90, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-				uiDefButBitI(block, TOG, CLAMPTO_CYCLIC, B_CONSTRAINT_TEST, "Cyclic", *xco+((width/2)), *yco-86,60,19, &data->flag2, 0, 0, 0, 0, "Treat curve as cyclic curve (no clamping to curve bounding box)");
+					uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Options:", *xco, *yco-86, 90, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+					uiDefButBitI(block, TOG, CLAMPTO_CYCLIC, B_CONSTRAINT_TEST, "Cyclic", *xco+((width/2)), *yco-86,60,19, &data->flag2, 0, 0, 0, 0, "Treat curve as cyclic curve (no clamping to curve bounding box)");
 				uiBlockEndAlign(block);
 			}
 			break;
@@ -1448,20 +1421,19 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				
 				/* Draw target parameters */
 				uiBlockBeginAlign(block);
-				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object to use as Parent"); 
-				
-				if (is_armature_target) {
-					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone to use as Parent");
-					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
-				}
-				else if (is_geom_target) {
-					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-66,150,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
-					uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
-				}
-				else {
-					strcpy(data->subtarget, "");
-				}
-				
+					uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object to use as Parent"); 
+					
+					if (is_armature_target(data->tar)) {
+						but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone to use as Parent");
+						uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
+					}
+					else if (is_geom_target(data->tar)) {
+						but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-66,150,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
+						uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
+					}
+					else {
+						strcpy(data->subtarget, "");
+					}
 				uiBlockEndAlign(block);
 				
 				/* Extrapolate Ranges? */
@@ -1472,9 +1444,9 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				
 				/* 	draw Loc/Rot/Size toggles 	*/
 				uiBlockBeginAlign(block);
-				uiDefButS(block, ROW, B_CONSTRAINT_TEST, "Loc", *xco-5, *yco-82, 45, 18, &data->from, 12.0, 0, 0, 0, "Use Location transform channels from Target");
-				uiDefButS(block, ROW, B_CONSTRAINT_TEST, "Rot", *xco+40, *yco-82, 45, 18, &data->from, 12.0, 1, 0, 0, "Use Rotation transform channels from Target");
-				uiDefButS(block, ROW, B_CONSTRAINT_TEST, "Scale", *xco+85, *yco-82, 45, 18, &data->from, 12.0, 2, 0, 0, "Use Scale transform channels from Target");
+					uiDefButS(block, ROW, B_CONSTRAINT_TEST, "Loc", *xco-5, *yco-82, 45, 18, &data->from, 12.0, 0, 0, 0, "Use Location transform channels from Target");
+					uiDefButS(block, ROW, B_CONSTRAINT_TEST, "Rot", *xco+40, *yco-82, 45, 18, &data->from, 12.0, 1, 0, 0, "Use Rotation transform channels from Target");
+					uiDefButS(block, ROW, B_CONSTRAINT_TEST, "Scale", *xco+85, *yco-82, 45, 18, &data->from, 12.0, 2, 0, 0, "Use Scale transform channels from Target");
 				uiBlockEndAlign(block);
 				
 				/* Draw Pairs of Axis: Min/Max Value*/
@@ -1492,21 +1464,21 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				}
 				
 				uiBlockBeginAlign(block); 
-				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "X:", *xco-10, *yco-107, 30, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "min", *xco+20, *yco-107, 55, 18, &data->from_min[0], fmin, fmax, 0, 0, "Bottom of range of x-axis source motion for source->target mapping"); 
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "max", *xco+75, *yco-107, 55, 18, &data->from_max[0], fmin, fmax, 0, 0, "Top of range of x-axis source motion for source->target mapping"); 
+					uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "X:", *xco-10, *yco-107, 30, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "min", *xco+20, *yco-107, 55, 18, &data->from_min[0], fmin, fmax, 0, 0, "Bottom of range of x-axis source motion for source->target mapping"); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "max", *xco+75, *yco-107, 55, 18, &data->from_max[0], fmin, fmax, 0, 0, "Top of range of x-axis source motion for source->target mapping"); 
 				uiBlockEndAlign(block); 
 				
 				uiBlockBeginAlign(block); 
-				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Y:", *xco-10, *yco-127, 30, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "min", *xco+20, *yco-127, 55, 18, &data->from_min[1], fmin, fmax, 0, 0, "Bottom of range of y-axis source motion for source->target mapping"); 
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "max", *xco+75, *yco-127, 55, 18, &data->from_max[1], fmin, fmax, 0, 0, "Top of range of y-axis source motion for source->target mapping"); 
+					uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Y:", *xco-10, *yco-127, 30, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "min", *xco+20, *yco-127, 55, 18, &data->from_min[1], fmin, fmax, 0, 0, "Bottom of range of y-axis source motion for source->target mapping"); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "max", *xco+75, *yco-127, 55, 18, &data->from_max[1], fmin, fmax, 0, 0, "Top of range of y-axis source motion for source->target mapping"); 
 				uiBlockEndAlign(block);
 				
 				uiBlockBeginAlign(block); 
-				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Z:", *xco-10, *yco-147, 30, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "min", *xco+20, *yco-147, 55, 18, &data->from_min[2], fmin, fmax, 0, 0, "Bottom of range of z-axis source motion for source->target mapping"); 
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "max", *xco+75, *yco-147, 55, 18, &data->from_max[2], fmin, fmax, 0, 0, "Top of range of z-axis source motion for source->target mapping"); 
+					uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Z:", *xco-10, *yco-147, 30, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "min", *xco+20, *yco-147, 55, 18, &data->from_min[2], fmin, fmax, 0, 0, "Bottom of range of z-axis source motion for source->target mapping"); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "max", *xco+75, *yco-147, 55, 18, &data->from_max[2], fmin, fmax, 0, 0, "Top of range of z-axis source motion for source->target mapping"); 
 				uiBlockEndAlign(block); 
 				
 				
@@ -1515,9 +1487,9 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				
 				/* 	draw Loc/Rot/Size toggles 	*/
 				uiBlockBeginAlign(block);
-				uiDefButS(block, ROW, B_CONSTRAINT_TEST, "Loc", *xco+150, *yco-82, 45, 18, &data->to, 12.0, 0, 0, 0, "Use as Location transform");
-				uiDefButS(block, ROW, B_CONSTRAINT_TEST, "Rot", *xco+195, *yco-82, 45, 18, &data->to, 12.0, 1, 0, 0, "Use as Rotation transform");
-				uiDefButS(block, ROW, B_CONSTRAINT_TEST, "Scale", *xco+245, *yco-82, 45, 18, &data->to, 12.0, 2, 0, 0, "Use as Scale transform");
+					uiDefButS(block, ROW, B_CONSTRAINT_TEST, "Loc", *xco+150, *yco-82, 45, 18, &data->to, 12.0, 0, 0, 0, "Use as Location transform");
+					uiDefButS(block, ROW, B_CONSTRAINT_TEST, "Rot", *xco+195, *yco-82, 45, 18, &data->to, 12.0, 1, 0, 0, "Use as Rotation transform");
+					uiDefButS(block, ROW, B_CONSTRAINT_TEST, "Scale", *xco+245, *yco-82, 45, 18, &data->to, 12.0, 2, 0, 0, "Use as Scale transform");
 				uiBlockEndAlign(block);
 				
 				/* Draw Pairs of Source-Axis: Min/Max Value*/
@@ -1535,25 +1507,25 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				}
 				
 				uiBlockBeginAlign(block); 
-				uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Axis Mapping%t|X->X%x0|Y->X%x1|Z->X%x2", *xco+150, *yco-107, 40, 18, &data->map[0], 0, 24, 0, 0, "Specify which source axis the x-axis destination uses");
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "min", *xco+175, *yco-107, 50, 18, &data->to_min[0], tmin, tmax, 0, 0, "Bottom of range of x-axis destination motion for source->target mapping"); 
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "max", *xco+240, *yco-107, 50, 18, &data->to_max[0], tmin, tmax, 0, 0, "Top of range of x-axis destination motion for source->target mapping"); 
+					uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Axis Mapping%t|X->X%x0|Y->X%x1|Z->X%x2", *xco+150, *yco-107, 40, 18, &data->map[0], 0, 24, 0, 0, "Specify which source axis the x-axis destination uses");
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "min", *xco+175, *yco-107, 50, 18, &data->to_min[0], tmin, tmax, 0, 0, "Bottom of range of x-axis destination motion for source->target mapping"); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "max", *xco+240, *yco-107, 50, 18, &data->to_max[0], tmin, tmax, 0, 0, "Top of range of x-axis destination motion for source->target mapping"); 
 				uiBlockEndAlign(block); 
 				
 				uiBlockBeginAlign(block); 
-				uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Axis Mapping%t|X->Y%x0|Y->Y%x1|Z->Y%x2", *xco+150, *yco-127, 40, 18, &data->map[1], 0, 24, 0, 0, "Specify which source axis the y-axis destination uses");
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "min", *xco+175, *yco-127, 50, 18, &data->to_min[1], tmin, tmax, 0, 0, "Bottom of range of y-axis destination motion for source->target mapping"); 
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "max", *xco+240, *yco-127, 50, 18, &data->to_max[1], tmin, tmax, 0, 0, "Top of range of y-axis destination motion for source->target mapping"); 
+					uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Axis Mapping%t|X->Y%x0|Y->Y%x1|Z->Y%x2", *xco+150, *yco-127, 40, 18, &data->map[1], 0, 24, 0, 0, "Specify which source axis the y-axis destination uses");
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "min", *xco+175, *yco-127, 50, 18, &data->to_min[1], tmin, tmax, 0, 0, "Bottom of range of y-axis destination motion for source->target mapping"); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "max", *xco+240, *yco-127, 50, 18, &data->to_max[1], tmin, tmax, 0, 0, "Top of range of y-axis destination motion for source->target mapping"); 
 				uiBlockEndAlign(block);
 				
 				uiBlockBeginAlign(block); 
-				uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Axis Mapping%t|X->Z%x0|Y->Z%x1|Z->Z%x2", *xco+150, *yco-147, 40, 18, &data->map[2], 0, 24, 0, 0, "Specify which source axis the z-axis destination uses");
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "min", *xco+175, *yco-147, 50, 18, &data->to_min[2], tmin, tmax, 0, 0, "Bottom of range of z-axis destination motion for source->target mapping"); 
-				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "max", *xco+240, *yco-147, 50, 18, &data->to_max[2], tmin, tmax, 0, 0, "Top of range of z-axis destination motion for source->target mapping"); 
+					uiDefButC(block, MENU, B_CONSTRAINT_TEST, "Axis Mapping%t|X->Z%x0|Y->Z%x1|Z->Z%x2", *xco+150, *yco-147, 40, 18, &data->map[2], 0, 24, 0, 0, "Specify which source axis the z-axis destination uses");
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "min", *xco+175, *yco-147, 50, 18, &data->to_min[2], tmin, tmax, 0, 0, "Bottom of range of z-axis destination motion for source->target mapping"); 
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "max", *xco+240, *yco-147, 50, 18, &data->to_max[2], tmin, tmax, 0, 0, "Top of range of z-axis destination motion for source->target mapping"); 
 				uiBlockEndAlign(block); 
 				
 				/* constraint space settings */
-				draw_constraint_spaceselect(block, con, *xco, *yco-170, is_armature_owner, is_armature_target);
+				draw_constraint_spaceselect(block, con, *xco, *yco-170, is_armature_owner(ob), is_armature_target(data->tar));
 			}
 			break;
 		case CONSTRAINT_TYPE_NULL:
@@ -1566,11 +1538,11 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 			height = 0;
 			break;
 		}
-
+		
 		(*yco)-=(24+height);
 	}
 
-	if ((con->type != CONSTRAINT_TYPE_NULL) && (con->type!=CONSTRAINT_TYPE_RIGIDBODYJOINT)) {
+	if (ELEM(con->type, CONSTRAINT_TYPE_NULL, CONSTRAINT_TYPE_RIGIDBODYJOINT)==0) {
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUMSLI, B_CONSTRAINT_INF, "Influence ", *xco, *yco, 197, 20, &(con->enforce), 0.0, 1.0, 0.0, 0.0, "Amount of influence this constraint will have on the final solution");
 		but = uiDefBut(block, BUT, B_CONSTRAINT_TEST, "Show", *xco+200, *yco, 45, 20, 0, 0.0, 1.0, 0.0, 0.0, "Show constraint's ipo in the Ipo window, adds a channel if not there");
@@ -1627,13 +1599,13 @@ static uiBlock *add_constraintmenu(void *arg_unused)
 
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_RIGIDBODYJOINT, "Rigid Body Joint", 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");//rcruiz
 
+	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
 	if (ob->flag & OB_POSEMODE) {
-		uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
-		
 		uiDefBut(block, BUTM, B_CONSTRAINT_ADD_KINEMATIC, "IK Solver", 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
-		uiDefBut(block, BUTM, B_CONSTRAINT_ADD_ACTION, "Action", 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
-		
 	}
+	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_ACTION, "Action", 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+	
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_PYTHON, "Script", 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");

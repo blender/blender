@@ -359,6 +359,7 @@ static PyObject *Vector_slice(VectorObject * self, int begin, int end)
 	int count;
 
 	CLAMP(begin, 0, self->size);
+	if (end<0) end= self->size+end+1;
 	CLAMP(end, 0, self->size);
 	begin = MIN2(begin,end);
 
@@ -380,6 +381,7 @@ static int Vector_ass_slice(VectorObject * self, int begin, int end,
 	PyObject *v;
 
 	CLAMP(begin, 0, self->size);
+	if (end<0) end= self->size+end+1;
 	CLAMP(end, 0, self->size);
 	begin = MIN2(begin,end);
 

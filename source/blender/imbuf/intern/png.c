@@ -236,6 +236,7 @@ short imb_savepng(struct ImBuf *ibuf, char *name, int flags)
 		iptr = ibuf->img_info;
 		num_text = 0;
 		while (iptr) {
+			
 			imginfo[num_text].compression = PNG_TEXT_COMPRESSION_NONE;
 			imginfo[num_text].key = iptr->key;
 			imginfo[num_text].text = iptr->value;

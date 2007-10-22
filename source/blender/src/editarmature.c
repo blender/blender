@@ -451,16 +451,28 @@ static void joined_armature_fix_links(Object *tarArm, Object *srcArm, bPoseChann
 			pose= ob->pose;
 			for (pchant= pose->chanbase.first; pchant; pchant= pchant->next) {
 				for (con= pchant->constraints.first; con; con= con->next) {
-					Object *conOb;
-					char *subtarget;
+					bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+					ListBase targets = {NULL, NULL};
+					bConstraintTarget *ct;
 					
 					/* constraint targets */
-					conOb= get_constraint_target(con, &subtarget);
-					if (conOb == srcArm) {
-						if (strcmp(subtarget, "")==0)
-							set_constraint_target(con, tarArm, "");
-						else if (strcmp(pchan->name, subtarget)==0)
-							set_constraint_target(con, tarArm, curbone->name);
+					if (cti && cti->get_constraint_targets) {
+						cti->get_constraint_targets(con, &targets);
+						
+						for (ct= targets.first; ct; ct= ct->next) {
+							if (ct->tar == srcArm) {
+								if (strcmp(ct->subtarget, "")==0) {
+									ct->tar = tarArm;
+								}
+								else if (strcmp(ct->subtarget, pchan->name)==0) {
+									ct->tar = tarArm;
+									strcpy(ct->subtarget, curbone->name);
+								}
+							}
+						}
+						
+						if (cti->flush_constraint_targets)
+							cti->flush_constraint_targets(con, &targets, 0);
 					}
 					
 					/* action constraint? */
@@ -486,15 +498,28 @@ static void joined_armature_fix_links(Object *tarArm, Object *srcArm, bPoseChann
 		/* fix object-level constraints */
 		if (ob != srcArm) {
 			for (con= ob->constraints.first; con; con= con->next) {
-				Object *conOb;
-				char *subtarget;
+				bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+				ListBase targets = {NULL, NULL};
+				bConstraintTarget *ct;
 				
-				conOb= get_constraint_target(con, &subtarget);
-				if (conOb == srcArm) {
-					if (strcmp(subtarget, "")==0)
-						set_constraint_target(con, tarArm, "");
-					else if (strcmp(pchan->name, subtarget)==0)
-						set_constraint_target(con, tarArm, curbone->name);
+				/* constraint targets */
+				if (cti && cti->get_constraint_targets) {
+					cti->get_constraint_targets(con, &targets);
+					
+					for (ct= targets.first; ct; ct= ct->next) {
+						if (ct->tar == srcArm) {
+							if (strcmp(ct->subtarget, "")==0) {
+								ct->tar = tarArm;
+							}
+							else if (strcmp(ct->subtarget, pchan->name)==0) {
+								ct->tar = tarArm;
+								strcpy(ct->subtarget, curbone->name);
+							}
+						}
+					}
+					
+					if (cti->flush_constraint_targets)
+						cti->flush_constraint_targets(con, &targets, 0);
 				}
 			}
 		}
@@ -1049,10 +1074,10 @@ void delete_armature(void)
 	bConstraint *con;
 	
 	TEST_EDITARMATURE;
-	if(okee("Erase selected bone(s)")==0) return;
+	if (okee("Erase selected bone(s)")==0) return;
 	
 	/*  First erase any associated pose channel */
-	if (G.obedit->pose){
+	if (G.obedit->pose) {
 		bPoseChannel *chan, *next;
 		for (chan=G.obedit->pose->chanbase.first; chan; chan=next) {
 			next= chan->next;
@@ -1063,14 +1088,28 @@ void delete_armature(void)
 				BLI_freelinkN (&G.obedit->pose->chanbase, chan);
 			}
 			else {
-				for(con= chan->constraints.first; con; con= con->next) {
-					char *subtarget = get_con_subtarget_name(con, G.obedit);
-					if (subtarget) {
-						curBone = editbone_name_exists (&G.edbo, subtarget);
-						if (curBone && (curBone->flag & BONE_SELECTED) && (arm->layer & curBone->layer)) {
-							con->flag |= CONSTRAINT_DISABLE;
-							subtarget[0]= 0;
+				for (con= chan->constraints.first; con; con= con->next) {
+					bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+					ListBase targets = {NULL, NULL};
+					bConstraintTarget *ct;
+					
+					if (cti && cti->get_constraint_targets) {
+						cti->get_constraint_targets(con, &targets);
+						
+						for (ct= targets.first; ct; ct= ct->next) {
+							if (ct->tar == G.obedit) {
+								if (ct->subtarget[0]) {
+									curBone = editbone_name_exists(&G.edbo, ct->subtarget);
+									if (curBone && (curBone->flag & BONE_SELECTED) && (arm->layer & curBone->layer)) {
+										con->flag |= CONSTRAINT_DISABLE;
+										ct->subtarget[0]= 0;
+									}
+								}
+							}
 						}
+						
+						if (cti->flush_constraint_targets)
+							cti->flush_constraint_targets(con, &targets, 0);
 					}
 				}
 			}
@@ -1078,9 +1117,9 @@ void delete_armature(void)
 	}
 	
 	
-	for (curBone=G.edbo.first;curBone;curBone=next){
+	for (curBone=G.edbo.first;curBone;curBone=next) {
 		next=curBone->next;
-		if(arm->layer & curBone->layer)
+		if (arm->layer & curBone->layer)
 			if (curBone->flag & BONE_SELECTED)
 				delete_bone(curBone);
 	}
@@ -1612,28 +1651,43 @@ static void update_dup_subtarget(EditBone *dupBone)
 	bPoseChannel *chan;
 	bConstraint  *curcon;
 	ListBase     *conlist;
-	char         *subname;
 
 
-	if ( (chan = verify_pose_channel(OBACT->pose, dupBone->name)) )
-		if ( (conlist = &chan->constraints) )
+	if ( (chan = verify_pose_channel(OBACT->pose, dupBone->name)) ) {
+		if ( (conlist = &chan->constraints) ) {
 			for (curcon = conlist->first; curcon; curcon=curcon->next) {
 				/* does this constraint have a subtarget in
 				 * this armature?
 				 */
-				subname = get_con_subtarget_name(curcon, G.obedit);
-				oldtarget = get_named_editbone(subname);
-				if (oldtarget)
-					/* was the subtarget bone duplicated too? If
-					 * so, update the constraint to point at the 
-					 * duplicate of the old subtarget.
-					 */
-					if (oldtarget->flag & BONE_SELECTED){
-						newtarget = (EditBone*) oldtarget->temp;
-						strcpy(subname, newtarget->name);
+				bConstraintTypeInfo *cti= constraint_get_typeinfo(curcon);
+				ListBase targets = {NULL, NULL};
+				bConstraintTarget *ct;
+				
+				if (cti && cti->get_constraint_targets) {
+					cti->get_constraint_targets(curcon, &targets);
+					
+					for (ct= targets.first; ct; ct= ct->next) {
+						if ((ct->tar == G.obedit) && (ct->subtarget[0])) {
+							oldtarget = get_named_editbone(ct->subtarget);
+							if (oldtarget) {
+								/* was the subtarget bone duplicated too? If
+								 * so, update the constraint to point at the 
+								 * duplicate of the old subtarget.
+								 */
+								if (oldtarget->flag & BONE_SELECTED){
+									newtarget = (EditBone *) oldtarget->temp;
+									strcpy(ct->subtarget, newtarget->name);
+								}
+							}
+						}
 					}
+					
+					if (cti->flush_constraint_targets)
+						cti->flush_constraint_targets(curcon, &targets, 0);
+				}
 			}
-	
+		}
+	}
 }
 
 
@@ -2864,13 +2918,25 @@ void unique_bone_name (bArmature *arm, char *name)
 static void constraint_bone_name_fix(Object *ob, ListBase *conlist, char *oldname, char *newname)
 {
 	bConstraint *curcon;
-	char *subtarget;
+	bConstraintTarget *ct;
 	
-	for (curcon = conlist->first; curcon; curcon=curcon->next){
-		subtarget = get_con_subtarget_name(curcon, ob);
-		if (subtarget)
-			if (!strcmp(subtarget, oldname) )
-				BLI_strncpy(subtarget, newname, MAXBONENAME);
+	for (curcon = conlist->first; curcon; curcon=curcon->next) {
+		bConstraintTypeInfo *cti= constraint_get_typeinfo(curcon);
+		ListBase targets = {NULL, NULL};
+		
+		if (cti && cti->get_constraint_targets) {
+			cti->get_constraint_targets(curcon, &targets);
+			
+			for (ct= targets.first; ct; ct= ct->next) {
+				if (ct->tar == ob) {
+					if (!strcmp(ct->subtarget, oldname) )
+						BLI_strncpy(ct->subtarget, newname, MAXBONENAME);
+				}
+			}
+			
+			if (cti->flush_constraint_targets)
+				cti->flush_constraint_targets(curcon, &targets, 0);
+		}	
 	}
 }
 

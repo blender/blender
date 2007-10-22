@@ -55,6 +55,7 @@ void add_marker_to_cfra_elem(struct ListBase *lb, struct TimeMarker *marker, sho
 void make_marker_cfra_list(struct ListBase *lb, short only_sel);
 
 void draw_markers_timespace(int lines);
+TimeMarker *get_frame_marker(int frame);
 
 /* ******** Animation - Preview Range ************* */
 void anim_previewrange_set(void);

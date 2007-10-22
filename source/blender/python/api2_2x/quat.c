@@ -350,6 +350,7 @@ static PyObject *Quaternion_slice(QuaternionObject * self, int begin, int end)
 	int count;
 
 	CLAMP(begin, 0, 4);
+	if (end<0) end= 5+end;
 	CLAMP(end, 0, 4);
 	begin = MIN2(begin,end);
 
@@ -371,6 +372,7 @@ static int Quaternion_ass_slice(QuaternionObject * self, int begin, int end,
 	PyObject *q, *f;
 
 	CLAMP(begin, 0, 4);
+	if (end<0) end= 5+end;
 	CLAMP(end, 0, 4);
 	begin = MIN2(begin,end);
 

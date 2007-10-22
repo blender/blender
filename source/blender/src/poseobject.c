@@ -329,23 +329,30 @@ void pose_select_constraint_target(void)
 	bConstraint *con;
 	
 	/* paranoia checks */
-	if(!ob && !ob->pose) return;
-	if(ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
+	if (!ob && !ob->pose) return;
+	if (ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
 	
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if(arm->layer & pchan->bone->layer) {
-			if(pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) {
-				
-				for(con= pchan->constraints.first; con; con= con->next) {
-					char *subtarget;
-					Object *target= get_constraint_target(con, &subtarget);
+		if (arm->layer & pchan->bone->layer) {
+			if (pchan->bone->flag & (BONE_ACTIVE|BONE_SELECTED)) {
+				for (con= pchan->constraints.first; con; con= con->next) {
+					bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
+					ListBase targets = {NULL, NULL};
+					bConstraintTarget *ct;
 					
-					if(ob==target) {
-						if(subtarget) {
-							bPoseChannel *pchanc= get_pose_channel(ob->pose, subtarget);
-							if(pchanc)
-								pchanc->bone->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
+					if (cti && cti->get_constraint_targets) {
+						cti->get_constraint_targets(con, &targets);
+						
+						for (ct= targets.first; ct; ct= ct->next) {
+							if ((ct->tar == ob) && (ct->subtarget[0])) {
+								bPoseChannel *pchanc= get_pose_channel(ob->pose, ct->subtarget);
+								if(pchanc)
+									pchanc->bone->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
+							}
 						}
+						
+						if (cti->flush_constraint_targets)
+							cti->flush_constraint_targets(con, &targets, 1);
 					}
 				}
 			}

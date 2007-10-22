@@ -612,6 +612,7 @@ void do_render_panels(unsigned short event)
 		G.scene->r.yasp= 51;
 		G.scene->r.size= 100;
 		G.scene->r.frs_sec= 25;
+		G.scene->r.frs_sec_base= 1;
 		G.scene->r.mode &= ~R_PANORAMA;
 		G.scene->r.xparts=  G.scene->r.yparts= 4;
 #ifdef WITH_FFMPEG
@@ -718,6 +719,7 @@ void do_render_panels(unsigned short event)
 		G.scene->r.yasp= 45;
 		G.scene->r.size= 100;
 		G.scene->r.frs_sec= 25;
+		G.scene->r.frs_sec_base= 1;
 		G.scene->r.mode &= ~R_PANORAMA;
 		G.scene->r.xparts=  G.scene->r.yparts= 4;
 #ifdef WITH_FFMPEG
@@ -780,6 +782,7 @@ void do_render_panels(unsigned short event)
 		G.scene->r.yasp= 11;
 		G.scene->r.size= 100;
 		G.scene->r.frs_sec= 30;
+		G.scene->r.frs_sec_base = 1.001;
 		G.scene->r.mode &= ~R_PANORAMA;
 		G.scene->r.xparts=  G.scene->r.yparts= 2;
 #ifdef WITH_FFMPEG
@@ -1526,6 +1529,67 @@ static void render_panel_ffmpeg_audio(void)
 }
 #endif
 
+static void render_panel_stamp(void)
+{
+	uiBlock *block;
+	int yofs=0, xofs=550;
+
+	block= uiNewBlock (&curarea->uiblocks, "render_panel_stamp", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed ("Format", "Render");
+	if(uiNewPanel (curarea, block, "Stamp", "Render", 960, 0, 318, 204)==0) return;
+
+	if (G.scene->r.scemode & R_STAMP_INFO) {
+		uiBlockBeginAlign(block);
+		uiDefButBitI(block, TOG, R_STAMP_NOTE, B_REDR, "Note", xofs, yofs, 100, 19, &G.scene->r.stamp, 0, 0, 0, 0, "Stamp user data");
+		uiDefBut(block, TEX, B_NOP, "", xofs+100, yofs, 200, 19, &G.scene->r.stamp_udata, 0.0, 128.0, 100, 0, "User Note");
+		uiBlockEndAlign(block);
+		yofs += 30; /* gap */
+		
+		
+		yofs += 100;
+		// Order is important for alligning ... grr
+		uiBlockBeginAlign(block);
+		uiDefButBitI(block, TOG, R_STAMP_SCENE, B_REDR, "Scene", xofs, yofs, 100, 19, &G.scene->r.stamp, 0, 0, 0, 0, "Stamp scene name");
+		yofs -= 20;
+		uiDefButBitI(block, TOG, R_STAMP_CAMERA, B_REDR, "Camera", xofs, yofs, 100, 19, &G.scene->r.stamp, 0, 0, 0, 0, "Stamp camera name");
+		yofs -= 20;
+		uiDefButBitI(block, TOG, R_STAMP_DATE, B_REDR, "Date", xofs, yofs, 100, 19, &G.scene->r.stamp, 0, 0, 0, 0, "Stamp date");
+		yofs -= 20;
+		uiDefButBitI(block, TOG, R_STAMP_TIME, B_REDR, "Time", xofs, yofs, 100, 19, &G.scene->r.stamp, 0, 0, 0, 0, "Stamp time (HH:MM:SS)");
+		yofs -= 20;
+		uiDefButBitI(block, TOG, R_STAMP_FRAME, B_REDR, "Frame", xofs, yofs, 100, 19, &G.scene->r.stamp, 0, 0, 0, 0, "Stamp frame number");
+		yofs -= 20;
+		uiDefButBitI(block, TOG, R_STAMP_MARKER, B_REDR, "Marker", xofs, yofs, 100, 19, &G.scene->r.stamp, 0, 0, 0, 0, "Stamp the last marker");
+		uiBlockEndAlign(block);
+		yofs += 100;
+		
+		/* draw font selector */
+		if (G.scene->r.stamp & R_STAMP_DRAW) {
+			uiDefButS(block, MENU, B_REDR, "Stamp Font Size%t|Tiny Text%x1|Small Text%x2|Medium Text%x3|Large Text%x0|Extra Large Text%x4|",
+					xofs+110, yofs, 190, 19, &G.scene->r.stamp_font_id, 0, 0, 0, 0, "Choose stamp text size");
+			
+			/* draw fg/bg next to the scene */
+			yofs -= 25;
+			uiDefBut(block, LABEL, 0, "Text Color", xofs+110, yofs, 80, 19, 0, 0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, 0, "Background", xofs+205, yofs, 80, 19, 0, 0, 0, 0, 0, "");
+			yofs -= 20;
+			uiDefButF(block, COL, B_NOP, "", xofs+110, yofs, 90, 19, G.scene->r.fg_stamp, 0, 0, 0, 0, "Foreground text color");
+			uiDefButF(block, COL, B_NOP, "", xofs+210, yofs, 90, 19, G.scene->r.bg_stamp, 0, 0, 0, 0, "Background color");
+			yofs += 75;
+		} else {
+			yofs += 30;
+		}
+		
+		uiDefButBitS(block, TOG, R_STAMP_INFO, B_REDR, "Enable Stamp", xofs, yofs, 100, 20, &G.scene->r.scemode, 0, 0, 0, 0, "Disable stamp info in images metadata");
+		uiDefButBitI(block, TOG, R_STAMP_DRAW, B_REDR, "Draw Stamp", xofs+110, yofs, 190, 20, &G.scene->r.stamp, 0, 0, 0, 0, "Draw the stamp info into each frame");
+		yofs += 20;
+	}
+	else {
+		uiDefButBitS(block, TOG, R_STAMP_INFO, B_REDR, "Enable Stamp", xofs, 142, 100, 20, &G.scene->r.scemode, 0, 0, 0, 0, "Enable stamp info to image metadata");
+		yofs += 20;
+		uiDefBut(block, LABEL, 0, "", xofs, yofs, 300, 19, 0, 0, 0, 0, 0, "");
+	}
+}
 
 static void render_panel_format(void)
 {
@@ -1580,7 +1644,7 @@ static void render_panel_format(void)
 				uiDefBut(block, LABEL, 0, "Codec: not set",  892,yofs+44,225,20, 0, 0, 0, 0, 0, "");
 			else
 				uiDefBut(block, LABEL, 0, G.scene->r.qtcodecdata->qtcodecname,  892,yofs+44,225,20, 0, 0, 0, 0, 0, "");
-			uiDefBut(block, BUT,B_SELECTCODEC, "Set codec",  892,yofs,112,20, 0, 0, 0, 0, 0, "Set codec settings for Quicktime");
+			uiDefBut(block, BUT,B_SELECTCODEC, "Set codec",  892,yofs,74,20, 0, 0, 0, 0, 0, "Set codec settings for Quicktime");
 #endif
 #endif /* WITH_QUICKTIME */
 		} else {
@@ -1592,7 +1656,7 @@ static void render_panel_format(void)
 			else
 				uiDefBut(block, LABEL, 0, avicodec_str(),  892,yofs+43,225,20, 0, 0, 0, 0, 0, "");
 #endif
-			uiDefBut(block, BUT,B_SELECTCODEC, "Set codec",  892,yofs,112,20, 0, 0, 0, 0, 0, "Set codec settings for AVI");
+			uiDefBut(block, BUT,B_SELECTCODEC, "Set codec",  892,yofs,74,20, 0, 0, 0, 0, 0, "Set codec settings for AVI");
 		}
 #ifdef WITH_OPENEXR
 	} 
@@ -1607,15 +1671,16 @@ static void render_panel_format(void)
 			uiDefButBitS(block, TOG, R_PREVIEW_JPG, B_NOP,"Preview",1027,yofs+44,90,20, &G.scene->r.subimtype, 0, 0, 0, 0, "When animation render, save JPG preview images in same directory");
 		}		
 		uiDefButS(block, MENU,B_NOP, "Codec %t|None %x0|Pxr24 (lossy) %x1|ZIP (lossless) %x2|PIZ (lossless) %x3|RLE (lossless) %x4",  
-															892,yofs,112,20, &G.scene->r.quality, 0, 0, 0, 0, "Set codec settings for OpenEXR");
+															892,yofs,74,20, &G.scene->r.quality, 0, 0, 0, 0, "Set codec settings for OpenEXR");
 		
 #endif
 	} else {
 		if(G.scene->r.quality < 5) G.scene->r.quality = 90;	/* restore from openexr */
 		
-		uiDefButS(block, NUM,B_DIFF, "Quality:",           892,yofs,112,20, &G.scene->r.quality, 10.0, 100.0, 0, 0, "Quality setting for JPEG images, AVI Jpeg and SGI movies");
+		uiDefButS(block, NUM,B_DIFF, "Q:",           892,yofs,74,20, &G.scene->r.quality, 10.0, 100.0, 0, 0, "Quality setting for JPEG images, AVI Jpeg and SGI movies");
 	}
-	uiDefButS(block, NUM,B_FRAMEMAP,"Frs/sec:",   1006,yofs,113,20, &G.scene->r.frs_sec, 1.0, 120.0, 100.0, 0, "Frames per second");
+	uiDefButS(block, NUM,B_FRAMEMAP,"FPS:",   968,yofs,75,20, &G.scene->r.frs_sec, 1.0, 120.0, 100.0, 0, "Frames per second");
+	uiDefButF(block, NUM,B_FRAMEMAP,"/",  1043,yofs,75,20, &G.scene->r.frs_sec_base, 1.0, 120.0, 0.1, 3, "Frames per second base");
 
 
 	uiBlockBeginAlign(block);
@@ -1927,6 +1992,7 @@ void render_panels()
 	render_panel_bake();
 
 	render_panel_format();
+	render_panel_stamp();
 #ifdef WITH_FFMPEG
        if (G.scene->r.imtype == R_FFMPEG) {
 		   render_panel_ffmpeg_video();
@@ -1965,7 +2031,9 @@ void anim_panels()
 	uiDefButI(block, NUM,B_FRAMEMAP,"Map New:",	160,160,150,20,&G.scene->r.images,1.0,900.0, 0, 0, "Specify how many frames the Map Old will last");
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM,B_FRAMEMAP,"Frs/sec:",  10,130,150,20, &G.scene->r.frs_sec, 1.0, 120.0, 100.0, 0, "Frames per second");
+	uiDefButS(block, NUM,B_FRAMEMAP,"FPS:",  10,130,75,20, &G.scene->r.frs_sec, 1.0, 120.0, 100.0, 0, "Frames per second");
+	uiDefButF(block, NUM,B_FRAMEMAP,"/",  85,130,75,20, &G.scene->r.frs_sec_base, 1.0, 120.0, 0.1, 3, "Frames per second base");
+
 	uiDefButBitS(block, TOG, AUDIO_SYNC, B_SOUND_CHANGED, "Sync",160,130,150,20, &G.scene->audio.flag, 0, 0, 0, 0, "Use sample clock for syncing animation to audio");
 	
 	uiBlockBeginAlign(block);

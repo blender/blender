@@ -1138,7 +1138,7 @@ int do_screenhandlers(bScreen *sc)
 	short a, done= 0;
 	
 	time = PIL_check_seconds_timer();
-	swaptime= 1.0/(float)G.scene->r.frs_sec;
+	swaptime= 1.0/FPS;
 	
 	/* only now do the handlers */
 	if(swaptime < time-ltime || ltime==0.0) {

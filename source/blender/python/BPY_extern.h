@@ -46,8 +46,10 @@ struct SpaceScript; /* DNA_space_types.h */
 struct Script; /* BPI_script.h */
 struct ScrArea; /* DNA_screen_types.h */
 struct bScreen; /* DNA_screen_types.h */
+struct bConstraint; /* DNA_constraint_types.h */
 struct bPythonConstraint; /* DNA_constraint_types.h */
-struct bConstraintOb; /* BKE_constraint.h */
+struct bConstraintOb; /* DNA_constraint_types.h */
+struct bConstraintTarget; /* DNA_constraint_types.h*/
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -71,10 +73,10 @@ extern "C" {
 	void BPy_Set_DrawButtonsList(void *list);
 	void BPy_Free_DrawButtonsList(void);
 	
-	void BPY_pyconstraint_eval(struct bPythonConstraint *con, float ownermat[][4], float targetmat[][4]);
-	void BPY_pyconstraint_driver(struct bPythonConstraint *con, struct bConstraintOb *cob, struct Object *target, char subtarget[]);
+	void BPY_pyconstraint_eval(struct bPythonConstraint *con, struct bConstraintOb *cob, struct ListBase *targets);
 	void BPY_pyconstraint_settings(void *arg1, void *arg2);
-	int BPY_pyconstraint_targets(struct bPythonConstraint *con, float targetmat[][4]);
+	void BPY_pyconstraint_target(struct bPythonConstraint *con, struct bConstraintTarget *ct);
+	void BPY_pyconstraint_update(struct Object *owner, struct bConstraint *con);
 	int BPY_is_pyconstraint(struct Text *text);
 	
 	void BPY_start_python( int argc, char **argv );

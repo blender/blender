@@ -355,18 +355,26 @@ static AVStream* alloc_video_stream(int codec_id, AVFormatContext* of,
 	if (ffmpeg_type == FFMPEG_DV && G.scene->r.frs_sec != 25) {
 		c->time_base.den = 2997;
 		c->time_base.num = 100;
-	} else {
+	} else if ((double) ((int) G.scene->r.frs_sec_base) == 
+		   G.scene->r.frs_sec_base) {
 		c->time_base.den = G.scene->r.frs_sec;
-		c->time_base.num = 1;
+		c->time_base.num = (int) G.scene->r.frs_sec_base;
+	} else {
+		c->time_base.den = G.scene->r.frs_sec * 100000;
+		c->time_base.num = ((double) G.scene->r.frs_sec_base) * 100000;
 	}
 #else
 	/* FIXME: Really bad hack (tm) for NTSC support */
 	if (ffmpeg_type == FFMPEG_DV && G.scene->r.frs_sec != 25) {
 		c->frame_rate = 2997;
 		c->frame_rate_base = 100;
-	} else {
+	} else if ((double) ((int) G.scene->r.frs_sec_base) == 
+		   G.scene->r.frs_sec_base) {
 		c->frame_rate = G.scene->r.frs_sec;
-		c->frame_rate_base = 1;
+		c->frame_rate_base = G.scene->r.frs_sec_base;
+	} else {
+		c->frame_rate = G.scene->r.frs_sec * 100000;
+		c->frame_rate_base = ((double) G.scene->r.frs_sec_base)*100000;
 	}
 #endif
 	

@@ -850,7 +850,7 @@ static void setNearestAxis2d(TransInfo *t)
 	ival[1]= t->imval[1];
 	
 	/* no correction needed... just use whichever one is lower */
-	if ( abs(mval[0]-ival[0]) > abs(mval[1]-ival[1]) ) {
+	if ( abs(mval[0]-ival[0]) < abs(mval[1]-ival[1]) ) {
 		t->con.mode |= CON_AXIS1;
 		sprintf(t->con.text, " along Y axis");
 	}

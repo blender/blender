@@ -71,7 +71,7 @@ void sound_set_position(void *object,
 struct hdaudio * sound_open_hdaudio(char * name);
 struct hdaudio * sound_copy_hdaudio(struct hdaudio * c);
 
-long sound_hdaudio_get_duration(struct hdaudio * hdaudio, int frame_rate);
+long sound_hdaudio_get_duration(struct hdaudio * hdaudio, double frame_rate);
 void sound_hdaudio_extract(struct hdaudio * hdaudio, 
 			   short * target_buffer,
 			   int sample_position /* units of target_rate */,

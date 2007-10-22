@@ -591,19 +591,22 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 							pchan->prev= (bPoseChannel *)ten;
 							
 							if(pchan->constraints.first) {
-								Object *target;
+								//Object *target;
 								bConstraint *con;
 								TreeElement *ten1;
 								TreeElement *tenla1= outliner_add_element(soops, &ten->subtree, ob, ten, TSE_CONSTRAINT_BASE, 0);
-								char *str;
+								//char *str;
 								
 								tenla1->name= "Constraints";
 								for(con= pchan->constraints.first; con; con= con->next, const_index++) {
 									ten1= outliner_add_element(soops, &tenla1->subtree, ob, tenla1, TSE_CONSTRAINT, const_index);
+#if 0 /* disabled as it needs to be reworked for recoded constraints system */
 									target= get_constraint_target(con, &str);
 									if(str && str[0]) ten1->name= str;
 									else if(target) ten1->name= target->id.name+2;
 									else ten1->name= con->name;
+#endif
+									ten1->name= con->name;
 									ten1->directdata= con;
 									/* possible add all other types links? */
 								}
@@ -641,20 +644,23 @@ static TreeElement *outliner_add_element(SpaceOops *soops, ListBase *lb, void *i
 					outliner_add_element(soops, &te->subtree, ob->mat[a], te, 0, a);
 				
 				if(ob->constraints.first) {
-					Object *target;
+					//Object *target;
 					bConstraint *con;
 					TreeElement *ten;
 					TreeElement *tenla= outliner_add_element(soops, &te->subtree, ob, te, TSE_CONSTRAINT_BASE, 0);
 					int a= 0;
-					char *str;
+					//char *str;
 					
 					tenla->name= "Constraints";
 					for(con= ob->constraints.first; con; con= con->next, a++) {
 						ten= outliner_add_element(soops, &tenla->subtree, ob, tenla, TSE_CONSTRAINT, a);
+#if 0 /* disabled due to constraints system targets recode... code here needs review */
 						target= get_constraint_target(con, &str);
 						if(str && str[0]) ten->name= str;
 						else if(target) ten->name= target->id.name+2;
 						else ten->name= con->name;
+#endif
+						ten->name= con->name;
 						ten->directdata= con;
 						/* possible add all other types links? */
 					}

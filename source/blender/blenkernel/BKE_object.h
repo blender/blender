@@ -45,6 +45,7 @@ struct BoundBox;
 struct View3D;
 struct SoftBody;
 struct Group;
+struct bAction;
 
 void clear_workob(void);
 void copy_baseflags(void);
@@ -98,6 +99,7 @@ void where_is_object(struct Object *ob);
 void where_is_object_simul(struct Object *ob);
 
 void what_does_parent(struct Object *ob);
+
 struct BoundBox *unit_boundbox(void);
 void boundbox_set_from_min_max(struct BoundBox *bb, float min[3], float max[3]);
 struct BoundBox *object_get_boundbox(struct Object *ob);

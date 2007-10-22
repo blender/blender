@@ -35,6 +35,11 @@
  * Copyright (C) 2001 NaN Technologies B.V.
  */
 
+
+#include <stdio.h>
+
+
+
 #include <string.h>
 
 #ifdef HAVE_CONFIG_H
@@ -113,6 +118,11 @@ void BMF_BitmapFont::GetFontBoundingBox(int & xMin, int & yMin, int & xMax, int 
 	yMin = m_fontData->ymin;
 	xMax = m_fontData->xmax;
 	yMax = m_fontData->ymax;
+}
+
+int BMF_BitmapFont::GetFontHeight( void )
+{
+	return m_fontData->ymax - m_fontData->ymin;
 }
 
 void BMF_BitmapFont::GetStringBoundingBox(char* str, float*llx, float *lly, float *urx, float *ury)
@@ -228,4 +238,84 @@ void BMF_BitmapFont::DrawStringTexture(char *str, float x, float y, float z)
 		pos += cd.advance;
 	}
 	glEnd();
+}
+
+#define FTOCHAR(val) val<=0.0f?0: (val>=1.0f?255: (char)(255.0f*val))
+
+
+void BMF_BitmapFont::DrawStringBuf(char *str, int posx, int posy, float *col, unsigned char *buf, float *fbuf, int w, int h)
+{
+	int x, y;
+	
+	if (buf==0 && fbuf==0)
+		return;
+
+	/*offset for font*/
+	posx -= m_fontData->xmin;
+	posy -= m_fontData->ymin;
+	
+	if (buf) {
+		unsigned char colch[3];
+		unsigned char *max, *pixel;
+		unsigned char c;
+		
+		for (x=0; x<3; x++) {
+			colch[x] = FTOCHAR(col[x]);
+		}
+		
+		max = buf + (4 * (w * h));
+		while ((c = (unsigned char) *str++)) {
+			BMF_CharData & cd = m_fontData->chars[c];
+			if (cd.data_offset != -1) { 
+				for (y = 0; y < cd.height; y++) {
+					unsigned char* chrRow = &m_fontData->bitmap_data[cd.data_offset + ((cd.width+7)/8)*y];
+					for (x = cd.xorig; x < cd.width; x++) {
+						pixel = buf + 4 * (((posy + y) * w) + (posx + x));
+						if ((pixel < max) && (pixel > buf)) {
+							int byteIdx = x/8;
+							int bitIdx = 7 - (x%8);
+							
+							if (chrRow[byteIdx]&(1<<bitIdx)) {
+								pixel[0] = colch[0];
+								pixel[1] = colch[1];
+								pixel[2] = colch[2];
+							}
+						}
+					}
+				}
+			}
+			posx += cd.advance;
+		}
+	}
+	
+	if (fbuf) {
+		float *pixel, *max;
+		unsigned char c;
+		int x, y;
+		
+		max = fbuf + (4 * (w * h));
+		
+		while ((c = (unsigned char) *str++)) {
+			BMF_CharData & cd = m_fontData->chars[c];
+			if (cd.data_offset != -1) { 
+				for (y = 0; y < cd.height; y++) {
+					unsigned char* chrRow = &m_fontData->bitmap_data[cd.data_offset + ((cd.width+7)/8)*y];
+					for (x = cd.xorig; x < cd.width; x++) {
+						pixel = fbuf + 4 * (((posy + y - cd.yorig) * w) + (posx + x));
+						if ((pixel < max) && (pixel > fbuf)) {
+							int byteIdx = x/8;
+							int bitIdx = 7 - (x%8);
+							
+							if (chrRow[byteIdx]&(1<<bitIdx)) {
+								pixel[0] = col[0];
+								pixel[1] = col[1];
+								pixel[2] = col[2];
+							}
+						}
+					}
+				}
+			}
+			posx += cd.advance;
+		}
+	}
 }

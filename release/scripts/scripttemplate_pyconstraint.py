@@ -21,17 +21,21 @@ from Blender import Draw
 from Blender import Mathutils
 import math
 
-USE_TARGET = True
+'''
+ This variable specifies the number of targets 
+ that this constraint can use
+'''
+NUM_TARGETS = 1
 
 
 '''
  This function is called to evaluate the constraint
-	obmatrix:		(Matrix) copy of owner's worldspace matrix
-	targetmatrix:	(Matrix) copy of target's worldspace matrix (where applicable)
+	obmatrix:		(Matrix) copy of owner's 'ownerspace' matrix
+	targetmatrices:	(List) list of copies of the 'targetspace' matrices of the targets (where applicable)
 	idprop:			(IDProperties) wrapped data referring to this 
 					constraint instance's idproperties
 '''
-def doConstraint(obmatrix, targetmatrix, idprop):
+def doConstraint(obmatrix, targetmatrices, idprop):
 	# Separate out the tranformation components for easy access.
 	obloc = obmatrix.translationPart()	# Translation
 	obrot = obmatrix.toEuler()			# Rotation
@@ -60,9 +64,9 @@ def doConstraint(obmatrix, targetmatrix, idprop):
 
 
 '''
- This function manipulates the target matrix prior to sending it to doConstraint()
+ This function manipulates the matrix of a target prior to sending it to doConstraint()
 	target_object:					wrapped data, representing the target object
-	subtarget_bone:					wrapped data, representing the subtarget pose-bone (where applicable)
+	subtarget_bone:					wrapped data, representing the subtarget pose-bone/vertex-group (where applicable)
 	target_matrix:					(Matrix) the transformation matrix of the target
 	id_properties_of_constraint:	(IDProperties) wrapped idproperties
 '''
@@ -72,8 +76,8 @@ def doTarget(target_object, subtarget_bone, target_matrix, id_properties_of_cons
 
 '''
  This function draws a pupblock that lets the user set
-	the values of custom settings the constraint defines.
-	This function is called when the user presses the settings button.
+ the values of custom settings the constraint defines.
+ This function is called when the user presses the settings button.
 	idprop:	(IDProperties) wrapped data referring to this 
 			constraint instance's idproperties
 '''

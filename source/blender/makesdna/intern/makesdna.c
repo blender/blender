@@ -715,8 +715,10 @@ static int calculate_structlens(int firststruct)
 						
 						/* struct alignment */
 						if(type >= firststruct) {
-							if(sizeof(void *)==8 && (len % 8) )
+							if(sizeof(void *)==8 && (len % 8) ) {
 								printf("Align struct error: %s %s\n", types[structtype],cp);
+								dna_error = 1;
+							}
 						}
 						
 						/* 2-4 aligned/ */

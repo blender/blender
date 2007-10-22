@@ -112,8 +112,8 @@ static void draw_cfra_time(SpaceTime *stime)
 		areamouseco_to_ipoco(G.v2d, mval, &x, &y);
 		
 		if(stime->flag & TIME_DRAWFRAMES) 
-			sprintf(str, "   %d", (G.scene->r.cfra));
-		else sprintf(str, "   %.2f", (G.scene->r.cfra/(float)G.scene->r.frs_sec));
+			sprintf(str, "   %d", CFRA);
+		else sprintf(str, "   %.2f", FRA2TIME(CFRA));
 		
 		/* HACK! somehow the green color won't go away... */
 		glColor4ub(0, 0, 0, 0);

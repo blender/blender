@@ -1021,7 +1021,7 @@ static void drawviewborder(void)
 	BIF_ThemeColor(TH_WIRE);
 	glRectf(x1, y1, x2, y2);
 		
-	/* camera name - draw in highlighted text colour */
+	/* camera name - draw in highlighted text color */
 	if (ca && (ca->flag & CAM_SHOWNAME)) {
 		BIF_ThemeColor(TH_TEXT_HI);
 		glRasterPos2f(x1, y1-15);
@@ -1509,8 +1509,8 @@ static void draw_viewport_name(ScrArea *sa)
 				name = (G.vd->flag2 & V3D_OPP_DIRECTION_NAME) ? "Bottom Ortho" : "Top Ortho";
 			break;
 		default:
-			if(G.vd->persp==V3D_PERSP_USE_THE_CAMERA) {
-				if (G.vd->camera->type == OB_CAMERA) {
+			if (G.vd->persp==V3D_PERSP_USE_THE_CAMERA) {
+				if ((G.vd->camera) && (G.vd->camera->type == OB_CAMERA)) {
 					Camera *cam;
 					cam = G.vd->camera->data;
 					name = (cam->type != CAM_ORTHO) ? "Camera Persp" : "Camera Ortho";
@@ -3264,7 +3264,7 @@ void inner_play_anim_loop(int init, int mode)
 	/* init */
 	if(init) {
 		oldsa= curarea;
-		swaptime= 1.0/(float)G.scene->r.frs_sec;
+		swaptime= 1.0/FPS;
 		tottime= 0.0;
 		curmode= mode;
 		last_cfra = -1;

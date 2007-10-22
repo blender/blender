@@ -286,7 +286,7 @@ static void do_text_filemenu(void *arg, int event)
 	case 1:
 		st->text= add_empty_text( "Text" );
 		st->top=0;
-
+		
 		allqueue(REDRAWTEXT, 0);
 		allqueue(REDRAWHEADERS, 0);
 		break;
@@ -313,36 +313,36 @@ static void do_text_filemenu(void *arg, int event)
 		break;
 	case 7:
 	{
-		Object *obt;
+		Object *ob;
 		bConstraint *con;
 		short update;
 		
 		/* check all pyconstraints */
-		for (obt=G.main->object.first; obt; obt=obt->id.next) {
+		for (ob= G.main->object.first; ob; ob= ob->id.next) {
 			update = 0;
-			if(obt->type==OB_ARMATURE && obt->pose) {
+			if (ob->type==OB_ARMATURE && ob->pose) {
 				bPoseChannel *pchan;
-				for(pchan= obt->pose->chanbase.first; pchan; pchan= pchan->next) {
-					for (con = pchan->constraints.first; con; con=con->next) {
+				for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+					for (con = pchan->constraints.first; con; con= con->next) {
 						if (con->type==CONSTRAINT_TYPE_PYTHON) {
 							bPythonConstraint *data = con->data;
-							if (data->text==text) data->flag = 0;
+							if (data->text==text) BPY_pyconstraint_update(ob, con);
 							update = 1;
 							
 						}
 					}
 				}
 			}
-			for (con = obt->constraints.first; con; con=con->next) {
+			for (con = ob->constraints.first; con; con= con->next) {
 				if (con->type==CONSTRAINT_TYPE_PYTHON) {
 					bPythonConstraint *data = con->data;
-					if (data->text==text) data->flag = 0;
+					if (data->text==text) BPY_pyconstraint_update(ob, con);
 					update = 1;
 				}
 			}
 			
 			if (update) {
-				DAG_object_flush_update(G.scene, obt, OB_RECALC_DATA);
+				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			}
 		}
 	}

@@ -242,7 +242,7 @@ int set_tpage(MTFace *tface)
 				
 				/* added after 2.45 to clip alpha */
 				glEnable ( GL_ALPHA_TEST );
-				glAlphaFunc ( GL_GREATER, 0.001 );
+				glAlphaFunc ( GL_GREATER, U.glalphaclip );
 				
 				
 			/* 	glBlendEquationEXT(GL_FUNC_ADD_EXT); */
@@ -960,7 +960,7 @@ static void draw_textured_begin(Object *ob)
 	Gtexdraw.istex = istex;
 	memcpy(Gtexdraw.obcol, obcol, sizeof(obcol));
 	set_draw_settings_cached(1, 0, 0, Gtexdraw.islit, 0, 0, 0);
-
+	glDisable ( GL_ALPHA_TEST );
 	glShadeModel(GL_SMOOTH);
 }
 

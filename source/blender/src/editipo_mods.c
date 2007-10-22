@@ -577,7 +577,7 @@ static int snap_bezier_nearest(BezTriple *bezt)
 
 static int snap_bezier_nearestsec(BezTriple *bezt)
 {
-	float secf = (float)(G.scene->r.frs_sec);
+	float secf = FPS;
 	if(bezt->f2 & SELECT)
 		bezt->vec[1][0]= (float)(floor(bezt->vec[1][0]/secf + 0.5f) * secf);
 	return 0;

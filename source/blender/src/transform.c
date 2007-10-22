@@ -86,6 +86,7 @@
 #include "BSE_drawipo.h"
 #include "BSE_editnla_types.h"	/* for NLAWIDTH */
 #include "BSE_editaction_types.h"
+#include "BSE_time.h"
 #include "BSE_view.h"
 
 #include "BLI_arithb.h"
@@ -3373,6 +3374,8 @@ static short getAnimEdit_SnapMode(TransInfo *t)
 				autosnap= SACTSNAP_STEP;
 			else if (G.qual == LR_SHIFTKEY)
 				autosnap= SACTSNAP_FRAME;
+			else if (G.qual == LR_ALTKEY)
+				autosnap= SACTSNAP_MARKER;
 			else
 				autosnap= SACTSNAP_OFF;
 			break;
@@ -3381,6 +3384,9 @@ static short getAnimEdit_SnapMode(TransInfo *t)
 			break;
 		case SACTSNAP_FRAME:
 			autosnap= (G.qual==LR_SHIFTKEY)? SACTSNAP_OFF: SACTSNAP_FRAME;
+			break;
+		case SACTSNAP_MARKER:
+			autosnap= (G.qual==LR_ALTKEY)? SACTSNAP_OFF: SACTSNAP_MARKER;
 			break;
 		}
 	}
@@ -3391,6 +3397,8 @@ static short getAnimEdit_SnapMode(TransInfo *t)
 				autosnap= SACTSNAP_STEP;
 			else if (G.qual == LR_SHIFTKEY)
 				autosnap= SACTSNAP_FRAME;
+			else if (G.qual == LR_ALTKEY)
+				autosnap= SACTSNAP_MARKER;
 			else
 				autosnap= SACTSNAP_OFF;
 			break;
@@ -3400,6 +3408,9 @@ static short getAnimEdit_SnapMode(TransInfo *t)
 		case SACTSNAP_FRAME:
 			autosnap= (G.qual==LR_SHIFTKEY)? SACTSNAP_OFF: SACTSNAP_FRAME;
 			break;
+		case SACTSNAP_MARKER:
+			autosnap= (G.qual==LR_ALTKEY)? SACTSNAP_OFF: SACTSNAP_MARKER;
+			break;
 		}
 	}
 	else {
@@ -3407,6 +3418,8 @@ static short getAnimEdit_SnapMode(TransInfo *t)
 			autosnap= SACTSNAP_STEP;
 		else if (G.qual == LR_SHIFTKEY)
 			autosnap= SACTSNAP_FRAME;
+		else if (G.qual == LR_ALTKEY)
+			autosnap= SACTSNAP_MARKER;
 		else
 			autosnap= SACTSNAP_OFF;
 	}
@@ -3438,14 +3451,14 @@ static short getAnimEdit_DrawTime(TransInfo *t)
 
 
 /* This function is used by Animation Editor specific transform functions to do 
- * the Snap Keyframe to Nearest Keyframe
+ * the Snap Keyframe to Nearest Frame/Marker
  */
 static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, Object *ob, short autosnap)
 {
 	/* snap key to nearest frame? */
 	if (autosnap == SACTSNAP_FRAME) {
 		short doTime= getAnimEdit_DrawTime(t);
-		float secf= ((float)G.scene->r.frs_sec);
+		double secf= FPS;
 		float val;
 		
 		/* convert frame to nla-action time (if needed) */
@@ -3459,6 +3472,25 @@ static void doAnimEdit_SnapFrame(TransInfo *t, TransData *td, Object *ob, short 
 			val= (float)( floor((val/secf) + 0.5f) * secf );
 		else
 			val= (float)( floor(val+0.5f) );
+			
+		/* convert frame out of nla-action time */
+		if (ob)
+			*(td->val)= get_action_frame(ob, val);
+		else
+			*(td->val)= val;
+	}
+	/* snap key to nearest marker? */
+	else if (autosnap == SACTSNAP_MARKER) {
+		float val;
+		
+		/* convert frame to nla-action time (if needed) */
+		if (ob) 
+			val= get_action_frame_inv(ob, *(td->val));
+		else
+			val= *(td->val);
+		
+		/* snap to nearest marker */
+		val= (float)find_nearest_marker_time(val);
 			
 		/* convert frame out of nla-action time */
 		if (ob)
@@ -3496,7 +3528,7 @@ static void headerTimeTranslate(TransInfo *t, char *str)
 	else {
 		short autosnap= getAnimEdit_SnapMode(t);
 		short doTime = getAnimEdit_DrawTime(t);
-		float secf= ((float)G.scene->r.frs_sec);
+		double secf= FPS;
 		float val= t->fac;
 		
 		/* take into account scaling (for Action Editor only) */
@@ -3535,7 +3567,7 @@ static void applyTimeTranslate(TransInfo *t, float sval)
 	int i;
 	
 	short doTime= getAnimEdit_DrawTime(t);
-	float secf= ((float)G.scene->r.frs_sec);
+	double secf= FPS;
 	
 	short autosnap= getAnimEdit_SnapMode(t);
 	float cval= sval + t->fac;
@@ -3578,7 +3610,7 @@ static void applyTimeTranslate(TransInfo *t, float sval)
 			*(td->val) = td->ival + val;
 		}
 		
-		/* apply snap-to-nearest-frame? */
+		/* apply nearest snapping */
 		doAnimEdit_SnapFrame(t, td, ob, autosnap);
 	}
 }
@@ -3770,7 +3802,7 @@ static void applyTimeScale(TransInfo *t) {
 	
 	short autosnap= getAnimEdit_SnapMode(t);
 	short doTime= getAnimEdit_DrawTime(t);
-	float secf= ((float)G.scene->r.frs_sec);
+	double secf= FPS;
 	
 	
 	for (i = 0 ; i < t->total; i++, td++) {
@@ -3797,7 +3829,7 @@ static void applyTimeScale(TransInfo *t) {
 		*(td->val) *= fac;
 		*(td->val) += startx;
 		
-		/* apply snap-to-nearest-frame? */
+		/* apply nearest snapping */
 		doAnimEdit_SnapFrame(t, td, ob, autosnap);
 	}
 }

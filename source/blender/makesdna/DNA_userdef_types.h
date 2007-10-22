@@ -177,11 +177,13 @@ typedef struct UserDef {
 	short obcenter_dia;
 	short rvisize;			/* rotating view icon size */
 	short rvibright;		/* rotating view icon brightness */
-	char versemaster[160];
-	char verseuser[160];
 	short recent_files;		/* maximum number of recently used files to remember  */
 	short smooth_viewtx;	/* miliseconds to spend spinning the view */
 	short glreslimit;
+	char versemaster[160];
+	char verseuser[160];
+	float glalphaclip, pad;
+	
 } UserDef;
 
 extern UserDef U; /* from usiblender.c !!!! */

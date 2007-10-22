@@ -921,8 +921,8 @@ static TBitem tb_face_select[]= {
 static TBitem tb_mesh_select[]= {
 {	0, "Border Select|B",               0, NULL},
 {	0, "SEPR",                          0, NULL},
-{	0, "(De)select All|A",              2, NULL},
-{	0, "Inverse",                       3, NULL},
+{	0, "Select/Deselect All|A",              2, NULL},
+{	0, "Inverse|Ctrl I",                       3, NULL},
 {	0, "SEPR",                          0, NULL},
 {	0, "Random...",			            5, NULL},
 {	0, "Non-Manifold|Shift Ctrl Alt M", 9, NULL},

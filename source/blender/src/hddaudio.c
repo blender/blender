@@ -200,7 +200,7 @@ struct hdaudio * sound_copy_hdaudio(struct hdaudio * c)
 #endif
 }
 
-long sound_hdaudio_get_duration(struct hdaudio * hdaudio, int frame_rate)
+long sound_hdaudio_get_duration(struct hdaudio * hdaudio, double frame_rate)
 {
 #ifdef WITH_FFMPEG
 	return hdaudio->pFormatCtx->duration * frame_rate / AV_TIME_BASE;

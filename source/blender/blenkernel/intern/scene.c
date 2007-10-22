@@ -197,6 +197,7 @@ Scene *add_scene(char *name)
 	sce->r.images= 100;
 	sce->r.framelen= 1.0;
 	sce->r.frs_sec= 25;
+	sce->r.frs_sec_base= 1;
 	sce->r.ocres = 128;
 	
 	sce->r.bake_mode= 1;	/* prevent to include render stuff here */

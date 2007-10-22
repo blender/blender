@@ -745,11 +745,17 @@ static void do_history(char *name)
 void BIF_write_file(char *target)
 {
 	Library *li;
-	int writeflags;
-	char di[FILE_MAXDIR];
+	int writeflags, len;
+	char di[FILE_MAX];
 	char *err;
 	
-	if (BLI_streq(target, "")) return;
+	len = strlen(target);
+	
+	if (len == 0) return;
+	if (len >= FILE_MAX) {
+		error("Path too long, cannot save");
+		return;
+	}
  
 	/* send the OnSave event */
 	if (G.f & G_DOSCRIPTLINKS) BPY_do_pyscript(&G.scene->id, SCRIPT_ONSAVE);
@@ -761,7 +767,7 @@ void BIF_write_file(char *target)
 		}
 	}
 	
-	if (!BLO_has_bfile_extension(target)) {
+	if (!BLO_has_bfile_extension(target) && (len+6 < FILE_MAX)) {
 		sprintf(di, "%s.blend", target);
 	} else {
 		strcpy(di, target);

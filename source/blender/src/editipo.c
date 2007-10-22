@@ -5290,7 +5290,7 @@ void ipo_record(void)
 	waitcursor(1);
 	
 	tottime= 0.0;
-	swaptime= 1.0/(float)G.scene->r.frs_sec;
+	swaptime= 1.0/FPS;
 
 	cfrao= CFRA;
 	cfra=efra= SFRA;

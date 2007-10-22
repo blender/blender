@@ -3377,7 +3377,7 @@ static void material_panel_tramir(Material *ma)
 	
  	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM, B_MATPRV, "Filter:",
-		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->filter), 0.0, 1.0, 10, 0, "Amount to blend in the material's diffuse colour in raytraced transparency (simulating absorption)");
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->filter), 0.0, 1.0, 10, 0, "Amount to blend in the material's diffuse color in raytraced transparency (simulating absorption)");
 	uiDefButF(block, NUMSLI, B_MATPRV, "Limit: ",
 		X2CLM2, yco-=BUTH, BUTW2, BUTH, &(ma->tx_limit), 0.0, 100.0, 10, 2, "Maximum depth for light to travel through the transparent material before becoming fully filtered (0.0 is disabled)");
 	uiDefButF(block, NUMSLI, B_MATPRV, "Falloff: ",

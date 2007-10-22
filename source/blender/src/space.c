@@ -3865,8 +3865,13 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			&(U.uiflag), 0, 0, 0, 0, "Hide files/datablocks that start with a dot(.*)");
 
 		uiDefBut(block, LABEL,0,"OpenGL:",
-			(xpos+edgsp+(5*midsp)+(5*mpref)),y6label,mpref,buth,
+			(xpos+edgsp+(5*midsp)+(5*mpref)),y7label,mpref,buth,
 			0, 0, 0, 0, 0, "");
+		
+		uiDefButF(block, NUMSLI, B_DRAWINFO, "Clip Alpha: ",
+				  (xpos+edgsp+(5*mpref)+(5*midsp)),y6,mpref,buth,
+				   &(U.glalphaclip), 0.0, 1.0, 0, 0, "Clip alpha below this threshold in the 3d textured view");
+		
 		uiDefButBitI(block, TOGN, USER_DISABLE_MIPMAP, B_MIPMAPCHANGED, "Mipmaps",
 			(xpos+edgsp+(5*mpref)+(5*midsp)),y5,mpref,buth,
 			&(U.gameflags), 0, 0, 0, 0, "Toggles between mipmap textures on (beautiful) and off (fast)");

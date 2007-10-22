@@ -34,6 +34,7 @@ SET(INC
   ../python ../render/extern/include ../../../intern/decimation/extern
   ../imbuf ../avi ../../../intern/elbeem/extern
   ../../../intern/iksolver/extern ../blenloader ../quicktime
+  ../../../intern/bmfont
   ../nodes
   ${SDL_INC}
   ${ZLIB_INC}

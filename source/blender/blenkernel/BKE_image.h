@@ -46,6 +46,7 @@ struct anim;
 /* call from library */
 void	free_image(struct Image *me);
 
+void	BKE_stamp(struct ImBuf *ibuf);
 int		BKE_write_ibuf(struct ImBuf *ibuf, char *name, int imtype, int subimtype, int quality);
 void	BKE_makepicstring(char *string, char *base, int frame, int imtype);
 void	BKE_add_image_extension(char *string, int imtype);

@@ -629,14 +629,14 @@ def write_ui(filename):
 			
 			full_path= ''.join(context_name)
 			
-			if BPyMessages.Warning_SaveOver(full_path):
-				# EXPORT THE FILE.
-				write(full_path, export_objects,\
-				EXPORT_TRI, EXPORT_EDGES, EXPORT_NORMALS,\
-				EXPORT_NORMALS_HQ, EXPORT_UV, EXPORT_MTL,\
-				EXPORT_COPY_IMAGES, EXPORT_APPLY_MODIFIERS,\
-				EXPORT_ROTX90, EXPORT_BLEN_OBS,\
-				EXPORT_GROUP_BY_OB, EXPORT_GROUP_BY_MAT, EXPORT_MORPH_TARGET)
+			# erm... bit of a problem here, this can overwrite files when exporting frames. not too bad.
+			# EXPORT THE FILE.
+			write(full_path, export_objects,\
+			EXPORT_TRI, EXPORT_EDGES, EXPORT_NORMALS,\
+			EXPORT_NORMALS_HQ, EXPORT_UV, EXPORT_MTL,\
+			EXPORT_COPY_IMAGES, EXPORT_APPLY_MODIFIERS,\
+			EXPORT_ROTX90, EXPORT_BLEN_OBS,\
+			EXPORT_GROUP_BY_OB, EXPORT_GROUP_BY_MAT, EXPORT_MORPH_TARGET)
 		
 		Blender.Set('curframe', orig_frame)
 	
