@@ -35,7 +35,6 @@
 #include "DNA_view2d_types.h"
 
 struct SpaceLink;
-struct ListBase;
 struct Object;
 
 /* PoseChannel stores the results of Actions (ipos) and transform information 
@@ -130,6 +129,7 @@ typedef struct SpaceAction {
 	short blockhandler[8];
 
 	View2D v2d;	
+	
 	bAction		*action;		/* the currently active action */
 	short flag, autosnap;		/* flag: bitmapped settings; autosnap: automatic keyframe snapping mode */
 	short pin, actnr, lock;		/* pin: keep showing current action; actnr: used for finding chosen action from menu; lock: lock time to other windows */
@@ -138,38 +138,48 @@ typedef struct SpaceAction {
 } SpaceAction;
 
 /* Action Channel flags */
-#define	ACHAN_SELECTED	0x00000001
-#define ACHAN_HILIGHTED	0x00000002
-#define ACHAN_HIDDEN	0x00000004
-#define ACHAN_PROTECTED 0x00000008
-#define ACHAN_EXPANDED 	0x00000010
-#define ACHAN_SHOWIPO	0x00000020
-#define ACHAN_SHOWCONS 	0x00000040
-#define ACHAN_MOVED     0x80000000
+typedef enum ACHAN_FLAG {
+	ACHAN_SELECTED	= (1<<0),
+	ACHAN_HILIGHTED = (1<<1),
+	ACHAN_HIDDEN	= (1<<2),
+	ACHAN_PROTECTED = (1<<3),
+	ACHAN_EXPANDED 	= (1<<4),
+	ACHAN_SHOWIPO	= (1<<5),
+	ACHAN_SHOWCONS 	= (1<<6),
+	ACHAN_MOVED     = (1<<31),
+} ACHAN_FLAG; 
 
 /* SpaceAction flag */
-	/* during transform */
-#define SACTION_MOVING		1	
-	/* show sliders (if relevant) - limited to shape keys for now */
-#define SACTION_SLIDERS		2	
-	/* draw time in seconds instead of time in frames */
-#define SACTION_DRAWTIME	4	
+typedef enum SACTION_FLAG {
+		/* during transform */
+	SACTION_MOVING	= (1<<0),	
+		/* show sliders (if relevant) */
+	SACTION_SLIDERS	= (1<<1),	
+		/* draw time in seconds instead of time in frames */
+	SACTION_DRAWTIME = (1<<2)
+} SACTION_FLAG;	
 
 /* SpaceAction AutoSnap Settings (also used by SpaceNLA) */
-	/* no auto-snap */
-#define SACTSNAP_OFF	0	
-	/* snap to 1.0 frame/second intervals */
-#define SACTSNAP_STEP	1
-	/* snap to actual frames/seconds (nla-action time) */
-#define SACTSNAP_FRAME	2	
+typedef enum SACTSNAP_MODES {
+		/* no auto-snap */
+	SACTSNAP_OFF = 0	
+		/* snap to 1.0 frame/second intervals */
+	SACTSNAP_STEP,
+		/* snap to actual frames/seconds (nla-action time) */
+	SACTSNAP_FRAME,
+		/* snap to nearest marker */
+	SACTSNAP_MARKER,
+} SACTSNAP_MODES;	
 
 /* Pose->flag */
-	/* results in armature_rebuild_pose being called */
-#define POSE_RECALC		1
-	/* prevents any channel from getting overridden by anim from IPO */
-#define POSE_LOCKED		2
-	/* clears the POSE_LOCKED flag for the next time the pose is evaluated */
-#define POSE_DO_UNLOCK	4
+typedef enum POSE_FLAG {
+		/* results in armature_rebuild_pose being called */
+	POSE_RECALC = (1<<0),
+		/* prevents any channel from getting overridden by anim from IPO */
+	POSE_LOCKED	= (1<<1),
+		/* clears the POSE_LOCKED flag for the next time the pose is evaluated */
+	POSE_DO_UNLOCK	= (1<<2)
+} POSE_FLAG;
 
 /* PoseChannel (transform) flags */
 enum	{
@@ -189,22 +199,26 @@ enum	{
 };
 
 /* PoseChannel constflag (constraint detection) */
-#define PCHAN_HAS_IK		1
-#define PCHAN_HAS_CONST		2
-	/* only used for drawing Posemode, not stored in channel */
-#define PCHAN_HAS_ACTION	4
-#define PCHAN_HAS_TARGET	8
-	/* only for drawing Posemode too */
-#define PCHAN_HAS_STRIDE	16
+typedef PCHAN_CONSTFLAG {
+	PCHAN_HAS_IK		= (1<<0),
+	PCHAN_HAS_CONST		= (1<<1),
+		/* only used for drawing Posemode, not stored in channel */
+	PCHAN_HAS_ACTION	= (1<<2),
+	PCHAN_HAS_TARGET	= (1<<3),
+		/* only for drawing Posemode too */
+	PCHAN_HAS_STRIDE	= (1<<4)
+} PCHAN_CONSTFLAG;
 
 /* PoseChannel->ikflag */
-#define		BONE_IK_NO_XDOF 1
-#define		BONE_IK_NO_YDOF 2
-#define		BONE_IK_NO_ZDOF 4
+typedef PCHAN_IKFLAG {
+	BONE_IK_NO_XDOF = (1<<0),
+	BONE_IK_NO_YDOF = (1<<1),
+	BONE_IK_NO_ZDOF = (1<<2),
 
-#define		BONE_IK_XLIMIT	8
-#define		BONE_IK_YLIMIT	16
-#define		BONE_IK_ZLIMIT	32
+	BONE_IK_XLIMIT	= (1<<3),
+	BONE_IK_YLIMIT	= (1<<4),
+	BONE_IK_ZLIMIT	= (1<<5)
+} PCHAN_IKFLAG;
 
 
 #endif

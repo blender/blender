@@ -819,7 +819,7 @@ static void extract_ipochannels_from_action(ListBase *lb, ID *id, bAction *act, 
 			
 			if(conchan && conchan->ipo) {
 				calc_ipo(conchan->ipo, ctime);
-
+				
 				icu= conchan->ipo->curve.first;	// only one ipo now
 				if(icu) {
 					nic= MEM_callocN(sizeof(NlaIpoChannel), "NlaIpoChannel constr");

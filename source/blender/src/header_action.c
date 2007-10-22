@@ -1195,13 +1195,13 @@ void action_buttons(void)
 	
 	if (G.saction->flag & SACTION_DRAWTIME) {
 		uiDefButS(block, MENU, B_REDR,
-				"Auto-Snap Keyframes %t|Off %x0|Second Step %x1|Nearest Second %x2", 
+				"Auto-Snap Keyframes %t|Off %x0|Second Step %x1|Nearest Second %x2|Nearest Marker %x3", 
 				xco,0,70,YIC, &(G.saction->autosnap), 0, 1, 0, 0, 
 				"Auto-snapping mode for keyframes when transforming");
 	}
 	else {
 		uiDefButS(block, MENU, B_REDR, 
-				"Auto-Snap Keyframes %t|Off %x0|Frame Step %x1|Nearest Frame %x2", 
+				"Auto-Snap Keyframes %t|Off %x0|Frame Step %x1|Nearest Frame %x2|Nearest Marker %x3", 
 				xco,0,70,YIC, &(G.saction->autosnap), 0, 1, 0, 0, 
 				"Auto-snapping mode for keyframes when transforming");
 	}
