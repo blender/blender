@@ -119,8 +119,12 @@ void calc_action_range(const struct bAction *act, float *start, float *end, int 
 /**
  * Set the pose channels from the given action.
  */
-void extract_pose_from_action(struct bPose *pose, struct bAction *act,
-                                                  float ctime);
+void extract_pose_from_action(struct bPose *pose, struct bAction *act, float ctime);
+
+/**
+ * Get the effects of the given action using a workob 
+ */
+void what_does_obaction(struct Object *ob, struct bAction *act, float cframe);
 
 /**
  * Iterate through the action channels of the action

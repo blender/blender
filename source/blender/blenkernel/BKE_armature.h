@@ -80,7 +80,7 @@ void make_local_armature(struct bArmature *arm);
 struct bArmature *copy_armature(struct bArmature *arm);
 void bone_flip_name (char *name, int strip_number);
 
-struct bArmature* get_armature (struct Object* ob);
+struct bArmature *get_armature (struct Object *ob);
 struct Bone *get_named_bone (struct bArmature *arm, const char *name);
 
 float distfactor_to_bone (float vec[3], float b1[3], float b2[3], float rad1, float rad2, float rdist);

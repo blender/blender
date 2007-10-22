@@ -1595,13 +1595,13 @@ static uiBlock *add_constraintmenu(void *arg_unused)
 
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_RIGIDBODYJOINT, "Rigid Body Joint", 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");//rcruiz
 
+	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
 	if (ob->flag & OB_POSEMODE) {
-		uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
-		
 		uiDefBut(block, BUTM, B_CONSTRAINT_ADD_KINEMATIC, "IK Solver", 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
-		uiDefBut(block, BUTM, B_CONSTRAINT_ADD_ACTION, "Action", 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
-		
 	}
+	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_ACTION, "Action", 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");
+	
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, 120, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiDefBut(block, BUTM, B_CONSTRAINT_ADD_PYTHON, "Script", 0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 0, "");

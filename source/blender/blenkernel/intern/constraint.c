@@ -1951,21 +1951,12 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 	bActionConstraint *data = con->data;
 	
 	if (VALID_CONS_TARGET(ct)) {
-		bPose *pose;
-		bPoseChannel *pchan, *tchan;
 		float tempmat[4][4], vec[3];
 		float s, t;
 		short axis;
 		
 		/* initialise return matrix */
 		Mat4One(ct->matrix);
-		
-		/* currently, only pose-channels are supported owners for action constraints, as
-		 * the method for extracting the pose from the actions is currently hardcoded for 
-		 * poses... this may change in the future
-		 */
-		if (cob->type != CONSTRAINT_OBTYPE_BONE)
-			return;
 		
 		/* get the transform matrix of the target */
 		constraint_target_to_mat4(ct->tar, ct->subtarget, tempmat, CONSTRAINT_SPACE_WORLD, ct->space);
@@ -2001,22 +1992,34 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 		t = ( s * (data->end-data->start)) + data->start;
 		
 		/* Get the appropriate information from the action */
-			/* a temporary pose is made for this... 
-			 * TODO: extend this to objects too
-			 */
-		pose = MEM_callocN(sizeof(bPose), "pose");
-		
-		pchan = cob->pchan;
-		tchan= verify_pose_channel(pose, pchan->name);
-		extract_pose_from_action(pose, data->act, t);
-		
-		chan_calc_mat(tchan);
-		
-		Mat4CpyMat4(ct->matrix, tchan->chan_mat);
-		
-		/* Clean up */
-		free_pose_channels(pose);
-		MEM_freeN(pose);
+		if (cob->type == CONSTRAINT_OBTYPE_BONE) {
+			bPose *pose;
+			bPoseChannel *pchan, *tchan;
+			
+			/* make a temporary pose and evaluate using that */
+			pose = MEM_callocN(sizeof(bPose), "pose");
+			
+			pchan = cob->pchan;
+			tchan= verify_pose_channel(pose, pchan->name);
+			extract_pose_from_action(pose, data->act, t);
+			
+			chan_calc_mat(tchan);
+			
+			Mat4CpyMat4(ct->matrix, tchan->chan_mat);
+			
+			/* Clean up */
+			free_pose_channels(pose);
+			MEM_freeN(pose);
+		}
+		else if (cob->type == CONSTRAINT_OBTYPE_OBJECT) {
+			/* evaluate using workob */
+			what_does_obaction(cob->ob, data->act, t);
+			object_to_mat4(&workob, ct->matrix);
+		}
+		else {
+			/* behaviour undefined... */
+			puts("Error: unknown owner type for Action Constraint");
+		}
 	}
 }
 

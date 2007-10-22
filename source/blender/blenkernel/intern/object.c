@@ -1838,7 +1838,6 @@ for a lamp that is the child of another object */
 /* for calculation of the inverse parent transform, only used for editor */
 void what_does_parent(Object *ob)
 {
-
 	clear_workob();
 	Mat4One(workob.obmat);
 	Mat4One(workob.parentinv);
@@ -1857,7 +1856,7 @@ void what_does_parent(Object *ob)
 	workob.constraints.first = ob->constraints.first;
 	workob.constraints.last = ob->constraints.last;
 
-	strcpy (workob.parsubstr, ob->parsubstr); 
+	strcpy(workob.parsubstr, ob->parsubstr); 
 
 	where_is_object(&workob);
 }
