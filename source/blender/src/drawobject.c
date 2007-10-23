@@ -1461,7 +1461,7 @@ static void draw_dm_verts__mapFunc(void *userData, int index, float *co, float *
 			
 			bglEnd();
 			
-			glPointSize(size+3);
+			glPointSize(size);
 			bglBegin(GL_POINTS);
 			bglVertex3fv(co);
 			bglEnd();
