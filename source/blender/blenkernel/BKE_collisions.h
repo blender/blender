@@ -89,7 +89,8 @@ CollisionPair;
 /////////////////////////////////////////////////
 
 // builds bounding volume hierarchy
-BVH *bvh_build (MFace *mfaces, unsigned int numfaces, MVert *x, MVert *xnew, unsigned int numverts, float epsilon);
+BVH *bvh_build_from_mvert (MFace *mfaces, unsigned int numfaces, MVert *x, unsigned int numverts, float epsilon);
+
 // frees the same
 void bvh_free ( BVH *bvh );
 
@@ -97,7 +98,7 @@ void bvh_free ( BVH *bvh );
 int bvh_traverse(CollisionTree *tree1, CollisionTree *tree2, LinkNode *collision_list);
 
 // update bounding volumes, needs updated positions in bvh->x
-void bvh_update(BVH * bvh, int moving);
+void bvh_update_from_mvert(BVH * bvh, MVert *x, unsigned int numverts, MVert *xnew, int moving);
 
 LinkNode *BLI_linklist_append_fast (LinkNode **listp, void *ptr);
 

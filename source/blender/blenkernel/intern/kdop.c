@@ -330,6 +330,11 @@ void bvh_free(BVH * bvh)
 		BLI_linklist_free(bvh->tree,NULL); 
 		bvh->tree = NULL;
 		
+		if(bvh->x)
+			MEM_freeN(bvh->x);
+		if(bvh->xnew)
+			MEM_freeN(bvh->xnew);
+		
 		MEM_freeN(bvh);
 		bvh = NULL;
 	}
@@ -520,44 +525,14 @@ static void bvh_div_env_node(BVH * bvh, TreeNode *tree, CollisionTree **face_lis
 
 // mfaces is allowed to be null
 // just vertexes are used if mfaces=NULL
-BVH *bvh_build (MFace *mfaces, unsigned int numfaces, MVert *x, MVert *xnew, unsigned int numverts, float epsilon)
+BVH *bvh_build (BVH *bvh, MFace *mfaces, unsigned int numfaces)
 {
 	unsigned int i = 0, j = 0;
 	CollisionTree **face_list=NULL;
-	BVH	*bvh=NULL;
 	CollisionTree *tree=NULL;
 	LinkNode *nlink = NULL;
 	MFace *mface = NULL;
 	
-	bvh = MEM_callocN(sizeof(BVH), "BVH");
-	if (bvh == NULL) 
-	{
-		printf("bvh: Out of memory.\n");
-		return NULL;
-	}
-	
-	bvh->flags = 0;
-	bvh->leaf_tree = NULL;
-	bvh->leaf_root = NULL;
-	bvh->tree = NULL;
-
-	bvh->epsilon = epsilon;
-	bvh->numfaces = numfaces;
-	mface = bvh->mfaces = mfaces;
-	
-	// we have no faces, we save seperate points
-	if(!bvh->mfaces)
-	{
-		bvh->numfaces = numverts;
-	}
-
-	bvh->numverts = numverts;
-	bvh->xnew = xnew;	
-	bvh->x = x;	
-	tree = (CollisionTree *)MEM_callocN(sizeof(CollisionTree), "CollisionTree");
-	// TODO: check succesfull alloc
-	BLI_linklist_append(&bvh->tree, tree);
-
 	nlink = bvh->tree;
 
 	if (tree == NULL) 
@@ -684,6 +659,46 @@ BVH *bvh_build (MFace *mfaces, unsigned int numfaces, MVert *x, MVert *xnew, uns
 	
 
 	return bvh;
+}
+
+BVH *bvh_build_from_mvert (MFace *mfaces, unsigned int numfaces, MVert *x, unsigned int numverts, float epsilon)
+{
+	unsigned int i = 0, j = 0;
+	CollisionTree **face_list=NULL;
+	BVH	*bvh=NULL;
+	CollisionTree *tree=NULL;
+	LinkNode *nlink = NULL;
+	MFace *mface = NULL;
+	
+	bvh = MEM_callocN(sizeof(BVH), "BVH");
+	if (bvh == NULL) 
+	{
+		printf("bvh: Out of memory.\n");
+		return NULL;
+	}
+	
+	bvh->flags = 0;
+	bvh->leaf_tree = NULL;
+	bvh->leaf_root = NULL;
+	bvh->tree = NULL;
+
+	bvh->epsilon = epsilon;
+	bvh->numfaces = numfaces;
+	
+	// we have no faces, we save seperate points
+	if(!mfaces)
+	{
+		bvh->numfaces = numverts;
+	}
+
+	bvh->numverts = numverts;
+	bvh->xnew = MEM_dupallocN(x);	
+	bvh->x = MEM_dupallocN(x);	
+	tree = (CollisionTree *)MEM_callocN(sizeof(CollisionTree), "CollisionTree");
+	// TODO: check succesfull alloc
+	BLI_linklist_append(&bvh->tree, tree);
+	
+	return bvh_build(bvh, mfaces, numfaces);
 }
 
 // bvh_overlap - is it possbile for 2 bv's to collide ?
@@ -848,5 +863,22 @@ void bvh_update(BVH * bvh, int moving)
 
 		}
 	}	
+}
+
+void bvh_update_from_mvert(BVH * bvh, MVert *x, unsigned int numverts, MVert *xnew, int moving)
+{
+	if(!bvh)
+		return;
+	
+	if(numverts!=bvh->numverts)
+		return;
+	
+	if(x)
+		memcpy(bvh->x, x, sizeof(MVert) * numverts);
+	
+	if(xnew)
+		memcpy(bvh->xnew, xnew, sizeof(MVert) * numverts);
+	
+	bvh_update(bvh, moving);
 }
 

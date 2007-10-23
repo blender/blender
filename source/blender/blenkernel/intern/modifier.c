@@ -5066,7 +5066,7 @@ static void collisionModifier_deformVerts(
 				
 				// TODO: epsilon
 				// create bounding box hierarchy
-				collmd->tree = bvh_build(dm->getFaceArray(dm), dm->getNumFaces(dm), collmd->current_x, collmd->current_xnew,  numverts, ob->pd->pdef_sbift);
+				collmd->tree = bvh_build_from_mvert(dm->getFaceArray(dm), dm->getNumFaces(dm), collmd->current_x, numverts, ob->pd->pdef_sbift);
 			}
 			else if(numverts == collmd->numverts)
 			{
@@ -5086,7 +5086,8 @@ static void collisionModifier_deformVerts(
 				memcpy(collmd->current_xnew, dm->getVertArray(dm), numverts*sizeof(MVert));
 				memcpy(collmd->current_x, dm->getVertArray(dm), numverts*sizeof(MVert));
 				
-				bvh_update(collmd->tree, 0); // recalc static bounding boxes
+				// recalc static bounding boxes
+				bvh_update_from_mvert(collmd->tree, collmd->current_x, numverts, NULL, 0);
 			}
 			
 			collmd->time = current_time;

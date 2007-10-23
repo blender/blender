@@ -3268,38 +3268,29 @@ static void object_panel_cloth_II(Object *ob)
 static void object_panel_cloth_III(Object *ob)
 {
 	uiBlock *block;
-	static int val;
-	uiBut *but;
 	ClothModifierData *clmd = NULL;
 	
 	clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
 	if(clmd)
-	{
-		if (!(clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ))
-		{
-			Cloth *cloth = clmd->clothObject;
-			char str[128];
-			
-			block= uiNewBlock(&curarea->uiblocks, "object_panel_cloth_III", UI_EMBOSS, UI_HELV, curarea->win);
-			uiNewPanelTabbed("Cloth", "Physics");
-			if(uiNewPanel(curarea, block, "Cloth Collisions", "Physics", 651, 0, 318, 204)==0) return;
+	{	
+		block= uiNewBlock(&curarea->uiblocks, "object_panel_cloth_III", UI_EMBOSS, UI_HELV, curarea->win);
+		uiNewPanelTabbed("Cloth", "Physics");
+		if(uiNewPanel(curarea, block, "Cloth Collisions", "Physics", 651, 0, 318, 204)==0) return;
+	
+		uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 		
-			uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
-			
-			uiBlockBeginAlign(block);
-			uiDefButBitI(block, TOG, CLOTH_COLLISIONSETTINGS_FLAG_ENABLED, REDRAWVIEW3D, "Enable collisions",	10,70,130,20, &clmd->coll_parms.flags, 0, 0, 0, 0, "Enable collisions with this object");
-			if (clmd->coll_parms.flags & CLOTH_COLLISIONSETTINGS_FLAG_ENABLED)
-			{
-				// uiDefBut(block, LABEL, 0, "",10,10,300,20, NULL, 0.0, 0, 0, 0, ""); /* tell UI we go to 10,10*/
-				uiDefButF(block, NUM, B_CLOTH_RENEW, "Min Distance:",	   10,30,150,20, &clmd->coll_parms.epsilon, 0.001f, 1.0, 0.01f, 0, "Minimum distance between collision objects before collision response takes in");
-				uiDefBut(block, LABEL, 0, "",160,30,150,20, NULL, 0.0, 0, 0, 0, "");
-			}
-			else
-				uiDefBut(block, LABEL, 0, "",140,10,170,20, NULL, 0.0, 0, 0, 0, "");
-			uiBlockEndAlign(block);
+		uiBlockBeginAlign(block);
+		uiDefButBitI(block, TOG, CLOTH_COLLISIONSETTINGS_FLAG_ENABLED, REDRAWVIEW3D, "Enable collisions",	10,70,130,20, &clmd->coll_parms.flags, 0, 0, 0, 0, "Enable collisions with this object");
+		if (clmd->coll_parms.flags & CLOTH_COLLISIONSETTINGS_FLAG_ENABLED)
+		{
+			// uiDefBut(block, LABEL, 0, "",10,10,300,20, NULL, 0.0, 0, 0, 0, ""); /* tell UI we go to 10,10*/
+			uiDefButF(block, NUM, B_CLOTH_RENEW, "Min Distance:",	   10,30,150,20, &clmd->coll_parms.epsilon, 0.001f, 1.0, 0.01f, 0, "Minimum distance between collision objects before collision response takes in");
+			uiDefBut(block, LABEL, 0, "",160,30,150,20, NULL, 0.0, 0, 0, 0, "");
 		}
+		else
+			uiDefBut(block, LABEL, 0, "",140,10,170,20, NULL, 0.0, 0, 0, 0, "");
+		uiBlockEndAlign(block);
 	}
-	// uiBlockEndAlign(block);
 }
 
 
