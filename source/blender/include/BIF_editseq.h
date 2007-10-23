@@ -76,7 +76,7 @@ void				select_dir_from_last(int lr);
 void				select_neighbor_from_last(int lr);
 void				select_linked_seq(int mode);
 struct Sequence*	alloc_sequence(ListBase *lb, int cfra, int machine); /*used from python*/
-int 				check_single_image_seq(struct Sequence *seq);
+int 				check_single_seq(struct Sequence *seq);
 
 /* sequence transform functions, for internal used */
 int seq_tx_get_start(struct Sequence *seq);
