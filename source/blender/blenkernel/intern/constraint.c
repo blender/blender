@@ -1804,15 +1804,13 @@ static bConstraintTypeInfo CTI_SIZELIKE = {
 static void pycon_free (bConstraint *con)
 {
 	bPythonConstraint *data= con->data;
-	bConstraintTarget *ct;
 	
 	/* id-properties */
 	IDP_FreeProperty(data->prop);
 	MEM_freeN(data->prop);
 	
 	/* multiple targets */
-	while ( (ct = data->targets.first) ) 
-		MEM_freeN(ct);
+	BLI_freelistN(&data->targets);
 }	
 
 static void pycon_relink (bConstraint *con)

@@ -1188,11 +1188,11 @@ void BPY_pyconstraint_update(Object *owner, bConstraint *con)
 		/* script does exist. it is assumed that this is a valid pyconstraint script */
 		PyObject *globals;
 		PyObject *retval, *gval;
-		int num;
+		int num, i;
 		
-		/* clear the flag first */
+		/* clear the relevant flags first */
 		data->flag = 0;
-		
+				
 		/* populate globals dictionary */
 		globals = CreateGlobalDictionary();
 		retval = RunPython(data->text, globals);
@@ -1222,18 +1222,23 @@ void BPY_pyconstraint_update(Object *owner, bConstraint *con)
 			/* check if the number of targets has changed */
 			if (num < data->tarnum) {
 				/* free a few targets */
-				for (ct=data->targets.last; num > -1; num--, ct=data->targets.last, data->tarnum--)
+				num= data->tarnum - num;
+				for (i = 0; i < num; i++, data->tarnum--) {
+					ct= data->targets.last;
 					BLI_freelinkN(&data->targets, ct);
+				}
 			}
 			else if (num > data->tarnum) {
 				/* add a few targets */
-				for ( ; num > -1; num--, data->tarnum++) {
+				num = num - data->tarnum;
+				for (i = 0; i < num; i++, data->tarnum++) {
 					ct= MEM_callocN(sizeof(bConstraintTarget), "PyConTarget");
 					BLI_addtail(&data->targets, ct);
 				}
 			}
 			
 			/* validate targets */
+			con->flag &= ~CONSTRAINT_DISABLE;
 			for (ct= data->targets.first; ct; ct= ct->next) {
 				if (!exist_object(ct->tar)) {
 					ct->tar = NULL;
@@ -1241,11 +1246,11 @@ void BPY_pyconstraint_update(Object *owner, bConstraint *con)
 					break;
 				}
 				
-				if ( (ct->tar == owner) &&
-					 (!get_named_bone(get_armature(owner), ct->subtarget)) ) 
-				{
-					con->flag |= CONSTRAINT_DISABLE;
-					break;
+				if ((ct->tar == owner) && (ct->subtarget[0] != 0)) {
+					if (get_named_bone(get_armature(owner), ct->subtarget) == NULL) {
+						con->flag |= CONSTRAINT_DISABLE;
+						break;
+					}
 				}
 			}
 			
@@ -1268,6 +1273,7 @@ void BPY_pyconstraint_update(Object *owner, bConstraint *con)
 		/* no script, so clear any settings/data now */
 		data->tarnum = 0;
 		data->flag = 0;
+		con->flag &= ~CONSTRAINT_DISABLE;
 		
 		BLI_freelistN(&data->targets);
 		

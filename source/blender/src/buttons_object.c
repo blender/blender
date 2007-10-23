@@ -583,21 +583,21 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 						
 						/* target label */
 						sprintf(tarstr, "Target %02d:", tarnum);
-						uiDefBut(block, LABEL, B_CONSTRAINT_TEST, tarstr, *xco+60, *yco-(48+yoffset), 55, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+						uiDefBut(block, LABEL, B_CONSTRAINT_TEST, tarstr, *xco+45, *yco-(48+yoffset), 60, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 						
 						/* target space-selector - per target */
 						if (is_armature_target(ct->tar)) {
 							uiDefButS(block, MENU, B_CONSTRAINT_TEST, "Target Space %t|World Space %x0|Pose Space %x3|Local with Parent %x4|Local Space %x1", 
-															*xco+60, *yco-(66+yoffset), 55, 18, &ct->space, 0, 0, 0, 0, "Choose space that target is evaluated in");	
+															*xco+10, *yco-(66+yoffset), 100, 18, &ct->space, 0, 0, 0, 0, "Choose space that target is evaluated in");	
 						}
 						else {
 							uiDefButS(block, MENU, B_CONSTRAINT_TEST, "Target Space %t|World Space %x0|Local (Without Parent) Space %x1", 
-															*xco+60, *yco-(66+yoffset), 55, 18, &ct->space, 0, 0, 0, 0, "Choose space that target is evaluated in");	
+															*xco+10, *yco-(66+yoffset), 100, 18, &ct->space, 0, 0, 0, 0, "Choose space that target is evaluated in");	
 						}
 						
 						uiBlockBeginAlign(block);
 							/* target object */
-							uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-48, 150, 18, &ct->tar, "Target Object"); 
+							uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-(48+yoffset), 150, 18, &ct->tar, "Target Object"); 
 							
 							/* subtarget */
 							if (is_armature_target(ct->tar)) {
