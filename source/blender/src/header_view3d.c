@@ -2989,6 +2989,9 @@ static void do_view3d_edit_meshmenu(void *arg, int event)
 		if(session) b_verse_push_object(session, G.obedit);
 		break;
 #endif
+	case 15:
+		uv_autocalc_tface();
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -3024,6 +3027,10 @@ static uiBlock *view3d_edit_meshmenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Insert Keyframe|I",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+	
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "UV Unwrap|U",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 15, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
@@ -3248,6 +3255,9 @@ static void do_view3d_edit_curvemenu(void *arg, int event)
 		initTransform(TFM_WARP, CTX_NONE);
 		Transform();
 		break;
+	case 15:
+		uv_autocalc_tface();
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -3272,6 +3282,10 @@ static uiBlock *view3d_edit_curvemenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Insert Keyframe|I",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "UV Unwrap|U",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 15, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
@@ -3368,6 +3382,9 @@ static void do_view3d_edit_metaballmenu(void *arg, int event)
 		break;
 	case 7: /* Transform Properties */
 		add_blockhandler(curarea, VIEW3D_HANDLER_OBJECT, 0);
+		break;	
+	case 8:
+		uv_autocalc_tface();
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -3393,6 +3410,10 @@ static uiBlock *view3d_edit_metaballmenu(void *arg_unused)
 	uiDefIconTextBlockBut(block, view3d_edit_snapmenu, NULL, ICON_RIGHTARROW_THIN, "Snap", 0, yco-=20, 120, 19, "");
 	
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "UV Unwrap|U",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 8, "");
+	
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Duplicate|Shift D", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete...|X", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
@@ -3578,6 +3599,9 @@ static void do_view3d_edit_latticemenu(void *arg, int event)
 		if(G.scene->proportional) G.scene->proportional= 0;
 		else G.scene->proportional= 1;
 		break;
+	case 6:
+		uv_autocalc_tface();
+		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -3601,6 +3625,10 @@ static uiBlock *view3d_edit_latticemenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Insert Keyframe|I",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "UV Unwrap|U",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
@@ -3734,6 +3762,9 @@ static void do_view3d_edit_armaturemenu(void *arg, int event)
 	case 17: /* move to layer */
 		pose_movetolayer();
 		break;
+	case 18:
+		uv_autocalc_tface();
+		break;
 	}
 	
 	allqueue(REDRAWVIEW3D, 0);
@@ -3816,6 +3847,10 @@ static uiBlock *view3d_edit_armaturemenu(void *arg_unused)
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Switch Armature Layers|Shift M", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Move Bone To Layer|M",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 17, "");
+	
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "UV Unwrap|U",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 18, "");
 	
 	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
@@ -4932,6 +4967,7 @@ static void view3d_header_pulldowns(uiBlock *block, short *xcoord)
 			uiDefPulldownBut(block, view3d_edit_armaturemenu, NULL, "Armature",	xco,-2, xmax-3, 24, "");
 			xco+= xmax;
 		}
+		
 	}
 	else if (G.f & G_WEIGHTPAINT) {
 		xmax= GetButStringLength("Paint");
