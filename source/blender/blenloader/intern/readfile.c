@@ -6781,6 +6781,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Scene *sce;
 		for(sce= main->scene.first; sce; sce=sce->id.next) {
 			sce->r.fg_stamp[0] = sce->r.fg_stamp[1] = sce->r.fg_stamp[2] = 0.8;
+			sce->r.fg_stamp[3] = 1.0; /* dont use text alpha yet */
+			sce->r.bg_stamp[3] = 0.25; /* make sure the background has full alpha */
 		}
 	}
 

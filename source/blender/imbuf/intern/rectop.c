@@ -524,7 +524,7 @@ void IMB_rectfill(struct ImBuf *drect, float col[4])
 void IMB_rectfill_area(struct ImBuf *ibuf, float *col, int x1, int y1, int x2, int y2)
 {
 	int i, j;
-	
+	float a, ai;
 	if ((!ibuf) || (!col))
 		return;
 	
@@ -538,6 +538,9 @@ void IMB_rectfill_area(struct ImBuf *ibuf, float *col, int x1, int y1, int x2, i
 	if (y1>y2) SWAP(int,y1,y2);
 	if (x1==x2 || y1==y2) return;
 	
+	a = col[3];
+	ai = 1-a;
+	
 	if (ibuf->rect) {
 		unsigned char *img, *pixel; 
 		unsigned char chr, chg, chb;
@@ -550,9 +553,16 @@ void IMB_rectfill_area(struct ImBuf *ibuf, float *col, int x1, int y1, int x2, i
 		for (j = 0; j < y2-y1; j++) {
 			for (i = 0; i < x2-x1; i++) {
 				pixel = img + 4 * (((y1 + j) * ibuf->x) + (x1 + i));
-				pixel[0] = chr;
-				pixel[1] = chg;
-				pixel[2] = chb;
+				if (a == 1.0) {
+					pixel[0] = chr;
+					pixel[1] = chg;
+					pixel[2] = chb;
+				} else {
+					pixel[0] = (char)((chr*a) + (pixel[0]*ai));
+					pixel[1] = (char)((chg*a) + (pixel[1]*ai));
+					pixel[2] = (char)((chb*a) + (pixel[2]*ai));
+				}
+				
 			}
 		}
 	}
@@ -563,9 +573,15 @@ void IMB_rectfill_area(struct ImBuf *ibuf, float *col, int x1, int y1, int x2, i
 		for (j = 0; j < y2-y1; j++) {
 			for (i = 0; i < x2-x1; i++) {
 				pixel = img + 4 * (((y1 + j) * ibuf->x) + (x1 + i));
-				pixel[0] = col[0];
-				pixel[1] = col[1];
-				pixel[2] = col[2];
+				if (a == 1.0) {
+					pixel[0] = col[0];
+					pixel[1] = col[1];
+					pixel[2] = col[2];
+				} else {
+					pixel[0] = (col[0]*a) + (pixel[0]*ai);
+					pixel[1] = (col[1]*a) + (pixel[1]*ai);
+					pixel[2] = (col[2]*a) + (pixel[2]*ai);
+				}
 			}
 		}
 	}
