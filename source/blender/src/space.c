@@ -2398,7 +2398,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					}
 				}*/
 				if(G.obedit) {
-					if(G.qual==0) {
+					if(G.obedit->type==OB_MESH && G.qual==0) {
 						uv_autocalc_tface();
 					}
 				}
