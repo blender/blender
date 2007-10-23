@@ -4317,7 +4317,7 @@ void draw_object(Base *base, int flag)
 				ListBase targets = {NULL, NULL};
 				bConstraintTarget *ct;
 				
-				if ((curcon->flag & CONSTRAINT_EXPAND) && (cti->get_constraint_targets)) {
+				if ((curcon->flag & CONSTRAINT_EXPAND) && (cti) && (cti->get_constraint_targets)) {
 					cti->get_constraint_targets(curcon, &targets);
 					
 					for (ct= targets.first; ct; ct= ct->next) {

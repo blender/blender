@@ -482,12 +482,14 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 
 	cti= constraint_get_typeinfo(con);
 	if (cti == NULL) {
-		printf("Argh! No valid constraint type-info... aborting constraint drawing. \n");
-		return;
+		/* exception for 'Null' constraint - it doesn't have constraint typeinfo! */
+		if (con->type == CONSTRAINT_TYPE_NULL)
+			strcpy(typestr, "Null");
+		else
+			strcpy(typestr, "Unknown");
 	}
-	else {
+	else
 		strcpy(typestr, cti->name);
-	}
 		
 	/* unless button has own callback, it adds this callback to button */
 	uiBlockSetFunc(block, constraint_active_func, ob, con);
@@ -1398,10 +1400,10 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiBlockEndAlign(block);
 				
 				/* Extra Options Controlling Behaviour */
-				uiBlockBeginAlign(block);
-					uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Options:", *xco, *yco-86, 90, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-					uiDefButBitI(block, TOG, CLAMPTO_CYCLIC, B_CONSTRAINT_TEST, "Cyclic", *xco+((width/2)), *yco-86,60,19, &data->flag2, 0, 0, 0, 0, "Treat curve as cyclic curve (no clamping to curve bounding box)");
-				uiBlockEndAlign(block);
+				//uiBlockBeginAlign(block);
+					uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Options:", *xco, *yco-88, 90, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+					uiDefButBitI(block, TOG, CLAMPTO_CYCLIC, B_CONSTRAINT_TEST, "Cyclic", *xco+((width/2)), *yco-88,60,19, &data->flag2, 0, 0, 0, 0, "Treat curve as cyclic curve (no clamping to curve bounding box)");
+				//uiBlockEndAlign(block);
 			}
 			break;
 		case CONSTRAINT_TYPE_TRANSFORM:
@@ -1639,7 +1641,7 @@ void do_constraintbuts(unsigned short event)
 		{
 			con = add_new_constraint(CONSTRAINT_TYPE_NULL);
 			add_constraint_to_active(ob, con);
-
+			
 			BIF_undo_push("Add constraint");
 		}
 		break;
