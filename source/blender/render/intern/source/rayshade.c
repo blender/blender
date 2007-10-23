@@ -641,7 +641,7 @@ static void halton_sample(double *ht_invprimes, double *ht_nums, double *v)
 	
 	for (i = 0; i < 2; i++)
 	{
-		double r = (1.0 - ht_nums[i]) - 1e-10;
+		double r = fabs((1.0 - ht_nums[i]) - 1e-10);
 		
 		if (ht_invprimes[i] >= r)
 		{
