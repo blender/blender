@@ -933,8 +933,8 @@ void nurbs_to_mesh(Object *ob)
 			index= dl->index;
 			while(a--) {
 				mface->v1= startvert+index[0];
-				mface->v2= startvert+index[1];
-				mface->v3= startvert+index[2];
+				mface->v2= startvert+index[2];
+				mface->v3= startvert+index[1];
 				mface->v4= 0;
 				test_index_face(mface, NULL, 0, 3);
 				
