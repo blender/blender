@@ -743,8 +743,297 @@ BME_Poly *EditBME_FindNearestPoly(int *dist)
 	}
 }
 
-void undo_push_mesh(char *str)
+
+
+/*Undo stuff. Put in own file... except the 'common' stuff... that belong in conversions for editmode..... unify code.*/
+typedef struct UndoMesh {
+	struct MVert *mvert;
+	struct MEdge *medge;
+	struct MLoop *mloop; 
+	struct MPoly *mpoly;
+	struct MSelect *mselect;
+	struct CustomData vdata, edata, ldata, pdata;
+	int totvert, totedge, totselect, totloop, totpoly;
+} UndoMesh;
+
+#define BME_MVERT 1
+#define BME_MEDGE 2 
+#define BME_MLOOP 3
+#define BME_MPOLY 4
+#define BME_MSELECT 5
+#define BME_CDVDATA 6
+#define BME_CDEDATA 7
+#define BME_CDLDATA 8
+#define BME_CDPDATA 9
+#define BME_TOTVERT 10
+#define BME_TOTEDGE 11
+#define BME_TOTLOOP 12
+#define BME_TOTPOLY 13
+
+static void *BME_getMeshPointer(void *mesh, int undomesh, int type){
+	switch(type){
+		case BME_MVERT:
+			if(undomesh) return ((UndoMesh*)(mesh))->mvert;
+			return ((Mesh*)(mesh))->mvert;
+			break;
+		case BME_MEDGE:
+			if(undomesh) return ((UndoMesh*)(mesh))->medge;
+			return ((Mesh*)(mesh))->medge;
+			break;
+		case BME_MLOOP:
+			if(undomesh) return ((UndoMesh*)(mesh))->mloop;
+			return ((Mesh*)(mesh))->mloop;
+			break;
+		case BME_MPOLY:
+			if(undomesh) return ((UndoMesh*)(mesh))->mpoly;
+			return ((Mesh*)(mesh))->mpoly;
+			break;
+		case BME_MSELECT:
+			if(undomesh) return ((UndoMesh*)(mesh))->mselect;
+			return ((Mesh*)(mesh))->mselect;
+			break;
+		case BME_CDVDATA:
+			if(undomesh) return &(((UndoMesh*)(mesh))->vdata);
+			return &(((Mesh*)(mesh))->vdata);
+			break;
+		case BME_CDEDATA:
+			if(undomesh) return &(((UndoMesh*)(mesh))->edata);
+			return &(((Mesh*)(mesh))->edata);
+			break;
+		case BME_CDLDATA:
+			if(undomesh) return &(((UndoMesh*)(mesh))->ldata);
+			return &(((Mesh*)(mesh))->ldata);			
+			break;
+		case BME_CDPDATA:
+			if(undomesh) return &(((UndoMesh*)(mesh))->pdata); 
+			return &(((Mesh*)(mesh))->pdata);			
+			break;
+		case BME_TOTVERT:
+			if(undomesh) return ((UndoMesh*)(mesh))->totvert;
+			return ((Mesh*)(mesh))->totvert;
+			break;
+		case BME_TOTEDGE:
+			if(undomesh) return ((UndoMesh*)(mesh))->totedge;
+			return ((Mesh*)(mesh))->totedge;
+			break;
+		case BME_TOTLOOP:
+			if(undomesh) return ((UndoMesh*)(mesh))->totloop;
+			return ((Mesh*)(mesh))->totloop;
+			break;
+		case BME_TOTPOLY:
+			if(undomesh) return ((UndoMesh*)(mesh))->totpoly;
+			return ((Mesh*)(mesh))->totpoly;
+			break;			
+	}
+}
+
+
+static BME_Mesh *BME_FromMesh__common(void *me, int undo)
 {
+	BME_Mesh *bmesh = BME_make_mesh();
+	MPoly *mpoly;
+	MLoop *mloop, *mlooparr;
+	MEdge *medge;
+	MVert *mvert;
+	BME_Vert **vert_table;
+	BME_Edge **edge_table;
+	BME_Poly *poly;
+	PointerArray edgearr = {0};
+	CustomData *vdata, *edata, *ldata, *pdata;
+	int i, j, totvert, totedge, totloop, totpoly;
+	
+	
+	BME_model_begin(bmesh);
+	bmesh->selectmode = G.scene->selectmode;
+	
+	vdata = BME_getMeshPointer(me,undo,BME_CDVDATA);
+	edata = BME_getMeshPointer(me,undo,BME_CDEDATA);
+	ldata = BME_getMeshPointer(me,undo,BME_CDLDATA);
+	pdata = BME_getMeshPointer(me,undo,BME_CDPDATA);	
+	
+	totvert = ((int)(BME_getMeshPointer(me,undo,BME_TOTVERT)));
+	totedge = ((int)(BME_getMeshPointer(me,undo,BME_TOTEDGE)));
+	totloop = ((int)(BME_getMeshPointer(me,undo,BME_TOTLOOP)));
+	totpoly = ((int)(BME_getMeshPointer(me,undo,BME_TOTPOLY)));	
+	
+	vert_table = MEM_callocN(sizeof(void*)*totvert, "vert table");
+	edge_table = MEM_callocN(sizeof(void*)*totedge, "edge table");
+	
+	CustomData_copy(vdata, &bmesh->vdata, CD_MASK_EDITMESH, CD_CALLOC, 0);
+	
+	mvert=BME_getMeshPointer(me,undo,BME_MVERT);
+	for (i=0; i < totvert; i++, mvert++) {
+		vert_table[i] = BME_MV(bmesh, mvert->co);
+		vert_table[i]->no[0] = (float)mvert->no[0] / 32767.0f;
+		vert_table[i]->no[1] = (float)mvert->no[1] / 32767.0f;
+		vert_table[i]->no[2] = (float)mvert->no[2] / 32767.0f;
+
+		vert_table[i]->flag = mvert->flag;
+		CustomData_to_em_block(vdata, &bmesh->vdata, i, &vert_table[i]->data);
+	}
+
+	
+	medge=BME_getMeshPointer(me,undo,BME_MEDGE);
+	for (i=0; i<totedge; i++, medge++) {
+		edge_table[i] = BME_ME(bmesh, vert_table[medge->v1], vert_table[medge->v2]);
+		edge_table[i]->flag = medge->flag;
+	}
+	
+	CustomData_copy(pdata, &bmesh->pdata, CD_MASK_EDITMESH, CD_CALLOC, 0);
+	
+	mpoly=BME_getMeshPointer(me,undo,BME_MPOLY);
+	mlooparr=BME_getMeshPointer(me,undo,BME_MLOOP);
+	for (i=0; i<totpoly; i++, mpoly++) {
+		mloop = &(mlooparr[mpoly->firstloop]);
+		for (j=0; j<mpoly->totloop; j++) {
+			/*hrm. . . a simple scratch pointer array of, oh 6000 length might be better here.*/
+			PA_AddToArray(&edgearr, edge_table[mloop->edge], j);
+			mloop++;
+		}		
+		mloop = &(mlooparr[mpoly->firstloop]);
+		poly = BME_MF(bmesh, vert_table[mloop->v],vert_table[(mloop+1)->v],(BME_Edge**)edgearr.array, j);
+		poly->flag = mpoly->flag;
+		if (!poly) {
+			printf("EVIL POLY NOT CREATED!! EVVVIILL!!\n");
+			PA_FreeArray(&edgearr); /*basically sets array length to NULL*/
+			return bmesh;
+		}
+		PA_FreeArray(&edgearr); /*basically sets array length to NULL*/
+		CustomData_to_em_block(pdata, &bmesh->pdata, i, &poly->data);
+	}
+	
+	/*remember to restore loop data here, including custom data!*/
+	
+	if (vert_table) MEM_freeN(vert_table);
+	if (edge_table) MEM_freeN(edge_table);
+	
+	BME_model_end(bmesh);
+	return bmesh;
+}
+
+void BME_ToMesh__common(BME_Mesh *bm, void *me, int undo)
+{
+	MPoly *mpoly;
+	MLoop *mloop;
+	MEdge *medge;
+	MVert *mvert;
+	BME_Vert *v;
+	BME_Edge *e;
+	BME_Loop *l;
+	BME_Poly *f;
+	CustomData *vdata, *edata, *ldata, *pdata;
+	int i, j, curloop=0;
+	short no[3];
+
+	vdata = BME_getMeshPointer(me,undo,BME_CDVDATA);
+	edata = BME_getMeshPointer(me,undo,BME_CDEDATA);
+	ldata = BME_getMeshPointer(me,undo,BME_CDLDATA);
+	pdata = BME_getMeshPointer(me,undo,BME_CDPDATA);	
+	
+	mvert=BME_getMeshPointer(me,undo,BME_MVERT);	
+	for (v=BME_first(bm,BME_VERT), i=0; v; i++, v=BME_next(bm,BME_VERT,v), mvert++) {
+		v->tflag1 = i;
+		VECCOPY(mvert->co, v->co);
+
+		no[0] = (short)(v->no[0]*32767.0f);
+		no[1] = (short)(v->no[1]*32767.0f);
+		no[2] = (short)(v->no[2]*32767.0f);
+		VECCOPY(mvert->no, no);
+		CustomData_from_em_block(&bm->vdata, vdata, v->data, i);
+		mvert->flag = v->flag;
+	}
+	
+	/* the edges */
+	medge=BME_getMeshPointer(me,undo,BME_MEDGE);
+	for (e=BME_first(bm,BME_EDGE), i=0; e; i++, e=BME_next(bm,BME_EDGE,e), medge++) {
+		e->tflag1 = i;
+		medge->v1= (unsigned int) e->v1->tflag1;
+		medge->v2= (unsigned int) e->v2->tflag1;
+		
+		medge->flag= (e->flag & SELECT) | ME_EDGERENDER;
+		//if(eed->f2<2) medge->flag |= ME_EDGEDRAW;
+		//f(eed->f2==0) medge->flag |= ME_LOOSEEDGE;
+		//if (eed->sharp) medge->flag |= ME_SHARP;
+		//if (eed->seam) medge->flag |= ME_SEAM;
+		//if (eed->h & EM_FGON) medge->flag |= ME_FGON;	// different defines yes
+		//if (eed->h & 1) medge->flag |= ME_HIDE;
+		
+		medge->crease= (char)(255.0*e->crease);
+	}
+
+	mpoly=BME_getMeshPointer(me,undo,BME_MPOLY);
+	mloop=BME_getMeshPointer(me,undo,BME_MLOOP);
+	
+	for (f=BME_first(bm,BME_POLY), i=0; f; i++, mpoly++, f=BME_next(bm,BME_POLY,f)) {
+		CustomData_from_em_block(&bm->pdata, pdata, f->data, i);
+		mpoly->firstloop = curloop;
+		mpoly->flag = f->flag;
+		mpoly->mat_nr = f->mat_nr;
+		l=f->loopbase;
+		j = 0;
+		do {
+			mloop->v = l->v->tflag1;
+			mloop->poly = i;
+			mloop->edge = l->e->tflag1;
+			mloop++;
+			curloop++;
+			j++;
+			l=l->next;
+		} while (l != f->loopbase);
+		mpoly->totloop = j;
+	}
+}
+
+static void free_undoMesh(void *umv){
+	UndoMesh *um = umv;
+	if(um->totvert) MEM_freeN(um->mvert);
+	if(um->totedge) MEM_freeN(um->medge);
+	if(um->totloop) MEM_freeN(um->mloop);
+	if(um->totpoly) MEM_freeN(um->mpoly);
+	CustomData_free(&um->vdata, um->totvert);
+	CustomData_free(&um->edata, um->totedge);
+	CustomData_free(&um->ldata, um->totloop);
+	CustomData_free(&um->pdata, um->totpoly);
+	MEM_freeN(um);
+}
+static void *editMesh_to_undoMesh(void){
+	UndoMesh *um;
+	BME_Mesh *bm = G.editMesh;
+	
+	um= MEM_callocN(sizeof(UndoMesh), "undomesh");
+	
+	um->totvert = bm->totvert;
+	um->totedge = bm->totedge;
+	um->totloop = bm->totloop;
+	um->totpoly = bm->totpoly;
+	
+	/* malloc blocks */
+	if(um->totvert) um->mvert= MEM_callocN(um->totvert*sizeof(MVert), "Undo Mesh Verts");
+	if(um->totedge) um->medge= MEM_callocN(um->totedge*sizeof(MEdge), "Undo Mesh Edges");
+	if(um->totloop) um->mloop= MEM_callocN(um->totloop*sizeof(MLoop), "Undo Mesh Loops");
+	if(um->totpoly) um->mpoly= MEM_callocN(um->totpoly*sizeof(MPoly), "Undo Mesh Polys");		
+	
+	if(um->totvert) CustomData_copy(&bm->vdata, &um->vdata, CD_MASK_EDITMESH, CD_CALLOC, um->totvert);
+	if(um->totedge) CustomData_copy(&bm->edata, &um->edata, CD_MASK_EDITMESH, CD_CALLOC, um->totedge);
+	if(um->totloop) CustomData_copy(&bm->ldata, &um->ldata, CD_MASK_EDITMESH, CD_CALLOC, um->totloop);
+	if(um->totpoly) CustomData_copy(&bm->pdata, &um->pdata, CD_MASK_EDITMESH, CD_CALLOC, um->totpoly);	
+	
+	BME_ToMesh__common(bm, um, 1);
+	return um;
+}
+static void undoMesh_to_editMesh(void *umv)
+{
+	UndoMesh *um= (UndoMesh*)umv;
+	BME_Mesh *bm= G.editMesh;
+	BME_free_mesh(bm);
+	G.editMesh = BME_FromMesh__common(um, 1);
+}	
+
+
+/* and this is all the undo system needs to know */
+void undo_push_mesh(char *name)
+{
+	undo_editmode_push(name, free_undoMesh, undoMesh_to_editMesh, editMesh_to_undoMesh);
 }
 
 void BME_data_interp_from_verts(BME_Vert *v1, BME_Vert *v2, BME_Vert *eve, float fac)
