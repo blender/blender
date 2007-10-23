@@ -5184,7 +5184,7 @@ void view3d_buttons(void)
 			}
 			xco+= 20;
 		}
-
+		
 		uiDefIconBut(block, BUT, B_VIEWRENDER, ICON_SCENE_DEHLT, xco,0,XIC,YIC, NULL, 0, 1.0, 0, 0, "Render this window (hold CTRL for anim)");
 	
 		if (ob && (ob->flag & OB_POSEMODE)) {

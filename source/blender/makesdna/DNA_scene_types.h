@@ -599,9 +599,11 @@ typedef struct Scene {
 #define SCE_SNAP_TARGET_MEDIAN	2
 
 /* sce->selectmode */
-#define SCE_SELECT_VERTEX	1
+#define SCE_SELECT_VERTEX	1 /* for mesh */
 #define SCE_SELECT_EDGE		2
 #define SCE_SELECT_FACE		4
+
+#define SCE_SELECT_CU_HANDLES_HIDE 8 /* for curve, when flagged hide handles */ 
 
 /* sce->recalc (now in use by previewrender) */
 #define SCE_PRV_CHANGED		1

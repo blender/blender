@@ -2943,13 +2943,16 @@ static void editing_panel_curve_tools1(Object *ob, Curve *cu)
 		uiDefBut(block, BUT, B_SPINNURB, "Spin",	 400,160,150,20, 0, 0, 0, 0, 0, "Spin selected 360 degrees");
 	}
 	uiBlockBeginAlign(block);
-	uiDefBut(block, BUT,B_HIDE,		"Hide",			400,120,150,18, 0, 0, 0, 0, 0, "Hides selected faces");
-	uiDefBut(block, BUT,B_REVEAL,	"Reveal",		400,100,150,18, 0, 0, 0, 0, 0, "Reveals selected faces");
-	uiDefBut(block, BUT,B_SELSWAP,	"Select Swap",	400,80,150,18, 0, 0, 0, 0, 0, "Selects unselected faces, and deselects selected faces");
+	uiDefBut(block, BUT,B_HIDE,		"Hide",			400,140,150,18, 0, 0, 0, 0, 0, "Hides selected faces");
+	uiDefBut(block, BUT,B_REVEAL,	"Reveal",		400,120,150,18, 0, 0, 0, 0, 0, "Reveals selected faces");
+	uiDefBut(block, BUT,B_SELSWAP,	"Select Swap",	400,100,150,18, 0, 0, 0, 0, 0, "Selects unselected faces, and deselects selected faces");
 	uiBlockEndAlign(block);
 
-	uiDefButF(block, NUM,	REDRAWVIEW3D, "NSize:",	400, 40, 150, 19, &G.scene->editbutsize, 0.001, 1.0, 10, 0, "Normal size for drawing");
-
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUM,	REDRAWVIEW3D, "NSize:",	400, 60, 150, 19, &G.scene->editbutsize, 0.001, 1.0, 10, 0, "Normal size for drawing");
+	uiDefButBitI(block, TOGN, SCE_SELECT_CU_HANDLES_HIDE, REDRAWVIEW3D, "Draw Handles", 	400, 40, 150, 19, &G.scene->selectmode, 0, 0, 0, 0, "Draw curve handles in 3D view");
+	uiBlockEndAlign(block);
+	
 	if(G.obedit) {
 		uiBut *but;
 		uiBlockBeginAlign(block);
