@@ -1662,7 +1662,7 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 	float adapt_thresh = lar->adapt_thresh;
 	int max_samples = lar->ray_totsamp;
 	float pos[3];
-	int do_soft=1;
+	int do_soft=1, full_osa=0;
 
 	colsq[0] = colsq[1] = colsq[2] = 0.0;
 	if(isec->mode==RE_RAY_SHADOW_TRA) {
@@ -1671,8 +1671,9 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 		shadfac[3]= 1.0f;
 	
 	if (lar->ray_totsamp < 2) do_soft = 0;
-		
-	if (shi->vlr->flag & R_FULL_OSA) {
+	if ((R.r.mode & R_OSA) && (R.osa > 0) && (shi->vlr->flag & R_FULL_OSA)) full_osa = 1;
+	
+	if (full_osa) {
 		if (do_soft) max_samples  = max_samples/R.osa + 1;
 		else max_samples = 1;
 	} else {
@@ -1702,7 +1703,7 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 		 * based on the pre-generated OSA texture sampling offsets, 
 		 * for anti-aliasing sharp shadow edges. */
 		VECCOPY(pos, shi->co);
-		if (shi->vlr && ((shi->vlr->flag & R_FULL_OSA) == 0)) {
+		if (shi->vlr && !full_osa) {
 			QMC_sampleRect(jit, qsa_jit, shi->thread, samples, 1.0, 1.0);
 			
 			pos[0] += shi->dxco[0]*jit[0] + shi->dyco[0]*jit[1];
