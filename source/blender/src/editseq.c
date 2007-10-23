@@ -2722,13 +2722,13 @@ void transform_seq(int mode, int context)
 	unsigned short event = 0;
 	short mval[2], val, xo, yo, xn, yn;
 	char str[32];
-	char side; /* for extend mode only - use to know which side to extend on */
+	char side= 'L'; /* for extend mode only - use to know which side to extend on */
 	
 	/* used for extend in a number of places */
 	int cfra = CFRA;
 	
 	/* for snapping */
-	char snapskip = 0, snap, snap_old;
+	char snapskip = 0, snap, snap_old= 0;
 	int snapdist_max = seq_get_snaplimit();
 	/* at the moment there are only 4 possible snap points,
 	-	last_seq (start,end)
@@ -2863,7 +2863,7 @@ void transform_seq(int mode, int context)
 				snapskip = 0;
 			} else {
 				int dist;
-				int snap_ofs;
+				int snap_ofs= 0;
 				int snap_dist= snapdist_max;
 				
 				/* Get sequence points to snap to the markers */

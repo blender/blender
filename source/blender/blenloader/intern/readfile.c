@@ -6752,7 +6752,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 2)) {
 		Image *ima;
-		Scene *sce;
 
 		/* initialize 1:1 Aspect */
 		for(ima= main->image.first; ima; ima= ima->id.next) {

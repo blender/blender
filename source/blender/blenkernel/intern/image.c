@@ -780,7 +780,7 @@ void BKE_add_image_extension(char *string, int imtype)
 void BKE_stamp(struct ImBuf *ibuf)
 {
 	char text[256], infotext[256];
-	int x, y, h, m, s, f;
+	int x=0, y=0, h, m, s, f;
 	int font_height;
 	int text_width;
 	int text_pad;
@@ -812,6 +812,9 @@ void BKE_stamp(struct ImBuf *ibuf)
 		break;
 	case 4: /* huge */
 		font = BMF_GetFont(BMF_kHelveticaBold14);
+		break;
+	default:
+		font = NULL;
 		break;
 	}
 	

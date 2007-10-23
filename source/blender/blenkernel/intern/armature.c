@@ -411,7 +411,7 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan, int rest)
 	Mat4 *result_array= (rest)? bbone_rest_array: bbone_array;
 	bPoseChannel *next, *prev;
 	Bone *bone= pchan->bone;
-	float h1[3], h2[3], length, hlength1, hlength2, roll1, roll2;
+	float h1[3], h2[3], length, hlength1, hlength2, roll1=0.0f, roll2;
 	float mat3[3][3], imat[4][4];
 	float data[MAX_BBONE_SUBDIV+1][4], *fp;
 	int a;
