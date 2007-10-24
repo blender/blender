@@ -1704,11 +1704,13 @@ static void imagespace_grid(SpaceImage *sima)
 	
 }
 
+#define ALPHA_CHECKSIZE 30
 static void sima_draw_alpha_backdrop(SpaceImage *sima, float x1, float y1, float xsize, float ysize)
 {
-	float tile= sima->zoom*15.0f;
+	float tile= ALPHA_CHECKSIZE/2;
 	float x, y, maxx, maxy;
-	
+	float xstart, ystart;
+	int checker_type = 0;
 	glColor3ub(100, 100, 100);
 	glRectf(x1, y1, x1 + sima->zoom*xsize, y1 + sima->zoom*ysize);
 	glColor3ub(160, 160, 160);
@@ -1716,33 +1718,46 @@ static void sima_draw_alpha_backdrop(SpaceImage *sima, float x1, float y1, float
 	maxx= x1+sima->zoom*xsize;
 	maxy= y1+sima->zoom*ysize;
 	
-	for(x=0; x<xsize; x+=30) {
-		for(y=0; y<ysize; y+=30) {
-			float fx= x1 + sima->zoom*x;
-			float fy= y1 + sima->zoom*y;
-			float tilex= tile, tiley= tile;
-			
-			if(fx+tile > maxx)
-				tilex= maxx-fx;
-			if(fy+tile > maxy)
-				tiley= maxy-fy;
-			
-			glRectf(fx, fy, fx + tilex, fy + tiley);
+	xstart = fmod((float)sima->xof*sima->zoom, ALPHA_CHECKSIZE);
+	ystart = fmod((float)sima->yof*sima->zoom, ALPHA_CHECKSIZE);
+	
+	if (xstart>0) xstart-=ALPHA_CHECKSIZE;
+	if (ystart>0) ystart-=ALPHA_CHECKSIZE;
+	
+	ystart = ystart/sima->zoom;
+	xstart = xstart/sima->zoom;
+	
+	while (checker_type != 2) {
+		
+		/* there are only 2 checker_type's - 0 or 1 , offset the quads to make check's second time round */
+		if (checker_type==1) {
+			xstart -= ALPHA_CHECKSIZE*0.5/sima->zoom;
+			ystart -= ALPHA_CHECKSIZE*0.5/sima->zoom;
 		}
-	}
-	for(x=15; x<xsize; x+=30) {
-		for(y=15; y<ysize; y+=30) {
+		
+		for(x=xstart; x<xsize; x+=ALPHA_CHECKSIZE/sima->zoom) {
 			float fx= x1 + sima->zoom*x;
-			float fy= y1 + sima->zoom*y;
-			float tilex= tile, tiley= tile;
+			if (fx+tile < x1)
+				continue;
 			
-			if(fx+tile > maxx)
-				tilex= maxx-fx;
-			if(fy+tile > maxy)
-				tiley= maxy-fy;
-			
-			glRectf(fx, fy, fx + tilex, fy + tiley);
+			for(y=ystart; y<ysize; y+=ALPHA_CHECKSIZE/sima->zoom) {
+				float fy= y1 + sima->zoom*y;
+				float tilex= tile, tiley= tile;
+				
+				/* skip min values */
+				if (fy+tile<y1)
+					continue;
+				
+				/* clip max values */
+				if(fx+tile > maxx)
+					tilex= maxx-fx;
+				if(fy+tile > maxy)
+					tiley= maxy-fy;
+				
+				glRectf(MAX2(fx, x1), MAX2(fy, y1), fx + tilex, fy + tiley);
+			}
 		}
+		checker_type++;
 	}
 }
 
