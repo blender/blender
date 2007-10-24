@@ -1848,7 +1848,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							fill_mesh();
 						else if(G.qual==LR_ALTKEY)
 							beauty_fill();
-						else if(G.qual & (LR_CTRLKEY|LR_SHIFTKEY))
+						else if(G.qual==(LR_CTRLKEY|LR_SHIFTKEY))
 							edge_flip();
 						else if (G.qual==0)
 							addedgeface_mesh();
