@@ -42,11 +42,10 @@ IK_QJacobian::~IK_QJacobian()
 {
 }
 
-void IK_QJacobian::ArmMatrices(int dof, int task_size, int tasks)
+void IK_QJacobian::ArmMatrices(int dof, int task_size)
 {
 	m_dof = dof;
 	m_task_size = task_size;
-	m_tasks = tasks;
 
 	m_jacobian.newsize(task_size, dof);
 	m_jacobian = 0;

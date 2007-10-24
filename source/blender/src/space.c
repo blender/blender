@@ -2398,7 +2398,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					}
 				}*/
 				if(G.obedit) {
-					if(G.qual==0) {
+					if(G.obedit->type==OB_MESH && G.qual==0) {
 						uv_autocalc_tface();
 					}
 				}
@@ -3741,7 +3741,10 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			"Enables automatic saving of preview images in the .blend file");
 		
 	} else if (U.userpref == 4) { /* system & opengl */
-
+		int memcachemax;
+		if (sizeof(void *) ==8)	memcachemax = 1024*16; /* 64bit system, 16 gig of ram would be nice */
+		else					memcachemax = 1024; /* 32 bit system, cant address over 2gig anyway */
+		
 		uiDefBut(block, LABEL,0,"Solid OpenGL lights:",
 			xpos+edgsp, y6label, mpref, buth,
 			0, 0, 0, 0, 0, "");
@@ -3842,11 +3845,12 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			  (xpos+edgsp+(4*mpref)+(4*midsp)), y6, mpref, buth, 
 			  &U.prefetchframes, 0.0, 500.0, 20, 2, 
 			  "Number of frames to render ahead during playback.");
-
+		
 		uiDefButI(block, NUM, B_MEMCACHELIMIT, "MEM Cache Limit ",
 			  (xpos+edgsp+(4*mpref)+(4*midsp)), y5, mpref, buth, 
-			  &U.memcachelimit, 0.0, 1024.0, 30, 2, 
-			  "Memory cache limit in sequencer");
+			   &U.memcachelimit, 0.0, (float)memcachemax, 30, 2, 
+			  "Memory cache limit in sequencer (megabytes)");
+		
 		uiDefButS(block, NUM, B_REDR, "Frameserver Port ",
 			  (xpos+edgsp+(4*mpref)+(4*midsp)), y4, mpref, buth, 
 			  &U.frameserverport, 0.0, 32727.0, 30, 2, 
@@ -4633,9 +4637,11 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			break;
 		case RKEY:
-			if((G.qual==LR_SHIFTKEY))
+			if(G.qual==LR_SHIFTKEY)
 				seq_remap_paths();
-			else
+			if(G.qual==LR_ALTKEY)
+				reload_sequence();
+			else if (G.qual==0)
 				reassign_inputs_seq_effect();
 			break;
 		case SKEY:

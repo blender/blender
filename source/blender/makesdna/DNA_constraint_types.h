@@ -125,10 +125,13 @@ typedef struct bKinematicConstraint {
 	int			rootbone;	/* index to rootbone, if zero go all the way to mother bone */
 	char		subtarget[32];	/* String to specify sub-object target */
 
+	Object		*poletar;			/* Pole vector target */
+	char		polesubtarget[32];	/* Pole vector sub-object target */
+	float		poleangle;			/* Pole vector rest angle */
+
 	float		weight;			/* Weight of goal in IK tree */
 	float		orientweight;	/* Amount of rotation a target applies on chain */
 	float		grabtarget[3];	/* for target-less IK */
-	int			pad;
 } bKinematicConstraint;
 
 /* Track To Constraint */
@@ -439,6 +442,8 @@ typedef enum B_CONSTRAINTCHANNEL_FLAG {
 #define CONSTRAINT_IK_TEMP		8
 #define CONSTRAINT_IK_STRETCH	16
 #define CONSTRAINT_IK_POS		32
+#define CONSTRAINT_IK_SETANGLE	64
+#define CONSTRAINT_IK_GETANGLE	128
 
 /* MinMax (floor) flags */
 #define MINMAX_STICKY	0x01

@@ -812,7 +812,7 @@ static void do_info_filemenu(void *arg, int event)
 	switch(event) {
 	case 0:
 		if (okee("Erase All")) {
-			if (!BIF_read_homefile(0))
+			if (!BIF_read_homefile(0, 1))
 				error("No file ~/.B.blend");
 		}
 		break;
@@ -896,7 +896,7 @@ static void do_info_filemenu(void *arg, int event)
 		break;
 	case 32:
 		if (okee("Erase All")) {
-			if (!BIF_read_homefile(1))
+			if (!BIF_read_homefile(1, 1))
 				error("Can't read data from memory!");
 		}
 		break;

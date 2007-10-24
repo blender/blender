@@ -432,6 +432,9 @@ static void do_seq_editmenu(void *arg, int event)
 	case 16:
 		seq_separate_images();
 		break;
+	case 17:
+		reload_sequence();
+		break;
 	}
 }
 
@@ -496,6 +499,9 @@ static uiBlock *seq_editmenu(void *arg_unused)
 			uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Enter/Exit Meta Strip|Tab", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 9, "");
 		}
 	}
+	
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reload Strip Data...|Alt R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 17, "");
 	
 
 	if(curarea->headertype==HEADERTOP) {

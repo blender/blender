@@ -412,6 +412,24 @@ void autocomplete_vgroup(char *str, void *arg_v)
 	}
 }
 
+/* pole angle callback */
+void con_kinematic_set_pole_angle(void *ob_v, void *con_v)
+{
+	bConstraint *con= con_v;
+	bKinematicConstraint *data = con->data;
+
+	if(data->poletar) {
+		if(data->flag & CONSTRAINT_IK_SETANGLE) {
+			data->flag |= CONSTRAINT_IK_GETANGLE;
+			data->flag &= ~CONSTRAINT_IK_SETANGLE;
+		}
+		else {
+			data->flag &= ~CONSTRAINT_IK_GETANGLE;
+			data->flag |= CONSTRAINT_IK_SETANGLE;
+		}
+	}
+}
+
 /* some commonly used macros in the constraints drawing code */
 #define is_armature_target(target) (target && target->type==OB_ARMATURE)
 #define is_armature_owner(ob) ((ob->type == OB_ARMATURE) && (ob->flag & OB_POSEMODE))
@@ -484,12 +502,14 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 
 	cti= constraint_get_typeinfo(con);
 	if (cti == NULL) {
-		printf("Argh! No valid constraint type-info... aborting constraint drawing. \n");
-		return;
+		/* exception for 'Null' constraint - it doesn't have constraint typeinfo! */
+		if (con->type == CONSTRAINT_TYPE_NULL)
+			strcpy(typestr, "Null");
+		else
+			strcpy(typestr, "Unknown");
 	}
-	else {
+	else
 		strcpy(typestr, cti->name);
-	}
 		
 	/* unless button has own callback, it adds this callback to button */
 	uiBlockSetFunc(block, constraint_active_func, ob, con);
@@ -585,21 +605,21 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 						
 						/* target label */
 						sprintf(tarstr, "Target %02d:", tarnum);
-						uiDefBut(block, LABEL, B_CONSTRAINT_TEST, tarstr, *xco+60, *yco-(48+yoffset), 55, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+						uiDefBut(block, LABEL, B_CONSTRAINT_TEST, tarstr, *xco+45, *yco-(48+yoffset), 60, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 						
 						/* target space-selector - per target */
 						if (is_armature_target(ct->tar)) {
 							uiDefButS(block, MENU, B_CONSTRAINT_TEST, "Target Space %t|World Space %x0|Pose Space %x3|Local with Parent %x4|Local Space %x1", 
-															*xco+60, *yco-(66+yoffset), 55, 18, &ct->space, 0, 0, 0, 0, "Choose space that target is evaluated in");	
+															*xco+10, *yco-(66+yoffset), 100, 18, &ct->space, 0, 0, 0, 0, "Choose space that target is evaluated in");	
 						}
 						else {
 							uiDefButS(block, MENU, B_CONSTRAINT_TEST, "Target Space %t|World Space %x0|Local (Without Parent) Space %x1", 
-															*xco+60, *yco-(66+yoffset), 55, 18, &ct->space, 0, 0, 0, 0, "Choose space that target is evaluated in");	
+															*xco+10, *yco-(66+yoffset), 100, 18, &ct->space, 0, 0, 0, 0, "Choose space that target is evaluated in");	
 						}
 						
 						uiBlockBeginAlign(block);
 							/* target object */
-							uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-48, 150, 18, &ct->tar, "Target Object"); 
+							uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-(48+yoffset), 150, 18, &ct->tar, "Target Object"); 
 							
 							/* subtarget */
 							if (is_armature_target(ct->tar)) {
@@ -880,47 +900,76 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 			{
 				bKinematicConstraint *data = con->data;
 				
-				height = 111;
+				height = 146;
+				if(data->poletar) 
+					height += 30;
+
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
-				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+				/* IK Target */
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 
 				/* Draw target parameters */
-				uiDefButBitS(block, TOG, CONSTRAINT_IK_ROT, B_CONSTRAINT_TEST, "Rot", *xco, *yco-24,60,19, &data->flag, 0, 0, 0, 0, "Chain follows rotation of target");
-				
 				uiBlockBeginAlign(block);
-					uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 19, &data->tar, "Target Object"); 
-					
-					if (is_armature_target(data->tar)) {
-						but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,19, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
-						uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
-					}
-					else if (is_geom_target(data->tar)) {
-						but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
-						uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
-					}
-					else {
-						strcpy(data->subtarget, "");
-					}
+				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco, *yco-44, 137, 19, &data->tar, "Target Object"); 
+
+				if (is_armature_target(data->tar)) {
+					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco, *yco-62,137,19, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
+					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
+				}
+				else if (is_geom_target(data->tar)) {
+					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco, *yco-62,137,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
+					uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
+				}
+				else {
+					strcpy (data->subtarget, "");
+				}
+
 				uiBlockEndAlign(block);
-				
+
+				/* Settings */
 				uiBlockBeginAlign(block);
-					uiDefButBitS(block, TOG, CONSTRAINT_IK_TIP, B_CONSTRAINT_TEST, "Use Tail", *xco, *yco-64, 137, 19, &data->flag, 0, 0, 0, 0, "Include Bone's tail as last element in Chain");
-					uiDefButI(block, NUM, B_CONSTRAINT_TEST, "ChainLen:", *xco, *yco-84,137,19, &data->rootbone, 0, 255, 0, 0, "If not zero, the amount of bones in this chain");
-				uiBlockEndAlign(block);
-				
+				uiDefButBitS(block, TOG, CONSTRAINT_IK_TIP, B_CONSTRAINT_TEST, "Use Tail", *xco, *yco-92, 137, 19, &data->flag, 0, 0, 0, 0, "Include Bone's tail als last element in Chain");
+				uiDefButI(block, NUM, B_CONSTRAINT_TEST, "ChainLen:", *xco, *yco-112,137,19, &data->rootbone, 0, 255, 0, 0, "If not zero, the amount of bones in this chain");
+
 				uiBlockBeginAlign(block);
-					uiDefButF(block, NUMSLI, B_CONSTRAINT_TEST, "PosW ", *xco+147, *yco-64, 137, 19, &data->weight, 0.01, 1.0, 2, 2, "For Tree-IK: weight of position control for this target");
-					uiDefButF(block, NUMSLI, B_CONSTRAINT_TEST, "RotW ", *xco+147, *yco-84, 137, 19, &data->orientweight, 0.01, 1.0, 2, 2, "For Tree-IK: Weight of orientation control for this target");
-				uiBlockEndAlign(block);
-				
+				uiDefButF(block, NUMSLI, B_CONSTRAINT_TEST, "PosW ", *xco+147, *yco-92, 137, 19, &data->weight, 0.01, 1.0, 2, 2, "For Tree-IK: weight of position control for this target");
+				uiDefButBitS(block, TOG, CONSTRAINT_IK_ROT, B_CONSTRAINT_TEST, "Rot", *xco+147, *yco-112, 40,19, &data->flag, 0, 0, 0, 0, "Chain follows rotation of target");
+				uiDefButF(block, NUMSLI, B_CONSTRAINT_TEST, "W ", *xco+187, *yco-112, 97, 19, &data->orientweight, 0.01, 1.0, 2, 2, "For Tree-IK: Weight of orientation control for this target");
+
 				uiBlockBeginAlign(block);
-					uiDefButS(block, NUM, B_CONSTRAINT_TEST, "Iterations:", *xco, *yco-109, 137, 19, &data->iterations, 1, 10000, 0, 0, "Maximum number of solving iterations"); 
-				uiBlockEndAlign(block);
-				
+
+				uiDefButBitS(block, TOG, CONSTRAINT_IK_STRETCH, B_CONSTRAINT_TEST, "Stretch", *xco, *yco-137,137,19, &data->flag, 0, 0, 0, 0, "Enable IK stretching");
 				uiBlockBeginAlign(block);
-					uiDefButBitS(block, TOG, CONSTRAINT_IK_STRETCH, B_CONSTRAINT_TEST, "Stretch", *xco+147, *yco-109,137,19, &data->flag, 0, 0, 0, 0, "Enable IK stretching");
+				uiDefButS(block, NUM, B_CONSTRAINT_TEST, "Iterations:", *xco+147, *yco-137, 137, 19, &data->iterations, 1, 10000, 0, 0, "Maximum number of solving iterations"); 
 				uiBlockEndAlign(block);
+
+				/* Pole Vector */
+				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Pole Target:", *xco+147, *yco-24, 100, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+
+				uiBlockBeginAlign(block);
+				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+147, *yco-44, 137, 19, &data->poletar, "Pole Target Object"); 
+				if (is_armature_target(data->poletar)) {
+					but=uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+147, *yco-62,137,19, &data->polesubtarget, 0, 24, 0, 0, "Pole Subtarget Bone");
+					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->poletar);
+				}
+				else if (is_geom_target(data->poletar)) {
+					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+147, *yco-62,137,18, &data->polesubtarget, 0, 24, 0, 0, "Name of Vertex Group defining pole 'target' points");
+					uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->poletar);
+				}
+				else {
+					strcpy (data->polesubtarget, "");
+				}
+	
+				if(data->poletar) {
+					uiBlockBeginAlign(block);
+#if 0
+					but = uiDefBut(block, BUT, B_CONSTRAINT_TEST, (data->flag & CONSTRAINT_IK_SETANGLE)? "Set Pole Offset": "Clear Pole Offset", *xco, *yco-167, 137, 19, 0, 0.0, 1.0, 0.0, 0.0, "Set the pole rotation offset from the current pose");
+					uiButSetFunc(but, con_kinematic_set_pole_angle, ob, con);
+					if(!(data->flag & CONSTRAINT_IK_SETANGLE))
+#endif
+						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Pole Offset ", *xco, *yco-167, 137, 19, &data->poleangle, -180.0, 180.0, 0, 0, "Pole rotation offset");
+				}
 			}
 			break;
 		case CONSTRAINT_TYPE_TRACKTO:
@@ -1402,10 +1451,10 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				uiBlockEndAlign(block);
 				
 				/* Extra Options Controlling Behaviour */
-				uiBlockBeginAlign(block);
-					uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Options:", *xco, *yco-86, 90, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-					uiDefButBitI(block, TOG, CLAMPTO_CYCLIC, B_CONSTRAINT_TEST, "Cyclic", *xco+((width/2)), *yco-86,60,19, &data->flag2, 0, 0, 0, 0, "Treat curve as cyclic curve (no clamping to curve bounding box)");
-				uiBlockEndAlign(block);
+				//uiBlockBeginAlign(block);
+					uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Options:", *xco, *yco-88, 90, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+					uiDefButBitI(block, TOG, CLAMPTO_CYCLIC, B_CONSTRAINT_TEST, "Cyclic", *xco+((width/2)), *yco-88,60,19, &data->flag2, 0, 0, 0, 0, "Treat curve as cyclic curve (no clamping to curve bounding box)");
+				//uiBlockEndAlign(block);
 			}
 			break;
 		case CONSTRAINT_TYPE_TRANSFORM:
@@ -1643,7 +1692,7 @@ void do_constraintbuts(unsigned short event)
 		{
 			con = add_new_constraint(CONSTRAINT_TYPE_NULL);
 			add_constraint_to_active(ob, con);
-
+			
 			BIF_undo_push("Add constraint");
 		}
 		break;

@@ -165,6 +165,10 @@ public:
 
 	virtual void SetBasis(const MT_Matrix3x3& basis) { m_basis = basis; }
 
+	// functions needed for pole vector constraint
+	void PrependBasis(const MT_Matrix3x3& mat);
+	void Reset();
+
 protected:
 
 	// num_DoF: number of degrees of freedom

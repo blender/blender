@@ -1417,7 +1417,7 @@ void make_parent(void)
 						
 						add_constraint_to_object(con, base->object);
 						
-						get_constraint_target_matrix(con, CONSTRAINT_OBTYPE_OBJECT, NULL, cmat, G.scene->r.cfra - base->object->sf);
+						get_constraint_target_matrix(con, 0, CONSTRAINT_OBTYPE_OBJECT, NULL, cmat, G.scene->r.cfra - base->object->sf);
 						VecSubf(vec, base->object->obmat[3], cmat[3]);
 						
 						base->object->loc[0] = vec[0];

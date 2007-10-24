@@ -711,7 +711,12 @@ static void write_constraints(WriteData *wd, ListBase *conlist)
 			switch (con->type) {
 				case CONSTRAINT_TYPE_PYTHON:
 				{
-					bPythonConstraint *data = (bPythonConstraint*) con->data;
+					bPythonConstraint *data = (bPythonConstraint *)con->data;
+					bConstraintTarget *ct;
+					
+					/* write targets */
+					for (ct= data->targets.first; ct; ct= ct->next)
+						writestruct(wd, DATA, "bConstraintTarget", 1, ct);
 					
 					/* Write ID Properties -- and copy this comment EXACTLY for easy finding
 					 of library blocks that implement this.*/

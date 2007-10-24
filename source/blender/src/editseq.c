@@ -220,9 +220,9 @@ int seq_tx_check_right(Sequence *seq)
 
 /* used so we can do a quick check for single image seq
    since they work a bit differently to normal image seq's (during transform) */
-int check_single_image_seq(Sequence *seq)
+int check_single_seq(Sequence *seq)
 {
-	if (seq->type == SEQ_IMAGE && seq->len == 1 )
+	if ( seq->len==1 && (seq->type == SEQ_IMAGE || seq->type == SEQ_COLOR))
 		return 1;
 	else
 		return 0;
@@ -231,7 +231,7 @@ int check_single_image_seq(Sequence *seq)
 static void fix_single_image_seq(Sequence *seq)
 {
 	int left, start, offset;
-	if (!check_single_image_seq(seq))
+	if (!check_single_seq(seq))
 		return;
 	
 	/* make sure the image is always at the start since there is only one,
@@ -1987,6 +1987,19 @@ void change_sequence(void)
 
 }
 
+void reload_sequence(void)
+{
+	Editing *ed= G.scene->ed;
+	Sequence *seq;
+	WHILE_SEQ(ed->seqbasep) {
+		if(seq->flag & SELECT) {
+			update_changed_seq_and_deps(seq, 0, 1);
+		}
+	}
+	END_SEQ
+	allqueue(REDRAWSEQ, 0);
+}
+
 void reassign_inputs_seq_effect()
 {
 	Editing *ed= G.scene->ed;
@@ -2673,7 +2686,7 @@ static void transform_grab_xlimits(Sequence *seq, int leftflag, int rightflag)
 			seq_tx_set_final_left(seq, seq_tx_get_final_right(seq)-1);
 		}
 		
-		if (check_single_image_seq(seq)==0) {
+		if (check_single_seq(seq)==0) {
 			if (seq_tx_get_final_left(seq) >= seq_tx_get_end(seq)) {
 				seq_tx_set_final_left(seq, seq_tx_get_end(seq)-1);
 			}
@@ -2695,7 +2708,7 @@ static void transform_grab_xlimits(Sequence *seq, int leftflag, int rightflag)
 			seq_tx_set_final_right(seq, seq_tx_get_final_left(seq)+1);
 		}
 									
-		if (check_single_image_seq(seq)==0) {
+		if (check_single_seq(seq)==0) {
 			if (seq_tx_get_final_right(seq) <= seq_tx_get_start(seq)) {
 				seq_tx_set_final_right(seq, seq_tx_get_start(seq)+1);
 			}
@@ -2722,13 +2735,13 @@ void transform_seq(int mode, int context)
 	unsigned short event = 0;
 	short mval[2], val, xo, yo, xn, yn;
 	char str[32];
-	char side; /* for extend mode only - use to know which side to extend on */
+	char side= 'L'; /* for extend mode only - use to know which side to extend on */
 	
 	/* used for extend in a number of places */
 	int cfra = CFRA;
 	
 	/* for snapping */
-	char snapskip = 0, snap, snap_old;
+	char snapskip = 0, snap, snap_old= 0;
 	int snapdist_max = seq_get_snaplimit();
 	/* at the moment there are only 4 possible snap points,
 	-	last_seq (start,end)
@@ -2863,7 +2876,7 @@ void transform_seq(int mode, int context)
 				snapskip = 0;
 			} else {
 				int dist;
-				int snap_ofs;
+				int snap_ofs= 0;
 				int snap_dist= snapdist_max;
 				
 				/* Get sequence points to snap to the markers */

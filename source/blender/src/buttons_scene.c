@@ -1570,12 +1570,14 @@ static void render_panel_stamp(void)
 			
 			/* draw fg/bg next to the scene */
 			yofs -= 25;
-			uiDefBut(block, LABEL, 0, "Text Color", xofs+110, yofs, 80, 19, 0, 0, 0, 0, 0, "");
-			uiDefBut(block, LABEL, 0, "Background", xofs+205, yofs, 80, 19, 0, 0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, B_NOP, "Text Color", xofs+110, yofs, 80, 19, 0, 0, 0, 0, 0, "");
+			uiDefBut(block, LABEL, B_NOP, "Background", xofs+205, yofs, 80, 19, 0, 0, 0, 0, 0, "");
 			yofs -= 20;
 			uiDefButF(block, COL, B_NOP, "", xofs+110, yofs, 90, 19, G.scene->r.fg_stamp, 0, 0, 0, 0, "Foreground text color");
 			uiDefButF(block, COL, B_NOP, "", xofs+210, yofs, 90, 19, G.scene->r.bg_stamp, 0, 0, 0, 0, "Background color");
-			yofs += 75;
+			yofs -= 30;
+			uiDefButF(block, NUMSLI, B_NOP, "A ", xofs+110, yofs, 190, 19, &G.scene->r.bg_stamp[3], 0, 1.0, 0, 0, "Alpha for text background");
+			yofs += 105;
 		} else {
 			yofs += 30;
 		}

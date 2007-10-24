@@ -483,7 +483,7 @@ static void outliner_242_patch(void)
 }
 
 /* only here settings for fullscreen */
-int BIF_read_homefile(int from_memory)
+int BIF_read_homefile(int from_memory, int do_undo)
 {
 	char tstr[FILE_MAXDIR+FILE_MAXFILE], scestr[FILE_MAXDIR];
 	char *home= BLI_gethome();
@@ -526,7 +526,9 @@ int BIF_read_homefile(int from_memory)
 
 	undo_editmode_clear();
 	BKE_reset_undo();
-	BKE_write_undo("original");	/* save current state */
+	
+	if (do_undo)
+		BIF_undo_push("original");
 	
 	return success;
 }
@@ -896,7 +898,11 @@ void BIF_init(void)
 	init_node_butfuncs();
 	
 	BIF_preview_init_dbase();
-	BIF_read_homefile(0);
+	
+	/* dont set an undo here because this sets the default scene to be the initial
+	undo state when loading blender with a file  a new file, so holding Ctrl+Z will undo to the default
+	scene rather then to the new file */
+	BIF_read_homefile(0, 0);
 
 	BIF_resources_init();	/* after homefile, to dynamically load an icon file based on theme settings */
 	

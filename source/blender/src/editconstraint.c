@@ -223,7 +223,7 @@ bConstraint *add_new_constraint(short type)
 	con->type = type;
 	con->flag |= CONSTRAINT_EXPAND;
 	con->enforce = 1.0F;
-	strcpy (con->name, "Const");
+	strcpy(con->name, "Const");
 	
 	/* Load the data for it */
 	cti = constraint_get_typeinfo(con);
@@ -248,7 +248,7 @@ void add_constraint_to_object(bConstraint *con, Object *ob)
 		BLI_addtail(list, con);
 		
 		con->flag |= CONSTRAINT_ACTIVE;
-		for(con= con->prev; con; con= con->prev)
+		for (con= con->prev; con; con= con->prev)
 			con->flag &= ~CONSTRAINT_ACTIVE;
 	}
 }
@@ -256,7 +256,7 @@ void add_constraint_to_object(bConstraint *con, Object *ob)
 /* checks validity of object pointers, and NULLs,
  * if Bone doesnt exist it sets the CONSTRAINT_DISABLE flag 
  */
-static void test_constraints (Object *owner, const char* substring)
+static void test_constraints (Object *owner, const char substring[])
 {
 	
 	bConstraint *curcon;
@@ -328,7 +328,7 @@ static void test_constraints (Object *owner, const char* substring)
 				{
 					bActionConstraint *data = curcon->data;
 					
-					if (!exist_object(data->tar)){
+					if (!exist_object(data->tar)) {
 						data->tar = NULL;
 						curcon->flag |= CONSTRAINT_DISABLE;
 						break;
@@ -346,7 +346,7 @@ static void test_constraints (Object *owner, const char* substring)
 				{
 					bLocateLikeConstraint *data = curcon->data;
 					
-					if (!exist_object(data->tar)){
+					if (!exist_object(data->tar)) {
 						data->tar = NULL;
 						curcon->flag |= CONSTRAINT_DISABLE;
 						break;
@@ -364,7 +364,7 @@ static void test_constraints (Object *owner, const char* substring)
 				{
 					bMinMaxConstraint *data = curcon->data;
 					
-					if (!exist_object(data->tar)){
+					if (!exist_object(data->tar)) {
 						data->tar = NULL;
 						curcon->flag |= CONSTRAINT_DISABLE;
 						break;
@@ -382,7 +382,7 @@ static void test_constraints (Object *owner, const char* substring)
 				{
 					bRotateLikeConstraint *data = curcon->data;
 					
-					if (!exist_object(data->tar)){
+					if (!exist_object(data->tar)) {
 						data->tar = NULL;
 						curcon->flag |= CONSTRAINT_DISABLE;
 						break;
@@ -400,7 +400,7 @@ static void test_constraints (Object *owner, const char* substring)
 				{
 					bSizeLikeConstraint *data = curcon->data;
 				
-					if (!exist_object(data->tar)){
+					if (!exist_object(data->tar)) {
 						data->tar = NULL;
 						curcon->flag |= CONSTRAINT_DISABLE;
 						break;
@@ -417,18 +417,26 @@ static void test_constraints (Object *owner, const char* substring)
 				case CONSTRAINT_TYPE_KINEMATIC:
 				{
 					bKinematicConstraint *data = curcon->data;
-					if (!exist_object(data->tar)){
+
+					if (!exist_object(data->tar)) {
 						data->tar = NULL;
 						curcon->flag |= CONSTRAINT_DISABLE;
-						break;
 					}
-					
-					if ( (data->tar == owner) &&
+					else if ( (data->tar == owner) &&
 						 (!get_named_bone(get_armature(owner), 
 										  data->subtarget))) {
 						curcon->flag |= CONSTRAINT_DISABLE;
-						break;
 					}
+
+					if (data->poletar && !exist_object(data->poletar)) {
+						data->poletar = NULL;
+					}
+					else if ( (data->poletar == owner) &&
+						 (!get_named_bone(get_armature(owner), 
+										  data->polesubtarget))) {
+						curcon->flag |= CONSTRAINT_DISABLE;
+					}
+
 				}
 					break;
 				case CONSTRAINT_TYPE_TRACKTO:
@@ -446,11 +454,11 @@ static void test_constraints (Object *owner, const char* substring)
 						curcon->flag |= CONSTRAINT_DISABLE;
 						break;
 					}
-					if (data->reserved2==data->reserved1){
+					if (data->reserved2==data->reserved1) {
 						curcon->flag |= CONSTRAINT_DISABLE;
 						break;
 					}
-					if (data->reserved2+3==data->reserved1){
+					if (data->reserved2+3==data->reserved1) {
 						curcon->flag |= CONSTRAINT_DISABLE;
 						break;
 					}
@@ -460,7 +468,7 @@ static void test_constraints (Object *owner, const char* substring)
 				{
 					bLockTrackConstraint *data = curcon->data;
 					
-					if (!exist_object(data->tar)){
+					if (!exist_object(data->tar)) {
 						data->tar = NULL;
 						curcon->flag |= CONSTRAINT_DISABLE;
 						break;
@@ -473,11 +481,11 @@ static void test_constraints (Object *owner, const char* substring)
 						break;
 					}
 
-					if (data->lockflag==data->trackflag){
+					if (data->lockflag==data->trackflag) {
 						curcon->flag |= CONSTRAINT_DISABLE;
 						break;
 					}
-					if (data->lockflag+3==data->trackflag){
+					if (data->lockflag+3==data->trackflag) {
 						curcon->flag |= CONSTRAINT_DISABLE;
 						break;
 					}
@@ -487,7 +495,7 @@ static void test_constraints (Object *owner, const char* substring)
 				{
 					bStretchToConstraint *data = curcon->data;
 					
-					if (!exist_object(data->tar)){
+					if (!exist_object(data->tar)) {
 						data->tar = NULL;
 						curcon->flag |= CONSTRAINT_DISABLE;
 						break;
@@ -505,21 +513,21 @@ static void test_constraints (Object *owner, const char* substring)
 				{
 					bFollowPathConstraint *data = curcon->data;
 					
-					if (!exist_object(data->tar)){
+					if (!exist_object(data->tar)) {
 						data->tar = NULL;
 						curcon->flag |= CONSTRAINT_DISABLE;
 						break;
 					}
-					if (data->tar->type != OB_CURVE){
+					if (data->tar->type != OB_CURVE) {
 						data->tar = NULL;
 						curcon->flag |= CONSTRAINT_DISABLE;
 						break;
 					}
-					if (data->upflag==data->trackflag){
+					if (data->upflag==data->trackflag) {
 						curcon->flag |= CONSTRAINT_DISABLE;
 						break;
 					}
-					if (data->upflag+3==data->trackflag){
+					if (data->upflag+3==data->trackflag) {
 						curcon->flag |= CONSTRAINT_DISABLE;
 						break;
 					}
@@ -529,13 +537,13 @@ static void test_constraints (Object *owner, const char* substring)
 				{
 					bClampToConstraint *data = curcon->data;
 					
-					if (!exist_object(data->tar)){
+					if (!exist_object(data->tar)) {
 						data->tar = NULL;
 						curcon->flag |= CONSTRAINT_DISABLE;
 						break;
 					}
 					
-					if (data->tar->type != OB_CURVE){
+					if (data->tar->type != OB_CURVE) {
 						data->tar = NULL;
 						curcon->flag |= CONSTRAINT_DISABLE;
 						break;
@@ -552,7 +560,7 @@ static void test_constraints (Object *owner, const char* substring)
 				{
 					bTransformConstraint *data = curcon->data;
 					
-					if (!exist_object(data->tar)){
+					if (!exist_object(data->tar)) {
 						data->tar = NULL;
 						curcon->flag |= CONSTRAINT_DISABLE;
 						break;
@@ -816,7 +824,7 @@ void add_constraint(int only_IK)
 		set_constraint_nth_target(con, ob, pchansel->name, 0);
 	}
 	else if(obsel) {
-		set_constraint_nth_target(con, obsel, NULL, 0);
+		set_constraint_nth_target(con, obsel, "", 0);
 	}
 	else if (ELEM4(nr, 11, 13, 14, 15)==0) {	/* add new empty as target */
 		Base *base= BASACT, *newbase;
@@ -838,7 +846,7 @@ void add_constraint(int only_IK)
 		else
 			VECCOPY(obt->loc, ob->obmat[3]);
 		
-		set_constraint_nth_target(con, obt, NULL, 0);
+		set_constraint_nth_target(con, obt, "", 0);
 		
 		/* restore, add_object sets active */
 		BASACT= base;

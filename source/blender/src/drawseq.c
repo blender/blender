@@ -691,7 +691,7 @@ static void draw_seq_strip(Sequence *seq, ScrArea *sa, SpaceSeq *sseq)
 	Sequence *last_seq = get_last_seq();
 
 	/* we need to know if this is a single image or not for drawing */
-	is_single_image = (char)check_single_image_seq(seq);
+	is_single_image = (char)check_single_seq(seq);
 	
 	/* body */
 	if(seq->startstill) x1= seq->start;
@@ -901,7 +901,7 @@ static void draw_extra_seqinfo(void)
 	}
 
 	/* LEN, dont bother with single images */
-	if (check_single_image_seq(last_seq)==0) {
+	if (check_single_seq(last_seq)==0) {
 		if(last_seq->type & SEQ_EFFECT)
 			sprintf(str, "len: %d   From %d - %d", last_seq->len, last_seq->startdisp, last_seq->enddisp-1);
 		else

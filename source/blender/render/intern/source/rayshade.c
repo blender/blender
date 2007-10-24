@@ -641,7 +641,7 @@ static void halton_sample(double *ht_invprimes, double *ht_nums, double *v)
 	
 	for (i = 0; i < 2; i++)
 	{
-		double r = (1.0 - ht_nums[i]) - 1e-10;
+		double r = fabs((1.0 - ht_nums[i]) - 1e-10);
 		
 		if (ht_invprimes[i] >= r)
 		{
@@ -806,6 +806,23 @@ static void QMC_sampleHemi(float *vec, QMCSampler *qsa, int thread, int num)
 	vec[2] = 1.f - s[1]*s[1];
 }
 
+/* cosine weighted hemisphere sampling */
+static void QMC_sampleHemiCosine(float *vec, QMCSampler *qsa, int thread, int num)
+{
+	double s[2];
+	float phi, sqr;
+	
+	QMC_getSample(s, qsa, thread, num);
+	
+	phi = s[0]*2.f*M_PI;	
+	sqr = s[1]*sqrt(2-s[1]*s[1]);
+
+	vec[0] = cos(phi)*sqr;
+	vec[1] = sin(phi)*sqr;
+	vec[2] = 1.f - s[1]*s[1];
+
+}
+
 /* called from convertBlenderScene.c */
 /* samples don't change per pixel, so build the samples in advance for efficiency */
 void init_lamp_hammersley(LampRen *lar)
@@ -859,6 +876,20 @@ static int adaptive_sample_contrast_val(int samples, float prev, float val, floa
 		return 1;
 	} else
 		return 0;
+}
+
+static float get_avg_speed(ShadeInput *shi)
+{
+	float pre_x, pre_y, post_x, post_y, speedavg;
+	
+	pre_x = (shi->winspeed[0] == PASS_VECTOR_MAX)?0.0:shi->winspeed[0];
+	pre_y = (shi->winspeed[1] == PASS_VECTOR_MAX)?0.0:shi->winspeed[1];
+	post_x = (shi->winspeed[2] == PASS_VECTOR_MAX)?0.0:shi->winspeed[2];
+	post_y = (shi->winspeed[3] == PASS_VECTOR_MAX)?0.0:shi->winspeed[3];
+	
+	speedavg = (sqrt(pre_x*pre_x + pre_y*pre_y) + sqrt(post_x*post_x + post_y*post_y)) / 2.0;
+	
+	return speedavg;
 }
 
 /* ***************** main calls ************** */
@@ -1407,6 +1438,7 @@ void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 	float maxdist = R.wrld.aodist;
 	float fac=0.0f, prev=0.0f;
 	float adapt_thresh = G.scene->world->ao_adapt_thresh;
+	float adapt_speed_fac = G.scene->world->ao_adapt_speed_fac;
 	float bias = G.scene->world->aobias;
 	
 	int samples=0;
@@ -1447,9 +1479,16 @@ void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 	VecOrthoBasisf(nrm, up, side);
 	
 	/* sampling init */
-	if (R.wrld.ao_samp_method==WO_AOSAMP_HALTON) 
+	if (R.wrld.ao_samp_method==WO_AOSAMP_HALTON) {
+		float speedfac;
+		
+		speedfac = get_avg_speed(shi) * adapt_speed_fac;
+		CLAMP(speedfac, 1.0, 1000.0);
+		max_samples /= speedfac;
+		if (max_samples < 5) max_samples = 5;
+		
 		qsa = QMC_initSampler(SAMP_TYPE_HALTON, max_samples);
-	else if (R.wrld.ao_samp_method==WO_AOSAMP_HAMMERSLEY)
+	} else if (R.wrld.ao_samp_method==WO_AOSAMP_HAMMERSLEY)
 		qsa = R.qsa;
 
 	QMC_initPixel(qsa, shi->thread);
@@ -1458,7 +1497,7 @@ void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 
 		/* sampling, returns quasi-random vector in unit hemisphere */
 		QMC_sampleHemi(samp3d, qsa, shi->thread, samples);
-		
+
 		dir[0] = (samp3d[0]*up[0] + samp3d[1]*side[0] + samp3d[2]*nrm[0]);
 		dir[1] = (samp3d[0]*up[1] + samp3d[1]*side[1] + samp3d[2]*nrm[1]);
 		dir[2] = (samp3d[0]*up[2] + samp3d[1]*side[2] + samp3d[2]*nrm[2]);
@@ -1662,7 +1701,7 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 	float adapt_thresh = lar->adapt_thresh;
 	int max_samples = lar->ray_totsamp;
 	float pos[3];
-	int do_soft=1;
+	int do_soft=1, full_osa=0;
 
 	colsq[0] = colsq[1] = colsq[2] = 0.0;
 	if(isec->mode==RE_RAY_SHADOW_TRA) {
@@ -1671,8 +1710,9 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 		shadfac[3]= 1.0f;
 	
 	if (lar->ray_totsamp < 2) do_soft = 0;
-		
-	if (shi->vlr->flag & R_FULL_OSA) {
+	if ((R.r.mode & R_OSA) && (R.osa > 0) && (shi->vlr->flag & R_FULL_OSA)) full_osa = 1;
+	
+	if (full_osa) {
 		if (do_soft) max_samples  = max_samples/R.osa + 1;
 		else max_samples = 1;
 	} else {
@@ -1702,7 +1742,7 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 		 * based on the pre-generated OSA texture sampling offsets, 
 		 * for anti-aliasing sharp shadow edges. */
 		VECCOPY(pos, shi->co);
-		if (shi->vlr && ((shi->vlr->flag & R_FULL_OSA) == 0)) {
+		if (shi->vlr && !full_osa) {
 			QMC_sampleRect(jit, qsa_jit, shi->thread, samples, 1.0, 1.0);
 			
 			pos[0] += shi->dxco[0]*jit[0] + shi->dyco[0]*jit[1];

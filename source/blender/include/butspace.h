@@ -298,7 +298,7 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_COLZEN		1503
 #define B_WMTEXPASTE	1504
 #define B_WMTEXCOPY		1505
-#define B_AO_DISTANCES	1506
+#define B_AO_FALLOFF	1506
 
 /* *********************** */
 #define B_RENDERBUTS	1700

@@ -1666,6 +1666,7 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 				bKinematicConstraint *data;
 				data = ((bKinematicConstraint*)con->data);
 				data->tar = newlibadr(fd, id->lib, data->tar);
+				data->poletar = newlibadr(fd, id->lib, data->poletar);
 			}
 			break;
 		case CONSTRAINT_TYPE_TRACKTO:
@@ -1746,6 +1747,7 @@ static void direct_link_constraints(FileData *fd, ListBase *lb)
 		cons->data = newdataadr(fd, cons->data);
 		if (cons->type == CONSTRAINT_TYPE_PYTHON) {
 			bPythonConstraint *data= cons->data;
+			link_list(fd, &data->targets);
 			data->prop = newdataadr(fd, data->prop);
 			IDP_DirectLinkProperty(data->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 		}
@@ -6777,7 +6779,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 2)) {
 		Image *ima;
-		Scene *sce;
 
 		/* initialize 1:1 Aspect */
 		for(ima= main->image.first; ima; ima= ima->id.next) {
@@ -6807,6 +6808,8 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Scene *sce;
 		for(sce= main->scene.first; sce; sce=sce->id.next) {
 			sce->r.fg_stamp[0] = sce->r.fg_stamp[1] = sce->r.fg_stamp[2] = 0.8;
+			sce->r.fg_stamp[3] = 1.0; /* dont use text alpha yet */
+			sce->r.bg_stamp[3] = 0.25; /* make sure the background has full alpha */
 		}
 	}
 
@@ -7312,6 +7315,7 @@ static void expand_constraints(FileData *fd, Main *mainvar, ListBase *lb)
 			{
 				bKinematicConstraint *data = (bKinematicConstraint*)curcon->data;
 				expand_doit(fd, mainvar, data->tar);
+				expand_doit(fd, mainvar, data->poletar);
 			}
 			break;
 		case CONSTRAINT_TYPE_TRACKTO:
