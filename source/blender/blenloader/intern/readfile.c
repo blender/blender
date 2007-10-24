@@ -1744,6 +1744,7 @@ static void direct_link_constraints(FileData *fd, ListBase *lb)
 		cons->data = newdataadr(fd, cons->data);
 		if (cons->type == CONSTRAINT_TYPE_PYTHON) {
 			bPythonConstraint *data= cons->data;
+			link_list(fd, &data->targets);
 			data->prop = newdataadr(fd, data->prop);
 			IDP_DirectLinkProperty(data->prop, (fd->flags & FD_FLAGS_SWITCH_ENDIAN), fd);
 		}
