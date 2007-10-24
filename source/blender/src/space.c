@@ -6036,6 +6036,12 @@ void allqueue(unsigned short event, short val)
 					}
 				}
 				break;
+			case REDRAWVIEW3D_IMAGE:
+				if(sa->spacetype==SPACE_VIEW3D || sa->spacetype==SPACE_IMAGE) {
+					scrarea_queue_winredraw(sa);
+					if(val) scrarea_queue_headredraw(sa);
+				}
+				break;
 			case REDRAWVIEWCAM:
 				if(sa->spacetype==SPACE_VIEW3D) {
 					v3d= sa->spacedata.first;

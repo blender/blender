@@ -308,6 +308,9 @@ extern Object workob;
 #define OB_SHADED		4
 #define OB_TEXTURE		5
 
+/* this condition has been made more complex since editmode can draw textures */
+#define CHECK_OB_DRAWTEXTURE(vd, dt)	((vd->drawtype==OB_TEXTURE && dt>OB_SOLID) || (vd->drawtype==OB_SOLID && vd->flag2 & V3D_SOLID_TEX))
+
 /* dtx: flags, char! */
 #define OB_AXIS			2
 #define OB_TEXSPACE		4

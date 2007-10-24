@@ -4381,7 +4381,7 @@ static void editing_panel_mesh_tools1(Object *ob, Mesh *me)
 	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, G_DRAWFACES, REDRAWVIEW3D|REDRAWIMAGE, "Draw Faces",		955,88,150,19, &G.f, 0, 0, 0, 0, "Displays all faces as shades");
+	uiDefButBitI(block, TOG, G_DRAWFACES, REDRAWVIEW3D_IMAGE, "Draw Faces",		955,88,150,19, &G.f, 0, 0, 0, 0, "Displays all faces as shades in the 3d view and UV editor");
 	uiDefButBitI(block, TOG, G_DRAWEDGES, REDRAWVIEW3D, "Draw Edges", 	955,66,150,19, &G.f, 0, 0, 0, 0, "Displays selected edges using hilights");
 	uiDefButBitI(block, TOG, G_DRAWCREASES, REDRAWVIEW3D, "Draw Creases",	955,44,150,19, &G.f, 0, 0, 0, 0, "Displays creases created for subsurf weighting");
 	uiDefButBitI(block, TOG, G_DRAWSEAMS, REDRAWVIEW3D, "Draw Seams",	955,22,150,19, &G.f, 0, 0, 0, 0, "Displays UV unwrapping seams");
@@ -5321,9 +5321,9 @@ static void editing_panel_mesh_texface(void)
 
 		uiBlockBeginAlign(block);
 		uiBlockSetCol(block, TH_BUT_SETTING1);
-		uiDefButC(block, ROW, REDRAWVIEW3D, "Opaque",	600,80,60,19, &tf->transp, 2.0, 0.0, 0, 0, "Render color of textured face as color");
-		uiDefButC(block, ROW, REDRAWVIEW3D, "Add",		660,80,60,19, &tf->transp, 2.0, 1.0, 0, 0, "Render face transparent and add color of face");
-		uiDefButC(block, ROW, REDRAWVIEW3D, "Alpha",	720,80,60,19, &tf->transp, 2.0, 2.0, 0, 0, "Render polygon transparent, depending on alpha channel of the texture");
+		uiDefButC(block, ROW, REDRAWVIEW3D, "Opaque",	600,80,60,19, &tf->transp, 2.0, (float)TF_SOLID,0, 0, "Render color of textured face as color");
+		uiDefButC(block, ROW, REDRAWVIEW3D, "Add",		660,80,60,19, &tf->transp, 2.0, (float)TF_ADD,	0, 0, "Render face transparent and add color of face");
+		uiDefButC(block, ROW, REDRAWVIEW3D, "Alpha",	720,80,60,19, &tf->transp, 2.0, (float)TF_ALPHA,0, 0, "Render polygon transparent, depending on alpha channel of the texture");
 	}
 }
 

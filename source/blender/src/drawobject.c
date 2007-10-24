@@ -2026,9 +2026,7 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, Derived
 	EM_init_index_arrays(1, 1, 1);
 
 	if(dt>OB_WIRE) {
-		if(		(G.vd->drawtype==OB_TEXTURE && dt>OB_SOLID) ||
-				(G.vd->drawtype==OB_SOLID && G.vd->flag2 & V3D_SOLID_TEX)
-		) {
+		if( CHECK_OB_DRAWTEXTURE(G.vd, dt) ) {
 			draw_mesh_textured(ob, finalDM, 0);
 		} else {
 			glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, me->flag & ME_TWOSIDED);
@@ -2066,6 +2064,10 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, Derived
 		glEnable(GL_BLEND);
 		glDepthMask(0);		// disable write in zbuffer, needed for nice transp
 		
+		/* dont draw unselected faces, only selected, this is MUCH nicer when texturing */
+		if CHECK_OB_DRAWTEXTURE(G.vd, dt)
+			col1[3] = 0;
+		
 		draw_dm_faces_sel(cageDM, col1, col2, col3, efa_act);
 
 		glDisable(GL_BLEND);
@@ -2089,10 +2091,7 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, Derived
 	}
 
 	/* here starts all fancy draw-extra over */
-	if(		(G.f & G_DRAWEDGES)==0 &&
-			((G.vd->drawtype==OB_TEXTURE && dt>OB_SOLID) ||
-			(G.vd->drawtype==OB_SOLID && G.vd->flag2 & V3D_SOLID_TEX)) 
-	) {
+	if((G.f & G_DRAWEDGES)==0 && CHECK_OB_DRAWTEXTURE(G.vd, dt)) {
 		/* we are drawing textures and 'G_DRAWEDGES' is disabled, dont draw any edges */
 		
 		/* only draw selected edges otherwise there is no way of telling if a face is selected */
@@ -2242,8 +2241,7 @@ static void draw_mesh_fancy(Base *base, int dt, int flag)
 		draw_wire = 1;
 	}
 	else if(	(ob==OBACT && (G.f & G_TEXTUREPAINT || FACESEL_PAINT_TEST)) ||
-				(G.vd->drawtype==OB_TEXTURE && dt>OB_SOLID) ||
-				(G.vd->drawtype==OB_SOLID && G.vd->flag2 & V3D_SOLID_TEX))
+				CHECK_OB_DRAWTEXTURE(G.vd, dt))
 	{
 		int faceselect= (ob==OBACT && FACESEL_PAINT_TEST);
 
