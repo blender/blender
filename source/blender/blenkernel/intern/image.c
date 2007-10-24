@@ -819,18 +819,20 @@ void BKE_stamp(struct ImBuf *ibuf)
 	}
 	
 	font_height = BMF_GetFontHeight(font);
+	/* All texts get halfspace+1 pixel on each side and 1 pix
+	   above and below as padding against their backing rectangles */
 	text_pad = BMF_GetStringWidth(font, " ");
 	
 	IMB_imginfo_change_field (ibuf, "File", G.sce);
 	if (G.scene->r.stamp & R_STAMP_DRAW) {
 		/* Top left corner */
-		x = 1; /* Inits for everyone */
-		y = ibuf->y - font_height; /* Also inits for everyone */
+		x = 1; /* Inits for everyone, text position, so 1 for padding, not 0 */
+		y = ibuf->y - font_height - 1; /* Also inits for everyone, notice padding pixel */
 		sprintf(text, "File %s", G.sce);
 		text_width = BMF_GetStringWidth(font, text);
 		IMB_rectfill_area(ibuf, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
 		BMF_DrawStringBuf(font, text, x+(text_pad/2), y, G.scene->r.fg_stamp, (unsigned char *)ibuf->rect, ibuf->rect_float, ibuf->x, ibuf->y);
-		y -= font_height+1;
+		y -= font_height+2; /* Top and bottom 1 pix padding each */
 	}
 
 	if (G.scene->r.stamp & R_STAMP_NOTE) {
@@ -841,7 +843,7 @@ void BKE_stamp(struct ImBuf *ibuf)
 			text_width = BMF_GetStringWidth(font, G.scene->r.stamp_udata);
 			IMB_rectfill_area(ibuf, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
 			BMF_DrawStringBuf(font, G.scene->r.stamp_udata, x+(text_pad/2), y, G.scene->r.fg_stamp, (unsigned char *)ibuf->rect, ibuf->rect_float, ibuf->x, ibuf->y);
-			y -= font_height+1;
+			y -= font_height+2; /* Top and bottom 1 pix padding each */
 		}
 	}
 	
@@ -877,7 +879,7 @@ void BKE_stamp(struct ImBuf *ibuf)
 		if (G.scene->r.stamp & R_STAMP_DRAW) {
 			/* Bottom left corner, leaving space for timing */
 			x = 1;
-			y = font_height+1;
+			y = font_height+2+1; /* 2 for padding in TIME|FRAME fields below and 1 for padding in this one */
 			sprintf (text, "Marker %s", infotext);
 			text_width = BMF_GetStringWidth(font, text);
 			IMB_rectfill_area(ibuf, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
@@ -915,7 +917,7 @@ void BKE_stamp(struct ImBuf *ibuf)
 			text_width = BMF_GetStringWidth(font, text);
 			IMB_rectfill_area(ibuf, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
 			BMF_DrawStringBuf(font, text, x+(text_pad/2), y, G.scene->r.fg_stamp, (unsigned char *)ibuf->rect, ibuf->rect_float, ibuf->x, ibuf->y);
-			x += text_width+text_pad;
+			x += text_width+text_pad+2; /* Both sides have 1 pix additional padding each */
 		}
 	}
 
