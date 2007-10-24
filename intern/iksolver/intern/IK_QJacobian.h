@@ -49,7 +49,7 @@ public:
 	~IK_QJacobian();
 
 	// Call once to initialize
-	void ArmMatrices(int dof, int task_size, int tasks);
+	void ArmMatrices(int dof, int task_size);
 	void SetDoFWeight(int dof, MT_Scalar weight);
 
 	// Iteratively called
@@ -75,7 +75,7 @@ private:
 	void InvertSDLS();
 	void InvertDLS();
 
-	int m_dof, m_task_size, m_tasks;
+	int m_dof, m_task_size;
 	bool m_transpose;
 
 	// the jacobian matrix and it's null space projector

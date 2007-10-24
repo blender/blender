@@ -236,6 +236,18 @@ IK_QSegment::IK_QSegment(int num_DoF, bool translational)
 	m_orig_translation = m_translation;
 }
 
+void IK_QSegment::Reset()
+{
+	m_locked[0] = m_locked[1] = m_locked[2] = false;
+
+	m_basis = m_orig_basis;
+	m_translation = m_orig_translation;
+	SetBasis(m_basis);
+
+	for (IK_QSegment *seg = m_child; seg; seg = seg->m_sibling)
+		seg->Reset();
+}
+
 void IK_QSegment::SetTransform(
 	const MT_Vector3& start,
 	const MT_Matrix3x3& rest_basis,
@@ -324,6 +336,11 @@ void IK_QSegment::UpdateTransform(const MT_Transform& global)
 	// update child transforms
 	for (IK_QSegment *seg = m_child; seg; seg = seg->m_sibling)
 		seg->UpdateTransform(m_global_transform);
+}
+
+void IK_QSegment::PrependBasis(const MT_Matrix3x3& mat)
+{
+	m_basis = m_rest_basis.inverse() * mat * m_rest_basis * m_basis;
 }
 
 // IK_QSphericalSegment

@@ -318,6 +318,31 @@ void IK_SolverAddGoalOrientation(IK_Solver *solver, IK_Segment *tip, float goal[
 	qsolver->tasks.push_back(orient);
 }
 
+void IK_SolverSetPoleVectorConstraint(IK_Solver *solver, IK_Segment *tip, float goal[3], float polegoal[3], float poleangle, int getangle)
+{
+	if (solver == NULL || tip == NULL)
+		return;
+
+	IK_QSolver *qsolver = (IK_QSolver*)solver;
+	IK_QSegment *qtip = (IK_QSegment*)tip;
+
+	MT_Vector3 qgoal(goal);
+	MT_Vector3 qpolegoal(polegoal);
+
+	qsolver->solver.SetPoleVectorConstraint(
+		qtip, qgoal, qpolegoal, poleangle, getangle);
+}
+
+float IK_SolverGetPoleAngle(IK_Solver *solver)
+{
+	if (solver == NULL)
+		return 0.0f;
+
+	IK_QSolver *qsolver = (IK_QSolver*)solver;
+
+	return qsolver->solver.GetPoleAngle();
+}
+
 void IK_SolverAddCenterOfMass(IK_Solver *solver, IK_Segment *root, float goal[3], float weight)
 {
 	if (solver == NULL || root == NULL)
@@ -345,6 +370,9 @@ int IK_Solve(IK_Solver *solver, float tolerance, int max_iterations)
 	IK_QJacobianSolver& jacobian = qsolver->solver;
 	std::list<IK_QTask*>& tasks = qsolver->tasks;
 	MT_Scalar tol = tolerance;
+
+	if(!jacobian.Setup(root, tasks))
+		return 0;
 
 	bool result = jacobian.Solve(root, tasks, tol, max_iterations);
 

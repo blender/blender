@@ -1512,7 +1512,7 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 	IK_Segment *seg, *parent, **iktree, *iktarget;
 	IK_Solver *solver;
 	PoseTarget *target;
-	bKinematicConstraint *data;
+	bKinematicConstraint *data, *poleangledata=NULL;
 	Bone *bone;
 
 	if (tree->totchannel == 0)
@@ -1624,12 +1624,15 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 	Mat4Invert (goalinv, imat);
 	
 	for (target=tree->targets.first; target; target=target->next) {
+		float polepos[3];
+		int poleconstrain= 0;
+
 		data= (bKinematicConstraint*)target->con->data;
 		
 		/* 1.0=ctime, we pass on object for auto-ik (owner-type here is object, even though
 		 * strictly speaking, it is a posechannel)
 		 */
-		get_constraint_target_matrix(target->con, CONSTRAINT_OBTYPE_OBJECT, ob, rootmat, 1.0);
+		get_constraint_target_matrix(target->con, 0, CONSTRAINT_OBTYPE_OBJECT, ob, rootmat, 1.0);
 		
 		/* and set and transform goal */
 		Mat4MulMat4(goal, rootmat, goalinv);
@@ -1637,6 +1640,26 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 		VECCOPY(goalpos, goal[3]);
 		Mat3CpyMat4(goalrot, goal);
 		
+		/* same for pole vector target */
+		if(data->poletar) {
+			get_constraint_target_matrix(target->con, 1, CONSTRAINT_OBTYPE_OBJECT, ob, rootmat, 1.0);
+
+			if(data->flag & CONSTRAINT_IK_SETANGLE) {
+				/* don't solve IK when we are setting the pole angle */
+				break;
+			}
+			else {
+				Mat4MulMat4(goal, rootmat, goalinv);
+				VECCOPY(polepos, goal[3]);
+				poleconstrain= 1;
+
+				if(data->flag & CONSTRAINT_IK_GETANGLE) {
+					poleangledata= data;
+					data->flag &= ~CONSTRAINT_IK_GETANGLE;
+				}
+			}
+		}
+
 		/* do we need blending? */
 		if (target->con->enforce!=1.0) {
 			float q1[4], q2[4], q[4];
@@ -1664,14 +1687,24 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 		
 		iktarget= iktree[target->tip];
 		
-		if(data->weight != 0.0)
+		if(data->weight != 0.0) {
+			if(poleconstrain)
+				IK_SolverSetPoleVectorConstraint(solver, iktarget, goalpos,
+					polepos, data->poleangle*M_PI/180, (poleangledata == data));
 			IK_SolverAddGoal(solver, iktarget, goalpos, data->weight);
-		if((data->flag & CONSTRAINT_IK_ROT) && (data->orientweight != 0.0) && (data->flag & CONSTRAINT_IK_AUTO)==0)
-			IK_SolverAddGoalOrientation(solver, iktarget, goalrot, data->orientweight);
+		}
+		if((data->flag & CONSTRAINT_IK_ROT) && (data->orientweight != 0.0))
+			if((data->flag & CONSTRAINT_IK_AUTO)==0)
+				IK_SolverAddGoalOrientation(solver, iktarget, goalrot,
+					data->orientweight);
 	}
 
 	/* solve */
 	IK_Solve(solver, 0.0f, tree->iterations);
+
+	if(poleangledata)
+		poleangledata->poleangle= IK_SolverGetPoleAngle(solver)*180/M_PI;
+
 	IK_FreeSolver(solver);
 
 	/* gather basis changes */

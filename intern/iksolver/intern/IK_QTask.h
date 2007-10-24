@@ -75,6 +75,8 @@ public:
 
 	virtual MT_Scalar Distance() const=0;
 
+	virtual bool PositionTask() const { return false; }
+
 protected:
 	int m_id;
 	int m_size;
@@ -96,6 +98,8 @@ public:
 	void ComputeJacobian(IK_QJacobian& jacobian);
 
 	MT_Scalar Distance() const;
+
+	bool PositionTask() const { return true; }
 
 private:
 	MT_Vector3 m_goal;

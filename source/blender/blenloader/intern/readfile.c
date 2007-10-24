@@ -1664,6 +1664,7 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 				bKinematicConstraint *data;
 				data = ((bKinematicConstraint*)con->data);
 				data->tar = newlibadr(fd, id->lib, data->tar);
+				data->poletar = newlibadr(fd, id->lib, data->poletar);
 			}
 			break;
 		case CONSTRAINT_TYPE_TRACKTO:
@@ -7289,6 +7290,7 @@ static void expand_constraints(FileData *fd, Main *mainvar, ListBase *lb)
 			{
 				bKinematicConstraint *data = (bKinematicConstraint*)curcon->data;
 				expand_doit(fd, mainvar, data->tar);
+				expand_doit(fd, mainvar, data->poletar);
 			}
 			break;
 		case CONSTRAINT_TYPE_TRACKTO:

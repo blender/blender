@@ -32,6 +32,15 @@
 
 #include <stdio.h>
 #include "IK_QJacobianSolver.h"
+#include "MT_Quaternion.h"
+
+//#include "analyze.h"
+IK_QJacobianSolver::IK_QJacobianSolver()
+{
+	m_poleconstraint = false;
+	m_getpoleangle = false;
+	m_rootmatrix.setIdentity();
+}
 
 void IK_QJacobianSolver::AddSegmentList(IK_QSegment *seg)
 {
@@ -47,7 +56,7 @@ bool IK_QJacobianSolver::Setup(IK_QSegment *root, std::list<IK_QTask*>& tasks)
 	m_segments.clear();
 	AddSegmentList(root);
 
-	// assing each segment a unique id for the jacobian
+	// assign each segment a unique id for the jacobian
 	std::vector<IK_QSegment*>::iterator seg;
 	int num_dof = 0;
 
@@ -105,9 +114,9 @@ bool IK_QJacobianSolver::Setup(IK_QSegment *root, std::list<IK_QTask*>& tasks)
 	}
 
 	// set matrix sizes
-	m_jacobian.ArmMatrices(num_dof, primary_size, primary);
+	m_jacobian.ArmMatrices(num_dof, primary_size);
 	if (secondary > 0)
-		m_jacobian_sub.ArmMatrices(num_dof, secondary_size, secondary);
+		m_jacobian_sub.ArmMatrices(num_dof, secondary_size);
 
 	// set dof weights
 	int i;
@@ -117,6 +126,109 @@ bool IK_QJacobianSolver::Setup(IK_QSegment *root, std::list<IK_QTask*>& tasks)
 			m_jacobian.SetDoFWeight((*seg)->DoFId()+i, (*seg)->Weight(i));
 
 	return true;
+}
+
+void IK_QJacobianSolver::SetPoleVectorConstraint(IK_QSegment *tip, MT_Vector3& goal, MT_Vector3& polegoal, float poleangle, bool getangle)
+{
+	m_poleconstraint = true;
+	m_poletip = tip;
+	m_goal = goal;
+	m_polegoal = polegoal;
+	m_poleangle = (getangle)? 0.0f: poleangle;
+	m_getpoleangle = getangle;
+}
+
+static MT_Scalar safe_acos(MT_Scalar f)
+{
+	// acos that does not return NaN with rounding errors
+	if (f <= -1.0f) return MT_PI;
+	else if (f >= 1.0f) return 0.0;
+	else return acos(f);
+}
+
+static MT_Vector3 normalize(const MT_Vector3& v)
+{
+	// a sane normalize function that doesn't give (1, 0, 0) in case
+	// of a zero length vector, like MT_Vector3.normalize
+	MT_Scalar len = v.length();
+	return MT_fuzzyZero(len)?  MT_Vector3(0, 0, 0): v/len;
+}
+
+static float angle(const MT_Vector3& v1, const MT_Vector3& v2)
+{
+	return safe_acos(v1.dot(v2));
+}
+
+void IK_QJacobianSolver::ConstrainPoleVector(IK_QSegment *root, std::list<IK_QTask*>& tasks)
+{
+	// this function will be called before and after solving. calling it before
+	// solving gives predictable solutions by rotating towards the solution,
+	// and calling it afterwards ensures the solution is exact.
+
+	if(!m_poleconstraint)
+		return;
+	
+	// disable pole vector constraint in case of multiple position tasks
+	std::list<IK_QTask*>::iterator task;
+	int positiontasks = 0;
+
+	for (task = tasks.begin(); task != tasks.end(); task++)
+		if((*task)->PositionTask())
+			positiontasks++;
+	
+	if (positiontasks >= 2) {
+		m_poleconstraint = false;
+		return;
+	}
+
+	// get positions and rotations
+	root->UpdateTransform(m_rootmatrix);
+
+	const MT_Vector3 rootpos = root->GlobalStart();
+	const MT_Vector3 endpos = m_poletip->GlobalEnd();
+	const MT_Matrix3x3& rootbasis = root->GlobalTransform().getBasis();
+
+	// construct "lookat" matrices (like gluLookAt), based on a direction and
+	// an up vector, with the direction going from the root to the end effector
+	// and the up vector going from the root to the pole constraint position.
+	MT_Vector3 dir = normalize(endpos - rootpos);
+	MT_Vector3 rootx= rootbasis.getColumn(0);
+	MT_Vector3 rootz= rootbasis.getColumn(2);
+	MT_Vector3 up = rootx*cos(m_poleangle) + rootz*sin(m_poleangle);
+
+	// in post, don't rotate towards the goal but only correct the pole up
+	MT_Vector3 poledir = (m_getpoleangle)? dir: normalize(m_goal - rootpos);
+	MT_Vector3 poleup = normalize(m_polegoal - rootpos);
+
+	MT_Matrix3x3 mat, polemat;
+
+	mat[0] = normalize(MT_cross(dir, up));
+	mat[1] = MT_cross(mat[0], dir);
+	mat[2] = -dir;
+
+	polemat[0] = normalize(MT_cross(poledir, poleup));
+	polemat[1] = MT_cross(polemat[0], poledir);
+	polemat[2] = -poledir;
+
+	if(m_getpoleangle) {
+		// we compute the pole angle that to rotate towards the target
+		m_poleangle = angle(mat[1], polemat[1]);
+
+		if(rootz.dot(mat[1]*cos(m_poleangle) + mat[0]*sin(m_poleangle)) > 0.0f)
+			m_poleangle = -m_poleangle;
+
+		// solve again, with the pole angle we just computed
+		m_getpoleangle = false;
+		ConstrainPoleVector(root, tasks);
+	}
+	else {
+		// now we set as root matrix the difference between the current and
+		// desired rotation based on the pole vector constraint. we use
+		// transpose instead of inverse because we have orthogonal matrices
+		// anyway, and in case of a singular matrix we don't get NaN's.
+		MT_Transform trans(MT_Point3(0, 0, 0), polemat.transposed()*mat);
+		m_rootmatrix = trans*m_rootmatrix;
+	}
 }
 
 bool IK_QJacobianSolver::UpdateAngles(MT_Scalar& norm)
@@ -181,15 +293,17 @@ bool IK_QJacobianSolver::Solve(
 	const int max_iterations
 )
 {
+	bool solved = false;
 	//double dt = analyze_time();
 
-	if (!Setup(root, tasks))
-		return false;
+	ConstrainPoleVector(root, tasks);
+
+	root->UpdateTransform(m_rootmatrix);
 
 	// iterate
 	for (int iterations = 0; iterations < max_iterations; iterations++) {
 		// update transform
-		root->UpdateTransform(MT_Transform::Identity());
+		root->UpdateTransform(m_rootmatrix);
 
 		std::list<IK_QTask*>::iterator task;
 
@@ -211,7 +325,7 @@ bool IK_QJacobianSolver::Solve(
 					m_jacobian.SubTask(m_jacobian_sub);
 			}
 			catch (...) {
-				printf("IK Exception\n");
+				fprintf(stderr, "IK Exception\n");
 				return false;
 			}
 
@@ -230,12 +344,19 @@ bool IK_QJacobianSolver::Solve(
 
 		// check for convergence
 		if (norm < 1e-3) {
+			solved = true;
+			break;
 			//analyze_add_run(iterations, analyze_time()-dt);
+
 			return true;
 		}
 	}
 
+	if(m_poleconstraint)
+		root->PrependBasis(m_rootmatrix.getBasis());
+
 	//analyze_add_run(max_iterations, analyze_time()-dt);
-	return false;
+
+	return solved;
 }
 

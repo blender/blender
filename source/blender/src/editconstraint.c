@@ -417,18 +417,26 @@ static void test_constraints (Object *owner, const char substring[])
 				case CONSTRAINT_TYPE_KINEMATIC:
 				{
 					bKinematicConstraint *data = curcon->data;
+
 					if (!exist_object(data->tar)) {
 						data->tar = NULL;
 						curcon->flag |= CONSTRAINT_DISABLE;
-						break;
 					}
-					
-					if ( (data->tar == owner) &&
+					else if ( (data->tar == owner) &&
 						 (!get_named_bone(get_armature(owner), 
 										  data->subtarget))) {
 						curcon->flag |= CONSTRAINT_DISABLE;
-						break;
 					}
+
+					if (data->poletar && !exist_object(data->poletar)) {
+						data->poletar = NULL;
+					}
+					else if ( (data->poletar == owner) &&
+						 (!get_named_bone(get_armature(owner), 
+										  data->polesubtarget))) {
+						curcon->flag |= CONSTRAINT_DISABLE;
+					}
+
 				}
 					break;
 				case CONSTRAINT_TYPE_TRACKTO:
@@ -816,7 +824,7 @@ void add_constraint(int only_IK)
 		set_constraint_nth_target(con, ob, pchansel->name, 0);
 	}
 	else if(obsel) {
-		set_constraint_nth_target(con, obsel, NULL, 0);
+		set_constraint_nth_target(con, obsel, "", 0);
 	}
 	else if (ELEM4(nr, 11, 13, 14, 15)==0) {	/* add new empty as target */
 		Base *base= BASACT, *newbase;
@@ -838,7 +846,7 @@ void add_constraint(int only_IK)
 		else
 			VECCOPY(obt->loc, ob->obmat[3]);
 		
-		set_constraint_nth_target(con, obt, NULL, 0);
+		set_constraint_nth_target(con, obt, "", 0);
 		
 		/* restore, add_object sets active */
 		BASACT= base;

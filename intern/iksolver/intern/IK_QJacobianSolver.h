@@ -43,6 +43,7 @@
 #include <list>
 
 #include "MT_Vector3.h"
+#include "MT_Transform.h"
 #include "IK_QJacobian.h"
 #include "IK_QSegment.h"
 #include "IK_QTask.h"
@@ -50,11 +51,18 @@
 class IK_QJacobianSolver
 {
 public:
-	IK_QJacobianSolver() {};
+	IK_QJacobianSolver();
 	~IK_QJacobianSolver() {};
 
-	// returns true if converged, false if max number of iterations was used
+	// setup pole vector constraint
+	void SetPoleVectorConstraint(IK_QSegment *tip, MT_Vector3& goal,
+		MT_Vector3& polegoal, float poleangle, bool getangle);
+	float GetPoleAngle() { return m_poleangle; };
 
+	// call setup once before solving, if it fails don't solve
+	bool Setup(IK_QSegment *root, std::list<IK_QTask*>& tasks);
+
+	// returns true if converged, false if max number of iterations was used
 	bool Solve(
 		IK_QSegment *root,
 		std::list<IK_QTask*> tasks,
@@ -64,8 +72,8 @@ public:
 
 private:
 	void AddSegmentList(IK_QSegment *seg);
-	bool Setup(IK_QSegment *root, std::list<IK_QTask*>& tasks);
 	bool UpdateAngles(MT_Scalar& norm);
+	void ConstrainPoleVector(IK_QSegment *root, std::list<IK_QTask*>& tasks);
 
 private:
 
@@ -75,6 +83,15 @@ private:
 	bool m_secondary_enabled;
 
 	std::vector<IK_QSegment*> m_segments;
+
+	MT_Transform m_rootmatrix;
+
+	bool m_poleconstraint;
+	bool m_getpoleangle;
+	MT_Vector3 m_goal;
+	MT_Vector3 m_polegoal;
+	float m_poleangle;
+	IK_QSegment *m_poletip;
 };
 
 #endif

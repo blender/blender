@@ -158,6 +158,8 @@ void IK_FreeSolver(IK_Solver *solver);
 
 void IK_SolverAddGoal(IK_Solver *solver, IK_Segment *tip, float goal[3], float weight);
 void IK_SolverAddGoalOrientation(IK_Solver *solver, IK_Segment *tip, float goal[][3], float weight);
+void IK_SolverSetPoleVectorConstraint(IK_Solver *solver, IK_Segment *tip, float goal[3], float polegoal[3], float poleangle, int getangle);
+float IK_SolverGetPoleAngle(IK_Solver *solver);
 
 int IK_Solve(IK_Solver *solver, float tolerance, int max_iterations);
 
