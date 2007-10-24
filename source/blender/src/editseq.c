@@ -1987,6 +1987,19 @@ void change_sequence(void)
 
 }
 
+void reload_sequence(void)
+{
+	Editing *ed= G.scene->ed;
+	Sequence *seq;
+	WHILE_SEQ(ed->seqbasep) {
+		if(seq->flag & SELECT) {
+			update_changed_seq_and_deps(seq, 0, 1);
+		}
+	}
+	END_SEQ
+	allqueue(REDRAWSEQ, 0);
+}
+
 void reassign_inputs_seq_effect()
 {
 	Editing *ed= G.scene->ed;
