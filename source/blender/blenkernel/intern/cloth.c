@@ -699,11 +699,11 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,
 				}
 
 				tstart();
-
+/*
 				// Call the solver.
 				if ( solvers [clmd->sim_parms.solver_type].solver )
 					solvers [clmd->sim_parms.solver_type].solver ( ob, framenr, clmd, effectors );
-
+*/
 				tend();
 				printf ( "Cloth simulation time: %f\n", ( float ) tval() );
 
@@ -735,7 +735,10 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,
 		}
 	}
 	
-	return result;
+	if(result)
+		return result;
+	else
+		return dm;
 }
 
 /* frees all */

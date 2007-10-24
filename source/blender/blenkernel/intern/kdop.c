@@ -531,16 +531,9 @@ BVH *bvh_build (BVH *bvh, MFace *mfaces, unsigned int numfaces)
 	CollisionTree **face_list=NULL;
 	CollisionTree *tree=NULL;
 	LinkNode *nlink = NULL;
-	MFace *mface = NULL;
 	
 	nlink = bvh->tree;
 
-	if (tree == NULL) 
-	{
-		printf("bvh_build: Out of memory for nodes.\n");
-		bvh_free(bvh);
-		return NULL;
-	}
 	bvh->root = bvh->tree->link;
 	bvh->root->isleaf = 0;
 	bvh->root->parent = NULL;
@@ -695,7 +688,14 @@ BVH *bvh_build_from_mvert (MFace *mfaces, unsigned int numfaces, MVert *x, unsig
 	bvh->xnew = MEM_dupallocN(x);	
 	bvh->x = MEM_dupallocN(x);	
 	tree = (CollisionTree *)MEM_callocN(sizeof(CollisionTree), "CollisionTree");
-	// TODO: check succesfull alloc
+	
+	if (tree == NULL) 
+	{
+		printf("bvh_build: Out of memory for nodes.\n");
+		bvh_free(bvh);
+		return NULL;
+	}
+	
 	BLI_linklist_append(&bvh->tree, tree);
 	
 	return bvh_build(bvh, mfaces, numfaces);

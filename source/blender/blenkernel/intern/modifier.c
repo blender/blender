@@ -4903,7 +4903,7 @@ static DerivedMesh *clothModifier_applyModifier(
 
 	CDDM_calc_normals(result);
 
-	return derivedData;
+	return result;
 }
 
 static void clothModifier_updateDepgraph(
