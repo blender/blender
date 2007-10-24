@@ -1923,8 +1923,8 @@ void do_worldbuts(unsigned short event)
 			scrarea_queue_winredraw(curarea);
 		}
 		break;
-	case B_AO_DISTANCES:
-		/* distances option only supports plain */
+	case B_AO_FALLOFF:
+		/* falloff distances option only supports plain */
 		wrld= G.buts->lockpoin;
 		if(wrld)
 			wrld->aocolor= WO_AOPLAIN;
@@ -2124,54 +2124,88 @@ static void world_panel_mistaph(World *wrld)
 static void world_panel_amb_occ(World *wrld)
 {
 	uiBlock *block;
+	short yco=PANEL_YMAX;
 	
 	block= uiNewBlock(&curarea->uiblocks, "world_panel_amb_oc", UI_EMBOSS, UI_HELV, curarea->win);
 	uiNewPanelTabbed("Mist / Stars / Physics", "World");
-	if(uiNewPanel(curarea, block, "Amb Occ", "World", 320, 0, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Amb Occ", "World", PANELX, PANELY, PANELW, PANELH)==0) return;
 
 	uiBlockSetCol(block, TH_BUT_SETTING1);
-	uiDefButBitS(block, TOG, WO_AMB_OCC, B_REDR,	"Ambient Occlusion",10,150,300,19, &wrld->mode, 0, 0, 0, 0, "Toggles ambient occlusion (soft shadows)");
+	uiDefButBitS(block, TOG, WO_AMB_OCC, B_REDR, "Ambient Occlusion",
+		X2CLM1, yco-=BUTH, BUTW1, BUTH, &wrld->mode, 0, 0, 0, 0, "Toggles ambient occlusion (soft shadows)");
 	uiBlockSetCol(block, TH_AUTO);
+	
+	if(!(wrld->mode & WO_AMB_OCC)) return;
+	
+	yco -= YSPACE;
 
-	if(wrld->mode & WO_AMB_OCC) {
+	uiDefButS(block, NUM, B_REDR, "Samples:",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &wrld->aosamp, 1.0, 32.0, 100, 0, "Sets the number of samples used for AO  (actual number: squared)");
+	
+	yco -= YSPACE;
+	
+	uiDefButF(block, NUM, B_REDR, "Max Dist:",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &wrld->aodist, 0.001, 5000.0, 100, 0, "Sets length of AO rays, defines how far away other faces give occlusion effect");
 
-		/* aolight: samples */
-		uiDefButS(block, MENU, B_REDR, "Constant QMC %x2|Adaptive QMC %x1|Constant Jittered %x0",
-				10, 120, 145, 19, &wrld->ao_samp_method, 0, 0, 0, 0, "Method for generating shadow samples: Constant QMC: best quality, Adaptive QMC: fast in high contrast areas");
-		uiDefButS(block, NUM, B_REDR, "Samples:",
-				165, 120, 145, 19, &wrld->aosamp, 1.0, 32.0, 100, 0, "Sets the number of samples used for AO  (actual number: squared)");
-		
-		if (wrld->ao_samp_method == WO_AOSAMP_HALTON) {
-			uiDefButF(block, NUM, B_REDR, "Threshold:",
-				10, 95, 145, 19, &wrld->ao_adapt_thresh, 0.0, 1.0, 100, 0, "Samples below this threshold will be considered fully shadowed/unshadowed and skipped");
-		}
-		uiDefButF(block, NUM, B_REDR, "Dist:",
-			165, 95, 145, 19, &wrld->aodist, 0.001, 5000.0, 100, 0, "Sets length of AO rays, defines how far away other faces give occlusion effect");
-
+	yco -= YSPACE;
+	
+	uiBlockBeginAlign(block);
+	uiDefButBitS(block, TOG, WO_AODIST, B_AO_FALLOFF, "Use Falloff",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &wrld->aomode, 0, 0, 0, 0, "When enabled, distances to objects will be used to attenuate shadows. Only for Plain AO.");
+	if (wrld->aomode & WO_AODIST)
+		uiDefButF(block, NUM, B_REDR, "Strength:",
+			X2CLM1, yco-=BUTH, BUTW2, BUTH, &wrld->aodistfac, 0.00001, 10.0, 100, 0, "Distance attenuation factor, the higher, the 'shorter' the shadows");
+	uiBlockEndAlign(block);
+	
+	/* column 2 */
+	yco = PANEL_YMAX - BUTH - YSPACE;
+	
+	uiDefButS(block, MENU, B_REDR, "Constant QMC %x2|Adaptive QMC %x1|Constant Jittered %x0",
+		X2CLM2, yco-=BUTH, BUTW2, BUTH, &wrld->ao_samp_method, 0, 0, 0, 0, "Method for generating shadow samples: Constant QMC: best quality, Adaptive QMC: fast in high contrast areas");
+	
+	yco -= YSPACE;
+	
+	if (wrld->ao_samp_method == WO_AOSAMP_HALTON) {	
 		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, WO_AODIST, B_AO_DISTANCES, "Use Distances", 10, 70, 150, 19, &wrld->aomode, 0, 0, 0, 0, "When enabled, distances to objects will be used to attenuate shadows. Only for Plain AO.");
-		/* distance attenuation factor */
-		if (wrld->aomode & WO_AODIST)
-			uiDefButF(block, NUM, B_REDR, "DistF:", 160, 70, 150, 19, &wrld->aodistfac, 0.00001, 10.0, 100, 0, "Distance factor, the higher, the 'shorter' the shadows");
-
-		/* result mix modes */
-		uiBlockBeginAlign(block);
-		uiDefButS(block, ROW, B_REDR, "Add", 10, 45, 100, 20, &wrld->aomix, 1.0, (float)WO_AOADD, 0, 0, "adds light/shadows");
-		uiDefButS(block, ROW, B_REDR, "Sub", 110, 45, 100, 20, &wrld->aomix, 1.0, (float)WO_AOSUB, 0, 0, "subtracts light/shadows (needs at least one normal light to make anything visible)");
-		uiDefButS(block, ROW, B_REDR, "Both", 210, 45, 100, 20, &wrld->aomix, 1.0, (float)WO_AOADDSUB, 0, 0, "both lightens & darkens");
-
-		/* color treatment */
-		uiBlockBeginAlign(block);
-		uiDefButS(block, ROW, B_REDR, "Plain", 10, 25, 100, 20, &wrld->aocolor, 2.0, (float)WO_AOPLAIN, 0, 0, "Plain diffuse energy (white)");
-		uiDefButS(block, ROW, B_REDR, "Sky Color", 110, 25, 100, 20, &wrld->aocolor, 2.0, (float)WO_AOSKYCOL, 0, 0, "Use horizon and zenith color for diffuse energy");
-		uiDefButS(block, ROW, B_REDR, "Sky Texture", 210, 25, 100, 20, &wrld->aocolor, 2.0, (float)WO_AOSKYTEX, 0, 0, "Does full Sky texture render for diffuse energy");
-		
-		uiBlockBeginAlign(block);
-		uiDefButF(block, NUMSLI, B_REDR, "Energy:", 10, 0, 150, 19, &wrld->aoenergy, 0.01, 3.0, 100, 0, "Sets global energy scale for AO");
-		if (wrld->ao_samp_method == WO_AOSAMP_CONSTANT)
-			uiDefButF(block, NUMSLI, B_REDR, "Bias:", 160, 0, 150, 19, &wrld->aobias, 0.0, 0.5, 10, 0, "Sets bias to prevent smoothed faces to show banding (in radians)");
+		uiDefButF(block, NUM, B_REDR, "Threshold:",
+			X2CLM2, yco-=BUTH, BUTW2, BUTH, &wrld->ao_adapt_thresh, 0.0, 1.0, 100, 0, "Samples below this threshold will be considered fully shadowed/unshadowed and skipped");
+		uiDefButF(block, NUMSLI, B_REDR, "Adapt Vec:",
+			X2CLM2, yco-=BUTH, BUTW2, BUTH, &wrld->ao_adapt_speed_fac, 0.0, 1.0, 100, 0, "Use the speed vector pass to reduce AO samples in fast moving pixels. The higher the value, the more aggressive the sample reduction. Requires Vec pass enabled.");
+		uiBlockEndAlign(block);
+	} else if (wrld->ao_samp_method == WO_AOSAMP_CONSTANT) {
+		uiDefButF(block, NUMSLI, B_REDR, "Bias:",
+			X2CLM2, yco-=BUTH, BUTW2, BUTH, &wrld->aobias, 0.0, 0.5, 10, 0, "Sets bias to prevent smoothed faces to show banding (in radians)");
 	}
 
+
+	yco = PANEL_YMAX - (5*BUTH+4*YSPACE);
+
+	/* result mix modes */
+	uiBlockBeginAlign(block);
+	uiDefButS(block, ROW, B_REDR, "Add",
+		X3CLM1, yco-=BUTH, BUTW3, BUTH, &wrld->aomix, 1.0, (float)WO_AOADD, 0, 0, "adds light/shadows");
+	uiDefButS(block, ROW, B_REDR, "Sub",
+		X3CLM2, yco, BUTW3, BUTH, &wrld->aomix, 1.0, (float)WO_AOSUB, 0, 0, "subtracts light/shadows (needs at least one normal light to make anything visible)");
+	uiDefButS(block, ROW, B_REDR, "Both",
+		X3CLM3, yco, BUTW3, BUTH, &wrld->aomix, 1.0, (float)WO_AOADDSUB, 0, 0, "both lightens & darkens");
+
+	yco -= YSPACE;
+
+	/* color treatment */
+	uiBlockBeginAlign(block);
+	uiDefButS(block, ROW, B_REDR, "Plain",
+		X3CLM1, yco-=BUTH, BUTW3, BUTH, &wrld->aocolor, 2.0, (float)WO_AOPLAIN, 0, 0, "Plain diffuse energy (white)");
+	uiDefButS(block, ROW, B_REDR, "Sky Color", 
+		X3CLM2, yco, BUTW3, BUTH, &wrld->aocolor, 2.0, (float)WO_AOSKYCOL, 0, 0, "Use horizon and zenith color for diffuse energy");
+	uiDefButS(block, ROW, B_REDR, "Sky Texture", 
+		X3CLM3, yco, BUTW3, BUTH, &wrld->aocolor, 2.0, (float)WO_AOSKYTEX, 0, 0, "Does full Sky texture render for diffuse energy");
+	uiBlockEndAlign(block);
+	
+	yco -= YSPACE;
+	
+	uiDefButF(block, NUMSLI, B_REDR, "Energy:",
+		X2CLM1, yco-=BUTH, BUTW2, BUTH, &wrld->aoenergy, 0.01, 3.0, 100, 0, "Sets global energy scale for AO");
+	
 }
 
 static void world_panel_world(World *wrld)

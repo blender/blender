@@ -103,8 +103,8 @@ typedef struct World {
 	/* ambient occlusion */
 	float aodist, aodistfac, aoenergy, aobias;
 	short aomode, aosamp, aomix, aocolor;
-	float ao_adapt_thresh;
-	float pad2[3];
+	float ao_adapt_thresh, ao_adapt_speed_fac;
+	float pad2[2];
 	short ao_samp_method;
 	short pad1[3];
 	
