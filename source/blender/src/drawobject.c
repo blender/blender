@@ -1357,7 +1357,7 @@ void nurbs_foreachScreenVert(void (*func)(void *userData, Nurb *nu, BPoint *bp, 
 				BezTriple *bezt = &nu->bezt[i];
 
 				if(bezt->hide==0) {
-					if (G.scene->selectmode & SCE_SELECT_CU_HANDLES_HIDE) {
+					if (G.f & G_HIDDENHANDLES) {
 						view3d_project_short_clip(curarea, bezt->vec[1], s, pmat, vmat);
 						func(userData, nu, NULL, bezt, 1, s[0], s[1]);
 					} else {
@@ -2966,7 +2966,7 @@ static void tekenhandlesN(Nurb *nu, short sel)
 	unsigned int *col;
 	int a;
 	
-	if(nu->hide || (G.scene->selectmode & SCE_SELECT_CU_HANDLES_HIDE)) return;
+	if(nu->hide || (G.f & G_HIDDENHANDLES)) return;
 	
 	glBegin(GL_LINES); 
 	
@@ -3033,7 +3033,7 @@ static void tekenvertsN(Nurb *nu, short sel)
 		a= nu->pntsu;
 		while(a--) {
 			if(bezt->hide==0) {
-				if (G.scene->selectmode & SCE_SELECT_CU_HANDLES_HIDE) {
+				if (G.f & G_HIDDENHANDLES) {
 					if((bezt->f2 & 1)==sel) bglVertex3fv(bezt->vec[1]);
 				} else {
 					if((bezt->f1 & 1)==sel) bglVertex3fv(bezt->vec[0]);

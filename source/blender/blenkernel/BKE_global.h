@@ -175,6 +175,7 @@ typedef struct Global {
 #define G_DRAWCREASES	(1 << 19)
 #define G_DRAWSEAMS     (1 << 20)
 #define G_HIDDENEDGES   (1 << 21)
+#define G_HIDDENHANDLES (1 << 22) /* used for curves only */
 
 
 /* Measurement info Drawing */

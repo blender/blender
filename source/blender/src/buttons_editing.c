@@ -2950,7 +2950,7 @@ static void editing_panel_curve_tools1(Object *ob, Curve *cu)
 
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUM,	REDRAWVIEW3D, "NSize:",	400, 60, 150, 19, &G.scene->editbutsize, 0.001, 1.0, 10, 0, "Normal size for drawing");
-	uiDefButBitI(block, TOGN, SCE_SELECT_CU_HANDLES_HIDE, REDRAWVIEW3D, "Draw Handles", 	400, 40, 150, 19, &G.scene->selectmode, 0, 0, 0, 0, "Draw curve handles in 3D view");
+	uiDefButBitI(block, TOGN, G_HIDDENHANDLES, REDRAWVIEW3D, "Draw Handles", 	400, 40, 150, 19, &G.f, 0, 0, 0, 0, "Draw curve handles in 3D view");
 	uiBlockEndAlign(block);
 	
 	if(G.obedit) {
