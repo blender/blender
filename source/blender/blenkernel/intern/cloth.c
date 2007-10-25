@@ -654,13 +654,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 
 		// Insure we have a clmd->clothObject, in case allocation failed.
 		if (clmd->clothObject != NULL) 
-		{	     
-			
-			cloth->mfaces = mface; // update face pointer
-			((BVH *)cloth->tree)->mfaces = mface;
-			cloth->numfaces = numfaces;
-			((BVH *)cloth->tree)->numfaces = numfaces;
-
+		{
 			if(!cloth_cache_search_frame(clmd, framenr))
 			{
 				/* Force any pinned verts to their constrained location. */
@@ -747,35 +741,39 @@ void cloth_free_modifier (ClothModifierData *clmd)
 		// Free the verts.
 		if (cloth->verts != NULL)
 			MEM_freeN (cloth->verts);
+		
+		// Free the faces.
+		if ( cloth->mfaces != NULL )
+			MEM_freeN ( cloth->mfaces );
 
 		// Free the verts.
-			if ( cloth->x != NULL )
-				MEM_freeN ( cloth->x );
-			
-			// Free the verts.
-			if ( cloth->xnew != NULL )
-				MEM_freeN ( cloth->xnew );
+		if ( cloth->x != NULL )
+			MEM_freeN ( cloth->x );
+		
+		// Free the verts.
+		if ( cloth->xnew != NULL )
+			MEM_freeN ( cloth->xnew );
 
 		cloth->verts = NULL;
 		cloth->numverts = -1;
 		
-			// Free the springs.
-			if ( cloth->springs != NULL )
+		// Free the springs.
+		if ( cloth->springs != NULL )
+		{
+			LinkNode *search = cloth->springs;
+			while(search)
 			{
-				LinkNode *search = cloth->springs;
-				while(search)
-				{
-					ClothSpring *spring = search->link;
-							
-					MEM_freeN ( spring );
-					search = search->next;
-				}
-				BLI_linklist_free(cloth->springs, NULL);
-			
-				cloth->springs = NULL;
+				ClothSpring *spring = search->link;
+						
+				MEM_freeN ( spring );
+				search = search->next;
 			}
+			BLI_linklist_free(cloth->springs, NULL);
+		
+			cloth->springs = NULL;
+		}
 
-		cloth->numsprings = -1;		
+		cloth->numsprings = -1;
 		
 		// free BVH collision tree
 		if(cloth->tree)
@@ -877,41 +875,6 @@ static void cloth_apply_vgroup(ClothModifierData *clmd, DerivedMesh *dm, short v
 		}
 	}
 }
-
-// only meshes supported at the moment
-/* collision objects */
-static int collobj_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *dm, DerivedMesh *olddm, float framenr)
-{
-	unsigned int i;
-	unsigned int numverts = dm->getNumVerts(dm);
-	MVert *mvert = CDDM_get_verts(dm);
-
-	switch (ob->type)
-	{
-	case OB_MESH:
-		cloth_from_mesh (ob, clmd, dm, framenr);
-		
-		if (clmd->clothObject != NULL) 
-		{
-			
-			for (i = 0; i < numverts; ++i)
-			{
-				VECCOPY (clmd->clothObject->verts [i].x, mvert[i].co);
-				Mat4MulVecfl(ob->obmat, clmd->clothObject->verts [i].x);
-				clmd->clothObject->verts [i].flags = 0;
-				VECCOPY(clmd->clothObject->verts [i].xold, clmd->clothObject->verts [i].x);
-				VECCOPY(clmd->clothObject->verts [i].txold, clmd->clothObject->verts [i].x);
-				VECCOPY(clmd->clothObject->verts [i].tx, clmd->clothObject->verts [i].x);
-				VecMulf(clmd->clothObject->verts [i].v, 0.0f);				
-			}
-			clmd->clothObject->tree =  bvh_build(clmd, 0.001f);
-			
-		}
-
-		return 1;
-	default: return 0; // TODO - we do not support changing meshes
-	}
-}
 		
 // only meshes supported at the moment
 static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *dm, DerivedMesh *olddm, float framenr)
@@ -928,15 +891,13 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	clmd->clothObject = MEM_callocN (sizeof(Cloth), "cloth");
 	if (clmd->clothObject) 
 	{
-		clmd->clothObject->old_solver_type = -1;
+		clmd->clothObject->old_solver_type = 255;
 	}
 	else if (clmd->clothObject == NULL) 
 	{
 		modifier_setError (&(clmd->modifier), "Out of memory on allocating clmd->clothObject.");
 		return 0;
 	}
-	
-	printf("cloth_from_object\n");
 
 	switch (ob->type)
 	{
@@ -979,19 +940,11 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 			if (solvers [clmd->sim_parms.solver_type].init)
 				solvers [clmd->sim_parms.solver_type].init (ob, clmd);
 
-			clmd->clothObject->tree = bvh_build(clmd, clmd->coll_parms.epsilon);
+			clmd->clothObject->tree = NULL; // bvh_build(clmd, clmd->coll_parms.epsilon);
 
 			cloth_cache_set_frame(clmd, 1);
 		}
 
-		return 1;
-		case OB_LATTICE:
-			printf("OB_LATTICE\n");
-		// lattice_to_softbody(ob);
-		return 1;
-		case OB_CURVE:
-		case OB_SURF:
-			printf("OB_SURF| OB_CURVE\n");
 		return 1;
 		default: return 0; // TODO - we do not support changing meshes
 	}
@@ -1017,29 +970,15 @@ static void cloth_from_mesh (Object *ob, ClothModifierData *clmd, DerivedMesh *d
 		return;
 	}
 	
-	// collision objects need to cache face infos since they are needed during collision detection
-	// TODO: maybe cache it for cloth objects, too
-	if (clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ)
+	clmd->clothObject->numfaces = numfaces;
+	clmd->clothObject->mfaces = MEM_callocN (sizeof (MFace) * clmd->clothObject->numfaces, "clothMFaces");
+	if (clmd->clothObject->mfaces == NULL) 
 	{
-		clmd->clothObject->numfaces = numfaces;
-		clmd->clothObject->mfaces = MEM_callocN (sizeof (MFace) * clmd->clothObject->numfaces, "clothMFaces");
-		if (clmd->clothObject->mfaces == NULL) 
-		{
-			cloth_free_modifier (clmd);
-			modifier_setError (&(clmd->modifier), "Out of memory on allocating clmd->clothObject->mfaces.");
-			return;
-		}
-		for(i = 0; i < numfaces; i++)
-			memcpy(&clmd->clothObject->mfaces[i], &mface[i], sizeof(MFace));
+		cloth_free_modifier (clmd);
+		modifier_setError (&(clmd->modifier), "Out of memory on allocating clmd->clothObject->mfaces.");
+		return;
 	}
-	else
-	{
-		clmd->clothObject->mfaces = mface; // update face pointer
-		clmd->clothObject->numfaces = numfaces;
-	}
-	
-	// for SIP code
-	// clmd->clothObject->facemarks = MEM_callocN (sizeof (unsigned char) * clmd->clothObject->numfaces, "clothFaceMarks");
+	memcpy(clmd->clothObject->mfaces, mface, sizeof(MFace)*numfaces);
 
 	/* Free the springs since they can't be correct if the vertices
 	* changed.
@@ -1133,7 +1072,7 @@ int cloth_build_springs ( Cloth *cloth, DerivedMesh *dm )
 			BLI_linklist_append ( &cloth->springs, spring );
 		}
 	}
-
+	
 	// shear springs
 	for ( i = 0; i < numfaces; i++ )
 	{

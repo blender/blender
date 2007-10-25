@@ -122,7 +122,7 @@ void cloth_free_modifier ( ClothModifierData *clmd );
 void implicit_set_positions ( ClothModifierData *clmd );
 
 // from cloth.c, needed for modifier.c
-DerivedMesh *clothModifier_do(ClothModifierData *clmd, Object *ob, DerivedMesh *dm);
+DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *dm, int useRenderParams, int isFinalCalc);
 
 ////////////////////////////////////////////////
 
