@@ -623,6 +623,44 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 
 	result = CDDM_copy(dm);
 
+	// only be active during a specific period:
+	// that's "first frame" and "last frame" on GUI
+	if ( clmd->clothObject )
+	{
+		if ( clmd->sim_parms.cache )
+		{
+			if ( current_time < clmd->sim_parms.firstframe )
+			{
+				int frametime = cloth_cache_first_frame ( clmd );
+				if ( cloth_cache_search_frame ( clmd, frametime ) )
+				{
+					cloth_cache_get_frame ( clmd, frametime );
+					cloth_to_object ( ob, result, clmd );
+				}
+				return;
+			}
+			else if ( current_time > clmd->sim_parms.lastframe )
+			{
+				int frametime = cloth_cache_last_frame ( clmd );
+				if ( cloth_cache_search_frame ( clmd, frametime ) )
+				{
+					cloth_cache_get_frame ( clmd, frametime );
+					cloth_to_object ( ob, result, clmd );
+				}
+				return;
+			}
+			else if ( ABS ( deltaTime ) >= 2.0f ) // no timewarps allowed
+			{
+				if ( cloth_cache_search_frame ( clmd, framenr ) )
+				{
+					cloth_cache_get_frame ( clmd, framenr );
+					cloth_to_object ( ob, result, clmd );
+				}
+				clmd->sim_parms.sim_time = current_time;
+				return;
+			}
+		}
+
 	if(!result)
 	{
 		return dm;
@@ -657,19 +695,15 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 		{
 			if(!cloth_cache_search_frame(clmd, framenr))
 			{
-				/* Force any pinned verts to their constrained location. */
-				for (i = 0; i < clmd->clothObject->numverts; i++)
+				// Force any pinned verts to their constrained location.
+				for ( i = 0; i < clmd->clothObject->numverts; i++, verts++ )
 				{
-					/* Save the previous position. */
-					VECCOPY (cloth->verts [i].xold, cloth->verts [i].xconst);
-					VECCOPY (cloth->verts [i].txold, cloth->verts [i].x);
-
-					/* Get the current position. */
-					VECCOPY (cloth->verts [i].xconst, mvert[i].co);
-					Mat4MulVecfl(ob->obmat, cloth->verts [i].xconst);
-
-					/* Compute the vertices velocity. */
-					VECSUB (cloth->verts [i].v, cloth->verts [i].x, cloth->verts [i].xold);
+					// Save the previous position.
+					VECCOPY ( verts->xold, verts->xconst );
+					VECCOPY ( verts->txold, verts->x );
+					// Get the current position.
+					VECCOPY ( verts->xconst, mverts[i].co );
+					Mat4MulVecfl ( ob->obmat, verts->xconst );
 				}
 
 				tstart();
@@ -829,41 +863,46 @@ static void cloth_to_object (Object *ob,  DerivedMesh *dm, ClothModifierData *cl
 **/
 static void cloth_apply_vgroup(ClothModifierData *clmd, DerivedMesh *dm, short vgroup)
 {
-	unsigned int	i;
-	int j;
+	unsigned int i = 0;
+	unsigned int j = 0;
 	MDeformVert	*dvert = NULL;
-	Cloth		*clothObj;
-	unsigned int numverts = dm->getNumVerts(dm);
-	float goalfac;
+	Cloth *clothObj = NULL;
+	unsigned int numverts = 0;
+	float goalfac = 0;
+	ClothVertex *verts = NULL;
 
 	clothObj = clmd->clothObject;
+
+	if ( !dm )
+		return;
+
+	numverts = dm->getNumVerts(dm);
 
 	/* vgroup is 1 based, decrement so we can match the right group. */
 	--vgroup;
 
-	for (i = 0; i < numverts; ++i)
-	{				
-		/* so this will definily be below SOFTGOALSNAP */
-		clothObj->verts [i].goal= 0.0f; 
-		
+	verts = clothObj->verts;
+
+	for ( i = 0; i < numverts; i++, verts++ )
+	{
 		// LATER ON, support also mass painting here
-		if(clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_GOAL) 
-		{			
-			dvert = dm->getVertData(dm, i, CD_MDEFORMVERT);
-			if(dvert)	
-			{		
-				for(j = 0; j < dvert->totweight; j++) 
+		if ( clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_GOAL )
+		{
+			dvert = dm->getVertData ( dm, i, CD_MDEFORMVERT );
+			if ( dvert )
+			{
+				for ( j = 0; j < dvert->totweight; j++ )
 				{
-					if(dvert->dw[j].def_nr == vgroup) 
+					if ( dvert->dw[j].def_nr == vgroup )
 					{
-						clothObj->verts [i].goal = dvert->dw [j].weight;
+						verts->goal = dvert->dw [j].weight;
 
-						goalfac= ABS(clmd->sim_parms.maxgoal - clmd->sim_parms.mingoal);
-						clothObj->verts [i].goal  = (float)pow(clothObj->verts [i].goal , 4.0f);
+						goalfac= ABS ( clmd->sim_parms.maxgoal - clmd->sim_parms.mingoal );
+						verts->goal  = ( float ) pow ( verts->goal , 4.0f );
 
-						if(dvert->dw [j].weight >=SOFTGOALSNAP)
+						if ( dvert->dw [j].weight >=SOFTGOALSNAP )
 						{
-							clothObj->verts[i].flags |= CVERT_FLAG_PINNED;
+							verts->flags |= CVERT_FLAG_PINNED;
 						}
 
 						// TODO enable mass painting here, for the moment i let "goals" go first
@@ -903,13 +942,17 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	{
 		case OB_MESH:
 		
+			// mesh input objects need DerivedMesh
+			if ( !dm )
+				return 0;
+
 		cloth_from_mesh (ob, clmd, dm, framenr);
 
-		if (clmd->clothObject != NULL) 
-		{
-			/* create springs */
-			clmd->clothObject->springs = NULL;
-			clmd->clothObject->numsprings = -1;
+			if ( clmd->clothObject != NULL )
+			{
+				/* create springs */
+				clmd->clothObject->springs = NULL;
+				clmd->clothObject->numsprings = -1;
 
 			if (!cloth_build_springs (clmd->clothObject, dm) )
 			{
@@ -924,12 +967,18 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 				Mat4MulVecfl(ob->obmat, clmd->clothObject->verts [i].x);
 
 				clmd->clothObject->verts [i].mass = clmd->sim_parms.mass;
-				clmd->clothObject->verts [i].goal= clmd->sim_parms.defgoal;
+				if ( clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_GOAL )
+					clmd->clothObject->verts [i].goal= clmd->sim_parms.defgoal;
+				else
+					clmd->clothObject->verts [i].goal= 0.0f;
 				clmd->clothObject->verts [i].flags = 0;
 				VECCOPY(clmd->clothObject->verts [i].xold, clmd->clothObject->verts [i].x);
 				VECCOPY(clmd->clothObject->verts [i].xconst, clmd->clothObject->verts [i].x);
 				VECCOPY(clmd->clothObject->verts [i].txold, clmd->clothObject->verts [i].x);
 				VecMulf(clmd->clothObject->verts [i].v, 0.0f);
+
+				clmd->clothObject->verts [i].impulse_count = 0;
+				VECCOPY ( clmd->clothObject->verts [i].impulse, tnull );
 			}
 
 			/* apply / set vertex groups */
@@ -970,6 +1019,23 @@ static void cloth_from_mesh (Object *ob, ClothModifierData *clmd, DerivedMesh *d
 		return;
 	}
 	
+	clmd->clothObject->x = MEM_callocN ( sizeof ( MVert ) * clmd->clothObject->numverts, "Cloth MVert_x" );
+	if ( clmd->clothObject->x == NULL )
+	{
+		cloth_free_modifier ( clmd );
+		modifier_setError ( & ( clmd->modifier ), "Out of memory on allocating clmd->clothObject->x." );
+		return;
+	}
+	
+	clmd->clothObject->xnew = MEM_callocN ( sizeof ( MVert ) * clmd->clothObject->numverts, "Cloth MVert_xnew" );
+	if ( clmd->clothObject->xnew == NULL )
+	{
+		cloth_free_modifier ( clmd );
+		modifier_setError ( & ( clmd->modifier ), "Out of memory on allocating clmd->clothObject->xnew." );
+		return;
+	}
+
+	// save face information
 	clmd->clothObject->numfaces = numfaces;
 	clmd->clothObject->mfaces = MEM_callocN (sizeof (MFace) * clmd->clothObject->numfaces, "clothMFaces");
 	if (clmd->clothObject->mfaces == NULL) 
