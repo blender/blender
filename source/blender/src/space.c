@@ -1848,7 +1848,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 							fill_mesh();
 						else if(G.qual==LR_ALTKEY)
 							beauty_fill();
-						else if(G.qual & (LR_CTRLKEY|LR_SHIFTKEY))
+						else if(G.qual==(LR_CTRLKEY|LR_SHIFTKEY))
 							edge_flip();
 						else if (G.qual==0)
 							addedgeface_mesh();
@@ -6034,6 +6034,12 @@ void allqueue(unsigned short event, short val)
 						scrarea_queue_winredraw(sa);
 						if(val) scrarea_queue_headredraw(sa);
 					}
+				}
+				break;
+			case REDRAWVIEW3D_IMAGE:
+				if(sa->spacetype==SPACE_VIEW3D || sa->spacetype==SPACE_IMAGE) {
+					scrarea_queue_winredraw(sa);
+					if(val) scrarea_queue_headredraw(sa);
 				}
 				break;
 			case REDRAWVIEWCAM:

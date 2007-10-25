@@ -3440,6 +3440,7 @@ void Face_Menu() {
 			flip_editnormals();
 			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 			BIF_undo_push("Flip Normals");
+			allqueue(REDRAWVIEW3D, 0);
 			break;
 		case 2:
 			bevel_menu();

@@ -96,6 +96,7 @@
 #include "BIF_screen.h"
 #include "BIF_toolbox.h"
 #include "BIF_transform.h"
+#include "BIF_editmesh.h"
 
 #include "BSE_drawipo.h"
 #include "BSE_drawview.h"
@@ -243,31 +244,33 @@ void calc_image_view(SpaceImage *sima, char mode)
 void what_image(SpaceImage *sima)
 {
 	MTFace *activetf;
-		
+	
 	if(		(sima->mode!=SI_TEXTURE) ||
 			(sima->image && sima->image->source==IMA_SRC_VIEWER) ||
-			(G.obedit != OBACT)
+			(G.obedit != OBACT) ||
+			(sima->pin)
 	) {
 		return;
 	}
 	
-	/* viewer overrides faceselect */
-	if (!sima->pin)
+	/* viewer overrides uv editmode */
+	if (EM_texFaceCheck()) {
 		sima->image= NULL;
-	
-	activetf = get_active_mtface(NULL, NULL, 1); /* partially selected face is ok */
-	
-	if(activetf && activetf->mode & TF_TEX) {
-		if (!sima->pin)
-			sima->image= activetf->tpage;
 		
-		if(sima->flag & SI_EDITTILE);
-		else sima->curtile= activetf->tile;
+		activetf = get_active_mtface(NULL, NULL, 1); /* partially selected face is ok */
 		
-		if(sima->image) {
-			if(activetf->mode & TF_TILES)
-				sima->image->tpageflag |= IMA_TILES;
-			else sima->image->tpageflag &= ~IMA_TILES;
+		if(activetf && activetf->mode & TF_TEX) {
+			if (!sima->pin)
+				sima->image= activetf->tpage;
+			
+			if(sima->flag & SI_EDITTILE);
+			else sima->curtile= activetf->tile;
+			
+			if(sima->image) {
+				if(activetf->mode & TF_TILES)
+					sima->image->tpageflag |= IMA_TILES;
+				else sima->image->tpageflag &= ~IMA_TILES;
+			}
 		}
 	}
 }
@@ -293,32 +296,45 @@ void image_changed(SpaceImage *sima, Image *image)
 	MTFace *tface;
 	EditMesh *em = G.editMesh;
 	EditFace *efa;
-
-	if(image==NULL)
-		sima->flag &= ~SI_DRAWTOOL;
+	ImBuf *ibuf = NULL;
+	short change = 0;
 	
-	if(sima->mode!=SI_TEXTURE || !EM_texFaceCheck())
+	if(image==NULL) {
+		sima->flag &= ~SI_DRAWTOOL;
+	} else {
+		ibuf = BKE_image_get_ibuf(image, NULL);
+	}
+	
+	if(sima->mode!=SI_TEXTURE)
 		return;
-		
+	
 	/* skip assigning these procedural images... */
-	if(image && (image->type==IMA_TYPE_R_RESULT || image->type==IMA_TYPE_COMPOSITE))
+	if(image && (image->type==IMA_TYPE_R_RESULT || image->type==IMA_TYPE_COMPOSITE)) {;
 		return;
-
-	for (efa= em->faces.first; efa; efa= efa->next) {
-		tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-		if (efa->h==0 && efa->f & SELECT) {
-			if (image) {
-				tface->tpage= image;
-				tface->mode |= TF_TEX;
-				
-				if(image->tpageflag & IMA_TILES) tface->mode |= TF_TILES;
-				else tface->mode &= ~TF_TILES;
-				
-				if(image->id.us==0) id_us_plus(&image->id);
-				else id_lib_extern(&image->id);
-			} else {
-				tface->tpage= NULL;
-				tface->mode &= ~TF_TEX;
+	} else if (EM_texFaceCheck()) {
+		for (efa= em->faces.first; efa; efa= efa->next) {
+			tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
+			if (efa->h==0 && efa->f & SELECT) {
+				if (image) {
+					tface->tpage= image;
+					tface->mode |= TF_TEX;
+					
+					if(image->tpageflag & IMA_TILES) tface->mode |= TF_TILES;
+					else tface->mode &= ~TF_TILES;
+					
+					if(image->id.us==0) id_us_plus(&image->id);
+					else id_lib_extern(&image->id);
+					
+					if (tface->transp==TF_ADD) {} /* they obviously know what they are doing! - leave as is */
+					else if (ibuf && ibuf->depth == 32)	tface->transp = TF_ALPHA;
+					else								tface->transp = TF_SOLID;
+					
+				} else {
+					tface->tpage= NULL;
+					tface->mode &= ~TF_TEX;
+					tface->transp = TF_SOLID;
+				}
+				change = 1;
 			}
 		}
 	}
@@ -326,7 +342,9 @@ void image_changed(SpaceImage *sima, Image *image)
 	 * to check if the face is displayed in UV-localview */
 	sima->image = image;
 	
-	object_uvs_changed(OBACT);
+	if (change)
+		object_uvs_changed(OBACT);
+	
 	allqueue(REDRAWBUTSEDIT, 0);
 }
 /*
@@ -1688,44 +1706,28 @@ static void imagespace_grid(SpaceImage *sima)
 
 static void sima_draw_alpha_backdrop(SpaceImage *sima, float x1, float y1, float xsize, float ysize)
 {
-	float tile= sima->zoom*15.0f;
-	float x, y, maxx, maxy;
+	GLubyte checker_stipple[32*32/8] =
+	{
+		255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0, \
+		255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0, \
+		255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0, \
+		255,255,0,0,255,255,0,0,255,255,0,0,255,255,0,0, \
+		0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255, \
+		0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255, \
+		0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255, \
+		0,0,255,255,0,0,255,255,0,0,255,255,0,0,255,255, \
+	};
 	
 	glColor3ub(100, 100, 100);
 	glRectf(x1, y1, x1 + sima->zoom*xsize, y1 + sima->zoom*ysize);
 	glColor3ub(160, 160, 160);
 	
-	maxx= x1+sima->zoom*xsize;
-	maxy= y1+sima->zoom*ysize;
-	
-	for(x=0; x<xsize; x+=30) {
-		for(y=0; y<ysize; y+=30) {
-			float fx= x1 + sima->zoom*x;
-			float fy= y1 + sima->zoom*y;
-			float tilex= tile, tiley= tile;
-			
-			if(fx+tile > maxx)
-				tilex= maxx-fx;
-			if(fy+tile > maxy)
-				tiley= maxy-fy;
-			
-			glRectf(fx, fy, fx + tilex, fy + tiley);
-		}
-	}
-	for(x=15; x<xsize; x+=30) {
-		for(y=15; y<ysize; y+=30) {
-			float fx= x1 + sima->zoom*x;
-			float fy= y1 + sima->zoom*y;
-			float tilex= tile, tiley= tile;
-			
-			if(fx+tile > maxx)
-				tilex= maxx-fx;
-			if(fy+tile > maxy)
-				tiley= maxy-fy;
-			
-			glRectf(fx, fy, fx + tilex, fy + tiley);
-		}
-	}
+	glEnable(GL_POLYGON_STIPPLE);
+	glPolygonStipple(checker_stipple);
+	glRectf(x1, y1, x1 + sima->zoom*xsize, y1 + sima->zoom*ysize);
+	glEnd();
+	glDisable(GL_POLYGON_STIPPLE);
+	return;
 }
 
 static void sima_draw_alpha_pixels(float x1, float y1, int rectx, int recty, unsigned int *recti)

@@ -222,7 +222,7 @@ int set_tpage(MTFace *tface)
 		glDisable(GL_TEXTURE_2D);
 		glDisable(GL_TEXTURE_GEN_S);
 		glDisable(GL_TEXTURE_GEN_T);
-
+		glDisable ( GL_ALPHA_TEST );
 		return 0;
 	}
 	lasttface= tface;
@@ -744,7 +744,7 @@ static void draw_tfaces3D(Object *ob, Mesh *me, DerivedMesh *dm)
 		glLineWidth(1);
 	}
 
-		/* Draw Selected Faces */
+	/* Draw Selected Faces */
 	if(G.f & G_DRAWFACES) {
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -960,7 +960,6 @@ static void draw_textured_begin(Object *ob)
 	Gtexdraw.istex = istex;
 	memcpy(Gtexdraw.obcol, obcol, sizeof(obcol));
 	set_draw_settings_cached(1, 0, 0, Gtexdraw.islit, 0, 0, 0);
-	glDisable ( GL_ALPHA_TEST );
 	glShadeModel(GL_SMOOTH);
 }
 

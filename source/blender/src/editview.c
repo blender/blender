@@ -533,12 +533,17 @@ static void do_lasso_select_curve__doSelect(void *userData, Nurb *nu, BPoint *bp
 		if (bp) {
 			bp->f1 = data->select?(bp->f1|1):(bp->f1&~1);
 		} else {
-			if (beztindex==0) {
-				bezt->f1 = data->select?(bezt->f1|1):(bezt->f1&~1);
-			} else if (beztindex==1) {
-				bezt->f2 = data->select?(bezt->f2|1):(bezt->f2&~1);
+			if (G.f & G_HIDDENHANDLES) {
+				/* can only be beztindex==0 here since handles are hidden */
+				bezt->f1 = bezt->f2 = bezt->f3 = data->select?(bezt->f1|1):(bezt->f1&~1);
 			} else {
-				bezt->f3 = data->select?(bezt->f3|1):(bezt->f3&~1);
+				if (beztindex==0) {
+					bezt->f1 = data->select?(bezt->f1|1):(bezt->f1&~1);
+				} else if (beztindex==1) {
+					bezt->f2 = data->select?(bezt->f2|1):(bezt->f2&~1);
+				} else {
+					bezt->f3 = data->select?(bezt->f3|1):(bezt->f3&~1);
+				}
 			}
 		}
 	}
@@ -1602,12 +1607,17 @@ static void do_nurbs_box_select__doSelect(void *userData, Nurb *nu, BPoint *bp, 
 		if (bp) {
 			bp->f1 = data->select?(bp->f1|1):(bp->f1&~1);
 		} else {
-			if (beztindex==0) {
-				bezt->f1 = data->select?(bezt->f1|1):(bezt->f1&~1);
-			} else if (beztindex==1) {
-				bezt->f2 = data->select?(bezt->f2|1):(bezt->f2&~1);
+			if (G.f & G_HIDDENHANDLES) {
+				/* can only be beztindex==0 here since handles are hidden */
+				bezt->f1 = bezt->f2 = bezt->f3 = data->select?(bezt->f1|1):(bezt->f1&~1);
 			} else {
-				bezt->f3 = data->select?(bezt->f3|1):(bezt->f3&~1);
+				if (beztindex==0) {
+					bezt->f1 = data->select?(bezt->f1|1):(bezt->f1&~1);
+				} else if (beztindex==1) {
+					bezt->f2 = data->select?(bezt->f2|1):(bezt->f2&~1);
+				} else {
+					bezt->f3 = data->select?(bezt->f3|1):(bezt->f3&~1);
+				}
 			}
 		}
 	}

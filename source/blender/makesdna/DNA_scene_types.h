@@ -427,7 +427,7 @@ typedef struct Scene {
 	
 	/* editmode stuff */
 	float editbutsize;                      /* size of normals */
-	short selectmode;
+	short selectmode;						/* for mesh only! */
 	short proportional, prop_mode;
 	short automerge, pad5, pad6, pad7;
 	
@@ -602,8 +602,6 @@ typedef struct Scene {
 #define SCE_SELECT_VERTEX	1 /* for mesh */
 #define SCE_SELECT_EDGE		2
 #define SCE_SELECT_FACE		4
-
-#define SCE_SELECT_CU_HANDLES_HIDE 8 /* for curve, when flagged hide handles */ 
 
 /* sce->recalc (now in use by previewrender) */
 #define SCE_PRV_CHANGED		1
