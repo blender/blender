@@ -4892,18 +4892,19 @@ static void clothModifier_deformVerts(
 */
 
 static DerivedMesh *clothModifier_applyModifier(
-		ModifierData *md, Object *ob, DerivedMesh *derivedData,
-  int useRenderParams, int isFinalCalc)
+                 ModifierData *md, Object *ob, DerivedMesh *derivedData,
+                 int useRenderParams, int isFinalCalc)
 {
-	DerivedMesh *result = NULL;
-	
 	ClothModifierData *clmd = (ClothModifierData*) md;
+	DerivedMesh *result=NULL;
 
-	result = clothModifier_do(clmd, ob, derivedData);
+	result = clothModifier_do(clmd, ob, derivedData, useRenderParams, isFinalCalc);
 
-	CDDM_calc_normals(result);
-
-	return result;
+	if(result)
+	{
+		return result;
+	}
+	return derivedData;
 }
 
 static void clothModifier_updateDepgraph(
