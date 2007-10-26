@@ -173,6 +173,8 @@ typedef struct Frame
 	ClothSpring *springs;
 	unsigned int numverts, numsprings;
 	float time; /* we need float since we want to support sub-frames */
+	float (*x)[3];
+	float (*xold)[3];
 }
 Frame;
 

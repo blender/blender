@@ -45,10 +45,6 @@ typedef struct ClothVertex
 	int	flags;		/* General flags per vertex.		*/
 	float	v [3];		/* The velocity of the point.		*/
 	float	xconst [3];	/* constrained position			*/
-	float	x [3];		/* The current position of this vertex.	*/
-	float 	xold [3];	/* The previous position of this vertex.*/
-	float	tx [3];		/* temporary position */
-	float 	txold [3];	/* temporary old position */
 	float 	tv[3];		/* temporary "velocity", mostly used as tv = tx-txold */
 	float 	mass;		/* mass / weight of the vertex		*/
 	float 	goal;		/* goal, from SB			*/
@@ -159,10 +155,10 @@ typedef struct Cloth
 	struct CollisionTree	*tree;		/* collision tree for this cloth object */
 	struct MFace 		*mfaces;
 	struct Implicit_Data	*implicit; 	/* our implicit solver connects to this pointer */
-	struct MVert 		*x;
-	struct MVert 		*xnew;
-	struct MVert 		*current_x;
-	struct MVert 		*current_xnew;
+	float	 		(*x)[3]; /* The current position of all vertices.*/
+	float 			(*xold)[3]; /* The previous position of all vertices.*/
+	float 			(*current_x)[3]; /* The TEMPORARY current position of all vertices.*/
+	float			(*current_xold)[3]; /* The TEMPORARY previous position of all vertices.*/
 }
 Cloth;
 
