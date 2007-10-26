@@ -297,9 +297,7 @@ static int BonesDict_SetItem(BPy_BonesDict *self, PyObject *key, PyObject *value
 		editbone->zwidth = ((BPy_EditBone*)value)->zwidth;
 		VECCOPY(editbone->head, ((BPy_EditBone*)value)->head);
 		VECCOPY(editbone->tail, ((BPy_EditBone*)value)->tail);
-		
-		// FIXME, should be exposed via python. this avoids creating bones with no layers.
-		editbone->layer= 1;
+		editbone->layer= ((BPy_EditBone*)value)->layer;
 		
 		//set object pointer
 		((BPy_EditBone*)value)->editbone = editbone;
@@ -927,6 +925,36 @@ AttributeError:
 	return EXPP_intError(PyExc_AttributeError, "%s%s", 
 		sArmatureError, "You are not allowed to change the .Bones attribute");
 }
+
+//------------------------Bone.layerMask (get)
+static PyObject *Armature_getLayerMask(BPy_Armature *self)
+{
+	/* do this extra stuff because the short's bits can be negative values */
+	unsigned short laymask = 0;
+	laymask |= self->armature->layer;
+	return PyInt_FromLong((int)laymask);
+}
+//------------------------Bone.layerMask (set)
+static int Armature_setLayerMask(BPy_Armature *self, PyObject *value)
+{
+	int laymask;
+	if (!PyInt_Check(value)) {
+		return EXPP_ReturnIntError( PyExc_AttributeError,
+									"expected an integer (bitmask) as argument" );
+	}
+	
+	laymask = PyInt_AsLong(value);
+
+	if (laymask <= 0 || laymask > (1<<16) - 1)
+		return EXPP_ReturnIntError( PyExc_AttributeError,
+									"bitmask must have from 1 up to 16 bits set");
+
+	self->armature->layer = 0;
+	self->armature->layer |= laymask;
+
+	return 0;
+}
+
 //------------------TYPE_OBECT IMPLEMENTATION--------------------------
 //------------------------tp_doc
 //The __doc__ string for this object
@@ -974,6 +1002,8 @@ static PyGetSetDef BPy_Armature_getset[] = {
 		"Adds temporal IK chains while grabbing bones", NULL},
 	{"layers", (getter)Armature_getLayers, (setter)Armature_setLayers, 
 		"List of layers for the armature", NULL},
+	{"layerMask", (getter)Armature_getLayerMask, (setter)Armature_setLayerMask, 
+		"Layer bitmask", NULL },
 	{NULL, NULL, NULL, NULL, NULL}
 };
 //------------------------tp_new

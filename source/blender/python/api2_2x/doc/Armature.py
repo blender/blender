@@ -156,6 +156,11 @@ class Armature:
 	@type mirrorEdit: Bool
 	@ivar autoIK: Adds temporary IK chains while grabbing bones
 	@type autoIK: Bool
+	@ivar layerMask: Layer bitmask
+		Example::
+			# set armature to layers 14 and 16
+			armature.layerMask = (1<<13) + (1<<15)
+	@type layerMask: Int
 	"""
 
 	def __init__(name = 'myArmature'):
@@ -282,6 +287,11 @@ class Bone:
 	@type headRadius: Float
 	@ivar tailRadius: The radius of this bones head (used for envalope bones)
 	@type tailRadius: Float
+	@ivar layerMask: Layer bitmask
+		Example::
+			# set bone to layers 14 and 16
+			bone.layerMask = (1<<13) + (1<<15)
+	@type layerMask: Int
 	"""
 
 	def hasParent():
