@@ -1057,18 +1057,22 @@ static int node_composit_buts_blur(uiBlock *block, bNodeTree *ntree, bNode *node
 		char str[256];
 		
 		uiBlockBeginAlign(block);
-		sprintf(str, "Filter Type%%t|Flat %%x%d|Tent %%x%d|Quad %%x%d|Cubic %%x%d|Gauss %%x%d|CatRom %%x%d|Mitch %%x%d", R_FILTER_BOX, R_FILTER_TENT, R_FILTER_QUAD, R_FILTER_CUBIC, R_FILTER_GAUSS, R_FILTER_CATROM, R_FILTER_MITCH);
-		uiDefButS(block, MENU, B_NODE_EXEC+node->nr,str,		
+		sprintf(str, "Filter Type%%t|Flat %%x%d|Tent %%x%d|Quad %%x%d|Cubic %%x%d|Gauss %%x%d|Fast Gauss%%x%d|CatRom %%x%d|Mitch %%x%d", R_FILTER_BOX, R_FILTER_TENT, R_FILTER_QUAD, R_FILTER_CUBIC, R_FILTER_GAUSS, R_FILTER_FAST_GAUSS, R_FILTER_CATROM, R_FILTER_MITCH);
+		uiDefButS(block, MENU, B_NODE_EXEC+node->nr,str,
 				  butr->xmin, dy, dx*2, 19, 
 				  &nbd->filtertype, 0, 0, 0, 0, "Set sampling filter for blur");
-		dy-=19;		  
-		uiDefButC(block, TOG, B_NODE_EXEC+node->nr, "Bokeh",		
-				  butr->xmin, dy, dx, 19, 
-				  &nbd->bokeh, 0, 0, 0, 0, "Uses circular filter, warning it's slow!");
-		uiDefButC(block, TOG, B_NODE_EXEC+node->nr, "Gamma",		
-				  butr->xmin+dx, dy, dx, 19, 
-				  &nbd->gamma, 0, 0, 0, 0, "Applies filter on gamma corrected values");
-		
+		dy-=19;
+		if (nbd->filtertype != R_FILTER_FAST_GAUSS) { 
+			uiDefButC(block, TOG, B_NODE_EXEC+node->nr, "Bokeh",
+					butr->xmin, dy, dx, 19, 
+					&nbd->bokeh, 0, 0, 0, 0, "Uses circular filter, warning it's slow!");
+			uiDefButC(block, TOG, B_NODE_EXEC+node->nr, "Gamma",
+					butr->xmin+dx, dy, dx, 19, 
+					&nbd->gamma, 0, 0, 0, 0, "Applies filter on gamma corrected values");
+		} else {
+			uiBlockEndAlign(block);
+			uiBlockBeginAlign(block);
+		}
 		dy-=19;
 		bt=uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "X:",
 					 butr->xmin, dy, dx, 19, 
@@ -1076,6 +1080,7 @@ static int node_composit_buts_blur(uiBlock *block, bNodeTree *ntree, bNode *node
 		bt=uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Y:",
 					 butr->xmin+dx, dy, dx, 19, 
 					 &nbd->sizey, 0, 256, 0, 0, "");
+		uiBlockEndAlign(block);
 	}
 	return 57;
 }
@@ -1133,6 +1138,145 @@ static int node_composit_buts_defocus(uiBlock *block, bNodeTree *ntree, bNode *n
 	}
 	return 228;
 }
+
+
+/* qdn: glare node */
+static int node_composit_buts_glare(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		NodeGlare *ndg = node->storage;
+		short dy = butr->ymin + 152, dx = butr->xmax - butr->xmin; 
+		char* mn1 = "Type%t|Ghosts%x3|Streaks%x2|Fog Glow%x1|Simple Star%x0";
+		char* mn2 = "Quality/Speed%t|High/Slow%x0|Medium/Medium%x1|Low/Fast%x2";
+		uiDefButC(block, MENU, B_NODE_EXEC+node->nr, mn1,
+		          butr->xmin, dy, dx, 19,
+		          &ndg->type, 0, 0, 0, 0, "Glow/Flare/Bloom type");
+		uiDefButC(block, MENU, B_NODE_EXEC+node->nr, mn2,
+		          butr->xmin, dy-19, dx, 19,
+		          &ndg->quality, 0, 0, 0, 0,
+		          "Quality speed trade off, if not set to high quality, effect will be applied to low-res copy of source image");
+		if (ndg->type != 1) {
+			uiDefButC(block, NUM, B_NODE_EXEC+node->nr, "Iterations:",
+			          butr->xmin, dy-38, dx, 19,
+			          &ndg->iter, 2, 5, 1, 0,
+			          "higher values will generate longer/more streaks/ghosts");
+			if (ndg->type != 0)
+				uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "ColMod:",
+				          butr->xmin, dy-57, dx, 19,
+				          &ndg->colmod, 0, 1, 10, 0,
+				          "Amount of Color Modulation, modulates colors of streaks and ghosts for a spectral dispersion effect");
+		}
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "Mix:",
+		          butr->xmin, dy-76, dx, 19,
+		          &ndg->mix, -1, 1, 10, 0,
+		          "Mix balance, -1 is original image only, 0 is exact 50/50 mix, 1 is processed image only");
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "Threshold:",
+		          butr->xmin, dy-95, dx, 19,
+		          &ndg->threshold, 0, 1000, 10, 0,
+		          "Brightness threshold, the glarefilter will be applied only to pixels brighter than this value");
+		if ((ndg->type == 2) || (ndg->type == 0))
+		{
+			if (ndg->type == 2) {
+				uiDefButC(block, NUM, B_NODE_EXEC+node->nr, "streaks:",
+				          butr->xmin, dy-114, dx, 19,
+				          &ndg->angle, 2, 16, 1000, 0,
+				          "Total number of streaks");
+				uiDefButC(block, NUM, B_NODE_EXEC+node->nr, "AngOfs:",
+				          butr->xmin, dy-133, dx, 19,
+				          &ndg->angle_ofs, 0, 180, 1000, 0,
+				          "Streak angle rotation offset in degrees");
+			}
+			uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "Fade:",
+			          butr->xmin, dy-152, dx, 19,
+			          &ndg->fade, 0.75, 1, 5, 0,
+			          "Streak fade out factor");
+		}
+		if (ndg->type == 0)
+			uiDefButC(block, TOG, B_NODE_EXEC+node->nr, "Rot45",
+			          butr->xmin, dy-114, dx, 19,
+			          &ndg->angle, 0, 0, 0, 0,
+			          "simple star filter, add 45 degree rotation offset");
+		if ((ndg->type == 1) || (ndg->type > 3))	// PBGH and fog glow
+			uiDefButC(block, NUM, B_NODE_EXEC+node->nr, "Size:",
+			          butr->xmin, dy-114, dx, 19,
+			          &ndg->size, 6, 9, 1000, 0,
+			          "glow/glare size (not actual size, relative to initial size of bright area of pixels)");
+	}
+	return 171;
+}
+
+/* qdn: tonemap node */
+static int node_composit_buts_tonemap(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		NodeTonemap *ntm = node->storage;
+		short dy = butr->ymin + 76, dx = butr->xmax - butr->xmin; 
+		char* mn = "Type%t|R/D Photoreceptor%x1|Rh Simple%x0";
+		
+		uiBlockBeginAlign(block);
+		uiDefButI(block, MENU, B_NODE_EXEC+node->nr, mn,
+		          butr->xmin, dy, dx, 19,
+		          &ntm->type, 0, 0, 0, 0,
+		          "Tone mapping type");
+		if (ntm->type == 0) {
+			uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "Key:",
+			          butr->xmin, dy-19, dx, 19,
+			          &ntm->key, 0, 1, 5, 0,
+			          "The value the average luminance is mapped to");
+			uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "Offset:",
+			          butr->xmin, dy-38, dx, 19,
+			          &ntm->offset, 0.001, 10, 5, 0,
+			          "Tonemap offset, normally always 1, but can be used as an extra control to alter the brightness curve");
+			uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "Gamma:",
+			          butr->xmin, dy-57, dx, 19,
+			          &ntm->gamma, 0.001, 3, 5, 0,
+			          "Gamma factor, if not used, set to 1");
+		}
+		else {
+			uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "Intensity:",
+			          butr->xmin, dy-19, dx, 19,
+			          &ntm->f, -8, 8, 10, 0, "if less than zero, darkens image, otherwise makes it brighter");
+			uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "Contrast:",
+			          butr->xmin, dy-38, dx, 19,
+			          &ntm->m, 0, 1, 5, 0, "Set to 0 to use estimate from input image");
+			uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "Adaptation:",
+			          butr->xmin, dy-57, dx, 19,
+			          &ntm->a, 0, 1, 5, 0, "if 0, global, if 1, based on pixel intensity");
+			uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "ColCorrect:",
+			          butr->xmin, dy-76, dx, 19,
+			          &ntm->c, 0, 1, 5, 0, "color correction, if 0, same for all channels, if 1, each independent");
+		}
+		uiBlockEndAlign(block);
+	}
+	return 95;
+}
+
+/* qdn: lens distortion node */
+static int node_composit_buts_lensdist(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		NodeLensDist *nld = node->storage;
+		short dy = butr->ymin + 19, dx = butr->xmax - butr->xmin; 
+		uiBlockBeginAlign(block);
+		uiDefButS(block, TOG, B_NODE_EXEC+node->nr, "Projector",
+		          butr->xmin, dy, dx, 19,
+		          &nld->proj, 0, 0, 0, 0,
+		          "Enable/disable projector mode, effect is applied in horizontal direction only");
+		if (!nld->proj) {
+			uiDefButS(block, TOG, B_NODE_EXEC+node->nr, "Jitter",
+			          butr->xmin, dy-19, dx/2, 19,
+			          &nld->jit, 0, 0, 0, 0,
+			          "Enable/disable jittering, faster, but also noisier");
+			uiDefButS(block, TOG, B_NODE_EXEC+node->nr, "Fit",
+			          butr->xmin+dx/2, dy-19, dx/2, 19,
+			          &nld->fit, 0, 0, 0, 0,
+			          "For positive distortion factor only, scale image such that black areas are not visible");
+		}
+		uiBlockEndAlign(block);
+	}
+	return 38;
+}
+
 
 static int node_composit_buts_vecblur(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
@@ -1617,9 +1761,21 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 		case CMP_NODE_BLUR:
 			ntype->butfunc= node_composit_buts_blur;
 			break;
-		/*  qdn: defocus node */
+		/* qdn: defocus node */
 		case CMP_NODE_DEFOCUS:
 			ntype->butfunc = node_composit_buts_defocus;
+			break;
+		/* qdn: glare node */
+		case CMP_NODE_GLARE:
+			ntype->butfunc = node_composit_buts_glare;
+			break;
+		/* qdn: tonemap node */
+		case CMP_NODE_TONEMAP:
+			ntype->butfunc = node_composit_buts_tonemap;
+			break;
+		/* qdn: lens distortion node */
+		case CMP_NODE_LENSDIST:
+			ntype->butfunc = node_composit_buts_lensdist;
 			break;
 		case CMP_NODE_VECBLUR:
 			ntype->butfunc= node_composit_buts_vecblur;

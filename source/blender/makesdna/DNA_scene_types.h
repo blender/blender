@@ -507,6 +507,7 @@ typedef struct Scene {
 #define R_FILTER_CATROM	4
 #define R_FILTER_GAUSS	5
 #define R_FILTER_MITCH	6
+#define R_FILTER_FAST_GAUSS	7 /* note, this is only used for nodes at the moment */
 
 /* yafray: renderer flag (not only exclusive to yafray) */
 #define R_INTERN	0
