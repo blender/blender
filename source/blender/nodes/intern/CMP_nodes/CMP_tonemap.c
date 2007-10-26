@@ -57,7 +57,7 @@ static float avgLogLum(CompBuf *src, float* auto_key, float* Lav, float* Cav)
 	}
 	*Lav *= sc;
 	fRGB_mult(Cav, sc);
-	maxl = logf(maxl + 1e-5f), minl = logf(minl + 1e-5f), avl = lsum*sc;
+	maxl = logf(maxl + 1e-5f); minl = logf(minl + 1e-5f); avl = lsum*sc;
 	*auto_key = (maxl > minl) ? ((maxl - avl) / (maxl - minl)) : 1.f;
 	return expf(avl);
 }
