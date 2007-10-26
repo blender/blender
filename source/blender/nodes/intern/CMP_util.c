@@ -962,7 +962,7 @@ void qd_multPixel(CompBuf* src, int x, int y, float f)
 // bilinear interpolation with wraparound
 void qd_getPixelLerpWrap(CompBuf* src, float u, float v, float* col)
 {
-	const float ufl = floorf(u), vfl = floorf(v);
+	const float ufl = floor(u), vfl = floor(v);
 	const int nx = (int)ufl % src->x, ny = (int)vfl % src->y;
 	const int x1 = (nx < 0) ? (nx + src->x) : nx;
 	const int y1 = (ny < 0) ? (ny + src->y) : ny;
@@ -984,9 +984,9 @@ void qd_getPixelLerpWrap(CompBuf* src, float u, float v, float* col)
 // as above, without wrap around
 void qd_getPixelLerp(CompBuf* src, float u, float v, float* col)
 {
-	const float ufl = floorf(u), vfl = floorf(v);
+	const float ufl = floor(u), vfl = floor(v);
 	const int x1 = (int)ufl, y1 = (int)vfl;
-	const int x2 = (int)ceilf(u), y2 = (int)ceilf(v);
+	const int x2 = (int)ceil(u), y2 = (int)ceil(v);
 	if ((x2 >= 0) && (y2 >= 0) && (x1 < src->x) && (y1 < src->y)) {
 		const float B[4] = {0,0,0,0};
 		const int ox1 = (x1 < 0), oy1 = (y1 < 0), ox2 = (x2 >= src->x), oy2 = (y2 >= src->y);
@@ -1009,9 +1009,9 @@ void qd_getPixelLerp(CompBuf* src, float u, float v, float* col)
 // as above, sampling only one channel
 void qd_getPixelLerpChan(CompBuf* src, float u, float v, int chan, float* out)
 {
-	const float ufl = floorf(u), vfl = floorf(v);
+	const float ufl = floor(u), vfl = floor(v);
 	const int x1 = (int)ufl, y1 = (int)vfl;
-	const int x2 = (int)ceilf(u), y2 = (int)ceilf(v);
+	const int x2 = (int)ceil(u), y2 = (int)ceil(v);
 	if (chan >= src->type) chan = 0;
 	if ((x2 >= 0) && (y2 >= 0) && (x1 < src->x) && (y1 < src->y)) {
 		const float B[4] = {0,0,0,0};
