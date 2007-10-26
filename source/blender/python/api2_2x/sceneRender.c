@@ -1025,12 +1025,6 @@ PyObject *RenderData_FramesPerSec( BPy_RenderData * self, PyObject * args )
 					      120 );
 }
 
-PyObject *RenderData_FramesPerSecBase( BPy_RenderData * self, PyObject * args )
-{
-	return M_Render_GetSetAttributeFloat( 
-		args, &self->renderContext->frs_sec_base, 1.0f, 120.0f );
-}
-
 PyObject *RenderData_EnableGrayscale( BPy_RenderData * self )
 {
 	self->renderContext->planes = R_PLANESBW;
@@ -2818,8 +2812,6 @@ static PyMethodDef BPy_RenderData_methods[] = {
 	 "(int) - get/set quality get/setting for JPEG images, AVI Jpeg and SGI movies"},
 	{"framesPerSec", ( PyCFunction ) RenderData_FramesPerSec, METH_VARARGS,
 	 "(int) - get/set frames per second"},
-	{"framesPerSecBase", ( PyCFunction ) RenderData_FramesPerSecBase, METH_VARARGS,
-	 "(float) - get/set frames per second base"},
 	{"enableGrayscale", ( PyCFunction ) RenderData_EnableGrayscale,
 	 METH_NOARGS,
 	 "() - images are saved with BW (grayscale) data"},
