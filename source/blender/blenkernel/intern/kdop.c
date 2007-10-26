@@ -656,12 +656,8 @@ BVH *bvh_build (BVH *bvh, MFace *mfaces, unsigned int numfaces)
 
 BVH *bvh_build_from_mvert (MFace *mfaces, unsigned int numfaces, MVert *x, unsigned int numverts, float epsilon)
 {
-	unsigned int i = 0, j = 0;
-	CollisionTree **face_list=NULL;
-	BVH	*bvh=NULL;
+	BVH *bvh=NULL;
 	CollisionTree *tree=NULL;
-	LinkNode *nlink = NULL;
-	MFace *mface = NULL;
 	
 	bvh = MEM_callocN(sizeof(BVH), "BVH");
 	if (bvh == NULL) 
@@ -687,6 +683,55 @@ BVH *bvh_build_from_mvert (MFace *mfaces, unsigned int numfaces, MVert *x, unsig
 	bvh->numverts = numverts;
 	bvh->xnew = MEM_dupallocN(x);	
 	bvh->x = MEM_dupallocN(x);	
+	tree = (CollisionTree *)MEM_callocN(sizeof(CollisionTree), "CollisionTree");
+	
+	if (tree == NULL) 
+	{
+		printf("bvh_build: Out of memory for nodes.\n");
+		bvh_free(bvh);
+		return NULL;
+	}
+	
+	BLI_linklist_append(&bvh->tree, tree);
+	
+	return bvh_build(bvh, mfaces, numfaces);
+}
+
+
+BVH *bvh_build_from_float3 (MFace *mfaces, unsigned int numfaces, float (*x)[3], unsigned int numverts, float epsilon)
+{
+	BVH *bvh=NULL;
+	CollisionTree *tree=NULL;
+	unsigned int i = 0;
+	
+	bvh = MEM_callocN(sizeof(BVH), "BVH");
+	if (bvh == NULL) 
+	{
+		printf("bvh: Out of memory.\n");
+		return NULL;
+	}
+	
+	bvh->flags = 0;
+	bvh->leaf_tree = NULL;
+	bvh->leaf_root = NULL;
+	bvh->tree = NULL;
+
+	bvh->epsilon = epsilon;
+	bvh->numfaces = numfaces;
+	
+	// we have no faces, we save seperate points
+	if(!mfaces)
+	{
+		bvh->numfaces = numverts;
+	}
+
+	bvh->numverts = numverts;
+	bvh->xnew = (MVert *)MEM_callocN(sizeof(MVert)*numverts, "BVH MVert");
+	
+	for(i = 0; i < numverts; i++)
+		VECCOPY(bvh->xnew[i].co, x[i]);
+	
+	bvh->x = MEM_dupallocN(bvh->xnew);	
 	tree = (CollisionTree *)MEM_callocN(sizeof(CollisionTree), "CollisionTree");
 	
 	if (tree == NULL) 
@@ -730,7 +775,7 @@ int bvh_overlap(float *bv1, float *bv2)
  */
 int bvh_traverse(CollisionTree *tree1, CollisionTree *tree2, LinkNode *collision_list)
 {
-	int i = 0, ret = 0;
+	int i = 0, ret = 0, tempret = 0;
 		
 	if (bvh_overlap(tree1->bv, tree2->bv)) 
 	{		
@@ -759,8 +804,8 @@ int bvh_traverse(CollisionTree *tree1, CollisionTree *tree2, LinkNode *collision
 				for (i = 0; i < 4; i++)
 				{
 					// Only traverse nodes that exist.
-					if (tree2->nodes[i] && bvh_traverse (tree1, tree2->nodes[i], collision_list))
-						ret = 1;
+					if (tree2->nodes[i] && (tempret = bvh_traverse (tree1, tree2->nodes[i], collision_list)))
+						ret += tempret;
 				}
 			}
 		}
@@ -770,8 +815,8 @@ int bvh_traverse(CollisionTree *tree1, CollisionTree *tree2, LinkNode *collision
 			for (i = 0; i < 4; i++)
 			{
 				// Only traverse nodes that exist.
-				if (tree1->nodes [i] && bvh_traverse (tree1->nodes[i], tree2, collision_list))
-					ret = 1;
+				if (tree1->nodes [i] && (tempret = bvh_traverse (tree1->nodes[i], tree2, collision_list)))
+					ret += tempret;
 			}
 		}
 	}
@@ -882,3 +927,27 @@ void bvh_update_from_mvert(BVH * bvh, MVert *x, unsigned int numverts, MVert *xn
 	bvh_update(bvh, moving);
 }
 
+void bvh_update_from_float3(BVH * bvh, float (*x)[3], unsigned int numverts, float (*xnew)[3], int moving)
+{
+	unsigned int i = 0;
+	
+	if(!bvh)
+		return;
+	
+	if(numverts!=bvh->numverts)
+		return;
+	
+	if(x)
+	{
+		for(i = 0; i < numverts; i++)
+			VECCOPY(bvh->x[i].co, x[i]);
+	}
+	
+	if(xnew)
+	{
+		for(i = 0; i < numverts; i++)
+			VECCOPY(bvh->xnew[i].co, xnew[i]);
+	}
+	
+	bvh_update(bvh, moving);
+}

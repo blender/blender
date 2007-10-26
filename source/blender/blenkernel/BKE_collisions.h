@@ -68,9 +68,9 @@ typedef struct BVH
 	MVert	 	*x; // position of verts at time n-1
 	MFace 		*mfaces; // just a pointer to the original datastructure
 	struct LinkNode *tree;
-	TreeNode 	*root; // TODO: saving the root --> is this really needed? YES!
-	TreeNode 	*leaf_tree; /* Tail of the leaf linked list.	*/
-	TreeNode 	*leaf_root;	/* Head of the leaf linked list.	*/
+	CollisionTree 	*root; // TODO: saving the root --> is this really needed? YES!
+	CollisionTree 	*leaf_tree; /* Tail of the leaf linked list.	*/
+	CollisionTree 	*leaf_root;	/* Head of the leaf linked list.	*/
 	float 		epsilon; /* epslion is used for inflation of the k-dop	   */
 	int 		flags; /* bvhFlags */
 }
@@ -90,6 +90,7 @@ CollisionPair;
 
 // builds bounding volume hierarchy
 BVH *bvh_build_from_mvert (MFace *mfaces, unsigned int numfaces, MVert *x, unsigned int numverts, float epsilon);
+BVH *bvh_build_from_float3 (MFace *mfaces, unsigned int numfaces, float (*x)[3], unsigned int numverts, float epsilon);
 
 // frees the same
 void bvh_free ( BVH *bvh );
@@ -99,12 +100,13 @@ int bvh_traverse(CollisionTree *tree1, CollisionTree *tree2, LinkNode *collision
 
 // update bounding volumes, needs updated positions in bvh->x
 void bvh_update_from_mvert(BVH * bvh, MVert *x, unsigned int numverts, MVert *xnew, int moving);
+void bvh_update_from_float3(BVH * bvh, float (*x)[3], unsigned int numverts, float (*xnew)[3], int moving);
 
 LinkNode *BLI_linklist_append_fast (LinkNode **listp, void *ptr);
 
 // move Collision modifier object inter-frame with step = [0,1]
 // defined in collisions.c
-void collision_move_object(CollisionModifierData *collmd, float step);
+void collision_move_object(CollisionModifierData *collmd, float step, float prevstep);
 
 /////////////////////////////////////////////////
 

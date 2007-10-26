@@ -515,6 +515,10 @@ void cloth_cache_get_frame ( ClothModifierData *clmd, float time )
 					
 					memcpy ( clmd->clothObject->xold, frame->xold, sizeof ( float ) *frame->numverts * 3);
 					
+					memcpy ( clmd->clothObject->v, frame->v, sizeof ( float ) *frame->numverts * 3);
+					
+					memcpy ( clmd->clothObject->current_xold, frame->current_xold, sizeof ( float ) *frame->numverts * 3);
+					
 					implicit_set_positions ( clmd );
 
 					return;
@@ -565,6 +569,29 @@ void cloth_cache_set_frame ( ClothModifierData *clmd, float time )
 				return;
 			}
 			
+			frame->v = MEM_dupallocN ( clmd->clothObject->v );
+			
+			if ( !frame->v )
+			{
+				MEM_freeN ( frame->verts );
+				MEM_freeN ( frame->x );
+				MEM_freeN ( frame->xold );
+				MEM_freeN ( frame );
+				return;
+			}
+			
+			frame->current_xold= MEM_dupallocN ( clmd->clothObject->current_xold );
+			
+			if ( !frame->current_xold )
+			{
+				MEM_freeN ( frame->verts );
+				MEM_freeN ( frame->x );
+				MEM_freeN ( frame->xold );
+				MEM_freeN ( frame->v );
+				MEM_freeN ( frame );
+				return;
+			}
+			
 			BLI_linklist_append ( &clmd->sim_parms.cache, frame );
 
 		}
@@ -605,6 +632,14 @@ void cloth_cache_free ( ClothModifierData *clmd, float time )
 					if ( frame->xold )
 					{
 						MEM_freeN ( frame->xold );
+					}
+					if ( frame->v )
+					{
+						MEM_freeN ( frame->v );
+					}
+					if ( frame->current_xold )
+					{
+						MEM_freeN ( frame->current_xold );
 					}
 					MEM_freeN ( frame );
 
@@ -825,6 +860,10 @@ void cloth_free_modifier (ClothModifierData *clmd)
 		// Free the verts.
 		if ( cloth->xold != NULL )
 			MEM_freeN ( cloth->xold );
+				
+		// Free the verts.
+		if ( cloth->v != NULL )
+			MEM_freeN ( cloth->v );
 		
 		// Free the verts.
 		if ( cloth->current_x != NULL )
@@ -833,6 +872,10 @@ void cloth_free_modifier (ClothModifierData *clmd)
 		// Free the verts.
 		if ( cloth->current_xold != NULL )
 			MEM_freeN ( cloth->current_xold );
+		
+		// Free the verts.
+		if ( cloth->current_v != NULL )
+			MEM_freeN ( cloth->current_v );
 
 		cloth->verts = NULL;
 		cloth->numverts = -1;
@@ -991,7 +1034,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 			if ( !dm )
 				return 0;
 
-		cloth_from_mesh (ob, clmd, dm, framenr);
+			cloth_from_mesh (ob, clmd, dm, framenr);
 
 			if ( clmd->clothObject != NULL )
 			{
@@ -1020,7 +1063,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 				VECCOPY(clmd->clothObject->xold[i], clmd->clothObject->x[i]);
 				VECCOPY(clmd->clothObject->verts [i].xconst, clmd->clothObject->x[i]);
 				VECCOPY(clmd->clothObject->current_xold[i], clmd->clothObject->x[i]);
-				VecMulf(clmd->clothObject->verts [i].v, 0.0f);
+				VecMulf(clmd->clothObject->v[i], 0.0f);
 
 				clmd->clothObject->verts [i].impulse_count = 0;
 				VECCOPY ( clmd->clothObject->verts [i].impulse, tnull );
@@ -1034,7 +1077,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 			if (solvers [clmd->sim_parms.solver_type].init)
 				solvers [clmd->sim_parms.solver_type].init (ob, clmd);
 
-			clmd->clothObject->tree = NULL; // bvh_build(clmd, clmd->coll_parms.epsilon);
+			clmd->clothObject->tree = bvh_build_from_float3(CDDM_get_faces(dm), dm->getNumFaces(dm), clmd->clothObject->x, numverts, clmd->coll_parms.epsilon);
 
 			// cloth_cache_set_frame(clmd, 1);
 		}
@@ -1079,6 +1122,14 @@ static void cloth_from_mesh (Object *ob, ClothModifierData *clmd, DerivedMesh *d
 		return;
 	}
 	
+	clmd->clothObject->v = MEM_callocN ( sizeof ( float ) * clmd->clothObject->numverts * 3, "Cloth MVert_v" );
+	if ( clmd->clothObject->v == NULL )
+	{
+		cloth_free_modifier ( clmd );
+		modifier_setError ( & ( clmd->modifier ), "Out of memory on allocating clmd->clothObject->v." );
+		return;
+	}
+	
 	clmd->clothObject->current_x = MEM_callocN ( sizeof ( float ) * clmd->clothObject->numverts * 3, "Cloth MVert_current_x" );
 	if ( clmd->clothObject->current_x == NULL )
 	{
@@ -1092,6 +1143,14 @@ static void cloth_from_mesh (Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	{
 		cloth_free_modifier ( clmd );
 		modifier_setError ( & ( clmd->modifier ), "Out of memory on allocating clmd->clothObject->current_xold." );
+		return;
+	}
+	
+	clmd->clothObject->current_v = MEM_callocN ( sizeof ( float ) * clmd->clothObject->numverts * 3, "Cloth MVert_current_v" );
+	if ( clmd->clothObject->current_v == NULL )
+	{
+		cloth_free_modifier ( clmd );
+		modifier_setError ( & ( clmd->modifier ), "Out of memory on allocating clmd->clothObject->current_v." );
 		return;
 	}
 

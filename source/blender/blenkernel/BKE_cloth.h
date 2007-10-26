@@ -124,6 +124,9 @@ void implicit_set_positions ( ClothModifierData *clmd );
 // from cloth.c, needed for modifier.c
 DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *dm, int useRenderParams, int isFinalCalc);
 
+// needed in implicit.c
+int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float prevstep, float dt);
+
 ////////////////////////////////////////////////
 
 
@@ -175,6 +178,8 @@ typedef struct Frame
 	float time; /* we need float since we want to support sub-frames */
 	float (*x)[3];
 	float (*xold)[3];
+	float (*v)[3];
+	float (*current_xold)[3];
 }
 Frame;
 

@@ -73,17 +73,15 @@
 
 
 // step is limited from 0 (frame start position) to 1 (frame end position)
-void collision_move_object(CollisionModifierData *collmd, float step)
+void collision_move_object(CollisionModifierData *collmd, float step, float prevstep)
 {
 	float tv[3] = {0,0,0};
 	unsigned int i = 0;
-	MVert *tempVert = collmd->current_x;
-	collmd->current_x = collmd->current_xnew;
-	collmd->current_xnew = tempVert;
-			
+	
 	for ( i = 0; i < collmd->numverts; i++ )
 	{
 		VECSUB(tv, collmd->xnew[i].co, collmd->x[i].co);
+		VECADDS(collmd->current_x[i].co, collmd->x[i].co, tv, prevstep);
 		VECADDS(collmd->current_xnew[i].co, collmd->x[i].co, tv, step);
 	}
 }

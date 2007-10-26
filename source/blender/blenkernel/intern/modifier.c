@@ -4922,14 +4922,13 @@ static void clothModifier_updateDepgraph(
 			Object *ob1= base->object;
 			if(ob1 != ob)
 			{
-				ClothModifierData *coll_clmd = (ClothModifierData *)modifiers_findByType(ob1, eModifierType_Cloth);
-				if(coll_clmd)
-				{					
-					if (coll_clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ) 
-					{
-						DagNode *curNode = dag_get_node(forest, ob1);					
-						dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA);
-					}
+				CollisionModifierData *collmd = (CollisionModifierData *)modifiers_findByType(ob1, eModifierType_Collision);
+				if(collmd)
+				{
+					DagNode *curNode = dag_get_node(forest, ob1);
+					
+					dag_add_relation(forest, curNode, obNode, DAG_RL_DATA_DATA|DAG_RL_OB_DATA);
+				
 				}
 			}
 		}
