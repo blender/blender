@@ -709,10 +709,13 @@ void BIF_filelist_setfiletypes(struct FileList* filelist, short has_quicktime)
 					|| BLI_testextensie(file->relname, ".otc")) {
 				file->flags |= FTFONTFILE;			
 		} else if (has_quicktime){
-			if(		BLI_testextensie(file->relname, ".jpg")
+			if(		BLI_testextensie(file->relname, ".int")
+				||  BLI_testextensie(file->relname, ".inta")
+				||  BLI_testextensie(file->relname, ".jpg")
 				||	BLI_testextensie(file->relname, ".jpeg")
 				||	BLI_testextensie(file->relname, ".tga")
 				||	BLI_testextensie(file->relname, ".rgb")
+				||	BLI_testextensie(file->relname, ".rgba")
 				||	BLI_testextensie(file->relname, ".bmp")
 				||	BLI_testextensie(file->relname, ".png")
 				||	BLI_testextensie(file->relname, ".iff")
@@ -726,6 +729,9 @@ void BIF_filelist_setfiletypes(struct FileList* filelist, short has_quicktime)
 				||	BLI_testextensie(file->relname, ".pntg") //macpaint
 				||	BLI_testextensie(file->relname, ".qtif")
 				||	BLI_testextensie(file->relname, ".sgi")
+#ifdef WITH_DDS
+				||	BLI_testextensie(file->relname, ".dds")
+#endif
 #ifdef WITH_OPENEXR
 				||	BLI_testextensie(file->relname, ".exr")
 #endif
@@ -745,14 +751,20 @@ void BIF_filelist_setfiletypes(struct FileList* filelist, short has_quicktime)
 				file->flags |= SOUNDFILE;
 			}
 		} else { // no quicktime
-			if(BLI_testextensie(file->relname, ".jpg")
+			if(BLI_testextensie(file->relname, ".int")
+				||	BLI_testextensie(file->relname, ".inta")
+				||	BLI_testextensie(file->relname, ".jpg")
 				||	BLI_testextensie(file->relname, ".tga")
 				||	BLI_testextensie(file->relname, ".rgb")
+				||	BLI_testextensie(file->relname, ".rgba")
 				||	BLI_testextensie(file->relname, ".bmp")
 				||	BLI_testextensie(file->relname, ".png")
 				||	BLI_testextensie(file->relname, ".iff")
 				||	BLI_testextensie(file->relname, ".tif")
 				||	BLI_testextensie(file->relname, ".tiff")
+#ifdef WITH_DDS
+				||	BLI_testextensie(file->relname, ".dds")
+#endif
 #ifdef WITH_OPENEXR
 				||	BLI_testextensie(file->relname, ".exr")
 #endif
