@@ -414,7 +414,7 @@ void bvh_calc_DOP_hull_static(BVH * bvh, CollisionTree **tri, int numfaces, floa
 					tempBV[(2 * i)] = newminmax;
 				if ((newminmax > tempBV[(2 * i) + 1])|| (k == 0 && j == 0))
 					tempBV[(2 * i) + 1] = newminmax;
-			}
+			}			
 		}
 	}
 }
@@ -593,20 +593,20 @@ BVH *bvh_build (BVH *bvh, MFace *mfaces, unsigned int numfaces)
 			
 			if(bvh->mfaces)
 			{
-				bvh->root->point_index[0] = mfaces[i].v1; 
-				bvh->root->point_index[1] = mfaces[i].v2;
-				bvh->root->point_index[2] = mfaces[i].v3;
+				tree->point_index[0] = mfaces[i].v1; 
+				tree->point_index[1] = mfaces[i].v2;
+				tree->point_index[2] = mfaces[i].v3;
 				if(mfaces[i].v4)
-					bvh->root->point_index[3] = mfaces[i].v4;
+					tree->point_index[3] = mfaces[i].v4;
 				else
-					bvh->root->point_index[3] = -1;
+					tree->point_index[3] = -1;
 			}
 			else
 			{
-				bvh->root->point_index[0] = i; 
-				bvh->root->point_index[1] = -1;
-				bvh->root->point_index[2] = -1;
-				bvh->root->point_index[3] = -1;
+				tree->point_index[0] = i; 
+				tree->point_index[1] = -1;
+				tree->point_index[2] = -1;
+				tree->point_index[3] = -1;
 			}
 			
 			tree->isleaf = 1;
@@ -641,7 +641,7 @@ BVH *bvh_build (BVH *bvh, MFace *mfaces, unsigned int numfaces)
 		
 		// build root bvh
 		bvh_calc_DOP_hull_from_faces(bvh, face_list, bvh->numfaces, bvh->root->bv);
-
+		
 		// This is the traversal function. 
 		bvh_div_env_node(bvh, bvh->root, face_list, 0, bvh->numfaces-1, 0, nlink);
 		if (face_list)
@@ -673,6 +673,7 @@ BVH *bvh_build_from_mvert (MFace *mfaces, unsigned int numfaces, MVert *x, unsig
 
 	bvh->epsilon = epsilon;
 	bvh->numfaces = numfaces;
+	bvh->mfaces = mfaces;
 	
 	// we have no faces, we save seperate points
 	if(!mfaces)
@@ -718,6 +719,7 @@ BVH *bvh_build_from_float3 (MFace *mfaces, unsigned int numfaces, float (*x)[3],
 
 	bvh->epsilon = epsilon;
 	bvh->numfaces = numfaces;
+	bvh->mfaces = mfaces;
 	
 	// we have no faces, we save seperate points
 	if(!mfaces)
@@ -729,9 +731,12 @@ BVH *bvh_build_from_float3 (MFace *mfaces, unsigned int numfaces, float (*x)[3],
 	bvh->xnew = (MVert *)MEM_callocN(sizeof(MVert)*numverts, "BVH MVert");
 	
 	for(i = 0; i < numverts; i++)
+	{
 		VECCOPY(bvh->xnew[i].co, x[i]);
+	}
 	
 	bvh->x = MEM_dupallocN(bvh->xnew);	
+	
 	tree = (CollisionTree *)MEM_callocN(sizeof(CollisionTree), "CollisionTree");
 	
 	if (tree == NULL) 
@@ -773,7 +778,7 @@ int bvh_overlap(float *bv1, float *bv2)
  * every other triangle that doesn't require any realloc, but uses
  * much memory
  */
-int bvh_traverse(CollisionTree *tree1, CollisionTree *tree2, LinkNode *collision_list)
+int bvh_traverse(CollisionTree *tree1, CollisionTree *tree2, LinkNode **collision_list)
 {
 	int i = 0, ret = 0, tempret = 0;
 		
@@ -786,6 +791,7 @@ int bvh_traverse(CollisionTree *tree1, CollisionTree *tree2, LinkNode *collision
 			if (tree2->isleaf) 
 			{
 				// save potential colliding triangles
+				
 				CollisionPair *collpair = (CollisionPair *)MEM_callocN(sizeof(CollisionPair), "CollisionPair");
 				
 				VECCOPY(collpair->point_indexA, tree1->point_index);
@@ -794,7 +800,7 @@ int bvh_traverse(CollisionTree *tree1, CollisionTree *tree2, LinkNode *collision
 				VECCOPY(collpair->point_indexB, tree2->point_index);
 				collpair->point_indexB[3] = tree2->point_index[3];
 				
-				BLI_linklist_append(&collision_list, collpair);
+				BLI_linklist_append(&collision_list[0], collpair);
 				
 				return 1;
 			}
@@ -870,6 +876,7 @@ void bvh_update(BVH * bvh, int moving)
 		{			
 			leaf->parent->traversed = 0;
 		}
+		
 		if(!moving)
 			bvh_calc_DOP_hull_static(bvh, &leaf, 1, leaf->bv);
 		else

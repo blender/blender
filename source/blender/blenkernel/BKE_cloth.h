@@ -46,9 +46,10 @@ struct MFace;
 struct DerivedMesh;
 
 // this is needed for inlining behaviour
+
 #ifndef _WIN32
 #define LINUX
-#define DO_INLINE inline
+#define DO_INLINE 
 #else
 #define DO_INLINE
 #endif

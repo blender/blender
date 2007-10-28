@@ -581,21 +581,32 @@ DO_INLINE void mul_bfmatrix_lfvector( float (*to)[3], fmatrix3x3 *from, float (*
 
 	/* process off-diagonal entries (every off-diagonal entry needs to be symmetric) */
 	// TODO: pragma below is wrong, correct it!
-	// #pragma omp parallel for shared(to,from, fLongVector) private(i) 
+#pragma omp parallel for shared(to,from, fLongVector) private(i) 
 	for(i = from[0].vcount; i < from[0].vcount+from[0].scount; i++)
 	{
+		unsigned int row = from[i].r;
+		unsigned int column = from[i].c;
+		
 		// muladd_fmatrix_fvector(to[from[i].c], from[i].m, fLongVector[from[i].r]);
 		
-		to[from[i].c][0] += INPR(from[i].m[0],fLongVector[from[i].r]);
-		to[from[i].c][1] += INPR(from[i].m[1],fLongVector[from[i].r]);
-		to[from[i].c][2] += INPR(from[i].m[2],fLongVector[from[i].r]);	
+		to[column][0] += INPR(from[i].m[0],fLongVector[row]);
+		to[column][1] += INPR(from[i].m[1],fLongVector[row]);
+		to[column][2] += INPR(from[i].m[2],fLongVector[row]);	
+	}
+#pragma omp parallel for shared(to,from, fLongVector) private(i) 	
+	for(i = from[0].vcount; i < from[0].vcount+from[0].scount; i++)
+	{
+		unsigned int row = from[i].r;
+		unsigned int column = from[i].c;
 		
 		// muladd_fmatrix_fvector(to[from[i].r], from[i].m, fLongVector[from[i].c]);
 		
-		to[from[i].r][0] += INPR(from[i].m[0],fLongVector[from[i].c]);
-		to[from[i].r][1] += INPR(from[i].m[1],fLongVector[from[i].c]);
-		to[from[i].r][2] += INPR(from[i].m[2],fLongVector[from[i].c]);	
+		to[row][0] += INPR(from[i].m[0],fLongVector[column]);
+		to[row][1] += INPR(from[i].m[1],fLongVector[column]);
+		to[row][2] += INPR(from[i].m[2],fLongVector[column]);	
 	}
+	
+	
 }
 /* SPARSE SYMMETRIC add big matrix with big matrix: A = B + C*/
 DO_INLINE void add_bfmatrix_bfmatrix( fmatrix3x3 *to, fmatrix3x3 *from,  fmatrix3x3 *matrix)
@@ -1313,7 +1324,6 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 	float kd, ks;
 	LinkNode *search = cloth->springs;
 
-
 	VECCOPY(gravity, clmd->sim_parms.gravity);
 	mul_fvector_S(gravity, gravity, 0.001f); /* scale gravity force */
 
@@ -1406,7 +1416,7 @@ void simulate_implicit_euler(lfVector *Vnew, lfVector *lX, lfVector *lV, lfVecto
 	initdiag_bfmatrix(A, I);
 	zero_lfvector(dV, numverts);
 
-	subadd_bfmatrixS_bfmatrixS(A, dFdV, dt, dFdX, (dt*dt));   
+	subadd_bfmatrixS_bfmatrixS(A, dFdV, dt, dFdX, (dt*dt));
 
 	mul_bfmatrix_lfvector(dFdXmV, dFdX, lV);
 
@@ -1492,12 +1502,12 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 			// call collision function
 			result = cloth_bvh_objcollision(clmd, step + dt, step, dt);
 			
-			// copy corrected positions back to simulation
-			memcpy(cloth->current_xold, cloth->current_x, sizeof(lfVector) * numverts);
-			memcpy(id->Xnew, cloth->current_x, sizeof(lfVector) * numverts);
-			
+			// copy corrected positions back to simulation			
 			if(result)
 			{
+				memcpy(cloth->current_xold, cloth->current_x, sizeof(lfVector) * numverts);
+				memcpy(id->Xnew, cloth->current_x, sizeof(lfVector) * numverts);
+				
 				for(i = 0; i < numverts; i++)
 				{	
 					VECCOPY(id->Vnew[i], cloth->current_v[i]);
@@ -2161,6 +2171,8 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float prevstep,
 	Object *ob2 = NULL;
 	BVH *bvh1 = NULL, *bvh2 = NULL;
 	LinkNode *collision_list = NULL; 
+	unsigned int i = 0;
+	int collisions = 0;
 
 	if (!(((Cloth *)clmd->clothObject)->tree))
 	{
@@ -2189,9 +2201,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float prevstep,
 		
 		// check if there is a bounding volume hierarchy
 		if (collmd->tree) 
-		{
-			int collisions = 0;
-			
+		{			
 			bvh2 = collmd->tree;
 			
 			// update position + bvh of collision object
@@ -2199,14 +2209,13 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float prevstep,
 			bvh_update_from_mvert(collmd->tree, collmd->current_x, collmd->numverts, NULL, 0);
 			
 			// fill collision list 
-			collisions = bvh_traverse(bvh1->root, bvh2->root, collision_list);
-			
-			printf("Found %d collisions.\n", collisions);
+			collisions += bvh_traverse(bvh1->root, bvh2->root, &collision_list);
 			
 			// free collision list
 			if(collision_list)
 			{
 				LinkNode *search = collision_list;
+				
 				while(search)
 				{
 					CollisionPair *coll_pair = search->link;
@@ -2220,7 +2229,15 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float prevstep,
 			}
 		}
 	}
-
 	
-	return 0;
+	//////////////////////////////////////////////
+	// update velocities + positions
+	//////////////////////////////////////////////
+	for(i = 0; i < cloth->numverts; i++)
+	{
+		VECADD(cloth->current_x[i], cloth->current_xold[i], cloth->current_v[i]);
+	}
+	//////////////////////////////////////////////
+	
+	return collisions;
 }
