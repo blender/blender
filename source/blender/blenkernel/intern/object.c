@@ -964,10 +964,8 @@ static void copy_object_pose(Object *obn, Object *ob)
 				cti->get_constraint_targets(con, &targets);
 				
 				for (ct= targets.first; ct; ct= ct->next) {
-					if (ct->tar == ob) {
+					if (ct->tar == ob)
 						ct->tar = obn;
-						strcpy(ct->subtarget, "");
-					}
 				}
 				
 				if (cti->flush_constraint_targets)
