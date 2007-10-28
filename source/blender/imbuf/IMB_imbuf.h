@@ -547,6 +547,9 @@ void IMB_freezbuffloatImBuf(struct ImBuf * ibuf);
 void IMB_rectfill(struct ImBuf *drect, float col[4]);
 void IMB_rectfill_area(struct ImBuf *ibuf, float *col, int x1, int y1, int x2, int y2);
 
+/* this should not be here, really, we needed it for operating on render data, IMB_rectfill_area calls it */
+void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height, float *col, int x1, int y1, int x2, int y2);
+
 /* defined in imginfo.c */
 int IMB_imginfo_change_field(struct ImBuf *img, const char *key, const char *field);
 

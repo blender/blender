@@ -1998,8 +1998,17 @@ static void yafrayRender(Render *re)
 	RE_Database_Free(re);
 }
 
+
+
 #endif /* disable yafray */
 
+static void renderresult_stampinfo()
+{
+	RenderResult rres;
+	/* this is the basic trick to get the displayed float or char rect from render result */
+	RE_GetResultImage(RE_GetRender(G.scene->id.name), &rres);
+	BKE_stamp_buf((unsigned char *)rres.rect32, rres.rectf, rres.rectx, rres.recty);
+}
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
@@ -2035,6 +2044,11 @@ static void do_render_all_options(Render *re)
 	renderresult_add_names(re->result);
 	
 	re->i.lastframetime= PIL_check_seconds_timer()- re->i.starttime;
+	
+	/* stamp image info here */
+	if(G.scene->r.scemode & R_STAMP_INFO && G.scene->r.stamp & R_STAMP_DRAW)
+		renderresult_stampinfo();
+	
 	re->stats_draw(&re->i);
 }
 
