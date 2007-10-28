@@ -1138,10 +1138,15 @@ static void createTransCurveVerts(TransInfo *t)
 		if((nu->type & 7)==CU_BEZIER) {
 			for(a=0, bezt= nu->bezt; a<nu->pntsu; a++, bezt++) {
 				if(bezt->hide==0) {
-					if(bezt->f1 & 1) countsel++;
-					if(bezt->f2 & 1) countsel++;
-					if(bezt->f3 & 1) countsel++;
-					if(propmode) count+= 3;
+					if (G.f & G_HIDDENHANDLES) {
+						if(bezt->f2 & 1) countsel+=3;
+						if(propmode) count+= 3;
+					} else {
+						if(bezt->f1 & 1) countsel++;
+						if(bezt->f2 & 1) countsel++;
+						if(bezt->f3 & 1) countsel++;
+						if(propmode) count+= 3;
+					}
 				}
 			}
 		}
@@ -1171,11 +1176,15 @@ static void createTransCurveVerts(TransInfo *t)
 			head = tail = td;
 			for(a=0, bezt= nu->bezt; a<nu->pntsu; a++, bezt++) {
 				if(bezt->hide==0) {
-					if(propmode || (bezt->f1 & 1)) {
+					
+					if(		propmode ||
+							((bezt->f2 & 1) && (G.f & G_HIDDENHANDLES)) ||
+							((bezt->f1 & 1) && (G.f & G_HIDDENHANDLES)==0)
+					  ) {
 						VECCOPY(td->iloc, bezt->vec[0]);
 						td->loc= bezt->vec[0];
 						VECCOPY(td->center, bezt->vec[1]);
-						if(bezt->f1 & 1) td->flag= TD_SELECTED;
+						if(bezt->f1 & 1 || G.f & G_HIDDENHANDLES) td->flag= TD_SELECTED;
 						else td->flag= 0;
 						td->ext = NULL;
 						td->tdi = NULL;
@@ -1188,7 +1197,8 @@ static void createTransCurveVerts(TransInfo *t)
 						count++;
 						tail++;
 					}
-					/* THIS IS THE CV, the other two are handles */
+					
+					/* This is the Curve Point, the other two are handles */
 					if(propmode || (bezt->f2 & 1)) {
 						VECCOPY(td->iloc, bezt->vec[1]);
 						td->loc= bezt->vec[1];
@@ -1198,12 +1208,14 @@ static void createTransCurveVerts(TransInfo *t)
 						td->ext = NULL;
 						td->tdi = NULL;
 						
-						if (t->mode==TFM_CURVE_SHRINKFATTEN) {
+						if (t->mode==TFM_CURVE_SHRINKFATTEN) { /* || t->mode==TFM_RESIZE) {*/ /* TODO - make points scale */
 							td->val = &(bezt->radius);
 							td->ival = bezt->radius;
-						} else {
+						} else if (t->mode==TFM_TILT) {
 							td->val = &(bezt->alfa);
 							td->ival = bezt->alfa;
+						} else {
+							td->val = NULL;
 						}
 
 						Mat3CpyMat3(td->smtx, smtx);
@@ -1213,11 +1225,14 @@ static void createTransCurveVerts(TransInfo *t)
 						count++;
 						tail++;
 					}
-					if(propmode || (bezt->f3 & 1)) {
+					if(		propmode ||
+							((bezt->f1 & 1) && (G.f & G_HIDDENHANDLES)) ||
+							((bezt->f3 & 1) && (G.f & G_HIDDENHANDLES)==0)
+					  ) {
 						VECCOPY(td->iloc, bezt->vec[2]);
 						td->loc= bezt->vec[2];
 						VECCOPY(td->center, bezt->vec[1]);
-						if(bezt->f3 & 1) td->flag= TD_SELECTED;
+						if(bezt->f3 & 1 || (G.f & G_HIDDENHANDLES)) td->flag= TD_SELECTED;
 						else td->flag= 0;
 						td->ext = NULL;
 						td->tdi = NULL;
@@ -1253,7 +1268,7 @@ static void createTransCurveVerts(TransInfo *t)
 						td->ext = NULL;
 						td->tdi = NULL;
 						
-						if (t->mode==TFM_CURVE_SHRINKFATTEN) {
+						if (t->mode==TFM_CURVE_SHRINKFATTEN || t->mode==TFM_RESIZE) {
 							td->val = &(bp->radius);
 							td->ival = bp->radius;
 						} else {

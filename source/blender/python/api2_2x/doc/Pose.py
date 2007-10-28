@@ -217,7 +217,11 @@ class PoseBone:
 	@ivar lockYRot: Disable Y DoF when part of an IK.
 	@type lockZRot: bool
 	@ivar lockZRot: Disable Z DoF when part of an IK.
-	
+	@ivar layerMask: Layer bitmask
+		Example::
+			# set bone to layers 14 and 16
+			bone.layerMask = (1<<13) + (1<<15)
+	@type layerMask: Int
 	"""
 
 	def insertKey(parentObject, frameNumber, type = "[Pose.LOC, Pose.ROT, Pose.SIZE]", fast = False):

@@ -1128,6 +1128,34 @@ static int PoseBone_setIKFlag(BPy_PoseBone *self, PyObject *value, void *flag)
 	return 0;
 }
 
+//------------------------Bone.layerMask (get)
+static PyObject *PoseBone_getLayerMask(BPy_PoseBone *self)
+{
+	/* do this extra stuff because the short's bits can be negative values */
+	unsigned short laymask = 0;
+	laymask |= self->posechannel->bone->layer;
+	return PyInt_FromLong((int)laymask);
+}
+//------------------------Bone.layerMask (set)
+static int PoseBone_setLayerMask(BPy_PoseBone *self, PyObject *value)
+{
+	int laymask;
+	if (!PyInt_Check(value)) {
+		return EXPP_ReturnIntError( PyExc_AttributeError,
+									"expected an integer (bitmask) as argument" );
+	}
+	
+	laymask = PyInt_AsLong(value);
+
+	if (laymask <= 0 || laymask > (1<<16) - 1)
+		return EXPP_ReturnIntError( PyExc_AttributeError,
+									"bitmask must have from 1 up to 16 bits set");
+
+	self->posechannel->bone->layer = 0;
+	self->posechannel->bone->layer |= laymask;
+
+	return 0;
+}
 
 //------------------TYPE_OBECT IMPLEMENTATION---------------------------
 //------------------------tp_getset
@@ -1188,7 +1216,8 @@ static PyGetSetDef BPy_PoseBone_getset[] = {
 		"disable Y DoF when part of an IK", (void *)BONE_IK_NO_YDOF },
 	{"lockZRot", (getter)PoseBone_getIKFlag, (setter)PoseBone_setIKFlag,
 		"disable Z DoF when part of an IK", (void *)BONE_IK_NO_ZDOF },
-	
+	{"layerMask", (getter)PoseBone_getLayerMask, (setter)PoseBone_setLayerMask, 
+		"Layer bitmask", NULL },
 	{NULL, NULL, NULL, NULL, NULL}
 };
 //------------------------tp_dealloc

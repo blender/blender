@@ -409,8 +409,9 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 		/* there's an onload scriptlink to execute in screenmain */
 		mainqenter(ONLOAD_SCRIPT, 1);
 	}
-
-	strcpy(G.sce, filename);
+	if (G.sce != filename) /* these are the same at times, should never copy to the same location */
+		strcpy(G.sce, filename);
+	
 	strcpy(G.main->name, filename); /* is guaranteed current file */
 	
 	MEM_freeN(bfd);

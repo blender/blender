@@ -230,4 +230,24 @@ typedef struct NodeDefocus {
 	float fstop, maxblur, bthresh, scale;
 } NodeDefocus;
 
+
+/* qdn: glare node */
+typedef struct NodeGlare {
+	char quality, type, iter;
+	char angle, angle_ofs, size, pad[2];
+	float colmod, mix, threshold, fade;
+} NodeGlare;
+
+/* qdn: tonemap node */
+typedef struct NodeTonemap {
+	float key, offset, gamma;
+	float f, m, a, c;
+	int type;
+} NodeTonemap;
+
+/* qdn: lens distortion node */
+typedef struct NodeLensDist {
+	short jit, proj, fit, pad;
+} NodeLensDist;
+
 #endif

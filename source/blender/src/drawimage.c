@@ -424,7 +424,7 @@ static void drawcursor_sima(float xuser_asp, float yuser_asp)
 	int wi, hi;
 	float w, h;
 	
-	if (!G.obedit) return;
+	if (!G.obedit || !CustomData_has_layer(&G.editMesh->fdata, CD_MTFACE)) return;
 	
 	transform_width_height_tface_uv(&wi, &hi);
 	w = (((float)wi)/256.0f)*G.sima->zoom * xuser_asp;

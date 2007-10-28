@@ -49,7 +49,7 @@ struct DerivedMesh;
 
 #ifndef _WIN32
 #define LINUX
-#define DO_INLINE 
+#define DO_INLINE inline
 #else
 #define DO_INLINE
 #endif

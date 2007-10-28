@@ -398,7 +398,7 @@ Sequence *find_nearest_seq(int *hand)
 	short mval[2];
 	float pixelx;
 	float handsize;
-	float minhandle, maxhandle;
+	float displen;
 	View2D *v2d = G.v2d;
 	*hand= 0;
 
@@ -413,22 +413,31 @@ Sequence *find_nearest_seq(int *hand)
 	seq= ed->seqbasep->first;
 	
 	while(seq) {
-		/* clamp handles to defined size in pixel space */
-		handsize = seq->handsize;
-		minhandle = 7;
-		maxhandle = 28;
-		CLAMP(handsize, minhandle*pixelx, maxhandle*pixelx);
-		
 		if(seq->machine == (int)y) {
 			/* check for both normal strips, and strips that have been flipped horizontally */
 			if( ((seq->startdisp < seq->enddisp) && (seq->startdisp<=x && seq->enddisp>=x)) ||
 				((seq->startdisp > seq->enddisp) && (seq->startdisp>=x && seq->enddisp<=x)) )
 			{
 				if(sequence_is_free_transformable(seq)) {
-					if( handsize+seq->startdisp >=x )
-						*hand= 1;
-					else if( -handsize+seq->enddisp <=x )
-						*hand= 2;
+					
+					/* clamp handles to defined size in pixel space */
+					
+					handsize = seq->handsize;
+					displen = (float)abs(seq->startdisp - seq->enddisp);
+					
+					if (displen/pixelx > 10) { /* dont even try to grab the handles of small strips */
+						CLAMP( handsize,
+							7*pixelx,
+							/* Set the max value to handle to 1/3 of the total len when its less then 28.
+							* This is important because otherwise selecting handles happens even when you click in the middle */
+							(int) MIN2(28*3, ((float)displen) /3)*pixelx
+						);
+						
+						if( handsize+seq->startdisp >=x )
+							*hand= 1;
+						else if( -handsize+seq->enddisp <=x )
+							*hand= 2;
+					}
 				}
 				return seq;
 			}

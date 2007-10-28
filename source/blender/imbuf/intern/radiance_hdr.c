@@ -161,8 +161,10 @@ static void FLOAT2RGBE(fCOLOR fcol, RGBE rgbe)
 
 int imb_is_a_hdr(void *buf)
 {
-	/* For recognition, Blender only loades first 32 bytes, so use #?RADIANCE id instead */
-	if (strstr((char*)buf, "#?RADIANCE")) return 1;
+	// For recognition, Blender only loads first 32 bytes, so use #?RADIANCE id instead
+	// update: actually, the 'RADIANCE' part is just an optional program name, the magic word is really only the '#?' part
+	//if (strstr((char*)buf, "#?RADIANCE")) return 1;
+	if (strstr((char*)buf, "#?")) return 1;
 	// if (strstr((char*)buf, "32-bit_rle_rgbe")) return 1;
 	return 0;
 }
@@ -176,7 +178,6 @@ struct ImBuf *imb_loadhdr(unsigned char *mem, int size, int flags)
 	int found=0;
 	int width=0, height=0;
 	int x, y;
-	int ir, ig, ib;
 	unsigned char* ptr;
 	unsigned char* rect;
 	char oriY[80], oriX[80];
@@ -225,18 +226,14 @@ struct ImBuf *imb_loadhdr(unsigned char *mem, int size, int flags)
 					*rect_float++ = fcol[GRN];
 					*rect_float++ = fcol[BLU];
 					*rect_float++ = 1.0f;
-
 					/* Also old oldstyle for the rest of blender which is not using floats yet */
-/* very weird mapping! (ton) */
-					fcol[RED] = 1.f-exp(fcol[RED]*-1.414213562f);
-					fcol[GRN] = 1.f-exp(fcol[GRN]*-1.414213562f);
-					fcol[BLU] = 1.f-exp(fcol[BLU]*-1.414213562f);
-					ir = (int)(255.f*pow(fcol[RED], 0.45454545f));
-					ig = (int)(255.f*pow(fcol[GRN], 0.45454545f));
-					ib = (int)(255.f*pow(fcol[BLU], 0.45454545f));
-					*rect++ = (unsigned char)((ir<0) ? 0 : ((ir>255) ? 255 : ir));
-					*rect++ = (unsigned char)((ig<0) ? 0 : ((ig>255) ? 255 : ig));
-					*rect++ = (unsigned char)((ib<0) ? 0 : ((ib>255) ? 255 : ib));
+					// e: changed to simpler tonemapping, previous code was rather slow (is this actually still relevant at all?)
+					fcol[RED] = fcol[RED]/(1.f + fcol[RED]);
+					fcol[GRN] = fcol[GRN]/(1.f + fcol[GRN]);
+					fcol[BLU] = fcol[BLU]/(1.f + fcol[BLU]);
+					*rect++ = (unsigned char)((fcol[RED] < 0.f) ? 0 : ((fcol[RED] > 1.f) ? 255 : (255.f*fcol[RED])));
+					*rect++ = (unsigned char)((fcol[GRN] < 0.f) ? 0 : ((fcol[GRN] > 1.f) ? 255 : (255.f*fcol[GRN])));
+					*rect++ = (unsigned char)((fcol[BLU] < 0.f) ? 0 : ((fcol[BLU] > 1.f) ? 255 : (255.f*fcol[BLU])));
 					*rect++ = 255;
 				}
 			}
@@ -328,9 +325,9 @@ static void writeHeader(FILE *file, int width, int height)
 	fputc(10, file);
 	fprintf(file, "# %s", "Created with Blender");
 	fputc(10, file);
-	fprintf(file, "FORMAT=32-bit_rle_rgbe");
-	fputc(10, file);
 	fprintf(file, "EXPOSURE=%25.13f", 1.0);
+	fputc(10, file);
+	fprintf(file, "FORMAT=32-bit_rle_rgbe");
 	fputc(10, file);
 	fputc(10, file);
 	fprintf(file, "-Y %d +X %d", height, width);

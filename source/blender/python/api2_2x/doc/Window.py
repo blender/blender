@@ -284,6 +284,20 @@ def EditMode(enable = -1, undo_msg = 'From script', undo = 1):
       because the normal mesh will be rebuilt based on its unchanged edit mesh.
   """
 
+def PoseMode(enable = -1):
+  """
+  Get and optionally set the current pose mode status: in or out.
+  @type enable: int
+  @param enable: get/set current status:
+      - -1: just return current status (default);
+      -  0: leave edit mode;
+      -  1: enter edit mode.
+
+  @return: 0 if Blender is not in edit mode right now, 1 otherwise. 
+  @warn: This uses the active armature objects posemode status, enabling pose
+      mode for non armature objects will always fail.
+  """
+
 def ViewLayers (layers = [], winid = None):
   """
   Get and optionally set the currently visible layers in all 3d Views.

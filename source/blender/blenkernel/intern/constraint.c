@@ -1286,7 +1286,7 @@ static void followpath_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstr
 		
 		if (cu->path && cu->path->data) {
 			curvetime= bsystem_time(ct->tar, (float)ctime, 0.0) - data->offset;
-
+			
 			if (calc_ipo_spec(cu->ipo, CU_SPEED, &curvetime)==0) {
 				curvetime /= cu->pathlen;
 				CLAMP(curvetime, 0.0, 1.0);
@@ -2061,7 +2061,7 @@ static void locktrack_new_data (void *cdata)
 	bLockTrackConstraint *data= (bLockTrackConstraint *)cdata;
 	
 	data->trackflag = TRACK_Y;
-			data->lockflag = LOCK_Z;
+	data->lockflag = LOCK_Z;
 }	
 
 static void locktrack_get_tars (bConstraint *con, ListBase *list)
@@ -2128,13 +2128,13 @@ static void locktrack_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *
 					Projf(vec2, vec, cob->matrix[0]);
 					VecSubf(totmat[2], vec, vec2);
 					Normalize(totmat[2]);
-
+					
 					/* the x axis is fixed */
 					totmat[0][0] = cob->matrix[0][0];
 					totmat[0][1] = cob->matrix[0][1];
 					totmat[0][2] = cob->matrix[0][2];
 					Normalize(totmat[0]);
-			
+					
 					/* the z axis gets mapped onto a third orthogonal vector */
 					Crossf(totmat[1], totmat[2], totmat[0]);
 				}

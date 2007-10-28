@@ -29,8 +29,6 @@
 
 #include "../CMP_util.h"
 
-
-
 /* **************** BLUR ******************** */
 static bNodeSocketType cmp_node_blur_in[]= {
 	{	SOCK_RGBA, 1, "Image",			0.8f, 0.8f, 0.8f, 1.0f, 0.0f, 1.0f},
@@ -555,8 +553,6 @@ static void blur_with_reference(bNode *node, CompBuf *new, CompBuf *img, CompBuf
 		free_compbuf(ref_use);
 }
 
-
-
 static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	CompBuf *new, *img= in[0]->data;
@@ -564,35 +560,48 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 	if(img==NULL || out[0]->hasoutput==0)
 		return;
 	
-	if(img->type==CB_VEC2 || img->type==CB_VEC3) {
-		img= typecheck_compbuf(in[0]->data, CB_RGBA);
-	}
+	if (((NodeBlurData *)node->storage)->filtertype == R_FILTER_FAST_GAUSS) {
+		CompBuf *new, *img = in[0]->data;
+		/*from eeshlo's original patch, removed to fit in with the existing blur node */
+		/*const float sx = in[1]->vec[0], sy = in[2]->vec[0];*/
 	
-	/* if fac input, we do it different */
-	if(in[1]->data) {
-		
-		/* make output size of input image */
-		new= alloc_compbuf(img->x, img->y, img->type, 1); /* allocs */
-		
-		/* accept image offsets from other nodes */
-		new->xof = img->xof;
-		new->yof = img->yof;
-		
-		blur_with_reference(node, new, img, in[1]->data);
-		if(node->exec & NODE_BREAK) {
-			free_compbuf(new);
-			new= NULL;
-		}
-		out[0]->data= new;
-	}
-	else {
-		
-		if(in[1]->vec[0]<=0.001f) {	/* time node inputs can be a tiny value */
-			new= pass_on_compbuf(img);
+		NodeBlurData *nbd= node->storage;
+		const float sx = ((float)nbd->sizex)/2.0f, sy = ((float)nbd->sizey)/2.0f;
+		int c;
+
+		if ((img==NULL) || (out[0]->hasoutput==0)) return;
+
+		if (img->type == CB_VEC2)
+			new = typecheck_compbuf(img, CB_VAL);
+		else if (img->type == CB_VEC3)
+			new = typecheck_compbuf(img, CB_RGBA);
+		else
+			new = dupalloc_compbuf(img);
+
+		if ((sx == sy) && (sx > 0.f)) {
+			for (c=0; c<new->type; ++c)
+				IIR_gauss(new, sx, c, 3);
 		}
 		else {
-			NodeBlurData *nbd= node->storage;
-			CompBuf *gammabuf;
+			if (sx > 0.f) {
+				for (c=0; c<new->type; ++c)
+					IIR_gauss(new, sx, c, 1);
+			}
+			if (sy > 0.f) {
+				for (c=0; c<new->type; ++c)
+					IIR_gauss(new, sy, c, 2);
+			}
+		}
+		out[0]->data = new;
+		
+	} else { 
+		/* All non fast gauss blur methods */
+		if(img->type==CB_VEC2 || img->type==CB_VEC3) {
+			img= typecheck_compbuf(in[0]->data, CB_RGBA);
+		}
+		
+		/* if fac input, we do it different */
+		if(in[1]->data) {
 			
 			/* make output size of input image */
 			new= alloc_compbuf(img->x, img->y, img->type, 1); /* allocs */
@@ -600,33 +609,57 @@ static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bN
 			/* accept image offsets from other nodes */
 			new->xof = img->xof;
 			new->yof = img->yof;
-				
-			if(nbd->gamma) {
-				gammabuf= dupalloc_compbuf(img);
-				gamma_correct_compbuf(gammabuf, 0);
-			}
-			else gammabuf= img;
 			
-			if(nbd->bokeh)
-				bokeh_single_image(node, new, gammabuf, in[1]->vec[0]);
-			else if(1)
-				blur_single_image(node, new, gammabuf, in[1]->vec[0]);
-			else	/* bloom experimental... */
-				bloom_with_reference(new, gammabuf, NULL, in[1]->vec[0], nbd);
-			
-			if(nbd->gamma) {
-				gamma_correct_compbuf(new, 1);
-				free_compbuf(gammabuf);
-			}
+			blur_with_reference(node, new, img, in[1]->data);
 			if(node->exec & NODE_BREAK) {
 				free_compbuf(new);
 				new= NULL;
 			}
+			out[0]->data= new;
 		}
-		out[0]->data= new;
+		else {
+			
+			if(in[1]->vec[0]<=0.001f) {	/* time node inputs can be a tiny value */
+				new= pass_on_compbuf(img);
+			}
+			else {
+				NodeBlurData *nbd= node->storage;
+				CompBuf *gammabuf;
+				
+				/* make output size of input image */
+				new= alloc_compbuf(img->x, img->y, img->type, 1); /* allocs */
+				
+				/* accept image offsets from other nodes */
+				new->xof = img->xof;
+				new->yof = img->yof;
+					
+				if(nbd->gamma) {
+					gammabuf= dupalloc_compbuf(img);
+					gamma_correct_compbuf(gammabuf, 0);
+				}
+				else gammabuf= img;
+				
+				if(nbd->bokeh)
+					bokeh_single_image(node, new, gammabuf, in[1]->vec[0]);
+				else if(1)
+					blur_single_image(node, new, gammabuf, in[1]->vec[0]);
+				else	/* bloom experimental... */
+					bloom_with_reference(new, gammabuf, NULL, in[1]->vec[0], nbd);
+				
+				if(nbd->gamma) {
+					gamma_correct_compbuf(new, 1);
+					free_compbuf(gammabuf);
+				}
+				if(node->exec & NODE_BREAK) {
+					free_compbuf(new);
+					new= NULL;
+				}
+			}
+			out[0]->data= new;
+		}
+		if(img!=in[0]->data)
+			free_compbuf(img);
 	}
-	if(img!=in[0]->data)
-		free_compbuf(img);
 }
 
 static void node_composit_init_blur(bNode* node)

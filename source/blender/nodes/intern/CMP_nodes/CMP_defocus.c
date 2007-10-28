@@ -143,7 +143,7 @@ static float RI_vdC(unsigned int bits, unsigned int r)
 // single channel IIR gaussian filtering
 // much faster than anything else, constant time independent of width
 // should extend to multichannel and make this a node, could be useful
-static void IIR_gauss(CompBuf* buf, float sigma)
+static void IIR_gauss_single(CompBuf* buf, float sigma)
 {
 	double q, q2, sc, cf[4], tsM[9], tsu[3], tsv[3];
 	float *X, *Y, *W;
@@ -322,8 +322,8 @@ static void defocus_blur(bNode *node, CompBuf *new, CompBuf *img, CompBuf *zbuf,
 		// bug #6656 part 1, probably when previous node_composite.c was split into separate files, it was not properly updated
 		// to include recent cvs commits (well, at least not defocus node), so this part was missing...
 		wt = aperture*128.f;
-		IIR_gauss(crad, wt);
-		IIR_gauss(wts, wt);
+		IIR_gauss_single(crad, wt);
+		IIR_gauss_single(wts, wt);
 		
 		// bug #6656 part 2a, although foreground blur is not based anymore on closest object,
 		// the rescaling op below was still based on that anyway, and unlike the comment in below code,
