@@ -2363,6 +2363,7 @@ static void registerCompositNodes(ListBase *ntypelist)
 	nodeRegisterType(ntypelist, &cmp_node_rotate);
 	nodeRegisterType(ntypelist, &cmp_node_scale);
 	nodeRegisterType(ntypelist, &cmp_node_flip);
+	nodeRegisterType(ntypelist, &cmp_node_crop);
 	nodeRegisterType(ntypelist, &cmp_node_displace);
 	nodeRegisterType(ntypelist, &cmp_node_mapuv);
 

@@ -94,6 +94,7 @@ extern bNodeType cmp_node_translate;
 extern bNodeType cmp_node_rotate;
 extern bNodeType cmp_node_scale;
 extern bNodeType cmp_node_flip;
+extern bNodeType cmp_node_crop;
 extern bNodeType cmp_node_displace;
 extern bNodeType cmp_node_mapuv;
 

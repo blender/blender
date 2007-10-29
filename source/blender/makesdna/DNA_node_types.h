@@ -214,6 +214,10 @@ typedef struct NodeChroma {
 	float key[4];
 } NodeChroma;
 
+typedef struct NodeTwoXYs {
+	short x1, x2, y1, y2;
+} NodeTwoXYs;
+
 typedef struct NodeGeometry {
 	char uvname[32];
 	char colname[32];
