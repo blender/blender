@@ -6591,7 +6591,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Material *ma;
 		
 		/* unless the file was created 2.44.3 but not 2.45, update the constraints */
-		if (!(main->versionfile==244 && main->subversionfile==3)) {
+		if ( !(main->versionfile==244 && main->subversionfile==3) &&
+			 ((main->versionfile<245) || (main->versionfile==245 && main->subversionfile==0)) ) 
+		{
 			for (ob = main->object.first; ob; ob= ob->id.next) {
 				ListBase *list;
 				list = &ob->constraints;
