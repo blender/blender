@@ -892,7 +892,7 @@ void BKE_stamp_buf(unsigned char *rect, float *rectf, int width, int height)
 {
 	struct StampData stamp_data;
 	
-	int x,y;
+	int x=1,y=1;
 	int font_height;
 	int text_width;
 	int text_pad;

@@ -545,8 +545,8 @@ void buf_rectfill_area(unsigned char *rect, float *rectf, int width, int height,
 
 	if (rect) {
 		unsigned char *pixel; 
-		unsigned char chr, chg, chb;
-		float fr, fg, fb;
+		unsigned char chr=0, chg=0, chb=0;
+		float fr=0, fg=0, fb=0;
 		
 		if (a == 1.0) {
 			chr = FTOCHAR(col[0]);

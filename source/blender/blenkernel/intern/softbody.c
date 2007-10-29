@@ -1547,7 +1547,7 @@ int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], float *
 									 float force[3], unsigned int par_layer,struct Object *vertexowner,
 									 float time,float vel[3], float *intrusion)
 {
-	Object *ob;
+	Object *ob= NULL;
 	GHash *hash;
 	GHashIterator *ihash;
 	float nv1[3], nv2[3], nv3[3], nv4[3], edge1[3], edge2[3],d_nvect[3], dv1[3],ve[3],avel[3],
@@ -1555,7 +1555,7 @@ int sb_detect_vertex_collisionCached(float opco[3], float facenormal[3], float *
 	outerforceaccu[3],innerforceaccu[3],
 		facedist,n_mag,force_mag_norm,minx,miny,minz,maxx,maxy,maxz,
 		innerfacethickness = -0.5f, outerfacethickness = 0.2f,
-		ee = 5.0f, ff = 0.1f, fa;
+		ee = 5.0f, ff = 0.1f, fa=1;
 	int a, deflected=0, cavel=0,ci=0;
 /* init */
 	*intrusion = 0.0f;

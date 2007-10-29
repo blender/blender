@@ -806,6 +806,7 @@ static void QMC_sampleHemi(float *vec, QMCSampler *qsa, int thread, int num)
 	vec[2] = 1.f - s[1]*s[1];
 }
 
+#if 0 /* currently not used */
 /* cosine weighted hemisphere sampling */
 static void QMC_sampleHemiCosine(float *vec, QMCSampler *qsa, int thread, int num)
 {
@@ -822,6 +823,7 @@ static void QMC_sampleHemiCosine(float *vec, QMCSampler *qsa, int thread, int nu
 	vec[2] = 1.f - s[1]*s[1];
 
 }
+#endif
 
 /* called from convertBlenderScene.c */
 /* samples don't change per pixel, so build the samples in advance for efficiency */

@@ -183,8 +183,12 @@ void bilinear_interpolation(ImBuf *in, ImBuf *out, float u, float v, int xout, i
 
 	if (do_rect)
 		outI=(unsigned char *)out->rect + out->x * yout * 4 + 4*xout;
+	else
+		outI= NULL;
 	if (do_float)
 		outF=(float *)out->rect_float + out->x * yout * 4 + 4*xout;
+	else	
+		outF= NULL;
 
 	if (do_float) {
 		// sample including outside of edges of image 
@@ -254,8 +258,12 @@ void neareast_interpolation(ImBuf *in, ImBuf *out, float u, float v,int xout, in
 
 	if (do_rect)
 		outI=(unsigned char *)out->rect + out->x * yout * 4 + 4*xout;
+	else
+		outI= NULL;
 	if (do_float)
 		outF=(float *)out->rect_float + out->x * yout * 4 + 4*xout;
+	else
+		outF= NULL;
 
 	// sample area entirely outside image? 
 	if (x1<0 || x1>in->x-1 || y1<0 || y1>in->y-1) return;
