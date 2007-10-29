@@ -2146,6 +2146,10 @@ static void node_update(bNode *node)
 		}
 	}
 	
+	/* XXX ugly hack, typeinfo for group is generated */
+	if(node->type == NODE_GROUP)
+		node->typeinfo->butfunc= node_buts_group;
+	
 	/* buttons rect? */
 	if((node->flag & NODE_OPTIONS) && node->typeinfo->butfunc) {
 		dy-= NODE_DYS/2;
@@ -2297,8 +2301,6 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 		glDisable(GL_BLEND);
 	}
 	if(node->type == NODE_GROUP) {
-		/* XXX ugly hack */
-		node->typeinfo->butfunc= node_buts_group;
 		
 		iconofs-= 18.0f;
 		glEnable(GL_BLEND);
