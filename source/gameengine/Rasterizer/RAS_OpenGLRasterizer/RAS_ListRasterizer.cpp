@@ -62,7 +62,7 @@ void RAS_ListSlot::DrawList()
 			}
 		}
 		if(m_list != 0)
-			glNewList((GLuint)m_list, GL_COMPILE_AND_EXECUTE);
+			glNewList((GLuint)m_list, GL_COMPILE);
 	
 		m_flag |= LIST_BEGIN;
 		return;
@@ -76,6 +76,7 @@ void RAS_ListSlot::EndList()
 		glEndList();
 		m_flag = m_flag &~(LIST_BEGIN|LIST_MODIFY);
 		m_flag |= LIST_END;
+		glCallList(m_list);
 	}
 }
 
