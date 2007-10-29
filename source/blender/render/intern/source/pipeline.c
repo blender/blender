@@ -1936,6 +1936,8 @@ static void do_render_composite_fields_blur_3d(Render *re)
 		}
 	}
 
+	/* weak... the display callback wants an active renderlayer pointer... */
+	re->result->renlay= render_get_active_layer(re, re->result);
 	re->display_draw(re->result, NULL);
 }
 
@@ -2045,11 +2047,13 @@ static void do_render_all_options(Render *re)
 	
 	re->i.lastframetime= PIL_check_seconds_timer()- re->i.starttime;
 	
-	/* stamp image info here */
-	if(G.scene->r.scemode & R_STAMP_INFO && G.scene->r.stamp & R_STAMP_DRAW)
-		renderresult_stampinfo();
-	
 	re->stats_draw(&re->i);
+	
+	/* stamp image info here */
+	if((G.scene->r.scemode & R_STAMP_INFO) && (G.scene->r.stamp & R_STAMP_DRAW)) {
+		renderresult_stampinfo();
+		re->display_draw(re->result, NULL);
+	}
 }
 
 static int is_rendering_allowed(Render *re)
