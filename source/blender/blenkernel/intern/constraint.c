@@ -1695,25 +1695,34 @@ static void rotlike_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *ta
 		Mat4ToEul(ct->matrix, eul);
 		Mat4ToEul(cob->matrix, obeul);
 		
-		if ((data->flag & ROTLIKE_X)==0) {
+		if ((data->flag & ROTLIKE_X)==0)
 			eul[0] = obeul[0];
+		else {
+			if (data->flag & ROTLIKE_OFFSET)
+				euler_rot(eul, obeul[0], 'x');
+			
+			if (data->flag & ROTLIKE_X_INVERT)
+				eul[0] *= -1;
 		}
-		else if (data->flag & ROTLIKE_X_INVERT) {
-			eul[0] *= -1;
-		}	
 		
-		if ((data->flag & ROTLIKE_Y)==0) {
+		if ((data->flag & ROTLIKE_Y)==0)
 			eul[1] = obeul[1];
-		}
-		else if (data->flag & ROTLIKE_Y_INVERT) {
-			eul[1] *= -1;
+		else {
+			if (data->flag & ROTLIKE_OFFSET)
+				euler_rot(eul, obeul[1], 'y');
+			
+			if (data->flag & ROTLIKE_Y_INVERT)
+				eul[1] *= -1;
 		}
 		
-		if ((data->flag & ROTLIKE_Z)==0) {
+		if ((data->flag & ROTLIKE_Z)==0)
 			eul[2] = obeul[2];
-		}
-		else if (data->flag & ROTLIKE_Z_INVERT) {
-			eul[2] *= -1;
+		else {
+			if (data->flag & ROTLIKE_OFFSET)
+				euler_rot(eul, obeul[2], 'z');
+			
+			if (data->flag & ROTLIKE_Z_INVERT)
+				eul[2] *= -1;
 		}
 		
 		compatible_eul(eul, obeul);

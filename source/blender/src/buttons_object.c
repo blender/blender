@@ -850,6 +850,9 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 					uiDefButBitI(block, TOG, ROTLIKE_Z_INVERT, B_CONSTRAINT_TEST, "-", *xco+((width/2)+128), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Invert Z component");
 				uiBlockEndAlign(block);
 				
+				/* draw offset toggle */
+				uiDefButBitI(block, TOG, ROTLIKE_OFFSET, B_CONSTRAINT_TEST, "Offset", *xco, *yco-64, 80, 18, &data->flag, 0, 24, 0, 0, "Copy X component");
+				
 				/* constraint space settings */
 				draw_constraint_spaceselect(block, con, *xco, *yco-94, is_armature_owner(ob), is_armature_target(data->tar));
 			}
