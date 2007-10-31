@@ -2514,6 +2514,10 @@ void mouse_nurb()
 	
 }
 
+/* from what I can gather, the mode==0 magic number spins and bridges the nurbs based on the 
+ * orientation of the global 3d view (yuck yuck!) mode==1 does the same, but doesn't bridge up
+ * up the new geometry, mode==2 now does the same as 0, but aligned to world axes, not the view.
+*/
 static void spin_nurb(float *dvec, short mode)
 {
 	Nurb *nu;
@@ -2525,7 +2529,8 @@ static void spin_nurb(float *dvec, short mode)
 	if(G.vd==0 || G.obedit==0 || G.obedit->type!=OB_SURF) return;
 	if( (G.vd->lay & G.obedit->lay)==0 ) return;
 
-	Mat3CpyMat4(persmat, G.vd->viewmat);
+	if (mode != 2) Mat3CpyMat4(persmat, G.vd->viewmat);
+	else Mat3One(persmat);
 	Mat3Inv(persinv, persmat);
 
 	/* imat and center and size */
@@ -2537,7 +2542,7 @@ static void spin_nurb(float *dvec, short mode)
 	VecSubf(cent, cent, G.obedit->obmat[3]);
 	Mat3MulVecfl(imat,cent);
 
-	if(dvec) {
+	if(dvec || mode==2) {
 		n[0]=n[1]= 0.0;
 		n[2]= 1.0;
 	} else {
@@ -2578,7 +2583,7 @@ static void spin_nurb(float *dvec, short mode)
 	ok= 1;
 
 	for(a=0;a<7;a++) {
-		if(mode==0) ok= extrudeflagNurb(1);
+		if(mode==0 || mode==2) ok= extrudeflagNurb(1);
 		else adduplicateflagNurb(1);
 		if(ok==0) {
 			error("Can't spin");
@@ -2586,7 +2591,7 @@ static void spin_nurb(float *dvec, short mode)
 		}
 		rotateflagNurb(1,cent,rotmat);
 
-		if(mode==0) {
+		if(mode==0 || mode==2) {
 			if( (a & 1)==0 ) {
 				rotateflagNurb(1,cent,scalemat1);
 				weightflagNurb(1, 0.25*sqrt(2.0), 1);
@@ -3806,7 +3811,8 @@ Nurb *addNurbprim(int type, int stype, int newname)
 		cent[2]-= G.obedit->obmat[3][2];
 		
 		if (G.vd) {
-			Mat3CpyMat4(imat, G.vd->viewmat);
+			if ( !(newname) || U.flag & USER_ADD_VIEWALIGNED) Mat3CpyMat4(imat, G.vd->viewmat);
+			else Mat3One(imat);
 			Mat3MulVecfl(imat, cent);
 			Mat3MulMat3(cmat, imat, mat);
 			Mat3Inv(imat, cmat);
@@ -4061,7 +4067,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 				rename_id((ID *)G.obedit->data, "SurfTube");
 			}
 
-			nu= addNurbprim(4, 1, 0);  /* circle */
+			nu= addNurbprim(4, 1, newname);  /* circle */
 			nu->resolu= 32;
 			nu->flag= CU_SMOOTH;
 			BLI_addtail(&editNurb, nu); /* temporal for extrude and translate */
@@ -4116,7 +4122,8 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			makeknots(nu, 1, nu->flagu>>1);
 
 			BLI_addtail(&editNurb, nu); /* temporal for spin */
-			spin_nurb(0, 0);
+			if(newname) spin_nurb(0, 2);
+			else spin_nurb(0, 0);
 
 			makeknots(nu, 2, nu->flagv>>1);
 
@@ -4137,13 +4144,14 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			}
 
 			xzproj= 1;
-			nu= addNurbprim(4, 1, 0);  /* circle */
+			nu= addNurbprim(4, 1, newname);  /* circle */
 			xzproj= 0;
 			nu->resolu= 24;
 			nu->resolv= 32;
 			nu->flag= CU_SMOOTH;
 			BLI_addtail(&editNurb, nu); /* temporal for extrude and translate */
-			spin_nurb(0, 0);
+			if(newname) spin_nurb(0, 2);
+			else spin_nurb(0, 0);
 
 			BLI_remlink(&editNurb, nu);
 
@@ -4256,11 +4264,17 @@ void add_primitiveCurve(int stype)
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 
 	countall();
-	allqueue(REDRAWALL, 0);
 	
 	/* if a new object was created, it stores it in Curve, for reload original data and undo */
-	if(newname) load_editNurb();
-	BIF_undo_push("Add primitive");
+	if ( !(newname) || U.flag & USER_ADD_EDITMODE) {
+		if(newname) load_editNurb();
+	} else {
+		exit_editmode(2);
+	}
+	
+	allqueue(REDRAWALL, 0);
+	
+	BIF_undo_push("Add Curve");
 }
 
 void add_primitiveNurb(int type)
@@ -4291,11 +4305,16 @@ void add_primitiveNurb(int type)
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 
 	countall();
-	allqueue(REDRAWALL, 0);
-
+	
 	/* if a new object was created, it stores it in Curve, for reload original data and undo */
-	if(newname) load_editNurb();
-	else BIF_undo_push("Add primitive");
+	if ( !(newname) || U.flag & USER_ADD_EDITMODE) {
+		if(newname) load_editNurb();
+	} else {
+		exit_editmode(2);
+	}
+	allqueue(REDRAWALL, 0);
+	
+	BIF_undo_push("Add Surface");
 }
 
 

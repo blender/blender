@@ -212,6 +212,9 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_FILECOMPRESS		(1 << 15)
 #define USER_SAVE_PREVIEWS		(1 << 16)
 #define USER_CUSTOM_RANGE		(1 << 17)
+#define USER_ADD_EDITMODE		(1 << 18)
+#define USER_ADD_VIEWALIGNED	(1 << 19)
+
 
 /* viewzom */
 #define USER_ZOOM_CONT			0

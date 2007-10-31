@@ -55,6 +55,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_modifier_types.h"
 
@@ -1485,7 +1486,7 @@ static EditBone *add_editbone(char *name)
 	return bone;
 }
 
-static void add_primitive_bone(Object *ob)
+static void add_primitive_bone(Object *ob, short newob)
 {
 	float		obmat[3][3], curs[3], viewmat[3][3], totmat[3][3], imat[3][3];
 	EditBone	*bone;
@@ -1496,7 +1497,9 @@ static void add_primitive_bone(Object *ob)
 	Mat4Invert(G.obedit->imat, G.obedit->obmat);
 	Mat4MulVecfl(G.obedit->imat, curs);
 
-	Mat3CpyMat4(obmat, G.vd->viewmat);
+	if ( !(newob) || U.flag & USER_ADD_VIEWALIGNED) Mat3CpyMat4(obmat, G.vd->viewmat);
+	else Mat3One(obmat);
+	
 	Mat3CpyMat4(viewmat, G.obedit->obmat);
 	Mat3MulMat3(totmat, obmat, viewmat);
 	Mat3Inv(imat, totmat);
@@ -1507,12 +1510,18 @@ static void add_primitive_bone(Object *ob)
 	bone= add_editbone("Bone");
 
 	VECCOPY(bone->head, curs);
-	VecAddf(bone->tail, bone->head, imat[1]);	// bone with unit length 1
+	
+	if ( !(newob) || U.flag & USER_ADD_VIEWALIGNED)
+		VecAddf(bone->tail, bone->head, imat[1]);	// bone with unit length 1
+	else
+		VecAddf(bone->tail, bone->head, imat[2]);	// bone with unit length 1, pointing up Z
 	
 }
 
 void add_primitiveArmature(int type)
 {
+	short newob=0;
+	
 	if(G.scene->id.lib) return;
 	
 	/* this function also comes from an info window */
@@ -1534,13 +1543,18 @@ void add_primitiveArmature(int type)
 		
 		make_editArmature();
 		setcursor_space(SPACE_VIEW3D, CURSOR_EDIT);
+		newob=1;
 	}
 	
 	/* no primitive support yet */
-	add_primitive_bone(G.obedit);
+	add_primitive_bone(G.obedit, newob);
 	
 	countall(); // flushes selection!
 
+	if ( (newob) && !(U.flag & USER_ADD_EDITMODE)) {
+		exit_editmode(2);
+	}
+	
 	allqueue(REDRAWALL, 0);
 	BIF_undo_push("Add primitive");
 }

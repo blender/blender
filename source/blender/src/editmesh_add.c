@@ -48,6 +48,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
+#include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
 
 #include "BLI_blenlib.h"
@@ -1178,7 +1179,7 @@ void add_primitiveMesh(int type)
 	char *name=NULL;
 	
 	if(G.scene->id.lib) return;
-
+	
 	/* this function also comes from an info window */
 	if ELEM(curarea->spacetype, SPACE_VIEW3D, SPACE_INFO); else return;
 	if(G.vd==0) return;
@@ -1308,7 +1309,8 @@ void add_primitiveMesh(int type)
 	cent[1]-= G.obedit->obmat[3][1];
 	cent[2]-= G.obedit->obmat[3][2];
 
-	Mat3CpyMat4(imat, G.vd->viewmat);
+	if ( !(newob) || U.flag & USER_ADD_VIEWALIGNED) Mat3CpyMat4(imat, G.vd->viewmat);
+	else Mat3One(imat);
 	Mat3MulVecfl(imat, cent);
 	Mat3MulMat3(cmat, imat, mat);
 	Mat3Inv(imat,cmat);
@@ -1320,8 +1322,7 @@ void add_primitiveMesh(int type)
 	phid= 2*M_PI/tot;
 	phi= .25*M_PI;
 
-	make_prim(type, imat, tot, seg, subdiv, dia, d,
-        ext, fill, cent);
+	make_prim(type, imat, tot, seg, subdiv, dia, d, ext, fill, cent);
 
 	if(type<2) tot = totoud;
 
@@ -1331,12 +1332,18 @@ void add_primitiveMesh(int type)
 	if(type!=0 && type!=13) righthandfaces(1);	/* otherwise monkey has eyes in wrong direction... */
 	countall();
 
+	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+	
+	/* if a new object was created, it stores it in Mesh, for reload original data and undo */
+	if ( !(newob) || U.flag & USER_ADD_EDITMODE) {
+		if(newob) load_editMesh();
+	} else {
+		exit_editmode(2);
+	}
+	
 	allqueue(REDRAWINFO, 1); 	/* 1, because header->win==0! */	
 	allqueue(REDRAWALL, 0);
-	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);	
-
-	/* if a new object was created, it stores it in Mesh, for reload original data and undo */
-	if(newob) load_editMesh();	
+	
 	BIF_undo_push(undostr);
 }
 

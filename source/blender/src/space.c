@@ -3548,15 +3548,27 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 
 
 		uiDefBut(block, LABEL,0,"Material linked to:",
-			xpos,y3label,mpref,buth,
+			xpos,y5label,mpref,buth,
 			0, 0, 0, 0, 0, "");
 		uiBlockBeginAlign(block);
 		uiDefButBitI(block, TOGN, USER_MAT_ON_OB, B_DRAWINFO, "ObData",
-			(xpos+edgsp),y2,(mpref/2),buth,
+			(xpos+edgsp),y4,(mpref/2),buth,
 			&(U.flag), 0, 0, 0, 0, "Link new objects' material to the obData block");
 		uiDefButBitI(block, TOG, USER_MAT_ON_OB, B_DRAWINFO, "Object",
-			(xpos+edgsp+(mpref/2)),y2,(mpref/2),buth,
+			(xpos+edgsp+(mpref/2)),y4,(mpref/2),buth,
 			&(U.flag), 0, 0, 0, 0, "Link new objects' material to the object block");
+		uiBlockEndAlign(block);
+		
+		uiDefBut(block, LABEL,0,"Add new objects:",
+			xpos,y3label,mpref,buth,
+			0, 0, 0, 0, 0, "");
+		uiBlockBeginAlign(block);
+		uiDefButBitI(block, TOG, USER_ADD_EDITMODE, B_DRAWINFO, "Switch to Edit Mode",
+			(xpos+edgsp),y2,mpref,buth,
+			&(U.flag), 0, 0, 0, 0, "Enter Edit Mode automatically after adding a new object");
+		uiDefButBitI(block, TOG, USER_ADD_VIEWALIGNED, B_DRAWINFO, "Aligned to View",
+			(xpos+edgsp),y1,mpref,buth,
+			&(U.flag), 0, 0, 0, 0, "Align newly added objects facing the 3D View direction");
 		uiBlockEndAlign(block);
 
 
