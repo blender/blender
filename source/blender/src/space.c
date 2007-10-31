@@ -78,7 +78,7 @@
 #include "BKE_colortools.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
-#include "BKE_Derivedmesh.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_group.h"
