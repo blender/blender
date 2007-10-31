@@ -1787,12 +1787,30 @@ static void sizelike_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *t
 		Mat4ToSize(ct->matrix, size);
 		Mat4ToSize(cob->matrix, obsize);
 		
-		if ((data->flag & SIZELIKE_X) && obsize[0] != 0)
-			VecMulf(cob->matrix[0], size[0] / obsize[0]);
-		if ((data->flag & SIZELIKE_Y) && obsize[1] != 0)
-			VecMulf(cob->matrix[1], size[1] / obsize[1]);
-		if ((data->flag & SIZELIKE_Z) && obsize[2] != 0)
-			VecMulf(cob->matrix[2], size[2] / obsize[2]);
+		if ((data->flag & SIZELIKE_X) && (obsize[0] != 0)) {
+			if (data->flag & SIZELIKE_OFFSET) {
+				size[0] += (obsize[0] - 1.0f);
+				VecMulf(cob->matrix[0], size[0] / obsize[0]);
+			}
+			else
+				VecMulf(cob->matrix[0], size[0] / obsize[0]);
+		}
+		if ((data->flag & SIZELIKE_Y) && (obsize[1] != 0)) {
+			if (data->flag & SIZELIKE_OFFSET) {
+				size[1] += (obsize[1] - 1.0f);
+				VecMulf(cob->matrix[1], size[1] / obsize[1]);
+			}
+			else
+				VecMulf(cob->matrix[1], size[1] / obsize[1]);
+		}
+		if ((data->flag & SIZELIKE_Z) && (obsize[2] != 0)) {
+			if (data->flag & SIZELIKE_OFFSET) {
+				size[2] += (obsize[2] - 1.0f);
+				VecMulf(cob->matrix[2], size[2] / obsize[2]);
+			}
+			else
+				VecMulf(cob->matrix[2], size[2] / obsize[2]);
+		}
 	}
 }
 
