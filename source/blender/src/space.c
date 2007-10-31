@@ -78,6 +78,7 @@
 #include "BKE_colortools.h"
 #include "BKE_curve.h"
 #include "BKE_depsgraph.h"
+#include "BKE_Derivedmesh.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_group.h"
@@ -86,6 +87,7 @@
 #include "BKE_mesh.h"
 #include "BKE_node.h"
 #include "BKE_scene.h"
+#include "BKE_texture.h"
 #include "BKE_utildefines.h"
 #include "BKE_image.h" /* for IMA_TYPE_COMPOSITE and IMA_TYPE_R_RESULT */
 
@@ -140,6 +142,7 @@
 #include "BSE_headerbuttons.h"
 #include "BSE_editnla_types.h"
 #include "BSE_time.h"
+#include "BSE_trans_types.h"
 
 #include "BDR_vpaint.h"
 #include "BDR_editmball.h"
@@ -3895,22 +3898,46 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			(xpos+edgsp+(5*mpref)+(5*midsp)), y1, mpref, buth, 
 			&U.texcollectrate, 1.0, 3600.0, 30, 2, "Number of seconds between each run of the GL texture garbage collector.");
 
-
+		/* *** */
+		uiDefBut(block, LABEL,0,"Color range for weight paint",
+			(xpos+edgsp+(2*midsp)+(2*mpref)),y6label,mpref,buth,
+				 0, 0, 0, 0, 0, "");
+		
+		uiDefButBitI(block, TOG, USER_CUSTOM_RANGE, B_WPAINT_RANGE, "ColorBand",
+					 (xpos+edgsp+(2*midsp)+(2*mpref)),y5,mpref,buth,
+					 &(U.flag), 0, 0, 0, 0,
+					 "");
+		
+		if((U.flag & USER_CUSTOM_RANGE)==0) {
+			vDM_ColorBand_store(NULL);
+		}
+		else {
+			rctf butrect;
+			
+			vDM_ColorBand_store(&U.coba_weight); /* also signal for derivedmesh to use colorband */
+			
+			BLI_init_rctf(&butrect, (xpos+edgsp+(2*midsp)+(2*mpref)), 
+					  (xpos+edgsp+(2*midsp)+(2*mpref)) + mpref, 
+					  y3, y3+30);
+		
+			draw_colorband_buts_small(block, &U.coba_weight, &butrect, B_WPAINT_RANGE);
+		}
+		
 		uiDefBut(block, LABEL,0,"Audio mixing buffer:",
-			(xpos+edgsp+(2*midsp)+(2*mpref)),y3label,mpref,buth,
+			(xpos+edgsp+(2*midsp)+(2*mpref)),y2label,mpref,buth,
 			0, 0, 0, 0, 0, "");
 		uiBlockBeginAlign(block);
 		uiDefButI(block, ROW, 0, "256",
-			(xpos+edgsp+(2*midsp)+(2*mpref)),y2,(mpref/4),buth,
+			(xpos+edgsp+(2*midsp)+(2*mpref)),y1,(mpref/4),buth,
 			&U.mixbufsize, 2.0, 256.0, 0, 0, "Set audio mixing buffer size to 256 samples");
 		uiDefButI(block, ROW, 0, "512",
-			(xpos+edgsp+(2*midsp)+(2*mpref)+(mpref/4)),y2,(mpref/4),buth,
+			(xpos+edgsp+(2*midsp)+(2*mpref)+(mpref/4)),y1,(mpref/4),buth,
 			&U.mixbufsize, 2.0, 512.0, 0, 0, "Set audio mixing buffer size to 512 samples");	
 		uiDefButI(block, ROW, 0, "1024",
-			(xpos+edgsp+(2*midsp)+(2*mpref)+(2*mpref/4)),y2,(mpref/4),buth,
+			(xpos+edgsp+(2*midsp)+(2*mpref)+(2*mpref/4)),y1,(mpref/4),buth,
 			&U.mixbufsize, 2.0, 1024.0, 0, 0, "Set audio mixing buffer size to 1024 samples");		
 		uiDefButI(block, ROW, 0, "2048",
-			(xpos+edgsp+(2*midsp)+(2*mpref)+(3*mpref/4)),y2,(mpref/4),buth,
+			(xpos+edgsp+(2*midsp)+(2*mpref)+(3*mpref/4)),y1,(mpref/4),buth,
 			&U.mixbufsize, 2.0, 2048.0, 0, 0, "Set audio mixing buffer size to 2048 samples");			
 		uiBlockEndAlign(block);
 
@@ -4104,6 +4131,13 @@ static void winqreadinfospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				       U.memcachelimit);
 				MEM_CacheLimiter_set_maximum(
 					U.memcachelimit * 1024 * 1024);
+			}
+			else if (val==B_WPAINT_RANGE) {
+				addqueue(sa->win, REDRAW, 1);
+				if(OBACT && (G.f & G_WEIGHTPAINT)) {
+					DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
+					allqueue(REDRAWVIEW3D, 0);
+				}
 			}
 			else do_global_buttons(val);
 			

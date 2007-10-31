@@ -63,6 +63,8 @@
 #ifdef __APPLE__
 #include <OpenGL/OpenGL.h>
 #define __CARBONSOUND__
+  /* XXX BIG WARNING: carbon.h should not be included in blender/src code, it conflicts with struct ID */
+#define ID ID_
 #include <Carbon/Carbon.h>
 
 /*declarations*/

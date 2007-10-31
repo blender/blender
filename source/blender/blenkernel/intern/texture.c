@@ -238,12 +238,9 @@ void init_mapping(TexMapping *texmap)
 
 /* ****************** COLORBAND ******************* */
 
-ColorBand *add_colorband(int rangetype)
+void init_colorband(ColorBand *coba, int rangetype)
 {
-	ColorBand *coba;
 	int a;
-	
-	coba= MEM_callocN( sizeof(ColorBand), "colorband");
 	
 	coba->data[0].pos= 0.0;
 	coba->data[1].pos= 1.0;
@@ -280,6 +277,15 @@ ColorBand *add_colorband(int rangetype)
 	}
 	
 	coba->tot= 2;
+	
+}
+
+ColorBand *add_colorband(int rangetype)
+{
+	ColorBand *coba;
+	
+	coba= MEM_callocN( sizeof(ColorBand), "colorband");
+	init_colorband(coba, rangetype);
 	
 	return coba;
 }

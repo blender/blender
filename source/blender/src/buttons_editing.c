@@ -5290,7 +5290,6 @@ static void editing_panel_mesh_paint(void)
 
 static void editing_panel_mesh_texface(void)
 {
-	extern VPaint Gvp;         /* from vpaint */
 	uiBlock *block;
 	MTFace *tf;
 

@@ -51,6 +51,7 @@
 #include "DNA_object_force.h"
 #include "DNA_object_fluidsim.h" // N_T
 #include "DNA_scene_types.h" // N_T
+#include "DNA_texture_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -61,20 +62,21 @@
 #include "BLI_editVert.h"
 #include "BLI_linklist.h"
 
-#include "BKE_utildefines.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_customdata.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_deform.h"
 #include "BKE_displist.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
+#include "BKE_key.h"
 #include "BKE_material.h"
+#include "BKE_modifier.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_subsurf.h"
-#include "BKE_deform.h"
-#include "BKE_modifier.h"
-#include "BKE_key.h"
+#include "BKE_texture.h"
+#include "BKE_utildefines.h"
 
 #ifdef WITH_VERSE
 #include "BKE_verse.h"
@@ -2268,10 +2270,10 @@ void weight_to_rgb(float input, float *fr, float *fg, float *fb)
 		*fb= 0.0f;
 	}
 }
-static void calc_weightpaint_vert_color(Object *ob, int vert, unsigned char *col)
+static void calc_weightpaint_vert_color(Object *ob, ColorBand *coba, int vert, unsigned char *col)
 {
 	Mesh *me = ob->data;
-	float fr, fg, fb, input = 0.0f;
+	float colf[4], input = 0.0f;
 	int i;
 
 	if (me->dvert) {
@@ -2282,29 +2284,41 @@ static void calc_weightpaint_vert_color(Object *ob, int vert, unsigned char *col
 
 	CLAMP(input, 0.0f, 1.0f);
 	
-	weight_to_rgb(input, &fr, &fg, &fb);
+	if(coba)
+		do_colorband(coba, input, colf);
+	else
+		weight_to_rgb(input, colf, colf+1, colf+2);
 	
-	col[3] = (unsigned char)(fr * 255.0f);
-	col[2] = (unsigned char)(fg * 255.0f);
-	col[1] = (unsigned char)(fb * 255.0f);
+	col[3] = (unsigned char)(colf[0] * 255.0f);
+	col[2] = (unsigned char)(colf[1] * 255.0f);
+	col[1] = (unsigned char)(colf[2] * 255.0f);
 	col[0] = 255;
 }
+
+static ColorBand *stored_cb= NULL;
+
+void vDM_ColorBand_store(ColorBand *coba)
+{
+	stored_cb= coba;
+}
+
 static unsigned char *calc_weightpaint_colors(Object *ob) 
 {
 	Mesh *me = ob->data;
 	MFace *mf = me->mface;
+	ColorBand *coba= stored_cb;	/* warning, not a local var */
 	unsigned char *wtcol;
 	int i;
 	
 	wtcol = MEM_callocN (sizeof (unsigned char) * me->totface*4*4, "weightmap");
 	
 	memset(wtcol, 0x55, sizeof (unsigned char) * me->totface*4*4);
-	for (i=0; i<me->totface; i++, mf++){
-		calc_weightpaint_vert_color(ob, mf->v1, &wtcol[(i*4 + 0)*4]); 
-		calc_weightpaint_vert_color(ob, mf->v2, &wtcol[(i*4 + 1)*4]); 
-		calc_weightpaint_vert_color(ob, mf->v3, &wtcol[(i*4 + 2)*4]); 
+	for (i=0; i<me->totface; i++, mf++) {
+		calc_weightpaint_vert_color(ob, coba, mf->v1, &wtcol[(i*4 + 0)*4]); 
+		calc_weightpaint_vert_color(ob, coba, mf->v2, &wtcol[(i*4 + 1)*4]); 
+		calc_weightpaint_vert_color(ob, coba, mf->v3, &wtcol[(i*4 + 2)*4]); 
 		if (mf->v4)
-			calc_weightpaint_vert_color(ob, mf->v4, &wtcol[(i*4 + 3)*4]); 
+			calc_weightpaint_vert_color(ob, coba, mf->v4, &wtcol[(i*4 + 3)*4]); 
 	}
 	
 	return wtcol;
