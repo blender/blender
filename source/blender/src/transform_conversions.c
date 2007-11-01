@@ -529,6 +529,8 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 	
 	td->ob = ob;
 	td->flag= TD_SELECTED|TD_USEQUAT;
+	if(bone->flag & BONE_HINGE_CHILD_TRANSFORM)
+		td->flag |= TD_NOCENTER;
 	td->protectflag= pchan->protectflag;
 	
 	td->loc = pchan->loc;
@@ -617,7 +619,11 @@ static void bone_children_clear_transflag(ListBase *lb)
 	Bone *bone= lb->first;
 	
 	for(;bone;bone= bone->next) {
-		bone->flag &= ~BONE_TRANSFORM;
+		if(bone->flag & BONE_HINGE)
+			bone->flag |= BONE_HINGE_CHILD_TRANSFORM;
+		else
+			bone->flag &= ~BONE_TRANSFORM;
+
 		bone_children_clear_transflag(&bone->childbase);
 	}
 }
@@ -638,6 +644,8 @@ static void set_pose_transflags(TransInfo *t, Object *ob)
 				bone->flag |= BONE_TRANSFORM;
 			else
 				bone->flag &= ~BONE_TRANSFORM;
+
+			bone->flag &= ~BONE_HINGE_CHILD_TRANSFORM;
 		}
 	}
 	
@@ -658,8 +666,10 @@ static void set_pose_transflags(TransInfo *t, Object *ob)
 			
 			if(t->mode==TFM_TRANSLATION) {
 				if( has_targetless_ik(pchan)==NULL ) {
-					if(pchan->parent && (pchan->bone->flag & BONE_CONNECTED))
-						t->mode= TFM_ROTATION;
+					if(pchan->parent && (pchan->bone->flag & BONE_CONNECTED)) {
+						if(!(pchan->bone->flag & BONE_HINGE_CHILD_TRANSFORM))
+							t->mode= TFM_ROTATION;
+					}
 					else if((pchan->protectflag & OB_LOCK_LOC)==OB_LOCK_LOC)
 						t->mode= TFM_ROTATION;
 				}
