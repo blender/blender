@@ -169,6 +169,9 @@ public:
 	void PrependBasis(const MT_Matrix3x3& mat);
 	void Reset();
 
+	// scale
+	virtual void Scale(float scale);
+
 protected:
 
 	// num_DoF: number of degrees of freedom
@@ -334,6 +337,8 @@ public:
 
 	void SetWeight(int axis, MT_Scalar weight);
 	void SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax);
+
+	void Scale(float scale);
 
 private:
 	int m_axis[3];

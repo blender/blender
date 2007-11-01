@@ -42,6 +42,36 @@ IK_QJacobianSolver::IK_QJacobianSolver()
 	m_rootmatrix.setIdentity();
 }
 
+MT_Scalar IK_QJacobianSolver::ComputeScale()
+{
+	std::vector<IK_QSegment*>::iterator seg;
+	float length = 0.0f;
+
+	for (seg = m_segments.begin(); seg != m_segments.end(); seg++)
+		length += (*seg)->MaxExtension();
+	
+	if(length == 0.0f)
+		return 1.0f;
+	else
+		return 1.0f/length;
+}
+
+void IK_QJacobianSolver::Scale(float scale, std::list<IK_QTask*>& tasks)
+{
+	std::list<IK_QTask*>::iterator task;
+	std::vector<IK_QSegment*>::iterator seg;
+
+	for (task = tasks.begin(); task != tasks.end(); task++)
+		(*task)->Scale(scale);
+
+	for (seg = m_segments.begin(); seg != m_segments.end(); seg++)
+		(*seg)->Scale(scale);
+	
+	m_rootmatrix.getOrigin() *= scale;
+	m_goal *= scale;
+	m_polegoal *= scale;
+}
+
 void IK_QJacobianSolver::AddSegmentList(IK_QSegment *seg)
 {
 	m_segments.push_back(seg);
@@ -293,8 +323,11 @@ bool IK_QJacobianSolver::Solve(
 	const int max_iterations
 )
 {
+	float scale = ComputeScale();
 	bool solved = false;
 	//double dt = analyze_time();
+
+	Scale(scale, tasks);
 
 	ConstrainPoleVector(root, tasks);
 
@@ -346,14 +379,13 @@ bool IK_QJacobianSolver::Solve(
 		if (norm < 1e-3) {
 			solved = true;
 			break;
-			//analyze_add_run(iterations, analyze_time()-dt);
-
-			return true;
 		}
 	}
 
 	if(m_poleconstraint)
 		root->PrependBasis(m_rootmatrix.getBasis());
+
+	Scale(1.0f/scale, tasks);
 
 	//analyze_add_run(max_iterations, analyze_time()-dt);
 
