@@ -5019,6 +5019,13 @@ static void beztmap_to_data (TransInfo *t, EditIpo *ei, BeztMap *bezms, int totv
 	BeztMap *bezm;
 	TransData2D *td;
 	int i, j;
+	char *adjusted;
+	
+	/* dynamically allocate an array of chars to mark whether an TransData's 
+	 * pointers have been fixed already, so that we don't override ones that are
+	 * already done
+ 	 */
+	adjusted= MEM_callocN(sizeof(char), "beztmap_adjusted_map");
 	
 	/* for each beztmap item, find if it is used anywhere */
 	bezm= bezms;
@@ -5026,21 +5033,33 @@ static void beztmap_to_data (TransInfo *t, EditIpo *ei, BeztMap *bezms, int totv
 		/* loop through transdata, testing if we have a hit */
 		td= t->data2d;
 		for (j= 0; j < t->total; j++, td++) {
+			/* skip item if already marked */
+			if (adjusted[j] != 0) continue;
+			
 			if (totipo_vertsel) {
 				/* only selected verts */
 				if (ei->icu->ipo==IPO_BEZ) {
 					if (bezm->bezt->f1 & 1) {
-						if (td->loc2d == bezm->bezt->vec[0])
+						if (td->loc2d == bezm->bezt->vec[0]) {
 							td->loc2d= (bezts + bezm->newIndex)->vec[0];
+							adjusted[j] = 1;
+							break;
+						}
 					}
 					if (bezm->bezt->f3 & 1) {
-						if (td->loc2d == bezm->bezt->vec[2])
+						if (td->loc2d == bezm->bezt->vec[2]) {
 							td->loc2d= (bezts + bezm->newIndex)->vec[2];
+							adjusted[j] = 1;
+							break;
+						}
 					}
 				}
 				if (bezm->bezt->f2 & 1) {
-					if (td->loc2d == bezm->bezt->vec[1])
+					if (td->loc2d == bezm->bezt->vec[1]) {
 						td->loc2d= (bezts + bezm->newIndex)->vec[1];
+						adjusted[j] = 1;
+						break;
+					}
 				}
 			}
 			else {
@@ -5048,19 +5067,28 @@ static void beztmap_to_data (TransInfo *t, EditIpo *ei, BeztMap *bezms, int totv
 				if (ei->icu->ipo==IPO_BEZ) {
 					if (td->loc2d == bezm->bezt->vec[0]) {
 						td->loc2d= (bezts + bezm->newIndex)->vec[0];
+						adjusted[j] = 1;
+						break;
 					}
 					
 					if (td->loc2d == bezm->bezt->vec[2]) {
 						td->loc2d= (bezts + bezm->newIndex)->vec[2];
+						adjusted[j] = 1;
+						break;
 					}
 				}
 				if (td->loc2d == bezm->bezt->vec[1]) {
 					td->loc2d= (bezts + bezm->newIndex)->vec[1];
+					adjusted[j] = 1;
+					break;
 				}
 			}
 		}
 		
 	}
+	
+	/* free temp memory used for 'adjusted' array */
+	MEM_freeN(adjusted);
 }
 
 /* This function is called by recalcData during the Transform loop to recalculate 
