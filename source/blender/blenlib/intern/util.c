@@ -312,6 +312,76 @@ void BLI_insertlink(ListBase *listbase, void *vprevlink, void *vnewlink)
 	newlink->prev= prevlink;
 }
 
+/* This uses insertion sort, so NOT ok for large list */
+void BLI_sortlist(ListBase *listbase, int (*cmp)(void *, void *))
+{
+	Link *current = NULL;
+	Link *previous = NULL;
+	Link *next = NULL;
+	
+	if (cmp == NULL) return;
+	if (listbase == NULL) return;
+
+	if (listbase->first != listbase->last)
+	{
+		for( previous = listbase->first, current = previous->next; current; previous = current, current = next )
+		{
+			next = current->next;
+			
+			BLI_remlink(listbase, current);
+			
+			while(previous && cmp(previous, current) == 1)
+			{
+				previous = previous->prev;
+			}
+			
+			if (previous == NULL)
+			{
+				BLI_addhead(listbase, current);
+			}
+			else
+			{
+				BLI_insertlinkafter(listbase, previous, current);
+			}
+		}
+	}
+}
+
+void BLI_insertlinkafter(ListBase *listbase, void *vprevlink, void *vnewlink)
+{
+	Link *prevlink= vprevlink;
+	Link *newlink= vnewlink;
+
+	/* newlink before nextlink */
+	if (newlink == NULL) return;
+	if (listbase == NULL) return;
+
+	/* empty list */
+	if (listbase->first == NULL) { 
+		listbase->first= newlink;
+		listbase->last= newlink;
+		return;
+	}
+	
+	/* insert at head of list */
+	if (prevlink == NULL) {	
+		newlink->prev = NULL;
+		newlink->next = listbase->first;
+		((Link *)listbase->first)->prev = newlink;
+		listbase->first = newlink;
+		return;
+	}
+
+	/* at end of list */
+	if (listbase->last == prevlink) 
+		listbase->last = newlink;
+
+	newlink->next = prevlink->next;
+	newlink->prev = prevlink;
+	prevlink->next = newlink;
+	if (newlink->next) newlink->next->prev = newlink;
+}
+
 void BLI_insertlinkbefore(ListBase *listbase, void *vnextlink, void *vnewlink)
 {
 	Link *nextlink= vnextlink;

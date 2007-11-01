@@ -112,6 +112,8 @@ int BLI_stringdec(char *string, char *kop, char *start, unsigned short *numlen);
 void BLI_stringenc(char *string, char *kop, char *start, unsigned short numlen, int pic);
 void BLI_addhead(struct ListBase *listbase, void *vlink);
 void BLI_insertlinkbefore(struct ListBase *listbase, void *vnextlink, void *vnewlink);
+void BLI_insertlinkafter(struct ListBase *listbase, void *vprevlink, void *vnewlink);
+void BLI_sortlist(struct ListBase *listbase, int (*cmp)(void *, void *));
 void BLI_freelist(struct ListBase *listbase);
 int BLI_countlist(struct ListBase *listbase);
 void BLI_freelinkN(ListBase *listbase, void *vlink);
