@@ -5023,9 +5023,9 @@ static void beztmap_to_data (TransInfo *t, EditIpo *ei, BeztMap *bezms, int totv
 	
 	/* dynamically allocate an array of chars to mark whether an TransData's 
 	 * pointers have been fixed already, so that we don't override ones that are
-	 * already done
+	 * already done (assumes sizeof(char)==1)
  	 */
-	adjusted= MEM_callocN(sizeof(char), "beztmap_adjusted_map");
+	adjusted= MEM_callocN(t->total, "beztmap_adjusted_map");
 	
 	/* for each beztmap item, find if it is used anywhere */
 	bezm= bezms;
