@@ -343,6 +343,16 @@ void IK_QSegment::PrependBasis(const MT_Matrix3x3& mat)
 	m_basis = m_rest_basis.inverse() * mat * m_rest_basis * m_basis;
 }
 
+void IK_QSegment::Scale(float scale)
+{
+	m_start *= scale;
+	m_translation *= scale;
+	m_orig_translation *= scale;
+	m_global_start *= scale;
+	m_global_transform.getOrigin() *= scale;
+	m_max_extension *= scale;
+}
+
 // IK_QSphericalSegment
 
 IK_QSphericalSegment::IK_QSphericalSegment()
@@ -1024,5 +1034,19 @@ void IK_QTranslateSegment::SetLimit(int axis, MT_Scalar lmin, MT_Scalar lmax)
 	m_min[axis]= lmin;
 	m_max[axis]= lmax;
 	m_limit[axis]= true;
+}
+
+void IK_QTranslateSegment::Scale(float scale)
+{
+	int i;
+
+	IK_QSegment::Scale(scale);
+
+	for (i = 0; i < 3; i++) {
+		m_min[0] *= scale;
+		m_max[1] *= scale;
+	}
+
+	m_new_translation *= scale;
 }
 

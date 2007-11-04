@@ -269,6 +269,7 @@ typedef struct TransInfo {
 	#define TD_VERSE_VERT		64
 #endif
 #define TD_TIMEONLY			128
+#define TD_NOCENTER			256
 
 /* transsnap->status */
 #define SNAP_ON			1

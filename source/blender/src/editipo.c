@@ -2289,6 +2289,8 @@ int insertmatrixkey(ID *id, int blocktype, char *actname, char *constname, int a
 						return 1;
 					}
 				} else if ((adrcode==AC_QUAT_W)||(adrcode==AC_QUAT_X)||(adrcode==AC_QUAT_Y)||(adrcode==AC_QUAT_Z)) { 
+					float tmat[4][4], trimat[3][3], localQuat[4];
+					
 					switch (adrcode) {
 						case AC_QUAT_W:
 							matindex=0;
@@ -2303,21 +2305,18 @@ int insertmatrixkey(ID *id, int blocktype, char *actname, char *constname, int a
 							matindex=3;
 							break;
 					}
-					if (!(pchan->bone->parent)||((pchan->bone->parent)&&!(pchan->bone->flag&BONE_HINGE))) {  /* don't use for non-hinged child bones */
-						float delta_mat[4][4],trimat[3][3];
-						float localQuat[4];
-						armature_mat_pose_to_delta(delta_mat, pchan->pose_mat, pchan->bone->arm_mat);
-						/* Fixed this bit up from the old "hacky" version, as it was called.
-							Not sure of the origin of Mat3ToQuat_is_ok or why its in there. In most cases, this
-							produces the same result of the "hacky" version, and in some
-							cases the results seem to be better. But whatever the case, this is unideal, as
-							we're decomposing a 3x3 rotation matrix into a quat, which is
-							not a discrete operation.											*/
-						Mat3CpyMat4(trimat, delta_mat);
-						Mat3ToQuat_is_ok(trimat, localQuat);
-						insertfloatkey(id, ID_PO, pchan->name, NULL, adrcode, localQuat[matindex]);
-						return 1;
-					}
+					
+					/* it should be reasonable to assume that we are keyframing on the active object, although it is not 
+					 * strictly required for this particular space conversion, arg1 must not be null for this to work
+					 */
+					Mat4CpyMat4(tmat, pchan->pose_mat);
+					constraint_mat_convertspace(OBACT, pchan, tmat, CONSTRAINT_SPACE_POSE, CONSTRAINT_SPACE_LOCAL);
+					
+					Mat3CpyMat4(trimat, tmat);
+					Mat3ToQuat_is_ok(trimat, localQuat);
+					insertfloatkey(id, ID_PO, pchan->name, NULL, adrcode, localQuat[matindex]);
+					
+					return 1;
 				}
 			}
 		}
@@ -3090,23 +3089,33 @@ void common_insertkey(void)
 						}
 					}
  					if(event==11 || event==13) {
-						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_LOC_X);
-						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y);
-						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z);
+						int matok=0; 
+						/* check one to make sure we're not trying to set visual loc keys on
+							bones inside of a chain, which only leads to tears. */
+						matok=  insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_LOC_X);
+								insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y);
+								insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z);
+						
+						if (matok == 0) {
+							insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_X, 0);
+							insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Y, 0);
+							insertkey(id, ID_PO, pchan->name, NULL, AC_LOC_Z, 0);
+						}
  					}
  					if(event==12 || event==13) {
- 						int matsuccess=0; 
+						int matok=0; 
 						/* check one to make sure we're not trying to set visual rot keys on
 							bones inside of a chain, which only leads to tears. */
-						matsuccess=insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W);
-						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X);
-						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
-						insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
-						if (matsuccess==0) {
+						matok=  insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W);
+								insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X);
+								insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
+								insertmatrixkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
+						
+						if (matok == 0) {
+							insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W, 0);
 							insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_X, 0);
 							insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Y, 0);
 							insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_Z, 0);
-							insertkey(id, ID_PO, pchan->name, NULL, AC_QUAT_W, 0);
 						}
  					}
 					if (event==15 && ob->action) {
@@ -5010,6 +5019,13 @@ static void beztmap_to_data (TransInfo *t, EditIpo *ei, BeztMap *bezms, int totv
 	BeztMap *bezm;
 	TransData2D *td;
 	int i, j;
+	char *adjusted;
+	
+	/* dynamically allocate an array of chars to mark whether an TransData's 
+	 * pointers have been fixed already, so that we don't override ones that are
+	 * already done (assumes sizeof(char)==1)
+ 	 */
+	adjusted= MEM_callocN(t->total, "beztmap_adjusted_map");
 	
 	/* for each beztmap item, find if it is used anywhere */
 	bezm= bezms;
@@ -5017,21 +5033,33 @@ static void beztmap_to_data (TransInfo *t, EditIpo *ei, BeztMap *bezms, int totv
 		/* loop through transdata, testing if we have a hit */
 		td= t->data2d;
 		for (j= 0; j < t->total; j++, td++) {
+			/* skip item if already marked */
+			if (adjusted[j] != 0) continue;
+			
 			if (totipo_vertsel) {
 				/* only selected verts */
 				if (ei->icu->ipo==IPO_BEZ) {
 					if (bezm->bezt->f1 & 1) {
-						if (td->loc2d == bezm->bezt->vec[0])
+						if (td->loc2d == bezm->bezt->vec[0]) {
 							td->loc2d= (bezts + bezm->newIndex)->vec[0];
+							adjusted[j] = 1;
+							break;
+						}
 					}
 					if (bezm->bezt->f3 & 1) {
-						if (td->loc2d == bezm->bezt->vec[2])
+						if (td->loc2d == bezm->bezt->vec[2]) {
 							td->loc2d= (bezts + bezm->newIndex)->vec[2];
+							adjusted[j] = 1;
+							break;
+						}
 					}
 				}
 				if (bezm->bezt->f2 & 1) {
-					if (td->loc2d == bezm->bezt->vec[1])
+					if (td->loc2d == bezm->bezt->vec[1]) {
 						td->loc2d= (bezts + bezm->newIndex)->vec[1];
+						adjusted[j] = 1;
+						break;
+					}
 				}
 			}
 			else {
@@ -5039,19 +5067,28 @@ static void beztmap_to_data (TransInfo *t, EditIpo *ei, BeztMap *bezms, int totv
 				if (ei->icu->ipo==IPO_BEZ) {
 					if (td->loc2d == bezm->bezt->vec[0]) {
 						td->loc2d= (bezts + bezm->newIndex)->vec[0];
+						adjusted[j] = 1;
+						break;
 					}
 					
 					if (td->loc2d == bezm->bezt->vec[2]) {
 						td->loc2d= (bezts + bezm->newIndex)->vec[2];
+						adjusted[j] = 1;
+						break;
 					}
 				}
 				if (td->loc2d == bezm->bezt->vec[1]) {
 					td->loc2d= (bezts + bezm->newIndex)->vec[1];
+					adjusted[j] = 1;
+					break;
 				}
 			}
 		}
 		
 	}
+	
+	/* free temp memory used for 'adjusted' array */
+	MEM_freeN(adjusted);
 }
 
 /* This function is called by recalcData during the Transform loop to recalculate 

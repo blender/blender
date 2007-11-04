@@ -31,6 +31,7 @@
  * meshlaplacian.c: Algorithms using the mesh laplacian.
  */
 
+#include <math.h>
 #include <string.h>
 
 #include "MEM_guardedalloc.h"
@@ -39,16 +40,22 @@
 #include "DNA_object_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
 
 #include "BLI_arithb.h"
 #include "BLI_edgehash.h"
+#include "BLI_memarena.h"
 
+#include "BKE_DerivedMesh.h"
 #include "BKE_utildefines.h"
 
 #include "BIF_editdeform.h"
 #include "BIF_meshlaplacian.h"
 #include "BIF_meshtools.h"
+#include "BIF_screen.h"
 #include "BIF_toolbox.h"
+
+#include "BSE_headerbuttons.h"
 
 #ifdef RIGID_DEFORM
 #include "BLI_editVert.h"
@@ -336,7 +343,7 @@ void laplacian_begin_solve(LaplacianSystem *sys, int index)
 		if(index >= 0) {
 			for(a=0; a<sys->totvert; a++) {
 				if(sys->vpinned[a]) {
-					nlSetVariable(a, sys->verts[a][index]);
+					nlSetVariable(0, a, sys->verts[a][index]);
 					nlLockVariable(a);
 				}
 			}
@@ -349,7 +356,7 @@ void laplacian_begin_solve(LaplacianSystem *sys, int index)
 
 void laplacian_add_right_hand_side(LaplacianSystem *sys, int v, float value)
 {
-	nlRightHandSideAdd(v, value);
+	nlRightHandSideAdd(0, v, value);
 }
 
 int laplacian_system_solve(LaplacianSystem *sys)
@@ -365,7 +372,7 @@ int laplacian_system_solve(LaplacianSystem *sys)
 
 float laplacian_system_get_solution(int v)
 {
-	return nlGetVariable(v);
+	return nlGetVariable(0, v);
 }
 
 /************************* Heat Bone Weighting ******************************/
@@ -453,6 +460,7 @@ static int heat_ray_bone_visible(LaplacianSystem *sys, int vertex, int bone)
 		return 1;
 
 	/* setup isec */
+	memset(&isec, 0, sizeof(isec));
 	isec.mode= RE_RAY_SHADOW;
 	isec.lay= -1;
 	isec.face_last= NULL;
@@ -903,4 +911,867 @@ void rigid_deform_end(int cancel)
 	RigidDeformSystem = NULL;
 }
 #endif
+
+/************************** Harmonic Coordinates ****************************/
+/* From "Harmonic Coordinates for Character Articulation",
+	Pushkar Joshi, Mark Meyer, Tony DeRose, Brian Green and Tom Sanocki,
+	SIGGRAPH 2007. */
+
+#define EPSILON 0.0001f
+
+#define MESHDEFORM_TAG_UNTYPED  0
+#define MESHDEFORM_TAG_BOUNDARY 1
+#define MESHDEFORM_TAG_INTERIOR 2
+#define MESHDEFORM_TAG_EXTERIOR 3
+
+#define MESHDEFORM_LEN_THRESHOLD 1e-6
+
+static int MESHDEFORM_OFFSET[7][3] =
+		{{0,0,0}, {1,0,0}, {-1,0,0}, {0,1,0}, {0,-1,0}, {0,0,1}, {0,0,-1}};
+
+typedef struct MDefBoundIsect {
+	float co[3], uvw[4];
+	int nvert, v[4], facing;
+	float len;
+} MDefBoundIsect;
+
+typedef struct MeshDeformBind {
+	/* grid dimensions */
+	float min[3], max[3];
+	float width[3], halfwidth[3];
+	int size, size3;
+
+	/* meshes */
+	DerivedMesh *cagedm;
+	float (*cagecos)[3];
+	float (*vertexcos)[3];
+	int totvert, totcagevert;
+
+	/* grids */
+	MemArena *memarena;
+	MDefBoundIsect *(*boundisect)[6];
+	int *semibound;
+	int *tag;
+	float *phi, *totalphi;
+
+	/* mesh stuff */
+	int *inside;
+	float *weights;
+	float cagemat[4][4];
+
+	/* direct solver */
+	int *varidx;
+
+	/* raytrace */
+	RayTree *raytree;
+} MeshDeformBind;
+
+/* ray intersection */
+
+/* our own triangle intersection, so we can fully control the epsilons and
+ * prevent corner case from going wrong*/
+static int meshdeform_tri_intersect(float orig[3], float end[3], float vert0[3],
+    float vert1[3], float vert2[3], float *isectco, float *uvw)
+{
+	float edge1[3], edge2[3], tvec[3], pvec[3], qvec[3];
+	float det,inv_det, u, v, dir[3], isectdir[3];
+
+	VECSUB(dir, end, orig);
+
+	/* find vectors for two edges sharing vert0 */
+	VECSUB(edge1, vert1, vert0);
+	VECSUB(edge2, vert2, vert0);
+
+	/* begin calculating determinant - also used to calculate U parameter */
+	Crossf(pvec, dir, edge2);
+
+	/* if determinant is near zero, ray lies in plane of triangle */
+	det = INPR(edge1, pvec);
+
+	if (det == 0.0f)
+	  return 0;
+	inv_det = 1.0f / det;
+
+	/* calculate distance from vert0 to ray origin */
+	VECSUB(tvec, orig, vert0);
+
+	/* calculate U parameter and test bounds */
+	u = INPR(tvec, pvec) * inv_det;
+	if (u < -EPSILON || u > 1.0f+EPSILON)
+	  return 0;
+
+	/* prepare to test V parameter */
+	Crossf(qvec, tvec, edge1);
+
+	/* calculate V parameter and test bounds */
+	v = INPR(dir, qvec) * inv_det;
+	if (v < -EPSILON || u + v > 1.0f+EPSILON)
+	  return 0;
+
+	isectco[0]= (1.0f - u - v)*vert0[0] + u*vert1[0] + v*vert2[0];
+	isectco[1]= (1.0f - u - v)*vert0[1] + u*vert1[1] + v*vert2[1];
+	isectco[2]= (1.0f - u - v)*vert0[2] + u*vert1[2] + v*vert2[2];
+
+	uvw[0]= 1.0 - u - v;
+	uvw[1]= u;
+	uvw[2]= v;
+
+	/* check if it is within the length of the line segment */
+	VECSUB(isectdir, isectco, orig);
+
+	if(INPR(dir, isectdir) < -EPSILON)
+		return 0;
+	
+	if(INPR(dir, dir) + EPSILON < INPR(isectdir, isectdir))
+		return 0;
+
+	return 1;
+}
+
+/* blender's raytracer is not use now, even though it is much faster. it can
+ * give problems with rays falling through, so we use our own intersection 
+ * function above with tweaked epsilons */
+
+#if 0
+static MeshDeformBind *MESHDEFORM_BIND = NULL;
+
+static void meshdeform_ray_coords_func(RayFace *face, float **v1, float **v2, float **v3, float **v4)
+{
+	MFace *mface= (MFace*)face;
+	float (*cagecos)[3]= MESHDEFORM_BIND->cagecos;
+
+	*v1= cagecos[mface->v1];
+	*v2= cagecos[mface->v2];
+	*v3= cagecos[mface->v3];
+	*v4= (mface->v4)? cagecos[mface->v4]: NULL;
+}
+
+static int meshdeform_ray_check_func(Isect *is, RayFace *face)
+{
+	return 1;
+}
+
+static void meshdeform_ray_tree_create(MeshDeformBind *mdb)
+{
+	MFace *mface;
+	float min[3], max[3];
+	int a, totface;
+
+	/* create a raytrace tree from the mesh */
+	INIT_MINMAX(min, max);
+
+	for(a=0; a<mdb->totcagevert; a++)
+		DO_MINMAX(mdb->cagecos[a], min, max)
+
+	MESHDEFORM_BIND= mdb;
+
+	mface= mdb->cagedm->getFaceArray(mdb->cagedm);
+	totface= mdb->cagedm->getNumFaces(mdb->cagedm);
+
+	mdb->raytree= RE_ray_tree_create(64, totface, min, max,
+		meshdeform_ray_coords_func, meshdeform_ray_check_func);
+
+	for(a=0; a<totface; a++, mface++)
+		RE_ray_tree_add_face(mdb->raytree, mface);
+
+	RE_ray_tree_done(mdb->raytree);
+}
+
+static void meshdeform_ray_tree_free(MeshDeformBind *mdb)
+{
+	MESHDEFORM_BIND= NULL;
+	RE_ray_tree_free(mdb->raytree);
+}
+#endif
+
+static int meshdeform_intersect(MeshDeformBind *mdb, Isect *isec)
+{
+	MFace *mface;
+	float face[4][3], co[3], uvw[3], len, nor[3];
+	int f, hit, is= 0, totface;
+
+	isec->labda= 1e10;
+
+	mface= mdb->cagedm->getFaceArray(mdb->cagedm);
+	totface= mdb->cagedm->getNumFaces(mdb->cagedm);
+
+	for(f=0; f<totface; f++, mface++) {
+		VECCOPY(face[0], mdb->cagecos[mface->v1]);
+		VECCOPY(face[1], mdb->cagecos[mface->v2]);
+		VECCOPY(face[2], mdb->cagecos[mface->v3]);
+
+		if(mface->v4) {
+			VECCOPY(face[3], mdb->cagecos[mface->v4]);
+			hit= meshdeform_tri_intersect(isec->start, isec->end, face[0], face[1], face[2], co, uvw);
+
+			if(hit) {
+				CalcNormFloat(face[0], face[1], face[2], nor);
+			}
+			else {
+				hit= meshdeform_tri_intersect(isec->start, isec->end, face[0], face[2], face[3], co, uvw);
+				CalcNormFloat(face[0], face[2], face[3], nor);
+			}
+		}
+		else {
+			hit= meshdeform_tri_intersect(isec->start, isec->end, face[0], face[1], face[2], co, uvw);
+			CalcNormFloat(face[0], face[1], face[2], nor);
+		}
+
+		if(hit) {
+			len= VecLenf(isec->start, co)/VecLenf(isec->start, isec->end);
+			if(len < isec->labda) {
+				isec->labda= len;
+				isec->face= mface;
+				isec->isect= (INPR(isec->vec, nor) <= 0.0f);
+				is= 1;
+			}
+		}
+	}
+
+	return is;
+}
+
+static MDefBoundIsect *meshdeform_ray_tree_intersect(MeshDeformBind *mdb, float *co1, float *co2)
+{
+	MDefBoundIsect *isect;
+	Isect isec;
+	float (*cagecos)[3];
+	MFace *mface;
+	float vert[4][3], len;
+	static float epsilon[3]= {0, 0, 0}; //1e-4, 1e-4, 1e-4};
+
+	/* setup isec */
+	memset(&isec, 0, sizeof(isec));
+	isec.mode= RE_RAY_MIRROR; /* we want the closest intersection */
+	isec.lay= -1;
+	isec.face_last= NULL;
+	isec.faceorig= NULL;
+	isec.labda= 1e10f;
+
+	VECADD(isec.start, co1, epsilon);
+	VECADD(isec.end, co2, epsilon);
+	VECSUB(isec.vec, isec.end, isec.start);
+
+#if 0
+	/*if(RE_ray_tree_intersect(mdb->raytree, &isec)) {*/
+#endif
+
+	if(meshdeform_intersect(mdb, &isec)) {
+		len= isec.labda;
+		mface= isec.face;
+
+		/* create MDefBoundIsect */
+		isect= BLI_memarena_alloc(mdb->memarena, sizeof(*isect));
+
+		/* compute intersection coordinate */
+		isect->co[0]= co1[0] + isec.vec[0]*len;
+		isect->co[1]= co1[1] + isec.vec[1]*len;
+		isect->co[2]= co1[2] + isec.vec[2]*len;
+
+		isect->len= VecLenf(co1, isect->co);
+		if(isect->len < MESHDEFORM_LEN_THRESHOLD)
+			isect->len= MESHDEFORM_LEN_THRESHOLD;
+
+		isect->v[0]= mface->v1;
+		isect->v[1]= mface->v2;
+		isect->v[2]= mface->v3;
+		isect->v[3]= mface->v4;
+		isect->nvert= (mface->v4)? 4: 3;
+
+		isect->facing= isec.isect;
+
+		/* compute mean value coordinates for interpolation */
+		cagecos= mdb->cagecos;
+		VECCOPY(vert[0], cagecos[mface->v1]);
+		VECCOPY(vert[1], cagecos[mface->v2]);
+		VECCOPY(vert[2], cagecos[mface->v3]);
+		if(mface->v4) VECCOPY(vert[3], cagecos[mface->v4]);
+		MeanValueWeights(vert, isect->nvert, isect->co, isect->uvw);
+
+		return isect;
+	}
+
+	return NULL;
+}
+
+static int meshdeform_inside_cage(MeshDeformBind *mdb, float *co)
+{
+	MDefBoundIsect *isect;
+	float outside[3], start[3], dir[3];
+	int i, counter;
+
+	for(i=1; i<=6; i++) {
+		counter = 0;
+
+		outside[0] = co[0] + (mdb->max[0] - mdb->min[0] + 1.0f)*MESHDEFORM_OFFSET[i][0];
+		outside[1] = co[1] + (mdb->max[1] - mdb->min[1] + 1.0f)*MESHDEFORM_OFFSET[i][1];
+		outside[2] = co[2] + (mdb->max[2] - mdb->min[2] + 1.0f)*MESHDEFORM_OFFSET[i][2];
+
+		VECSUB(dir, outside, start);
+		Normalize(dir);
+		VECCOPY(start, co);
+		
+		isect = meshdeform_ray_tree_intersect(mdb, start, outside);
+		if(isect && !isect->facing)
+			return 1;
+	}
+
+	return 0;
+}
+
+/* solving */
+
+static int meshdeform_index(MeshDeformBind *mdb, int x, int y, int z, int n)
+{
+	int size= mdb->size;
+	
+	x += MESHDEFORM_OFFSET[n][0];
+	y += MESHDEFORM_OFFSET[n][1];
+	z += MESHDEFORM_OFFSET[n][2];
+
+	if(x < 0 || x >= mdb->size)
+		return -1;
+	if(y < 0 || y >= mdb->size)
+		return -1;
+	if(z < 0 || z >= mdb->size)
+		return -1;
+
+	return x + y*size + z*size*size;
+}
+
+static void meshdeform_cell_center(MeshDeformBind *mdb, int x, int y, int z, int n, float *center)
+{
+	x += MESHDEFORM_OFFSET[n][0];
+	y += MESHDEFORM_OFFSET[n][1];
+	z += MESHDEFORM_OFFSET[n][2];
+
+	center[0]= mdb->min[0] + x*mdb->width[0] + mdb->halfwidth[0];
+	center[1]= mdb->min[1] + y*mdb->width[1] + mdb->halfwidth[1];
+	center[2]= mdb->min[2] + z*mdb->width[2] + mdb->halfwidth[2];
+}
+
+static void meshdeform_add_intersections(MeshDeformBind *mdb, int x, int y, int z)
+{
+	MDefBoundIsect *isect;
+	float center[3], ncenter[3];
+	int i, a;
+
+	a= meshdeform_index(mdb, x, y, z, 0);
+	meshdeform_cell_center(mdb, x, y, z, 0, center);
+
+	/* check each outgoing edge for intersection */
+	for(i=1; i<=6; i++) {
+		if(meshdeform_index(mdb, x, y, z, i) == -1)
+			continue;
+
+		meshdeform_cell_center(mdb, x, y, z, i, ncenter);
+
+		isect= meshdeform_ray_tree_intersect(mdb, center, ncenter);
+		if(isect) {
+			mdb->boundisect[a][i-1]= isect;
+			mdb->tag[a]= MESHDEFORM_TAG_BOUNDARY;
+		}
+	}
+}
+
+static void meshdeform_bind_floodfill(MeshDeformBind *mdb)
+{
+	int *stack, *tag= mdb->tag;
+	int a, b, i, xyz[3], stacksize, size= mdb->size;
+
+	stack= MEM_callocN(sizeof(int)*mdb->size3, "MeshDeformBindStack");
+
+	/* we know lower left corner is EXTERIOR because of padding */
+	tag[0]= MESHDEFORM_TAG_EXTERIOR;
+	stack[0]= 0;
+	stacksize= 1;
+
+	/* floodfill exterior tag */
+	while(stacksize > 0) {
+		a= stack[--stacksize];
+
+		xyz[2]= a/(size*size);
+		xyz[1]= (a - xyz[2]*size*size)/size;
+		xyz[0]= a - xyz[1]*size - xyz[2]*size*size;
+
+		for(i=1; i<=6; i++) {
+			b= meshdeform_index(mdb, xyz[0], xyz[1], xyz[2], i);
+
+			if(b != -1) {
+				if(tag[b] == MESHDEFORM_TAG_UNTYPED ||
+				   (tag[b] == MESHDEFORM_TAG_BOUNDARY && !mdb->boundisect[a][i-1])) {
+					tag[b]= MESHDEFORM_TAG_EXTERIOR;
+					stack[stacksize++]= b;
+				}
+			}
+		}
+	}
+
+	/* other cells are interior */
+	for(a=0; a<size*size*size; a++)
+		if(tag[a]==MESHDEFORM_TAG_UNTYPED)
+			tag[a]= MESHDEFORM_TAG_INTERIOR;
+
+#if 0
+	{
+		int tb, ti, te, ts;
+		tb= ti= te= ts= 0;
+		for(a=0; a<size*size*size; a++)
+			if(tag[a]==MESHDEFORM_TAG_BOUNDARY)
+				tb++;
+			else if(tag[a]==MESHDEFORM_TAG_INTERIOR)
+				ti++;
+			else if(tag[a]==MESHDEFORM_TAG_EXTERIOR) {
+				te++;
+
+				if(mdb->semibound[a])
+					ts++;
+			}
+		
+		printf("interior %d exterior %d boundary %d semi-boundary %d\n", ti, te, tb, ts);
+	}
+#endif
+
+	MEM_freeN(stack);
+}
+
+static float meshdeform_boundary_phi(MeshDeformBind *mdb, MDefBoundIsect *isect, int cagevert)
+{
+	int a;
+
+	for(a=0; a<isect->nvert; a++)
+		if(isect->v[a] == cagevert)
+			return isect->uvw[a];
+	
+	return 0.0f;
+}
+
+static float meshdeform_interp_w(MeshDeformBind *mdb, float *gridvec, float *vec, int cagevert)
+{
+	float dvec[3], ivec[3], wx, wy, wz, result=0.0f;
+	float weight, totweight= 0.0f;
+	int i, a, x, y, z;
+
+	for(i=0; i<3; i++) {
+		ivec[i]= (int)gridvec[i];
+		dvec[i]= gridvec[i] - ivec[i];
+	}
+
+	for(i=0; i<8; i++) {
+		if(i & 1) { x= ivec[0]+1; wx= dvec[0]; }
+		else { x= ivec[0]; wx= 1.0f-dvec[0]; } 
+
+		if(i & 2) { y= ivec[1]+1; wy= dvec[1]; }
+		else { y= ivec[1]; wy= 1.0f-dvec[1]; } 
+
+		if(i & 4) { z= ivec[2]+1; wz= dvec[2]; }
+		else { z= ivec[2]; wz= 1.0f-dvec[2]; } 
+
+		CLAMP(x, 0, mdb->size-1);
+		CLAMP(y, 0, mdb->size-1);
+		CLAMP(z, 0, mdb->size-1);
+
+		a= meshdeform_index(mdb, x, y, z, 0);
+		weight= wx*wy*wz;
+		result += weight*mdb->phi[a];
+		totweight += weight;
+	}
+
+	if(totweight > 0.0f)
+		result /= totweight;
+
+	return result;
+}
+
+static void meshdeform_check_semibound(MeshDeformBind *mdb, int x, int y, int z)
+{
+	int i, a;
+
+	a= meshdeform_index(mdb, x, y, z, 0);
+	if(mdb->tag[a] != MESHDEFORM_TAG_EXTERIOR)
+		return;
+
+	for(i=1; i<=6; i++)
+		if(mdb->boundisect[a][i-1]) 
+			mdb->semibound[a]= 1;
+}
+
+static float meshdeform_boundary_total_weight(MeshDeformBind *mdb, int x, int y, int z)
+{
+	float weight, totweight= 0.0f;
+	int i, a;
+
+	a= meshdeform_index(mdb, x, y, z, 0);
+
+	/* count weight for neighbour cells */
+	for(i=1; i<=6; i++) {
+		if(meshdeform_index(mdb, x, y, z, i) == -1)
+			continue;
+
+		if(mdb->boundisect[a][i-1])
+			weight= 1.0f/mdb->boundisect[a][i-1]->len;
+		else if(!mdb->semibound[a])
+			weight= 1.0f/mdb->width[0];
+		else
+			weight= 0.0f;
+
+		totweight += weight;
+	}
+
+	return totweight;
+}
+
+static void meshdeform_matrix_add_cell(MeshDeformBind *mdb, int x, int y, int z)
+{
+	MDefBoundIsect *isect;
+	float weight, totweight;
+	int i, a, acenter;
+
+	acenter= meshdeform_index(mdb, x, y, z, 0);
+	if(mdb->tag[acenter] == MESHDEFORM_TAG_EXTERIOR)
+		return;
+
+	nlMatrixAdd(mdb->varidx[acenter], mdb->varidx[acenter], 1.0f);
+	
+	totweight= meshdeform_boundary_total_weight(mdb, x, y, z);
+	for(i=1; i<=6; i++) {
+		a= meshdeform_index(mdb, x, y, z, i);
+		if(a == -1 || mdb->tag[a] == MESHDEFORM_TAG_EXTERIOR)
+			continue;
+
+		isect= mdb->boundisect[acenter][i-1];
+		if (!isect) {
+			weight= (1.0f/mdb->width[0])/totweight;
+			nlMatrixAdd(mdb->varidx[acenter], mdb->varidx[a], -weight);
+		}
+	}
+}
+
+static void meshdeform_matrix_add_rhs(MeshDeformBind *mdb, int x, int y, int z, int cagevert)
+{
+	MDefBoundIsect *isect;
+	float rhs, weight, totweight;
+	int i, a, acenter;
+
+	acenter= meshdeform_index(mdb, x, y, z, 0);
+	if(mdb->tag[acenter] == MESHDEFORM_TAG_EXTERIOR)
+		return;
+
+	totweight= meshdeform_boundary_total_weight(mdb, x, y, z);
+	for(i=1; i<=6; i++) {
+		a= meshdeform_index(mdb, x, y, z, i);
+		if(a == -1)
+			continue;
+
+		isect= mdb->boundisect[acenter][i-1];
+
+		if (isect) {
+			weight= (1.0f/isect->len)/totweight;
+			rhs= weight*meshdeform_boundary_phi(mdb, isect, cagevert);
+			nlRightHandSideAdd(0, mdb->varidx[acenter], rhs);
+		}
+	}
+}
+
+static void meshdeform_matrix_add_semibound_phi(MeshDeformBind *mdb, int x, int y, int z, int cagevert)
+{
+	MDefBoundIsect *isect;
+	float rhs, weight, totweight;
+	int i, a;
+
+	a= meshdeform_index(mdb, x, y, z, 0);
+	if(!mdb->semibound[a])
+		return;
+	
+	mdb->phi[a]= 0.0f;
+
+	totweight= meshdeform_boundary_total_weight(mdb, x, y, z);
+	for(i=1; i<=6; i++) {
+		isect= mdb->boundisect[a][i-1];
+
+		if (isect) {
+			weight= (1.0f/isect->len)/totweight;
+			rhs= weight*meshdeform_boundary_phi(mdb, isect, cagevert);
+			mdb->phi[a] += rhs;
+		}
+	}
+}
+
+static void meshdeform_matrix_add_exterior_phi(MeshDeformBind *mdb, int x, int y, int z, int cagevert)
+{
+	float phi, totweight;
+	int i, a, acenter;
+
+	acenter= meshdeform_index(mdb, x, y, z, 0);
+	if(mdb->tag[acenter] != MESHDEFORM_TAG_EXTERIOR || mdb->semibound[acenter])
+		return;
+
+	phi= 0.0f;
+	totweight= 0.0f;
+	for(i=1; i<=6; i++) {
+		a= meshdeform_index(mdb, x, y, z, i);
+
+		if(a != -1 && mdb->semibound[a]) {
+			phi += mdb->phi[a];
+			totweight += 1.0f;
+		}
+	}
+
+	if(totweight != 0.0f)
+		mdb->phi[acenter]= phi/totweight;
+}
+
+static void meshdeform_matrix_solve(MeshDeformBind *mdb)
+{
+	NLContext *context;
+	float vec[3], gridvec[3];
+	int a, b, x, y, z, totvar;
+	char message[1024];
+
+	/* setup variable indices */
+	mdb->varidx= MEM_callocN(sizeof(int)*mdb->size3, "MeshDeformDSvaridx");
+	for(a=0, totvar=0; a<mdb->size3; a++)
+		mdb->varidx[a]= (mdb->tag[a] == MESHDEFORM_TAG_EXTERIOR)? -1: totvar++;
+
+	if(totvar == 0) {
+		MEM_freeN(mdb->varidx);
+		return;
+	}
+
+	progress_bar(0, "Starting mesh deform solve");
+
+	/* setup opennl solver */
+	nlNewContext();
+	context= nlGetCurrent();
+
+	nlSolverParameteri(NL_NB_VARIABLES, totvar);
+	nlSolverParameteri(NL_NB_ROWS, totvar);
+	nlSolverParameteri(NL_NB_RIGHT_HAND_SIDES, 1);
+
+	nlBegin(NL_SYSTEM);
+	nlBegin(NL_MATRIX);
+
+	/* build matrix */
+	for(z=0; z<mdb->size; z++)
+		for(y=0; y<mdb->size; y++)
+			for(x=0; x<mdb->size; x++)
+				meshdeform_matrix_add_cell(mdb, x, y, z);
+
+	/* solve for each cage vert */
+	for(a=0; a<mdb->totcagevert; a++) {
+		if(a != 0) {
+			nlBegin(NL_SYSTEM);
+			nlBegin(NL_MATRIX);
+		}
+
+		/* fill in right hand side and solve */
+		for(z=0; z<mdb->size; z++)
+			for(y=0; y<mdb->size; y++)
+				for(x=0; x<mdb->size; x++)
+					meshdeform_matrix_add_rhs(mdb, x, y, z, a);
+
+		nlEnd(NL_MATRIX);
+		nlEnd(NL_SYSTEM);
+
+#if 0
+		nlPrintMatrix();
+#endif
+
+		if(nlSolveAdvanced(NULL, NL_TRUE)) {
+			for(z=0; z<mdb->size; z++)
+				for(y=0; y<mdb->size; y++)
+					for(x=0; x<mdb->size; x++)
+						meshdeform_matrix_add_semibound_phi(mdb, x, y, z, a);
+
+			for(z=0; z<mdb->size; z++)
+				for(y=0; y<mdb->size; y++)
+					for(x=0; x<mdb->size; x++)
+						meshdeform_matrix_add_exterior_phi(mdb, x, y, z, a);
+
+			for(b=0; b<mdb->size3; b++) {
+				if(mdb->tag[b] != MESHDEFORM_TAG_EXTERIOR)
+					mdb->phi[b]= nlGetVariable(0, mdb->varidx[b]);
+				mdb->totalphi[b] += mdb->phi[b];
+			}
+
+			/* compute weights for each vertex */
+			for(b=0; b<mdb->totvert; b++) {
+				if(mdb->inside[b]) {
+					VECCOPY(vec, mdb->vertexcos[b]);
+					Mat4MulVecfl(mdb->cagemat, vec);
+					gridvec[0]= (vec[0] - mdb->min[0] - mdb->halfwidth[0])/mdb->width[0];
+					gridvec[1]= (vec[1] - mdb->min[1] - mdb->halfwidth[1])/mdb->width[1];
+					gridvec[2]= (vec[2] - mdb->min[2] - mdb->halfwidth[2])/mdb->width[2];
+
+					mdb->weights[b*mdb->totcagevert + a]= meshdeform_interp_w(mdb, gridvec, vec, a);
+				}
+			}
+		}
+		else {
+			error("Mesh Deform: failed to find solution.");
+			break;
+		}
+
+		sprintf(message, "Mesh deform solve %d / %d       |||", a+1, mdb->totcagevert);
+		progress_bar((float)(a+1)/(float)(mdb->totcagevert), message);
+	}
+
+#if 0
+	/* sanity check */
+	for(b=0; b<mdb->size3; b++)
+		if(mdb->tag[b] != MESHDEFORM_TAG_EXTERIOR)
+			if(fabs(mdb->totalphi[b] - 1.0f) > 1e-4)
+				printf("totalphi deficiency [%s|%d] %d: %.10f\n",
+					(mdb->tag[b] == MESHDEFORM_TAG_INTERIOR)? "interior": "boundary", mdb->semibound[b], mdb->varidx[b], mdb->totalphi[b]);
+#endif
+	
+	/* free */
+	MEM_freeN(mdb->varidx);
+
+	nlDeleteContext(context);
+}
+
+void harmonic_coordinates_bind(MeshDeformModifierData *mmd, float (*vertexcos)[3], int totvert, float cagemat[][4])
+{
+	MeshDeformBind mdb;
+	MVert *mvert;
+	float center[3], vec[3], maxwidth;
+	int a, x, y, z, totinside;
+
+	waitcursor(1);
+	start_progress_bar();
+
+	/* free exisiting weights */
+	if(mmd->bindweights) {
+		MEM_freeN(mmd->bindweights);
+		MEM_freeN(mmd->bindcos);
+		mmd->bindweights= NULL;
+		mmd->bindcos= NULL;
+	}
+
+	memset(&mdb, 0, sizeof(MeshDeformBind));
+
+	/* get mesh and cage mesh */
+	mdb.vertexcos= vertexcos;
+	mdb.totvert= totvert;
+	
+	mdb.cagedm= mesh_create_derived_no_deform(mmd->object, NULL, CD_MASK_BAREMESH);
+	mdb.totcagevert= mdb.cagedm->getNumVerts(mdb.cagedm);
+	mdb.cagecos= MEM_callocN(sizeof(*mdb.cagecos)*mdb.totcagevert, "MeshDeformBindCos");
+	Mat4CpyMat4(mdb.cagemat, cagemat);
+
+	mvert= mdb.cagedm->getVertArray(mdb.cagedm);
+	for(a=0; a<mdb.totcagevert; a++)
+		VECCOPY(mdb.cagecos[a], mvert[a].co)
+
+	/* compute bounding box of the cage mesh */
+	INIT_MINMAX(mdb.min, mdb.max);
+
+	for(a=0; a<mdb.totcagevert; a++)
+		DO_MINMAX(mdb.cagecos[a], mdb.min, mdb.max);
+
+	/* allocate memory */
+	mdb.size= (2<<(mmd->gridsize-1)) + 2;
+	mdb.size3= mdb.size*mdb.size*mdb.size;
+	mdb.tag= MEM_callocN(sizeof(int)*mdb.size3, "MeshDeformBindTag");
+	mdb.phi= MEM_callocN(sizeof(float)*mdb.size3, "MeshDeformBindPhi");
+	mdb.totalphi= MEM_callocN(sizeof(float)*mdb.size3, "MeshDeformBindTotalPhi");
+	mdb.boundisect= MEM_callocN(sizeof(*mdb.boundisect)*mdb.size3, "MDefBoundIsect");
+	mdb.semibound= MEM_callocN(sizeof(int)*mdb.size3, "MDefSemiBound");
+
+	mdb.weights= MEM_callocN(sizeof(float)*mdb.totvert*mdb.totcagevert, "MDefWeights");
+	mdb.inside= MEM_callocN(sizeof(int)*mdb.totvert, "MDefInside");
+
+	mdb.memarena= BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);
+	BLI_memarena_use_calloc(mdb.memarena);
+
+	/* make bounding box equal size in all directions, add padding, and compute
+	 * width of the cells */
+	maxwidth = -1.0f;
+	for(a=0; a<3; a++)
+		if(mdb.max[a]-mdb.min[a] > maxwidth)
+			maxwidth= mdb.max[a]-mdb.min[a];
+
+	for(a=0; a<3; a++) {
+		center[a]= (mdb.min[a]+mdb.max[a])*0.5f;
+		mdb.min[a]= center[a] - maxwidth*0.5f;
+		mdb.max[a]= center[a] + maxwidth*0.5f;
+
+		mdb.width[a]= (mdb.max[a]-mdb.min[a])/(mdb.size-4);
+		mdb.min[a] -= 2.1f*mdb.width[a];
+		mdb.max[a] += 2.1f*mdb.width[a];
+
+		mdb.width[a]= (mdb.max[a]-mdb.min[a])/mdb.size;
+		mdb.halfwidth[a]= mdb.width[a]*0.5f;
+	}
+
+	progress_bar(0, "Setting up mesh deform system");
+
+#if 0
+	/* create ray tree */
+	meshdeform_ray_tree_create(&mdb);
+#endif
+
+	totinside= 0;
+	for(a=0; a<mdb.totvert; a++) {
+		VECCOPY(vec, mdb.vertexcos[a]);
+		Mat4MulVecfl(mdb.cagemat, vec);
+		mdb.inside[a]= meshdeform_inside_cage(&mdb, vec);
+		if(mdb.inside[a])
+			totinside++;
+	}
+
+	/* free temporary MDefBoundIsects */
+	BLI_memarena_free(mdb.memarena);
+	mdb.memarena= BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);
+
+	/* start with all cells untyped */
+	for(a=0; a<mdb.size3; a++)
+		mdb.tag[a]= MESHDEFORM_TAG_UNTYPED;
+	
+	/* detect intersections and tag boundary cells */
+	for(z=0; z<mdb.size; z++)
+		for(y=0; y<mdb.size; y++)
+			for(x=0; x<mdb.size; x++)
+				meshdeform_add_intersections(&mdb, x, y, z);
+
+#if 0
+	/* free ray tree */
+	meshdeform_ray_tree_free(&mdb);
+#endif
+
+	/* compute exterior and interior tags */
+	meshdeform_bind_floodfill(&mdb);
+
+	for(z=0; z<mdb.size; z++)
+		for(y=0; y<mdb.size; y++)
+			for(x=0; x<mdb.size; x++)
+				meshdeform_check_semibound(&mdb, x, y, z);
+
+	/* solve */
+	meshdeform_matrix_solve(&mdb);
+
+	/* assign results */
+	mmd->bindweights= mdb.weights;
+	mmd->bindcos= (float*)mdb.cagecos;
+	mmd->totvert= mdb.totvert;
+	mmd->totcagevert= mdb.totcagevert;
+
+	/* transform bindcos to world space */
+	for(a=0; a<mdb.totcagevert; a++)
+		Mat4MulVecfl(mmd->object->obmat, mmd->bindcos+a*3);
+
+	/* free */
+	mdb.cagedm->release(mdb.cagedm);
+	MEM_freeN(mdb.tag);
+	MEM_freeN(mdb.phi);
+	MEM_freeN(mdb.totalphi);
+	MEM_freeN(mdb.boundisect);
+	MEM_freeN(mdb.semibound);
+	MEM_freeN(mdb.inside);
+	BLI_memarena_free(mdb.memarena);
+
+	end_progress_bar();
+	waitcursor(0);
+}
 

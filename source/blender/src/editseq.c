@@ -425,13 +425,15 @@ Sequence *find_nearest_seq(int *hand)
 					handsize = seq->handsize;
 					displen = (float)abs(seq->startdisp - seq->enddisp);
 					
-					if (displen/pixelx > 10) { /* dont even try to grab the handles of small strips */
-						CLAMP( handsize,
-							7*pixelx,
-							/* Set the max value to handle to 1/3 of the total len when its less then 28.
-							* This is important because otherwise selecting handles happens even when you click in the middle */
-							(int) MIN2(28*3, ((float)displen) /3)*pixelx
-						);
+					if (displen / pixelx > 16) { /* dont even try to grab the handles of small strips */
+						/* Set the max value to handle to 1/3 of the total len when its less then 28.
+						* This is important because otherwise selecting handles happens even when you click in the middle */
+						
+						if ((displen/3) < 30*pixelx) {
+							handsize = displen/3;
+						} else {
+							CLAMP(handsize, 7*pixelx, 30*pixelx);
+						}
 						
 						if( handsize+seq->startdisp >=x )
 							*hand= 1;
@@ -2745,7 +2747,7 @@ void transform_seq(int mode, int context)
 	short mval[2], val, xo, yo, xn, yn;
 	char str[32];
 	char side= 'L'; /* for extend mode only - use to know which side to extend on */
-	
+	char marker_moved=0; /* if we mvoed a marker, redraw all marker views */
 	/* used for extend in a number of places */
 	int cfra = CFRA;
 	
@@ -3018,6 +3020,7 @@ void transform_seq(int mode, int context)
 					for(a=0, marker= G.scene->markers.first; marker; marker= marker->next) {
 						if(marker->flag & SELECT) {
 							marker->frame= oldframe[a] + ix;
+							marker_moved=1;
 							a++;
 						}
 					}
@@ -3122,6 +3125,7 @@ void transform_seq(int mode, int context)
 						if (marker->flag & SELECT) {
 							if(oldframe[a] != MAXFRAME+1) {
 								marker->frame= oldframe[a] + ix;
+								marker_moved=1;
 							}
 							a++;
 						}
@@ -3228,7 +3232,8 @@ void transform_seq(int mode, int context)
 					a++;
 				}
 			}
-		}		
+			marker_moved = 0;
+		}	
 	} else {
 
 		/* images, effects and overlap */
@@ -3268,7 +3273,10 @@ void transform_seq(int mode, int context)
 	else if (mode=='e')
 		BIF_undo_push("Transform Extend, Sequencer");
 	
-	allqueue(REDRAWSEQ, 0);
+	if (marker_moved)
+		allqueue(REDRAWMARKER, 0);	
+	else
+		allqueue(REDRAWSEQ, 0);
 }
 
 /*	since grab can move markers, we must turn this off before adding a new sequence

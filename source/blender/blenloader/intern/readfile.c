@@ -2915,6 +2915,21 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 				}
 			}
 		}
+		else if (md->type==eModifierType_MeshDeform) {
+			MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
+
+			mmd->bindweights= newdataadr(fd, mmd->bindweights);
+			mmd->bindcos= newdataadr(fd, mmd->bindcos);
+
+			if(fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
+				int a;
+
+				for(a=0; a<mmd->totcagevert*mmd->totvert; a++)
+					SWITCH_INT(mmd->bindweights[a])
+				for(a=0; a<mmd->totcagevert*3; a++)
+					SWITCH_INT(mmd->bindcos[a])
+			}
+		}
 	}
 }
 
@@ -6616,7 +6631,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Material *ma;
 		
 		/* unless the file was created 2.44.3 but not 2.45, update the constraints */
-		if (!(main->versionfile==244 && main->subversionfile==3)) {
+		if ( !(main->versionfile==244 && main->subversionfile==3) &&
+			 ((main->versionfile<245) || (main->versionfile==245 && main->subversionfile==0)) ) 
+		{
 			for (ob = main->object.first; ob; ob= ob->id.next) {
 				ListBase *list;
 				list = &ob->constraints;

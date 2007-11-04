@@ -1264,8 +1264,8 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 			
 			/* constraints, set target ob pointer to own object */
 			copy_constraints(&pchanw.constraints, &pchanp->constraints);
-
-			for(con= pchanw.constraints.first; con; con= con->next) {
+			
+			for (con= pchanw.constraints.first; con; con= con->next) {
 				bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
 				ListBase targets = {NULL, NULL};
 				bConstraintTarget *ct;
@@ -1274,10 +1274,8 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 					cti->get_constraint_targets(con, &targets);
 					
 					for (ct= targets.first; ct; ct= ct->next) {
-						if (ct->tar == from) {
+						if (ct->tar == from)
 							ct->tar = ob;
-							strcpy(ct->subtarget, "");
-						}
 					}
 					
 					if (cti->flush_constraint_targets)
@@ -1286,7 +1284,7 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 			}
 			
 			/* free stuff from current channel */
-			if(pchan->path) MEM_freeN(pchan->path);
+			if (pchan->path) MEM_freeN(pchan->path);
 			free_constraints(&pchan->constraints);
 			
 			/* the final copy */
@@ -1600,7 +1598,7 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 
 		if(tree->stretch && (pchan->ikstretch > 0.0)) {
 			float ikstretch = pchan->ikstretch*pchan->ikstretch;
-			IK_SetStiffness(seg, IK_TRANS_Y, MIN2(1.0-ikstretch, 0.99));
+			IK_SetStiffness(seg, IK_TRANS_Y, MIN2(1.0-ikstretch, 0.999));
 			IK_SetLimit(seg, IK_TRANS_Y, 0.001, 1e10);
 		}
 	}

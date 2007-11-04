@@ -1145,23 +1145,20 @@ static short extrudeflag_edge(short flag, float *nor)
 				for (eed= em->edges.first; eed; eed= eed->next) {
 					if(eed->f2 == 1) {
 
-						switch(mmd->axis){
-							case 0:
-								if ( (fabs(eed->v1->co[0]) < mmd->tolerance) &&
-									 (fabs(eed->v2->co[0]) < mmd->tolerance) )
-									++eed->f2;
-								break;
-							case 1:
-								if ( (fabs(eed->v1->co[1]) < mmd->tolerance) &&
-									 (fabs(eed->v2->co[1]) < mmd->tolerance) )
-									++eed->f2;
-								break;
-							case 2:
-								if ( (fabs(eed->v1->co[2]) < mmd->tolerance) &&
-									 (fabs(eed->v2->co[2]) < mmd->tolerance) )
-									++eed->f2;
-								break;
-						}
+						if (mmd->flag & MOD_MIR_AXIS_X)
+							if ( (fabs(eed->v1->co[0]) < mmd->tolerance) &&
+								 (fabs(eed->v2->co[0]) < mmd->tolerance) )
+								++eed->f2;
+
+						if (mmd->flag & MOD_MIR_AXIS_Y)
+							if ( (fabs(eed->v1->co[1]) < mmd->tolerance) &&
+								 (fabs(eed->v2->co[1]) < mmd->tolerance) )
+								++eed->f2;
+
+						if (mmd->flag & MOD_MIR_AXIS_Z)
+							if ( (fabs(eed->v1->co[2]) < mmd->tolerance) &&
+								 (fabs(eed->v2->co[2]) < mmd->tolerance) )
+								++eed->f2;
 					}
 				}
 			}
@@ -1414,23 +1411,19 @@ short extrudeflag_vert(short flag, float *nor)
 				for (eed= em->edges.first; eed; eed= eed->next) {
 					if(eed->f2 == 2) {
 
-						switch(mmd->axis){
-							case 0:
-								if ( (fabs(eed->v1->co[0]) < mmd->tolerance) &&
-									 (fabs(eed->v2->co[0]) < mmd->tolerance) )
-									++eed->f2;
-								break;
-							case 1:
-								if ( (fabs(eed->v1->co[1]) < mmd->tolerance) &&
-									 (fabs(eed->v2->co[1]) < mmd->tolerance) )
-									++eed->f2;
-								break;
-							case 2:
-								if ( (fabs(eed->v1->co[2]) < mmd->tolerance) &&
-									 (fabs(eed->v2->co[2]) < mmd->tolerance) )
-									++eed->f2;
-								break;
-						}
+						if (mmd->flag & MOD_MIR_AXIS_X)
+							if ( (fabs(eed->v1->co[0]) < mmd->tolerance) &&
+								 (fabs(eed->v2->co[0]) < mmd->tolerance) )
+								++eed->f2;
+
+						if (mmd->flag & MOD_MIR_AXIS_Y)
+							if ( (fabs(eed->v1->co[1]) < mmd->tolerance) &&
+								 (fabs(eed->v2->co[1]) < mmd->tolerance) )
+								++eed->f2;
+						if (mmd->flag & MOD_MIR_AXIS_Z)
+							if ( (fabs(eed->v1->co[2]) < mmd->tolerance) &&
+								 (fabs(eed->v2->co[2]) < mmd->tolerance) )
+								++eed->f2;
 					}
 				}
 			}

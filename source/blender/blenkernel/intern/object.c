@@ -916,13 +916,15 @@ void base_init_from_view3d(Base *base, View3D *v3d)
 		VECCOPY(ob->loc, G.scene->cursor);
 	}
 
-	v3d->viewquat[0]= -v3d->viewquat[0];
-	if (ob->transflag & OB_QUAT) {
-		QUATCOPY(ob->quat, v3d->viewquat);
-	} else {
-		QuatToEul(v3d->viewquat, ob->rot);
+	if (U.flag & USER_ADD_VIEWALIGNED) {
+		v3d->viewquat[0]= -v3d->viewquat[0];
+		if (ob->transflag & OB_QUAT) {
+			QUATCOPY(ob->quat, v3d->viewquat);
+		} else {
+			QuatToEul(v3d->viewquat, ob->rot);
+		}
+		v3d->viewquat[0]= -v3d->viewquat[0];
 	}
-	v3d->viewquat[0]= -v3d->viewquat[0];
 }
 
 SoftBody *copy_softbody(SoftBody *sb)

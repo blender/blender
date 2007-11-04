@@ -287,6 +287,7 @@
 #define B_UITHEMEEXPORT		324
 
 #define B_MEMCACHELIMIT		325
+#define B_WPAINT_RANGE		326
 
 /* Definitions for the fileselect buttons in user prefs */
 #define B_FONTDIRFILESEL  	330

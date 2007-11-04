@@ -2506,7 +2506,53 @@ void InterpWeightsQ3Dfl(float *v1, float *v2, float *v3, float *v4, float *co, f
 		else
 			BarycentricWeights(v1, v2, v3, co, n, w);
 	}
-} 
+}
+
+/* Mean value weights - smooth interpolation weights for polygons with
+ * more than 3 vertices */
+static float MeanValueHalfTan(float *v1, float *v2, float *v3)
+{
+	float d2[3], d3[3], cross[3], area, dot, len;
+
+	VecSubf(d2, v2, v1);
+	VecSubf(d3, v3, v1);
+	Crossf(cross, d2, d3);
+
+	area= VecLength(cross);
+	dot= Inpf(d2, d3);
+	len= VecLength(d2)*VecLength(d3);
+
+	if(area == 0.0f)
+		return 0.0f;
+	else
+		return (len - dot)/area;
+}
+
+void MeanValueWeights(float v[][3], int n, float *co, float *w)
+{
+	float totweight, t1, t2, len, *vmid, *vprev, *vnext;
+	int i;
+
+	totweight= 0.0f;
+
+	for(i=0; i<n; i++) {
+		vmid= v[i];
+		vprev= (i == 0)? v[n-1]: v[i-1];
+		vnext= (i == n-1)? v[0]: v[i+1];
+
+		t1= MeanValueHalfTan(co, vprev, vmid);
+		t2= MeanValueHalfTan(co, vmid, vnext);
+
+		len= VecLenf(co, vmid);
+		w[i]= (t1+t2)/len;
+		totweight += w[i];
+	}
+
+	if(totweight != 0.0f)
+		for(i=0; i<n; i++)
+			w[i] /= totweight;
+}
+
 
 /* ************ EULER *************** */
 

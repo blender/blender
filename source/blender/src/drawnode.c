@@ -1330,6 +1330,50 @@ static int node_composit_buts_flip(uiBlock *block, bNodeTree *ntree, bNode *node
 	return 20;	
 }
 
+static int node_composit_buts_crop(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		NodeTwoXYs *ntxy= node->storage;
+		uiBut *bt;
+		char elementheight = 19;
+		short dx= (butr->xmax-butr->xmin)/2;
+		short dy= butr->ymax - elementheight;
+		short xymin= 0, xymax= 10000;
+
+		uiBlockBeginAlign(block);
+
+		/* crop image size toggle */
+		uiDefButS(block, TOG, B_NODE_EXEC+node->nr, "Crop Image Size",
+				  butr->xmin, dy, dx*2, elementheight, 
+				  &node->custom1, 0, 0, 0, 0, "Crop the size of the input image.");
+
+		dy-=elementheight;
+
+		/* x1 */
+		bt=uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "X1:",
+					 butr->xmin, dy, dx, elementheight,
+					 &ntxy->x1, xymin, xymax, 0, 0, "");
+		/* y1 */
+		bt=uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Y1:",
+					 butr->xmin+dx, dy, dx, elementheight,
+					 &ntxy->y1, xymin, xymax, 0, 0, "");
+
+		dy-=elementheight;
+
+		/* x2 */
+		bt=uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "X2:",
+					 butr->xmin, dy, dx, elementheight,
+					 &ntxy->x2, xymin, xymax, 0, 0, "");
+		/* y2 */
+		bt=uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Y2:",
+					 butr->xmin+dx, dy, dx, elementheight,
+					 &ntxy->y2, xymin, xymax, 0, 0, "");
+
+		uiBlockEndAlign(block);
+	}
+	return 60;
+}
+
 static int node_composit_buts_splitviewer(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {	
@@ -1758,6 +1802,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 		case CMP_NODE_VALTORGB:
 			ntype->butfunc= node_buts_valtorgb;
 			break;
+		case CMP_NODE_CROP:
+			ntype->butfunc= node_composit_buts_crop;
+ 			break;
 		case CMP_NODE_BLUR:
 			ntype->butfunc= node_composit_buts_blur;
 			break;
@@ -2132,8 +2179,12 @@ static void node_update(bNode *node)
 				node->prvr.xmin+= 0.5*dx;
 				node->prvr.xmax-= 0.5*dx;
 			}
-			
+
 			dy= node->prvr.ymin - NODE_DYS/2;
+
+			/* make sure that maximums are bigger or equal to minimums */
+			if(node->prvr.xmax < node->prvr.xmin) SWAP(float, node->prvr.xmax, node->prvr.xmin);
+			if(node->prvr.ymax < node->prvr.ymin) SWAP(float, node->prvr.ymax, node->prvr.ymin);
 		}
 		else {
 			float oldh= node->prvr.ymax - node->prvr.ymin;
@@ -2145,6 +2196,10 @@ static void node_update(bNode *node)
 			dy= node->prvr.ymin - NODE_DYS/2;
 		}
 	}
+
+	/* XXX ugly hack, typeinfo for group is generated */
+	if(node->type == NODE_GROUP)
+		node->typeinfo->butfunc= node_buts_group;
 	
 	/* buttons rect? */
 	if((node->flag & NODE_OPTIONS) && node->typeinfo->butfunc) {
@@ -2297,8 +2352,6 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 		glDisable(GL_BLEND);
 	}
 	if(node->type == NODE_GROUP) {
-		/* XXX ugly hack */
-		node->typeinfo->butfunc= node_buts_group;
 		
 		iconofs-= 18.0f;
 		glEnable(GL_BLEND);

@@ -282,7 +282,8 @@ extern short IsectLL2Ds(short *v1, short *v2, short *v3, short *v4);
 
 /* interpolation weights of point in a triangle or quad, v4 may be NULL */
 void InterpWeightsQ3Dfl(float *v1, float *v2, float *v3, float *v4, float *co, float *w);
-
+/* interpolation weights of point in a polygon with >= 3 vertices */
+void MeanValueWeights(float v[][3], int n, float *co, float *w);
 
 void i_lookat(
 	float vx, float vy, 

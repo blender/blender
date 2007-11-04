@@ -751,6 +751,46 @@ void berekenx(float *f, float *o, int b)
 	}
 }
 
+#define TFM_WITHOUT_BONE	1
+
+static void posechannel_get_local_transform(bPoseChannel *pchan, float *quat, float *eul, float *size, int flag)
+{
+	float pose_mat[3][3];
+	float diff_mat[3][3], ipar_mat[3][3];
+	
+	/* we need the local transform = current transform - (parent transform + bone transform) */
+	
+	Mat3CpyMat4(pose_mat, pchan->pose_mat);
+	
+	if (pchan->parent) {
+		
+		if(flag & TFM_WITHOUT_BONE) {
+			float par_mat[3][3];
+			Mat3CpyMat4(par_mat, pchan->parent->pose_mat);
+			Mat3MulMat3(diff_mat, par_mat, pchan->bone->bone_mat);
+		}
+		else
+			Mat3CpyMat4(diff_mat, pchan->parent->pose_mat);
+			
+		Mat3Inv(ipar_mat, diff_mat);
+	}
+	else {
+		if(flag & TFM_WITHOUT_BONE)
+			Mat3Inv(ipar_mat, pchan->bone->bone_mat);
+		else
+			Mat3One(ipar_mat);
+	}
+	
+	Mat3MulMat3(diff_mat, ipar_mat, pose_mat);
+	
+	if(quat)
+		Mat3ToQuat(diff_mat, quat);
+	if(eul)
+		Mat3ToEul(diff_mat, eul);
+	if(size)
+		Mat3ToSize(diff_mat, size);
+}
+
 /* has to return a float value */
 static float eval_driver(IpoDriver *driver, float ipotime)
 {
@@ -802,48 +842,51 @@ static float eval_driver(IpoDriver *driver, float ipotime)
 		else {	/* ID_AR */
 			bPoseChannel *pchan= get_pose_channel(ob->pose, driver->name);
 			if(pchan && pchan->bone) {
-				float pose_mat[3][3];
-				float diff_mat[3][3], par_mat[3][3], ipar_mat[3][3];
-				float eul[3], size[3];
 				
-				/* we need the local transform = current transform - (parent transform + bone transform) */
-				
-				Mat3CpyMat4(pose_mat, pchan->pose_mat);
-				
-				if (pchan->parent) {
-					Mat3CpyMat4(par_mat, pchan->parent->pose_mat);
-					Mat3MulMat3(diff_mat, par_mat, pchan->bone->bone_mat);
-					
-					Mat3Inv(ipar_mat, diff_mat);
+				/* rotation difference is not a simple driver (i.e. value drives value), but the angle between 2 bones is driving stuff... which is useful */
+				if(driver->adrcode==OB_ROT_DIFF) {
+					bPoseChannel *pchan2= get_pose_channel(ob->pose, driver->name+DRIVER_NAME_OFFS);
+					if(pchan2 && pchan2->bone) {
+						float q1[4], q2[4], quat[4], angle;
+						
+						Mat4ToQuat(pchan->pose_mat, q1);
+						Mat4ToQuat(pchan2->pose_mat, q2);
+						// posechannel_get_local_transform(pchan , q1, NULL, NULL, 0);
+						// posechannel_get_local_transform(pchan2, q2, NULL, NULL, 0);
+						
+						QuatInv(q1);
+						QuatMul(quat, q1, q2);
+						angle = 2.0f * (saacos(quat[0]));
+						angle= ABS(angle);
+						
+						return angle>M_PI?2.0f*M_PI-angle:angle;
+					}
 				}
 				else {
-					Mat3Inv(ipar_mat, pchan->bone->bone_mat);
-				}
-				
-				Mat3MulMat3(diff_mat, ipar_mat, pose_mat);
-				
-				Mat3ToEul(diff_mat, eul);
-				Mat3ToSize(diff_mat, size);
+					float eul[3], size[3];
+					
+					posechannel_get_local_transform(pchan, NULL, eul, size, TFM_WITHOUT_BONE);
 
-				switch(driver->adrcode) {
-				case OB_LOC_X:
-					return pchan->loc[0];
-				case OB_LOC_Y:
-					return pchan->loc[1];
-				case OB_LOC_Z:
-					return pchan->loc[2];
-				case OB_ROT_X:
-					return eul[0]/(M_PI_2/9.0);
-				case OB_ROT_Y:
-					return eul[1]/(M_PI_2/9.0);
-				case OB_ROT_Z:
-					return eul[2]/(M_PI_2/9.0);
-				case OB_SIZE_X:
-					return size[0];
-				case OB_SIZE_Y:
-					return size[1];
-				case OB_SIZE_Z:
-					return size[2];
+					switch(driver->adrcode) {
+					case OB_LOC_X:
+						return pchan->loc[0];
+					case OB_LOC_Y:
+						return pchan->loc[1];
+					case OB_LOC_Z:
+						return pchan->loc[2];
+					case OB_ROT_X:
+						return eul[0]/(M_PI_2/9.0);
+					case OB_ROT_Y:
+						return eul[1]/(M_PI_2/9.0);
+					case OB_ROT_Z:
+						return eul[2]/(M_PI_2/9.0);
+					case OB_SIZE_X:
+						return size[0];
+					case OB_SIZE_Y:
+						return size[1];
+					case OB_SIZE_Z:
+						return size[2];
+					}
 				}
 			}
 		}

@@ -1467,6 +1467,35 @@ void set_uvproject_uvlayer(void *arg1, void *arg2)
 	strcpy(umd->uvlayer_name, layer->name);
 }
 
+static void modifiers_bindMeshDeform(void *ob_v, void *md_v)
+{
+	MeshDeformModifierData *mmd = (MeshDeformModifierData*) md_v;
+	Object *ob = (Object*)ob_v;
+
+	if(mmd->bindweights) {
+		MEM_freeN(mmd->bindweights);
+		MEM_freeN(mmd->bindcos);
+		mmd->bindweights= NULL;
+		mmd->bindcos= NULL;
+		mmd->totvert= 0;
+		mmd->totcagevert= 0;
+	}
+	else {
+		DerivedMesh *dm;
+		int mode= mmd->modifier.mode;
+
+		/* force modifier to run, it will call binding routine */
+		mmd->needbind= 1;
+		mmd->modifier.mode |= eModifierMode_Realtime;
+
+		dm= mesh_create_derived_view(ob, 0);
+		dm->release(dm);
+
+		mmd->needbind= 0;
+		mmd->modifier.mode= mode;
+	}
+}
+
 static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco, int *yco, int index, int cageIndex, int lastCageIndex)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
@@ -1615,6 +1644,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			height = 48;
 		} else if (md->type==eModifierType_Array) {
 			height = 211;
+		} else if (md->type==eModifierType_MeshDeform) {
+			height = 73;
 		} 
 		
 							/* roundbox 4 free variables: corner-rounding, nop, roundbox type, shade */
@@ -2094,7 +2125,27 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			                     &amd->end_cap,
 			                     "Mesh object to use as end cap");
 			uiButSetCompleteFunc(but, autocomplete_meshob, (void *)ob);
+		} else if (md->type==eModifierType_MeshDeform) {
+			MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
+
+			uiBlockBeginAlign(block);
+			uiDefIDPoinBut(block, test_meshobpoin_but, ID_OB, B_CHANGEDEP, "Ob: ", lx, (cy-=19), buttonWidth,19, &mmd->object, "Mesh object to be use as cage"); 
+			but=uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",				  lx, (cy-=19), buttonWidth,19, &mmd->defgrp_name, 0.0, 31.0, 0, 0, "Vertex Group name to control overall meshdeform influence");
+			uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ob);
+
+			uiBlockBeginAlign(block);
+			if(mmd->bindweights) {
+				but= uiDefBut(block, BUT, B_MODIFIER_RECALC, "Unbind", lx,(cy-24), buttonWidth,19, 0, 0, 0, 0, 0, "Unbind mesh from cage");
+				uiButSetFunc(but,modifiers_bindMeshDeform,ob,md);
+			}
+			else {
+				but= uiDefBut(block, BUT, B_MODIFIER_RECALC, "Bind", lx,(cy-24), buttonWidth/2,19, 0, 0, 0, 0, 0, "Bind mesh to cage");
+				uiButSetFunc(but,modifiers_bindMeshDeform,ob,md);
+				uiDefButS(block, NUM, B_NOP, "Precision:", lx+(buttonWidth+1)/2,(cy-=24), buttonWidth/2,19, &mmd->gridsize, 2, 10, 0.5, 0, "The grid size for binding");
+			}
+			uiBlockEndAlign(block);
 		}
+
 		uiBlockEndAlign(block);
 
 		y-=height;
@@ -5306,7 +5357,6 @@ static void editing_panel_mesh_paint(void)
 
 static void editing_panel_mesh_texface(void)
 {
-	extern VPaint Gvp;         /* from vpaint */
 	uiBlock *block;
 	MTFace *tf;
 

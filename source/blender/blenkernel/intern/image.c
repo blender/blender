@@ -777,15 +777,21 @@ void BKE_add_image_extension(char *string, int imtype)
 	strcat(string, extension);
 }
 
-void BKE_stamp(struct ImBuf *ibuf)
+/* could allow access externally */
+typedef struct StampData {
+	char 	file[512];
+	char 	note[512];
+	char 	date[512];
+	char 	marker[512];
+	char 	time[512];
+	char 	frame[512];
+	char 	camera[512];
+	char 	scene[512];
+} StampData;
+
+static void stampdata(StampData *stamp_data, int do_prefix)
 {
-	char text[256], infotext[256];
-	int x=0, y=0, h, m, s, f;
-	int font_height;
-	int text_width;
-	int text_pad;
-	struct BMF_Font *font;
-	
+	char text[256];
 	
 #ifndef WIN32
 	struct tm *tl;
@@ -793,9 +799,109 @@ void BKE_stamp(struct ImBuf *ibuf)
 #else
 	char sdate[9];
 #endif /* WIN32 */
+	
+	if (do_prefix)		sprintf(stamp_data->file, "File %s", G.sce);
+	else				sprintf(stamp_data->file, "%s", G.sce);
+	
+	if (G.scene->r.stamp & R_STAMP_NOTE) {
+		if (do_prefix)		sprintf(stamp_data->note, "Note %s", G.scene->r.stamp_udata);
+		else				sprintf(stamp_data->note, "%s", G.scene->r.stamp_udata);
+	} else {
+		stamp_data->note[0] = '\0';
+	}
+	
+	if (G.scene->r.stamp & R_STAMP_DATE) {
+#ifdef WIN32
+		_strdate (sdate);
+		sprintf (text, "%s", sdate);
+#else
+		t = time (NULL);
+		tl = localtime (&t);
+		sprintf (text, "%04d-%02d-%02d", tl->tm_year+1900, tl->tm_mon+1, tl->tm_mday);
+#endif /* WIN32 */
+		if (do_prefix)		sprintf(stamp_data->date, "Date %s", text);
+		else				sprintf(stamp_data->date, "%s", text);
+	} else {
+		stamp_data->date[0] = '\0';
+	}
+	
+	if (G.scene->r.stamp & R_STAMP_MARKER) {
+		TimeMarker *marker = get_frame_marker(CFRA);
+	
+		if (marker) strcpy(text, marker->name);
+		else 		strcpy(text, "<none>");
+		
+		if (do_prefix)		sprintf(stamp_data->marker, "Marker %s", text);
+		else				sprintf(stamp_data->marker, "%s", text);
+	} else {
+		stamp_data->marker[0] = '\0';
+	}
+	
+	if (G.scene->r.stamp & R_STAMP_TIME) {
+		int h, m, s, f;
+		h= m= s= f= 0;
+		f = (int)(G.scene->r.cfra % G.scene->r.frs_sec);
+		s = (int)(G.scene->r.cfra / G.scene->r.frs_sec);
 
-	if (!ibuf)
+		if (s) {
+			m = (int)(s / 60);
+			s %= 60;
+
+			if (m) {
+				h = (int)(m / 60);
+				m %= 60;
+			}
+		}
+
+		if (G.scene->r.frs_sec < 100)
+			sprintf (text, "%02d:%02d:%02d.%02d", h, m, s, f);
+		else
+			sprintf (text, "%02d:%02d:%02d.%03d", h, m, s, f);
+		
+		if (do_prefix)		sprintf(stamp_data->time, "Time %s", text);
+		else				sprintf(stamp_data->time, "%s", text);
+	} else {
+		stamp_data->time[0] = '\0';
+	}
+	
+	if (G.scene->r.stamp & R_STAMP_FRAME) {
+		char format[32];
+		if (do_prefix)		sprintf(format, "Frame %%0%di\n", 1 + (int) log10(G.scene->r.efra));
+		else				sprintf(format, "%%0%di\n", 1 + (int) log10(G.scene->r.efra));
+		sprintf (stamp_data->frame, format, G.scene->r.cfra);
+	} else {
+		stamp_data->frame[0] = '\0';
+	}
+
+	if (G.scene->r.stamp & R_STAMP_CAMERA) {
+		if (do_prefix)		sprintf(stamp_data->camera, "Camera %s", ((Camera *) G.scene->camera)->id.name+2);
+		else				sprintf(stamp_data->camera, "%s", ((Camera *) G.scene->camera)->id.name+2);
+	} else {
+		stamp_data->camera[0] = '\0';
+	}
+
+	if (G.scene->r.stamp & R_STAMP_SCENE) {
+		if (do_prefix)		sprintf(stamp_data->scene, "Scene %s", G.scene->id.name+2);
+		else				sprintf(stamp_data->scene, "%s", G.scene->id.name+2);
+	} else {
+		stamp_data->scene[0] = '\0';
+	}
+}
+
+void BKE_stamp_buf(unsigned char *rect, float *rectf, int width, int height)
+{
+	struct StampData stamp_data;
+	
+	int x=1,y=1;
+	int font_height;
+	int text_width;
+	int text_pad;
+	struct BMF_Font *font;
+	
+	if (!rect && !rectf)
 		return;
+	
+	stampdata(&stamp_data, 1);
 	
 	switch (G.scene->r.stamp_font_id) {
 	case 1: /* tiny */
@@ -820,158 +926,100 @@ void BKE_stamp(struct ImBuf *ibuf)
 	
 	font_height = BMF_GetFontHeight(font);
 	/* All texts get halfspace+1 pixel on each side and 1 pix
-	   above and below as padding against their backing rectangles */
+	above and below as padding against their backing rectangles */
 	text_pad = BMF_GetStringWidth(font, " ");
 	
-	IMB_imginfo_change_field (ibuf, "File", G.sce);
-	if (G.scene->r.stamp & R_STAMP_DRAW) {
+
+	if (stamp_data.file[0]) {
 		/* Top left corner */
 		x = 1; /* Inits for everyone, text position, so 1 for padding, not 0 */
-		y = ibuf->y - font_height - 1; /* Also inits for everyone, notice padding pixel */
-		sprintf(text, "File %s", G.sce);
-		text_width = BMF_GetStringWidth(font, text);
-		IMB_rectfill_area(ibuf, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
-		BMF_DrawStringBuf(font, text, x+(text_pad/2), y, G.scene->r.fg_stamp, (unsigned char *)ibuf->rect, ibuf->rect_float, ibuf->x, ibuf->y);
+		y = height - font_height - 1; /* Also inits for everyone, notice padding pixel */
+		text_width = BMF_GetStringWidth(font, stamp_data.file);
+		buf_rectfill_area(rect, rectf, width, height, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
+		BMF_DrawStringBuf(font, stamp_data.file, x+(text_pad/2), y, G.scene->r.fg_stamp, rect, rectf, width, height);
 		y -= font_height+2; /* Top and bottom 1 pix padding each */
 	}
 
-	if (G.scene->r.stamp & R_STAMP_NOTE) {
-		IMB_imginfo_change_field (ibuf, "Note", G.scene->r.stamp_udata);
- 
-		if (G.scene->r.stamp & R_STAMP_DRAW) {
-			/* Top left corner, below File */
-			text_width = BMF_GetStringWidth(font, G.scene->r.stamp_udata);
-			IMB_rectfill_area(ibuf, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
-			BMF_DrawStringBuf(font, G.scene->r.stamp_udata, x+(text_pad/2), y, G.scene->r.fg_stamp, (unsigned char *)ibuf->rect, ibuf->rect_float, ibuf->x, ibuf->y);
-			y -= font_height+2; /* Top and bottom 1 pix padding each */
-		}
+	/* Top left corner, below File */
+	if (stamp_data.note[0]) {
+		text_width = BMF_GetStringWidth(font, stamp_data.note);
+		buf_rectfill_area(rect, rectf, width, height, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
+		BMF_DrawStringBuf(font, stamp_data.note, x+(text_pad/2), y, G.scene->r.fg_stamp, rect, rectf, width, height);
+		y -= font_height+2; /* Top and bottom 1 pix padding each */
 	}
 	
-	if (G.scene->r.stamp & R_STAMP_DATE) {
-#ifdef WIN32
-		_strdate (sdate);
-		sprintf (infotext, "%s", sdate);
-#else
-		t = time (NULL);
-		tl = localtime (&t);
-		sprintf (infotext, "%04d-%02d-%02d", tl->tm_year+1900, tl->tm_mon+1, tl->tm_mday);
-#endif /* WIN32 */
-		IMB_imginfo_change_field (ibuf, "Date", infotext);
-
-		if (G.scene->r.stamp & R_STAMP_DRAW) {
-			/* Top left corner, below File (or Note) */
-			sprintf (text, "Date %s", infotext);
-			text_width = BMF_GetStringWidth(font, text);
-			IMB_rectfill_area(ibuf, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
-			BMF_DrawStringBuf(font, text, x+(text_pad/2), y, G.scene->r.fg_stamp, (unsigned char *)ibuf->rect, ibuf->rect_float, ibuf->x, ibuf->y);
-		}
+	/* Top left corner, below File (or Note) */
+	if (stamp_data.date[0]) {
+		text_width = BMF_GetStringWidth(font, stamp_data.date);
+		buf_rectfill_area(rect, rectf, width, height, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
+		BMF_DrawStringBuf(font, stamp_data.date, x+(text_pad/2), y, G.scene->r.fg_stamp, rect, rectf, width, height);
 	}
 
-
-	if (G.scene->r.stamp & R_STAMP_MARKER) {
-		TimeMarker *marker = get_frame_marker(CFRA);
- 		
-		if (marker) strcpy(infotext, marker->name);
-		else 		strcpy(infotext, "<none>");
- 		
-		IMB_imginfo_change_field (ibuf, "Marker", infotext);
-		
-		if (G.scene->r.stamp & R_STAMP_DRAW) {
-			/* Bottom left corner, leaving space for timing */
-			x = 1;
-			y = font_height+2+1; /* 2 for padding in TIME|FRAME fields below and 1 for padding in this one */
-			sprintf (text, "Marker %s", infotext);
-			text_width = BMF_GetStringWidth(font, text);
-			IMB_rectfill_area(ibuf, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
- 			BMF_DrawStringBuf(font, text, x+(text_pad/2), y, G.scene->r.fg_stamp, (unsigned char *)ibuf->rect, ibuf->rect_float, ibuf->x, ibuf->y);
-		}
+	/* Bottom left corner, leaving space for timing */
+	if (stamp_data.marker[0]) {
+		x = 1;
+		y = font_height+2+1; /* 2 for padding in TIME|FRAME fields below and 1 for padding in this one */
+		text_width = BMF_GetStringWidth(font, stamp_data.marker);
+		buf_rectfill_area(rect, rectf, width, height, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
+		BMF_DrawStringBuf(font, stamp_data.marker, x+(text_pad/2), y, G.scene->r.fg_stamp, rect, rectf, width, height);
+	}
+	
+	/* Left bottom corner */
+	if (stamp_data.time[0]) {
+		x = 1;
+		y = 1;
+		text_width = BMF_GetStringWidth(font, stamp_data.time);
+		buf_rectfill_area(rect, rectf, width, height, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
+		BMF_DrawStringBuf(font, stamp_data.time, x+(text_pad/2), y, G.scene->r.fg_stamp, rect, rectf, width, height);
+		x += text_width+text_pad+2; /* Both sides have 1 pix additional padding each */
+	}
+	
+	if (stamp_data.frame[0]) {
+		text_width = BMF_GetStringWidth(font, stamp_data.frame);
+		/* Left bottom corner (after SMPTE if exists) */
+		if (!stamp_data.time[0])	x = 1;
+		y = 1;
+		buf_rectfill_area(rect, rectf, width, height, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
+		BMF_DrawStringBuf(font, stamp_data.frame, x+(text_pad/2), y, G.scene->r.fg_stamp, rect, rectf, width, height);
 	}
 
-	if (G.scene->r.stamp & R_STAMP_TIME) {
-		h= m= s= f= 0;
-		f = (int)(G.scene->r.cfra % G.scene->r.frs_sec);
-		s = (int)(G.scene->r.cfra / G.scene->r.frs_sec);
-
-		if (s) {
-			m = (int)(s / 60);
-			s %= 60;
-
-			if (m) {
-				h = (int)(m / 60);
-				m %= 60;
-			}
-		}
-
-		if (G.scene->r.frs_sec < 100)
-			sprintf (infotext, "%02d:%02d:%02d.%02d", h, m, s, f);
-		else
-			sprintf (infotext, "%02d:%02d:%02d.%03d", h, m, s, f);
-		
-		IMB_imginfo_change_field (ibuf, "Time", infotext);
-		
-		if (G.scene->r.stamp & R_STAMP_DRAW) {
-			/* Left bottom corner */
-			x = 1;
-			y = 1;
-			sprintf (text, "Time %s", infotext);
-			text_width = BMF_GetStringWidth(font, text);
-			IMB_rectfill_area(ibuf, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
-			BMF_DrawStringBuf(font, text, x+(text_pad/2), y, G.scene->r.fg_stamp, (unsigned char *)ibuf->rect, ibuf->rect_float, ibuf->x, ibuf->y);
-			x += text_width+text_pad+2; /* Both sides have 1 pix additional padding each */
-		}
+	if (stamp_data.camera[0]) {
+		text_width = BMF_GetStringWidth(font, stamp_data.camera);
+		/* Center of bottom edge */
+		x = (width/2) - (BMF_GetStringWidth(font, stamp_data.camera)/2);
+		y = 1;
+		buf_rectfill_area(rect, rectf, width, height, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
+		BMF_DrawStringBuf(font, stamp_data.camera, x+(text_pad/2), y, G.scene->r.fg_stamp, rect, rectf, width, height);
 	}
-
-	if (G.scene->r.stamp & R_STAMP_FRAME) {
-		sprintf (infotext, "%i", G.scene->r.cfra);
-		IMB_imginfo_change_field (ibuf, "Frame", infotext);
-
-		if (G.scene->r.stamp & R_STAMP_DRAW) {
-			char format[32];
-
-			/* First build "Frame %03i" for anims ending in frame 100-999, etc */
-			sprintf(format, "Frame %%0%di\n", 1 + (int) log10(G.scene->r.efra));
-			sprintf (text, format, G.scene->r.cfra);
-			text_width = BMF_GetStringWidth(font, text);
-			/* Left bottom corner (after SMPTE if exists) */
-			if (!(G.scene->r.stamp & R_STAMP_TIME)) {
-				x = 1;
-			}
-			y = 1;
-			IMB_rectfill_area(ibuf, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
-			BMF_DrawStringBuf(font, text, x+(text_pad/2), y, G.scene->r.fg_stamp, (unsigned char *)ibuf->rect, ibuf->rect_float, ibuf->x, ibuf->y);
-		}
+	
+	if (stamp_data.scene[0]) {
+		text_width = BMF_GetStringWidth(font, stamp_data.scene);
+		/* Bottom right corner */
+		x = width - (text_width+1+text_pad);
+		y = 1;
+		buf_rectfill_area(rect, rectf, width, height, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
+		BMF_DrawStringBuf(font, stamp_data.scene, x+(text_pad/2), y, G.scene->r.fg_stamp, rect, rectf, width, height);
 	}
+}
 
 
-	if (G.scene->r.stamp & R_STAMP_CAMERA) {
-		sprintf(infotext, ((Camera *) G.scene->camera)->id.name+2);
-		IMB_imginfo_change_field (ibuf, "Camera", infotext);
+void BKE_stamp_info(struct ImBuf *ibuf)
+{
+	struct StampData stamp_data;
 
-		if (G.scene->r.stamp & R_STAMP_DRAW) {
-			sprintf (text, "Camera %s", infotext);
-			text_width = BMF_GetStringWidth(font, text);
-			/* Center of bottom edge */
-			x = (ibuf->x/2) - (BMF_GetStringWidth(font, text)/2);
-			y = 1;
-			IMB_rectfill_area(ibuf, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
-			BMF_DrawStringBuf(font, text, x+(text_pad/2), y, G.scene->r.fg_stamp, (unsigned char *)ibuf->rect, ibuf->rect_float, ibuf->x, ibuf->y);
-		}
-	}
-
-	if (G.scene->r.stamp & R_STAMP_SCENE) {
-		strcpy(infotext, G.scene->id.name+2);
-		IMB_imginfo_change_field (ibuf, "Scene", infotext);
-
-		if (G.scene->r.stamp & R_STAMP_DRAW) {
-			sprintf (text, "Scene %s", infotext);
-			text_width = BMF_GetStringWidth(font, text);
-			/* Bottom right corner */
-			x = ibuf->x - (BMF_GetStringWidth(font, text)+1+text_pad);
-			y = 1;
-			IMB_rectfill_area(ibuf, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
-			BMF_DrawStringBuf(font, text, x+(text_pad/2), y, G.scene->r.fg_stamp, (unsigned char *)ibuf->rect, ibuf->rect_float, ibuf->x, ibuf->y);
-		}
-	}
+	if (!ibuf)	return;
+	
+	/* fill all the data values, no prefix */
+	stampdata(&stamp_data, 0);
+	
+	if (stamp_data.file[0])		IMB_imginfo_change_field (ibuf, "File",		stamp_data.file);
+	if (stamp_data.note[0])		IMB_imginfo_change_field (ibuf, "Note",		stamp_data.note);
+	if (stamp_data.date[0])		IMB_imginfo_change_field (ibuf, "Date",		stamp_data.date);
+	if (stamp_data.marker[0])	IMB_imginfo_change_field (ibuf, "Marker",	stamp_data.marker);
+	if (stamp_data.time[0])		IMB_imginfo_change_field (ibuf, "Time",		stamp_data.time);
+	if (stamp_data.frame[0])	IMB_imginfo_change_field (ibuf, "Frame",	stamp_data.frame);
+	if (stamp_data.camera[0])	IMB_imginfo_change_field (ibuf, "Camera",	stamp_data.camera);
+	if (stamp_data.scene[0])	IMB_imginfo_change_field (ibuf, "Scene",	stamp_data.scene);
 }
 
 int BKE_write_ibuf(ImBuf *ibuf, char *name, int imtype, int subimtype, int quality)
@@ -1035,8 +1083,8 @@ int BKE_write_ibuf(ImBuf *ibuf, char *name, int imtype, int subimtype, int quali
 	BLI_make_existing_file(name);
 
 	if(G.scene->r.scemode & R_STAMP_INFO)
-		BKE_stamp(ibuf);
-
+		BKE_stamp_info(ibuf);
+	
 	ok = IMB_saveiff(ibuf, name, IB_rect | IB_zbuf | IB_zbuffloat);
 	if (ok == 0) {
 		perror(name);

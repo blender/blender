@@ -108,6 +108,8 @@ typedef short IPO_Channel;
 #define OB_PD_RDAMP	28
 #define OB_PD_PERM	29
 
+/* exception: driver channel, for bone driver only */
+#define OB_ROT_DIFF	100
 
 
 /* ******************** */

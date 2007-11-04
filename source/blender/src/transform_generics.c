@@ -798,7 +798,8 @@ void calculateCenterMedian(TransInfo *t)
 	
 	for(i = 0; i < t->total; i++) {
 		if (t->data[i].flag & TD_SELECTED) {
-			VecAddf(partial, partial, t->data[i].center);
+			if (!(t->data[i].flag & TD_NOCENTER))
+				VecAddf(partial, partial, t->data[i].center);
 		}
 		else {
 			/* 
@@ -823,7 +824,8 @@ void calculateCenterBound(TransInfo *t)
 	for(i = 0; i < t->total; i++) {
 		if (i) {
 			if (t->data[i].flag & TD_SELECTED) {
-				MinMax3(min, max, t->data[i].center);
+				if (!(t->data[i].flag & TD_NOCENTER))
+					MinMax3(min, max, t->data[i].center);
 			}
 			else {
 				/* 

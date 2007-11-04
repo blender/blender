@@ -81,6 +81,7 @@
 #include "BKE_mball.h"
 #include "BKE_node.h"
 #include "BKE_packedFile.h"
+#include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
 #ifdef WITH_VERSE
@@ -365,6 +366,8 @@ static void init_userdef_file(void)
 		for(btheme= U.themes.first; btheme; btheme= btheme->next) {
 			SETCOL(btheme->tv3d.editmesh_active, 255, 255, 255, 128);
 		}
+		if(U.coba_weight.tot==0)
+			init_colorband(&U.coba_weight, 1);
 	}
 	
 	/* GL Texture Garbage Collection (variable abused above!) */

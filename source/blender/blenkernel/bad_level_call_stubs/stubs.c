@@ -332,3 +332,7 @@ void BIF_filelist_freelib(struct FileList* filelist) {};
 /* edittime.c stub */
 TimeMarker *get_frame_marker(int frame){return 0;};
 
+/* modifier.c stub */
+void harmonic_coordinates_bind(struct MeshDeformModifierData *mmd,
+	float (*vertexcos)[3], int totvert, float cagemat[][4]) {}
+

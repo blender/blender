@@ -822,6 +822,14 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 			   */
 		   }
 		}
+		else if (md->type==eModifierType_MeshDeform) {
+			MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
+
+			writedata(wd, DATA, sizeof(float)*mmd->totvert*mmd->totcagevert,
+				mmd->bindweights);
+			writedata(wd, DATA, sizeof(float)*3*mmd->totcagevert,
+				mmd->bindcos);
+		}
 	}
 }
 

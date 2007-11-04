@@ -193,8 +193,11 @@ typedef struct Curve {
 typedef struct IpoDriver {
 	struct Object *ob;
 	short blocktype, adrcode, type, flag;
-	char name[128];	/* bone or constraint(?), or python expression here */
+	char name[128];	 /* bone or constraint(?), or python expression here */
 } IpoDriver;
+
+/* temp? we store more bone names in 1 driver... */
+#define DRIVER_NAME_OFFS	32
 
 typedef struct IpoCurve {
 	struct IpoCurve *next,  *prev;

@@ -57,6 +57,7 @@ struct Mesh;
 struct EditMesh;
 struct ModifierData;
 struct MCol;
+struct ColorBand;
 
 /* number of sub-elements each mesh element has (for interpolation) */
 #define SUB_ELEMS_VERT 0
@@ -394,6 +395,9 @@ void DM_interp_face_data(struct DerivedMesh *source, struct DerivedMesh *dest,
                          int count, int dest_index);
 
 void DM_swap_face_data(struct DerivedMesh *dm, int index, int *corner_indices);
+
+/* Temporary? A function to give a colorband to derivedmesh for vertexcolor ranges */
+void vDM_ColorBand_store(struct ColorBand *coba);
 
 /* Simple function to get me->totvert amount of vertices/normals,
    correctly deformed and subsurfered. Needed especially when vertexgroups are involved.

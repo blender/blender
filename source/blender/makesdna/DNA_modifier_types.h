@@ -30,8 +30,9 @@ typedef enum ModifierType {
 	eModifierType_UVProject,
 	eModifierType_Smooth,
 	eModifierType_Cast,
+	eModifierType_MeshDeform,
 	eModifierType_Cloth,
- 	eModifierType_Collision,
+        eModifierType_Collision,	
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -371,5 +372,18 @@ typedef struct BooleanModifierData {
 	struct Object *object;
 	int operation, pad;
 } BooleanModifierData;
+
+typedef struct MeshDeformModifierData {
+	ModifierData modifier;
+
+	struct Object *object;			/* mesh object */
+	char defgrp_name[32];			/* optional vertexgroup name */
+
+	float *bindweights, *bindcos;	/* computed binding weights */
+	short gridsize, needbind;
+	int pad;
+
+	int totvert, totcagevert;
+} MeshDeformModifierData;
 
 #endif

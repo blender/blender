@@ -79,20 +79,16 @@ typedef void* NLContext;
 
 #define NL_SYSTEM  0x0
 #define NL_MATRIX  0x1
-#define NL_ROW     0x2
 
 /* Solver Parameters */
 
-#define NL_SOLVER           0x100
-#define NL_NB_VARIABLES     0x101
-#define NL_LEAST_SQUARES    0x102
-#define NL_SYMMETRIC        0x106
-#define NL_ERROR            0x108
-
-/* Row parameters */
-
-#define NL_RIGHT_HAND_SIDE 0x500
-#define NL_ROW_SCALING     0x501
+#define NL_SOLVER              0x100
+#define NL_NB_VARIABLES        0x101
+#define NL_LEAST_SQUARES       0x102
+#define NL_SYMMETRIC           0x106
+#define NL_ERROR               0x108
+#define NL_NB_ROWS             0x110
+#define NL_NB_RIGHT_HAND_SIDES 0x112 /* 4 max */
 
 /* Contexts */
 
@@ -106,9 +102,6 @@ NLContext nlGetCurrent(void);
 void nlSolverParameterf(NLenum pname, NLfloat param);
 void nlSolverParameteri(NLenum pname, NLint param);
 
-void nlRowParameterf(NLenum pname, NLfloat param);
-void nlRowParameteri(NLenum pname, NLint param);
-
 void nlGetBooleanv(NLenum pname, NLboolean* params);
 void nlGetFloatv(NLenum pname, NLfloat* params);
 void nlGetIntergerv(NLenum pname, NLint* params);
@@ -119,8 +112,8 @@ NLboolean nlIsEnabled(NLenum pname);
 
 /* Variables */
 
-void nlSetVariable(NLuint index, NLfloat value);
-NLfloat nlGetVariable(NLuint index);
+void nlSetVariable(NLuint rhsindex, NLuint index, NLfloat value);
+NLfloat nlGetVariable(NLuint rhsindex, NLuint index);
 void nlLockVariable(NLuint index);
 void nlUnlockVariable(NLuint index);
 NLboolean nlVariableIsLocked(NLuint index);
@@ -129,14 +122,16 @@ NLboolean nlVariableIsLocked(NLuint index);
 
 void nlBegin(NLenum primitive);
 void nlEnd(NLenum primitive);
-void nlCoefficient(NLuint index, NLfloat value);
 
-/* Setting random elements matrix/vector - not supported for
-   least squares! */
+/* Setting elements in matrix/vector */
 
 void nlMatrixAdd(NLuint row, NLuint col, NLfloat value);
-void nlRightHandSideAdd(NLuint index, NLfloat value);
-void nlRightHandSideSet(NLuint index, NLfloat value);
+void nlRightHandSideAdd(NLuint rhsindex, NLuint index, NLfloat value);
+void nlRightHandSideSet(NLuint rhsindex, NLuint index, NLfloat value);
+
+/* Multiply */
+
+void nlMatrixMultiply(NLfloat *x, NLfloat *y);
 
 /* Solve */
 

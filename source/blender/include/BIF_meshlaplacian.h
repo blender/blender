@@ -39,6 +39,7 @@
 struct Object;
 struct Mesh;
 struct bDeformGroup;
+struct MeshDeformModifierData;
 
 #ifdef RIGID_DEFORM
 struct EditMesh;
@@ -76,6 +77,11 @@ void rigid_deform_begin(struct EditMesh *em);
 void rigid_deform_iteration(void);
 void rigid_deform_end(int cancel);
 #endif
+
+/* Harmonic Coordinates */
+
+void harmonic_coordinates_bind(struct MeshDeformModifierData *mmd,
+	float (*vertexcos)[3], int totvert, float cagemat[][4]);
 
 #endif
 

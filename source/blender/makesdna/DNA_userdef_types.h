@@ -36,8 +36,10 @@
 #define DNA_USERDEF_TYPES_H
 
 #include "DNA_listBase.h"
+#include "DNA_texture_types.h"
 
 /* themes; defines in BIF_resource.h */
+struct ColorBand;
 
 // global, button colors
 
@@ -184,6 +186,7 @@ typedef struct UserDef {
 	char verseuser[160];
 	float glalphaclip, pad;
 	
+	struct ColorBand coba_weight;	/* from texture.h */
 } UserDef;
 
 extern UserDef U; /* from usiblender.c !!!! */
@@ -208,6 +211,10 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_LMOUSESELECT		(1 << 14)
 #define USER_FILECOMPRESS		(1 << 15)
 #define USER_SAVE_PREVIEWS		(1 << 16)
+#define USER_CUSTOM_RANGE		(1 << 17)
+#define USER_ADD_EDITMODE		(1 << 18)
+#define USER_ADD_VIEWALIGNED	(1 << 19)
+
 
 /* viewzom */
 #define USER_ZOOM_CONT			0
