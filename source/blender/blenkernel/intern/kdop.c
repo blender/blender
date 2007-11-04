@@ -780,8 +780,7 @@ int bvh_overlap(float *bv1, float *bv2)
  */
 int bvh_traverse(CollisionTree *tree1, CollisionTree *tree2, LinkNode **collision_list)
 {
-	int i = 0, ret = 0, tempret = 0;
-		
+	int i = 0, ret = 0;
 	if (bvh_overlap(tree1->bv, tree2->bv)) 
 	{		
 		// Check if this node in the first tree is a leaf
@@ -790,19 +789,25 @@ int bvh_traverse(CollisionTree *tree1, CollisionTree *tree2, LinkNode **collisio
 			// Check if this node in the second tree a leaf
 			if (tree2->isleaf) 
 			{
-				// save potential colliding triangles
+				CollisionPair *collpair = NULL;
 				
-				CollisionPair *collpair = (CollisionPair *)MEM_callocN(sizeof(CollisionPair), "CollisionPair");
-				
-				VECCOPY(collpair->point_indexA, tree1->point_index);
-				collpair->point_indexA[3] = tree1->point_index[3];
-				
-				VECCOPY(collpair->point_indexB, tree2->point_index);
-				collpair->point_indexB[3] = tree2->point_index[3];
-				
-				BLI_linklist_append(&collision_list[0], collpair);
-				
-				return 1;
+				if(tree1 != tree2) // do not collide same points
+				{
+					// save potential colliding triangles
+					collpair = (CollisionPair *)MEM_callocN(sizeof(CollisionPair), "CollisionPair");
+					
+					VECCOPY(collpair->point_indexA, tree1->point_index);
+					collpair->point_indexA[3] = tree1->point_index[3];
+					
+					VECCOPY(collpair->point_indexB, tree2->point_index);
+					collpair->point_indexB[3] = tree2->point_index[3];
+					
+					BLI_linklist_append(&collision_list[0], collpair);
+					
+					return 1;
+				}
+				else
+					return 0;
 			}
 			else 
 			{
@@ -810,8 +815,8 @@ int bvh_traverse(CollisionTree *tree1, CollisionTree *tree2, LinkNode **collisio
 				for (i = 0; i < 4; i++)
 				{
 					// Only traverse nodes that exist.
-					if (tree2->nodes[i] && (tempret = bvh_traverse (tree1, tree2->nodes[i], collision_list)))
-						ret += tempret;
+					if (tree2->nodes[i] && (bvh_traverse (tree1, tree2->nodes[i], collision_list)))
+						ret = 1;
 				}
 			}
 		}
@@ -821,8 +826,8 @@ int bvh_traverse(CollisionTree *tree1, CollisionTree *tree2, LinkNode **collisio
 			for (i = 0; i < 4; i++)
 			{
 				// Only traverse nodes that exist.
-				if (tree1->nodes [i] && (tempret = bvh_traverse (tree1->nodes[i], tree2, collision_list)))
-					ret += tempret;
+				if (tree1->nodes [i] && (bvh_traverse (tree1->nodes[i], tree2, collision_list)))
+					ret = 1;
 			}
 		}
 	}

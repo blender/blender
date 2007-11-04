@@ -88,6 +88,8 @@ CollisionPair;
 // forward declarations
 /////////////////////////////////////////////////
 
+// NOTICE: mvert-routines for building + update the BVH are the most native ones
+
 // builds bounding volume hierarchy
 BVH *bvh_build_from_mvert (MFace *mfaces, unsigned int numfaces, MVert *x, unsigned int numverts, float epsilon);
 BVH *bvh_build_from_float3 (MFace *mfaces, unsigned int numfaces, float (*x)[3], unsigned int numverts, float epsilon);

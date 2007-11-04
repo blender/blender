@@ -125,7 +125,7 @@ typedef struct CollisionSettings
 	short	collision_type;		/* which collision system is used.			*/
 	short	loop_count;		/* How many iterations for the collision loop.		*/
 	int	flags;			/* collision flags defined in BKE_cloth.h */
-	int 	pad;
+	float	selfepsilon;
 }
 CollisionSettings;
 
@@ -151,6 +151,7 @@ typedef struct Cloth
 	unsigned char 		pad2;
 	short 			pad3;
 	struct BVH		*tree;		/* collision tree for this cloth object */
+	struct BVH		*selftree;		/* self collision tree for this cloth object */
 	struct MFace 		*mfaces;
 	struct Implicit_Data	*implicit; 	/* our implicit solver connects to this pointer */
 	float	 		(*x)[3]; /* The current position of all vertices.*/
@@ -159,6 +160,7 @@ typedef struct Cloth
 	float			(*current_xold)[3]; /* The TEMPORARY previous position of all vertices.*/
 	float 			(*v)[3]; /* the current velocity of all vertices */
 	float			(*current_v)[3];
+	struct EdgeHash 	*edgehash; // used for fast checking adjacent points
 }
 Cloth;
 

@@ -111,11 +111,11 @@ double tval()
 /* Our available solvers. */
 // 255 is the magic reserved number, so NEVER try to put 255 solvers in here!
 // 254 = MAX!
-static CM_SOLVER_DEF	solvers [] =
-    {
-        { "Implicit", CM_IMPLICIT, implicit_init, implicit_solver, implicit_free },
-        // { "Implicit C++", CM_IMPLICITCPP, implicitcpp_init, implicitcpp_solver, implicitcpp_free },
-    };
+static CM_SOLVER_DEF solvers [] =
+{
+	{ "Implicit", CM_IMPLICIT, implicit_init, implicit_solver, implicit_free },
+	// { "Implicit", CM_VERLET, verlet_init, verlet_solver, verlet_free },
+};
 
 /* ********** cloth engine ******* */
 /* Prototypes for internal functions.
@@ -158,7 +158,8 @@ void cloth_init (ClothModifierData *clmd)
 	clmd->coll_parms.self_friction = 5.0;
 	clmd->coll_parms.friction = 10.0;
 	clmd->coll_parms.loop_count = 1;
-	clmd->coll_parms.epsilon = 0.01f;
+	clmd->coll_parms.epsilon = 0.01;
+	clmd->coll_parms.selfepsilon = 0.1;
 	
 	/* These defaults are copied from softbody.c's
 	* softbody_calc_forces() function.
@@ -167,11 +168,11 @@ void cloth_init (ClothModifierData *clmd)
 	clmd->sim_parms.eff_wind_scale = 250.0;
 
 	// also from softbodies
-	clmd->sim_parms.maxgoal = 1.0f;
-	clmd->sim_parms.mingoal = 0.0f;
-	clmd->sim_parms.defgoal = 0.7f;
-	clmd->sim_parms.goalspring = 100.0f;
-	clmd->sim_parms.goalfrict = 0.0f;
+	clmd->sim_parms.maxgoal = 1.0;
+	clmd->sim_parms.mingoal = 0.0;
+	clmd->sim_parms.defgoal = 0.7;
+	clmd->sim_parms.goalspring = 100.0;
+	clmd->sim_parms.goalfrict = 0.0;
 
 	clmd->sim_parms.cache = NULL;
 }
@@ -519,6 +520,7 @@ void cloth_cache_get_frame ( ClothModifierData *clmd, float time )
 					
 					memcpy ( clmd->clothObject->current_xold, frame->current_xold, sizeof ( float ) *frame->numverts * 3);
 					
+					// TODO: temp off
 					implicit_set_positions ( clmd );
 
 					return;
@@ -621,32 +623,37 @@ void cloth_cache_free ( ClothModifierData *clmd, float time )
 
 				if ( frame->time >= newtime )
 				{
+					
 					if ( frame->verts )
 					{
 						MEM_freeN ( frame->verts );
 					}
+					
 					if ( frame->x )
 					{
 						MEM_freeN ( frame->x );
 					}
+					
 					if ( frame->xold )
 					{
 						MEM_freeN ( frame->xold );
 					}
+					
 					if ( frame->v )
 					{
 						MEM_freeN ( frame->v );
 					}
+					
 					if ( frame->current_xold )
 					{
 						MEM_freeN ( frame->current_xold );
 					}
+					
 					MEM_freeN ( frame );
 
 					lastsearch->next = search->next;
 					MEM_freeN ( search );
 					search = lastsearch->next;
-					lastsearch->next = NULL;
 				}
 				else
 				{
@@ -657,6 +664,7 @@ void cloth_cache_free ( ClothModifierData *clmd, float time )
 
 			if ( time <= 1.0 )
 			{
+				BLI_linklist_free(clmd->sim_parms.cache, NULL);
 				clmd->sim_parms.cache = NULL;
 			}
 
@@ -852,7 +860,7 @@ void cloth_free_modifier (ClothModifierData *clmd)
 		// Free the faces.
 		if ( cloth->mfaces != NULL )
 			MEM_freeN ( cloth->mfaces );
-
+		
 		// Free the verts.
 		if ( cloth->x != NULL )
 			MEM_freeN ( cloth->x );
@@ -860,7 +868,7 @@ void cloth_free_modifier (ClothModifierData *clmd)
 		// Free the verts.
 		if ( cloth->xold != NULL )
 			MEM_freeN ( cloth->xold );
-				
+		
 		// Free the verts.
 		if ( cloth->v != NULL )
 			MEM_freeN ( cloth->v );
@@ -876,7 +884,7 @@ void cloth_free_modifier (ClothModifierData *clmd)
 		// Free the verts.
 		if ( cloth->current_v != NULL )
 			MEM_freeN ( cloth->current_v );
-
+		
 		cloth->verts = NULL;
 		cloth->numverts = -1;
 		
@@ -901,6 +909,13 @@ void cloth_free_modifier (ClothModifierData *clmd)
 		// free BVH collision tree
 		if(cloth->tree)
 			bvh_free((BVH *)cloth->tree);
+		
+		// free BVH self collision tree
+		if(cloth->selftree)
+			bvh_free((BVH *)cloth->selftree);
+		
+		if(cloth->edgehash)
+			BLI_edgehash_free ( cloth->edgehash, NULL );
 		
 		MEM_freeN (cloth);
 		clmd->clothObject = NULL;
@@ -1019,6 +1034,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	if (clmd->clothObject) 
 	{
 		clmd->clothObject->old_solver_type = 255;
+		clmd->clothObject->edgehash = NULL;
 	}
 	else if (clmd->clothObject == NULL) 
 	{
@@ -1058,12 +1074,12 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 				if ( clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_GOAL )
 					clmd->clothObject->verts [i].goal= clmd->sim_parms.defgoal;
 				else
-					clmd->clothObject->verts [i].goal= 0.0f;
+					clmd->clothObject->verts [i].goal= 0.0;
 				clmd->clothObject->verts [i].flags = 0;
 				VECCOPY(clmd->clothObject->xold[i], clmd->clothObject->x[i]);
 				VECCOPY(clmd->clothObject->verts [i].xconst, clmd->clothObject->x[i]);
 				VECCOPY(clmd->clothObject->current_xold[i], clmd->clothObject->x[i]);
-				VecMulf(clmd->clothObject->v[i], 0.0f);
+				VecMulf(clmd->clothObject->v[i], 0.0);
 
 				clmd->clothObject->verts [i].impulse_count = 0;
 				VECCOPY ( clmd->clothObject->verts [i].impulse, tnull );
@@ -1078,7 +1094,9 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 				solvers [clmd->sim_parms.solver_type].init (ob, clmd);
 
 			clmd->clothObject->tree = bvh_build_from_float3(CDDM_get_faces(dm), dm->getNumFaces(dm), clmd->clothObject->x, numverts, clmd->coll_parms.epsilon);
-
+			
+			clmd->clothObject->selftree = bvh_build_from_float3(NULL, 0, clmd->clothObject->x, numverts, clmd->coll_parms.selfepsilon);
+			
 			// cloth_cache_set_frame(clmd, 1);
 		}
 
@@ -1346,8 +1364,8 @@ int cloth_build_springs ( Cloth *cloth, DerivedMesh *dm )
 	}
 	if ( edgelist )
 		MEM_freeN ( edgelist );
-
-	BLI_edgehash_free ( edgehash, NULL );
+	
+	cloth->edgehash = edgehash;
 
 	return 1;
 

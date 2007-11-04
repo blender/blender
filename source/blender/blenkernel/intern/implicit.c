@@ -46,8 +46,9 @@
 #include "DNA_lattice_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_modifier_types.h"
-#include "BLI_blenlib.h"
 #include "BLI_arithb.h"
+#include "BLI_blenlib.h"
+#include "BLI_edgehash.h"
 #include "BLI_threads.h"
 #include "BKE_collisions.h"
 #include "BKE_curve.h"
@@ -61,7 +62,6 @@
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include  "BIF_editdeform.h"
-
 
 #ifdef _WIN32
 #include <windows.h>
@@ -581,7 +581,7 @@ DO_INLINE void mul_bfmatrix_lfvector( float (*to)[3], fmatrix3x3 *from, float (*
 
 	/* process off-diagonal entries (every off-diagonal entry needs to be symmetric) */
 	// TODO: pragma below is wrong, correct it!
-#pragma omp parallel for shared(to,from, fLongVector) private(i) 
+// #pragma omp parallel for shared(to,from, fLongVector) private(i) 
 	for(i = from[0].vcount; i < from[0].vcount+from[0].scount; i++)
 	{
 		unsigned int row = from[i].r;
@@ -593,7 +593,7 @@ DO_INLINE void mul_bfmatrix_lfvector( float (*to)[3], fmatrix3x3 *from, float (*
 		to[column][1] += INPR(from[i].m[1],fLongVector[row]);
 		to[column][2] += INPR(from[i].m[2],fLongVector[row]);	
 	}
-#pragma omp parallel for shared(to,from, fLongVector) private(i) 	
+// #pragma omp parallel for shared(to,from, fLongVector) private(i) 	
 	for(i = from[0].vcount; i < from[0].vcount+from[0].scount; i++)
 	{
 		unsigned int row = from[i].r;
@@ -1505,6 +1505,8 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 			// copy corrected positions back to simulation			
 			if(result)
 			{
+				printf("result: %d\n", result);
+				
 				memcpy(cloth->current_xold, cloth->current_x, sizeof(lfVector) * numverts);
 				memcpy(id->Xnew, cloth->current_x, sizeof(lfVector) * numverts);
 				
@@ -1532,6 +1534,7 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 				cloth_calc_force(clmd, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step);	
 				simulate_implicit_euler(id->Vnew, id->X, id->V, id->F, id->dFdV, id->dFdX, dt / 2.0f, id->A, id->B, id->dV, id->S, id->z, id->olddV, id->P, id->Pinv);
 			}
+			
 		}
 		else
 		{
@@ -1544,7 +1547,7 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 		
 		// V = Vnew;
 		cp_lfvector(id->V, id->Vnew, numverts);
-
+		
 		step += dt;
 
 		if(effectors) pdEndEffectors(effectors);
@@ -2171,8 +2174,9 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float prevstep,
 	Object *ob2 = NULL;
 	BVH *bvh1 = NULL, *bvh2 = NULL;
 	LinkNode *collision_list = NULL; 
-	unsigned int i = 0;
-	int collisions = 0;
+	unsigned int i = 0, j = 0;
+	int collisions = 0, count = 0;
+	float (*current_x)[3];
 
 	if (!(((Cloth *)clmd->clothObject)->tree))
 	{
@@ -2186,7 +2190,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float prevstep,
 	////////////////////////////////////////////////////////////
 	// static collisions
 	////////////////////////////////////////////////////////////
-
+	/*
 	// update cloth bvh
 	bvh_update_from_float3(bvh1, cloth->current_xold, cloth->numverts, cloth->current_x, 0); // 0 means STATIC, 1 means MOVING (see later in this function)
 	
@@ -2238,6 +2242,80 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float prevstep,
 		VECADD(cloth->current_x[i], cloth->current_xold[i], cloth->current_v[i]);
 	}
 	//////////////////////////////////////////////
+	*/
+	// Test on *simple* selfcollisions
+	collisions = 1;
+	count = 0;
+	current_x = cloth->current_x; // needed for openMP
 	
-	return collisions;
+#pragma omp parallel for private(i,j, collisions) shared(current_x)
+	for(count = 0; count < 6; count++)
+	{
+		collisions = 0;
+		
+		for(i = 0; i < cloth->numverts; i++)
+		{
+			for(j = i + 1; j < cloth->numverts; j++)
+			{
+				float temp[3];
+				float length = 0;
+				float mindistance = cloth->selftree->epsilon;
+					
+				if(clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_GOAL)
+				{			
+					if((cloth->verts [i].goal >= SOFTGOALSNAP)
+					&& (cloth->verts [j].goal >= SOFTGOALSNAP))
+					{
+						continue;
+					}
+				}
+					
+					// check for adjacent points
+				if(BLI_edgehash_haskey ( cloth->edgehash, i, j ))
+				{
+					continue;
+				}
+					
+				VECSUB(temp, current_x[i], current_x[j]);
+					
+				length = Normalize(temp);
+					
+				if(length < mindistance)
+				{
+					float correction = mindistance - length;
+						
+					if(cloth->verts [i].goal >= SOFTGOALSNAP)
+					{
+						VecMulf(temp, -correction);
+						VECADD(current_x[j], current_x[j], temp);
+					}
+					else if(cloth->verts [j].goal >= SOFTGOALSNAP)
+					{
+						VecMulf(temp, correction);
+						VECADD(current_x[i], current_x[i], temp);
+					}
+					else
+					{
+						VecMulf(temp, -correction*0.5);
+						VECADD(current_x[j], current_x[j], temp);
+						
+						VECSUB(current_x[i], current_x[i], temp);	
+					}
+					
+					collisions = 1;
+				}
+			}
+		}
+	}
+	
+	//////////////////////////////////////////////
+	// SELFCOLLISIONS: update velocities
+	//////////////////////////////////////////////
+	for(i = 0; i < cloth->numverts; i++)
+	{
+		VECSUB(cloth->current_v[i], cloth->current_x[i], cloth->current_xold[i]);
+	}
+	//////////////////////////////////////////////
+	
+	return 1;
 }

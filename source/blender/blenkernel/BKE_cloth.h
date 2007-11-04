@@ -149,6 +149,7 @@ typedef void ( *CM_COLLISION_SELF ) ( ClothModifierData *clmd, int step );
 // only one available in the moment
 typedef enum {
     CM_IMPLICIT = 0,
+    CM_VERLET = 1,
 } CM_SOLVER_ID;
 
 
