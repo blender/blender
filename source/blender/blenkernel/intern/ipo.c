@@ -849,8 +849,10 @@ static float eval_driver(IpoDriver *driver, float ipotime)
 					if(pchan2 && pchan2->bone) {
 						float q1[4], q2[4], quat[4], angle;
 						
-						posechannel_get_local_transform(pchan , q1, NULL, NULL, 0);
-						posechannel_get_local_transform(pchan2, q2, NULL, NULL, 0);
+						Mat4ToQuat(pchan->pose_mat, q1);
+						Mat4ToQuat(pchan2->pose_mat, q2);
+						// posechannel_get_local_transform(pchan , q1, NULL, NULL, 0);
+						// posechannel_get_local_transform(pchan2, q2, NULL, NULL, 0);
 						
 						QuatInv(q1);
 						QuatMul(quat, q1, q2);
