@@ -116,7 +116,7 @@ typedef enum
 
 
 // needed for buttons_object.c
-void cloth_cache_free ( ClothModifierData *clmd, float time );
+// void cloth_cache_free ( ClothModifierData *clmd, float time );
 void cloth_free_modifier ( ClothModifierData *clmd );
 
 // needed for cloth.c

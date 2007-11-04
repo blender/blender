@@ -2181,7 +2181,7 @@ void do_object_panels(unsigned short event)
 				CFRA= 1;
 				update_for_newframe_muted();
 				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA); 
-				cloth_cache_free(clmd, 2); 
+				// cloth_cache_free(clmd, 2); 
 				allqueue(REDRAWBUTSOBJECT, 0);
 				allqueue(REDRAWVIEW3D, 0);
 			}	
@@ -2192,7 +2192,7 @@ void do_object_panels(unsigned short event)
 			ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
 			if(clmd)
 			{
-				cloth_cache_free(clmd, MAX2(2.0,G.scene->r.cfra+1.0));
+				// cloth_cache_free(clmd, MAX2(2.0,G.scene->r.cfra+1.0));
 				allqueue(REDRAWBUTSOBJECT, 0);
 			}
 		}
