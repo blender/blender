@@ -225,5 +225,11 @@ void antialias_tagbuf(int xsize, int ysize, char *rectmove);
 /* imagetexture.c */
 void ibuf_sample(struct ImBuf *ibuf, float fx, float fy, float dx, float dy, float *result);
 
+/* modifier.c */
+struct MeshDeformModifierData;
+
+void harmonic_coordinates_bind(struct MeshDeformModifierData *mmd,
+	float (*vertexcos)[3], int totvert, float cagemat[][4]);
+
 #endif
 

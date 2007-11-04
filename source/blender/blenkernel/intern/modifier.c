@@ -47,6 +47,7 @@
 #include "BLI_linklist.h"
 #include "BLI_edgehash.h"
 #include "BLI_ghash.h"
+#include "BLI_memarena.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -4921,6 +4922,223 @@ static DerivedMesh *booleanModifier_applyModifier(
 	return derivedData;
 }
 
+/* MeshDeform */
+
+static void meshdeformModifier_initData(ModifierData *md)
+{
+	MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
+
+	mmd->gridsize= 5;
+}
+
+static void meshdeformModifier_freeData(ModifierData *md)
+{
+	MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
+
+	if (mmd->bindweights) MEM_freeN(mmd->bindweights);
+	if (mmd->bindcos) MEM_freeN(mmd->bindcos);
+}
+
+static void meshdeformModifier_copyData(ModifierData *md, ModifierData *target)
+{
+	MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
+	MeshDeformModifierData *tmmd = (MeshDeformModifierData*) target;
+
+	tmmd->gridsize = mmd->gridsize;
+	tmmd->object = mmd->object;
+}
+
+CustomDataMask meshdeformModifier_requiredDataMask(ModifierData *md)
+{	
+	MeshDeformModifierData *mmd = (MeshDeformModifierData *)md;
+	CustomDataMask dataMask = 0;
+
+	/* ask for vertexgroups if we need them */
+	if(mmd->defgrp_name[0]) dataMask |= (1 << CD_MDEFORMVERT);
+
+	return dataMask;
+}
+
+static int meshdeformModifier_isDisabled(ModifierData *md)
+{
+	MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
+
+	return !mmd->object;
+}
+
+static void meshdeformModifier_foreachObjectLink(
+                ModifierData *md, Object *ob,
+                void (*walk)(void *userData, Object *ob, Object **obpoin),
+                void *userData)
+{
+	MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
+
+	walk(userData, ob, &mmd->object);
+}
+
+static void meshdeformModifier_updateDepgraph(
+                ModifierData *md, DagForest *forest, Object *ob,
+                DagNode *obNode)
+{
+	MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
+
+	if (mmd->object) {
+		DagNode *curNode = dag_get_node(forest, mmd->object);
+
+		dag_add_relation(forest, curNode, obNode,
+		                 DAG_RL_DATA_DATA|DAG_RL_OB_DATA|DAG_RL_DATA_OB|DAG_RL_OB_OB);
+	}
+}
+
+static void meshdeformModifier_do(
+                ModifierData *md, Object *ob, DerivedMesh *dm,
+                float (*vertexCos)[3], int numVerts)
+{
+	MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
+	float imat[4][4], cagemat[4][4], icagemat[4][4], icmat[3][3];
+	float weight, totweight, fac, co[3], *weights, (*dco)[3], (*bindcos)[3];
+	int a, b, totvert, totcagevert, defgrp_index;
+	DerivedMesh *tmpdm, *cagedm;
+	MDeformVert *dvert = NULL;
+	MDeformWeight *dw;
+	MVert *cagemvert;
+
+	if(!mmd->object || (!mmd->bindweights && !mmd->needbind))
+		return;
+	
+	/* get cage derivedmesh */
+	if(mmd->object == G.obedit) {
+		tmpdm= editmesh_get_derived_cage_and_final(&cagedm, 0);
+		if(tmpdm)
+			tmpdm->release(tmpdm);
+	}
+	else
+		cagedm= mesh_get_derived_final(mmd->object, CD_MASK_BAREMESH);
+	
+	/* TODO: this could give inifinite loop for circular dependency */
+	if(!cagedm)
+		return;
+
+ 	/* compute matrices to go in and out of cage object space */
+	Mat4Invert(imat, mmd->object->obmat);
+	Mat4MulMat4(cagemat, ob->obmat, imat);
+	Mat4Invert(icagemat, cagemat);
+	Mat3CpyMat4(icmat, icagemat);
+
+	/* bind weights if needed */
+	if(!mmd->bindweights)
+		harmonic_coordinates_bind(mmd, vertexCos, numVerts, cagemat);
+
+	/* verify we have compatible weights */
+	totvert= numVerts;
+	totcagevert= cagedm->getNumVerts(cagedm);
+
+	if(mmd->totvert!=totvert || mmd->totcagevert!=totcagevert || !mmd->bindweights) {
+		cagedm->release(cagedm);
+		return;
+	}
+	
+	/* setup deformation data */
+	cagemvert= cagedm->getVertArray(cagedm);
+	weights= mmd->bindweights;
+	bindcos= (float(*)[3])mmd->bindcos;
+
+	dco= MEM_callocN(sizeof(*dco)*totcagevert, "MDefDco");
+	for(a=0; a<totcagevert; a++) {
+		VECCOPY(co, cagemvert[a].co);
+		Mat4MulVecfl(mmd->object->obmat, co);
+		VECSUB(dco[a], co, bindcos[a]);
+	}
+
+	defgrp_index = -1;
+
+	if(mmd->defgrp_name[0]) {
+		bDeformGroup *def;
+
+		for(a=0, def=ob->defbase.first; def; def=def->next, a++) {
+			if(!strcmp(def->name, mmd->defgrp_name)) {
+				defgrp_index= a;
+				break;
+			}
+		}
+
+		if (defgrp_index >= 0)
+			dvert= dm->getVertDataArray(dm, CD_MDEFORMVERT);
+	}
+
+	/* do deformation */
+	for(b=0; b<totvert; b++) {
+		totweight= 0.0f;
+		co[0]= co[1]= co[2]= 0.0f;
+
+		for(a=0; a<totcagevert; a++) {
+			weight= weights[a + b*totcagevert];
+			co[0]+= weight*dco[a][0];
+			co[1]+= weight*dco[a][1];
+			co[2]+= weight*dco[a][2];
+			totweight += weight;
+		}
+
+		if(totweight > 0.0f) {
+			if(dvert) {
+				for(dw=NULL, a=0; a<dvert[b].totweight; a++) {
+					if(dvert[b].dw[a].def_nr == defgrp_index) {
+						dw = &dvert[b].dw[a];
+						break;
+					}
+				}
+				if(!dw) continue;
+
+				fac= dw->weight;
+			}
+			else
+				fac= 1.0f;
+
+			VecMulf(co, fac/totweight);
+			Mat3MulVecfl(icmat, co);
+			VECADD(vertexCos[b], vertexCos[b], co);
+		}
+	}
+
+	/* release cage derivedmesh */
+	MEM_freeN(dco);
+	cagedm->release(cagedm);
+}
+
+static void meshdeformModifier_deformVerts(
+                ModifierData *md, Object *ob, DerivedMesh *derivedData,
+                float (*vertexCos)[3], int numVerts)
+{
+	DerivedMesh *dm;
+
+	if(derivedData) dm = CDDM_copy(derivedData);
+	else dm = CDDM_from_mesh(ob->data, ob);
+
+	CDDM_apply_vert_coords(dm, vertexCos);
+	CDDM_calc_normals(dm);
+
+	meshdeformModifier_do(md, ob, dm, vertexCos, numVerts);
+
+	dm->release(dm);
+}
+
+static void meshdeformModifier_deformVertsEM(
+                ModifierData *md, Object *ob, EditMesh *editData,
+                DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+{
+	DerivedMesh *dm;
+
+	if(derivedData) dm = CDDM_copy(derivedData);
+	else dm = CDDM_from_editmesh(editData, ob->data);
+
+	CDDM_apply_vert_coords(dm, vertexCos);
+	CDDM_calc_normals(dm);
+
+	meshdeformModifier_do(md, ob, dm, vertexCos, numVerts);
+
+	dm->release(dm);
+}
+
 /***/
 
 static ModifierTypeInfo typeArr[NUM_MODIFIER_TYPES];
@@ -5148,6 +5366,20 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->applyModifier = booleanModifier_applyModifier;
 		mti->foreachObjectLink = booleanModifier_foreachObjectLink;
 		mti->updateDepgraph = booleanModifier_updateDepgraph;
+
+		mti = INIT_TYPE(MeshDeform);
+		mti->type = eModifierTypeType_OnlyDeform;
+		mti->flags = eModifierTypeFlag_AcceptsCVs
+		             | eModifierTypeFlag_SupportsEditmode;
+		mti->initData = meshdeformModifier_initData;
+		mti->freeData = meshdeformModifier_freeData;
+		mti->copyData = meshdeformModifier_copyData;
+		mti->requiredDataMask = meshdeformModifier_requiredDataMask;
+		mti->isDisabled = meshdeformModifier_isDisabled;
+		mti->foreachObjectLink = meshdeformModifier_foreachObjectLink;
+		mti->updateDepgraph = meshdeformModifier_updateDepgraph;
+		mti->deformVerts = meshdeformModifier_deformVerts;
+		mti->deformVertsEM = meshdeformModifier_deformVertsEM;
 
 		typeArrInit = 0;
 #undef INIT_TYPE
@@ -5523,3 +5755,4 @@ int modifiers_isDeformed(Object *ob)
 	}
 	return 0;
 }
+

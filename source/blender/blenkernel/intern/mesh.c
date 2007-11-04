@@ -486,16 +486,7 @@ static float *make_orco_mesh_internal(Object *ob, int render)
 		/* Get appropriate vertex coordinates */
 
 	if(me->key && me->texcomesh==0 && me->key->refkey) {
-		KeyBlock *kb= me->key->refkey;
-		float *fp= kb->data;
-		totvert= MIN2(kb->totelem, me->totvert);
-		vcos = MEM_callocN(sizeof(*vcos)*me->totvert, "orco mesh");
-
-		for(a=0; a<totvert; a++, fp+=3) {
-			vcos[a][0]= fp[0];
-			vcos[a][1]= fp[1];
-			vcos[a][2]= fp[2];
-		}
+		vcos= mesh_getRefKeyCos(me, &totvert);
 	}
 	else {
 		MultiresLevel *lvl = NULL;
@@ -1120,14 +1111,32 @@ float (*mesh_getVertexCos(Mesh *me, int *numVerts_r))[3]
 		float (*cos)[3] = MEM_mallocN(sizeof(*cos)*numVerts, "vertexcos1");
         
 		if (numVerts_r) *numVerts_r = numVerts;
-		for (i=0; i<numVerts; i++) {
+		for (i=0; i<numVerts; i++)
 			VECCOPY(cos[i], me->mvert[i].co);
-		}
         
 		return cos;
 #ifdef WITH_VERSE
 	}
 #endif
+}
+
+float (*mesh_getRefKeyCos(Mesh *me, int *numVerts_r))[3]
+{
+	KeyBlock *kb;
+	float (*cos)[3] = NULL;
+	int totvert;
+	
+	if(me->key && me->key->refkey) {
+		if(numVerts_r) *numVerts_r= me->totvert;
+		cos= MEM_mallocN(sizeof(*cos)*me->totvert, "vertexcos1");
+
+		kb= me->key->refkey;
+		totvert= MIN2(kb->totelem, me->totvert);
+
+		memcpy(cos, kb->data, sizeof(*cos)*totvert);
+	}
+
+	return cos;
 }
 
 UvVertMap *make_uv_vert_map(struct MFace *mface, struct MTFace *tface, unsigned int totface, unsigned int totvert, int selected, float *limit)
