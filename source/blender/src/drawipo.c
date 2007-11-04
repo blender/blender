@@ -2031,6 +2031,7 @@ static char *ipodriver_channelselect_pup(void)
 	tmp+= sprintf(tmp, "|Scale X %%x%d", OB_SIZE_X);
 	tmp+= sprintf(tmp, "|Scale Y %%x%d", OB_SIZE_Y);
 	tmp+= sprintf(tmp, "|Scale Z %%x%d", OB_SIZE_Z);
+	tmp+= sprintf(tmp, "|Rotation Differance %%x%d", OB_ROT_DIFF);
 	
 	return (string);
 }
@@ -2081,6 +2082,10 @@ static void ipo_panel_properties(short cntrl)	// IPO_HANDLER_PROPERTIES
 					if(driver->ob->type==OB_ARMATURE && driver->blocktype==ID_AR) {
 						icon = ICON_POSE_DEHLT;
 						uiDefBut(block, TEX, B_IPO_REDR, "BO:",				10,220,150,20, driver->name, 0, 31, 0, 0, "Bone name");
+						
+						if(driver->adrcode==OB_ROT_DIFF)
+							uiDefBut(block, TEX, B_IPO_REDR, "BO:",			10,200,150,20, driver->name+DRIVER_NAME_OFFS, 0, 31, 0, 0, "Bone name for angular reference");
+
 					}
 					else driver->blocktype= ID_OB;	/* safety when switching object button */
 					
@@ -2106,7 +2111,7 @@ static void ipo_panel_properties(short cntrl)	// IPO_HANDLER_PROPERTIES
 	/* note ranges for buttons below are idiot... we need 2 ranges, one for sliding scale, one for real clip */
 	if(G.sipo->ipo && G.sipo->ipo->curve.first && totipo_curve) {
 		extern int totipo_vertsel;	// editipo.c
-		uiDefBut(block, LABEL, 0, "Visible curves",		10, 200, 150, 19, NULL, 1.0, 0.0, 0, 0, "");
+		uiDefBut(block, LABEL, 0, "Visible curves",		160, 200, 150, 19, NULL, 1.0, 0.0, 0, 0, "");
 		
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUM, B_MUL_IPO, "Xmin:",		10, 180, 150, 19, &G.sipo->tot.xmin, G.sipo->tot.xmin-1000.0, MAXFRAMEF, 100, 0, "");
