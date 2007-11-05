@@ -2956,13 +2956,13 @@ void transform_seq(int mode, int context)
 				}
 				
 				/* check seq's next to the active also - nice for quick snapping */
-				if (snap_dist && seq_tx_check_left(last_seq)) {
+				if (snap_dist && last_seq && seq_tx_check_left(last_seq)) {
 					seq = find_next_prev_sequence(last_seq, 1, 0); /* left */
 					if(seq && !seq_tx_check_right(seq))
 						TESTSNAP(seq_tx_get_final_right(seq));
 				}
 				
-				if (snap_dist && seq_tx_check_right(last_seq)) {
+				if (snap_dist && last_seq && seq_tx_check_right(last_seq)) {
 					seq = find_next_prev_sequence(last_seq, 2, 0); /* right */
 					if(seq && !seq_tx_check_left(seq))
 						TESTSNAP(seq_tx_get_final_left(seq));
