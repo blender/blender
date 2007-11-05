@@ -87,10 +87,6 @@ double itval()
 }
 #else
 #include <sys/time.h>
-// intrinsics need better compile flag checking
-// #include <xmmintrin.h>
-// #include <pmmintrin.h>
-// #include <pthread.h>
 
 static struct timeval _itstart, _itend;
 static struct timezone itz;
@@ -110,14 +106,7 @@ double itval()
 	return t2-t1;
 }
 #endif
-/*
-#define C99
-#ifdef C99
-#defineDO_INLINE inline 
-#else 
-#defineDO_INLINE static 
-#endif
-*/
+
 struct Cloth;
 
 //////////////////////////////////////////
@@ -1502,11 +1491,9 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 			// call collision function
 			result = cloth_bvh_objcollision(clmd, step + dt, step, dt);
 			
-			// copy corrected positions back to simulation			
+			// copy corrected positions back to simulation
 			if(result)
 			{
-				printf("result: %d\n", result);
-				
 				memcpy(cloth->current_xold, cloth->current_x, sizeof(lfVector) * numverts);
 				memcpy(id->Xnew, cloth->current_x, sizeof(lfVector) * numverts);
 				
@@ -2284,12 +2271,12 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float prevstep,
 				{
 					float correction = mindistance - length;
 						
-					if(cloth->verts [i].goal >= SOFTGOALSNAP)
+					if((clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_GOAL) && (cloth->verts [i].goal >= SOFTGOALSNAP))
 					{
 						VecMulf(temp, -correction);
 						VECADD(current_x[j], current_x[j], temp);
 					}
-					else if(cloth->verts [j].goal >= SOFTGOALSNAP)
+					else if((clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_GOAL) && (cloth->verts [j].goal >= SOFTGOALSNAP))
 					{
 						VecMulf(temp, correction);
 						VECADD(current_x[i], current_x[i], temp);

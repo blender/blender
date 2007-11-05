@@ -171,6 +171,11 @@ int implicit_init ( Object *ob, ClothModifierData *clmd );
 int implicit_free ( ClothModifierData *clmd );
 int implicit_solver ( Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors );
 
+/* explicit verlet simulator */
+int verlet_init ( Object *ob, ClothModifierData *clmd );
+int verlet_free ( ClothModifierData *clmd );
+int verlet_solver ( Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors );
+
 /* used for caching in implicit.c */
 typedef struct Frame
 {
@@ -226,6 +231,9 @@ typedef struct FaceCollPair
 	float pa[3], pb[3]; // collision point p1 on face1, p2 on face2
 }
 FaceCollPair;
+
+// function definitions from implicit.c
+DO_INLINE void mul_fvector_S(float to[3], float from[3], float scalar);
 
 #endif
 

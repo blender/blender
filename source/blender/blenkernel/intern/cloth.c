@@ -114,7 +114,7 @@ double tval()
 static CM_SOLVER_DEF solvers [] =
 {
 	{ "Implicit", CM_IMPLICIT, implicit_init, implicit_solver, implicit_free },
-	// { "Implicit", CM_VERLET, verlet_init, verlet_solver, verlet_free },
+	{ "Verlet", CM_VERLET, verlet_init, verlet_solver, verlet_free },
 };
 
 /* ********** cloth engine ******* */
@@ -504,7 +504,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 			// if(!cloth_cache_search_frame(clmd, framenr))
 			{
 				verts = cloth->verts;
-				
+				/*
 				// Force any pinned verts to their constrained location.
 				for ( i = 0; i < clmd->clothObject->numverts; i++, verts++ )
 				{
@@ -515,7 +515,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 					VECCOPY ( verts->xconst, mvert[i].co );
 					Mat4MulVecfl ( ob->obmat, verts->xconst );
 				}
-				
+				*/
 				tstart();
 				
 				/* Call the solver. */
