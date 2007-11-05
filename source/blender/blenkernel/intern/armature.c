@@ -849,7 +849,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 	for(i = 0; i < numVerts; i++) {
 		MDeformVert *dvert;
 		DualQuat sumdq, *dq = NULL;
-		float *co = vertexCos[i];
+		float *co = vertexCos[i], dco[3];
 		float sumvec[3], summat[3][3];
 		float *vec = NULL, (*smat)[3] = NULL;
 		float contrib = 0.0f;
@@ -938,7 +938,17 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 		if(contrib > 0.0001f) {
 			if(use_quaternion) {
 				DQuatNormalize(dq, contrib, armature_weight);
-				DQuatMulVecfl(dq, co, (defMats)? summat: NULL);
+
+				if(armature_weight != 1.0f) {
+					VECCOPY(dco, co);
+					DQuatMulVecfl(dq, dco, (defMats)? summat: NULL);
+					VecSubf(dco, dco, co);
+					VecMulf(dco, armature_weight);
+					VecAddf(co, co, dco);
+				}
+				else
+					DQuatMulVecfl(dq, co, (defMats)? summat: NULL);
+
 				smat = summat;
 			}
 			else {
