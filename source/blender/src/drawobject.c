@@ -1359,14 +1359,18 @@ void nurbs_foreachScreenVert(void (*func)(void *userData, Nurb *nu, BPoint *bp, 
 				if(bezt->hide==0) {
 					if (G.f & G_HIDDENHANDLES) {
 						view3d_project_short_clip(curarea, bezt->vec[1], s, pmat, vmat);
-						func(userData, nu, NULL, bezt, 1, s[0], s[1]);
+						if (s[0] != IS_CLIPPED)
+							func(userData, nu, NULL, bezt, 1, s[0], s[1]);
 					} else {
 						view3d_project_short_clip(curarea, bezt->vec[0], s, pmat, vmat);
-						func(userData, nu, NULL, bezt, 0, s[0], s[1]);
+						if (s[0] != IS_CLIPPED)
+							func(userData, nu, NULL, bezt, 0, s[0], s[1]);
 						view3d_project_short_clip(curarea, bezt->vec[1], s, pmat, vmat);
-						func(userData, nu, NULL, bezt, 1, s[0], s[1]);
+						if (s[0] != IS_CLIPPED)
+							func(userData, nu, NULL, bezt, 1, s[0], s[1]);
 						view3d_project_short_clip(curarea, bezt->vec[2], s, pmat, vmat);
-						func(userData, nu, NULL, bezt, 2, s[0], s[1]);
+						if (s[0] != IS_CLIPPED)
+							func(userData, nu, NULL, bezt, 2, s[0], s[1]);
 					}
 				}
 			}
