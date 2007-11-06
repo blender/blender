@@ -5118,15 +5118,15 @@ static void meshdeformModifier_deformVerts(
 {
 	DerivedMesh *dm;
 
-	if(derivedData) dm = CDDM_copy(derivedData);
-	else dm = CDDM_from_mesh(ob->data, ob);
-
-	CDDM_apply_vert_coords(dm, vertexCos);
-	CDDM_calc_normals(dm);
+	if(!derivedData && ob->type==OB_MESH)
+		dm= CDDM_from_mesh(ob->data, ob);
+	else
+		dm= derivedData;
 
 	meshdeformModifier_do(md, ob, dm, vertexCos, numVerts);
 
-	dm->release(dm);
+	if(dm != derivedData)
+		dm->release(dm);
 }
 
 static void meshdeformModifier_deformVertsEM(
@@ -5135,15 +5135,15 @@ static void meshdeformModifier_deformVertsEM(
 {
 	DerivedMesh *dm;
 
-	if(derivedData) dm = CDDM_copy(derivedData);
-	else dm = CDDM_from_editmesh(editData, ob->data);
-
-	CDDM_apply_vert_coords(dm, vertexCos);
-	CDDM_calc_normals(dm);
+	if(!derivedData && ob->type == OB_MESH)
+		dm = CDDM_from_editmesh(editData, ob->data);
+	else
+		dm = derivedData;
 
 	meshdeformModifier_do(md, ob, dm, vertexCos, numVerts);
 
-	dm->release(dm);
+	if(dm != derivedData)
+		dm->release(dm);
 }
 
 /***/

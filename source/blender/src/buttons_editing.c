@@ -1486,8 +1486,13 @@ static void modifiers_bindMeshDeform(void *ob_v, void *md_v)
 		mmd->needbind= 1;
 		mmd->modifier.mode |= eModifierMode_Realtime;
 
-		dm= mesh_create_derived_view(ob, 0);
-		dm->release(dm);
+		if(ob->type == OB_MESH) {
+			dm= mesh_create_derived_view(ob, 0);
+			dm->release(dm);
+		}
+		else if(ob->type == OB_LATTICE) {
+			lattice_calc_modifiers(ob);
+		}
 
 		mmd->needbind= 0;
 		mmd->modifier.mode= mode;
