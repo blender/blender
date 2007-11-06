@@ -161,6 +161,8 @@ typedef struct Cloth
 	float 			(*v)[3]; /* the current velocity of all vertices */
 	float			(*current_v)[3];
 	struct EdgeHash 	*edgehash; // used for fast checking adjacent points
+	unsigned int 		numothersprings;
+	unsigned int		numspringssave;
 }
 Cloth;
 

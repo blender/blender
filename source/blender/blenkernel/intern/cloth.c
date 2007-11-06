@@ -114,7 +114,7 @@ double tval()
 static CM_SOLVER_DEF solvers [] =
 {
 	{ "Implicit", CM_IMPLICIT, implicit_init, implicit_solver, implicit_free },
-	{ "Verlet", CM_VERLET, verlet_init, verlet_solver, verlet_free },
+	// { "Verlet", CM_VERLET, verlet_init, verlet_solver, verlet_free },
 };
 
 /* ********** cloth engine ******* */
@@ -504,8 +504,9 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 			// if(!cloth_cache_search_frame(clmd, framenr))
 			{
 				verts = cloth->verts;
-				/*
+				
 				// Force any pinned verts to their constrained location.
+				// has to be commented for verlet
 				for ( i = 0; i < clmd->clothObject->numverts; i++, verts++ )
 				{
 					// Save the previous position.
@@ -515,7 +516,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 					VECCOPY ( verts->xconst, mvert[i].co );
 					Mat4MulVecfl ( ob->obmat, verts->xconst );
 				}
-				*/
+				
 				tstart();
 				
 				/* Call the solver. */
@@ -1031,8 +1032,8 @@ int cloth_build_springs ( Cloth *cloth, DerivedMesh *dm )
 		{
 			spring = ( ClothSpring * ) MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
 
-			spring->ij = mface[i].v1;
-			spring->kl = mface[i].v3;
+			spring->ij = mface[i].v2;
+			spring->kl = mface[i].v4;
 			VECSUB ( temp, mvert[spring->kl].co, mvert[spring->ij].co );
 				spring->restlen =  sqrt ( INPR ( temp, temp ) );
 				spring->type = CLOTH_SPRING_TYPE_SHEAR;
@@ -1045,7 +1046,7 @@ int cloth_build_springs ( Cloth *cloth, DerivedMesh *dm )
 				node = node2;
 		}
 	}
-
+	
 	// bending springs
 	search2 = cloth->springs;
 	for ( i = struct_springs; i < struct_springs+shear_springs; i++ )
@@ -1083,9 +1084,10 @@ int cloth_build_springs ( Cloth *cloth, DerivedMesh *dm )
 		}
 		search2 = search2->next;
 	}
-
-	cloth->numsprings = struct_springs + shear_springs + bend_springs;
-
+	
+	cloth->numspringssave = cloth->numsprings = struct_springs + shear_springs + bend_springs;
+	cloth->numothersprings = struct_springs + shear_springs;
+	
 	for ( i = 0; i < numverts; i++ )
 	{
 		BLI_linklist_free ( edgelist[i],NULL );

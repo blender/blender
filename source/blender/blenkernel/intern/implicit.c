@@ -812,6 +812,31 @@ int	implicit_free (ClothModifierData *clmd)
 	return 1;
 }
 
+void cloth_bending_mode(ClothModifierData *clmd, int enabled)
+{
+	Cloth *cloth = clmd->clothObject;
+	Implicit_Data *id;
+	
+	if(cloth)
+	{
+		id = cloth->implicit;
+		
+		if(id)
+		{
+			if(enabled)
+			{
+				cloth->numsprings = cloth->numspringssave;
+			}
+			else
+			{
+				cloth->numsprings = cloth->numothersprings;
+			}
+			
+			id->A[0].scount = id->dFdV[0].scount = id->dFdX[0].scount = id->P[0].scount = id->Pinv[0].scount = id->bigI[0].scount = cloth->numsprings;
+		}	
+	}
+}
+
 DO_INLINE float fb(float length, float L)
 {
 	float x = length/L;
@@ -1223,37 +1248,48 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 	{
 		if(length < L)
 		{
+			// clmd->sim_parms.flags |= CLOTH_SIMSETTINGS_FLAG_BIG_FORCE;
+			
 			s->flags |= CLOTH_SPRING_FLAG_NEEDED;
 			
 			k = clmd->sim_parms.bending;	
 
 			mul_fvector_S(bending_force, dir, fbstar(length, L, k, cb));
 			VECADD(s->f, s->f, bending_force);
-
+			
+			if(INPR(bending_force,bending_force) > 0.13*0.13)
+			{
+				clmd->sim_parms.flags |= CLOTH_SIMSETTINGS_FLAG_BIG_FORCE;
+			}
+			
 			dfdx_spring_type2(s->dfdx, dir,length,L,k, cb);
 		}
 	}
 }
 
-DO_INLINE void cloth_apply_spring_force(ClothModifierData *clmd, ClothSpring *s, lfVector *lF, lfVector *X, lfVector *V, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX)
+DO_INLINE int cloth_apply_spring_force(ClothModifierData *clmd, ClothSpring *s, lfVector *lF, lfVector *X, lfVector *V, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX)
 {
 	if(s->flags & CLOTH_SPRING_FLAG_NEEDED)
 	{
+		VECADD(lF[s->ij], lF[s->ij], s->f);
+		VECSUB(lF[s->kl], lF[s->kl], s->f);	
+			
 		if(s->type != CLOTH_SPRING_TYPE_BENDING)
 		{
 			sub_fmatrix_fmatrix(dFdV[s->ij].m, dFdV[s->ij].m, s->dfdv);
 			sub_fmatrix_fmatrix(dFdV[s->kl].m, dFdV[s->kl].m, s->dfdv);
 			add_fmatrix_fmatrix(dFdV[s->matrix_index].m, dFdV[s->matrix_index].m, s->dfdv);	
 		}
-
-		VECADD(lF[s->ij], lF[s->ij], s->f);
-		VECSUB(lF[s->kl], lF[s->kl], s->f);
-
+		else if(!(clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_BIG_FORCE))
+			return 0;
+		
 		sub_fmatrix_fmatrix(dFdX[s->ij].m, dFdX[s->ij].m, s->dfdx);
 		sub_fmatrix_fmatrix(dFdX[s->kl].m, dFdX[s->kl].m, s->dfdx);
 
 		add_fmatrix_fmatrix(dFdX[s->matrix_index].m, dFdX[s->matrix_index].m, s->dfdx);
-	}	
+	}
+	
+	return 1;
 }
 
 DO_INLINE void calculateTriangleNormal(float to[3], lfVector *X, MFace mface)
@@ -1386,15 +1422,34 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 		search = search->next;
 	}
 	
+	if(clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_BIG_FORCE)
+	{	
+		if(cloth->numspringssave != cloth->numsprings)
+		{
+			cloth_bending_mode(clmd, 1);
+		}
+	}
+	else
+	{
+		if(cloth->numspringssave == cloth->numsprings)
+		{
+			cloth_bending_mode(clmd, 0);
+		}
+	}
+	
 	// apply spring forces
 	search = cloth->springs;
 	while(search)
 	{
 		// only handle active springs
 		// if(((clmd->sim_parms.flags & CSIMSETT_FLAG_TEARING_ENABLED) && !(springs[i].flags & CSPRING_FLAG_DEACTIVATE))|| !(clmd->sim_parms.flags & CSIMSETT_FLAG_TEARING_ENABLED))	
-		cloth_apply_spring_force(clmd, search->link, lF, lX, lV, dFdV, dFdX);
+		if(!cloth_apply_spring_force(clmd, search->link, lF, lX, lV, dFdV, dFdX))
+			break;
 		search = search->next;
 	}
+	
+	clmd->sim_parms.flags &= ~CLOTH_SIMSETTINGS_FLAG_BIG_FORCE;
+	
 }
 
 void simulate_implicit_euler(lfVector *Vnew, lfVector *lX, lfVector *lV, lfVector *lF, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, float dt, fmatrix3x3 *A, lfVector *B, lfVector *dV, fmatrix3x3 *S, lfVector *z, lfVector *olddV, fmatrix3x3 *P, fmatrix3x3 *Pinv)
@@ -1438,6 +1493,8 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 	float dt = 1.0f / clmd->sim_parms.stepsPerFrame;
 	Implicit_Data *id = cloth->implicit;
 	int result = 0;
+	float force = 0, lastforce = 0;
+	lfVector *dx;
 	
 	if(clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_GOAL) /* do goal stuff */
 	{
@@ -1457,10 +1514,27 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 		effectors= pdInitEffectors(ob,NULL);
 		
 		// calculate 
-		cloth_calc_force(clmd, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step );	
-		simulate_implicit_euler(id->Vnew, id->X, id->V, id->F, id->dFdV, id->dFdX, dt, id->A, id->B, id->dV, id->S, id->z, id->olddV, id->P, id->Pinv);
+		cloth_calc_force(clmd, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step );
 		
-		add_lfvector_lfvectorS(id->Xnew, id->X, id->Vnew, dt, numverts);
+		// check for sleeping
+		if(!(clmd->coll_parms.flags & CLOTH_SIMSETTINGS_FLAG_SLEEP))
+		{
+			simulate_implicit_euler(id->Vnew, id->X, id->V, id->F, id->dFdV, id->dFdX, dt, id->A, id->B, id->dV, id->S, id->z, id->olddV, id->P, id->Pinv);
+		
+			add_lfvector_lfvectorS(id->Xnew, id->X, id->Vnew, dt, numverts);
+		}
+		
+		dx = create_lfvector(numverts);
+		sub_lfvector_lfvector(dx, id->Xnew, id->X, numverts);
+		force = dot_lfvector(dx, dx, numverts);
+		del_lfvector(dx);
+		
+		if((force < 0.00001) && (lastforce >= force))
+			clmd->coll_parms.flags |= CLOTH_SIMSETTINGS_FLAG_SLEEP;
+		else if((lastforce*2 < force))
+			clmd->coll_parms.flags &= ~CLOTH_SIMSETTINGS_FLAG_SLEEP;
+		
+		lastforce = force;
 		
 		if(clmd->coll_parms.flags & CLOTH_COLLISIONSETTINGS_FLAG_ENABLED)
 		{

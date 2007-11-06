@@ -86,7 +86,9 @@ typedef enum
     CLOTH_SIMSETTINGS_FLAG_COLLOBJ = ( 1 << 2 ), 	// object is only collision object, no cloth simulation is done
     CLOTH_SIMSETTINGS_FLAG_GOAL = ( 1 << 3 ), 		// we have goals enabled
     CLOTH_SIMSETTINGS_FLAG_TEARING = ( 1 << 4 ), // true if tearing is enabled
-    CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT = ( 1 << 5 ), // true if tearing is enabled
+    CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT = ( 1 << 5 ),
+    CLOTH_SIMSETTINGS_FLAG_BIG_FORCE = ( 1 << 6 ), // true if we have big spring force for bending
+    CLOTH_SIMSETTINGS_FLAG_SLEEP = ( 1 << 7 ), // true if we let the cloth go to sleep
 } CLOTH_SIMSETTINGS_FLAGS;
 
 /* SPRING FLAGS */
