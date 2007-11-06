@@ -5067,7 +5067,28 @@ static void meshdeformModifier_do(
 	}
 
 	/* do deformation */
+	fac= 1.0f;
+
 	for(b=0; b<totvert; b++) {
+		if(dvert) {
+			for(dw=NULL, a=0; a<dvert[b].totweight; a++) {
+				if(dvert[b].dw[a].def_nr == defgrp_index) {
+					dw = &dvert[b].dw[a];
+					break;
+				}
+			}
+
+			if(mmd->flag & MOD_MDEF_INVERT_VGROUP) {
+				if(!dw) fac= 1.0f;
+				else if(dw->weight == 0.0f) continue;
+				else fac=1.0f-dw->weight;
+			}
+			else {
+				if(!dw) continue;
+				else fac= dw->weight;
+			}
+		}
+
 		totweight= 0.0f;
 		co[0]= co[1]= co[2]= 0.0f;
 
@@ -5080,20 +5101,6 @@ static void meshdeformModifier_do(
 		}
 
 		if(totweight > 0.0f) {
-			if(dvert) {
-				for(dw=NULL, a=0; a<dvert[b].totweight; a++) {
-					if(dvert[b].dw[a].def_nr == defgrp_index) {
-						dw = &dvert[b].dw[a];
-						break;
-					}
-				}
-				if(!dw) continue;
-
-				fac= dw->weight;
-			}
-			else
-				fac= 1.0f;
-
 			VecMulf(co, fac/totweight);
 			Mat3MulVecfl(icmat, co);
 			VECADD(vertexCos[b], vertexCos[b], co);
