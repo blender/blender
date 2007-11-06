@@ -8,6 +8,9 @@
 #include <iostream>
 
 
+SCA_2DFilterActuator::~SCA_2DFilterActuator()
+{
+}
 
 SCA_2DFilterActuator::SCA_2DFilterActuator(
         SCA_IObject *gameobj, 
@@ -28,11 +31,11 @@ SCA_2DFilterActuator::SCA_2DFilterActuator(
 {
 }
 
-
-SCA_2DFilterActuator::~SCA_2DFilterActuator()
+void SCA_2DFilterActuator::SetShaderText(STR_String& text)
 {
-
+	m_shaderText = text;
 }
+
 
 
 CValue* SCA_2DFilterActuator::GetReplica()
@@ -69,7 +72,7 @@ bool SCA_2DFilterActuator::Update()
 	}
 	else if(m_type < RAS_2DFilterManager::RAS_2DFILTER_NUMBER_OF_FILTERS)
 	{
-		m_rendertools->Update2DFilter(m_type, m_int_arg);
+		m_rendertools->Update2DFilter(m_type, m_int_arg, m_shaderText);
 	}
     return true;
 }

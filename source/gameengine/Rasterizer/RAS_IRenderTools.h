@@ -183,7 +183,7 @@ public:
 
 	virtual
 		void
-		Update2DFilter(RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass)=0;
+		Update2DFilter(RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text)=0;
 
 	virtual
 		void

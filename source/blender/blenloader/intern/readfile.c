@@ -2820,7 +2820,8 @@ static void lib_link_object(FileData *fd, Main *main)
 					ma->toObject= newlibadr(fd, ob->id.lib, ma->toObject);
 				}
 				else if(act->type==ACT_2DFILTER){
-					/* bTwoDFilterActuator *_2dfa = act->data; */
+					bTwoDFilterActuator *_2dfa = act->data; 
+					_2dfa->text= newlibadr(fd, ob->id.lib, _2dfa->text);
 				}
 				act= act->next;
 			}

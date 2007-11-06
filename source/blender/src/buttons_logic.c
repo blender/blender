@@ -2178,7 +2178,11 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
 	case ACT_2DFILTER:
 		tdfa = act->data;
 
-		ysize= 50;
+		ysize = 50;
+		if(tdfa->type == ACT_2DFILTER_CUSTOMFILTER)
+		{
+			ysize +=20;
+		}
         glRects( xco, yco-ysize, xco+width, yco ); 
 		uiEmboss( (float)xco, (float)yco-ysize, (float)xco+width, (float)yco, 1 );
 
@@ -2206,12 +2210,19 @@ static short draw_actuatorbuttons(bActuator *act, uiBlock *block, short xco, sho
 			case ACT_2DFILTER_SEPIA:
 			case ACT_2DFILTER_INVERT:
 			case ACT_2DFILTER_NOFILTER:
-				uiDefButI(block, NUM, B_REDR, "Pass Number:", xco+30,yco-44,width-60,19,&tdfa->int_arg,-1.0,MAX_RENDER_PASS-1,0.0,0.0,"Set motion blur value");
+			case ACT_2DFILTER_DISABLED:
+			case ACT_2DFILTER_ENABLED:
+				uiDefButI(block, NUM, B_REDR, "Pass Number:", xco+30,yco-44,width-60,19,&tdfa->int_arg,0.0,MAX_RENDER_PASS-1,0.0,0.0,"Set motion blur value");
+				break;
+			case ACT_2DFILTER_CUSTOMFILTER:
+				uiDefButI(block, NUM, B_REDR, "Pass Number:", xco+30,yco-44,width-60,19,&tdfa->int_arg,0.0,MAX_RENDER_PASS-1,0.0,0.0,"Set motion blur value");
+				uiDefIDPoinBut(block, test_scriptpoin_but, ID_SCRIPT, 1, "Script: ", xco+30,yco-64,width-60, 19, &tdfa->text, "");
 				break;
 		}
 		
-		str= "2D Filter   %t|Motion Blur   %x0|Blur %x1|Sharpen %x2|Dilation %x3|Erosion %x4|"
-				"Laplacian %x5|Sobel %x6|Prewitt %x7|Gray Scale %x8|Sepia %x9|Invert %x10|No Filter %x-1|";
+		str= "2D Filter   %t|Motion Blur   %x1|Blur %x2|Sharpen %x3|Dilation %x4|Erosion %x5|"
+				"Laplacian %x6|Sobel %x7|Prewitt %x8|Gray Scale %x9|Sepia %x10|Invert %x11|Custom Filter %x12|"
+				"Enable Filter %x-2|Disable Filter %x-1|Remove Filter %x0|";
 		uiDefButS(block, MENU, B_REDR, str,	xco+30,yco-24,width-60, 19, &tdfa->type, 0.0, 0.0, 0.0, 0.0, "2D filter type");
 		
 		yco -= ysize;

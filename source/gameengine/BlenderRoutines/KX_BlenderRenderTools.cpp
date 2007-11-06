@@ -475,9 +475,9 @@ void KX_BlenderRenderTools::MotionBlur(RAS_IRasterizer* rasterizer)
 	}
 }
 
-void KX_BlenderRenderTools::Update2DFilter(RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass)
+void KX_BlenderRenderTools::Update2DFilter(RAS_2DFilterManager::RAS_2DFILTER_MODE filtermode, int pass, STR_String& text)
 {
-	m_filtermanager.EnableFilter(filtermode, pass);
+	m_filtermanager.EnableFilter(filtermode, pass, text);
 }
 
 void KX_BlenderRenderTools::Render2DFilters(RAS_ICanvas* canvas)

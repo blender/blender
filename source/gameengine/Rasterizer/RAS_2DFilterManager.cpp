@@ -12,6 +12,7 @@
 #include "RAS_OpenGLFilters/RAS_Sepia2DFilter.h"
 #include "RAS_OpenGLFilters/RAS_Invert2DFilter.h"
 
+#include "STR_String.h"
 #include "RAS_ICanvas.h"
 #include "RAS_2DFilterManager.h"
 #include <iostream>
@@ -48,12 +49,11 @@ numberoffilters(0),texname(-1)
 
 	int passindex;
 	for(passindex =0; passindex<MAX_RENDER_PASS; passindex++)
+	{
 		m_filters[passindex] = 0;
+		m_enabled[passindex] = 0;
+	}
 
-	int programindex;
-	for(programindex=0; programindex<RAS_2DFILTER_NUMBER_OF_FILTERS; programindex++)
-		m_programs[programindex] = 0;
-	
 }
 
 RAS_2DFilterManager::~RAS_2DFilterManager()
@@ -129,20 +129,31 @@ unsigned int RAS_2DFilterManager::CreateShaderProgram(int filtermode)
 		return 0;
 }
 
-void RAS_2DFilterManager::StartShaderProgram(int filtermode)
+void RAS_2DFilterManager::StartShaderProgram(unsigned int shaderprogram)
 {
     GLint uniformLoc;
-	bgl::blUseProgramObjectARB(m_programs[filtermode]);
-	uniformLoc = bgl::blGetUniformLocationARB(m_programs[filtermode], "sampler0");
+	bgl::blUseProgramObjectARB(shaderprogram);
+	uniformLoc = bgl::blGetUniformLocationARB(shaderprogram, "bgl_RenderedTexture");
     if (uniformLoc != -1)
     {
 		bgl::blUniform1iARB(uniformLoc, 0);
     }
-	uniformLoc = bgl::blGetUniformLocationARB(m_programs[filtermode], "tc_offset");
+	uniformLoc = bgl::blGetUniformLocationARB(shaderprogram, "bgl_TextureCoordinateOffset");
     if (uniformLoc != -1)
     {
         bgl::blUniform2fvARB(uniformLoc, 9, textureoffsets);
     }
+	uniformLoc = bgl::blGetUniformLocationARB(shaderprogram, "bgl_RenderedTextureWidth");
+    if (uniformLoc != -1)
+    {
+		bgl::blUniform1fARB(uniformLoc,texturewidth);
+    }
+	uniformLoc = bgl::blGetUniformLocationARB(shaderprogram, "bgl_RenderedTextureHeight");
+    if (uniformLoc != -1)
+    {
+		bgl::blUniform1fARB(uniformLoc,textureheight);
+    }
+
 }
 
 void RAS_2DFilterManager::EndShaderProgram()
@@ -200,7 +211,7 @@ void RAS_2DFilterManager::UpdateOffsetMatrix(int width, int height)
 
 void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 {
-	if(numberoffilters<=0 || !isshadersupported)
+	if(!isshadersupported)
 		return;
 
 	if(canvaswidth != canvas->GetWidth() || canvasheight != canvas->GetHeight())
@@ -213,7 +224,7 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 	bool first = true;
 	for(passindex =0; passindex<MAX_RENDER_PASS; passindex++)
 	{
-		if(m_filters[passindex])
+		if(m_filters[passindex] && m_enabled[passindex])
 		{
 			if(first)
 			{
@@ -253,33 +264,48 @@ void RAS_2DFilterManager::RenderFilters(RAS_ICanvas* canvas)
 	}
 }
 
-void RAS_2DFilterManager::EnableFilter(RAS_2DFILTER_MODE mode, int pass)
+void RAS_2DFilterManager::EnableFilter(RAS_2DFILTER_MODE mode, int pass, STR_String& text)
 {
 	if(!isshadersupported)
 		return;
-	if( pass == -1)
+	if(pass<0 || pass>=MAX_RENDER_PASS)
+		return;
+
+	if(mode == RAS_2DFILTER_DISABLED)
 	{
-		if(m_programs[mode] == 0)
-		m_programs[mode] = CreateShaderProgram(mode);
+		m_enabled[pass] = 0;
+		return;
 	}
-	else if( pass < MAX_RENDER_PASS )
+
+	if(mode == RAS_2DFILTER_ENABLED)
 	{
-		if(mode == RAS_2DFILTER_NOFILTER )
-		{
-			if(m_filters[pass] != 0)
-				numberoffilters--;
-			m_filters[pass] = 0;
-		}
-		else
-		{
-			if(!m_programs[mode])
-				m_programs[mode] = CreateShaderProgram(mode);
-			if(m_programs[mode])
-			{
-				if(m_filters[pass] == 0)
-					numberoffilters++;
-				m_filters[pass] = mode;
-			}
-		}
+		m_enabled[pass] = 1;
+		return;
+	}
+
+	if(mode == RAS_2DFILTER_NOFILTER)
+	{
+		if(m_filters[pass])
+			bgl::blDeleteObjectARB(m_filters[pass]);
+		m_enabled[pass] = 0;
+		m_filters[pass] = 0;
+		return;
+	}
+	
+	if(mode == RAS_2DFILTER_CUSTOMFILTER)
+	{
+		if(m_filters[pass])
+			bgl::blDeleteObjectARB(m_filters[pass]);
+		m_filters[pass] = CreateShaderProgram(text.Ptr());
+		m_enabled[pass] = 1;
+		return;
+	}
+
+	if(mode>=RAS_2DFILTER_MOTIONBLUR && mode<=RAS_2DFILTER_INVERT)
+	{
+		if(m_filters[pass])
+			bgl::blDeleteObjectARB(m_filters[pass]);
+		m_filters[pass] = CreateShaderProgram(mode);
+		m_enabled[pass] = 1;
 	}
 }

@@ -37,6 +37,8 @@
 
 #define BLENDER_HACK_DTIME 0.02
 
+#include "MEM_guardedalloc.h"
+
 #include "KX_BlenderSceneConverter.h"
 #include "KX_ConvertActuators.h"
 
@@ -70,7 +72,7 @@
 #include "KX_GameObject.h"
 
 /* This little block needed for linking to Blender... */
-
+#include "BKE_text.h"
 #include "BLI_blenlib.h"
 
 #include "KX_NetworkMessageActuator.h"
@@ -879,8 +881,17 @@ void BL_ConvertActuators(char* maggiename,
 				case ACT_2DFILTER_INVERT:
 					filtermode = RAS_2DFilterManager::RAS_2DFILTER_INVERT;
 					break;
+				case ACT_2DFILTER_CUSTOMFILTER:
+					filtermode = RAS_2DFilterManager::RAS_2DFILTER_CUSTOMFILTER;
+					break;
 				case ACT_2DFILTER_NOFILTER:
 					filtermode = RAS_2DFilterManager::RAS_2DFILTER_NOFILTER;
+					break;
+				case ACT_2DFILTER_DISABLED:
+					filtermode = RAS_2DFilterManager::RAS_2DFILTER_DISABLED;
+					break;
+				case ACT_2DFILTER_ENABLED:
+					filtermode = RAS_2DFilterManager::RAS_2DFILTER_ENABLED;
 					break;
 				default:
 					filtermode = RAS_2DFilterManager::RAS_2DFILTER_NOFILTER;
@@ -889,6 +900,18 @@ void BL_ConvertActuators(char* maggiename,
             
 			tmp = new SCA_2DFilterActuator(gameobj, filtermode, _2dfilter->flag,
 				_2dfilter->float_arg,_2dfilter->int_arg,ketsjiEngine->GetRasterizer(),rendertools);
+
+			if (_2dfilter->text)
+			{
+				char *buf;
+				// this is some blender specific code
+				buf = txt_to_buf(_2dfilter->text);
+				if (buf)
+				{
+					tmp->SetShaderText(STR_String(buf));
+					MEM_freeN(buf);
+				}
+			}
 
             baseact = tmp;
 			

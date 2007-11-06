@@ -10,7 +10,7 @@ class RAS_2DFilterManager
 private:
 	unsigned int	CreateShaderProgram(char* shadersource);
 	unsigned int	CreateShaderProgram(int filtermode);
-	void			StartShaderProgram(int filtermode);
+	void			StartShaderProgram(unsigned int shaderprogram);
 	void			EndShaderProgram();
 
 	float			textureoffsets[18];
@@ -25,6 +25,8 @@ private:
 	bool			isshadersupported;
 public:
 	enum RAS_2DFILTER_MODE {
+		RAS_2DFILTER_ENABLED = -2,
+		RAS_2DFILTER_DISABLED = -1,
 		RAS_2DFILTER_NOFILTER = 0,
 		RAS_2DFILTER_MOTIONBLUR,
 		RAS_2DFILTER_BLUR,
@@ -37,13 +39,13 @@ public:
 		RAS_2DFILTER_GRAYSCALE,
 		RAS_2DFILTER_SEPIA,
 		RAS_2DFILTER_INVERT,
+		RAS_2DFILTER_CUSTOMFILTER,
 		RAS_2DFILTER_NUMBER_OF_FILTERS
 	};
 
-	int	m_filters[MAX_RENDER_PASS];
+	unsigned int	m_filters[MAX_RENDER_PASS];
+	short			m_enabled[MAX_RENDER_PASS];
 
-	unsigned int m_programs[RAS_2DFILTER_NUMBER_OF_FILTERS];
-	
 	RAS_2DFilterManager();
 
 	~RAS_2DFilterManager();
@@ -54,6 +56,6 @@ public:
 
 	void RenderFilters(RAS_ICanvas* canvas);
 
-	void EnableFilter(RAS_2DFILTER_MODE mode, int pass);
+	void EnableFilter(RAS_2DFILTER_MODE mode, int pass, STR_String& text);
 };
 #endif

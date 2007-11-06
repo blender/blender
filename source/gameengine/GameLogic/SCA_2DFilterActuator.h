@@ -16,6 +16,7 @@ private:
 	short m_flag;
 	float m_float_arg;
 	int   m_int_arg;
+	STR_String	m_shaderText;
 	RAS_IRasterizer* m_rasterizer;
 	RAS_IRenderTools* m_rendertools;
 
@@ -32,7 +33,7 @@ public:
         PyTypeObject* T=&Type
         );
 
-
+	void	SetShaderText(STR_String& text);
     virtual ~SCA_2DFilterActuator();
     virtual bool Update();
 
