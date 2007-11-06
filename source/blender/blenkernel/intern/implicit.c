@@ -2165,55 +2165,6 @@ void collisions_collision_moving_tris(ClothModifierData *clmd, ClothModifierData
 	*/
 }
 
-
-// move collision objects forward in time and update static bounding boxes
-void collisions_update_collision_objects(float step)
-{
-	Base *base=NULL;
-	ClothModifierData *coll_clmd=NULL;
-	Object *coll_ob=NULL;
-	unsigned int i=0;
-	/*
-	// search all objects for collision object
-	for (base = G.scene->base.first; base; base = base->next)
-	{
-
-		coll_ob = base->object;
-		coll_clmd = (ClothModifierData *) modifiers_findByType (coll_ob, eModifierType_Cloth);
-		if (!coll_clmd)
-			continue;
-
-		// if collision object go on
-		if (coll_clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ)
-		{
-			if (coll_clmd->clothObject && coll_clmd->clothObject->tree) 
-			{
-				Cloth *coll_cloth = coll_clmd->clothObject;
-				BVH *coll_bvh = coll_clmd->clothObject->tree;
-				unsigned int coll_numverts = coll_cloth->numverts;
-
-				// update position of collision object
-				for(i = 0; i < coll_numverts; i++)
-				{
-					VECCOPY(coll_cloth->verts[i].txold, coll_cloth->verts[i].tx);
-
-					VECADDS(coll_cloth->verts[i].tx, coll_cloth->verts[i].xold, coll_cloth->verts[i].v, step);
-					
-					// no dt here because of float rounding errors
-					VECSUB(coll_cloth->verts[i].tv, coll_cloth->verts[i].tx, coll_cloth->verts[i].txold);
-				}
-				
-				// update BVH of collision object
-				// bvh_update(coll_clmd, coll_bvh, 0); // 0 means STATIC, 1 means MOVING 
-			}
-			else
-				printf ("collisions_bvh_objcollision: found a collision object with clothObject or collData NULL.\n");
-		}
-	}
-	*/
-}
-
-
 void collisions_collision_moving(ClothModifierData *clmd, ClothModifierData *coll_clmd, CollisionTree *tree1, CollisionTree *tree2)
 {
 	/*
@@ -2251,7 +2202,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float prevstep,
 	////////////////////////////////////////////////////////////
 	// static collisions
 	////////////////////////////////////////////////////////////
-	/*
+	
 	// update cloth bvh
 	bvh_update_from_float3(bvh1, cloth->current_xold, cloth->numverts, cloth->current_x, 0); // 0 means STATIC, 1 means MOVING (see later in this function)
 	
@@ -2275,6 +2226,8 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float prevstep,
 			
 			// fill collision list 
 			collisions += bvh_traverse(bvh1->root, bvh2->root, &collision_list);
+			
+			// call static collision response
 			
 			// free collision list
 			if(collision_list)
@@ -2303,7 +2256,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float prevstep,
 		VECADD(cloth->current_x[i], cloth->current_xold[i], cloth->current_v[i]);
 	}
 	//////////////////////////////////////////////
-	*/
+	
 	// Test on *simple* selfcollisions
 	collisions = 1;
 	count = 0;

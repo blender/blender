@@ -71,7 +71,7 @@ protected:
 	
 
 	public:
-		CcdPhysicsEnvironment(btDispatcher* dispatcher=0, btOverlappingPairCache* pairCache=0);
+		CcdPhysicsEnvironment(btDispatcher* dispatcher=0, btBroadphaseInterface* broadphase=0);
 
 		virtual		~CcdPhysicsEnvironment();
 

@@ -307,7 +307,7 @@ void KX_BlenderSceneConverter::ConvertScene(const STR_String& scenename,
 		case UseBullet:
 			{
 				CcdPhysicsEnvironment* ccdPhysEnv = new CcdPhysicsEnvironment();
-				ccdPhysEnv->setDebugDrawer(new BlenderDebugDraw());
+				// ccdPhysEnv->setDebugDrawer(new BlenderDebugDraw());
 				ccdPhysEnv->setDeactivationLinearTreshold(0.8f); // default, can be overridden by Python
 				ccdPhysEnv->setDeactivationAngularTreshold(1.0f); // default, can be overridden by Python
 

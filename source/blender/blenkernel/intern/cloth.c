@@ -171,7 +171,7 @@ void cloth_init (ClothModifierData *clmd)
 	// also from softbodies
 	clmd->sim_parms.maxgoal = 1.0;
 	clmd->sim_parms.mingoal = 0.0;
-	clmd->sim_parms.defgoal = 0.7;
+	clmd->sim_parms.defgoal = 0.0;
 	clmd->sim_parms.goalspring = 100.0;
 	clmd->sim_parms.goalfrict = 0.0;
 
