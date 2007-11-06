@@ -1,0 +1,42 @@
+#!/bin/sh
+#
+# build all four precision/release configurations and log the build messages
+# (used for debugging).
+
+PLATFORM=unix-gcc
+SETTINGS=config/user-settings
+
+if [ ! -f ode/src/ode.cpp ]; then
+  echo "run this from the ODE root directory"
+  exit 1
+fi
+
+function build() {
+echo -e "$PRECISION $MODE\n\n" >> BUILD_LOG
+cat <<END > $SETTINGS
+PLATFORM=$PLATFORM
+PRECISION=$PRECISION
+BUILD=$MODE
+END
+make clean
+make >> BUILD_LOG 2>&1
+echo -e "\n\n---------------------------------------------\n\n" >> BUILD_LOG
+}
+
+echo > BUILD_LOG
+
+PRECISION=SINGLE
+MODE=debug
+build
+PRECISION=SINGLE
+MODE=release
+build
+PRECISION=DOUBLE
+MODE=debug
+build
+PRECISION=DOUBLE
+MODE=release
+build
+
+make clean
+rm -f $SETTINGS

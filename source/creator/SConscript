@@ -1,0 +1,18 @@
+#!/usr/bin/python
+Import ('env')
+
+sources = 'creator.c'
+
+incs = '#/intern/guardedalloc ../blender/blenlib ../blender/blenkernel'
+incs += ' ../blender/include ../blender/blenloader ../blender/imbuf'
+incs += ' ../blender/renderconverter ../blender/render/extern/include'
+incs += ' ../blender/python ../blender/makesdna ../kernel/gen_messaging'
+incs += ' ../kernel/gen_system'
+incs += ' ' + env['BF_OPENGL_INC']
+
+defs = []
+if env['WITH_BF_QUICKTIME']==1:
+    incs += ' ' + env['BF_QUICKTIME_INC']
+    defs.append('WITH_QUICKTIME')
+
+env.BlenderLib ( libname = 'blender_creator', sources = Split(sources), includes = Split(incs), defines = defs, libtype='core', priority = 1 )

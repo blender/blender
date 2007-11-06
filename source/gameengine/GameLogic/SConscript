@@ -1,0 +1,12 @@
+#!/usr/bin/python
+Import ('env')
+
+sources = env.Glob('*.cpp') + env.Glob('Joystick/*.cpp')
+
+incs = '. #/source/kernel/gen_system #/intern/string'
+incs += ' #/source/gameengine/Expressions #/intern/moto/include'
+
+incs += ' ' + env['BF_PYTHON_INC']
+incs += ' ' + env['BF_SDL_INC']
+
+env.BlenderLib ( 'bf_logic', sources, Split(incs), [], libtype=['game','player'], priority=[30, 110] )

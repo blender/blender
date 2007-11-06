@@ -1,0 +1,63 @@
+/** \mainpage Blender
+ *
+ * \section intro Introduction
+ *
+ * Blender is an integrated 3d package, which features:
+ *  - modeling
+ *  - animation
+ *  - texturing
+ *  - compositing
+ *  - rendering
+ *  - scripting
+ *  - game creation
+ *
+ * These pages document the source code of blender.
+ *
+ * \section sects Main sections of the blender code
+ *
+ *  The following sections are the broad categories into which the various modules
+ *  belong.
+ *
+ *  - \ref mainmodule
+ *  - \ref render
+ *  - \ref meshedit
+ *  - \ref texture
+ *  - \ref compositor
+ *  - \ref scripts
+ *  - \ref gameengine
+ *
+ * \section GUI
+ *  - \ref gui
+ *  - \ref hotkeys
+ *  - \ref toolbox
+ *
+ * \section Libraries and Wrappers
+ *  - GHOST API: \ref GHOST_C-api.h
+ *  - \ref imbuf
+ *
+ * \section Miscellaneous
+ *  - \ref undoc
+ */
+
+/** \defgroup mainmodule Main Module */
+/** \defgroup defaultconfig Default and Configuration
+ *  \ingroup mainmodule
+ */
+
+/** \defgroup render Rendering Module */
+/** \defgroup meshedit Mesh Editing Module */
+/** \defgroup texture Textureing */
+/** \defgroup compositor Compositing */
+/** \defgroup scripts Scripting */
+/** \defgroup gameengine Game Engine */
+
+/** \defgroup gui GUI */
+/** \defgroup hotkeys Hotkeys
+ *  \ingroup gui
+ */
+/** \defgroup toolbox Toolbox
+ *  \ingroup gui
+ */
+
+/** \defgroup imbuf IMage Buffer */
+/** \defgroup undoc Undocumented */

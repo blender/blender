@@ -1,0 +1,9 @@
+#!/usr/bin/python
+
+Import ('env')
+
+sources = env.Glob('*.cpp') #'SG_BBox.cpp SG_Controller.cpp SG_IObject.cpp SG_Node.cpp SG_Spatial.cpp SG_Tree.cpp'
+
+incs = '. #intern/moto/include'
+
+env.BlenderLib ( 'bf_scenegraph', sources, Split(incs), [], libtype=['game','player'], priority=[50,130] )

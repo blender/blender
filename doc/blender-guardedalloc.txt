@@ -1,0 +1,57 @@
+MEMORY MANAGEMENT IN BLENDER (guardedalloc)
+-------------------------------------------
+
+NOTE: This file does not cover memutil and smart pointers and rerefence counted
+      garbage collection, which are contained in the memutil module.
+
+Blender takes care of dynamic memory allocation using a set of own functions
+which are recognizeable through their MEM_ prefix. All memory allocation and
+deallocation in blender is done through these functions.
+
+The following functions are available through MEM_guardedalloc.h:
+
+For normal operation:
+---------------------
+
+void *MEM_[mc]allocN(unsigned int len, char * str);
+
+- nearest ANSI counterpart: malloc()
+- str must be a static string describing the memory block (used for debugging
+memory management problems)
+- returns a memory block of length len
+- MEM_callocN clears the memory block to 0
+
+void *MEM_dupallocN(void *vmemh);
+
+- nearest ANSI counterpart: combination malloc() and memcpy()
+- returns a pointer to a copy of the given memory area
+
+short MEM_freeN(void *vmemh);
+
+- nearest ANSI counterpart: free()
+- frees the memory area given by the pointer
+- returns 0 on success and !=0 on error
+
+int MEM_allocN_len(void *vmemh);
+
+- nearest ANSI counterpart: none known
+- returns the length of the given memory area
+
+For debugging:
+--------------
+
+void MEM_set_error_stream(FILE*);
+
+- this sets the file the memory manager should use to output debugging messages
+- if the parameter is NULL the messages are suppressed
+- default is that messages are suppressed
+
+void MEM_printmemlist(void);
+
+- if err_stream is set by MEM_set_error_stream() this function dumps a list of all
+currently allocated memory blocks with length and name to the stream
+
+int MEM_check_memory_integrity(void);
+
+- this function tests if the internal structures of the memory manager are intact
+- returns 0 on success and !=0 on error

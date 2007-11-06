@@ -1,0 +1,323 @@
+Microsoft Developer Studio Workspace File, Format Version 6.00
+# WARNING: DO NOT EDIT OR DELETE THIS WORKSPACE FILE!
+
+###############################################################################
+
+Project: "BLO_loader"=..\..\..\blender\loader\BLO_loader.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "EXP_expressions"=..\..\expression\EXP_expressions.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "SCA_GameLogic"=..\..\gamelogic\SCA_GameLogic.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "KX_ketsji"=..\..\ketsji\KX_ketsji.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "KX_network"=..\..\ketsji\network\KX_network.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "SG_SceneGraph"=..\..\scenegraph\SG_SceneGraph.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "NG_loopbacknetwork"=..\..\network\loopbacknetwork\NG_loopbacknetwork.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "NG_network"=..\..\network\network\NG_network.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "RAS_openglrasterizer"=..\..\rasterizer\openglrasterizer\RAS_openglrasterizer.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "RAS_rasterizer"=..\..\rasterizer\RAS_rasterizer.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "SM_fuzzics"=..\..\..\sumo\fuzzics\SM_fuzzics.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "SM_moto"=..\..\..\sumo\moto\SM_moto.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "SM_solid"=..\..\..\sumo\solid\SM_solid.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "SND_openal"=..\..\sound\openal\SND_openal.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "SND_sound"=..\..\sound\SND_sound.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "SYS_system"=..\..\..\kernel\system\SYS_system.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "gp"=.\gp.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name EXP_expressions
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name SCA_GameLogic
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name KX_ketsji
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name KX_network
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name SG_SceneGraph
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name NG_loopbacknetwork
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name NG_network
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name RAS_openglrasterizer
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name RAS_rasterizer
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name SM_fuzzics
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name SM_moto
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name SM_solid
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name SND_openal
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name SND_sound
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name SYS_system
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "gpplugin"=.\gpplugin.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name EXP_expressions
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name SCA_GameLogic
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name KX_ketsji
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name KX_network
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name SG_SceneGraph
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name NG_loopbacknetwork
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name NG_network
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name RAS_openglrasterizer
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name RAS_rasterizer
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name SM_fuzzics
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name SM_moto
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name SM_solid
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name SND_openal
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name SND_sound
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name SYS_system
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Global:
+
+Package=<5>
+{{{
+}}}
+
+Package=<3>
+{{{
+}}}
+
+###############################################################################
+

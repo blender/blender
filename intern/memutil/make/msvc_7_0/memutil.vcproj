@@ -1,0 +1,292 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioProject
+	ProjectType="Visual C++"
+	Version="7.10"
+	Name="memutil"
+	SccProjectName=""
+	SccLocalPath="">
+	<Platforms>
+		<Platform
+			Name="Win32"/>
+	</Platforms>
+	<Configurations>
+		<Configuration
+			Name="Blender Debug|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\memutil\debug"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\memutil\debug"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\..\..\intern;..\..\..\memutil"
+				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
+				BufferSecurityCheck="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\memutil\debug\memutil.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\memutil\debug\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\memutil\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\memutil\debug\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\debug\memutil.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copying MEM files library (debug target) to lib tree."
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\memutil\include MKDIR ..\..\..\..\..\build\msvc_7\intern\memutil\include
+XCOPY /Y ..\..\*.h ..\..\..\..\..\build\msvc_7\intern\memutil\include
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="Blender Release|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\memutil"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\memutil"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="2"
+				AdditionalIncludeDirectories="..\..\..\..\intern;..\..\..\memutil"
+				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
+				StringPooling="TRUE"
+				RuntimeLibrary="0"
+				EnableFunctionLevelLinking="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\memutil\memutil.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\memutil\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\memutil\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\memutil\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\memutil.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copying MEM files library to lib tree."
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\memutil\include MKDIR ..\..\..\..\..\build\msvc_7\intern\memutil\include
+XCOPY /Y ..\..\*.h ..\..\..\..\..\build\msvc_7\intern\memutil\include
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="3DPlugin Release|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\memutil\mtdll"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\memutil\mtdll"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				InlineFunctionExpansion="2"
+				AdditionalIncludeDirectories="..\..\..\..\intern;..\..\..\memutil"
+				PreprocessorDefinitions="WIN32,NDEBUG,_LIB"
+				StringPooling="TRUE"
+				RuntimeLibrary="2"
+				EnableFunctionLevelLinking="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\memutil\mtdll\memutil.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\memutil\mtdll\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\memutil\mtdll\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\memutil\mtdll\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\mtdll\memutil.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copying MEM files library to lib tree."
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\memutil\include MKDIR ..\..\..\..\..\build\msvc_7\intern\memutil\include
+XCOPY /Y ..\..\*.h ..\..\..\..\..\build\msvc_7\intern\memutil\include
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="NDEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+		<Configuration
+			Name="3DPlugin Debug|Win32"
+			OutputDirectory="..\..\..\..\..\build\msvc_7\intern\memutil\mtdll\debug"
+			IntermediateDirectory="..\..\..\..\..\build\msvc_7\intern\memutil\mtdll\debug"
+			ConfigurationType="4"
+			UseOfMFC="0"
+			ATLMinimizesCRunTimeLibraryUsage="FALSE"
+			CharacterSet="2">
+			<Tool
+				Name="VCCLCompilerTool"
+				Optimization="0"
+				AdditionalIncludeDirectories="..\..\..\..\intern;..\..\..\memutil"
+				PreprocessorDefinitions="WIN32,_DEBUG,_LIB"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="3"
+				BufferSecurityCheck="TRUE"
+				UsePrecompiledHeader="2"
+				PrecompiledHeaderFile="..\..\..\..\..\build\msvc_7\intern\memutil\mtdll\debug\memutil.pch"
+				AssemblerListingLocation="..\..\..\..\..\build\msvc_7\intern\memutil\mtdll\debug\"
+				ObjectFile="..\..\..\..\..\build\msvc_7\intern\memutil\mtdll\debug\"
+				ProgramDataBaseFileName="..\..\..\..\..\build\msvc_7\intern\memutil\mtdll\debug\"
+				WarningLevel="2"
+				SuppressStartupBanner="TRUE"
+				DebugInformationFormat="3"
+				CompileAs="0"/>
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCLibrarianTool"
+				OutputFile="..\..\..\..\..\build\msvc_7\libs\intern\mtdll\debug\memutil.lib"
+				SuppressStartupBanner="TRUE"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				Description="Copying MEM files library (debug target) to lib tree."
+				CommandLine="ECHO Copying header files
+IF NOT EXIST ..\..\..\..\..\build\msvc_7\intern\memutil\include MKDIR ..\..\..\..\..\build\msvc_7\intern\memutil\include
+XCOPY /Y ..\..\*.h ..\..\..\..\..\build\msvc_7\intern\memutil\include
+ECHO Done
+"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+			<Tool
+				Name="VCPreLinkEventTool"/>
+			<Tool
+				Name="VCResourceCompilerTool"
+				PreprocessorDefinitions="_DEBUG"
+				Culture="1033"/>
+			<Tool
+				Name="VCWebServiceProxyGeneratorTool"/>
+			<Tool
+				Name="VCXMLDataGeneratorTool"/>
+			<Tool
+				Name="VCManagedWrapperGeneratorTool"/>
+			<Tool
+				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
+		</Configuration>
+	</Configurations>
+	<References>
+	</References>
+	<Files>
+		<Filter
+			Name="Source Files"
+			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
+			<File
+				RelativePath="..\..\intern\MEM_CacheLimiterC-Api.cpp">
+			</File>
+			<File
+				RelativePath="..\..\intern\MEM_RefCountedC-Api.cpp">
+			</File>
+		</Filter>
+		<Filter
+			Name="Header Files"
+			Filter="h;hpp;hxx;hm;inl">
+			<File
+				RelativePath="..\..\MEM_Allocator.h">
+			</File>
+			<File
+				RelativePath="..\..\MEM_CacheLimiter.h">
+			</File>
+			<File
+				RelativePath="..\..\MEM_CacheLimiterC-Api.h">
+			</File>
+			<Filter
+				Name="extern"
+				Filter="">
+				<File
+					RelativePath="..\..\MEM_NonCopyable.h">
+				</File>
+				<File
+					RelativePath="..\..\MEM_RefCounted.h">
+				</File>
+				<File
+					RelativePath="..\..\MEM_RefCountedC-Api.h">
+				</File>
+				<File
+					RelativePath="..\..\MEM_RefCountPtr.h">
+				</File>
+				<File
+					RelativePath="..\..\MEM_SmartPtr.h">
+				</File>
+			</Filter>
+		</Filter>
+	</Files>
+	<Globals>
+	</Globals>
+</VisualStudioProject>

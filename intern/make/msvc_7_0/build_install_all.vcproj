@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="Windows-1252"?>
+<VisualStudioProject
+	ProjectType="Visual C++"
+	Version="7.10"
+	Name="build_install_all"
+	ProjectGUID="{02110D03-59DB-4571-8787-72B3C03B2F2D}"
+	SccProjectName=""
+	SccLocalPath=""
+	Keyword="MakeFileProj">
+	<Platforms>
+		<Platform
+			Name="Win32"/>
+	</Platforms>
+	<Configurations>
+		<Configuration
+			Name="Blender Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\intern\debug"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\intern\debug"
+			ConfigurationType="10"
+			UseOfMFC="0">
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				ExcludedFromBuild="FALSE"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+		</Configuration>
+		<Configuration
+			Name="Blender Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\intern"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\intern"
+			ConfigurationType="10"
+			UseOfMFC="0">
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+		</Configuration>
+		<Configuration
+			Name="3DPlugin Release|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\intern\mtdll"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\intern\mtdll"
+			ConfigurationType="10"
+			UseOfMFC="0">
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+		</Configuration>
+		<Configuration
+			Name="3DPlugin Debug|Win32"
+			OutputDirectory="..\..\..\..\build\msvc_7\intern\mtdll\debug"
+			IntermediateDirectory="..\..\..\..\build\msvc_7\intern\mtdll\debug"
+			ConfigurationType="10"
+			UseOfMFC="0">
+			<Tool
+				Name="VCCustomBuildTool"/>
+			<Tool
+				Name="VCMIDLTool"/>
+			<Tool
+				Name="VCPostBuildEventTool"
+				ExcludedFromBuild="FALSE"/>
+			<Tool
+				Name="VCPreBuildEventTool"/>
+		</Configuration>
+	</Configurations>
+	<References>
+	</References>
+	<Files>
+	</Files>
+	<Globals>
+	</Globals>
+</VisualStudioProject>

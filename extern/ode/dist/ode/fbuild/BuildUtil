@@ -1,0 +1,99 @@
+#!/usr/bin/perl -w
+#
+#########################################################################
+#                                                                       #
+# Open Dynamics Engine, Copyright (C) 2001,2002 Russell L. Smith.       #
+# All rights reserved.  Email: russ@q12.org   Web: www.q12.org          #
+#                                                                       #
+# This library is free software; you can redistribute it and/or         #
+# modify it under the terms of EITHER:                                  #
+#   (1) The GNU Lesser General Public License as published by the Free  #
+#       Software Foundation; either version 2.1 of the License, or (at  #
+#       your option) any later version. The text of the GNU Lesser      #
+#       General Public License is included with this library in the     #
+#       file LICENSE.TXT.                                               #
+#   (2) The BSD-style license that is included with this library in     #
+#       the file LICENSE-BSD.TXT.                                       #
+#                                                                       #
+# This library is distributed in the hope that it will be useful,       #
+# but WITHOUT ANY WARRANTY; without even the implied warranty of        #
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the files    #
+# LICENSE.TXT and LICENSE-BSD.TXT for more details.                     #
+#                                                                       #
+#########################################################################
+
+package BuildUtil;
+
+
+# print out code. after newlines, indent according to the number of curly
+# brackets we've seen
+
+my $indent = 0;
+my $startofline = 1;
+
+
+sub main::output
+{
+  my $line = $_[0];
+  my ($i,$j,$c);
+  for ($i=0; $i < length ($line); $i++) {
+    $c = substr ($line,$i,1);
+    print main::FOUT $c if $c eq '{';
+    $indent++ if $c eq '{';
+    $indent-- if $c eq '}';
+    if ($startofline) {
+      for ($j=0; $j < $indent; $j++) {
+	print main::FOUT "  ";
+      }
+      $startofline = 0;
+    }
+    print main::FOUT $c if $c ne '{';
+    $startofline = 1 if $c eq "\n";
+  }
+}
+
+
+# write a C comment with the correct indenting
+
+sub main::comment
+{
+  main::output ("/* $_[0] */\n");
+}
+
+
+# return an offset: N*skip = skipN where N=0,1,2,...
+
+sub main::ofs1 # (N,skip)
+{
+  my $N = $_[0];
+  my $skip = $_[1];
+  return '0' if $N==0;
+  return $skip . $N;
+}
+
+
+# return an offset: M+N*skip = M+skipN where N=0,1,2,...
+
+sub main::ofs2 # (M,N,skip)
+{
+  my $M = $_[0];
+  my $N = $_[1];
+  my $skip = $_[2];
+  $M = '0' if $M eq '-0';
+  my $a = $M;
+  $a .= '+' . $skip . $N if ($N > 0);
+  substr ($a,0,2)='' if substr ($a,0,2) eq '0+';
+  return $a;
+}
+
+
+# print an error message and exit
+
+sub main::error
+{
+  print "ERROR: $_[0]\n";
+  exit 1;
+}
+
+
+1;

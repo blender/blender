@@ -1,0 +1,46 @@
+#!/usr/bin/python
+Import ('env')
+
+sources = env.Glob('intern/*.c')
+sources += env.Glob('intern/CMP_nodes/*.c')
+sources += env.Glob('intern/SHD_nodes/*.c')
+
+incs = '. ./intern '
+incs += '#/intern/guardedalloc ../include ../blenlib ../makesdna'
+incs += ' ../python ../render/extern/include '
+incs += ' ../imbuf ../avi '
+incs += ' ../blenloader ../quicktime'
+incs += ' ../blenkernel ../renderconverter '
+
+
+
+incs += ' ' + env['BF_OPENGL_INC']
+incs += ' ' + env['BF_ZLIB_INC']
+incs += ' ' + env['BF_SDL_INC']
+
+defs = ''
+
+if env['WITH_BF_INTERNATIONAL']:
+    defs += 'WITH_FREETYPE2'
+
+if env['WITH_BF_VERSE']:
+    defs += ' WITH_VERSE'
+    incs += ' ' + env['BF_VERSE_INCLUDE']
+
+if env['WITH_BF_VERSE']:
+    defs += ' WITH_VERSE'
+
+if env['WITH_BF_OPENEXR'] == 1:
+    defs += ' WITH_OPENEXR'
+
+if env['WITH_BF_FFMPEG'] == 1:
+    defs += ' WITH_FFMPEG'
+    incs += ' ' + env['BF_FFMPEG_INC']
+
+if env['WITH_BF_QUICKTIME'] == 1:
+    defs += ' WITH_QUICKTIME'
+    incs += ' ' + env['BF_QUICKTIME_INC']
+
+defs += ' WITH_CCGSUBSURF'
+
+env.BlenderLib ( libname = 'nodes', sources = sources, includes = Split(incs), defines = Split(defs), libtype=['core','player'], priority = [65, 20] )

@@ -1,0 +1,156 @@
+$Id$
+
+    Blender CMake build system
+    ============================
+
+    Contents
+    ---------------
+
+    1. Introduction
+    2. Obtaining CMake
+    3. Obtaining Dependencies
+    4. Deciding on a Build Environment
+    5. Configuring the build for the first time
+    6. Configuring the build after CVS updates
+    7. Specify alternate Python library versions and locations
+
+
+    1. Introduction
+    ---------------
+
+    This document describes general usage of the new CMake scripts. The
+    inner workings will be described in blender-cmake-dev.txt (TODO).
+
+    2. Obtaining CMake
+    ------------------
+
+    CMake for can either be downloaded using your favorite package manager 
+    or is also available from the CMake website at http://www.cmake.org 
+    The website also contains some documentation on CMake usage but I found
+    the man page alone pretty helpful. 
+
+    3. Obtaining Dependencies
+    -------------------------
+
+    Check from the page
+    http://www.blender.org/cms/Getting_Dependencies.135.0.html that you
+    have all dependencies needed for building Blender. Note that for
+    windows many of these dependencies already come in the lib/windows
+    module from CVS.
+
+    4. Deciding on a Build Environment
+    ----------------------------------
+
+    To build Blender with the CMake scripts you first need to decide which
+    build environment you feel comfortable with. This decision will also be
+    influenced by the platform you are developing on. The current implementation
+    have been successfully used to generate build files for the following 
+    environments:
+
+    1. Microsoft Visual Studio 2005. There is a free version available
+       at http://msdn.microsoft.com/vstudio/express/visualc/.
+
+    2. Xcode on Mac OSX
+
+    3. Unix Makefiles (On Linux and Mac OSX): CMake actually creates make 
+       files which generates nicely color coded output and a percentage 
+       progress indicator.
+
+
+    5. Configuring the build for the first time
+    -------------------------------------------
+
+    CMake allows one to generate the build project files and binary objects
+    outside the source tree which can be pretty handy in working and experimenting
+    with different Blender configurations (Audio/NoAudio, GameEngine/NoGameEngine etc.)
+    while maintaining a clean source tree. It also makes it possible to generate files
+    for different build systems on the same source tree. This also has benefits for 
+    general CVS management for the developer as patches and submit logs are much cleaner.
+
+    Create a directory outside the blender source tree where you would like to build
+    Blender (from now on called $BLENDERBUILD). On the commandline you can then run
+    the cmake command to generate your initial build files. First just run 'cmake' which
+    will inform you what the available generators are. Thn you can run 
+    'cmake -G generator $BLENDERSOURCE' to generate the build files. Here is an example 
+    of all this for Xcode:
+
+        % mkdir $BLENDERBUILD
+        % cd $BLENDERBUILD
+        % cmake
+
+		...
+		...
+		--version [file]            = Show program name/version banner and exit.
+
+		Generators
+
+		The following generators are available on this platform:
+		  KDevelop3                   = Generates KDevelop 3 project files.
+		  Unix Makefiles              = Generates standard UNIX makefiles.
+		  Xcode                       = Generate XCode project files.
+
+
+
+        % cmake -G Xcode $BLENDERSOURCE
+		...
+		...
+		-- Configuring blender
+		-- Configuring blenderplayer
+		-- Configuring done
+		-- Generating done
+		-- Build files have been written to: $BLENDERBUILD 
+
+    This will generate the build files with default values. Specific features can
+    be enabled or disabled by running the ccmake "GUI" from $BLENDERBUILD as follows:
+
+        % ccmake $BLENDERSOURCE
+
+    A number of options appear which can be changed depending on your needs and
+    available dependencies (e.g. setting WITH_OPENEXR to OFF will disable support
+    for OpenEXR). It will also allow you to override default and detected paths 
+    (e.g. Python directories) and compile and link flags. When you are satisfied
+    used ccmake to re-configure the build files and exit.
+
+    It is also possible to use the commandline of 'cmake' to override certain
+    of these settings. 
+
+    6. Configuring the build after CVS updates
+    ------------------------------------------
+
+    The $BLENDERBUILD directory maintains a file called CMakeCache.txt which 
+    remembers the initial run's settings for subsequent generation runs. After
+    every CVS update it may be a good idea to rerun the generation before building
+    Blender again. Just rerun the original 'cmake' run to do this, the settings
+    will be remembered. For the example above the following will do after every
+    'cvs up':
+
+        % cmake -G Xcode $BLENDERSOURCE
+
+    7. Specify alternate Python library versions and locations
+    ----------------------------------------------------------
+    
+    The commandline can be used to override detected/default settings, e.g:
+ 
+    On Unix: 
+      cmake -D PYTHON_LIB=/usr/local/lib/python2.3/config/libpython2.3.so -D PYTHON_INC=/usr/local/include/python2.3 -D PYTHON_BINARY=/usr/local/bin/python2.3 -G "Unix Makefiles" ../blender
+    On Macs: 
+      cmake -D PYTHON_INC=/System/Library/Frameworks/Python.framework/Versions/2.5/include/python2.5 -D PYTHON_LIBPATH=/System/Library/Frameworks/Python.framework/Versions/2.5/lib/python2.5/config -D PYTHON_BINARY=/System/Library/Frameworks/Python.framework/Versions/2.5/bin/python2.5 -G Xcode ../blender
+
+    Mote that this should only be needed once per build directory generation because it will keep the overrides in CMakeCache.txt for subsequent runs.
+
+
+
+    To be continued...
+
+    TODO's
+    ------
+
+    1. Get CMake to create proper distribution directories for the various platforms
+       like scons does.
+    2. Investigate the viability of using CPack to package installs automatically.
+    3. Refine this document and write detailed developer's document.
+    4. Make sure all options (ffmpeg, openexr, quicktime) has proper CMake support
+       on the various platforms.    
+
+    /Jacques Beaurain (jbinto)
+

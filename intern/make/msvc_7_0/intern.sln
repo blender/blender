@@ -1,0 +1,252 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "build_install_all", "build_install_all.vcproj", "{02110D03-59DB-4571-8787-72B3C03B2F2D}"
+	ProjectSection(ProjectDependencies) = postProject
+		{A90C4918-4B21-4277-93BD-AF65F30951D9} = {A90C4918-4B21-4277-93BD-AF65F30951D9}
+		{98330220-47A6-42E0-9DE4-AD0FF5D204D6} = {98330220-47A6-42E0-9DE4-AD0FF5D204D6}
+		{C66F722C-46BE-40C9-ABAE-2EAC7A697EB8} = {C66F722C-46BE-40C9-ABAE-2EAC7A697EB8}
+		{FAF46346-65CC-4DB2-85C4-B99826F79D0C} = {FAF46346-65CC-4DB2-85C4-B99826F79D0C}
+		{B093415D-C0F6-4E76-8F5A-6BC1917BCE9E} = {B093415D-C0F6-4E76-8F5A-6BC1917BCE9E}
+		{E784098D-3ED8-433A-9353-9679415DDDC5} = {E784098D-3ED8-433A-9353-9679415DDDC5}
+		{76D90B92-ECC7-409C-9F98-A8814B90F3C0} = {76D90B92-ECC7-409C-9F98-A8814B90F3C0}
+		{542A9FA1-B7FF-441C-AE15-054DB31D3488} = {542A9FA1-B7FF-441C-AE15-054DB31D3488}
+		{213356A9-3A1F-41DA-9819-1297BCD17DEE} = {213356A9-3A1F-41DA-9819-1297BCD17DEE}
+		{51A348C1-8684-4D67-B980-97B1FC74159B} = {51A348C1-8684-4D67-B980-97B1FC74159B}
+		{8B8D4FC3-3234-4E54-8376-5AB83D00D164} = {8B8D4FC3-3234-4E54-8376-5AB83D00D164}
+		{4B6AFCC5-968C-424A-8F20-76E41B3BEF74} = {4B6AFCC5-968C-424A-8F20-76E41B3BEF74}
+		{EB75F4D6-2970-4A3A-8D99-2BAD7201C0E9} = {EB75F4D6-2970-4A3A-8D99-2BAD7201C0E9}
+		{E86B7BDE-C33C-4E55-9433-E74C141D7538} = {E86B7BDE-C33C-4E55-9433-E74C141D7538}
+		{B789C2F3-279E-4A85-8F0A-7F7AC068E598} = {B789C2F3-279E-4A85-8F0A-7F7AC068E598}
+		{6B3229F4-2A37-47EE-8B89-9AA046B35193} = {6B3229F4-2A37-47EE-8B89-9AA046B35193}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "MoTo", "..\..\moto\make\msvc_7_0\MoTo.vcproj", "{4B6AFCC5-968C-424A-8F20-76E41B3BEF74}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bmfont", "..\..\bmfont\make\msvc_7_0\bmfont.vcproj", "{E784098D-3ED8-433A-9353-9679415DDDC5}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "bsplib", "..\..\bsp\make\msvc_7_0\bsplib.vcproj", "{B093415D-C0F6-4E76-8F5A-6BC1917BCE9E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{51A348C1-8684-4D67-B980-97B1FC74159B} = {51A348C1-8684-4D67-B980-97B1FC74159B}
+		{4B6AFCC5-968C-424A-8F20-76E41B3BEF74} = {4B6AFCC5-968C-424A-8F20-76E41B3BEF74}
+		{E86B7BDE-C33C-4E55-9433-E74C141D7538} = {E86B7BDE-C33C-4E55-9433-E74C141D7538}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "container", "..\..\container\make\msvc_7_0\container.vcproj", "{51A348C1-8684-4D67-B980-97B1FC74159B}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "decimation", "..\..\decimation\make\msvc_7_0\decimation.vcproj", "{C66F722C-46BE-40C9-ABAE-2EAC7A697EB8}"
+	ProjectSection(ProjectDependencies) = postProject
+		{51A348C1-8684-4D67-B980-97B1FC74159B} = {51A348C1-8684-4D67-B980-97B1FC74159B}
+		{4B6AFCC5-968C-424A-8F20-76E41B3BEF74} = {4B6AFCC5-968C-424A-8F20-76E41B3BEF74}
+		{E86B7BDE-C33C-4E55-9433-E74C141D7538} = {E86B7BDE-C33C-4E55-9433-E74C141D7538}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ghost", "..\..\ghost\make\msvc_7_0\ghost.vcproj", "{76D90B92-ECC7-409C-9F98-A8814B90F3C0}"
+	ProjectSection(ProjectDependencies) = postProject
+		{B789C2F3-279E-4A85-8F0A-7F7AC068E598} = {B789C2F3-279E-4A85-8F0A-7F7AC068E598}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "guardedalloc", "..\..\guardedalloc\make\msvc_7_0\guardedalloc.vcproj", "{6B3229F4-2A37-47EE-8B89-9AA046B35193}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "iksolver", "..\..\iksolver\make\msvc_7_0\iksolver.vcproj", "{542A9FA1-B7FF-441C-AE15-054DB31D3488}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "memutil", "..\..\memutil\make\msvc_7_0\memutil.vcproj", "{E86B7BDE-C33C-4E55-9433-E74C141D7538}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "string", "..\..\string\make\msvc_7_0\string.vcproj", "{B789C2F3-279E-4A85-8F0A-7F7AC068E598}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SoundSystem", "..\..\SoundSystem\make\msvc_7_0\SoundSystem.vcproj", "{98330220-47A6-42E0-9DE4-AD0FF5D204D6}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4B6AFCC5-968C-424A-8F20-76E41B3BEF74} = {4B6AFCC5-968C-424A-8F20-76E41B3BEF74}
+		{B789C2F3-279E-4A85-8F0A-7F7AC068E598} = {B789C2F3-279E-4A85-8F0A-7F7AC068E598}
+		{6B3229F4-2A37-47EE-8B89-9AA046B35193} = {6B3229F4-2A37-47EE-8B89-9AA046B35193}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OpenALSoundSystem", "..\..\SoundSystem\make\msvc_7_0\openal\OpenALSoundSystem.vcproj", "{213356A9-3A1F-41DA-9819-1297BCD17DEE}"
+	ProjectSection(ProjectDependencies) = postProject
+		{98330220-47A6-42E0-9DE4-AD0FF5D204D6} = {98330220-47A6-42E0-9DE4-AD0FF5D204D6}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DummySoundSystem", "..\..\SoundSystem\make\msvc_7_0\dummy\DummySoundSystem.vcproj", "{FAF46346-65CC-4DB2-85C4-B99826F79D0C}"
+	ProjectSection(ProjectDependencies) = postProject
+		{98330220-47A6-42E0-9DE4-AD0FF5D204D6} = {98330220-47A6-42E0-9DE4-AD0FF5D204D6}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "opennl", "..\..\opennl\make\msvc_7_0\opennl.vcproj", "{8B8D4FC3-3234-4E54-8376-5AB83D00D164}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "elbeem", "..\..\elbeem\make\msvc_7_0\elbeem.vcproj", "{A90C4918-4B21-4277-93BD-AF65F30951D9}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "boolop", "..\..\boolop\make\msvc_7_0\boolop.vcproj", "{EB75F4D6-2970-4A3A-8D99-2BAD7201C0E9}"
+	ProjectSection(ProjectDependencies) = postProject
+		{51A348C1-8684-4D67-B980-97B1FC74159B} = {51A348C1-8684-4D67-B980-97B1FC74159B}
+		{4B6AFCC5-968C-424A-8F20-76E41B3BEF74} = {4B6AFCC5-968C-424A-8F20-76E41B3BEF74}
+		{E86B7BDE-C33C-4E55-9433-E74C141D7538} = {E86B7BDE-C33C-4E55-9433-E74C141D7538}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		3DPlugin Debug = 3DPlugin Debug
+		3DPlugin Release = 3DPlugin Release
+		Blender Debug = Blender Debug
+		Blender Release = Blender Release
+	EndGlobalSection
+	GlobalSection(ProjectDependencies) = postSolution
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{02110D03-59DB-4571-8787-72B3C03B2F2D}.3DPlugin Debug.ActiveCfg = 3DPlugin Debug|Win32
+		{02110D03-59DB-4571-8787-72B3C03B2F2D}.3DPlugin Debug.Build.0 = 3DPlugin Debug|Win32
+		{02110D03-59DB-4571-8787-72B3C03B2F2D}.3DPlugin Release.ActiveCfg = 3DPlugin Release|Win32
+		{02110D03-59DB-4571-8787-72B3C03B2F2D}.3DPlugin Release.Build.0 = 3DPlugin Release|Win32
+		{02110D03-59DB-4571-8787-72B3C03B2F2D}.Blender Debug.ActiveCfg = Blender Debug|Win32
+		{02110D03-59DB-4571-8787-72B3C03B2F2D}.Blender Debug.Build.0 = Blender Debug|Win32
+		{02110D03-59DB-4571-8787-72B3C03B2F2D}.Blender Release.ActiveCfg = Blender Release|Win32
+		{02110D03-59DB-4571-8787-72B3C03B2F2D}.Blender Release.Build.0 = Blender Release|Win32
+		{4B6AFCC5-968C-424A-8F20-76E41B3BEF74}.3DPlugin Debug.ActiveCfg = 3DPlugin Debug|Win32
+		{4B6AFCC5-968C-424A-8F20-76E41B3BEF74}.3DPlugin Debug.Build.0 = 3DPlugin Debug|Win32
+		{4B6AFCC5-968C-424A-8F20-76E41B3BEF74}.3DPlugin Release.ActiveCfg = 3DPlugin Release|Win32
+		{4B6AFCC5-968C-424A-8F20-76E41B3BEF74}.3DPlugin Release.Build.0 = 3DPlugin Release|Win32
+		{4B6AFCC5-968C-424A-8F20-76E41B3BEF74}.Blender Debug.ActiveCfg = Blender Debug|Win32
+		{4B6AFCC5-968C-424A-8F20-76E41B3BEF74}.Blender Debug.Build.0 = Blender Debug|Win32
+		{4B6AFCC5-968C-424A-8F20-76E41B3BEF74}.Blender Release.ActiveCfg = Blender Release|Win32
+		{4B6AFCC5-968C-424A-8F20-76E41B3BEF74}.Blender Release.Build.0 = Blender Release|Win32
+		{E784098D-3ED8-433A-9353-9679415DDDC5}.3DPlugin Debug.ActiveCfg = 3DPlugin Debug|Win32
+		{E784098D-3ED8-433A-9353-9679415DDDC5}.3DPlugin Debug.Build.0 = 3DPlugin Debug|Win32
+		{E784098D-3ED8-433A-9353-9679415DDDC5}.3DPlugin Release.ActiveCfg = 3DPlugin Release|Win32
+		{E784098D-3ED8-433A-9353-9679415DDDC5}.3DPlugin Release.Build.0 = 3DPlugin Release|Win32
+		{E784098D-3ED8-433A-9353-9679415DDDC5}.Blender Debug.ActiveCfg = Blender Debug|Win32
+		{E784098D-3ED8-433A-9353-9679415DDDC5}.Blender Debug.Build.0 = Blender Debug|Win32
+		{E784098D-3ED8-433A-9353-9679415DDDC5}.Blender Release.ActiveCfg = Blender Release|Win32
+		{E784098D-3ED8-433A-9353-9679415DDDC5}.Blender Release.Build.0 = Blender Release|Win32
+		{B093415D-C0F6-4E76-8F5A-6BC1917BCE9E}.3DPlugin Debug.ActiveCfg = 3DPlugin Debug|Win32
+		{B093415D-C0F6-4E76-8F5A-6BC1917BCE9E}.3DPlugin Debug.Build.0 = 3DPlugin Debug|Win32
+		{B093415D-C0F6-4E76-8F5A-6BC1917BCE9E}.3DPlugin Release.ActiveCfg = 3DPlugin Release|Win32
+		{B093415D-C0F6-4E76-8F5A-6BC1917BCE9E}.3DPlugin Release.Build.0 = 3DPlugin Release|Win32
+		{B093415D-C0F6-4E76-8F5A-6BC1917BCE9E}.Blender Debug.ActiveCfg = Blender Debug|Win32
+		{B093415D-C0F6-4E76-8F5A-6BC1917BCE9E}.Blender Debug.Build.0 = Blender Debug|Win32
+		{B093415D-C0F6-4E76-8F5A-6BC1917BCE9E}.Blender Release.ActiveCfg = Blender Release|Win32
+		{B093415D-C0F6-4E76-8F5A-6BC1917BCE9E}.Blender Release.Build.0 = Blender Release|Win32
+		{51A348C1-8684-4D67-B980-97B1FC74159B}.3DPlugin Debug.ActiveCfg = 3DPlugin Debug|Win32
+		{51A348C1-8684-4D67-B980-97B1FC74159B}.3DPlugin Debug.Build.0 = 3DPlugin Debug|Win32
+		{51A348C1-8684-4D67-B980-97B1FC74159B}.3DPlugin Release.ActiveCfg = 3DPlugin Release|Win32
+		{51A348C1-8684-4D67-B980-97B1FC74159B}.3DPlugin Release.Build.0 = 3DPlugin Release|Win32
+		{51A348C1-8684-4D67-B980-97B1FC74159B}.Blender Debug.ActiveCfg = Blender Debug|Win32
+		{51A348C1-8684-4D67-B980-97B1FC74159B}.Blender Debug.Build.0 = Blender Debug|Win32
+		{51A348C1-8684-4D67-B980-97B1FC74159B}.Blender Release.ActiveCfg = Blender Release|Win32
+		{51A348C1-8684-4D67-B980-97B1FC74159B}.Blender Release.Build.0 = Blender Release|Win32
+		{C66F722C-46BE-40C9-ABAE-2EAC7A697EB8}.3DPlugin Debug.ActiveCfg = 3DPlugin Debug|Win32
+		{C66F722C-46BE-40C9-ABAE-2EAC7A697EB8}.3DPlugin Debug.Build.0 = 3DPlugin Debug|Win32
+		{C66F722C-46BE-40C9-ABAE-2EAC7A697EB8}.3DPlugin Release.ActiveCfg = 3DPlugin Release|Win32
+		{C66F722C-46BE-40C9-ABAE-2EAC7A697EB8}.3DPlugin Release.Build.0 = 3DPlugin Release|Win32
+		{C66F722C-46BE-40C9-ABAE-2EAC7A697EB8}.Blender Debug.ActiveCfg = Blender Debug|Win32
+		{C66F722C-46BE-40C9-ABAE-2EAC7A697EB8}.Blender Debug.Build.0 = Blender Debug|Win32
+		{C66F722C-46BE-40C9-ABAE-2EAC7A697EB8}.Blender Release.ActiveCfg = Blender Release|Win32
+		{C66F722C-46BE-40C9-ABAE-2EAC7A697EB8}.Blender Release.Build.0 = Blender Release|Win32
+		{76D90B92-ECC7-409C-9F98-A8814B90F3C0}.3DPlugin Debug.ActiveCfg = 3DPlugin Debug|Win32
+		{76D90B92-ECC7-409C-9F98-A8814B90F3C0}.3DPlugin Debug.Build.0 = 3DPlugin Debug|Win32
+		{76D90B92-ECC7-409C-9F98-A8814B90F3C0}.3DPlugin Release.ActiveCfg = 3DPlugin Release|Win32
+		{76D90B92-ECC7-409C-9F98-A8814B90F3C0}.3DPlugin Release.Build.0 = 3DPlugin Release|Win32
+		{76D90B92-ECC7-409C-9F98-A8814B90F3C0}.Blender Debug.ActiveCfg = Blender Debug|Win32
+		{76D90B92-ECC7-409C-9F98-A8814B90F3C0}.Blender Debug.Build.0 = Blender Debug|Win32
+		{76D90B92-ECC7-409C-9F98-A8814B90F3C0}.Blender Release.ActiveCfg = Blender Release|Win32
+		{76D90B92-ECC7-409C-9F98-A8814B90F3C0}.Blender Release.Build.0 = Blender Release|Win32
+		{6B3229F4-2A37-47EE-8B89-9AA046B35193}.3DPlugin Debug.ActiveCfg = 3DPlugin Debug|Win32
+		{6B3229F4-2A37-47EE-8B89-9AA046B35193}.3DPlugin Debug.Build.0 = 3DPlugin Debug|Win32
+		{6B3229F4-2A37-47EE-8B89-9AA046B35193}.3DPlugin Release.ActiveCfg = 3DPlugin Release|Win32
+		{6B3229F4-2A37-47EE-8B89-9AA046B35193}.3DPlugin Release.Build.0 = 3DPlugin Release|Win32
+		{6B3229F4-2A37-47EE-8B89-9AA046B35193}.Blender Debug.ActiveCfg = Blender Debug|Win32
+		{6B3229F4-2A37-47EE-8B89-9AA046B35193}.Blender Debug.Build.0 = Blender Debug|Win32
+		{6B3229F4-2A37-47EE-8B89-9AA046B35193}.Blender Release.ActiveCfg = Blender Release|Win32
+		{6B3229F4-2A37-47EE-8B89-9AA046B35193}.Blender Release.Build.0 = Blender Release|Win32
+		{542A9FA1-B7FF-441C-AE15-054DB31D3488}.3DPlugin Debug.ActiveCfg = 3DPlugin Debug|Win32
+		{542A9FA1-B7FF-441C-AE15-054DB31D3488}.3DPlugin Debug.Build.0 = 3DPlugin Debug|Win32
+		{542A9FA1-B7FF-441C-AE15-054DB31D3488}.3DPlugin Release.ActiveCfg = 3DPlugin Release|Win32
+		{542A9FA1-B7FF-441C-AE15-054DB31D3488}.3DPlugin Release.Build.0 = 3DPlugin Release|Win32
+		{542A9FA1-B7FF-441C-AE15-054DB31D3488}.Blender Debug.ActiveCfg = Blender Debug|Win32
+		{542A9FA1-B7FF-441C-AE15-054DB31D3488}.Blender Debug.Build.0 = Blender Debug|Win32
+		{542A9FA1-B7FF-441C-AE15-054DB31D3488}.Blender Release.ActiveCfg = Blender Release|Win32
+		{542A9FA1-B7FF-441C-AE15-054DB31D3488}.Blender Release.Build.0 = Blender Release|Win32
+		{E86B7BDE-C33C-4E55-9433-E74C141D7538}.3DPlugin Debug.ActiveCfg = 3DPlugin Debug|Win32
+		{E86B7BDE-C33C-4E55-9433-E74C141D7538}.3DPlugin Debug.Build.0 = 3DPlugin Debug|Win32
+		{E86B7BDE-C33C-4E55-9433-E74C141D7538}.3DPlugin Release.ActiveCfg = 3DPlugin Release|Win32
+		{E86B7BDE-C33C-4E55-9433-E74C141D7538}.3DPlugin Release.Build.0 = 3DPlugin Release|Win32
+		{E86B7BDE-C33C-4E55-9433-E74C141D7538}.Blender Debug.ActiveCfg = Blender Debug|Win32
+		{E86B7BDE-C33C-4E55-9433-E74C141D7538}.Blender Debug.Build.0 = Blender Debug|Win32
+		{E86B7BDE-C33C-4E55-9433-E74C141D7538}.Blender Release.ActiveCfg = Blender Release|Win32
+		{E86B7BDE-C33C-4E55-9433-E74C141D7538}.Blender Release.Build.0 = Blender Release|Win32
+		{B789C2F3-279E-4A85-8F0A-7F7AC068E598}.3DPlugin Debug.ActiveCfg = 3DPlugin Debug|Win32
+		{B789C2F3-279E-4A85-8F0A-7F7AC068E598}.3DPlugin Debug.Build.0 = 3DPlugin Debug|Win32
+		{B789C2F3-279E-4A85-8F0A-7F7AC068E598}.3DPlugin Release.ActiveCfg = 3DPlugin Release|Win32
+		{B789C2F3-279E-4A85-8F0A-7F7AC068E598}.3DPlugin Release.Build.0 = 3DPlugin Release|Win32
+		{B789C2F3-279E-4A85-8F0A-7F7AC068E598}.Blender Debug.ActiveCfg = Blender Debug|Win32
+		{B789C2F3-279E-4A85-8F0A-7F7AC068E598}.Blender Debug.Build.0 = Blender Debug|Win32
+		{B789C2F3-279E-4A85-8F0A-7F7AC068E598}.Blender Release.ActiveCfg = Blender Release|Win32
+		{B789C2F3-279E-4A85-8F0A-7F7AC068E598}.Blender Release.Build.0 = Blender Release|Win32
+		{98330220-47A6-42E0-9DE4-AD0FF5D204D6}.3DPlugin Debug.ActiveCfg = 3DPlugin Debug|Win32
+		{98330220-47A6-42E0-9DE4-AD0FF5D204D6}.3DPlugin Debug.Build.0 = 3DPlugin Debug|Win32
+		{98330220-47A6-42E0-9DE4-AD0FF5D204D6}.3DPlugin Release.ActiveCfg = 3DPlugin Release|Win32
+		{98330220-47A6-42E0-9DE4-AD0FF5D204D6}.3DPlugin Release.Build.0 = 3DPlugin Release|Win32
+		{98330220-47A6-42E0-9DE4-AD0FF5D204D6}.Blender Debug.ActiveCfg = Blender Debug|Win32
+		{98330220-47A6-42E0-9DE4-AD0FF5D204D6}.Blender Debug.Build.0 = Blender Debug|Win32
+		{98330220-47A6-42E0-9DE4-AD0FF5D204D6}.Blender Release.ActiveCfg = Blender Release|Win32
+		{98330220-47A6-42E0-9DE4-AD0FF5D204D6}.Blender Release.Build.0 = Blender Release|Win32
+		{213356A9-3A1F-41DA-9819-1297BCD17DEE}.3DPlugin Debug.ActiveCfg = 3DPlugin Debug|Win32
+		{213356A9-3A1F-41DA-9819-1297BCD17DEE}.3DPlugin Debug.Build.0 = 3DPlugin Debug|Win32
+		{213356A9-3A1F-41DA-9819-1297BCD17DEE}.3DPlugin Release.ActiveCfg = 3DPlugin Release|Win32
+		{213356A9-3A1F-41DA-9819-1297BCD17DEE}.3DPlugin Release.Build.0 = 3DPlugin Release|Win32
+		{213356A9-3A1F-41DA-9819-1297BCD17DEE}.Blender Debug.ActiveCfg = Blender Debug|Win32
+		{213356A9-3A1F-41DA-9819-1297BCD17DEE}.Blender Debug.Build.0 = Blender Debug|Win32
+		{213356A9-3A1F-41DA-9819-1297BCD17DEE}.Blender Release.ActiveCfg = Blender Release|Win32
+		{213356A9-3A1F-41DA-9819-1297BCD17DEE}.Blender Release.Build.0 = Blender Release|Win32
+		{FAF46346-65CC-4DB2-85C4-B99826F79D0C}.3DPlugin Debug.ActiveCfg = 3DPlugin Debug|Win32
+		{FAF46346-65CC-4DB2-85C4-B99826F79D0C}.3DPlugin Debug.Build.0 = 3DPlugin Debug|Win32
+		{FAF46346-65CC-4DB2-85C4-B99826F79D0C}.3DPlugin Release.ActiveCfg = 3DPlugin Release|Win32
+		{FAF46346-65CC-4DB2-85C4-B99826F79D0C}.3DPlugin Release.Build.0 = 3DPlugin Release|Win32
+		{FAF46346-65CC-4DB2-85C4-B99826F79D0C}.Blender Debug.ActiveCfg = Blender Debug|Win32
+		{FAF46346-65CC-4DB2-85C4-B99826F79D0C}.Blender Debug.Build.0 = Blender Debug|Win32
+		{FAF46346-65CC-4DB2-85C4-B99826F79D0C}.Blender Release.ActiveCfg = Blender Release|Win32
+		{FAF46346-65CC-4DB2-85C4-B99826F79D0C}.Blender Release.Build.0 = Blender Release|Win32
+		{8B8D4FC3-3234-4E54-8376-5AB83D00D164}.3DPlugin Debug.ActiveCfg = 3DPlugin Debug|Win32
+		{8B8D4FC3-3234-4E54-8376-5AB83D00D164}.3DPlugin Debug.Build.0 = 3DPlugin Debug|Win32
+		{8B8D4FC3-3234-4E54-8376-5AB83D00D164}.3DPlugin Release.ActiveCfg = 3DPlugin Release|Win32
+		{8B8D4FC3-3234-4E54-8376-5AB83D00D164}.3DPlugin Release.Build.0 = 3DPlugin Release|Win32
+		{8B8D4FC3-3234-4E54-8376-5AB83D00D164}.Blender Debug.ActiveCfg = Blender Debug|Win32
+		{8B8D4FC3-3234-4E54-8376-5AB83D00D164}.Blender Debug.Build.0 = Blender Debug|Win32
+		{8B8D4FC3-3234-4E54-8376-5AB83D00D164}.Blender Release.ActiveCfg = Blender Release|Win32
+		{8B8D4FC3-3234-4E54-8376-5AB83D00D164}.Blender Release.Build.0 = Blender Release|Win32
+		{A90C4918-4B21-4277-93BD-AF65F30951D9}.3DPlugin Debug.ActiveCfg = 3DPlugin Debug|Win32
+		{A90C4918-4B21-4277-93BD-AF65F30951D9}.3DPlugin Debug.Build.0 = 3DPlugin Debug|Win32
+		{A90C4918-4B21-4277-93BD-AF65F30951D9}.3DPlugin Release.ActiveCfg = 3DPlugin Release|Win32
+		{A90C4918-4B21-4277-93BD-AF65F30951D9}.3DPlugin Release.Build.0 = 3DPlugin Release|Win32
+		{A90C4918-4B21-4277-93BD-AF65F30951D9}.Blender Debug.ActiveCfg = Blender Debug|Win32
+		{A90C4918-4B21-4277-93BD-AF65F30951D9}.Blender Debug.Build.0 = Blender Debug|Win32
+		{A90C4918-4B21-4277-93BD-AF65F30951D9}.Blender Release.ActiveCfg = Blender Release|Win32
+		{A90C4918-4B21-4277-93BD-AF65F30951D9}.Blender Release.Build.0 = Blender Release|Win32
+		{EB75F4D6-2970-4A3A-8D99-2BAD7201C0E9}.3DPlugin Debug.ActiveCfg = 3DPlugin Debug|Win32
+		{EB75F4D6-2970-4A3A-8D99-2BAD7201C0E9}.3DPlugin Debug.Build.0 = 3DPlugin Debug|Win32
+		{EB75F4D6-2970-4A3A-8D99-2BAD7201C0E9}.3DPlugin Release.ActiveCfg = 3DPlugin Release|Win32
+		{EB75F4D6-2970-4A3A-8D99-2BAD7201C0E9}.3DPlugin Release.Build.0 = 3DPlugin Release|Win32
+		{EB75F4D6-2970-4A3A-8D99-2BAD7201C0E9}.Blender Debug.ActiveCfg = Blender Debug|Win32
+		{EB75F4D6-2970-4A3A-8D99-2BAD7201C0E9}.Blender Debug.Build.0 = Blender Debug|Win32
+		{EB75F4D6-2970-4A3A-8D99-2BAD7201C0E9}.Blender Release.ActiveCfg = Blender Release|Win32
+		{EB75F4D6-2970-4A3A-8D99-2BAD7201C0E9}.Blender Release.Build.0 = Blender Release|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

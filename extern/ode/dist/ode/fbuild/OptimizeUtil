@@ -1,0 +1,86 @@
+#!/usr/bin/perl -w
+#
+#########################################################################
+#                                                                       #
+# Open Dynamics Engine, Copyright (C) 2001,2002 Russell L. Smith.       #
+# All rights reserved.  Email: russ@q12.org   Web: www.q12.org          #
+#                                                                       #
+# This library is free software; you can redistribute it and/or         #
+# modify it under the terms of EITHER:                                  #
+#   (1) The GNU Lesser General Public License as published by the Free  #
+#       Software Foundation; either version 2.1 of the License, or (at  #
+#       your option) any later version. The text of the GNU Lesser      #
+#       General Public License is included with this library in the     #
+#       file LICENSE.TXT.                                               #
+#   (2) The BSD-style license that is included with this library in     #
+#       the file LICENSE-BSD.TXT.                                       #
+#                                                                       #
+# This library is distributed in the hope that it will be useful,       #
+# but WITHOUT ANY WARRANTY; without even the implied warranty of        #
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the files    #
+# LICENSE.TXT and LICENSE-BSD.TXT for more details.                     #
+#                                                                       #
+#########################################################################
+
+package BuildUtil;
+
+
+sub main::doit
+{
+  my $cmd = $_[0];
+  print "$cmd\n";
+  system ($cmd)==0 or die "FAILED";
+}
+
+
+sub main::createParametersFile # (filename)
+{
+  open (PARAM,">$_[0]");
+  print PARAM "# perl script to set parameters required by the code generator\n";
+  print PARAM "\$FNAME=\"$main::FNAME\";\n" if defined($main::FNAME);
+  print PARAM "\$TYPE=\"$main::TYPE\";\n" if defined($main::TYPE);
+  print PARAM "\$N1=$main::N1;\n" if defined($main::N1);
+  print PARAM "\$UNROLL1=$main::UNROLL1;\n" if defined($main::UNROLL1);
+  print PARAM "\$UNROLL2=$main::UNROLL2;\n" if defined($main::UNROLL2);
+  print PARAM "\$MADD=$main::MADD;\n" if defined($main::MADD);
+  print PARAM "\$FETCH=$main::FETCH;\n" if defined($main::FETCH);
+  print PARAM "\$LAT1=$main::LAT1;\n" if defined($main::LAT1);
+  print PARAM "\$LAT2=$main::LAT2;\n" if defined($main::LAT2);
+  close PARAM;
+}
+
+
+# read back a data file and find best parameters
+
+sub main::readBackDataFile # (filename)
+{
+  my $filename = $_[0];
+  my $maxtime = 1e10;
+  open (FILE,$filename);
+  while (<FILE>) {
+    next if /^\#/;
+    my $line = lc $_;
+    if ($line =~ /error/) {
+      print "ERRORS FOUND IN $filename\n";
+      exit 1;
+    }
+    $line =~ s/^\s*//;
+    $line =~ s/\s*$//;
+    my @nums = split (/\s+/,$line);
+    $time = $nums[0];
+    if ($time < $maxtime) {
+      $main::N1 = $nums[1];
+      $main::UNROLL1 = $nums[2];
+      $main::UNROLL2 = $nums[3];
+      $main::MADD = $nums[4];
+      $main::FETCH = $nums[5];
+      $main::LAT1 = $nums[6];
+      $main::LAT2 = $nums[7];
+      $maxtime = $time;
+    }
+  }
+  close FILE;
+}
+
+
+1;

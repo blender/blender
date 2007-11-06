@@ -1,0 +1,15 @@
+
+			Verse Maintainers
+
+This file tries to list credits for the various parts of the
+Verse core distribution, and also identify who maintains what.
+
+We are deeply appreciative of any contributions and thank you
+all for your time and interest in helping make Verse a better
+thing.
+
+* All code was originally written by Eskil Steenberg, and is
+  being maintained by him and Emil Brink. Contact us through
+  the project page at http://www.blender.org/modules/verse/.
+
+* SCons build file by N. Letwory, http://www.jester-depot.net/.

@@ -1,0 +1,257 @@
+EFFECT Module documentation
+
+
+INTRODUCTION
+The module effect allows you to access all the data of an effect. 
+An effect can modify an object (typically a mesh) in three different ways.
+    a) the build effect : makes the mesh appear progressively.
+    b) the wave effect : waves appear on the mesh (which should be fine-grained)
+    c) the particle effect : every vertex of the mesh emits particles, 
+which can themselves emit new particles. This effect is the most parameterizable.
+
+In the blender internals, the effect object is just a placeholder for the "real"
+ effect, which can be a wave, particle or build effect. The python API follows 
+this structure : the Effect module grants access to (the few) data which
+ are shared between all effects. It has three submodules : Wave, Build, Particle
+, which grant r/w access to the real parameters of these effects.
+
+
+
+
+functions of the module :
+
+Get(Name:string,pos:int) : returns the pos-th Effect associated
+ to the object whose name is Name.
+
+get : same as Get
+
+New(Type:string ) : Creates and returns a new Effect Object.
+The parameter Type can take the values "particle", "wave" or "build"
+
+
+
+Effect object member functions :
+
+getType() : Retrieves the type of the Effect Object.
+
+setType(val:int) : Sets the type of the Effect Object.
+The possible values of the type are :
+    0 : effect build.
+    1 : effect particle.
+    2 : effect wave.
+
+
+getFlag()Retrieves the flag of the Effect Object
+
+setFlag(val:int) :Sets the flag
+
+The flag of the effect is a combination of parameters, whose semantics depend upon the effect type.
+All types :
+Bit 0 : set to 1 if the effect is selected in the effects window.
+Wave effect :
+Bits 1,2,3  :  set to 1 if the button "X", "Y" or "Cycl" is clicked.
+Particle effect :
+Bits 1,2,3 :  set to 1 if the button "Bspline", "Static" or "Face" is clicked.
+
+
+
+
+
+
+Submodules : Wave, Build, Particle.
+
+
+
+
+Wave module 
+
+
+
+functions of the module :
+
+Get(Name:string,pos:int) : returns the pos-th wave Effect associated to the object whose name is Name.
+
+get : same as Get
+
+New( ) : Creates and returns a new Wave Object.
+
+
+Wave object member functions :
+
+getStartx() : returns the startx parameter of the wave object.
+
+setStartx(val:int) : sets the startx parameter of the wave object.
+
+getStarty() : returns the starty parameter of the wave object.
+
+setStarty(val:int) : sets the starty parameter of the wave object.
+
+getHeight() : returns the height parameter of the wave object.
+
+setHeight(val:int) : sets the height parameter of the wave object.
+
+getWidth() : returns the width parameter of the wave object.
+
+setWidth(val:int) : sets the width parameter of the wave object.
+
+getNarrow() : returns the narrow parameter of the wave object.
+
+setNarrow(val:int) : sets the narrow parameter of the wave object.
+
+getSpeed() : returns the speed parameter of the wave object.
+
+setSpeed(val:int) : sets the speed parameter of the wave object.
+
+getMinfac() : returns the minfac parameter of the wave object.
+
+setMinfac(val:int) : sets the minfac parameter of the wave object.
+
+getDamp() : returns the damp parameter of the wave object.
+
+setDamp(val:int) : sets the damp parameter of the wave object.
+
+getTimeoffs() : returns the timeoffs parameter of the wave object.
+
+setTimeoffs(val:int) : sets the time offset parameter of the wave object.
+
+getLifetime() : returns the lifetime parameter of the wave object.
+
+setLifetime(val:int) : sets the lifetime parameter of the wave object.
+
+
+
+The Object.attr syntax
+
+Wave attributes can be read/written with the object.attr syntax.
+Example :
+
+w = Blender.Wave.Get("Obname",3) #retrieves the 4th effect associated to the object named Obname
+a = w.speed  # a is now the value corresponding to the speed of the effect
+w.speed = 42   # the speed of the effect is now equal to 42
+
+The parameter can take these values :  "lifetime","timeoffs","damp","minfac","speed","narrow","width","height","startx","starty"
+
+
+
+
+Build module 
+
+
+
+functions of the module :
+
+Get(Name:string,pos:int) : returns the pos-th build Effect associated to the object whose name is Name.
+
+get(Name:string,pos:int) : same as Get
+
+New( ) : Creates and returns a new Build Object.
+
+
+Build object member functions :
+
+getLen() : returns the length of the effect (in frames).
+
+setLen(val:float) : sets the length of the effect (in frames).
+
+getSfra() : returns the starting frame of the effect.
+
+setSfra(val:float) : sets the starting frame of the effect.
+
+
+The Object.attribute syntax
+
+The attribute can take these values : "sfra","len".
+
+
+Particle module 
+
+
+
+functions of the module :
+
+Get(Name:string,pos:int) : returns the pos-th particle Effect associated to the object whose name is Name.
+
+get(Name:string,pos:int) : same as Get
+
+New( ) : Creates and returns a new Effect Object.
+
+
+Particle object member functions :
+
+getStartTime() : returns the start time  of the particle effect (in frames).
+
+setStartTime(val:float) : sets the start time of the particle effect (in frames).
+
+getEndTime() : returns the end time  of the particle effect (in frames).
+
+setEndTime(val:float) : sets the end time of the particle effect (in frames).
+
+getLifeTime() : returns the life time  of the particles.
+
+setLifeTime(val:float) : sets the life time of the particles.
+
+getNormfac() : returns the normal strength of the particles (relatively to mesh).
+
+setNormfac(val:float) : sets the normal strength of the particles(relatively to mesh).
+
+getObfac() : returns the initial of the particles relatively to objects.
+
+setObfac(val:float) : sets the initial of the particles relatively to objects.
+
+getRandfac() : returns the initial random speed of the particles.
+
+setRandfac(val:float) : sets the initial  random speed of the particles.
+
+getTexfac() : returns the initial speed of the particles caused by the texture.
+
+setTexfac(val:float) : sets the initial speed of the particles caused by the texture.
+
+getRandlife() : returns the variability of the life of the particles.
+
+setRandlife(val:float) : sets  the variability of the life of the particles.
+
+getNabla() : returns the dimension of the area for gradient computation.
+
+setNabla(val:float) : sets  the dimension of the area for gradient computation.
+
+getTotpart() : returns the total number of particles.
+
+setTotpart(val:int) : sets  the total number of particles.
+
+getTotkey() : returns the number of key positions.
+
+setTotkey(val:int) : sets the number of key positions.
+
+getSeed() : returns the seed of the RNG.
+
+setSeed(val:int) : sets the seed of the RNG.
+
+getSeed() : returns the x,y,z components of the constant force applied to the particles.
+
+setSeed(valx:float,valy:float,valz:float) : sets the x,y,z components of the constant force applied to the particles.
+
+getMult() : returns the 4 probabilities of a particle having a child.
+
+setMult(val1:float,val2:float,val3:float,val4:float) : sets the 4 probabilities of a particle having a child.
+
+getLife() : returns the lifespan of the 4 generation particles.
+
+setLife(val1:float,val2:float,val3:float,val4:float) : sets  the lifespan of the 4 generation particles.
+
+getMat() : returns the material used by the 4 generation particles.
+
+setMat(val1:float,val2:float,val3:float,val4:float) : sets the material used by the 4 generation particles.
+
+getChild() : returns the number of children a particle may have.
+
+setChild(val1:float,val2:float,val3:float,val4:float) : sets  the number of children a particle may have.
+
+getDefvec() : returns the x, y and z axis of the force defined by the texture.
+
+setDefvec(val1:float,val2:float,val3:float) : sets the x, y and z axis of the force defined by the texture.
+
+
+
+The Object.attribute syntax
+
+The attribute can take these values : "seed","nabla","sta","end","lifetime","normfac","obfac","randfac","texfac","randlife","vectsize","totpart","force","mult","life","child","mat","defvec".

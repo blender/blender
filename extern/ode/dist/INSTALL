@@ -1,0 +1,44 @@
+
+here are the steps to buid ODE:
+
+(1) get the GNU 'make' tool. many unix platforms come with this, although
+    sometimes it is called 'gmake'. i have provided a version of GNU make
+    for windows at: http://q12.org/ode/bin/make.exe
+
+(2) edit the settings in the file config/user-settings. the list of supported
+    platforms is given in that file.
+
+(3) run 'make' to configure and build ODE and the graphical test programs.
+    to build parts of ODE the make targets are:
+
+	make configure		create configuration file include/ode/config.h
+	make ode-lib		build the core ODE library
+	make drawstuff-lib	build the OpenGL-based graphics library
+	make ode-test		build some ODE tests (they need drawstuff)
+	make drawstuff-test	build a test app for the drawstuff library
+
+    all of these targets will do an implicit 'make configure'. if the
+    configurator screws up then you can edit the settings directly in
+    include/ode/config.h.
+
+(4) to install the ODE library onto your system you should copy the 'lib' and
+    'include' directories to a suitable place, e.g. on unix:
+
+	include/ode  --> /usr/local/include/ode
+	lib/libode.a --> /usr/local/lib/libode.a
+
+ODE has been verified to build on the following platforms:
+
+				config		ode-lib 	ode-test
+				------		------- 	--------
+  windows
+    MSVC			msvc		*		*
+    MinGW			mingw		*		*
+    CygWin			cygwin		*		*
+  linux (x86, mandrake 8.1)	unix-gcc	*		*
+  linux (alpha, debian 2.2)	unix-gcc	*		?
+  linux (RS/6000, debian 2.2)	unix-gcc	*		?
+  linux (Sparc U60, debian 2.2) unix-gcc	*		?
+  freebsd 4.3			unix-gcc	*		?
+  Mac OS-X			osx		*		?
+  Solaris 8 (Sparc R220)	unix-gcc	*		?

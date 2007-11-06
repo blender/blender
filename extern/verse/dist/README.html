@@ -1,0 +1,173 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>Verse README</title>
+<style type="text/css">
+
+h1.title {
+text-align: center;
+}
+
+p.author {
+text-align: center;
+}
+
+p.note {
+background-color: #ffeeee;
+margin-left: 5em;
+margin-right: 5em;
+border-style: solid;
+border-color: black;
+border-width: thin;
+}
+
+pre.shell {
+background-color: #ddddff;
+border-color: black;
+padding: .5em;
+border-style: solid;
+border-color: black;
+border-width: thin;
+}
+
+ul.variables {
+list-style: none;
+font-family: monospace;
+}
+
+</style>
+</head>
+
+<body>
+<h1 class="title">Verse</h1>
+
+<p>
+This is the Verse protocol and sample server implementations.
+</p>
+<p>
+For more information, see <a href="http://verse.blender.org/">the Verse web site</a>.
+</p>
+<h1>Building the Verse Core</h1>
+<p class="note">
+Note: This section is only of interest to developers, who wish to build the Verse core themselves.
+If you have chosen a binary download, you will already have the server and can skip the rest
+of this section.
+</p>
+<p>
+Running "make" here will build the API library, "libverse.a" (and its
+header file, "verse.h"). These two will then be used to build the
+reference Verse server binary, called "verse".
+</p>
+<p>
+If you are more comfortable with <a href="http://www.scons.org/">SCons</a>, and of course have it
+installed on your system, you can type "scons" instead.
+</p>
+
+<h1>Starting the Server</h1>
+<p>
+The Verse server is a command-line program, without a graphical user interface.
+You simply start it, and it will immediately begin listening for incoming
+connections on a network socket. Here is how a typical invocation looks:
+</p>
+<pre class="shell">~> verse
+</pre>
+<p>
+If you don't ask it to do otherwise, the Verse server will start listening for UDP packets
+on its default port. The port number currently used by Verse is 4950.
+</p>
+<p class="note">
+Note: This is not an official <a href="http://www.iana.org/">registered</a>, port number.
+It is possible that it gets assigned to someone else, in case Verse will need to change.
+</p>
+<p>
+You can use the following command line options to control the server's operation:
+</p>
+<dl>
+ <dt>-h</dt>
+ <dd>
+  Print a help text, that shows all understood options.
+ </dd>
+ <dt>-ms</dt>
+ <dd>
+  Enables master server communications to the default, built-in address. Use the -h option to learn
+  what this address is. Please note that master server communication is <strong>disabled</strong> by default.
+ </dd>
+ <dt>-ms:ip=IP</dt>
+ <dd>
+  Sets a new address to use for master server communication. This also implies -ms, i.e. the server
+  will try to register itself with the given master server. For details on the protocol used to do
+  this, please see the <a href="http://verse.blender.org/cms/Master_Server__v2.775.0.html">spec</a>.
+ </dd>
+ <dt>-ms:de=DESC</dt>
+ <dd>
+  Sets the description to use for this server, when registering with the the master server. This is
+  only used if master server communication is actually enabled. The description is expected to be a
+  human-readable string, like <code>"A test server, run on a cable modem, and offline during local daytime"</code>
+  or something.
+ </dd>
+ <dt>-ms:ta=TAGS</dt>
+ <dd>
+  Sets the tags to use for this server, when registering with the the master server. This is only used
+  if master server communication is actually enabled. The tags consists of a comma-separated list of
+  single words. Each word must begin with a letter, and contain only letters, digits, or underscore
+  characters. For instance: <code>home,r6p1,linux,sweden,open</code>.
+ </dd>
+ <dt>-port=N</dt>
+ <dd>
+  Use the indicated port number, rather than the default. Note that ports below 1024 are generally
+  off-limits to ordinary users. Running Verse on such a port is not recommended.
+ </dd>
+ <dt>-version</dt>
+ <dd>
+  Prints the version string of the server to the terminal, and then exits (successfully). See
+  <a href="#rellab">below</a> for information how the version string is constructed.
+ </dd>
+</dl>
+<p>
+For example, here is how to start the server, register it with the default master server, and run
+on port number equal to 16333:
+</p>
+<pre class="shell">~> ./server -ms -port=16333
+</pre>
+<p>
+Here is a more complicated example, that uses an explicit master server address, and also sets both
+the description and tags:
+</p>
+<pre class="shell">~> ./server -ms:ip=master.example.net -ms:de="A test server, for the documentation" -ms:ta=example,docs
+</pre>
+<p>
+Options can occur in any order, with later options overriding earlier ones, in case of conflicts.
+</p>
+
+<h1><a name="rellab">Release Labeling</a></h1>
+<p>
+Verse uses a simple two-level numbering scheme to identify releases.
+There is a "release number", and a "patch level" on each release. The
+intent is that within a release, the API does not change and neither
+should the network protocol. Between releases, we might improve the
+API which will require application programmers to update their code
+to stay in sync. We can do non-API-altering changes within a release
+by increasing the patch level, for bug fixing and other things.
+</p>
+<p>
+The symbols <code>V_RELEASE_NUMBER</code> and <code>V_RELEASE_PATCH</code>
+are integer literals that hold the values for the API you have, and can be
+used (and displayed) in application source code as you see fit. There is
+also a string, <code>V_RELEASE_LABEL</code>, which is sometimes used.
+</p>
+<p>
+To form a complete Verse version number, the above-mentioned symbols are
+to be combined like so:
+"r<i><code>&lt;V_RELEASE_NUMBER&gt;</code></i>p<i><code>&lt;V_RELEASE_PATCH&gt;&lt;V_RELEASE_LABEL&gt;</code></i>".
+So, the following variable values:
+<ul class="variables">
+<li>V_RELEASE_VERSION = 2
+<li>V_RELEASE_VERSION = 51
+<li>V_RELEASE_LABEL = "foo"
+</ul>
+Would generate the version string "<code>r2p51foo</code>".
+</p>
+
+</body>
+</html>

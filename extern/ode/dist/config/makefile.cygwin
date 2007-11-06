@@ -1,0 +1,28 @@
+WINDOWS=1
+THIS_DIR=./
+DEL_CMD=rm -f
+CC=gcc
+OBJ=.o
+C_FLAGS=-c -Wall -fno-exceptions -fno-rtti -DWIN32 -DCYGWIN
+C_INC=-I
+C_OUT=-o 
+C_EXEOUT=-o 
+C_DEF=-D
+C_OPT=-O
+AR=ar rc 
+RANLIB=
+LIB_PREFIX=lib
+LIB_SUFFIX=.a
+LINK_OPENGL=-lComctl32 -lkernel32 -luser32 -lgdi32 -lOpenGL32 -lGlu32
+LINK_MATH=-lm
+RC_RULE=windres -I rc -O coff $< $@
+
+ifeq ($(BUILD),release)
+OPT=2
+C_FLAGS+=-fomit-frame-pointer -ffast-math
+endif
+
+ifeq ($(BUILD),debug)
+OPT=0
+C_FLAGS+=-g
+endif

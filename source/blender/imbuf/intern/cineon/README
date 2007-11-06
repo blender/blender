@@ -1,0 +1,8 @@
+Files:
+
+logImageLib.h, logImageLib.c: combined cineon/dpx image library
+dpxlib.h, dpxlib.c: dpx specific library
+dpxfile.h: dpx file structure
+cineonlib.h, cineonlib.c: cineon specific library
+cineonfile.h: cineon file structure
+logImageCore.h, logImageCore.c: log image routines common to cineon amd dpx

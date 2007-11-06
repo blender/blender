@@ -1,0 +1,31 @@
+# ODE user settings: the following variables must be set by the user
+
+# (1) the platform to use. this name should have a corresponding
+#     makefile.PLATFORM file. currently supported platforms are:
+#       msvc		microsoft visual C/C++
+#       msvc-dll	microsoft visual C/C++, create a DLL
+#       mingw		minimalist GNU for windows
+#       cygwin		cygnus GNU for windows
+#       unix-gcc	GNU gcc on unix
+#       unix-generic	generic unix compiler. you may need to edit the CC
+#			variable in makefile.unix-generic
+#	osx		Mac OS-X, with the gnu compiler.
+
+PLATFORM=unix-gcc
+
+# (2) the floating point precision to use (either "SINGLE" or "DOUBLE")
+
+#PRECISION=SINGLE
+PRECISION=DOUBLE
+
+# (3) the library type to build (either "debug" if you are doing development,
+#     or "release" for the optimized library)
+
+#BUILD=debug
+BUILD=release
+
+# (4) if you are using an old version of MS-Windows that has command line
+#     length limitations then you will need to set this to "1". otherwise,
+#     leave it at "0".
+
+WINDOWS16=0

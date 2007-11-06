@@ -1,0 +1,41 @@
+
+factorizer/solver builder
+
+before running `make', copy the following files:
+	ParametersD.example --> ParametersD
+	ParametersF.example --> ParametersF
+	ParametersS.example --> ParametersS
+
+the files Parameters[D|F|S] don't exist in the CVS archive because
+they are changable.
+
+
+
+STATS - for chol
+-----
+
+* all with -O1
+
+128x128 matrix
+atlas   = 1724779 clocks
+my chol = 1164629 clocks (parameters: 2 2 2 1)  with Ai++, Aj++
+my chol = 1140786 clocks (parameters: 2 6 8 0)  with Ai++, Aj++
+my chol = 1118968 clocks (parameters: 2 6 8 0)  with +ofs
+
+64x64 matrix
+atlas   = 374020 clocks
+my chol = 157076 clocks (parameters = 2 2 2 1)
+
+32x32 matrix (12961 flops)
+atlas   = 83827 clocks
+my chol = 25945 clocks (parameters: 2 2 2 1)
+
+
+
+
+TODO
+----
+
+* doc!
+
+* iterate blocks by partial rows to try and keep more data in cache

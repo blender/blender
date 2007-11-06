@@ -1,0 +1,35 @@
+Blender License (the "BL", see http://www.blender.org/BL/ ).
+
+Copyright (C) 2002-2005 Blender Foundation. All Rights Reserved.
+
+This text supersedes the previous BL description, called Blender License 1.0.
+
+When the Blender source code was released in 2002, the Blender Foundation reserved 
+the right to offer licenses outside of the GNU GPL. This so-called "dual license" 
+model was chosen to provide potential revenues for the Blender Foundation. 
+
+The BL has not been activated yet. Partially because;
+
+- there has to be a clear benefit for Blender itself and its community of 
+  developers and users.
+- the developers who have copyrighted additions to the source code need to approve 
+  the decision.
+- the (c) holder NaN Holding has to approve on a standard License Contract
+
+But most important; 
+
+- the Blender Foundation is financially healthy, based on community support
+  (e-shop sales), sponsoring and subsidy grants
+- current focus for the Blender Foundation is to not set up any commercial
+  activity related to Blender development.
+- the GNU GPL provides sufficient freedom for third parties to conduct business
+  with Blender
+
+For these reasons we've decided to cancel the BL offering for an indefinite period.
+
+Third parties interested to discuss usage or exploitation of Blender can email 
+license@blender.org for further information.
+
+Ton Roosendaal
+Chairman Blender Foundation.
+June 2005

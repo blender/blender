@@ -1,0 +1,77 @@
+Microsoft Developer Studio Workspace File, Format Version 6.00
+# WARNING: DO NOT EDIT OR DELETE THIS WORKSPACE FILE!
+
+###############################################################################
+
+Project: "gears"=.\gears.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name ghost
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name string
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "gears_C"=.\gears_C.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name ghost
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name string
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "ghost"=..\..\..\make\msvc\ghost.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "string"=..\..\..\..\string\make\msvc_6_0\string.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Global:
+
+Package=<5>
+{{{
+}}}
+
+Package=<3>
+{{{
+}}}
+
+###############################################################################
+

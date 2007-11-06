@@ -1,0 +1,33 @@
+#!/usr/bin/python
+Import ('env')
+import sys
+
+SConscript(['avi/SConscript',
+            'blenkernel/SConscript',
+            'blenlib/SConscript',
+            'blenloader/SConscript',
+            'blenpluginapi/SConscript',
+            'imbuf/SConscript',
+            'imbuf/intern/cineon/SConscript',
+            'makesdna/SConscript',
+            'python/SConscript',
+            'radiosity/SConscript',
+            'readblenfile/SConscript',
+            'render/SConscript',
+            'src/SConscript',
+            'nodes/SConscript'])
+
+if env['WITH_BF_YAFRAY'] == 1:
+    SConscript(['yafray/SConscript'])
+
+if env['WITH_BF_INTERNATIONAL'] == 1:
+    SConscript (['ftfont/SConscript'])
+
+if env['WITH_BF_DDS'] == 1:
+    SConscript (['imbuf/intern/dds/SConscript'])
+
+if env['WITH_BF_OPENEXR'] == 1:
+    SConscript (['imbuf/intern/openexr/SConscript'])
+
+if env['WITH_BF_QUICKTIME'] == 1:
+    SConscript (['quicktime/SConscript'])

@@ -1,0 +1,35 @@
+static DT_ShapeHandle CreateShapeFromMesh(RAS_MeshObject* meshobj)
+{
+	DT_ShapeHandle shape = DT_NewComplexShape();
+	int numpolys = meshobj->NumPolygons();
+	int numvalidpolys = 0;
+	
+	for (int p=0; p<numpolys; p++)
+	{
+		RAS_Polygon* poly = meshobj->GetPolygon(p);
+	
+		// only add polygons that have the collisionflag set
+		if (poly->IsCollider())
+		{
+			DT_Begin();
+			for (int v=0; v<poly->VertexCount(); v++) {
+				MT_Point3 pt = meshobj->GetVertex(poly->GetVertexIndexBase().m_vtxarray, 
+												  poly->GetVertexIndexBase().m_indexarray[v],
+												  poly->GetMaterial()->GetPolyMaterial())->xyz();
+				DT_Vertex(pt[0],pt[1],pt[2]);
+			}
+			DT_End();
+	
+			numvalidpolys++;
+		}
+	}
+	
+	DT_EndComplexShape();
+	
+	if (numvalidpolys==0) {
+		delete shape;
+		return NULL;
+	} else {
+		return shape;
+	}
+}

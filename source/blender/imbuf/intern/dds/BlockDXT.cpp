@@ -1,0 +1,523 @@
+/**
+ * $Id$
+ *
+ * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version. The Blender
+ * Foundation also sells licenses for use in proprietary software under
+ * the Blender License.  See http://www.blender.org/BL/ for information
+ * about this.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * Contributors: Amorilia (amorilia@gamebox.net)
+ *
+ * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ */
+
+/*
+ * This file is based on a similar file from the NVIDIA texture tools
+ * (http://nvidia-texture-tools.googlecode.com/)
+ *
+ * Original license from NVIDIA follows.
+ */
+
+// Copyright NVIDIA Corporation 2007 -- Ignacio Castano <icastano@nvidia.com>
+// 
+// Permission is hereby granted, free of charge, to any person
+// obtaining a copy of this software and associated documentation
+// files (the "Software"), to deal in the Software without
+// restriction, including without limitation the rights to use,
+// copy, modify, merge, publish, distribute, sublicense, and/or sell
+// copies of the Software, and to permit persons to whom the
+// Software is furnished to do so, subject to the following
+// conditions:
+// 
+// The above copyright notice and this permission notice shall be
+// included in all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+// EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES
+// OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+// NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+// WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+// FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
+// OTHER DEALINGS IN THE SOFTWARE.
+
+#include <Common.h>
+#include <Stream.h>
+#include <ColorBlock.h>
+#include <BlockDXT.h>
+
+/*----------------------------------------------------------------------------
+	BlockDXT1
+----------------------------------------------------------------------------*/
+
+unsigned int BlockDXT1::evaluatePalette(Color32 color_array[4]) const
+{
+	// Does bit expansion before interpolation.
+	color_array[0].b = (col0.b << 3) | (col0.b >> 2);
+	color_array[0].g = (col0.g << 2) | (col0.g >> 4);
+	color_array[0].r = (col0.r << 3) | (col0.r >> 2);
+	color_array[0].a = 0xFF;
+	
+	// @@ Same as above, but faster?
+//	Color32 c;
+//	c.u = ((col0.u << 3) & 0xf8) | ((col0.u << 5) & 0xfc00) | ((col0.u << 8) & 0xf80000);
+//	c.u |= (c.u >> 5) & 0x070007;
+//	c.u |= (c.u >> 6) & 0x000300;
+//	color_array[0].u = c.u;
+	
+	color_array[1].r = (col1.r << 3) | (col1.r >> 2);
+	color_array[1].g = (col1.g << 2) | (col1.g >> 4);
+	color_array[1].b = (col1.b << 3) | (col1.b >> 2);
+	color_array[1].a = 0xFF;
+	
+	// @@ Same as above, but faster?
+//	c.u = ((col1.u << 3) & 0xf8) | ((col1.u << 5) & 0xfc00) | ((col1.u << 8) & 0xf80000);
+//	c.u |= (c.u >> 5) & 0x070007;
+//	c.u |= (c.u >> 6) & 0x000300;
+//	color_array[1].u = c.u;
+	
+	if( col0.u > col1.u ) {
+		// Four-color block: derive the other two colors.
+		color_array[2].r = (2 * color_array[0].r + color_array[1].r) / 3;
+		color_array[2].g = (2 * color_array[0].g + color_array[1].g) / 3;
+		color_array[2].b = (2 * color_array[0].b + color_array[1].b) / 3;
+		color_array[2].a = 0xFF;
+		
+		color_array[3].r = (2 * color_array[1].r + color_array[0].r) / 3;
+		color_array[3].g = (2 * color_array[1].g + color_array[0].g) / 3;
+		color_array[3].b = (2 * color_array[1].b + color_array[0].b) / 3;
+		color_array[3].a = 0xFF;
+		
+		return 4;
+	}
+	else {
+		// Three-color block: derive the other color.
+		color_array[2].r = (color_array[0].r + color_array[1].r) / 2;
+		color_array[2].g = (color_array[0].g + color_array[1].g) / 2;
+		color_array[2].b = (color_array[0].b + color_array[1].b) / 2;
+		color_array[2].a = 0xFF;
+		
+		// Set all components to 0 to match DXT specs.
+		color_array[3].r = 0x00; // color_array[2].r;
+		color_array[3].g = 0x00; // color_array[2].g;
+		color_array[3].b = 0x00; // color_array[2].b;
+		color_array[3].a = 0x00;
+		
+		return 3;
+	}
+}
+
+// Evaluate palette assuming 3 color block.
+void BlockDXT1::evaluatePalette3(Color32 color_array[4]) const
+{
+	color_array[0].b = (col0.b << 3) | (col0.b >> 2);
+	color_array[0].g = (col0.g << 2) | (col0.g >> 4);
+	color_array[0].r = (col0.r << 3) | (col0.r >> 2);
+	color_array[0].a = 0xFF;
+	
+	color_array[1].r = (col1.r << 3) | (col1.r >> 2);
+	color_array[1].g = (col1.g << 2) | (col1.g >> 4);
+	color_array[1].b = (col1.b << 3) | (col1.b >> 2);
+	color_array[1].a = 0xFF;
+	
+	// Three-color block: derive the other color.
+	color_array[2].r = (color_array[0].r + color_array[1].r) / 2;
+	color_array[2].g = (color_array[0].g + color_array[1].g) / 2;
+	color_array[2].b = (color_array[0].b + color_array[1].b) / 2;
+	color_array[2].a = 0xFF;
+		
+	// Set all components to 0 to match DXT specs.
+	color_array[3].r = 0x00; // color_array[2].r;
+	color_array[3].g = 0x00; // color_array[2].g;
+	color_array[3].b = 0x00; // color_array[2].b;
+	color_array[3].a = 0x00;
+}
+
+// Evaluate palette assuming 4 color block.
+void BlockDXT1::evaluatePalette4(Color32 color_array[4]) const
+{
+	color_array[0].b = (col0.b << 3) | (col0.b >> 2);
+	color_array[0].g = (col0.g << 2) | (col0.g >> 4);
+	color_array[0].r = (col0.r << 3) | (col0.r >> 2);
+	color_array[0].a = 0xFF;
+	
+	color_array[1].r = (col1.r << 3) | (col1.r >> 2);
+	color_array[1].g = (col1.g << 2) | (col1.g >> 4);
+	color_array[1].b = (col1.b << 3) | (col1.b >> 2);
+	color_array[1].a = 0xFF;
+	
+	// Four-color block: derive the other two colors.
+	color_array[2].r = (2 * color_array[0].r + color_array[1].r) / 3;
+	color_array[2].g = (2 * color_array[0].g + color_array[1].g) / 3;
+	color_array[2].b = (2 * color_array[0].b + color_array[1].b) / 3;
+	color_array[2].a = 0xFF;
+		
+	color_array[3].r = (2 * color_array[1].r + color_array[0].r) / 3;
+	color_array[3].g = (2 * color_array[1].g + color_array[0].g) / 3;
+	color_array[3].b = (2 * color_array[1].b + color_array[0].b) / 3;
+	color_array[3].a = 0xFF;
+}
+
+void BlockDXT1::decodeBlock(ColorBlock * block) const
+{
+	// Decode color block.
+	Color32 color_array[4];
+	evaluatePalette(color_array);
+	
+	// Write color block.
+	for( unsigned int j = 0; j < 4; j++ ) {
+		for( unsigned int i = 0; i < 4; i++ ) {
+			unsigned int idx = (row[j] >> (2 * i)) & 3;
+			block->color(i, j) = color_array[idx];
+		}
+	}	
+}
+
+void BlockDXT1::setIndices(int * idx)
+{
+	indices = 0;
+	for(unsigned int i = 0; i < 16; i++) {
+		indices |= (idx[i] & 3) << (2 * i);
+	}
+}
+
+
+/// Flip DXT1 block vertically.
+inline void BlockDXT1::flip4()
+{
+	unsigned char tmp;
+	swap(row[0], row[3], tmp);
+	swap(row[1], row[2], tmp);
+}
+
+/// Flip half DXT1 block vertically.
+inline void BlockDXT1::flip2()
+{
+	unsigned char tmp;
+	swap(row[0], row[1], tmp);
+}
+
+
+/*----------------------------------------------------------------------------
+	BlockDXT3
+----------------------------------------------------------------------------*/
+
+void BlockDXT3::decodeBlock(ColorBlock * block) const
+{
+	// Decode color.
+	color.decodeBlock(block);
+	
+	// Decode alpha.
+	alpha.decodeBlock(block);
+}
+
+void AlphaBlockDXT3::decodeBlock(ColorBlock * block) const
+{
+	block->color(0x0).a = (alpha0 << 4) | alpha0;
+	block->color(0x1).a = (alpha1 << 4) | alpha1;
+	block->color(0x2).a = (alpha2 << 4) | alpha2;
+	block->color(0x3).a = (alpha3 << 4) | alpha3;
+	block->color(0x4).a = (alpha4 << 4) | alpha4;
+	block->color(0x5).a = (alpha5 << 4) | alpha5;
+	block->color(0x6).a = (alpha6 << 4) | alpha6;
+	block->color(0x7).a = (alpha7 << 4) | alpha7;
+	block->color(0x8).a = (alpha8 << 4) | alpha8;
+	block->color(0x9).a = (alpha9 << 4) | alpha9;
+	block->color(0xA).a = (alphaA << 4) | alphaA;
+	block->color(0xB).a = (alphaB << 4) | alphaB;
+	block->color(0xC).a = (alphaC << 4) | alphaC;
+	block->color(0xD).a = (alphaD << 4) | alphaD;
+	block->color(0xE).a = (alphaE << 4) | alphaE;
+	block->color(0xF).a = (alphaF << 4) | alphaF;
+}
+
+/// Flip DXT3 alpha block vertically.
+void AlphaBlockDXT3::flip4()
+{
+	unsigned short tmp;
+	swap(row[0], row[3], tmp);
+	swap(row[1], row[2], tmp);
+}
+
+/// Flip half DXT3 alpha block vertically.
+void AlphaBlockDXT3::flip2()
+{
+	unsigned short tmp;
+	swap(row[0], row[1], tmp);
+}
+
+/// Flip DXT3 block vertically.
+void BlockDXT3::flip4()
+{
+	alpha.flip4();
+	color.flip4();
+}
+
+/// Flip half DXT3 block vertically.
+void BlockDXT3::flip2()
+{
+	alpha.flip2();
+	color.flip2();
+}
+
+
+/*----------------------------------------------------------------------------
+	BlockDXT5
+----------------------------------------------------------------------------*/
+
+void AlphaBlockDXT5::evaluatePalette(unsigned char alpha[8]) const
+{
+	if (alpha0 > alpha1) {
+		evaluatePalette8(alpha);
+	}
+	else {
+		evaluatePalette6(alpha);
+	}
+}
+
+void AlphaBlockDXT5::evaluatePalette8(unsigned char alpha[8]) const
+{
+	// 8-alpha block:  derive the other six alphas.
+	// Bit code 000 = alpha0, 001 = alpha1, others are interpolated.
+	alpha[0] = alpha0;
+	alpha[1] = alpha1;
+	alpha[2] = (6 * alpha0 + 1 * alpha1) / 7;	// bit code 010
+	alpha[3] = (5 * alpha0 + 2 * alpha1) / 7;	// bit code 011
+	alpha[4] = (4 * alpha0 + 3 * alpha1) / 7;	// bit code 100
+	alpha[5] = (3 * alpha0 + 4 * alpha1) / 7;	// bit code 101
+	alpha[6] = (2 * alpha0 + 5 * alpha1) / 7;	// bit code 110
+	alpha[7] = (1 * alpha0 + 6 * alpha1) / 7;	// bit code 111
+}
+
+void AlphaBlockDXT5::evaluatePalette6(unsigned char alpha[8]) const
+{
+	// 6-alpha block.
+	// Bit code 000 = alpha0, 001 = alpha1, others are interpolated.
+	alpha[0] = alpha0;
+	alpha[1] = alpha1;
+	alpha[2] = (4 * alpha0 + 1 * alpha1) / 5;	// Bit code 010
+	alpha[3] = (3 * alpha0 + 2 * alpha1) / 5;	// Bit code 011
+	alpha[4] = (2 * alpha0 + 3 * alpha1) / 5;	// Bit code 100
+	alpha[5] = (1 * alpha0 + 4 * alpha1) / 5;	// Bit code 101
+	alpha[6] = 0x00;							// Bit code 110
+	alpha[7] = 0xFF;							// Bit code 111
+}
+
+void AlphaBlockDXT5::indices(unsigned char index_array[16]) const
+{
+	index_array[0x0] = bits0;
+	index_array[0x1] = bits1;
+	index_array[0x2] = bits2;
+	index_array[0x3] = bits3;
+	index_array[0x4] = bits4;
+	index_array[0x5] = bits5;
+	index_array[0x6] = bits6;
+	index_array[0x7] = bits7;
+	index_array[0x8] = bits8;
+	index_array[0x9] = bits9;
+	index_array[0xA] = bitsA;
+	index_array[0xB] = bitsB;
+	index_array[0xC] = bitsC;
+	index_array[0xD] = bitsD;
+	index_array[0xE] = bitsE;
+	index_array[0xF] = bitsF;
+}
+
+unsigned int AlphaBlockDXT5::index(unsigned int index) const
+{
+	int offset = (3 * index + 16);
+	return (this->u >> offset) & 0x7;
+}
+
+void AlphaBlockDXT5::setIndex(unsigned int index, unsigned int value)
+{
+	int offset = (3 * index + 16);
+	unsigned long long mask = ((unsigned long long)(0x7)) << offset;
+	this->u = (this->u & ~mask) | (((unsigned long long)(value)) << offset);
+}
+
+void AlphaBlockDXT5::decodeBlock(ColorBlock * block) const
+{
+	unsigned char alpha_array[8];
+	evaluatePalette(alpha_array);
+	
+	unsigned char index_array[16];
+	indices(index_array);
+	
+	for(unsigned int i = 0; i < 16; i++) {
+		block->color(i).a = alpha_array[index_array[i]];
+	}
+}
+
+void AlphaBlockDXT5::flip4()
+{
+	unsigned long long * b = (unsigned long long *)this;
+	
+	// @@ The masks might have to be byte swapped.
+	unsigned long long tmp = (*b & (unsigned long long)(0x000000000000FFFFLL));
+	tmp |= (*b & (unsigned long long)(0x000000000FFF0000LL)) << 36;
+	tmp |= (*b & (unsigned long long)(0x000000FFF0000000LL)) << 12;
+	tmp |= (*b & (unsigned long long)(0x000FFF0000000000LL)) >> 12;
+	tmp |= (*b & (unsigned long long)(0xFFF0000000000000LL)) >> 36;
+	
+	*b = tmp;
+}
+
+void AlphaBlockDXT5::flip2()
+{
+	unsigned int * b = (unsigned int *)this;
+	
+	// @@ The masks might have to be byte swapped.
+	unsigned int tmp = (*b & 0xFF000000);
+	tmp |=  (*b & 0x00000FFF) << 12;
+	tmp |= (*b & 0x00FFF000) >> 12;
+	
+	*b = tmp;
+}
+
+void BlockDXT5::decodeBlock(ColorBlock * block) const
+{
+	// Decode color.
+	color.decodeBlock(block);
+	
+	// Decode alpha.
+	alpha.decodeBlock(block);
+}
+
+/// Flip DXT5 block vertically.
+void BlockDXT5::flip4()
+{
+	alpha.flip4();
+	color.flip4();
+}
+
+/// Flip half DXT5 block vertically.
+void BlockDXT5::flip2()
+{
+	alpha.flip2();
+	color.flip2();
+}
+
+
+/// Decode ATI1 block.
+void BlockATI1::decodeBlock(ColorBlock * block) const
+{
+	unsigned char alpha_array[8];
+	alpha.evaluatePalette(alpha_array);
+	
+	unsigned char index_array[16];
+	alpha.indices(index_array);
+	
+	for(unsigned int i = 0; i < 16; i++) {
+		Color32 & c = block->color(i);
+		c.b = c.g = c.r = alpha_array[index_array[i]];
+		c.a = 255;
+	}
+}
+
+/// Flip ATI1 block vertically.
+void BlockATI1::flip4()
+{
+	alpha.flip4();
+}
+
+/// Flip half ATI1 block vertically.
+void BlockATI1::flip2()
+{
+	alpha.flip2();
+}
+
+
+/// Decode ATI2 block.
+void BlockATI2::decodeBlock(ColorBlock * block) const
+{
+	unsigned char alpha_array[8];
+	unsigned char index_array[16];
+	
+	x.evaluatePalette(alpha_array);
+	x.indices(index_array);
+	
+	for(unsigned int i = 0; i < 16; i++) {
+		Color32 & c = block->color(i);
+		c.r = alpha_array[index_array[i]];
+	}
+
+	y.evaluatePalette(alpha_array);
+	y.indices(index_array);
+	
+	for(unsigned int i = 0; i < 16; i++) {
+		Color32 & c = block->color(i);
+		c.g = alpha_array[index_array[i]];
+		c.b = 0;
+		c.a = 255;
+	}
+}
+
+/// Flip ATI2 block vertically.
+void BlockATI2::flip4()
+{
+	x.flip4();
+	y.flip4();
+}
+
+/// Flip half ATI2 block vertically.
+void BlockATI2::flip2()
+{
+	x.flip2();
+	y.flip2();
+}
+
+void mem_read(Stream & mem, BlockDXT1 & block)
+{
+	mem_read(mem, block.col0.u);
+	mem_read(mem, block.col1.u);
+	mem_read(mem, block.indices);
+}
+
+void mem_read(Stream & mem, AlphaBlockDXT3 & block)
+{
+	for (unsigned int i = 0; i < 4; i++) mem_read(mem, block.row[i]);
+}
+
+void mem_read(Stream & mem, BlockDXT3 & block)
+{
+	mem_read(mem, block.alpha);
+	mem_read(mem, block.color);
+}
+
+void mem_read(Stream & mem, AlphaBlockDXT5 & block)
+{
+	mem_read(mem, block.u);
+}
+
+void mem_read(Stream & mem, BlockDXT5 & block)
+{
+	mem_read(mem, block.alpha);
+	mem_read(mem, block.color);
+}
+
+void mem_read(Stream & mem, BlockATI1 & block)
+{
+	mem_read(mem, block.alpha);
+}
+
+void mem_read(Stream & mem, BlockATI2 & block)
+{
+	mem_read(mem, block.x);
+	mem_read(mem, block.y);
+}
+

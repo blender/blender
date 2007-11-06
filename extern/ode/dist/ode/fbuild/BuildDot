@@ -1,0 +1,148 @@
+#!/usr/bin/perl
+#
+#########################################################################
+#                                                                       #
+# Open Dynamics Engine, Copyright (C) 2001,2002 Russell L. Smith.       #
+# All rights reserved.  Email: russ@q12.org   Web: www.q12.org          #
+#                                                                       #
+# This library is free software; you can redistribute it and/or         #
+# modify it under the terms of EITHER:                                  #
+#   (1) The GNU Lesser General Public License as published by the Free  #
+#       Software Foundation; either version 2.1 of the License, or (at  #
+#       your option) any later version. The text of the GNU Lesser      #
+#       General Public License is included with this library in the     #
+#       file LICENSE.TXT.                                               #
+#   (2) The BSD-style license that is included with this library in     #
+#       the file LICENSE-BSD.TXT.                                       #
+#                                                                       #
+# This library is distributed in the hope that it will be useful,       #
+# but WITHOUT ANY WARRANTY; without even the implied warranty of        #
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the files    #
+# LICENSE.TXT and LICENSE-BSD.TXT for more details.                     #
+#                                                                       #
+#########################################################################
+
+# dot product code generator.
+#
+# code generation parameters, set in a parameters file:
+#    FNAME    : name of source file to generate - a .c file will be made
+#    UNROLL1  : inner loop unrolling factor (1..)
+#    FETCH    : max num of a[i]'s and b[i]'s to load ahead of muls
+#    LAT1     : load -> mul latency (>=1)
+#    LAT2     : mul -> add latency (>=1). if this is 1, use fused mul-add
+#
+#############################################################################
+
+require ("BuildUtil");
+
+# get and check code generation parameters
+error ("Usage: BuildDot <parameters-file>") if $#ARGV != 0;
+do $ARGV[0];
+
+if (!defined($FNAME) || !defined($UNROLL1) || !defined($FETCH) ||
+    !defined($LAT1) || !defined($LAT2)) {
+  error ("code generation parameters not defined");
+}
+
+# check parameters
+error ("bad UNROLL1") if $UNROLL1 < 1;
+error ("bad FETCH") if $FETCH < 1;
+error ("bad LAT1") if $LAT1 < 1;
+error ("bad LAT2") if $LAT2 < 1;
+
+#############################################################################
+
+open (FOUT,">$FNAME.c") or die "can't open $FNAME.c for writing";
+
+# file and function header
+output (<<END);
+/* generated code, do not edit. */
+
+#include "ode/matrix.h"
+
+
+dReal dDot (const dReal *a, const dReal *b, int n)
+{
+END
+
+output ("dReal ");
+for ($i=0; $i<$UNROLL1; $i++) {
+  output ("p$i,q$i,m$i,");
+}
+output ("sum;\n");
+
+output (<<END);
+sum = 0;
+n -= $UNROLL1;
+while (n >= 0) {
+END
+
+@load = ();		# slot where a[i]'s and b[i]'s loaded
+@mul = ();		# slot where multiply i happened
+@add = ();		# slow where add i happened
+
+# in the future we may want to reduce the number of variables declared,
+# so these arrays will be useful.
+@pqused = ();		# 1 if p/q[i] loaded with data, 0 once that data's used
+@mused = ();		# 1 if m[i] loaded with data, 0 once that data's used
+@pqmap = ();		# map virtual p/q variables to actual p/q variables
+@mmap = ();		# map virtual m variables to actual m variables
+
+output ("p0 = a[0]; q0 = b[0];\n");
+push (@load,0);
+
+$slot=0;		# one slot for every load/mul/add/nop issued
+for (;;) {
+  $startslot = $slot;
+
+  # do next load
+  if (($#load - $#mul) < $FETCH && ($#load+1) < $UNROLL1) {
+    push (@load,$slot);
+    output ("p$#load = a[$#load]; q$#load = b[$#load];\n");
+    $slot++;
+  }
+  # do next multiply
+  if ($#load > $#mul && $slot >= ($load[$#mul+1] + $LAT1) &&
+      ($#mul+1) < $UNROLL1) {
+    push (@mul,$slot);
+    if ($LAT2 > 1) {
+      output ("m$#mul = p$#mul * q$#mul;\n");
+    }
+    else {
+      output ("sum += p$#mul * q$#mul;\n");
+      last if ($#mul+1) >= $UNROLL1;
+    }
+    $slot++;
+  }
+  # do next add
+  if ($LAT2 > 1) {
+    if ($#mul > $#add && $slot >= ($mul[$#add+1] + $LAT2)) {
+      push (@add,$slot);
+      output ("sum += m$#add;\n");
+      $slot++;
+      last if ($#add+1) >= $UNROLL1;
+    }
+  }
+
+  if ($slot == $startslot) {
+    # comment ("nop");
+    $slot++;
+  }
+}
+
+output ("a += $UNROLL1;\n");
+output ("b += $UNROLL1;\n");
+output ("n -= $UNROLL1;\n");
+output ("}\n");
+
+output (<<END);
+n += $UNROLL1;
+while (n > 0) {
+sum += (*a) * (*b);
+a++;
+b++;
+n--;
+}
+return sum;
+}
+END

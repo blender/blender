@@ -1,0 +1,125 @@
+Microsoft Developer Studio Workspace File, Format Version 6.00
+# WARNING: DO NOT EDIT OR DELETE THIS WORKSPACE FILE!
+
+###############################################################################
+
+Project: "BSP_GhostTest"=.\BSP_GhostTest.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name bsplib
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name ghost
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name string
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name MoTo
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "MoTo"=..\..\..\moto\make\msvc_6_0\MoTo.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "bsplib"=..\..\make\msvc6_0\bsplib.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name container
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name memutil
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name MoTo
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "container"=..\..\..\container\make\msvc_6_0\container.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name memutil
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "ghost"=..\..\..\ghost\make\msvc\ghost.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "memutil"=..\..\..\memutil\make\msvc_60\memutil.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "string"=..\..\..\string\make\msvc_6_0\string.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Global:
+
+Package=<5>
+{{{
+}}}
+
+Package=<3>
+{{{
+}}}
+
+###############################################################################
+

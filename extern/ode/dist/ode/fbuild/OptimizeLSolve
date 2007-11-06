@@ -1,0 +1,76 @@
+#!/usr/bin/perl
+#
+#########################################################################
+#                                                                       #
+# Open Dynamics Engine, Copyright (C) 2001,2002 Russell L. Smith.       #
+# All rights reserved.  Email: russ@q12.org   Web: www.q12.org          #
+#                                                                       #
+# This library is free software; you can redistribute it and/or         #
+# modify it under the terms of EITHER:                                  #
+#   (1) The GNU Lesser General Public License as published by the Free  #
+#       Software Foundation; either version 2.1 of the License, or (at  #
+#       your option) any later version. The text of the GNU Lesser      #
+#       General Public License is included with this library in the     #
+#       file LICENSE.TXT.                                               #
+#   (2) The BSD-style license that is included with this library in     #
+#       the file LICENSE-BSD.TXT.                                       #
+#                                                                       #
+# This library is distributed in the hope that it will be useful,       #
+# but WITHOUT ANY WARRANTY; without even the implied warranty of        #
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the files    #
+# LICENSE.TXT and LICENSE-BSD.TXT for more details.                     #
+#                                                                       #
+#########################################################################
+
+# optimize the solver built by BuildLDLT
+#
+#    FNAME   : name of source file to generate - .h and .c files will be made
+#    N1      : block size (size of outer product matrix) (1..9)
+#    UNROLL1 : solver inner loop unrolling factor (1..)
+#    UNROLL2 : factorizer inner loop unrolling factor (1..)
+#    MADD    : if nonzero, generate code for fused multiply-add (0,1)
+#    FETCH   : how to fetch data in the inner loop:
+#                0 - load in a batch (the `normal way')
+#                1 - delay inner loop loads until just before they're needed
+
+##############################################################################
+
+require ("OptimizeUtil");
+
+##############################################################################
+# optimize solver
+
+sub testSolver # (filename)
+{
+  my $filename = $_[0];
+  createParametersFile ('ParametersS');
+  $params = "$N1 $UNROLL1 $UNROLL2 $MADD $FETCH";
+  print "***** TESTING $params\n";
+  doit ("rm -f fastlsolve.c fastlsolve.o test_ldlt");
+  doit ("make test_ldlt");
+  doit ("./test_ldlt s >> $filename");
+  open (FILE,">>$filename");
+  print FILE " $params\n";
+  close FILE;
+}
+
+# find optimal parameters. UNROLL2 has no effect. write results to data3.txt
+
+open (FILE,">data3.txt");
+print FILE "# solver data from OptimizeLDLT\n";
+close FILE;
+$FNAME='fastlsolve';
+$TYPE='s';
+$UNROLL2=1;
+for ($N1=1; $N1 <= 5; $N1++) {
+  for ($UNROLL1=1; $UNROLL1 <= 15; $UNROLL1++) {
+    for ($MADD=0; $MADD<=1; $MADD++) {
+      for ($FETCH=0; $FETCH<=1; $FETCH++) {
+	testSolver ('data3.txt');
+      }
+    }
+  }
+}
+
+readBackDataFile ('data3.txt');
+createParametersFile ('ParametersS');

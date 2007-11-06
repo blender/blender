@@ -1,0 +1,302 @@
+Microsoft Developer Studio Workspace File, Format Version 6.00
+# WARNING: DO NOT EDIT OR DELETE THIS WORKSPACE FILE!
+
+###############################################################################
+
+Project: "Build_install_all"=.\build_install_all.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name OpenNL
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name bmfont
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name bsplib
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name container
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name decimation
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name DummySoundSystem
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name ghost
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name guardedalloc
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name iksolver
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name memutil
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name MoTo
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name SoundSystem
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name string
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name elbeem
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name boolop
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name OpenALSoundSystem
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "DummySoundSystem"=..\..\SoundSystem\make\msvc_6_0\dummy\DummySoundSystem.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "MoTo"=..\..\moto\make\msvc_6_0\MoTo.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "OpenALSoundSystem"=..\..\SoundSystem\make\msvc_6_0\openal\OpenALSoundSystem.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "OpenNL"=..\..\opennl\make\msvc_6_0\OpenNL.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "SoundSystem"=..\..\SoundSystem\make\msvc_6_0\SoundSystem.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "bmfont"=..\..\bmfont\make\msvc_6_0\bmfont.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "boolop"=..\..\boolop\make\msvc_6_0\boolop.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "bsplib"=..\..\bsp\make\msvc6_0\bsplib.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name container
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name memutil
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name MoTo
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "container"=..\..\container\make\msvc_6_0\container.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "csg"=..\..\csg\make\msvc60\csg.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "decimation"=..\..\decimation\make\msvc_6_0\decimation.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name memutil
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name MoTo
+    End Project Dependency
+    Begin Project Dependency
+    Project_Dep_Name container
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "elbeem"=..\..\elbeem\make\msvc_6_0\elbeem.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "ghost"=..\..\ghost\make\msvc\ghost.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+    Begin Project Dependency
+    Project_Dep_Name string
+    End Project Dependency
+}}}
+
+###############################################################################
+
+Project: "guardedalloc"=..\..\guardedalloc\make\msvc_6_0\guardedalloc.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "iksolver"=..\..\iksolver\make\msvc_6_0\iksolver.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "memutil"=..\..\memutil\make\msvc_60\memutil.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Project: "string"=..\..\string\make\msvc_6_0\string.dsp - Package Owner=<4>
+
+Package=<5>
+{{{
+}}}
+
+Package=<4>
+{{{
+}}}
+
+###############################################################################
+
+Global:
+
+Package=<5>
+{{{
+}}}
+
+Package=<3>
+{{{
+}}}
+
+###############################################################################
+
