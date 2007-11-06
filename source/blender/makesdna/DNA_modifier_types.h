@@ -31,6 +31,7 @@ typedef enum ModifierType {
 	eModifierType_Smooth,
 	eModifierType_Cast,
 	eModifierType_MeshDeform,
+ 	eModifierType_PointCache,
 	eModifierType_Cloth,
         eModifierType_Collision,	
 	NUM_MODIFIER_TYPES
@@ -385,5 +386,15 @@ typedef struct MeshDeformModifierData {
 
 	int totvert, totcagevert;
 } MeshDeformModifierData;
+
+typedef struct PointCacheModifierData {
+	ModifierData modifier;
+	short mode, pad1, pad2, pad3;
+} PointCacheModifierData;
+
+typedef enum {
+	ePointCache_Read =	(1<<0),
+				 ePointCache_Write =		(1<<1),
+} PointCacheFlag;
 
 #endif

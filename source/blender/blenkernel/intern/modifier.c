@@ -5382,6 +5382,83 @@ static void meshdeformModifier_deformVertsEM(
 	dm->release(dm);
 }
 
+
+/* PointCache - example DONT USE SERIOUSLY */
+static void pointCacheModifier_initData(ModifierData *md)
+{
+	PointCacheModifierData *pcm= (PointCacheModifierData*) md;
+
+	pcm->mode= ePointCache_Read; /* read */
+}
+static void pointCacheModifier_freeData(ModifierData *md)
+{
+	PointCacheModifierData *pcm = (PointCacheModifierData*) md;
+}
+static void pointCacheModifier_copyData(ModifierData *md, ModifierData *target)
+{
+	PointCacheModifierData *pcm= (PointCacheModifierData*) md;
+	PointCacheModifierData *tpcm= (PointCacheModifierData*) target;
+
+	tpcm->mode = pcm->mode;
+}
+static int pointCacheModifier_dependsOnTime(ModifierData *md) 
+{
+	return 1;
+}
+CustomDataMask pointCacheModifier_requiredDataMask(ModifierData *md)
+{
+	PointCacheModifierData *pcm= (PointCacheModifierData*) md;
+	CustomDataMask dataMask = 0;
+	return dataMask;
+}
+
+static void pointCacheModifier_deformVerts(
+					   ModifierData *md, Object *ob, DerivedMesh *derivedData,
+	float (*vertexCos)[3], int numVerts)
+{
+	PointCacheModifierData *pcm = (PointCacheModifierData*) md;
+
+	FILE *fp = NULL;
+	int i;
+	int stack_index = modifiers_indexInObject(ob, md);
+	int totvert;
+	MVert *mvert, *mv;
+	
+	DerivedMesh *dm;
+
+	if(derivedData) dm = CDDM_copy(derivedData);
+	else if(ob->type==OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
+	else return;
+
+	CDDM_apply_vert_coords(dm, vertexCos);
+	CDDM_calc_normals(dm);
+	
+	mvert = mv = dm->getVertArray(dm);
+	totvert = dm->getNumVerts(dm);
+			
+	if (pcm->mode == ePointCache_Read) {
+		fp = PTCache_id_fopen((ID *)ob, 'w', G.scene->r.cfra, stack_index);
+		if (!fp) return;
+		for (mv=mvert, i=0; i<totvert; mv++, i++) {
+			fwrite(&mv->co, sizeof(float), 3, fp);
+		}
+		fclose(fp);
+	} else if (pcm->mode == ePointCache_Write) {
+		float pt[3];
+		fp = PTCache_id_fopen((ID *)ob, 'r', G.scene->r.cfra, stack_index);
+		if (!fp) return;
+		for (mv=mvert, i=0; i<totvert; mv++, i++) {
+			float *co = vertexCos[i];
+			if ((fread(co, sizeof(float), 3, fp)) != 3) {
+				break;
+			}
+		}
+		fclose(fp);
+	}
+	
+	if(!derivedData) dm->release(dm);
+}
+
 /***/
 
 static ModifierTypeInfo typeArr[NUM_MODIFIER_TYPES];
@@ -5649,6 +5726,16 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->updateDepgraph = meshdeformModifier_updateDepgraph;
 		mti->deformVerts = meshdeformModifier_deformVerts;
 		mti->deformVertsEM = meshdeformModifier_deformVertsEM;
+		
+		mti = INIT_TYPE(PointCache);
+		mti->type = eModifierTypeType_OnlyDeform;
+		mti->flags = eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_RequiresOriginalData;
+		mti->initData = pointCacheModifier_initData;
+		mti->freeData = pointCacheModifier_freeData;
+		mti->copyData = pointCacheModifier_copyData;
+		mti->dependsOnTime = pointCacheModifier_dependsOnTime;
+		mti->requiredDataMask = pointCacheModifier_requiredDataMask;
+		mti->deformVerts = pointCacheModifier_deformVerts;
 
 		typeArrInit = 0;
 #undef INIT_TYPE
@@ -6032,3 +6119,27 @@ int modifiers_isDeformed(Object *ob)
 	return 0;
 }
 
+/* checks we only have deform modifiers */
+int modifiers_isDeformedOnly(Object *ob)
+{
+	ModifierData *md = modifiers_getVirtualModifierList(ob);
+	ModifierTypeInfo *mti;
+	for (; md; md=md->next) {
+		mti = modifierType_getInfo(md->type);
+		/* TODO - check the modifier is being used! */
+		if (mti->type != eModifierTypeType_OnlyDeform) {
+			return 0;
+		}
+	}
+	return 1;
+}
+
+int modifiers_indexInObject(Object *ob, ModifierData *md_seek)
+{
+	int i= 0;
+	ModifierData *md;
+	
+	for (md=ob->modifiers.first; (md && md_seek!=md); md=md->next, i++);
+	if (!md) return -1; /* modifier isnt in the object */
+	return i;
+}

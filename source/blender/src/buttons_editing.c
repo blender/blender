@@ -88,6 +88,7 @@
 #include "BKE_main.h"
 #include "BKE_modifier.h"
 #include "BKE_packedFile.h"
+#include "BKE_pointcache.h"
 #include "BKE_scene.h"
 
 #include "BLI_blenlib.h"
@@ -1398,6 +1399,14 @@ static void modifiers_convertToReal(void *ob_v, void *md_v)
 	BIF_undo_push("Modifier convert to real");
 }
 
+static void modifiers_pointCacheClearModifier(void *ob_v, void *md_v)
+{
+	Object *ob = ob_v;
+	ModifierData *md = md_v;	
+	int stack_index = modifiers_indexInObject(ob_v, md_v);
+	PTCache_id_clear((ID *)ob, CFRA, stack_index);
+}
+
 static void build_uvlayer_menu_vars(CustomData *data, char **menu_string,
                                     int *uvlayer_tmp, char *uvlayer_name)
 {
@@ -1646,6 +1655,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			height = 211;
 		} else if (md->type==eModifierType_MeshDeform) {
 			height = 73;
+		} else if (md->type==eModifierType_PointCache) {
+			height = 48;
 		} 
 		
 							/* roundbox 4 free variables: corner-rounding, nop, roundbox type, shade */
@@ -2144,6 +2155,18 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 				uiDefButS(block, NUM, B_NOP, "Precision:", lx+(buttonWidth+1)/2,(cy-=24), buttonWidth/2,19, &mmd->gridsize, 2, 10, 0.5, 0, "The grid size for binding");
 			}
 			uiBlockEndAlign(block);
+		} else if (md->type==eModifierType_PointCache) {
+		PointCacheModifierData *pcm = (PointCacheModifierData *) md;
+		uiBut *but;	
+		cy -= 20;
+		uiBlockEndAlign(block);
+			
+		uiDefButS(block, ROW,B_MODIFIER_RECALC,"Write Cache",		lx, cy, 75, 19, &pcm->mode, 12.0, ePointCache_Read, 0, 0, "");
+		uiDefButS(block, ROW,B_MODIFIER_RECALC,"Read Cache",		lx+75, cy, 75,19, &pcm->mode, 12.0, ePointCache_Write, 0, 0, "");
+		cy -= 20;			
+		but = uiDefBut(block, BUT, B_NOP, "Clear Cache",			lx, cy, 150,19, 0, 0, 0, 0, 0, "");
+		uiButSetFunc(but, modifiers_pointCacheClearModifier, ob, md);
+			
 		}
 
 		uiBlockEndAlign(block);
