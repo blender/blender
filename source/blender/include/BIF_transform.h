@@ -58,6 +58,7 @@
 #define TFM_TIME_TRANSLATE	19	
 #define TFM_TIME_SLIDE		20
 #define	TFM_TIME_SCALE		21
+#define TFM_TIME_EXTEND		22
 
 /* TRANSFORM CONTEXTS */
 #define CTX_NONE			0

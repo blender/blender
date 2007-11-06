@@ -269,12 +269,16 @@ static void do_nla_strip_transformmenu(void *arg, int event)
 {
 	switch(event) {
 	case 0: /* grab/move */
-		transform_nlachannel_keys ('g', 0);
-			update_for_newframe_muted();
+		transform_nlachannel_keys('g', 0);
+		update_for_newframe_muted();
 		break;
 	case 1: /* scale */
-		transform_nlachannel_keys ('s', 0);
-			update_for_newframe_muted();
+		transform_nlachannel_keys('s', 0);
+		update_for_newframe_muted();
+		break;
+	case 2: /* extend */
+		transform_nlachannel_keys('e', 0);
+		update_for_newframe_muted();
 		break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -289,8 +293,10 @@ static uiBlock *nla_strip_transformmenu(void *arg_unused)
 	uiBlockSetButmFunc(block, do_nla_strip_transformmenu, NULL);
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move|G",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 0, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Extend from Frame|E",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Scale|S",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
-
+	
+	
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
 	return block;
