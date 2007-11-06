@@ -344,7 +344,7 @@ typedef struct SoftbodyModifierData {
 typedef struct ClothModifierData {
    ModifierData		modifier;
     	
-   Cloth		*clothObject;	/* The internal data structure for cloth.		*/
+   struct Cloth		*clothObject;	/* The internal data structure for cloth.		*/
    SimulationSettings	sim_parms;	/* definition is in DNA_cloth_types.h			*/
    CollisionSettings	coll_parms;	/* definition is in DNA_cloth_types.h			*/
 } ClothModifierData;

@@ -39,15 +39,15 @@
 
 /* types */
 #include "DNA_curve_types.h"
+#include "DNA_cloth_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
-#include "DNA_cloth_types.h"
 #include "DNA_key_types.h"
+#include "DNA_lattice_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
-#include "DNA_lattice_types.h"
-#include "DNA_scene_types.h"
 #include "DNA_modifier_types.h"
+#include "DNA_scene_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -55,6 +55,8 @@
 #include "BLI_linklist.h"
 
 #include "BKE_curve.h"
+#include "BKE_cloth.h"
+#include "BKE_collisions.h"
 #include "BKE_deform.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_cdderivedmesh.h"
@@ -63,12 +65,11 @@
 #include "BKE_global.h"
 #include "BKE_key.h"
 #include "BKE_mesh.h"
-#include "BKE_object.h"
-#include "BKE_cloth.h"
-#include "BKE_collisions.h"
 #include "BKE_modifier.h"
+#include "BKE_object.h"
+#include "BKE_pointcache.h"
 #include "BKE_utildefines.h"
-#include "BKE_DerivedMesh.h"
+
 #include "BIF_editdeform.h"
 #include "BIF_editkey.h"
 #include "DNA_screen_types.h"
@@ -403,10 +404,89 @@ DerivedMesh *CDDM_create_tearing(ClothModifierData *clmd, DerivedMesh *dm)
 	return NULL;
 }
 
-/**
-* cloth_deform_verts - simulates one step, framenr is in frames.
-* 
-**/
+int modifiers_indexInObject(Object *ob, ModifierData *md_seek);
+
+void cloth_clear_cache(Object *ob, ClothModifierData *clmd, float framenr)
+{
+	int stack_index = -1;
+	
+	if(!(clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT))
+	{
+		stack_index = modifiers_indexInObject(ob, (ModifierData *)clmd);
+		
+		PTCache_id_clear((ID *)ob, framenr, stack_index);
+	}
+}
+static void cloth_write_cache(Object *ob, ClothModifierData *clmd, float framenr)
+{
+	FILE *fp = NULL;
+	int stack_index = -1;
+	unsigned int a;
+	Cloth *cloth = clmd->clothObject;
+	
+	if(!cloth)
+		return;
+	
+	stack_index = modifiers_indexInObject(ob, (ModifierData *)clmd);
+	
+	fp = PTCache_id_fopen((ID *)ob, 'w', framenr, stack_index);
+	if(!fp) return;
+	
+	for(a = 0; a < cloth->numverts; a++)
+	{
+		fwrite(&cloth->x[a], sizeof(float),3,fp);
+		fwrite(&cloth->xconst[a], sizeof(float),3,fp);
+		fwrite(&cloth->v[a], sizeof(float),3,fp);
+	}
+	
+	fclose(fp);
+}
+static int cloth_read_cache(Object *ob, ClothModifierData *clmd, float framenr)
+{
+	FILE *fp = NULL;
+	int stack_index = -1;
+	unsigned int a, ret = 1;
+	Cloth *cloth = clmd->clothObject;
+	
+	if(!cloth)
+		return 0;
+	
+	stack_index = modifiers_indexInObject(ob, (ModifierData *)clmd);
+	
+	fp = PTCache_id_fopen((ID *)ob, 'r', framenr, stack_index);
+	if(!fp)
+		ret = 0;
+	else {
+		for(a = 0; a < cloth->numverts; a++)
+		{
+			if(fread(&cloth->x[a], sizeof(float), 3, fp) != 3) 
+			{
+				ret = 0;
+				break;
+			}
+			if(fread(&cloth->xconst[a], sizeof(float), 3, fp) != 3) 
+			{
+				ret = 0;
+				break;
+			}
+			if(fread(&cloth->v[a], sizeof(float), 3, fp) != 3) 
+			{
+				ret = 0;
+				break;
+			}
+		}
+		
+		fclose(fp);
+	}
+	
+	implicit_set_positions(clmd);
+			
+	return ret;
+}
+
+/************************************************
+ * clothModifier_do - main simulation function
+************************************************/
 DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *dm, int useRenderParams, int isFinalCalc)
 {
 	unsigned int i;
@@ -421,7 +501,6 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 	unsigned int framenr = (float)G.scene->r.cfra;
 	float current_time = bsystem_time(ob, (float)G.scene->r.cfra, 0.0);
 	ListBase *effectors = NULL;
-	ClothVertex *verts = NULL;
 	float deltaTime = current_time - clmd->sim_parms.sim_time;	
 
 	clmd->sim_parms.dt = 1.0f / (clmd->sim_parms.stepsPerFrame * G.scene->r.frs_sec);
@@ -441,7 +520,10 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 	mface = CDDM_get_faces(result);
 
 	clmd->sim_parms.sim_time = current_time;
-
+	
+	if ( current_time < clmd->sim_parms.firstframe )
+		return result;
+	
 	// only be active during a specific period:
 	// that's "first frame" and "last frame" on GUI
 	/*
@@ -501,20 +583,18 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 		// Insure we have a clmd->clothObject, in case allocation failed.
 		if (clmd->clothObject != NULL) 
 		{
-			// if(!cloth_cache_search_frame(clmd, framenr))
+			if(!cloth_read_cache(ob, clmd, framenr))
 			{
-				verts = cloth->verts;
-				
 				// Force any pinned verts to their constrained location.
 				// has to be commented for verlet
-				for ( i = 0; i < clmd->clothObject->numverts; i++, verts++ )
+				for ( i = 0; i < clmd->clothObject->numverts; i++ )
 				{
 					// Save the previous position.
-					VECCOPY ( cloth->xold[i], verts->xconst );
+					VECCOPY ( cloth->xold[i], cloth->xconst[i] );
 					VECCOPY ( cloth->current_xold[i], cloth->x[i] );
 					// Get the current position.
-					VECCOPY ( verts->xconst, mvert[i].co );
-					Mat4MulVecfl ( ob->obmat, verts->xconst );
+					VECCOPY ( cloth->xconst[i], mvert[i].co );
+					Mat4MulVecfl ( ob->obmat, cloth->xconst[i] );
 				}
 				
 				tstart();
@@ -527,13 +607,8 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 				
 				printf("Cloth simulation time: %f\n", tval());
 				
-				// cloth_cache_set_frame(clmd, framenr);
-
-			}/*
-			else // just retrieve the cached frame
-			{
-				cloth_cache_get_frame(clmd, framenr);
-			}*/
+				cloth_write_cache(ob, clmd, framenr);
+			}
 
 			// Copy the result back to the object.
 			cloth_to_object (ob, result, clmd);
@@ -542,18 +617,15 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 			// clmd->clothObject->tree = bvh_build(clmd, clmd->coll_parms.epsilon);
 		} 
 
-	}/*
+	}
 	else if ( ( deltaTime <= 0.0f ) || ( deltaTime > 1.0f ) )
 	{
-		if ( ( clmd->clothObject != NULL ) && ( clmd->sim_parms.cache ) )
+		if ( clmd->clothObject != NULL )
 		{
-			if ( cloth_cache_search_frame ( clmd, framenr ) )
-			{
-				cloth_cache_get_frame(clmd, framenr);
+			if(cloth_read_cache(ob, clmd, framenr))
 				cloth_to_object (ob, result, clmd);
-			}
 		}
-	}*/
+	}
 	
 	return result;
 }
@@ -569,7 +641,7 @@ void cloth_free_modifier (ClothModifierData *clmd)
 	cloth = clmd->clothObject;
 
 	// free our frame cache
-	// cloth_cache_free(clmd, 0);
+	// cloth_clear_cache(ob, clmd, 0);
 
 	/* Calls the solver and collision frees first as they
 	* might depend on data in clmd->clothObject. */
@@ -613,6 +685,10 @@ void cloth_free_modifier (ClothModifierData *clmd)
 		// Free the verts.
 		if ( cloth->current_v != NULL )
 			MEM_freeN ( cloth->current_v );
+		
+		// Free the verts.
+		if ( cloth->xconst != NULL )
+			MEM_freeN ( cloth->xconst );
 		
 		cloth->verts = NULL;
 		cloth->numverts = -1;
@@ -806,7 +882,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 					clmd->clothObject->verts [i].goal= 0.0;
 				clmd->clothObject->verts [i].flags = 0;
 				VECCOPY(clmd->clothObject->xold[i], clmd->clothObject->x[i]);
-				VECCOPY(clmd->clothObject->verts [i].xconst, clmd->clothObject->x[i]);
+				VECCOPY(clmd->clothObject->xconst[i], clmd->clothObject->x[i]);
 				VECCOPY(clmd->clothObject->current_xold[i], clmd->clothObject->x[i]);
 				VecMulf(clmd->clothObject->v[i], 0.0);
 
@@ -826,7 +902,8 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 			
 			clmd->clothObject->selftree = bvh_build_from_float3(NULL, 0, clmd->clothObject->x, numverts, clmd->coll_parms.selfepsilon);
 			
-			// cloth_cache_set_frame(clmd, 1);
+			// save initial state
+			cloth_write_cache(ob, clmd, framenr-1);
 		}
 
 		return 1;
@@ -898,6 +975,14 @@ static void cloth_from_mesh (Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	{
 		cloth_free_modifier ( clmd );
 		modifier_setError ( & ( clmd->modifier ), "Out of memory on allocating clmd->clothObject->current_v." );
+		return;
+	}
+	
+	clmd->clothObject->xconst = MEM_callocN ( sizeof ( float ) * clmd->clothObject->numverts * 3, "Cloth MVert_xconst" );
+	if ( clmd->clothObject->xconst == NULL )
+	{
+		cloth_free_modifier ( clmd );
+		modifier_setError ( & ( clmd->modifier ), "Out of memory on allocating clmd->clothObject->xconst." );
 		return;
 	}
 

@@ -2187,7 +2187,7 @@ void do_object_panels(unsigned short event)
 				CFRA= 1;
 				update_for_newframe_muted();
 				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA); 
-				// cloth_cache_free(clmd, 2); 
+				cloth_clear_cache(ob, clmd, 2); 
 				allqueue(REDRAWBUTSOBJECT, 0);
 				allqueue(REDRAWVIEW3D, 0);
 			}	
@@ -2198,7 +2198,7 @@ void do_object_panels(unsigned short event)
 			ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
 			if(clmd)
 			{
-				// cloth_cache_free(clmd, MAX2(2.0,G.scene->r.cfra+1.0));
+				cloth_clear_cache(ob, clmd, MAX2(2.0,G.scene->r.cfra+1.0));
 				allqueue(REDRAWBUTSOBJECT, 0);
 			}
 		}
@@ -3242,7 +3242,7 @@ static void object_panel_cloth(Object *ob)
 				}
 				
 				uiDefButF(block, NUM, B_CLOTH_RENEW, "G Stiff:",	10,50,150,20, &clmd->sim_parms.goalspring, 0.0, 500.0, 10, 0, "Goal (vertex target position) spring stiffness");
-				uiDefButF(block, NUM, B_CLOTH_RENEW, "G Damp:",	160,50,150,20, &clmd->sim_parms.goalfrict  , 0.0, 50.0, 10, 0, "Goal (vertex target position) friction");
+				uiDefButF(block, NUM, B_CLOTH_RENEW, "G Damp:",	160,50,150,20, &clmd->sim_parms.goalfrict, 0.0, 50.0, 10, 0, "Goal (vertex target position) friction");
 				uiDefButF(block, NUM, B_CLOTH_RENEW, "G Min:",		10,30,150,20, &clmd->sim_parms.mingoal, 0.0, 1.0, 10, 0, "Goal minimum, vertex group weights are scaled to match this range");
 				uiDefButF(block, NUM, B_CLOTH_RENEW, "G Max:",		160,30,150,20, &clmd->sim_parms.maxgoal, 0.0, 1.0, 10, 0, "Goal maximum, vertex group weights are scaled to match this range");
 			}

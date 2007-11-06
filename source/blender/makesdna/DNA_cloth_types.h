@@ -43,13 +43,11 @@
 typedef struct ClothVertex
 {
 	int	flags;		/* General flags per vertex.		*/
-	float	xconst [3];	/* constrained position			*/
 	float 	mass;		/* mass / weight of the vertex		*/
 	float 	goal;		/* goal, from SB			*/
 	float	impulse[3];	/* used in collision.c */
 	unsigned int impulse_count; /* same as above */
-}
-ClothVertex;
+} ClothVertex;
 
 
 /**
@@ -66,8 +64,7 @@ typedef struct ClothSpring
 	float dfdx[3][3];
 	float dfdv[3][3];
 	float f[3];
-}
-ClothSpring;
+} ClothSpring;
 
 
 
@@ -108,13 +105,12 @@ typedef struct SimulationSettings
 	float 	sim_time_old;
 	struct	LinkNode *cache;
 	float	defgoal;
-	int	goalfrict;
+	float	goalfrict;
 	float	goalspring;
 	int	maxspringlen; 	/* in percent!; if tearing enabled, a spring will get cut */
 	int 	lastframe; 	/* frame on which simulation stops */
 	int	firstframe;	/* frame on which simulation starts */
-}
-SimulationSettings;
+} SimulationSettings;
 
 
 typedef struct CollisionSettings
@@ -126,8 +122,7 @@ typedef struct CollisionSettings
 	short	loop_count;		/* How many iterations for the collision loop.		*/
 	int	flags;			/* collision flags defined in BKE_cloth.h */
 	float	selfepsilon;
-}
-CollisionSettings;
+} CollisionSettings;
 
 
 /**
@@ -143,7 +138,7 @@ CollisionSettings;
 typedef struct Cloth
 {
 	struct ClothVertex	*verts;			/* The vertices that represent this cloth. */
-	struct	LinkNode	*springs;		/* The springs connecting the mesh. */
+	struct LinkNode		*springs;		/* The springs connecting the mesh. */
 	unsigned int		numverts;		/* The number of verts == m * n. */
 	unsigned int		numsprings;		/* The count of springs. */
 	unsigned int		numfaces;
@@ -160,10 +155,10 @@ typedef struct Cloth
 	float			(*current_xold)[3]; /* The TEMPORARY previous position of all vertices.*/
 	float 			(*v)[3]; /* the current velocity of all vertices */
 	float			(*current_v)[3];
-	struct EdgeHash 	*edgehash; // used for fast checking adjacent points
+	float			(*xconst)[3];
+	struct EdgeHash 	*edgehash; /* used for fast checking adjacent points */
 	unsigned int 		numothersprings;
 	unsigned int		numspringssave;
-}
-Cloth;
+} Cloth;
 
 #endif
