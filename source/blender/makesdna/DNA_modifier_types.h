@@ -374,6 +374,8 @@ typedef struct BooleanModifierData {
 	int operation, pad;
 } BooleanModifierData;
 
+#define MOD_MDEF_INVERT_VGROUP (1<<0)
+
 typedef struct MeshDeformModifierData {
 	ModifierData modifier;
 
@@ -382,7 +384,7 @@ typedef struct MeshDeformModifierData {
 
 	float *bindweights, *bindcos;	/* computed binding weights */
 	short gridsize, needbind;
-	int pad;
+	short flag, pad;
 
 	int totvert, totcagevert;
 } MeshDeformModifierData;

@@ -5310,7 +5310,28 @@ static void meshdeformModifier_do(
 	}
 
 	/* do deformation */
+	fac= 1.0f;
+
 	for(b=0; b<totvert; b++) {
+		if(dvert) {
+			for(dw=NULL, a=0; a<dvert[b].totweight; a++) {
+				if(dvert[b].dw[a].def_nr == defgrp_index) {
+					dw = &dvert[b].dw[a];
+					break;
+				}
+			}
+
+			if(mmd->flag & MOD_MDEF_INVERT_VGROUP) {
+				if(!dw) fac= 1.0f;
+				else if(dw->weight == 0.0f) continue;
+				else fac=1.0f-dw->weight;
+			}
+			else {
+				if(!dw) continue;
+				else fac= dw->weight;
+			}
+		}
+
 		totweight= 0.0f;
 		co[0]= co[1]= co[2]= 0.0f;
 
@@ -5323,20 +5344,6 @@ static void meshdeformModifier_do(
 		}
 
 		if(totweight > 0.0f) {
-			if(dvert) {
-				for(dw=NULL, a=0; a<dvert[b].totweight; a++) {
-					if(dvert[b].dw[a].def_nr == defgrp_index) {
-						dw = &dvert[b].dw[a];
-						break;
-					}
-				}
-				if(!dw) continue;
-
-				fac= dw->weight;
-			}
-			else
-				fac= 1.0f;
-
 			VecMulf(co, fac/totweight);
 			Mat3MulVecfl(icmat, co);
 			VECADD(vertexCos[b], vertexCos[b], co);
@@ -5354,15 +5361,15 @@ static void meshdeformModifier_deformVerts(
 {
 	DerivedMesh *dm;
 
-	if(derivedData) dm = CDDM_copy(derivedData);
-	else dm = CDDM_from_mesh(ob->data, ob);
-
-	CDDM_apply_vert_coords(dm, vertexCos);
-	CDDM_calc_normals(dm);
+	if(!derivedData && ob->type==OB_MESH)
+		dm= CDDM_from_mesh(ob->data, ob);
+	else
+		dm= derivedData;
 
 	meshdeformModifier_do(md, ob, dm, vertexCos, numVerts);
 
-	dm->release(dm);
+	if(dm != derivedData)
+		dm->release(dm);
 }
 
 static void meshdeformModifier_deformVertsEM(
@@ -5371,15 +5378,15 @@ static void meshdeformModifier_deformVertsEM(
 {
 	DerivedMesh *dm;
 
-	if(derivedData) dm = CDDM_copy(derivedData);
-	else dm = CDDM_from_editmesh(editData, ob->data);
-
-	CDDM_apply_vert_coords(dm, vertexCos);
-	CDDM_calc_normals(dm);
+	if(!derivedData && ob->type == OB_MESH)
+		dm = CDDM_from_editmesh(editData, ob->data);
+	else
+		dm = derivedData;
 
 	meshdeformModifier_do(md, ob, dm, vertexCos, numVerts);
 
-	dm->release(dm);
+	if(dm != derivedData)
+		dm->release(dm);
 }
 
 

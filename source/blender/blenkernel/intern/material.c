@@ -757,9 +757,9 @@ int material_in_material(Material *parmat, Material *mat)
 /* ****************** */
 
 char colname_array[125][20]= {
-"Black","DarkRed","HalveRed","Red","Red",
+"Black","DarkRed","HalfRed","Red","Red",
 "DarkGreen","DarkOlive","Brown","Chocolate","OrangeRed",
-"HalveGreen","GreenOlive","DryOlive","Goldenrod","DarkOrange",
+"HalfGreen","GreenOlive","DryOlive","Goldenrod","DarkOrange",
 "LightGreen","Chartreuse","YellowGreen","Yellow","Gold",
 "Green","LawnGreen","GreenYellow","LightOlive","Yellow",
 "DarkBlue","DarkPurple","HotPink","VioletPink","RedPink",
@@ -767,7 +767,7 @@ char colname_array[125][20]= {
 "SeaGreen","PaleGreen","GreenKhaki","LightBrown","LightSalmon",
 "SpringGreen","PaleGreen","MediumOlive","YellowBrown","LightGold",
 "LightGreen","LightGreen","LightGreen","GreenYellow","PaleYellow",
-"HalveBlue","DarkSky","HalveMagenta","VioletRed","DeepPink",
+"HalfBlue","DarkSky","HalfMagenta","VioletRed","DeepPink",
 "SteelBlue","SkyBlue","Orchid","LightHotPink","HotPink",
 "SeaGreen","SlateGray","MediumGrey","Burlywood","LightPink",
 "SpringGreen","Aquamarine","PaleGreen","Khaki","PaleOrange",

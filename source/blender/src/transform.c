@@ -938,6 +938,7 @@ void initTransform(int mode, int context) {
 
 	/* EVIL! posemode code can switch translation to rotate when 1 bone is selected. will be removed (ton) */
 	/* EVIL2: we gave as argument also texture space context bit... was cleared */
+	/* EVIL3: extend mode for animation editors also switches modes... but is best way to avoid duplicate code */
 	mode = Trans.mode;
 	
 	calculatePropRatio(&Trans);
@@ -1003,6 +1004,10 @@ void initTransform(int mode, int context) {
 		break;
 	case TFM_TIME_SCALE:
 		initTimeScale(&Trans);
+		break;
+	case TFM_TIME_EXTEND: 
+		/* now that transdata has been made, do like for TFM_TIME_TRANSLATE */
+		initTimeTranslate(&Trans);
 		break;
 	}
 }

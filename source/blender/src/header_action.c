@@ -114,7 +114,6 @@ enum {
 enum {
 	ACTMENU_KEY_DUPLICATE = 0,
 	ACTMENU_KEY_DELETE,
-	ACTMENU_KEY_BAKE,
 	ACTMENU_KEY_CLEAN
 };
 
@@ -128,7 +127,8 @@ enum {
 enum {
 	ACTMENU_KEY_TRANSFORM_MOVE  = 0,
 	ACTMENU_KEY_TRANSFORM_SCALE,
-	ACTMENU_KEY_TRANSFORM_SLIDE
+	ACTMENU_KEY_TRANSFORM_SLIDE,
+	ACTMENU_KEY_TRANSFORM_EXTEND
 };
 
 enum {
@@ -594,6 +594,9 @@ static void do_action_keymenu_transformmenu(void *arg, int event)
 		case ACTMENU_KEY_TRANSFORM_SLIDE:
 			transform_action_keys('t', 0);
 			break;
+		case ACTMENU_KEY_TRANSFORM_EXTEND:
+			transform_action_keys('e', 0);
+			break;
 	}
 
 	scrarea_queue_winredraw(curarea);
@@ -611,6 +614,9 @@ static uiBlock *action_keymenu_transformmenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
 					 "Grab/Move|G", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0,  
 					 ACTMENU_KEY_TRANSFORM_MOVE, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Grab/Extend from Frame|E", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_KEY_TRANSFORM_EXTEND, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
 					 "Scale|S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_KEY_TRANSFORM_SCALE, "");

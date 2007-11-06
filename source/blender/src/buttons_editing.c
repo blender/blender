@@ -1497,8 +1497,13 @@ static void modifiers_bindMeshDeform(void *ob_v, void *md_v)
 		mmd->needbind= 1;
 		mmd->modifier.mode |= eModifierMode_Realtime;
 
-		dm= mesh_create_derived_view(ob, 0);
-		dm->release(dm);
+		if(ob->type == OB_MESH) {
+			dm= mesh_create_derived_view(ob, 0);
+			dm->release(dm);
+		}
+		else if(ob->type == OB_LATTICE) {
+			lattice_calc_modifiers(ob);
+		}
 
 		mmd->needbind= 0;
 		mmd->modifier.mode= mode;
@@ -2141,8 +2146,9 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 
 			uiBlockBeginAlign(block);
 			uiDefIDPoinBut(block, test_meshobpoin_but, ID_OB, B_CHANGEDEP, "Ob: ", lx, (cy-=19), buttonWidth,19, &mmd->object, "Mesh object to be use as cage"); 
-			but=uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",				  lx, (cy-=19), buttonWidth,19, &mmd->defgrp_name, 0.0, 31.0, 0, 0, "Vertex Group name to control overall meshdeform influence");
+			but=uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",				  lx, (cy-19), buttonWidth-40,19, &mmd->defgrp_name, 0.0, 31.0, 0, 0, "Vertex Group name to control overall meshdeform influence");
 			uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ob);
+			uiDefButBitS(block, TOG, MOD_MDEF_INVERT_VGROUP, B_MODIFIER_RECALC, "Inv", lx+buttonWidth-40, (cy-=19), 40,19, &mmd->flag, 0.0, 31.0, 0, 0, "Invert vertex group influence");
 
 			uiBlockBeginAlign(block);
 			if(mmd->bindweights) {

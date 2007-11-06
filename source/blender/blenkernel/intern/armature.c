@@ -411,12 +411,31 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan, int rest)
 	Mat4 *result_array= (rest)? bbone_rest_array: bbone_array;
 	bPoseChannel *next, *prev;
 	Bone *bone= pchan->bone;
-	float h1[3], h2[3], length, hlength1, hlength2, roll1=0.0f, roll2;
-	float mat3[3][3], imat[4][4];
+	float h1[3], h2[3], scale[3], length, hlength1, hlength2, roll1=0.0f, roll2;
+	float mat3[3][3], imat[4][4], posemat[4][4], scalemat[4][4], iscalemat[4][4];
 	float data[MAX_BBONE_SUBDIV+1][4], *fp;
-	int a;
-	
+	int a, doscale= 0;
+
 	length= bone->length;
+
+	if(!rest) {
+		/* check if we need to take non-uniform bone scaling into account */
+		scale[0]= VecLength(pchan->pose_mat[0]);
+		scale[1]= VecLength(pchan->pose_mat[1]);
+		scale[2]= VecLength(pchan->pose_mat[2]);
+
+		if(fabs(scale[0] - scale[1]) > 1e-6f || fabs(scale[1] - scale[2]) > 1e-6f) {
+			Mat4One(scalemat);
+			scalemat[0][0]= scale[0];
+			scalemat[1][1]= scale[1];
+			scalemat[2][2]= scale[2];
+			Mat4Invert(iscalemat, scalemat);
+
+			length *= scale[1];
+			doscale = 1;
+		}
+	}
+	
 	hlength1= bone->ease1*length*0.390464f;		// 0.5*sqrt(2)*kappa, the handle length for near-perfect circles
 	hlength2= bone->ease2*length*0.390464f;
 	
@@ -432,8 +451,14 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan, int rest)
 		first point = (0,0,0)
 		last point =  (0, length, 0) */
 	
-	if(rest)
+	if(rest) {
 		Mat4Invert(imat, pchan->bone->arm_mat);
+	}
+	else if(doscale) {
+		Mat4CpyMat4(posemat, pchan->pose_mat);
+		Mat4Ortho(posemat);
+		Mat4Invert(imat, posemat);
+	}
 	else
 		Mat4Invert(imat, pchan->pose_mat);
 	
@@ -527,8 +552,15 @@ Mat4 *b_bone_spline_setup(bPoseChannel *pchan, int rest)
 	for(a=0, fp= data[0]; a<bone->segments; a++, fp+=4) {
 		VecSubf(h1, fp+4, fp);
 		vec_roll_to_mat3(h1, fp[3], mat3);		// fp[3] is roll
+
 		Mat4CpyMat3(result_array[a].mat, mat3);
 		VECCOPY(result_array[a].mat[3], fp);
+
+		if(doscale) {
+			/* correct for scaling when this matrix is used in scaled space */
+			Mat4MulSerie(result_array[a].mat, iscalemat, result_array[a].mat,
+				scalemat, NULL, NULL, NULL, NULL, NULL);
+		}
 	}
 	
 	return result_array;
@@ -849,7 +881,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 	for(i = 0; i < numVerts; i++) {
 		MDeformVert *dvert;
 		DualQuat sumdq, *dq = NULL;
-		float *co = vertexCos[i];
+		float *co = vertexCos[i], dco[3];
 		float sumvec[3], summat[3][3];
 		float *vec = NULL, (*smat)[3] = NULL;
 		float contrib = 0.0f;
@@ -938,7 +970,17 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 		if(contrib > 0.0001f) {
 			if(use_quaternion) {
 				DQuatNormalize(dq, contrib, armature_weight);
-				DQuatMulVecfl(dq, co, (defMats)? summat: NULL);
+
+				if(armature_weight != 1.0f) {
+					VECCOPY(dco, co);
+					DQuatMulVecfl(dq, dco, (defMats)? summat: NULL);
+					VecSubf(dco, dco, co);
+					VecMulf(dco, armature_weight);
+					VecAddf(co, co, dco);
+				}
+				else
+					DQuatMulVecfl(dq, co, (defMats)? summat: NULL);
+
 				smat = summat;
 			}
 			else {

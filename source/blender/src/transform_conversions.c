@@ -114,6 +114,7 @@
 #include "BIF_toolbox.h"
 
 #include "BSE_view.h"
+#include "BSE_drawipo.h"
 #include "BSE_edit.h"
 #include "BSE_editipo.h"
 #include "BSE_editipo_types.h"
@@ -2050,7 +2051,48 @@ void flushTransIpoData(TransInfo *t)
 
 /* ********************* ACTION/NLA EDITOR ****************** */
 
+/* This function tests if a point is on the "mouse" side of the cursor/frame-marking */
+static short FrameOnMouseSide(char side, float frame, float cframe)
+{
+	/* both sides, so it doesn't matter */
+	if (side == 'B') return 1;
+	
+	/* only on the named side */
+	if (side == 'R')
+		return (frame >= cframe) ? 1 : 0;
+	else
+		return (frame <= cframe) ? 1 : 0;
+}
 
+/* fully select selected beztriples, but only include if it's on the right side of cfra */
+static int count_ipo_keys(Ipo *ipo, char side, float cfra)
+{
+	IpoCurve *icu;
+	BezTriple *bezt;
+	int i, count = 0;
+	
+	if (ipo == NULL)
+		return count;
+	
+	/* only include points that occur on the right side of cfra */
+	for (icu= ipo->curve.first; icu; icu= icu->next) {
+		for (i=0, bezt=icu->bezt; i < icu->totvert; i++, bezt++) {
+			if (bezt->f2) {
+				/* fully select the other two keys */
+				bezt->f1 |= 1;
+				bezt->f3 |= 1;
+				
+				/* increment by 3, as there are 3 points (3 * x-coordinates) that need transform */
+				if (FrameOnMouseSide(side, bezt->vec[1][0], cfra))
+					count += 3;
+			}
+		}
+	}
+	
+	return count;
+}
+
+/* This function assigns the information to transdata */
 static void TimeToTransData(TransData *td, float *time, Object *ob)
 {
 	/* memory is calloc'ed, so that should zero everything nicely for us */
@@ -2066,9 +2108,12 @@ static void TimeToTransData(TransData *td, float *time, Object *ob)
 
 /* This function advances the address to which td points to, so it must return
  * the new address so that the next time new transform data is added, it doesn't
- * overwrite the existing ones...  i.e.   td = IpoToTransData(td, ipo, ob);
+ * overwrite the existing ones...  i.e.   td = IpoToTransData(td, ipo, ob, side, cfra);
+ *
+ * The 'side' argument is needed for the extend mode. 'B' = both sides, 'R'/'L' mean only data
+ * on the named side are used. 
  */
-static TransData *IpoToTransData(TransData *td, Ipo *ipo, Object *ob)
+static TransData *IpoToTransData(TransData *td, Ipo *ipo, Object *ob, char side, float cfra)
 {
 	IpoCurve *icu;
 	BezTriple *bezt;
@@ -2078,18 +2123,21 @@ static TransData *IpoToTransData(TransData *td, Ipo *ipo, Object *ob)
 		return td;
 	
 	for (icu= ipo->curve.first; icu; icu= icu->next) {
-		/* only add selected keyframes (for now, proportional edit is not enabled) */
 		for (i=0, bezt=icu->bezt; i < icu->totvert; i++, bezt++) {
+			/* only add selected keyframes (for now, proportional edit is not enabled) */
 			if (BEZSELECTED(bezt)) {
-				/* each control point needs to be added separetely */
-				TimeToTransData(td, bezt->vec[0], ob);
-				td++;
-				
-				TimeToTransData(td, bezt->vec[1], ob);
-				td++;
-				
-				TimeToTransData(td, bezt->vec[2], ob);
-				td++;
+				/* only add if on the right 'side' of the current frame */
+				if (FrameOnMouseSide(side, bezt->vec[1][0], cfra)) {
+					/* each control point needs to be added separetely */
+					TimeToTransData(td, bezt->vec[0], ob);
+					td++;
+					
+					TimeToTransData(td, bezt->vec[1], ob);
+					td++;
+					
+					TimeToTransData(td, bezt->vec[2], ob);
+					td++;
+				}
 			}	
 		}
 	}
@@ -2109,6 +2157,8 @@ static void createTransActionData(TransInfo *t)
 	int filter;
 	
 	int count=0;
+	float cfra;
+	char side;
 	
 	/* determine what type of data we are operating on */
 	data = get_action_context(&datatype);
@@ -2121,10 +2171,31 @@ static void createTransActionData(TransInfo *t)
 	/* is the action scaled? if so, the it should belong to the active object */
 	if (NLA_ACTION_SCALED)
 		ob= OBACT;
+		
+	/* which side of the current frame should be allowed */
+	if (t->mode == TFM_TIME_EXTEND) {
+		/* only side on which mouse is gets transformed */
+		float xmouse, ymouse;
+		
+		areamouseco_to_ipoco(G.v2d, t->imval, &xmouse, &ymouse);
+		side = (xmouse > CFRA) ? 'R' : 'L';
+	}
+	else {
+		/* normal transform - both sides of current frame are considered */
+		side = 'B';
+	}
+	
+	/* convert current-frame to action-time (slightly less accurate, espcially under
+	 * higher scaling ratios, but is faster than converting all points) 
+	 */
+	if (ob) 
+		cfra = get_action_frame(ob, CFRA);
+	else
+		cfra = CFRA;
 	
 	/* loop 1: fully select ipo-keys and count how many BezTriples are selected */
 	for (ale= act_data.first; ale; ale= ale->next)
-		count += fullselect_ipo_keys(ale->key_data);
+		count += count_ipo_keys(ale->key_data, side, cfra);
 	
 	/* stop if trying to build list if nothing selected */
 	if (count == 0) {
@@ -2144,7 +2215,7 @@ static void createTransActionData(TransInfo *t)
 	for (ale= act_data.first; ale; ale= ale->next) {
 		Ipo *ipo= (Ipo *)ale->key_data;
 		
-		td= IpoToTransData(td, ipo, ob);
+		td= IpoToTransData(td, ipo, ob, side, cfra);
 	}
 	
 	/* check if we're supposed to be setting minx/maxx for TimeSlide */
@@ -2179,17 +2250,32 @@ static void createTransNlaData(TransInfo *t)
 	
 	TransData *td = NULL;
 	int count=0, i;
+	float cfra;
+	char side;
+	
+	/* which side of the current frame should be allowed */
+	if (t->mode == TFM_TIME_EXTEND) {
+		/* only side on which mouse is gets transformed */
+		float xmouse, ymouse;
+		
+		areamouseco_to_ipoco(G.v2d, t->imval, &xmouse, &ymouse);
+		side = (xmouse > CFRA) ? 'R' : 'L';
+	}
+	else {
+		/* normal transform - both sides of current frame are considered */
+		side = 'B';
+	}
 	
 	/* Ensure that partial selections result in beztriple selections */
 	for (base=G.scene->base.first; base; base=base->next) {
 		/* Check object ipos */
-		i= fullselect_ipo_keys(base->object->ipo);
+		i= count_ipo_keys(base->object->ipo, side, CFRA);
 		if (i) base->flag |= BA_HAS_RECALC_OB;
 		count += i;
 		
 		/* Check object constraint ipos */
 		for (conchan=base->object->constraintChannels.first; conchan; conchan=conchan->next)
-			count += fullselect_ipo_keys(conchan->ipo);			
+			count += count_ipo_keys(conchan->ipo, side, CFRA);			
 		
 		/* skip actions and nlastrips if object is collapsed */
 		if (base->object->nlaflag & OB_NLA_COLLAPSED)
@@ -2204,9 +2290,11 @@ static void createTransNlaData(TransInfo *t)
 						break;
 			}
 			if (strip==NULL) {
+				cfra = get_action_frame(base->object, CFRA);
+				
 				for (achan=base->object->action->chanbase.first; achan; achan=achan->next) {
 					if (EDITABLE_ACHAN(achan)) {
-						i= fullselect_ipo_keys(achan->ipo);
+						i= count_ipo_keys(achan->ipo, side, cfra);
 						if (i) base->flag |= BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA;
 						count += i;
 						
@@ -2214,7 +2302,7 @@ static void createTransNlaData(TransInfo *t)
 						if (EXPANDED_ACHAN(achan) && FILTER_CON_ACHAN(achan)) {
 							for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
 								if (EDITABLE_CONCHAN(conchan))
-									count += fullselect_ipo_keys(conchan->ipo);
+									count += count_ipo_keys(conchan->ipo, side, cfra);
 							}
 						}
 					}
@@ -2226,7 +2314,9 @@ static void createTransNlaData(TransInfo *t)
 		for (strip=base->object->nlastrips.first; strip; strip=strip->next) {
 			if (strip->flag & ACTSTRIP_SELECT) {
 				base->flag |= BA_HAS_RECALC_OB|BA_HAS_RECALC_DATA;
-				count += 2;
+				
+				if (FrameOnMouseSide(side, strip->start, CFRA)) count++;
+				if (FrameOnMouseSide(side, strip->end, CFRA)) count++;
 			}
 		}
 	}
@@ -2244,12 +2334,12 @@ static void createTransNlaData(TransInfo *t)
 	for (base=G.scene->base.first; base; base=base->next) {
 		/* Manipulate object ipos */
 		/* 	- no scaling of keyframe times is allowed here  */
-		td= IpoToTransData(td, base->object->ipo, NULL);
+		td= IpoToTransData(td, base->object->ipo, NULL, side, CFRA);
 		
 		/* Manipulate object constraint ipos */
 		/* 	- no scaling of keyframe times is allowed here  */
 		for (conchan=base->object->constraintChannels.first; conchan; conchan=conchan->next)
-			td= IpoToTransData(td, conchan->ipo, NULL);
+			td= IpoToTransData(td, conchan->ipo, NULL, side, CFRA);
 		
 		/* skip actions and nlastrips if object collapsed */
 		if (base->object->nlaflag & OB_NLA_COLLAPSED)
@@ -2266,15 +2356,17 @@ static void createTransNlaData(TransInfo *t)
 			
 			/* can include if no strip found */
 			if (strip==NULL) {
+				cfra = get_action_frame(base->object, CFRA);
+				
 				for (achan=base->object->action->chanbase.first; achan; achan=achan->next) {
 					if (EDITABLE_ACHAN(achan)) {
-						td= IpoToTransData(td, achan->ipo, base->object);
+						td= IpoToTransData(td, achan->ipo, base->object, side, cfra);
 						
 						/* Manipulate action constraint ipos */
 						if (EXPANDED_ACHAN(achan) && FILTER_CON_ACHAN(achan)) {
 							for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
 								if (EDITABLE_CONCHAN(conchan))
-									td= IpoToTransData(td, conchan->ipo, base->object);
+									td= IpoToTransData(td, conchan->ipo, base->object, side, cfra);
 							}
 						}
 					}
@@ -2286,13 +2378,16 @@ static void createTransNlaData(TransInfo *t)
 		for (strip=base->object->nlastrips.first; strip; strip=strip->next) {
 			if (strip->flag & ACTSTRIP_SELECT) {
 				/* first TransData is the start, second is the end */
-				td->val = &strip->start;
-				td->ival = strip->start;
-				td++;
-				
-				td->val = &strip->end;
-				td->ival = strip->end;
-				td++;
+				if (FrameOnMouseSide(side, strip->start, CFRA)) {
+					td->val = &strip->start;
+					td->ival = strip->start;
+					td++;
+				}
+				if (FrameOnMouseSide(side, strip->end, CFRA)) {
+					td->val = &strip->end;
+					td->ival = strip->end;
+					td++;
+				}
 			}
 		}
 	}

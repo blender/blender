@@ -739,6 +739,12 @@ void transform_action_keys (int mode, int dummy)
 			Transform();
 		}
 			break;
+		case 'e':
+		{
+			initTransform(TFM_TIME_EXTEND, CTX_NONE);
+			Transform();
+		}
+		break;
 	}
 }
 
@@ -2645,7 +2651,12 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					duplicate_action_keys();
 			}
 			break;
-
+			
+		case EKEY:
+			if (mval[0] >= ACTWIDTH) 
+				transform_action_keys('e', 0);
+			break;
+		
 		case GKEY:
 			if (G.qual & LR_CTRLKEY) {
 				transform_markers('g', 0);

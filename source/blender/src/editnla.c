@@ -995,6 +995,12 @@ void transform_nlachannel_keys(int mode, int dummy)
 			Transform();
 		}
 			break;
+		case 'e':
+		{
+			initTransform(TFM_TIME_EXTEND, CTX_NONE);
+			Transform();
+		}
+			break;
 	}
 }
 
@@ -1789,6 +1795,13 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					update_for_newframe_muted();
 				}
 				
+				break;
+				
+			case EKEY:
+				if (mval[0] >= NLAWIDTH) {
+					transform_nlachannel_keys ('e', 0);
+					update_for_newframe_muted();
+				}
 				break;
 				
 			case GKEY:
