@@ -48,6 +48,13 @@ def LineIntersect2D(vec1, vec2, vec3, vec4):
 	@return: a 2D Vector for the intersection or None where there is no intersection.
 	"""
 
+def ClosestPointOnLine(pt, vec1, vec2):
+	"""
+	Takes 2 lines vec1, vec2 for the 2 points of the first line and vec2, vec3 for the 2 points of the second line.
+	@rtype: tuple
+	@return: a tuple containing a vector and a float, the vector is the closest point on the line, the float is the position on the line, between 0 and 1 the point is on the line.
+	"""
+
 def PointInTriangle2D(pt, tri_pt1, tri_pt2, tri_pt3):
 	"""
 	Takes 4 vectors (one for the test point and 3 for the triangle)
