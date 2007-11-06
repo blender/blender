@@ -5080,7 +5080,7 @@ static void meshdeformModifier_do(
 
 			if(mmd->flag & MOD_MDEF_INVERT_VGROUP) {
 				if(!dw) fac= 1.0f;
-				else if(dw->weight == 0.0f) continue;
+				else if(dw->weight == 1.0f) continue;
 				else fac=1.0f-dw->weight;
 			}
 			else {
