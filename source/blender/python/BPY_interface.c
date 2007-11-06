@@ -1938,6 +1938,7 @@ void BPY_do_pyscript( ID * id, short event )
 	scriptlink = ID_getScriptlink( id );
 
 	if( scriptlink && scriptlink->totscript ) {
+		PyObject *value;
 		PyObject *dict;
 		PyObject *ret;
 		int index, during_slink = during_scriptlink(  );
@@ -1947,7 +1948,13 @@ void BPY_do_pyscript( ID * id, short event )
 			return;
 		
 		if( !setup_armature_weakrefs()){
-			printf("Oops - weakref dict\n");
+			printf("Oops - weakref dict, this is a bug\n");
+			return;
+		}
+		
+		value = GetPyObjectFromID( id );
+		if( !value){
+			printf("Oops - could not get a valid python object for Blender.link, this is a bug\n");
 			return;
 		}
 		
@@ -1959,8 +1966,8 @@ void BPY_do_pyscript( ID * id, short event )
 
 		/* set globals in Blender module to identify scriptlink */
 		EXPP_dict_set_item_str( g_blenderdict, "bylink", EXPP_incr_ret_True() );
-		EXPP_dict_set_item_str( g_blenderdict, "link",
-				      GetPyObjectFromID( id ) );
+		
+		EXPP_dict_set_item_str( g_blenderdict, "link", value );
 		EXPP_dict_set_item_str( g_blenderdict, "event",
 				      PyString_FromString( event_to_name
 							   ( event ) ) );
@@ -2178,6 +2185,11 @@ int BPY_do_spacehandlers( ScrArea *sa, unsigned short event,
 			disable_where_scriptlink( (short)during_slink );
 		}
 
+		if( !setup_armature_weakrefs()){
+			printf("Oops - weakref dict, this is a bug\n");
+			return 0;
+		}
+		
 		/* set globals in Blender module to identify space handler scriptlink */
 		EXPP_dict_set_item_str(g_blenderdict, "bylink", EXPP_incr_ret_True());
 		/* unlike normal scriptlinks, here Blender.link is int (space event type) */

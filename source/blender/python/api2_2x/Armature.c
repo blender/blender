@@ -1202,6 +1202,10 @@ static PyObject *M_Armature_Get(PyObject * self, PyObject * args)
 			data = G.main->armature.first; //get the first data ID from the armature library
 			while (data){
 				py_armature = Armature_CreatePyObject(data); //*new*
+				if (!py_armature) {
+					EXPP_decr2(seq, dict);
+					return NULL; /* error is set from Armature_CreatePyObject */
+				}
 				sprintf(buffer, "%s", ((bArmature*)data)->id.name +2);
 				if(PyDict_SetItemString(dict, buffer, py_armature) == -1){ //add to dictionary
 					EXPP_decr3(seq, dict, py_armature);
@@ -1219,6 +1223,11 @@ static PyObject *M_Armature_Get(PyObject * self, PyObject * args)
 				data = find_id("AR", name); //get data from library
 				if (data != NULL){
 					py_armature = Armature_CreatePyObject(data); //*new*
+					if (!py_armature) {
+						EXPP_decr2(seq, dict);
+						return NULL; /* error is set from Armature_CreatePyObject */
+					}
+					
 					if(PyDict_SetItemString(dict, name, py_armature) == -1){ //add to dictionary
 						EXPP_decr3(seq, dict, py_armature);
 						goto RuntimeError;
