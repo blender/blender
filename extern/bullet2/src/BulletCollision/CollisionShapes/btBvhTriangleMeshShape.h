@@ -18,6 +18,7 @@ subject to the following restrictions:
 
 #include "btTriangleMeshShape.h"
 #include "btOptimizedBvh.h"
+#include "LinearMath/btAlignedAllocator.h"
 
 ///Bvh Concave triangle mesh is a static-triangle mesh shape with Bounding Volume Hierarchy optimization.
 ///Uses an interface to access the triangles to allow for sharing graphics/physics triangles.
@@ -26,15 +27,18 @@ ATTRIBUTE_ALIGNED16(class) btBvhTriangleMeshShape : public btTriangleMeshShape
 
 	btOptimizedBvh*	m_bvh;
 	bool m_useQuantizedAabbCompression;
-	bool m_pad[12];////need padding due to alignment
+	bool	m_ownsBvh;
+	bool m_pad[11];////need padding due to alignment
 
 public:
 
-	btBvhTriangleMeshShape() :btTriangleMeshShape(0) {};
-	btBvhTriangleMeshShape(btStridingMeshInterface* meshInterface, bool useQuantizedAabbCompression);
+	BT_DECLARE_ALIGNED_ALLOCATOR();
+
+	btBvhTriangleMeshShape() :btTriangleMeshShape(0),m_bvh(0),m_ownsBvh(false) {};
+	btBvhTriangleMeshShape(btStridingMeshInterface* meshInterface, bool useQuantizedAabbCompression, bool buildBvh = true);
 
 	///optionally pass in a larger bvh aabb, used for quantization. This allows for deformations within this aabb
-	btBvhTriangleMeshShape(btStridingMeshInterface* meshInterface, bool useQuantizedAabbCompression,const btVector3& bvhAabbMin,const btVector3& bvhAabbMax);
+	btBvhTriangleMeshShape(btStridingMeshInterface* meshInterface, bool useQuantizedAabbCompression,const btVector3& bvhAabbMin,const btVector3& bvhAabbMax, bool buildBvh = true);
 	
 	virtual ~btBvhTriangleMeshShape();
 
@@ -56,7 +60,7 @@ public:
 	void	partialRefitTree(const btVector3& aabbMin,const btVector3& aabbMax);
 
 	//debugging
-	virtual char*	getName()const {return "BVHTRIANGLEMESH";}
+	virtual const char*	getName()const {return "BVHTRIANGLEMESH";}
 
 
 	virtual void	setLocalScaling(const btVector3& scaling);
@@ -65,6 +69,17 @@ public:
 	{
 		return m_bvh;
 	}
+
+
+	void	setOptimizedBvh(btOptimizedBvh* bvh)
+	{
+		btAssert(!m_bvh);
+		btAssert(!m_ownsBvh);
+
+		m_bvh = bvh;
+		m_ownsBvh = false;
+	}
+
 	bool	usesQuantizedAabbCompression() const
 	{
 		return	m_useQuantizedAabbCompression;

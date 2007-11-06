@@ -18,7 +18,7 @@ subject to the following restrictions:
 
 
 #include "btPolyhedralConvexShape.h"
-#include "../BroadphaseCollision/btBroadphaseProxy.h"
+#include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
 
 
 ///BU_Simplex1to4 implements feature based and implicit simplex of up to 4 vertices (tetrahedron, triangle, line, vertex).
@@ -68,7 +68,7 @@ public:
 
 
 	///getName is for debugging
-	virtual  char*	getName()const { return "btBU_Simplex1to4";}
+	virtual const char*	getName()const { return "btBU_Simplex1to4";}
 
 };
 

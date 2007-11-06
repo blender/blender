@@ -116,7 +116,7 @@ public:
 		planeSupport = m_vertices1[0];
 	}
 
-	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia)
+	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia) const
 	{
 		(void)mass;
 		btAssert(0);
@@ -155,7 +155,7 @@ public:
 		return false;
 	}
 		//debugging
-		virtual char*	getName()const
+		virtual const char*	getName()const
 		{
 			return "Triangle";
 		}

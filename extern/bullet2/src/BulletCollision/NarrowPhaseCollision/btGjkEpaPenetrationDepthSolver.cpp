@@ -20,7 +20,7 @@ subject to the following restrictions:
 #include "BulletCollision/NarrowPhaseCollision/btGjkEpa.h"
 
 bool btGjkEpaPenetrationDepthSolver::calcPenDepth( btSimplexSolverInterface& simplexSolver,
-											  btConvexShape* pConvexA, btConvexShape* pConvexB,
+											  const btConvexShape* pConvexA, const btConvexShape* pConvexB,
 											  const btTransform& transformA, const btTransform& transformB,
 											  btVector3& v, btPoint3& wWitnessOnA, btPoint3& wWitnessOnB,
 											  class btIDebugDraw* debugDraw, btStackAlloc* stackAlloc )

@@ -17,7 +17,7 @@ subject to the following restrictions:
 #define CONCAVE_SHAPE_H
 
 #include "btCollisionShape.h"
-#include "../BroadphaseCollision/btBroadphaseProxy.h" // for the types
+#include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h" // for the types
 #include "btTriangleCallback.h"
 
 

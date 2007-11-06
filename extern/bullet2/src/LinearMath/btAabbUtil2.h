@@ -18,11 +18,9 @@ subject to the following restrictions:
 #define AABB_UTIL2
 
 #include "btVector3.h"
-#include "btSimdMinMax.h"
+#include "btMinMax.h"
 
 
-#define btMin(a,b) ((a < b ? a : b))
-#define btMax(a,b) ((a > b ? a : b))
 
 
 /// conservative test for overlap between two aabbs

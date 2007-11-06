@@ -3,7 +3,7 @@
 
 
 #include "btPolyhedralConvexShape.h"
-#include "../BroadphaseCollision/btBroadphaseProxy.h" // for the types
+#include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h" // for the types
 
 
 /// btConvexTriangleMeshShape is a convex hull of a triangle mesh. If you just have a point cloud, you can use btConvexHullShape instead.
@@ -16,7 +16,11 @@ class btConvexTriangleMeshShape : public btPolyhedralConvexShape
 public:
 	btConvexTriangleMeshShape(btStridingMeshInterface* meshInterface);
 
-	class btStridingMeshInterface*	getStridingMesh()
+	class btStridingMeshInterface*	getMeshInterface()
+	{
+		return m_stridingMesh;
+	}
+	const class btStridingMeshInterface* getMeshInterface() const
 	{
 		return m_stridingMesh;
 	}
@@ -28,7 +32,7 @@ public:
 	virtual int	getShapeType()const { return CONVEX_TRIANGLEMESH_SHAPE_PROXYTYPE; }
 
 	//debugging
-	virtual char*	getName()const {return "ConvexTrimesh";}
+	virtual const char*	getName()const {return "ConvexTrimesh";}
 	
 	virtual int	getNumVertices() const;
 	virtual int getNumEdges() const;

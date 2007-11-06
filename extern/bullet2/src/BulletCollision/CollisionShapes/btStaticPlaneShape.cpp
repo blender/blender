@@ -86,7 +86,7 @@ void	btStaticPlaneShape::processAllTriangles(btTriangleCallback* callback,const 
 
 }
 
-void	btStaticPlaneShape::calculateLocalInertia(btScalar mass,btVector3& inertia)
+void	btStaticPlaneShape::calculateLocalInertia(btScalar mass,btVector3& inertia) const
 {
 	(void)mass;
 

@@ -116,7 +116,7 @@ btMultiSphereShape::btMultiSphereShape (const btVector3& inertiaHalfExtents,cons
 
 
 
-void	btMultiSphereShape::calculateLocalInertia(btScalar mass,btVector3& inertia)
+void	btMultiSphereShape::calculateLocalInertia(btScalar mass,btVector3& inertia) const
 {
 	//as an approximation, take the inertia of the box that bounds the spheres
 

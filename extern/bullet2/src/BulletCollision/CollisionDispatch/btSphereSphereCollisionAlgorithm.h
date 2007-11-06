@@ -16,9 +16,11 @@ subject to the following restrictions:
 #ifndef SPHERE_SPHERE_COLLISION_ALGORITHM_H
 #define SPHERE_SPHERE_COLLISION_ALGORITHM_H
 
-#include "../BroadphaseCollision/btCollisionAlgorithm.h"
-#include "../BroadphaseCollision/btBroadphaseProxy.h"
-#include "../CollisionDispatch/btCollisionCreateFunc.h"
+#include "BulletCollision/BroadphaseCollision/btCollisionAlgorithm.h"
+#include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
+#include "BulletCollision/CollisionDispatch/btCollisionCreateFunc.h"
+#include "btCollisionDispatcher.h"
+
 class btPersistentManifold;
 
 /// btSphereSphereCollisionAlgorithm  provides sphere-sphere collision detection.
@@ -46,7 +48,8 @@ public:
 	{
 		virtual	btCollisionAlgorithm* CreateCollisionAlgorithm(btCollisionAlgorithmConstructionInfo& ci, btCollisionObject* body0,btCollisionObject* body1)
 		{
-			return new btSphereSphereCollisionAlgorithm(0,ci,body0,body1);
+			void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(btSphereSphereCollisionAlgorithm));
+			return new(mem) btSphereSphereCollisionAlgorithm(0,ci,body0,body1);
 		}
 	};
 

@@ -22,7 +22,7 @@ subject to the following restrictions:
 #include "btPointCollector.h"
 
 
-btGjkConvexCast::btGjkConvexCast(btConvexShape* convexA,btConvexShape* convexB,btSimplexSolverInterface* simplexSolver)
+btGjkConvexCast::btGjkConvexCast(const btConvexShape* convexA,const btConvexShape* convexB,btSimplexSolverInterface* simplexSolver)
 :m_simplexSolver(simplexSolver),
 m_convexA(convexA),
 m_convexB(convexB)

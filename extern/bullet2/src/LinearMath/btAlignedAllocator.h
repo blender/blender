@@ -21,12 +21,26 @@ subject to the following restrictions:
 ///that is better portable and more predictable
 
 #include "btScalar.h"
+//#define BT_DEBUG_MEMORY_ALLOCATIONS 1
+#ifdef BT_DEBUG_MEMORY_ALLOCATIONS
 
-void*	btAlignedAlloc	(int size, int alignment);
+#define btAlignedAlloc(a,b) \
+		btAlignedAllocInternal(a,b,__LINE__,__FILE__)
 
-void	btAlignedFree	(void* ptr);
+#define btAlignedFree(ptr) \
+		btAlignedFreeInternal(ptr,__LINE__,__FILE__)
 
+void*	btAlignedAllocInternal	(size_t size, int alignment,int line,char* filename);
 
+void	btAlignedFreeInternal	(void* ptr,int line,char* filename);
+
+#else
+	void*	btAlignedAllocInternal	(size_t size, int alignment);
+	void	btAlignedFreeInternal	(void* ptr);
+
+	#define btAlignedAlloc(a,b) btAlignedAllocInternal(a,b)
+	#define btAlignedFree(ptr) btAlignedFreeInternal(ptr)
+#endif
 typedef int	size_type;
 
 

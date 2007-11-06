@@ -60,6 +60,8 @@ class	btIDebugDraw
 
 	virtual void	reportErrorWarning(const char* warningString) = 0;
 
+	virtual void	draw3dText(const btVector3& location,const char* textString) = 0;
+	
 	virtual void	setDebugMode(int debugMode) =0;
 	
 	virtual int		getDebugMode() const = 0;

@@ -192,8 +192,8 @@ btScalar resolveSingleFriction(
 			j1 = -vrel * cpd->m_jacDiagABInvTangent0;
 			btScalar oldTangentImpulse = cpd->m_accumulatedTangentImpulse0;
 			cpd->m_accumulatedTangentImpulse0 = oldTangentImpulse + j1;
-			GEN_set_min(cpd->m_accumulatedTangentImpulse0, limit);
-			GEN_set_max(cpd->m_accumulatedTangentImpulse0, -limit);
+			btSetMin(cpd->m_accumulatedTangentImpulse0, limit);
+			btSetMax(cpd->m_accumulatedTangentImpulse0, -limit);
 			j1 = cpd->m_accumulatedTangentImpulse0 - oldTangentImpulse;
 
 		}
@@ -206,8 +206,8 @@ btScalar resolveSingleFriction(
 			j2 = -vrel * cpd->m_jacDiagABInvTangent1;
 			btScalar oldTangentImpulse = cpd->m_accumulatedTangentImpulse1;
 			cpd->m_accumulatedTangentImpulse1 = oldTangentImpulse + j2;
-			GEN_set_min(cpd->m_accumulatedTangentImpulse1, limit);
-			GEN_set_max(cpd->m_accumulatedTangentImpulse1, -limit);
+			btSetMin(cpd->m_accumulatedTangentImpulse1, limit);
+			btSetMax(cpd->m_accumulatedTangentImpulse1, -limit);
 			j2 = cpd->m_accumulatedTangentImpulse1 - oldTangentImpulse;
 		}
 
@@ -270,8 +270,8 @@ btScalar resolveSingleFrictionOriginal(
 			// calculate j that moves us to zero relative velocity
 			btScalar j = -vrel * cpd->m_jacDiagABInvTangent0;
 			btScalar total = cpd->m_accumulatedTangentImpulse0 + j;
-			GEN_set_min(total, limit);
-			GEN_set_max(total, -limit);
+			btSetMin(total, limit);
+			btSetMax(total, -limit);
 			j = total - cpd->m_accumulatedTangentImpulse0;
 			cpd->m_accumulatedTangentImpulse0 = total;
 			body1.applyImpulse(j * cpd->m_frictionWorldTangential0, rel_pos1);
@@ -290,8 +290,8 @@ btScalar resolveSingleFrictionOriginal(
 			// calculate j that moves us to zero relative velocity
 			btScalar j = -vrel * cpd->m_jacDiagABInvTangent1;
 			btScalar total = cpd->m_accumulatedTangentImpulse1 + j;
-			GEN_set_min(total, limit);
-			GEN_set_max(total, -limit);
+			btSetMin(total, limit);
+			btSetMax(total, -limit);
 			j = total - cpd->m_accumulatedTangentImpulse1;
 			cpd->m_accumulatedTangentImpulse1 = total;
 			body1.applyImpulse(j * cpd->m_frictionWorldTangential1, rel_pos1);
@@ -388,8 +388,8 @@ btScalar resolveSingleCollisionCombined(
 				(body1.getInvMass() + body2.getInvMass() + lat_vel.dot(temp1.cross(rel_pos1) + temp2.cross(rel_pos2)));
 			btScalar normal_impulse = cpd->m_appliedImpulse * combinedFriction;
 
-			GEN_set_min(friction_impulse, normal_impulse);
-			GEN_set_max(friction_impulse, -normal_impulse);
+			btSetMin(friction_impulse, normal_impulse);
+			btSetMax(friction_impulse, -normal_impulse);
 			body1.applyImpulse(lat_vel * -friction_impulse, rel_pos1);
 			body2.applyImpulse(lat_vel * friction_impulse, rel_pos2);
 		}

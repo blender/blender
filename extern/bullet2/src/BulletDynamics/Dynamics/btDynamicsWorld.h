@@ -16,11 +16,18 @@ subject to the following restrictions:
 #ifndef BT_DYNAMICS_WORLD_H
 #define BT_DYNAMICS_WORLD_H
 
-#include "../../BulletCollision/CollisionDispatch/btCollisionWorld.h"
+#include "BulletCollision/CollisionDispatch/btCollisionWorld.h"
 class btTypedConstraint;
 class btRaycastVehicle;
 class btConstraintSolver;
 
+
+enum btDynamicsWorldType
+{
+	BT_SIMPLE_DYNAMICS_WORLD=1,
+	BT_DISCRETE_DYNAMICS_WORLD=2,
+	BT_CONTINUOUS_DYNAMICS_WORLD=3
+};
 
 ///btDynamicsWorld is the baseclass for several dynamics implementation, basic, discrete, parallel, and continuous
 class btDynamicsWorld : public btCollisionWorld
@@ -28,8 +35,8 @@ class btDynamicsWorld : public btCollisionWorld
 	public:
 		
 
-		btDynamicsWorld(btDispatcher* dispatcher,btOverlappingPairCache* pairCache)
-		:btCollisionWorld(dispatcher,pairCache)
+		btDynamicsWorld(btDispatcher* dispatcher,btBroadphaseInterface* broadphase,btCollisionConfiguration* collisionConfiguration)
+		:btCollisionWorld(dispatcher,broadphase,collisionConfiguration)
 		{
 		}
 
@@ -65,12 +72,16 @@ class btDynamicsWorld : public btCollisionWorld
 		virtual void	removeRigidBody(btRigidBody* body) = 0;
 
 		virtual void	setConstraintSolver(btConstraintSolver* solver) = 0;
+
+		virtual btConstraintSolver* getConstraintSolver() = 0;
 		
 		virtual	int		getNumConstraints() const {	return 0;		}
 		
 		virtual btTypedConstraint* getConstraint(int index)		{	(void)index;		return 0;		}
 		
 		virtual const btTypedConstraint* getConstraint(int index) const	{	(void)index;	return 0;	}
+
+		virtual btDynamicsWorldType	getWorldType() const=0;
 
 };
 

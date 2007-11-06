@@ -57,17 +57,30 @@ subject to the following restrictions:
 
 
 
-btDiscreteDynamicsWorld::btDiscreteDynamicsWorld(btDispatcher* dispatcher,btOverlappingPairCache* pairCache,btConstraintSolver* constraintSolver)
-:btDynamicsWorld(dispatcher,pairCache),
-m_constraintSolver(constraintSolver? constraintSolver: new btSequentialImpulseConstraintSolver),
+btDiscreteDynamicsWorld::btDiscreteDynamicsWorld(btDispatcher* dispatcher,btBroadphaseInterface* pairCache,btConstraintSolver* constraintSolver, btCollisionConfiguration* collisionConfiguration)
+:btDynamicsWorld(dispatcher,pairCache,collisionConfiguration),
+m_constraintSolver(constraintSolver),
 m_debugDrawer(0),
 m_gravity(0,-10,0),
 m_localTime(btScalar(1.)/btScalar(60.)),
 m_profileTimings(0)
 {
-	m_islandManager = new btSimulationIslandManager();
+	if (!m_constraintSolver)
+	{
+		void* mem = btAlignedAlloc(sizeof(btSequentialImpulseConstraintSolver),16);
+		m_constraintSolver = new (mem) btSequentialImpulseConstraintSolver;
+		m_ownsConstraintSolver = true;
+	} else
+	{
+		m_ownsConstraintSolver = false;
+	}
+
+	{
+		void* mem = btAlignedAlloc(sizeof(btSimulationIslandManager),16);
+		m_islandManager = new (mem) btSimulationIslandManager();
+	}
+
 	m_ownsIslandManager = true;
-	m_ownsConstraintSolver = (constraintSolver==0);
 }
 
 
@@ -75,9 +88,16 @@ btDiscreteDynamicsWorld::~btDiscreteDynamicsWorld()
 {
 	//only delete it when we created it
 	if (m_ownsIslandManager)
-		delete m_islandManager;
+	{
+		m_islandManager->~btSimulationIslandManager();
+		btAlignedFree( m_islandManager);
+	}
 	if (m_ownsConstraintSolver)
-		 delete m_constraintSolver;
+	{
+
+		m_constraintSolver->~btConstraintSolver();
+		btAlignedFree(m_constraintSolver);
+	}
 }
 
 void	btDiscreteDynamicsWorld::saveKinematicState(btScalar timeStep)
@@ -412,7 +432,7 @@ void	btDiscreteDynamicsWorld::removeVehicle(btRaycastVehicle* vehicle)
 	m_vehicles.remove(vehicle);
 }
 
-inline	int	btGetConstraintIslandId(const btTypedConstraint* lhs)
+SIMD_FORCE_INLINE	int	btGetConstraintIslandId(const btTypedConstraint* lhs)
 {
 	int islandId;
 	
@@ -452,7 +472,7 @@ void	btDiscreteDynamicsWorld::solveConstraints(btContactSolverInfo& solverInfo)
 		int						m_numConstraints;
 		btIDebugDraw*			m_debugDrawer;
 		btStackAlloc*			m_stackAlloc;
-
+		btDispatcher*			m_dispatcher;
 
 		InplaceSolverIslandCallback(
 			btContactSolverInfo& solverInfo,
@@ -460,13 +480,15 @@ void	btDiscreteDynamicsWorld::solveConstraints(btContactSolverInfo& solverInfo)
 			btTypedConstraint** sortedConstraints,
 			int	numConstraints,
 			btIDebugDraw*	debugDrawer,
-			btStackAlloc*			stackAlloc)
+			btStackAlloc*			stackAlloc,
+			btDispatcher* dispatcher)
 			:m_solverInfo(solverInfo),
 			m_solver(solver),
 			m_sortedConstraints(sortedConstraints),
 			m_numConstraints(numConstraints),
 			m_debugDrawer(debugDrawer),
-			m_stackAlloc(stackAlloc)
+			m_stackAlloc(stackAlloc),
+			m_dispatcher(dispatcher)
 		{
 
 		}
@@ -479,30 +501,38 @@ void	btDiscreteDynamicsWorld::solveConstraints(btContactSolverInfo& solverInfo)
 		}
 		virtual	void	ProcessIsland(btCollisionObject** bodies,int numBodies,btPersistentManifold**	manifolds,int numManifolds, int islandId)
 		{
-			//also add all non-contact constraints/joints for this island
-			btTypedConstraint** startConstraint = 0;
-			int numCurConstraints = 0;
-			int i;
-			
-			//find the first constraint for this island
-			for (i=0;i<m_numConstraints;i++)
+			if (islandId<0)
 			{
-				if (btGetConstraintIslandId(m_sortedConstraints[i]) == islandId)
-				{
-					startConstraint = &m_sortedConstraints[i];
-					break;
-				}
-			}
-			//count the number of constraints in this island
-			for (;i<m_numConstraints;i++)
+				///we don't split islands, so all constraints/contact manifolds/bodies are passed into the solver regardless the island id
+				m_solver->solveGroup( bodies,numBodies,manifolds, numManifolds,&m_sortedConstraints[0],m_numConstraints,m_solverInfo,m_debugDrawer,m_stackAlloc,m_dispatcher);
+			} else
 			{
-				if (btGetConstraintIslandId(m_sortedConstraints[i]) == islandId)
+					//also add all non-contact constraints/joints for this island
+				btTypedConstraint** startConstraint = 0;
+				int numCurConstraints = 0;
+				int i;
+				
+				//find the first constraint for this island
+				for (i=0;i<m_numConstraints;i++)
 				{
-					numCurConstraints++;
+					if (btGetConstraintIslandId(m_sortedConstraints[i]) == islandId)
+					{
+						startConstraint = &m_sortedConstraints[i];
+						break;
+					}
 				}
-			}
+				//count the number of constraints in this island
+				for (;i<m_numConstraints;i++)
+				{
+					if (btGetConstraintIslandId(m_sortedConstraints[i]) == islandId)
+					{
+						numCurConstraints++;
+					}
+				}
 
-			m_solver->solveGroup( bodies,numBodies,manifolds, numManifolds,startConstraint,numCurConstraints,m_solverInfo,m_debugDrawer,m_stackAlloc);
+				m_solver->solveGroup( bodies,numBodies,manifolds, numManifolds,startConstraint,numCurConstraints,m_solverInfo,m_debugDrawer,m_stackAlloc,m_dispatcher);
+		
+			}
 		}
 
 	};
@@ -524,14 +554,14 @@ void	btDiscreteDynamicsWorld::solveConstraints(btContactSolverInfo& solverInfo)
 	
 	btTypedConstraint** constraintsPtr = getNumConstraints() ? &sortedConstraints[0] : 0;
 	
-	InplaceSolverIslandCallback	solverCallback(	solverInfo,	m_constraintSolver, constraintsPtr,sortedConstraints.size(),	m_debugDrawer,m_stackAlloc);
-
+	InplaceSolverIslandCallback	solverCallback(	solverInfo,	m_constraintSolver, constraintsPtr,sortedConstraints.size(),	m_debugDrawer,m_stackAlloc,m_dispatcher1);
 	
+	m_constraintSolver->prepareSolve(getCollisionWorld()->getNumCollisionObjects(), getCollisionWorld()->getDispatcher()->getNumManifolds());
 	
 	/// solve all the constraints for this island
 	m_islandManager->buildAndProcessIslands(getCollisionWorld()->getDispatcher(),getCollisionWorld()->getCollisionObjectArray(),&solverCallback);
 
-
+	m_constraintSolver->allSolved(solverInfo, m_debugDrawer, m_stackAlloc);
 }
 
 
@@ -596,7 +626,7 @@ void	btDiscreteDynamicsWorld::updateAabbs()
 				//moving objects should be moderately sized, probably something wrong if not
 				if ( colObj->isStaticObject() || ((maxAabb-minAabb).length2() < btScalar(1e12)))
 				{
-					bp->setAabb(body->getBroadphaseHandle(),minAabb,maxAabb);
+					bp->setAabb(body->getBroadphaseHandle(),minAabb,maxAabb, m_dispatcher1);
 				} else
 				{
 					//something went wrong, investigate
@@ -856,10 +886,24 @@ void btDiscreteDynamicsWorld::debugDrawObject(const btTransform& worldTransform,
 				btScalar radius = coneShape->getRadius();//+coneShape->getMargin();
 				btScalar height = coneShape->getHeight();//+coneShape->getMargin();
 				btVector3 start = worldTransform.getOrigin();
-				getDebugDrawer()->drawLine(start+worldTransform.getBasis() * btVector3(btScalar(0.),btScalar(0.),btScalar(0.5)*height),start+worldTransform.getBasis() * btVector3(radius,btScalar(0.),btScalar(-0.5)*height),color);
-				getDebugDrawer()->drawLine(start+worldTransform.getBasis() * btVector3(btScalar(0.),btScalar(0.),btScalar(0.5)*height),start+worldTransform.getBasis() * btVector3(-radius,btScalar(0.),btScalar(-0.5)*height),color);
-				getDebugDrawer()->drawLine(start+worldTransform.getBasis() * btVector3(btScalar(0.),btScalar(0.),btScalar(0.5)*height),start+worldTransform.getBasis() * btVector3(btScalar(0.),radius,btScalar(-0.5)*height),color);
-				getDebugDrawer()->drawLine(start+worldTransform.getBasis() * btVector3(btScalar(0.),btScalar(0.),btScalar(0.5)*height),start+worldTransform.getBasis() * btVector3(btScalar(0.),-radius,btScalar(-0.5)*height),color);
+
+				int upAxis= coneShape->getConeUpIndex();
+				
+
+				btVector3	offsetHeight(0,0,0);
+				offsetHeight[upAxis] = height * btScalar(0.5);
+				btVector3	offsetRadius(0,0,0);
+				offsetRadius[(upAxis+1)%3] = radius;
+				btVector3	offset2Radius(0,0,0);
+				offset2Radius[(upAxis+2)%3] = radius;
+
+				getDebugDrawer()->drawLine(start+worldTransform.getBasis() * (offsetHeight),start+worldTransform.getBasis() * (-offsetHeight+offsetRadius),color);
+				getDebugDrawer()->drawLine(start+worldTransform.getBasis() * (offsetHeight),start+worldTransform.getBasis() * (-offsetHeight-offsetRadius),color);
+				getDebugDrawer()->drawLine(start+worldTransform.getBasis() * (offsetHeight),start+worldTransform.getBasis() * (-offsetHeight+offset2Radius),color);
+				getDebugDrawer()->drawLine(start+worldTransform.getBasis() * (offsetHeight),start+worldTransform.getBasis() * (-offsetHeight-offset2Radius),color);
+
+
+
 				break;
 
 			}
@@ -868,7 +912,7 @@ void btDiscreteDynamicsWorld::debugDrawObject(const btTransform& worldTransform,
 				const btCylinderShape* cylinder = static_cast<const btCylinderShape*>(shape);
 				int upAxis = cylinder->getUpAxis();
 				btScalar radius = cylinder->getRadius();
-				btScalar halfHeight = cylinder->getHalfExtents()[upAxis];
+				btScalar halfHeight = cylinder->getHalfExtentsWithMargin()[upAxis];
 				btVector3 start = worldTransform.getOrigin();
 				btVector3	offsetHeight(0,0,0);
 				offsetHeight[upAxis] = halfHeight;
@@ -902,7 +946,7 @@ void btDiscreteDynamicsWorld::debugDrawObject(const btTransform& worldTransform,
 					btVector3 aabbMin(btScalar(-1e30),btScalar(-1e30),btScalar(-1e30));
 					//DebugDrawcallback drawCallback;
 					DebugDrawcallback drawCallback(getDebugDrawer(),worldTransform,color);
-					convexMesh->getStridingMesh()->InternalProcessAllTriangles(&drawCallback,aabbMin,aabbMax);
+					convexMesh->getMeshInterface()->InternalProcessAllTriangles(&drawCallback,aabbMin,aabbMax);
 				}
 
 
@@ -934,11 +978,17 @@ void	btDiscreteDynamicsWorld::setConstraintSolver(btConstraintSolver* solver)
 {
 	if (m_ownsConstraintSolver)
 	{
-		delete m_constraintSolver;
+		btAlignedFree( m_constraintSolver);
 	}
 	m_ownsConstraintSolver = false;
 	m_constraintSolver = solver;
 }
+
+btConstraintSolver* btDiscreteDynamicsWorld::getConstraintSolver()
+{
+	return m_constraintSolver;
+}
+
 
 int		btDiscreteDynamicsWorld::getNumConstraints() const
 {

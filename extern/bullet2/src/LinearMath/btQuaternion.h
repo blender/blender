@@ -285,7 +285,7 @@ slerp(const btQuaternion& q1, const btQuaternion& q2, const btScalar& t)
 }
 
 SIMD_FORCE_INLINE btVector3 
-quatRotate(btQuaternion& rotation, btVector3& v) 
+quatRotate(const btQuaternion& rotation, const btVector3& v) 
 {
 	btQuaternion q = rotation * v;
 	q *= rotation.inverse();
@@ -293,7 +293,7 @@ quatRotate(btQuaternion& rotation, btVector3& v)
 }
 
 SIMD_FORCE_INLINE btQuaternion 
-shortestArcQuat(btVector3& v0,btVector3& v1) // Game Programming Gems 2.10. make sure v0,v1 are normalized
+shortestArcQuat(const btVector3& v0, const btVector3& v1) // Game Programming Gems 2.10. make sure v0,v1 are normalized
 {
 	btVector3 c = v0.cross(v1);
 	btScalar  d = v0.dot(v1);
@@ -308,7 +308,7 @@ shortestArcQuat(btVector3& v0,btVector3& v1) // Game Programming Gems 2.10. make
 }
 
 SIMD_FORCE_INLINE btQuaternion 
-shortestArcQuatNormalize(btVector3& v0,btVector3& v1)
+shortestArcQuatNormalize2(btVector3& v0,btVector3& v1)
 {
 	v0.normalize();
 	v1.normalize();

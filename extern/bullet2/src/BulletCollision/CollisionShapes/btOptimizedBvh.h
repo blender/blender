@@ -17,7 +17,9 @@ subject to the following restrictions:
 #define OPTIMIZED_BVH_H
 
 
-#include "../../LinearMath/btVector3.h"
+
+#include "LinearMath/btVector3.h"
+#include "LinearMath/btAlignedAllocator.h"
 
 
 //http://msdn.microsoft.com/library/default.asp?url=/library/en-us/vclang/html/vclrf__m128.asp
@@ -34,7 +36,8 @@ class btStridingMeshInterface;
 ///Node can be used for leafnode or internal node. Leafnodes can point to 32-bit triangle index (non-negative range).
 ATTRIBUTE_ALIGNED16	(struct) btQuantizedBvhNode
 {
-	
+	BT_DECLARE_ALIGNED_ALLOCATOR();
+
 	//12 bytes
 	unsigned short int	m_quantizedAabbMin[3];
 	unsigned short int	m_quantizedAabbMax[3];
@@ -63,6 +66,8 @@ ATTRIBUTE_ALIGNED16	(struct) btQuantizedBvhNode
 /// Total node size is 44 bytes / node. You can use the compressed version of 16 bytes.
 ATTRIBUTE_ALIGNED16 (struct) btOptimizedBvhNode
 {
+	BT_DECLARE_ALIGNED_ALLOCATOR();
+
 	//32 bytes
 	btVector3	m_aabbMinOrg;
 	btVector3	m_aabbMaxOrg;
@@ -84,6 +89,8 @@ ATTRIBUTE_ALIGNED16 (struct) btOptimizedBvhNode
 ATTRIBUTE_ALIGNED16(class) btBvhSubtreeInfo
 {
 public:
+	BT_DECLARE_ALIGNED_ALLOCATOR();
+
 	//12 bytes
 	unsigned short int	m_quantizedAabbMin[3];
 	unsigned short int	m_quantizedAabbMax[3];
@@ -92,6 +99,11 @@ public:
 	//4 bytes
 	int			m_subtreeSize;
 	int			m_padding[3];
+
+	btBvhSubtreeInfo()
+	{
+		//memset(&m_padding[0], 0, sizeof(m_padding));
+	}
 
 
 	void	setAabbFromQuantizeNode(const btQuantizedBvhNode& quantizedNode)
@@ -115,8 +127,8 @@ public:
 	virtual void processNode(int subPart, int triangleIndex) = 0;
 };
 
-#include "../../LinearMath/btAlignedAllocator.h"
-#include "../../LinearMath/btAlignedObjectArray.h"
+#include "LinearMath/btAlignedAllocator.h"
+#include "LinearMath/btAlignedObjectArray.h"
 
 
 
@@ -144,6 +156,8 @@ ATTRIBUTE_ALIGNED16(class) btOptimizedBvh
 	btVector3			m_bvhAabbMin;
 	btVector3			m_bvhAabbMax;
 	btVector3			m_bvhQuantization;
+public:
+	BT_DECLARE_ALIGNED_ALLOCATOR();
 
 	enum btTraversalMode
 	{
@@ -151,13 +165,14 @@ ATTRIBUTE_ALIGNED16(class) btOptimizedBvh
 		TRAVERSAL_STACKLESS_CACHE_FRIENDLY,
 		TRAVERSAL_RECURSIVE
 	};
+protected:
 
 	btTraversalMode	m_traversalMode;
-
 	
-
-
 	BvhSubtreeInfoArray		m_SubtreeHeaders;
+
+	//This is only used for serialization so we don't have to add serialization directly to btAlignedObjectArray
+	int m_subtreeHeaderCount;
 
 
 	///two versions, one for quantized and normal nodes. This allows code-reuse while maintaining readability (no template/macro!)
@@ -273,7 +288,18 @@ protected:
 	void	walkRecursiveQuantizedTreeAgainstQuantizedTree(const btQuantizedBvhNode* treeNodeA,const btQuantizedBvhNode* treeNodeB,btNodeOverlapCallback* nodeCallback) const;
 	
 
-	inline bool testQuantizedAabbAgainstQuantizedAabb(unsigned short int* aabbMin1,unsigned short int* aabbMax1,const unsigned short int* aabbMin2,const unsigned short int* aabbMax2) const
+#define USE_BANCHLESS 1
+#ifdef USE_BANCHLESS
+	//This block replaces the block below and uses no branches, and replaces the 8 bit return with a 32 bit return for improved performance (~3x on XBox 360)
+	SIMD_FORCE_INLINE unsigned testQuantizedAabbAgainstQuantizedAabb(unsigned short int* aabbMin1,unsigned short int* aabbMax1,const unsigned short int* aabbMin2,const unsigned short int* aabbMax2) const
+	{		
+		return btSelect((unsigned)((aabbMin1[0] <= aabbMax2[0]) & (aabbMax1[0] >= aabbMin2[0])
+			& (aabbMin1[2] <= aabbMax2[2]) & (aabbMax1[2] >= aabbMin2[2])
+			& (aabbMin1[1] <= aabbMax2[1]) & (aabbMax1[1] >= aabbMin2[1])),
+			1, 0);
+	}
+#else
+	SIMD_FORCE_INLINE bool testQuantizedAabbAgainstQuantizedAabb(unsigned short int* aabbMin1,unsigned short int* aabbMax1,const unsigned short int* aabbMin2,const unsigned short int* aabbMax2) const
 	{
 		bool overlap = true;
 		overlap = (aabbMin1[0] > aabbMax2[0] || aabbMax1[0] < aabbMin2[0]) ? false : overlap;
@@ -281,6 +307,7 @@ protected:
 		overlap = (aabbMin1[1] > aabbMax2[1] || aabbMax1[1] < aabbMin2[1]) ? false : overlap;
 		return overlap;
 	}
+#endif //USE_BANCHLESS
 
 	void	updateSubtreeHeaders(int leftChildNodexIndex,int rightChildNodexIndex);
 
@@ -294,8 +321,22 @@ public:
 	void	reportAabbOverlappingNodex(btNodeOverlapCallback* nodeCallback,const btVector3& aabbMin,const btVector3& aabbMax) const;
 
 	void	reportSphereOverlappingNodex(btNodeOverlapCallback* nodeCallback,const btVector3& aabbMin,const btVector3& aabbMax) const;
+	
+	SIMD_FORCE_INLINE void quantizeWithClamp(unsigned short* out, const btVector3& point) const
+	{
 
-	void quantizeWithClamp(unsigned short* out, const btVector3& point) const;
+		btAssert(m_useQuantization);
+
+		btVector3 clampedPoint(point);
+		clampedPoint.setMax(m_bvhAabbMin);
+		clampedPoint.setMin(m_bvhAabbMax);
+
+		btVector3 v = (clampedPoint - m_bvhAabbMin) * m_bvhQuantization;
+		out[0] = (unsigned short)(v.getX()+0.5f);
+		out[1] = (unsigned short)(v.getY()+0.5f);
+		out[2] = (unsigned short)(v.getZ()+0.5f);		
+	}
+
 	
 	btVector3	unQuantize(const unsigned short* vecIn) const;
 
@@ -312,15 +353,37 @@ public:
 	void	updateBvhNodes(btStridingMeshInterface* meshInterface,int firstNode,int endNode,int index);
 
 
-	QuantizedNodeArray&	getQuantizedNodeArray()
+	SIMD_FORCE_INLINE QuantizedNodeArray&	getQuantizedNodeArray()
 	{	
 		return	m_quantizedContiguousNodes;
 	}
 
-	BvhSubtreeInfoArray&	getSubtreeInfoArray()
+	SIMD_FORCE_INLINE BvhSubtreeInfoArray&	getSubtreeInfoArray()
 	{
 		return m_SubtreeHeaders;
 	}
+	
+	/////Calculate space needed to store BVH for serialization
+	unsigned calculateSerializeBufferSize();
+
+	/// Data buffer MUST be 16 byte aligned
+	bool serialize(void *o_alignedDataBuffer, unsigned i_dataBufferSize, bool i_swapEndian);
+
+	///deSerializeInPlace loads and initializes a BVH from a buffer in memory 'in place'
+	static btOptimizedBvh *deSerializeInPlace(void *i_alignedDataBuffer, unsigned i_dataBufferSize, bool i_swapEndian);
+
+	static unsigned int getAlignmentSerializationPadding();
+
+	SIMD_FORCE_INLINE bool isQuantized()
+	{
+		return m_useQuantization;
+	}
+
+private:
+	// Special "copy" constructor that allows for in-place deserialization
+	// Prevents btVector3's default constructor from being called, but doesn't inialize much else
+	// ownsMemory should most likely be false if deserializing, and if you are not, don't call this (it also changes the function signature, which we need)
+	btOptimizedBvh(btOptimizedBvh &other, bool ownsMemory);
 
 }
 ;

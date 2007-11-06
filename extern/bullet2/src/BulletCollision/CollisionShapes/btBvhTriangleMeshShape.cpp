@@ -21,29 +21,47 @@ subject to the following restrictions:
 
 ///Bvh Concave triangle mesh is a static-triangle mesh shape with Bounding Volume Hierarchy optimization.
 ///Uses an interface to access the triangles to allow for sharing graphics/physics triangles.
-btBvhTriangleMeshShape::btBvhTriangleMeshShape(btStridingMeshInterface* meshInterface, bool useQuantizedAabbCompression)
-:btTriangleMeshShape(meshInterface),m_useQuantizedAabbCompression(useQuantizedAabbCompression)
+btBvhTriangleMeshShape::btBvhTriangleMeshShape(btStridingMeshInterface* meshInterface, bool useQuantizedAabbCompression, bool buildBvh)
+:btTriangleMeshShape(meshInterface),
+m_bvh(0),
+m_useQuantizedAabbCompression(useQuantizedAabbCompression),
+m_ownsBvh(false)
 {
 	//construct bvh from meshInterface
 #ifndef DISABLE_BVH
 
-	m_bvh = new btOptimizedBvh();
 	btVector3 bvhAabbMin,bvhAabbMax;
 	meshInterface->calculateAabbBruteForce(bvhAabbMin,bvhAabbMax);
-	m_bvh->build(meshInterface,m_useQuantizedAabbCompression,bvhAabbMin,bvhAabbMax);
+	
+	if (buildBvh)
+	{
+		void* mem = btAlignedAlloc(sizeof(btOptimizedBvh),16);
+		m_bvh = new (mem) btOptimizedBvh();
+		m_bvh->build(meshInterface,m_useQuantizedAabbCompression,bvhAabbMin,bvhAabbMax);
+		m_ownsBvh = true;
+	}
 
 #endif //DISABLE_BVH
 
 }
 
-btBvhTriangleMeshShape::btBvhTriangleMeshShape(btStridingMeshInterface* meshInterface, bool useQuantizedAabbCompression,const btVector3& bvhAabbMin,const btVector3& bvhAabbMax)
-:btTriangleMeshShape(meshInterface),m_useQuantizedAabbCompression(useQuantizedAabbCompression)
+btBvhTriangleMeshShape::btBvhTriangleMeshShape(btStridingMeshInterface* meshInterface, bool useQuantizedAabbCompression,const btVector3& bvhAabbMin,const btVector3& bvhAabbMax,bool buildBvh)
+:btTriangleMeshShape(meshInterface),
+m_bvh(0),
+m_useQuantizedAabbCompression(useQuantizedAabbCompression),
+m_ownsBvh(false)
 {
 	//construct bvh from meshInterface
 #ifndef DISABLE_BVH
 
-	m_bvh = new btOptimizedBvh();
-	m_bvh->build(meshInterface,m_useQuantizedAabbCompression,bvhAabbMin,bvhAabbMax);
+	if (buildBvh)
+	{
+		void* mem = btAlignedAlloc(sizeof(btOptimizedBvh),16);
+		m_bvh = new (mem) btOptimizedBvh();
+		
+		m_bvh->build(meshInterface,m_useQuantizedAabbCompression,bvhAabbMin,bvhAabbMax);
+		m_ownsBvh = true;
+	}
 
 #endif //DISABLE_BVH
 
@@ -67,7 +85,11 @@ void	btBvhTriangleMeshShape::refitTree()
 
 btBvhTriangleMeshShape::~btBvhTriangleMeshShape()
 {
-	delete m_bvh;
+	if (m_ownsBvh)
+	{
+		m_bvh->~btOptimizedBvh();
+		btAlignedFree(m_bvh);
+	}
 }
 
 //perform bvh tree traversal and report overlapping triangles to 'callback'
@@ -163,9 +185,14 @@ void	btBvhTriangleMeshShape::setLocalScaling(const btVector3& scaling)
 	if ((getLocalScaling() -scaling).length2() > SIMD_EPSILON)
 	{
 		btTriangleMeshShape::setLocalScaling(scaling);
-		delete m_bvh;
+		if (m_ownsBvh)
+		{
+			m_bvh->~btOptimizedBvh();
+			btAlignedFree(m_bvh);
+		}
 		///m_localAabbMin/m_localAabbMax is already re-calculated in btTriangleMeshShape. We could just scale aabb, but this needs some more work
-		m_bvh = new btOptimizedBvh();
+		void* mem = btAlignedAlloc(sizeof(btOptimizedBvh),16);
+		m_bvh = new(mem) btOptimizedBvh();
 		//rebuild the bvh...
 		m_bvh->build(m_meshInterface,m_useQuantizedAabbCompression,m_localAabbMin,m_localAabbMax);
 

@@ -68,12 +68,12 @@ class btStackAlloc;
 class btCollisionShape;
 class btConvexShape;
 class btBroadphaseInterface;
-#include "../../LinearMath/btVector3.h"
-#include "../../LinearMath/btTransform.h"
+#include "LinearMath/btVector3.h"
+#include "LinearMath/btTransform.h"
 #include "btCollisionObject.h"
 #include "btCollisionDispatcher.h" //for definition of btCollisionObjectArray
-#include "../BroadphaseCollision/btOverlappingPairCache.h"
-#include "../../LinearMath/btAlignedObjectArray.h"
+#include "BulletCollision/BroadphaseCollision/btOverlappingPairCache.h"
+#include "LinearMath/btAlignedObjectArray.h"
 
 ///CollisionWorld is interface and container for the collision detection
 class btCollisionWorld
@@ -90,15 +90,12 @@ protected:
 
 	btStackAlloc*	m_stackAlloc;
 
-	btOverlappingPairCache*	m_broadphasePairCache;
+	btBroadphaseInterface*	m_broadphasePairCache;
 	
-	bool	m_ownsDispatcher;
-	bool	m_ownsBroadphasePairCache;
-
 public:
 
 	//this constructor doesn't own the dispatcher and paircache/broadphase
-	btCollisionWorld(btDispatcher* dispatcher,btOverlappingPairCache* pairCache, int stackSize = 2*1024*1024);
+	btCollisionWorld(btDispatcher* dispatcher,btBroadphaseInterface* broadphasePairCache, btCollisionConfiguration* collisionConfiguration);
 
 	virtual ~btCollisionWorld();
 
@@ -110,7 +107,7 @@ public:
 
 	btOverlappingPairCache*	getPairCache()
 	{
-		return m_broadphasePairCache;
+		return m_broadphasePairCache->getOverlappingPairCache();
 	}
 
 
@@ -166,7 +163,7 @@ public:
 			:m_closestHitFraction(btScalar(1.))
 		{
 		}
-		virtual	btScalar	AddSingleResult(LocalRayResult& rayResult) = 0;
+		virtual	btScalar	AddSingleResult(LocalRayResult& rayResult,bool normalInWorldSpace) = 0;
 	};
 
 	struct	ClosestRayResultCallback : public RayResultCallback
@@ -185,7 +182,7 @@ public:
 		btVector3	m_hitPointWorld;
 		btCollisionObject*	m_collisionObject;
 		
-		virtual	btScalar	AddSingleResult(LocalRayResult& rayResult)
+		virtual	btScalar	AddSingleResult(LocalRayResult& rayResult,bool normalInWorldSpace)
 		{
 
 //caller already does the filter on the m_closestHitFraction
@@ -193,7 +190,14 @@ public:
 			
 			m_closestHitFraction = rayResult.m_hitFraction;
 			m_collisionObject = rayResult.m_collisionObject;
-			m_hitNormalWorld = m_collisionObject->getWorldTransform().getBasis()*rayResult.m_hitNormalLocal;
+			if (normalInWorldSpace)
+			{
+				m_hitNormalWorld = rayResult.m_hitNormalLocal;
+			} else
+			{
+				///need to transform normal into worldspace
+				m_hitNormalWorld = m_collisionObject->getWorldTransform().getBasis()*rayResult.m_hitNormalLocal;
+			}
 			m_hitPointWorld.setInterpolate3(m_rayFromWorld,m_rayToWorld,rayResult.m_hitFraction);
 			return rayResult.m_hitFraction;
 		}

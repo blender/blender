@@ -17,8 +17,8 @@ subject to the following restrictions:
 #define CYLINDER_MINKOWSKI_H
 
 #include "btBoxShape.h"
-#include "../BroadphaseCollision/btBroadphaseProxy.h" // for the types
-#include "../../LinearMath/btVector3.h"
+#include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h" // for the types
+#include "LinearMath/btVector3.h"
 
 /// implements cylinder shape interface
 class btCylinderShape : public btBoxShape
@@ -60,7 +60,7 @@ public:
 
 
 	//use box inertia
-	//	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia);
+	//	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia) const;
 
 	virtual int	getShapeType() const
 	{
@@ -74,11 +74,11 @@ public:
 
 	virtual btScalar getRadius() const
 	{
-		return getHalfExtents().getX();
+		return getHalfExtentsWithMargin().getX();
 	}
 
 	//debugging
-	virtual char*	getName()const
+	virtual const char*	getName()const
 	{
 		return "CylinderY";
 	}
@@ -96,14 +96,14 @@ public:
 	virtual void	batchedUnitVectorGetSupportingVertexWithoutMargin(const btVector3* vectors,btVector3* supportVerticesOut,int numVectors) const;
 	
 		//debugging
-	virtual char*	getName()const
+	virtual const char*	getName()const
 	{
 		return "CylinderX";
 	}
 
 	virtual btScalar getRadius() const
 	{
-		return getHalfExtents().getY();
+		return getHalfExtentsWithMargin().getY();
 	}
 
 };
@@ -121,14 +121,14 @@ public:
 		return 2;
 	}
 		//debugging
-	virtual char*	getName()const
+	virtual const char*	getName()const
 	{
 		return "CylinderZ";
 	}
 
 	virtual btScalar getRadius() const
 	{
-		return getHalfExtents().getX();
+		return getHalfExtentsWithMargin().getX();
 	}
 
 };

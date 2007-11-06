@@ -28,7 +28,8 @@
 static btRigidBody s_fixedObject( 0,0,0);
 
 btRaycastVehicle::btRaycastVehicle(const btVehicleTuning& tuning,btRigidBody* chassis,	btVehicleRaycaster* raycaster )
-:m_vehicleRaycaster(raycaster),
+: btTypedConstraint(VEHICLE_CONSTRAINT_TYPE),
+m_vehicleRaycaster(raycaster),
 m_pitchControl(btScalar(0.))
 {
 	m_chassisBody = chassis;
@@ -507,8 +508,8 @@ btScalar calcRollingFriction(btWheelContactPoint& contactPoint)
 
 	// calculate j that moves us to zero relative velocity
 	j1 = -vrel * contactPoint.m_jacDiagABInv;
-	GEN_set_min(j1, maxImpulse);
-	GEN_set_max(j1, -maxImpulse);
+	btSetMin(j1, maxImpulse);
+	btSetMax(j1, -maxImpulse);
 
 	return j1;
 }
@@ -526,10 +527,14 @@ void	btRaycastVehicle::updateFriction(btScalar	timeStep)
 			return;
 
 
-		btVector3*	forwardWS = new	btVector3[numWheel];
-		btVector3*	axle = new btVector3[numWheel];
-		btScalar* forwardImpulse = new btScalar[numWheel];
-		btScalar* sideImpulse = new btScalar[numWheel];
+		void* mem = btAlignedAlloc(numWheel*sizeof(btVector3),16);
+		btVector3*	forwardWS = new	(mem)btVector3[numWheel];
+		mem = btAlignedAlloc(numWheel*sizeof(btVector3),16);
+		btVector3*	axle = new (mem)btVector3[numWheel];
+		mem = btAlignedAlloc(numWheel*sizeof(btScalar),16);
+		btScalar* forwardImpulse = new (mem)btScalar[numWheel];
+		mem = btAlignedAlloc(numWheel*sizeof(btScalar),16);
+		btScalar* sideImpulse = new(mem) btScalar[numWheel];
 		
 		int numWheelsOnGround = 0;
 	
@@ -701,10 +706,10 @@ void	btRaycastVehicle::updateFriction(btScalar	timeStep)
 			}
 		}
 
-		delete []forwardWS;
-		delete [] axle;
-		delete[]forwardImpulse;
-		delete[] sideImpulse;
+		btAlignedFree(forwardWS);
+		btAlignedFree(axle);
+		btAlignedFree(forwardImpulse);
+		btAlignedFree(sideImpulse);
 }
 
 

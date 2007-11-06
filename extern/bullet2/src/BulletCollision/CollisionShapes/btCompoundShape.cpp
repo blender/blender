@@ -35,8 +35,15 @@ btCompoundShape::~btCompoundShape()
 
 void	btCompoundShape::addChildShape(const btTransform& localTransform,btCollisionShape* shape)
 {
-	m_childTransforms.push_back(localTransform);
-	m_childShapes.push_back(shape);
+	//m_childTransforms.push_back(localTransform);
+	//m_childShapes.push_back(shape);
+	btCompoundShapeChild child;
+	child.m_transform = localTransform;
+	child.m_childShape = shape;
+	child.m_childShapeType = shape->getShapeType();
+	child.m_childMargin = shape->getMargin();
+
+	m_children.push_back(child);
 
 	//extend the local aabbMin/aabbMax
 	btVector3 localAabbMin,localAabbMax;
@@ -76,7 +83,7 @@ void btCompoundShape::getAabb(const btTransform& trans,btVector3& aabbMin,btVect
 	aabbMax = center + extent;
 }
 
-void	btCompoundShape::calculateLocalInertia(btScalar mass,btVector3& inertia)
+void	btCompoundShape::calculateLocalInertia(btScalar mass,btVector3& inertia) const
 {
 	//approximation: take the inertia from the aabb for now
 	btTransform ident;

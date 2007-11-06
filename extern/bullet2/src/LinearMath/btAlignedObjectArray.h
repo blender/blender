@@ -50,6 +50,8 @@ class btAlignedObjectArray
 	int					m_size;
 	int					m_capacity;
 	T*					m_data;
+	//PCK: added this line
+	bool				m_ownsMemory;
 
 	protected:
 		SIMD_FORCE_INLINE	int	allocSize(int size)
@@ -69,6 +71,8 @@ class btAlignedObjectArray
 
 		SIMD_FORCE_INLINE	void	init()
 		{
+			//PCK: added this line
+			m_ownsMemory = true;
 			m_data = 0;
 			m_size = 0;
 			m_capacity = 0;
@@ -92,7 +96,11 @@ class btAlignedObjectArray
 		SIMD_FORCE_INLINE	void	deallocate()
 		{
 			if(m_data)	{
-				m_allocator.deallocate(m_data);
+				//PCK: enclosed the deallocation in this block
+				if (m_ownsMemory)
+				{
+					m_allocator.deallocate(m_data);
+				}
 				m_data = 0;
 			}
 		}
@@ -223,6 +231,9 @@ class btAlignedObjectArray
 				destroy(0,size());
 
 				deallocate();
+				
+				//PCK: added this line
+				m_ownsMemory = true;
 
 				m_data = s;
 				
@@ -360,8 +371,16 @@ class btAlignedObjectArray
 		}
 	}
 
+	//PCK: whole function
+	void initializeFromBuffer(void *buffer, int size, int capacity)
+	{
+		clear();
+		m_ownsMemory = false;
+		m_data = (T*)buffer;
+		m_size = size;
+		m_capacity = capacity;
+	}
+
 };
 
 #endif //BT_OBJECT_ARRAY__
-
-

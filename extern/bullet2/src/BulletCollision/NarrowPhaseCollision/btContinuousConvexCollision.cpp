@@ -26,7 +26,7 @@ subject to the following restrictions:
 
 
 
-btContinuousConvexCollision::btContinuousConvexCollision ( btConvexShape*	convexA,btConvexShape*	convexB,btSimplexSolverInterface* simplexSolver, btConvexPenetrationDepthSolver* penetrationDepthSolver)
+btContinuousConvexCollision::btContinuousConvexCollision ( const btConvexShape*	convexA,const btConvexShape*	convexB,btSimplexSolverInterface* simplexSolver, btConvexPenetrationDepthSolver* penetrationDepthSolver)
 :m_simplexSolver(simplexSolver),
 m_penetrationDepthSolver(penetrationDepthSolver),
 m_convexA(convexA),m_convexB(convexB)
@@ -93,7 +93,7 @@ bool	btContinuousConvexCollision::calcTimeOfImpact(
 		btGjkPairDetector::ClosestPointInput input;
 	
 		//we don't use margins during CCD
-		gjk.setIgnoreMargin(true);
+	//	gjk.setIgnoreMargin(true);
 
 		input.m_transformA = fromA;
 		input.m_transformB = fromB;
@@ -108,22 +108,26 @@ bool	btContinuousConvexCollision::calcTimeOfImpact(
 		btScalar dist;
 		dist = pointCollector1.m_distance;
 		n = pointCollector1.m_normalOnBInWorld;
-		
+
+	
+
 		//not close enough
 		while (dist > radius)
 		{
 			numIter++;
 			if (numIter > maxIter)
+			{
 				return false; //todo: report a failure
-
+			}
 			btScalar dLambda = btScalar(0.);
+
+				btScalar projectedLinearVelocity = (linVelB-linVelA).dot(n);
 
 			//calculate safe moving fraction from distance / (linear+rotational velocity)
 			
 			//btScalar clippedDist  = GEN_min(angularConservativeRadius,dist);
 			//btScalar clippedDist  = dist;
 			
-			btScalar projectedLinearVelocity = (linVelB-linVelA).dot(n);
 			
 			dLambda = dist / (projectedLinearVelocity+ maxAngularProjectedVelocity);
 
@@ -135,9 +139,14 @@ bool	btContinuousConvexCollision::calcTimeOfImpact(
 			if (lambda < btScalar(0.))
 				return false;
 
+
 			//todo: next check with relative epsilon
 			if (lambda <= lastLambda)
+			{
+				return false;
+				//n.setValue(0,0,0);
 				break;
+			}
 			lastLambda = lambda;
 
 			
@@ -163,11 +172,12 @@ bool	btContinuousConvexCollision::calcTimeOfImpact(
 				{
 					//degenerate ?!
 					result.m_fraction = lastLambda;
-					result.m_normal = n;
+					n = pointCollector.m_normalOnBInWorld;
+					result.m_normal=n;//.setValue(1,1,1);// = n;
 					return true;
 				}
 				c = pointCollector.m_pointInWorld;		
-				
+				n = pointCollector.m_normalOnBInWorld;
 				dist = pointCollector.m_distance;
 			} else
 			{

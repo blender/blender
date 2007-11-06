@@ -112,7 +112,7 @@ btCapsuleShape::btCapsuleShape(btScalar radius, btScalar height)
 }
 
 
-void	btCapsuleShape::calculateLocalInertia(btScalar mass,btVector3& inertia)
+void	btCapsuleShape::calculateLocalInertia(btScalar mass,btVector3& inertia) const
 {
 	//as an approximation, take the inertia of the box that bounds the spheres
 

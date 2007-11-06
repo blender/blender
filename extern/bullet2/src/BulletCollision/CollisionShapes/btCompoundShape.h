@@ -18,26 +18,39 @@ subject to the following restrictions:
 
 #include "btCollisionShape.h"
 
-#include "../../LinearMath/btVector3.h"
-#include "../../LinearMath/btTransform.h"
-#include "../../LinearMath/btMatrix3x3.h"
+#include "LinearMath/btVector3.h"
+#include "LinearMath/btTransform.h"
+#include "LinearMath/btMatrix3x3.h"
 #include "btCollisionMargin.h"
-#include "../../LinearMath/btAlignedObjectArray.h"
+#include "LinearMath/btAlignedObjectArray.h"
 
 class btOptimizedBvh;
 
+ATTRIBUTE_ALIGNED16(struct) btCompoundShapeChild
+{
+	BT_DECLARE_ALIGNED_ALLOCATOR();
+
+	btTransform			m_transform;
+	btCollisionShape*	m_childShape;
+	int					m_childShapeType;
+	btScalar			m_childMargin;
+};
+	
 /// btCompoundShape allows to store multiple other btCollisionShapes
 /// This allows for concave collision objects. This is more general then the Static Concave btTriangleMeshShape.
-class btCompoundShape	: public btCollisionShape
+ATTRIBUTE_ALIGNED16(class) btCompoundShape	: public btCollisionShape
 {
-	btAlignedObjectArray<btTransform>		m_childTransforms;
-	btAlignedObjectArray<btCollisionShape*>	m_childShapes;
+	//btAlignedObjectArray<btTransform>		m_childTransforms;
+	//btAlignedObjectArray<btCollisionShape*>	m_childShapes;
+	btAlignedObjectArray<btCompoundShapeChild> m_children;
 	btVector3						m_localAabbMin;
 	btVector3						m_localAabbMax;
 
 	btOptimizedBvh*					m_aabbTree;
 
 public:
+	BT_DECLARE_ALIGNED_ALLOCATOR();
+
 	btCompoundShape();
 
 	virtual ~btCompoundShape();
@@ -46,25 +59,31 @@ public:
 
 	int		getNumChildShapes() const
 	{
-		return int (m_childShapes.size());
+		return int (m_children.size());
 	}
 
 	btCollisionShape* getChildShape(int index)
 	{
-		return m_childShapes[index];
+		return m_children[index].m_childShape;
 	}
 	const btCollisionShape* getChildShape(int index) const
 	{
-		return m_childShapes[index];
+		return m_children[index].m_childShape;
 	}
 
-	btTransform&	getChildTransform(int index)
+	btTransform	getChildTransform(int index)
 	{
-		return m_childTransforms[index];
+		return m_children[index].m_transform;
 	}
-	const btTransform&	getChildTransform(int index) const
+	const btTransform	getChildTransform(int index) const
 	{
-		return m_childTransforms[index];
+		return m_children[index].m_transform;
+	}
+
+
+	btCompoundShapeChild* getChildList()
+	{
+		return &m_children[0];
 	}
 
 	///getAabb's default implementation is brute force, expected derived classes to implement a fast dedicated version
@@ -80,7 +99,7 @@ public:
 		return m_localScaling;
 	}
 
-	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia);
+	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia) const;
 	
 	virtual int	getShapeType() const { return COMPOUND_SHAPE_PROXYTYPE;}
 
@@ -92,7 +111,7 @@ public:
 	{
 		return m_collisionMargin;
 	}
-	virtual char*	getName()const
+	virtual const char*	getName()const
 	{
 		return "Compound";
 	}

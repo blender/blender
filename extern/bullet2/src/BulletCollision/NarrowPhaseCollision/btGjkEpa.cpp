@@ -580,8 +580,8 @@ using namespace	gjkepa_impl;
 
 
 //
-bool	btGjkEpaSolver::Collide(btConvexShape *shape0,const btTransform &wtrs0,
-								btConvexShape *shape1,const btTransform &wtrs1,
+bool	btGjkEpaSolver::Collide(const btConvexShape *shape0,const btTransform &wtrs0,
+								const btConvexShape *shape1,const btTransform &wtrs1,
 								btScalar	radialmargin,
 								btStackAlloc* stackAlloc,
 								sResults&	results)

@@ -16,7 +16,7 @@ subject to the following restrictions:
 #ifndef COLLISION_OBJECT_H
 #define COLLISION_OBJECT_H
 
-#include "../../LinearMath/btTransform.h"
+#include "LinearMath/btTransform.h"
 
 //island management, m_activationState1
 #define ACTIVE_TAG 1
@@ -27,7 +27,8 @@ subject to the following restrictions:
 
 struct	btBroadphaseProxy;
 class	btCollisionShape;
-#include "../../LinearMath/btMotionState.h"
+#include "LinearMath/btMotionState.h"
+#include "LinearMath/btAlignedAllocator.h"
 
 
 
@@ -89,6 +90,8 @@ protected:
 
 public:
 
+	BT_DECLARE_ALIGNED_ALLOCATOR();
+
 	enum CollisionFlags
 	{
 		CF_STATIC_OBJECT= 1,
@@ -98,28 +101,28 @@ public:
 	};
 
 
-	inline bool mergesSimulationIslands() const
+	SIMD_FORCE_INLINE bool mergesSimulationIslands() const
 	{
 		///static objects, kinematic and object without contact response don't merge islands
 		return  ((m_collisionFlags & (CF_STATIC_OBJECT | CF_KINEMATIC_OBJECT | CF_NO_CONTACT_RESPONSE) )==0);
 	}
 
 
-	inline bool		isStaticObject() const {
+	SIMD_FORCE_INLINE bool		isStaticObject() const {
 		return (m_collisionFlags & CF_STATIC_OBJECT) != 0;
 	}
 
-	inline bool		isKinematicObject() const
+	SIMD_FORCE_INLINE bool		isKinematicObject() const
 	{
 		return (m_collisionFlags & CF_KINEMATIC_OBJECT) != 0;
 	}
 
-	inline bool		isStaticOrKinematicObject() const
+	SIMD_FORCE_INLINE bool		isStaticOrKinematicObject() const
 	{
 		return (m_collisionFlags & (CF_KINEMATIC_OBJECT | CF_STATIC_OBJECT)) != 0 ;
 	}
 
-	inline bool		hasContactResponse() const {
+	SIMD_FORCE_INLINE bool		hasContactResponse() const {
 		return (m_collisionFlags & CF_NO_CONTACT_RESPONSE)==0;
 	}
 
@@ -133,12 +136,12 @@ public:
 		m_collisionShape = collisionShape;
 	}
 
-	const btCollisionShape*	getCollisionShape() const
+	SIMD_FORCE_INLINE const btCollisionShape*	getCollisionShape() const
 	{
 		return m_collisionShape;
 	}
 
-	btCollisionShape*	getCollisionShape()
+	SIMD_FORCE_INLINE btCollisionShape*	getCollisionShape()
 	{
 		return m_collisionShape;
 	}

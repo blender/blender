@@ -92,13 +92,7 @@ public:
 		m_basis.getRotation(q);
 		return q;
 	}
-	template <typename Scalar2>
-		void setValue(const Scalar2 *m) 
-	{
-		m_basis.setValue(m);
-		m_origin.setValue(&m[12]);
-	}
-
+	
 	
 	void setFromOpenGLMatrix(const btScalar *m)
 	{

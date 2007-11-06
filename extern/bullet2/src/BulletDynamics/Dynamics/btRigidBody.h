@@ -16,11 +16,11 @@ subject to the following restrictions:
 #ifndef RIGIDBODY_H
 #define RIGIDBODY_H
 
-#include "../../LinearMath/btAlignedObjectArray.h"
-#include "../../LinearMath/btPoint3.h"
-#include "../../LinearMath/btTransform.h"
-#include "../../BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
-#include "../../BulletCollision/CollisionDispatch/btCollisionObject.h"
+#include "LinearMath/btAlignedObjectArray.h"
+#include "LinearMath/btPoint3.h"
+#include "LinearMath/btTransform.h"
+#include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
+#include "BulletCollision/CollisionDispatch/btCollisionObject.h"
 
 class btCollisionShape;
 class btMotionState;
@@ -53,7 +53,10 @@ class btRigidBody  : public btCollisionObject
 	
 	btScalar		m_linearDamping;
 	btScalar		m_angularDamping;
-	
+
+	btScalar		m_linearSleepingThreshold;
+	btScalar		m_angularSleepingThreshold;
+		
 
 	//m_optionalMotionState allows to automatic synchronize the world transform for active objects
 	btMotionState*	m_optionalMotionState;
@@ -69,6 +72,14 @@ public:
 #endif //OBSOLETE_MOTIONSTATE_LESS
 
 	btRigidBody(btScalar mass, btMotionState* motionState, btCollisionShape* collisionShape, const btVector3& localInertia=btVector3(0,0,0),btScalar linearDamping=btScalar(0.),btScalar angularDamping=btScalar(0.),btScalar friction=btScalar(0.5),btScalar restitution=btScalar(0.));
+
+	virtual ~btRigidBody() 
+        { 
+                //No constraints should point to this rigidbody
+		//Remove constraints from the dynamics world before you delete the related rigidbodies. 
+                btAssert(m_constraintRefs.size()==0); 
+        }
+
 
 	void			proceedToTransform(const btTransform& newTrans); 
 	
@@ -100,11 +111,11 @@ public:
 
 	void			setDamping(btScalar lin_damping, btScalar ang_damping);
 	
-	inline const btCollisionShape*	getCollisionShape() const {
+	SIMD_FORCE_INLINE const btCollisionShape*	getCollisionShape() const {
 		return m_collisionShape;
 	}
 
-	inline btCollisionShape*	getCollisionShape() {
+	SIMD_FORCE_INLINE btCollisionShape*	getCollisionShape() {
 			return m_collisionShape;
 	}
 	
@@ -132,6 +143,12 @@ public:
 	void	setInvInertiaDiagLocal(const btVector3& diagInvInertia)
 	{
 		m_invInertiaLocal = diagInvInertia;
+	}
+
+	void	setSleepingThresholds(btScalar linear,btScalar angular)
+	{
+		m_linearSleepingThreshold = linear;
+		m_angularSleepingThreshold = angular;
 	}
 
 	void	applyTorque(const btVector3& torque)
@@ -168,7 +185,7 @@ public:
 	}
 
 	//Optimization for the iterative solver: avoid calculating constant terms involving inertia, normal, relative position
-	inline void internalApplyImpulse(const btVector3& linearComponent, const btVector3& angularComponent,btScalar impulseMagnitude)
+	SIMD_FORCE_INLINE void internalApplyImpulse(const btVector3& linearComponent, const btVector3& angularComponent,btScalar impulseMagnitude)
 	{
 		if (m_inverseMass != btScalar(0.))
 		{
@@ -238,7 +255,7 @@ public:
 
 
 	
-	inline btScalar computeImpulseDenominator(const btPoint3& pos, const btVector3& normal) const
+	SIMD_FORCE_INLINE btScalar computeImpulseDenominator(const btPoint3& pos, const btVector3& normal) const
 	{
 		btVector3 r0 = pos - getCenterOfMassPosition();
 
@@ -250,19 +267,19 @@ public:
 
 	}
 
-	inline btScalar computeAngularImpulseDenominator(const btVector3& axis) const
+	SIMD_FORCE_INLINE btScalar computeAngularImpulseDenominator(const btVector3& axis) const
 	{
 		btVector3 vec = axis * getInvInertiaTensorWorld();
 		return axis.dot(vec);
 	}
 
-	inline void	updateDeactivation(btScalar timeStep)
+	SIMD_FORCE_INLINE void	updateDeactivation(btScalar timeStep)
 	{
 		if ( (getActivationState() == ISLAND_SLEEPING) || (getActivationState() == DISABLE_DEACTIVATION))
 			return;
 
-		if ((getLinearVelocity().length2() < gLinearSleepingThreshold*gLinearSleepingThreshold) &&
-			(getAngularVelocity().length2() < gAngularSleepingThreshold*gAngularSleepingThreshold))
+		if ((getLinearVelocity().length2() < m_linearSleepingThreshold*m_linearSleepingThreshold) &&
+			(getAngularVelocity().length2() < m_angularSleepingThreshold*m_angularSleepingThreshold))
 		{
 			m_deactivationTime += timeStep;
 		} else
@@ -273,7 +290,7 @@ public:
 
 	}
 
-	inline bool	wantsSleeping()
+	SIMD_FORCE_INLINE bool	wantsSleeping()
 	{
 
 		if (getActivationState() == DISABLE_DEACTIVATION)
@@ -347,6 +364,17 @@ public:
 
 	void addConstraintRef(btTypedConstraint* c);
 	void removeConstraintRef(btTypedConstraint* c);
+
+	btTypedConstraint* getConstraintRef(int index)
+	{
+		return m_constraintRefs[index];
+	}
+
+	int getNumConstraintRefs()
+	{
+		return m_constraintRefs.size();
+	}
+
 
 	int	m_debugBodyId;
 };

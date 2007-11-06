@@ -71,7 +71,7 @@ btVector3(btScalar(0.162456) , btScalar(0.499995),btScalar(0.850654))
 
 
 bool btMinkowskiPenetrationDepthSolver::calcPenDepth(btSimplexSolverInterface& simplexSolver,
-												   btConvexShape* convexA,btConvexShape* convexB,
+												   const btConvexShape* convexA,const btConvexShape* convexB,
 												   const btTransform& transA,const btTransform& transB,
 												   btVector3& v, btPoint3& pa, btPoint3& pb,
 												   class btIDebugDraw* debugDraw,btStackAlloc* stackAlloc
@@ -112,8 +112,7 @@ bool btMinkowskiPenetrationDepthSolver::calcPenDepth(btSimplexSolverInterface& s
 
 	//just take fixed number of orientation, and sample the penetration depth in that direction
 	btScalar minProj = btScalar(1e30);
-	btVector3 minNorm;
-	btVector3 minVertex;
+	btVector3 minNorm(btScalar(0.), btScalar(0.), btScalar(0.));
 	btVector3 minA,minB;
 	btVector3 seperatingAxisInA,seperatingAxisInB;
 	btVector3 pInA,qInB,pWorld,qWorld,w;

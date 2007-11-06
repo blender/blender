@@ -16,11 +16,11 @@ subject to the following restrictions:
 #ifndef COLLISION_SHAPE_H
 #define COLLISION_SHAPE_H
 
-#include "../../LinearMath/btTransform.h"
-#include "../../LinearMath/btVector3.h"
-#include "../../LinearMath/btMatrix3x3.h"
-#include "../../LinearMath/btPoint3.h"
-#include "../BroadphaseCollision/btBroadphaseProxy.h" //for the shape types
+#include "LinearMath/btTransform.h"
+#include "LinearMath/btVector3.h"
+#include "LinearMath/btMatrix3x3.h"
+#include "LinearMath/btPoint3.h"
+#include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h" //for the shape types
 
 ///btCollisionShape provides interface for collision shapes that can be shared among btCollisionObjects.
 class btCollisionShape
@@ -49,26 +49,26 @@ public:
 
 #ifndef __SPU__
 
-	inline bool	isPolyhedral() const
+	SIMD_FORCE_INLINE bool	isPolyhedral() const
 	{
 		return btBroadphaseProxy::isPolyhedral(getShapeType());
 	}
 
-	inline bool	isConvex() const
+	SIMD_FORCE_INLINE bool	isConvex() const
 	{
 		return btBroadphaseProxy::isConvex(getShapeType());
 	}
-	inline bool	isConcave() const
+	SIMD_FORCE_INLINE bool	isConcave() const
 	{
 		return btBroadphaseProxy::isConcave(getShapeType());
 	}
-	inline bool	isCompound() const
+	SIMD_FORCE_INLINE bool	isCompound() const
 	{
 		return btBroadphaseProxy::isCompound(getShapeType());
 	}
 
 	///isInfinite is used to catch simulation error (aabb check)
-	inline bool isInfinite() const
+	SIMD_FORCE_INLINE bool isInfinite() const
 	{
 		return btBroadphaseProxy::isInfinite(getShapeType());
 	}
@@ -76,11 +76,11 @@ public:
 	virtual int		getShapeType() const=0;
 	virtual void	setLocalScaling(const btVector3& scaling) =0;
 	virtual const btVector3& getLocalScaling() const =0;
-	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia) = 0;
+	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia) const = 0;
 
 
 //debugging support
-	virtual char*	getName()const =0 ;
+	virtual const char*	getName()const =0 ;
 #endif //__SPU__
 
 	

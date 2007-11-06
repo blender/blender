@@ -16,7 +16,7 @@ subject to the following restrictions:
 #ifndef STRIDING_MESHINTERFACE_H
 #define STRIDING_MESHINTERFACE_H
 
-#include "../../LinearMath/btVector3.h"
+#include "LinearMath/btVector3.h"
 #include "btTriangleCallback.h"
 
 /// PHY_ScalarType enumerates possible scalar types.

@@ -15,8 +15,9 @@ subject to the following restrictions:
 
 #ifndef EMPTY_ALGORITH
 #define EMPTY_ALGORITH
-#include "../BroadphaseCollision/btCollisionAlgorithm.h"
+#include "BulletCollision/BroadphaseCollision/btCollisionAlgorithm.h"
 #include "btCollisionCreateFunc.h"
+#include "btCollisionDispatcher.h"
 
 #define ATTRIBUTE_ALIGNED(a)
 
@@ -39,7 +40,8 @@ public:
 		{
 			(void)body0;
 			(void)body1;
-			return new btEmptyAlgorithm(ci);
+			void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(btEmptyAlgorithm));
+			return new(mem) btEmptyAlgorithm(ci);
 		}
 	};
 

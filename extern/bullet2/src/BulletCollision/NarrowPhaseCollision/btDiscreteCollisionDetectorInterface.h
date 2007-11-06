@@ -16,8 +16,8 @@ subject to the following restrictions:
 
 #ifndef DISCRETE_COLLISION_DETECTOR1_INTERFACE_H
 #define DISCRETE_COLLISION_DETECTOR1_INTERFACE_H
-#include "../../LinearMath/btTransform.h"
-#include "../../LinearMath/btVector3.h"
+#include "LinearMath/btTransform.h"
+#include "LinearMath/btVector3.h"
 class btStackAlloc;
 
 /// This interface is made to be used by an iterative approach to do TimeOfImpact calculations

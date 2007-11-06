@@ -16,8 +16,21 @@ subject to the following restrictions:
 #ifndef CONTACT_SOLVER_INFO
 #define CONTACT_SOLVER_INFO
 
+struct btContactSolverInfoData
+{
+	btScalar	m_tau;
+	btScalar	m_damping;
+	btScalar	m_friction;
+	btScalar	m_timeStep;
+	btScalar	m_restitution;
+	int		m_numIterations;
+	btScalar	m_maxErrorReduction;
+	btScalar	m_sor;
+	btScalar	m_erp;
 
-struct btContactSolverInfo
+};
+
+struct btContactSolverInfo : public btContactSolverInfoData
 {
 
 	inline btContactSolverInfo()
@@ -32,16 +45,7 @@ struct btContactSolverInfo
 		m_sor = btScalar(1.3);
 	}
 
-	btScalar	m_tau;
-	btScalar	m_damping;
-	btScalar	m_friction;
-	btScalar	m_timeStep;
-	btScalar	m_restitution;
-	int		m_numIterations;
-	btScalar	m_maxErrorReduction;
-	btScalar	m_sor;
-	btScalar	m_erp;
-
+	
 };
 
 #endif //CONTACT_SOLVER_INFO

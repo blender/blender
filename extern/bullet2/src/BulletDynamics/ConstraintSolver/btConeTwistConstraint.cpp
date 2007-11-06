@@ -19,17 +19,18 @@ Written by: Marcus Hennix
 #include "btConeTwistConstraint.h"
 #include "BulletDynamics/Dynamics/btRigidBody.h"
 #include "LinearMath/btTransformUtil.h"
-#include "LinearMath/btSimdMinMax.h"
+#include "LinearMath/btMinMax.h"
 #include <new>
 
 btConeTwistConstraint::btConeTwistConstraint()
+:btTypedConstraint(CONETWIST_CONSTRAINT_TYPE)
 {
 }
 
 
 btConeTwistConstraint::btConeTwistConstraint(btRigidBody& rbA,btRigidBody& rbB, 
 											 const btTransform& rbAFrame,const btTransform& rbBFrame)
-											 :btTypedConstraint(rbA,rbB),m_rbAFrame(rbAFrame),m_rbBFrame(rbBFrame),
+											 :btTypedConstraint(CONETWIST_CONSTRAINT_TYPE, rbA,rbB),m_rbAFrame(rbAFrame),m_rbBFrame(rbBFrame),
 											 m_angularOnly(false)
 {
 	// flip axis for correct angles
@@ -49,7 +50,7 @@ btConeTwistConstraint::btConeTwistConstraint(btRigidBody& rbA,btRigidBody& rbB,
 }
 
 btConeTwistConstraint::btConeTwistConstraint(btRigidBody& rbA,const btTransform& rbAFrame)
-											:btTypedConstraint(rbA),m_rbAFrame(rbAFrame),
+											:btTypedConstraint(CONETWIST_CONSTRAINT_TYPE,rbA),m_rbAFrame(rbAFrame),
 											 m_angularOnly(false)
 {
 	m_rbBFrame = m_rbAFrame;
@@ -205,7 +206,6 @@ void	btConeTwistConstraint::solveConstraint(btScalar	timeStep)
 	btVector3 pivotBInW = m_rbB.getCenterOfMassTransform()*m_rbBFrame.getOrigin();
 
 	btScalar tau = btScalar(0.3);
-	btScalar damping = btScalar(1.);
 
 	//linear part
 	if (!m_angularOnly)
@@ -247,7 +247,7 @@ void	btConeTwistConstraint::solveConstraint(btScalar	timeStep)
 
 			// Clamp the accumulated impulse
 			btScalar temp = m_accSwingLimitImpulse;
-			m_accSwingLimitImpulse = btMax(m_accSwingLimitImpulse + impulseMag, 0.0f );
+			m_accSwingLimitImpulse = btMax(m_accSwingLimitImpulse + impulseMag, btScalar(0.0) );
 			impulseMag = m_accSwingLimitImpulse - temp;
 
 			btVector3 impulse = m_swingAxis * impulseMag;
@@ -265,7 +265,7 @@ void	btConeTwistConstraint::solveConstraint(btScalar	timeStep)
 
 			// Clamp the accumulated impulse
 			btScalar temp = m_accTwistLimitImpulse;
-			m_accTwistLimitImpulse = btMax(m_accTwistLimitImpulse + impulseMag, 0.0f );
+			m_accTwistLimitImpulse = btMax(m_accTwistLimitImpulse + impulseMag, btScalar(0.0) );
 			impulseMag = m_accTwistLimitImpulse - temp;
 
 			btVector3 impulse = m_twistAxis * impulseMag;

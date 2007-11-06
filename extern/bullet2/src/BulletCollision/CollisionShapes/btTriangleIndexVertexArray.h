@@ -17,13 +17,17 @@ subject to the following restrictions:
 #define BT_TRIANGLE_INDEX_VERTEX_ARRAY_H
 
 #include "btStridingMeshInterface.h"
-#include "../../LinearMath/btAlignedObjectArray.h"
+#include "LinearMath/btAlignedObjectArray.h"
+#include "LinearMath/btScalar.h"
+
 
 ///IndexedMesh indexes into existing vertex and index arrays, in a similar way OpenGL glDrawElements
 ///instead of the number of indices, we pass the number of triangles
 ///todo: explain with pictures
 ATTRIBUTE_ALIGNED16( struct)	btIndexedMesh
 {
+	BT_DECLARE_ALIGNED_ALLOCATOR();
+
 	int			m_numTriangles;
 	const unsigned char *		m_triangleIndexBase;
 	int			m_triangleIndexStride;
@@ -49,9 +53,13 @@ ATTRIBUTE_ALIGNED16( class) btTriangleIndexVertexArray : public btStridingMeshIn
 		
 public:
 
+	BT_DECLARE_ALIGNED_ALLOCATOR();
+
 	btTriangleIndexVertexArray()
 	{
 	}
+
+	virtual ~btTriangleIndexVertexArray();
 
 	//just to be backwards compatible
 	btTriangleIndexVertexArray(int numTriangleIndices,int* triangleIndexBase,int triangleIndexStride,int numVertices,btScalar* vertexBase,int vertexStride);

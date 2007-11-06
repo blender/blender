@@ -18,9 +18,9 @@ subject to the following restrictions:
 
 #include "btConcaveShape.h"
 
-#include "../../LinearMath/btVector3.h"
-#include "../../LinearMath/btTransform.h"
-#include "../../LinearMath/btMatrix3x3.h"
+#include "LinearMath/btVector3.h"
+#include "LinearMath/btTransform.h"
+#include "LinearMath/btMatrix3x3.h"
 #include "btCollisionMargin.h"
 
 
@@ -49,12 +49,12 @@ public:
 		return m_localScaling;
 	}
 
-	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia);
+	virtual void	calculateLocalInertia(btScalar mass,btVector3& inertia) const;
 	
 	virtual int	getShapeType() const { return EMPTY_SHAPE_PROXYTYPE;}
 
 	
-	virtual char*	getName()const
+	virtual const char*	getName()const
 	{
 		return "Empty";
 	}

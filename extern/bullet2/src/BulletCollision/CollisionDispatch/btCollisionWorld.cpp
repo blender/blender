@@ -24,6 +24,9 @@ subject to the following restrictions:
 #include "BulletCollision/NarrowPhaseCollision/btRaycastCallback.h"
 #include "BulletCollision/CollisionShapes/btCompoundShape.h"
 #include "BulletCollision/NarrowPhaseCollision/btSubSimplexConvexCast.h"
+#include "BulletCollision/NarrowPhaseCollision/btGjkConvexCast.h"
+#include "BulletCollision/NarrowPhaseCollision/btContinuousConvexCollision.h"
+
 #include "BulletCollision/BroadphaseCollision/btBroadphaseInterface.h"
 #include "LinearMath/btAabbUtil2.h"
 #include "LinearMath/btQuickprof.h"
@@ -32,23 +35,20 @@ subject to the following restrictions:
 //When the user doesn't provide dispatcher or broadphase, create basic versions (and delete them in destructor)
 #include "BulletCollision/CollisionDispatch/btCollisionDispatcher.h"
 #include "BulletCollision/BroadphaseCollision/btSimpleBroadphase.h"
+#include "BulletCollision/CollisionDispatch/btCollisionConfiguration.h"
 
 
-btCollisionWorld::btCollisionWorld(btDispatcher* dispatcher,btOverlappingPairCache* pairCache, int stackSize)
+btCollisionWorld::btCollisionWorld(btDispatcher* dispatcher,btBroadphaseInterface* pairCache, btCollisionConfiguration* collisionConfiguration)
 :m_dispatcher1(dispatcher),
-m_broadphasePairCache(pairCache),
-m_ownsDispatcher(false),
-m_ownsBroadphasePairCache(false)
+m_broadphasePairCache(pairCache)
 {
-	m_stackAlloc = new btStackAlloc(stackSize);
+	m_stackAlloc = collisionConfiguration->getStackAllocator();
 	m_dispatchInfo.m_stackAllocator = m_stackAlloc;
 }
 
 
 btCollisionWorld::~btCollisionWorld()
 {
-	m_stackAlloc->destroy();
-	delete m_stackAlloc;
 
 	//clean up remaining objects
 	int i;
@@ -62,15 +62,11 @@ btCollisionWorld::~btCollisionWorld()
 			//
 			// only clear the cached algorithms
 			//
-			getBroadphase()->cleanProxyFromPairs(bp);
-			getBroadphase()->destroyProxy(bp);
+			getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(bp,m_dispatcher1);
+			getBroadphase()->destroyProxy(bp,m_dispatcher1);
 		}
 	}
 
-	if (m_ownsDispatcher)
-		delete m_dispatcher1;
-	if (m_ownsBroadphasePairCache)
-		delete m_broadphasePairCache;
 
 }
 
@@ -105,7 +101,8 @@ void	btCollisionWorld::addCollisionObject(btCollisionObject* collisionObject,sho
 			type,
 			collisionObject,
 			collisionFilterGroup,
-			collisionFilterMask
+			collisionFilterMask,
+			m_dispatcher1
 			))	;
 
 		
@@ -130,11 +127,10 @@ void	btCollisionWorld::performDiscreteCollisionDetection()
 	for (int i=0;i<m_collisionObjects.size();i++)
 	{
 		m_collisionObjects[i]->getCollisionShape()->getAabb(m_collisionObjects[i]->getWorldTransform(),aabbMin,aabbMax);
-		m_broadphasePairCache->setAabb(m_collisionObjects[i]->getBroadphaseHandle(),aabbMin,aabbMax);
+		m_broadphasePairCache->setAabb(m_collisionObjects[i]->getBroadphaseHandle(),aabbMin,aabbMax,m_dispatcher1);
 	}
 
-	m_broadphasePairCache->refreshOverlappingPairs();
-
+	m_broadphasePairCache->calculateOverlappingPairs(m_dispatcher1);
 	
 	END_PROFILE("perform Broadphase Collision Detection");
 
@@ -142,11 +138,12 @@ void	btCollisionWorld::performDiscreteCollisionDetection()
 
 	btDispatcher* dispatcher = getDispatcher();
 	if (dispatcher)
-		dispatcher->dispatchAllCollisionPairs(m_broadphasePairCache,dispatchInfo);
+		dispatcher->dispatchAllCollisionPairs(m_broadphasePairCache->getOverlappingPairCache(),dispatchInfo,m_dispatcher1);
 
 	END_PROFILE("performDiscreteCollisionDetection");
 
 }
+
 
 
 void	btCollisionWorld::removeCollisionObject(btCollisionObject* collisionObject)
@@ -163,8 +160,8 @@ void	btCollisionWorld::removeCollisionObject(btCollisionObject* collisionObject)
 			//
 			// only clear the cached algorithms
 			//
-			getBroadphase()->cleanProxyFromPairs(bp);
-			getBroadphase()->destroyProxy(bp);
+			getBroadphase()->getOverlappingPairCache()->cleanProxyFromPairs(bp,m_dispatcher1);
+			getBroadphase()->destroyProxy(bp,m_dispatcher1);
 			collisionObject->setBroadphaseHandle(0);
 		}
 	}
@@ -209,19 +206,28 @@ void	btCollisionWorld::objectQuerySingle(const btConvexShape* castShape,const bt
 
 				btConvexShape* convexShape = (btConvexShape*) collisionShape;
 				btVoronoiSimplexSolver	simplexSolver;
+#define  USE_SUBSIMPLEX_CONVEX_CAST 1
+#ifdef USE_SUBSIMPLEX_CONVEX_CAST
 				btSubsimplexConvexCast convexCaster(castShape,convexShape,&simplexSolver);
-				//GjkConvexCast	convexCaster(castShape,convexShape,&simplexSolver);
-				//ContinuousConvexCollision convexCaster(castShape,convexShape,&simplexSolver,0);
-				
+#else
+				//btGjkConvexCast	convexCaster(castShape,convexShape,&simplexSolver);
+				//btContinuousConvexCollision convexCaster(castShape,convexShape,&simplexSolver,0);
+#endif //#USE_SUBSIMPLEX_CONVEX_CAST
+			
 				if (convexCaster.calcTimeOfImpact(rayFromTrans,rayToTrans,colObjWorldTransform,colObjWorldTransform,castResult))
 				{
 					//add hit
 					if (castResult.m_normal.length2() > btScalar(0.0001))
 					{
-						castResult.m_normal.normalize();
+						
 						if (castResult.m_fraction < resultCallback.m_closestHitFraction)
 						{
+#ifdef USE_SUBSIMPLEX_CONVEX_CAST
+							//rotate normal into worldspace
+							castResult.m_normal = rayFromTrans.getBasis() * castResult.m_normal;
+#endif //USE_SUBSIMPLEX_CONVEX_CAST
 
+							castResult.m_normal.normalize();
 							btCollisionWorld::LocalRayResult localRayResult
 								(
 									collisionObject, 
@@ -230,7 +236,8 @@ void	btCollisionWorld::objectQuerySingle(const btConvexShape* castShape,const bt
 									castResult.m_fraction
 								);
 
-							resultCallback.AddSingleResult(localRayResult);
+							bool normalInWorldSpace = true;
+							resultCallback.AddSingleResult(localRayResult, normalInWorldSpace);
 
 						}
 					}
@@ -279,7 +286,8 @@ void	btCollisionWorld::objectQuerySingle(const btConvexShape* castShape,const bt
 									hitNormalLocal,
 									hitFraction);
 								
-								return m_resultCallback->AddSingleResult(rayResult);
+								bool	normalInWorldSpace = false;
+								return m_resultCallback->AddSingleResult(rayResult,normalInWorldSpace);
 								
 								
 							}

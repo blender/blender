@@ -23,11 +23,11 @@ class btOverlappingPairCache;
 class btConstraintSolver;
 class btSimulationIslandManager;
 class btTypedConstraint;
-#include "../ConstraintSolver/btContactSolverInfo.h"
+#include "BulletDynamics/ConstraintSolver/btContactSolverInfo.h"
 
 class btRaycastVehicle;
 class btIDebugDraw;
-#include "../../LinearMath/btAlignedObjectArray.h"
+#include "LinearMath/btAlignedObjectArray.h"
 
 
 ///btDiscreteDynamicsWorld provides discrete rigid body simulation
@@ -86,7 +86,7 @@ public:
 
 
 	///this btDiscreteDynamicsWorld constructor gets created objects from the user, and will not delete those
-	btDiscreteDynamicsWorld(btDispatcher* dispatcher,btOverlappingPairCache* pairCache,btConstraintSolver* constraintSolver);
+	btDiscreteDynamicsWorld(btDispatcher* dispatcher,btBroadphaseInterface* pairCache,btConstraintSolver* constraintSolver,btCollisionConfiguration* collisionConfiguration);
 
 	virtual ~btDiscreteDynamicsWorld();
 
@@ -139,6 +139,8 @@ public:
 	void	debugDrawObject(const btTransform& worldTransform, const btCollisionShape* shape, const btVector3& color);
 
 	virtual void	setConstraintSolver(btConstraintSolver* solver);
+
+	virtual btConstraintSolver* getConstraintSolver();
 	
 	virtual	int		getNumConstraints() const;
 
@@ -149,6 +151,11 @@ public:
 	btContactSolverInfo& getSolverInfo()
 	{
 		return m_solverInfo;
+	}
+
+	virtual btDynamicsWorldType	getWorldType() const
+	{
+		return BT_DISCRETE_DYNAMICS_WORLD;
 	}
 
 

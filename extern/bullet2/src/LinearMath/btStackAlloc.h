@@ -21,6 +21,7 @@ Nov.2006
 #define BT_STACK_ALLOC
 
 #include "btScalar.h" //for btAssert
+#include "btAlignedAllocator.h"
 
 struct btBlock
 {
@@ -39,7 +40,7 @@ public:
 	inline void		create(unsigned int size)
 	{
 		destroy();
-		data		=	new unsigned char[size];
+		data		=  (unsigned char*) btAlignedAlloc(size,16);
 		totalsize	=	size;
 	}
 	inline void		destroy()
@@ -49,12 +50,20 @@ public:
 
 		if(usedsize==0)
 		{
-			if(!ischild)		delete[] data;
+			if(!ischild && data)		
+				btAlignedFree(data);
+
 			data				=	0;
 			usedsize			=	0;
 		}
 		
 	}
+
+	int	getAvailableMemory() const
+	{
+		return totalsize - usedsize;
+	}
+
 	unsigned char*			allocate(unsigned int size)
 	{
 		const unsigned int	nus(usedsize+size);
@@ -68,7 +77,7 @@ public:
 		
 		return(0);
 	}
-	inline btBlock*		beginBlock()
+	SIMD_FORCE_INLINE btBlock*		beginBlock()
 	{
 		btBlock*	pb = (btBlock*)allocate(sizeof(btBlock));
 		pb->previous	=	current;
@@ -76,7 +85,7 @@ public:
 		current			=	pb;
 		return(pb);
 	}
-	inline void		endBlock(btBlock* block)
+	SIMD_FORCE_INLINE void		endBlock(btBlock* block)
 	{
 		btAssert(block==current);
 		//Raise(L"Unmatched blocks");

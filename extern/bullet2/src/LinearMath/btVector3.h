@@ -27,6 +27,10 @@ class	btVector3 : public btQuadWord {
 public:
 	SIMD_FORCE_INLINE btVector3() {}
 
+	SIMD_FORCE_INLINE btVector3(const btQuadWordStorage& q) 
+		: btQuadWord(q)
+	{
+	}
 	
 
 	SIMD_FORCE_INLINE btVector3(const btScalar& x, const btScalar& y, const btScalar& z) 
@@ -398,5 +402,51 @@ public:
 	}
 
 };
+
+
+///btSwapVector3Endian swaps vector endianness, useful for network and cross-platform serialization
+SIMD_FORCE_INLINE void	btSwapScalarEndian(const btScalar& sourceVal, btScalar& destVal)
+{
+	#ifdef BT_USE_DOUBLE_PRECISION
+	unsigned char* dest = (unsigned char*) &destVal;
+	unsigned char* src  = (unsigned char*) &sourceVal;
+	dest[0] = src[7];
+    dest[1] = src[6];
+    dest[2] = src[5];
+    dest[3] = src[4];
+    dest[4] = src[3];
+    dest[5] = src[2];
+    dest[6] = src[1];
+    dest[7] = src[0];
+#else
+	unsigned char* dest = (unsigned char*) &destVal;
+	unsigned char* src  = (unsigned char*) &sourceVal;
+	dest[0] = src[3];
+    dest[1] = src[2];
+    dest[2] = src[1];
+    dest[3] = src[0];
+#endif //BT_USE_DOUBLE_PRECISION
+}
+///btSwapVector3Endian swaps vector endianness, useful for network and cross-platform serialization
+SIMD_FORCE_INLINE void	btSwapVector3Endian(const btVector3& sourceVec, btVector3& destVec)
+{
+	for (int i=0;i<4;i++)
+	{
+		btSwapScalarEndian(sourceVec[i],destVec[i]);
+	}
+
+}
+
+///btUnSwapVector3Endian swaps vector endianness, useful for network and cross-platform serialization
+SIMD_FORCE_INLINE void	btUnSwapVector3Endian(btVector3& vector)
+{
+
+	btVector3	swappedVec;
+	for (int i=0;i<4;i++)
+	{
+		btSwapScalarEndian(vector[i],swappedVec[i]);
+	}
+	vector = swappedVec;
+}
 
 #endif //SIMD__VECTOR3_H

@@ -16,7 +16,7 @@ subject to the following restrictions:
 #ifndef TRIANGLE_CALLBACK_H
 #define TRIANGLE_CALLBACK_H
 
-#include "../../LinearMath/btVector3.h"
+#include "LinearMath/btVector3.h"
 
 
 class btTriangleCallback

@@ -12,18 +12,17 @@ subject to the following restrictions:
 2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
 3. This notice may not be removed or altered from any source distribution.
 */
-
 #include "btOptimizedBvh.h"
 #include "btStridingMeshInterface.h"
 #include "LinearMath/btAabbUtil2.h"
 #include "LinearMath/btIDebugDraw.h"
 
 
-
 btOptimizedBvh::btOptimizedBvh() : m_useQuantization(false), 
-					m_traversalMode(TRAVERSAL_STACKLESS_CACHE_FRIENDLY)
-					//m_traversalMode(TRAVERSAL_STACKLESS)
+					//m_traversalMode(TRAVERSAL_STACKLESS_CACHE_FRIENDLY)
+					m_traversalMode(TRAVERSAL_STACKLESS)
 					//m_traversalMode(TRAVERSAL_RECURSIVE)
+					,m_subtreeHeaderCount(0) //PCK: add this line
 { 
 
 }
@@ -111,6 +110,25 @@ void btOptimizedBvh::build(btStridingMeshInterface* triangles, bool useQuantized
 			aabbMin.setMin(triangle[2]);
 			aabbMax.setMax(triangle[2]);
 
+			//PCK: add these checks for zero dimensions of aabb
+			const btScalar MIN_AABB_DIMENSION = btScalar(0.002);
+			const btScalar MIN_AABB_HALF_DIMENSION = btScalar(0.001);
+			if (aabbMax.x() - aabbMin.x() < MIN_AABB_DIMENSION)
+			{
+				aabbMax.setX(aabbMax.x() + MIN_AABB_HALF_DIMENSION);
+				aabbMin.setX(aabbMin.x() - MIN_AABB_HALF_DIMENSION);
+			}
+			if (aabbMax.y() - aabbMin.y() < MIN_AABB_DIMENSION)
+			{
+				aabbMax.setY(aabbMax.y() + MIN_AABB_HALF_DIMENSION);
+				aabbMin.setY(aabbMin.y() - MIN_AABB_HALF_DIMENSION);
+			}
+			if (aabbMax.z() - aabbMin.z() < MIN_AABB_DIMENSION)
+			{
+				aabbMax.setZ(aabbMax.z() + MIN_AABB_HALF_DIMENSION);
+				aabbMin.setZ(aabbMin.z() - MIN_AABB_HALF_DIMENSION);
+			}
+
 			m_optimizedTree->quantizeWithClamp(&node.m_quantizedAabbMin[0],aabbMin);
 			m_optimizedTree->quantizeWithClamp(&node.m_quantizedAabbMax[0],aabbMax);
 
@@ -170,6 +188,13 @@ void btOptimizedBvh::build(btStridingMeshInterface* triangles, bool useQuantized
 		subtree.m_rootNodeIndex = 0;
 		subtree.m_subtreeSize = m_quantizedContiguousNodes[0].isLeafNode() ? 1 : m_quantizedContiguousNodes[0].getEscapeIndex();
 	}
+
+	//PCK: update the copy of the size
+	m_subtreeHeaderCount = m_SubtreeHeaders.size();
+
+	//PCK: clear m_quantizedLeafNodes and m_leafNodes, they are temporary
+	m_quantizedLeafNodes.clear();
+	m_leafNodes.clear();
 }
 
 
@@ -201,8 +226,9 @@ void	btOptimizedBvh::refitPartial(btStridingMeshInterface* meshInterface,const b
 	{
 		btBvhSubtreeInfo& subtree = m_SubtreeHeaders[i];
 
-		bool overlap = testQuantizedAabbAgainstQuantizedAabb(quantizedQueryAabbMin,quantizedQueryAabbMax,subtree.m_quantizedAabbMin,subtree.m_quantizedAabbMax);
-		if (overlap)
+		//PCK: unsigned instead of bool
+		unsigned overlap = testQuantizedAabbAgainstQuantizedAabb(quantizedQueryAabbMin,quantizedQueryAabbMax,subtree.m_quantizedAabbMin,subtree.m_quantizedAabbMax);
+		if (overlap != 0)
 		{
 			updateBvhNodes(meshInterface,subtree.m_rootNodeIndex,subtree.m_rootNodeIndex+subtree.m_subtreeSize,i);
 
@@ -479,6 +505,9 @@ void	btOptimizedBvh::updateSubtreeHeaders(int leftChildNodexIndex,int rightChild
 		subtree.m_rootNodeIndex = rightChildNodexIndex;
 		subtree.m_subtreeSize = rightSubTreeSize;
 	}
+
+	//PCK: update the copy of the size
+	m_subtreeHeaderCount = m_SubtreeHeaders.size();
 }
 
 
@@ -568,7 +597,6 @@ void	btOptimizedBvh::reportAabbOverlappingNodex(btNodeOverlapCallback* nodeCallb
 {
 	//either choose recursive traversal (walkTree) or stackless (walkStacklessTree)
 
-
 	if (m_useQuantization)
 	{
 		///quantize query AABB
@@ -611,7 +639,9 @@ void	btOptimizedBvh::walkStacklessTree(btNodeOverlapCallback* nodeCallback,const
 	const btOptimizedBvhNode* rootNode = &m_contiguousNodes[0];
 	int escapeIndex, curIndex = 0;
 	int walkIterations = 0;
-	bool aabbOverlap, isLeafNode;
+	bool isLeafNode;
+	//PCK: unsigned instead of bool
+	unsigned aabbOverlap;
 
 	while (curIndex < m_curNodeIndex)
 	{
@@ -622,12 +652,14 @@ void	btOptimizedBvh::walkStacklessTree(btNodeOverlapCallback* nodeCallback,const
 		aabbOverlap = TestAabbAgainstAabb2(aabbMin,aabbMax,rootNode->m_aabbMinOrg,rootNode->m_aabbMaxOrg);
 		isLeafNode = rootNode->m_escapeIndex == -1;
 		
-		if (isLeafNode && aabbOverlap)
+		//PCK: unsigned instead of bool
+		if (isLeafNode && (aabbOverlap != 0))
 		{
 			nodeCallback->processNode(rootNode->m_subPart,rootNode->m_triangleIndex);
 		} 
 		
-		if (aabbOverlap || isLeafNode)
+		//PCK: unsigned instead of bool
+		if ((aabbOverlap != 0) || isLeafNode)
 		{
 			rootNode++;
 			curIndex++;
@@ -668,12 +700,16 @@ void btOptimizedBvh::walkRecursiveQuantizedTreeAgainstQueryAabb(const btQuantize
 {
 	btAssert(m_useQuantization);
 	
-	bool aabbOverlap, isLeafNode;
+	bool isLeafNode;
+	//PCK: unsigned instead of bool
+	unsigned aabbOverlap;
 
+	//PCK: unsigned instead of bool
 	aabbOverlap = testQuantizedAabbAgainstQuantizedAabb(quantizedQueryAabbMin,quantizedQueryAabbMax,currentNode->m_quantizedAabbMin,currentNode->m_quantizedAabbMax);
 	isLeafNode = currentNode->isLeafNode();
 		
-	if (aabbOverlap)
+	//PCK: unsigned instead of bool
+	if (aabbOverlap != 0)
 	{
 		if (isLeafNode)
 		{
@@ -707,7 +743,9 @@ void	btOptimizedBvh::walkStacklessQuantizedTree(btNodeOverlapCallback* nodeCallb
 	const btQuantizedBvhNode* rootNode = &m_quantizedContiguousNodes[startNodeIndex];
 	int escapeIndex;
 	
-	bool aabbOverlap, isLeafNode;
+	bool isLeafNode;
+	//PCK: unsigned instead of bool
+	unsigned aabbOverlap;
 
 	while (curIndex < endNodeIndex)
 	{
@@ -732,6 +770,7 @@ void	btOptimizedBvh::walkStacklessQuantizedTree(btNodeOverlapCallback* nodeCallb
 		assert (walkIterations < subTreeSize);
 
 		walkIterations++;
+		//PCK: unsigned instead of bool
 		aabbOverlap = testQuantizedAabbAgainstQuantizedAabb(quantizedQueryAabbMin,quantizedQueryAabbMax,rootNode->m_quantizedAabbMin,rootNode->m_quantizedAabbMax);
 		isLeafNode = rootNode->isLeafNode();
 		
@@ -740,7 +779,8 @@ void	btOptimizedBvh::walkStacklessQuantizedTree(btNodeOverlapCallback* nodeCallb
 			nodeCallback->processNode(0,rootNode->getTriangleIndex());
 		} 
 		
-		if (aabbOverlap || isLeafNode)
+		//PCK: unsigned instead of bool
+		if ((aabbOverlap != 0) || isLeafNode)
 		{
 			rootNode++;
 			curIndex++;
@@ -768,8 +808,9 @@ void	btOptimizedBvh::walkStacklessQuantizedTreeCacheFriendly(btNodeOverlapCallba
 	{
 		const btBvhSubtreeInfo& subtree = m_SubtreeHeaders[i];
 
-		bool overlap = testQuantizedAabbAgainstQuantizedAabb(quantizedQueryAabbMin,quantizedQueryAabbMax,subtree.m_quantizedAabbMin,subtree.m_quantizedAabbMax);
-		if (overlap)
+		//PCK: unsigned instead of bool
+		unsigned overlap = testQuantizedAabbAgainstQuantizedAabb(quantizedQueryAabbMin,quantizedQueryAabbMax,subtree.m_quantizedAabbMin,subtree.m_quantizedAabbMax);
+		if (overlap != 0)
 		{
 			walkStacklessQuantizedTree(nodeCallback,quantizedQueryAabbMin,quantizedQueryAabbMax,
 				subtree.m_rootNodeIndex,
@@ -791,20 +832,7 @@ void	btOptimizedBvh::reportSphereOverlappingNodex(btNodeOverlapCallback* nodeCal
 }
 
 
-void btOptimizedBvh::quantizeWithClamp(unsigned short* out, const btVector3& point) const
-{
 
-	btAssert(m_useQuantization);
-
-	btVector3 clampedPoint(point);
-	clampedPoint.setMax(m_bvhAabbMin);
-	clampedPoint.setMin(m_bvhAabbMax);
-
-	btVector3 v = (clampedPoint - m_bvhAabbMin) * m_bvhQuantization;
-	out[0] = (unsigned short)(v.getX()+0.5f);
-	out[1] = (unsigned short)(v.getY()+0.5f);
-	out[2] = (unsigned short)(v.getZ()+0.5f);		
-}
 
 btVector3	btOptimizedBvh::unQuantize(const unsigned short* vecIn) const
 {
@@ -843,3 +871,311 @@ void	btOptimizedBvh::assignInternalNodeFromLeafNode(int internalNode,int leafNod
 		m_contiguousNodes[internalNode] = m_leafNodes[leafNodeIndex];
 	}
 }
+
+//PCK: include
+#include <new>
+
+//PCK: consts
+static const unsigned BVH_ALIGNMENT = 16;
+static const unsigned BVH_ALIGNMENT_MASK = BVH_ALIGNMENT-1;
+
+static const unsigned BVH_ALIGNMENT_BLOCKS = 2;
+
+
+
+unsigned int btOptimizedBvh::getAlignmentSerializationPadding()
+{
+	return BVH_ALIGNMENT_BLOCKS * BVH_ALIGNMENT;
+}
+
+unsigned btOptimizedBvh::calculateSerializeBufferSize()
+{
+	unsigned baseSize = sizeof(btOptimizedBvh) + getAlignmentSerializationPadding();
+	baseSize += sizeof(btBvhSubtreeInfo) * m_subtreeHeaderCount;
+	if (m_useQuantization)
+	{
+		return baseSize + m_curNodeIndex * sizeof(btQuantizedBvhNode);
+	}
+	return baseSize + m_curNodeIndex * sizeof(btOptimizedBvhNode);
+}
+
+bool btOptimizedBvh::serialize(void *o_alignedDataBuffer, unsigned i_dataBufferSize, bool i_swapEndian)
+{
+	assert(m_subtreeHeaderCount == m_SubtreeHeaders.size());
+	m_subtreeHeaderCount = m_SubtreeHeaders.size();
+
+/*	if (i_dataBufferSize < calculateSerializeBufferSize() || o_alignedDataBuffer == NULL || (((unsigned)o_alignedDataBuffer & BVH_ALIGNMENT_MASK) != 0))
+	{
+		///check alignedment for buffer?
+		btAssert(0);
+		return false;
+	}
+*/
+
+	btOptimizedBvh *targetBvh = (btOptimizedBvh *)o_alignedDataBuffer;
+
+	// construct the class so the virtual function table, etc will be set up
+	// Also, m_leafNodes and m_quantizedLeafNodes will be initialized to default values by the constructor
+	new (targetBvh) btOptimizedBvh;
+
+	if (i_swapEndian)
+	{
+		targetBvh->m_curNodeIndex = btSwapEndian(m_curNodeIndex);
+
+
+		btSwapVector3Endian(m_bvhAabbMin,targetBvh->m_bvhAabbMin);
+		btSwapVector3Endian(m_bvhAabbMax,targetBvh->m_bvhAabbMax);
+		btSwapVector3Endian(m_bvhQuantization,targetBvh->m_bvhQuantization);
+
+		targetBvh->m_traversalMode = (btTraversalMode)btSwapEndian(m_traversalMode);
+		targetBvh->m_subtreeHeaderCount = btSwapEndian(m_subtreeHeaderCount);
+	}
+	else
+	{
+		targetBvh->m_curNodeIndex = m_curNodeIndex;
+		targetBvh->m_bvhAabbMin = m_bvhAabbMin;
+		targetBvh->m_bvhAabbMax = m_bvhAabbMax;
+		targetBvh->m_bvhQuantization = m_bvhQuantization;
+		targetBvh->m_traversalMode = m_traversalMode;
+		targetBvh->m_subtreeHeaderCount = m_subtreeHeaderCount;
+	}
+
+	targetBvh->m_useQuantization = m_useQuantization;
+
+	unsigned char *nodeData = (unsigned char *)targetBvh;
+	nodeData += sizeof(btOptimizedBvh);
+	
+	unsigned sizeToAdd = 0;//(BVH_ALIGNMENT-((unsigned)nodeData & BVH_ALIGNMENT_MASK))&BVH_ALIGNMENT_MASK;
+	nodeData += sizeToAdd;
+	
+	int nodeCount = m_curNodeIndex;
+
+	if (m_useQuantization)
+	{
+		targetBvh->m_quantizedContiguousNodes.initializeFromBuffer(nodeData, nodeCount, nodeCount);
+
+		if (i_swapEndian)
+		{
+			for (int nodeIndex = 0; nodeIndex < nodeCount; nodeIndex++)
+			{
+				targetBvh->m_quantizedContiguousNodes[nodeIndex].m_quantizedAabbMin[0] = btSwapEndian(m_quantizedContiguousNodes[nodeIndex].m_quantizedAabbMin[0]);
+				targetBvh->m_quantizedContiguousNodes[nodeIndex].m_quantizedAabbMin[1] = btSwapEndian(m_quantizedContiguousNodes[nodeIndex].m_quantizedAabbMin[1]);
+				targetBvh->m_quantizedContiguousNodes[nodeIndex].m_quantizedAabbMin[2] = btSwapEndian(m_quantizedContiguousNodes[nodeIndex].m_quantizedAabbMin[2]);
+
+				targetBvh->m_quantizedContiguousNodes[nodeIndex].m_quantizedAabbMax[0] = btSwapEndian(m_quantizedContiguousNodes[nodeIndex].m_quantizedAabbMax[0]);
+				targetBvh->m_quantizedContiguousNodes[nodeIndex].m_quantizedAabbMax[1] = btSwapEndian(m_quantizedContiguousNodes[nodeIndex].m_quantizedAabbMax[1]);
+				targetBvh->m_quantizedContiguousNodes[nodeIndex].m_quantizedAabbMax[2] = btSwapEndian(m_quantizedContiguousNodes[nodeIndex].m_quantizedAabbMax[2]);
+
+				targetBvh->m_quantizedContiguousNodes[nodeIndex].m_escapeIndexOrTriangleIndex = btSwapEndian(m_quantizedContiguousNodes[nodeIndex].m_escapeIndexOrTriangleIndex);
+			}
+		}
+		else
+		{
+			for (int nodeIndex = 0; nodeIndex < nodeCount; nodeIndex++)
+			{
+	
+				targetBvh->m_quantizedContiguousNodes[nodeIndex].m_quantizedAabbMin[0] = m_quantizedContiguousNodes[nodeIndex].m_quantizedAabbMin[0];
+				targetBvh->m_quantizedContiguousNodes[nodeIndex].m_quantizedAabbMin[1] = m_quantizedContiguousNodes[nodeIndex].m_quantizedAabbMin[1];
+				targetBvh->m_quantizedContiguousNodes[nodeIndex].m_quantizedAabbMin[2] = m_quantizedContiguousNodes[nodeIndex].m_quantizedAabbMin[2];
+
+				targetBvh->m_quantizedContiguousNodes[nodeIndex].m_quantizedAabbMax[0] = m_quantizedContiguousNodes[nodeIndex].m_quantizedAabbMax[0];
+				targetBvh->m_quantizedContiguousNodes[nodeIndex].m_quantizedAabbMax[1] = m_quantizedContiguousNodes[nodeIndex].m_quantizedAabbMax[1];
+				targetBvh->m_quantizedContiguousNodes[nodeIndex].m_quantizedAabbMax[2] = m_quantizedContiguousNodes[nodeIndex].m_quantizedAabbMax[2];
+
+				targetBvh->m_quantizedContiguousNodes[nodeIndex].m_escapeIndexOrTriangleIndex = m_quantizedContiguousNodes[nodeIndex].m_escapeIndexOrTriangleIndex;
+
+
+			}
+		}
+		nodeData += sizeof(btQuantizedBvhNode) * nodeCount;
+	}
+	else
+	{
+		targetBvh->m_contiguousNodes.initializeFromBuffer(nodeData, nodeCount, nodeCount);
+
+		if (i_swapEndian)
+		{
+			for (int nodeIndex = 0; nodeIndex < nodeCount; nodeIndex++)
+			{
+				btSwapVector3Endian(m_contiguousNodes[nodeIndex].m_aabbMinOrg, targetBvh->m_contiguousNodes[nodeIndex].m_aabbMinOrg);
+				btSwapVector3Endian(m_contiguousNodes[nodeIndex].m_aabbMaxOrg, targetBvh->m_contiguousNodes[nodeIndex].m_aabbMaxOrg);
+
+				targetBvh->m_contiguousNodes[nodeIndex].m_escapeIndex = btSwapEndian(m_contiguousNodes[nodeIndex].m_escapeIndex);
+				targetBvh->m_contiguousNodes[nodeIndex].m_subPart = btSwapEndian(m_contiguousNodes[nodeIndex].m_subPart);
+				targetBvh->m_contiguousNodes[nodeIndex].m_triangleIndex = btSwapEndian(m_contiguousNodes[nodeIndex].m_triangleIndex);
+			}
+		}
+		else
+		{
+			for (int nodeIndex = 0; nodeIndex < nodeCount; nodeIndex++)
+			{
+				targetBvh->m_contiguousNodes[nodeIndex].m_aabbMinOrg = m_contiguousNodes[nodeIndex].m_aabbMinOrg;
+				targetBvh->m_contiguousNodes[nodeIndex].m_aabbMaxOrg = m_contiguousNodes[nodeIndex].m_aabbMaxOrg;
+
+				targetBvh->m_contiguousNodes[nodeIndex].m_escapeIndex = m_contiguousNodes[nodeIndex].m_escapeIndex;
+				targetBvh->m_contiguousNodes[nodeIndex].m_subPart = m_contiguousNodes[nodeIndex].m_subPart;
+				targetBvh->m_contiguousNodes[nodeIndex].m_triangleIndex = m_contiguousNodes[nodeIndex].m_triangleIndex;
+			}
+		}
+		nodeData += sizeof(btOptimizedBvhNode) * nodeCount;
+	}
+
+	sizeToAdd = 0;//(BVH_ALIGNMENT-((unsigned)nodeData & BVH_ALIGNMENT_MASK))&BVH_ALIGNMENT_MASK;
+	nodeData += sizeToAdd;
+
+	// Now serialize the subtree headers
+	targetBvh->m_SubtreeHeaders.initializeFromBuffer(nodeData, m_subtreeHeaderCount, m_subtreeHeaderCount);
+	if (i_swapEndian)
+	{
+		for (int i = 0; i < m_subtreeHeaderCount; i++)
+		{
+			targetBvh->m_SubtreeHeaders[i].m_quantizedAabbMin[0] = btSwapEndian(m_SubtreeHeaders[i].m_quantizedAabbMin[0]);
+			targetBvh->m_SubtreeHeaders[i].m_quantizedAabbMin[1] = btSwapEndian(m_SubtreeHeaders[i].m_quantizedAabbMin[1]);
+			targetBvh->m_SubtreeHeaders[i].m_quantizedAabbMin[2] = btSwapEndian(m_SubtreeHeaders[i].m_quantizedAabbMin[2]);
+
+			targetBvh->m_SubtreeHeaders[i].m_quantizedAabbMax[0] = btSwapEndian(m_SubtreeHeaders[i].m_quantizedAabbMax[0]);
+			targetBvh->m_SubtreeHeaders[i].m_quantizedAabbMax[1] = btSwapEndian(m_SubtreeHeaders[i].m_quantizedAabbMax[1]);
+			targetBvh->m_SubtreeHeaders[i].m_quantizedAabbMax[2] = btSwapEndian(m_SubtreeHeaders[i].m_quantizedAabbMax[2]);
+
+			targetBvh->m_SubtreeHeaders[i].m_rootNodeIndex = btSwapEndian(m_SubtreeHeaders[i].m_rootNodeIndex);
+			targetBvh->m_SubtreeHeaders[i].m_subtreeSize = btSwapEndian(m_SubtreeHeaders[i].m_subtreeSize);
+		}
+	}
+	else
+	{
+		for (int i = 0; i < m_subtreeHeaderCount; i++)
+		{
+			targetBvh->m_SubtreeHeaders[i].m_quantizedAabbMin[0] = (m_SubtreeHeaders[i].m_quantizedAabbMin[0]);
+			targetBvh->m_SubtreeHeaders[i].m_quantizedAabbMin[1] = (m_SubtreeHeaders[i].m_quantizedAabbMin[1]);
+			targetBvh->m_SubtreeHeaders[i].m_quantizedAabbMin[2] = (m_SubtreeHeaders[i].m_quantizedAabbMin[2]);
+
+			targetBvh->m_SubtreeHeaders[i].m_quantizedAabbMax[0] = (m_SubtreeHeaders[i].m_quantizedAabbMax[0]);
+			targetBvh->m_SubtreeHeaders[i].m_quantizedAabbMax[1] = (m_SubtreeHeaders[i].m_quantizedAabbMax[1]);
+			targetBvh->m_SubtreeHeaders[i].m_quantizedAabbMax[2] = (m_SubtreeHeaders[i].m_quantizedAabbMax[2]);
+
+			targetBvh->m_SubtreeHeaders[i].m_rootNodeIndex = (m_SubtreeHeaders[i].m_rootNodeIndex);
+			targetBvh->m_SubtreeHeaders[i].m_subtreeSize = (m_SubtreeHeaders[i].m_subtreeSize);
+			targetBvh->m_SubtreeHeaders[i] = m_SubtreeHeaders[i];
+		}
+	}
+
+	nodeData += sizeof(btBvhSubtreeInfo) * m_subtreeHeaderCount;
+
+	return true;
+}
+
+btOptimizedBvh *btOptimizedBvh::deSerializeInPlace(void *i_alignedDataBuffer, unsigned i_dataBufferSize, bool i_swapEndian)
+{
+
+	if (i_alignedDataBuffer == NULL)// || (((unsigned)i_alignedDataBuffer & BVH_ALIGNMENT_MASK) != 0))
+	{
+		return NULL;
+	}
+	btOptimizedBvh *bvh = (btOptimizedBvh *)i_alignedDataBuffer;
+
+	if (i_swapEndian)
+	{
+		bvh->m_curNodeIndex = btSwapEndian(bvh->m_curNodeIndex);
+
+		btUnSwapVector3Endian(bvh->m_bvhAabbMin);
+		btUnSwapVector3Endian(bvh->m_bvhAabbMax);
+		btUnSwapVector3Endian(bvh->m_bvhQuantization);
+
+		bvh->m_traversalMode = (btTraversalMode)btSwapEndian(bvh->m_traversalMode);
+		bvh->m_subtreeHeaderCount = btSwapEndian(bvh->m_subtreeHeaderCount);
+	}
+
+	int calculatedBufSize = bvh->calculateSerializeBufferSize();
+	btAssert(calculatedBufSize <= i_dataBufferSize);
+
+	if (calculatedBufSize > i_dataBufferSize)
+	{
+		return NULL;
+	}
+
+	unsigned char *nodeData = (unsigned char *)bvh;
+	nodeData += sizeof(btOptimizedBvh);
+	
+	unsigned sizeToAdd = 0;//(BVH_ALIGNMENT-((unsigned)nodeData & BVH_ALIGNMENT_MASK))&BVH_ALIGNMENT_MASK;
+	nodeData += sizeToAdd;
+	
+	int nodeCount = bvh->m_curNodeIndex;
+
+	// Must call placement new to fill in virtual function table, etc, but we don't want to overwrite most data, so call a special version of the constructor
+	// Also, m_leafNodes and m_quantizedLeafNodes will be initialized to default values by the constructor
+	new (bvh) btOptimizedBvh(*bvh, false);
+
+	if (bvh->m_useQuantization)
+	{
+		bvh->m_quantizedContiguousNodes.initializeFromBuffer(nodeData, nodeCount, nodeCount);
+
+		if (i_swapEndian)
+		{
+			for (int nodeIndex = 0; nodeIndex < nodeCount; nodeIndex++)
+			{
+				bvh->m_quantizedContiguousNodes[nodeIndex].m_quantizedAabbMin[0] = btSwapEndian(bvh->m_quantizedContiguousNodes[nodeIndex].m_quantizedAabbMin[0]);
+				bvh->m_quantizedContiguousNodes[nodeIndex].m_quantizedAabbMin[1] = btSwapEndian(bvh->m_quantizedContiguousNodes[nodeIndex].m_quantizedAabbMin[1]);
+				bvh->m_quantizedContiguousNodes[nodeIndex].m_quantizedAabbMin[2] = btSwapEndian(bvh->m_quantizedContiguousNodes[nodeIndex].m_quantizedAabbMin[2]);
+
+				bvh->m_quantizedContiguousNodes[nodeIndex].m_quantizedAabbMax[0] = btSwapEndian(bvh->m_quantizedContiguousNodes[nodeIndex].m_quantizedAabbMax[0]);
+				bvh->m_quantizedContiguousNodes[nodeIndex].m_quantizedAabbMax[1] = btSwapEndian(bvh->m_quantizedContiguousNodes[nodeIndex].m_quantizedAabbMax[1]);
+				bvh->m_quantizedContiguousNodes[nodeIndex].m_quantizedAabbMax[2] = btSwapEndian(bvh->m_quantizedContiguousNodes[nodeIndex].m_quantizedAabbMax[2]);
+
+				bvh->m_quantizedContiguousNodes[nodeIndex].m_escapeIndexOrTriangleIndex = btSwapEndian(bvh->m_quantizedContiguousNodes[nodeIndex].m_escapeIndexOrTriangleIndex);
+			}
+		}
+		nodeData += sizeof(btQuantizedBvhNode) * nodeCount;
+	}
+	else
+	{
+		bvh->m_contiguousNodes.initializeFromBuffer(nodeData, nodeCount, nodeCount);
+
+		if (i_swapEndian)
+		{
+			for (int nodeIndex = 0; nodeIndex < nodeCount; nodeIndex++)
+			{
+				btUnSwapVector3Endian(bvh->m_contiguousNodes[nodeIndex].m_aabbMinOrg);
+				btUnSwapVector3Endian(bvh->m_contiguousNodes[nodeIndex].m_aabbMaxOrg);
+				
+				bvh->m_contiguousNodes[nodeIndex].m_escapeIndex = btSwapEndian(bvh->m_contiguousNodes[nodeIndex].m_escapeIndex);
+				bvh->m_contiguousNodes[nodeIndex].m_subPart = btSwapEndian(bvh->m_contiguousNodes[nodeIndex].m_subPart);
+				bvh->m_contiguousNodes[nodeIndex].m_triangleIndex = btSwapEndian(bvh->m_contiguousNodes[nodeIndex].m_triangleIndex);
+			}
+		}
+		nodeData += sizeof(btOptimizedBvhNode) * nodeCount;
+	}
+
+	sizeToAdd = 0;//(BVH_ALIGNMENT-((unsigned)nodeData & BVH_ALIGNMENT_MASK))&BVH_ALIGNMENT_MASK;
+	nodeData += sizeToAdd;
+
+	// Now serialize the subtree headers
+	bvh->m_SubtreeHeaders.initializeFromBuffer(nodeData, bvh->m_subtreeHeaderCount, bvh->m_subtreeHeaderCount);
+	if (i_swapEndian)
+	{
+		for (int i = 0; i < bvh->m_subtreeHeaderCount; i++)
+		{
+			bvh->m_SubtreeHeaders[i].m_quantizedAabbMin[0] = btSwapEndian(bvh->m_SubtreeHeaders[i].m_quantizedAabbMin[0]);
+			bvh->m_SubtreeHeaders[i].m_quantizedAabbMin[1] = btSwapEndian(bvh->m_SubtreeHeaders[i].m_quantizedAabbMin[1]);
+			bvh->m_SubtreeHeaders[i].m_quantizedAabbMin[2] = btSwapEndian(bvh->m_SubtreeHeaders[i].m_quantizedAabbMin[2]);
+
+			bvh->m_SubtreeHeaders[i].m_quantizedAabbMax[0] = btSwapEndian(bvh->m_SubtreeHeaders[i].m_quantizedAabbMax[0]);
+			bvh->m_SubtreeHeaders[i].m_quantizedAabbMax[1] = btSwapEndian(bvh->m_SubtreeHeaders[i].m_quantizedAabbMax[1]);
+			bvh->m_SubtreeHeaders[i].m_quantizedAabbMax[2] = btSwapEndian(bvh->m_SubtreeHeaders[i].m_quantizedAabbMax[2]);
+
+			bvh->m_SubtreeHeaders[i].m_rootNodeIndex = btSwapEndian(bvh->m_SubtreeHeaders[i].m_rootNodeIndex);
+			bvh->m_SubtreeHeaders[i].m_subtreeSize = btSwapEndian(bvh->m_SubtreeHeaders[i].m_subtreeSize);
+		}
+	}
+
+	return bvh;
+}
+
+// Constructor that prevents btVector3's default constructor from being called
+btOptimizedBvh::btOptimizedBvh(btOptimizedBvh &self, bool ownsMemory) :
+m_bvhAabbMin(self.m_bvhAabbMin),
+m_bvhAabbMax(self.m_bvhAabbMax),
+m_bvhQuantization(self.m_bvhQuantization)
+{
+	
+}
+

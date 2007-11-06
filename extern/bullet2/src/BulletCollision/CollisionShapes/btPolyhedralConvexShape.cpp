@@ -95,7 +95,7 @@ void	btPolyhedralConvexShape::batchedUnitVectorGetSupportingVertexWithoutMargin(
 
 
 
-void	btPolyhedralConvexShape::calculateLocalInertia(btScalar mass,btVector3& inertia)
+void	btPolyhedralConvexShape::calculateLocalInertia(btScalar mass,btVector3& inertia) const
 {
 	//not yet, return box inertia
 

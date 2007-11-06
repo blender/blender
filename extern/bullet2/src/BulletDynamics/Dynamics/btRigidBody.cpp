@@ -39,6 +39,8 @@ btRigidBody::btRigidBody(btScalar mass, btMotionState* motionState, btCollisionS
 	m_totalTorque(btScalar(0.0), btScalar(0.0), btScalar(0.0)),
 	m_linearDamping(btScalar(0.)),
 	m_angularDamping(btScalar(0.5)),
+	m_linearSleepingThreshold(gLinearSleepingThreshold),
+	m_angularSleepingThreshold(gAngularSleepingThreshold),
 	m_optionalMotionState(motionState),
 	m_contactSolverType(0),
 	m_frictionSolverType(0)
@@ -79,12 +81,15 @@ btRigidBody::btRigidBody( btScalar mass,const btTransform& worldTransform,btColl
 	m_totalForce(btScalar(0.0), btScalar(0.0), btScalar(0.0)),
 	m_totalTorque(btScalar(0.0), btScalar(0.0), btScalar(0.0)),
 	m_linearVelocity(btScalar(0.0), btScalar(0.0), btScalar(0.0)),
-	m_angularVelocity(btScalar(0.),btScalar(0.),btScalar(0.)),
+	m_angularVelocity(btScalar(0.),btScalar(0.),btScalar(0.)),	
+	m_linearSleepingThreshold(gLinearSleepingThreshold),
+	m_angularSleepingThreshold(gAngularSleepingThreshold),
 	m_linearDamping(btScalar(0.)),
 	m_angularDamping(btScalar(0.5)),
 	m_optionalMotionState(0),
 	m_contactSolverType(0),
 	m_frictionSolverType(0)
+	
 {
 	
 	m_worldTransform = worldTransform;
@@ -113,7 +118,7 @@ btRigidBody::btRigidBody( btScalar mass,const btTransform& worldTransform,btColl
 
 
 
-//#define EXPERIMENTAL_JITTER_REMOVAL 1
+#define EXPERIMENTAL_JITTER_REMOVAL 1
 #ifdef EXPERIMENTAL_JITTER_REMOVAL
 //Bullet 2.20b has experimental damping code to reduce jitter just before objects fall asleep/deactivate
 //doesn't work very well yet (value 0 disabled this damping)

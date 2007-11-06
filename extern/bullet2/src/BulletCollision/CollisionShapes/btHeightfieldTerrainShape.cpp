@@ -19,15 +19,15 @@ subject to the following restrictions:
 
 
 btHeightfieldTerrainShape::btHeightfieldTerrainShape(int width,int length,void* heightfieldData,btScalar maxHeight,int upAxis,bool useFloatData,bool flipQuadEdges)
-:m_localScaling(btScalar(1.),btScalar(1.),btScalar(1.)),
-m_width(width),
+:m_width(width),
 m_length(length),
-m_heightfieldDataUnknown(heightfieldData),
 m_maxHeight(maxHeight),
-m_upAxis(upAxis),
+m_heightfieldDataUnknown(heightfieldData),
 m_useFloatData(useFloatData),
 m_flipQuadEdges(flipQuadEdges),
-m_useDiamondSubdivision(false)
+m_useDiamondSubdivision(false),
+m_upAxis(upAxis),
+m_localScaling(btScalar(1.),btScalar(1.),btScalar(1.))
 {
 
 
@@ -43,25 +43,25 @@ m_useDiamondSubdivision(false)
 	case 0:
 		{
 			halfExtents.setValue(
-				m_maxHeight,
-				m_width,
-				m_length);
+				btScalar(m_maxHeight),
+				btScalar(m_width),
+				btScalar(m_length));
 			break;
 		}
 	case 1:
 		{
 			halfExtents.setValue(
-				m_width,
-				m_maxHeight,
-				m_length);
+				btScalar(m_width),
+				btScalar(m_maxHeight),
+				btScalar(m_length));
 			break;
 		};
 	case 2:
 		{
 			halfExtents.setValue(
-				m_width,
-				m_length,
-				m_maxHeight
+				btScalar(m_width),
+				btScalar(m_length),
+				btScalar(m_maxHeight)
 			);
 			break;
 		}
@@ -145,25 +145,25 @@ void	btHeightfieldTerrainShape::getVertex(int x,int y,btVector3& vertex) const
 		{
 		vertex.setValue(
 			height,
-			(-m_width/2 ) + x,
-			(-m_length/2 ) + y
+			(-m_width/btScalar(2.0)) + x,
+			(-m_length/btScalar(2.0) ) + y
 			);
 			break;
 		}
 	case 1:
 		{
 			vertex.setValue(
-			(-m_width/2 ) + x,
+			(-m_width/btScalar(2.0)) + x,
 			height,
-			(-m_length/2 ) + y
+			(-m_length/btScalar(2.0)) + y
 			);
 			break;
 		};
 	case 2:
 		{
 			vertex.setValue(
-			(-m_width/2 ) + x,
-			(-m_length/2 ) + y,
+			(-m_width/btScalar(2.0)) + x,
+			(-m_length/btScalar(2.0)) + y,
 			height
 			);
 			break;
@@ -190,11 +190,11 @@ void btHeightfieldTerrainShape::quantizeWithClamp(int* out, const btVector3& poi
 
 	btVector3 v = (clampedPoint );// * m_quantization;
 
-	out[0] = (int)(v.getX());
-	out[1] = (int)(v.getY());
-	out[2] = (int)(v.getZ());
-	//correct for
-
+	// SMJ - Add 0.5 in the correct direction before doing the int conversion.
+	out[0] = (int)(v.getX() + v.getX() / btFabs(v.getX())* btScalar(0.5) );
+	out[1] = (int)(v.getY() + v.getY() / btFabs(v.getY())* btScalar(0.5) );
+	out[2] = (int)(v.getZ() + v.getZ() / btFabs(v.getZ())* btScalar(0.5) );
+	
 }
 
 
@@ -322,7 +322,7 @@ void	btHeightfieldTerrainShape::processAllTriangles(btTriangleCallback* callback
 
 }
 
-void	btHeightfieldTerrainShape::calculateLocalInertia(btScalar ,btVector3& inertia)
+void	btHeightfieldTerrainShape::calculateLocalInertia(btScalar ,btVector3& inertia) const
 {
 	//moving concave objects not supported
 	

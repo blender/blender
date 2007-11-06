@@ -4,8 +4,8 @@ Copyright (c) 2003-2006 Erwin Coumans  http://continuousphysics.com/Bullet/
 
 This software is provided 'as-is', without any express or implied warranty.
 In no event will the authors be held liable for any damages arising from the use of this software.
-Permission is granted to anyone to use this software for any purpose, 
-including commercial applications, and to alter it and redistribute it freely, 
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it freely,
 subject to the following restrictions:
 
 1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
@@ -18,27 +18,36 @@ subject to the following restrictions:
 btTriangleIndexVertexArray::btTriangleIndexVertexArray(int numTriangles,int* triangleIndexBase,int triangleIndexStride,int numVertices,btScalar* vertexBase,int vertexStride)
 {
 	btIndexedMesh mesh;
-	
+
 	mesh.m_numTriangles = numTriangles;
 	mesh.m_triangleIndexBase = (const unsigned char *)triangleIndexBase;
 	mesh.m_triangleIndexStride = triangleIndexStride;
 	mesh.m_numVertices = numVertices;
 	mesh.m_vertexBase = (const unsigned char *)vertexBase;
 	mesh.m_vertexStride = vertexStride;
-	
+
 	addIndexedMesh(mesh);
+
+}
+
+btTriangleIndexVertexArray::~btTriangleIndexVertexArray()
+{
 
 }
 
 void	btTriangleIndexVertexArray::getLockedVertexIndexBase(unsigned char **vertexbase, int& numverts,PHY_ScalarType& type, int& vertexStride,unsigned char **indexbase,int & indexstride,int& numfaces,PHY_ScalarType& indicestype,int subpart)
 {
 	btAssert(subpart< getNumSubParts() );
-	
+
 	btIndexedMesh& mesh = m_indexedMeshes[subpart];
 
 	numverts = mesh.m_numVertices;
 	(*vertexbase) = (unsigned char *) mesh.m_vertexBase;
+	#ifdef BT_USE_DOUBLE_PRECISION
+	type = PHY_DOUBLE;
+	#else
 	type = PHY_FLOAT;
+	#endif
 	vertexStride = mesh.m_vertexStride;
 
 	numfaces = mesh.m_numTriangles;
@@ -54,7 +63,11 @@ void	btTriangleIndexVertexArray::getLockedReadOnlyVertexIndexBase(const unsigned
 
 	numverts = mesh.m_numVertices;
 	(*vertexbase) = (const unsigned char *)mesh.m_vertexBase;
+	#ifdef BT_USE_DOUBLE_PRECISION
+	type = PHY_DOUBLE;
+	#else
 	type = PHY_FLOAT;
+	#endif
 	vertexStride = mesh.m_vertexStride;
 
 	numfaces = mesh.m_numTriangles;

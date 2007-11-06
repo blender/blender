@@ -46,6 +46,8 @@ void btSphereSphereCollisionAlgorithm::processCollision (btCollisionObject* col0
 	if (!m_manifoldPtr)
 		return;
 
+	resultOut->setPersistentManifold(m_manifoldPtr);
+
 	btSphereShape* sphere0 = (btSphereShape*)col0->getCollisionShape();
 	btSphereShape* sphere1 = (btSphereShape*)col1->getCollisionShape();
 
@@ -54,10 +56,13 @@ void btSphereSphereCollisionAlgorithm::processCollision (btCollisionObject* col0
 	btScalar radius0 = sphere0->getRadius();
 	btScalar radius1 = sphere1->getRadius();
 
+	m_manifoldPtr->clearManifold();
+
 	///iff distance positive, don't generate a new contact
 	if ( len > (radius0+radius1))
+	{
 		return;
-
+	}
 	///distance (negative means penetration)
 	btScalar dist = len - (radius0+radius1);
 
@@ -68,8 +73,11 @@ void btSphereSphereCollisionAlgorithm::processCollision (btCollisionObject* col0
 	btVector3 pos1 = col1->getWorldTransform().getOrigin() + radius1* normalOnSurfaceB;
 
 	/// report a contact. internally this will be kept persistent, and contact reduction is done
-	resultOut->setPersistentManifold(m_manifoldPtr);
+	
+	
 	resultOut->addContactPoint(normalOnSurfaceB,pos1,dist);
+
+	//no resultOut->refreshContactPoints(); needed, because of clearManifold (all points are new)
 
 }
 

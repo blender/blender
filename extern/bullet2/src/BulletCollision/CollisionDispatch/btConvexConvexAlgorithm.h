@@ -16,12 +16,13 @@ subject to the following restrictions:
 #ifndef CONVEX_CONVEX_ALGORITHM_H
 #define CONVEX_CONVEX_ALGORITHM_H
 
-#include "../BroadphaseCollision/btCollisionAlgorithm.h"
-#include "../NarrowPhaseCollision/btGjkPairDetector.h"
-#include "../NarrowPhaseCollision/btPersistentManifold.h"
-#include "../BroadphaseCollision/btBroadphaseProxy.h"
-#include "../NarrowPhaseCollision/btVoronoiSimplexSolver.h"
+#include "BulletCollision/BroadphaseCollision/btCollisionAlgorithm.h"
+#include "BulletCollision/NarrowPhaseCollision/btGjkPairDetector.h"
+#include "BulletCollision/NarrowPhaseCollision/btPersistentManifold.h"
+#include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h"
+#include "BulletCollision/NarrowPhaseCollision/btVoronoiSimplexSolver.h"
 #include "btCollisionCreateFunc.h"
+#include "btCollisionDispatcher.h"
 
 class btConvexPenetrationDepthSolver;
 
@@ -58,15 +59,15 @@ public:
 	{
 		btConvexPenetrationDepthSolver*		m_pdSolver;
 		btSimplexSolverInterface*			m_simplexSolver;
-		bool	m_ownsSolvers;
 		
 		CreateFunc(btSimplexSolverInterface*			simplexSolver, btConvexPenetrationDepthSolver* pdSolver);
-		CreateFunc();
+		
 		virtual ~CreateFunc();
 
 		virtual	btCollisionAlgorithm* CreateCollisionAlgorithm(btCollisionAlgorithmConstructionInfo& ci, btCollisionObject* body0,btCollisionObject* body1)
 		{
-			return new btConvexConvexAlgorithm(ci.m_manifold,ci,body0,body1,m_simplexSolver,m_pdSolver);
+			void* mem = ci.m_dispatcher1->allocateCollisionAlgorithm(sizeof(btConvexConvexAlgorithm));
+			return new(mem) btConvexConvexAlgorithm(ci.m_manifold,ci,body0,body1,m_simplexSolver,m_pdSolver);
 		}
 	};
 

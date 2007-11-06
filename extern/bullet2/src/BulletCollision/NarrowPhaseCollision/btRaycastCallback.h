@@ -16,7 +16,7 @@ subject to the following restrictions:
 #ifndef RAYCAST_TRI_CALLBACK_H
 #define RAYCAST_TRI_CALLBACK_H
 
-#include "../CollisionShapes/btTriangleCallback.h"
+#include "BulletCollision/CollisionShapes/btTriangleCallback.h"
 struct btBroadphaseProxy;
 
 

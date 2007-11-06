@@ -18,8 +18,8 @@ subject to the following restrictions:
 #define TRIANGLE_MESH_H
 
 #include "btStridingMeshInterface.h"
-#include "../../LinearMath/btVector3.h"
-#include "../../LinearMath/btAlignedObjectArray.h"
+#include "LinearMath/btVector3.h"
+#include "LinearMath/btAlignedObjectArray.h"
 
 ///TriangleMesh provides storage for a concave triangle mesh. It can be used as data for the btTriangleMeshShape.
 class btTriangleMesh : public btStridingMeshInterface

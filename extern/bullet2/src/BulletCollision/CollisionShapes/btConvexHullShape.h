@@ -17,8 +17,8 @@ subject to the following restrictions:
 #define CONVEX_HULL_SHAPE_H
 
 #include "btPolyhedralConvexShape.h"
-#include "../BroadphaseCollision/btBroadphaseProxy.h" // for the types
-#include "../../LinearMath/btAlignedObjectArray.h"
+#include "BulletCollision/BroadphaseCollision/btBroadphaseProxy.h" // for the types
+#include "LinearMath/btAlignedObjectArray.h"
 
 ///ConvexHullShape implements an implicit (getSupportingVertex) Convex Hull of a Point Cloud (vertices)
 ///No connectivity is needed. localGetSupportingVertex iterates linearly though all vertices.
@@ -29,6 +29,7 @@ ATTRIBUTE_ALIGNED16(class) btConvexHullShape : public btPolyhedralConvexShape
 	btAlignedObjectArray<btPoint3>	m_points;
 
 public:
+	BT_DECLARE_ALIGNED_ALLOCATOR();
 
 	
 	///this constructor optionally takes in a pointer to points. Each point is assumed to be 3 consecutive btScalar (x,y,z), the striding defines the number of bytes between each point, in memory.
@@ -56,7 +57,7 @@ public:
 	virtual int	getShapeType()const { return CONVEX_HULL_SHAPE_PROXYTYPE; }
 
 	//debugging
-	virtual char*	getName()const {return "Convex";}
+	virtual const char*	getName()const {return "Convex";}
 
 	
 	virtual int	getNumVertices() const;

@@ -16,7 +16,8 @@ subject to the following restrictions:
 #ifndef BROADPHASE_PROXY_H
 #define BROADPHASE_PROXY_H
 
-#include "../../LinearMath/btScalar.h" //for SIMD_FORCE_INLINE
+#include "LinearMath/btScalar.h" //for SIMD_FORCE_INLINE
+#include "LinearMath/btAlignedAllocator.h"
 
 
 /// btDispatcher uses these types
@@ -38,6 +39,7 @@ IMPLICIT_CONVEX_SHAPES_START_HERE,
 	CONE_SHAPE_PROXYTYPE,
 	CONVEX_SHAPE_PROXYTYPE,
 	CYLINDER_SHAPE_PROXYTYPE,
+	UNIFORM_SCALING_SHAPE_PROXYTYPE,
 	MINKOWSKI_SUM_SHAPE_PROXYTYPE,
 	MINKOWSKI_DIFFERENCE_SHAPE_PROXYTYPE,
 //concave shapes
@@ -62,8 +64,10 @@ CONCAVE_SHAPES_END_HERE,
 
 
 ///btBroadphaseProxy
-struct btBroadphaseProxy
+ATTRIBUTE_ALIGNED16(struct) btBroadphaseProxy
 {
+
+BT_DECLARE_ALIGNED_ALLOCATOR();
 	
 	///optional filtering to cull potential collisions
 	enum CollisionFilterGroups
@@ -78,8 +82,27 @@ struct btBroadphaseProxy
 
 	//Usually the client btCollisionObject or Rigidbody class
 	void*	m_clientObject;
-	short int m_collisionFilterGroup;
-	short int m_collisionFilterMask;
+
+	///in the case of btMultiSapBroadphase, we store the collifionFilterGroup/Mask in the m_multiSapParentProxy
+	union
+	{
+		struct
+		{
+			short int m_collisionFilterGroup;
+			short int m_collisionFilterMask;
+		};
+
+		void*	m_multiSapParentProxy;
+
+	};
+
+	int			m_uniqueId;//m_uniqueId is introduced for paircache. could get rid of this, by calculating the address offset etc.
+	int m_unusedPadding; //making the structure 16 bytes, better for alignment etc.
+
+	SIMD_FORCE_INLINE int getUid()
+	{
+		return m_uniqueId;//(int)this;
+	}
 
 	//used for memory pools
 	btBroadphaseProxy() :m_clientObject(0){}
@@ -91,26 +114,28 @@ struct btBroadphaseProxy
 	{
 	}
 
-	static inline bool isPolyhedral(int proxyType)
+	
+
+	static SIMD_FORCE_INLINE bool isPolyhedral(int proxyType)
 	{
 		return (proxyType  < IMPLICIT_CONVEX_SHAPES_START_HERE);
 	}
 
-	static inline bool	isConvex(int proxyType)
+	static SIMD_FORCE_INLINE bool	isConvex(int proxyType)
 	{
 		return (proxyType < CONCAVE_SHAPES_START_HERE);
 	}
 
-	static inline bool	isConcave(int proxyType)
+	static SIMD_FORCE_INLINE bool	isConcave(int proxyType)
 	{
 		return ((proxyType > CONCAVE_SHAPES_START_HERE) &&
 			(proxyType < CONCAVE_SHAPES_END_HERE));
 	}
-	static inline bool	isCompound(int proxyType)
+	static SIMD_FORCE_INLINE bool	isCompound(int proxyType)
 	{
 		return (proxyType == COMPOUND_SHAPE_PROXYTYPE);
 	}
-	static inline bool isInfinite(int proxyType)
+	static SIMD_FORCE_INLINE bool isInfinite(int proxyType)
 	{
 		return (proxyType == STATIC_PLANE_PROXYTYPE);
 	}
@@ -125,7 +150,7 @@ struct btBroadphaseProxy;
 
 
 /// contains a pair of aabb-overlapping objects
-struct btBroadphasePair
+ATTRIBUTE_ALIGNED16(struct) btBroadphasePair
 {
 	btBroadphasePair ()
 		:
@@ -135,6 +160,8 @@ struct btBroadphasePair
 		m_userInfo(0)
 	{
 	}
+
+BT_DECLARE_ALIGNED_ALLOCATOR();
 
 	btBroadphasePair(const btBroadphasePair& other)
 		:		m_pProxy0(other.m_pProxy0),
@@ -179,6 +206,7 @@ SIMD_FORCE_INLINE bool operator<(const btBroadphasePair& a, const btBroadphasePa
         (a.m_pProxy0 == b.m_pProxy0 && a.m_pProxy1 < b.m_pProxy1); 
 }
 */
+
 
 
 class btBroadphasePairSortPredicate

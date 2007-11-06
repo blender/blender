@@ -17,9 +17,10 @@ subject to the following restrictions:
 #define PERSISTENT_MANIFOLD_H
 
 
-#include "../../LinearMath/btVector3.h"
-#include "../../LinearMath/btTransform.h"
+#include "LinearMath/btVector3.h"
+#include "LinearMath/btTransform.h"
 #include "btManifoldPoint.h"
+#include "LinearMath/btAlignedAllocator.h"
 
 struct btCollisionResult;
 
@@ -34,8 +35,13 @@ extern ContactDestroyedCallback	gContactDestroyedCallback;
 
 #define MANIFOLD_CACHE_SIZE 4
 
-///btPersistentManifold maintains contact points, and reduces them to 4.
-///It does contact filtering/contact reduction.
+///btPersistentManifold is a contact point cache, it stays persistent as long as objects are overlapping in the broadphase.
+///Those contact points are created by the collision narrow phase.
+///The cache can be empty, or hold 1,2,3 or 4 points. Some collision algorithms (GJK) might only add one point at a time.
+///updates/refreshes old contact points, and throw them away if necessary (distance becomes too large)
+///reduces the cache to 4 points, when more then 4 points are added, using following rules:
+///the contact point with deepest penetration is always kept, and it tries to maximuze the area covered by the points
+///note that some pairs of objects might have more then one contact manifold.
 ATTRIBUTE_ALIGNED16( class) btPersistentManifold 
 {
 
@@ -55,20 +61,22 @@ ATTRIBUTE_ALIGNED16( class) btPersistentManifold
 
 public:
 
-	int m_index1;
+	BT_DECLARE_ALIGNED_ALLOCATOR();
+
+	int m_index1a;
 
 	btPersistentManifold();
 
-	btPersistentManifold(void* body0,void* body1)
+	btPersistentManifold(void* body0,void* body1,int bla)
 		: m_body0(body0),m_body1(body1),m_cachedPoints(0)
 	{
 	}
 
-	inline void* getBody0() { return m_body0;}
-	inline void* getBody1() { return m_body1;}
+	SIMD_FORCE_INLINE void* getBody0() { return m_body0;}
+	SIMD_FORCE_INLINE void* getBody1() { return m_body1;}
 
-	inline const void* getBody0() const { return m_body0;}
-	inline const void* getBody1() const { return m_body1;}
+	SIMD_FORCE_INLINE const void* getBody0() const { return m_body0;}
+	SIMD_FORCE_INLINE const void* getBody1() const { return m_body1;}
 
 	void	setBodies(void* body0,void* body1)
 	{
@@ -82,15 +90,15 @@ public:
 	void	DebugPersistency();
 #endif //
 	
-	inline int	getNumContacts() const { return m_cachedPoints;}
+	SIMD_FORCE_INLINE int	getNumContacts() const { return m_cachedPoints;}
 
-	inline const btManifoldPoint& getContactPoint(int index) const
+	SIMD_FORCE_INLINE const btManifoldPoint& getContactPoint(int index) const
 	{
 		btAssert(index < m_cachedPoints);
 		return m_pointCache[index];
 	}
 
-	inline btManifoldPoint& getContactPoint(int index)
+	SIMD_FORCE_INLINE btManifoldPoint& getContactPoint(int index)
 	{
 		btAssert(index < m_cachedPoints);
 		return m_pointCache[index];
@@ -114,6 +122,7 @@ public:
 			m_pointCache[index] = m_pointCache[lastUsedIndex]; 
 			//get rid of duplicated userPersistentData pointer
 			m_pointCache[lastUsedIndex].m_userPersistentData = 0;
+			m_pointCache[lastUsedIndex].m_lifeTime = 0;
 		}
 
 		btAssert(m_pointCache[lastUsedIndex].m_userPersistentData==0);
@@ -147,7 +156,16 @@ public:
 	/// calculated new worldspace coordinates and depth, and reject points that exceed the collision margin
 	void	refreshContactPoints(  const btTransform& trA,const btTransform& trB);
 
-	void	clearManifold();
+	
+	SIMD_FORCE_INLINE	void	clearManifold()
+	{
+		int i;
+		for (i=0;i<m_cachedPoints;i++)
+		{
+			clearUserCache(m_pointCache[i]);
+		}
+		m_cachedPoints = 0;
+	}
 
 
 

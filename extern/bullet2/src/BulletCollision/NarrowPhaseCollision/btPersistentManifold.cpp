@@ -27,20 +27,12 @@ btPersistentManifold::btPersistentManifold()
 :m_body0(0),
 m_body1(0),
 m_cachedPoints (0),
-m_index1(0)
+m_index1a(0)
 {
 }
 
 
-void	btPersistentManifold::clearManifold()
-{
-	int i;
-	for (i=0;i<m_cachedPoints;i++)
-	{
-		clearUserCache(m_pointCache[i]);
-	}
-	m_cachedPoints = 0;
-}
+
 
 #ifdef DEBUG_PERSISTENCY
 #include <stdio.h>
@@ -198,10 +190,20 @@ btScalar	btPersistentManifold::getContactBreakingThreshold() const
 	return gContactBreakingThreshold;
 }
 
+
+
 void btPersistentManifold::refreshContactPoints(const btTransform& trA,const btTransform& trB)
 {
 	int i;
-
+#ifdef DEBUG_PERSISTENCY
+	printf("refreshContactPoints posA = (%f,%f,%f) posB = (%f,%f,%f)\n",
+		trA.getOrigin().getX(),
+		trA.getOrigin().getY(),
+		trA.getOrigin().getZ(),
+		trB.getOrigin().getX(),
+		trB.getOrigin().getY(),
+		trB.getOrigin().getZ());
+#endif //DEBUG_PERSISTENCY
 	/// first refresh worldspace positions and distance
 	for (i=getNumContacts()-1;i>=0;i--)
 	{

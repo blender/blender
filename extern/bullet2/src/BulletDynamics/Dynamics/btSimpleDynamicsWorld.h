@@ -22,11 +22,8 @@ class btDispatcher;
 class btOverlappingPairCache;
 class btConstraintSolver;
 
-///btSimpleDynamicsWorld demonstrates very basic usage of Bullet rigid body dynamics
-///It can be used for basic simulations, and as a starting point for porting Bullet
-///btSimpleDynamicsWorld lacks object deactivation, island management and other concepts.
-///For more complicated simulations, btDiscreteDynamicsWorld and btContinuousDynamicsWorld are recommended
-///those classes replace the obsolete CcdPhysicsEnvironment/CcdPhysicsController
+///btSimpleDynamicsWorld serves as unit-test and to verify more complicated and optimized dynamics worlds.
+///Please use btDiscreteDynamicsWorld instead (or btContinuousDynamicsWorld once it is finished).
 class btSimpleDynamicsWorld : public btDynamicsWorld
 {
 protected:
@@ -48,7 +45,7 @@ public:
 
 
 	///this btSimpleDynamicsWorld constructor creates dispatcher, broadphase pairCache and constraintSolver
-	btSimpleDynamicsWorld(btDispatcher* dispatcher,btOverlappingPairCache* pairCache,btConstraintSolver* constraintSolver);
+	btSimpleDynamicsWorld(btDispatcher* dispatcher,btBroadphaseInterface* pairCache,btConstraintSolver* constraintSolver,btCollisionConfiguration* collisionConfiguration);
 
 	virtual ~btSimpleDynamicsWorld();
 		
@@ -76,6 +73,13 @@ public:
 	void	synchronizeMotionStates();
 
 	virtual void	setConstraintSolver(btConstraintSolver* solver);
+
+	virtual btConstraintSolver* getConstraintSolver();
+
+	virtual btDynamicsWorldType	getWorldType() const
+	{
+		return BT_SIMPLE_DYNAMICS_WORLD;
+	}
 
 };
 
