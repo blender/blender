@@ -533,7 +533,11 @@ bool GPG_Application::initEngine(GHOST_IWindow* window, const int stereoMode)
 			goto initFailed;
 		
 		if(useLists)
-			m_rasterizer = new RAS_ListRasterizer(m_canvas);
+			if (useVertexArrays) {
+				m_rasterizer = new RAS_ListRasterizer(m_canvas, true);
+			} else {
+				m_rasterizer = new RAS_ListRasterizer(m_canvas);
+			}
 		else if (useVertexArrays && bgl::QueryVersion(1, 1))
 			m_rasterizer = new RAS_VAOpenGLRasterizer(m_canvas);
 		else

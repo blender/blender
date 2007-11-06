@@ -176,9 +176,13 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 		
 		bool lock_arrays = (displaylists && useVertexArrays);
 
-		if(displaylists && !useVertexArrays)
-			rasterizer = new RAS_ListRasterizer(canvas);
-		else if (useVertexArrays && bgl::QueryVersion(1, 1))
+		if(displaylists){
+			if (useVertexArrays) {
+				rasterizer = new RAS_ListRasterizer(canvas, true, lock_arrays);
+			} else {
+				rasterizer = new RAS_ListRasterizer(canvas);
+			}
+		} else if (useVertexArrays && bgl::QueryVersion(1, 1))
 			rasterizer = new RAS_VAOpenGLRasterizer(canvas, lock_arrays);
 		else
 			rasterizer = new RAS_OpenGLRasterizer(canvas);

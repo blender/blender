@@ -2,7 +2,7 @@
 #define __RAS_LISTRASTERIZER_H__
 
 #include "RAS_MaterialBucket.h"
-#include "RAS_OpenGLRasterizer.h"
+#include "RAS_VAOpenGLRasterizer.h"
 #include <vector>
 
 class RAS_ListSlot : public KX_ListSlot
@@ -33,15 +33,16 @@ enum RAS_ListSlotFlags	{
 
 typedef std::map<const vecVertexArray, RAS_ListSlot*> RAS_Lists;
 
-class RAS_ListRasterizer : public RAS_OpenGLRasterizer
+class RAS_ListRasterizer : public RAS_VAOpenGLRasterizer
 {
+	bool mUseVertexArrays;
 	RAS_Lists mLists;
 
 	RAS_ListSlot* FindOrAdd(const vecVertexArray& vertexarrays, KX_ListSlot** slot);
 	void ReleaseAlloc();
 
 public:
-	RAS_ListRasterizer(RAS_ICanvas* canvas);
+	RAS_ListRasterizer(RAS_ICanvas* canvas, bool useVertexArrays=false, bool lock=false);
 	virtual ~RAS_ListRasterizer();
 
 	virtual void IndexPrimitives(
@@ -65,6 +66,11 @@ public:
 			const MT_Vector4& rgbacolor,
 			class KX_ListSlot** slot
 	);
+
+	virtual bool	Init();
+	virtual void	Exit();
+
+	virtual void	SetDrawingMode(int drawingmode);
 
 	virtual bool	QueryLists(){return true;}
 };
