@@ -3228,6 +3228,7 @@ void generateSkeletonFromReebGraph(ReebGraph *rg)
 			tail = arc->v1;
 		}
 		
+		/************************* CUT LENGTH *****************************/
 		if ((G.scene->toolsettings->skgen_options & SKGEN_CUT_LENGTH) &&
 			arcLengthRatio(arc) >= G.scene->toolsettings->skgen_threshold_length)
 		{
@@ -3323,6 +3324,59 @@ void generateSkeletonFromReebGraph(ReebGraph *rg)
 					// Next bucket
 					index += stride;
 					same = 0; // Reset same
+				}
+			}
+			VECCOPY(parent->tail, tail->p);
+			
+			lastBone = parent; /* set last bone in the chain */
+
+			added = 1;			
+		}
+		/************************* CUT ANGLE *****************************/
+		else if (G.scene->toolsettings->skgen_options & SKGEN_CUT_ANGLE)
+		{
+			EditBone *child = NULL;
+			EditBone *parent = NULL;
+			float angleLimit = 0.80f;//cosf(M_PI / 4);//cosf(G.scene->toolsettings->skgen_threshold_angle * M_PI / 180.0f);
+			int same = 0;
+			int index = 0;
+			int stride = 1;
+
+			// If head is the highest node, invert stride and start index
+			if (head == arc->v2)
+			{
+				stride *= -1;
+				index = arc->bcount -1;
+			}
+			
+			parent = add_editbone("Bone");
+			VECCOPY(parent->head, head->p);
+			
+			firstBone = parent; /* set first bone in the chain */
+
+			for(index = 1; index < arc->bcount; index++)
+			{
+				float vec1[3], vec2[3];
+				float len1, len2;
+
+				VecSubf(vec1, arc->buckets[index - 1].p, parent->head);
+				VecSubf(vec2, arc->buckets[index].p, arc->buckets[index - 1].p);
+
+				len1 = Normalize(vec1);
+				len2 = Normalize(vec2);
+
+				//printf("%f < %f\n", Inpf(vec1, vec2), angleLimit);
+
+				if (len1 > 0.0f && len2 > 0.0f && Inpf(vec1, vec2) < angleLimit)
+				{
+					VECCOPY(parent->tail, arc->buckets[index - 1].p);
+
+					child = add_editbone("Bone");
+					VECCOPY(child->head, parent->tail);
+					child->parent = parent;
+					child->flag |= BONE_CONNECTED;
+					
+					parent = child; // new child is next parent
 				}
 			}
 			VECCOPY(parent->tail, tail->p);

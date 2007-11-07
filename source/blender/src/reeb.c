@@ -380,6 +380,25 @@ void buildAdjacencyList(ReebGraph *rg)
 		addArcToNodeAdjacencyList(arc->v2, arc);
 	}
 }
+/****************************************** SMOOTHING **************************************************/
+
+void smoothGraph(ReebGraph *rg)
+{
+	ReebArc *arc;
+	
+	for(arc = rg->arcs.first; arc; arc = arc->next)
+	{
+		EmbedBucket *buckets = arc->buckets;
+		int bcount = arc->bcount;
+		int index;
+
+		for(index = 1; index < bcount - 1; index++)
+		{
+			VecLerpf(buckets[index].p, buckets[index].p, buckets[index - 1].p, 0.5f);
+			VecLerpf(buckets[index].p, buckets[index].p, buckets[index + 1].p, 1.0f/3.0f);
+		}
+	}
+}
 
 /****************************************** FILTERING **************************************************/
 
@@ -1786,6 +1805,11 @@ void generateSkeleton(void)
 	removeNormalNodes(rg);
 	
 	verifyBuckets(rg);
+
+	if (G.scene->toolsettings->skgen_options & SKGEN_SMOOTH)
+	{
+		smoothGraph(rg);
+	}
 
 	buildAdjacencyList(rg);
 	

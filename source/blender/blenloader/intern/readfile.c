@@ -6585,7 +6585,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				else
 					wrld->ao_samp_method = WO_AOSAMP_HAMMERSLEY;
 				
-				wrld->ao_adapt_thresh = 0.005;
+				wrld->ao_adapt_thresh = 0.005f;
 			}
 			
 			for(la=main->lamp.first; la; la= la->id.next) {
@@ -6778,7 +6778,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				sce->toolsettings->skgen_threshold_external 	= 0.01f;
 				sce->toolsettings->skgen_threshold_angle 		= 45.0f;
 				sce->toolsettings->skgen_threshold_length		= 1.3f;
-				sce->toolsettings->skgen_options = SKGEN_FILTER_INTERNAL|SKGEN_FILTER_EXTERNAL|SKGEN_REPOSITION|SKGEN_CUT_LENGTH|SKGEN_CUT_ANGLE;
+				sce->toolsettings->skgen_options = SKGEN_FILTER_INTERNAL|SKGEN_FILTER_EXTERNAL|SKGEN_REPOSITION|SKGEN_SMOOTH|SKGEN_CUT_LENGTH|SKGEN_CUT_ANGLE;
 			}
 		}
 	}

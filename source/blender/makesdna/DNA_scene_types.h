@@ -680,6 +680,7 @@ typedef struct Scene {
 #define	SKGEN_SYMMETRY			8
 #define	SKGEN_CUT_LENGTH		16
 #define	SKGEN_CUT_ANGLE			32
+#define SKGEN_SMOOTH			64
 
 #ifdef __cplusplus
 }
