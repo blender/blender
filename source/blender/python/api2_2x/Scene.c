@@ -805,10 +805,18 @@ static PyObject *Scene_update( BPy_Scene * self, PyObject * args )
 	if( !full )
 		DAG_scene_sort( scene );
 
-	else if( full == 1 )
+	else if( full == 1 ) {
+		int enablescripts = G.f & G_DOSCRIPTLINKS;
+		
+		/*Disable scriptlinks to prevent firing off newframe scriptlink
+		  events.*/
+		G.f &= ~G_DOSCRIPTLINKS;
 		set_scene_bg( scene );
-
-	else
+		scene_update_for_newframe( scene, scene->lay );
+		
+		/*re-enabled scriptlinks if necassary.*/
+		if (enablescripts) G.f |= G_DOSCRIPTLINKS;
+	} else
 		return EXPP_ReturnPyObjError( PyExc_ValueError,
 					      "in method scene.update(full), full should be:\n"
 					      "0: to only sort scene elements (old behavior); or\n"
