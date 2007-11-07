@@ -74,6 +74,7 @@
 #include "BKE_blender.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_exotic.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
@@ -192,6 +193,9 @@ static void init_userdef_file(void)
 	}
 	if(U.pad_rot_angle==0)
 		U.pad_rot_angle= 15;
+	
+	if(U.flag & USER_CUSTOM_RANGE) 
+		vDM_ColorBand_store(&U.coba_weight); /* signal for derivedmesh to use colorband */
 	
 	if (G.main->versionfile <= 191) {
 		strcpy(U.plugtexdir, U.textudir);
