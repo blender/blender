@@ -62,6 +62,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"
+#include "BLI_ghash.h"
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
@@ -102,6 +103,8 @@
 #include "BSE_trans_types.h"
 
 #include "PIL_time.h"
+
+#include "reeb.h" // FIX ME
 
 #include "mydevice.h"
 #include "blendef.h"
@@ -3141,4 +3144,220 @@ void transform_armature_mirror_update(void)
 	}
 }
 
+
+
+/*****************************************************************************************************/
+
+float arcLengthRatio(ReebArc *arc)
+{
+	float arcLength = 0.0f;
+	float embedLength = 0.0f;
+	int i;
+	
+	arcLength = VecLenf(arc->v1->p, arc->v2->p);
+	
+	if (arc->bcount > 0)
+	{
+		// Add the embedding
+		for( i = 1; i < arc->bcount; i++)
+		{
+			embedLength += VecLenf(arc->buckets[i - 1].p, arc->buckets[i].p);
+		}
+		// Add head and tail -> embedding vectors
+		embedLength += VecLenf(arc->v1->p, arc->buckets[0].p);
+		embedLength += VecLenf(arc->v2->p, arc->buckets[arc->bcount - 1].p);
+	}
+	else
+	{
+		embedLength = arcLength;
+	}
+	
+	return embedLength / arcLength;	
+}
+
+void generateSkeletonFromReebGraph(ReebGraph *rg)
+{
+	GHash *nodeEndMap = NULL;
+	ReebArc *arc = NULL;
+	Object *src = NULL;
+	Object *dst = NULL;
+	
+	src = BASACT->object;
+	
+	if (G.obedit != NULL)
+	{
+		exit_editmode(EM_FREEDATA|EM_FREEUNDO|EM_WAITCURSOR); // freedata, and undo
+	}
+
+	setcursor_space(SPACE_VIEW3D, CURSOR_WAIT);
+	
+	dst = add_object(OB_ARMATURE);
+	base_init_from_view3d(BASACT, G.vd);
+	G.obedit= BASACT->object;
+	
+	/* Copy orientation from source */
+	VECCOPY(dst->loc, src->obmat[3]);
+	Mat4ToEul(src->obmat, dst->rot);
+	Mat4ToSize(src->obmat, dst->size);
+	
+	where_is_object(G.obedit);
+	
+	make_editArmature();
+	setcursor_space(SPACE_VIEW3D, CURSOR_EDIT);
+	
+	nodeEndMap = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	
+	for (arc = rg->arcs.first; arc; arc = arc->next) 
+	{
+		EditBone *lastBone = NULL;
+		EditBone *firstBone = NULL;
+		EditBone *parentBone = NULL;
+		ReebNode *head, *tail;
+		int added = 0;
+		
+//		printf("/***************** new arc ******************/\n");
+		
+		if (arc->v1->degree >= arc->v2->degree)
+		{
+			head = arc->v1;
+			tail = arc->v2;
+		}
+		else
+		{
+			head = arc->v2;
+			tail = arc->v1;
+		}
+		
+		if ((G.scene->toolsettings->skgen_options & SKGEN_CUT_LENGTH) &&
+			arcLengthRatio(arc) >= G.scene->toolsettings->skgen_threshold_length)
+		{
+			EditBone *child = NULL;
+			EditBone *parent = NULL;
+			int same = 0;
+			int index = 0;
+			int stride = 1;
+			float lengthLimit = 1.5f; // use value from UI
+			
+			// If head is the highest node, invert stride and start index
+			if (head == arc->v2)
+			{
+				stride *= -1;
+				index = arc->bcount -1;
+			}
+			
+			parent = add_editbone("Bone");
+			VECCOPY(parent->head, head->p);
+			
+			firstBone = parent; /* set first bone in the chain */
+			
+			
+			while (index >= 0 && index < arc->bcount)
+			{
+				float *vec0 = NULL;
+				float *vec1 = arc->buckets[index].p;
+
+				/* first bucket. Previous is head */
+				if (index == 0 || index == arc->bcount - 1)
+				{
+					vec0 = head->p;
+				}
+				/* Previous are valid buckets */
+				else
+				{
+					vec0 = arc->buckets[index - 1].p;
+				}
+				
+				/* If lengthLimit hits the current segment */
+				if (VecLenf(vec1, parent->head) > lengthLimit)
+				{
+					if (same == 0)
+					{
+						float dv[3], off[3];
+						float a, b, c, f;
+						
+						/* Solve quadratic distance equation */
+						VecSubf(dv, vec1, vec0);
+						a = Inpf(dv, dv);
+						
+						VecSubf(off, vec0, parent->head);
+						b = 2 * Inpf(dv, off);
+						
+						c = Inpf(off, off) - (lengthLimit * lengthLimit);
+						
+						f = (-b + (float)sqrt(b * b - 4 * a * c)) / (2 * a);
+						
+						if (isnan(f) == 0)
+						{
+							VECCOPY(parent->tail, dv);
+							VecMulf(parent->tail, f);
+							VecAddf(parent->tail, parent->tail, vec0);
+						}
+						else
+						{
+							VECCOPY(parent->tail, vec1);
+						}
+					}
+					else
+					{
+						float dv[3];
+						
+						VecSubf(dv, vec1, vec0);
+						Normalize(dv);
+						 
+						VECCOPY(parent->tail, dv);
+						VecMulf(parent->tail, lengthLimit);
+						VecAddf(parent->tail, parent->tail, parent->head);
+					}
+
+					child = add_editbone("Bone");
+					VECCOPY(child->head, parent->tail);
+					child->parent = parent;
+					child->flag |= BONE_CONNECTED;
+					
+					parent = child; // new child is next parent
+					
+					same = 1; // mark as same
+				}
+				else
+				{
+					// Next bucket
+					index += stride;
+					same = 0; // Reset same
+				}
+			}
+			VECCOPY(parent->tail, tail->p);
+			
+			lastBone = parent; /* set last bone in the chain */
+
+			added = 1;			
+		}
+	
+		if (added == 0)
+		{
+			EditBone	*bone;
+			bone = add_editbone("Bone");
+			
+			VECCOPY(bone->head, head->p);
+			VECCOPY(bone->tail, tail->p);
+			
+			/* set first and last bone, since there's only one */
+			lastBone = bone;
+			firstBone = bone;
+		}
+		
+		BLI_ghash_insert(nodeEndMap, tail, lastBone);
+		
+		parentBone = BLI_ghash_lookup(nodeEndMap, head);
+		
+		if (parentBone != NULL)
+		{
+			firstBone->parent = parentBone;
+			firstBone->flag |= BONE_CONNECTED;
+		}
+	}
+	
+	BLI_ghash_free(nodeEndMap, NULL, NULL);
+	
+	BIF_undo_push("Generate Skeleton");
+}
 

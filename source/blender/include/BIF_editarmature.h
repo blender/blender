@@ -37,6 +37,7 @@ struct Base;
 struct Bone;
 struct bArmature;
 struct ListBase;
+struct ReebGraph;
 
 typedef struct EditBone
 {
@@ -78,6 +79,8 @@ void	add_primitiveArmature(int type);
 void	apply_rot_armature (struct Object *ob, float mat[3][3]);
 void 	docenter_armature (struct Object *ob, int centermode);
 
+void generateSkeletonFromReebGraph(struct ReebGraph *rg);
+
 void	clear_armature(struct Object *ob, char mode);
 
 void	delete_armature(void);
@@ -117,8 +120,8 @@ void	hide_selected_pose_bones(void);
 void	hide_unselected_pose_bones(void);
 void	show_all_pose_bones(void);
 
-int		bone_looper(Object *ob, struct Bone *bone, void *data,
-				int (*bone_func)(Object *, struct Bone *, void *));
+int		bone_looper(struct Object *ob, struct Bone *bone, void *data,
+				int (*bone_func)(struct Object *, struct Bone *, void *));
 
 void	undo_push_armature(char *name);
 void	armature_bone_rename(struct bArmature *arm, char *oldname, char *newname);
@@ -138,5 +141,6 @@ void	show_all_armature_bones(void);
 #define BONESEL_NOSEL	0x80000000	/* Indicates a negative number */
 
 #endif
+
 
 

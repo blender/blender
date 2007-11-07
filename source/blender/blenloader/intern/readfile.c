@@ -6599,6 +6599,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 	if(main->versionfile <= 245) {
+		Scene *sce;
 		bScreen *sc;
 		Object *ob;
 		Image *ima;
@@ -6767,6 +6768,19 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 		
+		if (main->versionfile < 245 || main->subversionfile < 8)
+		{
+			/* initialize skeleton generation toolsettings */
+			for(sce=main->scene.first; sce; sce = sce->id.next)
+			{
+				sce->toolsettings->skgen_resolution = 50;
+				sce->toolsettings->skgen_threshold_internal 	= 0.01f;
+				sce->toolsettings->skgen_threshold_external 	= 0.01f;
+				sce->toolsettings->skgen_threshold_angle 		= 45.0f;
+				sce->toolsettings->skgen_threshold_length		= 1.3f;
+				sce->toolsettings->skgen_options = SKGEN_FILTER_INTERNAL|SKGEN_FILTER_EXTERNAL|SKGEN_REPOSITION|SKGEN_CUT_LENGTH|SKGEN_CUT_ANGLE;
+			}
+		}
 	}
 
 	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 2)) {

@@ -324,9 +324,10 @@ void BLI_sortlist(ListBase *listbase, int (*cmp)(void *, void *))
 
 	if (listbase->first != listbase->last)
 	{
-		for( previous = listbase->first, current = previous->next; current; previous = current, current = next )
+		for( previous = listbase->first, current = previous->next; current; current = next )
 		{
 			next = current->next;
+			previous = current->prev;
 			
 			BLI_remlink(listbase, current);
 			
@@ -335,14 +336,7 @@ void BLI_sortlist(ListBase *listbase, int (*cmp)(void *, void *))
 				previous = previous->prev;
 			}
 			
-			if (previous == NULL)
-			{
-				BLI_addhead(listbase, current);
-			}
-			else
-			{
-				BLI_insertlinkafter(listbase, previous, current);
-			}
+			BLI_insertlinkafter(listbase, previous, current);
 		}
 	}
 }

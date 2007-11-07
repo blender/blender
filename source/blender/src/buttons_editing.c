@@ -646,7 +646,6 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 		allqueue(REDRAWACTION, 0);
 		break;
 		
-		
 	default:
 		if (G.vd==NULL)
 			break;
@@ -4342,6 +4341,9 @@ void do_meshbuts(unsigned short event)
 	case B_JOINTRIA:
 		join_triangles();
 		break;
+	case B_GEN_SKELETON:
+		generateSkeleton();
+		break;
 	}
 
 	/* WATCH IT: previous events only in editmode! */
@@ -4392,6 +4394,7 @@ static void editing_panel_mesh_tools(Object *ob, Mesh *me)
 	uiDefButS(block, NUM, B_DIFF, "Turns:",			210,55,115,19, &G.scene->toolsettings->turn,1.0,360.0, 0, 0, "Specifies the number of revolutions the screw turns");
 	uiDefButBitS(block, TOG, B_KEEPORIG, B_DIFF, "Keep Original",10,35,200,19, &G.scene->toolsettings->editbutflag, 0, 0, 0, 0, "Keeps a copy of the original vertices and faces after executing tools");
 	uiDefButBitS(block, TOG, B_CLOCKWISE, B_DIFF, "Clockwise",	210,35,115,19, &G.scene->toolsettings->editbutflag, 0, 0, 0, 0, "Specifies the direction for 'Screw' and 'Spin'");
+	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
 	uiDefBut(block, BUT,B_EXTREP, "Extrude Dup",	10,10,150,19, 0, 0, 0, 0, 0, "Creates copies of the selected vertices in a straight line away from the current viewport");
@@ -4415,7 +4418,28 @@ static void verify_vertexgroup_name_func(void *datav, void *data2_unused)
 	unique_vertexgroup_name((bDeformGroup*)datav, OBACT);
 }
 
+static void editing_panel_mesh_skgen(Object *ob, Mesh *me)
+{
+	uiBlock *block;
 
+	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_skgen", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Skeleton Generation", "Editing", 960, 0, 318, 204)==0) return;
+	
+	uiDefBut(block, BUT, B_GEN_SKELETON, "Generate Skeleton",			1125,160,150,39, 0, 0, 0, 0, 0, "Generate Skeleton from Mesh");
+
+	uiBlockBeginAlign(block);
+	uiDefButS(block, NUM, B_DIFF, "Resolution:",							1125,110,150,19, &G.scene->toolsettings->skgen_resolution,10.0,1000.0, 0, 0,		"Specifies the resolution of the graph's embedding");
+	uiDefButBitS(block, TOG, SKGEN_FILTER_INTERNAL, B_DIFF, "Filter In",	1125, 90, 58,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Filter internal small arcs from graph");
+	uiDefButF(block, NUM, B_DIFF, 							"Thresh:",		1186, 90, 89,19, &G.scene->toolsettings->skgen_threshold_internal,0.0, 1.0, 10, 0,	"Specify the threshold ratio for filtering internal arcs");
+	uiDefButBitS(block, TOG, SKGEN_FILTER_EXTERNAL, B_DIFF, "Filter Ex",	1125, 70, 58,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Filter external small arcs from graph");
+	uiDefButF(block, NUM, B_DIFF, 							"Thresh:",		1186, 70, 89,19, &G.scene->toolsettings->skgen_threshold_external,0.0, 1.0, 10, 0,	"Specify the threshold ratio for filtering external arcs");
+	uiDefButBitS(block, TOG, SKGEN_CUT_LENGTH, B_DIFF, 		"Cut Length",	1125, 50, 58,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Subdivide arcs based on length");
+	uiDefButF(block, NUM, B_DIFF, 							"Thresh:",		1186, 50, 89,19, &G.scene->toolsettings->skgen_threshold_length,1.0, 2.0, 10, 0,	"Specify the threshold ratio for subdivision");
+	uiDefButBitS(block, TOG, SKGEN_CUT_ANGLE, B_DIFF, 		"Cut Angle",	1125, 30, 58,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Subdivide arcs based on angle");
+	uiDefButF(block, NUM, B_DIFF, 							"Thresh:",		1186, 30, 89,19, &G.scene->toolsettings->skgen_threshold_angle,0.0, 90.0, 10, 0,		"Specify the threshold angle in degrees for subdivision");
+	uiDefButBitS(block, TOG, SKGEN_REPOSITION, B_DIFF, 		"Reposition",	1125, 10,150,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Reposition nodes based on embedding instead of original vertice positions");
+	uiBlockEndAlign(block);
+}
 
 static void editing_panel_mesh_tools1(Object *ob, Mesh *me)
 {
@@ -4456,7 +4480,7 @@ static void editing_panel_mesh_tools1(Object *ob, Mesh *me)
 #endif
 	
 	uiBlockEndAlign(block);
-	
+
 	uiBlockBeginAlign(block);
 	uiDefButBitI(block, TOG, G_ALLEDGES, 0, "All Edges",			1125, 22,150,19, &G.f, 0, 0, 0, 0, "Displays all edges in object mode without optimization");
 	uiDefButBitS(block, TOG, B_MESH_X_MIRROR, B_DIFF, "X-axis mirror",1125,0,150,19, &G.scene->toolsettings->editbutflag, 0, 0, 0, 0, "While using transforms, mirrors the transformation");
@@ -5529,6 +5553,7 @@ void editing_panels()
 		if(G.obedit) {
 			editing_panel_mesh_tools(ob, ob->data);
 			editing_panel_mesh_tools1(ob, ob->data);
+			editing_panel_mesh_skgen(ob, ob->data);
 			editing_panel_mesh_uvautocalculation();
 			if (EM_texFaceCheck())
 				editing_panel_mesh_texface();
