@@ -765,6 +765,7 @@ static void pose_grab_with_ik(Object *ob)
 {
 	bArmature *arm;
 	bPoseChannel *pchan, *pchansel= NULL;
+	Bone *bonec;
 	
 	if(ob==NULL || ob->pose==NULL || (ob->flag & OB_POSEMODE)==0)
 		return;
@@ -782,6 +783,14 @@ static void pose_grab_with_ik(Object *ob)
 		}
 	}
 	if(pchan || pchansel==NULL) return;
+
+	/* rule: no IK for solitary (unconnected) bone */
+	for(bonec=pchansel->bone->childbase.first; bonec; bonec=bonec->next) {
+		if(bonec->flag & BONE_CONNECTED) {
+			break;
+		}
+	}
+	if ((pchansel->bone->flag & BONE_CONNECTED)==0 && (bonec == NULL)) return;
 	
 	/* rule: if selected Bone is not a root bone, it gets a temporal IK */
 	if(pchansel->parent) {
@@ -3239,4 +3248,5 @@ void createTransData(TransInfo *t)
 	/* temporal...? */
 	G.scene->recalc |= SCE_PRV_CHANGED;	/* test for 3d preview */
 }
+
 
