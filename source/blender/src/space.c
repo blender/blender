@@ -3796,12 +3796,16 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 			
 		
 #ifdef WITH_VERSE
-		uiDefBut(block, TEX, 0, "Verse Master: ",
-			(xpos+edgsp)+mpref*2+2*midsp,y5,mpref*2+midsp,buth,
+		uiDefBut(block, LABEL,0,"Verse:",
+			(xpos+edgsp+(3*midsp)+(3*mpref)),y6label,mpref,buth,
+			0, 0, 0, 0, 0, "");
+
+		uiDefBut(block, TEX, 0, "Master: ",
+			(xpos+edgsp+(3*midsp)+(3*mpref)),y5,mpref,buth,
 			U.versemaster, 1.0, 63.0, 0, 0,
 			"The Verse Master-server IP");
-		uiDefBut(block, TEX, 0, "Verse Username: ",
-			(xpos+edgsp)+mpref*2+2*midsp,y4,mpref*2+midsp,buth,
+		uiDefBut(block, TEX, 0, "Username: ",
+			(xpos+edgsp+(3*midsp)+(3*mpref)),y4,mpref,buth,
 			U.verseuser, 1.0, 63.0, 0, 0,
 			"The Verse user name");
 #endif
