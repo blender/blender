@@ -44,6 +44,7 @@ class tree:
 		self.branches_all =		[]
 		self.branches_root =	[]
 		self.mesh = None
+		self.armature = None
 		self.object = None
 		self.limbScale = 1.0
 		
@@ -536,9 +537,64 @@ class tree:
 			# no UV's
 			for f in self.mesh.faces:
 				f.smooth = True
-			
 		
 		return self.mesh
+
+	def toArmature(self, armature):
+		armature.drawType = Blender.Armature.STICK
+		
+		armature.makeEditable() # enter editmode
+		
+		# Assume toMesh has run
+		self.armature = armature
+		for bonename in armature.bones.keys():
+			del armature.bones[bonename]
+		
+		for i, brch in enumerate(self.branches_all):
+			
+			# get a list of parent points to make into bones. use parents and endpoints
+			bpoints_parent = [pt for pt in brch.bpoints if pt.isParent or pt.prev == None or pt.next == None]
+			bone_last = None
+			for j in xrange(len(bpoints_parent)-1):
+				bone = Blender.Armature.Editbone() # automatically added to the armature
+				self.armature.bones['%i_%i' % (i,j)] = bone
+				bpoints_parent[j].blender_bone = bone
+				bone.head = bpoints_parent[j].co
+				bone.head = bpoints_parent[j].co
+				bone.tail = bpoints_parent[j+1].co
+				
+				# parent the chain.
+				if bone_last:
+					bone.parent = bone_last
+					bone.options = [Blender.Armature.CONNECTED]
+				
+				bone_last = bone
+		
+		
+		for brch in self.branches_all:
+			if brch.parent_pt: # We must have a parent
+				
+				# find the bone in the parent chain to use for the parent of this
+				parent_pt = brch.parent_pt
+				parent_bone = None
+				while parent_pt:
+					parent_bone = parent_pt.blender_bone
+					if parent_bone:
+						break
+					
+					parent_pt = parent_pt.prev
+				
+				# in rare cases this may not work. should be verry rare but check anyway.
+				if parent_bone:
+					brch.bpoints[0].blender_bone.parent = parent_bone
+				else:
+					print 'this is really odd... look into the bug.'
+				
+		
+		self.armature.update() # exit editmode
+		return self.armature
+		
+		
 
 zup = Vector(0,0,1)
 
@@ -557,6 +613,7 @@ class bpoint:
 		self.next = None
 		self.prev = None
 		self.isParent = False
+		self.blender_bone = None
 		
 		# when set, This is the angle we need to roll to best face our branches
 		# the roll that is set may be interpolated if we are between 2 branches that need to roll.
@@ -1150,6 +1207,23 @@ def buildTree(ob):
 	Must check this is a curve object!
 	'''
 	
+	def getCurveChild(obtype):
+		try:
+			return [ _ob for _ob in sce.objects if _ob.type == obtype if _ob.parent == ob ][0]
+		except:
+			return None
+	
+	def newCurveChild(obdata):
+		
+		ob_new = bpy.data.scenes.active.objects.new(obdata)
+		ob_new.Layers = ob.Layers
+		
+		# new object settings
+		ob.makeParent([ob_new])
+		ob_new.setMatrix(Blender.Mathutils.Matrix())
+		ob_new.sel = 0
+		return ob_new
+	
 	sce = bpy.data.scenes.active
 	
 	if PREFS['image_main'].val:
@@ -1158,11 +1232,7 @@ def buildTree(ob):
 	else:			image = None
 	
 	# Get the mesh child
-	try:
-		ob_mesh = [ _ob for _ob in sce.objects if _ob.type == 'Mesh' if _ob.parent == ob ][0]
-	except:
-		ob_mesh = None
-	
+
 	t = tree()
 	t.fromCurve(ob)
 	#print t
@@ -1177,16 +1247,11 @@ def buildTree(ob):
 		joint_smooth = PREFS['seg_joint_smooth'].val\
 	)
 	
+	ob_mesh = getCurveChild('Mesh')
 	if not ob_mesh:
 		# New object
 		mesh = bpy.data.meshes.new('tree_' + ob.name)
-		ob_mesh = bpy.data.scenes.active.objects.new(mesh)
-		ob_mesh.Layers = ob.Layers
-		
-		# new object settings
-		ob.makeParent([ob_mesh])
-		ob_mesh.sel = 0
-		
+		ob_mesh = newCurveChild(mesh)
 		# Do subsurf?
 		if PREFS['seg_density'].val:
 			mod = ob_mesh.modifiers.append(Blender.Modifier.Types.SUBSURF)
@@ -1194,8 +1259,9 @@ def buildTree(ob):
 	else:
 		# Existing object
 		mesh = ob_mesh.getData(mesh=1)
+		ob_mesh.setMatrix(Blender.Mathutils.Matrix())
 	
-	ob_mesh.setMatrix(Blender.Mathutils.Matrix())
+	
 	
 	mesh = t.toMesh(mesh,\
 		do_uvmap = PREFS['do_uv'].val,\
@@ -1205,8 +1271,18 @@ def buildTree(ob):
 	
 	mesh.calcNormals()
 	
-	#armature = t.toArmature()
-
+	# Do armature stuff....
+	if PREFS['do_armature'].val:
+		ob_arm = getCurveChild('Armature')
+		if ob_arm:
+			armature = ob_arm.data
+			ob_arm.setMatrix(Blender.Mathutils.Matrix())
+		else:
+			armature = bpy.data.armatures.new()
+			ob_arm = newCurveChild(armature)
+		
+		t.toArmature(armature)
+		
 
 def Prefs2IDProp(idprop, prefs):
 	pass
@@ -1326,12 +1402,12 @@ def gui():
 	xtmp = x
 	# ---------- ---------- ---------- ----------
 	
-	'''
+	
 	PREFS['do_armature'] =	Draw.Toggle('Generate Armature',	EVENT_NONE, xtmp, y, but_width*2, but_height, PREFS['do_armature'].val,	'Generate Armatuer'); xtmp += but_width*2;
 	
 	y-=but_height+MARGIN
 	xtmp = x
-	'''
+	
 	
 	Draw.PushButton('Exit',	EVENT_EXIT, xtmp, y, but_width*2, but_height,	'', do_active_image); xtmp += but_width*2;
 	Draw.PushButton('Generate',	EVENT_REDRAW, xtmp, y, but_width*2, but_height,	'Generate mesh', do_tree_generate); xtmp += but_width*2;
