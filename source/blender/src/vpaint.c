@@ -103,7 +103,7 @@
 #define VP_ADD	1
 #define VP_SUB	2
 #define VP_MUL	3
-#define VP_FILT	4
+#define VP_BLUR	4
 #define VP_LIGHTEN	5
 #define VP_DARKEN	6
 
@@ -700,7 +700,7 @@ static unsigned int mcol_darken(unsigned int col1, unsigned int col2, int fac)
 static void vpaint_blend( unsigned int *col, unsigned int *colorig, unsigned int paintcol, int alpha)
 {
 
-	if(Gvp.mode==VP_MIX || Gvp.mode==VP_FILT) *col= mcol_blend( *col, paintcol, alpha);
+	if(Gvp.mode==VP_MIX || Gvp.mode==VP_BLUR) *col= mcol_blend( *col, paintcol, alpha);
 	else if(Gvp.mode==VP_ADD) *col= mcol_add( *col, paintcol, alpha);
 	else if(Gvp.mode==VP_SUB) *col= mcol_sub( *col, paintcol, alpha);
 	else if(Gvp.mode==VP_MUL) *col= mcol_mul( *col, paintcol, alpha);
@@ -714,7 +714,7 @@ static void vpaint_blend( unsigned int *col, unsigned int *colorig, unsigned int
 		
 		alpha= (int)(255.0*Gvp.a);
 		
-		if(Gvp.mode==VP_MIX || Gvp.mode==VP_FILT) testcol= mcol_blend( *colorig, paintcol, alpha);
+		if(Gvp.mode==VP_MIX || Gvp.mode==VP_BLUR) testcol= mcol_blend( *colorig, paintcol, alpha);
 		else if(Gvp.mode==VP_ADD) testcol= mcol_add( *colorig, paintcol, alpha);
 		else if(Gvp.mode==VP_SUB) testcol= mcol_sub( *colorig, paintcol, alpha);
 		else if(Gvp.mode==VP_MUL) testcol= mcol_mul( *colorig, paintcol, alpha);
@@ -841,7 +841,7 @@ static void wpaint_blend(MDeformWeight *dw, MDeformWeight *uw, float alpha, floa
 	
 	if(dw==NULL || uw==NULL) return;
 	
-	if(Gwp.mode==VP_MIX || Gwp.mode==VP_FILT)
+	if(Gwp.mode==VP_MIX || Gwp.mode==VP_BLUR)
 		dw->weight = paintval*alpha + dw->weight*(1.0-alpha);
 	else if(Gwp.mode==VP_ADD)
 		dw->weight += paintval*alpha;
@@ -864,7 +864,7 @@ static void wpaint_blend(MDeformWeight *dw, MDeformWeight *uw, float alpha, floa
 		float testw=0.0f;
 		
 		alpha= Gwp.a;
-		if(Gwp.mode==VP_MIX || Gwp.mode==VP_FILT)
+		if(Gwp.mode==VP_MIX || Gwp.mode==VP_BLUR)
 			testw = paintval*alpha + uw->weight*(1.0-alpha);
 		else if(Gwp.mode==VP_ADD)
 			testw = uw->weight + paintval*alpha;
@@ -1234,7 +1234,7 @@ void weight_paint(void)
 			/* make sure each vertex gets treated only once */
 			/* and calculate filter weight */
 			totw= 0;
-			if(Gwp.mode==VP_FILT) 
+			if(Gwp.mode==VP_BLUR) 
 				paintweight= 0.0f;
 			else
 				paintweight= editbutvweight;
@@ -1248,7 +1248,7 @@ void weight_paint(void)
 					(me->dvert+mface->v3)->flag= 1;
 					if(mface->v4) (me->dvert+mface->v4)->flag= 1;
 					
-					if(Gwp.mode==VP_FILT) {
+					if(Gwp.mode==VP_BLUR) {
 						MDeformWeight *dw, *(*dw_func)(MDeformVert *, int) = verify_defweight;
 						
 						if(Gwp.flag & VP_ONLYVGROUP)
@@ -1268,7 +1268,7 @@ void weight_paint(void)
 				}
 			}
 			
-			if(Gwp.mode==VP_FILT) 
+			if(Gwp.mode==VP_BLUR) 
 				paintweight/= (float)totw;
 			
 			for(index=0; index<totindex; index++) {
@@ -1452,7 +1452,7 @@ void vertex_paint()
 					mcol=	  ( (unsigned int *)me->mcol) + 4*(indexar[index]-1);
 					mcolorig= ( (unsigned int *)Gvp.vpaint_prev) + 4*(indexar[index]-1);
 
-					if(Gvp.mode==VP_FILT) {
+					if(Gvp.mode==VP_BLUR) {
 						fcol1= mcol_blend( mcol[0], mcol[1], 128);
 						if(mface->v4) {
 							fcol2= mcol_blend( mcol[2], mcol[3], 128);

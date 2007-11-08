@@ -1,3 +1,20 @@
+#!BPY
+
+"""
+Name: 'Tree from Curves'
+Blender: 245
+Group: 'Wizards'
+Tip: 'Generate trees from curve shapes'
+"""
+
+__author__ = "Campbell Barton"
+__url__ = ['www.blender.org', 'blenderartists.org']
+__version__ = "0.1"
+
+__bpydoc__ = """\
+
+"""
+
 import bpy
 import Blender
 from Blender.Mathutils import Vector, CrossVecs, AngleBetweenVecs, LineIntersect, TranslationMatrix, ScaleMatrix
@@ -164,7 +181,7 @@ class tree:
 		for brch in self.branches_all:
 			brch.tag = value
 	
-	def buildConnections(self, sloppy=1.0, stem_trim = 1.0):
+	def buildConnections(self, sloppy=1.0, base_trim = 1.0):
 		'''
 		build tree data - fromCurve must run first
 		
@@ -190,7 +207,7 @@ class tree:
 						
 						# Remove points that are within the radius, so as to not get ugly joins
 						# TODO - dont remove the whole branch
-						while len(brch_i.bpoints)>2 and (brch_i.bpoints[0].co - best_j.nextMidCo).length < best_j.radius * stem_trim:
+						while len(brch_i.bpoints)>2 and (brch_i.bpoints[0].co - best_j.nextMidCo).length < best_j.radius * base_trim:
 							del brch_i.bpoints[0]
 							brch_i.bpoints[0].prev = None
 						
@@ -459,6 +476,7 @@ class tree:
 					for i in (0,1,2,3):
 						if pt.faces[i]:
 							pt.faces[i] = faces[face_index]
+							pt.faces[i].smooth = True
 							face_index +=1
 			
 			self.mesh.faceUV = True
@@ -1090,32 +1108,225 @@ class branch:
 		pass
 
 
+
+
+
+# No GUI code above this! ------------------------------------------------------
+
+# PREFS - These can be saved on the object's id property. use 'tree2curve' slot
+from Blender import Draw
+import BPyWindow
+ID_SLOT_NAME = 'Curve2Tree'
+
+EVENT_NONE = 0
+EVENT_EXIT = 1
+EVENT_REDRAW = 2
+
+
+# Prefs for each tree
+PREFS = {}
+PREFS['connect_sloppy'] = Draw.Create(1.0)
+PREFS['connect_base_trim'] = Draw.Create(1.0)
+PREFS['seg_density'] = Draw.Create(0.2)
+PREFS['seg_joint_compression'] = Draw.Create(2.0)
+PREFS['image_main'] = Draw.Create('')
+PREFS['do_uv'] = Draw.Create(1)
+PREFS['do_subsurf'] = Draw.Create(1)
+PREFS['do_uv_scalewidth'] = Draw.Create(1)
+PREFS['do_armature'] = Draw.Create(1)
+
+GLOBAL_PREFS = {}
+
+
+
 def buildTree(ob):
 	'''
-	Must be a curve object
+	Must be a curve object, write to a child mesh
+	Must check this is a curve object!
 	'''
+	
+	sce = bpy.data.scenes.active
+	
+	if PREFS['image_main'].val:
+		try:		image = bpy.data.images[PREFS['image_main'].val]
+		except:		image = None
+	else:			image = None
+	
+	# Get the mesh child
+	try:
+		ob_mesh = [ _ob for _ob in sce.objects if _ob.type == 'Mesh' if _ob.parent == ob ][0]
+	except:
+		ob_mesh = None
+	
 	t = tree()
 	t.fromCurve(ob)
-	#t.toDebugDisplay()
-	t.buildConnections(sloppy = 1.5, stem_trim = 0.5) # how sloppy to be
-	#t.toDebugDisplay()
-	t.optimizeSpacing(density=0.4, joint_compression=2.8)
-	#t.toDebugDisplay()
-	mesh = Blender.Mesh.Get('Mesh')
-	mesh = t.toMesh(mesh, uv_image= Blender.Image.Get('bark'), do_uv_scalewidth = False)
-	#t.toDebugDisplay()
+	t.buildConnections(\
+		sloppy = PREFS['connect_sloppy'].val,\
+		base_trim = PREFS['connect_base_trim'].val\
+	)
+	
+	t.optimizeSpacing(\
+		density=PREFS['seg_density'].val,\
+		joint_compression = PREFS['seg_joint_compression'].val\
+	)
+	
+	if not ob_mesh:
+		# New object
+		mesh = bpy.data.meshes.new('tree_' + ob.name)
+		ob_mesh = bpy.data.scenes.active.objects.new(mesh)
+		ob_mesh.Layers = ob.Layers
+		
+		# new object settings
+		ob.makeParent([ob_mesh])
+		ob_mesh.sel = 0
+		
+		# Do subsurf?
+		if PREFS['seg_density'].val:
+			mod = ob_mesh.modifiers.append(Blender.Modifier.Types.SUBSURF)
+		
+	else:
+		# Existing object
+		mesh = ob_mesh.getData(mesh=1)
+	
+	ob_mesh.setMatrix(Blender.Mathutils.Matrix())
+	
+	mesh = t.toMesh(mesh,\
+		do_uvmap = PREFS['do_uv'],\
+		uv_image = image,\
+		do_uv_scalewidth = PREFS['do_uv_scalewidth'].val\
+	)
+	
+	mesh.calcNormals()
 	
 	#armature = t.toArmature()
-	if 0:
-		ob_mesh = bpy.data.scenes.active.objects.new(mesh)
-		ob_mesh.setMatrix(ob.matrixWorld)
-		ob_mesh.sel = 0
 
 
+def Prefs2IDProp(idprop, prefs):
+	pass
+	
+def IDProp2Prefs(idprop, prefs):
+	pass
 
-# this should run as a module
-if __name__ == '__main__':
+
+#BUTS = {}
+#BUTS['']
+
+
+# Button callbacks
+def do_active_image(e,v):
+	img = bpy.data.images.active
+	if img:
+		PREFS['image_main'].val = img.name
+	else:
+		PREFS['image_main'].val = ''
+
+# Button callbacks
+def do_tree_generate(e,v):
 	sce = bpy.data.scenes.active
 	ob = sce.objects.active
-	#ob = bpy.data.objects['Curve']
+	
+	if ob == None:
+		Draw.PupMenu('No active object selected')
+		return
+	
+	if ob.type != 'Curve':
+		ob = ob.parent
+	
+	if ob.type != 'Curve':
+		Draw.PupMenu('Select a curve object or a mesh with a curve parent')
+		return
+	
+	is_editmode = Blender.Window.EditMode()
+	if is_editmode:
+		Blender.Window.EditMode(0, '', 0)
+	
 	buildTree(ob)
+	
+	if is_editmode:
+		Blender.Window.EditMode(1, '', 0)
+	
+	Blender.Window.RedrawAll()
+
+def evt(e,val):
+	pass
+
+def bevt(e):
+	if e == EVENT_REDRAW:
+		Draw.Redraw()
+	if e == EVENT_EXIT:
+		Draw.Exit()
+	pass
+	
+def gui():
+	MARGIN = 10
+	rect = BPyWindow.spaceRect()
+	but_width = 64
+	but_height = 20
+	
+	x=MARGIN
+	y=rect[3]-but_height-MARGIN
+	xtmp = x
+	# ---------- ---------- ---------- ----------
+	
+	PREFS['seg_density'] =	Draw.Number('Segment Spacing',EVENT_REDRAW, xtmp, y, but_width*4, but_height, PREFS['seg_density'].val,	0.05, 10.0,	'Collapse points below this distance'); xtmp += but_width*4;
+	
+	y-=but_height
+	xtmp = x
+	# ---------- ---------- ---------- ----------
+	
+	PREFS['seg_joint_compression'] =	Draw.Number('Joint Width',	EVENT_NONE, xtmp, y, but_width*4, but_height, PREFS['seg_joint_compression'].val,	0.1, 2.0,	'Edge loop spacing around branch join, lower value for less webed joins'); xtmp += but_width*4;
+	
+	y-=but_height
+	xtmp = x
+	# ---------- ---------- ---------- ----------
+	
+	PREFS['connect_sloppy'] =	Draw.Number('Connect Limit',EVENT_REDRAW, xtmp, y, but_width*4, but_height, PREFS['connect_sloppy'].val,	0.1, 2.0,	'Strictness when connecting branches'); xtmp += but_width*4;
+	
+	y-=but_height
+	xtmp = x
+	# ---------- ---------- ---------- ----------
+	
+	PREFS['connect_base_trim'] =	Draw.Number('Trim Base',	EVENT_NONE, xtmp, y, but_width*4, but_height, PREFS['connect_base_trim'].val,	0.1, 2.0,	'Trim branch base to better connect with parent branch'); xtmp += but_width*4;
+
+	y-=but_height
+	xtmp = x
+	# ---------- ---------- ---------- ----------
+	
+	PREFS['do_subsurf'] =	Draw.Toggle('SubSurf',EVENT_REDRAW, xtmp, y, but_width*4, but_height, PREFS['do_subsurf'].val,		'Enable subsurf for newly generated objects'); xtmp += but_width*4;
+
+	y-=but_height+MARGIN
+	xtmp = x
+	# ---------- ---------- ---------- ----------
+
+	PREFS['do_uv'] =	Draw.Toggle('Generate UVs',EVENT_REDRAW, xtmp, y, but_width*2, but_height, PREFS['do_uv'].val,		'Calculate UVs coords'); xtmp += but_width*2;
+	if PREFS['do_uv'].val:
+		PREFS['do_uv_scalewidth'] =	Draw.Toggle('Keep Aspect',	EVENT_NONE, xtmp, y, but_width*2, but_height, PREFS['do_uv_scalewidth'].val,		'Correct the UV aspect with the branch width'); xtmp += but_width*2;
+		
+		y-=but_height
+		xtmp = x
+		# ---------- ---------- ---------- ----------
+		
+		PREFS['image_main'] =	Draw.String('IM: ',	EVENT_NONE, xtmp, y, but_width*3, but_height, PREFS['image_main'].val, 64,	'Image to apply to faces'); xtmp += but_width*3;
+		Draw.PushButton('Use Active',	EVENT_REDRAW, xtmp, y, but_width, but_height,	'Open online help in a browser window', do_active_image); xtmp += but_width;
+		
+	y-=but_height+MARGIN
+	xtmp = x
+	# ---------- ---------- ---------- ----------
+	
+	'''
+	PREFS['do_armature'] =	Draw.Toggle('Generate Armature',	EVENT_NONE, xtmp, y, but_width*2, but_height, PREFS['do_armature'].val,	'Generate Armatuer'); xtmp += but_width*2;
+	
+	y-=but_height+MARGIN
+	xtmp = x
+	'''
+	
+	Draw.PushButton('Exit',	EVENT_EXIT, xtmp, y, but_width*2, but_height,	'', do_active_image); xtmp += but_width*2;
+	Draw.PushButton('Generate',	EVENT_REDRAW, xtmp, y, but_width*2, but_height,	'Generate mesh', do_tree_generate); xtmp += but_width*2;
+		
+	# PREFS['do_uv_scalewidth'] =		Draw.Number('Scale:',	EVENT_NONE, x+20, y+120, but_width, but_height, PREFS['do_uv_scalewidth'].val,	0.01, 1000.0, 'Scale all data, (Note! some imports dont support scaled armatures)')
+	
+	#v = Draw.Toggle('UVs',	EVENT_NONE, x, y, 60, 20, v.val,		'Calculate UVs coords')
+	
+
+if __name__ == '__main__':
+	Draw.Register(gui, evt, bevt)
