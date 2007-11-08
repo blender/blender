@@ -802,7 +802,9 @@ int bvh_traverse(CollisionTree *tree1, CollisionTree *tree2, LinkNode **collisio
 					VECCOPY(collpair->point_indexB, tree2->point_index);
 					collpair->point_indexB[3] = tree2->point_index[3];
 					
-					BLI_linklist_append(&collision_list[0], collpair);
+					// we use prepend because lots of insertions at end
+					// of list are horrible slow!
+					BLI_linklist_prepend(&collision_list[0], collpair);
 					
 					return 1;
 				}

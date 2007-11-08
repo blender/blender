@@ -3176,7 +3176,7 @@ static void object_panel_cloth(Object *ob)
 			uiBlockBeginAlign(block);
 			uiDefButF(block, NUM, B_CLOTH_RENEW, "StructStiff:",	   10,170,150,20, &clmd->sim_parms.structural, 1.0, 10000.0, 100, 0, "Overall stiffness of structure");
 			uiDefButF(block, NUM, B_CLOTH_RENEW, "BendStiff:",	   160,170,150,20, &clmd->sim_parms.bending, 0.0, 10000.0, 1000, 0, "Wrinkle possibility");
-			uiDefButI(block, NUM, B_CLOTH_RENEW, "Quality:",  10,150,150,20, &clmd->sim_parms.stepsPerFrame, 1.0, 100.0, 5, 0, "Quality of the simulation (higher=>better=>slower)");
+			uiDefButI(block, NUM, B_CLOTH_RENEW, "Quality:",  10,150,150,20, &clmd->sim_parms.stepsPerFrame, 3.0, 10.0, 5, 0, "Quality of the simulation (higher=>better=>slower)");
 			uiBlockEndAlign(block);
 			uiBlockBeginAlign(block);
 			uiDefButF(block, NUM, B_CLOTH_RENEW, "Spring Damp:",	   160,150,150,20, &clmd->sim_parms.Cdis, 0.0, 10.0, 10, 0, "Spring damping");

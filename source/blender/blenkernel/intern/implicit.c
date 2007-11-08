@@ -691,7 +691,7 @@ static float I[3][3] = {{1,0,0},{0,1,0},{0,0,1}};
 static float ZERO[3][3] = {{0,0,0}, {0,0,0}, {0,0,0}};
 typedef struct Implicit_Data 
 {
-	lfVector *X, *V, *Xnew, *Vnew, *olddV, *F, *B, *dV, *z;
+	lfVector *X, *V, *Xnew, *Vnew, *F, *B, *dV, *z;
 	fmatrix3x3 *A, *dFdV, *dFdX, *S, *P, *Pinv, *bigI; 
 } Implicit_Data;
 
@@ -727,11 +727,10 @@ int implicit_init (Object *ob, ClothModifierData *clmd)
 	id->Xnew = create_lfvector(cloth->numverts);
 	id->V = create_lfvector(cloth->numverts);
 	id->Vnew = create_lfvector(cloth->numverts);
-	id->olddV = create_lfvector(cloth->numverts);
-	zero_lfvector(id->olddV, cloth->numverts);
 	id->F = create_lfvector(cloth->numverts);
 	id->B = create_lfvector(cloth->numverts);
 	id->dV = create_lfvector(cloth->numverts);
+	zero_lfvector(id->dV, cloth->numverts);
 	id->z = create_lfvector(cloth->numverts);
 	
 	for(i=0;i<cloth->numverts;i++) 
@@ -799,7 +798,6 @@ int	implicit_free (ClothModifierData *clmd)
 			del_lfvector(id->Xnew);
 			del_lfvector(id->V);
 			del_lfvector(id->Vnew);
-			del_lfvector(id->olddV);
 			del_lfvector(id->F);
 			del_lfvector(id->B);
 			del_lfvector(id->dV);
@@ -924,8 +922,6 @@ int  cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatr
 	d = create_lfvector(numverts);
 	tmp = create_lfvector(numverts);
 	r = create_lfvector(numverts);
-
-	// zero_lfvector(ldV, CLOTHPARTICLES);
 	filter(ldV, S);
 
 	add_lfvector_lfvector(ldV, ldV, z, numverts);
@@ -1174,7 +1170,7 @@ DO_INLINE void dfdx_damp(float to[3][3],  float dir[3],float length,const float 
 
 }
 
-DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, lfVector *lF, lfVector *X, lfVector *V, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX)
+DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, lfVector *lF, lfVector *X, lfVector *V, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, float dt)
 {
 	float extent[3];
 	float length = 0;
@@ -1229,19 +1225,23 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 		{
 			s->flags |= CLOTH_SPRING_FLAG_NEEDED;
 
-			k = clmd->sim_parms.structural;	
+			k = (clmd->sim_parms.structural*(length-L));	
 
-			mul_fvector_S(stretch_force, dir, (k*(length-L))); 
+			mul_fvector_S(stretch_force, dir, k); 
 
 			VECADD(s->f, s->f, stretch_force);
 
 			// Ascher & Boxman, p.21: Damping only during elonglation
-			mul_fvector_S(damping_force, extent, clmd->sim_parms.Cdis * ((INPR(vel,extent)/length))); 
+			mul_fvector_S(damping_force, extent, clmd->sim_parms.Cdis * 0.01 * ((INPR(vel,extent)/length))); 
 			VECADD(s->f, s->f, damping_force);
-
-			dfdx_spring_type1(s->dfdx, dir,length,L,k);
-
-			dfdv_damp(s->dfdv, dir,clmd->sim_parms.Cdis);
+			
+			// Formula from Ascher / Boxman, Speeding up cloth simulation
+			if((dt * (k*dt + 2 * clmd->sim_parms.Cdis * 0.01)) > 0.01 )
+			{
+				dfdx_spring_type1(s->dfdx, dir,length,L,clmd->sim_parms.structural);
+				dfdv_damp(s->dfdv, dir,clmd->sim_parms.Cdis * 0.01);
+			}
+			// printf("(dt*k*dt) ): %f, k: %f\n", (dt * (k*dt + 2 * clmd->sim_parms.Cdis * 0.01) ), k);
 		}
 	}
 	else // calculate force of bending springs
@@ -1252,17 +1252,19 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 			
 			s->flags |= CLOTH_SPRING_FLAG_NEEDED;
 			
-			k = clmd->sim_parms.bending;	
+			k = fbstar(length, L, clmd->sim_parms.bending, cb);	
 
-			mul_fvector_S(bending_force, dir, fbstar(length, L, k, cb));
+			mul_fvector_S(bending_force, dir, k);
 			VECADD(s->f, s->f, bending_force);
 			
-			if(INPR(bending_force,bending_force) > 0.13*0.13)
+			// DG: My formula to handle bending for the AIMEX scheme 
+			// multiply with 1000 because of numerical problems
+			if( ((k*1000)*dt*dt) < -0.18 )
 			{
+				dfdx_spring_type2(s->dfdx, dir,length,L,clmd->sim_parms.bending, cb);
 				clmd->sim_parms.flags |= CLOTH_SIMSETTINGS_FLAG_BIG_FORCE;
 			}
-			
-			dfdx_spring_type2(s->dfdx, dir,length,L,k, cb);
+			// printf("(dt*k*dt) ): %f, k: %f\n", (dt*dt*k*-1.0), k);
 		}
 	}
 }
@@ -1333,7 +1335,7 @@ DO_INLINE void calc_triangle_force(ClothModifierData *clmd, MFace mface, lfVecto
 
 }
 
-void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVector *lV, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, ListBase *effectors, float time)
+void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVector *lV, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, ListBase *effectors, float time, float dt)
 {
 	/* Collect forces and derivatives:  F,dFdX,dFdV */
 	Cloth 		*cloth 		= clmd->clothObject;
@@ -1417,7 +1419,7 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 	{
 		// only handle active springs
 		// if(((clmd->sim_parms.flags & CSIMSETT_FLAG_TEARING_ENABLED) && !(springs[i].flags & CSPRING_FLAG_DEACTIVATE))|| !(clmd->sim_parms.flags & CSIMSETT_FLAG_TEARING_ENABLED)){}
-		cloth_calc_spring_force(clmd, search->link, lF, lX, lV, dFdV, dFdX);
+		cloth_calc_spring_force(clmd, search->link, lF, lX, lV, dFdV, dFdX, dt);
 
 		search = search->next;
 	}
@@ -1452,13 +1454,13 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 	
 }
 
-void simulate_implicit_euler(lfVector *Vnew, lfVector *lX, lfVector *lV, lfVector *lF, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, float dt, fmatrix3x3 *A, lfVector *B, lfVector *dV, fmatrix3x3 *S, lfVector *z, lfVector *olddV, fmatrix3x3 *P, fmatrix3x3 *Pinv)
+void simulate_implicit_euler(lfVector *Vnew, lfVector *lX, lfVector *lV, lfVector *lF, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, float dt, fmatrix3x3 *A, lfVector *B, lfVector *dV, fmatrix3x3 *S, lfVector *z, fmatrix3x3 *P, fmatrix3x3 *Pinv)
 {
 	unsigned int numverts = dFdV[0].vcount;
 
 	lfVector *dFdXmV = create_lfvector(numverts);
 	initdiag_bfmatrix(A, I);
-	zero_lfvector(dV, numverts);
+	// zero_lfvector(dV, numverts);
 
 	subadd_bfmatrixS_bfmatrixS(A, dFdV, dt, dFdX, (dt*dt));
 
@@ -1469,17 +1471,16 @@ void simulate_implicit_euler(lfVector *Vnew, lfVector *lX, lfVector *lV, lfVecto
 	itstart();
 	
 	cg_filtered(dV, A, B, z, S); /* conjugate gradient algorithm to solve Ax=b */
-	// cg_filtered_pre(dV, A, B, z, olddV, P, Pinv, dt);
+	// cg_filtered_pre(dV, A, B, z, dV, P, Pinv, dt);
 	
 	itend();
 	// printf("cg_filtered calc time: %f\n", (float)itval());
 	
-	cp_lfvector(olddV, dV, numverts);
+
 
 	// advance velocities
 	add_lfvector_lfvector(Vnew, lV, dV, numverts);
 	
-
 	del_lfvector(dFdXmV);
 }
 
@@ -1514,12 +1515,12 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 		effectors= pdInitEffectors(ob,NULL);
 		
 		// calculate 
-		cloth_calc_force(clmd, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step );
+		cloth_calc_force(clmd, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step, dt );
 		
 		// check for sleeping
 		if(!(clmd->coll_parms.flags & CLOTH_SIMSETTINGS_FLAG_SLEEP))
 		{
-			simulate_implicit_euler(id->Vnew, id->X, id->V, id->F, id->dFdV, id->dFdX, dt, id->A, id->B, id->dV, id->S, id->z, id->olddV, id->P, id->Pinv);
+			simulate_implicit_euler(id->Vnew, id->X, id->V, id->F, id->dFdV, id->dFdX, dt, id->A, id->B, id->dV, id->S, id->z, id->P, id->Pinv);
 		
 			add_lfvector_lfvectorS(id->Xnew, id->X, id->Vnew, dt, numverts);
 		}
@@ -1592,8 +1593,8 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 				cp_lfvector(id->V, id->Vnew, numverts);
 				
 				// calculate 
-				cloth_calc_force(clmd, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step);	
-				simulate_implicit_euler(id->Vnew, id->X, id->V, id->F, id->dFdV, id->dFdX, dt / 2.0f, id->A, id->B, id->dV, id->S, id->z, id->olddV, id->P, id->Pinv);
+				cloth_calc_force(clmd, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step, dt);	
+				simulate_implicit_euler(id->Vnew, id->X, id->V, id->F, id->dFdV, id->dFdX, dt / 2.0f, id->A, id->B, id->dV, id->S, id->z, id->P, id->Pinv);
 			}
 			
 		}
@@ -1781,7 +1782,7 @@ int collisions_collision_response_moving_edges(ClothModifierData *clmd, ClothMod
 	return 0;
 }
 
-void cloth_collision_static(ClothModifierData *clmd, ClothModifierData *coll_clmd, CollisionTree *tree1, CollisionTree *tree2)
+void cloth_collision_static(ClothModifierData *clmd, LinkNode *collision_list)
 {
 	/*
 	CollPair *collpair = NULL;
@@ -1794,7 +1795,7 @@ void cloth_collision_static(ClothModifierData *clmd, ClothModifierData *coll_clm
 
 	for(i = 0; i < 4; i++)
 	{
-	collpair = (CollPair *)MEM_callocN(sizeof(CollPair), "cloth coll pair");		
+	collpair = (CollPair *)MEM_callocN(sizeof(CollPair), "cloth coll pair");	
 		
 	cloth1 = clmd->clothObject;
 	cloth2 = coll_clmd->clothObject;
@@ -1865,8 +1866,7 @@ void cloth_collision_static(ClothModifierData *clmd, ClothModifierData *coll_clm
 	else
 	i++;
 }
-		
-		// calc SIPcode (?)
+	
 		
 	if(i < 4)
 	{
@@ -2320,6 +2320,11 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float prevstep,
 				}
 			}
 		}
+		/*
+		// does not compile with OpenMP
+		if(!collisions)
+			break;
+		*/
 	}
 	
 	//////////////////////////////////////////////

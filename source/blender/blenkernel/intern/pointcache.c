@@ -104,7 +104,7 @@ FILE *PTCache_id_fopen(struct ID *id, char mode, int cfra, int stack_index)
 
 	if (mode=='r') {
 		if (!BLI_exists(filename)) {
-			printf("Error, file does not exist '%s'\n", filename);
+			// printf("Error, file does not exist '%s'\n", filename);
 			return NULL;
 		}
  		fp = fopen(filename, "rb");
