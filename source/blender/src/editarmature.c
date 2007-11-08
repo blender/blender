@@ -1884,12 +1884,68 @@ void show_all_armature_bones(void)
 	BIF_undo_push("Reveal Bones");
 }
 
+/* check for null, before calling! */
+static void bone_connect_to_existing_parent(EditBone *bone)
+{
+	bone->flag |= BONE_CONNECTED;
+	VECCOPY(bone->head, bone->parent->tail);
+	bone->rad_head = bone->parent->rad_tail;
+}
+
+static void bone_connect_to_new_parent(EditBone *selbone, EditBone *actbone, short mode)
+{
+	EditBone *ebone;
+	float offset[3];
+	
+	if ((selbone->parent) && (selbone->flag & BONE_CONNECTED))
+		selbone->parent->flag &= ~(BONE_TIPSEL);
+	
+	/* make actbone the parent of selbone */
+	selbone->parent= actbone;
+	
+	/* in actbone tree we cannot have a loop */
+	for (ebone= actbone->parent; ebone; ebone= ebone->parent) {
+		if (ebone->parent==selbone) {
+			ebone->parent= NULL;
+			ebone->flag &= ~BONE_CONNECTED;
+		}
+	}
+	
+	if (mode == 1) {	
+		/* Connected: Child bones will be moved to the parent tip */
+		selbone->flag |= BONE_CONNECTED;
+		VecSubf(offset, actbone->tail, selbone->head);
+		
+		VECCOPY(selbone->head, actbone->tail);
+		selbone->rad_head= actbone->rad_tail;
+		
+		VecAddf(selbone->tail, selbone->tail, offset);
+		
+		/* offset for all its children */
+		for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
+			EditBone *par;
+			
+			for (par= ebone->parent; par; par= par->parent) {
+				if (par==selbone) {
+					VecAddf(ebone->head, ebone->head, offset);
+					VecAddf(ebone->tail, ebone->tail, offset);
+					break;
+				}
+			}
+		}
+	}
+	else {
+		/* Offset: Child bones will retain their distance from the parent tip */
+		selbone->flag &= ~BONE_CONNECTED;
+	}
+}
+
 void make_bone_parent(void)
 {
 	bArmature *arm= G.obedit->data;
 	EditBone *actbone, *ebone, *selbone;
+	EditBone *flipbone, *flippar;
 	short allchildbones= 0, foundselbone= 0;
-	float offset[3];
 	short val;
 	
 	/* find active bone to parent to */
@@ -1931,59 +1987,40 @@ void make_bone_parent(void)
 		/* When only the active bone is selected, and it has a parent,
 		 * connect it to the parent, as that is the only possible outcome. 
 		 */
-		actbone->flag |= BONE_CONNECTED;
-		VECCOPY(actbone->head, actbone->parent->tail);
-		actbone->rad_head= actbone->parent->rad_tail;
+		bone_connect_to_existing_parent(actbone);
+		
+		if (arm->flag & ARM_MIRROR_EDIT) {
+			flipbone = armature_bone_get_mirrored(actbone);
+			if (flipbone)
+				bone_connect_to_existing_parent(flipbone);
+		}
 	}
 	else {
 		/* loop through all editbones, parenting all selected bones to the active bone */
 		for (selbone = G.edbo.first; selbone; selbone=selbone->next) {
 			if (arm->layer & selbone->layer) {
 				if ((selbone->flag & BONE_SELECTED) && (selbone!=actbone)) {
-					/* if selbone had a parent we clear parent tip */
-					if (selbone->parent && (selbone->flag & BONE_CONNECTED))
-						selbone->parent->flag &= ~(BONE_TIPSEL);
+					/* parent selbone to actbone */
+					bone_connect_to_new_parent(selbone, actbone, val);
 					
-					/* make actbone the parent of selbone */
-					selbone->parent= actbone;
-					
-					/* in actbone tree we cannot have a loop */
-					for (ebone= actbone->parent; ebone; ebone= ebone->parent) {
-						if (ebone->parent==selbone) {
-							ebone->parent= NULL;
-							ebone->flag &= ~BONE_CONNECTED;
+					if (arm->flag & ARM_MIRROR_EDIT) {
+						/* - if there's a mirrored copy of selbone, try to find a mirrored copy of actbone 
+						 *	(i.e.  selbone="child.L" and actbone="parent.L", find "child.R" and "parent.R").
+						 *	This is useful for arm-chains, for example parenting lower arm to upper arm
+						 * - if there's no mirrored copy of actbone (i.e. actbone = "parent.C" or "parent")
+						 *	then just use actbone. Useful when doing upper arm to spine.
+						 */
+						flipbone = armature_bone_get_mirrored(selbone);
+						flippar = armature_bone_get_mirrored(actbone);
+						
+						if (flipbone) {
+							if (flippar)
+								bone_connect_to_new_parent(flipbone, flippar, val);
+							else
+								bone_connect_to_new_parent(flipbone, actbone, val);
 						}
-					}
-					
-					if (val == 1) {	
-						/* Connected: Child bones will be moved to the parent tip */
-						selbone->flag |= BONE_CONNECTED;
-						VecSubf(offset, actbone->tail, selbone->head);
-						
-						VECCOPY(selbone->head, actbone->tail);
-						selbone->rad_head= actbone->rad_tail;
-						
-						VecAddf(selbone->tail, selbone->tail, offset);
-						
-						/* offset for all its children */
-						for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
-							EditBone *par;
-							
-							for (par= ebone->parent; par; par= par->parent) {
-								if (par==selbone) {
-									VecAddf(ebone->head, ebone->head, offset);
-									VecAddf(ebone->tail, ebone->tail, offset);
-									break;
-								}
-							}
-						}
-					}
-					else {
-						/* Offset: Child bones will retain their distance from the parent tip */
-						selbone->flag &= ~BONE_CONNECTED;
 					}
 				}
-				
 			}
 		}
 	}
@@ -3140,5 +3177,6 @@ void transform_armature_mirror_update(void)
 		}
 	}
 }
+
 
 
