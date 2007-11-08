@@ -1081,6 +1081,219 @@ void switchdirection_knots(float *base, int tot)
 	MEM_freeN(tempf);
 }
 
+void setweightNurb(void)
+{
+	static float weight= 1.0f;
+	extern ListBase editNurb;
+	Nurb *nu;
+	BezTriple *bezt;
+	BPoint *bp;
+	int a;
+				
+	if(fbutton(&weight, 0.0f, 1.0f, 10, 10, "Set Weight")) {
+		for(nu= editNurb.first; nu; nu= nu->next) {
+			if(nu->bezt) {
+				for(bezt=nu->bezt, a=0; a<nu->pntsu; a++, bezt++) {
+					if(bezt->f2 & SELECT)
+						bezt->weight= weight;
+				}
+			}
+			else if(nu->bp) {
+				for(bp=nu->bp, a=0; a<nu->pntsu*nu->pntsv; a++, bp++) {
+					if(bp->f1 & SELECT)
+						bp->weight= weight;
+				}
+			}
+		}	
+	}
+	BIF_undo_push("Set Curve Weight");
+	DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+void setradiusNurb( void )
+{
+	static float radius= 1.0f;
+	extern ListBase editNurb;
+	Nurb *nu;
+	BezTriple *bezt;
+	BPoint *bp;
+	int a;
+	
+	if(fbutton(&radius, 0.0001f, 10.0f, 10, 10, "Set Radius")) {
+		for(nu= editNurb.first; nu; nu= nu->next) {
+			if(nu->bezt) {
+				for(bezt=nu->bezt, a=0; a<nu->pntsu; a++, bezt++) {
+					if(bezt->f2 & SELECT)
+						bezt->radius= radius;
+				}
+			}
+			else if(nu->bp) {
+				for(bp=nu->bp, a=0; a<nu->pntsu*nu->pntsv; a++, bp++) {
+					if(bp->f1 & SELECT)
+						bp->radius= radius;
+				}
+			}
+		}	
+	}
+	BIF_undo_push("Set Curve Radius");
+	DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSALL, 0);
+	allqueue(REDRAWINFO, 1); 	/* 1, because header->win==0! */
+}
+
+
+/* TODO, make smoothing distance based */
+void smoothradiusNurb( void )
+{
+	extern ListBase editNurb;
+	Nurb *nu;
+	BezTriple *bezt;
+	BPoint *bp;
+	int a;
+	
+	/* use for smoothing */
+	int last_sel;
+	int start_sel, end_sel; /* selection indicies, inclusive */
+	float start_rad, end_rad, fac, range;
+	
+	for(nu= editNurb.first; nu; nu= nu->next) {
+		if(nu->bezt) {
+			
+			for (last_sel=0; last_sel < nu->pntsu; last_sel++) {
+				/* loop over selection segments of a curve, smooth each */
+				
+				/* Start BezTriple code, this is duplicated below for points, make sure these functions stay in sync */
+				start_sel = end_sel = -1;
+				for(bezt=nu->bezt+last_sel, a=last_sel; a<nu->pntsu; a++, bezt++) {
+					if(bezt->f2 & SELECT) {
+						start_sel = a;
+						break;
+					}
+				}
+				/* incase there are no other selected verts */
+				end_sel = start_sel;
+				for(bezt=nu->bezt+(start_sel+1), a=start_sel+1; a<nu->pntsu; a++, bezt++) {
+					if((bezt->f2 & SELECT)==0) {
+						break;
+					}
+					end_sel = a;
+				}
+				
+				if (start_sel == -1) {
+					last_sel = nu->pntsu; /* next... */
+				} else {
+					last_sel = end_sel; /* before we modify it */
+					
+					/* now blend between start and end sel */
+					start_rad = end_rad = -1.0;
+					
+					if (start_sel == end_sel) {
+						/* simple, only 1 point selected */
+						if (start_sel>0)						start_rad = (nu->bezt+start_sel-1)->radius;
+						if (end_sel!=-1 && end_sel < nu->pntsu)	end_rad = (nu->bezt+start_sel+1)->radius;
+						
+						if (start_rad >= 0.0 && end_rad >= 0.0)	(nu->bezt+start_sel)->radius = (start_rad + end_rad)/2;
+						else if (start_rad >= 0.0)				(nu->bezt+start_sel)->radius = start_rad;
+						else if (end_rad >= 0.0)				(nu->bezt+start_sel)->radius = end_rad;
+					} else {
+						/* if endpoints selected, then use them */
+						if (start_sel==0) {
+							start_rad = (nu->bezt+start_sel)->radius;
+							start_sel++; /* we dont want to edit the selected endpoint */
+						} else {
+							start_rad = (nu->bezt+start_sel-1)->radius;
+						}
+						if (end_sel==nu->pntsu-1) {
+							end_rad = (nu->bezt+end_sel)->radius;
+							end_sel--; /* we dont want to edit the selected endpoint */
+						} else {
+							end_rad = (nu->bezt+end_sel+1)->radius;
+						}
+						
+						/* Now Blend between the 2 points */
+						range = (float)(end_sel - start_sel) + 2.0f;
+						for(bezt=nu->bezt+start_sel, a=start_sel; a<=end_sel; a++, bezt++) {
+							fac = (float)(1+a-start_sel) / range;
+							bezt->radius = start_rad*(1.0-fac) + end_rad*fac;
+						}
+					}
+				}
+			}
+		} else if (nu->bp) {
+			/* Same as above, keep these the same! */
+			for (last_sel=0; last_sel < nu->pntsu; last_sel++) {
+				/* loop over selection segments of a curve, smooth each */
+				
+				/* Start BezTriple code, this is duplicated below for points, make sure these functions stay in sync */
+				start_sel = end_sel = -1;
+				for(bp=nu->bp+last_sel, a=last_sel; a<nu->pntsu; a++, bp++) {
+					if(bp->f1 & SELECT) {
+						start_sel = a;
+						break;
+					}
+				}
+				/* incase there are no other selected verts */
+				end_sel = start_sel;
+				for(bp=nu->bp+(start_sel+1), a=start_sel+1; a<nu->pntsu; a++, bp++) {
+					if((bp->f1 & SELECT)==0) {
+						break;
+					}
+					end_sel = a;
+				}
+				
+				if (start_sel == -1) {
+					last_sel = nu->pntsu; /* next... */
+				} else {
+					last_sel = end_sel; /* before we modify it */
+					
+					/* now blend between start and end sel */
+					start_rad = end_rad = -1.0;
+					
+					if (start_sel == end_sel) {
+						/* simple, only 1 point selected */
+						if (start_sel>0)						start_rad = (nu->bp+start_sel-1)->radius;
+						if (end_sel!=-1 && end_sel < nu->pntsu)	end_rad = (nu->bp+start_sel+1)->radius;
+						
+						if (start_rad >= 0.0 && end_rad >= 0.0)	(nu->bp+start_sel)->radius = (start_rad + end_rad)/2;
+						else if (start_rad >= 0.0)				(nu->bp+start_sel)->radius = start_rad;
+						else if (end_rad >= 0.0)				(nu->bp+start_sel)->radius = end_rad;
+					} else {
+						/* if endpoints selected, then use them */
+						if (start_sel==0) {
+							start_rad = (nu->bp+start_sel)->radius;
+							start_sel++; /* we dont want to edit the selected endpoint */
+						} else {
+							start_rad = (nu->bp+start_sel-1)->radius;
+						}
+						if (end_sel==nu->pntsu-1) {
+							end_rad = (nu->bp+end_sel)->radius;
+							end_sel--; /* we dont want to edit the selected endpoint */
+						} else {
+							end_rad = (nu->bp+end_sel+1)->radius;
+						}
+						
+						/* Now Blend between the 2 points */
+						range = (float)(end_sel - start_sel) + 2.0f;
+						for(bp=nu->bp+start_sel, a=start_sel; a<=end_sel; a++, bp++) {
+							fac = (float)(1+a-start_sel) / range;
+							bp->radius = start_rad*(1.0-fac) + end_rad*fac;
+						}
+					}
+				}
+			}
+		}
+	}
+	BIF_undo_push("Smooth Curve Radius");
+	DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSALL, 0);
+	allqueue(REDRAWINFO, 1); 	/* 1, because header->win==0! */
+}
+
+
+
 /* **************** EDIT ************************ */
 
 /* next == 1 -> select next 		*/
