@@ -3230,14 +3230,14 @@ void generateSkeletonFromReebGraph(ReebGraph *rg)
 		
 		/************************* CUT LENGTH *****************************/
 		if ((G.scene->toolsettings->skgen_options & SKGEN_CUT_LENGTH) &&
-			arcLengthRatio(arc) >= G.scene->toolsettings->skgen_threshold_length)
+			arcLengthRatio(arc) >= G.scene->toolsettings->skgen_length_ratio)
 		{
 			EditBone *child = NULL;
 			EditBone *parent = NULL;
 			int same = 0;
 			int index = 0;
 			int stride = 1;
-			float lengthLimit = 1.5f; // use value from UI
+			float lengthLimit = G.scene->toolsettings->skgen_length_limit;
 			
 			// If head is the highest node, invert stride and start index
 			if (head == arc->v2)
@@ -3330,14 +3330,14 @@ void generateSkeletonFromReebGraph(ReebGraph *rg)
 			
 			lastBone = parent; /* set last bone in the chain */
 
-			added = 1;			
+			added = 1;
 		}
 		/************************* CUT ANGLE *****************************/
 		else if (G.scene->toolsettings->skgen_options & SKGEN_CUT_ANGLE)
 		{
 			EditBone *child = NULL;
 			EditBone *parent = NULL;
-			float angleLimit = 0.80f;//cosf(M_PI / 4);//cosf(G.scene->toolsettings->skgen_threshold_angle * M_PI / 180.0f);
+			float angleLimit = (float)cos(G.scene->toolsettings->skgen_angle_limit * M_PI / 180.0f);
 			int same = 0;
 			int index = 0;
 			int stride = 1;

@@ -382,9 +382,28 @@ void buildAdjacencyList(ReebGraph *rg)
 }
 /****************************************** SMOOTHING **************************************************/
 
-void smoothGraph(ReebGraph *rg)
+void postprocessGraph(ReebGraph *rg, char mode)
 {
 	ReebArc *arc;
+	float fac1, fac2, fac3;
+
+	switch(mode)
+	{
+	case SKGEN_AVERAGE:
+		fac1 = fac2 = fac3 = 1.0f / 3.0f;
+		break;
+	case SKGEN_SMOOTH:
+		fac1 = fac3 = 0.25f;
+		fac2 = 0.5f;
+		break;
+	case SKGEN_SHARPEN:
+		fac1 = fac2 = -0.5f;
+		fac2 = 2.0f;
+		break;
+	default:
+		error("Unknown post processing mode");
+		return;
+	}
 	
 	for(arc = rg->arcs.first; arc; arc = arc->next)
 	{
@@ -394,8 +413,8 @@ void smoothGraph(ReebGraph *rg)
 
 		for(index = 1; index < bcount - 1; index++)
 		{
-			VecLerpf(buckets[index].p, buckets[index].p, buckets[index - 1].p, 0.5f);
-			VecLerpf(buckets[index].p, buckets[index].p, buckets[index + 1].p, 1.0f/3.0f);
+			VecLerpf(buckets[index].p, buckets[index].p, buckets[index - 1].p, fac1 / (fac1 + fac2));
+			VecLerpf(buckets[index].p, buckets[index].p, buckets[index + 1].p, fac3 / (fac1 + fac2 + fac3));
 		}
 	}
 }
@@ -1806,9 +1825,9 @@ void generateSkeleton(void)
 	
 	verifyBuckets(rg);
 
-	if (G.scene->toolsettings->skgen_options & SKGEN_SMOOTH)
+	if (G.scene->toolsettings->skgen_postpro != SKGEN_NONE)
 	{
-		smoothGraph(rg);
+		postprocessGraph(rg, G.scene->toolsettings->skgen_postpro);
 	}
 
 	buildAdjacencyList(rg);

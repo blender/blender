@@ -367,11 +367,13 @@ typedef struct ToolSettings {
 	short skgen_resolution;
 	float skgen_threshold_internal;
 	float skgen_threshold_external;
-	float skgen_threshold_length;
-	float skgen_threshold_angle;
+	float skgen_length_ratio;
+	float skgen_length_limit;
+	float skgen_angle_limit;
 	short skgen_options;
+	char  skgen_postpro;
 	
-	char  pad4[6];
+	char  pad4[1];
 } ToolSettings;
 
 /* Used by all brushes to store their properties, which can be directly set
@@ -680,7 +682,12 @@ typedef struct Scene {
 #define	SKGEN_SYMMETRY			8
 #define	SKGEN_CUT_LENGTH		16
 #define	SKGEN_CUT_ANGLE			32
-#define SKGEN_SMOOTH			64
+
+/* toolsettings->skgen_postpro */
+#define SKGEN_NONE				0
+#define SKGEN_SMOOTH			1
+#define SKGEN_AVERAGE			2
+#define SKGEN_SHARPEN			3
 
 #ifdef __cplusplus
 }

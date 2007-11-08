@@ -4425,20 +4425,24 @@ static void editing_panel_mesh_skgen(Object *ob, Mesh *me)
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_skgen", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Skeleton Generation", "Editing", 960, 0, 318, 204)==0) return;
 	
-	uiDefBut(block, BUT, B_GEN_SKELETON, "Generate Skeleton",			1075,160,200,39, 0, 0, 0, 0, 0, "Generate Skeleton from Mesh");
+	uiDefBut(block, BUT, B_GEN_SKELETON, "Generate Skeleton",			1025,160,250,39, 0, 0, 0, 0, 0, "Generate Skeleton from Mesh");
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM, B_DIFF, "Resolution:",							1075,110,200,19, &G.scene->toolsettings->skgen_resolution,10.0,1000.0, 0, 0,		"Specifies the resolution of the graph's embedding");
-	uiDefButBitS(block, TOG, SKGEN_FILTER_INTERNAL, B_DIFF, "Filter In",	1075, 90, 83,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Filter internal small arcs from graph");
-	uiDefButF(block, NUM, B_DIFF, 							"Thresh:",		1161, 90,114,19, &G.scene->toolsettings->skgen_threshold_internal,0.0, 1.0, 10, 0,	"Specify the threshold ratio for filtering internal arcs");
-	uiDefButBitS(block, TOG, SKGEN_FILTER_EXTERNAL, B_DIFF, "Filter Ex",	1075, 70, 83,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Filter external small arcs from graph");
-	uiDefButF(block, NUM, B_DIFF, 							"Thresh:",		1161, 70,114,19, &G.scene->toolsettings->skgen_threshold_external,0.0, 1.0, 10, 0,	"Specify the threshold ratio for filtering external arcs");
-	uiDefButBitS(block, TOG, SKGEN_CUT_LENGTH, B_DIFF, 		"Cut Length",	1075, 50, 83,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Subdivide arcs based on length");
-	uiDefButF(block, NUM, B_DIFF, 							"Thresh:",		1161, 50,114,19, &G.scene->toolsettings->skgen_threshold_length,1.0, 2.0, 10, 0,	"Specify the threshold ratio for subdivision");
-	uiDefButBitS(block, TOG, SKGEN_CUT_ANGLE, B_DIFF, 		"Cut Angle",	1075, 30, 83,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Subdivide arcs based on angle");
-	uiDefButF(block, NUM, B_DIFF, 							"Thresh:",		1161, 30,114,19, &G.scene->toolsettings->skgen_threshold_angle,0.0, 90.0, 10, 0,		"Specify the threshold angle in degrees for subdivision");
-	uiDefButBitS(block, TOG, SKGEN_REPOSITION, B_DIFF, 		"Reposition",	1075, 10,100,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Reposition nodes based on embedding instead of original vertice positions");
-	uiDefButBitS(block, TOG, SKGEN_SMOOTH, B_DIFF, 			"Smooth",		1175, 10,100,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Smooth embeddings");
+	uiDefButS(block, NUM, B_DIFF, "Resolution:",							1025,130,250,19, &G.scene->toolsettings->skgen_resolution,10.0,1000.0, 0, 0,		"Specifies the resolution of the graph's embedding");
+	uiDefButBitS(block, TOG, SKGEN_FILTER_INTERNAL, B_DIFF, "Filter In",	1025,110, 83,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Filter internal small arcs from graph");
+	uiDefButF(block, NUM, B_DIFF, 							"Thresh:",		1111,110,164,19, &G.scene->toolsettings->skgen_threshold_internal,0.0, 1.0, 10, 0,	"Specify the threshold ratio for filtering internal arcs");
+	uiDefButBitS(block, TOG, SKGEN_FILTER_EXTERNAL, B_DIFF, "Filter Ex",	1025, 90, 83,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Filter external small arcs from graph");
+	uiDefButF(block, NUM, B_DIFF, 							"Thresh:",		1111, 90,164,19, &G.scene->toolsettings->skgen_threshold_external,0.0, 1.0, 10, 0,	"Specify the threshold ratio for filtering external arcs");
+	uiDefButBitS(block, TOG, SKGEN_CUT_LENGTH, B_DIFF, 		"Cut Length",	1025, 70, 83,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Subdivide arcs based on embedding");
+	uiDefButF(block, NUM, B_DIFF, 							"Thresh:",		1111, 70, 82,19, &G.scene->toolsettings->skgen_length_ratio,1.0, 4.0, 10, 0,		"Specify the ratio limit between straight arc and embeddings to trigger equal subdivisions");
+	uiDefButF(block, NUM, B_DIFF, 							"Len:",			1193, 70, 82,19, &G.scene->toolsettings->skgen_length_limit,0.1,50.0, 10, 0,		"Maximum length of the bones when subdividing");
+	uiDefButBitS(block, TOG, SKGEN_CUT_ANGLE, B_DIFF, 		"Cut Angle",	1025, 50, 83,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Subdivide arcs based on angle");
+	uiDefButF(block, NUM, B_DIFF, 							"Thresh:",		1111, 50,164,19, &G.scene->toolsettings->skgen_angle_limit,0.0, 90.0, 10, 0,		"Specify the threshold angle in degrees for subdivision");
+	uiDefButBitS(block, TOG, SKGEN_REPOSITION, B_DIFF, 		"Reposition",	1025, 30,250,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Reposition nodes based on embedding instead of original vertice positions");
+	uiDefButC(block, ROW, B_DIFF,							"None",			1025, 10, 62,19, &G.scene->toolsettings->skgen_postpro, 5.0, (float)SKGEN_NONE, 0, 0, "No postprocessing on embeddings");
+	uiDefButC(block, ROW, B_DIFF,							"Smooth",		1087, 10, 63,19, &G.scene->toolsettings->skgen_postpro, 5.0, (float)SKGEN_SMOOTH, 0, 0, "Smooth embeddings");
+	uiDefButC(block, ROW, B_DIFF,							"Average",		1150, 10, 62,19, &G.scene->toolsettings->skgen_postpro, 5.0, (float)SKGEN_AVERAGE, 0, 0, "Average embeddings");
+	uiDefButC(block, ROW, B_DIFF,							"Sharpen",		1212, 10, 63,19, &G.scene->toolsettings->skgen_postpro, 5.0, (float)SKGEN_SHARPEN, 0, 0, "Sharpen embeddings");
 	uiBlockEndAlign(block);
 }
 

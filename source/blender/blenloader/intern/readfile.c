@@ -6776,9 +6776,12 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				sce->toolsettings->skgen_resolution = 50;
 				sce->toolsettings->skgen_threshold_internal 	= 0.01f;
 				sce->toolsettings->skgen_threshold_external 	= 0.01f;
-				sce->toolsettings->skgen_threshold_angle 		= 45.0f;
-				sce->toolsettings->skgen_threshold_length		= 1.3f;
-				sce->toolsettings->skgen_options = SKGEN_FILTER_INTERNAL|SKGEN_FILTER_EXTERNAL|SKGEN_REPOSITION|SKGEN_SMOOTH|SKGEN_CUT_LENGTH|SKGEN_CUT_ANGLE;
+				sce->toolsettings->skgen_angle_limit	 		= 45.0f;
+				sce->toolsettings->skgen_length_ratio			= 1.3f;
+				sce->toolsettings->skgen_length_limit			= 1.5f;
+				sce->toolsettings->skgen_postpro = SKGEN_SMOOTH;
+				sce->toolsettings->skgen_options = SKGEN_FILTER_INTERNAL|SKGEN_FILTER_EXTERNAL|SKGEN_REPOSITION|SKGEN_CUT_LENGTH|SKGEN_CUT_ANGLE;
+
 			}
 		}
 	}
