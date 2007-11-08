@@ -2188,7 +2188,8 @@ static int is_a_library(SpaceFile *sfile, char *dir, char *group)
 
 		/* now we know that we are in a blend file and it is safe to 
 		   assume that gp actually points to a group */
-		BLI_strncpy(group, gp, GROUP_MAX);
+		if (BLI_streq("Screen", gp)==0)
+			BLI_strncpy(group, gp, GROUP_MAX);
 	}
 	return 1;
 }
