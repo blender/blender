@@ -48,7 +48,18 @@ class tree:
 		self.limbScale = 1.0
 		
 		self.debug_objects = []
+	
+	def __repr__(self):
+		s = ''
+		s += '[Tree]'
+		s += '  limbScale: %.6f' % self.limbScale
+		s += '  object: %s' % self.object
 		
+		for brch in self.branches_root:
+			s += str(brch)
+		return s
+	
+	
 	def fromCurve(self, object):
 		
 		curve = object.data
@@ -189,9 +200,7 @@ class tree:
 		
 		# Connect branches
 		for i in xrange(len(self.branches_all)):
-			
 			brch_i = self.branches_all[i]
-			brch_i_head_pt = brch_i.bpoints[0]
 			
 			for j in xrange(len(self.branches_all)):
 				if i != j:
@@ -200,18 +209,24 @@ class tree:
 					
 					brch_j = self.branches_all[j]
 					
-					best_j, dist = brch_j.findClosest(brch_i_head_pt.co)
+					best_j, dist = brch_j.findClosest(brch_i.bpoints[0].co)
 					
 					# Check its in range, allow for a bit out - hense the 1.5
 					if dist < best_j.radius * sloppy:
 						
-						# Remove points that are within the radius, so as to not get ugly joins
-						# TODO - dont remove the whole branch
-						while len(brch_i.bpoints)>2 and (brch_i.bpoints[0].co - best_j.nextMidCo).length < best_j.radius * base_trim:
+						# if 1) dont remove the whole branch, maybe an option but later
+						# if 2) we are alredy a parent, cant remove me now.... darn :/ not nice... could do this properly but it would be slower and its a corner case.
+						# if 3) this point is within the branch, remove it.
+						while	len(brch_i.bpoints)>2 and\
+								brch_i.bpoints[0].isParent == False and\
+								(brch_i.bpoints[0].co - best_j.nextMidCo).length < best_j.radius * base_trim:
+							
+							# brch_i.bpoints[0].next = 101 # testing.
 							del brch_i.bpoints[0]
 							brch_i.bpoints[0].prev = None
 						
 						brch_i.parent_pt = best_j
+						best_j.isParent = True # dont remove me
 						
 						# addas a member of best_j.children later when we have the geometry info available.
 						
@@ -231,19 +246,23 @@ class tree:
 		# First try to get the ideal some space around each joint
 		# the spacing shoule be an average of 
 		for brch.bpoints:
-		"""	
+		"""
 		
+		'''
+		for brch in self.branches_all:
+			brch.checkPointList()
+		'''
 		
 		# Calc points with dependancies
 		# detect circular loops!!! - TODO
-		done_nothing = False
 		self.resetTags(False)
+		done_nothing = False
 		while done_nothing == False:
 			done_nothing = True
+			
 			for brch in self.branches_all:
-					
+				
 				if brch.tag == False and (brch.parent_pt == None or brch.parent_pt.branch.tag == True):
-					
 					# Assign this to a spesific side of the parents point
 					# we know this is a child but not which side it should be attached to.
 					if brch.parent_pt:
@@ -263,11 +282,12 @@ class tree:
 						# for temp debugging
 						## self.mesh.faces.extend([pt.verts])
 						pt.calcVerts()
+						
 						# pt.toMesh(self.mesh) # Cant do here because our children arnt calculated yet!
 					
 					brch.tag = True
 	
-	def optimizeSpacing(self, density=1.0, joint_compression=1.0):
+	def optimizeSpacing(self, density=1.0, joint_compression=1.0, joint_smooth=1.0):
 		'''
 		Optimize spacing, taking branch hierarchy children into account,
 		can add or subdivide segments so branch joins dont look horrible.
@@ -278,11 +298,11 @@ class tree:
 		# Correct points that were messed up from sliding
 		# This happens when one point is pushed past another and the branch gets an overlaping line
 		for brch in self.branches_all:
-			brch.fixOverlapError()
+			brch.fixOverlapError(joint_smooth)
 		
 		# Collapsing
 		for brch in self.branches_all:
-			brch.collapsePoints(density)
+			brch.collapsePoints(density, joint_smooth)
 		
 		for brch in self.branches_all:
 			brch.branchReJoin()
@@ -496,19 +516,6 @@ class tree:
 								if uv_image:
 									pt.faces[i].image = uv_image
 								uvs = pt.faces[i].uv
-								'''
-								uvs[0].x = i
-								uvs[1].x = i
-								
-								uvs[2].x = i+1
-								uvs[3].x = i+1
-								
-								uvs[1].y = y_val
-								uvs[2].y = y_val
-								
-								uvs[0].y = y_val+y_size
-								uvs[3].y = y_val+y_size
-								'''
 								uvs[3].x = i
 								uvs[3].y = y_val+y_size
 								
@@ -525,7 +532,11 @@ class tree:
 						do_uv_scalewidth
 						if pt.next:	
 							y_val += y_size
-		
+		else:
+			# no UV's
+			for f in self.mesh.faces:
+				f.smooth = True
+			
 		
 		return self.mesh
 
@@ -545,7 +556,7 @@ class bpoint:
 		self.faces = [None, None, None, None]
 		self.next = None
 		self.prev = None
-		
+		self.isParent = False
 		
 		# when set, This is the angle we need to roll to best face our branches
 		# the roll that is set may be interpolated if we are between 2 branches that need to roll.
@@ -567,6 +578,16 @@ class bpoint:
 		# Target locations are used when you want to move the point to a new location but there are
 		# more then 1 influence, build up a list and then apply
 		self.targetCos = []
+	
+	def __repr__(self):
+		s = ''
+		s += '\t\tco:', self.co
+		s += '\t\tno:', self.no
+		s += '\t\tradius:', self.radius
+		s += '\t\tchildren:', [(child != False) for child in self.children]
+		return s
+		
+		
 	
 	def setCo(self, co):
 		self.co[:] = co
@@ -712,16 +733,16 @@ class bpoint:
 			return self.co - ofs
 		
 	
-	def collapseDown(self, branch):
+	def collapseDown(self):
 		'''
 		Collapse the next point into this one
 		'''
 		
 		# self.next.next == None check is so we dont shorten the final length of branches.
-		if self.next == None or self.next.next == None or self.hasChildren() or self.next.hasChildren():
+		if self.next == None or self.next.next == None or self.isParent or self.next.isParent:
 			return False
 		
-		branch.bpoints.remove(self.next)
+		self.branch.bpoints.remove(self.next)
 		self.next = self.next.next # skip 
 		self.next.prev = self
 		
@@ -729,16 +750,16 @@ class bpoint:
 		self.calcNextMidCo()
 		return True
 		
-	def collapseUp(self, branch):
+	def collapseUp(self):
 		'''
 		Collapse the previous point into this one
 		'''
 		
 		# self.next.next == None check is so we dont shorten the final length of branches.
-		if self.prev == None or self.prev.prev == None or self.prev.hasChildren() or self.prev.prev.hasChildren():
+		if self.prev == None or self.prev.prev == None or self.prev.isParent or self.prev.prev.isParent:
 			return False
 		
-		branch.bpoints.remove(self.prev)
+		self.branch.bpoints.remove(self.prev)
 		self.prev = self.prev.prev # skip 
 		self.prev.next = self
 		
@@ -747,14 +768,18 @@ class bpoint:
 		return True
 		
 	
-	def smooth(self, factor):
+	def smooth(self, factor, factor_joint):
 		'''
 		Blend this point into the other 2 points
 		'''
-		
-		#if self.next == None or self.prev == None or self.hasChildren() or self.prev.hasChildren():
 		if self.next == None or self.prev == None:
 			return False
+		
+		if self.isParent or self.prev.isParent:
+			factor = factor_joint;
+		
+		if factor==0.0:
+			return False;
 		
 		radius = (self.next.radius + self.prev.radius)/2.0
 		no = (self.next.no + self.prev.no).normalize()
@@ -839,27 +864,9 @@ class bpoint:
 		mesh.faces.extend(ls)
 	
 	def calcVerts(self):
-		# place the 4 verts we have assigned.
-		#for i, v in self.verts:
-		#	v.co = self.co	
-		
 		if self.prev == None:
 			if self.branch.parent_pt:
-				#cross = CrossVecs(brch.parent_pt.vecs[3], self.no)
-				
-				# TOD - if branch insets the trunk
-				### cross = CrossVecs(self.no, brch.getParentFaceCent() - brch.parent_pt.getAbsVec( brch.getParentQuadIndex() ))
-				# cross = CrossVecs(self.no, self.)
-				
-				
-				#debug_pt( brch.parent_pt.getAbsVec( brch.getParentQuadIndex() ))
-				#debug_pt( brch.getParentFaceCent() )
-				#debug_pt( brch.parent_pt.getAbsVec( brch.getParentQuadIndex() ))
-				#debug_pt( brch.getParentFaceCent() )
-				
 				cross = CrossVecs(self.no, self.branch.getParentFaceCent() - self.branch.parent_pt.getAbsVec( self.branch.getParentQuadIndex() ))
-				
-				
 			else:
 				# parentless branch
 				cross = zup
@@ -872,29 +879,16 @@ class bpoint:
 		self.vecs[1] = self.vecs[0] * mat
 		self.vecs[2] = self.vecs[1] * mat
 		self.vecs[3] = self.vecs[2] * mat
-		
-		
-		'''
-		Blender.Window.SetCursorPos(tuple(v.co))
-		Blender.Window.RedrawAll()
-		
-		while True:
-			val = Blender.Window.QRead()[1]
-			if val:
-				break
-		
-		v.co += (self.no * (self.radius * 0.01))
-		'''
 	
 	def hasChildren(self):
-		if	self.children[0] != None or\
-			self.children[1] != None or\
-			self.children[2] != None or\
-			self.children[3] != None:
-			return True
-		else:
+		'''
+		Use .isParent where possible, this does the real check
+		'''
+		if self.children.count(None) == 4:
 			return False
-
+		else:
+			return True
+	
 class branch:
 	def __init__(self):
 		self.bpoints = []
@@ -903,6 +897,15 @@ class branch:
 		
 		# Bones per branch
 		self.bones = []
+	
+	def __repr__(self):
+		s = ''
+		s += '\tbranch'
+		s += '\tbpoints:', len(self.bpoints)
+		for pt in brch.bpoints:
+			s += str(self.pt)
+		
+		
 	
 	def getParentQuadAngle(self):
 		'''
@@ -954,14 +957,14 @@ class branch:
 		
 		return best, best_dist
 		
-	def evenPointDistrobution(self, factor):
+	def evenPointDistrobution(self, factor=1.0, factor_joint=1.0):
 		'''
 		Redistribute points that are not evenly distributed
 		factor is between 0.0 and 1.0
 		'''
 		
 		for pt in self.bpoints:
-			if pt.next and pt.prev and pt.hasChildren() == False and pt.prev.hasChildren() == False:
+			if pt.next and pt.prev and pt.isParent == False and pt.prev.isParent == False:
 				w1 = pt.nextLength()
 				w2 = pt.prevLength()
 				wtot = w1+w2
@@ -969,19 +972,18 @@ class branch:
 				#w2=w2/wtot
 				w1 = abs(w1-0.5)*2 # make this from 0.0 to 1.0, where 0 is the middle and 1.0 is as far out of the middle as possible.
 				# print "%.6f" % w1
-				pt.smooth(w1*factor)
+				pt.smooth(w1*factor, w1*factor_joint)
 	
-	def fixOverlapError(self):
+	def fixOverlapError(self, joint_smooth=1.0):
 		# Keep fixing until no hasOverlapError left to fix.
 		error = True
 		while error:
 			error = False
 			for pt in self.bpoints:
-				#if pt.prev and pt.hasChildren() == False and pt.prev.hasChildren() == False:
 				if pt.prev and pt.next:
 					if pt.hasOverlapError():
-						error = True
-						pt.smooth(1.0)
+						if pt.smooth(1.0, joint_smooth): # if we cant fix then dont bother trying again.
+							error = True
 	
 	def evenJointDistrobution(self, joint_compression = 1.0):
 		# See if we need to evaluate this branch at all 
@@ -989,7 +991,7 @@ class branch:
 			return
 		has_children = False
 		for pt in self.bpoints:
-			if pt.hasChildren():
+			if pt.isParent:
 				has_children = True
 				break
 		
@@ -1007,7 +1009,6 @@ class branch:
 			pt.targetCos = []
 			if pt.childrenMidCo:
 				# Move this and the next segment to be around the child point.
-				# TODO - collect slides and then average- only happens sometimes so not that bad.
 				# TODO - factor in the branch angle, be careful with this - close angles can have extreme values.
 				co = pt.slideCo( (pt.childrenMidCo - pt.co).length - (pt.childrenMidRadius * joint_compression) )
 				if co:
@@ -1020,7 +1021,7 @@ class branch:
 		for pt in self.bpoints:
 			pt.applyTargetLocation()
 	
-	def collapsePoints(self, density):
+	def collapsePoints(self, density, smooth_joint=1.0):
 		collapse = True
 		while collapse:
 			collapse = False
@@ -1028,25 +1029,25 @@ class branch:
 			pt = self.bpoints[0]
 			while pt:
 				
-				if pt.prev and pt.next and not pt.prev.hasChildren():
+				if pt.prev and pt.next and not pt.prev.isParent:
 					if (pt.prev.nextMidCo-pt.co).length < ((pt.radius + pt.prev.radius)/2) * density:
 						pt_save = pt.prev
-						if pt.next.collapseUp(self): # collapse this point
+						if pt.next.collapseUp(): # collapse this point
 							collapse = True
 							pt = pt_save # so we never reference a removed point
 				
-				if not pt.hasChildren(): #if pt.childrenMidCo == None:
+				if not pt.isParent: #if pt.childrenMidCo == None:
 					# Collapse, if tehre is any problems here we can move into a seperate losop.
 					# do here because we only want to run this on points with no childzren,
 					
 					# Are we closer theto eachother then the radius?
 					if pt.next and (pt.nextMidCo-pt.co).length < ((pt.radius + pt.next.radius)/2) * density:
-						if pt.collapseDown(self):
+						if pt.collapseDown():
 							collapse = True
 				
 				pt = pt.next
 		## self.checkPointList()
-		self.evenPointDistrobution(1.0)
+		self.evenPointDistrobution(1.0, smooth_joint)
 		
 		for pt in self.bpoints:
 			pt.calcNormal()
@@ -1081,8 +1082,11 @@ class branch:
 			# We can go here if we want, see if its better
 			if current_dist > (par_pt.prev.nextMidCo - root_pt.co).length:
 				self.parent_pt.children[index] = None
+				self.parent_pt.isParent = self.parent_pt.hasChildren()
+				
 				self.parent_pt = par_pt.prev
 				self.parent_pt.children[index] = self
+				self.parent_pt.isParent = True
 				return
 	
 	def checkPointList(self):
@@ -1128,7 +1132,8 @@ PREFS = {}
 PREFS['connect_sloppy'] = Draw.Create(1.0)
 PREFS['connect_base_trim'] = Draw.Create(1.0)
 PREFS['seg_density'] = Draw.Create(0.2)
-PREFS['seg_joint_compression'] = Draw.Create(2.0)
+PREFS['seg_joint_compression'] = Draw.Create(1.0)
+PREFS['seg_joint_smooth'] = Draw.Create(2.0)
 PREFS['image_main'] = Draw.Create('')
 PREFS['do_uv'] = Draw.Create(1)
 PREFS['do_subsurf'] = Draw.Create(1)
@@ -1136,7 +1141,7 @@ PREFS['do_uv_scalewidth'] = Draw.Create(1)
 PREFS['do_armature'] = Draw.Create(1)
 
 GLOBAL_PREFS = {}
-
+	
 
 
 def buildTree(ob):
@@ -1160,6 +1165,7 @@ def buildTree(ob):
 	
 	t = tree()
 	t.fromCurve(ob)
+	#print t
 	t.buildConnections(\
 		sloppy = PREFS['connect_sloppy'].val,\
 		base_trim = PREFS['connect_base_trim'].val\
@@ -1167,7 +1173,8 @@ def buildTree(ob):
 	
 	t.optimizeSpacing(\
 		density=PREFS['seg_density'].val,\
-		joint_compression = PREFS['seg_joint_compression'].val\
+		joint_compression = PREFS['seg_joint_compression'].val,\
+		joint_smooth = PREFS['seg_joint_smooth'].val\
 	)
 	
 	if not ob_mesh:
@@ -1191,7 +1198,7 @@ def buildTree(ob):
 	ob_mesh.setMatrix(Blender.Mathutils.Matrix())
 	
 	mesh = t.toMesh(mesh,\
-		do_uvmap = PREFS['do_uv'],\
+		do_uvmap = PREFS['do_uv'].val,\
 		uv_image = image,\
 		do_uv_scalewidth = PREFS['do_uv_scalewidth'].val\
 	)
@@ -1268,13 +1275,19 @@ def gui():
 	xtmp = x
 	# ---------- ---------- ---------- ----------
 	
-	PREFS['seg_density'] =	Draw.Number('Segment Spacing',EVENT_REDRAW, xtmp, y, but_width*4, but_height, PREFS['seg_density'].val,	0.05, 10.0,	'Collapse points below this distance'); xtmp += but_width*4;
+	PREFS['seg_density'] =	Draw.Number('Segment Spacing',EVENT_REDRAW, xtmp, y, but_width*4, but_height, PREFS['seg_density'].val,	0.05, 10.0,	'Scale the limit points collapse, that are closer then the branch width'); xtmp += but_width*4;
 	
 	y-=but_height
 	xtmp = x
 	# ---------- ---------- ---------- ----------
 	
 	PREFS['seg_joint_compression'] =	Draw.Number('Joint Width',	EVENT_NONE, xtmp, y, but_width*4, but_height, PREFS['seg_joint_compression'].val,	0.1, 2.0,	'Edge loop spacing around branch join, lower value for less webed joins'); xtmp += but_width*4;
+	
+	y-=but_height
+	xtmp = x
+	# ---------- ---------- ---------- ----------
+	
+	PREFS['seg_joint_smooth'] =	Draw.Number('Joint Smooth',	EVENT_NONE, xtmp, y, but_width*4, but_height, PREFS['seg_joint_smooth'].val,	0.0, 1.0,	'Edge loop spacing around branch join, lower value for less webed joins'); xtmp += but_width*4;
 	
 	y-=but_height
 	xtmp = x
