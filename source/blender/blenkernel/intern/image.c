@@ -71,6 +71,8 @@
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
+#include "BIF_editseq.h"
+
 #include "PIL_time.h"
 
 #include "RE_pipeline.h"
@@ -777,7 +779,7 @@ void BKE_add_image_extension(char *string, int imtype)
 	strcat(string, extension);
 }
 
-/* could allow access externally */
+/* could allow access externally - 512 is for long names, 64 is for id names */
 typedef struct StampData {
 	char 	file[512];
 	char 	note[512];
@@ -785,8 +787,9 @@ typedef struct StampData {
 	char 	marker[512];
 	char 	time[512];
 	char 	frame[512];
-	char 	camera[512];
-	char 	scene[512];
+	char 	camera[64];
+	char 	scene[64];
+	char 	strip[64];
 } StampData;
 
 static void stampdata(StampData *stamp_data, int do_prefix)
@@ -800,8 +803,13 @@ static void stampdata(StampData *stamp_data, int do_prefix)
 	char sdate[9];
 #endif /* WIN32 */
 	
-	if (do_prefix)		sprintf(stamp_data->file, "File %s", G.sce);
-	else				sprintf(stamp_data->file, "%s", G.sce);
+	if (G.scene->r.stamp & R_STAMP_FILENAME) {
+		if (do_prefix)		sprintf(stamp_data->file, "File %s", G.sce);
+		else				sprintf(stamp_data->file, "%s", G.sce);
+		stamp_data->note[0] = '\0';
+	} else {
+		stamp_data->file[0] = '\0';
+	}
 	
 	if (G.scene->r.stamp & R_STAMP_NOTE) {
 		if (do_prefix)		sprintf(stamp_data->note, "Note %s", G.scene->r.stamp_udata);
@@ -886,6 +894,18 @@ static void stampdata(StampData *stamp_data, int do_prefix)
 	} else {
 		stamp_data->scene[0] = '\0';
 	}
+	
+	if (G.scene->r.stamp & R_STAMP_SEQSTRIP) {
+		Sequence *seq = get_forground_frame_seq(CFRA);
+	
+		if (seq) strcpy(text, seq->name+2);
+		else 		strcpy(text, "<none>");
+		
+		if (do_prefix)		sprintf(stamp_data->strip, "Strip %s", text);
+		else				sprintf(stamp_data->strip, "%s", text);
+	} else {
+		stamp_data->strip[0] = '\0';
+	}
 }
 
 void BKE_stamp_buf(unsigned char *rect, float *rectf, int width, int height)
@@ -929,11 +949,11 @@ void BKE_stamp_buf(unsigned char *rect, float *rectf, int width, int height)
 	above and below as padding against their backing rectangles */
 	text_pad = BMF_GetStringWidth(font, " ");
 	
-
+	x = 1; /* Inits for everyone, text position, so 1 for padding, not 0 */
+	y = height - font_height - 1; /* Also inits for everyone, notice padding pixel */
+	
 	if (stamp_data.file[0]) {
 		/* Top left corner */
-		x = 1; /* Inits for everyone, text position, so 1 for padding, not 0 */
-		y = height - font_height - 1; /* Also inits for everyone, notice padding pixel */
 		text_width = BMF_GetStringWidth(font, stamp_data.file);
 		buf_rectfill_area(rect, rectf, width, height, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
 		BMF_DrawStringBuf(font, stamp_data.file, x+(text_pad/2), y, G.scene->r.fg_stamp, rect, rectf, width, height);
@@ -1000,8 +1020,17 @@ void BKE_stamp_buf(unsigned char *rect, float *rectf, int width, int height)
 		buf_rectfill_area(rect, rectf, width, height, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
 		BMF_DrawStringBuf(font, stamp_data.scene, x+(text_pad/2), y, G.scene->r.fg_stamp, rect, rectf, width, height);
 	}
+	
+	if (stamp_data.strip[0]) {
+		text_width = BMF_GetStringWidth(font, stamp_data.strip);
+		/* Top right corner */
+		x = width - (text_width+1+text_pad);
+		y = height - font_height - 1;
+		buf_rectfill_area(rect, rectf, width, height, G.scene->r.bg_stamp, x-1, y-1, x+text_width+text_pad+1, y+font_height+1);
+		BMF_DrawStringBuf(font, stamp_data.strip, x+(text_pad/2), y, G.scene->r.fg_stamp, rect, rectf, width, height);
+	}
+	
 }
-
 
 void BKE_stamp_info(struct ImBuf *ibuf)
 {
@@ -1020,6 +1049,7 @@ void BKE_stamp_info(struct ImBuf *ibuf)
 	if (stamp_data.frame[0])	IMB_imginfo_change_field (ibuf, "Frame",	stamp_data.frame);
 	if (stamp_data.camera[0])	IMB_imginfo_change_field (ibuf, "Camera",	stamp_data.camera);
 	if (stamp_data.scene[0])	IMB_imginfo_change_field (ibuf, "Scene",	stamp_data.scene);
+	if (stamp_data.strip[0])	IMB_imginfo_change_field (ibuf, "Strip",	stamp_data.strip);
 }
 
 int BKE_write_ibuf(ImBuf *ibuf, char *name, int imtype, int subimtype, int quality)

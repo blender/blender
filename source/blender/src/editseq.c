@@ -145,6 +145,27 @@ void clear_last_seq(Sequence *seq)
 	_last_seq_init = 0;
 }
 
+Sequence *get_forground_frame_seq(int frame)
+{
+	Editing *ed;
+	Sequence *seq, *best_seq=NULL;
+	int best_machine = -1;
+	ed= G.scene->ed;
+	if(!ed) return NULL;
+	
+	for (seq=ed->seqbasep->first; seq; seq= seq->next) {
+		if(seq->startdisp > frame || seq->enddisp <= frame)
+			continue;
+		/* only use elements you can see - not */
+		if (ELEM6(seq->type, SEQ_IMAGE, SEQ_META, SEQ_SCENE, SEQ_MOVIE, SEQ_MOVIE_AND_HD_SOUND, SEQ_COLOR)) {
+			if (seq->machine > best_machine) {
+				best_seq = seq;
+				best_machine = seq->machine;
+			}
+		}
+	}
+	return best_seq;
+}
 
 /* seq funcs's for transforming internally
  notice the difference between start/end and left/right.

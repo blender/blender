@@ -5195,7 +5195,7 @@ void weight_paint_buttons(uiBlock *block)
 	uiDefButS(block, ROW, B_DIFF, "Add",		250,152,60,17, &Gwp.mode, 1.0, 1.0, 0, 0, "Add the vertex colors");
 	uiDefButS(block, ROW, B_DIFF, "Sub",		250,134,60,17, &Gwp.mode, 1.0, 2.0, 0, 0, "Subtract from the vertex color");
 	uiDefButS(block, ROW, B_DIFF, "Mul",		250,116,60,17, &Gwp.mode, 1.0, 3.0, 0, 0, "Multiply the vertex color");
-	uiDefButS(block, ROW, B_DIFF, "Filter",		250, 98,60,17, &Gwp.mode, 1.0, 4.0, 0, 0, "Mix the colors with an alpha factor");
+	uiDefButS(block, ROW, B_DIFF, "Blur",		250, 98,60,17, &Gwp.mode, 1.0, 4.0, 0, 0, "Blur the weight with surrounding values");
 	uiDefButS(block, ROW, B_DIFF, "Lighter",	250, 80,60,17, &Gwp.mode, 1.0, 5.0, 0, 0, "Paint over darker areas only");
 	uiDefButS(block, ROW, B_DIFF, "Darker",		250, 62,60,17, &Gwp.mode, 1.0, 6.0, 0, 0, "Paint over lighter areas only");
 	uiBlockEndAlign(block);
@@ -5260,7 +5260,7 @@ static void editing_panel_mesh_paint(void)
 		uiDefButS(block, ROW, B_DIFF, "Add",			1212,152,63,17, &Gvp.mode, 1.0, 1.0, 0, 0, "Add the vertex color");
 		uiDefButS(block, ROW, B_DIFF, "Sub",			1212, 134,63,17, &Gvp.mode, 1.0, 2.0, 0, 0, "Subtract from the vertex color");
 		uiDefButS(block, ROW, B_DIFF, "Mul",			1212, 116,63,17, &Gvp.mode, 1.0, 3.0, 0, 0, "Multiply the vertex color");
-		uiDefButS(block, ROW, B_DIFF, "Filter",			1212, 98,63,17, &Gvp.mode, 1.0, 4.0, 0, 0, "Mix the colors with an alpha factor");
+		uiDefButS(block, ROW, B_DIFF, "Blur",			1212, 98,63,17, &Gvp.mode, 1.0, 4.0, 0, 0, "Blur the color with surrounding values");
 		uiDefButS(block, ROW, B_DIFF, "Lighter",		1212, 80,63,17, &Gvp.mode, 1.0, 5.0, 0, 0, "Paint over darker areas only");
 		uiDefButS(block, ROW, B_DIFF, "Darker",			1212, 62,63,17, &Gvp.mode, 1.0, 6.0, 0, 0, "Paint over lighter areas only");
 		uiBlockEndAlign(block);

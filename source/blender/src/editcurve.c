@@ -1212,7 +1212,7 @@ void smoothradiusNurb( void )
 							end_rad = (nu->bezt+end_sel+1)->radius;
 						}
 						
-						/* Now Blend between the 2 points */
+						/* Now Blend between the points */
 						range = (float)(end_sel - start_sel) + 2.0f;
 						for(bezt=nu->bezt+start_sel, a=start_sel; a<=end_sel; a++, bezt++) {
 							fac = (float)(1+a-start_sel) / range;
@@ -1274,7 +1274,7 @@ void smoothradiusNurb( void )
 							end_rad = (nu->bp+end_sel+1)->radius;
 						}
 						
-						/* Now Blend between the 2 points */
+						/* Now Blend between the points */
 						range = (float)(end_sel - start_sel) + 2.0f;
 						for(bp=nu->bp+start_sel, a=start_sel; a<=end_sel; a++, bp++) {
 							fac = (float)(1+a-start_sel) / range;

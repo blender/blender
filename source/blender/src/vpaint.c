@@ -110,7 +110,7 @@
 #define MAXINDEX	512000
 
 VPaint Gvp= {1.0, 1.0, 1.0, 0.2, 25.0, 1.0, 1.0, 0, VP_AREA+VP_SOFT+VP_SPRAY, 0};
-VPaint Gwp= {1.0, 1.0, 1.0, 0.2, 25.0, 1.0, 1.0, 0, VP_AREA+VP_SOFT, 0};
+VPaint Gwp= {1.0, 1.0, 1.0, 1.0, 25.0, 1.0, 1.0, 0, VP_AREA+VP_SOFT, 0};
 
 static int *get_indexarray(void)
 {
