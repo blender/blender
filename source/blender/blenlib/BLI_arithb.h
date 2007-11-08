@@ -373,7 +373,7 @@ typedef struct DualQuat {
 void Mat4ToDQuat(float basemat[][4], float mat[][4], DualQuat *dq);
 void DQuatToMat4(DualQuat *dq, float mat[][4]);
 void DQuatAddWeighted(DualQuat *dqsum, DualQuat *dq, float weight);
-void DQuatNormalize(DualQuat *dq, float totweight, float factor);
+void DQuatNormalize(DualQuat *dq, float totweight);
 void DQuatMulVecfl(DualQuat *dq, float *co, float mat[][3]);
 void DQuatCpyDQuat(DualQuat *dq1, DualQuat *dq2);
 			  

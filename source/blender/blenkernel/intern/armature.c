@@ -969,7 +969,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 		/* actually should be EPSILON? weight values and contrib can be like 10e-39 small */
 		if(contrib > 0.0001f) {
 			if(use_quaternion) {
-				DQuatNormalize(dq, contrib, armature_weight);
+				DQuatNormalize(dq, contrib);
 
 				if(armature_weight != 1.0f) {
 					VECCOPY(dco, co);
