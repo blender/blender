@@ -540,9 +540,9 @@ class tree:
 		
 		return self.mesh
 
-	def toArmature(self, armature):
-		armature.drawType = Blender.Armature.STICK
+	def toArmature(self, ob_arm, armature):
 		
+		armature.drawType = Blender.Armature.STICK
 		armature.makeEditable() # enter editmode
 		
 		# Assume toMesh has run
@@ -550,57 +550,99 @@ class tree:
 		for bonename in armature.bones.keys():
 			del armature.bones[bonename]
 		
+		
+		group_names = []
+		
 		for i, brch in enumerate(self.branches_all):
 			
 			# get a list of parent points to make into bones. use parents and endpoints
 			bpoints_parent = [pt for pt in brch.bpoints if pt.isParent or pt.prev == None or pt.next == None]
-			bone_last = None
+			bpbone_last = None
 			for j in xrange(len(bpoints_parent)-1):
-				bone = Blender.Armature.Editbone() # automatically added to the armature
-				self.armature.bones['%i_%i' % (i,j)] = bone
-				bpoints_parent[j].blender_bone = bone
-				bone.head = bpoints_parent[j].co
-				bone.head = bpoints_parent[j].co
-				bone.tail = bpoints_parent[j+1].co
+				
+				# bone container class
+				bpoints_parent[j].bpbone = bpbone = bpoint_bone()
+				bpbone.name = '%i_%i' % (i,j) # must be unique
+				group_names.append(bpbone.name)
+				
+				bpbone.editbone = Blender.Armature.Editbone() # automatically added to the armature
+				self.armature.bones[bpbone.name] = bpbone.editbone
+				
+				bpbone.editbone.head = bpoints_parent[j].co
+				bpbone.editbone.head = bpoints_parent[j].co
+				bpbone.editbone.tail = bpoints_parent[j+1].co
 				
 				# parent the chain.
-				if bone_last:
-					bone.parent = bone_last
-					bone.options = [Blender.Armature.CONNECTED]
+				if bpbone_last:
+					bpbone.editbone.parent = bpbone_last.editbone
+					bpbone.editbone.options = [Blender.Armature.CONNECTED]
 				
-				bone_last = bone
-		
+				bpbone_last = bpbone
 		
 		for brch in self.branches_all:
 			if brch.parent_pt: # We must have a parent
 				
 				# find the bone in the parent chain to use for the parent of this
 				parent_pt = brch.parent_pt
-				parent_bone = None
+				bpbone_parent = None
 				while parent_pt:
-					parent_bone = parent_pt.blender_bone
-					if parent_bone:
+					bpbone_parent = parent_pt.bpbone
+					if bpbone_parent:
 						break
 					
 					parent_pt = parent_pt.prev
 				
-				# in rare cases this may not work. should be verry rare but check anyway.
-				if parent_bone:
-					brch.bpoints[0].blender_bone.parent = parent_bone
-				else:
-					print 'this is really odd... look into the bug.'
 				
+				if bpbone_parent:
+					brch.bpoints[0].bpbone.editbone.parent = bpbone_parent.editbone
+				else: # in rare cases this may not work. should be verry rare but check anyway.
+					print 'this is really odd... look into the bug.'
 		
 		self.armature.update() # exit editmode
+		
+		# Skin the mesh
+		if self.mesh:
+			for group in group_names:
+				self.mesh.addVertGroup(group)
+		
+		for brch in self.branches_all:
+			
+			
+			vertList = []
+			group = '' # dummy
+			
+			for pt in brch.bpoints:
+				if pt.bpbone:
+					if vertList:
+						self.mesh.assignVertsToGroup(group, vertList, 1.0, Blender.Mesh.AssignModes.ADD)
+					
+					vertList = []
+					group = pt.bpbone.name
+				
+				vertList.extend( [v.index for v in pt.verts] )
+			
+			if vertList:
+				self.mesh.assignVertsToGroup(group, vertList, 1.0, Blender.Mesh.AssignModes.ADD)
+			
+			
+		
+		
+		
 		return self.armature
-		
-		
 
 zup = Vector(0,0,1)
 
-class bpoint:
+class bpoint_bone:
+	def __init__(self):
+		self.name = None
+		self.editbone = None
+		self.blenbone = None
+		self.posebone = None
+
+class bpoint(object):
 	''' The point in the middle of the branch, not the mesh points
 	'''
+	__slots__ = 'branch', 'co', 'no', 'radius', 'vecs', 'verts', 'children', 'faces', 'next', 'prev', 'isParent', 'bpbone', 'roll_angle', 'nextMidCo', 'childrenMidCo', 'childrenMidRadius', 'targetCos'
 	def __init__(self, brch, co, no, radius):
 		self.branch = brch
 		self.co = co
@@ -613,7 +655,7 @@ class bpoint:
 		self.next = None
 		self.prev = None
 		self.isParent = False
-		self.blender_bone = None
+		self.bpbone = None # bpoint_bone instance
 		
 		# when set, This is the angle we need to roll to best face our branches
 		# the roll that is set may be interpolated if we are between 2 branches that need to roll.
@@ -1252,9 +1294,7 @@ def buildTree(ob):
 		# New object
 		mesh = bpy.data.meshes.new('tree_' + ob.name)
 		ob_mesh = newCurveChild(mesh)
-		# Do subsurf?
-		if PREFS['seg_density'].val:
-			mod = ob_mesh.modifiers.append(Blender.Modifier.Types.SUBSURF)
+		# do subsurf later
 		
 	else:
 		# Existing object
@@ -1281,9 +1321,23 @@ def buildTree(ob):
 			armature = bpy.data.armatures.new()
 			ob_arm = newCurveChild(armature)
 		
-		t.toArmature(armature)
-		
-
+		t.toArmature(ob_arm, armature)
+		# Add the modifier.
+		mod = ob_mesh.modifiers.append(Blender.Modifier.Types.ARMATURE)
+		mod[Blender.Modifier.Settings.OBJECT] = ob_arm
+	
+	
+	
+	# Add subsurf last it needed. so armature skinning is done first.
+	# Do subsurf?
+	if PREFS['seg_density'].val:
+		if not [mod for mod in ob_mesh.modifiers if mod.type == Blender.Modifier.Types.SUBSURF]:
+			mod = ob_mesh.modifiers.append(Blender.Modifier.Types.SUBSURF)
+			
+	#ob_mesh.makeDisplayList()
+	#mesh.update()
+	bpy.data.scenes.active.update()
+	
 def Prefs2IDProp(idprop, prefs):
 	pass
 	
@@ -1403,7 +1457,7 @@ def gui():
 	# ---------- ---------- ---------- ----------
 	
 	
-	PREFS['do_armature'] =	Draw.Toggle('Generate Armature',	EVENT_NONE, xtmp, y, but_width*2, but_height, PREFS['do_armature'].val,	'Generate Armatuer'); xtmp += but_width*2;
+	PREFS['do_armature'] =	Draw.Toggle('Generate Armature & Skin Mesh',	EVENT_NONE, xtmp, y, but_width*4, but_height, PREFS['do_armature'].val,	'Generate Armatuer'); xtmp += but_width*4;
 	
 	y-=but_height+MARGIN
 	xtmp = x
