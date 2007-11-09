@@ -76,12 +76,7 @@ class tree:
 		for spline in curve:
 			brch = branch()
 			self.branches_all.append(brch)
-			
-			for bez in spline:
-				# calc normal vector later
-				pt = bpoint(brch, Vector(bez.vec[1]), Vector(), bez.radius * self.limbScale)
-				brch.bpoints.append( pt )
-		
+			brch.bpoints = [ bpoint(brch, Vector(bez.vec[1]), Vector(), bez.radius * self.limbScale) for bez in spline ]
 		
 		# Get the curve as a mesh. - for inbetween points
 		tmpme = bpy.data.meshes.new()	
@@ -108,7 +103,7 @@ class tree:
 		# TEMP FOR TESTING
 		# bpy.data.scenes.active.objects.new(tmpme)
 		
-		vecs = [ v.co for v in tmpme.verts ]
+		vecs = [ tuple(v.co) for v in tmpme.verts ]
 		del tmpme
 		
 		# for branch
@@ -123,10 +118,10 @@ class tree:
 				start = end = None
 				for j, co in enumerate(vecs):
 					if start == None:
-						if (co-start_pt.co).length < eul:
+						if abs(co[0]-start_pt.co[0]) < eul and abs(co[1]-start_pt.co[1]) < eul and abs(co[2]-start_pt.co[2]) < eul:
 							start = j
 					if end == None:
-						if (co-end_pt.co).length < eul:
+						if abs(co[0]-end_pt.co[0]) < eul and abs(co[1]-end_pt.co[1]) < eul and abs(co[2]-end_pt.co[2]) < eul:
 							end = j
 					if start != None and end != None:
 						break
@@ -345,6 +340,8 @@ class tree:
 		if mesh:
 			self.mesh = mesh
 			mesh.verts = None
+			for group in mesh.getVertGroupNames():
+				mesh.removeVertGroup(group) 
 		else:
 			self.mesh = bpy.data.meshes.new()
 		
@@ -1214,28 +1211,34 @@ class branch:
 			pt.applyTargetLocation()
 	
 	def collapsePoints(self, density, smooth_joint=1.0):
+		
+		# to avoid an overcomplex UI, just use this value when checking if these can collapse
+		HARD_CODED_RADIUS_DIFFERENCE_LIMIT = 0.3
+		HARD_CODED_ANGLE_DIFFERENCE_LIMIT = 20
+		
 		collapse = True
 		while collapse:
 			collapse = False
 			
 			pt = self.bpoints[0]
 			while pt:
-				
 				if pt.prev and pt.next and not pt.prev.isParent:
-					if (pt.prev.nextMidCo-pt.co).length < ((pt.radius + pt.prev.radius)/2) * density:
-						pt_save = pt.prev
-						if pt.next.collapseUp(): # collapse this point
-							collapse = True
-							pt = pt_save # so we never reference a removed point
+					if abs(pt.radius - pt.prev.radius) / (pt.radius + pt.prev.radius) < HARD_CODED_RADIUS_DIFFERENCE_LIMIT:
+						if AngleBetweenVecs(pt.no, pt.prev.no) < HARD_CODED_ANGLE_DIFFERENCE_LIMIT:
+							if (pt.prev.nextMidCo-pt.co).length < ((pt.radius + pt.prev.radius)/2) * density:
+								pt_save = pt.prev
+								if pt.next.collapseUp(): # collapse this point
+									collapse = True
+									pt = pt_save # so we never reference a removed point
 				
-				if not pt.isParent: #if pt.childrenMidCo == None:
-					# Collapse, if tehre is any problems here we can move into a seperate losop.
-					# do here because we only want to run this on points with no childzren,
-					
-					# Are we closer theto eachother then the radius?
-					if pt.next and (pt.nextMidCo-pt.co).length < ((pt.radius + pt.next.radius)/2) * density:
-						if pt.collapseDown():
-							collapse = True
+				if not pt.isParent and pt.next: #if pt.childrenMidCo == None:
+					if abs(pt.radius - pt.next.radius) / (pt.radius + pt.next.radius) < HARD_CODED_RADIUS_DIFFERENCE_LIMIT:
+						if AngleBetweenVecs(pt.no, pt.next.no) < HARD_CODED_ANGLE_DIFFERENCE_LIMIT:
+							# do here because we only want to run this on points with no children,
+							# Are we closer theto eachother then the radius?
+							if (pt.nextMidCo-pt.co).length < ((pt.radius + pt.next.radius)/2) * density:
+								if pt.collapseDown():
+									collapse = True
 				
 				pt = pt.next
 		## self.checkPointList()
@@ -1305,7 +1308,11 @@ class branch:
 			
 			p_link = p_link.next
 			i+=1
-
+	
+	def mixToNew(self, other):
+			pass
+		
+	
 	def toMesh(self):
 		pass
 
@@ -1400,7 +1407,7 @@ def IDProp2Prefs(idprop, prefs):
 	except:	return False
 	Dict2Prefs(prefs, PREFS)
 	return True
-	
+
 
 
 
@@ -1594,7 +1601,7 @@ def do_active_image(e,v):
 		PREFS['image_main'].val = ''
 
 # Button callbacks
-def do_tree_generate(e,v):
+def do_tree_generate__real():
 	sce = bpy.data.scenes.active
 	objects = getContextCurveObjects()
 	
@@ -1613,6 +1620,26 @@ def do_tree_generate(e,v):
 	
 	Blender.Window.RedrawAll()
 
+
+# Profile
+# Had to do this to get it to work in ubuntu "sudo aptitude install python-profiler"
+'''
+import hotshot
+import profile
+from hotshot import stats
+'''
+def do_tree_generate(e,v):
+	
+	do_tree_generate__real()
+	'''
+	prof = hotshot.Profile("hotshot_edi_stats")
+	prof.runcall(do_tree_generate__real)
+	prof.close()
+	s = stats.load("hotshot_edi_stats")
+	s.sort_stats("time").print_stats()
+	'''
+	
+	
 def evt(e,val):
 	pass
 
