@@ -624,10 +624,14 @@ class tree:
 		
 		return self.armature
 	
-	def toAction(self, ob_arm, texture):
+	def toAction(self, ob_arm, texture, anim_speed=1.0, anim_magnitude=1.0, anim_speed_size_scale=True):
 		# Assume armature
-		action = bpy.data.actions.new()
-		ob_arm.action = action
+		action = ob_arm.action
+		if not action:
+			action = bpy.data.actions.new()
+			action.fakeUser = False # so we dont get masses of bad data
+			ob_arm.action = action
+		
 		# Blender.Armature.NLA.ob_arm.
 		pose = ob_arm.getPose()
 		
@@ -639,8 +643,21 @@ class tree:
 		ipo_dict = action.getAllChannelIpos()
 		# print ipo_dict
 		
+		# Sicne its per frame, it increases very fast. scale it down a bit
+		anim_speed = anim_speed/10
+		
+		anim_speed_final = anim_speed
 		# Assign drivers to them all
 		for name, ipo in ipo_dict.iteritems():
+			tex_str = 'b.Texture.Get("%s")' % texture.name
+			
+			if anim_speed_size_scale:
+				# Adjust the speed by the bone size.
+				# get the point from the name. a bit ugly but works fine ;) - Just dont mess the index up!
+				lookup = [int(val) for val in name.split('_')]
+				pt = self.branches_all[ lookup[0] ].bpoints[ lookup[1] ]
+				anim_speed_final = anim_speed / (1+pt.radius)
+			
 			#for cu in ipo:
 			#	#cu.delBezier(0) 
 			#	#cu.driver = 2 # Python expression
@@ -648,21 +665,20 @@ class tree:
 			cu = ipo[Blender.Ipo.PO_QUATX]
 			cu.delBezier(0) 
 			cu.driver = 2 # Python expression
-			cu.driverExpression = '(b.Texture.Get("' + texture.name + '").evaluate(b.Mathutils.Vector(b.Get("curframe")/20.0, 0, 0)).w-0.5)/3'
-			
+			cu.driverExpression = '(%s.evaluate((b.Get("curframe")*%.3f,0,0)).w-0.5)*%.3f' % (tex_str, anim_speed_final, anim_magnitude)
 			
 			cu = ipo[Blender.Ipo.PO_QUATY]
 			cu.delBezier(0) 
 			cu.driver = 2 # Python expression
-			cu.driverExpression = '(b.Texture.Get("' + texture.name + '").evaluate(b.Mathutils.Vector(0,b.Get("curframe")/20.0, 0)).w-0.5)/3'
+			cu.driverExpression = '(%s.evaluate((0,b.Get("curframe")*%.3f,0)).w-0.5)*%.3f' % (tex_str, anim_speed_final, anim_magnitude)
 			
 			cu = ipo[Blender.Ipo.PO_QUATZ]
 			cu.delBezier(0) 
 			cu.driver = 2 # Python expression
-			cu.driverExpression = '(b.Texture.Get("' + texture.name + '").evaluate(b.Mathutils.Vector(0,0,b.Get("curframe")/20.0)).w-0.5)/3'
+			cu.driverExpression = '(%s.evaluate(0,0,(b.Get("curframe")*%.3f)).w-0.5)*%.3f' % (tex_str, anim_speed_final, anim_magnitude)
 			
 			
-			
+			#(%s.evaluate((b.Get("curframe")*%.3f,0,0)).w-0.5)*%.3f
 		
 		
 zup = Vector(0,0,1)
@@ -1277,6 +1293,10 @@ PREFS['do_anim'] = Draw.Create(1)
 try:		PREFS['anim_tex'] = Draw.Create([tex for tex in bpy.data.textures][0].name)
 except:		PREFS['anim_tex'] = Draw.Create('')
 
+PREFS['anim_speed'] = Draw.Create(0.2)
+PREFS['anim_magnitude'] = Draw.Create(0.2)
+PREFS['anim_speed_size_scale'] = Draw.Create(1)
+
 GLOBAL_PREFS = {}
 	
 
@@ -1380,10 +1400,10 @@ def buildTree(ob):
 				Blender.Draw.PupMenu('error no texture, cannot animate bones')
 			
 			if tex:
-				t.toAction(ob_arm, tex)
-		
-		
-		
+				t.toAction(ob_arm, tex,\
+						anim_speed = PREFS['anim_speed'].val,\
+						anim_magnitude = PREFS['anim_magnitude'].val,\
+						anim_speed_size_scale= PREFS['anim_speed_size_scale'])
 	
 	# Add subsurf last it needed. so armature skinning is done first.
 	# Do subsurf?
@@ -1527,25 +1547,31 @@ def gui():
 	xtmp = x
 	# ---------- ---------- ---------- ----------
 	if PREFS['do_armature'].val:
-		PREFS['do_anim'] =	Draw.Toggle('Texture Anim',	EVENT_NONE, xtmp, y, but_width*2, but_height, PREFS['do_anim'].val,	'Use a texture to animate the bones'); xtmp += but_width*2;
+		PREFS['do_anim'] =	Draw.Toggle('Texture Anim',	EVENT_REDRAW, xtmp, y, but_width*2, but_height, PREFS['do_anim'].val,	'Use a texture to animate the bones'); xtmp += but_width*2;
 		
-		PREFS['anim_tex'] =	Draw.String('TEX: ',	EVENT_NONE, xtmp, y, but_width*2, but_height, PREFS['anim_tex'].val, 64,	'Texture to use for the IPO Driver animation', do_tex_check); xtmp += but_width*2;
-		
-		y-=but_height+MARGIN
-		xtmp = x
+		if PREFS['do_anim'].val:
+			
+			PREFS['anim_tex'] =	Draw.String('TEX: ',	EVENT_NONE, xtmp, y, but_width*2, but_height, PREFS['anim_tex'].val, 64,	'Texture to use for the IPO Driver animation', do_tex_check); xtmp += but_width*2;
+			y-=but_height
+			xtmp = x		
+			# ---------- ---------- ---------- ----------
+			
+			PREFS['anim_speed'] =		Draw.Number('Speed',	EVENT_NONE, xtmp, y, but_width*2, but_height, PREFS['anim_speed'].val,	0.001, 10.0,	'Animate the movement faster with a higher value'); xtmp += but_width*2;
+			PREFS['anim_magnitude'] =	Draw.Number('Magnitude',	EVENT_NONE, xtmp, y, but_width*2, but_height, PREFS['anim_magnitude'].val,	0.001, 10.0,	'Animate with more motion with a higher value'); xtmp += but_width*2;
+			y-=but_height
+			xtmp = x
+			# ---------- ---------- ---------- ----------
+			
+			PREFS['anim_speed_size_scale'] =	Draw.Toggle('Branch Size Scales Speed',	EVENT_NONE, xtmp, y, but_width*4, but_height, PREFS['anim_speed_size_scale'].val,	'Use the branch size as a factor when calculating speed'); xtmp += but_width*4;
+			
 	
-	
-	
-	
+	y-=but_height+MARGIN
+	xtmp = x
 	
 	
 	Draw.PushButton('Exit',	EVENT_EXIT, xtmp, y, but_width*2, but_height,	'', do_active_image); xtmp += but_width*2;
 	Draw.PushButton('Generate',	EVENT_REDRAW, xtmp, y, but_width*2, but_height,	'Generate mesh', do_tree_generate); xtmp += but_width*2;
-		
-	# PREFS['do_uv_scalewidth'] =		Draw.Number('Scale:',	EVENT_NONE, x+20, y+120, but_width, but_height, PREFS['do_uv_scalewidth'].val,	0.01, 1000.0, 'Scale all data, (Note! some imports dont support scaled armatures)')
-	
-	#v = Draw.Toggle('UVs',	EVENT_NONE, x, y, 60, 20, v.val,		'Calculate UVs coords')
-	
+
 
 if __name__ == '__main__':
 	Draw.Register(gui, evt, bevt)

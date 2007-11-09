@@ -480,7 +480,7 @@ class Texture:
 		
 		The return value is a 4D vector where (x,y,z,w) are (red, green, blue, intensity)
 		For greyscale textures, often intensity only will be used.
-		@type coord: vector
+		@type coord: vector or tuple of 3 numbers
 		"""
 		
 import id_generics
