@@ -1999,6 +1999,21 @@ static void where_is_pose_bone(Object *ob, bPoseChannel *pchan, float ctime)
 			
 			Mat4MulSerie(pchan->pose_mat, tmat, offs_bone, pchan->chan_mat, NULL, NULL, NULL, NULL, NULL);
 		}
+		else if(bone->flag & BONE_NO_SCALE) {
+			float orthmat[4][4], vec[3];
+			
+			/* get the official transform, but we only use the vector from it (optimize...) */
+			Mat4MulSerie(pchan->pose_mat, parchan->pose_mat, offs_bone, pchan->chan_mat, NULL, NULL, NULL, NULL, NULL);
+			VECCOPY(vec, pchan->pose_mat[3]);
+			
+			/* do this again, but with an ortho-parent matrix */
+			Mat4CpyMat4(orthmat, parchan->pose_mat);
+			Mat4Ortho(orthmat);
+			Mat4MulSerie(pchan->pose_mat, orthmat, offs_bone, pchan->chan_mat, NULL, NULL, NULL, NULL, NULL);
+			
+			/* copy correct transform */
+			VECCOPY(pchan->pose_mat[3], vec);
+		}
 		else 
 			Mat4MulSerie(pchan->pose_mat, parchan->pose_mat, offs_bone, pchan->chan_mat, NULL, NULL, NULL, NULL, NULL);
 	}

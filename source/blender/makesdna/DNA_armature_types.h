@@ -150,5 +150,7 @@ typedef struct bArmature {
 #define 	BONE_UNKEYED		8192
 			/* set to prevent hinge child bones from influencing the transform center */
 #define 	BONE_HINGE_CHILD_TRANSFORM 16384
+			/* No parent scale */
+#define		BONE_NO_SCALE		(1<<15)
 
 #endif

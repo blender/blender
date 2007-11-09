@@ -3839,10 +3839,11 @@ static void editing_panel_armature_bones(Object *ob, bArmature *arm)
 			uiDefButF(block, NUM,B_ARM_RECALCDATA, "Weight:", 225, by-19,105, 18, &curBone->weight, 0.0F, 1000.0F, 10.0F, 0.0F, "Bone deformation weight");
 
 			/* bone types */
-			uiDefButBitI(block, TOG, BONE_HINGE, B_ARM_RECALCDATA, "Hinge",		-10,by-38,85,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit rotation or scale from parent Bone");
-			uiDefButBitI(block, TOGN, BONE_NO_DEFORM, B_ARM_RECALCDATA, "Deform",	75, by-38, 85, 18, &curBone->flag, 0.0, 0.0, 0.0, 0.0, "Indicate if Bone deforms geometry");
-			uiDefButBitI(block, TOG, BONE_MULT_VG_ENV, B_ARM_RECALCDATA, "Mult", 160,by-38,85,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Multiply Bone Envelope with VertexGroup");
-			uiDefButBitI(block, TOG, BONE_HIDDEN_A, REDRAWVIEW3D, "Hide",	245,by-38,85,18, &curBone->flag, 0, 0, 0, 0, "Toggles display of this bone in Edit Mode");
+			uiDefButBitI(block, TOG, BONE_HINGE, B_ARM_RECALCDATA, "Hinge",		-10,by-38,80,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit rotation or scale from parent Bone");
+			uiDefButBitI(block, TOG, BONE_NO_SCALE, B_ARM_RECALCDATA, "S",		70,by-38,20,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit rotation or scale from parent Bone");
+			uiDefButBitI(block, TOGN, BONE_NO_DEFORM, B_ARM_RECALCDATA, "Deform",	90, by-38, 80, 18, &curBone->flag, 0.0, 0.0, 0.0, 0.0, "Indicate if Bone deforms geometry");
+			uiDefButBitI(block, TOG, BONE_MULT_VG_ENV, B_ARM_RECALCDATA, "Mult", 170,by-38,80,18, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Multiply Bone Envelope with VertexGroup");
+			uiDefButBitI(block, TOG, BONE_HIDDEN_A, REDRAWVIEW3D, "Hide",	250,by-38,80,18, &curBone->flag, 0, 0, 0, 0, "Toggles display of this bone in Edit Mode");
 			
 			/* layers */
 			uiBlockBeginAlign(block);
@@ -3934,11 +3935,12 @@ static void editing_panel_pose_bones(Object *ob, bArmature *arm)
 			uiDefButF(block, NUM,B_ARM_RECALCDATA, "Out:",		220, by-19, 110, 19, &curBone->ease2, 0.0, 2.0, 10.0, 0.0, "Second length of Bezier handle");
 			
 			/* bone types */
-			uiDefButBitI(block, TOG, BONE_HINGE, B_ARM_RECALCDATA, "Hinge", -10,by-38,80,19, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit rotation or scale from parent Bone");
-			uiDefButBitI(block, TOGN, BONE_NO_DEFORM, B_ARM_RECALCDATA, "Deform",	70, by-38, 80, 19, &curBone->flag, 0.0, 0.0, 0.0, 0.0, "Indicate if Bone deforms geometry");
-			uiDefButBitI(block, TOG, BONE_MULT_VG_ENV, B_ARM_RECALCDATA, "Mult", 150,by-38,80,19, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Multiply Bone Envelope with VertexGroup");
+			uiDefButBitI(block, TOG, BONE_HINGE, B_ARM_RECALCDATA, "Hinge",			-10,by-38,80,19, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit rotation or scale from parent Bone");
+			uiDefButBitI(block, TOG, BONE_NO_SCALE, B_ARM_RECALCDATA, "S",			70,by-38,20,19, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Don't inherit scale from parent Bone");
+			uiDefButBitI(block, TOGN, BONE_NO_DEFORM, B_ARM_RECALCDATA, "Deform",	90, by-38, 80, 19, &curBone->flag, 0.0, 0.0, 0.0, 0.0, "Indicate if Bone deforms geometry");
+			uiDefButBitI(block, TOG, BONE_MULT_VG_ENV, B_ARM_RECALCDATA, "Mult",	170,by-38,80,19, &curBone->flag, 1.0, 32.0, 0.0, 0.0, "Multiply Bone Envelope with VertexGroup");
 			ob_arm_bone_pchan_lock(ob, arm, curBone, pchan);
-			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, REDRAWVIEW3D, "OB:",	230,by-38,100,19, &pchan->custom, "Object that defines custom draw type for this Bone");
+			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, REDRAWVIEW3D, "OB:",		250,by-38,80,19, &pchan->custom, "Object that defines custom draw type for this Bone");
 			ob_arm_bone_pchan_lock(ob, arm, curBone, NULL);
 			
 			/* layers */
