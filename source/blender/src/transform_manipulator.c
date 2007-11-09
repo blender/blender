@@ -311,18 +311,22 @@ int calc_manipulator_stats(ScrArea *sa)
 						if( (bezt->f1 & SELECT) + (bezt->f2 & SELECT) + (bezt->f3 & SELECT) > SELECT ) {
 							calc_tw_center(bezt->vec[1]);
 							totsel++;
+							VecSubf(normal, bezt->vec[0], bezt->vec[2]);
 						}
 						else {
 							if(bezt->f1) {
 								calc_tw_center(bezt->vec[0]);
+								VecSubf(normal, bezt->vec[0], bezt->vec[1]);
 								totsel++;
 							}
 							if(bezt->f2) {
 								calc_tw_center(bezt->vec[1]);
+								VecSubf(normal, bezt->vec[0], bezt->vec[2]);
 								totsel++;
 							}
 							if(bezt->f3) {
 								calc_tw_center(bezt->vec[2]);
+								VecSubf(normal, bezt->vec[1], bezt->vec[2]);
 								totsel++;
 							}
 						}
