@@ -606,8 +606,6 @@ class tree:
 				self.mesh.addVertGroup(group)
 		
 		for brch in self.branches_all:
-			
-			
 			vertList = []
 			group = '' # dummy
 			
@@ -623,13 +621,50 @@ class tree:
 			
 			if vertList:
 				self.mesh.assignVertsToGroup(group, vertList, 1.0, Blender.Mesh.AssignModes.ADD)
-			
-			
-		
-		
 		
 		return self.armature
-
+	
+	def toAction(self, ob_arm, texture):
+		# Assume armature
+		action = bpy.data.actions.new()
+		ob_arm.action = action
+		# Blender.Armature.NLA.ob_arm.
+		pose = ob_arm.getPose()
+		
+		for pose_bone in pose.bones.values():
+			pose_bone.insertKey(ob_arm, 0, [Blender.Object.Pose.ROT], True)
+		
+		# Now get all the IPO's
+		
+		ipo_dict = action.getAllChannelIpos()
+		# print ipo_dict
+		
+		# Assign drivers to them all
+		for name, ipo in ipo_dict.iteritems():
+			#for cu in ipo:
+			#	#cu.delBezier(0) 
+			#	#cu.driver = 2 # Python expression
+			#	#cu.driverExpression = 'b.Get("curframe")/100.0'
+			cu = ipo[Blender.Ipo.PO_QUATX]
+			cu.delBezier(0) 
+			cu.driver = 2 # Python expression
+			cu.driverExpression = '(b.Texture.Get("' + texture.name + '").evaluate(b.Mathutils.Vector(b.Get("curframe")/20.0, 0, 0)).w-0.5)/3'
+			
+			
+			cu = ipo[Blender.Ipo.PO_QUATY]
+			cu.delBezier(0) 
+			cu.driver = 2 # Python expression
+			cu.driverExpression = '(b.Texture.Get("' + texture.name + '").evaluate(b.Mathutils.Vector(0,b.Get("curframe")/20.0, 0)).w-0.5)/3'
+			
+			cu = ipo[Blender.Ipo.PO_QUATZ]
+			cu.delBezier(0) 
+			cu.driver = 2 # Python expression
+			cu.driverExpression = '(b.Texture.Get("' + texture.name + '").evaluate(b.Mathutils.Vector(0,0,b.Get("curframe")/20.0)).w-0.5)/3'
+			
+			
+			
+		
+		
 zup = Vector(0,0,1)
 
 class bpoint_bone:
@@ -1238,6 +1273,9 @@ PREFS['do_uv'] = Draw.Create(1)
 PREFS['do_subsurf'] = Draw.Create(1)
 PREFS['do_uv_scalewidth'] = Draw.Create(1)
 PREFS['do_armature'] = Draw.Create(1)
+PREFS['do_anim'] = Draw.Create(1)
+try:		PREFS['anim_tex'] = Draw.Create([tex for tex in bpy.data.textures][0].name)
+except:		PREFS['anim_tex'] = Draw.Create('')
 
 GLOBAL_PREFS = {}
 	
@@ -1265,6 +1303,10 @@ def buildTree(ob):
 		ob_new.setMatrix(Blender.Mathutils.Matrix())
 		ob_new.sel = 0
 		return ob_new
+	
+	def hasModifier(modtype):
+		return len([mod for mod in ob_mesh.modifiers if mod.type == modtype]) > 0
+			
 	
 	sce = bpy.data.scenes.active
 	
@@ -1322,16 +1364,31 @@ def buildTree(ob):
 			ob_arm = newCurveChild(armature)
 		
 		t.toArmature(ob_arm, armature)
+		
 		# Add the modifier.
-		mod = ob_mesh.modifiers.append(Blender.Modifier.Types.ARMATURE)
-		mod[Blender.Modifier.Settings.OBJECT] = ob_arm
-	
-	
+		if not hasModifier(Blender.Modifier.Types.ARMATURE):
+			mod = ob_mesh.modifiers.append(Blender.Modifier.Types.ARMATURE)
+			
+			# TODO - assigne object anyway, even if an existing modifier exists.
+			mod[Blender.Modifier.Settings.OBJECT] = ob_arm
+		
+		if PREFS['do_anim'].val:
+			try:
+				tex = bpy.data.textures[PREFS['anim_tex'].val]
+			except:
+				tex = None
+				Blender.Draw.PupMenu('error no texture, cannot animate bones')
+			
+			if tex:
+				t.toAction(ob_arm, tex)
+		
+		
+		
 	
 	# Add subsurf last it needed. so armature skinning is done first.
 	# Do subsurf?
 	if PREFS['seg_density'].val:
-		if not [mod for mod in ob_mesh.modifiers if mod.type == Blender.Modifier.Types.SUBSURF]:
+		if not hasModifier(Blender.Modifier.Types.SUBSURF):
 			mod = ob_mesh.modifiers.append(Blender.Modifier.Types.SUBSURF)
 			
 	#ob_mesh.makeDisplayList()
@@ -1348,6 +1405,14 @@ def IDProp2Prefs(idprop, prefs):
 #BUTS = {}
 #BUTS['']
 
+def do_tex_check(e,v):
+	try:
+		bpy.data.textures[v]
+	except:
+		PREFS['anim_tex'].val = ''
+		Draw.PupMenu('Texture dosnt exist!')
+		Draw.Redraw()
+		
 
 # Button callbacks
 def do_active_image(e,v):
@@ -1456,11 +1521,22 @@ def gui():
 	xtmp = x
 	# ---------- ---------- ---------- ----------
 	
+	PREFS['do_armature'] =	Draw.Toggle('Generate Armature & Skin Mesh',	EVENT_REDRAW, xtmp, y, but_width*4, but_height, PREFS['do_armature'].val,	'Generate Armatuer'); xtmp += but_width*4;
 	
-	PREFS['do_armature'] =	Draw.Toggle('Generate Armature & Skin Mesh',	EVENT_NONE, xtmp, y, but_width*4, but_height, PREFS['do_armature'].val,	'Generate Armatuer'); xtmp += but_width*4;
-	
-	y-=but_height+MARGIN
+	y-=but_height
 	xtmp = x
+	# ---------- ---------- ---------- ----------
+	if PREFS['do_armature'].val:
+		PREFS['do_anim'] =	Draw.Toggle('Texture Anim',	EVENT_NONE, xtmp, y, but_width*2, but_height, PREFS['do_anim'].val,	'Use a texture to animate the bones'); xtmp += but_width*2;
+		
+		PREFS['anim_tex'] =	Draw.String('TEX: ',	EVENT_NONE, xtmp, y, but_width*2, but_height, PREFS['anim_tex'].val, 64,	'Texture to use for the IPO Driver animation', do_tex_check); xtmp += but_width*2;
+		
+		y-=but_height+MARGIN
+		xtmp = x
+	
+	
+	
+	
 	
 	
 	Draw.PushButton('Exit',	EVENT_EXIT, xtmp, y, but_width*2, but_height,	'', do_active_image); xtmp += but_width*2;
