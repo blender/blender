@@ -310,14 +310,9 @@ static PyObject *M_Geometry_ClosestPointOnLine( PyObject * self, PyObject * args
 	/* do the calculation */
 	lambda = lambda_cp_line_ex(pt_in, l1, l2, pt_out);
 	
-	val1 = newVectorObject(pt_out, 3, Py_NEW);
-	val2 = PyFloat_FromDouble(lambda);
-	
-	ret = PyTuple_Pack(2, val1, val2);
-	
-	Py_DECREF(val1);
-	Py_DECREF(val2);
-	
+	PyTuple_New(2);
+	PyTuple_SET_ITEM( ret, 0, newVectorObject(pt_out, 3, Py_NEW) );
+	PyTuple_SET_ITEM( ret, 1, PyFloat_FromDouble(lambda) );
 	return ret;
 }
 
