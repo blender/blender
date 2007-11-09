@@ -1,5 +1,4 @@
 #!BPY
-
 """
 Name: 'Tree from Curves'
 Blender: 245
@@ -24,7 +23,6 @@ def debug_pt(co):
 	Blender.Window.SetCursorPos(tuple(co))
 	Blender.Window.RedrawAll()
 	print 'debugging', co
-
 
 def closestVecIndex(vec, vecls):
 	best= -1
@@ -311,7 +309,7 @@ class tree:
 	
 	def toDebugDisplay(self):
 		'''
-		Should be able to call this at any time to see whats going on
+		Should be able to call this at any time to see whats going on, dosnt work so nice ATM.
 		'''
 		sce = bpy.data.scenes.active
 		
@@ -337,7 +335,7 @@ class tree:
 		
 		
 	
-	def toMesh(self, mesh=None, do_uvmap=True, do_uv_scalewidth=True, uv_image = None):
+	def toMesh(self, mesh=None, do_uv=True, do_uv_scalewidth=True, uv_image = None, uv_x_scale=1.0, uv_y_scale=4.0, do_cap_ends=False):
 		# Simple points
 		'''
 		self.mesh = bpy.data.meshes.new()
@@ -487,9 +485,16 @@ class tree:
 				pt.toMesh(self.mesh)
 		
 		faces = self.mesh.faces
-		faces.extend([ face for brch in self.branches_all for pt in brch.bpoints for face in pt.faces if face ])
+		faces_extend = [ face for brch in self.branches_all for pt in brch.bpoints for face in pt.faces if face ]
+		if do_cap_ends:
+			# TODO - UV map and image?
+			faces_extend.extend([ brch.bpoints[-1].verts for brch in self.branches_all ])
+			
+		faces.extend(faces_extend)
 		
-		if do_uvmap:
+
+		
+		if do_uv:
 			# Assign the faces back
 			face_index = 0
 			for brch in self.branches_all:
@@ -510,23 +515,27 @@ class tree:
 						
 						# scale the uvs by the radiusm, avoids stritching.
 						if do_uv_scalewidth:
-							y_size = y_size / pt.radius
+							y_size = y_size / pt.radius * uv_y_scale
 						
 						for i in (0,1,2,3):
 							if pt.faces[i]:
 								if uv_image:
 									pt.faces[i].image = uv_image
+								
+								x1 = i*0.25 * uv_x_scale							
+								x2 = (i+1)*0.25 * uv_x_scale
+								
 								uvs = pt.faces[i].uv
-								uvs[3].x = i
+								uvs[3].x = x1;
 								uvs[3].y = y_val+y_size
 								
-								uvs[0].x = i
+								uvs[0].x = x1
 								uvs[0].y = y_val
 								
-								uvs[1].x = i+1
+								uvs[1].x = x2
 								uvs[1].y = y_val
 								
-								uvs[2].x = i+1
+								uvs[2].x = x2
 								uvs[2].y = y_val+y_size
 								
 						
@@ -537,6 +546,30 @@ class tree:
 			# no UV's
 			for f in self.mesh.faces:
 				f.smooth = True
+		
+		if do_cap_ends:
+			# de-select end points for 
+			i = len(faces)-1
+			
+			cap_end_face_start = len(faces) - len(self.branches_all)
+			
+			j = 0
+			for i in xrange(cap_end_face_start, len(faces)):
+				self.branches_all[j].face_cap = faces[i]
+				faces[i].sel = 0
+				
+				# default UV's are ok for now :/
+				if do_uv and uv_image:
+					faces[i].image = uv_image
+				
+				j +=1
+			
+			# set edge crease for capped ends.
+			for ed in self.mesh.edges:
+				if ed.v1.sel==False and ed.v2.sel==False:
+					ed.crease = 255
+			
+		del faces_extend
 		
 		return self.mesh
 
@@ -668,17 +701,20 @@ class tree:
 			#	#cu.driver = 2 # Python expression
 			#	#cu.driverExpression = 'b.Get("curframe")/100.0'
 			cu = ipo[Blender.Ipo.PO_QUATX]
-			cu.delBezier(0) 
+			try:	cu.delBezier(0) 
+			except:	pass
 			cu.driver = 2 # Python expression
 			cu.driverExpression = '%.3f*(%s.evaluate(((b.Get("curframe")*%.3f)+%.3f,%.3f,%.3f)).w-0.5)' % (anim_magnitude, tex_str, anim_speed_final, anim_offset.x, anim_offset.y, anim_offset.z)
 			
 			cu = ipo[Blender.Ipo.PO_QUATY]
-			cu.delBezier(0) 
+			try:	cu.delBezier(0) 
+			except:	pass
 			cu.driver = 2 # Python expression
 			cu.driverExpression = '%.3f*(%s.evaluate((%.3f,(b.Get("curframe")*%.3f)+%.3f,%.3f)).w-0.5)' % (anim_magnitude, tex_str,  anim_offset.x, anim_speed_final, anim_offset.y, anim_offset.z)
 			
 			cu = ipo[Blender.Ipo.PO_QUATZ]
-			cu.delBezier(0) 
+			try:	cu.delBezier(0) 
+			except:	pass
 			cu.driver = 2 # Python expression
 			cu.driverExpression = '%.3f*(%s.evaluate(%.3f,%.3f,(b.Get("curframe")*%.3f)+%.3f).w-0.5)' % (anim_magnitude, tex_str,  anim_offset.x, anim_offset.y, anim_speed_final, anim_offset.z)
 			
@@ -1049,6 +1085,7 @@ class branch:
 		self.bpoints = []
 		self.parent_pt = None
 		self.tag = False # have we calculated our points
+		self.face_cap = None
 		
 		# Bones per branch
 		self.bones = []
@@ -1219,7 +1256,10 @@ class branch:
 		par_pt = self.parent_pt
 		root_pt = self.bpoints[0]
 		
+		#try:
 		index = par_pt.children.index(self)
+		#except:
+		#print "This is bad!, but not being able to re-join isnt that big a deal"
 		
 		current_dist = (par_pt.nextMidCo - root_pt.co).length
 		
@@ -1229,8 +1269,11 @@ class branch:
 			# We can go here if we want, see if its better
 			if current_dist > (par_pt.next.nextMidCo - root_pt.co).length:
 				self.parent_pt.children[index] = None
+				self.parent_pt.isParent = self.parent_pt.hasChildren()
+				
 				self.parent_pt = par_pt.next
 				self.parent_pt.children[index] = self
+				self.parent_pt.isParent = True
 				return
 		
 		if par_pt.prev and par_pt.prev.children[index] == None:
@@ -1279,7 +1322,9 @@ ID_SLOT_NAME = 'Curve2Tree'
 
 EVENT_NONE = 0
 EVENT_EXIT = 1
-EVENT_REDRAW = 2
+EVENT_UPDATE = 2
+EVENT_UPDATE_AND_UI = 2
+EVENT_REDRAW = 3
 
 
 # Prefs for each tree
@@ -1291,7 +1336,10 @@ PREFS['seg_joint_compression'] = Draw.Create(1.0)
 PREFS['seg_joint_smooth'] = Draw.Create(2.0)
 PREFS['image_main'] = Draw.Create('')
 PREFS['do_uv'] = Draw.Create(1)
+PREFS['uv_x_scale'] = Draw.Create(4.0)
+PREFS['uv_y_scale'] = Draw.Create(1.0)
 PREFS['do_subsurf'] = Draw.Create(1)
+PREFS['do_cap_ends'] = Draw.Create(0)
 PREFS['do_uv_scalewidth'] = Draw.Create(1)
 PREFS['do_armature'] = Draw.Create(1)
 PREFS['do_anim'] = Draw.Create(1)
@@ -1304,6 +1352,8 @@ PREFS['anim_speed_size_scale'] = Draw.Create(1)
 PREFS['anim_offset_scale'] = Draw.Create(1.0)
 
 GLOBAL_PREFS = {}
+GLOBAL_PREFS['realtime_update'] = Draw.Create(0)
+
 
 def getContextCurveObjects():
 	sce = bpy.data.scenes.active
@@ -1354,15 +1404,17 @@ def IDProp2Prefs(idprop, prefs):
 
 
 
-def buildTree(ob):
+def buildTree(ob, single=False):
 	'''
 	Must be a curve object, write to a child mesh
 	Must check this is a curve object!
 	'''
 	
+	# if were only doing 1 object, just use the current prefs
 	prefs = {}
-	if not (IDProp2Prefs(ob.properties, prefs)):
+	if single or not (IDProp2Prefs(ob.properties, prefs)):
 		prefs = PREFS
+		
 	
 	# Check prefs are ok.
 	
@@ -1428,9 +1480,12 @@ def buildTree(ob):
 	
 	
 	mesh = t.toMesh(mesh,\
-		do_uvmap = PREFS['do_uv'].val,\
+		do_uv = PREFS['do_uv'].val,\
 		uv_image = image,\
-		do_uv_scalewidth = PREFS['do_uv_scalewidth'].val\
+		do_uv_scalewidth = PREFS['do_uv_scalewidth'].val,\
+		uv_x_scale = PREFS['uv_x_scale'].val,\
+		uv_y_scale = PREFS['uv_y_scale'].val,\
+		do_cap_ends = PREFS['do_cap_ends'].val\
 	)
 	
 	mesh.calcNormals()
@@ -1551,7 +1606,7 @@ def do_tree_generate(e,v):
 		Blender.Window.EditMode(0, '', 0)
 	
 	for ob in objects:
-		buildTree(ob)
+		buildTree(ob, len(objects)==1)
 	
 	if is_editmode:
 		Blender.Window.EditMode(1, '', 0)
@@ -1562,7 +1617,15 @@ def evt(e,val):
 	pass
 
 def bevt(e):
-	if e == EVENT_REDRAW:
+	
+	if e==EVENT_NONE:
+		return
+	
+	if e == EVENT_UPDATE or e == EVENT_UPDATE_AND_UI:
+		if GLOBAL_PREFS['realtime_update'].val:
+			do_tree_generate(0,0) # values dont matter
+	
+	if e == EVENT_REDRAW or e == EVENT_UPDATE_AND_UI:
 		Draw.Redraw()
 	if e == EVENT_EXIT:
 		Draw.Exit()
@@ -1572,98 +1635,114 @@ def gui():
 	MARGIN = 10
 	rect = BPyWindow.spaceRect()
 	but_width = 64
-	but_height = 17
+	but_height = 20
 	
 	x=MARGIN
 	y=rect[3]-but_height-MARGIN
 	xtmp = x
 	# ---------- ---------- ---------- ----------
-	
-	PREFS['seg_density'] =	Draw.Number('Segment Spacing',EVENT_REDRAW, xtmp, y, but_width*4, but_height, PREFS['seg_density'].val,	0.05, 10.0,	'Scale the limit points collapse, that are closer then the branch width'); xtmp += but_width*4;
-	
-	y-=but_height
-	xtmp = x
-	# ---------- ---------- ---------- ----------
-	
-	PREFS['seg_joint_compression'] =	Draw.Number('Joint Width',	EVENT_NONE, xtmp, y, but_width*4, but_height, PREFS['seg_joint_compression'].val,	0.1, 2.0,	'Edge loop spacing around branch join, lower value for less webed joins'); xtmp += but_width*4;
+	Blender.Draw.BeginAlign()
+	PREFS['seg_density'] =	Draw.Number('Segment Spacing',EVENT_UPDATE, xtmp, y, but_width*4, but_height, PREFS['seg_density'].val,	0.05, 10.0,	'Scale the limit points collapse, that are closer then the branch width'); xtmp += but_width*4;
 	
 	y-=but_height
 	xtmp = x
 	# ---------- ---------- ---------- ----------
 	
-	PREFS['seg_joint_smooth'] =	Draw.Number('Joint Smooth',	EVENT_NONE, xtmp, y, but_width*4, but_height, PREFS['seg_joint_smooth'].val,	0.0, 1.0,	'Edge loop spacing around branch join, lower value for less webed joins'); xtmp += but_width*4;
+	PREFS['seg_joint_compression'] =	Draw.Number('Joint Width',	EVENT_UPDATE, xtmp, y, but_width*4, but_height, PREFS['seg_joint_compression'].val,	0.1, 2.0,	'Edge loop spacing around branch join, lower value for less webed joins'); xtmp += but_width*4;
 	
 	y-=but_height
 	xtmp = x
 	# ---------- ---------- ---------- ----------
 	
-	PREFS['connect_sloppy'] =	Draw.Number('Connect Limit',EVENT_REDRAW, xtmp, y, but_width*4, but_height, PREFS['connect_sloppy'].val,	0.1, 2.0,	'Strictness when connecting branches'); xtmp += but_width*4;
+	PREFS['seg_joint_smooth'] =	Draw.Number('Joint Smooth',	EVENT_UPDATE, xtmp, y, but_width*4, but_height, PREFS['seg_joint_smooth'].val,	0.0, 1.0,	'Edge loop spacing around branch join, lower value for less webed joins'); xtmp += but_width*4;
 	
 	y-=but_height
 	xtmp = x
 	# ---------- ---------- ---------- ----------
 	
-	PREFS['connect_base_trim'] =	Draw.Number('Trim Base',	EVENT_NONE, xtmp, y, but_width*4, but_height, PREFS['connect_base_trim'].val,	0.1, 2.0,	'Trim branch base to better connect with parent branch'); xtmp += but_width*4;
+	PREFS['connect_sloppy'] =	Draw.Number('Connect Limit',EVENT_UPDATE, xtmp, y, but_width*4, but_height, PREFS['connect_sloppy'].val,	0.1, 2.0,	'Strictness when connecting branches'); xtmp += but_width*4;
+	
+	y-=but_height
+	xtmp = x
+	# ---------- ---------- ---------- ----------
+	
+	PREFS['connect_base_trim'] =	Draw.Number('Trim Base',	EVENT_UPDATE, xtmp, y, but_width*4, but_height, PREFS['connect_base_trim'].val,	0.1, 2.0,	'Trim branch base to better connect with parent branch'); xtmp += but_width*4;
 
 	y-=but_height
 	xtmp = x
 	# ---------- ---------- ---------- ----------
 	
-	PREFS['do_subsurf'] =	Draw.Toggle('SubSurf',EVENT_REDRAW, xtmp, y, but_width*4, but_height, PREFS['do_subsurf'].val,		'Enable subsurf for newly generated objects'); xtmp += but_width*4;
-
+	PREFS['do_cap_ends'] =	Draw.Toggle('Cap Ends',EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['do_cap_ends'].val,		'Add faces onto branch endpoints'); xtmp += but_width*2;
+	PREFS['do_subsurf'] =	Draw.Toggle('SubSurf',EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['do_subsurf'].val,		'Enable subsurf for newly generated objects'); xtmp += but_width*2;
+	Blender.Draw.EndAlign()
+	
 	y-=but_height+MARGIN
 	xtmp = x
 	# ---------- ---------- ---------- ----------
-
-	PREFS['do_uv'] =	Draw.Toggle('Generate UVs',EVENT_REDRAW, xtmp, y, but_width*2, but_height, PREFS['do_uv'].val,		'Calculate UVs coords'); xtmp += but_width*2;
+	
+	Blender.Draw.BeginAlign()
+	PREFS['do_uv'] =	Draw.Toggle('Generate UVs',EVENT_UPDATE_AND_UI, xtmp, y, but_width*2, but_height, PREFS['do_uv'].val,		'Calculate UVs coords'); xtmp += but_width*2;
 	if PREFS['do_uv'].val:
-		PREFS['do_uv_scalewidth'] =	Draw.Toggle('Keep Aspect',	EVENT_NONE, xtmp, y, but_width*2, but_height, PREFS['do_uv_scalewidth'].val,		'Correct the UV aspect with the branch width'); xtmp += but_width*2;
+		PREFS['do_uv_scalewidth'] =	Draw.Toggle('Keep Aspect',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['do_uv_scalewidth'].val,		'Correct the UV aspect with the branch width'); xtmp += but_width*2;
 		
 		y-=but_height
 		xtmp = x
 		# ---------- ---------- ---------- ----------
 		
-		PREFS['image_main'] =	Draw.String('IM: ',	EVENT_NONE, xtmp, y, but_width*3, but_height, PREFS['image_main'].val, 64,	'Image to apply to faces'); xtmp += but_width*3;
-		Draw.PushButton('Use Active',	EVENT_REDRAW, xtmp, y, but_width, but_height,	'Get the image from the active image window', do_active_image); xtmp += but_width;
+		PREFS['uv_x_scale'] =	Draw.Number('Scale U',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['uv_x_scale'].val,	0.01, 10.0,	'Edge loop spacing around branch join, lower value for less webed joins'); xtmp += but_width*2;
+		PREFS['uv_y_scale'] =	Draw.Number('Scale V',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['uv_y_scale'].val,	0.01, 10.0,	'Edge loop spacing around branch join, lower value for less webed joins'); xtmp += but_width*2;
 		
+		y-=but_height
+		xtmp = x
+		# ---------- ---------- ---------- ----------
+		
+		PREFS['image_main'] =	Draw.String('IM: ',	EVENT_UPDATE, xtmp, y, but_width*3, but_height, PREFS['image_main'].val, 64,	'Image to apply to faces'); xtmp += but_width*3;
+		Draw.PushButton('Use Active',	EVENT_UPDATE, xtmp, y, but_width, but_height,	'Get the image from the active image window', do_active_image); xtmp += but_width;
+	Blender.Draw.EndAlign()
+	
 	y-=but_height+MARGIN
 	xtmp = x
 	# ---------- ---------- ---------- ----------
 	
-	PREFS['do_armature'] =	Draw.Toggle('Generate Armature & Skin Mesh',	EVENT_REDRAW, xtmp, y, but_width*4, but_height, PREFS['do_armature'].val,	'Generate Armatuer'); xtmp += but_width*4;
+	Blender.Draw.BeginAlign()
+	PREFS['do_armature'] =	Draw.Toggle('Generate Armature & Skin Mesh',	EVENT_UPDATE_AND_UI, xtmp, y, but_width*4, but_height, PREFS['do_armature'].val,	'Generate Armatuer'); xtmp += but_width*4;
 	
-	y-=but_height
-	xtmp = x
 	# ---------- ---------- ---------- ----------
 	if PREFS['do_armature'].val:
-		PREFS['do_anim'] =	Draw.Toggle('Texture Anim',	EVENT_REDRAW, xtmp, y, but_width*2, but_height, PREFS['do_anim'].val,	'Use a texture to animate the bones'); xtmp += but_width*2;
+		y-=but_height
+		xtmp = x
+		
+		PREFS['do_anim'] =	Draw.Toggle('Texture Anim',	EVENT_UPDATE_AND_UI, xtmp, y, but_width*2, but_height, PREFS['do_anim'].val,	'Use a texture to animate the bones'); xtmp += but_width*2;
 		
 		if PREFS['do_anim'].val:
 			
-			PREFS['anim_tex'] =	Draw.String('TEX: ',	EVENT_NONE, xtmp, y, but_width*2, but_height, PREFS['anim_tex'].val, 64,	'Texture to use for the IPO Driver animation', do_tex_check); xtmp += but_width*2;
+			PREFS['anim_tex'] =	Draw.String('TEX: ',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['anim_tex'].val, 64,	'Texture to use for the IPO Driver animation', do_tex_check); xtmp += but_width*2;
 			y-=but_height
 			xtmp = x		
 			# ---------- ---------- ---------- ----------
 			
-			PREFS['anim_speed'] =		Draw.Number('Speed',	EVENT_NONE, xtmp, y, but_width*2, but_height, PREFS['anim_speed'].val,	0.001, 10.0,	'Animate the movement faster with a higher value'); xtmp += but_width*2;
-			PREFS['anim_magnitude'] =	Draw.Number('Magnitude',	EVENT_NONE, xtmp, y, but_width*2, but_height, PREFS['anim_magnitude'].val,	0.001, 10.0,	'Animate with more motion with a higher value'); xtmp += but_width*2;
+			PREFS['anim_speed'] =		Draw.Number('Speed',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['anim_speed'].val,	0.001, 10.0,	'Animate the movement faster with a higher value'); xtmp += but_width*2;
+			PREFS['anim_magnitude'] =	Draw.Number('Magnitude',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['anim_magnitude'].val,	0.001, 10.0,	'Animate with more motion with a higher value'); xtmp += but_width*2;
 			y-=but_height
 			xtmp = x
 			# ---------- ---------- ---------- ----------
 			
-			PREFS['anim_offset_scale'] =	Draw.Number('Unique Offset Scale',	EVENT_NONE, xtmp, y, but_width*4, but_height, PREFS['anim_offset_scale'].val,	0.001, 10.0,	'Use the curve object location as input into the texture so trees have more unique motion, a low value is less unique'); xtmp += but_width*4;
+			PREFS['anim_offset_scale'] =	Draw.Number('Unique Offset Scale',	EVENT_UPDATE, xtmp, y, but_width*4, but_height, PREFS['anim_offset_scale'].val,	0.001, 10.0,	'Use the curve object location as input into the texture so trees have more unique motion, a low value is less unique'); xtmp += but_width*4;
 			y-=but_height
 			xtmp = x
 			
 			# ---------- ---------- ---------- ----------
 			
-			PREFS['anim_speed_size_scale'] =	Draw.Toggle('Branch Size Scales Speed',	EVENT_NONE, xtmp, y, but_width*4, but_height, PREFS['anim_speed_size_scale'].val,	'Use the branch size as a factor when calculating speed'); xtmp += but_width*4;
+			PREFS['anim_speed_size_scale'] =	Draw.Toggle('Branch Size Scales Speed',	EVENT_UPDATE, xtmp, y, but_width*4, but_height, PREFS['anim_speed_size_scale'].val,	'Use the branch size as a factor when calculating speed'); xtmp += but_width*4;
 	
-
+	Blender.Draw.EndAlign()
+	
 	y-=but_height+MARGIN
 	xtmp = x
 	
+	
 	# ---------- ---------- ---------- ----------
+	Blender.Draw.BeginAlign()
 	Draw.PushButton('Read Active Prefs',	EVENT_REDRAW, xtmp, y, but_width*2, but_height,	'Read the ID Property settings from the active object', do_pref_read); xtmp += but_width*2;
 	Draw.PushButton('Write Prefs to Sel',	EVENT_NONE, xtmp, y, but_width*2, but_height,	'Save these settings in the ID Properties of all selected objects', do_pref_write); xtmp += but_width*2;
 
@@ -1671,16 +1750,24 @@ def gui():
 	xtmp = x
 	
 	# ---------- ---------- ---------- ----------
-	Draw.PushButton('Clear Prefs from Sel',	EVENT_NONE, xtmp, y, but_width*4, but_height,	'Remove settings from the selected objects', do_pref_write); xtmp += but_width*4;
-	do_pref_clear
+	Draw.PushButton('Clear Prefs from Sel',	EVENT_NONE, xtmp, y, but_width*4, but_height,	'Remove settings from the selected objects', do_pref_clear); xtmp += but_width*4;
+	Blender.Draw.EndAlign()
 
 	y-=but_height+MARGIN
 	xtmp = x
 	# ---------- ---------- ---------- ----------
 	
+	Blender.Draw.BeginAlign()
 	Draw.PushButton('Exit',	EVENT_EXIT, xtmp, y, but_width, but_height,	'', do_active_image); xtmp += but_width;
 	Draw.PushButton('Generate from selection',	EVENT_REDRAW, xtmp, y, but_width*3, but_height,	'Generate mesh', do_tree_generate); xtmp += but_width*3;
-
+	Blender.Draw.EndAlign()
+	y-=but_height+MARGIN
+	xtmp = x
+	# ---------- ---------- ---------- ----------
+	
+	GLOBAL_PREFS['realtime_update'] =	Draw.Toggle('Automatic Update',	EVENT_UPDATE, xtmp, y, but_width*4, but_height, GLOBAL_PREFS['realtime_update'].val,	'Update automatically when settings change'); xtmp += but_width*4;
+	
+	
 
 if __name__ == '__main__':
 	Draw.Register(gui, evt, bevt)
