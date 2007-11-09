@@ -62,7 +62,7 @@ class tree:
 	
 	
 	def fromCurve(self, object):
-		
+		self.object = object
 		curve = object.data
 		
 		# Set the curve object scale
@@ -624,7 +624,7 @@ class tree:
 		
 		return self.armature
 	
-	def toAction(self, ob_arm, texture, anim_speed=1.0, anim_magnitude=1.0, anim_speed_size_scale=True):
+	def toAction(self, ob_arm, texture, anim_speed=1.0, anim_magnitude=1.0, anim_speed_size_scale=True, anim_offset_scale=1.0):
 		# Assume armature
 		action = ob_arm.action
 		if not action:
@@ -646,6 +646,11 @@ class tree:
 		# Sicne its per frame, it increases very fast. scale it down a bit
 		anim_speed = anim_speed/10
 		
+		# When we have the same trees next to eachother, they will animate the same way unless we give each its own texture or offset settings.
+		# We can use the object's location as a factor - this also will have the advantage? of seeing the animation move across the tree's
+		# allow a scale so the difference between tree textures can be adjusted.
+		anim_offset = self.object.matrixWorld.translationPart() * anim_offset_scale
+		
 		anim_speed_final = anim_speed
 		# Assign drivers to them all
 		for name, ipo in ipo_dict.iteritems():
@@ -665,17 +670,17 @@ class tree:
 			cu = ipo[Blender.Ipo.PO_QUATX]
 			cu.delBezier(0) 
 			cu.driver = 2 # Python expression
-			cu.driverExpression = '(%s.evaluate((b.Get("curframe")*%.3f,0,0)).w-0.5)*%.3f' % (tex_str, anim_speed_final, anim_magnitude)
+			cu.driverExpression = '%.3f*(%s.evaluate(((b.Get("curframe")*%.3f)+%.3f,%.3f,%.3f)).w-0.5)' % (anim_magnitude, tex_str, anim_speed_final, anim_offset.x, anim_offset.y, anim_offset.z)
 			
 			cu = ipo[Blender.Ipo.PO_QUATY]
 			cu.delBezier(0) 
 			cu.driver = 2 # Python expression
-			cu.driverExpression = '(%s.evaluate((0,b.Get("curframe")*%.3f,0)).w-0.5)*%.3f' % (tex_str, anim_speed_final, anim_magnitude)
+			cu.driverExpression = '%.3f*(%s.evaluate((%.3f,(b.Get("curframe")*%.3f)+%.3f,%.3f)).w-0.5)' % (anim_magnitude, tex_str,  anim_offset.x, anim_speed_final, anim_offset.y, anim_offset.z)
 			
 			cu = ipo[Blender.Ipo.PO_QUATZ]
 			cu.delBezier(0) 
 			cu.driver = 2 # Python expression
-			cu.driverExpression = '(%s.evaluate(0,0,(b.Get("curframe")*%.3f)).w-0.5)*%.3f' % (tex_str, anim_speed_final, anim_magnitude)
+			cu.driverExpression = '%.3f*(%s.evaluate(%.3f,%.3f,(b.Get("curframe")*%.3f)+%.3f).w-0.5)' % (anim_magnitude, tex_str,  anim_offset.x, anim_offset.y, anim_speed_final, anim_offset.z)
 			
 			
 			#(%s.evaluate((b.Get("curframe")*%.3f,0,0)).w-0.5)*%.3f
@@ -1296,9 +1301,57 @@ except:		PREFS['anim_tex'] = Draw.Create('')
 PREFS['anim_speed'] = Draw.Create(0.2)
 PREFS['anim_magnitude'] = Draw.Create(0.2)
 PREFS['anim_speed_size_scale'] = Draw.Create(1)
+PREFS['anim_offset_scale'] = Draw.Create(1.0)
 
 GLOBAL_PREFS = {}
+
+def getContextCurveObjects():
+	sce = bpy.data.scenes.active
+	objects = []
+	for ob in sce.objects.context:
+		if ob.type != 'Curve':
+			ob = ob.parent
+		if ob.type != 'Curve':
+			continue
+		objects.append(ob)
+	return objects
+
+
+def Prefs2Dict(prefs, new_prefs):
+	'''
+	Make a copy with no button settings
+	'''
+	new_prefs.clear()
+	for key, val in prefs.items():
+		try:	new_prefs[key] = val.val
+		except:	new_prefs[key] = val
+	return new_prefs
+
+def Dict2Prefs(prefs, new_prefs):
+	'''
+	Make a copy with button settings
+	'''
+	for key in prefs: # items would be nice for id groups
+		val = prefs[key]
+		try:	new_prefs[key] = Blender.Draw.Create( val )
+		except:	new_prefs[key] = val
+	return new_prefs
+
+def Prefs2IDProp(idprop, prefs):
+	new_prefs = {}
+	Prefs2Dict(prefs, new_prefs)
+	try:	del idprop[ID_SLOT_NAME]
+	except:	pass
 	
+	idprop[ID_SLOT_NAME] = new_prefs
+	
+def IDProp2Prefs(idprop, prefs):
+	try:	prefs = idprop[ID_SLOT_NAME]
+	except:	return False
+	Dict2Prefs(prefs, PREFS)
+	return True
+	
+
 
 
 def buildTree(ob):
@@ -1306,6 +1359,15 @@ def buildTree(ob):
 	Must be a curve object, write to a child mesh
 	Must check this is a curve object!
 	'''
+	
+	prefs = {}
+	if not (IDProp2Prefs(ob.properties, prefs)):
+		prefs = PREFS
+	
+	# Check prefs are ok.
+	
+	
+	sce = bpy.data.scenes.active
 	
 	def getCurveChild(obtype):
 		try:
@@ -1403,7 +1465,9 @@ def buildTree(ob):
 				t.toAction(ob_arm, tex,\
 						anim_speed = PREFS['anim_speed'].val,\
 						anim_magnitude = PREFS['anim_magnitude'].val,\
-						anim_speed_size_scale= PREFS['anim_speed_size_scale'])
+						anim_speed_size_scale= PREFS['anim_speed_size_scale'].val,\
+						anim_offset_scale=PREFS['anim_offset_scale'].val
+						)
 	
 	# Add subsurf last it needed. so armature skinning is done first.
 	# Do subsurf?
@@ -1414,14 +1478,46 @@ def buildTree(ob):
 	#ob_mesh.makeDisplayList()
 	#mesh.update()
 	bpy.data.scenes.active.update()
-	
-def Prefs2IDProp(idprop, prefs):
-	pass
-	
-def IDProp2Prefs(idprop, prefs):
-	pass
 
+def do_pref_read(e,v):
+	sce = bpy.data.scenes.active
+	ob = sce.objects.active
+	
+	if not ob:
+		Blender.Draw.PupMenu('No active curve object')
+	
+	if ob.type != 'Curve':
+		ob = ob.parent
+	
+	if ob.type != 'Curve':
+		Blender.Draw.PupMenu('No active curve object')
+		return
+	
+	if not IDProp2Prefs(ob.properties, PREFS):
+		Blender.Draw.PupMenu('Curve object has no settings stored on it')
+	
+	Blender.Draw.Redraw()
 
+def do_pref_write(e,v):
+	
+	objects = getContextCurveObjects()
+	if not objects:
+		Blender.Draw.PupMenu('No curve objects selected')
+		return
+	
+	for ob in objects:
+		Prefs2IDProp(ob.properties, PREFS)
+	
+def do_pref_clear(e,v):
+	objects = getContextCurveObjects()
+	if not objects:
+		Blender.Draw.PupMenu('No curve objects selected')
+		return
+	
+	for ob in objects:
+		try:	del idprop[ID_SLOT_NAME]
+		except:	pass
+	
 #BUTS = {}
 #BUTS['']
 
@@ -1445,24 +1541,17 @@ def do_active_image(e,v):
 # Button callbacks
 def do_tree_generate(e,v):
 	sce = bpy.data.scenes.active
-	ob = sce.objects.active
+	objects = getContextCurveObjects()
 	
-	if ob == None:
-		Draw.PupMenu('No active object selected')
-		return
-	
-	if ob.type != 'Curve':
-		ob = ob.parent
-	
-	if ob.type != 'Curve':
-		Draw.PupMenu('Select a curve object or a mesh with a curve parent')
-		return
+	if not objects:
+		Draw.PupMenu('Select one or more curve objects or a mesh/armature types with curve parents')
 	
 	is_editmode = Blender.Window.EditMode()
 	if is_editmode:
 		Blender.Window.EditMode(0, '', 0)
 	
-	buildTree(ob)
+	for ob in objects:
+		buildTree(ob)
 	
 	if is_editmode:
 		Blender.Window.EditMode(1, '', 0)
@@ -1483,7 +1572,7 @@ def gui():
 	MARGIN = 10
 	rect = BPyWindow.spaceRect()
 	but_width = 64
-	but_height = 20
+	but_height = 17
 	
 	x=MARGIN
 	y=rect[3]-but_height-MARGIN
@@ -1535,7 +1624,7 @@ def gui():
 		# ---------- ---------- ---------- ----------
 		
 		PREFS['image_main'] =	Draw.String('IM: ',	EVENT_NONE, xtmp, y, but_width*3, but_height, PREFS['image_main'].val, 64,	'Image to apply to faces'); xtmp += but_width*3;
-		Draw.PushButton('Use Active',	EVENT_REDRAW, xtmp, y, but_width, but_height,	'Open online help in a browser window', do_active_image); xtmp += but_width;
+		Draw.PushButton('Use Active',	EVENT_REDRAW, xtmp, y, but_width, but_height,	'Get the image from the active image window', do_active_image); xtmp += but_width;
 		
 	y-=but_height+MARGIN
 	xtmp = x
@@ -1562,15 +1651,35 @@ def gui():
 			xtmp = x
 			# ---------- ---------- ---------- ----------
 			
-			PREFS['anim_speed_size_scale'] =	Draw.Toggle('Branch Size Scales Speed',	EVENT_NONE, xtmp, y, but_width*4, but_height, PREFS['anim_speed_size_scale'].val,	'Use the branch size as a factor when calculating speed'); xtmp += but_width*4;
+			PREFS['anim_offset_scale'] =	Draw.Number('Unique Offset Scale',	EVENT_NONE, xtmp, y, but_width*4, but_height, PREFS['anim_offset_scale'].val,	0.001, 10.0,	'Use the curve object location as input into the texture so trees have more unique motion, a low value is less unique'); xtmp += but_width*4;
+			y-=but_height
+			xtmp = x
 			
+			# ---------- ---------- ---------- ----------
+			
+			PREFS['anim_speed_size_scale'] =	Draw.Toggle('Branch Size Scales Speed',	EVENT_NONE, xtmp, y, but_width*4, but_height, PREFS['anim_speed_size_scale'].val,	'Use the branch size as a factor when calculating speed'); xtmp += but_width*4;
 	
+
 	y-=but_height+MARGIN
 	xtmp = x
 	
+	# ---------- ---------- ---------- ----------
+	Draw.PushButton('Read Active Prefs',	EVENT_REDRAW, xtmp, y, but_width*2, but_height,	'Read the ID Property settings from the active object', do_pref_read); xtmp += but_width*2;
+	Draw.PushButton('Write Prefs to Sel',	EVENT_NONE, xtmp, y, but_width*2, but_height,	'Save these settings in the ID Properties of all selected objects', do_pref_write); xtmp += but_width*2;
+
+	y-=but_height
+	xtmp = x
 	
-	Draw.PushButton('Exit',	EVENT_EXIT, xtmp, y, but_width*2, but_height,	'', do_active_image); xtmp += but_width*2;
-	Draw.PushButton('Generate',	EVENT_REDRAW, xtmp, y, but_width*2, but_height,	'Generate mesh', do_tree_generate); xtmp += but_width*2;
+	# ---------- ---------- ---------- ----------
+	Draw.PushButton('Clear Prefs from Sel',	EVENT_NONE, xtmp, y, but_width*4, but_height,	'Remove settings from the selected objects', do_pref_write); xtmp += but_width*4;
+	do_pref_clear
+
+	y-=but_height+MARGIN
+	xtmp = x
+	# ---------- ---------- ---------- ----------
+	
+	Draw.PushButton('Exit',	EVENT_EXIT, xtmp, y, but_width, but_height,	'', do_active_image); xtmp += but_width;
+	Draw.PushButton('Generate from selection',	EVENT_REDRAW, xtmp, y, but_width*3, but_height,	'Generate mesh', do_tree_generate); xtmp += but_width*3;
 
 
 if __name__ == '__main__':
