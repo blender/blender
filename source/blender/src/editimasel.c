@@ -127,6 +127,25 @@ static int fnmatch(const char *pattern, const char *string, int flags)
 	#include <fnmatch.h>
 #endif
 
+static void imasel_split_file(SpaceImaSel *simasel, char *s1)
+{
+	char string[FILE_MAX], dir[FILE_MAX], file[FILE_MAX];
+
+	BLI_strncpy(string, s1, sizeof(string));
+
+	BLI_split_dirfile(string, dir, file);
+	
+	if(simasel->files) {
+		BIF_filelist_free(simasel->files);
+	}
+	BLI_strncpy(simasel->file, file, sizeof(simasel->file));
+	BLI_strncpy(simasel->dir, dir, sizeof(simasel->dir));
+
+	BIF_filelist_setdir(simasel->files, dir);
+
+	BLI_make_file_string(G.sce, simasel->dir, dir, "");
+}
+
 /**************** IMAGESELECT ******************************/
 
 /* the complete call; pulldown menu, and three callback types */
@@ -174,8 +193,10 @@ static void activate_imageselect_(int type, char *title, char *file, short *menu
 		simasel->files = BIF_filelist_new();
 	}
 
-	if(BLI_convertstringcode(name, G.sce, G.scene->r.cfra)) simasel->flag |= FILE_STRINGCODE;
-	else simasel->flag &= ~FILE_STRINGCODE;
+	if(G.relbase_valid && BLI_convertstringcode(name, G.sce, G.scene->r.cfra))
+		simasel->flag |= FILE_STRINGCODE;
+	else
+		simasel->flag &= ~FILE_STRINGCODE;
 
 	if (U.uiflag & USER_HIDE_DOT)
 		simasel->flag |= FILE_HIDE_DOT;
@@ -200,28 +221,23 @@ static void activate_imageselect_(int type, char *title, char *file, short *menu
 		}
 	}
 	else if(type==FILE_LOADLIB) {
-		BLI_strncpy(simasel->dir, name, sizeof(simasel->dir));
-		BIF_filelist_setdir(simasel->files, simasel->dir);
+		
 		if( BIF_filelist_islibrary(simasel->files, temp, group) ) {
 			/* force a reload of the library-filelist */
 			BIF_filelist_free(simasel->files);
 			BIF_filelist_freelib(simasel->files);
+			BLI_strncpy(simasel->dir, name, sizeof(simasel->dir));
 			BIF_filelist_setdir(simasel->files, simasel->dir);
 			BIF_filelist_settype(simasel->files, type);
 		}
 		else {
-			BLI_split_dirfile(file, temp, name);
-			BLI_strncpy(simasel->dir, temp, sizeof(simasel->dir));
-			BIF_filelist_setdir(simasel->files, simasel->dir);
-			BIF_filelist_free(simasel->files);
+			imasel_split_file(simasel, name);
 			BIF_filelist_freelib(simasel->files);
 			BIF_filelist_settype(simasel->files, type);			
 		}
 	}
 	else {	/* FILE_BLENDER */
-		BLI_split_dirfile(file, temp, name);
-		BIF_filelist_free(simasel->files);
-		BIF_filelist_setdir(simasel->files, temp);
+		imasel_split_file(simasel, name);
 		BIF_filelist_settype(simasel->files, type);
 
 		BLI_cleanup_dir(G.sce, simasel->dir);
@@ -922,18 +938,16 @@ void winqreadimaselspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					file = BIF_filelist_file(simasel->files, simasel->active_file);
 					
 					if(file && S_ISDIR(file->type)) {
-
-						BIF_filelist_appenddir(simasel->files, file->relname);				
-						BLI_strncpy(simasel->dir, BIF_filelist_dir(simasel->files), FILE_MAXDIR);
+						strcat(simasel->dir, file->relname);						
 						strcat(simasel->dir,"/");
 						simasel->file[0] = '\0';
 						BLI_cleanup_dir(G.sce, simasel->dir);
+						BIF_filelist_setdir(simasel->files, simasel->dir);
 						BIF_filelist_free(simasel->files);
 						simasel->active_file = -1;
 						simasel->scrollpos = 0;
 						do_draw = 1;
-						do_headdraw = 1;
-						
+						do_headdraw = 1;						
 					}
 					else if (file)
 					{

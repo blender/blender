@@ -441,12 +441,6 @@ void BIF_filelist_setdir(struct FileList* filelist, const char *dir)
 	BLI_strncpy(filelist->dir, dir, FILE_MAXDIR);
 }
 
-void BIF_filelist_appenddir(struct FileList* filelist, const char *relname)
-{
-	strcat(filelist->dir, relname);	
-	BLI_cleanup_dir(G.sce, filelist->dir);
-}
-
 void BIF_filelist_imgsize(struct FileList* filelist, short w, short h)
 {
 	filelist->prv_w = w;
