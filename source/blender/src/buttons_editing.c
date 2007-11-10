@@ -2919,6 +2919,40 @@ void do_curvebuts(unsigned short event)
 		allqueue(REDRAWINFO, 1); 	/* 1, because header->win==0! */
 
 		break;
+	
+	/* Buttons for aligning handles */
+	case B_SETPT_AUTO:
+		if(ob->type==OB_CURVE) {
+			sethandlesNurb(1);
+			BIF_undo_push("Auto Curve Handles");
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			allqueue(REDRAWVIEW3D, 0);
+		}
+		break;
+	case B_SETPT_VECTOR:
+		if(ob->type==OB_CURVE) {
+			sethandlesNurb(2);
+			BIF_undo_push("Vector Curve Handles");
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			allqueue(REDRAWVIEW3D, 0);
+		}
+		break;
+	case B_SETPT_ALIGN:
+		if(ob->type==OB_CURVE) {
+			sethandlesNurb(5);
+			BIF_undo_push("Align Curve Handles");
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			allqueue(REDRAWVIEW3D, 0);
+		}
+		break;
+	case B_SETPT_FREE:
+		if(ob->type==OB_CURVE) {
+			sethandlesNurb(6);
+			BIF_undo_push("Free Align Curve Handles");
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			allqueue(REDRAWVIEW3D, 0);
+		}
+		break;
 	}
 }
 

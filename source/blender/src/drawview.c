@@ -1697,7 +1697,6 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 		Mat4MulVecfl(ob->obmat, median);
 	
 	if(block) {	// buttons
-	
 		uiBlockBeginAlign(block);
 		if((ob->parent) && (ob->partype == PARBONE)) {
 			uiDefButBitS(block, TOG, V3D_GLOBAL_STATS, REDRAWVIEW3D, "Global",		160, 135, 70, 19, &G.vd->flag, 0, 0, 0, 0, "Displays global values");
@@ -1740,6 +1739,15 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 			uiBlockEndAlign(block);
 			if(totweight)
 				uiDefButF(block, NUM, B_OBJECTPANELMEDIAN, "Weight:",	10, 20, 290, 19, &(tfp->ve_median[4]), 0.0, 1.0, 10, 3, "Weight is used for SoftBody Goal");
+		}
+		
+		if(ob->type==OB_CURVE && (totw==0)) { /* bez curves have no w */
+			uiBlockBeginAlign(block);
+			uiDefBut(block, BUT,B_SETPT_AUTO,"Auto",	10, 44, 72, 19, 0, 0, 0, 0, 0, "Auto handles (Shift H)");
+			uiDefBut(block, BUT,B_SETPT_VECTOR,"Vector",82, 44, 73, 19, 0, 0, 0, 0, 0, "Vector handles (V)");
+			uiDefBut(block, BUT,B_SETPT_ALIGN,"Align",155, 44, 73, 19, 0, 0, 0, 0, 0, "Align handles (H Toggles)");
+			uiDefBut(block, BUT,B_SETPT_FREE,"Free",	227, 44, 72, 19, 0, 0, 0, 0, 0, "Align handles (H Toggles)");
+			uiBlockEndAlign(block);
 		}
 		
 		if(totedge==1)
