@@ -19,6 +19,36 @@ import Blender
 from Blender.Mathutils import Vector, CrossVecs, AngleBetweenVecs, LineIntersect, TranslationMatrix, ScaleMatrix
 from Blender.Geometry import ClosestPointOnLine
 
+# Copied from blender, we could wrap this! - BKE_curve.c
+# But probably not toooo bad in python
+def forward_diff_bezier(q0, q1, q2, q3, pointlist, steps, axis):
+	f= float(steps)
+	rt0= q0
+	rt1= 3.0*(q1-q0)/f
+	f*= f
+	rt2= 3.0*(q0-2.0*q1+q2)/f
+	f*= steps
+	rt3= (q3-q0+3.0*(q1-q2))/f
+	
+	q0= rt0
+	q1= rt1+rt2+rt3
+	q2= 2*rt2+6*rt3
+	q3= 6*rt3
+	if axis == None:
+		for a in xrange(steps+1):
+			pointlist[a] = q0
+			q0+= q1
+			q1+= q2
+			q2+= q3;
+		
+	else:
+		for a in xrange(steps+1):
+			pointlist[a][axis] = q0
+			q0+= q1
+			q1+= q2
+			q2+= q3;
+
+
 def debug_pt(co):
 	Blender.Window.SetCursorPos(tuple(co))
 	Blender.Window.RedrawAll()
@@ -28,6 +58,8 @@ def closestVecIndex(vec, vecls):
 	best= -1
 	best_dist = 100000000
 	for i, vec_test in enumerate(vecls):
+		# Dont use yet, we may want to tho
+		#if vec_test: # Seems odd, but use this so we can disable some verts in the list.
 		dist = (vec-vec_test).length
 		if dist < best_dist:
 			best = i
@@ -60,8 +92,10 @@ class tree:
 	
 	
 	def fromCurve(self, object):
+		# Now calculate the normals
 		self.object = object
 		curve = object.data
+		steps = curve.resolu # curve resolution
 		
 		# Set the curve object scale
 		if curve.bevob:
@@ -69,118 +103,46 @@ class tree:
 			bb = curve.bevob.boundingBox
 			# self.limbScale = (bb[0] - bb[7]).length / 2.825 # THIS IS GOOD WHEN NON SUBSURRFED
 			self.limbScale = (bb[0] - bb[7]).length / 1.8
-		# end
 		
 		
-		# Get the curve points as bpoints
+		# forward_diff_bezier will fill in the blanks
+		pointlist = [[None, None, None] for i in xrange(steps+1)]
+		radlist = [ [None] for i in xrange(steps+1) ]
+
+
 		for spline in curve:
 			brch = branch()
 			self.branches_all.append(brch)
-			brch.bpoints = [ bpoint(brch, Vector(bez.vec[1]), Vector(), bez.radius * self.limbScale) for bez in spline ]
-		
-		# Get the curve as a mesh. - for inbetween points
-		tmpme = bpy.data.meshes.new()	
-		
-		# remove/backup bevel ob
-		bev_back = curve.bevob
-		if bev_back: curve.bevob = None
-		
-		# get the curve mesh data
-		tmpob = bpy.data.scenes.active.objects.new( curve )
-		tmpme.getFromObject(object)
-		bpy.data.scenes.active.objects.unlink(tmpob)
-		
-		# restore bevel ob
-		if bev_back:
-			curve.bevob = bev_back
 			
-			# Guess the size of the curve object if you have one. This is not perfect but good enough
-			bb = bev_back.boundingBox
-			self.limbScale = (bb[0] - bb[7]).length / 2.825
-			
-			
+			bez_list = list(spline)
+			for i in xrange(1, len(bez_list)):
+				bez1 = bez_list[i-1]
+				bez2 = bez_list[i]
+				bez1_vec = bez1.vec
+				bez2_vec = bez2.vec
+				
+				roll1 = bez1.radius
+				roll2 = bez2.radius
+				
+				# x,y,z,axis
+				for ii in (0,1,2):
+					forward_diff_bezier(bez1_vec[1][ii], bez1_vec[2][ii],  bez2_vec[0][ii], bez2_vec[1][ii], pointlist, steps, ii)
+				
+				# radius - no axis
+				forward_diff_bezier(roll1, roll1 + 0.390464*(roll2-roll1), roll2 - 0.390464*(roll2-roll1),	roll2,	radlist, steps, None)
+				
+				bpoints = [ bpoint(brch, Vector(pointlist[ii]), Vector(), radlist[ii] * self.limbScale) for ii in xrange(len(pointlist)) ]
+				
+				# remove endpoint for all but the last
+				if i != len(bez_list)-1:
+					bpoints.pop()
+				
+				brch.bpoints.extend(bpoints)
 		
-		# TEMP FOR TESTING
-		# bpy.data.scenes.active.objects.new(tmpme)
 		
-		vecs = [ tuple(v.co) for v in tmpme.verts ]
-		del tmpme
-		
-		# for branch
-		#used_points = set()
 		for brch in self.branches_all:
-			offset = 0
-			for i in xrange(1, len(brch.bpoints)):
-				# find the start/end points
-				start_pt =	brch.bpoints[offset+i-1]
-				end_pt =	brch.bpoints[offset+i]
-				
-				start = end = None
-				for j, co in enumerate(vecs):
-					if start == None:
-						if abs(co[0]-start_pt.co[0]) < eul and abs(co[1]-start_pt.co[1]) < eul and abs(co[2]-start_pt.co[2]) < eul:
-							start = j
-					if end == None:
-						if abs(co[0]-end_pt.co[0]) < eul and abs(co[1]-end_pt.co[1]) < eul and abs(co[2]-end_pt.co[2]) < eul:
-							end = j
-					if start != None and end != None:
-						break
-				
-				# for now we assuem the start is always a lower index.
-				#if start > end:
-				#	raise "error index is not one we like"
-				
-				#used_points.add(start)
-				#used_points.add(end)
-				radius = start_pt.radius
-				
-				#print 'coords', start_co, end_co
-				#### print "starting", start, end
-				if start > end:
-					j = start-1
-					raise "some bug!"
-				else:
-					j = start+1
-				
-				step = 1
-				step_tot = abs(start-end)
-				while j!=end:
-					#radius = (start_pt.radius*(step_tot-step) - end_pt.radius*step ) / step_tot
-					w1 = step_tot-step
-					w2 = step
-					
-					radius = ((start_pt.radius*w1) + (end_pt.radius*w2)) / step_tot
-					
-					#### print i,j, radius
-					pt = bpoint(brch, Vector(vecs[j]), Vector(), radius)
-					brch.bpoints.insert(offset+i, pt)
-					offset+=1
-					
-					if start > end:
-						j-=1
-					else:
-						j+=1
-					
-					step +=1
-		
-		# Now calculate the normals
-		for brch in self.branches_all:
-			for i in xrange(1, len(brch.bpoints)-1):
-				brch.bpoints[i].next = brch.bpoints[i+1]
-				brch.bpoints[i].prev = brch.bpoints[i-1]
-			
-			brch.bpoints[0].next = brch.bpoints[1]	
-			brch.bpoints[-1].prev = brch.bpoints[-2]
-			
-			
-			for pt in brch.bpoints:
-				pt.calcNormal()
-				pt.calcNextMidCo()
-		
-		# remove segments
-		# We may want to remove segments for 2 reasons
-		# 1) - too high resolution
-		# 2) - too close together (makes yucky geometry)
+			brch.calcPointLinkedList()
+			brch.calcPointExtras()
 		
 	def resetTags(self, value):
 		for brch in self.branches_all:
@@ -203,24 +165,26 @@ class tree:
 					
 					brch_j = self.branches_all[j]
 					
-					best_j, dist = brch_j.findClosest(brch_i.bpoints[0].co)
+					pt_best_j, dist = brch_j.findClosest(brch_i.bpoints[0].co)
 					
-					# Check its in range, allow for a bit out - hense the 1.5
-					if dist < best_j.radius * sloppy:
+					# Check its in range, allow for a bit out - hense the sloppy
+					if dist < pt_best_j.radius * sloppy:
 						
-						# if 1) dont remove the whole branch, maybe an option but later
-						# if 2) we are alredy a parent, cant remove me now.... darn :/ not nice... could do this properly but it would be slower and its a corner case.
-						# if 3) this point is within the branch, remove it.
+						# if 1)	dont remove the whole branch, maybe an option but later
+						# if 2)	we are alredy a parent, cant remove me now.... darn :/ not nice...
+						#		could do this properly but it would be slower and its a corner case.
+						#
+						# if 3)	this point is within the branch, remove it.
 						while	len(brch_i.bpoints)>2 and\
 								brch_i.bpoints[0].isParent == False and\
-								(brch_i.bpoints[0].co - best_j.nextMidCo).length < best_j.radius * base_trim:
+								(brch_i.bpoints[0].co - pt_best_j.nextMidCo).length < pt_best_j.radius * base_trim:
 							
 							# brch_i.bpoints[0].next = 101 # testing.
 							del brch_i.bpoints[0]
 							brch_i.bpoints[0].prev = None
 						
-						brch_i.parent_pt = best_j
-						best_j.isParent = True # dont remove me
+						brch_i.parent_pt = pt_best_j
+						pt_best_j.isParent = True # dont remove me
 						
 						# addas a member of best_j.children later when we have the geometry info available.
 						
@@ -260,6 +224,7 @@ class tree:
 					# Assign this to a spesific side of the parents point
 					# we know this is a child but not which side it should be attached to.
 					if brch.parent_pt:
+						
 						child_locs = [\
 						brch.parent_pt.childPoint(0),\
 						brch.parent_pt.childPoint(1),\
@@ -267,8 +232,17 @@ class tree:
 						brch.parent_pt.childPoint(3)]
 						
 						best_idx = closestVecIndex(brch.bpoints[0].co, child_locs)
-						brch.parent_pt.children[best_idx] = brch
-					# DONE
+						
+						# Crap! we alredy have a branch here, this is hard to solve nicely :/
+						# Probably the best thing to do here is attach this branch to the base of the one thats alredy there
+						# For even 
+						
+						if brch.parent_pt.children[best_idx]:
+							# Todo - some fun trick! to get the join working.
+							pass
+						else:
+							brch.parent_pt.children[best_idx] = brch
+						#~ # DONE
 					
 					done_nothing = False
 					
@@ -713,7 +687,7 @@ class tree:
 			try:	cu.delBezier(0) 
 			except:	pass
 			cu.driver = 2 # Python expression
-			cu.driverExpression = '%.3f*(%s.evaluate(%.3f,%.3f,(b.Get("curframe")*%.3f)+%.3f).w-0.5)' % (anim_magnitude, tex_str,  anim_offset.x, anim_offset.y, anim_speed_final, anim_offset.z)
+			cu.driverExpression = '%.3f*(%s.evaluate((%.3f,%.3f,(b.Get("curframe")*%.3f)+%.3f)).w-0.5)' % (anim_magnitude, tex_str,  anim_offset.x, anim_offset.y, anim_speed_final, anim_offset.z)
 			
 			
 			#(%s.evaluate((b.Get("curframe")*%.3f,0,0)).w-0.5)*%.3f
@@ -1093,8 +1067,19 @@ class branch:
 		s += '\tbpoints:', len(self.bpoints)
 		for pt in brch.bpoints:
 			s += str(self.pt)
+	
+	def calcPointLinkedList(self):
+		for i in xrange(1, len(self.bpoints)-1):
+			self.bpoints[i].next = self.bpoints[i+1]
+			self.bpoints[i].prev = self.bpoints[i-1]
 		
+		self.bpoints[0].next = self.bpoints[1]	
+		self.bpoints[-1].prev = self.bpoints[-2]
 		
+	def calcPointExtras(self):
+		for pt in self.bpoints:
+			pt.calcNormal()
+			pt.calcNextMidCo()		
 	
 	def getParentQuadAngle(self):
 		'''
@@ -1471,6 +1456,7 @@ def buildTree(ob, single=False):
 		joint_compression = PREFS['seg_joint_compression'].val,\
 		joint_smooth = PREFS['seg_joint_smooth'].val\
 	)
+	
 	
 	ob_mesh = getCurveChild('Mesh')
 	if not ob_mesh:
