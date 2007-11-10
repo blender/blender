@@ -37,6 +37,9 @@
 #include "gen_utils.h"
 #include "BezTriple.h"
 
+/* Only for ME_SMOOTH */
+#include "DNA_meshdata_types.h"
+
 /*
  * forward declarations go here
  */
@@ -69,7 +72,8 @@ static PyObject *CurNurb_isCyclic( BPy_CurNurb * self );
 static PyObject *CurNurb_dump( BPy_CurNurb * self );
 static PyObject *CurNurb_switchDirection( BPy_CurNurb * self );
 static PyObject *CurNurb_recalc( BPy_CurNurb * self );
-
+static PyObject *CurNurb_getFlagBits( BPy_CurNurb * self, void *type );
+static int CurNurb_setFlagBits( BPy_CurNurb * self, PyObject *value, void *type );
 char M_CurNurb_doc[] = "CurNurb";
 
 
@@ -185,7 +189,10 @@ static PyGetSetDef BPy_CurNurb_getseters[] = {
 	 (getter)CurNurb_getKnotsV, (setter)NULL,
 	 "The The knot vector in the V direction",
 	 NULL},
-
+	{"smooth",
+	 (getter)CurNurb_getFlagBits, (setter)CurNurb_setFlagBits,
+	 "The smooth bool setting",
+	 (void *)ME_SMOOTH},
 	{NULL,NULL,NULL,NULL,NULL}  /* Sentinel */
 };
 
@@ -421,6 +428,19 @@ static PyObject *CurNurb_getKnotsV( BPy_CurNurb * self )
 static PyObject *CurNurb_getPoints( BPy_CurNurb * self )
 {
 	return PyInt_FromLong( ( long ) self->nurb->pntsu );
+}
+
+static PyObject *CurNurb_getFlagBits( BPy_CurNurb * self, void *type )
+{
+	return EXPP_getBitfield( (void *)&self->nurb->flag,
+							  (int)type, 'h' );
+}
+
+static int CurNurb_setFlagBits( BPy_CurNurb * self, PyObject *value,
+									void *type )
+{
+	return EXPP_setBitfield( value, (void *)&self->nurb->flag,
+							 (int)type, 'h' );
 }
 
 /*
