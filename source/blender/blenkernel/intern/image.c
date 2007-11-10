@@ -343,7 +343,7 @@ Image *BKE_add_image_file(const char *name)
 	
 	/* first search an identical image */
 	for(ima= G.main->image.first; ima; ima= ima->id.next) {
-		if(ima->source!=IMA_SRC_VIEWER) {
+		if(ima->source!=IMA_SRC_VIEWER && ima->source!=IMA_SRC_GENERATED) {
 			BLI_strncpy(strtest, ima->name, sizeof(ima->name));
 			BLI_convertstringcode(strtest, G.sce, G.scene->r.cfra);
 			
