@@ -1275,26 +1275,28 @@ void BLI_split_dirfile(const char *string, char *dir, char *file)
 #ifdef WIN32
 	int sl;
 	short is_relative = 0;
+	char path[FILE_MAX];
 #endif
 
 	dir[0]= 0;
 	file[0]= 0;
 
 #ifdef WIN32
-	BLI_char_switch(string, '/', '\\'); /* make sure we have a valid path format */
-	sl = strlen(string);
+	BLI_strncpy(path, string, FILE_MAX);
+	BLI_char_switch(path, '/', '\\'); /* make sure we have a valid path format */
+	sl = strlen(path);
 	if (sl) {
 		int len;
-		if (string[0] == '/' || string[0] == '\\') { 
-			BLI_strncpy(dir, string, FILE_MAXDIR);
-			if (sl > 1 && string[0] == '\\' && string[1] == '\\') is_relative = 1;
-		} else if (sl > 2 && string[1] == ':' && string[2] == '\\') {
-			BLI_strncpy(dir, string, FILE_MAXDIR);
+		if (path[0] == '/' || path[0] == '\\') { 
+			BLI_strncpy(dir, path, FILE_MAXDIR);
+			if (sl > 1 && path[0] == '\\' && path[1] == '\\') is_relative = 1;
+		} else if (sl > 2 && path[1] == ':' && path[2] == '\\') {
+			BLI_strncpy(dir, path, FILE_MAXDIR);
 		} else {
 			BLI_getwdN(dir);
 			strcat(dir,"\\");
-			strcat(dir,string);
-			BLI_strncpy(string,dir,FILE_MAXDIR+FILE_MAXFILE);
+			strcat(dir,path);
+			BLI_strncpy(path,dir,FILE_MAXDIR+FILE_MAXFILE);
 		}
 		
 		// BLI_exist doesn't recognize a slashed dirname as a dir
@@ -1315,15 +1317,15 @@ void BLI_split_dirfile(const char *string, char *dir, char *file)
 			/* copy from end of string into file, to ensure filename itself isn't truncated 
 			if string is too long. (aphex) */
 
-			len = FILE_MAXFILE - strlen(string);
+			len = FILE_MAXFILE - strlen(path);
 
 			if (len < 0)
-				BLI_strncpy(file,string + abs(len),FILE_MAXFILE);
+				BLI_strncpy(file,path + abs(len),FILE_MAXFILE);
 			else
-				BLI_strncpy(file,string,FILE_MAXFILE);
+				BLI_strncpy(file,path,FILE_MAXFILE);
 		    
-			if (strrchr(string,'\\')) {
-				BLI_strncpy(file,strrchr(string,'\\')+1,FILE_MAXFILE);
+			if (strrchr(path,'\\')) {
+				BLI_strncpy(file,strrchr(path,'\\')+1,FILE_MAXFILE);
 			}
 			
 			if ( (a = strlen(dir)) ) {
@@ -1334,7 +1336,7 @@ void BLI_split_dirfile(const char *string, char *dir, char *file)
 			a = strlen(dir) - 1;
 			while(a>0 && dir[a] != '\\') a--;
 			dir[a + 1] = 0;
-			BLI_strncpy(file, string + strlen(dir),FILE_MAXFILE);
+			BLI_strncpy(file, path + strlen(dir),FILE_MAXFILE);
 		}
 
 	}

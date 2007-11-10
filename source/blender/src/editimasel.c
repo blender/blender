@@ -546,15 +546,18 @@ static void imasel_execute(SpaceImaSel *simasel)
 			strcat(name, simasel->file);
 			
 			if(simasel->flag & FILE_STRINGCODE) {
-				if (!G.relbase_valid) {
-					/* skip save */
-					if(strncmp(simasel->title, "Save", 4)) {
-						okee("You have to save the .blend file before using relative paths! Using absolute path instead.");
-						simasel->flag &= ~FILE_STRINGCODE;
-					}
-				}
-				else {
+				/* still weak, but we don't want saving files to make relative paths */
+				if(G.relbase_valid && strncmp(simasel->title, "Save", 4)) {
 					BLI_makestringcode(G.sce, name);
+				} else {
+					/* if we don't have a valid relative base (.blend file hasn't been saved yet)
+					   then we don't save the path as relative (for texture images, background image).	
+					   Warning message not shown when saving files (doesn't make sense there)
+					*/
+					if (strncmp(simasel->title, "Save", 4)) {					
+						printf("Relative path setting has been ignored because .blend file hasn't been saved yet.\n");
+					}
+					simasel->flag &= ~FILE_STRINGCODE;
 				}
 			}
 			if(simasel->returnfunc)
