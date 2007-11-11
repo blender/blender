@@ -14,10 +14,35 @@ __bpydoc__ = """\
 
 """
 
+# --------------------------------------------------------------------------
+# Tree from Curves v0.1 by Campbell Barton (AKA Ideasman42)
+# --------------------------------------------------------------------------
+# ***** BEGIN GPL LICENSE BLOCK *****
+#
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software Foundation,
+# Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+#
+# ***** END GPL LICENCE BLOCK *****
+# --------------------------------------------------------------------------
+
 import bpy
 import Blender
 from Blender.Mathutils import Vector, CrossVecs, AngleBetweenVecs, LineIntersect, TranslationMatrix, ScaleMatrix
 from Blender.Geometry import ClosestPointOnLine
+
+GLOBALS = {}
+GLOBALS['non_bez_error'] = 0
 
 # Copied from blender, we could wrap this! - BKE_curve.c
 # But probably not toooo bad in python
@@ -59,11 +84,11 @@ def closestVecIndex(vec, vecls):
 	best_dist = 100000000
 	for i, vec_test in enumerate(vecls):
 		# Dont use yet, we may want to tho
-		#if vec_test: # Seems odd, but use this so we can disable some verts in the list.
-		dist = (vec-vec_test).length
-		if dist < best_dist:
-			best = i
-			best_dist = dist
+		if vec_test: # Seems odd, but use this so we can disable some verts in the list.
+			dist = (vec-vec_test).length
+			if dist < best_dist:
+				best = i
+				best_dist = dist
 	
 	return best
 
@@ -106,11 +131,21 @@ class tree:
 		
 		
 		# forward_diff_bezier will fill in the blanks
+		# nice we can reuse these for every curve segment :)
 		pointlist = [[None, None, None] for i in xrange(steps+1)]
-		radlist = [ [None] for i in xrange(steps+1) ]
+		radlist = [ None for i in xrange(steps+1) ]
 
 
 		for spline in curve:
+			
+			if len(spline) < 2: # Ignore single point splines
+				continue
+			
+			if spline.type != 1: # 0 poly, 1 bez, 4 nurbs
+				GLOBALS['non_bez_error'] = 1
+				continue
+			
+				
 			brch = branch()
 			self.branches_all.append(brch)
 			
@@ -121,15 +156,15 @@ class tree:
 				bez1_vec = bez1.vec
 				bez2_vec = bez2.vec
 				
-				roll1 = bez1.radius
-				roll2 = bez2.radius
+				radius1 = bez1.radius
+				radius2 = bez2.radius
 				
 				# x,y,z,axis
 				for ii in (0,1,2):
 					forward_diff_bezier(bez1_vec[1][ii], bez1_vec[2][ii],  bez2_vec[0][ii], bez2_vec[1][ii], pointlist, steps, ii)
 				
 				# radius - no axis
-				forward_diff_bezier(roll1, roll1 + 0.390464*(roll2-roll1), roll2 - 0.390464*(roll2-roll1),	roll2,	radlist, steps, None)
+				forward_diff_bezier(radius1, radius1 + 0.390464*(radius2-radius1), radius2 - 0.390464*(radius2-radius1),	radius2,	radlist, steps, None)
 				
 				bpoints = [ bpoint(brch, Vector(pointlist[ii]), Vector(), radlist[ii] * self.limbScale) for ii in xrange(len(pointlist)) ]
 				
@@ -176,7 +211,7 @@ class tree:
 						#
 						# if 3)	this point is within the branch, remove it.
 						while	len(brch_i.bpoints)>2 and\
-								brch_i.bpoints[0].isParent == False and\
+								brch_i.bpoints[0].childCount == 0 and\
 								(brch_i.bpoints[0].co - pt_best_j.nextMidCo).length < pt_best_j.radius * base_trim:
 							
 							# brch_i.bpoints[0].next = 101 # testing.
@@ -184,7 +219,7 @@ class tree:
 							brch_i.bpoints[0].prev = None
 						
 						brch_i.parent_pt = pt_best_j
-						pt_best_j.isParent = True # dont remove me
+						pt_best_j.childCount += 1 # dont remove me
 						
 						# addas a member of best_j.children later when we have the geometry info available.
 						
@@ -226,17 +261,16 @@ class tree:
 					if brch.parent_pt:
 						
 						child_locs = [\
-						brch.parent_pt.childPoint(0),\
-						brch.parent_pt.childPoint(1),\
-						brch.parent_pt.childPoint(2),\
-						brch.parent_pt.childPoint(3)]
+						brch.parent_pt.childPointUnused(0),\
+						brch.parent_pt.childPointUnused(1),\
+						brch.parent_pt.childPointUnused(2),\
+						brch.parent_pt.childPointUnused(3)]
 						
 						best_idx = closestVecIndex(brch.bpoints[0].co, child_locs)
 						
 						# Crap! we alredy have a branch here, this is hard to solve nicely :/
 						# Probably the best thing to do here is attach this branch to the base of the one thats alredy there
 						# For even 
-						
 						if brch.parent_pt.children[best_idx]:
 							# Todo - some fun trick! to get the join working.
 							pass
@@ -476,7 +510,9 @@ class tree:
 							pt.faces[i].smooth = True
 							face_index +=1
 			
-			self.mesh.faceUV = True
+			if self.mesh.faces:
+				self.mesh.faceUV = True
+			
 			for brch in self.branches_all:
 				
 				y_val = 0.0
@@ -560,7 +596,7 @@ class tree:
 		for i, brch in enumerate(self.branches_all):
 			
 			# get a list of parent points to make into bones. use parents and endpoints
-			bpoints_parent = [pt for pt in brch.bpoints if pt.isParent or pt.prev == None or pt.next == None]
+			bpoints_parent = [pt for pt in brch.bpoints if pt.childCount or pt.prev == None or pt.next == None]
 			bpbone_last = None
 			for j in xrange(len(bpoints_parent)-1):
 				
@@ -648,7 +684,7 @@ class tree:
 		# print ipo_dict
 		
 		# Sicne its per frame, it increases very fast. scale it down a bit
-		anim_speed = anim_speed/10
+		anim_speed = anim_speed/100
 		
 		# When we have the same trees next to eachother, they will animate the same way unless we give each its own texture or offset settings.
 		# We can use the object's location as a factor - this also will have the advantage? of seeing the animation move across the tree's
@@ -667,10 +703,6 @@ class tree:
 				pt = self.branches_all[ lookup[0] ].bpoints[ lookup[1] ]
 				anim_speed_final = anim_speed / (1+pt.radius)
 			
-			#for cu in ipo:
-			#	#cu.delBezier(0) 
-			#	#cu.driver = 2 # Python expression
-			#	#cu.driverExpression = 'b.Get("curframe")/100.0'
 			cu = ipo[Blender.Ipo.PO_QUATX]
 			try:	cu.delBezier(0) 
 			except:	pass
@@ -689,10 +721,11 @@ class tree:
 			cu.driver = 2 # Python expression
 			cu.driverExpression = '%.3f*(%s.evaluate((%.3f,%.3f,(b.Get("curframe")*%.3f)+%.3f)).w-0.5)' % (anim_magnitude, tex_str,  anim_offset.x, anim_offset.y, anim_speed_final, anim_offset.z)
 			
-			
 			#(%s.evaluate((b.Get("curframe")*%.3f,0,0)).w-0.5)*%.3f
 		
 		
+xup = Vector(1,0,0)
+yup = Vector(0,1,0)
 zup = Vector(0,0,1)
 
 class bpoint_bone:
@@ -705,7 +738,7 @@ class bpoint_bone:
 class bpoint(object):
 	''' The point in the middle of the branch, not the mesh points
 	'''
-	__slots__ = 'branch', 'co', 'no', 'radius', 'vecs', 'verts', 'children', 'faces', 'next', 'prev', 'isParent', 'bpbone', 'roll_angle', 'nextMidCo', 'childrenMidCo', 'childrenMidRadius', 'targetCos'
+	__slots__ = 'branch', 'co', 'no', 'radius', 'vecs', 'verts', 'children', 'faces', 'next', 'prev', 'childCount', 'bpbone', 'roll_angle', 'nextMidCo', 'childrenMidCo', 'childrenMidRadius', 'targetCos'
 	def __init__(self, brch, co, no, radius):
 		self.branch = brch
 		self.co = co
@@ -717,7 +750,7 @@ class bpoint(object):
 		self.faces = [None, None, None, None]
 		self.next = None
 		self.prev = None
-		self.isParent = False
+		self.childCount = 0
 		self.bpbone = None # bpoint_bone instance
 		
 		# when set, This is the angle we need to roll to best face our branches
@@ -901,7 +934,7 @@ class bpoint(object):
 		'''
 		
 		# self.next.next == None check is so we dont shorten the final length of branches.
-		if self.next == None or self.next.next == None or self.isParent or self.next.isParent:
+		if self.next == None or self.next.next == None or self.childCount or self.next.childCount:
 			return False
 		
 		self.branch.bpoints.remove(self.next)
@@ -918,7 +951,7 @@ class bpoint(object):
 		'''
 		
 		# self.next.next == None check is so we dont shorten the final length of branches.
-		if self.prev == None or self.prev.prev == None or self.prev.isParent or self.prev.prev.isParent:
+		if self.prev == None or self.prev.prev == None or self.prev.childCount or self.prev.prev.childCount:
 			return False
 		
 		self.branch.bpoints.remove(self.prev)
@@ -937,7 +970,7 @@ class bpoint(object):
 		if self.next == None or self.prev == None:
 			return False
 		
-		if self.isParent or self.prev.isParent:
+		if self.childCount or self.prev.childCount:
 			factor = factor_joint;
 		
 		if factor==0.0:
@@ -976,6 +1009,15 @@ class bpoint(object):
 		if index == 1:	return (self.getAbsVec(1) + self.next.getAbsVec(2)) / 2
 		if index == 2:	return (self.getAbsVec(2) + self.next.getAbsVec(3)) / 2
 		if index == 3:	return (self.getAbsVec(3) + self.next.getAbsVec(0)) / 2
+	
+	def childPointUnused(self, index):
+		'''
+		Same as above but return None when the point is alredy used.
+		'''
+		if self.children[index]:
+			return None
+		return self.childPoint(index)
+		
 	
 	def roll(self, angle):
 		'''
@@ -1030,8 +1072,16 @@ class bpoint(object):
 			if self.branch.parent_pt:
 				cross = CrossVecs(self.no, self.branch.getParentFaceCent() - self.branch.parent_pt.getAbsVec( self.branch.getParentQuadIndex() ))
 			else:
-				# parentless branch
-				cross = zup
+				# parentless branch - for best results get a cross thats not the same as the normal, in rare cases this happens.
+				
+				# Was just doing 
+				#  cross = zup
+				# which works most of the time, but no verticle lines
+				
+				if AngleBetweenVecs(self.no, zup) > 1.0:	cross = zup
+				elif AngleBetweenVecs(self.no, yup) > 1.0:	cross = yup
+				else:										cross = xup
+				
 		else:
 			cross = CrossVecs(self.prev.vecs[0], self.no)
 		
@@ -1044,7 +1094,7 @@ class bpoint(object):
 	
 	def hasChildren(self):
 		'''
-		Use .isParent where possible, this does the real check
+		Use .childCount where possible, this does the real check
 		'''
 		if self.children.count(None) == 4:
 			return False
@@ -1086,13 +1136,21 @@ class branch:
 		The angle off we are from our parent quad,
 		'''
 		# used to roll the parent so its faces us better
+		
+		# Warning this can be zero sometimes, see the try below for the error
 		parent_normal = self.getParentFaceCent() - self.parent_pt.nextMidCo
+		
+		
 		self_normal = self.bpoints[1].co - self.parent_pt.co
 		# We only want the angle in relation to the parent points normal
 		# modify self_normal to make this so
 		cross = CrossVecs(self_normal, self.parent_pt.no)
 		self_normal = CrossVecs(self.parent_pt.no, cross) # CHECK
+		
+		#try:	angle = AngleBetweenVecs(parent_normal, self_normal)
+		#except:	return 0.0
 		angle = AngleBetweenVecs(parent_normal, self_normal)
+		
 		
 		# see if we need to rotate positive or negative
 		# USE DOT PRODUCT!
@@ -1108,10 +1166,15 @@ class branch:
 		return self.parent_pt.childPoint(  self.getParentQuadIndex()  )
 	
 	def findClosest(self, co):
+		'''
+		Find the closest point that can bare a child
+		'''
+		
+		
 		''' # this dosnt work, but could.
 		best = None
 		best_dist = 100000000
-		for pt in self.bpoints:
+		for pt in self.bpoints:	
 			if pt.next:
 				co_on_line, fac = ClosestPointOnLine(co, pt.co, pt.next.co)
 				print fac
@@ -1123,7 +1186,7 @@ class branch:
 		best = None
 		best_dist = 100000000
 		for pt in self.bpoints:
-			if pt.nextMidCo:
+			if pt.nextMidCo and pt.childCount < 4:
 				dist = (pt.nextMidCo-co).length
 				if dist < best_dist:
 					best = pt
@@ -1138,7 +1201,7 @@ class branch:
 		'''
 		
 		for pt in self.bpoints:
-			if pt.next and pt.prev and pt.isParent == False and pt.prev.isParent == False:
+			if pt.next and pt.prev and pt.childCount == 0 and pt.prev.childCount == 0:
 				w1 = pt.nextLength()
 				w2 = pt.prevLength()
 				wtot = w1+w2
@@ -1165,7 +1228,7 @@ class branch:
 			return
 		has_children = False
 		for pt in self.bpoints:
-			if pt.isParent:
+			if pt.childCount:
 				has_children = True
 				break
 		
@@ -1207,7 +1270,7 @@ class branch:
 			
 			pt = self.bpoints[0]
 			while pt:
-				if pt.prev and pt.next and not pt.prev.isParent:
+				if pt.prev and pt.next and pt.prev.childCount == 0:
 					if abs(pt.radius - pt.prev.radius) / (pt.radius + pt.prev.radius) < HARD_CODED_RADIUS_DIFFERENCE_LIMIT:
 						if AngleBetweenVecs(pt.no, pt.prev.no) < HARD_CODED_ANGLE_DIFFERENCE_LIMIT:
 							if (pt.prev.nextMidCo-pt.co).length < ((pt.radius + pt.prev.radius)/2) * density:
@@ -1216,7 +1279,7 @@ class branch:
 									collapse = True
 									pt = pt_save # so we never reference a removed point
 				
-				if not pt.isParent and pt.next: #if pt.childrenMidCo == None:
+				if pt.childCount == 0 and pt.next: #if pt.childrenMidCo == None:
 					if abs(pt.radius - pt.next.radius) / (pt.radius + pt.next.radius) < HARD_CODED_RADIUS_DIFFERENCE_LIMIT:
 						if AngleBetweenVecs(pt.no, pt.next.no) < HARD_CODED_ANGLE_DIFFERENCE_LIMIT:
 							# do here because we only want to run this on points with no children,
@@ -1257,22 +1320,22 @@ class branch:
 			# We can go here if we want, see if its better
 			if current_dist > (par_pt.next.nextMidCo - root_pt.co).length:
 				self.parent_pt.children[index] = None
-				self.parent_pt.isParent = self.parent_pt.hasChildren()
+				self.parent_pt.childCount -= 1
 				
 				self.parent_pt = par_pt.next
 				self.parent_pt.children[index] = self
-				self.parent_pt.isParent = True
+				self.parent_pt.childCount += 1
 				return
 		
 		if par_pt.prev and par_pt.prev.children[index] == None:
 			# We can go here if we want, see if its better
 			if current_dist > (par_pt.prev.nextMidCo - root_pt.co).length:
 				self.parent_pt.children[index] = None
-				self.parent_pt.isParent = self.parent_pt.hasChildren()
+				self.parent_pt.childCount -= 1
 				
 				self.parent_pt = par_pt.prev
 				self.parent_pt.children[index] = self
-				self.parent_pt.isParent = True
+				self.parent_pt.childCount += 1
 				return
 	
 	def checkPointList(self):
@@ -1445,6 +1508,9 @@ def buildTree(ob, single=False):
 
 	t = tree()
 	t.fromCurve(ob)
+	if not t.branches_all:
+		return # Empty curve? - may as well not throw an error
+	
 	#print t
 	t.buildConnections(\
 		sloppy = PREFS['connect_sloppy'].val,\
@@ -1624,6 +1690,10 @@ def do_tree_generate(e,v):
 	s = stats.load("hotshot_edi_stats")
 	s.sort_stats("time").print_stats()
 	'''
+	if GLOBALS['non_bez_error']:
+		Blender.Draw.PupMenu('Error%t|Nurbs and Poly curve types cant be used!')
+		GLOBALS['non_bez_error'] = 0
+		
 	
 	
 def evt(e,val):
@@ -1647,12 +1717,25 @@ def bevt(e):
 def gui():
 	MARGIN = 10
 	rect = BPyWindow.spaceRect()
-	but_width = 64
+	but_width = int((rect[2]-MARGIN*2)/4.0) # 72
+	# Clamp
+	if but_width>100: but_width = 100
+		
 	but_height = 20
+	
 	
 	x=MARGIN
 	y=rect[3]-but_height-MARGIN
 	xtmp = x
+	
+	# ---------- ---------- ---------- ----------
+	Blender.Draw.BeginAlign()
+	PREFS['do_cap_ends'] =	Draw.Toggle('Cap Ends',EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['do_cap_ends'].val,		'Add faces onto branch endpoints'); xtmp += but_width*2;
+	PREFS['do_subsurf'] =	Draw.Toggle('SubSurf',EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['do_subsurf'].val,		'Enable subsurf for newly generated objects'); xtmp += but_width*2;
+	Blender.Draw.EndAlign()
+	y-=but_height+MARGIN
+	xtmp = x
+	
 	# ---------- ---------- ---------- ----------
 	Blender.Draw.BeginAlign()
 	PREFS['seg_density'] =	Draw.Number('Segment Spacing',EVENT_UPDATE, xtmp, y, but_width*4, but_height, PREFS['seg_density'].val,	0.05, 10.0,	'Scale the limit points collapse, that are closer then the branch width'); xtmp += but_width*4;
@@ -1661,13 +1744,8 @@ def gui():
 	xtmp = x
 	# ---------- ---------- ---------- ----------
 	
-	PREFS['seg_joint_compression'] =	Draw.Number('Joint Width',	EVENT_UPDATE, xtmp, y, but_width*4, but_height, PREFS['seg_joint_compression'].val,	0.1, 2.0,	'Edge loop spacing around branch join, lower value for less webed joins'); xtmp += but_width*4;
-	
-	y-=but_height
-	xtmp = x
-	# ---------- ---------- ---------- ----------
-	
-	PREFS['seg_joint_smooth'] =	Draw.Number('Joint Smooth',	EVENT_UPDATE, xtmp, y, but_width*4, but_height, PREFS['seg_joint_smooth'].val,	0.0, 1.0,	'Edge loop spacing around branch join, lower value for less webed joins'); xtmp += but_width*4;
+	PREFS['seg_joint_compression'] =	Draw.Number('Joint Width',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['seg_joint_compression'].val,	0.1, 2.0,	'Edge loop spacing around branch join, lower value for less webed joins'); xtmp += but_width*2;
+	PREFS['seg_joint_smooth'] =	Draw.Number('Joint Smooth',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['seg_joint_smooth'].val,	0.0, 1.0,	'Edge loop spacing around branch join, lower value for less webed joins'); xtmp += but_width*2;
 	
 	y-=but_height
 	xtmp = x
@@ -1680,15 +1758,7 @@ def gui():
 	# ---------- ---------- ---------- ----------
 	
 	PREFS['connect_base_trim'] =	Draw.Number('Trim Base',	EVENT_UPDATE, xtmp, y, but_width*4, but_height, PREFS['connect_base_trim'].val,	0.1, 2.0,	'Trim branch base to better connect with parent branch'); xtmp += but_width*4;
-
-	y-=but_height
-	xtmp = x
-	# ---------- ---------- ---------- ----------
-	
-	PREFS['do_cap_ends'] =	Draw.Toggle('Cap Ends',EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['do_cap_ends'].val,		'Add faces onto branch endpoints'); xtmp += but_width*2;
-	PREFS['do_subsurf'] =	Draw.Toggle('SubSurf',EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['do_subsurf'].val,		'Enable subsurf for newly generated objects'); xtmp += but_width*2;
 	Blender.Draw.EndAlign()
-	
 	y-=but_height+MARGIN
 	xtmp = x
 	# ---------- ---------- ---------- ----------

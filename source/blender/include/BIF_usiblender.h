@@ -43,7 +43,7 @@ void exit_usiblender(void);
 void BIF_init(void);
 
 void BIF_read_file(char *name);
-int BIF_read_homefile(int from_memory, int do_undo);
+int BIF_read_homefile(int from_memory);
 void BIF_read_autosavefile(void);
 
 void BIF_write_file(char *target);

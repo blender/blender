@@ -702,10 +702,9 @@ int main(int argc, char **argv)
 		sce= add_scene("1");
 		set_scene(sce);
 	}
-	
-	BKE_write_undo("original");	/* save current state */
+
 	screenmain();
-	
+
 	return 0;
 } /* end of int main(argc,argv)	*/
 
