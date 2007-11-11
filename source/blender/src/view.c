@@ -1080,18 +1080,10 @@ void obmat_to_viewmat(Object *ob, short smooth)
 /* dont set windows active in in here, is used by renderwin too */
 void setviewmatrixview3d()
 {
-	Camera *cam;
-
 	if(G.vd->persp>=2) {	    /* obs/camera */
 		if(G.vd->camera) {
-			
 			where_is_object(G.vd->camera);	
 			obmat_to_viewmat(G.vd->camera, 0);
-			
-			if(G.vd->camera->type==OB_CAMERA) {
-				cam= G.vd->camera->data;
-				//if(cam->type==CAM_ORTHO) G.vd->viewmat[3][2]*= 100.0;
-			}
 		}
 		else {
 			QuatToMat4(G.vd->viewquat, G.vd->viewmat);
