@@ -2894,6 +2894,9 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 
 			mmd->bindweights= newdataadr(fd, mmd->bindweights);
 			mmd->bindcos= newdataadr(fd, mmd->bindcos);
+			mmd->dyngrid= newdataadr(fd, mmd->dyngrid);
+			mmd->dyninfluences= newdataadr(fd, mmd->dyninfluences);
+			mmd->dynverts= newdataadr(fd, mmd->dynverts);
 
 			if(fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
 				int a;
@@ -2902,6 +2905,8 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 					SWITCH_INT(mmd->bindweights[a])
 				for(a=0; a<mmd->totcagevert*3; a++)
 					SWITCH_INT(mmd->bindcos[a])
+				for(a=0; a<mmd->totvert; a++)
+					SWITCH_INT(mmd->dynverts[a])
 			}
 		}
 	}

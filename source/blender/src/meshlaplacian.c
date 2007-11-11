@@ -805,11 +805,8 @@ void rigid_deform_iteration()
 		laplacian_begin_solve(sys, i);
 
 		for(a=0; a<sys->totvert; a++)
-			if(!sys->vpinned[a]) {
-				/*if (i==0)
-					printf("rhs %f\n", sys->rigid.rhs[a][0]);*/
+			if(!sys->vpinned[a])
 				laplacian_add_right_hand_side(sys, a, sys->rigid.rhs[a][i]);
-			}
 
 		if(laplacian_system_solve(sys)) {
 			for(a=0, eve=em->verts.first; eve; eve=eve->next, a++)
@@ -823,8 +820,6 @@ void rigid_deform_iteration()
 			break;
 		}
 	}
-
-	/*printf("\n--------------------------------------------\n\n");*/
 }
 
 static void rigid_laplacian_create(LaplacianSystem *sys)
@@ -926,6 +921,8 @@ void rigid_deform_end(int cancel)
 
 #define MESHDEFORM_LEN_THRESHOLD 1e-6
 
+#define MESHDEFORM_MIN_INFLUENCE 0.005
+
 static int MESHDEFORM_OFFSET[7][3] =
 		{{0,0,0}, {1,0,0}, {-1,0,0}, {0,1,0}, {0,-1,0}, {0,0,1}, {0,0,-1}};
 
@@ -934,6 +931,12 @@ typedef struct MDefBoundIsect {
 	int nvert, v[4], facing;
 	float len;
 } MDefBoundIsect;
+
+typedef struct MDefBindInfluence {
+	struct MDefBindInfluence *next;
+	float weight;
+	int vertex;
+} MDefBindInfluence;
 
 typedef struct MeshDeformBind {
 	/* grid dimensions */
@@ -957,6 +960,7 @@ typedef struct MeshDeformBind {
 	/* mesh stuff */
 	int *inside;
 	float *weights;
+	MDefBindInfluence **dyngrid;
 	float cagemat[4][4];
 
 	/* direct solver */
@@ -1594,16 +1598,32 @@ static void meshdeform_matrix_solve(MeshDeformBind *mdb)
 				mdb->totalphi[b] += mdb->phi[b];
 			}
 
-			/* compute weights for each vertex */
-			for(b=0; b<mdb->totvert; b++) {
-				if(mdb->inside[b]) {
-					VECCOPY(vec, mdb->vertexcos[b]);
-					Mat4MulVecfl(mdb->cagemat, vec);
-					gridvec[0]= (vec[0] - mdb->min[0] - mdb->halfwidth[0])/mdb->width[0];
-					gridvec[1]= (vec[1] - mdb->min[1] - mdb->halfwidth[1])/mdb->width[1];
-					gridvec[2]= (vec[2] - mdb->min[2] - mdb->halfwidth[2])/mdb->width[2];
+			if(mdb->weights) {
+				/* static bind : compute weights for each vertex */
+				for(b=0; b<mdb->totvert; b++) {
+					if(mdb->inside[b]) {
+						VECCOPY(vec, mdb->vertexcos[b]);
+						Mat4MulVecfl(mdb->cagemat, vec);
+						gridvec[0]= (vec[0] - mdb->min[0] - mdb->halfwidth[0])/mdb->width[0];
+						gridvec[1]= (vec[1] - mdb->min[1] - mdb->halfwidth[1])/mdb->width[1];
+						gridvec[2]= (vec[2] - mdb->min[2] - mdb->halfwidth[2])/mdb->width[2];
 
-					mdb->weights[b*mdb->totcagevert + a]= meshdeform_interp_w(mdb, gridvec, vec, a);
+						mdb->weights[b*mdb->totcagevert + a]= meshdeform_interp_w(mdb, gridvec, vec, a);
+					}
+				}
+			}
+			else {
+				MDefBindInfluence *inf;
+
+				/* dynamic bind */
+				for(b=0; b<mdb->size3; b++) {
+					if(mdb->phi[b] >= 0.0f) { //MESHDEFORM_MIN_INFLUENCE) {
+						inf= BLI_memarena_alloc(mdb->memarena, sizeof(*inf));
+						inf->vertex= a;
+						inf->weight= mdb->phi[b];
+						inf->next= mdb->dyngrid[b];
+						mdb->dyngrid[b]= inf;
+					}
 				}
 			}
 		}
@@ -1634,20 +1654,15 @@ static void meshdeform_matrix_solve(MeshDeformBind *mdb)
 void harmonic_coordinates_bind(MeshDeformModifierData *mmd, float (*vertexcos)[3], int totvert, float cagemat[][4])
 {
 	MeshDeformBind mdb;
+	MDefBindInfluence *inf;
+	MDefInfluence *mdinf;
+	MDefCell *cell;
 	MVert *mvert;
-	float center[3], vec[3], maxwidth;
-	int a, x, y, z, totinside;
+	float center[3], vec[3], maxwidth, totweight;
+	int a, b, x, y, z, totinside, offset;
 
 	waitcursor(1);
 	start_progress_bar();
-
-	/* free exisiting weights */
-	if(mmd->bindweights) {
-		MEM_freeN(mmd->bindweights);
-		MEM_freeN(mmd->bindcos);
-		mmd->bindweights= NULL;
-		mmd->bindcos= NULL;
-	}
 
 	memset(&mdb, 0, sizeof(MeshDeformBind));
 
@@ -1679,8 +1694,12 @@ void harmonic_coordinates_bind(MeshDeformModifierData *mmd, float (*vertexcos)[3
 	mdb.boundisect= MEM_callocN(sizeof(*mdb.boundisect)*mdb.size3, "MDefBoundIsect");
 	mdb.semibound= MEM_callocN(sizeof(int)*mdb.size3, "MDefSemiBound");
 
-	mdb.weights= MEM_callocN(sizeof(float)*mdb.totvert*mdb.totcagevert, "MDefWeights");
 	mdb.inside= MEM_callocN(sizeof(int)*mdb.totvert, "MDefInside");
+
+	if(mmd->flag & MOD_MDEF_DYNAMIC_BIND)
+		mdb.dyngrid= MEM_callocN(sizeof(MDefBindInfluence*)*mdb.size3, "MDefDynGrid");
+	else
+		mdb.weights= MEM_callocN(sizeof(float)*mdb.totvert*mdb.totcagevert, "MDefWeights");
 
 	mdb.memarena= BLI_memarena_new(BLI_MEMARENA_STD_BUFSIZE);
 	BLI_memarena_use_calloc(mdb.memarena);
@@ -1752,10 +1771,53 @@ void harmonic_coordinates_bind(MeshDeformModifierData *mmd, float (*vertexcos)[3
 	meshdeform_matrix_solve(&mdb);
 
 	/* assign results */
-	mmd->bindweights= mdb.weights;
 	mmd->bindcos= (float*)mdb.cagecos;
 	mmd->totvert= mdb.totvert;
 	mmd->totcagevert= mdb.totcagevert;
+	Mat4CpyMat4(mmd->bindmat, mmd->object->obmat);
+
+	if(mmd->flag & MOD_MDEF_DYNAMIC_BIND) {
+		mmd->totinfluence= 0;
+		for(a=0; a<mdb.size3; a++)
+			for(inf=mdb.dyngrid[a]; inf; inf=inf->next)
+				mmd->totinfluence++;
+
+		/* convert MDefBindInfluences to smaller MDefInfluences */
+		mmd->dyngrid= MEM_callocN(sizeof(MDefCell)*mdb.size3, "MDefDynGrid");
+		mmd->dyninfluences= MEM_callocN(sizeof(MDefInfluence)*mmd->totinfluence, "MDefInfluence");
+		offset= 0;
+		for(a=0; a<mdb.size3; a++) {
+			cell= &mmd->dyngrid[a];
+			cell->offset= offset;
+
+			totweight= 0.0f;
+			mdinf= mmd->dyninfluences + cell->offset;
+			for(inf=mdb.dyngrid[a]; inf; inf=inf->next, mdinf++) {
+				mdinf->weight= inf->weight;
+				mdinf->vertex= inf->vertex;
+				totweight += mdinf->weight;
+				cell->totinfluence++;
+			}
+
+			if(totweight > 0.0f) {
+				mdinf= mmd->dyninfluences + cell->offset;
+				for(b=0; b<cell->totinfluence; b++, mdinf++)
+					mdinf->weight /= totweight;
+			}
+
+			offset += cell->totinfluence;
+		}
+
+		mmd->dynverts= mdb.inside;
+		mmd->dyngridsize= mdb.size;
+		VECCOPY(mmd->dyncellmin, mdb.min);
+		mmd->dyncellwidth= mdb.width[0];
+		MEM_freeN(mdb.dyngrid);
+	}
+	else {
+		mmd->bindweights= mdb.weights;
+		MEM_freeN(mdb.inside);
+	}
 
 	/* transform bindcos to world space */
 	for(a=0; a<mdb.totcagevert; a++)
@@ -1768,7 +1830,6 @@ void harmonic_coordinates_bind(MeshDeformModifierData *mmd, float (*vertexcos)[3
 	MEM_freeN(mdb.totalphi);
 	MEM_freeN(mdb.boundisect);
 	MEM_freeN(mdb.semibound);
-	MEM_freeN(mdb.inside);
 	BLI_memarena_free(mdb.memarena);
 
 	end_progress_bar();

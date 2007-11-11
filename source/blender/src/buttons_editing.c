@@ -1470,13 +1470,20 @@ static void modifiers_bindMeshDeform(void *ob_v, void *md_v)
 	MeshDeformModifierData *mmd = (MeshDeformModifierData*) md_v;
 	Object *ob = (Object*)ob_v;
 
-	if(mmd->bindweights) {
-		MEM_freeN(mmd->bindweights);
-		MEM_freeN(mmd->bindcos);
+	if(mmd->bindcos) {
+		if(mmd->bindweights) MEM_freeN(mmd->bindweights);
+		if(mmd->bindcos) MEM_freeN(mmd->bindcos);
+		if(mmd->dyngrid) MEM_freeN(mmd->dyngrid);
+		if(mmd->dyninfluences) MEM_freeN(mmd->dyninfluences);
+		if(mmd->dynverts) MEM_freeN(mmd->dynverts);
 		mmd->bindweights= NULL;
 		mmd->bindcos= NULL;
+		mmd->dyngrid= NULL;
+		mmd->dyninfluences= NULL;
+		mmd->dynverts= NULL;
 		mmd->totvert= 0;
 		mmd->totcagevert= 0;
+		mmd->totinfluence= 0;
 	}
 	else {
 		DerivedMesh *dm;
@@ -1640,7 +1647,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		} else if (md->type==eModifierType_Array) {
 			height = 211;
 		} else if (md->type==eModifierType_MeshDeform) {
-			height = 73;
+			MeshDeformModifierData *mmd= (MeshDeformModifierData*)md;
+			height = (mmd->bindcos)? 73: 93;
 		} 
 		
 							/* roundbox 4 free variables: corner-rounding, nop, roundbox type, shade */
@@ -2130,14 +2138,15 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefButBitS(block, TOG, MOD_MDEF_INVERT_VGROUP, B_MODIFIER_RECALC, "Inv", lx+buttonWidth-40, (cy-=19), 40,19, &mmd->flag, 0.0, 31.0, 0, 0, "Invert vertex group influence");
 
 			uiBlockBeginAlign(block);
-			if(mmd->bindweights) {
-				but= uiDefBut(block, BUT, B_MODIFIER_RECALC, "Unbind", lx,(cy-24), buttonWidth,19, 0, 0, 0, 0, 0, "Unbind mesh from cage");
+			if(mmd->bindcos) {
+				but= uiDefBut(block, BUT, B_MODIFIER_RECALC, "Unbind", lx,(cy-=24), buttonWidth,19, 0, 0, 0, 0, 0, "Unbind mesh from cage");
 				uiButSetFunc(but,modifiers_bindMeshDeform,ob,md);
 			}
 			else {
-				but= uiDefBut(block, BUT, B_MODIFIER_RECALC, "Bind", lx,(cy-24), buttonWidth/2,19, 0, 0, 0, 0, 0, "Bind mesh to cage");
+				but= uiDefBut(block, BUT, B_MODIFIER_RECALC, "Bind", lx,(cy-=24), buttonWidth,19, 0, 0, 0, 0, 0, "Bind mesh to cage");
 				uiButSetFunc(but,modifiers_bindMeshDeform,ob,md);
-				uiDefButS(block, NUM, B_NOP, "Precision:", lx+(buttonWidth+1)/2,(cy-=24), buttonWidth/2,19, &mmd->gridsize, 2, 10, 0.5, 0, "The grid size for binding");
+				uiDefButS(block, NUM, B_NOP, "Precision:", lx,(cy-19), buttonWidth/2 + 20,19, &mmd->gridsize, 2, 10, 0.5, 0, "The grid size for binding");
+				uiDefButBitS(block, TOG, MOD_MDEF_DYNAMIC_BIND, B_MODIFIER_RECALC, "Dynamic", lx+(buttonWidth+1)/2 + 20, (cy-=19), buttonWidth/2 - 20,19, &mmd->flag, 0.0, 31.0, 0, 0, "Invert vertex group influence");
 			}
 			uiBlockEndAlign(block);
 		}

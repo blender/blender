@@ -4935,8 +4935,11 @@ static void meshdeformModifier_freeData(ModifierData *md)
 {
 	MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
 
-	if (mmd->bindweights) MEM_freeN(mmd->bindweights);
-	if (mmd->bindcos) MEM_freeN(mmd->bindcos);
+	if(mmd->bindweights) MEM_freeN(mmd->bindweights);
+	if(mmd->bindcos) MEM_freeN(mmd->bindcos);
+	if(mmd->dyngrid) MEM_freeN(mmd->dyngrid);
+	if(mmd->dyninfluences) MEM_freeN(mmd->dyninfluences);
+	if(mmd->dynverts) MEM_freeN(mmd->dynverts);
 }
 
 static void meshdeformModifier_copyData(ModifierData *md, ModifierData *target)
@@ -4990,12 +4993,64 @@ static void meshdeformModifier_updateDepgraph(
 	}
 }
 
+static float meshdeform_dynamic_bind(MeshDeformModifierData *mmd, float (*dco)[3], float *vec)
+{
+	MDefCell *cell;
+	MDefInfluence *inf;
+	float gridvec[3], dvec[3], ivec[3], co[3], wx, wy, wz;
+	float weight, cageweight, totweight, *cageco;
+	int i, j, a, x, y, z, size;
+
+	co[0]= co[1]= co[2]= 0.0f;
+	totweight= 0.0f;
+	size= mmd->dyngridsize;
+
+	for(i=0; i<3; i++) {
+		gridvec[i]= (vec[i] - mmd->dyncellmin[i] - mmd->dyncellwidth*0.5f)/mmd->dyncellwidth;
+		ivec[i]= (int)gridvec[i];
+		dvec[i]= gridvec[i] - ivec[i];
+	}
+
+	for(i=0; i<8; i++) {
+		if(i & 1) { x= ivec[0]+1; wx= dvec[0]; }
+		else { x= ivec[0]; wx= 1.0f-dvec[0]; } 
+
+		if(i & 2) { y= ivec[1]+1; wy= dvec[1]; }
+		else { y= ivec[1]; wy= 1.0f-dvec[1]; } 
+
+		if(i & 4) { z= ivec[2]+1; wz= dvec[2]; }
+		else { z= ivec[2]; wz= 1.0f-dvec[2]; } 
+
+		CLAMP(x, 0, size-1);
+		CLAMP(y, 0, size-1);
+		CLAMP(z, 0, size-1);
+
+		a= x + y*size + z*size*size;
+		weight= wx*wy*wz;
+
+		cell= &mmd->dyngrid[a];
+		inf= mmd->dyninfluences + cell->offset;
+		for(j=0; j<cell->totinfluence; j++, inf++) {
+			cageco= dco[inf->vertex];
+			cageweight= weight*inf->weight;
+			co[0] += cageweight*cageco[0];
+			co[1] += cageweight*cageco[1];
+			co[2] += cageweight*cageco[2];
+			totweight += cageweight;
+		}
+	}
+
+	VECCOPY(vec, co);
+
+	return totweight;
+}
+
 static void meshdeformModifier_do(
                 ModifierData *md, Object *ob, DerivedMesh *dm,
                 float (*vertexCos)[3], int numVerts)
 {
 	MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
-	float imat[4][4], cagemat[4][4], icagemat[4][4], icmat[3][3];
+	float imat[4][4], cagemat[4][4], icagemat[4][4], iobmat[3][3];
 	float weight, totweight, fac, co[3], *weights, (*dco)[3], (*bindcos)[3];
 	int a, b, totvert, totcagevert, defgrp_index;
 	DerivedMesh *tmpdm, *cagedm;
@@ -5003,7 +5058,7 @@ static void meshdeformModifier_do(
 	MDeformWeight *dw;
 	MVert *cagemvert;
 
-	if(!mmd->object || (!mmd->bindweights && !mmd->needbind))
+	if(!mmd->object || (!mmd->bindcos && !mmd->needbind))
 		return;
 	
 	/* get cage derivedmesh */
@@ -5020,20 +5075,21 @@ static void meshdeformModifier_do(
 		return;
 
  	/* compute matrices to go in and out of cage object space */
-	Mat4Invert(imat, mmd->object->obmat);
+	Mat4Invert(imat, (mmd->bindcos)? mmd->bindmat: mmd->object->obmat);
 	Mat4MulMat4(cagemat, ob->obmat, imat);
 	Mat4Invert(icagemat, cagemat);
-	Mat3CpyMat4(icmat, icagemat);
+	Mat4Invert(imat, ob->obmat);
+	Mat3CpyMat4(iobmat, imat);
 
 	/* bind weights if needed */
-	if(!mmd->bindweights)
+	if(!mmd->bindcos)
 		harmonic_coordinates_bind(mmd, vertexCos, numVerts, cagemat);
 
 	/* verify we have compatible weights */
 	totvert= numVerts;
 	totcagevert= cagedm->getNumVerts(cagedm);
 
-	if(mmd->totvert!=totvert || mmd->totcagevert!=totcagevert || !mmd->bindweights) {
+	if(mmd->totvert!=totvert || mmd->totcagevert!=totcagevert || !mmd->bindcos) {
 		cagedm->release(cagedm);
 		return;
 	}
@@ -5070,6 +5126,10 @@ static void meshdeformModifier_do(
 	fac= 1.0f;
 
 	for(b=0; b<totvert; b++) {
+		if(mmd->flag & MOD_MDEF_DYNAMIC_BIND)
+			if(!mmd->dynverts[b])
+				continue;
+
 		if(dvert) {
 			for(dw=NULL, a=0; a<dvert[b].totweight; a++) {
 				if(dvert[b].dw[a].def_nr == defgrp_index) {
@@ -5089,20 +5149,27 @@ static void meshdeformModifier_do(
 			}
 		}
 
-		totweight= 0.0f;
-		co[0]= co[1]= co[2]= 0.0f;
+		if(mmd->flag & MOD_MDEF_DYNAMIC_BIND) {
+			VECCOPY(co, vertexCos[b]);
+			Mat4MulVecfl(cagemat, co);
+			totweight= meshdeform_dynamic_bind(mmd, dco, co);
+		}
+		else {
+			totweight= 0.0f;
+			co[0]= co[1]= co[2]= 0.0f;
 
-		for(a=0; a<totcagevert; a++) {
-			weight= weights[a + b*totcagevert];
-			co[0]+= weight*dco[a][0];
-			co[1]+= weight*dco[a][1];
-			co[2]+= weight*dco[a][2];
-			totweight += weight;
+			for(a=0; a<totcagevert; a++) {
+				weight= weights[a + b*totcagevert];
+				co[0]+= weight*dco[a][0];
+				co[1]+= weight*dco[a][1];
+				co[2]+= weight*dco[a][2];
+				totweight += weight;
+			}
 		}
 
 		if(totweight > 0.0f) {
 			VecMulf(co, fac/totweight);
-			Mat3MulVecfl(icmat, co);
+			Mat3MulVecfl(iobmat, co);
 			VECADD(vertexCos[b], vertexCos[b], co);
 		}
 	}

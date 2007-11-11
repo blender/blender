@@ -787,11 +787,16 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 		}
 		else if (md->type==eModifierType_MeshDeform) {
 			MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
+			int size = mmd->dyngridsize;
 
 			writedata(wd, DATA, sizeof(float)*mmd->totvert*mmd->totcagevert,
 				mmd->bindweights);
 			writedata(wd, DATA, sizeof(float)*3*mmd->totcagevert,
 				mmd->bindcos);
+			writedata(wd, DATA, sizeof(MDefCell)*size*size*size, mmd->dyngrid);
+			writedata(wd, DATA, sizeof(MDefInfluence)*mmd->totinfluence,
+				mmd->dyninfluences);
+			writedata(wd, DATA, sizeof(int)*mmd->totvert, mmd->dynverts);
 		}
 	}
 }
