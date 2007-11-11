@@ -688,6 +688,10 @@ int main(int argc, char **argv)
 		else {
 			BKE_read_file(argv[a], NULL);
 			sound_initialize_sounds();
+			
+			/* happens for the UI on file reading too */
+			BKE_reset_undo();
+			BKE_write_undo("original");	/* save current state */
 		}
 	}
 
