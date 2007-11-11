@@ -115,7 +115,6 @@ class tree:
 			s += str(brch)
 		return s
 	
-	
 	def fromCurve(self, object):
 		# Now calculate the normals
 		self.object = object
@@ -174,10 +173,14 @@ class tree:
 				
 				brch.bpoints.extend(bpoints)
 		
+		# Sort from big to small, so big branches get priority
+		self.branches_all.sort( key = lambda brch: -brch.bpoints[0].radius )
 		
-		for brch in self.branches_all:
+		for i, brch in enumerate(self.branches_all):
 			brch.calcPointLinkedList()
 			brch.calcPointExtras()
+			# brch.myindex = i
+		
 		
 	def resetTags(self, value):
 		for brch in self.branches_all:
@@ -188,6 +191,11 @@ class tree:
 		build tree data - fromCurve must run first
 		
 		'''
+		
+		# Sort the branchs by the first radius, so big branchs get joins first
+		### self.branches_all.sort( key = lambda brch: brch.bpoints[0].radius )
+		
+		#self.branches_all.reverse()
 		
 		# Connect branches
 		for i in xrange(len(self.branches_all)):
@@ -200,31 +208,40 @@ class tree:
 					
 					brch_j = self.branches_all[j]
 					
-					pt_best_j, dist = brch_j.findClosest(brch_i.bpoints[0].co)
-					
-					# Check its in range, allow for a bit out - hense the sloppy
-					if dist < pt_best_j.radius * sloppy:
+					if not brch_j.inParentChain(brch_i): # So we dont make cyclic tree!
 						
-						# if 1)	dont remove the whole branch, maybe an option but later
-						# if 2)	we are alredy a parent, cant remove me now.... darn :/ not nice...
-						#		could do this properly but it would be slower and its a corner case.
-						#
-						# if 3)	this point is within the branch, remove it.
-						while	len(brch_i.bpoints)>2 and\
-								brch_i.bpoints[0].childCount == 0 and\
-								(brch_i.bpoints[0].co - pt_best_j.nextMidCo).length < pt_best_j.radius * base_trim:
+						pt_best_j, dist = brch_j.findClosest(brch_i.bpoints[0].co)
+						
+						# Check its in range, allow for a bit out - hense the sloppy
+						if dist < pt_best_j.radius * sloppy:
 							
-							# brch_i.bpoints[0].next = 101 # testing.
-							del brch_i.bpoints[0]
-							brch_i.bpoints[0].prev = None
-						
-						brch_i.parent_pt = pt_best_j
-						pt_best_j.childCount += 1 # dont remove me
-						
-						# addas a member of best_j.children later when we have the geometry info available.
-						
-						#### print "Found Connection!!!", i, j
-						break # go onto the next branch
+							# if 1)	dont remove the whole branch, maybe an option but later
+							# if 2)	we are alredy a parent, cant remove me now.... darn :/ not nice...
+							#		could do this properly but it would be slower and its a corner case.
+							#
+							# if 3)	this point is within the branch, remove it.
+							
+							
+							while	len(brch_i.bpoints)>2 and\
+									brch_i.bpoints[0].childCount == 0 and\
+									(brch_i.bpoints[0].co - pt_best_j.nextMidCo).length < pt_best_j.radius * base_trim:
+								
+								del brch_i.bpoints[0]
+								brch_i.bpoints[0].prev = None
+							
+							
+							brch_i.parent_pt = pt_best_j
+							pt_best_j.childCount += 1 # dont remove me
+							
+							'''
+							if pt_best_j.childCount>4:
+								raise "ERROR"
+							'''
+							
+							# addas a member of best_j.children later when we have the geometry info available.
+							
+							#### print "Found Connection!!!", i, j
+							break # go onto the next branch
 		
 		"""
 			children = [brch_child for brch_child in pt.children]
@@ -246,9 +263,11 @@ class tree:
 			brch.checkPointList()
 		'''
 		
+		### self.branches_all.sort( key = lambda brch: brch.parent_pt != None )
+		
 		# Calc points with dependancies
 		# detect circular loops!!! - TODO
-		self.resetTags(False)
+		#### self.resetTags(False) # NOT NEEDED NOW
 		done_nothing = False
 		while done_nothing == False:
 			done_nothing = True
@@ -268,26 +287,28 @@ class tree:
 						
 						best_idx = closestVecIndex(brch.bpoints[0].co, child_locs)
 						
-						# Crap! we alredy have a branch here, this is hard to solve nicely :/
-						# Probably the best thing to do here is attach this branch to the base of the one thats alredy there
-						# For even 
-						if brch.parent_pt.children[best_idx]:
-							# Todo - some fun trick! to get the join working.
-							pass
-						else:
-							brch.parent_pt.children[best_idx] = brch
-						#~ # DONE
-					
-					done_nothing = False
+						# best_idx could be -1 if all childPoint's are used however we check for this and dont allow it to happen.
+						#if best_idx==-1:
+						#	raise "Error"z
+						brch.parent_pt.children[best_idx] = brch
 					
 					for pt in brch.bpoints:
-						# for temp debugging
-						## self.mesh.faces.extend([pt.verts])
 						pt.calcVerts()
-						
-						# pt.toMesh(self.mesh) # Cant do here because our children arnt calculated yet!
 					
+					done_nothing = False
 					brch.tag = True
+		
+		'''
+		for i in xrange(len(self.branches_all)):
+			brch_i = self.branches_all[i]
+			print brch_i.myindex,
+			print 'tag', brch_i.tag,
+			print 'parent is',
+			if brch_i.parent_pt:
+				print brch_i.parent_pt.branch.myindex
+			else:
+				print None
+		'''
 	
 	def optimizeSpacing(self, density=1.0, joint_compression=1.0, joint_smooth=1.0):
 		'''
@@ -1110,6 +1131,7 @@ class branch:
 		
 		# Bones per branch
 		self.bones = []
+		# self.myindex = -1
 	
 	def __repr__(self):
 		s = ''
@@ -1131,6 +1153,11 @@ class branch:
 			pt.calcNormal()
 			pt.calcNextMidCo()		
 	
+	def getParentBranch(self):
+		if not self.parent_pt:
+			return None
+		return self.parent_pt.branch
+		
 	def getParentQuadAngle(self):
 		'''
 		The angle off we are from our parent quad,
@@ -1193,7 +1220,20 @@ class branch:
 					best_dist = dist
 		
 		return best, best_dist
+	
+	def inParentChain(self, brch):
+		'''
+		See if this branch is a parent of self or in the chain
+		'''
 		
+		self_parent_lookup = self.getParentBranch()
+		while self_parent_lookup:
+			if self_parent_lookup == brch:
+				return True
+			self_parent_lookup = self_parent_lookup.getParentBranch()
+		
+		return False
+	
 	def evenPointDistrobution(self, factor=1.0, factor_joint=1.0):
 		'''
 		Redistribute points that are not evenly distributed
@@ -1386,17 +1426,17 @@ EVENT_REDRAW = 3
 PREFS = {}
 PREFS['connect_sloppy'] = Draw.Create(1.0)
 PREFS['connect_base_trim'] = Draw.Create(1.0)
-PREFS['seg_density'] = Draw.Create(0.2)
+PREFS['seg_density'] = Draw.Create(0.5)
 PREFS['seg_joint_compression'] = Draw.Create(1.0)
 PREFS['seg_joint_smooth'] = Draw.Create(2.0)
 PREFS['image_main'] = Draw.Create('')
-PREFS['do_uv'] = Draw.Create(1)
+PREFS['do_uv'] = Draw.Create(0)
 PREFS['uv_x_scale'] = Draw.Create(4.0)
 PREFS['uv_y_scale'] = Draw.Create(1.0)
 PREFS['do_subsurf'] = Draw.Create(1)
 PREFS['do_cap_ends'] = Draw.Create(0)
 PREFS['do_uv_scalewidth'] = Draw.Create(1)
-PREFS['do_armature'] = Draw.Create(1)
+PREFS['do_armature'] = Draw.Create(0)
 PREFS['do_anim'] = Draw.Create(1)
 try:		PREFS['anim_tex'] = Draw.Create([tex for tex in bpy.data.textures][0].name)
 except:		PREFS['anim_tex'] = Draw.Create('')
@@ -1464,7 +1504,7 @@ def buildTree(ob, single=False):
 	Must be a curve object, write to a child mesh
 	Must check this is a curve object!
 	'''
-	
+	print 'Curve2Tree, starting...'
 	# if were only doing 1 object, just use the current prefs
 	prefs = {}
 	if single or not (IDProp2Prefs(ob.properties, prefs)):
@@ -1505,11 +1545,19 @@ def buildTree(ob, single=False):
 	else:			image = None
 	
 	# Get the mesh child
-
+	
+	print '\treading blenders curves...',
+	time1 = Blender.sys.time()
+	
 	t = tree()
 	t.fromCurve(ob)
 	if not t.branches_all:
 		return # Empty curve? - may as well not throw an error
+		
+	time2 = Blender.sys.time() # time print
+	print '%.4f sec' % (time2 - time1)
+	print '\tconnecting branches...',
+	
 	
 	#print t
 	t.buildConnections(\
@@ -1517,12 +1565,19 @@ def buildTree(ob, single=False):
 		base_trim = PREFS['connect_base_trim'].val\
 	)
 	
+	time3 = Blender.sys.time() # time print
+	print '%.4f sec' % (time3-time2)
+	print '\toptimizing point spacing...',
+	
 	t.optimizeSpacing(\
 		density=PREFS['seg_density'].val,\
 		joint_compression = PREFS['seg_joint_compression'].val,\
 		joint_smooth = PREFS['seg_joint_smooth'].val\
 	)
-	
+
+	time4 = Blender.sys.time() # time print
+	print '%.4f sec' % (time4-time3)
+	print '\tbuilding mesh...',
 	
 	ob_mesh = getCurveChild('Mesh')
 	if not ob_mesh:
@@ -1549,8 +1604,14 @@ def buildTree(ob, single=False):
 	
 	mesh.calcNormals()
 	
+	time5 = Blender.sys.time() # time print
+	print '%.4f sec' % (time5-time4)
+	
 	# Do armature stuff....
 	if PREFS['do_armature'].val:
+		
+		print '\tbuilding armature & animation...',
+		
 		ob_arm = getCurveChild('Armature')
 		if ob_arm:
 			armature = ob_arm.data
@@ -1582,6 +1643,13 @@ def buildTree(ob, single=False):
 						anim_speed_size_scale= PREFS['anim_speed_size_scale'].val,\
 						anim_offset_scale=PREFS['anim_offset_scale'].val
 						)
+		
+		time6 = Blender.sys.time() # time print
+		print '%.4f sec\n' % (time6-time5)
+	else:
+		time6 = Blender.sys.time() # time print
+	
+	print 'done in %.4f sec' % (time6 - time1)
 	
 	# Add subsurf last it needed. so armature skinning is done first.
 	# Do subsurf?
