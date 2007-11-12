@@ -6827,11 +6827,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		bConstraint *con;
 		bConstraintTarget *ct;
 		
-		for(ob = main->object.first; ob; ob= ob->id.next) {
-			if(ob->pose) {
-				for(pchan=ob->pose->chanbase.first; pchan; pchan=pchan->next) {
-					for(con=pchan->constraints.first; con; con=con->next) {
-						if(con->type==CONSTRAINT_TYPE_PYTHON) {
+		for (ob = main->object.first; ob; ob= ob->id.next) {
+			if (ob->pose) {
+				for (pchan=ob->pose->chanbase.first; pchan; pchan=pchan->next) {
+					for (con=pchan->constraints.first; con; con=con->next) {
+						if (con->type == CONSTRAINT_TYPE_PYTHON) {
 							bPythonConstraint *data= (bPythonConstraint *)con->data;
 							if (data->tar) {
 								/* version patching needs to be done */
@@ -6849,12 +6849,19 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 								strcpy(data->subtarget, "");
 							}
 						}
+						else if (con->type == CONSTRAINT_TYPE_LOCLIKE) {
+							bLocateLikeConstraint *data= (bLocateLikeConstraint *)con->data;
+							
+							/* new headtail functionality makes Bone-Tip function obsolete */
+							if (data->flag & LOCLIKE_TIP)
+								con->headtail = 1.0f;
+						}
 					}
 				}
 			}
 			
-			for(con=ob->constraints.first; con; con=con->next) {
-				if(con->type==CONSTRAINT_TYPE_PYTHON) {
+			for (con=ob->constraints.first; con; con=con->next) {
+				if (con->type==CONSTRAINT_TYPE_PYTHON) {
 					bPythonConstraint *data= (bPythonConstraint *)con->data;
 					if (data->tar) {
 						/* version patching needs to be done */
@@ -6871,6 +6878,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						data->tar = NULL;
 						strcpy(data->subtarget, "");
 					}
+				}
+				else if (con->type == CONSTRAINT_TYPE_LOCLIKE) {
+					bLocateLikeConstraint *data= (bLocateLikeConstraint *)con->data;
+					
+					/* new headtail functionality makes Bone-Tip function obsolete */
+					if (data->flag & LOCLIKE_TIP)
+						con->headtail = 1.0f;
 				}
 			}
 		}

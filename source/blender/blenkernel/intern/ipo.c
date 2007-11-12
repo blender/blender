@@ -85,7 +85,7 @@
 */
 
 int co_ar[CO_TOTIPO]= {
-	CO_ENFORCE
+	CO_ENFORCE, CO_HEADTAIL
 };
 
 int ob_ar[OB_TOTIPO]= {

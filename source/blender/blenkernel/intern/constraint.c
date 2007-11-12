@@ -194,6 +194,11 @@ void do_constraint_channels (ListBase *conbase, ListBase *chanbase, float ctime,
 							con->enforce = CLAMPIS(icu->curval, 0.0f, 1.0f);
 						}
 							break;
+						case CO_HEADTAIL:
+						{
+							con->headtail = icu->curval;
+						}
+							break;
 					}
 				}
 			}
@@ -224,6 +229,9 @@ void unique_constraint_name (bConstraint *con, ListBase *list)
 	}
 	
 	/* See if we even need to do this */
+	if (list == NULL)
+		return;
+	
 	for (curcon = list->first; curcon; curcon=curcon->next) {
 		if (curcon != con) {
 			if (!strcmp(curcon->name, con->name)) {
@@ -710,7 +718,7 @@ static void contarget_get_lattice_mat (Object *ob, char *substring, float mat[][
 
 /* generic function to get the appropriate matrix for most target cases */
 /* The cases where the target can be object data have not been implemented */
-static void constraint_target_to_mat4 (Object *ob, char *substring, float mat[][4], short from, short to)
+static void constraint_target_to_mat4 (Object *ob, char *substring, float mat[][4], short from, short to, float headtail)
 {
 	/*	Case OBJECT */
 	if (!strlen(substring)) {
@@ -744,7 +752,22 @@ static void constraint_target_to_mat4 (Object *ob, char *substring, float mat[][
 			 * PoseChannel by the Armature Object's Matrix to get a worldspace
 			 * matrix.
 			 */
-			Mat4MulMat4(mat, pchan->pose_mat, ob->obmat);
+			if (headtail < 0.000001) {
+				/* skip length interpolation if set to head */
+				Mat4MulMat4(mat, pchan->pose_mat, ob->obmat);
+			}
+			else {
+				float tempmat[4][4], loc[3];
+				
+				/* interpolate along length of bone */
+				VecLerpf(loc, pchan->pose_head, pchan->pose_tail, headtail);	
+				
+				/* use interpolated distance for subtarget */
+				Mat4CpyMat4(tempmat, pchan->pose_mat);	
+				VecCopyf(tempmat[3], loc);
+				
+				Mat4MulMat4(mat, tempmat, ob->obmat);
+			}
 		} 
 		else
 			Mat4CpyMat4(mat, ob->obmat);
@@ -794,7 +817,7 @@ static bConstraintTypeInfo CTI_CONSTRNAME = {
 static void default_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintTarget *ct, float ctime)
 {
 	if (VALID_CONS_TARGET(ct))
-		constraint_target_to_mat4(ct->tar, ct->subtarget, ct->matrix, CONSTRAINT_SPACE_WORLD, ct->space);
+		constraint_target_to_mat4(ct->tar, ct->subtarget, ct->matrix, CONSTRAINT_SPACE_WORLD, ct->space, con->headtail);
 	else if (ct)
 		Mat4One(ct->matrix);
 }
@@ -1192,7 +1215,7 @@ static void kinematic_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstra
 	bKinematicConstraint *data= con->data;
 	
 	if (VALID_CONS_TARGET(ct)) 
-		constraint_target_to_mat4(ct->tar, ct->subtarget, ct->matrix, CONSTRAINT_SPACE_WORLD, ct->space);
+		constraint_target_to_mat4(ct->tar, ct->subtarget, ct->matrix, CONSTRAINT_SPACE_WORLD, ct->space, con->headtail);
 	else if (ct) {
 		if (data->flag & CONSTRAINT_IK_AUTO) {
 			Object *ob= cob->ob;
@@ -1564,43 +1587,6 @@ static void loclike_flush_tars (bConstraint *con, ListBase *list, short nocopy)
 	}
 }
 
-static void loclike_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintTarget *ct, float ctime)
-{
-	bLocateLikeConstraint *data = con->data;
-
-	if (VALID_CONS_TARGET(ct)) {
-		if (ct->tar->type==OB_ARMATURE && strlen(ct->subtarget)) {
-			/* Pose-Channels for the CopyLoc target are handled specially, so that
-			 * we can support using the bone-tip as an option.
-			 */
-			bPoseChannel *pchan;
-			float tmat[4][4];
-			
-			pchan = get_pose_channel(ct->tar->pose, ct->subtarget);
-			if (pchan) {
-				Mat4CpyMat4(tmat, pchan->pose_mat);
-				
-				if (data->flag & LOCLIKE_TIP) { 
-					VECCOPY(tmat[3], pchan->pose_tail);
-				}
-					
-				Mat4MulMat4(ct->matrix, tmat, ct->tar->obmat);
-			}
-			else 
-				Mat4CpyMat4(ct->matrix, ct->tar->obmat);
-				
-			/* convert matrix space as required  */
-			constraint_mat_convertspace(ct->tar, pchan, ct->matrix, CONSTRAINT_SPACE_WORLD, ct->space);
-		}
-		else {
-			/* get target matrix as is done normally for other constraints */
-			constraint_target_to_mat4(ct->tar, ct->subtarget, ct->matrix, CONSTRAINT_SPACE_WORLD, ct->space);
-		}
-	}
-	else if (ct)
-		Mat4One(ct->matrix);
-}
-
 static void loclike_evaluate (bConstraint *con, bConstraintOb *cob, ListBase *targets)
 {
 	bLocateLikeConstraint *data= con->data;
@@ -1644,7 +1630,7 @@ static bConstraintTypeInfo CTI_LOCLIKE = {
 	loclike_new_data, /* new data */
 	loclike_get_tars, /* get constraint targets */
 	loclike_flush_tars, /* flush constraint targets */
-	loclike_get_tarmat, /* get target matrix */
+	default_get_tarmat, /* get target matrix */
 	loclike_evaluate /* evaluate */
 };
 
@@ -1896,7 +1882,7 @@ static void pycon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraintT
 		/* firstly calculate the matrix the normal way, then let the py-function override
 		 * this matrix if it needs to do so
 		 */
-		constraint_target_to_mat4(ct->tar, ct->subtarget, ct->matrix, CONSTRAINT_SPACE_WORLD, ct->space);
+		constraint_target_to_mat4(ct->tar, ct->subtarget, ct->matrix, CONSTRAINT_SPACE_WORLD, ct->space, con->headtail);
 		BPY_pyconstraint_target(data, ct);
 	}
 	else if (ct)
@@ -1987,7 +1973,7 @@ static void actcon_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstraint
 		Mat4One(ct->matrix);
 		
 		/* get the transform matrix of the target */
-		constraint_target_to_mat4(ct->tar, ct->subtarget, tempmat, CONSTRAINT_SPACE_WORLD, ct->space);
+		constraint_target_to_mat4(ct->tar, ct->subtarget, tempmat, CONSTRAINT_SPACE_WORLD, ct->space, con->headtail);
 		
 		/* determine where in transform range target is */
 		/* data->type is mapped as follows for backwards compatability:

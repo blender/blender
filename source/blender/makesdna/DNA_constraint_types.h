@@ -64,6 +64,8 @@ typedef struct bConstraint {
 	char		name[30];	/*	Constraint name */
 	
 	float		enforce;	/* 	Amount of influence exherted by constraint (0.0-1.0) */
+	float		headtail;	/*	Point along subtarget bone where the actual target is. 0=head (default for all), 1=tail*/
+	int			pad;
 } bConstraint;
 
 
@@ -116,7 +118,7 @@ typedef struct bPythonConstraint {
 	char subtarget[32];		/* subtarger from previous implentation (version-patch sets this to "" on file-load) */
 } bPythonConstraint;
 
-/* Single-target subobject constraints ---------------------  */
+
 /* Inverse-Kinematics (IK) constraint */
 typedef struct bKinematicConstraint {
 	Object		*tar;
@@ -134,6 +136,8 @@ typedef struct bKinematicConstraint {
 	float		grabtarget[3];	/* for target-less IK */
 } bKinematicConstraint;
 
+
+/* Single-target subobject constraints ---------------------  */
 /* Track To Constraint */
 typedef struct bTrackToConstraint {
 	Object		*tar;
@@ -386,6 +390,7 @@ typedef enum B_CONSTRAINTCHANNEL_FLAG {
 #define LOCLIKE_X			0x01
 #define LOCLIKE_Y			0x02
 #define LOCLIKE_Z			0x04
+	/* LOCLIKE_TIP is a depreceated option... use headtail=1.0f instead */
 #define LOCLIKE_TIP			0x08
 #define LOCLIKE_X_INVERT	0x10
 #define LOCLIKE_Y_INVERT	0x20

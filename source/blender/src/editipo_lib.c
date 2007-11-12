@@ -61,7 +61,7 @@ char *ob_ic_names[OB_TOTNAM] = { "LocX", "LocY", "LocZ", "dLocX", "dLocY", "dLoc
 	"Layer", "Time", "ColR", "ColG", "ColB", "ColA",
 	"FStreng", "FFall", "RDamp", "Damping", "Perm" };
 
-char *co_ic_names[CO_TOTNAM] = { "Inf" };
+char *co_ic_names[CO_TOTNAM] = { "Inf", "HeadTail" };
 char *mtex_ic_names[TEX_TOTNAM] = { "OfsX", "OfsY", "OfsZ", "SizeX", "SizeY", "SizeZ",
 	"texR", "texG", "texB", "DefVar", "Col", "Nor", "Var",
 	"Disp" };
@@ -191,6 +191,7 @@ char *getname_co_ei(int nr)
 {
 	switch(nr){
 		case CO_ENFORCE:
+		case CO_HEADTAIL:
 			return co_ic_names[nr-1];
 	}
 	return ic_name_empty[0];
@@ -386,5 +387,7 @@ int texchannel_to_adrcode(int channel)
 		default: return 0;
 	}
 }
+
+
 
 

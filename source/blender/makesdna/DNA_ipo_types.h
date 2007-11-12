@@ -319,10 +319,11 @@ typedef short IPO_Channel;
 #define AC_QUAT_Z	28
 
 /* ******************** */
-#define CO_TOTIPO	1	/* Constraint Ipos */
-#define CO_TOTNAM	1
+#define CO_TOTIPO	2	/* Constraint Ipos */
+#define CO_TOTNAM	2
 
 #define CO_ENFORCE	1
+#define CO_HEADTAIL	2
 /*
 #define	CO_TIME		2
 #define CO_OFFSET_X	3
@@ -398,4 +399,6 @@ typedef short IPO_Channel;
 #define IPO_MUTE		128
 
 #endif
+
+
 
