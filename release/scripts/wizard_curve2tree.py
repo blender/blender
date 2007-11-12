@@ -38,7 +38,7 @@ __bpydoc__ = """\
 
 import bpy
 import Blender
-from Blender.Mathutils import Vector, CrossVecs, AngleBetweenVecs, LineIntersect, TranslationMatrix, ScaleMatrix
+from Blender.Mathutils import Vector, Matrix, CrossVecs, AngleBetweenVecs, LineIntersect, TranslationMatrix, ScaleMatrix, RotationMatrix, Rand
 from Blender.Geometry import ClosestPointOnLine
 
 GLOBALS = {}
@@ -98,6 +98,7 @@ class tree:
 	def __init__(self):
 		self.branches_all =		[]
 		self.branches_root =	[]
+		self.branches_twigs =	[]
 		self.mesh = None
 		self.armature = None
 		self.object = None
@@ -172,21 +173,20 @@ class tree:
 					bpoints.pop()
 				
 				brch.bpoints.extend(bpoints)
-		
+			
+			# Finalize once point data is there
+			brch.calcData()
+			
 		# Sort from big to small, so big branches get priority
 		self.branches_all.sort( key = lambda brch: -brch.bpoints[0].radius )
 		
-		for i, brch in enumerate(self.branches_all):
-			brch.calcPointLinkedList()
-			brch.calcPointExtras()
-			# brch.myindex = i
 		
 		
 	def resetTags(self, value):
 		for brch in self.branches_all:
 			brch.tag = value
 	
-	def buildConnections(self, sloppy=1.0, base_trim = 1.0):
+	def buildConnections(self, sloppy=1.0, base_trim = 1.0, do_twigs = False, twig_ratio=2.0, twig_scale=0.8, twig_random_orientation= 0.5, twig_recursive=True):
 		'''
 		build tree data - fromCurve must run first
 		
@@ -214,24 +214,10 @@ class tree:
 						
 						# Check its in range, allow for a bit out - hense the sloppy
 						if dist < pt_best_j.radius * sloppy:
-							
-							# if 1)	dont remove the whole branch, maybe an option but later
-							# if 2)	we are alredy a parent, cant remove me now.... darn :/ not nice...
-							#		could do this properly but it would be slower and its a corner case.
-							#
-							# if 3)	this point is within the branch, remove it.
-							
-							
-							while	len(brch_i.bpoints)>2 and\
-									brch_i.bpoints[0].childCount == 0 and\
-									(brch_i.bpoints[0].co - pt_best_j.nextMidCo).length < pt_best_j.radius * base_trim:
-								
-								del brch_i.bpoints[0]
-								brch_i.bpoints[0].prev = None
-							
-							
 							brch_i.parent_pt = pt_best_j
 							pt_best_j.childCount += 1 # dont remove me
+							
+							brch_i.baseTrim(base_trim)
 							
 							'''
 							if pt_best_j.childCount>4:
@@ -262,6 +248,100 @@ class tree:
 		for brch in self.branches_all:
 			brch.checkPointList()
 		'''
+		
+		# Important we so this with existing parent/child but before connecting and calculating verts.
+		
+		if do_twigs:
+			self.buildTwigs(twig_ratio)
+			
+			branches_twig_attached = []
+			
+			# This wont add all! :/
+			brch_twig_index = 0
+			brch_twig_index_LAST = -1 # use this to prevent in inf loop, since its possible we cant place every branch
+			while brch_twig_index < len(self.branches_twigs) and brch_twig_index_LAST != brch_twig_index:
+				###print "While"
+				### print brch_twig_index, len(self.branches_twigs) # if this dosnt change, quit the while
+				
+				brch_twig_index_LAST = brch_twig_index
+				
+				# new twigs have been added, recalculate
+				branches_twig_sort = [(brch.bestTwigSegment(), brch) for brch in self.branches_all]
+				branches_twig_sort.sort() # this will sort the branches with best braches for adding twigs to at the start of the list
+				
+				for twig_data, brch_parent in branches_twig_sort:
+					twig_pt_index = twig_data[1]
+					
+					if twig_pt_index != -1:
+						
+						###print "\tFor",
+						###print brch_twig_index, len(self.branches_twigs)
+						if brch_twig_index >= len(self.branches_twigs):
+							break
+						
+						#print "twig"
+						
+						brch_twig = self.branches_twigs[brch_twig_index]
+						
+						
+						parent_pt = brch_parent.bpoints[twig_pt_index]
+						brch_twig.parent_pt = parent_pt
+						parent_pt.childCount += 1
+						
+						#angle = brch_parent.getParentAngle()
+						
+						# Align this with the existing branch
+						angle = AngleBetweenVecs(zup, parent_pt.no)
+						cross = CrossVecs(zup, parent_pt.no)
+						mat_align = RotationMatrix(angle, 3, 'r', cross)
+						# brch_twig.transform(mat)
+						
+						# Use the bend on the point to work out which way to make the branch point!
+						if parent_pt.prev:	cross = CrossVecs(parent_pt.no, parent_pt.prev.no - parent_pt.no)
+						else:				cross = CrossVecs(parent_pt.no, parent_pt.next.no - parent_pt.no)
+						
+						if parent_pt.branch.parent_pt:
+							angle = AngleBetweenVecs(parent_pt.branch.parent_pt.no, parent_pt.no)
+						else:
+							# Should add a UI for this... only happens when twigs come off a root branch
+							angle = 66
+						
+						mat_branch_angle = RotationMatrix(angle, 3, 'r', cross)
+						
+						# Scale this twig using this way...
+						# The size of the parent, scaled by the parent point's radius,
+						# ...compared to the parent branch;s root point radius.
+						# Also take into account the length of the parent branch
+						scale = twig_scale * (parent_pt.branch.bpoints[0].radius / brch_twig.bpoints[0].radius) * (parent_pt.radius / parent_pt.branch.bpoints[0].radius)
+						mat_scale = Matrix([scale,0,0],[0,scale,0],[0,0,scale])
+						
+						# Random orientation
+						
+						rnd = Rand(0, twig_random_orientation)
+						
+						mat_orientation = RotationMatrix(rnd*180, 3, 'r', parent_pt.no)
+						
+						brch_twig.transform(mat_scale * mat_branch_angle * mat_align * mat_orientation, parent_pt.co)
+						
+						#print "Attempting to trim base"
+						brch_twig.baseTrim(base_trim)
+						
+						# Make sure this dosnt mess up anything else
+						
+						brch_twig_index += 1
+						
+						# Add to the branches
+						#self.branches_all.append(brch_twig)
+						branches_twig_attached.append(brch_twig)
+				
+				# Watch This! - move 1 tab down for no recursive twigs
+				if twig_recursive:
+					self.branches_all.extend(branches_twig_attached)
+					branches_twig_attached = []
+			
+			if not twig_recursive:
+				self.branches_all.extend(branches_twig_attached)
+				branches_twig_attached = []
 		
 		### self.branches_all.sort( key = lambda brch: brch.parent_pt != None )
 		
@@ -330,6 +410,34 @@ class tree:
 		for brch in self.branches_all:
 			brch.branchReJoin()
 	
+	def buildTwigs(self, twig_ratio=1.0):
+		
+		ratio_int = int(len(self.branches_all) * twig_ratio)
+		if ratio_int == 0:
+			return
+		
+		# So we only mix branches of similar lengths
+		branches_sorted = self.branches_all[:]
+		branches_sorted.sort( key = lambda brch: len(brch.bpoints))
+		
+		branches_new = []
+		#for i in xrange(ratio_int):
+		tot_twigs = 0
+		
+		step = 1
+		while tot_twigs < ratio_int and step < len(branches_sorted):
+			# Make branches from the existing
+			for j in xrange(step, len(branches_sorted)):
+				brch = branches_sorted[j-step].mixToNew(branches_sorted[j], None)
+				branches_new.append( brch )
+				tot_twigs +=1
+				
+				if tot_twigs > ratio_int:
+					break
+		
+		### print "TwigCount", len(branches_new), ratio_int
+		
+		self.branches_twigs = branches_new
 	
 	def toDebugDisplay(self):
 		'''
@@ -744,7 +852,7 @@ class tree:
 			
 			#(%s.evaluate((b.Get("curframe")*%.3f,0,0)).w-0.5)*%.3f
 		
-		
+xyzup = Vector(1,1,1).normalize()
 xup = Vector(1,0,0)
 yup = Vector(0,1,0)
 zup = Vector(0,0,1)
@@ -1046,7 +1154,7 @@ class bpoint(object):
 		use for aurienting the sides of a quad to meet a branch that stems from here...
 		'''
 		
-		mat = Blender.Mathutils.RotationMatrix(angle, 3, 'r', self.no)
+		mat = RotationMatrix(angle, 3, 'r', self.no)
 		for i in xrange(4):
 			self.vecs[i] = self.vecs[i] * mat
 	
@@ -1108,7 +1216,7 @@ class bpoint(object):
 		
 		self.vecs[0] = Blender.Mathutils.CrossVecs(self.no, cross)
 		self.vecs[0].length = self.radius
-		mat = Blender.Mathutils.RotationMatrix(90, 3, 'r', self.no)
+		mat = RotationMatrix(90, 3, 'r', self.no)
 		self.vecs[1] = self.vecs[0] * mat
 		self.vecs[2] = self.vecs[1] * mat
 		self.vecs[3] = self.vecs[2] * mat
@@ -1128,7 +1236,8 @@ class branch:
 		self.parent_pt = None
 		self.tag = False # have we calculated our points
 		self.face_cap = None
-		
+		self.length = -1
+		# self.totchildren = 0
 		# Bones per branch
 		self.bones = []
 		# self.myindex = -1
@@ -1139,6 +1248,37 @@ class branch:
 		s += '\tbpoints:', len(self.bpoints)
 		for pt in brch.bpoints:
 			s += str(self.pt)
+	
+	def getNormal(self):
+		return (self.bpoints[-1].co - self.bpoints[0].co).normalize()
+	
+	def getParentAngle(self):
+		if self.parent_pt:
+			return AngleBetweenVecs(self.parent_pt.no, self.bpoints[0].no )
+		else:
+			return 45.0
+	
+	def getParentRadiusRatio(self):
+		if self.parent_pt:
+			return self.bpoints[0].radius / self.parent_pt.radius
+		else:
+			return 0.8
+	
+		
+	
+	def getLength(self):
+		return (self.bpoints[0].co - self.bpoints[-1].co).length
+	'''
+	def calcTotChildren(self):
+		for pt in self.bpoints:
+			self.totchildren += pt.childCount
+	'''
+	def calcData(self):
+		'''
+		Finalize once point data is there
+		'''
+		self.calcPointLinkedList()
+		self.calcPointExtras()
 	
 	def calcPointLinkedList(self):
 		for i in xrange(1, len(self.bpoints)-1):
@@ -1152,6 +1292,20 @@ class branch:
 		for pt in self.bpoints:
 			pt.calcNormal()
 			pt.calcNextMidCo()		
+	
+	def baseTrim(self, base_trim):
+		# if 1)	dont remove the whole branch, maybe an option but later
+		# if 2)	we are alredy a parent, cant remove me now.... darn :/ not nice...
+		#		could do this properly but it would be slower and its a corner case.
+		#
+		# if 3)	this point is within the branch, remove it.
+		
+		while	len(self.bpoints)>2 and\
+				self.bpoints[0].childCount == 0 and\
+				(self.bpoints[0].co - self.parent_pt.nextMidCo).length < self.parent_pt.radius * base_trim:
+			
+			del self.bpoints[0]
+			self.bpoints[0].prev = None
 	
 	def getParentBranch(self):
 		if not self.parent_pt:
@@ -1233,6 +1387,70 @@ class branch:
 			self_parent_lookup = self_parent_lookup.getParentBranch()
 		
 		return False
+	
+	def transform(self, mat, loc=None):
+		scale = (xyzup * mat).length
+		for pt in self.bpoints:
+			if loc:
+				pt.co = (pt.co * mat) + loc
+			else:
+				pt.co = pt.co * mat
+			pt.radius *= scale
+		
+		for pt in self.bpoints:
+			self.calcPointExtras()
+	
+	def translate(self, co):
+		'''
+		Simply move the twig on the branch
+		'''
+		ofs = self.bpoints[0].co-co
+		for pt in self.bpoints:
+			pt.co -= ofs
+	
+	def bestTwigSegment(self):
+		'''
+		Return the most free part on the branch to place a new twig
+		return (best_index, dist_from_parent)
+		'''
+		
+		# loop up and down the branch - counding how far from the last parent segment we are
+		spacing1 = [0] * (len(self.bpoints)-1)
+		spacing2 = spacing1[:]
+		
+		step_from_parent = 0
+		for i in xrange(len(spacing1)): # -1 because the last pt cant have kits
+			
+			if self.bpoints[i].childCount:
+				step_from_parent = 0
+			else:
+				step_from_parent += 1
+			
+			spacing1[i] += step_from_parent # -1 because the last pt cant have kits
+		
+		best_index = -1
+		best_val = -1
+		step_from_parent = 0
+		for i in xrange(len(spacing1)-1, -1, -1):
+			
+			if self.bpoints[i].childCount:
+				step_from_parent = 0
+			else:
+				step_from_parent += 1
+			
+			spacing2[i] += step_from_parent
+			
+			if self.bpoints[i].childCount < 4:
+				# Dont allow to assign more verts then 4
+				val = spacing1[i] * spacing2[i]
+				if val > best_val:
+					best_val = val
+					best_index = i
+		
+		#if best_index == -1:
+		#	raise "Error"
+			
+		return -best_val, best_index
 	
 	def evenPointDistrobution(self, factor=1.0, factor_joint=1.0):
 		'''
@@ -1344,36 +1562,36 @@ class branch:
 			return # nothing to do
 		
 		# see if the next segment is closer now (after collapsing)
-		par_pt = self.parent_pt
+		parent_pt = self.parent_pt
 		root_pt = self.bpoints[0]
 		
 		#try:
-		index = par_pt.children.index(self)
+		index = parent_pt.children.index(self)
 		#except:
 		#print "This is bad!, but not being able to re-join isnt that big a deal"
 		
-		current_dist = (par_pt.nextMidCo - root_pt.co).length
+		current_dist = (parent_pt.nextMidCo - root_pt.co).length
 		
 		# TODO - Check size of new area is ok to move into
 		
-		if par_pt.next and par_pt.next.next and par_pt.next.children[index] == None:
+		if parent_pt.next and parent_pt.next.next and parent_pt.next.children[index] == None:
 			# We can go here if we want, see if its better
-			if current_dist > (par_pt.next.nextMidCo - root_pt.co).length:
+			if current_dist > (parent_pt.next.nextMidCo - root_pt.co).length:
 				self.parent_pt.children[index] = None
 				self.parent_pt.childCount -= 1
 				
-				self.parent_pt = par_pt.next
+				self.parent_pt = parent_pt.next
 				self.parent_pt.children[index] = self
 				self.parent_pt.childCount += 1
 				return
 		
-		if par_pt.prev and par_pt.prev.children[index] == None:
+		if parent_pt.prev and parent_pt.prev.children[index] == None:
 			# We can go here if we want, see if its better
-			if current_dist > (par_pt.prev.nextMidCo - root_pt.co).length:
+			if current_dist > (parent_pt.prev.nextMidCo - root_pt.co).length:
 				self.parent_pt.children[index] = None
 				self.parent_pt.childCount -= 1
 				
-				self.parent_pt = par_pt.prev
+				self.parent_pt = parent_pt.prev
 				self.parent_pt.children[index] = self
 				self.parent_pt.childCount += 1
 				return
@@ -1397,8 +1615,61 @@ class branch:
 			p_link = p_link.next
 			i+=1
 	
-	def mixToNew(self, other):
-			pass
+	def mixToNew(self, other, BLEND_MODE):
+		'''
+		Generate a new branch based on 2 existing ones
+		These branches will point 'zup' - aurient 'xup' and have a tip length of 1.0
+		'''
+		
+		# Lets be lazy! - if the branches are different sizes- use the shortest.
+		# brch1 is always smaller
+		
+		brch1 = self
+		brch2 = other
+		if len(brch1.bpoints) > len(brch2.bpoints):
+			brch1, brch2 = brch2, brch1
+		
+		if len(brch1.bpoints) == 1:
+			return None
+		
+		co_start = brch1.bpoints[0].co
+		cos1 = [ pt.co - co_start for pt in brch1.bpoints ]
+		
+		co_start = brch2.bpoints[0].co
+		if len(brch1.bpoints) == len(brch2.bpoints):
+			cos2 = [ pt.co - co_start for pt in brch2.bpoints ]
+		else: # truncate the points
+			cos2 = [ brch2.bpoints[i].co - co_start for i in xrange(len(brch1.bpoints)) ]
+			
+		scales = []
+		for cos_ls in (cos1, cos2):
+			cross = CrossVecs(cos_ls[-1], zup)
+			mat = RotationMatrix(AngleBetweenVecs(cos_ls[-1], zup), 3, 'r', cross)
+			cos_ls[:] = [co*mat for co in cos_ls]
+		
+			# point z-up
+			
+			# Now they are both pointing the same way aurient the curves to be rotated the same way
+			xy_nor = Vector(0,0,0)
+			for co in cos_ls:
+				xy_nor.x += co.x
+				xy_nor.y += co.y
+			cross = CrossVecs(xy_nor, xup)
+			
+			# Also scale them here so they are 1.0 tall always
+			scale = 1.0/(cos_ls[0]-cos_ls[-1]).length
+			mat = RotationMatrix(AngleBetweenVecs(xy_nor, xup), 3, 'r', cross) * Matrix([scale,0,0],[0,scale,0],[0,0,scale])
+			cos_ls[:] = [co*mat for co in cos_ls]
+			
+			scales.append(scale)
+		
+		# Make the new branch
+		new_brch = branch()
+		for i in xrange(len(cos1)):
+			new_brch.bpoints.append( bpoint(new_brch, (cos1[i]+cos2[i])*0.5, Vector(), (brch1.bpoints[i].radius*scales[0] + brch2.bpoints[i].radius*scales[1])/2) )
+		
+		new_brch.calcData()
+		return new_brch
 		
 	
 	def toMesh(self):
@@ -1445,6 +1716,13 @@ PREFS['anim_speed'] = Draw.Create(0.2)
 PREFS['anim_magnitude'] = Draw.Create(0.2)
 PREFS['anim_speed_size_scale'] = Draw.Create(1)
 PREFS['anim_offset_scale'] = Draw.Create(1.0)
+
+PREFS['do_twigs'] = Draw.Create(1)
+PREFS['twig_ratio'] = Draw.Create(2.0)
+PREFS['twig_scale'] = Draw.Create(0.8)
+PREFS['twig_random_orientation'] = Draw.Create(0.5)
+PREFS['twig_recursive'] = Draw.Create(1)
+
 
 GLOBAL_PREFS = {}
 GLOBAL_PREFS['realtime_update'] = Draw.Create(0)
@@ -1529,7 +1807,7 @@ def buildTree(ob, single=False):
 		
 		# new object settings
 		ob.makeParent([ob_new])
-		ob_new.setMatrix(Blender.Mathutils.Matrix())
+		ob_new.setMatrix(Matrix())
 		ob_new.sel = 0
 		return ob_new
 	
@@ -1553,20 +1831,36 @@ def buildTree(ob, single=False):
 	t.fromCurve(ob)
 	if not t.branches_all:
 		return # Empty curve? - may as well not throw an error
-		
-	time2 = Blender.sys.time() # time print
-	print '%.4f sec' % (time2 - time1)
-	print '\tconnecting branches...',
 	
+	time2 = Blender.sys.time() # time print
+	"""
+	print '%.4f sec' % (time2-time1)
+	if PREFS['do_twigs'].val:
+		print '\tbuilding twigs...',
+		t.buildTwigs(ratio=PREFS['twig_ratio'].val)
+		time3 = Blender.sys.time() # time print
+		print '%.4f sec' % (time3 - time2)
+	"""
+	if 0: pass
+	else:
+		time3 = Blender.sys.time() # time print
+	
+	
+	print '\tconnecting branches...',
 	
 	#print t
 	t.buildConnections(\
 		sloppy = PREFS['connect_sloppy'].val,\
-		base_trim = PREFS['connect_base_trim'].val\
+		base_trim = PREFS['connect_base_trim'].val,\
+		do_twigs=PREFS['do_twigs'].val,\
+		twig_ratio=PREFS['twig_ratio'].val,\
+		twig_scale=PREFS['twig_scale'].val,\
+		twig_random_orientation=PREFS['twig_random_orientation'].val,\
+		twig_recursive=PREFS['twig_recursive'].val,\
 	)
 	
-	time3 = Blender.sys.time() # time print
-	print '%.4f sec' % (time3-time2)
+	time4 = Blender.sys.time() # time print
+	print '%.4f sec' % (time4-time3)
 	print '\toptimizing point spacing...',
 	
 	t.optimizeSpacing(\
@@ -1574,9 +1868,9 @@ def buildTree(ob, single=False):
 		joint_compression = PREFS['seg_joint_compression'].val,\
 		joint_smooth = PREFS['seg_joint_smooth'].val\
 	)
-
-	time4 = Blender.sys.time() # time print
-	print '%.4f sec' % (time4-time3)
+	
+	time5 = Blender.sys.time() # time print
+	print '%.4f sec' % (time5-time4)
 	print '\tbuilding mesh...',
 	
 	ob_mesh = getCurveChild('Mesh')
@@ -1589,7 +1883,7 @@ def buildTree(ob, single=False):
 	else:
 		# Existing object
 		mesh = ob_mesh.getData(mesh=1)
-		ob_mesh.setMatrix(Blender.Mathutils.Matrix())
+		ob_mesh.setMatrix(Matrix())
 	
 	
 	
@@ -1604,8 +1898,8 @@ def buildTree(ob, single=False):
 	
 	mesh.calcNormals()
 	
-	time5 = Blender.sys.time() # time print
-	print '%.4f sec' % (time5-time4)
+	time6 = Blender.sys.time() # time print
+	print '%.4f sec' % (time6-time5)
 	
 	# Do armature stuff....
 	if PREFS['do_armature'].val:
@@ -1615,7 +1909,7 @@ def buildTree(ob, single=False):
 		ob_arm = getCurveChild('Armature')
 		if ob_arm:
 			armature = ob_arm.data
-			ob_arm.setMatrix(Blender.Mathutils.Matrix())
+			ob_arm.setMatrix(Matrix())
 		else:
 			armature = bpy.data.armatures.new()
 			ob_arm = newCurveChild(armature)
@@ -1644,12 +1938,12 @@ def buildTree(ob, single=False):
 						anim_offset_scale=PREFS['anim_offset_scale'].val
 						)
 		
-		time6 = Blender.sys.time() # time print
-		print '%.4f sec\n' % (time6-time5)
+		time7 = Blender.sys.time() # time print
+		print '%.4f sec\n' % (time7-time6)
 	else:
-		time6 = Blender.sys.time() # time print
+		time7 = Blender.sys.time() # time print
 	
-	print 'done in %.4f sec' % (time6 - time1)
+	print 'done in %.4f sec' % (time7 - time1)
 	
 	# Add subsurf last it needed. so armature skinning is done first.
 	# Do subsurf?
@@ -1827,6 +2121,36 @@ def gui():
 	
 	PREFS['connect_base_trim'] =	Draw.Number('Trim Base',	EVENT_UPDATE, xtmp, y, but_width*4, but_height, PREFS['connect_base_trim'].val,	0.1, 2.0,	'Trim branch base to better connect with parent branch'); xtmp += but_width*4;
 	Blender.Draw.EndAlign()
+	y-=but_height+MARGIN
+	xtmp = x
+	# ---------- ---------- ---------- ----------
+	
+	Blender.Draw.BeginAlign()
+	PREFS['do_twigs'] =	Draw.Toggle('Generate Twigs',EVENT_UPDATE_AND_UI, xtmp, y, but_width*2, but_height, PREFS['do_twigs'].val,	'Generate child branches based existing branches'); xtmp += but_width*2;
+	if PREFS['do_twigs'].val:
+		
+		PREFS['twig_recursive'] =	Draw.Toggle('Recursive Twigs',EVENT_UPDATE_AND_UI, xtmp, y, but_width*2, but_height, PREFS['twig_recursive'].val,	'Recursively add twigs into eachother'); xtmp += but_width*2;
+		
+		y-=but_height
+		xtmp = x
+		
+		PREFS['twig_ratio'] =	Draw.Number('Twig Ratio',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['twig_ratio'].val, 0.01, 100.0,	'how many twigs to generate'); xtmp += but_width*2;
+		PREFS['twig_scale'] =	Draw.Number('Twig Scale',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['twig_scale'].val, 0.01, 1.0,	'Scale down twigs in relation to their parents'); xtmp += but_width*2;
+		y-=but_height
+		xtmp = x
+		# ---------- ---------- ---------- ----------
+		
+		PREFS['twig_random_orientation'] =	Draw.Number('Rand Orientation',	EVENT_UPDATE, xtmp, y, but_width*4, but_height, PREFS['twig_random_orientation'].val, 0.0, 1.0,	'Random rotation around the parent'); xtmp += but_width*4;
+		#PREFS['uv_y_scale'] =	Draw.Number('Scale V',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['uv_y_scale'].val,	0.01, 10.0,	'Edge loop spacing around branch join, lower value for less webed joins'); xtmp += but_width*2;
+		
+		#y-=but_height
+		#xtmp = x
+		# ---------- ---------- ---------- ----------
+		
+		#PREFS['image_main'] =	Draw.String('IM: ',	EVENT_UPDATE, xtmp, y, but_width*3, but_height, PREFS['image_main'].val, 64,	'Image to apply to faces'); xtmp += but_width*3;
+		#Draw.PushButton('Use Active',	EVENT_UPDATE, xtmp, y, but_width, but_height,	'Get the image from the active image window', do_active_image); xtmp += but_width;
+	Blender.Draw.EndAlign()
+	
 	y-=but_height+MARGIN
 	xtmp = x
 	# ---------- ---------- ---------- ----------
