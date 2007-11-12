@@ -26,6 +26,7 @@
  */
 
 #include <stdio.h>
+#include <float.h>
 #include <math.h>
 #include <string.h>
 
@@ -195,7 +196,7 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 		maxz*= lar->sh_zfac;
 		maxy= lar->imat[0][1]*p1[0]+lar->imat[1][1]*p1[1]+lar->imat[2][1]*p1[2];
 
-		if( fabs(nray[2]) <0.000001f ) use_yco= 1;
+		if( fabs(nray[2]) < DBL_EPSILON ) use_yco= 1;
 	}
 	
 	/* scale z to make sure volume is normalized */	
@@ -210,7 +211,7 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 	c = npos[0] * npos[0] + npos[1] * npos[1] - npos[2]*npos[2];
 
 	snijp= 0;
-	if (fabs(a) < 0.00000001) {
+	if (fabs(a) < DBL_EPSILON) {
 		/*
 		 * Only one intersection point...
 		 */
