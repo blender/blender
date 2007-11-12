@@ -103,6 +103,8 @@ typedef struct Mesh {
 	/* not written in file, pointer at geometry VerseNode */
 	void *vnode;
 /*#endif*/
+	void *trias;
+	int tottrias, pad4;
 } Mesh;
 
 /* deprecated by MTFace, only here for file reading */

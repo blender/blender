@@ -123,6 +123,7 @@ MEdge *dm_getEdgeArray(DerivedMesh *dm)
 	return medge;
 }
 
+
 MFace *dm_getFaceArray(DerivedMesh *dm)
 {
 	MFace *mface = CustomData_get_layer(&dm->faceData, CD_MFACE);
@@ -671,12 +672,129 @@ static void emDM_drawEditFacePoints(DerivedMesh *dm, float alpha)
 	emdm->cdraw->drawFacePoints(emdm->cdraw, alpha, fsize);
 }
 
+
+static void BME_tesselate_polys(BME_Mesh *bm){
+
+	BME_Vert *v;
+	BME_Poly *f;
+	BME_Tria *tria;
+	BME_Loop *l;
+	EditFace *efa;
+	unsigned int *handles = NULL, maxloop=0,i;
+	float **cos = NULL, norm[3], cent[3];
+	ListBase tessface = {NULL,NULL}, tempverts = {NULL, NULL}, tempedges = {NULL, NULL};
+	
+	if(bm->tottrias) MEM_freeN(bm->trias);
+	bm->tottrias = 0;
+
+	/*find maxloop*/
+	for(f=BME_first(bm,BME_POLY); f; f=BME_next(bm,BME_POLY,f)){
+		if(f->len > maxloop) maxloop = f->len;
+	}
+	
+	if(maxloop < 3) return;
+
+	/*allocate arrays*/
+	handles = MEM_mallocN(sizeof(unsigned int)*maxloop, "BMesh tesselation mesh handles");
+	cos = MEM_mallocN(sizeof(float *)*maxloop, "BMesh tesselation coordinate pointers");
+	
+	/*do faces greater than 4*/
+	for(f=BME_first(bm,BME_POLY); f; f=BME_next(bm,BME_POLY,f)){
+		/*populate handles and coordinates array*/
+		i=0;
+		l = f->loopbase;
+		do{
+			cos[i] = l->v->co;
+			handles[i] = l;
+			i++;
+			l = l->next;
+			l->eflag1 = i; //mark order
+		}while(l!=f->loopbase);
+
+		/*tesselate*/
+		BLI_tesselate_poly(handles, cos, f->len);
+
+		/*calculate normal*/
+		f->no[0] = f->no[1] = f->no[2] = 0.0;
+		//for(efa = fillfacebase.first; efa; efa = efa->next){
+		//	CalcNormFloat(((BME_Loop*)(efa->v1->tmp.v))->v->co, ((BME_Loop*)(efa->v2->tmp.v))->v->co, ((BME_Loop*)(efa->v3->tmp.v))->v->co, norm);
+				//CalcNormFloat(efa->v1->co, efa->v2->co, efa->v3->co, norm);
+		//	VecAddf(f->no, f->no, norm);
+		//}			
+		//Normalize(f->no);
+		
+
+		/*split list and set pointers to zero*/	
+		addlisttolist(&tessface,&fillfacebase);
+		addlisttolist(&tempverts, &fillvertbase);
+		addlisttolist(&tempedges, &filledgebase);
+	}
+	
+	/*populate tesselation*/
+	bm->tottrias = BLI_countlist(&tessface);
+	tria = bm->trias = MEM_mallocN(sizeof(BME_Tria)*bm->tottrias,"Bmesh tesselation data");
+	for(efa=tessface.first;efa;efa=efa->next){
+		/*make sure winding is correct*/
+		BME_Loop *la[3], *t;
+
+		la[0] = efa->v1->tmp.v;
+		la[1] = efa->v2->tmp.v;
+		la[2] = efa->v3->tmp.v;
+
+		if(la[0]->eflag1 > la[1]->eflag1) { t = la[0]; la[0] = la[1]; la[1] = t;}
+		if(la[1]->eflag1 > la[2]->eflag1) { t = la[1]; la[1] = la[2]; la[2] = t;}
+		if(la[0]->eflag1 > la[1]->eflag1) { t = la[0]; la[0] = la[1]; la[1] = t;}
+
+		tria->l1 = la[0];
+		tria->l2 = la[1];
+		tria->l3 = la[2];
+
+		tria++;
+	}
+
+	/*now calculate face normals*/
+	for(i=0; i < bm->tottrias; i++){
+		CalcNormFloat(bm->trias[i].l1->v->co, bm->trias[i].l2->v->co, bm->trias[i].l3->v->co, norm);
+		VecAddf(bm->trias[i].l1->f->no, bm->trias[i].l1->f->no, norm);
+	}
+	
+	for(f=BME_first(bm,BME_POLY); f; f=BME_next(bm,BME_POLY,f)) Normalize(f->no);
+
+	/*calculate vertex normals*/
+	for(v=BME_first(bm,BME_VERT); v; v=BME_next(bm,BME_VERT,v)){
+		v->no[0] = v->no[1] = v->no[2] = 0.0;
+	}
+
+	for(f=BME_first(bm,BME_POLY); f; f=BME_next(bm,BME_POLY,f)){
+		l=f->loopbase;
+		do{
+			VecAddf(l->v->no, l->v->no, f->no);
+			l=l->next;
+		}while(l!=f->loopbase);
+	}
+
+	for(v=BME_first(bm,BME_VERT); v; v=BME_next(bm,BME_VERT,v)){
+		if(Normalize(v->no)==0.0){
+			VECCOPY(v->no,v->co);
+			Normalize(v->no);
+		}
+	}
+
+	/*clean up mem*/
+	BLI_end_edgefill();
+	MEM_freeN(handles);
+	MEM_freeN(cos);
+}
+
+
+
 static void emDM_recalcDrawCache(EditBMeshDerivedMesh *emdm)
 {
 	BME_Poly *efa;
 	BME_Loop *loop;
 	BME_Edge *eed;
 	BME_Vert *eve;
+	BME_Tria *t;
 	float v[3][3], no[3][3], facedot[3];
 	float nor[3], vsize;
 	char high[4], vcol[3], svcol[3], ecol[3], secol[3], fcol[3], sfcol[3];
@@ -713,29 +831,30 @@ static void emDM_recalcDrawCache(EditBMeshDerivedMesh *emdm)
 		VecMulf(facedot, 1.0f/(float)i);
 		if (efa->flag & SELECT) emdm->cdraw->addFacePoint(emdm->cdraw, facedot, sfcol);
 		else emdm->cdraw->addFacePoint(emdm->cdraw, facedot, fcol);
-		
-		/*do face itself, triangulate via trangle-fan.*/
-		loop = efa->loopbase->next;
-		do {
-			VECCOPY(v[0], loop->v->co);
-			VECCOPY(v[1], loop->next->v->co);
-			VECCOPY(v[2], efa->loopbase->v->co);
-			if (efa->flag & ME_NSMOOTH) {
-				VECCOPY(no[0], loop->v->no);
-				VECCOPY(no[1], loop->next->v->no);
-				VECCOPY(no[2], efa->loopbase->v->no);
-			} else {
-				CalcNormFloat(efa->loopbase->v->co, efa->loopbase->next->v->co, 
-				              efa->loopbase->next->next->v->co, nor);
-				VECCOPY(no[0], nor);
-				VECCOPY(no[1], nor);
-				VECCOPY(no[2], nor);
-			}
-			emdm->cdraw->addTriangle(emdm->cdraw, v, no, NULL, high, efa->mat_nr);
-			loop=loop->next;
-		} while (loop != efa->loopbase->prev);
 	}
 	
+	BME_tesselate_polys(emdm->bmesh);
+	/*do n-gons in a seperate pass*/
+	for(i=0; i< emdm->bmesh->tottrias; i++){
+		t = &(emdm->bmesh->trias[i]);
+		
+		VECCOPY(v[0], t->l1->v->co);
+		VECCOPY(v[1], t->l2->v->co);
+		VECCOPY(v[2], t->l3->v->co);
+		
+		if(t->l1->f->flag & ME_NSMOOTH){
+			VECCOPY(no[0], t->l1->v->no);
+			VECCOPY(no[1], t->l2->v->no);
+			VECCOPY(no[2], t->l3->v->no);
+		} else {
+			VECCOPY(no[0], t->l1->f->no);
+			VECCOPY(no[1], t->l1->f->no);
+			VECCOPY(no[2], t->l1->f->no);
+		}
+		emdm->cdraw->addTriangle(emdm->cdraw, v, no, NULL, high, t->l1->f->mat_nr);
+	}	
+
+
 	for (eve=emdm->bmesh->verts.first; eve; eve=eve->next) {
 		if (eve->flag & SELECT) emdm->cdraw->addVertPoint(emdm->cdraw, eve->co, svcol);
 		else emdm->cdraw->addVertPoint(emdm->cdraw, eve->co, vcol);

@@ -59,7 +59,7 @@ struct DerivedMesh;
 #define BME_LOOP 4
 #define SELECT 1
 /*defines for element->flag*/
-#define BME_VISITED 2											/*for traversal/selection functions*/
+#define BME_VISITED 16											/*for traversal/selection functions*/
 #define BME_NEW 4											/*for tools*/
 #define BME_DELETE 8
 
@@ -68,10 +68,12 @@ typedef struct BME_CycleNode{
 	void 				*data;
 } BME_CycleNode;
 
+struct BME_Tria;
+
 typedef struct BME_Mesh
 {
 	ListBase 			verts, edges, polys, loops;
-	int 				lock;									/*if set, all calls to eulers will fail.*/
+	int 				lock, dirty;									/*if set, all calls to eulers will fail.*/
 	short			selectmode;							/*selection mode. Technically a copy of G.scene->selectmode*/
 	struct BME_Mesh 	*backup;								/*full copy of the mesh*/
 	int 				totvert, totedge, totpoly, totloop;				/*record keeping*/
@@ -83,6 +85,10 @@ typedef struct BME_Mesh
 	int options;										//bevel
 	int res;											//bevel
 	short imval[2];
+	/*tesselated data*/
+	int tottrias;
+	struct BME_Tria			*trias;
+
 } BME_Mesh;
 
 /*Beginning of all mesh elements should share this layout!*/
@@ -135,24 +141,28 @@ typedef struct BME_Loop
 	struct BME_CycleNode 	radial;								/*circularly linked list used to find faces around an edge*/
 	struct BME_CycleNode 	*gref;								/*pointer to loop ref. Nasty.*/
 	struct BME_Vert 		*v;									/*vertex that this loop starts at.*/
-	struct BME_Edge 	*e;									/*edge this loop belongs to*/
+	struct BME_Edge 		*e;									/*edge this loop belongs to*/
 	struct BME_Poly 		*f;									/*face this loop belongs to*/	
-	void 				*data;								/*custom per face vertex data*/
+	void 				*data;									/*custom per face vertex data*/
 } BME_Loop;
+
+typedef struct BME_Tria{
+	BME_Loop *l1, *l2, *l3;
+} BME_Tria;
 
 typedef struct BME_Poly
 {
 	struct BME_Poly 		*next, *prev;
-	int 				EID;
+	int 					EID;
 	unsigned short 		flag, h; 
 	int 				eflag1, eflag2;							/*reserved for use by eulers*/
 	int 				tflag1, tflag2;							/*reserved for use by tools*/
 	unsigned short 		mat_nr;
 	struct BME_Loop 	*loopbase;								/*First editloop around Polygon.*/
-	struct ListBase 		holes;								/*list of inner loops in the face*/
+	struct ListBase 	holes;									/*list of inner loops in the face*/
 	unsigned int 		len;									/*total length of the face. Eulers should preserve this data*/
-	void 				*data;								/*custom face data*/
-
+	void 				*data;									/*custom face data*/
+	float no[3], cent[3];
 } BME_Poly;
 
 //*EDGE UTILITIES*/
@@ -185,6 +195,7 @@ int BME_validate_mesh(struct BME_Mesh *bm, int halt);
 /*ENTER/EXIT MODELLING LOOP*/
 int BME_model_begin(struct BME_Mesh *bm);
 void BME_model_end(struct BME_Mesh *bm);
+void BME_calc_normals(struct BME_Mesh *bm);
 
 /*MESH CONSTRUCTION API.*/
 /*MAKE*/

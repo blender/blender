@@ -221,7 +221,7 @@ void EM_extrude_mesh(void){
 		//transmode = BME_extrude_edges(G.editMesh);
 		//if(transmode) extrudemode = 2;
 	//}
-	
+	BME_model_end(G.editMesh);
 	if(transmode){
 		/* We need to force immediate calculation here because 
 		* transform may use derived objects (which are now stale).
@@ -251,7 +251,7 @@ void EM_extrude_mesh(void){
 		initTransform(TFM_TRANSLATION,CTX_NO_PET);
 		Transform();
 	}	
-	BME_model_end(G.editMesh);
+	
 	countall();
 	DAG_object_flush_update(G.scene,G.obedit,OB_RECALC_DATA);
 	allqueue(REDRAWVIEW3D,0);

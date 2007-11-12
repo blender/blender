@@ -311,6 +311,7 @@ void BLI_union_rctf(struct rctf *rcta, struct rctf *rctb);
 
 /* scanfill.c: used in displist only... */
 struct EditVert *BLI_addfillvert(float *vec);
+int BLI_tesselate_poly(unsigned int *handles, float **cos, int totvert);
 struct EditEdge *BLI_addfilledge(struct EditVert *v1, struct EditVert *v2);
 int BLI_edgefill(int mode, int mat_nr);
 void BLI_end_edgefill(void);

@@ -38,6 +38,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_listBase.h"
+#include "DNA_meshdata_types.h"
 #include "BKE_utildefines.h"
 #include "BKE_bmesh.h"
 #include "BLI_blenlib.h"
@@ -194,6 +195,7 @@ BME_Poly *BME_addpolylist(BME_Mesh *bm, BME_Poly *example){
 	f->EID = bm->nextp;
 	f->flag |= BME_NEW;
 	if(example && (example->flag & SELECT))f->flag|=SELECT;
+	if(example && (example->flag & ME_NSMOOTH))f->flag|=ME_NSMOOTH;
 	bm->nextp++;
 	bm->totpoly++;
 

@@ -327,6 +327,7 @@ void BME_free_mesh(BME_Mesh *bm)
 	
 	for(loopref=bm->loops.first;loopref;loopref=loopref->next) BME_delete_loop(bm,loopref->data);
 	BLI_freelistN(&(bm->loops));
+	if(bm->tottrias) MEM_freeN(bm->trias);
 	MEM_freeN(bm);	
 }
 

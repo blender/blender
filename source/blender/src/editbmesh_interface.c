@@ -182,6 +182,7 @@ BME_Mesh *BME_FromMesh(Mesh *me)
 		mloop = &me->mloop[mpoly->firstloop];
 		poly = BME_MF(bmesh, vert_table[mloop->v],vert_table[(mloop+1)->v],(BME_Edge**)edgearr.array, j);
 		poly->flag = mpoly->flag;
+		poly->flag |= ME_NSMOOTH; 
 		if (!poly) {
 			printf("EVIL POLY NOT CREATED!! EVVVIILL!!\n");
 			PA_FreeArray(&edgearr); /*basically sets array length to NULL*/

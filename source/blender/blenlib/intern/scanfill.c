@@ -39,6 +39,7 @@
 
 #include "BLI_blenlib.h"
 
+#include "BKE_utildefines.h"
 #include "BLI_util.h"
 #include "DNA_listBase.h"
 #include "DNA_mesh_types.h"
@@ -1054,3 +1055,141 @@ int BLI_edgefill(int mode, int mat_nr)
 	return 1;
 
 }
+
+static float project_plane(float *avgn){
+	
+	EditVert *v, *v2, *v3;
+	float avgc[3], cent[3], norm[3], temp[3], mag, d;
+	int i;
+	
+	mag= 0.0;
+	avgn[0] = avgn[1] = avgn[2] = 0.0;
+	avgc[0] = avgc[1] = avgc[2] = 0.0;
+	
+	for(i=0, v=fillvertbase.first; v; v=v->next, i++){
+		v2 = v3 = NULL;
+		
+		if(v == fillvertbase.last){
+			v2 = fillvertbase.first;
+			v3 = v2->next;
+		}
+		else if(v == ((EditVert*)fillvertbase.last)->prev){
+			v2 = v->next;
+			v3 = fillvertbase.first;
+		}
+		else{
+			v2 = v->next;
+			v3 = v2->next;
+		}
+		
+		//if(FloatCompare(v->co, v2->co, COMPLIMIT) == 0 || FloatCompare(v->co, v3->co, COMPLIMIT) == 0 || FloatCompare(v2->co, v3->co, COMPLIMIT)){
+		CalcNormFloat(v->co, v2->co, v3->co, norm);
+		avgn[0] += norm[0];
+		avgn[1] += norm[1];
+		avgn[2] += norm[2];
+
+		//}
+		CalcCent3f(cent, v->co, v2->co, v3->co);
+		avgc[0] += cent[0];
+		avgc[1] += cent[1];
+		avgc[2] += cent[2];
+		
+	}
+	
+	/*check for division by zero...*/
+	if(avgn[0] == 0.0 && avgn[1] == 0.0 && avgn[2] == 0.0) return 0.0; 
+
+	avgn[0] = avgn[0] / i;
+	avgn[1] = avgn[1] / i;
+	avgn[2] = avgn[2] / i;
+	
+	d = VecLength(avgn);
+	
+	/*project all verts onto plane defined by average normal*/
+	Normalize(avgn);
+	for(v=fillvertbase.first; v; v=v->next){
+		VecSubf(temp, v->co, avgc);
+		
+		mag = 0.0;
+		mag += (temp[0] * avgn[0]);
+		mag += (temp[1] * avgn[1]);
+		mag += (temp[2] * avgn[2]);
+		
+		temp[0] = (avgn[0] * mag);
+		temp[1] = (avgn[1] * mag);
+		temp[2] = (avgn[2] * mag);
+		
+		VecSubf(v->co, v->co, temp);
+	}
+	
+	return d;
+}
+
+int BLI_tesselate_poly(unsigned int *handles, float **cos, int totvert){
+	int i, totedge=0;
+	float norm[3], mag;
+	EditVert *v, *lastvert, *firstvert;
+	EditEdge *e;
+	PolyFill pf;	
+	
+	/*add vertices*/
+	for(i=0; i< totvert; i++){ 
+		lastvert = BLI_addfillvert(cos[i]);
+		if(i==0) firstvert = lastvert;
+		/*add handle*/
+		lastvert->tmp.v = (EditVert*)(handles[i]);
+		lastvert->h = 2; //valance
+		lastvert->f = 1; //in edge
+		lastvert->xs = 1; //poly number
+	}
+		
+	/*add edges*/
+	for(v=fillvertbase.first; v; v=v->next){
+		if(v == lastvert) e= BLI_addfilledge(v, firstvert);
+		else e = BLI_addfilledge(v,v->next);
+		e->f = e->f1 = e->h = 0;
+		e->f1 = 1; //only have on poly.
+		totedge++;
+	}
+		
+	mag = project_plane(norm);
+	
+
+	if(mag==0.0) return 0;
+	
+	/*find major plane closest to normal*/
+	norm[0]= fabs(norm[0]);
+	norm[1]= fabs(norm[1]);
+	norm[2]= fabs(norm[2]);
+	
+	if(norm[2]>=norm[0] && norm[2]>=norm[1]) {
+		cox= 0; coy= 1;
+	}
+	else if(norm[1]>=norm[0] && norm[1]>=norm[2]) {
+		cox= 0; coy= 2;
+	}
+	else {
+		cox= 1; coy= 2;
+	}
+	
+	pf.nr = 1;
+	pf.min[0]=pf.min[1]=pf.min[2]= 1.0e20;
+	pf.max[0]=pf.max[1]=pf.max[2]= -1.0e20;
+	pf.verts = totvert;
+	pf.edges = totedge;
+	pf.f = 0;
+	
+	/*calc min/max*/
+	for(v=fillvertbase.first; v; v=v->next){
+		pf.min[cox]= (pf.min[cox])<(v->co[cox]) ? (pf.min[cox]) : (v->co[cox]);
+		pf.min[coy]= (pf.min[coy])<(v->co[coy]) ? (pf.min[coy]) : (v->co[coy]);
+		pf.max[cox]= (pf.max[cox])>(v->co[cox]) ? (pf.max[cox]) : (v->co[cox]);
+		pf.max[coy]= (pf.max[coy])>(v->co[coy]) ? (pf.max[coy]) : (v->co[coy]);
+	}	
+	
+	scanfill(&pf, 1);
+}
+
+
+
+
