@@ -1279,7 +1279,7 @@ void add_primitiveMesh(int type)
 		undostr="Add UV Sphere";
 		break;
 	case 12:	/* Icosphere */
-		add_numbut(0, NUM|INT, "Subdivision:", 1, 500, &subdiv, NULL);
+		add_numbut(0, NUM|INT, "Subdivision:", 1, 8, &subdiv, NULL);
 		add_numbut(1, NUM|FLO, "Radius:", 0.001*G.vd->grid, 100*G.vd->grid, &dia, NULL);
 		if (!(do_clever_numbuts("Add Ico Sphere", 2, REDRAW))) return;
 		
