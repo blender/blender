@@ -1617,7 +1617,7 @@ static void meshdeform_matrix_solve(MeshDeformBind *mdb)
 
 				/* dynamic bind */
 				for(b=0; b<mdb->size3; b++) {
-					if(mdb->phi[b] >= 0.0f) { //MESHDEFORM_MIN_INFLUENCE) {
+					if(mdb->phi[b] >= MESHDEFORM_MIN_INFLUENCE) {
 						inf= BLI_memarena_alloc(mdb->memarena, sizeof(*inf));
 						inf->vertex= a;
 						inf->weight= mdb->phi[b];
