@@ -3771,6 +3771,10 @@ static void editing_panel_armature_visuals(Object *ob, bArmature *arm)
 		arm->pathsf = SFRA;
 		arm->pathef = EFRA;
 	}
+	if ((arm->pathbc == 0) || (arm->pathac == 0)) {
+		arm->pathbc = 15;
+		arm->pathac = 15;
+	}
 	
 	/* Ghost Drawing Options */
 	uiDefBut(block, LABEL, 0, "Ghost Options", 10,180,150,20, 0, 0, 0, 0, 0, "");
@@ -3804,14 +3808,21 @@ static void editing_panel_armature_visuals(Object *ob, bArmature *arm)
 	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
-	uiDefButI(block, NUM,REDRAWVIEW3D,"PSta:",170,100,80,20, &arm->pathsf, 1.0, MAXFRAMEF, 0, 0, "The start frame for Bone Path display range");
-	uiDefButI(block, NUM,REDRAWVIEW3D,"PEnd:",250,100,80,20, &arm->pathef, arm->pathsf, MAXFRAMEF, 0, 0, "The end frame for Bone Path display range");	
-	uiDefButBitS(block, TOG, ARM_PATH_HEADS, REDRAWVIEW3D, "Bone-Head Path", 170, 80, 160, 20, &arm->pathflag, 0, 0, 0, 0, "Calculate the Path travelled by the Bone's Head instead of Tail");
+	uiDefButBitS(block, TOG, ARM_PATH_ACFRA, REDRAWVIEW3D, "Around Current Frame", 170, 105, 160, 20, &arm->pathflag, 0, 0, 0, 0, "Calculate Bone Path around the current frame");
+	if (arm->pathflag & ARM_PATH_ACFRA) {
+		uiDefButI(block, NUM,REDRAWVIEW3D,"PPre:",170,85,80,20, &arm->pathbc, 1.0, MAXFRAMEF/2, 0, 0, "The number of frames before current frame for Bone Path display range");
+		uiDefButI(block, NUM,REDRAWVIEW3D,"PPost:",250,85,80,20, &arm->pathac, 1.0, MAXFRAMEF/2, 0, 0, "The number of frames after current frame for Bone Path display range");	
+	}
+	else {
+		uiDefButI(block, NUM,REDRAWVIEW3D,"PSta:",170,85,80,20, &arm->pathsf, 1.0, MAXFRAMEF, 0, 0, "The start frame for Bone Path display range");
+		uiDefButI(block, NUM,REDRAWVIEW3D,"PEnd:",250,85,80,20, &arm->pathef, arm->pathsf, MAXFRAMEF, 0, 0, "The end frame for Bone Path display range");	
+	}
+	uiDefButBitS(block, TOG, ARM_PATH_HEADS, REDRAWVIEW3D, "Bone-Head Path", 170, 65, 160, 20, &arm->pathflag, 0, 0, 0, 0, "Calculate the Path travelled by the Bone's Head instead of Tail");
 	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
-	uiDefBut(block, BUT, B_ARM_CALCPATHS, "Calculate Paths", 170,40,160,20, 0, 0, 0, 0, 0, "(Re)calculates the paths of the selected bones");
-	uiDefBut(block, BUT, B_ARM_CLEARPATHS, "Clear All Paths", 170,20,160,20, 0, 0, 0, 0, 0, "Clears all bone paths");
+	uiDefBut(block, BUT, B_ARM_CALCPATHS, "Calculate Paths", 170,30,160,20, 0, 0, 0, 0, 0, "(Re)calculates the paths of the selected bones");
+	uiDefBut(block, BUT, B_ARM_CLEARPATHS, "Clear All Paths", 170,10,160,20, 0, 0, 0, 0, 0, "Clears all bone paths");
 	uiBlockEndAlign(block);
 }
 

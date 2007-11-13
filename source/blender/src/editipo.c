@@ -3050,12 +3050,13 @@ void common_insertkey(void)
 
 		if (ob && (ob->flag & OB_POSEMODE)){
 			bPoseChannel *pchan;
-
+			short recalc_bonepaths= 0;
+			
 			if (ob->action && ob->action->id.lib) {
 				error ("Can't key libactions");
 				return;
 			}
-
+			
 			id= &ob->id;
 			for (pchan=ob->pose->chanbase.first; pchan; pchan=pchan->next) {
 				if (pchan->flag & POSE_KEY) {
@@ -3134,11 +3135,23 @@ void common_insertkey(void)
 					/* clear unkeyed flag (it doesn't matter if it's set or not) */
 					if (pchan->bone)
 						pchan->bone->flag &= ~BONE_UNKEYED;
+						
+					/* check if bone has a path */
+					if (pchan->path)
+						recalc_bonepaths = 1;
 				}
 			}
+			
+			/* recalculate ipo handles, etc. */
 			if(ob->action)
 				remake_action_ipos(ob->action);
-
+				
+			/* recalculate bone-paths on adding new keyframe? */
+			// TODO: currently, there is no setting to turn this on/off globally
+			if (recalc_bonepaths)
+				pose_calculate_path(ob);
+			
+			
 			allqueue(REDRAWIPO, 0);
 			allqueue(REDRAWACTION, 0);
 			allqueue(REDRAWNLA, 0);

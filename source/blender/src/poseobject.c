@@ -229,7 +229,7 @@ void pose_calculate_path(Object *ob)
 	int cfra;
 	int sfra, efra;
 	
-	if(ob==NULL || ob->pose==NULL)
+	if (ob==NULL || ob->pose==NULL)
 		return;
 	arm= ob->data;
 	
@@ -238,14 +238,24 @@ void pose_calculate_path(Object *ob)
 		arm->pathsf = SFRA;
 		arm->pathef = EFRA;
 	}
+	if ((arm->pathbc == 0) || (arm->pathac == 0)) {
+		arm->pathbc = 15;
+		arm->pathac = 15;
+	}
 	if (arm->pathsize == 0) {
 		arm->pathsize = 1;
 	}
 	
 	/* set frame values */
 	cfra= CFRA;
-	sfra = arm->pathsf;
-	efra = arm->pathef;
+	if (arm->pathflag & ARM_PATH_ACFRA) {
+		sfra = cfra - arm->pathbc;
+		efra = cfra + arm->pathac;
+	}
+	else {
+		sfra = arm->pathsf;
+		efra = arm->pathef;
+	}
 	if (efra<=sfra) return;
 	
 	DAG_object_update_flags(G.scene, ob, screen_view3d_layers());
