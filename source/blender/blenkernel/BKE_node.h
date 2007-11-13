@@ -325,8 +325,9 @@ void			set_node_shader_lamp_loop(void (*lamp_loop_func)(struct ShadeInput *, str
 #define CMP_FILT_SHADOW		6
 
 /* scale node type, in custom1 */
-#define CMP_SCALE_RELATIVE	0
-#define CMP_SCALE_ABSOLUTE	1
+#define CMP_SCALE_RELATIVE		0
+#define CMP_SCALE_ABSOLUTE		1
+#define CMP_SCALE_SCENEPERCENT	2
 
 
 /* the type definitions array */

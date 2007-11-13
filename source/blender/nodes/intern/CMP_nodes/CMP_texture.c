@@ -89,6 +89,7 @@ static void node_composit_exec_texture(void *data, bNode *node, bNodeStack **in,
 	/* outputs: value, color, normal */
 	
 	if(node->id) {
+		RenderData *rd= data;
 		RenderResult *rr= RE_GetResult(RE_GetRender(G.scene->id.name)); /* G.scene is WEAK! */
 		short sizex, sizey;
 		
@@ -99,8 +100,8 @@ static void node_composit_exec_texture(void *data, bNode *node, bNodeStack **in,
 			sizex = rr->rectx;
 			sizey = rr->recty;
 		} else {
-			sizex = G.scene->r.xsch;
-			sizey = G.scene->r.ysch;
+			sizex = rd->xsch;
+			sizey = rd->ysch;
 		}
 		
 		prevbuf->rect_procedural= texture_procedural;

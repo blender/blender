@@ -1726,7 +1726,7 @@ static void node_scale_cb(void *node_v, void *unused_v)
 
 	/* check the 2 inputs, and set them to reasonable values */
 	for(nsock= node->inputs.first; nsock; nsock= nsock->next) {
-		if(node->custom1==CMP_SCALE_RELATIVE)
+		if(ELEM(node->custom1, CMP_SCALE_RELATIVE, CMP_SCALE_SCENEPERCENT))
 			nsock->ns.vec[0]= 1.0;
 		else {
 			if(nsock->next==NULL)
@@ -1740,9 +1740,9 @@ static void node_scale_cb(void *node_v, void *unused_v)
 static int node_composit_buts_scale(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
-		uiBut *bt= uiDefButS(block, TOG, B_NODE_EXEC+node->nr, "Absolute",
+		uiBut *bt= uiDefButS(block, MENU, B_NODE_EXEC+node->nr, "Relative %x0|Absolute %x1|Scene Size % %x2|",
 				  butr->xmin, butr->ymin, butr->xmax-butr->xmin, 20, 
-				  &node->custom1, 0, 0, 0, 0, "");
+				  &node->custom1, 0, 0, 0, 0, "Scale new image to absolute pixel size, size relative to the incoming image, or using the 'percent' size of the scene");
 		uiButSetFunc(bt, node_scale_cb, node, NULL);
 	}
 	return 20;
