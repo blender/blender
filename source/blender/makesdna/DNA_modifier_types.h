@@ -160,6 +160,7 @@ typedef struct MirrorModifierData {
 
 	short axis, flag;
 	float tolerance;
+	struct Object *mirror_ob;
 } MirrorModifierData;
 
 /* MirrorModifierData->flag */

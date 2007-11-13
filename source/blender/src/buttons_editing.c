@@ -1604,7 +1604,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		} else if (md->type==eModifierType_Build) {
 			height = 86;
 		} else if (md->type==eModifierType_Mirror) {
-			height = 67;
+			height = 86;
 		} else if (md->type==eModifierType_EdgeSplit) {
 			EdgeSplitModifierData *emd = (EdgeSplitModifierData*) md;
 			height = 48;
@@ -1728,6 +1728,11 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			             &mmd->flag, 0, 0, 0, 0,
 			             "Mirror the V texture coordinate around "
 			             "the 0.5 point");
+			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CHANGEDEP,
+			               "Ob: ", lx, (cy -= 19), buttonWidth, 19,
+			               &mmd->mirror_ob,
+			               "Object to use as mirrot");
+
 		} else if (md->type==eModifierType_EdgeSplit) {
 			EdgeSplitModifierData *emd = (EdgeSplitModifierData*) md;
 			uiDefButBitI(block, TOG, MOD_EDGESPLIT_FROMANGLE,

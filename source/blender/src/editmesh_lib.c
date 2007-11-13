@@ -1142,22 +1142,38 @@ static short extrudeflag_edge(short flag, float *nor)
 			MirrorModifierData *mmd = (MirrorModifierData*) md;	
 		
 			if(mmd->flag & MOD_MIR_CLIPPING) {
+				float mtx[4][4];
+				if (mmd->mirror_ob) {
+					float imtx[4][4];
+					Mat4Invert(imtx, mmd->mirror_ob->obmat);
+					Mat4MulMat4(mtx, G.obedit->obmat, imtx);
+				}
+
 				for (eed= em->edges.first; eed; eed= eed->next) {
 					if(eed->f2 == 1) {
+						float co1[3], co2[3];
+
+						VecCopyf(co1, eed->v1->co);
+						VecCopyf(co2, eed->v2->co);
+
+						if (mmd->mirror_ob) {
+							VecMat4MulVecfl(co1, mtx, co1);
+							VecMat4MulVecfl(co2, mtx, co2);
+						}
 
 						if (mmd->flag & MOD_MIR_AXIS_X)
-							if ( (fabs(eed->v1->co[0]) < mmd->tolerance) &&
-								 (fabs(eed->v2->co[0]) < mmd->tolerance) )
+							if ( (fabs(co1[0]) < mmd->tolerance) &&
+								 (fabs(co2[0]) < mmd->tolerance) )
 								++eed->f2;
 
 						if (mmd->flag & MOD_MIR_AXIS_Y)
-							if ( (fabs(eed->v1->co[1]) < mmd->tolerance) &&
-								 (fabs(eed->v2->co[1]) < mmd->tolerance) )
+							if ( (fabs(co1[1]) < mmd->tolerance) &&
+								 (fabs(co2[1]) < mmd->tolerance) )
 								++eed->f2;
 
 						if (mmd->flag & MOD_MIR_AXIS_Z)
-							if ( (fabs(eed->v1->co[2]) < mmd->tolerance) &&
-								 (fabs(eed->v2->co[2]) < mmd->tolerance) )
+							if ( (fabs(co1[2]) < mmd->tolerance) &&
+								 (fabs(co2[2]) < mmd->tolerance) )
 								++eed->f2;
 					}
 				}
@@ -1408,21 +1424,37 @@ short extrudeflag_vert(short flag, float *nor)
 			MirrorModifierData *mmd = (MirrorModifierData*) md;	
 		
 			if(mmd->flag & MOD_MIR_CLIPPING) {
+				float mtx[4][4];
+				if (mmd->mirror_ob) {
+					float imtx[4][4];
+					Mat4Invert(imtx, mmd->mirror_ob->obmat);
+					Mat4MulMat4(mtx, G.obedit->obmat, imtx);
+				}
+
 				for (eed= em->edges.first; eed; eed= eed->next) {
 					if(eed->f2 == 2) {
+						float co1[3], co2[3];
+
+						VecCopyf(co1, eed->v1->co);
+						VecCopyf(co2, eed->v2->co);
+
+						if (mmd->mirror_ob) {
+							VecMat4MulVecfl(co1, mtx, co1);
+							VecMat4MulVecfl(co2, mtx, co2);
+						}
 
 						if (mmd->flag & MOD_MIR_AXIS_X)
-							if ( (fabs(eed->v1->co[0]) < mmd->tolerance) &&
-								 (fabs(eed->v2->co[0]) < mmd->tolerance) )
+							if ( (fabs(co1[0]) < mmd->tolerance) &&
+								 (fabs(co2[0]) < mmd->tolerance) )
 								++eed->f2;
 
 						if (mmd->flag & MOD_MIR_AXIS_Y)
-							if ( (fabs(eed->v1->co[1]) < mmd->tolerance) &&
-								 (fabs(eed->v2->co[1]) < mmd->tolerance) )
+							if ( (fabs(co1[1]) < mmd->tolerance) &&
+								 (fabs(co2[1]) < mmd->tolerance) )
 								++eed->f2;
 						if (mmd->flag & MOD_MIR_AXIS_Z)
-							if ( (fabs(eed->v1->co[2]) < mmd->tolerance) &&
-								 (fabs(eed->v2->co[2]) < mmd->tolerance) )
+							if ( (fabs(co1[2]) < mmd->tolerance) &&
+								 (fabs(co2[2]) < mmd->tolerance) )
 								++eed->f2;
 					}
 				}

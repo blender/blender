@@ -7456,6 +7456,11 @@ static void expand_modifier(FileData *fd, Main *mainvar, ModifierData *md)
 		expand_doit(fd, mainvar, amd->curve_ob);
 		expand_doit(fd, mainvar, amd->offset_ob);
 	}
+	else if (md->type==eModifierType_Mirror) {
+		MirrorModifierData *mmd = (MirrorModifierData*) md;
+			
+		expand_doit(fd, mainvar, mmd->mirror_ob);
+	}
 }
 
 static void expand_scriptlink(FileData *fd, Main *mainvar, ScriptLink *slink)
