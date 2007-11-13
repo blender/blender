@@ -793,9 +793,8 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 				mmd->bindweights);
 			writedata(wd, DATA, sizeof(float)*3*mmd->totcagevert,
 				mmd->bindcos);
-			writedata(wd, DATA, sizeof(MDefCell)*size*size*size, mmd->dyngrid);
-			writedata(wd, DATA, sizeof(MDefInfluence)*mmd->totinfluence,
-				mmd->dyninfluences);
+			writestruct(wd, DATA, "MDefCell", size*size*size, mmd->dyngrid);
+			writestruct(wd, DATA, "MDefInfluence", mmd->totinfluence, mmd->dyninfluences);
 			writedata(wd, DATA, sizeof(int)*mmd->totvert, mmd->dynverts);
 		}
 	}
