@@ -1757,7 +1757,7 @@ static void write_sounds(WriteData *wd, ListBase *idbase)
 
 	// set all samples to unsaved status
 
-	sample = samples->first;
+	sample = samples->first; // samples is a global defined in sound.c
 	while (sample) {
 		sample->flags |= SAMPLE_NEEDS_SAVE;
 		sample = sample->id.next;
