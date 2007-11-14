@@ -4966,8 +4966,9 @@ void make_ipo_transdata (TransInfo *t)
 /* struct for use in re-sorting BezTriples during IPO transform */
 typedef struct BeztMap {
 	BezTriple *bezt;
-	int oldIndex;
-	int newIndex;
+	int oldIndex; 		/* index of bezt in icu->bezt array before sorting */
+	int newIndex;		/* index of bezt in icu->bezt array after sorting */
+	short swapHs; 		/* swap order of handles (-1=clear; 0=not checked, 1=swap) */
 } BeztMap;
 
 
@@ -5010,13 +5011,29 @@ static void sort_time_beztmaps (BeztMap *bezms, int totvert)
 		while (i--) {
 			/* is current bezm out of order (i.e. occurs later than next)? */
 			if (i > 0) {
-				if ( bezm->bezt->vec[1][0] > (bezm+1)->bezt->vec[1][0]) {
+				if (bezm->bezt->vec[1][0] > (bezm+1)->bezt->vec[1][0]) {
 					bezm->newIndex++;
 					(bezm+1)->newIndex--;
 					
 					SWAP(BeztMap, *bezm, *(bezm+1));
 					
 					ok= 1;
+				}
+			}
+			
+			/* do we need to check if the handles need to be swapped?
+			 * optimisation: this only needs to be performed in the first loop
+			 */
+			if (bezm->swapHs == 0) {
+				if ( (bezm->bezt->vec[0][0] > bezm->bezt->vec[1][0]) && 
+					 (bezm->bezt->vec[2][0] < bezm->bezt->vec[1][0]) )
+				{
+					/* handles need to be swapped */
+					bezm->swapHs = 1;
+				}
+				else {
+					/* handles need to be cleared */
+					bezm->swapHs = -1;
 				}
 			}
 			
@@ -5036,14 +5053,16 @@ static void beztmap_to_data (TransInfo *t, EditIpo *ei, BeztMap *bezms, int totv
 	
 	/* dynamically allocate an array of chars to mark whether an TransData's 
 	 * pointers have been fixed already, so that we don't override ones that are
-	 * already done (assumes sizeof(char)==1)
+	 * already done
  	 */
 	adjusted= MEM_callocN(t->total, "beztmap_adjusted_map");
 	
 	/* for each beztmap item, find if it is used anywhere */
 	bezm= bezms;
 	for (i= 0; i < totvert; i++, bezm++) {
-		/* loop through transdata, testing if we have a hit */
+		/* loop through transdata, testing if we have a hit 
+		 * for the handles (vec[0]/vec[2]), we must also check if they need to be swapped...
+		 */
 		td= t->data2d;
 		for (j= 0; j < t->total; j++, td++) {
 			/* skip item if already marked */
@@ -5054,16 +5073,20 @@ static void beztmap_to_data (TransInfo *t, EditIpo *ei, BeztMap *bezms, int totv
 				if (ei->icu->ipo==IPO_BEZ) {
 					if (bezm->bezt->f1 & 1) {
 						if (td->loc2d == bezm->bezt->vec[0]) {
-							td->loc2d= (bezts + bezm->newIndex)->vec[0];
+							if (bezm->swapHs == 1)
+								td->loc2d= (bezts + bezm->newIndex)->vec[2];
+							else
+								td->loc2d= (bezts + bezm->newIndex)->vec[0];
 							adjusted[j] = 1;
-							break;
 						}
 					}
 					if (bezm->bezt->f3 & 1) {
 						if (td->loc2d == bezm->bezt->vec[2]) {
-							td->loc2d= (bezts + bezm->newIndex)->vec[2];
+							if (bezm->swapHs == 1)
+								td->loc2d= (bezts + bezm->newIndex)->vec[0];
+							else
+								td->loc2d= (bezts + bezm->newIndex)->vec[2];
 							adjusted[j] = 1;
-							break;
 						}
 					}
 				}
@@ -5071,7 +5094,6 @@ static void beztmap_to_data (TransInfo *t, EditIpo *ei, BeztMap *bezms, int totv
 					if (td->loc2d == bezm->bezt->vec[1]) {
 						td->loc2d= (bezts + bezm->newIndex)->vec[1];
 						adjusted[j] = 1;
-						break;
 					}
 				}
 			}
@@ -5079,21 +5101,24 @@ static void beztmap_to_data (TransInfo *t, EditIpo *ei, BeztMap *bezms, int totv
 				/* whole curve */
 				if (ei->icu->ipo==IPO_BEZ) {
 					if (td->loc2d == bezm->bezt->vec[0]) {
-						td->loc2d= (bezts + bezm->newIndex)->vec[0];
+						if (bezm->swapHs == 1)
+							td->loc2d= (bezts + bezm->newIndex)->vec[2];
+						else
+							td->loc2d= (bezts + bezm->newIndex)->vec[0];
 						adjusted[j] = 1;
-						break;
 					}
 					
 					if (td->loc2d == bezm->bezt->vec[2]) {
-						td->loc2d= (bezts + bezm->newIndex)->vec[2];
+						if (bezm->swapHs == 1)
+							td->loc2d= (bezts + bezm->newIndex)->vec[0];
+						else
+							td->loc2d= (bezts + bezm->newIndex)->vec[2];
 						adjusted[j] = 1;
-						break;
 					}
 				}
 				if (td->loc2d == bezm->bezt->vec[1]) {
 					td->loc2d= (bezts + bezm->newIndex)->vec[1];
 					adjusted[j] = 1;
-					break;
 				}
 			}
 		}
