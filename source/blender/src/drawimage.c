@@ -530,7 +530,7 @@ void draw_uvs_sima(void)
 		) {
 			/* we can use the existing final mesh */
 			glColor3ub(112, 112, 112);
-			G.editMesh->derivedFinal->drawUVEdges(G.editMesh->derivedFinal);
+			em->derivedFinal->drawUVEdges(em->derivedFinal);
 		} else {
 			DerivedMesh *finalDM, *cageDM;
 			
