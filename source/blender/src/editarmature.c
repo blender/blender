@@ -2371,6 +2371,8 @@ int do_pose_selectbuffer(Base *base, unsigned int *buffer, short hits)
 	nearBone= get_bone_from_selectbuffer(base, buffer, hits, 1);
 
 	if (nearBone) {
+		bArmature *arm= ob->data;
+		
 		/* since we do unified select, we don't shift+select a bone if the armature object was not active yet */
 		if (!(G.qual & LR_SHIFTKEY) || base!=BASACT){
 			deselectall_posearmature(ob, 0, 0);
@@ -2381,9 +2383,7 @@ int do_pose_selectbuffer(Base *base, unsigned int *buffer, short hits)
 			if (nearBone->flag & BONE_SELECTED) {
 				/* if not active, we make it active */
 				if((nearBone->flag & BONE_ACTIVE)==0) {
-					bArmature *arm= ob->data;
 					bone_looper(ob, arm->bonebase.first, NULL, clear_active_flag);
-					
 					nearBone->flag |= BONE_ACTIVE;
 				}
 				else {
@@ -2392,7 +2392,6 @@ int do_pose_selectbuffer(Base *base, unsigned int *buffer, short hits)
 				}
 			}
 			else{
-				bArmature *arm= ob->data;
 				bone_looper(ob, arm->bonebase.first, NULL, clear_active_flag);
 				
 				nearBone->flag |= (BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL|BONE_ACTIVE);

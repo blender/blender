@@ -2765,6 +2765,7 @@ void autokeyframe_ob_cb_func(Object *ob, int tmode)
  */
 void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 {
+	bArmature *arm= ob->data;
 	bAction	*act;
 	bPose	*pose;
 	bPoseChannel *pchan;
@@ -2838,6 +2839,16 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 		
 		remake_action_ipos (act);
 		allqueue(REDRAWMARKER, 0);
+		
+		/* locking can be disabled */
+		ob->pose->flag &= ~(POSE_DO_UNLOCK|POSE_LOCKED);
+		
+		/* do the bone paths */
+		if (arm->pathflag & ARM_PATH_ACFRA) {
+			pose_clear_paths(ob);
+			pose_calculate_path(ob);
+		}		
+		
 	}
 	else {
 		/* tag channels that should have unkeyed data */
