@@ -3082,7 +3082,7 @@ static bConstraintTypeInfo CTI_TRANSFORM = {
  */
 
 /* These globals only ever get directly accessed in this file */
-static bConstraintTypeInfo *constraintsTypeInfo[NUM_CONSTRAINT_TYPES];
+static bConstraintTypeInfo *constraintsTypeInfo[NUM_CONSTRAINT_TYPES+1];
 static short CTI_INIT= 1; /* when non-zero, the list needs to be updated */
 
 /* This function only gets called when CTI_INIT is non-zero */
