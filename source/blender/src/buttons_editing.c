@@ -4418,9 +4418,15 @@ static void verify_vertexgroup_name_func(void *datav, void *data2_unused)
 	unique_vertexgroup_name((bDeformGroup*)datav, OBACT);
 }
 
+static void skgen_reorder(void *arg1, void *arg2)
+{
+	G.scene->toolsettings->skgen_options ^= SKGEN_LENGTH_FIRST;
+}
+
 static void editing_panel_mesh_skgen(Object *ob, Mesh *me)
 {
 	uiBlock *block;
+	uiBut *but;
 
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_skgen", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Skeleton Generation", "Editing", 960, 0, 318, 204)==0) return;
@@ -4433,13 +4439,37 @@ static void editing_panel_mesh_skgen(Object *ob, Mesh *me)
 	uiDefButF(block, NUM, B_DIFF, 							"Thresh:",		1111,110,164,19, &G.scene->toolsettings->skgen_threshold_internal,0.0, 1.0, 10, 0,	"Specify the threshold ratio for filtering internal arcs");
 	uiDefButBitS(block, TOG, SKGEN_FILTER_EXTERNAL, B_DIFF, "Filter Ex",	1025, 90, 83,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Filter external small arcs from graph");
 	uiDefButF(block, NUM, B_DIFF, 							"Thresh:",		1111, 90,164,19, &G.scene->toolsettings->skgen_threshold_external,0.0, 1.0, 10, 0,	"Specify the threshold ratio for filtering external arcs");
-	uiDefButBitS(block, TOG, SKGEN_CUT_LENGTH, B_DIFF, 		"Cut Length",	1025, 70, 83,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Subdivide arcs based on embedding");
-	uiDefButF(block, NUM, B_DIFF, 							"Thresh:",		1111, 70, 82,19, &G.scene->toolsettings->skgen_length_ratio,1.0, 4.0, 10, 0,		"Specify the ratio limit between straight arc and embeddings to trigger equal subdivisions");
-	uiDefButF(block, NUM, B_DIFF, 							"Len:",			1193, 70, 82,19, &G.scene->toolsettings->skgen_length_limit,0.1,50.0, 10, 0,		"Maximum length of the bones when subdividing");
-	uiDefButBitS(block, TOG, SKGEN_CUT_ANGLE, B_DIFF, 		"Cut Angle",	1025, 50, 83,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Subdivide arcs based on angle");
-	uiDefButF(block, NUM, B_DIFF, 							"Thresh:",		1111, 50,164,19, &G.scene->toolsettings->skgen_angle_limit,0.0, 90.0, 10, 0,		"Specify the threshold angle in degrees for subdivision");
+
+	but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, VICON_MOVE_DOWN, 		1025, 70, 16, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Change the order the subdivisions algorithm are applied");
+	uiButSetFunc(but, skgen_reorder, NULL, NULL);
+	if (G.scene->toolsettings->skgen_options & SKGEN_LENGTH_FIRST)
+	{
+		uiDefButBitS(block, TOG, SKGEN_CUT_LENGTH, B_DIFF, 		"Length",		1041, 70, 67,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Subdivide arcs based on embedding");
+		uiDefButF(block, NUM, B_DIFF, 							"Thresh:",		1111, 70, 82,19, &G.scene->toolsettings->skgen_length_ratio,1.0, 4.0, 10, 0,		"Specify the ratio limit between straight arc and embeddings to trigger equal subdivisions");
+		uiDefButF(block, NUM, B_DIFF, 							"Len:",			1193, 70, 82,19, &G.scene->toolsettings->skgen_length_limit,0.1,50.0, 10, 0,		"Maximum length of the bones when subdividing");
+	}
+	else
+	{
+		uiDefButBitS(block, TOG, SKGEN_CUT_ANGLE, B_DIFF, 		"Angle",		1041, 70, 67,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Subdivide arcs based on angle");
+		uiDefButF(block, NUM, B_DIFF, 							"Thresh:",		1111, 70,164,19, &G.scene->toolsettings->skgen_angle_limit,0.0, 90.0, 10, 0,		"Specify the threshold angle in degrees for subdivision");
+	}
+
+	but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, VICON_MOVE_UP, 		1025, 50, 16, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Change the order the subdivisions algorithm are applied");
+	uiButSetFunc(but, skgen_reorder, NULL, NULL);
+	if (G.scene->toolsettings->skgen_options & SKGEN_LENGTH_FIRST)
+	{
+		uiDefButBitS(block, TOG, SKGEN_CUT_ANGLE, B_DIFF, 		"Angle",		1041, 50, 67,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Subdivide arcs based on angle");
+		uiDefButF(block, NUM, B_DIFF, 							"Thresh:",		1111, 50,164,19, &G.scene->toolsettings->skgen_angle_limit,0.0, 90.0, 10, 0,		"Specify the threshold angle in degrees for subdivision");
+	}
+	else
+	{
+		uiDefButBitS(block, TOG, SKGEN_CUT_LENGTH, B_DIFF, 		"Length",		1041, 50, 67,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Subdivide arcs based on embedding");
+		uiDefButF(block, NUM, B_DIFF, 							"Thresh:",		1111, 50, 82,19, &G.scene->toolsettings->skgen_length_ratio,1.0, 4.0, 10, 0,		"Specify the ratio limit between straight arc and embeddings to trigger equal subdivisions");
+		uiDefButF(block, NUM, B_DIFF, 							"Len:",			1193, 50, 82,19, &G.scene->toolsettings->skgen_length_limit,0.1,50.0, 10, 0,		"Maximum length of the bones when subdividing");
+	}
+
 	uiDefButBitS(block, TOG, SKGEN_REPOSITION, B_DIFF, 		"Reposition",	1025, 30,250,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Reposition nodes based on embedding instead of original vertice positions");
-	uiDefButC(block, ROW, B_DIFF,							"None",			1025, 10, 62,19, &G.scene->toolsettings->skgen_postpro, 5.0, (float)SKGEN_NONE, 0, 0, "No postprocessing on embeddings");
+	uiDefButC(block, NUM, B_DIFF, 							"P:",			1025, 10, 62,19, &G.scene->toolsettings->skgen_postpro_passes, 0, 10, 10, 0,		"Specify the number of processing passes on the embeddings");
 	uiDefButC(block, ROW, B_DIFF,							"Smooth",		1087, 10, 63,19, &G.scene->toolsettings->skgen_postpro, 5.0, (float)SKGEN_SMOOTH, 0, 0, "Smooth embeddings");
 	uiDefButC(block, ROW, B_DIFF,							"Average",		1150, 10, 62,19, &G.scene->toolsettings->skgen_postpro, 5.0, (float)SKGEN_AVERAGE, 0, 0, "Average embeddings");
 	uiDefButC(block, ROW, B_DIFF,							"Sharpen",		1212, 10, 63,19, &G.scene->toolsettings->skgen_postpro, 5.0, (float)SKGEN_SHARPEN, 0, 0, "Sharpen embeddings");

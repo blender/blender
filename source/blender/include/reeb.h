@@ -55,6 +55,7 @@ typedef struct ReebNode {
 	int degree;
 	float weight;
 	float p[3];
+	int flags;
 } ReebNode;
 
 typedef struct ReebEdge {
@@ -68,8 +69,9 @@ typedef struct ReebArc {
 	struct ReebArc *next, *prev;
 	ListBase edges;
 	struct ReebNode *v1, *v2;
-	int	bcount;
 	struct EmbedBucket *buckets;
+	int	bcount;
+	int flags;
 } ReebArc;
 
 struct EditMesh;
@@ -78,7 +80,14 @@ void weightToHarmonic(struct EditMesh *em);
 void weightFromDistance(struct EditMesh *em);
 void weightFromLoc(struct EditMesh *me, int axis);
 void renormalizeWeight(struct EditMesh *em, float newmax);
-void filterReebGraph(ReebGraph *rg, float threshold);
-struct ReebGraph * generateReebGraph(struct EditMesh *me, int subdivisions);
+
+ReebGraph * generateReebGraph(struct EditMesh *me, int subdivisions);
+
+#define OTHER_NODE(arc, node) ((arc->v1 == node) ? arc->v2 : arc->v1)
+
+int subtreeDepth(ReebNode *node);
+int countConnectedArcs(ReebGraph *rg, ReebNode *node);
+int hasAdjacencyList(ReebGraph *rg); 
+int	isGraphAcyclic(ReebGraph *rg);
 
 #endif /*REEB_H_*/

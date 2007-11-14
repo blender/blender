@@ -46,6 +46,7 @@
 #include "BIF_editmesh.h"
 #include "BIF_editarmature.h"
 #include "BIF_interface.h"
+#include "BIF_toolbox.h"
 
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
@@ -354,6 +355,8 @@ void verifyBuckets(ReebGraph *rg)
 	}
 }
 
+/************************************** ADJACENCY LIST *************************************************/
+
 void addArcToNodeAdjacencyList(ReebNode *node, ReebArc *arc)
 {
 	ReebArc **arclist;
@@ -371,6 +374,11 @@ void buildAdjacencyList(ReebGraph *rg)
 
 	for(node = rg->nodes.first; node; node = node->next)
 	{
+		if (node->arcs != NULL)
+		{
+			MEM_freeN(node->arcs);
+		}
+		
 		node->arcs = MEM_callocN((node->degree + 1) * sizeof(ReebArc*), "adjacency list");
 	}
 
@@ -380,6 +388,51 @@ void buildAdjacencyList(ReebGraph *rg)
 		addArcToNodeAdjacencyList(arc->v2, arc);
 	}
 }
+
+int hasAdjacencyList(ReebGraph *rg)
+{
+	ReebNode *node;
+	
+	for(node = rg->nodes.first; node; node = node->next)
+	{
+		if (node->arcs == NULL)
+		{
+			return 0;
+		}
+	}
+	
+	return 1;
+}
+
+int countConnectedArcs(ReebGraph *rg, ReebNode *node)
+{
+	int count = 0;
+	
+	/* use adjacency list if present */
+	if (node->arcs)
+	{
+		ReebArc **arcs;
+	
+		for(arcs = node->arcs; *arcs; arcs++)
+		{
+			count++;
+		}
+	}
+	else
+	{
+		ReebArc *arc;
+		for(arc = rg->arcs.first; arc; arc = arc->next)
+		{
+			if (arc->v1 == node || arc->v2 == node)
+			{
+				count++;
+			}
+		}
+	}
+	
+	return count;
+}
+
 /****************************************** SMOOTHING **************************************************/
 
 void postprocessGraph(ReebGraph *rg, char mode)
@@ -397,8 +450,8 @@ void postprocessGraph(ReebGraph *rg, char mode)
 		fac2 = 0.5f;
 		break;
 	case SKGEN_SHARPEN:
-		fac1 = fac2 = -0.5f;
-		fac2 = 2.0f;
+		fac1 = fac2 = -0.25f;
+		fac2 = 1.5f;
 		break;
 	default:
 		error("Unknown post processing mode");
@@ -417,6 +470,56 @@ void postprocessGraph(ReebGraph *rg, char mode)
 			VecLerpf(buckets[index].p, buckets[index].p, buckets[index + 1].p, fac3 / (fac1 + fac2 + fac3));
 		}
 	}
+}
+
+/********************************************SORTING****************************************************/
+
+int compareNodesWeight(void *vnode1, void *vnode2)
+{
+	ReebNode *node1 = (ReebNode*)vnode1;
+	ReebNode *node2 = (ReebNode*)vnode2;
+	
+	if (node1->weight < node2->weight)
+	{
+		return -1;
+	}
+	if (node1->weight > node2->weight)
+	{
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+void sortNodes(ReebGraph *rg)
+{
+	BLI_sortlist(&rg->nodes, compareNodesWeight);
+}
+
+int compareArcsWeight(void *varc1, void *varc2)
+{
+	ReebArc *arc1 = (ReebArc*)varc1;
+	ReebArc *arc2 = (ReebArc*)varc2;
+	
+	if (arc1->v1->weight < arc2->v1->weight)
+	{
+		return -1;
+	}
+	if (arc1->v1->weight > arc2->v1->weight)
+	{
+		return 1;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+void sortArcs(ReebGraph *rg)
+{
+	BLI_sortlist(&rg->arcs, compareArcsWeight);
 }
 
 /****************************************** FILTERING **************************************************/
@@ -489,14 +592,7 @@ void filterArc(ReebGraph *rg, ReebNode *newNode, ReebNode *removedNode, ReebArc 
 			else if (arc->v1->weight > arc->v2->weight)
 			{
 				// Decrement degree from the other node
-				if (arc->v1 == newNode)
-				{
-					arc->v2->degree--;
-				}
-				else
-				{
-					arc->v1->degree--;
-				}
+				OTHER_NODE(arc, newNode)->degree--;
 				
 				BLI_remlink(&rg->arcs, arc);
 				freeArc(arc);
@@ -647,8 +743,6 @@ void filterExternalReebGraph(ReebGraph *rg, float threshold)
 			// Merging arc
 			if (merging)
 			{
-				printf("merging\n");
-				printArc(arc);
 				filterArc(rg, newNode, removedNode, arc, 1);
 			}
 			else
@@ -730,6 +824,86 @@ void spreadWeight(EditMesh *em)
 	}
 	
 	MEM_freeN(verts);
+}
+/*********************************** GRAPH AS TREE FUNCTIONS *******************************************/
+
+int subtreeDepth(ReebNode *node)
+{
+	int depth = 0;
+	
+	/* Base case, no arcs leading away */
+	if (node->arcs == NULL || *(node->arcs) == NULL)
+	{
+		return 0;
+	}
+	else
+	{
+		ReebArc ** pArc;
+
+		for(pArc = node->arcs; *pArc; pArc++)
+		{
+			ReebArc *arc = *pArc;
+			
+			/* only arcs that go down the tree */
+			if (arc->v1 == node)
+			{
+				depth = MAX2(depth, subtreeDepth(arc->v2));
+			}
+		}
+	}
+	
+	return depth + 1;
+}
+
+/*************************************** CYCLE DETECTION ***********************************************/
+
+int detectCycle(ReebNode *node)
+{
+	int value = 0;
+	
+	if (node->flags != 0)
+	{
+		ReebArc ** pArc;
+
+		for(pArc = node->arcs; *pArc && value == 0; pArc++)
+		{
+			ReebArc *arc = *pArc;
+			
+			value = detectCycle(OTHER_NODE(arc, node));
+		}
+	}
+	else
+	{
+		value = 1;
+	}
+	
+	return value;
+}
+
+int	isGraphAcyclic(ReebGraph *rg)
+{
+	ReebNode *node;
+	int value = 0;
+	
+	/* NEED TO CHECK IF ADJACENCY LIST EXIST */
+	
+	/* Mark all nodes as not visited */
+	for(node = rg->nodes.first; node; node = node->next)
+	{
+		node->flags = 0;
+	}
+
+	/* detectCycles in subgraphs */	
+	for(node = rg->nodes.first; node && value == 0; node = node->next)
+	{
+		/* only for nodes in subgraphs that haven't been visited yet */
+		if (node->flags == 0)
+		{
+			value = detectCycle(node);
+		}		
+	}
+	
+	return value;
 }
 
 /******************************************** EXPORT ***************************************************/
@@ -1145,6 +1319,7 @@ ReebNode * addNode(ReebGraph *rg, EditVert *eve, float weight)
 	
 	node = MEM_callocN(sizeof(ReebNode), "reeb node");
 	
+	node->flags = 0; // clear flags on init
 	node->arcs = NULL;
 	node->degree = 0;
 	node->weight = weight;
@@ -1175,6 +1350,8 @@ ReebEdge * createArc(ReebGraph *rg, ReebNode *node1, ReebNode *node2)
 		
 		arc = MEM_callocN(sizeof(ReebArc), "reeb arc");
 		edge = MEM_callocN(sizeof(ReebEdge), "reeb edge");
+		
+		arc->flags = 0; // clear flags on init
 		
 		if (node1->weight <= node2->weight)
 		{
@@ -1747,35 +1924,13 @@ void generateSkeleton(void)
 {
 	EditMesh *em = G.editMesh;
 	ReebGraph *rg = NULL;
-	short val;
+	int i;
 	
 	if (em == NULL)
 		return;
 
-#if 0	
-	val= pupmenu("Orientation%t|X Axis|Y Axis|Z Axis|Distance|Harmonic");
-	
-	if(val>0) {
-		switch(val)
-		{
-			case 1:
-			case 2:
-			case 3:
-				weightFromLoc(em, val - 1);
-				break;
-			case 4:
-				weightFromDistance(em);
-				break;
-			case 5:
-				weightFromDistance(em);
-				weightToHarmonic(em);
-				break;
-		}
-	}
-#else
 	weightFromDistance(em);
 	weightToHarmonic(em);
-#endif
 		
 	renormalizeWeight(em, 1.0f);
 	weightToVCol(em);
@@ -1825,12 +1980,16 @@ void generateSkeleton(void)
 	
 	verifyBuckets(rg);
 
-	if (G.scene->toolsettings->skgen_postpro != SKGEN_NONE)
+	for(i = 0; i <  G.scene->toolsettings->skgen_postpro_passes; i++)
 	{
 		postprocessGraph(rg, G.scene->toolsettings->skgen_postpro);
 	}
 
 	buildAdjacencyList(rg);
+	
+	sortNodes(rg);
+	
+	sortArcs(rg);
 	
 	exportGraph(rg, -1);
 	

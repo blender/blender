@@ -6780,6 +6780,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				sce->toolsettings->skgen_length_ratio			= 1.3f;
 				sce->toolsettings->skgen_length_limit			= 1.5f;
 				sce->toolsettings->skgen_postpro = SKGEN_SMOOTH;
+				sce->toolsettings->skgen_postpro_passes = 1;
 				sce->toolsettings->skgen_options = SKGEN_FILTER_INTERNAL|SKGEN_FILTER_EXTERNAL|SKGEN_REPOSITION|SKGEN_CUT_LENGTH|SKGEN_CUT_ANGLE;
 
 			}

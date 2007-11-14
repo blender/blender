@@ -3175,6 +3175,286 @@ float arcLengthRatio(ReebArc *arc)
 	return embedLength / arcLength;	
 }
 
+void symetryMarkdown(ReebGraph *rg)
+{
+	ReebNode *node;
+	ReebArc *arc;
+	
+	/* mark down all arcs as non-symetric */
+	for(arc = rg->arcs.first; arc; arc = arc->next)
+	{
+		arc->flags = 0;
+	}
+	
+	/* mark down all nodes as not on the symetry axis */
+	for(node = rg->nodes.first; node; node = node->next)
+	{
+		node->flags = 0;
+	}
+
+	/* node list is sorted, so lowest node is always the head (by design) */
+	node = rg->nodes.first;
+	
+	/* only work if only one arc is incident on the first node */
+	if (countConnectedArcs(rg, node) == 1)
+	{
+		int symetry = 1;
+		
+		arc = node->arcs[0];
+		
+		while(arc)
+		{
+			int i;
+			arc->flags = symetry;
+			
+			node = OTHER_NODE(arc, node);
+			
+			for(i = 0; node->arcs[i] != NULL; i++)
+			{
+				ReebArc *connectedArc = node->arcs[i];
+				
+				if (connectedArc != arc)
+				{
+					ReebNode *connectedNode = OTHER_NODE(connectedArc, node);
+					
+					connectedArc->flags = -subtreeDepth(connectedNode);
+				}
+			}
+			
+			arc = NULL;
+
+			for(i = 0; node->arcs[i] != NULL; i++)
+			{
+				int isSymetryAxis = 0;
+				ReebArc *connectedArc = node->arcs[i];
+				
+				/* only arcs not already marked as symetric */
+				if (connectedArc->flags < 0)
+				{
+					int j;
+					
+					/* true by default */
+					isSymetryAxis = 1;
+					
+					for(j = 0; node->arcs[j] != NULL && isSymetryAxis == 1; j++)
+					{
+						ReebArc *otherArc = node->arcs[j];
+						
+						/* different arc, same depth */
+						if (otherArc != connectedArc && otherArc->flags == connectedArc->flags)
+						{
+							/* not on the symetry axis */
+							isSymetryAxis = 0;
+						} 
+					}
+				}
+				
+				/* arc could be on the symetry axis */
+				if (isSymetryAxis == 1)
+				{
+					/* no arc as been marked previously, keep this one */
+					if (arc == NULL)
+					{
+						arc = connectedArc;
+					}
+					else
+					{
+						/* there can't be more than one symetry arc */
+						arc = NULL;
+						break;
+					}
+				}
+			}
+		}
+	}
+
+	/* mark down non-symetric arcs */
+	for(arc = rg->arcs.first; arc; arc = arc->next)
+	{
+		if (arc->flags < 0)
+		{
+			arc->flags = 0;
+		}
+		else
+		{
+			/* mark down nodes that are on the symetry axis */
+			arc->v1->flags = 1;
+			arc->v2->flags = 1;
+		}
+		
+	}
+
+}
+
+EditBone * subdivideByAngle(ReebArc *arc, ReebNode *head, ReebNode *tail)
+{
+	EditBone *lastBone = NULL;
+	if (G.scene->toolsettings->skgen_options & SKGEN_CUT_ANGLE)
+	{
+		EditBone *child = NULL;
+		EditBone *parent = NULL;
+		float angleLimit = (float)cos(G.scene->toolsettings->skgen_angle_limit * M_PI / 180.0f);
+		int index = 0;
+		int stride = 1;
+
+		// If head is the highest node, invert stride and start index
+		if (head == arc->v2)
+		{
+			stride *= -1;
+			index = arc->bcount -1;
+		}
+		
+		parent = add_editbone("Bone");
+		VECCOPY(parent->head, head->p);
+		
+		for(index += stride; index >= 0 && index < arc->bcount; index += stride)
+		{
+			float vec1[3], vec2[3];
+			float len1, len2;
+
+			VecSubf(vec1, arc->buckets[index - stride].p, parent->head);
+			VecSubf(vec2, arc->buckets[index].p, arc->buckets[index - stride].p);
+
+			len1 = Normalize(vec1);
+			len2 = Normalize(vec2);
+
+			//printf("%f < %f\n", Inpf(vec1, vec2), angleLimit);
+
+			if (len1 > 0.0f && len2 > 0.0f && Inpf(vec1, vec2) < angleLimit)
+			{
+				VECCOPY(parent->tail, arc->buckets[index - stride].p);
+
+				child = add_editbone("Bone");
+				VECCOPY(child->head, parent->tail);
+				child->parent = parent;
+				child->flag |= BONE_CONNECTED;
+				
+				parent = child; // new child is next parent
+			}
+		}
+		VECCOPY(parent->tail, tail->p);
+		
+		lastBone = parent; /* set last bone in the chain */
+	}
+	
+	return lastBone;
+}
+
+EditBone * subdivideByLength(ReebArc *arc, ReebNode *head, ReebNode *tail)
+{
+	EditBone *lastBone = NULL;
+	if ((G.scene->toolsettings->skgen_options & SKGEN_CUT_LENGTH) &&
+		arcLengthRatio(arc) >= G.scene->toolsettings->skgen_length_ratio)
+	{
+		EditBone *child = NULL;
+		EditBone *parent = NULL;
+		int same = 0;
+		int index = 0;
+		int stride = 1;
+		float lengthLimit = G.scene->toolsettings->skgen_length_limit;
+		
+		//printf("----------new arc---------\n");
+		
+		// If head is the highest node, invert stride and start index
+		if (head == arc->v2)
+		{
+			stride *= -1;
+			index = arc->bcount -1;
+		}
+		
+		parent = add_editbone("Bone");
+		VECCOPY(parent->head, head->p);
+		
+		while (index >= 0 && index < arc->bcount)
+		{
+			float *vec0 = NULL;
+			float *vec1 = arc->buckets[index].p;
+
+			/* first bucket. Previous is head */
+			if (index == 0 || index == arc->bcount - 1)
+			{
+				vec0 = head->p;
+			}
+			/* Previous are valid buckets */
+			else
+			{
+				vec0 = arc->buckets[index - 1].p;
+			}
+			
+			//printf("distance vec1 -> head = %f\n", VecLenf(vec1, parent->head));
+			/* If lengthLimit hits the current segment */
+			if (VecLenf(vec1, parent->head) > lengthLimit)
+			{
+				if (same == 0)
+				{
+					float dv[3], off[3];
+					float a, b, c, f;
+					
+					/* Solve quadratic distance equation */
+					VecSubf(dv, vec1, vec0);
+					a = Inpf(dv, dv);
+					
+					VecSubf(off, vec0, parent->head);
+					b = 2 * Inpf(dv, off);
+					
+					c = Inpf(off, off) - (lengthLimit * lengthLimit);
+					
+					f = (-b + (float)sqrt(b * b - 4 * a * c)) / (2 * a);
+					
+					//printf("a %f, b %f, c %f, f %f\n", a, b, c, f);
+					
+					if (isnan(f) == 0 && f < 1.0f)
+					{
+						VECCOPY(parent->tail, dv);
+						VecMulf(parent->tail, f);
+						VecAddf(parent->tail, parent->tail, vec0);
+					}
+					else
+					{
+						VECCOPY(parent->tail, vec1);
+					}
+				}
+				else
+				{
+					float dv[3];
+					
+					//printf("same\n");
+					
+					VecSubf(dv, vec1, vec0);
+					Normalize(dv);
+					 
+					VECCOPY(parent->tail, dv);
+					VecMulf(parent->tail, lengthLimit);
+					VecAddf(parent->tail, parent->tail, parent->head);
+				}
+				
+				//printvecf("new joint", parent->tail);
+
+				child = add_editbone("Bone");
+				VECCOPY(child->head, parent->tail);
+				child->parent = parent;
+				child->flag |= BONE_CONNECTED;
+				
+				parent = child; // new child is next parent
+				
+				same = 1; // mark as same
+			}
+			else
+			{
+				//printf("++next bucket++\n");
+				// Next bucket
+				index += stride;
+				same = 0; // Reset same
+			}
+		}
+		VECCOPY(parent->tail, tail->p);
+		
+		lastBone = parent; /* set last bone in the chain */
+	}
+	
+	return lastBone;
+}
+
 void generateSkeletonFromReebGraph(ReebGraph *rg)
 {
 	GHash *nodeEndMap = NULL;
@@ -3203,9 +3483,10 @@ void generateSkeletonFromReebGraph(ReebGraph *rg)
 	where_is_object(G.obedit);
 	
 	make_editArmature();
-	setcursor_space(SPACE_VIEW3D, CURSOR_EDIT);
-	
+
 	nodeEndMap = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	
+	symetryMarkdown(rg);
 	
 	for (arc = rg->arcs.first; arc; arc = arc->next) 
 	{
@@ -3213,180 +3494,60 @@ void generateSkeletonFromReebGraph(ReebGraph *rg)
 		EditBone *firstBone = NULL;
 		EditBone *parentBone = NULL;
 		ReebNode *head, *tail;
-		int added = 0;
 		
-//		printf("/***************** new arc ******************/\n");
-		
-		if (arc->v1->degree >= arc->v2->degree)
-		{
-			head = arc->v1;
-			tail = arc->v2;
-		}
-		else
+		/* if arc is a symetry axis, internal bones go up the tree */		
+		if (arc->flags == 1 && arc->v2->degree != 1)
 		{
 			head = arc->v2;
 			tail = arc->v1;
 		}
-		
-		/************************* CUT LENGTH *****************************/
-		if ((G.scene->toolsettings->skgen_options & SKGEN_CUT_LENGTH) &&
-			arcLengthRatio(arc) >= G.scene->toolsettings->skgen_length_ratio)
+		/* Bones point AWAY from the symetry axis */
+		else if (arc->v1->flags == 1)
 		{
-			EditBone *child = NULL;
-			EditBone *parent = NULL;
-			int same = 0;
-			int index = 0;
-			int stride = 1;
-			float lengthLimit = G.scene->toolsettings->skgen_length_limit;
-			
-			// If head is the highest node, invert stride and start index
-			if (head == arc->v2)
-			{
-				stride *= -1;
-				index = arc->bcount -1;
-			}
-			
-			parent = add_editbone("Bone");
-			VECCOPY(parent->head, head->p);
-			
-			firstBone = parent; /* set first bone in the chain */
-			
-			
-			while (index >= 0 && index < arc->bcount)
-			{
-				float *vec0 = NULL;
-				float *vec1 = arc->buckets[index].p;
-
-				/* first bucket. Previous is head */
-				if (index == 0 || index == arc->bcount - 1)
-				{
-					vec0 = head->p;
-				}
-				/* Previous are valid buckets */
-				else
-				{
-					vec0 = arc->buckets[index - 1].p;
-				}
-				
-				/* If lengthLimit hits the current segment */
-				if (VecLenf(vec1, parent->head) > lengthLimit)
-				{
-					if (same == 0)
-					{
-						float dv[3], off[3];
-						float a, b, c, f;
-						
-						/* Solve quadratic distance equation */
-						VecSubf(dv, vec1, vec0);
-						a = Inpf(dv, dv);
-						
-						VecSubf(off, vec0, parent->head);
-						b = 2 * Inpf(dv, off);
-						
-						c = Inpf(off, off) - (lengthLimit * lengthLimit);
-						
-						f = (-b + (float)sqrt(b * b - 4 * a * c)) / (2 * a);
-						
-						if (isnan(f) == 0)
-						{
-							VECCOPY(parent->tail, dv);
-							VecMulf(parent->tail, f);
-							VecAddf(parent->tail, parent->tail, vec0);
-						}
-						else
-						{
-							VECCOPY(parent->tail, vec1);
-						}
-					}
-					else
-					{
-						float dv[3];
-						
-						VecSubf(dv, vec1, vec0);
-						Normalize(dv);
-						 
-						VECCOPY(parent->tail, dv);
-						VecMulf(parent->tail, lengthLimit);
-						VecAddf(parent->tail, parent->tail, parent->head);
-					}
-
-					child = add_editbone("Bone");
-					VECCOPY(child->head, parent->tail);
-					child->parent = parent;
-					child->flag |= BONE_CONNECTED;
-					
-					parent = child; // new child is next parent
-					
-					same = 1; // mark as same
-				}
-				else
-				{
-					// Next bucket
-					index += stride;
-					same = 0; // Reset same
-				}
-			}
-			VECCOPY(parent->tail, tail->p);
-			
-			lastBone = parent; /* set last bone in the chain */
-
-			added = 1;
+			head = arc->v1;
+			tail = arc->v2;
 		}
-		/************************* CUT ANGLE *****************************/
-		else if (G.scene->toolsettings->skgen_options & SKGEN_CUT_ANGLE)
+		else if (arc->v2->flags == 1)
 		{
-			EditBone *child = NULL;
-			EditBone *parent = NULL;
-			float angleLimit = (float)cos(G.scene->toolsettings->skgen_angle_limit * M_PI / 180.0f);
-			int same = 0;
-			int index = 0;
-			int stride = 1;
-
-			// If head is the highest node, invert stride and start index
-			if (head == arc->v2)
+			head = arc->v2;
+			tail = arc->v1;
+		}
+		/* otherwise, use some sort of heuristic */
+		else
+		{
+			if (arc->v1->degree >= arc->v2->degree)
 			{
-				stride *= -1;
-				index = arc->bcount -1;
+				head = arc->v1;
+				tail = arc->v2;
 			}
-			
-			parent = add_editbone("Bone");
-			VECCOPY(parent->head, head->p);
-			
-			firstBone = parent; /* set first bone in the chain */
-
-			for(index = 1; index < arc->bcount; index++)
+			else
 			{
-				float vec1[3], vec2[3];
-				float len1, len2;
-
-				VecSubf(vec1, arc->buckets[index - 1].p, parent->head);
-				VecSubf(vec2, arc->buckets[index].p, arc->buckets[index - 1].p);
-
-				len1 = Normalize(vec1);
-				len2 = Normalize(vec2);
-
-				//printf("%f < %f\n", Inpf(vec1, vec2), angleLimit);
-
-				if (len1 > 0.0f && len2 > 0.0f && Inpf(vec1, vec2) < angleLimit)
-				{
-					VECCOPY(parent->tail, arc->buckets[index - 1].p);
-
-					child = add_editbone("Bone");
-					VECCOPY(child->head, parent->tail);
-					child->parent = parent;
-					child->flag |= BONE_CONNECTED;
-					
-					parent = child; // new child is next parent
-				}
+				head = arc->v2;
+				tail = arc->v1;
 			}
-			VECCOPY(parent->tail, tail->p);
-			
-			lastBone = parent; /* set last bone in the chain */
+		}
+		
 
-			added = 1;			
+		/* Subdivide by length, then by angle */		
+		if (G.scene->toolsettings->skgen_options & SKGEN_LENGTH_FIRST)
+		{
+			lastBone = subdivideByLength(arc, head, tail);
+			if (lastBone == NULL)
+			{
+				lastBone = subdivideByAngle(arc, head, tail);
+			}
+		}
+		/* Or angle, then length */
+		else
+		{
+			lastBone = subdivideByAngle(arc, head, tail);
+			if (lastBone == NULL)
+			{
+				lastBone = subdivideByLength(arc, head, tail);
+			}
 		}
 	
-		if (added == 0)
+		if (lastBone == NULL)
 		{
 			EditBone	*bone;
 			bone = add_editbone("Bone");
@@ -3396,7 +3557,6 @@ void generateSkeletonFromReebGraph(ReebGraph *rg)
 			
 			/* set first and last bone, since there's only one */
 			lastBone = bone;
-			firstBone = bone;
 		}
 		
 		BLI_ghash_insert(nodeEndMap, tail, lastBone);
@@ -3405,12 +3565,21 @@ void generateSkeletonFromReebGraph(ReebGraph *rg)
 		
 		if (parentBone != NULL)
 		{
+			/* Find the first bone in the chain */
+			firstBone = lastBone;
+			while(firstBone->parent != NULL)
+			{
+				firstBone = firstBone->parent;
+			}
+			
 			firstBone->parent = parentBone;
 			firstBone->flag |= BONE_CONNECTED;
 		}
 	}
 	
 	BLI_ghash_free(nodeEndMap, NULL, NULL);
+
+	setcursor_space(SPACE_VIEW3D, CURSOR_EDIT);
 	
 	BIF_undo_push("Generate Skeleton");
 }
