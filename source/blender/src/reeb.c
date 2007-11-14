@@ -32,6 +32,7 @@
 
 #include "DNA_listBase.h"
 #include "DNA_scene_types.h"
+#include "DNA_space_types.h"
 #include "DNA_meshdata_types.h"
 
 #include "MEM_guardedalloc.h"
@@ -47,6 +48,7 @@
 #include "BIF_editarmature.h"
 #include "BIF_interface.h"
 #include "BIF_toolbox.h"
+#include "BIF_graphics.h"
 
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
@@ -1929,8 +1931,12 @@ void generateSkeleton(void)
 	if (em == NULL)
 		return;
 
+	setcursor_space(SPACE_VIEW3D, CURSOR_WAIT);
+
 	weightFromDistance(em);
+	printf("-------------- DISTANCE\n");
 	weightToHarmonic(em);
+	printf("-------------- HARMONIC\n");
 		
 	renormalizeWeight(em, 1.0f);
 	weightToVCol(em);
