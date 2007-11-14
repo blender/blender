@@ -2901,12 +2901,15 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			if(fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
 				int a;
 
-				for(a=0; a<mmd->totcagevert*mmd->totvert; a++)
-					SWITCH_INT(mmd->bindweights[a])
-				for(a=0; a<mmd->totcagevert*3; a++)
-					SWITCH_INT(mmd->bindcos[a])
-				for(a=0; a<mmd->totvert; a++)
-					SWITCH_INT(mmd->dynverts[a])
+				if(mmd->bindweights)
+					for(a=0; a<mmd->totcagevert*mmd->totvert; a++)
+						SWITCH_INT(mmd->bindweights[a])
+				if(mmd->bindcos)
+					for(a=0; a<mmd->totcagevert*3; a++)
+						SWITCH_INT(mmd->bindcos[a])
+				if(mmd->dynverts)
+					for(a=0; a<mmd->totvert; a++)
+						SWITCH_INT(mmd->dynverts[a])
 			}
 		}
 	}
