@@ -167,6 +167,9 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 		p1[2]= -lar->co[2];
 		MTC_Mat3MulVecfl(lar->imat, p1);
 		VECCOPY(npos, p1);	// npos is double!
+		
+		/* pre-scale */
+		npos[2]*= lar->sh_zfac;
 	}
 	else {
 		VECCOPY(npos, lar->sh_invcampos);	/* in initlamp calculated */
