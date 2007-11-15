@@ -188,6 +188,7 @@ typedef struct Material {
 /* qdn: a bit clumsy this, tangents needed for normal maps separated from shading */
 #define MA_NORMAP_TANG	0x8000000
 #define MA_GROUP_NOLAY	0x10000000
+#define MA_FACETEXTURE_ALPHA	0x20000000
 
 #define	MA_MODE_MASK	0x1fffffff	/* all valid mode bits */
 

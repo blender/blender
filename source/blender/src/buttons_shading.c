@@ -3785,8 +3785,9 @@ static void material_panel_material(Material *ma)
 			uiBlockSetCol(block, TH_BUT_SETTING1);
 			uiDefButBitI(block, TOG, MA_VERTEXCOL, B_MAT_VCOL_LIGHT,	"VCol Light",	8,166,74,20, &(ma->mode), 0, 0, 0, 0, "Adds vertex colors as extra light");
 			uiDefButBitI(block, TOG, MA_VERTEXCOLP, B_MAT_VCOL_PAINT, "VCol Paint",	82,166,74,20, &(ma->mode), 0, 0, 0, 0, "Replaces material's colors with vertex colors");
-			uiDefButBitI(block, TOG, MA_FACETEXTURE, B_REDR, "TexFace",		156,166,74,20, &(ma->mode), 0, 0, 0, 0, "Sets UV-Editor assigned texture as color and texture info for faces");
-			uiDefButBitI(block, TOG, MA_SHLESS, B_MATPRV, "Shadeless",	230,166,73,20, &(ma->mode), 0, 0, 0, 0, "Makes material insensitive to light or shadow");
+			uiDefButBitI(block, TOG, MA_FACETEXTURE, B_REDR, "TexFace",		156,166,64,20, &(ma->mode), 0, 0, 0, 0, "Sets UV-Editor assigned texture as color and texture info for faces");
+			if (ma->mode & MA_FACETEXTURE) uiDefButBitI(block, TOG, MA_FACETEXTURE_ALPHA, B_REDR, "A",		220,166,20,20, &(ma->mode), 0, 0, 0, 0, "Use alpha channel in 'TexFace' assigned images");
+			uiDefButBitI(block, TOG, MA_SHLESS, B_MATPRV, "Shadeless",	240,166,63,20, &(ma->mode), 0, 0, 0, 0, "Makes material insensitive to light or shadow");
 			
 			uiDefButBitI(block, TOG, MA_NOMIST, B_NOP,	"No Mist",		8,146,74,20, &(ma->mode), 0, 0, 0, 0, "Sets the material to ignore mist values");
 			uiDefButBitI(block, TOG, MA_ENV, B_MATPRV,	"Env",			82,146,74,20, &(ma->mode), 0, 0, 0, 0, "Causes faces to render with alpha zero: allows sky/backdrop to show through (only for solid faces)");
@@ -3830,7 +3831,8 @@ static void material_panel_material(Material *ma)
 			uiDefButF(block, NUMSLI, B_MATPRV, "B ",		128,57,175,19, colpoin+2, 0.0, 1.0, rgbsel, 0, "");
 		}
 		uiBlockEndAlign(block);
-		uiDefButF(block, NUMSLI, B_MATPRV, "A ",			128,30,175,19, &ma->alpha, 0.0, 1.0, 0, 0, "Alpha");
+		if (ma->mode & (MA_FACETEXTURE) && ma->mode & (MA_FACETEXTURE_ALPHA)) ;
+		else uiDefButF(block, NUMSLI, B_MATPRV, "A ",			128,30,175,19, &ma->alpha, 0.0, 1.0, 0, 0, "Alpha");
 		
 	}
 	uiBlockBeginAlign(block);

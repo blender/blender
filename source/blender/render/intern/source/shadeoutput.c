@@ -829,6 +829,8 @@ void shade_color(ShadeInput *shi, ShadeResult *shr)
 		shi->r= shi->vcol[0];
 		shi->g= shi->vcol[1];
 		shi->b= shi->vcol[2];
+		if(ma->mode & (MA_FACETEXTURE_ALPHA))
+			shi->alpha= shi->vcol[3];
 	}
 	
 	if(ma->texco)
@@ -1148,6 +1150,10 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 	view= shi->view;
 	
 	if (lar->energy == 0.0) return;
+	
+	/* optimisation, don't render fully black lamps */
+	if (!(lar->mode & LA_TEXTURE) && (lar->r + lar->g + lar->b == 0.0f))
+		return;
 	
 	/* lampdist, spot angle, area side, ... */
 	visifac= lamp_get_visibility(lar, shi->co, lv, &lampdist);
@@ -1471,6 +1477,8 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 			shi->r= shi->vcol[0];
 			shi->g= shi->vcol[1];
 			shi->b= shi->vcol[2];
+			if(ma->mode & (MA_FACETEXTURE_ALPHA))
+				shi->alpha= shi->vcol[3];
 		}
 		if(ma->texco)
 			do_material_tex(shi);
