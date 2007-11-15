@@ -1805,6 +1805,13 @@ static void panel_clicked_tabs(uiBlock *block,  int mousex)
 			}
 			
 			addqueue(curarea->win, REDRAW, 1);
+			
+			/* panels now differ size.. */
+			if(curarea->spacetype==SPACE_BUTS) {
+				SpaceButs *sbuts= curarea->spacedata.first;
+				if(sbuts->align)
+					uiAlignPanelStep(curarea, 1.0);
+			}
 		}
 	}
 	
