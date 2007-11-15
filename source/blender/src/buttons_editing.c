@@ -1731,7 +1731,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CHANGEDEP,
 			               "Ob: ", lx, (cy -= 19), buttonWidth, 19,
 			               &mmd->mirror_ob,
-			               "Object to use as mirrot");
+			               "Object to use as mirror");
 
 		} else if (md->type==eModifierType_EdgeSplit) {
 			EdgeSplitModifierData *emd = (EdgeSplitModifierData*) md;
