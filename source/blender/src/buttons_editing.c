@@ -1957,8 +1957,10 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			ArmatureModifierData *amd = (ArmatureModifierData*) md;
 			uiDefIDPoinBut(block, modifier_testArmatureObj, ID_OB, B_CHANGEDEP, "Ob: ", lx, (cy-=19), buttonWidth,19, &amd->object, "Armature object to deform with");
 			
-			but=uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",				  lx, (cy-=19), buttonWidth,19, &amd->defgrp_name, 0.0, 31.0, 0, 0, "Vertex Group name to control overall armature influence");
+			but=uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",				  lx, (cy-=19), buttonWidth-40,19, &amd->defgrp_name, 0.0, 31.0, 0, 0, "Vertex Group name to control overall armature influence");
 			uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ob);
+			uiDefButS(block, TOG, B_ARM_RECALCDATA, "MM",	lx+buttonWidth-40,cy, 40, 20, &amd->multi, 0, 0, 0, 0, "MultiModifier: This modifier uses same input as previous modifier, and mixes using this vgroup");
+			
 			uiDefButBitS(block, TOG, ARM_DEF_VGROUP, B_ARM_RECALCDATA, "Vert.Groups",	lx,cy-=19,buttonWidth/2,20, &amd->deformflag, 0, 0, 0, 0, "Enable VertexGroups defining deform");
 			uiDefButBitS(block, TOG, ARM_DEF_ENVELOPE, B_ARM_RECALCDATA, "Envelopes",	lx+buttonWidth/2,cy,(buttonWidth + 1)/2,20, &amd->deformflag, 0, 0, 0, 0, "Enable Bone Envelopes defining deform");
 			uiDefButBitS(block, TOG, ARM_DEF_QUATERNION, B_ARM_RECALCDATA, "Quaternion",	lx,(cy-=19),buttonWidth/2,20, &amd->deformflag, 0, 0, 0, 0, "Enable deform rotation interpolation with Quaternions");
