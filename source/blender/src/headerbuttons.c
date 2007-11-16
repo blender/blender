@@ -457,11 +457,12 @@ static void show_splash(void)
 	char buffer[1024];
 	extern char * build_date;
 	extern char * build_time;
+	extern char * build_rev;
 	extern char * build_platform;
 	extern char * build_type;
 
 	string = &buffer[0];
-	sprintf(string,"Built on %s %s     Version %s %s", build_date, build_time, build_platform, build_type);
+	sprintf(string,"Built on %s %s, Rev-%s    Version %s %s", build_date, build_time, build_rev, build_platform, build_type);
 #endif
 
 	splash((void *)datatoc_splash_jpg, datatoc_splash_jpg_size, string);

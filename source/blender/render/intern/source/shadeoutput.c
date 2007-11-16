@@ -26,6 +26,7 @@
  */
 
 #include <stdio.h>
+#include <float.h>
 #include <math.h>
 #include <string.h>
 
@@ -166,6 +167,9 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 		p1[2]= -lar->co[2];
 		MTC_Mat3MulVecfl(lar->imat, p1);
 		VECCOPY(npos, p1);	// npos is double!
+		
+		/* pre-scale */
+		npos[2]*= lar->sh_zfac;
 	}
 	else {
 		VECCOPY(npos, lar->sh_invcampos);	/* in initlamp calculated */
@@ -195,7 +199,7 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 		maxz*= lar->sh_zfac;
 		maxy= lar->imat[0][1]*p1[0]+lar->imat[1][1]*p1[1]+lar->imat[2][1]*p1[2];
 
-		if( fabs(nray[2]) <0.000001f ) use_yco= 1;
+		if( fabs(nray[2]) < DBL_EPSILON ) use_yco= 1;
 	}
 	
 	/* scale z to make sure volume is normalized */	
@@ -210,7 +214,7 @@ static void spothalo(struct LampRen *lar, ShadeInput *shi, float *intens)
 	c = npos[0] * npos[0] + npos[1] * npos[1] - npos[2]*npos[2];
 
 	snijp= 0;
-	if (fabs(a) < 0.00000001) {
+	if (fabs(a) < DBL_EPSILON) {
 		/*
 		 * Only one intersection point...
 		 */
@@ -825,6 +829,8 @@ void shade_color(ShadeInput *shi, ShadeResult *shr)
 		shi->r= shi->vcol[0];
 		shi->g= shi->vcol[1];
 		shi->b= shi->vcol[2];
+		if(ma->mode & (MA_FACETEXTURE_ALPHA))
+			shi->alpha= shi->vcol[3];
 	}
 	
 	if(ma->texco)
@@ -1144,6 +1150,10 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 	view= shi->view;
 	
 	if (lar->energy == 0.0) return;
+	
+	/* optimisation, don't render fully black lamps */
+	if (!(lar->mode & LA_TEXTURE) && (lar->r + lar->g + lar->b == 0.0f))
+		return;
 	
 	/* lampdist, spot angle, area side, ... */
 	visifac= lamp_get_visibility(lar, shi->co, lv, &lampdist);
@@ -1467,6 +1477,8 @@ void shade_lamp_loop(ShadeInput *shi, ShadeResult *shr)
 			shi->r= shi->vcol[0];
 			shi->g= shi->vcol[1];
 			shi->b= shi->vcol[2];
+			if(ma->mode & (MA_FACETEXTURE_ALPHA))
+				shi->alpha= shi->vcol[3];
 		}
 		if(ma->texco)
 			do_material_tex(shi);

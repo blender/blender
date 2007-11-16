@@ -409,12 +409,13 @@ static PyObject *Constraint_getType( BPy_Constraint * self )
  */
 static PyObject *Constraint_insertKey( BPy_Constraint * self, PyObject * value )
 {
+	bConstraint *con = self->con;
+	Object *ob = self->obj;
+	bPoseChannel *pchan = self->pchan;
 	IpoCurve *icu;
 	float cfra = (float)PyFloat_AsDouble(value);
 	char actname[32] = "";
-	Object *ob = self->obj;
-	bConstraint *con = self->con;
-
+	
 	if( !self->con )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"This constraint has been removed!" );
@@ -423,9 +424,22 @@ static PyObject *Constraint_insertKey( BPy_Constraint * self, PyObject * value )
 	if( PyFloat_Check(value) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expected a float argument" );
-
-	/* constraint_active_func(ob_v, con_v); */
-	get_constraint_ipo_context( ob, actname );
+	
+	/* find actname for locating that action-channel that a constraint channel should be added to */
+	if (ob) {
+		if (pchan) {
+			/* actname is the name of the pchan that this constraint belongs to */
+			BLI_strncpy(actname, pchan->name, 32);
+		}
+		else {
+			/* hardcoded achan name -> "Object" (this may change in future) */
+			strcpy(actname, "Object");
+		}
+	}
+	else {
+		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
+				"constraint doesn't belong to anything" );
+	}
 	icu= verify_ipocurve((ID *)ob, ID_CO, actname, con->name, CO_ENFORCE);
 	
 	if (!icu)

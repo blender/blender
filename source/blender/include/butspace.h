@@ -463,6 +463,10 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_SETW4			2122
 #define B_SUBSURFTYPE		2123
 #define B_TILTINTERP		2124
+#define B_SETPT_AUTO	2125
+#define B_SETPT_VECTOR	2126
+#define B_SETPT_ALIGN	2127
+#define B_SETPT_FREE	2128
 
 /* *********************** */
 #define B_FONTBUTS		2300

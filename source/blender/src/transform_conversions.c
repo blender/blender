@@ -139,7 +139,7 @@ extern ListBase editelems;
 #include "transform.h"
 
 /* local function prototype - for Object/Bone Constraints */
-static short constraints_list_needinv(ListBase *list);
+static short constraints_list_needinv(TransInfo *t, ListBase *list);
 
 /* ************************** Functions *************************** */
 
@@ -554,7 +554,7 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 		else 	 
 			Mat3CpyMat4(pmat, pchan->parent->pose_mat);
 		
-		if (constraints_list_needinv(&pchan->constraints)) {
+		if (constraints_list_needinv(t, &pchan->constraints)) {
 			Mat3CpyMat4(tmat, pchan->constinv);
 			Mat3Inv(cmat, tmat);
 			Mat3MulSerie(td->mtx, pchan->bone->bone_mat, pmat, cmat, omat, 0,0,0,0);    // dang mulserie swaps args
@@ -563,7 +563,7 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 			Mat3MulSerie(td->mtx, pchan->bone->bone_mat, pmat, omat, 0,0,0,0,0);    // dang mulserie swaps args
 	}
 	else {
-		if (constraints_list_needinv(&pchan->constraints)) {
+		if (constraints_list_needinv(t, &pchan->constraints)) {
 			Mat3CpyMat4(tmat, pchan->constinv);
 			Mat3Inv(cmat, tmat);
 			Mat3MulSerie(td->mtx, pchan->bone->bone_mat, cmat, omat, 0, 0,0,0,0);    // dang mulserie swaps args
@@ -766,6 +766,7 @@ static void pose_grab_with_ik(Object *ob)
 {
 	bArmature *arm;
 	bPoseChannel *pchan, *pchansel= NULL;
+	Bone *bonec;
 	
 	if(ob==NULL || ob->pose==NULL || (ob->flag & OB_POSEMODE)==0)
 		return;
@@ -783,6 +784,14 @@ static void pose_grab_with_ik(Object *ob)
 		}
 	}
 	if(pchan || pchansel==NULL) return;
+
+	/* rule: no IK for solitary (unconnected) bone */
+	for(bonec=pchansel->bone->childbase.first; bonec; bonec=bonec->next) {
+		if(bonec->flag & BONE_CONNECTED) {
+			break;
+		}
+	}
+	if ((pchansel->bone->flag & BONE_CONNECTED)==0 && (bonec == NULL)) return;
 	
 	/* rule: if selected Bone is not a root bone, it gets a temporal IK */
 	if(pchansel->parent) {
@@ -2492,7 +2501,7 @@ static void ipokey_to_transdata(IpoKey *ik, TransData *td)
  * These particular constraints benefit from this, but others don't, hence
  * this semi-hack ;-)    - Aligorith
  */
-static short constraints_list_needinv(ListBase *list)
+static short constraints_list_needinv(TransInfo *t, ListBase *list)
 {
 	bConstraint *con;
 	
@@ -2504,9 +2513,19 @@ static short constraints_list_needinv(ListBase *list)
 			/* only consider constraint if it is enabled, and has influence on result */
 			if ((con->flag & CONSTRAINT_DISABLE)==0 && (con->enforce!=0.0)) {
 				/* (affirmative) returns for specific constraints here... */
+					/* constraints that require this regardless  */
 				if (con->type == CONSTRAINT_TYPE_CHILDOF) return 1;
 				if (con->type == CONSTRAINT_TYPE_FOLLOWPATH) return 1;
 				if (con->type == CONSTRAINT_TYPE_CLAMPTO) return 1;
+				
+					/* constraints that require this only under special conditions */
+				if (con->type == CONSTRAINT_TYPE_ROTLIKE) {
+					/* CopyRot constraint only does this when rotating, and offset is on */
+					bRotateLikeConstraint *data = (bRotateLikeConstraint *)con->data;
+					
+					if ((data->flag & ROTLIKE_OFFSET) && (t->mode == TFM_ROTATION))
+						return 1;
+				}
 			}
 		}
 	}
@@ -2516,7 +2535,7 @@ static short constraints_list_needinv(ListBase *list)
 }
 
 /* transcribe given object into TransData for Transforming */
-static void ObjectToTransData(TransData *td, Object *ob) 
+static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob) 
 {
 	Object *track;
 	ListBase fakecons = {NULL, NULL};
@@ -2532,7 +2551,7 @@ static void ObjectToTransData(TransData *td, Object *ob)
 	 * 		inverse correction to stop it from screwing up space conversion
 	 *		matrix later
 	 */
-	constinv= constraints_list_needinv(&ob->constraints);
+	constinv= constraints_list_needinv(t, &ob->constraints);
 	if (ob->track || constinv==0) {
 		track= ob->track;
 		ob->track= NULL;
@@ -2747,6 +2766,7 @@ void autokeyframe_ob_cb_func(Object *ob, int tmode)
  */
 void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 {
+	bArmature *arm= ob->data;
 	bAction	*act;
 	bPose	*pose;
 	bPoseChannel *pchan;
@@ -2820,6 +2840,16 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 		
 		remake_action_ipos (act);
 		allqueue(REDRAWMARKER, 0);
+		
+		/* locking can be disabled */
+		ob->pose->flag &= ~(POSE_DO_UNLOCK|POSE_LOCKED);
+		
+		/* do the bone paths */
+		if (arm->pathflag & ARM_PATH_ACFRA) {
+			pose_clear_paths(ob);
+			pose_calculate_path(ob);
+		}		
+		
 	}
 	else {
 		/* tag channels that should have unkeyed data */
@@ -3084,7 +3114,7 @@ static void createTransObject(TransInfo *t)
 						CFRA= (int)(ik->val/G.scene->r.framelen);
 						
 						do_ob_ipo(ob);
-						ObjectToTransData(td, ob);	// does where_is_object()
+						ObjectToTransData(t, td, ob);	// does where_is_object()
 						
 						td->flag= TD_SELECTED;
 						
@@ -3107,7 +3137,7 @@ static void createTransObject(TransInfo *t)
 					where_is_object(ob);	// restore 
 				}
 				else {
-					ObjectToTransData(td, ob);
+					ObjectToTransData(t, td, ob);
 					td->tdi = NULL;
 					td->val = NULL;
 					td++;
@@ -3115,7 +3145,7 @@ static void createTransObject(TransInfo *t)
 				}
 			}
 			else {
-				ObjectToTransData(td, ob);
+				ObjectToTransData(t, td, ob);
 				td->tdi = NULL;
 				td->val = NULL;
 				td++;
@@ -3242,4 +3272,5 @@ void createTransData(TransInfo *t)
 	/* temporal...? */
 	G.scene->recalc |= SCE_PRV_CHANGED;	/* test for 3d preview */
 }
+
 

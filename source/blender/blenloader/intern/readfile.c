@@ -2917,14 +2917,22 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 
 			mmd->bindweights= newdataadr(fd, mmd->bindweights);
 			mmd->bindcos= newdataadr(fd, mmd->bindcos);
+			mmd->dyngrid= newdataadr(fd, mmd->dyngrid);
+			mmd->dyninfluences= newdataadr(fd, mmd->dyninfluences);
+			mmd->dynverts= newdataadr(fd, mmd->dynverts);
 
 			if(fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
 				int a;
 
-				for(a=0; a<mmd->totcagevert*mmd->totvert; a++)
-					SWITCH_INT(mmd->bindweights[a])
-				for(a=0; a<mmd->totcagevert*3; a++)
-					SWITCH_INT(mmd->bindcos[a])
+				if(mmd->bindweights)
+					for(a=0; a<mmd->totcagevert*mmd->totvert; a++)
+						SWITCH_INT(mmd->bindweights[a])
+				if(mmd->bindcos)
+					for(a=0; a<mmd->totcagevert*3; a++)
+						SWITCH_INT(mmd->bindcos[a])
+				if(mmd->dynverts)
+					for(a=0; a<mmd->totvert; a++)
+						SWITCH_INT(mmd->dynverts[a])
 			}
 		}
 	}
@@ -6844,11 +6852,11 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		bConstraint *con;
 		bConstraintTarget *ct;
 		
-		for(ob = main->object.first; ob; ob= ob->id.next) {
-			if(ob->pose) {
-				for(pchan=ob->pose->chanbase.first; pchan; pchan=pchan->next) {
-					for(con=pchan->constraints.first; con; con=con->next) {
-						if(con->type==CONSTRAINT_TYPE_PYTHON) {
+		for (ob = main->object.first; ob; ob= ob->id.next) {
+			if (ob->pose) {
+				for (pchan=ob->pose->chanbase.first; pchan; pchan=pchan->next) {
+					for (con=pchan->constraints.first; con; con=con->next) {
+						if (con->type == CONSTRAINT_TYPE_PYTHON) {
 							bPythonConstraint *data= (bPythonConstraint *)con->data;
 							if (data->tar) {
 								/* version patching needs to be done */
@@ -6866,12 +6874,19 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 								strcpy(data->subtarget, "");
 							}
 						}
+						else if (con->type == CONSTRAINT_TYPE_LOCLIKE) {
+							bLocateLikeConstraint *data= (bLocateLikeConstraint *)con->data;
+							
+							/* new headtail functionality makes Bone-Tip function obsolete */
+							if (data->flag & LOCLIKE_TIP)
+								con->headtail = 1.0f;
+						}
 					}
 				}
 			}
 			
-			for(con=ob->constraints.first; con; con=con->next) {
-				if(con->type==CONSTRAINT_TYPE_PYTHON) {
+			for (con=ob->constraints.first; con; con=con->next) {
+				if (con->type==CONSTRAINT_TYPE_PYTHON) {
 					bPythonConstraint *data= (bPythonConstraint *)con->data;
 					if (data->tar) {
 						/* version patching needs to be done */
@@ -6888,6 +6903,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						data->tar = NULL;
 						strcpy(data->subtarget, "");
 					}
+				}
+				else if (con->type == CONSTRAINT_TYPE_LOCLIKE) {
+					bLocateLikeConstraint *data= (bLocateLikeConstraint *)con->data;
+					
+					/* new headtail functionality makes Bone-Tip function obsolete */
+					if (data->flag & LOCLIKE_TIP)
+						con->headtail = 1.0f;
 				}
 			}
 		}
@@ -7458,6 +7480,11 @@ static void expand_modifier(FileData *fd, Main *mainvar, ModifierData *md)
 			
 		expand_doit(fd, mainvar, amd->curve_ob);
 		expand_doit(fd, mainvar, amd->offset_ob);
+	}
+	else if (md->type==eModifierType_Mirror) {
+		MirrorModifierData *mmd = (MirrorModifierData*) md;
+			
+		expand_doit(fd, mainvar, mmd->mirror_ob);
 	}
 }
 

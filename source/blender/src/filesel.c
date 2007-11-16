@@ -1480,8 +1480,18 @@ static void filesel_execute(SpaceFile *sfile)
 			
 			if(sfile->flag & FILE_STRINGCODE) {
 				/* still weak, but we don't want saving files to make relative paths */
-				if(strncmp(sfile->title, "Save", 4))
+				if(G.relbase_valid && strncmp(sfile->title, "Save", 4)) {
 					BLI_makestringcode(G.sce, name);
+				} else {
+					/* if we don't have a valid relative base (.blend file hasn't been saved yet)
+					   then we don't save the path as relative (for texture images, background image).
+					   Warning message not shown when saving files (doesn't make sense there)
+					*/
+					if (strncmp(sfile->title, "Save", 4)) {
+						printf("Relative path setting has been ignored because .blend file hasn't been saved yet.\n");
+					}
+					sfile->flag &= ~FILE_STRINGCODE;
+				}
 			}
 			if(sfile->returnfunc)
 				sfile->returnfunc(name);
@@ -2188,7 +2198,8 @@ static int is_a_library(SpaceFile *sfile, char *dir, char *group)
 
 		/* now we know that we are in a blend file and it is safe to 
 		   assume that gp actually points to a group */
-		BLI_strncpy(group, gp, GROUP_MAX);
+		if (BLI_streq("Screen", gp)==0)
+			BLI_strncpy(group, gp, GROUP_MAX);
 	}
 	return 1;
 }

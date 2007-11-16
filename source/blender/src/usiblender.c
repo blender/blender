@@ -74,6 +74,7 @@
 #include "BKE_blender.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
+#include "BKE_DerivedMesh.h"
 #include "BKE_exotic.h"
 #include "BKE_font.h"
 #include "BKE_global.h"
@@ -192,6 +193,9 @@ static void init_userdef_file(void)
 	}
 	if(U.pad_rot_angle==0)
 		U.pad_rot_angle= 15;
+	
+	if(U.flag & USER_CUSTOM_RANGE) 
+		vDM_ColorBand_store(&U.coba_weight); /* signal for derivedmesh to use colorband */
 	
 	if (G.main->versionfile <= 191) {
 		strcpy(U.plugtexdir, U.textudir);
@@ -486,7 +490,7 @@ static void outliner_242_patch(void)
 }
 
 /* only here settings for fullscreen */
-int BIF_read_homefile(int from_memory, int do_undo)
+int BIF_read_homefile(int from_memory)
 {
 	char tstr[FILE_MAXDIR+FILE_MAXFILE], scestr[FILE_MAXDIR];
 	char *home= BLI_gethome();
@@ -529,9 +533,7 @@ int BIF_read_homefile(int from_memory, int do_undo)
 
 	undo_editmode_clear();
 	BKE_reset_undo();
-	
-	if (do_undo)
-		BIF_undo_push("original");
+	BKE_write_undo("original");	/* save current state */
 	
 	return success;
 }
@@ -901,11 +903,7 @@ void BIF_init(void)
 	init_node_butfuncs();
 	
 	BIF_preview_init_dbase();
-	
-	/* dont set an undo here because this sets the default scene to be the initial
-	undo state when loading blender with a file  a new file, so holding Ctrl+Z will undo to the default
-	scene rather then to the new file */
-	BIF_read_homefile(0, 0);
+	BIF_read_homefile(0);
 
 	BIF_resources_init();	/* after homefile, to dynamically load an icon file based on theme settings */
 	

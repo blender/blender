@@ -7379,28 +7379,34 @@ static PyObject *Mesh_fill( BPy_Mesh * self )
 /*
  * "pointInside" function
  */
+/* Warning - this is ordered - need to test both orders to be sure */
 #define SIDE_OF_LINE(pa,pb,pp)	((pa[0]-pp[0])*(pb[1]-pp[1]))-((pb[0]-pp[0])*(pa[1]-pp[1]))
 #define POINT_IN_TRI(p0,p1,p2,p3)	((SIDE_OF_LINE(p1,p2,p0)>=0) && (SIDE_OF_LINE(p2,p3,p0)>=0) && (SIDE_OF_LINE(p3,p1,p0)>=0))
 static short pointInside_internal(float *vec, float *v1, float *v2, float  *v3 )
 {	
 	float z,w1,w2,w3,wtot;
 	
-	if (!POINT_IN_TRI(vec, v1,v2,v3))
+	
+	if (vec[2] > MAX3(v1[2], v2[2], v3[2]))
 		return 0;
 	
-	if (vec[2] < MAX3(v1[2], v2[2], v3[2])) {
-		w1= AreaF2Dfl(vec, v2, v3);
-		w2=	AreaF2Dfl(v1, vec, v3);
-		w3=	AreaF2Dfl(v1, v2, vec);
-		wtot = w1+w2+w3;
-		w1/=wtot; w2/=wtot; w3/=wtot;
-		z =((v1[2] * (w2+w3)) +
-			(v2[2] * (w1+w3)) +
-			(v3[2] * (w1+w2))) * 0.5;
-		/* only return true if the face is above vec*/
-		if (vec[2] < z )
-			return 1;
-	}
+	/* need to test both orders */
+	if (!POINT_IN_TRI(vec, v1,v2,v3) && !POINT_IN_TRI(vec, v3,v2,v1))
+		return 0;
+	
+	w1= AreaF2Dfl(vec, v2, v3);
+	w2=	AreaF2Dfl(v1, vec, v3);
+	w3=	AreaF2Dfl(v1, v2, vec);
+	wtot = w1+w2+w3;
+	w1/=wtot; w2/=wtot; w3/=wtot;
+	z =((v1[2] * w1) +
+		(v2[2] * w2) +
+		(v3[2] * w3));
+	
+	/* only return true if the face is above vec*/
+	if (vec[2] < z )
+		return 1;
+
 	return 0;
 }
 
@@ -7418,13 +7424,15 @@ static PyObject *Mesh_pointInside( BPy_Mesh * self, VectorObject * vec )
 	
 	if(vec->size < 3)
 		return EXPP_ReturnPyObjError(PyExc_AttributeError, 
-			"Mesh.pointInside(vec) expects a 3D vector objects\n");
+			"Mesh.pointInside(vec) expects a 3D vector object\n");
 	
-	for( i = 0; i < mesh->totface; ++mf, ++i ) {
-		if (pointInside_internal(vec->vec, mvert[mf->v1].co, mvert[mf->v2].co, mvert[mf->v3].co))
+	for( i = 0; i < mesh->totface; mf++, i++ ) {
+		if (pointInside_internal(vec->vec, mvert[mf->v1].co, mvert[mf->v2].co, mvert[mf->v3].co)) {
 			isect_count++;
-		else if (mf->v4 && pointInside_internal(vec->vec,mvert[mf->v1].co, mvert[mf->v3].co, mvert[mf->v4].co))
+		} else if (mf->v4 && pointInside_internal(vec->vec,mvert[mf->v1].co, mvert[mf->v3].co, mvert[mf->v4].co)) {
+			
 			isect_count++;
+		}
 	}
 	
 	if (isect_count % 2)

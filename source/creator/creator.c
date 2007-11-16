@@ -159,6 +159,7 @@ static void print_version(void)
 	printf ("Blender %d.%02d (sub %d) Build\n", G.version/100, G.version%100, BLENDER_SUBVERSION);
 	printf ("\tbuild date: %s\n", build_date);
 	printf ("\tbuild time: %s\n", build_time);
+	printf ("\tbuild revision: %s\n", build_rev);
 	printf ("\tbuild platform: %s\n", build_platform);
 	printf ("\tbuild type: %s\n", build_type);
 #else
@@ -688,6 +689,10 @@ int main(int argc, char **argv)
 		else {
 			BKE_read_file(argv[a], NULL);
 			sound_initialize_sounds();
+			
+			/* happens for the UI on file reading too */
+			BKE_reset_undo();
+			BKE_write_undo("original");	/* save current state */
 		}
 	}
 
@@ -702,10 +707,9 @@ int main(int argc, char **argv)
 		sce= add_scene("1");
 		set_scene(sce);
 	}
-	
-	BKE_write_undo("original");	/* save current state */
+
 	screenmain();
-	
+
 	return 0;
 } /* end of int main(argc,argv)	*/
 

@@ -988,7 +988,7 @@ static void trace_reflect(float *col, ShadeInput *shi, ShadeResult *shr, float f
 	int samp_type;
 	
 	float samp3d[3], orthx[3], orthy[3];
-	float v_nor_new[3], v_facenor_new[3], v_reflect[3];
+	float v_nor_new[3], v_reflect[3];
 	float sampcol[4], colsq[4];
 		
 	float blur = pow(1.0 - shi->mat->gloss_mir, 3);
@@ -1010,8 +1010,6 @@ static void trace_reflect(float *col, ShadeInput *shi, ShadeResult *shr, float f
 		QMC_initPixel(qsa, shi->thread);
 	} else 
 		max_samples = 1;
-	
-	VECCOPY(v_facenor_new, shi->facenor);
 	
 	while (samples < max_samples) {
 				
@@ -1035,17 +1033,14 @@ static void trace_reflect(float *col, ShadeInput *shi, ShadeResult *shr, float f
 			/* and perturb the normal in it */
 			VecAddf(v_nor_new, shi->vn, orthx);
 			VecAddf(v_nor_new, v_nor_new, orthy);
-			VecAddf(v_facenor_new, shi->facenor, orthx);
-			VecAddf(v_facenor_new, v_facenor_new, orthy);
 			Normalize(v_nor_new);
-			Normalize(v_facenor_new);
 		} else {
 			/* no blurriness, use the original normal */
 			VECCOPY(v_nor_new, shi->vn);
 		}
 		
 		if((shi->vlr->flag & R_SMOOTH)) 
-			reflection(v_reflect, v_nor_new, shi->view, v_facenor_new);
+			reflection(v_reflect, v_nor_new, shi->view, shi->facenor);
 		else
 			reflection(v_reflect, v_nor_new, shi->view, NULL);
 		

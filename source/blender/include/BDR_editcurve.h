@@ -96,6 +96,9 @@ void add_primitiveNurb(int type);
 void clear_tilt(void);
 void clever_numbuts_curve(void);         
 int bezt_compare (const void *e1, const void *e2);
+void setweightNurb( void );
+void setradiusNurb( void );
+void smoothradiusNurb( void );
 
 extern void undo_push_curve(char *name);
 

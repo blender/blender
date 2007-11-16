@@ -79,10 +79,11 @@ typedef struct bArmature {
 	short		deformflag; 
 	short		pathflag;
 	short		layer, layer_protected;		/* for buttons to work, both variables in this order together */
-	short		ghostep, ghostsize;		/*number of frames to ghosts to show, and step between them  */
+	short		ghostep, ghostsize;		/* number of frames to ghosts to show, and step between them  */
 	short		ghosttype, pathsize;		/* ghost drawing options and number of frames between points of path */
 	int			ghostsf, ghostef;		/* start and end frames of ghost-drawing range */
-	int 		pathsf, pathef;			/* start and end frames of path-calculation range for all bones */	
+	int 		pathsf, pathef;			/* start and end frames of path-calculation range for all bones */
+	int			pathbc, pathac;			/* number of frames before/after current frame of path-calculation for all bones  */
 }bArmature;
 
 /* armature->flag */
@@ -117,9 +118,10 @@ typedef struct bArmature {
 #define		ARM_DEF_B_BONE_REST	8
 
 /* armature->pathflag */
-#define		ARM_PATH_FNUMS	0x001
-#define		ARM_PATH_KFRAS	0x002
-#define		ARM_PATH_HEADS	0x004
+#define		ARM_PATH_FNUMS		(1<<0)
+#define		ARM_PATH_KFRAS		(1<<1)
+#define		ARM_PATH_HEADS		(1<<2)
+#define 	ARM_PATH_ACFRA		(1<<3)
 
 /* armature->ghosttype */
 #define 	ARM_GHOST_CUR	0
@@ -150,5 +152,7 @@ typedef struct bArmature {
 #define 	BONE_UNKEYED		8192
 			/* set to prevent hinge child bones from influencing the transform center */
 #define 	BONE_HINGE_CHILD_TRANSFORM 16384
+			/* No parent scale */
+#define		BONE_NO_SCALE		(1<<15)
 
 #endif

@@ -52,7 +52,6 @@ void				BIF_filelist_sort(struct FileList* filelist, short sort);
 int					BIF_filelist_numfiles(struct FileList* filelist);
 const char *		BIF_filelist_dir(struct FileList* filelist);
 void				BIF_filelist_setdir(struct FileList* filelist, const char *dir);
-void				BIF_filelist_appenddir(struct FileList* filelist, const char *relname);
 struct direntry *	BIF_filelist_file(struct FileList* filelist, int index);
 void				BIF_filelist_hidedot(struct FileList* filelist, short hide);
 void				BIF_filelist_setfilter(struct FileList* filelist, unsigned int filter);

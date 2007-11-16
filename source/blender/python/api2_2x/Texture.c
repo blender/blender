@@ -504,7 +504,7 @@ static int Texture_setNoiseBasis2( BPy_Texture *self, PyObject *args,
 								
 static PyObject *Texture_getColorband( BPy_Texture * self);
 int Texture_setColorband( BPy_Texture * self, PyObject * value);
-static PyObject *Texture_evaluate( BPy_Texture *self, VectorObject *vec_in );
+static PyObject *Texture_evaluate( BPy_Texture *self, PyObject *value );
 static PyObject *Texture_copy( BPy_Texture *self );
 
 /*****************************************************************************/
@@ -2472,19 +2472,34 @@ int Texture_setColorband( BPy_Texture * self, PyObject * value)
 	return EXPP_Colorband_fromPyList( &self->texture->coba, value );
 }
 
-static PyObject *Texture_evaluate( BPy_Texture * self, VectorObject * vec_in )
+static PyObject *Texture_evaluate( BPy_Texture * self, PyObject * value )
 {
 	TexResult texres= {0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0, NULL};
 	float vec[4];
 	/* int rgbnor; dont use now */
 	
-	if(!VectorObject_Check(vec_in) || vec_in->size < 3)
-		return EXPP_ReturnPyObjError(PyExc_TypeError, 
-			"expects a 3D vector object");
-	
-	/* rgbnor = .. we don't need this now */
-	multitex_ext(self->texture, vec_in->vec, NULL, NULL, 1, &texres);
-	
+	if (VectorObject_Check(value)) {
+		if(((VectorObject *)value)->size < 3)
+			return EXPP_ReturnPyObjError(PyExc_TypeError, 
+					"expects a 3D vector object or a tuple of 3 numbers");
+		
+		/* rgbnor = .. we don't need this now */
+		multitex_ext(self->texture, ((VectorObject *)value)->vec, NULL, NULL, 1, &texres);
+	} else {
+		float vec_in[3];
+		if (!PyTuple_Check(value) || PyTuple_Size(value) < 3)
+			return EXPP_ReturnPyObjError(PyExc_TypeError, 
+					"expects a 3D vector object or a tuple of 3 numbers");
+		
+		vec_in[0] = PyFloat_AsDouble(PyTuple_GET_ITEM(value, 0));
+		vec_in[1] = PyFloat_AsDouble(PyTuple_GET_ITEM(value, 1));
+		vec_in[2] = PyFloat_AsDouble(PyTuple_GET_ITEM(value, 2));
+		if (PyErr_Occurred())
+			return EXPP_ReturnPyObjError(PyExc_TypeError, 
+					"expects a 3D vector object or a tuple of 3 numbers");
+		
+		multitex_ext(self->texture, vec_in, NULL, NULL, 1, &texres);
+	}
 	vec[0] = texres.tr;
 	vec[1] = texres.tg;
 	vec[2] = texres.tb;

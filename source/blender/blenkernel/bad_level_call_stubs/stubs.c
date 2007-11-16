@@ -209,7 +209,7 @@ void IK_FreeSolver(IK_Solver *solver) {};
 void IK_SolverAddGoal(IK_Solver *solver, IK_Segment *tip, float goal[3], float weight) {}
 void IK_SolverAddGoalOrientation(IK_Solver *solver, IK_Segment *tip, float goal[][3], float weight) {}
 void IK_SolverSetPoleVectorConstraint(IK_Solver *solver, IK_Segment *tip, float goal[3], float polegoal[3], float poleangle, int getangle) {}
-float IK_SolverGetPoleAngle(IK_Solver *solver) {}
+float IK_SolverGetPoleAngle(IK_Solver *solver) { return 0.0f; }
 
 int IK_Solve(IK_Solver *solver, float tolerance, int max_iterations) { return 0; }
 
@@ -331,6 +331,9 @@ void BIF_filelist_freelib(struct FileList* filelist) {};
 
 /* edittime.c stub */
 TimeMarker *get_frame_marker(int frame){return 0;};
+
+/* editseq.c */
+Sequence *get_forground_frame_seq(int frame){return 0;};
 
 /* modifier.c stub */
 void harmonic_coordinates_bind(struct MeshDeformModifierData *mmd,

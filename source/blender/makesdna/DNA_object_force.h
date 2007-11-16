@@ -142,8 +142,16 @@ typedef struct SoftBody {
 #define OB_SB_EDGECOLL  2048
 #define OB_SB_COLLFINAL 4096
 
+/* sb->solverflags */
 #define SBSO_MONITOR    1 
 #define SBSO_OLDERR     2 
+
+/* sb->sbc_mode */
+#define SBC_MODE_MANUAL		0
+#define SBC_MODE_AVG		1
+#define SBC_MODE_MIN		2
+#define SBC_MODE_MAX		3
+#define SBC_MODE_AVGMINMAX	4
 
 #ifdef __cplusplus
 }

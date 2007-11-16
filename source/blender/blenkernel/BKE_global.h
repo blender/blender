@@ -175,25 +175,21 @@ typedef struct Global {
 #define G_DRAWCREASES	(1 << 19)
 #define G_DRAWSEAMS     (1 << 20)
 #define G_HIDDENEDGES   (1 << 21)
-#define G_HIDDENHANDLES (1 << 22) /* used for curves only */
-
-
 /* Measurement info Drawing */
 #define G_DRAW_EDGELEN  (1 << 22) 
 #define G_DRAW_FACEAREA (1 << 23)
 #define G_DRAW_EDGEANG  (1 << 24)
 
 #define G_RECORDKEYS	(1 << 25)
-
 /*#ifdef WITH_VERSE*/
 #define G_VERSE_CONNECTED  (1 << 26)
 #define G_DRAW_VERSE_DEBUG (1 << 27)
 /*#endif*/
-
 #define G_DRAWSHARP     (1 << 28) /* draw edges with the sharp flag */
 #define G_SCULPTMODE    (1 << 29)
 
 #define G_AUTOMATKEYS	(1 << 30)
+#define G_HIDDENHANDLES (1 << 31) /* used for curves only */
 
 /* macro for testing face select mode
  * Texture paint could be removed since selected faces are not used

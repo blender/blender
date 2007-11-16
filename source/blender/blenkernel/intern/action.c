@@ -305,8 +305,10 @@ static void copy_pose_channel_data(bPoseChannel *pchan, const bPoseChannel *chan
 	pchan->flag= chan->flag;
 	
 	con= chan->constraints.first;
-	for(pcon= pchan->constraints.first; pcon; pcon= pcon->next)
+	for(pcon= pchan->constraints.first; pcon; pcon= pcon->next) {
 		pcon->enforce= con->enforce;
+		pcon->headtail= con->headtail;
+	}
 }
 
 /* checks for IK constraint, can do more constraints flags later */

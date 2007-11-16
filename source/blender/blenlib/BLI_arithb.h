@@ -360,6 +360,8 @@ void spheremap(float x, float y, float z, float *u, float *v);
 int LineIntersectsTriangle(float p1[3], float p2[3], float v0[3], float v1[3], float v2[3], float *lambda);
 int point_in_tri_prism(float p[3], float v1[3], float v2[3], float v3[3]);
 
+float lambda_cp_line_ex(float p[3], float l1[3], float l2[3], float cp[3]);
+
 typedef struct DualQuat {
 	float quat[4];
 	float trans[4];
@@ -371,7 +373,7 @@ typedef struct DualQuat {
 void Mat4ToDQuat(float basemat[][4], float mat[][4], DualQuat *dq);
 void DQuatToMat4(DualQuat *dq, float mat[][4]);
 void DQuatAddWeighted(DualQuat *dqsum, DualQuat *dq, float weight);
-void DQuatNormalize(DualQuat *dq, float totweight, float factor);
+void DQuatNormalize(DualQuat *dq, float totweight);
 void DQuatMulVecfl(DualQuat *dq, float *co, float mat[][3]);
 void DQuatCpyDQuat(DualQuat *dq1, DualQuat *dq2);
 			  

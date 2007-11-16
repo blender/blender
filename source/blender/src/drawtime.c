@@ -69,6 +69,18 @@
 #include "blendef.h"
 #include "interface.h"	/* for ui_rasterpos_safe */
 
+#define TIMELINE_STIPPLE \
+{ \
+	136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0, \
+	136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0, \
+	136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0, \
+	136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0, \
+	136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0, \
+	136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0, \
+	136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0, \
+	136,136,136,136,0,0,0,0,34,34,34,34,0,0,0,0 \
+}
+
 /* ---- prototypes ------ */
 void drawtimespace(ScrArea *, void *);
 
@@ -127,7 +139,6 @@ static void draw_cfra_time(SpaceTime *stime)
 		
 		ui_rasterpos_safe(x * xscale, y * yscale, 1.0);
 		BIF_DrawString(G.fonts, str, 0);
-		printf("%f -- %f\n", xscale, yscale);
 		glScalef(xscale, yscale, 1.0);
 	}
 	
@@ -277,6 +288,27 @@ static void draw_sfra_efra()
 	glDisable(GL_BLEND);
 }
 
+static void draw_mapoldnew()
+{
+	float anim_end;	/* the end of the blender frames that are actually animated (map old)*/
+	float frames_end;	/* the end of the frames that get rendered and saved to disk (map new) */
+	GLubyte timeline_stipple[32*32/8] = TIMELINE_STIPPLE;
+	
+	if (G.scene->r.framelen == 1.0) return;
+	
+	anim_end = PEFRA * G.scene->r.framelen;
+	frames_end = PEFRA;
+	
+	glEnable(GL_POLYGON_STIPPLE);
+	glPolygonStipple(timeline_stipple);
+	BIF_ThemeColorShade(TH_BACK, -65);
+	
+	if (anim_end < frames_end)
+		glRectf(anim_end, G.v2d->cur.ymin, frames_end, G.v2d->cur.ymax);
+
+	glDisable(GL_POLYGON_STIPPLE);
+}
+
 /*draw all the keys in a list (elems) as lines */
 static void draw_key_list(ListBase elems, char col[3]) 
 {
@@ -394,6 +426,7 @@ void drawtimespace(ScrArea *sa, void *spacedata)
 	 *	frame range used is preview range or scene range
 	 */
 	draw_sfra_efra();
+	draw_mapoldnew();
 	
 	/* boundbox_seq(); */
 	calc_ipogrid();	

@@ -540,6 +540,8 @@ typedef struct Scene {
 #define R_STAMP_NOTE	0x0020
 #define R_STAMP_DRAW	0x0040 /* draw in the image */
 #define R_STAMP_MARKER	0x0080
+#define R_STAMP_FILENAME	0x0100
+#define R_STAMP_SEQSTRIP	0x0200
 
 /* alphamode */
 #define R_ADDSKY		0

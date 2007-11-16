@@ -543,6 +543,8 @@ class CurNurb:
 	@ivar knotsV: The knot vector in the V direction. The tuple will be empty
 	if the curve isn't a NURB or doesn't have knots in this direction.
 	@type knotsV: tuple of floats
+	@ivar smooth: Set the smoothing for this curve (applies to cuve objects that have a bevel)
+	@type smooth: bool
 	"""
 
 	def __setitem__( n, point ):

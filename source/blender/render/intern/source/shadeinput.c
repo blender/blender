@@ -675,11 +675,13 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 					shi->vcol[0]= shi->col[0].col[0];
 					shi->vcol[1]= shi->col[0].col[1];
 					shi->vcol[2]= shi->col[0].col[2];
+					shi->vcol[3]= 1.0f;
 				}
 				else {
 					shi->vcol[0]= 0.0f;
 					shi->vcol[1]= 0.0f;
 					shi->vcol[2]= 0.0f;
+					shi->vcol[3]= 1.0f;
 				}
 			}
 
@@ -721,6 +723,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 						shi->vcol[0]= 1.0f;
 						shi->vcol[1]= 1.0f;
 						shi->vcol[2]= 1.0f;
+						shi->vcol[3]= 1.0f;
 					}
 					if(tface && tface->tpage)
 						render_realtime_texture(shi, tface->tpage);
@@ -739,6 +742,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 					shi->vcol[0]= 1.0f;
 					shi->vcol[1]= 1.0f;
 					shi->vcol[2]= 1.0f;
+					shi->vcol[3]= 1.0f;
 				}
 			}
 		}

@@ -1233,6 +1233,7 @@ static void mirrorModifier_initData(ModifierData *md)
 
 	mmd->flag |= MOD_MIR_AXIS_X;
 	mmd->tolerance = 0.001;
+	mmd->mirror_ob = NULL;
 }
 
 static void mirrorModifier_copyData(ModifierData *md, ModifierData *target)
@@ -1243,12 +1244,37 @@ static void mirrorModifier_copyData(ModifierData *md, ModifierData *target)
 	tmmd->axis = mmd->axis;
 	tmmd->flag = mmd->flag;
 	tmmd->tolerance = mmd->tolerance;
+	tmmd->mirror_ob = mmd->mirror_ob;;
+}
+
+static void mirrorModifier_foreachObjectLink(
+                ModifierData *md, Object *ob,
+                void (*walk)(void *userData, Object *ob, Object **obpoin),
+                void *userData)
+{
+	MirrorModifierData *mmd = (MirrorModifierData*) md;
+
+	walk(userData, ob, &mmd->mirror_ob);
+}
+
+static void mirrorModifier_updateDepgraph(ModifierData *md, DagForest *forest,
+										  Object *ob, DagNode *obNode)
+{
+	MirrorModifierData *mmd = (MirrorModifierData*) md;
+
+	if(mmd->mirror_ob) {
+		DagNode *latNode = dag_get_node(forest, mmd->mirror_ob);
+
+		dag_add_relation(forest, latNode, obNode,
+		                 DAG_RL_DATA_DATA | DAG_RL_OB_DATA);
+	}
 }
 
 static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
-						   DerivedMesh *dm,
-						   int initFlags,
-						   int axis)
+								   Object *ob,
+								   DerivedMesh *dm,
+								   int initFlags,
+								   int axis)
 {
 	int i;
 	float tolerance = mmd->tolerance;
@@ -1258,6 +1284,7 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 	int maxEdges = dm->getNumEdges(dm);
 	int maxFaces = dm->getNumFaces(dm);
 	int (*indexMap)[2];
+	float mtx[4][4], imtx[4][4];
 
 	numVerts = numEdges = numFaces = 0;
 
@@ -1265,13 +1292,28 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 
 	result = CDDM_from_template(dm, maxVerts * 2, maxEdges * 2, maxFaces * 2);
 
+	if (mmd->mirror_ob) {
+		float obinv[4][4];
+
+		Mat4Invert(obinv, mmd->mirror_ob->obmat);
+		Mat4MulMat4(mtx, ob->obmat, obinv);
+		Mat4Invert(imtx, mtx);
+	}
+
 	for(i = 0; i < maxVerts; i++) {
 		MVert inMV;
 		MVert *mv = CDDM_get_vert(result, numVerts);
 		int isShared;
+		float co[3];
 
 		dm->getVert(dm, i, &inMV);
-		isShared = ABS(inMV.co[axis])<=tolerance;
+
+		VecCopyf(co, inMV.co);
+
+		if (mmd->mirror_ob) {
+			VecMat4MulVecfl(co, mtx, co);
+		}
+		isShared = ABS(co[axis])<=tolerance;
 
 		/* Because the topology result (# of vertices) must be the same if
 		 * the mesh data is overridden by vertex cos, have to calc sharedness
@@ -1285,7 +1327,12 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 		indexMap[i][1] = !isShared;
 
 		if(isShared) {
-			mv->co[axis] = 0;
+			co[axis] = 0;
+			if (mmd->mirror_ob) {
+				VecMat4MulVecfl(co, imtx, co);
+			}
+			VecCopyf(mv->co, co);
+			
 			mv->flag |= ME_VERT_MERGED;
 		} else {
 			MVert *mv2 = CDDM_get_vert(result, numVerts);
@@ -1294,7 +1341,11 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 			*mv2 = *mv;
 			numVerts++;
 
-			mv2->co[axis] = -mv2->co[axis];
+			co[axis] = -co[axis];
+			if (mmd->mirror_ob) {
+				VecMat4MulVecfl(co, imtx, co);
+			}
+			VecCopyf(mv2->co, co);
 		}
 	}
 
@@ -1388,23 +1439,23 @@ static DerivedMesh *doMirrorOnAxis(MirrorModifierData *mmd,
 }
 
 static DerivedMesh *mirrorModifier__doMirror(MirrorModifierData *mmd,
-                                             DerivedMesh *dm,
+											 Object *ob, DerivedMesh *dm,
                                              int initFlags)
 {
 	DerivedMesh *result = dm;
 
 	/* check which axes have been toggled and mirror accordingly */
 	if(mmd->flag & MOD_MIR_AXIS_X) {
-		result = doMirrorOnAxis(mmd, result, initFlags, 0);
+		result = doMirrorOnAxis(mmd, ob, result, initFlags, 0);
 	}
 	if(mmd->flag & MOD_MIR_AXIS_Y) {
 		DerivedMesh *tmp = result;
-		result = doMirrorOnAxis(mmd, result, initFlags, 1);
+		result = doMirrorOnAxis(mmd, ob, result, initFlags, 1);
 		if(tmp != dm) tmp->release(tmp); /* free intermediate results */
 	}
 	if(mmd->flag & MOD_MIR_AXIS_Z) {
 		DerivedMesh *tmp = result;
-		result = doMirrorOnAxis(mmd, result, initFlags, 2);
+		result = doMirrorOnAxis(mmd, ob, result, initFlags, 2);
 		if(tmp != dm) tmp->release(tmp); /* free intermediate results */
 	}
 
@@ -1418,7 +1469,7 @@ static DerivedMesh *mirrorModifier_applyModifier(
 	DerivedMesh *result;
 	MirrorModifierData *mmd = (MirrorModifierData*) md;
 
-	result = mirrorModifier__doMirror(mmd, derivedData, 0);
+	result = mirrorModifier__doMirror(mmd, ob, derivedData, 0);
 
 	CDDM_calc_normals(result);
 	
@@ -5188,8 +5239,11 @@ static void meshdeformModifier_freeData(ModifierData *md)
 {
 	MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
 
-	if (mmd->bindweights) MEM_freeN(mmd->bindweights);
-	if (mmd->bindcos) MEM_freeN(mmd->bindcos);
+	if(mmd->bindweights) MEM_freeN(mmd->bindweights);
+	if(mmd->bindcos) MEM_freeN(mmd->bindcos);
+	if(mmd->dyngrid) MEM_freeN(mmd->dyngrid);
+	if(mmd->dyninfluences) MEM_freeN(mmd->dyninfluences);
+	if(mmd->dynverts) MEM_freeN(mmd->dynverts);
 }
 
 static void meshdeformModifier_copyData(ModifierData *md, ModifierData *target)
@@ -5243,12 +5297,64 @@ static void meshdeformModifier_updateDepgraph(
 	}
 }
 
+static float meshdeform_dynamic_bind(MeshDeformModifierData *mmd, float (*dco)[3], float *vec)
+{
+	MDefCell *cell;
+	MDefInfluence *inf;
+	float gridvec[3], dvec[3], ivec[3], co[3], wx, wy, wz;
+	float weight, cageweight, totweight, *cageco;
+	int i, j, a, x, y, z, size;
+
+	co[0]= co[1]= co[2]= 0.0f;
+	totweight= 0.0f;
+	size= mmd->dyngridsize;
+
+	for(i=0; i<3; i++) {
+		gridvec[i]= (vec[i] - mmd->dyncellmin[i] - mmd->dyncellwidth*0.5f)/mmd->dyncellwidth;
+		ivec[i]= (int)gridvec[i];
+		dvec[i]= gridvec[i] - ivec[i];
+	}
+
+	for(i=0; i<8; i++) {
+		if(i & 1) { x= ivec[0]+1; wx= dvec[0]; }
+		else { x= ivec[0]; wx= 1.0f-dvec[0]; } 
+
+		if(i & 2) { y= ivec[1]+1; wy= dvec[1]; }
+		else { y= ivec[1]; wy= 1.0f-dvec[1]; } 
+
+		if(i & 4) { z= ivec[2]+1; wz= dvec[2]; }
+		else { z= ivec[2]; wz= 1.0f-dvec[2]; } 
+
+		CLAMP(x, 0, size-1);
+		CLAMP(y, 0, size-1);
+		CLAMP(z, 0, size-1);
+
+		a= x + y*size + z*size*size;
+		weight= wx*wy*wz;
+
+		cell= &mmd->dyngrid[a];
+		inf= mmd->dyninfluences + cell->offset;
+		for(j=0; j<cell->totinfluence; j++, inf++) {
+			cageco= dco[inf->vertex];
+			cageweight= weight*inf->weight;
+			co[0] += cageweight*cageco[0];
+			co[1] += cageweight*cageco[1];
+			co[2] += cageweight*cageco[2];
+			totweight += cageweight;
+		}
+	}
+
+	VECCOPY(vec, co);
+
+	return totweight;
+}
+
 static void meshdeformModifier_do(
                 ModifierData *md, Object *ob, DerivedMesh *dm,
                 float (*vertexCos)[3], int numVerts)
 {
 	MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
-	float imat[4][4], cagemat[4][4], icagemat[4][4], icmat[3][3];
+	float imat[4][4], cagemat[4][4], icagemat[4][4], iobmat[3][3];
 	float weight, totweight, fac, co[3], *weights, (*dco)[3], (*bindcos)[3];
 	int a, b, totvert, totcagevert, defgrp_index;
 	DerivedMesh *tmpdm, *cagedm;
@@ -5256,7 +5362,7 @@ static void meshdeformModifier_do(
 	MDeformWeight *dw;
 	MVert *cagemvert;
 
-	if(!mmd->object || (!mmd->bindweights && !mmd->needbind))
+	if(!mmd->object || (!mmd->bindcos && !mmd->needbind))
 		return;
 	
 	/* get cage derivedmesh */
@@ -5273,20 +5379,21 @@ static void meshdeformModifier_do(
 		return;
 
  	/* compute matrices to go in and out of cage object space */
-	Mat4Invert(imat, mmd->object->obmat);
+	Mat4Invert(imat, (mmd->bindcos)? mmd->bindmat: mmd->object->obmat);
 	Mat4MulMat4(cagemat, ob->obmat, imat);
 	Mat4Invert(icagemat, cagemat);
-	Mat3CpyMat4(icmat, icagemat);
+	Mat4Invert(imat, ob->obmat);
+	Mat3CpyMat4(iobmat, imat);
 
 	/* bind weights if needed */
-	if(!mmd->bindweights)
+	if(!mmd->bindcos)
 		harmonic_coordinates_bind(mmd, vertexCos, numVerts, cagemat);
 
 	/* verify we have compatible weights */
 	totvert= numVerts;
 	totcagevert= cagedm->getNumVerts(cagedm);
 
-	if(mmd->totvert!=totvert || mmd->totcagevert!=totcagevert || !mmd->bindweights) {
+	if(mmd->totvert!=totvert || mmd->totcagevert!=totcagevert || !mmd->bindcos) {
 		cagedm->release(cagedm);
 		return;
 	}
@@ -5323,6 +5430,10 @@ static void meshdeformModifier_do(
 	fac= 1.0f;
 
 	for(b=0; b<totvert; b++) {
+		if(mmd->flag & MOD_MDEF_DYNAMIC_BIND)
+			if(!mmd->dynverts[b])
+				continue;
+
 		if(dvert) {
 			for(dw=NULL, a=0; a<dvert[b].totweight; a++) {
 				if(dvert[b].dw[a].def_nr == defgrp_index) {
@@ -5333,7 +5444,7 @@ static void meshdeformModifier_do(
 
 			if(mmd->flag & MOD_MDEF_INVERT_VGROUP) {
 				if(!dw) fac= 1.0f;
-				else if(dw->weight == 0.0f) continue;
+				else if(dw->weight == 1.0f) continue;
 				else fac=1.0f-dw->weight;
 			}
 			else {
@@ -5342,20 +5453,27 @@ static void meshdeformModifier_do(
 			}
 		}
 
-		totweight= 0.0f;
-		co[0]= co[1]= co[2]= 0.0f;
+		if(mmd->flag & MOD_MDEF_DYNAMIC_BIND) {
+			VECCOPY(co, vertexCos[b]);
+			Mat4MulVecfl(cagemat, co);
+			totweight= meshdeform_dynamic_bind(mmd, dco, co);
+		}
+		else {
+			totweight= 0.0f;
+			co[0]= co[1]= co[2]= 0.0f;
 
-		for(a=0; a<totcagevert; a++) {
-			weight= weights[a + b*totcagevert];
-			co[0]+= weight*dco[a][0];
-			co[1]+= weight*dco[a][1];
-			co[2]+= weight*dco[a][2];
-			totweight += weight;
+			for(a=0; a<totcagevert; a++) {
+				weight= weights[a + b*totcagevert];
+				co[0]+= weight*dco[a][0];
+				co[1]+= weight*dco[a][1];
+				co[2]+= weight*dco[a][2];
+				totweight += weight;
+			}
 		}
 
 		if(totweight > 0.0f) {
 			VecMulf(co, fac/totweight);
-			Mat3MulVecfl(icmat, co);
+			Mat3MulVecfl(iobmat, co);
 			VECADD(vertexCos[b], vertexCos[b], co);
 		}
 	}
@@ -5576,6 +5694,8 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		             | eModifierTypeFlag_EnableInEditmode;
 		mti->initData = mirrorModifier_initData;
 		mti->copyData = mirrorModifier_copyData;
+		mti->foreachObjectLink = mirrorModifier_foreachObjectLink;
+		mti->updateDepgraph = mirrorModifier_updateDepgraph;
 		mti->applyModifier = mirrorModifier_applyModifier;
 		mti->applyModifierEM = mirrorModifier_applyModifierEM;
 

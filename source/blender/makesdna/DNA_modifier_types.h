@@ -163,6 +163,7 @@ typedef struct MirrorModifierData {
 
 	short axis, flag;
 	float tolerance;
+	struct Object *mirror_ob;
 } MirrorModifierData;
 
 /* MirrorModifierData->flag */
@@ -373,6 +374,17 @@ typedef struct BooleanModifierData {
 } BooleanModifierData;
 
 #define MOD_MDEF_INVERT_VGROUP (1<<0)
+#define MOD_MDEF_DYNAMIC_BIND  (1<<1)
+
+typedef struct MDefInfluence {
+	int vertex;
+	float weight;
+} MDefInfluence;
+
+typedef struct MDefCell {
+	int offset;
+	int totinfluence;
+} MDefCell;
 
 typedef struct MeshDeformModifierData {
 	ModifierData modifier;
@@ -380,11 +392,20 @@ typedef struct MeshDeformModifierData {
 	struct Object *object;			/* mesh object */
 	char defgrp_name[32];			/* optional vertexgroup name */
 
-	float *bindweights, *bindcos;	/* computed binding weights */
 	short gridsize, needbind;
 	short flag, pad;
 
-	int totvert, totcagevert;
+	/* variables filled in when bound */
+	float *bindweights, *bindcos;	/* computed binding weights */
+	int totvert, totcagevert;		/* total vertices in mesh and cage */
+	MDefCell *dyngrid;				/* grid with dynamic binding cell points */
+	MDefInfluence *dyninfluences;	/* dynamic binding vertex influences */
+	int *dynverts, *pad2;			/* is this vertex bound or not? */
+	int dyngridsize;				/* size of the dynamic bind grid */
+	int totinfluence;				/* total number of vertex influences */
+	float dyncellmin[3];			/* offset of the dynamic bind grid */
+	float dyncellwidth;				/* width of dynamic bind cell */
+	float bindmat[4][4];			/* matrix of cage at binding time */
 } MeshDeformModifierData;
 
 typedef struct PointCacheModifierData {

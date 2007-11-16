@@ -155,6 +155,7 @@ static void clipMirrorModifier(TransInfo *t, Object *ob)
 			MirrorModifierData *mmd = (MirrorModifierData*) md;	
 		
 			if(mmd->flag & MOD_MIR_CLIPPING) {
+				axis = 0;
 				if(mmd->flag & MOD_MIR_AXIS_X) {
 					axis |= 1;
 					tolerance[0] = mmd->tolerance;
@@ -167,28 +168,68 @@ static void clipMirrorModifier(TransInfo *t, Object *ob)
 					axis |= 4;
 					tolerance[2] = mmd->tolerance;
 				}
-			}
-		}
-	}
-	if (axis) {
-		TransData *td = t->data;
-		int i;
+				if (axis) {
+					float mtx[4][4], imtx[4][4];
+					int i;
+					TransData *td = t->data;
 		
-		for(i = 0 ; i < t->total; i++, td++) {
-			if (td->flag & TD_NOACTION)
-				break;
-			if (td->loc==NULL)
-				break;
+					if (mmd->mirror_ob) {
+						float obinv[4][4];
+
+						Mat4Invert(obinv, mmd->mirror_ob->obmat);
+						Mat4MulMat4(mtx, ob->obmat, obinv);
+						Mat4Invert(imtx, mtx);
+					}
+
+					for(i = 0 ; i < t->total; i++, td++) {
+						int clip;
+						float loc[3], iloc[3];
+
+						if (td->flag & TD_NOACTION)
+							break;
+						if (td->loc==NULL)
+							break;
 			
-			if(axis & 1) {
-				if(fabs(td->iloc[0])<=tolerance[0] || td->loc[0]*td->iloc[0]<0.0f) td->loc[0]= 0.0f;
-			}
+						VecCopyf(loc,  td->loc);
+						VecCopyf(iloc, td->iloc);
+
+						if (mmd->mirror_ob) {
+							VecMat4MulVecfl(loc, mtx, loc);
+							VecMat4MulVecfl(iloc, mtx, iloc);
+						}
+
+						clip = 0;
+						if(axis & 1) {
+							if(fabs(iloc[0])<=tolerance[0] || 
+							   loc[0]*iloc[0]<0.0f) {
+								loc[0]= 0.0f;
+								clip = 1;
+							}
+						}
 			
-			if(axis & 2) {
-				if(fabs(td->iloc[1])<=tolerance[1] || td->loc[1]*td->iloc[1]<0.0f) td->loc[1]= 0.0f;
-			}
-			if(axis & 4) {
-				if(fabs(td->iloc[2])<=tolerance[2] || td->loc[2]*td->iloc[2]<0.0f) td->loc[2]= 0.0f;
+						if(axis & 2) {
+							if(fabs(iloc[1])<=tolerance[1] || 
+							   loc[1]*iloc[1]<0.0f) {
+								loc[1]= 0.0f;
+								clip = 1;
+							}
+						}
+						if(axis & 4) {
+							if(fabs(iloc[2])<=tolerance[2] || 
+							   loc[2]*iloc[2]<0.0f) {
+								loc[2]= 0.0f;
+								clip = 1;
+							}
+						}
+						if (clip) {
+							if (mmd->mirror_ob) {
+								VecMat4MulVecfl(loc, imtx, loc);
+							}
+							VecCopyf(td->loc, loc);
+						}
+					}
+				}
+
 			}
 		}
 	}

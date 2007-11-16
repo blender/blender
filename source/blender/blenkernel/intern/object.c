@@ -1141,6 +1141,20 @@ void make_local_object(Object *ob)
 
 /* *************** PROXY **************** */
 
+/* when you make proxy, ensure the exposed layers are extern */
+void armature_set_id_extern(Object *ob)
+{
+	bArmature *arm= ob->data;
+	bPoseChannel *pchan;
+	int lay= arm->layer_protected;
+	
+	for (pchan = ob->pose->chanbase.first; pchan; pchan=pchan->next) {
+		if(!(pchan->bone->layer & lay))
+			id_lib_extern((ID *)pchan->custom);
+	}
+			
+}
+
 /* proxy rule: lib_object->proxy_from == the one we borrow from, set temporally while object_update */
 /*             local_object->proxy == pointer to library object, saved in files and read */
 /*             local_object->proxy_group == pointer to group dupli-object, saved in files and read */
@@ -1186,6 +1200,8 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 		copy_object_pose(ob, target);	/* data copy, object pointers in constraints */
 		rest_pose(ob->pose);			/* clear all transforms in channels */
 		armature_rebuild_pose(ob, ob->data);	/* set all internal links */
+		
+		armature_set_id_extern(ob);
 	}
 }
 

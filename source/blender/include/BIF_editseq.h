@@ -44,6 +44,7 @@ void				reload_sequence(void);
 void				update_seq_ipo_rect(struct Sequence * seq);
 void				update_seq_icu_rects(struct Sequence * seq);
 struct Sequence*	get_last_seq();
+struct Sequence*	get_forground_frame_seq( int frame );
 void				set_last_seq(struct Sequence * seq);
 void				clear_last_seq();
 void				del_seq(void);

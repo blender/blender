@@ -38,6 +38,7 @@
 #ifndef WIN32
 char * build_date=BUILD_DATE;
 char * build_time=BUILD_TIME;
+char * build_rev=BUILD_REV;
 char * build_platform=BUILD_PLATFORM;
 char * build_type=BUILD_TYPE;
 #else

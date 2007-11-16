@@ -2450,6 +2450,7 @@ void render_realtime_texture(ShadeInput *shi, Image *ima)
 	shi->vcol[0]*= texr.tr;
 	shi->vcol[1]*= texr.tg;
 	shi->vcol[2]*= texr.tb;
+	shi->vcol[3]*= texr.ta;
 }
 
 /* eof */

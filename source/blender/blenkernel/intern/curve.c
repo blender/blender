@@ -2351,6 +2351,8 @@ void sethandlesNurb(short code)
 	/* code==2: set vectorhandle */
 	/* code==3 (HD_ALIGN) it toggle, vectorhandles become HD_FREE */
 	/* code==4: sets icu flag to become IPO_AUTO_HORIZ, horizontal extremes on auto-handles */
+	/* code==5: Set align, like 3 but no toggle */
+	/* code==6: Clear align, like 3 but no toggle */
 	Nurb *nu;
 	BezTriple *bezt;
 	short a, ok=0;
@@ -2381,22 +2383,28 @@ void sethandlesNurb(short code)
 		/* there is 1 handle not FREE: FREE it all, else make ALIGNED  */
 		
 		nu= editNurb.first;
-		while(nu) {
-			if( (nu->type & 7)==1) {
-				bezt= nu->bezt;
-				a= nu->pntsu;
-				while(a--) {
-					if(bezt->f1 && bezt->h1) ok= 1;
-					if(bezt->f3 && bezt->h2) ok= 1;
-					if(ok) break;
-					bezt++;
+		if (code == 5) {
+			ok = HD_ALIGN;
+		} else if (code == 6) {
+			ok = HD_FREE;
+		} else {
+			/* Toggle */
+			while(nu) {
+				if( (nu->type & 7)==1) {
+					bezt= nu->bezt;
+					a= nu->pntsu;
+					while(a--) {
+						if(bezt->f1 && bezt->h1) ok= 1;
+						if(bezt->f3 && bezt->h2) ok= 1;
+						if(ok) break;
+						bezt++;
+					}
 				}
+				nu= nu->next;
 			}
-			nu= nu->next;
+			if(ok) ok= HD_FREE;
+			else ok= HD_ALIGN;
 		}
-		if(ok) ok= HD_FREE;
-		else ok= HD_ALIGN;
-		
 		nu= editNurb.first;
 		while(nu) {
 			if( (nu->type & 7)==1) {

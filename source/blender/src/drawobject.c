@@ -1359,14 +1359,18 @@ void nurbs_foreachScreenVert(void (*func)(void *userData, Nurb *nu, BPoint *bp, 
 				if(bezt->hide==0) {
 					if (G.f & G_HIDDENHANDLES) {
 						view3d_project_short_clip(curarea, bezt->vec[1], s, pmat, vmat);
-						func(userData, nu, NULL, bezt, 1, s[0], s[1]);
+						if (s[0] != IS_CLIPPED)
+							func(userData, nu, NULL, bezt, 1, s[0], s[1]);
 					} else {
 						view3d_project_short_clip(curarea, bezt->vec[0], s, pmat, vmat);
-						func(userData, nu, NULL, bezt, 0, s[0], s[1]);
+						if (s[0] != IS_CLIPPED)
+							func(userData, nu, NULL, bezt, 0, s[0], s[1]);
 						view3d_project_short_clip(curarea, bezt->vec[1], s, pmat, vmat);
-						func(userData, nu, NULL, bezt, 1, s[0], s[1]);
+						if (s[0] != IS_CLIPPED)
+							func(userData, nu, NULL, bezt, 1, s[0], s[1]);
 						view3d_project_short_clip(curarea, bezt->vec[2], s, pmat, vmat);
-						func(userData, nu, NULL, bezt, 2, s[0], s[1]);
+						if (s[0] != IS_CLIPPED)
+							func(userData, nu, NULL, bezt, 2, s[0], s[1]);
 					}
 				}
 			}
@@ -2413,14 +2417,8 @@ static int draw_mesh_object(Base *base, int dt, int flag)
 		if(dt>OB_WIRE) init_gl_materials(ob, 0);	// no transp in editmode, the fancy draw over goes bad then
 		draw_em_fancy(ob, G.editMesh, cageDM, finalDM, dt);
 
-		/* TODO, not 100% sure this is correct,
-		 * however I could not make it crash or leak ram with different
-		 * linked-dup/modifier configurtions,
-		 * should double check whats going on before release - Campbell */
-		if (cageDM != finalDM) {
-			cageDM->release(cageDM);
+		if (G.obedit!=ob && finalDM)
 			finalDM->release(finalDM);
-		}
 	}
 	else if(!G.obedit && (G.f & G_SCULPTMODE) &&(G.scene->sculptdata.flags & SCULPT_DRAW_FAST) &&
 	        OBACT==ob && !sculpt_modifiers_active(ob)) {

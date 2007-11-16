@@ -496,7 +496,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 	Object *ob= OBACT;
 	bConstraintTypeInfo *cti;
 	uiBut *but;
-	char typestr[64];
+	char typestr[32];
 	short height, width = 265;
 	int rb_col;
 
@@ -809,7 +809,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				/* Draw options */
 				uiDefButBitI(block, TOG, LOCLIKE_OFFSET, B_CONSTRAINT_TEST, "Offset", *xco, *yco-89, (width/2), 18, &data->flag, 0, 24, 0, 0, "Add original location onto copied location");
 				if (is_armature_target(data->tar)) {
-					uiDefButBitI(block, TOG, LOCLIKE_TIP, B_CONSTRAINT_TEST, "Target Bone Tail", *xco+(width/2), *yco-89, (width/2), 18, &data->flag, 0, 24, 0, 0, "Copy Location of Target Bone's Tail");
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Head/Tail:", *xco+(width/2), *yco-89, (width/2), 18, &con->headtail, 0.0, 1, 0.1, 0.1, "Target along length of bone: Head=0, Tail=1");
 				}
 				
 				/* constraint space settings */
@@ -982,7 +982,11 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 			{
 				bTrackToConstraint *data = con->data;
 				
-				height = 96;
+				if (is_armature_target(data->tar)) 
+					height = 118;
+				else
+					height = 96;
+					
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
@@ -1029,15 +1033,27 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 					uiDefButI(block, ROW,B_CONSTRAINT_TEST,"Z",	*xco+238, *yco-64,17,18, &data->reserved2, 13.0, 2.0, 0, 0, "Z axis points upward");
 				uiBlockEndAlign(block);
 				
-				/* constraint space settings */
-				draw_constraint_spaceselect(block, con, *xco, *yco-94, is_armature_owner(ob), is_armature_target(data->tar));
+				if (is_armature_target(data->tar)) {
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Head/Tail:", *xco, *yco-94, 241, 18, &con->headtail, 0.0, 1, 0.1, 0.1, "Target along length of bone: Head=0, Tail=1");
+					
+					/* constraint space settings */
+					draw_constraint_spaceselect(block, con, *xco, *yco-116, is_armature_owner(ob), is_armature_target(data->tar));
+				}
+				else {
+					/* constraint space settings */
+					draw_constraint_spaceselect(block, con, *xco, *yco-94, is_armature_owner(ob), is_armature_target(data->tar));
+				}
 			}
 			break;
 		case CONSTRAINT_TYPE_MINMAX:
 			{
 				bMinMaxConstraint *data = con->data;
 				
-				height = 66;
+				if (is_armature_target(data->tar)) 
+					height = 88;
+				else
+					height = 66;
+					
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco+65, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
@@ -1074,6 +1090,11 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 					uiDefButI(block, ROW, B_CONSTRAINT_TEST,"-Y",	*xco+126, *yco-64,24,18, &data->minmaxflag, 12.0, 4.0, 0, 0, "Will not pass above Y of target");
 					uiDefButI(block, ROW, B_CONSTRAINT_TEST,"-Z",	*xco+150, *yco-64,24,18, &data->minmaxflag, 12.0, 5.0, 0, 0, "Will not pass above Z of target");
 				uiBlockEndAlign(block);
+				
+				if (is_armature_target(data->tar)) {
+					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Head/Tail:", *xco, *yco-86, 241, 18, &con->headtail, 0.0, 1, 0.1, 0.1, "Target along length of bone: Head=0, Tail=1");
+				}
+				
 			}
 			break;
 		case CONSTRAINT_TYPE_LOCKTRACK:
@@ -1185,13 +1206,19 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 					}
 				uiBlockEndAlign(block);
 				
-				
 				uiBlockBeginAlign(block);
-					uiDefButF(block,BUTM,B_CONSTRAINT_TEST,"R",*xco, *yco-60,20,18,&(data->orglength),0.0,0,0,0,"Recalculate RLength");
-					uiDefButF(block,NUM,B_CONSTRAINT_TEST,"Rest Length:",*xco+18, *yco-60,237,18,&(data->orglength),0.0,100,0.5,0.5,"Length at Rest Position");
+					if (is_armature_target(data->tar)) {
+						uiDefButF(block, BUTM, B_CONSTRAINT_TEST, "R", *xco, *yco-60, 20, 18, &data->orglength, 0.0, 0, 0, 0, "Recalculate RLength");
+						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Rest Length:", *xco+18, *yco-60,139,18, &data->orglength, 0.0, 100, 0.5, 0.5, "Length at Rest Position");
+						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Head/Tail:", *xco+155, *yco-60,97,18, &con->headtail, 0.0, 1, 0.1, 0.1, "Target along length of bone: Head=0, Tail=1");
+					}
+					else {
+						uiDefButF(block, BUTM, B_CONSTRAINT_TEST, "R", *xco, *yco-60, 20, 18, &data->orglength, 0.0, 0, 0, 0, "Recalculate RLength");
+						uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Rest Length:", *xco+18, *yco-60, 237, 18, &data->orglength, 0.0, 100, 0.5, 0.5, "Length at Rest Position");
+					}
 				uiBlockEndAlign(block);
 				
-				uiDefButF(block,NUM,B_CONSTRAINT_TEST,"Volume Variation:",*xco+18, *yco-82,237,18,&(data->bulge),0.0,100,0.5,0.5,"Factor between volume variation and stretching");
+				uiDefButF(block, NUM, B_CONSTRAINT_TEST, "Volume Variation:", *xco+18, *yco-82, 237, 18, &data->bulge, 0.0, 100, 0.5, 0.5, "Factor between volume variation and stretching");
 				
 				uiBlockBeginAlign(block);
 					uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Vol:",*xco+14, *yco-104,30,18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
@@ -2959,11 +2986,11 @@ static void object_softbodies_II(Object *ob)
 				uiDefButBitS(block, TOG, OB_SB_SELF, B_SOFTBODY_CHANGE, "Self Collision",		10,170,150,20, &ob->softflag, 0, 0, 0, 0, "enable naive vertex ball self collision");
 				if(ob->softflag & OB_SB_SELF){
 					uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Ball Size:", 160,170,150,20, &sb->colball, -10.0,  10.0, 10, 0, "Absolute ball size or factor if not manual adjusted");
-					uiDefButS(block, ROW, B_DIFF, "Man",10,150,60,20, &sb->sbc_mode, 4.0,(float)0, 0, 0, "Manual adjust");
-					uiDefButS(block, ROW, B_DIFF, "Av",70,150,60,20, &sb->sbc_mode, 4.0,(float)1, 0, 0, "Average Spring lenght * Ball Size");
-					uiDefButS(block, ROW, B_DIFF, "Min",130,150,60,20, &sb->sbc_mode, 4.0,(float)2, 0, 0, "Minimal Spring lenght * Ball Size");
-					uiDefButS(block, ROW, B_DIFF, "Max",190,150,60,20, &sb->sbc_mode, 4.0,(float)3, 0, 0, "Maximal Spring lenght * Ball Size");
-					uiDefButS(block, ROW, B_DIFF, "AvMiMa",250,150,60,20, &sb->sbc_mode, 4.0,(float)4, 0, 0, "(Min+Max)/2 * Ball Size");
+					uiDefButS(block, ROW, B_DIFF, "Man",10,150,60,20, &sb->sbc_mode, 4.0,SBC_MODE_MANUAL, 0, 0, "Manual adjust");
+					uiDefButS(block, ROW, B_DIFF, "Av",70,150,60,20, &sb->sbc_mode, 4.0,SBC_MODE_AVG, 0, 0, "Average Spring lenght * Ball Size");
+					uiDefButS(block, ROW, B_DIFF, "Min",130,150,60,20, &sb->sbc_mode, 4.0,SBC_MODE_MIN, 0, 0, "Minimal Spring lenght * Ball Size");
+					uiDefButS(block, ROW, B_DIFF, "Max",190,150,60,20, &sb->sbc_mode, 4.0,SBC_MODE_MAX, 0, 0, "Maximal Spring lenght * Ball Size");
+					uiDefButS(block, ROW, B_DIFF, "AvMiMa",250,150,60,20, &sb->sbc_mode, 4.0,SBC_MODE_AVGMINMAX, 0, 0, "(Min+Max)/2 * Ball Size");
 					uiDefButF(block, NUM, B_DIFF, "B Stiff:", 10,130,150,20, &sb->ballstiff, 0.001,  100.0, 10, 0, "Ball inflating presure");
 					uiDefButF(block, NUM, B_DIFF, "B Damp:", 160,130,150,20, &sb->balldamp,  0.001,  1.0, 10, 0, "Blending to inelastic collision");
 				}

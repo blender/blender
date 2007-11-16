@@ -1749,17 +1749,20 @@ static void draw_pose_paths(Object *ob)
 	if (arm->pathsize == 0) arm->pathsize= 1;
 	stepsize = arm->pathsize;
 	
-	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if(pchan->bone->layer & arm->layer) {
-			if(pchan->path) {
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if (pchan->bone->layer & arm->layer) {
+			if (pchan->path) {
 				/* version patch here - cannot access frame info from file reading */
 				if ((pchan->pathsf == 0) || (pchan->pathef == 0)) {
 					pchan->pathsf= SFRA;
 					pchan->pathef= EFRA;
 				}
+				
+				/* get start frame of calculated range */
 				sfra= pchan->pathsf;
 				
 				/* draw curve-line of path */
+				// TODO: show before/after with slight difference in colour intensity
 				BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.7);
 				glBegin(GL_LINE_STRIP);
 				for(a=0, fp= pchan->path; a<pchan->pathlen; a++, fp+=3)
@@ -1779,7 +1782,7 @@ static void draw_pose_paths(Object *ob)
 				/* Draw little white dots at each framestep value */
 				BIF_ThemeColor(TH_TEXT_HI);
 				glBegin(GL_POINTS);
-				for(a=0, fp= pchan->path; a<pchan->pathlen; a+=stepsize, fp+=(stepsize*3)) 
+				for (a=0, fp= pchan->path; a<pchan->pathlen; a+=stepsize, fp+=(stepsize*3)) 
 					glVertex3fv(fp);
 				glEnd();
 				

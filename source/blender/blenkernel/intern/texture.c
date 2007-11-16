@@ -411,7 +411,7 @@ void default_tex(Tex *tex)
 
 	tex->stype= 0;
 	tex->flag= TEX_CHECKER_ODD;
-	tex->imaflag= TEX_INTERPOL+TEX_MIPMAP;
+	tex->imaflag= TEX_INTERPOL+TEX_MIPMAP+TEX_USEALPHA;
 	tex->extend= TEX_REPEAT;
 	tex->cropxmin= tex->cropymin= 0.0;
 	tex->cropxmax= tex->cropymax= 1.0;
@@ -425,7 +425,8 @@ void default_tex(Tex *tex)
 	tex->turbul= 5.0;
 	tex->nabla= 0.025;	// also in do_versions
 	tex->bright= 1.0;
-	tex->contrast= tex->filtersize= 1.0;
+	tex->contrast= 1.0;
+	tex->filtersize= 1.0;
 	tex->rfac= 1.0;
 	tex->gfac= 1.0;
 	tex->bfac= 1.0;

@@ -1739,9 +1739,9 @@ void DQuatAddWeighted(DualQuat *dqsum, DualQuat *dq, float weight)
 	}
 }
 
-void DQuatNormalize(DualQuat *dq, float totweight, float factor)
+void DQuatNormalize(DualQuat *dq, float totweight)
 {
-	float scale= factor/totweight;
+	float scale= 1.0f/totweight;
 
 	QuatMulf(dq->quat, scale);
 	QuatMulf(dq->trans, scale);
