@@ -782,21 +782,21 @@ static void calculate_collision_balls(Object *ob)
 		}
 
 		if (akku_count > 0) {
-			if (sb->sbc_mode == 0){
+			if (sb->sbc_mode == SBC_MODE_MANUAL){
 				bp->colball=sb->colball;
-			}		
-			if (sb->sbc_mode == 1){
-			 bp->colball = akku/(float)akku_count*sb->colball;
 			}
-			if (sb->colball == 2){
+			if (sb->sbc_mode == SBC_MODE_AVG){
+				bp->colball = akku/(float)akku_count*sb->colball;
+			}
+			if (sb->sbc_mode == SBC_MODE_MIN){
 				bp->colball=min*sb->colball;
-			}		
-			if (sb->colball == 3){
+			}
+			if (sb->sbc_mode == SBC_MODE_MAX){
 				bp->colball=max*sb->colball;
-			}		
-			if (sb->colball == 4){
-			bp->colball = (min + max)/2.0f*sb->colball;
-			}		
+			}
+			if (sb->sbc_mode == SBC_MODE_AVGMINMAX){
+				bp->colball = (min + max)/2.0f*sb->colball;
+			}
 		}
 		else bp->colball=0;
 	}/*for bp*/		
