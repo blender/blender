@@ -532,6 +532,8 @@ class MTex:
 	@ivar mtAmb: How texture maps to ambient value
 	@ivar mtDisp: How texture maps to displacement
 	@ivar mtWarp: How texture maps to warp
+	@ivar uvlayer: The name of the UV Layer this texture is mapped to (when left blank uses render layer)
+	@type uvlayer: string
 	"""
 
 	def getIpo():

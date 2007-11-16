@@ -1953,7 +1953,7 @@ static void world_panel_mapto(World *wrld)
 
 	/* TEXTURE OUTPUT */
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, MTEX_STENCIL, B_WORLDPRV, "Stencil",	10,125,45,19, &(mtex->texflag), 0, 0, 0, 0, "Sets the texture mapping to stencil mode");
+	uiDefButBitS(block, TOG, MTEX_STENCIL, B_WORLDPRV, "Stencil",	10,125,45,19, &(mtex->texflag), 0, 0, 0, 0, "Use this texture as a blending value on the next texture");
 	uiDefButBitS(block, TOG, MTEX_NEGATIVE, B_WORLDPRV, "Neg",		55,125,30,19, &(mtex->texflag), 0, 0, 0, 0, "Inverts the values of the texture to reverse its effect");
 	uiDefButBitS(block, TOG, MTEX_RGBTOINT, B_WORLDPRV, "No RGB",		85,125,60,19, &(mtex->texflag), 0, 0, 0, 0, "Converts texture RGB values to intensity (gray) values");
 	uiBlockEndAlign(block);
@@ -2384,7 +2384,7 @@ static void lamp_panel_mapto(Object *ob, Lamp *la)
 
 	/* TEXTURE OUTPUT */
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, MTEX_STENCIL, B_LAMPPRV, "Stencil",	10,125,45,19, &(mtex->texflag), 0, 0, 0, 0, "Sets the texture mapping to stencil mode");
+	uiDefButBitS(block, TOG, MTEX_STENCIL, B_LAMPPRV, "Stencil",	10,125,45,19, &(mtex->texflag), 0, 0, 0, 0, "Use this texture as a blending value on the next texture");
 	uiDefButBitS(block, TOG, MTEX_NEGATIVE, B_LAMPPRV, "Neg",		55,125,30,19, &(mtex->texflag), 0, 0, 0, 0, "Inverts the values of the texture to reverse its effect");
 	uiDefButBitS(block, TOG, MTEX_RGBTOINT, B_LAMPPRV, "No RGB",		85,125,60,19, &(mtex->texflag), 0, 0, 0, 0, "Converts texture RGB values to intensity (gray) values");
 	uiBlockEndAlign(block);
@@ -3065,7 +3065,7 @@ static void material_panel_map_to(Material *ma, int from_nodes)
 
 	/* TEXTURE OUTPUT */
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, MTEX_STENCIL, B_MATPRV, "Stencil",	10,125,45,19, &(mtex->texflag), 0, 0, 0, 0, "Sets the texture mapping to stencil mode");
+	uiDefButBitS(block, TOG, MTEX_STENCIL, B_MATPRV, "Stencil",	10,125,45,19, &(mtex->texflag), 0, 0, 0, 0, "Use this texture as a blending value on the next texture");
 	uiDefButBitS(block, TOG, MTEX_NEGATIVE, B_MATPRV, "Neg",		55,125,30,19, &(mtex->texflag), 0, 0, 0, 0, "Inverts the values of the texture to reverse its effect");
 	uiDefButBitS(block, TOG,MTEX_RGBTOINT, B_MATPRV, "No RGB",		85,125,60,19, &(mtex->texflag), 0, 0, 0, 0, "Converts texture RGB values to intensity (gray) values");
 	uiBlockEndAlign(block);

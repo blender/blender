@@ -7585,7 +7585,7 @@ static int Mesh_setVerts( BPy_Mesh * self, PyObject * args )
 		free_mesh( me );
         me->mvert = NULL; me->medge = NULL; me->mface = NULL;
 		me->mtface = NULL; me->dvert = NULL; me->mcol = NULL;
-		me->msticky = NULL; me->mat = NULL; me->bb = NULL;
+		me->msticky = NULL; me->mat = NULL; me->bb = NULL; me->mselect = NULL;
 		me->totvert = me->totedge = me->totface = me->totcol = 0;
 		mesh_update( me );
 		return 0;

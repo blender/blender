@@ -79,6 +79,24 @@ def debug_pt(co):
 	Blender.Window.RedrawAll()
 	print 'debugging', co
 
+def freshMesh(mesh):
+	'''
+	Utility function to get a new mesh or clear the existing one, but dont clear everything.
+	'''
+	if mesh:
+		materials = mesh.materials
+		mesh.verts = None
+		for group in mesh.getVertGroupNames():
+			mesh.removeVertGroup(group) 
+			
+		# Add materials back
+		mesh.materials = materials
+	else:
+		mesh = bpy.data.meshes.new()
+		
+	return mesh
+
+
 def closestVecIndex(vec, vecls):
 	best= -1
 	best_dist = 100000000
@@ -133,7 +151,6 @@ class tree:
 			bb = curve.bevob.boundingBox
 			# self.limbScale = (bb[0] - bb[7]).length / 2.825 # THIS IS GOOD WHEN NON SUBSURRFED
 			self.limbScale = (bb[0] - bb[7]).length / 1.8
-		
 		
 		# forward_diff_bezier will fill in the blanks
 		# nice we can reuse these for every curve segment :)
@@ -211,13 +228,13 @@ class tree:
 							twig_random_orientation = 180,\
 							twig_random_angle = 33,\
 							twig_recursive=True,\
+							twig_recursive_limit=3,\
 							twig_ob_bounds=None,\
 							twig_ob_bounds_prune=True,\
 							twig_ob_bounds_prune_taper=True,\
 						):
 		'''
 		build tree data - fromCurve must run first
-		
 		'''
 		
 		# Sort the branchs by the first radius, so big branchs get joins first
@@ -285,6 +302,9 @@ class tree:
 			if twig_ob_bounds: # Only spawn twigs inside this mesh
 				self.setTwigBounds(twig_ob_bounds)
 			
+			if not twig_recursive:
+				twig_recursive_limit = 0
+			
 			self.buildTwigs(twig_ratio)
 			
 			branches_twig_attached = []
@@ -303,8 +323,8 @@ class tree:
 				branches_twig_sort.sort() # this will sort the branches with best braches for adding twigs to at the start of the list
 				
 				for tmp_sortval, twig_pt_index, brch_parent in branches_twig_sort: # tmp_sortval is not used.
-					
-					if twig_pt_index != -1:
+					if twig_pt_index != -1 and (twig_recursive_limit==0 or brch_parent.generation <= twig_recursive_limit):
+						
 						if brch_twig_index >= len(self.branches_twigs):
 							break
 						
@@ -364,9 +384,9 @@ class tree:
 							# we would not have been but here if the bounds were outside
 							if twig_ob_bounds_prune:
 								brch_twig.boundsTrim()
-								
 								if twig_ob_bounds_prune_taper:
 									# taper to a point. we could use some nice taper algo here - just linear atm.
+									
 									brch_twig.taper()
 						
 						# Make sure this dosnt mess up anything else
@@ -375,8 +395,9 @@ class tree:
 						
 						# Add to the branches
 						#self.branches_all.append(brch_twig)
-						if len(brch_twig.bpoints) > 4:
+						if len(brch_twig.bpoints) > 2:
 							branches_twig_attached.append(brch_twig)
+							brch_twig.generation = brch_parent.generation + 1
 						else:
 							# Dont add the branch
 							parent_pt.childCount -= 1
@@ -437,7 +458,7 @@ class tree:
 				print None
 		'''
 	
-	def optimizeSpacing(self, density=1.0, joint_compression=1.0, joint_smooth=1.0):
+	def optimizeSpacing(self, seg_density=0.5, seg_density_angle=20.0, seg_density_radius=0.3, joint_compression=1.0, joint_smooth=1.0):
 		'''
 		Optimize spacing, taking branch hierarchy children into account,
 		can add or subdivide segments so branch joins dont look horrible.
@@ -452,7 +473,7 @@ class tree:
 		
 		# Collapsing
 		for brch in self.branches_all:
-			brch.collapsePoints(density, joint_smooth)
+			brch.collapsePoints(seg_density, seg_density_angle, seg_density_radius, joint_smooth)
 		
 		for brch in self.branches_all:
 			brch.branchReJoin()
@@ -514,25 +535,8 @@ class tree:
 		
 		
 	
-	def toMesh(self, mesh=None, do_uv=True, do_uv_keep_vproportion=True, do_uv_uscale=False, uv_image = None, uv_x_scale=1.0, uv_y_scale=4.0, do_cap_ends=False):
-		# Simple points
-		'''
-		self.mesh = bpy.data.meshes.new()
-		self.objectCurve = bpy.data.scenes.active.objects.new(self.mesh)
-		self.mesh.verts.extend([ pt.co for brch in self.branches_all for pt in brch.bpoints ])
-		'''
-		if mesh:
-			self.mesh = mesh
-			materials = mesh.materials
-			mesh.verts = None
-			for group in mesh.getVertGroupNames():
-				mesh.removeVertGroup(group) 
-				
-			# Add materials back
-			mesh.materials = materials
-		else:
-			self.mesh = bpy.data.meshes.new()
-		
+	def toMesh(self, mesh=None, do_uv=True, do_uv_keep_vproportion=True, do_uv_vnormalize=False, do_uv_uscale=False, uv_image = None, uv_x_scale=1.0, uv_y_scale=4.0, do_uv_blend_layer= False, do_cap_ends=False):
+		self.mesh = freshMesh(mesh)
 		totverts = 0
 		
 		for brch in self.branches_all:
@@ -669,20 +673,37 @@ class tree:
 			for pt in brch.bpoints:
 				pt.toMesh(self.mesh)
 		
-		faces = self.mesh.faces
-		faces_extend = [ face for brch in self.branches_all for pt in brch.bpoints for face in pt.faces if face ]
+		#faces_extend = [ face for brch in self.branches_all for pt in brch.bpoints for face in pt.faces if face ]
+		
+		
+		
+		faces_extend = []
+		for brch in self.branches_all:
+			if brch.parent_pt:
+				faces_extend.extend(brch.faces)
+			for pt in brch.bpoints:
+				for face in pt.faces:
+					if face:
+						faces_extend.append(face)
+		
 		if do_cap_ends:
 			# TODO - UV map and image?
 			faces_extend.extend([ brch.bpoints[-1].verts for brch in self.branches_all ])
-			
-		faces.extend(faces_extend)
 		
+		faces = self.mesh.faces
 
+		faces.extend(faces_extend)
 		
 		if do_uv:
 			# Assign the faces back
 			face_index = 0
 			for brch in self.branches_all:
+				if brch.parent_pt:
+					for i in (0,1,2,3):
+						face = brch.faces[i] = faces[face_index+i]
+						face.smooth = 1
+					face_index +=4
+				
 				for pt in brch.bpoints:
 					for i in (0,1,2,3):
 						if pt.faces[i]:
@@ -690,8 +711,12 @@ class tree:
 							pt.faces[i].smooth = True
 							face_index +=1
 			
-			if self.mesh.faces:
-				self.mesh.faceUV = True
+			#if self.mesh.faces:
+			#	self.mesh.faceUV = True
+			mesh.addUVLayer( 'base' )
+			
+			# rename the uv layer
+			#mesh.renameUVLayer(mesh.getUVLayerNames()[0], 'base')
 			
 			for brch in self.branches_all:
 				
@@ -703,41 +728,162 @@ class tree:
 					
 					uv_x_scale_branch = uv_x_scale_branch / len(brch.bpoints)
 					# uv_x_scale_branch = brch.bpoints[0].radius
+				
+				if do_uv_vnormalize:
+					uv_normalize = []
+				
+				def uvmap_faces(my_faces, y_val, y_size):
+					'''
+					Accept a branch or pt faces
+					'''
+					uv_ls = [None, None, None, None]
+					for i in (0,1,2,3):
+						if my_faces[i]:
+							if uv_image:
+								my_faces[i].image = uv_image
+							uvs = my_faces[i].uv
+						else:
+							# Use these for calculating blending values
+							uvs = [Vector(0,0), Vector(0,0), Vector(0,0), Vector(0,0)]
+						
+						uv_ls[i] = uvs
+						
+						x1 = i*0.25 * uv_x_scale * uv_x_scale_branch	
+						x2 = (i+1)*0.25 * uv_x_scale * uv_x_scale_branch
+						
+						uvs[3].x = x1;
+						uvs[3].y = y_val+y_size
+						
+						uvs[0].x = x1
+						uvs[0].y = y_val
+						
+						uvs[1].x = x2
+						uvs[1].y = y_val
+						
+						uvs[2].x = x2
+						uvs[2].y = y_val+y_size
+						
+						if do_uv_vnormalize:
+							uv_normalize.extend(uvs)
 					
+					return uv_ls
+					
+				# Done uvmap_faces
 				
 				y_val = 0.0
+				
+				if brch.parent_pt:
+					y_size = (brch.getParentFaceCent() - brch.bpoints[0].co).length
+					
+					if do_uv_keep_vproportion:
+						y_size = y_size / ((brch.bpoints[0].radius + brch.parent_pt.radius)/2) * uv_y_scale
+					
+					brch.uv = uvmap_faces(brch.faces, 0.0, y_size)
+					
+					y_val += y_size
+				
 				for pt in brch.bpoints:
 					if pt.next:
 						y_size = (pt.co-pt.next.co).length
-						
 						# scale the uvs by the radius, avoids stritching.
 						if do_uv_keep_vproportion:
 							y_size = y_size / pt.radius * uv_y_scale
+						pt.uv = uvmap_faces(pt.faces, y_val, y_size)
+						y_val += y_size
+				
+				
+				if do_uv_vnormalize and uv_normalize:
+					# Use yscale here so you can choose to have half the normalized value say.
+					vscale = (1/uv_normalize[-1].y) * uv_y_scale
+					for uv in uv_normalize:
+						uv.y *= vscale
+			
+			
+			
+			# Done with UV mapping the first layer! now map the blend layers
+			if do_uv_blend_layer:
+				
+				
+				
+				# Set up the blend UV layer - this is simply the blending for branch joints
+				mesh.addUVLayer( 'blend' )
+				mesh.activeUVLayer = 'blend'
+				
+				# Set all faces to be on full blend
+				for f in mesh.faces:
+					for uv in f.uv:
+						uv.y = uv.x = 0.0
+				
+				for brch in self.branches_all:
+					if brch.parent_pt:
+						for f in brch.faces:
+							if f:
+								uvs = f.uv
+								uvs[0].x = uvs[1].x = uvs[2].x = uvs[3].x = 0.0 
+								uvs[0].y = uvs[1].y = 1.0 # swap these? - same as inverting the blend
+								uvs[2].y = uvs[3].y = 0.0
+				
+				# Set up the join UV layer, this overlays nice blended
+				mesh.addUVLayer( 'join' )
+				mesh.activeUVLayer = 'join'
+				
+				# Set all faces to be on full blend
+				for f in mesh.faces:
+					for uv in f.uv:
+						uv.y = uv.x = 0.0
+				
+				for brch in self.branches_all:
+					if brch.parent_pt:
+						# The UV's that this branch would cover if it was a face, 
+						uvs_base = brch.parent_pt.uv[brch.getParentQuadIndex()]
 						
-						for i in (0,1,2,3):
-							if pt.faces[i]:
-								if uv_image:
-									pt.faces[i].image = uv_image
-								
-								uvs = pt.faces[i].uv
-								
-								x1 = i*0.25 * uv_x_scale * uv_x_scale_branch	
-								x2 = (i+1)*0.25 * uv_x_scale * uv_x_scale_branch
-								
-								uvs[3].x = x1;
-								uvs[3].y = y_val+y_size
-								
-								uvs[0].x = x1
-								uvs[0].y = y_val
-								
-								uvs[1].x = x2
-								uvs[1].y = y_val
-								
-								uvs[2].x = x2
-								uvs[2].y = y_val+y_size
+						uvs_base_mid = Vector(0,0)
+						for uv in uvs_base:
+							uvs_base_mid += uv
+							
+						uvs_base_mid *= 0.25
 						
-						if pt.next:	
-							y_val += y_size
+						# TODO - Factor scale and distance in here 
+						## uvs_base_small = [(uv+uvs_base_mid)*0.5 for uv in uvs_base]
+						uvs_base_small = [uvs_base_mid, uvs_base_mid, uvs_base_mid, uvs_base_mid]
+						
+						if brch.faces[0]:
+							f = brch.faces[0]
+							uvs = f.uv
+							uvs[0][:] = uvs_base[0]
+							uvs[1][:] = uvs_base[1]
+							
+							uvs[2][:] = uvs_base_small[1]
+							uvs[3][:] = uvs_base_small[0]
+						
+						if brch.faces[1]:
+							f = brch.faces[1]
+							uvs = f.uv
+							uvs[0][:] = uvs_base[1]
+							uvs[1][:] = uvs_base[2]
+							
+							uvs[2][:] = uvs_base_small[2]
+							uvs[3][:] = uvs_base_small[1]
+							
+						if brch.faces[2]:
+							f = brch.faces[2]
+							uvs = f.uv
+							uvs[0][:] = uvs_base[2]
+							uvs[1][:] = uvs_base[3]
+							
+							uvs[2][:] = uvs_base_small[3]
+							uvs[3][:] = uvs_base_small[2]
+							
+						if brch.faces[3]:
+							f = brch.faces[3]
+							uvs = f.uv
+							uvs[0][:] = uvs_base[3]
+							uvs[1][:] = uvs_base[0]
+							
+							uvs[2][:] = uvs_base_small[0]
+							uvs[3][:] = uvs_base_small[3]
+			
+			mesh.activeUVLayer = 'base'  # just so people dont get worried the texture is not there - dosnt effect rendering.
 		else:
 			# no UV's
 			for f in self.mesh.faces:
@@ -764,11 +910,99 @@ class tree:
 			for ed in self.mesh.edges:
 				if ed.v1.sel==False and ed.v2.sel==False:
 					ed.crease = 255
+					ed.sel = True # so its all selected still
 			
 		del faces_extend
 		
 		return self.mesh
+	
+	def toLeafMesh(self, mesh_leaf, leaf_branch_limit = 0.5, leaf_size = 0.5):
+		'''
+		return a mesh with leaves seperate from the tree
+		
+		Add to the existing mesh.
+		'''
+		
+		# first collect stats, we want to know the average radius and total segments
+		#radius = [(pt.radius for pt in self.branches_all for pt in brch.bpoints for pt in brch.bpoints]
+		mesh_leaf = freshMesh(mesh_leaf)
+		self.mesh_leaf = mesh_leaf
+		
+		totpoints = 0
+		radius = 0.0
+		max_radius = 0.0
+		for brch in self.branches_all:
+			for pt in brch.bpoints:
+				radius += pt.radius
+				if pt.radius > max_radius:
+					max_radius = pt.radius
+			
+			#totpoints += len(brch.bpoints)
+		
+		radius_max = max_radius * leaf_branch_limit
+		
+		
+		verts_extend = []
+		faces_extend = []
+		
+		co1,co2,co3,co4 = Vector(),Vector(),Vector(),Vector()
+		
+		for brch in self.branches_all:
+			
+			# quick test, do we need leaves on this branch?
+			if brch.bpoints[-1].radius > radius_max:
+				continue
+			
+			count = 0
+			for pt in brch.bpoints:
+				if pt.childCount == 0 and pt.radius < radius_max:
+					# Ok we can add a leaf here. set the co's correctly
+					co1[:] = pt.co
+					co2[:] = pt.co
+					co3[:] = pt.co
+					co4[:] = pt.co
+					
+					cross_leafdir = CrossVecs( zup, pt.no )
+					cross_leafdir.length = leaf_size
 
+					
+					#cross_leafwidth = CrossVecs(pt.no, cross_leafdir)
+					
+					# Facing up
+					cross_leafwidth_up = CrossVecs(zup, cross_leafdir).normalize() * leaf_size
+					cross_leafwidth_aligned = pt.no
+					
+					#cross_leafwidth = (cross_leafwidth_up + cross_leafwidth_aligned)/2
+					cross_leafwidth = cross_leafwidth_aligned
+					
+					cross_leafwidth.length = leaf_size/2
+					
+					if count % 2:
+						cross_leafwidth.negate()
+						cross_leafdir.negate()
+					
+					co1 += cross_leafdir
+					co2 += cross_leafdir
+					
+					co2 += cross_leafwidth
+					co3 += cross_leafwidth
+					
+					co1 -= cross_leafwidth
+					co4 -= cross_leafwidth
+					
+					
+					i = len(verts_extend)
+					faces_extend.append( (i,i+1,i+2,i+3) )
+					verts_extend.extend([tuple(co1), tuple(co2), tuple(co3), tuple(co4)])
+					count += 1
+		
+		self.mesh_leaf.verts.extend(verts_extend)
+		self.mesh_leaf.faces.extend(faces_extend)
+		
+		
+		return self.mesh_leaf
+		
+	
 	def toArmature(self, ob_arm, armature):
 		
 		armature.drawType = Blender.Armature.STICK
@@ -909,8 +1143,6 @@ class tree:
 			except:	pass
 			cu.driver = 2 # Python expression
 			cu.driverExpression = '%.3f*(%s.evaluate((%.3f,%.3f,(b.Get("curframe")*%.3f)+%.3f)).w-0.5)' % (anim_magnitude, tex_str,  anim_offset.x, anim_offset.y, anim_speed_final, anim_offset.z)
-			
-			#(%s.evaluate((b.Get("curframe")*%.3f,0,0)).w-0.5)*%.3f
 		
 xyzup = Vector(1,1,1).normalize()
 xup = Vector(1,0,0)
@@ -927,7 +1159,7 @@ class bpoint_bone:
 class bpoint(object):
 	''' The point in the middle of the branch, not the mesh points
 	'''
-	__slots__ = 'branch', 'co', 'no', 'radius', 'vecs', 'verts', 'children', 'faces', 'next', 'prev', 'childCount', 'bpbone', 'roll_angle', 'nextMidCo', 'childrenMidCo', 'childrenMidRadius', 'targetCos', 'inTwigBounds'
+	__slots__ = 'branch', 'co', 'no', 'radius', 'vecs', 'verts', 'children', 'faces', 'uv', 'next', 'prev', 'childCount', 'bpbone', 'roll_angle', 'nextMidCo', 'childrenMidCo', 'childrenMidRadius', 'targetCos', 'inTwigBounds'
 	def __init__(self, brch, co, no, radius):
 		self.branch = brch
 		self.co = co
@@ -937,6 +1169,7 @@ class bpoint(object):
 		self.verts =	[None, None, None, None]
 		self.children = [None, None, None, None] # child branches, dont fill in faces here
 		self.faces = [None, None, None, None]
+		self.uv = None # matching faces, except - UV's are calculated even if there is no face, this is so we can calculate the blending UV's
 		self.next = None
 		self.prev = None
 		self.childCount = 0
@@ -1233,34 +1466,32 @@ class bpoint(object):
 		
 		if not self.next:
 			return
-		verts = self.verts
-		next_verts = self.next.verts
 		
-		ls = []
 		if self.prev == None and self.branch.parent_pt:
 			# join from parent branch
 			
 			# which side are we of the parents quad
 			index = self.branch.parent_pt.children.index(self.branch)
 			
+			# collect the points we are to merge into between the parent its next point
 			if index==0:	verts = [self.branch.parent_pt.verts[0], self.branch.parent_pt.verts[1], self.branch.parent_pt.next.verts[1], self.branch.parent_pt.next.verts[0]]
 			if index==1:	verts = [self.branch.parent_pt.verts[1], self.branch.parent_pt.verts[2], self.branch.parent_pt.next.verts[2], self.branch.parent_pt.next.verts[1]]
 			if index==2:	verts = [self.branch.parent_pt.verts[2], self.branch.parent_pt.verts[3], self.branch.parent_pt.next.verts[3], self.branch.parent_pt.next.verts[2]]
 			if index==3:	verts = [self.branch.parent_pt.verts[3], self.branch.parent_pt.verts[0], self.branch.parent_pt.next.verts[0], self.branch.parent_pt.next.verts[3]]
-			
-			if not self.children[0]:	self.faces[0] = [verts[0], verts[1], next_verts[1], next_verts[0]]
-			if not self.children[1]:	self.faces[1] = [verts[1], verts[2], next_verts[2], next_verts[1]]
-			if not self.children[2]:	self.faces[2] = [verts[2], verts[3], next_verts[3], next_verts[2]]
-			if not self.children[3]:	self.faces[3] = [verts[3], verts[0], next_verts[0], next_verts[3]]
-			
-		else:
-			# normal join
-			if not self.children[0]:	self.faces[0] = [verts[0], verts[1], next_verts[1], next_verts[0]]
-			if not self.children[1]:	self.faces[1] = [verts[1], verts[2], next_verts[2], next_verts[1]]
-			if not self.children[2]:	self.faces[2] = [verts[2], verts[3], next_verts[3], next_verts[2]]
-			if not self.children[3]:	self.faces[3] = [verts[3], verts[0], next_verts[0], next_verts[3]]
+				
+				
+			# Watchout for overlapping faces!
+			self.branch.faces[:] =\
+				[verts[0], verts[1], self.verts[1], self.verts[0]],\
+				[verts[1], verts[2], self.verts[2], self.verts[1]],\
+				[verts[2], verts[3], self.verts[3], self.verts[2]],\
+				[verts[3], verts[0], self.verts[0], self.verts[3]]
 		
-		mesh.faces.extend(ls)
+		# normal join, parents or no parents
+		if not self.children[0]:	self.faces[0] = [self.verts[0], self.verts[1], self.next.verts[1], self.next.verts[0]]
+		if not self.children[1]:	self.faces[1] = [self.verts[1], self.verts[2], self.next.verts[2], self.next.verts[1]]
+		if not self.children[2]:	self.faces[2] = [self.verts[2], self.verts[3], self.next.verts[3], self.next.verts[2]]
+		if not self.children[3]:	self.faces[3] = [self.verts[3], self.verts[0], self.next.verts[0], self.next.verts[3]]
 	
 	def calcVerts(self):
 		if self.prev == None:
@@ -1305,8 +1536,13 @@ class branch:
 		self.length = -1
 		# self.totchildren = 0
 		# Bones per branch
+		self.faces = [None, None, None, None]
+		self.uv = None # face uvs can be fake, always 4
 		self.bones = []
+		self.generation = 0 # use to limit twig reproduction
+		
 		# self.myindex = -1
+		### self.segment_spacing_scale = 1.0 # use this to scale up the spacing - so small twigs dont get WAY too many polys
 	
 	def __repr__(self):
 		s = ''
@@ -1378,10 +1614,12 @@ class branch:
 		#		could do this properly but it would be slower and its a corner case.
 		#
 		# if 3)	this point is within the branch, remove it.
+		#		Scale this value by the difference in radius, a low trim looks better when the parent is a lot bigger..
+		# 
 		
 		while	len(self.bpoints)>2 and\
 				self.bpoints[0].childCount == 0 and\
-				(self.bpoints[0].co - self.parent_pt.nextMidCo).length < self.parent_pt.radius * base_trim:
+				(self.bpoints[0].co - self.parent_pt.nextMidCo).length / (1+ ((self.bpoints[0].radius/self.parent_pt.radius) / base_trim)) < self.parent_pt.radius * base_trim:
 			
 			del self.bpoints[0]
 			self.bpoints[0].prev = None
@@ -1628,33 +1866,30 @@ class branch:
 		for pt in self.bpoints:
 			pt.applyTargetLocation()
 	
-	def collapsePoints(self, density, smooth_joint=1.0):
-		
-		# to avoid an overcomplex UI, just use this value when checking if these can collapse
-		HARD_CODED_RADIUS_DIFFERENCE_LIMIT = 0.3
-		HARD_CODED_ANGLE_DIFFERENCE_LIMIT = 20
+	def collapsePoints(self, seg_density=0.5, seg_density_angle=20.0, seg_density_radius=0.3, smooth_joint=1.0):
 		
 		collapse = True
 		while collapse:
 			collapse = False
-			
 			pt = self.bpoints[0]
 			while pt:
 				if pt.prev and pt.next and pt.prev.childCount == 0:
-					if abs(pt.radius - pt.prev.radius) / (pt.radius + pt.prev.radius) < HARD_CODED_RADIUS_DIFFERENCE_LIMIT:
-						if AngleBetweenVecs(pt.no, pt.prev.no) < HARD_CODED_ANGLE_DIFFERENCE_LIMIT:
-							if (pt.prev.nextMidCo-pt.co).length < ((pt.radius + pt.prev.radius)/2) * density:
+					if abs(pt.radius - pt.prev.radius) / (pt.radius + pt.prev.radius) < seg_density_radius:
+						if seg_density_angle == 180 or AngleBetweenVecs(pt.no, pt.prev.no) < seg_density_angle:
+							## if (pt.prev.nextMidCo-pt.co).length < ((pt.radius + pt.prev.radius)/2) * seg_density:
+							if (pt.prev.nextMidCo-pt.co).length < seg_density:
 								pt_save = pt.prev
 								if pt.next.collapseUp(): # collapse this point
 									collapse = True
 									pt = pt_save # so we never reference a removed point
 				
 				if pt.childCount == 0 and pt.next: #if pt.childrenMidCo == None:
-					if abs(pt.radius - pt.next.radius) / (pt.radius + pt.next.radius) < HARD_CODED_RADIUS_DIFFERENCE_LIMIT:
-						if AngleBetweenVecs(pt.no, pt.next.no) < HARD_CODED_ANGLE_DIFFERENCE_LIMIT:
+					if abs(pt.radius - pt.next.radius) / (pt.radius + pt.next.radius) < seg_density_radius:
+						if seg_density_angle == 180 or AngleBetweenVecs(pt.no, pt.next.no) < seg_density_angle:
 							# do here because we only want to run this on points with no children,
 							# Are we closer theto eachother then the radius?
-							if (pt.nextMidCo-pt.co).length < ((pt.radius + pt.next.radius)/2) * density:
+							## if (pt.nextMidCo-pt.co).length < ((pt.radius + pt.next.radius)/2) * seg_density:
+							if (pt.nextMidCo-pt.co).length < seg_density:
 								if pt.collapseDown():
 									collapse = True
 				
@@ -1810,15 +2045,22 @@ PREFS = {}
 PREFS['connect_sloppy'] = Draw.Create(1.0)
 PREFS['connect_base_trim'] = Draw.Create(1.0)
 PREFS['seg_density'] = Draw.Create(0.5)
+PREFS['seg_density_angle'] = Draw.Create(20.0)
+PREFS['seg_density_radius'] = Draw.Create(0.3)
 PREFS['seg_joint_compression'] = Draw.Create(1.0)
 PREFS['seg_joint_smooth'] = Draw.Create(2.0)
 PREFS['image_main'] = Draw.Create('')
 PREFS['do_uv'] = Draw.Create(0)
 PREFS['uv_x_scale'] = Draw.Create(4.0)
 PREFS['uv_y_scale'] = Draw.Create(1.0)
+PREFS['do_material'] = Draw.Create(1)
+PREFS['material_use_existing'] = Draw.Create(1)
+PREFS['material_texture'] = Draw.Create(1)
+PREFS['material_stencil'] = Draw.Create(1)
 PREFS['do_subsurf'] = Draw.Create(1)
 PREFS['do_cap_ends'] = Draw.Create(0)
 PREFS['do_uv_keep_vproportion'] = Draw.Create(1)
+PREFS['do_uv_vnormalize'] = Draw.Create(0)
 PREFS['do_uv_uscale'] = Draw.Create(0)
 PREFS['do_armature'] = Draw.Create(0)
 PREFS['do_anim'] = Draw.Create(1)
@@ -1830,17 +2072,21 @@ PREFS['anim_magnitude'] = Draw.Create(0.2)
 PREFS['anim_speed_size_scale'] = Draw.Create(1)
 PREFS['anim_offset_scale'] = Draw.Create(1.0)
 
-PREFS['do_twigs'] = Draw.Create(1)
+PREFS['do_twigs'] = Draw.Create(0)
 PREFS['twig_ratio'] = Draw.Create(2.0)
 PREFS['twig_scale'] = Draw.Create(0.8)
 PREFS['twig_lengthen'] = Draw.Create(1.0)
 PREFS['twig_random_orientation'] = Draw.Create(180)
 PREFS['twig_random_angle'] = Draw.Create(33)
 PREFS['twig_recursive'] = Draw.Create(1)
+PREFS['twig_recursive_limit'] = Draw.Create(3)
 PREFS['twig_ob_bounds'] = Draw.Create('')
 PREFS['twig_ob_bounds_prune'] = Draw.Create(1)
 PREFS['twig_ob_bounds_prune_taper'] = Draw.Create(1)
 
+PREFS['do_leaf'] = Draw.Create(1)
+PREFS['leaf_branch_limit'] = Draw.Create(0.25)
+PREFS['leaf_size'] = Draw.Create(0.5)
 
 GLOBAL_PREFS = {}
 GLOBAL_PREFS['realtime_update'] = Draw.Create(0)
@@ -1893,7 +2139,7 @@ def IDProp2Prefs(idprop, prefs):
 	return True
 
 
-def buildTree(ob, single=False):
+def buildTree(ob_curve, single=False):
 	'''
 	Must be a curve object, write to a child mesh
 	Must check this is a curve object!
@@ -1901,7 +2147,7 @@ def buildTree(ob, single=False):
 	print 'Curve2Tree, starting...'
 	# if were only doing 1 object, just use the current prefs
 	prefs = {}
-	if single or not (IDProp2Prefs(ob.properties, prefs)):
+	if single or not (IDProp2Prefs(ob_curve.properties, prefs)):
 		prefs = PREFS
 		
 	
@@ -1910,19 +2156,19 @@ def buildTree(ob, single=False):
 	
 	sce = bpy.data.scenes.active
 	
-	def getCurveChild(obtype):
+	def getObChild(parent, obtype):
 		try:
-			return [ _ob for _ob in sce.objects if _ob.type == obtype if _ob.parent == ob ][0]
+			return [ _ob for _ob in sce.objects if _ob.type == obtype if _ob.parent == parent ][0]
 		except:
 			return None
 	
-	def newCurveChild(obdata):
+	def newObChild(parent, obdata):
 		
 		ob_new = bpy.data.scenes.active.objects.new(obdata)
-		ob_new.Layers = ob.Layers
+		ob_new.Layers = parent.Layers
 		
 		# new object settings
-		ob.makeParent([ob_new])
+		parent.makeParent([ob_new])
 		ob_new.setMatrix(Matrix())
 		ob_new.sel = 0
 		return ob_new
@@ -1944,7 +2190,7 @@ def buildTree(ob, single=False):
 	time1 = Blender.sys.time()
 	
 	t = tree()
-	t.fromCurve(ob)
+	t.fromCurve(ob_curve)
 	if not t.branches_all:
 		return # Empty curve? - may as well not throw an error
 	
@@ -1980,6 +2226,7 @@ def buildTree(ob, single=False):
 		twig_random_orientation = PREFS['twig_random_orientation'].val,\
 		twig_random_angle = PREFS['twig_random_angle'].val,\
 		twig_recursive = PREFS['twig_recursive'].val,\
+		twig_recursive_limit = PREFS['twig_recursive_limit'].val,\
 		twig_ob_bounds = twig_ob_bounds,\
 		twig_ob_bounds_prune = PREFS['twig_ob_bounds_prune'].val,\
 		twig_ob_bounds_prune_taper = PREFS['twig_ob_bounds_prune_taper'].val,\
@@ -1990,7 +2237,9 @@ def buildTree(ob, single=False):
 	print '\toptimizing point spacing...',
 	
 	t.optimizeSpacing(\
-		density=PREFS['seg_density'].val,\
+		seg_density=PREFS['seg_density'].val,\
+		seg_density_angle=PREFS['seg_density_angle'].val,\
+		seg_density_radius=PREFS['seg_density_radius'].val,\
 		joint_compression = PREFS['seg_joint_compression'].val,\
 		joint_smooth = PREFS['seg_joint_smooth'].val\
 	)
@@ -1999,31 +2248,92 @@ def buildTree(ob, single=False):
 	print '%.4f sec' % (time5-time4)
 	print '\tbuilding mesh...',
 	
-	ob_mesh = getCurveChild('Mesh')
+	ob_mesh = getObChild(ob_curve, 'Mesh')
 	if not ob_mesh:
 		# New object
-		mesh = bpy.data.meshes.new('tree_' + ob.name)
-		ob_mesh = newCurveChild(mesh)
+		mesh = bpy.data.meshes.new('tree_' + ob_curve.name)
+		ob_mesh = newObChild(ob_curve, mesh)
 		# do subsurf later
-		
+	
 	else:
 		# Existing object
 		mesh = ob_mesh.getData(mesh=1)
 		ob_mesh.setMatrix(Matrix())
 	
-	
+	# Do we need a do_uv_blend_layer?
+	if PREFS['material_stencil'].val and PREFS['material_texture'].val:
+		do_uv_blend_layer = True
+	else:
+		do_uv_blend_layer = False
 	
 	mesh = t.toMesh(mesh,\
 		do_uv = PREFS['do_uv'].val,\
 		uv_image = image,\
 		do_uv_keep_vproportion = PREFS['do_uv_keep_vproportion'].val,\
+		do_uv_vnormalize = PREFS['do_uv_vnormalize'].val,\
 		do_uv_uscale = PREFS['do_uv_uscale'].val,\
 		uv_x_scale = PREFS['uv_x_scale'].val,\
 		uv_y_scale = PREFS['uv_y_scale'].val,\
-		do_cap_ends = PREFS['do_cap_ends'].val\
+		do_uv_blend_layer = do_uv_blend_layer,\
+		do_cap_ends = PREFS['do_cap_ends'].val
 	)
-	
+	"""
+	if PREFS['do_leaf'].val:
+		ob_leaf = getObChild(ob_mesh, 'Mesh')
+		if not ob_leaf: # New object
+			mesh_leaf = bpy.data.meshes.new('tree_' + ob_curve.name)
+			ob_leaf = newObChild(ob_mesh, mesh_leaf)
+		else:
+			mesh_leaf = ob_leaf.getData(mesh=1)
+			ob_leaf.setMatrix(Matrix())
+		
+		mesh_leaf = t.toLeafMesh(mesh_leaf,\
+			leaf_branch_limit = PREFS['leaf_branch_limit'].val,\
+			leaf_size = PREFS['leaf_size'].val,\
+		)
+	"""
 	mesh.calcNormals()
+	
+	if PREFS['do_material'].val:
+		
+		materials = mesh.materials
+		if PREFS['material_use_existing'].val and materials:
+			t.material = materials[0]
+		else:
+			t.material = bpy.data.materials.new(ob_curve.name)
+			mesh.materials = [t.material]
+		
+		if PREFS['material_texture'].val:
+			
+			# Set up the base image texture
+			t.texBase = bpy.data.textures.new('base_' + ob_curve.name)
+			t.material.setTexture(0, t.texBase, Blender.Texture.TexCo.UV, Blender.Texture.MapTo.COL)
+			t.texBase.type = Blender.Texture.Types.IMAGE
+			if image:
+				t.texBase.image = image
+			t.texBaseMTex = t.material.getTextures()[0]
+			t.texBaseMTex.uvlayer = 'base'
+			
+			if PREFS['material_stencil'].val:
+				# Set up the blend texture
+				t.texBlend = bpy.data.textures.new('blend_' + ob_curve.name)
+				t.material.setTexture(1, t.texBlend, Blender.Texture.TexCo.UV, 0) # map to None
+				t.texBlend.type = Blender.Texture.Types.BLEND
+				t.texBlend.flags |= Blender.Texture.Flags.FLIPBLEND
+				t.texBlendMTex = t.material.getTextures()[1]
+				t.texBlendMTex.stencil = True
+				t.texBlendMTex.uvlayer = 'blend'
+				
+				
+				# Now make the texture for the stencil to blend, can reuse texBase here, jus tdifferent settings for the mtex
+				t.material.setTexture(2, t.texBase, Blender.Texture.TexCo.UV, Blender.Texture.MapTo.COL)
+				t.texJoinMTex = t.material.getTextures()[2]
+				t.texJoinMTex.uvlayer = 'join'
+				
+				# Add a UV layer for blending
+				
+				
+	
 	
 	time6 = Blender.sys.time() # time print
 	print '%.4f sec' % (time6-time5)
@@ -2033,13 +2343,13 @@ def buildTree(ob, single=False):
 		
 		print '\tbuilding armature & animation...',
 		
-		ob_arm = getCurveChild('Armature')
+		ob_arm = getObChild(ob_curve, 'Armature')
 		if ob_arm:
 			armature = ob_arm.data
 			ob_arm.setMatrix(Matrix())
 		else:
 			armature = bpy.data.armatures.new()
-			ob_arm = newCurveChild(armature)
+			ob_arm = newObChild(ob_curve, armature)
 		
 		t.toArmature(ob_arm, armature)
 		
@@ -2074,7 +2384,7 @@ def buildTree(ob, single=False):
 	
 	# Add subsurf last it needed. so armature skinning is done first.
 	# Do subsurf?
-	if PREFS['seg_density'].val:
+	if PREFS['do_subsurf'].val:
 		if not hasModifier(Blender.Modifier.Types.SUBSURF):
 			mod = ob_mesh.modifiers.append(Blender.Modifier.Types.SUBSURF)
 			
@@ -2237,6 +2547,13 @@ def gui():
 	
 	y-=but_height
 	xtmp = x
+
+	# ---------- ---------- ---------- ----------
+	PREFS['seg_density_angle'] =	Draw.Number('Angle Spacing',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['seg_density_angle'].val,	0.0, 180.0,	'Segments above this angle will not collapse (lower value for more detail)'); xtmp += but_width*2;
+	PREFS['seg_density_radius'] =	Draw.Number('Radius Spacing',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['seg_density_radius'].val,	0.0, 1.0,	'Segments above this difference in radius will not collapse (lower value for more detail)'); xtmp += but_width*2;
+	
+	y-=but_height
+	xtmp = x
 	# ---------- ---------- ---------- ----------
 	
 	PREFS['seg_joint_compression'] =	Draw.Number('Joint Width',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['seg_joint_compression'].val,	0.1, 2.0,	'Edge loop spacing around branch join, lower value for less webed joins'); xtmp += but_width*2;
@@ -2262,13 +2579,13 @@ def gui():
 	PREFS['do_twigs'] =	Draw.Toggle('Generate Twigs',EVENT_UPDATE_AND_UI, xtmp, y, but_width*2, but_height, PREFS['do_twigs'].val,	'Generate child branches based existing branches'); xtmp += but_width*2;
 	if PREFS['do_twigs'].val:
 		
-		PREFS['twig_recursive'] =	Draw.Toggle('Recursive Twigs',EVENT_UPDATE_AND_UI, xtmp, y, but_width*2, but_height, PREFS['twig_recursive'].val,	'Recursively add twigs into eachother'); xtmp += but_width*2;
+		PREFS['twig_ratio'] =	Draw.Number('Twig Multiply',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['twig_ratio'].val, 0.01, 500.0,	'How many twigs to generate per branch'); xtmp += but_width*2;
 		y-=but_height
 		xtmp = x
 		
 		# ---------- ---------- ---------- ----------
-		
-		PREFS['twig_ratio'] =	Draw.Number('Twig Multiply',	EVENT_UPDATE, xtmp, y, but_width*4, but_height, PREFS['twig_ratio'].val, 0.01, 500.0,	'How many twigs to generate per branch'); xtmp += but_width*4;
+		PREFS['twig_recursive'] =	Draw.Toggle('Recursive Twigs',EVENT_UPDATE_AND_UI, xtmp, y, but_width*2, but_height, PREFS['twig_recursive'].val,	'Recursively add twigs into eachother'); xtmp += but_width*2;
+		PREFS['twig_recursive_limit'] =	Draw.Number('Generations',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['twig_recursive_limit'].val, 0.0, 16,	'Number of generations allowed, 0 is inf'); xtmp += but_width*2;
 		y-=but_height
 		xtmp = x
 		
@@ -2309,11 +2626,27 @@ def gui():
 	xtmp = x
 	# ---------- ---------- ---------- ----------
 	
+	
+	
+	"""
 	Blender.Draw.BeginAlign()
-	PREFS['do_uv'] =	Draw.Toggle('Generate UVs',EVENT_UPDATE_AND_UI, xtmp, y, but_width*2, but_height, PREFS['do_uv'].val,		'Calculate UVs coords'); xtmp += but_width*2;
-	if PREFS['do_uv'].val:
+	if PREFS['do_leaf'].val == 0:
+		but_width_tmp = but_width*2
+	else:
+		but_width_tmp = but_width*4
+	PREFS['do_leaf'] =	Draw.Toggle('Generate Leaves',EVENT_UPDATE_AND_UI, xtmp, y, but_width_tmp, but_height, PREFS['do_leaf'].val,		'Generate a separate leaf mesh'); xtmp += but_width_tmp;
+	
+	if PREFS['do_leaf'].val:
+		# ---------- ---------- ---------- ----------
+		y-=but_height
+		xtmp = x
+		
+		PREFS['leaf_branch_limit'] =	Draw.Number('Branch Limit',	EVENT_UPDATE, xtmp, y, but_width*4, but_height, PREFS['leaf_branch_limit'].val,	0.1, 2.0,	'Maximum thichness where a branch can bare leaves'); xtmp += but_width*4;
+		
+		'''
 		PREFS['do_uv_uscale'] =	Draw.Toggle('U-Scale',	EVENT_UPDATE, xtmp, y, but_width, but_height, PREFS['do_uv_uscale'].val,		'Scale the width according to the face size (will NOT tile)'); xtmp += but_width;
 		PREFS['do_uv_keep_vproportion'] =	Draw.Toggle('V-Aspect',	EVENT_UPDATE, xtmp, y, but_width, but_height, PREFS['do_uv_keep_vproportion'].val,		'Correct the UV aspect with the branch width'); xtmp += but_width;
+		PREFS['do_uv_vnormalize'] =	Draw.Toggle('V-Normaize',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['do_uv_vnormalize'].val,		'Scale the UVs to fit onto the image verticaly'); xtmp += but_width*2;
 		
 		
 		
@@ -2330,6 +2663,62 @@ def gui():
 		
 		PREFS['image_main'] =	Draw.String('IM: ',	EVENT_UPDATE, xtmp, y, but_width*3, but_height, PREFS['image_main'].val, 64,	'Image to apply to faces'); xtmp += but_width*3;
 		Draw.PushButton('Use Active',	EVENT_UPDATE, xtmp, y, but_width, but_height,	'Get the image from the active image window', do_active_image); xtmp += but_width;
+		'''
+	Blender.Draw.EndAlign()
+	
+	y-=but_height+MARGIN
+	xtmp = x
+	# ---------- ---------- ---------- ----------
+	"""
+	
+	
+	
+	
+	Blender.Draw.BeginAlign()
+	if PREFS['do_uv'].val == 0:	but_width_tmp = but_width*2
+	else:						but_width_tmp = but_width*4
+	PREFS['do_uv'] =	Draw.Toggle('Generate UVs',EVENT_UPDATE_AND_UI, xtmp, y, but_width_tmp, but_height, PREFS['do_uv'].val,		'Calculate UVs coords'); xtmp += but_width_tmp;
+	
+	if PREFS['do_uv'].val:
+		# ---------- ---------- ---------- ----------
+		y-=but_height
+		xtmp = x
+		
+		PREFS['do_uv_uscale'] =	Draw.Toggle('U-Scale',	EVENT_UPDATE, xtmp, y, but_width, but_height, PREFS['do_uv_uscale'].val,		'Scale the width according to the face size (will NOT tile)'); xtmp += but_width;
+		PREFS['do_uv_keep_vproportion'] =	Draw.Toggle('V-Aspect',	EVENT_UPDATE, xtmp, y, but_width, but_height, PREFS['do_uv_keep_vproportion'].val,		'Correct the UV aspect with the branch width'); xtmp += but_width;
+		PREFS['do_uv_vnormalize'] =	Draw.Toggle('V-Normaize',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['do_uv_vnormalize'].val,		'Scale the UVs to fit onto the image verticaly'); xtmp += but_width*2;
+		
+		y-=but_height
+		xtmp = x
+		# ---------- ---------- ---------- ----------
+		
+		PREFS['uv_x_scale'] =	Draw.Number('Scale U',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['uv_x_scale'].val,	0.01, 10.0,	'Edge loop spacing around branch join, lower value for less webed joins'); xtmp += but_width*2;
+		PREFS['uv_y_scale'] =	Draw.Number('Scale V',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['uv_y_scale'].val,	0.01, 10.0,	'Edge loop spacing around branch join, lower value for less webed joins'); xtmp += but_width*2;
+		
+		y-=but_height
+		xtmp = x
+		# ---------- ---------- ---------- ----------
+		
+		PREFS['image_main'] =	Draw.String('IM: ',	EVENT_UPDATE, xtmp, y, but_width*3, but_height, PREFS['image_main'].val, 64,	'Image to apply to faces'); xtmp += but_width*3;
+		Draw.PushButton('Use Active',	EVENT_UPDATE, xtmp, y, but_width, but_height,	'Get the image from the active image window', do_active_image); xtmp += but_width;
+	Blender.Draw.EndAlign()
+	
+	y-=but_height+MARGIN
+	xtmp = x
+	# ---------- ---------- ---------- ----------
+	
+	Blender.Draw.BeginAlign()
+	PREFS['do_material'] =	Draw.Toggle('Generate Material',EVENT_UPDATE_AND_UI, xtmp, y, but_width*2, but_height, PREFS['do_material'].val,		'Create material and textures (for seamless joints)'); xtmp += but_width*2;
+	
+	if PREFS['do_material'].val:
+		PREFS['material_use_existing'] =	Draw.Toggle('ReUse Existing',EVENT_UPDATE_AND_UI, xtmp, y, but_width*2, but_height, PREFS['material_use_existing'].val,		'Modify the textures of the existing material'); xtmp += but_width*2;
+		
+		# ---------- ---------- ---------- ----------
+		y-=but_height
+		xtmp = x
+		
+		PREFS['material_texture'] =	Draw.Toggle('Texture', EVENT_UPDATE_AND_UI, xtmp, y, but_width*2, but_height, PREFS['material_texture'].val,		'Create an image texture for this material to use'); xtmp += but_width*2;
+		PREFS['material_stencil'] =	Draw.Toggle('Blend Joints',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['material_stencil'].val,		'Use a second texture and UV layer to blend joints'); xtmp += but_width*2;
 	Blender.Draw.EndAlign()
 	
 	y-=but_height+MARGIN
