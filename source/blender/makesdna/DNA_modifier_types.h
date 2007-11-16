@@ -9,8 +9,6 @@
 
 /* WARNING ALERT! TYPEDEF VALUES ARE WRITTEN IN FILES! SO DO NOT CHANGE! */
 
-#include "DNA_cloth_types.h"
-
 typedef enum ModifierType {
 	eModifierType_None = 0,
 	eModifierType_Subsurf,
@@ -343,10 +341,10 @@ typedef struct SoftbodyModifierData {
 
 typedef struct ClothModifierData {
    ModifierData		modifier;
-    	
-   struct Cloth		*clothObject;	/* The internal data structure for cloth.		*/
-   SimulationSettings	sim_parms;	/* definition is in DNA_cloth_types.h			*/
-   CollisionSettings	coll_parms;	/* definition is in DNA_cloth_types.h			*/
+
+   struct Cloth *clothObject; /* The internal data structure for cloth. */
+   struct SimulationSettings *sim_parms; /* definition is in DNA_cloth_types.h */
+   struct CollisionSettings *coll_parms; /* definition is in DNA_cloth_types.h */
 } ClothModifierData;
 
 typedef struct CollisionModifierData {

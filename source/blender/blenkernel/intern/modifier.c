@@ -4865,6 +4865,12 @@ static void softbodyModifier_deformVerts(
 static void clothModifier_initData(ModifierData *md) 
 {
 	ClothModifierData *clmd = (ClothModifierData*) md;
+	
+	clmd->sim_parms = MEM_callocN(sizeof(SimulationSettings),
+		    "cloth sim parms");
+	clmd->coll_parms = MEM_callocN(sizeof(CollisionSettings),
+				      "cloth coll parms");
+	
 	cloth_init (clmd);
 }
 /*
@@ -4942,8 +4948,8 @@ CustomDataMask clothModifier_requiredDataMask(ModifierData *md)
 	CustomDataMask dataMask = 0;
 
 	/* ask for vertexgroups if we need them */
-	if(clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_GOAL)
-		if (clmd->sim_parms.vgroup_mass > 0)
+	if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL)
+		if (clmd->sim_parms->vgroup_mass > 0)
 	 		dataMask |= (1 << CD_MDEFORMVERT);
 
 	return dataMask;
@@ -4961,8 +4967,12 @@ static void clothModifier_freeData(ModifierData *md)
 	
 	if (clmd) 
 	{
-		clmd->sim_parms.flags &= ~CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT;
+		
+		clmd->sim_parms->flags &= ~CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT;
 		cloth_free_modifier (clmd);
+		
+		MEM_freeN(clmd->sim_parms);
+		MEM_freeN(clmd->coll_parms);
 	}
 }
 

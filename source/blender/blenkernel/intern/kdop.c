@@ -751,6 +751,58 @@ BVH *bvh_build_from_float3 (MFace *mfaces, unsigned int numfaces, float (*x)[3],
 	return bvh_build(bvh, mfaces, numfaces);
 }
 
+BVH *bvh_build_from_float4 (MFace *mfaces, unsigned int numfaces, float (*x)[4], unsigned int numverts, float epsilon)
+{
+	BVH *bvh=NULL;
+	CollisionTree *tree=NULL;
+	unsigned int i = 0;
+	
+	bvh = MEM_callocN(sizeof(BVH), "BVH");
+	if (bvh == NULL) 
+	{
+		printf("bvh: Out of memory.\n");
+		return NULL;
+	}
+	
+	bvh->flags = 0;
+	bvh->leaf_tree = NULL;
+	bvh->leaf_root = NULL;
+	bvh->tree = NULL;
+
+	bvh->epsilon = epsilon;
+	bvh->numfaces = numfaces;
+	bvh->mfaces = mfaces;
+	
+	// we have no faces, we save seperate points
+	if(!mfaces)
+	{
+		bvh->numfaces = numverts;
+	}
+
+	bvh->numverts = numverts;
+	bvh->xnew = (MVert *)MEM_callocN(sizeof(MVert)*numverts, "BVH MVert");
+	
+	for(i = 0; i < numverts; i++)
+	{
+		VECCOPY(bvh->xnew[i].co, x[i]);
+	}
+	
+	bvh->x = MEM_dupallocN(bvh->xnew);	
+	
+	tree = (CollisionTree *)MEM_callocN(sizeof(CollisionTree), "CollisionTree");
+	
+	if (tree == NULL) 
+	{
+		printf("bvh_build: Out of memory for nodes.\n");
+		bvh_free(bvh);
+		return NULL;
+	}
+	
+	BLI_linklist_append(&bvh->tree, tree);
+	
+	return bvh_build(bvh, mfaces, numfaces);
+}
+
 // bvh_overlap - is it possbile for 2 bv's to collide ?
 int bvh_overlap(float *bv1, float *bv2)
 {
@@ -789,23 +841,80 @@ int bvh_traverse(CollisionTree *tree1, CollisionTree *tree2, LinkNode **collisio
 			// Check if this node in the second tree a leaf
 			if (tree2->isleaf) 
 			{
+				//////////////////////////////////
+				// TODO: check for 3rd point if zero (triangle)!!!
+				//////////////////////////////////
+				
 				CollisionPair *collpair = NULL;
 				
 				if(tree1 != tree2) // do not collide same points
 				{
+					////////////////////////////////////////
+					// FIRST FACE
+					////////////////////////////////////////
+					
 					// save potential colliding triangles
 					collpair = (CollisionPair *)MEM_callocN(sizeof(CollisionPair), "CollisionPair");
 					
 					VECCOPY(collpair->point_indexA, tree1->point_index);
-					collpair->point_indexA[3] = tree1->point_index[3];
-					
 					VECCOPY(collpair->point_indexB, tree2->point_index);
-					collpair->point_indexB[3] = tree2->point_index[3];
 					
 					// we use prepend because lots of insertions at end
 					// of list are horrible slow!
 					BLI_linklist_prepend(&collision_list[0], collpair);
 					
+					////////////////////////////////////////
+					// SECOND FACE
+					////////////////////////////////////////
+					if(tree1->point_index[3]) // check for quad face
+					{
+						// save potential colliding triangles
+						collpair = (CollisionPair *)MEM_callocN(sizeof(CollisionPair), "CollisionPair");
+						
+						VECCOPY(collpair->point_indexA, tree1->point_index);
+						collpair->point_indexA[2] = tree1->point_index[3];
+						
+						VECCOPY(collpair->point_indexB, tree2->point_index);
+						
+						// we use prepend because lots of insertions at end
+						// of list are horrible slow!
+						BLI_linklist_prepend(&collision_list[0], collpair);
+					}
+					////////////////////////////////////////
+					// THIRD FACE
+					////////////////////////////////////////
+					if(tree2->point_index[3]) // check for quad face
+					{
+						// save potential colliding triangles
+						collpair = (CollisionPair *)MEM_callocN(sizeof(CollisionPair), "CollisionPair");
+						
+						VECCOPY(collpair->point_indexA, tree1->point_index);
+						
+						VECCOPY(collpair->point_indexB, tree2->point_index);
+						collpair->point_indexB[2] = tree2->point_index[3];
+						
+						// we use prepend because lots of insertions at end
+						// of list are horrible slow!
+						BLI_linklist_prepend(&collision_list[0], collpair);
+					}
+					////////////////////////////////////////
+					// FOURTH FACE
+					////////////////////////////////////////
+					if(tree1->point_index[3] && tree1->point_index[3]) // check for quad face
+					{
+						// save potential colliding triangles
+						collpair = (CollisionPair *)MEM_callocN(sizeof(CollisionPair), "CollisionPair");
+						
+						VECCOPY(collpair->point_indexA, tree1->point_index);
+						collpair->point_indexA[2] = tree1->point_index[3];
+						
+						VECCOPY(collpair->point_indexB, tree2->point_index);
+						collpair->point_indexB[2] = tree2->point_index[3];
+						
+						// we use prepend because lots of insertions at end
+						// of list are horrible slow!
+						BLI_linklist_prepend(&collision_list[0], collpair);
+					}
 					return 1;
 				}
 				else
@@ -965,3 +1074,29 @@ void bvh_update_from_float3(BVH * bvh, float (*x)[3], unsigned int numverts, flo
 	
 	bvh_update(bvh, moving);
 }
+
+void bvh_update_from_float4(BVH * bvh, float (*x)[4], unsigned int numverts, float (*xnew)[4], int moving)
+{
+	unsigned int i = 0;
+	
+	if(!bvh)
+		return;
+	
+	if(numverts!=bvh->numverts)
+		return;
+	
+	if(x)
+	{
+		for(i = 0; i < numverts; i++)
+			VECCOPY(bvh->x[i].co, x[i]);
+	}
+	
+	if(xnew)
+	{
+		for(i = 0; i < numverts; i++)
+			VECCOPY(bvh->xnew[i].co, xnew[i]);
+	}
+	
+	bvh_update(bvh, moving);
+}
+

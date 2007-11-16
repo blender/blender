@@ -2885,13 +2885,10 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 		   ClothModifierData	*clmd = (ClothModifierData*) md;
 
 		   clmd->clothObject = NULL;
-		   clmd->sim_parms.cache = NULL;
-		
-		   if (clmd->sim_parms.cache) {
-			   // TODO 
-			  // clmd->cache = newdataadr (fd, clmd->cache);
-			  printf ("direct_link_modifiers: read cloth baked_data.\n");
-		   }
+		   
+		   clmd->sim_parms= newdataadr(fd, clmd->sim_parms);
+		   clmd->coll_parms= newdataadr(fd, clmd->coll_parms);
+		   
 		} 
 		else if (md->type==eModifierType_Collision) {
 			CollisionModifierData *collmd = (CollisionModifierData*) md;

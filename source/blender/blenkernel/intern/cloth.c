@@ -141,41 +141,39 @@ static void cloth_apply_vgroup(ClothModifierData *clmd, DerivedMesh *dm, short v
 void cloth_init (ClothModifierData *clmd)
 {
 	/* Initialize our new data structure to reasonable values. */
-	clmd->sim_parms.gravity [0] = 0.0;
-	clmd->sim_parms.gravity [1] = 0.0;
-	clmd->sim_parms.gravity [2] = -9.81;
-	clmd->sim_parms.structural = 100.0;
-	clmd->sim_parms.shear = 100.0;
-	clmd->sim_parms.bending = 1.0;
-	clmd->sim_parms.Cdis = 5.0;
-	clmd->sim_parms.Cvi = 1.0;
-	clmd->sim_parms.mass = 1.0f;
-	clmd->sim_parms.stepsPerFrame = 5;
-	clmd->sim_parms.sim_time = 1.0;
-	clmd->sim_parms.flags = CLOTH_SIMSETTINGS_FLAG_RESET;
-	clmd->sim_parms.solver_type = 0; 
-	clmd->sim_parms.preroll = 0;
-	clmd->sim_parms.maxspringlen = 10;
-	clmd->coll_parms.self_friction = 5.0;
-	clmd->coll_parms.friction = 10.0;
-	clmd->coll_parms.loop_count = 1;
-	clmd->coll_parms.epsilon = 0.01;
-	clmd->coll_parms.selfepsilon = 0.1;
+	clmd->sim_parms->gravity [0] = 0.0;
+	clmd->sim_parms->gravity [1] = 0.0;
+	clmd->sim_parms->gravity [2] = -9.81;
+	clmd->sim_parms->structural = 100.0;
+	clmd->sim_parms->shear = 100.0;
+	clmd->sim_parms->bending = 1.0;
+	clmd->sim_parms->Cdis = 5.0;
+	clmd->sim_parms->Cvi = 1.0;
+	clmd->sim_parms->mass = 1.0f;
+	clmd->sim_parms->stepsPerFrame = 5;
+	clmd->sim_parms->sim_time = 1.0;
+	clmd->sim_parms->flags = CLOTH_SIMSETTINGS_FLAG_RESET;
+	clmd->sim_parms->solver_type = 0; 
+	clmd->sim_parms->preroll = 0;
+	clmd->sim_parms->maxspringlen = 10;
+	clmd->coll_parms->self_friction = 5.0;
+	clmd->coll_parms->friction = 10.0;
+	clmd->coll_parms->loop_count = 1;
+	clmd->coll_parms->epsilon = 0.01;
+	clmd->coll_parms->selfepsilon = 0.1;
 	
 	/* These defaults are copied from softbody.c's
 	* softbody_calc_forces() function.
 	*/
-	clmd->sim_parms.eff_force_scale = 1000.0;
-	clmd->sim_parms.eff_wind_scale = 250.0;
+	clmd->sim_parms->eff_force_scale = 1000.0;
+	clmd->sim_parms->eff_wind_scale = 250.0;
 
 	// also from softbodies
-	clmd->sim_parms.maxgoal = 1.0;
-	clmd->sim_parms.mingoal = 0.0;
-	clmd->sim_parms.defgoal = 0.0;
-	clmd->sim_parms.goalspring = 100.0;
-	clmd->sim_parms.goalfrict = 0.0;
-
-	clmd->sim_parms.cache = NULL;
+	clmd->sim_parms->maxgoal = 1.0;
+	clmd->sim_parms->mingoal = 0.0;
+	clmd->sim_parms->defgoal = 0.0;
+	clmd->sim_parms->goalspring = 100.0;
+	clmd->sim_parms->goalfrict = 0.0;
 }
 
 // unused in the moment, cloth needs quads from mesh
@@ -410,7 +408,7 @@ void cloth_clear_cache(Object *ob, ClothModifierData *clmd, float framenr)
 {
 	int stack_index = -1;
 	
-	if(!(clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT))
+	if(!(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT))
 	{
 		stack_index = modifiers_indexInObject(ob, (ModifierData *)clmd);
 		
@@ -434,9 +432,9 @@ static void cloth_write_cache(Object *ob, ClothModifierData *clmd, float framenr
 	
 	for(a = 0; a < cloth->numverts; a++)
 	{
-		fwrite(&cloth->x[a], sizeof(float),3,fp);
-		fwrite(&cloth->xconst[a], sizeof(float),3,fp);
-		fwrite(&cloth->v[a], sizeof(float),3,fp);
+		fwrite(&cloth->x[a], sizeof(float),4,fp);
+		fwrite(&cloth->xconst[a], sizeof(float),4,fp);
+		fwrite(&cloth->v[a], sizeof(float),4,fp);
 	}
 	
 	fclose(fp);
@@ -459,17 +457,17 @@ static int cloth_read_cache(Object *ob, ClothModifierData *clmd, float framenr)
 	else {
 		for(a = 0; a < cloth->numverts; a++)
 		{
-			if(fread(&cloth->x[a], sizeof(float), 3, fp) != 3) 
+			if(fread(&cloth->x[a], sizeof(float), 4, fp) != 4) 
 			{
 				ret = 0;
 				break;
 			}
-			if(fread(&cloth->xconst[a], sizeof(float), 3, fp) != 3) 
+			if(fread(&cloth->xconst[a], sizeof(float), 4, fp) != 4) 
 			{
 				ret = 0;
 				break;
 			}
-			if(fread(&cloth->v[a], sizeof(float), 3, fp) != 3) 
+			if(fread(&cloth->v[a], sizeof(float), 4, fp) != 4) 
 			{
 				ret = 0;
 				break;
@@ -501,9 +499,9 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 	unsigned int framenr = (float)G.scene->r.cfra;
 	float current_time = bsystem_time(ob, (float)G.scene->r.cfra, 0.0);
 	ListBase *effectors = NULL;
-	float deltaTime = current_time - clmd->sim_parms.sim_time;	
+	float deltaTime = current_time - clmd->sim_parms->sim_time;	
 
-	clmd->sim_parms.dt = 1.0f / (clmd->sim_parms.stepsPerFrame * G.scene->r.frs_sec);
+	clmd->sim_parms->dt = 1.0f / (clmd->sim_parms->stepsPerFrame * G.scene->r.frs_sec);
 
 	result = CDDM_copy(dm);
 	
@@ -519,9 +517,9 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 	medge = CDDM_get_edges(result);
 	mface = CDDM_get_faces(result);
 
-	clmd->sim_parms.sim_time = current_time;
+	clmd->sim_parms->sim_time = current_time;
 	
-	if ( current_time < clmd->sim_parms.firstframe )
+	if ( current_time < clmd->sim_parms->firstframe )
 		return result;
 	
 	// only be active during a specific period:
@@ -529,9 +527,9 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 	/*
 	if ( clmd->clothObject )
 	{
-		if ( clmd->sim_parms.cache )
+		if ( clmd->sim_parms->cache )
 		{
-			if ( current_time < clmd->sim_parms.firstframe )
+			if ( current_time < clmd->sim_parms->firstframe )
 			{
 				int frametime = cloth_cache_first_frame ( clmd );
 				if ( cloth_cache_search_frame ( clmd, frametime ) )
@@ -541,7 +539,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 				}
 				return result;
 			}
-			else if ( current_time > clmd->sim_parms.lastframe )
+			else if ( current_time > clmd->sim_parms->lastframe )
 			{
 				int frametime = cloth_cache_last_frame ( clmd );
 				if ( cloth_cache_search_frame ( clmd, frametime ) )
@@ -558,7 +556,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 					cloth_cache_get_frame ( clmd, framenr );
 					cloth_to_object ( ob, result, clmd );
 				}
-				clmd->sim_parms.sim_time = current_time;
+				clmd->sim_parms->sim_time = current_time;
 				return result;
 			}
 		}
@@ -578,7 +576,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 			cloth = clmd->clothObject;
 		}
 
-		clmd->clothObject->old_solver_type = clmd->sim_parms.solver_type;
+		clmd->clothObject->old_solver_type = clmd->sim_parms->solver_type;
 
 		// Insure we have a clmd->clothObject, in case allocation failed.
 		if (clmd->clothObject != NULL) 
@@ -600,8 +598,8 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 				tstart();
 				
 				/* Call the solver. */
-				if (solvers [clmd->sim_parms.solver_type].solver)
-					solvers [clmd->sim_parms.solver_type].solver (ob, framenr, clmd, effectors);
+				if (solvers [clmd->sim_parms->solver_type].solver)
+					solvers [clmd->sim_parms->solver_type].solver (ob, framenr, clmd, effectors);
 				
 				tend();
 				
@@ -614,7 +612,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 			cloth_to_object (ob, result, clmd);
 			
 			// bvh_free(clmd->clothObject->tree);
-			// clmd->clothObject->tree = bvh_build(clmd, clmd->coll_parms.epsilon);
+			// clmd->clothObject->tree = bvh_build(clmd, clmd->coll_parms->epsilon);
 		} 
 
 	}
@@ -793,7 +791,7 @@ static void cloth_apply_vgroup(ClothModifierData *clmd, DerivedMesh *dm, short v
 	for ( i = 0; i < numverts; i++, verts++ )
 	{
 		// LATER ON, support also mass painting here
-		if ( clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_GOAL )
+		if ( clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL )
 		{
 			dvert = dm->getVertData ( dm, i, CD_MDEFORMVERT );
 			if ( dvert )
@@ -804,7 +802,7 @@ static void cloth_apply_vgroup(ClothModifierData *clmd, DerivedMesh *dm, short v
 					{
 						verts->goal = dvert->dw [j].weight;
 
-						goalfac= ABS ( clmd->sim_parms.maxgoal - clmd->sim_parms.mingoal );
+						goalfac= ABS ( clmd->sim_parms->maxgoal - clmd->sim_parms->mingoal );
 						verts->goal  = ( float ) pow ( verts->goal , 4.0f );
 
 						if ( dvert->dw [j].weight >=SOFTGOALSNAP )
@@ -875,9 +873,9 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 				VECCOPY (clmd->clothObject->x[i], mvert[i].co);
 				Mat4MulVecfl(ob->obmat, clmd->clothObject->x[i]);
 
-				clmd->clothObject->verts [i].mass = clmd->sim_parms.mass;
-				if ( clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_GOAL )
-					clmd->clothObject->verts [i].goal= clmd->sim_parms.defgoal;
+				clmd->clothObject->verts [i].mass = clmd->sim_parms->mass;
+				if ( clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL )
+					clmd->clothObject->verts [i].goal= clmd->sim_parms->defgoal;
 				else
 					clmd->clothObject->verts [i].goal= 0.0;
 				clmd->clothObject->verts [i].flags = 0;
@@ -891,16 +889,16 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 			}
 
 			/* apply / set vertex groups */
-			if (clmd->sim_parms.vgroup_mass > 0)
-				cloth_apply_vgroup (clmd, olddm, clmd->sim_parms.vgroup_mass);
+			if (clmd->sim_parms->vgroup_mass > 0)
+				cloth_apply_vgroup (clmd, olddm, clmd->sim_parms->vgroup_mass);
 
 			/* init our solver */
-			if (solvers [clmd->sim_parms.solver_type].init)
-				solvers [clmd->sim_parms.solver_type].init (ob, clmd);
+			if (solvers [clmd->sim_parms->solver_type].init)
+				solvers [clmd->sim_parms->solver_type].init (ob, clmd);
 
-			clmd->clothObject->tree = bvh_build_from_float3(CDDM_get_faces(dm), dm->getNumFaces(dm), clmd->clothObject->x, numverts, clmd->coll_parms.epsilon);
+			clmd->clothObject->tree = bvh_build_from_float4(CDDM_get_faces(dm), dm->getNumFaces(dm), clmd->clothObject->x, numverts, clmd->coll_parms->epsilon);
 			
-			clmd->clothObject->selftree = bvh_build_from_float3(NULL, 0, clmd->clothObject->x, numverts, clmd->coll_parms.selfepsilon);
+			clmd->clothObject->selftree = bvh_build_from_float4(NULL, 0, clmd->clothObject->x, numverts, clmd->coll_parms->selfepsilon);
 			
 			// save initial state
 			cloth_write_cache(ob, clmd, framenr-1);
@@ -930,7 +928,7 @@ static void cloth_from_mesh (Object *ob, ClothModifierData *clmd, DerivedMesh *d
 		return;
 	}
 	
-	clmd->clothObject->x = MEM_callocN ( sizeof ( float ) * clmd->clothObject->numverts * 3, "Cloth MVert_x" );
+	clmd->clothObject->x = MEM_callocN ( sizeof ( float ) * clmd->clothObject->numverts * 4, "Cloth MVert_x" );
 	if ( clmd->clothObject->x == NULL )
 	{
 		cloth_free_modifier ( clmd );
@@ -938,7 +936,7 @@ static void cloth_from_mesh (Object *ob, ClothModifierData *clmd, DerivedMesh *d
 		return;
 	}
 	
-	clmd->clothObject->xold = MEM_callocN ( sizeof ( float ) * clmd->clothObject->numverts * 3, "Cloth MVert_xold" );
+	clmd->clothObject->xold = MEM_callocN ( sizeof ( float ) * clmd->clothObject->numverts * 4, "Cloth MVert_xold" );
 	if ( clmd->clothObject->xold == NULL )
 	{
 		cloth_free_modifier ( clmd );
@@ -946,7 +944,7 @@ static void cloth_from_mesh (Object *ob, ClothModifierData *clmd, DerivedMesh *d
 		return;
 	}
 	
-	clmd->clothObject->v = MEM_callocN ( sizeof ( float ) * clmd->clothObject->numverts * 3, "Cloth MVert_v" );
+	clmd->clothObject->v = MEM_callocN ( sizeof ( float ) * clmd->clothObject->numverts * 4, "Cloth MVert_v" );
 	if ( clmd->clothObject->v == NULL )
 	{
 		cloth_free_modifier ( clmd );
@@ -954,7 +952,7 @@ static void cloth_from_mesh (Object *ob, ClothModifierData *clmd, DerivedMesh *d
 		return;
 	}
 	
-	clmd->clothObject->current_x = MEM_callocN ( sizeof ( float ) * clmd->clothObject->numverts * 3, "Cloth MVert_current_x" );
+	clmd->clothObject->current_x = MEM_callocN ( sizeof ( float ) * clmd->clothObject->numverts * 4, "Cloth MVert_current_x" );
 	if ( clmd->clothObject->current_x == NULL )
 	{
 		cloth_free_modifier ( clmd );
@@ -962,7 +960,7 @@ static void cloth_from_mesh (Object *ob, ClothModifierData *clmd, DerivedMesh *d
 		return;
 	}
 	
-	clmd->clothObject->current_xold = MEM_callocN ( sizeof ( float ) * clmd->clothObject->numverts * 3, "Cloth MVert_current_xold" );
+	clmd->clothObject->current_xold = MEM_callocN ( sizeof ( float ) * clmd->clothObject->numverts * 4, "Cloth MVert_current_xold" );
 	if ( clmd->clothObject->current_xold == NULL )
 	{
 		cloth_free_modifier ( clmd );
@@ -970,7 +968,7 @@ static void cloth_from_mesh (Object *ob, ClothModifierData *clmd, DerivedMesh *d
 		return;
 	}
 	
-	clmd->clothObject->current_v = MEM_callocN ( sizeof ( float ) * clmd->clothObject->numverts * 3, "Cloth MVert_current_v" );
+	clmd->clothObject->current_v = MEM_callocN ( sizeof ( float ) * clmd->clothObject->numverts * 4, "Cloth MVert_current_v" );
 	if ( clmd->clothObject->current_v == NULL )
 	{
 		cloth_free_modifier ( clmd );
@@ -978,7 +976,7 @@ static void cloth_from_mesh (Object *ob, ClothModifierData *clmd, DerivedMesh *d
 		return;
 	}
 	
-	clmd->clothObject->xconst = MEM_callocN ( sizeof ( float ) * clmd->clothObject->numverts * 3, "Cloth MVert_xconst" );
+	clmd->clothObject->xconst = MEM_callocN ( sizeof ( float ) * clmd->clothObject->numverts * 4, "Cloth MVert_xconst" );
 	if ( clmd->clothObject->xconst == NULL )
 	{
 		cloth_free_modifier ( clmd );

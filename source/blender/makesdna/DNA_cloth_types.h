@@ -32,55 +32,7 @@
 #ifndef DNA_CLOTH_TYPES_H
 #define DNA_CLOTH_TYPES_H
 
-#include "DNA_listBase.h"
-
-
-/**
-* Pin and unpin frames are the frames on which the vertices stop moving.
-* They will assume the position they had prior to pinFrame until unpinFrame
-* is reached.
-*/
-typedef struct ClothVertex
-{
-	int	flags;		/* General flags per vertex.		*/
-	float 	mass;		/* mass / weight of the vertex		*/
-	float 	goal;		/* goal, from SB			*/
-	float	impulse[3];	/* used in collision.c */
-	unsigned int impulse_count; /* same as above */
-} ClothVertex;
-
-
-/**
-* The definition of a spring.
-*/
-typedef struct ClothSpring
-{
-	int	ij;		/* Pij from the paper, one end of the spring.	*/
-	int	kl;		/* Pkl from the paper, one end of the spring.	*/
-	float	restlen;	/* The original length of the spring.	*/
-	int	matrix_index; 	/* needed for implicit solver (fast lookup) */
-	int	type;		/* types defined in BKE_cloth.h ("springType") */
-	int	flags; 		/* defined in BKE_cloth.h, e.g. deactivated due to tearing */
-	float dfdx[3][3];
-	float dfdv[3][3];
-	float f[3];
-} ClothSpring;
-
-
-
-/**
-* This struct contains all the global data required to run a simulation.
-* At the time of this writing, this structure contains data appropriate
-* to run a simulation as described in Deformation Constraints in a
-* Mass-Spring Model to Describe Rigid Cloth Behavior by Xavier Provot.
-*
-* I've tried to keep similar, if not exact names for the variables as
-* are presented in the paper.  Where I've changed the concept slightly,
-* as in stepsPerFrame comapred to the time step in the paper, I've used
-* variables with different names to minimize confusion.
-**/
-typedef struct SimulationSettings
-{
+typedef struct SimulationSettings {
 	short	vgroup_mass;	/* optional vertexgroup name for assigning weight.	*/
 	short	pad;
 	float 	mingoal; 	/* see SB */
@@ -103,7 +55,6 @@ typedef struct SimulationSettings
 	float	eff_force_scale;/* Scaling of effector forces (see softbody_calc_forces).*/
 	float	eff_wind_scale;	/* Scaling of effector wind (see softbody_calc_forces).	*/
 	float 	sim_time_old;
-	struct	LinkNode *cache;
 	float	defgoal;
 	float	goalfrict;
 	float	goalspring;
@@ -112,9 +63,7 @@ typedef struct SimulationSettings
 	int	firstframe;	/* frame on which simulation starts */
 } SimulationSettings;
 
-
-typedef struct CollisionSettings
-{
+typedef struct CollisionSettings {
 	float	epsilon;		/* The radius of a particle in the cloth.		*/
 	float	self_friction;		/* Fiction/damping with self contact.		 	*/
 	float	friction;		/* Friction/damping applied on contact with other object.*/
@@ -124,41 +73,5 @@ typedef struct CollisionSettings
 	float	selfepsilon;
 } CollisionSettings;
 
-
-/**
-* This structure describes a cloth object against which the
-* simulation can run.
-*
-* The m and n members of this structure represent the assumed
-* rectangular ordered grid for which the original paper is written.
-* At some point they need to disappear and we need to determine out
-* own connectivity of the mesh based on the actual edges in the mesh.
-*
-**/
-typedef struct Cloth
-{
-	struct ClothVertex	*verts;			/* The vertices that represent this cloth. */
-	struct LinkNode		*springs;		/* The springs connecting the mesh. */
-	unsigned int		numverts;		/* The number of verts == m * n. */
-	unsigned int		numsprings;		/* The count of springs. */
-	unsigned int		numfaces;
-	unsigned char 		old_solver_type;
-	unsigned char 		pad2;
-	short 			pad3;
-	struct BVH		*tree;		/* collision tree for this cloth object */
-	struct BVH		*selftree;		/* self collision tree for this cloth object */
-	struct MFace 		*mfaces;
-	struct Implicit_Data	*implicit; 	/* our implicit solver connects to this pointer */
-	float	 		(*x)[3]; /* The current position of all vertices.*/
-	float 			(*xold)[3]; /* The previous position of all vertices.*/
-	float 			(*current_x)[3]; /* The TEMPORARY current position of all vertices.*/
-	float			(*current_xold)[3]; /* The TEMPORARY previous position of all vertices.*/
-	float 			(*v)[3]; /* the current velocity of all vertices */
-	float			(*current_v)[3];
-	float			(*xconst)[3];
-	struct EdgeHash 	*edgehash; /* used for fast checking adjacent points */
-	unsigned int 		numothersprings;
-	unsigned int		numspringssave;
-} Cloth;
 
 #endif

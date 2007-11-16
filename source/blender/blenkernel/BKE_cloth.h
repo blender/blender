@@ -57,6 +57,49 @@ struct DerivedMesh;
 #define CLOTH_MAX_THREAD 2
 
 
+typedef struct ClothVertex {
+	int	flags;		/* General flags per vertex.		*/
+	float 	mass;		/* mass / weight of the vertex		*/
+	float 	goal;		/* goal, from SB			*/
+	float	impulse[3];	/* used in collision.c */
+	unsigned int impulse_count; /* same as above */
+} ClothVertex;
+
+typedef struct ClothSpring {
+	int	ij;		/* Pij from the paper, one end of the spring.	*/
+	int	kl;		/* Pkl from the paper, one end of the spring.	*/
+	float	restlen;	/* The original length of the spring.	*/
+	int	matrix_index; 	/* needed for implicit solver (fast lookup) */
+	int	type;		/* types defined in BKE_cloth.h ("springType") */
+	int	flags; 		/* defined in BKE_cloth.h, e.g. deactivated due to tearing */
+	float dfdx[3][4];
+	float dfdv[3][4];
+	float f[3];
+} ClothSpring;
+
+typedef struct Cloth {
+	struct ClothVertex	*verts;			/* The vertices that represent this cloth. */
+	struct LinkNode		*springs;		/* The springs connecting the mesh. */
+	struct BVH		*tree;		/* collision tree for this cloth object */
+	struct BVH		*selftree;		/* self collision tree for this cloth object */
+	struct MFace 		*mfaces;
+	struct Implicit_Data	*implicit; 	/* our implicit solver connects to this pointer */
+	struct EdgeHash 	*edgehash; /* used for fast checking adjacent points */
+	unsigned int		numverts;		/* The number of verts == m * n. */
+	unsigned int		numsprings;		/* The count of springs. */
+	unsigned int		numfaces;
+	unsigned int 		numothersprings;
+	unsigned int		numspringssave;
+	unsigned int 		old_solver_type;
+	float	 		(*x)[4]; /* The current position of all vertices.*/
+	float 			(*xold)[4]; /* The previous position of all vertices.*/
+	float 			(*current_x)[4]; /* The TEMPORARY current position of all vertices.*/
+	float			(*current_xold)[4]; /* The TEMPORARY previous position of all vertices.*/
+	float 			(*v)[4]; /* the current velocity of all vertices */
+	float			(*current_v)[4];
+	float			(*xconst)[4];
+} Cloth;
+
 /* goal defines */
 #define SOFTGOALSNAP  0.999f
 
@@ -138,7 +181,6 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float prevstep,
 ////////////////////////////////////////////////
 void cloth_free_modifier ( ClothModifierData *clmd );
 void cloth_init ( ClothModifierData *clmd );
-void cloth_update_normals ( ClothVertex *verts, int nVerts, MFace *face, int totface );
 ////////////////////////////////////////////////
 
 
@@ -178,19 +220,6 @@ int verlet_init ( Object *ob, ClothModifierData *clmd );
 int verlet_free ( ClothModifierData *clmd );
 int verlet_solver ( Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors );
 
-/* used for caching in implicit.c */
-typedef struct Frame
-{
-	ClothVertex *verts;
-	ClothSpring *springs;
-	unsigned int numverts, numsprings;
-	float time; /* we need float since we want to support sub-frames */
-	float (*x)[3];
-	float (*xold)[3];
-	float (*v)[3];
-	float (*current_xold)[3];
-}
-Frame;
 
 /* used for collisions in collision.c */
 /*

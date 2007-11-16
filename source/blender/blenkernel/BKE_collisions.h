@@ -73,6 +73,7 @@ typedef struct BVH
 	CollisionTree 	*leaf_root;	/* Head of the leaf linked list.	*/
 	float 		epsilon; /* epslion is used for inflation of the k-dop	   */
 	int 		flags; /* bvhFlags */
+	
 }
 BVH;
 
@@ -80,6 +81,8 @@ BVH;
 typedef struct CollisionPair
 {
 	int point_indexA[4], point_indexB[4];
+	float vector[3];
+	float pa[3], pb[3];
 }
 CollisionPair;
 
@@ -93,6 +96,7 @@ CollisionPair;
 // builds bounding volume hierarchy
 BVH *bvh_build_from_mvert (MFace *mfaces, unsigned int numfaces, MVert *x, unsigned int numverts, float epsilon);
 BVH *bvh_build_from_float3 (MFace *mfaces, unsigned int numfaces, float (*x)[3], unsigned int numverts, float epsilon);
+BVH *bvh_build_from_float4 (MFace *mfaces, unsigned int numfaces, float (*x)[4], unsigned int numverts, float epsilon);
 
 // frees the same
 void bvh_free ( BVH *bvh );
@@ -103,6 +107,7 @@ int bvh_traverse(CollisionTree *tree1, CollisionTree *tree2, LinkNode **collisio
 // update bounding volumes, needs updated positions in bvh->x
 void bvh_update_from_mvert(BVH * bvh, MVert *x, unsigned int numverts, MVert *xnew, int moving);
 void bvh_update_from_float3(BVH * bvh, float (*x)[3], unsigned int numverts, float (*xnew)[3], int moving);
+void bvh_update_from_float4(BVH * bvh, float (*x)[4], unsigned int numverts, float (*xnew)[4], int moving);
 
 LinkNode *BLI_linklist_append_fast (LinkNode **listp, void *ptr);
 
