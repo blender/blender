@@ -220,11 +220,11 @@ class tree:
 	
 	def buildConnections(	self,\
 							sloppy = 1.0,\
-							base_trim = 1.0,\
+							connect_base_trim = 1.0,\
 							do_twigs = False,\
 							twig_ratio = 2.0,\
 							twig_scale = 0.8,\
-							twig_lengthen = 1.0,\
+							twig_scale_width = 1.0,\
 							twig_random_orientation = 180,\
 							twig_random_angle = 33,\
 							twig_recursive=True,\
@@ -232,6 +232,12 @@ class tree:
 							twig_ob_bounds=None,\
 							twig_ob_bounds_prune=True,\
 							twig_ob_bounds_prune_taper=True,\
+							twig_placement_maxradius=10.0,\
+							twig_placement_maxtwig=0,\
+							twig_follow_parent=0.0,\
+							twig_follow_x=0.0,\
+							twig_follow_y=0.0,\
+							twig_follow_z=0.0,\
 						):
 		'''
 		build tree data - fromCurve must run first
@@ -262,7 +268,7 @@ class tree:
 							brch_i.parent_pt = pt_best_j
 							pt_best_j.childCount += 1 # dont remove me
 							
-							brch_i.baseTrim(base_trim)
+							brch_i.baseTrim(connect_base_trim)
 							
 							'''
 							if pt_best_j.childCount>4:
@@ -323,7 +329,10 @@ class tree:
 				branches_twig_sort.sort() # this will sort the branches with best braches for adding twigs to at the start of the list
 				
 				for tmp_sortval, twig_pt_index, brch_parent in branches_twig_sort: # tmp_sortval is not used.
-					if twig_pt_index != -1 and (twig_recursive_limit==0 or brch_parent.generation <= twig_recursive_limit):
+					if		twig_pt_index != -1 and \
+							(twig_recursive_limit == 0 or brch_parent.generation < twig_recursive_limit) and \
+							(twig_placement_maxtwig == 0 or brch_parent.twig_count < twig_placement_maxtwig) and \
+							brch_parent.bpoints[twig_pt_index].radius < twig_placement_maxradius:
 						
 						if brch_twig_index >= len(self.branches_twigs):
 							break
@@ -343,8 +352,10 @@ class tree:
 						
 						# Random orientation
 						# THIS IS NOT RANDOM - Dont be real random so we can always get re-produceale results.
-						rnd1 = (((irational_num * scale * 10000000) % 360) - 180) * twig_random_orientation
-						rnd2 = (((irational_num * scale * 66666666) % 360) - 180) * twig_random_angle
+						if twig_random_orientation:	rnd1 = (((irational_num * scale * 10000000) % 360) - 180) * twig_random_orientation
+						else:						rnd1 = 0.0
+						if twig_random_angle:		rnd2 = (((irational_num * scale * 66666666) % 360) - 180) * twig_random_angle
+						else:						rnd2 = 0.0
 						
 						
 						# Align this with the existing branch
@@ -367,16 +378,55 @@ class tree:
 						
 						mat_orientation = RotationMatrix(rnd2, 3, 'r', parent_pt.no)
 						
-						if twig_lengthen != 1.0:
+						if twig_scale_width != 1.0:
 							# adjust length - no radius adjusting
 							for pt in brch_twig.bpoints:
-								pt.co *= twig_lengthen
+								pt.radius *= twig_scale_width
 						
 						brch_twig.transform(mat_scale * mat_branch_angle * mat_align * mat_orientation, parent_pt.co)
 						
+						# Follow the parent normal
+						if twig_follow_parent or twig_follow_x or twig_follow_y or twig_follow_z:
+							
+							vecs = []
+							brch_twig_len = float(len(brch_twig.bpoints))
+							
+							if twig_follow_parent:
+								no = parent_pt.no.copy() * twig_follow_parent
+							else:
+								no = Vector()
+							
+							no.x += twig_follow_x
+							no.x += twig_follow_y
+							no.x += twig_follow_z
+							
+							for i, pt in enumerate(brch_twig.bpoints):
+								if pt.prev:
+									fac = i / brch_twig_len
+									
+									# Scale this value
+									fac_inv = 1-fac
+									
+									no_orig = pt.co - pt.prev.co
+									len_orig = no_orig.length
+									
+									no_new = (fac_inv * no_orig) + (fac * no)
+									no_new.length = len_orig
+									
+									# Mix the 2 normals
+									vecs.append(no_new)
+									
+							# Apply the coords
+							for i, pt in enumerate(brch_twig.bpoints):
+								if pt.prev:
+									pt.co = pt.prev.co + vecs[i-1]
+							
+							brch_twig.calcPointExtras()
+						
+						
 						# When using a bounding mesh, clip and calculate points in bounds.
 						#print "Attempting to trim base"
-						brch_twig.baseTrim(base_trim)
+						brch_twig.baseTrim(connect_base_trim)
 						
 						if twig_ob_bounds and (twig_ob_bounds_prune or twig_recursive):
 							brch_twig.calcTwigBounds(self)
@@ -398,6 +448,7 @@ class tree:
 						if len(brch_twig.bpoints) > 2:
 							branches_twig_attached.append(brch_twig)
 							brch_twig.generation = brch_parent.generation + 1
+							brch_parent.twig_count += 1
 						else:
 							# Dont add the branch
 							parent_pt.childCount -= 1
@@ -1540,7 +1591,7 @@ class branch:
 		self.uv = None # face uvs can be fake, always 4
 		self.bones = []
 		self.generation = 0 # use to limit twig reproduction
-		
+		self.twig_count = 0 # count the number of twigs - so as to limit how many twigs a branch gets
 		# self.myindex = -1
 		### self.segment_spacing_scale = 1.0 # use this to scale up the spacing - so small twigs dont get WAY too many polys
 	
@@ -1606,9 +1657,10 @@ class branch:
 			pt.inTwigBounds = tree.isPointInTwigBounds(pt.co)
 			#if pt.inTwigBounds:
 			#	debug_pt(pt.co)
-				
 	
-	def baseTrim(self, base_trim):
+	
+	
+	def baseTrim(self, connect_base_trim):
 		# if 1)	dont remove the whole branch, maybe an option but later
 		# if 2)	we are alredy a parent, cant remove me now.... darn :/ not nice...
 		#		could do this properly but it would be slower and its a corner case.
@@ -1619,10 +1671,14 @@ class branch:
 		
 		while	len(self.bpoints)>2 and\
 				self.bpoints[0].childCount == 0 and\
-				(self.bpoints[0].co - self.parent_pt.nextMidCo).length / (1+ ((self.bpoints[0].radius/self.parent_pt.radius) / base_trim)) < self.parent_pt.radius * base_trim:
+				(self.parent_pt.nextMidCo - self.bpoints[0].co).length < ((self.parent_pt.radius + self.parent_pt.next.radius)/4) + (self.bpoints[0].radius * connect_base_trim):
+			# Note /4 - is a bit odd, since /2 is correct, but /4 lets us have more tight joints by default
+			
 			
 			del self.bpoints[0]
 			self.bpoints[0].prev = None
+			
+			
 	
 	def boundsTrim(self):
 		'''
@@ -2075,7 +2131,7 @@ PREFS['anim_offset_scale'] = Draw.Create(1.0)
 PREFS['do_twigs'] = Draw.Create(0)
 PREFS['twig_ratio'] = Draw.Create(2.0)
 PREFS['twig_scale'] = Draw.Create(0.8)
-PREFS['twig_lengthen'] = Draw.Create(1.0)
+PREFS['twig_scale_width'] = Draw.Create(1.0)
 PREFS['twig_random_orientation'] = Draw.Create(180)
 PREFS['twig_random_angle'] = Draw.Create(33)
 PREFS['twig_recursive'] = Draw.Create(1)
@@ -2083,6 +2139,12 @@ PREFS['twig_recursive_limit'] = Draw.Create(3)
 PREFS['twig_ob_bounds'] = Draw.Create('')
 PREFS['twig_ob_bounds_prune'] = Draw.Create(1)
 PREFS['twig_ob_bounds_prune_taper'] = Draw.Create(1)
+PREFS['twig_placement_maxradius'] = Draw.Create(10.0)
+PREFS['twig_placement_maxtwig'] = Draw.Create(4)
+PREFS['twig_follow_parent'] = Draw.Create(0.0)
+PREFS['twig_follow_x'] = Draw.Create(0.0)
+PREFS['twig_follow_y'] = Draw.Create(0.0)
+PREFS['twig_follow_z'] = Draw.Create(0.0)
 
 PREFS['do_leaf'] = Draw.Create(1)
 PREFS['leaf_branch_limit'] = Draw.Create(0.25)
@@ -2215,14 +2277,14 @@ def buildTree(ob_curve, single=False):
 		except:	twig_ob_bounds = None
 	else:
 		twig_ob_bounds = None
-	#print t
+	
 	t.buildConnections(\
 		sloppy = PREFS['connect_sloppy'].val,\
-		base_trim = PREFS['connect_base_trim'].val,\
+		connect_base_trim = PREFS['connect_base_trim'].val,\
 		do_twigs = PREFS['do_twigs'].val,\
 		twig_ratio = PREFS['twig_ratio'].val,\
 		twig_scale = PREFS['twig_scale'].val,\
-		twig_lengthen = PREFS['twig_lengthen'].val,\
+		twig_scale_width = PREFS['twig_scale_width'].val,\
 		twig_random_orientation = PREFS['twig_random_orientation'].val,\
 		twig_random_angle = PREFS['twig_random_angle'].val,\
 		twig_recursive = PREFS['twig_recursive'].val,\
@@ -2230,6 +2292,12 @@ def buildTree(ob_curve, single=False):
 		twig_ob_bounds = twig_ob_bounds,\
 		twig_ob_bounds_prune = PREFS['twig_ob_bounds_prune'].val,\
 		twig_ob_bounds_prune_taper = PREFS['twig_ob_bounds_prune_taper'].val,\
+		twig_placement_maxradius = PREFS['twig_placement_maxradius'].val,\
+		twig_placement_maxtwig = PREFS['twig_placement_maxtwig'].val,\
+		twig_follow_parent = PREFS['twig_follow_parent'].val,\
+		twig_follow_x = PREFS['twig_follow_x'].val,\
+		twig_follow_y = PREFS['twig_follow_y'].val,\
+		twig_follow_z = PREFS['twig_follow_z'].val,\
 	)
 	
 	time4 = Blender.sys.time() # time print
@@ -2520,13 +2588,13 @@ def bevt(e):
 	pass
 	
 def gui():
-	MARGIN = 10
+	MARGIN = 4
 	rect = BPyWindow.spaceRect()
 	but_width = int((rect[2]-MARGIN*2)/4.0) # 72
 	# Clamp
 	if but_width>100: but_width = 100
 		
-	but_height = 20
+	but_height = 17
 	
 	
 	x=MARGIN
@@ -2563,13 +2631,8 @@ def gui():
 	xtmp = x
 	# ---------- ---------- ---------- ----------
 	
-	PREFS['connect_sloppy'] =	Draw.Number('Connect Limit',EVENT_UPDATE, xtmp, y, but_width*4, but_height, PREFS['connect_sloppy'].val,	0.1, 2.0,	'Strictness when connecting branches'); xtmp += but_width*4;
-	
-	y-=but_height
-	xtmp = x
-	# ---------- ---------- ---------- ----------
-	
-	PREFS['connect_base_trim'] =	Draw.Number('Trim Base',	EVENT_UPDATE, xtmp, y, but_width*4, but_height, PREFS['connect_base_trim'].val,	0.1, 2.0,	'Trim branch base to better connect with parent branch'); xtmp += but_width*4;
+	PREFS['connect_sloppy'] =	Draw.Number('Connect Limit',EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['connect_sloppy'].val,	0.1, 2.0,	'Strictness when connecting branches'); xtmp += but_width*2;
+	PREFS['connect_base_trim'] =	Draw.Number('Trim Base',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['connect_base_trim'].val,	0.0, 2.0,	'Trim branch base to better connect with parent branch'); xtmp += but_width*2;
 	Blender.Draw.EndAlign()
 	y-=but_height+MARGIN
 	xtmp = x
@@ -2591,8 +2654,8 @@ def gui():
 		
 		# ---------- ---------- ---------- ----------
 		
-		PREFS['twig_scale'] =	Draw.Number('Twig Scale',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['twig_scale'].val, 0.01, 1.0,	'Scale down twigs in relation to their parents each generation'); xtmp += but_width*2;
-		PREFS['twig_lengthen'] =	Draw.Number('Twig Lengthen',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['twig_lengthen'].val, 0.01, 20.0,	'Scale the twig length only (not thickness)'); xtmp += but_width*2;
+		PREFS['twig_scale'] =	Draw.Number('Twig Scale',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['twig_scale'].val, 0.01, 10.0,	'Scale down twigs in relation to their parents each generation'); xtmp += but_width*2;
+		PREFS['twig_scale_width'] =	Draw.Number('Twig Scale Width',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['twig_scale_width'].val, 0.01, 20.0,	'Scale the twig length only (not thickness)'); xtmp += but_width*2;
 		y-=but_height
 		xtmp = x
 		
@@ -2600,11 +2663,26 @@ def gui():
 		
 		PREFS['twig_random_orientation'] =	Draw.Number('Rand Orientation',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['twig_random_orientation'].val, 0.0, 360.0,	'Random rotation around the parent'); xtmp += but_width*2;
 		PREFS['twig_random_angle'] =	Draw.Number('Rand Angle',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['twig_random_angle'].val, 0.0, 360.0,	'Random rotation to the parent joint'); xtmp += but_width*2;
+		y-=but_height
+		xtmp = x
 		
-		#PREFS['uv_y_scale'] =	Draw.Number('Scale V',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['uv_y_scale'].val,	0.01, 10.0,	'Edge loop spacing around branch join, lower value for less webed joins'); xtmp += but_width*2;
+		# ---------- ---------- ---------- ----------
+		
+		PREFS['twig_placement_maxradius'] =	Draw.Number('Place Max Radius',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['twig_placement_maxradius'].val, 0.0, 50.0,	'Limit twig placement to branches with this maximum radius'); xtmp += but_width*2;
+		PREFS['twig_placement_maxtwig'] =	Draw.Number('Place Max Count',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['twig_placement_maxtwig'].val, 0.0, 50.0,	'Limit twig placement to this many per branch'); xtmp += but_width*2;
 		
 		y-=but_height
 		xtmp = x
+		# ---------- ---------- ---------- ----------
+		
+		PREFS['twig_follow_parent'] =	Draw.Number('ParFollow',	EVENT_UPDATE, xtmp, y, but_width, but_height, PREFS['twig_follow_parent'].val, 0.0, 10.0,	'Follow the parent branch'); xtmp += but_width;
+		PREFS['twig_follow_x'] =	Draw.Number('Grav X',	EVENT_UPDATE, xtmp, y, but_width, but_height, PREFS['twig_follow_x'].val, -10.0, 10.0,	'Twigs gravitate on the X axis'); xtmp += but_width;
+		PREFS['twig_follow_y'] =	Draw.Number('Grav Y',	EVENT_UPDATE, xtmp, y, but_width, but_height, PREFS['twig_follow_y'].val, -10.0, 10.0,	'Twigs gravitate on the Y axis'); xtmp += but_width;
+		PREFS['twig_follow_z'] =	Draw.Number('Grav Z',	EVENT_UPDATE, xtmp, y, but_width, but_height, PREFS['twig_follow_z'].val, -10.0, 10.0,	'Twigs gravitate on the Z axis'); xtmp += but_width;
+		
+		y-=but_height
+		xtmp = x
+		
 		# ---------- ---------- ---------- ----------
 		
 		PREFS['twig_ob_bounds'] =	Draw.String('OB Bound: ',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['twig_ob_bounds'].val, 64,	'Only grow twigs inside this mesh object', do_ob_check); xtmp += but_width*2;
