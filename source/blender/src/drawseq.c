@@ -775,7 +775,6 @@ void set_special_seq_update(int val)
 static void draw_image_seq(ScrArea *sa)
 {
 	SpaceSeq *sseq;
-	StripElem *se;
 	struct ImBuf *ibuf;
 	int x1, y1, rectx, recty;
 	int free_ibuf = 0;
@@ -800,10 +799,18 @@ static void draw_image_seq(ScrArea *sa)
 		return;
 	else {
 		recursive= 1;
-		if (!U.prefetchframes || (G.f & G_PLAYANIM) == 0) {
-			ibuf= (ImBuf *)give_ibuf_seq(rectx, recty, (G.scene->r.cfra), sseq->chanshown);
+		if (special_seq_update) {
+			ibuf= give_ibuf_seq_direct(
+				rectx, recty, (G.scene->r.cfra),
+				special_seq_update);
+		} else if (!U.prefetchframes || (G.f & G_PLAYANIM) == 0) {
+			ibuf= (ImBuf *)give_ibuf_seq(
+				rectx, recty, (G.scene->r.cfra), 
+				sseq->chanshown);
 		} else {
-			ibuf= (ImBuf *)give_ibuf_threaded(rectx, recty, (G.scene->r.cfra), sseq->chanshown);
+			ibuf= (ImBuf *)give_ibuf_seq_threaded(
+				rectx, recty, (G.scene->r.cfra), 
+				sseq->chanshown);
 		}
 		recursive= 0;
 		
@@ -815,16 +822,6 @@ static void draw_image_seq(ScrArea *sa)
 		}
 	}
 	
-	if(special_seq_update) {
-		se = special_seq_update->curelem;
-		if(se) {
-			if(se->ok==2) {
-				if(se->se1)
-					ibuf= se->se1->ibuf;
-			}
-			else ibuf= se->ibuf;
-		}
-	}
 	if(ibuf==NULL) 
 		return;
 	if(ibuf->rect_float && ibuf->rect==NULL)
@@ -862,7 +859,7 @@ static void draw_image_seq(ScrArea *sa)
 
 	if (free_ibuf) {
 		IMB_freeImBuf(ibuf);
-	}
+	} 
 
 	sa->win_swap= WIN_BACK_OK;
 }
@@ -917,7 +914,7 @@ static void draw_extra_seqinfo(void)
 	if(last_seq->type==SEQ_IMAGE) {
 		if (last_seq->len > 1) {
 			/* CURRENT */
-			se= (StripElem *)give_stripelem(last_seq,  (G.scene->r.cfra));
+			se= give_stripelem(last_seq,  (G.scene->r.cfra));
 			if(se) {
 				sprintf(str, "Cur: %s", se->name);
 				glRasterPos3f(xco,  yco, 0.0);
@@ -966,7 +963,7 @@ static void draw_extra_seqinfo(void)
 		BMF_DrawString(G.font, str);
 	}
 	else if(last_seq->type==SEQ_SCENE) {
-		se= (StripElem *)give_stripelem(last_seq,  (G.scene->r.cfra));
+		TStripElem * se= give_tstripelem(last_seq,  (G.scene->r.cfra));
 		if(se && last_seq->scene) {
 			sprintf(str, "Cur: %d  First: %d  Last: %d", last_seq->sfra+se->nr, last_seq->sfra, last_seq->sfra+last_seq->len-1); 
 			glRasterPos3f(xco,  yco, 0.0);

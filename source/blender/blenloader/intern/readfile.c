@@ -3204,7 +3204,6 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	Editing *ed;
 	Sequence *seq;
 	MetaStack *ms;
-	StripElem *se;
 	int a;
 
 	sce->theDag = NULL;
@@ -3240,8 +3239,6 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 			/* a patch: after introduction of effects with 3 input strips */
 			if(seq->seq3==0) seq->seq3= seq->seq2;
 
-			seq->curelem= 0;
-
 			seq->plugin= newdataadr(fd, seq->plugin);
 			seq->effectdata= newdataadr(fd, seq->effectdata);
 			
@@ -3252,59 +3249,17 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 			seq->strip= newdataadr(fd, seq->strip);
 			if(seq->strip && seq->strip->done==0) {
 				seq->strip->done= 1;
+				seq->strip->tstripdata = 0;
 
-				/* standard: strips from effects/metas are not written, but are mallocced */
-
-				if(seq->type==SEQ_IMAGE) {
-					seq->strip->stripdata= newdataadr(fd, seq->strip->stripdata);
-					se= seq->strip->stripdata;
-					if(se) {
-						for(a=0; a<seq->strip->len; a++, se++) {
-							se->ok= 1;
-							se->ibuf= 0;
-						}
-					}
+				if(seq->type == SEQ_IMAGE ||
+				   seq->type == SEQ_MOVIE ||
+				   seq->type == SEQ_RAM_SOUND ||
+				   seq->type == SEQ_HD_SOUND) {
+					seq->strip->stripdata = newdataadr(
+						fd, seq->strip->stripdata);
+				} else {
+					seq->strip->stripdata = 0;
 				}
-				else if(seq->type==SEQ_MOVIE) {
-					/* only first stripelem is in file */
-					se= newdataadr(fd, seq->strip->stripdata);
-
-					if(se) {
-						seq->strip->stripdata= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
-						*seq->strip->stripdata= *se;
-						MEM_freeN(se);
-
-						se= seq->strip->stripdata;
-
-						for(a=0; a<seq->strip->len; a++, se++) {
-							se->ok= 1;
-							se->ibuf= 0;
-							se->nr= a + 1;
-						}
-					}
-				}
-				else if(seq->type==SEQ_RAM_SOUND
-					|| seq->type == SEQ_HD_SOUND) {
-					/* only first stripelem is in file */
-					se= newdataadr(fd, seq->strip->stripdata);
-
-					if(se) {
-						seq->strip->stripdata= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
-						*seq->strip->stripdata= *se;
-						MEM_freeN(se);
-
-						se= seq->strip->stripdata;
-
-						for(a=0; a<seq->strip->len; a++, se++) {
-							se->ok= 2; /* why? */
-							se->ibuf= 0;
-							se->nr= a + 1;
-						}
-					}
-				}
-				else if(seq->len>0)
-					seq->strip->stripdata= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
-
 			}
 		}
 		END_SEQ

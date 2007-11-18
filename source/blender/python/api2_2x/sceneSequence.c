@@ -156,7 +156,6 @@ static PyObject *NewSeq_internal(ListBase *seqbase, PyObject * args, Scene *sce)
 		for(a=0; a<seq->len; a++) {
 			name = PyString_AsString(PyList_GetItem( list, a ));
 			strncpy(se->name, name, FILE_MAXFILE-1);
-			se->ok= 1;
 			se++;
 		}		
 		
@@ -179,16 +178,10 @@ static PyObject *NewSeq_internal(ListBase *seqbase, PyObject * args, Scene *sce)
 		strip->len= totframe;
 		strip->us= 1;
 		strncpy(strip->dir, sound->name, FILE_MAXDIR-1);
-		strip->stripdata= se= MEM_callocN(totframe*sizeof(StripElem), "stripelem");
+		strip->stripdata= se= MEM_callocN(sizeof(StripElem), "stripelem");
 
 		/* name sound in first strip */
 		strncpy(se->name, sound->name, FILE_MAXFILE-1);
-
-		for(a=1; a<=totframe; a++, se++) {
-			se->ok= 2; /* why? */
-			se->ibuf= 0;
-			se->nr= a;
-		}
 		
 	} else if (BPy_Scene_Check(py_data)) {
 		/* scene */
@@ -205,8 +198,6 @@ static PyObject *NewSeq_internal(ListBase *seqbase, PyObject * args, Scene *sce)
 			sizeof(seq->name) - 2);
 		strip->len= seq->len;
 		strip->us= 1;
-		if(seq->len>0) strip->stripdata= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
-		
 	} else {
 		/* movie, pydata is a path to a movie file */
 		char *name = PyString_AsString ( py_data );

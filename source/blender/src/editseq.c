@@ -985,7 +985,6 @@ static Sequence *sfile_to_sequence(SpaceFile *sfile, int cfra, int machine, int 
 		if(sfile->filelist[a].flags & ACTIVE) {
 			if( (sfile->filelist[a].type & S_IFDIR)==0 ) {
 				strncpy(se->name, sfile->filelist[a].relname, FILE_MAXFILE-1);
-				se->ok= 1;
 				se++;
 			}
 		}
@@ -993,7 +992,6 @@ static Sequence *sfile_to_sequence(SpaceFile *sfile, int cfra, int machine, int 
 	/* no selected file: */
 	if(totsel==1 && se==strip->stripdata) {
 		strncpy(se->name, sfile->file, FILE_MAXFILE-1);
-		se->ok= 1;
 	}
 
 	/* last active name */
@@ -1010,7 +1008,7 @@ static int sfile_to_mv_sequence_load(SpaceFile *sfile, int cfra,
 	struct anim *anim;
 	Strip *strip;
 	StripElem *se;
-	int totframe, a;
+	int totframe;
 	char name[160], rel[160];
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 
@@ -1054,18 +1052,13 @@ static int sfile_to_mv_sequence_load(SpaceFile *sfile, int cfra,
 	strip->len= totframe;
 	strip->us= 1;
 	strncpy(strip->dir, name, FILE_MAXDIR-1);
-	strip->stripdata= se= MEM_callocN(totframe*sizeof(StripElem), "stripelem");
+	strip->stripdata= se= MEM_callocN(sizeof(StripElem), "stripelem");
 
 	/* name movie in first strip */
 	if(index<0)
 		strncpy(se->name, sfile->file, FILE_MAXFILE-1);
 	else
 		strncpy(se->name, sfile->filelist[index].relname, FILE_MAXFILE-1);
-
-	for(a=1; a<=totframe; a++, se++) {
-		se->ok= 1;
-		se->nr= a;
-	}
 
 	/* last active name */
 	strncpy(last_imagename, seq->strip->dir, FILE_MAXDIR-1);
@@ -1111,7 +1104,6 @@ static Sequence *sfile_to_ramsnd_sequence(SpaceFile *sfile,
 	Strip *strip;
 	StripElem *se;
 	double totframe;
-	int a;
 	char name[160], rel[160];
 	char str[256];
 
@@ -1157,16 +1149,10 @@ static Sequence *sfile_to_ramsnd_sequence(SpaceFile *sfile,
 	strip->len= totframe;
 	strip->us= 1;
 	strncpy(strip->dir, name, FILE_MAXDIR-1);
-	strip->stripdata= se= MEM_callocN(totframe*sizeof(StripElem), "stripelem");
+	strip->stripdata= se= MEM_callocN(sizeof(StripElem), "stripelem");
 
 	/* name sound in first strip */
 	strncpy(se->name, sfile->file, FILE_MAXFILE-1);
-
-	for(a=1; a<=totframe; a++, se++) {
-		se->ok= 2; /* why? */
-		se->ibuf= 0;
-		se->nr= a;
-	}
 
 	/* last active name */
 	strncpy(last_sounddir, seq->strip->dir, FILE_MAXDIR-1);
@@ -1181,7 +1167,7 @@ static int sfile_to_hdsnd_sequence_load(SpaceFile *sfile, int cfra,
 	struct hdaudio *hdaudio;
 	Strip *strip;
 	StripElem *se;
-	int totframe, a;
+	int totframe;
 	char name[160], rel[160];
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 
@@ -1224,19 +1210,13 @@ static int sfile_to_hdsnd_sequence_load(SpaceFile *sfile, int cfra,
 	strip->len= totframe;
 	strip->us= 1;
 	strncpy(strip->dir, name, FILE_MAXDIR-1);
-	strip->stripdata= se= MEM_callocN(totframe*sizeof(StripElem), "stripelem");
+	strip->stripdata= se= MEM_callocN(sizeof(StripElem), "stripelem");
 
 	/* name movie in first strip */
 	if(index<0)
 		strncpy(se->name, sfile->file, FILE_MAXFILE-1);
 	else
 		strncpy(se->name, sfile->filelist[index].relname, FILE_MAXFILE-1);
-
-	for(a=1; a<=totframe; a++, se++) {
-		se->ok= 2;
-		se->ibuf = 0;
-		se->nr= a;
-	}
 
 	/* last active name */
 	strncpy(last_sounddir, seq->strip->dir, FILE_MAXDIR-1);
@@ -2013,7 +1993,7 @@ void change_sequence(void)
 			last_seq->sfra= sce->r.sfra;
 			
 			/* bad code to change seq->len? update_changed_seq_and_deps() expects the strip->len to be OK */
-			new_stripdata(last_seq);
+			new_tstripdata(last_seq);
 			
 			update_changed_seq_and_deps(last_seq, 1, 1);
 
@@ -2169,25 +2149,23 @@ void del_seq(void)
 
 static void recurs_dupli_seq(ListBase *old, ListBase *new)
 {
-	Sequence *seq, *seqn;
+	Sequence *seq;
+	Sequence *seqn = 0;
 	Sequence *last_seq = get_last_seq();
-	StripElem *se;
-	int a;
 
 	seq= old->first;
 
 	while(seq) {
 		seq->tmp= NULL;
 		if(seq->flag & SELECT) {
-
 			if(seq->type==SEQ_META) {
 				seqn= MEM_dupallocN(seq);
 				seq->tmp= seqn;
 				BLI_addtail(new, seqn);
 
 				seqn->strip= MEM_dupallocN(seq->strip);
-
-				if(seq->len>0) seq->strip->stripdata= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
+				seqn->strip->stripdata = 0;
+				seqn->strip->tstripdata = 0;
 
 				seq->flag &= SEQ_DESEL;
 				seqn->flag &= ~(SEQ_LEFTSEL+SEQ_RIGHTSEL);
@@ -2202,8 +2180,8 @@ static void recurs_dupli_seq(ListBase *old, ListBase *new)
 				BLI_addtail(new, seqn);
 
 				seqn->strip= MEM_dupallocN(seq->strip);
-
-				if(seq->len>0) seqn->strip->stripdata = MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
+				seqn->strip->stripdata = 0;
+				seqn->strip->tstripdata = 0;
 
 				seq->flag &= SEQ_DESEL;
 				seqn->flag &= ~(SEQ_LEFTSEL+SEQ_RIGHTSEL);
@@ -2214,19 +2192,10 @@ static void recurs_dupli_seq(ListBase *old, ListBase *new)
 				BLI_addtail(new, seqn);
 
 				seqn->strip= MEM_dupallocN(seq->strip);
+				seqn->strip->stripdata = 
+					MEM_dupallocN(seq->strip->stripdata);
+				seqn->strip->tstripdata = 0;
 				seqn->anim= 0;
-
-				if(seqn->len>0) {
-					seqn->strip->stripdata= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
-					/* copy first elem */
-					*seqn->strip->stripdata= *seq->strip->stripdata;
-					se= seqn->strip->stripdata;
-					a= seq->len;
-					while(a--) {
-						se->ok= 1;
-						se++;
-					}
-				}
 
 				seq->flag &= SEQ_DESEL;
 				seqn->flag &= ~(SEQ_LEFTSEL+SEQ_RIGHTSEL);
@@ -2237,21 +2206,13 @@ static void recurs_dupli_seq(ListBase *old, ListBase *new)
 				BLI_addtail(new, seqn);
 
 				seqn->strip= MEM_dupallocN(seq->strip);
+				seqn->strip->stripdata = 
+					MEM_dupallocN(seq->strip->stripdata);
+				seqn->strip->tstripdata = 0;
+
 				seqn->anim= 0;
 				seqn->sound->id.us++;
 				if(seqn->ipo) seqn->ipo->id.us++;
-
-				if(seqn->len>0) {
-					seqn->strip->stripdata= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
-					/* copy first elem */
-					*seqn->strip->stripdata= *seq->strip->stripdata;
-					se= seqn->strip->stripdata;
-					a= seq->len;
-					while(a--) {
-						se->ok= 1;
-						se++;
-					}
-				}
 
 				seq->flag &= SEQ_DESEL;
 				seqn->flag &= ~(SEQ_LEFTSEL+SEQ_RIGHTSEL);
@@ -2262,36 +2223,29 @@ static void recurs_dupli_seq(ListBase *old, ListBase *new)
 				BLI_addtail(new, seqn);
 
 				seqn->strip= MEM_dupallocN(seq->strip);
+				seqn->strip->stripdata = 
+					MEM_dupallocN(seq->strip->stripdata);
+				seqn->strip->tstripdata = 0;
 				seqn->anim= 0;
 				seqn->hdaudio = 0;
 				if(seqn->ipo) seqn->ipo->id.us++;
 
-				if(seqn->len>0) {
-					seqn->strip->stripdata= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
-					/* copy first elem */
-					*seqn->strip->stripdata= *seq->strip->stripdata;
-					se= seqn->strip->stripdata;
-					a= seq->len;
-					while(a--) {
-						se->ok= 1;
-						se++;
-					}
-				}
-
 				seq->flag &= SEQ_DESEL;
 				seqn->flag &= ~(SEQ_LEFTSEL+SEQ_RIGHTSEL);
-			}
-			else if(seq->type < SEQ_EFFECT) {
+			} else if(seq->type == SEQ_IMAGE) {
 				seqn= MEM_dupallocN(seq);
 				seq->tmp= seqn;
 				BLI_addtail(new, seqn);
 
-				seqn->strip->us++;
+				seqn->strip= MEM_dupallocN(seq->strip);
+				seqn->strip->stripdata = 
+					MEM_dupallocN(seq->strip->stripdata);
+				seqn->strip->tstripdata = 0;
+
 				seq->flag &= SEQ_DESEL;
 
 				seqn->flag &= ~(SEQ_LEFTSEL+SEQ_RIGHTSEL);
-			}
-			else {
+			} else if(seq->type >= SEQ_EFFECT) {
 				seqn= MEM_dupallocN(seq);
 				seq->tmp= seqn;
 				BLI_addtail(new, seqn);
@@ -2310,12 +2264,16 @@ static void recurs_dupli_seq(ListBase *old, ListBase *new)
 				}
 
 				seqn->strip= MEM_dupallocN(seq->strip);
-
-				if(seq->len>0) seq->strip->stripdata= MEM_callocN(seq->len*sizeof(StripElem), "stripelem");
+				seqn->strip->stripdata = 0;
+				seqn->strip->tstripdata = 0;
 
 				seq->flag &= SEQ_DESEL;
 				
 				seqn->flag &= ~(SEQ_LEFTSEL+SEQ_RIGHTSEL);
+			} else {
+				fprintf(stderr, "Aiiiiekkk! sequence type not "
+					"handled in duplicate!\nExpect a crash"
+					" now...\n");
 			}
 			if (seq == last_seq) {
 				set_last_seq(seqn);
@@ -2564,7 +2522,7 @@ void make_meta(void)
 	seqm->strip= MEM_callocN(sizeof(Strip), "metastrip");
 	seqm->strip->len= seqm->len;
 	seqm->strip->us= 1;
-	if(seqm->len) seqm->strip->stripdata= MEM_callocN(seqm->len*sizeof(StripElem), "metastripdata");
+
 	set_meta_stripdata(seqm);
 
 	BIF_undo_push("Make Meta Strip, Sequencer");
@@ -3496,8 +3454,6 @@ void seq_separate_images(void)
 				/* new stripdata */
 				strip_new->stripdata= se_new= MEM_callocN(sizeof(StripElem)*1, "stripelem");
 				strncpy(se_new->name, se->name, FILE_MAXFILE-1);
-				se_new->ok= 1;
-				
 				calc_sequence(seq_new);
 				seq_new->flag &= ~SEQ_OVERLAP;
 				if (test_overlap_seq(seq_new)) {

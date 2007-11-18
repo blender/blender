@@ -46,12 +46,15 @@ struct Scene;
 
 typedef struct StripElem {
 	char name[80];
+} StripElem;
+
+typedef struct TStripElem {
 	struct ImBuf *ibuf;
-	struct StripElem *se1, *se2, *se3;
+	struct TStripElem *se1, *se2, *se3;
 	short ok;
 	short pad;
 	int nr;
-} StripElem;
+} TStripElem;
 
 typedef struct Strip {
 	struct Strip *next, *prev;
@@ -59,6 +62,7 @@ typedef struct Strip {
 	StripElem *stripdata;
 	char dir[160];
 	int orx, ory;
+	TStripElem *tstripdata;
 } Strip;
 
 
@@ -87,7 +91,6 @@ typedef struct PluginSeq {
 /* WATCH IT: first part identical to ID (for use in ipo's) */
 
 typedef struct Sequence {
-
 	struct Sequence *next, *prev;
 	void *tmp; /* tmp var for copying, and tagging for linked selection */
 	void *lib; /* needed (to be like ipo), else it will raise libdata warnings, this should never be used */
@@ -104,7 +107,8 @@ typedef struct Sequence {
 	int sfra;		/* starting frame according to the timeline of the scene. */
 
 	Strip *strip;
-	StripElem *curelem;	/* reference the current frame - value from give_stripelem */
+	int pad2;
+	int pad3;
 
 	struct Ipo *ipo;
 	struct Scene *scene;
@@ -234,6 +238,9 @@ typedef struct SpeedControlVars {
 #define SEQ_COLOR               28
 #define SEQ_SPEED               29
 
+#define STRIPELEM_FAILED       0
+#define STRIPELEM_OK           1
+#define STRIPELEM_META         2
 
 #endif
 
