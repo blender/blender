@@ -107,8 +107,6 @@ typedef struct Sequence {
 	int sfra;		/* starting frame according to the timeline of the scene. */
 
 	Strip *strip;
-	int pad2;
-	int pad3;
 
 	struct Ipo *ipo;
 	struct Scene *scene;
