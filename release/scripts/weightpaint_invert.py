@@ -1,9 +1,9 @@
 #!BPY
 """
-Name: 'Vertex Groups Island Average'
-Blender: 243
+Name: 'Vertex Group Invert'
+Blender: 245
 Group: 'WeightPaint'
-Tooltip: 'Average the vertex weights for each connected set of verts'
+Tooltip: 'Invert the active vertex group'
 """
 
 # -------------------------------------------------------------------------- 
@@ -26,59 +26,36 @@ Tooltip: 'Average the vertex weights for each connected set of verts'
 # ***** END GPL LICENCE BLOCK ***** 
 # --------------------------------------------------------------------------
 import Blender
-from Blender import Scene, Mesh, Window, sys, Draw
-from BPyMesh import meshWeight2List, list2MeshWeight, mesh2linkedFaces
+from Blender import Scene, Mesh, Window, sys
 
 import BPyMessages
 import bpy
 
-def faceGroups2VertSets(face_groups):
-	'''	Return the face groups as sets of vert indicies	'''
-	return [set([v.index for f in fg for v in f]) for fg in face_groups]
-
-
-def vgroup_average(ob_orig, me, sce, PREF_ALL_VGROUPS=True):
+def vgroup_invert(ob_orig, me):
 	if not me.getVertGroupNames():
 		return
+	group_act = me.activeGroup
+	if group_act == None:
+		return
 	
-	weight_names, weight_list = meshWeight2List(me)
+	group_data = me.getVertsFromGroup(group_act, 1)
 	
-	weight_names_len = len(weight_names)
-	vgroup_dummy = [0.0] * weight_names_len
-	vgroup_range = range(weight_names_len)
+	weights= [1.0] * len(me.verts) # 1.0 - initialize inverted
 	
-	if not PREF_ALL_VGROUPS:
-		weight_active_index = weight_names.index(me.activeGroup)
+	group_data = me.getVertsFromGroup(group_act, 1) # (i,w)  tuples.
 	
-	for vert_set in faceGroups2VertSets( mesh2linkedFaces(me) ):
-		if not vert_set:
-			continue
-		
-		
-		if PREF_ALL_VGROUPS:
-			# We need to average the vgroups
-			collected_group = vgroup_dummy[:]
-			for i in vert_set:
-				vert_group = weight_list[i]			# get the original weight
-				weight_list[i] = collected_group	# replace with the collected group
-				
-				for j in vgroup_range: # iter through the vgroups
-					collected_group[j] += vert_group[j]
-			
-			for j in vgroup_range:
-				collected_group[j] /= len(vert_set)
-		else:
-			# Active group only
-			vert_weight = 0.0
-			for i in vert_set:
-				vert_weight += weight_list[i][weight_active_index]
-			
-			vert_weight /= len(vert_set)
-			
-			for i in vert_set:
-				weight_list[i][weight_active_index] = vert_weight
+	me.removeVertGroup(group_act) # messes up the active group.
+	for i,w in group_data:
+		weights[i] = 1.0-w
 	
-	list2MeshWeight(me, weight_names, weight_list)
+	me.addVertGroup(group_act)
+	rep = Blender.Mesh.AssignModes.REPLACE
+	vertList= [None]
+	for i,weight in enumerate(weights):
+		vertList[0] = i
+		if weight != 0.0:
+			me.assignVertsToGroup(group_act, vertList, weight, rep)
+	me.update()
 
 def main():
 	
@@ -99,22 +76,17 @@ def main():
 	is_editmode = Window.EditMode()
 	Window.EditMode(0)
 	
-	PREF_ALL_VGROUPS = Draw.PupMenu("All Groups?%t|All Groups%x1|Active Group Only%x0")
-	if PREF_ALL_VGROUPS==-1:
-		return
-	
 	Window.WaitCursor(1)
 	me = ob_act.getData(mesh=1) # old NMesh api is default
 	t = sys.time()
 	
 	# Run the mesh editing function
-	vgroup_average(ob_act, me, sce, PREF_ALL_VGROUPS)
+	vgroup_invert(ob_act, me)
 	
 	# Timing the script is a good way to be aware on any speed hits when scripting
-	print 'Average VGroups in %.2f seconds' % (sys.time()-t)
+	print 'Invert VGroup in %.2f seconds' % (sys.time()-t)
 	Window.WaitCursor(0)
 	if is_editmode: Window.EditMode(1)
-	
 	
 # This lets you can import the script without running it
 if __name__ == '__main__':
