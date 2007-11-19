@@ -1,6 +1,6 @@
 #!BPY
 """
-Name: 'Vertex Group Invert'
+Name: 'Invert Active Group'
 Blender: 245
 Group: 'WeightPaint'
 Tooltip: 'Invert the active vertex group'
@@ -49,12 +49,14 @@ def vgroup_invert(ob_orig, me):
 		weights[i] = 1.0-w
 	
 	me.addVertGroup(group_act)
+	
 	rep = Blender.Mesh.AssignModes.REPLACE
 	vertList= [None]
 	for i,weight in enumerate(weights):
 		vertList[0] = i
-		if weight != 0.0:
-			me.assignVertsToGroup(group_act, vertList, weight, rep)
+		me.assignVertsToGroup(group_act, vertList, weight, rep)
+	
+	me.activeGroup = group_act
 	me.update()
 
 def main():
