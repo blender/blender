@@ -65,9 +65,11 @@
 
 #include "Bullet-C-Api.h"
 
+#ifdef __SSE3__
 #include <emmintrin.h>
 #include <xmmintrin.h>
 #include <pmmintrin.h>
+#endif
 
 #ifdef _WIN32
 #include <windows.h>
@@ -412,13 +414,12 @@ DO_INLINE void mul_fvector_fmatrix(float *to, float *from, float matrix[3][4])
 /* STATUS: verified */
 #ifdef __SSE3__
 DO_INLINE void mul_fmatrix_fvector(float *to, float matrix[3][4], float *from) {
-	float temp[4];
 	__m128 v1, v2, v3, v4;
 	
-	v1 = _mm_loadu_ps(&matrix[0][0]);
-	v2 = _mm_loadu_ps(&matrix[1][0]);
-	v3 = _mm_loadu_ps(&matrix[2][0]);
-	v4 = _mm_loadu_ps(from);
+	v1 = _mm_load_ps(&matrix[0][0]);
+	v2 = _mm_load_ps(&matrix[1][0]);
+	v3 = _mm_load_ps(&matrix[2][0]);
+	v4 = _mm_load_ps(from);
 
  	// stuff
 	v1 = _mm_mul_ps(v1, v4);
@@ -428,7 +429,7 @@ DO_INLINE void mul_fmatrix_fvector(float *to, float matrix[3][4], float *from) {
 	v3 = _mm_hadd_ps(v3, _mm_setzero_ps());
 	v4 = _mm_hadd_ps(v1, v3);
 	
-	_mm_storeu_ps(to, v4);
+	_mm_store_ps(to, v4);
 }
 #else
 DO_INLINE void mul_fmatrix_fvector(float *to, float matrix[3][4], float *from)
@@ -542,9 +543,9 @@ DO_INLINE void mulsub_fmatrix_fmatrix(float to[3][3], float matrixA[3][3], float
 DO_INLINE void muladd_fmatrix_fvector(float to[3], float matrix[3][4], float from[3]) {
 	__m128 v1, v2, v3, v4;
 	
-	v1 = _mm_load_ps(&matrix[0]);
-	v2 = _mm_load_ps(&matrix[1]);
-	v3 = _mm_load_ps(&matrix[2]);
+	v1 = _mm_load_ps(&matrix[0][0]);
+	v2 = _mm_load_ps(&matrix[1][0]);
+	v3 = _mm_load_ps(&matrix[2][0]);
 	v4 = _mm_load_ps(from);
 
  	// stuff
