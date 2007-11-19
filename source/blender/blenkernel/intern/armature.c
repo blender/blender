@@ -801,6 +801,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 	int use_envelope = deformflag & ARM_DEF_ENVELOPE;
 	int use_quaternion = deformflag & ARM_DEF_QUATERNION;
 	int bbone_rest_def = deformflag & ARM_DEF_B_BONE_REST;
+	int invert_vgroup= deformflag & ARM_DEF_INVERT_VGROUP;
 	int numGroups = 0;		/* safety for vertexgroup index overflow */
 	int i, target_totvert = 0;	/* safety for vertexgroup overflow */
 	int use_dverts = 0;
@@ -921,7 +922,10 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 			}
 			/* hackish: the blending factor can be used for blending with prevCos too */
 			if(prevCos) {
-				prevco_weight= armature_weight;
+				if(invert_vgroup)
+					prevco_weight= 1.0f-armature_weight;
+				else
+					prevco_weight= armature_weight;
 				armature_weight= 1.0f;
 			}
 		}
@@ -1018,11 +1022,11 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 		
 		
 		/* interpolate with previous modifier position using weight group */
-		if(prevCos && prevco_weight!=1.0f) {
+		if(prevCos) {
 			float mw= 1.0f - prevco_weight;
-			vertexCos[i][0]= mw*vertexCos[i][0] + prevco_weight*co[0];
-			vertexCos[i][1]= mw*vertexCos[i][1] + prevco_weight*co[1];
-			vertexCos[i][2]= mw*vertexCos[i][2] + prevco_weight*co[2];
+			vertexCos[i][0]= prevco_weight*vertexCos[i][0] + mw*co[0];
+			vertexCos[i][1]= prevco_weight*vertexCos[i][1] + mw*co[1];
+			vertexCos[i][2]= prevco_weight*vertexCos[i][2] + mw*co[2];
 		}
 	}
 

@@ -1632,7 +1632,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			if(wmd->flag & MOD_WAVE_NORM)
 				height += 19;
 		} else if (md->type==eModifierType_Armature) {
-			height = 86;
+			height = 105;
 		} else if (md->type==eModifierType_Hook) {
 			HookModifierData *hmd = (HookModifierData*) md;
 			height = 86;
@@ -1959,12 +1959,15 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			
 			but=uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",				  lx, (cy-=19), buttonWidth-40,19, &amd->defgrp_name, 0.0, 31.0, 0, 0, "Vertex Group name to control overall armature influence");
 			uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ob);
-			uiDefButS(block, TOG, B_ARM_RECALCDATA, "MM",	lx+buttonWidth-40,cy, 40, 20, &amd->multi, 0, 0, 0, 0, "MultiModifier: This modifier uses same input as previous modifier, and mixes using this vgroup");
+			uiDefButBitS(block, TOG, ARM_DEF_INVERT_VGROUP, B_ARM_RECALCDATA, "Inv",	lx+buttonWidth-40,cy, 40, 20, &amd->deformflag, 0, 0, 0, 0, "Invert vertex group influence");
 			
 			uiDefButBitS(block, TOG, ARM_DEF_VGROUP, B_ARM_RECALCDATA, "Vert.Groups",	lx,cy-=19,buttonWidth/2,20, &amd->deformflag, 0, 0, 0, 0, "Enable VertexGroups defining deform");
 			uiDefButBitS(block, TOG, ARM_DEF_ENVELOPE, B_ARM_RECALCDATA, "Envelopes",	lx+buttonWidth/2,cy,(buttonWidth + 1)/2,20, &amd->deformflag, 0, 0, 0, 0, "Enable Bone Envelopes defining deform");
 			uiDefButBitS(block, TOG, ARM_DEF_QUATERNION, B_ARM_RECALCDATA, "Quaternion",	lx,(cy-=19),buttonWidth/2,20, &amd->deformflag, 0, 0, 0, 0, "Enable deform rotation interpolation with Quaternions");
 			uiDefButBitS(block, TOG, ARM_DEF_B_BONE_REST, B_ARM_RECALCDATA, "B-Bone Rest", lx+buttonWidth/2,cy,(buttonWidth + 1)/2,20, &amd->deformflag, 0, 0, 0, 0, "Make B-Bones deform already in rest position");
+			
+			uiDefButS(block, TOG, B_ARM_RECALCDATA, "MultiModifier",	lx,cy-=19, buttonWidth, 20, &amd->multi, 0, 0, 0, 0, "Use same input as previous modifier, and mix results using overall vgroup");
+
 		} else if (md->type==eModifierType_Hook) {
 			HookModifierData *hmd = (HookModifierData*) md;
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Falloff: ",		lx, (cy-=19), buttonWidth,19, &hmd->falloff, 0.0, 100.0, 100, 0, "If not zero, the distance from hook where influence ends");
