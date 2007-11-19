@@ -862,13 +862,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 				/* create springs */
 				clmd->clothObject->springs = NULL;
 				clmd->clothObject->numsprings = -1;
-
-			if (!cloth_build_springs (clmd->clothObject, dm) )
-			{
-				modifier_setError (&(clmd->modifier), "Can't build springs.");
-				return 0;
-			}  
-
+				
 			/* set initial values */
 			for (i = 0; i < numverts; ++i)
 			{
@@ -889,6 +883,12 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 				clmd->clothObject->verts [i].impulse_count = 0;
 				VECCOPY ( clmd->clothObject->verts [i].impulse, tnull );
 			}
+			
+			if (!cloth_build_springs (clmd->clothObject, dm) )
+			{
+				modifier_setError (&(clmd->modifier), "Can't build springs.");
+				return 0;
+			}  
 
 			/* apply / set vertex groups */
 			if (clmd->sim_parms->vgroup_mass > 0)
@@ -1044,7 +1044,6 @@ int cloth_build_springs ( Cloth *cloth, DerivedMesh *dm )
 	unsigned int numverts = dm->getNumVerts ( dm );
 	unsigned int numedges = dm->getNumEdges ( dm );
 	unsigned int numfaces = dm->getNumFaces ( dm );
-	MVert *mvert = CDDM_get_verts ( dm );
 	MEdge *medge = CDDM_get_edges ( dm );
 	MFace *mface = CDDM_get_faces ( dm );
 	unsigned int index2 = 0; // our second vertex index
@@ -1081,7 +1080,7 @@ int cloth_build_springs ( Cloth *cloth, DerivedMesh *dm )
 		{
 			spring->ij = medge[i].v1;
 			spring->kl = medge[i].v2;
-			VECSUB ( temp, mvert[spring->kl].co, mvert[spring->ij].co );
+			VECSUB ( temp, cloth->x[spring->kl], cloth->x[spring->ij] );
 			spring->restlen =  sqrt ( INPR ( temp, temp ) );
 			spring->type = CLOTH_SPRING_TYPE_STRUCTURAL;
 			spring->flags = 0;
@@ -1102,7 +1101,7 @@ int cloth_build_springs ( Cloth *cloth, DerivedMesh *dm )
 
 		spring->ij = mface[i].v1;
 		spring->kl = mface[i].v3;
-		VECSUB ( temp, mvert[spring->kl].co, mvert[spring->ij].co );
+		VECSUB ( temp, cloth->x[spring->kl], cloth->x[spring->ij] );
 		spring->restlen =  sqrt ( INPR ( temp, temp ) );
 		spring->type = CLOTH_SPRING_TYPE_SHEAR;
 
@@ -1119,7 +1118,7 @@ int cloth_build_springs ( Cloth *cloth, DerivedMesh *dm )
 
 			spring->ij = mface[i].v2;
 			spring->kl = mface[i].v4;
-			VECSUB ( temp, mvert[spring->kl].co, mvert[spring->ij].co );
+			VECSUB ( temp, cloth->x[spring->kl], cloth->x[spring->ij] );
 				spring->restlen =  sqrt ( INPR ( temp, temp ) );
 				spring->type = CLOTH_SPRING_TYPE_SHEAR;
 
@@ -1156,7 +1155,7 @@ int cloth_build_springs ( Cloth *cloth, DerivedMesh *dm )
 
 				spring->ij = tspring2->ij;
 				spring->kl = index2;
-				VECSUB ( temp, mvert[index2].co, mvert[tspring2->ij].co );
+				VECSUB ( temp, cloth->x[index2], cloth->x[tspring2->ij] );
 				spring->restlen =  sqrt ( INPR ( temp, temp ) );
 				spring->type = CLOTH_SPRING_TYPE_BENDING;
 				BLI_edgehash_insert ( edgehash, spring->ij, index2, NULL );

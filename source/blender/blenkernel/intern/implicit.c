@@ -1233,6 +1233,7 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 			VECADD(s->f, s->f, damping_force);
 			
 			// Formula from Ascher / Boxman, Speeding up cloth simulation
+			// couldn't see any speedup
 			// if((dt * (k*dt + 2 * clmd->sim_parms->Cdis * 0.01)) > 0.01 )
 			{
 				dfdx_spring_type1(s->dfdx, dir,length,L,clmd->sim_parms->structural);
@@ -1256,12 +1257,12 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 			
 			// DG: My formula to handle bending for the AIMEX scheme 
 			// multiply with 1000 because of numerical problems
-			// if( ((k*1000)*dt*dt) < -0.18 )
+			if( ((k*1000.0)*dt*dt) < -0.18 )
 			{
 				dfdx_spring_type2(s->dfdx, dir,length,L,clmd->sim_parms->bending, cb);
 				clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_BIG_FORCE;
 			}
-			// printf("(dt*k*dt) ): %f, k: %f\n", (dt*dt*k*-1.0), k);
+			// printf("(dt*k*dt) ): %f, k: %f\n", (dt*dt*(1000.0*k)), k);
 		}
 	}
 }
@@ -1279,8 +1280,8 @@ DO_INLINE int cloth_apply_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 			sub_fmatrix_fmatrix(dFdV[s->kl].m, dFdV[s->kl].m, s->dfdv);
 			add_fmatrix_fmatrix(dFdV[s->matrix_index].m, dFdV[s->matrix_index].m, s->dfdv);	
 		}
-		else if(!(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_BIG_FORCE))
-			return 0;
+		// else if(!(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_BIG_FORCE))
+		// 	return 0;
 		
 		sub_fmatrix_fmatrix(dFdX[s->ij].m, dFdX[s->ij].m, s->dfdx);
 		sub_fmatrix_fmatrix(dFdX[s->kl].m, dFdX[s->kl].m, s->dfdx);
@@ -1466,8 +1467,8 @@ void simulate_implicit_euler(lfVector *Vnew, lfVector *lX, lfVector *lV, lfVecto
 
 	add_lfvectorS_lfvectorS(B, lF, dt, dFdXmV, (dt*dt), numverts);
 	
-	// cg_filtered(dV, A, B, z, S); // conjugate gradient algorithm to solve Ax=b 
-	cg_filtered_pre(dV, A, B, z, S, P, Pinv);
+	cg_filtered(dV, A, B, z, S); // conjugate gradient algorithm to solve Ax=b 
+	// cg_filtered_pre(dV, A, B, z, S, P, Pinv);
 	
 	// advance velocities
 	add_lfvector_lfvector(Vnew, lV, dV, numverts);
