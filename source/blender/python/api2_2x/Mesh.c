@@ -6409,6 +6409,10 @@ static PyObject *Mesh_removeVertGroup( PyObject * self, PyObject * value )
 	int nIndex;
 	bDeformGroup *pGroup;
 
+	if( G.obedit )
+		return EXPP_ReturnPyObjError(PyExc_RuntimeError,
+			"can't use removeVertGroup() while in edit mode" );
+	
 	if( !groupStr )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected string argument" );
@@ -6431,8 +6435,8 @@ static PyObject *Mesh_removeVertGroup( PyObject * self, PyObject * value )
 	nIndex++;
 	object->actdef = (unsigned short)nIndex;
 
-	del_defgroup( object );
-
+	del_defgroup_in_object_mode( object );
+	
 	EXPP_allqueue( REDRAWBUTSALL, 1 );
 
 	Py_RETURN_NONE;
