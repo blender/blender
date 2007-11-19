@@ -567,6 +567,8 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 	{
 		if ((clmd->clothObject == NULL) || (numverts != clmd->clothObject->numverts) ) 
 		{
+			cloth_clear_cache(ob, clmd, 0);
+			
 			if(!cloth_from_object (ob, clmd, result, dm, framenr))
 				return result;
 
@@ -756,7 +758,7 @@ static void cloth_to_object (Object *ob,  DerivedMesh *dm, ClothModifierData *cl
 		for (i = 0; i < numverts; i++)
 		{
 			VECCOPY (mvert[i].co, cloth->x[i]);
-			Mat4MulVecfl (ob->imat, mvert[i].co);	/* softbody is in global coords */
+			Mat4MulVecfl (ob->imat, mvert[i].co);	/* cloth is in global coords */
 		}
 	}
 }

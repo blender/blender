@@ -410,14 +410,15 @@ DO_INLINE void mul_fvector_fmatrix(float *to, float *from, float matrix[3][4])
 
 /* 3x3 matrix multiplied by a vector */
 /* STATUS: verified */
-#ifdef SSE3
+#ifdef __SSE3__
 DO_INLINE void mul_fmatrix_fvector(float *to, float matrix[3][4], float *from) {
+	float temp[4];
 	__m128 v1, v2, v3, v4;
 	
-	v1 = _mm_load_ps(&matrix[0]);
-	v2 = _mm_load_ps(&matrix[1]);
-	v3 = _mm_load_ps(&matrix[2]);
-	v4 = _mm_load_ps(from);
+	v1 = _mm_loadu_ps(&matrix[0][0]);
+	v2 = _mm_loadu_ps(&matrix[1][0]);
+	v3 = _mm_loadu_ps(&matrix[2][0]);
+	v4 = _mm_loadu_ps(from);
 
  	// stuff
 	v1 = _mm_mul_ps(v1, v4);
@@ -425,9 +426,9 @@ DO_INLINE void mul_fmatrix_fvector(float *to, float matrix[3][4], float *from) {
 	v3 = _mm_mul_ps(v3, v4);
 	v1 = _mm_hadd_ps(v1, v2);
 	v3 = _mm_hadd_ps(v3, _mm_setzero_ps());
-	v1 = _mm_hadd_ps(v1, v3);
+	v4 = _mm_hadd_ps(v1, v3);
 	
-	_mm_store_ps(to, v4);
+	_mm_storeu_ps(to, v4);
 }
 #else
 DO_INLINE void mul_fmatrix_fvector(float *to, float matrix[3][4], float *from)
@@ -537,7 +538,7 @@ DO_INLINE void mulsub_fmatrix_fmatrix(float to[3][3], float matrixA[3][3], float
 /* 3x3 matrix multiplied+added by a vector */
 /* STATUS: verified */
 
-#ifdef SSE3
+#ifdef __SSE3__
 DO_INLINE void muladd_fmatrix_fvector(float to[3], float matrix[3][4], float from[3]) {
 	__m128 v1, v2, v3, v4;
 	
@@ -1053,141 +1054,7 @@ DO_INLINE void BuildPPinv(fmatrix3x3 *lA, fmatrix3x3 *P, fmatrix3x3 *Pinv)
 	}
 }
 
-/*
-// 1.0 working PCG, but slow and unstable for bigger epsilon + strong forces
-int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix3x3 *S, fmatrix3x3 *P, fmatrix3x3 *Pinv)
-{
-	unsigned int numverts = lA[0].vcount, iterations = 0, conjgrad_looplimit=100;
-	float delta0 = 0, deltaNew = 0, deltaOld = 0, alpha = 0;
-	float conjgrad_epsilon=0.01f, conjgrad_lasterror=0;
-	lfVector *filterb = create_lfvector(numverts);
-	lfVector *p_fb = create_lfvector(numverts);
-	lfVector *r = create_lfvector(numverts);
-	lfVector *c = create_lfvector(numverts);
-	lfVector *q = create_lfvector(numverts);
-	lfVector *s = create_lfvector(numverts);
-	
-	BuildPPinv(lA, P, Pinv);
-	
-	cp_lfvector(dv, z, numverts);
-	cp_lfvector(filterb, lB, numverts);
-	filter(filterb, S);
-	mul_bfmatrix_lfvector(p_fb, P, filterb);
-	delta0 = dot_lfvector(filterb, p_fb, numverts);
-	
-	mul_bfmatrix_lfvector(r, lA, dv);
-	mul_lfvectorS(r, r, -1.0, numverts);
-	add_lfvector_lfvector(r, r, lB, numverts);
-	filter(r, S);
-	
-	mul_bfmatrix_lfvector(c, Pinv, r);
-	filter(c, S);
-	
-	deltaNew = dot_lfvector(r, c, numverts);
-	
-	do
-	{
-		iterations++;
-		
-		mul_bfmatrix_lfvector(q, lA, c);
-		filter(q, S);
-		
-		alpha = deltaNew / dot_lfvector(c, q, numverts);
-		
-		add_lfvector_lfvectorS(dv, dv, c, alpha, numverts);
-		
-		add_lfvector_lfvectorS(r, r, q, -alpha, numverts);
-		
-		mul_bfmatrix_lfvector(s, Pinv, r);
-		
-		
-		deltaOld = deltaNew;
-		
-		deltaNew = dot_lfvector(r, s, numverts);
-		
-		add_lfvector_lfvectorS(s, s, c, deltaNew / deltaOld, numverts);
-		filter(s, S);
-		
-		cp_lfvector(c, s, numverts);
-	} while ((deltaNew > (conjgrad_epsilon*conjgrad_epsilon*delta0)) && (iterations < conjgrad_looplimit));
-	
-	del_lfvector(s);
-	del_lfvector(q);
-	del_lfvector(c);
-	del_lfvector(r);
-	del_lfvector(p_fb);
-	del_lfvector(filterb);
-	
-	printf("iterations: %d\n", iterations);
-	
-	return iterations<conjgrad_looplimit;
-}
-*/
-
-/*
-// 1.1 stable version frmo Box / Aschermann
-// but also very slow ;)
-int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix3x3 *S, fmatrix3x3 *P, fmatrix3x3 *Pinv)
-{
-	unsigned int numverts = lA[0].vcount, iterations = 0, conjgrad_looplimit=100;
-	float delta0 = 0, deltaNew = 0, deltaOld = 0, alpha = 0;
-	float conjgrad_epsilon=0.01f, conjgrad_lasterror=0;
-	lfVector *r = create_lfvector(numverts);
-	lfVector *p = create_lfvector(numverts);
-	lfVector *s = create_lfvector(numverts);
-	lfVector *h = create_lfvector(numverts);
-	
-	BuildPPinv(lA, P, Pinv);
-	
-	cp_lfvector(dv, z, numverts);
-	
-	mul_bfmatrix_lfvector(r, lA, dv);
-	mul_lfvectorS(r, r, -1.0, numverts);
-	add_lfvector_lfvector(r, r, lB, numverts);
-	filter(r, S);
-	
-	mul_bfmatrix_lfvector(p, Pinv, r);
-	filter(p, S);
-	
-	deltaNew = delta0 = dot_lfvector(r, p, numverts);
-	
-	while ((deltaNew > (conjgrad_epsilon*conjgrad_epsilon*delta0)) && (iterations < conjgrad_looplimit))
-	{
-		iterations++;
-		
-		mul_bfmatrix_lfvector(s, lA, p);
-		filter(s, S);
-		
-		alpha = deltaNew / dot_lfvector(p, s, numverts);
-		
-		add_lfvector_lfvectorS(dv, dv, p, alpha, numverts);
-		
-		add_lfvector_lfvectorS(r, r, s, -alpha, numverts);
-		
-		mul_bfmatrix_lfvector(h, Pinv, r);
-		
-		
-		deltaOld = deltaNew;
-		
-		deltaNew = dot_lfvector(r, h, numverts);
-		
-		add_lfvector_lfvectorS(p, h, p, deltaNew / deltaOld, numverts);
-		filter(p, S);
-		
-	}
-	
-	del_lfvector(h);
-	del_lfvector(s);
-	del_lfvector(p);
-	del_lfvector(r);
-	
-	printf("iterations: %d\n", iterations);
-	
-	return iterations<conjgrad_looplimit;
-}
-*/
-
-// 1.3
+// version 1.3
 int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix3x3 *S, fmatrix3x3 *P, fmatrix3x3 *Pinv)
 {
 	unsigned int numverts = lA[0].vcount, iterations = 0, conjgrad_looplimit=100;
@@ -1598,8 +1465,8 @@ void simulate_implicit_euler(lfVector *Vnew, lfVector *lX, lfVector *lV, lfVecto
 
 	add_lfvectorS_lfvectorS(B, lF, dt, dFdXmV, (dt*dt), numverts);
 	
-	cg_filtered(dV, A, B, z, S); // conjugate gradient algorithm to solve Ax=b 
-	// cg_filtered_pre(dV, A, B, z, S, P, Pinv);
+	// cg_filtered(dV, A, B, z, S); // conjugate gradient algorithm to solve Ax=b 
+	cg_filtered_pre(dV, A, B, z, S, P, Pinv);
 	
 	// advance velocities
 	add_lfvector_lfvector(Vnew, lV, dV, numverts);
