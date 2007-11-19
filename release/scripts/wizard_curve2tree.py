@@ -96,6 +96,14 @@ def freshMesh(mesh):
 		
 	return mesh
 
+def getObFromName(name):
+	if name:
+		try:	return bpy.data.objects[name]
+		except:	return None
+	else:
+		return None
+		
+	
 
 def closestVecIndex(vec, vecls):
 	best= -1
@@ -121,9 +129,16 @@ class tree:
 		self.armature = None
 		self.objectCurve = None
 		self.objectCurveMat = None
+		self.objectCurveIMat = None
+		
 		self.objectTwigBounds = None # use for twigs only at the moment.
 		self.objectTwigBoundsIMat = None
 		self.objectTwigBoundsMesh = None
+		
+		self.objectLeafBounds = None
+		self.objectLeafBoundsIMat = None
+		self.objectLeafBoundsMesh = None
+		
 		self.limbScale = 1.0
 		
 		self.debug_objects = []
@@ -142,6 +157,7 @@ class tree:
 		# Now calculate the normals
 		self.objectCurve = objectCurve
 		self.objectCurveMat = objectCurve.matrixWorld
+		self.objectCurveIMat = self.objectCurveMat.copy().invert()
 		curve = objectCurve.data
 		steps = curve.resolu # curve resolution
 		
@@ -201,19 +217,41 @@ class tree:
 			
 		# Sort from big to small, so big branches get priority
 		self.branches_all.sort( key = lambda brch: -brch.bpoints[0].radius )
-		
+	
+	
+	def closestBranchPt(self, co):
+		best_brch = None
+		best_pt = None
+		best_dist = 10000000000
+		for brch in self.branches_all:
+			for pt in brch.bpoints:
+				# if pt.inTwigBounds: # only find twigs, give different results for leaves
+				l = (pt.co-co).length
+				if l < best_dist:
+					best_dist = l
+					best_brch = brch
+					best_pt = pt
+		return best_brch, best_pt
+	
 	def setTwigBounds(self, objectMesh):
 		self.objectTwigBounds = objectMesh
 		self.objectTwigBoundsMesh = objectMesh.getData(mesh=1)
 		self.objectTwigBoundsIMat = objectMesh.matrixWorld.copy().invert()
-		#self.objectTwigBoundsIMat = objectMesh.matrixWorld.copy()
 		
 		for brch in self.branches_all:
 			brch.calcTwigBounds(self)
+			
+	def setLeafBounds(self, objectMesh):
+		self.objectLeafBounds = objectMesh
+		self.objectLeafBoundsMesh = objectMesh.getData(mesh=1)
+		self.objectLeafBoundsIMat = objectMesh.matrixWorld.copy().invert()
 	
 	def isPointInTwigBounds(self, co):
 		return self.objectTwigBoundsMesh.pointInside(co * self.objectCurveMat * self.objectTwigBoundsIMat)
-	
+
+	def isPointInLeafBounds(self, co):
+		return self.objectLeafBoundsMesh.pointInside(co * self.objectCurveMat * self.objectLeafBoundsIMat)
+
 	def resetTags(self, value):
 		for brch in self.branches_all:
 			brch.tag = value
@@ -223,6 +261,8 @@ class tree:
 							connect_base_trim = 1.0,\
 							do_twigs = False,\
 							twig_ratio = 2.0,\
+							twig_select_mode = 0,\
+							twig_select_factor = 0.5,\
 							twig_scale = 0.8,\
 							twig_scale_width = 1.0,\
 							twig_random_orientation = 180,\
@@ -238,6 +278,11 @@ class tree:
 							twig_follow_x=0.0,\
 							twig_follow_y=0.0,\
 							twig_follow_z=0.0,\
+							do_variation = 0,\
+							variation_seed = 1,\
+							variation_orientation = 0.0,\
+							variation_scale = 0.0,\
+							
 						):
 		'''
 		build tree data - fromCurve must run first
@@ -284,7 +329,7 @@ class tree:
 			children = [brch_child for brch_child in pt.children]
 			if children:
 				# This pt is one side of the segment, pt.next joins this segment.
-				# calculate the median point the 2 segments would span
+				# calculate the median point the 2 segments would spanal
 				# Once this is done we need to adjust 2 things
 				# 1) move both segments up/down so they match the branches best.
 				# 2) set the spacing of the segments around the point.
@@ -300,9 +345,38 @@ class tree:
 			brch.checkPointList()
 		'''
 		
-		# Important we so this with existing parent/child but before connecting and calculating verts.
+		# Variations - use for making multiple versions of the same tree.
+		if do_variation:
+			irational_num = 22.0/7.0 # use to make the random number more odd
+			rnd = [variation_seed]
+			def next_random_num():
+				'''
+				return a random number between 0.0 and 1.0
+				'''
+				
+				rnd[0] += (rnd[0] * irational_num) % 1
+				# prevent 
+				if rnd[0] > 1000000:
+					rnd[0]-=1000000
+				return rnd[0] % 1
+			
+			# Add children temporarily
+			for brch in self.branches_all:
+				if brch.parent_pt:
+					rnd_rot = ((next_random_num() * variation_orientation) - 0.5) * 720
+					mat_orientation = RotationMatrix(rnd_rot, 3, 'r', brch.parent_pt.no)
+					rnd_sca = 1 + ((next_random_num()-0.5)* variation_scale )
+					mat_scale = Matrix([rnd_sca,0,0],[0,rnd_sca,0],[0,0,rnd_sca])
+					# mat_orientation = RotationMatrix(0, 3, 'r', brch.parent_pt.no)
+					brch.transformRecursive(self, mat_scale * mat_orientation, brch.parent_pt.co)
 		
+		# Important we so this with existing parent/child but before connecting and calculating verts.
 		if do_twigs:
+			
+			# scale values down
+			twig_random_orientation= twig_random_orientation/360.0
+			twig_random_angle= twig_random_angle/360.0
+			
 			irational_num = 22.0/7.0 # use to make the random number more odd
 			
 			if twig_ob_bounds: # Only spawn twigs inside this mesh
@@ -311,7 +385,7 @@ class tree:
 			if not twig_recursive:
 				twig_recursive_limit = 0
 			
-			self.buildTwigs(twig_ratio)
+			self.buildTwigs(twig_ratio, twig_select_mode, twig_select_factor)
 			
 			branches_twig_attached = []
 			
@@ -357,7 +431,6 @@ class tree:
 						if twig_random_angle:		rnd2 = (((irational_num * scale * 66666666) % 360) - 180) * twig_random_angle
 						else:						rnd2 = 0.0
 						
-						
 						# Align this with the existing branch
 						angle = AngleBetweenVecs(zup, parent_pt.no)
 						cross = CrossVecs(zup, parent_pt.no)
@@ -397,8 +470,8 @@ class tree:
 								no = Vector()
 							
 							no.x += twig_follow_x
-							no.x += twig_follow_y
-							no.x += twig_follow_z
+							no.y += twig_follow_y
+							no.z += twig_follow_z
 							
 							for i, pt in enumerate(brch_twig.bpoints):
 								if pt.prev:
@@ -529,7 +602,7 @@ class tree:
 		for brch in self.branches_all:
 			brch.branchReJoin()
 	
-	def buildTwigs(self, twig_ratio=1.0):
+	def buildTwigs(self, twig_ratio, twig_select_mode, twig_select_factor):
 		
 		ratio_int = int(len(self.branches_all) * twig_ratio)
 		if ratio_int == 0:
@@ -537,6 +610,20 @@ class tree:
 		
 		# So we only mix branches of similar lengths
 		branches_sorted = self.branches_all[:]
+		
+		# Get the branches based on our selection method!
+		if twig_select_mode==0:
+			branches_sorted.sort( key = lambda brch: brch.getLength())
+		elif twig_select_mode==1:
+			branches_sorted.sort( key = lambda brch:-brch.getLength())
+		elif twig_select_mode==2:
+			branches_sorted.sort( key = lambda brch:brch.getStraightness())
+		elif twig_select_mode==3:
+			branches_sorted.sort( key = lambda brch:-brch.getStraightness())
+		
+		factor_int = int(len(self.branches_all) * twig_select_factor)
+		branches_sorted[factor_int:] = []  # remove the last part of the list
+		
 		branches_sorted.sort( key = lambda brch: len(brch.bpoints))
 		
 		branches_new = []
@@ -967,7 +1054,8 @@ class tree:
 		
 		return self.mesh
 	
-	def toLeafMesh(self, mesh_leaf, leaf_branch_limit = 0.5, leaf_size = 0.5):
+	def toLeafMesh(self, mesh_leaf, leaf_branch_limit = 0.5, leaf_size = 0.5, leaf_fill=True, leaf_fill_count=1000, leaf_fill_ob_bounds=None):
+		
 		'''
 		return a mesh with leaves seperate from the tree
 		
@@ -979,80 +1067,151 @@ class tree:
 		mesh_leaf = freshMesh(mesh_leaf)
 		self.mesh_leaf = mesh_leaf
 		
-		totpoints = 0
-		radius = 0.0
-		max_radius = 0.0
-		for brch in self.branches_all:
-			for pt in brch.bpoints:
-				radius += pt.radius
-				if pt.radius > max_radius:
-					max_radius = pt.radius
+		# Fill an object with leaves, kind of primitive but useful at times.
+		if leaf_fill and leaf_fill_count and leaf_fill_ob_bounds:
 			
-			#totpoints += len(brch.bpoints)
-		
-		radius_max = max_radius * leaf_branch_limit
-		
-		
-		verts_extend = []
-		faces_extend = []
-		
-		co1,co2,co3,co4 = Vector(),Vector(),Vector(),Vector()
-		
-		for brch in self.branches_all:
+			self.setLeafBounds(leaf_fill_ob_bounds)
 			
-			# quick test, do we need leaves on this branch?
-			if brch.bpoints[-1].radius > radius_max:
-				continue
+			# Get bounds
 			
-			count = 0
-			for pt in brch.bpoints:
-				if pt.childCount == 0 and pt.radius < radius_max:
-					# Ok we can add a leaf here. set the co's correctly
-					co1[:] = pt.co
-					co2[:] = pt.co
-					co3[:] = pt.co
-					co4[:] = pt.co
+			xmin = ymin = zmin = 10000000
+			xmax = ymax = zmax =-10000000
+			
+			for v in self.objectLeafBoundsMesh.verts:
+				x,y,z = tuple(v.co)
+				
+				if x < xmin: xmin = x
+				if y < ymin: ymin = y
+				if z < zmin: zmin = z
+				
+				if x > xmax: xmax = x
+				if y > ymax: ymax = y
+				if z > zmax: zmax = z
+			
+			verts_extend = []
+			faces_extend = []
+			
+			i = leaf_fill_count
+			while i:
+				# randomize branch values for leaves for now.
+				vec = Vector(Rand(xmin, xmax), Rand(ymin, ymax), Rand(zmin, zmax))
+				
+				if self.objectLeafBoundsMesh.pointInside(vec):
+					vec = (vec * self.objectLeafBoundsIMat) * self.objectCurveIMat
 					
-					cross_leafdir = CrossVecs( zup, pt.no )
-					cross_leafdir.length = leaf_size
+					# Find the closest branch
+					brch_close, pt_close = self.closestBranchPt(vec)
+					
+					no = pt_close.co - vec
+					#cross = CrossVecs(no, zup)
+					cross = CrossVecs(no, pt_close.no)
+					cross.length = leaf_size
+					
+					vec2 = vec - cross
+					vec1 = vec + cross
+					
+					vec3 = vec - cross
+					vec4 = vec + cross
+					
+					
+					no_pt = pt_close.no.copy()
+					no_pt.length = leaf_size
+					vec3 += no_pt
+					vec4 += no_pt
+					
+					'''
+					no_pt = pt_close.no.copy()
+					no_pt.length = leaf_size
+					vec3 += no_pt
+					vec4 += no_pt
+					'''
+					cross
+					
+					faces_extend.append([len(verts_extend), len(verts_extend)+1, len(verts_extend)+2, len(verts_extend)+3])
+					verts_extend.extend([vec1, vec2, vec3, vec4])
+					i-=1
+			
+			self.mesh_leaf.verts.extend(verts_extend)
+			self.mesh_leaf.faces.extend(faces_extend)
 
-					
-					#cross_leafwidth = CrossVecs(pt.no, cross_leafdir)
-					
-					# Facing up
-					cross_leafwidth_up = CrossVecs(zup, cross_leafdir).normalize() * leaf_size
-					cross_leafwidth_aligned = pt.no
-					
-					#cross_leafwidth = (cross_leafwidth_up + cross_leafwidth_aligned)/2
-					cross_leafwidth = cross_leafwidth_aligned
-					
-					cross_leafwidth.length = leaf_size/2
-					
-					if count % 2:
-						cross_leafwidth.negate()
-						cross_leafdir.negate()
-					
-					co1 += cross_leafdir
-					co2 += cross_leafdir
-					
-					co2 += cross_leafwidth
-					co3 += cross_leafwidth
-					
-					co1 -= cross_leafwidth
-					co4 -= cross_leafwidth
-					
-					
-					i = len(verts_extend)
-					faces_extend.append( (i,i+1,i+2,i+3) )
-					verts_extend.extend([tuple(co1), tuple(co2), tuple(co3), tuple(co4)])
-					count += 1
+			
 		
-		self.mesh_leaf.verts.extend(verts_extend)
-		self.mesh_leaf.faces.extend(faces_extend)
-		
+		'''
+		if 0:
+			totpoints = 0
+			radius = 0.0
+			max_radius = 0.0
+			for brch in self.branches_all:
+				for pt in brch.bpoints:
+					radius += pt.radius
+					if pt.radius > max_radius:
+						max_radius = pt.radius
+				
+				#totpoints += len(brch.bpoints)
+			
+			radius_max = max_radius * leaf_branch_limit
+			
+			
+			verts_extend = []
+			faces_extend = []
+			
+			co1,co2,co3,co4 = Vector(),Vector(),Vector(),Vector()
+			
+			for brch in self.branches_all:
+				
+				# quick test, do we need leaves on this branch?
+				if brch.bpoints[-1].radius > radius_max:
+					continue
+				
+				count = 0
+				for pt in brch.bpoints:
+					if pt.childCount == 0 and pt.radius < radius_max:
+						# Ok we can add a leaf here. set the co's correctly
+						co1[:] = pt.co
+						co2[:] = pt.co
+						co3[:] = pt.co
+						co4[:] = pt.co
+						
+						cross_leafdir = CrossVecs( zup, pt.no )
+						cross_leafdir.length = leaf_size
+
+						
+						#cross_leafwidth = CrossVecs(pt.no, cross_leafdir)
+						
+						# Facing up
+						cross_leafwidth_up = CrossVecs(zup, cross_leafdir).normalize() * leaf_size
+						cross_leafwidth_aligned = pt.no
+						
+						#cross_leafwidth = (cross_leafwidth_up + cross_leafwidth_aligned)/2
+						cross_leafwidth = cross_leafwidth_aligned
+						
+						cross_leafwidth.length = leaf_size/2
+						
+						if count % 2:
+							cross_leafwidth.negate()
+							cross_leafdir.negate()
+						
+						co1 += cross_leafdir
+						co2 += cross_leafdir
+						
+						co2 += cross_leafwidth
+						co3 += cross_leafwidth
+						
+						co1 -= cross_leafwidth
+						co4 -= cross_leafwidth
+						
+						
+						i = len(verts_extend)
+						faces_extend.append( (i,i+1,i+2,i+3) )
+						verts_extend.extend([tuple(co1), tuple(co2), tuple(co3), tuple(co4)])
+						count += 1
+			
+			self.mesh_leaf.verts.extend(verts_extend)
+			self.mesh_leaf.faces.extend(faces_extend)
+		'''
 		
 		return self.mesh_leaf
-		
+	
 	
 	def toArmature(self, ob_arm, armature):
 		
@@ -1617,10 +1776,18 @@ class branch:
 		else:
 			return 0.8
 	
-		
-	
 	def getLength(self):
 		return (self.bpoints[0].co - self.bpoints[-1].co).length
+	
+	def getStraightness(self):
+		straight = 0.0
+		pt = self.bpoints[0]
+		while pt.next:
+			straight += AngleBetweenVecs(pt.no, pt.next.no)
+			pt = pt.next
+		return straight
+		
+	
 	'''
 	def calcTotChildren(self):
 		for pt in self.bpoints:
@@ -1658,8 +1825,6 @@ class branch:
 			#if pt.inTwigBounds:
 			#	debug_pt(pt.co)
 	
-	
-	
 	def baseTrim(self, connect_base_trim):
 		# if 1)	dont remove the whole branch, maybe an option but later
 		# if 2)	we are alredy a parent, cant remove me now.... darn :/ not nice...
@@ -1677,8 +1842,6 @@ class branch:
 			
 			del self.bpoints[0]
 			self.bpoints[0].prev = None
-			
-			
 	
 	def boundsTrim(self):
 		'''
@@ -1809,6 +1972,29 @@ class branch:
 		for pt in self.bpoints:
 			pt.co -= ofs
 	
+	def transformRecursive(self, tree, mat3x3, cent, scale=None):
+		
+		if scale==None:
+			# incase this is a translation matrix
+			scale = ((xyzup * mat3x3) - (Vector(0,0,0) * mat3x3)).length
+		
+		for pt in self.bpoints:		pt.co = ((pt.co-cent) * mat3x3) + cent
+		#for pt in self.bpoints:		pt.co = (pt.co * mat3x3)
+		for pt in self.bpoints:		self.calcPointExtras()
+			
+			
+		for brch in tree.branches_all:
+			if brch.parent_pt:
+				if brch.parent_pt.branch == self:
+					
+					brch.transformRecursive(tree, mat3x3, cent, scale)
+			
+		'''
+		for pt in self.bpoints:
+			for brch in pt.children:
+				if brch:
+					brch.transformRecursive(mat3x3, cent, scale)
+		'''
 	def bestTwigSegment(self):
 		'''
 		Return the most free part on the branch to place a new twig
@@ -2109,7 +2295,7 @@ PREFS['image_main'] = Draw.Create('')
 PREFS['do_uv'] = Draw.Create(0)
 PREFS['uv_x_scale'] = Draw.Create(4.0)
 PREFS['uv_y_scale'] = Draw.Create(1.0)
-PREFS['do_material'] = Draw.Create(1)
+PREFS['do_material'] = Draw.Create(0)
 PREFS['material_use_existing'] = Draw.Create(1)
 PREFS['material_texture'] = Draw.Create(1)
 PREFS['material_stencil'] = Draw.Create(1)
@@ -2130,6 +2316,8 @@ PREFS['anim_offset_scale'] = Draw.Create(1.0)
 
 PREFS['do_twigs'] = Draw.Create(0)
 PREFS['twig_ratio'] = Draw.Create(2.0)
+PREFS['twig_select_mode'] = Draw.Create(0)
+PREFS['twig_select_factor'] = Draw.Create(0.5)
 PREFS['twig_scale'] = Draw.Create(0.8)
 PREFS['twig_scale_width'] = Draw.Create(1.0)
 PREFS['twig_random_orientation'] = Draw.Create(180)
@@ -2146,9 +2334,18 @@ PREFS['twig_follow_x'] = Draw.Create(0.0)
 PREFS['twig_follow_y'] = Draw.Create(0.0)
 PREFS['twig_follow_z'] = Draw.Create(0.0)
 
-PREFS['do_leaf'] = Draw.Create(1)
+PREFS['do_leaf'] = Draw.Create(0)
+PREFS['leaf_fill'] = Draw.Create(1)
+PREFS['leaf_fill_count'] = Draw.Create(1000)
+PREFS['leaf_fill_ob_bounds'] = Draw.Create('')
+
 PREFS['leaf_branch_limit'] = Draw.Create(0.25)
 PREFS['leaf_size'] = Draw.Create(0.5)
+
+PREFS['do_variation'] = Draw.Create(0)
+PREFS['variation_seed'] = Draw.Create(1)
+PREFS['variation_orientation'] = Draw.Create(0.0)
+PREFS['variation_scale'] = Draw.Create(0.0)
 
 GLOBAL_PREFS = {}
 GLOBAL_PREFS['realtime_update'] = Draw.Create(0)
@@ -2227,7 +2424,7 @@ def buildTree(ob_curve, single=False):
 	def newObChild(parent, obdata):
 		
 		ob_new = bpy.data.scenes.active.objects.new(obdata)
-		ob_new.Layers = parent.Layers
+		# ob_new.Layers = parent.Layers
 		
 		# new object settings
 		parent.makeParent([ob_new])
@@ -2271,18 +2468,15 @@ def buildTree(ob_curve, single=False):
 	
 	print '\tconnecting branches...',
 	
-	twig_ob_bounds = PREFS['twig_ob_bounds'].val
-	if twig_ob_bounds:
-		try:	twig_ob_bounds = bpy.data.objects[twig_ob_bounds]
-		except:	twig_ob_bounds = None
-	else:
-		twig_ob_bounds = None
+	twig_ob_bounds = getObFromName(PREFS['twig_ob_bounds'].val)
 	
 	t.buildConnections(\
 		sloppy = PREFS['connect_sloppy'].val,\
 		connect_base_trim = PREFS['connect_base_trim'].val,\
 		do_twigs = PREFS['do_twigs'].val,\
 		twig_ratio = PREFS['twig_ratio'].val,\
+		twig_select_mode = PREFS['twig_select_mode'].val,\
+		twig_select_factor = PREFS['twig_select_factor'].val,\
 		twig_scale = PREFS['twig_scale'].val,\
 		twig_scale_width = PREFS['twig_scale_width'].val,\
 		twig_random_orientation = PREFS['twig_random_orientation'].val,\
@@ -2298,7 +2492,12 @@ def buildTree(ob_curve, single=False):
 		twig_follow_x = PREFS['twig_follow_x'].val,\
 		twig_follow_y = PREFS['twig_follow_y'].val,\
 		twig_follow_z = PREFS['twig_follow_z'].val,\
+		do_variation = PREFS['do_variation'].val,\
+		variation_seed = PREFS['variation_seed'].val,\
+		variation_orientation = PREFS['variation_orientation'].val,\
+		variation_scale = PREFS['variation_scale'].val,\
 	)
+	
 	
 	time4 = Blender.sys.time() # time print
 	print '%.4f sec' % (time4-time3)
@@ -2345,21 +2544,27 @@ def buildTree(ob_curve, single=False):
 		do_uv_blend_layer = do_uv_blend_layer,\
 		do_cap_ends = PREFS['do_cap_ends'].val
 	)
-	"""
+	
 	if PREFS['do_leaf'].val:
 		ob_leaf = getObChild(ob_mesh, 'Mesh')
 		if not ob_leaf: # New object
-			mesh_leaf = bpy.data.meshes.new('tree_' + ob_curve.name)
+			mesh_leaf = bpy.data.meshes.new('leaf_' + ob_curve.name)
 			ob_leaf = newObChild(ob_mesh, mesh_leaf)
 		else:
 			mesh_leaf = ob_leaf.getData(mesh=1)
 			ob_leaf.setMatrix(Matrix())
 		
+		leaf_fill_ob_bounds = getObFromName(PREFS['leaf_fill_ob_bounds'].val)
+		print "LEAF!!!"
 		mesh_leaf = t.toLeafMesh(mesh_leaf,\
 			leaf_branch_limit = PREFS['leaf_branch_limit'].val,\
 			leaf_size = PREFS['leaf_size'].val,\
+			
+			leaf_fill = PREFS['leaf_fill'].val,\
+			leaf_fill_count = PREFS['leaf_fill_count'].val,\
+			leaf_fill_ob_bounds = leaf_fill_ob_bounds,\
 		)
-	"""
+	
 	mesh.calcNormals()
 	
 	if PREFS['do_material'].val:
@@ -2460,22 +2665,30 @@ def buildTree(ob_curve, single=False):
 	#mesh.update()
 	bpy.data.scenes.active.update()
 
-def do_pref_read(e,v):
+def do_pref_read(e=0,v=0, quiet=False):
+	'''
+	We dont care about e and v values, only there because its a callback
+	'''
 	sce = bpy.data.scenes.active
 	ob = sce.objects.active
 	
 	if not ob:
-		Blender.Draw.PupMenu('No active curve object')
+		if not quiet:
+			Blender.Draw.PupMenu('No active curve object')
+		return
 	
 	if ob.type != 'Curve':
 		ob = ob.parent
 	
 	if ob.type != 'Curve':
-		Blender.Draw.PupMenu('No active curve object')
+		if not quiet:
+			Blender.Draw.PupMenu('No active curve object')
 		return
 	
 	if not IDProp2Prefs(ob.properties, PREFS):
-		Blender.Draw.PupMenu('Curve object has no settings stored on it')
+		if not quiet:
+			Blender.Draw.PupMenu('Curve object has no settings stored on it')
+		return
 	
 	Blender.Draw.Redraw()
 
@@ -2602,47 +2815,20 @@ def gui():
 	xtmp = x
 	
 	# ---------- ---------- ---------- ----------
-	Blender.Draw.BeginAlign()
-	PREFS['do_cap_ends'] =	Draw.Toggle('Cap Ends',EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['do_cap_ends'].val,		'Add faces onto branch endpoints'); xtmp += but_width*2;
-	PREFS['do_subsurf'] =	Draw.Toggle('SubSurf',EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['do_subsurf'].val,		'Enable subsurf for newly generated objects'); xtmp += but_width*2;
-	Blender.Draw.EndAlign()
-	y-=but_height+MARGIN
-	xtmp = x
 	
-	# ---------- ---------- ---------- ----------
-	Blender.Draw.BeginAlign()
-	PREFS['seg_density'] =	Draw.Number('Segment Spacing',EVENT_UPDATE, xtmp, y, but_width*4, but_height, PREFS['seg_density'].val,	0.05, 10.0,	'Scale the limit points collapse, that are closer then the branch width'); xtmp += but_width*4;
 	
-	y-=but_height
-	xtmp = x
-
-	# ---------- ---------- ---------- ----------
-	PREFS['seg_density_angle'] =	Draw.Number('Angle Spacing',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['seg_density_angle'].val,	0.0, 180.0,	'Segments above this angle will not collapse (lower value for more detail)'); xtmp += but_width*2;
-	PREFS['seg_density_radius'] =	Draw.Number('Radius Spacing',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['seg_density_radius'].val,	0.0, 1.0,	'Segments above this difference in radius will not collapse (lower value for more detail)'); xtmp += but_width*2;
-	
-	y-=but_height
-	xtmp = x
-	# ---------- ---------- ---------- ----------
-	
-	PREFS['seg_joint_compression'] =	Draw.Number('Joint Width',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['seg_joint_compression'].val,	0.1, 2.0,	'Edge loop spacing around branch join, lower value for less webed joins'); xtmp += but_width*2;
-	PREFS['seg_joint_smooth'] =	Draw.Number('Joint Smooth',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['seg_joint_smooth'].val,	0.0, 1.0,	'Edge loop spacing around branch join, lower value for less webed joins'); xtmp += but_width*2;
-	
-	y-=but_height
-	xtmp = x
-	# ---------- ---------- ---------- ----------
-	
-	PREFS['connect_sloppy'] =	Draw.Number('Connect Limit',EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['connect_sloppy'].val,	0.1, 2.0,	'Strictness when connecting branches'); xtmp += but_width*2;
-	PREFS['connect_base_trim'] =	Draw.Number('Trim Base',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['connect_base_trim'].val,	0.0, 2.0,	'Trim branch base to better connect with parent branch'); xtmp += but_width*2;
-	Blender.Draw.EndAlign()
-	y-=but_height+MARGIN
-	xtmp = x
-	# ---------- ---------- ---------- ----------
 	
 	Blender.Draw.BeginAlign()
 	PREFS['do_twigs'] =	Draw.Toggle('Generate Twigs',EVENT_UPDATE_AND_UI, xtmp, y, but_width*2, but_height, PREFS['do_twigs'].val,	'Generate child branches based existing branches'); xtmp += but_width*2;
 	if PREFS['do_twigs'].val:
 		
 		PREFS['twig_ratio'] =	Draw.Number('Twig Multiply',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['twig_ratio'].val, 0.01, 500.0,	'How many twigs to generate per branch'); xtmp += but_width*2;
+		y-=but_height
+		xtmp = x
+		
+		# ---------- ---------- ---------- ----------
+		PREFS['twig_select_mode'] =	Draw.Menu('Branch Selection Method%t|From Short%x0|From Long%x1|From Straight%x2|From Bent%x3|',EVENT_UPDATE_AND_UI, xtmp, y, but_width*2, but_height, PREFS['twig_select_mode'].val,	'Select branches to use as twigs based on this attribute'); xtmp += but_width*2;
+		PREFS['twig_select_factor'] =	Draw.Number('From Factor',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['twig_select_factor'].val, 0.0, 16,	'Select branches, lower value is more strict and will give you less variation'); xtmp += but_width*2;
 		y-=but_height
 		xtmp = x
 		
@@ -2706,7 +2892,6 @@ def gui():
 	
 	
 	
-	"""
 	Blender.Draw.BeginAlign()
 	if PREFS['do_leaf'].val == 0:
 		but_width_tmp = but_width*2
@@ -2719,37 +2904,30 @@ def gui():
 		y-=but_height
 		xtmp = x
 		
-		PREFS['leaf_branch_limit'] =	Draw.Number('Branch Limit',	EVENT_UPDATE, xtmp, y, but_width*4, but_height, PREFS['leaf_branch_limit'].val,	0.1, 2.0,	'Maximum thichness where a branch can bare leaves'); xtmp += but_width*4;
+		# Dont use yet
+		# PREFS['leaf_branch_limit'] =	Draw.Number('Branch Limit',	EVENT_UPDATE, xtmp, y, but_width*4, but_height, PREFS['leaf_branch_limit'].val,	0.1, 2.0,	'Maximum thichness where a branch can bare leaves'); xtmp += but_width*4;
 		
-		'''
-		PREFS['do_uv_uscale'] =	Draw.Toggle('U-Scale',	EVENT_UPDATE, xtmp, y, but_width, but_height, PREFS['do_uv_uscale'].val,		'Scale the width according to the face size (will NOT tile)'); xtmp += but_width;
-		PREFS['do_uv_keep_vproportion'] =	Draw.Toggle('V-Aspect',	EVENT_UPDATE, xtmp, y, but_width, but_height, PREFS['do_uv_keep_vproportion'].val,		'Correct the UV aspect with the branch width'); xtmp += but_width;
-		PREFS['do_uv_vnormalize'] =	Draw.Toggle('V-Normaize',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['do_uv_vnormalize'].val,		'Scale the UVs to fit onto the image verticaly'); xtmp += but_width*2;
+		if PREFS['leaf_fill'].val == 0:
+			but_width_tmp = but_width*2
+		else:
+			but_width_tmp = but_width*4
 		
+		PREFS['leaf_fill'] =	Draw.Toggle('Fill Object', EVENT_UPDATE_AND_UI, xtmp, y, but_width*2, but_height, PREFS['leaf_fill'].val,		'Fill an object with leaves'); xtmp += but_width*2;
+		if PREFS['leaf_fill'].val:
+			PREFS['leaf_fill_ob_bounds'] =	Draw.String('OB Bound: ',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['leaf_fill_ob_bounds'].val, 64,	'Fill this object with leaves', do_ob_check); xtmp += but_width*2;
+			
+			# ---------- ---------- ---------- ----------
+			y-=but_height
+			xtmp = x
+			
+			PREFS['leaf_fill_count'] =	Draw.Number('Fill #',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['leaf_fill_count'].val, 10, 100000,	'Number of leaves to fill in'); xtmp += but_width*2;
+			PREFS['leaf_size'] =	Draw.Number('Size',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['leaf_size'].val, 0.001, 10.0,	'size of the leaf'); xtmp += but_width*2;
 		
-		
-		y-=but_height
-		xtmp = x
-		# ---------- ---------- ---------- ----------
-		
-		PREFS['uv_x_scale'] =	Draw.Number('Scale U',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['uv_x_scale'].val,	0.01, 10.0,	'Edge loop spacing around branch join, lower value for less webed joins'); xtmp += but_width*2;
-		PREFS['uv_y_scale'] =	Draw.Number('Scale V',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['uv_y_scale'].val,	0.01, 10.0,	'Edge loop spacing around branch join, lower value for less webed joins'); xtmp += but_width*2;
-		
-		y-=but_height
-		xtmp = x
-		# ---------- ---------- ---------- ----------
-		
-		PREFS['image_main'] =	Draw.String('IM: ',	EVENT_UPDATE, xtmp, y, but_width*3, but_height, PREFS['image_main'].val, 64,	'Image to apply to faces'); xtmp += but_width*3;
-		Draw.PushButton('Use Active',	EVENT_UPDATE, xtmp, y, but_width, but_height,	'Get the image from the active image window', do_active_image); xtmp += but_width;
-		'''
 	Blender.Draw.EndAlign()
 	
 	y-=but_height+MARGIN
 	xtmp = x
 	# ---------- ---------- ---------- ----------
-	"""
-	
-	
 	
 	
 	Blender.Draw.BeginAlign()
@@ -2804,7 +2982,13 @@ def gui():
 	# ---------- ---------- ---------- ----------
 	
 	Blender.Draw.BeginAlign()
-	PREFS['do_armature'] =	Draw.Toggle('Generate Armature & Skin Mesh',	EVENT_UPDATE_AND_UI, xtmp, y, but_width*4, but_height, PREFS['do_armature'].val,	'Generate Armatuer'); xtmp += but_width*4;
+	if PREFS['do_armature'].val == 0:
+		but_width_tmp = but_width*2
+	else:
+		but_width_tmp = but_width*4
+	
+	Blender.Draw.BeginAlign()
+	PREFS['do_armature'] =	Draw.Toggle('Generate Motion',	EVENT_UPDATE_AND_UI, xtmp, y, but_width_tmp, but_height, PREFS['do_armature'].val,	'Generate Armatuer animation and apply to branches'); xtmp += but_width_tmp;
 	
 	# ---------- ---------- ---------- ----------
 	if PREFS['do_armature'].val:
@@ -2840,6 +3024,67 @@ def gui():
 	xtmp = x
 	
 	
+	
+	
+	# ---------- ---------- ---------- ----------
+	
+	Blender.Draw.BeginAlign()
+	PREFS['do_variation'] =	Draw.Toggle('Generate Variation',	EVENT_UPDATE_AND_UI, xtmp, y, but_width*2, but_height, PREFS['do_variation'].val,	'Create a variant by moving the branches'); xtmp += but_width*2;
+	
+	# ---------- ---------- ---------- ----------
+	if PREFS['do_variation'].val:
+		PREFS['variation_seed'] =		Draw.Number('Rand Seed',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['variation_seed'].val,	1, 100000,	'Change this to get a different variation'); xtmp += but_width*2;
+		y-=but_height
+		xtmp = x
+		
+		
+		PREFS['variation_orientation'] =		Draw.Number('Orientation',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['variation_orientation'].val,	0, 1.0,	'Randomize rotation of the branch around its parent'); xtmp += but_width*2;
+		PREFS['variation_scale'] =	Draw.Number('Scale',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['variation_scale'].val,	0.0, 1.0,	'Randomize the scale of branches'); xtmp += but_width*2;
+	
+	Blender.Draw.EndAlign()
+	
+	y-=but_height+(MARGIN*2)
+	xtmp = x
+	
+	
+	
+	# ---------- ---------- ---------- ----------
+	Blender.Draw.BeginAlign()
+	PREFS['seg_density'] =	Draw.Number('Segment Spacing',EVENT_UPDATE, xtmp, y, but_width*4, but_height, PREFS['seg_density'].val,	0.05, 10.0,	'Scale the limit points collapse, that are closer then the branch width'); xtmp += but_width*4;
+	
+	y-=but_height
+	xtmp = x
+
+	# ---------- ---------- ---------- ----------
+	PREFS['seg_density_angle'] =	Draw.Number('Angle Spacing',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['seg_density_angle'].val,	0.0, 180.0,	'Segments above this angle will not collapse (lower value for more detail)'); xtmp += but_width*2;
+	PREFS['seg_density_radius'] =	Draw.Number('Radius Spacing',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['seg_density_radius'].val,	0.0, 1.0,	'Segments above this difference in radius will not collapse (lower value for more detail)'); xtmp += but_width*2;
+	
+	y-=but_height
+	xtmp = x
+	# ---------- ---------- ---------- ----------
+	
+	PREFS['seg_joint_compression'] =	Draw.Number('Joint Width',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['seg_joint_compression'].val,	0.1, 2.0,	'Edge loop spacing around branch join, lower value for less webed joins'); xtmp += but_width*2;
+	PREFS['seg_joint_smooth'] =	Draw.Number('Joint Smooth',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['seg_joint_smooth'].val,	0.0, 1.0,	'Edge loop spacing around branch join, lower value for less webed joins'); xtmp += but_width*2;
+	
+	y-=but_height
+	xtmp = x
+	# ---------- ---------- ---------- ----------
+	
+	PREFS['connect_sloppy'] =	Draw.Number('Connect Limit',EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['connect_sloppy'].val,	0.1, 2.0,	'Strictness when connecting branches'); xtmp += but_width*2;
+	PREFS['connect_base_trim'] =	Draw.Number('Trim Base',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['connect_base_trim'].val,	0.0, 2.0,	'Trim branch base to better connect with parent branch'); xtmp += but_width*2;
+	Blender.Draw.EndAlign()
+	y-=but_height+MARGIN
+	xtmp = x
+	
+	# ---------- ---------- ---------- ----------
+	Blender.Draw.BeginAlign()
+	PREFS['do_cap_ends'] =	Draw.Toggle('Cap Ends',EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['do_cap_ends'].val,		'Add faces onto branch endpoints'); xtmp += but_width*2;
+	PREFS['do_subsurf'] =	Draw.Toggle('SubSurf',EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['do_subsurf'].val,		'Enable subsurf for newly generated objects'); xtmp += but_width*2;
+	Blender.Draw.EndAlign()
+	y-=but_height+MARGIN
+	xtmp = x
+	
+	
 	# ---------- ---------- ---------- ----------
 	Blender.Draw.BeginAlign()
 	Draw.PushButton('Read Active Prefs',	EVENT_REDRAW, xtmp, y, but_width*2, but_height,	'Read the ID Property settings from the active curve object', do_pref_read); xtmp += but_width*2;
@@ -2869,4 +3114,7 @@ def gui():
 	
 
 if __name__ == '__main__':
+	# Read the active objects prefs on load. if they exist
+	do_pref_read(quiet=True)
+	
 	Draw.Register(gui, evt, bevt)
