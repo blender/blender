@@ -117,12 +117,14 @@ static int imasel_has_func(SpaceImaSel *simasel)
 	return 0;
 }
 
-/* ugly, needs to be moved to platform specific files - elubie */
-#if defined WIN32 || defined __BeOS
+#if defined __BeOS
 static int fnmatch(const char *pattern, const char *string, int flags)
 {
 	return 0;
 }
+#elif defined WIN32 && !defined _LIBC
+	/* use fnmatch included in blenlib */
+	#include "BLI_fnmatch.h"
 #else
 	#include <fnmatch.h>
 #endif
