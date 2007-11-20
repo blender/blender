@@ -3291,29 +3291,23 @@ EditBone * subdivideByAngle(ReebArc *arc, ReebNode *head, ReebNode *tail)
 	EditBone *lastBone = NULL;
 	if (G.scene->toolsettings->skgen_options & SKGEN_CUT_ANGLE)
 	{
+		ReebArcIterator iter;
+		EmbedBucket *current = NULL;
+		EmbedBucket *previous = NULL;
 		EditBone *child = NULL;
 		EditBone *parent = NULL;
 		float angleLimit = (float)cos(G.scene->toolsettings->skgen_angle_limit * M_PI / 180.0f);
-		int index = 0;
-		int stride = 1;
-
-		// If head is the highest node, invert stride and start index
-		if (head == arc->v2)
-		{
-			stride *= -1;
-			index = arc->bcount -1;
-		}
 		
 		parent = add_editbone("Bone");
 		VECCOPY(parent->head, head->p);
 		
-		for(index += stride; index >= 0 && index < arc->bcount; index += stride)
+		for(initArcIterator(&iter, arc, head), previous = nextBucket(&iter), current = nextBucket(&iter); current; previous = current, current = nextBucket(&iter))
 		{
 			float vec1[3], vec2[3];
 			float len1, len2;
 
-			VecSubf(vec1, arc->buckets[index - stride].p, parent->head);
-			VecSubf(vec2, arc->buckets[index].p, arc->buckets[index - stride].p);
+			VecSubf(vec1, previous->p, parent->head);
+			VecSubf(vec2, current->p, previous->p);
 
 			len1 = Normalize(vec1);
 			len2 = Normalize(vec2);
@@ -3322,7 +3316,7 @@ EditBone * subdivideByAngle(ReebArc *arc, ReebNode *head, ReebNode *tail)
 
 			if (len1 > 0.0f && len2 > 0.0f && Inpf(vec1, vec2) < angleLimit)
 			{
-				VECCOPY(parent->tail, arc->buckets[index - stride].p);
+				VECCOPY(parent->tail, previous->p);
 
 				child = add_editbone("Bone");
 				VECCOPY(child->head, parent->tail);
@@ -3340,48 +3334,146 @@ EditBone * subdivideByAngle(ReebArc *arc, ReebNode *head, ReebNode *tail)
 	return lastBone;
 }
 
+float calcCorrelation(ReebArc *arc, int start, int end, float v0[3], float n[3])
+{
+	int len = 2 + abs(end - start);
+	
+	if (len > 2)
+	{
+		ReebArcIterator iter;
+		EmbedBucket *bucket = NULL;
+		float avg_t = 0.0f;
+		float s_t = 0.0f;
+		float s_xyz = 0.0f;
+		
+		/* First pass, calculate average */
+		for(initArcIterator2(&iter, arc, start, end), bucket = nextBucket(&iter); bucket; bucket = nextBucket(&iter))
+		{
+			float v[3];
+			
+			VecSubf(v, bucket->p, v0);
+			avg_t += Inpf(v, n);
+		}
+		
+		avg_t /= Inpf(n, n);
+		avg_t += 1.0f; /* adding start (0) and end (1) values */
+		avg_t /= len;
+		
+		/* Second pass, calculate s_xyz and s_t */
+		for(initArcIterator2(&iter, arc, start, end), bucket = nextBucket(&iter); bucket; bucket = nextBucket(&iter))
+		{
+			float v[3], d[3];
+			float dt;
+			
+			VecSubf(v, bucket->p, v0);
+			Projf(d, v, n);
+			VecSubf(v, v, d);
+			
+			dt = VecLength(d) - avg_t;
+			
+			s_t += dt * dt;
+			s_xyz += Inpf(v, v);
+		}
+		
+		/* adding start(0) and end(1) values to s_t */
+		s_t += (avg_t * avg_t) + (1 - avg_t) * (1 - avg_t);
+		
+		return 1.0f - s_xyz / s_t; 
+	}
+	else
+	{
+		return 1.0f;
+	}
+}
+
+EditBone * subdivideByCorrelation(ReebArc *arc, ReebNode *head, ReebNode *tail)
+{
+	ReebArcIterator iter;
+	float n[3];
+	float CORRELATION_THRESHOLD = G.scene->toolsettings->skgen_correlation_limit;
+	EditBone *lastBone = NULL;
+	
+	/* init iterator to get start and end from head */
+	initArcIterator(&iter, arc, head);
+	
+	/* Calculate overall */
+	VecSubf(n, arc->buckets[iter.end].p, head->p);
+	
+	if (G.scene->toolsettings->skgen_options & SKGEN_CUT_CORRELATION && 
+		calcCorrelation(arc, iter.start, iter.end, head->p, n) < CORRELATION_THRESHOLD)
+	{
+		EmbedBucket *bucket = NULL;
+		EmbedBucket *previous = NULL;
+		EditBone *child = NULL;
+		EditBone *parent = NULL;
+		int boneStart = iter.start;
+
+		parent = add_editbone("Bone");
+		VECCOPY(parent->head, head->p);
+		
+		for(previous = nextBucket(&iter), bucket = nextBucket(&iter); bucket; previous = bucket, bucket = nextBucket(&iter))
+		{
+			/* Calculate normal */
+			VecSubf(n, bucket->p, parent->head);
+
+			if (calcCorrelation(arc, boneStart, iter.index, parent->head, n) < CORRELATION_THRESHOLD)
+			{
+				VECCOPY(parent->tail, previous->p);
+
+				child = add_editbone("Bone");
+				VECCOPY(child->head, parent->tail);
+				child->parent = parent;
+				child->flag |= BONE_CONNECTED;
+				
+				parent = child; // new child is next parent
+				boneStart = iter.index; // start from end
+			}
+		}
+
+		VECCOPY(parent->tail, tail->p);
+		
+		lastBone = parent; /* set last bone in the chain */
+	}
+	
+	return lastBone;
+}
+
 EditBone * subdivideByLength(ReebArc *arc, ReebNode *head, ReebNode *tail)
 {
 	EditBone *lastBone = NULL;
 	if ((G.scene->toolsettings->skgen_options & SKGEN_CUT_LENGTH) &&
 		arcLengthRatio(arc) >= G.scene->toolsettings->skgen_length_ratio)
 	{
+		ReebArcIterator iter;
+		EmbedBucket *bucket = NULL;
+		EmbedBucket *previous = NULL;
 		EditBone *child = NULL;
 		EditBone *parent = NULL;
-		int same = 0;
-		int index = 0;
-		int stride = 1;
 		float lengthLimit = G.scene->toolsettings->skgen_length_limit;
+		int same = 0;
 		
-		//printf("----------new arc---------\n");
-		
-		// If head is the highest node, invert stride and start index
-		if (head == arc->v2)
-		{
-			stride *= -1;
-			index = arc->bcount -1;
-		}
+		initArcIterator(&iter, arc, head);
 		
 		parent = add_editbone("Bone");
 		VECCOPY(parent->head, head->p);
-		
-		while (index >= 0 && index < arc->bcount)
+
+		bucket = nextBucket(&iter);
+		while (bucket != NULL)
 		{
 			float *vec0 = NULL;
-			float *vec1 = arc->buckets[index].p;
+			float *vec1 = bucket->p;
 
 			/* first bucket. Previous is head */
-			if (index == 0 || index == arc->bcount - 1)
+			if (previous == NULL)
 			{
 				vec0 = head->p;
 			}
-			/* Previous are valid buckets */
+			/* Previous is a valid bucket */
 			else
 			{
-				vec0 = arc->buckets[index - 1].p;
+				vec0 = previous->p;
 			}
 			
-			//printf("distance vec1 -> head = %f\n", VecLenf(vec1, parent->head));
 			/* If lengthLimit hits the current segment */
 			if (VecLenf(vec1, parent->head) > lengthLimit)
 			{
@@ -3418,8 +3510,6 @@ EditBone * subdivideByLength(ReebArc *arc, ReebNode *head, ReebNode *tail)
 				{
 					float dv[3];
 					
-					//printf("same\n");
-					
 					VecSubf(dv, vec1, vec0);
 					Normalize(dv);
 					 
@@ -3428,8 +3518,6 @@ EditBone * subdivideByLength(ReebArc *arc, ReebNode *head, ReebNode *tail)
 					VecAddf(parent->tail, parent->tail, parent->head);
 				}
 				
-				//printvecf("new joint", parent->tail);
-
 				child = add_editbone("Bone");
 				VECCOPY(child->head, parent->tail);
 				child->parent = parent;
@@ -3441,9 +3529,8 @@ EditBone * subdivideByLength(ReebArc *arc, ReebNode *head, ReebNode *tail)
 			}
 			else
 			{
-				//printf("++next bucket++\n");
-				// Next bucket
-				index += stride;
+				previous = bucket;
+				bucket = nextBucket(&iter);
 				same = 0; // Reset same
 			}
 		}
@@ -3494,6 +3581,7 @@ void generateSkeletonFromReebGraph(ReebGraph *rg)
 		EditBone *firstBone = NULL;
 		EditBone *parentBone = NULL;
 		ReebNode *head, *tail;
+		int i;
 		
 		/* if arc is a symetry axis, internal bones go up the tree */		
 		if (arc->flags == 1 && arc->v2->degree != 1)
@@ -3527,23 +3615,20 @@ void generateSkeletonFromReebGraph(ReebGraph *rg)
 			}
 		}
 		
-
-		/* Subdivide by length, then by angle */		
-		if (G.scene->toolsettings->skgen_options & SKGEN_LENGTH_FIRST)
+		/* Loop over subdivision methods */	
+		for(i = 0; lastBone == NULL && i < SKGEN_SUB_TOTAL; i++)
 		{
-			lastBone = subdivideByLength(arc, head, tail);
-			if (lastBone == NULL)
+			switch(G.scene->toolsettings->skgen_subdivisions[i])
 			{
-				lastBone = subdivideByAngle(arc, head, tail);
-			}
-		}
-		/* Or angle, then length */
-		else
-		{
-			lastBone = subdivideByAngle(arc, head, tail);
-			if (lastBone == NULL)
-			{
-				lastBone = subdivideByLength(arc, head, tail);
+				case SKGEN_SUB_LENGTH:
+					lastBone = subdivideByLength(arc, head, tail);
+					break;
+				case SKGEN_SUB_ANGLE:
+					lastBone = subdivideByAngle(arc, head, tail);
+					break;
+				case SKGEN_SUB_CORRELATION:
+					lastBone = subdivideByCorrelation(arc, head, tail);
+					break;
 			}
 		}
 	

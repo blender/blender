@@ -6768,7 +6768,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 		
-		if (main->versionfile < 245 || main->subversionfile < 8)
+		if (main->versionfile < 245 || main->subversionfile < 9)
 		{
 			/* initialize skeleton generation toolsettings */
 			for(sce=main->scene.first; sce; sce = sce->id.next)
@@ -6779,10 +6779,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				sce->toolsettings->skgen_angle_limit	 		= 45.0f;
 				sce->toolsettings->skgen_length_ratio			= 1.3f;
 				sce->toolsettings->skgen_length_limit			= 1.5f;
+				sce->toolsettings->skgen_correlation_limit		= 0.98f;
 				sce->toolsettings->skgen_postpro = SKGEN_SMOOTH;
 				sce->toolsettings->skgen_postpro_passes = 1;
-				sce->toolsettings->skgen_options = SKGEN_FILTER_INTERNAL|SKGEN_FILTER_EXTERNAL|SKGEN_REPOSITION|SKGEN_CUT_LENGTH|SKGEN_CUT_ANGLE;
-
+				sce->toolsettings->skgen_options = SKGEN_FILTER_INTERNAL|SKGEN_FILTER_EXTERNAL|SKGEN_REPOSITION|SKGEN_CUT_LENGTH|SKGEN_SUB_CORRELATION;
+				sce->toolsettings->skgen_subdivisions[0] = SKGEN_SUB_LENGTH;
+				sce->toolsettings->skgen_subdivisions[1] = SKGEN_SUB_CORRELATION;
+				sce->toolsettings->skgen_subdivisions[2] = SKGEN_SUB_ANGLE;
 			}
 		}
 	}

@@ -1922,6 +1922,62 @@ void weightToVCol(EditMesh *em)
 	}
 }
 
+/****************************************** BUCKET ITERATOR **************************************************/
+
+void initArcIterator(ReebArcIterator *iter, ReebArc *arc, ReebNode *head)
+{
+	iter->arc = arc;
+	
+	if (head == arc->v1)
+	{
+		iter->start = 0;
+		iter->end = arc->bcount - 1;
+		iter->stride = 1;
+	}
+	else
+	{
+		iter->start = arc->bcount - 1;
+		iter->end = 0;
+		iter->stride = -1;
+	}
+	
+	iter->index = iter->start - iter->stride;
+}
+
+void initArcIterator2(ReebArcIterator *iter, ReebArc *arc, int start, int end)
+{
+	iter->arc = arc;
+	
+	iter->start = start;
+	iter->end = end;
+	
+	if (end > start)
+	{
+		iter->stride = 1;
+	}
+	else
+	{
+		iter->stride = -1;
+	}
+
+	iter->index = iter->start - iter->stride;
+}
+
+EmbedBucket * nextBucket(ReebArcIterator *iter)
+{
+	EmbedBucket *result = NULL;
+	
+	if (iter->index != iter->end)
+	{
+		iter->index += iter->stride;
+		result = &(iter->arc->buckets[iter->index]);
+	}
+	
+	return result;
+}
+
+/****************************************** MAIN EDIT METHOD **************************************************/
+
 void generateSkeleton(void)
 {
 	EditMesh *em = G.editMesh;

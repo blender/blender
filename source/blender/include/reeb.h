@@ -74,6 +74,14 @@ typedef struct ReebArc {
 	int flags;
 } ReebArc;
 
+typedef struct ReebArcIterator {
+	struct ReebArc	*arc;
+	int index;
+	int start;
+	int end;
+	int stride;
+} ReebArcIterator;
+
 struct EditMesh;
 
 void weightToHarmonic(struct EditMesh *em);
@@ -84,6 +92,10 @@ void renormalizeWeight(struct EditMesh *em, float newmax);
 ReebGraph * generateReebGraph(struct EditMesh *me, int subdivisions);
 
 #define OTHER_NODE(arc, node) ((arc->v1 == node) ? arc->v2 : arc->v1)
+
+void initArcIterator(struct ReebArcIterator *iter, struct ReebArc *arc, struct ReebNode *head);
+void initArcIterator2(struct ReebArcIterator *iter, struct ReebArc *arc, int start, int end);
+struct EmbedBucket * nextBucket(struct ReebArcIterator *iter);
 
 int subtreeDepth(ReebNode *node);
 int countConnectedArcs(ReebGraph *rg, ReebNode *node);
