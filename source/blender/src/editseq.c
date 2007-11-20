@@ -777,7 +777,7 @@ void mouse_select_seq(void)
 	if (marker) {
 		int oldflag;
 		/* select timeline marker */
-		if ((G.qual & LR_SHIFTKEY)==0) {
+		if (G.qual & LR_SHIFTKEY) {
 			oldflag= marker->flag;
 			deselect_markers(0, 0);
 			

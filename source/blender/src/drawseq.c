@@ -916,7 +916,7 @@ static void draw_extra_seqinfo(void)
 			/* CURRENT */
 			se= give_stripelem(last_seq,  (G.scene->r.cfra));
 			if(se) {
-				sprintf(str, "Cur: %s", se->name);
+				sprintf(str, "Cur: %s%s", last_seq->strip->dir, se->name);
 				glRasterPos3f(xco,  yco, 0.0);
 				BMF_DrawString(G.font, str);
 				xco += xfac*BMF_GetStringWidth(G.font, str) +10.0*xfac;
@@ -934,20 +934,21 @@ static void draw_extra_seqinfo(void)
 				glRasterPos3f(xco,  yco, 0.0);
 				BMF_DrawString(G.font, str);
 				xco += xfac*BMF_GetStringWidth(G.font, str) +30.0*xfac;
-	
-				/* orig size */
-				sprintf(str, "OrigSize: %d x %d", last_seq->strip->orx, last_seq->strip->ory);
-				glRasterPos3f(xco,  yco, 0.0);
-				BMF_DrawString(G.font, str);
-				xco += xfac*BMF_GetStringWidth(G.font, str) +30.0*xfac;
 			}
 		} else { /* single image */
 			if (last_seq->strip) {
-				sprintf(str, "Single: %s   len: %d", last_seq->strip->stripdata->name, last_seq->enddisp-last_seq->startdisp);
+				sprintf(str, "Single: %s%s   len: %d", last_seq->strip->dir, last_seq->strip->stripdata->name, last_seq->enddisp-last_seq->startdisp);
 				glRasterPos3f(xco,  yco, 0.0);
 				BMF_DrawString(G.font, str);
 				xco += xfac*BMF_GetStringWidth(G.font, str) +30.0*xfac;
 			}
+		}
+		/* orig size */
+		if(last_seq->strip) {
+			sprintf(str, "OrigSize: %d x %d", last_seq->strip->orx, last_seq->strip->ory);
+			glRasterPos3f(xco,  yco, 0.0);
+			BMF_DrawString(G.font, str);
+			xco += xfac*BMF_GetStringWidth(G.font, str) +30.0*xfac;
 		}
 	}
 	else if(last_seq->type==SEQ_MOVIE) {
