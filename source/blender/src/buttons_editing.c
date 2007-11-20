@@ -2217,7 +2217,7 @@ static void editing_panel_modifiers(Object *ob)
 	if(yco < 0) uiNewPanelHeight(block, 204-yco);
 }
 
-static char *make_key_menu(Key *key)
+static char *make_key_menu(Key *key, int startindex)
 {
 	KeyBlock *kb;
 	int index= 1;
@@ -2227,7 +2227,7 @@ static char *make_key_menu(Key *key)
 	str= MEM_mallocN(index*40, "key string");
 	str[0]= 0;
 	
-	index= 1;
+	index= startindex;
 	for (kb = key->block.first; kb; kb=kb->next, index++) {
 		sprintf (item,  "|%s%%x%d", kb->name, index);
 		strcat(str, item);
@@ -2273,9 +2273,10 @@ static void editing_panel_shapes(Object *ob)
 	uiDefIconButBitS(block, TOG, OB_SHAPE_LOCK, B_LOCKKEY, icon, 10,150,25,20, &ob->shapeflag, 0, 0, 0, 0, "Always show the current Shape for this Object");
 	uiSetButLock(G.obedit==ob, "Unable to perform in EditMode");
 	uiDefIconBut(block, BUT, B_PREVKEY, ICON_TRIA_LEFT,		35,150,20,20, NULL, 0, 0, 0, 0, "Previous Shape Key");
-	strp= make_key_menu(key);
-	uiDefButS(block, MENU, B_SETKEY, strp,					55,150,20,20, &ob->shapenr, 0, 0, 0, 0, "Browses existing choices or adds NEW");
+	strp= make_key_menu(key, 1);
+	uiDefButS(block, MENU, B_SETKEY, strp,					55,150,20,20, &ob->shapenr, 0, 0, 0, 0, "Browse existing choices");
 	MEM_freeN(strp);
+	
 	uiDefIconBut(block, BUT, B_NEXTKEY, ICON_TRIA_RIGHT,	75,150,20,20, NULL, 0, 0, 0, 0, "Next Shape Key");
 	uiClearButLock();
 	uiDefBut(block, TEX, B_NAMEKEY, "",						95, 150, 190, 20, kb->name, 0.0, 31.0, 0, 0, "Current Shape Key name");
@@ -2289,9 +2290,14 @@ static void editing_panel_shapes(Object *ob)
 		uiDefButF(block, NUM, B_REDR, "Max ",				235,120, 75, 20, &kb->slidermax, -10.0, 10.0, 100, 1, "Maximum for slider");
 		uiBlockEndAlign(block);
 	}
-	if(key->type && ob->shapenr!=1)
+	if(key->type && ob->shapenr!=1) {
 		uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",	10, 90, 150,19, &kb->vgroup, 0.0, 31.0, 0, 0, "Vertex Weight Group name, to blend with Basis Shape");
 
+		strp= make_key_menu(key, 0);
+		uiDefButS(block, MENU, B_MODIFIER_RECALC, strp,		160, 90, 150,19, &kb->relative, 0.0, 0.0, 0, 0, "Shape used as a relative key");
+		MEM_freeN(strp);
+	}
+	
 	if(key->type==0)
 		uiDefButS(block, NUM, B_DIFF, "Slurph:",			10, 60, 150, 19, &(key->slurph), -500.0, 500.0, 0, 0, "Creates a delay in amount of frames in applying keypositions, first vertex goes first");
 	

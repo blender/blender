@@ -44,8 +44,8 @@ typedef struct KeyBlock {
 	
 	float pos;
 	float curval;
-	short type, adrcode;
-	int totelem;
+	short type, adrcode, relative, pad1;	/* relative == 0 means first key is reference */
+	int totelem, pad2;
 	
 	void *data;
 	float *weights;
