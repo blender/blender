@@ -1178,6 +1178,8 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 		VECCOPY(ob->loc, gob->loc);
 		VECCOPY(ob->rot, gob->rot);
 		VECCOPY(ob->size, gob->size);
+		
+		group_tag_recalc(gob->dup_group);
 	}
 	else {
 		VECCOPY(ob->loc, target->loc);
