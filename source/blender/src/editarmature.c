@@ -1076,6 +1076,19 @@ void delete_armature(void)
 	
 	TEST_EDITARMATURE;
 	if (okee("Erase selected bone(s)")==0) return;
+
+	/* Select mirrored bones */
+	if (arm->flag & ARM_MIRROR_EDIT) {
+		for (curBone=G.edbo.first; curBone; curBone=curBone->next) {
+			if (arm->layer & curBone->layer) {
+				if (curBone->flag & BONE_SELECTED) {
+					next = armature_bone_get_mirrored(curBone);
+					if (next)
+						next->flag |= BONE_SELECTED;
+				}
+			}
+		}
+	}
 	
 	/*  First erase any associated pose channel */
 	if (G.obedit->pose) {
@@ -1321,13 +1334,19 @@ void auto_align_armature(short mode)
 {
 	bArmature *arm= G.obedit->data;
 	EditBone *ebone;
+	EditBone *flipbone = NULL;
 	float	delta[3];
 	float	curmat[3][3];
 	float  	*cursor= give_cursor();
 		
 	for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
-		if(arm->layer & ebone->layer) {
-			if (ebone->flag & BONE_SELECTED) {
+		if (arm->layer & ebone->layer) {
+			if (arm->flag & ARM_MIRROR_EDIT)
+				flipbone = armature_bone_get_mirrored(ebone);
+			
+			if ((ebone->flag & BONE_SELECTED) || 
+				(flipbone && flipbone->flag & BONE_SELECTED)) 
+			{
 				/* specific method used to calculate roll depends on mode */
 				if (mode == 1) {
 					/* Z-Axis point towards cursor */
@@ -1386,7 +1405,7 @@ void auto_align_armature(short mode)
 					Mat3MulMat3(diffmat, imat, curmat);
 					
 					ebone->roll = atan2(diffmat[2][0], diffmat[2][2]);
-				}
+				}				
 			}
 		}
 	}
@@ -1713,11 +1732,24 @@ void adduplicate_armature(void)
 	EditBone	*firstDup=NULL;	/*	The beginning of the duplicated bones in the edbo list */
 	
 	countall(); // flushes selection!
+
+	/* Select mirrored bones */
+	if (arm->flag & ARM_MIRROR_EDIT) {
+		for (curBone=G.edbo.first; curBone; curBone=curBone->next) {
+			if (arm->layer & curBone->layer) {
+				if (curBone->flag & BONE_SELECTED) {
+					eBone = armature_bone_get_mirrored(curBone);
+					if (eBone)
+						eBone->flag |= BONE_SELECTED;
+				}
+			}
+		}
+	}
 	
 	/*	Find the selected bones and duplicate them as needed */
 	for (curBone=G.edbo.first; curBone && curBone!=firstDup; curBone=curBone->next){
-		if(arm->layer & curBone->layer) {
-			if (curBone->flag & BONE_SELECTED){
+		if (arm->layer & curBone->layer) {
+			if (curBone->flag & BONE_SELECTED) {
 				
 				eBone=MEM_callocN(sizeof(EditBone), "addup_editbone");
 				eBone->flag |= BONE_SELECTED;
@@ -2034,10 +2066,22 @@ void make_bone_parent(void)
 	return;
 }
 
+static void editbone_clear_parent(EditBone *ebone, int mode)
+{
+	if (ebone->parent) {
+		/* for nice selection */
+		ebone->parent->flag &= ~(BONE_TIPSEL);
+	}
+	
+	if(mode==1) ebone->parent= NULL;
+	ebone->flag &= ~BONE_CONNECTED;
+}
+
 void clear_bone_parent(void)
 {
 	bArmature *arm= G.obedit->data;
 	EditBone *ebone;
+	EditBone *flipbone = NULL;
 	short val;
 	
 	val= pupmenu("Clear Parent%t|Clear Parent%x1|Disconnect Bone%x2");
@@ -2046,13 +2090,13 @@ void clear_bone_parent(void)
 	for (ebone = G.edbo.first; ebone; ebone=ebone->next) {
 		if(arm->layer & ebone->layer) {
 			if(ebone->flag & BONE_SELECTED) {
-				if(ebone->parent) {
-					/* for nice selection */
-					ebone->parent->flag &= ~(BONE_TIPSEL);
+			
+				if(arm->flag & ARM_MIRROR_EDIT)
+					flipbone = armature_bone_get_mirrored(ebone);
 					
-					if(val==1) ebone->parent= NULL;
-					ebone->flag &= ~BONE_CONNECTED;
-				}
+				if (flipbone)
+					editbone_clear_parent(flipbone, val);
+				editbone_clear_parent(ebone, val);
 			}
 		}
 	}
@@ -3176,6 +3220,7 @@ void transform_armature_mirror_update(void)
 		}
 	}
 }
+
 
 
 
