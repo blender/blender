@@ -1888,12 +1888,42 @@ static void where_is_ik_bone(bPoseChannel *pchan, float ik_mat[][3])   // nr = t
 static void do_strip_modifiers(Object *armob, Bone *bone, bPoseChannel *pchan)
 {
 	bActionModifier *amod;
-	bActionStrip *strip;
+	bActionStrip *strip, *strip2;
 	float scene_cfra= G.scene->r.cfra;
+	int do_modif;
 
 	for (strip=armob->nlastrips.first; strip; strip=strip->next) {
-		if(scene_cfra>=strip->start && scene_cfra<=strip->end) {
+		do_modif=0;
+		
+		if (scene_cfra>=strip->start && scene_cfra<=strip->end)
+			do_modif=1;
+		
+		if ((scene_cfra > strip->end) && (strip->flag & ACTSTRIP_HOLDLASTFRAME)) {
+			do_modif=1;
 			
+			/* if there are any other strips active, ignore modifiers for this strip - 
+			 * 'hold' option should only hold action modifiers if there are 
+			 * no other active strips */
+			for (strip2=strip->next; strip2; strip2=strip2->next) {
+				if (strip2 == strip) continue;
+				
+				if (scene_cfra>=strip2->start && scene_cfra<=strip2->end) {
+					if (!(strip2->flag & ACTSTRIP_MUTE))
+						do_modif=0;
+				}
+			}
+			
+			/* if there are any later, activated, strips with 'hold' set, they take precedence, 
+			 * so ignore modifiers for this strip */
+			for (strip2=strip->next; strip2; strip2=strip2->next) {
+				if (scene_cfra < strip2->start) continue;
+				if ((strip2->flag & ACTSTRIP_HOLDLASTFRAME) && !(strip2->flag & ACTSTRIP_MUTE)) {
+					do_modif=0;
+				}
+			}
+		}
+		
+		if (do_modif) {
 			/* temporal solution to prevent 2 strips accumulating */
 			if(scene_cfra==strip->end && strip->next && strip->next->start==scene_cfra)
 				continue;
