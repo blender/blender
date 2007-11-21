@@ -271,7 +271,7 @@ DO_INLINE float dot_lfvector(lfVector *fLongVectorA, lfVector *fLongVectorB, uns
 	unsigned int i = 0;
 	float temp = 0.0;
 // schedule(guided, 2)
-#pragma omp parallel for reduction(+: temp) schedule(static)
+#pragma omp parallel for reduction(+: temp) private(i) schedule(static)
 	for(i = 0; i < verts; i++)
 	{
 		temp += INPR(fLongVectorA[i], fLongVectorB[i]);
@@ -287,8 +287,34 @@ DO_INLINE void add_lfvector_lfvector(lfVector *to, lfVector *fLongVectorA, lfVec
 	{
 		VECADD(to[i], fLongVectorA[i], fLongVectorB[i]);
 	}
-
 }
+/*
+#ifdef __SSE3__
+DO_INLINE void add_lfvector(lfVector *to, lfVector *fLongVectorA, unsigned int verts) {
+	__m128 v1, v2;
+	unsigned int i = 0;
+	
+	for(i = 0; i < verts; i++)
+	{
+		v1 = _mm_load_ps(to[i]);
+		v2 = _mm_load_ps(fLongVectorA[i]);
+		
+		v1 = _mm_add_ps(v1, v2);
+		
+		_mm_store_ps(to[i], v1);
+	}
+}
+#else */
+DO_INLINE void add_lfvector(lfVector *to, lfVector *fLongVectorA, unsigned int verts) {
+	unsigned int i = 0;
+
+	for(i = 0; i < verts; i++)
+	{
+		VECADD(to[i], to[i], fLongVectorA[i]);
+	}
+}
+// #endif
+
 /* A = B + C * float --> for big vector */
 DO_INLINE void add_lfvector_lfvectorS(lfVector *to, lfVector *fLongVectorA, lfVector *fLongVectorB, float bS, unsigned int verts)
 {
@@ -300,6 +326,76 @@ DO_INLINE void add_lfvector_lfvectorS(lfVector *to, lfVector *fLongVectorA, lfVe
 
 	}
 }
+
+/* A = A + B * float --> for big vector */
+// tested
+/*
+#ifdef __SSE3__
+DO_INLINE void add_lfvectorS(lfVector *to, lfVector *fLongVectorA, float bS, unsigned int verts) {
+	__m128 v1, v2, v3;
+	unsigned int i = 0;
+	
+	for(i = 0; i < verts; i++)
+	{
+		v1 = _mm_load_ps(to[i]);
+		v2 = _mm_load_ps(fLongVectorA[i]);
+		v3 = _mm_set1_ps(bS);
+		
+		v2 = _mm_mul_ps(v2, v3);
+		v1 = _mm_add_ps(v1, v2);
+		
+		_mm_store_ps(to[i], v1);
+	}
+}
+#else */
+DO_INLINE void add_lfvectorS(lfVector *to, lfVector *fLongVectorA, float bS, unsigned int verts) {
+	unsigned int i = 0;
+
+	for(i = 0; i < verts; i++)
+	{
+		VECADDS(to[i], to[i], fLongVectorA[i], bS);
+	}
+}
+// #endif
+
+
+// tested
+/*
+#ifdef __SSE3__
+DO_INLINE float add_lfvectorS_dot(lfVector *to, lfVector *fLongVectorA, float bS, unsigned int verts) {
+	register __m128 v1, v2, v3, v4;
+	unsigned int i = 0;
+	float temp;
+	
+	v4 = _mm_setzero_ps();
+// #pragma omp parallel for reduction(+: v4) private(i, v1, v2, v3) schedule(static)
+	for(i = 0; i < verts; i++)
+	{
+		v1 = _mm_load_ps(to[i]);
+		v2 = _mm_load_ps(fLongVectorA[i]);
+		v3 = _mm_set1_ps(bS);
+		
+		v2 = _mm_mul_ps(v2, v3);
+		v1 = _mm_add_ps(v1, v2);
+		
+		_mm_stream_ps(to[i], v1);
+		
+		v4 = _mm_add_ps(v4, _mm_mul_ps(v1,v1));
+	}
+	
+	v4 = _mm_hadd_ps(v4, v4);
+	v4 = _mm_hadd_ps(v4, v4);
+	_mm_store_ss(&temp, v4);
+	
+	return temp;
+}
+#else */
+DO_INLINE float add_lfvectorS_dot(lfVector *to, lfVector *fLongVectorA, float bS, unsigned int verts) {
+	add_lfvectorS(to, fLongVectorA, bS, verts);
+	return dot_lfvector(to, to, verts);
+}
+// #endif
+
 /* A = B * float + C * float --> for big vector */
 DO_INLINE void add_lfvectorS_lfvectorS(lfVector *to, lfVector *fLongVectorA, float aS, lfVector *fLongVectorB, float bS, unsigned int verts)
 {
@@ -412,8 +508,9 @@ DO_INLINE void mul_fvector_fmatrix(float *to, float *from, float matrix[3][4])
 
 /* 3x3 matrix multiplied by a vector */
 /* STATUS: verified */
+/*
 #ifdef __SSE3__
-DO_INLINE void mul_fmatrix_fvector(float *to, float matrix[3][4], float *from) {
+DO_INLINE void mul_fmatrix_fvector(float to[4], float matrix[3][4], float from[4]) {
 	__m128 v1, v2, v3, v4;
 	
 	v1 = _mm_load_ps(&matrix[0][0]);
@@ -431,14 +528,18 @@ DO_INLINE void mul_fmatrix_fvector(float *to, float matrix[3][4], float *from) {
 	
 	_mm_store_ps(to, v4);
 }
-#else
-DO_INLINE void mul_fmatrix_fvector(float *to, float matrix[3][4], float *from)
+#else */
+DO_INLINE void mul_fmatrix_fvector(float to[4], float matrix[3][4], float from[4])
 {
-	to[0] = INPR(matrix[0],from);
-	to[1] = INPR(matrix[1],from);
-	to[2] = INPR(matrix[2],from);
+	float temp[3] = {0,0,0};
+	
+	temp[0] = INPR(matrix[0],from);
+	temp[1] = INPR(matrix[1],from);
+	temp[2] = INPR(matrix[2],from);
+	
+	VECCOPY(to, temp);
 }
-#endif
+// #endif
 		
 /* 3x3 matrix multiplied by a 3x3 matrix */
 /* STATUS: verified */
@@ -538,9 +639,9 @@ DO_INLINE void mulsub_fmatrix_fmatrix(float to[3][3], float matrixA[3][3], float
 */
 /* 3x3 matrix multiplied+added by a vector */
 /* STATUS: verified */
-
+/*
 #ifdef __SSE3__
-DO_INLINE void muladd_fmatrix_fvector(float to[3], float matrix[3][4], float from[3]) {
+DO_INLINE void muladd_fmatrix_fvector(float to[4], float matrix[3][4], float from[4]) {
 	__m128 v1, v2, v3, v4;
 	
 	v1 = _mm_load_ps(&matrix[0][0]);
@@ -561,8 +662,8 @@ DO_INLINE void muladd_fmatrix_fvector(float to[3], float matrix[3][4], float fro
 
 	_mm_store_ps(to, v4);
 }
-#else
-DO_INLINE void muladd_fmatrix_fvector(float to[3], float matrix[3][4], float from[3])
+#else */
+DO_INLINE void muladd_fmatrix_fvector(float to[4], float matrix[3][4], float from[4])
 {
 	float temp[3] = { 0,0,0 };
 	
@@ -572,7 +673,7 @@ DO_INLINE void muladd_fmatrix_fvector(float to[3], float matrix[3][4], float fro
 	
 	VECADD(to, to, temp);
 }
-#endif
+// #endif
 
 /* 3x3 matrix multiplied+sub'ed by a vector */
 /*
@@ -660,27 +761,51 @@ DO_INLINE void mul_bfmatrix_S(fmatrix3x3 *matrix, float scalar)
 /* STATUS: verified */
 void mul_bfmatrix_lfvector( lfVector *to, fmatrix3x3 *from, lfVector *fLongVector)
 {
-	unsigned int i = 0;
-	float *tflongvector;
+	unsigned int i = 0, numverts = from[0].vcount;
+	// lfVector *tflongvector = create_lfvector(numverts);
 	float temp[4]={0,0,0,0};
 	
-	zero_lfvector(to, from[0].vcount);
+	zero_lfvector(to, numverts);
+	/*
+#pragma omp parallel sections private(i)
+{	
+#pragma omp section
+	{
+		for(i = numverts; i < numverts+from[0].scount; i++)
+		{
+			muladd_fmatrix_fvector(to[from[i].c], from[i].m, fLongVector[from[i].r]);
+			
+		}
+	}
+#pragma omp section
+	{
+		for(i = 0; i < numverts+from[0].scount; i++)
+		{
+			muladd_fmatrix_fvector(tflongvector[from[i].r], from[i].m, fLongVector[from[i].c]);
+		}
+	}
+}
 	
+	add_lfvector(to, tflongvector, numverts);
+	
+	del_lfvector(tflongvector);
+	*/
+	// alternative NON OpenMP code
 	/* process diagonal elements */	
+	
 	for(i = 0; i < from[0].vcount; i++)
 	{
 		mul_fmatrix_fvector(to[from[i].r], from[i].m, fLongVector[from[i].c]);
 	}
-
+	
 	/* process off-diagonal entries (every off-diagonal entry needs to be symmetric) */
-	// TODO: pragma below is wrong, correct it!
-// #pragma omp parallel for shared(to,from, fLongVector) private(i) 
 	
 	for(i = from[0].vcount; i < from[0].vcount+from[0].scount; i++)
 	{
 		muladd_fmatrix_fvector(to[from[i].c], from[i].m, fLongVector[from[i].r]);
 		muladd_fmatrix_fvector(to[from[i].r], from[i].m, fLongVector[from[i].c]);
 	}
+	
 }
 
 /* SPARSE SYMMETRIC add big matrix with big matrix: A = B + C*/
@@ -860,7 +985,7 @@ int implicit_init (Object *ob, ClothModifierData *clmd)
 
 	return 1;
 }
-int	implicit_free (ClothModifierData *clmd)
+int implicit_free (ClothModifierData *clmd)
 {
 	Implicit_Data *id;
 	Cloth *cloth;
@@ -1010,12 +1135,13 @@ int  cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatr
 
 		// X = X + d*a;
 		add_lfvector_lfvectorS(ldV, ldV, d, a, numverts);
+		
+		s_prev = s;
 
 		// r = r - q*a;
-		sub_lfvector_lfvectorS(r, r, q, a, numverts);
-
-		s_prev = s;
+		add_lfvector_lfvectorS(r, r, q, -a, numverts);
 		s = dot_lfvector(r, r, numverts);
+		// s = add_lfvectorS_dot(r, q, -a, numverts);
 
 		//d = r+d*(s/s_prev);
 		add_lfvector_lfvectorS(d, r, d, (s/s_prev), numverts);
@@ -1069,7 +1195,7 @@ int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fma
 	BuildPPinv(lA, P, Pinv);
 	
 	filter(dv, S);
-	add_lfvector_lfvector(dv, dv, z, numverts);
+	add_lfvector(dv, z, numverts);
 	
 	mul_bfmatrix_lfvector(r, lA, dv);
 	sub_lfvector_lfvector(r, lB, r, numverts);
@@ -1091,9 +1217,9 @@ int cg_filtered_pre(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fma
 		
 		alpha = deltaNew / dot_lfvector(p, s, numverts);
 		
-		add_lfvector_lfvectorS(dv, dv, p, alpha, numverts);
+		add_lfvectorS(dv, p, alpha, numverts);
 		
-		sub_lfvector_lfvectorS(r, r, s, alpha, numverts);
+		add_lfvectorS(r, s, -alpha, numverts);
 		
 		mul_bfmatrix_lfvector(h, Pinv, r);
 		filter(h, S);
@@ -1257,7 +1383,7 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 			
 			// DG: My formula to handle bending for the AIMEX scheme 
 			// multiply with 1000 because of numerical problems
-			if( ((k*1000.0)*dt*dt) < -0.18 )
+			// if( ((k*1000.0)*dt*dt) < -0.18 )
 			{
 				dfdx_spring_type2(s->dfdx, dir,length,L,clmd->sim_parms->bending, cb);
 				clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_BIG_FORCE;
@@ -1392,7 +1518,7 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 		float speed[3] = {0.0f, 0.0f,0.0f};
 		float force[3]= {0.0f, 0.0f, 0.0f};
 		
-		#pragma omp parallel for private (i) shared(lF)
+		#pragma omp parallel for private (i) shared(lF) schedule(static)
 		for(i = 0; i < cloth->numverts; i++)
 		{
 			float vertexnormal[3]={0,0,0};
@@ -1467,8 +1593,8 @@ void simulate_implicit_euler(lfVector *Vnew, lfVector *lX, lfVector *lV, lfVecto
 
 	add_lfvectorS_lfvectorS(B, lF, dt, dFdXmV, (dt*dt), numverts);
 	
-	cg_filtered(dV, A, B, z, S); // conjugate gradient algorithm to solve Ax=b 
-	// cg_filtered_pre(dV, A, B, z, S, P, Pinv);
+	// cg_filtered(dV, A, B, z, S); // conjugate gradient algorithm to solve Ax=b 
+	cg_filtered_pre(dV, A, B, z, S, P, Pinv);
 	
 	// advance velocities
 	add_lfvector_lfvector(Vnew, lV, dV, numverts);
