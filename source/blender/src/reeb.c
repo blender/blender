@@ -60,12 +60,6 @@
 
 #include "reeb.h"
 
-#if 0
-#define DPRINT(a) a
-#else
-#define DPRINT(a)
-#endif
-
 /*
  * Skeleton generation algorithm based on: 
  * "Harmonic Skeleton for Realistic Character Animation"
@@ -149,8 +143,6 @@ void allocArcBuckets(ReebArc *arc)
 	float start = ceil(arc->v1->weight);
 	arc->bcount = (int)(floor(arc->v2->weight) - start) + 1;
 	
-	DPRINT(printf("allocating %i buckets for range %f >> %f\n", arc->bcount, arc->v1->weight, arc->v2->weight));
-	
 	if (arc->bcount > 0)
 	{
 		arc->buckets = MEM_callocN(sizeof(EmbedBucket) * arc->bcount, "embed bucket");
@@ -174,8 +166,6 @@ void resizeArcBuckets(ReebArc *arc)
 	
 	allocArcBuckets(arc);
 	
-	DPRINT(printf("old: %i new: %i\n", oldBCount, arc->bcount));
-	
 	if (oldBCount != 0 && arc->bcount != 0)
 	{
 		int oldStart = (int)oldBuckets[0].val;
@@ -197,8 +187,6 @@ void resizeArcBuckets(ReebArc *arc)
 		
 		len = MIN2(oldEnd - (oldStart + oldOffset) + 1, newEnd - (newStart - newOffset) + 1);
 		
-		DPRINT(printf("%i, %i, %i\n", newOffset, oldOffset, len));
-		
 		memcpy(arc->buckets + newOffset, oldBuckets + oldOffset, len * sizeof(EmbedBucket)); 
 	}
 
@@ -219,20 +207,18 @@ ReebEdge * copyEdge(ReebEdge *edge)
 	newEdge->next = NULL;
 	newEdge->prev = NULL;
 	
-	DPRINT(printf("copy edge [%p] -> [%p]\n", edge, newEdge));
-	
 	return newEdge;
 }
 
 void printArc(ReebArc *arc)
 {
-//	ReebEdge *edge;
+	ReebEdge *edge;
 	printf("arc: (%i)%f -> (%i)%f\n", arc->v1->index, arc->v1->weight, arc->v2->index, arc->v2->weight);
 	
-//	for(edge = arc->edges.first; edge ; edge = edge->next)
-//	{
-//		printf("\tedge (%i, %i)\n", edge->v1->index, edge->v2->index);
-//	}
+	for(edge = arc->edges.first; edge ; edge = edge->next)
+	{
+		printf("\tedge (%i, %i)\n", edge->v1->index, edge->v2->index);
+	}
 }
 
 void freeArc(ReebArc *arc)
@@ -328,6 +314,7 @@ void verifyNodeDegree(ReebGraph *rg)
 
 void verifyBuckets(ReebGraph *rg)
 {
+#ifdef DEBUG_REEB
 	ReebArc *arc = NULL;
 	for(arc = rg->arcs.first; arc; arc = arc->next)
 	{
@@ -355,6 +342,7 @@ void verifyBuckets(ReebGraph *rg)
 			}
 		}
 	}
+#endif
 }
 
 /************************************** ADJACENCY LIST *************************************************/
@@ -812,12 +800,10 @@ void spreadWeight(EditMesh *em)
 			
 			if (i == 0 || (eve->tmp.fp - lastWeight) > FLT_EPSILON)
 			{
-				DPRINT(printf("diff %f (%f, %f, %f)\n", eve->tmp.fp, eve->co[0], eve->co[1], eve->co[2]));
 				lastWeight = eve->tmp.fp;
 			}
 			else
 			{
-				DPRINT(printf("same %f (%f, %f, %f)\n", eve->tmp.fp, eve->co[0], eve->co[1], eve->co[2]));
 				work_needed = 1;
 				eve->tmp.fp = lastWeight + FLT_EPSILON * 2;
 				lastWeight = eve->tmp.fp;
@@ -955,7 +941,6 @@ ReebArc * findConnectedArc(ReebGraph *rg, ReebArc *arc, ReebNode *v)
 	ReebArc *nextArc = arc->next;
 	
 	for(nextArc = rg->arcs.first; nextArc; nextArc = nextArc->next)
-//	for( ; nextArc; nextArc = nextArc->next)
 	{
 		if (arc != nextArc && (nextArc->v1 == v || nextArc->v2 == v))
 		{
@@ -980,13 +965,9 @@ void removeNormalNodes(ReebGraph *rg)
 			{
 				ReebArc *nextArc = findConnectedArc(rg, arc, arc->v1);
 
-				DPRINT(printf("arc: %f -> %f\n", arc->v1->weight, arc->v2->weight));
-
 				if (nextArc == NULL)
 					printf("uhm1\n");
 	
-				DPRINT(printf("nextArc: %f -> %f\n", nextArc->v1->weight, nextArc->v2->weight));
-
 				// Merge arc only if needed
 				if (arc->v1 == nextArc->v2)
 				{				
@@ -1004,12 +985,9 @@ void removeNormalNodes(ReebGraph *rg)
 			{
 				ReebArc *nextArc = findConnectedArc(rg, arc, arc->v2);
 				
-				DPRINT(printf("arc: %f -> %f\n", arc->v1->weight, arc->v2->weight));
-
 				if (nextArc == NULL) 
 					printf("uhm %p\n", arc->v2);
 					
-				DPRINT(printf("nextArc: %f -> %f\n", nextArc->v1->weight, nextArc->v2->weight));
 				// Merge arc only if needed
 				if (arc->v2 == nextArc->v1)
 				{				
@@ -1021,7 +999,6 @@ void removeNormalNodes(ReebGraph *rg)
 					arc->v2->degree = 3;
 				}
 			}
-			//DPRINT(printf("merged\n"));
 		}
 	}
 	
@@ -1037,7 +1014,8 @@ ReebArc *nextArcMappedToEdge(ReebArc *arc, ReebEdge *e)
 	ReebEdge *nextEdge = NULL;
 	ReebEdge *edge = NULL;
 	ReebArc *result = NULL;
-	
+
+	/* Find the ReebEdge in the edge list */
 	for(edge = arc->edges.first; edge && !edgeEquals(edge, e); edge = edge->next)
 	{	}
 	
@@ -1048,12 +1026,14 @@ ReebArc *nextArcMappedToEdge(ReebArc *arc, ReebEdge *e)
 		result = nextEdge->arc;
 	}
 
+#if 0
 	if (result == arc)
 	{
 		printf("WTF");
 		getchar();
 		exit(1);
 	}
+#endif
 
 	return result;
 }
@@ -1068,13 +1048,10 @@ void mergeArcEdges(ReebGraph *rg, ReebArc *aDst, ReebArc *aSrc, MergeDirection d
 {
 	ReebEdge *e = NULL;
 	
-	DPRINT(printf("\t\t\t\tmerge arc edges\n"));
-	
 	if (direction == MERGE_APPEND)
 	{
 		for(e = aSrc->edges.first; e; e = e->next)
 		{
-			DPRINT(printf("adding edge: %i\n", e->edge->f1));
 			e->arc = aDst; // Edge is stolen by new arc
 		}
 		
@@ -1082,13 +1059,10 @@ void mergeArcEdges(ReebGraph *rg, ReebArc *aDst, ReebArc *aSrc, MergeDirection d
 	}
 	else
 	{
-		DPRINT(printf("number of edges: %i\n", BLI_countlist(&aSrc->edges)));
 		for(e = aSrc->edges.first; e; e = e->next)
 		{
 			ReebEdge *newEdge = copyEdge(e);
 
-			DPRINT(printf("adding edge[%p]: %i\n", newEdge, e->edge->f1));
-			
 			newEdge->arc = aDst;
 			
 			BLI_addtail(&aDst->edges, newEdge);
@@ -1122,12 +1096,6 @@ void mergeArcEdges(ReebGraph *rg, ReebArc *aDst, ReebArc *aSrc, MergeDirection d
 				newEdge->nextEdge = e->nextEdge;
 				e->nextEdge = newEdge;
 			}
-			
-			if (newEdge->nextEdge == newEdge || e->nextEdge == e)
-			{
-				printf("ouch\n");
-				getchar();
-			}
 		}
 	}
 } 
@@ -1138,30 +1106,18 @@ int mergeConnectedArcs(ReebGraph *rg, ReebArc *a0, ReebArc *a1)
 	int result = 0;
 	ReebNode *removedNode = NULL;
 	
-	DPRINT(printf("\t\t\tmerge arcs\n"));
-	DPRINT(printf("a0: %f -> %f\n", a0->v1->weight, a0->v2->weight));
-	DPRINT(printf("a1: %f -> %f\n", a1->v1->weight, a1->v2->weight));
-
 	mergeArcEdges(rg, a0, a1, MERGE_APPEND);
-	
-	DPRINT(printf("append arcs"));
 	
 	// Bring a0 to the combine length of both arcs
 	if (a0->v2 == a1->v1)
 	{
-		DPRINT(printf("new v2\n"));
 		removedNode = a0->v2;
 		a0->v2 = a1->v2;
 	}
 	else if (a0->v1 == a1->v2)
 	{
-		DPRINT(printf("new v1\n"));
 		removedNode = a0->v1;
 		a0->v1 = a1->v1;
-	}
-	else
-	{
-		printf("OMGWTFBBQ\n");
 	}
 	
 	resizeArcBuckets(a0);
@@ -1181,16 +1137,11 @@ int mergeConnectedArcs(ReebGraph *rg, ReebArc *a0, ReebArc *a1)
 int mergeArcs(ReebGraph *rg, ReebArc *a0, ReebArc *a1)
 {
 	int result = 0;
-	DPRINT(printf("\t\t\tmerge arcs\n"));
-	DPRINT(printf("a0: %f -> %f\n", a0->v1->weight, a0->v2->weight));
-	DPRINT(printf("a1: %f -> %f\n", a1->v1->weight, a1->v2->weight));
 	// TRIANGLE POINTS DOWN
 	if (a0->v1->weight == a1->v1->weight) // heads are the same
 	{
-		DPRINT(printf("down\n"));
 		if (a0->v2->weight == a1->v2->weight) // tails also the same, arcs can be totally merge together
 		{
-			DPRINT(printf("full merge\n"));
 			mergeArcEdges(rg, a0, a1, MERGE_APPEND);
 			
 			mergeArcBuckets(a0, a1, a0->v1->weight, a0->v2->weight);
@@ -1207,7 +1158,6 @@ int mergeArcs(ReebGraph *rg, ReebArc *a0, ReebArc *a1)
 		}
 		else if (a0->v2->weight > a1->v2->weight) // a1->v2->weight is in the middle
 		{
-			DPRINT(printf("a0 cut in half\n"));
 			mergeArcEdges(rg, a1, a0, MERGE_LOWER);
 
 			// Adjust node degree
@@ -1220,7 +1170,6 @@ int mergeArcs(ReebGraph *rg, ReebArc *a0, ReebArc *a1)
 		}
 		else // a0>n2 is in the middle
 		{
-			DPRINT(printf("a1 cut in half\n"));
 			mergeArcEdges(rg, a0, a1, MERGE_LOWER);
 			
 			// Adjust node degree
@@ -1235,10 +1184,8 @@ int mergeArcs(ReebGraph *rg, ReebArc *a0, ReebArc *a1)
 	// TRIANGLE POINTS UP
 	else if (a0->v2->weight == a1->v2->weight) // tails are the same
 	{
-		DPRINT(printf("up\n"));
 		if (a0->v1->weight > a1->v1->weight) // a0->v1->weight is in the middle
 		{
-			DPRINT(printf("a1 cut in half\n"));
 			mergeArcEdges(rg, a0, a1, MERGE_HIGHER);
 			
 			// Adjust node degree
@@ -1251,7 +1198,6 @@ int mergeArcs(ReebGraph *rg, ReebArc *a0, ReebArc *a1)
 		}
 		else // a1->v1->weight is in the middle
 		{
-			DPRINT(printf("a0 cut in half\n"));
 			mergeArcEdges(rg, a1, a0, MERGE_HIGHER);
 
 			// Adjust node degree
@@ -1268,20 +1214,12 @@ int mergeArcs(ReebGraph *rg, ReebArc *a0, ReebArc *a1)
 		// Need something here (OR NOT)
 	}
 	
-	DPRINT(printf("MERGE RESULT:\n"));
-	DPRINT(printArc(a0));
-	if (result == 0)
-	{
-		DPRINT(printArc(a1));
-	}
-	
 	return result;
 }
 
 void glueByMergeSort(ReebGraph *rg, ReebArc *a0, ReebArc *a1, ReebEdge *e0, ReebEdge *e1)
 {
 	int total = 0;
-	//DPRINT(printf("\t\tglue: %i -> %i\n", e0->f1, e1->f1));
 	while (total == 0 && a0 != a1 && a0 != NULL && a1 != NULL)
 	{
 		total = mergeArcs(rg, a0, a1);
@@ -1290,12 +1228,10 @@ void glueByMergeSort(ReebGraph *rg, ReebArc *a0, ReebArc *a1, ReebEdge *e0, Reeb
 		{
 			if (a0->v2->weight < a1->v2->weight)
 			{
-				DPRINT(printf("next a0\n"));
 				a0 = nextArcMappedToEdge(a0, e0);
 			}
 			else
 			{
-				DPRINT(printf("next a1\n"));
 				a1 = nextArcMappedToEdge(a1, e1);
 			}
 		}
@@ -1308,8 +1244,6 @@ void mergePaths(ReebGraph *rg, ReebEdge *e0, ReebEdge *e1, ReebEdge *e2)
 	a0 = e0->arc;
 	a1 = e1->arc;
 	a2 = e2->arc;
-	
-	DPRINT(printf("\tmerge paths\n"));
 	
 	glueByMergeSort(rg, a0, a1, e0, e1);
 	glueByMergeSort(rg, a0, a2, e0, e2);
@@ -1348,8 +1282,6 @@ ReebEdge * createArc(ReebGraph *rg, ReebNode *node1, ReebNode *node2)
 		float len, offset;
 		int i;
 		
-		DPRINT(printf("\tcreate arc for edge %i\n", eed->f1));
-		
 		arc = MEM_callocN(sizeof(ReebArc), "reeb arc");
 		edge = MEM_callocN(sizeof(ReebEdge), "reeb edge");
 		
@@ -1383,17 +1315,22 @@ ReebEdge * createArc(ReebGraph *rg, ReebNode *node1, ReebNode *node2)
 		BLI_addtail(&rg->arcs, arc);
 		BLI_addtail(&arc->edges, edge);
 		
-		// adding buckets for embedding
+		/* adding buckets for embedding */
 		allocArcBuckets(arc);
 		
 		offset = arc->v1->weight;
 		len = arc->v2->weight - arc->v1->weight;
 
-//		if (arc->bcount > 0)
-//		{
-//			addVertToBucket(&(arc->buckets[0]), arc->v1->co);
-//			addVertToBucket(&(arc->buckets[arc->bcount - 1]), arc->v2->co);
-//		}
+#if 0
+		/* This is the actual embedding filling described in the paper
+		 * the problem is that it only works with really dense meshes
+		 */
+		if (arc->bcount > 0)
+		{
+			addVertToBucket(&(arc->buckets[0]), arc->v1->co);
+			addVertToBucket(&(arc->buckets[arc->bcount - 1]), arc->v2->co);
+		}
+#else
 		for(i = 0; i < arc->bcount; i++)
 		{
 			float co[3];
@@ -1402,10 +1339,8 @@ ReebEdge * createArc(ReebGraph *rg, ReebNode *node1, ReebNode *node2)
 			VecLerpf(co, v1->p, v2->p, f);
 			addVertToBucket(&(arc->buckets[i]), co);
 		}
-	}
-	else
-	{
-		DPRINT(printf("\treuse arc for edge %i\n", eed->f1));
+#endif
+
 	}
 	
 	return edge;
@@ -1425,7 +1360,7 @@ void addTriangleToGraph(ReebGraph *rg, ReebNode * n1, ReebNode * n2, ReebNode * 
 	len2 = (float)fabs(n2->weight - n3->weight);
 	len3 = (float)fabs(n3->weight - n1->weight);
 	
-	// The rest of the algorithm assumes that e1 is the longest edge
+	/* The rest of the algorithm assumes that e1 is the longest edge */
 	
 	if (len1 >= len2 && len1 >= len3)
 	{
@@ -1446,8 +1381,9 @@ void addTriangleToGraph(ReebGraph *rg, ReebNode * n1, ReebNode * n2, ReebNode * 
 		e3 = re1;
 	}
 	
-	// And e2 is the lowest edge
-	// If e3 is lower than e2, swap them
+	/* And e2 is the lowest edge
+	 * If e3 is lower than e2, swap them
+	 */
 	if (e3->v1->weight < e2->v1->weight)
 	{
 		ReebEdge *etmp = e2;
@@ -1469,7 +1405,6 @@ ReebGraph * generateReebGraph(EditMesh *em, int subdivisions)
 	int totvert;
 	int totfaces;
 	int countfaces = 0;
-	int ecount = 0;
  	
 	rg = MEM_callocN(sizeof(ReebGraph), "reeb graph");
 	
@@ -1481,12 +1416,12 @@ ReebGraph * generateReebGraph(EditMesh *em, int subdivisions)
 	
 	renormalizeWeight(em, 1.0f);
 	
-	// Spread weight to minimize errors
+	/* Spread weight to minimize errors */
 	spreadWeight(em);
 
-	renormalizeWeight(em, subdivisions);
+	renormalizeWeight(em, (float)subdivisions);
 
-	// Adding vertice
+	/* Adding vertice */
 	for(index = 0, eve = em->verts.first; eve; index++, eve = eve->next)
 	{
 		eve->hash = index;
@@ -1494,15 +1429,13 @@ ReebGraph * generateReebGraph(EditMesh *em, int subdivisions)
 		eve->tmp.p = addNode(rg, eve, eve->tmp.fp);
 	}
 	
-	// Temporarely convert node list to dynamic list, for indexed access
+	/* Temporarely convert node list to dynamic list, for indexed access */
 	dlist = BLI_dlist_from_listbase(&rg->nodes);
 	
-	// Adding face, edge per edge
+	/* Adding face, edge per edge */
 	for(efa = em->faces.first; efa; efa = efa->next)
 	{
 		ReebNode *n1, *n2, *n3;
-		
-		DPRINT(printf("adding face %i\n", countfaces));
 		
 		n1 = (ReebNode*)BLI_dlist_find_link(dlist, efa->v1->hash);
 		n2 = (ReebNode*)BLI_dlist_find_link(dlist, efa->v2->hash);
@@ -1515,25 +1448,20 @@ ReebGraph * generateReebGraph(EditMesh *em, int subdivisions)
 			ReebNode *n4 = (ReebNode*)efa->v4->tmp.p;
 			addTriangleToGraph(rg, n1, n3, n4);
 		}
-		
-		//exportGraph(rg, ecount);
-		ecount++;
-		
+
+#ifdef DEBUG_REEB
 		countfaces++;
 		if (countfaces % 100 == 0)
+		{
 			printf("face %i of %i\n", countfaces, totfaces);
+		}
+#endif
 		
 		
 	}
-	//exportGraph(rg, ecount);
-	ecount++;
-	
 	BLI_listbase_from_dlist(dlist, &rg->nodes);
 	
 	removeNormalNodes(rg);
-	
-	exportGraph(rg, -1);
-	ecount++;
 	
 	return rg;
 }
@@ -1548,7 +1476,7 @@ void renormalizeWeight(EditMesh *em, float newmax)
 	if (em == NULL || BLI_countlist(&em->verts) == 0)
 		return;
 
-	// First pass, determine maximum and minimum
+	/* First pass, determine maximum and minimum */
 	eve = em->verts.first;
 	minimum = eve->tmp.fp;
 	maximum = eve->tmp.fp;
@@ -1560,7 +1488,7 @@ void renormalizeWeight(EditMesh *em, float newmax)
 	
 	range = maximum - minimum;
 
-	// Normalize weights
+	/* Normalize weights */
 	for(eve = em->verts.first; eve; eve = eve->next)
 	{
 		eve->tmp.fp = (eve->tmp.fp - minimum) / range * newmax;
@@ -1568,18 +1496,20 @@ void renormalizeWeight(EditMesh *em, float newmax)
 }
 
 
-void weightFromLoc(EditMesh *em, int axis)
+int weightFromLoc(EditMesh *em, int axis)
 {
 	EditVert *eve;
 	
 	if (em == NULL || BLI_countlist(&em->verts) == 0 || axis < 0 || axis > 2)
-		return;
+		return 0;
 
-	// Copy coordinate in weight
+	/* Copy coordinate in weight */
 	for(eve = em->verts.first; eve; eve = eve->next)
 	{
 		eve->tmp.fp = eve->co[axis];
 	}
+
+	return 1;
 }
 
 static float cotan_weight(float *v1, float *v2, float *v3)
@@ -1598,7 +1528,7 @@ static float cotan_weight(float *v1, float *v2, float *v3)
 	return Inpf(a, b)/clen;
 }
 
-void weightToHarmonic(EditMesh *em)
+int weightToHarmonic(EditMesh *em)
 {
 	NLboolean success;
 	EditVert *eve;
@@ -1606,14 +1536,15 @@ void weightToHarmonic(EditMesh *em)
 	EditFace *efa;
 	int totvert = 0;
 	int index;
+	int rval;
 	
-	// Find local extrema
+	/* Find local extrema */
 	for(eve = em->verts.first; eve; eve = eve->next)
 	{
 		totvert++;
 	}
 
-	// Solve with openNL
+	/* Solve with openNL */
 	
 	nlNewContext();
 
@@ -1621,16 +1552,16 @@ void weightToHarmonic(EditMesh *em)
 
 	nlBegin(NL_SYSTEM);
 	
-	// Find local extrema
+	/* Find local extrema */
 	for(index = 0, eve = em->verts.first; eve; index++, eve = eve->next)
 	{
 		EditEdge *eed;
 		int maximum = 1;
 		int minimum = 1;
 		
-		eve->hash = index; // Assign index to vertex
+		eve->hash = index; /* Assign index to vertex */
 		
-		NextEdgeForVert(NULL, NULL); // Reset next edge
+		NextEdgeForVert(NULL, NULL); /* Reset next edge */
 		for(eed = NextEdgeForVert(em, eve); eed && (maximum || minimum); eed = NextEdgeForVert(em, eve))
 		{
 			EditVert *eve2;
@@ -1644,12 +1575,12 @@ void weightToHarmonic(EditMesh *em)
 				eve2 = eed->v1;
 			}
 			
-			// Adjacent vertex is bigger, not a local maximum
+			/* Adjacent vertex is bigger, not a local maximum */
 			if (eve2->tmp.fp > eve->tmp.fp)
 			{
 				maximum = 0;
 			}
-			// Adjacent vertex is smaller, not a local minimum
+			/* Adjacent vertex is smaller, not a local minimum */
 			else if (eve2->tmp.fp < eve->tmp.fp)
 			{
 				minimum = 0;
@@ -1658,12 +1589,10 @@ void weightToHarmonic(EditMesh *em)
 		
 		if (maximum || minimum)
 		{
-			float w = eve->tmp.fp; //minimum?0:1;
+			float w = eve->tmp.fp;
 			eve->f1 = 0;
-			//printf("extrema [%04i] (%.3f, %.3f, %.3f): %f\n", index, eve->co[0], eve->co[1], eve->co[2], w);
 			nlSetVariable(0, index, w);
 			nlLockVariable(index);
-//			nlRightHandSideAdd(index, w);
 		}
 		else
 		{
@@ -1673,13 +1602,13 @@ void weightToHarmonic(EditMesh *em)
 	
 	nlBegin(NL_MATRIX);
 
-	// Zero edge weight
+	/* Zero edge weight */
 	for(eed = em->edges.first; eed; eed = eed->next)
 	{
 		eed->tmp.l = 0;
 	}
 	
-	// Add faces angle to the edge weight
+	/* Add faces count to the edge weight */
 	for(efa = em->faces.first; efa; efa = efa->next)
 	{
 		efa->e1->tmp.l++;
@@ -1687,16 +1616,16 @@ void weightToHarmonic(EditMesh *em)
 		efa->e3->tmp.l++;
 	}
 
-	// Add faces angle to the edge weight
+	/* Add faces angle to the edge weight */
 	for(efa = em->faces.first; efa; efa = efa->next)
 	{
-		// Angle opposite e1
+		/* Angle opposite e1 */
 		float t1= cotan_weight(efa->v1->co, efa->v2->co, efa->v3->co) / efa->e2->tmp.l;
 		
-		// Angle opposite e2
+		/* Angle opposite e2 */
 		float t2 = cotan_weight(efa->v2->co, efa->v3->co, efa->v1->co) / efa->e3->tmp.l;
 
-		// Angle opposite e3
+		/* Angle opposite e3 */
 		float t3 = cotan_weight(efa->v3->co, efa->v1->co, efa->v2->co) / efa->e1->tmp.l;
 		
 		int i1 = efa->v1->hash;
@@ -1725,18 +1654,20 @@ void weightToHarmonic(EditMesh *em)
 
 	if (success)
 	{
+		rval = 1;
 		for(index = 0, eve = em->verts.first; eve; index++, eve = eve->next)
 		{
 			eve->tmp.fp = nlGetVariable(0, index);
-			//printf("w[%04i] = %f\n", index, eve->tmp.fp);
 		}
 	}
 	else
 	{
-		printf("whoops!\n");
+		rval = 0;
 	}
 
 	nlDeleteContext(nlGetCurrent());
+
+	return rval;
 }
 
 
@@ -1744,19 +1675,19 @@ EditEdge * NextEdgeForVert(EditMesh *em, EditVert *v)
 {
 	static EditEdge *e = NULL;
 	
-	// Reset method, call with NULL mesh pointer
+	/* Reset method, call with NULL mesh pointer */
 	if (em == NULL)
 	{
 		e = NULL;
 		return NULL;
 	}
 	
-	// first pass, start at the head of the list
+	/* first pass, start at the head of the list */
 	if (e == NULL)
 	{
 		e = em->edges.first;
 	}
-	// subsequent passes, start on the next edge
+	/* subsequent passes, start on the next edge */
 	else
 	{
 		e = e->next;
@@ -1773,7 +1704,7 @@ EditEdge * NextEdgeForVert(EditMesh *em, EditVert *v)
 	return e;
 }
 
-void weightFromDistance(EditMesh *em)
+int weightFromDistance(EditMesh *em)
 {
 	EditVert *eve, *current_eve = NULL;
 	int totedge = 0;
@@ -1781,17 +1712,17 @@ void weightFromDistance(EditMesh *em)
 	
 	if (em == NULL || BLI_countlist(&em->verts) == 0)
 	{
-		return;
+		return 0;
 	}
 	
 	totedge = BLI_countlist(&em->edges);
 	
 	if (totedge == 0)
 	{
-		return;
+		return 0;
 	}
 
-	// Initialize vertice flags and find selected vertex
+	/* Initialize vertice flags and find selected vertex */
 	for(eve = em->verts.first; eve; eve = eve->next)
 	{
 		eve->f1 = 0;
@@ -1813,7 +1744,7 @@ void weightFromDistance(EditMesh *em)
 		
 		edges = MEM_callocN(totedge * sizeof(EditEdge*), "Edges");
 		
-		// Calculate edge weight and initialize edge flags
+		/* Calculate edge weight and initialize edge flags */
 		for(eed= em->edges.first; eed; eed= eed->next)
 		{
 			eed->tmp.fp = VecLenf(eed->v1->co, eed->v2->co);
@@ -1823,31 +1754,27 @@ void weightFromDistance(EditMesh *em)
 		do {
 			int i;
 			
-			current_eve->f1 = 1; // mark vertex as selected
+			current_eve->f1 = 1; /* mark vertex as selected */
 			
-			// Add all new edges connected to current_eve to the list
-//			DPRINT(printf("adding new edges\n"));
+			/* Add all new edges connected to current_eve to the list */
 			NextEdgeForVert(NULL, NULL); // Reset next edge
 			for(eed = NextEdgeForVert(em, current_eve); eed; eed = NextEdgeForVert(em, current_eve))
 			{ 
 				if (eed->f1 == 0)
 				{
-//					DPRINT(printf("adding new edge[%i]: EID = %i\n", eIndex, eed->EID));
 					edges[eIndex] = eed;
 					eed->f1 = 1;
 					eIndex++;
 				}
 			}
 			
-			// Find next shortest edge
-//			printf("finding shortest edge\n");
+			/* Find next shortest edge */
 			select_eed = NULL;
 			for(i = 0; i < eIndex; i++)
 			{
 				eed = edges[i];
-//				printf("edges[%i]: EID = %i\n", i, eed->EID);
 				
-				if (eed->f1 != 2 && (eed->v1->f1 == 0 || eed->v2->f1 == 0)) // eed is not selected yet and leads to a new node
+				if (eed->f1 != 2 && (eed->v1->f1 == 0 || eed->v2->f1 == 0)) /* eed is not selected yet and leads to a new node */
 				{
 					float newWeight = 0;
 					if (eed->v1->f1 == 1)
@@ -1859,36 +1786,34 @@ void weightFromDistance(EditMesh *em)
 						newWeight = eed->v2->tmp.fp + eed->tmp.fp;
 					}
 					
-					if (select_eed == NULL || newWeight < currentWeight) // no selected edge or current smaller than selected
+					if (select_eed == NULL || newWeight < currentWeight) /* no selected edge or current smaller than selected */
 					{
-//						printf("selecting edge %i\n", i);
 						currentWeight = newWeight;
 						select_eed = eed;
 					}
 				}
 			}
 			
-//			printf("adding edge in graph\n");
 			if (select_eed != NULL)
 			{
 				select_eed->f1 = 2;
 				
-				if (select_eed->v1->f1 == 0) // v1 is the new vertex
+				if (select_eed->v1->f1 == 0) /* v1 is the new vertex */
 				{
 					current_eve = select_eed->v1;
 				}
-				else // otherwise, it's v2
+				else /* otherwise, it's v2 */
 				{
 					current_eve = select_eed->v2;
 				}				
 				current_eve->tmp.fp = currentWeight;
-
-				//DPRINT(printf("adding vert: weight = %f\n", current_eve->tmp.fp)); 
 			}
 		} while (select_eed != NULL);
 		
 		MEM_freeN(edges);
 	}
+
+	return 1;
 }
 
 MCol MColFromWeight(EditVert *eve)
@@ -1990,21 +1915,20 @@ void generateSkeleton(void)
 	setcursor_space(SPACE_VIEW3D, CURSOR_WAIT);
 
 	weightFromDistance(em);
-	printf("-------------- DISTANCE\n");
 	weightToHarmonic(em);
-	printf("-------------- HARMONIC\n");
 		
 	renormalizeWeight(em, 1.0f);
+
+#ifdef DEBUG_REEB
 	weightToVCol(em);
+#endif
 	
 	rg = generateReebGraph(em, G.scene->toolsettings->skgen_resolution);
 	
 	verifyBuckets(rg);
 	
-	// Remove arcs without embedding
+	/* Remove arcs without embedding */
 	filterNullReebGraph(rg);
-
-	printf("-------------- NULL\n");
 
 	verifyBuckets(rg);
 
@@ -2013,16 +1937,12 @@ void generateSkeleton(void)
 		filterExternalReebGraph(rg, G.scene->toolsettings->skgen_threshold_external * G.scene->toolsettings->skgen_resolution);
 	}
 
-	printf("-------------- EXTERNAL\n");
-
 	verifyBuckets(rg);
 
 	if (G.scene->toolsettings->skgen_options & SKGEN_FILTER_INTERNAL)
 	{
 		filterInternalReebGraph(rg, G.scene->toolsettings->skgen_threshold_internal * G.scene->toolsettings->skgen_resolution);
 	}
-
-	printf("-------------- INTERNAL\n");
 
 	verifyBuckets(rg);
 
@@ -2031,13 +1951,9 @@ void generateSkeleton(void)
 		repositionNodes(rg);
 	}
 	
-	printf("-------------- POSITION\n");
-
 	verifyBuckets(rg);
 
-	printf("--------------\n");
-
-	// Filtering might have created degree 2 nodes, so remove them
+	/* Filtering might have created degree 2 nodes, so remove them */
 	removeNormalNodes(rg);
 	
 	verifyBuckets(rg);
@@ -2053,8 +1969,10 @@ void generateSkeleton(void)
 	
 	sortArcs(rg);
 	
+#ifdef DEBUG_REEB
 	exportGraph(rg, -1);
-	
+#endif
+
 	generateSkeletonFromReebGraph(rg);
 	
 	freeGraph(rg);

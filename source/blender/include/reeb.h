@@ -84,9 +84,9 @@ typedef struct ReebArcIterator {
 
 struct EditMesh;
 
-void weightToHarmonic(struct EditMesh *em);
-void weightFromDistance(struct EditMesh *em);
-void weightFromLoc(struct EditMesh *me, int axis);
+int weightToHarmonic(struct EditMesh *em);
+int weightFromDistance(struct EditMesh *em);
+int weightFromLoc(struct EditMesh *me, int axis);
 void renormalizeWeight(struct EditMesh *em, float newmax);
 
 ReebGraph * generateReebGraph(struct EditMesh *me, int subdivisions);

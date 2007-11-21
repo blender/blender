@@ -3175,6 +3175,74 @@ float arcLengthRatio(ReebArc *arc)
 	return embedLength / arcLength;	
 }
 
+void symetryMarkdownArc(ReebArc *arc, ReebNode *node, int level)
+{
+	while(arc)
+	{
+		int i;
+		arc->flags = level;
+		
+		node = OTHER_NODE(arc, node);
+		
+		for(i = 0; node->arcs[i] != NULL; i++)
+		{
+			ReebArc *connectedArc = node->arcs[i];
+			
+			if (connectedArc != arc)
+			{
+				ReebNode *connectedNode = OTHER_NODE(connectedArc, node);
+				
+				connectedArc->flags = -subtreeDepth(connectedNode);
+			}
+		}
+		
+		arc = NULL;
+
+		for(i = 0; node->arcs[i] != NULL; i++)
+		{
+			int isSymetryAxis = 0;
+			ReebArc *connectedArc = node->arcs[i];
+			
+			/* only arcs not already marked as symetric */
+			if (connectedArc->flags < 0)
+			{
+				int j;
+				
+				/* true by default */
+				isSymetryAxis = 1;
+				
+				for(j = 0; node->arcs[j] != NULL && isSymetryAxis == 1; j++)
+				{
+					ReebArc *otherArc = node->arcs[j];
+					
+					/* different arc, same depth */
+					if (otherArc != connectedArc && otherArc->flags == connectedArc->flags)
+					{
+						/* not on the symetry axis */
+						isSymetryAxis = 0;
+					} 
+				}
+			}
+			
+			/* arc could be on the symetry axis */
+			if (isSymetryAxis == 1)
+			{
+				/* no arc as been marked previously, keep this one */
+				if (arc == NULL)
+				{
+					arc = connectedArc;
+				}
+				else
+				{
+					/* there can't be more than one symetry arc */
+					arc = NULL;
+					break;
+				}
+			}
+		}
+	}
+}
+
 void symetryMarkdown(ReebGraph *rg)
 {
 	ReebNode *node;
@@ -3198,74 +3266,9 @@ void symetryMarkdown(ReebGraph *rg)
 	/* only work if only one arc is incident on the first node */
 	if (countConnectedArcs(rg, node) == 1)
 	{
-		int symetry = 1;
-		
 		arc = node->arcs[0];
 		
-		while(arc)
-		{
-			int i;
-			arc->flags = symetry;
-			
-			node = OTHER_NODE(arc, node);
-			
-			for(i = 0; node->arcs[i] != NULL; i++)
-			{
-				ReebArc *connectedArc = node->arcs[i];
-				
-				if (connectedArc != arc)
-				{
-					ReebNode *connectedNode = OTHER_NODE(connectedArc, node);
-					
-					connectedArc->flags = -subtreeDepth(connectedNode);
-				}
-			}
-			
-			arc = NULL;
-
-			for(i = 0; node->arcs[i] != NULL; i++)
-			{
-				int isSymetryAxis = 0;
-				ReebArc *connectedArc = node->arcs[i];
-				
-				/* only arcs not already marked as symetric */
-				if (connectedArc->flags < 0)
-				{
-					int j;
-					
-					/* true by default */
-					isSymetryAxis = 1;
-					
-					for(j = 0; node->arcs[j] != NULL && isSymetryAxis == 1; j++)
-					{
-						ReebArc *otherArc = node->arcs[j];
-						
-						/* different arc, same depth */
-						if (otherArc != connectedArc && otherArc->flags == connectedArc->flags)
-						{
-							/* not on the symetry axis */
-							isSymetryAxis = 0;
-						} 
-					}
-				}
-				
-				/* arc could be on the symetry axis */
-				if (isSymetryAxis == 1)
-				{
-					/* no arc as been marked previously, keep this one */
-					if (arc == NULL)
-					{
-						arc = connectedArc;
-					}
-					else
-					{
-						/* there can't be more than one symetry arc */
-						arc = NULL;
-						break;
-					}
-				}
-			}
-		}
+		symetryMarkdownArc(arc, node, 1);
 	}
 
 	/* mark down non-symetric arcs */
@@ -3544,8 +3547,9 @@ EditBone * subdivideByLength(ReebArc *arc, ReebNode *head, ReebNode *tail)
 
 void generateSkeletonFromReebGraph(ReebGraph *rg)
 {
-	GHash *nodeEndMap = NULL;
+	GHash *arcBoneMap = NULL;
 	ReebArc *arc = NULL;
+	ReebNode *node = NULL;
 	Object *src = NULL;
 	Object *dst = NULL;
 	
@@ -3571,7 +3575,7 @@ void generateSkeletonFromReebGraph(ReebGraph *rg)
 	
 	make_editArmature();
 
-	nodeEndMap = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	arcBoneMap = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
 	
 	symetryMarkdown(rg);
 	
@@ -3579,40 +3583,48 @@ void generateSkeletonFromReebGraph(ReebGraph *rg)
 	{
 		EditBone *lastBone = NULL;
 		EditBone *firstBone = NULL;
-		EditBone *parentBone = NULL;
 		ReebNode *head, *tail;
 		int i;
-		
+
+		/* Find out the direction of the arc through simple heuristics (in order of priority) :
+		 * 
+		 * 1- Arcs on primary symetry axis (flags == 1) point up (head: high weight -> tail: low weight)
+		 * 2- Arcs starting on a primary axis point away from it (head: node on primary axis)
+		 * 3- Arcs point down (head: low weight -> tail: high weight)
+		 *
+		 * Finally, the arc direction is stored in its flags: 1 (low -> high), -1 (high -> low)
+		 */
+
 		/* if arc is a symetry axis, internal bones go up the tree */		
 		if (arc->flags == 1 && arc->v2->degree != 1)
 		{
 			head = arc->v2;
 			tail = arc->v1;
+			
+			arc->flags = -1; /* mark arc direction */
 		}
 		/* Bones point AWAY from the symetry axis */
 		else if (arc->v1->flags == 1)
 		{
 			head = arc->v1;
 			tail = arc->v2;
+			
+			arc->flags = 1; /* mark arc direction */
 		}
 		else if (arc->v2->flags == 1)
 		{
 			head = arc->v2;
 			tail = arc->v1;
+			
+			arc->flags = -1; /* mark arc direction */
 		}
-		/* otherwise, use some sort of heuristic */
+		/* otherwise, always go from low weight to high weight */
 		else
 		{
-			if (arc->v1->degree >= arc->v2->degree)
-			{
-				head = arc->v1;
-				tail = arc->v2;
-			}
-			else
-			{
-				head = arc->v2;
-				tail = arc->v1;
-			}
+			head = arc->v1;
+			tail = arc->v2;
+			
+			arc->flags = 1; /* mark arc direction */
 		}
 		
 		/* Loop over subdivision methods */	
@@ -3644,25 +3656,64 @@ void generateSkeletonFromReebGraph(ReebGraph *rg)
 			lastBone = bone;
 		}
 		
-		BLI_ghash_insert(nodeEndMap, tail, lastBone);
-		
-		parentBone = BLI_ghash_lookup(nodeEndMap, head);
-		
-		if (parentBone != NULL)
+		BLI_ghash_insert(arcBoneMap, arc, lastBone);
+	}
+
+	/* Second pass, setup parent relationship between arcs */
+	for(node = rg->nodes.first; node; node = node->next)
+	{
+		ReebArc *incomingArc = NULL;
+		int i;
+
+		for(i = 0; node->arcs[i] != NULL; i++)
 		{
-			/* Find the first bone in the chain */
-			firstBone = lastBone;
-			while(firstBone->parent != NULL)
+			arc = node->arcs[i];
+
+			/* if arc is incoming into the node */
+			if ((arc->v1 == node && arc->flags == -1) || (arc->v2 == node && arc->flags == 1))
 			{
-				firstBone = firstBone->parent;
+				if (incomingArc == NULL)
+				{
+					incomingArc = arc;
+					/* loop further to make sure there's only one incoming arc */
+				}
+				else
+				{
+					/* skip this node if more than one incomingArc */
+					incomingArc = NULL;
+					break; /* No need to look further, we are skipping already */
+				}
 			}
-			
-			firstBone->parent = parentBone;
-			firstBone->flag |= BONE_CONNECTED;
+		}
+
+		if (incomingArc != NULL)
+		{
+			EditBone *parentBone = BLI_ghash_lookup(arcBoneMap, incomingArc);
+
+			/* Look for outgoing arcs and parent their bones */
+			for(i = 0; node->arcs[i] != NULL; i++)
+			{
+				arc = node->arcs[i];
+
+				/* if arc is outgoing from the node */
+				if ((arc->v1 == node && arc->flags == 1) || (arc->v2 == node && arc->flags == -1))
+				{
+					EditBone *childBone = BLI_ghash_lookup(arcBoneMap, arc);
+
+					/* find the root bone */
+					while(childBone->parent != NULL)
+					{
+						childBone = childBone->parent;
+					}
+
+					childBone->parent = parentBone;
+					childBone->flag |= BONE_CONNECTED;
+				}
+			}
 		}
 	}
 	
-	BLI_ghash_free(nodeEndMap, NULL, NULL);
+	BLI_ghash_free(arcBoneMap, NULL, NULL);
 
 	setcursor_space(SPACE_VIEW3D, CURSOR_EDIT);
 	
