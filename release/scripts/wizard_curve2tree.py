@@ -102,8 +102,13 @@ def getObFromName(name):
 		except:	return None
 	else:
 		return None
-		
-	
+
+def getGroupFromName(name):
+	if name:
+		try:	return bpy.data.groups[name]
+		except:	return None
+	else:
+		return None	
 
 def closestVecIndex(vec, vecls):
 	best= -1
@@ -271,7 +276,7 @@ class tree:
 							twig_recursive_limit=3,\
 							twig_ob_bounds=None,\
 							twig_ob_bounds_prune=True,\
-							twig_ob_bounds_prune_taper=True,\
+							twig_ob_bounds_prune_taper=1.0,\
 							twig_placement_maxradius=10.0,\
 							twig_placement_maxtwig=0,\
 							twig_follow_parent=0.0,\
@@ -282,7 +287,6 @@ class tree:
 							variation_seed = 1,\
 							variation_orientation = 0.0,\
 							variation_scale = 0.0,\
-							
 						):
 		'''
 		build tree data - fromCurve must run first
@@ -507,10 +511,10 @@ class tree:
 							# we would not have been but here if the bounds were outside
 							if twig_ob_bounds_prune:
 								brch_twig.boundsTrim()
-								if twig_ob_bounds_prune_taper:
+								if twig_ob_bounds_prune_taper != 1.0:
 									# taper to a point. we could use some nice taper algo here - just linear atm.
 									
-									brch_twig.taper()
+									brch_twig.taper(twig_ob_bounds_prune_taper)
 						
 						# Make sure this dosnt mess up anything else
 						
@@ -1054,7 +1058,17 @@ class tree:
 		
 		return self.mesh
 	
-	def toLeafMesh(self, mesh_leaf, leaf_branch_limit = 0.5, leaf_size = 0.5, leaf_fill=True, leaf_fill_count=1000, leaf_fill_ob_bounds=None):
+	def toLeafMesh(self, mesh_leaf,\
+			leaf_branch_limit = 0.5,\
+			leaf_size = 0.5,\
+			
+			leaf_fill=True,\
+			leaf_fill_count=1000,\
+			leaf_fill_ob_bounds=None,\
+			
+			leaf_dupliface=False,\
+			leaf_dupliface_fromgroup=None,\
+		):
 		
 		'''
 		return a mesh with leaves seperate from the tree
@@ -1125,7 +1139,6 @@ class tree:
 					vec3 += no_pt
 					vec4 += no_pt
 					'''
-					cross
 					
 					faces_extend.append([len(verts_extend), len(verts_extend)+1, len(verts_extend)+2, len(verts_extend)+3])
 					verts_extend.extend([vec1, vec2, vec3, vec4])
@@ -1133,7 +1146,90 @@ class tree:
 			
 			self.mesh_leaf.verts.extend(verts_extend)
 			self.mesh_leaf.faces.extend(faces_extend)
+		
+		
+		elif leaf_dupliface and leaf_dupliface_fromgroup:
+			
+			totpoints = 0
+			radius = 0.0
+			max_radius = 0.0
+			for brch in self.branches_all:
+				for pt in brch.bpoints:
+					radius += pt.radius
+					if pt.radius > max_radius:
+						max_radius = pt.radius
+				
+				#totpoints += len(brch.bpoints)
+			
+			radius_max = max_radius * leaf_branch_limit
+			
+			
+			verts_extend = []
+			faces_extend = []
+			
+			co1,co2,co3,co4 = Vector(),Vector(),Vector(),Vector()
+			
+			for brch in self.branches_all:
+				
+				# quick test, do we need leaves on this branch?
+				if brch.bpoints[-1].radius > radius_max:
+					continue
+				
+				count = 0
+				for pt in brch.bpoints:
+					if pt.childCount == 0 and pt.radius < radius_max:
+						# Ok we can add a leaf here. set the co's correctly
+						co1[:] = pt.co
+						co2[:] = pt.co
+						co3[:] = pt.co
+						co4[:] = pt.co
+						
+						cross_leafdir = CrossVecs( zup, pt.no )
+						cross_leafdir.length = leaf_size
 
+						
+						#cross_leafwidth = CrossVecs(pt.no, cross_leafdir)
+						
+						# Facing up
+						cross_leafwidth_up = CrossVecs(zup, cross_leafdir).normalize() * leaf_size
+						cross_leafwidth_aligned = pt.no
+						
+						#cross_leafwidth = (cross_leafwidth_up + cross_leafwidth_aligned)/2
+						cross_leafwidth = cross_leafwidth_aligned
+						
+						cross_leafwidth.length = leaf_size/2
+						
+						if count % 2:
+							cross_leafwidth.negate()
+							cross_leafdir.negate()
+						
+						co1 += cross_leafdir
+						co2 += cross_leafdir
+						
+						co2 += cross_leafwidth
+						co3 += cross_leafwidth
+						
+						co1 -= cross_leafwidth
+						co4 -= cross_leafwidth
+						
+						
+						i = len(verts_extend)
+						faces_extend.append( (i,i+1,i+2,i+3) )
+						verts_extend.extend([tuple(co1), tuple(co2), tuple(co3), tuple(co4)])
+						count += 1
+			
+			# setup dupli's
+			
+			leaf_dupliface_fromgroup
+			
+			self.mesh_leaf.verts.extend(verts_extend)
+			self.mesh_leaf.faces.extend(faces_extend)
+			
+			
+			
+			
+			
+			
 			
 		
 		'''
@@ -1860,14 +1956,12 @@ class branch:
 		
 		# Shorten the point list
 		self.bpoints = self.bpoints[:i]
-			
 		self.bpoints[-1].makeLast()
 	
-	def taper(self):
+	def taper(self, twig_ob_bounds_prune_taper = 0.0):
 		l = float(len( self.bpoints ))
-		
 		for i, pt in enumerate(self.bpoints):
-			pt.radius *= (l-i)/l
+			pt.radius *= (((l-i)/l) + (twig_ob_bounds_prune_taper*(i/l)) )
 	
 	def getParentBranch(self):
 		if not self.parent_pt:
@@ -2326,7 +2420,7 @@ PREFS['twig_recursive'] = Draw.Create(1)
 PREFS['twig_recursive_limit'] = Draw.Create(3)
 PREFS['twig_ob_bounds'] = Draw.Create('')
 PREFS['twig_ob_bounds_prune'] = Draw.Create(1)
-PREFS['twig_ob_bounds_prune_taper'] = Draw.Create(1)
+PREFS['twig_ob_bounds_prune_taper'] = Draw.Create(1.0)
 PREFS['twig_placement_maxradius'] = Draw.Create(10.0)
 PREFS['twig_placement_maxtwig'] = Draw.Create(4)
 PREFS['twig_follow_parent'] = Draw.Create(0.0)
@@ -2341,6 +2435,9 @@ PREFS['leaf_fill_ob_bounds'] = Draw.Create('')
 
 PREFS['leaf_branch_limit'] = Draw.Create(0.25)
 PREFS['leaf_size'] = Draw.Create(0.5)
+
+PREFS['leaf_dupliface'] = Draw.Create(0)
+PREFS['leaf_dupliface_fromgroup'] = Draw.Create('')
 
 PREFS['do_variation'] = Draw.Create(0)
 PREFS['variation_seed'] = Draw.Create(1)
@@ -2379,8 +2476,22 @@ def Dict2Prefs(prefs, new_prefs):
 	'''
 	for key in prefs: # items would be nice for id groups
 		val = prefs[key]
-		try:	new_prefs[key] = Blender.Draw.Create( val )
-		except:	new_prefs[key] = val
+		ok = True
+		
+		try:
+			# If we have this setting allredy but its a different type, use the old setting (converting int's to floats for instance)
+			new_val = new_prefs[key] # this may fail, thats ok
+			if (type(new_val)==Blender.Types.ButtonType) and (type(new_val.val) != type(val)):
+				ok = False
+		except:
+			pass
+		
+		if ok:
+			try:
+				new_prefs[key] = Blender.Draw.Create( val )
+			except:
+				new_prefs[key] = val
+		
 	return new_prefs
 
 def Prefs2IDProp(idprop, prefs):
@@ -2554,8 +2665,10 @@ def buildTree(ob_curve, single=False):
 			mesh_leaf = ob_leaf.getData(mesh=1)
 			ob_leaf.setMatrix(Matrix())
 		
+		leaf_dupliface_fromgroup = getGroupFromName(PREFS['leaf_dupliface_fromgroup'].val)
+		
 		leaf_fill_ob_bounds = getObFromName(PREFS['leaf_fill_ob_bounds'].val)
-		print "LEAF!!!"
+
 		mesh_leaf = t.toLeafMesh(mesh_leaf,\
 			leaf_branch_limit = PREFS['leaf_branch_limit'].val,\
 			leaf_size = PREFS['leaf_size'].val,\
@@ -2563,7 +2676,16 @@ def buildTree(ob_curve, single=False):
 			leaf_fill = PREFS['leaf_fill'].val,\
 			leaf_fill_count = PREFS['leaf_fill_count'].val,\
 			leaf_fill_ob_bounds = leaf_fill_ob_bounds,\
+			
+			leaf_dupliface = PREFS['leaf_dupliface'].val,\
+			leaf_dupliface_fromgroup = leaf_dupliface_fromgroup,\
 		)
+		
+		if PREFS['leaf_dupliface'].val and leaf_dupliface_fromgroup:
+			ob_leaf.enableDupliFaces = True
+			
+			parent.makeParent([ob_new])
+		
 	
 	mesh.calcNormals()
 	
@@ -2726,8 +2848,17 @@ def do_ob_check(e,v):
 	try:
 		bpy.data.objects[v]
 	except:
-		PREFS['twig_ob_bounds'].val = ''
+		# PREFS['twig_ob_bounds'].val = ''
 		Draw.PupMenu('Object dosnt exist!')
+		Draw.Redraw()
+
+def do_group_check(e,v):
+	if not v: return
+	try:
+		bpy.data.groups[v]
+	except:
+		# PREFS['leaf_dupliface_fromgroup'].val = ''
+		Draw.PupMenu('dosnt exist!')
 		Draw.Redraw()
 
 # Button callbacks
@@ -2879,8 +3010,7 @@ def gui():
 		
 		PREFS['twig_ob_bounds_prune'] =	Draw.Toggle('Prune',EVENT_UPDATE_AND_UI, xtmp, y, but_width_tmp, but_height, PREFS['twig_ob_bounds_prune'].val,	'Prune twigs to the mesh object bounds'); xtmp += but_width_tmp;
 		if PREFS['twig_ob_bounds_prune'].val:
-			PREFS['twig_ob_bounds_prune_taper'] =	Draw.Toggle('Taper',EVENT_UPDATE_AND_UI, xtmp, y, but_width, but_height, PREFS['twig_ob_bounds_prune_taper'].val,	'Taper pruned branches to a point'); xtmp += but_width;
-		
+			PREFS['twig_ob_bounds_prune_taper'] =	Draw.Number('Taper',	EVENT_UPDATE_AND_UI, xtmp, y, but_width, but_height, PREFS['twig_ob_bounds_prune_taper'].val, 0.0, 1.0,	'Taper pruned branches to a point'); xtmp += but_width;
 		
 		#PREFS['image_main'] =	Draw.String('IM: ',	EVENT_UPDATE, xtmp, y, but_width*3, but_height, PREFS['image_main'].val, 64,	'Image to apply to faces'); xtmp += but_width*3;
 		#Draw.PushButton('Use Active',	EVENT_UPDATE, xtmp, y, but_width, but_height,	'Get the image from the active image window', do_active_image); xtmp += but_width;
@@ -2922,6 +3052,17 @@ def gui():
 			
 			PREFS['leaf_fill_count'] =	Draw.Number('Fill #',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['leaf_fill_count'].val, 10, 100000,	'Number of leaves to fill in'); xtmp += but_width*2;
 			PREFS['leaf_size'] =	Draw.Number('Size',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['leaf_size'].val, 0.001, 10.0,	'size of the leaf'); xtmp += but_width*2;
+		
+		# ---------- ---------- ---------- ----------
+		y-=but_height
+		xtmp = x
+		
+		'''
+		PREFS['leaf_dupliface'] =	Draw.Toggle('DupliLeaf', EVENT_UPDATE_AND_UI, xtmp, y, but_width*2, but_height, PREFS['leaf_dupliface'].val,		'Fill an object with leaves'); xtmp += but_width*2;
+		
+		if PREFS['leaf_dupliface'].val:
+			PREFS['leaf_dupliface_fromgroup'] =	Draw.String('group: ',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['leaf_dupliface_fromgroup'].val, 64,	'Pick objects from this group to use as leaves', do_group_check); xtmp += but_width*2;
+		'''
 		
 	Blender.Draw.EndAlign()
 	
@@ -3115,6 +3256,6 @@ def gui():
 
 if __name__ == '__main__':
 	# Read the active objects prefs on load. if they exist
-	do_pref_read(quiet=True)
+	do_pref_read(quiet=False)
 	
 	Draw.Register(gui, evt, bevt)
