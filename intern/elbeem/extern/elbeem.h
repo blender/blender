@@ -154,7 +154,7 @@ typedef struct elbeemMesh {
 	short volumeInitType;
 
 	/* name of the mesh, mostly for debugging */
-	char *name;
+	const char *name;
 } elbeemMesh;
 
 // API functions

@@ -15,8 +15,7 @@
 #include "ntl_world.h"
 #include "simulation_object.h"
 
-#include <stdlib.h> /* rand(3) */
-
+#include <stdlib.h>
 #include <zlib.h>
 #ifndef sqrtf
 #define sqrtf sqrt

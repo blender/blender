@@ -22,6 +22,7 @@
 #include <math.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 // hack for MSVC6.0 compiler
 #ifdef _MSC_VER

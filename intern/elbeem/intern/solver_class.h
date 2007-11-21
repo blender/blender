@@ -101,7 +101,7 @@
 // sirdude fix for solaris
 #if !defined(linux) && defined(sun)
 #ifndef expf
-#define expf(a)		exp((double)(a))
+#define expf(x) exp((double)(x))
 #endif
 #endif
 
