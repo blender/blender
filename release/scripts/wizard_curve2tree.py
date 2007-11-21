@@ -599,13 +599,14 @@ class tree:
 		for brch in self.branches_all:
 			brch.fixOverlapError(joint_smooth)
 		
+		
 		# Collapsing
 		for brch in self.branches_all:
 			brch.collapsePoints(seg_density, seg_density_angle, seg_density_radius, joint_smooth)
-		
+		'''
 		for brch in self.branches_all:
 			brch.branchReJoin()
-	
+		'''
 	def buildTwigs(self, twig_ratio, twig_select_mode, twig_select_factor):
 		
 		ratio_int = int(len(self.branches_all) * twig_ratio)
@@ -834,7 +835,7 @@ class tree:
 		
 		faces = self.mesh.faces
 
-		faces.extend(faces_extend)
+		faces.extend(faces_extend, smooth=True)
 		
 		if do_uv:
 			# Assign the faces back
@@ -843,14 +844,12 @@ class tree:
 				if brch.parent_pt:
 					for i in (0,1,2,3):
 						face = brch.faces[i] = faces[face_index+i]
-						face.smooth = 1
 					face_index +=4
 				
 				for pt in brch.bpoints:
 					for i in (0,1,2,3):
 						if pt.faces[i]:
 							pt.faces[i] = faces[face_index]
-							pt.faces[i].smooth = True
 							face_index +=1
 			
 			#if self.mesh.faces:
@@ -1028,8 +1027,7 @@ class tree:
 			mesh.activeUVLayer = 'base'  # just so people dont get worried the texture is not there - dosnt effect rendering.
 		else:
 			# no UV's
-			for f in self.mesh.faces:
-				f.smooth = True
+			pass
 		
 		if do_cap_ends:
 			# de-select end points for 
@@ -1198,10 +1196,6 @@ class tree:
 						cross_leafwidth = cross_leafwidth_aligned
 						
 						cross_leafwidth.length = leaf_size/2
-						
-						if count % 2:
-							cross_leafwidth.negate()
-							cross_leafdir.negate()
 						
 						co1 += cross_leafdir
 						co2 += cross_leafdir
@@ -2209,11 +2203,14 @@ class branch:
 			collapse = False
 			pt = self.bpoints[0]
 			while pt:
+				# Collapse angles greater then 90. they are useually artifacts
+				
 				if pt.prev and pt.next and pt.prev.childCount == 0:
 					if abs(pt.radius - pt.prev.radius) / (pt.radius + pt.prev.radius) < seg_density_radius:
-						if seg_density_angle == 180 or AngleBetweenVecs(pt.no, pt.prev.no) < seg_density_angle:
+						ang = AngleBetweenVecs(pt.no, pt.prev.no)
+						if seg_density_angle == 180 or ang > 90 or ang < seg_density_angle:
 							## if (pt.prev.nextMidCo-pt.co).length < ((pt.radius + pt.prev.radius)/2) * seg_density:
-							if (pt.prev.nextMidCo-pt.co).length < seg_density:
+							if (pt.prev.nextMidCo-pt.co).length < seg_density or ang > 90:
 								pt_save = pt.prev
 								if pt.next.collapseUp(): # collapse this point
 									collapse = True
@@ -2221,11 +2218,12 @@ class branch:
 				
 				if pt.childCount == 0 and pt.next: #if pt.childrenMidCo == None:
 					if abs(pt.radius - pt.next.radius) / (pt.radius + pt.next.radius) < seg_density_radius:
-						if seg_density_angle == 180 or AngleBetweenVecs(pt.no, pt.next.no) < seg_density_angle:
+						ang = AngleBetweenVecs(pt.no, pt.next.no)
+						if seg_density_angle == 180 or ang > 90 or ang < seg_density_angle:
 							# do here because we only want to run this on points with no children,
 							# Are we closer theto eachother then the radius?
 							## if (pt.nextMidCo-pt.co).length < ((pt.radius + pt.next.radius)/2) * seg_density:
-							if (pt.nextMidCo-pt.co).length < seg_density:
+							if (pt.nextMidCo-pt.co).length < seg_density or ang > 90:
 								if pt.collapseDown():
 									collapse = True
 				
@@ -2451,12 +2449,27 @@ GLOBAL_PREFS['realtime_update'] = Draw.Create(0)
 def getContextCurveObjects():
 	sce = bpy.data.scenes.active
 	objects = []
+	ob_act = sce.objects.active
 	for ob in sce.objects.context:
 		if ob.type != 'Curve':
 			ob = ob.parent
 		if not ob or ob.type != 'Curve':
 			continue
 		objects.append(ob)
+		
+		# Alredy delt with 
+		if ob == ob_act: ob_act = None
+	
+	# Add the active, important when using localview or local layers
+	if ob_act:
+		ob = ob_act
+		if ob.type != 'Curve':
+			ob = ob.parent
+		if not ob or ob.type != 'Curve':
+			pass
+		else:
+			objects.append(ob)
+	
 	return objects
 
 
@@ -2682,10 +2695,14 @@ def buildTree(ob_curve, single=False):
 		)
 		
 		if PREFS['leaf_dupliface'].val and leaf_dupliface_fromgroup:
-			ob_leaf.enableDupliFaces = True
+			ob_leaf.enableDupFaces = True
+			ob_leaf.enableDupFacesScale = True
+			for ob_group in leaf_dupliface_fromgroup.objects:
+				pass
 			
-			parent.makeParent([ob_new])
-		
+			ob_leaf.makeParent([ob_group])
+		else:
+			ob_leaf.enableDupFaces = False
 	
 	mesh.calcNormals()
 	
@@ -3023,16 +3040,11 @@ def gui():
 	
 	
 	Blender.Draw.BeginAlign()
-	if PREFS['do_leaf'].val == 0:
-		but_width_tmp = but_width*2
-	else:
-		but_width_tmp = but_width*4
-	PREFS['do_leaf'] =	Draw.Toggle('Generate Leaves',EVENT_UPDATE_AND_UI, xtmp, y, but_width_tmp, but_height, PREFS['do_leaf'].val,		'Generate a separate leaf mesh'); xtmp += but_width_tmp;
+	PREFS['do_leaf'] =	Draw.Toggle('Generate Leaves',EVENT_UPDATE_AND_UI, xtmp, y, but_width*2, but_height, PREFS['do_leaf'].val,		'Generate a separate leaf mesh'); xtmp += but_width*2;
 	
 	if PREFS['do_leaf'].val:
-		# ---------- ---------- ---------- ----------
-		y-=but_height
-		xtmp = x
+		PREFS['leaf_size'] =	Draw.Number('Size',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['leaf_size'].val, 0.001, 10.0,	'size of the leaf'); xtmp += but_width*2;
+
 		
 		# Dont use yet
 		# PREFS['leaf_branch_limit'] =	Draw.Number('Branch Limit',	EVENT_UPDATE, xtmp, y, but_width*4, but_height, PREFS['leaf_branch_limit'].val,	0.1, 2.0,	'Maximum thichness where a branch can bare leaves'); xtmp += but_width*4;
@@ -3042,7 +3054,16 @@ def gui():
 		else:
 			but_width_tmp = but_width*4
 		
-		PREFS['leaf_fill'] =	Draw.Toggle('Fill Object', EVENT_UPDATE_AND_UI, xtmp, y, but_width*2, but_height, PREFS['leaf_fill'].val,		'Fill an object with leaves'); xtmp += but_width*2;
+		# ---------- ---------- ---------- ----------
+		y-=but_height
+		xtmp = x
+	
+		if PREFS['leaf_fill'].val == 1:
+			but_width_tmp = but_width*2
+		else:
+			but_width_tmp = but_width*4
+		
+		PREFS['leaf_fill'] =	Draw.Toggle('Fill Object', EVENT_UPDATE_AND_UI, xtmp, y, but_width_tmp, but_height, PREFS['leaf_fill'].val,		'Fill an object with leaves'); xtmp += but_width_tmp;
 		if PREFS['leaf_fill'].val:
 			PREFS['leaf_fill_ob_bounds'] =	Draw.String('OB Bound: ',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['leaf_fill_ob_bounds'].val, 64,	'Fill this object with leaves', do_ob_check); xtmp += but_width*2;
 			
@@ -3050,15 +3071,19 @@ def gui():
 			y-=but_height
 			xtmp = x
 			
-			PREFS['leaf_fill_count'] =	Draw.Number('Fill #',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['leaf_fill_count'].val, 10, 100000,	'Number of leaves to fill in'); xtmp += but_width*2;
-			PREFS['leaf_size'] =	Draw.Number('Size',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['leaf_size'].val, 0.001, 10.0,	'size of the leaf'); xtmp += but_width*2;
+			PREFS['leaf_fill_count'] =	Draw.Number('Fill #',	EVENT_UPDATE, xtmp, y, but_width*4, but_height, PREFS['leaf_fill_count'].val, 10, 100000,	'Number of leaves to fill in'); xtmp += but_width*4;
+			
 		
 		# ---------- ---------- ---------- ----------
 		y-=but_height
 		xtmp = x
 		
 		'''
-		PREFS['leaf_dupliface'] =	Draw.Toggle('DupliLeaf', EVENT_UPDATE_AND_UI, xtmp, y, but_width*2, but_height, PREFS['leaf_dupliface'].val,		'Fill an object with leaves'); xtmp += but_width*2;
+		if PREFS['leaf_dupliface'].val == 1:
+			but_width_tmp = but_width*2
+		else:
+			but_width_tmp = but_width*4
+		PREFS['leaf_dupliface'] =	Draw.Toggle('DupliLeaf', EVENT_UPDATE_AND_UI, xtmp, y, but_width_tmp, but_height, PREFS['leaf_dupliface'].val,		'Create a Dupliface mesh'); xtmp += but_width_tmp;
 		
 		if PREFS['leaf_dupliface'].val:
 			PREFS['leaf_dupliface_fromgroup'] =	Draw.String('group: ',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['leaf_dupliface_fromgroup'].val, 64,	'Pick objects from this group to use as leaves', do_group_check); xtmp += but_width*2;
@@ -3256,6 +3281,6 @@ def gui():
 
 if __name__ == '__main__':
 	# Read the active objects prefs on load. if they exist
-	do_pref_read(quiet=False)
+	do_pref_read(quiet=True)
 	
 	Draw.Register(gui, evt, bevt)

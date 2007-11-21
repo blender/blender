@@ -5004,7 +5004,8 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args,
 	Mesh *mesh = self->mesh;
 	int ignore_dups = 0;
 	PyObject *return_list = NULL;
-
+	char flag = ME_FACE_SEL;
+	
 	/* before we try to add faces, add edges; if it fails; exit */
 
 	tmp = MEdgeSeq_extend( self, args );
@@ -5032,6 +5033,20 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args,
 						"keyword argument \"indexList\" expected True/False or 0/1" );
 			default:
 				return_list = PyList_New( 0 );
+			}
+		}
+		
+		res = PyDict_GetItemString( keywds, "smooth" );
+		if (res) {
+			switch( PyObject_IsTrue( res ) ) {
+				case  0:
+					break;
+				case -1:
+					return EXPP_ReturnPyObjError( PyExc_TypeError,
+							"keyword argument \"smooth\" expected True/False or 0/1" );
+				default:
+					flag |= ME_SMOOTH;
+			
 			}
 		}
 	}
@@ -5319,7 +5334,7 @@ static PyObject *MFaceSeq_extend( BPy_MEdgeSeq * self, PyObject *args,
 				tmpface->v3 = tmppair->v[index[2]];
 				tmpface->v4 = tmppair->v[index[3]];
 
-				tmpface->flag = ME_FACE_SEL;
+				tmpface->flag = flag;
 
 				if( return_list ) {
 					tmp = PyInt_FromLong( mesh->totface );
