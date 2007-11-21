@@ -123,6 +123,17 @@ def closestVecIndex(vec, vecls):
 	
 	return best
 
+IRATIONAL_NUM = 22.0/7.0
+def next_random_num(rnd):
+	'''
+	return a random number between 0.0 and 1.0
+	'''
+	rnd[0] += (rnd[0] * IRATIONAL_NUM) % 1
+	# prevent 
+	if rnd[0] > 1000000:
+		rnd[0]-=1000000
+	return rnd[0] % 1
+
 eul = 0.00001
 
 class tree:
@@ -353,23 +364,13 @@ class tree:
 		if do_variation:
 			irational_num = 22.0/7.0 # use to make the random number more odd
 			rnd = [variation_seed]
-			def next_random_num():
-				'''
-				return a random number between 0.0 and 1.0
-				'''
-				
-				rnd[0] += (rnd[0] * irational_num) % 1
-				# prevent 
-				if rnd[0] > 1000000:
-					rnd[0]-=1000000
-				return rnd[0] % 1
 			
 			# Add children temporarily
 			for brch in self.branches_all:
 				if brch.parent_pt:
-					rnd_rot = ((next_random_num() * variation_orientation) - 0.5) * 720
+					rnd_rot = ((next_random_num(rnd) * variation_orientation) - 0.5) * 720
 					mat_orientation = RotationMatrix(rnd_rot, 3, 'r', brch.parent_pt.no)
-					rnd_sca = 1 + ((next_random_num()-0.5)* variation_scale )
+					rnd_sca = 1 + ((next_random_num(rnd)-0.5)* variation_scale )
 					mat_scale = Matrix([rnd_sca,0,0],[0,rnd_sca,0],[0,0,rnd_sca])
 					# mat_orientation = RotationMatrix(0, 3, 'r', brch.parent_pt.no)
 					brch.transformRecursive(self, mat_scale * mat_orientation, brch.parent_pt.co)
@@ -1058,6 +1059,7 @@ class tree:
 	
 	def toLeafMesh(self, mesh_leaf,\
 			leaf_branch_limit = 0.5,\
+			leaf_branch_limit_rand = 0.8,\
 			leaf_size = 0.5,\
 			
 			leaf_fill=True,\
@@ -1167,44 +1169,65 @@ class tree:
 			
 			co1,co2,co3,co4 = Vector(),Vector(),Vector(),Vector()
 			
+			rnd_seed = [1.0] # could have seed as an input setting
+			
 			for brch in self.branches_all:
 				
 				# quick test, do we need leaves on this branch?
 				if brch.bpoints[-1].radius > radius_max:
 					continue
 				
+				
 				count = 0
 				for pt in brch.bpoints:
-					if pt.childCount == 0 and pt.radius < radius_max:
+					if leaf_branch_limit_rand:
+						# (-1 : +1) * leaf_branch_limit_rand
+						rnd = 1 + (((next_random_num(rnd_seed) - 0.5) * 2 ) * leaf_branch_limit_rand)
+					else:
+						rnd = 1.0
+					
+					if pt.childCount == 0 and (pt.radius * rnd) < radius_max:
 						# Ok we can add a leaf here. set the co's correctly
 						co1[:] = pt.co
 						co2[:] = pt.co
 						co3[:] = pt.co
 						co4[:] = pt.co
 						
+						
 						cross_leafdir = CrossVecs( zup, pt.no )
-						cross_leafdir.length = leaf_size
-
+						cross_leafdir.length = (leaf_size/2) ### * pt.radius
+						
+						
+						# Rotate the 
+						# Align this with the existing branch
+						rotate = RotationMatrix( (next_random_num(rnd_seed)-0.5) * 360, 3, 'r', pt.no )
+						
+						cross_leafdir = cross_leafdir * rotate
 						
 						#cross_leafwidth = CrossVecs(pt.no, cross_leafdir)
 						
 						# Facing up
-						cross_leafwidth_up = CrossVecs(zup, cross_leafdir).normalize() * leaf_size
+						cross_leafwidth_up = CrossVecs(zup, cross_leafdir).normalize() * leaf_size * pt.radius
 						cross_leafwidth_aligned = pt.no
 						
 						#cross_leafwidth = (cross_leafwidth_up + cross_leafwidth_aligned)/2
 						cross_leafwidth = cross_leafwidth_aligned
 						
-						cross_leafwidth.length = leaf_size/2
+						cross_leafwidth.length = (leaf_size/2) ### *pt.radius
 						
+						# base width 
 						co1 += cross_leafdir
 						co2 += cross_leafdir
+						co3 -= cross_leafdir
+						co4 -= cross_leafdir						
 						
+						# base hight allong the branch
 						co2 += cross_leafwidth
 						co3 += cross_leafwidth
 						
 						co1 -= cross_leafwidth
 						co4 -= cross_leafwidth
+						
 						
 						
 						i = len(verts_extend)
@@ -2432,6 +2455,7 @@ PREFS['leaf_fill_count'] = Draw.Create(1000)
 PREFS['leaf_fill_ob_bounds'] = Draw.Create('')
 
 PREFS['leaf_branch_limit'] = Draw.Create(0.25)
+PREFS['leaf_branch_limit_rand'] = Draw.Create(0.1)
 PREFS['leaf_size'] = Draw.Create(0.5)
 
 PREFS['leaf_dupliface'] = Draw.Create(0)
@@ -2451,6 +2475,8 @@ def getContextCurveObjects():
 	objects = []
 	ob_act = sce.objects.active
 	for ob in sce.objects.context:
+		if ob == ob_act: ob_act = None
+		
 		if ob.type != 'Curve':
 			ob = ob.parent
 		if not ob or ob.type != 'Curve':
@@ -2458,7 +2484,7 @@ def getContextCurveObjects():
 		objects.append(ob)
 		
 		# Alredy delt with 
-		if ob == ob_act: ob_act = None
+		
 	
 	# Add the active, important when using localview or local layers
 	if ob_act:
@@ -2516,11 +2542,13 @@ def Prefs2IDProp(idprop, prefs):
 	idprop[ID_SLOT_NAME] = new_prefs
 	
 def IDProp2Prefs(idprop, prefs):
-	try:	prefs = idprop[ID_SLOT_NAME]
-	except:	return False
+	prefs = idprop[ID_SLOT_NAME]
+	try:
+		prefs = idprop[ID_SLOT_NAME]
+	except:
+		return False
 	Dict2Prefs(prefs, PREFS)
 	return True
-
 
 def buildTree(ob_curve, single=False):
 	'''
@@ -2530,6 +2558,7 @@ def buildTree(ob_curve, single=False):
 	print 'Curve2Tree, starting...'
 	# if were only doing 1 object, just use the current prefs
 	prefs = {}
+	
 	if single or not (IDProp2Prefs(ob_curve.properties, prefs)):
 		prefs = PREFS
 		
@@ -2684,6 +2713,7 @@ def buildTree(ob_curve, single=False):
 
 		mesh_leaf = t.toLeafMesh(mesh_leaf,\
 			leaf_branch_limit = PREFS['leaf_branch_limit'].val,\
+			leaf_branch_limit_rand = PREFS['leaf_branch_limit_rand'].val,\
 			leaf_size = PREFS['leaf_size'].val,\
 			
 			leaf_fill = PREFS['leaf_fill'].val,\
@@ -2898,8 +2928,10 @@ def do_tree_generate__real():
 	if is_editmode:
 		Blender.Window.EditMode(0, '', 0)
 	Blender.Window.WaitCursor(1)
+	
 	for ob in objects:
 		buildTree(ob, len(objects)==1)
+	
 	Blender.Window.WaitCursor(0)
 	if is_editmode:
 		Blender.Window.EditMode(1, '', 0)
@@ -2965,7 +2997,6 @@ def gui():
 	# ---------- ---------- ---------- ----------
 	
 	
-	
 	Blender.Draw.BeginAlign()
 	PREFS['do_twigs'] =	Draw.Toggle('Generate Twigs',EVENT_UPDATE_AND_UI, xtmp, y, but_width*2, but_height, PREFS['do_twigs'].val,	'Generate child branches based existing branches'); xtmp += but_width*2;
 	if PREFS['do_twigs'].val:
@@ -3002,7 +3033,7 @@ def gui():
 		
 		# ---------- ---------- ---------- ----------
 		
-		PREFS['twig_placement_maxradius'] =	Draw.Number('Place Max Radius',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['twig_placement_maxradius'].val, 0.0, 50.0,	'Limit twig placement to branches with this maximum radius'); xtmp += but_width*2;
+		PREFS['twig_placement_maxradius'] =	Draw.Number('Place Max Radius',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['twig_placement_maxradius'].val, 0.0, 50.0,	'Only place twigs on branches below this radius'); xtmp += but_width*2;
 		PREFS['twig_placement_maxtwig'] =	Draw.Number('Place Max Count',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['twig_placement_maxtwig'].val, 0.0, 50.0,	'Limit twig placement to this many per branch'); xtmp += but_width*2;
 		
 		y-=but_height
@@ -3044,10 +3075,6 @@ def gui():
 	
 	if PREFS['do_leaf'].val:
 		PREFS['leaf_size'] =	Draw.Number('Size',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['leaf_size'].val, 0.001, 10.0,	'size of the leaf'); xtmp += but_width*2;
-
-		
-		# Dont use yet
-		# PREFS['leaf_branch_limit'] =	Draw.Number('Branch Limit',	EVENT_UPDATE, xtmp, y, but_width*4, but_height, PREFS['leaf_branch_limit'].val,	0.1, 2.0,	'Maximum thichness where a branch can bare leaves'); xtmp += but_width*4;
 		
 		if PREFS['leaf_fill'].val == 0:
 			but_width_tmp = but_width*2
@@ -3078,7 +3105,10 @@ def gui():
 		y-=but_height
 		xtmp = x
 		
-		'''
+		
+		
+		
+		
 		if PREFS['leaf_dupliface'].val == 1:
 			but_width_tmp = but_width*2
 		else:
@@ -3087,7 +3117,14 @@ def gui():
 		
 		if PREFS['leaf_dupliface'].val:
 			PREFS['leaf_dupliface_fromgroup'] =	Draw.String('group: ',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['leaf_dupliface_fromgroup'].val, 64,	'Pick objects from this group to use as leaves', do_group_check); xtmp += but_width*2;
-		'''
+			
+			# ---------- ---------- ---------- ----------
+			y-=but_height
+			xtmp = x
+			
+			# Dont use yet
+			PREFS['leaf_branch_limit'] =	Draw.Number('Branch Limit',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['leaf_branch_limit'].val,	0.0, 1.0,	'Maximum thichness where a branch can bare leaves'); xtmp += but_width*2;
+			PREFS['leaf_branch_limit_rand'] =	Draw.Number('Limit Random',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['leaf_branch_limit_rand'].val,	0.0, 1.0,	'Randomize the starting of leaves'); xtmp += but_width*2;
 		
 	Blender.Draw.EndAlign()
 	
