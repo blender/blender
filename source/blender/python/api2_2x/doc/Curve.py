@@ -10,7 +10,7 @@ This module provides access to B{Curve Data} objects in Blender.
 
 A Blender Curve Data consists of multiple L{CurNurb}(s). Try converting a Text object to a Curve to see an example of this.   Each curve is of
 type Bezier or Nurb.  The underlying L{CurNurb}(s) can be accessed with
-the [] operator.  Operator [] returns an object of type L{CurNurb}.
+the [] operator.  Operator [] returns an object of type L{CurNurb}. Removing a L{CurNurb} can be done this way too. del curve[0] removes the first curve.
 
 Note that L{CurNurb} can be used to acces a curve of any type (Poly, Bezier or Nurb)
 

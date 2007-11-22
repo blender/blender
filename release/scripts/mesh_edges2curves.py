@@ -39,16 +39,7 @@ Supported:<br>
 # ***** END GPL LICENCE BLOCK *****
 # --------------------------------------------------------------------------
 
-
 from Blender import *
-
-def edkey(ed):
-	i1 = ed.v1.index
-	i2 = ed.v2.index
-	if i1>i2:
-		return (i2,i1), ed
-	else:
-		return (i1,i2), ed
 
 def polysFromMesh(me):
 	# a polyline is 2 

@@ -124,6 +124,7 @@ static PyObject *Curve_getIter( BPy_Curve * self );
 static PyObject *Curve_iterNext( BPy_Curve * self );
 
 PyObject *Curve_getNurb( BPy_Curve * self, int n );
+static int Curve_setNurb( BPy_Curve * self, int n, PyObject * value );
 static int Curve_length( PyInstanceObject * inst );
 
 
@@ -1111,6 +1112,42 @@ PyObject *Curve_getNurb( BPy_Curve * self, int n )
 
 }
 
+/*
+ * Curve_setNurb
+ * In this case only remove the item, we could allow adding later.
+ */
+static int Curve_setNurb( BPy_Curve * self, int n, PyObject * value )
+{
+	Nurb *pNurb;
+	int i;
+
+	/* bail if index < 0 */
+	if( n < 0 )
+		return ( EXPP_ReturnIntError( PyExc_IndexError,
+				 "index less than 0" ) );
+	/* bail if no Nurbs in Curve */
+	if( self->curve->nurb.first == 0 )
+		return ( EXPP_ReturnIntError( PyExc_IndexError,
+				 "no Nurbs in this Curve" ) );
+	/* set pointer to nth Nurb */
+	for( pNurb = self->curve->nurb.first, i = 0;
+			pNurb != 0 && i < n; pNurb = pNurb->next, ++i )
+		/**/;
+
+	if( !pNurb )		/* we came to the end of the list */
+		return ( EXPP_ReturnIntError( PyExc_IndexError,
+				 "index out of range" ) );
+	
+	if (value) {
+		return ( EXPP_ReturnIntError( PyExc_RuntimeError,
+				 "assigning curves is not yet supported" ) );
+	} else {
+		BLI_remlink(&self->curve->nurb, pNurb);
+		freeNurb(pNurb);
+	}
+	return 0;
+}
+
 /*****************************************************************************/
 /* Function:    Curve_compare		                                         */
 /* Description: This compares 2 curve python types, == or != only.			 */
@@ -1430,7 +1467,7 @@ static PySequenceMethods Curve_as_sequence = {
 	( intargfunc ) 0,	/* sq_repeat */
 	( intargfunc ) Curve_getNurb,	/* sq_item */
 	( intintargfunc ) 0,	/* sq_slice */
-	0,			/* sq_ass_item */
+	( intobjargproc ) Curve_setNurb,	/* sq_ass_item - only so you can do del curve[i] */
 	0,			/* sq_ass_slice */
 	( objobjproc ) 0,	/* sq_contains */
 	0,
