@@ -210,6 +210,20 @@ def SetCursorPos (coords):
 		can be done with L{Redraw}.
 	"""
 
+def GetPivot ():
+	"""
+	Get the pivot for the active 3D view.
+	@rtype: int
+	@return: constant - Window.PivotTypes
+	"""
+
+def SetPivot (pivot):
+	"""
+	Set the pivot on the active 3D view.
+	@type pivot: int
+	@param pivot: constant - Window.PivotTypes
+	"""
+
 def WaitCursor (bool):
   """
   Set cursor to wait or back to normal mode.

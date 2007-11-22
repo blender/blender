@@ -61,6 +61,19 @@
 #include "gen_utils.h"
 #include "Armature.h"
 
+/* Pivot Types 
+-0 for Bounding Box Center; \n\
+-1 for 3D Cursor\n\
+-2 for Individual Centers\n\
+-3 for Median Point\n\
+-4 for Active Object"; */
+
+#define		PIVOT_BOUNDBOX		0
+#define		PIVOT_CURSOR		1
+#define		PIVOT_INDIVIDUAL	2
+#define		PIVOT_MEDIAN		3
+#define		PIVOT_ACTIVE		4
+
 /* See Draw.c */
 extern int EXPP_disable_force_draw;
 extern void setcameratoview3d(void);
@@ -106,6 +119,9 @@ static PyObject *M_Window_GetScreens( PyObject * self );
 static PyObject *M_Window_SetScreen( PyObject * self, PyObject * value );
 static PyObject *M_Window_GetScreenInfo( PyObject * self, PyObject * args,
 					 PyObject * kwords );
+static PyObject *M_Window_GetPivot( PyObject * self );
+static PyObject *M_Window_SetPivot( PyObject * self, PyObject * value );
+
 PyObject *Window_Init( void );
 
 
@@ -287,6 +303,18 @@ Each dictionary has keys:\n\
 'win': window type, see Blender.Window.Types dict;\n\
 'id': area's id.";
 
+static char M_Window_SetPivot_doc[] = 
+	"(Pivot) - Set Pivot Mode for 3D Viewport:\n\
+Options are: \n\
+-PivotTypes.BOUNDBOX for Bounding Box Center; \n\
+-PivotTypes.CURSOR for 3D Cursor\n\
+-PivotTypes.INDIVIDUAL for Individual Centers\n\
+-PivotTypes.MEDIAN for Median Point\n\
+-PivotTypes.ACTIVE for Active Object";
+
+static char M_Window_GetPivot_doc[] = 
+	"Return the pivot for the active 3d window";
+
 /*****************************************************************************/
 /* Python method structure definition for Blender.Window module:	*/
 /*****************************************************************************/
@@ -374,6 +402,10 @@ struct PyMethodDef M_Window_methods[] = {
 	 M_Window_SetScreen_doc},
 	{"GetScreenInfo", ( PyCFunction ) M_Window_GetScreenInfo,
 	 METH_VARARGS | METH_KEYWORDS, M_Window_GetScreenInfo_doc},
+	{"GetPivot", ( PyCFunction ) M_Window_GetPivot, METH_NOARGS, 
+	 M_Window_GetPivot_doc},
+	{"SetPivot", ( PyCFunction ) M_Window_SetPivot, METH_O, 
+	 M_Window_SetPivot_doc},
 	{NULL, NULL, 0, NULL}
 };
 
@@ -1454,12 +1486,38 @@ static PyObject *M_Window_GetScreenInfo( PyObject * self, PyObject * args,
 	return list;
 }
 
+static PyObject *M_Window_GetPivot( PyObject * self )
+{
+	if (G.vd) {
+		return PyInt_FromLong( G.vd->around );
+	}
+	Py_RETURN_NONE;
+}
+
+static PyObject *M_Window_SetPivot( PyObject * self, PyObject * value)
+
+{
+	short pivot;
+	if (G.vd) {
+		pivot = (short)PyInt_AsLong( value );
+
+		if ( pivot > 4 || pivot < 0 )
+			return EXPP_ReturnPyObjError( PyExc_AttributeError,
+							  "Expected a constant from Window.PivotTypes" );
+		
+		G.vd->around = pivot;
+	}
+	Py_RETURN_NONE;
+}
+
+
+
 /*****************************************************************************/
 /* Function:	Window_Init						*/
 /*****************************************************************************/
 PyObject *Window_Init( void )
 {
-	PyObject *submodule, *Types, *Qual, *MButs, *dict;
+	PyObject *submodule, *Types, *Qual, *MButs, *PivotTypes, *dict;
 
 	submodule =
 		Py_InitModule3( "Blender.Window", M_Window_methods,
@@ -1472,6 +1530,7 @@ PyObject *Window_Init( void )
 	Types = PyConstant_New(  );
 	Qual = PyConstant_New(  );
 	MButs = PyConstant_New(  );
+	PivotTypes = PyConstant_New(  );
 
 	if( Types ) {
 		BPy_constant *d = ( BPy_constant * ) Types;
@@ -1522,5 +1581,16 @@ PyObject *Window_Init( void )
 		PyModule_AddObject( submodule, "MButs", MButs );
 	}
 
+	if( PivotTypes ) {
+		BPy_constant *d = ( BPy_constant * ) PivotTypes;
+
+		PyConstant_Insert(d, "BOUNDBOX", PyInt_FromLong( PIVOT_BOUNDBOX ) );
+		PyConstant_Insert(d, "CURSOR", PyInt_FromLong( PIVOT_CURSOR ) );
+		PyConstant_Insert(d, "MEDIAN", PyInt_FromLong( PIVOT_MEDIAN ) );
+		PyConstant_Insert(d, "ACTIVE", PyInt_FromLong( PIVOT_ACTIVE ) );
+		PyConstant_Insert(d, "INDIVIDUAL", PyInt_FromLong( PIVOT_INDIVIDUAL ) );
+
+		PyModule_AddObject( submodule, "PivotTypes", PivotTypes );
+	}
 	return submodule;
 }
