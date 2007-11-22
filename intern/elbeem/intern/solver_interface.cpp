@@ -17,7 +17,6 @@
 #include "ntl_world.h"
 #include "elbeem.h"
 
-#include <stdlib.h> /* getenv(3) - also in linux */
 
 
 
@@ -142,7 +141,7 @@ void initGridSizes(int &sizex, int &sizey, int &sizez,
 
 void calculateMemreqEstimate( int resx,int resy,int resz, 
 		int refine, float farfield,
-		double *reqret, string *reqstr) {
+		double *reqret, double *reqretFine, string *reqstr) {
 	// debug estimation?
 	const bool debugMemEst = true;
 	// COMPRESSGRIDS define is not available here, make sure it matches
@@ -150,6 +149,7 @@ void calculateMemreqEstimate( int resx,int resy,int resz,
 	// make sure we can handle bid numbers here... all double
 	double memCnt = 0.0;
 	double ddTotalNum = (double)dTotalNum;
+	if(reqretFine) *reqretFine = -1.;
 
 	double currResx = (double)resx;
 	double currResy = (double)resy;
@@ -159,10 +159,12 @@ void calculateMemreqEstimate( int resx,int resy,int resz,
 	if(debugMemEst) debMsgStd("calculateMemreqEstimate",DM_MSG,"res:"<<PRINT_VEC(currResx,currResy,currResz)<<" rcellSize:"<<rcellSize<<" mc:"<<memCnt, 10);
   if(!useGridComp) {
 		memCnt += (double)(sizeof(LbmFloat) * (rcellSize +4.0) *2.0);
+		if(reqretFine) *reqretFine = (double)(sizeof(LbmFloat) * (rcellSize +4.0) *2.0);
 		if(debugMemEst) debMsgStd("calculateMemreqEstimate",DM_MSG," no-comp, mc:"<<memCnt, 10);
 	} else {
 		double compressOffset = (double)(currResx*currResy*ddTotalNum*2.0);
 		memCnt += (double)(sizeof(LbmFloat) * (rcellSize+compressOffset +4.0));
+		if(reqretFine) *reqretFine = (double)(sizeof(LbmFloat) * (rcellSize+compressOffset +4.0));
 		if(debugMemEst) debMsgStd("calculateMemreqEstimate",DM_MSG," w-comp, mc:"<<memCnt, 10);
 	}
 	for(int i=refine-1; i>=0; i--) {

@@ -11,6 +11,8 @@ def Error_NoMeshUvActive():
 	Draw.PupMenu('Error%t|Active object is not a mesh with texface')
 def Error_NoMeshMultiresEdit():
 	Draw.PupMenu('Error%t|Unable to complete action with multires enabled')
+def Error_NoMeshFaces():
+	Draw.PupMenu('Error%t|Mesh has no faces')
 
 # File I/O messages
 def Error_NoFile(path):

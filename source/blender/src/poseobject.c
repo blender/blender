@@ -917,6 +917,7 @@ void pose_movetolayer(void)
 	else if (G.obedit) {
 		/* the check for editbone layer moving needs to occur before posemode one to work */
 		EditBone *ebo;
+		EditBone *flipBone;
 		
 		for (ebo= G.edbo.first; ebo; ebo= ebo->next) {
 			if (arm->layer & ebo->layer) {
@@ -931,8 +932,14 @@ void pose_movetolayer(void)
 		
 		for (ebo= G.edbo.first; ebo; ebo= ebo->next) {
 			if (arm->layer & ebo->layer) {
-				if (ebo->flag & BONE_SELECTED)
+				if (ebo->flag & BONE_SELECTED) {
 					ebo->layer= lay;
+					if (arm->flag & ARM_MIRROR_EDIT) {
+						flipBone = armature_bone_get_mirrored(ebo);
+						if (flipBone)
+							flipBone->layer = lay;
+					}
+				}
 			}
 		}
 		

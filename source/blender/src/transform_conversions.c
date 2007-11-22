@@ -2694,11 +2694,11 @@ void autokeyframe_ob_cb_func(Object *ob, int tmode)
 	char *actname="";
 	
 	if (G.flags & G_RECORDKEYS) {
-		if(ob->ipoflag & OB_ACTION_OB)
+		if (ob->ipoflag & OB_ACTION_OB)
 			actname= "Object";
-
-		if(U.uiflag & USER_KEYINSERTAVAI) {
-			if(ob->ipo || ob->action) {
+		
+		if (U.uiflag & USER_KEYINSERTAVAI) {
+			if (ob->ipo || ob->action) {
 				ID *id= (ID *)(ob);
 				
 				if (ob->ipo) {
@@ -2714,7 +2714,7 @@ void autokeyframe_ob_cb_func(Object *ob, int tmode)
 						icu= NULL;
 				}
 				
-				while(icu) {
+				while (icu) {
 					icu->flag &= ~IPO_SELECT;
 					if (U.uiflag & USER_KEYINSERTNEED)
 						insertkey_smarter(id, ID_OB, actname, NULL, icu->adrcode);
@@ -2725,36 +2725,65 @@ void autokeyframe_ob_cb_func(Object *ob, int tmode)
 			}
 		}
 		else if (U.uiflag & USER_KEYINSERTNEED) {
-			if (tmode==TFM_RESIZE) {
-				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_SIZE_X);
-				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_SIZE_Y);
-				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_SIZE_Z);
+			short doLoc=0, doRot=0, doScale=0;
+			
+			/* filter the conditions when this happens (assume that curarea->spacetype==SPACE_VIE3D) */
+			if (tmode == TFM_TRANSLATION) {
+				doLoc = 1;
 			}
-			else if (tmode==TFM_ROTATION) {
+			else if (tmode == TFM_ROTATION) {
+				if (G.vd->around == V3D_ACTIVE) {
+					if (ob != OBACT)
+						doLoc = 1;
+				}
+				else if (G.vd->around == V3D_CURSOR)
+					doLoc = 1;	
+				
+				if ((G.vd->flag & V3D_ALIGN)==0) 
+					doRot = 1;
+			}
+			else if (tmode == TFM_RESIZE) {
+				if (G.vd->around == V3D_ACTIVE) {
+					if (ob != OBACT)
+						doLoc = 1;
+				}
+				else if (G.vd->around == V3D_CURSOR)
+					doLoc = 1;	
+				
+				if ((G.vd->flag & V3D_ALIGN)==0)
+					doScale = 1;
+			}
+			
+			if (doLoc) {
+				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_LOC_X);
+				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_LOC_Y);
+				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_LOC_Z);
+			}
+			if (doRot) {
 				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_ROT_X);
 				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_ROT_Y);
 				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_ROT_Z);
 			}
-			else if (tmode==TFM_TRANSLATION) {
-				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_LOC_X);
-				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_LOC_Y);
-				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_LOC_Z);
+			if (doScale) {
+				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_SIZE_X);
+				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_SIZE_Y);
+				insertkey_smarter(&ob->id, ID_OB, actname, NULL, OB_SIZE_Z);
 			}
 		}
 		else {
 			insertkey(&ob->id, ID_OB, actname, NULL, OB_ROT_X, 0);
 			insertkey(&ob->id, ID_OB, actname, NULL, OB_ROT_Y, 0);
 			insertkey(&ob->id, ID_OB, actname, NULL, OB_ROT_Z, 0);
-
+			
 			insertkey(&ob->id, ID_OB, actname, NULL, OB_LOC_X, 0);
 			insertkey(&ob->id, ID_OB, actname, NULL, OB_LOC_Y, 0);
 			insertkey(&ob->id, ID_OB, actname, NULL, OB_LOC_Z, 0);
-
+			
 			insertkey(&ob->id, ID_OB, actname, NULL, OB_SIZE_X, 0);
 			insertkey(&ob->id, ID_OB, actname, NULL, OB_SIZE_Y, 0);
 			insertkey(&ob->id, ID_OB, actname, NULL, OB_SIZE_Z, 0);
 		}
-
+		
 		remake_object_ipos(ob);
 		allqueue(REDRAWMARKER, 0);
 	}
@@ -2785,7 +2814,7 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 				pchan->bone->flag &= ~BONE_UNKEYED;
 				
 				/* only insert into available channels? */
-				if(U.uiflag & USER_KEYINSERTAVAI) {
+				if (U.uiflag & USER_KEYINSERTAVAI) {
 					bActionChannel *achan; 
 					
 					for (achan = act->chanbase.first; achan; achan=achan->next){
@@ -2803,18 +2832,42 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 				}
 				/* only insert keyframe if needed? */
 				else if (U.uiflag & USER_KEYINSERTNEED) {
-					if ((tmode==TFM_TRANSLATION) && (targetless_ik==0)) {
+					short doLoc=0, doRot=0, doScale=0;
+					
+					/* filter the conditions when this happens (assume that curarea->spacetype==SPACE_VIE3D) */
+					if (tmode == TFM_TRANSLATION) {
+						if (targetless_ik) 
+							doRot= 1;
+						else 
+							doLoc = 1;
+					}
+					else if (tmode == TFM_ROTATION) {
+						if (ELEM(G.vd->around, V3D_CURSOR, V3D_ACTIVE))
+							doLoc = 1;
+							
+						if ((G.vd->flag & V3D_ALIGN)==0) 
+							doRot = 1;
+					}
+					else if (tmode == TFM_RESIZE) {
+						if (ELEM(G.vd->around, V3D_CURSOR, V3D_ACTIVE))
+							doLoc = 1;
+						
+						if ((G.vd->flag & V3D_ALIGN)==0)
+							doScale = 1;
+					}
+					
+					if (doLoc) {
 						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_X);
 						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Y);
 						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Z);
 					}
-					if ((tmode==TFM_ROTATION) || ((tmode==TFM_TRANSLATION) && targetless_ik)) {
+					if (doRot) {
 						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_W);
 						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_X);
 						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Y);
 						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Z);
 					}
-					if (tmode==TFM_RESIZE) {
+					if (doScale) {
 						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_X);
 						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Y);
 						insertkey_smarter(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Z);
@@ -2889,7 +2942,7 @@ void special_aftertrans_update(TransInfo *t)
 	if (t->spacetype==SPACE_VIEW3D)
 		EM_automerge(1);
 	
-	if(t->spacetype == SPACE_ACTION) {
+	if (t->spacetype == SPACE_ACTION) {
 		void *data;
 		short datatype;
 		
@@ -2929,7 +2982,7 @@ void special_aftertrans_update(TransInfo *t)
 			DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 		}
 	}
-	else if(t->spacetype == SPACE_NLA) {
+	else if (t->spacetype == SPACE_NLA) {
 		synchronize_action_strips();
 		
 		/* cleanup */
@@ -2938,35 +2991,35 @@ void special_aftertrans_update(TransInfo *t)
 		
 		recalc_all_ipos();	// bad
 	}
-	else if(t->spacetype == SPACE_IPO) {
+	else if (t->spacetype == SPACE_IPO) {
 		// FIXME! is there any code from the old transform_ipo that needs to be added back? 
 		
 		/* resetting slow-parents isn't really necessary when editing sequence ipo's */
 		if (G.sipo->blocktype==ID_SEQ)
 			resetslowpar= 0;
 	}
-	else if(G.obedit) {
-		if(t->mode==TFM_BONESIZE || t->mode==TFM_BONE_ENVELOPE)
+	else if (G.obedit) {
+		if (t->mode==TFM_BONESIZE || t->mode==TFM_BONE_ENVELOPE)
 			allqueue(REDRAWBUTSEDIT, 0);
 		
 		/* table needs to be created for each edit command, since vertices can move etc */
 		mesh_octree_table(G.obedit, NULL, 'e');
 	}
-	else if( (t->flag & T_POSE) && t->poseobj) {
+	else if ((t->flag & T_POSE) && (t->poseobj)) {
 		bArmature *arm;
 		bPose	*pose;
 		bPoseChannel *pchan;
 		short targetless_ik= 0;
-
+		
 		ob= t->poseobj;
 		arm= ob->data;
 		pose= ob->pose;
 		
 		/* this signal does one recalc on pose, then unlocks, so ESC or edit will work */
 		pose->flag |= POSE_DO_UNLOCK;
-
+		
 		/* if target-less IK grabbing, we calculate the pchan transforms and clear flag */
-		if(!cancelled && t->mode==TFM_TRANSLATION)
+		if (!cancelled && t->mode==TFM_TRANSLATION)
 			targetless_ik= apply_targetless_ik(ob);
 		else {
 			/* not forget to clear the auto flag */
@@ -2976,15 +3029,15 @@ void special_aftertrans_update(TransInfo *t)
 			}
 		}
 		
-		if(t->mode==TFM_TRANSLATION)
+		if (t->mode==TFM_TRANSLATION)
 			pose_grab_with_ik_clear(ob);
 			
 		/* automatic inserting of keys and unkeyed tagging - only if transform wasn't cancelled (or TFM_DUMMY) */
-		if(!cancelled && (t->mode != TFM_DUMMY)) {
+		if (!cancelled && (t->mode != TFM_DUMMY)) {
 			autokeyframe_pose_cb_func(ob, t->mode, targetless_ik);
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		}
-		else if(arm->flag & ARM_DELAYDEFORM) {
+		else if (arm->flag & ARM_DELAYDEFORM) {
 			/* old optimize trick... this enforces to bypass the depgraph */
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			ob->recalc= 0;	// is set on OK position already by recalcData()
@@ -2992,18 +3045,20 @@ void special_aftertrans_update(TransInfo *t)
 		else 
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		
-		if(t->mode==TFM_BONESIZE || t->mode==TFM_BONE_ENVELOPE)
+		if (t->mode==TFM_BONESIZE || t->mode==TFM_BONE_ENVELOPE)
 			allqueue(REDRAWBUTSEDIT, 0);
 		
 	}
 	else {
 		base= FIRSTBASE;
-		while(base) {						
+
+		while (base) {			
+
 			if(base->flag & BA_DO_IPO) redrawipo= 1;
 			
 			ob= base->object;
 			
-			if(modifiers_isSoftbodyEnabled(ob)) ob->softflag |= OB_SB_REDO;
+			if (modifiers_isSoftbodyEnabled(ob)) ob->softflag |= OB_SB_REDO;
 			else if(modifiers_isClothEnabled(ob)) {
 				cloth_free_modifier(modifiers_isClothEnabled(ob));
 			}
@@ -3020,7 +3075,7 @@ void special_aftertrans_update(TransInfo *t)
 	
 	clear_trans_object_base_flags();
 	
-	if(redrawipo) {
+	if (redrawipo) {
 		allqueue(REDRAWNLA, 0);
 		allqueue(REDRAWACTION, 0);
 		allqueue(REDRAWIPO, 0);

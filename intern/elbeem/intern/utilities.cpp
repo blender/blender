@@ -10,7 +10,6 @@
 
 #include <iostream>
 #include <sstream>
-#include <stdlib.h> /* getenv(3), strtol(3) */
 #ifdef WIN32
 // for timing
 #include <windows.h>
@@ -482,7 +481,7 @@ double elbeemEstimateMemreq(int res,
 	double memreq = -1.0;
 	string memreqStr("");	
 	// ignore farfield for now...
-	calculateMemreqEstimate(resx,resy,resz, refine, 0., &memreq, &memreqStr );
+	calculateMemreqEstimate(resx,resy,resz, refine, 0., &memreq, NULL, &memreqStr );
 
 	if(retstr) { 
 		// copy at max. 32 characters

@@ -790,7 +790,8 @@ static void pchan_bone_deform(bPoseChannel *pchan, float weight, float *vec, Dua
 
 void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
                            float (*vertexCos)[3], float (*defMats)[3][3],
-						   int numVerts, int deformflag, const char *defgrp_name)
+						   int numVerts, int deformflag, 
+						   float (*prevCos)[3], const char *defgrp_name)
 {
 	bPoseChannel *pchan, **defnrToPC = NULL;
 	MDeformVert *dverts = NULL;
@@ -800,6 +801,7 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 	int use_envelope = deformflag & ARM_DEF_ENVELOPE;
 	int use_quaternion = deformflag & ARM_DEF_QUATERNION;
 	int bbone_rest_def = deformflag & ARM_DEF_B_BONE_REST;
+	int invert_vgroup= deformflag & ARM_DEF_INVERT_VGROUP;
 	int numGroups = 0;		/* safety for vertexgroup index overflow */
 	int i, target_totvert = 0;	/* safety for vertexgroup overflow */
 	int use_dverts = 0;
@@ -881,11 +883,12 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 	for(i = 0; i < numVerts; i++) {
 		MDeformVert *dvert;
 		DualQuat sumdq, *dq = NULL;
-		float *co = vertexCos[i], dco[3];
+		float *co, dco[3];
 		float sumvec[3], summat[3][3];
 		float *vec = NULL, (*smat)[3] = NULL;
 		float contrib = 0.0f;
-		float armature_weight = 1.0f; /* default to 1 if no overall def group */
+		float armature_weight = 1.0f;	/* default to 1 if no overall def group */
+		float prevco_weight = 1.0f;		/* weight for optional cached vertexcos */
 		int	  j;
 
 		if(use_quaternion) {
@@ -917,10 +920,21 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 					break;
 				}
 			}
+			/* hackish: the blending factor can be used for blending with prevCos too */
+			if(prevCos) {
+				if(invert_vgroup)
+					prevco_weight= 1.0f-armature_weight;
+				else
+					prevco_weight= armature_weight;
+				armature_weight= 1.0f;
+			}
 		}
 
 		/* check if there's any  point in calculating for this vert */
 		if(armature_weight == 0.0f) continue;
+		
+		/* get the coord we work on */
+		co= prevCos?prevCos[i]:vertexCos[i];
 		
 		/* Apply the object's matrix */
 		Mat4MulVecfl(premat, co);
@@ -1005,6 +1019,15 @@ void armature_deform_verts(Object *armOb, Object *target, DerivedMesh *dm,
 		
 		/* always, check above code */
 		Mat4MulVecfl(postmat, co);
+		
+		
+		/* interpolate with previous modifier position using weight group */
+		if(prevCos) {
+			float mw= 1.0f - prevco_weight;
+			vertexCos[i][0]= prevco_weight*vertexCos[i][0] + mw*co[0];
+			vertexCos[i][1]= prevco_weight*vertexCos[i][1] + mw*co[1];
+			vertexCos[i][2]= prevco_weight*vertexCos[i][2] + mw*co[2];
+		}
 	}
 
 	if(dualquats) MEM_freeN(dualquats);
@@ -1865,12 +1888,42 @@ static void where_is_ik_bone(bPoseChannel *pchan, float ik_mat[][3])   // nr = t
 static void do_strip_modifiers(Object *armob, Bone *bone, bPoseChannel *pchan)
 {
 	bActionModifier *amod;
-	bActionStrip *strip;
+	bActionStrip *strip, *strip2;
 	float scene_cfra= G.scene->r.cfra;
+	int do_modif;
 
 	for (strip=armob->nlastrips.first; strip; strip=strip->next) {
-		if(scene_cfra>=strip->start && scene_cfra<=strip->end) {
+		do_modif=0;
+		
+		if (scene_cfra>=strip->start && scene_cfra<=strip->end)
+			do_modif=1;
+		
+		if ((scene_cfra > strip->end) && (strip->flag & ACTSTRIP_HOLDLASTFRAME)) {
+			do_modif=1;
 			
+			/* if there are any other strips active, ignore modifiers for this strip - 
+			 * 'hold' option should only hold action modifiers if there are 
+			 * no other active strips */
+			for (strip2=strip->next; strip2; strip2=strip2->next) {
+				if (strip2 == strip) continue;
+				
+				if (scene_cfra>=strip2->start && scene_cfra<=strip2->end) {
+					if (!(strip2->flag & ACTSTRIP_MUTE))
+						do_modif=0;
+				}
+			}
+			
+			/* if there are any later, activated, strips with 'hold' set, they take precedence, 
+			 * so ignore modifiers for this strip */
+			for (strip2=strip->next; strip2; strip2=strip2->next) {
+				if (scene_cfra < strip2->start) continue;
+				if ((strip2->flag & ACTSTRIP_HOLDLASTFRAME) && !(strip2->flag & ACTSTRIP_MUTE)) {
+					do_modif=0;
+				}
+			}
+		}
+		
+		if (do_modif) {
 			/* temporal solution to prevent 2 strips accumulating */
 			if(scene_cfra==strip->end && strip->next && strip->next->start==scene_cfra)
 				continue;

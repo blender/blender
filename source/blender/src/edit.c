@@ -1221,7 +1221,7 @@ void snap_sel_to_grid()
 				}
 				ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
 				
-				/* autokeyframing */
+				/* auto-keyframing */
 				autokeyframe_pose_cb_func(ob, TFM_TRANSLATION, 0);
 				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			}
@@ -1231,10 +1231,10 @@ void snap_sel_to_grid()
 				vec[0]= -ob->obmat[3][0]+G.vd->gridview*floor(.5+ ob->obmat[3][0]/gridf);
 				vec[1]= -ob->obmat[3][1]+G.vd->gridview*floor(.5+ ob->obmat[3][1]/gridf);
 				vec[2]= -ob->obmat[3][2]+G.vd->gridview*floor(.5+ ob->obmat[3][2]/gridf);
-
+				
 				if(ob->parent) {
 					where_is_object(ob);
-
+					
 					Mat3Inv(imat, originmat);
 					Mat3MulVecfl(imat, vec);
 					ob->loc[0]+= vec[0];
@@ -1334,7 +1334,7 @@ void snap_sel_to_curs()
 				}
 				ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
 				
-				/* autokeyframing */
+				/* auto-keyframing */
 				autokeyframe_pose_cb_func(ob, TFM_TRANSLATION, 0);
 				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			}
@@ -1686,7 +1686,7 @@ void snap_to_center()
 					}
 				}
 				
-				/* autokeyframing */
+				/* auto-keyframing */
 				ob->pose->flag |= POSE_DO_UNLOCK;
 				autokeyframe_pose_cb_func(ob, TFM_TRANSLATION, 0);
 				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);

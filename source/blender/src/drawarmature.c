@@ -1737,8 +1737,8 @@ static void draw_pose_paths(Object *ob)
 	CfraElem *ce;
 	ListBase ak;
 	float *fp;
-	int a;
-	int stepsize, sfra;
+	int a, stepsize;
+	int sfra, efra;
 	
 	if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
 	
@@ -1758,16 +1758,39 @@ static void draw_pose_paths(Object *ob)
 					pchan->pathef= EFRA;
 				}
 				
-				/* get start frame of calculated range */
+				/* get frame ranges */
 				sfra= pchan->pathsf;
+				efra = sfra + pchan->pathlen;
 				
 				/* draw curve-line of path */
-				// TODO: show before/after with slight difference in colour intensity
-				BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.7);
-				glBegin(GL_LINE_STRIP);
-				for(a=0, fp= pchan->path; a<pchan->pathlen; a++, fp+=3)
-					glVertex3fv(fp);
-				glEnd();
+				if ((CFRA > sfra) && (CFRA < efra)) {
+					/* Show before/after current frame with slight difference in colour intensity 
+					 * This is done in two loops, as there seems to be some problems with changing color
+					 * or something during a loop (noted somewhere in the codebase)
+					 */
+					
+					/* 	before cfra (darker) */
+					BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.2);
+					glBegin(GL_LINE_STRIP);
+					for (a=0, fp=pchan->path; (sfra+a)<=CFRA; a++, fp+=3)
+						glVertex3fv(fp);
+					glEnd();
+					
+					/* after cfra (lighter) - backtrack a bit so that we don't have gaps */
+					BIF_ThemeColorBlend(TH_WIRE, TH_BONE_POSE, 0.7);
+					glBegin(GL_LINE_STRIP);
+					for (--a, fp-=3; a<pchan->pathlen; a++, fp+=3)
+						glVertex3fv(fp);
+					glEnd();
+				}
+				else {
+					/* show both directions with same intensity (cfra somewhere else) */
+					BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.7);
+					glBegin(GL_LINE_STRIP);
+					for (a=0, fp= pchan->path; a<pchan->pathlen; a++, fp+=3)
+						glVertex3fv(fp);
+					glEnd();
+				}
 				
 				glPointSize(1.0);
 				
@@ -1791,7 +1814,7 @@ static void draw_pose_paths(Object *ob)
 					for(a=0, fp= pchan->path; a<pchan->pathlen; a+=stepsize, fp+=(stepsize*3)) {
 						char str[32];
 						
-						/* only draw framenum if several consecutive highlighted points occur on same point */
+						/* only draw framenum if several consecutive highlighted points don't occur on same point */
 						if (a == 0) {
 							glRasterPos3fv(fp);
 							sprintf(str, "  %d\n", (a+sfra));

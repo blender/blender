@@ -103,7 +103,6 @@ def main():
 	if PREF_ALL_VGROUPS==-1:
 		return
 	
-	print "sd", PREF_ALL_VGROUPS
 	Window.WaitCursor(1)
 	me = ob_act.getData(mesh=1) # old NMesh api is default
 	t = sys.time()

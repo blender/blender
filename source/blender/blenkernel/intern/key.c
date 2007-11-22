@@ -680,11 +680,15 @@ static void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, i
 			
 			/* only with value, and no difference allowed */
 			if(icuval!=0.0f && kb->totelem==tot) {
+				KeyBlock *refb;
 				float weight, *weights= kb->weights;
 				
 				poin= basispoin;
-				reffrom= key->refkey->data;
 				from= kb->data;
+				/* reference now can be any block */
+				refb= BLI_findlink(&key->block, kb->relative);
+				if(refb==NULL) continue;
+				reffrom= refb->data;
 				
 				poin+= start*ofs[0];
 				reffrom+= key->elemsize*start;	// key elemsize yes!

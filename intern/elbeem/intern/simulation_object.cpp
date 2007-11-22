@@ -15,7 +15,6 @@
 #include "solver_interface.h"
 #include "particletracer.h"
 #include "elbeem.h"
-#include <stdlib.h> /* exit(3) - also in linux */
 
 #ifdef _WIN32
 #else
@@ -69,6 +68,7 @@ SimulationObject::~SimulationObject()
 /*! init tree for certain geometry init */
 /*****************************************************************************/
 void SimulationObject::initGeoTree() {
+	// unused!! overriden by solver interface	
 	if(mpGlob == NULL) { 
 		errFatal("SimulationObject::initGeoTree error","Requires globals!", SIMWORLD_INITERROR); 
 		return;
@@ -80,7 +80,7 @@ void SimulationObject::initGeoTree() {
 	char treeFlag = (1<<(mGeoInitId+4));
 	mpGiTree = new ntlTree( 20, 4, // warning - fixed values for depth & maxtriangles here...
 												scene, treeFlag );
-	exit(1); // unused!? overriden by solver interface	
+	// unused!! overriden by solver interface	
 }
 
 /*****************************************************************************/
@@ -310,7 +310,7 @@ void SimulationObject::step( void )
 		// dont advance for stopped time
 		mpLbm->step();
 		mTime += mpParam->getTimestep();
-//if(mTime>0.001) { errMsg("DEBUG!!!!!!!!","quit mlsu..."); exit(1); } // PROFILE DEBUG TEST!
+		//if(mTime>0.001) { errMsg("DEBUG!!!!!!!!","quit mlsu..."); xit(1); } // PROFILE DEBUG TEST!
 	}
 	if(mpLbm->getPanic()) mPanic = true;
 

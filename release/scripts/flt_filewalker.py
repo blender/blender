@@ -17,6 +17,11 @@
 # along with this program; if not, write to the Free Software
 # Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
 
+__bpydoc__ ="""\
+File read/write module used by OpenFlight I/O and tool scripts. OpenFlight is a
+registered trademark of MultiGen-Paradigm, Inc.
+"""
+
 import Blender
 from struct import *
 import re
@@ -199,7 +204,9 @@ class FltOut:
         self.file.close()
 
     def __init__(self, filename):
-        self.file = open(filename, 'wb')
+		self.file = open(filename, 'wb')
+		self.filename = filename
+		
 
 class FileFinder:
     def add_file_to_search_path(self, filename):

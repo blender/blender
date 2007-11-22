@@ -1953,7 +1953,7 @@ static void world_panel_mapto(World *wrld)
 
 	/* TEXTURE OUTPUT */
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, MTEX_STENCIL, B_WORLDPRV, "Stencil",	10,125,45,19, &(mtex->texflag), 0, 0, 0, 0, "Sets the texture mapping to stencil mode");
+	uiDefButBitS(block, TOG, MTEX_STENCIL, B_WORLDPRV, "Stencil",	10,125,45,19, &(mtex->texflag), 0, 0, 0, 0, "Use this texture as a blending value on the next texture");
 	uiDefButBitS(block, TOG, MTEX_NEGATIVE, B_WORLDPRV, "Neg",		55,125,30,19, &(mtex->texflag), 0, 0, 0, 0, "Inverts the values of the texture to reverse its effect");
 	uiDefButBitS(block, TOG, MTEX_RGBTOINT, B_WORLDPRV, "No RGB",		85,125,60,19, &(mtex->texflag), 0, 0, 0, 0, "Converts texture RGB values to intensity (gray) values");
 	uiBlockEndAlign(block);
@@ -2098,13 +2098,13 @@ static void world_panel_mistaph(World *wrld)
 	uiBlockSetCol(block, TH_AUTO);
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, B_WORLDPRV2, "Qua", 10, 90, 40, 19, &wrld->mistype, 1.0, 0.0, 0, 0, "Mist uses quadratic progression");
+	uiDefButS(block, ROW, B_WORLDPRV2, "Quad", 10, 90, 40, 19, &wrld->mistype, 1.0, 0.0, 0, 0, "Mist uses quadratic progression");
 	uiDefButS(block, ROW, B_WORLDPRV2, "Lin", 50, 90, 50, 19, &wrld->mistype, 1.0, 1.0, 0, 0, "Mist uses linear progression");
 	uiDefButS(block, ROW, B_WORLDPRV2, "Sqr", 100, 90, 50, 19, &wrld->mistype, 1.0, 2.0, 0, 0, "Mist uses inverse quadratic progression");
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM,B_WORLDPRV2, "Sta:",10,70,140,19, &wrld->miststa, 0.0, 10000.0, 10, 0, "Specifies the starting distance of the mist");
-	uiDefButF(block, NUM,B_WORLDPRV2, "Di:",10,50,140,19, &wrld->mistdist, 0.0,10000.0, 10, 00, "Specifies the depth of the mist");
-	uiDefButF(block, NUM,B_WORLDPRV2,"Hi:",		10,30,140,19, &wrld->misthi,0.0,100.0, 10, 0, "Specifies the factor for a less dense mist with increasing height");
+	uiDefButF(block, NUM,B_WORLDPRV2, "Start:",10,70,140,19, &wrld->miststa, 0.0, 10000.0, 10, 0, "Specifies the starting distance of the mist");
+	uiDefButF(block, NUM,B_WORLDPRV2, "Dist:",10,50,140,19, &wrld->mistdist, 0.0,10000.0, 10, 00, "Specifies the depth of the mist");
+	uiDefButF(block, NUM,B_WORLDPRV2,"Height:",		10,30,140,19, &wrld->misthi,0.0,100.0, 10, 0, "Specifies the factor for a less dense mist with increasing height");
 	uiDefButF(block, NUMSLI, B_WORLDPRV2, "Misi ",		10,10,140,19,	&(wrld->misi), 0., 1.0, 0, 0, "Sets the mist intensity");
 	uiBlockEndAlign(block);
 
@@ -2384,7 +2384,7 @@ static void lamp_panel_mapto(Object *ob, Lamp *la)
 
 	/* TEXTURE OUTPUT */
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, MTEX_STENCIL, B_LAMPPRV, "Stencil",	10,125,45,19, &(mtex->texflag), 0, 0, 0, 0, "Sets the texture mapping to stencil mode");
+	uiDefButBitS(block, TOG, MTEX_STENCIL, B_LAMPPRV, "Stencil",	10,125,45,19, &(mtex->texflag), 0, 0, 0, 0, "Use this texture as a blending value on the next texture");
 	uiDefButBitS(block, TOG, MTEX_NEGATIVE, B_LAMPPRV, "Neg",		55,125,30,19, &(mtex->texflag), 0, 0, 0, 0, "Inverts the values of the texture to reverse its effect");
 	uiDefButBitS(block, TOG, MTEX_RGBTOINT, B_LAMPPRV, "No RGB",		85,125,60,19, &(mtex->texflag), 0, 0, 0, 0, "Converts texture RGB values to intensity (gray) values");
 	uiBlockEndAlign(block);
@@ -3065,7 +3065,7 @@ static void material_panel_map_to(Material *ma, int from_nodes)
 
 	/* TEXTURE OUTPUT */
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, MTEX_STENCIL, B_MATPRV, "Stencil",	10,125,45,19, &(mtex->texflag), 0, 0, 0, 0, "Sets the texture mapping to stencil mode");
+	uiDefButBitS(block, TOG, MTEX_STENCIL, B_MATPRV, "Stencil",	10,125,45,19, &(mtex->texflag), 0, 0, 0, 0, "Use this texture as a blending value on the next texture");
 	uiDefButBitS(block, TOG, MTEX_NEGATIVE, B_MATPRV, "Neg",		55,125,30,19, &(mtex->texflag), 0, 0, 0, 0, "Inverts the values of the texture to reverse its effect");
 	uiDefButBitS(block, TOG,MTEX_RGBTOINT, B_MATPRV, "No RGB",		85,125,60,19, &(mtex->texflag), 0, 0, 0, 0, "Converts texture RGB values to intensity (gray) values");
 	uiBlockEndAlign(block);

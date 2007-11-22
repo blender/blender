@@ -153,13 +153,13 @@ class Text3d:
 		@param width: The new text3d's width value. 
 		"""
 
-	def getgetExtrudeDepth():
+	def getExtrudeDepth():
 		"""
 		Get the text3d's ext1 value.
 		@rtype: float
 		"""
 
-	def setgetExtrudeDepth(ext1):
+	def setExtrudeDepth(ext1):
 		"""
 		Set the text3d's ext1 value. 
 		@rtype: None

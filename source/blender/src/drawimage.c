@@ -309,9 +309,25 @@ void image_changed(SpaceImage *sima, Image *image)
 		return;
 	
 	/* skip assigning these procedural images... */
-	if(image && (image->type==IMA_TYPE_R_RESULT || image->type==IMA_TYPE_COMPOSITE)) {;
+	if(image && (image->type==IMA_TYPE_R_RESULT || image->type==IMA_TYPE_COMPOSITE)) {
 		return;
-	} else if (EM_texFaceCheck()) {
+	} else if ((G.obedit) &&
+			(G.obedit->type == OB_MESH) &&
+			(G.editMesh) &&
+			(G.editMesh->faces.first)
+		) {
+		
+		/* Add a UV layer if there is none, editmode only */
+		if ( !CustomData_has_layer(&G.editMesh->fdata, CD_MTFACE) ) {
+			EM_add_data_layer(&em->fdata, CD_MTFACE);
+			CustomData_set_layer_active(&em->fdata, CD_MTFACE, 0); /* always zero because we have no other UV layers */
+			change = 1; /* so we update the object, incase no faces are selected */
+			
+			/* BIF_undo_push("New UV Texture"); - undo should be done by whatever changes the image */
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWBUTSEDIT, 0);
+		}
+		
 		for (efa= em->faces.first; efa; efa= efa->next) {
 			tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 			if (efa->h==0 && efa->f & SELECT) {

@@ -365,6 +365,9 @@
 				RelativePath="..\..\..\source\blender\blenlib\intern\fileops.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenlib\intern\fnmatch.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\freetypefont.c">
 			</File>
 			<File
@@ -433,6 +436,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_fileops.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\BLI_fnmatch.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\BLI_ghash.h">

@@ -316,9 +316,10 @@ typedef struct WaveModifierData {
 typedef struct ArmatureModifierData {
 	ModifierData modifier;
 
-	short deformflag, pad1;		/* deformflag replaces armature->deformflag */
+	short deformflag, multi;		/* deformflag replaces armature->deformflag */
 	int pad2;
 	struct Object *object;
+	float *prevCos;		/* stored input of previous modifier, for vertexgroup blending */
 	char defgrp_name[32];
 } ArmatureModifierData;
 

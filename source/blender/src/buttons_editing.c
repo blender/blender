@@ -1647,7 +1647,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			if(wmd->flag & MOD_WAVE_NORM)
 				height += 19;
 		} else if (md->type==eModifierType_Armature) {
-			height = 86;
+			height = 105;
 		} else if (md->type==eModifierType_Hook) {
 			HookModifierData *hmd = (HookModifierData*) md;
 			height = 86;
@@ -1978,12 +1978,17 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			ArmatureModifierData *amd = (ArmatureModifierData*) md;
 			uiDefIDPoinBut(block, modifier_testArmatureObj, ID_OB, B_CHANGEDEP, "Ob: ", lx, (cy-=19), buttonWidth,19, &amd->object, "Armature object to deform with");
 			
-			but=uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",				  lx, (cy-=19), buttonWidth,19, &amd->defgrp_name, 0.0, 31.0, 0, 0, "Vertex Group name to control overall armature influence");
+			but=uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",				  lx, (cy-=19), buttonWidth-40,19, &amd->defgrp_name, 0.0, 31.0, 0, 0, "Vertex Group name to control overall armature influence");
 			uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ob);
+			uiDefButBitS(block, TOG, ARM_DEF_INVERT_VGROUP, B_ARM_RECALCDATA, "Inv",	lx+buttonWidth-40,cy, 40, 20, &amd->deformflag, 0, 0, 0, 0, "Invert vertex group influence");
+			
 			uiDefButBitS(block, TOG, ARM_DEF_VGROUP, B_ARM_RECALCDATA, "Vert.Groups",	lx,cy-=19,buttonWidth/2,20, &amd->deformflag, 0, 0, 0, 0, "Enable VertexGroups defining deform");
 			uiDefButBitS(block, TOG, ARM_DEF_ENVELOPE, B_ARM_RECALCDATA, "Envelopes",	lx+buttonWidth/2,cy,(buttonWidth + 1)/2,20, &amd->deformflag, 0, 0, 0, 0, "Enable Bone Envelopes defining deform");
 			uiDefButBitS(block, TOG, ARM_DEF_QUATERNION, B_ARM_RECALCDATA, "Quaternion",	lx,(cy-=19),buttonWidth/2,20, &amd->deformflag, 0, 0, 0, 0, "Enable deform rotation interpolation with Quaternions");
 			uiDefButBitS(block, TOG, ARM_DEF_B_BONE_REST, B_ARM_RECALCDATA, "B-Bone Rest", lx+buttonWidth/2,cy,(buttonWidth + 1)/2,20, &amd->deformflag, 0, 0, 0, 0, "Make B-Bones deform already in rest position");
+			
+			uiDefButS(block, TOG, B_ARM_RECALCDATA, "MultiModifier",	lx,cy-=19, buttonWidth, 20, &amd->multi, 0, 0, 0, 0, "Use same input as previous modifier, and mix results using overall vgroup");
+
 		} else if (md->type==eModifierType_Hook) {
 			HookModifierData *hmd = (HookModifierData*) md;
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Falloff: ",		lx, (cy-=19), buttonWidth,19, &hmd->falloff, 0.0, 100.0, 100, 0, "If not zero, the distance from hook where influence ends");
@@ -2245,7 +2250,7 @@ static void editing_panel_modifiers(Object *ob)
 	if(yco < 0) uiNewPanelHeight(block, 204-yco);
 }
 
-static char *make_key_menu(Key *key)
+static char *make_key_menu(Key *key, int startindex)
 {
 	KeyBlock *kb;
 	int index= 1;
@@ -2255,7 +2260,7 @@ static char *make_key_menu(Key *key)
 	str= MEM_mallocN(index*40, "key string");
 	str[0]= 0;
 	
-	index= 1;
+	index= startindex;
 	for (kb = key->block.first; kb; kb=kb->next, index++) {
 		sprintf (item,  "|%s%%x%d", kb->name, index);
 		strcat(str, item);
@@ -2301,9 +2306,10 @@ static void editing_panel_shapes(Object *ob)
 	uiDefIconButBitS(block, TOG, OB_SHAPE_LOCK, B_LOCKKEY, icon, 10,150,25,20, &ob->shapeflag, 0, 0, 0, 0, "Always show the current Shape for this Object");
 	uiSetButLock(G.obedit==ob, "Unable to perform in EditMode");
 	uiDefIconBut(block, BUT, B_PREVKEY, ICON_TRIA_LEFT,		35,150,20,20, NULL, 0, 0, 0, 0, "Previous Shape Key");
-	strp= make_key_menu(key);
-	uiDefButS(block, MENU, B_SETKEY, strp,					55,150,20,20, &ob->shapenr, 0, 0, 0, 0, "Browses existing choices or adds NEW");
+	strp= make_key_menu(key, 1);
+	uiDefButS(block, MENU, B_SETKEY, strp,					55,150,20,20, &ob->shapenr, 0, 0, 0, 0, "Browse existing choices");
 	MEM_freeN(strp);
+	
 	uiDefIconBut(block, BUT, B_NEXTKEY, ICON_TRIA_RIGHT,	75,150,20,20, NULL, 0, 0, 0, 0, "Next Shape Key");
 	uiClearButLock();
 	uiDefBut(block, TEX, B_NAMEKEY, "",						95, 150, 190, 20, kb->name, 0.0, 31.0, 0, 0, "Current Shape Key name");
@@ -2317,9 +2323,14 @@ static void editing_panel_shapes(Object *ob)
 		uiDefButF(block, NUM, B_REDR, "Max ",				235,120, 75, 20, &kb->slidermax, -10.0, 10.0, 100, 1, "Maximum for slider");
 		uiBlockEndAlign(block);
 	}
-	if(key->type && ob->shapenr!=1)
+	if(key->type && ob->shapenr!=1) {
 		uiDefBut(block, TEX, B_MODIFIER_RECALC, "VGroup: ",	10, 90, 150,19, &kb->vgroup, 0.0, 31.0, 0, 0, "Vertex Weight Group name, to blend with Basis Shape");
 
+		strp= make_key_menu(key, 0);
+		uiDefButS(block, MENU, B_MODIFIER_RECALC, strp,		160, 90, 150,19, &kb->relative, 0.0, 0.0, 0, 0, "Shape used as a relative key");
+		MEM_freeN(strp);
+	}
+	
 	if(key->type==0)
 		uiDefButS(block, NUM, B_DIFF, "Slurph:",			10, 60, 150, 19, &(key->slurph), -500.0, 500.0, 0, 0, "Creates a delay in amount of frames in applying keypositions, first vertex goes first");
 	

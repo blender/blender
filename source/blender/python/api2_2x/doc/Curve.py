@@ -115,9 +115,9 @@ class Curve:
 	@type resolv: int
 	@ivar width: The Curve Data width [0 - 2].
 	@type width: float
-	@ivar ext1: The Curve Data extent1 (for bevels).
+	@ivar ext1: The Curve Data extent1 Called "Extrude" in the user interface (for bevels only).
 	@type ext1: float
-	@ivar ext2: The Curve Data extent2 (for bevels).
+	@ivar ext2: The Curve Data extent2 - Called "Bevel Depth" in the user interface (for bevels only).
 	@type ext2: float
 	@ivar loc: The Curve Data location(from the center).
 	@type loc: list of 3 floats

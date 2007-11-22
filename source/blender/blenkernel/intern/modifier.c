@@ -241,12 +241,29 @@ static void latticeModifier_updateDepgraph(ModifierData *md, DagForest *forest,
 	}
 }
 
+static void modifier_vgroup_cache(ModifierData *md, float (*vertexCos)[3])
+{
+	md= md->next;
+	if(md) {
+		if(md->type==eModifierType_Armature) {
+			ArmatureModifierData *amd = (ArmatureModifierData*) md;
+			if(amd->multi)
+				amd->prevCos= MEM_dupallocN(vertexCos);
+		}
+		/* lattice/mesh modifier too */
+	}
+}
+
+
 static void latticeModifier_deformVerts(
                 ModifierData *md, Object *ob, DerivedMesh *derivedData,
                 float (*vertexCos)[3], int numVerts)
 {
 	LatticeModifierData *lmd = (LatticeModifierData*) md;
 
+
+	modifier_vgroup_cache(md, vertexCos); /* if next modifier needs original vertices */
+	
 	lattice_deform_verts(lmd->object, ob, derivedData,
 	                     vertexCos, numVerts, lmd->name);
 }
@@ -4667,8 +4684,16 @@ static void armatureModifier_deformVerts(
 {
 	ArmatureModifierData *amd = (ArmatureModifierData*) md;
 
+	modifier_vgroup_cache(md, vertexCos); /* if next modifier needs original vertices */
+	
 	armature_deform_verts(amd->object, ob, derivedData, vertexCos, NULL,
-	                      numVerts, amd->deformflag, amd->defgrp_name);
+	                      numVerts, amd->deformflag, 
+						  amd->prevCos, amd->defgrp_name);
+	/* free cache */
+	if(amd->prevCos) {
+		MEM_freeN(amd->prevCos);
+		amd->prevCos= NULL;
+	}
 }
 
 static void armatureModifier_deformVertsEM(
@@ -4681,7 +4706,7 @@ static void armatureModifier_deformVertsEM(
 	if(!derivedData) dm = CDDM_from_editmesh(editData, ob->data);
 
 	armature_deform_verts(amd->object, ob, dm, vertexCos, NULL, numVerts,
-	                      amd->deformflag, amd->defgrp_name);
+	                      amd->deformflag, NULL, amd->defgrp_name);
 
 	if(!derivedData) dm->release(dm);
 }
@@ -4697,7 +4722,7 @@ static void armatureModifier_deformMatricesEM(
 	if(!derivedData) dm = CDDM_from_editmesh(editData, ob->data);
 
 	armature_deform_verts(amd->object, ob, dm, vertexCos, defMats, numVerts,
-	                      amd->deformflag, amd->defgrp_name);
+	                      amd->deformflag, NULL, amd->defgrp_name);
 
 	if(!derivedData) dm->release(dm);
 }
@@ -5494,6 +5519,8 @@ static void meshdeformModifier_deformVerts(
 	else
 		dm= derivedData;
 
+	modifier_vgroup_cache(md, vertexCos); /* if next modifier needs original vertices */
+	
 	meshdeformModifier_do(md, ob, dm, vertexCos, numVerts);
 
 	if(dm != derivedData)

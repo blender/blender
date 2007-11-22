@@ -116,11 +116,14 @@
 #include "FTF_Api.h"
 #endif
 
-#if defined WIN32 || defined __BeOS
+#if defined __BeOS
 static int fnmatch(const char *pattern, const char *string, int flags)
 {
 	return 0;
 }
+#elif defined WIN32 && !defined _LIBC
+	/* use fnmatch included in blenlib */
+	#include "BLI_fnmatch.h"
 #else
 	#include <fnmatch.h>
 #endif

@@ -9,11 +9,6 @@
 #ifndef UTILITIES_H
 #include "ntl_vector3dim.h"
 
-// Solaris requires ieeefp.h for finite(3C)
-#if !defined(linux) && defined(sun)
-#include <ieeefp.h>
-#endif
-
 
 /* debugging outputs , debug level 0 (off) to 10 (max) */
 #ifdef ELBEEM_PLUGIN
