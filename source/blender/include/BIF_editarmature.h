@@ -79,8 +79,6 @@ void	add_primitiveArmature(int type);
 void	apply_rot_armature (struct Object *ob, float mat[3][3]);
 void 	docenter_armature (struct Object *ob, int centermode);
 
-void generateSkeletonFromReebGraph(struct ReebGraph *rg);
-
 void	clear_armature(struct Object *ob, char mode);
 
 void	delete_armature(void);
@@ -103,6 +101,8 @@ void	make_editArmature(void);
 void	make_trans_bones (char mode);
 
 int		do_pose_selectbuffer(struct Base *base, unsigned int *buffer, short hits);
+
+void generateSkeleton(void);
 
 void	mouse_armature(void);
 void	remake_editArmature(void);

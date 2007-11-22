@@ -90,6 +90,8 @@ int weightFromLoc(struct EditMesh *me, int axis);
 void renormalizeWeight(struct EditMesh *em, float newmax);
 
 ReebGraph * generateReebGraph(struct EditMesh *me, int subdivisions);
+void freeGraph(ReebGraph *rg);
+void exportGraph(ReebGraph *rg, int count);
 
 #define OTHER_NODE(arc, node) ((arc->v1 == node) ? arc->v2 : arc->v1)
 
@@ -97,9 +99,28 @@ void initArcIterator(struct ReebArcIterator *iter, struct ReebArc *arc, struct R
 void initArcIterator2(struct ReebArcIterator *iter, struct ReebArc *arc, int start, int end);
 struct EmbedBucket * nextBucket(struct ReebArcIterator *iter);
 
+/* Filtering */
+void filterNullReebGraph(ReebGraph *rg);
+void filterExternalReebGraph(ReebGraph *rg, float threshold);
+void filterInternalReebGraph(ReebGraph *rg, float threshold);
+
+/* Post-Build processing */
+void repositionNodes(ReebGraph *rg);
+void postprocessGraph(ReebGraph *rg, char mode);
+void removeNormalNodes(ReebGraph *rg);
+
+/* Graph processing */
+void buildAdjacencyList(ReebGraph *rg);
+
+void sortNodes(ReebGraph *rg);
+void sortArcs(ReebGraph *rg);
+
 int subtreeDepth(ReebNode *node);
 int countConnectedArcs(ReebGraph *rg, ReebNode *node);
 int hasAdjacencyList(ReebGraph *rg); 
 int	isGraphAcyclic(ReebGraph *rg);
+
+/* Sanity check */
+void verifyBuckets(ReebGraph *rg);
 
 #endif /*REEB_H_*/

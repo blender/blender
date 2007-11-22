@@ -1404,7 +1404,10 @@ ReebGraph * generateReebGraph(EditMesh *em, int subdivisions)
 	int index;
 	int totvert;
 	int totfaces;
+	
+#ifdef DEBUG_REEB
 	int countfaces = 0;
+#endif
  	
 	rg = MEM_callocN(sizeof(ReebGraph), "reeb graph");
 	
@@ -1899,81 +1902,4 @@ EmbedBucket * nextBucket(ReebArcIterator *iter)
 	}
 	
 	return result;
-}
-
-/****************************************** MAIN EDIT METHOD **************************************************/
-
-void generateSkeleton(void)
-{
-	EditMesh *em = G.editMesh;
-	ReebGraph *rg = NULL;
-	int i;
-	
-	if (em == NULL)
-		return;
-
-	setcursor_space(SPACE_VIEW3D, CURSOR_WAIT);
-
-	weightFromDistance(em);
-	weightToHarmonic(em);
-		
-	renormalizeWeight(em, 1.0f);
-
-#ifdef DEBUG_REEB
-	weightToVCol(em);
-#endif
-	
-	rg = generateReebGraph(em, G.scene->toolsettings->skgen_resolution);
-	
-	verifyBuckets(rg);
-	
-	/* Remove arcs without embedding */
-	filterNullReebGraph(rg);
-
-	verifyBuckets(rg);
-
-	if (G.scene->toolsettings->skgen_options & SKGEN_FILTER_EXTERNAL)
-	{
-		filterExternalReebGraph(rg, G.scene->toolsettings->skgen_threshold_external * G.scene->toolsettings->skgen_resolution);
-	}
-
-	verifyBuckets(rg);
-
-	if (G.scene->toolsettings->skgen_options & SKGEN_FILTER_INTERNAL)
-	{
-		filterInternalReebGraph(rg, G.scene->toolsettings->skgen_threshold_internal * G.scene->toolsettings->skgen_resolution);
-	}
-
-	verifyBuckets(rg);
-
-	if (G.scene->toolsettings->skgen_options & SKGEN_REPOSITION)
-	{
-		repositionNodes(rg);
-	}
-	
-	verifyBuckets(rg);
-
-	/* Filtering might have created degree 2 nodes, so remove them */
-	removeNormalNodes(rg);
-	
-	verifyBuckets(rg);
-
-	for(i = 0; i <  G.scene->toolsettings->skgen_postpro_passes; i++)
-	{
-		postprocessGraph(rg, G.scene->toolsettings->skgen_postpro);
-	}
-
-	buildAdjacencyList(rg);
-	
-	sortNodes(rg);
-	
-	sortArcs(rg);
-	
-#ifdef DEBUG_REEB
-	exportGraph(rg, -1);
-#endif
-
-	generateSkeletonFromReebGraph(rg);
-	
-	freeGraph(rg);
 }

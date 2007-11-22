@@ -51,8 +51,6 @@ void snap_curs_to_grid(void);
 void snap_curs_to_sel(void);
 void snap_to_center(void);
 
-void generateSkeleton(void);
-
 #endif /*  BSE_EDIT_H */
 
 
