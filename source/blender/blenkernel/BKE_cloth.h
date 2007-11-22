@@ -72,8 +72,8 @@ typedef struct ClothSpring {
 	int	matrix_index; 	/* needed for implicit solver (fast lookup) */
 	int	type;		/* types defined in BKE_cloth.h ("springType") */
 	int	flags; 		/* defined in BKE_cloth.h, e.g. deactivated due to tearing */
-	float dfdx[3][4];
-	float dfdv[3][4];
+	float dfdx[3][3];
+	float dfdv[3][3];
 	float f[3];
 } ClothSpring;
 
@@ -91,13 +91,13 @@ typedef struct Cloth {
 	unsigned int 		numothersprings;
 	unsigned int		numspringssave;
 	unsigned int 		old_solver_type;
-	float	 		(*x)[4]; /* The current position of all vertices.*/
-	float 			(*xold)[4]; /* The previous position of all vertices.*/
-	float 			(*current_x)[4]; /* The TEMPORARY current position of all vertices.*/
-	float			(*current_xold)[4]; /* The TEMPORARY previous position of all vertices.*/
+	float	 		(*x)[3]; /* The current position of all vertices.*/
+	float 			(*xold)[3]; /* The previous position of all vertices.*/
+	float 			(*current_x)[3]; /* The TEMPORARY current position of all vertices.*/
+	float			(*current_xold)[3]; /* The TEMPORARY previous position of all vertices.*/
 	float 			(*v)[4]; /* the current velocity of all vertices */
-	float			(*current_v)[4];
-	float			(*xconst)[4];
+	float			(*current_v)[3];
+	float			(*xconst)[3];
 } Cloth;
 
 /* goal defines */

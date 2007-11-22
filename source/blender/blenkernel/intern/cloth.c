@@ -90,9 +90,9 @@ double tval()
 }
 #else
 #include <sys/time.h>
-static struct timeval _tstart, _tend;
-static struct timezone tz;
-void tstart ( void )
+			 static struct timeval _tstart, _tend;
+	 static struct timezone tz;
+	 void tstart ( void )
 {
 	gettimeofday ( &_tstart, &tz );
 }
@@ -133,11 +133,11 @@ static void cloth_apply_vgroup(ClothModifierData *clmd, DerivedMesh *dm, short v
 *
 ******************************************************************************/
 /**
-* cloth_init -  creates a new cloth simulation.
-*
-* 1. create object
-* 2. fill object with standard values or with the GUI settings if given 
-*/
+ * cloth_init -  creates a new cloth simulation.
+ *
+ * 1. create object
+ * 2. fill object with standard values or with the GUI settings if given 
+ */
 void cloth_init (ClothModifierData *clmd)
 {
 	/* Initialize our new data structure to reasonable values. */
@@ -202,38 +202,38 @@ DerivedMesh *CDDM_convert_to_triangle(DerivedMesh *dm)
 
 	for(i = 0; i < numfaces; i++)
 	{
-		if(mface[i].v4)
-			numquads++;
-		else
-			numtris++;	
-	}
+	if(mface[i].v4)
+	numquads++;
+	else
+	numtris++;	
+}
 
 	result = CDDM_from_template(dm, numverts, 0, numtris + 2*numquads);
 
 	if(!result)
-		return NULL;
+	return NULL;
 
 	// do verts
 	mvert2 = CDDM_get_verts(result);
 	for(a=0; a<numverts; a++) 
 	{
-		MVert *inMV;
-		MVert *mv = &mvert2[a];
+	MVert *inMV;
+	MVert *mv = &mvert2[a];
 
-		inMV = &mvert[a];
+	inMV = &mvert[a];
 
-		DM_copy_vert_data(dm, result, a, a, 1);
-		*mv = *inMV;
-	}
+	DM_copy_vert_data(dm, result, a, a, 1);
+	*mv = *inMV;
+}
 
 
 	// do faces
 	mface2 = CDDM_get_faces(result);
 	for(a=0, i=0; a<numfaces; a++) 
 	{
-		MFace *mf = &mface2[i];
-		MFace *inMF;
-		inMF = &mface[a];
+	MFace *mf = &mface2[i];
+	MFace *inMF;
+	inMF = &mface[a];
 
 		
 		// DM_copy_face_data(dm, result, a, i, 1);
@@ -241,57 +241,57 @@ DerivedMesh *CDDM_convert_to_triangle(DerivedMesh *dm)
 		// *mf = *inMF;
 		
 
-		if(mface[a].v4 && random==1)
-		{
-			mf->v1 = mface[a].v2;
-			mf->v2 = mface[a].v3;
-			mf->v3 = mface[a].v4;
-		}
-		else
-		{
-			mf->v1 = mface[a].v1;
-			mf->v2 = mface[a].v2;
-			mf->v3 = mface[a].v3;
-		}
+	if(mface[a].v4 && random==1)
+	{
+	mf->v1 = mface[a].v2;
+	mf->v2 = mface[a].v3;
+	mf->v3 = mface[a].v4;
+}
+	else
+	{
+	mf->v1 = mface[a].v1;
+	mf->v2 = mface[a].v2;
+	mf->v3 = mface[a].v3;
+}
 
-		mf->v4 = 0;
-		mf->flag |= ME_SMOOTH;
+	mf->v4 = 0;
+	mf->flag |= ME_SMOOTH;
 
-		test_index_face(mf, NULL, 0, 3);
+	test_index_face(mf, NULL, 0, 3);
 
-		if(mface[a].v4)
-		{
-			MFace *mf2;
+	if(mface[a].v4)
+	{
+	MFace *mf2;
 
-			i++;
+	i++;
 
-			mf2 = &mface2[i];
+	mf2 = &mface2[i];
 			
 			// DM_copy_face_data(dm, result, a, i, 1);
 
 			// *mf2 = *inMF;
 			
 
-			if(random==1)
-			{
-				mf2->v1 = mface[a].v1;
-				mf2->v2 = mface[a].v2;
-				mf2->v3 = mface[a].v4;
-			}
-			else
-			{
-				mf2->v1 = mface[a].v4;
-				mf2->v2 = mface[a].v1;
-				mf2->v3 = mface[a].v3;
-			}
-			mf2->v4 = 0;
-			mf2->flag |= ME_SMOOTH;
+	if(random==1)
+	{
+	mf2->v1 = mface[a].v1;
+	mf2->v2 = mface[a].v2;
+	mf2->v3 = mface[a].v4;
+}
+	else
+	{
+	mf2->v1 = mface[a].v4;
+	mf2->v2 = mface[a].v1;
+	mf2->v3 = mface[a].v3;
+}
+	mf2->v4 = 0;
+	mf2->flag |= ME_SMOOTH;
 
-			test_index_face(mf2, NULL, 0, 3);
-		}
+	test_index_face(mf2, NULL, 0, 3);
+}
 
-		i++;
-	}
+	i++;
+}
 
 	CDDM_calc_edges(result);
 	CDDM_calc_normals(result);
@@ -330,43 +330,43 @@ DerivedMesh *CDDM_create_tearing(ClothModifierData *clmd, DerivedMesh *dm)
 	
 	for(i = 0; i < numsprings; i++)
 	{
-		if((springs[i].flags & CSPRING_FLAG_DEACTIVATE)
-		&&(!BLI_edgehash_haskey(edgehash, springs[i].ij, springs[i].kl)))
-		{
-			BLI_edgehash_insert(edgehash, springs[i].ij, springs[i].kl, NULL);
-			BLI_edgehash_insert(edgehash, springs[i].kl, springs[i].ij, NULL);
-			j++;
-		}
-	}
+	if((springs[i].flags & CSPRING_FLAG_DEACTIVATE)
+	&&(!BLI_edgehash_haskey(edgehash, springs[i].ij, springs[i].kl)))
+	{
+	BLI_edgehash_insert(edgehash, springs[i].ij, springs[i].kl, NULL);
+	BLI_edgehash_insert(edgehash, springs[i].kl, springs[i].ij, NULL);
+	j++;
+}
+}
 	
 	// printf("found %d tears\n", j);
 	
 	result = CDDM_from_template(dm, numverts, 0, numfaces);
 
 	if(!result)
-		return NULL;
+	return NULL;
 
 	// do verts
 	mvert2 = CDDM_get_verts(result);
 	for(a=0; a<numverts; a++) 
 	{
-		MVert *inMV;
-		MVert *mv = &mvert2[a];
+	MVert *inMV;
+	MVert *mv = &mvert2[a];
 
-		inMV = &mvert[a];
+	inMV = &mvert[a];
 
-		DM_copy_vert_data(dm, result, a, a, 1);
-		*mv = *inMV;
-	}
+	DM_copy_vert_data(dm, result, a, a, 1);
+	*mv = *inMV;
+}
 
 
 	// do faces
 	mface2 = CDDM_get_faces(result);
 	for(a=0, i=0; a<numfaces; a++) 
 	{
-		MFace *mf = &mface2[i];
-		MFace *inMF;
-		inMF = &mface[a];
+	MFace *mf = &mface2[i];
+	MFace *inMF;
+	inMF = &mface[a];
 
 		
 		// DM_copy_face_data(dm, result, a, i, 1);
@@ -374,21 +374,21 @@ DerivedMesh *CDDM_create_tearing(ClothModifierData *clmd, DerivedMesh *dm)
 		// *mf = *inMF;
 		
 		
-		if((!BLI_edgehash_haskey(edgehash, mface[a].v1, mface[a].v2))
-		&&(!BLI_edgehash_haskey(edgehash, mface[a].v2, mface[a].v3))
-		&&(!BLI_edgehash_haskey(edgehash, mface[a].v3, mface[a].v4))
-		&&(!BLI_edgehash_haskey(edgehash, mface[a].v4, mface[a].v1)))
-		{
-			mf->v1 = mface[a].v1;
-			mf->v2 = mface[a].v2;
-			mf->v3 = mface[a].v3;
-			mf->v4 = mface[a].v4;
+	if((!BLI_edgehash_haskey(edgehash, mface[a].v1, mface[a].v2))
+	&&(!BLI_edgehash_haskey(edgehash, mface[a].v2, mface[a].v3))
+	&&(!BLI_edgehash_haskey(edgehash, mface[a].v3, mface[a].v4))
+	&&(!BLI_edgehash_haskey(edgehash, mface[a].v4, mface[a].v1)))
+	{
+	mf->v1 = mface[a].v1;
+	mf->v2 = mface[a].v2;
+	mf->v3 = mface[a].v3;
+	mf->v4 = mface[a].v4;
 	
-			test_index_face(mf, NULL, 0, 4);
+	test_index_face(mf, NULL, 0, 4);
 	
-			i++;
-		}
-	}
+	i++;
+}
+}
 
 	CDDM_lower_num_faces(result, i);
 	CDDM_calc_edges(result);
@@ -527,40 +527,40 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 	/*
 	if ( clmd->clothObject )
 	{
-		if ( clmd->sim_parms->cache )
-		{
-			if ( current_time < clmd->sim_parms->firstframe )
-			{
-				int frametime = cloth_cache_first_frame ( clmd );
-				if ( cloth_cache_search_frame ( clmd, frametime ) )
-				{
-					cloth_cache_get_frame ( clmd, frametime );
-					cloth_to_object ( ob, result, clmd );
-				}
-				return result;
-			}
-			else if ( current_time > clmd->sim_parms->lastframe )
-			{
-				int frametime = cloth_cache_last_frame ( clmd );
-				if ( cloth_cache_search_frame ( clmd, frametime ) )
-				{
-					cloth_cache_get_frame ( clmd, frametime );
-					cloth_to_object ( ob, result, clmd );
-				}
-				return result;
-			}
-			else if ( ABS ( deltaTime ) >= 2.0f ) // no timewarps allowed
-			{
-				if ( cloth_cache_search_frame ( clmd, framenr ) )
-				{
-					cloth_cache_get_frame ( clmd, framenr );
-					cloth_to_object ( ob, result, clmd );
-				}
-				clmd->sim_parms->sim_time = current_time;
-				return result;
-			}
-		}
-	}
+	if ( clmd->sim_parms->cache )
+	{
+	if ( current_time < clmd->sim_parms->firstframe )
+	{
+	int frametime = cloth_cache_first_frame ( clmd );
+	if ( cloth_cache_search_frame ( clmd, frametime ) )
+	{
+	cloth_cache_get_frame ( clmd, frametime );
+	cloth_to_object ( ob, result, clmd );
+}
+	return result;
+}
+	else if ( current_time > clmd->sim_parms->lastframe )
+	{
+	int frametime = cloth_cache_last_frame ( clmd );
+	if ( cloth_cache_search_frame ( clmd, frametime ) )
+	{
+	cloth_cache_get_frame ( clmd, frametime );
+	cloth_to_object ( ob, result, clmd );
+}
+	return result;
+}
+	else if ( ABS ( deltaTime ) >= 2.0f ) // no timewarps allowed
+	{
+	if ( cloth_cache_search_frame ( clmd, framenr ) )
+	{
+	cloth_cache_get_frame ( clmd, framenr );
+	cloth_to_object ( ob, result, clmd );
+}
+	clmd->sim_parms->sim_time = current_time;
+	return result;
+}
+}
+}
 	*/
 	
 	if(deltaTime == 1.0f)
@@ -737,10 +737,10 @@ void cloth_free_modifier (ClothModifierData *clmd)
 ******************************************************************************/
 
 /**
-* cloth_to_object - copies the deformed vertices to the object.
-*
-* This function is a modified version of the softbody.c:softbody_to_object() function.
-**/
+ * cloth_to_object - copies the deformed vertices to the object.
+ *
+ * This function is a modified version of the softbody.c:softbody_to_object() function.
+ **/
 static void cloth_to_object (Object *ob,  DerivedMesh *dm, ClothModifierData *clmd)
 {
 	unsigned int	i = 0;
@@ -765,9 +765,9 @@ static void cloth_to_object (Object *ob,  DerivedMesh *dm, ClothModifierData *cl
 
 
 /**
-* cloth_apply_vgroup - applies a vertex group as specified by type
-*
-**/
+ * cloth_apply_vgroup - applies a vertex group as specified by type
+ *
+ **/
 static void cloth_apply_vgroup(ClothModifierData *clmd, DerivedMesh *dm, short vgroup)
 {
 	unsigned int i = 0;
@@ -862,52 +862,51 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 				/* create springs */
 				clmd->clothObject->springs = NULL;
 				clmd->clothObject->numsprings = -1;
+					
+				/* set initial values */
+				for (i = 0; i < numverts; ++i)
+				{
+					VECCOPY (clmd->clothObject->x[i], mvert[i].co);
+					Mat4MulVecfl(ob->obmat, clmd->clothObject->x[i]);
+	
+					clmd->clothObject->verts [i].mass = clmd->sim_parms->mass;
+					if ( clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL )
+						clmd->clothObject->verts [i].goal= clmd->sim_parms->defgoal;
+					else
+						clmd->clothObject->verts [i].goal= 0.0;
+					clmd->clothObject->verts [i].flags = 0;
+					VECCOPY(clmd->clothObject->xold[i], clmd->clothObject->x[i]);
+					VECCOPY(clmd->clothObject->xconst[i], clmd->clothObject->x[i]);
+					VECCOPY(clmd->clothObject->current_xold[i], clmd->clothObject->x[i]);
+					VecMulf(clmd->clothObject->v[i], 0.0);
+	
+					clmd->clothObject->verts [i].impulse_count = 0;
+					VECCOPY ( clmd->clothObject->verts [i].impulse, tnull );
+				}
 				
-			/* set initial values */
-			for (i = 0; i < numverts; ++i)
-			{
-				VECCOPY (clmd->clothObject->x[i], mvert[i].co);
-				Mat4MulVecfl(ob->obmat, clmd->clothObject->x[i]);
-
-				clmd->clothObject->verts [i].mass = clmd->sim_parms->mass;
-				if ( clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL )
-					clmd->clothObject->verts [i].goal= clmd->sim_parms->defgoal;
-				else
-					clmd->clothObject->verts [i].goal= 0.0;
-				clmd->clothObject->verts [i].flags = 0;
-				VECCOPY(clmd->clothObject->xold[i], clmd->clothObject->x[i]);
-				VECCOPY(clmd->clothObject->xconst[i], clmd->clothObject->x[i]);
-				VECCOPY(clmd->clothObject->current_xold[i], clmd->clothObject->x[i]);
-				VecMulf(clmd->clothObject->v[i], 0.0);
-
-				clmd->clothObject->verts [i].impulse_count = 0;
-				VECCOPY ( clmd->clothObject->verts [i].impulse, tnull );
+				if (!cloth_build_springs (clmd->clothObject, dm) )
+				{
+					modifier_setError (&(clmd->modifier), "Can't build springs.");
+					return 0;
+				}  
+	
+				/* apply / set vertex groups */
+				if (clmd->sim_parms->vgroup_mass > 0)
+					cloth_apply_vgroup (clmd, olddm, clmd->sim_parms->vgroup_mass);
+	
+				/* init our solver */
+				if (solvers [clmd->sim_parms->solver_type].init)
+					solvers [clmd->sim_parms->solver_type].init (ob, clmd);
+	
+				clmd->clothObject->tree = bvh_build_from_float3(CDDM_get_faces(dm), dm->getNumFaces(dm), clmd->clothObject->x, numverts, clmd->coll_parms->epsilon);
+				
+				clmd->clothObject->selftree = bvh_build_from_float3(NULL, 0, clmd->clothObject->x, numverts, clmd->coll_parms->selfepsilon);
+				
+				// save initial state
+				cloth_write_cache(ob, clmd, framenr-1);
 			}
-			
-			if (!cloth_build_springs (clmd->clothObject, dm) )
-			{
-				modifier_setError (&(clmd->modifier), "Can't build springs.");
-				return 0;
-			}  
-
-			/* apply / set vertex groups */
-			if (clmd->sim_parms->vgroup_mass > 0)
-				cloth_apply_vgroup (clmd, olddm, clmd->sim_parms->vgroup_mass);
-
-			/* init our solver */
-			if (solvers [clmd->sim_parms->solver_type].init)
-				solvers [clmd->sim_parms->solver_type].init (ob, clmd);
-
-			clmd->clothObject->tree = bvh_build_from_float4(CDDM_get_faces(dm), dm->getNumFaces(dm), clmd->clothObject->x, numverts, clmd->coll_parms->epsilon);
-			
-			clmd->clothObject->selftree = bvh_build_from_float4(NULL, 0, clmd->clothObject->x, numverts, clmd->coll_parms->selfepsilon);
-			
-			// save initial state
-			cloth_write_cache(ob, clmd, framenr-1);
-		}
-
-		return 1;
-		default: return 0; // TODO - we do not support changing meshes
+			return 1;
+			default: return 0; // TODO - we do not support changing meshes
 	}
 	
 	return 0;
@@ -1119,15 +1118,15 @@ int cloth_build_springs ( Cloth *cloth, DerivedMesh *dm )
 			spring->ij = mface[i].v2;
 			spring->kl = mface[i].v4;
 			VECSUB ( temp, cloth->x[spring->kl], cloth->x[spring->ij] );
-				spring->restlen =  sqrt ( INPR ( temp, temp ) );
-				spring->type = CLOTH_SPRING_TYPE_SHEAR;
+			spring->restlen =  sqrt ( INPR ( temp, temp ) );
+			spring->type = CLOTH_SPRING_TYPE_SHEAR;
 
-				BLI_linklist_append ( &edgelist[spring->ij], spring );
-				BLI_linklist_append ( &edgelist[spring->kl], spring );
-				shear_springs++;
+			BLI_linklist_append ( &edgelist[spring->ij], spring );
+			BLI_linklist_append ( &edgelist[spring->kl], spring );
+			shear_springs++;
 
-				node2 = BLI_linklist_append_fast ( &node->next, spring );
-				node = node2;
+			node2 = BLI_linklist_append_fast ( &node->next, spring );
+			node = node2;
 		}
 	}
 	
@@ -1148,8 +1147,8 @@ int cloth_build_springs ( Cloth *cloth, DerivedMesh *dm )
 			// check for existing spring
 			// check also if startpoint is equal to endpoint
 			if ( !BLI_edgehash_haskey ( edgehash, index2, tspring2->ij )
-			        && !BLI_edgehash_haskey ( edgehash, tspring2->ij, index2 )
-			        && ( index2!=tspring2->ij ) )
+			&& !BLI_edgehash_haskey ( edgehash, tspring2->ij, index2 )
+			&& ( index2!=tspring2->ij ) )
 			{
 				spring = ( ClothSpring * ) MEM_callocN ( sizeof ( ClothSpring ), "cloth spring" );
 
