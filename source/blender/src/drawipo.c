@@ -2014,7 +2014,7 @@ static char *ipodriver_modeselect_pup(Object *ob)
 	return (string);
 }
 
-static char *ipodriver_channelselect_pup(void)
+static char *ipodriver_channelselect_pup(int is_armature)
 {
 	static char string[1024];
 	char *tmp;
@@ -2031,7 +2031,8 @@ static char *ipodriver_channelselect_pup(void)
 	tmp+= sprintf(tmp, "|Scale X %%x%d", OB_SIZE_X);
 	tmp+= sprintf(tmp, "|Scale Y %%x%d", OB_SIZE_Y);
 	tmp+= sprintf(tmp, "|Scale Z %%x%d", OB_SIZE_Z);
-	tmp+= sprintf(tmp, "|Rotation Differance %%x%d", OB_ROT_DIFF);
+	if(is_armature)
+		tmp+= sprintf(tmp, "|Rotation Differance %%x%d", OB_ROT_DIFF);
 	
 	return (string);
 }
@@ -2094,7 +2095,8 @@ static void ipo_panel_properties(short cntrl)	// IPO_HANDLER_PROPERTIES
 									  ipodriver_modeselect_pup(driver->ob), 165,240,145,20, &(driver->blocktype), 0, 0, 0, 0, "Driver type");
 
 					uiDefButS(block, MENU, B_IPO_REDR, 
-								ipodriver_channelselect_pup(),			165,220,145,20, &(driver->adrcode), 0, 0, 0, 0, "Driver channel");
+								ipodriver_channelselect_pup(driver->ob->type==OB_ARMATURE && driver->blocktype==ID_AR),			
+														165,220,145,20, &(driver->adrcode), 0, 0, 0, 0, "Driver channel");
 				}
 				uiBlockEndAlign(block);
 			}
