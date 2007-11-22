@@ -2542,7 +2542,6 @@ def Prefs2IDProp(idprop, prefs):
 	idprop[ID_SLOT_NAME] = new_prefs
 	
 def IDProp2Prefs(idprop, prefs):
-	prefs = idprop[ID_SLOT_NAME]
 	try:
 		prefs = idprop[ID_SLOT_NAME]
 	except:
