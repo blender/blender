@@ -183,7 +183,9 @@ class tree:
 			bb = curve.bevob.boundingBox
 			# self.limbScale = (bb[0] - bb[7]).length / 2.825 # THIS IS GOOD WHEN NON SUBSURRFED
 			self.limbScale = (bb[0] - bb[7]).length / 1.8
-		
+		elif curve.ext2 != 0.0:
+			self.limbScale = curve.ext2 * 1.5
+			
 		# forward_diff_bezier will fill in the blanks
 		# nice we can reuse these for every curve segment :)
 		pointlist = [[None, None, None] for i in xrange(steps+1)]
