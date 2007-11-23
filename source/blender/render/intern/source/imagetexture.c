@@ -968,5 +968,14 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, float *dxt, f
 		texres->nor[2] = 2.f*(texres->tb - 0.5f);
 	}
 	
+	/* de-premul, this is being premulled in shade_input_do_shade() */
+	if(texres->ta!=1.0f && texres->ta!=0.0f) {
+		fx= 1.0f/texres->ta;
+		texres->tr*= fx;
+		texres->tg*= fx;
+		texres->tb*= fx;
+	}
+
+	
 	return retval;
 }
