@@ -3536,18 +3536,6 @@ static void headerTimeTranslate(TransInfo *t, char *str)
 		double secf= FPS;
 		float val= t->fac;
 		
-		/* take into account scaling (for Action Editor only) */
-		if ((t->spacetype == SPACE_ACTION) && (NLA_ACTION_SCALED)) {
-			float cval, sval[2];
-			
-			/* recalculate the delta based on 'visual' times */
-			areamouseco_to_ipoco(G.v2d, t->imval, &sval[0], &sval[1]);
-			cval= sval[0] + t->fac;
-			
-			val = get_action_frame_inv(OBACT, cval);
-			val -= get_action_frame_inv(OBACT, sval[0]);
-		}	
-		
 		/* apply snapping + frame->seconds conversions */
 		if (autosnap == SACTSNAP_STEP) {
 			if (doTime)
@@ -3575,7 +3563,6 @@ static void applyTimeTranslate(TransInfo *t, float sval)
 	double secf= FPS;
 	
 	short autosnap= getAnimEdit_SnapMode(t);
-	float cval= sval + t->fac;
 	
 	float deltax, val;
 	
@@ -3588,8 +3575,7 @@ static void applyTimeTranslate(TransInfo *t, float sval)
 		
 		/* check if any need to apply nla-scaling */
 		if (ob) {
-			deltax = get_action_frame_inv(ob, cval);
-			deltax -= get_action_frame_inv(ob, sval);
+			deltax = t->fac;
 			
 			if (autosnap == SACTSNAP_STEP) {
 				if (doTime) 
