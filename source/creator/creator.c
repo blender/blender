@@ -686,13 +686,19 @@ int main(int argc, char **argv)
 				break;
 			}
 		}
-		else {
-			BKE_read_file(argv[a], NULL);
-			sound_initialize_sounds();
-			
-			/* happens for the UI on file reading too */
-			BKE_reset_undo();
-			BKE_write_undo("original");	/* save current state */
+		else {			
+			if (G.background) {
+				BKE_read_file(argv[a], NULL);
+				sound_initialize_sounds();
+
+				/* happens for the UI on file reading too */
+				BKE_reset_undo();
+				BKE_write_undo("original");	/* save current state */
+			} else {
+				/* we are not running in background mode here, but start blender in UI mode with 
+				   a file - this should do everything a 'load file' does */
+				BIF_read_file(argv[a]);
+			}			
 		}
 	}
 
