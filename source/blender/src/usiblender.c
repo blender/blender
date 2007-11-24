@@ -458,7 +458,7 @@ void BIF_read_file(char *name)
 
 		if(retval==2) init_userdef_file();	// in case a userdef is read from regular .blend
 		
-		G.relbase_valid = 1;
+		if (retval!=0) G.relbase_valid = 1;
 
 		undo_editmode_clear();
 		BKE_reset_undo();

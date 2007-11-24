@@ -1883,9 +1883,10 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 				MTC_Mat4MulVecfl(mat, ver->co);
 
 			if(useFluidmeshNormals) {
-				xn = mvert->no[0]/ 32767.0;
-				yn = mvert->no[1]/ 32767.0;
-				zn = mvert->no[2]/ 32767.0;
+				/* normals are inverted in render */
+				xn = -mvert->no[0]/ 32767.0;
+				yn = -mvert->no[1]/ 32767.0;
+				zn = -mvert->no[2]/ 32767.0;
 				/* transfor to cam  space */
 				ver->n[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
 				ver->n[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;

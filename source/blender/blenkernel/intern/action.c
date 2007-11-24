@@ -607,8 +607,10 @@ void blend_poses(bPose *dst, bPose *src, float srcweight, short mode)
 				QUATCOPY(squat, schan->quat);
 				if(mode==ACTSTRIPMODE_BLEND)
 					QuatInterpol(dchan->quat, dquat, squat, srcweight);
-				else
-					QuatAdd(dchan->quat, dquat, squat, srcweight);
+				else {
+					QuatMulFac(squat, srcweight);
+					QuatMul(dchan->quat, dquat, squat);
+				}
 				
 				NormalQuat (dchan->quat);
 			}

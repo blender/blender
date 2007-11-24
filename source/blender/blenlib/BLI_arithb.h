@@ -119,6 +119,8 @@ void QuatToEul(float *quat, float *eul);
 void QuatOne(float *);
 void QuatMul(float *, float *, float *);
 void QuatMulVecf(float *q, float *v);
+void QuatMulf(float *q, float f);
+void QuatMulFac(float *q, float fac);
 
 void NormalQuat(float *);
 void VecRotToQuat(float *vec, float phi, float *quat);
@@ -126,7 +128,6 @@ void VecRotToQuat(float *vec, float phi, float *quat);
 void QuatSub(float *q, float *q1, float *q2);
 void QuatConj(float *q);
 void QuatInv(float *q);
-void QuatMulf(float *q, float f);
 float QuatDot(float *q1, float *q2);
 void QuatCopy(float *q1, float *q2);
 

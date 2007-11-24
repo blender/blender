@@ -1182,11 +1182,8 @@ static void shade_sample_sss(ShadeSample *ssamp, Material *mat, VlakRen *vlr, in
 		shade_input_set_triangle_i(shi, vlr, 0, 1, 2);
 
 	/* we don't want flipped normals, they screw up back scattering */
-	if(vlr->noflag & R_FLIPPED_NO) {
-		shi->facenor[0]= -shi->facenor[0];
-		shi->facenor[1]= -shi->facenor[1];
-		shi->facenor[2]= -shi->facenor[2];
-	}
+	if(vlr->noflag & R_FLIPPED_NO)
+		VecMulf(shi->facenor, -1.0f);
 
 	/* center pixel */
 	x += 0.5f;
@@ -1213,6 +1210,12 @@ static void shade_sample_sss(ShadeSample *ssamp, Material *mat, VlakRen *vlr, in
 
 	shade_input_set_uv(shi);
 	shade_input_set_normals(shi);
+
+	/* not a pretty solution, but fixes common cases */
+	if(vlr->ob && vlr->ob->transflag & OB_NEG_SCALE) {
+		VecMulf(shi->vn, -1.0f);
+		VecMulf(shi->vno, -1.0f);
+	}
 
 	/* if nodetree, use the material that we are currently preprocessing
 	   instead of the node material */

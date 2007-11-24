@@ -1109,6 +1109,7 @@ void QuatInv(float *q)
 	QuatMulf(q, 1.0f/f);
 }
 
+/* simple mult */
 void QuatMulf(float *q, float f)
 {
 	q[0] *= f;
@@ -1124,6 +1125,20 @@ void QuatSub(float *q, float *q1, float *q2)
 	q2[0]= -q2[0];
 }
 
+/* angular mult factor */
+void QuatMulFac(float *q, float fac)
+{
+	float angle= fac*saacos(q[0]);	/* quat[0]= cos(0.5*angle), but now the 0.5 and 2.0 rule out */
+	
+	float co= (float)cos(angle);
+	float si= (float)sin(angle);
+	q[0]= co;
+	Normalize(q+1);
+	q[1]*= si;
+	q[2]*= si;
+	q[3]*= si;
+	
+}
 
 void QuatToMat3( float *q, float m[][3])
 {
