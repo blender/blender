@@ -7429,28 +7429,34 @@ static short pointInside_internal(float *vec, float *v1, float *v2, float  *v3 )
 	return 0;
 }
 
-static PyObject *Mesh_pointInside( BPy_Mesh * self, VectorObject * vec )
+static PyObject *Mesh_pointInside( BPy_Mesh * self, PyObject * args, PyObject *kwd )
 {
 	Mesh *mesh = self->mesh;
 	MFace *mf = mesh->mface;
 	MVert *mvert = mesh->mvert;
 	int i;
 	int isect_count=0;
+	int selected_only = 0;
+	VectorObject *vec;
+	static char *kwlist[] = {"point", "selected_only", NULL};
 	
-	if(!VectorObject_Check(vec))
-			return EXPP_ReturnPyObjError( PyExc_TypeError,
-					"expected one vector type" );
+	if( !PyArg_ParseTupleAndKeywords(args, kwd, "|O!i", kwlist,
+		 &vector_Type, &vec, &selected_only) ) {
+			 return EXPP_ReturnPyObjError( PyExc_TypeError, "expected a vector and an optional bool argument");
+	}
 	
 	if(vec->size < 3)
 		return EXPP_ReturnPyObjError(PyExc_AttributeError, 
 			"Mesh.pointInside(vec) expects a 3D vector object\n");
 	
 	for( i = 0; i < mesh->totface; mf++, i++ ) {
-		if (pointInside_internal(vec->vec, mvert[mf->v1].co, mvert[mf->v2].co, mvert[mf->v3].co)) {
-			isect_count++;
-		} else if (mf->v4 && pointInside_internal(vec->vec,mvert[mf->v1].co, mvert[mf->v3].co, mvert[mf->v4].co)) {
-			
-			isect_count++;
+		if (!selected_only || mf->flag & ME_FACE_SEL) {
+			if (pointInside_internal(vec->vec, mvert[mf->v1].co, mvert[mf->v2].co, mvert[mf->v3].co)) {
+				isect_count++;
+			} else if (mf->v4 && pointInside_internal(vec->vec,mvert[mf->v1].co, mvert[mf->v3].co, mvert[mf->v4].co)) {
+				
+				isect_count++;
+			}
 		}
 	}
 	
@@ -7536,7 +7542,7 @@ static struct PyMethodDef BPy_Mesh_methods[] = {
 		"Removes duplicates from selected vertices (experimental)"},
 	{"recalcNormals", (PyCFunction)Mesh_recalcNormals, METH_VARARGS,
 		"Recalculates inside or outside normals (experimental)"},
-	{"pointInside", (PyCFunction)Mesh_pointInside, METH_O,
+	{"pointInside", (PyCFunction)Mesh_pointInside, METH_VARARGS|METH_KEYWORDS,
 		"Recalculates inside or outside normals (experimental)"},
 	
 	/* mesh custom data layers */

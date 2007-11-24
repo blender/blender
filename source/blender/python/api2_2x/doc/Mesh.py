@@ -834,10 +834,15 @@ class Mesh:
 		Recalculates the vertex normals using face data.
 		"""
 	
-	def pointInside(vector):
+	def pointInside(point, selected_only=False):
 		"""
+		@type point: vector
+		@param point: Test if this point is inside the mesh
+		@type selected_only: bool
+		@param selected_only: if True or 1, only the selected faces are taken into account.
 		Returns true if vector is inside the mesh.
 		@note: Only returns a valid result for mesh data that has no holes.
+		@note: Bubbles in the mesh work as expect.
 		"""
 	
 	def transform(matrix, recalc_normals = False, selected_only=False):
@@ -869,7 +874,7 @@ class Mesh:
 		@param matrix: 4x4 Matrix which can contain location, scale and rotation. 
 		@type recalc_normals: int
 		@param recalc_normals: if True or 1, also transform vertex normals.
-		@type selected_only: int
+		@type selected_only: bool
 		@param selected_only: if True or 1, only the selected verts will be transformed.
 		@warn: unlike L{NMesh.transform()<NMesh.NMesh.transform>}, this method
 		I{will immediately modify the mesh data} when it is used.  If you
