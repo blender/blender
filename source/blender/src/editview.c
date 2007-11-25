@@ -487,7 +487,7 @@ static void do_lasso_select_mesh_uv(short mcords[][2], short moves, short select
 			/* assume not touched */
 			efa->tmp.l = 0;
 			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			if ((select) != (SIMA_FACESEL_CHECK(efa, tf))) {
+			if ((select) != (simaFaceSel_Check(efa, tf))) {
 				tface_center(tf, cent, (void *)efa->v4);
 				uvco_to_areaco_noclip(cent, screenUV);
 				if (BLI_in_rcti(&rect, screenUV[0], screenUV[1]) && lasso_inside(mcords, moves, screenUV[0], screenUV[1])) {
@@ -502,16 +502,16 @@ static void do_lasso_select_mesh_uv(short mcords[][2], short moves, short select
 	} else { /* Vert Sel*/
 		for (efa= em->faces.first; efa; efa= efa->next) {
 			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			if (SIMA_FACEDRAW_CHECK(efa, tf)) {		
+			if (simaFaceDraw_Check(efa, tf)) {		
 				nverts= efa->v4? 4: 3;
 				for(i=0; i<nverts; i++) {
-					if ((select) != (SIMA_UVSEL_CHECK(efa, tf, i))) {
+					if ((select) != (simaUVSel_Check(efa, tf, i))) {
 						uvco_to_areaco_noclip(tf->uv[i], screenUV);
 						if (BLI_in_rcti(&rect, screenUV[0], screenUV[1]) && lasso_inside(mcords, moves, screenUV[0], screenUV[1])) {
 							if (select) {
-								SIMA_UVSEL_SET(efa, tf, i);
+								simaUVSel_Set(efa, tf, i);
 							} else {
-								SIMA_UVSEL_UNSET(efa, tf, i);
+								simaUVSel_UnSet(efa, tf, i);
 							}
 						}
 					}

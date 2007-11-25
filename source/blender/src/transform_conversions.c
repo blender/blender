@@ -1901,11 +1901,11 @@ static void createTransUVs(TransInfo *t)
 	/* count */
 	for (efa= em->faces.first; efa; efa= efa->next) {
 		tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-		if SIMA_FACEDRAW_CHECK(efa, tf) {
-			if (SIMA_UVSEL_CHECK(efa, tf, 0)) countsel++; 
-			if (SIMA_UVSEL_CHECK(efa, tf, 1)) countsel++; 
-			if (SIMA_UVSEL_CHECK(efa, tf, 2)) countsel++; 
-			if (efa->v4 && SIMA_UVSEL_CHECK(efa, tf, 3)) countsel++;
+		if (simaFaceDraw_Check(efa, tf)) {
+			if (simaUVSel_Check(efa, tf, 0)) countsel++; 
+			if (simaUVSel_Check(efa, tf, 1)) countsel++; 
+			if (simaUVSel_Check(efa, tf, 2)) countsel++; 
+			if (efa->v4 && simaUVSel_Check(efa, tf, 3)) countsel++;
 			if(propmode)
 				count += (efa->v4)? 4: 3;
 		}
@@ -1927,16 +1927,16 @@ static void createTransUVs(TransInfo *t)
 	td2d= t->data2d;
 	for (efa= em->faces.first; efa; efa= efa->next) {
 		tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-		if SIMA_FACEDRAW_CHECK(efa, tf) {
-			if(propmode || SIMA_UVSEL_CHECK(efa, tf, 0))
-				UVsToTransData(td++, td2d++, tf->uv[0], SIMA_UVSEL_CHECK(efa, tf, 0));
-			if(propmode || SIMA_UVSEL_CHECK(efa, tf, 1))
-				UVsToTransData(td++, td2d++, tf->uv[1], SIMA_UVSEL_CHECK(efa, tf, 1));
-			if(propmode || SIMA_UVSEL_CHECK(efa, tf, 2))
-				UVsToTransData(td++, td2d++, tf->uv[2], SIMA_UVSEL_CHECK(efa, tf, 2));
+		if (simaFaceDraw_Check(efa, tf)) {
+			if(propmode || simaUVSel_Check(efa, tf, 0))
+				UVsToTransData(td++, td2d++, tf->uv[0], simaUVSel_Check(efa, tf, 0));
+			if(propmode || simaUVSel_Check(efa, tf, 1))
+				UVsToTransData(td++, td2d++, tf->uv[1], simaUVSel_Check(efa, tf, 1));
+			if(propmode || simaUVSel_Check(efa, tf, 2))
+				UVsToTransData(td++, td2d++, tf->uv[2], simaUVSel_Check(efa, tf, 2));
 
-			if(efa->v4 && (propmode || SIMA_UVSEL_CHECK(efa, tf, 3)))
-				UVsToTransData(td++, td2d++, tf->uv[3], SIMA_UVSEL_CHECK(efa, tf, 3));
+			if(efa->v4 && (propmode || simaUVSel_Check(efa, tf, 3)))
+				UVsToTransData(td++, td2d++, tf->uv[3], simaUVSel_Check(efa, tf, 3));
 		}
 	}
 

@@ -354,7 +354,7 @@ void image_changed(SpaceImage *sima, Image *image)
 			}
 		}
 	}
-	/* change the space image after because SIMA_FACEDRAW_CHECK uses the space image
+	/* change the space image after because simaFaceDraw_Check uses the space image
 	 * to check if the face is displayed in UV-localview */
 	sima->image = image;
 	
@@ -581,10 +581,10 @@ void draw_uvs_sima(void)
 		for (efa= em->faces.first; efa; efa= efa->next) {
 			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 			
-			if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+			if (simaFaceDraw_Check(efa, tface)) {
 				efa->tmp.p = tface;
 				if (tface==activetface) continue; /* important the temp pointer is set above */
-				if( SIMA_FACESEL_CHECK(efa, tface) )
+				if( simaFaceSel_Check(efa, tface) )
 					glColor4ubv((GLubyte *)col2);
 				else
 					glColor4ubv((GLubyte *)col1);
@@ -606,7 +606,7 @@ void draw_uvs_sima(void)
 		/* would be nice to do this within a draw loop but most below are optional, so it would involve too many checks */
 		for (efa= em->faces.first; efa; efa= efa->next) {
 			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			if (SIMA_FACEDRAW_CHECK(efa, tface)) {		
+			if (simaFaceDraw_Check(efa, tface)) {		
 				efa->tmp.p = tface;
 			} else {
 				if (tface == activetface)
@@ -645,7 +645,7 @@ void draw_uvs_sima(void)
 	case SI_UVDT_DASH:
 		for (efa= em->faces.first; efa; efa= efa->next) {
 //			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-//			if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+//			if (simaFaceDraw_Check(efa, tface)) {
 			
 			/*this is a shortcut to do the same as above but a faster for drawing */
 			if ((tface=(MTFace *)efa->tmp.p)) {
@@ -685,7 +685,7 @@ void draw_uvs_sima(void)
 		cpack((G.sima->dt_uv==SI_UVDT_WHITE) ? 0xFFFFFF : 0x0);
 		for (efa= em->faces.first; efa; efa= efa->next) {
 //			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-//			if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+//			if (simaFaceDraw_Check(efa, tface)) {
 			
 			/*this is a shortcut to do the same as above but a faster for drawing */
 			if ((tface=(MTFace *)efa->tmp.p)) {
@@ -705,7 +705,7 @@ void draw_uvs_sima(void)
 		
 		for (efa= em->faces.first; efa; efa= efa->next) {
 //			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-//			if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+//			if (simaFaceDraw_Check(efa, tface)) {
 			
 			/*this is a shortcut to do the same as above but a faster for drawing */
 			if ((tface=(MTFace *)efa->tmp.p)) {
@@ -723,7 +723,7 @@ void draw_uvs_sima(void)
 		cpack(0xFFFFFF);
 		for (efa= em->faces.first; efa; efa= efa->next) {
 //			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-//			if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+//			if (simaFaceDraw_Check(efa, tface)) {
 			
 			/*this is a shortcut to do the same as above but a faster for drawing */
 			if ((tface=(MTFace *)efa->tmp.p)) {
@@ -759,11 +759,11 @@ void draw_uvs_sima(void)
 		for (efa= em->faces.first; efa; efa= efa->next) {
 			
 //			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-//			if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+//			if (simaFaceDraw_Check(efa, tface)) {
 			
 			/*this is a shortcut to do the same as above but a faster for drawing */
 			if ((tface=(MTFace *)efa->tmp.p)) {
-				if( ! SIMA_FACESEL_CHECK(efa, tface) ) {
+				if( ! simaFaceSel_Check(efa, tface) ) {
 					tface_center(tface, cent, (void *)efa->v4);
 					bglVertex2fv(cent);
 				}
@@ -776,11 +776,11 @@ void draw_uvs_sima(void)
 		for (efa= em->faces.first; efa; efa= efa->next) {
 			
 //			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-//			if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+//			if (simaFaceDraw_Check(efa, tface)) {
 			
 			/*this is a shortcut to do the same as above but a faster for drawing */
 			if ((tface=(MTFace *)efa->tmp.p)) {
-				if( SIMA_FACESEL_CHECK(efa, tface) ) {
+				if( simaFaceSel_Check(efa, tface) ) {
 					tface_center(tface, cent, (void *)efa->v4);
 					bglVertex2fv(cent);
 				}
@@ -799,16 +799,16 @@ void draw_uvs_sima(void)
 		for (efa= em->faces.first; efa; efa= efa->next) {
 			
 //			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-//			if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+//			if (simaFaceDraw_Check(efa, tface)) {
 			
 			/*this is a shortcut to do the same as above but a faster for drawing */
 			if ((tface=(MTFace *)efa->tmp.p)) {
 			
-				if(SIMA_UVSEL_CHECK(efa, tface, 0)); else bglVertex2fv(tface->uv[0]);
-				if(SIMA_UVSEL_CHECK(efa, tface, 1)); else bglVertex2fv(tface->uv[1]);
-				if(SIMA_UVSEL_CHECK(efa, tface, 2)); else bglVertex2fv(tface->uv[2]);
+				if(simaUVSel_Check(efa, tface, 0)); else bglVertex2fv(tface->uv[0]);
+				if(simaUVSel_Check(efa, tface, 1)); else bglVertex2fv(tface->uv[1]);
+				if(simaUVSel_Check(efa, tface, 2)); else bglVertex2fv(tface->uv[2]);
 				if(efa->v4) {
-					if(SIMA_UVSEL_CHECK(efa, tface, 3)); else bglVertex2fv(tface->uv[3]);
+					if(simaUVSel_Check(efa, tface, 3)); else bglVertex2fv(tface->uv[3]);
 				}
 			}
 		}
@@ -822,7 +822,7 @@ void draw_uvs_sima(void)
 		bglBegin(GL_POINTS);
 		for (efa= em->faces.first; efa; efa= efa->next) {
 //			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-//			if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+//			if (simaFaceDraw_Check(efa, tface)) {
 			
 			/*this is a shortcut to do the same as above but a faster for drawing */
 			if ((tface=(MTFace *)efa->tmp.p)) {
@@ -844,16 +844,16 @@ void draw_uvs_sima(void)
 		bglBegin(GL_POINTS);
 		for (efa= em->faces.first; efa; efa= efa->next) {
 //			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-//			if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+//			if (simaFaceDraw_Check(efa, tface)) {
 			
 			/*this is a shortcut to do the same as above but a faster for drawing */
 			if ((tface=(MTFace *)efa->tmp.p)) {
 			
-				if(!SIMA_UVSEL_CHECK(efa, tface, 0)); else bglVertex2fv(tface->uv[0]);
-				if(!SIMA_UVSEL_CHECK(efa, tface, 1)); else bglVertex2fv(tface->uv[1]);
-				if(!SIMA_UVSEL_CHECK(efa, tface, 2)); else bglVertex2fv(tface->uv[2]);
+				if(!simaUVSel_Check(efa, tface, 0)); else bglVertex2fv(tface->uv[0]);
+				if(!simaUVSel_Check(efa, tface, 1)); else bglVertex2fv(tface->uv[1]);
+				if(!simaUVSel_Check(efa, tface, 2)); else bglVertex2fv(tface->uv[2]);
 				if(efa->v4) {
-					if(!SIMA_UVSEL_CHECK(efa, tface, 3)); else bglVertex2fv(tface->uv[3]);
+					if(!simaUVSel_Check(efa, tface, 3)); else bglVertex2fv(tface->uv[3]);
 				}
 			}
 		}
@@ -1006,24 +1006,24 @@ void image_editvertex_buts(uiBlock *block)
 	
 	for (efa= em->faces.first; efa; efa= efa->next) {
 		tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-		if (SIMA_FACEDRAW_CHECK(efa, tf)) {
+		if (simaFaceDraw_Check(efa, tf)) {
 			
-			if (SIMA_UVSEL_CHECK(efa, tf, 0)) {
+			if (simaUVSel_Check(efa, tf, 0)) {
 				cent[0]+= tf->uv[0][0];
 				cent[1]+= tf->uv[0][1];
 				nactive++;
 			}
-			if (SIMA_UVSEL_CHECK(efa, tf, 1)) {
+			if (simaUVSel_Check(efa, tf, 1)) {
 				cent[0]+= tf->uv[1][0];
 				cent[1]+= tf->uv[1][1];
 				nactive++;
 			}
-			if (SIMA_UVSEL_CHECK(efa, tf, 2)) {
+			if (simaUVSel_Check(efa, tf, 2)) {
 				cent[0]+= tf->uv[2][0];
 				cent[1]+= tf->uv[2][1];
 				nactive++;
 			}
-			if (efa->v4 && SIMA_UVSEL_CHECK(efa, tf, 3)) {
+			if (efa->v4 && simaUVSel_Check(efa, tf, 3)) {
 				cent[0]+= tf->uv[3][0];
 				cent[1]+= tf->uv[3][1];
 				nactive++;
@@ -1070,20 +1070,20 @@ void image_editvertex_buts(uiBlock *block)
 
 		for (efa= em->faces.first; efa; efa= efa->next) {
 			tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			if (SIMA_FACEDRAW_CHECK(efa, tf)) {
-				if (SIMA_UVSEL_CHECK(efa, tf, 0)) {
+			if (simaFaceDraw_Check(efa, tf)) {
+				if (simaUVSel_Check(efa, tf, 0)) {
 					tf->uv[0][0]+= delta[0];
 					tf->uv[0][1]+= delta[1];
 				}
-				if (SIMA_UVSEL_CHECK(efa, tf, 1)) {
+				if (simaUVSel_Check(efa, tf, 1)) {
 					tf->uv[1][0]+= delta[0];
 					tf->uv[1][1]+= delta[1];
 				}
-				if (SIMA_UVSEL_CHECK(efa, tf, 2)) {
+				if (simaUVSel_Check(efa, tf, 2)) {
 					tf->uv[2][0]+= delta[0];
 					tf->uv[2][1]+= delta[1];
 				}
-				if (efa->v4 && SIMA_UVSEL_CHECK(efa, tf, 3)) {
+				if (efa->v4 && simaUVSel_Check(efa, tf, 3)) {
 					tf->uv[3][0]+= delta[0];
 					tf->uv[3][1]+= delta[1];
 				}
