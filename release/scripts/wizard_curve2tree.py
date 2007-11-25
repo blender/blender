@@ -38,6 +38,7 @@ __bpydoc__ = """\
 
 import bpy
 import Blender
+import BPyMesh
 from Blender.Mathutils import Vector, Matrix, CrossVecs, AngleBetweenVecs, LineIntersect, TranslationMatrix, ScaleMatrix, RotationMatrix, Rand
 from Blender.Geometry import ClosestPointOnLine
 
@@ -72,6 +73,15 @@ def forward_diff_bezier(q0, q1, q2, q3, pointlist, steps, axis):
 			q0+= q1
 			q1+= q2
 			q2+= q3;
+
+def points_from_bezier_seg(steps, pointlist, radlist, bez1_vec, bez2_vec, radius1, radius2):
+	
+	# x,y,z,axis
+	for ii in (0,1,2):
+		forward_diff_bezier(bez1_vec[1][ii], bez1_vec[2][ii],  bez2_vec[0][ii], bez2_vec[1][ii], pointlist, steps, ii)
+	
+	# radius - no axis, Copied from blenders BBone roll interpolation.
+	forward_diff_bezier(radius1, radius1 + 0.390464*(radius2-radius1), radius2 - 0.390464*(radius2-radius1),	radius2,	radlist, steps, None)
 
 
 def debug_pt(co):
@@ -158,6 +168,7 @@ class tree:
 		self.limbScale = 1.0
 		
 		self.debug_objects = []
+		self.steps = 6 # defalt, curve overwrites
 	
 	def __repr__(self):
 		s = ''
@@ -175,7 +186,7 @@ class tree:
 		self.objectCurveMat = objectCurve.matrixWorld
 		self.objectCurveIMat = self.objectCurveMat.copy().invert()
 		curve = objectCurve.data
-		steps = curve.resolu # curve resolution
+		self.steps = curve.resolu # curve resolution
 		
 		# Set the curve object scale
 		if curve.bevob:
@@ -188,8 +199,8 @@ class tree:
 			
 		# forward_diff_bezier will fill in the blanks
 		# nice we can reuse these for every curve segment :)
-		pointlist = [[None, None, None] for i in xrange(steps+1)]
-		radlist = [ None for i in xrange(steps+1) ]
+		pointlist = [[None, None, None] for i in xrange(self.steps+1)]
+		radlist = [ None for i in xrange(self.steps+1) ]
 
 
 		for spline in curve:
@@ -209,19 +220,7 @@ class tree:
 			for i in xrange(1, len(bez_list)):
 				bez1 = bez_list[i-1]
 				bez2 = bez_list[i]
-				bez1_vec = bez1.vec
-				bez2_vec = bez2.vec
-				
-				radius1 = bez1.radius
-				radius2 = bez2.radius
-				
-				# x,y,z,axis
-				for ii in (0,1,2):
-					forward_diff_bezier(bez1_vec[1][ii], bez1_vec[2][ii],  bez2_vec[0][ii], bez2_vec[1][ii], pointlist, steps, ii)
-				
-				# radius - no axis, Copied from blenders BBone roll interpolation.
-				forward_diff_bezier(radius1, radius1 + 0.390464*(radius2-radius1), radius2 - 0.390464*(radius2-radius1),	radius2,	radlist, steps, None)
-				
+				points_from_bezier_seg(self.steps, pointlist, radlist, bez1.vec, bez2.vec, bez1.radius, bez2.radius)
 				bpoints = [ bpoint(brch, Vector(pointlist[ii]), Vector(), radlist[ii] * self.limbScale) for ii in xrange(len(pointlist)) ]
 				
 				# remove endpoint for all but the last
@@ -264,11 +263,11 @@ class tree:
 		self.objectLeafBoundsMesh = objectMesh.getData(mesh=1)
 		self.objectLeafBoundsIMat = objectMesh.matrixWorld.copy().invert()
 	
-	def isPointInTwigBounds(self, co):
-		return self.objectTwigBoundsMesh.pointInside(co * self.objectCurveMat * self.objectTwigBoundsIMat)
+	def isPointInTwigBounds(self, co, selected_only=False):
+		return self.objectTwigBoundsMesh.pointInside(co * self.objectCurveMat * self.objectTwigBoundsIMat, selected_only)
 
-	def isPointInLeafBounds(self, co):
-		return self.objectLeafBoundsMesh.pointInside(co * self.objectCurveMat * self.objectLeafBoundsIMat)
+	def isPointInLeafBounds(self, co, selected_only=False):
+		return self.objectLeafBoundsMesh.pointInside(co * self.objectCurveMat * self.objectLeafBoundsIMat, selected_only)
 
 	def resetTags(self, value):
 		for brch in self.branches_all:
@@ -300,10 +299,20 @@ class tree:
 							variation_seed = 1,\
 							variation_orientation = 0.0,\
 							variation_scale = 0.0,\
+							do_twigs_fill = 0,\
+							twig_fill_levels=4,\
+							twig_fill_rand_scale=0.0,\
+							twig_fill_fork_angle_max=60.0,\
+							twig_fill_radius_min=0.1,\
+							twig_fill_radius_factor=0.75,\
+							twig_fill_shape_type=0,\
+							twig_fill_shape_rand=0.0,\
+							twig_fill_shape_power=0.3,\
 						):
 		'''
 		build tree data - fromCurve must run first
 		'''
+		
 		
 		# Sort the branchs by the first radius, so big branchs get joins first
 		### self.branches_all.sort( key = lambda brch: brch.bpoints[0].radius )
@@ -377,6 +386,9 @@ class tree:
 					# mat_orientation = RotationMatrix(0, 3, 'r', brch.parent_pt.no)
 					brch.transformRecursive(self, mat_scale * mat_orientation, brch.parent_pt.co)
 		
+		if (do_twigs or do_twigs_fill) and twig_ob_bounds: # Only spawn twigs inside this mesh
+			self.setTwigBounds(twig_ob_bounds)
+		
 		# Important we so this with existing parent/child but before connecting and calculating verts.
 		if do_twigs:
 			
@@ -385,9 +397,6 @@ class tree:
 			twig_random_angle= twig_random_angle/360.0
 			
 			irational_num = 22.0/7.0 # use to make the random number more odd
-			
-			if twig_ob_bounds: # Only spawn twigs inside this mesh
-				self.setTwigBounds(twig_ob_bounds)
 			
 			if not twig_recursive:
 				twig_recursive_limit = 0
@@ -542,6 +551,19 @@ class tree:
 				self.branches_all.extend(branches_twig_attached)
 				branches_twig_attached = []
 		
+		
+		if do_twigs_fill and twig_ob_bounds:
+			self.twigFill(\
+				twig_fill_levels,\
+				twig_fill_rand_scale,\
+				twig_fill_fork_angle_max,\
+				twig_fill_radius_min,\
+				twig_fill_radius_factor,\
+				twig_fill_shape_type,\
+				twig_fill_shape_rand,\
+				twig_fill_shape_power,\
+			)
+		
 		### self.branches_all.sort( key = lambda brch: brch.parent_pt != None )
 		
 		# Calc points with dependancies
@@ -610,6 +632,482 @@ class tree:
 		for brch in self.branches_all:
 			brch.branchReJoin()
 		'''
+	
+	def twigFill(self_tree,\
+			twig_fill_levels,\
+			twig_fill_rand_scale,\
+			twig_fill_fork_angle_max,\
+			twig_fill_radius_min,\
+			twig_fill_radius_factor,\
+			twig_fill_shape_type,\
+			twig_fill_shape_rand,\
+			twig_fill_shape_power,\
+		):
+		'''
+		Fill with twigs, this function uses its own class 'segment'
+		
+		twig_fill_shape_type;
+			0 - no child smoothing
+			1 - smooth one child
+			2 - smooth both children
+		
+		'''
+		
+		segments_all = []
+		segments_level = []
+		
+		# Only for testing
+		def preview_curve():
+			TWIG_WIDTH_MAX = 1.0
+			TWIG_WIDTH_MIN = 0.1
+			cu = bpy.data.curves["cu"]
+			# remove all curves
+			while len(cu):
+				del cu[0]
+			# return
+			
+			cu.setFlag(1)
+			cu.ext2 = 0.01
+			
+			WIDTH_STEP = (TWIG_WIDTH_MAX-TWIG_WIDTH_MIN) / twig_fill_levels
+			
+			for i, seg in enumerate(segments_all):
+				
+				# 1 is the base and 2 is the tail
+				
+				p1_h2 = seg.getHeadHandle() # isnt used
+				p1_co = seg.headCo
+				p1_h1 = seg.getHeadHandle()
+				
+				p2_h1 = seg.getTailHandle()
+				
+				p2_co = seg.tailCo
+				p2_h2 = seg.tailCo # isnt used
+				
+				bez1 = Blender.BezTriple.New([ p1_h1[0], p1_h1[1], p1_h1[2], p1_co[0], p1_co[1], p1_co[2], p1_h2[0], p1_h2[1], p1_h2[2] ])
+				bez2 = Blender.BezTriple.New([ p2_h1[0], p2_h1[1], p2_h1[2], p2_co[0], p2_co[1], p2_co[2], p2_h2[0], p2_h2[1], p2_h2[2] ])
+				bez1.handleTypes = bez2.handleTypes = [Blender.BezTriple.HandleTypes.FREE, Blender.BezTriple.HandleTypes.FREE]
+				
+				bez1.radius = TWIG_WIDTH_MIN + (WIDTH_STEP * (seg.levelFromLeaf+1))
+				bez2.radius = TWIG_WIDTH_MIN + (WIDTH_STEP * seg.levelFromLeaf)
+				
+				cunurb = cu.appendNurb(bez1)
+				cunurb.append(bez2)
+				
+				# This sucks
+				for bez in cunurb:
+					bez.handleTypes = [Blender.BezTriple.HandleTypes.FREE, Blender.BezTriple.HandleTypes.FREE]
+			
+			### cc = sce.objects.new( cu )
+			cu.update()
+		
+		
+		def mergeCo(parentCo, ch1Co, ch2Co, twig_fill_shape_rand):
+			if twig_fill_shape_rand==0.0:
+				return (parentCo + ch1Co + ch2Co) / 3.0
+			else:
+				w1 = Rand(0.0, twig_fill_shape_rand) + (1-twig_fill_shape_rand)
+				w2 = Rand(0.0, twig_fill_shape_rand) + (1-twig_fill_shape_rand)
+				w3 = Rand(0.0, twig_fill_shape_rand) + (1-twig_fill_shape_rand)
+				wtot = w1+w2+w3
+				w1=w1/wtot
+				w2=w2/wtot
+				w3=w3/wtot
+				
+				# return (parentCo*w1 + ch1Co*w2 + ch2Co*w2)
+				co1 = (parentCo * w1)	+ (ch1Co * (1.0-w1))
+				co2 = (ch1Co * w2)		+ (ch2Co * (1.0-w2))
+				co3 = (ch2Co * w3)		+ (parentCo * (1.0-w3))
+				
+				return (co1 + co2 + co3) / 3.0
+				
+				
+		
+		class segment:
+			def __init__(self, level):
+				self.headCo = Vector()
+				self.tailCo = Vector()
+				self.parent = None
+				self.mergeCount = 0
+				self.levelFromLeaf = level # how far we are from the leaf in levels
+				self.levelFromRoot = -1 # set later, assume root bone
+				self.children = []
+				segments_all.append(self)
+				
+				if level >= len(segments_level):	segments_level.append([self])
+				else:								segments_level[level].append(self)
+				
+				self.brothers = []
+				self.no = Vector() # only endpoints have these
+				self.id = len(segments_all)
+				self.bpt = None # branch point for root segs only
+				
+			def getHeadHandle(self):
+				"""
+				For Bezier only
+				"""
+				
+				if not self.parent:
+					return self.headCo
+				
+				if twig_fill_shape_type == 0: # no smoothing
+					return self.headCo
+				elif twig_fill_shape_type == 1:
+					if self.parent.children[1] == self:
+						return self.headCo
+				# 2 - always do both
+				
+				
+				# Y shape with curve? optional
+				
+				# we have a parent but it has no handle direction, easier
+				if not self.parent.parent:	no = self.parent.headCo - self.parent.tailCo
+				else:						no = self.parent.parent.headCo-self.parent.tailCo
+				
+				no.length =  self.getLength() * twig_fill_shape_power
+				# Ok we have to account for the parents handle
+				return self.headCo - no
+				# return self.headCo - Vector(1, 0,0)
+			
+			def getTailHandle(self):
+				"""
+				For Bezier only
+				"""
+				if self.parent:
+					no = self.parent.headCo-self.tailCo
+					no.length = self.getLength() * twig_fill_shape_power
+					return self.tailCo + no
+				else:
+					return self.tailCo # isnt used
+			
+			def getRootSeg(self):
+				seg = self
+				while seg.parent:
+					seg = seg.parent
+				
+				return seg
+			
+			def calcBrothers(self):
+				# Run on children first
+				self.brothers.extend( \
+					[seg_child_sibling.parent \
+						for seg_child in self.children \
+						for seg_child_sibling in seg_child.brothers \
+						if seg_child_sibling.parent not in (self, None)]\
+					)
+					#print self.brothers
+			
+			def calcLevelFromRoot(self):
+				if self.parent:
+					self.levelFromRoot = self.parent.levelFromRoot + 1
+				
+				for seg_child in self.children:
+					seg_child.calcLevelFromRoot()
+			
+			def transform(self, matrix):
+				self.headCo = self.headCo * matrix
+				self.tailCo = self.tailCo * matrix
+				
+				if self.children:
+					ch1 = self.children[0]
+					ch2 = self.children[1]
+					
+					ch1.transform(matrix)
+					ch2.transform(matrix)
+			
+			def scale(self, scale, cent=None):
+				# scale = 0.9
+				#matrix = Matrix([scale,0,0],[0,scale,0],[0,0,scale]).resize4x4()
+				#self.transform(matrix)
+				if cent == None: # first iter
+					cent = self.headCo
+					self.tailCo = ((self.tailCo-cent) * scale) + cent
+				else:
+					self.headCo = ((self.headCo-cent) * scale) + cent
+					self.tailCo = ((self.tailCo-cent) * scale) + cent
+				
+				if self.children:
+					self.children[0].scale(scale, cent)
+					self.children[1].scale(scale, cent)
+				
+			def recalcChildLoc(self):
+				if not self.children:
+					return
+				ch1 = self.children[0]
+				ch2 = self.children[1]
+				new_mid = mergeCo(self.headCo, ch1.tailCo, ch2.tailCo, twig_fill_shape_rand)
+				self.tailCo[:] = ch1.headCo[:] = ch2.headCo[:] = new_mid
+				
+				ch1.recalcChildLoc()
+				ch2.recalcChildLoc()
+			
+			def merge(self, other):
+				"""
+				Merge other into self and make a new segment
+				"""
+				
+				#new_head = (self.headCo + self.tailCo + other.headCo + other.tailCo) * 0.25
+				self.parent = other.parent = segment(self.levelFromLeaf + 1)
+				
+				self.parent.tailCo = (self.headCo + self.tailCo + other.tailCo) / 3.0
+				self.parent.headCo[:] = self.headCo
+				self.parent.bpt = self.bpt
+				self.bpt = None
+				
+				# isect = LineIntersect(self.headCo, self.tailCo, other.headCo, other.tailCo)
+				# new_head = (isect[0]+isect[1]) * 0.5
+				
+				self.mergeCount += 1
+				other.mergeCount += 1
+				
+				self.parent.children.extend([ self, other ])
+				
+				self.parent.recalcChildLoc()
+				# print 'merging', self.id, other.id
+				
+			def findBestMerge(self, twig_fill_fork_angle_max):
+				# print "findBestMerge"
+				if self.parent != None:
+					return
+				
+				best_dist = 1000000
+				best_seg = None
+				for seg_list in (self.brothers, segments_level[self.levelFromLeaf]):
+					#for seg_list in (segments_level[self.levelFromLeaf],):
+					
+					# only use all other segments if we cant find any from our brothers
+					if seg_list == segments_level[self.levelFromLeaf] and best_seg != None:
+						break
+					
+					for seg in seg_list:
+						# 2 ppoint join 
+						if seg != self and seg.mergeCount == 0 and seg.parent == None:
+							
+							# find the point they would join	
+							test_dist = (self.tailCo - seg.tailCo).length
+							if test_dist < best_dist:
+								if twig_fill_fork_angle_max > 179:
+									best_dist = test_dist
+									best_seg = seg
+								else:
+									# Work out if the desired angle range is ok.
+									mco = mergeCo( self.headCo, self.tailCo, seg.tailCo, 0.0 ) # we dont want the random value for this test
+									ang = AngleBetweenVecs(self.tailCo-mco, seg.tailCo-mco)
+									if ang < twig_fill_fork_angle_max:
+										best_dist = test_dist
+										best_seg = seg
+				return best_seg
+			
+			def getNormal(self):
+				return (self.headCo - self.tailCo).normalize()
+			
+			def getLength(self):
+				return (self.headCo - self.tailCo).length
+			
+			def toMatrix(self, LEAF_SCALE, LEAF_RANDSCALE, LEAF_RANDVEC):
+				if LEAF_RANDSCALE:	scale = LEAF_SCALE * Rand(1.0-LEAF_RANDSCALE, 1.0+LEAF_RANDSCALE)
+				else:				scale = LEAF_SCALE * 1.0
+				
+				if LEAF_RANDVEC:	rand_vec = Vector( Rand(-1, 1), Rand(-1, 1), Rand(-1, 1) ).normalize() * LEAF_RANDVEC
+				else:				rand_vec = Vector( )
+				
+				return Matrix([scale,0,0],[0,scale,0],[0,0,scale]).resize4x4() * (self.no + rand_vec).toTrackQuat('x', 'z').toMatrix().resize4x4() * TranslationMatrix(self.tailCo)
+
+		def distripute_seg_on_mesh(me__, face_group):
+			"""
+			add segment endpoints
+			"""
+			
+			vert_segment_mapping = {}
+			for f in face_group:
+				for v in f:
+					i = v.index
+					if i not in vert_segment_mapping:
+						vert_segment_mapping[i] = len(segments_all)
+						v.sel = True
+						seg = segment(0)
+						seg.tailCo = v.co.copy() # headCo undefined atm.
+						seg.no = v.no
+			
+			# Build connectivity
+			for ed in me__.edges:
+				if ed.v1.sel and ed.v2.sel:
+					i1,i2 = ed.key
+					i1 = vert_segment_mapping[i1]
+					i2 = vert_segment_mapping[i2]
+					
+					segments_all[i1].brothers.append( segments_all[i2] )
+					segments_all[i2].brothers.append( segments_all[i1] )
+			
+			# Dont need to return anything, added when created.
+		
+		def find_leaf_attach_point(seg, interior_points, twig_fill_rand_scale):
+			"""
+			Can only run on end nodes that have normals set
+			"""
+			best_dist = 1000000000.0
+			best_point = None
+			
+			co = seg.tailCo
+			
+			for pt in interior_points:
+				# line from the point to the seg endpoint
+				line_normal = seg.tailCo - pt.co
+				l = line_normal.length
+				
+				cross1 = CrossVecs( seg.no, line_normal )
+				cross2 = CrossVecs( pt.no, line_normal )
+				
+				angle_line = min(AngleBetweenVecs(cross1, cross2), AngleBetweenVecs(cross1, -cross2))
+				angle_leaf_no_diff = min(AngleBetweenVecs(line_normal, seg.no), AngleBetweenVecs(line_normal, -seg.no))
+				
+				# BEST_ANG=66.0
+				# angle = 66.0 # min(AngleBetweenVecs(v2_co-v1_co, leaf.co-cc), AngleBetweenVecs(v1_co-v2_co, leaf.co-cc))
+				# print angle, angle2
+				# l = (l * ((1+abs(angle-BEST_ANG))**2 )) / (1+angle_line)
+				l = angle_leaf_no_diff * angle_line * l
+				
+				if l < best_dist:
+					best_pt = pt
+					best_co = pt.co.copy()
+					
+					best_dist = l
+			
+			# twig_fill_rand_scale
+			seg.headCo = best_co.copy()
+			
+			if twig_fill_rand_scale:
+				seg_dir = seg.tailCo - seg.headCo
+				seg_dir.length = seg_dir.length * ( 1.0 - Rand(0.0, twig_fill_rand_scale) )
+				seg.tailCo = seg.headCo + seg_dir
+			
+			seg.bpt = best_pt
+		# END Twig code, next add them
+		
+		
+		"""
+		Uses a reversed approch, fill in twigs from a bounding mesh
+		"""
+		# print "twig_fill_fork_angle_max"
+		# twig_fill_fork_angle_max = 60.0 # 
+		# forward_diff_bezier will fill in the blanks
+		# nice we can reuse these for every curve segment :)
+		pointlist = [[None, None, None] for i in xrange(self_tree.steps+1)]
+		radlist = [ None for i in xrange(self_tree.steps+1) ]
+		
+		orig_branch_count = len(self_tree.branches_all)
+		
+		for face_group in BPyMesh.mesh2linkedFaces(self_tree.objectTwigBoundsMesh):
+			# Set the selection to do point inside.
+			self_tree.objectTwigBoundsMesh.sel = False
+			for f in face_group: f.sel = True
+			
+			interior_points = []
+			interior_normal = Vector()
+			for i, brch in enumerate(self_tree.branches_all):
+				
+				if i == orig_branch_count:
+					break # no need to check new branches are inside us
+					
+				for pt in brch.bpoints:
+					if self_tree.isPointInTwigBounds(pt.co, True): # selected_only
+						interior_points.append(pt)
+						interior_normal += pt.no * pt.radius
+			
+			segments_all[:] = []
+			segments_level[:] = []
+			
+			if interior_points:
+				# Ok, we can add twigs now
+				distripute_seg_on_mesh( self_tree.objectTwigBoundsMesh, face_group )
+				
+				for seg in segments_level[0]: # only be zero segments
+					find_leaf_attach_point(seg, interior_points, twig_fill_rand_scale)
+				
+				# Try sorting by other properties! this is ok for now
+				for segments_level_current in segments_level:
+					segments_level_current.sort( key = lambda seg:	-(seg.headCo-seg.tailCo).length )
+				
+				for level in xrange(twig_fill_levels):
+					if len(segments_level) > level:
+						for seg in segments_level[level]:
+							# print level, seg.brothers
+							if seg.mergeCount == 0:
+								seg_merge = seg.findBestMerge(twig_fill_fork_angle_max)
+								if seg_merge:
+									seg.merge( seg_merge )
+					
+					if len(segments_level) > level+1:
+						for seg in segments_level[level+1]:
+							seg.calcBrothers()
+				
+				# Randomize scale recursively
+				# This way sucks, just randomize starting lengths
+				"""
+				if twig_fill_rand_scale != 0.0: # 0.0 - 1.0
+					for seg in segments_all:
+						#if seg.levelFromLeaf == 0:
+						if 1:
+							sca = 1.0 + Rand(-twig_fill_rand_scale, twig_fill_rand_scale)
+							# print sca, 'SCALE'
+							seg.scale(sca)
+				"""
+				
+				for seg in segments_all:
+					if seg.parent == None:
+						seg.levelFromRoot = 0
+						seg.calcLevelFromRoot()
+				
+				for i, seg in enumerate(segments_all):
+					
+					# 1 is the base and 2 is the tail
+					
+					#p1_h1 = seg.getHeadHandle()
+					p1_co = seg.headCo.copy()
+					p1_h2 = seg.getHeadHandle() # isnt used
+					
+					p2_h1 = seg.getTailHandle()
+					p2_co = seg.tailCo.copy()
+					#p2_h2 = seg.getTailHandle() # isnt used
+					
+					# Make a branch from this data!
+					
+					brch = branch()
+					self_tree.branches_all.append(brch)
+					
+					# ============================= do this per bez pair
+					bez1_vec = (None, p1_co, p1_h2)
+					bez2_vec = (p2_h1, p2_co, None)
+					
+					seg_root = seg.getRootSeg()
+					if seg_root.levelFromLeaf:
+						# print seg_root.levelFromLeaf, seg.levelFromRoot
+						WIDTH_STEP = ((seg_root.bpt.radius * twig_fill_radius_factor)-twig_fill_radius_min) / seg_root.levelFromLeaf
+						
+						radius1 = twig_fill_radius_min + (WIDTH_STEP * (seg.levelFromLeaf+1))
+						radius2 = twig_fill_radius_min + (WIDTH_STEP * seg.levelFromLeaf)
+					else:
+						radius1 = seg_root.bpt.radius
+						radius2 = twig_fill_radius_min 
+					
+					points_from_bezier_seg(self_tree.steps, pointlist, radlist, bez1_vec, bez2_vec, radius1, radius2)
+					
+					# dont apply self_tree.limbScale here! - its alredy done
+					bpoints = [ bpoint(brch, Vector(pointlist[ii]), Vector(), radlist[ii]) for ii in xrange(len(pointlist)) ]
+					
+					# remove endpoint for all but the last
+					#if i != len(bez_list)-1:
+					#	bpoints.pop()
+					
+					brch.bpoints.extend(bpoints)
+					# =============================
+					
+					# Finalize once point data is there
+					brch.calcData()
+				#
+				#preview_curve()
+		
+		
 	def buildTwigs(self, twig_ratio, twig_select_mode, twig_select_factor):
 		
 		ratio_int = int(len(self.branches_all) * twig_ratio)
@@ -1837,7 +2335,7 @@ class bpoint(object):
 			cross = CrossVecs(self.prev.vecs[0], self.no)
 		
 		self.vecs[0] = Blender.Mathutils.CrossVecs(self.no, cross)
-		self.vecs[0].length = self.radius
+		self.vecs[0].length = abs(self.radius)
 		mat = RotationMatrix(90, 3, 'r', self.no)
 		self.vecs[1] = self.vecs[0] * mat
 		self.vecs[2] = self.vecs[1] * mat
@@ -2168,11 +2666,12 @@ class branch:
 				w1 = pt.nextLength()
 				w2 = pt.prevLength()
 				wtot = w1+w2
-				w1=w1/wtot
-				#w2=w2/wtot
-				w1 = abs(w1-0.5)*2 # make this from 0.0 to 1.0, where 0 is the middle and 1.0 is as far out of the middle as possible.
-				# print "%.6f" % w1
-				pt.smooth(w1*factor, w1*factor_joint)
+				if wtot > 0.0:
+					w1=w1/wtot
+					#w2=w2/wtot
+					w1 = abs(w1-0.5)*2 # make this from 0.0 to 1.0, where 0 is the middle and 1.0 is as far out of the middle as possible.
+					# print "%.6f" % w1
+					pt.smooth(w1*factor, w1*factor_joint)
 	
 	def fixOverlapError(self, joint_smooth=1.0):
 		# Keep fixing until no hasOverlapError left to fix.
@@ -2231,7 +2730,7 @@ class branch:
 				# Collapse angles greater then 90. they are useually artifacts
 				
 				if pt.prev and pt.next and pt.prev.childCount == 0:
-					if abs(pt.radius - pt.prev.radius) / (pt.radius + pt.prev.radius) < seg_density_radius:
+					if (pt.radius + pt.prev.radius) != 0.0 and abs(pt.radius - pt.prev.radius) / (pt.radius + pt.prev.radius) < seg_density_radius:
 						ang = AngleBetweenVecs(pt.no, pt.prev.no)
 						if seg_density_angle == 180 or ang > 90 or ang < seg_density_angle:
 							## if (pt.prev.nextMidCo-pt.co).length < ((pt.radius + pt.prev.radius)/2) * seg_density:
@@ -2242,7 +2741,7 @@ class branch:
 									pt = pt_save # so we never reference a removed point
 				
 				if pt.childCount == 0 and pt.next: #if pt.childrenMidCo == None:
-					if abs(pt.radius - pt.next.radius) / (pt.radius + pt.next.radius) < seg_density_radius:
+					if (pt.radius + pt.next.radius) != 0.0 and abs(pt.radius - pt.next.radius) / (pt.radius + pt.next.radius) < seg_density_radius:
 						ang = AngleBetweenVecs(pt.no, pt.next.no)
 						if seg_density_angle == 180 or ang > 90 or ang < seg_density_angle:
 							# do here because we only want to run this on points with no children,
@@ -2431,6 +2930,17 @@ PREFS['anim_magnitude'] = Draw.Create(0.2)
 PREFS['anim_speed_size_scale'] = Draw.Create(1)
 PREFS['anim_offset_scale'] = Draw.Create(1.0)
 
+PREFS['do_twigs_fill'] = Draw.Create(0)
+PREFS['twig_fill_levels'] = Draw.Create(4)
+
+PREFS['twig_fill_rand_scale'] = Draw.Create(0.0)
+PREFS['twig_fill_fork_angle_max'] = Draw.Create(60.0)
+PREFS['twig_fill_radius_min'] = Draw.Create(0.001)
+PREFS['twig_fill_radius_factor'] = Draw.Create(0.75)
+PREFS['twig_fill_shape_type'] = Draw.Create(0)
+PREFS['twig_fill_shape_rand'] = Draw.Create(0.0)
+PREFS['twig_fill_shape_power'] = Draw.Create(0.3)
+
 PREFS['do_twigs'] = Draw.Create(0)
 PREFS['twig_ratio'] = Draw.Create(2.0)
 PREFS['twig_select_mode'] = Draw.Create(0)
@@ -2441,7 +2951,7 @@ PREFS['twig_random_orientation'] = Draw.Create(180)
 PREFS['twig_random_angle'] = Draw.Create(33)
 PREFS['twig_recursive'] = Draw.Create(1)
 PREFS['twig_recursive_limit'] = Draw.Create(3)
-PREFS['twig_ob_bounds'] = Draw.Create('')
+PREFS['twig_ob_bounds'] = Draw.Create('') # WATCH out, used for do_twigs_fill AND do_twigs
 PREFS['twig_ob_bounds_prune'] = Draw.Create(1)
 PREFS['twig_ob_bounds_prune_taper'] = Draw.Create(1.0)
 PREFS['twig_placement_maxradius'] = Draw.Create(10.0)
@@ -2650,8 +3160,16 @@ def buildTree(ob_curve, single=False):
 		variation_seed = PREFS['variation_seed'].val,\
 		variation_orientation = PREFS['variation_orientation'].val,\
 		variation_scale = PREFS['variation_scale'].val,\
+		do_twigs_fill = PREFS['do_twigs_fill'].val,\
+		twig_fill_levels = PREFS['twig_fill_levels'].val,\
+		twig_fill_rand_scale = PREFS['twig_fill_rand_scale'].val,\
+		twig_fill_fork_angle_max = PREFS['twig_fill_fork_angle_max'].val,\
+		twig_fill_radius_min = PREFS['twig_fill_radius_min'].val,\
+		twig_fill_radius_factor = PREFS['twig_fill_radius_factor'].val,\
+		twig_fill_shape_type = PREFS['twig_fill_shape_type'].val,\
+		twig_fill_shape_rand = PREFS['twig_fill_shape_rand'].val,\
+		twig_fill_shape_power = PREFS['twig_fill_shape_power'].val,\
 	)
-	
 	
 	time4 = Blender.sys.time() # time print
 	print '%.4f sec' % (time4-time3)
@@ -2850,7 +3368,7 @@ def do_pref_read(e=0,v=0, quiet=False):
 	if ob.type != 'Curve':
 		ob = ob.parent
 	
-	if ob.type != 'Curve':
+	if ob == None or ob.type != 'Curve':
 		if not quiet:
 			Blender.Draw.PupMenu('No active curve object')
 		return
@@ -2987,19 +3505,55 @@ def gui():
 	but_width = int((rect[2]-MARGIN*2)/4.0) # 72
 	# Clamp
 	if but_width>100: but_width = 100
-		
 	but_height = 17
-	
 	
 	x=MARGIN
 	y=rect[3]-but_height-MARGIN
 	xtmp = x
+
+	Blender.Draw.BeginAlign()
+	PREFS['do_twigs_fill'] =	Draw.Toggle('Fill Twigs',EVENT_UPDATE_AND_UI, xtmp, y, but_width*2, but_height, PREFS['do_twigs_fill'].val,	'Generate child branches based existing branches'); xtmp += but_width*2;
+	if PREFS['do_twigs_fill'].val:
+		
+		PREFS['twig_fill_levels'] =	Draw.Number('Generations',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['twig_fill_levels'].val, 1, 32,	'How many generations to make for filled twigs'); xtmp += but_width*2;
+		y-=but_height
+		xtmp = x
+		
+		# ---------- ---------- ---------- ----------
+		# WARNING USED IN 2 PLACES!! - see below
+		PREFS['twig_ob_bounds'] =	Draw.String('OB Bound: ',	EVENT_UPDATE_AND_UI, xtmp, y, but_width*2, but_height, PREFS['twig_ob_bounds'].val, 64,	'Only grow twigs inside this mesh object', do_ob_check); xtmp += but_width*2;
+		PREFS['twig_fill_rand_scale'] =	Draw.Number('Randomize Scale',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['twig_fill_rand_scale'].val, 0.0, 1.0,	'Randomize twig scale from the bounding mesh'); xtmp += but_width*2;
+		
+		y-=but_height
+		xtmp = x
+		
+		PREFS['twig_fill_radius_min'] =	Draw.Number('Min Radius',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['twig_fill_radius_min'].val, 0.0, 1.0,	'Radius at endpoints of all twigs'); xtmp += but_width*2;
+		PREFS['twig_fill_radius_factor'] =	Draw.Number('Inherit Scale',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['twig_fill_radius_factor'].val, 0.0, 1.0,	'What attaching to branches, scale the radius by this value for filled twigs'); xtmp += but_width*2;
+		
+		y-=but_height
+		xtmp = x
+		
+		#PREFS['twig_fill_shape_type'] =	Draw.Number('Shape Type',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['twig_fill_shape_type'].val, 0.0, 1.0,	'Shape used for the fork'); xtmp += but_width*2;
+		PREFS['twig_fill_shape_type'] =	Draw.Menu('Join Type%t|Even%x0|Smooth One Child%x1|Smooth Both Children%x2',EVENT_UPDATE_AND_UI, xtmp, y, but_width*2, but_height, PREFS['twig_fill_shape_type'].val,	'Select the wat twigs '); xtmp += but_width*2;
+		PREFS['twig_fill_fork_angle_max'] =	Draw.Number('Shape Max Ang',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['twig_fill_fork_angle_max'].val, 0.0, 180.0,	'Maximum fork angle'); xtmp += but_width*2;
+		
+		y-=but_height
+		xtmp = x		
+		
+		PREFS['twig_fill_shape_rand'] =	Draw.Number('Shape Rand',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['twig_fill_shape_rand'].val, 0.0, 1.0,	'Randomize the shape of forks'); xtmp += but_width*2;
+		PREFS['twig_fill_shape_power'] = Draw.Number('Shape Strength',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['twig_fill_shape_power'].val, 0.0, 1.0,	'Strength of curves'); xtmp += but_width*2;
 	
+	Blender.Draw.EndAlign()
+	
+	y-=but_height+MARGIN
+	xtmp = x
 	# ---------- ---------- ---------- ----------
 	
 	
+	
+	# ---------- ---------- ---------- ----------
 	Blender.Draw.BeginAlign()
-	PREFS['do_twigs'] =	Draw.Toggle('Generate Twigs',EVENT_UPDATE_AND_UI, xtmp, y, but_width*2, but_height, PREFS['do_twigs'].val,	'Generate child branches based existing branches'); xtmp += but_width*2;
+	PREFS['do_twigs'] =	Draw.Toggle('Grow Twigs',EVENT_UPDATE_AND_UI, xtmp, y, but_width*2, but_height, PREFS['do_twigs'].val,	'Generate child branches based existing branches'); xtmp += but_width*2;
 	if PREFS['do_twigs'].val:
 		
 		PREFS['twig_ratio'] =	Draw.Number('Twig Multiply',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['twig_ratio'].val, 0.01, 500.0,	'How many twigs to generate per branch'); xtmp += but_width*2;
@@ -3050,8 +3604,9 @@ def gui():
 		xtmp = x
 		
 		# ---------- ---------- ---------- ----------
+		# WARNING USED IN 2 PLACES!!
+		PREFS['twig_ob_bounds'] =	Draw.String('OB Bound: ',	EVENT_UPDATE_AND_UI, xtmp, y, but_width*2, but_height, PREFS['twig_ob_bounds'].val, 64,	'Only grow twigs inside this mesh object', do_ob_check); xtmp += but_width*2;
 		
-		PREFS['twig_ob_bounds'] =	Draw.String('OB Bound: ',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['twig_ob_bounds'].val, 64,	'Only grow twigs inside this mesh object', do_ob_check); xtmp += but_width*2;
 		if PREFS['twig_ob_bounds_prune'].val:
 			but_width_tmp = but_width
 		else:
