@@ -1465,7 +1465,7 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 			}
 			
 			// call collision function
-			result = 0; // cloth_bvh_objcollision(clmd, step + dt, step, dt);
+			result = cloth_bvh_objcollision(clmd, step + dt, step, dt);
 			
 			// copy corrected positions back to simulation
 			if(result)

@@ -703,11 +703,12 @@ bool LbmFsgrSolver::initializeSolverMemory()
 			memBlockAllocProblem = true;
 		}
 #endif // Mac
-		if(sizeof(int)==4 && memEstFine>maxDefaultMemChunk) {
+		if(sizeof(void *)==4 && memEstFine>maxDefaultMemChunk) {
 			// max memory chunk for 32bit systems 2gig
 			memBlockAllocProblem = true;
+			
 		}
-
+		
 		if(memEstFromFunc>memLimit || memBlockAllocProblem) {
 			sizeReduction *= 0.9;
 			mSizex = (int)(orgSx * sizeReduction);
