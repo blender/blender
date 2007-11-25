@@ -109,22 +109,26 @@ static void BLI_unlock_malloc_thread(void)
 	pthread_mutex_unlock(&_malloc_lock);
 }
 
+/* tot = 0 only initializes malloc mutex in a safe way (see sequence.c)
+   problem otherwise: scene render will kill of the mutex!
+*/
+
 void BLI_init_threads(ListBase *threadbase, void *(*do_thread)(void *), int tot)
 {
 	int a;
 	
-	if(threadbase==NULL)
-		return;
-	threadbase->first= threadbase->last= NULL;
+	if(threadbase != NULL && tot > 0) {
+		threadbase->first= threadbase->last= NULL;
 	
-	if(tot>RE_MAX_THREAD) tot= RE_MAX_THREAD;
-	else if(tot<1) tot= 1;
+		if(tot>RE_MAX_THREAD) tot= RE_MAX_THREAD;
+		else if(tot<1) tot= 1;
 	
-	for(a=0; a<tot; a++) {
-		ThreadSlot *tslot= MEM_callocN(sizeof(ThreadSlot), "threadslot");
-		BLI_addtail(threadbase, tslot);
-		tslot->do_thread= do_thread;
-		tslot->avail= 1;
+		for(a=0; a<tot; a++) {
+			ThreadSlot *tslot= MEM_callocN(sizeof(ThreadSlot), "threadslot");
+			BLI_addtail(threadbase, tslot);
+			tslot->do_thread= do_thread;
+			tslot->avail= 1;
+		}
 	}
 
 	MEM_set_lock_callback(BLI_lock_malloc_thread, BLI_unlock_malloc_thread);
@@ -190,12 +194,14 @@ void BLI_end_threads(ListBase *threadbase)
 {
 	ThreadSlot *tslot;
 	
-	for(tslot= threadbase->first; tslot; tslot= tslot->next) {
-		if(tslot->avail==0) {
-			pthread_join(tslot->pthread, NULL);
+	if (threadbase) {
+		for(tslot= threadbase->first; tslot; tslot= tslot->next) {
+			if(tslot->avail==0) {
+				pthread_join(tslot->pthread, NULL);
+			}
 		}
+		BLI_freelistN(threadbase);
 	}
-	BLI_freelistN(threadbase);
 	
 	thread_levels--;
 	if(thread_levels==0)
