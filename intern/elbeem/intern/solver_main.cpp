@@ -363,7 +363,9 @@ LbmFsgrSolver::mainLoop(int lev)
 
 	const int cutMin  = 1;
 	const int cutConst = mCutoff+2;
-
+#if PARALLEL==1
+	printf("omp_get_num_threads: %d\n", omp_get_num_threads());
+#endif
 
 #	if LBM_INCLUDE_TESTSOLVERS==1
 	// 3d region off... quit
