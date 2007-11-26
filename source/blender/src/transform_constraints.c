@@ -594,12 +594,21 @@ void BIF_setSingleAxisConstraint(float vec[3], char *text) {
 	Mat3Ortho(space);
 
 	Mat3CpyMat3(t->con.mtx, space);
-	t->con.mode = (CON_AXIS0|CON_APPLY);
+	t->con.mode = CON_AXIS0;
+	
 	getConstraintMatrix(t);
 
+	startConstraint(t);
+	
 	/* start copying with an offset of 1, to reserve a spot for the SPACE char */
-	if(text) strncpy(t->con.text+1, text, 48);	// 50 in struct
-
+	if(text)
+	{
+		strncpy(t->con.text+1, text, 48);	/* 50 in struct */
+	}
+	else
+	{
+		t->con.text[1] = '\0'; /* No text */
+	}
 	
 	t->con.drawExtra = NULL;
 	t->con.applyVec = applyAxisConstraintVec;
@@ -618,11 +627,21 @@ void BIF_setDualAxisConstraint(float vec1[3], float vec2[3], char *text) {
 	Mat3Ortho(space);
 	
 	Mat3CpyMat3(t->con.mtx, space);
-	t->con.mode = (CON_AXIS0|CON_AXIS1|CON_APPLY);
+	t->con.mode = CON_AXIS0|CON_AXIS1;
+
 	getConstraintMatrix(t);
+
+	startConstraint(t);
 	
 	/* start copying with an offset of 1, to reserve a spot for the SPACE char */
-	if(text) strncpy(t->con.text+1, text, 48);	// 50 in struct
+	if(text)
+	{
+		strncpy(t->con.text+1, text, 48);	/* 50 in struct */
+	}
+	else
+	{
+		t->con.text[1] = '\0'; /* No text */
+	}
 
 	t->con.drawExtra = NULL;
 	t->con.applyVec = applyAxisConstraintVec;

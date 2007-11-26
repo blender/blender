@@ -1689,7 +1689,12 @@ static void createTransEditVerts(TransInfo *t)
 	float mtx[3][3], smtx[3][3], (*defmats)[3][3] = NULL, (*defcos)[3] = NULL;
 	int count=0, countsel=0, a, totleft;
 	int propmode = t->flag & T_PROP_EDIT;
-	int mirror= (G.scene->toolsettings->editbutflag & B_MESH_X_MIRROR);
+	int mirror = 0;
+	
+	if ((t->context & CTX_NO_MIRROR) == 0 || (G.scene->toolsettings->editbutflag & B_MESH_X_MIRROR))
+	{
+		mirror = 1;
+	}
 
 	// transform now requires awareness for select mode, so we tag the f1 flags in verts
 	if(G.scene->selectmode & SCE_SELECT_VERTEX) {

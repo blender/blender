@@ -679,15 +679,15 @@ void extrude_mesh(void)
 		/* individual faces? */
 		BIF_TransformSetUndo("Extrude");
 		if(nr==2) {
-			initTransform(TFM_SHRINKFATTEN, CTX_NO_PET);
+			initTransform(TFM_SHRINKFATTEN, CTX_NO_PET|CTX_NO_MIRROR);
 			Transform();
 		}
 		else {
-			initTransform(TFM_TRANSLATION, CTX_NO_PET);
+			initTransform(TFM_TRANSLATION, CTX_NO_PET|CTX_NO_MIRROR);
 			if(transmode=='n') {
 				Mat4MulVecfl(G.obedit->obmat, nor);
 				VecSubf(nor, nor, G.obedit->obmat[3]);
-				BIF_setSingleAxisConstraint(nor, NULL);
+				BIF_setSingleAxisConstraint(nor, "along normal");
 			}
 			Transform();
 		}

@@ -377,7 +377,7 @@ void recalcData(TransInfo *t)
 				if(t->state != TRANS_CANCEL)
 					clipMirrorModifier(t, G.obedit);
 				
-				if(G.scene->toolsettings->editbutflag & B_MESH_X_MIRROR)
+				if((t->context & CTX_NO_MIRROR) == 0 && (G.scene->toolsettings->editbutflag & B_MESH_X_MIRROR))
 					editmesh_apply_to_mirror(t);
 				
 				DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);  /* sets recalc flags */
