@@ -21,9 +21,9 @@
 {
 	if(doReduce) {
 		// synchronize global vars
-		for(int j=0; j<calcListFull.size() ; j++) mListFull.push_back( calcListFull[j] ); 
-		for(int j=0; j<calcListEmpty.size(); j++) mListEmpty.push_back( calcListEmpty[j] ); 
-		for(int j=0; j<calcListParts.size(); j++) mpParticles->addFullParticle( calcListParts[j] );
+		for(unsigned int j=0; j<calcListFull.size() ; j++) mListFull.push_back( calcListFull[j] ); 
+		for(unsigned int j=0; j<calcListEmpty.size(); j++) mListEmpty.push_back( calcListEmpty[j] ); 
+		for(unsigned int j=0; j<calcListParts.size(); j++) mpParticles->addFullParticle( calcListParts[j] );
 		if(calcMaxVlen>mMaxVlen) {  
 			mMxvx = calcMxvx;  
 			mMxvy = calcMxvy;  

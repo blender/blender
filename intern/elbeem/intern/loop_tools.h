@@ -34,7 +34,7 @@
 
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #define  GRID_REGION_START()  \
-	{ /* main_region */ \
+{ /* main_region */ \
 	int kstart=getForZMinBnd(), kend=getForZMaxBnd(mMaxRefine); \
 	if(gridLoopBound>0){ kstart=getForZMin1(), kend=getForZMax1(mMaxRefine); } \
 	int kdir = 1; \
@@ -49,7 +49,7 @@
 	kend = kstart-1; \
 	kstart = temp-1; \
 	temp = id; /* dummy remove warning */ \
-	} \
+} \
 
 
 
@@ -74,13 +74,13 @@
 
 // loop start
 #define  GRID_REGION_START()  \
-	{ \
+{ \
 	 \
 	 \
 	if(mSizez<2) { \
 	mPanic = 1; \
 	errFatal("ParaLoop::2D","Not valid...!", SIMWORLD_GENERICERROR); \
-	} \
+} \
 	 \
 	 \
 	vector<LbmPoint> calcListFull; \
@@ -113,14 +113,14 @@
 	int temp = kend; \
 	kend = kstart-1; \
 	kstart = temp-1; \
-	} \
+} \
 	 \
 	const int Nj = mLevel[mMaxRefine].lSizey; \
 	int jstart = 0+( id * (Nj / Nthrds) ); \
 	int jend   = 0+( (id+1) * (Nj / Nthrds) ); \
 	if( ((Nj/Nthrds) *Nthrds) != Nj) { \
 	errMsg("LbmFsgrSolver","Invalid domain size Nj="<<Nj<<" Nthrds="<<Nthrds); \
-	} \
+} \
 	 \
 	if(jstart<gridLoopBound) jstart = gridLoopBound; \
 	if(jend>mLevel[mMaxRefine].lSizey-gridLoopBound) jend = mLevel[mMaxRefine].lSizey-gridLoopBound; \
@@ -156,16 +156,16 @@
 // >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>
 #define  GRID_LOOPREG_END()  \
 	 \
-	} /* i */ \
+} /* i */ \
 	int i=0; \
 	ADVANCE_POINTERS(2*gridLoopBound); \
-	} /* j */ \
+} /* j */ \
 	/* COMPRESSGRIDS!=1 */ \
 	/* int i=0;  */ \
 	/* ADVANCE_POINTERS(mLevel[lev].lSizex*2);  */ \
-	} /* all cell loop k,j,i */ \
+} /* all cell loop k,j,i */ \
 	if(doReduce) { } /* dummy remove warning */ \
-	} /* main_region */ \
+} /* main_region */ \
 	 \
 
 
