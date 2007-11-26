@@ -53,6 +53,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
@@ -63,6 +64,7 @@
 #include "BKE_global.h"
 #include "BKE_lattice.h"
 #include "BKE_object.h"
+#include "BKE_particle.h"
 #include "BKE_utildefines.h"
 
 #include "BLI_arithb.h"
@@ -76,6 +78,7 @@
 #include "BIF_space.h"
 #include "BIF_transform.h"
 #include "BIF_editmesh.h"
+#include "BIF_editparticle.h"
 
 #include "BSE_edit.h"
 #include "BSE_view.h"
@@ -433,6 +436,27 @@ int calc_manipulator_stats(ScrArea *sa)
 	}
 	else if(G.f & (G_VERTEXPAINT + G_TEXTUREPAINT + G_WEIGHTPAINT + G_SCULPTMODE)) {
 		;
+	}
+	else if(G.f & G_PARTICLEEDIT) {
+		ParticleSystem *psys=PE_get_current(OBACT);
+		ParticleData *pa = psys->particles;
+		ParticleEditKey *ek;
+		int k;
+
+		if(psys->edit){
+			for(a=0; a<psys->totpart; a++,pa++){
+				if(pa->flag & PARS_HIDE) continue;
+				for(k=0, ek=psys->edit->keys[a]; k<pa->totkey; k++,ek++){
+					if(ek->flag & PEK_SELECT){
+						calc_tw_center(ek->world_co);
+						totsel++;
+					}
+				}
+			}
+			/* selection center */
+			if(totsel)
+				VecMulf(G.scene->twcent, 1.0f/(float)totsel);	// centroid!
+		}
 	}
 	else {
 		

@@ -738,6 +738,8 @@ void drawbutspace(ScrArea *sa, void *spacedata)
 		   object_panels();
 		else if(tab==TAB_OBJECT_PHYSICS)
 			physics_panels();
+		else if(tab==TAB_OBJECT_PARTICLE)
+			particle_panels();
 		   
 		break;
 	case CONTEXT_SHADING:

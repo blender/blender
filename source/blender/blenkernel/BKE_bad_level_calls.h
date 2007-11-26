@@ -231,5 +231,12 @@ struct MeshDeformModifierData;
 void harmonic_coordinates_bind(struct MeshDeformModifierData *mmd,
 	float (*vertexcos)[3], int totvert, float cagemat[][4]);
 
+/* particle.c */
+struct ParticleSystem;
+
+void PE_free_particle_edit(struct ParticleSystem *psys);
+void PE_get_colors(char sel[4], char nosel[4]);
+void PE_recalc_world_cos(struct Object *ob, struct ParticleSystem *psys);
+
 #endif
 

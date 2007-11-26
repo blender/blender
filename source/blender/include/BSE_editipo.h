@@ -60,6 +60,7 @@ char *getname_la_ei(int nr);
 char *getname_cam_ei(int nr);
 char *getname_snd_ei(int nr);
 char *getname_fluidsim_ei(int nr);
+char *getname_part_ei(int nr);
 
 char *getname_ipocurve(struct IpoCurve *icu, struct Object *ob);
 int geticon_ipo_blocktype(short blocktype);

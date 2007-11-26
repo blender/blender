@@ -34,16 +34,20 @@
 #ifndef BKE_CLOTH_H
 #define BKE_CLOTH_H
 
+#include "BKE_customdata.h"
 #include "BLI_linklist.h"
 #include "BKE_DerivedMesh.h"
+#include "BKE_object.h"
+
+#include "DNA_cloth_types.h"
 #include "DNA_customdata_types.h"
-#include "BKE_customdata.h"
 #include "DNA_meshdata_types.h"
 
 struct Object;
 struct Cloth;
 struct MFace;
 struct DerivedMesh;
+struct ClothModifierData;
 
 // this is needed for inlining behaviour
 
@@ -162,17 +166,17 @@ typedef enum
 
 
 // needed for buttons_object.c
-void cloth_clear_cache(Object *ob, ClothModifierData *clmd, float framenr);
-void cloth_free_modifier ( ClothModifierData *clmd );
+void cloth_clear_cache(struct Object *ob, struct ClothModifierData *clmd, float framenr);
+void cloth_free_modifier ( struct ClothModifierData *clmd );
 
 // needed for cloth.c
-void implicit_set_positions ( ClothModifierData *clmd );
+void implicit_set_positions ( struct ClothModifierData *clmd );
 
 // from cloth.c, needed for modifier.c
-DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *dm, int useRenderParams, int isFinalCalc);
+DerivedMesh *clothModifier_do(struct ClothModifierData *clmd, struct Object *ob, struct DerivedMesh *dm, int useRenderParams, int isFinalCalc);
 
 // needed in implicit.c
-int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float prevstep, float dt);
+int cloth_bvh_objcollision(struct ClothModifierData *clmd, float step, float prevstep, float dt);
 
 ////////////////////////////////////////////////
 
@@ -180,13 +184,13 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float prevstep,
 /////////////////////////////////////////////////
 // cloth.c
 ////////////////////////////////////////////////
-void cloth_free_modifier ( ClothModifierData *clmd );
-void cloth_init ( ClothModifierData *clmd );
+void cloth_free_modifier ( struct ClothModifierData *clmd );
+void cloth_init ( struct ClothModifierData *clmd );
 ////////////////////////////////////////////////
 
 
 /* Typedefs for function pointers we need for solvers and collision detection. */
-typedef void ( *CM_COLLISION_SELF ) ( ClothModifierData *clmd, int step );
+typedef void ( *CM_COLLISION_SELF ) ( struct ClothModifierData *clmd, int step );
 // typedef void ( *CM_COLLISION_OBJ ) ( ClothModifierData *clmd, int step, CM_COLLISION_RESPONSE collision_response );
 
 
@@ -204,22 +208,22 @@ typedef struct
 {
 	char		*name;
 	CM_SOLVER_ID	id;
-	int	( *init ) ( Object *ob, ClothModifierData *clmd );
-	int	( *solver ) ( Object *ob, float framenr, ClothModifierData *clmd, ListBase *effectors );
-	int	( *free ) ( ClothModifierData *clmd );
+	int	( *init ) ( struct Object *ob, struct ClothModifierData *clmd );
+	int	( *solver ) ( struct Object *ob, float framenr, struct ClothModifierData *clmd, struct ListBase *effectors );
+	int	( *free ) ( struct ClothModifierData *clmd );
 }
 CM_SOLVER_DEF;
 
 
 /* new C implicit simulator */
-int implicit_init ( Object *ob, ClothModifierData *clmd );
-int implicit_free ( ClothModifierData *clmd );
-int implicit_solver ( Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors );
+int implicit_init ( struct Object *ob, struct ClothModifierData *clmd );
+int implicit_free ( struct ClothModifierData *clmd );
+int implicit_solver ( struct Object *ob, float frame, struct ClothModifierData *clmd, struct ListBase *effectors );
 
 /* explicit verlet simulator */
-int verlet_init ( Object *ob, ClothModifierData *clmd );
-int verlet_free ( ClothModifierData *clmd );
-int verlet_solver ( Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors );
+int verlet_init ( struct Object *ob, struct ClothModifierData *clmd );
+int verlet_free ( struct ClothModifierData *clmd );
+int verlet_solver ( struct Object *ob, float frame, struct ClothModifierData *clmd, struct ListBase *effectors );
 
 
 /* used for collisions in collision.c */

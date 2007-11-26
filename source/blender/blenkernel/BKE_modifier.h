@@ -59,6 +59,12 @@ typedef enum {
 
 	eModifierTypeType_Constructive,
 	eModifierTypeType_Nonconstructive,
+
+	/* both deformVerts & applyModifier are valid calls
+	 * used for particles modifier that doesn't actually modify the object
+	 * unless it's a mesh and can be exploded -> curve can also emit particles
+	 */
+	eModifierTypeType_DeformOrConstruct
 } ModifierTypeType;
 
 typedef enum {
@@ -81,8 +87,8 @@ typedef enum {
 	eModifierTypeFlag_RequiresOriginalData = (1<<5),
 } ModifierTypeFlag;
 
-typedef void (*ObjectWalkFunc)(void *userData, Object *ob, Object **obpoin);
-typedef void (*IDWalkFunc)(void *userData, Object *ob, ID **idpoin);
+typedef void (*ObjectWalkFunc)(void *userData, struct Object *ob, struct Object **obpoin);
+typedef void (*IDWalkFunc)(void *userData, struct Object *ob, struct ID **idpoin);
 
 typedef struct ModifierTypeInfo {
 	/* The user visible name for this modifier */
@@ -278,10 +284,14 @@ int           modifiers_getCageIndex(struct Object *ob,
 
 int           modifiers_isSoftbodyEnabled(struct Object *ob);
 struct ClothModifierData *modifiers_isClothEnabled(Object *ob);
+int           modifiers_isParticleEnabled(struct Object *ob);
+
 struct Object *modifiers_isDeformedByArmature(struct Object *ob);
 struct Object *modifiers_isDeformedByLattice(struct Object *ob);
 int           modifiers_usesArmature(struct Object *ob, struct bArmature *arm);
 int           modifiers_isDeformed(struct Object *ob);
+
+int           modifiers_indexInObject(struct Object *ob, struct ModifierData *md);
 
 /* Calculates and returns a linked list of CustomDataMasks indicating the
  * data required by each modifier in the stack pointed to by md for correct

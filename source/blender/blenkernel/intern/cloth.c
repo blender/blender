@@ -412,7 +412,7 @@ void cloth_clear_cache(Object *ob, ClothModifierData *clmd, float framenr)
 	{
 		stack_index = modifiers_indexInObject(ob, (ModifierData *)clmd);
 		
-		PTCache_id_clear((ID *)ob, framenr, stack_index);
+		BKE_ptcache_id_clear((ID *)ob, PTCACHE_CLEAR_AFTER, framenr, stack_index);
 	}
 }
 static void cloth_write_cache(Object *ob, ClothModifierData *clmd, float framenr)
@@ -427,7 +427,7 @@ static void cloth_write_cache(Object *ob, ClothModifierData *clmd, float framenr
 	
 	stack_index = modifiers_indexInObject(ob, (ModifierData *)clmd);
 	
-	fp = PTCache_id_fopen((ID *)ob, 'w', framenr, stack_index);
+	fp = BKE_ptcache_id_fopen((ID *)ob, 'w', framenr, stack_index);
 	if(!fp) return;
 	
 	for(a = 0; a < cloth->numverts; a++)
@@ -451,7 +451,7 @@ static int cloth_read_cache(Object *ob, ClothModifierData *clmd, float framenr)
 	
 	stack_index = modifiers_indexInObject(ob, (ModifierData *)clmd);
 	
-	fp = PTCache_id_fopen((ID *)ob, 'r', framenr, stack_index);
+	fp = BKE_ptcache_id_fopen((ID *)ob, 'r', framenr, stack_index);
 	if(!fp)
 		ret = 0;
 	else {
@@ -1039,7 +1039,7 @@ int cloth_build_springs ( Cloth *cloth, DerivedMesh *dm )
 {
 	ClothSpring *spring = NULL, *tspring = NULL, *tspring2 = NULL;
 	unsigned int struct_springs = 0, shear_springs=0, bend_springs = 0;
-	unsigned int i = 0;
+	unsigned int i = 0, j = 0;
 	unsigned int numverts = dm->getNumVerts ( dm );
 	unsigned int numedges = dm->getNumEdges ( dm );
 	unsigned int numfaces = dm->getNumFaces ( dm );
@@ -1093,6 +1093,30 @@ int cloth_build_springs ( Cloth *cloth, DerivedMesh *dm )
 		}
 	}
 	
+	// calc collision balls *slow*
+	// better: use precalculated list with O(1) index access to all springs of a vertex
+	// missing for structural since it's not needed for building bending springs
+	/*
+	for ( i = 0; i < numverts; i++ )
+	{
+		search = cloth->springs;
+		for ( j = 0; j < struct_springs; j++ )
+		{
+			if ( !search )
+				break;
+
+			tspring = search->link;
+			
+			if((tspring->ij == i) || (tspring->kl == i))
+			{
+				akku += bs->len;
+				akku_count++,
+				min = MIN2(bs->len,min);
+				max = MAX2(bs->len,max);
+			}
+		}
+	}
+	*/
 	// shear springs
 	for ( i = 0; i < numfaces; i++ )
 	{

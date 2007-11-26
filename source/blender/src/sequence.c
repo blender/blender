@@ -71,6 +71,7 @@
 
 #include "blendef.h"
 
+#include "BLI_threads.h"
 #include <pthread.h>
 
 int seqrectx, seqrecty;
@@ -1269,7 +1270,6 @@ typedef struct PrefetchQueueElem {
 	struct ImBuf * ibuf;
 } PrefetchQueueElem;
 
-
 static void * seq_prefetch_thread(void * This_)
 {
 	PrefetchThread * This = This_;
@@ -1370,6 +1370,9 @@ void seq_start_threads()
 
 		pthread_create(&t->pthread, NULL, seq_prefetch_thread, t);
 	}
+
+	/* init malloc mutex */
+	BLI_init_threads(0, 0, 0);
 }
 
 void seq_stop_threads()
@@ -1410,6 +1413,9 @@ void seq_stop_threads()
 	}
 
 	BLI_freelistN(&running_threads);
+
+	/* deinit malloc mutex */
+	BLI_end_threads(0);
 }
 
 void give_ibuf_prefetch_request(int rectx, int recty, int cfra, int chanshown)

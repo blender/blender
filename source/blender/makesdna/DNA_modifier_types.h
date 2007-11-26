@@ -29,9 +29,11 @@ typedef enum ModifierType {
 	eModifierType_Smooth,
 	eModifierType_Cast,
 	eModifierType_MeshDeform,
- 	eModifierType_PointCache,
+	eModifierType_ParticleSystem,
+	eModifierType_ParticleInstance,
+	eModifierType_Explode,
 	eModifierType_Cloth,
-        eModifierType_Collision,	
+        eModifierType_Collision,
 	NUM_MODIFIER_TYPES
 } ModifierType;
 
@@ -409,14 +411,51 @@ typedef struct MeshDeformModifierData {
 	float bindmat[4][4];			/* matrix of cage at binding time */
 } MeshDeformModifierData;
 
-typedef struct PointCacheModifierData {
+typedef enum {
+	eParticleSystemFlag_Loaded =		(1<<0),
+	eParticleSystemFlag_Pars =			(1<<1),
+	eParticleSystemFlag_FromCurve =		(1<<2),
+	eParticleSystemFlag_DM_changed =	(1<<3),
+	eParticleSystemFlag_Disabled =		(1<<4),
+	eParticleSystemFlag_psys_updated =	(1<<5),
+} ParticleSystemModifierFlag;
+
+typedef struct ParticleSystemModifierData {
 	ModifierData modifier;
-	short mode, pad1, pad2, pad3;
-} PointCacheModifierData;
+	struct ParticleSystem *psys;
+	struct DerivedMesh *dm;
+	short flag, rt[3];
+} ParticleSystemModifierData;
 
 typedef enum {
-	ePointCache_Read =	(1<<0),
-				 ePointCache_Write =		(1<<1),
-} PointCacheFlag;
+	eParticleInstanceFlag_Parents =		(1<<0),
+	eParticleInstanceFlag_Children =	(1<<1),
+	eParticleInstanceFlag_Path =		(1<<2),
+	eParticleInstanceFlag_Unborn =		(1<<3),
+	eParticleInstanceFlag_Alive =		(1<<4),
+	eParticleInstanceFlag_Dead =		(1<<5),
+} ParticleInstanceModifierFlag;
+
+typedef struct ParticleInstanceModifierData {
+	ModifierData modifier;
+	struct Object *ob;
+	short psys, flag, rt[2];
+} ParticleInstanceModifierData;
+
+typedef enum {
+	eExplodeFlag_CalcFaces =	(1<<0),
+	//eExplodeFlag_PaSize =		(1<<1),
+	eExplodeFlag_EdgeSplit =	(1<<2),
+	eExplodeFlag_Unborn =		(1<<3),
+	eExplodeFlag_Alive =		(1<<4),
+	eExplodeFlag_Dead =			(1<<5),
+} ExplodeModifierFlag;
+
+typedef struct ExplodeModifierData {
+	ModifierData modifier;
+	int *facepa;
+	short flag, vgroup;
+	float protect;
+} ExplodeModifierData;
 
 #endif

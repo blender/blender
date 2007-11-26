@@ -57,14 +57,14 @@
 	- stack_index: index in the modifier stack. we can have cache for more then one stack_index
 */
 
-int PTCache_path(char *filename)
+static int ptcache_path(char *filename)
 {
-	sprintf(filename, PTCache_PATH);
+	sprintf(filename, PTCACHE_PATH);
 	BLI_convertstringcode(filename, G.sce, 0);
 	return strlen(filename);
 }
 
-int PTCache_id_filename(struct ID *id, char *filename, int cfra, int stack_index, short do_path, short do_ext)
+int BKE_ptcache_id_filename(struct ID *id, char *filename, int cfra, int stack_index, short do_path, short do_ext)
 {
 	int len=0;
 	char *idname;
@@ -74,11 +74,11 @@ int PTCache_id_filename(struct ID *id, char *filename, int cfra, int stack_index
 	
 	/* start with temp dir */
 	if (do_path) {
-		len = PTCache_path(filename);
+		len = ptcache_path(filename);
 		newname += len;
 	}
 	idname = (id->name+2);
-	/* convert chars to hex so they are always a valid file */
+	/* convert chars to hex so they are always a valid filename */
 	while('\0' != *idname) {
 		sprintf(newname, "%02X", (char)(*idname++));
 		newname+=2;
@@ -86,7 +86,7 @@ int PTCache_id_filename(struct ID *id, char *filename, int cfra, int stack_index
 	}
 	
 	if (do_ext) {
-		sprintf(newname, "_%06d_%02d"PTCache_EXT, cfra, stack_index); /* always 6 chars */
+		sprintf(newname, "_%06d_%02d"PTCACHE_EXT, cfra, stack_index); /* always 6 chars */
 		len += 16;
 	}
 	
@@ -94,17 +94,16 @@ int PTCache_id_filename(struct ID *id, char *filename, int cfra, int stack_index
 }
 
 /* youll need to close yourself after! */
-FILE *PTCache_id_fopen(struct ID *id, char mode, int cfra, int stack_index)
+FILE *BKE_ptcache_id_fopen(struct ID *id, char mode, int cfra, int stack_index)
 {
 	/* mode is same as fopen's modes */
-	FILE *fp;
+	FILE *fp = NULL;
 	char filename[(FILE_MAXDIR+FILE_MAXFILE)*2];
 
-	PTCache_id_filename(id, filename, cfra, stack_index, 1, 1);
+	BKE_ptcache_id_filename(id, filename, cfra, stack_index, 1, 1);
 
 	if (mode=='r') {
 		if (!BLI_exists(filename)) {
-			// printf("Error, file does not exist '%s'\n", filename);
 			return NULL;
 		}
  		fp = fopen(filename, "rb");
@@ -114,15 +113,18 @@ FILE *PTCache_id_fopen(struct ID *id, char mode, int cfra, int stack_index)
 	}
 
  	if (!fp) {
- 		printf("Error creating file filename '%s'\n", filename);
  		return NULL;
  	}
  	
  	return fp;
 }
 
-/* youll need to close yourself after! */
-void PTCache_id_clear(struct ID *id, int cfra, int stack_index)
+/* youll need to close yourself after!
+ * mode, 
+
+*/
+
+void BKE_ptcache_id_clear(struct ID *id, char mode, int cfra, int stack_index)
 {
 	int len; /* store the length of the string */
 
@@ -132,28 +134,52 @@ void PTCache_id_clear(struct ID *id, int cfra, int stack_index)
 	char path[FILE_MAX];
 	char filename[(FILE_MAXDIR+FILE_MAXFILE)*2];
 	char path_full[(FILE_MAXDIR+FILE_MAXFILE)*2];
-
-	PTCache_path(path);
-	len = PTCache_id_filename(id, filename, cfra, stack_index, 0, 0); /* no path */
 	
 	/* clear all files in the temp dir with the prefix of the ID and the ".bphys" suffix */
-	
-	dir = opendir(path);
-	if (dir==NULL)
-		return;
-	
-	while ((de = readdir(dir)) != NULL) {
-		//if (S_ISREG(status.st_mode)) { /* is file */
-			if (strstr(de->d_name, PTCache_EXT)) { /* do we have the right extension?*/
+	switch (mode) {
+	case PTCACHE_CLEAR_ALL:
+	case PTCACHE_CLEAR_BEFORE:	
+	case PTCACHE_CLEAR_AFTER:
+		ptcache_path(path);
+		len = BKE_ptcache_id_filename(id, filename, cfra, stack_index, 0, 0); /* no path */
+		
+		dir = opendir(path);
+		if (dir==NULL)
+			return;
+		
+		while ((de = readdir(dir)) != NULL) {
+			if (strstr(de->d_name, PTCACHE_EXT)) { /* do we have the right extension?*/
 				if (strncmp(filename, de->d_name, len ) == 0) { /* do we have the right prefix */
-					BLI_join_dirfile(path_full, path, de->d_name);
-					BLI_delete(path_full, 0, 0);
+					if (mode == PTCACHE_CLEAR_ALL) {
+						BLI_join_dirfile(path_full, path, de->d_name);
+						BLI_delete(path_full, 0, 0);
+					} else {
+						/* read the number of the file */
+						int frame, len2 = strlen(de->d_name);
+						char num[7];
+						if (len2 > 15) { /* could crash if trying to copy a string out of this range*/
+							strncpy(num, de->d_name + (strlen(de->d_name) - 15), 6);
+							frame = atoi(num);
+							
+							if((mode==PTCACHE_CLEAR_BEFORE && frame < cfra)	|| 
+							   (mode==PTCACHE_CLEAR_AFTER && frame > cfra)	) {
+								
+								BLI_join_dirfile(path_full, path, de->d_name);
+								BLI_delete(path_full, 0, 0);
+							}
+						}
+					}
 				}
 			}
-		//}
+		}
+		closedir(dir);
+		break;
+		
+	case PTCACHE_CLEAR_FRAME:
+		len = BKE_ptcache_id_filename(id, filename, cfra, stack_index, 1, 1); /* no path */
+		BLI_delete(filename, 0, 0);
+		break;
 	}
-	
-	closedir(dir);
 	return;
 }
 

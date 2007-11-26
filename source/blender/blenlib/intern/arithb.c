@@ -2421,6 +2421,98 @@ short IsectLL2Df(float *v1, float *v2, float *v3, float *v4)
 	return 0;
 }
 
+/*
+-1: colliniar
+ 1: intersection
+
+*/
+short IsectLLPt2Df(float x0,float y0,float x1,float y1,
+					 float x2,float y2,float x3,float y3, float *xi,float *yi)
+
+{
+	/*
+	this function computes the intersection of the sent lines
+	and returns the intersection point, note that the function assumes
+	the lines intersect. the function can handle vertical as well
+	as horizontal lines. note the function isn't very clever, it simply
+	applies the math, but we don't need speed since this is a
+	pre-processing step
+	*/
+	float c1,c2, // constants of linear equations
+	det_inv,  // the inverse of the determinant of the coefficient
+	m1,m2;    // the slopes of each line
+	/*
+	compute slopes, note the cludge for infinity, however, this will
+	be close enough
+	*/
+	if ( fabs( x1-x0 ) > 0.000001 )
+		m1 = ( y1-y0 ) / ( x1-x0 );
+	else
+		return -1; /*m1 = ( float ) 1e+10;*/   // close enough to infinity
+
+	if ( fabs( x3-x2 ) > 0.000001 )
+		m2 = ( y3-y2 ) / ( x3-x2 );
+	else
+		return -1; /*m2 = ( float ) 1e+10;*/   // close enough to infinity
+
+	if (fabs(m1-m2) < 0.000001)
+		return -1; /* paralelle lines */
+	
+// compute constants
+
+	c1 = ( y0-m1*x0 );
+	c2 = ( y2-m2*x2 );
+
+// compute the inverse of the determinate
+
+	det_inv = 1.0f / ( -m1 + m2 );
+
+// use Kramers rule to compute xi and yi
+
+	*xi= ( ( -c2 + c1 ) *det_inv );
+	*yi= ( ( m2*c1 - m1*c2 ) *det_inv );
+	
+	return 1; 
+} // end Intersect_Lines
+
+#define SIDE_OF_LINE(pa,pb,pp)	((pa[0]-pp[0])*(pb[1]-pp[1]))-((pb[0]-pp[0])*(pa[1]-pp[1]))
+#define ISECT_EPSILON 1e-6
+
+/* point in tri */
+int IsectPT2Df(float pt[2], float v1[2], float v2[2], float v3[2])
+{
+	if ((SIDE_OF_LINE(v1,v2,pt)>=-ISECT_EPSILON) &&
+		(SIDE_OF_LINE(v2,v3,pt)>=-ISECT_EPSILON) &&
+		(SIDE_OF_LINE(v3,v1,pt)>=-ISECT_EPSILON))
+		return 1;
+	else {
+		return 0;
+	}
+}
+/* point in quad - only convex quads */
+int IsectPQ2Df(float pt[2], float v1[2], float v2[2], float v3[2], float v4[2])
+{
+	if ((SIDE_OF_LINE(v1,v2,pt)>=-ISECT_EPSILON) &&
+		(SIDE_OF_LINE(v2,v3,pt)>=-ISECT_EPSILON) &&
+		(SIDE_OF_LINE(v3,v4,pt)>=-ISECT_EPSILON) &&
+		(SIDE_OF_LINE(v4,v1,pt)>=-ISECT_EPSILON))
+		return 1;
+	else
+		return 0;
+}
+
+
+
+			/* copied from Geometry.c - todo - move to arithb.c or some other generic place we can reuse */
+#define SIDE_OF_LINE(pa,pb,pp)	((pa[0]-pp[0])*(pb[1]-pp[1]))-((pb[0]-pp[0])*(pa[1]-pp[1]))
+#define POINT_IN_TRI(p0,p1,p2,p3)	((SIDE_OF_LINE(p1,p2,p0)>=0) && (SIDE_OF_LINE(p2,p3,p0)>=0) && (SIDE_OF_LINE(p3,p1,p0)>=0))
+
+/**
+ * 
+ * @param min 
+ * @param max 
+ * @param vec 
+ */
 void MinMax3(float *min, float *max, float *vec)
 {
 	if(min[0]>vec[0]) min[0]= vec[0];
@@ -3035,6 +3127,11 @@ float Vec2Lenf(float *v1, float *v2)
 	return (float)sqrt(x*x+y*y);
 }
 
+float Vec2Length(float *v)
+{
+	return (float)sqrt(v[0]*v[0] + v[1]*v[1]);
+}
+
 void Vec2Mulf(float *v1, float f)
 {
 	v1[0]*= f;
@@ -3501,7 +3598,7 @@ void mul_v3_v3m4(float *v1, float *v2, float mat[][4])
    test if the line starting at p1 ending at p2 intersects the triangle v0..v2
    return non zero if it does 
 */
-int LineIntersectsTriangle(float p1[3], float p2[3], float v0[3], float v1[3], float v2[3], float *lambda)
+int LineIntersectsTriangle(float p1[3], float p2[3], float v0[3], float v1[3], float v2[3], float *lambda, float *uv)
 {
 
 	float p[3], s[3], d[3], e1[3], e2[3], q[3];
@@ -3527,15 +3624,318 @@ int LineIntersectsTriangle(float p1[3], float p2[3], float v0[3], float v1[3], f
 	
 	v = f * Inpf(d, q);
 	if ((v < 0.0)||((u + v) > 1.0)) return 0;
+
+	if(uv) {
+		uv[0]= u;
+		uv[1]= v;
+	}
 	
 	return 1;
 }
 
+/* Adapted from the paper by Kasper Fauerby */
+/* "Improved Collision detection and Response" */
+int SweepingSphereIntersectsTriangleUV(float p1[3], float p2[3], float radius, float v0[3], float v1[3], float v2[3], float *lambda, float *ipoint)
+{
+	float e1[3], e2[3], e3[3], point[3], vel[3], /*dist[3],*/ nor[3], temp[3], bv[3];
+	float a, b, c, d, e, x, y, z, t, t0, t1, radius2=radius*radius;
+	float elen2,edotv,edotbv,nordotv,vel2;
+	int embedded_in_plane=0, found_by_sweep=0;
 
-/*
-find closest point to p on line through l1,l2
-and return lambda, where (0 <= lambda <= 1) when cp is in the line segement l1,l2
-*/
+	VecSubf(e1,v1,v0);
+	VecSubf(e2,v2,v0);
+	VecSubf(vel,p2,p1);
+
+/*---test plane of tri---*/
+	Crossf(nor,e1,e2);
+	Normalize(nor);
+	/* flip normal */
+	if(Inpf(nor,vel)>0.0f) VecMulf(nor,-1.0f);
+	
+	a=Inpf(p1,nor)-Inpf(v0,nor);
+
+	nordotv=Inpf(nor,vel);
+
+	if ((nordotv > -0.000001) && (nordotv < 0.000001)) {
+		if(fabs(a)>=1.0f)
+			return 0;
+		else{
+			embedded_in_plane=1;
+			t0=0.0f;
+			t1=1.0f;
+		}
+	}
+	else{
+		t0=(radius-a)/nordotv;
+		t1=(-radius-a)/nordotv;
+		/* make t0<t1 */
+		if(t0>t1){b=t1; t1=t0; t0=b;}
+
+		if(t0>1.0f || t1<0.0f) return 0;
+
+		/* clamp to [0,1] */
+		t0=(t0<0.0f)?0.0f:((t0>1.0f)?1.0:t0);
+		t1=(t1<0.0f)?0.0f:((t1>1.0f)?1.0:t1);
+	}
+
+/*---test inside of tri---*/
+	if(embedded_in_plane==0){
+		/* plane intersection point */
+		VecCopyf(point,vel);
+		VecMulf(point,t0);
+		VecAddf(point,point,p1);
+		VecCopyf(temp,nor);
+		VecMulf(temp,radius);
+		VecSubf(point,point,temp);
+
+		/* is the point in the tri? */
+		a=Inpf(e1,e1);
+		b=Inpf(e1,e2);
+		c=Inpf(e2,e2);
+
+		VecSubf(temp,point,v0);
+		d=Inpf(temp,e1);
+		e=Inpf(temp,e2);
+		
+		x=d*c-e*b;
+		y=e*a-d*b;
+		z=x+y-(a*c-b*b);
+
+		if(( ((unsigned int)z)& ~(((unsigned int)x)|((unsigned int)y)) ) & 0x80000000){
+			*lambda=t0;
+			VecCopyf(ipoint,point);
+			return 1;
+		}
+	}
+
+	*lambda=1.0f;
+/*---test points---*/
+	a=vel2=Inpf(vel,vel);
+
+	/*v0*/
+	VecSubf(temp,p1,v0);
+	b=2.0f*Inpf(vel,temp);
+	c=Inpf(temp,temp)-radius2;
+	d=b*b-4*a*c;
+
+	if(d>=0.0f){
+		if(d==0.0f)
+			t=-b/2*a;
+		else{
+			z=sqrt(d);
+			x=(-b-z)*0.5/a;
+			y=(-b+z)*0.5/a;
+			t=x<y?x:y;
+		}
+
+		if(t>0.0 && t < *lambda){
+			*lambda=t;
+			VecCopyf(ipoint,v0);
+			found_by_sweep=1;
+		}
+	}
+
+	/*v1*/
+	VecSubf(temp,p1,v1);
+	b=2.0f*Inpf(vel,temp);
+	c=Inpf(temp,temp)-radius2;
+	d=b*b-4*a*c;
+
+	if(d>=0.0f){
+		if(d==0.0f)
+			t=-b/2*a;
+		else{
+			z=sqrt(d);
+			x=(-b-z)*0.5/a;
+			y=(-b+z)*0.5/a;
+			t=x<y?x:y;
+		}
+
+		if(t>0.0 && t < *lambda){
+			*lambda=t;
+			VecCopyf(ipoint,v1);
+			found_by_sweep=1;
+		}
+	}
+	/*v2*/
+	VecSubf(temp,p1,v2);
+	b=2.0f*Inpf(vel,temp);
+	c=Inpf(temp,temp)-radius2;
+	d=b*b-4*a*c;
+
+	if(d>=0.0f){
+		if(d==0.0f)
+			t=-b/2*a;
+		else{
+			z=sqrt(d);
+			x=(-b-z)*0.5/a;
+			y=(-b+z)*0.5/a;
+			t=x<y?x:y;
+		}
+
+		if(t>0.0 && t < *lambda){
+			*lambda=t;
+			VecCopyf(ipoint,v2);
+			found_by_sweep=1;
+		}
+	}
+
+/*---test edges---*/
+	/*e1*/
+	VecSubf(bv,v0,p1);
+	elen2 = Inpf(e1,e1);
+	edotv = Inpf(e1,vel);
+	edotbv = Inpf(e1,bv);
+
+	a=elen2*(-Inpf(vel,vel))+edotv*edotv;
+	b=2.0f*(elen2*Inpf(vel,bv)-edotv*edotbv);
+	c=elen2*(radius2-Inpf(bv,bv))+edotbv*edotbv;
+	d=b*b-4*a*c;
+	if(d>=0.0f){
+		if(d==0.0f)
+			t=-b/2*a;
+		else{
+			z=sqrt(d);
+			x=(-b-z)*0.5/a;
+			y=(-b+z)*0.5/a;
+			t=x<y?x:y;
+		}
+
+		e=(edotv*t-edotbv)/elen2;
+
+		if((e>=0.0f) && (e<=1.0f)){
+			if(t>0.0 && t < *lambda){
+				*lambda=t;
+				VecCopyf(ipoint,e1);
+				VecMulf(ipoint,e);
+				VecAddf(ipoint,ipoint,v0);
+				found_by_sweep=1;
+			}
+		}
+	}
+
+	/*e2*/
+	/*bv is same*/
+	elen2 = Inpf(e2,e2);
+	edotv = Inpf(e2,vel);
+	edotbv = Inpf(e2,bv);
+
+	a=elen2*(-Inpf(vel,vel))+edotv*edotv;
+	b=2.0f*(elen2*Inpf(vel,bv)-edotv*edotbv);
+	c=elen2*(radius2-Inpf(bv,bv))+edotbv*edotbv;
+	d=b*b-4*a*c;
+	if(d>=0.0f){
+		if(d==0.0f)
+			t=-b/2*a;
+		else{
+			z=sqrt(d);
+			x=(-b-z)*0.5/a;
+			y=(-b+z)*0.5/a;
+			t=x<y?x:y;
+		}
+
+		e=(edotv*t-edotbv)/elen2;
+
+		if((e>=0.0f) && (e<=1.0f)){
+			if(t>0.0 && t < *lambda){
+				*lambda=t;
+				VecCopyf(ipoint,e2);
+				VecMulf(ipoint,e);
+				VecAddf(ipoint,ipoint,v0);
+				found_by_sweep=1;
+			}
+		}
+	}
+
+	/*e3*/
+	VecSubf(e3,v2,v1);
+	VecSubf(bv,v1,p1);
+	elen2 = Inpf(e3,e3);
+	edotv = Inpf(e3,vel);
+	edotbv = Inpf(e3,bv);
+
+	a=elen2*(-Inpf(vel,vel))+edotv*edotv;
+	b=2.0f*(elen2*Inpf(vel,bv)-edotv*edotbv);
+	c=elen2*(radius2-Inpf(bv,bv))+edotbv*edotbv;
+	d=b*b-4*a*c;
+	if(d>=0.0f){
+		if(d==0.0f)
+			t=-b/2*a;
+		else{
+			z=sqrt(d);
+			x=(-b-z)*0.5/a;
+			y=(-b+z)*0.5/a;
+			t=x<y?x:y;
+		}
+
+		e=(edotv*t-edotbv)/elen2;
+
+		if((e>=0.0f) && (e<=1.0f)){
+			if(t>0.0 && t < *lambda){
+				*lambda=t;
+				VecCopyf(ipoint,e3);
+				VecMulf(ipoint,e);
+				VecAddf(ipoint,ipoint,v1);
+				found_by_sweep=1;
+			}
+		}
+	}
+
+	return found_by_sweep;
+}
+int AxialLineIntersectsTriangle(int axis, float p1[3], float p2[3], float v0[3], float v1[3], float v2[3], float *lambda)
+{
+	float p[3], e1[3], e2[3];
+	float u, v, f;
+	int a0=axis, a1=(axis+1)%3, a2=(axis+2)%3;
+
+	//return LineIntersectsTriangle(p1,p2,v0,v1,v2,lambda);
+
+	///* first a simple bounding box test */
+	//if(MIN3(v0[a1],v1[a1],v2[a1]) > p1[a1]) return 0;
+	//if(MIN3(v0[a2],v1[a2],v2[a2]) > p1[a2]) return 0;
+	//if(MAX3(v0[a1],v1[a1],v2[a1]) < p1[a1]) return 0;
+	//if(MAX3(v0[a2],v1[a2],v2[a2]) < p1[a2]) return 0;
+
+	///* then a full intersection test */
+	
+	VecSubf(e1,v1,v0);
+	VecSubf(e2,v2,v0);
+	VecSubf(p,v0,p1);
+
+	f= (e2[a1]*e1[a2]-e2[a2]*e1[a1]);
+	if ((f > -0.000001) && (f < 0.000001)) return 0;
+
+	v= (p[a2]*e1[a1]-p[a1]*e1[a2])/f;
+	if ((v < 0.0)||(v > 1.0)) return 0;
+	
+	f= e1[a1];
+	if((f > -0.000001) && (f < 0.000001)){
+		f= e1[a2];
+		if((f > -0.000001) && (f < 0.000001)) return 0;
+		u= (-p[a2]-v*e2[a2])/f;
+	}
+	else
+		u= (-p[a1]-v*e2[a1])/f;
+
+	if ((u < 0.0)||((u + v) > 1.0)) return 0;
+
+	*lambda = (p[a0]+u*e1[a0]+v*e2[a0])/(p2[a0]-p1[a0]);
+
+	if ((*lambda < 0.0)||(*lambda > 1.0)) return 0;
+
+	return 1;
+}
+
+int AabbIntersectAabb(float min1[3], float max1[3], float min2[3], float max2[3])
+{
+	return (min1[0]<max2[0] && min1[1]<max2[1] && min1[2]<max2[2] &&
+	        min2[0]<max1[0] && min2[1]<max1[1] && min2[2]<max1[2]);
+}
+
+/* find closest point to p on line through l1,l2 and return lambda,
+ * where (0 <= lambda <= 1) when cp is in the line segement l1,l2
+ */
 float lambda_cp_line_ex(float p[3], float l1[3], float l2[3], float cp[3])
 {
 	float h[3],u[3],lambda;
@@ -3547,6 +3947,7 @@ float lambda_cp_line_ex(float p[3], float l1[3], float l2[3], float cp[3])
 	cp[2] = l1[2] + u[2] * lambda;
 	return lambda;
 }
+
 /* little sister we only need to know lambda */
 float lambda_cp_line(float p[3], float l1[3], float l2[3])
 {
@@ -3556,7 +3957,156 @@ float lambda_cp_line(float p[3], float l1[3], float l2[3])
 	return(Inpf(u,h)/Inpf(u,u));
 }
 
+/* Similar to LineIntersectsTriangleUV, except it operates on a quad and in 2d, assumes point is in quad */
+void PointInQuad2DUV(float v0[2], float v1[2], float v2[2], float v3[2], float pt[2], float *uv)
+{
+	float x0,y0, x1,y1, wtot, v2d[2], w1, w2;
+	
+	/* used for paralelle lines */
+	float pt3d[3], l1[3], l2[3], pt_on_line[3];
+	
+	/* compute 2 edges  of the quad  intersection point */
+	if (IsectLLPt2Df(v0[0],v0[1],v1[0],v1[1],  v2[0],v2[1],v3[0],v3[1], &x0,&y0) == 1) {
+		/* the intersection point between the quad-edge intersection and the point in the quad we want the uv's for */
+		/* should never be paralle !! */
+		/*printf("\tnot paralelle 1\n");*/
+		IsectLLPt2Df(pt[0],pt[1],x0,y0,  v0[0],v0[1],v3[0],v3[1], &x1,&y1);
+		
+		/* Get the weights from the new intersection point, to each edge */
+		v2d[0] = x1-v0[0];
+		v2d[1] = y1-v0[1];
+		w1 = Vec2Length(v2d);
+		
+		v2d[0] = x1-v3[0]; /* some but for the other vert */
+		v2d[1] = y1-v3[1];
+		w2 = Vec2Length(v2d);
+		wtot = w1+w2;
+		/*w1 = w1/wtot;*/
+		/*w2 = w2/wtot;*/
+		uv[0] = w1/wtot;
+	} else {
+		/* lines are paralelle, lambda_cp_line_ex is 3d grrr */
+		/*printf("\tparalelle1\n");*/
+		pt3d[0] = pt[0];
+		pt3d[1] = pt[1];
+		pt3d[2] = l1[2] = l2[2] = 0.0f;
+		
+		l1[0] = v0[0]; l1[1] = v0[1];
+		l2[0] = v1[0]; l2[1] = v1[1];
+		lambda_cp_line_ex(pt3d, l1, l2, pt_on_line);
+		v2d[0] = pt[0]-pt_on_line[0]; /* same, for the other vert */
+		v2d[1] = pt[1]-pt_on_line[1];
+		w1 = Vec2Length(v2d);
+		
+		l1[0] = v2[0]; l1[1] = v2[1];
+		l2[0] = v3[0]; l2[1] = v3[1];
+		lambda_cp_line_ex(pt3d, l1, l2, pt_on_line);
+		v2d[0] = pt[0]-pt_on_line[0]; /* same, for the other vert */
+		v2d[1] = pt[1]-pt_on_line[1];
+		w2 = Vec2Length(v2d);
+		wtot = w1+w2;
+		uv[0] = w1/wtot;	
+	}
+	
+	/* Same as above to calc the uv[1] value, alternate calculation */
+	
+	if (IsectLLPt2Df(v0[0],v0[1],v3[0],v3[1],  v1[0],v1[1],v2[0],v2[1], &x0,&y0) == 1) { /* was v0,v1  v2,v3  now v0,v3  v1,v2*/
+		/* never paralle if above was not */
+		/*printf("\tnot paralelle2\n");*/
+		IsectLLPt2Df(pt[0],pt[1],x0,y0,  v0[0],v0[1],v1[0],v1[1], &x1,&y1);/* was v0,v3  now v0,v1*/
+		
+		v2d[0] = x1-v0[0];
+		v2d[1] = y1-v0[1];
+		w1 = Vec2Length(v2d);
+		
+		v2d[0] = x1-v1[0];
+		v2d[1] = y1-v1[1];
+		w2 = Vec2Length(v2d);
+		wtot = w1+w2;
+		uv[1] = w1/wtot;
+	} else {
+		/* lines are paralelle, lambda_cp_line_ex is 3d grrr */
+		/*printf("\tparalelle2\n");*/
+		pt3d[0] = pt[0];
+		pt3d[1] = pt[1];
+		pt3d[2] = l1[2] = l2[2] = 0.0f;
+		
+		
+		l1[0] = v0[0]; l1[1] = v0[1];
+		l2[0] = v3[0]; l2[1] = v3[1];
+		lambda_cp_line_ex(pt3d, l1, l2, pt_on_line);
+		v2d[0] = pt[0]-pt_on_line[0]; /* some but for the other vert */
+		v2d[1] = pt[1]-pt_on_line[1];
+		w1 = Vec2Length(v2d);
+		
+		l1[0] = v1[0]; l1[1] = v1[1];
+		l2[0] = v2[0]; l2[1] = v2[1];
+		lambda_cp_line_ex(pt3d, l1, l2, pt_on_line);
+		v2d[0] = pt[0]-pt_on_line[0]; /* some but for the other vert */
+		v2d[1] = pt[1]-pt_on_line[1];
+		w2 = Vec2Length(v2d);
+		wtot = w1+w2;
+		uv[1] = w1/wtot;
+	}
+	/* may need to flip UV's here */
+}
 
+/* same as above but does tri's and quads, tri's are a bit of a hack */
+void PointInFace2DUV(int isquad, float v0[2], float v1[2], float v2[2], float v3[2], float pt[2], float *uv)
+{
+	if (isquad) {
+		PointInQuad2DUV(v0, v1, v2, v3, pt, uv);
+	}
+	else {
+		/* not for quads, use for our abuse of LineIntersectsTriangleUV */
+		float p1_3d[3], p2_3d[3], v0_3d[3], v1_3d[3], v2_3d[3], lambda;
+			
+		p1_3d[0] = p2_3d[0] = uv[0];
+		p1_3d[1] = p2_3d[1] = uv[1];
+		p1_3d[2] = 1.0f;
+		p2_3d[2] = -1.0f;
+		v0_3d[2] = v1_3d[2] = v2_3d[2] = 0.0;
+		
+		/* generate a new fuv, (this is possibly a non optimal solution,
+		 * since we only need 2d calculation but use 3d func's)
+		 * 
+		 * this method makes an imaginary triangle in 2d space using the UV's from the derived mesh face
+		 * Then find new uv coords using the fuv and this face with LineIntersectsTriangleUV.
+		 * This means the new values will be correct in relation to the derived meshes face. 
+		 */
+		Vec2Copyf(v0_3d, v0);
+		Vec2Copyf(v1_3d, v1);
+		Vec2Copyf(v2_3d, v2);
+		
+		/* Doing this in 3D is not nice */
+		LineIntersectsTriangle(p1_3d, p2_3d, v0_3d, v1_3d, v2_3d, &lambda, uv);
+	}
+}
+
+/* (x1,v1)(t1=0)------(x2,v2)(t2=1), 0<t<1 --> (x,v)(t) */
+void VecfCubicInterpol(float *x1, float *v1, float *x2, float *v2, float t, float *x, float *v)
+{
+	float a[3],b[3];
+	float t2= t*t;
+	float t3= t2*t;
+
+	/* cubic interpolation */
+	a[0]= v1[0] + v2[0] + 2*(x1[0] - x2[0]);
+	a[1]= v1[1] + v2[1] + 2*(x1[1] - x2[1]);
+	a[2]= v1[2] + v2[2] + 2*(x1[2] - x2[2]);
+
+	b[0]= -2*v1[0] - v2[0] - 3*(x1[0] - x2[0]);
+	b[1]= -2*v1[1] - v2[1] - 3*(x1[1] - x2[1]);
+	b[2]= -2*v1[2] - v2[2] - 3*(x1[2] - x2[2]);
+
+	x[0]= a[0]*t3 + b[0]*t2 + v1[0]*t + x1[0];
+	x[1]= a[1]*t3 + b[1]*t2 + v1[1]*t + x1[1];
+	x[2]= a[2]*t3 + b[2]*t2 + v1[2]*t + x1[2];
+
+	v[0]= 3*a[0]*t2 + 2*b[0]*t + v1[0];
+	v[1]= 3*a[1]*t2 + 2*b[1]*t + v1[1];
+	v[2]= 3*a[2]*t2 + 2*b[2]*t + v1[2];
+}
 
 int point_in_slice(float p[3], float v1[3], float l1[3], float l2[3])
 {

@@ -59,6 +59,10 @@
 #define ELEM8(a, b, c, d, e, f, g, h, i)        ( ELEM4(a, b, c, d, e) || ELEM4(a, f, g, h, i) )
 #define ELEM9(a, b, c, d, e, f, g, h, i, j)        ( ELEM4(a, b, c, d, e) || ELEM5(a, f, g, h, i, j) )
 
+/* shift around elements */
+#define SHIFT3(type, a, b, c) { type tmp; tmp = a; a = c; c = b; b = tmp; }
+#define SHIFT4(type, a, b, c, d) { type tmp; tmp = a; a = d; d = c; c = b; b = tmp; }
+
 /* string compare */
 #define STREQ(str, a)           ( strcmp((str), (a))==0 )
 #define STREQ2(str, a, b)       ( STREQ(str, a) || STREQ(str, b) )

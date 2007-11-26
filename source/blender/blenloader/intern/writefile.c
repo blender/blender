@@ -133,6 +133,7 @@ Important to know is that 'streaming' has been added to files, for Blender Publi
 #include "DNA_object_force.h"
 #include "DNA_oops_types.h"
 #include "DNA_packedFile_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_property_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sdna_types.h"
@@ -528,6 +529,43 @@ static void write_effects(WriteData *wd, ListBase *lb)
 	}
 }
 
+static void write_particlesettings(WriteData *wd, ListBase *idbase)
+{
+	ParticleSettings *part;
+
+	part= idbase->first;
+	while(part) {
+		if(part->id.us>0 || wd->current) {
+			/* write LibData */
+			writestruct(wd, ID_PA, "ParticleSettings", 1, part);
+			writestruct(wd, DATA, "PartDeflect", 1, part->pd);
+		}
+		part= part->id.next;
+	}
+}
+static void write_particlesystems(WriteData *wd, ListBase *particles)
+{
+	ParticleSystem *psys= particles->first;
+	int a;
+
+	for(; psys; psys=psys->next) {
+		writestruct(wd, DATA, "ParticleSystem", 1, psys);
+
+		if(psys->particles) {
+			writestruct(wd, DATA, "ParticleData", psys->totpart ,psys->particles);
+
+			if(psys->particles->hair) {
+				ParticleData *pa = psys->particles;
+
+				for(a=0; a<psys->totpart; a++, pa++)
+					writedata(wd, DATA, MEM_allocN_len(pa->hair),pa->hair);
+			}
+		}
+		if(psys->child) writestruct(wd, DATA, "ChildParticle", psys->totchild ,psys->child);
+		writestruct(wd, DATA, "SoftBody", 1, psys->soft);
+	}
+}
+
 static void write_properties(WriteData *wd, ListBase *lb)
 {
 	bProperty *prop;
@@ -810,7 +848,6 @@ static void write_modifiers(WriteData *wd, ListBase *modbase)
 static void write_objects(WriteData *wd, ListBase *idbase)
 {
 	Object *ob;
-	int a;
 	
 	ob= idbase->first;
 	while(ob) {
@@ -846,17 +883,9 @@ static void write_objects(WriteData *wd, ListBase *idbase)
 			
 			writestruct(wd, DATA, "PartDeflect", 1, ob->pd);
 			writestruct(wd, DATA, "SoftBody", 1, ob->soft);
-			if(ob->soft) {
-				SoftBody *sb= ob->soft;
-				if(sb->keys) {
-					writedata(wd, DATA, sizeof(void *)*sb->totkey, sb->keys);
-					for(a=0; a<sb->totkey; a++) {
-						writestruct(wd, DATA, "SBVertex", sb->totpoint, sb->keys[a]);
-					}
-				}
-			}
 			writestruct(wd, DATA, "FluidsimSettings", 1, ob->fluidsimSettings); // NT
 			
+			write_particlesystems(wd, &ob->particlesystem);
 			write_modifiers(wd, &ob->modifiers);
 		}
 		ob= ob->id.next;
@@ -1916,6 +1945,7 @@ static int write_file_handle(int handle, MemFile *compare, MemFile *current, int
 	write_materials(wd, &G.main->mat);
 	write_textures (wd, &G.main->tex);
 	write_meshs    (wd, &G.main->mesh);
+	write_particlesettings(wd, &G.main->particle);
 	write_nodetrees(wd, &G.main->nodetree);
 	write_brushes  (wd, &G.main->brush);
 	if(current==NULL)	

@@ -248,6 +248,7 @@ void VecMidf(float *v, float *v1, float *v2);
 void VecOrthoBasisf(float *v, float *v1, float *v2);
 
 float Vec2Lenf(float *v1, float *v2);
+float Vec2Length(float *v);
 void Vec2Mulf(float *v1, float f);
 void Vec2Addf(float *v, float *v1, float *v2);
 void Vec2Subf(float *v, float *v1, float *v2);
@@ -280,6 +281,11 @@ float AreaPoly3Dfl(int nr, float *verts, float *normal);
 */
 extern short IsectLL2Df(float *v1, float *v2, float *v3, float *v4);
 extern short IsectLL2Ds(short *v1, short *v2, short *v3, short *v4);
+
+/*point in tri,  0 no intersection, 1 intersect */
+int IsectPT2Df(float pt[2], float v1[2], float v2[2], float v3[2]);
+/* point in quad,  0 no intersection, 1 intersect */
+int IsectPQ2Df(float pt[2], float v1[2], float v2[2], float v3[2], float v4[2]);
 
 /* interpolation weights of point in a triangle or quad, v4 may be NULL */
 void InterpWeightsQ3Dfl(float *v1, float *v2, float *v3, float *v4, float *co, float *w);
@@ -358,7 +364,13 @@ void LocQuatSizeToMat4(float mat[][4], float loc[3], float quat[4], float size[3
 void tubemap(float x, float y, float z, float *u, float *v);
 void spheremap(float x, float y, float z, float *u, float *v);
 
-int LineIntersectsTriangle(float p1[3], float p2[3], float v0[3], float v1[3], float v2[3], float *lambda);
+int LineIntersectsTriangle(float p1[3], float p2[3], float v0[3], float v1[3], float v2[3], float *lambda, float *uv);
+int SweepingSphereIntersectsTriangleUV(float p1[3], float p2[3], float radius, float v0[3], float v1[3], float v2[3], float *lambda, float *ipoint);
+int AxialLineIntersectsTriangle(int axis, float co1[3], float co2[3], float v0[3], float v1[3], float v2[3], float *lambda);
+int AabbIntersectAabb(float min1[3], float max1[3], float min2[3], float max2[3]);
+void VecfCubicInterpol(float *x1, float *v1, float *x2, float *v2, float t, float *x, float *v);
+void PointInQuad2DUV(float v0[2], float v1[2], float v2[2], float v3[2], float pt[2], float *uv);
+void PointInFace2DUV(int isquad, float v0[2], float v1[2], float v2[2], float v3[2], float pt[2], float *uv);
 int point_in_tri_prism(float p[3], float v1[3], float v2[3], float v3[3]);
 
 float lambda_cp_line_ex(float p[3], float l1[3], float l2[3], float cp[3]);

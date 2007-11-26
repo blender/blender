@@ -59,6 +59,7 @@
 #define TFM_TIME_SLIDE		20
 #define	TFM_TIME_SCALE		21
 #define TFM_TIME_EXTEND		22
+#define TFM_BAKE_TIME		23
 
 /* TRANSFORM CONTEXTS */
 #define CTX_NONE			0
@@ -66,6 +67,7 @@
 #define CTX_EDGE			2
 #define CTX_NO_PET			4
 #define CTX_TWEAK			8
+#define CTX_NO_MIRROR		16
 
 void initTransform(int mode, int context);
 void Transform(void);

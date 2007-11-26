@@ -187,6 +187,7 @@ typedef struct Global {
 /*#endif*/
 #define G_DRAWSHARP     (1 << 28) /* draw edges with the sharp flag */
 #define G_SCULPTMODE    (1 << 29)
+#define G_PARTICLEEDIT	(1 << 30)
 
 #define G_AUTOMATKEYS	(1 << 30)
 #define G_HIDDENHANDLES (1 << 31) /* used for curves only */
@@ -243,9 +244,10 @@ typedef struct Global {
 #define B_ENDIAN	0
 
 /* G.moving, signals drawing in (3d) window to denote transform */
-#define G_TRANSFORM_OBJ		1
-#define G_TRANSFORM_EDIT	2
-#define G_TRANSFORM_MANIP	4
+#define G_TRANSFORM_OBJ			1
+#define G_TRANSFORM_EDIT		2
+#define G_TRANSFORM_MANIP		4
+#define G_TRANSFORM_PARTICLE	8
 
 /* G.special1 */
 

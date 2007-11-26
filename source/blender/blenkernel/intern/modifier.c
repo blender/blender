@@ -41,10 +41,11 @@
 #include "math.h"
 #include "float.h"
 
-#include "BLI_blenlib.h"
-#include "BLI_rand.h"
 #include "BLI_arithb.h"
+#include "BLI_blenlib.h"
+#include "BLI_kdtree.h"
 #include "BLI_linklist.h"
+#include "BLI_rand.h"
 #include "BLI_edgehash.h"
 #include "BLI_ghash.h"
 #include "BLI_memarena.h"
@@ -60,6 +61,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
+#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_texture_types.h"
 #include "DNA_curve_types.h"
@@ -74,21 +76,25 @@
 #include "BKE_anim.h"
 #include "BKE_bad_level_calls.h"
 #include "BKE_collisions.h"
+#include "BKE_curve.h"
 #include "BKE_customdata.h"
 #include "BKE_global.h"
-#include "BKE_utildefines.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_booleanops.h"
 #include "BKE_displist.h"
 #include "BKE_modifier.h"
 #include "BKE_lattice.h"
+#include "BKE_library.h"
 #include "BKE_subsurf.h"
 #include "BKE_object.h"
 #include "BKE_mesh.h"
 #include "BKE_softbody.h"
 #include "BKE_cloth.h"
 #include "BKE_material.h"
+#include "BKE_particle.h"
+#include "BKE_pointcache.h"
+#include "BKE_utildefines.h"
 #include "depsgraph_private.h"
 
 #include "LOD_DependKludge.h"
@@ -4688,7 +4694,7 @@ static void armatureModifier_deformVerts(
 	
 	armature_deform_verts(amd->object, ob, derivedData, vertexCos, NULL,
 	                      numVerts, amd->deformflag, 
-						  amd->prevCos, amd->defgrp_name);
+						  (float(*)[3])amd->prevCos, amd->defgrp_name);
 	/* free cache */
 	if(amd->prevCos) {
 		MEM_freeN(amd->prevCos);
@@ -5251,6 +5257,1220 @@ static DerivedMesh *booleanModifier_applyModifier(
 	return derivedData;
 }
 
+/* Particles */
+static void particleSystemModifier_initData(ModifierData *md) 
+{
+	ParticleSystemModifierData *psmd= (ParticleSystemModifierData*) md;
+	psmd->psys= 0;
+	psmd->dm=0;
+
+}
+static void particleSystemModifier_freeData(ModifierData *md)
+{
+	ParticleSystemModifierData *psmd= (ParticleSystemModifierData*) md;
+
+	if(psmd->dm){
+		psmd->dm->needsFree = 1;
+		psmd->dm->release(psmd->dm);
+		psmd->dm=0;
+	}
+
+	psmd->psys->flag &= ~PSYS_ENABLED;
+	psmd->psys->flag |= PSYS_DELETE;
+}
+static void particleSystemModifier_copyData(ModifierData *md, ModifierData *target)
+{
+	ParticleSystemModifierData *psmd= (ParticleSystemModifierData*) md;
+	ParticleSystemModifierData *tpsmd= (ParticleSystemModifierData*) target;
+
+	tpsmd->dm = 0;
+	//tpsmd->facepa = 0;
+	tpsmd->flag = psmd->flag;
+	/* need to keep this to recognise a bit later in copy_object */
+	tpsmd->psys = psmd->psys;
+}
+
+CustomDataMask particleSystemModifier_requiredDataMask(ModifierData *md)
+{
+	ParticleSystemModifierData *psmd= (ParticleSystemModifierData*) md;
+	CustomDataMask dataMask = (1 << CD_MTFACE) + (1 << CD_MEDGE);
+	int i;
+
+	/* ask for vertexgroups if we need them */
+	for(i=0; i<PSYS_TOT_VG; i++){
+		if(psmd->psys->vgroup[i]){
+			dataMask |= (1 << CD_MDEFORMVERT);
+			break;
+		}
+	}
+	
+	/* particles only need this if they are after a non deform modifier, and
+	 * the modifier stack will only create them in that case. */
+	dataMask |= CD_MASK_ORIGSPACE;
+	
+	return dataMask;
+}
+static int is_last_displist(Object *ob)
+{
+	Curve *cu = ob->data;
+	static int curvecount=0, totcurve=0;
+
+	if(curvecount==0){
+		DispList *dl;
+
+		totcurve=0;
+		for(dl=cu->disp.first; dl; dl=dl->next){
+			totcurve++;
+		}
+	}
+
+	curvecount++;
+
+	if(curvecount==totcurve){
+		curvecount=0;
+		return 1;
+	}
+
+	return 0;
+}
+/* saves the current emitter state for a particle system and calculates particles */
+static void particleSystemModifier_deformVerts(
+                 ModifierData *md, Object *ob, DerivedMesh *derivedData,
+                float (*vertexCos)[3], int numVerts)
+{
+	DerivedMesh *dm = derivedData;
+	ParticleSystemModifierData *psmd= (ParticleSystemModifierData*) md;
+	ParticleSystem * psys=0;
+	int totvert=0,totedge=0,totface=0,needsFree=0;
+	
+	if(ob->particlesystem.first)
+		psys=psmd->psys;
+	else
+		return;
+	
+	if((psys->flag&PSYS_ENABLED)==0)
+		return;
+
+	if(dm==0){
+		if(ob->type==OB_MESH){
+			dm = CDDM_from_mesh((Mesh*)(ob->data), ob);
+
+			CDDM_apply_vert_coords(dm, vertexCos);
+			//CDDM_calc_normals(dm);
+
+			needsFree=1;
+		}
+		else if(ELEM3(ob->type,OB_FONT,OB_CURVE,OB_SURF)){
+			Object *tmpobj;
+			Curve *tmpcu;
+
+			if(is_last_displist(ob)){
+				/* copies object and modifiers (but not the data) */
+				tmpobj= copy_object( ob );
+				tmpcu = (Curve *)tmpobj->data;
+				tmpcu->id.us--;
+
+				/* copies the data */
+				tmpobj->data = copy_curve( (Curve *) ob->data );
+
+				makeDispListCurveTypes( tmpobj, 1 );
+				nurbs_to_mesh( tmpobj );
+
+				dm = CDDM_from_mesh((Mesh*)(tmpobj->data), tmpobj);
+				//CDDM_calc_normals(dm);
+
+				free_libblock_us( &G.main->object, tmpobj );
+
+				needsFree=1;
+			}
+			else return;
+		}
+		else return;
+	}
+
+	/* clear old dm */
+	if(psmd->dm){
+		totvert=psmd->dm->getNumVerts(psmd->dm);
+		totedge=psmd->dm->getNumEdges(psmd->dm);
+		totface=psmd->dm->getNumFaces(psmd->dm);
+		psmd->dm->needsFree = 1;
+		psmd->dm->release(psmd->dm);
+	}
+
+	/* make new dm */
+	psmd->dm=CDDM_copy(dm);
+	CDDM_calc_normals(psmd->dm);
+
+	if(needsFree){
+		dm->needsFree = 1;
+		dm->release(dm);
+	}
+
+	/* protect dm */
+	psmd->dm->needsFree = 0;
+
+	/* report change in mesh structure */
+	if(psmd->dm->getNumVerts(psmd->dm)!=totvert ||
+	   psmd->dm->getNumEdges(psmd->dm)!=totedge ||
+	   psmd->dm->getNumFaces(psmd->dm)!=totface){
+		/* in file read dm hasn't really changed but just wasn't saved in file */
+		if(psmd->flag & eParticleSystemFlag_Loaded)
+			psmd->flag &= ~eParticleSystemFlag_Loaded;
+		else{
+			/* TODO PARTICLE - Added this so changing subsurf under hair updates it
+			should it be done elsewhere? - Campbell */
+			psys->recalc |= PSYS_RECALC_HAIR;
+			psys->recalc |= PSYS_DISTR;
+			psmd->flag |= eParticleSystemFlag_DM_changed;
+		}
+	}
+
+	if(psys){
+		particle_system_update(ob,psys);
+		psmd->flag |= eParticleSystemFlag_psys_updated;
+		psmd->flag &= ~eParticleSystemFlag_DM_changed;
+	}
+}
+
+static void particleSystemModifier_deformVertsEM(
+                ModifierData *md, Object *ob, EditMesh *editData,
+                DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
+{
+	DerivedMesh *dm = derivedData;
+
+	if(!derivedData) dm = CDDM_from_editmesh(editData, ob->data);
+
+	particleSystemModifier_deformVerts(md, ob, dm, vertexCos, numVerts);
+
+	if(!derivedData) dm->release(dm);
+}
+
+/* Particle Instance */
+static void particleInstanceModifier_initData(ModifierData *md) 
+{
+	ParticleInstanceModifierData *pimd= (ParticleInstanceModifierData*) md;
+
+	pimd->flag = eParticleInstanceFlag_Parents|eParticleInstanceFlag_Unborn|
+				eParticleInstanceFlag_Alive|eParticleInstanceFlag_Dead;
+	pimd->psys = 1;
+
+}
+static void particleInstanceModifier_copyData(ModifierData *md, ModifierData *target)
+{
+	ParticleInstanceModifierData *pimd= (ParticleInstanceModifierData*) md;
+	ParticleInstanceModifierData *tpimd= (ParticleInstanceModifierData*) target;
+
+	tpimd->ob = pimd->ob;
+	tpimd->psys = pimd->psys;
+	tpimd->flag = pimd->flag;
+}
+
+static int particleInstanceModifier_dependsOnTime(ModifierData *md) 
+{
+	return 0;
+}
+static void particleInstanceModifier_updateDepgraph(ModifierData *md, DagForest *forest,
+                                         Object *ob, DagNode *obNode)
+{
+	ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData*) md;
+
+	if (pimd->ob) {
+		DagNode *curNode = dag_get_node(forest, pimd->ob);
+
+		dag_add_relation(forest, curNode, obNode,
+		                 DAG_RL_DATA_DATA | DAG_RL_OB_DATA);
+	}
+}
+
+static void particleInstanceModifier_foreachObjectLink(ModifierData *md, Object *ob,
+                                        ObjectWalkFunc walk, void *userData)
+{
+	ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData*) md;
+
+	walk(userData, ob, &pimd->ob);
+}
+
+static DerivedMesh * particleInstanceModifier_applyModifier(
+                 ModifierData *md, Object *ob, DerivedMesh *derivedData,
+                 int useRenderParams, int isFinalCalc)
+{
+	DerivedMesh *dm = derivedData, *result;
+	ParticleInstanceModifierData *pimd= (ParticleInstanceModifierData*) md;
+	ParticleSystem * psys=0;
+	ParticleData *pa=0, *pars=0;
+	MFace *mface, *orig_mface;
+	MVert *mvert, *orig_mvert;
+	int i,totvert, totpart=0, totface, maxvert, maxface, first_particle=0;
+	short track=ob->trackflag%3, trackneg;
+	float max_co=0.0, min_co=0.0, temp_co[3];
+
+	trackneg=((ob->trackflag>2)?1:0);
+
+	if(pimd->ob==ob){
+		pimd->ob=0;
+		return derivedData;
+	}
+
+	if(pimd->ob){
+		psys = BLI_findlink(&pimd->ob->particlesystem,pimd->psys-1);
+		if(psys==0 || psys->totpart==0)
+			return derivedData;
+	}
+	else return derivedData;
+
+	if(pimd->flag & eParticleInstanceFlag_Parents)
+		totpart+=psys->totpart;
+	if(pimd->flag & eParticleInstanceFlag_Children){
+		if(totpart==0)
+			first_particle=psys->totpart;
+		totpart+=psys->totchild;
+	}
+
+	if(totpart==0)
+		return derivedData;
+
+	pars=psys->particles;
+
+	totvert=dm->getNumVerts(dm);
+	totface=dm->getNumFaces(dm);
+
+	maxvert=totvert*totpart;
+	maxface=totface*totpart;
+
+	psys->lattice=psys_get_lattice(ob, psys);
+
+	if(psys->flag & (PSYS_HAIR_DONE|PSYS_KEYED)){
+		float co[3];
+		for(i=0; i< totvert; i++){
+			dm->getVertCo(dm,i,co);
+			if(i==0){
+				min_co=max_co=co[track];
+			}
+			else{
+				if(co[track]<min_co)
+					min_co=co[track];
+
+				if(co[track]>max_co)
+					max_co=co[track];
+			}
+		}
+	}
+
+	result = CDDM_from_template(dm, maxvert,dm->getNumEdges(dm)*totpart,maxface);
+
+	mvert=result->getVertArray(result);
+	orig_mvert=dm->getVertArray(dm);
+
+	for(i=0; i<maxvert; i++){
+		MVert *inMV;
+		MVert *mv = mvert + i;
+		ParticleKey state;
+
+		inMV = orig_mvert + i%totvert;
+		DM_copy_vert_data(dm, result, i%totvert, i, 1);
+		*mv = *inMV;
+
+		/*change orientation based on object trackflag*/
+		VECCOPY(temp_co,mv->co);
+		mv->co[0]=temp_co[track];
+		mv->co[1]=temp_co[(track+1)%3];
+		mv->co[2]=temp_co[(track+2)%3];
+
+		if(psys->flag & (PSYS_HAIR_DONE|PSYS_KEYED) && pimd->flag & eParticleInstanceFlag_Path){
+			state.time=(mv->co[0]-min_co)/(max_co-min_co);
+			if(trackneg)
+				state.time=1.0f-state.time;
+			psys_get_particle_on_path(pimd->ob,psys,first_particle + i/totvert,&state,1);
+		}
+		else{
+			state.time=-1.0;
+			psys_get_particle_state(pimd->ob,psys,i/totvert,&state,1);
+		}
+
+		/*displace vertice to path location*/
+		if(pimd->flag & eParticleInstanceFlag_Path)
+			mv->co[0]=0.0;
+
+		QuatMulVecf(state.rot,mv->co);
+		VECADD(mv->co,mv->co,state.co);
+	}
+
+	mface=result->getFaceArray(result);
+	orig_mface=dm->getFaceArray(dm);
+
+	for(i=0; i<maxface; i++){
+		MFace *inMF;
+		MFace *mf = mface + i;
+
+		if(pimd->flag & eParticleInstanceFlag_Parents){
+			if(i/totface>=psys->totpart){
+				if(psys->part->childtype==PART_CHILD_PARTICLES)
+					pa=psys->particles+(psys->child+i/totface-psys->totpart)->parent;
+				else
+					pa=0;
+			}
+			else
+				pa=pars+i/totface;
+		}
+		else{
+			if(psys->part->childtype==PART_CHILD_PARTICLES)
+				pa=psys->particles+(psys->child+i/totface)->parent;
+			else
+				pa=0;
+		}
+
+		if(pa){
+			if(pa->alive==PARS_UNBORN && (pimd->flag&eParticleInstanceFlag_Unborn)==0) continue;
+			if(pa->alive==PARS_ALIVE && (pimd->flag&eParticleInstanceFlag_Alive)==0) continue;
+			if(pa->alive==PARS_DEAD && (pimd->flag&eParticleInstanceFlag_Dead)==0) continue;
+		}
+
+		inMF = orig_mface + i%totface;
+		DM_copy_face_data(dm, result, i%totface, i, 1);
+		*mf = *inMF;
+
+		mf->v1+=(i/totface)*totvert;
+		mf->v2+=(i/totface)*totvert;
+		mf->v3+=(i/totface)*totvert;
+		if(mf->v4)
+			mf->v4+=(i/totface)*totvert;
+	}
+	
+	CDDM_calc_edges(result);
+	CDDM_calc_normals(result);
+
+	if(psys->lattice){
+		end_latt_deform();
+		psys->lattice=0;
+	}
+
+	return result;
+}
+static DerivedMesh *particleInstanceModifier_applyModifierEM(
+                        ModifierData *md, Object *ob, EditMesh *editData,
+                        DerivedMesh *derivedData)
+{
+	return particleInstanceModifier_applyModifier(md, ob, derivedData, 0, 1);
+}
+
+/* Explode */
+static void explodeModifier_initData(ModifierData *md)
+{
+	ExplodeModifierData *emd= (ExplodeModifierData*) md;
+
+	emd->facepa=0;
+	emd->flag |= eExplodeFlag_Unborn+eExplodeFlag_Alive+eExplodeFlag_Dead;
+}
+static void explodeModifier_freeData(ModifierData *md)
+{
+	ExplodeModifierData *emd= (ExplodeModifierData*) md;
+	
+	if(emd->facepa) MEM_freeN(emd->facepa);
+}
+static void explodeModifier_copyData(ModifierData *md, ModifierData *target)
+{
+	ExplodeModifierData *emd= (ExplodeModifierData*) md;
+	ExplodeModifierData *temd= (ExplodeModifierData*) target;
+
+	temd->facepa = 0;
+	temd->flag = emd->flag;
+}
+static int explodeModifier_dependsOnTime(ModifierData *md) 
+{
+	return 1;
+}
+CustomDataMask explodeModifier_requiredDataMask(ModifierData *md)
+{
+	ExplodeModifierData *emd= (ExplodeModifierData*) md;
+	CustomDataMask dataMask = 0;
+
+	if(emd->vgroup)
+		dataMask |= (1 << CD_MDEFORMVERT);
+
+	return dataMask;
+}
+
+/* this should really be put somewhere permanently */
+static float vert_weight(MDeformVert *dvert, int group)
+{
+	MDeformWeight *dw;
+	int i;
+	
+	if(dvert) {
+		dw= dvert->dw;
+		for(i= dvert->totweight; i>0; i--, dw++) {
+			if(dw->def_nr == group) return dw->weight;
+			if(i==1) break; /*otherwise dw will point to somewhere it shouldn't*/
+		}
+	}
+	return 0.0;
+}
+
+static void explodeModifier_createFacepa(ExplodeModifierData *emd,
+										 ParticleSystemModifierData *psmd,
+										 Object *ob, DerivedMesh *dm)
+{
+	ParticleSystem *psys=psmd->psys;
+	MFace *fa=0, *mface=0;
+	MVert *mvert = 0;
+	ParticleData *pa;
+	KDTree *tree;
+	float center[3], co[3];
+	int *facepa=0,*vertpa=0,totvert=0,totface=0,totpart=0;
+	int i,p,v1,v2,v3,v4=0;
+
+	mvert = dm->getVertArray(dm);
+	mface = dm->getFaceArray(dm);
+	totface= dm->getNumFaces(dm);
+	totvert= dm->getNumVerts(dm);
+	totpart= psmd->psys->totpart;
+
+	BLI_srandom(psys->seed);
+
+	if(emd->facepa)
+		MEM_freeN(emd->facepa);
+
+	facepa = emd->facepa = MEM_callocN(sizeof(int)*totface, "explode_facepa");
+
+	vertpa = MEM_callocN(sizeof(int)*totvert, "explode_vertpa");
+
+	/* initialize all faces & verts to no particle */
+	for(i=0; i<totface; i++)
+		facepa[i]=totpart;
+
+	for (i=0; i<totvert; i++)
+		vertpa[i]=totpart;
+
+	/* set protected verts */
+	if(emd->vgroup){
+		MDeformVert *dvert = dm->getVertDataArray(dm, CD_MDEFORMVERT);
+		float val;
+		if(dvert){
+			for(i=0; i<totvert; i++){
+				val = BLI_frand();
+				val = (1.0f-emd->protect)*val + emd->protect*0.5f;
+				if(val < vert_weight(dvert+i,emd->vgroup-1))
+					vertpa[i] = -1;
+			}
+		}
+	}
+
+	/* make tree of emitter locations */
+	tree=BLI_kdtree_new(totpart);
+	for(p=0,pa=psys->particles; p<totpart; p++,pa++){
+		psys_particle_on_dm(ob,dm,psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,0,0,0);
+		BLI_kdtree_insert(tree, p, co, NULL);
+	}
+	BLI_kdtree_balance(tree);
+
+	/* set face-particle-indexes to nearest particle to face center */
+	for(i=0,fa=mface; i<totface; i++,fa++){
+		VecAddf(center,mvert[fa->v1].co,mvert[fa->v2].co);
+		VecAddf(center,center,mvert[fa->v3].co);
+		if(fa->v4){
+			VecAddf(center,center,mvert[fa->v4].co);
+			VecMulf(center,0.25);
+		}
+		else
+			VecMulf(center,0.3333f);
+
+		p= BLI_kdtree_find_nearest(tree,center,NULL,NULL);
+
+		v1=vertpa[fa->v1];
+		v2=vertpa[fa->v2];
+		v3=vertpa[fa->v3];
+		if(fa->v4)
+			v4=vertpa[fa->v4];
+
+		if(v1>=0 && v2>=0 && v3>=0 && (fa->v4==0 || v4>=0))
+			facepa[i]=p;
+
+		if(v1>=0) vertpa[fa->v1]=p;
+		if(v2>=0) vertpa[fa->v2]=p;
+		if(v3>=0) vertpa[fa->v3]=p;
+		if(fa->v4 && v4>=0) vertpa[fa->v4]=p;
+	}
+
+	if(vertpa) MEM_freeN(vertpa);
+	BLI_kdtree_free(tree);
+}
+static DerivedMesh * explodeModifier_splitEdges(ExplodeModifierData *emd, DerivedMesh *dm){
+	DerivedMesh *splitdm;
+	MFace *mf=0,*df1=0,*df2=0,*df3=0;
+	MFace *mface=CDDM_get_faces(dm);
+	MVert *dupve, *mv;
+	int totvert=dm->getNumVerts(dm);
+	int totface=dm->getNumFaces(dm);
+
+	int *edgesplit = MEM_callocN(sizeof(int)*totvert*totvert,"explode_edgesplit");
+	int *facesplit = MEM_callocN(sizeof(int)*totface,"explode_edgesplit");
+	int *vertpa = MEM_callocN(sizeof(int)*totvert,"explode_vertpa2");
+	int *facepa = emd->facepa;
+	int *fs, totesplit=0,totfsplit=0,totin=0,curdupvert=0,curdupface=0,curdupin=0;
+	int i,j,v1,v2,v3,v4;
+
+	/* recreate vertpa from facepa calculation */
+	for (i=0,mf=mface; i<totface; i++,mf++) {
+		vertpa[mf->v1]=facepa[i];
+		vertpa[mf->v2]=facepa[i];
+		vertpa[mf->v3]=facepa[i];
+		if(mf->v4)
+			vertpa[mf->v4]=facepa[i];
+	}
+
+	/* mark edges for splitting and how to split faces */
+	for (i=0,mf=mface,fs=facesplit; i<totface; i++,mf++,fs++) {
+		if(mf->v4){
+			v1=vertpa[mf->v1];
+			v2=vertpa[mf->v2];
+			v3=vertpa[mf->v3];
+			v4=vertpa[mf->v4];
+
+			if(v1!=v2){
+				edgesplit[mf->v1*totvert+mf->v2]=edgesplit[mf->v2*totvert+mf->v1]=1;
+				(*fs)++;
+			}
+
+			if(v2!=v3){
+				edgesplit[mf->v2*totvert+mf->v3]=edgesplit[mf->v3*totvert+mf->v2]=1;
+				(*fs)++;
+			}
+
+			if(v3!=v4){
+				edgesplit[mf->v3*totvert+mf->v4]=edgesplit[mf->v4*totvert+mf->v3]=1;
+				(*fs)++;
+			}
+
+			if(v1!=v4){
+				edgesplit[mf->v1*totvert+mf->v4]=edgesplit[mf->v4*totvert+mf->v1]=1;
+				(*fs)++;
+			}
+
+			if(*fs==2){
+				if((v1==v2 && v3==v4) || (v1==v4 && v2==v3))
+					*fs=1;
+				else if(v1!=v2){
+					if(v1!=v4)
+						edgesplit[mf->v2*totvert+mf->v3]=edgesplit[mf->v3*totvert+mf->v2]=1;
+					else
+						edgesplit[mf->v3*totvert+mf->v4]=edgesplit[mf->v4*totvert+mf->v3]=1;
+				}
+				else{ 
+					if(v1!=v4)
+						edgesplit[mf->v1*totvert+mf->v2]=edgesplit[mf->v2*totvert+mf->v1]=1;
+					else
+						edgesplit[mf->v1*totvert+mf->v4]=edgesplit[mf->v4*totvert+mf->v1]=1;
+				}
+			}
+		}
+	}
+
+	/* count splits & reindex */
+	totesplit=totvert;
+	for(j=0; j<totvert; j++){
+		for(i=j+1; i<totvert; i++){
+			if(edgesplit[j*totvert+i])
+				edgesplit[j*totvert+i]=edgesplit[i*totvert+j]=totesplit++;
+		}
+	}
+	/* count new faces due to splitting */
+	for(i=0,fs=facesplit; i<totface; i++,fs++){
+		if(*fs==1)
+			totfsplit+=1;
+		else if(*fs==2)
+			totfsplit+=2;
+		else if(*fs==3)
+			totfsplit+=3;
+		else if(*fs==4){
+			totfsplit+=3;
+
+			mf=dm->getFaceData(dm,i,CD_MFACE);//CDDM_get_face(dm,i);
+
+			if(vertpa[mf->v1]!=vertpa[mf->v2] && vertpa[mf->v2]!=vertpa[mf->v3])
+				totin++;
+		}
+	}
+	
+	splitdm= CDDM_from_template(dm, totesplit+totin, dm->getNumEdges(dm),totface+totfsplit);
+
+	/* copy new faces & verts (is it really this painful with custom data??) */
+	for(i=0; i<totvert; i++){
+		MVert source;
+		MVert *dest;
+		dm->getVert(dm, i, &source);
+		dest = CDDM_get_vert(splitdm, i);
+
+		DM_copy_vert_data(dm, splitdm, i, i, 1);
+		*dest = source;
+	}
+	for(i=0; i<totface; i++){
+		MFace source;
+		MFace *dest;
+		dm->getFace(dm, i, &source);
+		dest = CDDM_get_face(splitdm, i);
+
+		DM_copy_face_data(dm, splitdm, i, i, 1);
+		*dest = source;
+	}
+
+	/* override original facepa (original pointer is saved in caller function) */
+	facepa= MEM_callocN(sizeof(int)*(totface+totfsplit),"explode_facepa");
+	memcpy(facepa,emd->facepa,totface*sizeof(int));
+	emd->facepa=facepa;
+
+	/* create new verts */
+	curdupvert=totvert;
+	for(j=0; j<totvert; j++){
+		for(i=j+1; i<totvert; i++){
+			if(edgesplit[j*totvert+i]){
+				mv=CDDM_get_vert(splitdm,j);
+				dupve=CDDM_get_vert(splitdm,edgesplit[j*totvert+i]);
+
+				DM_copy_vert_data(splitdm,splitdm,j,edgesplit[j*totvert+i],1);
+
+				*dupve=*mv;
+
+				mv=CDDM_get_vert(splitdm,i);
+
+				VECADD(dupve->co,dupve->co,mv->co);
+				VecMulf(dupve->co,0.5);
+			}
+		}
+	}
+
+	/* create new faces */
+	curdupface=totface;
+	curdupin=totesplit;
+	for(i=0,fs=facesplit; i<totface; i++,fs++){
+		if(*fs){
+			mf=CDDM_get_face(splitdm,i);
+
+			v1=vertpa[mf->v1];
+			v2=vertpa[mf->v2];
+			v3=vertpa[mf->v3];
+			v4=vertpa[mf->v4];
+			/* ouch! creating new faces & remapping them to new verts is no fun */
+			if(*fs==1){
+				df1=CDDM_get_face(splitdm,curdupface);
+				DM_copy_face_data(splitdm,splitdm,i,curdupface,1);
+				*df1=*mf;
+				curdupface++;
+				
+				if(v1==v2){
+					df1->v1=edgesplit[mf->v1*totvert+mf->v4];
+					df1->v2=edgesplit[mf->v2*totvert+mf->v3];
+					mf->v3=df1->v2;
+					mf->v4=df1->v1;
+				}
+				else{
+					df1->v1=edgesplit[mf->v1*totvert+mf->v2];
+					df1->v4=edgesplit[mf->v3*totvert+mf->v4];
+					mf->v2=df1->v1;
+					mf->v3=df1->v4;
+				}
+
+				facepa[i]=v1;
+				facepa[curdupface-1]=v3;
+
+				test_index_face(df1, &splitdm->faceData, curdupface, (df1->v4 ? 4 : 3));
+			}
+			if(*fs==2){
+				df1=CDDM_get_face(splitdm,curdupface);
+				DM_copy_face_data(splitdm,splitdm,i,curdupface,1);
+				*df1=*mf;
+				curdupface++;
+
+				df2=CDDM_get_face(splitdm,curdupface);
+				DM_copy_face_data(splitdm,splitdm,i,curdupface,1);
+				*df2=*mf;
+				curdupface++;
+
+				if(v1!=v2){
+					if(v1!=v4){
+						df1->v1=edgesplit[mf->v1*totvert+mf->v4];
+						df1->v2=edgesplit[mf->v1*totvert+mf->v2];
+						df2->v1=df1->v3=mf->v2;
+						df2->v3=df1->v4=mf->v4;
+						df2->v2=mf->v3;
+
+						mf->v2=df1->v2;
+						mf->v3=df1->v1;
+
+						df2->v4=mf->v4=0;
+
+						facepa[i]=v1;
+					}
+					else{
+						df1->v2=edgesplit[mf->v1*totvert+mf->v2];
+						df1->v3=edgesplit[mf->v2*totvert+mf->v3];
+						df1->v4=mf->v3;
+						df2->v2=mf->v3;
+						df2->v3=mf->v4;
+
+						mf->v1=df1->v2;
+						mf->v3=df1->v3;
+
+						df2->v4=mf->v4=0;
+
+						facepa[i]=v2;
+					}
+					facepa[curdupface-1]=facepa[curdupface-2]=v3;
+				}
+				else{
+					if(v1!=v4){
+						df1->v3=edgesplit[mf->v3*totvert+mf->v4];
+						df1->v4=edgesplit[mf->v1*totvert+mf->v4];
+						df1->v2=mf->v3;
+
+						mf->v1=df1->v4;
+						mf->v2=df1->v3;
+						mf->v3=mf->v4;
+
+						df2->v4=mf->v4=0;
+
+						facepa[i]=v4;
+					}
+					else{
+						df1->v3=edgesplit[mf->v2*totvert+mf->v3];
+						df1->v4=edgesplit[mf->v3*totvert+mf->v4];
+						df1->v1=mf->v4;
+						df1->v2=mf->v2;
+						df2->v3=mf->v4;
+
+						mf->v1=df1->v4;
+						mf->v2=df1->v3;
+
+						df2->v4=mf->v4=0;
+
+						facepa[i]=v3;
+					}
+
+					facepa[curdupface-1]=facepa[curdupface-2]=v1;
+				}
+
+				test_index_face(df1, &splitdm->faceData, curdupface-2, (df1->v4 ? 4 : 3));
+				test_index_face(df1, &splitdm->faceData, curdupface-1, (df1->v4 ? 4 : 3));
+			}
+			else if(*fs==3){
+				df1=CDDM_get_face(splitdm,curdupface);
+				DM_copy_face_data(splitdm,splitdm,i,curdupface,1);
+				*df1=*mf;
+				curdupface++;
+
+				df2=CDDM_get_face(splitdm,curdupface);
+				DM_copy_face_data(splitdm,splitdm,i,curdupface,1);
+				*df2=*mf;
+				curdupface++;
+
+				df3=CDDM_get_face(splitdm,curdupface);
+				DM_copy_face_data(splitdm,splitdm,i,curdupface,1);
+				*df3=*mf;
+				curdupface++;
+
+				if(v1==v2){
+					df2->v1=df1->v1=edgesplit[mf->v1*totvert+mf->v4];
+					df3->v1=df1->v2=edgesplit[mf->v2*totvert+mf->v3];
+					df3->v3=df2->v2=df1->v3=edgesplit[mf->v3*totvert+mf->v4];
+					df3->v2=mf->v3;
+					df2->v3=mf->v4;
+					df1->v4=df2->v4=df3->v4=0;
+
+					mf->v3=df1->v2;
+					mf->v4=df1->v1;
+
+					facepa[i]=facepa[curdupface-3]=v1;
+					facepa[curdupface-1]=v3;
+					facepa[curdupface-2]=v4;
+				}
+				else if(v2==v3){
+					df3->v1=df2->v3=df1->v1=edgesplit[mf->v1*totvert+mf->v4];
+					df2->v2=df1->v2=edgesplit[mf->v1*totvert+mf->v2];
+					df3->v2=df1->v3=edgesplit[mf->v3*totvert+mf->v4];
+
+					df3->v3=mf->v4;
+					df2->v1=mf->v1;
+					df1->v4=df2->v4=df3->v4=0;
+
+					mf->v1=df1->v2;
+					mf->v4=df1->v3;
+
+					facepa[i]=facepa[curdupface-3]=v2;
+					facepa[curdupface-1]=v4;
+					facepa[curdupface-2]=v1;
+				}
+				else if(v3==v4){
+					df3->v2=df2->v1=df1->v1=edgesplit[mf->v1*totvert+mf->v2];
+					df2->v3=df1->v2=edgesplit[mf->v2*totvert+mf->v3];
+					df3->v3=df1->v3=edgesplit[mf->v1*totvert+mf->v4];
+
+					df3->v1=mf->v1;
+					df2->v2=mf->v2;
+					df1->v4=df2->v4=df3->v4=0;
+
+					mf->v1=df1->v3;
+					mf->v2=df1->v2;
+
+					facepa[i]=facepa[curdupface-3]=v3;
+					facepa[curdupface-1]=v1;
+					facepa[curdupface-2]=v2;
+				}
+				else{
+					df3->v1=df1->v1=edgesplit[mf->v1*totvert+mf->v2];
+					df3->v3=df2->v1=df1->v2=edgesplit[mf->v2*totvert+mf->v3];
+					df2->v3=df1->v3=edgesplit[mf->v3*totvert+mf->v4];
+
+					df3->v2=mf->v2;
+					df2->v2=mf->v3;
+					df1->v4=df2->v4=df3->v4=0;
+
+					mf->v2=df1->v1;
+					mf->v3=df1->v3;
+
+					facepa[i]=facepa[curdupface-3]=v1;
+					facepa[curdupface-1]=v2;
+					facepa[curdupface-2]=v3;
+				}
+
+				test_index_face(df1, &splitdm->faceData, curdupface-3, (df1->v4 ? 4 : 3));
+				test_index_face(df1, &splitdm->faceData, curdupface-2, (df1->v4 ? 4 : 3));
+				test_index_face(df1, &splitdm->faceData, curdupface-1, (df1->v4 ? 4 : 3));
+			}
+			else if(*fs==4){
+				if(v1!=v2 && v2!=v3){
+
+					/* set new vert to face center */
+					mv=CDDM_get_vert(splitdm,mf->v1);
+					dupve=CDDM_get_vert(splitdm,curdupin);
+					DM_copy_vert_data(splitdm,splitdm,mf->v1,curdupin,1);
+					*dupve=*mv;
+
+					mv=CDDM_get_vert(splitdm,mf->v2);
+					VECADD(dupve->co,dupve->co,mv->co);
+					mv=CDDM_get_vert(splitdm,mf->v3);
+					VECADD(dupve->co,dupve->co,mv->co);
+					mv=CDDM_get_vert(splitdm,mf->v4);
+					VECADD(dupve->co,dupve->co,mv->co);
+					VecMulf(dupve->co,0.25);
+
+
+					df1=CDDM_get_face(splitdm,curdupface);
+					DM_copy_face_data(splitdm,splitdm,i,curdupface,1);
+					*df1=*mf;
+					curdupface++;
+
+					df2=CDDM_get_face(splitdm,curdupface);
+					DM_copy_face_data(splitdm,splitdm,i,curdupface,1);
+					*df2=*mf;
+					curdupface++;
+
+					df3=CDDM_get_face(splitdm,curdupface);
+					DM_copy_face_data(splitdm,splitdm,i,curdupface,1);
+					*df3=*mf;
+					curdupface++;
+
+					df1->v1=edgesplit[mf->v1*totvert+mf->v2];
+					df3->v2=df1->v3=edgesplit[mf->v2*totvert+mf->v3];
+
+					df2->v1=edgesplit[mf->v1*totvert+mf->v4];
+					df3->v4=df2->v3=edgesplit[mf->v3*totvert+mf->v4];
+
+					df3->v1=df2->v2=df1->v4=curdupin;
+
+					mf->v2=df1->v1;
+					mf->v3=curdupin;
+					mf->v4=df2->v1;
+
+					curdupin++;
+
+					facepa[i]=v1;
+					facepa[curdupface-3]=v2;
+					facepa[curdupface-2]=v3;
+					facepa[curdupface-1]=v4;
+
+					test_index_face(df1, &splitdm->faceData, curdupface-3, (df1->v4 ? 4 : 3));
+
+					test_index_face(df1, &splitdm->faceData, curdupface-2, (df1->v4 ? 4 : 3));
+					test_index_face(df1, &splitdm->faceData, curdupface-1, (df1->v4 ? 4 : 3));
+				}
+				else{
+					df1=CDDM_get_face(splitdm,curdupface);
+					DM_copy_face_data(splitdm,splitdm,i,curdupface,1);
+					*df1=*mf;
+					curdupface++;
+
+					df2=CDDM_get_face(splitdm,curdupface);
+					DM_copy_face_data(splitdm,splitdm,i,curdupface,1);
+					*df2=*mf;
+					curdupface++;
+
+					df3=CDDM_get_face(splitdm,curdupface);
+					DM_copy_face_data(splitdm,splitdm,i,curdupface,1);
+					*df3=*mf;
+					curdupface++;
+
+					if(v2==v3){
+						df1->v1=edgesplit[mf->v1*totvert+mf->v2];
+						df3->v1=df1->v2=df1->v3=edgesplit[mf->v2*totvert+mf->v3];
+						df2->v1=df1->v4=edgesplit[mf->v1*totvert+mf->v4];
+
+						df3->v3=df2->v3=edgesplit[mf->v3*totvert+mf->v4];
+
+						df3->v2=mf->v3;
+						df3->v4=0;
+
+						mf->v2=df1->v1;
+						mf->v3=df1->v4;
+						mf->v4=0;
+
+						facepa[i]=v1;
+						facepa[curdupface-3]=facepa[curdupface-2]=v2;
+						facepa[curdupface-1]=v3;
+					}
+					else{
+						df3->v1=df2->v1=df1->v2=edgesplit[mf->v1*totvert+mf->v2];
+						df2->v4=df1->v3=edgesplit[mf->v3*totvert+mf->v4];
+						df1->v4=edgesplit[mf->v1*totvert+mf->v4];
+
+						df3->v3=df2->v2=edgesplit[mf->v2*totvert+mf->v3];
+
+						df3->v4=0;
+
+						mf->v1=df1->v4;
+						mf->v2=df1->v3;
+						mf->v3=mf->v4;
+						mf->v4=0;
+
+						facepa[i]=v4;
+						facepa[curdupface-3]=facepa[curdupface-2]=v1;
+						facepa[curdupface-1]=v2;
+					}
+
+					test_index_face(df1, &splitdm->faceData, curdupface-3, (df1->v4 ? 4 : 3));
+					test_index_face(df1, &splitdm->faceData, curdupface-2, (df1->v4 ? 4 : 3));
+					test_index_face(df1, &splitdm->faceData, curdupface-1, (df1->v4 ? 4 : 3));
+				}
+			}
+
+			test_index_face(df1, &splitdm->faceData, i, (df1->v4 ? 4 : 3));
+		}
+	}
+
+	MEM_freeN(edgesplit);
+	MEM_freeN(facesplit);
+	MEM_freeN(vertpa);
+
+	return splitdm;
+
+}
+static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd, 
+												 ParticleSystemModifierData *psmd, Object *ob, 
+												 DerivedMesh *to_explode)
+{
+	DerivedMesh *explode, *dm=to_explode;
+	MFace *mf=0;
+	MVert *dupvert=0;
+	ParticleSettings *part=psmd->psys->part;
+	ParticleData *pa, *pars=psmd->psys->particles;
+	ParticleKey state;
+	float *vertco=0, imat[4][4];
+	float loc0[3], nor[3];
+	float timestep, cfra;
+	int *facepa=emd->facepa, *vertpa=0;
+	int totdup=0,totvert=0,totface=0,totpart=0;
+	int i, j, v, mindex=0;
+
+	totface= dm->getNumFaces(dm);
+	totvert= dm->getNumVerts(dm);
+	totpart= psmd->psys->totpart;
+
+	timestep= psys_get_timestep(part);
+
+	if(part->flag & PART_GLOB_TIME)
+		cfra=bsystem_time(0,(float)G.scene->r.cfra,0.0);
+	else
+		cfra=bsystem_time(ob,(float)G.scene->r.cfra,0.0);
+
+	/* table for vertice <-> particle relations (row totpart+1 is for yet unexploded verts) */
+	vertpa = MEM_callocN(sizeof(int)*(totpart+1)*totvert, "explode_vertpatab");
+	for(i=0; i<(totpart+1)*totvert; i++)
+		vertpa[i] = -1;
+
+	for (i=0; i<totface; i++) {
+		if(facepa[i]==totpart || cfra <= (pars+facepa[i])->time)
+			mindex = totpart*totvert;
+		else 
+			mindex = facepa[i]*totvert;
+
+		mf=CDDM_get_face(dm,i);
+
+		/*set face vertices to exist in particle group*/
+		vertpa[mindex+mf->v1] = 1;
+		vertpa[mindex+mf->v2] = 1;
+		vertpa[mindex+mf->v3] = 1;
+		if(mf->v4)
+			vertpa[mindex+mf->v4] = 1;
+	}
+
+	/*make new vertice indexes & count total vertices after duplication*/
+	for(i=0; i<(totpart+1)*totvert; i++){
+		if(vertpa[i] != -1)
+			vertpa[i] = totdup++;
+	}
+
+	/*the final duplicated vertices*/
+	explode= CDDM_from_template(dm, totdup, 0,totface);
+	dupvert= CDDM_get_verts(explode);
+
+	/* getting back to object space */
+	Mat4Invert(imat,ob->obmat);
+
+	psmd->psys->lattice = psys_get_lattice(ob, psmd->psys);
+
+	/*duplicate & displace vertices*/
+	for(i=0, pa=pars; i<=totpart; i++, pa++){
+		if(i!=totpart){
+			psys_particle_on_emitter(ob, psmd,part->from,pa->num,-1,pa->fuv,pa->foffset,loc0,nor,0,0);
+			Mat4MulVecfl(ob->obmat,loc0);
+
+			state.time=cfra;
+			psys_get_particle_state(ob,psmd->psys,i,&state,1);
+		}
+
+		for(j=0; j<totvert; j++){
+			v=vertpa[i*totvert+j];
+			if(v != -1) {
+				MVert source;
+				MVert *dest;
+
+				dm->getVert(dm, j, &source);
+				dest = CDDM_get_vert(explode,v);
+
+				DM_copy_vert_data(dm,explode,j,v,1);
+				*dest = source;
+
+				if(i!=totpart){
+					vertco=CDDM_get_vert(explode,v)->co;
+					
+					Mat4MulVecfl(ob->obmat,vertco);
+
+					VECSUB(vertco,vertco,loc0);
+
+					/* apply rotation, size & location */
+					QuatMulVecf(state.rot,vertco);
+					VecMulf(vertco,pa->size);
+					VECADD(vertco,vertco,state.co);
+
+					Mat4MulVecfl(imat,vertco);
+				}
+			}
+		}
+	}
+
+	/*map new vertices to faces*/
+	for (i=0; i<totface; i++) {
+		MFace source;
+		int orig_v4;
+
+		if(facepa[i]!=totpart)
+		{
+			pa=pars+facepa[i];
+
+			if(pa->alive==PARS_UNBORN && (emd->flag&eExplodeFlag_Unborn)==0) continue;
+			if(pa->alive==PARS_ALIVE && (emd->flag&eExplodeFlag_Alive)==0) continue;
+			if(pa->alive==PARS_DEAD && (emd->flag&eExplodeFlag_Dead)==0) continue;
+		}
+
+		dm->getFace(dm,i,&source);
+		mf=CDDM_get_face(explode,i);
+		
+		orig_v4 = source.v4;
+
+		if(facepa[i]!=totpart && cfra <= pa->time)
+			mindex = totpart*totvert;
+		else 
+			mindex = facepa[i]*totvert;
+
+		source.v1 = vertpa[mindex+source.v1];
+		source.v2 = vertpa[mindex+source.v2];
+		source.v3 = vertpa[mindex+source.v3];
+		if(source.v4)
+			source.v4 = vertpa[mindex+source.v4];
+
+		DM_copy_face_data(dm,explode,i,i,1);
+
+		*mf = source;
+
+		test_index_face(mf, &explode->faceData, i, (mf->v4 ? 4 : 3));
+	}
+
+
+	/* cleanup */
+	if(vertpa) MEM_freeN(vertpa);
+
+	/* finalization */
+	CDDM_calc_edges(explode);
+	CDDM_calc_normals(explode);
+
+	if(psmd->psys->lattice){
+		end_latt_deform();
+		psmd->psys->lattice=0;
+	}
+
+	return explode;
+}
+
+static ParticleSystemModifierData * explodeModifier_findPrecedingParticlesystem(Object *ob, ModifierData *emd)
+{
+	ModifierData *md;
+	ParticleSystemModifierData *psmd=0;
+
+	for (md=ob->modifiers.first; emd!=md; md=md->next){
+		if(md->type==eModifierType_ParticleSystem)
+			psmd= (ParticleSystemModifierData*) md;
+	}
+	return psmd;
+}
+static DerivedMesh * explodeModifier_applyModifier(
+				ModifierData *md, Object *ob, DerivedMesh *derivedData,
+                 int useRenderParams, int isFinalCalc)
+{
+	DerivedMesh *dm = derivedData;
+	ExplodeModifierData *emd= (ExplodeModifierData*) md;
+	ParticleSystemModifierData *psmd=explodeModifier_findPrecedingParticlesystem(ob,md);;
+
+	if(psmd){
+		ParticleSystem * psys=psmd->psys;
+
+		if(psys==0 || psys->totpart==0) return derivedData;
+		if(psys->part==0 || psys->particles==0) return derivedData;
+
+		/* 1. find faces to be exploded if needed */
+		if(emd->facepa==0 || psmd->flag&eParticleSystemFlag_Pars || emd->flag&eExplodeFlag_CalcFaces){
+			if(psmd->flag & eParticleSystemFlag_Pars)
+				psmd->flag &= ~eParticleSystemFlag_Pars;
+			
+			if(emd->flag & eExplodeFlag_CalcFaces)
+				emd->flag &= ~eExplodeFlag_CalcFaces;
+
+			explodeModifier_createFacepa(emd,psmd,ob,derivedData);
+		}
+
+		/* 2. create new mesh */
+		if(emd->flag & eExplodeFlag_EdgeSplit){
+			int *facepa = emd->facepa;
+			DerivedMesh *splitdm=explodeModifier_splitEdges(emd,dm);
+			DerivedMesh *explode=explodeModifier_explodeMesh(emd,psmd,ob,splitdm);
+
+			MEM_freeN(emd->facepa);
+			emd->facepa=facepa;
+			splitdm->release(splitdm);
+			return explode;
+		}
+		else
+			return explodeModifier_explodeMesh(emd,psmd,ob,derivedData);
+	}
+	return derivedData;
+}
 /* MeshDeform */
 
 static void meshdeformModifier_initData(ModifierData *md)
@@ -5544,83 +6764,6 @@ static void meshdeformModifier_deformVertsEM(
 		dm->release(dm);
 }
 
-
-/* PointCache - example DONT USE SERIOUSLY */
-static void pointCacheModifier_initData(ModifierData *md)
-{
-	PointCacheModifierData *pcm= (PointCacheModifierData*) md;
-
-	pcm->mode= ePointCache_Read; /* read */
-}
-static void pointCacheModifier_freeData(ModifierData *md)
-{
-	PointCacheModifierData *pcm = (PointCacheModifierData*) md;
-}
-static void pointCacheModifier_copyData(ModifierData *md, ModifierData *target)
-{
-	PointCacheModifierData *pcm= (PointCacheModifierData*) md;
-	PointCacheModifierData *tpcm= (PointCacheModifierData*) target;
-
-	tpcm->mode = pcm->mode;
-}
-static int pointCacheModifier_dependsOnTime(ModifierData *md) 
-{
-	return 1;
-}
-CustomDataMask pointCacheModifier_requiredDataMask(ModifierData *md)
-{
-	PointCacheModifierData *pcm= (PointCacheModifierData*) md;
-	CustomDataMask dataMask = 0;
-	return dataMask;
-}
-
-static void pointCacheModifier_deformVerts(
-					   ModifierData *md, Object *ob, DerivedMesh *derivedData,
-	float (*vertexCos)[3], int numVerts)
-{
-	PointCacheModifierData *pcm = (PointCacheModifierData*) md;
-
-	FILE *fp = NULL;
-	int i;
-	int stack_index = modifiers_indexInObject(ob, md);
-	int totvert;
-	MVert *mvert, *mv;
-	
-	DerivedMesh *dm;
-
-	if(derivedData) dm = CDDM_copy(derivedData);
-	else if(ob->type==OB_MESH) dm = CDDM_from_mesh(ob->data, ob);
-	else return;
-
-	CDDM_apply_vert_coords(dm, vertexCos);
-	CDDM_calc_normals(dm);
-	
-	mvert = mv = dm->getVertArray(dm);
-	totvert = dm->getNumVerts(dm);
-			
-	if (pcm->mode == ePointCache_Read) {
-		fp = PTCache_id_fopen((ID *)ob, 'w', G.scene->r.cfra, stack_index);
-		if (!fp) return;
-		for (mv=mvert, i=0; i<totvert; mv++, i++) {
-			fwrite(&mv->co, sizeof(float), 3, fp);
-		}
-		fclose(fp);
-	} else if (pcm->mode == ePointCache_Write) {
-		float pt[3];
-		fp = PTCache_id_fopen((ID *)ob, 'r', G.scene->r.cfra, stack_index);
-		if (!fp) return;
-		for (mv=mvert, i=0; i<totvert; mv++, i++) {
-			float *co = vertexCos[i];
-			if ((fread(co, sizeof(float), 3, fp)) != 3) {
-				break;
-			}
-		}
-		fclose(fp);
-	}
-	
-	if(!derivedData) dm->release(dm);
-}
-
 /***/
 
 static ModifierTypeInfo typeArr[NUM_MODIFIER_TYPES];
@@ -5890,16 +7033,42 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->updateDepgraph = meshdeformModifier_updateDepgraph;
 		mti->deformVerts = meshdeformModifier_deformVerts;
 		mti->deformVertsEM = meshdeformModifier_deformVertsEM;
-		
-		mti = INIT_TYPE(PointCache);
+
+		mti = INIT_TYPE(ParticleSystem);
 		mti->type = eModifierTypeType_OnlyDeform;
-		mti->flags = eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_RequiresOriginalData;
-		mti->initData = pointCacheModifier_initData;
-		mti->freeData = pointCacheModifier_freeData;
-		mti->copyData = pointCacheModifier_copyData;
-		mti->dependsOnTime = pointCacheModifier_dependsOnTime;
-		mti->requiredDataMask = pointCacheModifier_requiredDataMask;
-		mti->deformVerts = pointCacheModifier_deformVerts;
+		mti->flags = eModifierTypeFlag_AcceptsMesh
+					|eModifierTypeFlag_SupportsEditmode
+					|eModifierTypeFlag_EnableInEditmode;
+		mti->initData = particleSystemModifier_initData;
+		mti->freeData = particleSystemModifier_freeData;
+		mti->copyData = particleSystemModifier_copyData;
+		mti->deformVerts = particleSystemModifier_deformVerts;
+		mti->deformVertsEM = particleSystemModifier_deformVertsEM;
+		mti->requiredDataMask = particleSystemModifier_requiredDataMask;
+
+		mti = INIT_TYPE(ParticleInstance);
+		mti->type = eModifierTypeType_Constructive;
+		mti->flags = eModifierTypeFlag_AcceptsMesh
+		             | eModifierTypeFlag_SupportsMapping
+		             | eModifierTypeFlag_SupportsEditmode
+		             | eModifierTypeFlag_EnableInEditmode;
+		mti->initData = particleInstanceModifier_initData;
+		mti->copyData = particleInstanceModifier_copyData;
+		mti->dependsOnTime = particleInstanceModifier_dependsOnTime;
+		mti->foreachObjectLink = particleInstanceModifier_foreachObjectLink;
+		mti->applyModifier = particleInstanceModifier_applyModifier;
+		mti->applyModifierEM = particleInstanceModifier_applyModifierEM;
+		mti->updateDepgraph = particleInstanceModifier_updateDepgraph;
+
+		mti = INIT_TYPE(Explode);
+		mti->type = eModifierTypeType_Nonconstructive;
+		mti->flags = eModifierTypeFlag_AcceptsMesh;
+		mti->initData = explodeModifier_initData;
+		mti->freeData = explodeModifier_freeData;
+		mti->copyData = explodeModifier_copyData;
+		mti->dependsOnTime = explodeModifier_dependsOnTime;
+		mti->requiredDataMask = explodeModifier_requiredDataMask;
+		mti->applyModifier = explodeModifier_applyModifier;
 
 		typeArrInit = 0;
 #undef INIT_TYPE
@@ -6100,6 +7269,13 @@ ClothModifierData *modifiers_isClothEnabled(Object *ob)
 	return clmd;
 }
 
+int modifiers_isParticleEnabled(Object *ob)
+{
+	ModifierData *md = modifiers_findByType(ob, eModifierType_ParticleSystem);
+
+	return (md && md->mode & (eModifierMode_Realtime | eModifierMode_Render));
+}
+
 LinkNode *modifiers_calcDataMasks(ModifierData *md, CustomDataMask dataMask)
 {
 	LinkNode *dataMasks = NULL;
@@ -6283,21 +7459,6 @@ int modifiers_isDeformed(Object *ob)
 	return 0;
 }
 
-/* checks we only have deform modifiers */
-int modifiers_isDeformedOnly(Object *ob)
-{
-	ModifierData *md = modifiers_getVirtualModifierList(ob);
-	ModifierTypeInfo *mti;
-	for (; md; md=md->next) {
-		mti = modifierType_getInfo(md->type);
-		/* TODO - check the modifier is being used! */
-		if (mti->type != eModifierTypeType_OnlyDeform) {
-			return 0;
-		}
-	}
-	return 1;
-}
-
 int modifiers_indexInObject(Object *ob, ModifierData *md_seek)
 {
 	int i= 0;
@@ -6307,3 +7468,4 @@ int modifiers_indexInObject(Object *ob, ModifierData *md_seek)
 	if (!md) return -1; /* modifier isnt in the object */
 	return i;
 }
+

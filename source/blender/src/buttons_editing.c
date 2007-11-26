@@ -66,6 +66,7 @@
 #include "DNA_nla_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
+#include "DNA_particle_types.h"
 #include "DNA_radio_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_texture_types.h"
@@ -86,9 +87,10 @@
 #include "BKE_key.h"
 #include "BKE_library.h"
 #include "BKE_main.h"
+#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_packedFile.h"
-#include "BKE_pointcache.h"
+#include "BKE_particle.h"
 #include "BKE_scene.h"
 
 #include "BLI_blenlib.h"
@@ -106,6 +108,7 @@
 #include "BIF_editfont.h"
 #include "BIF_editkey.h"
 #include "BIF_editmesh.h"
+#include "BIF_editparticle.h"
 #include "BIF_imasel.h"
 #include "BIF_interface.h"
 #include "BIF_meshtools.h"
@@ -951,7 +954,7 @@ static uiBlock *modifiers_add_menu(void *ob_v)
 		ModifierTypeInfo *mti = modifierType_getInfo(i);
 
 		/* Only allow adding through appropriate other interfaces */
-		if(ELEM(i, eModifierType_Softbody, eModifierType_Hook)) continue;
+		if(ELEM3(i, eModifierType_Softbody, eModifierType_Hook, eModifierType_ParticleSystem)) continue;
 		
 		if(ELEM(i, eModifierType_Cloth, eModifierType_Collision)) continue;
 
@@ -992,6 +995,12 @@ static void modifiers_del(void *ob_v, void *md_v)
 	
 	if (!md)
 		return;
+
+	if(md->type==eModifierType_ParticleSystem){
+		ParticleSystemModifierData *psmd=(ParticleSystemModifierData*)md;
+		BLI_remlink(&ob->particlesystem, psmd->psys);
+		psys_free(ob,psmd->psys);
+	}
 
 	BLI_remlink(&ob->modifiers, md_v);
 
@@ -1204,7 +1213,93 @@ void autocomplete_meshob(char *str, void *arg_v)
 		autocomplete_end(autocpl, str);
 	}
 }
+static void modifiers_convertParticles(void *obv, void *mdv)
+{
+	Object *obn;
+	ModifierData *md = mdv;
+	ParticleSystem *psys;
+	ParticleCacheKey *key, **cache;
+	Mesh *me;
+	MVert *mvert;
+	MFace *mface;
+	int a, k, kmax;
+	int totvert=0, totface=0, cvert=0;
+	int totpart=0, totchild=0;
 
+	if(md->type != eModifierType_ParticleSystem) return;
+
+	if(G.f & G_PARTICLEEDIT) return;
+
+	psys=((ParticleSystemModifierData *)md)->psys;
+
+	if(psys->part->draw_as != PART_DRAW_PATH || psys->pathcache == 0) return;
+
+	totpart= psys->totcached;
+	totchild= psys->totchildcache;
+
+	if(totchild && (psys->part->draw&PART_DRAW_PARENT)==0)
+		totpart= 0;
+
+	/* count */
+	cache= psys->pathcache;
+	for(a=0; a<totpart; a++) {
+		key= cache[a];
+		totvert+= (int)(key->col[3])+1;
+		totface+= (int)(key->col[3]);
+	}
+
+	cache= psys->childcache;
+	for(a=0; a<totchild; a++) {
+		key= cache[a];
+		totvert+= (int)(key->col[3])+1;
+		totface+= (int)(key->col[3]);
+	}
+
+	if(totvert==0) return;
+
+	/* add new mesh */
+	obn= add_object(OB_MESH);
+	me= obn->data;
+	
+	me->totvert= totvert;
+	me->totface= totface;
+	
+	me->mvert= CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, totvert);
+	me->mface= CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, totface);
+	
+	mvert= me->mvert;
+	mface= me->mface;
+
+	/* copy coordinates */
+	cache= psys->pathcache;
+	for(a=0; a<totpart; a++){
+		key= cache[a];
+		kmax= (int)(key->col[3]);
+		for(k=0; k<=kmax; k++,key++,cvert++,mvert++) {
+			VECCOPY(mvert->co,key->co);
+			if(k){
+				mface->v1= cvert-1;
+				mface->v2= cvert;
+				mface++;
+			}
+		}
+	}
+
+	cache=psys->childcache;
+	for(a=0; a<totchild; a++) {
+		key=cache[a];
+		kmax=(int)(key->col[3]);
+		for(k=0; k<=kmax; k++,key++,cvert++,mvert++) {
+			VECCOPY(mvert->co,key->co);
+			if(k){
+				mface->v1=cvert-1;
+				mface->v2=cvert;
+				mface++;
+			}
+		}
+	}
+	make_edges(me, 0);
+}
 static void modifiers_applyModifier(void *obv, void *mdv)
 {
 	Object *ob = obv;
@@ -1517,6 +1612,13 @@ static void modifiers_bindMeshDeform(void *ob_v, void *md_v)
 	}
 }
 
+void modifiers_explodeFacepa(void *arg1, void *arg2)
+{
+	ExplodeModifierData *emd=arg1;
+
+	emd->flag |= eExplodeFlag_CalcFaces;
+}
+
 static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco, int *yco, int index, int cageIndex, int lastCageIndex)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
@@ -1656,7 +1758,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			if(hmd->indexar==NULL)
 				height += 20;
 		} else if (md->type==eModifierType_Softbody) {
-			height = 26;
+			height = 31;
 		} else if (md->type==eModifierType_Cloth) {
 			height = 26;
 		} else if (md->type==eModifierType_Collision) {
@@ -1668,10 +1770,13 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		} else if (md->type==eModifierType_MeshDeform) {
 			MeshDeformModifierData *mmd= (MeshDeformModifierData*)md;
 			height = (mmd->bindcos)? 73: 93;
-		} else if (md->type==eModifierType_PointCache) {
-			height = 48;
-		} 
-		
+		} else if (md->type==eModifierType_ParticleSystem) {
+			height = 31;
+		} else if (md->type==eModifierType_ParticleInstance) {
+			height = 94;
+		} else if (md->type==eModifierType_Explode) {
+			height = 94;
+		}
 							/* roundbox 4 free variables: corner-rounding, nop, roundbox type, shade */
 		uiDefBut(block, ROUNDBOX, 0, "", x-10, y-height-2, width, height-2, NULL, 5.0, 0.0, 12, 40, ""); 
 
@@ -1679,9 +1784,16 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 
 		if (!isVirtual && (md->type!=eModifierType_Collision)) {
 			uiBlockBeginAlign(block);
-			but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Apply",	lx,(cy-=19),60,19, 0, 0, 0, 0, 0, "Apply the current modifier and remove from the stack");
-			uiButSetFunc(but, modifiers_applyModifier, ob, md);
-			if ((md->type!=eModifierType_Softbody) && (md->type!=eModifierType_Cloth)) {
+			if (md->type==eModifierType_ParticleSystem) {
+				but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Convert",	lx,(cy-=19),60,19, 0, 0, 0, 0, 0, "Convert the current particles to a mesh object");
+				uiButSetFunc(but, modifiers_convertParticles, ob, md);
+			}
+			else{
+				but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Apply",	lx,(cy-=19),60,19, 0, 0, 0, 0, 0, "Apply the current modifier and remove from the stack");
+				uiButSetFunc(but, modifiers_applyModifier, ob, md);
+			}
+			
+			if (md->type!=eModifierType_Softbody && md->type!=eModifierType_ParticleSystem && (md->type!=eModifierType_Cloth)) {
 				but = uiDefBut(block, BUT, B_MODIFIER_RECALC, "Copy",	lx,(cy-=19),60,19, 0, 0, 0, 0, 0, "Duplicate the current modifier at the same position in the stack");
 				uiButSetFunc(but, modifiers_copyModifier, ob, md);
 			}
@@ -2180,18 +2292,39 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 				uiDefButBitS(block, TOG, MOD_MDEF_DYNAMIC_BIND, B_MODIFIER_RECALC, "Dynamic", lx+(buttonWidth+1)/2 + 20, (cy-=19), buttonWidth/2 - 20,19, &mmd->flag, 0.0, 31.0, 0, 0, "Invert vertex group influence");
 			}
 			uiBlockEndAlign(block);
-		} else if (md->type==eModifierType_PointCache) {
-		PointCacheModifierData *pcm = (PointCacheModifierData *) md;
-		uiBut *but;	
-		cy -= 20;
-		uiBlockEndAlign(block);
-			
-		uiDefButS(block, ROW,B_MODIFIER_RECALC,"Write Cache",		lx, cy, 75, 19, &pcm->mode, 12.0, ePointCache_Read, 0, 0, "");
-		uiDefButS(block, ROW,B_MODIFIER_RECALC,"Read Cache",		lx+75, cy, 75,19, &pcm->mode, 12.0, ePointCache_Write, 0, 0, "");
-		cy -= 20;			
-		but = uiDefBut(block, BUT, B_NOP, "Clear Cache",			lx, cy, 150,19, 0, 0, 0, 0, 0, "");
-		uiButSetFunc(but, modifiers_pointCacheClearModifier, ob, md);
-			
+		} else if (md->type==eModifierType_ParticleSystem) {
+			uiDefBut(block, LABEL, 1, "See Particle buttons.",	lx, (cy-=19), buttonWidth,19, NULL, 0.0, 0.0, 0, 0, "");
+		} else if (md->type==eModifierType_ParticleInstance) {
+			ParticleInstanceModifierData *pimd = (ParticleInstanceModifierData*) md;
+			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CHANGEDEP, "Ob: ", lx, (cy -= 19), buttonWidth, 19, &pimd->ob, "Object that has the particlesystem");
+			uiDefButS(block, NUM, B_MODIFIER_RECALC, "PSYS:", lx, (cy -= 19), buttonWidth, 19, &pimd->psys, 1, 10, 10, 3, "Particlesystem number in the object");
+			uiDefButBitS(block, TOG, eParticleInstanceFlag_Parents, B_MODIFIER_RECALC, "Normal",	lx, (cy -= 19), buttonWidth/3,19, &pimd->flag, 0, 0, 0, 0, "Create instances from normal particles");
+			uiDefButBitS(block, TOG, eParticleInstanceFlag_Children, B_MODIFIER_RECALC, "Children",	lx+buttonWidth/3, cy, buttonWidth/3,19, &pimd->flag, 0, 0, 0, 0, "Create instances from child particles");
+			uiDefButBitS(block, TOG, eParticleInstanceFlag_Path, B_MODIFIER_RECALC, "Path",	lx+buttonWidth*2/3, cy, buttonWidth/3,19, &pimd->flag, 0, 0, 0, 0, "Create instances along particle paths");
+			uiDefButBitS(block, TOG, eParticleInstanceFlag_Unborn, B_MODIFIER_RECALC, "Unborn",	lx, (cy -= 19), buttonWidth/3,19, &pimd->flag, 0, 0, 0, 0, "Show instances when particles are unborn");
+			uiDefButBitS(block, TOG, eParticleInstanceFlag_Alive, B_MODIFIER_RECALC, "Alive",	lx+buttonWidth/3, cy, buttonWidth/3,19, &pimd->flag, 0, 0, 0, 0, "Show instances when particles are alive");
+			uiDefButBitS(block, TOG, eParticleInstanceFlag_Dead, B_MODIFIER_RECALC, "Dead",	lx+buttonWidth*2/3, cy, buttonWidth/3,19, &pimd->flag, 0, 0, 0, 0, "Show instances when particles are dead");
+		} else if (md->type==eModifierType_Explode) {
+			ExplodeModifierData *emd = (ExplodeModifierData*) md;
+			uiBut *but;
+			char *menustr= get_vertexgroup_menustr(ob);
+			int defCount=BLI_countlist(&ob->defbase);
+			if(defCount==0) emd->vgroup=0;
+
+			but=uiDefButS(block, MENU, B_MODIFIER_RECALC, menustr,	lx, (cy-=19), buttonWidth/2,19, &emd->vgroup, 0, defCount, 0, 0, "Protect this vertex group");
+			uiButSetFunc(but,modifiers_explodeFacepa,emd,0);
+			MEM_freeN(menustr);
+
+			but=uiDefButF(block, NUMSLI, B_MODIFIER_RECALC, "",	lx+buttonWidth/2, cy, buttonWidth/2,19, &emd->protect, 0.0f, 1.0f, 0, 0, "Clean vertex group edges");
+			uiButSetFunc(but,modifiers_explodeFacepa,emd,0);
+
+			but=uiDefBut(block, BUT, B_MODIFIER_RECALC, "Refresh",	lx, (cy-=19), buttonWidth/2,19, 0, 0, 0, 0, 0, "Recalculate faces assigned to particles");
+			uiButSetFunc(but,modifiers_explodeFacepa,emd,0);
+
+			uiDefButBitS(block, TOG, eExplodeFlag_EdgeSplit, B_MODIFIER_RECALC, "Split Edges",	lx+buttonWidth/2, cy, buttonWidth/2,19, &emd->flag, 0, 0, 0, 0, "Split face edges for nicer shrapnel");
+			uiDefButBitS(block, TOG, eExplodeFlag_Unborn, B_MODIFIER_RECALC, "Unborn",	lx, (cy-=19), buttonWidth/3,19, &emd->flag, 0, 0, 0, 0, "Show mesh when particles are unborn");
+			uiDefButBitS(block, TOG, eExplodeFlag_Alive, B_MODIFIER_RECALC, "Alive",	lx+buttonWidth/3, cy, buttonWidth/3,19, &emd->flag, 0, 0, 0, 0, "Show mesh when particles are alive");
+			uiDefButBitS(block, TOG, eExplodeFlag_Dead, B_MODIFIER_RECALC, "Dead",	lx+buttonWidth*2/3, cy, buttonWidth/3,19, &emd->flag, 0, 0, 0, 0, "Show mesh when particles are dead");
 		}
 
 		uiBlockEndAlign(block);
@@ -2212,6 +2345,8 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		sprintf(str, "Modifier Error: %s", md->error);
 		uiDefBut(block, LABEL, B_NOP, str, x+15, y+15, width-35, 19, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 	}
+
+	uiClearButLock();
 
 	y -= 3+6;
 
@@ -4995,6 +5130,7 @@ void do_fpaintbuts(unsigned short event)
 	ToolSettings *settings= G.scene->toolsettings;
 	int nr= 1;
 	MTex *mtex;
+	ParticleSystem *psys;
 
 	ob= OBACT;
 	if(ob==NULL) return;
@@ -5267,6 +5403,20 @@ void do_fpaintbuts(unsigned short event)
 		break;
 	case B_BRUSHCHANGE:
 		allqueue(REDRAWIMAGE, 0);
+		allqueue(REDRAWBUTSEDIT, 0);
+		break;
+	case B_BAKE_REDRAWEDIT:
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWBUTSEDIT, 0);
+		break;
+	case B_BAKE_RECACHE:
+		psys=PE_get_current(ob);
+		PE_hide_keys_time(psys,CFRA);
+		psys_cache_paths(ob,psys,CFRA,0);
+		if(PE_settings()->flag & PE_SHOW_CHILD)
+			psys_cache_child_paths(ob,psys,CFRA,0);
+		
+		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWBUTSEDIT, 0);
 		break;
 	}
@@ -5614,6 +5764,127 @@ void editing_panel_mesh_multires()
 	uiBlockEndAlign(block);
 }
 
+void particle_edit_buttons(uiBlock *block)
+{
+	Object *ob=OBACT;
+	ParticleSystem *psys = PE_get_current(ob);
+	ParticleEditSettings *pset = PE_settings();
+	ParticleEdit *edit;
+	uiBut *but;
+	short butx=10,buty=150,butw=150,buth=20, lastbuty;
+	static short partact;
+
+	char *menustr;
+	
+	if(psys==NULL) return;
+	
+	menustr = psys_menu_string(ob, 0);
+	partact = PE_get_current_num(ob)+1;
+	
+	but=uiDefButS(block, MENU, B_BAKE_REDRAWEDIT, menustr, 160,180,butw,buth, &partact, 14.0, 0.0, 0, 0, "Browse systems");
+	uiButSetFunc(but, PE_change_act, ob, &partact);
+
+	MEM_freeN(menustr);
+
+	if(psys->edit) {
+		edit= psys->edit;
+
+		/* brushes */
+		//uiDefBut(block, LABEL, 0, "Brush",	butx,(buty-=buth),butw,buth, NULL, 0.0, 0, 0, 0, "");
+		uiBlockBeginAlign(block);	
+		uiDefButS(block,ROW,B_BAKE_REDRAWEDIT,"None",butx,buty,75,19,&pset->brushtype,14.0,PE_BRUSH_NONE,0,0,"Disable brush");
+		uiDefButS(block,ROW,B_BAKE_REDRAWEDIT,"Comb",butx+75,buty,75,19,&pset->brushtype,14.0,PE_BRUSH_COMB,0,0,"Comb hairs");
+		uiDefButS(block,ROW,B_BAKE_REDRAWEDIT,"Smooth",butx+150,buty,75,19,&pset->brushtype,14.0,PE_BRUSH_SMOOTH,0,0,"Smooth hairs");
+		uiDefButS(block,ROW,B_BAKE_REDRAWEDIT,"Weight",butx+225,buty,75,19,&pset->brushtype,14,PE_BRUSH_WEIGHT,0,0,"Weight hairs");
+		buty-= buth;
+		uiDefButS(block,ROW,B_BAKE_REDRAWEDIT,"Add", butx,buty,75,19,&pset->brushtype,14,PE_BRUSH_ADD,0,0,"Add hairs");
+		uiDefButS(block,ROW,B_BAKE_REDRAWEDIT,"Length", butx+75,buty,75,19,&pset->brushtype,14, PE_BRUSH_LENGTH,0,0,"Make hairs longer or shorter");
+		uiDefButS(block,ROW,B_BAKE_REDRAWEDIT,"Puff", butx+150,buty,75,19,&pset->brushtype,14, PE_BRUSH_PUFF,0,0,"Make hairs stand up");
+		uiDefButS(block,ROW,B_BAKE_REDRAWEDIT,"Cut", butx+225,buty,75,19,&pset->brushtype,14, PE_BRUSH_CUT,0,0,"Cut hairs");
+		uiBlockEndAlign(block);
+
+		buty-= 10;
+		lastbuty= buty;
+
+		/* brush options */
+		if(pset->brushtype>=0) {
+			ParticleBrushData *brush= &pset->brush[pset->brushtype];
+
+			butw= 180;
+
+			uiBlockBeginAlign(block);
+			uiDefButS(block, NUMSLI, B_BAKE_REDRAWEDIT, "Size:", butx,(buty-=buth),butw,buth, &brush->size, 1.0, 100.0, 1, 1, "Brush size");
+			uiDefButS(block, NUMSLI, B_BAKE_REDRAWEDIT, "Strength:", butx,(buty-=buth),butw,buth, &brush->strength, 1.0, 100.0, 1, 1, "Brush strength");
+
+			if(ELEM(pset->brushtype, PE_BRUSH_LENGTH, PE_BRUSH_PUFF)) {
+				char *str1, *str2, *tip1, *tip2;
+
+				if(pset->brushtype == PE_BRUSH_LENGTH) {
+					str1= "Grow"; tip1= "Make hairs longer [Shift]";
+					str2= "Shrink"; tip2= "Make hairs shorter [Shift]";
+				}
+				else /*if(pset->brushtype == PE_BRUSH_PUFF)*/ {
+					str1= "Add"; tip1= "Make hair more puffy [Shift]";
+					str2= "Sub"; tip2= "Make hair less puffy [Shift]";
+				}
+
+				uiDefButS(block,ROW,B_NOP,str1, butx,(buty-=buth),butw/2,buth,&brush->invert,0.0,0.0,0, 0,tip1);
+				uiDefButS(block,ROW,B_NOP,str2, butx+butw/2,buty,butw/2,buth,&brush->invert,0.0,1.0,0, 0,tip2);
+			}
+			uiBlockEndAlign(block);
+
+			butx += butw+10;
+			buty= lastbuty;
+			butw= 110;
+
+			if(pset->brushtype==PE_BRUSH_ADD) {
+				uiBlockBeginAlign(block);
+				uiDefButBitS(block, TOG, PE_INTERPOLATE_ADDED, B_BAKE_REDRAWEDIT, "Interpolate",	butx,(buty-=buth),butw,buth, &pset->flag, 0, 0, 0, 0, "Interpolate new particles from the existing ones");
+				uiDefButS(block, NUMSLI, B_BAKE_REDRAWEDIT, "Step:",	butx,(buty-=buth),butw,buth, &brush->step, 1.0, 50.0, 1, 1, "Brush step");
+				uiDefButS(block, NUMSLI, B_BAKE_REDRAWEDIT, "Keys:",	butx,(buty-=buth),butw,buth, &pset->totaddkey, 2.0, 20.0, 1, 1, "How many keys to make new particles with");
+				uiBlockEndAlign(block);
+			}
+		}
+
+		/* keep options */
+		butw= 150;
+		butx= 10;
+		buty= lastbuty - (buth*3 + 10);
+		lastbuty= buty;
+
+		uiDefBut(block, LABEL, 0, "Keep",	butx,(buty-=buth),butw,buth, NULL, 0.0, 0, 0, 0, "");
+		uiBlockBeginAlign(block);
+		uiDefButBitS(block, TOG, PE_KEEP_LENGTHS, B_BAKE_REDRAWEDIT, "Lengths",	butx,(buty-=buth),butw/2,buth, &pset->flag, 0, 0, 0, 0, "Keep path lengths constant");
+		uiDefButBitS(block, TOG, PE_LOCK_FIRST, B_BAKE_REDRAWEDIT, "Root",	 butx+butw/2,buty,butw/2,buth, &pset->flag, 0, 0, 0, 0, "Keep first keys unmodified");
+		uiBlockEndAlign(block);
+
+		buty -= 5;
+
+		uiBlockBeginAlign(block);
+		uiDefButBitS(block, TOG, PE_DEFLECT_EMITTER, B_BAKE_REDRAWEDIT, "Deflect Emitter",	butx,(buty-=buth),butw,buth, &pset->flag, 0, 0, 0, 0, "Keep paths from intersecting the emitter");
+		uiDefButF(block, NUM, B_BAKE_REDRAWEDIT, "Dist:",		butx,(buty-=buth),butw,buth, &pset->emitterdist, 0.0, 10.0, 1, 1, "Distance from emitter");
+		uiBlockEndAlign(block);
+
+		buty= lastbuty;
+		butx += butw+10;
+		butw -= 10;
+
+		uiDefBut(block, LABEL, 0, "Draw",	butx,(buty-=buth),butw,buth, NULL, 0.0, 0, 0, 0, "");
+		uiBlockBeginAlign(block);
+		uiDefButS(block, NUMSLI, B_BAKE_RECACHE, "Steps:",	butx,(buty-=buth),butw,buth, &psys->part->draw_step, 0.0, 10.0, 1, 1, "Drawing accuracy of paths");
+		uiBlockEndAlign(block);
+
+		buty -= 5;
+
+		uiBlockBeginAlign(block);
+		uiDefButBitS(block, TOG, PE_SHOW_TIME, B_BAKE_REDRAWEDIT, "Show Time",	butx,(buty-=buth),butw,buth, &pset->flag, 0, 0, 0, 0, "Show time values of the baked keys");
+		uiDefButBitS(block, TOG, PE_SHOW_CHILD, B_BAKE_RECACHE, "Show Children",	butx,(buty-=buth),butw,buth, &pset->flag, 0, 0, 0, 0, "Show child particles in particle mode");
+		uiBlockEndAlign(block);
+	}
+	else{
+		uiDefBut(block, LABEL, 0, "System isn't editable",	butx,(buty-=buth),250,buth, NULL, 0.0, 0, 0, 0, "");
+	}
+}
 /* this is a mode context sensitive system */
 
 void editing_panels()

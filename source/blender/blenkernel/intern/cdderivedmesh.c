@@ -751,6 +751,7 @@ DerivedMesh *CDDM_from_mesh(Mesh *mesh, Object *ob)
 	/* this does a referenced copy, the only new layers being ORIGINDEX */
 
 	DM_init(dm, mesh->totvert, mesh->totedge, mesh->totface);
+	dm->deformedOnly = 1;
 
 	CustomData_merge(&mesh->vdata, &dm->vertData, CD_MASK_MESH, CD_REFERENCE,
 	                 mesh->totvert);
@@ -797,6 +798,8 @@ DerivedMesh *CDDM_from_editmesh(EditMesh *em, Mesh *me)
 	MEdge *medge = cddm->medge;
 	MFace *mface = cddm->mface;
 	int i, *index;
+
+	dm->deformedOnly = 1;
 
 	CustomData_merge(&em->vdata, &dm->vertData, CD_MASK_DERIVEDMESH,
 	                 CD_CALLOC, dm->numVertData);
@@ -889,6 +892,7 @@ DerivedMesh *CDDM_copy(DerivedMesh *source)
 
 	/* this initializes dm, and copies all non mvert/medge/mface layers */
 	DM_from_template(dm, source, numVerts, numEdges, numFaces);
+	dm->deformedOnly = source->deformedOnly;
 
 	CustomData_copy_data(&source->vertData, &dm->vertData, 0, 0, numVerts);
 	CustomData_copy_data(&source->edgeData, &dm->edgeData, 0, 0, numEdges);

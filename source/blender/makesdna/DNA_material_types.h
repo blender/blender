@@ -85,6 +85,7 @@ typedef struct Material {
 	short flarec, starc, linec, ringc;
 	float hasize, flaresize, subsize, flareboost;
 	float strand_sta, strand_end, strand_ease;
+	char strand_uvname[32];
 	
 	float sbias;			/* shadow bias */
 	float shad_alpha, padf;	/* in use for irregular shadowbuffer */
@@ -189,8 +190,9 @@ typedef struct Material {
 #define MA_NORMAP_TANG	0x8000000
 #define MA_GROUP_NOLAY	0x10000000
 #define MA_FACETEXTURE_ALPHA	0x20000000
+#define MA_STR_B_UNITS	0x40000000
 
-#define	MA_MODE_MASK	0x1fffffff	/* all valid mode bits */
+#define	MA_MODE_MASK	0x4fffffff	/* all valid mode bits */
 
 /* ray mirror fadeout */
 #define MA_RAYMIR_FADETOSKY	0
@@ -273,6 +275,30 @@ typedef struct Material {
 #define MAP_DISPLACE	4096
 #define MAP_WARP		8192
 #define MAP_LAYER		16384
+
+/* mapto for halo */
+//#define MAP_HA_COL		1
+//#define MAP_HA_ALPHA	128
+//#define MAP_HA_HAR		256
+//#define MAP_HA_SIZE		2
+//#define MAP_HA_ADD		64
+
+/* pmapto */
+/* init */
+#define MAP_PA_INIT		31
+#define MAP_PA_TIME		1
+#define MAP_PA_LIFE		2
+#define MAP_PA_DENS		4
+#define MAP_PA_SIZE		8
+#define MAP_PA_LENGTH	16
+/* reset */
+#define MAP_PA_IVEL		32
+/* physics */
+#define MAP_PA_PVEL		64
+/* path cache */
+#define MAP_PA_CACHE	384
+#define MAP_PA_CLUMP	128
+#define MAP_PA_KINK		256
 
 /* pr_type */
 #define MA_FLAT			0

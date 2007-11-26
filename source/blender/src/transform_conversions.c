@@ -61,6 +61,7 @@
 #include "DNA_nla_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
+#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -93,6 +94,7 @@
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
+#include "BKE_particle.h"
 #include "BKE_softbody.h"
 #include "BKE_utildefines.h"
 
@@ -104,6 +106,7 @@
 #include "BIF_editmesh.h"
 #include "BIF_editnla.h"
 #include "BIF_editsima.h"
+#include "BIF_editparticle.h"
 #include "BIF_gl.h"
 #include "BIF_poseobject.h"
 #include "BIF_meshtools.h"
@@ -1372,6 +1375,159 @@ static void createTransLatticeVerts(TransInfo *t)
 	}
 } 
 
+/* ******************* particle edit **************** */
+static void createTransParticleVerts(TransInfo *t)
+{
+	TransData *td = NULL;
+	TransDataExtension *tx;
+	Base *base = BASACT;
+	Object *ob = OBACT;
+	ParticleSystem *psys = PE_get_current(ob);
+	ParticleSystemModifierData *psmd = NULL;
+	ParticleEditSettings *pset = PE_settings();
+	ParticleData *pa = NULL;
+	ParticleEdit *edit;
+	ParticleEditKey *key;
+	float mat[4][4];
+	int i,k, totpart, transformparticle;
+	int count = 0, hasselected = 0;
+	int propmode = t->flag & T_PROP_EDIT;
+
+	if(psys==NULL || G.scene->selectmode==SCE_SELECT_PATH) return;
+
+	psmd = psys_get_modifier(ob,psys);
+
+	edit = psys->edit;
+	totpart = psys->totpart;
+	base->flag |= BA_HAS_RECALC_DATA;
+
+	for(i=0, pa=psys->particles; i<totpart; i++, pa++) {
+		pa->flag &= ~PARS_TRANSFORM;
+		transformparticle= 0;
+
+		if((pa->flag & PARS_HIDE)==0) {
+			for(k=0, key=edit->keys[i]; k<pa->totkey; k++, key++) {
+				if((key->flag&PEK_HIDE)==0) {
+					if(key->flag&PEK_SELECT) {
+						hasselected= 1;
+						transformparticle= 1;
+					}
+					else if(propmode)
+						transformparticle= 1;
+				}
+			}
+		}
+
+		if(transformparticle) {
+			count += pa->totkey;
+			pa->flag |= PARS_TRANSFORM;
+		}
+	}
+	
+ 	/* note: in prop mode we need at least 1 selected */
+	if (hasselected==0) return;
+	
+	t->total = count;
+	td = t->data = MEM_callocN(t->total * sizeof(TransData), "TransObData(Particle Mode)");
+
+	if(t->mode == TFM_BAKE_TIME)
+		tx = t->ext = MEM_callocN(t->total * sizeof(TransDataExtension), "Particle_TransExtension");
+	else
+		tx = t->ext = NULL;
+
+	Mat4One(mat);
+
+	Mat4Invert(ob->imat,ob->obmat);
+
+	for(i=0, pa=psys->particles; i<totpart; i++, pa++) {
+		TransData *head, *tail;
+		head = tail = td;
+
+		if(!(pa->flag & PARS_TRANSFORM)) continue;
+
+		psys_mat_hair_to_global(ob, psmd->dm, psys->part->from, pa, mat);
+
+		for(k=0, key=edit->keys[i]; k<pa->totkey; k++, key++) {
+			VECCOPY(key->world_co, key->co);
+			Mat4MulVecfl(mat, key->world_co);
+			td->loc = key->world_co;
+
+			VECCOPY(td->iloc, td->loc);
+			VECCOPY(td->center, td->loc);
+
+			if(key->flag & PEK_SELECT)
+				td->flag |= TD_SELECTED;
+			else if(!propmode)
+				td->flag |= TD_SKIP;
+
+			Mat3One(td->mtx);
+			Mat3One(td->smtx);
+
+			/* don't allow moving roots */
+			if(k==0 && pset->flag & PE_LOCK_FIRST)
+				td->protectflag |= OB_LOCK_LOC;
+
+			td->ext = tx;
+			td->tdi = NULL;
+			if(t->mode == TFM_BAKE_TIME) {
+				td->val = key->time;
+				td->ival = *(key->time);
+				/* abuse size and quat for min/max values */
+				td->flag |= TD_NO_EXT;
+				if(k==0) tx->size = 0;
+				else tx->size = (key - 1)->time;
+
+				if(k == pa->totkey - 1) tx->quat = 0;
+				else tx->quat = (key + 1)->time;
+			}
+
+			td++;
+			if(tx)
+				tx++;
+			tail++;
+		}
+		if (propmode && head != tail)
+			calc_distanceCurveVerts(head, tail - 1);
+	}
+}
+
+void flushTransParticles(TransInfo *t)
+{
+	Object *ob = OBACT;
+	ParticleSystem *psys = PE_get_current(ob);
+	ParticleSystemModifierData *psmd;
+	ParticleData *pa;
+	ParticleEditKey *key;
+	TransData *td;
+	float mat[4][4], imat[4][4], co[3];
+	int i, k, propmode = t->flag & T_PROP_EDIT;
+
+	psmd = psys_get_modifier(ob, psys);
+
+	/* we do transform in world space, so flush world space position
+	 * back to particle local space */
+	td= t->data;
+	for(i=0, pa=psys->particles; i<psys->totpart; i++, pa++, td++) {
+		if(!(pa->flag & PARS_TRANSFORM)) continue;
+
+		psys_mat_hair_to_global(ob, psmd->dm, psys->part->from, pa, mat);
+		Mat4Invert(imat,mat);
+
+		for(k=0, key=psys->edit->keys[i]; k<pa->totkey; k++, key++) {
+			VECCOPY(co, key->world_co);
+			Mat4MulVecfl(imat, co);
+
+			/* optimization for proportional edit */
+			if(!propmode || !FloatCompare(key->co, co, 0.0001f)) {
+				VECCOPY(key->co, co);
+				pa->flag |= PARS_EDIT_RECALC;
+			}
+		}
+	}
+
+	PE_update_object(OBACT, 1);
+}
+
 /* ********************* mesh ****************** */
 
 /* proportional distance based on connectivity  */
@@ -1505,9 +1661,14 @@ static void get_face_center(float *cent, EditVert *eve)
 	}
 }
 
+//way to overwrite what data is edited with transform
+//static void VertsToTransData(TransData *td, EditVert *eve, BakeKey *key)
 static void VertsToTransData(TransData *td, EditVert *eve)
 {
 	td->flag = 0;
+	//if(key)
+	//	td->loc = key->co;
+	//else
 	td->loc = eve->co;
 	
 	VECCOPY(td->center, td->loc);
@@ -1690,7 +1851,12 @@ static void createTransEditVerts(TransInfo *t)
 	float mtx[3][3], smtx[3][3], (*defmats)[3][3] = NULL, (*defcos)[3] = NULL;
 	int count=0, countsel=0, a, totleft;
 	int propmode = t->flag & T_PROP_EDIT;
-	int mirror= (G.scene->toolsettings->editbutflag & B_MESH_X_MIRROR);
+	int mirror = 0;
+	
+	if ((t->context & CTX_NO_MIRROR) == 0 || (G.scene->toolsettings->editbutflag & B_MESH_X_MIRROR))
+	{
+		mirror = 1;
+	}
 
 	// transform now requires awareness for select mode, so we tag the f1 flags in verts
 	if(G.scene->selectmode & SCE_SELECT_VERTEX) {
@@ -1902,11 +2068,11 @@ static void createTransUVs(TransInfo *t)
 	/* count */
 	for (efa= em->faces.first; efa; efa= efa->next) {
 		tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-		if SIMA_FACEDRAW_CHECK(efa, tf) {
-			if (SIMA_UVSEL_CHECK(efa, tf, 0)) countsel++; 
-			if (SIMA_UVSEL_CHECK(efa, tf, 1)) countsel++; 
-			if (SIMA_UVSEL_CHECK(efa, tf, 2)) countsel++; 
-			if (efa->v4 && SIMA_UVSEL_CHECK(efa, tf, 3)) countsel++;
+		if (simaFaceDraw_Check(efa, tf)) {
+			if (simaUVSel_Check(efa, tf, 0)) countsel++; 
+			if (simaUVSel_Check(efa, tf, 1)) countsel++; 
+			if (simaUVSel_Check(efa, tf, 2)) countsel++; 
+			if (efa->v4 && simaUVSel_Check(efa, tf, 3)) countsel++;
 			if(propmode)
 				count += (efa->v4)? 4: 3;
 		}
@@ -1928,16 +2094,16 @@ static void createTransUVs(TransInfo *t)
 	td2d= t->data2d;
 	for (efa= em->faces.first; efa; efa= efa->next) {
 		tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-		if SIMA_FACEDRAW_CHECK(efa, tf) {
-			if(propmode || SIMA_UVSEL_CHECK(efa, tf, 0))
-				UVsToTransData(td++, td2d++, tf->uv[0], SIMA_UVSEL_CHECK(efa, tf, 0));
-			if(propmode || SIMA_UVSEL_CHECK(efa, tf, 1))
-				UVsToTransData(td++, td2d++, tf->uv[1], SIMA_UVSEL_CHECK(efa, tf, 1));
-			if(propmode || SIMA_UVSEL_CHECK(efa, tf, 2))
-				UVsToTransData(td++, td2d++, tf->uv[2], SIMA_UVSEL_CHECK(efa, tf, 2));
+		if (simaFaceDraw_Check(efa, tf)) {
+			if(propmode || simaUVSel_Check(efa, tf, 0))
+				UVsToTransData(td++, td2d++, tf->uv[0], simaUVSel_Check(efa, tf, 0));
+			if(propmode || simaUVSel_Check(efa, tf, 1))
+				UVsToTransData(td++, td2d++, tf->uv[1], simaUVSel_Check(efa, tf, 1));
+			if(propmode || simaUVSel_Check(efa, tf, 2))
+				UVsToTransData(td++, td2d++, tf->uv[2], simaUVSel_Check(efa, tf, 2));
 
-			if(efa->v4 && (propmode || SIMA_UVSEL_CHECK(efa, tf, 3)))
-				UVsToTransData(td++, td2d++, tf->uv[3], SIMA_UVSEL_CHECK(efa, tf, 3));
+			if(efa->v4 && (propmode || simaUVSel_Check(efa, tf, 3)))
+				UVsToTransData(td++, td2d++, tf->uv[3], simaUVSel_Check(efa, tf, 3));
 		}
 	}
 
@@ -3049,6 +3215,9 @@ void special_aftertrans_update(TransInfo *t)
 			allqueue(REDRAWBUTSEDIT, 0);
 		
 	}
+	else if(G.f & G_PARTICLEEDIT) {
+		;
+	}
 	else {
 		base= FIRSTBASE;
 
@@ -3314,6 +3483,17 @@ void createTransData(TransInfo *t)
 		if(base) {
 			createTransPose(t, base->object);
 		}
+	}
+	else if (G.f & G_PARTICLEEDIT) {
+		createTransParticleVerts(t);
+
+		if(t->data && t->flag & T_PROP_EDIT) {
+			sort_trans_data(t);	// makes selected become first in array
+			set_prop_dist(t, 1);
+			sort_trans_data_dist(t);
+		}
+
+		t->flag |= T_POINTS;
 	}
 	else {
 		createTransObject(t);

@@ -255,7 +255,7 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 	if(browse) {
 		char *extrastr= NULL;
 		
-		if(ELEM3(id_code, ID_MA, ID_TE, ID_BR)) add_addbutton= 1;
+		if(ELEM4(id_code, ID_MA, ID_TE, ID_BR, ID_PA)) add_addbutton= 1;
 			
 		lb= wich_libbase(G.main, id_code);
 		
@@ -265,7 +265,7 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 			uiBlockSetCol(block, TH_BUT_SETTING2);
 		}
 		
-		if ELEM8( id_code, ID_SCE, ID_SCR, ID_MA, ID_TE, ID_WO, ID_IP, ID_AC, ID_BR) extrastr= "ADD NEW %x 32767";
+		if (ELEM8( id_code, ID_SCE, ID_SCR, ID_MA, ID_TE, ID_WO, ID_IP, ID_AC, ID_BR) || id_code == ID_PA) extrastr= "ADD NEW %x 32767";
 		else if (id_code==ID_TXT) extrastr= "OPEN NEW %x 32766 |ADD NEW %x 32767";
 		else if (id_code==ID_SO) extrastr= "OPEN NEW %x 32766";
 
@@ -1076,6 +1076,7 @@ void do_global_buttons(unsigned short event)
 					else if(nr==ID_CA) idtest= (ID *)add_ipo("CaIpo", nr);
 					else if(nr==ID_SO) idtest= (ID *)add_ipo("SndIpo", nr);
 					else if(nr==ID_FLUIDSIM) idtest= (ID *)add_ipo("FluidsimIpo", nr);
+					else if(nr==ID_PA) idtest= (ID *)add_ipo("PaIpo", nr);
 					else error("Warn bugtracker!");
 				}
 				idtest->us--;

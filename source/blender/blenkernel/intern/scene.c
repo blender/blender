@@ -174,6 +174,8 @@ void free_scene(Scene *sce)
 Scene *add_scene(char *name)
 {
 	Scene *sce;
+	ParticleEditSettings *pset;
+	int a;
 
 	sce= alloc_libblock(&G.main->scene, ID_SCE, name);
 	sce->lay= 1;
@@ -232,6 +234,19 @@ Scene *add_scene(char *name)
 	sce->toolsettings->unwrapper = 1;
 	sce->toolsettings->select_thresh= 0.01f;
 	sce->toolsettings->jointrilimit = 0.8f;
+
+	pset= &sce->toolsettings->particle;
+	pset->flag= PE_KEEP_LENGTHS|PE_LOCK_FIRST|PE_DEFLECT_EMITTER;
+	pset->emitterdist= 0.25f;
+	pset->totrekey= 5;
+	pset->totaddkey= 5;
+	pset->brushtype= PE_BRUSH_NONE;
+	for(a=0; a<PE_TOT_BRUSH; a++) {
+		pset->brush[a].strength= 50;
+		pset->brush[a].size= 50;
+		pset->brush[a].step= 10;
+	}
+	pset->brush[PE_BRUSH_CUT].strength= 100;
 	
 	sce->jumpframe = 10;
 	sce->audio.mixrate = 44100;

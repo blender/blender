@@ -80,6 +80,7 @@
 #include "DNA_space_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_texture_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_property_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_view3d_types.h"
@@ -119,6 +120,7 @@
 #include "BKE_mesh.h"
 #include "BKE_nla.h"
 #include "BKE_object.h"
+#include "BKE_particle.h"
 #include "BKE_property.h"
 #include "BKE_sca.h"
 #include "BKE_scene.h"
@@ -135,6 +137,7 @@
 #include "BIF_editlattice.h"
 #include "BIF_editmesh.h"
 #include "BIF_editoops.h"
+#include "BIF_editparticle.h"
 #include "BIF_editview.h"
 #include "BIF_editarmature.h"
 #include "BIF_gl.h"
@@ -184,11 +187,22 @@
 
 /* --------------------------------- */
 
+void exit_paint_modes(void)
+{
+	if(G.f & G_VERTEXPAINT) set_vpaint();
+	if(G.f & G_TEXTUREPAINT) set_texturepaint();
+	if(G.f & G_WEIGHTPAINT) set_wpaint();
+	if(G.f & G_SCULPTMODE) set_sculptmode();
+	if(G.f & G_PARTICLEEDIT) PE_set_particle_edit();
+
+	G.f &= ~(G_VERTEXPAINT+G_TEXTUREPAINT+G_WEIGHTPAINT+G_SCULPTMODE+G_PARTICLEEDIT);
+}
+
 void add_object_draw(int type)	/* for toolbox or menus, only non-editmode stuff */
 {
 	Object *ob;
 	
-	G.f &= ~(G_VERTEXPAINT+G_TEXTUREPAINT+G_WEIGHTPAINT+G_SCULPTMODE);
+	exit_paint_modes();
 	setcursor_space(SPACE_VIEW3D, CURSOR_STD);
 
 	if ELEM3(curarea->spacetype, SPACE_VIEW3D, SPACE_BUTS, SPACE_INFO) {
@@ -263,8 +277,6 @@ void delete_obj(int ok)
 	if(G.obedit) return;
 	if(G.scene->id.lib) return;
 
-	if(G.f & G_SCULPTMODE) set_sculptmode();
-	
 	base= FIRSTBASE;
 	while(base) {
 		Base *nbase= base->next;
@@ -281,6 +293,8 @@ void delete_obj(int ok)
 				}
 			}
 			
+			exit_paint_modes();
+
 			if(base->object->type==OB_LAMP) islamp= 1;
 #ifdef WITH_VERSE
 			if(base->object->vnode) b_verse_delete_object(base->object);
@@ -308,7 +322,6 @@ void delete_obj(int ok)
 	}
 	countall();
 
-	G.f &= ~(G_VERTEXPAINT+G_TEXTUREPAINT+G_WEIGHTPAINT);
 	setcursor_space(SPACE_VIEW3D, CURSOR_STD);
 	
 	if(islamp) reshadeall_displist();	/* only frees displist */
@@ -2279,6 +2292,39 @@ void special_editmenu(void)
 				if(nr==1 || nr==2)
 					pose_adds_vgroups(ob, (nr == 2));
 			}
+		}
+		else if(G.f & G_PARTICLEEDIT) {
+			ParticleSystem *psys = PE_get_current(ob);
+			ParticleEditSettings *pset = PE_settings();
+
+			if(!psys)
+				return;
+
+			if(G.scene->selectmode & SCE_SELECT_POINT)
+				nr= pupmenu("Specials%t|Rekey%x1|Subdivide%x2|Select First%x3|Select Last%x4");
+			else
+				nr= pupmenu("Specials%t|Rekey%x1");
+			
+			switch(nr) {
+			case 1:
+				if(button(&pset->totrekey, 2, 100, "Number of Keys:")==0) return;
+				waitcursor(1);
+				PE_rekey();
+				break;
+			case 2:
+				PE_subdivide();
+				break;
+			case 3:
+				PE_select_root();
+				break;
+			case 4:
+				PE_select_tip();
+				break;
+			}
+			
+			DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
+			
+			if(nr>0) waitcursor(0);
 		}
 		else {
 			Base *base, *base_select= NULL;
@@ -5356,7 +5402,10 @@ void mirrormenu(void)
 	short mode = 0;
 
 
-	if (G.obedit==0) {
+	if(G.f & G_PARTICLEEDIT) {
+		PE_mirror_x(0);
+	}
+	else if (G.obedit==0) {
 		mode=pupmenu("Mirror Axis %t|X Local%x4|Y Local%x5|Z Local%x6|");
 
 		if (mode==-1) return; /* return */

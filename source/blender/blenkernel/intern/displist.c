@@ -1098,7 +1098,7 @@ void curve_to_filledpoly(Curve *cu, ListBase *nurb, ListBase *dispbase)
   - first point left, last point right
   - based on subdivided points in original curve, not on points in taper curve (still)
 */
-static float calc_taper(Object *taperobj, int cur, int tot)
+float calc_taper(Object *taperobj, int cur, int tot)
 {
 	Curve *cu;
 	DispList *dl;
@@ -1256,7 +1256,7 @@ void curve_calc_modifiers_post(Object *ob, ListBase *nurb, ListBase *dispbase, i
 
 		if ((md->mode & required_mode) != required_mode) continue;
 		if (mti->isDisabled && mti->isDisabled(md)) continue;
-		if (mti->type!=eModifierTypeType_OnlyDeform) continue;
+		if (mti->type!=eModifierTypeType_OnlyDeform && mti->type!=eModifierTypeType_DeformOrConstruct) continue;
 
 		for (dl=dispbase->first; dl; dl=dl->next) {
 			mti->deformVerts(md, ob, NULL, (float(*)[3]) dl->verts, (dl->type==DL_INDEX3)?dl->nr:dl->parts*dl->nr);

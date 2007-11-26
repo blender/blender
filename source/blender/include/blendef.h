@@ -232,6 +232,9 @@
 #define B_MAN_TRANS		161
 #define B_MAN_ROT		162
 #define B_MAN_SCALE		163
+#define B_SEL_PATH		166
+#define B_SEL_POINT		167
+#define B_SEL_END		168
 
 /* IPO: 200 */
 #define B_IPOHOME		201

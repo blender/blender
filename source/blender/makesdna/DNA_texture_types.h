@@ -57,9 +57,9 @@ typedef struct MTex {
 	char projx, projy, projz, mapping;
 	float ofs[3], size[3];
 	
-	short texflag, colormodel;
+	short texflag, colormodel, pmapto, pmaptoneg;
 	float r, g, b, k;
-	float def_var;
+	float def_var, rt;
 	
 	float colfac, norfac, varfac;
 	float dispfac; 

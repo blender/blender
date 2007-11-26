@@ -164,8 +164,8 @@ void be_square_tface_uv(EditMesh *em)
 	for (efa= em->faces.first; efa; efa= efa->next) {
 		if (efa->v4) {
 			tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			if (SIMA_FACEDRAW_CHECK(efa, tface)) {
-				if (SIMA_UVSEL_CHECK(efa, tface, 0)) {
+			if (simaFaceDraw_Check(efa, tface)) {
+				if (simaUVSel_Check(efa, tface, 0)) {
 					if( tface->uv[1][0] == tface->uv[2][0] ) {
 						tface->uv[1][1]= tface->uv[0][1];
 						tface->uv[3][0]= tface->uv[0][0];
@@ -176,7 +176,7 @@ void be_square_tface_uv(EditMesh *em)
 					}
 					
 				}
-				if (SIMA_UVSEL_CHECK(efa, tface, 1)) {
+				if (simaUVSel_Check(efa, tface, 1)) {
 					if( tface->uv[2][1] == tface->uv[3][1] ) {
 						tface->uv[2][0]= tface->uv[1][0];
 						tface->uv[0][1]= tface->uv[1][1];
@@ -187,7 +187,7 @@ void be_square_tface_uv(EditMesh *em)
 					}
 
 				}
-				if (SIMA_UVSEL_CHECK(efa, tface, 2)) {
+				if (simaUVSel_Check(efa, tface, 2)) {
 					if( tface->uv[3][0] == tface->uv[0][0] ) {
 						tface->uv[3][1]= tface->uv[2][1];
 						tface->uv[1][0]= tface->uv[2][0];
@@ -197,7 +197,7 @@ void be_square_tface_uv(EditMesh *em)
 						tface->uv[1][1]= tface->uv[2][1];
 					}
 				}
-				if (SIMA_UVSEL_CHECK(efa, tface, 3)) {
+				if (simaUVSel_Check(efa, tface, 3)) {
 					if( tface->uv[0][1] == tface->uv[1][1] ) {
 						tface->uv[0][0]= tface->uv[3][0];
 						tface->uv[2][1]= tface->uv[3][1];
@@ -276,14 +276,14 @@ void weld_align_tface_uv(char tool)
 	if(tool == 'x' || tool == 'w') {
 		for (efa= em->faces.first; efa; efa= efa->next) {
 			tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			if (SIMA_FACEDRAW_CHECK(efa, tface)) {
-				if (SIMA_UVSEL_CHECK(efa, tface, 0))
+			if (simaFaceDraw_Check(efa, tface)) {
+				if (simaUVSel_Check(efa, tface, 0))
 					tface->uv[0][0]= cent[0];
-				if (SIMA_UVSEL_CHECK(efa, tface, 1))
+				if (simaUVSel_Check(efa, tface, 1))
 					tface->uv[1][0]= cent[0];
-				if (SIMA_UVSEL_CHECK(efa, tface, 2))
+				if (simaUVSel_Check(efa, tface, 2))
 					tface->uv[2][0]= cent[0];
-				if (efa->v4 && SIMA_UVSEL_CHECK(efa, tface, 3))
+				if (efa->v4 && simaUVSel_Check(efa, tface, 3))
 					tface->uv[3][0]= cent[0];
 			}
 		}
@@ -292,14 +292,14 @@ void weld_align_tface_uv(char tool)
 	if(tool == 'y' || tool == 'w') {
 		for (efa= em->faces.first; efa; efa= efa->next) {
 			tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			if (SIMA_FACEDRAW_CHECK(efa, tface)) {
-				if (SIMA_UVSEL_CHECK(efa, tface, 0))
+			if (simaFaceDraw_Check(efa, tface)) {
+				if (simaUVSel_Check(efa, tface, 0))
 					tface->uv[0][1]= cent[1];
-				if (SIMA_UVSEL_CHECK(efa, tface, 1))
+				if (simaUVSel_Check(efa, tface, 1))
 					tface->uv[1][1]= cent[1];
-				if (SIMA_UVSEL_CHECK(efa, tface, 2))
+				if (simaUVSel_Check(efa, tface, 2))
 					tface->uv[2][1]= cent[1];
-				if (efa->v4 && SIMA_UVSEL_CHECK(efa, tface, 3))
+				if (efa->v4 && simaUVSel_Check(efa, tface, 3))
 					tface->uv[3][1]= cent[1];
 			}
 		}
@@ -335,26 +335,26 @@ void stitch_vert_uv_tface(void)
 	// gather uv averages per vert
 	for (efa= em->faces.first; efa; efa= efa->next) {
 		tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-		if (SIMA_FACEDRAW_CHECK(efa, tface)) {
-			if (SIMA_UVSEL_CHECK(efa, tface, 0)) {
+		if (simaFaceDraw_Check(efa, tface)) {
+			if (simaUVSel_Check(efa, tface, 0)) {
 				uvav = uv_average + efa->v1->tmp.l;
 				uvav->count++;
 				uvav->uv[0] += tface->uv[0][0];
 				uvav->uv[1] += tface->uv[0][1];
 			}
-			if (SIMA_UVSEL_CHECK(efa, tface, 1)) {
+			if (simaUVSel_Check(efa, tface, 1)) {
 				uvav = uv_average + efa->v2->tmp.l;
 				uvav->count++;
 				uvav->uv[0] += tface->uv[1][0];
 				uvav->uv[1] += tface->uv[1][1];
 			}
-			if (SIMA_UVSEL_CHECK(efa, tface, 2)) {
+			if (simaUVSel_Check(efa, tface, 2)) {
 				uvav = uv_average + efa->v3->tmp.l;
 				uvav->count++;
 				uvav->uv[0] += tface->uv[2][0];
 				uvav->uv[1] += tface->uv[2][1];
 			}
-			if (efa->v4 && SIMA_UVSEL_CHECK(efa, tface, 3)) {
+			if (efa->v4 && simaUVSel_Check(efa, tface, 3)) {
 				uvav = uv_average + efa->v4->tmp.l;
 				uvav->count++;
 				uvav->uv[0] += tface->uv[3][0];
@@ -366,23 +366,23 @@ void stitch_vert_uv_tface(void)
 	// apply uv welding
 	for (efa= em->faces.first; efa; efa= efa->next) {
 		tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-		if (SIMA_FACEDRAW_CHECK(efa, tface)) {
-			if (SIMA_UVSEL_CHECK(efa, tface, 0)) {
+		if (simaFaceDraw_Check(efa, tface)) {
+			if (simaUVSel_Check(efa, tface, 0)) {
 				uvav = uv_average + efa->v1->tmp.l;
 				tface->uv[0][0] = uvav->uv[0]/uvav->count;
 				tface->uv[0][1] = uvav->uv[1]/uvav->count;
 			}
-			if (SIMA_UVSEL_CHECK(efa, tface, 1)) {
+			if (simaUVSel_Check(efa, tface, 1)) {
 				uvav = uv_average + efa->v2->tmp.l;
 				tface->uv[1][0] = uvav->uv[0]/uvav->count;
 				tface->uv[1][1] = uvav->uv[1]/uvav->count;
 			}
-			if (SIMA_UVSEL_CHECK(efa, tface, 2)) {
+			if (simaUVSel_Check(efa, tface, 2)) {
 				uvav = uv_average + efa->v3->tmp.l;
 				tface->uv[2][0] = uvav->uv[0]/uvav->count;
 				tface->uv[2][1] = uvav->uv[1]/uvav->count;
 			}
-			if (efa->v4 && SIMA_UVSEL_CHECK(efa, tface, 3)) {
+			if (efa->v4 && simaUVSel_Check(efa, tface, 3)) {
 				uvav = uv_average + efa->v4->tmp.l;
 				tface->uv[3][0] = uvav->uv[0]/uvav->count;
 				tface->uv[3][1] = uvav->uv[1]/uvav->count;
@@ -426,7 +426,7 @@ void select_invert_tface_uv(void)
 	} else {
 		for (efa= em->faces.first; efa; efa= efa->next) {
 			tface = CustomData_em_get(&G.editMesh->fdata, efa->data, CD_MTFACE);
-			if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+			if (simaFaceDraw_Check(efa, tface)) {
 				tface->flag ^= TF_SEL1;
 				tface->flag ^= TF_SEL2;
 				tface->flag ^= TF_SEL3;
@@ -455,7 +455,7 @@ void select_swap_tface_uv(void)
 			
 		for (efa= em->faces.first; efa; efa= efa->next) {
 			tface = CustomData_em_get(&G.editMesh->fdata, efa->data, CD_MTFACE);
-			if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+			if (simaFaceDraw_Check(efa, tface)) {
 				if(tface->flag & (TF_SEL1+TF_SEL2+TF_SEL3+TF_SEL4)) {
 					sel= 1;
 					break;
@@ -465,7 +465,7 @@ void select_swap_tface_uv(void)
 	
 		for (efa= em->faces.first; efa; efa= efa->next) {
 			tface = CustomData_em_get(&G.editMesh->fdata, efa->data, CD_MTFACE);
-			if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+			if (simaFaceDraw_Check(efa, tface)) {
 				if(efa->v4) {
 					if(sel) tface->flag &= ~(TF_SEL1+TF_SEL2+TF_SEL3+TF_SEL4);
 					else tface->flag |= (TF_SEL1+TF_SEL2+TF_SEL3+TF_SEL4);
@@ -514,7 +514,7 @@ static void find_nearest_tface(MTFace **nearesttf, EditFace **nearestefa)
 	
 	for (efa= em->faces.first; efa; efa= efa->next) {
 		tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-		if (SIMA_FACEDRAW_CHECK(efa, tf)) {
+		if (simaFaceDraw_Check(efa, tf)) {
 			fcenter[0]= fcenter[1]= 0;
 			nverts= efa->v4? 4: 3;
 			for(i=0; i<nverts; i++) {
@@ -585,13 +585,13 @@ void find_nearest_uv(MTFace **nearesttf, EditFace **nearestefa, unsigned int *ne
 	
 	for (efa= em->faces.first; efa; efa= efa->next) {
 		tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-		if (SIMA_FACEDRAW_CHECK(efa, tf)) {
+		if (simaFaceDraw_Check(efa, tf)) {
 			nverts= efa->v4? 4: 3;
 			for(i=0; i<nverts; i++) {
 				uvco_to_areaco_noclip(tf->uv[i], uval);
 				dist= abs(mval[0]-uval[0]) + abs(mval[1]-uval[1]);
 
-				if (SIMA_UVSEL_CHECK(efa, tf, i))
+				if (simaUVSel_Check(efa, tf, i))
 					dist += 5;
 
 				if(dist<=mindist) {
@@ -695,24 +695,24 @@ void mouse_select_sima(void)
 	if(G.qual & LR_SHIFTKEY) {
 		/* (de)select face */
 		if(actface) {
-			if(SIMA_FACESEL_CHECK(nearestefa, nearesttf)) {
-				SIMA_FACESEL_UNSET(nearestefa, nearesttf);
+			if(simaFaceSel_Check(nearestefa, nearesttf)) {
+				simaFaceSel_UnSet(nearestefa, nearesttf);
 				selectsticky= 0;
 			}
 			else {
-				SIMA_FACESEL_SET(nearestefa, nearesttf);
+				simaFaceSel_Set(nearestefa, nearesttf);
 				selectsticky= 1;
 			}
 			flush = -1;
 		}
 		/* (de)select uv node */
 		else {
-			if (SIMA_UVSEL_CHECK(nearestefa, nearesttf, nearestuv)) {
-				SIMA_UVSEL_UNSET(nearestefa, nearesttf, nearestuv);
+			if (simaUVSel_Check(nearestefa, nearesttf, nearestuv)) {
+				simaUVSel_UnSet(nearestefa, nearesttf, nearestuv);
 				selectsticky= 0;
 			}
 			else {
-				SIMA_UVSEL_SET(nearestefa, nearesttf, nearestuv);
+				simaUVSel_Set(nearestefa, nearesttf, nearestuv);
 				selectsticky= 1;
 			}
 			flush = 1;
@@ -729,19 +729,19 @@ void mouse_select_sima(void)
 			if(selectsticky==0) {
 				for (efa= em->faces.first; efa; efa= efa->next) {
 					tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-					if (SIMA_FACEDRAW_CHECK(efa, tf)) {
+					if (simaFaceDraw_Check(efa, tf)) {
 						/*if(nearesttf && tf!=nearesttf) tf->flag &=~ TF_ACTIVE;*/ /* TODO - deal with editmesh active face */
 						if (!sticky) continue;
 	
 						if(msel_hit(limit, hitv, efa->v1->tmp.l, hituv, tf->uv[0], sticky))
-							SIMA_UVSEL_UNSET(efa, tf, 0);
+							simaUVSel_UnSet(efa, tf, 0);
 						if(msel_hit(limit, hitv, efa->v2->tmp.l, hituv, tf->uv[1], sticky))
-							SIMA_UVSEL_UNSET(efa, tf, 1);
+							simaUVSel_UnSet(efa, tf, 1);
 						if(msel_hit(limit, hitv, efa->v3->tmp.l, hituv, tf->uv[2], sticky))
-							SIMA_UVSEL_UNSET(efa, tf, 2);
+							simaUVSel_UnSet(efa, tf, 2);
 						if (efa->v4)
 							if(msel_hit(limit, hitv, efa->v4->tmp.l, hituv, tf->uv[3], sticky))
-								SIMA_UVSEL_UNSET(efa, tf, 3);
+								simaUVSel_UnSet(efa, tf, 3);
 					}
 				}
 				flush = -1;
@@ -750,17 +750,17 @@ void mouse_select_sima(void)
 			else {
 				for (efa= em->faces.first; efa; efa= efa->next) {
 					tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-					if (SIMA_FACEDRAW_CHECK(efa, tf)) {
+					if (simaFaceDraw_Check(efa, tf)) {
 						if (!sticky) continue;
 						if(msel_hit(limit, hitv, efa->v1->tmp.l, hituv, tf->uv[0], sticky))
-							SIMA_UVSEL_SET(efa, tf, 0);
+							simaUVSel_Set(efa, tf, 0);
 						if(msel_hit(limit, hitv, efa->v2->tmp.l, hituv, tf->uv[1], sticky))
-							SIMA_UVSEL_SET(efa, tf, 1);
+							simaUVSel_Set(efa, tf, 1);
 						if(msel_hit(limit, hitv, efa->v3->tmp.l, hituv, tf->uv[2], sticky))
-							SIMA_UVSEL_SET(efa, tf, 2);
+							simaUVSel_Set(efa, tf, 2);
 						if (efa->v4)
 							if(msel_hit(limit, hitv, efa->v4->tmp.l, hituv, tf->uv[3], sticky))
-								SIMA_UVSEL_SET(efa, tf, 3);
+								simaUVSel_Set(efa, tf, 3);
 					}
 				}
 				EM_set_actFace(nearestefa);
@@ -773,10 +773,10 @@ void mouse_select_sima(void)
 		if(actface) {
 			for (efa= em->faces.first; efa; efa= efa->next) {
 				tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-				SIMA_FACESEL_UNSET(efa, tf);
+				simaFaceSel_UnSet(efa, tf);
 			}
 			if(nearesttf) {
-				SIMA_FACESEL_SET(nearestefa, nearesttf);
+				simaFaceSel_Set(nearestefa, nearesttf);
 				EM_set_actFace(nearestefa);
 			}
 				
@@ -785,25 +785,25 @@ void mouse_select_sima(void)
 		/* deselect uvs, and select sticky uvs */
 		for (efa= em->faces.first; efa; efa= efa->next) {
 			tf= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			if (SIMA_FACEDRAW_CHECK(efa, tf)) {
-				if(!actface) SIMA_FACESEL_UNSET(efa, tf);
+			if (simaFaceDraw_Check(efa, tf)) {
+				if(!actface) simaFaceSel_UnSet(efa, tf);
 				if(!sticky) continue;
 
 				if(msel_hit(limit, hitv, efa->v1->tmp.l, hituv, tf->uv[0], sticky))
-					SIMA_UVSEL_SET(efa, tf, 0);
+					simaUVSel_Set(efa, tf, 0);
 				if(msel_hit(limit, hitv, efa->v2->tmp.l, hituv, tf->uv[1], sticky))
-					SIMA_UVSEL_SET(efa, tf, 1);
+					simaUVSel_Set(efa, tf, 1);
 				if(msel_hit(limit, hitv, efa->v3->tmp.l, hituv, tf->uv[2], sticky))
-					SIMA_UVSEL_SET(efa, tf, 2);
+					simaUVSel_Set(efa, tf, 2);
 				if(efa->v4)
 					if(msel_hit(limit, hitv, efa->v4->tmp.l, hituv, tf->uv[3], sticky))
-						SIMA_UVSEL_SET(efa, tf, 3);
+						simaUVSel_Set(efa, tf, 3);
 				flush= 1;
 			}
 		}
 		
 		if(!actface) {
-			SIMA_UVSEL_SET(nearestefa, nearesttf, nearestuv);
+			simaUVSel_Set(nearestefa, nearesttf, nearestuv);
 			flush= 1;
 		}
 	}
@@ -853,7 +853,7 @@ void borderselect_sima(short whichuvs)
 				/* assume not touched */
 				efa->tmp.l = 0;
 				tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-				if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+				if (simaFaceDraw_Check(efa, tface)) {
 					tface_center(tface, cent, (void *)efa->v4);
 					if(BLI_in_rctf(&rectf, cent[0], cent[1])) {
 						efa->tmp.l = ok = 1;
@@ -866,47 +866,47 @@ void borderselect_sima(short whichuvs)
 		} else {
 			for (efa= em->faces.first; efa; efa= efa->next) {
 				tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-				if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+				if (simaFaceDraw_Check(efa, tface)) {
 					if (whichuvs == UV_SELECT_ALL || (G.sima->flag & SI_SYNC_UVSEL) ) {
 						/* SI_SYNC_UVSEL - cant do pinned selection */
 						if(BLI_in_rctf(&rectf, tface->uv[0][0], tface->uv[0][1])) {
-							if(select)	SIMA_UVSEL_SET(efa, tface, 0);
-							else		SIMA_UVSEL_UNSET(efa, tface, 0);
+							if(select)	simaUVSel_Set(efa, tface, 0);
+							else		simaUVSel_UnSet(efa, tface, 0);
 						}
 						if(BLI_in_rctf(&rectf, tface->uv[1][0], tface->uv[1][1])) {
-							if(select)	SIMA_UVSEL_SET(efa, tface, 1);
-							else		SIMA_UVSEL_UNSET(efa, tface, 1);
+							if(select)	simaUVSel_Set(efa, tface, 1);
+							else		simaUVSel_UnSet(efa, tface, 1);
 						}
 						if(BLI_in_rctf(&rectf, tface->uv[2][0], tface->uv[2][1])) {
-							if(select)	SIMA_UVSEL_SET(efa, tface, 2);
-							else		SIMA_UVSEL_UNSET(efa, tface, 2);
+							if(select)	simaUVSel_Set(efa, tface, 2);
+							else		simaUVSel_UnSet(efa, tface, 2);
 						}
 						if(efa->v4 && BLI_in_rctf(&rectf, tface->uv[3][0], tface->uv[3][1])) {
-							if(select)	SIMA_UVSEL_SET(efa, tface, 3);
-							else		SIMA_UVSEL_UNSET(efa, tface, 3);
+							if(select)	simaUVSel_Set(efa, tface, 3);
+							else		simaUVSel_UnSet(efa, tface, 3);
 						}
 					} else if (whichuvs == UV_SELECT_PINNED) {
 						if ((tface->unwrap & TF_PIN1) && 
 							BLI_in_rctf(&rectf, tface->uv[0][0], tface->uv[0][1])) {
 							
-							if(select)	SIMA_UVSEL_SET(efa, tface, 0);
-							else		SIMA_UVSEL_UNSET(efa, tface, 0);
+							if(select)	simaUVSel_Set(efa, tface, 0);
+							else		simaUVSel_UnSet(efa, tface, 0);
 						}
 						if ((tface->unwrap & TF_PIN2) && 
 							BLI_in_rctf(&rectf, tface->uv[1][0], tface->uv[1][1])) {
 							
-							if(select)	SIMA_UVSEL_SET(efa, tface, 1);
-							else		SIMA_UVSEL_UNSET(efa, tface, 1);
+							if(select)	simaUVSel_Set(efa, tface, 1);
+							else		simaUVSel_UnSet(efa, tface, 1);
 						}
 						if ((tface->unwrap & TF_PIN3) && 
 							BLI_in_rctf(&rectf, tface->uv[2][0], tface->uv[2][1])) {
 							
-							if(select)	SIMA_UVSEL_SET(efa, tface, 2);
-							else		SIMA_UVSEL_UNSET(efa, tface, 2);
+							if(select)	simaUVSel_Set(efa, tface, 2);
+							else		simaUVSel_UnSet(efa, tface, 2);
 						}
 						if ((efa->v4) && (tface->unwrap & TF_PIN4) && BLI_in_rctf(&rectf, tface->uv[3][0], tface->uv[3][1])) {
-							if(select)	SIMA_UVSEL_SET(efa, tface, 3);
-							else		SIMA_UVSEL_UNSET(efa, tface, 3);
+							if(select)	simaUVSel_Set(efa, tface, 3);
+							else		simaUVSel_UnSet(efa, tface, 3);
 						}
 					}
 				}
@@ -937,12 +937,12 @@ int snap_uv_sel_to_curs(void)
 
 	for (efa= em->faces.first; efa; efa= efa->next) {
 		tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-		if (SIMA_FACEDRAW_CHECK(efa, tface)) {
-			if (SIMA_UVSEL_CHECK(efa, tface, 0))		VECCOPY2D(tface->uv[0], G.v2d->cursor);
-			if (SIMA_UVSEL_CHECK(efa, tface, 1))		VECCOPY2D(tface->uv[1], G.v2d->cursor);
-			if (SIMA_UVSEL_CHECK(efa, tface, 2))		VECCOPY2D(tface->uv[2], G.v2d->cursor);
+		if (simaFaceDraw_Check(efa, tface)) {
+			if (simaUVSel_Check(efa, tface, 0))		VECCOPY2D(tface->uv[0], G.v2d->cursor);
+			if (simaUVSel_Check(efa, tface, 1))		VECCOPY2D(tface->uv[1], G.v2d->cursor);
+			if (simaUVSel_Check(efa, tface, 2))		VECCOPY2D(tface->uv[2], G.v2d->cursor);
 			if (efa->v4)
-				if (SIMA_UVSEL_CHECK(efa, tface, 3))	VECCOPY2D(tface->uv[3], G.v2d->cursor);
+				if (simaUVSel_Check(efa, tface, 3))	VECCOPY2D(tface->uv[3], G.v2d->cursor);
 			change = 1;
 		}
 	}
@@ -968,12 +968,12 @@ int snap_uv_sel_to_adj_unsel(void)
 	 * get unique indicies and to count how much to malloc */
 	for (efa= em->faces.first; efa; efa= efa->next) {
 		tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-		if (SIMA_FACEDRAW_CHECK(efa, tface)) {
-			if (SIMA_UVSEL_CHECK(efa, tface, 0) && efa->v1->tmp.l==-1)		efa->v1->tmp.l= count++;
-			if (SIMA_UVSEL_CHECK(efa, tface, 1) && efa->v2->tmp.l==-1)		efa->v2->tmp.l= count++;
-			if (SIMA_UVSEL_CHECK(efa, tface, 2) && efa->v3->tmp.l==-1)		efa->v3->tmp.l= count++;
+		if (simaFaceDraw_Check(efa, tface)) {
+			if (simaUVSel_Check(efa, tface, 0) && efa->v1->tmp.l==-1)		efa->v1->tmp.l= count++;
+			if (simaUVSel_Check(efa, tface, 1) && efa->v2->tmp.l==-1)		efa->v2->tmp.l= count++;
+			if (simaUVSel_Check(efa, tface, 2) && efa->v3->tmp.l==-1)		efa->v3->tmp.l= count++;
 			if (efa->v4)
-				if (SIMA_UVSEL_CHECK(efa, tface, 3) && efa->v4->tmp.l==-1)	efa->v4->tmp.l= count++;
+				if (simaUVSel_Check(efa, tface, 3) && efa->v4->tmp.l==-1)	efa->v4->tmp.l= count++;
 			change = 1;
 			
 			/* optional speedup */
@@ -989,23 +989,23 @@ int snap_uv_sel_to_adj_unsel(void)
 	/* add all UV coords from visible, unselected UV coords as well as counting them to average later */
 	for (efa= em->faces.first; efa; efa= efa->next) {
 //		tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-//		if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+//		if (simaFaceDraw_Check(efa, tface)) {
 		if ((tface=(MTFace *)efa->tmp.p)) {
 			
 			/* is this an unselected UV we can snap to? */
-			if (efa->v1->tmp.l >= 0 && (!SIMA_UVSEL_CHECK(efa, tface, 0))) {
+			if (efa->v1->tmp.l >= 0 && (!simaUVSel_Check(efa, tface, 0))) {
 				coords[efa->v1->tmp.l*2] +=		tface->uv[0][0];
 				coords[(efa->v1->tmp.l*2)+1] +=	tface->uv[0][1];
 				usercount[efa->v1->tmp.l]++;
 				change = 1;
 			}
-			if (efa->v2->tmp.l >= 0 && (!SIMA_UVSEL_CHECK(efa, tface, 1))) {
+			if (efa->v2->tmp.l >= 0 && (!simaUVSel_Check(efa, tface, 1))) {
 				coords[efa->v2->tmp.l*2] +=		tface->uv[1][0];
 				coords[(efa->v2->tmp.l*2)+1] +=	tface->uv[1][1];
 				usercount[efa->v2->tmp.l]++;
 				change = 1;
 			}
-			if (efa->v3->tmp.l >= 0 && (!SIMA_UVSEL_CHECK(efa, tface, 2))) {
+			if (efa->v3->tmp.l >= 0 && (!simaUVSel_Check(efa, tface, 2))) {
 				coords[efa->v3->tmp.l*2] +=		tface->uv[2][0];
 				coords[(efa->v3->tmp.l*2)+1] +=	tface->uv[2][1];
 				usercount[efa->v3->tmp.l]++;
@@ -1013,7 +1013,7 @@ int snap_uv_sel_to_adj_unsel(void)
 			}
 			
 			if (efa->v4) {
-				if (efa->v4->tmp.l >= 0 && (!SIMA_UVSEL_CHECK(efa, tface, 3))) {
+				if (efa->v4->tmp.l >= 0 && (!simaUVSel_Check(efa, tface, 3))) {
 					coords[efa->v4->tmp.l*2] +=		tface->uv[3][0];
 					coords[(efa->v4->tmp.l*2)+1] +=	tface->uv[3][1];
 					usercount[efa->v4->tmp.l]++;
@@ -1033,10 +1033,10 @@ int snap_uv_sel_to_adj_unsel(void)
 	/* copy the averaged unselected UVs back to the selected UVs */
 	for (efa= em->faces.first; efa; efa= efa->next) {
 //		tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-//		if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+//		if (simaFaceDraw_Check(efa, tface)) {
 		if ((tface=(MTFace *)efa->tmp.p)) {
 			
-			if (	SIMA_UVSEL_CHECK(efa, tface, 0) &&
+			if (	simaUVSel_Check(efa, tface, 0) &&
 					efa->v1->tmp.l >= 0 &&
 					(users = usercount[efa->v1->tmp.l])
 			) {
@@ -1044,7 +1044,7 @@ int snap_uv_sel_to_adj_unsel(void)
 				tface->uv[0][1] = coords[(efa->v1->tmp.l*2)+1]	/ users;
 			}
 
-			if (	SIMA_UVSEL_CHECK(efa, tface, 1) &&
+			if (	simaUVSel_Check(efa, tface, 1) &&
 					efa->v2->tmp.l >= 0 &&
 					(users = usercount[efa->v2->tmp.l])
 			) {
@@ -1052,7 +1052,7 @@ int snap_uv_sel_to_adj_unsel(void)
 				tface->uv[1][1] = coords[(efa->v2->tmp.l*2)+1]	/ users;
 			}
 			
-			if (	SIMA_UVSEL_CHECK(efa, tface, 2) &&
+			if (	simaUVSel_Check(efa, tface, 2) &&
 					efa->v3->tmp.l >= 0 &&
 					(users = usercount[efa->v3->tmp.l])
 			) {
@@ -1061,7 +1061,7 @@ int snap_uv_sel_to_adj_unsel(void)
 			}
 			
 			if (efa->v4) {
-				if (	SIMA_UVSEL_CHECK(efa, tface, 3) &&
+				if (	simaUVSel_Check(efa, tface, 3) &&
 						efa->v4->tmp.l >= 0 &&
 						(users = usercount[efa->v4->tmp.l])
 				) {
@@ -1098,12 +1098,12 @@ int snap_uv_sel_to_pixels(void) /* warning, sanity checks must alredy be done */
 	
 	for (efa= em->faces.first; efa; efa= efa->next) {
 		tface= CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-		if (SIMA_FACEDRAW_CHECK(efa, tface)) {
-			if (SIMA_UVSEL_CHECK(efa, tface, 0)) snap_coord_to_pixel(tface->uv[0], w, h);
-			if (SIMA_UVSEL_CHECK(efa, tface, 1)) snap_coord_to_pixel(tface->uv[1], w, h);
-			if (SIMA_UVSEL_CHECK(efa, tface, 2)) snap_coord_to_pixel(tface->uv[2], w, h);
+		if (simaFaceDraw_Check(efa, tface)) {
+			if (simaUVSel_Check(efa, tface, 0)) snap_coord_to_pixel(tface->uv[0], w, h);
+			if (simaUVSel_Check(efa, tface, 1)) snap_coord_to_pixel(tface->uv[1], w, h);
+			if (simaUVSel_Check(efa, tface, 2)) snap_coord_to_pixel(tface->uv[2], w, h);
 			if (efa->v4)
-				if (SIMA_UVSEL_CHECK(efa, tface, 3)) snap_coord_to_pixel(tface->uv[3], w, h);
+				if (simaUVSel_Check(efa, tface, 3)) snap_coord_to_pixel(tface->uv[3], w, h);
 			change = 1;
 		}
 	}
@@ -1184,8 +1184,8 @@ void sel_uvco_inside_radius(short sel, EditFace *efa, MTFace *tface, int index, 
 
 	r2 = x * x + y * y;
 	if (r2 < 1.0) {
-		if (sel == LEFTMOUSE)	SIMA_UVSEL_SET(efa, tface, select_index);
-		else					SIMA_UVSEL_UNSET(efa, tface, select_index);
+		if (sel == LEFTMOUSE)	simaUVSel_Set(efa, tface, select_index);
+		else					simaUVSel_UnSet(efa, tface, select_index);
 	}
 }
 
@@ -1435,7 +1435,7 @@ void select_linked_tface_uv(int mode) /* TODO */
 	if (mode == 2) {
 		for (a=0, efa= em->faces.first; efa; efa= efa->next, a++) {
 			tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-			if (SIMA_FACEDRAW_CHECK(efa, tf)) {
+			if (simaFaceDraw_Check(efa, tf)) {
 				if(tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4)) {
 					stack[stacksize]= a;
 					stacksize++;
@@ -1556,7 +1556,7 @@ void unlink_selection(void)
 	
 	for (efa= em->faces.first; efa; efa= efa->next) {
 		tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-		if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+		if (simaFaceDraw_Check(efa, tface)) {
 			if(efa->v4) {
 				if(~tface->flag & (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4))
 					tface->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
@@ -1624,9 +1624,9 @@ void uvface_setsel__internal(short select)
 			for(i=0; i<nverts; i++) {
 				if ((*(&efa->v1 + i))->tmp.l) {
 					if (select) {
-						SIMA_UVSEL_SET(efa, tf, i);
+						simaUVSel_Set(efa, tf, i);
 					} else {
-						SIMA_UVSEL_UNSET(efa, tf, i);
+						simaUVSel_UnSet(efa, tf, i);
 					}
 				}
 			}
@@ -1659,9 +1659,9 @@ void uvface_setsel__internal(short select)
 				nverts= efa->v4? 4: 3;
 				for(i=0; i<nverts; i++) {
 					if (select) {
-						SIMA_UVSEL_SET(efa, tf, i);
+						simaUVSel_Set(efa, tf, i);
 					} else {
-						SIMA_UVSEL_UNSET(efa, tf, i);
+						simaUVSel_UnSet(efa, tf, i);
 					}
 					
 					vlist= vlist_iter= get_uv_map_vert_EM(vmap, (*(&efa->v1 + i))->tmp.l);
@@ -1687,9 +1687,9 @@ void uvface_setsel__internal(short select)
 							tf_vlist = CustomData_em_get(&em->fdata, efa_vlist->data, CD_MTFACE);
 							
 							if (select) {
-								SIMA_UVSEL_SET(efa_vlist, tf_vlist, vlist_iter->tfindex);
+								simaUVSel_Set(efa_vlist, tf_vlist, vlist_iter->tfindex);
 							} else {
-								SIMA_UVSEL_UNSET(efa_vlist, tf_vlist, vlist_iter->tfindex);
+								simaUVSel_UnSet(efa_vlist, tf_vlist, vlist_iter->tfindex);
 							}
 						}
 						vlist_iter = vlist_iter->next;
@@ -1705,9 +1705,9 @@ void uvface_setsel__internal(short select)
 			if (efa->tmp.l) {
 				tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 				if (select) {
-					SIMA_FACESEL_SET(efa, tf);
+					simaFaceSel_Set(efa, tf);
 				} else {
-					SIMA_FACESEL_UNSET(efa, tf);
+					simaFaceSel_UnSet(efa, tf);
 				}
 			}
 		}
@@ -1724,20 +1724,20 @@ void pin_tface_uv(int mode)
 	
 	for (efa= em->faces.first; efa; efa= efa->next) {
 		tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-		if (SIMA_FACEDRAW_CHECK(efa, tface)) {
+		if (simaFaceDraw_Check(efa, tface)) {
 			if(mode ==1) {
-				if(SIMA_UVSEL_CHECK(efa, tface, 0)) tface->unwrap |= TF_PIN1;
-				if(SIMA_UVSEL_CHECK(efa, tface, 1)) tface->unwrap |= TF_PIN2;
-				if(SIMA_UVSEL_CHECK(efa, tface, 2)) tface->unwrap |= TF_PIN3;
+				if(simaUVSel_Check(efa, tface, 0)) tface->unwrap |= TF_PIN1;
+				if(simaUVSel_Check(efa, tface, 1)) tface->unwrap |= TF_PIN2;
+				if(simaUVSel_Check(efa, tface, 2)) tface->unwrap |= TF_PIN3;
 				if(efa->v4)
-					if(SIMA_UVSEL_CHECK(efa, tface, 3)) tface->unwrap |= TF_PIN4;
+					if(simaUVSel_Check(efa, tface, 3)) tface->unwrap |= TF_PIN4;
 			}
 			else if (mode ==0) {
-				if(SIMA_UVSEL_CHECK(efa, tface, 0)) tface->unwrap &= ~TF_PIN1;
-				if(SIMA_UVSEL_CHECK(efa, tface, 1)) tface->unwrap &= ~TF_PIN2;
-				if(SIMA_UVSEL_CHECK(efa, tface, 2)) tface->unwrap &= ~TF_PIN3;
+				if(simaUVSel_Check(efa, tface, 0)) tface->unwrap &= ~TF_PIN1;
+				if(simaUVSel_Check(efa, tface, 1)) tface->unwrap &= ~TF_PIN2;
+				if(simaUVSel_Check(efa, tface, 2)) tface->unwrap &= ~TF_PIN3;
 				if(efa->v4)
-					if(SIMA_UVSEL_CHECK(efa, tface, 3)) tface->unwrap &= ~TF_PIN4;
+					if(simaUVSel_Check(efa, tface, 3)) tface->unwrap &= ~TF_PIN4;
 			}
 		}
 	}
@@ -1756,12 +1756,12 @@ void select_pinned_tface_uv(void)
 	
 	for (efa= em->faces.first; efa; efa= efa->next) {
 		tface = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-		if (SIMA_FACEDRAW_CHECK(efa, tface)) {
-			if (tface->unwrap & TF_PIN1) SIMA_UVSEL_SET(efa, tface, 0);
-			if (tface->unwrap & TF_PIN2) SIMA_UVSEL_SET(efa, tface, 1);
-			if (tface->unwrap & TF_PIN3) SIMA_UVSEL_SET(efa, tface, 2);
+		if (simaFaceDraw_Check(efa, tface)) {
+			if (tface->unwrap & TF_PIN1) simaUVSel_Set(efa, tface, 0);
+			if (tface->unwrap & TF_PIN2) simaUVSel_Set(efa, tface, 1);
+			if (tface->unwrap & TF_PIN3) simaUVSel_Set(efa, tface, 2);
 			if(efa->v4) {
-				if (tface->unwrap & TF_PIN4) SIMA_UVSEL_SET(efa, tface, 3);
+				if (tface->unwrap & TF_PIN4) simaUVSel_Set(efa, tface, 3);
 			}
 			
 		}
@@ -1789,11 +1789,11 @@ int minmax_tface_uv(float *min, float *max)
 	sel= 0;
 	for (efa= em->faces.first; efa; efa= efa->next) {
 		tf = CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-		if (SIMA_FACEDRAW_CHECK(efa, tf)) {
-			if (SIMA_UVSEL_CHECK(efa, tf, 0))				DO_MINMAX2(tf->uv[0], min, max);
-			if (SIMA_UVSEL_CHECK(efa, tf, 1))				DO_MINMAX2(tf->uv[1], min, max);
-			if (SIMA_UVSEL_CHECK(efa, tf, 2))				DO_MINMAX2(tf->uv[2], min, max);
-			if (efa->v4 && (SIMA_UVSEL_CHECK(efa, tf, 3)))	DO_MINMAX2(tf->uv[3], min, max);
+		if (simaFaceDraw_Check(efa, tf)) {
+			if (simaUVSel_Check(efa, tf, 0))				DO_MINMAX2(tf->uv[0], min, max);
+			if (simaUVSel_Check(efa, tf, 1))				DO_MINMAX2(tf->uv[1], min, max);
+			if (simaUVSel_Check(efa, tf, 2))				DO_MINMAX2(tf->uv[2], min, max);
+			if (efa->v4 && (simaUVSel_Check(efa, tf, 3)))	DO_MINMAX2(tf->uv[3], min, max);
 			sel = 1;
 		}
 	}
@@ -1816,11 +1816,11 @@ int cent_tface_uv(float *cent, int mode)
 		
 		for (efa= G.editMesh->faces.first; efa; efa= efa->next) {
 			tf = CustomData_em_get(&G.editMesh->fdata, efa->data, CD_MTFACE);
-			if (SIMA_FACEDRAW_CHECK(efa, tf)) {
-				if (SIMA_UVSEL_CHECK(efa, tf, 0))				{ DO_MINMAX2(tf->uv[0], min, max);	change= 1;}
-				if (SIMA_UVSEL_CHECK(efa, tf, 1))				{ DO_MINMAX2(tf->uv[1], min, max);	change= 1;}
-				if (SIMA_UVSEL_CHECK(efa, tf, 2))				{ DO_MINMAX2(tf->uv[2], min, max);	change= 1;}
-				if (efa->v4 && (SIMA_UVSEL_CHECK(efa, tf, 3)))	{ DO_MINMAX2(tf->uv[3], min, max);	change= 1;}
+			if (simaFaceDraw_Check(efa, tf)) {
+				if (simaUVSel_Check(efa, tf, 0))				{ DO_MINMAX2(tf->uv[0], min, max);	change= 1;}
+				if (simaUVSel_Check(efa, tf, 1))				{ DO_MINMAX2(tf->uv[1], min, max);	change= 1;}
+				if (simaUVSel_Check(efa, tf, 2))				{ DO_MINMAX2(tf->uv[2], min, max);	change= 1;}
+				if (efa->v4 && (simaUVSel_Check(efa, tf, 3)))	{ DO_MINMAX2(tf->uv[3], min, max);	change= 1;}
 			}
 		}
 	}
@@ -2340,4 +2340,97 @@ void aspect_sima(SpaceImage *sima, float *x, float *y)
 	
 	/* x is always 1 */
 	*y = sima->image->aspy / sima->image->aspx;
+}
+
+
+/* Face selection tests  - Keep these together */
+
+/* this checks weather a face is drarn without the local image check */
+int simaFaceDraw_Check_nolocal( EditFace *efa )
+{
+	if (G.sima && G.sima->flag & SI_SYNC_UVSEL) {
+		return (efa->h==0);
+	} else {
+		return (efa->h==0 && efa->f & SELECT);
+	}
+	return 0;
+}
+
+int simaFaceDraw_Check( EditFace *efa, MTFace *tf )
+{
+	if (G.sima && G.sima->flag & SI_LOCAL_UV) {
+		if (tf->tpage==G.sima->image) {
+			return simaFaceDraw_Check_nolocal(efa);
+		} else {
+			return 0;
+		}
+	} else {
+		return simaFaceDraw_Check_nolocal(efa);
+	}
+}
+
+int simaFaceSel_Check( struct EditFace *efa, struct MTFace *tf )
+{
+	if (G.sima && G.sima->flag & SI_SYNC_UVSEL) {
+		return (efa->f & SELECT);
+	} else {
+		return (!(~tf->flag & (TF_SEL1|TF_SEL2|TF_SEL3)) &&(!efa->v4 || tf->flag & TF_SEL4));
+	}
+}
+
+void simaFaceSel_Set( struct EditFace *efa, struct MTFace *tf )
+{
+	if (G.sima && G.sima->flag & SI_SYNC_UVSEL) {
+		EM_select_face(efa, 1);
+	} else {
+		tf->flag |= (TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
+	}
+}
+
+void simaFaceSel_UnSet( struct EditFace *efa, struct MTFace *tf )
+{
+	if (G.sima && G.sima->flag & SI_SYNC_UVSEL) {
+		EM_select_face(efa, 0);
+	} else {
+		tf->flag &= ~(TF_SEL1|TF_SEL2|TF_SEL3|TF_SEL4);
+	}
+}
+
+int simaUVSel_Check( struct EditFace *efa, struct MTFace *tf, int i)
+{
+	if (G.sima && G.sima->flag & SI_SYNC_UVSEL) {
+		if (G.scene->selectmode == SCE_SELECT_FACE) {
+			return efa->f & SELECT;
+		} else {
+			return (*(&efa->v1 + i))->f & SELECT;
+		}
+	} else {
+		return tf->flag & TF_SEL_MASK(i);
+	}
+}
+
+void simaUVSel_Set( struct EditFace *efa, struct MTFace *tf, int i)
+{
+	if (G.sima && G.sima->flag & SI_SYNC_UVSEL) {
+		if (G.scene->selectmode == SCE_SELECT_FACE) {
+			EM_select_face(efa, 1);
+		} else {
+			(*(&efa->v1 + i))->f |= SELECT;
+		}
+	} else {
+		tf->flag |= TF_SEL_MASK(i);
+	}
+}
+
+void simaUVSel_UnSet( struct EditFace *efa, struct MTFace *tf, int i)
+{
+	if (G.sima && G.sima->flag & SI_SYNC_UVSEL) {
+		if (G.scene->selectmode == SCE_SELECT_FACE) {
+			EM_select_face(efa, 0);
+		} else {
+			(*(&efa->v1 + i))->f &= ~SELECT;
+		}
+	} else {
+		tf->flag &= ~TF_SEL_MASK(i);
+	}
 }

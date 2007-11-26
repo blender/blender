@@ -93,6 +93,7 @@ void sort_faces(void);
 #include "BDR_sculptmode.h"
 
 #include "BLI_editVert.h"
+#include "BLI_ghash.h"
 #include "BLI_threads.h"
 #include "BLI_rand.h" /* for randome face sorting */
 
@@ -820,6 +821,100 @@ EditVert *editmesh_get_x_mirror_vert(Object *ob, float *co)
 	return NULL;
 }
 
+static unsigned int mirror_facehash(void *ptr)
+{
+	MFace *mf= ptr;
+	int v0, v1;
+
+	if(mf->v4) {
+		v0= MIN4(mf->v1, mf->v2, mf->v3, mf->v4);
+		v1= MAX4(mf->v1, mf->v2, mf->v3, mf->v4);
+	}
+	else {
+		v0= MIN3(mf->v1, mf->v2, mf->v3);
+		v1= MAX3(mf->v1, mf->v2, mf->v3);
+	}
+
+	return ((v0*39)^(v1*31));
+}
+
+static int mirror_facerotation(MFace *a, MFace *b)
+{
+	if(b->v4) {
+		if(a->v1==b->v1 && a->v2==b->v2 && a->v3==b->v3 && a->v4==b->v4)
+			return 0;
+		else if(a->v4==b->v1 && a->v1==b->v2 && a->v2==b->v3 && a->v3==b->v4)
+			return 1;
+		else if(a->v3==b->v1 && a->v4==b->v2 && a->v1==b->v3 && a->v2==b->v4)
+			return 2;
+		else if(a->v2==b->v1 && a->v3==b->v2 && a->v4==b->v3 && a->v1==b->v4)
+			return 3;
+	}
+	else {
+		if(a->v1==b->v1 && a->v2==b->v2 && a->v3==b->v3)
+			return 0;
+		else if(a->v3==b->v1 && a->v1==b->v2 && a->v2==b->v3)
+			return 1;
+		else if(a->v2==b->v1 && a->v3==b->v2 && a->v1==b->v3)
+			return 2;
+	}
+	
+	return -1;
+}
+
+static int mirror_facecmp(void *a, void *b)
+{
+	return (mirror_facerotation((MFace*)a, (MFace*)b) == -1);
+}
+
+int *mesh_get_x_mirror_faces(Object *ob)
+{
+	Mesh *me= ob->data;
+	MVert *mv, *mvert= me->mvert;
+	MFace mirrormf, *mf, *hashmf, *mface= me->mface;
+	GHash *fhash;
+	int *mirrorverts, *mirrorfaces;
+	float vec[3];
+	int a;
+
+	mirrorverts= MEM_callocN(sizeof(int)*me->totvert, "MirrorVerts");
+	mirrorfaces= MEM_callocN(sizeof(int)*2*me->totface, "MirrorFaces");
+
+	mesh_octree_table(ob, NULL, 's');
+
+	for(a=0, mv=mvert; a<me->totvert; a++, mv++) {
+		vec[0]= -mv->co[0];
+		vec[1]= mv->co[1];
+		vec[2]= mv->co[2];
+		mirrorverts[a]= mesh_octree_table(ob, vec, 'u');
+	}
+
+	mesh_octree_table(ob, NULL, 'e');
+
+	fhash= BLI_ghash_new(mirror_facehash, mirror_facecmp);
+	for(a=0, mf=mface; a<me->totface; a++, mf++)
+		BLI_ghash_insert(fhash, mf, mf);
+
+	for(a=0, mf=mface; a<me->totface; a++, mf++) {
+		mirrormf.v1= mirrorverts[mf->v3];
+		mirrormf.v2= mirrorverts[mf->v2];
+		mirrormf.v3= mirrorverts[mf->v1];
+		mirrormf.v4= (mf->v4)? mirrorverts[mf->v4]: 0;
+
+		hashmf= BLI_ghash_lookup(fhash, &mirrormf);
+		if(hashmf) {
+			mirrorfaces[a*2]= hashmf - mface;
+			mirrorfaces[a*2+1]= mirror_facerotation(&mirrormf, hashmf);
+		}
+		else
+			mirrorfaces[a*2]= -1;
+	}
+
+	BLI_ghash_free(fhash, NULL, NULL);
+	MEM_freeN(mirrorverts);
+	
+	return mirrorfaces;
+}
 
 /* ****************** render BAKING ********************** */
 

@@ -83,6 +83,7 @@ extern void validate_editbonebutton_cb(void *bonev, void *namev);
 
 #define TAB_OBJECT_OBJECT	0
 #define TAB_OBJECT_PHYSICS 	1
+#define TAB_OBJECT_PARTICLE	2
 
 #define TAB_SCENE_RENDER	0
 #define TAB_SCENE_WORLD		1

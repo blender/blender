@@ -70,6 +70,7 @@ struct DerivedMesh {
 	CustomData vertData, edgeData, faceData;
 	int numVertData, numEdgeData, numFaceData;
 	int needsFree; /* checked on ->release, is set to 0 for cached results */
+	int deformedOnly; /* set by modifier stack if only deformed from original */
 
 	/* Misc. Queries */
 

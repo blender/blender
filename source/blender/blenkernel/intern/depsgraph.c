@@ -57,6 +57,7 @@
 #include "DNA_object_force.h"
 #include "DNA_object_fluidsim.h"
 #include "DNA_oops_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -72,8 +73,9 @@
 #include "BKE_mball.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
-#include "BKE_scene.h"
+#include "BKE_particle.h"
 #include "BKE_utildefines.h"
+#include "BKE_scene.h"
 
 #include "MEM_guardedalloc.h"
 #include "blendef.h"
@@ -353,6 +355,7 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 	DagNode * node2;
 	DagNode * node3;
 	Key *key;
+	ParticleSystem *psys;
 	int addtoroot= 1;
 	
 	node = dag_get_node(dag, ob);
@@ -583,6 +586,54 @@ static void build_dag_object(DagForest *dag, DagNode *scenenode, Object *ob, int
 				}
 				
 				pdEndEffectors(listb);	/* restores copy... */
+			}
+		}
+	}
+
+	psys= ob->particlesystem.first;
+	if(psys) {
+		ParticleEffectorCache *nec;
+
+		for(; psys; psys=psys->next) {
+			ParticleSettings *part= psys->part;
+			
+			dag_add_relation(dag, node, node, DAG_RL_OB_DATA);
+
+			if(part->phystype==PART_PHYS_KEYED && psys->keyed_ob &&
+			   BLI_findlink(&psys->keyed_ob->particlesystem,psys->keyed_psys-1)) {
+				node2 = dag_get_node(dag, psys->keyed_ob);
+				dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA);
+			}
+
+			if(psys->effectors.first)
+				psys_end_effectors(psys);
+			psys_init_effectors(ob,psys->part->eff_group,psys);
+
+			if(psys->effectors.first) {
+				for(nec= psys->effectors.first; nec; nec= nec->next) {
+					Object *ob1= nec->ob;
+
+					if(nec->type & PSYS_EC_EFFECTOR) {
+						node2 = dag_get_node(dag, ob1);
+						if(ob1->pd->forcefield==PFIELD_GUIDE)
+							dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA);
+						else
+							dag_add_relation(dag, node2, node, DAG_RL_OB_DATA);
+					}
+					else if(nec->type & PSYS_EC_DEFLECT) {
+						node2 = dag_get_node(dag, ob1);
+						dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA|DAG_RL_OB_DATA);
+					}
+					else if(nec->type & PSYS_EC_PARTICLE) {
+						node2 = dag_get_node(dag, ob1);
+						dag_add_relation(dag, node2, node, DAG_RL_DATA_DATA);
+					}
+					
+					if(nec->type & PSYS_EC_REACTOR) {
+						node2 = dag_get_node(dag, ob1);
+						dag_add_relation(dag, node, node2, DAG_RL_DATA_DATA);
+					}
+				}
 			}
 		}
 	}
@@ -1813,6 +1864,8 @@ static void dag_object_time_update_flags(Object *ob)
 						ob->recalc |= OB_RECALC_DATA; // NT FSPARTICLE
 					}
 				}
+				if(ob->particlesystem.first)
+					ob->recalc |= OB_RECALC_DATA;
 				break;
 			case OB_CURVE:
 			case OB_SURF:
@@ -1841,6 +1894,17 @@ static void dag_object_time_update_flags(Object *ob)
 			case OB_MBALL:
 				if(ob->transflag & OB_DUPLI) ob->recalc |= OB_RECALC_DATA;
 				break;
+		}
+
+		if(ob->particlesystem.first) {
+			ParticleSystem *psys= ob->particlesystem.first;
+
+			for(; psys; psys=psys->next) {
+				if(psys->flag & PSYS_ENABLED) {
+					ob->recalc |= OB_RECALC_DATA;
+					break;
+				}
+			}
 		}
 	}		
 }

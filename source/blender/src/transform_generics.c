@@ -44,6 +44,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
+#include "DNA_particle_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
@@ -59,6 +60,7 @@
 #include "BIF_editmesh.h"
 #include "BIF_editnla.h"
 #include "BIF_editsima.h"
+#include "BIF_editparticle.h"
 #include "BIF_meshtools.h"
 #include "BIF_retopo.h"
 
@@ -189,6 +191,8 @@ static void clipMirrorModifier(TransInfo *t, Object *ob)
 							break;
 						if (td->loc==NULL)
 							break;
+			if (td->flag & TD_SKIP)
+				continue;
 			
 						VecCopyf(loc,  td->loc);
 						VecCopyf(iloc, td->iloc);
@@ -247,6 +251,8 @@ static void editmesh_apply_to_mirror(TransInfo *t)
 			break;
 		if (td->loc==NULL)
 			break;
+		if (td->flag & TD_SKIP)
+			continue;
 		
 		eve= td->tdmir;
 		if(eve) {
@@ -378,7 +384,7 @@ void recalcData(TransInfo *t)
 				if(t->state != TRANS_CANCEL)
 					clipMirrorModifier(t, G.obedit);
 				
-				if(G.scene->toolsettings->editbutflag & B_MESH_X_MIRROR)
+				if((t->context & CTX_NO_MIRROR) == 0 && (G.scene->toolsettings->editbutflag & B_MESH_X_MIRROR))
 					editmesh_apply_to_mirror(t);
 				
 				DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);  /* sets recalc flags */
@@ -476,6 +482,9 @@ void recalcData(TransInfo *t)
 		}
 		else
 			where_is_pose(ob);
+	}
+	else if(G.f & G_PARTICLEEDIT) {
+		flushTransParticles(t);
 	}
 	else {
 		for(base= FIRSTBASE; base; base= base->next) {
@@ -577,6 +586,7 @@ void initTrans (TransInfo *t)
 {
 	/* moving: is shown in drawobject() (transform color) */
 	if(G.obedit || (t->flag & T_POSE) ) G.moving= G_TRANSFORM_EDIT;
+	else if(G.f & G_PARTICLEEDIT) G.moving= G_TRANSFORM_PARTICLE;
 	else G.moving= G_TRANSFORM_OBJ;
 
 	t->data = NULL;
@@ -724,7 +734,7 @@ static void restoreElement(TransData *td) {
 	if (td->val) {
 		*td->val = td->ival;
 	}
-	if (td->ext) {
+	if (td->ext && (td->flag&TD_NO_EXT)==0) {
 		if (td->ext->rot) {
 			VECCOPY(td->ext->rot, td->ext->irot);
 		}

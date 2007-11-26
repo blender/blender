@@ -39,6 +39,7 @@ struct Camera;
 struct View3D;
 
 void	arrows_move_cursor(unsigned short event);
+int		lasso_inside(short mcords[][2], short moves, short sx, short sy);
 void	borderselect(void);
 void	circle_select(void);
 void	deselectall(void);

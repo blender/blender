@@ -221,10 +221,10 @@ ParamHandle *construct_param_handle(EditMesh *em, short implicit, short fill, sh
 		tf= (MTFace *)CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
 		
 		if (implicit &&
-			!(	SIMA_UVSEL_CHECK(efa, tf, 0) ||
-				SIMA_UVSEL_CHECK(efa, tf, 1) ||
-				SIMA_UVSEL_CHECK(efa, tf, 2) ||
-				(efa->v4 && SIMA_UVSEL_CHECK(efa, tf, 3)) )
+			!(	simaUVSel_Check(efa, tf, 0) ||
+				simaUVSel_Check(efa, tf, 1) ||
+				simaUVSel_Check(efa, tf, 2) ||
+				(efa->v4 && simaUVSel_Check(efa, tf, 3)) )
 		) {
 			continue;
 		}
@@ -246,16 +246,16 @@ ParamHandle *construct_param_handle(EditMesh *em, short implicit, short fill, sh
 		pin[1] = ((tf->unwrap & TF_PIN2) != 0);
 		pin[2] = ((tf->unwrap & TF_PIN3) != 0);
 
-		select[0] = ((SIMA_UVSEL_CHECK(efa, tf, 0)) != 0);
-		select[1] = ((SIMA_UVSEL_CHECK(efa, tf, 1)) != 0);
-		select[2] = ((SIMA_UVSEL_CHECK(efa, tf, 2)) != 0);
+		select[0] = ((simaUVSel_Check(efa, tf, 0)) != 0);
+		select[1] = ((simaUVSel_Check(efa, tf, 1)) != 0);
+		select[2] = ((simaUVSel_Check(efa, tf, 2)) != 0);
 
 		if (efa->v4) {
 			vkeys[3] = (ParamKey)efa->v4->tmp.l;
 			co[3] = efa->v4->co;
 			uv[3] = tf->uv[3];
 			pin[3] = ((tf->unwrap & TF_PIN4) != 0);
-			select[3] = (SIMA_UVSEL_CHECK(efa, tf, 3) != 0);
+			select[3] = (simaUVSel_Check(efa, tf, 3) != 0);
 			nverts = 4;
 		}
 		else
@@ -304,7 +304,7 @@ void unwrap_lscm(short seamcut)
 			MTFace *tf;
 			for(efa=em->faces.first; efa; efa=efa->next) {
 				tf= (MTFace *)CustomData_em_get(&em->fdata, efa->data, CD_MTFACE);
-				SIMA_FACESEL_SET(efa, tf);
+				simaFaceSel_Set(efa, tf);
 			}
 		}
 	}

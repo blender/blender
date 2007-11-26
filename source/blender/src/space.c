@@ -65,6 +65,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h" /* used for select grouped hooks */
 #include "DNA_object_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sequence_types.h"
@@ -90,6 +91,7 @@
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 #include "BKE_image.h" /* for IMA_TYPE_COMPOSITE and IMA_TYPE_R_RESULT */
+#include "BKE_particle.h"
 
 #include "BIF_spacetypes.h"  /* first, nasty dependency with typedef */
 
@@ -99,6 +101,7 @@
 #include "BIF_drawtext.h"
 #include "BIF_drawscript.h"
 #include "BIF_editarmature.h"
+#include "BIF_editparticle.h"
 #include "BIF_editconstraint.h"
 #include "BIF_editdeform.h"
 #include "BIF_editfont.h"
@@ -988,6 +991,9 @@ void BIF_undo_push(char *str)
 		else if (G.obedit->type==OB_ARMATURE)
 			undo_push_armature(str);
 	}
+	else if(G.f & G_PARTICLEEDIT) {
+		PE_undo_push(str);
+	}
 	else {
 		if(U.uiflag & USER_GLOBALUNDO) 
 			BKE_write_undo(str);
@@ -1005,6 +1011,8 @@ void BIF_undo(void)
 			imagepaint_undo();
 		else if(curarea->spacetype==SPACE_IMAGE && (G.sima->flag & SI_DRAWTOOL))
 			imagepaint_undo();
+		else if(G.f & G_PARTICLEEDIT)
+			PE_undo();
 		else {
 			/* now also in faceselect mode */
 			if(U.uiflag & USER_GLOBALUNDO) {
@@ -1026,6 +1034,8 @@ void BIF_redo(void)
 			imagepaint_undo();
 		else if(curarea->spacetype==SPACE_IMAGE && (G.sima->flag & SI_DRAWTOOL))
 			imagepaint_undo();
+		else if(G.f & G_PARTICLEEDIT)
+			PE_redo();
 		else {
 			/* includes faceselect now */
 			if(U.uiflag & USER_GLOBALUNDO) {
@@ -1044,7 +1054,9 @@ void BIF_undo_menu(void)
 		allqueue(REDRAWALL, 0);
 	}
 	else {
-		if(U.uiflag & USER_GLOBALUNDO) {
+		if(G.f & G_PARTICLEEDIT)
+			PE_undo_menu();
+		else if(U.uiflag & USER_GLOBALUNDO) {
 			char *menu= BKE_undo_menu_string();
 			if(menu) {
 				short event= pupmenu_col(menu, 20);
@@ -1191,6 +1203,17 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else if(event!=LEFTMOUSE && event!=MIDDLEMOUSE && (event==MOUSEY || event==MOUSEX)) {
 					if(!bwin_qtest(sa->win))
 						allqueue(REDRAWVIEW3D, 0);
+				}
+			}
+			else if(!G.obedit && OBACT && G.f&G_PARTICLEEDIT){
+				ParticleSystem *psys=PE_get_current(OBACT);
+				ParticleEditSettings *pset=PE_settings();
+				if(psys && psys->edit){
+					if(pset->brushtype>=0 &&
+						event!=LEFTMOUSE && event!=RIGHTMOUSE && event!=MIDDLEMOUSE &&
+						(event==MOUSEY || event==MOUSEX) && bwin_qtest(sa->win)==0) {
+						allqueue(REDRAWVIEW3D, 0);
+					}
 				}
 			}
 
@@ -1557,7 +1580,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			 * based on user preference USER_LMOUSESELECT
 			 */
 			case LEFTMOUSE: 
-				if ((G.obedit) || !(G.f&(G_VERTEXPAINT|G_WEIGHTPAINT|G_TEXTUREPAINT))) {
+				if ((G.obedit) || !(G.f&(G_VERTEXPAINT|G_WEIGHTPAINT|G_TEXTUREPAINT|G_PARTICLEEDIT))) {
 					mouse_cursor();
 				}
 				else if (G.f & G_WEIGHTPAINT) {
@@ -1568,6 +1591,12 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				else if (G.f & G_TEXTUREPAINT) {
 					imagepaint_paint(L_MOUSE, 1);
+				}
+				else if (G.f & G_PARTICLEEDIT) {
+					if(G.qual & LR_CTRLKEY)
+						mouse_cursor();
+					else if(!PE_brush_particles())
+						mouse_cursor();
 				}
 				break;
 			case MIDDLEMOUSE:
@@ -1596,6 +1625,8 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					face_select();
 				else if( G.f & (G_VERTEXPAINT|G_TEXTUREPAINT))
 					sample_vpaint();
+				else if( G.f & G_PARTICLEEDIT)
+					PE_mouse_particles();
 				else
 					mouse_select();	/* does poses too */
 				break;
@@ -1714,6 +1745,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					}
 					else {
 						if(FACESEL_PAINT_TEST) deselectall_tface();
+						else if(G.f & G_PARTICLEEDIT) PE_deselectall();
 						else {
 							/* by design, the center of the active object 
 							 * (which need not necessarily by selected) will
@@ -1984,6 +2016,14 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				else if(FACESEL_PAINT_TEST)
 					hide_tface();
+				else if(G.f & G_PARTICLEEDIT) {
+					if(G.qual == LR_ALTKEY)
+						PE_hide(0);
+					else if(G.qual == LR_SHIFTKEY)
+						PE_hide(1);
+					else if(G.qual == 0)
+						PE_hide(2);
+				}
 				else if(ob && (ob->flag & OB_POSEMODE)) {
 					if (G.qual==0)
 						hide_selected_pose_bones();
@@ -2097,6 +2137,9 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						else if(G.qual==LR_CTRLKEY)
 							select_linked_tfaces(2);
 					}
+					else if(G.f & G_PARTICLEEDIT) {
+						PE_select_linked();
+					}
 					else {
 						if((G.qual==0))
 							make_local_menu();
@@ -2172,7 +2215,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				
 				break;
 			case OKEY:
-				if (G.obedit) {
+				if (G.obedit || G.f&G_PARTICLEEDIT) {
 					if (G.qual==LR_SHIFTKEY) {
 						G.scene->prop_mode = (G.scene->prop_mode+1)%7;
 						allqueue(REDRAWHEADERS, 0);
@@ -2377,6 +2420,10 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						}
 					}
 				}
+				else if(G.f & G_PARTICLEEDIT) {
+					initTransform(TFM_BAKE_TIME, CTX_NONE);
+					Transform();
+				}
 				else if(G.qual==LR_CTRLKEY) {
 					if(ob && (ob->flag & OB_POSEMODE));
 					else make_track();
@@ -2404,6 +2451,9 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					if(G.obedit->type==OB_MESH && G.qual==0) {
 						uv_autocalc_tface();
 					}
+				}
+				else if (G.f & G_PARTICLEEDIT){
+					if(G.qual==0) BIF_undo(); else BIF_redo();
 				}
 				else if((G.qual==0)) {
 					if(G.f & G_WEIGHTPAINT)
@@ -2583,6 +2633,9 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else if ( (G.qual==LR_CTRLKEY)
 					 && (G.obedit) && (G.obedit->type==OB_SURF) )
 					select_less_nurb(); 
+				else if ( (G.qual==LR_CTRLKEY)
+					 && (G.f & G_PARTICLEEDIT) )
+					PE_select_less();
 				else {
 					persptoetsen(event);
 					doredraw= 1;
@@ -2599,6 +2652,9 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				else if ( (G.qual==LR_CTRLKEY)
 					 && (G.obedit) && (G.obedit->type==OB_SURF) )
 					select_more_nurb();
+				else if ( (G.qual==LR_CTRLKEY)
+					 && (G.f & G_PARTICLEEDIT) )
+					PE_select_more();
 				else {
 					persptoetsen(event);
 					doredraw= 1;
@@ -4396,6 +4452,8 @@ void extern_set_butspace(int fkey, int do_cycle)
 			if (sbuts->tab[CONTEXT_OBJECT]==TAB_OBJECT_OBJECT)
 				sbuts->tab[CONTEXT_OBJECT]=TAB_OBJECT_PHYSICS;
 			else if (sbuts->tab[CONTEXT_OBJECT]==TAB_OBJECT_PHYSICS)
+				sbuts->tab[CONTEXT_OBJECT]=TAB_OBJECT_PARTICLE;
+			else if (sbuts->tab[CONTEXT_OBJECT]==TAB_OBJECT_PARTICLE)
 				sbuts->tab[CONTEXT_OBJECT]=TAB_OBJECT_OBJECT;
 		}
 		else sbuts->mainb= CONTEXT_OBJECT;

@@ -54,6 +54,7 @@
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_fluidsim.h"
+#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_texture_types.h"
@@ -69,6 +70,7 @@
 #include "BKE_key.h"
 #include "BKE_main.h"
 #include "BKE_material.h"
+#include "BKE_particle.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
@@ -152,6 +154,15 @@ void spaceipo_assign_ipo(SpaceIpo *si, Ipo *ipo)
 					}
 					ob->fluidsimSettings->ipo = ipo;
 				} 
+				else if(si->blocktype==ID_PA) {
+					ParticleSystem *psys=psys_get_current(ob);
+					if(psys){
+						if(psys->part->ipo){
+							psys->part->ipo->id.us--;
+						}
+						psys->part->ipo = ipo;
+					}
+				}
 				else if(si->blocktype==ID_OB) {
 					if(ob->ipo)
 						ob->ipo->id.us--;
@@ -935,6 +946,10 @@ static char *ipo_modeselect_pup(void)
 		if(ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) {
 			str += sprintf(str,formatstring,"Fluidsim",ID_FLUIDSIM, ICON_WORLD);
 		}
+
+		if(ob->particlesystem.first) {
+			str += sprintf(str,formatstring,"Particles",ID_PA, ICON_PARTICLES);
+		}
 	}
 
 	str += sprintf(str,formatstring, "Sequence",ID_SEQ, ICON_SEQUENCE);
@@ -1304,6 +1319,8 @@ void ipo_buttons(void)
 		icon = ICON_TEXTURE;
 	else if(G.sipo->blocktype == ID_FLUIDSIM)
 		icon = ICON_WORLD;
+	else if(G.sipo->blocktype == ID_PA)
+		icon = ICON_PARTICLES;
 
 	uiDefIconTextButS(block, MENU, B_IPOMAIN, icon, ipo_modeselect_pup(), xco,0,100,20, &(G.sipo->blocktype), 0, 0, 0, 0, "Show IPO type");
 

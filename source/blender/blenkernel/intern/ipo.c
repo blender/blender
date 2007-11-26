@@ -52,6 +52,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
+#include "DNA_particle_types.h"
 #include "DNA_sequence_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sound_types.h"
@@ -93,7 +94,7 @@ int ob_ar[OB_TOTIPO]= {
 	OB_ROT_X, OB_ROT_Y, OB_ROT_Z, OB_DROT_X, OB_DROT_Y, OB_DROT_Z, 
 	OB_SIZE_X, OB_SIZE_Y, OB_SIZE_Z, OB_DSIZE_X, OB_DSIZE_Y, OB_DSIZE_Z, 
 	OB_LAY, OB_TIME, OB_COL_R, OB_COL_G, OB_COL_B, OB_COL_A,
-	OB_PD_FSTR, OB_PD_FFALL, OB_PD_SDAMP, OB_PD_RDAMP, OB_PD_PERM
+	OB_PD_FSTR, OB_PD_FFALL, OB_PD_SDAMP, OB_PD_RDAMP, OB_PD_PERM, OB_PD_FMAXD
 };
 
 int ac_ar[AC_TOTIPO]= {
@@ -180,6 +181,12 @@ int fluidsim_ar[FLUIDSIM_TOTIPO]= {
 	FLUIDSIM_ACTIVE 
 };
 
+int part_ar[PART_TOTIPO]= {
+	PART_EMIT_FREQ, PART_EMIT_LIFE, PART_EMIT_VEL, PART_EMIT_AVE, PART_EMIT_SIZE,
+	PART_AVE, PART_SIZE, PART_DRAG, PART_BROWN, PART_DAMP, PART_LENGTH, PART_CLUMP,
+    PART_GRAV_X, PART_GRAV_Y, PART_GRAV_Z, PART_KINK_AMP, PART_KINK_FREQ, PART_KINK_SHAPE,
+	PART_BB_TILT
+};
 
 
 float frame_to_float(int cfra)		/* see also bsystem_time in object.c */
@@ -1231,6 +1238,7 @@ void *get_ipo_poin(ID *id, IpoCurve *icu, int *type)
 	Lamp *la;
 	Sequence *seq;
 	World *wo;
+	ParticleSettings *part;
 
 	*type= IPO_FLOAT;
 
@@ -1307,6 +1315,9 @@ void *get_ipo_poin(ID *id, IpoCurve *icu, int *type)
 			break;
 		case OB_PD_PERM:
 			if(ob->pd) poin= &(ob->pd->pdef_perm);
+			break;
+		case OB_PD_FMAXD:
+			if(ob->pd) poin= &(ob->pd->maxdist);
 			break;
 		}
 	}
@@ -1560,7 +1571,48 @@ void *get_ipo_poin(ID *id, IpoCurve *icu, int *type)
 			poin= &(snd->attenuation); break;
 		}
 	}
-	
+	else if( GS(id->name)==ID_PA) {
+		
+		part= (ParticleSettings *)id;
+		
+		switch(icu->adrcode) {
+		case PART_EMIT_FREQ:
+		case PART_EMIT_LIFE:
+		case PART_EMIT_VEL:
+		case PART_EMIT_AVE:
+		case PART_EMIT_SIZE:
+			poin= NULL; break;
+		case PART_CLUMP:
+			poin= &(part->clumpfac); break;
+		case PART_AVE:
+			poin= &(part->avefac); break;
+		case PART_SIZE:
+			poin= &(part->size); break;
+		case PART_DRAG:
+			poin= &(part->dragfac); break;
+		case PART_BROWN:
+			poin= &(part->brownfac); break;
+		case PART_DAMP:
+			poin= &(part->dampfac); break;
+		case PART_LENGTH:
+			poin= &(part->length); break;
+		case PART_GRAV_X:
+			poin= &(part->acc[0]); break;
+		case PART_GRAV_Y:
+			poin= &(part->acc[1]); break;
+		case PART_GRAV_Z:
+			poin= &(part->acc[2]); break;
+		case PART_KINK_AMP:
+			poin= &(part->kink_amp); break;
+		case PART_KINK_FREQ:
+			poin= &(part->kink_freq); break;
+		case PART_KINK_SHAPE:
+			poin= &(part->kink_shape); break;
+		case PART_BB_TILT:
+			poin= &(part->bb_tilt); break;
+		}
+	}
+
 	return poin;
 }
 
@@ -1853,6 +1905,29 @@ void set_icu_vars(IpoCurve *icu)
 			icu->ymin= 0.0;
 			icu->ymin= 1.0;
 			break;
+		}
+	}
+	else if(icu->blocktype==ID_PA){
+
+		switch(icu->adrcode) {
+		case PART_EMIT_LIFE:
+		case PART_SIZE:
+		case PART_KINK_FREQ:
+		case PART_EMIT_VEL:
+		case PART_EMIT_AVE:
+		case PART_EMIT_SIZE:
+			icu->ymin= 0.0;
+			break;
+		case PART_CLUMP:
+		case PART_DRAG:
+		case PART_DAMP:
+		case PART_LENGTH:
+			icu->ymin= 0.0;
+			icu->ymax= 1.0;
+			break;
+		case PART_KINK_SHAPE:
+			icu->ymin= -0.999;
+			icu->ymax= 0.999;
 		}
 	}
 	else if(icu->blocktype==ID_CO) {
@@ -2325,6 +2400,7 @@ void make_cfra_list(Ipo *ipo, ListBase *elems)
 				case OB_PD_SDAMP:
 				case OB_PD_RDAMP:
 				case OB_PD_PERM:
+				case OB_PD_FMAXD:
 					bezt= icu->bezt;
 					if(bezt) {
 						a= icu->totvert;

@@ -47,11 +47,13 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_action.h"
+#include "BKE_cloth.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_library.h"
 #include "BKE_softbody.h"
 #include "BKE_utildefines.h"
+#include "BKE_particle.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -61,6 +63,7 @@
 
 #include "BIF_butspace.h"
 #include "BIF_editaction.h"
+#include "BIF_editparticle.h"
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 #include "BIF_graphics.h"
@@ -73,6 +76,7 @@
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
+#include "BIF_outliner.h"
 
 #include "BDR_drawobject.h"
 #include "BDR_editcurve.h"
@@ -102,6 +106,7 @@
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
 #include "DNA_object_fluidsim.h"
+#include "DNA_particle_types.h"
 #include "DNA_radio_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_sound_types.h"
@@ -114,7 +119,6 @@
 
 #include "BKE_anim.h"
 #include "BKE_armature.h"
-#include "BKE_cloth.h"
 #include "BKE_constraint.h"
 #include "BKE_curve.h"
 #include "BKE_deform.h"
@@ -131,6 +135,7 @@
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
+#include "BKE_particle.h"
 #include "BKE_sound.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
@@ -141,6 +146,7 @@
 
 #include "BIF_editconstraint.h"
 #include "BIF_editdeform.h"
+#include "BIF_editparticle.h"
 
 #include "BSE_editipo.h"
 #include "BSE_edit.h"
@@ -827,21 +833,19 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				
 				/* Draw target parameters */
 				uiBlockBeginAlign(block);
-
-				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
-				
-				if (is_armature_target(data->tar)) {
-					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
-					uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
-				}
-				else if (is_geom_target(data->tar)) { 
-					but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
-					uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
-				}
-				else {
-					strcpy(data->subtarget, "");
-				}
-
+					uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco+120, *yco-24, 135, 18, &data->tar, "Target Object"); 
+					
+					if (is_armature_target(data->tar)) {
+						but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "BO:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Subtarget Bone");
+						uiButSetCompleteFunc(but, autocomplete_bone, (void *)data->tar);
+					}
+					else if (is_geom_target(data->tar)) { 
+						but= uiDefBut(block, TEX, B_CONSTRAINT_CHANGETARGET, "VG:", *xco+120, *yco-42,135,18, &data->subtarget, 0, 24, 0, 0, "Name of Vertex Group defining 'target' points");
+						uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)data->tar);
+					}
+					else {
+						strcpy(data->subtarget, "");
+					}
 				uiBlockEndAlign(block);
 				
 				/* Draw XYZ toggles */
@@ -887,7 +891,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 						strcpy(data->subtarget, "");
 					}
 				uiBlockEndAlign(block);
-
+				
 				/* Draw XYZ toggles */
 				uiBlockBeginAlign(block);
 					uiDefButBitI(block, TOG, SIZELIKE_X, B_CONSTRAINT_TEST, "X", *xco+((width/2)-48), *yco-64, 32, 18, &data->flag, 0, 24, 0, 0, "Copy X component");
@@ -914,7 +918,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				
 				/* IK Target */
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Target:", *xco, *yco-24, 50, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
-
+				
 				/* Draw target parameters */
 				uiBlockBeginAlign(block);
 				uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_CONSTRAINT_CHANGETARGET, "OB:", *xco, *yco-44, 137, 19, &data->tar, "Target Object"); 
@@ -2137,9 +2141,16 @@ void do_object_panels(unsigned short event)
 		break;
 	
 	case B_SOFTBODY_CHANGE:
-		ob->softflag |= OB_SB_REDO;
-		allqueue(REDRAWBUTSOBJECT, 0);
-		allqueue(REDRAWVIEW3D, 0);
+		ob= OBACT;
+		if(ob) {
+			ParticleSystem *psys = PE_get_current(ob);
+			if(psys)
+				psys->softflag |= OB_SB_REDO;
+			else
+				ob->softflag |= OB_SB_REDO;
+			allqueue(REDRAWBUTSOBJECT, 0);
+			allqueue(REDRAWVIEW3D, 0);
+		}
 		break;
 	case B_SOFTBODY_DEL_VG:
 		if(ob->soft) {
@@ -2202,74 +2213,15 @@ void do_object_panels(unsigned short event)
 		group_relink_nla_objects(ob);
 		allqueue(REDRAWVIEW3D, 0);
 		break;
-		
+	case B_BAKEABLE_CHANGE:
+		allqueue(REDRAWBUTSOBJECT, 0);
+		allqueue(REDRAWVIEW3D, 0);
+		break;
 	case B_OBJECT_IPOFLAG:
 		if(ob->ipo) ob->ipo->showkey= (ob->ipoflag & OB_DRAWKEY)?1:0;
 		allqueue(REDRAWVIEW3D, 0);
-	case B_CLOTH_CLEARCACHEALL:
-		{
-			ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-			if(clmd)
-			{
-				CFRA= 1;
-				update_for_newframe_muted();
-				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA); 
-				cloth_clear_cache(ob, clmd, 2); 
-				allqueue(REDRAWBUTSOBJECT, 0);
-				allqueue(REDRAWVIEW3D, 0);
-			}	
-		}
-		break;	
-	case B_CLOTH_CLEARCACHEFRAME:
-		{
-			ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-			if(clmd)
-			{
-				cloth_clear_cache(ob, clmd, MAX2(2.0,G.scene->r.cfra+1.0));
-				allqueue(REDRAWBUTSOBJECT, 0);
-			}
-		}
-		break;	
-	case B_CLOTH_CHANGEPREROLL:
-		{
-			ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-			if(clmd)
-			{
-				/*
-				if(clmd->sim_parms->cache)
-				{
-					CFRA= 1;
-					update_for_newframe_muted();
-					DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA); 
-					allqueue(REDRAWBUTSOBJECT, 0);
-					allqueue(REDRAWVIEW3D, 0);
-				}
-				*/
-			}
-		}
 		break;
-	case B_CLOTH_DEL_VG:
-		{
-			ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-			if(clmd)
-			{
-				clmd->sim_parms->vgroup_mass = 0;
-				do_object_panels(B_CLOTH_RENEW);
-			}
-			
-			allqueue(REDRAWBUTSOBJECT, 0);
-		}
-		break;	
-	case B_CLOTH_RENEW:
-		{
-			ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-			if(clmd)
-			{
-				do_object_panels(B_CLOTH_CLEARCACHEALL);
-				cloth_free_modifier (clmd);
-			}
-		}
-		break;
+		
 	default:
 		if(event>=B_SELEFFECT && event<B_SELEFFECT+MAX_EFFECT) {
 			int a=B_SELEFFECT;
@@ -2613,8 +2565,16 @@ void do_effects_panels(unsigned short event)
 	Base *base;
 	Effect *eff, *effn;
 	PartEff *paf;
+	ModifierData *md;
+	ParticleSystemModifierData *psmd;
+	ParticleSystem *psys;
+	ParticleSettings *part;
+	ID *id,*idtest;
+	int nr;
 	
 	ob= OBACT;
+
+	psys=psys_get_current(ob);
 
 	switch(event) {
 
@@ -2734,6 +2694,232 @@ void do_effects_panels(unsigned short event)
 			allqueue(REDRAWVIEW3D, 0);
 		}
 		break;
+	case B_PARTBROWSE:
+		if(G.buts->menunr== -2) {
+			activate_databrowse((ID *)G.buts->lockpoin, ID_PA, 0, B_PARTBROWSE, &G.buts->menunr, do_effects_panels);
+			return;
+		}
+		
+		if(G.buts->menunr < 0) return;
+		
+		if(G.buts->pin) {
+			
+		}
+		else {
+			psys= psys_get_current(ob);
+			if(psys)
+				part=psys->part;
+			else
+				part=NULL;
+
+			nr= 1;
+			
+			id= (ID *)part;
+			
+			idtest= G.main->particle.first;
+			while(idtest) {
+				if(nr==G.buts->menunr) {
+					break;
+				}
+				nr++;
+				idtest= idtest->next;
+			}
+			if(idtest==0) { /* new particle system */
+				if(id){
+					idtest= (ID *)psys_copy_settings((ParticleSettings *)id);
+				}
+				else {
+					idtest= (ID *)psys_new_settings("PSys", G.main);
+				}
+				idtest->us--;
+			}
+			if(idtest!=id) {
+				short nr=0;
+				if(id==0){ /* no psys previously -> no modifier -> need to create that also */
+					psys = MEM_callocN(sizeof(ParticleSystem), "particle_system");
+					BLI_addtail(&ob->particlesystem,psys);
+
+					md= modifier_new(eModifierType_ParticleSystem);
+					sprintf(md->name, "ParticleSystem %i", BLI_countlist(&ob->particlesystem));
+					psmd= (ParticleSystemModifierData*) md;
+					psmd->psys=psys;
+					BLI_addtail(&ob->modifiers, md);
+				}
+
+				idtest->us++;
+				psys->part=(ParticleSettings*)idtest;
+				psys->totpart=0;
+				psys->flag=PSYS_ENABLED|PSYS_CURRENT;
+				psys->cfra=bsystem_time(ob,G.scene->r.cfra+1,0.0);
+
+				/* check need for dupliobjects */
+				nr=0;
+				for(psys=ob->particlesystem.first; psys; psys=psys->next){
+					if(ELEM(psys->part->draw_as,PART_DRAW_OB,PART_DRAW_GR))
+						nr++;
+				}
+				if(nr)
+					ob->transflag |= OB_DUPLIPARTS;
+				else
+					ob->transflag &= ~OB_DUPLIPARTS;
+
+				BIF_undo_push("Browse Particle System");
+
+				DAG_scene_sort(G.scene);
+				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+
+				allqueue(REDRAWVIEW3D, 0);
+				allqueue(REDRAWBUTSOBJECT, 0);
+				allqueue(REDRAWOOPS, 0);
+			}
+			
+		}
+		break;
+	case B_PARTDELETE:
+		if(ob && ob->particlesystem.first){
+			psys= psys_get_current(ob);
+			if(psys) {
+				/* clear modifier */
+				psmd= psys_get_modifier(ob,psys);
+				BLI_remlink(&ob->modifiers, psmd);
+				modifier_free((ModifierData *)psmd);
+
+				/* clear particle system */
+				BLI_remlink(&ob->particlesystem,psys);
+				psys_free(ob,psys);
+
+				BIF_undo_push("Delete particle system");
+
+				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+
+				allqueue(REDRAWVIEW3D, 0);
+				allqueue(REDRAWBUTSOBJECT, 0);
+				allqueue(REDRAWOOPS, 0);
+			}
+		}
+		break;
+	case B_PARTALONE: /* TODO: not too sure of how this works so someone check please, jahka */
+		if(ob && (psys=psys_get_current(ob))){
+			if(psys->part) {
+				if(psys->part->id.us>1){
+					if(okee("Make local")){
+						part=psys_copy_settings(psys->part);
+						part->id.us=1;
+						psys->part->id.us--;
+						psys->part=part;
+
+						allqueue(REDRAWVIEW3D, 0);
+						allqueue(REDRAWBUTSOBJECT, 0);
+						allqueue(REDRAWOOPS, 0);
+
+						BIF_undo_push("Make single user or local");
+					}
+				}
+			}
+		}
+		break;
+	case B_PART_ALLOC:
+	case B_PART_ALLOC_CHILD:
+		if(psys){
+			psys_flush_settings(psys->part,PSYS_ALLOC,event==B_PART_ALLOC);
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWBUTSOBJECT, 0);
+			allqueue(REDRAWOOPS, 0);
+		}
+		break;
+	case B_PART_DISTR:
+	case B_PART_DISTR_CHILD:
+		if(psys){
+			psys_flush_settings(psys->part,PSYS_DISTR,event==B_PART_DISTR);
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWBUTSOBJECT, 0);
+			allqueue(REDRAWOOPS, 0);
+		}
+		break;
+	case B_PART_INIT:
+	case B_PART_INIT_CHILD:
+		if(psys){
+			psys_flush_settings(psys->part,PSYS_INIT,event==B_PART_INIT);
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWBUTSOBJECT, 0);
+			allqueue(REDRAWOOPS, 0);
+		}
+		break;
+	case B_PART_RECALC:
+	case B_PART_RECALC_CHILD:
+		if(psys){
+			psys_flush_settings(psys->part,0,event==B_PART_RECALC);
+			allqueue(REDRAWOOPS, 0);
+		}
+		/* no break! */
+	case B_PART_REDRAW:
+		nr=0;
+		for(psys=ob->particlesystem.first; psys; psys=psys->next){
+			if(ELEM(psys->part->draw_as,PART_DRAW_OB,PART_DRAW_GR))
+				nr++;
+		}
+		if(nr)
+			ob->transflag |= OB_DUPLIPARTS;
+		else
+			ob->transflag &= ~OB_DUPLIPARTS;
+
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWBUTSOBJECT, 0);
+		break;
+	case B_PARTTYPE:
+		if((psys=psys_get_current(ob))){
+			DAG_scene_sort(G.scene);
+
+			psys_flush_settings(psys->part,PSYS_TYPE,1);
+		}
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWBUTSOBJECT, 0);
+		break;
+	case B_PARTACT:
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWBUTSOBJECT, 0);
+		allqueue(REDRAWIPO, 0);
+		break;
+	case B_PARTTARGET:
+		if((psys=psys_get_current(ob))){
+			if(psys->keyed_ob==ob || psys->target_ob==ob){
+				if(psys->keyed_ob==ob)
+					psys->keyed_ob=NULL;
+				else
+					psys->target_ob=NULL;
+			}
+			else{
+				DAG_scene_sort(G.scene);
+				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			}
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWBUTSOBJECT, 0);
+		}
+		break;
+	case B_PART_REKEY:
+		PE_rekey();
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWBUTSEDIT, 0);
+		break;
+	case B_PART_EDITABLE:
+		if((psys = psys_get_current(ob))) {
+			if(psys->flag & PSYS_EDITED){
+				if(okee("Lose changes done in particle mode?")){
+					if(psys->edit)
+						PE_free_particle_edit(psys);
+
+					psys->flag &= ~PSYS_EDITED;
+					psys->recalc |= PSYS_RECALC_HAIR;
+
+					DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+				}
+			}
+			else {
+				psys->flag |= PSYS_EDITED;
+				if(G.f & G_PARTICLEEDIT)
+					PE_create_particle_edit(ob, psys);
+			}
+		}
 	case B_FIELD_DEP:
 		/* do this before scene sort, that one checks for CU_PATH */
 		if(ob->type==OB_CURVE && ob->pd->forcefield==PFIELD_GUIDE) {
@@ -2753,6 +2939,10 @@ void do_effects_panels(unsigned short event)
 		allqueue(REDRAWBUTSOBJECT, 0);
 		break;
 	case B_FIELD_CHANGE:
+		if(ob->pd->forcefield != PFIELD_TEXTURE && ob->pd->tex){
+			ob->pd->tex->id.us--;
+			ob->pd->tex=0;
+		}
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);
 		allqueue(REDRAWVIEW3D, 0);
 		break;
@@ -2797,32 +2987,76 @@ void do_effects_panels(unsigned short event)
 
 }
 
-/* Panel for collision */
-static void object_collision__enabletoggle(void *ob_v, void *arg2)
+/* copy from buttons_editing.c */
+static void field_testTexture(char *name, ID **idpp)
 {
-	Object *ob = ob_v;
-	ModifierData *md = modifiers_findByType(ob, eModifierType_Collision);
+	ID *id;
 
-	if (!md) {
-		md = modifier_new(eModifierType_Collision);
-		BLI_addhead(&ob->modifiers, md);
+	for(id = G.main->tex.first; id; id = id->next) {
+		if(strcmp(name, id->name + 2) == 0) {
+			*idpp = id;
+			/* texture gets user, objects not: delete object = clear modifier */
+			id_us_plus(id);
+			return;
+		}
 	}
-	else {
-		BLI_remlink(&ob->modifiers, md);
-		modifier_free(md);
-	}
-
-	allqueue(REDRAWBUTSEDIT, 0);
+	*idpp = 0;
 }
+/* Panels for particle interaction settings */
+static void object_panel_deflection(Object *ob)
+{
+	uiBlock *block;
 
-/* Panel for particle interaction settings */
+	block= uiNewBlock(&curarea->uiblocks, "object_panel_deflection", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Deflection", "Physics", 0, 0, 318, 204)==0) return;
+
+	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+	
+	/* should become button, option? */
+	if(ob->pd==NULL) {
+		ob->pd= MEM_callocN(sizeof(PartDeflect), "PartDeflect");
+		/* and if needed, init here */
+		ob->pd->pdef_sbdamp = 0.1f;
+		ob->pd->pdef_sbift  = 0.2f;
+		ob->pd->pdef_sboft  = 0.02f;
+	}
+	
+	/* only meshes collide now */
+	if(ob->pd && ob->type==OB_MESH) {
+		PartDeflect *pd= ob->pd;
+		
+		uiDefButBitS(block, TOG, 1, B_REDR, "Deflection",160,160,150,20, &pd->deflect, 0, 0, 0, 0, "Deflects particles based on collision");
+		if(pd->deflect) {
+			uiDefBut(block, LABEL, 0, "Particles",			160,140,75,20, NULL, 0.0, 0, 0, 0, "");
+			uiDefButBitS(block, TOG, PDEFLE_KILL_PART, B_DIFF, "Kill",235,140,75,20, &pd->flag, 0, 0, 0, 0, "Kill collided particles");
+
+			uiBlockBeginAlign(block);
+			uiDefButF(block, NUM, B_DIFF, "Damping: ",		160,120,75,20, &pd->pdef_damp, 0.0, 1.0, 10, 0, "Amount of damping during particle collision");
+			uiDefButF(block, NUM, B_DIFF, "Rnd Damping: ",	235,120,75,20, &pd->pdef_rdamp, 0.0, 1.0, 10, 0, "Random variation of damping");
+			uiDefButF(block, NUM, B_DIFF, "Friction: ",		160,100,75,20, &pd->pdef_frict, 0.0, 1.0, 10, 0, "Amount of friction during particle collision");
+			uiDefButF(block, NUM, B_DIFF, "Rnd Friction: ",	235,100,75,20, &pd->pdef_rfrict, 0.0, 1.0, 10, 0, "Random variation of friction");
+			uiDefButF(block, NUM, B_DIFF, "Permeability: ",	160,80,150,20, &pd->pdef_perm, 0.0, 1.0, 10, 0, "Chance that the particle will pass through the mesh");
+			uiBlockEndAlign(block);
+			
+			uiDefBut(block, LABEL, 0, "Soft Body",			160,60,150,20, NULL, 0.0, 0, 0, 0, "");
+
+			uiBlockBeginAlign(block);
+			uiDefButF(block, NUM, B_FIELD_CHANGE, "Damping:",	160,40,150,20, &pd->pdef_sbdamp, 0.0, 1.0, 10, 0, "Amount of damping during soft body collision");
+			uiDefButF(block, NUM, B_FIELD_CHANGE, "Inner:",	160,20,150,20, &pd->pdef_sbift, 0.001, 1.0, 10, 0, "Inner face thickness");
+			uiDefButF(block, NUM, B_FIELD_CHANGE, "Outer:",	160, 0,150,20, &pd->pdef_sboft, 0.001, 1.0, 10, 0, "Outer face thickness");
+		}
+	}
+}
 static void object_panel_fields(Object *ob)
 {
 	uiBlock *block;
 	uiBut *but;
+	int particles=0;
+	static short actpsys=-1;
 
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_fields", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Fields and Deflection", "Physics", 0, 0, 318, 204)==0) return;
+	uiNewPanelTabbed("Deflection", "Physics");
+	if(uiNewPanel(curarea, block, "Fields", "Physics", 0, 0, 318, 204)==0) return;
 
 	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	
@@ -2840,67 +3074,154 @@ static void object_panel_fields(Object *ob)
 		char *menustr= MEM_mallocN(256, "temp string");
 		char *tipstr="Choose field type";
 		
-		uiDefBut(block, LABEL, 0, "Fields",		10,180,140,20, NULL, 0.0, 0, 0, 0, "");
-		
+		if(ob->particlesystem.first) {
+			ParticleSystem *psys;
+			char *menustr2= psys_menu_string(ob,1);
+			
+			psys= psys_get_current(ob);
+			if(psys && actpsys >= 0) {
+				actpsys= psys_get_current_num(ob)+1;
+
+				if(psys->part->pd==NULL)
+					psys->part->pd= MEM_callocN(sizeof(PartDeflect), "PartDeflect");
+
+				pd= psys->part->pd;
+				particles=1;
+			}
+			else
+				actpsys= -1; /* -1 = object */
+
+			but=uiDefButS(block, MENU, B_BAKE_REDRAWEDIT, menustr2, 10,180,70,20, &actpsys, 14.0, 0.0, 0, 0, "Browse systems");
+			uiButSetFunc(but, PE_change_act, ob, &actpsys);
+
+			MEM_freeN(menustr2);
+		}
+
 		/* setup menu button */
-		sprintf(menustr, "Field Type%%t|None %%x0|Spherical %%x%d|Wind %%x%d|Vortex %%x%d|Curve Guide %%x%d", 
-				PFIELD_FORCE, PFIELD_WIND, PFIELD_VORTEX, PFIELD_GUIDE);
+		if(particles){
+			sprintf(menustr, "Field Type%%t|None%%x0|Spherical%%x%d|Wind%%x%d|Vortex%%x%d|Magnetic%%x%d|Harmonic%%x%d", 
+					PFIELD_FORCE, PFIELD_WIND, PFIELD_VORTEX, PFIELD_MAGNET, PFIELD_HARMONIC);
+
+			if(pd->forcefield==PFIELD_FORCE) tipstr= "Particle attracts or repels particles";
+			else if(pd->forcefield==PFIELD_WIND) tipstr= "Constant force applied in direction of particle Z axis";
+			else if(pd->forcefield==PFIELD_VORTEX) tipstr= "Particles swirl around Z-axis of the particle";
+		}
+		else{
+			if(ob->type==OB_CURVE)
+				sprintf(menustr, "Field Type%%t|None%%x0|Spherical%%x%d|Wind%%x%d|Vortex%%x%d|Curve Guide%%x%d|Magnetic%%x%d|Harmonic%%x%d|Texture%%x%d", 
+						PFIELD_FORCE, PFIELD_WIND, PFIELD_VORTEX, PFIELD_GUIDE, PFIELD_MAGNET, PFIELD_HARMONIC, PFIELD_TEXTURE);
+			else
+				sprintf(menustr, "Field Type%%t|None%%x0|Spherical%%x%d|Wind%%x%d|Vortex%%x%d|Magnetic%%x%d|Harmonic%%x%d|Texture%%x%d", 
+						PFIELD_FORCE, PFIELD_WIND, PFIELD_VORTEX, PFIELD_MAGNET, PFIELD_HARMONIC, PFIELD_TEXTURE);
+
+			if(pd->forcefield==PFIELD_FORCE) tipstr= "Object center attracts or repels particles";
+			else if(pd->forcefield==PFIELD_WIND) tipstr= "Constant force applied in direction of Object Z axis";
+			else if(pd->forcefield==PFIELD_VORTEX) tipstr= "Particles swirl around Z-axis of the Object";
+			else if(pd->forcefield==PFIELD_GUIDE) tipstr= "Use a Curve Path to guide particles";
+		}
 		
-		if(pd->forcefield==PFIELD_FORCE) tipstr= "Object center attracts or repels particles";
-		else if(pd->forcefield==PFIELD_WIND) tipstr= "Constant force applied in direction of Object Z axis";
-		else if(pd->forcefield==PFIELD_VORTEX) tipstr= "Particles swirl around Z-axis of the Object";
-		else if(pd->forcefield==PFIELD_GUIDE) tipstr= "Use a Curve Path to guide particles";
-		
-		uiDefButS(block, MENU, B_FIELD_DEP, menustr,			10,160,140,20, &pd->forcefield, 0.0, 0.0, 0, 0, tipstr);
+		if(ob->particlesystem.first)
+			uiDefButS(block, MENU, B_FIELD_DEP, menustr,			80,180,70,20, &pd->forcefield, 0.0, 0.0, 0, 0, tipstr);
+		else
+			uiDefButS(block, MENU, B_FIELD_DEP, menustr,			10,180,140,20, &pd->forcefield, 0.0, 0.0, 0, 0, tipstr);
+
 		MEM_freeN(menustr);
 		
 		if(pd->forcefield) {
 			uiBlockBeginAlign(block);
 			if(pd->forcefield == PFIELD_GUIDE) {
-				uiDefButF(block, NUM, B_FIELD_CHANGE, "MinDist: ",	10,120,140,20, &pd->f_strength, 0.0, 1000.0, 10, 0, "The distance from which particles are affected fully.");
-				uiDefButF(block, NUM, B_FIELD_CHANGE, "Fall-off: ",	10,100,140,20, &pd->f_power, 0.0, 10.0, 10, 0, "Falloff factor, between mindist and maxdist");
+				uiDefButF(block, NUM, B_FIELD_CHANGE, "MinDist: ",	10,140,140,20, &pd->f_strength, 0.0, 1000.0, 10, 0, "The distance from which particles are affected fully.");
+				uiDefButF(block, NUM, B_FIELD_CHANGE, "Fall-off: ",	10,120,140,20, &pd->f_power, 0.0, 10.0, 10, 0, "Falloff factor, between mindist and maxdist");
+				uiDefButF(block, NUM, B_FIELD_CHANGE, "Free: ",	10,100,140,20, &pd->free_end, 0.0, 0.99, 10, 0, "Guide-free time from particle life's end");
+				uiBlockEndAlign(block);
+				uiBlockBeginAlign(block);
+				uiDefButBitS(block, TOG, PFIELD_USEMAX, B_FIELD_CHANGE, "Use",	10,80,40,20, &pd->flag, 0.0, 0, 0, 0, "Use a maximum distance for the field to work");
+				uiDefButF(block, NUM, B_FIELD_CHANGE, "MaxDist: ",	50,80,100,20, &pd->maxdist, 0, 1000.0, 10, 0, "Maximum distance for the field to work");
 			}
-			else {	
-				uiDefButF(block, NUM, B_FIELD_CHANGE, "Strength: ",	10,110,140,20, &pd->f_strength, -1000, 1000, 10, 0, "Strength of force field");
-				uiDefButF(block, NUM, B_FIELD_CHANGE, "Fall-off: ",	10,90,140,20, &pd->f_power, 0, 10, 10, 0, "Falloff power (real gravitational fallof = 2)");
+			else {
+				uiDefButF(block, NUM, B_FIELD_CHANGE, "Strength: ",	10,140,140,20, &pd->f_strength, -1000, 1000, 10, 0, "Strength of force field");
+				
+				if(pd->forcefield == PFIELD_TEXTURE){
+					uiDefIDPoinBut(block, field_testTexture, ID_TE, B_FIELD_CHANGE, "Texture: ", 10, 120, 140, 20, &pd->tex, "Texture to use as force");
+					uiDefButBitS(block, TOG, PFIELD_TEX_OBJECT, B_FIELD_CHANGE, "Use Object Co",	10,100,140,20, &pd->flag, 0.0, 0, 0, 0, "Use object/global coordinates for texture");
+					uiDefButBitS(block, TOG, PFIELD_TEX_2D, B_FIELD_CHANGE, "2D",	10,80,140,20, &pd->flag, 0.0, 0, 0, 0, "Apply force only in 2d");
+				}
+				else if(pd->forcefield == PFIELD_HARMONIC) 
+					uiDefButF(block, NUM, B_FIELD_CHANGE, "Damp: ",	10,120,140,20, &pd->f_damp, 0, 10, 10, 0, "Damping of the harmonic force");	
 			}
-			
-			uiBlockBeginAlign(block);
-			uiDefButBitS(block, TOG, PFIELD_USEMAX, B_FIELD_CHANGE, "Use MaxDist",	10,60,140,20, &pd->flag, 0.0, 0, 0, 0, "Use a maximum distance for the field to work");
-			uiDefButF(block, NUM, B_FIELD_CHANGE, "MaxDist: ",	10,40,140,20, &pd->maxdist, 0, 1000.0, 10, 0, "Maximum distance for the field to work");
 			uiBlockEndAlign(block);
 			
-			if(pd->forcefield == PFIELD_GUIDE)
-				uiDefButBitS(block, TOG, PFIELD_GUIDE_PATH_ADD, B_FIELD_CHANGE, "Additive",	10,10,140,20, &pd->flag, 0.0, 0, 0, 0, "Based on distance/falloff it adds a portion of the entire path");
+			uiBlockBeginAlign(block);
+			if(pd->forcefield == PFIELD_GUIDE){
+				uiDefButBitS(block, TOG, PFIELD_GUIDE_PATH_ADD, B_FIELD_CHANGE, "Additive",	10,40,140,20, &pd->flag, 0.0, 0, 0, 0, "Based on distance/falloff it adds a portion of the entire path");
+			}
+			else if(pd->forcefield==PFIELD_TEXTURE){
+				uiDefButS(block, MENU, B_FIELD_CHANGE, "Texture mode%t|RGB%x0|Gradient%x1|Curl%x2",	10,40,140,20, &pd->tex_mode, 0.0, 0.0, 0, 0, "How the texture effect is calculated (RGB & Curl need a RGB texture)");
+	
+				uiDefButF(block, NUM, B_FIELD_CHANGE, "Nabla:",	10,20,140,20, &pd->tex_nabla, 0.0001f, 1.0, 1, 0, "Specify the dimension of the area for gradient and curl calculation");
+			}
+			else if(particles==0 && ELEM(pd->forcefield,PFIELD_VORTEX,PFIELD_WIND)==0){
+				//uiDefButF(block, NUM, B_FIELD_CHANGE, "Distance: ",	10,20,140,20, &pd->f_dist, 0, 1000.0, 10, 0, "Falloff power (real gravitational fallof = 2)");
+				uiDefButBitS(block, TOG, PFIELD_PLANAR, B_FIELD_CHANGE, "Planar",	10,0,140,20, &pd->flag, 0.0, 0, 0, 0, "Create planar field");
+			}
+			uiBlockEndAlign(block);
 			
-		}
-		
-		uiDefBut(block, LABEL, 0, "Deflection",	160,180,140,20, NULL, 0.0, 0, 0, 0, "");
-			
-		/* only meshes collide now */
-		if(ob->type==OB_MESH) {
-			but = uiDefButBitS(block, TOG, 1, B_REDR, "Deflection/Collision",160,160,150,20, &pd->deflect, 0, 0, 0, 0, "Make object collision object for dynamics");
-			uiButSetFunc(but, object_collision__enabletoggle, ob, NULL);
-			if(pd->deflect) {
-				uiDefBut(block, LABEL, 0, "Particles",			160,140,150,20, NULL, 0.0, 0, 0, 0, "");
-				
+			if(pd->forcefield==PFIELD_GUIDE){
 				uiBlockBeginAlign(block);
-				uiDefButF(block, NUM, B_DIFF, "Damping: ",		160,120,150,20, &pd->pdef_damp, 0.0, 1.0, 10, 0, "Amount of damping during particle collision");
-				uiDefButF(block, NUM, B_DIFF, "Rnd Damping: ",	160,100,150,20, &pd->pdef_rdamp, 0.0, 1.0, 10, 0, "Random variation of damping");
-				uiDefButF(block, NUM, B_DIFF, "Permeability: ",	160,80,150,20, &pd->pdef_perm, 0.0, 1.0, 10, 0, "Chance that the particle will pass through the mesh");
+				uiDefButF(block, NUMSLI, B_FIELD_CHANGE, "Clump:",		160,180,140,20, &pd->clump_fac, -1.0, 1.0, 1, 3, "Amount of clumpimg");
+				uiDefButF(block, NUMSLI, B_FIELD_CHANGE, "Shape:",		160,160,140,20, &pd->clump_pow, -0.999, 0.999, 1, 3, "Shape of clumpimg");
 				uiBlockEndAlign(block);
-				
-				uiDefBut(block, LABEL, 0, "Soft Body",			160,60,150,20, NULL, 0.0, 0, 0, 0, "");
 
 				uiBlockBeginAlign(block);
-				uiDefButF(block, NUM, B_FIELD_CHANGE, "Damping:",	160,40,150,20, &pd->pdef_sbdamp, 0.0, 1.0, 10, 0, "Amount of damping during soft body collision");
-				uiDefButF(block, NUM, B_FIELD_CHANGE, "Inner:",	160,20,150,20, &pd->pdef_sbift, 0.001, 1.0, 10, 0, "Inner face thickness");
-				uiDefButF(block, NUM, B_FIELD_CHANGE, "Outer:",	160, 0,150,20, &pd->pdef_sboft, 0.001, 1.0, 10, 0, "Outer face thickness");
+				if(pd->kink){
+					uiDefButS(block, MENU, B_FIELD_CHANGE, "Kink:%t|Roll%x6|Rotation%x5|Braid%x4|Wave%x3|Radial%x2|Curl%x1|Nothing%x0", 160,120,70,20, &pd->kink, 14.0, 0.0, 0, 0, "Type of periodic offset on the curve");
+					uiDefButS(block, MENU, B_FIELD_CHANGE, "Axis %t|Z %x2|Y %x1|X %x0", 230,120,70,20, &pd->kink_axis, 14.0, 0.0, 0, 0, "Which axis to use for offset");
+					uiDefButF(block, NUM, B_FIELD_CHANGE, "Freq:",			160,100,140,20, &pd->kink_freq, 0.0, 10.0, 1, 3, "The frequency of the offset (1/total length)");
+					uiDefButF(block, NUMSLI, B_FIELD_CHANGE, "Shape:",		160,80,140,20, &pd->kink_shape, -0.999, 0.999, 1, 3, "Adjust the offset to the beginning/end");
+					uiDefButF(block, NUM, B_FIELD_CHANGE, "Amplitude:",	160,60,140,20, &pd->kink_amp, 0.0, 10.0, 1, 3, "The amplitude of the offset");
+				}
+				else{
+					uiDefButS(block, MENU, B_FIELD_CHANGE, "Kink:%t|Roll%x6|Rotation%x5|Braid%x4|Wave%x3|Radial%x2|Curl%x1|Nothing%x0", 160,120,140,20, &pd->kink, 14.0, 0.0, 0, 0, "Type of periodic offset on the curve");
+				}
+				uiBlockEndAlign(block);
 			}
-		}		
+			else{
+				uiDefButS(block, MENU, B_FIELD_DEP, "Fall-off%t|Cone%x2|Tube%x1|Sphere%x0",	160,180,140,20, &pd->falloff, 0.0, 0.0, 0, 0, tipstr);
+				if(pd->falloff==PFIELD_FALL_TUBE)
+					uiDefBut(block, LABEL, 0, "Lognitudinal",		160,160,70,20, NULL, 0.0, 0, 0, 0, "");
+				uiBlockBeginAlign(block);
+				uiDefButBitS(block, TOG, PFIELD_POSZ, B_FIELD_CHANGE, "Pos",	160,140,40,20, &pd->flag, 0.0, 0, 0, 0, "Effect only in direction of positive Z axis");
+				uiDefButF(block, NUM, B_FIELD_CHANGE, "Fall-off: ",	200,140,100,20, &pd->f_power, 0, 10, 10, 0, "Falloff power (real gravitational falloff = 2)");
+				uiDefButBitS(block, TOG, PFIELD_USEMAX, B_FIELD_CHANGE, "Use",	160,120,40,20, &pd->flag, 0.0, 0, 0, 0, "Use a maximum distance for the field to work");
+				uiDefButF(block, NUM, B_FIELD_CHANGE, "MaxDist: ",	200,120,100,20, &pd->maxdist, 0, 1000.0, 10, 0, "Maximum distance for the field to work");
+				uiDefButBitS(block, TOG, PFIELD_USEMIN, B_FIELD_CHANGE, "Use",	160,100,40,20, &pd->flag, 0.0, 0, 0, 0, "Use a minimum distance for the field's fall-off");
+				uiDefButF(block, NUM, B_FIELD_CHANGE, "MinDist: ",	200,100,100,20, &pd->mindist, 0, 1000.0, 10, 0, "Minimum distance for the field's fall-off");
+				uiBlockEndAlign(block);
+
+				if(pd->falloff==PFIELD_FALL_TUBE){
+					uiDefBut(block, LABEL, 0, "Radial",		160,80,70,20, NULL, 0.0, 0, 0, 0, "");
+					uiBlockBeginAlign(block);
+					uiDefButF(block, NUM, B_FIELD_CHANGE, "Fall-off: ",	160,60,140,20, &pd->f_power_r, 0, 10, 10, 0, "Radial falloff power (real gravitational falloff = 2)");
+					uiDefButBitS(block, TOG, PFIELD_USEMAXR, B_FIELD_CHANGE, "Use",	160,40,40,20, &pd->flag, 0.0, 0, 0, 0, "Use a maximum radial distance for the field to work");
+					uiDefButF(block, NUM, B_FIELD_CHANGE, "MaxDist: ",	200,40,100,20, &pd->maxrad, 0, 1000.0, 10, 0, "Maximum radial distance for the field to work");
+					uiDefButBitS(block, TOG, PFIELD_USEMINR, B_FIELD_CHANGE, "Use",	160,20,40,20, &pd->flag, 0.0, 0, 0, 0, "Use a minimum radial distance for the field's fall-off");
+					uiDefButF(block, NUM, B_FIELD_CHANGE, "MinDist: ",	200,20,100,20, &pd->minrad, 0, 1000.0, 10, 0, "Minimum radial distance for the field's fall-off");
+					uiBlockEndAlign(block);
+				}
+				else if(pd->falloff==PFIELD_FALL_CONE){
+					uiDefBut(block, LABEL, 0, "Angular",		160,80,70,20, NULL, 0.0, 0, 0, 0, "");
+					uiBlockBeginAlign(block);
+					uiDefButF(block, NUM, B_FIELD_CHANGE, "Fall-off: ",	160,60,140,20, &pd->f_power_r, 0, 10, 10, 0, "Radial falloff power (real gravitational falloff = 2)");
+					uiDefButBitS(block, TOG, PFIELD_USEMAXR, B_FIELD_CHANGE, "Use",	160,40,40,20, &pd->flag, 0.0, 0, 0, 0, "Use a maximum angle for the field to work");
+					uiDefButF(block, NUM, B_FIELD_CHANGE, "MaxAngle: ",	200,40,100,20, &pd->maxrad, 0, 89.0, 10, 0, "Maximum angle for the field to work (in radians)");
+					uiDefButBitS(block, TOG, PFIELD_USEMINR, B_FIELD_CHANGE, "Use",	160,20,40,20, &pd->flag, 0.0, 0, 0, 0, "Use a minimum angle for the field's fall-off");
+					uiDefButF(block, NUM, B_FIELD_CHANGE, "MinAngle: ",	200,20,100,20, &pd->minrad, 0, 89.0, 10, 0, "Minimum angle for the field's fall-off (in radians)");
+					uiBlockEndAlign(block);
+				}
+			}
+		}	
 	}
 }
-
 
 /* Panel for softbodies */
 static void object_softbodies__enable(void *ob_v, void *arg2)
@@ -2925,8 +3246,11 @@ static void object_softbodies__enable(void *ob_v, void *arg2)
 			ob->softflag |= OB_SB_GOAL|OB_SB_EDGES;
 		}
 	}
+	/* needed so that initial state is cached correctly */
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 
 	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWVIEW3D, 0);
 }
 
 static int _can_softbodies_at_all(Object *ob)
@@ -2940,10 +3264,35 @@ static int _can_softbodies_at_all(Object *ob)
 	// else deny
 	return 0;
 }
+static void object_softbodies__enable_psys(void *ob_v, void *psys_v)
+{
+	ParticleSystem *psys = psys_v;
+	Object *ob = ob_v;
+
+	if(psys->softflag & OB_SB_ENABLE){
+		psys->softflag &= ~OB_SB_ENABLE;
+	}
+	else{
+		if (!psys->soft) {
+			psys->soft= sbNew();
+			psys->softflag |= OB_SB_GOAL|OB_SB_EDGES;
+			psys->soft->particles=psys;
+		}
+		psys->softflag |= OB_SB_ENABLE;
+	}
+
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+
+	allqueue(REDRAWBUTSEDIT, 0);
+}
+
 static void object_softbodies_II(Object *ob)
 {
+	SoftBody *sb=ob->soft;
 	uiBlock *block;
 	static int val;
+	short *softflag=&ob->softflag, psys_cur=0;
+	int ob_has_hair=psys_ob_has_hair(ob);
     if(!_can_softbodies_at_all(ob)) return;
 	/*bah that is ugly! creating missing data members in UI code*/
 	if(ob->pd == NULL){
@@ -2958,12 +3307,37 @@ static void object_softbodies_II(Object *ob)
 
 	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 
-	val = modifiers_isSoftbodyEnabled(ob);
+	if(ob_has_hair) {
+		if(PE_get_current_num(ob) >= 0) {
+			ParticleSystem *psys = PE_get_current(ob);
+			if(psys) {
+				sb = psys->soft;
+				softflag = &psys->softflag;
+				psys_cur = 1;
+			}
+		}
+	}
+
+	if(psys_cur) {
+		if(*softflag & OB_SB_ENABLE)
+			val = 1;
+		else
+			val = 0;
+	}
+	else
+		val = modifiers_isSoftbodyEnabled(ob);
+
 	if(!val) {
 		uiDefBut(block, LABEL, 0, "",10,10,1,2, NULL, 0.0, 0, 0, 0, ""); /* tell UI we go to 10,10*/
 		uiBlockBeginAlign(block);
-		uiDefBut(block, LABEL, 0, "Object is not a softbody",10,190,300,20, NULL, 0.0, 0, 0, 0, ""); 
-		uiDefBut(block, LABEL, 0, "However it can deflect a softbody",10,170,300,20, NULL, 0.0, 0, 0, 0, ""); 
+		if(psys_cur){
+			uiDefBut(block, LABEL, 0, "Hair is not a softbody",10,190,300,20, NULL, 0.0, 0, 0, 0, ""); 
+			uiDefBut(block, LABEL, 0, "However the emitter can deflect a softbody",10,170,300,20, NULL, 0.0, 0, 0, 0, ""); 
+		}
+		else {
+			uiDefBut(block, LABEL, 0, "Object is not a softbody",10,190,300,20, NULL, 0.0, 0, 0, 0, ""); 
+			uiDefBut(block, LABEL, 0, "However it can deflect a softbody",10,170,300,20, NULL, 0.0, 0, 0, 0, ""); 
+		}
 		/* OTHER OBJECTS COLLISION STUFF */
 		if (ob->type==OB_MESH){
 			uiBlockBeginAlign(block);
@@ -2978,13 +3352,12 @@ static void object_softbodies_II(Object *ob)
 		uiBlockEndAlign(block);
 	}
 	else{
-		SoftBody *sb= ob->soft;
 		/* SELF COLLISION STUFF */
 		if ((ob->type==OB_MESH)||(ob->type==OB_CURVE) ) {
 			uiBlockBeginAlign(block);
-			if (ob->softflag & OB_SB_EDGES){
-				uiDefButBitS(block, TOG, OB_SB_SELF, B_SOFTBODY_CHANGE, "Self Collision",		10,170,150,20, &ob->softflag, 0, 0, 0, 0, "enable naive vertex ball self collision");
-				if(ob->softflag & OB_SB_SELF){
+			if (*softflag & OB_SB_EDGES){
+				uiDefButBitS(block, TOG, OB_SB_SELF, B_SOFTBODY_CHANGE, "Self Collision",		10,170,150,20, softflag, 0, 0, 0, 0, "enable naive vertex ball self collision");
+				if(*softflag & OB_SB_SELF){
 					uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Ball Size:", 160,170,150,20, &sb->colball, -10.0,  10.0, 10, 0, "Absolute ball size or factor if not manual adjusted");
 					uiDefButS(block, ROW, B_DIFF, "Man",10,150,60,20, &sb->sbc_mode, 4.0,SBC_MODE_MANUAL, 0, 0, "Manual adjust");
 					uiDefButS(block, ROW, B_DIFF, "Av",70,150,60,20, &sb->sbc_mode, 4.0,SBC_MODE_AVG, 0, 0, "Average Spring lenght * Ball Size");
@@ -3015,7 +3388,7 @@ static void object_softbodies_II(Object *ob)
 			uiDefButBitS(block, TOG, 1, B_REDR, "Deflection",10,50,150,20, &ob->pd->deflect, 0, 0, 0, 0, "Makes this object visible to other softbody objects");
 			if(ob->pd->deflect) {
 				uiDefButF(block, NUM, B_DIFF, "Damping:",	160,50,150,20, &ob->pd->pdef_sbdamp, 0.0, 1.0, 10, 0, "Amount of damping during soft body collision");
-				uiDefButBitS(block, TOG,OB_SB_COLLFINAL , B_DIFF, "Ev.M.Stack",10,30,150,20, &ob->softflag, 0, 0, 0, 0, "Pick collision object from modifier stack");
+			    uiDefButBitS(block, TOG,OB_SB_COLLFINAL , B_DIFF, "Ev.M.Stack",10,30,150,20, softflag, 0, 0, 0, 0, "Pick collision object from modifier stack");
 				uiDefButF(block, NUM, B_DIFF, "Inner:",	160,30,150,20, &ob->pd->pdef_sbift, 0.001, 1.0, 10, 0, "Inner face thickness");
 				uiDefButF(block, NUM, B_DIFF, "Outer:",	160,10,150,20, &ob->pd->pdef_sboft, 0.001, 1.0, 10, 0, "Outer face thickness");
 			}
@@ -3025,61 +3398,115 @@ static void object_softbodies_II(Object *ob)
 	uiBlockEndAlign(block);
 }
 
+static void sb_clear_cache(void *ob_v, void *actsoft_v)
+{
+	Object *ob = ob_v;
+	short *actsoft = actsoft_v;
+
+	if(actsoft >= 0)
+		clear_particles_from_cache(ob, BLI_findlink(&ob->particlesystem, *actsoft), CFRA);
+	else
+		softbody_clear_cache(ob, CFRA);
+}
 static void object_softbodies(Object *ob)
 {
+	SoftBody *sb=ob->soft;
+	ParticleSystem *psys;
 	uiBlock *block;
-	static int val;
 	uiBut *but;
+	static int val;
+	short *softflag=&ob->softflag, psys_cur=0;
+	int ob_has_hair = psys_ob_has_hair(ob);
+	static short actsoft= -1;
+
     if(!_can_softbodies_at_all(ob)) return;
 	block= uiNewBlock(&curarea->uiblocks, "object_softbodies", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Soft Body", "Physics", 640, 0, 318, 204)==0) return;
 	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 
-	val = modifiers_isSoftbodyEnabled(ob);
-	but = uiDefButI(block, TOG, REDRAWBUTSOBJECT, "Soft Body",	10,200,130,20, &val, 0, 0, 0, 0, "Sets object to become soft body");
-	uiButSetFunc(but, object_softbodies__enable, ob, NULL);
+	if(ob_has_hair) {
+		char *menustr = psys_menu_string(ob,1);
+
+		psys= psys_get_current(ob);
+		if(psys && actsoft >= 0) {
+			actsoft= psys_get_current_num(ob)+1;
+
+			sb=psys->soft;
+			softflag=&psys->softflag;
+			psys_cur=1;
+		}
+		else
+			actsoft= -1; /* -1 = object */
+
+		but=uiDefButS(block, MENU, B_BAKE_REDRAWEDIT, menustr, 10,200,100,20, &actsoft, 14.0, 0.0, 0, 0, "Browse systems");
+		uiButSetFunc(but, PE_change_act, ob, &actsoft);
+		
+		MEM_freeN(menustr);
+	}
+
+	if(psys_cur){
+		if(*softflag & OB_SB_ENABLE)
+			val=1;
+		else
+			val=0;
+
+		but = uiDefButI(block, TOG, REDRAWBUTSOBJECT, "Soft Body",	110,200,70,20, &val, 0, 0, 0, 0, "Sets hair to become soft body");
+		uiButSetFunc(but, object_softbodies__enable_psys, ob, psys);
+	}
+	else{
+		val = modifiers_isSoftbodyEnabled(ob);
+		if(ob_has_hair)
+			but = uiDefButI(block, TOG, REDRAWBUTSOBJECT, "Soft Body",	110,200,70,20, &val, 0, 0, 0, 0, "Sets object to become soft body");
+		else
+			but = uiDefButI(block, TOG, REDRAWBUTSOBJECT, "Soft Body",	10,200,130,20, &val, 0, 0, 0, 0, "Sets object to become soft body");
+
+		uiButSetFunc(but, object_softbodies__enable, ob, NULL);
+	}
+	
 	uiDefBut(block, LABEL, 0, "",10,10,300,0, NULL, 0.0, 0, 0, 0, ""); /* tell UI we go to 10,10*/
 
-	if(modifiers_isSoftbodyEnabled(ob)){
-		SoftBody *sb= ob->soft;
+	if(val){
 		int defCount;
 		char *menustr;
+		static char str[128];
 
-		if(sb==NULL) {
-			sb= ob->soft= sbNew();
-			ob->softflag |= OB_SB_GOAL|OB_SB_EDGES;
-		}
+		//uiDefButBitS(block, TOG, OB_SB_BAKESET, REDRAWBUTSOBJECT, "Bake settings",	180,200,130,20, &ob->softflag, 0, 0, 0, 0, "To convert simulation into baked (cached) result");
 
-		uiDefButBitS(block, TOG, OB_SB_BAKESET, REDRAWBUTSOBJECT, "Bake settings",	180,200,130,20, &ob->softflag, 0, 0, 0, 0, "To convert simulation into baked (cached) result");
+		//if(sb->keys) uiSetButLock(1, "Soft Body is baked, free it first");
+		uiBlockBeginAlign(block);
+		uiDefButBitS(block, TOG, OB_SB_PROTECT_CACHE, REDRAWBUTSOBJECT, "Protect",	180,200,50,20, softflag, 0.0, 0.0, 10, 0, "Protect the cache");
+		but=uiDefBut(block, BUT, B_SOFTBODY_CHANGE, "Clear",				230,200,50,20, NULL, 0.0, 0.0, 10, 0, "Clear the cache");
+		if((*softflag & PSYS_PROTECT_CACHE)==0)
+			uiButSetFunc(but, sb_clear_cache, ob, &actsoft);
 
-		if(sb->keys) uiSetButLock(1, "Soft Body is baked, free it first");
+		uiBlockEndAlign(block);
 
-		if(ob->softflag & OB_SB_BAKESET) {
-			uiBlockBeginAlign(block);
-			uiDefButI(block, NUM, B_DIFF, "Start:",			10, 170,100,20, &sb->sfra, 1.0, 10000.0, 10, 0, "Start frame for baking");
-			uiDefButI(block, NUM, B_DIFF, "End:",			110, 170,100,20, &sb->efra, 1.0, 10000.0, 10, 0, "End frame for baking");
-			uiDefButI(block, NUM, B_DIFF, "Interval:",		210, 170,100,20, &sb->interval, 1.0, 10.0, 10, 0, "Interval in frames between baked keys");
-			uiBlockEndAlign(block);
+		if(*softflag & OB_SB_PROTECT_CACHE) uiSetButLock(1, "Cache is protected");
 
-			uiDefButS(block, TOG, B_DIFF, "Local",			10, 145,100,20, &sb->local, 0.0, 0.0, 0, 0, "Use local coordinates for baking");
+		//if(ob->softflag & OB_SB_BAKESET) {
+		//	uiBlockBeginAlign(block);
+		//	uiDefButI(block, NUM, B_DIFF, "Start:",			10, 170,100,20, &sb->sfra, 1.0, 10000.0, 10, 0, "Start frame for baking");
+		//	uiDefButI(block, NUM, B_DIFF, "End:",			110, 170,100,20, &sb->efra, 1.0, 10000.0, 10, 0, "End frame for baking");
+		//	uiDefButI(block, NUM, B_DIFF, "Interval:",		210, 170,100,20, &sb->interval, 1.0, 10.0, 10, 0, "Interval in frames between baked keys");
+		//	uiBlockEndAlign(block);
+
+		//	uiDefButS(block, TOG, B_DIFF, "Local",			10, 145,100,20, &sb->local, 0.0, 0.0, 0, 0, "Use local coordinates for baking");
 
 
-			uiClearButLock();
-			uiBlockBeginAlign(block);
+		//	uiClearButLock();
+		//	uiBlockBeginAlign(block);
 
-			if(sb->keys) {
-				char str[128];
-				uiDefIconTextBut(block, BUT, B_SOFTBODY_BAKE_FREE, ICON_X, "FREE BAKE", 10, 120,300,20, NULL, 0.0, 0.0, 0, 0, "Free baked result");
-				sprintf(str, "Stored %d vertices %d keys %.3f MB", sb->totpoint, sb->totkey, ((float)16*sb->totpoint*sb->totkey)/(1024.0*1024.0));
-				uiDefBut(block, LABEL, 0, str, 10, 100,300,20, NULL, 0.0, 0.0, 00, 0, "");
-			}
-			else				
-				uiDefBut(block, BUT, B_SOFTBODY_BAKE, "BAKE",	10, 120,300,20, NULL, 0.0, 0.0, 10, 0, "Start baking. Press ESC to exit without baking");
-
-		}
-		else {
+		//	if(sb->keys) {
+		//		char str[128];
+		//		uiDefIconTextBut(block, BUT, B_SOFTBODY_BAKE_FREE, ICON_X, "FREE BAKE", 10, 120,300,20, NULL, 0.0, 0.0, 0, 0, "Free baked result");
+		//		sprintf(str, "Stored %d vertices %d keys %.3f MB", sb->totpoint, sb->totkey, ((float)16*sb->totpoint*sb->totkey)/(1024.0*1024.0));
+		//		uiDefBut(block, LABEL, 0, str, 10, 100,300,20, NULL, 0.0, 0.0, 00, 0, "");
+		//	}
+		//	else				
+		//		uiDefBut(block, BUT, B_SOFTBODY_BAKE, "BAKE",	10, 120,300,20, NULL, 0.0, 0.0, 10, 0, "Start baking. Press ESC to exit without baking");
+		//}
+		//else {
 			/* GENERAL STUFF */
-			static char str[128];
 			if (sb->totpoint){
 			sprintf(str, "Vertex Mass; Object mass %f [k]",sb->nodemass*sb->totpoint/1000.0f);
 			}
@@ -3095,8 +3522,8 @@ static void object_softbodies(Object *ob)
 
 			/* GOAL STUFF */
 			uiBlockBeginAlign(block);
-			uiDefButBitS(block, TOG, OB_SB_GOAL, B_SOFTBODY_CHANGE, "Use Goal",	10,120,130,20, &ob->softflag, 0, 0, 0, 0, "Define forces for vertices to stick to animated position");
-			if (ob->softflag & OB_SB_GOAL){
+			uiDefButBitS(block, TOG, OB_SB_GOAL, B_SOFTBODY_CHANGE, "Use Goal",	10,120,130,20, softflag, 0, 0, 0, 0, "Define forces for vertices to stick to animated position");
+			if (*softflag & OB_SB_GOAL){
 				if(ob->type==OB_MESH) {
 					menustr= get_vertexgroup_menustr(ob);
 					defCount=BLI_countlist(&ob->defbase);
@@ -3130,11 +3557,11 @@ static void object_softbodies(Object *ob)
 			/* EDGE SPRING STUFF */
 			if(ob->type!=OB_SURF) {
 				uiBlockBeginAlign(block);
-				uiDefButBitS(block, TOG, OB_SB_EDGES, B_SOFTBODY_CHANGE, "Use Edges",		10,50,90,20, &ob->softflag, 0, 0, 0, 0, "Use Edges as springs");
-			if (ob->softflag & OB_SB_EDGES){
-				uiDefButBitS(block, TOG, OB_SB_QUADS, B_SOFTBODY_CHANGE, "Stiff Quads",		110,50,90,20, &ob->softflag, 0, 0, 0, 0, "Adds diagonal springs on 4-gons");
-				uiDefButBitS(block, TOG, OB_SB_EDGECOLL, B_DIFF, "CEdge",		220,50,45,20, &ob->softflag, 0, 0, 0, 0, "Edge collide too"); 
-				uiDefButBitS(block, TOG, OB_SB_FACECOLL, B_DIFF, "CFace",		265,50,45,20, &ob->softflag, 0, 0, 0, 0, "Faces collide too SLOOOOOW warning "); 
+				uiDefButBitS(block, TOG, OB_SB_EDGES, B_SOFTBODY_CHANGE, "Use Edges",		10,50,90,20, softflag, 0, 0, 0, 0, "Use Edges as springs");
+			if (*softflag & OB_SB_EDGES){
+				uiDefButBitS(block, TOG, OB_SB_QUADS, B_SOFTBODY_CHANGE, "Stiff Quads",		110,50,90,20, softflag, 0, 0, 0, 0, "Adds diagonal springs on 4-gons");
+				uiDefButBitS(block, TOG, OB_SB_EDGECOLL, B_DIFF, "CEdge",		220,50,45,20, softflag, 0, 0, 0, 0, "Edge collide too"); 
+				uiDefButBitS(block, TOG, OB_SB_FACECOLL, B_DIFF, "CFace",		265,50,45,20, softflag, 0, 0, 0, 0, "Faces collide too SLOOOOOW warning "); 
 				uiDefButF(block, NUM, B_DIFF, "E Stiff:",	10,30,150,20, &sb->inspring, 0.0,  0.999, 10, 0, "Edge spring stiffness");
 				uiDefButF(block, NUM, B_DIFF, "E Damp:",	160,30,150,20, &sb->infrict, 0.0,  50.0, 10, 0, "Edge spring friction");
 				uiDefButS(block, NUM, B_DIFF, "Aero:",     10,10,150,20, &sb->aeroedge,  0.00,  30000.0, 10, 0, "Make edges 'sail'");
@@ -3146,391 +3573,730 @@ static void object_softbodies(Object *ob)
 			}
 				uiBlockEndAlign(block);
 			}
-		}
+		//}
 	}
 	uiBlockEndAlign(block);
 }
 
-/* Panel for cloth */
-static void object_cloth__enabletoggle(void *ob_v, void *arg2)
+ /* Panels for new particles*/
+static void object_panel_particle_children(Object *ob)
 {
-	Object *ob = ob_v;
-	ModifierData *md = modifiers_findByType(ob, eModifierType_Cloth);
+	uiBlock *block;
+	ParticleSystem *psys = psys_get_current(ob);
+	ParticleSettings *part;
+	short butx=0, buty=160, butw=150, buth=20;
+	static short kink_ui=0;
 
-	if (!md) {
-		md = modifier_new(eModifierType_Cloth);
-		BLI_addhead(&ob->modifiers, md);
+	if (psys==NULL) return;
+	part=psys->part;
+	if(part==NULL) return;
+		
+	block= uiNewBlock(&curarea->uiblocks, "object_panel_particle_child", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Extras", "Particle");
+	if(uiNewPanel(curarea, block, "Children", "Particle", 1300, 0, 318, 204)==0) return;
+
+	uiDefButS(block, MENU, B_PART_ALLOC_CHILD, "Children from:%t|Faces%x2|Particles%x1|None%x0", butx,buty,butw/2,buth, &part->childtype, 14.0, 0.0, 0, 0, "Create child particles");
+	uiDefButBitI(block, TOG, PART_CHILD_RENDER, B_PART_RECALC_CHILD, "Only Render",	 butx+butw/2,buty,butw/2,buth, &part->flag, 0, 0, 0, 0, "Create child particles only when rendering");
+
+	if(part->childtype==0) return;
+
+	if((psys->flag&(PSYS_HAIR_DONE|PSYS_KEYED))==0) {
+		uiDefBut(block, LABEL, 0, "Hair or keyed",	butx,(buty-=2*buth),butw,buth, NULL, 0.0, 0, 0, 0, "");
+		uiDefBut(block, LABEL, 0, "particles needed!",	butx,(buty-=2*buth),butw,buth, NULL, 0.0, 0, 0, 0, "");
+		return;
+	}
+
+	uiBlockBeginAlign(block);
+	
+	if(part->from!=PART_FROM_PARTICLE && part->childtype==PART_CHILD_FACES) {
+		uiDefButI(block, NUM, B_PART_ALLOC_CHILD, "Amount:", butx,(buty-=2*buth),butw,buth, &part->child_nbr, 0.0, MAX_PART_CHILDREN, 0, 0, "Amount of children/parent");
+		uiDefButF(block, NUMSLI, B_PART_DISTR_CHILD, "VParents:",		butx,(buty-=buth),butw,buth, &part->parents, 0.0, 1.0, 1, 3, "Relative amount of virtual parents");
+		}
+	else {
+		uiDefButI(block, NUM, B_PART_ALLOC_CHILD, "Amount:", butx,(buty-=2*buth),butw,buth, &part->child_nbr, 0.0, MAX_PART_CHILDREN, 0, 0, "Amount of children/parent");
+		uiDefButF(block, NUM, B_PART_RECALC_CHILD, "Rad:",		butx,(buty-=buth),butw,buth, &part->childrad, 0.0, 10.0, 1, 3, "Radius of children around parent");
+		uiDefButF(block, NUMSLI, B_PART_RECALC_CHILD, "Round:",		butx,(buty-=buth),butw,buth, &part->childflat, 0.0, 1.0, 1, 3, "Roundness of children around parent");
+	}
+	uiBlockEndAlign(block);
+
+	/* clump */
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUMSLI, B_PART_RECALC_CHILD, "Clump:",		butx,(buty-=buth),butw,buth, &part->clumpfac, -1.0, 1.0, 1, 3, "Amount of clumpimg");
+	uiDefButF(block, NUMSLI, B_PART_RECALC_CHILD, "Shape:",		butx,(buty-=buth),butw,buth, &part->clumppow, -0.999, 0.999, 1, 3, "Shape of clumpimg");
+	uiBlockEndAlign(block);
+
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUM, B_PART_REDRAW, "Size:",		butx,(buty-=2*buth),butw/2,buth, &part->childsize, 0.01, 100, 10, 1, "A multiplier for the child particle size");
+	uiDefButF(block, NUM, B_PART_REDRAW, "Rand:",		butx+butw/2,buty,butw/2,buth, &part->childrandsize, 0.0, 1.0, 10, 1, "Random variation to the size of the child particles");
+	if(part->childtype==PART_CHILD_FACES) {
+		uiDefButF(block, NUM, B_PART_REDRAW, "Spread:",butx,(buty-=buth),butw/2,buth, &part->childspread, -1.0, 1.0, 10, 1, "Spread children from the faces");
+		uiDefButBitI(block, TOG, PART_CHILD_SEAMS, B_PART_DISTR_CHILD, "Use Seams",	 butx+butw/2,buty,butw/2,buth, &part->flag, 0, 0, 0, 0, "Use seams to determine parents");
+	}
+	uiBlockEndAlign(block);
+
+	butx=160;
+	buty=180;
+
+
+	uiDefButBitS(block, TOG, 1, B_PART_REDRAW, "Kink/Branch",	 butx,(buty-=buth),butw,buth, &kink_ui, 0, 0, 0, 0, "Show kink and branch options");
+
+	if(kink_ui) {
+		/* kink */
+		uiBlockBeginAlign(block);
+		if(part->kink) {
+			uiDefButS(block, MENU, B_PART_RECALC_CHILD, "Kink:%t|Roll%x6|Rotation%x5|Braid%x4|Wave%x3|Radial%x2|Curl%x1|Nothing%x0", butx,(buty-=buth),butw/2,buth, &part->kink, 14.0, 0.0, 0, 0, "Type of periodic offset on the path");
+			uiDefButS(block, MENU, B_PART_RECALC_CHILD, "Axis %t|Z %x2|Y %x1|X %x0", butx+butw/2,buty,butw/2,buth, &part->kink_axis, 14.0, 0.0, 0, 0, "Which axis to use for offset");
+			uiDefButF(block, NUM, B_PART_RECALC_CHILD, "Freq:",			butx,(buty-=buth),butw,buth, &part->kink_freq, 0.0, 10.0, 1, 3, "The frequency of the offset (1/total length)");
+			uiDefButF(block, NUMSLI, B_PART_RECALC_CHILD, "Shape:",		butx,(buty-=buth),butw,buth, &part->kink_shape, -0.999, 0.999, 1, 3, "Adjust the offset to the beginning/end");
+			uiDefButF(block, NUM, B_PART_RECALC_CHILD, "Amplitude:",	butx,(buty-=buth),butw,buth, &part->kink_amp, 0.0, 10.0, 1, 3, "The amplitude of the offset");
+		}
+		else {
+			uiDefButS(block, MENU, B_PART_RECALC_CHILD, "Kink:%t|Roll%x6|Rotation%x5|Braid%x4|Wave%x3|Radial%x2|Curl%x1|Nothing%x0", butx,(buty-=buth),butw,buth, &part->kink, 14.0, 0.0, 0, 0, "Type of periodic offset on the path");
+			buty-=3*buth;
+		}
+		uiBlockEndAlign(block);
+
+		if(part->childtype==PART_CHILD_PARTICLES) {
+			if(part->flag & PART_BRANCHING) {
+				uiDefButBitI(block, TOG, PART_BRANCHING, B_PART_RECALC_CHILD, "Branching",	butx,(buty-=2*buth),butw,buth, &part->flag, 0, 0, 0, 0, "Branch child paths from eachother");
+				uiDefButBitI(block, TOG, PART_ANIM_BRANCHING, B_PART_RECALC_CHILD, "Animated",	butx,(buty-=buth),butw/2,buth, &part->flag, 0, 0, 0, 0, "Animate branching");
+				uiDefButBitI(block, TOG, PART_SYMM_BRANCHING, B_PART_RECALC_CHILD, "Symmetric",	butx+butw/2,buty,butw/2,buth, &part->flag, 0, 0, 0, 0, "Start and end points are the same");
+				uiDefButF(block, NUM, B_PART_RECALC_CHILD, "Threshold:",	butx,(buty-=buth),butw,buth, &part->branch_thres, 0.0, 1.0, 1, 3, "Threshold of branching");
+			}
+			else
+				uiDefButBitI(block, TOG, PART_BRANCHING, B_PART_RECALC_CHILD, "Branching",	butx,(buty-=2*buth),butw,buth, &part->flag, 0, 0, 0, 0, "Branch child paths from eachother");
+		}
 	}
 	else {
-		BLI_remlink(&ob->modifiers, md);
-		modifier_free(md);
-	}
-
-	allqueue(REDRAWBUTSEDIT, 0);
-}
-
-static void object_panel_cloth(Object *ob)
-{
-	uiBlock *block;
-	static int val, val2;
-	uiBut *but;
-	ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-	block= uiNewBlock(&curarea->uiblocks, "object_panel_cloth", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Cloth", "Physics", 640, 0, 318, 204)==0) return;
-
-	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
-	val = ((clmd)?(1):(0));
-
-	but = uiDefButI(block, TOG, REDRAWBUTSOBJECT, "Cloth Object",	10,200,130,20, &val, 0, 0, 0, 0, "Sets object to become cloth");
-	uiButSetFunc(but, object_cloth__enabletoggle, ob, NULL);
-	uiDefBut(block, LABEL, 0, "",10,10,300,0, NULL, 0.0, 0, 0, 0, ""); /* tell UI we go to 10,10*/
-	
-	if(clmd)
-	{
-		// but = uiDefButBitI(block, TOG, CLOTH_SIMSETTINGS_FLAG_COLLOBJ, B_EFFECT_DEP, "Collision Object",	170,200,130,20, &clmd->sim_parms->flags, 0, 0, 0, 0, "Sets object to become a cloth collision object");
-
-		if (!(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ))
-		{
-			Cloth *cloth = clmd->clothObject;
-			int defCount;
-			char *clvg1, *clvg2;
-			char clmvg [] = "Mass Vertex Group%t|None%x0|";
-	
-			val2=0;
-	
-	//		uiDefButBitI(block, TOG, CSIMSETT_FLAG_ADVANCED, REDRAWBUTSOBJECT, "Advanced",	180,200,130,20, &clmd->sim_parms->flags, 0, 0, 0, 0, "Enable advanced mode");
-			
-			/* GENERAL STUFF */
-			uiClearButLock();
-			uiBlockBeginAlign(block);
-			uiDefButF(block, NUM, B_CLOTH_RENEW, "StructStiff:",	   10,170,150,20, &clmd->sim_parms->structural, 1.0, 10000.0, 100, 0, "Overall stiffness of structure");
-			uiDefButF(block, NUM, B_CLOTH_RENEW, "BendStiff:",	   160,170,150,20, &clmd->sim_parms->bending, 0.0, 10000.0, 1000, 0, "Wrinkle possibility");
-			uiDefButI(block, NUM, B_CLOTH_RENEW, "Quality:",  10,150,150,20, &clmd->sim_parms->stepsPerFrame, 3.0, 10.0, 5, 0, "Quality of the simulation (higher=>better=>slower)");
-			uiBlockEndAlign(block);
-			uiBlockBeginAlign(block);
-			uiDefButF(block, NUM, B_CLOTH_RENEW, "Spring Damp:",	   160,150,150,20, &clmd->sim_parms->Cdis, 0.0, 10.0, 10, 0, "Spring damping");
-			uiDefButF(block, NUM, B_DIFF, "Air Damp:",	   10,130,150,20, &clmd->sim_parms->Cvi, 0.0, 10.0, 10, 0, "Apply gravitation to point movement");
-			uiBlockEndAlign(block);			
-			
-			uiClearButLock();
-			
-			uiBlockBeginAlign(block);
-			uiDefBut(block, LABEL, 0, "Gravity:",  10,100,60,20, NULL, 0.0, 0, 0, 0, "");
-			// uiClearButLock();
-			
-			uiDefButF(block, NUM, B_CLOTH_RENEW, "X:",	   70,100,80,20, &clmd->sim_parms->gravity[0], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
-			uiDefButF(block, NUM, B_CLOTH_RENEW, "Y:",	   150,100,80,20, &clmd->sim_parms->gravity[1], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
-			uiDefButF(block, NUM, B_CLOTH_RENEW, "Z:",	   230,100,80,20, &clmd->sim_parms->gravity[2], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
-			uiBlockEndAlign(block);
-			
-			/* GOAL STUFF */
-			uiBlockBeginAlign(block);
-			uiDefButBitI(block, TOG, CLOTH_SIMSETTINGS_FLAG_GOAL, REDRAWVIEW3D, "Use Goal",	10,70,130,20, &clmd->sim_parms->flags, 0, 0, 0, 0, "Define forces for vertices to stick to animated position");
-			if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL)
-			{
-				if(ob->type==OB_MESH) 
-				{
-					
-					defCount = sizeof (clmvg);
-					clvg1 = get_vertexgroup_menustr (ob);
-					clvg2 = MEM_callocN (strlen (clvg1) + 1 + defCount, "clothVgMS");
-					if (! clvg2) {
-						printf ("draw_modifier: error allocating memory for cloth vertex group menu string.\n");
-						return;
-					}
-					defCount = BLI_countlist (&ob->defbase);
-					if (defCount == 0) 
-					{
-						clmd->sim_parms->vgroup_mass = 0;
-					}
-					sprintf (clvg2, "%s%s", clmvg, clvg1);
-					
-					uiDefButS(block, MENU, B_CLOTH_RENEW, clvg2,	140,70,20,20, &clmd->sim_parms->vgroup_mass, 0, defCount, 0, 0, "Browses available vertex groups");	
-					MEM_freeN (clvg1);
-					MEM_freeN (clvg2);
-					
-					if(clmd->sim_parms->vgroup_mass) 
-					{
-						bDeformGroup *defGroup = BLI_findlink(&ob->defbase, clmd->sim_parms->vgroup_mass-1);
-						if(defGroup)
-							uiDefBut(block, BUT, B_DIFF, defGroup->name,	160,70,130,20, NULL, 0.0, 0.0, 0, 0, "Name of current vertex group");
-						else
-							uiDefBut(block, BUT, B_DIFF, "(no group)",	160,70,130,20, NULL, 0.0, 0.0, 0, 0, "Vertex Group doesn't exist anymore");
-						
-						uiDefIconBut(block, BUT, B_CLOTH_DEL_VG, ICON_X, 290,70,20,20, 0, 0, 0, 0, 0, "Disable use of vertex group");
-						
-					}
-					else
-						uiDefButF(block, NUM, B_CLOTH_RENEW, "Goal:",	160,70,150,20, &clmd->sim_parms->defgoal, 0.0, 1.0, 10, 0, "Default Goal (vertex target position) value, when no Vertex Group used");
-				
-				}
-				else 
-				{
-					uiDefButS(block, TOG, B_CLOTH_RENEW, "W",			140,70,20,20, &clmd->sim_parms->vgroup_mass, 0, 1, 0, 0, "Use control point weight values");
-					uiDefButF(block, NUM, B_CLOTH_RENEW, "Goal:",	160,70,150,20, &clmd->sim_parms->defgoal, 0.0, 1.0, 10, 0, "Default Goal (vertex target position) value, when no Vertex Group used");
-				}
-				
-				uiDefButF(block, NUM, B_CLOTH_RENEW, "G Stiff:",	10,50,150,20, &clmd->sim_parms->goalspring, 0.0, 500.0, 10, 0, "Goal (vertex target position) spring stiffness");
-				uiDefButF(block, NUM, B_CLOTH_RENEW, "G Damp:",	160,50,150,20, &clmd->sim_parms->goalfrict, 0.0, 50.0, 10, 0, "Goal (vertex target position) friction");
-				uiDefButF(block, NUM, B_CLOTH_RENEW, "G Min:",		10,30,150,20, &clmd->sim_parms->mingoal, 0.0, 1.0, 10, 0, "Goal minimum, vertex group weights are scaled to match this range");
-				uiDefButF(block, NUM, B_CLOTH_RENEW, "G Max:",		160,30,150,20, &clmd->sim_parms->maxgoal, 0.0, 1.0, 10, 0, "Goal maximum, vertex group weights are scaled to match this range");
-			}
-			uiBlockEndAlign(block);	
-			
-			/*
-			// no tearing supported anymore since modifier stack restrictions 
-			uiBlockBeginAlign(block);
-			uiDefButBitI(block, TOG, CSIMSETT_FLAG_TEARING_ENABLED, B_EFFECT_DEP, "Tearing",	10,0,150,20, &clmd->sim_parms->flags, 0, 0, 0, 0, "Sets object to become a cloth collision object");
-			
-			if (clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED)
-			{
-				uiDefButI(block, NUM, B_DIFF, "Max extent:",	   160,0,150,20, &clmd->sim_parms->maxspringlen, 1.0, 1000.0, 10, 0, "Maximum extension before spring gets cut");
-			}
-			
-			uiBlockEndAlign(block);	
-			*/
-		}
-	}
-}
-
-
-static void object_panel_cloth_II(Object *ob)
-{
-	uiBlock *block;
-	static int val;
-	uiBut *but;
-	ClothModifierData *clmd = NULL;
-	
-	clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-	if(clmd)
-	{
-		if (!(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ))
-		{
-			Cloth *cloth = clmd->clothObject;
-			char str[128];
-			
-			block= uiNewBlock(&curarea->uiblocks, "object_panel_cloth_II", UI_EMBOSS, UI_HELV, curarea->win);
-			uiNewPanelTabbed("Cloth", "Physics");
-			if(uiNewPanel(curarea, block, "Cloth Cache", "Physics", 651, 0, 318, 204)==0) return;
-		
-			uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
-			
-			uiDefButI(block, NUM, B_DIFF, "First Frame:",		10,160,150,20, &clmd->sim_parms->firstframe, 0, MAXFRAME, 1, 0, "Frame on which the simulation starts");
-			uiDefButI(block, NUM, B_DIFF, "Last Frame:",		160,160,150,20, &clmd->sim_parms->lastframe, 0, MAXFRAME, 10, 0, "Frame on which the simulation stops");
-			/*
-			if(clmd->sim_parms->cache)
-			{
-				int length = BLI_linklist_length(clmd->sim_parms->cache);
-				
-				// correct spelling if only 1 frame cacheed --> only gimmick  
-				if(length-clmd->sim_parms->preroll>1)
-					sprintf (str, "Frame 1 - %d cached. [%d in preroll, %d in total]", length-clmd->sim_parms->preroll, clmd->sim_parms->preroll, length);
-				else
-					sprintf (str, "Frame %d cached. [%d in preroll, %d in total]", length-clmd->sim_parms->preroll, clmd->sim_parms->preroll, length);
-				
-				uiDefBut(block, LABEL, 0, str,  10,140,290,20, NULL, 0.0, 0, 0, 0, "");
-				uiDefBut(block, LABEL, 0, "Clear cache:",  10,120,290,20, NULL, 0.0, 0, 0, 0, "");
-				uiBlockBeginAlign (block);
-				uiDefBut(block, BUT, B_CLOTH_CLEARCACHEALL, "All", 10, 100,145,20, NULL, 0.0, 0.0, 0, 0, "Free cloth cache without preroll");
-				uiDefBut(block, BUT, B_CLOTH_CLEARCACHEFRAME, "From next frame", 155, 100,145,20, NULL, 0.0, 0.0, 0, 0, "Free cloth cache");	
-				if(length>1) // B_CLOTH_CHANGEPREROLL
-					uiDefButI(block, NUM, B_CLOTH_CHANGEPREROLL, "Preroll:", 10,80,145,20, &clmd->sim_parms->preroll, 0, length-1, 1, 0, "Simulation starts on this frame");	
-				else
-					uiDefBut(block, LABEL, 0, " ",  10,80,145,20, NULL, 0.0, 0, 0, 0, "");
-			}
-			else 
-			{
-				uiDefBut(block, LABEL, 0, "No frames cached.",  10,120,290,20, NULL, 0.0, 0, 0, 0, "");
-			}*/
-			uiDefButBitI(block, TOG, CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT, REDRAWVIEW3D, "Protect Cache",	10,50,145,20, &clmd->sim_parms->flags, 0, 0, 0, 0, "Protect cache from automatic freeing when scene changed");
-			uiBlockEndAlign(block);
-		}
-	}
-	// uiBlockEndAlign(block);
-}
-
-static void object_panel_cloth_III(Object *ob)
-{
-	uiBlock *block;
-	ClothModifierData *clmd = NULL;
-	
-	clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
-	if(clmd)
-	{	
-		block= uiNewBlock(&curarea->uiblocks, "object_panel_cloth_III", UI_EMBOSS, UI_HELV, curarea->win);
-		uiNewPanelTabbed("Cloth", "Physics");
-		if(uiNewPanel(curarea, block, "Cloth Collisions", "Physics", 651, 0, 318, 204)==0) return;
-	
-		uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
-		
+	/* rough */
 		uiBlockBeginAlign(block);
-		uiDefButBitI(block, TOG, CLOTH_COLLISIONSETTINGS_FLAG_ENABLED, REDRAWVIEW3D, "Enable collisions",	10,160,130,20, &clmd->coll_parms->flags, 0, 0, 0, 0, "Enable collisions with this object");
-		if (clmd->coll_parms->flags & CLOTH_COLLISIONSETTINGS_FLAG_ENABLED)
-		{
-			// uiDefBut(block, LABEL, 0, "",10,10,300,20, NULL, 0.0, 0, 0, 0, ""); /* tell UI we go to 10,10*/
-			uiDefButF(block, NUM, B_CLOTH_RENEW, "Min Distance:",	   10,140,150,20, &clmd->coll_parms->epsilon, 0.001f, 1.0, 0.01f, 0, "Minimum distance between collision objects before collision response takes in");
-			uiDefBut(block, LABEL, 0, "",160,140,150,20, NULL, 0.0, 0, 0, 0, "");
-			uiDefButF(block, NUM, B_CLOTH_RENEW, "Selfcoll balls:",	   10,120,150,20, &clmd->coll_parms->selfepsilon, 0.001f, 1.0, 0.01f, 0, "Minimum distance between two selfcollision points");
-		}
-		else
-			uiDefBut(block, LABEL, 0, "",140,10,170,20, NULL, 0.0, 0, 0, 0, "");
+		uiDefButF(block, NUMSLI, B_PART_RECALC_CHILD, "Rough1:",	butx,(buty-=2*buth),butw,buth, &part->rough1, 0.0, 10.0, 1, 3, "Amount of location dependant rough");
+		uiDefButF(block, NUM, B_PART_RECALC_CHILD, "Size1:",	butx,(buty-=buth),butw,buth, &part->rough1_size, 0.01, 10.0, 1, 3, "Size of location dependant rough");
+		uiBlockEndAlign(block);
+		uiBlockBeginAlign(block);
+		uiDefButF(block, NUMSLI, B_PART_RECALC_CHILD, "Rough2:",	butx,(buty-=buth),butw,buth, &part->rough2, 0.0, 10.0, 1, 3, "Amount of random rough");
+		uiDefButF(block, NUM, B_PART_RECALC_CHILD, "Size2:",	butx,(buty-=buth),butw,buth, &part->rough2_size, 0.01, 10.0, 1, 3, "Size of random rough");
+		uiDefButF(block, NUMSLI, B_PART_RECALC_CHILD, "Thresh:",	butx,(buty-=buth),butw,buth, &part->rough2_thres, 0.00, 1.0, 1, 3, "Amount of particles left untouched by random rough");
+		uiBlockEndAlign(block);
+		uiBlockBeginAlign(block);
+		uiDefButF(block, NUMSLI, B_PART_RECALC_CHILD, "RoughE:",	butx,(buty-=buth),butw,buth, &part->rough_end, 0.0, 10.0, 1, 3, "Amount of end point rough");
+		uiDefButF(block, NUMSLI, B_PART_RECALC_CHILD, "Shape:",	butx,(buty-=buth),butw,buth, &part->rough_end_shape, 0.0, 10.0, 1, 3, "Shape of end point rough");
 		uiBlockEndAlign(block);
 	}
 }
-
-
-static void object_panel_particles_motion(Object *ob)
+static void particle_set_vg(void *ob_v, void *vgnum_v)
 {
-	uiBlock *block;
-	uiBut *but;
-	PartEff *paf= give_parteff(ob);
+	Object *ob= ob_v;
+	ParticleSystem *psys=psys_get_current(ob);
+	short vgnum = *((short *)vgnum_v);
 
-	if (paf==NULL) return;
-		
-	block= uiNewBlock(&curarea->uiblocks, "object_panel_particles_motion", UI_EMBOSS, UI_HELV, curarea->win);
-	uiNewPanelTabbed("Particles ", "Physics");
-	if(uiNewPanel(curarea, block, "Particle Motion", "Physics", 320, 0, 318, 204)==0) return;
-	
-	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
-	
-	/* top row */
-	uiBlockBeginAlign(block);
-	uiDefButI(block, NUM, B_CALCEFFECT, "Keys:",	0,180,75,20, &paf->totkey, 1.0, 100.0, 0, 0, "Specify the number of key positions");
-	uiDefButBitS(block, TOG, PAF_BSPLINE, B_CALCEFFECT, "Bspline",	75,180,75,20, &paf->flag, 0, 0, 0, 0, "Use B spline formula for particle interpolation");
-	uiDefButI(block, NUM, B_CALCEFFECT, "Seed:",	150,180,75,20, &paf->seed, 0.0, 255.0, 0, 0, "Set an offset in the random table");
-	uiDefButF(block, NUM, B_CALCEFFECT, "RLife:",	225,180,85,20, &paf->randlife, 0.0, 2.0, 10, 1, "Give the particlelife a random variation");
-	uiBlockEndAlign(block);
-	
-	/* left collumn */
-	uiDefBut(block, LABEL, 0, "Velocity:",			0,160,150,20, NULL, 0.0, 0, 0, 0, "");
-	uiBlockBeginAlign(block);
-	uiBlockSetCol(block, TH_BUT_SETTING2);
-	uiDefButF(block, NUM, B_CALCEFFECT, "Normal:",		0,140,150,18, &paf->normfac, -2.0, 2.0, 1, 3, "Let the mesh give the particle a starting speed");
-	uiDefButF(block, NUM, B_CALCEFFECT, "Object:",		0,122,150,18, &paf->obfac, -1.0, 1.0, 1, 3, "Let the object give the particle a starting speed");
-	uiDefButF(block, NUM, B_CALCEFFECT, "Random:",		0,104,150,18, &paf->randfac, 0.0, 2.0, 1, 3, "Give the starting speed a random variation");
-	uiDefButF(block, NUM, B_CALCEFFECT, "Texture:",		0,86,150,18, &paf->texfac, 0.0, 2.0, 1, 3, "Let the texture give the particle a starting speed");
-	uiDefButF(block, NUM, B_CALCEFFECT, "Damping:",		0,68,150,18, &paf->damp, 0.0, 1.0, 1, 3, "Specify the damping factor");
-	uiBlockSetCol(block, TH_AUTO);
-	but=uiDefBut(block, TEX, B_PAF_SET_VG1, "VGroup:",	0,50,150,18, paf->vgroupname_v, 0, 31, 0, 0, "Name of vertex group to use for speed control");
-	uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)OBACT);
-	uiBlockEndAlign(block);
-	
-	uiDefBut(block, LABEL, 0, "Texture Emission",			0,30,150,20, NULL, 0.0, 0, 0, 0, "");
-	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG3, PAF_TEXTIME, B_CALCEFFECT, "TexEmit",		0,10,75,20, &(paf->flag2), 0, 0, 0, 0, "Use a texture to define emission of particles");
-	uiDefButS(block, NUM, B_CALCEFFECT, "Tex:",		75,10,75,20, &paf->timetex, 1.0, 10.0, 0, 0, "Specify texture used for the texture emission");
-	
-	/* right collumn */
-	uiDefIDPoinBut(block, test_grouppoin_but, ID_GR, B_CALCEFFECT, "GR:", 160, 155, 150, 20, &paf->group, "Limit Force Fields to this Group"); 
+	if(vgnum==PSYS_VG_DENSITY)
+		psys->recalc|=PSYS_DISTR;
+	else if(vgnum!=PSYS_VG_SIZE)
+		psys->recalc|=PSYS_INIT;
 
-	uiBlockBeginAlign(block);
-	uiDefBut(block, LABEL, 0, "Force:",				160,130,75,20, NULL, 0.0, 0, 0, 0, "");
-	uiDefButF(block, NUM, B_CALCEFFECT, "X:",		235,130,75,20, paf->force, -1.0, 1.0, 1, 2, "Specify the X axis of a continues force");
-	uiDefButF(block, NUM, B_CALCEFFECT, "Y:",		160,110,75,20, paf->force+1,-1.0, 1.0, 1, 2, "Specify the Y axis of a continues force");
-	uiDefButF(block, NUM, B_CALCEFFECT, "Z:",		235,110,75,20, paf->force+2, -1.0, 1.0, 1, 2, "Specify the Z axis of a continues force");
-	
-	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM, B_CALCEFFECT, "Tex:",		160,80,75,20, &paf->speedtex, 1.0, 10.0, 0, 2, "Specify the texture used for force");
-	uiDefButF(block, NUM, B_CALCEFFECT, "X:",		235,80,75,20, paf->defvec, -1.0, 1.0, 1, 2, "Specify the X axis of a force, determined by the texture");
-	uiDefButF(block, NUM, B_CALCEFFECT, "Y:",		160,60,75,20, paf->defvec+1,-1.0, 1.0, 1, 2, "Specify the Y axis of a force, determined by the texture");
-	uiDefButF(block, NUM, B_CALCEFFECT, "Z:",		235,60,75,20, paf->defvec+2, -1.0, 1.0, 1, 2, "Specify the Z axis of a force, determined by the texture");
-	
-	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW, B_CALCEFFECT, "Int",		160,30,50,20, &paf->texmap, 14.0, 0.0, 0, 0, "Use texture intensity as a factor for texture force");
-	uiDefButS(block, ROW, B_CALCEFFECT, "RGB",		210,30,50,20, &paf->texmap, 14.0, 1.0, 0, 0, "Use RGB values as a factor for particle speed vector");
-	uiDefButS(block, ROW, B_CALCEFFECT, "Grad",		260,30,50,20, &paf->texmap, 14.0, 2.0, 0, 0, "Use texture gradient as a factor for particle speed vector");
-	
-	uiDefButF(block, NUM, B_CALCEFFECT, "Nabla:",	160,10,150,20, &paf->nabla, 0.0001f, 1.0, 1, 0, "Specify the dimension of the area for gradient calculation");
-	
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+	allqueue(REDRAWVIEW3D, 0);
 }
+static void particle_del_vg(void *ob_v, void *vgnum_v)
+{
+	Object *ob= ob_v;
+	ParticleSystem *psys=psys_get_current(ob);
+	short vgnum = *((short *)vgnum_v);
 
+	if(vgnum==PSYS_VG_DENSITY) {
+		psys->recalc|=PSYS_DISTR;
+	}
 
-static void object_panel_particles(Object *ob)
+	psys->vgroup[vgnum]=0;
+
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+	allqueue(REDRAWVIEW3D, 0);
+}
+static void object_panel_particle_extra(Object *ob)
 {
 	uiBlock *block;
 	uiBut *but;
-	PartEff *paf= give_parteff(ob);
-	
-	/* the panelname "Particles " has a space to exclude previous saved panel "Particles" */
-	block= uiNewBlock(&curarea->uiblocks, "object_panel_particles", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Particles ", "Physics", 320, 0, 318, 204)==0) return;
+	ParticleSystem *psys=psys_get_current(ob);
+	ParticleSettings *part;
+	short butx=0, buty=160, butw=150, buth=20;
+	static short vgnum=0;
+	int event;
 
-	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
-	
-	if (ob->type == OB_MESH) {
-		uiBlockBeginAlign(block);
-		if(paf==NULL)
-			uiDefBut(block, BUT, B_NEWEFFECT, "NEW",	0,180,75,20, 0, 0, 0, 0, 0, "Create a new Particle effect");
-		else
-			uiDefBut(block, BUT, B_DELEFFECT, "Delete", 0,180,75,20, 0, 0, 0, 0, 0, "Delete the effect");
-	}
-	else uiDefBut(block, LABEL, 0, "Only Mesh Objects can generate particles",				10,180,300,20, NULL, 0.0, 0, 0, 0, "");
-	
-	
-	if(paf==NULL) return;
-	
-	uiDefBut(block, BUT, B_RECALCAL, "RecalcAll",		75,180,75,20, 0, 0, 0, 0, 0, "Update all particle systems");
-	uiBlockEndAlign(block);
-	
-	uiDefBut(block, LABEL, 0, "Emit:",					0,150,75,20, NULL, 0.0, 0, 0, 0, "");
+	if (psys==NULL) return;
+	part=psys->part;
+	if(part==NULL) return;
+		
+	block= uiNewBlock(&curarea->uiblocks, "object_panel_particle_extra", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Extras", "Particle", 980, 0, 318, 204)==0) return;
+
+	uiDefBut(block, LABEL, 0, "Effectors:",	butx,buty,butw,buth, NULL, 0.0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
-	uiDefButI(block, NUM, B_CALCEFFECT, "Amount:",		0,130,150,20, &paf->totpart, 1.0, 1000000.0, 0, 0, "The total number of particles");
-	if(paf->flag & PAF_STATIC) {
-		uiDefButS(block, NUM, REDRAWVIEW3D, "Step:",	0,110,150,20, &paf->staticstep, 1.0, 100.0, 10, 0, "For static duplicators, the Step value skips particles");
+	uiDefIDPoinBut(block, test_grouppoin_but, ID_GR, B_PART_RECALC, "GR:", butx, (buty-=buth), butw/2, buth, &part->eff_group, "Limit effectors to this Group"); 
+	uiDefButBitI(block, TOG, PART_SIZE_DEFL, B_PART_RECALC, "Size Deflect",	butx+butw/2,buty,butw/2,buth, &part->flag, 0, 0, 0, 0, "Use particle's size in deflection");
+	uiDefButBitI(block, TOG, PART_DIE_ON_COL, B_PART_RECALC, "Die on hit",butx,(buty-=buth),butw/2,buth, &part->flag, 0, 0, 0, 0, "Particles die when they collide with a deflector object");
+	uiDefButBitI(block, TOG, PART_STICKY, B_PART_RECALC, "Sticky",	butx+butw/2,buty,butw/2,buth, &part->flag, 0, 0, 0, 0, "Particles stick to collided objects if they die in the collision");
+	uiBlockEndAlign(block);
+
+	uiDefBut(block, LABEL, 0, "Time:",	butx,(buty-=buth),butw/3,buth, NULL, 0.0, 0, 0, 0, "");
+	uiBlockBeginAlign(block);
+	uiDefButBitI(block, TOG, PART_GLOB_TIME, B_PART_RECALC, "Global",	 butx,(buty-=buth),butw/2,buth, &part->flag, 0, 0, 0, 0, "Set all ipos that work on particles to be calculated in global/object time");
+	uiDefButBitI(block, TOG, PART_ABS_TIME, B_PART_RECALC, "Absolute",	 butx+butw/2,buty,butw/2,buth, &part->flag, 0, 0, 0, 0, "Set all ipos that work on particles to be calculated in absolute/relative time");
+
+	if(part->flag & PART_LOOP){
+		uiDefButBitI(block, TOG, PART_LOOP, B_PART_RECALC, "Loop",	 butx,(buty-=buth),butw/2,buth, &part->flag, 0, 0, 0, 0, "Loop particle lives");
+		uiDefButBitI(block, TOG, PART_LOOP_INSTANT, B_PART_RECALC, "Instantly",	 butx+butw/2,buty,butw/2,buth, &part->flag, 0, 0, 0, 0, "Loop particle life at time of death");
+	}
+	else
+		uiDefButBitI(block, TOG, PART_LOOP, B_PART_RECALC, "Loop",	 butx,(buty-=buth),butw,buth, &part->flag, 0, 0, 0, 0, "Loop particle lives");
+
+	uiDefButF(block, NUM, B_PART_RECALC, "Tweak:",	butx,(buty-=buth),butw,buth, &part->timetweak, 0.0, 10.0, 1, 0, "A multiplier for physics timestep (1.0 means one frame = 1/25 seconds)");
+	uiBlockEndAlign(block);
+
+	if(ob->type==OB_MESH) {
+		char *menustr= get_vertexgroup_menustr(ob);
+		int defCount=BLI_countlist(&ob->defbase);
+		if(defCount==0) psys->vgroup[vgnum]= 0;
+
+		uiDefBut(block, LABEL, 0, "Vertex group:",	butx,(buty-=2*buth),butw,buth, NULL, 0.0, 0, 0, 0, "");
+
+		uiBlockBeginAlign(block);
+		
+		uiDefButS(block, MENU, B_PART_REDRAW, "Attribute%t|TanRot%x10|TanVel%x9|Size%x8|RoughE%x7|Rough2%x6|Rough1%x5|Kink%x4|Clump%x3|Length%x2|Velocity%x1|Density%x0", butx,(buty-=buth),butw-40,buth, &vgnum, 14.0, 0.0, 0, 0, "Attribute effected by vertex group");
+		but=uiDefButBitS(block, TOG, (1<<vgnum), B_PART_REDRAW, "Neg",	butx+butw-40,buty,40,buth, &psys->vg_neg, 0, 0, 0, 0, "Negate the effect of the vertex group");
+		uiButSetFunc(but, particle_set_vg, (void *)psys, (void *)(&vgnum));
+		
+		butx+=butw;
+
+		uiDefButS(block, MENU, B_PART_REDRAW, menustr,	butx,buty,buth,buth, psys->vgroup+vgnum, 0, defCount, 0, 0, "Browses available vertex groups");
+		uiButSetFunc(but, particle_set_vg, (void *)ob, (void *)(&vgnum));
+		MEM_freeN (menustr);
+
+		if(psys->vgroup[vgnum]) {
+			bDeformGroup *defGroup = BLI_findlink(&ob->defbase, psys->vgroup[vgnum]-1);
+			if(defGroup)
+				uiDefBut(block, BUT, B_PART_REDRAW, defGroup->name,	butx+buth,buty,butw-2*buth,buth, NULL, 0.0, 0.0, 0, 0, "Name of current vertex group");
+			else{
+				uiDefBut(block, BUT, B_PART_REDRAW, "(no group)",	butx+buth,buty,butw-2*buth,buth, NULL, 0.0, 0.0, 0, 0, "Vertex Group doesn't exist anymore");
+			}
+			but=uiDefIconBut(block, BUT, B_PART_REDRAW, ICON_X, butx+butw-buth,buty,buth,buth, 0, 0, 0, 0, 0, "Disable use of vertex group");
+			uiButSetFunc(but, particle_del_vg, (void *)ob, (void *)(&vgnum));
+		}
+
+		uiBlockEndAlign(block);
+	}
+	
+	buty=butx=160;
+
+	uiDefButI(block, NUM, B_PART_DISTR, "Seed:",				butx,(buty-=buth),butw,buth, &psys->seed, 0.0, 255.0, 1, 0, "Set an offset in the random table");
+
+	event=(part->flag&PART_SIZEMASS)?B_PART_RECALC:B_PART_REDRAW;
+	uiDefButF(block, NUM, event, "Size:",	butx,(buty-=2*buth),butw,buth, &part->size, 0.01, 100, 10, 1, "The size of the particles");
+	uiDefButF(block, NUM, event, "Rand:",	butx,(buty-=buth),butw,buth, &part->randsize, 0.0, 2.0, 10, 1, "Give the particle size a random variation");
+
+	uiDefButBitI(block, TOG, PART_SIZEMASS, B_PART_RECALC, "Mass from size",	 butx,(buty-=buth),butw,buth, &part->flag, 0, 0, 0, 0, "Multiply mass with particle size");
+	uiDefButF(block, NUM, B_PART_RECALC, "Mass:",	butx,(buty-=buth),butw,buth, &part->mass, 0.01, 100, 10, 1, "Specify the mass of the particles");
+}
+/* copy from buttons_shading.c */
+static void autocomplete_uv(char *str, void *arg_v)
+{
+	Mesh *me;
+	CustomDataLayer *layer;
+	AutoComplete *autocpl;
+	int a;
+
+	if(str[0]==0)
+		return;
+
+	autocpl= autocomplete_begin(str, 32);
+		
+	/* search if str matches the beginning of name */
+	for(me= G.main->mesh.first; me; me=me->id.next)
+		for(a=0, layer= me->fdata.layers; a<me->fdata.totlayer; a++, layer++)
+			if(layer->type == CD_MTFACE)
+				autocomplete_do_name(autocpl, layer->name);
+	
+	autocomplete_end(autocpl, str);
+}
+static void object_panel_particle_visual(Object *ob)
+{
+	uiBlock *block;
+	uiBut *but;
+	ParticleSystem *psys=psys_get_current(ob);
+	ParticleSettings *part;
+	short butx=0, buty=160, butw=150, buth=20;
+	static short bbuvnum=0;
+
+	if (psys==NULL) return;
+	part=psys->part;
+	if(part==NULL) return;
+		
+	block= uiNewBlock(&curarea->uiblocks, "object_panel_particle_visual", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Visualization", "Particle", 640, 0, 318, 204)==0) return;
+
+	uiDefButS(block, MENU, B_PART_RECALC, "Billboard %x9|Group %x8|Object %x7|Path %x6|Line %x5|Axis %x4|Cross %x3|Circle %x2|Point %x1|None %x0", butx,buty,butw,buth, &part->draw_as, 14.0, 0.0, 0, 0, "How particles are visualized");
+
+	if(part->draw_as==PART_DRAW_NOT) {
+		uiDefButBitS(block, TOG, PART_DRAW_EMITTER, B_PART_REDRAW, "Render emitter",	butx,(buty-=2*buth),butw,buth, &part->draw, 0, 0, 0, 0, "Render emitter object");
+		return;
+	}
+
+	uiDefBut(block, LABEL, 0, "Draw:",	butx,(buty-=buth),butw,buth, NULL, 0.0, 0, 0, 0, "");
+	uiBlockBeginAlign(block);
+	uiDefButBitS(block, TOG, PART_DRAW_VEL, B_PART_REDRAW, "Vel",	butx,(buty-=buth),butw/3,buth, &part->draw, 0, 0, 0, 0, "Show particle velocity");
+	uiDefButBitS(block, TOG, PART_DRAW_SIZE, B_PART_REDRAW, "Size",	butx+butw/3,buty,butw/3,buth, &part->draw, 0, 0, 0, 0, "Show particle size");
+	uiDefButBitS(block, TOG, PART_DRAW_NUM, B_PART_REDRAW, "Num",	butx+2*butw/3,buty,butw/3,buth, &part->draw, 0, 0, 0, 0, "Show particle number");
+	uiDefButS(block, NUM, B_PART_REDRAW, "Draw Size:", butx,(buty-=buth),butw,buth, &part->draw_size, 0.0, 10.0, 0, 0, "Size of particles on viewport in pixels (0=default)");
+	uiDefButS(block, NUM, B_PART_RECALC, "Disp:",		butx,(buty-=buth),butw,buth, &part->disp, 0.0, 100.0, 10, 0, "Percentage of particles to calculate for 3d view");
+	uiBlockEndAlign(block);
+
+	uiDefBut(block, LABEL, 0, "Render:",	butx,(buty-=buth),butw,buth, NULL, 0.0, 0, 0, 0, "");
+	uiBlockBeginAlign(block);
+	uiDefButS(block, NUM, B_PART_DISTR, "Material:",					butx,(buty-=buth),butw-30,buth, &part->omat, 1.0, 16.0, 0, 0, "Specify material used for the particles");
+	uiDefButBitS(block, TOG, PART_DRAW_MAT_COL, B_PART_REDRAW, "Col",	butx+butw-30,buty,30,buth, &part->draw, 0, 0, 0, 0, "Draw particles using material's diffuse color");
+	uiDefButBitS(block, TOG, PART_DRAW_EMITTER, B_PART_REDRAW, "Emitter",	butx,(buty-=buth),butw/2,buth, &part->draw, 0, 0, 0, 0, "Render emitter Object also");
+	uiDefButBitS(block, TOG, PART_DRAW_PARENT, B_PART_REDRAW, "Parents",				butx+butw/2,buty,butw/2,buth, &part->draw, 0, 0, 0, 0, "Render parent particles");
+	uiDefButBitI(block, TOG, PART_UNBORN, B_PART_REDRAW, "Unborn",			butx,(buty-=buth),butw/2,buth, &part->flag, 0, 0, 0, 0, "Show particles before they are emitted");
+	uiDefButBitI(block, TOG, PART_DIED, B_PART_REDRAW, "Died",				butx+butw/2,buty,butw/2,buth, &part->flag, 0, 0, 0, 0, "Show particles after they have died");
+
+	uiBlockEndAlign(block);
+
+	butx=160;
+	buty=160-buth;
+
+	uiBlockBeginAlign(block);
+
+	switch(part->draw_as) {
+		case PART_DRAW_OB:
+			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_PART_REDRAW, "OB:",	butx,(buty-=buth),butw,buth, &part->dup_ob, "Show this Object in place of particles"); 
+			break;
+		case PART_DRAW_GR:
+			uiDefIDPoinBut(block, test_grouppoin_but, ID_GR, B_PART_REDRAW, "GR:",	butx,(buty-=buth),butw,buth, &part->dup_group, "Show Objects in this Group in place of particles"); 
+			uiDefButBitS(block, TOG, PART_DRAW_WHOLE_GR, B_PART_REDRAW, "Dupli Group",	butx,(buty-=buth),butw,buth, &part->draw, 0, 0, 0, 0, "Use whole group at once");
+			if((part->draw & PART_DRAW_WHOLE_GR)==0)
+				uiDefButBitS(block, TOG, PART_DRAW_RAND_GR, B_PART_REDRAW, "Pick Random",	butx,(buty-=buth),butw,buth, &part->draw, 0, 0, 0, 0, "Pick objects from group randomly");
+			break;
+		case PART_DRAW_BB:
+			uiDefButBitS(block, TOG, PART_DRAW_BB_LOCK, B_PART_REDRAW, "Lock",	butx,(buty+=buth),butw/2,buth, &part->draw, 0, 0, 0, 0, "Lock the billboards align axis");
+			uiDefButS(block, MENU, B_PART_REDRAW, "Align to%t|Velocity%x4|View%x3|Z%x2|Y%x1|X%x0", butx+butw/2,buty,butw/2,buth, &part->bb_align, 14.0, 0.0, 0, 0, "In respect to what the billboards are aligned");
+			uiDefButF(block, NUM, B_PART_REDRAW, "Tilt:", butx,(buty-=buth),butw/2,buth, &part->bb_tilt, -1.0, 1.0, 0, 0, "Tilt of the billboards");
+			uiDefButF(block, NUM, B_PART_REDRAW, "Rand:", butx+butw/2,buty,butw/2,buth, &part->bb_rand_tilt, 0.0, 1.0, 0, 0, "Random tilt of the billboards");
+			uiDefButS(block, NUM, B_PART_REDRAW, "UV Split:", butx,(buty-=buth),butw,buth, &part->bb_uv_split, 1.0, 10.0, 0, 0, "Amount of rows/columns to split uv coordinates for billboards");
+			uiDefButS(block, MENU, B_PART_REDRAW, "Animate%t|Angle%x2|Time%x1|None%x0", butx,(buty-=buth),butw/2,buth, &part->bb_anim, 14.0, 0.0, 0, 0, "How to animate billboard textures");
+			uiDefButS(block, MENU, B_PART_REDRAW, "Offset%t|Random%x2|Linear%x1|None%x0", butx+butw/2,buty,butw/2,buth, &part->bb_split_offset, 14.0, 0.0, 0, 0, "How to offset billboard textures");
+			uiDefButF(block, NUM, B_PART_REDRAW, "OffsetX:", butx,(buty-=buth),butw,buth, part->bb_offset, -1.0, 1.0, 0, 0, "Offset billboards horizontally");
+			uiDefButF(block, NUM, B_PART_REDRAW, "OffsetY:", butx,(buty-=buth),butw,buth, part->bb_offset+1, -1.0, 1.0, 0, 0, "Offset billboards vertically");
+			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_PART_REDRAW, "OB:",	butx,(buty-=buth),butw,buth, &part->bb_ob, "Billboards face this object (default is active camera)"); 
+			uiDefButS(block, MENU, B_PART_REDRAW, "UV channel%t|Split%x2|Time-Index (X-Y)%x1|Normal%x0", butx,(buty-=buth),butw,buth, &bbuvnum, 14.0, 0.0, 0, 0, "UV channel");
+			but=uiDefBut(block, TEX, B_PART_REDRAW, "UV:", butx,(buty-=buth),butw,buth, psys->bb_uvname+bbuvnum, 0, 31, 0, 0, "Set name of UV layer to use with billboards, default is active UV layer");
+			uiButSetCompleteFunc(but, autocomplete_uv, NULL);
+			break;
+		case PART_DRAW_LINE:
+			uiDefButBitS(block, TOG, PART_DRAW_VEL_LENGTH, B_PART_REDRAW, "Speed",	butx,(buty-=buth),butw,buth, &part->draw, 0, 0, 0, 0, "Multiply line length by particle speed");
+			uiDefButF(block, NUM, B_PART_REDRAW, "Back:", butx,(buty-=buth),butw,buth, &part->draw_line[0], 0.0, 10.0, 0, 0, "Length of the line's tail");
+			uiDefButF(block, NUM, B_PART_REDRAW, "Front:", butx,(buty-=buth),butw,buth, &part->draw_line[1], 0.0, 10.0, 0, 0, "Length of the line's head");
+			break;
+		case PART_DRAW_PATH:
+			if(psys->flag & (PSYS_HAIR_DONE|PSYS_KEYED)) {
+				uiDefButS(block, NUM, B_PART_RECALC, "Steps:",	butx,(buty+=buth),butw,buth, &part->draw_step, 0.0, 7.0, 0, 0, "How many steps paths are drawn with (power of 2)");
+				uiDefButS(block, NUM, B_PART_REDRAW, "Render:",	butx,(buty-=buth),butw,buth, &part->ren_step, 0.0, 9.0, 0, 0, "How many steps paths are rendered with (power of 2)");
+
+				uiDefButBitI(block, TOG, PART_ABS_LENGTH, B_PART_RECALC, "Abs Length",	 butx,(buty-=buth),butw,buth, &part->flag, 0, 0, 0, 0, "Use maximum length in absolute blender units");
+				uiDefButF(block, NUM, B_PART_RECALC, "Max Length:",		butx,(buty-=buth),butw,buth, &part->abslength, 0.0, 10000.0, 1, 3, "Absolute path length");
+				uiDefButF(block, NUMSLI, B_PART_RECALC, "RLength:",		butx,(buty-=buth),butw,buth, &part->randlength, 0.0, 1.0, 1, 3, "Give path length a random variation");
+				uiBlockEndAlign(block);
+
+				uiDefButBitI(block, TOG, PART_HAIR_BSPLINE, B_PART_RECALC, "B-Spline",	 butx,(buty-=buth),butw,buth, &part->flag, 0, 0, 0, 0, "Interpolate hair using B-Splines");
+
+				uiBlockBeginAlign(block);
+				uiDefButBitS(block, TOG, PART_DRAW_REN_ADAPT, B_PART_REDRAW, "Adaptive render",	 butx,buty-=buth,butw,buth, &part->draw, 0, 0, 0, 0, "Draw steps of the particle path");
+				if(part->draw & PART_DRAW_REN_ADAPT) {
+					uiDefButS(block, NUM, B_PART_REDRAW, "Angle:",	butx,(buty-=buth),butw,buth, &part->adapt_angle, 0.0, 45.0, 0, 0, "How many degrees path has to curve to make another render segment");
+					uiDefButS(block, NUM, B_PART_REDRAW, "Pixel:",	butx,(buty-=buth),butw,buth, &part->adapt_pix, 0.0, 50.0, 0, 0, "How many pixels path has to cover to make another render segment");
+				}
+			}
+			else {
+				uiDefBut(block, LABEL, 0, "Baked or keyed",	butx,(buty-=2*buth),butw,buth, NULL, 0.0, 0, 0, 0, "");
+				uiDefBut(block, LABEL, 0, "particles needed!",	butx,(buty-=2*buth),butw,buth, NULL, 0.0, 0, 0, 0, "");
+			}
+			break;
+	}
+	uiBlockEndAlign(block);
+}
+static void boidrule_moveDown(void *part_v, void *rule_v)
+{
+	ParticleSettings *part = part_v;
+	char r, *rule = rule_v;
+
+	int n= rule - part->boidrule;
+
+	if(n+1 < BOID_TOT_RULES) {
+		r=part->boidrule[n];
+		part->boidrule[n]=part->boidrule[n+1];
+		part->boidrule[n+1]=r;
+	}
+}
+static void boidrule_moveUp(void *part_v, void *rule_v)
+{
+	ParticleSettings *part = part_v;
+	char r, *rule = rule_v;
+
+	int n= rule - part->boidrule;
+
+	if(n-1 >= 0) {
+		r=part->boidrule[n];
+		part->boidrule[n]=part->boidrule[n-1];
+		part->boidrule[n-1]=r;
+	}
+}
+static void object_panel_particle_physics(Object *ob)
+{
+	uiBlock *block;
+	uiBut *but;
+	ParticleSystem *psys=psys_get_current(ob);
+	ParticleSettings *part;
+	short butx=0, buty=160, butw=150, buth=20;
+
+	if (psys==NULL) return;
+	
+	part=psys->part;
+
+	if(part==NULL) return;
+		
+	block= uiNewBlock(&curarea->uiblocks, "object_panel_particle_physics", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Physics", "Particle", 320, 0, 318, 204)==0) return;
+	
+	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
+	
+	if(psys->flag & PSYS_EDITED || psys->flag & PSYS_PROTECT_CACHE) {
+		uiSetButLock(1, "Hair is edited or cache is protected!");
+	}
+
+	if(part->phystype==PART_PHYS_KEYED){
+		uiBlockBeginAlign(block);
+		uiDefButBitI(block, TOG, PSYS_FIRST_KEYED, B_PART_RECALC, "First",	 butx,buty,45,buth, &psys->flag, 0, 0, 0, 0, "Sets the system to be the starting point of keyed particles");
+		uiDefButS(block, MENU, B_PART_RECALC, "Physics %t|Boids%x3|Keyed %x2|Newtonian %x1|None %x0", butx+45,buty,butw-45,buth, &part->phystype, 14.0, 0.0, 0, 0, "Select particle physics type");
+		uiBlockEndAlign(block);
+	}
+	else
+		uiDefButS(block, MENU, B_PART_RECALC, "Physics%t|Boids%x3|Keyed%x2|Newtonian%x1|None%x0", butx,buty,butw,buth, &part->phystype, 14.0, 0.0, 0, 0, "Select particle physics type");
+
+	if(part->phystype==PART_PHYS_BOIDS) {
+		int i;
+		char *rules[BOID_TOT_RULES] = {"Collision", "Avoid", "Crowd", "Center", "AvVel", "Velocity", "Goal", "Level"};
+		char *ruletext[BOID_TOT_RULES] = {
+			"Avoid deflector objects",
+			"Avoid predators",
+			"Avoid other boids",
+			"Get to flock center",
+			"Maintain average velocity",
+			"Match velocity of nearby boids",
+			"Seek goal",
+			"Keep the Z level"
+		};
+		/* left column */
+		uiDefBut(block, LABEL, 0, "Behaviour:",		butx,(buty-=buth),butw,buth, NULL, 0.0, 0, 0, 0, "");
+		uiBlockBeginAlign(block);
+		for(i=0; i<BOID_TOT_RULES; i++) {
+			uiBlockSetCol(block, TH_BUT_ACTION);
+
+			but = uiDefIconBut(block, BUT, B_PART_RECALC, VICON_MOVE_UP, butx, (buty-=buth), 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Move rule up");
+			uiButSetFunc(but, boidrule_moveUp, part, part->boidrule+i);
+
+			but = uiDefIconBut(block, BUT, B_PART_RECALC, VICON_MOVE_DOWN, butx+20, buty, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Move rule down");
+			uiButSetFunc(but, boidrule_moveDown, part, part->boidrule+i);
+
+			uiBlockSetCol(block, TH_BUT_SETTING2);
+
+			uiDefButF(block, NUM, B_PART_RECALC, rules[part->boidrule[i]],		butx+40,buty,butw-40,buth, part->boidfac+part->boidrule[i], -1.0, 2.0, 1, 3, ruletext[part->boidrule[i]]);
+		}
+		uiBlockSetCol(block, TH_AUTO);
+		uiBlockEndAlign(block);
+
+		buty=140;
+		butx=160;
+		
+		uiDefBut(block, LABEL, 0, "Physics:",		butx,buty,butw,buth, NULL, 0.0, 0, 0, 0, "");
+		uiBlockBeginAlign(block);
+		uiDefButBitI(block, TOG, PART_BOIDS_2D, B_PART_RECALC, "2D",	 butx,(buty-=buth),butw,buth, &part->flag, 0, 0, 0, 0, "Constrain boids to a surface");
+		uiDefButF(block, NUM, B_PART_RECALC, "MaxVelocity:",		butx,(buty-=buth),butw,buth, &part->max_vel, 0.0, 200.0, 1, 3, "Maximum velocity");
+		uiDefButF(block, NUM, B_PART_RECALC, "AvVelocity:",		butx,(buty-=buth),butw,buth, &part->average_vel, 0.0, 1.0, 1, 3, "The usual speed % of max velocity");
+		uiDefButF(block, NUM, B_PART_RECALC, "LatAcc:",		butx,(buty-=buth),butw,buth, &part->max_lat_acc, 0.0, 1.0, 1, 3, "Lateral acceleration % of max velocity");
+		uiDefButF(block, NUM, B_PART_RECALC, "TanAcc:",		butx,(buty-=buth),butw,buth, &part->max_tan_acc, 0.0, 1.0, 1, 3, "Tangential acceleration % of max velocity");
+		if(part->flag & PART_BOIDS_2D) {
+			uiDefButF(block, NUM, B_PART_RECALC, "GroundZ:",		butx,(buty-=buth),butw,buth, &part->groundz, -100.0, 100.0, 1, 3, "Default Z value");
+			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_PARTTARGET, "OB:",	butx,(buty-=buth),butw,buth, &psys->keyed_ob, "Constrain boids to object's surface"); 
+		}
+		else {
+			uiDefButF(block, NUM, B_PART_RECALC, "Banking:",		butx,(buty-=buth),butw,buth, &part->banking, -10.0, 10.0, 1, 3, "Banking of boids on turns (1.0==natural banking)");
+			uiDefButF(block, NUM, B_PART_RECALC, "MaxBank:",		butx,(buty-=buth),butw,buth, &part->max_bank, 0.0, 1.0, 1, 3, "How much a boid can bank at a single step");
+		}
+		uiBlockEndAlign(block);
+		uiDefButS(block, NUM, B_PART_RECALC, "N:",		butx,(buty-=buth),butw,buth, &part->boidneighbours, 1.0, 10.0, 1, 3, "How many neighbours to consider for each boid");
 	}
 	else {
-		uiDefButF(block, NUM, B_CALCEFFECT, "Sta:",		0,110,75,20, &paf->sta, -250.0, MAXFRAMEF, 100, 1, "Frame # to start emitting particles");
-		uiDefButF(block, NUM, B_CALCEFFECT, "End:",		75,110,75,20, &paf->end, 1.0, MAXFRAMEF, 100, 1, "Frame # to stop emitting particles");
-	}
-	uiDefButF(block, NUM, B_CALCEFFECT, "Life:",		0,90,75,20, &paf->lifetime, 1.0, MAXFRAMEF, 100, 1, "Specify the life span of the particles");
-	uiDefButS(block, NUM, B_CALCEFFECT, "Disp:",		75,90,75,20, &paf->disp, 0.0, 100.0, 10, 0, "Percentage of particles to calculate for 3d view");
-	uiBlockEndAlign(block);
-	
-	uiDefBut(block, LABEL, 0, "From:",					0,70,75,20, NULL, 0.0, 0, 0, 0, "");
-	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOGN, PAF_OFACE, B_CALCEFFECT, "Verts",	0,50,75,20, &paf->flag, 0, 0, 0, 0, "Emit particles from vertices");
-	uiDefButBitS(block, TOG, PAF_FACE, B_CALCEFFECT, "Faces",	75,50,75,20, &paf->flag, 0, 0, 0, 0, "Emit particles from faces");
-	if(paf->flag & PAF_FACE) {
-		uiDefButBitS(block, TOG, PAF_TRAND, B_CALCEFFECT, "Rand",	0,30,50,20, &paf->flag, 0, 0, 0, 0, "Use true random distribution from faces");
-		uiDefButBitS(block, TOG, PAF_EDISTR, B_CALCEFFECT, "Even",	50,30,50,20, &paf->flag, 0, 0, 0, 0, "Use even distribution from faces based on face areas");
-		uiDefButS(block, NUM, B_CALCEFFECT, "P/F:",					100,30,50,20, &paf->userjit, 0.0, 200.0, 1, 0, "Jitter table distribution: maximum particles per face (0=uses default)");
-	}
-	else uiBlockEndAlign(block);	/* vgroup button no align */
-	
-	but=uiDefBut(block, TEX, B_PAF_SET_VG, "VGroup:",					0,10,150,20, paf->vgroupname, 0, 31, 0, 0, "Name of vertex group to use");
-	uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)OBACT);
-	uiBlockEndAlign(block);
-	
-	/* right collumn */
-	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, PAF_STATIC, B_EFFECT_DEP, "Static",	160,180,75,20, &paf->flag, 0, 0, 0, 0, "Make static particles (deform only works with SubSurf)");
-	if(paf->flag & PAF_STATIC) {
-		uiDefButBitS(block, TOG, PAF_ANIMATED, B_DIFF, "Animated",	235,180,75,20, &paf->flag, 0, 0, 0, 0, "Static particles are recalculated each rendered frame");
-	}
-	uiBlockEndAlign(block);
+		/* left column */
+		uiDefBut(block, LABEL, 0, "Initial velocity:",		butx,(buty-=buth),butw,buth, NULL, 0.0, 0, 0, 0, "");
+		uiBlockBeginAlign(block);
+		uiBlockSetCol(block, TH_BUT_SETTING2);
+		uiDefButF(block, NUM, B_PART_RECALC, "Object:",		butx,(buty-=buth*4/5),butw,buth*4/5, &part->obfac, -1.0, 1.0, 1, 3, "Let the object give the particle a starting speed");
+		uiDefButF(block, NUM, B_PART_RECALC, "Normal:",		butx,(buty-=buth*4/5),butw,buth*4/5, &part->normfac, -200.0, 200.0, 1, 3, "Let the surface normal give the particle a starting speed");
+		uiDefButF(block, NUM, B_PART_RECALC, "Random:",		butx,(buty-=buth*4/5),butw,buth*4/5, &part->randfac, 0.0, 200.0, 1, 3, "Give the starting speed a random variation");
+		if(part->type==PART_REACTOR) {
+			uiDefButF(block, NUM, B_PART_RECALC, "Particle:",		butx,(buty-=buth*4/5),butw,buth*4/5, &part->partfac, -10.0, 10.0, 1, 3, "Let the target particle give the particle a starting speed");
+			uiDefButF(block, NUM, B_PART_RECALC, "Reactor:",		butx,(buty-=buth*4/5),butw,buth*4/5, &part->reactfac, -10.0, 10.0, 1, 3, "Let the vector from target particle give the particle a starting speed");
+		}
+		else {
+			uiDefButF(block, NUM, B_PART_RECALC, "Tan:",		butx,(buty-=buth*4/5),butw,buth*4/5, &part->tanfac, -200.0, 200.0, 1, 3, "Let the surface tangent give the particle a starting speed");
+			uiDefButF(block, NUM, B_PART_RECALC, "Rot:",		butx,(buty-=buth*4/5),butw,buth*4/5, &part->tanphase, -1.0, 1.0, 1, 3, "Rotate the surface tangent");
+		}
+		uiBlockSetCol(block, TH_AUTO);
+		uiBlockEndAlign(block);
 
-	uiDefBut(block, LABEL, 0, "Display:",				160,150,75,20, NULL, 0.0, 0, 0, 0, "");
-	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM, B_CALCEFFECT, "Material:",	160,130,150,20, &paf->omat, 1.0, 16.0, 0, 0, "Specify material used for the particles");
-	uiDefButS(block, TOG|BIT|7, B_REDR, "Mesh",			160,110,50,20, &paf->flag, 0, 0, 0, 0, "Render emitter Mesh also");
-	uiDefButBitS(block, TOG, PAF_UNBORN, B_DIFF, "Unborn",210,110,50,20, &paf->flag, 0, 0, 0, 0, "Make particles appear before they are emitted");
-	uiDefButBitS(block, TOG, PAF_DIED, B_DIFF, "Died",	260,110,50,20, &paf->flag, 0, 0, 0, 0, "Make particles appear after they have died");
-	uiDefButS(block, TOG, REDRAWVIEW3D, "Vect",			160,90,75,20, &paf->stype, 0, 0, 0, 0, "Give the particles a direction and rotation");
-	if(paf->flag & PAF_STATIC) 
-		uiDefButF(block, NUM, B_CALCEFFECT,	 "Max:",	235,90,75,20, &paf->maxlen, 0.0, 100.0, 10, 1, "The maximum length of a particle strand (zero is no limit)");
+		buty=160;
+		butx=160;
+		
+		if(part->phystype==PART_PHYS_NEWTON)
+			uiDefButS(block, MENU, B_PART_RECALC, "Integration%t|RK4%x2|Midpoint%x1|Euler%x0", butx,buty,butw,buth, &part->integrator, 14.0, 0.0, 0, 0, "Select physics integrator type");
+		
+		uiDefBut(block, LABEL, 0, "Rotation:",	butx, (buty-=buth),butw,buth, NULL, 0.0, 0, 0, 0, "");
+		uiBlockBeginAlign(block);
+		uiDefButBitI(block, TOG, PART_ROT_DYN, B_PART_RECALC, "Dynamic",	 butx,(buty-=buth*4/5),butw/2,buth*4/5, &part->flag, 0, 0, 0, 0, "Sets rotation to dynamic/constant");
+		uiDefButS(block, MENU, B_PART_RECALC, "Rotation %t|Random %x3|Velocity %x2|Normal %x1|None %x0", butx+butw/2,buty,butw/2,buth*4/5, &part->rotmode, 14.0, 0.0, 0, 0, "Select particle rotation mode");
+		uiBlockSetCol(block, TH_BUT_SETTING2);
+		uiDefButF(block, NUM, B_PART_RECALC, "Amount:",		butx,(buty-=buth*4/5),butw,buth*4/5, &part->rotfac, -1.0, 1.0, 1, 3, "Rotation amount");
+		uiDefButF(block, NUM, B_PART_RECALC, "Phase:",			butx,(buty-=buth*4/5),butw,buth*4/5, &part->phasefac, -1.0, 1.0, 1, 3, "Initial rotation phase");
+		uiBlockSetCol(block, TH_AUTO);
+
+		uiDefButS(block, MENU, B_PART_RECALC, "Angular v %t|Velocity%x3|Random%x2|Spin%x1|None%x0", butx,(buty-=buth*4/5),butw,buth*4/5, &part->avemode, 14.0, 0.0, 0, 0, "Select particle angular velocity mode");
+		uiBlockSetCol(block, TH_BUT_SETTING2);
+		uiDefButF(block, NUM, B_PART_RECALC, "Angular v:",		butx,(buty-=buth*4/5),butw,buth*4/5, &part->avefac, -200.0, 200.0, 1, 3, "Angular velocity amount");
+   		uiBlockSetCol(block, TH_AUTO);
+		uiBlockEndAlign(block);
+		
+		if(part->phystype==PART_PHYS_NEWTON) {
+			butx=0;
+			buty=40;
+			uiDefBut(block, LABEL, 0, "Global effects:",	butx,buty,butw,buth, NULL, 0.0, 0, 0, 0, "");
+
+			butw=103;
+			uiBlockBeginAlign(block);
+			uiDefButF(block, NUM, B_PART_RECALC, "AccX:",		butx,(buty-=buth),butw,buth, part->acc, -200.0, 200.0, 100, 0, "Specify a constant acceleration along the X-axis");
+			uiDefButF(block, NUM, B_PART_RECALC, "AccY:",		butx+butw,buty,butw,buth, part->acc+1,-200.0, 200.0, 100, 0, "Specify a constant acceleration along the Y-axis");
+			uiDefButF(block, NUM, B_PART_RECALC, "AccZ:",		butx+2*butw,buty,butw+1,buth, part->acc+2, -200.0, 200.0, 100, 0, "Specify a constant acceleration along the Z-axis");
+
+			uiDefButF(block, NUM, B_PART_RECALC, "Drag:",		butx,(buty-=buth),butw,buth, &part->dragfac, 0.0, 1.0, 1, 0, "Specify the amount of air-drag");
+			uiDefButF(block, NUM, B_PART_RECALC, "Brown:",		butx+butw,buty,butw,buth, &part->brownfac, 0.0, 200.0, 1, 0, "Specify the amount of brownian motion");
+			uiDefButF(block, NUM, B_PART_RECALC, "Damp:",		butx+2*butw,buty,butw+1,buth, &part->dampfac, 0.0, 1.0, 1, 0, "Specify the amount of damping");
+			uiBlockEndAlign(block);
+		}
+		else if(part->phystype==PART_PHYS_KEYED) {
+			short totkpsys=1;
+			butx=0;
+			buty=40;
+			uiDefBut(block, LABEL, 0, "Keyed Target:",							butx,buty,butw,buth, NULL, 0.0, 0, 0, 0, "");
+			if(psys->keyed_ob){
+				if(psys->keyed_ob==ob || BLI_findlink(&psys->keyed_ob->particlesystem,psys->keyed_psys-1)==0)
+					uiBlockSetCol(block, TH_REDALERT);
+				else
+					totkpsys = BLI_countlist(&psys->keyed_ob->particlesystem);
+			}
+			else
+				uiBlockSetCol(block, TH_REDALERT);
+
+			uiBlockBeginAlign(block);
+			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_PARTTARGET, "OB:",	butx,(buty-=buth),butw*2/3,buth, &psys->keyed_ob, "The object that has the target particle system"); 
+			uiDefButS(block, NUM, B_PARTTARGET, "Psys:",		butx+butw*2/3,buty,butw/3,buth, &psys->keyed_psys, 1.0, totkpsys, 0, 0, "The target particle system number in the object");
+			uiBlockEndAlign(block);
+			
+			uiBlockSetCol(block, TH_AUTO);
+
+			butx=160;
+
+			if(psys->flag & PSYS_FIRST_KEYED)
+				uiDefButBitI(block, TOG, PSYS_KEYED_TIME, B_PART_RECALC, "Timed",	 butx,buty,butw,buth, &psys->flag, 0, 0, 0, 0, "Use intermediate key times");
+			else
+				uiDefButF(block, NUMSLI, B_PART_RECALC, "Time:",		butx,buty,butw,buth, &part->keyed_time, 0.0, 1.0, 1, 3, "Keyed key time relative to remaining particle life");
+		}
+	}
+}
+
+static void psys_clear_cache(void *ob_v, void *psys_v)
+{
+	clear_particles_from_cache((Object *)ob_v, (ParticleSystem *)psys_v, CFRA);
+}
+static void object_panel_particle_system(Object *ob)
+{
+	uiBlock *block;
+	uiBut *but;
+	ParticleSystem *psys=NULL;
+	ParticleSettings *part;
+	ID *id, *idfrom;
+	short butx=0, buty=160, butw=150, buth=20;
+	char str[30];
+	static short partact;
+	short totpart;
+
+	block= uiNewBlock(&curarea->uiblocks, "object_panel_particle_system", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Particle System", "Particle", 0, 0, 318, 204)==0) return;
+	
+	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
+
+	if(ELEM4(ob->type,OB_MESH,OB_FONT,OB_CURVE,OB_SURF)==0) {
+		uiDefBut(block, LABEL, 0, "Only Mesh or Curve Objects can generate particles", 10,180,300,20, NULL, 0.0, 0, 0, 0, "");
+		return;
+	}
+	psys=psys_get_current(ob);
+
+	if(psys)
+		id=(ID*)(psys->part);
 	else
-		uiDefButF(block, NUM, B_CALCEFFECT,	 "Size:",	235,90,75,20, &paf->vectsize, 0.0, 1.0, 10, 1, "The amount the Vect option influences halo size");	
+		id=NULL;
+	idfrom=&ob->id;
+
+	/* browse buttons */
+	uiBlockSetCol(block, TH_BUT_SETTING2);
+	butx= std_libbuttons(block, butx, buty, 0, NULL, B_PARTBROWSE, ID_PA, 0, id, idfrom, &(G.buts->menunr), B_PARTALONE, 0, B_PARTDELETE, 0, 0);
+
+	partact=psys_get_current_num(ob)+1;
+	totpart=BLI_countlist(&ob->particlesystem);
+	sprintf(str, "%d Part", totpart);
+	but=uiDefButS(block, NUM, B_PARTACT, str, 224,buty,88,buth, &partact, 1.0, totpart+1, 0, 0, "Shows the number of particle systems in the object and the active particle system");
+	uiButSetFunc(but, PE_change_act, ob, &partact);
+
+	if(psys==NULL)
+		return;
+
+	part=psys->part;
+
+	if(part==NULL) return;
+
+	butx=0;
+	buty-=5;
+	
+	uiDefButBitI(block, TOG, PSYS_ENABLED, B_PART_REDRAW, "Enabled",	 0,(buty-=buth),100,buth, &psys->flag, 0, 0, 0, 0, "Sets particle system to be calculated and shown");
+
+	if(part->type == PART_HAIR){
+		if(psys->flag & PSYS_EDITED)
+			uiDefBut(block, BUT, B_PART_EDITABLE, "Free Edit",		105,buty,100,buth, NULL, 0.0, 0.0, 10, 0, "Free editing");
+		else
+			uiDefBut(block, BUT, B_PART_EDITABLE, "Set Editable",	105,buty,100,buth, NULL, 0.0, 0.0, 10, 0, "Finalize hair to enable editing in particle mode");
+
+	}
+	else {
+		uiBlockBeginAlign(block);
+		uiDefButBitI(block, TOG, PSYS_PROTECT_CACHE, B_PART_REDRAW, "Protect",		105,buty,50,buth, &psys->flag, 0.0, 0.0, 10, 0, "Protect the cache");
+		but=uiDefBut(block, BUT, B_PART_RECALC, "Clear",		155,buty,50,buth, NULL, 0.0, 0.0, 10, 0, "Clear the cache");
+		if((psys->flag & PSYS_PROTECT_CACHE)==0)
+			uiButSetFunc(but, psys_clear_cache, ob, &partact);
+
+		uiBlockEndAlign(block);
+	}
+
+	if(psys->flag & PSYS_EDITED || psys->flag & PSYS_PROTECT_CACHE) {
+		uiSetButLock(1, "Hair is edited or cache is protected!");
+	}
+
+	uiDefButS(block, MENU, B_PARTTYPE, "Type%t|Hair%x2|Reactor%x1|Emitter%x0", 210,buty,100,buth, &part->type, 14.0, 0.0, 0, 0, "Type of particle system");
+
+	buty-=5;
+	uiDefBut(block, LABEL, 0, "Basic:",					butx,(buty-=buth),butw,buth, NULL, 0.0, 0, 0, 0, "");
+	uiBlockBeginAlign(block);
+
+	if(part->distr==PART_DISTR_GRID)
+		uiDefButI(block, NUM, B_PART_ALLOC, "Resol:",		butx,(buty-=buth),butw,buth, &part->grid_res, 1.0, 100.0, 0, 0, "The resolution of the particle grid");
+	else
+		uiDefButI(block, NUM, B_PART_ALLOC, "Amount:",		butx,(buty-=buth),butw,buth, &part->totpart, 0.0, 100000.0, 0, 0, "The total number of particles");
+	if(part->type==PART_REACTOR) {
+		uiDefButBitI(block, TOG, PART_REACT_STA_END, B_PART_INIT, "Sta/End",	 butx,(buty-=buth),butw/2,buth, &part->flag, 0, 0, 0, 0, "Give birth to unreacted particles eventually");
+		uiDefButS(block, MENU, B_PART_RECALC, "React on %t|Near %x2|Collision %x1|Death %x0", butx+butw/2,buty,butw/2,buth, &part->reactevent, 14.0, 0.0, 0, 0, "The event of target particles to react");
+		if(part->flag&PART_REACT_STA_END) {
+			uiDefButF(block, NUM, B_PART_INIT, "Sta:",		butx,(buty-=buth),butw,buth, &part->sta, 1.0, part->end, 100, 1, "Frame # to start emitting particles");
+			uiDefButF(block, NUM, B_PART_INIT, "End:",		butx,(buty-=buth),butw,buth, &part->end, part->sta, MAXFRAMEF, 100, 1, "Frame # to stop emitting particles");
+		}
+		if(part->from!=PART_FROM_PARTICLE) {
+			uiDefButBitI(block, TOG, PART_REACT_MULTIPLE, B_PART_RECALC, "Multi React",	 butx,(buty-=buth),butw,buth, &part->flag, 0, 0, 0, 0, "React multiple times");
+			uiDefButF(block, NUM, B_PART_RECALC, "Shape:",		butx,(buty-=buth),butw,buth, &part->reactshape, 0.0, 10.0, 100, 1, "Power of reaction strength dependence on distance to target");
+		}
+	}
+	else if(part->type==PART_HAIR) {
+		uiDefButS(block, NUM, B_PART_RECALC, "Segments:",	butx,(buty-=buth),butw,buth, &part->hair_step, 2.0, 50.0, 0, 0, "Amount of hair segments");
+	}
+	else {
+		uiDefButF(block, NUM, B_PART_INIT, "Sta:",		butx,(buty-=buth),butw,buth, &part->sta, 1.0, part->end, 100, 1, "Frame # to start emitting particles");
+		uiDefButF(block, NUM, B_PART_INIT, "End:",		butx,(buty-=buth),butw,buth, &part->end, part->sta, MAXFRAMEF, 100, 1, "Frame # to stop emitting particles");
+	}
+
+	if(part->type!=PART_HAIR) {
+		uiDefButF(block, NUM, B_PART_INIT, "Life:",	butx,(buty-=buth),butw,buth, &part->lifetime, 1.0, MAXFRAMEF, 100, 1, "Specify the life span of the particles");
+		uiDefButF(block, NUM, B_PART_INIT, "Rand:",	butx,(buty-=buth),butw,buth, &part->randlife, 0.0, 2.0, 10, 1, "Give the particle life a random variation");
+	}
+
 	uiBlockEndAlign(block);
 
-	uiDefBut(block, LABEL, 0, "Children:",				160,70,75,20, NULL, 0.0, 0, 0, 0, "");
+	butx=160;
+	buty=120;
+
+	buty-=10;
+
+	uiDefBut(block, LABEL, 0, "Emit From:",							butx,buty,butw,buth, NULL, 0.0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
-	uiDefButS(block, NUM, B_REDR,		"Generation:",	160,50,150,20, &paf->curmult, 0.0, 3.0, 0, 0, "Current generation of particles");
-	uiDefButS(block, NUM, B_CALCEFFECT, "Num:",			160,30,75,20, paf->child+paf->curmult, 1.0, 600.0, 100, 0, "Specify the number of generations of particles that can multiply itself");
-	uiDefButF(block, NUM, B_CALCEFFECT, "Prob:",		235,30,75,20, paf->mult+paf->curmult, 0.0, 1.0, 10, 1, "Probability \"dying\" particle spawns a new one.");
-	uiDefButF(block, NUM, B_CALCEFFECT, "Life:",		160,10,75,20, paf->life+paf->curmult, 1.0, 600.0, 100, 1, "Specify the lifespan of the next generation particles");
-	uiDefButS(block, NUM, B_CALCEFFECT, "Mat:",			235,10,75,20, paf->mat+paf->curmult, 1.0, 8.0, 0, 0, "Specify the material used for the particles");
+	uiDefButBitI(block, TOG, PART_TRAND, B_PART_DISTR, "Random",	butx,(buty-=buth),butw/2,buth, &part->flag, 0, 0, 0, 0, "Emit in random order of elements");
+	
+	if(part->type==PART_REACTOR)
+		uiDefButS(block, MENU, B_PART_DISTR, "Particle %x3|Volume %x2|Faces %x1|Verts %x0", butx+butw/2,buty,butw/2,buth, &part->from, 14.0, 0.0, 0, 0, "Where to emit particles from");
+	else
+		uiDefButS(block, MENU, B_PART_DISTR, "Volume %x2|Faces %x1|Verts%x0", butx+butw/2,buty,butw/2,buth, &part->from, 14.0, 0.0, 0, 0, "Where to emit particles from");
+
+	if(ELEM(part->from,PART_FROM_FACE,PART_FROM_VOLUME)) {
+		uiDefButBitI(block, TOG, PART_EDISTR, B_PART_DISTR, "Even",butx,(buty-=buth),butw/2,buth, &part->flag, 0, 0, 0, 0, "Use even distribution from faces based on face areas or edge lengths");
+		uiDefButS(block, MENU, B_PART_DISTR, "Distribution %t|Grid%x2|Random%x1|Jittered%x0", butx+butw/2,buty,butw/2,buth, &part->distr, 14.0, 0.0, 0, 0, "How to distribute particles on selected element");
+		if(part->distr==PART_DISTR_JIT) {
+			uiDefButF(block, NUM, B_PART_DISTR, "Amount:",		butx,(buty-=buth),butw,buth, &part->jitfac, 0, 2.0, 1, 1, "Amount of jitter applied to the sampling");
+			uiDefButI(block, NUM, B_PART_DISTR, "P/F:",		butx,(buty-=buth),butw,buth, &part->userjit, 0, 1000.0, 1, 1, "Emission locations / face (0 = automatic)");
+		}
+		if(part->distr==PART_DISTR_GRID){
+			uiDefButBitI(block, TOG, PART_GRID_INVERT, B_PART_DISTR, "Invert",butx,(buty-=buth),butw,buth, &part->flag, 0, 0, 0, 0, "Invert what is considered object and what is not.");				
+		}
+	}
 	uiBlockEndAlign(block);
 	
+	buty=50;
+
+	if(part->type==PART_REACTOR) {
+		ParticleSystem *tpsys=0;
+		Object *tob=0;
+		int tottpsys;
+
+		uiDefBut(block, LABEL, 0, "Target:", butx,(buty-=buth),butw,buth, NULL, 0.0, 0, 0, 0, "");
+
+		if(psys->target_ob)
+			tob=psys->target_ob;
+		else
+			tob=ob;
+
+		tottpsys=BLI_countlist(&tob->particlesystem);
+
+		uiBlockBeginAlign(block);
+		
+		if(tob->particlesystem.first==0)
+			uiBlockSetCol(block, TH_REDALERT);
+		
+		uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_PARTTARGET, "OB:",	butx,(buty-=buth),butw*2/3,buth, &psys->target_ob, "The object that has the target particle system (empty if same object)"); 
+
+		tpsys=BLI_findlink(&tob->particlesystem,psys->target_psys-1);
+		if(tpsys) {
+			if(tob==ob && tpsys==psys)
+				uiBlockSetCol(block, TH_REDALERT);
+		}
+		else
+			uiBlockSetCol(block, TH_REDALERT);
+
+		uiDefButS(block, NUM, B_PARTTARGET, "Psys:",		butx+butw*2/3,buty,butw/3,buth, &psys->target_psys, 1.0, tottpsys, 0, 0, "The target particle system number in the object");
+		uiBlockEndAlign(block);
+		
+		uiBlockSetCol(block, TH_AUTO);
+	}
 }
 
 /* NT - Panel for fluidsim settings */
@@ -3854,6 +4620,233 @@ errMessage:
 #endif // DISABLE_ELBEEM
 }
 
+/* Panel for cloth */
+static void object_cloth__enabletoggle(void *ob_v, void *arg2)
+{
+	Object *ob = ob_v;
+	ModifierData *md = modifiers_findByType(ob, eModifierType_Cloth);
+
+	if (!md) {
+		md = modifier_new(eModifierType_Cloth);
+		BLI_addhead(&ob->modifiers, md);
+	}
+	else {
+		BLI_remlink(&ob->modifiers, md);
+		modifier_free(md);
+	}
+
+	allqueue(REDRAWBUTSEDIT, 0);
+}
+
+static void object_panel_cloth(Object *ob)
+{
+	uiBlock *block;
+	static int val, val2;
+	uiBut *but;
+	ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+	block= uiNewBlock(&curarea->uiblocks, "object_panel_cloth", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Cloth", "Physics", 640, 0, 318, 204)==0) return;
+
+	if(ob->id.lib) uiSetButLock(1, "Can't edit library data");
+	val = ((clmd)?(1):(0));
+
+	but = uiDefButI(block, TOG, REDRAWBUTSOBJECT, "Cloth Object",	10,200,130,20, &val, 0, 0, 0, 0, "Sets object to become cloth");
+	uiButSetFunc(but, object_cloth__enabletoggle, ob, NULL);
+	uiDefBut(block, LABEL, 0, "",10,10,300,0, NULL, 0.0, 0, 0, 0, ""); /* tell UI we go to 10,10*/
+	
+	if(clmd)
+	{
+		// but = uiDefButBitI(block, TOG, CLOTH_SIMSETTINGS_FLAG_COLLOBJ, B_EFFECT_DEP, "Collision Object",	170,200,130,20, &clmd->sim_parms->flags, 0, 0, 0, 0, "Sets object to become a cloth collision object");
+
+		if (!(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ))
+		{
+			Cloth *cloth = clmd->clothObject;
+			int defCount;
+			char *clvg1, *clvg2;
+			char clmvg [] = "Mass Vertex Group%t|None%x0|";
+	
+			val2=0;
+	
+	//		uiDefButBitI(block, TOG, CSIMSETT_FLAG_ADVANCED, REDRAWBUTSOBJECT, "Advanced",	180,200,130,20, &clmd->sim_parms->flags, 0, 0, 0, 0, "Enable advanced mode");
+			
+			/* GENERAL STUFF */
+			uiClearButLock();
+			uiBlockBeginAlign(block);
+			uiDefButF(block, NUM, B_CLOTH_RENEW, "StructStiff:",	   10,170,150,20, &clmd->sim_parms->structural, 1.0, 10000.0, 100, 0, "Overall stiffness of structure");
+			uiDefButF(block, NUM, B_CLOTH_RENEW, "BendStiff:",	   160,170,150,20, &clmd->sim_parms->bending, 0.0, 10000.0, 1000, 0, "Wrinkle possibility");
+			uiDefButI(block, NUM, B_CLOTH_RENEW, "Quality:",  10,150,150,20, &clmd->sim_parms->stepsPerFrame, 3.0, 10.0, 5, 0, "Quality of the simulation (higher=>better=>slower)");
+			uiBlockEndAlign(block);
+			uiBlockBeginAlign(block);
+			uiDefButF(block, NUM, B_CLOTH_RENEW, "Spring Damp:",	   160,150,150,20, &clmd->sim_parms->Cdis, 0.0, 10.0, 10, 0, "Spring damping");
+			uiDefButF(block, NUM, B_DIFF, "Air Damp:",	   10,130,150,20, &clmd->sim_parms->Cvi, 0.0, 10.0, 10, 0, "Apply gravitation to point movement");
+			uiBlockEndAlign(block);			
+			
+			uiClearButLock();
+			
+			uiBlockBeginAlign(block);
+			uiDefBut(block, LABEL, 0, "Gravity:",  10,100,60,20, NULL, 0.0, 0, 0, 0, "");
+			// uiClearButLock();
+			
+			uiDefButF(block, NUM, B_CLOTH_RENEW, "X:",	   70,100,80,20, &clmd->sim_parms->gravity[0], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
+			uiDefButF(block, NUM, B_CLOTH_RENEW, "Y:",	   150,100,80,20, &clmd->sim_parms->gravity[1], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
+			uiDefButF(block, NUM, B_CLOTH_RENEW, "Z:",	   230,100,80,20, &clmd->sim_parms->gravity[2], -100.0, 100.0, 10, 0, "Apply gravitation to point movement");
+			uiBlockEndAlign(block);
+			
+			/* GOAL STUFF */
+			uiBlockBeginAlign(block);
+			uiDefButBitI(block, TOG, CLOTH_SIMSETTINGS_FLAG_GOAL, REDRAWVIEW3D, "Use Goal",	10,70,130,20, &clmd->sim_parms->flags, 0, 0, 0, 0, "Define forces for vertices to stick to animated position");
+			if (clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL)
+			{
+				if(ob->type==OB_MESH) 
+				{
+					
+					defCount = sizeof (clmvg);
+					clvg1 = get_vertexgroup_menustr (ob);
+					clvg2 = MEM_callocN (strlen (clvg1) + 1 + defCount, "clothVgMS");
+					if (! clvg2) {
+						printf ("draw_modifier: error allocating memory for cloth vertex group menu string.\n");
+						return;
+					}
+					defCount = BLI_countlist (&ob->defbase);
+					if (defCount == 0) 
+					{
+						clmd->sim_parms->vgroup_mass = 0;
+					}
+					sprintf (clvg2, "%s%s", clmvg, clvg1);
+					
+					uiDefButS(block, MENU, B_CLOTH_RENEW, clvg2,	140,70,20,20, &clmd->sim_parms->vgroup_mass, 0, defCount, 0, 0, "Browses available vertex groups");	
+					MEM_freeN (clvg1);
+					MEM_freeN (clvg2);
+					
+					if(clmd->sim_parms->vgroup_mass) 
+					{
+						bDeformGroup *defGroup = BLI_findlink(&ob->defbase, clmd->sim_parms->vgroup_mass-1);
+						if(defGroup)
+							uiDefBut(block, BUT, B_DIFF, defGroup->name,	160,70,130,20, NULL, 0.0, 0.0, 0, 0, "Name of current vertex group");
+						else
+							uiDefBut(block, BUT, B_DIFF, "(no group)",	160,70,130,20, NULL, 0.0, 0.0, 0, 0, "Vertex Group doesn't exist anymore");
+						
+						uiDefIconBut(block, BUT, B_CLOTH_DEL_VG, ICON_X, 290,70,20,20, 0, 0, 0, 0, 0, "Disable use of vertex group");
+						
+					}
+					else
+						uiDefButF(block, NUM, B_CLOTH_RENEW, "Goal:",	160,70,150,20, &clmd->sim_parms->defgoal, 0.0, 1.0, 10, 0, "Default Goal (vertex target position) value, when no Vertex Group used");
+				
+				}
+				else 
+				{
+					uiDefButS(block, TOG, B_CLOTH_RENEW, "W",			140,70,20,20, &clmd->sim_parms->vgroup_mass, 0, 1, 0, 0, "Use control point weight values");
+					uiDefButF(block, NUM, B_CLOTH_RENEW, "Goal:",	160,70,150,20, &clmd->sim_parms->defgoal, 0.0, 1.0, 10, 0, "Default Goal (vertex target position) value, when no Vertex Group used");
+				}
+				
+				uiDefButF(block, NUM, B_CLOTH_RENEW, "G Stiff:",	10,50,150,20, &clmd->sim_parms->goalspring, 0.0, 500.0, 10, 0, "Goal (vertex target position) spring stiffness");
+				uiDefButF(block, NUM, B_CLOTH_RENEW, "G Damp:",	160,50,150,20, &clmd->sim_parms->goalfrict, 0.0, 50.0, 10, 0, "Goal (vertex target position) friction");
+				uiDefButF(block, NUM, B_CLOTH_RENEW, "G Min:",		10,30,150,20, &clmd->sim_parms->mingoal, 0.0, 1.0, 10, 0, "Goal minimum, vertex group weights are scaled to match this range");
+				uiDefButF(block, NUM, B_CLOTH_RENEW, "G Max:",		160,30,150,20, &clmd->sim_parms->maxgoal, 0.0, 1.0, 10, 0, "Goal maximum, vertex group weights are scaled to match this range");
+			}
+			uiBlockEndAlign(block);	
+			
+			/*
+			// no tearing supported anymore since modifier stack restrictions 
+			uiBlockBeginAlign(block);
+			uiDefButBitI(block, TOG, CSIMSETT_FLAG_TEARING_ENABLED, B_EFFECT_DEP, "Tearing",	10,0,150,20, &clmd->sim_parms->flags, 0, 0, 0, 0, "Sets object to become a cloth collision object");
+			
+			if (clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED)
+			{
+				uiDefButI(block, NUM, B_DIFF, "Max extent:",	   160,0,150,20, &clmd->sim_parms->maxspringlen, 1.0, 1000.0, 10, 0, "Maximum extension before spring gets cut");
+			}
+			
+			uiBlockEndAlign(block);	
+			*/
+		}
+	}
+}
+
+
+static void object_panel_cloth_II(Object *ob)
+{
+	uiBlock *block;
+	static int val;
+	uiBut *but;
+	ClothModifierData *clmd = NULL;
+	
+	clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+	if(clmd)
+	{
+		if (!(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_COLLOBJ))
+		{
+			Cloth *cloth = clmd->clothObject;
+			char str[128];
+			
+			block= uiNewBlock(&curarea->uiblocks, "object_panel_cloth_II", UI_EMBOSS, UI_HELV, curarea->win);
+			uiNewPanelTabbed("Cloth", "Physics");
+			if(uiNewPanel(curarea, block, "Cloth Cache", "Physics", 651, 0, 318, 204)==0) return;
+		
+			uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+			
+			uiDefButI(block, NUM, B_DIFF, "First Frame:",		10,160,150,20, &clmd->sim_parms->firstframe, 0, MAXFRAME, 1, 0, "Frame on which the simulation starts");
+			uiDefButI(block, NUM, B_DIFF, "Last Frame:",		160,160,150,20, &clmd->sim_parms->lastframe, 0, MAXFRAME, 10, 0, "Frame on which the simulation stops");
+			/*
+			if(clmd->sim_parms->cache)
+			{
+				int length = BLI_linklist_length(clmd->sim_parms->cache);
+				
+				// correct spelling if only 1 frame cacheed --> only gimmick  
+				if(length-clmd->sim_parms->preroll>1)
+					sprintf (str, "Frame 1 - %d cached. [%d in preroll, %d in total]", length-clmd->sim_parms->preroll, clmd->sim_parms->preroll, length);
+				else
+					sprintf (str, "Frame %d cached. [%d in preroll, %d in total]", length-clmd->sim_parms->preroll, clmd->sim_parms->preroll, length);
+				
+				uiDefBut(block, LABEL, 0, str,  10,140,290,20, NULL, 0.0, 0, 0, 0, "");
+				uiDefBut(block, LABEL, 0, "Clear cache:",  10,120,290,20, NULL, 0.0, 0, 0, 0, "");
+				uiBlockBeginAlign (block);
+				uiDefBut(block, BUT, B_CLOTH_CLEARCACHEALL, "All", 10, 100,145,20, NULL, 0.0, 0.0, 0, 0, "Free cloth cache without preroll");
+				uiDefBut(block, BUT, B_CLOTH_CLEARCACHEFRAME, "From next frame", 155, 100,145,20, NULL, 0.0, 0.0, 0, 0, "Free cloth cache");	
+				if(length>1) // B_CLOTH_CHANGEPREROLL
+					uiDefButI(block, NUM, B_CLOTH_CHANGEPREROLL, "Preroll:", 10,80,145,20, &clmd->sim_parms->preroll, 0, length-1, 1, 0, "Simulation starts on this frame");	
+				else
+					uiDefBut(block, LABEL, 0, " ",  10,80,145,20, NULL, 0.0, 0, 0, 0, "");
+			}
+			else 
+			{
+				uiDefBut(block, LABEL, 0, "No frames cached.",  10,120,290,20, NULL, 0.0, 0, 0, 0, "");
+			}*/
+			uiDefButBitI(block, TOG, CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT, REDRAWVIEW3D, "Protect Cache",	10,50,145,20, &clmd->sim_parms->flags, 0, 0, 0, 0, "Protect cache from automatic freeing when scene changed");
+			uiBlockEndAlign(block);
+		}
+	}
+	// uiBlockEndAlign(block);
+}
+
+static void object_panel_cloth_III(Object *ob)
+{
+	uiBlock *block;
+	ClothModifierData *clmd = NULL;
+	
+	clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+	if(clmd)
+	{	
+		block= uiNewBlock(&curarea->uiblocks, "object_panel_cloth_III", UI_EMBOSS, UI_HELV, curarea->win);
+		uiNewPanelTabbed("Cloth", "Physics");
+		if(uiNewPanel(curarea, block, "Cloth Collisions", "Physics", 651, 0, 318, 204)==0) return;
+	
+		uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+		
+		uiBlockBeginAlign(block);
+		uiDefButBitI(block, TOG, CLOTH_COLLISIONSETTINGS_FLAG_ENABLED, REDRAWVIEW3D, "Enable collisions",	10,160,130,20, &clmd->coll_parms->flags, 0, 0, 0, 0, "Enable collisions with this object");
+		if (clmd->coll_parms->flags & CLOTH_COLLISIONSETTINGS_FLAG_ENABLED)
+		{
+			// uiDefBut(block, LABEL, 0, "",10,10,300,20, NULL, 0.0, 0, 0, 0, ""); /* tell UI we go to 10,10*/
+			uiDefButF(block, NUM, B_CLOTH_RENEW, "Min Distance:",	   10,140,150,20, &clmd->coll_parms->epsilon, 0.001f, 1.0, 0.01f, 0, "Minimum distance between collision objects before collision response takes in");
+			uiDefBut(block, LABEL, 0, "",160,140,150,20, NULL, 0.0, 0, 0, 0, "");
+			uiDefButF(block, NUM, B_CLOTH_RENEW, "Selfcoll balls:",	   10,120,150,20, &clmd->coll_parms->selfepsilon, 0.001f, 1.0, 0.01f, 0, "Minimum distance between two selfcollision points");
+		}
+		else
+			uiDefBut(block, LABEL, 0, "",140,10,170,20, NULL, 0.0, 0, 0, 0, "");
+		uiBlockEndAlign(block);
+	}
+}
+
 void object_panels()
 {
 	Object *ob;
@@ -3877,14 +4870,34 @@ void physics_panels()
 	/* check context here */
 	ob= OBACT;
 	if(ob) {
+		if(ob->type==OB_MESH)
+			object_panel_deflection(ob);
 		object_panel_fields(ob);
-		object_panel_particles(ob);
-		object_panel_particles_motion(ob);
 		object_softbodies(ob);
 		object_softbodies_II(ob);
 		object_panel_cloth(ob);
 		object_panel_cloth_II(ob);
 		object_panel_cloth_III(ob);
 		object_panel_fluidsim(ob);
+	}
+}
+void particle_panels()
+{
+	Object *ob;
+	ParticleSystem *psys;
+
+	ob=OBACT;
+
+	if(ob) {
+		object_panel_particle_system(ob);
+
+		psys=psys_get_current(ob);
+
+		if(psys){
+			object_panel_particle_physics(ob);
+			object_panel_particle_visual(ob);
+			object_panel_particle_extra(ob);
+			object_panel_particle_children(ob);
+		}
 	}
 }

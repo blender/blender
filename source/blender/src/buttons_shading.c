@@ -52,6 +52,7 @@
 #include "DNA_object_types.h"
 #include "DNA_node_types.h"
 #include "DNA_packedFile_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_radio_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -62,6 +63,7 @@
 #include "DNA_world_types.h"
 
 #include "BKE_colortools.h"
+#include "BKE_depsgraph.h"
 #include "BKE_displist.h"
 #include "BKE_effect.h"
 #include "BKE_global.h"
@@ -69,6 +71,7 @@
 #include "BKE_main.h"
 #include "BKE_node.h"
 #include "BKE_material.h"
+#include "BKE_particle.h"
 #include "BKE_utildefines.h"
 #include "BKE_texture.h"
 
@@ -3040,16 +3043,65 @@ void do_matbuts(unsigned short event)
 			allqueue(REDRAWBUTSSHADING, 0);
 		}
 		break;
-		
+
+	case B_MAT_PARTICLE:
+		if(ma) {
+			Base *base;
+			Object *ob;
+			ParticleSystem *psys;
+
+			base= G.scene->base.first;
+			while(base){
+				if(base->object->type==OB_MESH) {
+					ob=base->object;
+					for(psys=ob->particlesystem.first; psys; psys=psys->next) {
+						if(psys && ma==give_current_material(ob,psys->part->omat)) {
+							psys->flag |= PSYS_INIT;
+
+							DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+						}
+					}
+				}
+				base = base->next;
+			}
+			allqueue(REDRAWVIEW3D, 0);
+		}
 	}
 }
 
+static void particle_recalc_material(void *ma_v, void *arg2)
+{
+	Material *ma = ma_v;
+	Base *base;
+	Object *ob;
+	ParticleSystem *psys;
+
+	base= G.scene->base.first;
+	while(base){
+		if(base->object->type==OB_MESH){
+			ob=base->object;
+			for(psys=ob->particlesystem.first; psys; psys=psys->next){
+				if(psys && ma==give_current_material(ob,psys->part->omat)){
+					psys->recalc |= PSYS_INIT;
+
+					DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+				}
+			}
+		}
+		base = base->next;
+	}
+	allqueue(REDRAWVIEW3D, 0);
+}
 
 /* if from nodes, hide options that are not available */
-static void material_panel_map_to(Material *ma, int from_nodes)
+static void material_panel_map_to(Object *ob, Material *ma, int from_nodes)
 {
 	uiBlock *block;
+	uiBut *but;
 	MTex *mtex;
+	ParticleSystem *psys;
+	int psys_mapto=0;
+	static short pattr=0;
 	
 	block= uiNewBlock(&curarea->uiblocks, "material_panel_map_to", UI_EMBOSS, UI_HELV, curarea->win);
 	uiNewPanelTabbed("Texture", "Material");
@@ -3091,32 +3143,82 @@ static void material_panel_map_to(Material *ma, int from_nodes)
 	
 	/* MAP TO */
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, MAP_COL, B_MATPRV, "Col",		10,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect basic color of the material");
-	uiDefButBitS(block, TOG3, MAP_NORM, B_MATPRV, "Nor",		50,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the rendered normal");
-	uiDefButBitS(block, TOG, MAP_COLSPEC, B_MATPRV, "Csp",		90,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the specularity color");
-	uiDefButBitS(block, TOG, MAP_COLMIR, B_MATPRV, "Cmir",		130,180,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the mirror color");
-	uiDefButBitS(block, TOG3, MAP_REF, B_MATPRV, "Ref",		180,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the value of the materials reflectivity");
-	uiDefButBitS(block, TOG3, MAP_SPEC, B_MATPRV, "Spec",		220,180,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the value of specularity");
-	uiDefButBitS(block, TOG3, MAP_AMB, B_MATPRV, "Amb",		270,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the value of ambient");
-	
-	uiDefButBitS(block, TOG3, MAP_HAR, B_MATPRV, "Hard",		10,160,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the hardness value");
-	uiDefButBitS(block, TOG3, MAP_RAYMIRR, B_MATPRV, "RayMir",	60,160,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the ray-mirror value");
-	uiDefButBitS(block, TOG3, MAP_ALPHA, B_MATPRV, "Alpha",		110,160,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the alpha value");
-	uiDefButBitS(block, TOG3, MAP_EMIT, B_MATPRV, "Emit",		160,160,45,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the emit value");
-	uiDefButBitS(block, TOG3, MAP_TRANSLU, B_MATPRV, "TransLu",		205,160,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the layer blending value");
-	if(from_nodes==0)
-		uiDefButBitS(block, TOG3, MAP_DISPLACE, B_MATPRV, "Disp",		265,160,45,19, &(mtex->mapto), 0, 0, 0, 0, "Let the texture displace the surface");
+
+	/*check if material is being used by particles*/
+	for(psys=ob->particlesystem.first; psys; psys=psys->next)
+		if(psys->part->omat==ob->actcol)
+			psys_mapto=1;
+
+	if(psys_mapto && pattr) {
+		but=uiDefButBitS(block, TOG3, MAP_PA_TIME, B_MAT_PARTICLE, "Time",	10,180,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the emission time of particles");
+			//uiButSetFunc(but, particle_recalc_material, ma, NULL);		
+		but=uiDefButBitS(block, TOG3, MAP_PA_LIFE, B_MAT_PARTICLE, "Life",	70,180,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the life time of particles");
+			//uiButSetFunc(but, particle_recalc_material, ma, NULL);		
+		but=uiDefButBitS(block, TOG3, MAP_PA_DENS, B_MAT_PARTICLE, "Dens",	130,180,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the density of particles");
+			//uiButSetFunc(but, particle_recalc_material, ma, NULL);		
+		uiDefButBitS(block, TOG3, MAP_PA_IVEL, B_MAT_PARTICLE, "IVel",		190,180,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the initial velocity of particles");
+		uiDefButBitS(block, TOG3, MAP_PA_PVEL, B_MAT_PARTICLE, "PVel",		250,180,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the velocity of particles");
+
+		but=uiDefButBitS(block, TOG3, MAP_PA_SIZE, B_MAT_PARTICLE, "Size",	10,160,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the size of particles");
+			//uiButSetFunc(but, particle_recalc_material, ma, NULL);
+		but=uiDefButBitS(block, TOG3, MAP_PA_KINK, B_MAT_PARTICLE, "Kink",	70,160,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the kink of child particles");
+			//uiButSetFunc(but, particle_recalc_material, ma, NULL);
+		but=uiDefButBitS(block, TOG3, MAP_PA_LENGTH, B_MAT_PARTICLE, "Length",130,160,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the length of particles");
+			//uiButSetFunc(but, particle_recalc_material, ma, NULL);
+		but=uiDefButBitS(block, TOG3, MAP_PA_CLUMP, B_MAT_PARTICLE, "Clump",	190,160,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the clump of child particles");
+			//uiButSetFunc(but, particle_recalc_material, ma, NULL);
+
+		uiBlockSetCol(block, TH_BUT_SETTING1);
+		uiDefButBitS(block, TOG, 1, B_MATPRV, "PAttr",		250,160,60,19, &pattr, 0, 0, 0, 0, "Display settings for particle attributes");
+		uiBlockSetCol(block, TH_AUTO);
+	}
+	else {
+		uiDefButBitS(block, TOG, MAP_COL, B_MATPRV, "Col",		10,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect basic colour of the material");
+		uiDefButBitS(block, TOG3, MAP_NORM, B_MATPRV, "Nor",		50,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the rendered normal");
+		uiDefButBitS(block, TOG, MAP_COLSPEC, B_MATPRV, "Csp",		90,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the specularity colour");
+		uiDefButBitS(block, TOG, MAP_COLMIR, B_MATPRV, "Cmir",		130,180,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the mirror colour");
+		uiDefButBitS(block, TOG3, MAP_REF, B_MATPRV, "Ref",		180,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the value of the materials reflectivity");
+		uiDefButBitS(block, TOG3, MAP_SPEC, B_MATPRV, "Spec",		220,180,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the value of specularity");
+		uiDefButBitS(block, TOG3, MAP_AMB, B_MATPRV, "Amb",		270,180,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the value of ambient");
+		
+		if(psys_mapto) {
+			uiDefButBitS(block, TOG3, MAP_HAR, B_MATPRV, "Hard",		10,160,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the hardness value");
+			uiDefButBitS(block, TOG3, MAP_RAYMIRR, B_MATPRV, "RayMir",	50,160,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the ray-mirror value");
+			uiDefButBitS(block, TOG3, MAP_ALPHA, B_MATPRV, "Alpha",		90,160,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the alpha value");
+			uiDefButBitS(block, TOG3, MAP_EMIT, B_MATPRV, "Emit",		130,160,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the emit value");
+			uiDefButBitS(block, TOG3, MAP_TRANSLU, B_MATPRV, "TransLu",		180,160,40,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the layer blending value");
+			if(from_nodes==0)
+				uiDefButBitS(block, TOG3, MAP_DISPLACE, B_MATPRV, "Disp",		220,160,50,19, &(mtex->mapto), 0, 0, 0, 0, "Let the texture displace the surface");
+			uiBlockSetCol(block, TH_BUT_SETTING1);
+			uiDefButBitS(block, TOG, 1, B_MATPRV, "PAttr",		270,160,40,19, &pattr, 0, 0, 0, 0, "Display settings for particle attributes");
+			uiBlockSetCol(block, TH_AUTO);
+		}
+		else {
+			uiDefButBitS(block, TOG3, MAP_HAR, B_MATPRV, "Hard",		10,160,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the hardness value");
+			uiDefButBitS(block, TOG3, MAP_RAYMIRR, B_MATPRV, "RayMir",	60,160,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the ray-mirror value");
+			uiDefButBitS(block, TOG3, MAP_ALPHA, B_MATPRV, "Alpha",		110,160,50,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the alpha value");
+			uiDefButBitS(block, TOG3, MAP_EMIT, B_MATPRV, "Emit",		160,160,45,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the emit value");
+			uiDefButBitS(block, TOG3, MAP_TRANSLU, B_MATPRV, "TransLu",		205,160,60,19, &(mtex->mapto), 0, 0, 0, 0, "Causes the texture to affect the layer blending value");
+			if(from_nodes==0)
+				uiDefButBitS(block, TOG3, MAP_DISPLACE, B_MATPRV, "Disp",		265,160,45,19, &(mtex->mapto), 0, 0, 0, 0, "Let the texture displace the surface");
+		}
+	}
+
 	uiBlockEndAlign(block);
-	
+
 	uiBlockBeginAlign(block);
-	uiDefButS(block, MENU, B_MATPRV, mapto_blendtype_pup(),155,125,155,19, &(mtex->blendtype), 0, 0, 0, 0, "Texture blending mode");
+	but=uiDefButS(block, MENU, B_MATPRV, mapto_blendtype_pup(),155,125,155,19, &(mtex->blendtype), 0, 0, 0, 0, "Texture blending mode");
 	uiBlockEndAlign(block);
+	if(psys_mapto && mtex->pmapto & MAP_PA_INIT)
+		uiButSetFunc(but, particle_recalc_material, ma, NULL);
 
 	uiBlockBeginAlign(block);
 	uiDefButF(block, NUMSLI, B_MATPRV, "Col ",			155,100,155,19, &(mtex->colfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects color values");
 	/* newnoise: increased range to 25, the constant offset for bumpmapping quite often needs a higher nor setting */
 	uiDefButF(block, NUMSLI, B_MATPRV, "Nor ",			155,80,155,19, &(mtex->norfac), 0.0, 25.0, 0, 0, "Sets the amount the texture affects normal values");
-	uiDefButF(block, NUMSLI, B_MATPRV, "Var ",			155,60,155,19, &(mtex->varfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects other values");
+	but=uiDefButF(block, NUMSLI, B_MATPRV, "Var ",			155,60,155,19, &(mtex->varfac), 0.0, 1.0, 0, 0, "Sets the amount the texture affects other values");
+	if(psys_mapto && mtex->pmapto & MAP_PA_INIT)
+		uiButSetFunc(but, particle_recalc_material, ma, NULL);
 	uiDefButF(block, NUMSLI, B_MATPRV, "Disp ",			155,40,155,19, &(mtex->dispfac), 0.0, 1.0, 0, 0, "Sets the amount the texture displaces the surface");
 
 	uiBlockBeginAlign(block);
@@ -3200,7 +3302,7 @@ static void material_panel_map_input(Object *ob, Material *ma)
 	
 	uiDefButS(block, ROW, B_MATPRV, "UV",			630,160,40,18, &(mtex->texco), 4.0, (float)TEXCO_UV, 0, 0, "Uses UV coordinates for texture coordinates");
 	uiDefButS(block, ROW, B_MATPRV, "Orco",			670,160,55,18, &(mtex->texco), 4.0, (float)TEXCO_ORCO, 0, 0, "Uses the original undeformed coordinates of the object");
-	if( give_parteff(ob) )
+	if( ob->particlesystem.first )
 		uiDefButS(block, ROW, B_MATPRV, "Strand",	725,160,50,18, &(mtex->texco), 4.0, (float)TEXCO_STRAND, 0, 0, "Uses normalized strand texture coordinate (1D)");
 	else
 		uiDefButS(block, ROW, B_MATPRV, "Stick",	725,160,50,18, &(mtex->texco), 4.0, (float)TEXCO_STICKY, 0, 0, "Uses mesh's sticky coordinates for the texture coordinates");
@@ -3244,12 +3346,14 @@ static void material_panel_map_input(Object *ob, Material *ma)
 }
 
 
-static void material_panel_texture(Material *ma)
+static void material_panel_texture(Object *ob, Material *ma)
 {
 	uiBlock *block;
+	uiBut *but;
 	MTex *mtex;
 	ID *id;
-	int loos;
+	ParticleSystem *psys;
+	int loos, psys_mapto=0;
 	int a;
 	char str[64], *strp;
 	
@@ -3257,6 +3361,11 @@ static void material_panel_texture(Material *ma)
 	if(uiNewPanel(curarea, block, "Texture", "Material", 960, 0, 318, 204)==0) return;
 	uiClearButLock();
 	
+	/*check if material is being used by particles*/
+	for(psys=ob->particlesystem.first; psys; psys=psys->next)
+		if(psys->part->omat==ob->actcol)
+			psys_mapto=1;
+
 	/* TEX CHANNELS */
 	uiBlockSetCol(block, TH_BUT_NEUTRAL);
 	
@@ -3278,7 +3387,10 @@ static void material_panel_texture(Material *ma)
 	for(a= 0; a<MAX_MTEX; a++) {
 		mtex= ma->mtex[a];
 		if(mtex && mtex->tex) {
-			uiDefIconButBitS(block, ICONTOGN, 1<<a, B_MATPRV, ICON_CHECKBOX_HLT-1,	-20, 180-18*a, 28, 20, &ma->septex, 0.0, 0.0, 0, 0, "Click to disable or enable this texture channel");
+			but=uiDefIconButBitS(block, ICONTOGN, 1<<a, B_MATPRV, ICON_CHECKBOX_HLT-1,	-20, 180-18*a, 28, 20, &ma->septex, 0.0, 0.0, 0, 0, "Click to disable or enable this texture channel");
+
+			if(psys_mapto && ma->mtex[a]->mapto & MAP_PA_IVEL)
+				uiButSetFunc(but, particle_recalc_material, ma, NULL);
 		}
 	}
 	uiBlockBeginAlign(block);
@@ -3740,14 +3852,22 @@ static uiBlock *strand_menu(void *mat_v)
 	block= uiNewBlock(&curarea->uiblocks, "strand menu", UI_EMBOSS, UI_HELV, curarea->win);
 	
 	/* use this for a fake extra empy space around the buttons */
-	uiDefBut(block, LABEL, 0, "", 0, 0, 250, 100, NULL,  0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "", 0, 0, 250, 120, NULL,  0, 0, 0, 0, "");
 	
 	uiBlockBeginAlign(block);
 					/* event return 0, to prevent menu to close */
-	uiDefButBitI(block, TOG, MA_TANGENT_STR, 0,	"Use Tangent Shading",	10,70,230,20, &(ma->mode), 0, 0, 0, 0, "Uses direction of strands as normal for tangent-shading");
-	uiDefButF(block, NUMSLI, 0, "Start ",	10, 50, 230,20,   &ma->strand_sta, 0.25, 20.0, 2, 0, "Start size of strands in pixels");
-	uiDefButF(block, NUMSLI, 0, "End ",		10, 30, 230,20,  &ma->strand_end, 0.25, 10.0, 2, 0, "End size of strands in pixels");
-	uiDefButF(block, NUMSLI, 0, "Shape ",	10, 10, 230,20,  &ma->strand_ease, -0.9, 0.9, 2, 0, "Shape of strands, positive value makes it rounder, negative makes it spiky");
+	uiDefButBitI(block, TOG, MA_TANGENT_STR, 0,	"Use Tangent Shading",	10,90,115,20, &(ma->mode), 0, 0, 0, 0, "Uses direction of strands as normal for tangent-shading");
+	uiDefButBitI(block, TOG, MA_STR_B_UNITS, 0,	"Use Blender Units",	125,90,115,20, &(ma->mode), 0, 0, 0, 0, "Use actual Blender units for widths instead of pixels");
+	if(ma->mode & MA_STR_B_UNITS){
+		uiDefButF(block, NUMSLI, 0, "Start ",	10, 70, 230,20,   &ma->strand_sta, 0.01, 20.0, 2, 0, "Start size of strands in Blender units");
+		uiDefButF(block, NUMSLI, 0, "End ",		10, 50, 230,20,  &ma->strand_end, 0.01, 10.0, 2, 0, "End size of strands in Blender units");
+	}
+	else{
+		uiDefButF(block, NUMSLI, 0, "Start ",	10, 70, 230,20,   &ma->strand_sta, 0.25, 20.0, 2, 0, "Start size of strands in pixels");
+		uiDefButF(block, NUMSLI, 0, "End ",		10, 50, 230,20,  &ma->strand_end, 0.25, 10.0, 2, 0, "End size of strands in pixels");
+	}
+	uiDefButF(block, NUMSLI, 0, "Shape ",	10, 30, 230,20,  &ma->strand_ease, -0.9, 0.9, 2, 0, "Shape of strands, positive value makes it rounder, negative makes it spiky");
+	uiDefBut(block, TEX, B_MATPRV, "UV:", 10,10,230,20, ma->strand_uvname, 0, 31, 0, 0, "Set name of UV layer to override");
 
 	uiBlockSetDirection(block, UI_TOP);
 	BIF_preview_changed(ID_MA);
@@ -4045,12 +4165,12 @@ void material_panels()
 			}
 
 			material_panel_sss(ma);
-			material_panel_texture(ma);
+			material_panel_texture(ob, ma);
 			
 			mtex= ma->mtex[ ma->texact ];
 			if(mtex && mtex->tex) {
 				material_panel_map_input(ob, ma);
-				material_panel_map_to(ma, from_nodes);
+				material_panel_map_to(ob, ma, from_nodes);
 			}
 		}
 	}

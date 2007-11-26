@@ -65,6 +65,8 @@ void exit_editmode(int flag);
 void check_editmode(int type);
 void enter_editmode(int wc);
 
+void exit_paint_modes(void);
+
 void docenter(int centermode);
 void docenter_new(void);
 void docenter_cursor(void);

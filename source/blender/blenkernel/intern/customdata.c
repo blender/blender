@@ -271,7 +271,7 @@ static void layerSwap_tface(void *data, int *corner_indices)
 
 static void layerDefault_tface(void *data, int count)
 {
-	static MTFace default_tf = {{{0, 1}, {0, 0}, {1, 0}, {1, 1}}, NULL,
+	static MTFace default_tf = {{{0, 0}, {1, 0}, {1, 1}, {0, 1}}, NULL,
 	                           0, 0, TF_DYNAMIC, 0, 0};
 	MTFace *tf = (MTFace*)data;
 	int i;
@@ -279,6 +279,83 @@ static void layerDefault_tface(void *data, int count)
 	for(i = 0; i < count; i++)
 		tf[i] = default_tf;
 }
+
+static void layerCopy_origspace_face(const void *source, void *dest, int count)
+{
+	const OrigSpaceFace *source_tf = (const OrigSpaceFace*)source;
+	OrigSpaceFace *dest_tf = (OrigSpaceFace*)dest;
+	int i;
+
+	for(i = 0; i < count; ++i)
+		dest_tf[i] = source_tf[i];
+}
+
+static void layerInterp_origspace_face(void **sources, float *weights,
+							  float *sub_weights, int count, void *dest)
+{
+	OrigSpaceFace *osf = dest;
+	int i, j, k;
+	float uv[4][2];
+	float *sub_weight;
+
+	if(count <= 0) return;
+
+	memset(uv, 0, sizeof(uv));
+
+	sub_weight = sub_weights;
+	for(i = 0; i < count; ++i) {
+		float weight = weights ? weights[i] : 1;
+		OrigSpaceFace *src = sources[i];
+
+		for(j = 0; j < 4; ++j) {
+			if(sub_weights) {
+				for(k = 0; k < 4; ++k, ++sub_weight) {
+					float w = (*sub_weight) * weight;
+					float *tmp_uv = src->uv[k];
+
+					uv[j][0] += tmp_uv[0] * w;
+					uv[j][1] += tmp_uv[1] * w;
+				}
+			} else {
+				uv[j][0] += src->uv[j][0] * weight;
+				uv[j][1] += src->uv[j][1] * weight;
+			}
+		}
+	}
+
+	*osf = *(OrigSpaceFace *)sources[0];
+	for(j = 0; j < 4; ++j) {
+		osf->uv[j][0] = uv[j][0];
+		osf->uv[j][1] = uv[j][1];
+	}
+}
+
+static void layerSwap_origspace_face(void *data, int *corner_indices)
+{
+	OrigSpaceFace *osf = data;
+	float uv[4][2];
+	int j;
+
+	for(j = 0; j < 4; ++j) {
+		uv[j][0] = osf->uv[corner_indices[j]][0];
+		uv[j][1] = osf->uv[corner_indices[j]][1];
+	}
+	memcpy(osf->uv, uv, sizeof(osf->uv));
+}
+
+static void layerDefault_origspace_face(void *data, int count)
+{
+	static OrigSpaceFace default_osf = {{{0, 0}, {1, 0}, {1, 1}, {0, 1}}};
+	OrigSpaceFace *osf = (OrigSpaceFace*)data;
+	int i;
+
+	for(i = 0; i < count; i++)
+		osf[i] = default_osf;
+}
+/* --------- */
+
+
+
 
 static void layerInterp_mcol(void **sources, float *weights,
                              float *sub_weights, int count, void *dest)
@@ -370,11 +447,13 @@ const LayerTypeInfo LAYERTYPEINFO[CD_NUMTYPES] = {
 	{sizeof(MFloatProperty), "MFloatProperty",1,"Float",NULL,NULL,NULL,NULL},
 	{sizeof(MIntProperty), "MIntProperty",1,"Int",NULL,NULL,NULL,NULL},
 	{sizeof(MStringProperty), "MStringProperty",1,"String",NULL,NULL,NULL,NULL},
+	{sizeof(OrigSpaceFace), "OrigSpaceFace", 1, "UVTex", layerCopy_origspace_face, NULL,
+	 layerInterp_origspace_face, layerSwap_origspace_face, layerDefault_origspace_face},
 };
 
 const char *LAYERTYPENAMES[CD_NUMTYPES] = {
 	"CDMVert", "CDMSticky", "CDMDeformVert", "CDMEdge", "CDMFace", "CDMTFace",
-	"CDMCol", "CDOrigIndex", "CDNormal", "CDFlags","CDMFloatProperty","CDMIntProperty","CDMStringProperty"};
+	"CDMCol", "CDOrigIndex", "CDNormal", "CDFlags","CDMFloatProperty","CDMIntProperty","CDMStringProperty", "CDOrigSpace"};
 
 const CustomDataMask CD_MASK_BAREMESH =
 	CD_MASK_MVERT | CD_MASK_MEDGE | CD_MASK_MFACE;
@@ -387,8 +466,8 @@ const CustomDataMask CD_MASK_EDITMESH =
 	CD_MASK_MCOL|CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_PROP_STR;
 const CustomDataMask CD_MASK_DERIVEDMESH =
 	CD_MASK_MSTICKY | CD_MASK_MDEFORMVERT | CD_MASK_MTFACE |
-	CD_MASK_MCOL | CD_MASK_ORIGINDEX|
-	CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_PROP_STR;
+	CD_MASK_MCOL | CD_MASK_ORIGINDEX |
+	CD_MASK_PROP_FLT | CD_MASK_PROP_INT | CD_MASK_PROP_STR | CD_MASK_ORIGSPACE;
 
 static const LayerTypeInfo *layerType_getInfo(int type)
 {

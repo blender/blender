@@ -31,11 +31,18 @@
 
 #include "DNA_ID.h"
 
-#define PTCache_EXT ".bphys"
-#define PTCache_PATH "//pointcache/"
+/* options for clearing pointcache - used for BKE_ptcache_id_clear
+ Before and after are non inclusive (they wont remove the cfra) */
+#define PTCACHE_CLEAR_ALL		0
+#define PTCACHE_CLEAR_FRAME		1
+#define PTCACHE_CLEAR_BEFORE	2
+#define PTCACHE_CLEAR_AFTER		3
 
-int		PTCache_id_filename(struct ID *id, char *filename, int cfra, int stack_index, short do_path, short do_ext);
-FILE *	PTCache_id_fopen(struct ID *id, char mode, int cfra, int stack_index);
-void	PTCache_id_clear(struct ID *id, int cfra, int stack_index);
+#define PTCACHE_EXT ".bphys"
+#define PTCACHE_PATH "//pointcache/"
+
+int	BKE_ptcache_id_filename(struct ID *id, char *filename, int cfra, int stack_index, short do_path, short do_ext);
+FILE *	BKE_ptcache_id_fopen(struct ID *id, char mode, int cfra, int stack_index);
+void	BKE_ptcache_id_clear(struct ID *id, char mode, int cfra, int stack_index);
 
 #endif

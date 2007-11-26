@@ -270,6 +270,8 @@ typedef struct TransInfo {
 #endif
 #define TD_TIMEONLY			128
 #define TD_NOCENTER			256
+#define TD_NO_EXT			512	/* ext abused for particle key timing */
+#define TD_SKIP				1024 /* don't transform this data */
 
 /* transsnap->status */
 #define SNAP_ON			1
@@ -350,10 +352,14 @@ int TimeSlide(TransInfo *t, short mval[2]);
 void initTimeScale(TransInfo *t);
 int TimeScale(TransInfo *t, short mval[2]);
 
+void initBakeTime(TransInfo *t);
+int BakeTime(TransInfo *t, short mval[2]);
+
 /*********************** transform_conversions.c ********** */
 struct ListBase;
 void flushTransIpoData(TransInfo *t);
 void flushTransUVs(TransInfo *t);
+void flushTransParticles(TransInfo *t);
 int clipUVTransform(TransInfo *t, float *vec, int resize);
 
 /*********************** exported from transform_manipulator.c ********** */
