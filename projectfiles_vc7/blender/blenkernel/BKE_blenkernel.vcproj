@@ -435,6 +435,15 @@
 				RelativePath="..\..\..\source\blender\blenkernel\intern\packedFile.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\particle.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\particle_system.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\pointcache.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\property.c">
 			</File>
 			<File
@@ -623,6 +632,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_plugin_types.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\BKE_pointcache.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_property.h">

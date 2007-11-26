@@ -62,6 +62,7 @@
 #include "DNA_material_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_fluidsim.h"
+#include "DNA_particle_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
@@ -82,6 +83,7 @@
 #include "BKE_ipo.h"
 #include "BKE_key.h"
 #include "BKE_material.h"
+#include "BKE_particle.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
@@ -131,6 +133,7 @@ extern int ac_ar[];
 extern int co_ar[];
 extern int te_ar[];
 extern int fluidsim_ar[]; // NT
+extern int part_ar[];
 
 /* forwards */
 #define IPOTHRESH	0.9
@@ -344,6 +347,22 @@ void editipo_changed(SpaceIpo *si, int doredraw)
 			DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);
 		}
+		else if(si->blocktype==ID_PA){
+			Object *ob=OBACT;
+			ParticleSystem *psys = ob->particlesystem.first;
+
+			/* find out if we need to initialize particles */
+			for(; psys; psys=psys->next) {
+				if(psys->part->ipo==si->ipo) {
+					ei= si->editipo;
+					for(a=0; a<si->totipo; a++, ei++)
+						if(ei->icu && ELEM3(ei->icu->adrcode,PART_EMIT_FREQ,PART_EMIT_LIFE,PART_EMIT_SIZE))
+							psys_flush_settings(psys->part,PSYS_INIT,1);
+				}
+			}
+			DAG_object_flush_update(G.scene, OBACT, OB_RECALC_DATA);
+			allqueue(REDRAWVIEW3D, 0);
+		}
 	}
 
 	if(si->showkey) make_ipokey();
@@ -434,6 +453,49 @@ static void make_ob_editipo(Object *ob, SpaceIpo *si)
 		ei++;
 	}
 	//fprintf(stderr,"FSIMAKE_OPBJ call %d \n", si->totipo);
+}
+
+static void make_part_editipo(SpaceIpo *si)
+{
+	EditIpo *ei;
+	int a;
+	char *name;
+	
+	if(si->from==0) return;
+	
+	ei= si->editipo= MEM_callocN(PART_TOTIPO*sizeof(EditIpo), "editipo");
+	
+	si->totipo= PART_TOTIPO;
+	
+	for(a=0; a<PART_TOTIPO; a++) {
+		name = getname_part_ei(part_ar[a]);
+		strcpy(ei->name, name);
+		ei->adrcode= part_ar[a];
+		
+		//if(ei->adrcode & MA_MAP1) {
+		//	ei->adrcode-= MA_MAP1;
+		//	ei->adrcode |= texchannel_to_adrcode(si->channel);
+		//}
+		//else {
+		//	if(ei->adrcode==MA_MODE) ei->disptype= IPO_DISPBITS;
+		//}
+		
+		ei->col= ipo_rainbow(a, PART_TOTIPO);
+		
+		//len= strlen(ei->name);
+		//if(len) {
+		//	if( ei->name[ len-1 ]=='R') ei->col= 0x5050FF;
+		//	else if( ei->name[ len-1 ]=='G') ei->col= 0x50FF50;
+		//	else if( ei->name[ len-1 ]=='B') ei->col= 0xFF7050;
+		//}
+		
+		ei->icu= find_ipocurve(si->ipo, ei->adrcode);
+		if(ei->icu) {
+			ei->flag= ei->icu->flag;
+		}
+		
+		ei++;
+	}
 }
 
 // copied from make_seq_editipo
@@ -913,6 +975,12 @@ static void make_editipo(void)
 			make_fluidsim_editipo(G.sipo);
 		}
 	}
+	else if(G.sipo->blocktype==ID_PA) {
+		if (ob) {
+			ob->ipowin= ID_PA;
+			make_part_editipo(G.sipo);
+		}
+	}
 
 	if(G.sipo->editipo==0) return;
 	
@@ -1095,6 +1163,13 @@ static void get_ipo_context(short blocktype, ID **from, Ipo **ipo, char *actname
 			FluidsimSettings *fss= ob->fluidsimSettings;
 			*from= (ID *)ob;
 			if(fss) *ipo= fss->ipo;
+		}
+	}
+	else if(blocktype==ID_PA) {
+		ParticleSystem *psys = psys_get_current(ob);
+		if(psys){
+			*from= (ID *)ob;
+			*ipo= psys->part->ipo;
 		}
 	}
 }
@@ -1759,6 +1834,16 @@ Ipo *verify_ipo(ID *from, short blocktype, char *actname, char *constname)
 						}
 						return fss->ipo;
 					}
+				}
+				else if(blocktype== ID_PA){
+					Object *ob= (Object *)from;
+					ParticleSystem *psys= psys_get_current(ob);
+					if(psys){
+						if(psys->part->ipo==0)
+							psys->part->ipo= add_ipo("ParticleIpo", ID_PA);
+						return psys->part->ipo;
+					}
+					return NULL;
 				}
 			}
 			break;
@@ -2942,7 +3027,9 @@ void common_insertkey(void)
 					if(event==4) {
 						insertkey(id, ID_OB, NULL, NULL, OB_PD_FFALL, 0);
 					}
-
+					if(event==5) {
+						insertkey(id, ID_OB, NULL, NULL, OB_PD_FMAXD, 0);
+					}
 				}
 			}
 		}

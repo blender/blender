@@ -1242,7 +1242,7 @@ int multitex_ext(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, Te
 
 /* in = destination, tex = texture, out = previous color */
 /* fact = texture strength, facg = button strength value */
-static void texture_rgb_blend(float *in, float *tex, float *out, float fact, float facg, int blendtype)
+void texture_rgb_blend(float *in, float *tex, float *out, float fact, float facg, int blendtype)
 {
 	float facm, col;
 	
@@ -1330,7 +1330,7 @@ static void texture_rgb_blend(float *in, float *tex, float *out, float fact, flo
 
 }
 
-static float texture_value_blend(float tex, float out, float fact, float facg, int blendtype, int flip)
+float texture_value_blend(float tex, float out, float fact, float facg, int blendtype, int flip)
 {
 	float in=0.0, facm, col;
 	
@@ -1406,7 +1406,7 @@ void do_material_tex(ShadeInput *shi)
 			
 			tex= mtex->tex;
 			if(tex==0) continue;
-			
+
 			/* which coords */
 			if(mtex->texco==TEXCO_ORCO) {
 				co= shi->lo; dx= shi->dxlo; dy= shi->dylo;
@@ -1486,7 +1486,7 @@ void do_material_tex(ShadeInput *shi)
 				dy[1]= dy[2]= 0.0f;
 			}
 			else continue;	// can happen when texco defines disappear and it renders old files
-			
+
 			/* de pointer defines if bumping happens */
 			if(mtex->mapto & (MAP_NORM|MAP_DISPLACE|MAP_WARP)) {
 				texres.nor= norvec;

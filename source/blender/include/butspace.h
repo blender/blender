@@ -68,6 +68,7 @@ extern void do_soundbuts(unsigned short event);
 /* object */
 extern void object_panels(void);
 extern void physics_panels(void);
+extern void particle_panels(void);
 extern void do_object_panels(unsigned short event);
 extern void do_constraintbuts(unsigned short event);
 extern void object_panel_constraint(char *context);
@@ -102,6 +103,7 @@ extern void do_cambuts(unsigned short event);
 extern void do_armbuts(unsigned short event);
 extern void do_uvcalculationbuts(unsigned short event);
 extern void weight_paint_buttons(struct uiBlock *);
+extern void particle_edit_buttons(struct uiBlock *);
 
 extern char *get_vertexgroup_menustr(struct Object *ob);	// used in object buttons
 
@@ -212,6 +214,8 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 	/* world buttons: buttons-preview update, and redraw 3dview */
 #define B_WORLDPRV2		1224
 
+#define B_MAT_PARTICLE		1225
+
 /* *********************** */
 #define B_TEXBUTS		1400
 
@@ -281,6 +285,8 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 
 #define B_GROUP_RELINK			1460
 #define B_OBJECT_IPOFLAG		1461
+
+#define B_BAKEABLE_CHANGE		1470
 
 /* *********************** */
 #define B_WORLDBUTS		1600
@@ -578,6 +584,14 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 /* Sculptmode */
 #define B_SCULPT_TEXBROWSE      2860
 
+/* Particles */
+#define B_BAKE_OLENGTH		2870
+#define B_BAKE_APPLY_AV		2871
+#define B_BAKE_KEYTIME		2872
+#define B_BAKE_AV_CHANGE	2873
+#define B_BAKE_REDRAWEDIT	2874
+#define B_BAKE_RECACHE		2875
+
 /* *********************** */
 #define B_RADIOBUTS		3000
 
@@ -700,6 +714,26 @@ enum {
 #define B_FIELD_CHANGE		3415
 #define B_PAF_SET_VG		3416
 #define B_PAF_SET_VG1		3417
+#define	B_PARTBROWSE		3418
+#define B_PARTDELETE		3419
+#define B_PARTALONE			3420
+#define B_PARTLOCAL			3421
+#define B_PARTAUTONAME		3422
+#define B_PART_ALLOC		3423
+#define B_PART_DISTR		3424
+#define B_PART_INIT			3425
+#define B_PART_RECALC		3426
+#define B_PART_REDRAW		3427
+#define B_PARTTYPE			3428
+#define B_PARTACT			3429
+#define B_PARTTARGET		3430
+#define B_PART_ALLOC_CHILD	3431
+#define B_PART_DISTR_CHILD	3432
+#define B_PART_INIT_CHILD	3433
+#define B_PART_RECALC_CHILD	3434
+#define B_PART_EDITABLE		3435
+
+#define B_PART_REKEY		3436
 
 #define B_MODIFIER_BUTS		3600
 

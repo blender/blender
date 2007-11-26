@@ -38,6 +38,7 @@
 #include "MEM_guardedalloc.h"
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
+#include "BLI_rand.h"
 #include "DNA_listBase.h"
 
 #include "DNA_curve_types.h"
@@ -47,6 +48,7 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_object_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_vfont_types.h"
@@ -60,8 +62,10 @@
 #include "BKE_global.h"
 #include "BKE_ipo.h"
 #include "BKE_key.h"
+#include "BKE_lattice.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
+#include "BKE_particle.h"
 #include "BKE_utildefines.h"
 
 #include "BKE_bad_level_calls.h"
@@ -563,134 +567,143 @@ static void face_duplilist(ListBase *lb, Scene *sce, Object *par)
 	dm->release(dm);
 }
 
-
-
-static void particle_duplilist(ListBase *lb, Scene *sce, Object *par, PartEff *paf)
+static void new_particle_duplilist(ListBase *lb, Scene *sce, Object *par, ParticleSystem *psys)
 {
-	Object *ob, copyob;
-	Base *base;
-	Particle *pa;
-	float ctime, vec1[3];
-	float vec[3], tmat[4][4], mat[3][3];
-	float *q2;
-	int lay, a, counter;	/* counter is used to find in render the indexed object */
+	GroupObject *go;
+	Object *ob, **oblist=0;
+	ParticleSettings *part;
+	ParticleData *pa;
+	ParticleKey state;
+	float ctime, pa_time;
+	float tmat[4][4], mat[3][3], obrotmat[3][3], parotmat[3][3], size=0.0;
+	float xvec[3] = {-1.0, 0.0, 0.0}, *q;
+	int lay, a, k, step_nbr = 0, counter;
+	int totpart, totchild, totgroup=0, pa_num;
+
+	if(psys==0) return;
 	
-	pa= paf->keys;
-	if(pa==NULL || (G.rendering && paf->disp!=100)) {
-		build_particle_system(par);
-		pa= paf->keys;
-		if(pa==NULL) return;
-	}
-	
-	ctime= bsystem_time(par, (float)G.scene->r.cfra, 0.0);
-	
+	part=psys->part;
+
+	if(part==0) return;
+
+	ctime = bsystem_time(par, (float)G.scene->r.cfra, 0.0);
+
+	totpart = psys->totpart;
+	totchild = psys->totchild;
+
+	BLI_srandom(31415926 + psys->seed);
+		
 	lay= G.scene->lay;
+	if((part->draw_as == PART_DRAW_OB && part->dup_ob) ||
+		(part->draw_as == PART_DRAW_GR && part->dup_group && part->dup_group->gobject.first)) {
 
-	for(base= sce->base.first; base; base= base->next) {
-		if(base->object->type>0 && (base->lay & lay) && G.obedit!=base->object) {
-			ob= base->object->parent;
-			while(ob) {
-				if(ob==par) {
-				
-					ob= base->object;
-					/* temp copy, to have ipos etc to work OK */
-					copyob= *ob;
-					
-					/* don't want parent animation to apply on past object positions */
-					if(!(paf->flag & PAF_STATIC))
-						ob->parent= NULL;
-					
-					for(a=0, pa= paf->keys, counter=0; a<paf->totpart; a++, pa+=paf->totkey, counter++) {
-						
-						if(paf->flag & PAF_STATIC) {
-							float mtime;
-							
-							where_is_particle(paf, pa, pa->time, vec1);
-							mtime= pa->time+pa->lifetime;
-							
-							for(ctime= pa->time; ctime<mtime; ctime+=paf->staticstep, counter++) {
-								
-								/* make sure hair grows until the end.. */ 
-								if(ctime>pa->time+pa->lifetime) ctime= pa->time+pa->lifetime;
-								
-								/* to give ipos in object correct offset */
-								where_is_object_time(ob, ctime-pa->time);
+		if(psys->flag & (PSYS_HAIR_DONE|PSYS_KEYED) && part->draw & PART_DRAW_KEYS)
+			step_nbr = part->keys_step;
+		else
+			step_nbr = 0;
 
-								where_is_particle(paf, pa, ctime, vec);	// makes sure there's always a vec
-								Mat4MulVecfl(par->obmat, vec);
-								
-								if(paf->stype==PAF_VECT) {
-									where_is_particle(paf, pa, ctime+1.0, vec1); // makes sure there's always a vec
-									Mat4MulVecfl(par->obmat, vec1);
+		psys->lattice = psys_get_lattice(par, psys);
 
-									VecSubf(vec1, vec1, vec);
-									q2= vectoquat(vec1, ob->trackflag, ob->upflag);
-									
-									QuatToMat3(q2, mat);
-									Mat4CpyMat4(tmat, ob->obmat);
-									Mat4MulMat43(ob->obmat, tmat, mat);
-								}
-								
-								VECCOPY(ob->obmat[3], vec);
-								/* put object back in original state, so it cam be restored OK */
-								Mat4CpyMat4(tmat, ob->obmat);
-								Mat4CpyMat4(ob->obmat, copyob.obmat);
-								new_dupli_object(lb, ob, tmat, par->lay, counter);
-							}
-						}
-						else { // non static particles
-							
-							if((paf->flag & PAF_UNBORN)==0 && ctime < pa->time) continue;
-							if((paf->flag & PAF_DIED)==0 && ctime > pa->time+pa->lifetime) continue;
+		if(part->draw_as==PART_DRAW_GR) {
+			group_handle_recalc_and_update(par, part->dup_group);
 
-							//if(ctime < pa->time+pa->lifetime) {
+			go= part->dup_group->gobject.first;
+			while(go) {
+				go=go->next;
+				totgroup++;
+			}
 
-							/* to give ipos in object correct offset, ob->parent is NULLed */
-							where_is_object_time(ob, ctime-pa->time);
-							
-							where_is_particle(paf, pa, ctime, vec);
-							if(paf->stype==PAF_VECT) {
-								
-								/* if particle died, we use previous position */
-								if(ctime > pa->time+pa->lifetime) {
-									where_is_particle(paf, pa, pa->time+pa->lifetime-1.0f, vec1);
-									VecSubf(vec1, vec, vec1);
-								}
-								else {
-									where_is_particle(paf, pa, ctime+1.0f, vec1);
-									VecSubf(vec1, vec1, vec);
-								}
-								q2= vectoquat(vec1, ob->trackflag, ob->upflag);
-					
-								QuatToMat3(q2, mat);
-								Mat4CpyMat4(tmat, ob->obmat);
-								Mat4MulMat43(ob->obmat, tmat, mat);
-							}
+			oblist= MEM_callocN(totgroup*sizeof(Object *), "dupgroup object list");
+			go= part->dup_group->gobject.first;
+			for(a=0; a<totgroup; a++, go=go->next)
+				oblist[a]=go->ob;
+		}
 
-							VECCOPY(ob->obmat[3], vec);
-							
-							/* put object back in original state, so it can be restored OK */
-							Mat4CpyMat4(tmat, ob->obmat);
-							Mat4CpyMat4(ob->obmat, copyob.obmat);
-							new_dupli_object(lb, ob, tmat, par->lay, counter);
-						}					
-					}
-					/* temp copy, to have ipos etc to work OK */
-					*ob= copyob;
-					
-					break;
+		if(totchild==0 || part->draw & PART_DRAW_PARENT)
+			a=0;
+		else
+			a=totpart;
+
+		for(pa=psys->particles,counter=0; a<totpart+totchild; a++,pa++,counter++) {
+			if(a<totpart) {
+				if(pa->flag & (PARS_UNEXIST+PARS_NO_DISP)) continue;
+
+				pa_num=pa->num;
+
+				pa_time=pa->time;
+
+				size=pa->size;
+			}
+			else {
+				/* TODO: figure these two out */
+				pa_num = a;
+				pa_time = psys->particles[psys->child[a - totpart].parent].time;
+
+				size=psys_get_child_size(psys, a - totpart, ctime, 0);
+			}
+
+			if(part->draw_as==PART_DRAW_GR) {
+				if(part->draw&PART_DRAW_RAND_GR)
+					ob = oblist[BLI_rand() % totgroup];
+				else if(part->from==PART_FROM_PARTICLE)
+					ob = oblist[pa_num % totgroup];
+				else
+					ob = oblist[a % totgroup];
+			}
+			else
+				ob = part->dup_ob;
+
+			for(k=0; k<=step_nbr; k++, counter++) {
+				if(step_nbr) {
+					state.time = (float)k / (float)step_nbr;
+					psys_get_particle_on_path(par, psys, a, &state, 0);
 				}
-				ob= ob->parent;
+				else {
+					state.time = -1.0;
+					if(psys_get_particle_state(par, psys, a, &state, 0) == 0)
+						continue;
+				}
+
+				QuatToMat3(state.rot, parotmat);
+
+				if(part->draw_as==PART_DRAW_GR && psys->part->draw & PART_DRAW_WHOLE_GR) {
+					for(go= part->dup_group->gobject.first; go; go= go->next) {
+
+						Mat4CpyMat4(tmat, go->ob->obmat);
+						Mat4MulMat43(tmat, go->ob->obmat, parotmat);
+						Mat4MulFloat3((float *)tmat, size);
+
+						VECADD(tmat[3], go->ob->obmat[3], state.co);
+
+						new_dupli_object(lb, go->ob, tmat, par->lay, counter);
+					}
+				}
+				else {
+					/* to give ipos in object correct offset */
+					where_is_object_time(ob, ctime-pa_time);
+					
+					q = vectoquat(xvec, ob->trackflag, ob->upflag);
+					QuatToMat3(q, obrotmat);
+
+					Mat3MulMat3(mat, parotmat, obrotmat);
+					Mat4CpyMat4(tmat, ob->obmat);
+					Mat4MulMat43(tmat, ob->obmat, mat);
+					Mat4MulFloat3((float *)tmat, size);
+
+					VECCOPY(tmat[3], state.co);
+
+					new_dupli_object(lb, ob, tmat, par->lay, counter);
+				}
 			}
 		}
 	}
-	
-	if(G.rendering && paf->disp!=100) {
-		MEM_freeN(paf->keys);
-		paf->keys= NULL;
+	if(oblist)
+		MEM_freeN(oblist);
+
+	if(psys->lattice) {
+		end_latt_deform();
+		psys->lattice = 0;
 	}
-	
-	
 }
 
 static Object *find_family_object(Object **obar, char *family, char ch)
@@ -771,13 +784,14 @@ ListBase *object_duplilist(Scene *sce, Object *ob)
 	duplilist->first= duplilist->last= NULL;
 	
 	if(ob->transflag & OB_DUPLI) {
-		if(ob->transflag & OB_DUPLIVERTS) {
+		if(ob->transflag & OB_DUPLIPARTS) {
+			ParticleSystem *psys = ob->particlesystem.first;
+			for(; psys; psys=psys->next)
+				new_particle_duplilist(duplilist, sce, ob, psys);
+		}
+		else if(ob->transflag & OB_DUPLIVERTS) {
 			if(ob->type==OB_MESH) {
-				PartEff *paf;
-				if( (paf=give_parteff(ob)) ) 
-					particle_duplilist(duplilist, sce, ob, paf);
-				else 
-					vertex_duplilist(duplilist, sce, ob);
+				vertex_duplilist(duplilist, sce, ob);
 			}
 			else if(ob->type==OB_FONT) {
 				font_duplilist(duplilist, ob);
@@ -823,14 +837,18 @@ int count_duplilist(Object *ob)
 		if(ob->transflag & OB_DUPLIVERTS) {
 			if(ob->type==OB_MESH) {
 				if(ob->transflag & OB_DUPLIVERTS) {
-					PartEff *paf;
-					if( (paf=give_parteff(ob)) ) {
-						return paf->totpart;
-					}
-					else {
+					ParticleSystem *psys = ob->particlesystem.first;
+					int pdup=0;
+
+					for(; psys; psys=psys->next)
+						pdup += psys->totpart;
+
+					if(pdup==0){
 						Mesh *me= ob->data;
 						return me->totvert;
 					}
+					else
+						return pdup;
 				}
 			}
 		}

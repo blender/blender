@@ -55,6 +55,7 @@
 #include "DNA_view3d_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
+#include "DNA_particle_types.h"
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
@@ -77,6 +78,7 @@
 #include "BKE_subsurf.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
+#include "BKE_particle.h"
 
 #ifdef WITH_VERSE
 #include "BKE_verse.h"
@@ -1961,6 +1963,7 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 		 */
 
 		if(mti->type == eModifierTypeType_OnlyDeform) {
+			
 			/* No existing verts to deform, need to build them. */
 			if(!deformedVerts) {
 				if(dm) {
@@ -2002,9 +2005,12 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 
 			/* set the DerivedMesh to only copy needed data */
 			DM_set_only_copy(dm, (CustomDataMask)curr->link);
-
-			ndm = mti->applyModifier(md, ob, dm, useRenderParams,
-			                         !inputVertexCos);
+			
+			if(((CustomDataMask)curr->link) & CD_MASK_ORIGSPACE)
+				if(!CustomData_has_layer(&dm->faceData, CD_ORIGSPACE))
+					CustomData_add_layer(&dm->faceData, CD_ORIGSPACE, CD_DEFAULT, NULL, dm->getNumFaces(dm));
+			
+			ndm = mti->applyModifier(md, ob, dm, useRenderParams, !inputVertexCos);
 
 			if(ndm) {
 				/* if the modifier returned a new dm, release the old one */
@@ -2182,6 +2188,10 @@ static void editmesh_calc_modifiers(DerivedMesh **cage_r,
 			/* set the DerivedMesh to only copy needed data */
 			DM_set_only_copy(dm, (CustomDataMask)curr->link);
 
+			if(((CustomDataMask)curr->link) & CD_MASK_ORIGSPACE)
+				if(!CustomData_has_layer(&dm->faceData, CD_ORIGSPACE))
+					CustomData_add_layer(&dm->faceData, CD_ORIGSPACE, CD_DEFAULT, NULL, dm->getNumFaces(dm));
+			
 			ndm = mti->applyModifierEM(md, ob, em, dm);
 
 			if (ndm) {
@@ -2360,7 +2370,7 @@ static void mesh_build_data(Object *ob, CustomDataMask dataMask)
 
 	if(ob!=G.obedit) {
 		Object *obact = G.scene->basact?G.scene->basact->object:NULL;
-		int editing = (FACESEL_PAINT_TEST);
+		int editing = (FACESEL_PAINT_TEST)|(G.f & G_PARTICLEEDIT);
 		int needMapping = editing && (ob==obact);
 
 		if( (G.f & G_WEIGHTPAINT) && ob==obact ) {

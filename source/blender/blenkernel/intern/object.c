@@ -60,6 +60,7 @@
 #include "DNA_object_force.h"
 #include "DNA_object_fluidsim.h"
 #include "DNA_oops_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_space_types.h"
@@ -101,6 +102,7 @@
 #include "BKE_mball.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
+#include "BKE_particle.h"
 #include "BKE_property.h"
 #include "BKE_sca.h"
 #include "BKE_scene.h"
@@ -163,6 +165,15 @@ void object_free_modifiers(Object *ob)
 		BLI_remlink(&ob->modifiers, md);
 
 		modifier_free(md);
+	}
+
+	/* particle modifiers were freed, so free the particlesystems as well */
+	while(ob->particlesystem.first){
+		ParticleSystem *psys = ob->particlesystem.first;
+
+		BLI_remlink(&ob->particlesystem,psys);
+
+		psys_free(ob,psys);
 	}
 }
 
@@ -235,7 +246,11 @@ void free_object(Object *ob)
 	
 	BPY_free_scriptlink(&ob->scriptlink);
 	
-	if(ob->pd) MEM_freeN(ob->pd);
+	if(ob->pd){
+		if(ob->pd->tex)
+			ob->pd->tex->id.us--;
+		MEM_freeN(ob->pd);
+	}
 	if(ob->soft) sbFree(ob->soft);
 	if(ob->fluidsimSettings) fluidsimSettingsFree(ob->fluidsimSettings);
 }
@@ -378,6 +393,47 @@ void unlink_object(Object *ob)
 					if(amod->ob==ob)
 						amod->ob= NULL;
 			}
+		}
+
+		/* particle systems */
+		if(obt->particlesystem.first) {
+			ParticleSystem *tpsys= obt->particlesystem.first;
+			for(; tpsys; tpsys=tpsys->next) {
+				if(tpsys->keyed_ob==ob) {
+					ParticleSystem *psys= BLI_findlink(&ob->particlesystem,tpsys->keyed_psys-1);
+
+					if(psys && psys->keyed_ob) {
+						tpsys->keyed_ob= psys->keyed_ob;
+						tpsys->keyed_psys= psys->keyed_psys;
+					}
+					else
+						tpsys->keyed_ob= NULL;
+
+					obt->recalc |= OB_RECALC_DATA;
+				}
+
+				if(tpsys->target_ob==ob) {
+					tpsys->target_ob= NULL;
+					obt->recalc |= OB_RECALC_DATA;
+				}
+
+				if(tpsys->part->dup_ob==ob)
+					tpsys->part->dup_ob= NULL;
+
+				if(tpsys->part->flag&PART_STICKY) {
+					ParticleData *pa;
+					int p;
+
+					for(p=0,pa=tpsys->particles; p<tpsys->totpart; p++,pa++) {
+						if(pa->stick_ob==ob) {
+							pa->stick_ob= 0;
+							pa->flag &= ~PARS_STICKY;
+						}
+					}
+				}
+			}
+			if(ob->pd)
+				obt->recalc |= OB_RECALC_DATA;
 		}
 
 		obt= obt->id.next;
@@ -946,6 +1002,22 @@ SoftBody *copy_softbody(SoftBody *sb)
 	return sbn;
 }
 
+ParticleSystem *copy_particlesystem(ParticleSystem *psys)
+{
+	ParticleSystem *psysn;
+
+	psysn= MEM_dupallocN(psys);
+	psysn->particles= MEM_dupallocN(psys->particles);
+
+	psysn->child= MEM_dupallocN(psys->child);
+
+	psysn->effectors.first= psysn->effectors.last= 0;
+
+	id_us_plus((ID *)psysn->part);
+
+	return psysn;
+}
+
 static void copy_object_pose(Object *obn, Object *ob)
 {
 	bPoseChannel *chan;
@@ -981,6 +1053,7 @@ Object *copy_object(Object *ob)
 {
 	Object *obn;
 	ModifierData *md;
+	ParticleSystem *psys;
 	int a;
 
 	obn= copy_libblock(ob);
@@ -1031,7 +1104,11 @@ Object *copy_object(Object *ob)
 	
 	obn->disp.first= obn->disp.last= NULL;
 	
-	if(ob->pd) obn->pd= MEM_dupallocN(ob->pd);
+	if(ob->pd){
+		obn->pd= MEM_dupallocN(ob->pd);
+		if(obn->pd->tex)
+			id_us_plus(&(obn->pd->tex->id));
+	}
 	obn->soft= copy_softbody(ob->soft);
 
 	/* NT copy fluid sim setting memory */
@@ -1040,6 +1117,23 @@ Object *copy_object(Object *ob)
 		/* copying might fail... */
 		if(obn->fluidsimSettings) {
 			obn->fluidsimSettings->orgMesh = (Mesh *)obn->data;
+		}
+	}
+
+	obn->particlesystem.first= obn->particlesystem.last= NULL;
+	for(psys=ob->particlesystem.first; psys; psys=psys->next) {
+		ParticleSystemModifierData *psmd;
+		ParticleSystem *npsys= copy_particlesystem(psys);
+
+		BLI_addtail(&obn->particlesystem, npsys);
+
+		/* need to update particle modifiers too */
+		for(md=obn->modifiers.first; md; md=md->next) {
+			if(md->type==eModifierType_ParticleSystem) {
+				psmd= (ParticleSystemModifierData*)md;
+				if(psmd->psys==psys)
+					psmd->psys= npsys;
+			}
 		}
 	}
 	
@@ -2077,8 +2171,28 @@ void object_handle_update(Object *ob)
 					where_is_pose(ob);
 				}
 			}
+
+			if(ob->particlesystem.first) {
+				ParticleSystem *tpsys, *psys;
+				
+				psys= ob->particlesystem.first;
+				while(psys) {
+					if(psys->flag & PSYS_ENABLED) {
+						particle_system_update(ob, psys);
+						psys= psys->next;
+					}
+					else if(psys->flag & PSYS_DELETE) {
+						tpsys=psys->next;
+						BLI_remlink(&ob->particlesystem, psys);
+						psys_free(ob,psys);
+						psys= tpsys;
+					}
+					else
+						psys= psys->next;
+				}
+			}
 		}
-	
+
 		/* the no-group proxy case, we call update */
 		if(ob->proxy && ob->proxy_group==NULL) {
 			/* set pointer in library proxy target, for copying, but restore it */

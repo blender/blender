@@ -68,11 +68,12 @@
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 
+#include "BIF_editparticle.h"
 #include "BIF_gl.h"
-#include "BIF_space.h"
-#include "BIF_mywindow.h"
 #include "BIF_previewrender.h"
+#include "BIF_mywindow.h"
 #include "BIF_retopo.h"
+#include "BIF_space.h"
 #include "BIF_screen.h"
 #include "BIF_toolbox.h"
 
@@ -1440,6 +1441,9 @@ void centerview()	/* like a localview without local! */
 	}
 	else if (FACESEL_PAINT_TEST) {
 		ok= minmax_tface(min, max);
+	}
+	else if (G.f & G_PARTICLEEDIT) {
+		ok= PE_minmax(min, max);
 	}
 	else {
 		Base *base= FIRSTBASE;

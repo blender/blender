@@ -799,7 +799,7 @@ static int pdDoDeflection(RNG *rng, float opco[3], float npco[3], float opno[3],
 						
 //					t= 0.5;	// this is labda of line, can use it optimize quad intersection
 // sorry but no .. see below (BM)					
-					if( LineIntersectsTriangle(opco, npco, nv1, nv2, nv3, &t) ) {
+					if( LineIntersectsTriangle(opco, npco, nv1, nv2, nv3, &t, NULL) ) {
 						if (t < min_t) {
 							deflected = 1;
 							deflected_now = 1;
@@ -810,7 +810,7 @@ static int pdDoDeflection(RNG *rng, float opco[3], float npco[3], float opno[3],
 // it might give a smaller t on (close to) the edge .. this is numerics not esoteric maths :)
 // note: the 2 triangles don't need to share a plane ! (BM)
 					if (mface->v4) {
-						if( LineIntersectsTriangle(opco, npco, nv1, nv3, nv4, &t2) ) {
+						if( LineIntersectsTriangle(opco, npco, nv1, nv3, nv4, &t2, NULL) ) {
 							if (t2 < min_t) {
 								deflected = 1;
 								deflected_now = 2;

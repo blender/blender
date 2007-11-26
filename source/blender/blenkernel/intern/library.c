@@ -78,6 +78,8 @@
 #include "DNA_nla_types.h"
 #include "DNA_effect_types.h"
 #include "DNA_brush_types.h"
+#include "DNA_particle_types.h"
+#include "BKE_particle.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
@@ -194,6 +196,8 @@ ListBase *wich_libbase(Main *mainlib, short type)
 			return &(mainlib->nodetree);
 		case ID_BR:
 			return &(mainlib->brush);
+		case ID_PA:
+			return &(mainlib->particle);
 	}
 	return 0;
 }
@@ -254,16 +258,17 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	lb[18]= &(main->nodetree);
 	lb[19]= &(main->brush);
 	lb[20]= &(main->script);
+	lb[21]= &(main->particle);
 	
-	lb[21]= &(main->world);
-	lb[22]= &(main->screen);
-	lb[23]= &(main->object);
-	lb[24]= &(main->scene);
-	lb[25]= &(main->library);
+	lb[22]= &(main->world);
+	lb[23]= &(main->screen);
+	lb[24]= &(main->object);
+	lb[25]= &(main->scene);
+	lb[26]= &(main->library);
 	
-	lb[26]= NULL;
+	lb[27]= NULL;
 
-	return 26;
+	return 27;
 }
 
 /* *********** ALLOC AND FREE *****************
@@ -359,6 +364,9 @@ static ID *alloc_libblock_notest(short type)
 		case ID_BR:
 			id = MEM_callocN(sizeof(Brush), "brush");
 			break;
+		case ID_PA:
+			id = MEM_callocN(sizeof(ParticleSettings), "ParticleSettings");
+  			break;
 	}
 	return id;
 }
@@ -502,6 +510,9 @@ void free_libblock(ListBase *lb, void *idv)
 			break;
 		case ID_BR:
 			free_brush((Brush *)id);
+			break;
+		case ID_PA:
+			psys_free_settings((ParticleSettings *)id);
 			break;
 	}
 

@@ -78,6 +78,7 @@ typedef struct Main {
 	ListBase action;
 	ListBase nodetree;
 	ListBase brush;
+	ListBase particle;
 } Main;
 
 

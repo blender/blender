@@ -71,6 +71,7 @@
 
 #include "BKE_customdata.h"
 #include "BKE_texture.h" 
+#include "BKE_DerivedMesh.h"
 
 #include "RE_render_ext.h"	/* externtex */
 
@@ -719,6 +720,152 @@ HaloRen *RE_inithalo(Render *re, Material *ma,   float *vec,   float *vec1,
 			}
 		}
 	}
+
+	return har;
+}
+
+HaloRen *RE_inithalo_particle(Render *re, DerivedMesh *dm, Material *ma,   float *vec,   float *vec1, 
+				  float *orco, float *uvco, float hasize, float vectsize, int seed)
+{
+	HaloRen *har;
+	MTex *mtex;
+	float tin, tr, tg, tb, ta;
+	float xn, yn, zn, texvec[3], hoco[4], hoco1[4], in[3],tex[3],out[3];
+	int i;
+
+	if(hasize==0.0) return NULL;
+
+	projectverto(vec, re->winmat, hoco);
+	if(hoco[3]==0.0) return NULL;
+	if(vec1) {
+		projectverto(vec1, re->winmat, hoco1);
+		if(hoco1[3]==0.0) return NULL;
+	}
+
+	har= RE_findOrAddHalo(re, re->tothalo++);
+	VECCOPY(har->co, vec);
+	har->hasize= hasize;
+
+	/* actual projectvert is done in function project_renderdata() because of parts/border/pano */
+	/* we do it here for sorting of halos */
+	zn= hoco[3];
+	har->xs= 0.5*re->winx*(hoco[0]/zn);
+	har->ys= 0.5*re->winy*(hoco[1]/zn);
+	har->zs= 0x7FFFFF*(hoco[2]/zn);
+	
+	har->zBufDist = 0x7FFFFFFF*(hoco[2]/zn); 
+	
+	/* halovect */
+	if(vec1) {
+
+		har->type |= HA_VECT;
+
+		xn=  har->xs - 0.5*re->winx*(hoco1[0]/hoco1[3]);
+		yn=  har->ys - 0.5*re->winy*(hoco1[1]/hoco1[3]);
+		if(xn==0.0 || (xn==0.0 && yn==0.0)) zn= 0.0;
+		else zn= atan2(yn, xn);
+
+		har->sin= sin(zn);
+		har->cos= cos(zn);
+		zn= VecLenf(vec1, vec)*0.5;
+
+		har->hasize= vectsize*zn + (1.0-vectsize)*hasize;
+		
+		VecSubf(har->no, vec, vec1);
+		Normalize(har->no);
+	}
+
+	if(ma->mode & MA_HALO_XALPHA) har->type |= HA_XALPHA;
+
+	har->alfa= ma->alpha;
+	har->r= ma->r;
+	har->g= ma->g;
+	har->b= ma->b;
+	har->add= (255.0*ma->add);
+	har->mat= ma;
+	har->hard= ma->har;
+	har->seed= seed % 256;
+
+	if(ma->mode & MA_STAR) har->starpoints= ma->starc;
+	if(ma->mode & MA_HALO_LINES) har->linec= ma->linec;
+	if(ma->mode & MA_HALO_RINGS) har->ringc= ma->ringc;
+	if(ma->mode & MA_HALO_FLARE) har->flarec= ma->flarec;
+
+	if((ma->mode & MA_HALOTEX) && ma->mtex[0]){
+		har->tex= 1;
+		i=1;
+	}
+	
+	for(i=0; i<MAX_MTEX; i++)
+		if(ma->mtex[i] && (ma->septex & (1<<i))==0) {
+			mtex= ma->mtex[i];
+			VECCOPY(texvec, vec);
+
+			if(mtex->texco & TEXCO_NORM) {
+				;
+			}
+			else if(mtex->texco & TEXCO_OBJECT) {
+				if(mtex->object){
+					float imat[4][4];
+					/* imat should really be cached somewhere before this */
+					Mat4Invert(imat,mtex->object->obmat);
+					Mat4MulVecfl(imat,texvec);
+				}
+				/* texvec[0]+= imatbase->ivec[0]; */
+				/* texvec[1]+= imatbase->ivec[1]; */
+				/* texvec[2]+= imatbase->ivec[2]; */
+				/* Mat3MulVecfl(imatbase->imat, texvec); */
+			}
+			else if(mtex->texco & TEXCO_GLOB){
+				VECCOPY(texvec,vec);
+			}
+			else if(mtex->texco & TEXCO_UV && uvco){
+				int uv_index=CustomData_get_named_layer_index(&dm->faceData,CD_MTFACE,mtex->uvname);
+				if(uv_index<0)
+					uv_index=CustomData_get_active_layer_index(&dm->faceData,CD_MTFACE);
+
+				uv_index-=CustomData_get_layer_index(&dm->faceData,CD_MTFACE);
+
+				texvec[0]=2.0f*uvco[2*uv_index]-1.0f;
+				texvec[1]=2.0f*uvco[2*uv_index+1]-1.0f;
+				texvec[2]=0.0f;
+			}
+			else if(orco) {
+				VECCOPY(texvec, orco);
+			}
+
+			externtex(mtex, texvec, &tin, &tr, &tg, &tb, &ta);
+
+			//yn= tin*mtex->colfac;
+			//zn= tin*mtex->varfac;
+			if(mtex->mapto & MAP_COL) {
+				tex[0]=tr;
+				tex[1]=tg;
+				tex[2]=tb;
+				out[0]=har->r;
+				out[1]=har->g;
+				out[2]=har->b;
+
+				texture_rgb_blend(in,tex,out,tin,mtex->colfac,mtex->blendtype);
+			//	zn= 1.0-yn;
+				//har->r= (yn*tr+ zn*ma->r);
+				//har->g= (yn*tg+ zn*ma->g);
+				//har->b= (yn*tb+ zn*ma->b);
+				har->r= in[0];
+				har->g= in[1];
+				har->b= in[2];
+			}
+			if(mtex->mapto & MAP_ALPHA)
+				har->alfa = texture_value_blend(mtex->def_var,har->alfa,tin,mtex->varfac,mtex->blendtype,mtex->maptoneg & MAP_ALPHA);
+			if(mtex->mapto & MAP_HAR)
+				har->hard = 1.0+126.0*texture_value_blend(mtex->def_var,((float)har->hard)/127.0,tin,mtex->varfac,mtex->blendtype,mtex->maptoneg & MAP_HAR);
+			if(mtex->mapto & MAP_RAYMIRR)
+				har->hasize = 100.0*texture_value_blend(mtex->def_var,har->hasize/100.0,tin,mtex->varfac,mtex->blendtype,mtex->maptoneg & MAP_RAYMIRR);
+			/* now what on earth is this good for?? */
+			//if(mtex->texco & 16) {
+			//	har->alfa= tin;
+			//}
+		}
 
 	return har;
 }

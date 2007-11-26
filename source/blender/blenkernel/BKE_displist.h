@@ -123,5 +123,7 @@ void filldisplist(struct ListBase *dispbase, struct ListBase *to);
 
 void fastshade_free_render(void);
 
+float calc_taper(struct Object *taperobj, int cur, int tot);
+
 #endif
 

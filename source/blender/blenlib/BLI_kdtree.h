@@ -1,5 +1,7 @@
 /**
- * $Id: 
+ * A kd-tree for nearest neighbour search.
+ * 
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -23,29 +25,39 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
+ * The Original Code is: none of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Janne Karhu
+ *                 Brecht Van Lommel
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
+ 
+#ifndef BLI_KDTREE_H
+#define BLI_KDTREE_H
 
-#ifndef BIF_MESHTOOLS_H
-#define BIF_MESHTOOLS_H
+struct KDTree;
+typedef struct KDTree KDTree;
 
-struct Object;
-struct EditVert;
+typedef struct KDTreeNearest {
+	int index;
+	float dist;
+	float co[3];
+} KDTreeNearest;
 
-extern int join_mesh(void);
+/* Creates or free a kdtree */
+KDTree* BLI_kdtree_new(int maxsize);
+void BLI_kdtree_free(KDTree *tree);
 
-extern void sort_faces(void);
-extern void objects_bake_render_menu(void);
-extern void objects_bake_render(short event);
+/* Construction: first insert points, then call balance. Normal is optional. */
+void BLI_kdtree_insert(KDTree *tree, int index, float *co, float *nor);
+void BLI_kdtree_balance(KDTree *tree);
 
-extern long mesh_octree_table(struct Object *ob, float *co, char mode);
-extern int mesh_get_x_mirror_vert(struct Object *ob, int index);
-extern struct EditVert *editmesh_get_x_mirror_vert(struct Object *ob, float *co);
-extern int *mesh_get_x_mirror_faces(struct Object *ob);
+/* Find nearest returns index, and -1 if no node is found.
+ * Find n nearest returns number of points found, with results in nearest.
+ * Normal is optional. */
+int	BLI_kdtree_find_nearest(KDTree *tree, float *co, float *nor, KDTreeNearest *nearest);
+int	BLI_kdtree_find_n_nearest(KDTree *tree, int n, float *co, float *nor, KDTreeNearest *nearest);
 
 #endif
 

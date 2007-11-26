@@ -74,6 +74,7 @@
 #include "BIF_editsound.h"
 #include "BIF_editmesh.h"
 #include "BIF_imasel.h"
+#include "BIF_editparticle.h"
 #include "BIF_interface.h"
 #include "BKE_object.h"
 #include "BIF_poseobject.h"
@@ -739,6 +740,9 @@ int blenderqread(unsigned short event, short val)
 					else set_wpaint();
 				}
 			}
+		}
+		else if(G.qual&LR_CTRLKEY && G.qual&LR_SHIFTKEY){
+			PE_set_particle_edit();
 		}
 		break;
 

@@ -308,6 +308,9 @@
 				RelativePath="..\..\..\source\blender\src\editoops.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\src\editparticle.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\src\editscreen.c">
 			</File>
 			<File
@@ -673,6 +676,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\include\BIF_editoops.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\include\BIF_editparticle.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\include\BIF_editsca.h">

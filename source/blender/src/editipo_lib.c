@@ -59,7 +59,7 @@ char *ob_ic_names[OB_TOTNAM] = { "LocX", "LocY", "LocZ", "dLocX", "dLocY", "dLoc
 	"RotX", "RotY", "RotZ", "dRotX", "dRotY", "dRotZ",
 	"ScaleX", "ScaleY", "ScaleZ", "dScaleX", "dScaleY", "dScaleZ",
 	"Layer", "Time", "ColR", "ColG", "ColB", "ColA",
-	"FStreng", "FFall", "RDamp", "Damping", "Perm" };
+	"FStreng", "FFall", "RDamp", "Damping", "Perm", "FMaxD" };
 
 char *co_ic_names[CO_TOTNAM] = { "Inf", "HeadTail" };
 char *mtex_ic_names[TEX_TOTNAM] = { "OfsX", "OfsY", "OfsZ", "SizeX", "SizeY", "SizeZ",
@@ -101,6 +101,9 @@ char *ac_ic_names[AC_TOTNAM] = {"LocX", "LocY", "LocZ", "ScaleX", "ScaleY",
 	"ScaleZ", "QuatW", "QuatX", "QuatY", "QuatZ"};
 char *ic_name_empty[1] ={ "" };
 char *fluidsim_ic_names[FLUIDSIM_TOTNAM] = { "Fac-Visc", "Fac-Time",  "GravX","GravY","GravZ",  "VelX","VelY","VelZ", "Active"  };
+char *part_ic_names[PART_TOTNAM] = { "E_Freq", "E_Life", "E_Speed", "E_Angular", "E_Size",
+"Angular", "Size", "Drag", "Brown", "Damp", "Length", "Clump",
+"GravX", "GravY", "GravZ", "KinkAmp", "KinkFreq", "KinkShape", "BBTilt"};
 
 /* gets the appropriate icon for the given blocktype */
 int geticon_ipo_blocktype(short blocktype)
@@ -199,7 +202,7 @@ char *getname_co_ei(int nr)
 
 char *getname_ob_ei(int nr, int colipo)
 {
-	if(nr>=OB_LOC_X && nr <= OB_PD_PERM) return ob_ic_names[nr-1];
+	if(nr>=OB_LOC_X && nr <= OB_PD_FMAXD) return ob_ic_names[nr-1];
 	
 	return ic_name_empty[0];
 }
@@ -272,6 +275,11 @@ char *getname_snd_ei(int nr)
 char *getname_fluidsim_ei(int nr)
 {
 	if(nr <= FLUIDSIM_TOTIPO) return fluidsim_ic_names[nr-1];
+	return ic_name_empty[0];
+}
+char *getname_part_ei(int nr)
+{
+	if(nr <= PART_TOTIPO) return part_ic_names[nr-1];
 	return ic_name_empty[0];
 }
 

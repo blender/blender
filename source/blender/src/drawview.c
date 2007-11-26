@@ -71,6 +71,7 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_object_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
@@ -101,6 +102,7 @@
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h"
+#include "BKE_particle.h"
 #include "BKE_scene.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
@@ -110,6 +112,7 @@
 #include "BIF_editgroup.h"
 #include "BIF_editarmature.h"
 #include "BIF_editmesh.h"
+#include "BIF_editparticle.h"
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 #include "BIF_interface.h"
@@ -2224,7 +2227,6 @@ void do_viewbuts(unsigned short event)
 	}
 }
 
-
 static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 {
 	uiBlock *block;
@@ -2245,8 +2247,16 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
 	uiSetPanelHandler(VIEW3D_HANDLER_OBJECT);  // for close and esc
 
-	if(!uiNewPanel(curarea, block, "Transform Properties", "View3d", 10, 230, 318, 204))
-		return;
+	if((G.f & G_SCULPTMODE) && !G.obedit) {
+		if(!uiNewPanel(curarea, block, "Transform Properties", "View3d", 10, 230, 425, 234))
+			return;
+	} else if(G.f & G_PARTICLEEDIT && !G.obedit){
+		if(!uiNewPanel(curarea, block, "Transform Properties", "View3d", 10, 230, 318, 234))
+			return;
+	} else {
+		if(!uiNewPanel(curarea, block, "Transform Properties", "View3d", 10, 230, 318, 204))
+			return;
+	}
 
 	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	
@@ -2262,16 +2272,18 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 		uiButSetFunc(bt, test_idbutton_cb, ob->id.name, NULL);
 #endif
 
-		uiBlockBeginAlign(block);
-		uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_OBJECTPANELPARENT, "Par:", 160, 180, 140, 20, &ob->parent, "Parent Object"); 
-		if((ob->parent) && (ob->partype == PARBONE)) {
-			bt= uiDefBut(block, TEX, B_OBJECTPANELPARENT, "ParBone:", 160, 160, 140, 20, ob->parsubstr, 0, 30, 0, 0, "");
-			uiButSetCompleteFunc(bt, autocomplete_bone, (void *)ob->parent);
+		if((G.f & G_PARTICLEEDIT)==0) {
+			uiBlockBeginAlign(block);
+			uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_OBJECTPANELPARENT, "Par:", 160, 180, 140, 20, &ob->parent, "Parent Object"); 
+			if((ob->parent) && (ob->partype == PARBONE)) {
+				bt= uiDefBut(block, TEX, B_OBJECTPANELPARENT, "ParBone:", 160, 160, 140, 20, ob->parsubstr, 0, 30, 0, 0, "");
+				uiButSetCompleteFunc(bt, autocomplete_bone, (void *)ob->parent);
+			}
+			else {
+				strcpy(ob->parsubstr, "");
+			}
+			uiBlockEndAlign(block);
 		}
-		else {
-			strcpy(ob->parsubstr, "");
-		}
-		uiBlockEndAlign(block);
 	}
 
 	lim= 10000.0f*MAX2(1.0, G.vd->grid);
@@ -2305,6 +2317,9 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 	else if(G.f & G_SCULPTMODE) {
 		uiNewPanelTitle(block, "Sculpt Properties");
 		sculptmode_draw_interface_tools(block,10,150);
+	} else if(G.f & G_PARTICLEEDIT){
+		uiNewPanelTitle(block, "Particle Edit Properties");
+		particle_edit_buttons(block);
 	} else {
 		BoundBox *bb = NULL;
 
@@ -2771,6 +2786,7 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		for(SETLOOPER(G.scene->set, base))
 			object_handle_update(base->object);   // bke_object.h
 	}
+
 	for(base= G.scene->base.first; base; base= base->next)
 		object_handle_update(base->object);   // bke_object.h
 	
@@ -2906,7 +2922,8 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 
 	if(G.moving) {
 		BIF_drawConstraint();
-		if(G.obedit) BIF_drawPropCircle();	// only editmode has proportional edit
+		if(G.obedit || (G.f & G_PARTICLEEDIT))
+			BIF_drawPropCircle(); // only editmode and particles have proportional edit
 		BIF_drawSnap();
 	}
 
@@ -3007,6 +3024,17 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		}
 	}
 	retopo_draw_paint_lines();
+
+	if(!G.obedit && OBACT && G.f&G_PARTICLEEDIT && area_is_active_area(v3d->area)){
+		ParticleSystem *psys = PE_get_current(OBACT);
+		ParticleEditSettings *pset = PE_settings();
+
+		short c[2];
+		if(psys && psys->edit && pset->brushtype>=0){
+			getmouseco_areawin(c);
+			fdrawXORcirc((float)c[0], (float)c[1], (float)pset->brush[pset->brushtype].size);
+		}
+	}
 
 	if(v3d->persp>1) drawviewborder();
 	if(v3d->flag2 & V3D_FLYMODE) drawviewborder_flymode();

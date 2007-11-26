@@ -266,7 +266,7 @@ static void clear_global(void)
 	
 	free_vertexpaint();
 	
-	G.f &= ~(G_WEIGHTPAINT + G_VERTEXPAINT + G_FACESELECT);
+	G.f &= ~(G_WEIGHTPAINT + G_VERTEXPAINT + G_FACESELECT + G_PARTICLEEDIT);
 }
 
 /* make sure path names are correct for OS */

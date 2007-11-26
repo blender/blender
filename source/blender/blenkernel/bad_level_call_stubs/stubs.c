@@ -246,6 +246,8 @@ void fluidsimSettingsCopy(struct FluidsimSettings* sb) {}
 
 /*new render funcs */
 int     externtex(struct MTex *mtex, float *vec, float *tin, float *tr, float *tg, float *tb, float *ta) { return 0; }
+void texture_rgb_blend(float *in, float *tex, float *out, float fact, float facg, int blendtype) {}
+float texture_value_blend(float tex, float out, float fact, float facg, int blendtype, int flip) { return 0; }
 
 void RE_FreeRenderResult(struct RenderResult *rr) {}
 void RE_GetResultImage(struct Render *re, struct RenderResult *rr) {}
@@ -338,4 +340,9 @@ Sequence *get_forground_frame_seq(int frame){return 0;};
 /* modifier.c stub */
 void harmonic_coordinates_bind(struct MeshDeformModifierData *mmd,
 	float (*vertexcos)[3], int totvert, float cagemat[][4]) {}
+
+/* particle.c */
+void PE_free_particle_edit(struct ParticleSystem *psys) {}
+void PE_get_colors(char sel[4], char nosel[4]) {}
+void PE_recalc_world_cos(struct Object *ob, struct ParticleSystem *psys) {}
 

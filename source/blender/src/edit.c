@@ -52,12 +52,14 @@
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_curve_types.h"
+#include "DNA_group_types.h"
 #include "DNA_ipo_types.h"
 #include "DNA_lattice_types.h"
 #include "DNA_meta_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_space_types.h"
@@ -81,6 +83,7 @@
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_object.h"
+#include "BKE_particle.h"
 #include "BKE_utildefines.h"
 
 #ifdef WITH_VERSE
@@ -90,6 +93,7 @@
 #include "BIF_editmesh.h"
 #include "BIF_editview.h"
 #include "BIF_editarmature.h"
+#include "BIF_editparticle.h"
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 #include "BIF_interface.h"
@@ -425,6 +429,9 @@ int get_border(rcti *rect, short flag)
 			else if (FACESEL_PAINT_TEST) {
 				circle_selectCB(&obedit_selectionCB);
 			}
+			else if (G.f&G_PARTICLEEDIT) {
+				circle_selectCB(&PE_selectionCB);
+			}
 			return 0;
 			
 		case SPACE_IMAGE: // brush select in UV editor
@@ -477,7 +484,7 @@ void draw_sel_circle(short *mval, short *mvalo, float rad, float rado, int selec
 void circle_selectCB(select_CBfunc callback)
 {
 	static float rad= 40.0;
-	float rado;
+	float rado= rad;
 	int firsttime=1;
 	int escape= 0;
 	unsigned short event;
@@ -494,8 +501,6 @@ void circle_selectCB(select_CBfunc callback)
 	mval[0]= mvalo[0]; mval[1]= mvalo[1];
 
 	draw_sel_circle(mval, NULL, rad, 0.0, selecting); // draws frontbuffer, but sets backbuf again
-	
-	rado= rad;
 	
 	while(TRUE) {
 		
@@ -787,8 +792,47 @@ void countall()
 			ob= base->object;	/* warning, ob not is obact anymore */
 			
 			if(base->flag & SELECT) G.totobjsel++;
-			
-			if(ob->parent && (ob->parent->transflag & (OB_DUPLIVERTS|OB_DUPLIFACES))) {
+
+			if(ob->transflag & OB_DUPLIPARTS) {
+				ParticleSystem *psys;
+				ParticleSettings *part;
+				int step_nbr;
+
+				for(psys=ob->particlesystem.first; psys; psys=psys->next){
+					part=psys->part;
+					
+					//if(psys->flag&PSYS_BAKED && part->draw&PART_DRAW_KEYS)
+					//	step_nbr=part->keys_step;
+					//else
+						step_nbr=1;
+
+					if(part->draw_as==PART_DRAW_OB && part->dup_ob){
+						int tot=count_particles(psys);
+						count_object(part->dup_ob, 0, tot*step_nbr);
+					}
+					else if(part->draw_as==PART_DRAW_GR && part->dup_group){
+						GroupObject *go;
+						int tot, totgroup=0, cur=0;
+						
+						go= part->dup_group->gobject.first;
+						while(go){
+							go=go->next;
+							totgroup++;
+						}
+						go= part->dup_group->gobject.first;
+						while(go){
+							tot=count_particles_mod(psys,totgroup,cur);
+							count_object(go->ob, 0, tot*step_nbr);
+							cur++;
+							go=go->next;
+						}
+					}
+				}
+				
+				count_object(ob, base->flag & SELECT, 1);
+				G.totobj++;
+			}
+			else if(ob->parent && (ob->parent->transflag & (OB_DUPLIVERTS|OB_DUPLIFACES))) {
 				int tot= count_duplilist(ob->parent);
 				G.totobj+=tot;
 				count_object(ob, base->flag & SELECT, tot);
@@ -1818,6 +1862,9 @@ void delete_context_selected(void)
 		else if(G.obedit->type==OB_MBALL) delete_mball();
 		else if (G.obedit->type==OB_ARMATURE) delete_armature();
 	}
+	else if(G.f & G_PARTICLEEDIT){
+		PE_delete_particle();
+	}
 	else delete_obj(0);
 }
 
@@ -1829,9 +1876,9 @@ void duplicate_context_selected(void)
 		else if(G.obedit->type==OB_MBALL) adduplicate_mball();
 		else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) adduplicate_nurb();
 	}
-	else {
+	else if(G.f & G_PARTICLEEDIT);
+	else
 		adduplicate(0, U.dupflag);
-	}
 }
 
 void toggle_shading(void) 

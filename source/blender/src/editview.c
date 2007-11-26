@@ -73,6 +73,7 @@
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_object.h" /* fly mode where_is_object to get camera location */
+#include "BKE_particle.h"
 #include "BKE_utildefines.h"
 #include "BKE_customdata.h"
 
@@ -80,6 +81,7 @@
 #include "BIF_butspace.h"
 #include "BIF_editaction.h"
 #include "BIF_editarmature.h"
+#include "BIF_editparticle.h"
 #include "BIF_editgroup.h"
 #include "BIF_editmesh.h"
 #include "BIF_editoops.h"
@@ -248,7 +250,7 @@ static int edge_inside_rect(rcti *rect, short x1, short y1, short x2, short y2)
 #define MOVES_GESTURE 50
 #define MOVES_LASSO 500
 
-static int lasso_inside(short mcords[][2], short moves, short sx, short sy)
+int lasso_inside(short mcords[][2], short moves, short sx, short sy)
 {
 	/* we do the angle rule, define that all added angles should be about zero or 2*PI */
 	float angletot=0.0, len, dot, ang, cross, fp1[2], fp2[2];
@@ -641,6 +643,8 @@ static void do_lasso_select(short mcords[][2], short moves, short select)
 			do_lasso_select_facemode(mcords, moves, select);
 		else if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT))
 			;
+		else if(G.f & G_PARTICLEEDIT)
+			PE_do_lasso_select(mcords, moves, select);
 		else  
 			do_lasso_select_objects(mcords, moves, select);
 	}
@@ -1161,18 +1165,8 @@ void set_active_base(Base *base)
 	Base *tbase;
 	
 	/* activating a non-mesh, should end a couple of modes... */
-	if(base) {
-		if(base->object->type!=OB_MESH) {
-			if(G.f & G_SCULPTMODE)
-				set_sculptmode(); /* toggle */
-			if(G.f & G_WEIGHTPAINT)
-				set_wpaint();	/* toggle */
-			if(G.f & G_VERTEXPAINT)
-				set_vpaint();	/* toggle */
-			if(G.f & G_TEXTUREPAINT) 
-				set_texturepaint(); /* Switch off tex paint */
-		}
-	}
+	if(base && base->object->type!=OB_MESH)
+		exit_paint_modes();
 	
 	/* sets scene->basact */
 	BASACT= base;
@@ -1743,6 +1737,10 @@ void borderselect(void)
 
 	if(G.obedit==NULL && (FACESEL_PAINT_TEST)) {
 		face_borderselect();
+		return;
+	}
+	else if(G.obedit==NULL && (G.f & G_PARTICLEEDIT)) {
+		PE_borderselect();
 		return;
 	}
 

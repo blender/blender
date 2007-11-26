@@ -308,11 +308,28 @@ typedef struct TimeMarker {
 	unsigned int flag;
 } TimeMarker;
 
-struct ImagePaintSettings {
+typedef struct ImagePaintSettings {
 	struct Brush *brush;
 	short flag, tool;
 	int pad3;
-};
+} ImagePaintSettings;
+
+typedef struct ParticleBrushData {
+	short size, strength;	/* commong settings */
+	short step, invert;		/* for specific brushes only */
+} ParticleBrushData;
+
+typedef struct ParticleEditSettings {
+	short flag;
+	short totrekey;
+	short totaddkey;
+	short brushtype;
+
+	ParticleBrushData brush[7]; /* 7 = PE_TOT_BRUSH */
+
+	float emitterdist;
+	int draw_timed;
+} ParticleEditSettings;
 
 typedef struct ToolSettings {
 	/* Subdivide Settings */
@@ -348,6 +365,9 @@ typedef struct ToolSettings {
 	
 	/* Image Paint (8 byte aligned please!) */
 	struct ImagePaintSettings imapaint;
+
+	/* Particle Editing */
+	struct ParticleEditSettings particle;
 	
 	/* Select Group Threshold */
 	float select_thresh;
@@ -606,6 +626,11 @@ typedef struct Scene {
 #define SCE_SELECT_EDGE		2
 #define SCE_SELECT_FACE		4
 
+/* sce->selectmode for particles */
+#define SCE_SELECT_PATH		1
+#define SCE_SELECT_POINT	2
+#define SCE_SELECT_END		4
+
 /* sce->recalc (now in use by previewrender) */
 #define SCE_PRV_CHANGED		1
 
@@ -657,6 +682,28 @@ typedef struct Scene {
 #define IMAGEPAINT_DRAWING				1
 #define IMAGEPAINT_DRAW_TOOL			2
 #define IMAGEPAINT_DRAW_TOOL_DRAWING	4
+
+/* toolsettings->particle flag */
+#define PE_KEEP_LENGTHS			1
+#define PE_LOCK_FIRST			2
+#define PE_DEFLECT_EMITTER		4
+#define PE_INTERPOLATE_ADDED	8
+#define PE_SHOW_CHILD			16
+#define PE_SHOW_TIME			32
+#define PE_X_MIRROR				64
+
+/* toolsetting->particle brushtype */
+#define PE_BRUSH_NONE		-1
+#define PE_BRUSH_COMB		0
+#define PE_BRUSH_CUT		1
+#define PE_BRUSH_LENGTH		2
+#define PE_BRUSH_PUFF		3
+#define PE_BRUSH_ADD		4
+#define PE_BRUSH_WEIGHT		5
+#define PE_BRUSH_SMOOTH		6
+
+/* this must equal ParticleEditSettings.brush array size */
+#define PE_TOT_BRUSH		7  
 
 /* toolsettings->retopo_mode */
 #define RETOPO 1

@@ -54,6 +54,7 @@ struct bConstraintChannel;
 struct PartDeflect;
 struct SoftBody;
 struct FluidsimSettings;
+struct ParticleSystem;
 struct DerivedMesh;
 
 typedef struct bDeformGroup {
@@ -181,6 +182,7 @@ typedef struct Object {
 	ListBase constraints;
 	ListBase nlastrips;
 	ListBase hooks;
+	ListBase particlesystem;	/* particle systems */
 	
 	struct PartDeflect *pd;		/* particle deflector/attractor/collision data */
 	struct SoftBody *soft;		/* if exists, saved in file */
@@ -195,7 +197,7 @@ typedef struct Object {
 	short recalco, pad4;		/* recalco for temp storage of ob->recalc, bad design warning */
 	
 	struct FluidsimSettings *fluidsimSettings; /* if fluidsim enabled, store additional settings */
-  
+
 	struct DerivedMesh *derivedDeform, *derivedFinal;
 	int lastDataMask;			/* the custom data layer mask that was last used to calculate derivedDeform and derivedFinal */
 	int pad;
@@ -266,7 +268,7 @@ extern Object workob;
 #define OB_OFFS_LOCAL		1
 #define OB_QUAT				2
 #define OB_NEG_SCALE		4
-#define OB_DUPLI			(8+16+256+512)
+#define OB_DUPLI			(8+16+256+512+2048)
 #define OB_DUPLIFRAMES		8
 #define OB_DUPLIVERTS		16
 #define OB_DUPLIROT			32
@@ -275,6 +277,7 @@ extern Object workob;
 #define OB_DUPLIGROUP		256
 #define OB_DUPLIFACES		512
 #define OB_DUPLIFACES_SCALE	1024
+#define OB_DUPLIPARTS		2048
 
 /* (short) ipoflag */
 #define OB_DRAWKEY			1

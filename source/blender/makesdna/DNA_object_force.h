@@ -41,19 +41,35 @@ typedef struct PartDeflect {
 	short deflect;		/* Deflection flag - does mesh deflect particles*/
 	short forcefield;	/* Force field type, do the vertices attract / repel particles ? */
 	short flag;			/* general settings flag */
-	short pad;
+	short falloff;		/* fall-off type*/
 	
 	float pdef_damp;	/* Damping factor for particle deflection       */
 	float pdef_rdamp;	/* Random element of damping for deflection     */
 	float pdef_perm;	/* Chance of particle passing through mesh      */
+	float pdef_frict;	/* Friction factor for particle deflection		*/
+	float pdef_rfrict;	/* Random element of friction for deflection	*/
 
 	float f_strength;	/* The strength of the force (+ or - )       */
 	float f_power;		/* The power law - real gravitation is 2 (square)  */
+	float f_dist;
+	float f_damp;		/* The dampening factor, currently only for harmonic force	*/
 	float maxdist;		/* if indicated, use this maximum */
+	float mindist;		/* if indicated, use this minimum */
+	float maxrad;		/* radial versions of above */
+	float minrad;
+	float f_power_r;	/* radial fall-off power*/
 	
 	float pdef_sbdamp;	/* Damping factor for softbody deflection       */
 	float pdef_sbift;	/* inner face thickness for softbody deflection */
 	float pdef_sboft;	/* outer face thickness for softbody deflection */
+
+	/* variables for guide curve */
+	float clump_fac, clump_pow;
+	float kink_freq, kink_shape, kink_amp, free_end;
+
+	float tex_nabla;
+	short tex_mode, kink, kink_axis, rt2;
+	struct Tex *tex;	/* Texture of the texture effector */
 } PartDeflect;
 
 
@@ -62,6 +78,8 @@ typedef struct SBVertex {
 } SBVertex;
 
 typedef struct SoftBody {
+	struct ParticleSystem *particles;	/* particlesystem softbody */
+
 	/* dynamic data */
 	int totpoint, totspring;
 	struct BodyPoint *bpoint;		/* not saved in file */
@@ -96,8 +114,10 @@ typedef struct SoftBody {
 	int interval;
 	short local, solverflags;		/* local==1: use local coords for baking */
 	
+	/* -- these must be kept for backwards compatibility -- */
 	SBVertex **keys;			/* array of size totpointkey */
 	int totpointkey, totkey;	/* if totpointkey != totpoint or totkey!- (efra-sfra)/interval -> free keys */
+	/* ---------------------------------------------------- */
 	float secondspring;
 
 	/* self collision*/
@@ -122,11 +142,36 @@ typedef struct SoftBody {
 #define PFIELD_MAGNET	3
 #define PFIELD_WIND		4
 #define PFIELD_GUIDE	5
+#define PFIELD_TEXTURE	6
+#define PFIELD_HARMONIC	7
+#define PFIELD_NUCLEAR	8
+#define PFIELD_MDIPOLE	9
+
 
 /* pd->flag: various settings */
 #define PFIELD_USEMAX			1
 #define PDEFLE_DEFORM			2
 #define PFIELD_GUIDE_PATH_ADD	4
+#define PFIELD_PLANAR			8
+#define PDEFLE_KILL_PART		16
+#define PFIELD_POSZ				32
+#define PFIELD_TEX_OBJECT		64
+#define PFIELD_TEX_2D			128
+#define PFIELD_USEMIN			256
+#define PFIELD_USEMAXR			512
+#define PFIELD_USEMINR			1024
+
+/* pd->falloff */
+#define PFIELD_FALL_SPHERE		0
+#define PFIELD_FALL_TUBE		1
+#define PFIELD_FALL_CONE		2
+//reserved for near future
+//#define PFIELD_FALL_INSIDE		3
+
+/* pd->tex_mode */
+#define PFIELD_TEX_RGB	0
+#define PFIELD_TEX_GRAD	1
+#define PFIELD_TEX_CURL	2
 
 /* ob->softflag */
 #define OB_SB_ENABLE	1
@@ -142,6 +187,7 @@ typedef struct SoftBody {
 #define OB_SB_FACECOLL  1024
 #define OB_SB_EDGECOLL  2048
 #define OB_SB_COLLFINAL 4096
+#define OB_SB_PROTECT_CACHE	8192
 
 /* sb->solverflags */
 #define SBSO_MONITOR    1 

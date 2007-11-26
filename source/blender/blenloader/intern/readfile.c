@@ -86,6 +86,7 @@
 #include "DNA_oops_types.h"
 #include "DNA_object_force.h"
 #include "DNA_packedFile_types.h"
+#include "DNA_particle_types.h"
 #include "DNA_property_types.h"
 #include "DNA_text_types.h"
 #include "DNA_view3d_types.h"
@@ -122,6 +123,7 @@
 #include "BKE_global.h" // for G
 #include "BKE_group.h"
 #include "BKE_image.h"
+#include "BKE_key.h" //void set_four_ipo
 #include "BKE_lattice.h"
 #include "BKE_library.h" // for wich_libbase
 #include "BKE_main.h" // for Main
@@ -129,6 +131,7 @@
 #include "BKE_modifier.h"
 #include "BKE_node.h" // for tree type defines
 #include "BKE_object.h"
+#include "BKE_particle.h"
 #include "BKE_property.h" // for get_property
 #include "BKE_sca.h" // for init_actuator
 #include "BKE_scene.h"
@@ -2451,6 +2454,79 @@ static void direct_link_material(FileData *fd, Material *ma)
 	ma->preview = direct_link_preview_image(fd, ma->preview);
 }
 
+/* ************ READ PARTICLE SETTINGS ***************** */
+
+static void lib_link_particlesettings(FileData *fd, Main *main)
+{
+	ParticleSettings *part;
+
+	part= main->particle.first;
+	while(part) {
+		if(part->id.flag & LIB_NEEDLINK) {
+			part->ipo= newlibadr_us(fd, part->id.lib, part->ipo);
+			part->dup_ob = newlibadr(fd, part->id.lib, part->dup_ob);
+			part->dup_group = newlibadr(fd, part->id.lib, part->dup_group);
+			part->eff_group = newlibadr(fd, part->id.lib, part->eff_group);
+			part->bb_ob = newlibadr(fd, part->id.lib, part->bb_ob);
+			part->id.flag -= LIB_NEEDLINK;
+		}
+		part= part->id.next;
+	}
+}
+
+static void direct_link_particlesettings(FileData *fd, ParticleSettings *part)
+{
+	part->pd= newdataadr(fd, part->pd);
+}
+
+static void lib_link_particlesystems(FileData *fd, ID *id, ListBase *particles)
+{
+	ParticleSystem *psys;
+	int a;
+
+	for(psys=particles->first; psys; psys=psys->next){
+		ParticleData *pa;
+		psys->part = newlibadr_us(fd, id->lib, psys->part);
+		psys->target_ob = newlibadr(fd, id->lib, psys->target_ob);
+		psys->keyed_ob = newlibadr(fd, id->lib, psys->keyed_ob);
+
+		for(a=0,pa=psys->particles; a<psys->totpart; a++,pa++){
+			pa->stick_ob=newlibadr(fd, id->lib, pa->stick_ob);
+		}
+	}
+}
+static void direct_link_particlesystems(FileData *fd, ListBase *particles)
+{
+	ParticleSystem *psys;
+	int a;
+
+	for(psys=particles->first; psys; psys=psys->next) {
+		psys->particles=newdataadr(fd,psys->particles);
+		if(psys->particles && psys->particles->hair){
+			ParticleData *pa = psys->particles;
+			for(a=0; a<psys->totpart; a++, pa++)
+				pa->hair=newdataadr(fd,pa->hair);
+		}
+		psys->child=newdataadr(fd,psys->child);
+		psys->effectors.first=psys->effectors.last=0;
+
+		psys->soft= newdataadr(fd, psys->soft);
+		if(psys->soft) {
+			SoftBody *sb = psys->soft;
+			sb->particles = psys;
+			sb->bpoint= NULL;	// init pointers so it gets rebuilt nicely
+			sb->bspring= NULL;
+			sb->scratch= NULL;
+		}
+
+		psys->edit = 0;
+		psys->pathcache = 0;
+		psys->childcache = 0;
+		psys->reactevents.first = psys->reactevents.last = 0;
+	}
+	return;
+}
+
 /* ************ READ MESH ***************** */
 
 static void lib_link_mtface(FileData *fd, Mesh *me, MTFace *mtface, int totface)
@@ -2830,8 +2906,14 @@ static void lib_link_object(FileData *fd, Main *main)
 			if(ob->fluidsimSettings) {
 				ob->fluidsimSettings->ipo = newlibadr_us(fd, ob->id.lib, ob->fluidsimSettings->ipo);
 			}
+			
+			/* texture field */
+			if(ob->pd)
+				if(ob->pd->tex)
+					ob->pd->tex=newlibadr_us(fd, ob->id.lib, ob->pd->tex);
 
 			lib_link_scriptlink(fd, &ob->id, &ob->scriptlink);
+			lib_link_particlesystems(fd, &ob->id, &ob->particlesystem);
 			lib_link_modifiers(fd, ob);
 		}
 		ob= ob->id.next;
@@ -2888,6 +2970,16 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 					SWITCH_INT(hmd->indexar[a]);
 				}
 			}
+		} else if (md->type==eModifierType_ParticleSystem) {
+			ParticleSystemModifierData *psmd = (ParticleSystemModifierData*) md;
+
+			psmd->dm=0;
+			psmd->psys=newdataadr(fd, psmd->psys);
+			psmd->flag|=eParticleSystemFlag_Loaded;
+		} else if (md->type==eModifierType_Explode) {
+			ExplodeModifierData *psmd = (ExplodeModifierData*) md;
+
+			psmd->facepa=0;
 		}
 		else if (md->type==eModifierType_MeshDeform) {
 			MeshDeformModifierData *mmd = (MeshDeformModifierData*) md;
@@ -3014,7 +3106,8 @@ static void direct_link_object(FileData *fd, Object *ob)
 		sb->bspring= NULL;
 		sb->scratch= NULL;
 
-		
+		/* although not used anymore */
+		/* still have to be loaded to be compatible with old files */
 		sb->keys= newdataadr(fd, sb->keys);
 		test_pointer_array(fd, (void **)&sb->keys);
 		if(sb->keys) {
@@ -3031,6 +3124,9 @@ static void direct_link_object(FileData *fd, Object *ob)
 		ob->fluidsimSettings->meshBB = NULL;
 		ob->fluidsimSettings->meshSurfNormals = NULL;
 	}
+
+	link_list(fd, &ob->particlesystem);
+	direct_link_particlesystems(fd,&ob->particlesystem);
 	
 	link_list(fd, &ob->prop);
 	prop= ob->prop.first;
@@ -3958,6 +4054,7 @@ static char *dataname(short id_code)
 		case ID_SO: return "Data from SO";
 		case ID_NT: return "Data from NT";
 		case ID_BR: return "Data from BR";
+		case ID_PA: return "Data from PA";
 	}
 	return "Data from Lib Block";
 	
@@ -4093,6 +4190,9 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 			break;
 		case ID_BR:
 			direct_link_brush(fd, (Brush*)id);
+			break;
+		case ID_PA:
+			direct_link_particlesettings(fd, (ParticleSettings*)id);
 			break;
 	}
 	
@@ -6845,10 +6945,228 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						con->headtail = 1.0f;
 				}
 			}
+
+			if(ob->soft && ob->soft->keys) {
+				SoftBody *sb = ob->soft;
+				int k;
+
+				for(k=0; k<sb->totkey; k++) {
+					if(sb->keys[k])
+						MEM_freeN(sb->keys[k]);
+				}
+
+				MEM_freeN(sb->keys);
+
+				sb->keys = NULL;
+				sb->totkey = 0;
+				ob->softflag &= ~OB_SB_BAKESET;
+			}
 		}
 	}
 
-	
+	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 7)) {
+		Object *ob;
+		bPoseChannel *pchan;
+		bConstraint *con;
+		bConstraintTarget *ct;
+		
+		for(ob = main->object.first; ob; ob= ob->id.next) {
+			if(ob->pose) {
+				for(pchan=ob->pose->chanbase.first; pchan; pchan=pchan->next) {
+					for(con=pchan->constraints.first; con; con=con->next) {
+						if(con->type==CONSTRAINT_TYPE_PYTHON) {
+							bPythonConstraint *data= (bPythonConstraint *)con->data;
+							if (data->tar) {
+								/* version patching needs to be done */
+								ct= MEM_callocN(sizeof(bConstraintTarget), "PyConTarget");
+								
+								ct->tar = data->tar;
+								strcpy(ct->subtarget, data->subtarget);
+								ct->space = con->tarspace;
+								
+								BLI_addtail(&data->targets, ct);
+								data->tarnum++;
+								
+								/* clear old targets to avoid problems */
+								data->tar = NULL;
+								strcpy(data->subtarget, "");
+							}
+						}
+					}
+				}
+			}
+			
+			for(con=ob->constraints.first; con; con=con->next) {
+				if(con->type==CONSTRAINT_TYPE_PYTHON) {
+					bPythonConstraint *data= (bPythonConstraint *)con->data;
+					if (data->tar) {
+						/* version patching needs to be done */
+						ct= MEM_callocN(sizeof(bConstraintTarget), "PyConTarget");
+						
+						ct->tar = data->tar;
+						strcpy(ct->subtarget, data->subtarget);
+						ct->space = con->tarspace;
+						
+						BLI_addtail(&data->targets, ct);
+						data->tarnum++;
+						
+						/* clear old targets to avoid problems */
+						data->tar = NULL;
+						strcpy(data->subtarget, "");
+					}
+				}
+			}
+		}
+	}
+
+	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 8)) {
+		Scene *sce;
+		Object *ob;
+		PartEff *paf=0;
+
+		for(ob = main->object.first; ob; ob= ob->id.next) {
+			if(ob->soft && ob->soft->keys) {
+				SoftBody *sb = ob->soft;
+				int k;
+
+				for(k=0; k<sb->totkey; k++) {
+					if(sb->keys[k])
+						MEM_freeN(sb->keys[k]);
+				}
+
+				MEM_freeN(sb->keys);
+
+				sb->keys = NULL;
+				sb->totkey = 0;
+				ob->softflag &= ~OB_SB_BAKESET;
+			}
+
+			/* convert old particles to new system */
+			if((paf = give_parteff(ob))) {
+				ParticleSystem *psys;
+				ModifierData *md;
+				ParticleSystemModifierData *psmd;
+				ParticleSettings *part;
+
+				/* create new particle system */
+				psys = MEM_callocN(sizeof(ParticleSystem), "particle_system");
+
+				part = psys->part = psys_new_settings("PSys", main);
+				
+				/* needed for proper libdata lookup */
+				oldnewmap_insert(fd->libmap, psys->part, psys->part, 0);
+
+				part->id.us--;
+				
+				psys->totpart=0;
+				psys->flag=PSYS_ENABLED|PSYS_CURRENT;
+
+				BLI_addtail(&ob->particlesystem, psys);
+
+				md= modifier_new(eModifierType_ParticleSystem);
+				sprintf(md->name, "ParticleSystem %i", BLI_countlist(&ob->particlesystem));
+				psmd= (ParticleSystemModifierData*) md;
+				psmd->psys=psys;
+				BLI_addtail(&ob->modifiers, md);
+
+				/* convert settings from old particle system */
+				/* general settings */
+				part->totpart = paf->totpart;
+				part->sta = paf->sta;
+				part->end = paf->end;
+				part->lifetime = paf->lifetime;
+				part->randlife = paf->randlife;
+				psys->seed = paf->seed;
+				part->disp = paf->disp;
+				part->omat = paf->mat[0];
+				part->hair_step = paf->totkey;
+
+				part->eff_group = paf->group;
+
+				/* physics */
+				part->normfac = paf->normfac * 25.0f;
+				part->obfac = paf->obfac;
+				part->randfac = paf->randfac * 25.0f;
+				part->dampfac = paf->damp;
+				VECCOPY(part->acc, paf->force);
+
+				/* flags */
+				if(paf->stype & PAF_VECT) {
+					if(paf->flag & PAF_STATIC) {
+						/* new hair lifetime is always 100.0f */
+						float fac = paf->lifetime / 100.0f;
+
+						part->draw_as = PART_DRAW_PATH;
+						part->type = PART_HAIR;
+						psys->recalc |= PSYS_RECALC_HAIR;
+
+						part->normfac *= fac;
+						part->randfac *= fac;
+					}
+					else {
+						part->draw_as = PART_DRAW_LINE;
+						part->draw |= PART_DRAW_VEL_LENGTH;
+						part->draw_line[1] = 0.04f;
+					}
+				}
+
+				part->rotmode = PART_ROT_VEL;
+				
+				part->flag |= (paf->flag & PAF_BSPLINE) ? PART_HAIR_BSPLINE : 0;
+				part->flag |= (paf->flag & PAF_TRAND) ? PART_TRAND : 0;
+				part->flag |= (paf->flag & PAF_EDISTR) ? PART_EDISTR : 0;
+				part->flag |= (paf->flag & PAF_UNBORN) ? PART_UNBORN : 0;
+				part->flag |= (paf->flag & PAF_DIED) ? PART_DIED : 0;
+				part->from |= (paf->flag & PAF_FACE) ? PART_FROM_FACE : 0;
+				part->draw |= (paf->flag & PAF_SHOWE) ? PART_DRAW_EMITTER : 0;
+
+				psys->vgroup[PSYS_VG_DENSITY] = paf->vertgroup;
+				psys->vgroup[PSYS_VG_VEL] = paf->vertgroup_v;
+				psys->vgroup[PSYS_VG_LENGTH] = paf->vertgroup_v;
+
+				/* dupliobjects */
+				if(ob->transflag & OB_DUPLIVERTS) {
+					Object *dup = main->object.first;
+
+					for(; dup; dup= dup->id.next) {
+						if(ob == newlibadr(fd, lib, dup->parent)) {
+							part->dup_ob = dup;
+							ob->transflag |= OB_DUPLIPARTS;
+							ob->transflag &= ~OB_DUPLIVERTS;
+
+							part->draw_as = PART_DRAW_OB;
+						}
+					}
+				}
+
+				free_effects(&ob->effect);
+
+				printf("Old particle system converted to new system.\n");
+			}
+		}
+
+
+		for(sce= main->scene.first; sce; sce=sce->id.next) {
+			ParticleEditSettings *pset= &sce->toolsettings->particle;
+			int a;
+
+			if(pset->brush[0].size == 0) {
+				pset->flag= PE_KEEP_LENGTHS|PE_LOCK_FIRST|PE_DEFLECT_EMITTER;
+				pset->emitterdist= 0.25f;
+				pset->totrekey= 5;
+				pset->totaddkey= 5;
+				pset->brushtype= PE_BRUSH_NONE;
+
+				for(a=0; a<PE_TOT_BRUSH; a++) {
+					pset->brush[a].strength= 50;
+					pset->brush[a].size= 50;
+					pset->brush[a].step= 10;
+				}
+
+				pset->brush[PE_BRUSH_CUT].strength= 100;
+			}
+		}
+	}
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
 
@@ -6882,6 +7200,7 @@ static void lib_link_all(FileData *fd, Main *main)
 	lib_link_screen_sequence_ipos(main);
 	lib_link_nodetree(fd, main);	/* has to be done after scene/materials, this will verify group nodes */
 	lib_link_brush(fd, main);
+	lib_link_particlesettings(fd, main);
 
 	lib_link_mesh(fd, main);		/* as last: tpage images with users at zero */
 
@@ -7433,6 +7752,7 @@ static void expand_scriptlink(FileData *fd, Main *mainvar, ScriptLink *slink)
 static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 {
 	ModifierData *md;
+	ParticleSystem *psys;
 	bSensor *sens;
 	bController *cont;
 	bActuator *act;
@@ -7474,6 +7794,9 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 		expand_doit(fd, mainvar, ob->proxy);
 	if(ob->proxy_group)
 		expand_doit(fd, mainvar, ob->proxy_group);
+
+	for(psys=ob->particlesystem.first; psys; psys=psys->next)
+		expand_doit(fd, mainvar, psys->part);
 
 	sens= ob->sensors.first;
 	while(sens) {

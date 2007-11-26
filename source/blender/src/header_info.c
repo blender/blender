@@ -486,9 +486,7 @@ void do_info_buttons(unsigned short event)
 			
 			/* exit modes... could become single call once */
 			exit_editmode(EM_FREEDATA|EM_WAITCURSOR);
-			if(G.f & G_VERTEXPAINT) set_vpaint(); /* Switch off vertex paint */
-			if(G.f & G_TEXTUREPAINT) set_texturepaint(); /* Switch off tex paint */
-			if(G.f & G_WEIGHTPAINT) set_wpaint();		/* Switch off weight paint */
+			exit_paint_modes();
 			
 			/* check all sets */
 			sce1= G.main->scene.first;

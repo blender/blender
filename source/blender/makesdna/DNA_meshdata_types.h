@@ -99,6 +99,9 @@ typedef struct MStringProperty{
 	char	s[256];
 } MStringProperty;
 
+typedef struct OrigSpaceFace {
+	float uv[4][2];
+} OrigSpaceFace;
 
 /* Multiresolution modeling */
 typedef struct MultiresCol {

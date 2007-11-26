@@ -69,8 +69,8 @@ typedef short IPO_Channel;
 
 /* ******************** */
 
-#define OB_TOTIPO	29
-#define OB_TOTNAM	29
+#define OB_TOTIPO	30
+#define OB_TOTNAM	30
 
 #define OB_LOC_X	1
 #define OB_LOC_Y	2
@@ -107,6 +107,7 @@ typedef short IPO_Channel;
 #define OB_PD_SDAMP	27
 #define OB_PD_RDAMP	28
 #define OB_PD_PERM	29
+#define OB_PD_FMAXD	30
 
 /* exception: driver channel, for bone driver only */
 #define OB_ROT_DIFF	100
@@ -353,6 +354,35 @@ typedef short IPO_Channel;
 #define FLUIDSIM_VEL_Z  8
 
 #define FLUIDSIM_ACTIVE 9
+
+/* ******************** */
+/* particle ipos */
+#define PART_TOTIPO		19
+#define PART_TOTNAM		19
+
+#define PART_EMIT_FREQ	1
+#define PART_EMIT_LIFE	2
+#define PART_EMIT_VEL	3
+#define PART_EMIT_AVE	4
+#define PART_EMIT_SIZE	5
+
+#define PART_AVE		6
+#define PART_SIZE		7
+#define PART_DRAG		8
+#define PART_BROWN		9
+#define PART_DAMP		10
+#define PART_LENGTH		11
+#define PART_CLUMP		12
+
+#define PART_GRAV_X		13
+#define PART_GRAV_Y		14
+#define PART_GRAV_Z		15
+
+#define PART_KINK_AMP	16
+#define PART_KINK_FREQ	17
+#define PART_KINK_SHAPE	18
+
+#define PART_BB_TILT	19
 
 
 /* these are IpoCurve specific */

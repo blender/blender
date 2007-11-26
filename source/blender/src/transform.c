@@ -75,6 +75,7 @@
 #include "BIF_toolbox.h"			/* notice				*/
 #include "BIF_editmesh.h"
 #include "BIF_editsima.h"
+#include "BIF_editparticle.h"
 #include "BIF_drawimage.h"		/* uvco_to_areaco_noclip */
 #include "BIF_editaction.h" 
 
@@ -82,6 +83,7 @@
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 #include "BKE_bad_level_calls.h"/* popmenu and error	*/
+#include "BKE_particle.h"
 
 #include "BSE_drawipo.h"
 #include "BSE_editnla_types.h"	/* for NLAWIDTH */
@@ -583,6 +585,8 @@ static char *transform_to_undostr(TransInfo *t)
 			return "Scale Anim. Data";
 		case TFM_TIME_SLIDE:
 			return "Time Slide";
+		case TFM_BAKE_TIME:
+			return "Key Time";
 	}
 	return "Transform";
 }
@@ -1009,6 +1013,9 @@ void initTransform(int mode, int context) {
 		/* now that transdata has been made, do like for TFM_TIME_TRANSLATE */
 		initTimeTranslate(&Trans);
 		break;
+	case TFM_BAKE_TIME:
+		initBakeTime(&Trans);
+		break;
 	}
 }
 
@@ -1401,6 +1408,9 @@ int Warp(TransInfo *t, short mval[2])
 		float loc[3];
 		if (td->flag & TD_NOACTION)
 			break;
+
+		if (td->flag & TD_SKIP)
+			continue;
 		
 		/* translate point to center, rotate in such a way that outline==distance */
 		VECCOPY(vec, td->iloc);
@@ -1526,6 +1536,9 @@ int Shear(TransInfo *t, short mval[2])
 	for(i = 0 ; i < t->total; i++, td++) {
 		if (td->flag & TD_NOACTION)
 			break;
+
+		if (td->flag & TD_SKIP)
+			continue;
 
 		if (G.obedit) {
 			float mat3[3][3];
@@ -1805,6 +1818,9 @@ int Resize(TransInfo *t, short mval[2])
 	for(i = 0, td=t->data; i < t->total; i++, td++) {
 		if (td->flag & TD_NOACTION)
 			break;
+
+		if (td->flag & TD_SKIP)
+			continue;
 		
 		ElementResize(t, td, mat);
 	}
@@ -1896,6 +1912,9 @@ int ToSphere(TransInfo *t, short mval[2])
 		if (td->flag & TD_NOACTION)
 			break;
 
+		if (td->flag & TD_SKIP)
+			continue;
+
 		VecSubf(vec, td->iloc, t->center);
 
 		radius = Normalize(vec);
@@ -1949,10 +1968,20 @@ static void ElementRotation(TransInfo *t, TransData *td, float mat[3][3]) {
 		
 		VecAddf(td->loc, vec, t->center);
 
+		VecSubf(vec,td->loc,td->iloc);
+		protectedTransBits(td->protectflag, vec);
+		VecAddf(td->loc, td->iloc, vec);
+
 		if(td->flag & TD_USEQUAT) {
 			Mat3MulSerie(fmat, td->mtx, mat, td->smtx, 0, 0, 0, 0, 0);
 			Mat3ToQuat(fmat, quat);	// Actual transform
-			QuatMul(td->ext->quat, quat, td->ext->iquat);
+
+			if(td->ext->quat){
+				QuatMul(td->ext->quat, quat, td->ext->iquat);
+
+				/* is there a reason not to have this here? -jahka */
+				protectedQuaternionBits(td->protectflag, td->ext->quat, td->ext->iquat);
+			}
 		}
 	}
 	/**
@@ -2111,6 +2140,9 @@ static void applyRotation(TransInfo *t, float angle, float axis[3])
 
 		if (td->flag & TD_NOACTION)
 			break;
+
+		if (td->flag & TD_SKIP)
+			continue;
 		
 		/* local constraint shouldn't alter center */
 		if (t->around == V3D_LOCAL) {
@@ -2271,6 +2303,9 @@ static void applyTrackball(TransInfo *t, float axis1[3], float axis2[3], float a
 	for(i = 0 ; i < t->total; i++, td++) {
 		if (td->flag & TD_NOACTION)
 			break;
+
+		if (td->flag & TD_SKIP)
+			continue;
 		
 		VECCOPY(center, t->center);
 		
@@ -2450,6 +2485,9 @@ static void applyTranslation(TransInfo *t, float vec[3]) {
 		if (td->flag & TD_NOACTION)
 			break;
 
+		if (td->flag & TD_SKIP)
+			continue;
+
 		if (t->con.applyVec) {
 			float pvec[3];
 			t->con.applyVec(t, td, vec, tvec, pvec);
@@ -2577,6 +2615,9 @@ int ShrinkFatten(TransInfo *t, short mval[2])
 		if (td->flag & TD_NOACTION)
 			break;
 
+		if (td->flag & TD_SKIP)
+			continue;
+
 		VECCOPY(vec, td->axismtx[2]);
 		VecMulf(vec, distance);
 		VecMulf(vec, td->factor);
@@ -2668,6 +2709,9 @@ int Tilt(TransInfo *t, short mval[2])
 		if (td->flag & TD_NOACTION)
 			break;
 
+		if (td->flag & TD_SKIP)
+			continue;
+
 		if (td->val) {
 			*td->val = td->ival + final * td->factor;
 		}
@@ -2729,6 +2773,9 @@ int CurveShrinkFatten(TransInfo *t, short mval[2])
 	for(i = 0 ; i < t->total; i++, td++) {
 		if (td->flag & TD_NOACTION)
 			break;
+
+		if (td->flag & TD_SKIP)
+			continue;
 		
 		if(td->val) {
 			//*td->val= ratio;
@@ -2817,6 +2864,9 @@ int PushPull(TransInfo *t, short mval[2])
 	for(i = 0 ; i < t->total; i++, td++) {
 		if (td->flag & TD_NOACTION)
 			break;
+
+		if (td->flag & TD_SKIP)
+			continue;
 
 		VecSubf(vec, t->center, td->center);
 		if (t->con.applyRot && t->con.mode & CON_APPLY) {
@@ -2925,6 +2975,9 @@ int Crease(TransInfo *t, short mval[2])
 	for(i = 0 ; i < t->total; i++, td++) {
 		if (td->flag & TD_NOACTION)
 			break;
+
+		if (td->flag & TD_SKIP)
+			continue;
 
 		if (td->val) {
 			*td->val = td->ival + crease * td->factor;
@@ -3069,6 +3122,9 @@ int BoneSize(TransInfo *t, short mval[2])
 	for(i = 0 ; i < t->total; i++, td++) {
 		if (td->flag & TD_NOACTION)
 			break;
+
+		if (td->flag & TD_SKIP)
+			continue;
 		
 		ElementBoneSize(t, td, mat);
 	}
@@ -3151,6 +3207,9 @@ int BoneEnvelope(TransInfo *t, short mval[2])
 	for(i = 0 ; i < t->total; i++, td++) {
 		if (td->flag & TD_NOACTION)
 			break;
+
+		if (td->flag & TD_SKIP)
+			continue;
 		
 		if (td->val) {
 			/* if the old/original value was 0.0f, then just use ratio */
@@ -3248,6 +3307,9 @@ int BoneRoll(TransInfo *t, short mval[2])
 	for (i = 0; i < t->total; i++, td++) {  
 		if (td->flag & TD_NOACTION)
 			break;
+
+		if (td->flag & TD_SKIP)
+			continue;
 		
 		*(td->val) = td->ival - final;
 	}
@@ -3262,6 +3324,85 @@ int BoneRoll(TransInfo *t, short mval[2])
 
 	return 1;
 }
+
+/* ************************** BAKE TIME ******************* */
+
+void initBakeTime(TransInfo *t) 
+{
+	t->idx_max = 0;
+	t->num.idx_max = 0;
+	t->snap[0] = 0.0f;
+	t->snap[1] = 1.0f;
+	t->snap[2] = t->snap[1] * 0.1f;
+	t->transform = BakeTime;
+	t->fac = 0.1f;
+}
+
+int BakeTime(TransInfo *t, short mval[2]) 
+{
+	TransData *td = t->data;
+	float time;
+	int i;
+	char str[50];
+
+		
+	if(t->flag & T_SHIFT_MOD) {
+		/* calculate ratio for shiftkey pos, and for total, and blend these for precision */
+		time= (float)(t->center2d[0] - t->shiftmval[0])*t->fac;
+		time+= 0.1f*((float)(t->center2d[0]*t->fac - mval[0]) -time);
+	}
+	else {
+		time = (float)(t->center2d[0] - mval[0])*t->fac;
+	}
+
+	snapGrid(t, &time);
+
+	applyNumInput(&t->num, &time);
+
+	/* header print for NumInput */
+	if (hasNumInput(&t->num)) {
+		char c[20];
+
+		outputNumInput(&(t->num), c);
+
+		if (time >= 0.0f)
+			sprintf(str, "Time: +%s %s", c, t->proptext);
+		else
+			sprintf(str, "Time: %s %s", c, t->proptext);
+	}
+	else {
+		/* default header print */
+		if (time >= 0.0f)
+			sprintf(str, "Time: +%.3f %s", time, t->proptext);
+		else
+			sprintf(str, "Time: %.3f %s", time, t->proptext);
+	}
+	
+	for(i = 0 ; i < t->total; i++, td++) {
+		if (td->flag & TD_NOACTION)
+			break;
+
+		if (td->flag & TD_SKIP)
+			continue;
+
+		if (td->val) {
+			*td->val = td->ival + time * td->factor;
+			if (td->ext->size && *td->val < *td->ext->size) *td->val = *td->ext->size;
+			if (td->ext->quat && *td->val > *td->ext->quat) *td->val = *td->ext->quat;
+		}
+	}
+
+	recalcData(t);
+
+	headerprint(str);
+
+	viewRedrawForce(t);
+
+	helpline (t, t->center);
+
+	return 1;
+}
+
 
 /* ************************** MIRROR *************************** */
 
@@ -3345,6 +3486,9 @@ void Mirror(short mode)
 	for(i = 0 ; i < Trans.total; i++, td++) {
 		if (td->flag & TD_NOACTION)
 			break;
+
+		if (td->flag & TD_SKIP)
+			continue;
 		
 		ElementResize(&Trans, td, mat);
 	}

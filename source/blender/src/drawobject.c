@@ -61,6 +61,7 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 #include "DNA_object_force.h"
+#include "DNA_particle_types.h"
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
@@ -74,6 +75,7 @@
 #include "BLI_arithb.h"
 #include "BLI_editVert.h"
 #include "BLI_edgehash.h"
+#include "BLI_rand.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_curve.h"
@@ -93,6 +95,8 @@
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_anim.h"			//for the where_on_path function
+#include "BKE_particle.h"
+#include "BKE_utildefines.h"
 #ifdef WITH_VERSE
 #include "BKE_verse.h"
 #endif
@@ -100,6 +104,7 @@
 #include "BIF_editarmature.h"
 #include "BIF_editdeform.h"
 #include "BIF_editmesh.h"
+#include "BIF_editparticle.h"
 #include "BIF_glutil.h"
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
@@ -108,6 +113,7 @@
 #include "BIF_retopo.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
+#include "BIF_toolbox.h"
 
 #include "BDR_drawmesh.h"
 #include "BDR_drawobject.h"
@@ -2954,6 +2960,743 @@ static void draw_static_particle_system(Object *ob, PartEff *paf, int dt)
 	
 }
 
+/* unified drawing of all new particle systems draw types except dupli ob & group	*/
+/* mostly tries to use vertex arrays for speed										*/
+
+/* 1. check that everything is ok & updated */
+/* 2. start initialising things				*/
+/* 3. initialize according to draw type		*/
+/* 4. allocate drawing data arrays			*/
+/* 5. start filling the arrays				*/
+/* 6. draw the arrays						*/
+/* 7. clean up								*/
+static void draw_new_particle_system(Base *base, ParticleSystem *psys)
+{
+	View3D *v3d= G.vd;
+	Object *ob=base->object;
+	ParticleSystemModifierData *psmd;
+	ParticleSettings *part;
+	ParticleData *pars, *pa;
+	ParticleKey state, *states=0;
+	ParticleCacheKey *cache=0;
+	Material *ma;
+	Object *bb_ob=0;
+	float vel[3], vec[3], vec2[3], imat[4][4], onevec[3]={0.0f,0.0f,0.0f}, bb_center[3];
+	float timestep, pixsize=1.0, pa_size, pa_time, r_tilt;
+	float cfra=bsystem_time(ob,(float)CFRA,0.0);
+	float *vdata=0, *vedata=0, *cdata=0, *ndata=0, *vd=0, *ved=0, *cd=0, *nd=0, xvec[3], yvec[3], zvec[3];
+	int a, k, k_max=0, totpart, totpoint=0, draw_as, path_nbr=0;
+	int path_possible=0, keys_possible=0, draw_keys=0, totchild=0;
+	int select=ob->flag&SELECT;
+	GLint polygonmode[2];
+	char val[32];
+
+/* 1. */
+	if(psys==0)
+		return;
+
+	part=psys->part;
+	pars=psys->particles;
+
+	if(part==0 || (psys->flag & PSYS_ENABLED)==0)
+		return;
+
+	if(pars==0) return;
+
+	if(!G.obedit && psys_in_edit_mode(psys)
+		&& psys->flag & PSYS_HAIR_DONE && part->draw_as==PART_DRAW_PATH)
+		return;
+		
+	if(part->draw_as==PART_DRAW_NOT) return;
+
+/* 2. */
+	if(part->phystype==PART_PHYS_KEYED){
+		if(psys->flag & PSYS_FIRST_KEYED){
+			if(psys->flag&PSYS_KEYED){
+				select=psys_count_keyed_targets(ob,psys);
+				if(psys->totkeyed==0)
+					return;
+			}
+		}
+		else
+			return;
+	}
+
+	if(select){
+		select=0;
+		if(psys_get_current(ob)==psys)
+			select=1;
+	}
+
+	psys->flag|=PSYS_DRAWING;
+
+	if(part->flag&PART_CHILD_RENDER || !psys->childcache)
+		totchild=0;
+	else
+		totchild=psys->totchild*part->disp/100;
+	
+	ma= give_current_material(ob,part->omat);
+
+	if(select)
+		cpack(0xFFFFFF);
+	else if(part->draw&PART_DRAW_MAT_COL)
+		glColor3f(ma->r,ma->g,ma->b);
+	else
+		cpack(0);
+
+	psmd= psys_get_modifier(ob,psys);
+
+	timestep= psys_get_timestep(part);
+
+	myloadmatrix(G.vd->viewmat);
+
+	if( (base->flag & OB_FROMDUPLI) && (ob->flag & OB_FROMGROUP) ) {
+		float mat[4][4];
+		Mat4MulMat4(mat, psys->imat, ob->obmat);
+		mymultmatrix(mat);
+	}
+
+	totpart=psys->totpart;
+	draw_as=part->draw_as;
+
+	if(part->flag&PART_ABS_TIME && part->ipo){
+		calc_ipo(part->ipo, cfra);
+		execute_ipo((ID *)part, part->ipo);
+	}
+
+	if(part->flag&PART_GLOB_TIME)
+		cfra=bsystem_time(0,(float)CFRA,0.0);
+
+	if(psys->pathcache){
+		path_possible=1;
+		keys_possible=1;
+	}
+	if(draw_as==PART_DRAW_PATH && path_possible==0)
+		draw_as=PART_DRAW_DOT;
+
+	if(draw_as!=PART_DRAW_PATH && keys_possible && part->draw&PART_DRAW_KEYS){
+		path_nbr=part->keys_step;
+		draw_keys=1;
+	}
+
+/* 3. */
+	switch(draw_as){
+		case PART_DRAW_DOT:
+			if(part->draw_size)
+				glPointSize(part->draw_size);
+			else
+				glPointSize(2.0); /* default dot size */
+			break;
+		case PART_DRAW_CIRC:
+			/* calculate view aligned matrix: */
+			Mat4CpyMat4(imat, G.vd->viewinv);
+			Normalize(imat[0]);
+			Normalize(imat[1]);
+			/* no break! */
+		case PART_DRAW_CROSS:
+		case PART_DRAW_AXIS:
+			/* lets calculate the scale: */
+			pixsize= v3d->persmat[0][3]*ob->obmat[3][0]+ v3d->persmat[1][3]*ob->obmat[3][1]+ v3d->persmat[2][3]*ob->obmat[3][2]+ v3d->persmat[3][3];
+			pixsize*= v3d->pixsize;
+			if(part->draw_size==0.0)
+				pixsize*=2.0;
+			else
+				pixsize*=part->draw_size;
+			break;
+		case PART_DRAW_OB:
+			if(part->dup_ob==0)
+				draw_as=PART_DRAW_DOT;
+			else
+				draw_as=0;
+			break;
+		case PART_DRAW_GR:
+			if(part->dup_group==0)
+				draw_as=PART_DRAW_DOT;
+			else
+				draw_as=0;
+			break;
+		case PART_DRAW_BB:
+			if(G.vd->camera==0 && part->bb_ob==0){
+				error("Billboards need an active camera or a target object!");
+
+				draw_as=part->draw_as=PART_DRAW_DOT;
+
+				if(part->draw_size)
+					glPointSize(part->draw_size);
+				else
+					glPointSize(2.0); /* default dot size */
+			}
+			else if(part->bb_ob)
+				bb_ob=part->bb_ob;
+			else
+				bb_ob=G.vd->camera;
+
+			if(part->bb_align<PART_BB_VIEW)
+				onevec[part->bb_align]=1.0f;
+			break;
+		case PART_DRAW_PATH:
+			break;
+	}
+	if(part->draw & PART_DRAW_SIZE && part->draw_as!=PART_DRAW_CIRC){
+		Mat4CpyMat4(imat, G.vd->viewinv);
+		Normalize(imat[0]);
+		Normalize(imat[1]);
+	}
+
+/* 4. */
+	if(draw_as && draw_as!=PART_DRAW_PATH){
+		if(draw_as!=PART_DRAW_CIRC){
+			switch(draw_as){
+				case PART_DRAW_AXIS:
+					cdata=MEM_callocN((totpart+totchild)*(path_nbr+1)*6*3*sizeof(float), "particle_cdata");
+					/* no break! */
+				case PART_DRAW_CROSS:
+					vdata=MEM_callocN((totpart+totchild)*(path_nbr+1)*6*3*sizeof(float), "particle_vdata");
+					break;
+				case PART_DRAW_LINE:
+					vdata=MEM_callocN((totpart+totchild)*(path_nbr+1)*2*3*sizeof(float), "particle_vdata");
+					break;
+				case PART_DRAW_BB:
+					vdata=MEM_callocN((totpart+totchild)*(path_nbr+1)*4*3*sizeof(float), "particle_vdata");
+					ndata=MEM_callocN((totpart+totchild)*(path_nbr+1)*4*3*sizeof(float), "particle_vdata");
+					break;
+				default:
+					vdata=MEM_callocN((totpart+totchild)*(path_nbr+1)*3*sizeof(float), "particle_vdata");
+			}
+		}
+
+		if(part->draw&PART_DRAW_VEL && draw_as!=PART_DRAW_LINE)
+			vedata=MEM_callocN((totpart+totchild)*2*3*(path_nbr+1)*sizeof(float), "particle_vedata");
+
+		vd=vdata;
+		ved=vedata;
+		cd=cdata;
+		nd=ndata;
+
+		psys->lattice=psys_get_lattice(ob,psys);
+	}
+
+	if(draw_as){
+/* 5. */
+		for(a=0,pa=pars; a<totpart+totchild; a++, pa++){
+			if(a<totpart){
+				if(totchild && (part->draw&PART_DRAW_PARENT)==0) continue;
+				if(pa->flag & PARS_NO_DISP || pa->flag & PARS_UNEXIST) continue;
+
+				pa_time=(cfra-pa->time)/pa->lifetime;
+
+				if((part->flag&PART_ABS_TIME)==0 && part->ipo){
+					calc_ipo(part->ipo, 100*pa_time);
+					execute_ipo((ID *)part, part->ipo);
+				}
+
+				pa_size=pa->size;
+
+				r_tilt=1.0f+pa->r_ave[0];
+
+				if(path_nbr){
+					cache=psys->pathcache[a];
+					k_max=(int)(cache->steps);
+				}
+			}
+			else{
+				pa_time=psys_get_child_time(psys,a-totpart,cfra);
+
+				if((part->flag&PART_ABS_TIME)==0 && part->ipo){
+					calc_ipo(part->ipo, 100*pa_time);
+					execute_ipo((ID *)part, part->ipo);
+				}
+
+				pa_size=psys_get_child_size(psys,a-totpart,cfra,0);
+
+				r_tilt=2.0f*psys->child[a-totpart].rand[2];
+				if(path_nbr){
+					cache=psys->childcache[a-totpart];
+					k_max=(int)(cache->steps);
+				}
+			}
+
+			if(draw_as!=PART_DRAW_PATH){
+				int next_pa=0;
+				for(k=0; k<=path_nbr; k++){
+					if(draw_keys){
+						state.time=(float)k/(float)path_nbr;
+						psys_get_particle_on_path(ob,psys,a,&state,1);
+					}
+					else if(path_nbr){
+						if(k<=k_max){
+							VECCOPY(state.co,(cache+k)->co);
+							VECCOPY(state.vel,(cache+k)->vel);
+							QUATCOPY(state.rot,(cache+k)->rot);
+						}
+						else
+							continue;	
+					}
+					else{
+						state.time=cfra;
+						if(psys_get_particle_state(ob,psys,a,&state,0)==0){
+							next_pa=1;
+							break;
+						}
+					}
+
+					switch(draw_as){
+						case PART_DRAW_DOT:
+							if(vd){
+								VECCOPY(vd,state.co) vd+=3;
+							}
+							break;
+						case PART_DRAW_CROSS:
+						case PART_DRAW_AXIS:
+							vec[0]=2.0f*pixsize;
+							vec[1]=vec[2]=0.0;
+							QuatMulVecf(state.rot,vec);
+							if(draw_as==PART_DRAW_AXIS){
+								cd[1]=cd[2]=cd[4]=cd[5]=0.0;
+								cd[0]=cd[3]=1.0;
+								cd[6]=cd[8]=cd[9]=cd[11]=0.0;
+								cd[7]=cd[10]=1.0;
+								cd[13]=cd[12]=cd[15]=cd[16]=0.0;
+								cd[14]=cd[17]=1.0;
+								cd+=18;
+
+								VECCOPY(vec2,state.co);
+							}
+							else VECSUB(vec2,state.co,vec);
+
+							VECADD(vec,state.co,vec);
+							VECCOPY(vd,vec); vd+=3;
+							VECCOPY(vd,vec2); vd+=3;
+								
+							vec[1]=2.0f*pixsize;
+							vec[0]=vec[2]=0.0;
+							QuatMulVecf(state.rot,vec);
+							if(draw_as==PART_DRAW_AXIS){
+								VECCOPY(vec2,state.co);
+							}		
+							else VECSUB(vec2,state.co,vec);
+
+							VECADD(vec,state.co,vec);
+							VECCOPY(vd,vec); vd+=3;
+							VECCOPY(vd,vec2); vd+=3;
+
+							vec[2]=2.0f*pixsize;
+							vec[0]=vec[1]=0.0;
+							QuatMulVecf(state.rot,vec);
+							if(draw_as==PART_DRAW_AXIS){
+								VECCOPY(vec2,state.co);
+							}
+							else VECSUB(vec2,state.co,vec);
+
+							VECADD(vec,state.co,vec);
+
+							VECCOPY(vd,vec); vd+=3;
+							VECCOPY(vd,vec2); vd+=3;
+							break;
+						case PART_DRAW_LINE:
+							VECCOPY(vec,state.vel);
+							Normalize(vec);
+							if(part->draw & PART_DRAW_VEL_LENGTH)
+								VecMulf(vec,VecLength(state.vel));
+							VECADDFAC(vd,state.co,vec,-part->draw_line[0]); vd+=3;
+							VECADDFAC(vd,state.co,vec,part->draw_line[1]); vd+=3;
+							break;
+						case PART_DRAW_CIRC:
+							drawcircball(GL_LINE_LOOP, state.co, pixsize, imat);
+							break;
+						case PART_DRAW_BB:
+							if(part->draw&PART_DRAW_BB_LOCK && part->bb_align==PART_BB_VIEW){
+								VECCOPY(xvec,bb_ob->obmat[0]);
+								Normalize(xvec);
+								VECCOPY(yvec,bb_ob->obmat[1]);
+								Normalize(yvec);
+								VECCOPY(zvec,bb_ob->obmat[2]);
+								Normalize(zvec);
+							}
+							else if(part->bb_align==PART_BB_VEL){
+								float temp[3];
+								VECCOPY(temp,state.vel);
+								Normalize(temp);
+								VECSUB(zvec,bb_ob->obmat[3],state.co);
+								if(part->draw&PART_DRAW_BB_LOCK){
+									float fac=-Inpf(zvec,temp);
+									VECADDFAC(zvec,zvec,temp,fac);
+								}
+								Normalize(zvec);
+								Crossf(xvec,temp,zvec);
+								Normalize(xvec);
+								Crossf(yvec,zvec,xvec);
+							}
+							else{
+								VECSUB(zvec,bb_ob->obmat[3],state.co);
+								if(part->draw&PART_DRAW_BB_LOCK)
+									zvec[part->bb_align]=0.0f;
+								Normalize(zvec);
+
+								if(part->bb_align<PART_BB_VIEW)
+									Crossf(xvec,onevec,zvec);
+								else
+									Crossf(xvec,bb_ob->obmat[1],zvec);
+								Normalize(xvec);
+								Crossf(yvec,zvec,xvec);
+							}
+
+							VECCOPY(vec,xvec);
+							VECCOPY(vec2,yvec);
+
+							VecMulf(xvec,cos(part->bb_tilt*(1.0f-part->bb_rand_tilt*r_tilt)*(float)M_PI));
+							VecMulf(vec2,sin(part->bb_tilt*(1.0f-part->bb_rand_tilt*r_tilt)*(float)M_PI));
+							VECADD(xvec,xvec,vec2);
+
+							VecMulf(yvec,cos(part->bb_tilt*(1.0f-part->bb_rand_tilt*r_tilt)*(float)M_PI));
+							VecMulf(vec,-sin(part->bb_tilt*(1.0f-part->bb_rand_tilt*r_tilt)*(float)M_PI));
+							VECADD(yvec,yvec,vec);
+
+							VecMulf(xvec,pa_size);
+							VecMulf(yvec,pa_size);
+
+							VECADDFAC(bb_center,state.co,xvec,part->bb_offset[0]);
+							VECADDFAC(bb_center,bb_center,yvec,part->bb_offset[1]);
+
+							VECADD(vd,bb_center,xvec);
+							VECADD(vd,vd,yvec); vd+=3;
+
+							VECSUB(vd,bb_center,xvec);
+							VECADD(vd,vd,yvec); vd+=3;
+
+							VECSUB(vd,bb_center,xvec);
+							VECSUB(vd,vd,yvec); vd+=3;
+
+							VECADD(vd,bb_center,xvec);
+							VECSUB(vd,vd,yvec); vd+=3;
+
+							VECCOPY(nd, zvec); nd+=3;
+							VECCOPY(nd, zvec); nd+=3;
+							VECCOPY(nd, zvec); nd+=3;
+							VECCOPY(nd, zvec); nd+=3;
+							break;
+					}
+
+					if(vedata){
+						VECCOPY(ved,state.co);
+						ved+=3;
+						VECCOPY(vel,state.vel);
+						VecMulf(vel,timestep);
+						VECADD(ved,state.co,vel);
+						ved+=3;
+					}
+
+					if(part->draw & PART_DRAW_SIZE){
+						setlinestyle(3);
+						drawcircball(GL_LINE_LOOP, state.co, pa_size, imat);
+						setlinestyle(0);
+					}
+
+					totpoint++;
+				}
+				if(next_pa)
+						continue;
+				if(part->draw&PART_DRAW_NUM){
+					/* in path drawing state.co is the end point */
+					glRasterPos3f(state.co[0],  state.co[1],  state.co[2]);
+					sprintf(val," %i",a);
+					BMF_DrawString(G.font, val);
+				}
+			}
+		}
+/* 6. */
+
+		glGetIntegerv(GL_POLYGON_MODE, polygonmode);
+
+		if(draw_as != PART_DRAW_CIRC){
+			glDisableClientState(GL_NORMAL_ARRAY);
+
+			if(draw_as==PART_DRAW_PATH){
+				ParticleCacheKey **cache, *path;
+				float *cd2=0,*cdata2=0;
+
+				glEnableClientState(GL_VERTEX_ARRAY);
+				glEnableClientState(GL_NORMAL_ARRAY);
+				glEnable(GL_LIGHTING);
+
+				if(totchild && (part->draw&PART_DRAW_PARENT)==0)
+					totpart=0;
+
+				cache=psys->pathcache;
+				for(a=0, pa=psys->particles; a<totpart; a++, pa++){
+					path=cache[a];
+					glVertexPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->co);
+					glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), path->vel);
+					glDrawArrays(GL_LINE_STRIP, 0, path->steps + 1);
+				}
+				
+				cache=psys->childcache;
+				for(a=0; a<totchild; a++){
+					path=cache[a];
+					glVertexPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->co);
+					glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), path->vel);
+					glDrawArrays(GL_LINE_STRIP, 0, path->steps + 1);
+				}
+				if(cdata2)
+					MEM_freeN(cdata2);
+				cd2=cdata2=0;
+
+				glLineWidth(1.0f);
+
+				/* draw particle edit mode key points*/
+			}
+
+			if(draw_as!=PART_DRAW_PATH){
+				glDisableClientState(GL_COLOR_ARRAY);
+
+				if(vdata){
+					glEnableClientState(GL_VERTEX_ARRAY);
+					glVertexPointer(3, GL_FLOAT, 0, vdata);
+				}
+				else
+					glDisableClientState(GL_VERTEX_ARRAY);
+
+				if(ndata && MIN2(G.vd->drawtype, ob->dt)>OB_WIRE){
+					glEnableClientState(GL_NORMAL_ARRAY);
+					glNormalPointer(GL_FLOAT, 0, ndata);
+					glEnable(GL_LIGHTING);
+				}
+				else{
+					glDisableClientState(GL_NORMAL_ARRAY);
+					glDisable(GL_LIGHTING);
+				}
+
+				switch(draw_as){
+					case PART_DRAW_AXIS:
+					case PART_DRAW_CROSS:
+						if(cdata){
+							glEnableClientState(GL_COLOR_ARRAY);
+							glColorPointer(3, GL_FLOAT, 0, cdata);
+						}
+						glDrawArrays(GL_LINES, 0, 6*totpoint);
+						break;
+					case PART_DRAW_LINE:
+						glDrawArrays(GL_LINES, 0, 2*totpoint);
+						break;
+					case PART_DRAW_BB:
+						if(MIN2(G.vd->drawtype, ob->dt)<=OB_WIRE)
+							glPolygonMode(GL_FRONT_AND_BACK,GL_LINE);
+
+						glDrawArrays(GL_QUADS, 0, 4*totpoint);
+						break;
+					default:
+						glDrawArrays(GL_POINTS, 0, totpoint);
+						break;
+				}
+			}
+
+		}
+		if(vedata){
+			glDisableClientState(GL_COLOR_ARRAY);
+			cpack(0xC0C0C0);
+			
+			glEnableClientState(GL_VERTEX_ARRAY);
+			glVertexPointer(3, GL_FLOAT, 0, vedata);
+			
+			glDrawArrays(GL_LINES, 0, 2*totpoint);
+		}
+
+		glPolygonMode(GL_FRONT, polygonmode[0]);
+		glPolygonMode(GL_BACK, polygonmode[1]);
+	}
+
+/* 7. */
+	
+	glDisable(GL_LIGHTING);
+	glDisableClientState(GL_COLOR_ARRAY);
+	glEnableClientState(GL_NORMAL_ARRAY);
+	glEnable(GL_DEPTH_TEST);
+
+	if(states)
+		MEM_freeN(states);
+	if(vdata)
+		MEM_freeN(vdata);
+	if(vedata)
+		MEM_freeN(vedata);
+	if(cdata)
+		MEM_freeN(cdata);
+	if(ndata)
+		MEM_freeN(ndata);
+
+	psys->flag &= ~PSYS_DRAWING;
+
+	if(psys->lattice){
+		end_latt_deform();
+		psys->lattice=0;
+	}
+
+	myloadmatrix(G.vd->viewmat);
+	mymultmatrix(ob->obmat);	// bring back local matrix for dtx
+}
+
+static void draw_particle_edit(Object *ob, ParticleSystem *psys)
+{
+	ParticleEdit *edit = psys->edit;
+	ParticleData *pa;
+	ParticleCacheKey **path;
+	ParticleEditKey *key;
+	ParticleEditSettings *pset = PE_settings();
+	/*Mesh *me= (Mesh*)ob->data;*/
+	Material *ma;
+	int i, k, totpart = psys->totpart, totchild=0, timed = pset->draw_timed;
+	char nosel[4], sel[4];
+	float sel_col[3];
+	float nosel_col[3];
+	char val[32];
+
+	if(psys->pathcache==0){
+		PE_hide_keys_time(psys,CFRA);
+		psys_cache_paths(ob,psys,CFRA,0);
+	}
+
+	if(pset->flag & PE_SHOW_CHILD && psys->part->draw_as == PART_DRAW_PATH) {
+		if(psys->childcache==0)
+			psys_cache_child_paths(ob, psys, CFRA, 0);
+	}
+	else if(psys->childcache)
+			free_child_path_cache(psys);
+
+	if((G.vd->flag & V3D_ZBUF_SELECT)==0)
+		glDisable(GL_DEPTH_TEST);
+
+	myloadmatrix(G.vd->viewmat);
+
+	BIF_GetThemeColor3ubv(TH_VERTEX_SELECT, sel);
+	BIF_GetThemeColor3ubv(TH_VERTEX, nosel);
+	sel_col[0]=(float)sel[0]/255.0f;
+	sel_col[1]=(float)sel[1]/255.0f;
+	sel_col[2]=(float)sel[2]/255.0f;
+	nosel_col[0]=(float)nosel[0]/255.0f;
+	nosel_col[1]=(float)nosel[1]/255.0f;
+	nosel_col[2]=(float)nosel[2]/255.0f;
+
+	if(psys->childcache)
+		totchild = psys->totchildcache;
+
+	/* draw paths */
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_NORMAL_ARRAY);
+	glEnableClientState(GL_COLOR_ARRAY);
+	if(timed)
+		glEnable(GL_BLEND);
+
+	if(pset->brushtype == PE_BRUSH_WEIGHT){
+		glLineWidth(2.0f);
+		glEnableClientState(GL_COLOR_ARRAY);
+		glDisable(GL_LIGHTING);
+	}
+
+	for(i=0, pa=psys->particles, path = psys->pathcache; i<totpart; i++, pa++, path++){
+		/*if(me->mface[pa->num].flag & ME_HIDE)
+			continue;*/
+
+		glVertexPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), (*path)->co);
+		glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), (*path)->vel);
+		glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), (*path)->col);
+
+		glDrawArrays(GL_LINE_STRIP, 0, (int)(*path)->steps + 1);
+	}
+
+	if(psys->part->draw&PART_DRAW_MAT_COL) {
+		ma= give_current_material(ob,psys->part->omat);
+		glColor3f(ma->r,ma->g,ma->b);
+		glDisableClientState(GL_COLOR_ARRAY);
+	}
+	glEnable(GL_LIGHTING);
+
+	for(i=0, path=psys->childcache; i<totchild; i++,path++){
+		glVertexPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), (*path)->co);
+		glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), (*path)->vel);
+		glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), (*path)->col);
+
+		glDrawArrays(GL_LINE_STRIP, 0, (int)(*path)->steps + 1);
+	}
+
+	/* draw edit vertices */
+	if(G.scene->selectmode!=SCE_SELECT_PATH){
+		glDisableClientState(GL_NORMAL_ARRAY);
+		glEnableClientState(GL_COLOR_ARRAY);
+		glDisable(GL_LIGHTING);
+		glPointSize(4.0f);
+
+		if(G.scene->selectmode==SCE_SELECT_POINT){
+			float *cd=0,*cdata=0;
+			cd=cdata=MEM_callocN(edit->totkeys*(timed?4:3)*sizeof(float), "particle edit color data");
+
+			for(i=0, pa=psys->particles; i<totpart; i++, pa++){
+				for(k=0, key=edit->keys[i]; k<pa->totkey; k++, key++){
+					if(key->flag&PEK_SELECT){
+						VECCOPY(cd,sel_col);
+					}
+					else{
+						VECCOPY(cd,nosel_col);
+					}
+					if(timed)
+						*(cd+3) = (key->flag&PEK_HIDE)?0.0f:1.0f;
+					cd += (timed?4:3);
+				}
+			}
+			cd=cdata;
+			for(i=0, pa=psys->particles; i<totpart; i++, pa++){
+				if((pa->flag & PARS_HIDE)==0){
+					glVertexPointer(3, GL_FLOAT, sizeof(ParticleEditKey), edit->keys[i]->world_co);
+					glColorPointer((timed?4:3), GL_FLOAT, (timed?4:3)*sizeof(float), cd);
+					glDrawArrays(GL_POINTS, 0, pa->totkey);
+				}
+				cd += (timed?4:3) * pa->totkey;
+
+				if(pset->flag&PE_SHOW_TIME && (pa->flag&PARS_HIDE)==0){
+					for(k=0, key=edit->keys[i]+k; k<pa->totkey; k++, key++){
+						if(key->flag & PEK_HIDE) continue;
+
+						glRasterPos3fv(key->world_co);
+						sprintf(val," %.1f",*key->time);
+						BMF_DrawString(G.font, val);
+					}
+				}
+			}
+			if(cdata)
+				MEM_freeN(cdata);
+			cd=cdata=0;
+		}
+		else if(G.scene->selectmode == SCE_SELECT_END){
+			for(i=0, pa=psys->particles; i<totpart; i++, pa++){
+				if((pa->flag & PARS_HIDE)==0){
+					key = edit->keys[i] + pa->totkey - 1;
+					if(key->flag & PEK_SELECT)
+						glColor3fv(sel_col);
+					else
+						glColor3fv(nosel_col);
+					/* has to be like this.. otherwise selection won't work, have try glArrayElement later..*/
+					glBegin(GL_POINTS);
+					glVertex3fv(key->world_co);
+					glEnd();
+
+					if(pset->flag & PE_SHOW_TIME){
+						glRasterPos3fv(key->world_co);
+						sprintf(val," %.1f",*key->time);
+						BMF_DrawString(G.font, val);
+					}
+				}
+			}
+		}
+	}
+
+	glDisable(GL_BLEND);
+	glDisable(GL_LIGHTING);
+	glDisableClientState(GL_COLOR_ARRAY);
+	glEnableClientState(GL_NORMAL_ARRAY);
+	glEnable(GL_DEPTH_TEST);
+	glLineWidth(1.0f);
+
+	mymultmatrix(ob->obmat);	// bring back local matrix for dtx
+}
+
 unsigned int nurbcol[8]= {
 	0, 0x9090, 0x409030, 0x603080, 0, 0x40fff0, 0x40c033, 0xA090F0 };
 
@@ -3367,7 +4110,49 @@ void drawcircball(int mode, float *cent, float rad, float tmat[][4])
 	}
 	glEnd();
 }
+/* needs fixing if non-identity matrice used */
+static void drawtube(float *vec, float radius, float height, float tmat[][4])
+{
+	float cur[3];
+	drawcircball(GL_LINE_LOOP, vec, radius, tmat);
 
+	VecCopyf(cur,vec);
+	cur[2]+=height;
+
+	drawcircball(GL_LINE_LOOP, cur, radius, tmat);
+
+	glBegin(GL_LINES);
+		glVertex3f(vec[0]+radius,vec[1],vec[2]);
+		glVertex3f(cur[0]+radius,cur[1],cur[2]);
+		glVertex3f(vec[0]-radius,vec[1],vec[2]);
+		glVertex3f(cur[0]-radius,cur[1],cur[2]);
+		glVertex3f(vec[0],vec[1]+radius,vec[2]);
+		glVertex3f(cur[0],cur[1]+radius,cur[2]);
+		glVertex3f(vec[0],vec[1]-radius,vec[2]);
+		glVertex3f(cur[0],cur[1]-radius,cur[2]);
+	glEnd();
+}
+/* needs fixing if non-identity matrice used */
+static void drawcone(float *vec, float radius, float height, float tmat[][4])
+{
+	float cur[3];
+
+	VecCopyf(cur,vec);
+	cur[2]+=height;
+
+	drawcircball(GL_LINE_LOOP, cur, radius, tmat);
+
+	glBegin(GL_LINES);
+		glVertex3f(vec[0],vec[1],vec[2]);
+		glVertex3f(cur[0]+radius,cur[1],cur[2]);
+		glVertex3f(vec[0],vec[1],vec[2]);
+		glVertex3f(cur[0]-radius,cur[1],cur[2]);
+		glVertex3f(vec[0],vec[1],vec[2]);
+		glVertex3f(cur[0],cur[1]+radius,cur[2]);
+		glVertex3f(vec[0],vec[1],vec[2]);
+		glVertex3f(cur[0],cur[1]-radius,cur[2]);
+	glEnd();
+}
 /* return 1 if nothing was drawn */
 static int drawmball(Base *base, int dt)
 {
@@ -3497,7 +4282,7 @@ static void draw_forcefield(Object *ob)
 	else if (pd->forcefield == PFIELD_VORTEX) {
 		float ffall_val, force_val;
 
-		Mat4One(imat);
+		Mat4One(tmat);
 		if (has_ipo_code(ob->ipo, OB_PD_FFALL)) 
 			ffall_val = IPO_GetFloatValue(ob->ipo, OB_PD_FFALL, G.scene->r.cfra);
 		else 
@@ -3510,12 +4295,12 @@ static void draw_forcefield(Object *ob)
 
 		BIF_ThemeColorBlend(curcol, TH_BACK, 0.7);
 		if (force_val < 0) {
-			drawspiral(vec, size*1.0, imat, 1);
-			drawspiral(vec, size*1.0, imat, 16);
+			drawspiral(vec, size*1.0, tmat, 1);
+			drawspiral(vec, size*1.0, tmat, 16);
 		}
 		else {
-			drawspiral(vec, size*1.0, imat, -1);
-			drawspiral(vec, size*1.0, imat, -16);
+			drawspiral(vec, size*1.0, tmat, -1);
+			drawspiral(vec, size*1.0, tmat, -16);
 		}
 	}
 	else if (pd->forcefield == PFIELD_GUIDE && ob->type==OB_CURVE) {
@@ -3543,14 +4328,66 @@ static void draw_forcefield(Object *ob)
 			VECCOPY(vec, guidevec1);	/* max center */
 		}
 	}
-	
-	/* as last, guide curve alters it */
-	if(pd->flag & PFIELD_USEMAX) {
-		setlinestyle(3);
-		BIF_ThemeColorBlend(curcol, TH_BACK, 0.5);
-		drawcircball(GL_LINE_LOOP, vec, pd->maxdist, imat);
-		setlinestyle(0);
+
+	setlinestyle(3);
+	BIF_ThemeColorBlend(curcol, TH_BACK, 0.5);
+
+	if(pd->falloff==PFIELD_FALL_SPHERE){
+		/* as last, guide curve alters it */
+		if(pd->flag & PFIELD_USEMAX)
+			drawcircball(GL_LINE_LOOP, vec, pd->maxdist, imat);		
+
+		if(pd->flag & PFIELD_USEMIN)
+			drawcircball(GL_LINE_LOOP, vec, pd->mindist, imat);
 	}
+	else if(pd->falloff==PFIELD_FALL_TUBE){
+		float radius,distance;
+
+		Mat4One(tmat);
+
+		vec[0]=vec[1]=0.0f;
+		radius=(pd->flag&PFIELD_USEMAXR)?pd->maxrad:1.0f;
+		distance=(pd->flag&PFIELD_USEMAX)?pd->maxdist:0.0f;
+		vec[2]=distance;
+		distance=(pd->flag&PFIELD_POSZ)?-distance:-2.0f*distance;
+
+		if(pd->flag & (PFIELD_USEMAX|PFIELD_USEMAXR))
+			drawtube(vec,radius,distance,tmat);
+
+		radius=(pd->flag&PFIELD_USEMINR)?pd->minrad:1.0f;
+		distance=(pd->flag&PFIELD_USEMIN)?pd->mindist:0.0f;
+		vec[2]=distance;
+		distance=(pd->flag&PFIELD_POSZ)?-distance:-2.0f*distance;
+
+		if(pd->flag & (PFIELD_USEMIN|PFIELD_USEMINR))
+			drawtube(vec,radius,distance,tmat);
+	}
+	else if(pd->falloff==PFIELD_FALL_CONE){
+		float radius,distance;
+
+		Mat4One(tmat);
+
+		radius=(pd->flag&PFIELD_USEMAXR)?pd->maxrad:1.0f;
+		radius*=(float)M_PI/180.0f;
+		distance=(pd->flag&PFIELD_USEMAX)?pd->maxdist:0.0f;
+
+		if(pd->flag & (PFIELD_USEMAX|PFIELD_USEMAXR)){
+			drawcone(vec,distance*sin(radius),distance*cos(radius),tmat);
+			if((pd->flag & PFIELD_POSZ)==0)
+				drawcone(vec,distance*sin(radius),-distance*cos(radius),tmat);
+		}
+
+		radius=(pd->flag&PFIELD_USEMINR)?pd->minrad:1.0f;
+		radius*=(float)M_PI/180.0f;
+		distance=(pd->flag&PFIELD_USEMIN)?pd->mindist:0.0f;
+
+		if(pd->flag & (PFIELD_USEMIN|PFIELD_USEMINR)){
+			drawcone(vec,distance*sin(radius),distance*cos(radius),tmat);
+			if((pd->flag & PFIELD_POSZ)==0)
+				drawcone(vec,distance*sin(radius),-distance*cos(radius),tmat);
+		}
+	}
+	setlinestyle(0);
 }
 
 static void draw_box(float vec[8][3])
@@ -4199,6 +5036,26 @@ void draw_object(Base *base, int flag)
 			drawaxes(1.0, flag, OB_ARROWS);
 	}
 	if(ob->pd && ob->pd->forcefield) draw_forcefield(ob);
+
+	/* code for new particle system */
+	if(warning_recursive==0 && (flag & DRAW_PICKING)==0){
+		glDepthMask(GL_FALSE);
+		if(col || (ob->flag & SELECT)) cpack(0xFFFFFF);	/* for visibility, also while wpaint */
+		if(ob->particlesystem.first) {
+			ParticleSystem *psys;
+
+			for(psys=ob->particlesystem.first; psys; psys=psys->next)
+				draw_new_particle_system(base, psys);
+			
+			if(G.f & G_PARTICLEEDIT && ob==OBACT) {
+				psys= PE_get_current(ob);
+				if(psys && !G.obedit && psys_in_edit_mode(psys))
+					draw_particle_edit(ob, psys);
+			}
+		}
+		if(col) cpack(col);
+		glDepthMask(GL_TRUE); 
+	}
 
 	{
 		bConstraint *con;
