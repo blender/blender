@@ -3147,31 +3147,195 @@ void transform_armature_mirror_update(void)
 
 
 /*****************************************************************************************************/
+/*************************************** SKELETON GENERATOR ******************************************/
+/*****************************************************************************************************/
 
-void markdownSymetryArc(ReebArc *arc, ReebNode *node, int level);
+/**************************************** SYMMETRY HANDLING ******************************************/
 
-void reestablishSymetry(ReebNode *node, int depth, int level)
+void markdownSymmetryArc(ReebArc *arc, ReebNode *node, int level);
+
+void reestablishRadialSymmetry(ReebNode *node, int depth, float axis[3])
 {
+	printf("radial symmetry not done yet\n");
+}
+
+void mirrorAlongAxis(float v[3], float center[3], float axis[3])
+{
+	float dv[3], pv[3];
+	
+	VecSubf(dv, v, center);
+	Projf(pv, dv, axis);
+	VecMulf(pv, -2);
+	VecAddf(v, v, pv);
+}
+
+void reestablishAxialSymmetry(ReebNode *node, int depth, float axis[3])
+{
+	ReebArcIterator iter1, iter2;
+	EmbedBucket *bucket1 = NULL, *bucket2 = NULL;
+	ReebArc *arc1 = NULL;
+	ReebArc *arc2 = NULL;
+	ReebNode *node1, *node2;
+	float nor[3], vec[3], p[3];
 	int i;
 	
-	/* detect spatial symetry */
+	for(i = 0; node->arcs[i] != NULL; i++)
+	{
+		ReebArc *connectedArc = node->arcs[i];
+		
+		/* depth is store as a negative in flag. symmetry level is positive */
+		if (connectedArc->flags == -depth)
+		{
+			if (arc1 == NULL)
+			{
+				arc1 = connectedArc;
+				node1 = OTHER_NODE(arc1, node);
+			}
+			else
+			{
+				arc2 = connectedArc;
+				node2 = OTHER_NODE(arc2, node);
+				break; /* Can stop now, the two arcs have been found */
+			}
+		}
+	}
+	
+	VecSubf(p, node1->p, node->p);
+	Crossf(vec, p, axis);
+	Crossf(nor, vec, axis);
+	
+	/* mirror node2 along axis */
+	mirrorAlongAxis(node2->p, node->p, nor);
+	
+	/* average with node1 */
+	VecAddf(node1->p, node1->p, node2->p);
+	VecMulf(node1->p, 0.5f);
+	
+	/* mirror back on node2 */
+	VECCOPY(node2->p, node1->p);
+	mirrorAlongAxis(node2->p, node->p, nor);
+	
+	/* Merge buckets
+	 * there shouldn't be any null arcs here, but just to be safe 
+	 * */
+	if (arc1->bcount > 0 && arc2->bcount > 0)
+	{
+		
+		initArcIterator(&iter1, arc1, node);
+		initArcIterator(&iter2, arc2, node);
+		
+		bucket1 = nextBucket(&iter1);
+		bucket2 = nextBucket(&iter2);
+	
+		/* Make sure they both start at the same value */	
+		while(bucket1 && bucket1->val < bucket2->val)
+		{
+			bucket1 = nextBucket(&iter1);
+		}
+		
+		while(bucket2 && bucket2->val < bucket1->val)
+		{
+			bucket2 = nextBucket(&iter2);
+		}
 
+
+		for( ;bucket1 && bucket2; bucket1 = nextBucket(&iter1), bucket2 = nextBucket(&iter2))
+		{
+			bucket1->nv += bucket2->nv; /* add counts */
+			
+			/* mirror on axis */
+			mirrorAlongAxis(bucket2->p, node->p, nor);
+			/* add bucket2 in bucket1 */
+			VecLerpf(bucket1->p, bucket1->p, bucket2->p, (float)bucket2->nv / (float)(bucket1->nv));
+
+			/* copy and mirror back to bucket2 */			
+			bucket2->nv = bucket1->nv;
+			VECCOPY(bucket2->p, bucket1->p);
+			mirrorAlongAxis(bucket2->p, node->p, nor);
+		}
+	}
+}
+
+void markdownSecondarySymmetry(ReebNode *node, int depth, int level)
+{
+	float SYMMETRY_THRESHOLD = 0.005f * G.scene->toolsettings->skgen_resolution;
+	float axis[3] = {0, 0, 0};
+	float avg_weight = 0;
+	int count = 0;
+	int symmetric = 1;
+	int i;
+
+	/* Only reestablish spatial symmetry if needed */
+	if (G.scene->toolsettings->skgen_options & SKGEN_SYMMETRY)
+	{
+		/* count the number of branches in this symmetry group
+		 * and determinte the axis of symmetry
+		 *  */	
+		for(i = 0; node->arcs[i] != NULL; i++)
+		{
+			ReebArc *connectedArc = node->arcs[i];
+			
+			/* depth is store as a negative in flag. symmetry level is positive */
+			if (connectedArc->flags == -depth)
+			{
+				count++;
+				
+				avg_weight += OTHER_NODE(connectedArc, node)->weight;
+			}
+			/* If arc is on the axis */
+			else if (connectedArc->flags == level)
+			{
+				VecAddf(axis, axis, connectedArc->v1->p);
+				VecSubf(axis, axis, connectedArc->v2->p);
+			}
+		}
+	
+		Normalize(axis);
+		avg_weight /= count;
+		
+		/* Check if all branches are within range of the average weight */
+		for(i = 0; node->arcs[i] != NULL; i++)
+		{
+			ReebArc *connectedArc = node->arcs[i];
+			
+			if (connectedArc->flags == -depth)
+			{
+				if (fabs(OTHER_NODE(connectedArc, node)->weight - avg_weight) > SYMMETRY_THRESHOLD)
+				{
+					symmetric = 0;
+					break;
+				}
+			}
+		}
+	
+		if (symmetric)
+		{
+			/* Split between axial and radial symmetry */
+			if (count == 2)
+			{
+				reestablishAxialSymmetry(node, depth, axis);
+			}
+			else
+			{
+				reestablishRadialSymmetry(node, depth, axis);
+			}
+		}
+	}
 
 	/* markdown secondary symetries */	
 	for(i = 0; node->arcs[i] != NULL; i++)
 	{
 		ReebArc *connectedArc = node->arcs[i];
 		
-		/* depth is store as a negative in flag. symetry level is positive */
 		if (connectedArc->flags == -depth)
 		{
-			/* markdown symetry for branches corresponding to the depth */
-			markdownSymetryArc(connectedArc, node, level + 1);
+			/* markdown symmetry for branches corresponding to the depth */
+			markdownSymmetryArc(connectedArc, node, level + 1);
 		}
 	}
 }
 
-void markdownSymetryArc(ReebArc *arc, ReebNode *node, int level)
+void markdownSymmetryArc(ReebArc *arc, ReebNode *node, int level)
 {
 	int i;
 	arc->flags = level;
@@ -3186,7 +3350,7 @@ void markdownSymetryArc(ReebArc *arc, ReebNode *node, int level)
 		{
 			ReebNode *connectedNode = OTHER_NODE(connectedArc, node);
 			
-			/* symetry level is positive value, negative values is subtree depth */
+			/* symmetry level is positive value, negative values is subtree depth */
 			connectedArc->flags = -subtreeDepth(connectedNode);
 		}
 	}
@@ -3195,7 +3359,7 @@ void markdownSymetryArc(ReebArc *arc, ReebNode *node, int level)
 
 	for(i = 0; node->arcs[i] != NULL; i++)
 	{
-		int isSymetryAxis = 0;
+		int issymmetryAxis = 0;
 		ReebArc *connectedArc = node->arcs[i];
 		
 		/* only arcs not already marked as symetric */
@@ -3204,23 +3368,23 @@ void markdownSymetryArc(ReebArc *arc, ReebNode *node, int level)
 			int j;
 			
 			/* true by default */
-			isSymetryAxis = 1;
+			issymmetryAxis = 1;
 			
-			for(j = 0; node->arcs[j] != NULL && isSymetryAxis == 1; j++)
+			for(j = 0; node->arcs[j] != NULL && issymmetryAxis == 1; j++)
 			{
 				ReebArc *otherArc = node->arcs[j];
 				
 				/* different arc, same depth */
 				if (otherArc != connectedArc && otherArc->flags == connectedArc->flags)
 				{
-					/* not on the symetry axis */
-					isSymetryAxis = 0;
+					/* not on the symmetry axis */
+					issymmetryAxis = 0;
 				} 
 			}
 		}
 		
-		/* arc could be on the symetry axis */
-		if (isSymetryAxis == 1)
+		/* arc could be on the symmetry axis */
+		if (issymmetryAxis == 1)
 		{
 			/* no arc as been marked previously, keep this one */
 			if (arc == NULL)
@@ -3229,34 +3393,34 @@ void markdownSymetryArc(ReebArc *arc, ReebNode *node, int level)
 			}
 			else
 			{
-				/* there can't be more than one symetry arc */
+				/* there can't be more than one symmetry arc */
 				arc = NULL;
 				break;
 			}
 		}
 	}
 	
-	/* go down the arc continuing the symetry axis */
+	/* go down the arc continuing the symmetry axis */
 	if (arc)
 	{
-		markdownSymetryArc(arc, node, level);
+		markdownSymmetryArc(arc, node, level);
 	}
 	
-	/* restore symetry */
+	/* restore symmetry */
 	for(i = 0; node->arcs[i] != NULL; i++)
 	{
 		ReebArc *connectedArc = node->arcs[i];
 		
-		/* only arcs not already marked as symetric and is not the next arc on the symetry axis */
+		/* only arcs not already marked as symetric and is not the next arc on the symmetry axis */
 		if (connectedArc->flags < 0)
 		{
 			/* subtree depth is store as a negative value in the flag */
-			reestablishSymetry(node, -connectedArc->flags, level);
+			markdownSecondarySymmetry(node, -connectedArc->flags, level);
 		}
 	}
 }
 
-void markdownSymetry(ReebGraph *rg)
+void markdownSymmetry(ReebGraph *rg)
 {
 	ReebNode *node;
 	ReebArc *arc;
@@ -3267,7 +3431,7 @@ void markdownSymetry(ReebGraph *rg)
 		arc->flags = 0;
 	}
 	
-	/* mark down all nodes as not on the symetry axis */
+	/* mark down all nodes as not on the symmetry axis */
 	for(node = rg->nodes.first; node; node = node->next)
 	{
 		node->flags = 0;
@@ -3281,7 +3445,7 @@ void markdownSymetry(ReebGraph *rg)
 	{
 		arc = node->arcs[0];
 		
-		markdownSymetryArc(arc, node, 1);
+		markdownSymmetryArc(arc, node, 1);
 	}
 
 	/* mark down non-symetric arcs */
@@ -3293,7 +3457,7 @@ void markdownSymetry(ReebGraph *rg)
 		}
 		else
 		{
-			/* mark down nodes with the lowest level symetry axis */
+			/* mark down nodes with the lowest level symmetry axis */
 			if (arc->v1->flags == 0 || arc->v1->flags > arc->flags)
 			{
 				arc->v1->flags = arc->flags;
@@ -3307,6 +3471,8 @@ void markdownSymetry(ReebGraph *rg)
 	}
 
 }
+
+/**************************************** SUBDIVISION ALGOS ******************************************/
 
 EditBone * subdivideByAngle(ReebArc *arc, ReebNode *head, ReebNode *tail)
 {
@@ -3326,7 +3492,9 @@ EditBone * subdivideByAngle(ReebArc *arc, ReebNode *head, ReebNode *tail)
 		
 		root = parent;
 		
-		for(initArcIterator(&iter, arc, head), previous = nextBucket(&iter), current = nextBucket(&iter); current; previous = current, current = nextBucket(&iter))
+		for(initArcIterator(&iter, arc, head), previous = nextBucket(&iter), current = nextBucket(&iter);
+			current;
+			previous = current, current = nextBucket(&iter))
 		{
 			float vec1[3], vec2[3];
 			float len1, len2;
@@ -3379,7 +3547,9 @@ float calcCorrelation(ReebArc *arc, int start, int end, float v0[3], float n[3])
 		float s_xyz = 0.0f;
 		
 		/* First pass, calculate average */
-		for(initArcIterator2(&iter, arc, start, end), bucket = nextBucket(&iter); bucket; bucket = nextBucket(&iter))
+		for(initArcIterator2(&iter, arc, start, end), bucket = nextBucket(&iter);
+			bucket;
+			bucket = nextBucket(&iter))
 		{
 			float v[3];
 			
@@ -3392,7 +3562,9 @@ float calcCorrelation(ReebArc *arc, int start, int end, float v0[3], float n[3])
 		avg_t /= len;
 		
 		/* Second pass, calculate s_xyz and s_t */
-		for(initArcIterator2(&iter, arc, start, end), bucket = nextBucket(&iter); bucket; bucket = nextBucket(&iter))
+		for(initArcIterator2(&iter, arc, start, end), bucket = nextBucket(&iter);
+			bucket;
+			bucket = nextBucket(&iter))
 		{
 			float v[3], d[3];
 			float dt;
@@ -3443,7 +3615,9 @@ EditBone * subdivideByCorrelation(ReebArc *arc, ReebNode *head, ReebNode *tail)
 		parent = add_editbone("Bone");
 		VECCOPY(parent->head, head->p);
 		
-		for(previous = nextBucket(&iter), bucket = nextBucket(&iter); bucket; previous = bucket, bucket = nextBucket(&iter))
+		for(previous = nextBucket(&iter), bucket = nextBucket(&iter);
+			bucket;
+			previous = bucket, bucket = nextBucket(&iter))
 		{
 			/* Calculate normal */
 			VecSubf(n, bucket->p, parent->head);
@@ -3511,12 +3685,13 @@ EditBone * subdivideByLength(ReebArc *arc, ReebNode *head, ReebNode *tail)
 		float lengthLimit = G.scene->toolsettings->skgen_length_limit;
 		int same = 0;
 		
-		initArcIterator(&iter, arc, head);
-		
 		parent = add_editbone("Bone");
 		VECCOPY(parent->head, head->p);
 
+		initArcIterator(&iter, arc, head);
+
 		bucket = nextBucket(&iter);
+		
 		while (bucket != NULL)
 		{
 			float *vec0 = NULL;
@@ -3601,6 +3776,8 @@ EditBone * subdivideByLength(ReebArc *arc, ReebNode *head, ReebNode *tail)
 	return lastBone;
 }
 
+/***************************************** MAIN ALGORITHM ********************************************/
+
 void generateSkeletonFromReebGraph(ReebGraph *rg)
 {
 	GHash *arcBoneMap = NULL;
@@ -3633,7 +3810,7 @@ void generateSkeletonFromReebGraph(ReebGraph *rg)
 
 	arcBoneMap = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
 	
-	markdownSymetry(rg);
+	markdownSymmetry(rg);
 
 	exportGraph(rg, -1);
 	
@@ -3645,14 +3822,14 @@ void generateSkeletonFromReebGraph(ReebGraph *rg)
 
 		/* Find out the direction of the arc through simple heuristics (in order of priority) :
 		 * 
-		 * 1- Arcs on primary symetry axis (flags == 1) point up (head: high weight -> tail: low weight)
+		 * 1- Arcs on primary symmetry axis (flags == 1) point up (head: high weight -> tail: low weight)
 		 * 2- Arcs starting on a primary axis point away from it (head: node on primary axis)
 		 * 3- Arcs point down (head: low weight -> tail: high weight)
 		 *
 		 * Finally, the arc direction is stored in its flags: 1 (low -> high), -1 (high -> low)
 		 */
 
-		/* if arc is a symetry axis, internal bones go up the tree */		
+		/* if arc is a symmetry axis, internal bones go up the tree */		
 		if (arc->flags == 1 && arc->v2->degree != 1)
 		{
 			head = arc->v2;
@@ -3660,7 +3837,7 @@ void generateSkeletonFromReebGraph(ReebGraph *rg)
 			
 			arc->flags = -1; /* mark arc direction */
 		}
-		/* Bones point AWAY from the symetry axis */
+		/* Bones point AWAY from the symmetry axis */
 		else if (arc->v1->flags == 1)
 		{
 			head = arc->v1;
