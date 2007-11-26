@@ -18,8 +18,6 @@
 #define round(x) (x)
 #endif
 
-#include <omp.h>
-
 /******************************************************************************
  * Constructor
  *****************************************************************************/
@@ -134,7 +132,7 @@ void IsoSurface::triangulate( void )
 {
   double gsx,gsy,gsz; // grid spacing in x,y,z direction
   double px,py,pz;    // current position in grid in x,y,z direction
-  IsoLevelCube cubie;    // struct for a small subcube
+  // IsoLevelCube cubie;    // struct for a small subcube
 	myTime_t tritimestart = getTime(); 
 
 	if(!mpData) {
@@ -402,28 +400,12 @@ void IsoSurface::triangulate( void )
 
 		debMsgStd("IsoSurface::triangulate",DM_MSG,"Starting. Parts in use:"<<pInUse<<", Subdivs:"<<mSubdivs, 9);
 		pz = mStart[2]-(double)(0.*gsz)-0.5*orgGsz;
-
-#pragma omp parallel
-{
-	vector<IsoLevelVertex> calcPoints;
-	vector<unsigned int> calcIndices;
-	const int id = omp_get_thread_num(); 
-	const int Nthrds = omp_get_num_threads(); 
-	
-	const int Nj = (mSizey-2);
-	
-	int jstart = 0+( id * (Nj / Nthrds) ); 
-	int jend   = 0+( (id+1) * (Nj / Nthrds) );
-
-	if(jstart<1) jstart = 1; 
-	if(jend>(mSizey-2)) jend = (mSizey-2); 
-		
-	
 		for(int ok=1;ok<(mSizez-2)*mSubdivs;ok++) {
 			pz += gsz;
 			const int k = ok/mSubdivs;
 			if(k<=0) continue; // skip zero plane
-			for(int j=jstart;j<jend;j++) {
+#pragma omp parallel for
+			for(int j=1;j<(mSizey-2);j++) {
 				for(int i=1;i<(mSizex-2);i++) {
 					float value[8];
 					ntlVec3Gfx pos[8];
@@ -600,8 +582,11 @@ void IsoSurface::triangulate( void )
 
 										// init isolevel vertex
 										ilv.v = p1 + (p2-p1)*mu; // with subdivs
-										calcPoints.push_back( ilv );
-										triIndices[e] = (calcPoints.size()-1);
+#pragma omp critical 
+										{
+										mPoints.push_back( ilv );
+										triIndices[e] = (mPoints.size()-1);
+										}
 										// store vertex 
 										*eVert[ e ] = triIndices[e]; 
 									}	else {
@@ -611,15 +596,17 @@ void IsoSurface::triangulate( void )
 								} // along all edges 
 							}
 							// removed cutoff treatment...
-							
+#pragma omp critical 
+							{
 							// Create the triangles... 
 							for(int e=0; mcTriTable[cubeIndex][e]!=-1; e+=3) {
-								calcIndices.push_back( triIndices[ mcTriTable[cubeIndex][e+0] ] );
-								calcIndices.push_back( triIndices[ mcTriTable[cubeIndex][e+1] ] ); // with subdivs
-								calcIndices.push_back( triIndices[ mcTriTable[cubeIndex][e+2] ] );
+								mIndices.push_back( triIndices[ mcTriTable[cubeIndex][e+0] ] );
+								mIndices.push_back( triIndices[ mcTriTable[cubeIndex][e+1] ] ); // with subdivs
+								mIndices.push_back( triIndices[ mcTriTable[cubeIndex][e+2] ] );
 								//errMsg("TTT"," i1"<<mIndices[mIndices.size()-3]<<" "<< " i2"<<mIndices[mIndices.size()-2]<<" "<< " i3"<<mIndices[mIndices.size()-1]<<" "<< mIndices.size() );
-							} // triangles in edge table?
 							}
+							}
+							} // triangles in edge table?
 							
 						}//si
 					}// sj
@@ -627,8 +614,6 @@ void IsoSurface::triangulate( void )
 				}//i
 			}// j
 #pragma omp barrier
-#pragma omp critical 
-			{
 			// copy edge arrays
 			for(int j=0;j<(mSizey-0)*mSubdivs;j++) 
 				for(int i=0;i<(mSizex-0)*mSubdivs;i++) {
@@ -642,26 +627,9 @@ void IsoSurface::triangulate( void )
 					mpEdgeVerticesY[ src ]=-1; // with subdivs
 					mpEdgeVerticesZ[ src ]=-1;
 				}
-			}
 			// */
 
 		} // ok, k subdiv loop
-		
-		// push_back()'s
-#pragma omp critical
-		{
-			unsigned int size = mIndices.size();
-			// remap indices
-			for(unsigned int j=0; j<calcIndices.size(); j++) 
-			{
-				mIndices.push_back(calcIndices[j]+size);
-			}
-			for(unsigned int j=0; j<calcPoints.size(); j++) 
-			{
-				mPoints.push_back(calcPoints[j]);
-			}	
-		}
-}
 
 		//delete [] subdAr;
 		delete [] arppnt;
