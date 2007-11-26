@@ -91,7 +91,7 @@
 	calcListEmpty.reserve(mListEmpty.capacity() / omp_get_num_threads() ); \
 	calcListFull.reserve( mListFull.capacity()  / omp_get_num_threads() ); \
 	calcListParts.reserve(mSizex); \
-	printf("omp_get_num_threads: %d\n", omp_get_num_threads()); \
+	 \
 	 \
 	const int id = omp_get_thread_num(); \
 	const int Nthrds = omp_get_num_threads(); \
