@@ -2975,6 +2975,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 
 			psmd->dm=0;
 			psmd->psys=newdataadr(fd, psmd->psys);
+			psmd->flag |= eParticleSystemFlag_Loaded;
 			psmd->flag &= ~eParticleSystemFlag_psys_updated;
 		} else if (md->type==eModifierType_Explode) {
 			ExplodeModifierData *psmd = (ExplodeModifierData*) md;

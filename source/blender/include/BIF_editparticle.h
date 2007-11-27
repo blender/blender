@@ -56,7 +56,7 @@ struct ParticleEditSettings *PE_settings(void);
 /* update calls */
 void PE_hide_keys_time(struct ParticleSystem *psys, float cfra);
 void PE_update_object(struct Object *ob, int useflag);
-void PE_update_selection(struct Object *ob);
+void PE_update_selection(struct Object *ob, int useflag);
 void PE_recalc_world_cos(struct Object *ob, struct ParticleSystem *psys);
 
 /* selection tools */
