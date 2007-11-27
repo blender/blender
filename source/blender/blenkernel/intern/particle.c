@@ -645,12 +645,12 @@ void psys_particle_on_dm(Object *ob, DerivedMesh *dm, int from, int index, int i
 		/* this works for meshes with deform verts only - constructive modifiers wont work properly*/
 		float temp1[3];
 
-		if(index >= dm->getNumFaces(dm)) {
-			PARTICLE_ERROR(nor, vec);
-			return;
-		}
-
 		if(from == PART_FROM_VERT) {
+			if(index >= dm->getNumVerts(dm)) {
+				PARTICLE_ERROR(nor, vec);
+				return;
+			}
+	
 			dm->getVertCo(dm,index,vec);
 			if(nor){
 				dm->getVertNo(dm,index,nor);
@@ -658,10 +658,19 @@ void psys_particle_on_dm(Object *ob, DerivedMesh *dm, int from, int index, int i
 			}
 		}
 		else { /* PART_FROM_FACE / PART_FROM_VOLUME */
-			MFace *mface=dm->getFaceData(dm,index,CD_MFACE);
+			MFace *mface;
 			MTFace *mtface=0;
-			MVert *mvert=dm->getVertDataArray(dm,CD_MVERT);
-			int uv_index=CustomData_get_active_layer_index(&dm->faceData,CD_MTFACE);
+			MVert *mvert;
+			int uv_index;
+
+			if(index >= dm->getNumFaces(dm)) {
+				PARTICLE_ERROR(nor, vec);
+				return;
+			}
+			
+			mface=dm->getFaceData(dm,index,CD_MFACE);
+			mvert=dm->getVertDataArray(dm,CD_MVERT);
+			uv_index=CustomData_get_active_layer_index(&dm->faceData,CD_MTFACE);
 
 			if(uv_index>=0){
 				CustomDataLayer *layer=&dm->faceData.layers[uv_index];
