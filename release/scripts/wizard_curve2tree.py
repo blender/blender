@@ -463,7 +463,7 @@ class tree:
 						else:						rnd2 = 0.0
 						
 						# Align this with the existing branch
-						angle = AngleBetweenVecs(zup, parent_pt.no)
+						angle = AngleBetweenVecsSafe(zup, parent_pt.no)
 						cross = CrossVecs(zup, parent_pt.no)
 						mat_align = RotationMatrix(angle, 3, 'r', cross)
 						
@@ -472,7 +472,7 @@ class tree:
 						else:				cross = CrossVecs(parent_pt.no, parent_pt.next.no - parent_pt.no)
 						
 						if parent_pt.branch.parent_pt:
-							angle = AngleBetweenVecs(parent_pt.branch.parent_pt.no, parent_pt.no)
+							angle = AngleBetweenVecsSafe(parent_pt.branch.parent_pt.no, parent_pt.no)
 						else:
 							# Should add a UI for this... only happens when twigs come off a root branch
 							angle = 66
@@ -962,7 +962,7 @@ class tree:
 								else:
 									# Work out if the desired angle range is ok.
 									mco = mergeCo( self.headCo, self.tailCo, seg.tailCo, 0.0 ) # we dont want the random value for this test
-									ang = AngleBetweenVecs(self.tailCo-mco, seg.tailCo-mco)
+									ang = AngleBetweenVecsSafe(self.tailCo-mco, seg.tailCo-mco)
 									if ang < twig_fill_fork_angle_max:
 										best_dist = test_dist
 										best_seg = seg
@@ -1028,8 +1028,8 @@ class tree:
 				cross1 = CrossVecs( seg.no, line_normal )
 				cross2 = CrossVecs( pt.no, line_normal )
 				
-				angle_line = min(AngleBetweenVecs(cross1, cross2), AngleBetweenVecs(cross1, -cross2))
-				angle_leaf_no_diff = min(AngleBetweenVecs(line_normal, seg.no), AngleBetweenVecs(line_normal, -seg.no))
+				angle_line = min(AngleBetweenVecsSafe(cross1, cross2), AngleBetweenVecsSafe(cross1, -cross2))
+				angle_leaf_no_diff = min(AngleBetweenVecsSafe(line_normal, seg.no), AngleBetweenVecsSafe(line_normal, -seg.no))
 				
 				# BEST_ANG=66.0
 				# angle = 66.0 # min(AngleBetweenVecs(v2_co-v1_co, leaf.co-cc), AngleBetweenVecs(v1_co-v2_co, leaf.co-cc))
@@ -1878,7 +1878,7 @@ class tree:
 								leaf_co = pt.co + cross1
 							else:
 								# no correction needed, we are at the end of the branch
-								leaf_co = pt.no
+								leaf_no = pt.no
 								leaf_co = pt.co
 							
 							mat = Matrix([leaf_size_tmp,0,0],[0,leaf_size_tmp,0],[0,0,leaf_size_tmp]) * leaf_no.toTrackQuat('x', 'z').toMatrix()
@@ -2469,7 +2469,7 @@ class branch:
 	
 	def getParentAngle(self):
 		if self.parent_pt:
-			return AngleBetweenVecs(self.parent_pt.no, self.bpoints[0].no )
+			return AngleBetweenVecsSafe(self.parent_pt.no, self.bpoints[0].no )
 		else:
 			return 45.0
 	
@@ -2486,7 +2486,7 @@ class branch:
 		straight = 0.0
 		pt = self.bpoints[0]
 		while pt.next:
-			straight += AngleBetweenVecs(pt.no, pt.next.no)
+			straight += AngleBetweenVecsSafe(pt.no, pt.next.no)
 			pt = pt.next
 		return straight
 		
@@ -2593,13 +2593,13 @@ class branch:
 		
 		#try:	angle = AngleBetweenVecs(parent_normal, self_normal)
 		#except:	return 0.0
-		angle = AngleBetweenVecs(parent_normal, self_normal)
+		angle = AngleBetweenVecsSafe(parent_normal, self_normal)
 		
 		
 		# see if we need to rotate positive or negative
 		# USE DOT PRODUCT!
 		cross = CrossVecs(parent_normal, self_normal)
-		if AngleBetweenVecs(cross, self.parent_pt.no) > 90:
+		if AngleBetweenVecsSafe(cross, self.parent_pt.no) > 90:
 			angle = -angle
 		
 		return angle
@@ -2821,7 +2821,7 @@ class branch:
 				
 				if pt.prev and pt.next and pt.prev.childCount == 0:
 					if (pt.radius + pt.prev.radius) != 0.0 and abs(pt.radius - pt.prev.radius) / (pt.radius + pt.prev.radius) < seg_density_radius:
-						ang = AngleBetweenVecs(pt.no, pt.prev.no)
+						ang = AngleBetweenVecsSafe(pt.no, pt.prev.no)
 						if seg_density_angle == 180 or ang > 90 or ang < seg_density_angle:
 							## if (pt.prev.nextMidCo-pt.co).length < ((pt.radius + pt.prev.radius)/2) * seg_density:
 							if (pt.prev.nextMidCo-pt.co).length < seg_density or ang > 90:
@@ -2832,7 +2832,7 @@ class branch:
 				
 				if pt.childCount == 0 and pt.next: #if pt.childrenMidCo == None:
 					if (pt.radius + pt.next.radius) != 0.0 and abs(pt.radius - pt.next.radius) / (pt.radius + pt.next.radius) < seg_density_radius:
-						ang = AngleBetweenVecs(pt.no, pt.next.no)
+						ang = AngleBetweenVecsSafe(pt.no, pt.next.no)
 						if seg_density_angle == 180 or ang > 90 or ang < seg_density_angle:
 							# do here because we only want to run this on points with no children,
 							# Are we closer theto eachother then the radius?
@@ -2942,7 +2942,7 @@ class branch:
 		scales = []
 		for cos_ls in (cos1, cos2):
 			cross = CrossVecs(cos_ls[-1], zup)
-			mat = RotationMatrix(AngleBetweenVecs(cos_ls[-1], zup), 3, 'r', cross)
+			mat = RotationMatrix(AngleBetweenVecsSafe(cos_ls[-1], zup), 3, 'r', cross)
 			cos_ls[:] = [co*mat for co in cos_ls]
 		
 			# point z-up
@@ -2956,7 +2956,7 @@ class branch:
 			
 			# Also scale them here so they are 1.0 tall always
 			scale = 1.0/(cos_ls[0]-cos_ls[-1]).length
-			mat = RotationMatrix(AngleBetweenVecs(xy_nor, xup), 3, 'r', cross) * Matrix([scale,0,0],[0,scale,0],[0,0,scale])
+			mat = RotationMatrix(AngleBetweenVecsSafe(xy_nor, xup), 3, 'r', cross) * Matrix([scale,0,0],[0,scale,0],[0,0,scale])
 			cos_ls[:] = [co*mat for co in cos_ls]
 			
 			scales.append(scale)
