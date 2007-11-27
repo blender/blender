@@ -1616,14 +1616,14 @@ static void rekey_element_to_time(int index, float path_time)
 
 	pa->flag &= ~PARS_REKEY;
 }
-static void remove_tagged_elements(Object *ob, ParticleSystem *psys)
+static int remove_tagged_elements(Object *ob, ParticleSystem *psys)
 {
 	ParticleEdit *edit = psys->edit;
 	ParticleEditSettings *pset = PE_settings();
 	ParticleData *pa, *npa=0, *new_pars=0;
 	ParticleEditKey **key, **nkey=0, **new_keys=0;
 	ParticleSystemModifierData *psmd;
-	int i, totpart, new_totpart = psys->totpart;
+	int i, totpart, new_totpart = psys->totpart, removed = 0;
 
 	if(pset->flag & PE_X_MIRROR) {
 		/* mirror tags */
@@ -1635,9 +1635,12 @@ static void remove_tagged_elements(Object *ob, ParticleSystem *psys)
 				PE_mirror_particle(ob, psmd->dm, psys, pa, NULL);
 	}
 
-	for(i=0, pa=psys->particles; i<psys->totpart; i++, pa++)
-		if(pa->flag & PARS_TAG)
+	for(i=0, pa=psys->particles; i<psys->totpart; i++, pa++) {
+		if(pa->flag & PARS_TAG) {
 			new_totpart--;
+			removed++;
+		}
+	}
 
 	if(new_totpart != psys->totpart) {
 		if(new_totpart) {
@@ -1677,6 +1680,8 @@ static void remove_tagged_elements(Object *ob, ParticleSystem *psys)
 
 		edit->totkeys = psys_count_keys(psys);
 	}
+
+	return removed;
 }
 static void remove_tagged_keys(Object *ob, ParticleSystem *psys)
 {
@@ -2366,7 +2371,7 @@ int PE_brush_particles(void)
 	ParticleBrushData *brush;
 	float vec1[3], vec2[3];
 	short mval[2], mvalo[2], firsttime = 1, dx, dy;
-	int selected = 0, flip;
+	int selected = 0, flip, removed = 0;
 
 	if(!PE_can_edit(psys)) return 0;
 
@@ -2440,7 +2445,7 @@ int PE_brush_particles(void)
 					else
 						PE_foreach_element(psys, brush_cut, &data);
 
-					remove_tagged_elements(ob, psys);
+					removed= remove_tagged_elements(ob, psys);
 					if(pset->flag & PE_KEEP_LENGTHS)
 						recalc_lengths(psys);
 					break;
@@ -2535,8 +2540,8 @@ int PE_brush_particles(void)
 			if((pset->flag & PE_KEEP_LENGTHS)==0)
 				recalc_lengths(psys);
 
-			if(pset->brushtype == PE_BRUSH_ADD) {
-				if(pset->flag & PE_X_MIRROR)
+			if(pset->brushtype == PE_BRUSH_ADD || removed) {
+				if(pset->brushtype == PE_BRUSH_ADD && (pset->flag & PE_X_MIRROR))
 					PE_mirror_x(1);
 				PE_recalc_world_cos(ob,psys);
 				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);

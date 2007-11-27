@@ -3418,6 +3418,12 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys)
 				glEnableClientState(GL_NORMAL_ARRAY);
 				glEnable(GL_LIGHTING);
 
+				if(part->draw&PART_DRAW_MAT_COL) {
+					glEnableClientState(GL_COLOR_ARRAY);
+					glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+					glEnable(GL_COLOR_MATERIAL);
+				}
+
 				if(totchild && (part->draw&PART_DRAW_PARENT)==0)
 					totpart=0;
 
@@ -3426,6 +3432,8 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys)
 					path=cache[a];
 					glVertexPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->co);
 					glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), path->vel);
+					if(part->draw&PART_DRAW_MAT_COL)
+						glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->col);
 					glDrawArrays(GL_LINE_STRIP, 0, path->steps + 1);
 				}
 				
@@ -3434,8 +3442,16 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys)
 					path=cache[a];
 					glVertexPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->co);
 					glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), path->vel);
+					if(part->draw&PART_DRAW_MAT_COL)
+						glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), path->col);
 					glDrawArrays(GL_LINE_STRIP, 0, path->steps + 1);
 				}
+
+				if(part->draw&PART_DRAW_MAT_COL) {
+					glDisable(GL_COLOR_ARRAY);
+					glDisable(GL_COLOR_MATERIAL);
+				}
+
 				if(cdata2)
 					MEM_freeN(cdata2);
 				cd2=cdata2=0;
@@ -3540,8 +3556,6 @@ static void draw_particle_edit(Object *ob, ParticleSystem *psys)
 	ParticleCacheKey **path;
 	ParticleEditKey *key;
 	ParticleEditSettings *pset = PE_settings();
-	/*Mesh *me= (Mesh*)ob->data;*/
-	Material *ma;
 	int i, k, totpart = psys->totpart, totchild=0, timed = pset->draw_timed;
 	char nosel[4], sel[4];
 	float sel_col[3];
@@ -3590,10 +3604,10 @@ static void draw_particle_edit(Object *ob, ParticleSystem *psys)
 		glDisable(GL_LIGHTING);
 	}
 
-	for(i=0, pa=psys->particles, path = psys->pathcache; i<totpart; i++, pa++, path++){
-		/*if(me->mface[pa->num].flag & ME_HIDE)
-			continue;*/
+	glColorMaterial(GL_FRONT_AND_BACK, GL_DIFFUSE);
+	glEnable(GL_COLOR_MATERIAL);
 
+	for(i=0, pa=psys->particles, path = psys->pathcache; i<totpart; i++, pa++, path++){
 		glVertexPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), (*path)->co);
 		glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), (*path)->vel);
 		glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), (*path)->col);
@@ -3601,11 +3615,6 @@ static void draw_particle_edit(Object *ob, ParticleSystem *psys)
 		glDrawArrays(GL_LINE_STRIP, 0, (int)(*path)->steps + 1);
 	}
 
-	if(psys->part->draw&PART_DRAW_MAT_COL) {
-		ma= give_current_material(ob,psys->part->omat);
-		glColor3f(ma->r,ma->g,ma->b);
-		glDisableClientState(GL_COLOR_ARRAY);
-	}
 	glEnable(GL_LIGHTING);
 
 	for(i=0, path=psys->childcache; i<totchild; i++,path++){
@@ -3615,6 +3624,8 @@ static void draw_particle_edit(Object *ob, ParticleSystem *psys)
 
 		glDrawArrays(GL_LINE_STRIP, 0, (int)(*path)->steps + 1);
 	}
+
+	glDisable(GL_COLOR_MATERIAL);
 
 	/* draw edit vertices */
 	if(G.scene->selectmode!=SCE_SELECT_PATH){

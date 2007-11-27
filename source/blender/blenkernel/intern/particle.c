@@ -1637,6 +1637,9 @@ void psys_cache_child_paths(Object *ob, ParticleSystem *psys, float cfra, int ed
 				else
 					check_path_length(0,0,0,0,pa_length,0);
 			}
+
+			if(part->draw & PART_DRAW_MAT_COL)
+				VECCOPY(state->col, &ma->r)
 		}
 	}
 	/* now let's finalise the interpolated parents that we might have left half done before */
@@ -1682,6 +1685,8 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 
 	SoftBody *soft = 0;
 	BodyPoint *bp[2] = {NULL, NULL};
+	
+	Material *ma;
 	
 	float birthtime = 0.0, dietime = 0.0;
 	float t, time, keytime, dfra = 1.0, frs_sec = G.scene->r.frs_sec;
@@ -1738,6 +1743,9 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 		soft = psys->soft;
 	
 	psys->lattice = psys_get_lattice(ob, psys);
+	ma= give_current_material(ob, psys->part->omat);
+	if(psys->part->draw & PART_DRAW_MAT_COL)
+		VECCOPY(col, &ma->r)
 
 	/*---first main loop: create all actual particles' paths---*/
 	for(i=0,pa=psys->particles; i<totpart; i++, pa++){
@@ -1921,7 +1929,6 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 				}
 
 			}
-
 
 			/* selection coloring in edit mode */
 			if(edit){
