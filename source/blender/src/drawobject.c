@@ -3407,10 +3407,9 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys)
 /* 6. */
 
 		glGetIntegerv(GL_POLYGON_MODE, polygonmode);
+		glDisableClientState(GL_NORMAL_ARRAY);
 
 		if(draw_as != PART_DRAW_CIRC){
-			glDisableClientState(GL_NORMAL_ARRAY);
-
 			if(draw_as==PART_DRAW_PATH){
 				ParticleCacheKey **cache, *path;
 				float *cd2=0,*cdata2=0;

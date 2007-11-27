@@ -1596,6 +1596,12 @@ static void modifiers_bindMeshDeform(void *ob_v, void *md_v)
 		else if(ob->type == OB_LATTICE) {
 			lattice_calc_modifiers(ob);
 		}
+		else if(ob->type==OB_MBALL) {
+			makeDispListMBall(ob);
+		}
+		else if(ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT)) {
+			makeDispListCurveTypes(ob, 0);
+		}
 
 		mmd->needbind= 0;
 		mmd->modifier.mode= mode;

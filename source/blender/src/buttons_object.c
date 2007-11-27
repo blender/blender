@@ -3766,7 +3766,7 @@ static void object_panel_particle_extra(Object *ob)
 		
 		butx+=butw;
 
-		uiDefButS(block, MENU, B_PART_REDRAW, menustr,	butx,buty,buth,buth, psys->vgroup+vgnum, 0, defCount, 0, 0, "Browses available vertex groups");
+		but= uiDefButS(block, MENU, B_PART_REDRAW, menustr,	butx,buty,buth,buth, psys->vgroup+vgnum, 0, defCount, 0, 0, "Browses available vertex groups");
 		uiButSetFunc(but, particle_set_vg, (void *)ob, (void *)(&vgnum));
 		MEM_freeN (menustr);
 
