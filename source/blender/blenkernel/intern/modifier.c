@@ -5089,7 +5089,7 @@ static void particleSystemModifier_deformVerts(
 	ParticleSystemModifierData *psmd= (ParticleSystemModifierData*) md;
 	ParticleSystem * psys=0;
 	int totvert=0,totedge=0,totface=0,needsFree=0;
-	
+
 	if(ob->particlesystem.first)
 		psys=psmd->psys;
 	else
@@ -6759,9 +6759,10 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 
 		mti = INIT_TYPE(ParticleSystem);
 		mti->type = eModifierTypeType_OnlyDeform;
-		mti->flags = eModifierTypeFlag_AcceptsMesh;
+		mti->flags = eModifierTypeFlag_AcceptsMesh
+					| eModifierTypeFlag_SupportsMapping;
 #if 0
-					|eModifierTypeFlag_SupportsEditmode
+					| eModifierTypeFlag_SupportsEditmode;
 					|eModifierTypeFlag_EnableInEditmode;
 #endif
 		mti->initData = particleSystemModifier_initData;
@@ -6850,9 +6851,8 @@ int modifier_supportsMapping(ModifierData *md)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
-	return (	(mti->flags & eModifierTypeFlag_SupportsEditmode) &&
-				(	(mti->type==eModifierTypeType_OnlyDeform ||
-					(mti->flags & eModifierTypeFlag_SupportsMapping))) );
+	return (mti->type==eModifierTypeType_OnlyDeform ||
+	        (mti->flags & eModifierTypeFlag_SupportsMapping));
 }
 
 ModifierData *modifiers_findByType(Object *ob, ModifierType type)

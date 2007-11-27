@@ -1755,11 +1755,13 @@ static int render_new_particle_system(Render *re, Object *ob, ParticleSystem *ps
 			return 1;
 	}
 
+	psmd= psys_get_modifier(ob,psys);
+	if(!(psmd->modifier.mode & eModifierMode_Render))
+		return 0;
+
 	psys->flag|=PSYS_DRAWING;
 
 	BLI_srandom(psys->seed);
-
-	psmd= psys_get_modifier(ob,psys);
 	
 	ma= give_render_material(re, ob, part->omat);
 

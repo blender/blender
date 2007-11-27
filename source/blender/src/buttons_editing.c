@@ -1609,6 +1609,16 @@ void modifiers_explodeFacepa(void *arg1, void *arg2)
 	emd->flag |= eExplodeFlag_CalcFaces;
 }
 
+static void modifiers_psysEnable(void *ob_v, void *md_v)
+{
+	ParticleSystemModifierData *psmd = (ParticleSystemModifierData*) md_v;
+
+	if(psmd->modifier.mode & eModifierMode_Realtime)
+		psmd->psys->flag |= PSYS_ENABLED;
+	else
+		psmd->psys->flag &= ~PSYS_ENABLED;
+}
+
 static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco, int *yco, int index, int cageIndex, int lastCageIndex)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
@@ -1647,7 +1657,9 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			/* Softbody not allowed in this situation, enforce! */
 		if (md->type!=eModifierType_Softbody || !(ob->pd && ob->pd->deflect)) {
 			uiDefIconButBitI(block, TOG, eModifierMode_Render, B_MODIFIER_RECALC, ICON_SCENE, x+10+buttonWidth-60, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during rendering");
-			uiDefIconButBitI(block, TOG, eModifierMode_Realtime, B_MODIFIER_RECALC, VICON_VIEW3D, x+10+buttonWidth-40, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during interactive display");
+			but= uiDefIconButBitI(block, TOG, eModifierMode_Realtime, B_MODIFIER_RECALC, VICON_VIEW3D, x+10+buttonWidth-40, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during interactive display");
+			if (md->type==eModifierType_ParticleSystem)
+				uiButSetFunc(but, modifiers_psysEnable, ob, md);
 			if (mti->flags&eModifierTypeFlag_SupportsEditmode) {
 				uiDefIconButBitI(block, TOG, eModifierMode_Editmode, B_MODIFIER_RECALC, VICON_EDIT, x+10+buttonWidth-20, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during Editmode (only if enabled for display)");
 			}
