@@ -278,7 +278,19 @@ static PyObject *Blender_Set( PyObject * self, PyObject * args )
 		if ( !PyArg_Parse( arg , "s" , &dir ))
 			return EXPP_ReturnPyObjError( PyExc_ValueError, "expected a string" );
 		BLI_strncpy(U.tempdir, dir, FILE_MAXDIR);
-	} else
+	} else if (StringEqual( name , "compressfile" ) ) {
+		int value = PyObject_IsTrue( arg );
+		
+		if (value==-1)
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+					"expected an integer" );
+		
+		if (value)		
+		 U.flag |= USER_FILECOMPRESS;
+		else
+		 U.flag &= ~USER_FILECOMPRESS;
+		
+	}else
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"value given is not a blender setting" ) );
 	Py_RETURN_NONE;
@@ -506,6 +518,10 @@ static PyObject *Blender_Get( PyObject * self, PyObject * value )
 	} /* End 'quick hack' part. */
 	else if(StringEqual( str, "version" ))
 		ret = PyInt_FromLong( G.version );
+		
+	else if(StringEqual( str, "compressfile" ))
+		ret = PyInt_FromLong( (U.flag & USER_FILECOMPRESS) >> 15  );
+		
 	else
 		return EXPP_ReturnPyObjError( PyExc_AttributeError, "unknown attribute" );
 
@@ -685,10 +701,16 @@ static PyObject *Blender_Save( PyObject * self, PyObject * args )
 
 	disable_where_script( 1 );	/* to avoid error popups in the write_* functions */
 
-	if( BLI_testextensie( fname, ".blend" ) ) {		
+	if( BLI_testextensie( fname, ".blend" ) ) {
+		int writeflags;
 		if( G.fileflags & G_AUTOPACK )
 			packAll(  );
-		if( !BLO_write_file( fname, G.fileflags, &error ) ) {
+		
+		writeflags= G.fileflags & ~G_FILE_COMPRESS;
+		if(U.flag & USER_FILECOMPRESS)
+		writeflags |= G_FILE_COMPRESS;
+		
+		if( !BLO_write_file( fname, writeflags, &error ) ) {
 			disable_where_script( 0 );
 			return EXPP_ReturnPyObjError( PyExc_SystemError,
 						      error );

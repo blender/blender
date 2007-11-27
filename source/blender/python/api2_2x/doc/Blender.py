@@ -60,6 +60,7 @@ def Set (request, data):
   @type request: string
   @param request: The setting to change:
       - 'curframe': the current animation frame
+      - 'compressfile' : compress file writing a blend file (Use a boolean value True/False).
       - 'uscriptsdir': user scripts dir
       - 'yfexportdir': yafray temp xml storage dir
       - 'fontsdir': font dir
@@ -79,6 +80,7 @@ def Get (request):
   @param request: The setting data to be returned:
       - 'curframe': the current animation frame.
       - 'curtime' : the current animation time.
+      - 'compressfile' : compress setting from the file menu, return  0 for false or 1 for true.
       - 'staframe': the start frame of the animation.
       - 'endframe': the end frame of the animation.
       - 'rt': the value of the 'rt' button for general debugging
