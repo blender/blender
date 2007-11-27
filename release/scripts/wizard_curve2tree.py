@@ -1785,8 +1785,11 @@ class tree:
 			leaf_size = 0.5,\
 			leaf_size_rand = 0.0,\
 			leaf_branch_density = 0.2,\
-			leaf_branch_dir_rand = 0.2,\
+			leaf_branch_pitch_angle = 0.0,\
+			leaf_branch_pitch_rand = 0.2,\
+			leaf_branch_roll_rand = 0.2,\
 			leaf_branch_angle = 75.0,\
+			leaf_rand_seed = 1.0,\
 			leaf_object=None,\
 		):
 		
@@ -1796,54 +1799,55 @@ class tree:
 		Add to the existing mesh.
 		'''
 		
-		
-		# first collect stats, we want to know the average radius and total segments
 		#radius = [(pt.radius for pt in self.branches_all for pt in brch.bpoints for pt in brch.bpoints]
 		mesh_leaf = freshMesh(mesh_leaf)
 		self.mesh_leaf = mesh_leaf
 		
-		# elif leaf_dupliface and leaf_object:
+		# if not leaf_object: return # make the dupli anyway :/ - they can do it later or the script could complain
 		
-		if leaf_object:
-			
-			if leaf_branch_limit == 1.0:
-				max_radius = 1000000.0
-			else:
-				totpoints = 0
-				radius = 0.0
-				max_radius = 0.0
-				for brch in self.branches_all:
-					for pt in brch.bpoints:
-						radius += pt.radius
-						if pt.radius > max_radius:
-							max_radius = pt.radius
-					
-					#totpoints += len(brch.bpoints)
-					
-				radius_max = max_radius * leaf_branch_limit
-			
-			verts_extend = []
-			faces_extend = []
-			
-			co1 = Vector(0.0, -0.5, -0.5)
-			co2 = Vector(0.0, -0.5, 0.5)
-			co3 = Vector(0.0, 0.5, 0.5)
-			co4 = Vector(0.0, 0.5, -0.5)
-			
-			if leaf_branch_dir_rand == 0.0:
-				rand_vec = Vector()
-			
-			rnd_seed = [1.0] # could have seed as an input setting
-			
+		if leaf_branch_limit == 1.0:
+			max_radius = 1000000.0
+		else:
+			# We wont place leaves on all branches so...
+			# first collect stats, we want to know the average radius and total segments
+			totpoints = 0
+			radius = 0.0
+			max_radius = 0.0
 			for brch in self.branches_all:
-				
-				# quick test, do we need leaves on this branch?
-				if leaf_branch_limit != 1.0 and brch.bpoints[-1].radius > radius_max:
-					continue
-				
-				count = 0
 				for pt in brch.bpoints:
-					if pt == brch.bpoints[0] or (leaf_branch_density != 1.0 and leaf_branch_density < next_random_num(rnd_seed)):
+					radius += pt.radius
+					if pt.radius > max_radius:
+						max_radius = pt.radius
+				
+				#totpoints += len(brch.bpoints)
+				
+			radius_max = max_radius * leaf_branch_limit
+		
+		verts_extend = []
+		faces_extend = []
+		
+		co1 = Vector(0.0, -0.5, -0.5)
+		co2 = Vector(0.0, -0.5, 0.5)
+		co3 = Vector(0.0, 0.5, 0.5)
+		co4 = Vector(0.0, 0.5, -0.5)
+		
+		rnd_seed = [leaf_rand_seed] # could have seed as an input setting
+		
+		for brch in self.branches_all:
+			
+			# quick test, do we need leaves on this branch?
+			if leaf_branch_limit != 1.0 and brch.bpoints[-1].radius > radius_max:
+				continue
+			
+			
+			for pt in brch.bpoints:
+				
+				# For each point we can add 2 leaves
+				for odd_even in (0,1):
+					
+					
+					if	(pt == brch.bpoints[-1] and odd_even==1) or \
+						(leaf_branch_density != 1.0 and leaf_branch_density < next_random_num(rnd_seed)):
 						pass
 					else:
 						if leaf_branch_limit_rand:
@@ -1853,27 +1857,18 @@ class tree:
 							rnd = 1.0
 						
 						if pt.childCount == 0 and (leaf_branch_limit == 1.0 or (pt.radius * rnd) < radius_max):
-							
-							
 							leaf_size_tmp = leaf_size * (1.0-(next_random_num(rnd_seed)*leaf_size_rand))
-							
-							if leaf_branch_dir_rand:
-								rand_vec = Vector(randuvec()) * leaf_branch_dir_rand
-							#else:
-							#	rand_vec = Vector() # set above
 							
 							# endpoints dont rotate
 							if pt.next != None:
 								cross1 = CrossVecs(zup, pt.no) # use this to offset the leaf later
 								cross2 = CrossVecs(cross1, pt.no)
-								if count %2:
-									mat_yaw = RotationMatrix(leaf_branch_angle, 4, 'r',  cross2)
+								if odd_even ==0:
+									mat_yaw = RotationMatrix(leaf_branch_angle, 3, 'r',  cross2)
 								else:
-									mat_yaw = RotationMatrix(-leaf_branch_angle, 4, 'r', cross2)
-								#mat = mat * mat_yaw
+									mat_yaw = RotationMatrix(-leaf_branch_angle, 3, 'r', cross2)
 								
-								if leaf_branch_dir_rand:	leaf_no = (pt.no * mat_yaw) + rand_vec
-								else:						leaf_no = (pt.no * mat_yaw)
+								leaf_no = (pt.no * mat_yaw)
 								
 								# Correct upwards pointing from changing the yaw 
 								#my_up = zup * mat
@@ -1883,23 +1878,39 @@ class tree:
 								leaf_co = pt.co + cross1
 							else:
 								# no correction needed, we are at the end of the branch
-								if leaf_branch_dir_rand:	leaf_co = pt.no + rand_vec
-								else:						leaf_co = pt.no
+								leaf_co = pt.no
 								leaf_co = pt.co
 							
-							mat = Matrix([leaf_size_tmp,0,0],[0,leaf_size_tmp,0],[0,0,leaf_size_tmp]).resize4x4() * leaf_no.toTrackQuat('x', 'z').toMatrix().resize4x4()
-							mat = mat * TranslationMatrix(leaf_co)
+							mat = Matrix([leaf_size_tmp,0,0],[0,leaf_size_tmp,0],[0,0,leaf_size_tmp]) * leaf_no.toTrackQuat('x', 'z').toMatrix()
+							
+							# Randomize pitch and roll for the leaf
+							
+							# work out the axis to pitch and roll
+							cross1 = CrossVecs(zup, leaf_no) # use this to offset the leaf later
+							if leaf_branch_pitch_rand or leaf_branch_pitch_angle:
+								
+								angle = -leaf_branch_pitch_angle
+								if leaf_branch_pitch_rand:
+									angle += leaf_branch_pitch_rand * ((next_random_num(rnd_seed)-0.5)*360)
+								
+								mat_pitch = RotationMatrix( angle, 3, 'r', cross1)
+								mat = mat * mat_pitch
+							if leaf_branch_roll_rand:
+								mat_roll =  RotationMatrix( leaf_branch_roll_rand * ((next_random_num(rnd_seed)-0.5)*360), 3, 'r', leaf_no * mat_pitch)
+								mat = mat * mat_roll
+							
+							mat = mat.resize4x4() * TranslationMatrix(leaf_co)
 							
 							i = len(verts_extend)
 							faces_extend.append( (i,i+1,i+2,i+3) )
 							verts_extend.extend([tuple(co4*mat), tuple(co3*mat), tuple(co2*mat), tuple(co1*mat)])
-						count += 1
-					
-			
-			# setup dupli's
-			
-			self.mesh_leaf.verts.extend(verts_extend)
-			self.mesh_leaf.faces.extend(faces_extend)
+					#count += 1
+				
+		
+		# setup dupli's
+		
+		self.mesh_leaf.verts.extend(verts_extend)
+		self.mesh_leaf.faces.extend(faces_extend)
 		
 		return self.mesh_leaf
 	
@@ -3049,8 +3060,11 @@ PREFS['do_leaf'] = Draw.Create(0)
 PREFS['leaf_branch_limit'] = Draw.Create(0.25)
 PREFS['leaf_branch_limit_rand'] = Draw.Create(0.1)
 PREFS['leaf_branch_density'] = Draw.Create(0.1)
-PREFS['leaf_branch_dir_rand'] = Draw.Create(0.2)
+PREFS['leaf_branch_pitch_angle'] = Draw.Create(0.0)
+PREFS['leaf_branch_pitch_rand'] = Draw.Create(0.2)
+PREFS['leaf_branch_roll_rand'] = Draw.Create(0.2)
 PREFS['leaf_branch_angle'] = Draw.Create(75.0)
+PREFS['leaf_rand_seed'] = Draw.Create(1.0)
 PREFS['leaf_size'] = Draw.Create(0.5)
 PREFS['leaf_size_rand'] = Draw.Create(0.0)
 
@@ -3316,11 +3330,12 @@ def buildTree(ob_curve, single=False):
 			leaf_branch_limit_rand = PREFS['leaf_branch_limit_rand'].val,\
 			leaf_size = PREFS['leaf_size'].val,\
 			leaf_size_rand = PREFS['leaf_size_rand'].val,\
-			
 			leaf_branch_density = PREFS['leaf_branch_density'].val,\
-			leaf_branch_dir_rand = PREFS['leaf_branch_dir_rand'].val,\
+			leaf_branch_pitch_angle = PREFS['leaf_branch_pitch_angle'].val,\
+			leaf_branch_pitch_rand = PREFS['leaf_branch_pitch_rand'].val,\
+			leaf_branch_roll_rand = PREFS['leaf_branch_roll_rand'].val,\
 			leaf_branch_angle = PREFS['leaf_branch_angle'].val,\
-			
+			leaf_rand_seed = PREFS['leaf_rand_seed'].val,\
 			leaf_object = leaf_object,\
 		)
 		
@@ -3529,11 +3544,12 @@ def do_tree_generate__real():
 	for ob in objects:
 		buildTree(ob, len(objects)==1)
 	
-	Blender.Window.WaitCursor(0)
 	if is_editmode:
 		Blender.Window.EditMode(1, '', 0)
 	
 	Blender.Window.RedrawAll()
+	
+	Blender.Window.WaitCursor(0)
 
 
 # Profile
@@ -3705,7 +3721,7 @@ def gui():
 	
 	
 	Blender.Draw.BeginAlign()
-	PREFS['do_leaf'] =	Draw.Toggle('Generate Leaves',EVENT_UPDATE_AND_UI, xtmp, y, but_width*2, but_height, PREFS['do_leaf'].val,		'Generate a separate leaf mesh'); xtmp += but_width*2;
+	PREFS['do_leaf'] =	Draw.Toggle('Generate Leaves',EVENT_UPDATE_AND_UI, xtmp, y, but_width*2, but_height, PREFS['do_leaf'].val,		'Generate leaves using duplifaces'); xtmp += but_width*2;
 	
 	if PREFS['do_leaf'].val:
 		
@@ -3715,7 +3731,7 @@ def gui():
 		xtmp = x
 		
 		PREFS['leaf_size'] =	Draw.Number('Size',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['leaf_size'].val, 0.001, 10.0,	'size of the leaf'); xtmp += but_width*2;
-		PREFS['leaf_size_rand'] =	Draw.Number('Randsize',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['leaf_size_rand'].val, 0.0, 1.0,	'size of the leaf'); xtmp += but_width*2;
+		PREFS['leaf_size_rand'] =	Draw.Number('Randsize',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['leaf_size_rand'].val, 0.0, 1.0,	'randomize the leaf size'); xtmp += but_width*2;
 		
 		# ---------- ---------- ---------- ----------
 		y-=but_height
@@ -3729,20 +3745,23 @@ def gui():
 		y-=but_height
 		xtmp = x
 		
-		PREFS['leaf_branch_density'] =	Draw.Number('Density',	EVENT_UPDATE, xtmp, y, but_width*4, but_height, PREFS['leaf_branch_density'].val,	0.0, 1.0,	'Chance each segment has of baring a leaf, use a high value for more leaves'); xtmp += but_width*4;
+		PREFS['leaf_branch_density'] =	Draw.Number('Density',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['leaf_branch_density'].val,	0.0, 1.0,	'Chance each segment has of baring a leaf, use a high value for more leaves'); xtmp += but_width*2;
+		PREFS['leaf_branch_angle'] =	Draw.Number('Angle From Branch',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['leaf_branch_angle'].val,	0.0, 90.0,	'angle the leaf is from the branch direction'); xtmp += but_width*2;
 		
 		# ---------- ---------- ---------- ----------
 		y-=but_height
 		xtmp = x
 		
-		PREFS['leaf_branch_dir_rand'] =	Draw.Number('Random Direction',	EVENT_UPDATE, xtmp, y, but_width*4, but_height, PREFS['leaf_branch_dir_rand'].val,	0.0, 1.0,	'Angle the leaves point away from the branch'); xtmp += but_width*4;
+		PREFS['leaf_rand_seed'] =	Draw.Number('Random Seed',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['leaf_rand_seed'].val,	0.0, 10000.0,	'Set the seed for leaf random values'); xtmp += but_width*2;
+		PREFS['leaf_branch_pitch_angle'] =	Draw.Number('Pitch Angle',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['leaf_branch_pitch_angle'].val,	-180, 180.0,	'Change the pitch rotation of leaves, negative angle to point down'); xtmp += but_width*2;
 		
 		# ---------- ---------- ---------- ----------
 		y-=but_height
 		xtmp = x
 		
-		PREFS['leaf_branch_angle'] =	Draw.Number('Angle From Branch',	EVENT_UPDATE, xtmp, y, but_width*4, but_height, PREFS['leaf_branch_angle'].val,	0.0, 90.0,	'Randomize the starting of leaves'); xtmp += but_width*4;
-	
+		PREFS['leaf_branch_pitch_rand'] =	Draw.Number('Random Pitch',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['leaf_branch_pitch_rand'].val,	0.0, 1.0,	'Randomize the leaf rotation (up-down/pitch)'); xtmp += but_width*2;
+		PREFS['leaf_branch_roll_rand'] =	Draw.Number('Random Roll',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['leaf_branch_roll_rand'].val,	0.0, 1.0,	'Randomize the leaf rotation (roll/tilt/yaw)'); xtmp += but_width*2;
+		
 	
 	Blender.Draw.EndAlign()
 	
@@ -3892,7 +3911,7 @@ def gui():
 	# ---------- ---------- ---------- ----------
 	
 	PREFS['connect_sloppy'] =	Draw.Number('Connect Limit',EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['connect_sloppy'].val,	0.1, 2.0,	'Strictness when connecting branches'); xtmp += but_width*2;
-	PREFS['connect_base_trim'] =	Draw.Number('Trim Base',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['connect_base_trim'].val,	0.0, 2.0,	'Trim branch base to better connect with parent branch'); xtmp += but_width*2;
+	PREFS['connect_base_trim'] =	Draw.Number('Joint Detail',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['connect_base_trim'].val,	0.0, 2.0,	'Trim branch base to better connect with parent branch, low value for more detail'); xtmp += but_width*2;
 	Blender.Draw.EndAlign()
 	y-=but_height+MARGIN
 	xtmp = x

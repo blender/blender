@@ -5485,6 +5485,18 @@ void hookmenu(void)
 }
 
 /*
+ * Returns true if the Object is a from an external blend file (libdata)
+ */
+int object_is_libdata(Object *ob)
+{
+	if (!ob) return 0;
+	if (ob->proxy) return 0;
+	if (ob->id.lib) return 1;
+	return 0;
+}
+
+
+/*
  * Returns true if the Object data is a from an external blend file (libdata)
  */
 int object_data_is_libdata(Object *ob)

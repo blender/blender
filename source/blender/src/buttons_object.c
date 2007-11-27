@@ -2318,7 +2318,7 @@ static void object_panel_object(Object *ob)
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_object", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Object and Links", "Object", 0, 0, 318, 204)==0) return;
 	
-	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+	uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	
 	/* object name */
 	uiBlockSetCol(block, TH_BUT_SETTING2);
@@ -2385,7 +2385,7 @@ static void object_panel_anim(Object *ob)
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_anim", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Anim settings", "Object", 320, 0, 318, 204)==0) return;
 	
-	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+	uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	
 	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW,B_TRACKBUTS,"TrackX",	24,180,59,19, &ob->trackflag, 12.0, 0.0, 0, 0, "Specify the axis that points to another object");
@@ -2450,7 +2450,7 @@ static void object_panel_draw(Object *ob)
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_draw", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Draw", "Object", 640, 0, 318, 204)==0) return;
 	
-	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+	uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	
 	/* LAYERS */
 	xco= 120;
@@ -2512,7 +2512,7 @@ void object_panel_constraint(char *context)
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_constraint", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Constraints", context, 960, 0, 318, 204)==0) return;
 	
-	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+	uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	
 	/* this is a variable height panel, newpanel doesnt force new size on existing panels */
 	/* so first we make it default height */
