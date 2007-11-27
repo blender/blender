@@ -1755,11 +1755,13 @@ static int render_new_particle_system(Render *re, Object *ob, ParticleSystem *ps
 			return 1;
 	}
 
+	psmd= psys_get_modifier(ob,psys);
+	if(!(psmd->modifier.mode & eModifierMode_Render))
+		return 0;
+
 	psys->flag|=PSYS_DRAWING;
 
 	BLI_srandom(psys->seed);
-
-	psmd= psys_get_modifier(ob,psys);
 	
 	ma= give_render_material(re, ob, part->omat);
 
@@ -1949,6 +1951,11 @@ static int render_new_particle_system(Render *re, Object *ob, ParticleSystem *ps
 			pa_size=psys_get_child_size(psys, a-totpart, cfra, &pa_time);
 
 			r_tilt=2.0f*cpa->rand[2];
+
+			/* get orco */
+			psys_particle_on_emitter(ob, psmd,
+				(part->childtype == PART_CHILD_FACES)? PART_FROM_FACE: PART_FROM_PARTICLE,
+				cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,orco,0,0,0);
 
 			if(uvco){
 				layer=psmd->dm->faceData.layers + CustomData_get_layer_index(&psmd->dm->faceData,CD_MFACE);

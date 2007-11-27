@@ -68,6 +68,7 @@ typedef struct ClothVertex {
 	float	impulse[3];	/* used in collision.c */
 	unsigned int impulse_count; /* same as above */
 	float collball;
+	char octantflag;
 } ClothVertex;
 
 typedef struct ClothSpring {

@@ -778,7 +778,7 @@ static void calculate_collision_balls(Object *ob)
 			bs = sb->bspring + bp->springs[b-1];
 			if (bs->order == 1){
 			akku += bs->len;
-			akku_count++,
+			akku_count++;
 			min = MIN2(bs->len,min);
 			max = MAX2(bs->len,max);
 			}

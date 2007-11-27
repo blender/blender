@@ -5342,7 +5342,7 @@ static void particleSystemModifier_deformVerts(
 	ParticleSystemModifierData *psmd= (ParticleSystemModifierData*) md;
 	ParticleSystem * psys=0;
 	int totvert=0,totedge=0,totface=0,needsFree=0;
-	
+
 	if(ob->particlesystem.first)
 		psys=psmd->psys;
 	else
@@ -5417,8 +5417,6 @@ static void particleSystemModifier_deformVerts(
 		if(psmd->flag & eParticleSystemFlag_Loaded)
 			psmd->flag &= ~eParticleSystemFlag_Loaded;
 		else{
-			/* TODO PARTICLE - Added this so changing subsurf under hair updates it
-			should it be done elsewhere? - Campbell */
 			psys->recalc |= PSYS_RECALC_HAIR;
 			psys->recalc |= PSYS_DISTR;
 			psmd->flag |= eParticleSystemFlag_DM_changed;
@@ -5432,6 +5430,9 @@ static void particleSystemModifier_deformVerts(
 	}
 }
 
+/* disabled particles in editmode for now, until support for proper derivedmesh
+ * updates is coded */
+#if 0
 static void particleSystemModifier_deformVertsEM(
                 ModifierData *md, Object *ob, EditMesh *editData,
                 DerivedMesh *derivedData, float (*vertexCos)[3], int numVerts)
@@ -5444,6 +5445,7 @@ static void particleSystemModifier_deformVertsEM(
 
 	if(!derivedData) dm->release(dm);
 }
+#endif
 
 /* Particle Instance */
 static void particleInstanceModifier_initData(ModifierData *md) 
@@ -7037,13 +7039,18 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti = INIT_TYPE(ParticleSystem);
 		mti->type = eModifierTypeType_OnlyDeform;
 		mti->flags = eModifierTypeFlag_AcceptsMesh
-					|eModifierTypeFlag_SupportsEditmode
+					| eModifierTypeFlag_SupportsMapping;
+#if 0
+					| eModifierTypeFlag_SupportsEditmode;
 					|eModifierTypeFlag_EnableInEditmode;
+#endif
 		mti->initData = particleSystemModifier_initData;
 		mti->freeData = particleSystemModifier_freeData;
 		mti->copyData = particleSystemModifier_copyData;
 		mti->deformVerts = particleSystemModifier_deformVerts;
+#if 0
 		mti->deformVertsEM = particleSystemModifier_deformVertsEM;
+#endif
 		mti->requiredDataMask = particleSystemModifier_requiredDataMask;
 
 		mti = INIT_TYPE(ParticleInstance);
@@ -7123,9 +7130,8 @@ int modifier_supportsMapping(ModifierData *md)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
 
-	return (	(mti->flags & eModifierTypeFlag_SupportsEditmode) &&
-				(	(mti->type==eModifierTypeType_OnlyDeform ||
-					(mti->flags & eModifierTypeFlag_SupportsMapping))) );
+	return (mti->type==eModifierTypeType_OnlyDeform ||
+	        (mti->flags & eModifierTypeFlag_SupportsMapping));
 }
 
 ModifierData *modifiers_findByType(Object *ob, ModifierType type)

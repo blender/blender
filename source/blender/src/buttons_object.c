@@ -3768,7 +3768,7 @@ static void object_panel_particle_extra(Object *ob)
 		
 		butx+=butw;
 
-		uiDefButS(block, MENU, B_PART_REDRAW, menustr,	butx,buty,buth,buth, psys->vgroup+vgnum, 0, defCount, 0, 0, "Browses available vertex groups");
+		but= uiDefButS(block, MENU, B_PART_REDRAW, menustr,	butx,buty,buth,buth, psys->vgroup+vgnum, 0, defCount, 0, 0, "Browses available vertex groups");
 		uiButSetFunc(but, particle_set_vg, (void *)ob, (void *)(&vgnum));
 		MEM_freeN (menustr);
 
@@ -4839,7 +4839,7 @@ static void object_panel_cloth_III(Object *ob)
 			// uiDefBut(block, LABEL, 0, "",10,10,300,20, NULL, 0.0, 0, 0, 0, ""); /* tell UI we go to 10,10*/
 			uiDefButF(block, NUM, B_CLOTH_RENEW, "Min Distance:",	   10,140,150,20, &clmd->coll_parms->epsilon, 0.001f, 1.0, 0.01f, 0, "Minimum distance between collision objects before collision response takes in");
 			uiDefBut(block, LABEL, 0, "",160,140,150,20, NULL, 0.0, 0, 0, 0, "");
-			uiDefButF(block, NUM, B_CLOTH_RENEW, "Selfcoll balls:",	   10,120,150,20, &clmd->coll_parms->selfepsilon, 0.001f, 1.0, 0.01f, 0, "Minimum distance between two selfcollision points");
+			uiDefButF(block, NUM, B_CLOTH_RENEW, "Selfcoll balls:",	   10,120,150,20, &clmd->coll_parms->selfepsilon, 0.001f, 1.0, 0.49f, 0, "Minimum distance between two selfcollision points");
 		}
 		else
 			uiDefBut(block, LABEL, 0, "",140,10,170,20, NULL, 0.0, 0, 0, 0, "");
@@ -4888,7 +4888,7 @@ void particle_panels()
 
 	ob=OBACT;
 
-	if(ob) {
+	if(ob && ob->type==OB_MESH) {
 		object_panel_particle_system(ob);
 
 		psys=psys_get_current(ob);

@@ -125,7 +125,7 @@ static void cloth_to_object (Object *ob,  DerivedMesh *dm, ClothModifierData *cl
 static void cloth_from_mesh (Object *ob, ClothModifierData *clmd, DerivedMesh *dm, float framenr);
 static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *dm, DerivedMesh *olddm, float framenr);
 
-int cloth_build_springs ( Cloth *cloth, DerivedMesh *dm );
+int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm );
 static void cloth_apply_vgroup(ClothModifierData *clmd, DerivedMesh *dm, short vgroup);
 /******************************************************************************
 *
@@ -160,7 +160,7 @@ void cloth_init (ClothModifierData *clmd)
 	clmd->coll_parms->friction = 10.0;
 	clmd->coll_parms->loop_count = 1;
 	clmd->coll_parms->epsilon = 0.01;
-	clmd->coll_parms->selfepsilon = 0.1;
+	clmd->coll_parms->selfepsilon = 0.49;
 	
 	/* These defaults are copied from softbody.c's
 	* softbody_calc_forces() function.
@@ -884,7 +884,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 					VECCOPY ( clmd->clothObject->verts [i].impulse, tnull );
 				}
 				
-				if (!cloth_build_springs (clmd->clothObject, dm) )
+				if (!cloth_build_springs (clmd, dm) )
 				{
 					modifier_setError (&(clmd->modifier), "Can't build springs.");
 					return 0;
@@ -1035,11 +1035,12 @@ int cloth_add_spring ( ClothModifierData *clmd, unsigned int indexA, unsigned in
 	return 0;
 }
 
-int cloth_build_springs ( Cloth *cloth, DerivedMesh *dm )
+int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 {
+	Cloth *cloth = clmd->clothObject;
 	ClothSpring *spring = NULL, *tspring = NULL, *tspring2 = NULL;
 	unsigned int struct_springs = 0, shear_springs=0, bend_springs = 0;
-	unsigned int i = 0, j = 0;
+	unsigned int i = 0, j = 0, akku_count;
 	unsigned int numverts = dm->getNumVerts ( dm );
 	unsigned int numedges = dm->getNumEdges ( dm );
 	unsigned int numfaces = dm->getNumFaces ( dm );
@@ -1049,7 +1050,7 @@ int cloth_build_springs ( Cloth *cloth, DerivedMesh *dm )
 	LinkNode **edgelist = NULL;
 	EdgeHash *edgehash = NULL;
 	LinkNode *search = NULL, *search2 = NULL;
-	float temp[3];
+	float temp[3], akku, min, max;
 	LinkNode *node = NULL, *node2 = NULL;
 	
 	// error handling
@@ -1096,9 +1097,14 @@ int cloth_build_springs ( Cloth *cloth, DerivedMesh *dm )
 	// calc collision balls *slow*
 	// better: use precalculated list with O(1) index access to all springs of a vertex
 	// missing for structural since it's not needed for building bending springs
-	/*
 	for ( i = 0; i < numverts; i++ )
 	{
+		akku_count = 0;
+		akku = 0.0;
+		cloth->verts[i].collball=0;
+		min = 1e22f;
+		max = -1e22f;
+		
 		search = cloth->springs;
 		for ( j = 0; j < struct_springs; j++ )
 		{
@@ -1109,14 +1115,19 @@ int cloth_build_springs ( Cloth *cloth, DerivedMesh *dm )
 			
 			if((tspring->ij == i) || (tspring->kl == i))
 			{
-				akku += bs->len;
-				akku_count++,
-				min = MIN2(bs->len,min);
-				max = MAX2(bs->len,max);
+				akku += spring->restlen;
+				akku_count++;
+    				min = MIN2(spring->restlen,min);
+    				max = MAX2(spring->restlen,max);
 			}
 		}
+		
+		if (akku_count > 0) {
+			cloth->verts[i].collball = akku/(float)akku_count*clmd->coll_parms->selfepsilon;
+		}
+		else cloth->verts[i].collball=0;
 	}
-	*/
+	
 	// shear springs
 	for ( i = 0; i < numfaces; i++ )
 	{

@@ -1185,7 +1185,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			/* only swap mouse button for selection, in modes where it is relevant.
 			 * painting/sculpting stays on LEFTMOUSE */
 			if (   !((G.f & G_SCULPTMODE) || (G.f & G_WEIGHTPAINT) ||
-				(G.f & G_VERTEXPAINT) || (G.f & G_TEXTUREPAINT)) ||
+				(G.f & G_VERTEXPAINT) || (G.f & G_TEXTUREPAINT) || (G.f & G_PARTICLEEDIT)) ||
 				(G.obedit) )
 			{			
 				if (event==LEFTMOUSE) event = RIGHTMOUSE;

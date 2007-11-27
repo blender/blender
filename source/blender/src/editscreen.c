@@ -491,6 +491,8 @@ static void addqueue_ext(short win, unsigned short event, short val, char ascii)
 	} 
 	else {
 		BWinEvent evt;
+
+		memset(&evt, 0, sizeof(evt));
 		evt.event= event;
 		evt.val= val;
 		evt.ascii= ascii;

@@ -2235,76 +2235,81 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float prevstep,
 	collisions = 1;
 	count = 0;
 	current_x = cloth->current_x; // needed for openMP
-/*
-#pragma omp parallel for private(i,j, collisions) shared(current_x)
-	for(count = 0; count < 6; count++)
+	
+	// #pragma omp parallel for private(i,j, collisions) shared(current_x)
+	// for ( count = 0; count < 6; count++ )
 	{
-	collisions = 0;
-		
-	for(i = 0; i < cloth->numverts; i++)
-	{
-	for(j = i + 1; j < cloth->numverts; j++)
-	{
-	float temp[3];
-	float length = 0;
-	float mindistance = cloth->selftree->epsilon;
+		collisions = 0;
+	
+		for ( i = 0; i < cloth->numverts; i++ )
+		{
+			float mindistance1 = cloth->verts[i].collball;
+			
+			for ( j = i + 1; j < cloth->numverts; j++ )
+			{
+				float temp[3];
+				float length = 0;
+				
+				float mindistance2 = cloth->verts[j].collball;
+	
+				if ( clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL )
+				{
+					if ( ( cloth->verts [i].goal >= SOFTGOALSNAP )
+					        && ( cloth->verts [j].goal >= SOFTGOALSNAP ) )
+					{
+						continue;
+					}
+				}
+	
+				// check for adjacent points
+				if ( BLI_edgehash_haskey ( cloth->edgehash, i, j ) )
+				{
+					continue;
+				}
+	
+				VECSUB ( temp, current_x[i], current_x[j] );
+	
+				length = Normalize ( temp );
+	
+				if ( length < ((mindistance1 + mindistance2)) )
+				{
+					float correction = ((mindistance1 + mindistance2)) - length;
 					
-	if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL)
-	{			
-	if((cloth->verts [i].goal >= SOFTGOALSNAP)
-	&& (cloth->verts [j].goal >= SOFTGOALSNAP))
-	{
-	continue;
-}
-}
-					
-					// check for adjacent points
-	if(BLI_edgehash_haskey ( cloth->edgehash, i, j ))
-	{
-	continue;
-}
-					
-	VECSUB(temp, current_x[i], current_x[j]);
-					
-	length = Normalize(temp);
-					
-	if(length < mindistance)
-	{
-	float correction = mindistance - length;
-						
-	if((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) && (cloth->verts [i].goal >= SOFTGOALSNAP))
-	{
-	VecMulf(temp, -correction);
-	VECADD(current_x[j], current_x[j], temp);
-}
-	else if((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) && (cloth->verts [j].goal >= SOFTGOALSNAP))
-	{
-	VecMulf(temp, correction);
-	VECADD(current_x[i], current_x[i], temp);
-}
-	else
-	{
-	VecMulf(temp, -correction*0.5);
-	VECADD(current_x[j], current_x[j], temp);
-						
-	VECSUB(current_x[i], current_x[i], temp);	
-}
-					
-	collisions = 1;
-}
-}
-}
-}
-
+					printf("correction: %f\n", correction);
+	
+					if ( ( clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL ) && ( cloth->verts [i].goal >= SOFTGOALSNAP ) )
+					{
+						VecMulf ( temp, -correction );
+						VECADD ( current_x[j], current_x[j], temp );
+					}
+					else if ( ( clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL ) && ( cloth->verts [j].goal >= SOFTGOALSNAP ) )
+					{
+						VecMulf ( temp, correction );
+						VECADD ( current_x[i], current_x[i], temp );
+					}
+					else
+					{
+						VecMulf ( temp, -correction*0.5 );
+						VECADD ( current_x[j], current_x[j], temp );
+	
+						VECSUB ( current_x[i], current_x[i], temp );
+					}
+	
+					collisions = 1;
+				}
+			}
+		}
+	}
+	
 	
 	//////////////////////////////////////////////
 	// SELFCOLLISIONS: update velocities
 	//////////////////////////////////////////////
-	for(i = 0; i < cloth->numverts; i++)
+	for ( i = 0; i < cloth->numverts; i++ )
 	{
-	VECSUB(cloth->current_v[i], cloth->current_x[i], cloth->current_xold[i]);
-}
+		VECSUB ( cloth->current_v[i], cloth->current_x[i], cloth->current_xold[i] );
+	}
 	//////////////////////////////////////////////
-*/	
+
 	return 1;
 }

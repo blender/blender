@@ -3407,10 +3407,9 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys)
 /* 6. */
 
 		glGetIntegerv(GL_POLYGON_MODE, polygonmode);
+		glDisableClientState(GL_NORMAL_ARRAY);
 
 		if(draw_as != PART_DRAW_CIRC){
-			glDisableClientState(GL_NORMAL_ARRAY);
-
 			if(draw_as==PART_DRAW_PATH){
 				ParticleCacheKey **cache, *path;
 				float *cd2=0,*cdata2=0;
@@ -5038,7 +5037,7 @@ void draw_object(Base *base, int flag)
 	if(ob->pd && ob->pd->forcefield) draw_forcefield(ob);
 
 	/* code for new particle system */
-	if(warning_recursive==0 && (flag & DRAW_PICKING)==0){
+	if(warning_recursive==0 && (flag & DRAW_PICKING)==0 && ob!=G.obedit){
 		glDepthMask(GL_FALSE);
 		if(col || (ob->flag & SELECT)) cpack(0xFFFFFF);	/* for visibility, also while wpaint */
 		if(ob->particlesystem.first) {
