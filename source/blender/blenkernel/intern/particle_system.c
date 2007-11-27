@@ -3832,7 +3832,7 @@ static void dynamics_step(Object *ob, ParticleSystem *psys, ParticleSystemModifi
 
 		if(part->phystype==PART_PHYS_BOIDS){
 			/* create particle tree for fast inter-particle comparisons */
-			KDTree *tree=BLI_kdtree_new(totpart);
+			tree=BLI_kdtree_new(totpart);
 			for(p=0, pa=psys->particles; p<totpart; p++,pa++){
 				if(pa->flag & (PARS_NO_DISP+PARS_UNEXIST) || pa->alive!=PARS_ALIVE)
 					continue;

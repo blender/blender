@@ -1950,6 +1950,11 @@ static int render_new_particle_system(Render *re, Object *ob, ParticleSystem *ps
 
 			r_tilt=2.0f*cpa->rand[2];
 
+			/* get orco */
+			psys_particle_on_emitter(ob, psmd,
+				(part->childtype == PART_CHILD_FACES)? PART_FROM_FACE: PART_FROM_PARTICLE,
+				cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,orco,0,0,0);
+
 			if(uvco){
 				layer=psmd->dm->faceData.layers + CustomData_get_layer_index(&psmd->dm->faceData,CD_MFACE);
 
