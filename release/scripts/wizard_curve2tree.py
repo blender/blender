@@ -1787,7 +1787,7 @@ class tree:
 			leaf_branch_density = 0.2,\
 			leaf_branch_dir_rand = 0.2,\
 			leaf_branch_angle = 75.0,\
-			leaf_dupliface_fromgroup=None,\
+			leaf_object=None,\
 		):
 		
 		'''
@@ -1802,9 +1802,9 @@ class tree:
 		mesh_leaf = freshMesh(mesh_leaf)
 		self.mesh_leaf = mesh_leaf
 		
-		# elif leaf_dupliface and leaf_dupliface_fromgroup:
+		# elif leaf_dupliface and leaf_object:
 		
-		if leaf_dupliface_fromgroup:
+		if leaf_object:
 			
 			if leaf_branch_limit == 1.0:
 				max_radius = 1000000.0
@@ -3054,7 +3054,7 @@ PREFS['leaf_branch_angle'] = Draw.Create(75.0)
 PREFS['leaf_size'] = Draw.Create(0.5)
 PREFS['leaf_size_rand'] = Draw.Create(0.0)
 
-PREFS['leaf_dupliface_fromgroup'] = Draw.Create('')
+PREFS['leaf_object'] = Draw.Create('')
 
 PREFS['do_variation'] = Draw.Create(0)
 PREFS['variation_seed'] = Draw.Create(1)
@@ -3301,15 +3301,15 @@ def buildTree(ob_curve, single=False):
 	)
 	
 	if PREFS['do_leaf'].val:
-		ob_leaf = getObChild(ob_mesh, 'Mesh')
-		if not ob_leaf: # New object
+		ob_leaf_dupliface = getObChild(ob_mesh, 'Mesh')
+		if not ob_leaf_dupliface: # New object
 			mesh_leaf = bpy.data.meshes.new('leaf_' + ob_curve.name)
-			ob_leaf = newObChild(ob_mesh, mesh_leaf)
+			ob_leaf_dupliface = newObChild(ob_mesh, mesh_leaf)
 		else:
-			mesh_leaf = ob_leaf.getData(mesh=1)
-			ob_leaf.setMatrix(Matrix())
+			mesh_leaf = ob_leaf_dupliface.getData(mesh=1)
+			ob_leaf_dupliface.setMatrix(Matrix())
 		
-		leaf_dupliface_fromgroup = getGroupFromName(PREFS['leaf_dupliface_fromgroup'].val)
+		leaf_object = getObFromName(PREFS['leaf_object'].val)
 
 		mesh_leaf = t.toLeafMesh(mesh_leaf,\
 			leaf_branch_limit = PREFS['leaf_branch_limit'].val,\
@@ -3321,18 +3321,15 @@ def buildTree(ob_curve, single=False):
 			leaf_branch_dir_rand = PREFS['leaf_branch_dir_rand'].val,\
 			leaf_branch_angle = PREFS['leaf_branch_angle'].val,\
 			
-			leaf_dupliface_fromgroup = leaf_dupliface_fromgroup,\
+			leaf_object = leaf_object,\
 		)
 		
-		if leaf_dupliface_fromgroup:
-			ob_leaf.enableDupFaces = True
-			ob_leaf.enableDupFacesScale = True
-			for ob_group in leaf_dupliface_fromgroup.objects:
-				pass
-			
-			ob_leaf.makeParent([ob_group])
+		if leaf_object:
+			ob_leaf_dupliface.enableDupFaces = True
+			ob_leaf_dupliface.enableDupFacesScale = True
+			ob_leaf_dupliface.makeParent([leaf_object])
 		else:
-			ob_leaf.enableDupFaces = False
+			ob_leaf_dupliface.enableDupFaces = False
 	
 	mesh.calcNormals()
 	
@@ -3504,7 +3501,7 @@ def do_group_check(e,v):
 	try:
 		bpy.data.groups[v]
 	except:
-		# PREFS['leaf_dupliface_fromgroup'].val = ''
+		# PREFS['leaf_object'].val = ''
 		Draw.PupMenu('dosnt exist!')
 		Draw.Redraw()
 
@@ -3712,7 +3709,7 @@ def gui():
 	
 	if PREFS['do_leaf'].val:
 		
-		PREFS['leaf_dupliface_fromgroup'] =	Draw.String('group: ',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['leaf_dupliface_fromgroup'].val, 64,	'Pick objects from this group to use as leaves', do_group_check); xtmp += but_width*2;
+		PREFS['leaf_object'] =	Draw.String('OB: ',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['leaf_object'].val, 64,	'Use this object as a leaf', do_ob_check); xtmp += but_width*2;
 		# ---------- ---------- ---------- ----------
 		y-=but_height
 		xtmp = x
