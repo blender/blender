@@ -3176,6 +3176,7 @@ void reestablishAxialSymmetry(ReebNode *node, int depth, float axis[3])
 	ReebArc *arc1 = NULL;
 	ReebArc *arc2 = NULL;
 	ReebNode *node1, *node2;
+	float limit = G.scene->toolsettings->skgen_symmetry_limit;
 	float nor[3], vec[3], p[3];
 	int i;
 	
@@ -3205,64 +3206,67 @@ void reestablishAxialSymmetry(ReebNode *node, int depth, float axis[3])
 	Crossf(nor, vec, axis);
 	
 	/* mirror node2 along axis */
-	mirrorAlongAxis(node2->p, node->p, nor);
+	VECCOPY(p, node2->p);
+	mirrorAlongAxis(p, node->p, nor);
 	
-	/* average with node1 */
-	VecAddf(node1->p, node1->p, node2->p);
-	VecMulf(node1->p, 0.5f);
-	
-	/* mirror back on node2 */
-	VECCOPY(node2->p, node1->p);
-	mirrorAlongAxis(node2->p, node->p, nor);
-	
-	/* Merge buckets
-	 * there shouldn't be any null arcs here, but just to be safe 
-	 * */
-	if (arc1->bcount > 0 && arc2->bcount > 0)
+	/* check if it's within limit before continuing */
+	if (VecLenf(node1->p, p) <= limit)
 	{
-		
-		initArcIterator(&iter1, arc1, node);
-		initArcIterator(&iter2, arc2, node);
-		
-		bucket1 = nextBucket(&iter1);
-		bucket2 = nextBucket(&iter2);
 	
-		/* Make sure they both start at the same value */	
-		while(bucket1 && bucket1->val < bucket2->val)
-		{
-			bucket1 = nextBucket(&iter1);
-		}
+		/* average with node1 */
+		VecAddf(node1->p, node1->p, p);
+		VecMulf(node1->p, 0.5f);
 		
-		while(bucket2 && bucket2->val < bucket1->val)
+		/* mirror back on node2 */
+		VECCOPY(node2->p, node1->p);
+		mirrorAlongAxis(node2->p, node->p, nor);
+		
+		/* Merge buckets
+		 * there shouldn't be any null arcs here, but just to be safe 
+		 * */
+		if (arc1->bcount > 0 && arc2->bcount > 0)
 		{
-			bucket2 = nextBucket(&iter2);
-		}
-
-
-		for( ;bucket1 && bucket2; bucket1 = nextBucket(&iter1), bucket2 = nextBucket(&iter2))
-		{
-			bucket1->nv += bucket2->nv; /* add counts */
 			
-			/* mirror on axis */
-			mirrorAlongAxis(bucket2->p, node->p, nor);
-			/* add bucket2 in bucket1 */
-			VecLerpf(bucket1->p, bucket1->p, bucket2->p, (float)bucket2->nv / (float)(bucket1->nv));
-
-			/* copy and mirror back to bucket2 */			
-			bucket2->nv = bucket1->nv;
-			VECCOPY(bucket2->p, bucket1->p);
-			mirrorAlongAxis(bucket2->p, node->p, nor);
+			initArcIterator(&iter1, arc1, node);
+			initArcIterator(&iter2, arc2, node);
+			
+			bucket1 = nextBucket(&iter1);
+			bucket2 = nextBucket(&iter2);
+		
+			/* Make sure they both start at the same value */	
+			while(bucket1 && bucket1->val < bucket2->val)
+			{
+				bucket1 = nextBucket(&iter1);
+			}
+			
+			while(bucket2 && bucket2->val < bucket1->val)
+			{
+				bucket2 = nextBucket(&iter2);
+			}
+	
+	
+			for( ;bucket1 && bucket2; bucket1 = nextBucket(&iter1), bucket2 = nextBucket(&iter2))
+			{
+				bucket1->nv += bucket2->nv; /* add counts */
+				
+				/* mirror on axis */
+				mirrorAlongAxis(bucket2->p, node->p, nor);
+				/* add bucket2 in bucket1 */
+				VecLerpf(bucket1->p, bucket1->p, bucket2->p, (float)bucket2->nv / (float)(bucket1->nv));
+	
+				/* copy and mirror back to bucket2 */			
+				bucket2->nv = bucket1->nv;
+				VECCOPY(bucket2->p, bucket1->p);
+				mirrorAlongAxis(bucket2->p, node->p, nor);
+			}
 		}
 	}
 }
 
 void markdownSecondarySymmetry(ReebNode *node, int depth, int level)
 {
-	float SYMMETRY_THRESHOLD = 0.005f * G.scene->toolsettings->skgen_resolution;
 	float axis[3] = {0, 0, 0};
-	float avg_weight = 0;
 	int count = 0;
-	int symmetric = 1;
 	int i;
 
 	/* Only reestablish spatial symmetry if needed */
@@ -3279,8 +3283,6 @@ void markdownSecondarySymmetry(ReebNode *node, int depth, int level)
 			if (connectedArc->flags == -depth)
 			{
 				count++;
-				
-				avg_weight += OTHER_NODE(connectedArc, node)->weight;
 			}
 			/* If arc is on the axis */
 			else if (connectedArc->flags == level)
@@ -3291,34 +3293,15 @@ void markdownSecondarySymmetry(ReebNode *node, int depth, int level)
 		}
 	
 		Normalize(axis);
-		avg_weight /= count;
-		
-		/* Check if all branches are within range of the average weight */
-		for(i = 0; node->arcs[i] != NULL; i++)
-		{
-			ReebArc *connectedArc = node->arcs[i];
-			
-			if (connectedArc->flags == -depth)
-			{
-				if (fabs(OTHER_NODE(connectedArc, node)->weight - avg_weight) > SYMMETRY_THRESHOLD)
-				{
-					symmetric = 0;
-					break;
-				}
-			}
-		}
 	
-		if (symmetric)
+		/* Split between axial and radial symmetry */
+		if (count == 2)
 		{
-			/* Split between axial and radial symmetry */
-			if (count == 2)
-			{
-				reestablishAxialSymmetry(node, depth, axis);
-			}
-			else
-			{
-				reestablishRadialSymmetry(node, depth, axis);
-			}
+			reestablishAxialSymmetry(node, depth, axis);
+		}
+		else
+		{
+			reestablishRadialSymmetry(node, depth, axis);
 		}
 	}
 
@@ -3997,10 +3980,7 @@ void generateSkeleton(void)
 
 	verifyBuckets(rg);
 
-	if (G.scene->toolsettings->skgen_options & SKGEN_REPOSITION)
-	{
-		repositionNodes(rg);
-	}
+	repositionNodes(rg);
 	
 	verifyBuckets(rg);
 
