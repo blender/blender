@@ -4006,7 +4006,7 @@ static void hair_step(Object *ob, ParticleSystemModifierData *psmd, ParticleSyst
 {
 	ParticleSettings *part = psys->part;
 
-	if(psys->recalc & PSYS_DISTR){
+	if(psys->recalc & PSYS_DISTR) {
 		/* need this for changing subsurf levels */
 		psys_calc_dmfaces(ob, psmd->dm, psys);
 	}

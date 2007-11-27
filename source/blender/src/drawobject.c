@@ -5038,7 +5038,7 @@ void draw_object(Base *base, int flag)
 	if(ob->pd && ob->pd->forcefield) draw_forcefield(ob);
 
 	/* code for new particle system */
-	if(warning_recursive==0 && (flag & DRAW_PICKING)==0){
+	if(warning_recursive==0 && (flag & DRAW_PICKING)==0 && ob!=G.obedit){
 		glDepthMask(GL_FALSE);
 		if(col || (ob->flag & SELECT)) cpack(0xFFFFFF);	/* for visibility, also while wpaint */
 		if(ob->particlesystem.first) {

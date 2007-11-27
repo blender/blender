@@ -583,7 +583,7 @@ int psys_particle_dm_face_lookup(Object *ob, DerivedMesh *dm, int index, float *
 	if(osface==NULL || origindex==NULL) {
 		/* Assume we dont need osface data */
 		if (index <totface) {
-			printf("\tNO CD_ORIGSPACE, assuming not needed\n");
+			//printf("\tNO CD_ORIGSPACE, assuming not needed\n");
 			return index;
 		} else {
 			printf("\tNO CD_ORIGSPACE, error out of range\n");
@@ -645,7 +645,7 @@ void psys_particle_on_dm(Object *ob, DerivedMesh *dm, int from, int index, int i
 		/* this works for meshes with deform verts only - constructive modifiers wont work properly*/
 		float temp1[3];
 
-		if(index_dmcache == DMCACHE_ISCHILD && index >= dm->getNumFaces(dm)) {
+		if(index >= dm->getNumFaces(dm)) {
 			PARTICLE_ERROR(nor, vec);
 			return;
 		}

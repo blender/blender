@@ -4656,7 +4656,7 @@ void particle_panels()
 
 	ob=OBACT;
 
-	if(ob) {
+	if(ob && ob->type==OB_MESH) {
 		object_panel_particle_system(ob);
 
 		psys=psys_get_current(ob);

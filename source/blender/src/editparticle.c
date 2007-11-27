@@ -2134,7 +2134,7 @@ static void brush_add(Object *ob, ParticleSystem *psys, short *mval, short numbe
 		/* warning, returns the derived mesh face */
 #if EXPERIMENTAL_DEFORM_ONLY_PAINTING
 		if(psys_intersect_dm(ob,dm,0,co1,co2,&min_d,&add_pars[n].num,add_pars[n].fuv,0,0,0,0)) {
-			add_pars[n].num_dmcache= psys_particle_dm_face_lookup(ob,dm,add_pars[n].num,add_pars[n].fuv,NULL);
+			add_pars[n].num_dmcache= psys_particle_dm_face_lookup(ob,psmd->dm,add_pars[n].num,add_pars[n].fuv,NULL);
 			n++;
 		}
 #else
