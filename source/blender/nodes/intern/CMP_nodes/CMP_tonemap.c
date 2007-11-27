@@ -50,16 +50,16 @@ static float avgLogLum(CompBuf *src, float* auto_key, float* Lav, float* Cav)
 		float L = 0.212671f*bc[0][0] + 0.71516f*bc[0][1] + 0.072169f*bc[0][2];
 		*Lav += L;
 		fRGB_add(Cav, bc[0]);
-		lsum += logf(MAX2(L, 0.f) + 1e-5f);
+		lsum += (float)log((double)MAX2(L, 0.0) + 1e-5);
 		maxl = (L > maxl) ? L : maxl;
 		minl = (L < minl) ? L : minl;
 		bc++;
 	}
 	*Lav *= sc;
 	fRGB_mult(Cav, sc);
-	maxl = logf(maxl + 1e-5f); minl = logf(minl + 1e-5f); avl = lsum*sc;
+	maxl = log((double)maxl + 1e-5); minl = log((double)minl + 1e-5f); avl = lsum*sc;
 	*auto_key = (maxl > minl) ? ((maxl - avl) / (maxl - minl)) : 1.f;
-	return expf(avl);
+	return exp((double)avl);
 }
 
 
@@ -74,8 +74,8 @@ void static tonemap(NodeTonemap* ntm, CompBuf* dst, CompBuf* src)
 
 	if (ntm->type == 1) {
 		// Reinhard/Devlin photoreceptor
-		const float f = expf(-ntm->f);
-		const float m = (ntm->m > 0.f) ? ntm->m : (0.3f + 0.7f*powf(auto_key, 1.4f));
+		const float f = exp((double)-ntm->f);
+		const float m = (ntm->m > 0.f) ? ntm->m : (0.3f + 0.7f*pow((double)auto_key, 1.4));
 		const float ic = 1.f - ntm->c, ia = 1.f - ntm->a;
 		if (ntm->m == 0.f) printf("tonemap node, M: %g\n", m); 
 		for (y=0; y<src->y; ++y) {
@@ -86,15 +86,15 @@ void static tonemap(NodeTonemap* ntm, CompBuf* dst, CompBuf* src)
 				float I_l = sp[x][0] + ic*(L - sp[x][0]);
 				float I_g = Cav[0] + ic*(Lav - Cav[0]);
 				float I_a = I_l + ia*(I_g - I_l);
-				dp[x][0] /= (dp[x][0] + powf(f*I_a, m));
+				dp[x][0] /= (dp[x][0] + pow((double)f*I_a, (double)m));
 				I_l = sp[x][1] + ic*(L - sp[x][1]);
 				I_g = Cav[1] + ic*(Lav - Cav[1]);
 				I_a = I_l + ia*(I_g - I_l);
-				dp[x][1] /= (dp[x][1] + powf(f*I_a, m));
+				dp[x][1] /= (dp[x][1] + pow((double)f*I_a,(double)m));
 				I_l = sp[x][2] + ic*(L - sp[x][2]);
 				I_g = Cav[2] + ic*(Lav - Cav[2]);
 				I_a = I_l + ia*(I_g - I_l);
-				dp[x][2] /= (dp[x][2] + powf(f*I_a, m));
+				dp[x][2] /= (dp[x][2] + pow((double)f*I_a, (double)m));
 			}
 		}
 		return;
@@ -114,9 +114,9 @@ void static tonemap(NodeTonemap* ntm, CompBuf* dst, CompBuf* src)
 			dp[x][1] /= ((dg == 0.f) ? 1.f : dg);
 			dp[x][2] /= ((db == 0.f) ? 1.f : db);
 			if (igm != 0.f) {
-				dp[x][0] = powf(MAX2(dp[x][0], 0.f), igm);
-				dp[x][1] = powf(MAX2(dp[x][1], 0.f), igm);
-				dp[x][2] = powf(MAX2(dp[x][2], 0.f), igm);
+				dp[x][0] = pow((double)MAX2(dp[x][0], 0.), igm);
+				dp[x][1] = pow((double)MAX2(dp[x][1], 0.), igm);
+				dp[x][2] = pow((double)MAX2(dp[x][2], 0.), igm);
 			}
 		}
 	}
