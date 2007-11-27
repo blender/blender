@@ -407,7 +407,7 @@ static int heat_ray_check_func(Isect *is, RayFace *face)
 
 	if(v4) CalcNormFloat4(v1, v2, v3, v4, nor);
 	else CalcNormFloat(v1, v2, v3, nor);
-	
+
 	return (INPR(nor, is->vec) < 0);
 }
 
@@ -605,8 +605,9 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numbones, 
 {
 	LaplacianSystem *sys;
 	MFace *mface;
-	float solution;
-	int a, aflip, totface, j, thrownerror = 0;
+	float solution, weight;
+	int *vertsflipped = NULL;
+	int a, totface, j, bbone, firstsegment, lastsegment, thrownerror = 0;
 
 	/* count triangles */
 	for(totface=0, a=0, mface=me->mface; a<me->totface; a++, mface++) {
@@ -628,11 +629,31 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numbones, 
 
 	laplacian_system_construct_end(sys);
 
+	if(dgroupflip) {
+		vertsflipped = MEM_callocN(sizeof(int)*me->totvert, "vertsflipped");
+		for(a=0; a<me->totvert; a++)
+			vertsflipped[a] = mesh_get_x_mirror_vert(ob, a);
+	}
+
 	/* compute weights per bone */
 	for(j=0; j<numbones; j++) {
 		if(!selected[j])
 			continue;
 
+		firstsegment= (j == 0 || dgrouplist[j-1] != dgrouplist[j]);
+		lastsegment= (j == numbones-1 || dgrouplist[j] != dgrouplist[j+1]);
+		bbone= !(firstsegment && lastsegment);
+
+		/* clear weights */
+		if(bbone && firstsegment) {
+			for(a=0; a<me->totvert; a++) {
+				remove_vert_defgroup(ob, dgrouplist[j], a);
+				if(vertsflipped && dgroupflip[j] && vertsflipped[a] >= 0)
+					remove_vert_defgroup(ob, dgroupflip[j], vertsflipped[a]);
+			}
+		}
+
+		/* fill right hand side */
 		laplacian_begin_solve(sys, -1);
 
 		for(a=0; a<me->totvert; a++)
@@ -640,24 +661,39 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numbones, 
 				laplacian_add_right_hand_side(sys, a,
 					sys->heat.H[a]*sys->heat.p[a]);
 
+		/* solve */
 		if(laplacian_system_solve(sys)) {
+			/* load solution into vertex groups */
 			for(a=0; a<me->totvert; a++) {
 				solution= laplacian_system_get_solution(a);
-
-				if(solution > WEIGHT_LIMIT)
-					add_vert_to_defgroup(ob, dgrouplist[j], a, solution,
-						WEIGHT_REPLACE);
-				else
-					remove_vert_defgroup(ob, dgrouplist[j], a);
+				
+				if(bbone) {
+					if(solution > 0.0f)
+						add_vert_to_defgroup(ob, dgrouplist[j], a, solution,
+							WEIGHT_ADD);
+				}
+				else {
+					if(solution > WEIGHT_LIMIT)
+						add_vert_to_defgroup(ob, dgrouplist[j], a, solution,
+							WEIGHT_REPLACE);
+					else
+						remove_vert_defgroup(ob, dgrouplist[j], a);
+				}
 
 				/* do same for mirror */
-				aflip = (dgroupflip)? mesh_get_x_mirror_vert(ob, a): 0;
-				if (dgroupflip && dgroupflip[j] && aflip >= 0) {
-					if(solution > WEIGHT_LIMIT)
-						add_vert_to_defgroup(ob, dgroupflip[j], aflip,
-							solution, WEIGHT_REPLACE);
-					else
-						remove_vert_defgroup(ob, dgroupflip[j], aflip);
+				if(vertsflipped && dgroupflip[j] && vertsflipped[a] >= 0) {
+					if(bbone) {
+						if(solution > 0.0f)
+							add_vert_to_defgroup(ob, dgroupflip[j], vertsflipped[a],
+								solution, WEIGHT_ADD);
+					}
+					else {
+						if(solution > WEIGHT_LIMIT)
+							add_vert_to_defgroup(ob, dgroupflip[j], vertsflipped[a],
+								solution, WEIGHT_REPLACE);
+						else
+							remove_vert_defgroup(ob, dgroupflip[j], vertsflipped[a]);
+					}
 				}
 			}
 		}
@@ -667,9 +703,26 @@ void heat_bone_weighting(Object *ob, Mesh *me, float (*verts)[3], int numbones, 
 			thrownerror= 1;
 			break;
 		}
+
+		/* remove too small vertex weights */
+		if(bbone && lastsegment) {
+			for(a=0; a<me->totvert; a++) {
+				weight= get_vert_defgroup(ob, dgrouplist[j], a);
+				if(weight > 0.0f && weight <= WEIGHT_LIMIT)
+					remove_vert_defgroup(ob, dgrouplist[j], a);
+
+				if(vertsflipped && dgroupflip[j] && vertsflipped[a] >= 0) {
+					weight= get_vert_defgroup(ob, dgroupflip[j], vertsflipped[a]);
+					if(weight > 0.0f && weight <= WEIGHT_LIMIT)
+						remove_vert_defgroup(ob, dgroupflip[j], vertsflipped[a]);
+				}
+			}
+		}
 	}
 
 	/* free */
+	if(vertsflipped) MEM_freeN(vertsflipped);
+
 	RE_ray_tree_free(sys->heat.raytree);
 	MEM_freeN(sys->heat.vface);
 

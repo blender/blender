@@ -61,6 +61,8 @@ void add_vert_to_defgroup (struct Object *ob, struct bDeformGroup *dg,
 						   int assignmode);
 void remove_vert_defgroup (struct Object *ob, struct bDeformGroup  *dg, 
 						   int vertnum);
+float get_vert_defgroup	(struct Object *ob, struct bDeformGroup  *dg,
+                         int vertnum);
 void create_dverts(ID *id);
 
 void vertexgroup_select_by_name(struct Object *ob, char *name);
