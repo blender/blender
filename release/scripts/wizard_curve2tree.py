@@ -212,8 +212,7 @@ class tree:
 		# nice we can reuse these for every curve segment :)
 		pointlist = [[None, None, None] for i in xrange(self.steps+1)]
 		radlist = [ None for i in xrange(self.steps+1) ]
-
-
+		
 		for spline in curve:
 			
 			if len(spline) < 2: # Ignore single point splines
@@ -227,25 +226,32 @@ class tree:
 			brch = branch()
 			brch.type = BRANCH_TYPE_CURVE
 			
-			self.branches_all.append(brch)
+			
 			
 			bez_list = list(spline)
 			for i in xrange(1, len(bez_list)):
 				bez1 = bez_list[i-1]
 				bez2 = bez_list[i]
-				points_from_bezier_seg(self.steps, pointlist, radlist, bez1.vec, bez2.vec, bez1.radius, bez2.radius)
+				vec1 = bez1.vec
+				vec2 = bez2.vec
+				if abs(vec1[1][0]-vec2[1][0]) > 0.000001 or\
+				   abs(vec1[1][1]-vec2[1][1]) > 0.000001 or\
+				   abs(vec1[1][2]-vec2[1][2]) > 0.000001:
+
+					points_from_bezier_seg(self.steps, pointlist, radlist, vec1, vec2, bez1.radius, bez2.radius)
 				
-				
-				
-				# remove endpoint for all but the last
-				len_pointlist = len(pointlist)
-				if i != len(bez_list)-1:
-					len_pointlist -= 1
-				
-				brch.bpoints.extend([ bpoint(brch, Vector(pointlist[ii]), Vector(), radlist[ii] * self.limbScale) for ii in xrange(len_pointlist) ])
+					# remove endpoint for all but the last
+					len_pointlist = len(pointlist)
+					if i != len(bez_list)-1:
+						len_pointlist -= 1
+					
+					brch.bpoints.extend([ bpoint(brch, Vector(pointlist[ii]), Vector(), radlist[ii] * self.limbScale) for ii in xrange(len_pointlist) ])
 			
 			# Finalize once point data is there
-			brch.calcData()
+			if brch.bpoints:
+				# if all points are in the same location, this is possible
+				self.branches_all.append(brch)
+				brch.calcData()
 			
 		# Sort from big to small, so big branches get priority
 		self.branches_all.sort( key = lambda brch: -brch.bpoints[0].radius )
