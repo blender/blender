@@ -1899,7 +1899,7 @@ void do_ipobuts(unsigned short event)
 		ei= get_active_editipo();
 		if(ei) {
 			if(ei->icu==NULL) {
-				ei->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, ei->adrcode);
+				ei->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, G.sipo->bonename, ei->adrcode);
 				if (!ei->icu) {
 					error("Could not add a driver to this curve, may be linked data!");
 					break;
@@ -1966,7 +1966,7 @@ void do_ipobuts(unsigned short event)
 				}
 				else {
 					if(driver->ob) {
-						if(ob==driver->ob) {
+						if(ob==driver->ob && G.sipo->bonename[0]==0) {
 							error("Cannot assign a Driver to own Object");
 							driver->ob= NULL;
 						}

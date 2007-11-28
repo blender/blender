@@ -171,9 +171,9 @@ static void rvk_slider_func(void *voidob, void *voidkeynum)
 
 	/* ipo on action or ob? */
 	if(ob->ipoflag & OB_ACTION_KEY)
-		icu = verify_ipocurve(&ob->id, ID_KE, "Shape", NULL, keynum);
+		icu = verify_ipocurve(&ob->id, ID_KE, "Shape", NULL, NULL, keynum);
 	else 
-		icu = verify_ipocurve(&ob->id, ID_KE, NULL, NULL, keynum);
+		icu = verify_ipocurve(&ob->id, ID_KE, NULL, NULL, NULL, keynum);
 
 	if (icu) {
 		/* if the ipocurve exists, try to get a bezier

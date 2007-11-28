@@ -205,7 +205,7 @@ static void add_constraint_to_active(Object *ob, bConstraint *con)
 
 /* returns base ID for Ipo, sets actname to channel if appropriate */
 /* should not make action... */
-void get_constraint_ipo_context(void *ob_v, char *actname)
+static void get_constraint_ipo_context(void *ob_v, char *actname)
 {
 	Object *ob= ob_v;
 	
@@ -237,8 +237,11 @@ static void enable_constraint_ipo_func (void *ob_v, void *con_v)
 	get_constraint_ipo_context(ob, actname);
 	
 	/* adds ipo & channels & curve if needed */
-	verify_ipo((ID *)ob, ID_CO, actname, con->name);
-	
+	if(con->flag & CONSTRAINT_OWN_IPO)
+		verify_ipo((ID *)ob, ID_CO, NULL, con->name, actname);
+	else
+		verify_ipo((ID *)ob, ID_CO, actname, con->name, NULL);
+		
 	/* make sure ipowin shows it */
 	ob->ipowin= ID_CO;
 	allqueue(REDRAWIPO, ID_CO);
@@ -261,8 +264,11 @@ static void add_influence_key_to_constraint_func (void *ob_v, void *con_v)
 	get_constraint_ipo_context(ob, actname);
 
 	/* adds ipo & channels & curve if needed */
-	icu= verify_ipocurve((ID *)ob, ID_CO, actname, con->name, CO_ENFORCE);
-	
+	if(con->flag & CONSTRAINT_OWN_IPO)
+		icu= verify_ipocurve((ID *)ob, ID_CO, NULL, con->name, actname, CO_ENFORCE);
+	else
+		icu= verify_ipocurve((ID *)ob, ID_CO, actname, con->name, NULL, CO_ENFORCE);
+		
 	if (!icu) {
 		error("Cannot get a curve from this IPO, may be dealing with linked data");
 		return;

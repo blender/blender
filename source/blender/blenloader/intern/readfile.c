@@ -1619,7 +1619,9 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 		if(con->data==NULL) {
 			con->type= CONSTRAINT_TYPE_NULL;
 		}
-
+		/* own ipo, all constraints have it */
+		con->ipo= newlibadr(fd, id->lib, con->ipo);
+		
 		switch (con->type) {
 		case CONSTRAINT_TYPE_PYTHON:
 			{

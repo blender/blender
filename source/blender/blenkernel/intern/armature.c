@@ -2083,6 +2083,9 @@ static void where_is_pose_bone(Object *ob, bPoseChannel *pchan, float ctime)
 	if (pchan->constraints.first) {
 		bConstraintOb *cob;
 		
+		/* local constraints */
+		do_constraint_channels(&pchan->constraints, NULL, ctime, 0);
+		
 		/* make a copy of location of PoseChannel for later */
 		VECCOPY(vec, pchan->pose_mat[3]);
 		

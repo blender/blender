@@ -94,7 +94,7 @@ typedef struct SpaceIpo {
 	/* the ipo context we need to store */
 	struct Ipo *ipo;
 	struct ID *from;
-	char actname[32], constname[32];
+	char actname[32], constname[32], bonename[32];
 
 	short totipo, pin;
 	short butofs, channel;

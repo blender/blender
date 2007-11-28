@@ -2180,6 +2180,21 @@ void DAG_pose_sort(Object *ob)
 			ListBase targets = {NULL, NULL};
 			bConstraintTarget *ct;
 			
+			if(con->ipo) {
+				IpoCurve *icu;
+				for(icu= con->ipo->curve.first; icu; icu= icu->next) {
+					if(icu->driver && icu->driver->ob==ob) {
+						bPoseChannel *target= get_pose_channel(ob->pose, icu->driver->name);
+						if(target) {
+							node2 = dag_get_node(dag, target);
+							dag_add_relation(dag, node2, node, 0);
+							dag_add_parent_relation(dag, node2, node, 0);
+							cti= NULL;	/* trick to get next loop skipped */
+						}
+					}
+				}
+			}
+			
 			if (cti && cti->get_constraint_targets) {
 				cti->get_constraint_targets(con, &targets);
 				

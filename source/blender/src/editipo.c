@@ -1013,7 +1013,8 @@ static void make_editipo(void)
 /* evaluates context in the current UI */
 /* blocktype is type of ipo */
 /* from is the base pointer to find data to change (ob in case of action or pose) */
-static void get_ipo_context(short blocktype, ID **from, Ipo **ipo, char *actname, char *constname)
+/* bonename is for local bone ipos (constraint only now) */
+static void get_ipo_context(short blocktype, ID **from, Ipo **ipo, char *actname, char *constname, char *bonename)
 {
 	Object *ob= OBACT;
 	
@@ -1026,25 +1027,37 @@ static void get_ipo_context(short blocktype, ID **from, Ipo **ipo, char *actname
 			bConstraint *con= get_active_constraint(ob);
 			
 			if(con) {
-				BLI_strncpy(constname, con->name, 32);
-				
-				chan= get_active_constraint_channel(ob);
-				if(chan) {
-					*ipo= chan->ipo;
-					BLI_strncpy(constname, con->name, 32);
-				}
-				
 				*from= &ob->id;
 				
-				/* set actname if in posemode */
-				if(ob->action) {
+				BLI_strncpy(constname, con->name, 32);
+				
+				/* a bit hackish, but we want con->ipo to work */
+				if(con->flag & CONSTRAINT_OWN_IPO) {
 					if(ob->flag & OB_POSEMODE) {
 						bPoseChannel *pchan= get_active_posechannel(ob);
-						if(pchan)
-							BLI_strncpy(actname, pchan->name, 32);
+						if(pchan) {
+							BLI_strncpy(bonename, pchan->name, 32);
+							*ipo= con->ipo;
+						}
 					}
-					else if(ob->ipoflag & OB_ACTION_OB)
-						strcpy(actname, "Object");
+				}
+				else {
+					chan= get_active_constraint_channel(ob);
+					if(chan) {
+						*ipo= chan->ipo;
+						BLI_strncpy(constname, con->name, 32);
+					}
+					
+					/* set actname if in posemode */
+					if(ob->action) {
+						if(ob->flag & OB_POSEMODE) {
+							bPoseChannel *pchan= get_active_posechannel(ob);
+							if(pchan)
+								BLI_strncpy(actname, pchan->name, 32);
+						}
+						else if(ob->ipoflag & OB_ACTION_OB)
+							strcpy(actname, "Object");
+					}
 				}
 			}
 		}
@@ -1182,9 +1195,9 @@ void test_editipo(int doit)
 	if(G.sipo->pin==0) {
 		Ipo *ipo;
 		ID *from;
-		char actname[32]="", constname[32]="";
+		char actname[32]="", constname[32]="", bonename[32]="";
 		
-		get_ipo_context(G.sipo->blocktype, &from, &ipo, actname, constname);
+		get_ipo_context(G.sipo->blocktype, &from, &ipo, actname, constname, bonename);
 		
 		if(G.sipo->ipo != ipo) {
 			G.sipo->ipo= ipo;
@@ -1201,6 +1214,12 @@ void test_editipo(int doit)
 		}
 		if( strcmp(G.sipo->constname, constname)) {
 			BLI_strncpy(G.sipo->constname, constname, 32);
+			doit= 1;
+		}
+		if( strcmp(G.sipo->bonename, bonename)) {
+			BLI_strncpy(G.sipo->bonename, bonename, 32);
+			/* urmf; if bonename, then no action */
+			if(bonename[0]) G.sipo->actname[0]= 0;
 			doit= 1;
 		}
 		
@@ -1751,11 +1770,12 @@ void do_ipo_selectbuttons(void)
 /* arguments define full context;
    - *from has to be set always, to Object in case of Actions
    - blocktype defines available channels of Ipo struct (blocktype ID_OB can be in action too)
-   - if actname, use this to locate action, and optional constname to find the channel 
+   - if actname, use this to locate actionchannel, and optional constname 
+   - if bonename, the constname is the ipo to the constraint
 */
 
 /* note; check header_ipo.c, spaceipo_assign_ipo() too */
-Ipo *verify_ipo(ID *from, short blocktype, char *actname, char *constname)
+Ipo *verify_ipo(ID *from, short blocktype, char *actname, char *constname, char *bonename)
 {
 
 	if(from==NULL || from->lib) return NULL;
@@ -1799,13 +1819,30 @@ Ipo *verify_ipo(ID *from, short blocktype, char *actname, char *constname)
 		case ID_OB:
 			{
 				Object *ob= (Object *)from;
+				
 				/* constraint exception */
 				if(blocktype==ID_CO) {
-					bConstraintChannel *conchan= verify_constraint_channel(&ob->constraintChannels, constname);
-					if(conchan->ipo==NULL) {
-						conchan->ipo= add_ipo("CoIpo", ID_CO);	
+					/* check the local constraint ipo */
+					if(bonename && bonename[0] && ob->pose) {
+						bPoseChannel *pchan= get_pose_channel(ob->pose, bonename);
+						bConstraint *con;
+						for(con= pchan->constraints.first; con; con= con->next)
+							if(strcmp(con->name, constname)==0)
+								break;
+						if(con) {
+							if(con->ipo==NULL) {
+								con->ipo= add_ipo("CoIpo", ID_CO);
+							}
+							return con->ipo;
+						}
 					}
-					return conchan->ipo;
+					else { /* the actionchannel */
+						bConstraintChannel *conchan= verify_constraint_channel(&ob->constraintChannels, constname);
+						if(conchan->ipo==NULL) {
+							conchan->ipo= add_ipo("CoIpo", ID_CO);	
+						}
+						return conchan->ipo;
+					}
 				}
 				else if(blocktype==ID_OB) {
 					if(ob->ipo==NULL) {
@@ -1940,14 +1977,14 @@ Ipo *verify_ipo(ID *from, short blocktype, char *actname, char *constname)
 /* returns and creates
  * Make sure functions check for NULL or they will crash!
  *  */
-IpoCurve *verify_ipocurve(ID *from, short blocktype, char *actname, char *constname, int adrcode)
+IpoCurve *verify_ipocurve(ID *from, short blocktype, char *actname, char *constname, char *bonename, int adrcode)
 {
 	Ipo *ipo;
 	IpoCurve *icu= NULL;
 	
 	/* return 0 if lib */
 	/* creates ipo too */
-	ipo= verify_ipo(from, blocktype, actname, constname);
+	ipo= verify_ipo(from, blocktype, actname, constname, bonename);
 	
 	if(ipo && ipo->id.lib==NULL && from->lib==NULL) {
 		
@@ -1958,6 +1995,8 @@ IpoCurve *verify_ipocurve(ID *from, short blocktype, char *actname, char *constn
 			icu= MEM_callocN(sizeof(IpoCurve), "ipocurve");
 
 			icu->flag |= IPO_VISIBLE|IPO_AUTO_HORIZ;
+			if(ipo->curve.first==NULL) icu->flag |= IPO_ACTIVE;	/* first one added active */
+			
 			icu->blocktype= blocktype;
 			icu->adrcode= adrcode;
 			
@@ -2111,7 +2150,7 @@ void add_vert_ipo(void)
 	
 	if(ei->icu==NULL) {
 		if(G.sipo->from) {
-			ei->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, ei->adrcode);
+			ei->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, G.sipo->bonename, ei->adrcode);
 			if (ei->icu)
 				ei->flag |= ei->icu->flag & IPO_AUTO_HORIZ;	/* new curve could have been added, weak... */
 			else
@@ -2281,7 +2320,7 @@ static void insertkey_nonrecurs(ID *id, int blocktype, char *actname, char *cons
 	int matset=0;
 	
 	if (matset==0) {
-		icu= verify_ipocurve(id, blocktype, actname, constname, adrcode);
+		icu= verify_ipocurve(id, blocktype, actname, constname, NULL, adrcode);
 		
 		if(icu) {
 			
@@ -2502,7 +2541,7 @@ void insertkey(ID *id, int blocktype, char *actname, char *constname, int adrcod
 		matset=insertmatrixkey(id, blocktype, actname, constname, adrcode);
 	} 
 	if (matset==0) {
-		icu= verify_ipocurve(id, blocktype, actname, constname, adrcode);
+		icu= verify_ipocurve(id, blocktype, actname, constname, NULL, adrcode);
 		
 		if(icu) {
 			
@@ -2544,7 +2583,7 @@ void insertkey_smarter(ID *id, int blocktype, char *actname, char *constname, in
 	int vartype;
 	int insert_mode;
 	
-	icu= verify_ipocurve(id, blocktype, actname, constname, adrcode);
+	icu= verify_ipocurve(id, blocktype, actname, constname, NULL, adrcode);
 	
 	if(icu) {
 		
@@ -2596,7 +2635,7 @@ void insertfloatkey(ID *id, int blocktype, char *actname, char *constname, int a
 	float cfra;
 	int vartype;
 	
-	icu= verify_ipocurve(id, blocktype, actname, constname, adrcode);
+	icu= verify_ipocurve(id, blocktype, actname, constname, NULL, adrcode);
 	
 	if(icu) {
 		
@@ -4270,7 +4309,7 @@ void paste_editipo(void)
 				int i;
 				
 				/* make sure an ipo-curve exists (it may not, as this is an editipo) */
-				ei->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, ei->adrcode);
+				ei->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, G.sipo->bonename, ei->adrcode);
 				if (ei->icu == NULL) return;
 				
 				/* Copy selected beztriples from source icu onto this edit-icu,
@@ -4307,10 +4346,11 @@ void paste_editipo(void)
 				icu= icu->next;
 			}
 			
-			/* otherwise paste entire curve data if selected */
-			else if (ei->flag & IPO_SELECT) {
+			/* otherwise paste entire curve data */
+			else  {
+				
 				/* make sure an ipo-curve exists (it may not, as this is an editipo) */
-				ei->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, ei->adrcode);
+				ei->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, G.sipo->bonename, ei->adrcode);
 				if (ei->icu==NULL) return;
 				
 				/* clear exisiting dynamic memory (keyframes, driver) */
@@ -5405,7 +5445,7 @@ void ipo_record(void)
 
 	/* make curves ready, start values */
 	if(ei1->icu==NULL) 
-		ei1->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, ei1->adrcode);
+		ei1->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, G.sipo->bonename, ei1->adrcode);
 	if(ei1->icu==NULL) return;
 	
 	poin= get_ipo_poin(G.sipo->from, ei1->icu, &type);
@@ -5415,7 +5455,7 @@ void ipo_record(void)
 	
 	if(ei2) {
 		if(ei2->icu==NULL)
-			ei2->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, ei2->adrcode);
+			ei2->icu= verify_ipocurve(G.sipo->from, G.sipo->blocktype, G.sipo->actname, G.sipo->constname, G.sipo->bonename, ei2->adrcode);
 		if(ei2->icu==NULL) return;
 		
 		poin= get_ipo_poin(G.sipo->from, ei2->icu, &type);

@@ -41,6 +41,7 @@
 
 struct Action;
 struct Text;
+struct Ipo;
 
 /* channels reside in Object or Action (ListBase) constraintChannels */
 typedef struct bConstraintChannel {
@@ -66,6 +67,7 @@ typedef struct bConstraint {
 	float		enforce;	/* 	Amount of influence exherted by constraint (0.0-1.0) */
 	float		headtail;	/*	Point along subtarget bone where the actual target is. 0=head (default for all), 1=tail*/
 	int			pad;
+	struct Ipo *ipo;		/* local influence ipo or driver */
 } bConstraint;
 
 
@@ -347,7 +349,9 @@ typedef enum B_CONSTRAINT_FLAG {
 		/* to indicate which Ipo should be shown, maybe for 3d access later too */	
 	CONSTRAINT_ACTIVE = 	(1<<4), 
 		/* to indicate that the owner's space should only be changed into ownspace, but not out of it */
-	CONSTRAINT_SPACEONCE = 	(1<<6)  
+	CONSTRAINT_SPACEONCE = 	(1<<6),
+		/* influence ipo is on constraint itself, not in action channel */
+	CONSTRAINT_OWN_IPO	= (1<<7)
 } B_CONSTRAINT_FLAG;
 
 /* bConstraint->ownspace/tarspace */
