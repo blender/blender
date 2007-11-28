@@ -1706,7 +1706,6 @@ void do_material_tex(ShadeInput *shi)
 			}
 			if( (mtex->mapto & MAP_NORM) ) {
 				if(texres.nor) {
-					
 					if(mtex->maptoneg & MAP_NORM) tex->norfac= -mtex->norfac;
 					else tex->norfac= mtex->norfac;
 					
@@ -1723,7 +1722,7 @@ void do_material_tex(ShadeInput *shi)
 						fact = Tnor*tex->norfac;
 						if (fact>1.f) fact = 1.f;
 						facm = 1.f-fact;
-						if (shi->mat->mode & MA_NORMAP_TANG) {
+						if(mtex->normapspace == MTEX_NSPACE_TANGENT) {
 							/* qdn: tangent space */
 							float B[3], tv[3];
 							Crossf(B, shi->vn, shi->tang);	/* bitangent */
@@ -1736,10 +1735,26 @@ void do_material_tex(ShadeInput *shi)
 							shi->vn[2]= facm*shi->vn[2] + fact*tv[2];
 						}
 						else {
+							float nor[3];
+
+							VECCOPY(nor, texres.nor);
+
+							if(mtex->normapspace == MTEX_NSPACE_CAMERA);
+							else if(mtex->normapspace == MTEX_NSPACE_WORLD) {
+								Mat4Mul3Vecfl(R.viewmat, nor);
+							}
+							else if(mtex->normapspace == MTEX_NSPACE_OBJECT) {
+								if(shi->vlr && shi->vlr->ob)
+									Mat4Mul3Vecfl(shi->vlr->ob->obmat, nor);
+								Mat4Mul3Vecfl(R.viewmat, nor);
+							}
+
+							Normalize(nor);
+
 							/* qdn: worldspace */
-							shi->vn[0]= facm*shi->vn[0] + fact*texres.nor[0];
-							shi->vn[1]= facm*shi->vn[1] + fact*texres.nor[1];
-							shi->vn[2]= facm*shi->vn[2] + fact*texres.nor[2];
+							shi->vn[0]= facm*shi->vn[0] + fact*nor[0];
+							shi->vn[1]= facm*shi->vn[1] + fact*nor[1];
+							shi->vn[2]= facm*shi->vn[2] + fact*nor[2];
 						}
 					}
 					else {

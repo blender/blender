@@ -206,6 +206,7 @@ Scene *add_scene(char *name)
 	sce->r.bake_filter= 2;
 	sce->r.bake_osa= 5;
 	sce->r.bake_flag= R_BAKE_CLEAR;
+	sce->r.bake_normal_space= R_BAKE_SPACE_TANGENT;
 	
 	sce->r.xplay= 640;
 	sce->r.yplay= 480;

@@ -108,6 +108,7 @@ void sort_faces(void);
 #include "PIL_time.h"
 
 #include "IMB_imbuf_types.h"
+#include "IMB_imbuf.h"
 
 /* from rendercode.c */
 #define VECMUL(dest, f)                  dest[0]*= f; dest[1]*= f; dest[2]*= f
@@ -945,6 +946,7 @@ static ScrArea *biggest_image_area(void)
 
 typedef struct BakeRender {
 	Render *re;
+	struct Object *actob;
 	int event, tot, ready;
 } BakeRender;
 
@@ -952,7 +954,7 @@ static void *do_bake_render(void *bake_v)
 {
 	BakeRender *bkr= bake_v;
 	
-	bkr->tot= RE_bake_shade_all_selected(bkr->re, bkr->event);
+	bkr->tot= RE_bake_shade_all_selected(bkr->re, bkr->event, bkr->actob);
 	bkr->ready= 1;
 	
 	return NULL;
@@ -971,6 +973,8 @@ void objects_bake_render_menu(void)
 /* all selected meshes with UV maps are rendered for current scene visibility */
 void objects_bake_render(short event)
 {
+	Object *actob= OBACT;
+	int active= G.scene->r.bake_flag & R_BAKE_TO_ACTIVE;
 	short prev_r_raytrace= 0, prev_wo_amb_occ= 0;
 	
 	if(event==0) event= G.scene->r.bake_mode;
@@ -980,13 +984,16 @@ void objects_bake_render(short event)
 		return;	 
 	}	 
 	
+	if(active && !actob)
+		return;
+		
 	if(event>0) {
 		Render *re= RE_NewRender("_Bake View_");
 		ScrArea *area= biggest_image_area();
 		ListBase threads;
 		BakeRender bkr;
 		int timer=0, tot, sculptmode= G.f & G_SCULPTMODE;
-		
+
 		if(sculptmode) set_sculptmode();
 		
 		if(event==1) event= RE_BAKE_ALL;
@@ -1001,11 +1008,12 @@ void objects_bake_render(short event)
 			}
 
 			/* If raytracing or AO is disabled, switch it on temporarily for baking. */
-			prev_r_raytrace = (G.scene->r.mode & R_RAYTRACE) != 0;
 			prev_wo_amb_occ = (G.scene->world->mode & WO_AMB_OCC) != 0;
-
-			G.scene->r.mode |= R_RAYTRACE;
 			G.scene->world->mode |= WO_AMB_OCC;
+		}
+		if(event==RE_BAKE_AO || actob) {
+			prev_r_raytrace = (G.scene->r.mode & R_RAYTRACE) != 0;
+			G.scene->r.mode |= R_RAYTRACE;
 		}
 		
 		waitcursor(1);
@@ -1013,7 +1021,7 @@ void objects_bake_render(short event)
 		g_break= 0;
 		G.afbreek= 0;	/* blender_test_break uses this global */
 		
-		RE_Database_Baking(re, G.scene, event);
+		RE_Database_Baking(re, G.scene, event, actob);
 		
 		/* baking itself is threaded, cannot use test_break in threads. we also update optional imagewindow */
 	
@@ -1021,6 +1029,7 @@ void objects_bake_render(short event)
 		bkr.re= re;
 		bkr.event= event;
 		bkr.ready= 0;
+		bkr.actob= actob;
 		BLI_insert_thread(&threads, &bkr);
 		
 		while(bkr.ready==0) {
@@ -1048,21 +1057,26 @@ void objects_bake_render(short event)
 		if(tot==0) error("No Images found to bake to");
 		else {
 			Image *ima;
-			/* force OpenGL reload */
+			/* force OpenGL reload and mipmap recalc */
 			for(ima= G.main->image.first; ima; ima= ima->id.next) {
 				if(ima->ok==IMA_OK_LOADED) {
 					ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
-					if(ibuf && (ibuf->userflags & IB_BITMAPDIRTY))
+					if(ibuf && (ibuf->userflags & IB_BITMAPDIRTY)) {
 						free_realtime_image(ima); 
+						imb_freemipmapImBuf(ibuf);
+					}
 				}
 			}
 		}
 		
-			/* restore raytrace and AO */
-		if(event==RE_BAKE_AO) {
-			if( prev_wo_amb_occ == 0) G.scene->world->mode &= ~WO_AMB_OCC;
-			if( prev_r_raytrace == 0) G.scene->r.mode &= ~R_RAYTRACE;
-		}
+		/* restore raytrace and AO */
+		if(event==RE_BAKE_AO)
+			if(prev_wo_amb_occ == 0)
+				G.scene->world->mode &= ~WO_AMB_OCC;
+
+		if(event==RE_BAKE_AO || actob)
+			if(prev_r_raytrace == 0)
+				G.scene->r.mode &= ~R_RAYTRACE;
 		
 		allqueue(REDRAWIMAGE, 0);
 		allqueue(REDRAWVIEW3D, 0);
@@ -1071,5 +1085,4 @@ void objects_bake_render(short event)
 		
 	}
 }
-
 

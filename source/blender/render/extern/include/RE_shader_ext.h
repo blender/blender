@@ -173,9 +173,10 @@ int	multitex_ext(struct Tex *tex, float *texvec, float *dxt, float *dyt, int osa
 /* shaded view and bake */
 struct Render;
 struct Image;
+struct Object;
 
 void RE_shade_external(struct Render *re, struct ShadeInput *shi, struct ShadeResult *shr);
-int RE_bake_shade_all_selected(struct Render *re, int type);
+int RE_bake_shade_all_selected(struct Render *re, int type, struct Object *actob);
 struct Image *RE_bake_shade_get_image(void);
 
 #endif /* RE_SHADER_EXT_H */

@@ -902,7 +902,7 @@ int RE_ray_face_intersection(Isect *is, RayCoordsFunc coordsfunc)
 }
 
 /* check all faces in this node */
-static int testnode(Octree *oc, Isect *is, Node *no, OcVal ocval)
+static int testnode(Octree *oc, Isect *is, Node *no, OcVal ocval, RayCheckFunc checkfunc)
 {
 	RayFace *face;
 	short nr=0;
@@ -916,7 +916,7 @@ static int testnode(Octree *oc, Isect *is, Node *no, OcVal ocval)
 		
 			if(is->faceorig != face) {
 
-				if(oc->checkfunc(is, face)) {
+				if(checkfunc(is, face)) {
 					
 					ov= no->ov+nr;
 					if( (ov->ocx & ocval.ocx) && (ov->ocy & ocval.ocy) && (ov->ocz & ocval.ocz) ) { 
@@ -952,7 +952,7 @@ static int testnode(Octree *oc, Isect *is, Node *no, OcVal ocval)
 		while(face) {
 
 			if(is->faceorig != face) {
-				if(oc->checkfunc(is, face)) {
+				if(checkfunc(is, face)) {
 					ov= no->ov+nr;
 					if( (ov->ocx & ocval.ocx) && (ov->ocy & ocval.ocy) && (ov->ocz & ocval.ocz) ) { 
 						//accepted++;
@@ -1097,9 +1097,16 @@ static int do_coherence_test(int ocx1, int ocx2, int ocy1, int ocy2, int ocz1, i
 
 */
 
+int RE_ray_tree_intersect(RayTree *tree, Isect *is)
+{
+	Octree *oc= (Octree*)tree;
+
+	return RE_ray_tree_intersect_check(tree, is, oc->checkfunc);
+}
+
 /* return 1: found valid intersection */
 /* starts with is->faceorig */
-int RE_ray_tree_intersect(RayTree *tree, Isect *is)	
+int RE_ray_tree_intersect_check(RayTree *tree, Isect *is, RayCheckFunc checkfunc)
 {
 	Octree *oc= (Octree*)tree;
 	Node *no;
@@ -1123,7 +1130,7 @@ int RE_ray_tree_intersect(RayTree *tree, Isect *is)
 	
 		/* check with last intersected shadow face */
 		if(is->face_last!=NULL && is->face_last!=is->faceorig) {
-			if(oc->checkfunc(is, is->face_last)) {
+			if(checkfunc(is, is->face_last)) {
 				is->face= is->face_last;
 				VECSUB(is->vec, is->end, is->start);
 				if(RE_ray_face_intersection(is, oc->coordsfunc)) return 1;
@@ -1193,7 +1200,7 @@ int RE_ray_tree_intersect(RayTree *tree, Isect *is)
 			vec2[0]= ox2; vec2[1]= oy2; vec2[2]= oz2;
 			calc_ocval_ray(&ocval, (float)ocx1, (float)ocy1, (float)ocz1, vec1, vec2);
 			is->ddalabda= 1.0f;
-			if( testnode(oc, is, no, ocval) ) return 1;
+			if( testnode(oc, is, no, ocval, checkfunc) ) return 1;
 		}
 	}
 	else {
@@ -1272,7 +1279,7 @@ int RE_ray_tree_intersect(RayTree *tree, Isect *is)
 				calc_ocval_ray(&ocval, (float)xo, (float)yo, (float)zo, vec1, vec2);
 							   
 				is->ddalabda= ddalabda;
-				if( testnode(oc, is, no, ocval) ) return 1;
+				if( testnode(oc, is, no, ocval, checkfunc) ) return 1;
 			}
 
 			labdao= ddalabda;

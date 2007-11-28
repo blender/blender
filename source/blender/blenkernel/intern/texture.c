@@ -517,6 +517,7 @@ void default_mtex(MTex *mtex)
 	mtex->norfac= 0.5;
 	mtex->varfac= 1.0;
 	mtex->dispfac=0.2;
+	mtex->normapspace= MTEX_NSPACE_TANGENT;
 }
 
 

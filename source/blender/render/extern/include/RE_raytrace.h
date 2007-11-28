@@ -64,6 +64,9 @@ typedef struct Isect {
 	RayFace *facecontr;
 	float ddalabda;
 	short faceisect;		/* flag if facecontr was done or not */
+
+	/* custom pointer to be used in the RayCheckFunc */
+	void *userdata;
 } Isect;
 
 /* function callbacks for face type abstraction */
@@ -80,6 +83,7 @@ void RE_ray_tree_free(RayTree *tree);
 
 /* intersection with full tree and single face */
 int RE_ray_tree_intersect(RayTree *tree, Isect *is);
+int RE_ray_tree_intersect_check(RayTree *tree, Isect *is, RayCheckFunc check);
 int RE_ray_face_intersection(Isect *is, RayCoordsFunc coordsfunc);
 
 /* retrieve the diameter of the tree structure, for setting intersection

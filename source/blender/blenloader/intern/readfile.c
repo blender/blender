@@ -7170,6 +7170,16 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 	}
+	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 9)) {
+		Material *ma;
+		int a;
+
+		for(ma=main->mat.first; ma; ma= ma->id.next)
+			if(ma->mode & MA_NORMAP_TANG)
+				for(a=0; a<MAX_MTEX; a++)
+					if(ma->mtex[a] && ma->mtex[a]->tex)
+						ma->mtex[a]->normapspace = MTEX_NSPACE_TANGENT;
+	}
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
 

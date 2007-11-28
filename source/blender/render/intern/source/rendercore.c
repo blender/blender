@@ -66,6 +66,7 @@
 #include "shading.h"
 #include "sss.h"
 #include "zbuf.h"
+#include "RE_raytrace.h"
 
 #include "PIL_time.h"
 
@@ -1657,19 +1658,180 @@ typedef struct BakeShade {
 	ImBuf *ibuf;
 	
 	int rectx, recty, quad, type, vdone, ready;
+
+	float dir[3];
+	Object *actob;
 	
 	unsigned int *rect;
 	float *rect_float;
 } BakeShade;
 
-static void do_bake_shade(void *handle, int x, int y, float u, float v)
+static void bake_set_shade_input(VlakRen *vlr, ShadeInput *shi, int quad, int isect, int x, int y, float u, float v)
+{
+	if(isect) {
+		/* raytrace intersection with different u,v than scanconvert */
+		if(vlr->v4) {
+			if(quad)
+				shade_input_set_triangle_i(shi, vlr, 2, 1, 3);
+			else
+				shade_input_set_triangle_i(shi, vlr, 0, 1, 3);
+		}
+		else
+			shade_input_set_triangle_i(shi, vlr, 0, 1, 2);
+	}
+	else {
+		/* regular scanconvert */
+		if(quad) 
+			shade_input_set_triangle_i(shi, vlr, 0, 2, 3);
+		else
+			shade_input_set_triangle_i(shi, vlr, 0, 1, 2);
+	}
+		
+	/* set up view vector */
+	VECCOPY(shi->view, shi->co);
+	Normalize(shi->view);
+	
+	/* no face normal flip */
+	shi->puno= 0;
+	
+	/* cache for shadow */
+	shi->samplenr++;
+	
+	shi->u= -u;
+	shi->v= -v;
+	shi->xs= x;
+	shi->ys= y;
+	
+	shade_input_set_normals(shi);
+}
+
+static void bake_shade(void *handle, Object *ob, VlakRen *vlr, ShadeInput *shi, int quad, int x, int y, float u, float v, float *tvn, float *ttang)
 {
 	BakeShade *bs= handle;
 	ShadeSample *ssamp= &bs->ssamp;
-	ShadeInput *shi= ssamp->shi;
 	ShadeResult shr;
+	
+	/* init material vars */
+	memcpy(&shi->r, &shi->mat->r, 23*sizeof(float));	// note, keep this synced with render_types.h
+	shi->har= shi->mat->har;
+	
+	if(bs->type==RE_BAKE_AO) {
+		ambient_occlusion(shi);
+		ambient_occlusion_to_diffuse(shi, shr.combined);
+	}
+	else {
+		shade_input_set_shade_texco(shi);
+		
+		shade_samples_do_AO(ssamp);
+		
+		if(shi->mat->nodetree && shi->mat->use_nodes) {
+			ntreeShaderExecTree(shi->mat->nodetree, shi, &shr);
+			shi->mat= vlr->mat;		/* shi->mat is being set in nodetree */
+		}
+		else
+			shade_material_loop(shi, &shr);
+		
+		if(bs->type==RE_BAKE_NORMALS) {
+			float nor[3];
+
+			VECCOPY(nor, shi->vn);
+
+			if(R.r.bake_normal_space == R_BAKE_SPACE_CAMERA);
+			else if(R.r.bake_normal_space == R_BAKE_SPACE_TANGENT) {
+				float mat[3][3], imat[3][3];
+
+				/* bitangent */
+				if(tvn && ttang) {
+					VECCOPY(mat[0], ttang);
+					Crossf(mat[1], tvn, ttang);
+					VECCOPY(mat[2], tvn);
+				}
+				else {
+					VECCOPY(mat[0], shi->tang);
+					Crossf(mat[1], shi->vn, shi->tang);
+					VECCOPY(mat[2], shi->vn);
+				}
+
+				Mat3Inv(imat, mat);
+				Mat3MulVecfl(imat, nor);
+			}
+			else if(R.r.bake_normal_space == R_BAKE_SPACE_OBJECT)
+				Mat4Mul3Vecfl(ob->imat, nor); /* ob->imat includes viewinv! */
+			else if(R.r.bake_normal_space == R_BAKE_SPACE_WORLD)
+				Mat4Mul3Vecfl(R.viewinv, nor);
+
+			Normalize(nor); /* in case object has scaling */
+
+			shr.combined[0]= nor[0]/2.0f + 0.5f;
+			shr.combined[1]= 0.5f - nor[1]/2.0f;
+			shr.combined[2]= nor[2]/2.0f + 0.5f;
+		}
+		else if(bs->type==RE_BAKE_TEXTURE) {
+			shr.combined[0]= shi->r;
+			shr.combined[1]= shi->g;
+			shr.combined[2]= shi->b;
+		}
+	}
+	
+	if(bs->rect) {
+		char *col= (char *)(bs->rect + bs->rectx*y + x);
+		col[0]= FTOCHAR(shr.combined[0]);
+		col[1]= FTOCHAR(shr.combined[1]);
+		col[2]= FTOCHAR(shr.combined[2]);
+		col[3]= 255;
+	}
+	else {
+		float *col= bs->rect_float + 4*(bs->rectx*y + x);
+		VECCOPY(col, shr.combined);
+		col[3]= 1.0f;
+	}
+}
+
+static int bake_check_intersect(Isect *is, RayFace *face)
+{
+	VlakRen *vlr = (VlakRen*)face;
+	BakeShade *bs = (BakeShade*)is->userdata;
+	
+	/* no direction checking for now, doesn't always improve the result
+	 * (INPR(vlr->n, bs->dir) > 0.0f); */
+
+	return (vlr->ob != bs->actob);
+}
+
+static int bake_intersect_tree(RayTree* raytree, Isect* isect, float *dir, float sign, float *hitco)
+{
+	float maxdist;
+	int hit;
+
+	/* might be useful to make a user setting for maxsize*/
+	if(R.r.bake_maxdist > 0.0f)
+		maxdist= R.r.bake_maxdist;
+	else
+		maxdist= RE_ray_tree_max_size(R.raytree);
+
+	isect->end[0] = isect->start[0] + dir[0]*maxdist*sign;
+	isect->end[1] = isect->start[1] + dir[1]*maxdist*sign;
+	isect->end[2] = isect->start[2] + dir[2]*maxdist*sign;
+
+	hit = RE_ray_tree_intersect_check(R.raytree, isect, bake_check_intersect);
+	if(hit) {
+		hitco[0] = isect->start[0] + isect->labda*isect->vec[0];
+		hitco[1] = isect->start[1] + isect->labda*isect->vec[1];
+		hitco[2] = isect->start[2] + isect->labda*isect->vec[2];
+	}
+
+	return hit;
+}
+
+static void do_bake_shade(void *handle, int x, int y, float u, float v)
+{
+	BakeShade *bs= handle;
 	VlakRen *vlr= bs->vlr;
-	float l, *v1, *v2, *v3;
+	Object *ob= vlr->ob;
+	float l, *v1, *v2, *v3, tvn[3], ttang[3];
+	int quad;
+	ShadeSample *ssamp= &bs->ssamp;
+	ShadeInput *shi= ssamp->shi;
 	
 	/* fast threadsafe break test */
 	if(R.test_break())
@@ -1694,73 +1856,60 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 	shi->co[1]= l*v3[1]+u*v1[1]+v*v2[1];
 	shi->co[2]= l*v3[2]+u*v1[2]+v*v2[2];
 	
-	/* set up view vector */
-	VECCOPY(shi->view, shi->co);
-	Normalize(shi->view);
-	
-	/* no face normal flip */
-	shi->puno= 0;
-	
-	/* cache for shadow */
-	shi->samplenr++;
-	
-	if(bs->quad) 
-		shade_input_set_triangle_i(shi, vlr, 0, 2, 3);
-	else
-		shade_input_set_triangle_i(shi, vlr, 0, 1, 2);
-	
-	shi->u= -u;
-	shi->v= -v;
-	shi->xs= x;
-	shi->ys= y;
-	
-	shade_input_set_normals(shi);
+	quad= bs->quad;
+	bake_set_shade_input(vlr, shi, quad, 0, x, y, u, v);
 
-	/* init material vars */
-	memcpy(&shi->r, &shi->mat->r, 23*sizeof(float));	// note, keep this synced with render_types.h
-	shi->har= shi->mat->har;
-	
-	if(bs->type==RE_BAKE_AO) {
-		ambient_occlusion(shi);
-		ambient_occlusion_to_diffuse(shi, shr.combined);
-	}
-	else {
-		
+	if(bs->type==RE_BAKE_NORMALS && R.r.bake_normal_space==R_BAKE_SPACE_TANGENT) {
 		shade_input_set_shade_texco(shi);
+		VECCOPY(tvn, shi->vn);
+		VECCOPY(ttang, shi->tang);
+	}
+
+	/* if we are doing selected to active baking, find point on other face */
+	if(bs->actob) {
+		Isect isec, minisec;
+		float co[3], minco[3];
+		int hit, sign;
 		
-		shade_samples_do_AO(ssamp);
-		
-		if(shi->mat->nodetree && shi->mat->use_nodes) {
-			ntreeShaderExecTree(shi->mat->nodetree, shi, &shr);
-			shi->mat= vlr->mat;		/* shi->mat is being set in nodetree */
+		/* intersect with ray going forward and backward*/
+		hit= 0;
+		memset(&minisec, 0, sizeof(minisec));
+		minco[0]= minco[1]= minco[2]= 0.0f;
+
+		VECCOPY(bs->dir, shi->vn);
+
+		for(sign=-1; sign<=1; sign+=2) {
+			memset(&isec, 0, sizeof(isec));
+			VECCOPY(isec.start, shi->co);
+			isec.mode= RE_RAY_MIRROR;
+			isec.faceorig= (RayFace*)vlr;
+			isec.userdata= bs;
+
+			if(bake_intersect_tree(R.raytree, &isec, shi->vn, sign, co)) {
+				if(!hit || VecLenf(shi->co, co) < VecLenf(shi->co, minco)) {
+					minisec= isec;
+					VECCOPY(minco, co);
+					hit= 1;
+				}
+			}
 		}
-		else
-			shade_material_loop(shi, &shr);
-		
-		if(bs->type==RE_BAKE_NORMALS) {
-			shr.combined[0]= shi->vn[0]/2.0f + 0.5f;
-			shr.combined[1]= 0.5f - shi->vn[1]/2.0f;
-			shr.combined[2]= shi->vn[2]/2.0f + 0.5f;
-		}
-		else if(bs->type==RE_BAKE_TEXTURE) {
-			shr.combined[0]= shi->r;
-			shr.combined[1]= shi->g;
-			shr.combined[2]= shi->b;
+
+		/* if hit, we shade from the new point, otherwise from point one starting face */
+		if(hit) {
+			vlr= (VlakRen*)minisec.face;
+			quad= (minisec.isect == 2);
+			VECCOPY(shi->co, minco);
+
+			u= -minisec.u;
+			v= -minisec.v;
+			bake_set_shade_input(vlr, shi, quad, 1, x, y, u, v);
 		}
 	}
-	
-	if(bs->rect) {
-		char *col= (char *)(bs->rect + bs->rectx*y + x);
-		col[0]= FTOCHAR(shr.combined[0]);
-		col[1]= FTOCHAR(shr.combined[1]);
-		col[2]= FTOCHAR(shr.combined[2]);
-		col[3]= 255;
-	}
-	else {
-		float *col= bs->rect_float + 4*(bs->rectx*y + x);
-		VECCOPY(col, shr.combined);
-		col[3]= 1.0f;
-	}
+
+	if(bs->type==RE_BAKE_NORMALS && R.r.bake_normal_space==R_BAKE_SPACE_TANGENT)
+		bake_shade(handle, ob, vlr, shi, quad, x, y, u, v, tvn, ttang);
+	else
+		bake_shade(handle, ob, vlr, shi, quad, x, y, u, v, 0, 0);
 }
 
 static int get_next_bake_face(BakeShade *bs)
@@ -1780,7 +1929,7 @@ static int get_next_bake_face(BakeShade *bs)
 	for(; v<R.totvlak; v++) {
 		vlr= RE_findOrAddVlak(&R, v);
 		
-		if(vlr->ob->flag & SELECT) {
+		if((bs->actob && bs->actob == vlr->ob) || (!bs->actob && (vlr->ob->flag & SELECT))) {
 			tface= RE_vlakren_get_tface(&R, vlr, 0, NULL, 0);
 
 			if(tface && tface->tpage) {
@@ -1887,7 +2036,7 @@ static void *do_bake_thread(void *bs_v)
 /* using object selection tags, the faces with UV maps get baked */
 /* render should have been setup */
 /* returns 0 if nothing was handled */
-int RE_bake_shade_all_selected(Render *re, int type)
+int RE_bake_shade_all_selected(Render *re, int type, Object *actob)
 {
 	BakeShade handles[BLENDER_MAX_THREADS];
 	ListBase threads;
@@ -1919,6 +2068,7 @@ int RE_bake_shade_all_selected(Render *re, int type)
 		handles[a].ssamp.tot= 1;
 		
 		handles[a].type= type;
+		handles[a].actob= actob;
 		handles[a].zspan= MEM_callocN(sizeof(ZSpan), "zspan for bake");
 		
 		BLI_insert_thread(&threads, &handles[a]);

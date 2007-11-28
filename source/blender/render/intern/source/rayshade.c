@@ -111,15 +111,16 @@ void makeraytree(Render *re)
 		else vlr++;
 		if(vlr->mat->mode & MA_TRACEBLE) {	
 			if((vlr->mat->mode & MA_WIRE)==0) {	
-				
-				DO_MINMAX(vlr->v1->co, min, max);
-				DO_MINMAX(vlr->v2->co, min, max);
-				DO_MINMAX(vlr->v3->co, min, max);
-				if(vlr->v4) {
-					DO_MINMAX(vlr->v4->co, min, max);
-				}
+				if(!re->excludeob || vlr->ob != re->excludeob) {
+					DO_MINMAX(vlr->v1->co, min, max);
+					DO_MINMAX(vlr->v2->co, min, max);
+					DO_MINMAX(vlr->v3->co, min, max);
+					if(vlr->v4) {
+						DO_MINMAX(vlr->v4->co, min, max);
+					}
 
-				totface++;
+					totface++;
+				}
 			}
 		}
 	}
@@ -149,11 +150,10 @@ void makeraytree(Render *re)
 		}
 		else vlr++;
 		
-		if(vlr->mat->mode & MA_TRACEBLE) {
-			if((vlr->mat->mode & MA_WIRE)==0) {	
-				RE_ray_tree_add_face(re->raytree, (RayFace*)vlr);
-			}
-		}
+		if(vlr->mat->mode & MA_TRACEBLE)
+			if((vlr->mat->mode & MA_WIRE)==0)
+				if(!re->excludeob || vlr->ob != re->excludeob)
+					RE_ray_tree_add_face(re->raytree, (RayFace*)vlr);
 	}
 
 	RE_ray_tree_done(re->raytree);

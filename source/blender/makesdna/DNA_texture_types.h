@@ -58,6 +58,7 @@ typedef struct MTex {
 	float ofs[3], size[3];
 	
 	short texflag, colormodel, pmapto, pmaptoneg;
+	short normapspace, pad[3];
 	float r, g, b, k;
 	float def_var, rt;
 	
@@ -157,7 +158,7 @@ typedef struct Tex {
 	float cropxmin, cropymin, cropxmax, cropymax;
 	short xrepeat, yrepeat;
 	short extend;
-	
+
 	/* variables disabled, moved to struct iuser */
 	short fie_ima;
 	int len;
@@ -318,6 +319,12 @@ typedef struct TexMapping {
 #define TEX_COL1		1
 #define TEX_COL2		2
 #define TEX_COL3		3
+
+/* mtex->normapspace */
+#define MTEX_NSPACE_CAMERA	0
+#define MTEX_NSPACE_WORLD	1
+#define MTEX_NSPACE_OBJECT	2
+#define MTEX_NSPACE_TANGENT	3
 
 /* wrap */
 #define MTEX_FLAT		0

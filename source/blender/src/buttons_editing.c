@@ -1928,7 +1928,7 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 			          "Material value that gives no displacement");
 			uiDefButF(block, NUM, B_MODIFIER_RECALC, "Strength:",
 			          lx, (cy -= 19), buttonWidth, 19, &dmd->strength,
-			          -1000, 1000, 10, 10,
+			          -1000, 1000, 10, 0.1,
 			          "Strength of displacement");
 			sprintf(str, "Direction%%t|Normal%%x%d|RGB -> XYZ%%x%d|"
 			        "Z%%x%d|Y%%x%d|X%%x%d",
