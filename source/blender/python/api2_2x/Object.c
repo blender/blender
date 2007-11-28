@@ -2510,7 +2510,7 @@ static PyObject *Object_setConstraintInfluenceForBone( BPy_Object * self,
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 				"expects bonename, constraintname, influenceval" );
 	
-	icu = verify_ipocurve((ID *)self->object, ID_CO, boneName, constName,
+	icu = verify_ipocurve((ID *)self->object, ID_CO, boneName, constName, NULL,
 			CO_ENFORCE);
 	
 	if (!icu)
