@@ -642,6 +642,7 @@ class tree:
 		
 		# Correct points that were messed up from sliding
 		# This happens when one point is pushed past another and the branch gets an overlaping line
+		
 		for brch in self.branches_all:
 			brch.fixOverlapError(joint_smooth)
 		
@@ -649,6 +650,7 @@ class tree:
 		# Collapsing
 		for brch in self.branches_all:
 			brch.collapsePoints(seg_density, seg_density_angle, seg_density_radius, joint_smooth)
+			
 		'''
 		for brch in self.branches_all:
 			brch.branchReJoin()
@@ -1459,12 +1461,12 @@ class tree:
 					#brch.bpoints[0].roll_angle *= 0.5
 					#brch.bpoints[0].roll_angle = 0.0
 					#brch.bpoints[1].roll_angle = 0.0
-					brch.bpoints[0].roll_angle = 0
+					brch.bpoints[0].roll_angle = 0.0
 					pass
 				else:
 					# our roll was set from the branches parent and needs no changing
 					# set it to zero so the following functions know to interpolate.
-					brch.bpoints[0].roll_angle = 25.0
+					brch.bpoints[0].roll_angle = 45.0
 					#brch.bpoints[1].roll_angle = 0.0
 		
 		'''
@@ -2183,14 +2185,32 @@ class bpoint(object):
 		if not self.targetCos:
 			return False
 		elif len(self.targetCos) == 1:
-			self.setCo(self.targetCos[0])
+			co_all = self.targetCos[0]
 		else:
 			co_all = Vector()
 			for co in self.targetCos:
 				co_all += co
+			co_all = co_all / len(self.targetCos)
+		
+		self.targetCos[:] = []
+		
+		length = (self.co-co_all).length
+		# work out if we are moving up or down
+		if AngleBetweenVecsSafe(self.no, self.co - co_all) < 90:
 			
-			self.setCo(co_all / len(self.targetCos))
-			self.targetCos[:] = []
+			# Up
+			while length > (self.co-self.prev.co).length:
+				if not self.collapseUp():
+					break
+			
+		else:
+			# Down
+			while length*2 > (self.co-self.next.co).length:
+				if not self.collapseDown():
+					break
+				
+		self.setCo(co_all)
+		
 		return True
 	
 	def calcNextMidCo(self):
@@ -2771,6 +2791,7 @@ class branch:
 	
 	def fixOverlapError(self, joint_smooth=1.0):
 		# Keep fixing until no hasOverlapError left to fix.
+		
 		error = True
 		while error:
 			error = False
@@ -2799,21 +2820,24 @@ class branch:
 		# work out the median location of all points children.
 		for pt in self.bpoints:
 			pt.calcChildrenMidData()
+			pt.targetCos[:] = []
 		
 		for pt in self.bpoints:
-			pt.targetCos = []
+			
 			if pt.childrenMidCo:
 				# Move this and the next segment to be around the child point.
 				# TODO - factor in the branch angle, be careful with this - close angles can have extreme values.
-				co = pt.slideCo( (pt.childrenMidCo - pt.co).length - (pt.childrenMidRadius * joint_compression) )
+				slide_dist = (pt.childrenMidCo - pt.co).length - (pt.childrenMidRadius * joint_compression)
+				co = pt.slideCo( slide_dist )
 				if co:
 					pt.targetCos.append( co )
 				
-				co = pt.next.slideCo((pt.childrenMidRadius * joint_compression) - (pt.childrenMidCo - pt.next.co).length )
+				slide_dist = (pt.childrenMidRadius * joint_compression) - (pt.childrenMidCo - pt.next.co).length
+				co = pt.next.slideCo( slide_dist )
 				if co:
 					pt.next.targetCos.append( co )
 		
-		for pt in self.bpoints:
+		for pt in reversed(self.bpoints):
 			pt.applyTargetLocation()
 	
 	def collapsePoints(self, seg_density=0.5, seg_density_angle=20.0, seg_density_radius=0.3, smooth_joint=1.0):
@@ -3917,7 +3941,7 @@ def gui():
 	# ---------- ---------- ---------- ----------
 	
 	PREFS['connect_sloppy'] =	Draw.Number('Connect Limit',EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['connect_sloppy'].val,	0.1, 2.0,	'Strictness when connecting branches'); xtmp += but_width*2;
-	PREFS['connect_base_trim'] =	Draw.Number('Joint Detail',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['connect_base_trim'].val,	0.0, 2.0,	'Trim branch base to better connect with parent branch, low value for more detail'); xtmp += but_width*2;
+	PREFS['connect_base_trim'] =	Draw.Number('Joint Bevel',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['connect_base_trim'].val,	0.0, 2.0,	'low value for a tight join, hi for a smoother bevel'); xtmp += but_width*2;
 	Blender.Draw.EndAlign()
 	y-=but_height+MARGIN
 	xtmp = x
