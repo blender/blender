@@ -3154,11 +3154,6 @@ void transform_armature_mirror_update(void)
 
 void markdownSymmetryArc(ReebArc *arc, ReebNode *node, int level);
 
-void reestablishRadialSymmetry(ReebNode *node, int depth, float axis[3])
-{
-	printf("radial symmetry not done yet\n");
-}
-
 void mirrorAlongAxis(float v[3], float center[3], float axis[3])
 {
 	float dv[3], pv[3];
@@ -3167,6 +3162,131 @@ void mirrorAlongAxis(float v[3], float center[3], float axis[3])
 	Projf(pv, dv, axis);
 	VecMulf(pv, -2);
 	VecAddf(v, v, pv);
+}
+
+/* Helper structure for radial symmetry */
+typedef struct RadialArc
+{
+	ReebArc *arc; 
+	float n[3]; /* normalized vector joining the nodes of the arc */
+} RadialArc;
+
+void reestablishRadialSymmetry(ReebNode *node, int depth, float axis[3])
+{
+#if 0
+	RadialArc *ring = NULL;
+	RadialArc *unit;
+	float limit = G.scene->toolsettings->skgen_symmetry_limit;
+	int symmetric = 1;
+	int count = 0;
+	int i;
+
+	/* count the number of arcs in the symmetry ring */
+	for(i = 0; node->arcs[i] != NULL; i++)
+	{
+		ReebArc *connectedArc = node->arcs[i];
+		
+		/* depth is store as a negative in flag. symmetry level is positive */
+		if (connectedArc->flags == -depth)
+		{
+			count++;
+		}
+	}
+
+	ring = MEM_callocN(sizeof(RadialArc) * count, "radial symmetry ring");
+	unit = ring;
+
+	/* fill in the ring */
+	for(unit = ring, i = 0; node->arcs[i] != NULL; i++)
+	{
+		ReebArc *connectedArc = node->arcs[i];
+		
+		/* depth is store as a negative in flag. symmetry level is positive */
+		if (connectedArc->flags == -depth)
+		{
+			ReebNode *otherNode = OTHER_NODE(connectedArc, node);
+			float vec[3];
+
+			unit->arc = connectedArc;
+
+			/* project the node to node vector on the symmetry plane */
+			VecSubf(unit->n, otherNode->p, node->p);
+			Projf(vec, unit->n, axis);
+			VecSubf(unit->n, unit->n, vec);
+
+			Normalize(unit->n);
+
+			unit++;
+		}
+	}
+
+	/* sort ring */
+	for(i = 0; i < count - 1; i++)
+	{
+		float minAngle = 2;
+		int minIndex = -1;
+		int j;
+
+		for(j = i + 1; j < count; j++)
+		{
+			float angle = Inpf(ring[i].n, ring[j].n);
+
+			/* map negative values to 1..2 */
+			if (angle < 0)
+			{
+				angle = 1 - angle;
+			}
+
+			if (angle < minAngle)
+			{
+				minIndex = j;
+				minAngle = angle;
+			}
+		}
+
+		/* swap if needed */
+		if (minIndex != i + 1)
+		{
+			RadialArc tmp;
+			tmp = ring[i + 1];
+			ring[i + 1] = ring[minIndex];
+			ring[minIndex] = tmp;
+		}
+	}
+
+	for(i = 0; i < count && symmetric; i++)
+	{
+		ReebNode *node1, *node2;
+		float tangent[3];
+		float normal[3];
+		float p[3];
+		int j = (i + 1) % count; /* next arc in the circular list */
+
+		VecAddf(tangent, ring[i].n, ring[j].n);
+		Crossf(normal, tangent, axis);
+		
+		node1 = OTHER_NODE(ring[i].arc, node);
+		node2 = OTHER_NODE(ring[j].arc, node);
+
+		VECCOPY(p, node2->p);
+		mirrorAlongAxis(p, node->p, normal);
+		
+		/* check if it's within limit before continuing */
+		if (VecLenf(node1->p, p) > limit)
+		{
+			symmetric = 0;
+		}
+
+	}
+
+	if (symmetric)
+	{
+		printf("DO MORE STUFF\n");
+	}
+
+	MEM_freeN(ring);
+#endif
+	printf("radial symmetry not done yet\n");
 }
 
 void reestablishAxialSymmetry(ReebNode *node, int depth, float axis[3])
@@ -3334,10 +3454,10 @@ void markdownSymmetryArc(ReebArc *arc, ReebNode *node, int level)
 			ReebNode *connectedNode = OTHER_NODE(connectedArc, node);
 			
 			/* symmetry level is positive value, negative values is subtree depth */
-			connectedArc->flags = -subtreeDepth(connectedNode);
+			connectedArc->flags = -subtreeDepth(connectedNode, connectedArc);
 		}
 	}
-	
+
 	arc = NULL;
 
 	for(i = 0; node->arcs[i] != NULL; i++)
@@ -3388,8 +3508,9 @@ void markdownSymmetryArc(ReebArc *arc, ReebNode *node, int level)
 	{
 		markdownSymmetryArc(arc, node, level);
 	}
+
 	
-	/* restore symmetry */
+	/* secondary symmetry */
 	for(i = 0; node->arcs[i] != NULL; i++)
 	{
 		ReebArc *connectedArc = node->arcs[i];
@@ -3407,6 +3528,8 @@ void markdownSymmetry(ReebGraph *rg)
 {
 	ReebNode *node;
 	ReebArc *arc;
+	/* only for Acyclic graphs */
+	int cyclic = isGraphCyclic(rg);
 	
 	/* mark down all arcs as non-symetric */
 	for(arc = rg->arcs.first; arc; arc = arc->next)
@@ -3423,36 +3546,34 @@ void markdownSymmetry(ReebGraph *rg)
 	/* node list is sorted, so lowest node is always the head (by design) */
 	node = rg->nodes.first;
 	
-	/* only work if only one arc is incident on the first node */
-	if (countConnectedArcs(rg, node) == 1)
+	/* only work on acyclic graphs and if only one arc is incident on the first node */
+	if (cyclic == 0 && countConnectedArcs(rg, node) == 1)
 	{
 		arc = node->arcs[0];
 		
 		markdownSymmetryArc(arc, node, 1);
-	}
 
-	/* mark down non-symetric arcs */
-	for(arc = rg->arcs.first; arc; arc = arc->next)
-	{
-		if (arc->flags < 0)
+		/* mark down non-symetric arcs */
+		for(arc = rg->arcs.first; arc; arc = arc->next)
 		{
-			arc->flags = 0;
-		}
-		else
-		{
-			/* mark down nodes with the lowest level symmetry axis */
-			if (arc->v1->flags == 0 || arc->v1->flags > arc->flags)
+			if (arc->flags < 0)
 			{
-				arc->v1->flags = arc->flags;
+				arc->flags = 0;
 			}
-			if (arc->v2->flags == 0 || arc->v2->flags > arc->flags)
+			else
 			{
-				arc->v2->flags = arc->flags;
+				/* mark down nodes with the lowest level symmetry axis */
+				if (arc->v1->flags == 0 || arc->v1->flags > arc->flags)
+				{
+					arc->v1->flags = arc->flags;
+				}
+				if (arc->v2->flags == 0 || arc->v2->flags > arc->flags)
+				{
+					arc->v2->flags = arc->flags;
+				}
 			}
 		}
-		
 	}
-
 }
 
 /**************************************** SUBDIVISION ALGOS ******************************************/
@@ -3958,7 +4079,7 @@ void generateSkeleton(void)
 #endif
 	
 	rg = generateReebGraph(em, G.scene->toolsettings->skgen_resolution);
-	
+
 	verifyBuckets(rg);
 	
 	/* Remove arcs without embedding */
@@ -4003,6 +4124,6 @@ void generateSkeleton(void)
 //	exportGraph(rg, -1);
 
 	generateSkeletonFromReebGraph(rg);
-	
+
 	freeGraph(rg);
 }

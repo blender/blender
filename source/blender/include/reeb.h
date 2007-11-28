@@ -115,10 +115,10 @@ void buildAdjacencyList(ReebGraph *rg);
 void sortNodes(ReebGraph *rg);
 void sortArcs(ReebGraph *rg);
 
-int subtreeDepth(ReebNode *node);
+int subtreeDepth(ReebNode *node, ReebArc *rootArc);
 int countConnectedArcs(ReebGraph *rg, ReebNode *node);
 int hasAdjacencyList(ReebGraph *rg); 
-int	isGraphAcyclic(ReebGraph *rg);
+int	isGraphCyclic(ReebGraph *rg);
 
 /* Sanity check */
 void verifyBuckets(ReebGraph *rg);

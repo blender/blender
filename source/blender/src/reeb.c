@@ -815,7 +815,7 @@ void spreadWeight(EditMesh *em)
 }
 /*********************************** GRAPH AS TREE FUNCTIONS *******************************************/
 
-int subtreeDepth(ReebNode *node)
+int subtreeDepth(ReebNode *node, ReebArc *rootArc)
 {
 	int depth = 0;
 	
@@ -833,9 +833,11 @@ int subtreeDepth(ReebNode *node)
 			ReebArc *arc = *pArc;
 			
 			/* only arcs that go down the tree */
-			if (arc->v1 == node)
+			if (arc != rootArc)
 			{
-				depth = MAX2(depth, subtreeDepth(arc->v2));
+				ReebNode *newNode = OTHER_NODE(arc, node);
+				printf("recurse\n");
+				depth = MAX2(depth, subtreeDepth(newNode, arc));
 			}
 		}
 	}
@@ -845,19 +847,26 @@ int subtreeDepth(ReebNode *node)
 
 /*************************************** CYCLE DETECTION ***********************************************/
 
-int detectCycle(ReebNode *node)
+int detectCycle(ReebNode *node, ReebArc *srcArc)
 {
 	int value = 0;
 	
-	if (node->flags != 0)
+	if (node->flags == 0)
 	{
 		ReebArc ** pArc;
+
+		/* mark node as visited */
+		node->flags = 1;
 
 		for(pArc = node->arcs; *pArc && value == 0; pArc++)
 		{
 			ReebArc *arc = *pArc;
 			
-			value = detectCycle(OTHER_NODE(arc, node));
+			/* don't go back on the source arc */
+			if (arc != srcArc)
+			{
+				value = detectCycle(OTHER_NODE(arc, node), arc);
+			}
 		}
 	}
 	else
@@ -868,7 +877,7 @@ int detectCycle(ReebNode *node)
 	return value;
 }
 
-int	isGraphAcyclic(ReebGraph *rg)
+int	isGraphCyclic(ReebGraph *rg)
 {
 	ReebNode *node;
 	int value = 0;
@@ -887,7 +896,7 @@ int	isGraphAcyclic(ReebGraph *rg)
 		/* only for nodes in subgraphs that haven't been visited yet */
 		if (node->flags == 0)
 		{
-			value = detectCycle(node);
+			value = value || detectCycle(node, NULL);
 		}		
 	}
 	
