@@ -581,6 +581,26 @@ void assign_material(Object *ob, Material *ma, int act)
 	test_object_materials(ob->data);
 }
 
+int find_material_index(Object *ob, Material *ma)
+{
+	Material ***matarar;
+	short a, *totcolp;
+	
+	if(ma==NULL) return 0;
+	
+	totcolp= give_totcolp(ob);
+	matarar= give_matarar(ob);
+	
+	if(totcolp==NULL || matarar==NULL) return 0;
+	
+	for(a=0; a<*totcolp; a++)
+		if((*matarar)[a]==ma)
+		   break;
+	if(a<*totcolp)
+		return a+1;
+	return 0;	   
+}
+
 void new_material_to_objectdata(Object *ob)
 {
 	Material *ma;

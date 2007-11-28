@@ -141,6 +141,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_effect.h"
 #include "BKE_font.h"
+#include "BKE_icons.h"
 #include "BKE_image.h"
 #include "BKE_ipo.h"
 #include "BKE_lattice.h"
@@ -388,6 +389,7 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 	EditFace *efa;
 	Base *base;
 	Object *ob= OBACT;
+	Material *ma;
 	Nurb *nu;
 	Curve *cu;
 	BezTriple *bezt;
@@ -400,8 +402,7 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 	case B_MATWICH:
 		if(G.obedit && G.obedit->actcol>0) {
 			if(G.obedit->type == OB_MESH) {
-				efa= em->faces.first;
-				while(efa) {
+				for(efa= em->faces.first; efa; efa= efa->next) {
 					if(efa->f & SELECT) {
 						if(index== -1) index= efa->mat_nr;
 						else if(index!=efa->mat_nr) {
@@ -476,6 +477,30 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 			BIF_undo_push("Assign material index");
 		}
 		break;
+	case B_MATASS_BROWSE:
+		/* if slot available, make that index active, and assign */
+		/* else, make new slot, and assign */
+		ma= BLI_findlink(&G.main->mat, G.buts->menunr-1);
+		if(ma) {
+			ob->actcol= find_material_index(ob, ma);
+			if(ob->actcol==0) {
+				assign_material(ob, ma, ob->totcol);
+				ob->actcol= ob->totcol;
+			}
+		}
+		else {
+			do_common_editbuts(B_MATNEW);
+		}
+		do_common_editbuts(B_MATASS);
+		break;
+		
+	case B_MATCOL2:
+		ma= give_current_material(ob, ob->actcol);
+		BKE_icon_changed(BKE_icon_getid((ID *)ma));
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWBUTSEDIT, 0);
+		break;
+		
 	case B_MATSEL:
 	case B_MATDESEL:
 		if(G.obedit) {
@@ -4904,23 +4929,30 @@ static void editing_panel_links(Object *ob)
 	if(ob->totcol) min= 1.0; else min= 0.0;
 	ma= give_current_material(ob, ob->actcol);
 
-	if(ma) uiDefBut(block, LABEL, 0, ma->id.name+2, 318,153, 103, 20, 0, 0, 0, 0, 0, "");
+	if(G.obedit) {
+		char *str= NULL;
+		IDnames_to_pupstring(&str, NULL, "ADD NEW %x 32767", &G.main->mat, NULL, NULL);
+		uiDefButS(block, MENU, B_MATASS_BROWSE, str, 292,150,20,20, &G.buts->menunr, 0, 0, 0, 0, "Browses existing choices and assign");
+		MEM_freeN(str);
+	}
+	
+	if(ma) uiDefBut(block, LABEL, 0, ma->id.name+2, 318,150, 103, 20, 0, 0, 0, 0, 0, "");
 
 	uiBlockBeginAlign(block);
-	if(ma) uiDefButF(block, COL, B_REDR, "",			292,123,31,30, &(ma->r), 0, 0, 0, 0, "");
-	uiDefButC(block, NUM, B_ACTCOL,	str,		324,123,100,30, &ob->actcol, min, (float)(ob->totcol), 0, 0, "Displays total number of material indices and the current index");
-	uiDefBut(block, BUT,B_MATWICH,	"?",		424,123,30,30, 0, 0, 0, 0, 0, "In EditMode, sets the active material index from selected faces");
+	if(ma) uiDefButF(block, COL, B_MATCOL2, "",	292,113,31,30, &(ma->r), 0, 0, 0, 0, "");
+	uiDefButC(block, NUM, B_ACTCOL,	str,		324,113,100,30, &ob->actcol, min, (float)(ob->totcol), 0, 0, "Displays total number of material indices and the current index");
+	uiDefBut(block, BUT,B_MATWICH,	"?",		424,113,30,30, 0, 0, 0, 0, 0, "In EditMode, sets the active material index from selected faces");
 
 	uiBlockBeginAlign(block);
-	uiDefBut(block, BUT,B_MATNEW,	"New",		292,98,80,20, 0, 0, 0, 0, 0, "Adds a new Material index");
-	uiDefBut(block, BUT,B_MATDEL,	"Delete",	374,98,80,20, 0, 0, 0, 0, 0, "Deletes this Material index");
-	uiDefBut(block, BUT,B_MATSEL,	"Select",	292,76,80,20, 0, 0, 0, 0, 0, "In EditMode, selects faces that have the active index");
-	uiDefBut(block, BUT,B_MATDESEL,	"Deselect",	374,76,80,20, 0, 0, 0, 0, 0, "Deselects everything with current indexnumber");
-	uiDefBut(block, BUT,B_MATASS,	"Assign",	292,47,162,26, 0, 0, 0, 0, 0, "In EditMode, assigns the active index to selected faces");
+	uiDefBut(block, BUT,B_MATNEW,	"New",		292,90,80,20, 0, 0, 0, 0, 0, "Adds a new Material index");
+	uiDefBut(block, BUT,B_MATDEL,	"Delete",	372,90,80,20, 0, 0, 0, 0, 0, "Deletes this Material index");
+	uiDefBut(block, BUT,B_MATSEL,	"Select",	292,70,80,20, 0, 0, 0, 0, 0, "In EditMode, selects faces that have the active index");
+	uiDefBut(block, BUT,B_MATDESEL,	"Deselect",	372,70,80,20, 0, 0, 0, 0, 0, "Deselects everything with current indexnumber");
+	uiDefBut(block, BUT,B_MATASS,	"Assign",	292,50,160,20, 0, 0, 0, 0, 0, "In EditMode, assigns the active index to selected faces");
 
 	uiBlockBeginAlign(block);
-	uiDefBut(block, BUT,B_SETSMOOTH,"Set Smooth",	291,15,80,20, 0, 0, 0, 0, 0, "In EditMode, sets 'smooth' rendering of selected faces");
-	uiDefBut(block, BUT,B_SETSOLID,	"Set Solid",	373,15,80,20, 0, 0, 0, 0, 0, "In EditMode, sets 'solid' rendering of selected faces");
+	uiDefBut(block, BUT,B_SETSMOOTH,"Set Smooth",	292,15,80,20, 0, 0, 0, 0, 0, "In EditMode, sets 'smooth' rendering of selected faces");
+	uiDefBut(block, BUT,B_SETSOLID,	"Set Solid",	372,15,80,20, 0, 0, 0, 0, 0, "In EditMode, sets 'solid' rendering of selected faces");
 
 	uiBlockEndAlign(block);
 

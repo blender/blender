@@ -370,6 +370,7 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_DOCENTER		2015
 #define B_DOCENTERNEW		2016
 #define B_DOCENTERCURSOR	2017
+#define B_MATASS_BROWSE	2018
 
 	/* 20 values! */
 #define B_OBLAY			2019
@@ -381,6 +382,7 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_PREVKEY		2045
 #define B_NEXTKEY		2046
 #define B_LOCKKEY		2047
+#define B_MATCOL2		2048
 
 #define B_MESHBUTS		2090
 
