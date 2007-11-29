@@ -410,7 +410,6 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 							return;
 						}
 					}
-					efa= efa->next;
 				}
 			}
 			else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
