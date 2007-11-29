@@ -3248,6 +3248,7 @@ static void object_softbodies__enable(void *ob_v, void *arg2)
 		if (!ob->soft) {
 			ob->soft= sbNew();
 			ob->softflag |= OB_SB_GOAL|OB_SB_EDGES;
+			softbody_clear_cache(ob, CFRA);
 		}
 	}
 	/* needed so that initial state is cached correctly */
@@ -3281,6 +3282,7 @@ static void object_softbodies__enable_psys(void *ob_v, void *psys_v)
 			psys->soft= sbNew();
 			psys->softflag |= OB_SB_GOAL|OB_SB_EDGES;
 			psys->soft->particles=psys;
+			clear_particles_from_cache(ob, psys, CFRA);
 		}
 		psys->softflag |= OB_SB_ENABLE;
 	}

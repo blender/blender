@@ -70,6 +70,8 @@
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_meta_types.h"
+#include "DNA_modifier_types.h"
+#include "DNA_object_force.h"
 #include "DNA_object_types.h"
 #include "DNA_particle_types.h"
 #include "DNA_screen_types.h"
@@ -101,8 +103,10 @@
 #include "BKE_key.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
+#include "BKE_pointcache.h"
 #include "BKE_scene.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
@@ -3292,10 +3296,50 @@ static void inner_play_prefetch_shutdown(int mode)
 	seq_stop_threads();
 }
 
+static int cached_dynamics(int sfra, int efra)
+{
+	Base *base = G.scene->base.first;
+	Object *ob;
+	ModifierData *md;
+	ParticleSystem *psys;
+	int i, stack_index, cached=1;
+
+	while(base && cached) {
+		ob = base->object;
+		if(ob->softflag & OB_SB_ENABLE && ob->soft) {
+			for(i=0, md=ob->modifiers.first; md; i++, md=md->next) {
+				if(md->type == eModifierType_Softbody) {
+					stack_index = i;
+					break;
+				}
+			}
+			for(i=sfra; i<=efra && cached; i++)
+				cached &= BKE_ptcache_id_exist(&ob->id,i,stack_index);
+		}
+
+		for(psys=ob->particlesystem.first; psys; psys=psys->next) {
+			stack_index = modifiers_indexInObject(ob,(ModifierData*)psys_get_modifier(ob,psys));
+			if(psys->part->type==PART_HAIR) {
+				if(psys->softflag & OB_SB_ENABLE && psys->soft);
+				else
+					stack_index = -1;
+			}
+
+			if(stack_index >= 0)
+				for(i=sfra; i<=efra && cached; i++)
+					cached &= BKE_ptcache_id_exist(&ob->id,i,stack_index);
+		}
+		
+		base = base->next;
+	}
+
+	return cached;
+}
 void inner_play_anim_loop(int init, int mode)
 {
 	ScrArea *sa;
 	static int last_cfra = -1;
+	static int cached = 0;
 
 	/* init */
 	if(init) {
@@ -3304,7 +3348,7 @@ void inner_play_anim_loop(int init, int mode)
 		tottime= 0.0;
 		curmode= mode;
 		last_cfra = -1;
-
+		cached = cached_dynamics(PSFRA,PEFRA);
 		return;
 	}
 
@@ -3380,8 +3424,10 @@ void inner_play_anim_loop(int init, int mode)
 		CFRA = PSFRA;
 		audiostream_stop();
 		audiostream_start( CFRA );
+		cached = cached_dynamics(PSFRA,PEFRA);
 	} else {
-		if (U.mixbufsize 
+		if (cached
+			&& U.mixbufsize 
 		    && (G.scene->audio.flag & AUDIO_SYNC)) {
 			CFRA = audiostream_pos();
 		} else {
