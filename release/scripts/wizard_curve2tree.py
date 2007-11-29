@@ -251,6 +251,8 @@ class tree:
 			if brch.bpoints:
 				# if all points are in the same location, this is possible
 				self.branches_all.append(brch)
+				if brch.bpoints[0].radius < brch.bpoints[-1].radius: # This means we dont have to worry about curve direction.
+					brch.bpoints.reverse()
 				brch.calcData()
 			
 		# Sort from big to small, so big branches get priority
@@ -1030,8 +1032,10 @@ class tree:
 			
 			for pt in interior_points:
 				# line from the point to the seg endpoint
+				
 				line_normal = seg.tailCo - pt.nextMidCo
 				l = line_normal.length
+				
 				
 				cross1 = CrossVecs( seg.no, line_normal )
 				cross2 = CrossVecs( pt.no, line_normal )
@@ -1043,7 +1047,7 @@ class tree:
 				# angle = 66.0 # min(AngleBetweenVecs(v2_co-v1_co, leaf.co-cc), AngleBetweenVecs(v1_co-v2_co, leaf.co-cc))
 				# print angle, angle2
 				# l = (l * ((1+abs(angle-BEST_ANG))**2 )) / (1+angle_line)
-				l = angle_leaf_no_diff * angle_line * l
+				l = (1+(angle_leaf_no_diff/180)) * (1+(angle_line/180)) * l
 				
 				if l < best_dist:
 					best_pt = pt
