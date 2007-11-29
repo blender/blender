@@ -5507,7 +5507,7 @@ static void explodeModifier_createFacepa(ExplodeModifierData *emd,
 	/* make tree of emitter locations */
 	tree=BLI_kdtree_new(totpart);
 	for(p=0,pa=psys->particles; p<totpart; p++,pa++){
-		psys_particle_on_dm(ob,dm,psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,0,0,0);
+		psys_particle_on_dm(ob,psmd->dm,psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,0,0,0);
 		BLI_kdtree_insert(tree, p, co, NULL);
 	}
 	BLI_kdtree_balance(tree);
@@ -6194,7 +6194,10 @@ static DerivedMesh * explodeModifier_applyModifier(
 		if(psys->part==0 || psys->particles==0) return derivedData;
 
 		/* 1. find faces to be exploded if needed */
-		if(emd->facepa==0 || psmd->flag&eParticleSystemFlag_Pars || emd->flag&eExplodeFlag_CalcFaces){
+		if(emd->facepa==0
+			|| psmd->flag&eParticleSystemFlag_Pars
+			|| emd->flag&eExplodeFlag_CalcFaces
+			|| MEM_allocN_len(emd->facepa)/sizeof(int) != dm->getNumFaces(dm)){
 			if(psmd->flag & eParticleSystemFlag_Pars)
 				psmd->flag &= ~eParticleSystemFlag_Pars;
 			
