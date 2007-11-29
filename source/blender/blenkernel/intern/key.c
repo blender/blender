@@ -672,14 +672,12 @@ static void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, i
 	
 	/* step 2: do it */
 	
-	kb= key->block.first;
-	while(kb) {
-		
+	for(kb=key->block.first; kb; kb=kb->next) {
 		if(kb!=key->refkey) {
 			float icuval= kb->curval;
 			
 			/* only with value, and no difference allowed */
-			if(icuval!=0.0f && kb->totelem==tot) {
+			if(!(kb->flag & KEYBLOCK_MUTE) && icuval!=0.0f && kb->totelem==tot) {
 				KeyBlock *refb;
 				float weight, *weights= kb->weights;
 				
@@ -738,7 +736,6 @@ static void do_rel_key(int start, int end, int tot, char *basispoin, Key *key, i
 				}
 			}
 		}
-		kb= kb->next;
 	}
 }
 
@@ -1311,6 +1308,9 @@ int do_ob_key(Object *ob)
 		
 	if(ob->shapeflag & (OB_SHAPE_LOCK|OB_SHAPE_TEMPLOCK)) {
 		KeyBlock *kb= BLI_findlink(&key->block, ob->shapenr-1);
+
+		if(kb && (kb->flag & KEYBLOCK_MUTE))
+			kb= key->refkey;
 
 		if(kb==NULL) {
 			kb= key->block.first;

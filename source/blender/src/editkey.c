@@ -625,7 +625,7 @@ void insert_shapekey(Object *ob)
 
 void delete_key(Object *ob)
 {
-	KeyBlock *kb;
+	KeyBlock *kb, *rkb;
 	Key *key;
 	IpoCurve *icu;
 	
@@ -635,6 +635,10 @@ void delete_key(Object *ob)
 	kb= BLI_findlink(&key->block, ob->shapenr-1);
 
 	if(kb) {
+		for(rkb= key->block.first; rkb; rkb= rkb->next)
+			if(rkb->relative == ob->shapenr-1)
+				rkb->relative= 0;
+
 		BLI_remlink(&key->block, kb);
 		key->totkey--;
 		if(key->refkey== kb) key->refkey= key->block.first;
