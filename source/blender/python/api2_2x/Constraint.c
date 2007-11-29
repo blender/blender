@@ -440,7 +440,7 @@ static PyObject *Constraint_insertKey( BPy_Constraint * self, PyObject * value )
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,
 				"constraint doesn't belong to anything" );
 	}
-	icu= verify_ipocurve((ID *)ob, ID_CO, actname, con->name, CO_ENFORCE);
+	icu= verify_ipocurve((ID *)ob, ID_CO, actname, con->name, NULL, CO_ENFORCE);
 	
 	if (!icu)
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError,

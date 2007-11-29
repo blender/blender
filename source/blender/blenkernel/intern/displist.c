@@ -296,7 +296,7 @@ static Render *fastshade_get_render(void)
 	if(re==NULL) {
 		re= RE_NewRender("_Shade View_");
 	
-		RE_Database_Baking(re, G.scene, 0);	/* 0= no faces */
+		RE_Database_Baking(re, G.scene, 0, 0);	/* 0= no faces */
 	}
 	return re;
 }

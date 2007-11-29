@@ -108,7 +108,7 @@ typedef struct Image {
 #define	IMA_REFLECT		16
 #define IMA_NOCOLLECT   32
 #define IMA_ANTIALI		64
-
+#define IMA_DO_PREMUL	128
 
 /* tpageflag */
 #define IMA_TILES			1

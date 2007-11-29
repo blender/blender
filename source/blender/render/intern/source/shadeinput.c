@@ -538,9 +538,9 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 		}
 		
 		/* qdn: normalmap tangent space */
-		if (mode & (MA_TANGENT_V|MA_NORMAP_TANG)) {
+		if (mode & (MA_TANGENT_V|MA_NORMAP_TANG) || R.flag & R_NEED_TANGENT) {
 			float *s1, *s2, *s3;
-			
+
 			s1= RE_vertren_get_tangent(&R, v1, 0);
 			s2= RE_vertren_get_tangent(&R, v2, 0);
 			s3= RE_vertren_get_tangent(&R, v3, 0);
@@ -556,7 +556,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 	}
 	else {
 		/* qdn: normalmap tangent space */
-		if (mode & (MA_TANGENT_V|MA_NORMAP_TANG)) {
+		if (mode & (MA_TANGENT_V|MA_NORMAP_TANG) || R.flag & R_NEED_TANGENT) {
 			/* qdn: flat faces have tangents too,
 			   could pick either one, using average here */
 			float *s1 = RE_vertren_get_tangent(&R, v1, 0);
@@ -568,6 +568,7 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 				shi->tang[2] = (s1[2] + s2[2] + s3[2]);
 				Normalize(shi->tang);
 			}
+			else shi->tang[0]= shi->tang[1]= shi->tang[2]= 0.0f;
 		}
 	}
 	

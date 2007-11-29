@@ -347,6 +347,9 @@
 				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_heap.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_kdtree.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_linklist.c">
 			</File>
 			<File
@@ -448,6 +451,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\BLI_jitter.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\BLI_kdtree.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\BLI_linklist.h">

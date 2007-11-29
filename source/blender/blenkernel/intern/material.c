@@ -581,6 +581,26 @@ void assign_material(Object *ob, Material *ma, int act)
 	test_object_materials(ob->data);
 }
 
+int find_material_index(Object *ob, Material *ma)
+{
+	Material ***matarar;
+	short a, *totcolp;
+	
+	if(ma==NULL) return 0;
+	
+	totcolp= give_totcolp(ob);
+	matarar= give_matarar(ob);
+	
+	if(totcolp==NULL || matarar==NULL) return 0;
+	
+	for(a=0; a<*totcolp; a++)
+		if((*matarar)[a]==ma)
+		   break;
+	if(a<*totcolp)
+		return a+1;
+	return 0;	   
+}
+
 void new_material_to_objectdata(Object *ob)
 {
 	Material *ma;
@@ -609,7 +629,7 @@ void new_material_to_objectdata(Object *ob)
 static void do_init_render_material(Material *ma, int r_mode, float *amb)
 {
 	MTex *mtex;
-	int a, needuv=0;
+	int a, needuv=0, needtang=0;
 	
 	if(ma->flarec==0) ma->flarec= 1;
 
@@ -633,8 +653,14 @@ static void do_init_render_material(Material *ma, int r_mode, float *amb)
 			if(ma->texco & (TEXCO_ORCO|TEXCO_REFL|TEXCO_NORM|TEXCO_STRAND|TEXCO_STRESS)) needuv= 1;
 			else if(ma->texco & (TEXCO_GLOB|TEXCO_UV|TEXCO_OBJECT|TEXCO_SPEED)) needuv= 1;
 			else if(ma->texco & (TEXCO_LAVECTOR|TEXCO_VIEW|TEXCO_STICKY)) needuv= 1;
+
+			if((ma->mapto & MAP_NORM) && (mtex->normapspace == MTEX_NSPACE_TANGENT))
+				needtang= 1;
 		}
 	}
+
+	if(needtang) ma->mode |= MA_NORMAP_TANG;
+	else ma->mode &= ~MA_NORMAP_TANG;
 	
 	if(r_mode & R_RADIO)
 		if(ma->mode & MA_RADIO) needuv= 1;

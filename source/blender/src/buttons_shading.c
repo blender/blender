@@ -1174,9 +1174,12 @@ void uiblock_image_panel(uiBlock *block, Image **ima_pp, ImageUser *iuser,
 		 but= uiDefButBitS(block, TOG, IMA_FIELDS, imagechanged, "Fields",	10, 90, 100, 20, &ima->flag, 0, 0, 0, 0, "Click to enable use of fields in Image");
 		 uiButSetFunc(but, image_field_test, ima, iuser);
 		 uiDefButBitS(block, TOG, IMA_STD_FIELD, B_NOP, "Odd",			10, 70, 100, 20, &ima->flag, 0, 0, 0, 0, "Standard Field Toggle");
-		 uiBlockEndAlign(block);
 		 
+		 uiBlockBeginAlign(block);
+		 uiBlockSetFunc(block, image_reload_cb, ima, iuser);
 		 uiDefButBitS(block, TOG, IMA_ANTIALI, B_NOP, "Anti",			10, 35, 100, 20, &ima->flag, 0, 0, 0, 0, "Toggles Image anti-aliasing, only works with solid colors");
+		 uiDefButBitS(block, TOG, IMA_DO_PREMUL, imagechanged, "Premul",		110, 35, 100, 20, &ima->flag, 0, 0, 0, 0, "Toggles premultiplying alpha");
+		 uiBlockEndAlign(block);
 		 
 		 if( ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
 			 sprintf(str, "(%d) Frames:", iuser->framenr);
@@ -1224,7 +1227,7 @@ static void texture_panel_image(Image **ima, ImageUser *iuser)
 	uiblock_image_panel(block, ima, iuser, B_REDR, B_IMAGECHANGED);
 }	
 
-static void texture_panel_image_map(Tex *tex)
+static void texture_panel_image_map(Tex *tex, MTex *mtex)
 {
 	uiBlock *block;
 	
@@ -1246,8 +1249,13 @@ static void texture_panel_image_map(Tex *tex)
 
 	uiDefButF(block, NUM, B_TEXPRV, "Filter :",						10,120,150,20, &tex->filtersize, 0.1, 25.0, 10, 3, "Sets the filter size used by mipmap and interpol");
 	
-	uiDefButBitS(block, TOG, TEX_NORMALMAP, B_NOP, "Normal Map",	160,120,150,20, &tex->imaflag,
+	uiBlockBeginAlign(block);
+	uiDefButBitS(block, TOG, TEX_NORMALMAP, B_NOP, "Normal Map",	160,120,(mtex)? 75: 150,20, &tex->imaflag,
 					0, 0, 0, 0, "Use image RGB values for normal mapping");
+	if(mtex)
+		uiDefButS(block, MENU, B_DIFF, "Normal Space %t|Camera %x0|World %x1|Object %x2|Tangent %x3", 
+						235,120,75,20, &mtex->normapspace, 0, 0, 0, 0, "Sets space of normal map image");
+	uiBlockEndAlign(block);
 
 	/* crop extend clip */
 	
@@ -3780,9 +3788,6 @@ static void material_panel_shading(Material *ma)
 		uiBlockSetCol(block, TH_BUT_SETTING1);
 		uiDefButBitI(block, TOG, MA_TANGENT_V, B_MATPRV, "Tangent V",	245,180,65,19, &(ma->mode), 0, 0, 0, 0, "Use the tangent vector in V direction for shading");
 		
-		/* qdn: normalmap tangents separated from shading */
-		uiDefButBitI(block, TOG, MA_NORMAP_TANG, B_MATPRV, "NMap TS",	245,160,65,19, &(ma->mode), 0, 0, 0, 0, "Enable Tangent Space normal mapping");
-
 		uiBlockBeginAlign(block);
 		uiDefButBitI(block, TOG, MA_SHADOW, B_MATPRV,	"Shadow",			245,140,65,19, &(ma->mode), 0, 0, 0, 0, "Makes material receive shadows");
 		uiDefButBitI(block, TOG, MA_SHADOW_TRA, B_MATPRV, "TraShadow",		245,120,65,19, &(ma->mode), 0, 0, 0, 0, "Receives transparent shadows based at material color and alpha");
@@ -4290,7 +4295,7 @@ void texture_panels()
 			switch(tex->type) {
 			case TEX_IMAGE:
 				texture_panel_image(&tex->ima, &tex->iuser);
-				texture_panel_image_map(tex);
+				texture_panel_image_map(tex, mtex);
 				break;
 			case TEX_ENVMAP:
 				texture_panel_envmap(tex);

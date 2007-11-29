@@ -954,16 +954,24 @@ static void recalc_emitter_field(Object *ob, ParticleSystem *psys)
 	BLI_kdtree_balance(edit->emitter_field);
 }
 
-void PE_update_selection(Object *ob)
+void PE_update_selection(Object *ob, int useflag)
 {
 	ParticleSystem *psys= PE_get_current(ob);
 	ParticleEdit *edit= psys->edit;
+	ParticleEditSettings *pset= PE_settings();
+	ParticleSettings *part= psys->part;
 	ParticleData *pa;
 	HairKey *hkey;
 	ParticleEditKey *key;
+	float cfra= CFRA;
 	int i, k, totpart;
 
 	totpart= psys->totpart;
+
+	/* flag all particles to be updated if not using flag */
+	if(!useflag)
+		LOOP_PARTICLES(i,pa)
+			pa->flag |= PARS_EDIT_RECALC;
 
 	/* flush edit key flag to hair key flag to preserve selection 
 	 * on save */
@@ -974,7 +982,14 @@ void PE_update_selection(Object *ob)
 			hkey->editflag= key->flag;
 	}
 
-	psys_cache_paths(ob, psys, CFRA, 0);
+	psys_cache_paths(ob, psys, CFRA, 1);
+
+	if(part->childtype && (pset->flag & PE_SHOW_CHILD))
+		psys_cache_child_paths(ob, psys, cfra, 1);
+
+	/* disable update flag */
+	LOOP_PARTICLES(i,pa)
+		pa->flag &= ~PARS_EDIT_RECALC;
 }
 
 void PE_update_object(Object *ob, int useflag)
@@ -1109,12 +1124,15 @@ void PE_set_particle_edit(void)
 static void select_key(ParticleSystem *psys, int pa_index, int key_index, void *userData)
 {
 	struct { short *mval; float rad; rcti* rect; int select; } *data = userData;
+	ParticleData *pa = psys->particles + pa_index;
 	ParticleEditKey *key = psys->edit->keys[pa_index] + key_index;
 
 	if(data->select)
 		key->flag|=PEK_SELECT;
 	else
 		key->flag&=~PEK_SELECT;
+
+	pa->flag |= PARS_EDIT_RECALC;
 }
 static void select_keys(ParticleSystem *psys, int pa_index, int key_index, void *userData)
 {
@@ -1130,13 +1148,18 @@ static void select_keys(ParticleSystem *psys, int pa_index, int key_index, void 
 			key->flag&=~PEK_SELECT;
 	}
 
+	pa->flag |= PARS_EDIT_RECALC;
 }
 static void toggle_key_select(ParticleSystem *psys, int pa_index, int key_index, void *userData)
 {
+	ParticleData *pa = psys->particles + pa_index;
+
 	if(psys->edit->keys[pa_index][key_index].flag&PEK_SELECT)
 		psys->edit->keys[pa_index][key_index].flag&=~PEK_SELECT;
 	else
 		psys->edit->keys[pa_index][key_index].flag|=PEK_SELECT;
+	
+	pa->flag |= PARS_EDIT_RECALC;
 }
 static void select_root(ParticleSystem *psys, int index, void *userData)
 {
@@ -1234,6 +1257,7 @@ void PE_deselectall(void)
 			if(key->flag&PEK_SELECT){
 				sel = 1;
 				key->flag &= ~PEK_SELECT;
+				pa->flag |= PARS_EDIT_RECALC;
 			}
 		}
 	}
@@ -1242,12 +1266,15 @@ void PE_deselectall(void)
 		LOOP_PARTICLES(i,pa){
 			if(pa->flag & PARS_HIDE) continue;
 			LOOP_KEYS(k,key){
-				key->flag |= PEK_SELECT;
+				if(!(key->flag & PEK_SELECT)) {
+					key->flag |= PEK_SELECT;
+					pa->flag |= PARS_EDIT_RECALC;
+				}
 			}
 		}
 	}
 
-	PE_update_selection(ob);
+	PE_update_selection(ob, 1);
 
 	BIF_undo_push("(De)select all keys");
 	allqueue(REDRAWVIEW3D, 1);
@@ -1278,7 +1305,10 @@ void PE_mouse_particles(void)
 		LOOP_PARTICLES(i,pa){
 			if(pa->flag & PARS_HIDE) continue;
 			LOOP_KEYS(k,key){
-				key->flag &= ~PEK_SELECT;
+				if(key->flag & PEK_SELECT) {
+					key->flag &= ~PEK_SELECT;
+					pa->flag |= PARS_EDIT_RECALC;
+				}
 			}
 		}
 
@@ -1291,7 +1321,7 @@ void PE_mouse_particles(void)
 
 	for_mouse_hit_keys(1,psys,toggle_key_select,&data);
 
-	PE_update_selection(ob);
+	PE_update_selection(ob, 1);
 
 	rightmouse_transform();
 
@@ -1335,7 +1365,7 @@ void PE_select_linked(void)
 
 	for_mouse_hit_keys(1,psys,select_keys,&data);
 
-	PE_update_selection(ob);
+	PE_update_selection(ob, 1);
 
 	BIF_undo_push("Select linked keys");
 
@@ -1364,7 +1394,7 @@ void PE_borderselect(void)
 
 	for_mouse_hit_keys(0,psys,select_key,&data);
 
-	PE_update_selection(ob);
+	PE_update_selection(ob, 1);
 
 	BIF_undo_push("Select keys");
 
@@ -1417,10 +1447,14 @@ void PE_do_lasso_select(short mcords[][2], short moves, short select)
 				Mat4MulVecfl(mat, co);
 				project_short(co,vertco);
 				if(lasso_inside(mcords,moves,vertco[0],vertco[1])){
-					if(select)
+					if(select && !(key->flag & PEK_SELECT)) {
 						key->flag|=PEK_SELECT;
-					else
+						pa->flag |= PARS_EDIT_RECALC;
+					}
+					else if(key->flag & PEK_SELECT) {
 						key->flag&=~PEK_SELECT;
+						pa->flag |= PARS_EDIT_RECALC;
+					}
 				}
 			}
 		}
@@ -1431,15 +1465,19 @@ void PE_do_lasso_select(short mcords[][2], short moves, short select)
 			Mat4MulVecfl(mat, co);
 			project_short(co,vertco);
 			if(lasso_inside(mcords,moves,vertco[0],vertco[1])){
-				if(select)
+				if(select && !(key->flag & PEK_SELECT)) {
 					key->flag|=PEK_SELECT;
-				else
+					pa->flag |= PARS_EDIT_RECALC;
+				}
+				else if(key->flag & PEK_SELECT) {
 					key->flag&=~PEK_SELECT;
+					pa->flag |= PARS_EDIT_RECALC;
+				}
 			}
 		}
 	}
 
-	PE_update_selection(ob);
+	PE_update_selection(ob, 1);
 
 	BIF_undo_push("Lasso select particles");
 
@@ -1616,14 +1654,14 @@ static void rekey_element_to_time(int index, float path_time)
 
 	pa->flag &= ~PARS_REKEY;
 }
-static void remove_tagged_elements(Object *ob, ParticleSystem *psys)
+static int remove_tagged_elements(Object *ob, ParticleSystem *psys)
 {
 	ParticleEdit *edit = psys->edit;
 	ParticleEditSettings *pset = PE_settings();
 	ParticleData *pa, *npa=0, *new_pars=0;
 	ParticleEditKey **key, **nkey=0, **new_keys=0;
 	ParticleSystemModifierData *psmd;
-	int i, totpart, new_totpart = psys->totpart;
+	int i, totpart, new_totpart = psys->totpart, removed = 0;
 
 	if(pset->flag & PE_X_MIRROR) {
 		/* mirror tags */
@@ -1635,9 +1673,12 @@ static void remove_tagged_elements(Object *ob, ParticleSystem *psys)
 				PE_mirror_particle(ob, psmd->dm, psys, pa, NULL);
 	}
 
-	for(i=0, pa=psys->particles; i<psys->totpart; i++, pa++)
-		if(pa->flag & PARS_TAG)
+	for(i=0, pa=psys->particles; i<psys->totpart; i++, pa++) {
+		if(pa->flag & PARS_TAG) {
 			new_totpart--;
+			removed++;
+		}
+	}
 
 	if(new_totpart != psys->totpart) {
 		if(new_totpart) {
@@ -1677,6 +1718,8 @@ static void remove_tagged_elements(Object *ob, ParticleSystem *psys)
 
 		edit->totkeys = psys_count_keys(psys);
 	}
+
+	return removed;
 }
 static void remove_tagged_keys(Object *ob, ParticleSystem *psys)
 {
@@ -2366,7 +2409,7 @@ int PE_brush_particles(void)
 	ParticleBrushData *brush;
 	float vec1[3], vec2[3];
 	short mval[2], mvalo[2], firsttime = 1, dx, dy;
-	int selected = 0, flip;
+	int selected = 0, flip, removed = 0;
 
 	if(!PE_can_edit(psys)) return 0;
 
@@ -2440,7 +2483,7 @@ int PE_brush_particles(void)
 					else
 						PE_foreach_element(psys, brush_cut, &data);
 
-					remove_tagged_elements(ob, psys);
+					removed= remove_tagged_elements(ob, psys);
 					if(pset->flag & PE_KEEP_LENGTHS)
 						recalc_lengths(psys);
 					break;
@@ -2535,8 +2578,8 @@ int PE_brush_particles(void)
 			if((pset->flag & PE_KEEP_LENGTHS)==0)
 				recalc_lengths(psys);
 
-			if(pset->brushtype == PE_BRUSH_ADD) {
-				if(pset->flag & PE_X_MIRROR)
+			if(pset->brushtype == PE_BRUSH_ADD || removed) {
+				if(pset->brushtype == PE_BRUSH_ADD && (pset->flag & PE_X_MIRROR))
 					PE_mirror_x(1);
 				PE_recalc_world_cos(ob,psys);
 				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);

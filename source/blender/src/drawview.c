@@ -2258,7 +2258,7 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 			return;
 	}
 
-	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+	uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 	
 	if(G.f & (G_VERTEXPAINT|G_TEXTUREPAINT|G_WEIGHTPAINT)) {
 		uiBlockSetFlag(block, UI_BLOCK_FRONTBUFFER);	// force old style frontbuffer draw

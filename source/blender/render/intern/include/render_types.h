@@ -181,6 +181,8 @@ struct Render
 
 	ListBase customdata_names;
 
+	struct Object *excludeob;
+
 	/* arena for allocating data for use during render, for
 		* example dynamic TFaces to go in the VlakRen structure.
 		*/
@@ -394,6 +396,7 @@ typedef struct LampRen {
 #define R_SEC_FIELD		4
 #define R_LAMPHALO		8
 #define R_GLOB_NOPUNOFLIP	16
+#define R_NEED_TANGENT	32
 
 /* vlakren->flag (vlak = face in dutch) char!!! */
 #define R_SMOOTH		1

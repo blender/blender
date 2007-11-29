@@ -265,6 +265,8 @@ typedef struct RenderData {
 	
 	/* Bake Render options */
 	short bake_osa, bake_filter, bake_mode, bake_flag;
+	short bake_normal_space, bpad;
+	float bake_maxdist;
 	
 	/* yafray: global panel params. TODO: move elsewhere */
 	short GIquality, GIcache, GImethod, GIphotons, GIdirect;
@@ -605,8 +607,15 @@ typedef struct Scene {
 
 /* bake_mode: same as RE_BAKE_xxx defines */
 /* bake_flag: */
-#define R_BAKE_CLEAR	1
-#define R_BAKE_OSA		2
+#define R_BAKE_CLEAR		1
+#define R_BAKE_OSA			2
+#define R_BAKE_TO_ACTIVE	4
+
+/* bake_normal_space */
+#define R_BAKE_SPACE_CAMERA	 0
+#define R_BAKE_SPACE_WORLD	 1
+#define R_BAKE_SPACE_OBJECT	 2
+#define R_BAKE_SPACE_TANGENT 3
 
 /* **************** SCENE ********************* */
 #define RAD_PHASE_PATCHES	1

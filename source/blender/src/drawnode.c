@@ -269,7 +269,7 @@ static int node_buts_group(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *
 			sprintf(str1, "%d", node->id->us);
 			bt= uiDefBut(block, BUT, B_NOP, str1, 
 						 butr->xmax-19, butr->ymin, 19, 19, 
-						 NULL, 0, 0, 0, 0, "Displays number of users. Click to make a single-user copy.");
+						 NULL, 0, 0, 0, 0, "Displays number of users.");
 			//uiButSetFunc(bt, node_mat_alone_cb, node, NULL);
 		}
 		

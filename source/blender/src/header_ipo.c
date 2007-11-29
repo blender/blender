@@ -65,6 +65,7 @@
 
 #include "BKE_action.h"
 #include "BKE_constraint.h"
+#include "BKE_depsgraph.h"
 #include "BKE_global.h"
 #include "BKE_ipo.h"
 #include "BKE_key.h"
@@ -84,6 +85,7 @@
 #include "BSE_time.h"
 
 #include "BIF_editaction.h"
+#include "BIF_editconstraint.h"
 #include "BIF_interface.h"
 #include "BIF_mainqueue.h"
 #include "BIF_resources.h"
@@ -139,11 +141,27 @@ void spaceipo_assign_ipo(SpaceIpo *si, Ipo *ipo)
 				Object *ob= (Object *)si->from;
 				/* constraint exception */
 				if(si->blocktype==ID_CO) {
-					bConstraintChannel *conchan= get_constraint_channel(&ob->constraintChannels, si->constname);
-					if(conchan) {
-						if(conchan->ipo)
-							conchan->ipo->id.us--;
-						conchan->ipo= ipo;
+					/* check the local constraint ipo */
+					if(si->bonename && si->bonename[0] && ob->pose) {
+						bPoseChannel *pchan= get_pose_channel(ob->pose, si->bonename);
+						bConstraint *con;
+
+						for(con= pchan->constraints.first; con; con= con->next)
+							if(strcmp(con->name, si->constname)==0)
+								break;
+						if(con) {
+							if(con->ipo)
+								con->ipo->id.us--;
+							con->ipo= ipo;
+						}
+					}
+					else {
+						bConstraintChannel *conchan= get_constraint_channel(&ob->constraintChannels, si->constname);
+						if(conchan) {
+							if(conchan->ipo)
+								conchan->ipo->id.us--;
+							conchan->ipo= ipo;
+						}
 					}
 				}
 				else if(si->blocktype==ID_FLUIDSIM) { // NT
@@ -1174,6 +1192,11 @@ void do_ipo_buttons(short event)
 			else			ei->flag &= ~IPO_VISIBLE;
 		}
 		break;
+	case B_IPOREDRAW:
+		DAG_object_flush_update(G.scene, ob, OB_RECALC);
+		allqueue(REDRAWVIEW3D, 0);
+		allqueue(REDRAWIPO, 0);
+		break;
 	}
 }
 
@@ -1270,11 +1293,14 @@ void ipo_buttons(void)
 		}
 		else if(G.sipo->blocktype==ID_CO) {
 			
-			if(G.sipo->from && G.sipo->actname[0]==0)
+			if(ob->pose==NULL)
 				uiDefIconButBitS(block, TOG, OB_ACTION_OB, B_IPO_ACTION_OB, ICON_ACTION,	xco,0,XIC,YIC, &(ob->ipoflag), 0, 0, 0, 0, "Sets Ipo to be included in an Action or not");
 			else {
-				uiSetButLock(1, "Pose Constraint Ipo cannot be switched");
-				uiDefIconButS(block, TOG, 1, ICON_ACTION,	xco,0,XIC,YIC, &fake1, 0, 0, 0, 0, "Ipo is connected to Pose Action");
+				bConstraint *con= get_active_constraint(ob);
+				if(con)
+					uiDefIconButBitS(block, TOGN, CONSTRAINT_OWN_IPO, B_IPOREDRAW, ICON_ACTION,	xco,0,XIC,YIC, &con->flag, 0, 0, 0, 0, 
+									 (con->flag & CONSTRAINT_OWN_IPO)?"Ipo is connected to Constraint itself":"Ipo is connected to Pose Action"
+									 );
 			}
 			xco+= XIC;
 		}

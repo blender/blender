@@ -1018,13 +1018,16 @@ void project_renderdata(Render *re, void (*projectfunc)(float *, float mat[][4],
 		if((a & 255)==0) vlr= re->vlaknodes[a>>8].vlak;
 		else vlr++;
 
+		if(!re->excludeob || vlr->ob != re->excludeob) {
 			vlr->flag |= R_VISIBLE;
 			if(vlr->v4) {
 				if(vlr->v1->clip & vlr->v2->clip & vlr->v3->clip & vlr->v4->clip) vlr->flag &= ~R_VISIBLE;
 			}
 			else if(vlr->v1->clip & vlr->v2->clip & vlr->v3->clip) vlr->flag &= ~R_VISIBLE;
-
 		}
+		else
+			vlr->flag &= ~R_VISIBLE;
+	}
 
 }
 

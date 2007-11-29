@@ -645,12 +645,12 @@ void psys_particle_on_dm(Object *ob, DerivedMesh *dm, int from, int index, int i
 		/* this works for meshes with deform verts only - constructive modifiers wont work properly*/
 		float temp1[3];
 
-		if(index >= dm->getNumFaces(dm)) {
-			PARTICLE_ERROR(nor, vec);
-			return;
-		}
-
 		if(from == PART_FROM_VERT) {
+			if(index >= dm->getNumVerts(dm)) {
+				PARTICLE_ERROR(nor, vec);
+				return;
+			}
+	
 			dm->getVertCo(dm,index,vec);
 			if(nor){
 				dm->getVertNo(dm,index,nor);
@@ -658,10 +658,19 @@ void psys_particle_on_dm(Object *ob, DerivedMesh *dm, int from, int index, int i
 			}
 		}
 		else { /* PART_FROM_FACE / PART_FROM_VOLUME */
-			MFace *mface=dm->getFaceData(dm,index,CD_MFACE);
+			MFace *mface;
 			MTFace *mtface=0;
-			MVert *mvert=dm->getVertDataArray(dm,CD_MVERT);
-			int uv_index=CustomData_get_active_layer_index(&dm->faceData,CD_MTFACE);
+			MVert *mvert;
+			int uv_index;
+
+			if(index >= dm->getNumFaces(dm)) {
+				PARTICLE_ERROR(nor, vec);
+				return;
+			}
+			
+			mface=dm->getFaceData(dm,index,CD_MFACE);
+			mvert=dm->getVertDataArray(dm,CD_MVERT);
+			uv_index=CustomData_get_active_layer_index(&dm->faceData,CD_MTFACE);
 
 			if(uv_index>=0){
 				CustomDataLayer *layer=&dm->faceData.layers[uv_index];
@@ -1637,6 +1646,9 @@ void psys_cache_child_paths(Object *ob, ParticleSystem *psys, float cfra, int ed
 				else
 					check_path_length(0,0,0,0,pa_length,0);
 			}
+
+			if(part->draw & PART_DRAW_MAT_COL)
+				VECCOPY(state->col, &ma->r)
 		}
 	}
 	/* now let's finalise the interpolated parents that we might have left half done before */
@@ -1682,6 +1694,8 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 
 	SoftBody *soft = 0;
 	BodyPoint *bp[2] = {NULL, NULL};
+	
+	Material *ma;
 	
 	float birthtime = 0.0, dietime = 0.0;
 	float t, time, keytime, dfra = 1.0, frs_sec = G.scene->r.frs_sec;
@@ -1738,6 +1752,9 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 		soft = psys->soft;
 	
 	psys->lattice = psys_get_lattice(ob, psys);
+	ma= give_current_material(ob, psys->part->omat);
+	if(psys->part->draw & PART_DRAW_MAT_COL)
+		VECCOPY(col, &ma->r)
 
 	/*---first main loop: create all actual particles' paths---*/
 	for(i=0,pa=psys->particles; i<totpart; i++, pa++){
@@ -1921,7 +1938,6 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 				}
 
 			}
-
 
 			/* selection coloring in edit mode */
 			if(edit){

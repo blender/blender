@@ -447,14 +447,39 @@ static void calc_edge_stress(Render *re, Mesh *me, int startvert, int startvlak)
 	MEM_freeN(accum);
 }
 
+void tangent_from_uv(float *uv1, float *uv2, float *uv3, float *co1, float *co2, float *co3, float *n, float *tang)
+{
+	float tangv[3], ct[3], e1[3], e2[3], s1, t1, s2, t2, det;
+
+	s1= uv2[0] - uv1[0];
+	s2= uv3[0] - uv1[0];
+	t1= uv2[1] - uv1[1];
+	t2= uv3[1] - uv1[1];
+	det= 1.0f / (s1 * t2 - s2 * t1);
+	
+	/* normals in render are inversed... */
+	VecSubf(e1, co1, co2);
+	VecSubf(e2, co1, co3);
+	tang[0] = (t2*e1[0] - t1*e2[0])*det;
+	tang[1] = (t2*e1[1] - t1*e2[1])*det;
+	tang[2] = (t2*e1[2] - t1*e2[2])*det;
+	tangv[0] = (s1*e2[0] - s2*e1[0])*det;
+	tangv[1] = (s1*e2[1] - s2*e1[1])*det;
+	tangv[2] = (s1*e2[2] - s2*e1[2])*det;
+	Crossf(ct, tang, tangv);
+
+	/* check flip */
+	if ((ct[0]*n[0] + ct[1]*n[1] + ct[2]*n[2]) < 0.0f)
+		VecMulf(tang, -1.0f);
+}
+
 /* gets tangent from tface or orco */
 static void calc_tangent_vector(Render *re, VlakRen *vlr)
 {
 	MTFace *tface= RE_vlakren_get_tface(re, vlr, 0, NULL, 0);
 	VertRen *v1=vlr->v1, *v2=vlr->v2, *v3=vlr->v3, *v4=vlr->v4;
-	float tang[3], tangv[3], ct[3], e1[3], e2[3], *tav;
+	float tang[3], *tav;
 	float *uv1, *uv2, *uv3, *uv4;
-	float s1, s2, t1, t2, det;
 	float uv[4][2];
 	
 	if(tface) {
@@ -472,26 +497,8 @@ static void calc_tangent_vector(Render *re, VlakRen *vlr)
 			spheremap(v4->orco[0], v4->orco[1], v4->orco[2], &uv[3][0], &uv[3][1]);
 	}
 	else return;
-	
-	s1= uv2[0] - uv1[0];
-	s2= uv3[0] - uv1[0];
-	t1= uv2[1] - uv1[1];
-	t2= uv3[1] - uv1[1];
-	det= 1.0f / (s1 * t2 - s2 * t1);
-	
-	/* normals in render are inversed... */
-	VecSubf(e1, v1->co, v2->co);
-	VecSubf(e2, v1->co, v3->co);
-	tang[0] = (t2*e1[0] - t1*e2[0])*det;
-	tang[1] = (t2*e1[1] - t1*e2[1])*det;
-	tang[2] = (t2*e1[2] - t1*e2[2])*det;
-	tangv[0] = (s1*e2[0] - s2*e1[0])*det;
-	tangv[1] = (s1*e2[1] - s2*e1[1])*det;
-	tangv[2] = (s1*e2[2] - s2*e1[2])*det;
-	Crossf(ct, tang, tangv);
-	/* check flip */
-	if ((ct[0]*vlr->n[0] + ct[1]*vlr->n[1] + ct[2]*vlr->n[2]) < 0.f)
-		VecMulf(tang, -1.f);
+
+	tangent_from_uv(uv1, uv2, uv3, v1->co, v2->co, v3->co, vlr->n, tang);
 	
 	tav= RE_vertren_get_tangent(re, v1, 1);
 	VECADD(tav, tav, tang);
@@ -501,24 +508,7 @@ static void calc_tangent_vector(Render *re, VlakRen *vlr)
 	VECADD(tav, tav, tang);
 	
 	if(v4) {
-		s1= uv3[0] - uv1[0];
-		s2= uv4[0] - uv1[0];
-		t1= uv3[1] - uv1[1];
-		t2= uv4[1] - uv1[1];
-		det= 1.0f / (s1 * t2 - s2 * t1);
-		
-		/* normals in render are inversed... */
-		VecSubf(e1, v1->co, v3->co);
-		VecSubf(e2, v1->co, v4->co);
-		tang[0] = (t2*e1[0] - t1*e2[0])*det;
-		tang[1] = (t2*e1[1] - t1*e2[1])*det;
-		tang[2] = (t2*e1[2] - t1*e2[2])*det;
-		tangv[0] = (s1*e2[0] - s2*e1[0])*det;
-		tangv[1] = (s1*e2[1] - s2*e1[1])*det;
-		tangv[2] = (s1*e2[2] - s2*e1[2])*det;
-		Crossf(ct, tang, tangv);
-		if ((ct[0]*vlr->n[0] + ct[1]*vlr->n[1] + ct[2]*vlr->n[2]) < 0.f)
-			VecMulf(tang, -1.f);
+		tangent_from_uv(uv1, uv3, uv4, v1->co, v3->co, v4->co, vlr->n, tang);
 		
 		tav= RE_vertren_get_tangent(re, v1, 1);
 		VECADD(tav, tav, tang);
@@ -2626,6 +2616,13 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 				if(ma->mode & MA_RADIO) 
 					do_autosmooth= 1;
 		}
+	}
+
+	if(re->flag & R_NEED_TANGENT) {
+		/* exception for tangent space baking */
+		need_tangent= 1;
+		if(me->mtface==NULL)
+			need_orco= 1;
 	}
 	
 	/* check autosmooth and displacement, we then have to skip only-verts optimize */
@@ -4781,7 +4778,7 @@ void RE_DataBase_ApplyWindow(Render *re)
    RE_BAKE_AO:     for baking, no lamps, but all objects
    RE_BAKE_TEXTURE:for baking, no lamps, only selected objects
 */
-void RE_Database_Baking(Render *re, Scene *scene, int type)
+void RE_Database_Baking(Render *re, Scene *scene, int type, Object *actob)
 {
 	Base *base;
 	Object *ob;
@@ -4795,8 +4792,12 @@ void RE_Database_Baking(Render *re, Scene *scene, int type)
 	re->r= scene->r;
 	re->r.mode &= ~R_OSA;
 	re->flag |= R_GLOB_NOPUNOFLIP;
+	re->excludeob= actob;
+
+	if(type==RE_BAKE_NORMALS && re->r.bake_normal_space==R_BAKE_SPACE_TANGENT)
+		re->flag |= R_NEED_TANGENT;
 	
-	if( ELEM3(type, RE_BAKE_LIGHT, RE_BAKE_NORMALS, RE_BAKE_TEXTURE) ) {
+	if(!actob && ELEM3(type, RE_BAKE_LIGHT, RE_BAKE_NORMALS, RE_BAKE_TEXTURE)) {
 		re->r.mode &= ~R_SHADOW;
 		re->r.mode &= ~R_RAYTRACE;
 	}
@@ -4887,7 +4888,7 @@ void RE_Database_Baking(Render *re, Scene *scene, int type)
 						init_render_object(re, ob, NULL, 0, 0);
 				}
 				else if(type!=RE_BAKE_LIGHT) {
-					if( !ELEM(type, RE_BAKE_NORMALS, RE_BAKE_TEXTURE) || (ob->flag & SELECT))
+					if( !ELEM(type, RE_BAKE_NORMALS, RE_BAKE_TEXTURE) || (ob->flag & SELECT) || (ob == actob) )
 						init_render_object(re, ob, NULL, 0, 0);
 				}
 			}
@@ -4915,14 +4916,10 @@ void RE_Database_Baking(Render *re, Scene *scene, int type)
 		}
 	}
 
-	if(type!=RE_BAKE_LIGHT) {
-		/* raytree */
-		if(!re->test_break()) {
-			if(re->r.mode & R_RAYTRACE) {
-				makeraytree(re);
-			}
-		}
-	}
+	/* raytree */
+	if(!re->test_break())
+		if(re->r.mode & R_RAYTRACE)
+			makeraytree(re);
 }
 
 void RE_DataBase_GetView(Render *re, float mat[][4])

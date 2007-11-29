@@ -262,7 +262,7 @@ void RE_FreeRender(Render *re) {}
 void RE_shade_external(Render *re, ShadeInput *shi, ShadeResult *shr) {}
 void RE_DataBase_GetView(Render *re, float mat[][4]) {}
 struct Render *RE_NewRender(const char *name) {return (struct Render *)NULL;}
-void RE_Database_Baking(struct Render *re, struct Scene *scene, int make_faces) {};
+void RE_Database_Baking(struct Render *re, struct Scene *scene, int type, struct Object *actob) {};
 
 
 /* node_composite.c */

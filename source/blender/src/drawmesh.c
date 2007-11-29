@@ -1207,8 +1207,6 @@ void draw_mesh_textured(Object *ob, DerivedMesh *dm, int faceselect)
 	
 	/* in editmode, the blend mode needs to be set incase it was ADD */
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	dm->release(dm);
 }
 
 void init_realtime_GL(void)

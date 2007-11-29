@@ -704,6 +704,53 @@ void remove_vert_defgroup (Object *ob, bDeformGroup	*dg, int vertnum)
 	remove_vert_def_nr (ob, def_nr, vertnum);
 }
 
+/* for mesh in object mode lattice can be in editmode */
+static float get_vert_def_nr (Object *ob, int def_nr, int vertnum)
+{
+	MDeformVert *dvert= NULL;
+	int i;
+
+	/* get the deform vertices corresponding to the
+	 * vertnum
+	 */
+	if(ob->type==OB_MESH) {
+		if( ((Mesh*)ob->data)->dvert )
+			dvert = ((Mesh*)ob->data)->dvert + vertnum;
+	}
+	else if(ob->type==OB_LATTICE) {
+		Lattice *lt= ob->data;
+		
+		if(ob==G.obedit)
+			lt= editLatt;
+		
+		if(lt->dvert)
+			dvert = lt->dvert + vertnum;
+	}
+	
+	if(dvert==NULL)
+		return 0.0f;
+	
+	for(i=dvert->totweight-1 ; i>=0 ; i--)
+		if(dvert->dw[i].def_nr == def_nr)
+			return dvert->dw[i].weight;
+
+	return 0.0f;
+}
+
+/* mesh object mode, lattice can be in editmode */
+float get_vert_defgroup (Object *ob, bDeformGroup *dg, int vertnum)
+{
+	int def_nr;
+
+	if(!ob)
+		return 0.0f;
+
+	def_nr = get_defgroup_num(ob, dg);
+	if(def_nr < 0) return 0.0f;
+
+	return get_vert_def_nr (ob, def_nr, vertnum);
+}
+
 /* Only available in editmode */
 /* removes from active defgroup, if allverts==0 only selected vertices */
 void remove_verts_defgroup (int allverts)

@@ -119,6 +119,7 @@ void add_hook(void);
 void hook_select(struct HookModifierData *hmd);
 int hook_getIndexArray(int *tot, int **indexar, char *name, float *cent_r);
 
+int object_is_libdata(struct Object *ob);
 int object_data_is_libdata(struct Object *ob);	
 void hide_objects(int select);
 void show_objects(void);

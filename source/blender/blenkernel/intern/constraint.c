@@ -142,9 +142,11 @@ bConstraintChannel *get_constraint_channel (ListBase *list, const char name[])
 {
 	bConstraintChannel *chan;
 
-	for (chan = list->first; chan; chan=chan->next) {
-		if (!strcmp(name, chan->name)) {
-			return chan;
+	if(list) {
+		for (chan = list->first; chan; chan=chan->next) {
+			if (!strcmp(name, chan->name)) {
+				return chan;
+			}
 		}
 	}
 	
@@ -175,17 +177,24 @@ bConstraintChannel *verify_constraint_channel (ListBase *list, const char name[]
 void do_constraint_channels (ListBase *conbase, ListBase *chanbase, float ctime, short onlydrivers)
 {
 	bConstraint *con;
-	bConstraintChannel *chan;
-	IpoCurve *icu= NULL;
 	
 	/* for each Constraint, calculate its Influence from the corresponding ConstraintChannel */
 	for (con=conbase->first; con; con=con->next) {
-		chan = get_constraint_channel(chanbase, con->name);
+		Ipo *ipo= NULL;
 		
-		if (chan && chan->ipo) {
-			calc_ipo(chan->ipo, ctime);
+		if(con->flag & CONSTRAINT_OWN_IPO)
+			ipo= con->ipo;
+		else {
+			bConstraintChannel *chan = get_constraint_channel(chanbase, con->name);
+			if(chan) ipo= chan->ipo;
+		}
+		
+		if (ipo) {
+			IpoCurve *icu;
 			
-			for (icu=chan->ipo->curve.first; icu; icu=icu->next) {
+			calc_ipo(ipo, ctime);
+			
+			for (icu=ipo->curve.first; icu; icu=icu->next) {
 				if (!onlydrivers || icu->driver) {
 					switch (icu->adrcode) {
 						case CO_ENFORCE:

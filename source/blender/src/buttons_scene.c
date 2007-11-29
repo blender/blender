@@ -1246,6 +1246,16 @@ static void render_panel_bake(void)
 	
 	but= uiDefBut(block, BUT, B_NOP, "BAKE",	10, 150, 190,40, 0, 0, 0, 0, 0, "Start the bake render for selected Objects");
 	uiButSetFunc(but, do_bake_func, NULL, NULL);
+
+	uiBlockBeginAlign(block);
+	uiDefButBitS(block, TOG, R_BAKE_TO_ACTIVE, B_DIFF, "Selected to Active", 10,120,190,20,&G.scene->r.bake_flag, 0.0, 0, 0, 0, "Bake shading on the surface of selected objects to the active object");
+	uiDefButF(block, NUM, B_DIFF, "Dist:", 10,100,(G.scene->r.bake_mode == RE_BAKE_NORMALS)? 95: 190,20,&G.scene->r.bake_maxdist, 0.0, 10.0, 1, 0, "Maximum distance from active object to other object");
+
+	if(G.scene->r.bake_mode == RE_BAKE_NORMALS)
+		uiDefButS(block, MENU, B_DIFF, "Normal Space %t|Camera %x0|World %x1|Object %x2|Tangent %x3", 
+			105,100,95,20, &G.scene->r.bake_normal_space, 0, 0, 0, 0, "Choose normal space for baking");
+	uiBlockEndAlign(block);
+
 #if 0	
 	uiBlockBeginAlign(block);
 	uiDefButBitS(block, TOG, R_BAKE_OSA, B_DIFF, "OSA",		10,120,190,20, &G.scene->r.bake_flag, 0, 0, 0, 0, "Enables Oversampling (Anti-aliasing)");
@@ -1255,10 +1265,10 @@ static void render_panel_bake(void)
 	uiDefButS(block, ROW,B_DIFF,"16",			150,100,50,20,&G.scene->r.bake_osa,2.0,16.0, 0, 0, "Sets oversample level to 16");
 #endif	
 	uiBlockBeginAlign(block);
-	uiDefButS(block, ROW,B_DIFF,"Full Render",		210,170,120,20,&G.scene->r.bake_mode, 1.0, RE_BAKE_ALL, 0, 0, "");
-	uiDefButS(block, ROW,B_DIFF,"Ambient Occlusion",210,150,120,20,&G.scene->r.bake_mode, 1.0, RE_BAKE_AO, 0, 0, "");
-	uiDefButS(block, ROW,B_DIFF,"Normals",		210,130,120,20,&G.scene->r.bake_mode, 1.0, RE_BAKE_NORMALS, 0, 0, "");
-	uiDefButS(block, ROW,B_DIFF,"Textures",		210,110,120,20,&G.scene->r.bake_mode, 1.0, RE_BAKE_TEXTURE, 0, 0, "");
+	uiDefButS(block, ROW,B_REDR,"Full Render",		210,170,120,20,&G.scene->r.bake_mode, 1.0, RE_BAKE_ALL, 0, 0, "");
+	uiDefButS(block, ROW,B_REDR,"Ambient Occlusion",210,150,120,20,&G.scene->r.bake_mode, 1.0, RE_BAKE_AO, 0, 0, "");
+	uiDefButS(block, ROW,B_REDR,"Normals",		210,130,120,20,&G.scene->r.bake_mode, 1.0, RE_BAKE_NORMALS, 0, 0, "");
+	uiDefButS(block, ROW,B_REDR,"Textures",		210,110,120,20,&G.scene->r.bake_mode, 1.0, RE_BAKE_TEXTURE, 0, 0, "");
 	uiBlockEndAlign(block);
 	
 	uiDefButBitS(block, TOG, R_BAKE_CLEAR, B_DIFF, "Clear",		210,80,120,20,&G.scene->r.bake_flag, 0.0, 0, 0, 0, "Clear Images before baking");

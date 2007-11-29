@@ -244,12 +244,12 @@ static void streaks(NodeGlare* ndg, CompBuf* dst, CompBuf* src)
 	
 	for (a=0.f; a<360.f; a+=ang) {
 		const float an = (a + (float)ndg->angle_ofs)*(float)M_PI/180.f;
-		const float vx = cosf(an), vy = sinf(an);
+		const float vx = cos((double)an), vy = sin((double)an);
 		for (n=0; n<ndg->iter; ++n) {
-			const float p4 = powf(4.f, n);
+			const float p4 = pow(4.0, (double)n);
 			const float vxp = vx*p4, vyp = vy*p4;
-			const float wt = powf(ndg->fade, p4);
-			const float cmo = 1.f - powf(ndg->colmod, n+1);	// colormodulation amount relative to current pass
+			const float wt = pow((double)ndg->fade, (double)p4);
+			const float cmo = 1.f - pow((double)ndg->colmod, (double)n+1);	// colormodulation amount relative to current pass
 			float* tdstcol = tdst->rect;
 			for (y=0; y<tsrc->y; ++y) {
 				for (x=0; x<tsrc->x; ++x, tdstcol+=4) {
@@ -408,7 +408,7 @@ static void fglow(NodeGlare* ndg, CompBuf* dst, CompBuf* src)
 			// linear window good enough here, visual result counts, not scientific analysis
 			//w = (1.f-fabs(u))*(1.f-fabs(v));
 			// actually, Hanning window is ok, cos^2 for some reason is slower
-			w = (0.5f + 0.5f*cosf(u*(float)M_PI))*(0.5f + 0.5f*cosf(v*(float)M_PI));
+			w = (0.5f + 0.5f*cos((double)u*M_PI))*(0.5f + 0.5f*cos((double)v*M_PI));
 			fRGB_mult(fcol, w);
 			qd_setPixel(ckrn, x, y, fcol);
 		}

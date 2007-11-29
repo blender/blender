@@ -1560,6 +1560,9 @@ static ImBuf *image_load_image_file(Image *ima, ImageUser *iuser, int cfra)
 			if ((ima->packedfile == NULL) && (G.fileflags & G_AUTOPACK))
 				ima->packedfile = newPackedFile(str);
 		}
+		
+		if(ima->flag & IMA_DO_PREMUL)
+			converttopremul(ibuf);
 	}
 	else
 		ima->ok= 0;

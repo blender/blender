@@ -1621,7 +1621,9 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 		if(con->data==NULL) {
 			con->type= CONSTRAINT_TYPE_NULL;
 		}
-
+		/* own ipo, all constraints have it */
+		con->ipo= newlibadr(fd, id->lib, con->ipo);
+		
 		switch (con->type) {
 		case CONSTRAINT_TYPE_PYTHON:
 			{
@@ -2998,7 +3000,8 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 
 			psmd->dm=0;
 			psmd->psys=newdataadr(fd, psmd->psys);
-			psmd->flag|=eParticleSystemFlag_Loaded;
+			psmd->flag |= eParticleSystemFlag_Loaded;
+			psmd->flag &= ~eParticleSystemFlag_psys_updated;
 		} else if (md->type==eModifierType_Explode) {
 			ExplodeModifierData *psmd = (ExplodeModifierData*) md;
 
@@ -7188,6 +7191,16 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				pset->brush[PE_BRUSH_CUT].strength= 100;
 			}
 		}
+	}
+	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 9)) {
+		Material *ma;
+		int a;
+
+		for(ma=main->mat.first; ma; ma= ma->id.next)
+			if(ma->mode & MA_NORMAP_TANG)
+				for(a=0; a<MAX_MTEX; a++)
+					if(ma->mtex[a] && ma->mtex[a]->tex)
+						ma->mtex[a]->normapspace = MTEX_NSPACE_TANGENT;
 	}
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */

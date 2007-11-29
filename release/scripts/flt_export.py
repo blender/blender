@@ -1352,7 +1352,8 @@ def dbexport():
 				#Get original Blender file name
 				origpath = Blender.sys.expandpath(Blender.Image.Get(imgname).getFilename())
 				#copy original to new
-				shutil.copyfile(origpath,tex_files[imgname])
+				if os.path.exists(origpath):
+					shutil.copyfile(origpath,tex_files[imgname])
 	
 	#optional: Write attribute files
 	if options.write_attrib_files:

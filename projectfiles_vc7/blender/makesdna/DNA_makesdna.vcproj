@@ -526,6 +526,9 @@ DNA_makesdna.exe dna.c
 				RelativePath="..\..\..\source\blender\makesdna\DNA_packedFile_types.h">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\makesdna\DNA_particle_types.h">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\makesdna\DNA_property_types.h">
 			</File>
 			<File

@@ -87,7 +87,6 @@ extern int mod_moveDown(void *ob_v, void *md_v);
 extern void const_moveUp(void *ob_v, void *con_v);
 extern void const_moveDown(void *ob_v, void *con_v);
 extern void del_constr_func (void *ob_v, void *con_v);
-extern void get_constraint_ipo_context(void *ob_v, char *actname);
 
 /* editing */
 extern void editing_panels(void);
@@ -378,6 +377,7 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_DOCENTER		2015
 #define B_DOCENTERNEW		2016
 #define B_DOCENTERCURSOR	2017
+#define B_MATASS_BROWSE	2018
 
 	/* 20 values! */
 #define B_OBLAY			2019
@@ -389,6 +389,7 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_PREVKEY		2045
 #define B_NEXTKEY		2046
 #define B_LOCKKEY		2047
+#define B_MATCOL2		2048
 
 #define B_MESHBUTS		2090
 
