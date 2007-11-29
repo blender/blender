@@ -483,7 +483,7 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 		if(ma) {
 			ob->actcol= find_material_index(ob, ma);
 			if(ob->actcol==0) {
-				assign_material(ob, ma, ob->totcol);
+				assign_material(ob, ma, ob->totcol+1);
 				ob->actcol= ob->totcol;
 			}
 		}
