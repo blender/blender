@@ -101,8 +101,8 @@ struct EmbedBucket * nextBucket(struct ReebArcIterator *iter);
 
 /* Filtering */
 void filterNullReebGraph(ReebGraph *rg);
-void filterExternalReebGraph(ReebGraph *rg, float threshold);
-void filterInternalReebGraph(ReebGraph *rg, float threshold);
+int filterExternalReebGraph(ReebGraph *rg, float threshold);
+int filterInternalReebGraph(ReebGraph *rg, float threshold);
 
 /* Post-Build processing */
 void repositionNodes(ReebGraph *rg);

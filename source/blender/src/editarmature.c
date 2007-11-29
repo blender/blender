@@ -335,7 +335,7 @@ void editbones_to_armature (ListBase *list, Object *ob)
 	fix_bonelist_roll (&arm->bonebase, list);
 	
 	/* so all users of this armature should get rebuilt */
-	for(obt= G.main->object.first; obt; obt= obt->id.next) {
+	for (obt= G.main->object.first; obt; obt= obt->id.next) {
 		if(obt->data==arm)
 			armature_rebuild_pose(obt, arm);
 	}
@@ -3173,7 +3173,6 @@ typedef struct RadialArc
 
 void reestablishRadialSymmetry(ReebNode *node, int depth, float axis[3])
 {
-#if 0
 	RadialArc *ring = NULL;
 	RadialArc *unit;
 	float limit = G.scene->toolsettings->skgen_symmetry_limit;
@@ -3182,7 +3181,7 @@ void reestablishRadialSymmetry(ReebNode *node, int depth, float axis[3])
 	int i;
 
 	/* count the number of arcs in the symmetry ring */
-	for(i = 0; node->arcs[i] != NULL; i++)
+	for (i = 0; node->arcs[i] != NULL; i++)
 	{
 		ReebArc *connectedArc = node->arcs[i];
 		
@@ -3197,7 +3196,7 @@ void reestablishRadialSymmetry(ReebNode *node, int depth, float axis[3])
 	unit = ring;
 
 	/* fill in the ring */
-	for(unit = ring, i = 0; node->arcs[i] != NULL; i++)
+	for (unit = ring, i = 0; node->arcs[i] != NULL; i++)
 	{
 		ReebArc *connectedArc = node->arcs[i];
 		
@@ -3221,13 +3220,13 @@ void reestablishRadialSymmetry(ReebNode *node, int depth, float axis[3])
 	}
 
 	/* sort ring */
-	for(i = 0; i < count - 1; i++)
+	for (i = 0; i < count - 1; i++)
 	{
 		float minAngle = 2;
 		int minIndex = -1;
 		int j;
 
-		for(j = i + 1; j < count; j++)
+		for (j = i + 1; j < count; j++)
 		{
 			float angle = Inpf(ring[i].n, ring[j].n);
 
@@ -3254,7 +3253,7 @@ void reestablishRadialSymmetry(ReebNode *node, int depth, float axis[3])
 		}
 	}
 
-	for(i = 0; i < count && symmetric; i++)
+	for (i = 0; i < count && symmetric; i++)
 	{
 		ReebNode *node1, *node2;
 		float tangent[3];
@@ -3281,18 +3280,122 @@ void reestablishRadialSymmetry(ReebNode *node, int depth, float axis[3])
 
 	if (symmetric)
 	{
-		printf("DO MORE STUFF\n");
+		/* first pass, merge incrementally */
+		for (i = 0; i < count - 1; i++)
+		{
+			ReebNode *node1, *node2;
+			float tangent[3];
+			float normal[3];
+			int j = i + 1;
+	
+			VecAddf(tangent, ring[i].n, ring[j].n);
+			Crossf(normal, tangent, axis);
+			
+			node1 = OTHER_NODE(ring[i].arc, node);
+			node2 = OTHER_NODE(ring[j].arc, node);
+	
+			/* mirror first node and mix with the second */
+			mirrorAlongAxis(node1->p, node->p, normal);
+			VecLerpf(node2->p, node2->p, node1->p, 1.0f / (j + 1));
+			
+			/* Merge buckets
+			 * there shouldn't be any null arcs here, but just to be safe 
+			 * */
+			if (ring[i].arc->bcount > 0 && ring[j].arc->bcount > 0)
+			{
+				ReebArcIterator iter1, iter2;
+				EmbedBucket *bucket1 = NULL, *bucket2 = NULL;
+				
+				initArcIterator(&iter1, ring[i].arc, node);
+				initArcIterator(&iter2, ring[j].arc, node);
+				
+				bucket1 = nextBucket(&iter1);
+				bucket2 = nextBucket(&iter2);
+			
+				/* Make sure they both start at the same value */	
+				while(bucket1 && bucket1->val < bucket2->val)
+				{
+					bucket1 = nextBucket(&iter1);
+				}
+				
+				while(bucket2 && bucket2->val < bucket1->val)
+				{
+					bucket2 = nextBucket(&iter2);
+				}
+		
+		
+				for ( ;bucket1 && bucket2; bucket1 = nextBucket(&iter1), bucket2 = nextBucket(&iter2))
+				{
+					bucket2->nv += bucket1->nv; /* add counts */
+					
+					/* mirror on axis */
+					mirrorAlongAxis(bucket1->p, node->p, normal);
+					/* add bucket2 in bucket1 */
+					VecLerpf(bucket2->p, bucket2->p, bucket1->p, (float)bucket1->nv / (float)(bucket2->nv));
+				}
+			}
+		}
+		
+		/* second pass, mirror back on previous arcs */
+		for (i = count - 1; i > 0; i--)
+		{
+			ReebNode *node1, *node2;
+			float tangent[3];
+			float normal[3];
+			int j = i - 1;
+	
+			VecAddf(tangent, ring[i].n, ring[j].n);
+			Crossf(normal, tangent, axis);
+			
+			node1 = OTHER_NODE(ring[i].arc, node);
+			node2 = OTHER_NODE(ring[j].arc, node);
+	
+			/* copy first node than mirror */
+			VECCOPY(node2->p, node1->p);
+			mirrorAlongAxis(node2->p, node->p, normal);
+			
+			/* Copy buckets
+			 * there shouldn't be any null arcs here, but just to be safe 
+			 * */
+			if (ring[i].arc->bcount > 0 && ring[j].arc->bcount > 0)
+			{
+				ReebArcIterator iter1, iter2;
+				EmbedBucket *bucket1 = NULL, *bucket2 = NULL;
+				
+				initArcIterator(&iter1, ring[i].arc, node);
+				initArcIterator(&iter2, ring[j].arc, node);
+				
+				bucket1 = nextBucket(&iter1);
+				bucket2 = nextBucket(&iter2);
+			
+				/* Make sure they both start at the same value */	
+				while(bucket1 && bucket1->val < bucket2->val)
+				{
+					bucket1 = nextBucket(&iter1);
+				}
+				
+				while(bucket2 && bucket2->val < bucket1->val)
+				{
+					bucket2 = nextBucket(&iter2);
+				}
+		
+		
+				for ( ;bucket1 && bucket2; bucket1 = nextBucket(&iter1), bucket2 = nextBucket(&iter2))
+				{
+					/* copy and mirror back to bucket2 */			
+					bucket2->nv = bucket1->nv;
+					VECCOPY(bucket2->p, bucket1->p);
+					mirrorAlongAxis(bucket2->p, node->p, normal);
+				}
+			}
+		}
 	}
 
 	MEM_freeN(ring);
-#endif
-	printf("radial symmetry not done yet\n");
 }
 
 void reestablishAxialSymmetry(ReebNode *node, int depth, float axis[3])
 {
-	ReebArcIterator iter1, iter2;
-	EmbedBucket *bucket1 = NULL, *bucket2 = NULL;
 	ReebArc *arc1 = NULL;
 	ReebArc *arc2 = NULL;
 	ReebNode *node1, *node2;
@@ -3300,7 +3403,7 @@ void reestablishAxialSymmetry(ReebNode *node, int depth, float axis[3])
 	float nor[3], vec[3], p[3];
 	int i;
 	
-	for(i = 0; node->arcs[i] != NULL; i++)
+	for (i = 0; node->arcs[i] != NULL; i++)
 	{
 		ReebArc *connectedArc = node->arcs[i];
 		
@@ -3346,6 +3449,8 @@ void reestablishAxialSymmetry(ReebNode *node, int depth, float axis[3])
 		 * */
 		if (arc1->bcount > 0 && arc2->bcount > 0)
 		{
+			ReebArcIterator iter1, iter2;
+			EmbedBucket *bucket1 = NULL, *bucket2 = NULL;
 			
 			initArcIterator(&iter1, arc1, node);
 			initArcIterator(&iter2, arc2, node);
@@ -3365,7 +3470,7 @@ void reestablishAxialSymmetry(ReebNode *node, int depth, float axis[3])
 			}
 	
 	
-			for( ;bucket1 && bucket2; bucket1 = nextBucket(&iter1), bucket2 = nextBucket(&iter2))
+			for ( ;bucket1 && bucket2; bucket1 = nextBucket(&iter1), bucket2 = nextBucket(&iter2))
 			{
 				bucket1->nv += bucket2->nv; /* add counts */
 				
@@ -3395,7 +3500,7 @@ void markdownSecondarySymmetry(ReebNode *node, int depth, int level)
 		/* count the number of branches in this symmetry group
 		 * and determinte the axis of symmetry
 		 *  */	
-		for(i = 0; node->arcs[i] != NULL; i++)
+		for (i = 0; node->arcs[i] != NULL; i++)
 		{
 			ReebArc *connectedArc = node->arcs[i];
 			
@@ -3426,7 +3531,7 @@ void markdownSecondarySymmetry(ReebNode *node, int depth, int level)
 	}
 
 	/* markdown secondary symetries */	
-	for(i = 0; node->arcs[i] != NULL; i++)
+	for (i = 0; node->arcs[i] != NULL; i++)
 	{
 		ReebArc *connectedArc = node->arcs[i];
 		
@@ -3445,7 +3550,7 @@ void markdownSymmetryArc(ReebArc *arc, ReebNode *node, int level)
 	
 	node = OTHER_NODE(arc, node);
 	
-	for(i = 0; node->arcs[i] != NULL; i++)
+	for (i = 0; node->arcs[i] != NULL; i++)
 	{
 		ReebArc *connectedArc = node->arcs[i];
 		
@@ -3460,7 +3565,7 @@ void markdownSymmetryArc(ReebArc *arc, ReebNode *node, int level)
 
 	arc = NULL;
 
-	for(i = 0; node->arcs[i] != NULL; i++)
+	for (i = 0; node->arcs[i] != NULL; i++)
 	{
 		int issymmetryAxis = 0;
 		ReebArc *connectedArc = node->arcs[i];
@@ -3473,7 +3578,7 @@ void markdownSymmetryArc(ReebArc *arc, ReebNode *node, int level)
 			/* true by default */
 			issymmetryAxis = 1;
 			
-			for(j = 0; node->arcs[j] != NULL && issymmetryAxis == 1; j++)
+			for (j = 0; node->arcs[j] != NULL && issymmetryAxis == 1; j++)
 			{
 				ReebArc *otherArc = node->arcs[j];
 				
@@ -3511,7 +3616,7 @@ void markdownSymmetryArc(ReebArc *arc, ReebNode *node, int level)
 
 	
 	/* secondary symmetry */
-	for(i = 0; node->arcs[i] != NULL; i++)
+	for (i = 0; node->arcs[i] != NULL; i++)
 	{
 		ReebArc *connectedArc = node->arcs[i];
 		
@@ -3532,13 +3637,13 @@ void markdownSymmetry(ReebGraph *rg)
 	int cyclic = isGraphCyclic(rg);
 	
 	/* mark down all arcs as non-symetric */
-	for(arc = rg->arcs.first; arc; arc = arc->next)
+	for (arc = rg->arcs.first; arc; arc = arc->next)
 	{
 		arc->flags = 0;
 	}
 	
 	/* mark down all nodes as not on the symmetry axis */
-	for(node = rg->nodes.first; node; node = node->next)
+	for (node = rg->nodes.first; node; node = node->next)
 	{
 		node->flags = 0;
 	}
@@ -3554,7 +3659,7 @@ void markdownSymmetry(ReebGraph *rg)
 		markdownSymmetryArc(arc, node, 1);
 
 		/* mark down non-symetric arcs */
-		for(arc = rg->arcs.first; arc; arc = arc->next)
+		for (arc = rg->arcs.first; arc; arc = arc->next)
 		{
 			if (arc->flags < 0)
 			{
@@ -3596,7 +3701,7 @@ EditBone * subdivideByAngle(ReebArc *arc, ReebNode *head, ReebNode *tail)
 		
 		root = parent;
 		
-		for(initArcIterator(&iter, arc, head), previous = nextBucket(&iter), current = nextBucket(&iter);
+		for (initArcIterator(&iter, arc, head), previous = nextBucket(&iter), current = nextBucket(&iter);
 			current;
 			previous = current, current = nextBucket(&iter))
 		{
@@ -3651,7 +3756,7 @@ float calcCorrelation(ReebArc *arc, int start, int end, float v0[3], float n[3])
 		float s_xyz = 0.0f;
 		
 		/* First pass, calculate average */
-		for(initArcIterator2(&iter, arc, start, end), bucket = nextBucket(&iter);
+		for (initArcIterator2(&iter, arc, start, end), bucket = nextBucket(&iter);
 			bucket;
 			bucket = nextBucket(&iter))
 		{
@@ -3666,7 +3771,7 @@ float calcCorrelation(ReebArc *arc, int start, int end, float v0[3], float n[3])
 		avg_t /= len;
 		
 		/* Second pass, calculate s_xyz and s_t */
-		for(initArcIterator2(&iter, arc, start, end), bucket = nextBucket(&iter);
+		for (initArcIterator2(&iter, arc, start, end), bucket = nextBucket(&iter);
 			bucket;
 			bucket = nextBucket(&iter))
 		{
@@ -3719,7 +3824,7 @@ EditBone * subdivideByCorrelation(ReebArc *arc, ReebNode *head, ReebNode *tail)
 		parent = add_editbone("Bone");
 		VECCOPY(parent->head, head->p);
 		
-		for(previous = nextBucket(&iter), bucket = nextBucket(&iter);
+		for (previous = nextBucket(&iter), bucket = nextBucket(&iter);
 			bucket;
 			previous = bucket, bucket = nextBucket(&iter))
 		{
@@ -3759,7 +3864,7 @@ float arcLengthRatio(ReebArc *arc)
 	if (arc->bcount > 0)
 	{
 		/* Add the embedding */
-		for( i = 1; i < arc->bcount; i++)
+		for ( i = 1; i < arc->bcount; i++)
 		{
 			embedLength += VecLenf(arc->buckets[i - 1].p, arc->buckets[i].p);
 		}
@@ -3966,7 +4071,7 @@ void generateSkeletonFromReebGraph(ReebGraph *rg)
 		}
 		
 		/* Loop over subdivision methods */	
-		for(i = 0; lastBone == NULL && i < SKGEN_SUB_TOTAL; i++)
+		for (i = 0; lastBone == NULL && i < SKGEN_SUB_TOTAL; i++)
 		{
 			switch(G.scene->toolsettings->skgen_subdivisions[i])
 			{
@@ -3998,12 +4103,12 @@ void generateSkeletonFromReebGraph(ReebGraph *rg)
 	}
 
 	/* Second pass, setup parent relationship between arcs */
-	for(node = rg->nodes.first; node; node = node->next)
+	for (node = rg->nodes.first; node; node = node->next)
 	{
 		ReebArc *incomingArc = NULL;
 		int i;
 
-		for(i = 0; node->arcs[i] != NULL; i++)
+		for (i = 0; node->arcs[i] != NULL; i++)
 		{
 			arc = node->arcs[i];
 
@@ -4029,7 +4134,7 @@ void generateSkeletonFromReebGraph(ReebGraph *rg)
 			EditBone *parentBone = BLI_ghash_lookup(arcBoneMap, incomingArc);
 
 			/* Look for outgoing arcs and parent their bones */
-			for(i = 0; node->arcs[i] != NULL; i++)
+			for (i = 0; node->arcs[i] != NULL; i++)
 			{
 				arc = node->arcs[i];
 
@@ -4087,16 +4192,24 @@ void generateSkeleton(void)
 
 	verifyBuckets(rg);
 
-	if (G.scene->toolsettings->skgen_options & SKGEN_FILTER_EXTERNAL)
-	{
-		filterExternalReebGraph(rg, G.scene->toolsettings->skgen_threshold_external * G.scene->toolsettings->skgen_resolution);
-	}
 
-	verifyBuckets(rg);
-
-	if (G.scene->toolsettings->skgen_options & SKGEN_FILTER_INTERNAL)
+	i = 1;
+	/* filter until there's nothing more to do */
+	while (i == 1)
 	{
-		filterInternalReebGraph(rg, G.scene->toolsettings->skgen_threshold_internal * G.scene->toolsettings->skgen_resolution);
+		i = 0; /* no work done yet */
+		
+		if (G.scene->toolsettings->skgen_options & SKGEN_FILTER_EXTERNAL)
+		{
+			i |= filterExternalReebGraph(rg, G.scene->toolsettings->skgen_threshold_external * G.scene->toolsettings->skgen_resolution);
+		}
+	
+		verifyBuckets(rg);
+	
+		if (G.scene->toolsettings->skgen_options & SKGEN_FILTER_INTERNAL)
+		{
+			i |= filterInternalReebGraph(rg, G.scene->toolsettings->skgen_threshold_internal * G.scene->toolsettings->skgen_resolution);
+		}
 	}
 
 	verifyBuckets(rg);

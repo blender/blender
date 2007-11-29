@@ -639,9 +639,10 @@ void filterNullReebGraph(ReebGraph *rg)
 	}
 }
 
-void filterInternalReebGraph(ReebGraph *rg, float threshold)
+int filterInternalReebGraph(ReebGraph *rg, float threshold)
 {
 	ReebArc *arc = NULL, *nextArc = NULL;
+	int value = 0;
 	
 	BLI_sortlist(&rg->arcs, compareArcs);
 
@@ -677,15 +678,19 @@ void filterInternalReebGraph(ReebGraph *rg, float threshold)
 			freeArc(arc);
 			
 			BLI_freelinkN(&rg->nodes, removedNode);
+			value = 1;
 		}
 		
 		arc = nextArc;
 	}
+	
+	return value;
 }
 
-void filterExternalReebGraph(ReebGraph *rg, float threshold)
+int filterExternalReebGraph(ReebGraph *rg, float threshold)
 {
 	ReebArc *arc = NULL, *nextArc = NULL;
+	int value = 0;
 	
 	BLI_sortlist(&rg->arcs, compareArcs);
 
@@ -748,10 +753,13 @@ void filterExternalReebGraph(ReebGraph *rg, float threshold)
 			freeArc(arc);
 			
 			BLI_freelinkN(&rg->nodes, removedNode);
+			value = 1;
 		}
 		
 		arc = nextArc;
 	}
+	
+	return value;
 }
 
 /************************************** WEIGHT SPREADING ***********************************************/
