@@ -48,6 +48,7 @@
 
 #include "BKE_action.h"
 #include "BKE_cloth.h"
+#include "BKE_collisions.h"
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_library.h"
@@ -2966,6 +2967,30 @@ void do_effects_panels(unsigned short event)
 		}
 		allqueue(REDRAWVIEW3D, 0);
 		break;
+	case B_CLOTH_CLEARCACHEALL:
+		{
+			ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+			if(clmd)
+			{
+				CFRA= 1;
+				update_for_newframe_muted();
+				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA); 
+				cloth_clear_cache(ob, clmd, 2); 
+				allqueue(REDRAWBUTSOBJECT, 0);
+				allqueue(REDRAWVIEW3D, 0);
+			}	
+		}
+		break;	
+	case B_CLOTH_RENEW:
+		{
+			ClothModifierData *clmd = (ClothModifierData *)modifiers_findByType(ob, eModifierType_Cloth);
+			if(clmd)
+			{
+				do_object_panels(B_CLOTH_CLEARCACHEALL);
+				cloth_free_modifier (clmd);
+			}
+		}
+		break;
 	default:
 		if(event>=B_SELEFFECT && event<B_SELEFFECT+MAX_EFFECT) {
 			ob= OBACT;
@@ -3002,10 +3027,31 @@ static void field_testTexture(char *name, ID **idpp)
 	}
 	*idpp = 0;
 }
+
+/* Panel for collision */
+static void object_collision__enabletoggle ( void *ob_v, void *arg2 )
+{
+	Object *ob = ob_v;
+	ModifierData *md = modifiers_findByType ( ob, eModifierType_Collision );
+
+	if ( !md )
+	{
+		md = modifier_new ( eModifierType_Collision );
+		BLI_addhead ( &ob->modifiers, md );
+	}
+	else
+	{
+		BLI_remlink ( &ob->modifiers, md );
+		modifier_free ( md );
+		allqueue(REDRAWBUTSEDIT, 0);
+	}
+}
+
 /* Panels for particle interaction settings */
 static void object_panel_deflection(Object *ob)
 {
 	uiBlock *block;
+	uiBut *but;
 
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_deflection", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Deflection", "Physics", 0, 0, 318, 204)==0) return;
@@ -3025,7 +3071,9 @@ static void object_panel_deflection(Object *ob)
 	if(ob->pd && ob->type==OB_MESH) {
 		PartDeflect *pd= ob->pd;
 		
-		uiDefButBitS(block, TOG, 1, B_REDR, "Deflection",160,160,150,20, &pd->deflect, 0, 0, 0, 0, "Deflects particles based on collision");
+		but = uiDefButBitS(block, TOG, 1, B_REDR, "Deflection",160,160,150,20, &pd->deflect, 0, 0, 0, 0, "Deflects particles based on collision");
+		uiButSetFunc(but, object_collision__enabletoggle, ob, NULL);
+		
 		if(pd->deflect) {
 			uiDefBut(block, LABEL, 0, "Particles",			160,140,75,20, NULL, 0.0, 0, 0, 0, "");
 			uiDefButBitS(block, TOG, PDEFLE_KILL_PART, B_DIFF, "Kill",235,140,75,20, &pd->flag, 0, 0, 0, 0, "Kill collided particles");

@@ -358,6 +358,7 @@ typedef struct CollisionModifierData {
 	struct MVert *xnew; /* position at the end of the frame */
 	struct MVert *current_xnew; /* new position at the actual inter-frame step */
 	struct MVert *current_x; /* position at the actual inter-frame step */
+	struct MVert *current_v; /* position at the actual inter-frame step */
 	
 	unsigned int numverts;
 	float time;

@@ -1009,6 +1009,7 @@ static void cloth_from_mesh (Object *ob, ClothModifierData *clmd, DerivedMesh *d
 ***************************************************************************************/
 
 // be carefull: implicit solver has to be resettet when using this one!
+// --> only for implicit handling of this spring!
 int cloth_add_spring ( ClothModifierData *clmd, unsigned int indexA, unsigned int indexB, float restlength, int spring_type)
 {
 	Cloth *cloth = clmd->clothObject;

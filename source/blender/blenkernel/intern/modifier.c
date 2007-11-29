@@ -5068,6 +5068,7 @@ static void collisionModifier_initData(ModifierData *md)
 	collmd->xnew = NULL;
 	collmd->current_x = NULL;
 	collmd->current_xnew = NULL;
+	collmd->current_v = NULL;
 	collmd->time = -1;
 	collmd->numverts = 0;
 	collmd->tree = NULL;
@@ -5089,11 +5090,14 @@ static void collisionModifier_freeData(ModifierData *md)
 			MEM_freeN(collmd->current_x);
 		if(collmd->current_xnew)
 			MEM_freeN(collmd->current_xnew);
+		if(collmd->current_v)
+			MEM_freeN(collmd->current_v);
 		
 		collmd->x = NULL;
 		collmd->xnew = NULL;
 		collmd->current_x = NULL;
 		collmd->current_xnew = NULL;
+		collmd->current_v = NULL;
 		collmd->time = -1;
 		collmd->numverts = 0;
 		collmd->tree = NULL;
@@ -5155,6 +5159,8 @@ static void collisionModifier_deformVerts(
 				collmd->xnew = MEM_dupallocN(collmd->x); // frame end position
 				collmd->current_x = MEM_dupallocN(collmd->x); // inter-frame
 				collmd->current_xnew = MEM_dupallocN(collmd->x); // inter-frame
+				collmd->current_v = MEM_dupallocN(collmd->x); // inter-frame
+
 				collmd->numverts = numverts;
 				
 				// TODO: epsilon

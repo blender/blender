@@ -37,11 +37,13 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+
 /* types */
 #include "BLI_linklist.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_object.h"
-#include "BKE_DerivedMesh.h"
+
+#include "DNA_modifier_types.h"
 
 // used in kdop.c and collision.c
 typedef struct CollisionTree
@@ -82,6 +84,8 @@ typedef struct CollisionPair
 {
 	int point_indexA[4], point_indexB[4];
 	float vector[3];
+	float normal[3]; // has to be calculated from vector
+	float distance;
 	float pa[3], pb[3];
 }
 CollisionPair;
@@ -114,6 +118,10 @@ LinkNode *BLI_linklist_append_fast (LinkNode **listp, void *ptr);
 // move Collision modifier object inter-frame with step = [0,1]
 // defined in collisions.c
 void collision_move_object(CollisionModifierData *collmd, float step, float prevstep);
+
+// interface for collision functions
+void collisions_compute_barycentric (float pv[3], float p1[3], float p2[3], float p3[3], float *w1, float *w2, float *w3);
+void interpolateOnTriangle(float to[3], float v1[3], float v2[3], float v3[3], double w1, double w2, double w3);
 
 /////////////////////////////////////////////////
 

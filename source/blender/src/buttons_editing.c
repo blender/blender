@@ -1494,14 +1494,6 @@ static void modifiers_convertToReal(void *ob_v, void *md_v)
 	BIF_undo_push("Modifier convert to real");
 }
 
-static void modifiers_pointCacheClearModifier(void *ob_v, void *md_v)
-{
-	Object *ob = ob_v;
-	ModifierData *md = md_v;	
-	int stack_index = modifiers_indexInObject(ob_v, md_v);
-	PTCache_id_clear((ID *)ob, CFRA, stack_index);
-}
-
 static void build_uvlayer_menu_vars(CustomData *data, char **menu_string,
                                     int *uvlayer_tmp, char *uvlayer_name)
 {

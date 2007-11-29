@@ -71,7 +71,6 @@
 
 #include "Bullet-C-Api.h"
 
-
 // step is limited from 0 (frame start position) to 1 (frame end position)
 void collision_move_object(CollisionModifierData *collmd, float step, float prevstep)
 {
@@ -83,6 +82,7 @@ void collision_move_object(CollisionModifierData *collmd, float step, float prev
 		VECSUB(tv, collmd->xnew[i].co, collmd->x[i].co);
 		VECADDS(collmd->current_x[i].co, collmd->x[i].co, tv, prevstep);
 		VECADDS(collmd->current_xnew[i].co, collmd->x[i].co, tv, step);
+		VECSUB(collmd->current_v[i].co, collmd->current_xnew[i].co, collmd->current_x[i].co);
 	}
 }
 
