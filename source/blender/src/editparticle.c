@@ -1703,10 +1703,10 @@ static int remove_tagged_elements(Object *ob, ParticleSystem *psys)
 			}
 		}
 
-		MEM_freeN(psys->particles);
+		if(psys->particles) MEM_freeN(psys->particles);
 		psys->particles = new_pars;
 
-		MEM_freeN(edit->keys);
+		if(edit->keys) MEM_freeN(edit->keys);
 		edit->keys = new_keys;
 
 		if(edit->mirror_cache) {
@@ -2256,10 +2256,10 @@ static void brush_add(Object *ob, ParticleSystem *psys, short *mval, short numbe
 		memcpy(new_keys, edit->keys, totpart * sizeof(ParticleEditKey*));
 
 		/* change old arrays to new ones */
-		MEM_freeN(psys->particles);
+		if(psys->particles) MEM_freeN(psys->particles);
 		psys->particles = new_pars;
 
-		MEM_freeN(edit->keys);
+		if(edit->keys) MEM_freeN(edit->keys);
 		edit->keys = new_keys;
 
 		if(edit->mirror_cache) {
@@ -2267,8 +2267,6 @@ static void brush_add(Object *ob, ParticleSystem *psys, short *mval, short numbe
 			edit->mirror_cache = NULL;
 		}
 
-		psys->totpart = newtotpart;
-		
 		/* create tree for interpolation */
 		if(pset->flag & PE_INTERPOLATE_ADDED && psys->totpart){
 			tree=BLI_kdtree_new(psys->totpart);
@@ -2280,6 +2278,8 @@ static void brush_add(Object *ob, ParticleSystem *psys, short *mval, short numbe
 
 			BLI_kdtree_balance(tree);
 		}
+
+		psys->totpart = newtotpart;
 
 		/* create new elements */
 		pa = psys->particles + totpart;
@@ -2691,10 +2691,10 @@ void PE_mirror_x(int tagged)
 		memcpy(new_pars, psys->particles, totpart*sizeof(ParticleData));
 		memcpy(new_keys, edit->keys, totpart*sizeof(ParticleEditKey*));
 
-		MEM_freeN(psys->particles);
+		if(psys->particles) MEM_freeN(psys->particles);
 		psys->particles= new_pars;
 
-		MEM_freeN(edit->keys);
+		if(edit->keys) MEM_freeN(edit->keys);
 		edit->keys= new_keys;
 
 		if(edit->mirror_cache) {
