@@ -11,6 +11,9 @@
 #include "solver_relax.h"
 #include "particletracer.h"
 
+#if !defined(linux) && (defined (__sparc) || defined (__sparc__))
+#include <ieeefp.h>
+#endif
 
 
 /*****************************************************************************/

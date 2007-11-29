@@ -13,6 +13,11 @@
 #include "loop_tools.h"
 #include <stdlib.h>
 
+#if !defined(linux) && (defined (__sparc) || defined (__sparc__))
+#include <ieeefp.h>
+#endif
+
+
 /*****************************************************************************/
 /*! perform a single LBM step */
 /*****************************************************************************/
