@@ -5,6 +5,20 @@ Import ('env')
 
 sources = env.Glob('*.c')
 
+if env['BF_SPLIT_SRC'] == 1:
+	numobj = len(sources) 	 
+	maxobj = 30 	 
+
+	numlibs = numobj / maxobj 	 
+	if (numobj % maxobj): 	 
+		numlibs = numlibs + 1 	 
+	subsources = [] 	 
+	 
+	if (env['OURPLATFORM'] == 'win32-mingw'): 	 
+		for i in range(numlibs - 1): 	 
+			subsources.append(sources[i*maxobj:(i+1)*maxobj]) 	 
+		subsources.append(sources[(numlibs-1)*maxobj:])
+
 incs = ' #/intern/guardedalloc #/intern/memutil'
 incs += ' ../blenlib ../makesdna ../blenkernel'
 incs += ' ../include #/intern/bmfont ../imbuf ../render/extern/include'
@@ -60,5 +74,9 @@ if env['WITH_BF_VERSE']:
 # TODO buildinfo
 if env['BF_BUILDINFO'] == 1:
     defs.append('NAN_BUILDINFO')
-
-env.BlenderLib ( libname = 'src', sources = sources, includes = Split(incs), defines = defs, libtype=['core', 'intern'], priority = [5, 25] )
+	
+if (env['BF_SPLIT_SRC'] == 1) and (env['OURPLATFORM'] == 'win32-mingw'): 	 
+	for i in range(numlibs): 	 
+		env.BlenderLib ( libname = 'src%d' % (i), sources = subsources[i], includes = Split(incs), defines = defs, libtype=['core', 'intern'], priority = [5, 25] ) 	 
+else:
+	env.BlenderLib ( libname = 'src', sources = sources, includes = Split(incs), defines = defs, libtype=['core', 'intern'], priority = [5, 25] )
