@@ -479,7 +479,27 @@ static void cleanup_path(const char *relabase, char *name)
 	strcat(name, filename);
 }
 
-static Main *blo_find_main(ListBase *mainlist, const char *name, const char *relabase)
+static void read_file_version(FileData *fd, Main *main)
+{
+	BHead *bhead;
+	
+	for (bhead= blo_firstbhead(fd); bhead; bhead= blo_nextbhead(fd, bhead)) {
+		if (bhead->code==GLOB) {
+			FileGlobal *fg= read_struct(fd, bhead, "Global");
+			if(fg) {
+				main->subversionfile= fg->subversion;
+				main->minversionfile= fg->minversion;
+				main->minsubversionfile= fg->minsubversion;
+				MEM_freeN(fg);
+			}
+			else if (bhead->code==ENDB)
+				break;
+		}
+	}
+}
+
+
+static Main *blo_find_main(FileData *fd, ListBase *mainlist, const char *name, const char *relabase)
 {
 	Main *m;
 	Library *lib;
@@ -507,6 +527,8 @@ static Main *blo_find_main(ListBase *mainlist, const char *name, const char *rel
 	BLI_strncpy(lib->filename, name1, sizeof(lib->filename));
 	
 	m->curlib= lib;
+	
+	read_file_version(fd, m);
 	
 	if(G.f & G_DEBUG) printf("blo_find_main: added new lib %s\n", name);
 	return m;
@@ -727,26 +749,6 @@ BHead *blo_nextbhead(FileData *fd, BHead *thisblock)
 
 	return(bhead);
 }
-
-#if 0
-static void get_blender_subversion(FileData *fd)
-{
-	BHead *bhead;
-	
-	for (bhead= blo_firstbhead(fd); bhead; bhead= blo_nextbhead(fd, bhead)) {
-		if (bhead->code==GLOB) {
-			FileGlobal *fg= read_struct(fd, bhead, "Global");
-			fd->filesubversion= fg->subversion;
-			fd->fileminversion= fg->minversion;
-			fd->fileminsubversion= fg->minsubversion;
-			MEM_freeN(fg);
-			return;
-		} 
-		else if (bhead->code==ENDB)
-			break;
-	}
-}
-#endif
 
 static void decode_blender_header(FileData *fd)
 {
@@ -7382,7 +7384,7 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 
 			if(bheadlib) {
 				Library *lib= read_struct(fd, bheadlib, "Library");
-				Main *ptr= blo_find_main(&fd->mainlist, lib->name, fd->filename);
+				Main *ptr= blo_find_main(fd, &fd->mainlist, lib->name, fd->filename);
 
 				id= is_yet_read(fd, ptr, bhead);
 
@@ -8148,7 +8150,7 @@ static Library* library_append( Scene *scene, char* file, char *dir, int idcode,
 	blo_split_main(&fd->mainlist, G.main);
 
 	/* which one do we need? */
-	mainl = blo_find_main(&fd->mainlist, dir, G.sce);
+	mainl = blo_find_main(fd, &fd->mainlist, dir, G.sce);
 	
 	mainl->versionfile= fd->fileversion;	/* needed for do_version */
 	
