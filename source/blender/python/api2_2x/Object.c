@@ -172,6 +172,7 @@ enum obj_consts {
 	EXPP_OBJ_ATTR_DUPOFF,
 	EXPP_OBJ_ATTR_DUPSTA,
 	EXPP_OBJ_ATTR_DUPEND,
+ 	EXPP_OBJ_ATTR_DUPFACESCALEFAC,
 	EXPP_OBJ_ATTR_TIMEOFFSET,
 	EXPP_OBJ_ATTR_DRAWSIZE,
 	EXPP_OBJ_ATTR_PARENT_TYPE,
@@ -276,6 +277,8 @@ enum obj_consts {
 #define EXPP_OBJECT_SBINSPRINGMAX      0.999f
 #define EXPP_OBJECT_SBINFRICTMIN         0.0f
 #define EXPP_OBJECT_SBINFRICTMAX        10.0f
+#define EXPP_OBJECT_DUPFACESCALEFACMIN  0.001f
+#define EXPP_OBJECT_DUPFACESCALEFACMAX  10000.0f
 
 /*****************************************************************************/
 /* Python API function prototypes for the Blender module.		 */
@@ -3843,6 +3846,9 @@ static PyObject *getFloatAttr( BPy_Object *self, void *type )
 	case EXPP_OBJ_ATTR_SB_INFRICT:
     	param = object->soft->infrict;
 		break;
+	case EXPP_OBJ_ATTR_DUPFACESCALEFAC:
+		param = object->dupfacesca;
+		break;
 	default:
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError, 
 				"undefined type in getFloatAttr" );
@@ -3990,6 +3996,12 @@ static int setFloatAttrClamp( BPy_Object *self, PyObject *value, void *type )
 		max = EXPP_OBJECT_SBINFRICTMAX;
     	param = &self->object->soft->infrict;
 		break;
+	case EXPP_OBJ_ATTR_DUPFACESCALEFAC:
+		min = EXPP_OBJECT_DUPFACESCALEFACMIN;
+		max = EXPP_OBJECT_DUPFACESCALEFACMAX;
+		param = &self->object->dupfacesca;
+		break;
+		
 	default:
 		return EXPP_ReturnIntError( PyExc_RuntimeError,
 				"undefined type in setFloatAttrClamp" );
@@ -4984,6 +4996,10 @@ static PyGetSetDef BPy_Object_getseters[] = {
 	 (getter)Object_getTransflagBits, (setter)Object_setTransflagBits,
 	 "Use face scale to scale all dupliFaces",
 	 (void *)OB_DUPLIFACES_SCALE},
+	{"dupFacesScaleFac",
+ 	 (getter)getFloatAttr, (setter)setFloatAttr,
+	"Use face scale to scale all dupliFaces",
+	 (void *)EXPP_OBJ_ATTR_DUPFACESCALEFAC},
 	{"enableDupFrames",
 	 (getter)Object_getTransflagBits, (setter)Object_setTransflagBits,
 	 "Make copy of object for every frame",

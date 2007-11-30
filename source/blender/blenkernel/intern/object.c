@@ -913,6 +913,7 @@ Object *add_only_object(int type, char *name)
 	ob->ipowin= ID_OB;	/* the ipowin shown */
 	ob->dupon= 1; ob->dupoff= 0;
 	ob->dupsta= 1; ob->dupend= 100;
+	ob->dupfacesca = 1.0;
 
 	/* Game engine defaults*/
 	ob->mass= ob->inertia= 1.0f;
