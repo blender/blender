@@ -844,7 +844,6 @@ int subtreeDepth(ReebNode *node, ReebArc *rootArc)
 			if (arc != rootArc)
 			{
 				ReebNode *newNode = OTHER_NODE(arc, node);
-				printf("recurse\n");
 				depth = MAX2(depth, subtreeDepth(newNode, arc));
 			}
 		}
@@ -982,9 +981,6 @@ void removeNormalNodes(ReebGraph *rg)
 			{
 				ReebArc *nextArc = findConnectedArc(rg, arc, arc->v1);
 
-				if (nextArc == NULL)
-					printf("uhm1\n");
-	
 				// Merge arc only if needed
 				if (arc->v1 == nextArc->v2)
 				{				
@@ -1002,9 +998,6 @@ void removeNormalNodes(ReebGraph *rg)
 			{
 				ReebArc *nextArc = findConnectedArc(rg, arc, arc->v2);
 				
-				if (nextArc == NULL) 
-					printf("uhm %p\n", arc->v2);
-					
 				// Merge arc only if needed
 				if (arc->v2 == nextArc->v1)
 				{				
@@ -1042,15 +1035,6 @@ ReebArc *nextArcMappedToEdge(ReebArc *arc, ReebEdge *e)
 	{
 		result = nextEdge->arc;
 	}
-
-#if 0
-	if (result == arc)
-	{
-		printf("WTF");
-		getchar();
-		exit(1);
-	}
-#endif
 
 	return result;
 }
