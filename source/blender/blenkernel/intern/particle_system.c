@@ -789,6 +789,9 @@ static void distribute_particles_on_dm(DerivedMesh *finaldm, Object *ob, Particl
 				i++;
 
 			index[p]= MIN2(tot-1, i);
+			if(p == totpart-1 && weight[index[p]] == 0.0f)
+				index[p]= index[p-1];
+
 			jitoff[index[p]]= pos;
 		}
 	}
