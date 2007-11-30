@@ -481,10 +481,12 @@ static uiBlock *seq_editmenu(void *arg_unused)
 			
 	}
 
-/*	if (last_seq != NULL && last_seq->type == SEQ_MOVIE) {
-		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Filter Y|F", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
+	if (last_seq != NULL && last_seq->type == SEQ_MOVIE) {
+/*		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Set Filter Y|F", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, ""); */
+		uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Remap Paths...|Shift R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 15, "");
 	}
-*/
+
 
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make Meta Strip...|M", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 2, "");
