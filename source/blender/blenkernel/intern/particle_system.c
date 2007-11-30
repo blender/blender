@@ -494,7 +494,7 @@ static void distribute_particles_on_dm(DerivedMesh *finaldm, Object *ob, Particl
 	//int *vertpart=0;
 	int jitlevel= 1, intersect, distr;
 	float *weight=0,*sum=0,*jitoff=0;
-	float cur, maxweight=0.0,tweight;
+	float cur, maxweight=0.0, tweight, totweight;
 	float *v1, *v2, *v3, *v4, co[3], nor[3], co1[3], co2[3], nor1[3];
 	float cur_d, min_d;
 	DerivedMesh *dm= NULL;
@@ -756,9 +756,16 @@ static void distribute_particles_on_dm(DerivedMesh *finaldm, Object *ob, Particl
 	}
 
 	/* 3. */
+	totweight= 0.0f;
+	for(i=0;i<tot; i++)
+		totweight += weight[i];
+
+	if(totweight > 0.0f)
+		totweight= 1.0f/totweight;
+
 	sum[0]= 0.0f;
 	for(i=0;i<tot; i++)
-		sum[i+1]= sum[i]+weight[i];
+		sum[i+1]= sum[i]+weight[i]*totweight;
 
 	if(part->flag&PART_TRAND){
 		float pos;
@@ -766,6 +773,7 @@ static void distribute_particles_on_dm(DerivedMesh *finaldm, Object *ob, Particl
 		for(p=0; p<totpart; p++) {
 			pos= BLI_frand();
 			index[p]= binary_search_distribution(sum, tot, pos);
+			index[p]= MIN2(tot-1, index[p]);
 			jitoff[index[p]]= pos;
 		}
 	}
