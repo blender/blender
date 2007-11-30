@@ -1749,6 +1749,13 @@ static int render_new_particle_system(Render *re, Object *ob, ParticleSystem *ps
 	if(!(psmd->modifier.mode & eModifierMode_Render))
 		return 0;
 
+	if(G.rendering == 0) { /* preview render */
+		if(part->flag & PART_CHILD_RENDER)
+			totchild = 0;
+		else
+			totchild = (int)((float)totchild * (float)part->disp / 100.0f);
+	}
+
 	psys->flag|=PSYS_DRAWING;
 
 	BLI_srandom(psys->seed);
