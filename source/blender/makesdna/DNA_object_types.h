@@ -141,8 +141,9 @@ typedef struct Object {
 	char dt, dtx;
 	char totcol;	/* copy of mesh or curve or meta */
 	char actcol;	/* currently selected material in the user interface */
-	char empty_drawtype, pad1[7];
+	char empty_drawtype, pad1[3];
 	float empty_drawsize;
+	float dupfacesca;	/* dupliface scale */
 	
 	ScriptLink scriptlink;
 	ListBase prop;

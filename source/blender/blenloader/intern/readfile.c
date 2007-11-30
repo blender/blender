@@ -7180,6 +7180,17 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					if(ma->mtex[a] && ma->mtex[a]->tex)
 						ma->mtex[a]->normapspace = MTEX_NSPACE_TANGENT;
 	}
+	
+	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 10)) {
+		Object *ob;
+		/* dupliface scale */
+		for(ob= main->object.first; ob; ob= ob->id.next) {
+			ob->dupfacesca = 1.0f;
+		}
+
+	}
+
+	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
 

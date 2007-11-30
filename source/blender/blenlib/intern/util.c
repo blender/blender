@@ -1023,6 +1023,7 @@ int BLI_convertstringcode(char *path, const char *basepath, int framenum)
 	return wasrelative;
 }
 
+/* copy di to fi without directory only */
 void BLI_splitdirstring(char *di, char *fi)
 {
 	char *lslash= BLI_last_slash(di);

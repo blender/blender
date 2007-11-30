@@ -6739,7 +6739,9 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 
 		mti = INIT_TYPE(Boolean);
 		mti->type = eModifierTypeType_Nonconstructive;
-		mti->flags = eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_RequiresOriginalData;
+		mti->flags = eModifierTypeFlag_AcceptsMesh
+					 | eModifierTypeFlag_RequiresOriginalData
+					 | eModifierTypeFlag_UsesPointCache;
 		mti->copyData = booleanModifier_copyData;
 		mti->isDisabled = booleanModifier_isDisabled;
 		mti->applyModifier = booleanModifier_applyModifier;
@@ -6763,7 +6765,8 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti = INIT_TYPE(ParticleSystem);
 		mti->type = eModifierTypeType_OnlyDeform;
 		mti->flags = eModifierTypeFlag_AcceptsMesh
-					| eModifierTypeFlag_SupportsMapping;
+					| eModifierTypeFlag_SupportsMapping
+					| eModifierTypeFlag_UsesPointCache;
 #if 0
 					| eModifierTypeFlag_SupportsEditmode;
 					|eModifierTypeFlag_EnableInEditmode;
@@ -7192,3 +7195,15 @@ int modifiers_indexInObject(Object *ob, ModifierData *md_seek)
 	return i;
 }
 
+int modifiers_usesPointCache(Object *ob)
+{
+	ModifierData *md = ob->modifiers.first;
+
+	for (; md; md=md->next) {
+		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+		if (mti->flags & eModifierTypeFlag_UsesPointCache) {
+			return 1;
+		}
+	}
+	return 0;
+}

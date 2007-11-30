@@ -2416,15 +2416,17 @@ static void object_panel_anim(Object *ob)
 	uiDefButBitS(block, TOG, OB_DUPLIVERTS, B_DUPLI_VERTS, "DupliVerts",		119,130,95,20, &ob->transflag, 0, 0, 0, 0, "Duplicate child objects on all vertices");
 	uiDefButBitS(block, TOG, OB_DUPLIFACES, B_DUPLI_FACES, "DupliFaces",		214,130,102,20, &ob->transflag, 0, 0, 0, 0, "Duplicate child objects on all faces");
 	uiDefButBitS(block, TOG, OB_DUPLIGROUP, B_DUPLI_GROUP, "DupliGroup",		24,110,150,20, &ob->transflag, 0, 0, 0, 0, "Enable group instancing");
-	if(ob->transflag & OB_DUPLIFRAMES)
+	if(ob->transflag & OB_DUPLIFRAMES) {
 		uiDefButBitS(block, TOG, OB_DUPLINOSPEED, REDRAWVIEW3D, "No Speed",		174,110,142,20, &ob->transflag, 0, 0, 0, 0, "Set dupliframes to still, regardless of frame");
-	else if(ob->transflag & OB_DUPLIVERTS)
+	} else if(ob->transflag & OB_DUPLIVERTS) {
 		uiDefButBitS(block, TOG, OB_DUPLIROT, REDRAWVIEW3D, "Rot",				174,110,142,20, &ob->transflag, 0, 0, 0, 0, "Rotate dupli according to vertex normal");
-	else if(ob->transflag & OB_DUPLIFACES)
-		uiDefButBitS(block, TOG, OB_DUPLIFACES_SCALE, REDRAWVIEW3D, "Scale",			174,110,142,20, &ob->transflag, 0, 0, 0, 0, "Scale dupli based on face size");
-	else
+	} else if(ob->transflag & OB_DUPLIFACES) {
+		uiDefButBitS(block, TOG, OB_DUPLIFACES_SCALE, REDRAWVIEW3D, "Scale",			174,110,80,20, &ob->transflag, 0, 0, 0, 0, "Scale dupli based on face size");
+		uiDefButF(block, NUM, REDRAWVIEW3D, "",		254,110,62,20, &ob->dupfacesca, 0.001, 10000.0, 0, 0, "Scale the DupliFace objects");
+	} else {
 		uiDefIDPoinBut(block, test_grouppoin_but, ID_GR, B_GROUP_RELINK, "GR:",	174,110,142,20, &ob->dup_group, "Instance an existing group");
-
+	}
+	
 	uiBlockBeginAlign(block);
 	/* DupSta and DupEnd are both shorts, so the maxframe is greater then their range
 	just limit the buttons to the max short */

@@ -325,7 +325,7 @@ class tree:
 							do_twigs_fill = 0,\
 							twig_fill_levels=4,\
 							twig_fill_rand_scale=0.0,\
-							twig_fill_fork_angle_max=60.0,\
+							twig_fill_fork_angle_max=180.0,\
 							twig_fill_radius_min=0.1,\
 							twig_fill_radius_factor=0.75,\
 							twig_fill_shape_type=0,\
@@ -1795,7 +1795,7 @@ class tree:
 			leaf_branch_limit_type_grow = False,\
 			leaf_branch_limit_type_fill = False,\
 			leaf_size = 0.5,\
-			leaf_size_rand = 0.0,\
+			leaf_size_rand = 0.5,\
 			leaf_branch_density = 0.2,\
 			leaf_branch_pitch_angle = 0.0,\
 			leaf_branch_pitch_rand = 0.2,\
@@ -3061,13 +3061,13 @@ PREFS['anim_offset_scale'] = Draw.Create(1.0)
 PREFS['do_twigs_fill'] = Draw.Create(0)
 PREFS['twig_fill_levels'] = Draw.Create(4)
 
-PREFS['twig_fill_rand_scale'] = Draw.Create(0.0)
-PREFS['twig_fill_fork_angle_max'] = Draw.Create(60.0)
+PREFS['twig_fill_rand_scale'] = Draw.Create(0.1)
+PREFS['twig_fill_fork_angle_max'] = Draw.Create(180.0)
 PREFS['twig_fill_radius_min'] = Draw.Create(0.001)
 PREFS['twig_fill_radius_factor'] = Draw.Create(0.75)
-PREFS['twig_fill_shape_type'] = Draw.Create(0)
-PREFS['twig_fill_shape_rand'] = Draw.Create(0.0)
-PREFS['twig_fill_shape_power'] = Draw.Create(0.3)
+PREFS['twig_fill_shape_type'] = Draw.Create(1)
+PREFS['twig_fill_shape_rand'] = Draw.Create(0.5)
+PREFS['twig_fill_shape_power'] = Draw.Create(0.5)
 
 PREFS['do_twigs'] = Draw.Create(0)
 PREFS['twig_ratio'] = Draw.Create(2.0)
@@ -3100,7 +3100,7 @@ PREFS['leaf_branch_roll_rand'] = Draw.Create(0.2)
 PREFS['leaf_branch_angle'] = Draw.Create(75.0)
 PREFS['leaf_rand_seed'] = Draw.Create(1.0)
 PREFS['leaf_size'] = Draw.Create(0.5)
-PREFS['leaf_size_rand'] = Draw.Create(0.0)
+PREFS['leaf_size_rand'] = Draw.Create(0.5)
 
 PREFS['leaf_object'] = Draw.Create('')
 
