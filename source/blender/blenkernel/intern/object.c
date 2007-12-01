@@ -1006,12 +1006,26 @@ SoftBody *copy_softbody(SoftBody *sb)
 ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 {
 	ParticleSystem *psysn;
+	ParticleData *pa;
+	int a;
 
 	psysn= MEM_dupallocN(psys);
 	psysn->particles= MEM_dupallocN(psys->particles);
-
 	psysn->child= MEM_dupallocN(psys->child);
 
+	for(a=0, pa=psysn->particles; a<psysn->totpart; a++, pa++) {
+		if(pa->hair)
+			pa->hair= MEM_dupallocN(pa->hair);
+		if(pa->keys)
+			pa->keys= MEM_dupallocN(pa->keys);
+	}
+
+	if(psys->soft)
+		psysn->soft= copy_softbody(psys->soft);
+	
+	psysn->pathcache= NULL;
+	psysn->childcache= NULL;
+	psysn->edit= NULL;
 	psysn->effectors.first= psysn->effectors.last= 0;
 
 	id_us_plus((ID *)psysn->part);
