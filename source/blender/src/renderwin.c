@@ -1284,6 +1284,7 @@ void BIF_do_ogl_render(View3D *v3d, int anim)
 				break;
 			drawview3d_render(v3d, winx, winy);
 			glReadPixels(0, 0, winx, winy, GL_RGBA, GL_UNSIGNED_BYTE, rr->rect32);
+			BKE_stamp_buf((unsigned char *)rr->rect32, rr->rectf, rr->rectx, rr->recty);
 			window_swap_buffers(render_win->win);
 			
 			if(BKE_imtype_is_movie(G.scene->r.imtype)) {
@@ -1297,7 +1298,7 @@ void BIF_do_ogl_render(View3D *v3d, int anim)
 				
 				BKE_makepicstring(name, G.scene->r.pic, G.scene->r.cfra, G.scene->r.imtype);
 
-				ibuf->rect= (unsigned int *)rr->rect32;    
+				ibuf->rect= (unsigned int *)rr->rect32;
 				ok= BKE_write_ibuf(ibuf, name, G.scene->r.imtype, G.scene->r.subimtype, G.scene->r.quality);
 				
 				if(ok==0) {
@@ -1323,6 +1324,7 @@ void BIF_do_ogl_render(View3D *v3d, int anim)
 	else {
 		drawview3d_render(v3d, winx, winy);
 		glReadPixels(0, 0, winx, winy, GL_RGBA, GL_UNSIGNED_BYTE, rr->rect32);
+		BKE_stamp_buf((unsigned char *)rr->rect32, rr->rectf, rr->rectx, rr->recty);
 		window_swap_buffers(render_win->win);
 	}
 	
