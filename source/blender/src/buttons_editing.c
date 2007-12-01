@@ -521,14 +521,14 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 							while(a--) {
 								if(bezt->hide==0) {
 									if(event==B_MATSEL) {
-										bezt->f1 |= 1;
-										bezt->f2 |= 1;
-										bezt->f3 |= 1;
+										bezt->f1 |= SELECT;
+										bezt->f2 |= SELECT;
+										bezt->f3 |= SELECT;
 									}
 									else {
-										bezt->f1 &= ~1;
-										bezt->f2 &= ~1;
-										bezt->f3 &= ~1;
+										bezt->f1 &= ~SELECT;
+										bezt->f2 &= ~SELECT;
+										bezt->f3 &= ~SELECT;
 									}
 								}
 								bezt++;

@@ -530,9 +530,9 @@ void testhandles_ipocurve(IpoCurve *icu)
 	a= icu->totvert;
 	while(a--) {
 		flag= 0;
-		if(bezt->f1 & 1) flag++;
-		if(bezt->f2 & 1) flag += 2;
-		if(bezt->f3 & 1) flag += 4;
+		if(bezt->f1 & SELECT) flag++;
+		if(bezt->f2 & SELECT) flag += 2;
+		if(bezt->f3 & SELECT) flag += 4;
 
 		if( !(flag==0 || flag==7) ) {
 			if(bezt->h1==HD_AUTO) {   /* auto */
@@ -2349,7 +2349,7 @@ void add_to_cfra_elem(ListBase *lb, BezTriple *bezt)
 		
 		if( ce->cfra==bezt->vec[1][0] ) {
 			/* do because of double keys */
-			if(bezt->f2 & 1) ce->sel= bezt->f2;
+			if(bezt->f2 & SELECT) ce->sel= bezt->f2;
 			return;
 		}
 		else if(ce->cfra > bezt->vec[1][0]) break;

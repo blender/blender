@@ -299,7 +299,7 @@ void boundbox_ipocurve(IpoCurve *icu, int selectedonly)
 			bezt= icu->bezt;
 			while(a--) {
 				if(icu->vartype & IPO_BITS) {
-					if((bezt->f2 & 1) || !selectedonly) {
+					if((bezt->f2 & SELECT) || !selectedonly) {
 						vec[0]= bezt->vec[1][0];
 						vec[1]= 0.0;
 						DO_MINMAX(vec, min, max);
@@ -309,13 +309,13 @@ void boundbox_ipocurve(IpoCurve *icu, int selectedonly)
 					}
 				}
 				else {
-					if((bezt->f1 & 1) || !selectedonly) {
+					if((bezt->f1 & SELECT) || !selectedonly) {
 						if(icu->ipo==IPO_BEZ && a!=icu->totvert-1)
 							DO_MINMAX(bezt->vec[0], min, max);
 					}
-					if((bezt->f2 & 1) || !selectedonly)
+					if((bezt->f2 & SELECT) || !selectedonly)
 						DO_MINMAX(bezt->vec[1], min, max);
-					if((bezt->f3 & 1) || !selectedonly) {
+					if((bezt->f3 & SELECT) || !selectedonly) {
 						if(icu->ipo==IPO_BEZ && a!=0)
 							DO_MINMAX(bezt->vec[2], min, max);
 					}

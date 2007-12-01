@@ -1539,8 +1539,8 @@ void makeBevelList(Object *ob)
 						bevp->y= prevbezt->vec[1][1];
 						bevp->z= prevbezt->vec[1][2];
 						bevp->alfa= prevbezt->alfa;
-						bevp->f1= 1;
-						bevp->f2= 0;
+						bevp->f1= SELECT;
+						bevp->f2= SELECT;
 						bevp++;
 						bl->nr++;
 						bl->flag= 1;
@@ -1645,7 +1645,7 @@ void makeBevelList(Object *ob)
 			if( fabs(bevp0->x-bevp1->x)<0.00001 ) {
 				if( fabs(bevp0->y-bevp1->y)<0.00001 ) {
 					if( fabs(bevp0->z-bevp1->z)<0.00001 ) {
-						bevp0->f2= 1;
+						bevp0->f2= SELECT;
 						bl->flag++;
 					}
 				}
@@ -2162,7 +2162,7 @@ void calchandleNurb(BezTriple *bezt, BezTriple *prev, BezTriple *next, int mode)
 	if(len1==0.0) len1=1.0;
 	if(len2==0.0) len2=1.0;
 
-	if(bezt->f1 & 1) { /* order of calculation */
+	if(bezt->f1 & SELECT) { /* order of calculation */
 		if(bezt->h2==HD_ALIGN) {	/* aligned */
 			len= len2/len1;
 			p2[3]= p2[0]+len*(p2[0]-p2[-3]);
@@ -2238,9 +2238,9 @@ void testhandlesNurb(Nurb *nu)
 	a= nu->pntsu;
 	while(a--) {
 		flag= 0;
-		if(bezt->f1 & 1) flag++;
-		if(bezt->f2 & 1) flag += 2;
-		if(bezt->f3 & 1) flag += 4;
+		if(bezt->f1 & SELECT) flag++;
+		if(bezt->f2 & SELECT) flag += 2;
+		if(bezt->f3 & SELECT) flag += 4;
 
 		if( !(flag==0 || flag==7) ) {
 			if(bezt->h1==HD_AUTO) {   /* auto */

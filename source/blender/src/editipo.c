@@ -1273,11 +1273,11 @@ void get_status_editipo(void)
 						b= ei->icu->totvert;
 						while(b--) {
 							if(ei->icu->ipo==IPO_BEZ) {
-								if(bezt->f1 & 1) totipo_vertsel++;
-								if(bezt->f3 & 1) totipo_vertsel++;
+								if(bezt->f1 & SELECT) totipo_vertsel++;
+								if(bezt->f3 & SELECT) totipo_vertsel++;
 								totipo_vert+= 2;
 							}
-							if(bezt->f2 & 1) totipo_vertsel++;
+							if(bezt->f2 & SELECT) totipo_vertsel++;
 							
 							totipo_vert++;
 							bezt++;
@@ -1514,16 +1514,16 @@ void mouse_select_ipo(void)
 						bezt->f1= bezt->f2= bezt->f3= 0;
 					}
 					else {
-						bezt->f1= bezt->f2= bezt->f3= 1;
+						bezt->f1= bezt->f2= bezt->f3= SELECT;
 					}
 				}
 				else if(hand==0) {
-					if(bezt->f1 & 1) bezt->f1= 0;
-					else bezt->f1= 1;
+					if(bezt->f1 & SELECT) bezt->f1= 0;
+					else bezt->f1= SELECT;
 				}
 				else {
-					if(bezt->f3 & 1) bezt->f3= 0;
-					else bezt->f3= 1;
+					if(bezt->f3 & SELECT) bezt->f3= 0;
+					else bezt->f3= SELECT;
 				}
 			}				
 		}
@@ -1532,10 +1532,10 @@ void mouse_select_ipo(void)
 			
 			if(bezt) {
 				if(hand==1) {
-					bezt->f1|= 1; bezt->f2|= 1; bezt->f3|= 1;
+					bezt->f1|= SELECT; bezt->f2|= SELECT; bezt->f3|= SELECT;
 				}
-				else if(hand==0) bezt->f1|= 1;
-				else bezt->f3|= 1;
+				else if(hand==0) bezt->f1 |= SELECT;
+				else bezt->f3 |= SELECT;
 			}
 		}
 	}
@@ -3409,7 +3409,7 @@ void add_duplicate_editipo(void)
 				b= icu->totvert;
 				bezt= icu->bezt;
 				while(b--) {
-					if(bezt->f2 & 1) tot++;
+					if(bezt->f2 & SELECT) tot++;
 					bezt++;
 				}
 				
@@ -3420,7 +3420,7 @@ void add_duplicate_editipo(void)
 					b= icu->totvert-tot;
 					while(b--) {
 						*beztn= *bezt;
-						if(bezt->f2 & 1) {
+						if(bezt->f2 & SELECT) {
 							beztn->f1= beztn->f2= beztn->f3= 0;
 							beztn++;
 							*beztn= *bezt;
@@ -3474,7 +3474,7 @@ void remove_doubles_ipo(void)
 				while(b--) {
 					
 					/* can we remove? */
-					if(mode==2 || (bezt->f2 & 1)) {
+					if(mode==2 || (bezt->f2 & SELECT)) {
 					
 						/* are the points different? */
 						if( fabs( bezt->vec[1][0]-newb->vec[1][0] ) > 0.9 ) {
@@ -3788,7 +3788,7 @@ void join_ipo(int mode)
 				b= icu->totvert;
 				bezt= icu->bezt;
 				while(b--) {
-					if(bezt->f2 & 1) tot++;
+					if(bezt->f2 & SELECT) tot++;
 					bezt++;
 				}
 				
@@ -3805,7 +3805,7 @@ void join_ipo(int mode)
 					b= icu->totvert+tot+1;
 					while(b--) {
 						
-						if(bezt->f2 & 1) {
+						if(bezt->f2 & SELECT) {
 							if(tot==0) *newb= *bezt;
 							else {
 								VecAddf(newb->vec[0], newb->vec[0], bezt->vec[0]);
@@ -3923,7 +3923,7 @@ void ipo_snap(short event)
 				while(a--) {
 					ok= 0;
 					if(totipo_vert) {
-						 if(bezt->f2 & 1) ok= 1;
+						if(bezt->f2 & SELECT) ok= 1;
 					}
 					else ok= 1;
 					
@@ -4033,7 +4033,7 @@ void ipo_mirror(short mode)
 				while(a--) {
 					ok= 0;
 					if(totipo_vert) {
-						if(bezt->f2 & 1) ok= 1;
+						if(bezt->f2 & SELECT) ok= 1;
 					}
 					else ok= 1;
 					
@@ -4521,7 +4521,7 @@ void add_to_ipokey(ListBase *lb, BezTriple *bezt, int nr, int len)
 		if( ik->val==bezt->vec[1][0] ) {
 			if(ik->data[nr]==0) {	/* double points! */
 				ik->data[nr]= bezt;
-				if(bezt->f2 & 1) ik->flag= 1;
+				if(bezt->f2 & SELECT) ik->flag= 1;
 				return;
 			}
 		}
@@ -4538,7 +4538,7 @@ void add_to_ipokey(ListBase *lb, BezTriple *bezt, int nr, int len)
 	ikn->data[nr]= bezt;
 	ikn->val= bezt->vec[1][0];
 
-	if(bezt->f2 & 1) ikn->flag= 1;
+	if(bezt->f2 & SELECT) ikn->flag= 1;
 }
 
 void make_ipokey(void)
@@ -4576,7 +4576,7 @@ void make_ipokey(void)
 		for(a=0; a<G.sipo->totipo; a++) {
 			if(ik->data[a]) {
 				bezt= ik->data[a];
-				if(bezt->f2 & 1) sel++;
+				if(bezt->f2 & SELECT) sel++;
 				else desel++;
 			}
 		}
@@ -4585,14 +4585,14 @@ void make_ipokey(void)
 			if(ik->data[a]) {
 				bezt= ik->data[a];
 				if(sel) {
-					bezt->f1 |= 1;
-					bezt->f2 |= 1;
-					bezt->f3 |= 1;
+					bezt->f1 |= SELECT;
+					bezt->f2 |= SELECT;
+					bezt->f3 |= SELECT;
 				}
 				else {
-					bezt->f1 &= ~1;
-					bezt->f2 &= ~1;
-					bezt->f3 &= ~1;
+					bezt->f1 &= ~SELECT;
+					bezt->f2 &= ~SELECT;
+					bezt->f3 &= ~SELECT;
 				}
 			}
 		}
@@ -4690,7 +4690,7 @@ void make_ipokey_transform(Object *ob, ListBase *lb, int sel)
 				bezt= icu->bezt;
 				a= icu->totvert;
 				while(a--) {
-					if(sel==0 || (bezt->f2 & 1)) {
+					if(sel==0 || (bezt->f2 & SELECT)) {
 						add_to_ipokey(lb, bezt, adrcode, OB_TOTIPO);
 					}
 					bezt++;
@@ -5045,14 +5045,14 @@ void make_ipo_transdata (TransInfo *t)
 						for (b=0; b < ei->icu->totvert; b++, bezt++) {
 							/* only include handles if selected, and interpolaton mode uses beztriples */
 							if (ei->icu->ipo==IPO_BEZ) {
-								if (bezt->f1 & 1)
+								if (bezt->f1 & SELECT)
 									bezt_to_transdata(td++, td2d++, bezt->vec[0], bezt->vec[1], 1, onlytime);
-								if (bezt->f3 & 1)
+								if (bezt->f3 & SELECT)
 									bezt_to_transdata(td++, td2d++, bezt->vec[2], bezt->vec[1], 1, onlytime);
 							}
 							
 							/* only include main vert if selected */
-							if (bezt->f2 & 1) {
+							if (bezt->f2 & SELECT) {
 								bezt_to_transdata(td++, td2d++, bezt->vec[1], bezt->vec[1], 1, onlytime);
 							}
 						}
@@ -5198,7 +5198,7 @@ static void beztmap_to_data (TransInfo *t, EditIpo *ei, BeztMap *bezms, int totv
 			if (totipo_vertsel) {
 				/* only selected verts */
 				if (ei->icu->ipo==IPO_BEZ) {
-					if (bezm->bezt->f1 & 1) {
+					if (bezm->bezt->f1 & SELECT) {
 						if (td->loc2d == bezm->bezt->vec[0]) {
 							if (bezm->swapHs == 1)
 								td->loc2d= (bezts + bezm->newIndex)->vec[2];
@@ -5207,7 +5207,7 @@ static void beztmap_to_data (TransInfo *t, EditIpo *ei, BeztMap *bezms, int totv
 							adjusted[j] = 1;
 						}
 					}
-					if (bezm->bezt->f3 & 1) {
+					if (bezm->bezt->f3 & SELECT) {
 						if (td->loc2d == bezm->bezt->vec[2]) {
 							if (bezm->swapHs == 1)
 								td->loc2d= (bezts + bezm->newIndex)->vec[0];
@@ -5217,7 +5217,7 @@ static void beztmap_to_data (TransInfo *t, EditIpo *ei, BeztMap *bezms, int totv
 						}
 					}
 				}
-				if (bezm->bezt->f2 & 1) {
+				if (bezm->bezt->f2 & SELECT) {
 					if (td->loc2d == bezm->bezt->vec[1]) {
 						td->loc2d= (bezts + bezm->newIndex)->vec[1];
 						adjusted[j] = 1;

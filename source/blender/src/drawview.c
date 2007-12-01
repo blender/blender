@@ -1637,18 +1637,18 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 				bezt= nu->bezt;
 				a= nu->pntsu;
 				while(a--) {
-					if(bezt->f2 & 1) {
+					if(bezt->f2 & SELECT) {
 						VecAddf(median, median, bezt->vec[1]);
 						tot++;
 						median[4]+= bezt->weight;
 						totweight++;
 					}
 					else {
-						if(bezt->f1 & 1) {
+						if(bezt->f1 & SELECT) {
 							VecAddf(median, median, bezt->vec[0]);
 							tot++;
 						}
-						if(bezt->f3 & 1) {
+						if(bezt->f3 & SELECT) {
 							VecAddf(median, median, bezt->vec[2]);
 							tot++;
 						}
@@ -1811,17 +1811,17 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 					bezt= nu->bezt;
 					a= nu->pntsu;
 					while(a--) {
-						if(bezt->f2 & 1) {
+						if(bezt->f2 & SELECT) {
 							VecAddf(bezt->vec[0], bezt->vec[0], median);
 							VecAddf(bezt->vec[1], bezt->vec[1], median);
 							VecAddf(bezt->vec[2], bezt->vec[2], median);
 							bezt->weight+= median[4];
 						}
 						else {
-							if(bezt->f1 & 1) {
+							if(bezt->f1 & SELECT) {
 								VecAddf(bezt->vec[0], bezt->vec[0], median);
 							}
-							if(bezt->f3 & 1) {
+							if(bezt->f3 & SELECT) {
 								VecAddf(bezt->vec[2], bezt->vec[2], median);
 							}
 						}

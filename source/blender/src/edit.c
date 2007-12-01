@@ -1077,26 +1077,26 @@ static void make_trans_verts(float *min, float *max, int mode)
 				bezt= nu->bezt;
 				while(a--) {
 					if(bezt->hide==0) {
-						if((mode & 1) || (bezt->f1 & 1)) {
+						if((mode & 1) || (bezt->f1 & SELECT)) {
 							VECCOPY(tv->oldloc, bezt->vec[0]);
 							tv->loc= bezt->vec[0];
-							tv->flag= bezt->f1 & 1;
+							tv->flag= bezt->f1 & SELECT;
 							tv++;
 							tottrans++;
 						}
-						if((mode & 1) || (bezt->f2 & 1)) {
+						if((mode & 1) || (bezt->f2 & SELECT)) {
 							VECCOPY(tv->oldloc, bezt->vec[1]);
 							tv->loc= bezt->vec[1];
 							tv->val= &(bezt->alfa);
 							tv->oldval= bezt->alfa;
-							tv->flag= bezt->f2 & 1;
+							tv->flag= bezt->f2 & SELECT;
 							tv++;
 							tottrans++;
 						}
-						if((mode & 1) || (bezt->f3 & 1)) {
+						if((mode & 1) || (bezt->f3 & SELECT)) {
 							VECCOPY(tv->oldloc, bezt->vec[2]);
 							tv->loc= bezt->vec[2];
-							tv->flag= bezt->f3 & 1;
+							tv->flag= bezt->f3 & SELECT;
 							tv++;
 							tottrans++;
 						}

@@ -1190,7 +1190,7 @@ static void draw_ipovertices(int sel)
 					ok= 0;
 					
 					if(ei->flag & IPO_EDIT) {
-						if( (bezt->f2 & 1) == sel ) ok= 1;
+						if( (bezt->f2 & SELECT) == sel ) ok= 1;
 					}
 					else ok= 1;
 					
@@ -1212,15 +1212,15 @@ static void draw_ipovertices(int sel)
 					if(ei->flag & IPO_EDIT) {
 						if(ei->icu->ipo==IPO_BEZ) {
 							/* Draw the editmode hendels for a bezier curve */
-							if( (bezt->f1 & 1) == sel)/* && G.v2d->cur.xmin < bezt->vec[0][0] < G.v2d->cur.xmax)*/
+							if( (bezt->f1 & SELECT) == sel)/* && G.v2d->cur.xmin < bezt->vec[0][0] < G.v2d->cur.xmax)*/
 								bglVertex3fv(bezt->vec[0]);
 							
-							if( (bezt->f3 & 1) == sel)/* && G.v2d->cur.xmin < bezt->vec[2][0] < G.v2d->cur.xmax)*/
+							if( (bezt->f3 & SELECT) == sel)/* && G.v2d->cur.xmin < bezt->vec[2][0] < G.v2d->cur.xmax)*/
 								bglVertex3fv(bezt->vec[2]);
 							
 						}
 						
-						if( (bezt->f2 & 1) == sel) /* && G.v2d->cur.xmin < bezt->vec[1][0] < G.v2d->cur.xmax)*/
+						if( (bezt->f2 & SELECT) == sel) /* && G.v2d->cur.xmin < bezt->vec[1][0] < G.v2d->cur.xmax)*/
 							bglVertex3fv(bezt->vec[1]);
 						
 					}
@@ -1261,7 +1261,7 @@ static void draw_ipohandles(int sel)
 				b= ei->icu->totvert;
 				while(b--) {
 					
-					if( (bezt->f2 & 1)==sel) {
+					if( (bezt->f2 & SELECT)==sel) {
 						fp= bezt->vec[0];
 						cpack(col[bezt->h1]);
 						
@@ -1282,7 +1282,7 @@ static void draw_ipohandles(int sel)
 						glVertex2fv(fp); glVertex2fv(fp+3); 
 						glEnd();
 					}
-					else if( (bezt->f3 & 1)==sel) {
+					else if( (bezt->f3 & SELECT)==sel) {
 						fp= bezt->vec[1];
 						cpack(col[bezt->h2]);
 						
@@ -1730,16 +1730,16 @@ static void ipo_editvertex_buts(uiBlock *block, SpaceIpo *si, float min, float m
 					b= ei->icu->totvert;
 					while(b--) {
 						// all three selected 
-						if(bezt->f2 & 1) {
+						if(bezt->f2 & SELECT) {
 							VecAddf(median, median, bezt->vec[1]);
 							tot++;
 						}
 						else {
-							if(bezt->f1 & 1) {
+							if(bezt->f1 & SELECT) {
 								VecAddf(median, median, bezt->vec[0]);
 								tot++;
 							}
-							if(bezt->f3 & 1) {
+							if(bezt->f3 & SELECT) {
 								VecAddf(median, median, bezt->vec[2]);
 								tot++;
 							}
@@ -1824,16 +1824,16 @@ static void ipo_editvertex_buts(uiBlock *block, SpaceIpo *si, float min, float m
 						b= ei->icu->totvert;
 						while(b--) {
 							// all three selected
-							if(bezt->f2 & 1) {
+							if(bezt->f2 & SELECT) {
 								VecAddf(bezt->vec[0], bezt->vec[0], median);
 								VecAddf(bezt->vec[1], bezt->vec[1], median);
 								VecAddf(bezt->vec[2], bezt->vec[2], median);
 							}
 							else {
-								if(bezt->f1 & 1) {
+								if(bezt->f1 & SELECT) {
 									VecAddf(bezt->vec[0], bezt->vec[0], median);
 								}
-								if(bezt->f3 & 1) {
+								if(bezt->f3 & SELECT) {
 									VecAddf(bezt->vec[2], bezt->vec[2], median);
 								}
 							}

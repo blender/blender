@@ -139,7 +139,7 @@ void swap_selectall_editipo(void)
 							bezt->f1= bezt->f2= bezt->f3= 0;
 						}
 						else {
-							bezt->f1= bezt->f2= bezt->f3= 1;
+							bezt->f1= bezt->f2= bezt->f3= SELECT;
 						}
 						bezt++;
 					}
@@ -375,32 +375,32 @@ static int selected_bezier_loop(int (*looptest)(EditIpo *),
 int select_bezier_add(BezTriple *bezt) 
 {
 	/* Select the bezier triple */
-	bezt->f1 |= 1;
-	bezt->f2 |= 1;
-	bezt->f3 |= 1;
+	bezt->f1 |= SELECT;
+	bezt->f2 |= SELECT;
+	bezt->f3 |= SELECT;
 	return 0;
 }
 
 int select_bezier_subtract(BezTriple *bezt) 
 {
 	/* Deselect the bezier triple */
-	bezt->f1 &= ~1;
-	bezt->f2 &= ~1;
-	bezt->f3 &= ~1;
+	bezt->f1 &= ~SELECT;
+	bezt->f2 &= ~SELECT;
+	bezt->f3 &= ~SELECT;
 	return 0;
 }
 
 int select_bezier_invert(BezTriple *bezt) 
 {
 	/* Invert the selection for the bezier triple */
-	bezt->f2 ^= 1;
-	if ( bezt->f2 & 1 ) {
-		bezt->f1 |= 1;
-		bezt->f3 |= 1;
+	bezt->f2 ^= SELECT;
+	if ( bezt->f2 & SELECT ) {
+		bezt->f1 |= SELECT;
+		bezt->f3 |= SELECT;
 	}
 	else {
-		bezt->f1 &= ~1;
-		bezt->f3 &= ~1;
+		bezt->f1 &= ~SELECT;
+		bezt->f3 &= ~SELECT;
 	}
 	return 0;
 }
@@ -976,11 +976,11 @@ void borderselect_ipo(void)
 							int bit= (val==LEFTMOUSE);
 							
 							if(BLI_in_rctf(&rectf, bezt->vec[0][0], bezt->vec[0][1]))
-								bezt->f1 = (bezt->f1&~1) | bit;
+								bezt->f1 = (bezt->f1&~SELECT) | bit;
 							if(BLI_in_rctf(&rectf, bezt->vec[1][0], bezt->vec[1][1]))
-								bezt->f2 = (bezt->f2&~1) | bit;
+								bezt->f2 = (bezt->f2&~SELECT) | bit;
 							if(BLI_in_rctf(&rectf, bezt->vec[2][0], bezt->vec[2][1]))
-								bezt->f3 = (bezt->f3&~1) | bit;
+								bezt->f3 = (bezt->f3&~SELECT) | bit;
 
 							bezt++;
 						}

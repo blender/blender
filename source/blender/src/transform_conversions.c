@@ -1161,12 +1161,12 @@ static void createTransCurveVerts(TransInfo *t)
 			for(a=0, bezt= nu->bezt; a<nu->pntsu; a++, bezt++) {
 				if(bezt->hide==0) {
 					if (G.f & G_HIDDENHANDLES) {
-						if(bezt->f2 & 1) countsel+=3;
+						if(bezt->f2 & SELECT) countsel+=3;
 						if(propmode) count+= 3;
 					} else {
-						if(bezt->f1 & 1) countsel++;
-						if(bezt->f2 & 1) countsel++;
-						if(bezt->f3 & 1) countsel++;
+						if(bezt->f1 & SELECT) countsel++;
+						if(bezt->f2 & SELECT) countsel++;
+						if(bezt->f3 & SELECT) countsel++;
 						if(propmode) count+= 3;
 					}
 				}
@@ -1200,8 +1200,8 @@ static void createTransCurveVerts(TransInfo *t)
 				if(bezt->hide==0) {
 					
 					if(		propmode ||
-							((bezt->f2 & 1) && (G.f & G_HIDDENHANDLES)) ||
-							((bezt->f1 & 1) && (G.f & G_HIDDENHANDLES)==0)
+							((bezt->f2 & SELECT) && (G.f & G_HIDDENHANDLES)) ||
+							((bezt->f1 & SELECT) && (G.f & G_HIDDENHANDLES)==0)
 					  ) {
 						VECCOPY(td->iloc, bezt->vec[0]);
 						td->loc= bezt->vec[0];
@@ -1221,11 +1221,11 @@ static void createTransCurveVerts(TransInfo *t)
 					}
 					
 					/* This is the Curve Point, the other two are handles */
-					if(propmode || (bezt->f2 & 1)) {
+					if(propmode || (bezt->f2 & SELECT)) {
 						VECCOPY(td->iloc, bezt->vec[1]);
 						td->loc= bezt->vec[1];
 						VECCOPY(td->center, td->loc);
-						if(bezt->f2 & 1) td->flag= TD_SELECTED;
+						if(bezt->f2 & SELECT) td->flag= TD_SELECTED;
 						else td->flag= 0;
 						td->ext = NULL;
 						td->tdi = NULL;
@@ -1248,13 +1248,13 @@ static void createTransCurveVerts(TransInfo *t)
 						tail++;
 					}
 					if(		propmode ||
-							((bezt->f1 & 1) && (G.f & G_HIDDENHANDLES)) ||
-							((bezt->f3 & 1) && (G.f & G_HIDDENHANDLES)==0)
+							((bezt->f1 & SELECT) && (G.f & G_HIDDENHANDLES)) ||
+							((bezt->f3 & SELECT) && (G.f & G_HIDDENHANDLES)==0)
 					  ) {
 						VECCOPY(td->iloc, bezt->vec[2]);
 						td->loc= bezt->vec[2];
 						VECCOPY(td->center, bezt->vec[1]);
-						if(bezt->f3 & 1 || (G.f & G_HIDDENHANDLES)) td->flag= TD_SELECTED;
+						if(bezt->f3 & SELECT || (G.f & G_HIDDENHANDLES)) td->flag= TD_SELECTED;
 						else td->flag= 0;
 						td->ext = NULL;
 						td->tdi = NULL;
@@ -2251,10 +2251,10 @@ static int count_ipo_keys(Ipo *ipo, char side, float cfra)
 	/* only include points that occur on the right side of cfra */
 	for (icu= ipo->curve.first; icu; icu= icu->next) {
 		for (i=0, bezt=icu->bezt; i < icu->totvert; i++, bezt++) {
-			if (bezt->f2) {
+			if (bezt->f2 & SELECT) {
 				/* fully select the other two keys */
-				bezt->f1 |= 1;
-				bezt->f3 |= 1;
+				bezt->f1 |= SELECT;
+				bezt->f3 |= SELECT;
 				
 				/* increment by 3, as there are 3 points (3 * x-coordinates) that need transform */
 				if (FrameOnMouseSide(side, bezt->vec[1][0], cfra))

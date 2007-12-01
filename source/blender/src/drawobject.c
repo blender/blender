@@ -3729,7 +3729,7 @@ static void tekenhandlesN(Nurb *nu, short sel)
 		a= nu->pntsu;
 		while(a--) {
 			if(bezt->hide==0) {
-				if( (bezt->f2 & 1)==sel) {
+				if( (bezt->f2 & SELECT)==sel) {
 					fp= bezt->vec[0];
 					
 					cpack(col[bezt->h1]);
@@ -3740,14 +3740,14 @@ static void tekenhandlesN(Nurb *nu, short sel)
 					glVertex3fv(fp+3); 
 					glVertex3fv(fp+6); 
 				}
-				else if( (bezt->f1 & 1)==sel) {
+				else if( (bezt->f1 & SELECT)==sel) {
 					fp= bezt->vec[0];
 					
 					cpack(col[bezt->h1]);
 					glVertex3fv(fp); 
 					glVertex3fv(fp+3); 
 				}
-				else if( (bezt->f3 & 1)==sel) {
+				else if( (bezt->f3 & SELECT)==sel) {
 					fp= bezt->vec[1];
 					
 					cpack(col[bezt->h2]);
@@ -3785,11 +3785,11 @@ static void tekenvertsN(Nurb *nu, short sel)
 		while(a--) {
 			if(bezt->hide==0) {
 				if (G.f & G_HIDDENHANDLES) {
-					if((bezt->f2 & 1)==sel) bglVertex3fv(bezt->vec[1]);
+					if((bezt->f2 & SELECT)==sel) bglVertex3fv(bezt->vec[1]);
 				} else {
-					if((bezt->f1 & 1)==sel) bglVertex3fv(bezt->vec[0]);
-					if((bezt->f2 & 1)==sel) bglVertex3fv(bezt->vec[1]);
-					if((bezt->f3 & 1)==sel) bglVertex3fv(bezt->vec[2]);
+					if((bezt->f1 & SELECT)==sel) bglVertex3fv(bezt->vec[0]);
+					if((bezt->f2 & SELECT)==sel) bglVertex3fv(bezt->vec[1]);
+					if((bezt->f3 & SELECT)==sel) bglVertex3fv(bezt->vec[2]);
 				}
 			}
 			bezt++;
