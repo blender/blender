@@ -1736,9 +1736,9 @@ static void draw_pose_paths(Object *ob)
 	bActionChannel *achan;
 	CfraElem *ce;
 	ListBase ak;
-	float *fp;
+	float *fp, *fp_start;
 	int a, stepsize;
-	int sfra, efra;
+	int sfra, efra, len;
 	
 	if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
 	
@@ -1758,9 +1758,33 @@ static void draw_pose_paths(Object *ob)
 					pchan->pathef= EFRA;
 				}
 				
-				/* get frame ranges */
-				sfra= pchan->pathsf;
-				efra = sfra + pchan->pathlen;
+				/* get frame ranges 
+				 *	- sfra,efra are the start and end frame numbers (respectively)
+				 *	- sind is the starting array index, nind is the number of array items (location array)
+				 */
+				if (arm->pathflag & ARM_PATH_ACFRA) {
+					int sind;
+					
+					/* With "Around Current", we only choose frames from around 
+					 * the current frame to draw. However, this range is still 
+					 * restricted by the limits of the original path.
+					 */
+					sfra= CFRA - arm->pathbc;
+					efra= CFRA + arm->pathac;
+					if (sfra < pchan->pathsf) sfra= pchan->pathsf;
+					if (efra > pchan->pathef) efra= pchan->pathef;
+					
+					len= efra - sfra;
+					
+					sind= sfra - pchan->pathsf;
+					fp_start= (pchan->path + (3*sind));
+				}
+				else {
+					sfra= pchan->pathsf;
+					efra = sfra + pchan->pathlen;
+					len = pchan->pathlen;
+					fp_start = pchan->path;
+				}
 				
 				/* draw curve-line of path */
 				if ((CFRA > sfra) && (CFRA < efra)) {
@@ -1770,16 +1794,16 @@ static void draw_pose_paths(Object *ob)
 					 */
 					
 					/* 	before cfra (darker) */
-					BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.2);
+					BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.5);
 					glBegin(GL_LINE_STRIP);
-					for (a=0, fp=pchan->path; (sfra+a)<=CFRA; a++, fp+=3)
+					for (a=0, fp=fp_start; (sfra+a)<=CFRA; a++, fp+=3)
 						glVertex3fv(fp);
 					glEnd();
 					
 					/* after cfra (lighter) - backtrack a bit so that we don't have gaps */
-					BIF_ThemeColorBlend(TH_WIRE, TH_BONE_POSE, 0.7);
+					BIF_ThemeColorBlend(TH_BONE_POSE, TH_BACK, 0.5);
 					glBegin(GL_LINE_STRIP);
-					for (--a, fp-=3; a<pchan->pathlen; a++, fp+=3)
+					for (--a, fp-=3; a<len; a++, fp+=3)
 						glVertex3fv(fp);
 					glEnd();
 				}
@@ -1787,7 +1811,7 @@ static void draw_pose_paths(Object *ob)
 					/* show both directions with same intensity (cfra somewhere else) */
 					BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.7);
 					glBegin(GL_LINE_STRIP);
-					for (a=0, fp= pchan->path; a<pchan->pathlen; a++, fp+=3)
+					for (a=0, fp=fp_start; a<len; a++, fp+=3)
 						glVertex3fv(fp);
 					glEnd();
 				}
@@ -1798,20 +1822,20 @@ static void draw_pose_paths(Object *ob)
 				 * NOTE: this is not really visible/noticable
 				 */
 				glBegin(GL_POINTS);
-				for(a=0, fp= pchan->path; a<pchan->pathlen; a++, fp+=3) 
+				for (a=0, fp=fp_start; a<len; a++, fp+=3) 
 					glVertex3fv(fp);
 				glEnd();
 				
 				/* Draw little white dots at each framestep value */
 				BIF_ThemeColor(TH_TEXT_HI);
 				glBegin(GL_POINTS);
-				for (a=0, fp= pchan->path; a<pchan->pathlen; a+=stepsize, fp+=(stepsize*3)) 
+				for (a=0, fp=fp_start; a<len; a+=stepsize, fp+=(stepsize*3)) 
 					glVertex3fv(fp);
 				glEnd();
 				
 				/* Draw frame numbers at each framestep value */
 				if (arm->pathflag & ARM_PATH_FNUMS) {
-					for(a=0, fp= pchan->path; a<pchan->pathlen; a+=stepsize, fp+=(stepsize*3)) {
+					for (a=0, fp=fp_start; a<len; a+=stepsize, fp+=(stepsize*3)) {
 						char str[32];
 						
 						/* only draw framenum if several consecutive highlighted points don't occur on same point */
@@ -1820,7 +1844,7 @@ static void draw_pose_paths(Object *ob)
 							sprintf(str, "  %d\n", (a+sfra));
 							BMF_DrawString(G.font, str);
 						}
-						else if ((a > stepsize) && (a < pchan->pathlen-stepsize)) { 
+						else if ((a > stepsize) && (a < len-stepsize)) { 
 							if ((VecEqual(fp, fp-(stepsize*3))==0) || (VecEqual(fp, fp+(stepsize*3))==0)) {
 								glRasterPos3fv(fp);
 								sprintf(str, "  %d\n", (a+sfra));
@@ -1844,7 +1868,7 @@ static void draw_pose_paths(Object *ob)
 					/* Draw little yellow dots at each keyframe */
 					BIF_ThemeColor(TH_VERTEX_SELECT);
 					glBegin(GL_POINTS);
-					for(a=0, fp= pchan->path; a<pchan->pathlen; a++, fp+=3) {
+					for(a=0, fp=fp_start; a<len; a++, fp+=3) {
 						for (ce= ak.first; ce; ce= ce->next) {
 							if (ce->cfra == (a+sfra))
 								glVertex3fv(fp);
@@ -1854,7 +1878,7 @@ static void draw_pose_paths(Object *ob)
 					
 					/* Draw frame numbers of keyframes  */
 					if (arm->pathflag & ARM_PATH_FNUMS) {
-						for(a=0, fp= pchan->path; a<pchan->pathlen; a++, fp+=3) {
+						for(a=0, fp=fp_start; a<len; a++, fp+=3) {
 							for (ce= ak.first; ce; ce= ce->next) {
 								if (ce->cfra == (a+sfra)) {
 									char str[32];

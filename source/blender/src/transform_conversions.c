@@ -3064,7 +3064,7 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 		
 		/* do the bone paths */
 		if (arm->pathflag & ARM_PATH_ACFRA) {
-			pose_clear_paths(ob);
+			//pose_clear_paths(ob);
 			pose_calculate_path(ob);
 		}		
 		

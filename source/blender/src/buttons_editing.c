@@ -4014,7 +4014,7 @@ static void editing_panel_armature_visuals(Object *ob, bArmature *arm)
 	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, ARM_PATH_ACFRA, REDRAWVIEW3D, "Around Current Frame", 170, 105, 160, 20, &arm->pathflag, 0, 0, 0, 0, "Calculate Bone Path around the current frame");
+	uiDefButBitS(block, TOG, ARM_PATH_ACFRA, REDRAWVIEW3D, "Around Current Frame", 170, 105, 160, 20, &arm->pathflag, 0, 0, 0, 0, "Only show Bone Path around the current frame");
 	if (arm->pathflag & ARM_PATH_ACFRA) {
 		uiDefButI(block, NUM,REDRAWVIEW3D,"PPre:",170,85,80,20, &arm->pathbc, 1.0, MAXFRAMEF/2, 0, 0, "The number of frames before current frame for Bone Path display range");
 		uiDefButI(block, NUM,REDRAWVIEW3D,"PPost:",250,85,80,20, &arm->pathac, 1.0, MAXFRAMEF/2, 0, 0, "The number of frames after current frame for Bone Path display range");	
@@ -4028,7 +4028,7 @@ static void editing_panel_armature_visuals(Object *ob, bArmature *arm)
 	
 	uiBlockBeginAlign(block);
 	uiDefBut(block, BUT, B_ARM_CALCPATHS, "Calculate Paths", 170,30,160,20, 0, 0, 0, 0, 0, "(Re)calculates the paths of the selected bones");
-	uiDefBut(block, BUT, B_ARM_CLEARPATHS, "Clear All Paths", 170,10,160,20, 0, 0, 0, 0, 0, "Clears all bone paths");
+	uiDefBut(block, BUT, B_ARM_CLEARPATHS, "Clear All Paths", 170,10,160,20, 0, 0, 0, 0, 0, "Clears bone paths of the selected bones");
 	uiBlockEndAlign(block);
 }
 

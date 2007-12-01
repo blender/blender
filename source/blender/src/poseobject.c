@@ -219,7 +219,9 @@ int pose_channel_in_IK_chain(Object *ob, bPoseChannel *pchan)
 
 /* ********************************************** */
 
-/* for the object with pose/action: create path curves for selected bones */
+/* For the object with pose/action: create path curves for selected bones 
+ * This recalculates the WHOLE path within the pchan->pathsf and pchan->pathef range
+ */
 void pose_calculate_path(Object *ob)
 {
 	bArmature *arm;
@@ -238,24 +240,14 @@ void pose_calculate_path(Object *ob)
 		arm->pathsf = SFRA;
 		arm->pathef = EFRA;
 	}
-	if ((arm->pathbc == 0) || (arm->pathac == 0)) {
-		arm->pathbc = 15;
-		arm->pathac = 15;
-	}
 	if (arm->pathsize == 0) {
 		arm->pathsize = 1;
 	}
 	
 	/* set frame values */
 	cfra= CFRA;
-	if (arm->pathflag & ARM_PATH_ACFRA) {
-		sfra = cfra - arm->pathbc;
-		efra = cfra + arm->pathac;
-	}
-	else {
-		sfra = arm->pathsf;
-		efra = arm->pathef;
-	}
+	sfra = arm->pathsf;
+	efra = arm->pathef;
 	if (efra<=sfra) return;
 	
 	DAG_object_update_flags(G.scene, ob, screen_view3d_layers());
@@ -310,7 +302,7 @@ void pose_calculate_path(Object *ob)
 }
 
 
-/* for the object with pose/action: clear all path curves */
+/* for the object with pose/action: clear path curves for selected bones only */
 void pose_clear_paths(Object *ob)
 {
 	bPoseChannel *pchan;
@@ -319,8 +311,8 @@ void pose_clear_paths(Object *ob)
 		return;
 	
 	/* free the path blocks */
-	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if(pchan->path) {
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if (pchan->path) {
 			MEM_freeN(pchan->path);
 			pchan->path= NULL;
 		}
