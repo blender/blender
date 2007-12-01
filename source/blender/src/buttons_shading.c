@@ -1171,14 +1171,13 @@ void uiblock_image_panel(uiBlock *block, Image **ima_pp, ImageUser *iuser,
 		 
 		 /* fields */
 		 uiBlockBeginAlign(block);
-		 but= uiDefButBitS(block, TOG, IMA_FIELDS, imagechanged, "Fields",	10, 90, 100, 20, &ima->flag, 0, 0, 0, 0, "Click to enable use of fields in Image");
+		 but= uiDefButBitS(block, TOG, IMA_FIELDS, imagechanged, "Fields",	10, 90, 65, 20, &ima->flag, 0, 0, 0, 0, "Click to enable use of fields in Image");
 		 uiButSetFunc(but, image_field_test, ima, iuser);
-		 uiDefButBitS(block, TOG, IMA_STD_FIELD, B_NOP, "Odd",			10, 70, 100, 20, &ima->flag, 0, 0, 0, 0, "Standard Field Toggle");
+		 uiDefButBitS(block, TOG, IMA_STD_FIELD, B_NOP, "Odd",			75, 90, 45, 20, &ima->flag, 0, 0, 0, 0, "Standard Field Toggle");
 		 
-		 uiBlockBeginAlign(block);
 		 uiBlockSetFunc(block, image_reload_cb, ima, iuser);
-		 uiDefButBitS(block, TOG, IMA_ANTIALI, B_NOP, "Anti",			10, 35, 100, 20, &ima->flag, 0, 0, 0, 0, "Toggles Image anti-aliasing, only works with solid colors");
-		 uiDefButBitS(block, TOG, IMA_DO_PREMUL, imagechanged, "Premul",		110, 35, 100, 20, &ima->flag, 0, 0, 0, 0, "Toggles premultiplying alpha");
+		 uiDefButBitS(block, TOG, IMA_ANTIALI, B_NOP, "Anti",			10, 70, 45, 20, &ima->flag, 0, 0, 0, 0, "Toggles Image anti-aliasing, only works with solid colors");
+		 uiDefButBitS(block, TOG, IMA_DO_PREMUL, imagechanged, "Premul",		55, 70, 65, 20, &ima->flag, 0, 0, 0, 0, "Toggles premultiplying alpha");
 		 uiBlockEndAlign(block);
 		 
 		 if( ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {

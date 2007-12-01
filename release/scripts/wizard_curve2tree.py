@@ -170,6 +170,7 @@ class tree:
 		
 		self.objectTwigBounds = None # use for twigs only at the moment.
 		self.objectTwigBoundsIMat = None
+		self.objectTwigBoundsMat = None
 		self.objectTwigBoundsMesh = None
 		
 		self.objectLeafBounds = None
@@ -276,7 +277,8 @@ class tree:
 	def setTwigBounds(self, objectMesh):
 		self.objectTwigBounds = objectMesh
 		self.objectTwigBoundsMesh = objectMesh.getData(mesh=1)
-		self.objectTwigBoundsIMat = objectMesh.matrixWorld.copy().invert()
+		self.objectTwigBoundsMat = objectMesh.matrixWorld.copy()
+		self.objectTwigBoundsIMat = self.objectTwigBoundsMat.copy().invert()
 		
 		for brch in self.branches_all:
 			brch.calcTwigBounds(self)
@@ -1006,7 +1008,11 @@ class tree:
 						vert_segment_mapping[i] = len(segments_all)
 						v.sel = True
 						seg = segment(0)
-						seg.tailCo = v.co.copy() # headCo undefined atm.
+						# seg.tailCo = v.co.copy() # headCo undefined atm.
+						seg.tailCo = v.co.copy() * self_tree.objectTwigBoundsMat * self_tree.objectCurveIMat
+						
+						# self_tree.objectCurveMat
+						
 						seg.no = v.no
 			
 			# Build connectivity

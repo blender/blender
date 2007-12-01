@@ -95,7 +95,7 @@
 
 /* ******** IMAGE PROCESSING ************* */
 
-/* used by sequencer */
+/* used by sequencer and image premul option - IMA_DO_PREMUL */
 void converttopremul(struct ImBuf *ibuf)
 {
 	int x, y, val;
