@@ -4734,7 +4734,7 @@ char *get_vertexgroup_menustr(Object *ob)
 {
 	bDeformGroup *dg;
 	int defCount, min, index;
-	char (*qsort_ptr)[sizeof(dg->name)+5] = NULL; // +5 for "%x99|"
+	char (*qsort_ptr)[sizeof(dg->name)+6] = NULL; // +6 for "%x999|" max 999 groups selectable
 	char *s, *menustr;
 	int printed;
 	
@@ -4752,7 +4752,7 @@ char *get_vertexgroup_menustr(Object *ob)
 								 "qsort_ptr");
 		for (index = 1, dg = ob->defbase.first; dg; index++, dg=dg->next) {
 			printed = snprintf (qsort_ptr[index - 1], sizeof (dg->name), dg->name);
-			snprintf (qsort_ptr[index - 1]+printed, 5+1, "%%x%d|", index); // +1 to move the \0
+			snprintf (qsort_ptr[index - 1]+printed, 6+1, "%%x%d|", index); // +1 to move the \0   see above 999 max here too
 		}
 		
 		qsort (qsort_ptr, defCount, sizeof (qsort_ptr[0]),
