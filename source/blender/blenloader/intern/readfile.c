@@ -8359,6 +8359,9 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 						
 						mainptr->curlib->filedata= fd;
 						mainptr->versionfile= fd->fileversion;
+						
+						/* subversion */
+						read_file_version(fd, mainptr);
 					}
 					else mainptr->curlib->filedata= NULL;
 
