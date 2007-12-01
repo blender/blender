@@ -758,44 +758,47 @@ void berekenx(float *f, float *o, int b)
 	}
 }
 
-#define TFM_WITHOUT_BONE	1
-
-static void posechannel_get_local_transform(bPoseChannel *pchan, float *quat, float *eul, float *size, int flag)
+/* we need the local transform = current transform - (parent transform + bone transform) */
+/* (local transform is on action channel level) */
+static void posechannel_get_local_transform(bPoseChannel *pchan, float *loc, float *eul, float *size)
 {
-	float pose_mat[3][3];
-	float diff_mat[3][3], ipar_mat[3][3];
-	
-	/* we need the local transform = current transform - (parent transform + bone transform) */
-	
-	Mat3CpyMat4(pose_mat, pchan->pose_mat);
+	float diff_mat[4][4];
+	float parmat[4][4], offs_bone[4][4], imat[4][4];
 	
 	if (pchan->parent) {
+		/* get first the parent + bone transform in parmat */
 		
-		if(flag & TFM_WITHOUT_BONE) {
-			float par_mat[3][3];
-			Mat3CpyMat4(par_mat, pchan->parent->pose_mat);
-			Mat3MulMat3(diff_mat, par_mat, pchan->bone->bone_mat);
-		}
-		else
-			Mat3CpyMat4(diff_mat, pchan->parent->pose_mat);
-			
-		Mat3Inv(ipar_mat, diff_mat);
+		/* bone transform itself */
+		Mat4CpyMat3(offs_bone, pchan->bone->bone_mat);
+		/* The bone's root offset (is in the parent's coordinate system) */
+		VECCOPY(offs_bone[3], pchan->bone->head);
+		/* Get the length translation of parent (length along y axis) */
+		offs_bone[3][1]+= pchan->parent->bone->length;
+	
+		Mat4MulSerie(parmat, pchan->parent->pose_mat, offs_bone, NULL, NULL, NULL, NULL, NULL, NULL);
+		
+		/* invert it */
+		Mat4Invert(imat, parmat);
 	}
 	else {
-		if(flag & TFM_WITHOUT_BONE)
-			Mat3Inv(ipar_mat, pchan->bone->bone_mat);
-		else
-			Mat3One(ipar_mat);
+		Mat4CpyMat3(offs_bone, pchan->bone->bone_mat);
+		VECCOPY(offs_bone[3], pchan->bone->head);
+
+		/* invert it */
+		Mat4Invert(imat, offs_bone);
+		
 	}
 	
-	Mat3MulMat3(diff_mat, ipar_mat, pose_mat);
-	
-	if(quat)
-		Mat3ToQuat(diff_mat, quat);
+	/* difference: current transform - (parent transform + bone transform)  */
+	Mat4MulMat4(diff_mat, pchan->pose_mat, imat);
+
+	if(loc)
+		VECCOPY(loc, diff_mat[3]);
 	if(eul)
-		Mat3ToEul(diff_mat, eul);
+		Mat4ToEul(diff_mat, eul);
 	if(size)
-		Mat3ToSize(diff_mat, size);
+		Mat4ToSize(diff_mat, size);
+	
 }
 
 /* has to return a float value */
@@ -858,8 +861,6 @@ static float eval_driver(IpoDriver *driver, float ipotime)
 						
 						Mat4ToQuat(pchan->pose_mat, q1);
 						Mat4ToQuat(pchan2->pose_mat, q2);
-						// posechannel_get_local_transform(pchan , q1, NULL, NULL, 0);
-						// posechannel_get_local_transform(pchan2, q2, NULL, NULL, 0);
 						
 						QuatInv(q1);
 						QuatMul(quat, q1, q2);
@@ -870,17 +871,17 @@ static float eval_driver(IpoDriver *driver, float ipotime)
 					}
 				}
 				else {
-					float eul[3], size[3];
+					float loc[3], eul[3], size[3];
 					
-					posechannel_get_local_transform(pchan, NULL, eul, size, TFM_WITHOUT_BONE);
+					posechannel_get_local_transform(pchan, loc, eul, size);
 
 					switch(driver->adrcode) {
 					case OB_LOC_X:
-						return pchan->loc[0];
+						return loc[0];
 					case OB_LOC_Y:
-						return pchan->loc[1];
+						return loc[1];
 					case OB_LOC_Z:
-						return pchan->loc[2];
+						return loc[2];
 					case OB_ROT_X:
 						return eul[0]/(M_PI_2/9.0);
 					case OB_ROT_Y:
