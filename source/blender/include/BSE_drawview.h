@@ -58,7 +58,7 @@ struct ImBuf *read_backbuf(short xmin, short ymin, short xmax, short ymax);
 unsigned int sample_backbuf_rect(short mval[2], int size, unsigned int min, unsigned int max, int *dist, short strict, unsigned int (*indextest)(unsigned int index));
 
 void drawview3dspace(struct ScrArea *sa, void *spacedata);
-void drawview3d_render(struct View3D *v3d, int winx, int winy);
+void drawview3d_render(struct View3D *v3d, int winx, int winy, float winmat[][4]);
 
 int update_time(void);
 void calc_viewborder(struct View3D *v3d, struct rctf *viewborder_r);

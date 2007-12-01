@@ -213,6 +213,7 @@ void RE_zbuf_accumulate_vecblur(struct NodeBlurData *nbd, int xsize, int ysize, 
 void RE_Database_Baking(struct Render *re, struct Scene *scene, int type, struct Object *actob);
 
 void RE_DataBase_GetView(struct Render *re, float mat[][4]);
+void RE_GetCameraWindow(struct Render *re, struct Object *camera, int frame, float mat[][4]);
 
 #endif /* RE_PIPELINE_H */
 

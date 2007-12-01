@@ -1241,6 +1241,21 @@ void BIF_do_render(int anim)
 	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_POSTRENDER);
 }
 
+void do_ogl_view3d_render(Render *re, View3D *v3d, int winx, int winy)
+{
+	float winmat[4][4];
+
+	update_for_newframe_muted();	/* here, since camera can be animated */
+
+	if(v3d->camera) {
+		/* in camera view, use actual render winmat */
+		RE_GetCameraWindow(re, v3d->camera, CFRA, winmat);
+		drawview3d_render(v3d, winx, winy, winmat);
+	}
+	else
+		drawview3d_render(v3d, winx, winy, NULL);
+}
+
 /* set up display, render the current area view in an image */
 /* the RE_Render is only used to make sure we got the picture in the result */
 void BIF_do_ogl_render(View3D *v3d, int anim)
@@ -1256,7 +1271,7 @@ void BIF_do_ogl_render(View3D *v3d, int anim)
 	winy= (G.scene->r.size*G.scene->r.ysch)/100;
 	
 	RE_InitState(re, &G.scene->r, winx, winy, NULL);
-	
+
 	/* for now, result is defaulting to floats still... */
 	rr= RE_GetResult(re);
 	if(rr->rect32==NULL)
@@ -1282,7 +1297,8 @@ void BIF_do_ogl_render(View3D *v3d, int anim)
 			/* user event can close window */
 			if(render_win==NULL)
 				break;
-			drawview3d_render(v3d, winx, winy);
+
+			do_ogl_view3d_render(re, v3d, winx, winy);
 			glReadPixels(0, 0, winx, winy, GL_RGBA, GL_UNSIGNED_BYTE, rr->rect32);
 			BKE_stamp_buf((unsigned char *)rr->rect32, rr->rectf, rr->rectx, rr->recty);
 			window_swap_buffers(render_win->win);
@@ -1322,7 +1338,7 @@ void BIF_do_ogl_render(View3D *v3d, int anim)
 		CFRA= cfrao;
 	}
 	else {
-		drawview3d_render(v3d, winx, winy);
+		do_ogl_view3d_render(re, v3d, winx, winy);
 		glReadPixels(0, 0, winx, winy, GL_RGBA, GL_UNSIGNED_BYTE, rr->rect32);
 		BKE_stamp_buf((unsigned char *)rr->rect32, rr->rectf, rr->rectx, rr->recty);
 		window_swap_buffers(render_win->win);

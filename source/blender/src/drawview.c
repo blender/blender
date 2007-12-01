@@ -3090,22 +3090,25 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 }
 
 
-void drawview3d_render(struct View3D *v3d, int winx, int winy)
+void drawview3d_render(struct View3D *v3d, int winx, int winy, float winmat[][4])
 {
 	Base *base;
 	Scene *sce;
-	float winmat[4][4];
-	
-	update_for_newframe_muted();	/* first, since camera can be animated */
-
-	setwinmatrixview3d(winx, winy, NULL);
+	float v3dwinmat[4][4];
 	
 	setviewmatrixview3d();
 	myloadmatrix(v3d->viewmat);
+
+	/* when winmat is not NULL, it overrides the regular window matrix */
 	glMatrixMode(GL_PROJECTION);
-	mygetmatrix(winmat);
+	if(winmat)
+		myloadmatrix(winmat);
+	else
+		setwinmatrixview3d(winx, winy, NULL);
+	mygetmatrix(v3dwinmat);
 	glMatrixMode(GL_MODELVIEW);
-	Mat4MulMat4(v3d->persmat, v3d->viewmat, winmat);
+
+	Mat4MulMat4(v3d->persmat, v3d->viewmat, v3dwinmat);
 	Mat4Invert(v3d->persinv, v3d->persmat);
 	Mat4Invert(v3d->viewinv, v3d->viewmat);
 

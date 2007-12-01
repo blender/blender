@@ -543,7 +543,7 @@ void RE_SetCamera(Render *re, Object *camera)
 	
 	re->viewdx= pixsize;
 	re->viewdy= re->ycor*pixsize;
-	
+
 	if(re->r.mode & R_ORTHO)
 		RE_SetOrtho(re, &viewplane, clipsta, clipend);
 	else 
@@ -555,6 +555,13 @@ void RE_SetPixelSize(Render *re, float pixsize)
 {
 	re->viewdx= pixsize;
 	re->viewdy= re->ycor*pixsize;
+}
+
+void RE_GetCameraWindow(struct Render *re, struct Object *camera, int frame, float mat[][4])
+{
+	re->r.cfra= frame;
+	RE_SetCamera(re, camera);
+	Mat4CpyMat4(mat, re->winmat);
 }
 
 /* ~~~~~~~~~~~~~~~~ part (tile) calculus ~~~~~~~~~~~~~~~~~~~~~~ */
