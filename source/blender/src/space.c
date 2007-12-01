@@ -4699,7 +4699,7 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case KKEY:
 			if((G.qual==0)) { /* Cut at current frame */
-				if(okee("Cut strips")) seq_cut(CFRA);
+				seq_cut(CFRA);
 			}
 			break;
 		case LKEY:

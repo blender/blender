@@ -114,6 +114,15 @@ char last_sounddir[FILE_MAXDIR+FILE_MAXFILE]= "";
 static int test_overlap_seq(Sequence *);
 static void shuffle_seq(Sequence *);
 
+typedef struct TransSeq {
+	int start, machine;
+	int startstill, endstill;
+	int startdisp, enddisp;
+	int startofs, endofs;
+	int final_left, final_right;
+	int len;
+} TransSeq;
+
 Sequence *get_last_seq()
 {
 	if(!_last_seq_init) {
@@ -323,6 +332,16 @@ int sequence_is_free_transformable(Sequence * seq)
 {
 	return seq->type < SEQ_EFFECT
 		|| (get_sequence_effect_num_inputs(seq->type) == 0);
+}
+
+char mouse_cfra_side( int frame ) {
+	short mval[2];
+	float xmouse, ymouse;
+	getmouseco_areawin(mval);
+	
+	/* choose the side based on which side of the playhead the mouse is on */
+	areamouseco_to_ipoco(G.v2d, mval, &xmouse, &ymouse);
+	return (xmouse > frame) ? 'R' : 'L';
 }
 
 Sequence *find_neighboring_sequence(Sequence *test, int lr, int sel) {
@@ -2147,139 +2166,274 @@ void del_seq(void)
 	allqueue(REDRAWSEQ, 0);
 }
 
+static Sequence *dupli_seq(Sequence *seq) {
+	Sequence *seqn = NULL;
+	
+	if(seq->type==SEQ_META) {
+		seqn= MEM_dupallocN(seq);
+		seq->tmp= seqn;
+		
+		seqn->strip= MEM_dupallocN(seq->strip);
+		seqn->strip->stripdata = 0;
+		seqn->strip->tstripdata = 0;
+
+		seqn->seqbase.first= seqn->seqbase.last= 0;
+		/* WATCH OUT!!! - This metastrip is not recursively duplicated here - do this after!!! */
+		/* - recurs_dupli_seq(&seq->seqbase,&seqn->seqbase);*/
+	}
+	else if(seq->type == SEQ_SCENE) {
+		seqn= MEM_dupallocN(seq);
+		seq->tmp= seqn;
+
+		seqn->strip= MEM_dupallocN(seq->strip);
+		seqn->strip->stripdata = 0;
+		seqn->strip->tstripdata = 0;
+	}
+	else if(seq->type == SEQ_MOVIE) {
+		seqn= MEM_dupallocN(seq);
+		seq->tmp= seqn;
+
+		seqn->strip= MEM_dupallocN(seq->strip);
+		seqn->strip->stripdata = 
+				MEM_dupallocN(seq->strip->stripdata);
+		seqn->strip->tstripdata = 0;
+		seqn->anim= 0;
+	}
+	else if(seq->type == SEQ_RAM_SOUND) {
+		seqn= MEM_dupallocN(seq);
+		seq->tmp= seqn;
+
+		seqn->strip= MEM_dupallocN(seq->strip);
+		seqn->strip->stripdata = 
+				MEM_dupallocN(seq->strip->stripdata);
+		seqn->strip->tstripdata = 0;
+
+		seqn->anim= 0;
+		seqn->sound->id.us++;
+		if(seqn->ipo) seqn->ipo->id.us++;
+	}
+	else if(seq->type == SEQ_HD_SOUND) {
+		seqn= MEM_dupallocN(seq);
+		seq->tmp= seqn;
+
+		seqn->strip= MEM_dupallocN(seq->strip);
+		seqn->strip->stripdata = 
+				MEM_dupallocN(seq->strip->stripdata);
+		seqn->strip->tstripdata = 0;
+		seqn->anim= 0;
+		seqn->hdaudio = 0;
+		if(seqn->ipo) seqn->ipo->id.us++;
+	} else if(seq->type == SEQ_IMAGE) {
+		seqn= MEM_dupallocN(seq);
+		seq->tmp= seqn;
+
+		seqn->strip= MEM_dupallocN(seq->strip);
+		seqn->strip->stripdata = 
+				MEM_dupallocN(seq->strip->stripdata);
+		seqn->strip->tstripdata = 0;
+	} else if(seq->type >= SEQ_EFFECT) {
+		seqn= MEM_dupallocN(seq);
+		seq->tmp= seqn;
+
+		if(seq->seq1 && seq->seq1->tmp) seqn->seq1= seq->seq1->tmp;
+		if(seq->seq2 && seq->seq2->tmp) seqn->seq2= seq->seq2->tmp;
+		if(seq->seq3 && seq->seq3->tmp) seqn->seq3= seq->seq3->tmp;
+
+		if(seqn->ipo) seqn->ipo->id.us++;
+
+		if (seq->type & SEQ_EFFECT) {
+			struct SeqEffectHandle sh;
+			sh = get_sequence_effect(seq);
+			if(sh.copy)
+				sh.copy(seq, seqn);
+		}
+
+		seqn->strip= MEM_dupallocN(seq->strip);
+		seqn->strip->stripdata = 0;
+		seqn->strip->tstripdata = 0;
+		
+	} else {
+		fprintf(stderr, "Aiiiiekkk! sequence type not "
+				"handled in duplicate!\nExpect a crash"
+						" now...\n");
+	}
+	
+	return seqn;
+}
+
 static void recurs_dupli_seq(ListBase *old, ListBase *new)
 {
 	Sequence *seq;
 	Sequence *seqn = 0;
 	Sequence *last_seq = get_last_seq();
 
-	seq= old->first;
-
-	while(seq) {
+	for(seq= old->first; seq; seq= seq->next) {
 		seq->tmp= NULL;
 		if(seq->flag & SELECT) {
-			if(seq->type==SEQ_META) {
-				seqn= MEM_dupallocN(seq);
-				seq->tmp= seqn;
-				BLI_addtail(new, seqn);
-
-				seqn->strip= MEM_dupallocN(seq->strip);
-				seqn->strip->stripdata = 0;
-				seqn->strip->tstripdata = 0;
-
+			seqn = dupli_seq(seq);
+			if (seqn) { /*should never fail */
 				seq->flag &= SEQ_DESEL;
 				seqn->flag &= ~(SEQ_LEFTSEL+SEQ_RIGHTSEL);
-
-				seqn->seqbase.first= seqn->seqbase.last= 0;
-				recurs_dupli_seq(&seq->seqbase,&seqn->seqbase);
-
-			}
-			else if(seq->type == SEQ_SCENE) {
-				seqn= MEM_dupallocN(seq);
-				seq->tmp= seqn;
-				BLI_addtail(new, seqn);
-
-				seqn->strip= MEM_dupallocN(seq->strip);
-				seqn->strip->stripdata = 0;
-				seqn->strip->tstripdata = 0;
-
-				seq->flag &= SEQ_DESEL;
-				seqn->flag &= ~(SEQ_LEFTSEL+SEQ_RIGHTSEL);
-			}
-			else if(seq->type == SEQ_MOVIE) {
-				seqn= MEM_dupallocN(seq);
-				seq->tmp= seqn;
-				BLI_addtail(new, seqn);
-
-				seqn->strip= MEM_dupallocN(seq->strip);
-				seqn->strip->stripdata = 
-					MEM_dupallocN(seq->strip->stripdata);
-				seqn->strip->tstripdata = 0;
-				seqn->anim= 0;
-
-				seq->flag &= SEQ_DESEL;
-				seqn->flag &= ~(SEQ_LEFTSEL+SEQ_RIGHTSEL);
-			}
-			else if(seq->type == SEQ_RAM_SOUND) {
-				seqn= MEM_dupallocN(seq);
-				seq->tmp= seqn;
-				BLI_addtail(new, seqn);
-
-				seqn->strip= MEM_dupallocN(seq->strip);
-				seqn->strip->stripdata = 
-					MEM_dupallocN(seq->strip->stripdata);
-				seqn->strip->tstripdata = 0;
-
-				seqn->anim= 0;
-				seqn->sound->id.us++;
-				if(seqn->ipo) seqn->ipo->id.us++;
-
-				seq->flag &= SEQ_DESEL;
-				seqn->flag &= ~(SEQ_LEFTSEL+SEQ_RIGHTSEL);
-			}
-			else if(seq->type == SEQ_HD_SOUND) {
-				seqn= MEM_dupallocN(seq);
-				seq->tmp= seqn;
-				BLI_addtail(new, seqn);
-
-				seqn->strip= MEM_dupallocN(seq->strip);
-				seqn->strip->stripdata = 
-					MEM_dupallocN(seq->strip->stripdata);
-				seqn->strip->tstripdata = 0;
-				seqn->anim= 0;
-				seqn->hdaudio = 0;
-				if(seqn->ipo) seqn->ipo->id.us++;
-
-				seq->flag &= SEQ_DESEL;
-				seqn->flag &= ~(SEQ_LEFTSEL+SEQ_RIGHTSEL);
-			} else if(seq->type == SEQ_IMAGE) {
-				seqn= MEM_dupallocN(seq);
-				seq->tmp= seqn;
-				BLI_addtail(new, seqn);
-
-				seqn->strip= MEM_dupallocN(seq->strip);
-				seqn->strip->stripdata = 
-					MEM_dupallocN(seq->strip->stripdata);
-				seqn->strip->tstripdata = 0;
-
-				seq->flag &= SEQ_DESEL;
-
-				seqn->flag &= ~(SEQ_LEFTSEL+SEQ_RIGHTSEL);
-			} else if(seq->type >= SEQ_EFFECT) {
-				seqn= MEM_dupallocN(seq);
-				seq->tmp= seqn;
-				BLI_addtail(new, seqn);
-
-				if(seq->seq1 && seq->seq1->tmp) seqn->seq1= seq->seq1->tmp;
-				if(seq->seq2 && seq->seq2->tmp) seqn->seq2= seq->seq2->tmp;
-				if(seq->seq3 && seq->seq3->tmp) seqn->seq3= seq->seq3->tmp;
-
-				if(seqn->ipo) seqn->ipo->id.us++;
-
-				if (seq->type & SEQ_EFFECT) {
-					struct SeqEffectHandle sh;
-					sh = get_sequence_effect(seq);
-					if(sh.copy)
-						sh.copy(seq, seqn);
-				}
-
-				seqn->strip= MEM_dupallocN(seq->strip);
-				seqn->strip->stripdata = 0;
-				seqn->strip->tstripdata = 0;
-
-				seq->flag &= SEQ_DESEL;
 				
-				seqn->flag &= ~(SEQ_LEFTSEL+SEQ_RIGHTSEL);
-			} else {
-				fprintf(stderr, "Aiiiiekkk! sequence type not "
-					"handled in duplicate!\nExpect a crash"
-					" now...\n");
-			}
-			if (seq == last_seq) {
-				set_last_seq(seqn);
+				BLI_addtail(new, seqn);
+				if(seq->type==SEQ_META)
+					recurs_dupli_seq(&seq->seqbase,&seqn->seqbase);
+				
+				if (seq == last_seq) {
+					set_last_seq(seqn);
+				}
 			}
 		}
-		seq= seq->next;
+	}
+}
+
+/* like duplicate, but only duplicate and cut overlapping strips,
+ * strips to the left of the cutframe are ignored and strips to the right are moved into the new list */
+static void recurs_cut_seq(ListBase *old, ListBase *new, int cutframe)
+{
+	Sequence *seq, *seq_next;
+	Sequence *seqn = 0;
+	
+	TransSeq ts;
+
+	seq= old->first;
+	
+	while(seq) {
+		seq_next = seq->next; /* we need this because we may remove seq */
+		
+		seq->tmp= NULL;
+		if(seq->flag & SELECT) {
+			if(cutframe > seq->startdisp && cutframe < seq->enddisp) {
+				
+				/* backup values */
+				ts.start= seq->start;
+				ts.machine= seq->machine;
+				ts.startstill= seq->startstill;
+				ts.endstill= seq->endstill;
+				ts.startdisp= seq->startdisp;
+				ts.enddisp= seq->enddisp;
+				ts.startofs= seq->startofs;
+				ts.endofs= seq->endofs;
+				ts.len= seq->len;
+				
+				/* First Strip! */
+				/* strips with extended stillfames before */
+				if(seq->type!=SEQ_META) {
+					
+					if ((seq->startstill) && (cutframe <seq->start)) {
+						seq->start= cutframe -1;
+						seq->startstill= cutframe -seq->startdisp -1;
+						seq->len= 1;
+						seq->endstill= 0;
+					}
+				
+					/* normal strip */
+					else if ((cutframe >=seq->start)&&(cutframe <=(seq->start+seq->len))) {
+						seq->endofs = (seq->start+seq->len) - cutframe;
+					}
+				
+					/* strips with extended stillframes after */
+					else if (((seq->start+seq->len) < cutframe) && (seq->endstill)) {
+						seq->endstill -= seq->enddisp - cutframe;
+					}
+					
+					calc_sequence(seq);
+				}
+				
+				/* Duplicate AFTER the first change */
+				seqn = dupli_seq(seq);
+				
+				if (seqn) { /* should never fail */
+					seqn->flag |= SELECT;
+					
+					
+					BLI_addtail(new, seqn);
+					
+					/* dont transform meta's - just do their children then recalc */
+					if(seq->type==SEQ_META) {
+						recurs_cut_seq(&seq->seqbase,&seqn->seqbase, cutframe);
+					} else {
+						/* Second Strip! */
+						/* strips with extended stillframes before */
+						if ((seqn->startstill) && (cutframe == seqn->start + 1)) {
+							seqn->start = ts.start;
+							seqn->startstill= ts.start- cutframe;
+							seqn->len = ts.len;
+							seqn->endstill = ts.endstill;
+						}
+			
+						/* normal strip */
+						else if ((cutframe>=seqn->start)&&(cutframe<=(seqn->start+seqn->len))) {
+							seqn->startstill = 0;
+							seqn->startofs = cutframe - ts.start;
+							seqn->endofs = ts.endofs;
+							seqn->endstill = ts.endstill;
+						}				
+			
+						/* strips with extended stillframes after */
+						else if (((seqn->start+seqn->len) < cutframe) && (seqn->endstill)) {
+							seqn->start = cutframe - ts.len +1;
+							seqn->startofs = ts.len-1;
+							seqn->endstill = ts.enddisp - cutframe -1;
+							seqn->startstill = 0;
+						}
+					}
+					
+					if(seq->type==SEQ_META) /* account for strips within changing */
+						calc_sequence(seq);
+					
+					calc_sequence(seqn);
+				}
+			} else if (seq->enddisp <= cutframe) {
+				/* do nothing */
+			} else if (seq->startdisp >= cutframe) {
+				/* move into new list */
+				BLI_remlink(old, seq);
+				BLI_addtail(new, seq);
+			}
+		}
+		seq = seq_next;
+	}
+}
+
+void seq_cut(int cutframe)
+{
+	Editing *ed;
+	ListBase newlist;
+	char side;
+	ed= G.scene->ed;
+	if(ed==0) return;
+	
+	newlist.first= newlist.last= NULL;
+	
+	recurs_cut_seq(ed->seqbasep, &newlist, cutframe);
+	
+	if (newlist.first) { /* simple check to see if anything was done */
+		Sequence *seq;
+		addlisttolist(ed->seqbasep, &newlist);
+		
+		
+		/* change the selection, not strictly needed but nice */
+		side = mouse_cfra_side(cutframe);
+		
+		WHILE_SEQ(ed->seqbasep) {
+			if (side=='L') {
+				if ( seq->startdisp >= cutframe ) {
+					seq->flag &= ~SELECT;
+				}
+			} else {
+				if ( seq->enddisp <= cutframe ) {
+					seq->flag &= ~SELECT;
+				}
+			}
+		}
+		END_SEQ;
+		
+		/* as last: */
+		sort_seq();
+		
+		allqueue(REDRAWSEQ, 0);
+		BIF_undo_push("Cut Strips, Sequencer");
 	}
 }
 
@@ -2524,7 +2678,9 @@ void make_meta(void)
 	seqm->strip->us= 1;
 
 	set_meta_stripdata(seqm);
-
+	
+	if( test_overlap_seq(seqm) ) shuffle_seq(seqm);
+	
 	BIF_undo_push("Make Meta Strip, Sequencer");
 	allqueue(REDRAWSEQ, 0);
 }
@@ -2663,15 +2819,6 @@ static int seq_get_snaplimit(void)
 	return (int)(x - xmouse);
 }
 
-typedef struct TransSeq {
-	int start, machine;
-	int startstill, endstill;
-	int startdisp, enddisp;
-	int startofs, endofs;
-	int final_left, final_right;
-	int len;
-} TransSeq;
-
 /* use to impose limits when dragging/extending - so impossible situations dont happen */
 static void transform_grab_xlimits(Sequence *seq, int leftflag, int rightflag)
 {
@@ -2749,6 +2896,8 @@ void transform_seq(int mode, int context)
 	int *oldframe = NULL, totmark=0, a;
 	TimeMarker *marker;
 	
+	/* looping on sequences, WHILE_SEQ macro allocates memory each time */
+	int totseq_index, seq_index; Sequence **seqar;
 	
 	if(mode!='g' && mode!='e') return;	/* from gesture */
 
@@ -2756,18 +2905,23 @@ void transform_seq(int mode, int context)
 	ed= G.scene->ed;
 	if(ed==0) return;
 
-	WHILE_SEQ(ed->seqbasep) {
+	/* Build the sequence array once, be sure to free it */
+	build_seqar( ed->seqbasep,  &seqar, &totseq_index );
+	
+	for(seq_index=0, seq=seqar[0]; seq_index < totseq_index; seq=seqar[++seq_index]) {
 		if(seq->flag & SELECT) totstrip++;
 	}
-	END_SEQ
-
 	
 	if (sseq->flag & SEQ_MARKER_TRANS) {
 		for(marker= G.scene->markers.first; marker; marker= marker->next) {
 			if(marker->flag & SELECT) totmark++;
 		}
 	}
-	if(totstrip==0 && totmark==0) return;
+	
+	if(totstrip==0 && totmark==0) {
+		if(seqar) MEM_freeN(seqar);
+		return;
+	}
 	
 	G.moving= 1;
 	
@@ -2775,8 +2929,7 @@ void transform_seq(int mode, int context)
 	
 	ts=transmain= MEM_callocN(totstrip*sizeof(TransSeq), "transseq");
 
-	WHILE_SEQ(ed->seqbasep) {
-
+	for(seq_index=0, seq=seqar[0]; seq_index < totseq_index; seq=seqar[++seq_index]) {
 		if(seq->flag & SELECT) {
 			ts->start= seq->start;
 			ts->machine= seq->machine;
@@ -2793,16 +2946,12 @@ void transform_seq(int mode, int context)
 			ts++;
 		}
 	}
-	END_SEQ
 	
 	getmouseco_areawin(mval);
 	
 	/* choose the side based on which side of the playhead the mouse is on */
-	if (mode=='e') {
-		float xmouse, ymouse;
-		areamouseco_to_ipoco(G.v2d, mval, &xmouse, &ymouse);
-		side = (xmouse > cfra) ? 'R' : 'L';
-	}
+	if (mode=='e')
+		side = mouse_cfra_side(cfra);
 	
 	/* Markers */
 	if (sseq->flag & SEQ_MARKER_TRANS && totmark) {
@@ -2887,7 +3036,7 @@ void transform_seq(int mode, int context)
 					int bounds_left = MAXFRAME*2;
 					int bounds_right = -(MAXFRAME*2);
 					
-					WHILE_SEQ(ed->seqbasep) {
+					for(seq_index=0, seq=seqar[0]; seq_index < totseq_index; seq=seqar[++seq_index]) {
 						if(seq->flag & SELECT) {
 							if(seq_tx_check_left(seq))
 								bounds_left		= MIN2(bounds_left,	seq_tx_get_final_left(seq));
@@ -2895,7 +3044,6 @@ void transform_seq(int mode, int context)
 								bounds_right	= MAX2(bounds_right,seq_tx_get_final_right(seq));
 						}
 					}
-					END_SEQ
 					
 					/* its possible there were no points to set on either side */
 					if (bounds_left != MAXFRAME*2)
@@ -2967,7 +3115,7 @@ void transform_seq(int mode, int context)
 			
 			if (mode=='g' && !snapskip) {
 				/* Grab */
-				WHILE_SEQ(ed->seqbasep) {
+				for(seq_index=0, seq=seqar[0]; seq_index < totseq_index; seq=seqar[++seq_index]) {
 					if(seq->flag & SELECT) {
 						int myofs;
 						// SEQ_DEBUG_INFO(seq);
@@ -2996,7 +3144,6 @@ void transform_seq(int mode, int context)
 						ts++;
 					}
 				}
-				END_SEQ
 				
 				/* Markers */
 				if (sseq->flag & SEQ_MARKER_TRANS) {
@@ -3020,7 +3167,7 @@ void transform_seq(int mode, int context)
 				int move_left, move_right;
 				
 				/* Extend, Similar to grab but operate on one side of the cursor */
-				WHILE_SEQ(ed->seqbasep) {
+				for(seq_index=0, seq=seqar[0]; seq_index < totseq_index; seq=seqar[++seq_index]) {
 					if(seq->flag & SELECT) {
 						/* only move the contents of the metastrip otherwise the transformation is applied twice */
 						if (sequence_is_free_transformable(seq) && seq->type != SEQ_META) {
@@ -3100,7 +3247,6 @@ void transform_seq(int mode, int context)
 						ts++;
 					}
 				}
-				END_SEQ
 				
 				/* markers */
 				if (sseq->flag & SEQ_MARKER_TRANS) {
@@ -3133,7 +3279,7 @@ void transform_seq(int mode, int context)
 			yo= mval[1];
 
 			/* test for effect and overlap */
-			WHILE_SEQ(ed->seqbasep) {
+			for(seq_index=0, seq=seqar[0]; seq_index < totseq_index; seq=seqar[++seq_index]) {
 				if(seq->flag & SELECT) {
 					seq->flag &= ~SEQ_OVERLAP;
 					if( test_overlap_seq(seq) ) {
@@ -3146,7 +3292,6 @@ void transform_seq(int mode, int context)
 					else if(seq->seq3 && seq->seq3->flag & SELECT) calc_sequence(seq);
 				}
 			}
-			END_SEQ;
 
 			force_draw(0);
 			
@@ -3183,7 +3328,7 @@ void transform_seq(int mode, int context)
 	if((event==ESCKEY) || (event==RIGHTMOUSE)) {
 
 		ts= transmain;
-		WHILE_SEQ(ed->seqbasep) {
+		for(seq_index=0, seq=seqar[0]; seq_index < totseq_index; seq=seqar[++seq_index]) {
 			if(seq->flag & SELECT) {
 				seq->start= ts->start;
 				seq->machine= ts->machine;
@@ -3202,9 +3347,7 @@ void transform_seq(int mode, int context)
 				else if(seq->seq3 && seq->seq3->flag & SELECT) calc_sequence(seq);
 			}
 		}
-		END_SEQ
-				
-				
+		
 		/* Markers */
 		if (sseq->flag & SEQ_MARKER_TRANS) {
 			for(a=0, marker= G.scene->markers.first; marker; marker= marker->next) {
@@ -3220,7 +3363,7 @@ void transform_seq(int mode, int context)
 	} else {
 
 		/* images, effects and overlap */
-		WHILE_SEQ(ed->seqbasep) {
+		for(seq_index=0, seq=seqar[0]; seq_index < totseq_index; seq=seqar[++seq_index]) {
 			
 			/* fixes single image strips - makes sure their start is not out of bounds
 			ideally this would be done during transform since data is rendered at that time
@@ -3239,12 +3382,14 @@ void transform_seq(int mode, int context)
 			}
 			else if(seq->type & SEQ_EFFECT) calc_sequence(seq);
 		}
-		END_SEQ
 
 		/* as last: */
 		sort_seq();
 	}
-
+	
+	/* free sequence array */
+	if(seqar) MEM_freeN(seqar);
+	
 	G.moving= 0;
 	MEM_freeN(transmain);
 	
@@ -3274,137 +3419,6 @@ void transform_seq_nomarker(int mode, int context) {
 	transform_seq(mode, context);
 	
 	sseq->flag = flag_back;
-}
-
-void seq_cut(int cutframe)
-{
-	Editing *ed;
-	Sequence *seq;
-	TransSeq *ts, *transmain;
-	int tot=0;
-	ListBase newlist;
-	
-	ed= G.scene->ed;
-	if(ed==0) return;
-	
-	/* test for validity */
-	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
-		if(seq->flag & SELECT) {
-			if(cutframe > seq->startdisp && cutframe < seq->enddisp)
-				if(seq->type==SEQ_META) break;
-		}
-	}
-	if(seq) {
-		error("Cannot Cut Meta Strips");
-		return;
-	}
-	
-	/* we build an array of TransSeq, to denote which strips take part in cutting */
-	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
-		if(seq->flag & SELECT) {
-			if(cutframe > seq->startdisp && cutframe < seq->enddisp)
-				tot++;
-			else
-				seq->flag &= ~SELECT;	// bad code, but we need it for recurs_dupli_seq... note that this ~SELECT assumption is used in loops below too (ton)
-		}
-	}
-	
-	if(tot==0) {
-		error("No Strips to Cut");
-		return;
-	}
-	
-	ts=transmain= MEM_callocN(tot*sizeof(TransSeq), "transseq");
-	
-	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
-		if(seq->flag & SELECT) {
-			
-			ts->start= seq->start;
-			ts->machine= seq->machine;
-			ts->startstill= seq->startstill;
-			ts->endstill= seq->endstill;
-			ts->startdisp= seq->startdisp;
-			ts->enddisp= seq->enddisp;
-			ts->startofs= seq->startofs;
-			ts->endofs= seq->endofs;
-			ts->len= seq->len;
-			
-			ts++;
-		}
-	}
-		
-	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
-		if(seq->flag & SELECT) {
-			
-			/* strips with extended stillframes before */
-			if ((seq->startstill) && (cutframe <seq->start)) {
-				seq->start= cutframe -1;
-				seq->startstill= cutframe -seq->startdisp -1;
-				seq->len= 1;
-				seq->endstill= 0;
-			}
-			
-			/* normal strip */
-			else if ((cutframe >=seq->start)&&(cutframe <=(seq->start+seq->len))) {
-				seq->endofs = (seq->start+seq->len) - cutframe;
-			}
-			
-			/* strips with extended stillframes after */
-			else if (((seq->start+seq->len) < cutframe) && (seq->endstill)) {
-				seq->endstill -= seq->enddisp - cutframe;
-			}
-			
-			calc_sequence(seq);
-		}
-	}
-		
-	newlist.first= newlist.last= NULL;
-	
-	/* now we duplicate the cut strip and move it into place afterwards */
-	recurs_dupli_seq(ed->seqbasep, &newlist);
-	addlisttolist(ed->seqbasep, &newlist);
-	
-	ts= transmain;
-	
-	/* go through all the strips and correct them based on their stored values */
-	for(seq= ed->seqbasep->first; seq; seq= seq->next) {
-		if(seq->flag & SELECT) {
-
-			/* strips with extended stillframes before */
-			if ((seq->startstill) && (cutframe == seq->start + 1)) {
-				seq->start = ts->start;
-				seq->startstill= ts->start- cutframe;
-				seq->len = ts->len;
-				seq->endstill = ts->endstill;
-			}
-			
-			/* normal strip */
-			else if ((cutframe>=seq->start)&&(cutframe<=(seq->start+seq->len))) {
-				seq->startstill = 0;
-				seq->startofs = cutframe - ts->start;
-				seq->endofs = ts->endofs;
-				seq->endstill = ts->endstill;
-			}				
-			
-			/* strips with extended stillframes after */
-			else if (((seq->start+seq->len) < cutframe) && (seq->endstill)) {
-				seq->start = cutframe - ts->len +1;
-				seq->startofs = ts->len-1;
-				seq->endstill = ts->enddisp - cutframe -1;
-				seq->startstill = 0;
-			}
-			calc_sequence(seq);
-			
-			ts++;
-		}
-	}
-		
-	/* as last: */	
-	sort_seq();
-	MEM_freeN(transmain);
-	
-	allqueue(REDRAWSEQ, 0);
-	BIF_undo_push("Cut Strips, Sequencer");
 }
 
 void seq_separate_images(void)
