@@ -1021,7 +1021,7 @@ void objects_bake_render(short event)
 		g_break= 0;
 		G.afbreek= 0;	/* blender_test_break uses this global */
 		
-		RE_Database_Baking(re, G.scene, event, actob);
+		RE_Database_Baking(re, G.scene, event, (active)? actob: NULL);
 		
 		/* baking itself is threaded, cannot use test_break in threads. we also update optional imagewindow */
 	
