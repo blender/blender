@@ -2940,8 +2940,13 @@ static void initshadowbuf(Render *re, LampRen *lar, float mat[][4])
 
 static void area_lamp_vectors(LampRen *lar)
 {
-	float xsize= 0.5*lar->area_size, ysize= 0.5*lar->area_sizey;
+	float xsize= 0.5*lar->area_size, ysize= 0.5*lar->area_sizey, multifac;
 
+	/* make it smaller, so area light can be multisampled */
+	multifac= 1.0f/sqrt((float)lar->ray_totsamp);
+	xsize *= multifac;
+	ysize *= multifac;
+	
 	/* corner vectors */
 	lar->area[0][0]= lar->co[0] - xsize*lar->mat[0][0] - ysize*lar->mat[1][0];
 	lar->area[0][1]= lar->co[1] - xsize*lar->mat[0][1] - ysize*lar->mat[1][1];
@@ -3076,6 +3081,7 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 		}
 
 		area_lamp_vectors(lar);
+		init_jitter_plane(lar);	// subsamples
 	}
 	else lar->ray_totsamp= 0;
 	

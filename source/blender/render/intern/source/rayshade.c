@@ -579,6 +579,9 @@ void init_jitter_plane(LampRen *lar)
 	float *fp;
 	int x, iter=12, tot= lar->ray_totsamp;
 	
+	/* test if already initialized */
+	if(lar->jitter) return;
+	
 	/* at least 4, or max threads+1 tables */
 	if(BLENDER_MAX_THREADS < 4) x= 4;
 	else x= BLENDER_MAX_THREADS+1;

@@ -2369,7 +2369,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						ob= ob->parent;
 					if(ob && (ob->flag & OB_POSEMODE)) {
 						bArmature *arm= ob->data;
-						if( ELEM(arm->drawtype, ARM_B_BONE, ARM_ENVELOPE)) {
+						if( arm->drawtype==ARM_ENVELOPE) {
 							initTransform(TFM_BONESIZE, CTX_NONE);
 							Transform();
 							break;
