@@ -1395,7 +1395,7 @@ static void draw_pose_channels(Base *base, int dt)
 			}
 			if (index!= -1) index+= 0x10000;	// pose bones count in higher 2 bytes only
 		}
-		/* very very confusing... but in object mode, solid draw, we cannot do glLoadName yet, stick bones are dawn in next loop */
+		/* very very confusing... but in object mode, solid draw, we cannot do glLoadName yet, stick bones are drawn in next loop */
 		if(arm->drawtype!=ARM_LINE) {
 			glLoadName (index & 0xFFFF);	// object tag, for bordersel optim
 			index= -1;
@@ -1758,10 +1758,7 @@ static void draw_pose_paths(Object *ob)
 					pchan->pathef= EFRA;
 				}
 				
-				/* get frame ranges 
-				 *	- sfra,efra are the start and end frame numbers (respectively)
-				 *	- sind is the starting array index, nind is the number of array items (location array)
-				 */
+				/* get frame ranges */
 				if (arm->pathflag & ARM_PATH_ACFRA) {
 					int sind;
 					
@@ -1807,7 +1804,7 @@ static void draw_pose_paths(Object *ob)
 						}
 						else {
 							//intensity= 0.8;
-							intensity = SET_INTENSITY(sfra, a, CFRA, 0.55f, 0.90f);
+							intensity = SET_INTENSITY(sfra, a, CFRA, 0.68f, 0.92f);
 						}
 						BIF_ThemeColorBlend(TH_WIRE, TH_BACK, intensity);
 					}
@@ -1819,7 +1816,7 @@ static void draw_pose_paths(Object *ob)
 						}
 						else {
 							//intensity = 0.8;
-							intensity = SET_INTENSITY(CFRA, a, efra, 0.55f, 0.90f);
+							intensity = SET_INTENSITY(CFRA, a, efra, 0.68f, 0.92f);
 						}
 						BIF_ThemeColorBlend(TH_BONE_POSE, TH_BACK, intensity);
 					}
@@ -1926,7 +1923,7 @@ static void draw_pose_paths(Object *ob)
 		}
 	}
 	
-	if(G.vd->zbuf) glEnable(GL_DEPTH_TEST);
+	if (G.vd->zbuf) glEnable(GL_DEPTH_TEST);
 	glPopMatrix();
 }
 
