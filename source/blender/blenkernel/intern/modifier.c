@@ -5088,7 +5088,7 @@ static void particleSystemModifier_deformVerts(
 	DerivedMesh *dm = derivedData;
 	ParticleSystemModifierData *psmd= (ParticleSystemModifierData*) md;
 	ParticleSystem * psys=0;
-	int totvert=0,totedge=0,totface=0,needsFree=0;
+	int needsFree=0;
 
 	if(ob->particlesystem.first)
 		psys=psmd->psys;
@@ -5137,9 +5137,6 @@ static void particleSystemModifier_deformVerts(
 
 	/* clear old dm */
 	if(psmd->dm){
-		totvert=psmd->dm->getNumVerts(psmd->dm);
-		totedge=psmd->dm->getNumEdges(psmd->dm);
-		totface=psmd->dm->getNumFaces(psmd->dm);
 		psmd->dm->needsFree = 1;
 		psmd->dm->release(psmd->dm);
 	}
@@ -5157,17 +5154,18 @@ static void particleSystemModifier_deformVerts(
 	psmd->dm->needsFree = 0;
 
 	/* report change in mesh structure */
-	if(psmd->dm->getNumVerts(psmd->dm)!=totvert ||
-	   psmd->dm->getNumEdges(psmd->dm)!=totedge ||
-	   psmd->dm->getNumFaces(psmd->dm)!=totface){
+	if(psmd->dm->getNumVerts(psmd->dm)!=psmd->totdmvert ||
+	   psmd->dm->getNumEdges(psmd->dm)!=psmd->totdmedge ||
+	   psmd->dm->getNumFaces(psmd->dm)!=psmd->totdmface){
 		/* in file read dm hasn't really changed but just wasn't saved in file */
-		if(psmd->flag & eParticleSystemFlag_Loaded)
-			psmd->flag &= ~eParticleSystemFlag_Loaded;
-		else{
-			psys->recalc |= PSYS_RECALC_HAIR;
-			psys->recalc |= PSYS_DISTR;
-			psmd->flag |= eParticleSystemFlag_DM_changed;
-		}
+
+		psys->recalc |= PSYS_RECALC_HAIR;
+		psys->recalc |= PSYS_DISTR;
+		psmd->flag |= eParticleSystemFlag_DM_changed;
+
+		psmd->totdmvert= psmd->dm->getNumVerts(psmd->dm);
+		psmd->totdmedge= psmd->dm->getNumEdges(psmd->dm);
+		psmd->totdmface= psmd->dm->getNumFaces(psmd->dm);
 	}
 
 	if(psys){
@@ -7207,3 +7205,4 @@ int modifiers_usesPointCache(Object *ob)
 	}
 	return 0;
 }
+
