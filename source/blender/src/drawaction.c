@@ -362,7 +362,7 @@ void draw_cfra_action (void)
 	vec[0]*= G.scene->r.framelen;
 	
 	vec[1]= G.v2d->cur.ymin;
-	glColor3ub(0x60, 0xc0, 0x40);
+	BIF_ThemeColor(TH_CFRAME);
 	glLineWidth(2.0);
 	
 	glBegin(GL_LINE_STRIP);
@@ -373,10 +373,10 @@ void draw_cfra_action (void)
 	
 	/* Draw dark green line if slow-parenting/time-offset is enabled */
 	ob= (G.scene->basact) ? (G.scene->basact->object) : 0;
-	if(ob && ob->sf!=0.0 && (ob->ipoflag & OB_OFFS_OB) ) {
+	if ((ob) && (ob->sf!=0.0) && (ob->ipoflag & OB_OFFS_OB)) {
 		vec[0]-= ob->sf;
 		
-		glColor3ub(0x10, 0x60, 0);
+		BIF_ThemeColorShade(TH_CFRAME, -30);
 		
 		glBegin(GL_LINE_STRIP);
 		glVertex2fv(vec);

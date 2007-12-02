@@ -373,6 +373,19 @@ static void init_userdef_file(void)
 		if(U.coba_weight.tot==0)
 			init_colorband(&U.coba_weight, 1);
 	}
+	if ((G.main->versionfile < 245) || (G.main->versionfile == 245 && G.main->subversionfile < 11)) {
+		bTheme *btheme;
+		for (btheme= U.themes.first; btheme; btheme= btheme->next) {
+			/* these should all use the same colour */
+			SETCOL(btheme->tv3d.cframe, 0x60, 0xc0, 0x40, 255);
+			SETCOL(btheme->tipo.cframe, 0x60, 0xc0, 0x40, 255);
+			SETCOL(btheme->tact.cframe, 0x60, 0xc0, 0x40, 255);
+			SETCOL(btheme->tnla.cframe, 0x60, 0xc0, 0x40, 255);
+			SETCOL(btheme->tseq.cframe, 0x60, 0xc0, 0x40, 255);
+			SETCOL(btheme->tsnd.cframe, 0x60, 0xc0, 0x40, 255);
+			SETCOL(btheme->ttime.cframe, 0x60, 0xc0, 0x40, 255);
+		}
+	}
 	
 	/* GL Texture Garbage Collection (variable abused above!) */
 	if (U.textimeout == 0) {

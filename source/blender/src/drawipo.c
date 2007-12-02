@@ -1560,7 +1560,7 @@ static void draw_cfra(SpaceIpo *sipo)
 	vec[0]*= G.scene->r.framelen;
 	
 	vec[1]= v2d->cur.ymin;
-	glColor3ub(0x60, 0xc0, 0x40);	// no theme, should be global color once...
+	BIF_ThemeColor(TH_CFRAME);
 	glLineWidth(2.0);
 	
 	glBegin(GL_LINE_STRIP);
@@ -1571,7 +1571,7 @@ static void draw_cfra(SpaceIpo *sipo)
 	
 	if(sipo->blocktype==ID_OB) {
 		ob= (G.scene->basact) ? (G.scene->basact->object) : 0;
-		if(ob && ob->sf!=0.0 && (ob->ipoflag & OB_OFFS_OB) ) {
+		if (ob && (ob->sf!=0.0) && (ob->ipoflag & OB_OFFS_OB) ) {
 			vec[0]-= ob->sf;
 			
 			BIF_ThemeColorShade(TH_HILITE, -30);

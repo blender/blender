@@ -1787,34 +1787,59 @@ static void draw_pose_paths(Object *ob)
 				}
 				
 				/* draw curve-line of path */
-				if ((CFRA > sfra) && (CFRA < efra)) {
-					/* Show before/after current frame with slight difference in colour intensity 
-					 * This is done in two loops, as there seems to be some problems with changing color
-					 * or something during a loop (noted somewhere in the codebase)
+				glShadeModel(GL_SMOOTH);
+				
+				glBegin(GL_LINE_STRIP); 				
+				for (a=0, fp=fp_start; a<len; a++, fp+=3) {
+					float intensity; /* how faint */
+					
+					/* set colour
+					 * 	- more intense for active/selected bones, less intense for unselected bones
+					 * 	- black for before current frame, green for current frame, blue for after current frame
+					 * 	- intensity decreases as distance from current frame increases
 					 */
+					#define SET_INTENSITY(A, B, C, min, max) (((1.0f - ((C - B) / (C - A))) * (max-min)) + min) 
+					if ((a+sfra) < CFRA) {
+						/* black - before cfra */
+						if (pchan->bone->flag & BONE_SELECTED) {
+							// intensity= 0.5;
+							intensity = SET_INTENSITY(sfra, a, CFRA, 0.25f, 0.75f);
+						}
+						else {
+							//intensity= 0.8;
+							intensity = SET_INTENSITY(sfra, a, CFRA, 0.55f, 0.90f);
+						}
+						BIF_ThemeColorBlend(TH_WIRE, TH_BACK, intensity);
+					}
+					else if ((a+sfra) > CFRA) {
+						/* blue - after cfra */
+						if (pchan->bone->flag & BONE_SELECTED) {
+							//intensity = 0.5;
+							intensity = SET_INTENSITY(CFRA, a, efra, 0.25f, 0.75f);
+						}
+						else {
+							//intensity = 0.8;
+							intensity = SET_INTENSITY(CFRA, a, efra, 0.55f, 0.90f);
+						}
+						BIF_ThemeColorBlend(TH_BONE_POSE, TH_BACK, intensity);
+					}
+					else {
+						/* green - on cfra */
+						if (pchan->bone->flag & BONE_SELECTED) {
+							intensity= 0.3;
+						}
+						else {
+							intensity= 0.8;
+						}
+						BIF_ThemeColorBlend(TH_CFRAME, TH_BACK, intensity);
+					}	
 					
-					/* 	before cfra (darker) */
-					BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.5);
-					glBegin(GL_LINE_STRIP);
-					for (a=0, fp=fp_start; (sfra+a)<=CFRA; a++, fp+=3)
-						glVertex3fv(fp);
-					glEnd();
-					
-					/* after cfra (lighter) - backtrack a bit so that we don't have gaps */
-					BIF_ThemeColorBlend(TH_BONE_POSE, TH_BACK, 0.5);
-					glBegin(GL_LINE_STRIP);
-					for (--a, fp-=3; a<len; a++, fp+=3)
-						glVertex3fv(fp);
-					glEnd();
+					/* draw a vertex with this colour */ 
+					glVertex3fv(fp);
 				}
-				else {
-					/* show both directions with same intensity (cfra somewhere else) */
-					BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.7);
-					glBegin(GL_LINE_STRIP);
-					for (a=0, fp=fp_start; a<len; a++, fp+=3)
-						glVertex3fv(fp);
-					glEnd();
-				}
+				
+				glEnd();
+				glShadeModel(GL_FLAT);
 				
 				glPointSize(1.0);
 				

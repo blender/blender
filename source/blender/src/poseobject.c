@@ -253,33 +253,33 @@ void pose_calculate_path(Object *ob)
 	DAG_object_update_flags(G.scene, ob, screen_view3d_layers());
 	
 	/* malloc the path blocks */
-	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if(pchan->bone && (pchan->bone->flag & BONE_SELECTED)) {
-			if(arm->layer & pchan->bone->layer) {
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if ((pchan->bone) && (pchan->bone->flag & BONE_SELECTED)) {
+			if (arm->layer & pchan->bone->layer) {
 				pchan->pathlen= efra-sfra+1;
 				pchan->pathsf= sfra;
 				pchan->pathef= efra+1;
-				if(pchan->path)
+				if (pchan->path)
 					MEM_freeN(pchan->path);
 				pchan->path= MEM_callocN(3*pchan->pathlen*sizeof(float), "pchan path");
 			}
 		}
 	}
 	
-	for(CFRA=sfra; CFRA<=efra; CFRA++) {
+	for (CFRA=sfra; CFRA<=efra; CFRA++) {
 		/* do all updates */
-		for(base= FIRSTBASE; base; base= base->next) {
-			if(base->object->recalc) {
+		for (base= FIRSTBASE; base; base= base->next) {
+			if (base->object->recalc) {
 				int temp= base->object->recalc;
 				object_handle_update(base->object);
 				base->object->recalc= temp;
 			}
 		}
 		
-		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-			if(pchan->bone && (pchan->bone->flag & BONE_SELECTED)) {
-				if(arm->layer & pchan->bone->layer) {
-					if(pchan->path) {
+		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+			if (pchan->bone && (pchan->bone->flag & BONE_SELECTED)) {
+				if (arm->layer & pchan->bone->layer) {
+					if (pchan->path) {
 						fp= pchan->path+3*(CFRA-sfra);
 						
 						if (arm->pathflag & ARM_PATH_HEADS) { 
@@ -307,14 +307,16 @@ void pose_clear_paths(Object *ob)
 {
 	bPoseChannel *pchan;
 	
-	if(ob==NULL || ob->pose==NULL)
+	if (ob==NULL || ob->pose==NULL)
 		return;
 	
 	/* free the path blocks */
 	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if (pchan->path) {
-			MEM_freeN(pchan->path);
-			pchan->path= NULL;
+		if ((pchan->bone) && (pchan->bone->flag & BONE_SELECTED)) {
+			if (pchan->path) {
+				MEM_freeN(pchan->path);
+				pchan->path= NULL;
+			}
 		}
 	}
 	

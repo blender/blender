@@ -41,8 +41,7 @@
 /* themes; defines in BIF_resource.h */
 struct ColorBand;
 
-// global, button colors
-
+/* global, button colors */
 typedef struct ThemeUI {
 	char outline[4];
 	char neutral[4];
@@ -68,8 +67,9 @@ typedef struct ThemeUI {
 
 } ThemeUI;
 
-// try to put them all in one, if needed a special struct can be created as well
-// for example later on, when we introduce wire colors for ob types or so...
+/* try to put them all in one, if needed a special struct can be created as well
+ * for example later on, when we introduce wire colors for ob types or so...
+ */
 typedef struct ThemeSpace {
 	char back[4];
 	char text[4];	
@@ -94,6 +94,7 @@ typedef struct ThemeSpace {
 	char normal[4];
 	char bone_solid[4], bone_pose[4];
 	char strip[4], strip_select[4];
+	char cframe[4], pad[4];
 	
 	char vertex_size, facedot_size;
 	char bpad[2]; 
@@ -104,16 +105,25 @@ typedef struct ThemeSpace {
 	char movie[4], image[4], scene[4], audio[4];		// for sequence editor
 	char effect[4], plugin[4], transition[4], meta[4];
 	char editmesh_active[4]; 
-	
 } ThemeSpace;
 
+/* set of colors for use as a custom color set for Objects/Bones wire drawing */
+typedef struct ThemeWireColor {
+	char 	unselected[3];
+	char	selected[3];
+	char 	active[3];
+	char	pad[7];
+} ThemeWireColor; 
 
+/* A theme */
 typedef struct bTheme {
 	struct bTheme *next, *prev;
 	char name[32];
 	
+	/* Interface Elements (buttons, menus, icons) */
 	ThemeUI tui;
 	
+	/* Individual Spacetypes */
 	ThemeSpace tbuts;	
 	ThemeSpace tv3d;
 	ThemeSpace tfile;
@@ -129,9 +139,12 @@ typedef struct bTheme {
 	ThemeSpace toops;
 	ThemeSpace ttime;
 	ThemeSpace tnode;
+	
+	/* 20 sets of bone colors for this theme */
+	ThemeWireColor tarm[20];
+	/*ThemeWireColor tobj[20];*/
 
 	unsigned char bpad[4], bpad1[4];
-	
 } bTheme;
 
 typedef struct SolidLight {
