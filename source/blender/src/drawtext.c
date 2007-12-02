@@ -730,7 +730,7 @@ static void calc_text_rcts(SpaceText *st)
 
 	lbarstart= st->top;
 	lbarh= 	st->viewlines;
-	ltexth= txt_get_span(st->text->lines.first, st->text->lines.last)+1;
+	ltexth= txt_get_span(st->text->lines.first, st->text->lines.last) st->viewlines / 2 + 2;
 
 	barheight= (lbarh*(curarea->winy-4))/ltexth;
 	if (barheight<20) barheight=20;
