@@ -1247,7 +1247,7 @@ void do_ogl_view3d_render(Render *re, View3D *v3d, int winx, int winy)
 
 	update_for_newframe_muted();	/* here, since camera can be animated */
 
-	if(v3d->camera) {
+	if(v3d->persp==2 && v3d->camera) {
 		/* in camera view, use actual render winmat */
 		RE_GetCameraWindow(re, v3d->camera, CFRA, winmat);
 		drawview3d_render(v3d, winx, winy, winmat);

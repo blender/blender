@@ -3096,6 +3096,9 @@ void drawview3d_render(struct View3D *v3d, int winx, int winy, float winmat[][4]
 	Scene *sce;
 	float v3dwinmat[4][4];
 	
+	if(!winmat)
+		setwinmatrixview3d(winx, winy, NULL);
+
 	setviewmatrixview3d();
 	myloadmatrix(v3d->viewmat);
 
@@ -3103,8 +3106,6 @@ void drawview3d_render(struct View3D *v3d, int winx, int winy, float winmat[][4]
 	glMatrixMode(GL_PROJECTION);
 	if(winmat)
 		myloadmatrix(winmat);
-	else
-		setwinmatrixview3d(winx, winy, NULL);
 	mygetmatrix(v3dwinmat);
 	glMatrixMode(GL_MODELVIEW);
 
