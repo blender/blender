@@ -1734,13 +1734,13 @@ static void draw_pose_paths(Object *ob)
 	bPoseChannel *pchan;
 	bAction *act;
 	bActionChannel *achan;
-	CfraElem *ce;
-	ListBase ak;
+	ActKeyColumn *ak;
+	ListBase keys;
 	float *fp, *fp_start;
 	int a, stepsize;
 	int sfra, efra, len;
 	
-	if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
+	if (G.vd->zbuf) glDisable(GL_DEPTH_TEST);
 	
 	glPushMatrix();
 	glLoadMatrixf(G.vd->viewmat);
@@ -1882,30 +1882,34 @@ static void draw_pose_paths(Object *ob)
 				/* Keyframes - dots and numbers */
 				if (arm->pathflag & ARM_PATH_KFRAS) {
 					/* build list of all keyframes in active action for pchan */
-					ak.first = ak.last = NULL;	
+					keys.first = keys.last = NULL;	
 					act= ob_get_action(ob);
 					if (act) {
 						achan= get_action_channel(act, pchan->name);
 						if (achan) 
-							ipo_to_keylist(achan->ipo, &ak, NULL);
+							ipo_to_keylist(achan->ipo, &keys, NULL);
 					}
 					
-					/* Draw little yellow dots at each keyframe */
+					/* Draw slightly-larger yellow dots at each keyframe */
 					BIF_ThemeColor(TH_VERTEX_SELECT);
+					glPointSize(2.0);
+					
 					glBegin(GL_POINTS);
-					for(a=0, fp=fp_start; a<len; a++, fp+=3) {
-						for (ce= ak.first; ce; ce= ce->next) {
-							if (ce->cfra == (a+sfra))
+					for (a=0, fp=fp_start; a<len; a++, fp+=3) {
+						for (ak= keys.first; ak; ak= ak->next) {
+							if (ak->cfra == (a+sfra))
 								glVertex3fv(fp);
 						}
 					}
 					glEnd();
 					
+					glPointSize(1.0);
+					
 					/* Draw frame numbers of keyframes  */
 					if (arm->pathflag & ARM_PATH_FNUMS) {
 						for(a=0, fp=fp_start; a<len; a++, fp+=3) {
-							for (ce= ak.first; ce; ce= ce->next) {
-								if (ce->cfra == (a+sfra)) {
+							for (ak= keys.first; ak; ak= ak->next) {
+								if (ak->cfra == (a+sfra)) {
 									char str[32];
 									
 									glRasterPos3fv(fp);
@@ -1916,7 +1920,7 @@ static void draw_pose_paths(Object *ob)
 						}
 					}
 					
-					BLI_freelistN(&ak);
+					BLI_freelistN(&keys);
 				}
 			}
 		}
