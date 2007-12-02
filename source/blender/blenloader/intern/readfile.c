@@ -7585,6 +7585,10 @@ static void expand_constraints(FileData *fd, Main *mainvar, ListBase *lb)
 	bConstraint *curcon;
 
 	for (curcon=lb->first; curcon; curcon=curcon->next) {
+		
+		if (curcon->ipo)
+			expand_doit(fd, mainvar, curcon->ipo);
+		
 		switch (curcon->type) {
 		case CONSTRAINT_TYPE_NULL:
 			break;
