@@ -1318,14 +1318,14 @@ void update_editipo_flags(void)
 			for(a=0; a<G.sipo->totipo; a++) {
 				if(ik->data[a]) {
 					if(ik->flag & 1) {
-						ik->data[a]->f1 |= 1;
-						ik->data[a]->f2 |= 1;
-						ik->data[a]->f3 |= 1;
+						ik->data[a]->f1 |= SELECT;
+						ik->data[a]->f2 |= SELECT;
+						ik->data[a]->f3 |= SELECT;
 					}
 					else {
-						ik->data[a]->f1 &= ~1;
-						ik->data[a]->f2 &= ~1;
-						ik->data[a]->f3 &= ~1;
+						ik->data[a]->f1 &= ~SELECT;
+						ik->data[a]->f2 &= ~SELECT;
+						ik->data[a]->f3 &= ~SELECT;
 					}
 				}
 			}
@@ -1412,7 +1412,7 @@ static short findnearest_ipovert(IpoCurve **icu, BezTriple **bezt)
 					}
 					else temp= abs(mval[0]- sco[1][0])+ abs(mval[1]- sco[1][1]);
 
-					if( bezt1->f2 & 1) temp+=5;
+					if( bezt1->f2 & SELECT) temp+=5;
 					if(temp<dist) { 
 						hpoint= 1; 
 						*bezt= bezt1; 

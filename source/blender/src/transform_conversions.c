@@ -1206,8 +1206,13 @@ static void createTransCurveVerts(TransInfo *t)
 						VECCOPY(td->iloc, bezt->vec[0]);
 						td->loc= bezt->vec[0];
 						VECCOPY(td->center, bezt->vec[1]);
-						if(bezt->f1 & 1 || G.f & G_HIDDENHANDLES) td->flag= TD_SELECTED;
-						else td->flag= 0;
+						if (G.f & G_HIDDENHANDLES) {
+							if(bezt->f2 & SELECT) td->flag= TD_SELECTED;
+							else td->flag= 0;
+						} else {
+							if(bezt->f1 & SELECT) td->flag= TD_SELECTED;
+							else td->flag= 0;
+						}
 						td->ext = NULL;
 						td->tdi = NULL;
 						td->val = NULL;
@@ -1254,8 +1259,13 @@ static void createTransCurveVerts(TransInfo *t)
 						VECCOPY(td->iloc, bezt->vec[2]);
 						td->loc= bezt->vec[2];
 						VECCOPY(td->center, bezt->vec[1]);
-						if(bezt->f3 & SELECT || (G.f & G_HIDDENHANDLES)) td->flag= TD_SELECTED;
-						else td->flag= 0;
+						if (G.f & G_HIDDENHANDLES) {
+							if(bezt->f2 & SELECT) td->flag= TD_SELECTED;
+							else td->flag= 0;
+						} else {
+							if(bezt->f3 & SELECT) td->flag= TD_SELECTED;
+							else td->flag= 0;
+						}
 						td->ext = NULL;
 						td->tdi = NULL;
 						td->val = NULL;
