@@ -2880,10 +2880,12 @@ void flip_subdivison(int level)
 	for(base= G.scene->base.first; base; base= base->next) {
 		if(((level==-1) && (TESTBASE(base))) || (TESTBASELIB(base))) {
 			object_flip_subdivison(base->object, &set, level, mode);
+			
 			if(base->object->dup_group) {
 				GroupObject *go;
 				for(go= base->object->dup_group->gobject.first; go; go= go->next)
-					object_flip_subdivison(go->ob, &set, level, mode);
+					if( modifiers_findByType(go->ob, eModifierType_Subsurf))	/* only when exists */
+						object_flip_subdivison(go->ob, &set, level, mode);
 			}
 		}
 	}
