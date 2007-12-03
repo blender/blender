@@ -745,8 +745,8 @@ void BKE_add_image_extension(char *string, int imtype)
 		if(!BLI_testextensie(string, ".tga"))
 			extension= ".tga";
 	}
-	else if(ELEM5(imtype, R_MOVIE, R_AVICODEC, R_AVIRAW, R_AVIJPEG, R_JPEG90)) {
-		if(!BLI_testextensie(string, ".jpg"))
+	else if(ELEM6(imtype, R_MOVIE, R_AVICODEC, R_AVIRAW, R_AVIJPEG, R_JPEG90, R_FFMPEG)) {
+		if(!( BLI_testextensie(string, ".jpg") || BLI_testextensie(string, ".jpeg")))
 			extension= ".jpg";
 	}
 	else if(imtype==R_BMP) {

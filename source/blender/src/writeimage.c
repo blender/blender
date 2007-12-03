@@ -193,6 +193,7 @@ void save_image_filesel_str(char *str)
 			strcpy(str, "Save Multi Layer EXR");
 			break;
 			/* default we save jpeg, also for all movie formats */
+		case R_FFMPEG:
 		case R_JPEG90:
 		case R_MOVIE:
 		case R_AVICODEC:
