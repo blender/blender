@@ -1272,6 +1272,24 @@ void texture_rgb_blend(float *in, float *tex, float *out, float fact, float facg
 		in[2]= 1.0 - (facm+fact*(1.0-tex[2])) * (1.0-out[2]);
 		break;
 
+	case MTEX_OVERLAY:
+		fact*= facg;
+		facm= 1.0-facg;
+		
+		if(out[0] < 0.5f)
+			in[0] = out[0] * (facm + 2.0f*fact*tex[0]);
+		else
+			in[0] = 1.0f - (facm + 2.0f*fact*(1.0 - tex[0])) * (1.0 - out[0]);
+		if(out[1] < 0.5f)
+			in[1] = out[1] * (facm + 2.0f*fact*tex[1]);
+		else
+			in[1] = 1.0f - (facm + 2.0f*fact*(1.0 - tex[1])) * (1.0 - out[1]);
+		if(out[2] < 0.5f)
+			in[2] = out[2] * (facm + 2.0f*fact*tex[2]);
+		else
+			in[2] = 1.0f - (facm + 2.0f*fact*(1.0 - tex[2])) * (1.0 - out[2]);
+		break;
+		
 	case MTEX_SUB:
 		fact= -fact;
 	case MTEX_ADD:
