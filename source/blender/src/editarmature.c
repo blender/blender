@@ -3697,6 +3697,7 @@ EditBone * subdivideByAngle(ReebArc *arc, ReebNode *head, ReebNode *tail)
 		float angleLimit = (float)cos(G.scene->toolsettings->skgen_angle_limit * M_PI / 180.0f);
 		
 		parent = add_editbone("Bone");
+		parent->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
 		VECCOPY(parent->head, head->p);
 		
 		root = parent;
@@ -3721,7 +3722,7 @@ EditBone * subdivideByAngle(ReebArc *arc, ReebNode *head, ReebNode *tail)
 				child = add_editbone("Bone");
 				VECCOPY(child->head, parent->tail);
 				child->parent = parent;
-				child->flag |= BONE_CONNECTED;
+				child->flag |= BONE_CONNECTED|BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
 				
 				parent = child; /* new child is next parent */
 			}
@@ -3822,6 +3823,7 @@ EditBone * subdivideByCorrelation(ReebArc *arc, ReebNode *head, ReebNode *tail)
 		int boneStart = iter.start;
 
 		parent = add_editbone("Bone");
+		parent->flag = BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
 		VECCOPY(parent->head, head->p);
 		
 		for (previous = nextBucket(&iter), bucket = nextBucket(&iter);
@@ -3838,7 +3840,7 @@ EditBone * subdivideByCorrelation(ReebArc *arc, ReebNode *head, ReebNode *tail)
 				child = add_editbone("Bone");
 				VECCOPY(child->head, parent->tail);
 				child->parent = parent;
-				child->flag |= BONE_CONNECTED;
+				child->flag |= BONE_CONNECTED|BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
 				
 				parent = child; // new child is next parent
 				boneStart = iter.index; // start from end
@@ -3895,6 +3897,7 @@ EditBone * subdivideByLength(ReebArc *arc, ReebNode *head, ReebNode *tail)
 		int same = 0;
 		
 		parent = add_editbone("Bone");
+		parent->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
 		VECCOPY(parent->head, head->p);
 
 		initArcIterator(&iter, arc, head);
@@ -3964,7 +3967,7 @@ EditBone * subdivideByLength(ReebArc *arc, ReebNode *head, ReebNode *tail)
 				child = add_editbone("Bone");
 				VECCOPY(child->head, parent->tail);
 				child->parent = parent;
-				child->flag |= BONE_CONNECTED;
+				child->flag |= BONE_CONNECTED|BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
 				
 				parent = child; // new child is next parent
 				
@@ -4091,6 +4094,7 @@ void generateSkeletonFromReebGraph(ReebGraph *rg)
 		{
 			EditBone	*bone;
 			bone = add_editbone("Bone");
+			bone->flag |= BONE_SELECTED|BONE_TIPSEL|BONE_ROOTSEL;
 			
 			VECCOPY(bone->head, head->p);
 			VECCOPY(bone->tail, tail->p);
