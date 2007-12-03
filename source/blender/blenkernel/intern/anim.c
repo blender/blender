@@ -105,7 +105,7 @@ void calc_curvepath(Object *ob)
 	cu->path= NULL;
 	
 	bl= cu->bev.first;
-	if(bl==NULL) return;
+	if(bl==NULL || !bl->nr) return;
 
 	cu->path=path= MEM_callocN(sizeof(Path), "path");
 	
@@ -227,6 +227,7 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir)	/* returns OK
 	
 	/* test for cyclic */
 	bl= cu->bev.first;
+	if (!bl->nr) return 0;
 	if(bl && bl->poly> -1) cycl= 1;
 
 	ctime *= (path->len-1);

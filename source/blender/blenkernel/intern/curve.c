@@ -1479,7 +1479,11 @@ void makeBevelList(Object *ob)
 	else nu= cu->nurb.first;
 	
 	while(nu) {
-		if(nu->pntsu>1) {
+		if(nu->pntsu<=1) {
+			bl= MEM_callocN(sizeof(BevList)+len*sizeof(BevPoint), "makeBevelList");
+			BLI_addtail(&(cu->bev), bl);
+			bl->nr= 0;
+		} else {
 			if(G.rendering && cu->resolu_ren!=0) 
 				resolu= cu->resolu_ren;
 			else
@@ -1637,28 +1641,30 @@ void makeBevelList(Object *ob)
 	/* STEP 2: DOUBLE POINTS AND AUTOMATIC RESOLUTION, REDUCE DATABLOCKS */
 	bl= cu->bev.first;
 	while(bl) {
-		nr= bl->nr;
-		bevp1= (BevPoint *)(bl+1);
-		bevp0= bevp1+(nr-1);
-		nr--;
-		while(nr--) {
-			if( fabs(bevp0->x-bevp1->x)<0.00001 ) {
-				if( fabs(bevp0->y-bevp1->y)<0.00001 ) {
-					if( fabs(bevp0->z-bevp1->z)<0.00001 ) {
-						bevp0->f2= SELECT;
-						bl->flag++;
+		if (bl->nr) { /* null bevel items come from single points */
+			nr= bl->nr;
+			bevp1= (BevPoint *)(bl+1);
+			bevp0= bevp1+(nr-1);
+			nr--;
+			while(nr--) {
+				if( fabs(bevp0->x-bevp1->x)<0.00001 ) {
+					if( fabs(bevp0->y-bevp1->y)<0.00001 ) {
+						if( fabs(bevp0->z-bevp1->z)<0.00001 ) {
+							bevp0->f2= SELECT;
+							bl->flag++;
+						}
 					}
 				}
+				bevp0= bevp1;
+				bevp1++;
 			}
-			bevp0= bevp1;
-			bevp1++;
 		}
 		bl= bl->next;
 	}
 	bl= cu->bev.first;
 	while(bl) {
 		blnext= bl->next;
-		if(bl->flag) {
+		if(bl->nr && bl->flag) {
 			nr= bl->nr- bl->flag+1;	/* +1 because vectorbezier sets flag too */
 			blnew= MEM_mallocN(sizeof(BevList)+nr*sizeof(BevPoint), "makeBevelList");
 			memcpy(blnew, bl, sizeof(BevList));
@@ -1686,7 +1692,7 @@ void makeBevelList(Object *ob)
 	bl= cu->bev.first;
 	poly= 0;
 	while(bl) {
-		if(bl->poly>=0) {
+		if(bl->nr && bl->poly>=0) {
 			poly++;
 			bl->poly= poly;
 			bl->gat= 0;	/* 'gat' is dutch for hole */

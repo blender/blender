@@ -3949,7 +3949,7 @@ static void drawnurb(Base *base, Nurb *nurb, int dt)
 			int skip= nu->resolu/16;
 			float fac;
 			
-			while (nr-->0) {
+			while (nr-->0) { /* accounts for empty bevel lists */
 				float ox,oy,oz; // Offset perpendicular to the curve
 				float dx,dy,dz; // Delta along the curve
 
