@@ -1889,7 +1889,7 @@ static void draw_pose_paths(Object *ob)
 					
 					/* Draw slightly-larger yellow dots at each keyframe */
 					BIF_ThemeColor(TH_VERTEX_SELECT);
-					glPointSize(2.0);
+					glPointSize(5.0);
 					
 					glBegin(GL_POINTS);
 					for (a=0, fp=fp_start; a<len; a++, fp+=3) {

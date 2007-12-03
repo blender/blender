@@ -381,7 +381,7 @@ void pose_special_editmenu(void)
 	if(!ob && !ob->pose) return;
 	if(ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
 	
-	nr= pupmenu("Specials%t|Select Constraint Target%x1|Flip Left-Right Names%x2|Calculate Paths%x3|Clear All Paths%x4|Clear User Transform %x5");
+	nr= pupmenu("Specials%t|Select Constraint Target%x1|Flip Left-Right Names%x2|Calculate Paths%x3|Clear Paths%x4|Clear User Transform %x5");
 	if(nr==1) {
 		pose_select_constraint_target();
 	}
