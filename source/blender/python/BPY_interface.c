@@ -1071,10 +1071,15 @@ static int bpy_pydriver_create_dict(void)
 
 	mod = PyImport_ImportModule("math");
 	if (mod) {
+		PyDict_Merge(d, PyModule_GetDict(mod), 0); /* 0 - dont overwrite existing values */
+		
+		/* Only keep for backwards compat! - just import all math into root, they are standard */
 		PyDict_SetItemString(d, "math", mod);
 		PyDict_SetItemString(d, "m", mod);
 		Py_DECREF(mod);
-	}
+	} 
+	
+	
 
 	mod = PyImport_ImportModule("Blender.Noise");
 	if (mod) {
