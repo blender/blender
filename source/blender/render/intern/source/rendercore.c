@@ -1266,8 +1266,6 @@ static void shade_sample_sss(ShadeSample *ssamp, Material *mat, VlakRen *vlr, in
 	*area= VecLength(shi->dxco)*VecLength(shi->dyco);
 	*area= MIN2(*area, 2.0f*orthoarea);
 
-	shi->osatex= 0;
-
 	shade_input_set_uv(shi);
 	shade_input_set_normals(shi);
 
