@@ -289,7 +289,7 @@ void pose_calculate_path(Object *ob)
 		}
 		
 		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-			if (pchan->bone && (pchan->bone->flag & BONE_SELECTED)) {
+			if ((pchan->bone) && (pchan->bone->flag & BONE_SELECTED)) {
 				if (arm->layer & pchan->bone->layer) {
 					if (pchan->path) {
 						fp= pchan->path+3*(CFRA-sfra);
@@ -315,6 +315,90 @@ void pose_calculate_path(Object *ob)
 	allqueue(REDRAWBUTSEDIT, 0);
 }
 
+/* For the object with pose/action: update paths for those that have got them
+ * This should selectively update paths that exist...
+ */
+void pose_recalculate_paths(Object *ob)
+{
+	bArmature *arm;
+	bPoseChannel *pchan;
+	Base *base;
+	float *fp;
+	int cfra;
+	int sfra, efra;
+	
+	if (ob==NULL || ob->pose==NULL)
+		return;
+	arm= ob->data;
+	
+	/* set frame values */
+	cfra = CFRA;
+	sfra = efra = cfra; 
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if ((pchan->bone) && (arm->layer & pchan->bone->layer)) {
+			if (pchan->path) {
+				/* if the pathsf and pathef aren't initialised, abort! */
+				if (ELEM(0, pchan->pathsf, pchan->pathef))	
+					return;
+				
+				/* try to increase area to do (only as much as needed) */
+				sfra= MIN2(sfra, pchan->pathsf);
+				efra= MAX2(efra, pchan->pathef);
+			}
+		}
+	}
+	if (efra <= sfra) return;
+	
+	waitcursor(1);
+	
+	/* hack: for unsaved files, set OB_RECALC so that paths can get calculated */
+	if ((ob->recalc & OB_RECALC)==0) {
+		ob->recalc |= OB_RECALC;
+		DAG_object_update_flags(G.scene, ob, screen_view3d_layers());
+	}
+	else
+		DAG_object_update_flags(G.scene, ob, screen_view3d_layers());
+	
+	for (CFRA=sfra; CFRA<=efra; CFRA++) {
+		/* do all updates */
+		for (base= FIRSTBASE; base; base= base->next) {
+			if (base->object->recalc) {
+				int temp= base->object->recalc;
+				object_handle_update(base->object);
+				base->object->recalc= temp;
+			}
+		}
+		
+		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+			if ((pchan->bone) && (arm->layer & pchan->bone->layer)) {
+				if (pchan->path) {
+					/* only update if:
+					 *	- in range of this pchan's existing path
+					 *	- ... insert evil filtering/optimising conditions here...
+					 */
+					if (IN_RANGE(CFRA, pchan->pathsf, pchan->pathef)) {
+						fp= pchan->path+3*(CFRA-sfra);
+						
+						if (arm->pathflag & ARM_PATH_HEADS) { 
+							VECCOPY(fp, pchan->pose_head);
+						}
+						else {
+							VECCOPY(fp, pchan->pose_tail);
+						}
+						
+						Mat4MulVecfl(ob->obmat, fp);
+					}
+				}
+			}
+		}
+	}
+	
+	waitcursor(0);
+	
+	CFRA= cfra;
+	allqueue(REDRAWVIEW3D, 0);	/* recalc tags are still there */
+	allqueue(REDRAWBUTSEDIT, 0);
+}
 
 /* for the object with pose/action: clear path curves for selected bones only */
 void pose_clear_paths(Object *ob)

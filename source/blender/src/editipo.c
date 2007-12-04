@@ -3275,7 +3275,7 @@ void common_insertkey(void)
 			/* recalculate bone-paths on adding new keyframe? */
 			// TODO: currently, there is no setting to turn this on/off globally
 			if (recalc_bonepaths)
-				pose_calculate_path(ob);
+				pose_recalculate_paths(ob);
 			
 			
 			allqueue(REDRAWIPO, 0);
