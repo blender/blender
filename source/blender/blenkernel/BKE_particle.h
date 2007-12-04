@@ -54,6 +54,7 @@ struct MVert;
 struct IpoCurve;
 struct LinkNode;
 struct KDTree;
+struct RNG;
 
 typedef struct ParticleEffectorCache {
 	struct ParticleEffectorCache *next, *prev;
@@ -148,6 +149,42 @@ typedef struct ParticleEdit{
 	int totkeys;
 } ParticleEdit;
 
+typedef struct ParticleThreadContext {
+	/* shared */
+	struct Object *ob;
+	struct DerivedMesh *dm;
+	struct ParticleSystemModifierData *psmd;
+	struct ParticleSystem *psys;
+	struct Material *ma;
+
+	/* distribution */
+	struct KDTree *tree;
+
+	struct ParticleSeam *seams;
+	int totseam;
+
+	float *jit, *jitoff, *weight;
+	float maxweight;
+	int *index, jitlevel;
+
+	int from, cfrom, distr;
+
+	/* path caching */
+	int editupdate, between, steps;
+	int totchild, totparent;
+
+	float cfra;
+
+	float *vg_length, *vg_clump, *vg_kink;
+	float *vg_rough1, *vg_rough2, *vg_roughe;
+} ParticleThreadContext;
+
+typedef struct ParticleThread {
+	ParticleThreadContext *ctx;
+	struct RNG *rng, *rng_path;
+	int num, tot;
+} ParticleThread;
+
 /* ----------- functions needed outside particlesystem ---------------- */
 /* particle.c */
 int count_particles(struct ParticleSystem *psys);
@@ -170,6 +207,7 @@ int psys_in_edit_mode(struct ParticleSystem *psys);
 void psys_free_settings(struct ParticleSettings *part);
 void free_child_path_cache(struct ParticleSystem *psys);
 void psys_free_path_cache(struct ParticleSystem *psys);
+void psys_free_render_memory(struct Object *ob, struct ParticleSystem *psys);
 void free_hair(struct ParticleSystem *psys);
 void free_keyed_keys(struct ParticleSystem *psys);
 void psys_free(struct Object * ob, struct ParticleSystem * psys);
@@ -195,10 +233,18 @@ void psys_cache_child_paths(struct Object *ob, struct ParticleSystem *psys, floa
 int do_guide(struct ParticleKey *state, int pa_num, float time, struct ListBase *lb);
 float psys_get_size(struct Object *ob, struct Material *ma, struct ParticleSystemModifierData *psmd, struct IpoCurve *icu_size, struct ParticleSystem *psys, struct ParticleSettings *part, struct ParticleData *pa, float *vg_size);
 float psys_get_timestep(struct ParticleSettings *part);
-float psys_get_child_time(struct ParticleSystem *psys, int child_nbr, float cfra);
-float psys_get_child_size(struct ParticleSystem *psys, int child_nbr, float cfra, float *pa_time);
+float psys_get_child_time(struct ParticleSystem *psys, struct ChildParticle *cpa, float cfra);
+float psys_get_child_size(struct ParticleSystem *psys, struct ChildParticle *cpa, float cfra, float *pa_time);
 void psys_get_particle_on_path(struct Object *ob, struct ParticleSystem *psys, int pa_num, struct ParticleKey *state, int vel);
 int psys_get_particle_state(struct Object *ob, struct ParticleSystem *psys, int p, struct ParticleKey *state, int always);
+
+ParticleThread *psys_threads_create(struct Object *ob, struct ParticleSystem *psys, int totthread);
+int psys_threads_init_distribution(ParticleThread *threads, struct DerivedMesh *dm, int from);
+int psys_threads_init_path(ParticleThread *threads, float cfra, int editupdate);
+void psys_threads_free(ParticleThread *threads);
+
+void psys_thread_distribute_particle(ParticleThread *thread, struct ParticleData *pa, struct ChildParticle *cpa, int p);
+void psys_thread_create_path(ParticleThread *thread, struct ChildParticle *cpa, ParticleCacheKey *keys, int i);
 
 /* particle_system.c */
 int psys_count_keyed_targets(struct Object *ob, struct ParticleSystem *psys);

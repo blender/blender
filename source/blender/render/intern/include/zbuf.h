@@ -50,6 +50,7 @@ void set_part_zbuf_clipflag(struct RenderPart *pa);
 void zbuffer_shadow(struct Render *re, struct LampRen *lar, int *rectz, int size, float jitx, float jity);
 void zbuffer_solid(struct RenderPart *pa, unsigned int layer, short layflag);
 unsigned short *zbuffer_transp_shade(struct RenderPart *pa, struct RenderLayer *rl, float *pass);
+unsigned short *zbuffer_strands_shade(struct Render *re, struct RenderPart *pa, struct RenderLayer *rl, float *pass);
 void convert_zbuf_to_distbuf(struct RenderPart *pa, struct RenderLayer *rl);
 void zbuffer_sss(RenderPart *pa, unsigned int lay, void *handle, void (*func)(void *, int, int, int, int));
 

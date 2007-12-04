@@ -1212,13 +1212,35 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 	lacol[2]= lar->b;
 	
 	if(lar->mode & LA_TEXTURE)  do_lamp_tex(lar, lv, shi, lacol);
-	
-	/* tangent case; calculate fake face normal, aligned with lampvector */	
-	/* note, vnor==vn is used as tangent trigger for buffer shadow */
+
+		/* tangent case; calculate fake face normal, aligned with lampvector */	
+		/* note, vnor==vn is used as tangent trigger for buffer shadow */
 	if(vlr->flag & R_TANGENT) {
-		float cross[3];
-		Crossf(cross, lv, vn);
-		Crossf(vnor, cross, vn);
+		float cross[3], nstrand[3], blend;
+
+		if(ma->mode & MA_STR_SURFDIFF) {
+			Crossf(cross, shi->surfnor, vn);
+			Crossf(nstrand, vn, cross);
+
+			blend= INPR(nstrand, shi->surfnor);
+			CLAMP(blend, 0.0f, 1.0f);
+
+			VecLerpf(vnor, nstrand, shi->surfnor, blend);
+			Normalize(vnor);
+		}
+		else {
+			Crossf(cross, lv, vn);
+			Crossf(vnor, cross, vn);
+		}
+
+		if(ma->strand_surfnor > 0.0f) {
+			if(ma->strand_surfnor > shi->surfdist) {
+				blend= (ma->strand_surfnor - shi->surfdist)/ma->strand_surfnor;
+				VecLerpf(vnor, vnor, shi->surfnor, blend);
+				Normalize(vnor);
+			}
+		}
+
 		vnor[0]= -vnor[0];vnor[1]= -vnor[1];vnor[2]= -vnor[2];
 		vn= vnor;
 	}

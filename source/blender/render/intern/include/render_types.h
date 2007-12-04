@@ -48,6 +48,7 @@ struct MemArena;
 struct VertTableNode;
 struct VlakTableNode;
 struct GHash;
+struct RenderBuckets;
 
 #define TABLEINITSIZE 1024
 #define LAMPINITSIZE 256
@@ -159,7 +160,7 @@ struct Render
 	float cfra;	
 	
 	/* render database */
-	int totvlak, totvert, tothalo, totlamp;
+	int totvlak, totvert, tothalo, totstrand, totlamp;
 	ListBase lights;	/* GroupObject pointers */
 	ListBase lampren;	/* storage, for free */
 	
@@ -167,9 +168,13 @@ struct Render
 	struct VertTableNode *vertnodes;
 	int vlaknodeslen;
 	struct VlakTableNode *vlaknodes;
+	int strandnodeslen;
+	struct StrandTableNode *strandnodes;
 	int blohalen;
 	struct HaloRen **bloha;
 	ListBase objecttable;
+	ListBase strandbufs;
+	struct RenderBuckets *strandbuckets;
 
 	struct Image *backbuf, *bakebuf;
 	
@@ -234,7 +239,7 @@ typedef struct ShadBuf {
 typedef struct ObjectRen {
 	struct ObjectRen *next, *prev;
 	struct Object *ob, *par;
-	int index, startvert, endvert, startface, endface;
+	int index, startvert, endvert, startface, endface, startstrand, endstrand;
 	float *vectors;
 } ObjectRen;
 
@@ -296,6 +301,36 @@ typedef struct HaloRen
     unsigned int lay;
     struct Material *mat;
 } HaloRen;
+
+typedef struct StrandVert {
+	float co[3];
+	float strandco;
+} StrandVert;
+
+typedef struct StrandBuffer {
+	struct StrandBuffer *next, *prev;
+	struct StrandVert *vert;
+	int totvert;
+
+	struct Object *ob;
+	struct Material *ma;
+	unsigned int lay;
+	int overrideuv;
+	int flag, maxdepth;
+	float adaptcos;
+
+	float winmat[4][4];
+	int winx, winy;
+} StrandBuffer;
+
+typedef struct StrandRen {
+	StrandVert *vert;
+	StrandBuffer *buffer;
+	int totvert, flag;
+	int clip, index;
+	float orco[3];
+} StrandRen;
+
 
 struct LampRen;
 struct MTex;
@@ -417,6 +452,9 @@ typedef struct LampRen {
 #define R_SNPROJ_Z		4
 #define R_FLIPPED_NO	8
 
+/* strandbuffer->flag */
+#define R_STRAND_BSPLINE	1
+#define R_STRAND_B_UNITS	2
 
 
 #endif /* RENDER_TYPES_H */

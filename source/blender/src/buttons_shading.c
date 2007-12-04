@@ -3852,25 +3852,30 @@ static uiBlock *strand_menu(void *mat_v)
 {
 	Material *ma= mat_v;
 	uiBlock *block;
-	
+
 	block= uiNewBlock(&curarea->uiblocks, "strand menu", UI_EMBOSS, UI_HELV, curarea->win);
 	
 	/* use this for a fake extra empy space around the buttons */
-	uiDefBut(block, LABEL, 0, "", 0, 0, 250, 120, NULL,  0, 0, 0, 0, "");
-	
+	uiDefBut(block, LABEL, 0, "", 0, 0, 250, 170, NULL,  0, 0, 0, 0, "");
+  	
+  	uiBlockBeginAlign(block);
+  					/* event return 0, to prevent menu to close */
+ 
+	uiDefButBitI(block, TOG, MA_TANGENT_STR, 0,	"Use Tangent Shading",	10,140,230,20, &(ma->mode), 0, 0, 0, 0, "Uses direction of strands as normal for tangent-shading");
+	uiDefButBitI(block, TOG, MA_STR_SURFDIFF, 0, "Surface Diffuse",	10,120,115,20, &(ma->mode), 0, 0, 0, 0, "Make diffuse shading more similar to shading the surface");
+	uiDefButF(block, NUM, 0, "Dist", 125,120,115,20, &ma->strand_surfnor, 0.0f, 10.0f, 2, 0, "Distance in Blender units over which to blend in the surface normal");
+ 
 	uiBlockBeginAlign(block);
-					/* event return 0, to prevent menu to close */
-	uiDefButBitI(block, TOG, MA_TANGENT_STR, 0,	"Use Tangent Shading",	10,90,115,20, &(ma->mode), 0, 0, 0, 0, "Uses direction of strands as normal for tangent-shading");
-	uiDefButBitI(block, TOG, MA_STR_B_UNITS, 0,	"Use Blender Units",	125,90,115,20, &(ma->mode), 0, 0, 0, 0, "Use actual Blender units for widths instead of pixels");
-	if(ma->mode & MA_STR_B_UNITS){
-		uiDefButF(block, NUMSLI, 0, "Start ",	10, 70, 230,20,   &ma->strand_sta, 0.0001, 2.0, 2, 0, "Start size of strands in Blender units");
-		uiDefButF(block, NUMSLI, 0, "End ",		10, 50, 230,20,  &ma->strand_end, 0.0001, 1.0, 2, 0, "End size of strands in Blender units");
-	}
-	else{
-		uiDefButF(block, NUMSLI, 0, "Start ",	10, 70, 230,20,   &ma->strand_sta, 0.25, 20.0, 2, 0, "Start size of strands in pixels");
-		uiDefButF(block, NUMSLI, 0, "End ",		10, 50, 230,20,  &ma->strand_end, 0.25, 10.0, 2, 0, "End size of strands in pixels");
-	}
-	uiDefButF(block, NUMSLI, 0, "Shape ",	10, 30, 230,20,  &ma->strand_ease, -0.9, 0.9, 2, 0, "Shape of strands, positive value makes it rounder, negative makes it spiky");
+	uiDefButBitI(block, TOG, MA_STR_B_UNITS, 0,	"Use Blender Units", 10,95,230,20, &(ma->mode), 0, 0, 0, 0, "Use actual Blender units for widths instead of pixels");
+  	if(ma->mode & MA_STR_B_UNITS){
+		uiDefButF(block, NUMSLI, 0, "Start ",	10, 75, 230,20,   &ma->strand_sta, 0.01, 20.0, 2, 0, "Start size of strands in Blender units");
+		uiDefButF(block, NUMSLI, 0, "End ",		10, 55, 230,20,  &ma->strand_end, 0.01, 10.0, 2, 0, "End size of strands in Blender units");
+  	}
+  	else{
+		uiDefButF(block, NUMSLI, 0, "Start ",	10, 75, 230,20,   &ma->strand_sta, 0.25, 20.0, 2, 0, "Start size of strands in pixels");
+		uiDefButF(block, NUMSLI, 0, "End ",		10, 55, 230,20,  &ma->strand_end, 0.25, 10.0, 2, 0, "End size of strands in pixels");
+  	}
+	uiDefButF(block, NUMSLI, 0, "Shape ",	10, 35, 230,20,  &ma->strand_ease, -0.9, 0.9, 2, 0, "Shape of strands, positive value makes it rounder, negative makes it spiky");
 	uiDefBut(block, TEX, B_MATPRV, "UV:", 10,10,230,20, ma->strand_uvname, 0, 31, 0, 0, "Set name of UV layer to override");
 
 	uiBlockSetDirection(block, UI_TOP);

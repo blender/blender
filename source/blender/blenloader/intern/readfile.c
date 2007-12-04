@@ -6671,6 +6671,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Image *ima;
 		Lamp *la;
 		Material *ma;
+		ParticleSettings *part;
 		
 		/* unless the file was created 2.44.3 but not 2.45, update the constraints */
 		if ( !(main->versionfile==244 && main->subversionfile==3) &&
@@ -6833,7 +6834,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ma->fadeto_mir = MA_RAYMIR_FADETOSKY;
 			}
 		}
-		
+
+		for(part=main->particle.first; part; part=part->id.next)
+			if(part->ren_child_nbr==0)
+				part->ren_child_nbr= part->child_nbr;
 	}
 
 	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 2)) {
@@ -7075,7 +7079,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 				/* convert settings from old particle system */
 				/* general settings */
-				part->totpart = paf->totpart;
+				part->totpart = MIN2(paf->totpart, 100000);
 				part->sta = paf->sta;
 				part->end = paf->end;
 				part->lifetime = paf->lifetime;
@@ -7149,7 +7153,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 
-
 		for(sce= main->scene.first; sce; sce=sce->id.next) {
 			ParticleEditSettings *pset= &sce->toolsettings->particle;
 			int a;
@@ -7184,11 +7187,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	
 	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 10)) {
 		Object *ob;
-		/* dupliface scale */
-		for(ob= main->object.first; ob; ob= ob->id.next) {
-			ob->dupfacesca = 1.0f;
-		}
 
+		/* dupliface scale */
+		for(ob= main->object.first; ob; ob= ob->id.next)
+			ob->dupfacesca = 1.0f;
 	}
 
 	

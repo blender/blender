@@ -3489,7 +3489,7 @@ void createTransData(TransInfo *t)
 			createTransPose(t, base->object);
 		}
 	}
-	else if (G.f & G_PARTICLEEDIT) {
+	else if (G.f & G_PARTICLEEDIT && PE_can_edit(PE_get_current(ob))) {
 		createTransParticleVerts(t);
 
 		if(t->data && t->flag & T_PROP_EDIT) {

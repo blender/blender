@@ -3030,7 +3030,7 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys)
 
 	psys->flag|=PSYS_DRAWING;
 
-	if(part->flag&PART_CHILD_RENDER || !psys->childcache)
+	if(!psys->childcache)
 		totchild=0;
 	else
 		totchild=psys->totchild*part->disp/100;
@@ -3200,16 +3200,18 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys)
 				}
 			}
 			else{
-				pa_time=psys_get_child_time(psys,a-totpart,cfra);
+				ChildParticle *cpa= &psys->child[a-totpart];
+
+				pa_time=psys_get_child_time(psys,cpa,cfra);
 
 				if((part->flag&PART_ABS_TIME)==0 && part->ipo){
 					calc_ipo(part->ipo, 100*pa_time);
 					execute_ipo((ID *)part, part->ipo);
 				}
 
-				pa_size=psys_get_child_size(psys,a-totpart,cfra,0);
+				pa_size=psys_get_child_size(psys,cpa,cfra,0);
 
-				r_tilt=2.0f*psys->child[a-totpart].rand[2];
+				r_tilt=2.0f*cpa->rand[2];
 				if(path_nbr){
 					cache=psys->childcache[a-totpart];
 					k_max=(int)(cache->steps);

@@ -640,7 +640,7 @@ static void new_particle_duplilist(ListBase *lb, Scene *sce, Object *par, Partic
 				pa_num = a;
 				pa_time = psys->particles[psys->child[a - totpart].parent].time;
 
-				size=psys_get_child_size(psys, a - totpart, ctime, 0);
+				size=psys_get_child_size(psys, &psys->child[a - totpart], ctime, 0);
 			}
 
 			if(part->draw_as==PART_DRAW_GR) {
@@ -783,7 +783,7 @@ ListBase *object_duplilist(Scene *sce, Object *ob)
 {
 	ListBase *duplilist= MEM_mallocN(sizeof(ListBase), "duplilist");
 	duplilist->first= duplilist->last= NULL;
-	
+
 	if(ob->transflag & OB_DUPLI) {
 		if(ob->transflag & OB_DUPLIPARTS) {
 			ParticleSystem *psys = ob->particlesystem.first;
@@ -808,7 +808,7 @@ ListBase *object_duplilist(Scene *sce, Object *ob)
 			DupliObject *dob;
 			
 			group_duplilist(duplilist, ob, 0); /* now recursive */
-			
+
 			/* make copy already, because in group dupli's deform displists can be makde, requiring parent matrices */
 			for(dob= duplilist->first; dob; dob= dob->next)
 				Mat4CpyMat4(dob->ob->obmat, dob->mat);

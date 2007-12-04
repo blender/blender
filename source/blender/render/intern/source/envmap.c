@@ -156,6 +156,9 @@ static Render *envmap_render_copy(Render *re, EnvMap *env)
 	envre->bloha= re->bloha;
 	envre->vlaknodeslen= re->vlaknodeslen;
 	envre->vlaknodes= re->vlaknodes;
+	envre->strandnodeslen= re->strandnodeslen;
+	envre->strandnodes= re->strandnodes;
+	envre->strandbuckets= re->strandbuckets;
 	envre->customdata_names= re->customdata_names;
 	envre->raytree= re->raytree;
 	
@@ -176,6 +179,9 @@ static void envmap_free_render_copy(Render *envre)
 	envre->bloha= NULL;
 	envre->vlaknodeslen= 0;
 	envre->vlaknodes= NULL;
+	envre->strandnodeslen= 0;
+	envre->strandnodes= NULL;
+	envre->strandbuckets= NULL;
 	envre->customdata_names.first= envre->customdata_names.last= NULL;
 	envre->raytree= NULL;
 	
@@ -403,7 +409,7 @@ static void render_envmap(Render *re, EnvMap *env)
 		
 		env_rotate_scene(envre, tmat, 1);
 		init_render_world(envre);
-		project_renderdata(envre, projectverto, 0, 0);
+		project_renderdata(envre, projectverto, 0, 0, 1);
 		env_layerflags(envre, env->notlay);
 		env_hideobject(envre, env->object);
 		env_set_imats(envre);

@@ -81,6 +81,7 @@ typedef struct RenderLayer {
 	
 	float *rectf;		/* 4 float, standard rgba buffer (read not above!) */
 	float *acolrect;	/* 4 float, optional transparent buffer, needs storage for display updates */
+	float *scolrect;	/* 4 float, optional strand buffer, needs storage for display updates */
 	
 	ListBase passes;
 	
@@ -121,7 +122,7 @@ typedef struct RenderResult {
 } RenderResult;
 
 typedef struct RenderStats {
-	int totface, totvert, tothalo, totlamp, totpart;
+	int totface, totvert, totstrand, tothalo, totlamp, totpart;
 	short curfield, curblur, curpart, partsdone, convertdone;
 	double starttime, lastframetime;
 	char *infostr;

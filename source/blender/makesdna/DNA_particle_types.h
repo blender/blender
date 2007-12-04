@@ -134,9 +134,9 @@ typedef struct ParticleSettings {
 	/* global physical properties */
 	float acc[3], dragfac, brownfac, dampfac;
 	/* length */
-	float length, abslength, randlength;
+	float length, abslength, randlength, pad;
 	/* children */
-	int child_nbr;
+	int child_nbr, ren_child_nbr;
 	float parents, childsize, childrandsize;
 	float childrad, childflat, childspread;
 	/* clumping */
@@ -204,7 +204,7 @@ typedef struct ParticleSystem{
 /* no special why's, just seem reasonable */
 /* changing these (atleast upwards) should not cause any major problems */
 #define MAX_PARTS			100000	/* real particles/system */
-#define MAX_PART_CHILDREN	1000	/* child particles/real particles */
+#define MAX_PART_CHILDREN	10000	/* child particles/real particles */
 #define MAX_BOIDNEIGHBOURS	10		/* neigbours considered/boid */
 
 /* part->type */
@@ -299,9 +299,10 @@ typedef struct ParticleSystem{
 #define PART_DRAW_NUM		512
 #define PART_DRAW_RAND_GR	1024
 #define PART_DRAW_REN_ADAPT	2048
-#define PART_DRAW_VEL_LENGTH (1<<12)
-#define PART_DRAW_MAT_COL	(1<<13)
-#define PART_DRAW_WHOLE_GR	(1<<14)
+#define PART_DRAW_VEL_LENGTH	(1<<12)
+#define PART_DRAW_MAT_COL		(1<<13)
+#define PART_DRAW_WHOLE_GR		(1<<14)
+#define PART_DRAW_REN_STRAND	(1<<15)
 
 /* part->bb_align */
 #define PART_BB_X		0

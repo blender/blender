@@ -39,8 +39,8 @@
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
-#include "BLI_threads.h"
 #include "BLI_jitter.h"
+#include "BLI_threads.h"
 
 #include "MTC_matrixops.h"
 #include "MEM_guardedalloc.h"
@@ -69,6 +69,7 @@
 #include "shadbuf.h"
 #include "shading.h"
 #include "sss.h"
+#include "strand.h"
 
 /* own includes */
 #include "zbuf.h"
@@ -861,7 +862,7 @@ static int clipline(float *v1, float *v2)	/* return 0: do not draw */
 	return 0;
 }
 
-static void hoco_to_zco(ZSpan *zspan, float *zco, float *hoco)
+void hoco_to_zco(ZSpan *zspan, float *zco, float *hoco)
 {
 	float div;
 	
@@ -975,6 +976,34 @@ void zbufclipwire(ZSpan *zspan, int zvlnr, VlakRen *vlr)
 	if(ec & ME_V1V2)  zspan->zbuflinefunc(zspan, zvlnr, vez, vez+4);
 	if(ec & ME_V2V3)  zspan->zbuflinefunc(zspan, zvlnr, vez+4, vez+8);
 
+}
+
+void zbufsinglewire(ZSpan *zspan, int zvlnr, float *ho1, float *ho2)
+{
+	float f1[4], f2[4];
+	int c1, c2;
+
+	c1= testclip(ho1);
+	c2= testclip(ho2);
+
+	if(c1 | c2) {	/* not in the middle */
+		if(!(c1 & c2)) {	/* not out completely */
+			QUATCOPY(f1, ho1);
+			QUATCOPY(f2, ho2);
+
+			if(clipline(f1, f2)) {
+				hoco_to_zco(zspan, f1, f1);
+				hoco_to_zco(zspan, f2, f2);
+				zspan->zbuflinefunc(zspan, zvlnr, f1, f2);
+			}
+		}
+	}
+	else {
+		hoco_to_zco(zspan, f1, ho1);
+		hoco_to_zco(zspan, f2, ho2);
+
+		zspan->zbuflinefunc(zspan, zvlnr, f1, f2);
+	}
 }
 
 /**
@@ -1312,7 +1341,105 @@ static void zbuffillGL_onlyZ(ZSpan *zspan, int zvlnr, float *v1, float *v2, floa
 }
 
 /* 2d scanconvert for tria, calls func for each x,y coordinate and gives UV barycentrics */
-/* zspan should be initialized, has rect size and span buffers */
+void zspan_scanconvert_strand(ZSpan *zspan, void *handle, float *v1, float *v2, float *v3, void (*func)(void *, int, int, float, float, float) )
+{
+	float x0, y0, x1, y1, x2, y2, z0, z1, z2, z;
+	float u, v, uxd, uyd, vxd, vyd, uy0, vy0, zxd, zyd, zy0, xx1;
+	float *span1, *span2;
+	int x, y, sn1, sn2, rectx= zspan->rectx, my0, my2;
+	
+	/* init */
+	zbuf_init_span(zspan);
+	
+	/* set spans */
+	zbuf_add_to_span(zspan, v1, v2);
+	zbuf_add_to_span(zspan, v2, v3);
+	zbuf_add_to_span(zspan, v3, v1);
+	
+	/* clipped */
+	if(zspan->minp2==NULL || zspan->maxp2==NULL) return;
+	
+	if(zspan->miny1 < zspan->miny2) my0= zspan->miny2; else my0= zspan->miny1;
+	if(zspan->maxy1 > zspan->maxy2) my2= zspan->maxy2; else my2= zspan->maxy1;
+	
+	//	printf("my %d %d\n", my0, my2);
+	if(my2<my0) return;
+	
+	/* ZBUF DX DY, in floats still */
+	x1= v1[0]- v2[0];
+	x2= v2[0]- v3[0];
+	y1= v1[1]- v2[1];
+	y2= v2[1]- v3[1];
+	z1= v1[2]- v2[2];
+	z2= v2[2]- v3[2];
+
+	x0= y1*z2-z1*y2;
+	y0= z1*x2-x1*z2;
+	z0= x1*y2-y1*x2;
+	
+	if(z0==0.0f) return;
+
+	xx1= (x0*v1[0] + y0*v1[1])/z0 + v1[2];
+	zxd= -(double)x0/(double)z0;
+	zyd= -(double)y0/(double)z0;
+	zy0= ((double)my2)*zyd + (double)xx1;
+	
+	z1= 1.0f; // (u1 - u2)
+	z2= 0.0f; // (u2 - u3)
+
+	x0= y1*z2-z1*y2;
+	y0= z1*x2-x1*z2;
+	
+	xx1= (x0*v1[0] + y0*v1[1])/z0 + 1.0f;	
+	uxd= -(double)x0/(double)z0;
+	uyd= -(double)y0/(double)z0;
+	uy0= ((double)my2)*uyd + (double)xx1;
+
+	z1= -1.0f; // (v1 - v2)
+	z2= 1.0f;  // (v2 - v3)
+	
+	x0= y1*z2-z1*y2;
+	y0= z1*x2-x1*z2;
+	
+	xx1= (x0*v1[0] + y0*v1[1])/z0;
+	vxd= -(double)x0/(double)z0;
+	vyd= -(double)y0/(double)z0;
+	vy0= ((double)my2)*vyd + (double)xx1;
+	
+	/* correct span */
+	sn1= (my0 + my2)/2;
+	if(zspan->span1[sn1] < zspan->span2[sn1]) {
+		span1= zspan->span1+my2;
+		span2= zspan->span2+my2;
+	}
+	else {
+		span1= zspan->span2+my2;
+		span2= zspan->span1+my2;
+	}
+	
+	for(y=my2; y>=my0; y--, span1--, span2--) {
+		
+		sn1= floor(*span1);
+		sn2= floor(*span2);
+		sn1++; 
+		
+		if(sn2>=rectx) sn2= rectx-1;
+		if(sn1<0) sn1= 0;
+		
+		u= (double)sn1*uxd + uy0;
+		v= (double)sn1*vxd + vy0;
+		z= (double)sn1*zxd + zy0;
+		
+		for(x= sn1; x<=sn2; x++, u+=uxd, v+=vxd, z+=zxd)
+			func(handle, x, y, u, v, z);
+		
+		uy0 -= uyd;
+		vy0 -= vyd;
+		zy0 -= zyd;
+	}
+}
+
+/* scanconvert for strand triangles, calls func for each x,y coordinate and gives UV barycentrics and z */
 
 void zspan_scanconvert(ZSpan *zspan, void *handle, float *v1, float *v2, float *v3, void (*func)(void *, int, int, float, float) )
 {
@@ -1957,7 +2084,10 @@ void zbuffer_shadow(Render *re, LampRen *lar, int *rectz, int size, float jitx, 
 	ZSpan zspan;
 	VlakRen *vlr= NULL;
 	Material *ma= NULL;
-	int a, ok=1, lay= -1;
+	StrandSegment sseg;
+	StrandRen *strand= NULL;
+	StrandVert *svert;
+	int a, b, ok=1, lay= -1;
 
 	if(lar->mode & LA_LAYER) lay= lar->lay;
 
@@ -2002,6 +2132,39 @@ void zbuffer_shadow(Render *re, LampRen *lar, int *rectz, int size, float jitx, 
 			}
 		}
 	}
+
+	/* shadow */
+	for(a=0; a<re->totstrand; a++) {
+		if((a & 255)==0) strand= re->strandnodes[a>>8].strand;
+		else strand++;
+
+		if(strand->clip)
+			continue;
+
+		sseg.buffer= strand->buffer;
+		sseg.sqadaptcos= sseg.buffer->adaptcos;
+		sseg.sqadaptcos *= sseg.sqadaptcos;
+		sseg.strand= strand;
+		svert= strand->vert;
+
+		/* note, these conditions are copied in shadowbuf_autoclip() */
+		if(sseg.buffer->ma!= ma) {
+			ma= sseg.buffer->ma;
+			ok= 1;
+			if((ma->mode & MA_SHADBUF)==0) ok= 0;
+		}
+
+		if(ok && (sseg.buffer->lay & lay)) {
+			for(b=0; b<strand->totvert-1; b++, svert++) {
+				sseg.v[0]= (b > 0)? (svert-1): svert;
+				sseg.v[1]= svert;
+				sseg.v[2]= svert+1;
+				sseg.v[3]= (b < strand->totvert-2)? svert+2: svert+1;
+
+				render_strand_segment(re, NULL, &zspan, &sseg);
+			}
+		}
+	}
 	
 	/* merge buffers */
 	if(lar->buftype==LA_SHADBUF_HALFWAY) {
@@ -2019,7 +2182,6 @@ static void zbuffill_sss(ZSpan *zspan, int zvlnr, float *v1, float *v2, float *v
 	double zxd, zyd, zy0, z;
 	float x0, y0, x1, y1, x2, y2, z0, z1, z2, xx1, *span1, *span2;
 	int x, y, sn1, sn2, rectx= zspan->rectx, my0, my2;
-	
 	/* init */
 	zbuf_init_span(zspan);
 	
@@ -2824,7 +2986,7 @@ static int zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, un
 /* speed pointer NULL = sky, we clear */
 /* else if either alpha is full or no solid was filled in: copy speed */
 /* else fill in minimum speed */
-static void add_transp_speed(RenderLayer *rl, int offset, float *speed, float alpha, long *rdrect)
+void add_transp_speed(RenderLayer *rl, int offset, float *speed, float alpha, long *rdrect)
 {
 	RenderPass *rpass;
 	
@@ -2852,7 +3014,6 @@ static void add_transp_speed(RenderLayer *rl, int offset, float *speed, float al
 					fp[2]= speed[2];
 					fp[3]= speed[3];
 				}
-				
 			}
 			break;
 		}
@@ -2877,7 +3038,7 @@ static void add_transp_obindex(RenderLayer *rl, int offset, int facenr)
 
 /* ONLY OSA! merge all shaderesult samples to one */
 /* target should have been cleared */
-static void merge_transp_passes(RenderLayer *rl, ShadeResult *shr)
+void merge_transp_passes(RenderLayer *rl, ShadeResult *shr)
 {
 	RenderPass *rpass;
 	float weight= 1.0f/((float)R.osa);
@@ -2961,7 +3122,7 @@ static void merge_transp_passes(RenderLayer *rl, ShadeResult *shr)
 				
 }
 
-static void add_transp_passes(RenderLayer *rl, int offset, ShadeResult *shr, float alpha)
+void add_transp_passes(RenderLayer *rl, int offset, ShadeResult *shr, float alpha)
 {
 	RenderPass *rpass;
 	
@@ -3113,11 +3274,11 @@ static void addvecmul(float *v1, float *v2, float fac)
 	v1[2]= v1[2]+fac*v2[2];
 }
 
-static int addtosamp_shr(ShadeResult *samp_shr, ShadeSample *ssamp, int addpassflag)
+int addtosamp_shr(ShadeResult *samp_shr, ShadeSample *ssamp, int addpassflag)
 {
-	int a, sample, retval = R.osa;
+	int a, sample, osa = (R.osa? R.osa: 1), retval = osa;
 	
-	for(a=0; a < R.osa; a++, samp_shr++) {
+	for(a=0; a < osa; a++, samp_shr++) {
 		ShadeInput *shi= ssamp->shi;
 		ShadeResult *shr= ssamp->shr;
 		
@@ -3159,7 +3320,7 @@ static int addtosamp_shr(ShadeResult *samp_shr, ShadeSample *ssamp, int addpassf
 						addvecmul(samp_shr->refr, shr->refr, fac);
 					
 					if(addpassflag & SCE_PASS_RADIO)
-						addvecmul(samp_shr->refr, shr->rad, fac);
+						addvecmul(samp_shr->rad, shr->rad, fac);
 				}
 			}
 		}
@@ -3169,7 +3330,7 @@ static int addtosamp_shr(ShadeResult *samp_shr, ShadeSample *ssamp, int addpassf
 	return retval;
 }
 
-static void reset_sky_speedvectors(RenderPart *pa, RenderLayer *rl)
+void reset_sky_speedvectors(RenderPart *pa, RenderLayer *rl, float *rectf)
 {
 	/* speed vector exception... if solid render was done, sky pixels are set to zero already */
 	/* for all pixels with alpha zero, we re-initialize speed again then */
@@ -3178,7 +3339,7 @@ static void reset_sky_speedvectors(RenderPart *pa, RenderLayer *rl)
 	
 	fp= RE_RenderLayerGetPass(rl, SCE_PASS_VECTOR);
 	if(fp==NULL) return;
-	col= rl->acolrect+3;
+	col= rectf+3;
 	
 	for(a= 4*pa->rectx*pa->recty -4; a>=0; a-=4) {
 		if(col[a]==0.0f) {
@@ -3222,7 +3383,10 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 	/* general shader info, passes */
 	shade_sample_initialize(&ssamp, pa, rl);
 	addpassflag= rl->passflag & ~(SCE_PASS_Z|SCE_PASS_COMBINED);
-	addzbuf= rl->passflag & SCE_PASS_Z;
+	if((rl->layflag & SCE_LAY_STRAND) && R.strandbufs.first)
+		addzbuf= 1; /* strands layer needs the z-buffer */
+	else
+		addzbuf= rl->passflag & SCE_PASS_Z;
 	
 	if(R.osa)
 		sampalpha= 1.0f/(float)R.osa;
@@ -3251,7 +3415,7 @@ unsigned short *zbuffer_transp_shade(RenderPart *pa, RenderLayer *rl, float *pas
 	/* zero alpha pixels get speed vector max again */
 	if(addpassflag & SCE_PASS_VECTOR)
 		if(rl->layflag & SCE_LAY_SOLID)
-			reset_sky_speedvectors(pa, rl);
+			reset_sky_speedvectors(pa, rl, rl->acolrect);
 
 	/* filtered render, for now we assume only 1 filter size */
 	if(pa->crop) {

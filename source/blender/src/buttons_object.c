@@ -3603,8 +3603,7 @@ static void object_panel_particle_children(Object *ob)
 	uiNewPanelTabbed("Extras", "Particle");
 	if(uiNewPanel(curarea, block, "Children", "Particle", 1300, 0, 318, 204)==0) return;
 
-	uiDefButS(block, MENU, B_PART_ALLOC_CHILD, "Children from:%t|Faces%x2|Particles%x1|None%x0", butx,buty,butw/2,buth, &part->childtype, 14.0, 0.0, 0, 0, "Create child particles");
-	uiDefButBitI(block, TOG, PART_CHILD_RENDER, B_PART_RECALC_CHILD, "Only Render",	 butx+butw/2,buty,butw/2,buth, &part->flag, 0, 0, 0, 0, "Create child particles only when rendering");
+	uiDefButS(block, MENU, B_PART_ALLOC_CHILD, "Children from:%t|Faces%x2|Particles%x1|None%x0", butx,buty,butw,buth, &part->childtype, 14.0, 0.0, 0, 0, "Create child particles");
 
 	if(part->childtype==0) return;
 
@@ -3615,17 +3614,21 @@ static void object_panel_particle_children(Object *ob)
 	}
 
 	uiBlockBeginAlign(block);
+
+	buty -= buth/2;
 	
+	uiDefButI(block, NUM, B_PART_ALLOC_CHILD, "Amount:", butx,(buty-=buth),butw,buth, &part->child_nbr, 0.0, MAX_PART_CHILDREN, 0, 0, "Amount of children/parent");
+	uiDefButI(block, NUM, B_DIFF, "Render Amount:", butx,(buty-=buth),butw,buth, &part->ren_child_nbr, 0.0, MAX_PART_CHILDREN, 0, 0, "Amount of children/parent for rendering");
 	if(part->from!=PART_FROM_PARTICLE && part->childtype==PART_CHILD_FACES) {
-		uiDefButI(block, NUM, B_PART_ALLOC_CHILD, "Amount:", butx,(buty-=2*buth),butw,buth, &part->child_nbr, 0.0, MAX_PART_CHILDREN, 0, 0, "Amount of children/parent");
 		uiDefButF(block, NUMSLI, B_PART_DISTR_CHILD, "VParents:",		butx,(buty-=buth),butw,buth, &part->parents, 0.0, 1.0, 1, 3, "Relative amount of virtual parents");
 		}
 	else {
-		uiDefButI(block, NUM, B_PART_ALLOC_CHILD, "Amount:", butx,(buty-=2*buth),butw,buth, &part->child_nbr, 0.0, MAX_PART_CHILDREN, 0, 0, "Amount of children/parent");
 		uiDefButF(block, NUM, B_PART_RECALC_CHILD, "Rad:",		butx,(buty-=buth),butw,buth, &part->childrad, 0.0, 10.0, 1, 3, "Radius of children around parent");
 		uiDefButF(block, NUMSLI, B_PART_RECALC_CHILD, "Round:",		butx,(buty-=buth),butw,buth, &part->childflat, 0.0, 1.0, 1, 3, "Roundness of children around parent");
 	}
 	uiBlockEndAlign(block);
+
+	buty -= buth/2;
 
 	/* clump */
 	uiBlockBeginAlign(block);
@@ -3633,8 +3636,10 @@ static void object_panel_particle_children(Object *ob)
 	uiDefButF(block, NUMSLI, B_PART_RECALC_CHILD, "Shape:",		butx,(buty-=buth),butw,buth, &part->clumppow, -0.999, 0.999, 1, 3, "Shape of clumpimg");
 	uiBlockEndAlign(block);
 
+	buty -= buth/2;
+
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_PART_REDRAW, "Size:",		butx,(buty-=2*buth),butw/2,buth, &part->childsize, 0.01, 100, 10, 1, "A multiplier for the child particle size");
+	uiDefButF(block, NUM, B_PART_REDRAW, "Size:",		butx,(buty-=buth),butw/2,buth, &part->childsize, 0.01, 100, 10, 1, "A multiplier for the child particle size");
 	uiDefButF(block, NUM, B_PART_REDRAW, "Rand:",		butx+butw/2,buty,butw/2,buth, &part->childrandsize, 0.0, 1.0, 10, 1, "Random variation to the size of the child particles");
 	if(part->childtype==PART_CHILD_FACES) {
 		uiDefButF(block, NUM, B_PART_REDRAW, "Spread:",butx,(buty-=buth),butw/2,buth, &part->childspread, -1.0, 1.0, 10, 1, "Spread children from the faces");
@@ -3645,10 +3650,11 @@ static void object_panel_particle_children(Object *ob)
 	butx=160;
 	buty=180;
 
-
 	uiDefButBitS(block, TOG, 1, B_PART_REDRAW, "Kink/Branch",	 butx,(buty-=buth),butw,buth, &kink_ui, 0, 0, 0, 0, "Show kink and branch options");
 
 	if(kink_ui) {
+		buty -= buth/2;
+
 		/* kink */
 		uiBlockBeginAlign(block);
 		if(part->kink) {
@@ -3677,15 +3683,19 @@ static void object_panel_particle_children(Object *ob)
 	}
 	else {
 	/* rough */
+		buty -= buth/2;
+
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUMSLI, B_PART_RECALC_CHILD, "Rough1:",	butx,(buty-=2*buth),butw,buth, &part->rough1, 0.0, 10.0, 1, 3, "Amount of location dependant rough");
+		uiDefButF(block, NUMSLI, B_PART_RECALC_CHILD, "Rough1:",	butx,(buty-=buth),butw,buth, &part->rough1, 0.0, 10.0, 1, 3, "Amount of location dependant rough");
 		uiDefButF(block, NUM, B_PART_RECALC_CHILD, "Size1:",	butx,(buty-=buth),butw,buth, &part->rough1_size, 0.01, 10.0, 1, 3, "Size of location dependant rough");
 		uiBlockEndAlign(block);
+		buty -= buth/2;
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUMSLI, B_PART_RECALC_CHILD, "Rough2:",	butx,(buty-=buth),butw,buth, &part->rough2, 0.0, 10.0, 1, 3, "Amount of random rough");
 		uiDefButF(block, NUM, B_PART_RECALC_CHILD, "Size2:",	butx,(buty-=buth),butw,buth, &part->rough2_size, 0.01, 10.0, 1, 3, "Size of random rough");
 		uiDefButF(block, NUMSLI, B_PART_RECALC_CHILD, "Thresh:",	butx,(buty-=buth),butw,buth, &part->rough2_thres, 0.00, 1.0, 1, 3, "Amount of particles left untouched by random rough");
 		uiBlockEndAlign(block);
+		buty -= buth/2;
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUMSLI, B_PART_RECALC_CHILD, "RoughE:",	butx,(buty-=buth),butw,buth, &part->rough_end, 0.0, 10.0, 1, 3, "Amount of end point rough");
 		uiDefButF(block, NUMSLI, B_PART_RECALC_CHILD, "Shape:",	butx,(buty-=buth),butw,buth, &part->rough_end_shape, 0.0, 10.0, 1, 3, "Shape of end point rough");
@@ -3861,7 +3871,7 @@ static void object_panel_particle_visual(Object *ob)
 	uiDefBut(block, LABEL, 0, "Render:",	butx,(buty-=buth),butw,buth, NULL, 0.0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
 	uiDefButS(block, NUM, B_PART_DISTR, "Material:",					butx,(buty-=buth),butw-30,buth, &part->omat, 1.0, 16.0, 0, 0, "Specify material used for the particles");
-	uiDefButBitS(block, TOG, PART_DRAW_MAT_COL, B_PART_REDRAW, "Col",	butx+butw-30,buty,30,buth, &part->draw, 0, 0, 0, 0, "Draw particles using material's diffuse color");
+	uiDefButBitS(block, TOG, PART_DRAW_MAT_COL, B_PART_RECALC, "Col",	butx+butw-30,buty,30,buth, &part->draw, 0, 0, 0, 0, "Draw particles using material's diffuse color");
 	uiDefButBitS(block, TOG, PART_DRAW_EMITTER, B_PART_REDRAW, "Emitter",	butx,(buty-=buth),butw/2,buth, &part->draw, 0, 0, 0, 0, "Render emitter Object also");
 	uiDefButBitS(block, TOG, PART_DRAW_PARENT, B_PART_REDRAW, "Parents",				butx+butw/2,buty,butw/2,buth, &part->draw, 0, 0, 0, 0, "Render parent particles");
 	uiDefButBitI(block, TOG, PART_UNBORN, B_PART_REDRAW, "Unborn",			butx,(buty-=buth),butw/2,buth, &part->flag, 0, 0, 0, 0, "Show particles before they are emitted");
@@ -3917,10 +3927,16 @@ static void object_panel_particle_visual(Object *ob)
 				uiDefButBitI(block, TOG, PART_HAIR_BSPLINE, B_PART_RECALC, "B-Spline",	 butx,(buty-=buth),butw,buth, &part->flag, 0, 0, 0, 0, "Interpolate hair using B-Splines");
 
 				uiBlockBeginAlign(block);
-				uiDefButBitS(block, TOG, PART_DRAW_REN_ADAPT, B_PART_REDRAW, "Adaptive render",	 butx,buty-=buth,butw,buth, &part->draw, 0, 0, 0, 0, "Draw steps of the particle path");
-				if(part->draw & PART_DRAW_REN_ADAPT) {
+				uiDefButBitS(block, TOG, PART_DRAW_REN_STRAND, B_PART_REDRAW, "Strand render",	 butx,buty-=buth,butw,buth, &part->draw, 0, 0, 0, 0, "Use the strand primitive for rendering");
+				if(part->draw & PART_DRAW_REN_STRAND) {
 					uiDefButS(block, NUM, B_PART_REDRAW, "Angle:",	butx,(buty-=buth),butw,buth, &part->adapt_angle, 0.0, 45.0, 0, 0, "How many degrees path has to curve to make another render segment");
-					uiDefButS(block, NUM, B_PART_REDRAW, "Pixel:",	butx,(buty-=buth),butw,buth, &part->adapt_pix, 0.0, 50.0, 0, 0, "How many pixels path has to cover to make another render segment");
+				}
+				else {
+					uiDefButBitS(block, TOG, PART_DRAW_REN_ADAPT, B_PART_REDRAW, "Adaptive render",	 butx,buty-=buth,butw,buth, &part->draw, 0, 0, 0, 0, "Draw steps of the particle path");
+					if(part->draw & PART_DRAW_REN_ADAPT) {
+						uiDefButS(block, NUM, B_PART_REDRAW, "Angle:",	butx,(buty-=buth),butw/2,buth, &part->adapt_angle, 0.0, 45.0, 0, 0, "How many degrees path has to curve to make another render segment");
+						uiDefButS(block, NUM, B_PART_REDRAW, "Pixel:",	butx+butw/2,buty,(butw+1)/2,buth, &part->adapt_pix, 0.0, 50.0, 0, 0, "How many pixels path has to cover to make another render segment");
+					}
 				}
 			}
 			else {

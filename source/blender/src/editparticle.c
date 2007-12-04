@@ -133,7 +133,7 @@ void PE_free_particle_edit(ParticleSystem *psys)
 /************************************************/
 /*			Edit Mode Helpers					*/
 /************************************************/
-static int PE_can_edit(ParticleSystem *psys)
+int PE_can_edit(ParticleSystem *psys)
 {
 	return (psys && psys->edit && (G.f & G_PARTICLEEDIT));
 }
