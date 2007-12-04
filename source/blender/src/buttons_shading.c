@@ -3868,8 +3868,8 @@ static uiBlock *strand_menu(void *mat_v)
 	uiBlockBeginAlign(block);
 	uiDefButBitI(block, TOG, MA_STR_B_UNITS, 0,	"Use Blender Units", 10,95,230,20, &(ma->mode), 0, 0, 0, 0, "Use actual Blender units for widths instead of pixels");
   	if(ma->mode & MA_STR_B_UNITS){
-		uiDefButF(block, NUMSLI, 0, "Start ",	10, 75, 230,20,   &ma->strand_sta, 0.01, 20.0, 2, 0, "Start size of strands in Blender units");
-		uiDefButF(block, NUMSLI, 0, "End ",		10, 55, 230,20,  &ma->strand_end, 0.01, 10.0, 2, 0, "End size of strands in Blender units");
+		uiDefButF(block, NUMSLI, 0, "Start ",	10, 75, 230,20,   &ma->strand_sta, 0.0001, 2.0, 2, 0, "Start size of strands in Blender units");
+		uiDefButF(block, NUMSLI, 0, "End ",		10, 55, 230,20,  &ma->strand_end, 0.0001, 1.0, 2, 0, "End size of strands in Blender units");
   	}
   	else{
 		uiDefButF(block, NUMSLI, 0, "Start ",	10, 75, 230,20,   &ma->strand_sta, 0.25, 20.0, 2, 0, "Start size of strands in pixels");
