@@ -2768,6 +2768,21 @@ void PE_mirror_x(int tagged)
 	}
 }
 
+void PE_selectbrush_menu(void)
+{
+	ParticleEditSettings *pset= PE_settings();
+	int val;
+	
+	pupmenu_set_active(pset->brushtype);
+	
+	val= pupmenu("Select Brush%t|None %x0|Comb %x1|Smooth %x7|Weight %x6|Add %x5|Length %x3|Puff %x4|Cut %x2");
+
+	if(val>=0) {
+		pset->brushtype= val-1;
+		allqueue(REDRAWVIEW3D, 1);
+	}
+}
+
 /************************************************/
 /*			Particle Edit Undo					*/
 /************************************************/
