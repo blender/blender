@@ -201,11 +201,11 @@ static void toscreen(Pict *picture, struct ImBuf *ibuf)
 	
 	pupdate_time();
 
-	if(picture && (qualN & LMOUSE)) {
+	if(picture && (qualN & (SHIFT|LMOUSE))) {
 		char str[256];
 		cpack(-1);
 		glRasterPos2f(0.02f,  0.03f);
-		sprintf(str, "%s", picture->name);
+		sprintf(str, "%s | %.2f frames/s\n", picture->name, 1.0 / swaptime);
 		BMF_DrawString(G.fonts, str);
 	}
 	
@@ -657,7 +657,10 @@ void playanim(int argc, char **argv)
 					swaptime = 1.0 / 30.0;
 					break;
 				case PAD4:
-					swaptime = 1.0 / 25.0;
+					if (qualN & SHIFT)
+						swaptime = 1.0 / 24.0;
+					else
+						swaptime = 1.0 / 25.0;
 					break;
 				case PAD5:
 					swaptime = 1.0 / 20.0;
