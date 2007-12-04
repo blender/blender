@@ -6367,18 +6367,16 @@ static void meshdeformModifier_do(
 			tmpdm->release(tmpdm);
 	}
 	else
-		cagedm= mesh_get_derived_final(mmd->object, CD_MASK_BAREMESH);
+		cagedm= mmd->object->derivedFinal;
 	
-	/* TODO: this could give inifinite loop for circular dependency */
 	if(!cagedm)
 		return;
 
  	/* compute matrices to go in and out of cage object space */
-	Mat4Invert(imat, (mmd->bindcos)? mmd->bindmat: mmd->object->obmat);
+	Mat4Invert(imat, mmd->object->obmat);
 	Mat4MulMat4(cagemat, ob->obmat, imat);
 	Mat4Invert(icagemat, cagemat);
-	Mat4Invert(imat, ob->obmat);
-	Mat3CpyMat4(iobmat, imat);
+	Mat3CpyMat4(iobmat, icagemat);
 
 	/* bind weights if needed */
 	if(!mmd->bindcos)
@@ -6400,8 +6398,10 @@ static void meshdeformModifier_do(
 
 	dco= MEM_callocN(sizeof(*dco)*totcagevert, "MDefDco");
 	for(a=0; a<totcagevert; a++) {
+		/* get cage vertex in world space with binding transform */
 		VECCOPY(co, cagemvert[a].co);
-		Mat4MulVecfl(mmd->object->obmat, co);
+		Mat4MulVecfl(mmd->bindmat, co);
+		/* compute different with world space bind coord */
 		VECSUB(dco[a], co, bindcos[a]);
 	}
 
@@ -6449,6 +6449,7 @@ static void meshdeformModifier_do(
 		}
 
 		if(mmd->flag & MOD_MDEF_DYNAMIC_BIND) {
+			/* transform coordinate into cage's local space */
 			VECCOPY(co, vertexCos[b]);
 			Mat4MulVecfl(cagemat, co);
 			totweight= meshdeform_dynamic_bind(mmd, dco, co);
