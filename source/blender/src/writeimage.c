@@ -148,6 +148,7 @@ void save_image_filesel_str(char *str)
 		case R_RADHDR:
 			strcpy(str, "Save Radiance HDR");
 			break;
+		case R_FFMPEG:
 		case R_PNG:
 			strcpy(str, "Save PNG");
 			break;
@@ -193,7 +194,6 @@ void save_image_filesel_str(char *str)
 			strcpy(str, "Save Multi Layer EXR");
 			break;
 			/* default we save jpeg, also for all movie formats */
-		case R_FFMPEG:
 		case R_JPEG90:
 		case R_MOVIE:
 		case R_AVICODEC:
