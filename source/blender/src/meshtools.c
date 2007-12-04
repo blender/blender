@@ -1011,7 +1011,7 @@ void objects_bake_render(short event)
 			prev_wo_amb_occ = (G.scene->world->mode & WO_AMB_OCC) != 0;
 			G.scene->world->mode |= WO_AMB_OCC;
 		}
-		if(event==RE_BAKE_AO || actob) {
+		if(event==RE_BAKE_AO || active) {
 			prev_r_raytrace = (G.scene->r.mode & R_RAYTRACE) != 0;
 			G.scene->r.mode |= R_RAYTRACE;
 		}
@@ -1029,7 +1029,7 @@ void objects_bake_render(short event)
 		bkr.re= re;
 		bkr.event= event;
 		bkr.ready= 0;
-		bkr.actob= actob;
+		bkr.actob= (active)? actob: NULL;
 		BLI_insert_thread(&threads, &bkr);
 		
 		while(bkr.ready==0) {
@@ -1074,7 +1074,7 @@ void objects_bake_render(short event)
 			if(prev_wo_amb_occ == 0)
 				G.scene->world->mode &= ~WO_AMB_OCC;
 
-		if(event==RE_BAKE_AO || actob)
+		if(event==RE_BAKE_AO || active)
 			if(prev_r_raytrace == 0)
 				G.scene->r.mode &= ~R_RAYTRACE;
 		
