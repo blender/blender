@@ -4105,9 +4105,9 @@ static void object_panel_particle_physics(Object *ob)
 
 			butw=103;
 			uiBlockBeginAlign(block);
-			uiDefButF(block, NUM, B_PART_RECALC, "AccX:",		butx,(buty-=buth),butw,buth, part->acc, -200.0, 200.0, 100, 0, "Specify a constant acceleration along the X-axis");
-			uiDefButF(block, NUM, B_PART_RECALC, "AccY:",		butx+butw,buty,butw,buth, part->acc+1,-200.0, 200.0, 100, 0, "Specify a constant acceleration along the Y-axis");
-			uiDefButF(block, NUM, B_PART_RECALC, "AccZ:",		butx+2*butw,buty,butw+1,buth, part->acc+2, -200.0, 200.0, 100, 0, "Specify a constant acceleration along the Z-axis");
+			uiDefButF(block, NUM, B_PART_RECALC, "AccX:",		butx,(buty-=buth),butw,buth, part->acc, -200.0, 200.0, 10, 0, "Specify a constant acceleration along the X-axis");
+			uiDefButF(block, NUM, B_PART_RECALC, "AccY:",		butx+butw,buty,butw,buth, part->acc+1,-200.0, 200.0, 10, 0, "Specify a constant acceleration along the Y-axis");
+			uiDefButF(block, NUM, B_PART_RECALC, "AccZ:",		butx+2*butw,buty,butw+1,buth, part->acc+2, -200.0, 200.0, 10, 0, "Specify a constant acceleration along the Z-axis");
 
 			uiDefButF(block, NUM, B_PART_RECALC, "Drag:",		butx,(buty-=buth),butw,buth, &part->dragfac, 0.0, 1.0, 1, 0, "Specify the amount of air-drag");
 			uiDefButF(block, NUM, B_PART_RECALC, "Brown:",		butx+butw,buty,butw,buth, &part->brownfac, 0.0, 200.0, 1, 0, "Specify the amount of brownian motion");

@@ -203,11 +203,15 @@ void project_hoco_to_bucket(RenderBuckets *buckets, float *hoco, float *bucketco
 }
 
 typedef struct RenderPrimitiveIterator {
+	Render *re;
 	RenderBuckets *buckets;
 	ListBase *list[6];
 	int listindex, totlist;
 	BucketPrims *bpr;
 	int bprindex;
+
+	StrandRen *strand;
+	int index, tot;
 } RenderPrimitiveIterator;
 
 RenderPrimitiveIterator *init_primitive_iterator(Render *re, RenderBuckets *buckets, RenderPart *pa)
@@ -216,39 +220,61 @@ RenderPrimitiveIterator *init_primitive_iterator(Render *re, RenderBuckets *buck
 	int nr, x, y, width;
 
 	iter= MEM_callocN(sizeof(RenderPrimitiveIterator), "RenderPrimitiveIterator");
-	iter->buckets= buckets;
+	iter->re= re;
 
-	nr= BLI_findindex(&re->parts, pa);
-	width= buckets->x - 1;
-	x= (nr % width) + 1;
-	y= (nr / width) + 1;
+	if(buckets) {
+		iter->buckets= buckets;
 
-	iter->list[iter->totlist++]= &buckets->all;
-	iter->list[iter->totlist++]= &buckets->inside[y*buckets->x + x];
-	iter->list[iter->totlist++]= &buckets->overlap[y*buckets->x + x];
-	iter->list[iter->totlist++]= &buckets->overlap[y*buckets->x + (x-1)];
-	iter->list[iter->totlist++]= &buckets->overlap[(y-1)*buckets->x + (x-1)];
-	iter->list[iter->totlist++]= &buckets->overlap[(y-1)*buckets->x + x];
+		nr= BLI_findindex(&re->parts, pa);
+		width= buckets->x - 1;
+		x= (nr % width) + 1;
+		y= (nr / width) + 1;
+
+		iter->list[iter->totlist++]= &buckets->all;
+		iter->list[iter->totlist++]= &buckets->inside[y*buckets->x + x];
+		iter->list[iter->totlist++]= &buckets->overlap[y*buckets->x + x];
+		iter->list[iter->totlist++]= &buckets->overlap[y*buckets->x + (x-1)];
+		iter->list[iter->totlist++]= &buckets->overlap[(y-1)*buckets->x + (x-1)];
+		iter->list[iter->totlist++]= &buckets->overlap[(y-1)*buckets->x + x];
+	}
+	else {
+		iter->index= 0;
+		iter->tot= re->totstrand;
+	}
 
 	return iter;
 }
 
 void *next_primitive_iterator(RenderPrimitiveIterator *iter)
 {
-	if(iter->bpr && iter->bprindex >= iter->bpr->totprim) {
-		iter->bpr= iter->bpr->next;
-		iter->bprindex= 0;
-	}
+	if(iter->buckets) {
+		if(iter->bpr && iter->bprindex >= iter->bpr->totprim) {
+			iter->bpr= iter->bpr->next;
+			iter->bprindex= 0;
+		}
 
-	while(iter->bpr == NULL) {
-		if(iter->listindex == iter->totlist)
+		while(iter->bpr == NULL) {
+			if(iter->listindex == iter->totlist)
+				return NULL;
+
+			iter->bpr= iter->list[iter->listindex++]->first;
+			iter->bprindex= 0;
+		}
+
+		return iter->bpr->prim[iter->bprindex++];
+	}
+	else {
+		if(iter->index < iter->tot) {
+			if((iter->index & 255)==0)
+				iter->strand= iter->re->strandnodes[iter->index>>8].strand;
+			else
+				iter->strand++;
+
+			return iter->strand;
+		}
+		else
 			return NULL;
-
-		iter->bpr= iter->list[iter->listindex++]->first;
-		iter->bprindex= 0;
 	}
-
-	return iter->bpr->prim[iter->bprindex++];
 }
 
 void free_primitive_iterator(RenderPrimitiveIterator *iter)
@@ -611,7 +637,7 @@ void strand_shade_point(Render *re, ShadeSample *ssamp, StrandSegment *sseg, Str
 	memset(&vlr, 0, sizeof(vlr));
 	vlr.flag= R_SMOOTH|R_VISIBLE;
 	vlr.lay= sseg->strand->buffer->lay;
-	vlr.ob= sseg->strand->ob;
+	vlr.ob= sseg->strand->buffer->ob;
 	if(sseg->buffer->ma->mode & MA_TANGENT_STR)
 		vlr.flag |= R_TANGENT;
 	shi->vlr= &vlr;
