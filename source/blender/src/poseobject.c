@@ -1093,7 +1093,7 @@ static int pose_relax_icu(struct IpoCurve *icu, float framef, float *val, float 
 		int i;
 		
 		for (i=0; i < icu->totvert; i++, bezt++) {
-			if (bezt->vec[1][0] < framef - 1.0) {
+			if (bezt->vec[1][0] < framef - 0.5) {
 				bezt_prev = bezt;
 			} else {
 				break;
@@ -1106,7 +1106,7 @@ static int pose_relax_icu(struct IpoCurve *icu, float framef, float *val, float 
 		bezt = bezt_prev+1;
 		
 		for (; i < icu->totvert; i++, bezt++) {
-			if (bezt->vec[1][0] > framef + 1.0) {
+			if (bezt->vec[1][0] > framef + 0.5) {
 				bezt_next = bezt;
 						break;
 			}
@@ -1150,10 +1150,11 @@ void pose_relax()
 	float frame_prev, frame_next;
 	float quat_prev[4], quat_next[4], quat_interp[4], quat_orig[4];
 	
-	int do_scale = 0;
+	/*int do_scale = 0;
 	int do_loc = 0;
 	int do_quat = 0;
-	int flag = 0;
+	int flag = 0;*/
+	int do_w, do_x, do_y, do_z;
 	
 	if (!ob) return;
 	
@@ -1170,13 +1171,28 @@ void pose_relax()
 				achan= get_action_channel(act, pchan->name);
 				if(achan && achan->ipo) {
 					/*calc_ipo(achan->ipo, ctime);*/
-					do_loc += pose_relax_icu(find_ipocurve(achan->ipo, AC_LOC_X), framef, &pchan->loc[0], NULL, NULL);
-					do_loc += pose_relax_icu(find_ipocurve(achan->ipo, AC_LOC_Y), framef, &pchan->loc[1], NULL, NULL);
-					do_loc += pose_relax_icu(find_ipocurve(achan->ipo, AC_LOC_Z), framef, &pchan->loc[2], NULL, NULL);
 					
-					do_scale += pose_relax_icu(find_ipocurve(achan->ipo, AC_SIZE_X), framef, &pchan->size[0], NULL, NULL);
-					do_scale += pose_relax_icu(find_ipocurve(achan->ipo, AC_SIZE_Y), framef, &pchan->size[1], NULL, NULL);
-					do_scale += pose_relax_icu(find_ipocurve(achan->ipo, AC_SIZE_Z), framef, &pchan->size[2], NULL, NULL);
+					do_x = pose_relax_icu(find_ipocurve(achan->ipo, AC_LOC_X), framef, &pchan->loc[0], NULL, NULL);
+					do_y = pose_relax_icu(find_ipocurve(achan->ipo, AC_LOC_Y), framef, &pchan->loc[1], NULL, NULL);
+					do_z = pose_relax_icu(find_ipocurve(achan->ipo, AC_LOC_Z), framef, &pchan->loc[2], NULL, NULL);
+					/* do_loc = do_x + do_y + do_z */
+					
+					if (G.flags & G_RECORDKEYS) {
+						if (do_x) insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_X, 0);
+						if (do_y) insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Y, 0);
+						if (do_z) insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Z, 0);
+					}
+					
+					do_x = pose_relax_icu(find_ipocurve(achan->ipo, AC_SIZE_X), framef, &pchan->size[0], NULL, NULL);
+					do_y = pose_relax_icu(find_ipocurve(achan->ipo, AC_SIZE_Y), framef, &pchan->size[1], NULL, NULL);
+					do_z = pose_relax_icu(find_ipocurve(achan->ipo, AC_SIZE_Z), framef, &pchan->size[2], NULL, NULL);
+					/* do_scale = do_x + do_y + do_z */
+					
+					if (G.flags & G_RECORDKEYS) {
+						if (do_x) insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_X, 0);
+						if (do_y) insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Y, 0);
+						if (do_z) insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Z, 0);
+					}
 					
 					if(	((icu_w = find_ipocurve(achan->ipo, AC_QUAT_W))) &&
 						((icu_x = find_ipocurve(achan->ipo, AC_QUAT_X))) &&
@@ -1206,8 +1222,19 @@ void pose_relax()
 							QuatInterpol(pchan->quat, quat_orig, quat_interp, 1.0f/6.0f);
 							/* done */
 #endif
-							do_quat++;
+							/*do_quat++;*/
+							
+							if (G.flags & G_RECORDKEYS) {
+								insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_X, 0);
+								insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Y, 0);
+								insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Z, 0);
+								insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_W, 0);
+							}
 						}
+					}
+					
+					if (G.flags & G_RECORDKEYS) {
+						pchan->bone->flag &= ~BONE_UNKEYED;
 					}
 				}
 			}
@@ -1216,11 +1243,15 @@ void pose_relax()
 	
 	ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
 	
-	/* auto-keyframing */
+#if 0
+// 	/* auto-keyframing - dosnt work, no idea why, do manually above */
 	if (do_loc)		flag |= TFM_TRANSLATION;
 	if (do_scale)	flag |= TFM_RESIZE;
 	if (do_quat)	flag |= TFM_ROTATION;
 	autokeyframe_pose_cb_func(ob, flag, 0);
+#endif	
+	
+	
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 	BIF_undo_push("Relax Pose");
 	
