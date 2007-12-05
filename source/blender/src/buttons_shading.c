@@ -3164,7 +3164,7 @@ static void material_panel_map_to(Object *ob, Material *ma, int from_nodes)
 		but=uiDefButBitS(block, TOG3, MAP_PA_DENS, B_MAT_PARTICLE, "Dens",	130,180,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the density of particles");
 			//uiButSetFunc(but, particle_recalc_material, ma, NULL);		
 		uiDefButBitS(block, TOG3, MAP_PA_IVEL, B_MAT_PARTICLE, "IVel",		190,180,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the initial velocity of particles");
-		uiDefButBitS(block, TOG3, MAP_PA_PVEL, B_MAT_PARTICLE, "PVel",		250,180,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the velocity of particles");
+		uiDefButBitS(block, TOG3, MAP_PA_ROUGH, B_MAT_PARTICLE, "Rough",		250,180,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the roughness of child particles");
 
 		but=uiDefButBitS(block, TOG3, MAP_PA_SIZE, B_MAT_PARTICLE, "Size",	10,160,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the size of particles");
 			//uiButSetFunc(but, particle_recalc_material, ma, NULL);

@@ -87,10 +87,10 @@ typedef struct ParticleReactEvent {
 }ParticleReactEvent;
 
 typedef struct ParticleTexture{
-	float ivel;						/* used in reset */
-	float time, life, exist, size;	/* used in init */
-	float pvel[3];					/* used in physics */
-	float length, clump, kink;		/* used in path caching */
+	float ivel;							/* used in reset */
+	float time, life, exist, size;		/* used in init */
+	float pvel[3];						/* used in physics */
+	float length, clump, kink, rough;	/* used in path caching */
 } ParticleTexture;
 
 typedef struct BoidVecFunc{

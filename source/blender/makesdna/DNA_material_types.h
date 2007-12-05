@@ -298,9 +298,10 @@ typedef struct Material {
 /* physics */
 #define MAP_PA_PVEL		64
 /* path cache */
-#define MAP_PA_CACHE	384
+#define MAP_PA_CACHE	912
 #define MAP_PA_CLUMP	128
 #define MAP_PA_KINK		256
+#define MAP_PA_ROUGH	512
 
 /* pr_type */
 #define MA_FLAT			0

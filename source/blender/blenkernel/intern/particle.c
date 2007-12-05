@@ -1480,7 +1480,8 @@ void psys_thread_create_path(ParticleThread *thread, struct ChildParticle *cpa, 
 	float *cpa_fuv=0;
 	float co[3], orco[3], ornor[3], t, rough_t, cpa_1st[3], dvec[3];
 	float branch_begin, branch_end, branch_prob, branchfac, rough_rand;
-	float pa_rough1, pa_rough2, pa_roughe, length, pa_length, pa_clump, pa_kink;
+	float pa_rough1, pa_rough2, pa_roughe;
+	float length, pa_length, pa_clump, pa_kink;
 	float max_length = 1.0f, cur_length = 0.0f;
 	int k, cpa_num, guided=0;
 	short cpa_from;
@@ -1583,15 +1584,17 @@ void psys_thread_create_path(ParticleThread *thread, struct ChildParticle *cpa, 
 	ptex.length=part->length*(1.0f - part->randlength*cpa->rand[0]);
 	ptex.clump=1.0;
 	ptex.kink=1.0;
+	ptex.rough= 1.0;
 
-	get_cpa_texture(ctx->dm,ctx->ma,cpa_num,cpa_fuv,orco,&ptex,MAP_PA_CACHE);
+	get_cpa_texture(ctx->dm,ctx->ma,cpa_num,cpa_fuv,orco,&ptex,
+		MAP_PA_LENGTH|MAP_PA_CLUMP|MAP_PA_KINK|MAP_PA_ROUGH);
 	
 	pa_length=ptex.length;
 	pa_clump=ptex.clump;
 	pa_kink=ptex.kink;
-	pa_rough1=1.0;
-	pa_rough2=1.0;
-	pa_roughe=1.0;
+	pa_rough1=ptex.rough;
+	pa_rough2=ptex.rough;
+	pa_roughe=ptex.rough;
 
 	if(ctx->vg_length)
 		pa_length*=psys_interpolate_value_from_verts(ctx->dm,cpa_from,cpa_num,cpa_fuv,ctx->vg_length);
@@ -2606,13 +2609,16 @@ static void get_cpa_texture(DerivedMesh *dm, Material *ma, int face_index, float
 			if((event & mtex->pmapto) & MAP_PA_CLUMP)
 				ptex->clump= texture_value_blend(value,ptex->clump,value,var,blend,neg & MAP_PA_CLUMP);
 			if((event & mtex->pmapto) & MAP_PA_KINK)
-				ptex->kink= texture_value_blend(value,ptex->kink,value,var,blend,neg & MAP_PA_CLUMP);
+				ptex->kink= texture_value_blend(value,ptex->kink,value,var,blend,neg & MAP_PA_KINK);
+			if((event & mtex->pmapto) & MAP_PA_ROUGH)
+				ptex->rough= texture_value_blend(value,ptex->rough,value,var,blend,neg & MAP_PA_ROUGH);
 		}
 	}
-	CLAMP(ptex->time,0.0,1.0);
-	CLAMP(ptex->length,0.0,1.0);
-	CLAMP(ptex->clump,0.0,1.0);
-	CLAMP(ptex->kink,0.0,1.0);
+	if(event & MAP_PA_TIME) { CLAMP(ptex->time,0.0,1.0); }
+	if(event & MAP_PA_LENGTH) { CLAMP(ptex->length,0.0,1.0); }
+	if(event & MAP_PA_CLUMP) { CLAMP(ptex->clump,0.0,1.0); }
+	if(event & MAP_PA_KINK) { CLAMP(ptex->kink,0.0,1.0); }
+	if(event & MAP_PA_ROUGH) { CLAMP(ptex->rough,0.0,1.0); }
 }
 void psys_get_texture(Object *ob, Material *ma, ParticleSystemModifierData *psmd, ParticleSystem *psys, ParticleData *pa, ParticleTexture *ptex, int event)
 {
@@ -2682,14 +2688,14 @@ void psys_get_texture(Object *ob, Material *ma, ParticleSystemModifierData *psmd
 				ptex->kink= texture_value_blend(mtex->def_var,ptex->kink,value,var,blend,neg & MAP_PA_CLUMP);
 		}
 	}
-	CLAMP(ptex->time,0.0,1.0);
-	CLAMP(ptex->life,0.0,1.0);
-	CLAMP(ptex->exist,0.0,1.0);
-	CLAMP(ptex->size,0.0,1.0);
-	CLAMP(ptex->ivel,0.0,1.0);
-	CLAMP(ptex->length,0.0,1.0);
-	CLAMP(ptex->clump,0.0,1.0);
-	CLAMP(ptex->kink,0.0,1.0);
+	if(event & MAP_PA_TIME) { CLAMP(ptex->time,0.0,1.0); }
+	if(event & MAP_PA_LIFE) { CLAMP(ptex->life,0.0,1.0); }
+	if(event & MAP_PA_DENS) { CLAMP(ptex->exist,0.0,1.0); }
+	if(event & MAP_PA_SIZE) { CLAMP(ptex->size,0.0,1.0); }
+	if(event & MAP_PA_IVEL) { CLAMP(ptex->ivel,0.0,1.0); }
+	if(event & MAP_PA_LENGTH) { CLAMP(ptex->length,0.0,1.0); }
+	if(event & MAP_PA_CLUMP) { CLAMP(ptex->clump,0.0,1.0); }
+	if(event & MAP_PA_KINK) { CLAMP(ptex->kink,0.0,1.0); }
 }
 /************************************************/
 /*			Particle State						*/
@@ -2966,7 +2972,7 @@ void psys_get_particle_on_path(Object *ob, ParticleSystem *psys, int p, Particle
 		ptex.clump=1.0;
 		ptex.kink=1.0;
 		
-		get_cpa_texture(psmd->dm,ma,cpa_num,cpa_fuv,orco,&ptex,MAP_PA_CACHE-MAP_PA_LENGTH);
+		get_cpa_texture(psmd->dm,ma,cpa_num,cpa_fuv,orco,&ptex,MAP_PA_CLUMP|MAP_PA_KINK);
 		
 		pa_clump=ptex.clump;
 		pa_kink=ptex.kink;
