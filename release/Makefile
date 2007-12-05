@@ -44,7 +44,7 @@ ifeq ($(OS),beos)
    EXT1=".zip"
    COMPRESS=""
    EXT2=""
-   NOPLUGINS="true"
+   NOPLUGINS?=true
 endif
 
 ifeq ($(OS),$(findstring $(OS), "freebsd irix linux openbsd solaris"))
@@ -57,7 +57,7 @@ ifeq ($(OS),$(findstring $(OS), "freebsd irix linux openbsd solaris"))
    EXT2=".bz2"
    ifeq ($(OS), solaris)
      ifeq ($(CPU), i386)
-       NOPLUGINS=true
+       NOPLUGINS?=true
      endif
    endif
 endif
@@ -67,8 +67,8 @@ ifeq ($(OS),windows)
    TARFLAGS="-r9"
    EXT0=".exe"
    EXT1=".zip"
-   NOPLUGINS="true"
-   NOSTRIP="true"
+   NOPLUGINS?=true
+   NOSTRIP?=true
 endif
 
 ifeq ($(OS),darwin)
