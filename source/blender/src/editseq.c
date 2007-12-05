@@ -3613,13 +3613,21 @@ void seq_snap(short event)
 
 	/* also check metas */
 	WHILE_SEQ(ed->seqbasep) {
-		if(seq->flag & SELECT) {
-			if(sequence_is_free_transformable(seq)) seq->start= CFRA-seq->startofs+seq->startstill;
+		if (seq->flag & SELECT && sequence_is_free_transformable(seq)) {
+			if((seq->flag & (SEQ_LEFTSEL+SEQ_RIGHTSEL))==0) {
+				seq->start= CFRA-seq->startofs+seq->startstill;
+			} else { 
+				if(seq->flag & SEQ_LEFTSEL) {
+					seq_tx_set_final_left(seq, CFRA);
+				} else { /* SEQ_RIGHTSEL */
+					seq_tx_set_final_right(seq, CFRA);
+				}
+				transform_grab_xlimits(seq, seq->flag & SEQ_LEFTSEL, seq->flag & SEQ_RIGHTSEL);
+			}
 			calc_sequence(seq);
 		}
 	}
 	END_SEQ
-
 
 	/* test for effects and overlap */
 	WHILE_SEQ(ed->seqbasep) {
