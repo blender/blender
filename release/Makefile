@@ -55,6 +55,11 @@ ifeq ($(OS),$(findstring $(OS), "freebsd irix linux openbsd solaris"))
    COMPRESS="bzip2"
    COMPRESSFLAGS="-f"
    EXT2=".bz2"
+   ifeq ($(OS), solaris)
+     ifeq ($(CPU), i386)
+       NOPLUGINS=true
+     endif
+   endif
 endif
 
 ifeq ($(OS),windows)
