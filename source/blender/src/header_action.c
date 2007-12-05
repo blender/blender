@@ -102,7 +102,9 @@ enum {
 	ACTMENU_SEL_ALL_CHAN,
 	ACTMENU_SEL_ALL_MARKERS,
 	ACTMENU_SEL_INVERSE_KEYS,
-	ACTMENU_SEL_INVERSE_MARKERS
+	ACTMENU_SEL_INVERSE_MARKERS,
+	ACTMENU_SEL_LEFTKEYS,
+	ACTMENU_SEL_RIGHTKEYS
 };
 
 enum {
@@ -513,6 +515,14 @@ static void do_action_selectmenu(void *arg, int event)
 			deselect_markers(0, 2);
 			allqueue(REDRAWMARKER, 0);
 			break;
+			
+		case ACTMENU_SEL_LEFTKEYS:
+			selectkeys_leftright(1, SELECT_REPLACE);
+			break;
+			
+		case ACTMENU_SEL_RIGHTKEYS:
+			selectkeys_leftright(0, SELECT_REPLACE);
+			break;
 	}
 }
 
@@ -562,6 +572,19 @@ static uiBlock *action_selectmenu(void *arg_unused)
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_SEL_INVERSE_MARKERS, "");
 		
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
+			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+			 
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Back In Time|Alt RMB", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_SEL_LEFTKEYS, "");
+								 
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Ahead In Time|Alt RMB", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_SEL_RIGHTKEYS, "");		 
+			 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 			 

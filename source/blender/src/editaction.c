@@ -1968,6 +1968,59 @@ void markers_selectkeys_between (void)
 	BLI_freelistN(&act_data);
 }
 
+void selectkeys_leftright (short leftright, short select_mode)
+{
+	ListBase act_data = {NULL, NULL};
+	bActListElem *ale;
+	int filter;
+	void *data;
+	short datatype;
+	float min, max;
+	
+	if (select_mode==SELECT_REPLACE) {
+		select_mode=SELECT_ADD;
+		deselect_action_keys(0, 0);
+	}
+	
+	/* determine what type of data we are operating on */
+	data = get_action_context(&datatype);
+	if (data == NULL) return;
+	
+	if (leftright==1) {
+		min = -MAXFRAMEF;
+		max = (float)CFRA+0.1f;
+	} 
+	else {
+		min = (float)CFRA-0.1f;
+		max = MAXFRAMEF;
+	}
+	
+	/* filter data */
+	filter= (ACTFILTER_VISIBLE | ACTFILTER_IPOKEYS);
+	actdata_filter(&act_data, filter, data, datatype);
+		
+	/* select keys to the right */
+	for (ale= act_data.first; ale; ale= ale->next) {
+		if(NLA_ACTION_SCALED && datatype==ACTCONT_ACTION) {
+			actstrip_map_ipo_keys(OBACT, ale->key_data, 0, 1);
+			borderselect_ipo_key(ale->key_data, min, max, SELECT_ADD);
+			actstrip_map_ipo_keys(OBACT, ale->key_data, 1, 1);
+		}
+		else {
+			borderselect_ipo_key(ale->key_data, min, max, SELECT_ADD);
+		}
+	}
+	
+	/* Cleanup */
+	BLI_freelistN(&act_data);
+	
+	allqueue(REDRAWNLA, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWIPO, 0);
+
+}
+
+
 /* ----------------------------------------- */
 
 /* This function makes a list of the selected keyframes
@@ -2883,6 +2936,12 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				/* Clicking in the main area of the action window
 				 * selects keys and markers
 				 */
+				else if (G.qual & LR_ALTKEY) {
+					areamouseco_to_ipoco(G.v2d, mval, &dx, &dy);
+					
+					/* sends a 1 for left and 0 for right */
+					selectkeys_leftright((dx < (float)CFRA), select_mode);
+				}
 				else
 					mouse_action(select_mode);
 			}
