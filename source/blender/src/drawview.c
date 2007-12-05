@@ -3306,7 +3306,7 @@ static int cached_dynamics(int sfra, int efra)
 	Object *ob;
 	ModifierData *md;
 	ParticleSystem *psys;
-	int i, stack_index, cached=1;
+	int i, stack_index=-1, cached=1;
 
 	while(base && cached) {
 		ob = base->object;

@@ -454,11 +454,15 @@ void tex_space_mesh(Mesh *me)
 	}
 }
 
-BoundBox *mesh_get_bb(Mesh *me)
+BoundBox *mesh_get_bb(Object *ob)
 {
-	if (!me->bb) {
+	Mesh *me= ob->data;
+
+	if(ob->bb)
+		return ob->bb;
+
+	if (!me->bb)
 		tex_space_mesh(me);
-	}
 
 	return me->bb;
 }

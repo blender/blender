@@ -2422,6 +2422,10 @@ static void clear_mesh_caches(Object *ob)
 	Mesh *me= ob->data;
 
 		/* also serves as signal to remake texspace */
+	if (ob->bb) {
+		MEM_freeN(ob->bb);
+		ob->bb = NULL;
+	}
 	if (me->bb) {
 		MEM_freeN(me->bb);
 		me->bb = NULL;
@@ -2477,7 +2481,9 @@ static void mesh_build_data(Object *ob, CustomDataMask dataMask)
 
 		ob->derivedFinal->getMinMax(ob->derivedFinal, min, max);
 
-		boundbox_set_from_min_max(mesh_get_bb(ob->data), min, max);
+		if(!ob->bb)
+			ob->bb= MEM_mallocN(sizeof(BoundBox), "bb");
+		boundbox_set_from_min_max(ob->bb, min, max);
 
 		ob->derivedFinal->needsFree = 0;
 		ob->derivedDeform->needsFree = 0;
@@ -2513,7 +2519,9 @@ static void editmesh_build_data(CustomDataMask dataMask)
 
 	em->derivedFinal->getMinMax(em->derivedFinal, min, max);
 
-	boundbox_set_from_min_max(mesh_get_bb(G.obedit->data), min, max);
+	if(!G.obedit->bb)
+		G.obedit->bb= MEM_mallocN(sizeof(BoundBox), "bb");
+	boundbox_set_from_min_max(G.obedit->bb, min, max);
 
 	em->derivedFinal->needsFree = 0;
 	em->derivedCage->needsFree = 0;

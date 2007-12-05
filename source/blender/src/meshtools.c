@@ -741,7 +741,7 @@ long mesh_octree_table(Object *ob, float *co, char mode)
 	}
 	else if(mode=='s') {	/* start table */
 		Mesh *me= ob->data;
-		BoundBox *bb = mesh_get_bb(me);
+		BoundBox *bb = mesh_get_bb(ob);
 		
 		/* for quick unit coordinate calculus */
 		VECCOPY(offs, bb->vec[0]);

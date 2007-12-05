@@ -2430,8 +2430,7 @@ static int draw_mesh_object(Base *base, int dt, int flag)
 	}
 	else {
 		/* don't create boundbox here with mesh_get_bb(), the derived system will make it, puts deformed bb's OK */
-		
-		if(me->totface<=4 || boundbox_clip(ob->obmat, me->bb)) {
+		if(me->totface<=4 || boundbox_clip(ob->obmat, (ob->bb)? ob->bb: me->bb)) {
 			if(dt==OB_SOLID) has_alpha= init_gl_materials(ob, (base->flag & OB_FROMDUPLI)==0);
 			draw_mesh_fancy(base, dt, flag);
 			
@@ -4481,7 +4480,7 @@ static void draw_bounding_volume(Object *ob)
 	BoundBox *bb=0;
 	
 	if(ob->type==OB_MESH) {
-		bb= mesh_get_bb(ob->data);
+		bb= mesh_get_bb(ob);
 	}
 	else if ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT) {
 		bb= ( (Curve *)ob->data )->bb;

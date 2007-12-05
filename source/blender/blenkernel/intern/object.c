@@ -2025,7 +2025,7 @@ BoundBox *object_get_boundbox(Object *ob)
 	BoundBox *bb= NULL;
 	
 	if(ob->type==OB_MESH) {
-		bb = mesh_get_bb(ob->data);
+		bb = mesh_get_bb(ob);
 	}
 	else if ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT) {
 		bb= ( (Curve *)ob->data )->bb;
@@ -2087,7 +2087,7 @@ void minmax_object(Object *ob, float *min, float *max)
 		me= get_mesh(ob);
 		
 		if(me) {
-			bb = *mesh_get_bb(me);
+			bb = *mesh_get_bb(ob);
 			
 			for(a=0; a<8; a++) {
 				Mat4MulVecfl(ob->obmat, bb.vec[a]);

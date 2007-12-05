@@ -75,7 +75,7 @@ int update_realtime_texture(struct MTFace *tface, double time);
 void mesh_delete_material_index(struct Mesh *me, int index);
 void mesh_set_smooth_flag(struct Object *meshOb, int enableSmooth);
 
-struct BoundBox *mesh_get_bb(struct Mesh *me);
+struct BoundBox *mesh_get_bb(struct Object *ob);
 void mesh_get_texspace(struct Mesh *me, float *loc_r, float *rot_r, float *size_r);
 
 /* if old, it converts mface->edcode to edge drawflags */
