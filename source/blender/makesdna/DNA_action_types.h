@@ -39,7 +39,6 @@ struct Object;
 
 /* PoseChannel stores the results of Actions (ipos) and transform information 
    with respect to the restposition of Armature bones */
-
 typedef struct bPoseChannel {
 	struct bPoseChannel	*next, *prev;
 	ListBase			constraints;/* Constraints that act on this PoseChannel */
@@ -50,7 +49,7 @@ typedef struct bPoseChannel {
 	short				ikflag;		/* settings for IK bones */
 	short               selectflag;	/* copy of bone flag, so you can work with library armatures */
 	short				protectflag; /* protect channels from being transformed */
-	short				pad2;
+	short				customCol;	/* index of custom color set to use (0=default - used for all old files) */
 	
 	int				    pathlen;	/* for drawing paths, the amount of frames */
 	int 				pathsf;		/* for drawing paths, the start frame number */
@@ -84,7 +83,6 @@ typedef struct bPoseChannel {
 	
 	float		*path;				/* totpath x 3 x float */
 	struct Object *custom;			/* draws custom object instead of this channel */
-	
 } bPoseChannel;
 
 /* Pose-Object. It is only found under ob->pose. It is not library data, even
@@ -217,7 +215,11 @@ typedef enum PCHAN_IKFLAG {
 
 	BONE_IK_XLIMIT	= (1<<3),
 	BONE_IK_YLIMIT	= (1<<4),
-	BONE_IK_ZLIMIT	= (1<<5)
+	BONE_IK_ZLIMIT	= (1<<5),
+	
+	BONE_IK_NO_XDOF_TEMP = (1<<10),
+	BONE_IK_NO_YDOF_TEMP = (1<<11),
+	BONE_IK_NO_ZDOF_TEMP = (1<<12)
 } PCHAN_IKFLAG;
 
 

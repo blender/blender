@@ -616,6 +616,9 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 			Mat3Inv (td->smtx, td->mtx);
 		}
 	}
+	
+	/* store reference to first constraint */
+	td->con= pchan->constraints.first;
 }
 
 static void bone_children_clear_transflag(ListBase *lb)
@@ -689,11 +692,15 @@ static void pose_grab_with_ik_clear(Object *ob)
 	bPoseChannel *pchan;
 	bConstraint *con;
 	
-	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		for(con= pchan->constraints.first; con; con= con->next) {
-			if(con->type==CONSTRAINT_TYPE_KINEMATIC) {
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		/* clear all temporary lock flags */
+		pchan->ikflag &= ~(BONE_IK_NO_XDOF_TEMP|BONE_IK_NO_YDOF_TEMP|BONE_IK_NO_ZDOF_TEMP);
+		
+		/* remove all temporary IK-constraints added */
+		for (con= pchan->constraints.first; con; con= con->next) {
+			if (con->type==CONSTRAINT_TYPE_KINEMATIC) {
 				data= con->data;
-				if(data->flag & CONSTRAINT_IK_TEMP) {
+				if (data->flag & CONSTRAINT_IK_TEMP) {
 					BLI_remlink(&pchan->constraints, con);
 					MEM_freeN(con->data);
 					MEM_freeN(con);
@@ -716,14 +723,14 @@ static void pose_grab_with_ik_add(bPoseChannel *pchan)
 	}
 	
 	/* rule: not if there's already an IK on this channel */
-	for(con= pchan->constraints.first; con; con= con->next)
+	for (con= pchan->constraints.first; con; con= con->next)
 		if(con->type==CONSTRAINT_TYPE_KINEMATIC)
 			break;
 	
-	if(con) {
+	if (con) {
 		/* but, if this is a targetless IK, we make it auto anyway (for the children loop) */
 		data= has_targetless_ik(pchan);
-		if(data)
+		if (data)
 			data->flag |= CONSTRAINT_IK_AUTO;
 		return;
 	}
@@ -737,7 +744,13 @@ static void pose_grab_with_ik_add(bPoseChannel *pchan)
 	data->rootbone= 1;
 	
 	/* we include only a connected chain */
-	while(pchan && (pchan->bone->flag & BONE_CONNECTED)) {
+	while ((pchan) && (pchan->bone->flag & BONE_CONNECTED)) {
+		/* here, we set ik-settings for bone from pchan->protectflag */
+		if (pchan->protectflag & OB_LOCK_ROTX) pchan->ikflag |= BONE_IK_NO_XDOF_TEMP;
+		if (pchan->protectflag & OB_LOCK_ROTY) pchan->ikflag |= BONE_IK_NO_YDOF_TEMP;
+		if (pchan->protectflag & OB_LOCK_ROTZ) pchan->ikflag |= BONE_IK_NO_ZDOF_TEMP;
+		
+		/* now we count this pchan as being included */
 		data->rootbone++;
 		pchan= pchan->parent;
 	}
@@ -2721,6 +2734,8 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 	Mat3CpyMat4(td->axismtx, ob->obmat);
 	Mat3Ortho(td->axismtx);
 
+	td->con= ob->constraints.first;
+	
 	/* hack: tempolarily disable tracking and/or constraints when getting 
 	 *		object matrix, if tracking is on, or if constraints don't need
 	 * 		inverse correction to stop it from screwing up space conversion
@@ -3312,7 +3327,7 @@ static void createTransObject(TransInfo *t)
 			td->flag= TD_SELECTED;
 			td->protectflag= ob->protectflag;
 			td->ext = tx;
-
+			
 			/* store ipo keys? */
 			if(ob->ipo && ob->ipo->showkey && (ob->ipoflag & OB_DRAWKEY)) {
 				

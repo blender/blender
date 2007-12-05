@@ -49,6 +49,7 @@
 
 #include "DNA_armature_types.h"
 #include "DNA_action_types.h"  /* for some special action-editor settings */
+#include "DNA_constraint_types.h"
 #include "DNA_ipo_types.h"		/* some silly ipo flag	*/
 #include "DNA_listBase.h"
 #include "DNA_meshdata_types.h"
@@ -80,6 +81,7 @@
 #include "BIF_editaction.h" 
 
 #include "BKE_action.h" /* get_action_frame */
+#include "BKE_constraint.h"
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 #include "BKE_bad_level_calls.h"/* popmenu and error	*/
@@ -1251,7 +1253,7 @@ void ManipulatorTransform()
 	
 }
 
-/* ************************** TRANSFORMATIONS **************************** */
+/* ************************** TRANSFORM LOCKS **************************** */
 
 static void protectedTransBits(short protectflag, float *vec)
 {
@@ -1307,6 +1309,79 @@ static void protectedQuaternionBits(short protectflag, float *quat, float *oldqu
 		if( (quat1[0]<0.0f && quat[0]>0.0f) || (quat1[0]>0.0f && quat[0]<0.0f) ) {
 			QuatMulf(quat, -1.0f);
 		}
+	}
+}
+
+/* ******************* TRANSFORM LIMITS ********************** */
+
+static void constraintTransLim(TransInfo *t, TransData *td)
+{
+	if (td->con) {
+		bConstraintTypeInfo *cti= get_constraint_typeinfo(CONSTRAINT_TYPE_LOCLIMIT);
+		bConstraintOb *cob;
+		bConstraint *con;
+		
+		/* Make a temporary bConstraintOb for using these limit constraints 
+		 * 	- they only care that cob->matrix is correctly set ;-)
+		 *	- current space should be local
+		 */
+		cob= MEM_callocN(sizeof(bConstraintOb), "bConstraintOb-Transform");
+		Mat4One(cob->matrix);
+		if (td->tdi) {
+			TransDataIpokey *tdi= td->tdi;
+			cob->matrix[3][0]= tdi->locx[0];
+			cob->matrix[3][1]= tdi->locy[0];
+			cob->matrix[3][2]= tdi->locz[0];
+		}
+		else {
+			VECCOPY(cob->matrix[3], td->loc);
+		}
+		
+		/* Evaluate valid constraints */
+		for (con= td->con; con; con= con->next) {
+			/* we're only interested in Limit-Location constraints */
+			if (con->type == CONSTRAINT_TYPE_LOCLIMIT) {
+				bLocLimitConstraint *data= con->data;
+				float tmat[4][4];
+				
+				/* only use it if it's tagged for this purpose */
+				if ((data->flag2 & LIMIT_TRANSFORM)==0) 
+					continue;
+					
+				/* do space conversions */
+				if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
+					/* just multiply by td->mtx (this should be ok) */
+					Mat4CpyMat4(tmat, cob->matrix);
+					Mat4MulMat34(cob->matrix, td->mtx, tmat); // checkme
+				}
+				else if (con->ownspace != CONSTRAINT_SPACE_LOCAL) {
+					/* skip... incompatable spacetype */
+					continue;
+				}
+				
+				/* do constraint */
+				cti->evaluate_constraint(con, cob, NULL);
+				
+				/* convert spaces again */
+				if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
+					/* just multiply by td->mtx (this should be ok) */
+					Mat4CpyMat4(tmat, cob->matrix);
+					Mat4MulMat34(cob->matrix, td->smtx, tmat); // checkme
+				}
+			}
+		}
+		
+		/* copy results from cob->matrix, and free */
+		if (td->tdi) {
+			TransDataIpokey *tdi= td->tdi;
+			tdi->locx[0]= cob->matrix[3][0];
+			tdi->locy[0]= cob->matrix[3][1];
+			tdi->locz[0]= cob->matrix[3][2];
+		}
+		else {
+			VECCOPY(td->loc, cob->matrix[3]);
+		}
+		MEM_freeN(cob);
 	}
 }
 
@@ -2484,10 +2559,10 @@ static void applyTranslation(TransInfo *t, float vec[3]) {
 	for(i = 0 ; i < t->total; i++, td++) {
 		if (td->flag & TD_NOACTION)
 			break;
-
+		
 		if (td->flag & TD_SKIP)
 			continue;
-
+		
 		if (t->con.applyVec) {
 			float pvec[3];
 			t->con.applyVec(t, td, vec, tvec, pvec);
@@ -2495,7 +2570,7 @@ static void applyTranslation(TransInfo *t, float vec[3]) {
 		else {
 			VECCOPY(tvec, vec);
 		}
-
+		
 		Mat3MulVecfl(td->smtx, tvec);
 		VecMulf(tvec, td->factor);
 		
@@ -2509,6 +2584,8 @@ static void applyTranslation(TransInfo *t, float vec[3]) {
 			add_tdi_poin(tdi->locz, tdi->oldloc+2, tvec[2]);
 		}
 		else VecAddf(td->loc, td->iloc, tvec);
+		
+		constraintTransLim(t, td);
 	}
 }
 

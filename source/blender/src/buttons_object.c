@@ -459,7 +459,6 @@ static void draw_constraint_spaceselect (uiBlock *block, bConstraint *con, short
 		bwidth = 125;
 		tarx = 120;
 		ownx = 0;
-		
 	}
 	else if (target == -1) {
 		bwidth = 125;
@@ -1283,6 +1282,9 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 					uiDefButBitS(block, TOG, LIMIT_ZMAX, B_CONSTRAINT_TEST, "maxZ", *xco+(width-(textButWidth-5)-togButWidth), *yco-72, 50, 18, &data->flag, 0, 24, 0, 0, "Use maximum z value"); 
 					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-72, (textButWidth-5), 18, &(data->zmax), -1000, 1000, 0.1,0.5,"Highest z value to allow"); 
 				uiBlockEndAlign(block);
+				
+				// temp placement!!!
+				uiDefButBitS(block, TOG, LIMIT_TRANSFORM, B_CONSTRAINT_TEST, "Trans", *xco+245, *yco-100, 50, 18, &data->flag2, 0, 24, 0, 0, "Only use during transform"); 
 				
 				/* constraint space settings */
 				draw_constraint_spaceselect(block, con, *xco, *yco-100, is_armature_owner(ob), -1);
