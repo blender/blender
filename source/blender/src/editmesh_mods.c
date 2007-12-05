@@ -714,7 +714,7 @@ static void unified_select_draw(EditVert *eve, EditEdge *eed, EditFace *efa)
 			}
 		}
 		
-		if(G.scene->selectmode & SCE_SELECT_FACE && (G.vd->drawtype!=OB_TEXTURE)) {
+		if( CHECK_OB_DRAWFACEDOT(G.scene, G.vd, G.obedit->dt) ) {
 			if(efa->fgonf==0) {
 				glPointSize(BIF_GetThemeValuef(TH_FACEDOT_SIZE));
 				BIF_ThemeColor((efa->f & SELECT)?TH_FACE_DOT:TH_WIRE);

@@ -1168,7 +1168,7 @@ void pose_relax()
 			if(pchan->bone->flag & BONE_SELECTED) {
 				/* do we have an ipo curve? */
 				achan= get_action_channel(act, pchan->name);
-				if(achan->ipo) {
+				if(achan && achan->ipo) {
 					/*calc_ipo(achan->ipo, ctime);*/
 					do_loc += pose_relax_icu(find_ipocurve(achan->ipo, AC_LOC_X), framef, &pchan->loc[0], NULL, NULL);
 					do_loc += pose_relax_icu(find_ipocurve(achan->ipo, AC_LOC_Y), framef, &pchan->loc[1], NULL, NULL);

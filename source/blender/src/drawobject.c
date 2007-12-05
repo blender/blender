@@ -1698,9 +1698,7 @@ static void draw_em_fancy_verts(EditMesh *em, DerivedMesh *cageDM, EditVert *eve
 				draw_dm_verts(cageDM, sel, eve_act);
 			}
 			
-			if(	(G.scene->selectmode & SCE_SELECT_FACE) &&
-				(G.vd->drawtype<=OB_SOLID)
-			) {
+			if( CHECK_OB_DRAWFACEDOT(G.scene, G.vd, G.obedit->dt) ) {
 				glPointSize(fsize);
 				glColor4ubv((GLubyte *)fcol);
 				draw_dm_face_centers(cageDM, sel);
@@ -5329,9 +5327,7 @@ static int bbs_mesh_solid_EM(DerivedMesh *dm, int facecol)
 	if (facecol) {
 		dm->drawMappedFaces(dm, bbs_mesh_solid__setSolidDrawOptions, (void*)(long) 1, 0);
 
-		if(	(G.scene->selectmode & SCE_SELECT_FACE) &&
-			(G.vd->drawtype<=OB_SOLID)
-		) {
+		if( CHECK_OB_DRAWFACEDOT(G.scene, G.vd, G.obedit->dt) ) {
 			glPointSize(BIF_GetThemeValuef(TH_FACEDOT_SIZE));
 		
 			bglBegin(GL_POINTS);
