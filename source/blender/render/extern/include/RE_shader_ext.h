@@ -120,7 +120,7 @@ typedef struct ShadeInput
 	/* end direct copy from material */
 	
 	/* individual copies: */
-	int har;
+	int har; /* hardness */
 	float layerfac;
 	
 	/* texture coordinates */

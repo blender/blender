@@ -1974,7 +1974,7 @@ static void world_panel_mapto(World *wrld)
 	uiDefButF(block, NUMSLI, B_WORLDPRV, "G ",			10,60,135,19, &(mtex->g), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
 	uiDefButF(block, NUMSLI, B_WORLDPRV, "B ",			10,40,135,19, &(mtex->b), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
 	uiBlockEndAlign(block);
-	uiDefButF(block, NUMSLI, B_WORLDPRV, "DVar ",		10,10,135,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "The default value for textures to mix with values (not RGB)");
+	uiDefButF(block, NUMSLI, B_WORLDPRV, "DVar ",		10,10,135,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "Texture influence for Ref, Spec, Amb, Emit, Alpha, RayMir, TransLu and Hard");
 	
 	/* MAP TO */
 	uiBlockBeginAlign(block);
@@ -2405,7 +2405,7 @@ static void lamp_panel_mapto(Object *ob, Lamp *la)
 	uiDefButF(block, NUMSLI, B_LAMPPRV, "G ",			10,60,135,19, &(mtex->g), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
 	uiDefButF(block, NUMSLI, B_LAMPPRV, "B ",			10,40,135,19, &(mtex->b), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
 	uiBlockEndAlign(block);
-	uiDefButF(block, NUMSLI, B_LAMPPRV, "DVar ",			10,10,135,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "The default value the textures uses to mix with");
+	uiDefButF(block, NUMSLI, B_LAMPPRV, "DVar ",			10,10,135,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "Texture influence for Ref, Spec, Amb, Emit, Alpha, RayMir, TransLu and Hard");
 	
 	/* MAP TO */
 	uiDefButBitS(block, TOG, MAP_COL, B_LAMPPRV, "Col",		10,180,135,19, &(mtex->mapto), 0, 0, 0, 0, "Lets the texture affect the basic color of the lamp");
@@ -3146,7 +3146,7 @@ static void material_panel_map_to(Object *ob, Material *ma, int from_nodes)
 	}
 	uiBlockEndAlign(block);
 	
-	uiDefButF(block, NUMSLI, B_MATPRV, "DVar ",			10,10,135,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "The default value the texture uses to mix with (not RGB)");
+	uiDefButF(block, NUMSLI, B_MATPRV, "DVar ",			10,10,135,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "Texture influence for Ref, Spec, Amb, Emit, Alpha, RayMir, TransLu and Hard");
 	
 	/* MAP TO */
 	uiBlockBeginAlign(block);

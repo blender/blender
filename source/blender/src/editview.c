@@ -2144,9 +2144,12 @@ void set_render_border(void)
 	
 		allqueue(REDRAWVIEWCAM, 1);
 		
-		/* drawing a border surrounding the entire camera view switches off border rendering */
-		if (G.scene->r.border.xmin <= 0.0 && G.scene->r.border.xmax >= 1.0 &&
-			G.scene->r.border.ymin <= 0.0 && G.scene->r.border.ymax >= 1.0)
+		/* drawing a border surrounding the entire camera view switches off border rendering
+		 * or the border covers no pixels */
+		if ((G.scene->r.border.xmin <= 0.0 && G.scene->r.border.xmax >= 1.0 &&
+			G.scene->r.border.ymin <= 0.0 && G.scene->r.border.ymax >= 1.0) ||
+		   (G.scene->r.border.xmin == G.scene->r.border.xmax ||
+			G.scene->r.border.ymin == G.scene->r.border.ymax ))
 		{
 			G.scene->r.mode &= ~R_BORDER;
 		} else {

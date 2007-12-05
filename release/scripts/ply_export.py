@@ -7,6 +7,7 @@ Group: 'Export'
 Tooltip: 'Export active object to Stanford PLY format'
 """
 
+import bpy
 import Blender
 from Blender import Mesh, Scene, Window, sys, Image, Draw
 import BPyMesh
@@ -64,7 +65,7 @@ def file_callback(filename):
 	if not filename.lower().endswith('.ply'):
 		filename += '.ply'
 	
-	scn= Blender.Scene.GetCurrent()
+	scn= bpy.data.scenes.active
 	ob= scn.objects.active
 	if not ob:
 		Blender.Draw.PupMenu('Error%t|Select 1 active object')
@@ -88,6 +89,10 @@ def file_callback(filename):
 	
 	if not Draw.PupBlock('Export...', pup_block):
 		return
+	
+	is_editmode = Blender.Window.EditMode()
+	if is_editmode:
+		Blender.Window.EditMode(0, '', 0)
 	
 	Window.WaitCursor(1)
 	
@@ -132,7 +137,7 @@ def file_callback(filename):
 		if vertexColors:	col = f.col
 		for j, v in enumerate(f):
 			if smooth:
-				normal=		v.no
+				normal=		tuple(v.no)
 				normal_key = rvec3d(normal)
 			
 			if faceUV:
@@ -211,12 +216,12 @@ def file_callback(filename):
 			
 		file.write('\n')
 	file.close()
-
-
+	
+	if is_editmode:
+		Blender.Window.EditMode(1, '', 0)
 
 def main():
 	Blender.Window.FileSelector(file_callback, 'PLY Export', Blender.sys.makename(ext='.ply'))
-
 
 if __name__=='__main__':
 	main()
