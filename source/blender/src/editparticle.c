@@ -2272,7 +2272,7 @@ static void brush_add(Object *ob, ParticleSystem *psys, short *mval, short numbe
 			tree=BLI_kdtree_new(psys->totpart);
 			
 			for(i=0, pa=psys->particles; i<totpart; i++, pa++) {
-				psys_particle_on_dm(ob,psmd->dm,psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,cur_co,0,0,0);
+				psys_particle_on_dm(ob,psmd->dm,psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,cur_co,0,0,0,0,0);
 				BLI_kdtree_insert(tree, i, cur_co, NULL);
 			}
 
@@ -2311,7 +2311,7 @@ static void brush_add(Object *ob, ParticleSystem *psys, short *mval, short numbe
 				int w, maxw;
 				float maxd, mind, dd, totw=0.0, weight[3];
 
-				psys_particle_on_dm(ob,psmd->dm,psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co1,0,0,0);
+				psys_particle_on_dm(ob,psmd->dm,psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co1,0,0,0,0,0);
 				maxw = BLI_kdtree_find_n_nearest(tree,3,co1,NULL,ptn);
 
 				maxd = ptn[maxw-1].dist;

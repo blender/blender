@@ -75,6 +75,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_lattice.h"
 #include "BKE_pointcache.h"
+#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 
 #include "BSE_headerbuttons.h"
@@ -473,7 +474,7 @@ void psys_thread_distribute_particle(ParticleThread *thread, ParticleData *pa, C
 	DerivedMesh *dm= ctx->dm;
 	ParticleData *tpars=0, *tpa;
 	ParticleSettings *part= ctx->psys->part;
-	float *v1, *v2, *v3, *v4, nor[3], co1[3], co2[3], nor1[3];
+	float *v1, *v2, *v3, *v4, nor[3], orco1[3], co1[3], co2[3], nor1[3], ornor1[3];
 	float cur_d, min_d;
 	int from= ctx->from;
 	int cfrom= ctx->cfrom;
@@ -492,8 +493,8 @@ void psys_thread_distribute_particle(ParticleThread *thread, ParticleData *pa, C
 			KDTreeNearest ptn[3];
 			int w, maxw;
 
-			psys_particle_on_dm(ctx->ob,ctx->dm,from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co1,0,0,0);
-			maxw = BLI_kdtree_find_n_nearest(ctx->tree,3,co1,NULL,ptn);
+			psys_particle_on_dm(ctx->ob,ctx->dm,from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co1,0,0,0,orco1,0);
+			maxw = BLI_kdtree_find_n_nearest(ctx->tree,3,orco1,NULL,ptn);
 
 			for(w=0; w<maxw; w++){
 				pa->verts[w]=ptn->num;
@@ -532,7 +533,7 @@ void psys_thread_distribute_particle(ParticleThread *thread, ParticleData *pa, C
 
 			tot=dm->getNumFaces(dm);
 
-			psys_interpolate_face(mvert,mface,0,pa->fuv,co1,nor,0,0);
+			psys_interpolate_face(mvert,mface,0,0,pa->fuv,co1,nor,0,0,0,0);
 
 			Normalize(nor);
 			VecMulf(nor,-100.0);
@@ -631,8 +632,8 @@ void psys_thread_distribute_particle(ParticleThread *thread, ParticleData *pa, C
 
 			do_seams= (part->flag&PART_CHILD_SEAMS && ctx->seams);
 
-			psys_particle_on_dm(ob,dm,cfrom,cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,co1,nor1,0,0);
-			maxw = BLI_kdtree_find_n_nearest(ctx->tree,(do_seams)?10:4,co1,nor1,ptn);
+			psys_particle_on_dm(ob,dm,cfrom,cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,co1,nor1,0,0,orco1,ornor1);
+			maxw = BLI_kdtree_find_n_nearest(ctx->tree,(do_seams)?10:4,orco1,ornor1,ptn);
 
 			maxd=ptn[maxw-1].dist;
 			mind=ptn[0].dist;
@@ -642,7 +643,8 @@ void psys_thread_distribute_particle(ParticleThread *thread, ParticleData *pa, C
 			for(w=0; w<maxw; w++){
 				parent[w]=ptn[w].index;
 				pweight[w]=(float)pow(2.0,(double)(-6.0f*ptn[w].dist/maxd));
-				//totw+=cpa->w[w];
+				//pweight[w]= (1.0f - ptn[w].dist*ptn[w].dist/(maxd*maxd));
+				//pweight[w] *= pweight[w];
 			}
 			for(;w<10; w++){
 				parent[w]=-1;
@@ -790,7 +792,7 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 	//int *vertpart=0;
 	int jitlevel= 1, distr;
 	float *weight=0,*sum=0,*jitoff=0;
-	float cur, maxweight=0.0, tweight, totweight, co[3], nor[3];
+	float cur, maxweight=0.0, tweight, totweight, co[3], nor[3], orco[3], ornor[3];
 	
 	if(ob==0 || psys==0 || psys->part==0)
 		return 0;
@@ -817,8 +819,8 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 			tree=BLI_kdtree_new(totpart);
 
 			for(p=0,pa=psys->particles; p<totpart; p++,pa++){
-				psys_particle_on_dm(ob,dm,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,nor,0,0);
-				BLI_kdtree_insert(tree, p, co, nor);
+				psys_particle_on_dm(ob,dm,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,nor,0,0,orco,ornor);
+				BLI_kdtree_insert(tree, p, orco, ornor);
 			}
 
 			BLI_kdtree_balance(tree);
@@ -908,16 +910,23 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 			return 0;
 		}
 
+		/* we need orco for consistent distributions */
+		DM_add_vert_layer(dm, CD_ORCO, CD_ASSIGN, get_mesh_orco_verts(ob));
+
 		distr=part->distr;
 		pa=psys->particles;
 		if(from==PART_FROM_VERT){
-			MVert *mv= dm->getVertDataArray(dm,0);
+			MVert *mv= dm->getVertDataArray(dm, CD_MVERT);
+			float (*orcodata)[3]= dm->getVertDataArray(dm, CD_ORCO);
 			int totvert = dm->getNumVerts(dm);
 
 			tree=BLI_kdtree_new(totvert);
 
-			for(p=0; p<totvert; p++,mv++){
-				VECCOPY(co,mv->co);
+			for(p=0; p<totvert; p++){
+				if(orcodata)
+					VECCOPY(co,orcodata[p])
+				else
+					VECCOPY(co,mv[p].co)
 				BLI_kdtree_insert(tree,p,co,NULL);
 			}
 
@@ -981,20 +990,34 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 
 	/* 2.1 */
 	if((part->flag&PART_EDISTR || children) && ELEM(from,PART_FROM_PARTICLE,PART_FROM_VERT)==0){
-		float totarea=0.0;
+		float totarea=0.0, *co1, *co2, *co3, *co4;
+		float (*orcodata)[3];
+		
+		orcodata= dm->getVertDataArray(dm, CD_ORCO);
 
 		for(i=0; i<tot; i++){
 			MFace *mf=dm->getFaceData(dm,i,CD_MFACE);
-			MVert *mv1=dm->getVertData(dm,mf->v1,CD_MVERT);
-			MVert *mv2=dm->getVertData(dm,mf->v2,CD_MVERT);
-			MVert *mv3=dm->getVertData(dm,mf->v3,CD_MVERT);
+
+			if(orcodata) {
+				co1= orcodata[mf->v1];
+				co2= orcodata[mf->v2];
+				co3= orcodata[mf->v3];
+			}
+			else {
+				co1= ((MVert*)dm->getVertData(dm,mf->v1,CD_MVERT))->co;
+				co2= ((MVert*)dm->getVertData(dm,mf->v2,CD_MVERT))->co;
+				co3= ((MVert*)dm->getVertData(dm,mf->v3,CD_MVERT))->co;
+			}
 
 			if (mf->v4){
-				MVert *mv4=dm->getVertData(dm,mf->v4,CD_MVERT);
-				cur= AreaQ3Dfl(mv1->co,mv2->co,mv3->co,mv4->co);
+				if(orcodata)
+					co4= orcodata[mf->v4];
+				else
+					co4= ((MVert*)dm->getVertData(dm,mf->v4,CD_MVERT))->co;
+				cur= AreaQ3Dfl(co1, co2, co3, co4);
 			}
 			else
-				cur= AreaT3Dfl(mv1->co,mv2->co,mv3->co);
+				cur= AreaT3Dfl(co1, co2, co3);
 			
 			if(cur>maxweight)
 				maxweight=cur;
@@ -1516,7 +1539,7 @@ void reset_particle(ParticleData *pa, ParticleSystem *psys, ParticleSystemModifi
 			where_is_object_time(ob,pa->time);
 
 		/* get birth location from object		*/
-		psys_particle_on_emitter(ob,psmd,part->from,pa->num, pa->num_dmcache, pa->fuv,pa->foffset,loc,nor,utan,vtan);
+		psys_particle_on_emitter(ob,psmd,part->from,pa->num, pa->num_dmcache, pa->fuv,pa->foffset,loc,nor,utan,vtan,0,0);
 		
 		/* save local coordinates for later		*/
 		VECCOPY(tloc,loc);
@@ -2415,7 +2438,7 @@ static void precalc_effectors(Object *ob, ParticleSystem *psys, ParticleSystemMo
 				ec->locations=MEM_callocN(totpart*3*sizeof(float),"particle locations");
 
 				for(p=0,pa=psys->particles; p<totpart; p++, pa++){
-					psys_particle_on_emitter(ob,psmd,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,loc,0,0,0);
+					psys_particle_on_emitter(ob,psmd,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,loc,0,0,0,0,0);
 					Mat4MulVecfl(ob->obmat,loc);
 					ec->distances[p]=VecLenf(loc,vec);
 					VECSUB(loc,loc,vec);
@@ -3125,7 +3148,7 @@ static void deflect_particle(Object *pob, ParticleSystemModifierData *psmd, Part
 				}
 				else{
 					/* get deflection point & normal */
-					psys_interpolate_face(mvert,mface,0,min_w,ipoint,unit_nor,0,0);
+					psys_interpolate_face(mvert,mface,0,0,min_w,ipoint,unit_nor,0,0,0,0);
 					if(global){
 						Mat4Mul3Vecfl(ob->obmat,unit_nor);
 						Mat4MulVecfl(ob->obmat,ipoint);
@@ -3338,7 +3361,7 @@ static int boid_see_mesh(ListBase *lb, Object *pob, ParticleSystem *psys, float 
 			mvert=dm->getVertDataArray(dm,CD_MVERT);
 
 			/* get deflection point & normal */
-			psys_interpolate_face(mvert,mface,0,min_w,loc,nor,0,0);
+			psys_interpolate_face(mvert,mface,0,0,min_w,loc,nor,0,0,0,0);
 
 			VECADD(nor,nor,loc);
 			Mat4MulVecfl(ob->obmat,loc);
@@ -3834,7 +3857,7 @@ static void boid_body(BoidVecFunc *bvf, ParticleData *pa, ParticleSystem *psys, 
 				mvert=dm->getVertDataArray(dm,CD_MVERT);
 
 				/* get deflection point & normal */
-				psys_interpolate_face(mvert,mface,0,min_w,loc,nor,0,0);
+				psys_interpolate_face(mvert,mface,0,0,min_w,loc,nor,0,0,0,0);
 
 				Mat4MulVecfl(zob->obmat,loc);
 				Mat4Mul3Vecfl(zob->obmat,nor);

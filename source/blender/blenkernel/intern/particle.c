@@ -417,12 +417,13 @@ static void interpolate_particle(short type, ParticleKey keys[4], float dt, Part
 /*			Particles on a dm					*/
 /************************************************/
 /* interpolate a location on a face based on face coordinates */
-void psys_interpolate_face(MVert *mvert, MFace *mface, MTFace *tface, float *w, float *vec, float *nor, float *utan, float *vtan){
+void psys_interpolate_face(MVert *mvert, MFace *mface, MTFace *tface, float (*orcodata)[3], float *w, float *vec, float *nor, float *utan, float *vtan, float *orco,float *ornor){
 	float *v1=0, *v2=0, *v3=0, *v4=0;
 	float e1[3],e2[3],s1,s2,t1,t2;
 	float *uv1, *uv2, *uv3, *uv4;
 	float n1[3], n2[3], n3[3], n4[3];
 	float tuv[4][2];
+	float *o1, *o2, *o3, *o4;
 
 	v1= (mvert+mface->v1)->co;
 	v2= (mvert+mface->v2)->co;
@@ -514,6 +515,37 @@ void psys_interpolate_face(MVert *mvert, MFace *mface, MTFace *tface, float *w, 
 		utan[0] = (t1*e2[0] - t2*e1[0]);
 		utan[1] = (t1*e2[1] - t2*e1[1]);
 		utan[2] = (t1*e2[2] - t2*e1[2]);
+	}
+
+	if(orco) {
+		if(orcodata) {
+			o1= orcodata[mface->v1];
+			o2= orcodata[mface->v2];
+			o3= orcodata[mface->v3];
+
+			if(mface->v4) {
+				o4= orcodata[mface->v4];
+				orco[0]= w[0]*o1[0] + w[1]*o2[0] + w[2]*o3[0] + w[3]*o4[0];
+				orco[1]= w[0]*o1[1] + w[1]*o2[1] + w[2]*o3[1] + w[3]*o4[1];
+				orco[2]= w[0]*o1[2] + w[1]*o2[2] + w[2]*o3[2] + w[3]*o4[2];
+
+				if(ornor)
+					CalcNormFloat4(o1, o2, o3, o4, ornor);
+			}
+			else {
+				orco[0]= w[0]*o1[0] + w[1]*o2[0] + w[2]*o3[0];
+				orco[1]= w[0]*o1[1] + w[1]*o2[1] + w[2]*o3[1];
+				orco[2]= w[0]*o1[2] + w[1]*o2[2] + w[2]*o3[2];
+
+				if(ornor)
+					CalcNormFloat(o1, o2, o3, ornor);
+			}
+		}
+		else {
+			VECCOPY(orco, vec);
+			if(ornor)
+				VECCOPY(ornor, nor);
+		}
 	}
 }
 void psys_interpolate_uvs(MTFace *tface, int quad, float *w, float *uvco){
@@ -656,8 +688,10 @@ int psys_particle_dm_face_lookup(Object *ob, DerivedMesh *dm, int index, float *
 
 /* interprets particle data to get a point on a mesh in object space */
 #define PARTICLE_ERROR(_nor, _vec) _vec[0]=_vec[1]=_vec[2]=0.0; if(_nor){ _nor[0]=_nor[1]=0.0; _nor[2]=1.0; }
-void psys_particle_on_dm(Object *ob, DerivedMesh *dm, int from, int index, int index_dmcache, float *fw, float foffset, float *vec, float *nor, float *utan, float *vtan)
+void psys_particle_on_dm(Object *ob, DerivedMesh *dm, int from, int index, int index_dmcache, float *fw, float foffset, float *vec, float *nor, float *utan, float *vtan, float *orco, float *ornor)
 {
+	float (*orcodata)[3] = dm->getVertDataArray(dm, CD_ORCO);
+
 	if(index < 0){ /* 'no dm' error has happened! */
 		PARTICLE_ERROR(nor, vec);
 		return;
@@ -675,6 +709,12 @@ void psys_particle_on_dm(Object *ob, DerivedMesh *dm, int from, int index, int i
 	
 			dm->getVertCo(dm,index,vec);
 			if(nor){
+				dm->getVertNo(dm,index,nor);
+				Normalize(nor);
+			}
+			if(orco)
+				VECCOPY(orco, orcodata[index])
+			if(ornor) {
 				dm->getVertNo(dm,index,nor);
 				Normalize(nor);
 			}
@@ -700,7 +740,7 @@ void psys_particle_on_dm(Object *ob, DerivedMesh *dm, int from, int index, int i
 			}
 
 			if(from==PART_FROM_VOLUME){
-				psys_interpolate_face(mvert,mface,mtface,fw,vec,temp1,utan,vtan);
+				psys_interpolate_face(mvert,mface,mtface,orcodata,fw,vec,temp1,utan,vtan,orco,ornor);
 				if(nor)
 					VECCOPY(nor,temp1);
 				Normalize(temp1);
@@ -708,7 +748,7 @@ void psys_particle_on_dm(Object *ob, DerivedMesh *dm, int from, int index, int i
 				VECADD(vec,vec,temp1);
 			}
 			else
-				psys_interpolate_face(mvert,mface,mtface,fw,vec,nor,utan,vtan);
+				psys_interpolate_face(mvert,mface,mtface,orcodata,fw,vec,nor,utan,vtan,orco,ornor);
 		}
 	} else {
 		/* Need to support constructive modifiers, this is a bit more tricky
@@ -761,7 +801,7 @@ void psys_particle_on_dm(Object *ob, DerivedMesh *dm, int from, int index, int i
 			/* we need to modify the original weights to become weights for
 			 * the derived mesh face */
 			psys_origspace_to_w(osface, mface->v4, fw, fw_mod);
-			psys_interpolate_face(mvert,mface,mtface,fw_mod,vec,nor,utan,vtan);
+			psys_interpolate_face(mvert,mface,mtface,orcodata,fw_mod,vec,nor,utan,vtan,orco,ornor);
 		}
 		else {
 			/* TODO PARTICLE - support verts and volume */
@@ -790,7 +830,7 @@ ParticleSystemModifierData *psys_get_modifier(Object *ob, ParticleSystem *psys)
 /*			Particles on a shape				*/
 /************************************************/
 /* ready for future use */
-void psys_particle_on_shape(int distr, int index, float *fuv, float *vec, float *nor, float *utan, float *vtan)
+void psys_particle_on_shape(int distr, int index, float *fuv, float *vec, float *nor, float *utan, float *vtan, float *orco, float *ornor)
 {
 	/* TODO */
 	float zerovec[3]={0.0f,0.0f,0.0f};
@@ -806,11 +846,17 @@ void psys_particle_on_shape(int distr, int index, float *fuv, float *vec, float 
 	if(vtan){
 		VECCOPY(vtan,zerovec);
 	}
+	if(orco){
+		VECCOPY(orco,zerovec);
+	}
+	if(ornor){
+		VECCOPY(ornor,zerovec);
+	}
 }
 /************************************************/
 /*			Particles on emitter				*/
 /************************************************/
-void psys_particle_on_emitter(Object *ob, ParticleSystemModifierData *psmd, int from, int index, int index_dmcache, float *fuv, float foffset, float *vec, float *nor, float *utan, float *vtan){
+void psys_particle_on_emitter(Object *ob, ParticleSystemModifierData *psmd, int from, int index, int index_dmcache, float *fuv, float foffset, float *vec, float *nor, float *utan, float *vtan, float *orco, float *ornor){
 	if(psmd){
 		if(psmd->psys->part->distr==PART_DISTR_GRID){
 			if(vec){
@@ -819,10 +865,10 @@ void psys_particle_on_emitter(Object *ob, ParticleSystemModifierData *psmd, int 
 			return;
 		}
 		/* we cant use the num_dmcache */
-		psys_particle_on_dm(ob, psmd->dm,from,index,index_dmcache,fuv,foffset,vec,nor,utan,vtan);
+		psys_particle_on_dm(ob, psmd->dm,from,index,index_dmcache,fuv,foffset,vec,nor,utan,vtan,orco,ornor);
 	}
 	else
-		psys_particle_on_shape(from,index,fuv,vec,nor,utan,vtan);
+		psys_particle_on_shape(from,index,fuv,vec,nor,utan,vtan,orco,ornor);
 
 }
 /************************************************/
@@ -1293,27 +1339,25 @@ void psys_find_parents(Object *ob, ParticleSystemModifierData *psmd, ParticleSys
 	KDTree *tree;
 	ChildParticle *cpa;
 	int p, totparent,totchild=psys->totchild;
-	float co[3], *orcos=0;
+	float co[3], orco[3];
 	int from=PART_FROM_FACE;
 	totparent=(int)(totchild*part->parents*0.3);
 
 	tree=BLI_kdtree_new(totparent);
 
 	for(p=0,cpa=psys->child; p<totparent; p++,cpa++){
-		psys_particle_on_emitter(ob,psmd,from,cpa->num,-1,cpa->fuv,cpa->foffset,co,0,0,0);
-		BLI_kdtree_insert(tree, p, co, NULL);
+		psys_particle_on_emitter(ob,psmd,from,cpa->num,-1,cpa->fuv,cpa->foffset,co,0,0,0,orco,0);
+		BLI_kdtree_insert(tree, p, orco, NULL);
 	}
 
 	BLI_kdtree_balance(tree);
 
 	for(; p<totchild; p++,cpa++){
-		psys_particle_on_emitter(ob,psmd,from,cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,co,0,0,0);
-		cpa->parent=BLI_kdtree_find_nearest(tree, co, NULL, NULL);
+		psys_particle_on_emitter(ob,psmd,from,cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,co,0,0,0,orco,0);
+		cpa->parent=BLI_kdtree_find_nearest(tree, orco, NULL, NULL);
 	}
 
 	BLI_kdtree_free(tree);
-	if(orcos)
-		MEM_freeN(orcos);
 }
 
 static void get_strand_normal(Material *ma, float *surfnor, float surfdist, float *nor)
@@ -1434,7 +1478,7 @@ void psys_thread_create_path(ParticleThread *thread, struct ChildParticle *cpa, 
 	ParticleData *pa;
 	ParticleTexture ptex;
 	float *cpa_fuv=0;
-	float orco[3], ornor[3], t, rough_t, cpa_1st[3], dvec[3];
+	float co[3], orco[3], ornor[3], t, rough_t, cpa_1st[3], dvec[3];
 	float branch_begin, branch_end, branch_prob, branchfac, rough_rand;
 	float pa_rough1, pa_rough2, pa_roughe, length, pa_length, pa_clump, pa_kink;
 	float max_length = 1.0f, cur_length = 0.0f;
@@ -1497,10 +1541,10 @@ void psys_thread_create_path(ParticleThread *thread, struct ChildParticle *cpa, 
 		cpa_fuv = cpa->fuv;
 		cpa_from = PART_FROM_FACE;
 
-		psys_particle_on_emitter(ob,ctx->psmd,cpa_from,cpa_num,DMCACHE_ISCHILD,cpa->fuv,foffset,orco,ornor,0,0);
+		psys_particle_on_emitter(ob,ctx->psmd,cpa_from,cpa_num,DMCACHE_ISCHILD,cpa->fuv,foffset,co,ornor,0,0,orco,0);
 
 		/* we need to save the actual root position of the child for positioning it accurately to the surface of the emitter */
-		VECCOPY(cpa_1st,orco);
+		VECCOPY(cpa_1st,co);
 		Mat4MulVecfl(ob->obmat,cpa_1st);
 
 		pa=0;
@@ -1523,7 +1567,7 @@ void psys_thread_create_path(ParticleThread *thread, struct ChildParticle *cpa, 
 		cpa_num=pa->num;
 		cpa_fuv=pa->fuv;
 
-		psys_particle_on_emitter(ob,ctx->psmd,cpa_from,cpa_num,DMCACHE_ISCHILD,cpa_fuv,pa->foffset,orco,ornor,0,0);
+		psys_particle_on_emitter(ob,ctx->psmd,cpa_from,cpa_num,DMCACHE_ISCHILD,cpa_fuv,pa->foffset,co,ornor,0,0,orco,0);
 	}
 
 	keys->steps = ctx->steps;
@@ -2216,7 +2260,7 @@ void psys_mat_hair_to_object(Object *ob, DerivedMesh *dm, short from, ParticleDa
 	float vec[3];
 
 	psys_face_mat(dm, pa, hairmat);
-	psys_particle_on_dm(ob, dm, from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, vec, 0, 0, 0);
+	psys_particle_on_dm(ob, dm, from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, vec, 0, 0, 0, 0, 0);
 	VECCOPY(hairmat[3],vec);
 }
 
@@ -2574,7 +2618,7 @@ void psys_get_texture(Object *ob, Material *ma, ParticleSystemModifierData *psmd
 {
 	MTex *mtex;
 	int m;
-	float value, rgba[4], texco[3];
+	float value, rgba[4], co[3], texco[3];
 	int setvars=0;
 
 	if(ma) for(m=0; m<MAX_MTEX; m++){
@@ -2604,12 +2648,12 @@ void psys_get_texture(Object *ob, Material *ma, ParticleSystemModifierData *psmd
 					/* <jahka> anyways I think it will be too small a difference to notice, so psys_get_texture should only know about the original mesh structure.. no dm needed anywhere */
 					/* <brecht> the code only does dm based lookup now, so passing num_dmcache anyway to avoid^
 					 * massive slowdown here */
-					psys_particle_on_emitter(ob,psmd,psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,texco,0,0,0);
+					psys_particle_on_emitter(ob,psmd,psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,0,0,0,texco, 0);
 			}
 			else{
 				//psys_particle_on_emitter(ob,psmd,psys->part->from,pa->num,pa->fuv,pa->offset,texco,0,0,0);
 				/* ditto above */
-				psys_particle_on_emitter(ob,psmd,psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,texco,0,0,0);
+				psys_particle_on_emitter(ob,psmd,psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,0,0,0,texco, 0);
 			}
 			externtex(mtex, texco, &value, rgba, rgba+1, rgba+2, rgba+3);
 
@@ -2740,7 +2784,7 @@ void psys_get_particle_on_path(Object *ob, ParticleSystem *psys, int p, Particle
 	ParticleKey *par=0, keys[4];
 
 	float t, real_t, dfra, keytime;
-	float orco[3];
+	float co[3], orco[3];
 	float imat[4][4], hairmat[4][4], cpa_1st[3];
 	float pa_clump = 0.0, pa_kink = 0.0;
 	int totparent = 0;
@@ -2877,10 +2921,10 @@ void psys_get_particle_on_path(Object *ob, ParticleSystem *psys, int p, Particle
 			cpa_fuv = cpa->fuv;
 			cpa_from = PART_FROM_FACE;
 
-			psys_particle_on_emitter(ob,psmd,cpa_from,cpa_num,DMCACHE_ISCHILD,cpa->fuv,foffset,orco,0,0,0);
+			psys_particle_on_emitter(ob,psmd,cpa_from,cpa_num,DMCACHE_ISCHILD,cpa->fuv,foffset,co,0,0,0,orco,0);
 
 			/* we need to save the actual root position of the child for positioning it accurately to the surface of the emitter */
-			VECCOPY(cpa_1st,orco);
+			VECCOPY(cpa_1st,co);
 
 			//w=0;
 			//while(w<4 && cpa->pa[w]>=0){
@@ -2909,7 +2953,7 @@ void psys_get_particle_on_path(Object *ob, ParticleSystem *psys, int p, Particle
 			cpa_num=pa->num;
 			cpa_fuv=pa->fuv;
 
-			psys_particle_on_emitter(ob,psmd,cpa_from,cpa_num,DMCACHE_ISCHILD,cpa_fuv,pa->foffset,orco,0,0,0);
+			psys_particle_on_emitter(ob,psmd,cpa_from,cpa_num,DMCACHE_ISCHILD,cpa_fuv,pa->foffset,co,0,0,0,orco,0);
 		}
 
 		/* correct child ipo timing */

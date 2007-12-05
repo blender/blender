@@ -485,9 +485,11 @@ static void mesh_create_shadedColors(Render *re, Object *ob, int onlyForMesh, un
 	CustomDataMask dataMask = CD_MASK_BAREMESH | CD_MASK_MCOL
 	                          | CD_MASK_MTFACE | CD_MASK_NORMAL;
 
+
 	init_fastshade_for_ob(re, ob, &need_orco, mat, imat);
 
-	orco = (need_orco)? mesh_create_orco(ob): NULL;
+	if(need_orco)
+		dataMask |= CD_MASK_ORCO;
 
 	if (onlyForMesh)
 		dm = mesh_get_derived_deform(ob, dataMask);
@@ -499,6 +501,7 @@ static void mesh_create_shadedColors(Render *re, Object *ob, int onlyForMesh, un
 	nors = dm->getFaceDataArray(dm, CD_NORMAL);
 	totvert = dm->getNumVerts(dm);
 	totface = dm->getNumFaces(dm);
+	orco= dm->getVertDataArray(dm, CD_ORCO);
 
 	if (onlyForMesh) {
 		col1 = *col1_r;
@@ -576,9 +579,6 @@ static void mesh_create_shadedColors(Render *re, Object *ob, int onlyForMesh, un
 		}
 	} 
 	MEM_freeN(vnors);
-
-	if (orco)
-		MEM_freeN(orco);
 
 	dm->release(dm);
 

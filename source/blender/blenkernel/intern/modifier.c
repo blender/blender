@@ -5010,7 +5010,7 @@ static void particleSystemModifier_initData(ModifierData *md)
 	ParticleSystemModifierData *psmd= (ParticleSystemModifierData*) md;
 	psmd->psys= 0;
 	psmd->dm=0;
-
+	psmd->totdmvert= psmd->totdmedge= psmd->totdmface= 0;
 }
 static void particleSystemModifier_freeData(ModifierData *md)
 {
@@ -5054,6 +5054,8 @@ CustomDataMask particleSystemModifier_requiredDataMask(ModifierData *md)
 	/* particles only need this if they are after a non deform modifier, and
 	 * the modifier stack will only create them in that case. */
 	dataMask |= CD_MASK_ORIGSPACE;
+
+	dataMask |= CD_MASK_ORCO;
 	
 	return dataMask;
 }
@@ -5104,6 +5106,8 @@ static void particleSystemModifier_deformVerts(
 
 			CDDM_apply_vert_coords(dm, vertexCos);
 			//CDDM_calc_normals(dm);
+			
+			DM_add_vert_layer(dm, CD_ORCO, CD_ASSIGN, get_mesh_orco_verts(ob));
 
 			needsFree=1;
 		}
@@ -5505,7 +5509,7 @@ static void explodeModifier_createFacepa(ExplodeModifierData *emd,
 	/* make tree of emitter locations */
 	tree=BLI_kdtree_new(totpart);
 	for(p=0,pa=psys->particles; p<totpart; p++,pa++){
-		psys_particle_on_dm(ob,psmd->dm,psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,0,0,0);
+		psys_particle_on_dm(ob,psmd->dm,psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,0,0,0,0,0);
 		BLI_kdtree_insert(tree, p, co, NULL);
 	}
 	BLI_kdtree_balance(tree);
@@ -6076,7 +6080,7 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 	/*duplicate & displace vertices*/
 	for(i=0, pa=pars; i<=totpart; i++, pa++){
 		if(i!=totpart){
-			psys_particle_on_emitter(ob, psmd,part->from,pa->num,-1,pa->fuv,pa->foffset,loc0,nor,0,0);
+			psys_particle_on_emitter(ob, psmd,part->from,pa->num,-1,pa->fuv,pa->foffset,loc0,nor,0,0,0,0);
 			Mat4MulVecfl(ob->obmat,loc0);
 
 			state.time=cfra;

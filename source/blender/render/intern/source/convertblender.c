@@ -966,9 +966,7 @@ static float *get_object_orco(Render *re, Object *ob)
 	orco = BLI_ghash_lookup(re->orco_hash, ob);
 	
 	if (!orco) {
-		if (ob->type==OB_MESH) {
-			orco = mesh_create_orco_render(ob);
-		} else if (ELEM(ob->type, OB_CURVE, OB_FONT)) {
+		if (ELEM(ob->type, OB_CURVE, OB_FONT)) {
 			orco = make_orco_curve(ob);
 		} else if (ob->type==OB_SURF) {
 			orco = make_orco_surf(ob);
@@ -979,6 +977,14 @@ static float *get_object_orco(Render *re, Object *ob)
 	}
 	
 	return orco;
+}
+
+static void set_object_orco(Render *re, void *ob, float *orco)
+{
+	if (!re->orco_hash)
+		re->orco_hash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
+	
+	BLI_ghash_insert(re->orco_hash, ob, orco);
 }
 
 static void free_mesh_orco_hash(Render *re) 
@@ -1727,7 +1733,7 @@ static int render_new_particle_system(Render *re, Object *ob, ParticleSystem *ps
 	StrandVert *svert=0;
 	StrandRen *strand=0;
 	RNG *rng= 0;
-	float loc[3],loc1[3],loc0[3],vel[3],mat[4][4],nmat[3][3],ornor[3],time;
+	float loc[3],loc1[3],loc0[3],vel[3],mat[4][4],nmat[3][3],co[3],nor[3],time;
 	float *orco=0,*surfnor=0,*uvco=0;
 	float hasize, pa_size, pa_time, r_tilt, cfra=bsystem_time(ob,(float)CFRA,0.0);
 	float loc_tex[3], size_tex[3], adapt_angle=0.0, adapt_pix=0.0, random;
@@ -1859,9 +1865,7 @@ static int render_new_particle_system(Render *re, Object *ob, ParticleSystem *ps
 			if(path_nbr) {
 				if((ma->mode & (MA_HALO|MA_WIRE))==0) {
 					orco= MEM_mallocN(3*sizeof(float)*(totpart+totchild), "particle orcos");
-					if (!re->orco_hash)
-						re->orco_hash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
-					BLI_ghash_insert(re->orco_hash, psys, orco);
+					set_object_orco(re, psys, orco);
 				}
 				path=1;
 			}
@@ -1932,10 +1936,10 @@ static int render_new_particle_system(Render *re, Object *ob, ParticleSystem *ps
 			/* get orco */
 			if(tpsys && (part->from==PART_FROM_PARTICLE || part->phystype==PART_PHYS_NO)){
 				tpa=tpsys->particles+pa->num;
-				psys_particle_on_emitter(ob, psmd,tpart->from,tpa->num, -1,tpa->fuv,tpa->foffset,orco,ornor,0,0);
+				psys_particle_on_emitter(ob, psmd,tpart->from,tpa->num, -1,tpa->fuv,tpa->foffset,co,nor,0,0,orco,0);
 			}
 			else
-				psys_particle_on_emitter(ob, psmd,part->from,pa->num,-1,pa->fuv,pa->foffset,orco,ornor,0,0);
+				psys_particle_on_emitter(ob, psmd,part->from,pa->num,-1,pa->fuv,pa->foffset,co,nor,0,0,orco,0);
 
 			if(uvco && ELEM(part->from,PART_FROM_FACE,PART_FROM_VOLUME)){
 				layer=psmd->dm->faceData.layers + CustomData_get_layer_index(&psmd->dm->faceData,CD_MFACE);
@@ -1988,7 +1992,7 @@ static int render_new_particle_system(Render *re, Object *ob, ParticleSystem *ps
 			/* get orco */
 			psys_particle_on_emitter(ob, psmd,
 				(part->childtype == PART_CHILD_FACES)? PART_FROM_FACE: PART_FROM_PARTICLE,
-				cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,orco,ornor,0,0);
+				cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,co,nor,0,0,orco,0);
 
 			if(uvco){
 				layer=psmd->dm->faceData.layers + CustomData_get_layer_index(&psmd->dm->faceData,CD_MFACE);
@@ -2040,8 +2044,8 @@ static int render_new_particle_system(Render *re, Object *ob, ParticleSystem *ps
 		}
 
 		if(ma->mode_l & MA_STR_SURFDIFF) {
-			Mat3MulVecfl(nmat, ornor);
-			surfnor= ornor;
+			Mat3MulVecfl(nmat, nor);
+			surfnor= nor;
 		}
 		else
 			surfnor= NULL;
@@ -2208,9 +2212,7 @@ static void render_static_particle_system(Render *re, Object *ob, PartEff *paf)
 	/* orcos */
 	if(!(ma->mode & (MA_HALO|MA_WIRE))) {
 		orco= MEM_mallocN(3*sizeof(float)*paf->totpart, "static particle orcos");
-		if (!re->orco_hash)
-			re->orco_hash = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
-		BLI_ghash_insert(re->orco_hash, paf, orco);	/* pointer is particles, otherwise object uses it */
+		set_object_orco(re, paf, orco);
 	}
 	
 	mesh_get_texspace(ob->data, loc_tex, NULL, size_tex);
@@ -2653,6 +2655,7 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 	MSticky *ms = NULL;
 	PartEff *paf;
 	DerivedMesh *dm;
+	CustomDataMask mask;
 	float xn, yn, zn,  imat[3][3], mat[4][4];  //nor[3],
 	float *orco=0;
 	int a, a1, ok, need_orco=0, need_stress=0, need_tangent=0, totvlako, totverto, vertofs;
@@ -2716,13 +2719,21 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 	if(test_for_displace(re, ob ) )
 		only_verts= 0;
 	
+	mask= CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL;
 	if(!only_verts)
-		if(need_orco) orco = get_object_orco(re, ob);
+		if(need_orco)
+			mask |= CD_MASK_ORCO;
 
-	dm = mesh_create_derived_render(ob,
-	                    CD_MASK_BAREMESH | CD_MASK_MTFACE | CD_MASK_MCOL);
-	
+	dm= mesh_create_derived_render(ob, mask);
 	if(dm==NULL) return;	/* in case duplicated object fails? */
+
+	if(mask & CD_MASK_ORCO) {
+		orco= dm->getVertDataArray(dm, CD_ORCO);
+		if(orco) {
+			orco= MEM_dupallocN(orco);
+			set_object_orco(re, ob, orco);
+		}
+	}
 
 	if((ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) &&
 		 (ob->fluidsimSettings->type & OB_FLUIDSIM_DOMAIN)&&
@@ -4909,7 +4920,7 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 /* exported call to recalculate hoco for vertices, when winmat changed */
 void RE_DataBase_ApplyWindow(Render *re)
 {
-	project_renderdata(re, projectverto, 0, 0, 1);
+	project_renderdata(re, projectverto, 0, 0, 0);
 }
 
 /* setup for shaded view or bake, so only lamps and materials are initialized */

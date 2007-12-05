@@ -1813,7 +1813,7 @@ CustomDataMask get_viewedit_datamask()
 				View3D *view = sa->spacedata.first;
 				if(view->drawtype == OB_SHADED) {
 					/* this includes normals for mesh_create_shadedColors */
-					mask |= CD_MASK_MTFACE | CD_MASK_MCOL | CD_MASK_NORMAL;
+					mask |= CD_MASK_MTFACE | CD_MASK_MCOL | CD_MASK_NORMAL | CD_MASK_ORCO;
 				}
 				if((view->drawtype == OB_TEXTURE) || ((view->drawtype == OB_SOLID) && (view->flag2 & V3D_SOLID_TEX))) {
 					mask |= CD_MASK_MTFACE | CD_MASK_MCOL;
@@ -1829,6 +1829,48 @@ CustomDataMask get_viewedit_datamask()
 	return mask;
 }
 
+static DerivedMesh *create_orco_dm(Object *ob, Mesh *me)
+{
+	DerivedMesh *dm;
+	float (*orco)[3];
+
+	dm= CDDM_from_mesh(me, ob);
+	orco= (float(*)[3])get_mesh_orco_verts(ob);
+	CDDM_apply_vert_coords(dm, orco);
+	CDDM_calc_normals(dm);
+	MEM_freeN(orco);
+
+	return dm;
+}
+
+static void add_orco_dm(Object *ob, DerivedMesh *dm, DerivedMesh *orcodm)
+{
+	float (*orco)[3], (*layerorco)[3];
+	int totvert;
+
+	totvert= dm->getNumVerts(dm);
+
+	if(orcodm) {
+		orco= MEM_callocN(sizeof(float)*3*totvert, "dm orco");
+
+		if(orcodm->getNumVerts(orcodm) == totvert)
+			orcodm->getVertCos(orcodm, orco);
+		else
+			dm->getVertCos(dm, orco);
+	}
+	else
+		orco= (float(*)[3])get_mesh_orco_verts(ob);
+
+	transform_mesh_orco_verts(ob->data, orco, totvert);
+
+	if((layerorco = DM_get_vert_data_layer(dm, CD_ORCO))) {
+		memcpy(layerorco, orco, sizeof(float)*totvert);
+		MEM_freeN(orco);
+	}
+	else
+		DM_add_vert_layer(dm, CD_ORCO, CD_ASSIGN, orco);
+}
+
 static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
                                 DerivedMesh **deform_r, DerivedMesh **final_r,
                                 int useRenderParams, int useDeform,
@@ -1837,8 +1879,9 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 	Mesh *me = ob->data;
 	ModifierData *md = modifiers_getVirtualModifierList(ob);
 	LinkNode *datamasks, *curr;
+	CustomDataMask mask;
 	float (*deformedVerts)[3] = NULL;
-	DerivedMesh *dm;
+	DerivedMesh *dm, *orcodm, *finaldm;
 	int numVerts = me->totvert;
 	int fluidsimMeshUsed = 0;
 	int required_mode;
@@ -1936,6 +1979,7 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 	 * OnlyDeform ones. 
 	 */
 	dm = NULL;
+	orcodm = NULL;
 
 #ifdef WITH_VERSE
 	/* hack to make sure modifiers don't try to use mesh data from a verse
@@ -1956,6 +2000,13 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 		}
 		if(mti->isDisabled && mti->isDisabled(md)) continue;
 		if(needMapping && !modifier_supportsMapping(md)) continue;
+
+		/* add an orco layer if needed by this modifier */
+		if(dm && mti->requiredDataMask) {
+			mask = mti->requiredDataMask(md);
+			if(mask & CD_MASK_ORCO)
+				add_orco_dm(ob, dm, orcodm);
+		}
 
 		/* How to apply modifier depends on (a) what we already have as
 		 * a result of previous modifiers (could be a DerivedMesh or just
@@ -1980,6 +2031,8 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 				}
 			}
 
+			if(md->type == eModifierType_ParticleSystem)
+
 			mti->deformVerts(md, ob, dm, deformedVerts, numVerts);
 		} else {
 			DerivedMesh *ndm;
@@ -2003,13 +2056,31 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 				}
 			}
 
+			/* create an orco derivedmesh in parallel */
+			mask= (CustomDataMask)curr->link;
+			if(mask & CD_MASK_ORCO) {
+				if(!orcodm)
+					orcodm= create_orco_dm(ob, me);
+
+				mask &= ~CD_MASK_ORCO;
+				DM_set_only_copy(orcodm, mask);
+				ndm = mti->applyModifier(md, ob, orcodm, useRenderParams, !inputVertexCos);
+
+				if(ndm) {
+					/* if the modifier returned a new dm, release the old one */
+					if(orcodm && orcodm != ndm) orcodm->release(orcodm);
+					orcodm = ndm;
+				}
+			}
+
 			/* set the DerivedMesh to only copy needed data */
-			DM_set_only_copy(dm, (CustomDataMask)curr->link);
+			DM_set_only_copy(dm, mask);
 			
+			/* add an origspace layer if needed */
 			if(((CustomDataMask)curr->link) & CD_MASK_ORIGSPACE)
 				if(!CustomData_has_layer(&dm->faceData, CD_ORIGSPACE))
-					CustomData_add_layer(&dm->faceData, CD_ORIGSPACE, CD_DEFAULT, NULL, dm->getNumFaces(dm));
-			
+					DM_add_face_layer(dm, CD_ORIGSPACE, CD_DEFAULT, NULL);
+
 			ndm = mti->applyModifier(md, ob, dm, useRenderParams, !inputVertexCos);
 
 			if(ndm) {
@@ -2033,33 +2104,42 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 	 * DerivedMesh then we need to build one.
 	 */
 	if(dm && deformedVerts) {
-		*final_r = CDDM_copy(dm);
+		finaldm = CDDM_copy(dm);
 
 		dm->release(dm);
 
-		CDDM_apply_vert_coords(*final_r, deformedVerts);
-		CDDM_calc_normals(*final_r);
+		CDDM_apply_vert_coords(finaldm, deformedVerts);
+		CDDM_calc_normals(finaldm);
 	} else if(dm) {
-		*final_r = dm;
+		finaldm = dm;
 	} else {
 #ifdef WITH_VERSE
 		if(me->vnode)
-			*final_r = derivedmesh_from_versemesh(me->vnode, deformedVerts);
+			finaldm = derivedmesh_from_versemesh(me->vnode, deformedVerts);
 		else {
-			*final_r = CDDM_from_mesh(me, ob);
+			finaldm = CDDM_from_mesh(me, ob);
 			if(deformedVerts) {
-				CDDM_apply_vert_coords(*final_r, deformedVerts);
-				CDDM_calc_normals(*final_r);
+				CDDM_apply_vert_coords(finaldm, deformedVerts);
+				CDDM_calc_normals(finaldm);
 			}
 		}
 #else
-		*final_r = CDDM_from_mesh(me, ob);
+		finaldm = CDDM_from_mesh(me, ob);
 		if(deformedVerts) {
-			CDDM_apply_vert_coords(*final_r, deformedVerts);
-			CDDM_calc_normals(*final_r);
+			CDDM_apply_vert_coords(finaldm, deformedVerts);
+			CDDM_calc_normals(finaldm);
 		}
 #endif
 	}
+
+	/* add an orco layer if needed */
+	if(dataMask & CD_MASK_ORCO)
+		add_orco_dm(ob, finaldm, orcodm);
+
+	*final_r = finaldm;
+
+	if(orcodm)
+		orcodm->release(orcodm);
 
 	if(deformedVerts && deformedVerts != inputVertexCos)
 		MEM_freeN(deformedVerts);
@@ -2190,7 +2270,7 @@ static void editmesh_calc_modifiers(DerivedMesh **cage_r,
 
 			if(((CustomDataMask)curr->link) & CD_MASK_ORIGSPACE)
 				if(!CustomData_has_layer(&dm->faceData, CD_ORIGSPACE))
-					CustomData_add_layer(&dm->faceData, CD_ORIGSPACE, CD_DEFAULT, NULL, dm->getNumFaces(dm));
+					DM_add_face_layer(dm, CD_ORIGSPACE, CD_DEFAULT, NULL);
 			
 			ndm = mti->applyModifierEM(md, ob, em, dm);
 
