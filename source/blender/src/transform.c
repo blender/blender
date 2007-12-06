@@ -1318,23 +1318,23 @@ static void constraintTransLim(TransInfo *t, TransData *td)
 {
 	if (td->con) {
 		bConstraintTypeInfo *cti= get_constraint_typeinfo(CONSTRAINT_TYPE_LOCLIMIT);
-		bConstraintOb *cob;
+		bConstraintOb cob;
 		bConstraint *con;
 		
 		/* Make a temporary bConstraintOb for using these limit constraints 
 		 * 	- they only care that cob->matrix is correctly set ;-)
 		 *	- current space should be local
 		 */
-		cob= MEM_callocN(sizeof(bConstraintOb), "bConstraintOb-Transform");
-		Mat4One(cob->matrix);
+		memset(&cob, 0, sizeof(bConstraintOb));
+		Mat4One(cob.matrix);
 		if (td->tdi) {
 			TransDataIpokey *tdi= td->tdi;
-			cob->matrix[3][0]= tdi->locx[0];
-			cob->matrix[3][1]= tdi->locy[0];
-			cob->matrix[3][2]= tdi->locz[0];
+			cob.matrix[3][0]= tdi->locx[0];
+			cob.matrix[3][1]= tdi->locy[0];
+			cob.matrix[3][2]= tdi->locz[0];
 		}
 		else {
-			VECCOPY(cob->matrix[3], td->loc);
+			VECCOPY(cob.matrix[3], td->loc);
 		}
 		
 		/* Evaluate valid constraints */
@@ -1351,8 +1351,8 @@ static void constraintTransLim(TransInfo *t, TransData *td)
 				/* do space conversions */
 				if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
 					/* just multiply by td->mtx (this should be ok) */
-					Mat4CpyMat4(tmat, cob->matrix);
-					Mat4MulMat34(cob->matrix, td->mtx, tmat); // checkme
+					Mat4CpyMat4(tmat, cob.matrix);
+					Mat4MulMat34(cob.matrix, td->mtx, tmat); // checkme
 				}
 				else if (con->ownspace != CONSTRAINT_SPACE_LOCAL) {
 					/* skip... incompatable spacetype */
@@ -1360,28 +1360,27 @@ static void constraintTransLim(TransInfo *t, TransData *td)
 				}
 				
 				/* do constraint */
-				cti->evaluate_constraint(con, cob, NULL);
+				cti->evaluate_constraint(con, &cob, NULL);
 				
 				/* convert spaces again */
 				if (con->ownspace == CONSTRAINT_SPACE_WORLD) {
 					/* just multiply by td->mtx (this should be ok) */
-					Mat4CpyMat4(tmat, cob->matrix);
-					Mat4MulMat34(cob->matrix, td->smtx, tmat); // checkme
+					Mat4CpyMat4(tmat, cob.matrix);
+					Mat4MulMat34(cob.matrix, td->smtx, tmat); // checkme
 				}
 			}
 		}
 		
-		/* copy results from cob->matrix, and free */
+		/* copy results from cob->matrix */
 		if (td->tdi) {
 			TransDataIpokey *tdi= td->tdi;
-			tdi->locx[0]= cob->matrix[3][0];
-			tdi->locy[0]= cob->matrix[3][1];
-			tdi->locz[0]= cob->matrix[3][2];
+			tdi->locx[0]= cob.matrix[3][0];
+			tdi->locy[0]= cob.matrix[3][1];
+			tdi->locz[0]= cob.matrix[3][2];
 		}
 		else {
-			VECCOPY(td->loc, cob->matrix[3]);
+			VECCOPY(td->loc, cob.matrix[3]);
 		}
-		MEM_freeN(cob);
 	}
 }
 

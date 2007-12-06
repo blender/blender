@@ -527,7 +527,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 	
 	/* rounded header */
-	rb_col= (con->flag & CONSTRAINT_ACTIVE)?40:20;
+	rb_col= (con->flag & CONSTRAINT_ACTIVE)?50:20;
 	uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-1, width+40, 22, NULL, 5.0, 0.0, 
 			 (con->flag & CONSTRAINT_EXPAND)?3:15 , rb_col-20, ""); 
 	
@@ -1249,7 +1249,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				int togButWidth = 50;
 				int textButWidth = ((width/2)-togButWidth);
 				
-				height = 106; 
+				height = 136; 
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
 				/* Draw Pairs of LimitToggle+LimitValue */
@@ -1283,11 +1283,11 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-72, (textButWidth-5), 18, &(data->zmax), -1000, 1000, 0.1,0.5,"Highest z value to allow"); 
 				uiBlockEndAlign(block);
 				
-				// temp placement!!!
-				uiDefButBitS(block, TOG, LIMIT_TRANSFORM, B_CONSTRAINT_TEST, "Trans", *xco+245, *yco-100, 50, 18, &data->flag2, 0, 24, 0, 0, "Only use during transform"); 
+				/* special option(s) */
+				uiDefButBitS(block, TOG, LIMIT_TRANSFORM, B_CONSTRAINT_TEST, "For Transform", *xco+(width/4), *yco-100, (width/2), 18, &data->flag2, 0, 24, 0, 0, "Transforms are affected by this constraint as well"); 
 				
 				/* constraint space settings */
-				draw_constraint_spaceselect(block, con, *xco, *yco-100, is_armature_owner(ob), -1);
+				draw_constraint_spaceselect(block, con, *xco, *yco-130, is_armature_owner(ob), -1);
 			}
 			break;
 		case CONSTRAINT_TYPE_ROTLIMIT:
