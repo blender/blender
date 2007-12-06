@@ -686,7 +686,7 @@ static void mesh_octree_add_nodes(MocNode **basetable, float *co, float *offs, f
 	
 }
 
-static long mesh_octree_find_index(MocNode **bt, MVert *mvert, float *co)
+static long mesh_octree_find_index(MocNode **bt, float (*orco)[3], MVert *mvert, float *co)
 {
 	float *vec;
 	int a;
@@ -697,7 +697,12 @@ static long mesh_octree_find_index(MocNode **bt, MVert *mvert, float *co)
 	for(a=0; a<MOC_NODE_RES; a++) {
 		if((*bt)->index[a]) {
 			/* does mesh verts and editmode, code looks potential dangerous, octree should really be filled OK! */
-			if(mvert) {
+			if(orco) {
+				vec= orco[(*bt)->index[a]-1];
+				if(FloatCompare(vec, co, MOC_THRESH))
+					return (*bt)->index[a]-1;
+			}
+			else if(mvert) {
 				vec= (mvert+(*bt)->index[a]-1)->co;
 				if(FloatCompare(vec, co, MOC_THRESH))
 					return (*bt)->index[a]-1;
@@ -711,84 +716,116 @@ static long mesh_octree_find_index(MocNode **bt, MVert *mvert, float *co)
 		else return -1;
 	}
 	if( (*bt)->next)
-		return mesh_octree_find_index(&(*bt)->next, mvert, co);
+		return mesh_octree_find_index(&(*bt)->next, orco, mvert, co);
 	
 	return -1;
 }
 
+static struct {
+	MocNode **table;
+	float offs[3], div[3];
+	float (*orco)[3];
+} MeshOctree = {NULL, {0, 0, 0}, {0, 0, 0}, NULL};
 
 /* mode is 's' start, or 'e' end, or 'u' use */
 /* if end, ob can be NULL */
 long mesh_octree_table(Object *ob, float *co, char mode)
 {
 	MocNode **bt;
-	static MocNode **basetable= NULL;
-	static float offs[3], div[3];
 	
 	if(mode=='u') {		/* use table */
-		if(basetable==NULL)
+		if(MeshOctree.table==NULL)
 			mesh_octree_table(ob, NULL, 's');
 	   
-		if(basetable) {
+		if(MeshOctree.table) {
 			Mesh *me= ob->data;
-			bt= basetable + mesh_octree_get_base_offs(co, offs, div);
+			bt= MeshOctree.table + mesh_octree_get_base_offs(co, MeshOctree.offs, MeshOctree.div);
 			if(ob==G.obedit)
-				return mesh_octree_find_index(bt, NULL, co);
+				return mesh_octree_find_index(bt, NULL, NULL, co);
 			else
-				return mesh_octree_find_index(bt, me->mvert, co);
+				return mesh_octree_find_index(bt, MeshOctree.orco, me->mvert, co);
 		}
 		return -1;
 	}
 	else if(mode=='s') {	/* start table */
 		Mesh *me= ob->data;
-		BoundBox *bb = mesh_get_bb(ob);
+		float min[3], max[3];
+
+		/* we compute own bounding box and don't reuse ob->bb because
+		 * we are using the undeformed coordinates*/
+		INIT_MINMAX(min, max);
+
+		if(ob==G.obedit) {
+			EditVert *eve;
+			
+			for(eve= G.editMesh->verts.first; eve; eve= eve->next)
+				DO_MINMAX(eve->co, min, max)
+		}
+		else {		
+			MVert *mvert;
+			float *co;
+			int a, totvert;
+			
+			MeshOctree.orco= mesh_getRefKeyCos(me, &totvert);
+			
+			for(a=0, mvert= me->mvert; a<me->totvert; a++, mvert++) {
+				co= (MeshOctree.orco)? MeshOctree.orco[a]: mvert->co;
+				DO_MINMAX(co, min, max);
+			}
+		}
 		
 		/* for quick unit coordinate calculus */
-		VECCOPY(offs, bb->vec[0]);
-		offs[0]-= MOC_THRESH;		/* we offset it 1 threshold unit extra */
-		offs[1]-= MOC_THRESH;
-		offs[2]-= MOC_THRESH;
-			
-		VecSubf(div, bb->vec[6], bb->vec[0]);
-		div[0]+= 2*MOC_THRESH;		/* and divide with 2 threshold unit more extra (try 8x8 unit grid on paint) */
-		div[1]+= 2*MOC_THRESH;
-		div[2]+= 2*MOC_THRESH;
+		VECCOPY(MeshOctree.offs, min);
+		MeshOctree.offs[0]-= MOC_THRESH;		/* we offset it 1 threshold unit extra */
+		MeshOctree.offs[1]-= MOC_THRESH;
+		MeshOctree.offs[2]-= MOC_THRESH;
 		
-		VecMulf(div, 1.0f/MOC_RES);
-		if(div[0]==0.0f) div[0]= 1.0f;
-		if(div[1]==0.0f) div[1]= 1.0f;
-		if(div[2]==0.0f) div[2]= 1.0f;
+		VecSubf(MeshOctree.div, max, min);
+		MeshOctree.div[0]+= 2*MOC_THRESH;	/* and divide with 2 threshold unit more extra (try 8x8 unit grid on paint) */
+		MeshOctree.div[1]+= 2*MOC_THRESH;
+		MeshOctree.div[2]+= 2*MOC_THRESH;
+		
+		VecMulf(MeshOctree.div, 1.0f/MOC_RES);
+		if(MeshOctree.div[0]==0.0f) MeshOctree.div[0]= 1.0f;
+		if(MeshOctree.div[1]==0.0f) MeshOctree.div[1]= 1.0f;
+		if(MeshOctree.div[2]==0.0f) MeshOctree.div[2]= 1.0f;
 			
-		if(basetable) /* happens when entering this call without ending it */
+		if(MeshOctree.table) /* happens when entering this call without ending it */
 			mesh_octree_table(ob, co, 'e');
 		
-		basetable= MEM_callocN(MOC_RES*MOC_RES*MOC_RES*sizeof(void *), "sym table");
+		MeshOctree.table= MEM_callocN(MOC_RES*MOC_RES*MOC_RES*sizeof(void *), "sym table");
 		
 		if(ob==G.obedit) {
 			EditVert *eve;
 			
 			for(eve= G.editMesh->verts.first; eve; eve= eve->next) {
-				mesh_octree_add_nodes(basetable, eve->co, offs, div, (long)(eve));
+				mesh_octree_add_nodes(MeshOctree.table, eve->co, MeshOctree.offs, MeshOctree.div, (long)(eve));
 			}
 		}
 		else {		
 			MVert *mvert;
-			long a;
+			float *co;
+			int a;
 			
-			for(a=1, mvert= me->mvert; a<=me->totvert; a++, mvert++) {
-				mesh_octree_add_nodes(basetable, mvert->co, offs, div, a);
+			for(a=0, mvert= me->mvert; a<me->totvert; a++, mvert++) {
+				co= (MeshOctree.orco)? MeshOctree.orco[a]: mvert->co;
+				mesh_octree_add_nodes(MeshOctree.table, co, MeshOctree.offs, MeshOctree.div, a+1);
 			}
 		}
 	}
 	else if(mode=='e') { /* end table */
-		if(basetable) {
+		if(MeshOctree.table) {
 			int a;
 			
-			for(a=0, bt=basetable; a<MOC_RES*MOC_RES*MOC_RES; a++, bt++) {
+			for(a=0, bt=MeshOctree.table; a<MOC_RES*MOC_RES*MOC_RES; a++, bt++) {
 				if(*bt) mesh_octree_free_node(bt);
 			}
-			MEM_freeN(basetable);
-			basetable= NULL;
+			MEM_freeN(MeshOctree.table);
+			MeshOctree.table= NULL;
+		}
+		if(MeshOctree.orco) {
+			MEM_freeN(MeshOctree.orco);
+			MeshOctree.orco= NULL;
 		}
 	}
 	return 0;
@@ -797,12 +834,20 @@ long mesh_octree_table(Object *ob, float *co, char mode)
 int mesh_get_x_mirror_vert(Object *ob, int index)
 {
 	Mesh *me= ob->data;
-	MVert *mvert= me->mvert+index;
+	MVert *mvert;
 	float vec[3];
 	
-	vec[0]= -mvert->co[0];
-	vec[1]= mvert->co[1];
-	vec[2]= mvert->co[2];
+	if(MeshOctree.orco) {
+		vec[0]= -MeshOctree.orco[index][0];
+		vec[1]= MeshOctree.orco[index][1];
+		vec[2]= MeshOctree.orco[index][2];
+	}
+	else {
+		mvert= me->mvert+index;
+		vec[0]= -mvert->co[0];
+		vec[1]= mvert->co[1];
+		vec[2]= mvert->co[2];
+	}
 	
 	return mesh_octree_table(ob, vec, 'u');
 }
@@ -884,9 +929,16 @@ int *mesh_get_x_mirror_faces(Object *ob)
 	mesh_octree_table(ob, NULL, 's');
 
 	for(a=0, mv=mvert; a<me->totvert; a++, mv++) {
-		vec[0]= -mv->co[0];
-		vec[1]= mv->co[1];
-		vec[2]= mv->co[2];
+		if(MeshOctree.orco) {
+			vec[0]= -MeshOctree.orco[a][0];
+			vec[1]= MeshOctree.orco[a][1];
+			vec[2]= MeshOctree.orco[a][2];
+		}
+		else {
+			vec[0]= -mv->co[0];
+			vec[1]= mv->co[1];
+			vec[2]= mv->co[2];
+		}
 		mirrorverts[a]= mesh_octree_table(ob, vec, 'u');
 	}
 

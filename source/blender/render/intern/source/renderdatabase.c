@@ -548,11 +548,11 @@ float *RE_strandren_get_uv(Render *re, StrandRen *strand, int n, char **name, in
 			float **uv= node->uv;
 			int size= (n+1)*256;
 
-			node->uv= MEM_callocN(size*sizeof(MCol*), "Strand uv");
+			node->uv= MEM_callocN(size*sizeof(float*), "Strand uv");
 
 			if(uv) {
 				size= node->totuv*256;
-				memcpy(node->uv, uv, size*sizeof(MCol*));
+				memcpy(node->uv, uv, size*sizeof(float*));
 				MEM_freeN(uv);
 			}
 

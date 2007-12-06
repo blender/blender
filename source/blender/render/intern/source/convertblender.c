@@ -1734,7 +1734,7 @@ static int render_new_particle_system(Render *re, Object *ob, ParticleSystem *ps
 	StrandRen *strand=0;
 	RNG *rng= 0;
 	float loc[3],loc1[3],loc0[3],vel[3],mat[4][4],nmat[3][3],co[3],nor[3],time;
-	float *orco=0,*surfnor=0,*uvco=0;
+	float *orco=0,*surfnor=0,*uvco=0, strandlen=0.0f, curlen=0.0f;
 	float hasize, pa_size, pa_time, r_tilt, cfra=bsystem_time(ob,(float)CFRA,0.0);
 	float loc_tex[3], size_tex[3], adapt_angle=0.0, adapt_pix=0.0, random;
 	int i, a, k, max_k=0, totpart, totvlako, totverto, totuv=0, override_uv=-1;
@@ -2043,6 +2043,7 @@ static int render_new_particle_system(Render *re, Object *ob, ParticleSystem *ps
 			orco[2] = (orco[2]-loc_tex[2])/size_tex[2];
 		}
 
+		/* surface normal shading setup */
 		if(ma->mode_l & MA_STR_SURFDIFF) {
 			Mat3MulVecfl(nmat, nor);
 			surfnor= nor;
@@ -2050,7 +2051,8 @@ static int render_new_particle_system(Render *re, Object *ob, ParticleSystem *ps
 		else
 			surfnor= NULL;
 
-		if(strandbuf) { /* strand render */
+		/* strand render setup */
+		if(strandbuf) {
 			strand= RE_findOrAddStrand(re, re->totstrand++);
 			strand->buffer= strandbuf;
 			strand->vert= svert;
@@ -2073,9 +2075,17 @@ static int render_new_particle_system(Render *re, Object *ob, ParticleSystem *ps
 			}
 		}
 
+		/* strandco computation setup */
+		if(path_nbr) {
+			strandlen= 0.0f;
+			curlen= 0.0f;
+			for(k=1; k<=path_nbr; k++)
+				if(k<=max_k)
+					strandlen += VecLenf((cache+k-1)->co, (cache+k)->co);
+		}
+
 		for(k=0; k<=path_nbr; k++){
 			if(path_nbr){
-				time=(float)k/(float)path_nbr;
 				if(k<=max_k){
 					//bti->convert_bake_key(bsys,cache+k,0,(void*)&state);
 					//copy_particle_key(&state,cache+k,0);
@@ -2084,6 +2094,10 @@ static int render_new_particle_system(Render *re, Object *ob, ParticleSystem *ps
 				}
 				else
 					continue;	
+
+				if(k > 0)
+					curlen += VecLenf((cache+k-1)->co, (cache+k)->co);
+				time= curlen/strandlen;
 			}
 			else{
 				time=0.0f;

@@ -2482,7 +2482,7 @@ static void mesh_build_data(Object *ob, CustomDataMask dataMask)
 		ob->derivedFinal->getMinMax(ob->derivedFinal, min, max);
 
 		if(!ob->bb)
-			ob->bb= MEM_mallocN(sizeof(BoundBox), "bb");
+			ob->bb= MEM_callocN(sizeof(BoundBox), "bb");
 		boundbox_set_from_min_max(ob->bb, min, max);
 
 		ob->derivedFinal->needsFree = 0;
@@ -2520,7 +2520,7 @@ static void editmesh_build_data(CustomDataMask dataMask)
 	em->derivedFinal->getMinMax(em->derivedFinal, min, max);
 
 	if(!G.obedit->bb)
-		G.obedit->bb= MEM_mallocN(sizeof(BoundBox), "bb");
+		G.obedit->bb= MEM_callocN(sizeof(BoundBox), "bb");
 	boundbox_set_from_min_max(G.obedit->bb, min, max);
 
 	em->derivedFinal->needsFree = 0;

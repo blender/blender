@@ -546,7 +546,7 @@ static void PE_update_mirror_cache(Object *ob, ParticleSystem *psys)
 
 	/* insert particles into kd tree */
 	LOOP_PARTICLES(i,pa) {
-		psys_mat_hair_to_object(ob, psmd->dm, psys->part->from, pa, mat);
+		psys_mat_hair_to_orco(ob, psmd->dm, psys->part->from, pa, mat);
 		VECCOPY(co, pa->hair[0].co);
 		Mat4MulVecfl(mat, co);
 		BLI_kdtree_insert(tree, i, co, NULL);
@@ -559,7 +559,7 @@ static void PE_update_mirror_cache(Object *ob, ParticleSystem *psys)
 		edit->mirror_cache= MEM_callocN(sizeof(int)*totpart, "PE mirror cache");
 
 	LOOP_PARTICLES(i,pa) {
-		psys_mat_hair_to_object(ob, psmd->dm, psys->part->from, pa, mat);
+		psys_mat_hair_to_orco(ob, psmd->dm, psys->part->from, pa, mat);
 		VECCOPY(co, pa->hair[0].co);
 		Mat4MulVecfl(mat, co);
 		co[0]= -co[0];
@@ -628,8 +628,8 @@ static void PE_mirror_particle(Object *ob, DerivedMesh *dm, ParticleSystem *psys
 	}
 
 	/* mirror positions and tags */
-	psys_mat_hair_to_object(ob, dm, psys->part->from, pa, mat);
-	psys_mat_hair_to_object(ob, dm, psys->part->from, mpa, mmat);
+	psys_mat_hair_to_orco(ob, dm, psys->part->from, pa, mat);
+	psys_mat_hair_to_orco(ob, dm, psys->part->from, mpa, mmat);
 	Mat4Invert(immat, mmat);
 
 	hkey=pa->hair;

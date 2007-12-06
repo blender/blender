@@ -265,6 +265,7 @@ void psys_vec_rot_to_face(struct DerivedMesh *dm, struct ParticleData *pa, float
 //void psys_vec_rot_from_face(struct DerivedMesh *dm, struct ParticleData *pa, float *vec);
 void psys_mat_hair_to_object(struct Object *ob, struct DerivedMesh *dm, short from, struct ParticleData *pa, float hairmat[][4]);
 void psys_mat_hair_to_global(struct Object *ob, struct DerivedMesh *dm, short from, struct ParticleData *pa, float hairmat[][4]);
+void psys_mat_hair_to_orco(struct Object *ob, struct DerivedMesh *dm, short from, struct ParticleData *pa, float hairmat[][4]);
 
 float *psys_cache_vgroup(struct DerivedMesh *dm, struct ParticleSystem *psys, int vgroup);
 void psys_get_texture(struct Object *ob, struct Material *ma, struct ParticleSystemModifierData *psmd, struct ParticleSystem *psys, struct ParticleData *pa, struct ParticleTexture *ptex, int event);
