@@ -2032,7 +2032,7 @@ static char *ipodriver_channelselect_pup(int is_armature)
 	tmp+= sprintf(tmp, "|Scale Y %%x%d", OB_SIZE_Y);
 	tmp+= sprintf(tmp, "|Scale Z %%x%d", OB_SIZE_Z);
 	if(is_armature)
-		tmp+= sprintf(tmp, "|Rotation Differance %%x%d", OB_ROT_DIFF);
+		tmp+= sprintf(tmp, "|Rotation Difference %%x%d", OB_ROT_DIFF);
 	
 	return (string);
 }
