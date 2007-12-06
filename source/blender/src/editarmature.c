@@ -2947,7 +2947,7 @@ static int hide_selected_pose_bone(Object *ob, Bone *bone, void *ptr)
 	if(arm->layer & bone->layer) {
 		if (bone->flag & BONE_SELECTED) {
 			bone->flag |= BONE_HIDDEN_P;
-			bone->flag &= ~BONE_SELECTED;
+			bone->flag &= ~(BONE_SELECTED|BONE_ACTIVE);
 		}
 	}
 	return 0;
@@ -2977,6 +2977,7 @@ static int hide_unselected_pose_bone(Object *ob, Bone *bone, void *ptr)
 	if(arm->layer & bone->layer) {
 		if (~bone->flag & BONE_SELECTED) {
 			bone->flag |= BONE_HIDDEN_P;
+			bone->flag &= ~BONE_ACTIVE;
 		}
 	}
 	return 0;
