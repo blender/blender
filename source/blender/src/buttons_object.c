@@ -1084,8 +1084,8 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 					}
 				uiBlockEndAlign(block);
 				
-				uiDefButBitI(block, TOG, 0, B_CONSTRAINT_TEST, "Sticky", *xco, *yco-24, 44, 18, &data->flag, 0, 24, 0, 0, "Immobilize object while constrained");
-				uiDefButBitI(block, TOG, 2, B_CONSTRAINT_TEST, "Use Rot", *xco+44, *yco-24, 64, 18, &data->flag, 0, 24, 0, 0, "Use target object rotation");
+				uiDefButBitI(block, TOG, MINMAX_STICKY, B_CONSTRAINT_TEST, "Sticky", *xco, *yco-24, 44, 18, &data->flag, 0, 24, 0, 0, "Immobilize object while constrained");
+				uiDefButBitI(block, TOG, MINMAX_USEROT, B_CONSTRAINT_TEST, "Use Rot", *xco+44, *yco-24, 64, 18, &data->flag, 0, 24, 0, 0, "Use target object rotation");
 				
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Max/Min:", *xco-8, *yco-64, 54, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 				
