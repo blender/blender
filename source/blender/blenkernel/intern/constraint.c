@@ -874,12 +874,14 @@ static void default_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstrain
 
 /* This following macro should be used for all standard single-target *_flush_tars functions
  * to save typing and reduce maintainance woes.
+ * Note: the pointer to ct will be changed to point to the next in the list (as it gets removed)
  * (Hopefully all compilers will be happy with the lines with just a space on them. Those are
  *  really just to help this code easier to read)
  */
 #define SINGLETARGET_FLUSH_TARS(con, datatar, datasubtarget, ct, list, nocopy) \
 	{ \
 		if (ct) { \
+			bConstraintTarget *ctn = ct->next; \
 			if (nocopy == 0) { \
 				datatar= ct->tar; \
 				strcpy(datasubtarget, ct->subtarget); \
@@ -887,23 +889,27 @@ static void default_get_tarmat (bConstraint *con, bConstraintOb *cob, bConstrain
 			} \
 			 \
 			BLI_freelinkN(list, ct); \
+			ct= ctn; \
 		} \
 	}
 	
 /* This following macro should be used for all standard single-target *_flush_tars functions
- * to save typing and reduce maintainance woes. It does not do the subtarget related operations
+ * to save typing and reduce maintainance woes. It does not do the subtarget related operations.
+ * Note: the pointer to ct will be changed to point to the next in the list (as it gets removed)
  * (Hopefully all compilers will be happy with the lines with just a space on them. Those are
  *  really just to help this code easier to read)
  */
 #define SINGLETARGETNS_FLUSH_TARS(con, datatar, ct, list, nocopy) \
 	{ \
 		if (ct) { \
+			bConstraintTarget *ctn = ct->next; \
 			if (nocopy == 0) { \
 				datatar= ct->tar; \
 				con->tarspace= ct->space; \
 			} \
 			 \
 			BLI_freelinkN(list, ct); \
+			ct= ctn; \
 		} \
 	}
  
@@ -1214,7 +1220,6 @@ static void kinematic_flush_tars (bConstraint *con, ListBase *list, short nocopy
 		
 		/* the following macro is used for all standard single-target constraints */
 		SINGLETARGET_FLUSH_TARS(con, data->tar, data->subtarget, ct, list, nocopy)
-		ct= ct->next;
 		SINGLETARGET_FLUSH_TARS(con, data->poletar, data->polesubtarget, ct, list, nocopy)
 	}
 }
