@@ -151,6 +151,7 @@ void transform_ipo(int mode);
 void actstrip_map_ipo_keys(struct Object *ob, struct Ipo *ipo, short restore, short only_keys);
 
 void sethandles_ipo_keys(struct Ipo *ipo, int code);
+void snap_cfra_ipo_keys(struct Ipo *ipo, short mode);
 void snap_ipo_keys(struct Ipo *ipo, short snaptype);
 void mirror_ipo_keys(struct Ipo *ipo, short mirror_mode);
 void setipotype_ipo(struct Ipo *ipo, int code);

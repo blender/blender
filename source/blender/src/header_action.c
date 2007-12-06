@@ -158,6 +158,7 @@ enum {
 	ACTMENU_KEY_SNAP_CURFRAME,
 	ACTMENU_KEY_SNAP_NEARMARK,
 	ACTMENU_KEY_SNAP_NEARTIME,
+	ACTMENU_KEY_SNAP_CFRA2KEY,
 };
 
 enum {
@@ -872,6 +873,10 @@ static void do_action_keymenu_snapmenu(void *arg, int event)
 		case ACTMENU_KEY_SNAP_NEARTIME:
 			snap_action_keys(event);
 			break;
+			
+		case ACTMENU_KEY_SNAP_CFRA2KEY:
+			snap_cfra_action();
+			break;
 	}
 
 	scrarea_queue_winredraw(curarea);
@@ -888,27 +893,35 @@ static uiBlock *action_keymenu_snapmenu(void *arg_unused)
 
 	if (G.saction->flag & SACTION_DRAWTIME) {
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-						 "Nearest Second|Shift S, 1", 0, yco-=20, 
+						 "Key -> Nearest Second|Shift S, 1", 0, yco-=20, 
 						 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 						 ACTMENU_KEY_SNAP_NEARTIME, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-						 "Current Time|Shift S, 2", 0, yco-=20, 
+						 "Key -> Current Time|Shift S, 2", 0, yco-=20, 
 						 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 						 ACTMENU_KEY_SNAP_CURFRAME, "");
 
 	}
 	else {
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-						 "Nearest Frame|Shift S, 1", 0, yco-=20, 
+						 "Key -> Nearest Frame|Shift S, 1", 0, yco-=20, 
 						 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 						 ACTMENU_KEY_SNAP_NEARFRAME, "");
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-						 "Current Frame|Shift S, 2", 0, yco-=20, 
+						 "Key -> Current Frame|Shift S, 2", 0, yco-=20, 
 						 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 						 ACTMENU_KEY_SNAP_CURFRAME, "");
 	}
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
-					 "Nearest Marker|Shift S, 3", 0, yco-=20, 
+					 "Key -> Nearest Marker|Shift S, 3", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_KEY_SNAP_NEARMARK, "");
+					 
+	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
+			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+			 
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Current Frame -> Key|Ctrl Shift S", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_KEY_SNAP_NEARMARK, "");
 

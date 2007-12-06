@@ -104,6 +104,7 @@ struct ListBase;
 /* Key operations */
 void transform_action_keys(int mode, int dummy);
 void duplicate_action_keys(void);
+void snap_cfra_action(void);
 void snap_action_keys(short mode);
 void mirror_action_keys(short mode);
 void insertkey_action(void);

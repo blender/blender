@@ -779,6 +779,45 @@ void duplicate_action_keys (void)
 	transform_action_keys('g', 0);
 }
 
+/* this function is responsible for snapping the current frame to selected data  */
+void snap_cfra_action() 
+{
+	ListBase act_data = {NULL, NULL};
+	bActListElem *ale;
+	int filter;
+	void *data;
+	short datatype;
+		
+	/* get data */
+	data= get_action_context(&datatype);
+	if (data == NULL) return;
+	
+	/* filter data */
+	filter= (ACTFILTER_VISIBLE | ACTFILTER_IPOKEYS);
+	actdata_filter(&act_data, filter, data, datatype);
+	
+	/* snap current frame to selected data */
+	snap_cfra_ipo_keys(NULL, -1);
+	
+	for (ale= act_data.first; ale; ale= ale->next) {
+		if (NLA_ACTION_SCALED && datatype==ACTCONT_ACTION) {
+			actstrip_map_ipo_keys(OBACT, ale->key_data, 0, 1); 
+			snap_cfra_ipo_keys(ale->key_data, 0);
+			actstrip_map_ipo_keys(OBACT, ale->key_data, 1, 1);
+		}
+		else 
+			snap_cfra_ipo_keys(ale->key_data, 0);
+	}
+	BLI_freelistN(&act_data);
+	
+	snap_cfra_ipo_keys(NULL, 1);
+	
+	BIF_undo_push("Snap Current Frame to Keys");
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWIPO, 0);
+	allqueue(REDRAWNLA, 0);
+}
+
 /* this function is responsible for snapping keyframes to frame-times */
 void snap_action_keys(short mode) 
 {
@@ -2793,7 +2832,12 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			
 		case SKEY: 
 			if (mval[0]>=ACTWIDTH) {
-				if (G.qual & LR_SHIFTKEY) {
+				if (G.qual == (LR_SHIFTKEY|LR_CTRLKEY)) {
+					if (data) {
+						snap_cfra_action();
+					}
+				}
+				else if (G.qual & LR_SHIFTKEY) {
 					if (data) {
 						if (G.saction->flag & SACTION_DRAWTIME)
 							val = pupmenu("Snap Keys To%t|Nearest Second%x4|Current Time%x2|Nearest Marker %x3");
