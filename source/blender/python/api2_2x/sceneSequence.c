@@ -569,7 +569,7 @@ static PyObject *getIntAttr( BPy_Sequence *self, void *type )
 		break;
 	default:
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError, 
-				"undefined type in getFloatAttr" );
+				"undefined type in getIntAttr" );
 	}
 
 	return PyInt_FromLong( param );

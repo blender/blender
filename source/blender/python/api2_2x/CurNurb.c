@@ -776,9 +776,9 @@ static PyObject *CurNurb_isNurb( BPy_CurNurb * self )
 	 */
 
 	if( self->nurb->bp ) {
-		return EXPP_incr_ret_True();
+		Py_RETURN_TRUE;
 	} else {
-		return EXPP_incr_ret_False();
+		Py_RETURN_FALSE;
 	}
 }
 
@@ -792,9 +792,9 @@ static PyObject *CurNurb_isCyclic( BPy_CurNurb * self )
         /* supposing that the flagu is always set */ 
 
 	if( self->nurb->flagu & CU_CYCLIC ) {
-		return EXPP_incr_ret_True();
+		Py_RETURN_TRUE;
 	} else {
-		return EXPP_incr_ret_False();
+		Py_RETURN_FALSE;
 	}
 }
 

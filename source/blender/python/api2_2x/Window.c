@@ -197,7 +197,6 @@ static char M_Window_EditMode_doc[] =
 Returns the current status.  This function is mostly useful to leave\n\
 edit mode before applying changes to a mesh (otherwise the changes will\n\
 be lost) and then returning to it upon leaving.";
-
 static char M_Window_PoseMode_doc[] =
 		"() - Get the current status -- 0: not in pose mode; 1: in edit mode";
 
@@ -1508,8 +1507,7 @@ static PyObject *M_Window_SetPivot( PyObject * self, PyObject * value)
 		G.vd->around = pivot;
 	}
 	Py_RETURN_NONE;
-}
-
+}	
 
 
 /*****************************************************************************/

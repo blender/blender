@@ -882,9 +882,9 @@ AttributeError:
 static PyObject *Armature_getVertexGroups(BPy_Armature *self, void *closure)
 {
 	if (self->armature->deformflag & ARM_DEF_VGROUP)
-		return EXPP_incr_ret(Py_True);
+		Py_RETURN_TRUE;
 	else
-		return EXPP_incr_ret(Py_False);
+		Py_RETURN_FALSE;
 }
 //------------------------Armature.vertexGroups (setter)
 static int Armature_setVertexGroups(BPy_Armature *self, PyObject *value, void *closure)
