@@ -2031,8 +2031,6 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 				}
 			}
 
-			if(md->type == eModifierType_ParticleSystem)
-
 			mti->deformVerts(md, ob, dm, deformedVerts, numVerts);
 		} else {
 			DerivedMesh *ndm;
