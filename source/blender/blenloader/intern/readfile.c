@@ -7187,10 +7187,35 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 	
 	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 10)) {
 		Object *ob;
-
+		
 		/* dupliface scale */
 		for(ob= main->object.first; ob; ob= ob->id.next)
 			ob->dupfacesca = 1.0f;
+	}
+	
+	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 11)) {
+		Object *ob;
+		bActionStrip *strip;
+		
+		/* nla-strips - scale */		
+		for (ob= main->object.first; ob; ob= ob->id.next) {
+			for (strip= ob->nlastrips.first; strip; strip= strip->next) {
+				float length, actlength, repeat;
+				
+				if (strip->flag & ACTSTRIP_USESTRIDE)
+					repeat= 1.0f;
+				else
+					repeat= strip->repeat;
+				
+				length = strip->end-strip->start;
+				if (length == 0.0f) length= 1.0f;
+				actlength = strip->actend-strip->actstart;
+				
+				// right calculation? 
+				strip->scale = actlength / (length * repeat);
+				if (strip->scale == 0.0f) strip->scale= 1.0f;
+			}	
+		}
 	}
 
 	

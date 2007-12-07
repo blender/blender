@@ -70,17 +70,17 @@ typedef struct bActionStrip {
 	struct  Object *object;		/* For groups, the actual object being nla'ed */
 	float	start, end;			/* The range of frames covered by this strip */
 	float	actstart, actend;	/* The range of frames taken from the action */
-	float	actoffs, padf;		/* Offset within action, for cycles and striding */
+	float	actoffs;			/* Offset within action, for cycles and striding */
 	float	stridelen;			/* The stridelength (considered when flag & ACT_USESTRIDE) */
 	float	repeat;				/* The number of times to repeat the action range */
+	float	scale;				/* The amount the action range is scaled by */
 
 	float	blendin, blendout;	/* The number of frames on either end of the strip's length to fade in/out */
 	
 	char	stridechannel[32];	/* Instead of stridelen, it uses an action channel */
 	char	offs_bone[32];		/* if repeat, use this bone/channel for defining offset */
 	
-	struct ListBase modifiers;	/* modifier stack */
-	
+	ListBase modifiers;			/* modifier stack */
 } bActionStrip;
 
 /* strip->mode (these defines aren't really used, but are here for reference) */
@@ -88,18 +88,20 @@ typedef struct bActionStrip {
 #define ACTSTRIPMODE_ADD		1
 
 /* strip->flag */
-#define ACTSTRIP_SELECT			0x01
-#define ACTSTRIP_USESTRIDE		0x02
-#define ACTSTRIP_BLENDTONEXT	0x04	/* Not implemented. Is not used anywhere */
-#define ACTSTRIP_HOLDLASTFRAME	0x08
-#define ACTSTRIP_ACTIVE			0x10
-#define ACTSTRIP_LOCK_ACTION	0x20
-#define ACTSTRIP_MUTE			0x40
-#define ACTSTRIP_REVERSE		0x80	/* This has yet to be implemented. To indicate that a strip should be played backwards */
-#define ACTSTRIP_CYCLIC_USEX	0x100
-#define ACTSTRIP_CYCLIC_USEY	0x200
-#define ACTSTRIP_CYCLIC_USEZ	0x400
-#define ACTSTRIP_AUTO_BLENDS	0x800
+typedef enum eActStrip_Flag {
+	ACTSTRIP_SELECT			= (1<<0),
+	ACTSTRIP_USESTRIDE		= (1<<1),
+	ACTSTRIP_BLENDTONEXT	= (1<<2),	/* Not implemented. Is not used anywhere */
+	ACTSTRIP_HOLDLASTFRAME	= (1<<3),
+	ACTSTRIP_ACTIVE			= (1<<4),
+	ACTSTRIP_LOCK_ACTION	= (1<<5),
+	ACTSTRIP_MUTE			= (1<<6),
+	ACTSTRIP_REVERSE		= (1<<7),	/* This has yet to be implemented. To indicate that a strip should be played backwards */
+	ACTSTRIP_CYCLIC_USEX	= (1<<8),
+	ACTSTRIP_CYCLIC_USEY	= (1<<9),
+	ACTSTRIP_CYCLIC_USEZ	= (1<<10),
+	ACTSTRIP_AUTO_BLENDS	= (1<<11)
+} eActStrip_Flag;
 
 #endif
 

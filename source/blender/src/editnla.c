@@ -198,11 +198,12 @@ void synchronize_action_strips(void)
 				
 				calc_action_range(strip->act, &actstart, &actend, 1);
 				
-				if(strip->actstart!=actstart || strip->actend!=actend) {
-					float mapping= (strip->end - strip->start)/(strip->actend - strip->actstart);
+				if ((strip->actstart!=actstart) || (strip->actend!=actend)) {		
+					float offset;
 					
-					strip->start+= mapping*(actstart - strip->actstart);
-					strip->end+= mapping*(actend - strip->actend);
+					offset= strip->scale * (actstart - strip->actstart);
+					strip->start += offset;
+					strip->end = strip->scale * strip->repeat * (actend-actstart) + strip->start;
 					
 					strip->actstart= actstart;
 					strip->actend= actend;
