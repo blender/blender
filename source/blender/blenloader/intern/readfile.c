@@ -7211,8 +7211,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				if (length == 0.0f) length= 1.0f;
 				actlength = strip->actend-strip->actstart;
 				
-				// right calculation? 
-				strip->scale = actlength / (length * repeat);
+				strip->scale = length / (repeat * actlength);
 				if (strip->scale == 0.0f) strip->scale= 1.0f;
 			}	
 		}

@@ -199,11 +199,11 @@ void synchronize_action_strips(void)
 				calc_action_range(strip->act, &actstart, &actend, 1);
 				
 				if ((strip->actstart!=actstart) || (strip->actend!=actend)) {		
-					float offset;
+					float offset = strip->scale * (actstart - strip->actstart);
+					float actlen = actend - actstart;
 					
-					offset= strip->scale * (actstart - strip->actstart);
 					strip->start += offset;
-					strip->end = strip->scale * strip->repeat * (actend-actstart) + strip->start;
+					strip->end = (strip->scale * strip->repeat * actlen) + strip->start;
 					
 					strip->actstart= actstart;
 					strip->actend= actend;
@@ -372,15 +372,41 @@ void reset_action_strips(int val)
 		
 		for (strip = base->object->nlastrips.last; strip; strip=strip->prev) {
 			if (strip->flag & ACTSTRIP_SELECT) {
-				if(val==2) {
-					calc_action_range(strip->act, &strip->actstart, &strip->actend, 1);
+				switch (val) {
+					case 1:
+					{
+						/* clear scaling - reset to 1.0 without touching keys */
+						float actlen= (strip->actend - strip->actstart);
+						
+						strip->scale= 1.0f;
+						strip->end= (strip->repeat * actlen) + strip->start;
+					}
+						break;
+					case 2:
+					{
+						/* reset action-range */
+						calc_action_range(strip->act, &strip->actstart, &strip->actend, 1);
+					}
+						break;
+					case 3:
+					{
+						/* apply scale to keys - scale is reset to 1.0f, but keys stay at the same times */
+						bActionChannel *achan;
+						
+						if (strip->act) {
+							for (achan= strip->act->chanbase.first; achan; achan= achan->next) {
+								actstrip_map_ipo_keys(base->object, achan->ipo, 0, 0);
+							}
+							
+							/* now we can reset scale */
+							calc_action_range(strip->act, &strip->actstart, &strip->actend, 1);
+							strip->scale= 1.0f;
+							strip->end = (strip->repeat * (strip->actend - strip->actstart)) + strip->start;
+						}
+					}
+						break;
 				}
-				else if(val==1) {
-					float mapping= (strip->actend - strip->actstart)/(strip->end - strip->start);
-					
-					strip->end= strip->start + mapping*(strip->end - strip->start);
-				}
-				base->object->ctime= -1234567.0f;	// eveil! 
+				base->object->ctime= -1234567.0f;	// evil! 
 				DAG_object_flush_update(G.scene, base->object, OB_RECALC_OB|OB_RECALC_DATA);
 			}
 		}
@@ -1850,14 +1876,12 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				break;
 				
 			case SKEY:
-				if(G.qual==LR_ALTKEY) {
-					val= pupmenu("Action Strip Scale%t|Clear Strip Scale%x1|Remap Start/End%x2");
-					if(val==1)
-						reset_action_strips(1);
-					else if(val==2)
-						reset_action_strips(2);
+				if (G.qual==LR_ALTKEY) {
+					val= pupmenu("Action Strip Scale%t|Reset Strip Scale%x1|Remap Action Start/End%x2|Apply Scale%x3");
+					if (val > 0)
+						reset_action_strips(val);
 				}
-				else if(G.qual & LR_SHIFTKEY) {
+				else if (G.qual & LR_SHIFTKEY) {
 					if (snla->flag & SNLA_DRAWTIME)
 						val= pupmenu("Snap To%t|Nearest Second%x3|Current Time%x2");
 					else

@@ -443,7 +443,6 @@ static float get_actionstrip_frame(bActionStrip *strip, float cframe, int invert
 	length = repeat * scale * actlength;
 	
 	/* invert = convert action-strip time to global time */
-	// FIXME?
 	if (invert)
 		return length*(cframe - strip->actstart)/(repeat*actlength) + strip->start;
 	else
