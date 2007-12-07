@@ -1361,6 +1361,7 @@ void sculptmode_propset_end(SculptSession *ss, int cancel)
 		ss->propset= NULL;
 		allqueue(REDRAWVIEW3D, 0);
 		allqueue(REDRAWBUTSEDIT, 0);
+		allqueue(REDRAWHEADERS, 0);
 	}
 }
 
