@@ -1416,7 +1416,18 @@ class tree:
 		
 		
 	
-	def toMesh(self, mesh=None, do_uv=True, do_uv_keep_vproportion=True, do_uv_vnormalize=False, do_uv_uscale=False, uv_image = None, uv_x_scale=1.0, uv_y_scale=4.0, do_uv_blend_layer= False, do_cap_ends=False):
+	def toMesh(self, mesh=None,\
+			do_uv=True,\
+			do_uv_keep_vproportion=True,\
+			do_uv_vnormalize=False,\
+			do_uv_uscale=False,\
+			uv_image = None,\
+			uv_x_scale=1.0,\
+			uv_y_scale=4.0,\
+			do_uv_blend_layer= False,\
+			do_cap_ends=False,\
+		):
+		
 		self.mesh = freshMesh(mesh)
 		totverts = 0
 		
@@ -1678,12 +1689,8 @@ class tree:
 						uv.y *= vscale
 			
 			
-			
 			# Done with UV mapping the first layer! now map the blend layers
 			if do_uv_blend_layer:
-				
-				
-				
 				# Set up the blend UV layer - this is simply the blending for branch joints
 				mesh.addUVLayer( 'blend' )
 				mesh.activeUVLayer = 'blend'
@@ -3009,11 +3016,11 @@ class branch:
 		
 		new_brch.calcData()
 		return new_brch
-		
 	
+	'''
 	def toMesh(self):
 		pass
-
+	'''
 
 
 
@@ -3337,7 +3344,7 @@ def buildTree(ob_curve, single=False):
 		ob_mesh.setMatrix(Matrix())
 	
 	# Do we need a do_uv_blend_layer?
-	if PREFS['material_stencil'].val and PREFS['material_texture'].val:
+	if PREFS['do_material'].val and PREFS['material_stencil'].val and PREFS['material_texture'].val:
 		do_uv_blend_layer = True
 	else:
 		do_uv_blend_layer = False
@@ -3854,7 +3861,7 @@ def gui():
 		xtmp = x
 		
 		PREFS['material_texture'] =	Draw.Toggle('Texture', EVENT_UPDATE_AND_UI, xtmp, y, but_width*2, but_height, PREFS['material_texture'].val,		'Create an image texture for this material to use'); xtmp += but_width*2;
-		PREFS['material_stencil'] =	Draw.Toggle('Blend Joints',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['material_stencil'].val,		'Use a second texture and UV layer to blend joints'); xtmp += but_width*2;
+		PREFS['material_stencil'] =	Draw.Toggle('Blend Joints',	EVENT_UPDATE, xtmp, y, but_width*2, but_height, PREFS['material_stencil'].val,		'Use a 2 more texture and UV layers to blend the seams between joints'); xtmp += but_width*2;
 	Blender.Draw.EndAlign()
 	
 	y-=but_height+MARGIN
