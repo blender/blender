@@ -135,6 +135,7 @@ uiBut *UIbuttip;
 static char but_copypaste_str[256]="";
 static double but_copypaste_val=0.0;
 static float but_copypaste_rgb[3];
+static ColorBand but_copypaste_coba = { NULL };
 
 /* ************* PROTOTYPES ***************** */
 
@@ -556,9 +557,23 @@ static int ui_but_copy_paste(uiBut *but, char mode)
 			return 1;
 		}
 	}
-		
-			
-	return 0;
+	else if(but->type==BUT_COLORBAND) {
+		if(mode=='c') {
+			if (!but->poin) {
+				return 0;
+			}
+			memcpy( &but_copypaste_coba, but->poin, sizeof(ColorBand) );
+		} else {
+			if (but_copypaste_coba.tot==0) {
+				return 0;
+			}
+			if (!but->poin) {
+				but->poin= MEM_callocN( sizeof(ColorBand), "colorband");
+			}
+			memcpy( but->poin, &but_copypaste_coba, sizeof(ColorBand) );
+			return 1;
+		}
+	}
 }
 
 /* ******************* block calc ************************* */
