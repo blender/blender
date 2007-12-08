@@ -2774,6 +2774,37 @@ void view3d_update_depths(View3D *v3d)
 	}
 }
 
+/* Enable sculpting in wireframe mode by drawing sculpt object only to the depth buffer */
+static void draw_sculpt_depths(View3D *v3d)
+{
+	Object *ob = OBACT;
+
+	int dt= MIN2(v3d->drawtype, ob->dt);
+	if(v3d->zbuf==0 && dt>OB_WIRE)
+		dt= OB_WIRE;
+	if(dt == OB_WIRE) {
+		GLboolean depth_on;
+		int orig_vdt = v3d->drawtype;
+		int orig_zbuf = v3d->zbuf;
+		int orig_odt = ob->dt;
+
+		glGetBooleanv(GL_DEPTH_TEST, &depth_on);
+		v3d->drawtype = ob->dt = OB_SOLID;
+		v3d->zbuf = 1;
+
+		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+		glEnable(GL_DEPTH_TEST);
+		draw_object(BASACT, 0);
+		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+		if(!depth_on)
+			glDisable(GL_DEPTH_TEST);
+
+		v3d->drawtype = orig_vdt;
+		v3d->zbuf = orig_zbuf;
+		ob->dt = orig_odt;
+	}
+}
+
 void drawview3dspace(ScrArea *sa, void *spacedata)
 {
 	View3D *v3d= spacedata;
@@ -2921,8 +2952,10 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		}
 	}
 
-	if(!retopo && sculpt && !(obact && (obact->dtx & OB_DRAWXRAY)))
+	if(!retopo && sculpt && !(obact && (obact->dtx & OB_DRAWXRAY))) {
+		draw_sculpt_depths(v3d);
 		view3d_update_depths(v3d);
+	}
 
 	if(G.moving) {
 		BIF_drawConstraint();
@@ -2936,9 +2969,11 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	/* Transp and X-ray afterdraw stuff */
 	view3d_draw_xray(v3d, 0);	// clears zbuffer if it is used!
 	view3d_draw_transp(v3d, 0);
-	
-	if(!retopo && sculpt && (obact && (OBACT->dtx & OB_DRAWXRAY)))
+
+	if(!retopo && sculpt && (obact && (OBACT->dtx & OB_DRAWXRAY))) {
+		draw_sculpt_depths(v3d);
 		view3d_update_depths(v3d);
+	}
 	
 	if(v3d->flag & V3D_CLIPPING)
 		view3d_clr_clipping();
