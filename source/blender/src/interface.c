@@ -135,7 +135,7 @@ uiBut *UIbuttip;
 static char but_copypaste_str[256]="";
 static double but_copypaste_val=0.0;
 static float but_copypaste_rgb[3];
-static ColorBand but_copypaste_coba = { NULL };
+static ColorBand but_copypaste_coba;
 
 /* ************* PROTOTYPES ***************** */
 
@@ -526,7 +526,6 @@ static int ui_but_copy_paste(uiBut *but, char mode)
 		}
 	}
 	else if(but->type==TEX) {
-		
 		if(poin==NULL);
 		else if(mode=='c') {
 			strncpy(but_copypaste_str, but->poin, but->max);
@@ -546,7 +545,6 @@ static int ui_but_copy_paste(uiBut *but, char mode)
 		}
 	}
 	else if(but->type==IDPOIN) {
-		
 		if(mode=='c') {
 			ID *id= *but->idpoin_idpp;
 			if(id) strncpy(but_copypaste_str, id->name+2, 22);
@@ -574,6 +572,8 @@ static int ui_but_copy_paste(uiBut *but, char mode)
 			return 1;
 		}
 	}
+	
+	return 0;
 }
 
 /* ******************* block calc ************************* */
