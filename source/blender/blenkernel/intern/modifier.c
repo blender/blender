@@ -6404,9 +6404,14 @@ static void meshdeformModifier_do(
 	for(a=0; a<totcagevert; a++) {
 		/* get cage vertex in world space with binding transform */
 		VECCOPY(co, cagemvert[a].co);
-		Mat4MulVecfl(mmd->bindmat, co);
-		/* compute different with world space bind coord */
-		VECSUB(dco[a], co, bindcos[a]);
+
+		if(G.rt != 527) {
+			Mat4MulVecfl(mmd->bindmat, co);
+			/* compute difference with world space bind coord */
+			VECSUB(dco[a], co, bindcos[a]);
+		}
+		else
+			VECCOPY(dco[a], co)
 	}
 
 	defgrp_index = -1;
@@ -6474,7 +6479,10 @@ static void meshdeformModifier_do(
 		if(totweight > 0.0f) {
 			VecMulf(co, fac/totweight);
 			Mat3MulVecfl(iobmat, co);
-			VECADD(vertexCos[b], vertexCos[b], co);
+			if(G.rt != 527)
+				VECADD(vertexCos[b], vertexCos[b], co)
+			else
+				VECCOPY(vertexCos[b], co)
 		}
 	}
 
