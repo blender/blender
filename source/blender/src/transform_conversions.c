@@ -641,6 +641,7 @@ static void set_pose_transflags(TransInfo *t, Object *ob)
 	bArmature *arm= ob->data;
 	bPoseChannel *pchan;
 	Bone *bone;
+	int hastranslation;
 	
 	t->total= 0;
 	
@@ -666,23 +667,32 @@ static void set_pose_transflags(TransInfo *t, Object *ob)
 		}
 	}	
 	/* now count, and check if we have autoIK or have to switch from translate to rotate */
+	hastranslation= 0;
+
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		bone= pchan->bone;
 		if(bone->flag & BONE_TRANSFORM) {
+
 			t->total++;
 			
 			if(t->mode==TFM_TRANSLATION) {
 				if( has_targetless_ik(pchan)==NULL ) {
 					if(pchan->parent && (pchan->bone->flag & BONE_CONNECTED)) {
-						if(!(pchan->bone->flag & BONE_HINGE_CHILD_TRANSFORM))
-							t->mode= TFM_ROTATION;
+						if(pchan->bone->flag & BONE_HINGE_CHILD_TRANSFORM)
+							hastranslation= 1;
 					}
-					else if((pchan->protectflag & OB_LOCK_LOC)==OB_LOCK_LOC)
-						t->mode= TFM_ROTATION;
+					else if((pchan->protectflag & OB_LOCK_LOC)!=OB_LOCK_LOC)
+						hastranslation= 1;
 				}
+				else
+					hastranslation= 1;
 			}
 		}
 	}
+
+	/* if there are no translatable bones, do rotation */
+	if(t->mode==TFM_TRANSLATION && !hastranslation)
+		t->mode= TFM_ROTATION;
 }
 
 /* frees temporal IKs */
