@@ -1211,7 +1211,7 @@ static void draw_pose_dofs(Object *ob)
 	
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		bone= pchan->bone;
-		if(bone && !(bone->flag & BONE_HIDDEN_P)) {
+		if(bone && !(bone->flag & (BONE_HIDDEN_P|BONE_HIDDEN_PG))) {
 			if(bone->flag & BONE_SELECTED) {
 				if(bone->layer & arm->layer) {
 					if(pchan->ikflag & (BONE_IK_XLIMIT|BONE_IK_ZLIMIT)) {
@@ -1346,7 +1346,7 @@ static void draw_pose_channels(Base *base, int dt)
 			
 			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 				bone= pchan->bone;
-				if(bone && !(bone->flag & (BONE_HIDDEN_P|BONE_NO_DEFORM))) {
+				if(bone && !(bone->flag & (BONE_HIDDEN_P|BONE_NO_DEFORM|BONE_HIDDEN_PG))) {
 					if(bone->flag & (BONE_SELECTED))
 						if(bone->layer & arm->layer)
 							draw_sphere_bone_dist(smat, imat, bone->flag, pchan, NULL);
@@ -1369,14 +1369,14 @@ static void draw_pose_channels(Base *base, int dt)
 		
 		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 			bone= pchan->bone;
-			if(bone && !(bone->flag & BONE_HIDDEN_P)) {
+			if(bone && !(bone->flag & (BONE_HIDDEN_P|BONE_HIDDEN_PG))) {
 				if(bone->layer & arm->layer) {
 					glPushMatrix();
 					glMultMatrixf(pchan->pose_mat);
 					
 					/* catch exception for bone with hidden parent */
 					flag= bone->flag;
-					if(bone->parent && (bone->parent->flag & BONE_HIDDEN_P))
+					if(bone->parent && (bone->parent->flag & (BONE_HIDDEN_P|BONE_HIDDEN_PG)))
 						flag &= ~BONE_CONNECTED;
 					
 					if(pchan->custom && !(arm->flag & ARM_NO_CUSTOM))
@@ -1418,7 +1418,7 @@ static void draw_pose_channels(Base *base, int dt)
 		
 		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 			bone= pchan->bone;
-			if(bone && !(bone->flag & BONE_HIDDEN_P)) {
+			if(bone && !(bone->flag & (BONE_HIDDEN_P|BONE_HIDDEN_PG))) {
 				if(bone->layer & arm->layer) {
 					if (do_dashed && bone->parent) {
 						/*	Draw a line from our root to the parent's tip */
@@ -1456,7 +1456,7 @@ static void draw_pose_channels(Base *base, int dt)
 					
 					/* catch exception for bone with hidden parent */
 					flag= bone->flag;
-					if(bone->parent && (bone->parent->flag & BONE_HIDDEN_P))
+					if(bone->parent && (bone->parent->flag & (BONE_HIDDEN_P|BONE_HIDDEN_PG)))
 						flag &= ~BONE_CONNECTED;
 					
 					/* extra draw service for pose mode */
@@ -1510,7 +1510,7 @@ static void draw_pose_channels(Base *base, int dt)
 			if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
 			
 			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-				if((pchan->bone->flag & BONE_HIDDEN_P)==0) {
+				if((pchan->bone->flag & (BONE_HIDDEN_P|BONE_HIDDEN_PG))==0) {
 					if(pchan->bone->layer & arm->layer) {
 						if (arm->flag & (ARM_EDITMODE|ARM_POSEMODE)) {
 							bone= pchan->bone;
@@ -1727,7 +1727,13 @@ static void draw_ebones(Object *ob, int dt)
 	}
 }
 
-/* in view space */
+/* ****************************** Armature Visualisation ******************************** */
+
+/* ---------- Paths --------- */
+
+/* draw bone paths
+ *	- in view space 
+ */
 static void draw_pose_paths(Object *ob)
 {
 	bArmature *arm= ob->data;
@@ -1927,8 +1933,42 @@ static void draw_pose_paths(Object *ob)
 	glPopMatrix();
 }
 
+
+/* ---------- Ghosts --------- */
+
+/* helper function for ghost drawing - sets/removes flags for temporarily 
+ * hiding unselected bones while drawing ghosts
+ */
+static void ghost_poses_tag_unselected(Object *ob, short unset)
+{
+	bArmature *arm= ob->data;
+	bPose *pose= ob->pose;
+	bPoseChannel *pchan;
+	Bone *bone;
+	
+	/* don't do anything if no hiding any bones */
+	if ((arm->flag & ARM_GHOST_ONLYSEL)==0)
+		return;
+		
+	/* loop over all pchans, adding/removing tags as appropriate */
+	for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
+		if ((pchan->bone) && (arm->layer & pchan->bone->layer)) {
+			if (unset) {
+				/* remove tags from all pchans if cleaning up */
+				pchan->bone->flag &= ~BONE_HIDDEN_PG;
+			}
+			else {
+				/* set tags on unselected pchans only */
+				if ((pchan->bone->flag & BONE_SELECTED)==0)
+					pchan->bone->flag |= BONE_HIDDEN_PG;
+			}
+		}
+	}
+}
+
 /* draw ghosts that occur within a frame range 
- * 	note: object should be in posemode */
+ * 	note: object should be in posemode 
+ */
 static void draw_ghost_poses_range(Base *base)
 {
 	Object *ob= base->object;
@@ -1958,6 +1998,7 @@ static void draw_ghost_poses_range(Base *base)
 	copy_pose(&posen, ob->pose, 1);
 	ob->pose= posen;
 	armature_rebuild_pose(ob, ob->data);	/* child pointers for IK */
+	ghost_poses_tag_unselected(ob, 0);		/* hide unselected bones if need be */
 	
 	glEnable(GL_BLEND);
 	if (G.vd->zbuf) glDisable(GL_DEPTH_TEST);
@@ -1974,6 +2015,7 @@ static void draw_ghost_poses_range(Base *base)
 	glDisable(GL_BLEND);
 	if (G.vd->zbuf) glEnable(GL_DEPTH_TEST);
 
+	ghost_poses_tag_unselected(ob, 1);		/* unhide unselected bones if need be */
 	free_pose_channels(posen);
 	MEM_freeN(posen);
 	
@@ -1986,6 +2028,9 @@ static void draw_ghost_poses_range(Base *base)
 	ob->ipoflag= ipoflago; 
 }
 
+/* draw ghosts on keyframes in action within range 
+ *	- object should be in posemode 
+ */
 static void draw_ghost_poses_keys(Base *base)
 {
 	Object *ob= base->object;
@@ -2028,6 +2073,7 @@ static void draw_ghost_poses_keys(Base *base)
 	copy_pose(&posen, ob->pose, 1);
 	ob->pose= posen;
 	armature_rebuild_pose(ob, ob->data);	/* child pointers for IK */
+	ghost_poses_tag_unselected(ob, 0);		/* hide unselected bones if need be */
 	
 	glEnable(GL_BLEND);
 	if (G.vd->zbuf) glDisable(GL_DEPTH_TEST);
@@ -2046,6 +2092,7 @@ static void draw_ghost_poses_keys(Base *base)
 	glDisable(GL_BLEND);
 	if (G.vd->zbuf) glEnable(GL_DEPTH_TEST);
 
+	ghost_poses_tag_unselected(ob, 1);		/* unhide unselected bones if need be */
 	free_pose_channels(posen);
 	BLI_freelistN(&keys);
 	MEM_freeN(posen);
@@ -2059,7 +2106,9 @@ static void draw_ghost_poses_keys(Base *base)
 	ob->ipoflag= ipoflago; 
 }
 
-/* object is supposed to be armature in posemode */
+/* draw ghosts around current frame
+ * 	- object is supposed to be armature in posemode 
+ */
 static void draw_ghost_poses(Base *base)
 {
 	Object *ob= base->object;
@@ -2070,11 +2119,11 @@ static void draw_ghost_poses(Base *base)
 	int cfrao, maptime, flago, ipoflago;
 	
 	/* pre conditions, get an action with sufficient frames */
-	if(ob->action==NULL)
+	if (ob->action==NULL)
 		return;
 
 	calc_action_range(ob->action, &start, &end, 0);
-	if(start==end)
+	if (start == end)
 		return;
 
 	stepsize= (float)(arm->ghostsize);
@@ -2082,7 +2131,7 @@ static void draw_ghost_poses(Base *base)
 	
 	/* we only map time for armature when an active strip exists */
 	for (strip=ob->nlastrips.first; strip; strip=strip->next)
-		if(strip->flag & ACTSTRIP_ACTIVE)
+		if (strip->flag & ACTSTRIP_ACTIVE)
 			break;
 	
 	maptime= (strip!=NULL);
@@ -2090,7 +2139,7 @@ static void draw_ghost_poses(Base *base)
 	/* store values */
 	ob->flag &= ~OB_POSEMODE;
 	cfrao= CFRA;
-	if(maptime) actframe= get_action_frame(ob, (float)CFRA);
+	if (maptime) actframe= get_action_frame(ob, (float)CFRA);
 	else actframe= CFRA;
 	flago= arm->flag;
 	arm->flag &= ~(ARM_DRAWNAMES|ARM_DRAWAXES);
@@ -2102,24 +2151,23 @@ static void draw_ghost_poses(Base *base)
 	copy_pose(&posen, ob->pose, 1);
 	ob->pose= posen;
 	armature_rebuild_pose(ob, ob->data);	/* child pointers for IK */
+	ghost_poses_tag_unselected(ob, 0);		/* hide unselected bones if need be */
 	
 	glEnable(GL_BLEND);
-	if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
+	if (G.vd->zbuf) glDisable(GL_DEPTH_TEST);
 	
 	/* draw from darkest blend to lowest */
 	for(cur= stepsize; cur<range; cur+=stepsize) {
-		
 		ctime= cur - fmod((float)cfrao, stepsize);	/* ensures consistant stepping */
 		colfac= ctime/range;
 		BIF_ThemeColorShadeAlpha(TH_WIRE, 0, -128-(int)(120.0f*sqrt(colfac)));
 		
 		/* only within action range */
-		if(actframe+ctime >= start && actframe+ctime <= end) {
-			
-			if(maptime) CFRA= (int)get_action_frame_inv(ob, actframe+ctime);
+		if (actframe+ctime >= start && actframe+ctime <= end) {
+			if (maptime) CFRA= (int)get_action_frame_inv(ob, actframe+ctime);
 			else CFRA= (int)floor(actframe+ctime);
 			
-			if(CFRA!=cfrao) {
+			if (CFRA!=cfrao) {
 				do_all_pose_actions(ob);
 				where_is_pose(ob);
 				draw_pose_channels(base, OB_WIRE);
@@ -2131,12 +2179,11 @@ static void draw_ghost_poses(Base *base)
 		BIF_ThemeColorShadeAlpha(TH_WIRE, 0, -128-(int)(120.0f*sqrt(colfac)));
 		
 		/* only within action range */
-		if(actframe-ctime >= start && actframe-ctime <= end) {
-			
-			if(maptime) CFRA= (int)get_action_frame_inv(ob, actframe-ctime);
+		if ((actframe-ctime >= start) && (actframe-ctime <= end)) {
+			if (maptime) CFRA= (int)get_action_frame_inv(ob, actframe-ctime);
 			else CFRA= (int)floor(actframe-ctime);
-
-			if(CFRA!=cfrao) {
+			
+			if (CFRA != cfrao) {
 				do_all_pose_actions(ob);
 				where_is_pose(ob);
 				draw_pose_channels(base, OB_WIRE);
@@ -2144,8 +2191,9 @@ static void draw_ghost_poses(Base *base)
 		}
 	}
 	glDisable(GL_BLEND);
-	if(G.vd->zbuf) glEnable(GL_DEPTH_TEST);
+	if (G.vd->zbuf) glEnable(GL_DEPTH_TEST);
 
+	ghost_poses_tag_unselected(ob, 1);		/* unhide unselected bones if need be */
 	free_pose_channels(posen);
 	MEM_freeN(posen);
 	
@@ -2156,8 +2204,9 @@ static void draw_ghost_poses(Base *base)
 	armature_rebuild_pose(ob, ob->data);
 	ob->flag |= OB_POSEMODE;
 	ob->ipoflag= ipoflago; 
-
 }
+
+/* ********************************** Armature Drawing - Main ************************* */
 
 /* called from drawobject.c, return 1 if nothing was drawn */
 int draw_armature(Base *base, int dt)

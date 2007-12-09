@@ -3990,9 +3990,10 @@ static void editing_panel_armature_visuals(Object *ob, bArmature *arm)
 													10, 160, 150, 20, &arm->ghosttype, 0, 0, 0, 0, "Choose range of Ghosts to draw for current Action");	
 		
 		if (arm->ghosttype != ARM_GHOST_KEYS)
-			uiDefButS(block, NUM, REDRAWVIEW3D, "GStep: ", 10,140,150,20, &arm->ghostsize, 1.0f, 20.0f, 0, 0, "How many frames between Ghost instances");
+			uiDefButS(block, NUM, REDRAWVIEW3D, "GStep: ", 10,120,150,20, &arm->ghostsize, 1.0f, 20.0f, 0, 0, "How many frames between Ghost instances");
 		else
-			uiDefBut(block, LABEL, REDRAWVIEW3D, "GStep: N/A", 10,140,150,20, NULL, 0.0f, 0.0f, 0, 0, "How many frames between Ghost instances");
+			uiDefBut(block, LABEL, REDRAWVIEW3D, "GStep: N/A", 10,140,120,20, NULL, 0.0f, 0.0f, 0, 0, "How many frames between Ghost instances");
+		uiDefButBitS(block, TOG, ARM_GHOST_ONLYSEL, REDRAWVIEW3D, "Sel", 130, 140, 30, 20, &arm->flag, 0, 0, 0, 0, "Only show Ghosts for selected bones");
 	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);

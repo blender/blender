@@ -89,18 +89,19 @@ typedef struct bArmature {
 /* armature->flag */
 /* dont use bit 7, was saved in files to disable stuff */
 typedef enum eArmature_Flag {
-	ARM_RESTPOS		= (1<<0),
-	ARM_DRAWXRAY	= (1<<1),	/* XRAY is here only for backwards converting */
-	ARM_DRAWAXES	= (1<<2),
-	ARM_DRAWNAMES	= (1<<3), 
-	ARM_POSEMODE	= (1<<4), 
-	ARM_EDITMODE	= (1<<5), 
-	ARM_DELAYDEFORM = (1<<6), 
-	ARM_DONT_USE    = (1<<7),
-	ARM_MIRROR_EDIT	= (1<<8),
-	ARM_AUTO_IK		= (1<<9),
-	ARM_NO_CUSTOM	= (1<<10), 	/* made option negative, for backwards compat */
-	ARM_COL_CUSTOM	= (1<<11)
+	ARM_RESTPOS			= (1<<0),
+	ARM_DRAWXRAY		= (1<<1),	/* XRAY is here only for backwards converting */
+	ARM_DRAWAXES		= (1<<2),
+	ARM_DRAWNAMES		= (1<<3), 
+	ARM_POSEMODE		= (1<<4), 
+	ARM_EDITMODE		= (1<<5), 
+	ARM_DELAYDEFORM 	= (1<<6), 
+	ARM_DONT_USE    	= (1<<7),
+	ARM_MIRROR_EDIT		= (1<<8),
+	ARM_AUTO_IK			= (1<<9),
+	ARM_NO_CUSTOM		= (1<<10), 	/* made option negative, for backwards compat */
+	ARM_COL_CUSTOM		= (1<<11),	/* draw custom colours - not yet used... */
+	ARM_GHOST_ONLYSEL 	= (1<<12)	/* when ghosting, only show selected bones (this should belong to ghostflag instead) */
 } eArmature_Flag;
 
 /* armature->drawtype */
@@ -144,7 +145,7 @@ typedef enum eBone_Flag {
 	BONE_TRANSFORM  			= (1<<3),	/* Used instead of BONE_SELECTED during transform */
 	BONE_CONNECTED 				= (1<<4),
 	/* 32 used to be quatrot, was always set in files, do not reuse unless you clear it always */	
-	BONE_HIDDEN_P				= (1<<6), 	/* hidden Bones when drawing Posechannels */	
+	BONE_HIDDEN_P				= (1<<6), 	/* hidden Bones when drawing PoseChannels */	
 	BONE_DONE					= (1<<7),	/* For detecting cyclic dependancies */
 	BONE_ACTIVE					= (1<<8), 	/* active is on mouse clicks only */
 	BONE_HINGE					= (1<<9),	/* No parent rotation or scale */
@@ -153,7 +154,8 @@ typedef enum eBone_Flag {
 	BONE_NO_DEFORM				= (1<<12),
 	BONE_UNKEYED				= (1<<13), 	/* set to prevent destruction of its unkeyframed pose (after transform) */		
 	BONE_HINGE_CHILD_TRANSFORM 	= (1<<14), 	/* set to prevent hinge child bones from influencing the transform center */
-	BONE_NO_SCALE				= (1<<15) 	/* No parent scale */
+	BONE_NO_SCALE				= (1<<15), 	/* No parent scale */
+	BONE_HIDDEN_PG				= (1<<16)	/* hidden bone when drawing PoseChannels (for ghost drawing) */
 } eBone_Flag;
 
 #endif
