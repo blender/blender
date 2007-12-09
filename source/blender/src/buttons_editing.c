@@ -3986,10 +3986,13 @@ static void editing_panel_armature_visuals(Object *ob, bArmature *arm)
 	uiDefBut(block, LABEL, 0, "Ghost Options", 10,180,150,20, 0, 0, 0, 0, 0, "");
 
 	uiBlockBeginAlign(block);
-		uiDefButS(block, MENU, REDRAWVIEW3D, "Ghosts %t|Around Current Frame %x0|In Range %x1", 
+		uiDefButS(block, MENU, REDRAWVIEW3D, "Ghosts %t|Around Current Frame %x0|In Range %x1|On Keyframes %x2", 
 													10, 160, 150, 20, &arm->ghosttype, 0, 0, 0, 0, "Choose range of Ghosts to draw for current Action");	
 		
-		uiDefButS(block, NUM, REDRAWVIEW3D, "GStep: ", 10,140,150,20, &arm->ghostsize, 1.0f, 20.0f, 0, 0, "How many frames between Ghost instances");
+		if (arm->ghosttype != ARM_GHOST_KEYS)
+			uiDefButS(block, NUM, REDRAWVIEW3D, "GStep: ", 10,140,150,20, &arm->ghostsize, 1.0f, 20.0f, 0, 0, "How many frames between Ghost instances");
+		else
+			uiDefBut(block, LABEL, REDRAWVIEW3D, "GStep: N/A", 10,140,150,20, NULL, 0.0f, 0.0f, 0, 0, "How many frames between Ghost instances");
 	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
@@ -3997,7 +4000,7 @@ static void editing_panel_armature_visuals(Object *ob, bArmature *arm)
 		/* range is around current frame */
 		uiDefButS(block, NUM, REDRAWVIEW3D, "Ghost: ", 10,110,150,20, &arm->ghostep, 0.0f, 30.0f, 0, 0, "Draw Ghosts around current frame, for current Action");
 	}
-	else if (arm->ghosttype == ARM_GHOST_RANGE) {
+	else if (ELEM(arm->ghosttype, ARM_GHOST_RANGE, ARM_GHOST_KEYS)) {
 		/* range is defined by start+end frame below */
 		uiDefButI(block, NUM,REDRAWVIEW3D,"GSta:",10,110,150,20, &arm->ghostsf,1.0,MAXFRAMEF, 0, 0, "The start frame for Ghost display range");
 		uiDefButI(block, NUM,REDRAWVIEW3D,"GEnd:",10,90,150,20, &arm->ghostef,arm->ghostsf,MAXFRAMEF, 0, 0, "The end frame for Ghost display range");	
@@ -4008,9 +4011,11 @@ static void editing_panel_armature_visuals(Object *ob, bArmature *arm)
 	uiDefBut(block, LABEL, 0, "Bone Paths Drawing:", 165,180,170,20, 0, 0, 0, 0, 0, "");
 	
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, ARM_PATH_FNUMS, REDRAWVIEW3D, "Frame Nums", 170, 160, 80, 20, &arm->pathflag, 0, 0, 0, 0, "Show frame numbers on path");
-		uiDefButS(block, NUM, REDRAWVIEW3D, "PStep:",250,160,80,20, &arm->pathsize,1,100, 10, 50, "Frames between highlighted points on bone path");
-		uiDefButBitS(block, TOG, ARM_PATH_KFRAS, REDRAWVIEW3D, "Show Keys", 170, 140, 160, 20, &arm->pathflag, 0, 0, 0, 0, "Show key frames on path");
+		uiDefButS(block, NUM, REDRAWVIEW3D, "PStep:",170,160,80,20, &arm->pathsize,1,100, 10, 50, "Frames between highlighted points on bone path");
+		uiDefButBitS(block, TOG, ARM_PATH_FNUMS, REDRAWVIEW3D, "Frame Nums", 250, 160, 80, 20, &arm->pathflag, 0, 0, 0, 0, "Show frame numbers on path");
+		
+		uiDefButBitS(block, TOG, ARM_PATH_KFRAS, REDRAWVIEW3D, "Show Keys", 170, 140, 80, 20, &arm->pathflag, 0, 0, 0, 0, "Show key frames on path");
+		uiDefButBitS(block, TOG, ARM_PATH_KFNOS, REDRAWVIEW3D, "Keyframe Nums", 250, 140, 80, 20, &arm->pathflag, 0, 0, 0, 0, "Show frame numbers of key frames on path");
 	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);

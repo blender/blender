@@ -1903,7 +1903,7 @@ static void draw_pose_paths(Object *ob)
 					glPointSize(1.0);
 					
 					/* Draw frame numbers of keyframes  */
-					if (arm->pathflag & ARM_PATH_FNUMS) {
+					if ((arm->pathflag & ARM_PATH_FNUMS) || (arm->pathflag & ARM_PATH_KFNOS)) {
 						for(a=0, fp=fp_start; a<len; a++, fp+=3) {
 							for (ak= keys.first; ak; ak= ak->next) {
 								if (ak->cfra == (a+sfra)) {
@@ -1939,7 +1939,7 @@ static void draw_ghost_poses_range(Base *base)
 	
 	start = arm->ghostsf;
 	end = arm->ghostef;
-	if (end<=start)
+	if (end <= start)
 		return;
 	
 	stepsize= (float)(arm->ghostsize);
@@ -1960,10 +1960,10 @@ static void draw_ghost_poses_range(Base *base)
 	armature_rebuild_pose(ob, ob->data);	/* child pointers for IK */
 	
 	glEnable(GL_BLEND);
-	if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
+	if (G.vd->zbuf) glDisable(GL_DEPTH_TEST);
 	
 	/* draw from first frame of range to last */
-	for(CFRA= start; CFRA<end; CFRA+=stepsize) {
+	for (CFRA= start; CFRA<end; CFRA+=stepsize) {
 		colfac = (end-CFRA)/range;
 		BIF_ThemeColorShadeAlpha(TH_WIRE, 0, -128-(int)(120.0f*sqrt(colfac)));
 		
@@ -1972,7 +1972,7 @@ static void draw_ghost_poses_range(Base *base)
 		draw_pose_channels(base, OB_WIRE);
 	}
 	glDisable(GL_BLEND);
-	if(G.vd->zbuf) glEnable(GL_DEPTH_TEST);
+	if (G.vd->zbuf) glEnable(GL_DEPTH_TEST);
 
 	free_pose_channels(posen);
 	MEM_freeN(posen);
@@ -1984,7 +1984,79 @@ static void draw_ghost_poses_range(Base *base)
 	armature_rebuild_pose(ob, ob->data);
 	ob->flag |= OB_POSEMODE;
 	ob->ipoflag= ipoflago; 
+}
 
+static void draw_ghost_poses_keys(Base *base)
+{
+	Object *ob= base->object;
+	bAction *act= ob_get_action(ob);
+	bArmature *arm= ob->data;
+	bPose *posen, *poseo;
+	ListBase keys= {NULL, NULL};
+	ActKeyColumn *ak, *akn;
+	float start, end, range, colfac, i;
+	int cfrao, flago, ipoflago;
+	
+	start = arm->ghostsf;
+	end = arm->ghostef;
+	if (end <= start)
+		return;
+	
+	/* get keyframes - then clip to only within range */
+	action_to_keylist(act, &keys, NULL);
+	range= 0;
+	for (ak= keys.first; ak; ak= akn) {
+		akn= ak->next;
+		
+		if ((ak->cfra < start) || (ak->cfra > end))
+			BLI_freelinkN(&keys, ak);
+		else
+			range++;
+	}
+	if (range == 0) return;
+	
+	/* store values */
+	ob->flag &= ~OB_POSEMODE;
+	cfrao= CFRA;
+	flago= arm->flag;
+	arm->flag &= ~(ARM_DRAWNAMES|ARM_DRAWAXES);
+	ipoflago= ob->ipoflag; 
+	ob->ipoflag |= OB_DISABLE_PATH;
+	
+	/* copy the pose */
+	poseo= ob->pose;
+	copy_pose(&posen, ob->pose, 1);
+	ob->pose= posen;
+	armature_rebuild_pose(ob, ob->data);	/* child pointers for IK */
+	
+	glEnable(GL_BLEND);
+	if (G.vd->zbuf) glDisable(GL_DEPTH_TEST);
+	
+	/* draw from first frame of range to last */
+	for (ak=keys.first, i=0; ak; ak=ak->next, i++) {
+		colfac = i/range;
+		BIF_ThemeColorShadeAlpha(TH_WIRE, 0, -128-(int)(120.0f*sqrt(colfac)));
+		
+		CFRA= (int)ak->cfra;
+		
+		do_all_pose_actions(ob);
+		where_is_pose(ob);
+		draw_pose_channels(base, OB_WIRE);
+	}
+	glDisable(GL_BLEND);
+	if (G.vd->zbuf) glEnable(GL_DEPTH_TEST);
+
+	free_pose_channels(posen);
+	BLI_freelistN(&keys);
+	MEM_freeN(posen);
+	
+	/* restore */
+	CFRA= cfrao;
+	ob->pose= poseo;
+	arm->flag= flago;
+	armature_rebuild_pose(ob, ob->data);
+	ob->flag |= OB_POSEMODE;
+	ob->ipoflag= ipoflago; 
 }
 
 /* object is supposed to be armature in posemode */
@@ -2122,10 +2194,13 @@ int draw_armature(Base *base, int dt)
 						arm->flag |= ARM_POSEMODE;
 				}
 				else if(ob->flag & OB_POSEMODE) {
-					if (arm->ghosttype == ARM_GHOST_RANGE){
+					if (arm->ghosttype == ARM_GHOST_RANGE) {
 						draw_ghost_poses_range(base);
 					}
-					else {
+					else if (arm->ghosttype == ARM_GHOST_KEYS) {
+						draw_ghost_poses_keys(base);
+					}
+					else if (arm->ghosttype == ARM_GHOST_CUR) {
 						if (arm->ghostep)
 							draw_ghost_poses(base);
 					}
