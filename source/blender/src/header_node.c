@@ -662,7 +662,7 @@ void node_buttons(ScrArea *sa)
 		xco+= 80;
 		uiDefButBitS(block, TOG, R_COMP_FREE, B_NOP, "Free Unused", xco+5,0,80,19, &G.scene->r.scemode, 0.0f, 0.0f, 0, 0, "Free Nodes that are not used while composite");
 		xco+= 80;
-		uiDefButBitS(block, TOG, SNODE_BACKDRAW, B_NOP, "Backdrop", xco+5,0,80,19, &snode->flag, 0.0f, 0.0f, 0, 0, "Use active Viewer Node output as backdrop");
+		uiDefButBitS(block, TOG, SNODE_BACKDRAW, REDRAWNODE, "Backdrop", xco+5,0,80,19, &snode->flag, 0.0f, 0.0f, 0, 0, "Use active Viewer Node output as backdrop");
 		xco+= 80;
 	}
 	
