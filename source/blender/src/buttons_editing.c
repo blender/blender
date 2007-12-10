@@ -4621,6 +4621,9 @@ void do_meshbuts(unsigned short event)
 	case B_JOINTRIA:
 		join_triangles();
 		break;
+	case B_GEN_SKELETON:
+		generateSkeleton();
+		break;
 	}
 
 	/* WATCH IT: previous events only in editmode! */
@@ -4671,6 +4674,7 @@ static void editing_panel_mesh_tools(Object *ob, Mesh *me)
 	uiDefButS(block, NUM, B_DIFF, "Turns:",			210,55,115,19, &G.scene->toolsettings->turn,1.0,360.0, 0, 0, "Specifies the number of revolutions the screw turns");
 	uiDefButBitS(block, TOG, B_KEEPORIG, B_DIFF, "Keep Original",10,35,200,19, &G.scene->toolsettings->editbutflag, 0, 0, 0, 0, "Keeps a copy of the original vertices and faces after executing tools");
 	uiDefButBitS(block, TOG, B_CLOCKWISE, B_DIFF, "Clockwise",	210,35,115,19, &G.scene->toolsettings->editbutflag, 0, 0, 0, 0, "Specifies the direction for 'Screw' and 'Spin'");
+	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
 	uiDefBut(block, BUT,B_EXTREP, "Extrude Dup",	10,10,150,19, 0, 0, 0, 0, 0, "Creates copies of the selected vertices in a straight line away from the current viewport");
@@ -4694,7 +4698,81 @@ static void verify_vertexgroup_name_func(void *datav, void *data2_unused)
 	unique_vertexgroup_name((bDeformGroup*)datav, OBACT);
 }
 
+static void skgen_reorder(void *option, void *arg2)
+{
+	char tmp;
+	switch ((int)option)
+	{
+		case 0:
+			tmp = G.scene->toolsettings->skgen_subdivisions[0];
+			G.scene->toolsettings->skgen_subdivisions[0] = G.scene->toolsettings->skgen_subdivisions[1];
+			G.scene->toolsettings->skgen_subdivisions[1] = tmp;
+			break;
+		case 1:
+			tmp = G.scene->toolsettings->skgen_subdivisions[2];
+			G.scene->toolsettings->skgen_subdivisions[2] = G.scene->toolsettings->skgen_subdivisions[1];
+			G.scene->toolsettings->skgen_subdivisions[1] = tmp;
+			break;
+		case 2:
+			tmp = G.scene->toolsettings->skgen_subdivisions[0];
+			G.scene->toolsettings->skgen_subdivisions[0] = G.scene->toolsettings->skgen_subdivisions[2];
+			G.scene->toolsettings->skgen_subdivisions[2] = G.scene->toolsettings->skgen_subdivisions[1];
+			G.scene->toolsettings->skgen_subdivisions[1] = tmp;
+			break;
+	}
+}
 
+static void editing_panel_mesh_skgen(Object *ob, Mesh *me)
+{
+	uiBlock *block;
+	uiBut *but;
+	int i;
+
+	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_skgen", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Skeleton Generator", "Editing", 960, 0, 318, 204)==0) return;
+	
+	uiDefBut(block, BUT, B_GEN_SKELETON, "Generate Skeleton",			1025,170,250,19, 0, 0, 0, 0, 0, "Generate Skeleton from Mesh");
+
+	uiBlockBeginAlign(block);
+	uiDefButS(block, NUM, B_DIFF, "Resolution:",							1025,150,250,19, &G.scene->toolsettings->skgen_resolution,10.0,1000.0, 0, 0,		"Specifies the resolution of the graph's embedding");
+	uiDefButBitS(block, TOG, SKGEN_FILTER_INTERNAL, B_DIFF, "Filter In",	1025,130, 83,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Filter internal small arcs from graph");
+	uiDefButF(block, NUM, B_DIFF, 							"T:",			1111,130,164,19, &G.scene->toolsettings->skgen_threshold_internal,0.0, 1.0, 10, 0,	"Specify the threshold ratio for filtering internal arcs");
+	uiDefButBitS(block, TOG, SKGEN_FILTER_EXTERNAL, B_DIFF, "Filter Ex",	1025,110, 83,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Filter external small arcs from graph");
+	uiDefButF(block, NUM, B_DIFF, 							"T:",			1111,110,164,19, &G.scene->toolsettings->skgen_threshold_external,0.0, 1.0, 10, 0,	"Specify the threshold ratio for filtering external arcs");
+
+	for(i = 0; i < SKGEN_SUB_TOTAL; i++)
+	{
+		int y = 90 - 20 * i;
+		
+		but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, VICON_MOVE_DOWN, 		1025, y, 16, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Change the order the subdivisions algorithm are applied");
+		uiButSetFunc(but, skgen_reorder, (void *)i, NULL);
+		
+		switch(G.scene->toolsettings->skgen_subdivisions[i])
+		{
+			case SKGEN_SUB_LENGTH:
+				uiDefButBitS(block, TOG, SKGEN_CUT_LENGTH, B_DIFF, 		"Length",		1041, y, 67,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,				"Subdivide arcs in bones of equal length");
+				uiDefButF(block, NUM, B_DIFF, 							"T:",			1111, y, 82,19, &G.scene->toolsettings->skgen_length_ratio,1.0, 4.0, 10, 0,		"Specify the ratio limit between straight arc and embeddings to trigger equal subdivisions");
+				uiDefButF(block, NUM, B_DIFF, 							"L:",			1193, y, 82,19, &G.scene->toolsettings->skgen_length_limit,0.1,50.0, 10, 0,		"Maximum length of the bones when subdividing");
+				break;
+			case SKGEN_SUB_ANGLE:
+				uiDefButBitS(block, TOG, SKGEN_CUT_ANGLE, B_DIFF, 		"Angle",		1041, y, 67,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Subdivide arcs based on angle");
+				uiDefButF(block, NUM, B_DIFF, 							"T:",			1111, y,164,19, &G.scene->toolsettings->skgen_angle_limit,0.0, 90.0, 10, 0,			"Specify the threshold angle in degrees for subdivision");
+				break;
+			case SKGEN_SUB_CORRELATION:
+				uiDefButBitS(block, TOG, SKGEN_CUT_CORRELATION, B_DIFF, "Correlation",	1041, y, 67,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Subdivide arcs based on correlation");
+				uiDefButF(block, NUM, B_DIFF, 							"T:",			1111, y,164,19, &G.scene->toolsettings->skgen_correlation_limit,0.0, 1.0, 0.01, 0,	"Specify the threshold correlation for subdivision");
+				break;
+		}
+	}
+
+	uiDefButBitS(block, TOG, SKGEN_SYMMETRY, B_DIFF, 		"Symmetry",		1025, 30,125,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Restore symmetries based on topology");
+	uiDefButF(block, NUM, B_DIFF, 							"T:",			1150, 30,125,19, &G.scene->toolsettings->skgen_symmetry_limit,0.0, 1.0, 10, 0,	"Specify the threshold distance for considering potential symmetric arcs");
+	uiDefButC(block, NUM, B_DIFF, 							"P:",			1025, 10, 62,19, &G.scene->toolsettings->skgen_postpro_passes, 0, 10, 10, 0,		"Specify the number of processing passes on the embeddings");
+	uiDefButC(block, ROW, B_DIFF,							"Smooth",		1087, 10, 63,19, &G.scene->toolsettings->skgen_postpro, 5.0, (float)SKGEN_SMOOTH, 0, 0, "Smooth embeddings");
+	uiDefButC(block, ROW, B_DIFF,							"Average",		1150, 10, 62,19, &G.scene->toolsettings->skgen_postpro, 5.0, (float)SKGEN_AVERAGE, 0, 0, "Average embeddings");
+	uiDefButC(block, ROW, B_DIFF,							"Sharpen",		1212, 10, 63,19, &G.scene->toolsettings->skgen_postpro, 5.0, (float)SKGEN_SHARPEN, 0, 0, "Sharpen embeddings");
+	uiBlockEndAlign(block);
+}
 
 static void editing_panel_mesh_tools1(Object *ob, Mesh *me)
 {
@@ -5951,6 +6029,8 @@ void editing_panels()
 		if(G.obedit) {
 			editing_panel_mesh_tools(ob, ob->data);
 			editing_panel_mesh_tools1(ob, ob->data);
+			uiNewPanelTabbed("Mesh Tools 1", "Editing");
+			editing_panel_mesh_skgen(ob, ob->data);
 			editing_panel_mesh_uvautocalculation();
 			if (EM_texFaceCheck())
 				editing_panel_mesh_texface();

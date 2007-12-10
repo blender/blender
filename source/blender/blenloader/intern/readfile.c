@@ -6652,7 +6652,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				else
 					wrld->ao_samp_method = WO_AOSAMP_HAMMERSLEY;
 				
-				wrld->ao_adapt_thresh = 0.005;
+				wrld->ao_adapt_thresh = 0.005f;
 			}
 			
 			for(la=main->lamp.first; la; la= la->id.next) {
@@ -6666,6 +6666,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 	if(main->versionfile <= 245) {
+		Scene *sce;
 		bScreen *sc;
 		Object *ob;
 		Image *ima;
@@ -6838,6 +6839,27 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for(part=main->particle.first; part; part=part->id.next)
 			if(part->ren_child_nbr==0)
 				part->ren_child_nbr= part->child_nbr;
+		if (main->versionfile < 245 || main->subversionfile < 11)
+		{
+			/* initialize skeleton generation toolsettings */
+			for(sce=main->scene.first; sce; sce = sce->id.next)
+			{
+				sce->toolsettings->skgen_resolution = 50;
+				sce->toolsettings->skgen_threshold_internal 	= 0.01f;
+				sce->toolsettings->skgen_threshold_external 	= 0.01f;
+				sce->toolsettings->skgen_angle_limit	 		= 45.0f;
+				sce->toolsettings->skgen_length_ratio			= 1.3f;
+				sce->toolsettings->skgen_length_limit			= 1.5f;
+				sce->toolsettings->skgen_correlation_limit		= 0.98f;
+				sce->toolsettings->skgen_symmetry_limit			= 0.1f;
+				sce->toolsettings->skgen_postpro = SKGEN_SMOOTH;
+				sce->toolsettings->skgen_postpro_passes = 1;
+				sce->toolsettings->skgen_options = SKGEN_FILTER_INTERNAL|SKGEN_FILTER_EXTERNAL|SKGEN_SUB_CORRELATION;
+				sce->toolsettings->skgen_subdivisions[0] = SKGEN_SUB_CORRELATION;
+				sce->toolsettings->skgen_subdivisions[1] = SKGEN_SUB_LENGTH;
+				sce->toolsettings->skgen_subdivisions[2] = SKGEN_SUB_ANGLE;
+			}
+		}
 	}
 
 	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 2)) {

@@ -476,6 +476,9 @@
 				RelativePath="..\..\..\source\blender\src\prvicons.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\src\reeb.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\src\renderwin.c">
 			</File>
 			<File
@@ -886,6 +889,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\include\playanim_ext.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\include\reeb.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\include\transform.h">

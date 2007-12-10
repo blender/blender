@@ -364,7 +364,7 @@ typedef struct ToolSettings {
 	short uvcalc_flag;
 
 	short pad2;
-	
+
 	/* Image Paint (8 byte aligned please!) */
 	struct ImagePaintSettings imapaint;
 
@@ -385,7 +385,21 @@ typedef struct ToolSettings {
 	/* Multires */
 	char multires_subdiv_type;
 	
-	char  pad4[2];
+	/* Skeleton generation */
+	short skgen_resolution;
+	float skgen_threshold_internal;
+	float skgen_threshold_external;
+	float skgen_length_ratio;
+	float skgen_length_limit;
+	float skgen_angle_limit;
+	float skgen_correlation_limit;
+	float skgen_symmetry_limit;
+	short skgen_options;
+	char  skgen_postpro;
+	char  skgen_postpro_passes;
+	char  skgen_subdivisions[3];
+	
+	char pad3[5];
 } ToolSettings;
 
 /* Used by all brushes to store their properties, which can be directly set
@@ -722,6 +736,24 @@ typedef struct Scene {
 #define RETOPO_PEN 1
 #define RETOPO_LINE 2
 #define RETOPO_ELLIPSE 4
+
+/* toolsettings->skgen_options */
+#define SKGEN_FILTER_INTERNAL	1
+#define SKGEN_FILTER_EXTERNAL	2
+#define	SKGEN_SYMMETRY			4
+#define	SKGEN_CUT_LENGTH		8
+#define	SKGEN_CUT_ANGLE			16
+#define	SKGEN_CUT_CORRELATION	32
+
+#define	SKGEN_SUB_LENGTH		0
+#define	SKGEN_SUB_ANGLE			1
+#define	SKGEN_SUB_CORRELATION	2
+#define	SKGEN_SUB_TOTAL			3
+
+/* toolsettings->skgen_postpro */
+#define SKGEN_SMOOTH			0
+#define SKGEN_AVERAGE			1
+#define SKGEN_SHARPEN			2
 
 #ifdef __cplusplus
 }
