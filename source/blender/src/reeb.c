@@ -428,7 +428,7 @@ int countConnectedArcs(ReebGraph *rg, ReebNode *node)
 void postprocessGraph(ReebGraph *rg, char mode)
 {
 	ReebArc *arc;
-	float fac1, fac2, fac3;
+	float fac1 = 0, fac2 = 1, fac3 = 0;
 
 	switch(mode)
 	{
@@ -919,6 +919,7 @@ void exportNode(FILE *f, char *text, ReebNode *node)
 
 void exportGraph(ReebGraph *rg, int count)
 {
+#ifdef DEBUG_REEB
 	ReebArc *arc;
 	char filename[128];
 	FILE *f;
@@ -948,6 +949,7 @@ void exportGraph(ReebGraph *rg, int count)
 	}	
 	
 	fclose(f);
+#endif
 }
 
 /***************************************** MAIN ALGORITHM **********************************************/
@@ -1710,7 +1712,7 @@ EditEdge * NextEdgeForVert(EditMesh *em, EditVert *v)
 
 int weightFromDistance(EditMesh *em)
 {
-	EditVert *eve, *current_eve = NULL;
+	EditVert *eve;
 	int totedge = 0;
 	int vCount = 0;
 	
@@ -1726,95 +1728,110 @@ int weightFromDistance(EditMesh *em)
 		return 0;
 	}
 
-	/* Initialize vertice flags and find selected vertex */
-	for(eve = em->verts.first; eve; eve = eve->next)
+	/* Initialize vertice flags and find at least one selected vertex */
+	for(eve = em->verts.first; eve && vCount == 0; eve = eve->next)
 	{
 		eve->f1 = 0;
-		if (current_eve == NULL && eve->f & SELECT)
+		if (eve->f & SELECT)
 		{
-			current_eve = eve;
-			eve->f1 = 1;
 			vCount = 1;
 		}
 	}
-
-	if (current_eve != NULL)
+	
+	if (vCount == 0)
 	{
-		EditEdge *eed = NULL;
-		EditEdge *select_eed = NULL;
-		EditEdge **edges = NULL;
-		float	 currentWeight = 0;
-		int 	 eIndex = 0;
-		
-		edges = MEM_callocN(totedge * sizeof(EditEdge*), "Edges");
-		
-		/* Calculate edge weight and initialize edge flags */
-		for(eed= em->edges.first; eed; eed= eed->next)
+		return 0; /* no selected vert, failure */
+	}
+	else
+	{
+		EditVert *eve, *current_eve = NULL;
+		/* Apply dijkstra spf for each selected vert */
+		for(eve = em->verts.first; eve; eve = eve->next)
 		{
-			eed->tmp.fp = VecLenf(eed->v1->co, eed->v2->co);
-			eed->f1 = 0;
-		}
-		
-		do {
-			int i;
-			
-			current_eve->f1 = 1; /* mark vertex as selected */
-			
-			/* Add all new edges connected to current_eve to the list */
-			NextEdgeForVert(NULL, NULL); // Reset next edge
-			for(eed = NextEdgeForVert(em, current_eve); eed; eed = NextEdgeForVert(em, current_eve))
-			{ 
-				if (eed->f1 == 0)
-				{
-					edges[eIndex] = eed;
-					eed->f1 = 1;
-					eIndex++;
-				}
-			}
-			
-			/* Find next shortest edge */
-			select_eed = NULL;
-			for(i = 0; i < eIndex; i++)
+			if (eve->f & SELECT)
 			{
-				eed = edges[i];
+				current_eve = eve;
+				eve->f1 = 1;
 				
-				if (eed->f1 != 2 && (eed->v1->f1 == 0 || eed->v2->f1 == 0)) /* eed is not selected yet and leads to a new node */
 				{
-					float newWeight = 0;
-					if (eed->v1->f1 == 1)
+					EditEdge *eed = NULL;
+					EditEdge *select_eed = NULL;
+					EditEdge **edges = NULL;
+					float	 currentWeight = 0;
+					int 	 eIndex = 0;
+					
+					edges = MEM_callocN(totedge * sizeof(EditEdge*), "Edges");
+					
+					/* Calculate edge weight and initialize edge flags */
+					for(eed= em->edges.first; eed; eed= eed->next)
 					{
-						newWeight = eed->v1->tmp.fp + eed->tmp.fp;
-					}
-					else
-					{
-						newWeight = eed->v2->tmp.fp + eed->tmp.fp;
+						eed->tmp.fp = VecLenf(eed->v1->co, eed->v2->co);
+						eed->f1 = 0;
 					}
 					
-					if (select_eed == NULL || newWeight < currentWeight) /* no selected edge or current smaller than selected */
-					{
-						currentWeight = newWeight;
-						select_eed = eed;
-					}
+					do {
+						int i;
+						
+						current_eve->f1 = 1; /* mark vertex as selected */
+						
+						/* Add all new edges connected to current_eve to the list */
+						NextEdgeForVert(NULL, NULL); // Reset next edge
+						for(eed = NextEdgeForVert(em, current_eve); eed; eed = NextEdgeForVert(em, current_eve))
+						{ 
+							if (eed->f1 == 0)
+							{
+								edges[eIndex] = eed;
+								eed->f1 = 1;
+								eIndex++;
+							}
+						}
+						
+						/* Find next shortest edge */
+						select_eed = NULL;
+						for(i = 0; i < eIndex; i++)
+						{
+							eed = edges[i];
+							
+							if (eed->f1 != 2 && (eed->v1->f1 == 0 || eed->v2->f1 == 0)) /* eed is not selected yet and leads to a new node */
+							{
+								float newWeight = 0;
+								if (eed->v1->f1 == 1)
+								{
+									newWeight = eed->v1->tmp.fp + eed->tmp.fp;
+								}
+								else
+								{
+									newWeight = eed->v2->tmp.fp + eed->tmp.fp;
+								}
+								
+								if (select_eed == NULL || newWeight < currentWeight) /* no selected edge or current smaller than selected */
+								{
+									currentWeight = newWeight;
+									select_eed = eed;
+								}
+							}
+						}
+						
+						if (select_eed != NULL)
+						{
+							select_eed->f1 = 2;
+							
+							if (select_eed->v1->f1 == 0) /* v1 is the new vertex */
+							{
+								current_eve = select_eed->v1;
+							}
+							else /* otherwise, it's v2 */
+							{
+								current_eve = select_eed->v2;
+							}				
+							current_eve->tmp.fp = currentWeight;
+						}
+					} while (select_eed != NULL);
+					
+					MEM_freeN(edges);
 				}
 			}
-			
-			if (select_eed != NULL)
-			{
-				select_eed->f1 = 2;
-				
-				if (select_eed->v1->f1 == 0) /* v1 is the new vertex */
-				{
-					current_eve = select_eed->v1;
-				}
-				else /* otherwise, it's v2 */
-				{
-					current_eve = select_eed->v2;
-				}				
-				current_eve->tmp.fp = currentWeight;
-			}
-		} while (select_eed != NULL);
-		
-		MEM_freeN(edges);
+		}
 	}
 
 	return 1;

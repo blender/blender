@@ -3398,7 +3398,7 @@ void reestablishAxialSymmetry(ReebNode *node, int depth, float axis[3])
 {
 	ReebArc *arc1 = NULL;
 	ReebArc *arc2 = NULL;
-	ReebNode *node1, *node2;
+	ReebNode *node1 = NULL, *node2 = NULL;
 	float limit = G.scene->toolsettings->skgen_symmetry_limit;
 	float nor[3], vec[3], p[3];
 	int i;
@@ -3422,6 +3422,12 @@ void reestablishAxialSymmetry(ReebNode *node, int depth, float axis[3])
 				break; /* Can stop now, the two arcs have been found */
 			}
 		}
+	}
+	
+	/* shouldn't happen, but just to be sure */
+	if (node1 == NULL || node2 == NULL)
+	{
+		return;
 	}
 	
 	VecSubf(p, node1->p, node->p);
@@ -4023,8 +4029,6 @@ void generateSkeletonFromReebGraph(ReebGraph *rg)
 	arcBoneMap = BLI_ghash_new(BLI_ghashutil_ptrhash, BLI_ghashutil_ptrcmp);
 	
 	markdownSymmetry(rg);
-
-	exportGraph(rg, -1);
 	
 	for (arc = rg->arcs.first; arc; arc = arc->next) 
 	{
@@ -4178,14 +4182,19 @@ void generateSkeleton(void)
 
 	setcursor_space(SPACE_VIEW3D, CURSOR_WAIT);
 
-	weightFromDistance(em);
+	if (weightFromDistance(em) == 0)
+	{
+		error("No selected vertex\n");
+		return;
+	}
+	
 	weightToHarmonic(em);
 		
 	renormalizeWeight(em, 1.0f);
 
-#ifdef DEBUG_REEB
+//#ifdef DEBUG_REEB
 	weightToVCol(em);
-#endif
+//#endif
 	
 	rg = generateReebGraph(em, G.scene->toolsettings->skgen_resolution);
 
@@ -4238,8 +4247,6 @@ void generateSkeleton(void)
 	
 	sortArcs(rg);
 	
-//	exportGraph(rg, -1);
-
 	generateSkeletonFromReebGraph(rg);
 
 	freeGraph(rg);

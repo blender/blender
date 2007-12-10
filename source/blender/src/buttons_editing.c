@@ -4449,7 +4449,7 @@ static void editing_panel_mesh_skgen(Object *ob, Mesh *me)
 	int i;
 
 	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_skgen", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Skeleton Generation", "Editing", 960, 0, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Skeleton Generator", "Editing", 960, 0, 318, 204)==0) return;
 	
 	uiDefBut(block, BUT, B_GEN_SKELETON, "Generate Skeleton",			1025,170,250,19, 0, 0, 0, 0, 0, "Generate Skeleton from Mesh");
 
@@ -5606,6 +5606,7 @@ void editing_panels()
 		if(G.obedit) {
 			editing_panel_mesh_tools(ob, ob->data);
 			editing_panel_mesh_tools1(ob, ob->data);
+			uiNewPanelTabbed("Mesh Tools 1", "Editing");
 			editing_panel_mesh_skgen(ob, ob->data);
 			editing_panel_mesh_uvautocalculation();
 			if (EM_texFaceCheck())
