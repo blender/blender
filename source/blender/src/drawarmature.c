@@ -1944,7 +1944,6 @@ static void ghost_poses_tag_unselected(Object *ob, short unset)
 	bArmature *arm= ob->data;
 	bPose *pose= ob->pose;
 	bPoseChannel *pchan;
-	Bone *bone;
 	
 	/* don't do anything if no hiding any bones */
 	if ((arm->flag & ARM_GHOST_ONLYSEL)==0)

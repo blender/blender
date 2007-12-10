@@ -136,7 +136,7 @@ bActionChannel *get_hilighted_action_channel (bAction *action)
 		return NULL;
 
 	for (achan= action->chanbase.first; achan; achan= achan->next) {
-		if(VISIBLE_ACHAN(achan)) {
+		if (VISIBLE_ACHAN(achan)) {
 			if (SEL_ACHAN(achan) && (achan->flag & ACHAN_HILIGHTED))
 				return achan;
 		}
@@ -2129,7 +2129,7 @@ void column_select_action_keys(int mode)
 	actdata_filter(&act_data, filter, data, datatype);
 	
 	for (ale= act_data.first; ale; ale= ale->next) {
-		for(ce= elems.first; ce; ce= ce->next) {
+		for (ce= elems.first; ce; ce= ce->next) {
 			for (icu= ale->key_data; icu; icu= icu->next) {
 				BezTriple *bezt;
 				int verts = 0;
@@ -2691,7 +2691,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case HOMEKEY:
 			do_action_buttons(B_ACTHOME);	// header
 			break;
-
+		
 		case AKEY:
 			if (mval[0]<NAMEWIDTH) {
 				deselect_action_channels (1);
@@ -2717,7 +2717,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 			}
 			break;
-
+		
 		case BKEY:
 			if (G.qual & LR_CTRLKEY) {
 				borderselect_markers();
@@ -2727,14 +2727,14 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					borderselect_action();
 			}
 			break;
-
+		
 		case CKEY:
 			/* scroll the window so the current
 			 * frame is in the center.
 			 */
 			center_currframe();
 			break;
-
+		
 		case DKEY:
 			if (mval[0]>ACTWIDTH) {
 				if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY))
@@ -2927,18 +2927,18 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		 * based on user preference USER_LMOUSESELECT
 		 */
 		case LEFTMOUSE:
-			if(view2dmove(LEFTMOUSE)) // only checks for sliders
+			if (view2dmove(LEFTMOUSE)) /* only checks for sliders */
 				break;
 			else if ((G.v2d->mask.xmin==0) || (mval[0]>ACTWIDTH)) {
+				/* moving time-marker / current frame */
 				do {
 					getmouseco_areawin(mval);
-					
 					areamouseco_to_ipoco(G.v2d, mval, &dx, &dy);
 					
 					cfra= (int)dx;
-					if(cfra< 1) cfra= 1;
+					if (cfra < 1) cfra= 1;
 					
-					if( cfra!=CFRA ) {
+					if (cfra != CFRA) {
 						CFRA= cfra;
 						update_for_newframe();
 						force_draw_all(0);					
