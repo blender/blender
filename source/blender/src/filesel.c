@@ -34,6 +34,12 @@
 #include <string.h>
 #include <math.h>
 
+#include <sys/stat.h>
+#include <sys/types.h>
+#include "MEM_guardedalloc.h"
+
+#include "BMF_Api.h"
+
 #ifdef WIN32
 #include <io.h>
 #include <direct.h>
@@ -42,12 +48,6 @@
 #include <unistd.h>
 #include <sys/times.h>
 #endif   
-
-#include <sys/stat.h>
-#include <sys/types.h>
-#include "MEM_guardedalloc.h"
-
-#include "BMF_Api.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"

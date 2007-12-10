@@ -55,7 +55,9 @@ extern "C" {
 #endif
 
 #ifdef WIN32
-    #define isnan(n) _isnan(n)
+	#ifndef FREE_WINDOWS
+		#define isnan(n) _isnan(n)
+	#endif
 #endif
 
 #define MAT4_UNITY {{ 1.0, 0.0, 0.0, 0.0},\
