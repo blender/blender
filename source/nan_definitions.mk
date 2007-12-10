@@ -543,7 +543,7 @@ endif
     ifeq ($FREE_WINDOWS), true)
        export NAN_GETTEXT_LIB ?= $(NAN_GETTEXT)/lib/freegettext.a $(NAN_GETTEXT)/lib/freeiconv.a
     else
-       export NAN_GETTEXT_LIB ?= $(NAN_GETTEXT)/lib/gnu_gettext.lib $(NAN_GETTEXT)/lib/iconv.lib
+       export NAN_GETTEXT_LIB ?= $(NAN_GETTEXT)/lib/gnu_gettext.lib $(NAN_ICONV)/lib/iconv.lib
     endif
 
     # Uncomment the following line to use Mozilla inplace of netscape
