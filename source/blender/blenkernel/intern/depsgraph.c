@@ -2189,7 +2189,11 @@ void DAG_pose_sort(Object *ob)
 							node2 = dag_get_node(dag, target);
 							dag_add_relation(dag, node2, node, 0);
 							dag_add_parent_relation(dag, node2, node, 0);
-							cti= NULL;	/* trick to get next loop skipped */
+
+							/* uncommented this line, results in dependencies
+							 * not being added properly for this constraint,
+							 * what is the purpose of this? - brecht */
+							/*cti= NULL;*/	/* trick to get next loop skipped */
 						}
 					}
 				}
