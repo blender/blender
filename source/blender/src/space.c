@@ -3514,6 +3514,11 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 				0, 0, 0, 0, 0, "");
 		}
 		
+		uiDefButBitI(block, TOG, USER_SHOW_FPS, B_DRAWINFO, "Display FPS in View",
+			(xpos+edgsp+(3*mpref)+(4*midsp)),y2,mpref,buth,
+			&(U.uiflag), 0, 0, 0, 0,
+			"Display the number of frames per secons being drawn");
+		
 		/* illegal combo... */
 		if (U.flag & USER_LMOUSESELECT) 
 			U.flag &= ~USER_TWOBUTTONMOUSE;

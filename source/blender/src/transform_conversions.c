@@ -1199,7 +1199,7 @@ static void createTransCurveVerts(TransInfo *t)
 			for(a= nu->pntsu*nu->pntsv, bp= nu->bp; a>0; a--, bp++) {
 				if(bp->hide==0) {
 					if(propmode) count++;
-					if(bp->f1 & 1) countsel++;
+					if(bp->f1 & SELECT) countsel++;
 				}
 			}
 		}
@@ -1314,11 +1314,11 @@ static void createTransCurveVerts(TransInfo *t)
 			head = tail = td;
 			for(a= nu->pntsu*nu->pntsv, bp= nu->bp; a>0; a--, bp++) {
 				if(bp->hide==0) {
-					if(propmode || (bp->f1 & 1)) {
+					if(propmode || (bp->f1 & SELECT)) {
 						VECCOPY(td->iloc, bp->vec);
 						td->loc= bp->vec;
 						VECCOPY(td->center, td->loc);
-						if(bp->f1 & 1) td->flag= TD_SELECTED;
+						if(bp->f1 & SELECT) td->flag= TD_SELECTED;
 						else td->flag= 0;
 						td->ext = NULL;
 						td->tdi = NULL;
@@ -1365,7 +1365,7 @@ static void createTransLatticeVerts(TransInfo *t)
 	a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
 	while(a--) {
 		if(bp->hide==0) {
-			if(bp->f1 & 1) countsel++;
+			if(bp->f1 & SELECT) countsel++;
 			if(propmode) count++;
 		}
 		bp++;
@@ -1385,12 +1385,12 @@ static void createTransLatticeVerts(TransInfo *t)
 	bp= editLatt->def;
 	a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
 	while(a--) {
-		if(propmode || (bp->f1 & 1)) {
+		if(propmode || (bp->f1 & SELECT)) {
 			if(bp->hide==0) {
 				VECCOPY(td->iloc, bp->vec);
 				td->loc= bp->vec;
 				VECCOPY(td->center, td->loc);
-				if(bp->f1 & 1) td->flag= TD_SELECTED;
+				if(bp->f1 & SELECT) td->flag= TD_SELECTED;
 				else td->flag= 0;
 				Mat3CpyMat3(td->smtx, smtx);
 				Mat3CpyMat3(td->mtx, mtx);

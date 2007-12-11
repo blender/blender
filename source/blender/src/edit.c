@@ -728,7 +728,7 @@ void countall()
 					a= nu->pntsu*nu->pntsv;
 					while(a--) {
 						G.totvert++;
-						if(bp->f1 & 1) G.totvertsel++;
+						if(bp->f1 & SELECT) G.totvertsel++;
 						bp++;
 					}
 				}
@@ -752,7 +752,7 @@ void countall()
 			a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
 			while(a--) {
 				G.totvert++;
-				if(bp->f1 & 1) G.totvertsel++;
+				if(bp->f1 & SELECT) G.totvertsel++;
 				bp++;
 			}
 		}
@@ -1109,12 +1109,12 @@ static void make_trans_verts(float *min, float *max, int mode)
 				bp= nu->bp;
 				while(a--) {
 					if(bp->hide==0) {
-						if((mode & 1) || (bp->f1 & 1)) {
+						if((mode & 1) || (bp->f1 & SELECT)) {
 							VECCOPY(tv->oldloc, bp->vec);
 							tv->loc= bp->vec;
 							tv->val= &(bp->alfa);
 							tv->oldval= bp->alfa;
-							tv->flag= bp->f1 & 1;
+							tv->flag= bp->f1 & SELECT;
 							tv++;
 							tottrans++;
 						}
@@ -1147,11 +1147,11 @@ static void make_trans_verts(float *min, float *max, int mode)
 		a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
 		
 		while(a--) {
-			if((mode & 1) || (bp->f1 & 1)) {
+			if((mode & 1) || (bp->f1 & SELECT)) {
 				if(bp->hide==0) {
 					VECCOPY(tv->oldloc, bp->vec);
 					tv->loc= bp->vec;
-					tv->flag= bp->f1 & 1;
+					tv->flag= bp->f1 & SELECT;
 					tv++;
 					tottrans++;
 				}

@@ -340,7 +340,7 @@ int calc_manipulator_stats(ScrArea *sa)
 					bp= nu->bp;
 					a= nu->pntsu*nu->pntsv;
 					while(a--) {
-						if(bp->f1 & 1) {
+						if(bp->f1 & SELECT) {
 							calc_tw_center(bp->vec);
 							totsel++;
 						}
@@ -388,7 +388,7 @@ int calc_manipulator_stats(ScrArea *sa)
 			
 			a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
 			while(a--) {
-				if(bp->f1 & 1) {
+				if(bp->f1 & SELECT) {
 					calc_tw_center(bp->vec);
 					totsel++;
 				}

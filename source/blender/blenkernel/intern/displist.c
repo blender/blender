@@ -152,12 +152,9 @@ DispList *find_displist(ListBase *lb, int type)
 int displist_has_faces(ListBase *lb)
 {
 	DispList *dl;
-	
-	dl= lb->first;
-	while(dl) {
+	for(dl= lb->first; dl; dl= dl->next) {
 		if ELEM3(dl->type, DL_INDEX3, DL_INDEX4, DL_SURF)
 			return 1;
-		dl= dl->next;
 	}
 	return 0;
 }

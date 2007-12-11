@@ -1660,7 +1660,7 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 				bp= nu->bp;
 				a= nu->pntsu*nu->pntsv;
 				while(a--) {
-					if(bp->f1 & 1) {
+					if(bp->f1 & SELECT) {
 						VecAddf(median, median, bp->vec);
 						median[3]+= bp->vec[3];
 						totw++;
@@ -1832,7 +1832,7 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 					bp= nu->bp;
 					a= nu->pntsu*nu->pntsv;
 					while(a--) {
-						if(bp->f1 & 1) {
+						if(bp->f1 & SELECT) {
 							VecAddf(bp->vec, bp->vec, median);
 							bp->vec[3]+= median[3];
 							bp->weight+= median[4];
@@ -2805,6 +2805,8 @@ static void draw_sculpt_depths(View3D *v3d)
 	}
 }
 
+static void draw_viewport_fps(ScrArea *sa);
+
 void drawview3dspace(ScrArea *sa, void *spacedata)
 {
 	View3D *v3d= spacedata;
@@ -3082,8 +3084,12 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		draw_view_axis();
 	else	
 		draw_view_icon();
-	if(U.uiflag & USER_SHOW_VIEWPORTNAME)
+	
+	if(U.uiflag & USER_SHOW_FPS && G.f & G_PLAYANIM) {
+		draw_viewport_fps(sa);
+	} else if(U.uiflag & USER_SHOW_VIEWPORTNAME) {
 		draw_viewport_name(sa);
+	}
 
 	ob= OBACT;
 	if(ob && (U.uiflag & USER_DRAWVIEWINFO)) 
@@ -3256,6 +3262,10 @@ static ScrArea *oldsa;
 static double swaptime;
 static int curmode;
 
+/* used for fps display */
+static double redrawtime;
+static double lredrawtime;
+
 int update_time(void)
 {
 	static double ltime;
@@ -3272,6 +3282,29 @@ int update_time(void)
 	tottime += (time - ltime);
 	ltime = time;
 	return (tottime < 0.0);
+}
+
+static void draw_viewport_fps(ScrArea *sa)
+{
+	char printable[16];
+	printable[0] = '\0';
+	float fps;
+	if (lredrawtime == redrawtime)
+		return;
+	
+	fps = (float)(1.0/(lredrawtime-redrawtime));
+	
+	/* is this more then half a frame behind? */
+	if (fps+0.5 < FPS) {
+		BIF_ThemeColor(TH_REDALERT);
+		sprintf(printable, "fps: %.2f", (float)fps);
+	} else {
+		BIF_ThemeColor(TH_TEXT_HI);
+		sprintf(printable, "fps: %i", (int)(fps+0.5));
+	}
+	
+	glRasterPos2i(10,  sa->winy-20);
+	BMF_DrawString(G.fonts, printable);
 }
 
 static void inner_play_prefetch_frame(int mode, int cfra)
@@ -3388,6 +3421,9 @@ void inner_play_anim_loop(int init, int mode)
 		curmode= mode;
 		last_cfra = -1;
 		cached = cached_dynamics(PSFRA,PEFRA);
+		
+		redrawtime = 1.0/FPS;
+		lredrawtime = 0.0;
 		return;
 	}
 
@@ -3523,7 +3559,10 @@ int play_anim(int mode)
 	screen_swapbuffers();
 	
 	while(TRUE) {
-
+		
+		if  (U.uiflag & USER_SHOW_FPS)
+			lredrawtime = PIL_check_seconds_timer();
+		
 		while(qtest()) {
 			
 			/* we test events first because of MKEY event */
@@ -3549,8 +3588,13 @@ int play_anim(int mode)
 		if(ELEM3(event, ESCKEY, SPACEKEY, RIGHTMOUSE)) break;
 		
 		inner_play_anim_loop(0, 0);
+		 
+		
 		screen_swapbuffers();
-				
+		
+		if (U.uiflag & USER_SHOW_FPS)
+			redrawtime = lredrawtime;
+		
 		if((mode & 2) && CFRA==PEFRA) break; /* no replay */	
 	}
 

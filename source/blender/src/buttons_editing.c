@@ -539,8 +539,8 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 							bp= nu->bp;
 							while(a--) {
 								if(bp->hide==0) {
-									if(event==B_MATSEL) bp->f1 |= 1;
-									else bp->f1 &= ~1;
+									if(event==B_MATSEL) bp->f1 |= SELECT;
+									else bp->f1 &= ~SELECT;
 								}
 								bp++;
 							}

@@ -533,7 +533,7 @@ static void do_lasso_select_curve__doSelect(void *userData, Nurb *nu, BPoint *bp
 
 	if (lasso_inside(data->mcords, data->moves, x, y)) {
 		if (bp) {
-			bp->f1 = data->select?(bp->f1|1):(bp->f1&~1);
+			bp->f1 = data->select?(bp->f1|SELECT):(bp->f1&~SELECT);
 		} else {
 			if (G.f & G_HIDDENHANDLES) {
 				/* can only be beztindex==0 here since handles are hidden */
@@ -566,7 +566,7 @@ static void do_lasso_select_lattice__doSelect(void *userData, BPoint *bp, int x,
 	struct { short (*mcords)[2]; short moves; short select; } *data = userData;
 
 	if (lasso_inside(data->mcords, data->moves, x, y)) {
-		bp->f1 = data->select?(bp->f1|1):(bp->f1&~1);
+		bp->f1 = data->select?(bp->f1|SELECT):(bp->f1&~SELECT);
 	}
 }
 static void do_lasso_select_lattice(short mcords[][2], short moves, short select)
@@ -1599,7 +1599,7 @@ static void do_nurbs_box_select__doSelect(void *userData, Nurb *nu, BPoint *bp, 
 
 	if (BLI_in_rcti(data->rect, x, y)) {
 		if (bp) {
-			bp->f1 = data->select?(bp->f1|1):(bp->f1&~1);
+			bp->f1 = data->select?(bp->f1|SELECT):(bp->f1&~SELECT);
 		} else {
 			if (G.f & G_HIDDENHANDLES) {
 				/* can only be beztindex==0 here since handles are hidden */
@@ -1631,7 +1631,7 @@ static void do_lattice_box_select__doSelect(void *userData, BPoint *bp, int x, i
 	struct { rcti *rect; int select; } *data = userData;
 
 	if (BLI_in_rcti(data->rect, x, y)) {
-		bp->f1 = data->select?(bp->f1|1):(bp->f1&~1);
+		bp->f1 = data->select?(bp->f1|SELECT):(bp->f1&~SELECT);
 	}
 }
 static void do_lattice_box_select(rcti *rect, int select)
@@ -2083,7 +2083,7 @@ static void latticecurve_selectionCB__doSelect(void *userData, BPoint *bp, int x
 	float r = sqrt(mx*mx + my*my);
 
 	if (r<=data->radius) {
-		bp->f1 = data->select?(bp->f1|1):(bp->f1&~1);
+		bp->f1 = data->select?(bp->f1|SELECT):(bp->f1&~SELECT);
 	}
 }
 static void lattice_selectionCB(int selecting, Object *editobj, short *mval, float rad)

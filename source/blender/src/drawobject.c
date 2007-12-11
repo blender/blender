@@ -1132,7 +1132,7 @@ static void lattice_draw_verts(Lattice *lt, DispList *dl, short sel)
 				int uxt = (u==0 || u==lt->pntsu-1);
 				if(!(lt->flag & LT_OUTSIDE) || uxt || vxt || wxt) {
 					if(bp->hide==0) {
-						if((bp->f1 & 1)==sel) {
+						if((bp->f1 & SELECT)==sel) {
 							bglVertex3fv(dl?co:bp->vec);
 						}
 					}
@@ -3799,7 +3799,7 @@ static void tekenvertsN(Nurb *nu, short sel)
 		a= nu->pntsu*nu->pntsv;
 		while(a--) {
 			if(bp->hide==0) {
-				if((bp->f1 & 1)==sel) bglVertex3fv(bp->vec);
+				if((bp->f1 & SELECT)==sel) bglVertex3fv(bp->vec);
 			}
 			bp++;
 		}
@@ -3842,7 +3842,7 @@ static void draw_editnurb(Object *ob, Nurb *nurb, int sel)
 					for(a=nu->pntsu-1; a>0; a--, bp++) {
 						if(bp->hide==0 && bp1->hide==0) {
 							if(sel) {
-								if( (bp->f1 & 1) && ( bp1->f1 & 1) ) {
+								if( (bp->f1 & SELECT) && ( bp1->f1 & SELECT ) ) {
 									cpack(nurbcol[5]);
 		
 									glBegin(GL_LINE_STRIP);
@@ -3852,7 +3852,7 @@ static void draw_editnurb(Object *ob, Nurb *nurb, int sel)
 								}
 							}
 							else {
-								if( (bp->f1 & 1) && ( bp1->f1 & 1) );
+								if( (bp->f1 & SELECT) && ( bp1->f1 & SELECT) );
 								else {
 									cpack(nurbcol[1]);
 		
@@ -3875,7 +3875,7 @@ static void draw_editnurb(Object *ob, Nurb *nurb, int sel)
 						for(a=nu->pntsv-1; a>0; a--, bp+=ofs) {
 							if(bp->hide==0 && bp1->hide==0) {
 								if(sel) {
-									if( (bp->f1 & 1) && ( bp1->f1 & 1) ) {
+									if( (bp->f1 & SELECT) && ( bp1->f1 & SELECT) ) {
 										cpack(nurbcol[7]);
 			
 										glBegin(GL_LINE_STRIP);
@@ -3885,7 +3885,7 @@ static void draw_editnurb(Object *ob, Nurb *nurb, int sel)
 									}
 								}
 								else {
-									if( (bp->f1 & 1) && ( bp1->f1 & 1) );
+									if( (bp->f1 & SELECT) && ( bp1->f1 & SELECT) );
 									else {
 										cpack(nurbcol[3]);
 			
@@ -3939,8 +3939,9 @@ static void drawnurb(Base *base, Nurb *nurb, int dt)
 	
 	if(G.vd->zbuf) glEnable(GL_DEPTH_TEST);
 
-	/* direction vectors for 3d curve paths */
-	if(cu->flag & CU_3D) {
+	/*	direction vectors for 3d curve paths
+		when at its lowest, dont render normals */
+	if(cu->flag & CU_3D && G.scene->editbutsize > 0.0015) {
 		BIF_ThemeColor(TH_WIRE);
 		for (bl=cu->bev.first,nu=nurb; nu && bl; bl=bl->next,nu=nu->next) {
 			BevPoint *bevp= (BevPoint *)(bl+1);		

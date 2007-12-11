@@ -227,6 +227,7 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_CUSTOM_RANGE		(1 << 17)
 #define USER_ADD_EDITMODE		(1 << 18)
 #define USER_ADD_VIEWALIGNED	(1 << 19)
+#define USER_ADD_VIEWALIGNED	(1 << 19)
 
 
 /* viewzom */
@@ -257,6 +258,7 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_SHOW_VIEWPORTNAME	(1 << 18)
 #define USER_KEYINSERTNEED		(1 << 19)
 #define USER_ZOOM_TO_MOUSEPOS	(1 << 20)
+#define USER_SHOW_FPS	(1 << 21)
 
 /* transopts */
 
