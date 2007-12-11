@@ -3286,9 +3286,10 @@ int update_time(void)
 
 static void draw_viewport_fps(ScrArea *sa)
 {
+	float fps;
 	char printable[16];
 	printable[0] = '\0';
-	float fps;
+
 	if (lredrawtime == redrawtime)
 		return;
 	
