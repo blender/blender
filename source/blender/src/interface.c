@@ -1304,7 +1304,7 @@ static int ui_do_but_MENU(uiBut *but)
 	for(bt= block->buttons.first; bt; bt= bt->next) bt->win= block->win;
 	bwin_getsinglematrix(block->win, block->winmat);
 
-	event= uiDoBlocks(&listb, 0);
+	event= uiDoBlocks(&listb, 0, 1);
 	
 	menudata_free(md);
 	
@@ -2351,7 +2351,7 @@ static int ui_do_but_ICONROW(uiBut *but)
 	   this is needs better implementation */
 	block->win= G.curscreen->mainwin;
 	
-	uiDoBlocks(&listb, 0);
+	uiDoBlocks(&listb, 0, 1);
 
 	but->flag &= ~UI_SELECT;
 	ui_check_but(but);
@@ -2424,7 +2424,7 @@ static int ui_do_but_ICONTEXTROW(uiBut *but)
 
 	uiBoundsBlock(block, 3);
 
-	uiDoBlocks(&listb, 0);
+	uiDoBlocks(&listb, 0, 1);
 	
 	menudata_free(md);
 
@@ -3302,7 +3302,7 @@ static int ui_do_but_COL(uiBut *but)
 	for(bt= block->buttons.first; bt; bt= bt->next) bt->win= block->win;
 	bwin_getsinglematrix(block->win, block->winmat);
 
-	event= uiDoBlocks(&listb, 0);
+	event= uiDoBlocks(&listb, 0, 1);
 	
 	if(but->pointype==CHA) ui_set_but_vectorf(but, colstore);
 	
@@ -4306,7 +4306,7 @@ int uiIsMenu(int *x, int *y, int *sizex, int *sizey)
  * UI_CONT		don't pass event to other ui's
  * UI_RETURN	something happened, return, swallow event
  */
-static int ui_do_block(uiBlock *block, uiEvent *uevent)
+static int ui_do_block(uiBlock *block, uiEvent *uevent, int movemouse_quit)
 {
 	uiBut *but, *bt;
 	int butevent, event, retval=UI_NOTHING, count, act=0;
@@ -4793,7 +4793,7 @@ static int ui_do_block(uiBlock *block, uiEvent *uevent)
 		if((uevent->event==RETKEY || uevent->event==PADENTER) && uevent->val==1) return UI_RETURN_OK;
 		
 		/* check outside */
-		if(inside==0) {
+		if(inside==0 && movemouse_quit) {
 			uiBlock *tblock= NULL;
 			
 			/* check for all parent rects, enables arrowkeys to be used */
@@ -4935,7 +4935,7 @@ static void ui_do_but_tip(uiBut *buttip)
 }
 
 /* returns UI_NOTHING, if nothing happened */
-int uiDoBlocks(ListBase *lb, int event)
+int uiDoBlocks(ListBase *lb, int event, int movemouse_quit)
 {
 	/* return when:  firstblock != BLOCK_LOOP
 	 * 
@@ -4990,7 +4990,7 @@ int uiDoBlocks(ListBase *lb, int event)
 			}
 			
 			block->in_use= 1; // bit awkward, but now we can detect if frontbuf flush should be set
-			retval |= ui_do_block(block, &uevent); /* we 'or' because 2nd loop can return to here, and we we want 'out' to return */
+			retval |= ui_do_block(block, &uevent, movemouse_quit); /* we 'or' because 2nd loop can return to here, and we we want 'out' to return */
 			block->in_use= 0;
 			if(retval & UI_EXIT_LOOP) break;
 			
@@ -5034,7 +5034,7 @@ int uiDoBlocks(ListBase *lb, int event)
 
 			if(uevent.event) {
 				block->in_use= 1; // bit awkward, but now we can detect if frontbuf flush should be set
-				retval= ui_do_block(block, &uevent);
+				retval= ui_do_block(block, &uevent, movemouse_quit);
 				block->in_use= 0;
 			
 				if(block->needflush) { // flush (old menu) now, maybe new menu was opened
@@ -6530,7 +6530,7 @@ short pupmenu(char *instr)
 	
 	uiBoundsBlock(block, 1);
 
-	event= uiDoBlocks(&listb, 0);
+	event= uiDoBlocks(&listb, 0, 1);
 
 	/* calculate last selected */
 	if(event & UI_RETURN_OK) {
@@ -6688,7 +6688,7 @@ short pupmenu_col(char *instr, int maxrow)
 	
 	uiBoundsBlock(block, 1);
 
-	event= uiDoBlocks(&listb, 0);
+	event= uiDoBlocks(&listb, 0, 1);
 	
 	menudata_free(md);
 	

@@ -1173,7 +1173,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	
 	if(val) {
 
-		if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
+		if( uiDoBlocks(&curarea->uiblocks, event, 1)!=UI_NOTHING ) event= 0;
 		
 		if(event==UI_BUT_EVENT) do_butspace(val); /* temporal, view3d deserves own queue? */
 		
@@ -2761,7 +2761,7 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	if(sa->win==0) return;
 
 	if(val) {
-		if( uiDoBlocks(&sa->uiblocks, event)!=UI_NOTHING ) event= 0;
+		if( uiDoBlocks(&sa->uiblocks, event, 1)!=UI_NOTHING ) event= 0;
 
 		/* swap mouse buttons based on user preference */
 		if (U.flag & USER_LMOUSESELECT) {
@@ -4136,7 +4136,7 @@ static void winqreadinfospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	short val= evt->val;
 	
 	if(val) {
-		if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
+		if( uiDoBlocks(&curarea->uiblocks, event, 1)!=UI_NOTHING ) event= 0;
 
 		switch(event) {
 		case UI_BUT_EVENT:
@@ -4255,7 +4255,7 @@ static void winqreadbutspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 	if(val) {
 		
-		if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
+		if( uiDoBlocks(&curarea->uiblocks, event, 1)!=UI_NOTHING ) event= 0;
 
 		switch(event) {
 		case UI_BUT_EVENT:
@@ -4510,7 +4510,7 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	if(curarea->win==0) return;
 
 	if(val) {
-		if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
+		if( uiDoBlocks(&curarea->uiblocks, event, 1)!=UI_NOTHING ) event= 0;
 		
 		/* swap mouse buttons based on user preference */
 		if (U.flag & USER_LMOUSESELECT) {
@@ -4969,7 +4969,7 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	
 	if(val==0) return;
 
-	if(uiDoBlocks(&sa->uiblocks, event)!=UI_NOTHING ) event= 0;
+	if(uiDoBlocks(&sa->uiblocks, event, 1)!=UI_NOTHING ) event= 0;
 	
 	if (U.flag & USER_LMOUSESELECT) {
 		if (event == LEFTMOUSE) {
@@ -5354,7 +5354,7 @@ static void winqreadoopsspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 	if(val==0) return;
 
-	if( uiDoBlocks(&sa->uiblocks, event)!=UI_NOTHING ) event= 0;
+	if( uiDoBlocks(&sa->uiblocks, event, 1)!=UI_NOTHING ) event= 0;
 
 	if (U.flag & USER_NONUMPAD) {
 		event= convert_for_nonumpad(event);

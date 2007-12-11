@@ -2807,6 +2807,7 @@ static void draw_sculpt_depths(View3D *v3d)
 
 static void draw_viewport_fps(ScrArea *sa);
 
+
 void drawview3dspace(ScrArea *sa, void *spacedata)
 {
 	View3D *v3d= spacedata;
@@ -3288,11 +3289,12 @@ static void draw_viewport_fps(ScrArea *sa)
 {
 	float fps;
 	char printable[16];
-	printable[0] = '\0';
 
+	
 	if (lredrawtime == redrawtime)
 		return;
 	
+	printable[0] = '\0';
 	fps = (float)(1.0/(lredrawtime-redrawtime));
 	
 	/* is this more then half a frame behind? */

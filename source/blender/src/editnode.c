@@ -2073,7 +2073,7 @@ static int node_uiDoBlocks(ScrArea *sa, short event)
 				((struct Link *)block)->next= NULL;
 				
 				lb->first= lb->last= block;
-				retval= uiDoBlocks(lb, event);
+				retval= uiDoBlocks(lb, event, 1);
 				
 				((struct Link *)block)->prev= prev;
 				((struct Link *)block)->next= next;

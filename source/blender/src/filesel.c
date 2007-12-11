@@ -1812,7 +1812,7 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	if(val) {
 
 		if( event!=RETKEY && event!=PADENTER)
-			if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
+			if( uiDoBlocks(&curarea->uiblocks, event, 1)!=UI_NOTHING ) event= 0;
 
 		switch(event) {
 		

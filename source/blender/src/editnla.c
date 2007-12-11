@@ -1717,7 +1717,7 @@ void winqreadnlaspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	if (!snla) return;
 	
 	if(val) {
-		if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
+		if( uiDoBlocks(&curarea->uiblocks, event, 1)!=UI_NOTHING ) event= 0;
 		
 		/* swap mouse buttons based on user preference */
 		if (U.flag & USER_LMOUSESELECT) {
