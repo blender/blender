@@ -6839,7 +6839,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		for(part=main->particle.first; part; part=part->id.next)
 			if(part->ren_child_nbr==0)
 				part->ren_child_nbr= part->child_nbr;
-		if (main->versionfile < 245 || main->subversionfile < 11)
+		if (main->versionfile < 245 || main->subversionfile < 12)
 		{
 			/* initialize skeleton generation toolsettings */
 			for(sce=main->scene.first; sce; sce = sce->id.next)
