@@ -3357,7 +3357,7 @@ void reestablishRadialSymmetry(ReebNode *node, int depth, float axis[3])
 	/* sort ring */
 	for (i = 0; i < count - 1; i++)
 	{
-		float minAngle = 2;
+		float minAngle = 3; /* arbitrary high value, higher than 2, at least */
 		int minIndex = -1;
 		int j;
 
