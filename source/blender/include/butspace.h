@@ -735,8 +735,8 @@ enum {
 #define B_PART_INIT_CHILD	3433
 #define B_PART_RECALC_CHILD	3434
 #define B_PART_EDITABLE		3435
-
 #define B_PART_REKEY		3436
+#define B_PART_ENABLE		3437
 
 #define B_MODIFIER_BUTS		3600
 

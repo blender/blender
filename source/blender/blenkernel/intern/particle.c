@@ -1730,7 +1730,7 @@ void psys_thread_create_path(ParticleThread *thread, struct ChildParticle *cpa, 
 			VECSUB((state-1)->vel,state->co,(state-2)->co);
 			VecMulf((state-1)->vel,0.5);
 
-			if(part->draw & PART_DRAW_MAT_COL)
+			if(ctx->ma && (part->draw & PART_DRAW_MAT_COL))
 				get_strand_normal(ctx->ma, ornor, cur_length, (state-1)->vel);
 		}
 
@@ -1754,7 +1754,7 @@ void psys_thread_create_path(ParticleThread *thread, struct ChildParticle *cpa, 
 			cur_length= 0.0f;
 		}
 
-		if(part->draw & PART_DRAW_MAT_COL) {
+		if(ctx->ma && (part->draw & PART_DRAW_MAT_COL)) {
 			VECCOPY(state->col, &ctx->ma->r)
 			get_strand_normal(ctx->ma, ornor, cur_length, state->vel);
 		}
@@ -1910,7 +1910,7 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 	
 	psys->lattice = psys_get_lattice(ob, psys);
 	ma= give_current_material(ob, psys->part->omat);
-	if(psys->part->draw & PART_DRAW_MAT_COL)
+	if(ma && (psys->part->draw & PART_DRAW_MAT_COL))
 		VECCOPY(col, &ma->r)
 
 	/*---first main loop: create all actual particles' paths---*/

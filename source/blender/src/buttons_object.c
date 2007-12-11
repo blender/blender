@@ -2853,6 +2853,23 @@ void do_effects_panels(unsigned short event)
 			allqueue(REDRAWOOPS, 0);
 		}
 		break;
+	case B_PART_ENABLE:
+		if(psys) {
+			ParticleSystemModifierData *psmd= psys_get_modifier(ob, psys);
+			if(psys->flag & PSYS_ENABLED) {
+				psmd->modifier.mode |= eModifierMode_Realtime;
+			}
+			else {
+				psmd->modifier.mode &= ~eModifierMode_Realtime;
+				PE_free_particle_edit(psys);
+			}
+
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWBUTSOBJECT, 0);
+			allqueue(REDRAWBUTSEDIT, 0);
+		}
+		break;
 	case B_PART_RECALC:
 	case B_PART_RECALC_CHILD:
 		if(psys){
@@ -4200,7 +4217,7 @@ static void object_panel_particle_system(Object *ob)
 	butx=0;
 	buty-=5;
 	
-	uiDefButBitI(block, TOG, PSYS_ENABLED, B_PART_REDRAW, "Enabled",	 0,(buty-=buth),100,buth, &psys->flag, 0, 0, 0, 0, "Sets particle system to be calculated and shown");
+	uiDefButBitI(block, TOG, PSYS_ENABLED, B_PART_ENABLE, "Enabled",	 0,(buty-=buth),100,buth, &psys->flag, 0, 0, 0, 0, "Sets particle system to be calculated and shown");
 
 	if(part->type == PART_HAIR){
 		if(psys->flag & PSYS_EDITED)

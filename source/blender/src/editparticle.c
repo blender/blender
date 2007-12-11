@@ -155,9 +155,12 @@ void PE_change_act(void *ob_v, void *act_v)
 	if(act>=0){
 		if((psys=BLI_findlink(&ob->particlesystem,act))) {
 			psys->flag |= PSYS_CURRENT;
-			if(G.f & G_PARTICLEEDIT && !psys->edit)
-				PE_create_particle_edit(ob, psys);
-			PE_recalc_world_cos(ob, psys);
+
+			if(psys->flag & PSYS_ENABLED) {
+				if(G.f & G_PARTICLEEDIT && !psys->edit)
+					PE_create_particle_edit(ob, psys);
+				PE_recalc_world_cos(ob, psys);
+			}
 		}
 	}
 }
@@ -182,7 +185,7 @@ ParticleSystem *PE_get_current(Object *ob)
 		psys->flag |= PSYS_CURRENT;
 	}
 
-	if(psys && ob == OBACT && (G.f & G_PARTICLEEDIT))
+	if(psys && (psys->flag & PSYS_ENABLED) && ob == OBACT && (G.f & G_PARTICLEEDIT))
 		if(psys->part->type == PART_HAIR && psys->flag & PSYS_EDITED)
 			if(psys->edit == NULL)
 				PE_create_particle_edit(ob, psys);
@@ -1098,9 +1101,11 @@ void PE_set_particle_edit(void)
 
 	if((G.f & G_PARTICLEEDIT)==0){
 		if(psys && psys->part->type == PART_HAIR && psys->flag & PSYS_EDITED) {
-			if(psys->edit==0)
-				PE_create_particle_edit(ob, psys);
-			PE_recalc_world_cos(ob, psys);
+			if(psys->flag & PSYS_ENABLED) {
+				if(psys->edit==0)
+					PE_create_particle_edit(ob, psys);
+				PE_recalc_world_cos(ob, psys);
+			}
 		}
 
 		G.f |= G_PARTICLEEDIT;
@@ -2582,6 +2587,7 @@ int PE_brush_particles(void)
 				if(pset->brushtype == PE_BRUSH_ADD && (pset->flag & PE_X_MIRROR))
 					PE_mirror_x(1);
 				PE_recalc_world_cos(ob,psys);
+				psys_free_path_cache(psys);
 				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			}
 			else

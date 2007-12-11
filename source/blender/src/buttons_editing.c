@@ -1643,10 +1643,13 @@ static void modifiers_psysEnable(void *ob_v, void *md_v)
 {
 	ParticleSystemModifierData *psmd = (ParticleSystemModifierData*) md_v;
 
-	if(psmd->modifier.mode & eModifierMode_Realtime)
+	if(psmd->modifier.mode & eModifierMode_Realtime) {
 		psmd->psys->flag |= PSYS_ENABLED;
-	else
+	}
+	else {
 		psmd->psys->flag &= ~PSYS_ENABLED;
+		PE_free_particle_edit(psmd->psys);
+	}
 }
 
 static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco, int *yco, int index, int cageIndex, int lastCageIndex)
