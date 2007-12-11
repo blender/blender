@@ -515,18 +515,28 @@ float *get_mesh_orco_verts(Object *ob)
 	return (float*)vcos;
 }
 
-void transform_mesh_orco_verts(Mesh *me, float (*orco)[3], int totvert)
+void transform_mesh_orco_verts(Mesh *me, float (*orco)[3], int totvert, int invert)
 {
 	float loc[3], size[3];
 	int a;
 
 	mesh_get_texspace(me->texcomesh?me->texcomesh:me, loc, NULL, size);
 
-	for(a=0; a<totvert; a++) {
-		float *co = orco[a];
-		co[0] = (co[0]-loc[0])/size[0];
-		co[1] = (co[1]-loc[1])/size[1];
-		co[2] = (co[2]-loc[2])/size[2];
+	if(invert) {
+		for(a=0; a<totvert; a++) {
+			float *co = orco[a];
+			co[0] = co[0]*size[0] + loc[0];
+			co[1] = co[1]*size[1] + loc[1];
+			co[2] = co[2]*size[2] + loc[2];
+		}
+	}
+	else {
+		for(a=0; a<totvert; a++) {
+			float *co = orco[a];
+			co[0] = (co[0]-loc[0])/size[0];
+			co[1] = (co[1]-loc[1])/size[1];
+			co[2] = (co[2]-loc[2])/size[2];
+		}
 	}
 }
 

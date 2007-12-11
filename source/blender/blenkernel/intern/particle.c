@@ -76,6 +76,7 @@
 #include "BKE_depsgraph.h"
 #include "BKE_bad_level_calls.h"
 #include "BKE_modifier.h"
+#include "BKE_mesh.h"
 
 #include "blendef.h"
 #include "RE_render_ext.h"
@@ -2240,9 +2241,9 @@ static void triatomat(float *v1, float *v2, float *v3, float (*uv)[2], float mat
 	Crossf(mat[0], mat[1], mat[2]);
 }
 
-static void psys_face_mat(DerivedMesh *dm, ParticleData *pa, float mat[][4], int orco)
+static void psys_face_mat(Object *ob, DerivedMesh *dm, ParticleData *pa, float mat[][4], int orco)
 {
-	float v1[3], v2[3], v3[3];
+	float v[3][3];
 	MFace *mface;
 	OrigSpaceFace *osface;
 	float (*orcodata)[3];
@@ -2255,24 +2256,28 @@ static void psys_face_mat(DerivedMesh *dm, ParticleData *pa, float mat[][4], int
 	osface=dm->getFaceData(dm,i,CD_ORIGSPACE);
 	
 	if(orco && (orcodata=dm->getVertDataArray(dm, CD_ORCO))) {
-		VECCOPY(v1, orcodata[mface->v1]);
-		VECCOPY(v2, orcodata[mface->v2]);
-		VECCOPY(v3, orcodata[mface->v3]);
+		VECCOPY(v[0], orcodata[mface->v1]);
+		VECCOPY(v[1], orcodata[mface->v2]);
+		VECCOPY(v[2], orcodata[mface->v3]);
+
+		/* ugly hack to use non-transformed orcos, since only those
+		 * give symmetric results for mirroring in particle mode */
+		transform_mesh_orco_verts(ob->data, v, 3, 1);
 	}
 	else {
-		dm->getVertCo(dm,mface->v1,v1);
-		dm->getVertCo(dm,mface->v2,v2);
-		dm->getVertCo(dm,mface->v3,v3);
+		dm->getVertCo(dm,mface->v1,v[0]);
+		dm->getVertCo(dm,mface->v2,v[1]);
+		dm->getVertCo(dm,mface->v3,v[2]);
 	}
 
-	triatomat(v1, v2, v3, (osface)? osface->uv: NULL, mat);
+	triatomat(v[0], v[1], v[2], (osface)? osface->uv: NULL, mat);
 }
 
 void psys_mat_hair_to_object(Object *ob, DerivedMesh *dm, short from, ParticleData *pa, float hairmat[][4])
 {
 	float vec[3];
 
-	psys_face_mat(dm, pa, hairmat, 0);
+	psys_face_mat(0, dm, pa, hairmat, 0);
 	psys_particle_on_dm(ob, dm, from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, vec, 0, 0, 0, 0, 0);
 	VECCOPY(hairmat[3],vec);
 }
@@ -2281,8 +2286,11 @@ void psys_mat_hair_to_orco(Object *ob, DerivedMesh *dm, short from, ParticleData
 {
 	float vec[3], orco[3];
 
-	psys_face_mat(dm, pa, hairmat, 1);
+	psys_face_mat(ob, dm, pa, hairmat, 1);
 	psys_particle_on_dm(ob, dm, from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, vec, 0, 0, 0, orco, 0);
+
+	/* see psys_face_mat for why this function is called */
+	transform_mesh_orco_verts(ob->data, orco, 1, 1);
 	VECCOPY(hairmat[3],orco);
 }
 
@@ -2338,7 +2346,7 @@ void psys_vec_rot_to_face(DerivedMesh *dm, ParticleData *pa, float *vec)//to_geo
 {
 	float mat[4][4];
 
-	psys_face_mat(dm, pa, mat, 0);
+	psys_face_mat(0, dm, pa, mat, 0);
 	Mat4Transp(mat); /* cheap inverse for rotation matrix */
 	Mat4Mul3Vecfl(mat, vec);
 }

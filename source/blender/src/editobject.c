@@ -2822,44 +2822,51 @@ void convertmenu(void)
 	 * level==-1 then toggle subsurf, else set to level.
      * *set allows to toggle multiple selections
 	 */
-static void object_flip_subdivison(Object *ob, int *set, int level, int mode)
+static void object_flip_subdivison(Object *ob, int *set, int level, int mode, int ingroup)
 {
 	ModifierData *md;
 
-	if(ob->type!=OB_MESH)
-		return;
-	
-	md = modifiers_findByType(ob, eModifierType_Subsurf);
-	
-	if (md) {
-		SubsurfModifierData *smd = (SubsurfModifierData*) md;
-
-		if (level == -1) {
-			if(*set == -1) 
-				*set= smd->modifier.mode&(mode);
-										  
-			if (*set) {
-				smd->modifier.mode &= ~(mode);
-			} else {
-				smd->modifier.mode |= (mode);
-			}
-		} else {
-			smd->levels = level;
-		}
-	} 
-	else if(*set != 0) {
-		SubsurfModifierData *smd = (SubsurfModifierData*) modifier_new(eModifierType_Subsurf);
-
-		BLI_addtail(&ob->modifiers, smd);
-
-		if (level!=-1) {
-			smd->levels = level;
-		}
+	if(ob->type==OB_MESH) {
+		md = modifiers_findByType(ob, eModifierType_Subsurf);
 		
-		if(*set == -1)
-			*set= 1;
+		if (md) {
+			SubsurfModifierData *smd = (SubsurfModifierData*) md;
+
+			if (level == -1) {
+				if(*set == -1) 
+					*set= smd->modifier.mode&(mode);
+											  
+				if (*set) {
+					smd->modifier.mode &= ~(mode);
+				} else {
+					smd->modifier.mode |= (mode);
+				}
+			} else {
+				smd->levels = level;
+			}
+		} 
+		else if(!ingroup && *set != 0) {
+			SubsurfModifierData *smd = (SubsurfModifierData*) modifier_new(eModifierType_Subsurf);
+
+			BLI_addtail(&ob->modifiers, smd);
+
+			if (level!=-1) {
+				smd->levels = level;
+			}
+			
+			if(*set == -1)
+				*set= 1;
+		}
+
+		ob->recalc |= OB_RECALC_DATA;
 	}
-	ob->recalc |= OB_RECALC_DATA;
+
+	if(ob->dup_group) {
+		GroupObject *go;
+
+		for(go= ob->dup_group->gobject.first; go; go= go->next)
+			object_flip_subdivison(go->ob, set, level, mode, 1);
+	}
 }
 
 /* Change subdivision properties of mesh object ob, if
@@ -2877,18 +2884,9 @@ void flip_subdivison(int level)
 	else
 		mode= eModifierMode_Render|eModifierMode_Realtime;
 	
-	for(base= G.scene->base.first; base; base= base->next) {
-		if(((level==-1) && (TESTBASE(base))) || (TESTBASELIB(base))) {
-			object_flip_subdivison(base->object, &set, level, mode);
-			
-			if(base->object->dup_group) {
-				GroupObject *go;
-				for(go= base->object->dup_group->gobject.first; go; go= go->next)
-					if( modifiers_findByType(go->ob, eModifierType_Subsurf))	/* only when exists */
-						object_flip_subdivison(go->ob, &set, level, mode);
-			}
-		}
-	}
+	for(base= G.scene->base.first; base; base= base->next)
+		if(((level==-1) && (TESTBASE(base))) || (TESTBASELIB(base)))
+			object_flip_subdivison(base->object, &set, level, mode, 0);
 	
 	countall();
 	allqueue(REDRAWVIEW3D, 0);

@@ -56,6 +56,7 @@
 
 #include "BKE_global.h"
 #include "BKE_object.h"
+#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
@@ -560,7 +561,7 @@ static void PE_update_mirror_cache(Object *ob, ParticleSystem *psys)
 	/* lookup particles and set in mirror cache */
 	if(!edit->mirror_cache)
 		edit->mirror_cache= MEM_callocN(sizeof(int)*totpart, "PE mirror cache");
-
+	
 	LOOP_PARTICLES(i,pa) {
 		psys_mat_hair_to_orco(ob, psmd->dm, psys->part->from, pa, mat);
 		VECCOPY(co, pa->hair[0].co);
@@ -599,11 +600,11 @@ static void PE_mirror_particle(Object *ob, DerivedMesh *dm, ParticleSystem *psys
 	edit= psys->edit;
 	i= pa - psys->particles;
 
+	if(!edit->mirror_cache)
+		PE_update_mirror_cache(ob, psys);
+
 	/* find mirrored particle if needed */
 	if(!mpa) {
-		if(!edit->mirror_cache)
-			PE_update_mirror_cache(ob, psys);
-
 		mi= edit->mirror_cache[i];
 		if(mi == -1)
 			return;

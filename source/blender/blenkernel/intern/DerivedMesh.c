@@ -1861,7 +1861,7 @@ static void add_orco_dm(Object *ob, DerivedMesh *dm, DerivedMesh *orcodm)
 	else
 		orco= (float(*)[3])get_mesh_orco_verts(ob);
 
-	transform_mesh_orco_verts(ob->data, orco, totvert);
+	transform_mesh_orco_verts(ob->data, orco, totvert, 0);
 
 	if((layerorco = DM_get_vert_data_layer(dm, CD_ORCO))) {
 		memcpy(layerorco, orco, sizeof(float)*totvert);

@@ -725,6 +725,7 @@ static struct {
 	MocNode **table;
 	float offs[3], div[3];
 	float (*orco)[3];
+	float orcoloc[3];
 } MeshOctree = {NULL, {0, 0, 0}, {0, 0, 0}, NULL};
 
 /* mode is 's' start, or 'e' end, or 'u' use */
@@ -767,6 +768,7 @@ long mesh_octree_table(Object *ob, float *co, char mode)
 			int a, totvert;
 			
 			MeshOctree.orco= mesh_getRefKeyCos(me, &totvert);
+			mesh_get_texspace(me, MeshOctree.orcoloc, NULL, NULL);
 			
 			for(a=0, mvert= me->mvert; a<me->totvert; a++, mvert++) {
 				co= (MeshOctree.orco)? MeshOctree.orco[a]: mvert->co;
@@ -838,7 +840,9 @@ int mesh_get_x_mirror_vert(Object *ob, int index)
 	float vec[3];
 	
 	if(MeshOctree.orco) {
-		vec[0]= -MeshOctree.orco[index][0];
+		float *loc= MeshOctree.orcoloc;
+
+		vec[0]= -(MeshOctree.orco[index][0] + loc[0]) - loc[0];
 		vec[1]= MeshOctree.orco[index][1];
 		vec[2]= MeshOctree.orco[index][2];
 	}
@@ -920,7 +924,6 @@ int *mesh_get_x_mirror_faces(Object *ob)
 	MFace mirrormf, *mf, *hashmf, *mface= me->mface;
 	GHash *fhash;
 	int *mirrorverts, *mirrorfaces;
-	float vec[3];
 	int a;
 
 	mirrorverts= MEM_callocN(sizeof(int)*me->totvert, "MirrorVerts");
@@ -928,19 +931,8 @@ int *mesh_get_x_mirror_faces(Object *ob)
 
 	mesh_octree_table(ob, NULL, 's');
 
-	for(a=0, mv=mvert; a<me->totvert; a++, mv++) {
-		if(MeshOctree.orco) {
-			vec[0]= -MeshOctree.orco[a][0];
-			vec[1]= MeshOctree.orco[a][1];
-			vec[2]= MeshOctree.orco[a][2];
-		}
-		else {
-			vec[0]= -mv->co[0];
-			vec[1]= mv->co[1];
-			vec[2]= mv->co[2];
-		}
-		mirrorverts[a]= mesh_octree_table(ob, vec, 'u');
-	}
+	for(a=0, mv=mvert; a<me->totvert; a++, mv++)
+		mirrorverts[a]= mesh_get_x_mirror_vert(ob, a);
 
 	mesh_octree_table(ob, NULL, 'e');
 
