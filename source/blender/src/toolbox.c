@@ -2219,7 +2219,7 @@ void toolbox_n(void)
 	}
 	
 	uiBoundsBlock(block, 2);
-	event= uiDoBlocks(&tb_listb, 0, 0);
+	event= uiDoBlocks(&tb_listb, 0, 1);
 	
 	/* free all dynamic entries... */
 	BLI_freelistN(&storage);
