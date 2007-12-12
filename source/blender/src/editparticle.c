@@ -600,11 +600,11 @@ static void PE_mirror_particle(Object *ob, DerivedMesh *dm, ParticleSystem *psys
 	edit= psys->edit;
 	i= pa - psys->particles;
 
-	if(!edit->mirror_cache)
-		PE_update_mirror_cache(ob, psys);
-
 	/* find mirrored particle if needed */
 	if(!mpa) {
+		if(!edit->mirror_cache)
+			PE_update_mirror_cache(ob, psys);
+
 		mi= edit->mirror_cache[i];
 		if(mi == -1)
 			return;
