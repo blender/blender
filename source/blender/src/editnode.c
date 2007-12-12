@@ -1427,7 +1427,7 @@ void snode_autoconnect(SpaceNode *snode, bNode *node_to, int flag)
 	bNode *node, *nodefrom[8];
 	int totsock= 0, socktype=0;
 
-	if(node_to->inputs.first==NULL)
+	if(node_to==NULL || node_to->inputs.first==NULL)
 		return;
 	
 	/* no inputs for node allowed (code it) */
