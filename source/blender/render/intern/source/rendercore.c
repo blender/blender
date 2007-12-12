@@ -887,7 +887,7 @@ void zbufshadeDA_tile(RenderPart *pa)
 		if(R.flag & R_HALO)
 			if(rl->layflag & SCE_LAY_HALO)
 				halo_tile(pa, rl->rectf, rl->lay);
-		
+
 		/* transp layer */
 		if(R.flag & R_ZTRA) {
 			if(rl->layflag & SCE_LAY_ZTRA) {
@@ -904,7 +904,7 @@ void zbufshadeDA_tile(RenderPart *pa)
 				/* zbuffer transp only returns ztramask if there's solid rendered */
 				if(ztramask)
 					solidmask= make_solid_mask(pa);
-				
+
 				if(ztramask && solidmask) {
 					unsigned short *sps= solidmask, *spz= ztramask;
 					unsigned short fullmask= (1<<R.osa)-1;
@@ -929,6 +929,47 @@ void zbufshadeDA_tile(RenderPart *pa)
 				if(ztramask) MEM_freeN(ztramask);
 			}
 		}
+
+		/* strand rendering */
+		if((rl->layflag & SCE_LAY_STRAND) && R.strandbufs.first) {
+			float *fcol, *scol;
+			unsigned short *strandmask, *solidmask= NULL; /* 16 bits, MAX_OSA */
+			int x;
+			
+			/* allocate, but not free here, for asynchronous display of this rect in main thread */
+			rl->scolrect= MEM_callocN(4*sizeof(float)*pa->rectx*pa->recty, "strand layer");
+
+			/* swap for live updates, and it is used in zbuf.c!!! */
+			SWAP(float*, rl->scolrect, rl->rectf);
+			strandmask= zbuffer_strands_shade(&R, pa, rl, rl->rectf);
+			SWAP(float*, rl->scolrect, rl->rectf);
+
+			/* zbuffer strands only returns strandmask if there's solid rendered */
+			if(strandmask)
+				solidmask= make_solid_mask(pa);
+			
+			if(strandmask && solidmask) {
+				unsigned short *sps= solidmask, *spz= strandmask;
+				unsigned short fullmask= (1<<R.osa)-1;
+
+				fcol= rl->rectf; scol= rl->scolrect;
+				for(x=pa->rectx*pa->recty; x>0; x--, scol+=4, fcol+=4, sps++, spz++) {
+					if(*sps == fullmask)
+						addAlphaOverFloat(fcol, scol);
+					else
+						addAlphaOverFloatMask(fcol, scol, *sps, *spz);
+				}
+			}
+			else {
+				fcol= rl->rectf; scol= rl->scolrect;
+				for(x=pa->rectx*pa->recty; x>0; x--, scol+=4, fcol+=4)
+					addAlphaOverFloat(fcol, scol);
+			}
+
+			if(solidmask) MEM_freeN(solidmask);
+			if(strandmask) MEM_freeN(strandmask);
+		}
+
 		/* sky before edge */
 		if(rl->layflag & SCE_LAY_SKY)
 			sky_tile(pa, rl->rectf);
@@ -1081,6 +1122,24 @@ void zbufshade_tile(RenderPart *pa)
 				}
 			}
 		}
+
+		/* strand rendering */
+		if((rl->layflag & SCE_LAY_STRAND) && R.strandbufs.first) {
+			float *fcol, *scol;
+			int x;
+			
+			/* allocate, but not free here, for asynchronous display of this rect in main thread */
+			rl->scolrect= MEM_callocN(4*sizeof(float)*pa->rectx*pa->recty, "strand layer");
+
+			/* swap for live updates */
+			SWAP(float*, rl->scolrect, rl->rectf);
+			zbuffer_strands_shade(&R, pa, rl, rl->rectf);
+			SWAP(float*, rl->scolrect, rl->rectf);
+
+			fcol= rl->rectf; scol= rl->scolrect;
+			for(x=pa->rectx*pa->recty; x>0; x--, scol+=4, fcol+=4)
+				addAlphaOverFloat(fcol, scol);
+		}
 		
 		/* sky before edge */
 		if(rl->layflag & SCE_LAY_SKY)
@@ -1206,8 +1265,6 @@ static void shade_sample_sss(ShadeSample *ssamp, Material *mat, VlakRen *vlr, in
 	shade_input_set_viewco(shi, x, y, z);
 	*area= VecLength(shi->dxco)*VecLength(shi->dyco);
 	*area= MIN2(*area, 2.0f*orthoarea);
-
-	shi->osatex= 0;
 
 	shade_input_set_uv(shi);
 	shade_input_set_normals(shi);
@@ -1594,7 +1651,7 @@ void add_halo_flare(Render *re)
 	mode= R.r.mode;
 	R.r.mode &= ~R_PANORAMA;
 	
-	project_renderdata(&R, projectverto, 0, 0);
+	project_renderdata(&R, projectverto, 0, 0, 0);
 	
 	for(a=0; a<R.tothalo; a++) {
 		if((a & 255)==0) har= R.bloha[a>>8];

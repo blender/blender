@@ -61,11 +61,11 @@ static MT_Scalar EulerAngleFromMatrix(const MT_Matrix3x3& R, int axis)
 	MT_Scalar t = sqrt(R[0][0]*R[0][0] + R[0][1]*R[0][1]);
 
     if (t > 16.0*MT_EPSILON) {
-		if (axis == 0) return atan2(R[1][2], R[2][2]);
+		if (axis == 0) return -atan2(R[1][2], R[2][2]);
         else if(axis == 1) return atan2(-R[0][2], t);
-        else return atan2(R[0][1], R[0][0]);
+        else return -atan2(R[0][1], R[0][0]);
     } else {
-		if (axis == 0) return atan2(-R[2][1], R[1][1]);
+		if (axis == 0) return -atan2(-R[2][1], R[1][1]);
         else if(axis == 1) return atan2(-R[0][2], t);
         else return 0.0f;
     }

@@ -1173,7 +1173,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	
 	if(val) {
 
-		if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
+		if( uiDoBlocks(&curarea->uiblocks, event, 1)!=UI_NOTHING ) event= 0;
 		
 		if(event==UI_BUT_EVENT) do_butspace(val); /* temporal, view3d deserves own queue? */
 		
@@ -2369,7 +2369,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						ob= ob->parent;
 					if(ob && (ob->flag & OB_POSEMODE)) {
 						bArmature *arm= ob->data;
-						if( ELEM(arm->drawtype, ARM_B_BONE, ARM_ENVELOPE)) {
+						if( arm->drawtype==ARM_ENVELOPE) {
 							initTransform(TFM_BONESIZE, CTX_NONE);
 							Transform();
 							break;
@@ -2761,7 +2761,7 @@ static void winqreadipospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	if(sa->win==0) return;
 
 	if(val) {
-		if( uiDoBlocks(&sa->uiblocks, event)!=UI_NOTHING ) event= 0;
+		if( uiDoBlocks(&sa->uiblocks, event, 1)!=UI_NOTHING ) event= 0;
 
 		/* swap mouse buttons based on user preference */
 		if (U.flag & USER_LMOUSESELECT) {
@@ -3514,6 +3514,11 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 				0, 0, 0, 0, 0, "");
 		}
 		
+		uiDefButBitI(block, TOG, USER_SHOW_FPS, B_DRAWINFO, "Display FPS in View",
+			(xpos+edgsp+(3*mpref)+(4*midsp)),y2,mpref,buth,
+			&(U.uiflag), 0, 0, 0, 0,
+			"Display the number of frames per secons being drawn");
+		
 		/* illegal combo... */
 		if (U.flag & USER_LMOUSESELECT) 
 			U.flag &= ~USER_TWOBUTTONMOUSE;
@@ -4131,7 +4136,7 @@ static void winqreadinfospace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	short val= evt->val;
 	
 	if(val) {
-		if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
+		if( uiDoBlocks(&curarea->uiblocks, event, 1)!=UI_NOTHING ) event= 0;
 
 		switch(event) {
 		case UI_BUT_EVENT:
@@ -4250,7 +4255,7 @@ static void winqreadbutspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 	if(val) {
 		
-		if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
+		if( uiDoBlocks(&curarea->uiblocks, event, 1)!=UI_NOTHING ) event= 0;
 
 		switch(event) {
 		case UI_BUT_EVENT:
@@ -4505,7 +4510,7 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	if(curarea->win==0) return;
 
 	if(val) {
-		if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
+		if( uiDoBlocks(&curarea->uiblocks, event, 1)!=UI_NOTHING ) event= 0;
 		
 		/* swap mouse buttons based on user preference */
 		if (U.flag & USER_LMOUSESELECT) {
@@ -4699,7 +4704,7 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case KKEY:
 			if((G.qual==0)) { /* Cut at current frame */
-				if(okee("Cut strips")) seq_cut(CFRA);
+				seq_cut(CFRA);
 			}
 			break;
 		case LKEY:
@@ -4964,7 +4969,7 @@ static void winqreadimagespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	
 	if(val==0) return;
 
-	if(uiDoBlocks(&sa->uiblocks, event)!=UI_NOTHING ) event= 0;
+	if(uiDoBlocks(&sa->uiblocks, event, 1)!=UI_NOTHING ) event= 0;
 	
 	if (U.flag & USER_LMOUSESELECT) {
 		if (event == LEFTMOUSE) {
@@ -5349,7 +5354,7 @@ static void winqreadoopsspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 	if(val==0) return;
 
-	if( uiDoBlocks(&sa->uiblocks, event)!=UI_NOTHING ) event= 0;
+	if( uiDoBlocks(&sa->uiblocks, event, 1)!=UI_NOTHING ) event= 0;
 
 	if (U.flag & USER_NONUMPAD) {
 		event= convert_for_nonumpad(event);

@@ -139,7 +139,7 @@ void swap_selectall_editipo(void)
 							bezt->f1= bezt->f2= bezt->f3= 0;
 						}
 						else {
-							bezt->f1= bezt->f2= bezt->f3= 1;
+							bezt->f1= bezt->f2= bezt->f3= SELECT;
 						}
 						bezt++;
 					}
@@ -375,32 +375,32 @@ static int selected_bezier_loop(int (*looptest)(EditIpo *),
 int select_bezier_add(BezTriple *bezt) 
 {
 	/* Select the bezier triple */
-	bezt->f1 |= 1;
-	bezt->f2 |= 1;
-	bezt->f3 |= 1;
+	bezt->f1 |= SELECT;
+	bezt->f2 |= SELECT;
+	bezt->f3 |= SELECT;
 	return 0;
 }
 
 int select_bezier_subtract(BezTriple *bezt) 
 {
 	/* Deselect the bezier triple */
-	bezt->f1 &= ~1;
-	bezt->f2 &= ~1;
-	bezt->f3 &= ~1;
+	bezt->f1 &= ~SELECT;
+	bezt->f2 &= ~SELECT;
+	bezt->f3 &= ~SELECT;
 	return 0;
 }
 
 int select_bezier_invert(BezTriple *bezt) 
 {
 	/* Invert the selection for the bezier triple */
-	bezt->f2 ^= 1;
-	if ( bezt->f2 & 1 ) {
-		bezt->f1 |= 1;
-		bezt->f3 |= 1;
+	bezt->f2 ^= SELECT;
+	if ( bezt->f2 & SELECT ) {
+		bezt->f1 |= SELECT;
+		bezt->f3 |= SELECT;
 	}
 	else {
-		bezt->f1 &= ~1;
-		bezt->f3 &= ~1;
+		bezt->f1 &= ~SELECT;
+		bezt->f3 &= ~SELECT;
 	}
 	return 0;
 }
@@ -723,6 +723,53 @@ void mirror_ipo_keys(Ipo *ipo, short mirror_type)
 	}
 }
 
+/* This function is called to calculate the average location of the
+ * selected keyframes, and place the current frame at that location.
+ *
+ * It must be called like so:
+ *	snap_cfra_ipo_keys(NULL, -1); // initialise the static vars first
+ *	for (ipo...) snap_cfra_ipo_keys(ipo, 0); // sum up keyframe times
+ *	snap_cfra_ipo_keys(NULL, 1); // set current frame after taking average
+ */
+void snap_cfra_ipo_keys(Ipo *ipo, short mode)
+{
+	static int cfra;
+	static int tot;
+	
+	IpoCurve *icu;
+	BezTriple *bezt;
+	int a;
+	
+	
+	if (mode == -1) {
+		/* initialise a new snap-operation */
+		cfra= 0;
+		tot= 0;
+	}
+	else if (mode == 1) {
+		/* set current frame - using average frame */
+		if (tot != 0)
+			CFRA = cfra / tot;
+	}
+	else {
+		/* loop through keys in ipo, summing the frame
+		 * numbers of those that are selected 
+		 */
+		if (ipo == NULL) 
+			return;
+		
+		for (icu= ipo->curve.first; icu; icu= icu->next) {
+			for (a=0, bezt=icu->bezt; a < icu->totvert; a++, bezt++) {
+				if (BEZSELECTED(bezt)) {
+					cfra += bezt->vec[1][0];
+					tot++;
+				}
+			}
+		}
+	}	
+}
+
+
 /* currently only used by some action editor tools, but may soon get used by ipo editor */
 /* restore = whether to map points back to ipo-time 
  * only_keys = whether to only adjust the location of the center point of beztriples
@@ -976,11 +1023,11 @@ void borderselect_ipo(void)
 							int bit= (val==LEFTMOUSE);
 							
 							if(BLI_in_rctf(&rectf, bezt->vec[0][0], bezt->vec[0][1]))
-								bezt->f1 = (bezt->f1&~1) | bit;
+								bezt->f1 = (bezt->f1&~SELECT) | bit;
 							if(BLI_in_rctf(&rectf, bezt->vec[1][0], bezt->vec[1][1]))
-								bezt->f2 = (bezt->f2&~1) | bit;
+								bezt->f2 = (bezt->f2&~SELECT) | bit;
 							if(BLI_in_rctf(&rectf, bezt->vec[2][0], bezt->vec[2][1]))
-								bezt->f3 = (bezt->f3&~1) | bit;
+								bezt->f3 = (bezt->f3&~SELECT) | bit;
 
 							bezt++;
 						}

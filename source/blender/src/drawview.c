@@ -1637,18 +1637,18 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 				bezt= nu->bezt;
 				a= nu->pntsu;
 				while(a--) {
-					if(bezt->f2 & 1) {
+					if(bezt->f2 & SELECT) {
 						VecAddf(median, median, bezt->vec[1]);
 						tot++;
 						median[4]+= bezt->weight;
 						totweight++;
 					}
 					else {
-						if(bezt->f1 & 1) {
+						if(bezt->f1 & SELECT) {
 							VecAddf(median, median, bezt->vec[0]);
 							tot++;
 						}
-						if(bezt->f3 & 1) {
+						if(bezt->f3 & SELECT) {
 							VecAddf(median, median, bezt->vec[2]);
 							tot++;
 						}
@@ -1660,7 +1660,7 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 				bp= nu->bp;
 				a= nu->pntsu*nu->pntsv;
 				while(a--) {
-					if(bp->f1 & 1) {
+					if(bp->f1 & SELECT) {
 						VecAddf(median, median, bp->vec);
 						median[3]+= bp->vec[3];
 						totw++;
@@ -1811,17 +1811,17 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 					bezt= nu->bezt;
 					a= nu->pntsu;
 					while(a--) {
-						if(bezt->f2 & 1) {
+						if(bezt->f2 & SELECT) {
 							VecAddf(bezt->vec[0], bezt->vec[0], median);
 							VecAddf(bezt->vec[1], bezt->vec[1], median);
 							VecAddf(bezt->vec[2], bezt->vec[2], median);
 							bezt->weight+= median[4];
 						}
 						else {
-							if(bezt->f1 & 1) {
+							if(bezt->f1 & SELECT) {
 								VecAddf(bezt->vec[0], bezt->vec[0], median);
 							}
-							if(bezt->f3 & 1) {
+							if(bezt->f3 & SELECT) {
 								VecAddf(bezt->vec[2], bezt->vec[2], median);
 							}
 						}
@@ -1832,7 +1832,7 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 					bp= nu->bp;
 					a= nu->pntsu*nu->pntsv;
 					while(a--) {
-						if(bp->f1 & 1) {
+						if(bp->f1 & SELECT) {
 							VecAddf(bp->vec, bp->vec, median);
 							bp->vec[3]+= median[3];
 							bp->weight+= median[4];
@@ -2774,6 +2774,40 @@ void view3d_update_depths(View3D *v3d)
 	}
 }
 
+/* Enable sculpting in wireframe mode by drawing sculpt object only to the depth buffer */
+static void draw_sculpt_depths(View3D *v3d)
+{
+	Object *ob = OBACT;
+
+	int dt= MIN2(v3d->drawtype, ob->dt);
+	if(v3d->zbuf==0 && dt>OB_WIRE)
+		dt= OB_WIRE;
+	if(dt == OB_WIRE) {
+		GLboolean depth_on;
+		int orig_vdt = v3d->drawtype;
+		int orig_zbuf = v3d->zbuf;
+		int orig_odt = ob->dt;
+
+		glGetBooleanv(GL_DEPTH_TEST, &depth_on);
+		v3d->drawtype = ob->dt = OB_SOLID;
+		v3d->zbuf = 1;
+
+		glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);
+		glEnable(GL_DEPTH_TEST);
+		draw_object(BASACT, 0);
+		glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+		if(!depth_on)
+			glDisable(GL_DEPTH_TEST);
+
+		v3d->drawtype = orig_vdt;
+		v3d->zbuf = orig_zbuf;
+		ob->dt = orig_odt;
+	}
+}
+
+static void draw_viewport_fps(ScrArea *sa);
+
+
 void drawview3dspace(ScrArea *sa, void *spacedata)
 {
 	View3D *v3d= spacedata;
@@ -2921,8 +2955,10 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		}
 	}
 
-	if(!retopo && sculpt && !(obact && (obact->dtx & OB_DRAWXRAY)))
+	if(!retopo && sculpt && !(obact && (obact->dtx & OB_DRAWXRAY))) {
+		draw_sculpt_depths(v3d);
 		view3d_update_depths(v3d);
+	}
 
 	if(G.moving) {
 		BIF_drawConstraint();
@@ -2936,9 +2972,11 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 	/* Transp and X-ray afterdraw stuff */
 	view3d_draw_xray(v3d, 0);	// clears zbuffer if it is used!
 	view3d_draw_transp(v3d, 0);
-	
-	if(!retopo && sculpt && (obact && (OBACT->dtx & OB_DRAWXRAY)))
+
+	if(!retopo && sculpt && (obact && (OBACT->dtx & OB_DRAWXRAY))) {
+		draw_sculpt_depths(v3d);
 		view3d_update_depths(v3d);
+	}
 	
 	if(v3d->flag & V3D_CLIPPING)
 		view3d_clr_clipping();
@@ -3047,8 +3085,12 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 		draw_view_axis();
 	else	
 		draw_view_icon();
-	if(U.uiflag & USER_SHOW_VIEWPORTNAME)
+	
+	if(U.uiflag & USER_SHOW_FPS && G.f & G_PLAYANIM) {
+		draw_viewport_fps(sa);
+	} else if(U.uiflag & USER_SHOW_VIEWPORTNAME) {
 		draw_viewport_name(sa);
+	}
 
 	ob= OBACT;
 	if(ob && (U.uiflag & USER_DRAWVIEWINFO)) 
@@ -3090,22 +3132,26 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 }
 
 
-void drawview3d_render(struct View3D *v3d, int winx, int winy)
+void drawview3d_render(struct View3D *v3d, int winx, int winy, float winmat[][4])
 {
 	Base *base;
 	Scene *sce;
-	float winmat[4][4];
+	float v3dwinmat[4][4];
 	
-	update_for_newframe_muted();	/* first, since camera can be animated */
+	if(!winmat)
+		setwinmatrixview3d(winx, winy, NULL);
 
-	setwinmatrixview3d(winx, winy, NULL);
-	
 	setviewmatrixview3d();
 	myloadmatrix(v3d->viewmat);
+
+	/* when winmat is not NULL, it overrides the regular window matrix */
 	glMatrixMode(GL_PROJECTION);
-	mygetmatrix(winmat);
+	if(winmat)
+		myloadmatrix(winmat);
+	mygetmatrix(v3dwinmat);
 	glMatrixMode(GL_MODELVIEW);
-	Mat4MulMat4(v3d->persmat, v3d->viewmat, winmat);
+
+	Mat4MulMat4(v3d->persmat, v3d->viewmat, v3dwinmat);
 	Mat4Invert(v3d->persinv, v3d->persmat);
 	Mat4Invert(v3d->viewinv, v3d->viewmat);
 
@@ -3217,6 +3263,10 @@ static ScrArea *oldsa;
 static double swaptime;
 static int curmode;
 
+/* used for fps display */
+static double redrawtime;
+static double lredrawtime;
+
 int update_time(void)
 {
 	static double ltime;
@@ -3233,6 +3283,31 @@ int update_time(void)
 	tottime += (time - ltime);
 	ltime = time;
 	return (tottime < 0.0);
+}
+
+static void draw_viewport_fps(ScrArea *sa)
+{
+	float fps;
+	char printable[16];
+
+	
+	if (lredrawtime == redrawtime)
+		return;
+	
+	printable[0] = '\0';
+	fps = (float)(1.0/(lredrawtime-redrawtime));
+	
+	/* is this more then half a frame behind? */
+	if (fps+0.5 < FPS) {
+		BIF_ThemeColor(TH_REDALERT);
+		sprintf(printable, "fps: %.2f", (float)fps);
+	} else {
+		BIF_ThemeColor(TH_TEXT_HI);
+		sprintf(printable, "fps: %i", (int)(fps+0.5));
+	}
+	
+	glRasterPos2i(10,  sa->winy-20);
+	BMF_DrawString(G.fonts, printable);
 }
 
 static void inner_play_prefetch_frame(int mode, int cfra)
@@ -3302,7 +3377,7 @@ static int cached_dynamics(int sfra, int efra)
 	Object *ob;
 	ModifierData *md;
 	ParticleSystem *psys;
-	int i, stack_index, cached=1;
+	int i, stack_index=-1, cached=1;
 
 	while(base && cached) {
 		ob = base->object;
@@ -3349,6 +3424,9 @@ void inner_play_anim_loop(int init, int mode)
 		curmode= mode;
 		last_cfra = -1;
 		cached = cached_dynamics(PSFRA,PEFRA);
+		
+		redrawtime = 1.0/FPS;
+		lredrawtime = 0.0;
 		return;
 	}
 
@@ -3372,7 +3450,7 @@ void inner_play_anim_loop(int init, int mode)
 				if (sa->spacetype == SPACE_SEQ) {
 					scrarea_do_windraw(sa);
 				}
-			}
+			}		
 		
 			sa= sa->next;	
 		}
@@ -3484,7 +3562,10 @@ int play_anim(int mode)
 	screen_swapbuffers();
 	
 	while(TRUE) {
-
+		
+		if  (U.uiflag & USER_SHOW_FPS)
+			lredrawtime = PIL_check_seconds_timer();
+		
 		while(qtest()) {
 			
 			/* we test events first because of MKEY event */
@@ -3510,8 +3591,13 @@ int play_anim(int mode)
 		if(ELEM3(event, ESCKEY, SPACEKEY, RIGHTMOUSE)) break;
 		
 		inner_play_anim_loop(0, 0);
+		 
+		
 		screen_swapbuffers();
-				
+		
+		if (U.uiflag & USER_SHOW_FPS)
+			redrawtime = lredrawtime;
+		
 		if((mode & 2) && CFRA==PEFRA) break; /* no replay */	
 	}
 

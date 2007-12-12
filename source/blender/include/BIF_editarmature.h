@@ -101,6 +101,8 @@ void	make_trans_bones (char mode);
 
 int		do_pose_selectbuffer(struct Base *base, unsigned int *buffer, short hits);
 
+void generateSkeleton(void);
+
 void	mouse_armature(void);
 void	remake_editArmature(void);
 void	selectconnected_armature(void);
@@ -117,8 +119,8 @@ void	hide_selected_pose_bones(void);
 void	hide_unselected_pose_bones(void);
 void	show_all_pose_bones(void);
 
-int		bone_looper(Object *ob, struct Bone *bone, void *data,
-				int (*bone_func)(Object *, struct Bone *, void *));
+int		bone_looper(struct Object *ob, struct Bone *bone, void *data,
+				int (*bone_func)(struct Object *, struct Bone *, void *));
 
 void	undo_push_armature(char *name);
 void	armature_bone_rename(struct bArmature *arm, char *oldname, char *newname);

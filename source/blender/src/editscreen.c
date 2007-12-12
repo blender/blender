@@ -531,7 +531,7 @@ static void scrarea_dispatch_header_events(ScrArea *sa)
 	
 	while(bwin_qread(sa->headwin, &evt)) {
 		if(evt.val) {
-			if( uiDoBlocks(&curarea->uiblocks, evt.event)!=UI_NOTHING ) evt.event= 0;
+			if( uiDoBlocks(&curarea->uiblocks, evt.event, 1)!=UI_NOTHING ) evt.event= 0;
 
 			switch(evt.event) {
 			case UI_BUT_EVENT:

@@ -34,6 +34,12 @@
 #include <string.h>
 #include <math.h>
 
+#include <sys/stat.h>
+#include <sys/types.h>
+#include "MEM_guardedalloc.h"
+
+#include "BMF_Api.h"
+
 #ifdef WIN32
 #include <io.h>
 #include <direct.h>
@@ -42,12 +48,6 @@
 #include <unistd.h>
 #include <sys/times.h>
 #endif   
-
-#include <sys/stat.h>
-#include <sys/types.h>
-#include "MEM_guardedalloc.h"
-
-#include "BMF_Api.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -1812,7 +1812,7 @@ void winqreadfilespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	if(val) {
 
 		if( event!=RETKEY && event!=PADENTER)
-			if( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
+			if( uiDoBlocks(&curarea->uiblocks, event, 1)!=UI_NOTHING ) event= 0;
 
 		switch(event) {
 		

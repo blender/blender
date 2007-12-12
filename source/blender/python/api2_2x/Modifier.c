@@ -776,8 +776,6 @@ static PyObject *array_getter( BPy_Modifier * self, int type )
 		return PyFloat_FromDouble( md->length );
 	else if( type == EXPP_MOD_MERGE_DIST )
 		return PyFloat_FromDouble( md->merge_dist );
-	else if( type == EXPP_MOD_MERGE_DIST )
-		return PyFloat_FromDouble( md->merge_dist );
 	else if( type == EXPP_MOD_OFFSET_VEC)
 		return newVectorObject( md->offset, 3, Py_NEW );
 	else if( type == EXPP_MOD_SCALE_VEC)
@@ -1505,6 +1503,8 @@ static PyObject *M_Modifier_TypeDict( void )
 				PyInt_FromLong( eModifierType_Smooth ) );
 		PyConstant_Insert( d, "CAST",
 				PyInt_FromLong( eModifierType_Cast ) );
+		PyConstant_Insert( d, "DISPLACE",
+				PyInt_FromLong( eModifierType_Displace ) );
 	}
 	return S;
 }

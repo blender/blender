@@ -288,7 +288,7 @@ short button(short *var, short min, short max, char *str)
 
 	uiBoundsBlock(block, 5);
 
-	ret= uiDoBlocks(&listb, 0);
+	ret= uiDoBlocks(&listb, 0, 0);
 
 	if(ret==UI_RETURN_OK) return 1;
 	return 0;
@@ -322,7 +322,7 @@ short sbutton(char *var, float min, float max, char *str)
 	uiBoundsBlock(block, 5);
 	
 	mainqenter_ext(BUT_ACTIVATE, 32766, 0);	/* note, button id '32766' is asking for errors some day! */
-	ret= uiDoBlocks(&listb, 0);
+	ret= uiDoBlocks(&listb, 0, 0);
 
 	if(ret==UI_RETURN_OK) return 1;
 	return 0;
@@ -356,7 +356,7 @@ short fbutton(float *var, float min, float max, float a1, float a2, char *str)
 
 	uiBoundsBlock(block, 2);
 
-	ret= uiDoBlocks(&listb, 0);
+	ret= uiDoBlocks(&listb, 0, 0);
 
 	if(ret==UI_RETURN_OK) return 1;
 	return 0;
@@ -416,7 +416,7 @@ int movetolayer_buts(unsigned int *lay, char *title)
 
 	uiBoundsBlock(block, 2);
 
-	ret= uiDoBlocks(&listb, 0);
+	ret= uiDoBlocks(&listb, 0, 0);
 
 	if(ret==UI_RETURN_OK) return 1;
 	return 0;
@@ -466,7 +466,7 @@ int movetolayer_short_buts(short *lay, char *title)
 	
 	uiBoundsBlock(block, 2);
 	
-	ret= uiDoBlocks(&listb, 0);
+	ret= uiDoBlocks(&listb, 0, 0);
 	
 	if(ret==UI_RETURN_OK) return 1;
 	return 0;
@@ -603,7 +603,7 @@ int do_clever_numbuts(char *name, int tot, int winevent)
 	
 	uiBoundsBlock(block, 5);
 
-	event= uiDoBlocks(&listb, 0);
+	event= uiDoBlocks(&listb, 0, 0);
 
 	areawinset(curarea->win);
 	
@@ -2219,7 +2219,7 @@ void toolbox_n(void)
 	}
 	
 	uiBoundsBlock(block, 2);
-	event= uiDoBlocks(&tb_listb, 0);
+	event= uiDoBlocks(&tb_listb, 0, 1);
 	
 	/* free all dynamic entries... */
 	BLI_freelistN(&storage);

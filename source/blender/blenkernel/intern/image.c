@@ -95,7 +95,7 @@
 
 /* ******** IMAGE PROCESSING ************* */
 
-/* used by sequencer */
+/* used by sequencer and image premul option - IMA_DO_PREMUL */
 void converttopremul(struct ImBuf *ibuf)
 {
 	int x, y, val;
@@ -731,7 +731,7 @@ void BKE_add_image_extension(char *string, int imtype)
 		if(!BLI_testextensie(string, ".hdr"))
 			extension= ".hdr";
 	}
-	else if(imtype==R_PNG) {
+	else if(imtype==R_PNG || imtype==R_FFMPEG) {
 		if(!BLI_testextensie(string, ".png"))
 			extension= ".png";
 	}
@@ -746,7 +746,7 @@ void BKE_add_image_extension(char *string, int imtype)
 			extension= ".tga";
 	}
 	else if(ELEM5(imtype, R_MOVIE, R_AVICODEC, R_AVIRAW, R_AVIJPEG, R_JPEG90)) {
-		if(!BLI_testextensie(string, ".jpg"))
+		if(!( BLI_testextensie(string, ".jpg") || BLI_testextensie(string, ".jpeg")))
 			extension= ".jpg";
 	}
 	else if(imtype==R_BMP) {
@@ -1062,7 +1062,7 @@ int BKE_write_ibuf(ImBuf *ibuf, char *name, int imtype, int subimtype, int quali
 	else if ((imtype==R_RADHDR)) {
 		ibuf->ftype= RADHDR;
 	}
-	else if ((imtype==R_PNG)) {
+	else if (imtype==R_PNG || imtype==R_FFMPEG) {
 		ibuf->ftype= PNG;
 	}
 #ifdef WITH_DDS

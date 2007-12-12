@@ -1949,25 +1949,40 @@ static void draw_nodespace_back(ScrArea *sa, SpaceNode *snode)
 		Image *ima= BKE_image_verify_viewer(IMA_TYPE_COMPOSITE, "Viewer Node");
 		ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
 		if(ibuf) {
-			int x, y; 
-			/* somehow the offset has to be calculated inverse */
+			int x, y;
+            float zoom = 1.0;
+            
+            glMatrixMode(GL_PROJECTION);
+            glPushMatrix();
+            glMatrixMode(GL_MODELVIEW);
+            glPushMatrix();
 			
 			glaDefine2DArea(&sa->winrct);
-			/* ortho at pixel level curarea */
-			myortho2(-0.375, sa->winx-0.375, -0.375, sa->winy-0.375);
 
-			x = (sa->winx-ibuf->x)/2 + snode->xof;
-			y = (sa->winx-ibuf->y)/2 + snode->yof;
-
-			if(ibuf->rect)
-				glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_UNSIGNED_BYTE, ibuf->rect);
-			else if(ibuf->channels==4)
-				glaDrawPixelsSafe(x, y, ibuf->x, ibuf->y, ibuf->x, GL_RGBA, GL_FLOAT, ibuf->rect_float);
+            if(ibuf->x > sa->winx || ibuf->y > sa->winy) {
+                float zoomx, zoomy;
+                zoomx= (float)sa->winx/ibuf->x;
+                zoomy= (float)sa->winy/ibuf->y;
+                zoom = MIN2(zoomx, zoomy);
+            }
 			
-			/* sort this out, this should not be needed */
-			myortho2(snode->v2d.cur.xmin, snode->v2d.cur.xmax, snode->v2d.cur.ymin, snode->v2d.cur.ymax);
-			bwin_clear_viewmat(sa->win);	/* clear buttons view */
-			glLoadIdentity();
+            x = (sa->winx-zoom*ibuf->x)/2 + snode->xof;
+			y = (sa->winy-zoom*ibuf->y)/2 + snode->yof;
+
+            glPixelZoom(zoom, zoom);
+
+            glColor4f(1.0, 1.0, 1.0, 1.0);
+			if(ibuf->rect)
+                glaDrawPixelsTex(x, y, ibuf->x, ibuf->y, GL_UNSIGNED_BYTE, ibuf->rect);
+			else if(ibuf->channels==4)
+                glaDrawPixelsTex(x, y, ibuf->x, ibuf->y, GL_FLOAT, ibuf->rect_float);
+		
+            glPixelZoom(1.0, 1.0);
+
+            glMatrixMode(GL_PROJECTION);
+            glPopMatrix();
+            glMatrixMode(GL_MODELVIEW);
+            glPopMatrix();
 		}
 	}
 }

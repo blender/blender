@@ -158,7 +158,7 @@ static short select_bpoint(BPoint *bp, short selstatus, short flag, short hidden
 
 static short swap_selection_beztriple(BezTriple *bezt)
 {
-	if(bezt->f2 & 1)
+	if(bezt->f2 & SELECT)
 		return select_beztriple(bezt, DESELECT, 1, VISIBLE);
 	else
 		return select_beztriple(bezt, SELECT, 1, VISIBLE);
@@ -166,7 +166,7 @@ static short swap_selection_beztriple(BezTriple *bezt)
 
 static short swap_selection_bpoint(BPoint *bp)
 {
-	if(bp->f1 & 1)
+	if(bp->f1 & SELECT)
 		return select_bpoint(bp, DESELECT, 1, VISIBLE);
 	else
 		return select_bpoint(bp, SELECT, 1, VISIBLE);
@@ -182,7 +182,7 @@ short isNurbsel(Nurb *nu)
 		bezt= nu->bezt;
 		a= nu->pntsu;
 		while(a--) {
-			if( (bezt->f1 & 1) || (bezt->f2 & 1) || (bezt->f3 & 1) ) return 1;
+			if( (bezt->f1 & SELECT) || (bezt->f2 & SELECT) || (bezt->f3 & SELECT) ) return 1;
 			bezt++;
 		}
 	}
@@ -190,7 +190,7 @@ short isNurbsel(Nurb *nu)
 		bp= nu->bp;
 		a= nu->pntsu*nu->pntsv;
 		while(a--) {
-			if( (bp->f1 & 1) ) return 1;
+			if( (bp->f1 & SELECT) ) return 1;
 			bp++;
 		}
 	}
@@ -207,7 +207,7 @@ int isNurbsel_count(Nurb *nu)
 		bezt= nu->bezt;
 		a= nu->pntsu;
 		while(a--) {
-			if( (bezt->f1 & 1) || (bezt->f2 & 1) || (bezt->f3 & 1) ) sel++;
+			if (BEZSELECTED_HIDDENHANDLES(bezt)) sel++;
 			bezt++;
 		}
 	}
@@ -215,7 +215,7 @@ int isNurbsel_count(Nurb *nu)
 		bp= nu->bp;
 		a= nu->pntsu*nu->pntsv;
 		while(a--) {
-			if( (bp->f1 & 1) ) sel++;
+			if( (bp->f1 & SELECT) ) sel++;
 			bp++;
 		}
 	}
@@ -1319,9 +1319,9 @@ static void select_adjacent_cp(short next, short cont, short selstatus)
 			while(a--) {
 				if(a-abs(next) < 0) break;
 				sel= 0;
-				if((lastsel==0) && (bezt->hide==0) && ((bezt->f2 & 1) || (selstatus==0))) {
+				if((lastsel==0) && (bezt->hide==0) && ((bezt->f2 & SELECT) || (selstatus==0))) {
 					bezt+=next;
-					if(!(bezt->f2 & 1) || (selstatus==0)) {
+					if(!(bezt->f2 & SELECT) || (selstatus==0)) {
 						sel= select_beztriple(bezt, selstatus, 1, VISIBLE);	
 						if((sel==1) && (cont==0)) lastsel= 1;
 					}							
@@ -1341,9 +1341,9 @@ static void select_adjacent_cp(short next, short cont, short selstatus)
 			while(a--) {
 				if(a-abs(next) < 0) break;
 				sel=0;
-				if((lastsel==0) && (bp->hide==0) && ((bp->f1 & 1) || (selstatus==0))) {
+				if((lastsel==0) && (bp->hide==0) && ((bp->f1 & SELECT) || (selstatus==0))) {
 					bp+=next;
-					if(!(bp->f1 & 1) || (selstatus==0)) {
+					if(!(bp->f1 & SELECT) || (selstatus==0)) {
 						sel= select_bpoint(bp, selstatus, 1, VISIBLE);
 						if((sel==1) && (cont==0)) lastsel= 1;
 					}			
@@ -1372,9 +1372,9 @@ static short nurb_has_selected_cps()
 			bezt= nu->bezt;
 			while(a--) {
 				if(bezt->hide==0) {
-					if((bezt->f1 & 1)
-					|| (bezt->f2 & 1)
-					|| (bezt->f3 & 1)) return 1;
+					if((bezt->f1 & SELECT)
+					|| (bezt->f2 & SELECT)
+					|| (bezt->f3 & SELECT)) return 1;
 				}
 				bezt++;
 			}
@@ -1383,7 +1383,7 @@ static short nurb_has_selected_cps()
 			a= nu->pntsu*nu->pntsv;
 			bp= nu->bp;
 			while(a--) {
-				if((bp->hide==0) && (bp->f1 & 1)) return 1;
+				if((bp->hide==0) && (bp->f1 & SELECT)) return 1;
 				bp++;
 			}
 		}
@@ -1428,7 +1428,7 @@ void hideNurb(int swap)
 			a= nu->pntsu;
 			sel= 0;
 			while(a--) {
-				if(BEZSELECTED(bezt)) {
+				if(BEZSELECTED_HIDDENHANDLES(bezt)) {
 					select_beztriple(bezt, DESELECT, 1, HIDDEN);
 					bezt->hide= 1;
 				}
@@ -1442,11 +1442,11 @@ void hideNurb(int swap)
 			a= nu->pntsu*nu->pntsv;
 			sel= 0;
 			while(a--) {
-				if(swap==0 && (bp->f1 & 1)) {
+				if(swap==0 && (bp->f1 & SELECT)) {
 					select_bpoint(bp, DESELECT, 1, HIDDEN);
 					bp->hide= 1;
 				}
-				else if(swap && (bp->f1 & 1)==0) {
+				else if(swap && (bp->f1 & SELECT)==0) {
 					select_bpoint(bp, DESELECT, 1, HIDDEN);
 					bp->hide= 1;
 				}
@@ -1520,12 +1520,11 @@ void selectswapNurb()
 			a= nu->pntsu;
 			while(a--) {
 				if(bezt->hide==0) {
-					if(bezt->f1 & 1) bezt->f1 &= ~1; 
-					else bezt->f1 |= 1;
-					if(bezt->f2 & 1) bezt->f2 &= ~1; 
-					else bezt->f2 |= 1;
-					if(bezt->f3 & 1) bezt->f3 &= ~1; 
-					else bezt->f3 |= 1;
+					bezt->f2 ^= SELECT; /* always do the center point */
+					if ((G.f & G_HIDDENHANDLES)==0) {
+						bezt->f1 ^= SELECT;
+						bezt->f3 ^= SELECT;
+					}
 				}
 				bezt++;
 			}
@@ -1584,7 +1583,7 @@ void subdivideNurb()
 				bezt= prevbezt+1;
 			}
 			while(a--) {
-				if( BEZSELECTED(prevbezt) && BEZSELECTED(bezt) ) amount++;
+				if( BEZSELECTED_HIDDENHANDLES(prevbezt) && BEZSELECTED_HIDDENHANDLES(bezt) ) amount++;
 				prevbezt= bezt;
 				bezt++;
 			}
@@ -1608,7 +1607,7 @@ void subdivideNurb()
 					memcpy(beztn, prevbezt, sizeof(BezTriple));
 					beztn++;
 
-					if( BEZSELECTED(prevbezt) && BEZSELECTED(bezt) ) {
+					if( BEZSELECTED_HIDDENHANDLES(prevbezt) && BEZSELECTED_HIDDENHANDLES(bezt) ) {
 						memcpy(beztn, bezt, sizeof(BezTriple));
 						
 						/* midpoint subdividing */
@@ -1667,7 +1666,7 @@ void subdivideNurb()
 				bp= prevbp+1;
 			}
 			while(a--) {
-				if( (bp->f1 & 1) && (prevbp->f1 & 1) ) amount++;
+				if( (bp->f1 & SELECT) && (prevbp->f1 & SELECT) ) amount++;
 				prevbp= bp;
 				bp++;
 			}
@@ -1692,7 +1691,7 @@ void subdivideNurb()
 					memcpy(bpn, prevbp, sizeof(BPoint));
 					bpn++;
 
-					if( (bp->f1 & 1) && (prevbp->f1 & 1) ) {
+					if( (bp->f1 & SELECT) && (prevbp->f1 & SELECT) ) {
                  // printf("*** subdivideNurb: insert 'linear' point\n");
 						memcpy(bpn, bp, sizeof(BPoint));
 						bpn->vec[0]= (prevbp->vec[0]+bp->vec[0])/2.0;
@@ -1768,7 +1767,7 @@ void subdivideNurb()
 			bp= nu->bp;
 			for(a=0; a<nu->pntsv; a++) {
 				for(b=0; b<nu->pntsu; b++) {
-					if(bp->f1 & 1) {
+					if(bp->f1 & SELECT) {
 						usel[b]++;
 						vsel[a]++;
 						sel++;
@@ -2000,7 +1999,7 @@ static void findselectedNurbvert(Nurb **nu, BezTriple **bezt, BPoint **bp)
 			bezt1= nu1->bezt;
 			a= nu1->pntsu;
 			while(a--) {
-				if( (bezt1->f1 & 1) || (bezt1->f2 & 1) || (bezt1->f3 & 1) ) {
+				if( (bezt1->f1 & SELECT) || (bezt1->f2 & SELECT) || (bezt1->f3 & SELECT) ) {
 					if(*nu!=0 && *nu!= nu1) {
 						*nu= 0;
 						*bp= 0;
@@ -2238,7 +2237,7 @@ int is_u_selected(Nurb *nu, int u)
 	/* what about resolu == 2? */
 	bp= nu->bp+u;
 	for(v=0; v<nu->pntsv-1; v++, bp+=nu->pntsu) {
-		if(v) if(bp->f1 & 1) return 1;
+		if(v) if(bp->f1 & SELECT) return 1;
 	}
 	
 	return 0;
@@ -2517,7 +2516,7 @@ void addsegment_nurb()
 			if(isNurbsel_count(nu)==1) {
 				/* only 1 selected, not first or last, a little complex, but intuitive */
 				if(nu->pntsv==1) {
-					if( (nu->bp->f1 & 1) || ((nu->bp+nu->pntsu-1)->f1 & 1));
+					if( (nu->bp->f1 & SELECT) || ((nu->bp+nu->pntsu-1)->f1 & SELECT));
 					else break;
 				}
 			}
@@ -2535,23 +2534,23 @@ void addsegment_nurb()
 			if( (nu->type & 7)==CU_BEZIER ) {
 				bezt= nu->bezt;
 				if(nu1==0) {
-					if( BEZSELECTED(bezt) ) nu1= nu;
+					if( BEZSELECTED_HIDDENHANDLES(bezt) ) nu1= nu;
 					else {
 						bezt= bezt+(nu->pntsu-1);
-						if( BEZSELECTED(bezt) ) {
+						if( BEZSELECTED_HIDDENHANDLES(bezt) ) {
 							nu1= nu;
 							switchdirectionNurb(nu);
 						}
 					}
 				}
 				else if(nu2==0) {
-					if( BEZSELECTED(bezt) ) {
+					if( BEZSELECTED_HIDDENHANDLES(bezt) ) {
 						nu2= nu;
 						switchdirectionNurb(nu);
 					}
 					else {
 						bezt= bezt+(nu->pntsu-1);
-						if( BEZSELECTED(bezt) ) {
+						if( BEZSELECTED_HIDDENHANDLES(bezt) ) {
 							nu2= nu;
 						}
 					}
@@ -2561,23 +2560,23 @@ void addsegment_nurb()
 			else if(nu->pntsv==1) {
 				bp= nu->bp;
 				if(nu1==0) {
-					if( bp->f1 & 1) nu1= nu;
+					if( bp->f1 & SELECT) nu1= nu;
 					else {
 						bp= bp+(nu->pntsu-1);
-						if( bp->f1 & 1 ) {
+						if( bp->f1 & SELECT ) {
 							nu1= nu;
 							switchdirectionNurb(nu);
 						}
 					}
 				}
 				else if(nu2==0) {
-					if( bp->f1 & 1) {
+					if( bp->f1 & SELECT ) {
 						nu2= nu;
 						switchdirectionNurb(nu);
 					}
 					else {
 						bp= bp+(nu->pntsu-1);
-						if( bp->f1 & 1 ) {
+						if( bp->f1 & SELECT ) {
 							nu2= nu;
 						}
 					}
@@ -2670,8 +2669,8 @@ void mouse_nurb()
 			if(bezt) {
 
 				if(hand==1) select_beztriple(bezt, SELECT, 1, HIDDEN);
-				else if(hand==0) bezt->f1|= 1;
-				else bezt->f3|= 1;
+				else if(hand==0) bezt->f1|= SELECT;
+				else bezt->f3|= SELECT;
 			}
 			else {
 				lastselbp= bp;
@@ -2683,28 +2682,16 @@ void mouse_nurb()
 		else {
 			if(bezt) {
 				if(hand==1) {
-					if(bezt->f2 & 1) select_beztriple(bezt, DESELECT, 1, HIDDEN);
+					if(bezt->f2 & SELECT) select_beztriple(bezt, DESELECT, 1, HIDDEN);
 					else select_beztriple(bezt, SELECT, 1, HIDDEN);
-				}
-				else if(hand==0) {
-					if(bezt->f1 & 1) {
-						bezt->f1 &= ~1; 
-					}
-					else {
-						bezt->f1 |= 1; 
-					}
-				}
-				else {
-					if(bezt->f3 & 1) { 
-						bezt->f3 &= ~1; 
-					}
-					else { 
-						bezt->f3 |= 1; 
-					}
+				} else if(hand==0) {
+					bezt->f1 ^= SELECT;
+				} else {
+					bezt->f3 ^= SELECT;
 				}
 			}
 			else {
-				if(bp->f1 & 1) select_bpoint(bp, DESELECT, 1, HIDDEN);
+				if(bp->f1 & SELECT) select_bpoint(bp, DESELECT, 1, HIDDEN);
 				else {
 					select_bpoint(bp, SELECT, 1, HIDDEN);
 					lastselbp= bp;
@@ -2863,7 +2850,7 @@ void addvert_Nurb(int mode)
 				(BezTriple*)MEM_callocN((nu->pntsu+1) * sizeof(BezTriple), "addvert_Nurb");
 			memcpy(newbezt+1, bezt, nu->pntsu*sizeof(BezTriple));
 			*newbezt= *bezt;
-			newbezt->f1= newbezt->f2= newbezt->f3= 1;
+			newbezt->f1= newbezt->f2= newbezt->f3= SELECT;
 			if(newbezt->h1 >= 0) newbezt->h2= newbezt->h1;
 			else newbezt->h2= newbezt->h1= HD_ALIGN; /* does this ever happen? */
 			VECCOPY(temp, bezt->vec[1]);
@@ -2881,7 +2868,7 @@ void addvert_Nurb(int mode)
 			MEM_freeN(nu->bezt);
 			nu->bezt= newbezt;
 			newbezt+= nu->pntsu;
-			newbezt->f1= newbezt->f2= newbezt->f3= 1;
+			newbezt->f1= newbezt->f2= newbezt->f3= SELECT;
 			if(newbezt->h1 >= 0) newbezt->h2= newbezt->h1;
 			else newbezt->h2= newbezt->h1= HD_ALIGN; /* does this ever happen? */
 			bezt= nu->bezt+nu->pntsu-1;
@@ -2991,10 +2978,7 @@ void extrude_nurb()
 		}
 		if(nu) {
 			addvert_Nurb('e');
-		}
-		else {
-
-
+		} else {
 			ok= extrudeflagNurb(1); /* '1'= flag */
 		
 			if(ok) {
@@ -3024,7 +3008,7 @@ void makecyclicNurb()
 				a= nu->pntsu;
 				bp= nu->bp;
 				while(a--) {
-					if( bp->f1 & 1 ) {
+					if( bp->f1 & SELECT ) {
 						if(nu->flagu & CU_CYCLIC) nu->flagu--;
 						else nu->flagu++;
 						break;
@@ -3036,7 +3020,7 @@ void makecyclicNurb()
 				a= nu->pntsu;
 				bezt= nu->bezt;
 				while(a--) {
-					if( BEZSELECTED(bezt) ) {
+					if( BEZSELECTED_HIDDENHANDLES(bezt) ) {
 						if(nu->flagu & CU_CYCLIC) nu->flagu--;
 						else nu->flagu++;
 						break;
@@ -3049,7 +3033,7 @@ void makecyclicNurb()
 				a= nu->pntsu;
 				bp= nu->bp;
 				while(a--) {
-					if( bp->f1 & 1 ) {
+					if( bp->f1 & SELECT ) {
 						if(nu->flagu & CU_CYCLIC) nu->flagu--;
 						else {
 							nu->flagu++;
@@ -3077,7 +3061,7 @@ void makecyclicNurb()
 				bp= nu->bp;
 				while(a--) {
 	
-					if( bp->f1 & 1) {
+					if( bp->f1 & SELECT) {
 						if(cyclmode==1 && nu->pntsu>1) {
 							if(nu->flagu & CU_CYCLIC) nu->flagu--;
 							else {
@@ -3167,7 +3151,7 @@ void selectrow_nurb()
 		for(v=0; v<nu->pntsv; v++) {
 			for(u=0; u<nu->pntsu; u++, bp++) {
 				if(bp==lastselbp) {
-					if(bp->f1 & 1) {
+					if(bp->f1 & SELECT) {
 						ok= 1;
 						break;
 					}
@@ -3305,18 +3289,18 @@ void select_more_nurb()
 			bp= nu->bp;
 			selbpoints= MEM_callocN(sizeof(short)*a-nu->pntsu, "selectlist");
 			while(a > 0) {
-				if((selbpoints[a]!=1) && (bp->hide==0) && (bp->f1 & 1)) {
+				if((selbpoints[a]!=1) && (bp->hide==0) && (bp->f1 & SELECT)) {
 					/* upper control point */
 					if(a%nu->pntsu != 0) {
 						tempbp= bp-1;
-						if(!(tempbp->f1 & 1)) select_bpoint(tempbp, SELECT, 1, VISIBLE); 
+						if(!(tempbp->f1 & SELECT)) select_bpoint(tempbp, SELECT, 1, VISIBLE); 
 					}
 
 					/* left control point. select only if it is not selected already */
 					if(a-nu->pntsu > 0) {
 						sel= 0;
 						tempbp= bp+nu->pntsu;
-						if(!(tempbp->f1 & 1)) sel= select_bpoint(tempbp, SELECT, 1, VISIBLE); 
+						if(!(tempbp->f1 & SELECT)) sel= select_bpoint(tempbp, SELECT, 1, VISIBLE); 
 						/* make sure selected bpoint is discarded */
 						if(sel == 1) selbpoints[a-nu->pntsu]= 1;
 					}
@@ -3324,7 +3308,7 @@ void select_more_nurb()
 					/* right control point */
 					if(a+nu->pntsu < nu->pntsu*nu->pntsv) {
 						tempbp= bp-nu->pntsu;
-						if(!(tempbp->f1 & 1)) select_bpoint(tempbp, SELECT, 1, VISIBLE); 
+						if(!(tempbp->f1 & SELECT)) select_bpoint(tempbp, SELECT, 1, VISIBLE); 
 					}
 				
 					/* lower control point. skip next bp in case selection was made */
@@ -3374,7 +3358,7 @@ void select_less_nurb()
 			bp= nu->bp;
 			selbpoints= MEM_callocN(sizeof(short)*a, "selectlist");
 			while(a--) {
-				if((bp->hide==0) && (bp->f1 & 1)) {
+				if((bp->hide==0) && (bp->f1 & SELECT)) {
 					sel= 0;
 									
 					/* check if neighbours have been selected */	
@@ -3382,28 +3366,28 @@ void select_less_nurb()
 					if((a+1)%nu->pntsu==0) sel++;	
 					else {
 						bp--;
-						if((selbpoints[a+1]==1) || ((bp->hide==0) && (bp->f1 & 1))) sel++;
+						if((selbpoints[a+1]==1) || ((bp->hide==0) && (bp->f1 & SELECT))) sel++;
 						bp++;
 					}
 					
 					if((a+1)%nu->pntsu==1) sel++;
 					else {
 						bp++;
-						if((bp->hide==0) && (bp->f1 & 1)) sel++;
+						if((bp->hide==0) && (bp->f1 & SELECT)) sel++;
 						bp--;
 					}
 					
 					if(a+1 > nu->pntsu*nu->pntsv-nu->pntsu) sel++;
 					else {
 						bp-=nu->pntsu;
-						if((selbpoints[a+nu->pntsu]==1) || ((bp->hide==0) && (bp->f1 & 1))) sel++;
+						if((selbpoints[a+nu->pntsu]==1) || ((bp->hide==0) && (bp->f1 & SELECT))) sel++;
 						bp+=nu->pntsu;
 					}
 									
 					if(a < nu->pntsu) sel++;
 					else {
 						bp+=nu->pntsu;
-						if((bp->hide==0) && (bp->f1 & 1)) sel++;
+						if((bp->hide==0) && (bp->f1 & SELECT)) sel++;
 						bp-=nu->pntsu;
 					}
 													
@@ -3428,7 +3412,7 @@ void select_less_nurb()
 				a= nu->pntsu;
 				bezt= nu->bezt;
 				while(a--) {
-					if((bezt->hide==0) && (bezt->f2 & 1)) {
+					if((bezt->hide==0) && (bezt->f2 & SELECT)) {
 						if(lastsel==1) sel= 1;
 						else sel= 0;
 												
@@ -3437,22 +3421,22 @@ void select_less_nurb()
 						if(a==nu->pntsu-1) sel++; 
 						else { 
 							bezt--;
-							if((bezt->hide==0) && (bezt->f2 & 1)) sel++;
+							if((bezt->hide==0) && (bezt->f2 & SELECT)) sel++;
 							bezt++;
 						}
 						
 						if(a==0) sel++;
 						else {
 							bezt++;
-							if((bezt->hide==0) && (bezt->f2 & 1)) sel++;
+							if((bezt->hide==0) && (bezt->f2 & SELECT)) sel++;
 							bezt--;
 						}
-												
+
 						if(sel!=2) {
 							select_beztriple(bezt, DESELECT, 1, VISIBLE);	
-							lastsel= 1;						
-						}				
-						else lastsel= 0;					
+							lastsel= 1;
+						}
+						else lastsel= 0;
 					}
 					else lastsel= 0;
 						
@@ -3463,7 +3447,7 @@ void select_less_nurb()
 				a= nu->pntsu*nu->pntsv;
 				bp= nu->bp;
 				while(a--) {
-					if((lastsel==0) && (bp->hide==0) && (bp->f1 & 1)) {
+					if((lastsel==0) && (bp->hide==0) && (bp->f1 & SELECT)) {
 						if(lastsel!=0) sel= 1;
 						else sel= 0;
 						
@@ -3471,14 +3455,14 @@ void select_less_nurb()
 						if(a==nu->pntsu*nu->pntsv-1) sel++; 
 						else { 
 							bp--;
-							if((bp->hide==0) && (bp->f1 & 1)) sel++;
+							if((bp->hide==0) && (bp->f1 & SELECT)) sel++;
 							bp++;
 						}
 						
 						if(a==0) sel++;
 						else {
 							bp++;
-							if((bp->hide==0) && (bp->f1 & 1)) sel++;
+							if((bp->hide==0) && (bp->f1 & SELECT)) sel++;
 							bp--;
 						}
 											
@@ -3650,7 +3634,7 @@ void delNurb()
 				a= nu->pntsu;
 				if(a) {
 					while(a) {
-						if( BEZSELECTED(bezt) );
+						if( BEZSELECTED_HIDDENHANDLES(bezt) );
 						else break;
 						a--;
 						bezt++;
@@ -3666,7 +3650,7 @@ void delNurb()
 				a= nu->pntsu*nu->pntsv;
 				if(a) {
 					while(a) {
-						if(bp->f1 & 1 );
+						if(bp->f1 & SELECT);
 						else break;
 						a--;
 						bp++;
@@ -3687,7 +3671,7 @@ void delNurb()
 			if( (nu->type & 7)==CU_BEZIER ) {
 				bezt= nu->bezt;
 				for(a=0;a<nu->pntsu;a++) {
-					if( BEZSELECTED(bezt) ) {
+					if( BEZSELECTED_HIDDENHANDLES(bezt) ) {
 						memcpy(bezt, bezt+1, (nu->pntsu-a-1)*sizeof(BezTriple));
 						nu->pntsu--;
 						a--;
@@ -3708,7 +3692,7 @@ void delNurb()
 				bp= nu->bp;
 				
 				for(a=0;a<nu->pntsu;a++) {
-					if( bp->f1 & 1 ) {
+					if( bp->f1 & SELECT ) {
 						memcpy(bp, bp+1, (nu->pntsu-a-1)*sizeof(BPoint));
 						nu->pntsu--;
 						a--;
@@ -3740,14 +3724,14 @@ void delNurb()
 			if( (nu->type & 7)==CU_BEZIER ) {
 				bezt= nu->bezt;
 				for(a=0; a<nu->pntsu-1; a++) {
-					if( BEZSELECTED(bezt) ) {
+					if( BEZSELECTED_HIDDENHANDLES(bezt) ) {
 						bezt1= bezt;
 						bezt2= bezt+1;
-						if( (bezt2->f1 & 1) || (bezt2->f2 & 1) || (bezt2->f3 & 1) ) ;
+						if( (bezt2->f1 & SELECT) || (bezt2->f2 & SELECT) || (bezt2->f3 & SELECT) ) ;
 						else {	/* maybe do not make cyclic */
 							if(a==0 && (nu->flagu & 1) ) {
 								bezt2= bezt+(nu->pntsu-1);
-								if( (bezt2->f1 & 1) || (bezt2->f2 & 1) || (bezt2->f3 & 1) ) {
+								if( (bezt2->f1 & SELECT) || (bezt2->f2 & SELECT) || (bezt2->f3 & SELECT) ) {
 									nu->flagu--;
 									DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 									allqueue(REDRAWVIEW3D, 0);
@@ -3767,7 +3751,7 @@ void delNurb()
 			else if(nu->pntsv==1) {
 				bp= nu->bp;
 				for(a=0; a<nu->pntsu-1; a++) {
-					if( bp->f1 & 1 ) {
+					if( bp->f1 & SELECT ) {
 						bp1= bp;
 						bp2= bp+1;
 						if( bp2->f1 & 1 ) ;
@@ -4056,7 +4040,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 				(BezTriple*)MEM_callocN(2 * sizeof(BezTriple), "addNurbprim1");
 			bezt= nu->bezt;
 			bezt->h1= bezt->h2= HD_ALIGN;
-			bezt->f1= bezt->f2= bezt->f3= 1;
+			bezt->f1= bezt->f2= bezt->f3= SELECT;
 			bezt->radius = 1.0;
 
 			for(a=0;a<3;a++) {
@@ -4071,7 +4055,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 
 			bezt++;
 			bezt->h1= bezt->h2= HD_ALIGN;
-			bezt->f1= bezt->f2= bezt->f3= 1;
+			bezt->f1= bezt->f2= bezt->f3= SELECT;
 			bezt->radius = bezt->weight = 1.0;
 
 			for(a=0;a<3;a++) {
@@ -4093,7 +4077,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			for(a=0;a<4;a++, bp++) {
 				VECCOPY(bp->vec, cent);
 				bp->vec[3]= 1.0;
-				bp->f1= 1;
+				bp->f1= SELECT;
 				bp->radius = bp->weight = 1.0;
 			}
 
@@ -4130,7 +4114,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 		for(a=0;a<5;a++, bp++) {
 			VECCOPY(bp->vec, cent);
 			bp->vec[3]= 1.0;
-			bp->f1= 1;
+			bp->f1= SELECT;
 			bp->radius = bp->weight = 1.0;
 		}
 
@@ -4167,7 +4151,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 				VECCOPY(bezt->vec[a], cent);
 			}
 			bezt->h1= bezt->h2= HD_AUTO;
-			bezt->f1= bezt->f2= bezt->f3= 1;
+			bezt->f1= bezt->f2= bezt->f3= SELECT;
 			bezt->vec[1][0]+= -grid;
 			for(a=0;a<3;a++) Mat3MulVecfl(imat,bezt->vec[a]);
 			bezt->radius = bezt->weight = 1.0;
@@ -4177,7 +4161,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 				VECCOPY(bezt->vec[a], cent);
 			}
 			bezt->h1= bezt->h2= HD_AUTO;
-			bezt->f1= bezt->f2= bezt->f3= 1;
+			bezt->f1= bezt->f2= bezt->f3= SELECT;
 			bezt->vec[1][1]+= grid;
 			for(a=0;a<3;a++) Mat3MulVecfl(imat,bezt->vec[a]);
 			bezt->radius = bezt->weight = 1.0;
@@ -4187,7 +4171,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 				VECCOPY(bezt->vec[a], cent);
 			}
 			bezt->h1= bezt->h2= HD_AUTO;
-			bezt->f1= bezt->f2= bezt->f3= 1;
+			bezt->f1= bezt->f2= bezt->f3= SELECT;
 			bezt->vec[1][0]+= grid;
 			for(a=0;a<3;a++) Mat3MulVecfl(imat,bezt->vec[a]);
 			bezt->radius = bezt->weight = 1.0;
@@ -4197,7 +4181,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 				VECCOPY(bezt->vec[a], cent);
 			}
 			bezt->h1= bezt->h2= HD_AUTO;
-			bezt->f1= bezt->f2= bezt->f3= 1;
+			bezt->f1= bezt->f2= bezt->f3= SELECT;
 			bezt->vec[1][1]+= -grid;
 			for(a=0;a<3;a++) Mat3MulVecfl(imat,bezt->vec[a]);
 			bezt->radius = bezt->weight = 1.0;
@@ -4213,7 +4197,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			bp= nu->bp;
 
 			for(a=0; a<8; a++) {
-				bp->f1= 1;
+				bp->f1= SELECT;
 				VECCOPY(bp->vec, cent);
 
 				if(xzproj==0) {
@@ -4255,7 +4239,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			for(a=0; a<4; a++) {
 				for(b=0; b<4; b++) {
 					VECCOPY(bp->vec, cent);
-					bp->f1= 1;
+					bp->f1= SELECT;
 					fac= (float)a -1.5;
 					bp->vec[0]+= fac*grid;
 					fac= (float)b -1.5;
@@ -4299,7 +4283,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			a= nu->pntsu*nu->pntsv;
 			bp= nu->bp;
 			while(a-- >0) {
-				bp->f1 |= 1;
+				bp->f1 |= SELECT;
 				bp++;
 			}
 		}
@@ -4322,7 +4306,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			bp= nu->bp;
 
 			for(a=0; a<5; a++) {
-				bp->f1= 1;
+				bp->f1= SELECT;
 				VECCOPY(bp->vec, cent);
 				bp->vec[0]+= nurbcircle[a][0]*grid;
 				bp->vec[2]+= nurbcircle[a][1]*grid;
@@ -4343,7 +4327,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			a= nu->pntsu*nu->pntsv;
 			bp= nu->bp;
 			while(a-- >0) {
-				bp->f1 |= 1;
+				bp->f1 |= SELECT;
 				bp++;
 			}
 			BLI_remlink(&editNurb, nu);
@@ -4371,7 +4355,7 @@ Nurb *addNurbprim(int type, int stype, int newname)
 			a= nu->pntsu*nu->pntsv;
 			bp= nu->bp;
 			while(a-- >0) {
-				bp->f1 |= 1;
+				bp->f1 |= SELECT;
 				bp++;
 			}
 
@@ -4546,7 +4530,7 @@ void clear_tilt()
 			bezt= nu->bezt;
 			a= nu->pntsu;
 			while(a--) {
-				if(BEZSELECTED(bezt)) bezt->alfa= 0.0;
+				if(BEZSELECTED_HIDDENHANDLES(bezt)) bezt->alfa= 0.0;
 				bezt++;
 			}
 		}
@@ -4554,7 +4538,7 @@ void clear_tilt()
 			bp= nu->bp;
 			a= nu->pntsu*nu->pntsv;
 			while(a--) {
-				if(bp->f1 & 1) bp->alfa= 0.0;
+				if(bp->f1 & SELECT) bp->alfa= 0.0;
 				bp++;
 			}
 		}
@@ -4582,9 +4566,9 @@ int bezt_compare (const void *e1, const void *e2)
 
 	/* Check selected flags : Ensures that selected keys will be listed first */
 
-	if ((b1->f2 & 1) && !(b2->f2 & 1))
+	if ((b1->f2 & SELECT) && !(b2->f2 & SELECT))
 		return -1;
-	if (!(b1->f2 & 1) && (b2->f2 & 1))
+	if (!(b1->f2 & SELECT) && (b2->f2 & SELECT))
 		return 1;
 
 	return 0;

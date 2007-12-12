@@ -37,6 +37,7 @@
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_constraint_types.h"
+#include "DNA_curve_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -56,6 +57,7 @@
 #include "BKE_modifier.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
+#include "BKE_ipo.h"
 
 #include "BIF_editarmature.h"
 #include "BIF_editaction.h"
@@ -77,6 +79,9 @@
 
 #include "mydevice.h"
 #include "blendef.h"
+#include "transform.h"
+
+#include "BIF_transform.h" /* for autokey TFM_TRANSLATION, etc */
 
 void enter_posemode(void)
 {
@@ -219,7 +224,9 @@ int pose_channel_in_IK_chain(Object *ob, bPoseChannel *pchan)
 
 /* ********************************************** */
 
-/* for the object with pose/action: create path curves for selected bones */
+/* For the object with pose/action: create path curves for selected bones 
+ * This recalculates the WHOLE path within the pchan->pathsf and pchan->pathef range
+ */
 void pose_calculate_path(Object *ob)
 {
 	bArmature *arm;
@@ -238,56 +245,58 @@ void pose_calculate_path(Object *ob)
 		arm->pathsf = SFRA;
 		arm->pathef = EFRA;
 	}
-	if ((arm->pathbc == 0) || (arm->pathac == 0)) {
-		arm->pathbc = 15;
-		arm->pathac = 15;
-	}
 	if (arm->pathsize == 0) {
 		arm->pathsize = 1;
 	}
 	
 	/* set frame values */
 	cfra= CFRA;
-	if (arm->pathflag & ARM_PATH_ACFRA) {
-		sfra = cfra - arm->pathbc;
-		efra = cfra + arm->pathac;
+	sfra = arm->pathsf;
+	efra = arm->pathef;
+	if (efra <= sfra) {
+		error("Can't calculate paths when pathlen <= 0");
+		return;
 	}
-	else {
-		sfra = arm->pathsf;
-		efra = arm->pathef;
-	}
-	if (efra<=sfra) return;
 	
-	DAG_object_update_flags(G.scene, ob, screen_view3d_layers());
+	waitcursor(1);
+	
+	/* hack: for unsaved files, set OB_RECALC so that paths can get calculated */
+	if ((ob->recalc & OB_RECALC)==0) {
+		ob->recalc |= OB_RECALC;
+		DAG_object_update_flags(G.scene, ob, screen_view3d_layers());
+	}
+	else
+		DAG_object_update_flags(G.scene, ob, screen_view3d_layers());
+	
 	
 	/* malloc the path blocks */
-	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if(pchan->bone && (pchan->bone->flag & BONE_SELECTED)) {
-			if(arm->layer & pchan->bone->layer) {
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if ((pchan->bone) && (pchan->bone->flag & BONE_SELECTED)) {
+			if (arm->layer & pchan->bone->layer) {
 				pchan->pathlen= efra-sfra+1;
 				pchan->pathsf= sfra;
 				pchan->pathef= efra+1;
-				if(pchan->path)
+				if (pchan->path)
 					MEM_freeN(pchan->path);
 				pchan->path= MEM_callocN(3*pchan->pathlen*sizeof(float), "pchan path");
 			}
 		}
 	}
 	
-	for(CFRA=sfra; CFRA<=efra; CFRA++) {
+	for (CFRA=sfra; CFRA<=efra; CFRA++) {
 		/* do all updates */
-		for(base= FIRSTBASE; base; base= base->next) {
-			if(base->object->recalc) {
+		for (base= FIRSTBASE; base; base= base->next) {
+			if (base->object->recalc) {
 				int temp= base->object->recalc;
 				object_handle_update(base->object);
 				base->object->recalc= temp;
 			}
 		}
 		
-		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-			if(pchan->bone && (pchan->bone->flag & BONE_SELECTED)) {
-				if(arm->layer & pchan->bone->layer) {
-					if(pchan->path) {
+		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+			if ((pchan->bone) && (pchan->bone->flag & BONE_SELECTED)) {
+				if (arm->layer & pchan->bone->layer) {
+					if (pchan->path) {
 						fp= pchan->path+3*(CFRA-sfra);
 						
 						if (arm->pathflag & ARM_PATH_HEADS) { 
@@ -304,25 +313,113 @@ void pose_calculate_path(Object *ob)
 		}
 	}
 	
+	waitcursor(0);
+	
 	CFRA= cfra;
 	allqueue(REDRAWVIEW3D, 0);	/* recalc tags are still there */
 	allqueue(REDRAWBUTSEDIT, 0);
 }
 
+/* For the object with pose/action: update paths for those that have got them
+ * This should selectively update paths that exist...
+ */
+void pose_recalculate_paths(Object *ob)
+{
+	bArmature *arm;
+	bPoseChannel *pchan;
+	Base *base;
+	float *fp;
+	int cfra;
+	int sfra, efra;
+	
+	if (ob==NULL || ob->pose==NULL)
+		return;
+	arm= ob->data;
+	
+	/* set frame values */
+	cfra = CFRA;
+	sfra = efra = cfra; 
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if ((pchan->bone) && (arm->layer & pchan->bone->layer)) {
+			if (pchan->path) {
+				/* if the pathsf and pathef aren't initialised, abort! */
+				if (ELEM(0, pchan->pathsf, pchan->pathef))	
+					return;
+				
+				/* try to increase area to do (only as much as needed) */
+				sfra= MIN2(sfra, pchan->pathsf);
+				efra= MAX2(efra, pchan->pathef);
+			}
+		}
+	}
+	if (efra <= sfra) return;
+	
+	waitcursor(1);
+	
+	/* hack: for unsaved files, set OB_RECALC so that paths can get calculated */
+	if ((ob->recalc & OB_RECALC)==0) {
+		ob->recalc |= OB_RECALC;
+		DAG_object_update_flags(G.scene, ob, screen_view3d_layers());
+	}
+	else
+		DAG_object_update_flags(G.scene, ob, screen_view3d_layers());
+	
+	for (CFRA=sfra; CFRA<=efra; CFRA++) {
+		/* do all updates */
+		for (base= FIRSTBASE; base; base= base->next) {
+			if (base->object->recalc) {
+				int temp= base->object->recalc;
+				object_handle_update(base->object);
+				base->object->recalc= temp;
+			}
+		}
+		
+		for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+			if ((pchan->bone) && (arm->layer & pchan->bone->layer)) {
+				if (pchan->path) {
+					/* only update if:
+					 *	- in range of this pchan's existing path
+					 *	- ... insert evil filtering/optimising conditions here...
+					 */
+					if (IN_RANGE(CFRA, pchan->pathsf, pchan->pathef)) {
+						fp= pchan->path+3*(CFRA-sfra);
+						
+						if (arm->pathflag & ARM_PATH_HEADS) { 
+							VECCOPY(fp, pchan->pose_head);
+						}
+						else {
+							VECCOPY(fp, pchan->pose_tail);
+						}
+						
+						Mat4MulVecfl(ob->obmat, fp);
+					}
+				}
+			}
+		}
+	}
+	
+	waitcursor(0);
+	
+	CFRA= cfra;
+	allqueue(REDRAWVIEW3D, 0);	/* recalc tags are still there */
+	allqueue(REDRAWBUTSEDIT, 0);
+}
 
-/* for the object with pose/action: clear all path curves */
+/* for the object with pose/action: clear path curves for selected bones only */
 void pose_clear_paths(Object *ob)
 {
 	bPoseChannel *pchan;
 	
-	if(ob==NULL || ob->pose==NULL)
+	if (ob==NULL || ob->pose==NULL)
 		return;
 	
 	/* free the path blocks */
-	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if(pchan->path) {
-			MEM_freeN(pchan->path);
-			pchan->path= NULL;
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if ((pchan->bone) && (pchan->bone->flag & BONE_SELECTED)) {
+			if (pchan->path) {
+				MEM_freeN(pchan->path);
+				pchan->path= NULL;
+			}
 		}
 	}
 	
@@ -387,7 +484,7 @@ void pose_special_editmenu(void)
 	if(!ob && !ob->pose) return;
 	if(ob==G.obedit || (ob->flag & OB_POSEMODE)==0) return;
 	
-	nr= pupmenu("Specials%t|Select Constraint Target%x1|Flip Left-Right Names%x2|Calculate Paths%x3|Clear All Paths%x4|Clear User Transform %x5");
+	nr= pupmenu("Specials%t|Select Constraint Target%x1|Flip Left-Right Names%x2|Calculate Paths%x3|Clear Paths%x4|Clear User Transform %x5|Relax Pose %x6");
 	if(nr==1) {
 		pose_select_constraint_target();
 	}
@@ -404,6 +501,9 @@ void pose_special_editmenu(void)
 		rest_pose(ob->pose);
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		BIF_undo_push("Clear User Transform Pose");
+	}
+	else if(nr==6) {
+		pose_relax();
 	}
 }
 
@@ -977,4 +1077,182 @@ void pose_movetolayer(void)
 		allqueue(REDRAWACTION, 0);
 		allqueue(REDRAWBUTSEDIT, 0);
 	}
+}
+
+
+/* for use with pose_relax only */
+static int pose_relax_icu(struct IpoCurve *icu, float framef, float *val, float *frame_prev, float *frame_next)
+{
+	if (!icu) {
+		return 0;
+	} else {
+		BezTriple *bezt = icu->bezt;
+		
+		BezTriple *bezt_prev=NULL, *bezt_next=NULL;
+		float w1, w2, wtot;
+		int i;
+		
+		for (i=0; i < icu->totvert; i++, bezt++) {
+			if (bezt->vec[1][0] < framef - 0.5) {
+				bezt_prev = bezt;
+			} else {
+				break;
+			}
+		}
+		
+		if (bezt_prev==NULL) return 0;
+		
+		/* advance to the next, dont need to advance i */
+		bezt = bezt_prev+1;
+		
+		for (; i < icu->totvert; i++, bezt++) {
+			if (bezt->vec[1][0] > framef + 0.5) {
+				bezt_next = bezt;
+						break;
+			}
+		}
+		
+		if (bezt_next==NULL) return 0;
+	
+		if (val) {
+			w1 = framef - bezt_prev->vec[1][0];
+			w2 = bezt_next->vec[1][0] - framef;
+			wtot = w1 + w2;
+			w1=w1/wtot;
+			w2=w2/wtot;
+#if 0
+			val = (bezt_prev->vec[1][1] * w2) + (bezt_next->vec[1][1] * w1);
+#else
+			/* apply the value with a hard coded 6th */
+			*val = (((bezt_prev->vec[1][1] * w2) + (bezt_next->vec[1][1] * w1)) + (*val * 5.0f)) / 6.0f;
+#endif
+		}
+		
+		if (frame_prev)	*frame_prev = bezt_prev->vec[1][0];
+		if (frame_next)	*frame_next = bezt_next->vec[1][0];
+		
+		return 1;
+	}
+}
+
+void pose_relax()
+{
+	Object *ob = OBACT;
+	bPose *pose;
+	bAction *act;
+	bArmature *arm;
+	
+	IpoCurve *icu_w, *icu_x, *icu_y, *icu_z;
+	
+	bPoseChannel *pchan;
+	bActionChannel *achan;
+	float framef = F_CFRA;
+	float frame_prev, frame_next;
+	float quat_prev[4], quat_next[4], quat_interp[4], quat_orig[4];
+	
+	/*int do_scale = 0;
+	int do_loc = 0;
+	int do_quat = 0;
+	int flag = 0;*/
+	int do_w, do_x, do_y, do_z;
+	
+	if (!ob) return;
+	
+	pose = ob->pose;
+	act = ob->action;
+	arm = (bArmature *)ob->data;
+	
+	if (!pose || !act || !arm) return;
+	
+	for (pchan=pose->chanbase.first; pchan; pchan= pchan->next){
+		if(pchan->bone->layer & arm->layer) {
+			if(pchan->bone->flag & BONE_SELECTED) {
+				/* do we have an ipo curve? */
+				achan= get_action_channel(act, pchan->name);
+				if(achan && achan->ipo) {
+					/*calc_ipo(achan->ipo, ctime);*/
+					
+					do_x = pose_relax_icu(find_ipocurve(achan->ipo, AC_LOC_X), framef, &pchan->loc[0], NULL, NULL);
+					do_y = pose_relax_icu(find_ipocurve(achan->ipo, AC_LOC_Y), framef, &pchan->loc[1], NULL, NULL);
+					do_z = pose_relax_icu(find_ipocurve(achan->ipo, AC_LOC_Z), framef, &pchan->loc[2], NULL, NULL);
+					/* do_loc = do_x + do_y + do_z */
+					
+					if (G.flags & G_RECORDKEYS) {
+						if (do_x) insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_X, 0);
+						if (do_y) insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Y, 0);
+						if (do_z) insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_LOC_Z, 0);
+					}
+					
+					do_x = pose_relax_icu(find_ipocurve(achan->ipo, AC_SIZE_X), framef, &pchan->size[0], NULL, NULL);
+					do_y = pose_relax_icu(find_ipocurve(achan->ipo, AC_SIZE_Y), framef, &pchan->size[1], NULL, NULL);
+					do_z = pose_relax_icu(find_ipocurve(achan->ipo, AC_SIZE_Z), framef, &pchan->size[2], NULL, NULL);
+					/* do_scale = do_x + do_y + do_z */
+					
+					if (G.flags & G_RECORDKEYS) {
+						if (do_x) insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_X, 0);
+						if (do_y) insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Y, 0);
+						if (do_z) insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_SIZE_Z, 0);
+					}
+					
+					if(	((icu_w = find_ipocurve(achan->ipo, AC_QUAT_W))) &&
+						((icu_x = find_ipocurve(achan->ipo, AC_QUAT_X))) &&
+						((icu_y = find_ipocurve(achan->ipo, AC_QUAT_Y))) &&
+						((icu_z = find_ipocurve(achan->ipo, AC_QUAT_Z))) )
+					{
+						/* use the quatw keyframe as a basis for others */
+						if (pose_relax_icu(icu_w, framef, NULL, &frame_prev, &frame_next)) {
+							/* get 2 quats */
+							quat_prev[0] = eval_icu(icu_w, frame_prev);
+							quat_prev[1] = eval_icu(icu_x, frame_prev);
+							quat_prev[2] = eval_icu(icu_y, frame_prev);
+							quat_prev[3] = eval_icu(icu_z, frame_prev);
+							
+							quat_next[0] = eval_icu(icu_w, frame_next);
+							quat_next[1] = eval_icu(icu_x, frame_next);
+							quat_next[2] = eval_icu(icu_y, frame_next);
+							quat_next[3] = eval_icu(icu_z, frame_next);
+							
+#if 0
+							/* apply the setting, completely smooth */
+							QuatInterpol(pchan->quat, quat_prev, quat_next, (framef-frame_prev) / (frame_next-frame_prev) );
+#else
+							/* tricky interpolation */
+							QuatInterpol(quat_interp, quat_prev, quat_next, (framef-frame_prev) / (frame_next-frame_prev) );
+							QUATCOPY(quat_orig, pchan->quat);
+							QuatInterpol(pchan->quat, quat_orig, quat_interp, 1.0f/6.0f);
+							/* done */
+#endif
+							/*do_quat++;*/
+							
+							if (G.flags & G_RECORDKEYS) {
+								insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_X, 0);
+								insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Y, 0);
+								insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_Z, 0);
+								insertkey(&ob->id, ID_PO, pchan->name, NULL, AC_QUAT_W, 0);
+							}
+						}
+					}
+					
+					if (G.flags & G_RECORDKEYS) {
+						pchan->bone->flag &= ~BONE_UNKEYED;
+					}
+				}
+			}
+		}
+	}
+	
+	ob->pose->flag |= (POSE_LOCKED|POSE_DO_UNLOCK);
+	
+#if 0
+// 	/* auto-keyframing - dosnt work, no idea why, do manually above */
+	if (do_loc)		flag |= TFM_TRANSLATION;
+	if (do_scale)	flag |= TFM_RESIZE;
+	if (do_quat)	flag |= TFM_ROTATION;
+	autokeyframe_pose_cb_func(ob, flag, 0);
+#endif	
+	
+	
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+	BIF_undo_push("Relax Pose");
+	
 }

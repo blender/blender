@@ -5269,7 +5269,7 @@ static void particleSystemModifier_initData(ModifierData *md)
 	ParticleSystemModifierData *psmd= (ParticleSystemModifierData*) md;
 	psmd->psys= 0;
 	psmd->dm=0;
-
+	psmd->totdmvert= psmd->totdmedge= psmd->totdmface= 0;
 }
 static void particleSystemModifier_freeData(ModifierData *md)
 {
@@ -5313,6 +5313,8 @@ CustomDataMask particleSystemModifier_requiredDataMask(ModifierData *md)
 	/* particles only need this if they are after a non deform modifier, and
 	 * the modifier stack will only create them in that case. */
 	dataMask |= CD_MASK_ORIGSPACE;
+
+	dataMask |= CD_MASK_ORCO;
 	
 	return dataMask;
 }
@@ -5347,7 +5349,7 @@ static void particleSystemModifier_deformVerts(
 	DerivedMesh *dm = derivedData;
 	ParticleSystemModifierData *psmd= (ParticleSystemModifierData*) md;
 	ParticleSystem * psys=0;
-	int totvert=0,totedge=0,totface=0,needsFree=0;
+	int needsFree=0;
 
 	if(ob->particlesystem.first)
 		psys=psmd->psys;
@@ -5363,6 +5365,8 @@ static void particleSystemModifier_deformVerts(
 
 			CDDM_apply_vert_coords(dm, vertexCos);
 			//CDDM_calc_normals(dm);
+			
+			DM_add_vert_layer(dm, CD_ORCO, CD_ASSIGN, get_mesh_orco_verts(ob));
 
 			needsFree=1;
 		}
@@ -5396,9 +5400,6 @@ static void particleSystemModifier_deformVerts(
 
 	/* clear old dm */
 	if(psmd->dm){
-		totvert=psmd->dm->getNumVerts(psmd->dm);
-		totedge=psmd->dm->getNumEdges(psmd->dm);
-		totface=psmd->dm->getNumFaces(psmd->dm);
 		psmd->dm->needsFree = 1;
 		psmd->dm->release(psmd->dm);
 	}
@@ -5416,17 +5417,18 @@ static void particleSystemModifier_deformVerts(
 	psmd->dm->needsFree = 0;
 
 	/* report change in mesh structure */
-	if(psmd->dm->getNumVerts(psmd->dm)!=totvert ||
-	   psmd->dm->getNumEdges(psmd->dm)!=totedge ||
-	   psmd->dm->getNumFaces(psmd->dm)!=totface){
+	if(psmd->dm->getNumVerts(psmd->dm)!=psmd->totdmvert ||
+	   psmd->dm->getNumEdges(psmd->dm)!=psmd->totdmedge ||
+	   psmd->dm->getNumFaces(psmd->dm)!=psmd->totdmface){
 		/* in file read dm hasn't really changed but just wasn't saved in file */
-		if(psmd->flag & eParticleSystemFlag_Loaded)
-			psmd->flag &= ~eParticleSystemFlag_Loaded;
-		else{
-			psys->recalc |= PSYS_RECALC_HAIR;
-			psys->recalc |= PSYS_DISTR;
-			psmd->flag |= eParticleSystemFlag_DM_changed;
-		}
+
+		psys->recalc |= PSYS_RECALC_HAIR;
+		psys->recalc |= PSYS_DISTR;
+		psmd->flag |= eParticleSystemFlag_DM_changed;
+
+		psmd->totdmvert= psmd->dm->getNumVerts(psmd->dm);
+		psmd->totdmedge= psmd->dm->getNumEdges(psmd->dm);
+		psmd->totdmface= psmd->dm->getNumFaces(psmd->dm);
 	}
 
 	if(psys){
@@ -5766,7 +5768,7 @@ static void explodeModifier_createFacepa(ExplodeModifierData *emd,
 	/* make tree of emitter locations */
 	tree=BLI_kdtree_new(totpart);
 	for(p=0,pa=psys->particles; p<totpart; p++,pa++){
-		psys_particle_on_dm(ob,dm,psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,0,0,0);
+		psys_particle_on_dm(ob,psmd->dm,psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,0,0,0,0,0);
 		BLI_kdtree_insert(tree, p, co, NULL);
 	}
 	BLI_kdtree_balance(tree);
@@ -6337,7 +6339,7 @@ static DerivedMesh * explodeModifier_explodeMesh(ExplodeModifierData *emd,
 	/*duplicate & displace vertices*/
 	for(i=0, pa=pars; i<=totpart; i++, pa++){
 		if(i!=totpart){
-			psys_particle_on_emitter(ob, psmd,part->from,pa->num,-1,pa->fuv,pa->foffset,loc0,nor,0,0);
+			psys_particle_on_emitter(ob, psmd,part->from,pa->num,-1,pa->fuv,pa->foffset,loc0,nor,0,0,0,0);
 			Mat4MulVecfl(ob->obmat,loc0);
 
 			state.time=cfra;
@@ -6453,7 +6455,10 @@ static DerivedMesh * explodeModifier_applyModifier(
 		if(psys->part==0 || psys->particles==0) return derivedData;
 
 		/* 1. find faces to be exploded if needed */
-		if(emd->facepa==0 || psmd->flag&eParticleSystemFlag_Pars || emd->flag&eExplodeFlag_CalcFaces){
+		if(emd->facepa==0
+			|| psmd->flag&eParticleSystemFlag_Pars
+			|| emd->flag&eExplodeFlag_CalcFaces
+			|| MEM_allocN_len(emd->facepa)/sizeof(int) != dm->getNumFaces(dm)){
 			if(psmd->flag & eParticleSystemFlag_Pars)
 				psmd->flag &= ~eParticleSystemFlag_Pars;
 			
@@ -6625,18 +6630,16 @@ static void meshdeformModifier_do(
 			tmpdm->release(tmpdm);
 	}
 	else
-		cagedm= mesh_get_derived_final(mmd->object, CD_MASK_BAREMESH);
+		cagedm= mmd->object->derivedFinal;
 	
-	/* TODO: this could give inifinite loop for circular dependency */
 	if(!cagedm)
 		return;
 
  	/* compute matrices to go in and out of cage object space */
-	Mat4Invert(imat, (mmd->bindcos)? mmd->bindmat: mmd->object->obmat);
+	Mat4Invert(imat, mmd->object->obmat);
 	Mat4MulMat4(cagemat, ob->obmat, imat);
 	Mat4Invert(icagemat, cagemat);
-	Mat4Invert(imat, ob->obmat);
-	Mat3CpyMat4(iobmat, imat);
+	Mat3CpyMat4(iobmat, icagemat);
 
 	/* bind weights if needed */
 	if(!mmd->bindcos)
@@ -6658,9 +6661,16 @@ static void meshdeformModifier_do(
 
 	dco= MEM_callocN(sizeof(*dco)*totcagevert, "MDefDco");
 	for(a=0; a<totcagevert; a++) {
+		/* get cage vertex in world space with binding transform */
 		VECCOPY(co, cagemvert[a].co);
-		Mat4MulVecfl(mmd->object->obmat, co);
-		VECSUB(dco[a], co, bindcos[a]);
+
+		if(G.rt != 527) {
+			Mat4MulVecfl(mmd->bindmat, co);
+			/* compute difference with world space bind coord */
+			VECSUB(dco[a], co, bindcos[a]);
+		}
+		else
+			VECCOPY(dco[a], co)
 	}
 
 	defgrp_index = -1;
@@ -6707,6 +6717,7 @@ static void meshdeformModifier_do(
 		}
 
 		if(mmd->flag & MOD_MDEF_DYNAMIC_BIND) {
+			/* transform coordinate into cage's local space */
 			VECCOPY(co, vertexCos[b]);
 			Mat4MulVecfl(cagemat, co);
 			totweight= meshdeform_dynamic_bind(mmd, dco, co);
@@ -6727,7 +6738,10 @@ static void meshdeformModifier_do(
 		if(totweight > 0.0f) {
 			VecMulf(co, fac/totweight);
 			Mat3MulVecfl(iobmat, co);
-			VECADD(vertexCos[b], vertexCos[b], co);
+			if(G.rt != 527)
+				VECADD(vertexCos[b], vertexCos[b], co)
+			else
+				VECCOPY(vertexCos[b], co)
 		}
 	}
 
@@ -7021,7 +7035,9 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 
 		mti = INIT_TYPE(Boolean);
 		mti->type = eModifierTypeType_Nonconstructive;
-		mti->flags = eModifierTypeFlag_AcceptsMesh | eModifierTypeFlag_RequiresOriginalData;
+		mti->flags = eModifierTypeFlag_AcceptsMesh
+					 | eModifierTypeFlag_RequiresOriginalData
+					 | eModifierTypeFlag_UsesPointCache;
 		mti->copyData = booleanModifier_copyData;
 		mti->isDisabled = booleanModifier_isDisabled;
 		mti->applyModifier = booleanModifier_applyModifier;
@@ -7045,7 +7061,8 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti = INIT_TYPE(ParticleSystem);
 		mti->type = eModifierTypeType_OnlyDeform;
 		mti->flags = eModifierTypeFlag_AcceptsMesh
-					| eModifierTypeFlag_SupportsMapping;
+					| eModifierTypeFlag_SupportsMapping
+					| eModifierTypeFlag_UsesPointCache;
 #if 0
 					| eModifierTypeFlag_SupportsEditmode;
 					|eModifierTypeFlag_EnableInEditmode;
@@ -7479,5 +7496,18 @@ int modifiers_indexInObject(Object *ob, ModifierData *md_seek)
 	for (md=ob->modifiers.first; (md && md_seek!=md); md=md->next, i++);
 	if (!md) return -1; /* modifier isnt in the object */
 	return i;
+}
+
+int modifiers_usesPointCache(Object *ob)
+{
+	ModifierData *md = ob->modifiers.first;
+
+	for (; md; md=md->next) {
+		ModifierTypeInfo *mti = modifierType_getInfo(md->type);
+		if (mti->flags & eModifierTypeFlag_UsesPointCache) {
+			return 1;
+		}
+	}
+	return 0;
 }
 

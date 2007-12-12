@@ -1211,7 +1211,7 @@ static void draw_pose_dofs(Object *ob)
 	
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		bone= pchan->bone;
-		if(bone && !(bone->flag & BONE_HIDDEN_P)) {
+		if(bone && !(bone->flag & (BONE_HIDDEN_P|BONE_HIDDEN_PG))) {
 			if(bone->flag & BONE_SELECTED) {
 				if(bone->layer & arm->layer) {
 					if(pchan->ikflag & (BONE_IK_XLIMIT|BONE_IK_ZLIMIT)) {
@@ -1346,7 +1346,7 @@ static void draw_pose_channels(Base *base, int dt)
 			
 			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 				bone= pchan->bone;
-				if(bone && !(bone->flag & (BONE_HIDDEN_P|BONE_NO_DEFORM))) {
+				if(bone && !(bone->flag & (BONE_HIDDEN_P|BONE_NO_DEFORM|BONE_HIDDEN_PG))) {
 					if(bone->flag & (BONE_SELECTED))
 						if(bone->layer & arm->layer)
 							draw_sphere_bone_dist(smat, imat, bone->flag, pchan, NULL);
@@ -1369,14 +1369,14 @@ static void draw_pose_channels(Base *base, int dt)
 		
 		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 			bone= pchan->bone;
-			if(bone && !(bone->flag & BONE_HIDDEN_P)) {
+			if(bone && !(bone->flag & (BONE_HIDDEN_P|BONE_HIDDEN_PG))) {
 				if(bone->layer & arm->layer) {
 					glPushMatrix();
 					glMultMatrixf(pchan->pose_mat);
 					
 					/* catch exception for bone with hidden parent */
 					flag= bone->flag;
-					if(bone->parent && (bone->parent->flag & BONE_HIDDEN_P))
+					if(bone->parent && (bone->parent->flag & (BONE_HIDDEN_P|BONE_HIDDEN_PG)))
 						flag &= ~BONE_CONNECTED;
 					
 					if(pchan->custom && !(arm->flag & ARM_NO_CUSTOM))
@@ -1395,7 +1395,7 @@ static void draw_pose_channels(Base *base, int dt)
 			}
 			if (index!= -1) index+= 0x10000;	// pose bones count in higher 2 bytes only
 		}
-		/* very very confusing... but in object mode, solid draw, we cannot do glLoadName yet, stick bones are dawn in next loop */
+		/* very very confusing... but in object mode, solid draw, we cannot do glLoadName yet, stick bones are drawn in next loop */
 		if(arm->drawtype!=ARM_LINE) {
 			glLoadName (index & 0xFFFF);	// object tag, for bordersel optim
 			index= -1;
@@ -1418,7 +1418,7 @@ static void draw_pose_channels(Base *base, int dt)
 		
 		for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 			bone= pchan->bone;
-			if(bone && !(bone->flag & BONE_HIDDEN_P)) {
+			if(bone && !(bone->flag & (BONE_HIDDEN_P|BONE_HIDDEN_PG))) {
 				if(bone->layer & arm->layer) {
 					if (do_dashed && bone->parent) {
 						/*	Draw a line from our root to the parent's tip */
@@ -1456,7 +1456,7 @@ static void draw_pose_channels(Base *base, int dt)
 					
 					/* catch exception for bone with hidden parent */
 					flag= bone->flag;
-					if(bone->parent && (bone->parent->flag & BONE_HIDDEN_P))
+					if(bone->parent && (bone->parent->flag & (BONE_HIDDEN_P|BONE_HIDDEN_PG)))
 						flag &= ~BONE_CONNECTED;
 					
 					/* extra draw service for pose mode */
@@ -1510,7 +1510,7 @@ static void draw_pose_channels(Base *base, int dt)
 			if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
 			
 			for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-				if((pchan->bone->flag & BONE_HIDDEN_P)==0) {
+				if((pchan->bone->flag & (BONE_HIDDEN_P|BONE_HIDDEN_PG))==0) {
 					if(pchan->bone->layer & arm->layer) {
 						if (arm->flag & (ARM_EDITMODE|ARM_POSEMODE)) {
 							bone= pchan->bone;
@@ -1727,20 +1727,26 @@ static void draw_ebones(Object *ob, int dt)
 	}
 }
 
-/* in view space */
+/* ****************************** Armature Visualisation ******************************** */
+
+/* ---------- Paths --------- */
+
+/* draw bone paths
+ *	- in view space 
+ */
 static void draw_pose_paths(Object *ob)
 {
 	bArmature *arm= ob->data;
 	bPoseChannel *pchan;
 	bAction *act;
 	bActionChannel *achan;
-	CfraElem *ce;
-	ListBase ak;
-	float *fp;
+	ActKeyColumn *ak;
+	ListBase keys;
+	float *fp, *fp_start;
 	int a, stepsize;
-	int sfra, efra;
+	int sfra, efra, len;
 	
-	if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
+	if (G.vd->zbuf) glDisable(GL_DEPTH_TEST);
 	
 	glPushMatrix();
 	glLoadMatrixf(G.vd->viewmat);
@@ -1759,38 +1765,84 @@ static void draw_pose_paths(Object *ob)
 				}
 				
 				/* get frame ranges */
-				sfra= pchan->pathsf;
-				efra = sfra + pchan->pathlen;
-				
-				/* draw curve-line of path */
-				if ((CFRA > sfra) && (CFRA < efra)) {
-					/* Show before/after current frame with slight difference in colour intensity 
-					 * This is done in two loops, as there seems to be some problems with changing color
-					 * or something during a loop (noted somewhere in the codebase)
+				if (arm->pathflag & ARM_PATH_ACFRA) {
+					int sind;
+					
+					/* With "Around Current", we only choose frames from around 
+					 * the current frame to draw. However, this range is still 
+					 * restricted by the limits of the original path.
 					 */
+					sfra= CFRA - arm->pathbc;
+					efra= CFRA + arm->pathac;
+					if (sfra < pchan->pathsf) sfra= pchan->pathsf;
+					if (efra > pchan->pathef) efra= pchan->pathef;
 					
-					/* 	before cfra (darker) */
-					BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.2);
-					glBegin(GL_LINE_STRIP);
-					for (a=0, fp=pchan->path; (sfra+a)<=CFRA; a++, fp+=3)
-						glVertex3fv(fp);
-					glEnd();
+					len= efra - sfra;
 					
-					/* after cfra (lighter) - backtrack a bit so that we don't have gaps */
-					BIF_ThemeColorBlend(TH_WIRE, TH_BONE_POSE, 0.7);
-					glBegin(GL_LINE_STRIP);
-					for (--a, fp-=3; a<pchan->pathlen; a++, fp+=3)
-						glVertex3fv(fp);
-					glEnd();
+					sind= sfra - pchan->pathsf;
+					fp_start= (pchan->path + (3*sind));
 				}
 				else {
-					/* show both directions with same intensity (cfra somewhere else) */
-					BIF_ThemeColorBlend(TH_WIRE, TH_BACK, 0.7);
-					glBegin(GL_LINE_STRIP);
-					for (a=0, fp= pchan->path; a<pchan->pathlen; a++, fp+=3)
-						glVertex3fv(fp);
-					glEnd();
+					sfra= pchan->pathsf;
+					efra = sfra + pchan->pathlen;
+					len = pchan->pathlen;
+					fp_start = pchan->path;
 				}
+				
+				/* draw curve-line of path */
+				glShadeModel(GL_SMOOTH);
+				
+				glBegin(GL_LINE_STRIP); 				
+				for (a=0, fp=fp_start; a<len; a++, fp+=3) {
+					float intensity; /* how faint */
+					
+					/* set colour
+					 * 	- more intense for active/selected bones, less intense for unselected bones
+					 * 	- black for before current frame, green for current frame, blue for after current frame
+					 * 	- intensity decreases as distance from current frame increases
+					 */
+					#define SET_INTENSITY(A, B, C, min, max) (((1.0f - ((C - B) / (C - A))) * (max-min)) + min) 
+					if ((a+sfra) < CFRA) {
+						/* black - before cfra */
+						if (pchan->bone->flag & BONE_SELECTED) {
+							// intensity= 0.5;
+							intensity = SET_INTENSITY(sfra, a, CFRA, 0.25f, 0.75f);
+						}
+						else {
+							//intensity= 0.8;
+							intensity = SET_INTENSITY(sfra, a, CFRA, 0.68f, 0.92f);
+						}
+						BIF_ThemeColorBlend(TH_WIRE, TH_BACK, intensity);
+					}
+					else if ((a+sfra) > CFRA) {
+						/* blue - after cfra */
+						if (pchan->bone->flag & BONE_SELECTED) {
+							//intensity = 0.5;
+							intensity = SET_INTENSITY(CFRA, a, efra, 0.25f, 0.75f);
+						}
+						else {
+							//intensity = 0.8;
+							intensity = SET_INTENSITY(CFRA, a, efra, 0.68f, 0.92f);
+						}
+						BIF_ThemeColorBlend(TH_BONE_POSE, TH_BACK, intensity);
+					}
+					else {
+						/* green - on cfra */
+						if (pchan->bone->flag & BONE_SELECTED) {
+							intensity= 0.3;
+						}
+						else {
+							intensity= 0.8;
+						}
+						BIF_ThemeColorBlend(TH_CFRAME, TH_BACK, intensity);
+					}	
+					
+					/* draw a vertex with this colour */ 
+					glVertex3fv(fp);
+				}
+				
+				glEnd();
+				glShadeModel(GL_FLAT);
 				
 				glPointSize(1.0);
 				
@@ -1798,20 +1850,20 @@ static void draw_pose_paths(Object *ob)
 				 * NOTE: this is not really visible/noticable
 				 */
 				glBegin(GL_POINTS);
-				for(a=0, fp= pchan->path; a<pchan->pathlen; a++, fp+=3) 
+				for (a=0, fp=fp_start; a<len; a++, fp+=3) 
 					glVertex3fv(fp);
 				glEnd();
 				
 				/* Draw little white dots at each framestep value */
 				BIF_ThemeColor(TH_TEXT_HI);
 				glBegin(GL_POINTS);
-				for (a=0, fp= pchan->path; a<pchan->pathlen; a+=stepsize, fp+=(stepsize*3)) 
+				for (a=0, fp=fp_start; a<len; a+=stepsize, fp+=(stepsize*3)) 
 					glVertex3fv(fp);
 				glEnd();
 				
 				/* Draw frame numbers at each framestep value */
 				if (arm->pathflag & ARM_PATH_FNUMS) {
-					for(a=0, fp= pchan->path; a<pchan->pathlen; a+=stepsize, fp+=(stepsize*3)) {
+					for (a=0, fp=fp_start; a<len; a+=stepsize, fp+=(stepsize*3)) {
 						char str[32];
 						
 						/* only draw framenum if several consecutive highlighted points don't occur on same point */
@@ -1820,7 +1872,7 @@ static void draw_pose_paths(Object *ob)
 							sprintf(str, "  %d\n", (a+sfra));
 							BMF_DrawString(G.font, str);
 						}
-						else if ((a > stepsize) && (a < pchan->pathlen-stepsize)) { 
+						else if ((a > stepsize) && (a < len-stepsize)) { 
 							if ((VecEqual(fp, fp-(stepsize*3))==0) || (VecEqual(fp, fp+(stepsize*3))==0)) {
 								glRasterPos3fv(fp);
 								sprintf(str, "  %d\n", (a+sfra));
@@ -1833,30 +1885,34 @@ static void draw_pose_paths(Object *ob)
 				/* Keyframes - dots and numbers */
 				if (arm->pathflag & ARM_PATH_KFRAS) {
 					/* build list of all keyframes in active action for pchan */
-					ak.first = ak.last = NULL;	
+					keys.first = keys.last = NULL;	
 					act= ob_get_action(ob);
 					if (act) {
 						achan= get_action_channel(act, pchan->name);
 						if (achan) 
-							ipo_to_keylist(achan->ipo, &ak, NULL);
+							ipo_to_keylist(achan->ipo, &keys, NULL);
 					}
 					
-					/* Draw little yellow dots at each keyframe */
+					/* Draw slightly-larger yellow dots at each keyframe */
 					BIF_ThemeColor(TH_VERTEX_SELECT);
+					glPointSize(5.0);
+					
 					glBegin(GL_POINTS);
-					for(a=0, fp= pchan->path; a<pchan->pathlen; a++, fp+=3) {
-						for (ce= ak.first; ce; ce= ce->next) {
-							if (ce->cfra == (a+sfra))
+					for (a=0, fp=fp_start; a<len; a++, fp+=3) {
+						for (ak= keys.first; ak; ak= ak->next) {
+							if (ak->cfra == (a+sfra))
 								glVertex3fv(fp);
 						}
 					}
 					glEnd();
 					
+					glPointSize(1.0);
+					
 					/* Draw frame numbers of keyframes  */
-					if (arm->pathflag & ARM_PATH_FNUMS) {
-						for(a=0, fp= pchan->path; a<pchan->pathlen; a++, fp+=3) {
-							for (ce= ak.first; ce; ce= ce->next) {
-								if (ce->cfra == (a+sfra)) {
+					if ((arm->pathflag & ARM_PATH_FNUMS) || (arm->pathflag & ARM_PATH_KFNOS)) {
+						for(a=0, fp=fp_start; a<len; a++, fp+=3) {
+							for (ak= keys.first; ak; ak= ak->next) {
+								if (ak->cfra == (a+sfra)) {
 									char str[32];
 									
 									glRasterPos3fv(fp);
@@ -1867,18 +1923,51 @@ static void draw_pose_paths(Object *ob)
 						}
 					}
 					
-					BLI_freelistN(&ak);
+					BLI_freelistN(&keys);
 				}
 			}
 		}
 	}
 	
-	if(G.vd->zbuf) glEnable(GL_DEPTH_TEST);
+	if (G.vd->zbuf) glEnable(GL_DEPTH_TEST);
 	glPopMatrix();
 }
 
+
+/* ---------- Ghosts --------- */
+
+/* helper function for ghost drawing - sets/removes flags for temporarily 
+ * hiding unselected bones while drawing ghosts
+ */
+static void ghost_poses_tag_unselected(Object *ob, short unset)
+{
+	bArmature *arm= ob->data;
+	bPose *pose= ob->pose;
+	bPoseChannel *pchan;
+	
+	/* don't do anything if no hiding any bones */
+	if ((arm->flag & ARM_GHOST_ONLYSEL)==0)
+		return;
+		
+	/* loop over all pchans, adding/removing tags as appropriate */
+	for (pchan= pose->chanbase.first; pchan; pchan= pchan->next) {
+		if ((pchan->bone) && (arm->layer & pchan->bone->layer)) {
+			if (unset) {
+				/* remove tags from all pchans if cleaning up */
+				pchan->bone->flag &= ~BONE_HIDDEN_PG;
+			}
+			else {
+				/* set tags on unselected pchans only */
+				if ((pchan->bone->flag & BONE_SELECTED)==0)
+					pchan->bone->flag |= BONE_HIDDEN_PG;
+			}
+		}
+	}
+}
+
 /* draw ghosts that occur within a frame range 
- * 	note: object should be in posemode */
+ * 	note: object should be in posemode 
+ */
 static void draw_ghost_poses_range(Base *base)
 {
 	Object *ob= base->object;
@@ -1889,7 +1978,7 @@ static void draw_ghost_poses_range(Base *base)
 	
 	start = arm->ghostsf;
 	end = arm->ghostef;
-	if (end<=start)
+	if (end <= start)
 		return;
 	
 	stepsize= (float)(arm->ghostsize);
@@ -1908,12 +1997,13 @@ static void draw_ghost_poses_range(Base *base)
 	copy_pose(&posen, ob->pose, 1);
 	ob->pose= posen;
 	armature_rebuild_pose(ob, ob->data);	/* child pointers for IK */
+	ghost_poses_tag_unselected(ob, 0);		/* hide unselected bones if need be */
 	
 	glEnable(GL_BLEND);
-	if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
+	if (G.vd->zbuf) glDisable(GL_DEPTH_TEST);
 	
 	/* draw from first frame of range to last */
-	for(CFRA= start; CFRA<end; CFRA+=stepsize) {
+	for (CFRA= start; CFRA<end; CFRA+=stepsize) {
 		colfac = (end-CFRA)/range;
 		BIF_ThemeColorShadeAlpha(TH_WIRE, 0, -128-(int)(120.0f*sqrt(colfac)));
 		
@@ -1922,8 +2012,9 @@ static void draw_ghost_poses_range(Base *base)
 		draw_pose_channels(base, OB_WIRE);
 	}
 	glDisable(GL_BLEND);
-	if(G.vd->zbuf) glEnable(GL_DEPTH_TEST);
+	if (G.vd->zbuf) glEnable(GL_DEPTH_TEST);
 
+	ghost_poses_tag_unselected(ob, 1);		/* unhide unselected bones if need be */
 	free_pose_channels(posen);
 	MEM_freeN(posen);
 	
@@ -1934,10 +2025,89 @@ static void draw_ghost_poses_range(Base *base)
 	armature_rebuild_pose(ob, ob->data);
 	ob->flag |= OB_POSEMODE;
 	ob->ipoflag= ipoflago; 
-
 }
 
-/* object is supposed to be armature in posemode */
+/* draw ghosts on keyframes in action within range 
+ *	- object should be in posemode 
+ */
+static void draw_ghost_poses_keys(Base *base)
+{
+	Object *ob= base->object;
+	bAction *act= ob_get_action(ob);
+	bArmature *arm= ob->data;
+	bPose *posen, *poseo;
+	ListBase keys= {NULL, NULL};
+	ActKeyColumn *ak, *akn;
+	float start, end, range, colfac, i;
+	int cfrao, flago, ipoflago;
+	
+	start = arm->ghostsf;
+	end = arm->ghostef;
+	if (end <= start)
+		return;
+	
+	/* get keyframes - then clip to only within range */
+	action_to_keylist(act, &keys, NULL);
+	range= 0;
+	for (ak= keys.first; ak; ak= akn) {
+		akn= ak->next;
+		
+		if ((ak->cfra < start) || (ak->cfra > end))
+			BLI_freelinkN(&keys, ak);
+		else
+			range++;
+	}
+	if (range == 0) return;
+	
+	/* store values */
+	ob->flag &= ~OB_POSEMODE;
+	cfrao= CFRA;
+	flago= arm->flag;
+	arm->flag &= ~(ARM_DRAWNAMES|ARM_DRAWAXES);
+	ipoflago= ob->ipoflag; 
+	ob->ipoflag |= OB_DISABLE_PATH;
+	
+	/* copy the pose */
+	poseo= ob->pose;
+	copy_pose(&posen, ob->pose, 1);
+	ob->pose= posen;
+	armature_rebuild_pose(ob, ob->data);	/* child pointers for IK */
+	ghost_poses_tag_unselected(ob, 0);		/* hide unselected bones if need be */
+	
+	glEnable(GL_BLEND);
+	if (G.vd->zbuf) glDisable(GL_DEPTH_TEST);
+	
+	/* draw from first frame of range to last */
+	for (ak=keys.first, i=0; ak; ak=ak->next, i++) {
+		colfac = i/range;
+		BIF_ThemeColorShadeAlpha(TH_WIRE, 0, -128-(int)(120.0f*sqrt(colfac)));
+		
+		CFRA= (int)ak->cfra;
+		
+		do_all_pose_actions(ob);
+		where_is_pose(ob);
+		draw_pose_channels(base, OB_WIRE);
+	}
+	glDisable(GL_BLEND);
+	if (G.vd->zbuf) glEnable(GL_DEPTH_TEST);
+
+	ghost_poses_tag_unselected(ob, 1);		/* unhide unselected bones if need be */
+	free_pose_channels(posen);
+	BLI_freelistN(&keys);
+	MEM_freeN(posen);
+	
+	/* restore */
+	CFRA= cfrao;
+	ob->pose= poseo;
+	arm->flag= flago;
+	armature_rebuild_pose(ob, ob->data);
+	ob->flag |= OB_POSEMODE;
+	ob->ipoflag= ipoflago; 
+}
+
+/* draw ghosts around current frame
+ * 	- object is supposed to be armature in posemode 
+ */
 static void draw_ghost_poses(Base *base)
 {
 	Object *ob= base->object;
@@ -1948,11 +2118,11 @@ static void draw_ghost_poses(Base *base)
 	int cfrao, maptime, flago, ipoflago;
 	
 	/* pre conditions, get an action with sufficient frames */
-	if(ob->action==NULL)
+	if (ob->action==NULL)
 		return;
 
 	calc_action_range(ob->action, &start, &end, 0);
-	if(start==end)
+	if (start == end)
 		return;
 
 	stepsize= (float)(arm->ghostsize);
@@ -1960,7 +2130,7 @@ static void draw_ghost_poses(Base *base)
 	
 	/* we only map time for armature when an active strip exists */
 	for (strip=ob->nlastrips.first; strip; strip=strip->next)
-		if(strip->flag & ACTSTRIP_ACTIVE)
+		if (strip->flag & ACTSTRIP_ACTIVE)
 			break;
 	
 	maptime= (strip!=NULL);
@@ -1968,7 +2138,7 @@ static void draw_ghost_poses(Base *base)
 	/* store values */
 	ob->flag &= ~OB_POSEMODE;
 	cfrao= CFRA;
-	if(maptime) actframe= get_action_frame(ob, (float)CFRA);
+	if (maptime) actframe= get_action_frame(ob, (float)CFRA);
 	else actframe= CFRA;
 	flago= arm->flag;
 	arm->flag &= ~(ARM_DRAWNAMES|ARM_DRAWAXES);
@@ -1980,24 +2150,23 @@ static void draw_ghost_poses(Base *base)
 	copy_pose(&posen, ob->pose, 1);
 	ob->pose= posen;
 	armature_rebuild_pose(ob, ob->data);	/* child pointers for IK */
+	ghost_poses_tag_unselected(ob, 0);		/* hide unselected bones if need be */
 	
 	glEnable(GL_BLEND);
-	if(G.vd->zbuf) glDisable(GL_DEPTH_TEST);
+	if (G.vd->zbuf) glDisable(GL_DEPTH_TEST);
 	
 	/* draw from darkest blend to lowest */
 	for(cur= stepsize; cur<range; cur+=stepsize) {
-		
 		ctime= cur - fmod((float)cfrao, stepsize);	/* ensures consistant stepping */
 		colfac= ctime/range;
 		BIF_ThemeColorShadeAlpha(TH_WIRE, 0, -128-(int)(120.0f*sqrt(colfac)));
 		
 		/* only within action range */
-		if(actframe+ctime >= start && actframe+ctime <= end) {
-			
-			if(maptime) CFRA= (int)get_action_frame_inv(ob, actframe+ctime);
+		if (actframe+ctime >= start && actframe+ctime <= end) {
+			if (maptime) CFRA= (int)get_action_frame_inv(ob, actframe+ctime);
 			else CFRA= (int)floor(actframe+ctime);
 			
-			if(CFRA!=cfrao) {
+			if (CFRA!=cfrao) {
 				do_all_pose_actions(ob);
 				where_is_pose(ob);
 				draw_pose_channels(base, OB_WIRE);
@@ -2009,12 +2178,11 @@ static void draw_ghost_poses(Base *base)
 		BIF_ThemeColorShadeAlpha(TH_WIRE, 0, -128-(int)(120.0f*sqrt(colfac)));
 		
 		/* only within action range */
-		if(actframe-ctime >= start && actframe-ctime <= end) {
-			
-			if(maptime) CFRA= (int)get_action_frame_inv(ob, actframe-ctime);
+		if ((actframe-ctime >= start) && (actframe-ctime <= end)) {
+			if (maptime) CFRA= (int)get_action_frame_inv(ob, actframe-ctime);
 			else CFRA= (int)floor(actframe-ctime);
-
-			if(CFRA!=cfrao) {
+			
+			if (CFRA != cfrao) {
 				do_all_pose_actions(ob);
 				where_is_pose(ob);
 				draw_pose_channels(base, OB_WIRE);
@@ -2022,8 +2190,9 @@ static void draw_ghost_poses(Base *base)
 		}
 	}
 	glDisable(GL_BLEND);
-	if(G.vd->zbuf) glEnable(GL_DEPTH_TEST);
+	if (G.vd->zbuf) glEnable(GL_DEPTH_TEST);
 
+	ghost_poses_tag_unselected(ob, 1);		/* unhide unselected bones if need be */
 	free_pose_channels(posen);
 	MEM_freeN(posen);
 	
@@ -2034,8 +2203,9 @@ static void draw_ghost_poses(Base *base)
 	armature_rebuild_pose(ob, ob->data);
 	ob->flag |= OB_POSEMODE;
 	ob->ipoflag= ipoflago; 
-
 }
+
+/* ********************************** Armature Drawing - Main ************************* */
 
 /* called from drawobject.c, return 1 if nothing was drawn */
 int draw_armature(Base *base, int dt)
@@ -2072,10 +2242,13 @@ int draw_armature(Base *base, int dt)
 						arm->flag |= ARM_POSEMODE;
 				}
 				else if(ob->flag & OB_POSEMODE) {
-					if (arm->ghosttype == ARM_GHOST_RANGE){
+					if (arm->ghosttype == ARM_GHOST_RANGE) {
 						draw_ghost_poses_range(base);
 					}
-					else {
+					else if (arm->ghosttype == ARM_GHOST_KEYS) {
+						draw_ghost_poses_keys(base);
+					}
+					else if (arm->ghosttype == ARM_GHOST_CUR) {
 						if (arm->ghostep)
 							draw_ghost_poses(base);
 					}

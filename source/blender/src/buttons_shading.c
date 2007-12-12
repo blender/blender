@@ -1171,14 +1171,13 @@ void uiblock_image_panel(uiBlock *block, Image **ima_pp, ImageUser *iuser,
 		 
 		 /* fields */
 		 uiBlockBeginAlign(block);
-		 but= uiDefButBitS(block, TOG, IMA_FIELDS, imagechanged, "Fields",	10, 90, 100, 20, &ima->flag, 0, 0, 0, 0, "Click to enable use of fields in Image");
+		 but= uiDefButBitS(block, TOG, IMA_FIELDS, imagechanged, "Fields",	10, 90, 65, 20, &ima->flag, 0, 0, 0, 0, "Click to enable use of fields in Image");
 		 uiButSetFunc(but, image_field_test, ima, iuser);
-		 uiDefButBitS(block, TOG, IMA_STD_FIELD, B_NOP, "Odd",			10, 70, 100, 20, &ima->flag, 0, 0, 0, 0, "Standard Field Toggle");
+		 uiDefButBitS(block, TOG, IMA_STD_FIELD, B_NOP, "Odd",			75, 90, 45, 20, &ima->flag, 0, 0, 0, 0, "Standard Field Toggle");
 		 
-		 uiBlockBeginAlign(block);
 		 uiBlockSetFunc(block, image_reload_cb, ima, iuser);
-		 uiDefButBitS(block, TOG, IMA_ANTIALI, B_NOP, "Anti",			10, 35, 100, 20, &ima->flag, 0, 0, 0, 0, "Toggles Image anti-aliasing, only works with solid colors");
-		 uiDefButBitS(block, TOG, IMA_DO_PREMUL, imagechanged, "Premul",		110, 35, 100, 20, &ima->flag, 0, 0, 0, 0, "Toggles premultiplying alpha");
+		 uiDefButBitS(block, TOG, IMA_ANTIALI, B_NOP, "Anti",			10, 70, 45, 20, &ima->flag, 0, 0, 0, 0, "Toggles Image anti-aliasing, only works with solid colors");
+		 uiDefButBitS(block, TOG, IMA_DO_PREMUL, imagechanged, "Premul",		55, 70, 65, 20, &ima->flag, 0, 0, 0, 0, "Toggles premultiplying alpha");
 		 uiBlockEndAlign(block);
 		 
 		 if( ELEM(ima->source, IMA_SRC_MOVIE, IMA_SRC_SEQUENCE)) {
@@ -1975,7 +1974,7 @@ static void world_panel_mapto(World *wrld)
 	uiDefButF(block, NUMSLI, B_WORLDPRV, "G ",			10,60,135,19, &(mtex->g), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
 	uiDefButF(block, NUMSLI, B_WORLDPRV, "B ",			10,40,135,19, &(mtex->b), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
 	uiBlockEndAlign(block);
-	uiDefButF(block, NUMSLI, B_WORLDPRV, "DVar ",		10,10,135,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "The default value for textures to mix with values (not RGB)");
+	uiDefButF(block, NUMSLI, B_WORLDPRV, "DVar ",		10,10,135,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "Value to use for Ref, Spec, Amb, Emit, Alpha, RayMir, TransLu and Hard");
 	
 	/* MAP TO */
 	uiBlockBeginAlign(block);
@@ -2234,20 +2233,20 @@ static void world_panel_world(World *wrld)
 	uiSetButLock(wrld->id.lib!=0, ERROR_LIBDATA_MESSAGE);
 	uiBlockSetCol(block, TH_AUTO);
 
-	uiDefButF(block, COL, B_WORLDPRV, "",			10,150,145,19, &wrld->horr, 0, 0, 0, B_COLHOR, "");
-	uiDefButF(block, COL, B_WORLDPRV, "",			160,150,145,19, &wrld->zenr, 0, 0, 0, B_COLZEN, "");
-
 	uiBlockBeginAlign(block);
+	uiDefButF(block, COL, B_WORLDPRV, "",			10,150,145,19, &wrld->horr, 0, 0, 0, B_COLHOR, "");
 	uiDefButF(block, NUMSLI,B_WORLDPRV,"HoR ",	10,130,145,19,	&(wrld->horr), 0.0, 1.0, B_COLHOR,0, "Sets the amount of red color at the horizon");
 	uiDefButF(block, NUMSLI,B_WORLDPRV,"HoG ",	10,110,145,19,	&(wrld->horg), 0.0, 1.0, B_COLHOR,0, "Sets the amount of green color at the horizon");
 	uiDefButF(block, NUMSLI,B_WORLDPRV,"HoB ",	10,90,145,19,	&(wrld->horb), 0.0, 1.0, B_COLHOR,0, "Sets the amount of blue color at the horizon");
 	
 	uiBlockBeginAlign(block);
+	uiDefButF(block, COL, B_WORLDPRV, "",			160,150,145,19, &wrld->zenr, 0, 0, 0, B_COLZEN, "");
 	uiDefButF(block, NUMSLI,B_WORLDPRV,"ZeR ",	160,130,145,19,	&(wrld->zenr), 0.0, 1.0, B_COLZEN,0, "Sets the amount of red color at the zenith");
 	uiDefButF(block, NUMSLI,B_WORLDPRV,"ZeG ",	160,110,145,19,	&(wrld->zeng), 0.0, 1.0, B_COLZEN,0, "Sets the amount of green color at the zenith");
 	uiDefButF(block, NUMSLI,B_WORLDPRV,"ZeB ",	160,90,145,19,	&(wrld->zenb), 0.0, 1.0, B_COLZEN,0, "Sets the amount of blue color at the zenith");
 
 	uiBlockBeginAlign(block);
+	uiDefButF(block, COL, B_WORLDPRV, "",		10,70,145,19, &wrld->ambr, 0, 0, 0, 0, "");
 	uiDefButF(block, NUMSLI,B_WORLDPRV,"AmbR ",	10,50,145,19,	&(wrld->ambr), 0.0, 1.0 ,0,0, "Sets the amount of red ambient color");
 	uiDefButF(block, NUMSLI,B_WORLDPRV,"AmbG ",	10,30,145,19,	&(wrld->ambg), 0.0, 1.0 ,0,0, "Sets the amount of green ambient color");
 	uiDefButF(block, NUMSLI,B_WORLDPRV,"AmbB ",	10,10,145,19,	&(wrld->ambb), 0.0, 1.0 ,0,0, "Sets the amount of blue ambient color");
@@ -2406,7 +2405,7 @@ static void lamp_panel_mapto(Object *ob, Lamp *la)
 	uiDefButF(block, NUMSLI, B_LAMPPRV, "G ",			10,60,135,19, &(mtex->g), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
 	uiDefButF(block, NUMSLI, B_LAMPPRV, "B ",			10,40,135,19, &(mtex->b), 0.0, 1.0, B_MTEXCOL, 0, "The default color for textures that don't return RGB");
 	uiBlockEndAlign(block);
-	uiDefButF(block, NUMSLI, B_LAMPPRV, "DVar ",			10,10,135,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "The default value the textures uses to mix with");
+	uiDefButF(block, NUMSLI, B_LAMPPRV, "DVar ",			10,10,135,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "Value to use for Ref, Spec, Amb, Emit, Alpha, RayMir, TransLu and Hard");
 	
 	/* MAP TO */
 	uiDefButBitS(block, TOG, MAP_COL, B_LAMPPRV, "Col",		10,180,135,19, &(mtex->mapto), 0, 0, 0, 0, "Lets the texture affect the basic color of the lamp");
@@ -3147,7 +3146,7 @@ static void material_panel_map_to(Object *ob, Material *ma, int from_nodes)
 	}
 	uiBlockEndAlign(block);
 	
-	uiDefButF(block, NUMSLI, B_MATPRV, "DVar ",			10,10,135,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "The default value the texture uses to mix with (not RGB)");
+	uiDefButF(block, NUMSLI, B_MATPRV, "DVar ",			10,10,135,19, &(mtex->def_var), 0.0, 1.0, 0, 0, "Value to use for Ref, Spec, Amb, Emit, Alpha, RayMir, TransLu and Hard");
 	
 	/* MAP TO */
 	uiBlockBeginAlign(block);
@@ -3165,7 +3164,7 @@ static void material_panel_map_to(Object *ob, Material *ma, int from_nodes)
 		but=uiDefButBitS(block, TOG3, MAP_PA_DENS, B_MAT_PARTICLE, "Dens",	130,180,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the density of particles");
 			//uiButSetFunc(but, particle_recalc_material, ma, NULL);		
 		uiDefButBitS(block, TOG3, MAP_PA_IVEL, B_MAT_PARTICLE, "IVel",		190,180,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the initial velocity of particles");
-		uiDefButBitS(block, TOG3, MAP_PA_PVEL, B_MAT_PARTICLE, "PVel",		250,180,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the velocity of particles");
+		uiDefButBitS(block, TOG3, MAP_PA_ROUGH, B_MAT_PARTICLE, "Rough",		250,180,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the roughness of child particles");
 
 		but=uiDefButBitS(block, TOG3, MAP_PA_SIZE, B_MAT_PARTICLE, "Size",	10,160,60,19, &(mtex->pmapto), 0, 0, 0, 0, "Causes the texture to affect the size of particles");
 			//uiButSetFunc(but, particle_recalc_material, ma, NULL);
@@ -3853,25 +3852,30 @@ static uiBlock *strand_menu(void *mat_v)
 {
 	Material *ma= mat_v;
 	uiBlock *block;
-	
+
 	block= uiNewBlock(&curarea->uiblocks, "strand menu", UI_EMBOSS, UI_HELV, curarea->win);
 	
 	/* use this for a fake extra empy space around the buttons */
-	uiDefBut(block, LABEL, 0, "", 0, 0, 250, 120, NULL,  0, 0, 0, 0, "");
-	
+	uiDefBut(block, LABEL, 0, "", 0, 0, 250, 170, NULL,  0, 0, 0, 0, "");
+  	
+  	uiBlockBeginAlign(block);
+  					/* event return 0, to prevent menu to close */
+ 
+	uiDefButBitI(block, TOG, MA_TANGENT_STR, 0,	"Use Tangent Shading",	10,140,230,20, &(ma->mode), 0, 0, 0, 0, "Uses direction of strands as normal for tangent-shading");
+	uiDefButBitI(block, TOG, MA_STR_SURFDIFF, 0, "Surface Diffuse",	10,120,115,20, &(ma->mode), 0, 0, 0, 0, "Make diffuse shading more similar to shading the surface");
+	uiDefButF(block, NUM, 0, "Dist", 125,120,115,20, &ma->strand_surfnor, 0.0f, 10.0f, 2, 0, "Distance in Blender units over which to blend in the surface normal");
+ 
 	uiBlockBeginAlign(block);
-					/* event return 0, to prevent menu to close */
-	uiDefButBitI(block, TOG, MA_TANGENT_STR, 0,	"Use Tangent Shading",	10,90,115,20, &(ma->mode), 0, 0, 0, 0, "Uses direction of strands as normal for tangent-shading");
-	uiDefButBitI(block, TOG, MA_STR_B_UNITS, 0,	"Use Blender Units",	125,90,115,20, &(ma->mode), 0, 0, 0, 0, "Use actual Blender units for widths instead of pixels");
-	if(ma->mode & MA_STR_B_UNITS){
-		uiDefButF(block, NUMSLI, 0, "Start ",	10, 70, 230,20,   &ma->strand_sta, 0.0001, 2.0, 2, 0, "Start size of strands in Blender units");
-		uiDefButF(block, NUMSLI, 0, "End ",		10, 50, 230,20,  &ma->strand_end, 0.0001, 1.0, 2, 0, "End size of strands in Blender units");
-	}
-	else{
-		uiDefButF(block, NUMSLI, 0, "Start ",	10, 70, 230,20,   &ma->strand_sta, 0.25, 20.0, 2, 0, "Start size of strands in pixels");
-		uiDefButF(block, NUMSLI, 0, "End ",		10, 50, 230,20,  &ma->strand_end, 0.25, 10.0, 2, 0, "End size of strands in pixels");
-	}
-	uiDefButF(block, NUMSLI, 0, "Shape ",	10, 30, 230,20,  &ma->strand_ease, -0.9, 0.9, 2, 0, "Shape of strands, positive value makes it rounder, negative makes it spiky");
+	uiDefButBitI(block, TOG, MA_STR_B_UNITS, 0,	"Use Blender Units", 10,95,230,20, &(ma->mode), 0, 0, 0, 0, "Use actual Blender units for widths instead of pixels");
+  	if(ma->mode & MA_STR_B_UNITS){
+		uiDefButF(block, NUMSLI, 0, "Start ",	10, 75, 230,20,   &ma->strand_sta, 0.0001, 2.0, 2, 0, "Start size of strands in Blender units");
+		uiDefButF(block, NUMSLI, 0, "End ",		10, 55, 230,20,  &ma->strand_end, 0.0001, 1.0, 2, 0, "End size of strands in Blender units");
+  	}
+  	else{
+		uiDefButF(block, NUMSLI, 0, "Start ",	10, 75, 230,20,   &ma->strand_sta, 0.25, 20.0, 2, 0, "Start size of strands in pixels");
+		uiDefButF(block, NUMSLI, 0, "End ",		10, 55, 230,20,  &ma->strand_end, 0.25, 10.0, 2, 0, "End size of strands in pixels");
+  	}
+	uiDefButF(block, NUMSLI, 0, "Shape ",	10, 35, 230,20,  &ma->strand_ease, -0.9, 0.9, 2, 0, "Shape of strands, positive value makes it rounder, negative makes it spiky");
 	uiDefBut(block, TEX, B_MATPRV, "UV:", 10,10,230,20, ma->strand_uvname, 0, 31, 0, 0, "Set name of UV layer to override");
 
 	uiBlockSetDirection(block, UI_TOP);

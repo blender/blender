@@ -170,6 +170,9 @@
 				RelativePath="..\..\..\source\blender\render\intern\source\sss.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\render\intern\source\strand.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\render\intern\source\texture.c">
 			</File>
 			<File
@@ -232,6 +235,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\render\intern\include\sss.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\render\intern\include\strand.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\render\intern\include\texture.h">

@@ -105,7 +105,7 @@ void calc_curvepath(Object *ob)
 	cu->path= NULL;
 	
 	bl= cu->bev.first;
-	if(bl==NULL) return;
+	if(bl==NULL || !bl->nr) return;
 
 	cu->path=path= MEM_callocN(sizeof(Path), "path");
 	
@@ -227,6 +227,7 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir)	/* returns OK
 	
 	/* test for cyclic */
 	bl= cu->bev.first;
+	if (!bl->nr) return 0;
 	if(bl && bl->poly> -1) cycl= 1;
 
 	ctime *= (path->len-1);
@@ -538,7 +539,7 @@ static void face_duplilist(ListBase *lb, Scene *sce, Object *par)
 						/* scale */
 						if(par->transflag & OB_DUPLIFACES_SCALE) {
 							float size= v4?AreaQ3Dfl(v1, v2, v3, v4):AreaT3Dfl(v1, v2, v3);
-							size= sqrt(size);
+							size= sqrt(size) * par->dupfacesca;
 							Mat3MulFloat(mat[0], size);
 						}
 						
@@ -639,7 +640,7 @@ static void new_particle_duplilist(ListBase *lb, Scene *sce, Object *par, Partic
 				pa_num = a;
 				pa_time = psys->particles[psys->child[a - totpart].parent].time;
 
-				size=psys_get_child_size(psys, a - totpart, ctime, 0);
+				size=psys_get_child_size(psys, &psys->child[a - totpart], ctime, 0);
 			}
 
 			if(part->draw_as==PART_DRAW_GR) {
@@ -782,7 +783,7 @@ ListBase *object_duplilist(Scene *sce, Object *ob)
 {
 	ListBase *duplilist= MEM_mallocN(sizeof(ListBase), "duplilist");
 	duplilist->first= duplilist->last= NULL;
-	
+
 	if(ob->transflag & OB_DUPLI) {
 		if(ob->transflag & OB_DUPLIPARTS) {
 			ParticleSystem *psys = ob->particlesystem.first;
@@ -807,7 +808,7 @@ ListBase *object_duplilist(Scene *sce, Object *ob)
 			DupliObject *dob;
 			
 			group_duplilist(duplilist, ob, 0); /* now recursive */
-			
+
 			/* make copy already, because in group dupli's deform displists can be makde, requiring parent matrices */
 			for(dob= duplilist->first; dob; dob= dob->next)
 				Mat4CpyMat4(dob->ob->obmat, dob->mat);

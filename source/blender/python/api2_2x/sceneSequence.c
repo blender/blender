@@ -531,7 +531,44 @@ static PyObject *Sequence_getImages( BPy_Sequence * self )
 	return ret;
 }
 
-
+static int Sequence_setImages( BPy_Sequence * self, PyObject *value )
+{
+	Strip *strip;
+	StripElem *se;
+	int i;
+	PyObject *list, *item;
+	char *basepath, *name;
+	
+	if (self->seq->type != SEQ_IMAGE) {
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"Sequence is not an image type" );
+	}
+	
+	if( !PyArg_ParseTuple
+	    ( value, "sO!", &basepath, &PyList_Type, &list ) )
+		return EXPP_ReturnIntError( PyExc_TypeError,
+					      "expected string and optional list argument" );
+	
+	strip = self->seq->strip;
+	se = strip->stripdata;
+	
+	/* for now dont support different image list sizes */
+	if (PyList_Size(list) != strip->len) {
+		return EXPP_ReturnIntError( PyExc_TypeError,
+				"at the moment only image lista with the same number of images as the strip are supported" );
+	}
+	
+	strncpy(strip->dir, basepath, sizeof(strip->dir));
+	
+	for (i=0; i<strip->len; i++, se++) {
+		name = PyString_AsString(PyList_GetItem(list, i));
+		if (name) {
+			strncpy(se->name, name, sizeof(se->name));
+		}
+	}
+	
+	return 0;
+}
 
 /*
  * get floating point attributes
@@ -569,7 +606,7 @@ static PyObject *getIntAttr( BPy_Sequence *self, void *type )
 		break;
 	default:
 		return EXPP_ReturnPyObjError( PyExc_RuntimeError, 
-				"undefined type in getFloatAttr" );
+				"undefined type in getIntAttr" );
 	}
 
 	return PyInt_FromLong( param );
@@ -724,7 +761,7 @@ static PyGetSetDef BPy_Sequence_getseters[] = {
 	 "Sequence name",
 	  NULL},
 	{"images",
-	 (getter)Sequence_getImages, (setter)NULL,
+	 (getter)Sequence_getImages, (setter)Sequence_setImages,
 	 "Sequence scene",
 	  NULL},
 	  

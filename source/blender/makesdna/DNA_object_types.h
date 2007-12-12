@@ -141,8 +141,9 @@ typedef struct Object {
 	char dt, dtx;
 	char totcol;	/* copy of mesh or curve or meta */
 	char actcol;	/* currently selected material in the user interface */
-	char empty_drawtype, pad1[7];
+	char empty_drawtype, pad1[3];
 	float empty_drawsize;
+	float dupfacesca;	/* dupliface scale */
 	
 	ScriptLink scriptlink;
 	ListBase prop;
@@ -312,7 +313,16 @@ extern Object workob;
 #define OB_TEXTURE		5
 
 /* this condition has been made more complex since editmode can draw textures */
-#define CHECK_OB_DRAWTEXTURE(vd, dt)	((vd->drawtype==OB_TEXTURE && dt>OB_SOLID) || (vd->drawtype==OB_SOLID && vd->flag2 & V3D_SOLID_TEX))
+#define CHECK_OB_DRAWTEXTURE(vd, dt) \
+	((vd->drawtype==OB_TEXTURE && dt>OB_SOLID) || \
+	(vd->drawtype==OB_SOLID && vd->flag2 & V3D_SOLID_TEX))
+
+#define CHECK_OB_DRAWFACEDOT(sce, vd, dt) \
+	(	(sce->selectmode & SCE_SELECT_FACE) && \
+		(vd->drawtype<=OB_SOLID) && \
+		(((vd->drawtype==OB_SOLID) && (dt>=OB_SOLID) && (vd->flag2 & V3D_SOLID_TEX) && (vd->flag & V3D_ZBUF_SELECT)) == 0) \
+	)
+
 
 /* dtx: flags, char! */
 #define OB_AXIS			2

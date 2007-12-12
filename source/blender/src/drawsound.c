@@ -176,8 +176,8 @@ static void draw_cfra_sound(SpaceSound *ssound)
 	vec[0]*= G.scene->r.framelen;
 
 	vec[1]= G.v2d->cur.ymin;
-	glColor3ub(0x20, 0x90, 0x20);
-	glLineWidth(4.0);
+	BIF_ThemeColor(TH_CFRAME);
+	glLineWidth(2.0);
 
 	glBegin(GL_LINE_STRIP);
 		glVertex2fv(vec);
@@ -186,7 +186,6 @@ static void draw_cfra_sound(SpaceSound *ssound)
 	glEnd();
 	
 	glLineWidth(1.0);
-	
 }
 
 void drawsoundspace(ScrArea *sa, void *spacedata)

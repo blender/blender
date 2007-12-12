@@ -617,6 +617,9 @@ static void add_pose_transdata(TransInfo *t, bPoseChannel *pchan, Object *ob, Tr
 			Mat3Inv (td->smtx, td->mtx);
 		}
 	}
+	
+	/* store reference to first constraint */
+	td->con= pchan->constraints.first;
 }
 
 static void bone_children_clear_transflag(ListBase *lb)
@@ -639,6 +642,7 @@ static void set_pose_transflags(TransInfo *t, Object *ob)
 	bArmature *arm= ob->data;
 	bPoseChannel *pchan;
 	Bone *bone;
+	int hastranslation;
 	
 	t->total= 0;
 	
@@ -664,23 +668,32 @@ static void set_pose_transflags(TransInfo *t, Object *ob)
 		}
 	}	
 	/* now count, and check if we have autoIK or have to switch from translate to rotate */
+	hastranslation= 0;
+
 	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		bone= pchan->bone;
 		if(bone->flag & BONE_TRANSFORM) {
+
 			t->total++;
 			
 			if(t->mode==TFM_TRANSLATION) {
 				if( has_targetless_ik(pchan)==NULL ) {
 					if(pchan->parent && (pchan->bone->flag & BONE_CONNECTED)) {
-						if(!(pchan->bone->flag & BONE_HINGE_CHILD_TRANSFORM))
-							t->mode= TFM_ROTATION;
+						if(pchan->bone->flag & BONE_HINGE_CHILD_TRANSFORM)
+							hastranslation= 1;
 					}
-					else if((pchan->protectflag & OB_LOCK_LOC)==OB_LOCK_LOC)
-						t->mode= TFM_ROTATION;
+					else if((pchan->protectflag & OB_LOCK_LOC)!=OB_LOCK_LOC)
+						hastranslation= 1;
 				}
+				else
+					hastranslation= 1;
 			}
 		}
 	}
+
+	/* if there are no translatable bones, do rotation */
+	if(t->mode==TFM_TRANSLATION && !hastranslation)
+		t->mode= TFM_ROTATION;
 }
 
 /* frees temporal IKs */
@@ -690,11 +703,15 @@ static void pose_grab_with_ik_clear(Object *ob)
 	bPoseChannel *pchan;
 	bConstraint *con;
 	
-	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		for(con= pchan->constraints.first; con; con= con->next) {
-			if(con->type==CONSTRAINT_TYPE_KINEMATIC) {
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		/* clear all temporary lock flags */
+		pchan->ikflag &= ~(BONE_IK_NO_XDOF_TEMP|BONE_IK_NO_YDOF_TEMP|BONE_IK_NO_ZDOF_TEMP);
+		
+		/* remove all temporary IK-constraints added */
+		for (con= pchan->constraints.first; con; con= con->next) {
+			if (con->type==CONSTRAINT_TYPE_KINEMATIC) {
 				data= con->data;
-				if(data->flag & CONSTRAINT_IK_TEMP) {
+				if (data->flag & CONSTRAINT_IK_TEMP) {
 					BLI_remlink(&pchan->constraints, con);
 					MEM_freeN(con->data);
 					MEM_freeN(con);
@@ -717,14 +734,14 @@ static void pose_grab_with_ik_add(bPoseChannel *pchan)
 	}
 	
 	/* rule: not if there's already an IK on this channel */
-	for(con= pchan->constraints.first; con; con= con->next)
+	for (con= pchan->constraints.first; con; con= con->next)
 		if(con->type==CONSTRAINT_TYPE_KINEMATIC)
 			break;
 	
-	if(con) {
+	if (con) {
 		/* but, if this is a targetless IK, we make it auto anyway (for the children loop) */
 		data= has_targetless_ik(pchan);
-		if(data)
+		if (data)
 			data->flag |= CONSTRAINT_IK_AUTO;
 		return;
 	}
@@ -738,7 +755,13 @@ static void pose_grab_with_ik_add(bPoseChannel *pchan)
 	data->rootbone= 1;
 	
 	/* we include only a connected chain */
-	while(pchan && (pchan->bone->flag & BONE_CONNECTED)) {
+	while ((pchan) && (pchan->bone->flag & BONE_CONNECTED)) {
+		/* here, we set ik-settings for bone from pchan->protectflag */
+		if (pchan->protectflag & OB_LOCK_ROTX) pchan->ikflag |= BONE_IK_NO_XDOF_TEMP;
+		if (pchan->protectflag & OB_LOCK_ROTY) pchan->ikflag |= BONE_IK_NO_YDOF_TEMP;
+		if (pchan->protectflag & OB_LOCK_ROTZ) pchan->ikflag |= BONE_IK_NO_ZDOF_TEMP;
+		
+		/* now we count this pchan as being included */
 		data->rootbone++;
 		pchan= pchan->parent;
 	}
@@ -1162,12 +1185,12 @@ static void createTransCurveVerts(TransInfo *t)
 			for(a=0, bezt= nu->bezt; a<nu->pntsu; a++, bezt++) {
 				if(bezt->hide==0) {
 					if (G.f & G_HIDDENHANDLES) {
-						if(bezt->f2 & 1) countsel+=3;
+						if(bezt->f2 & SELECT) countsel+=3;
 						if(propmode) count+= 3;
 					} else {
-						if(bezt->f1 & 1) countsel++;
-						if(bezt->f2 & 1) countsel++;
-						if(bezt->f3 & 1) countsel++;
+						if(bezt->f1 & SELECT) countsel++;
+						if(bezt->f2 & SELECT) countsel++;
+						if(bezt->f3 & SELECT) countsel++;
 						if(propmode) count+= 3;
 					}
 				}
@@ -1177,7 +1200,7 @@ static void createTransCurveVerts(TransInfo *t)
 			for(a= nu->pntsu*nu->pntsv, bp= nu->bp; a>0; a--, bp++) {
 				if(bp->hide==0) {
 					if(propmode) count++;
-					if(bp->f1 & 1) countsel++;
+					if(bp->f1 & SELECT) countsel++;
 				}
 			}
 		}
@@ -1201,14 +1224,19 @@ static void createTransCurveVerts(TransInfo *t)
 				if(bezt->hide==0) {
 					
 					if(		propmode ||
-							((bezt->f2 & 1) && (G.f & G_HIDDENHANDLES)) ||
-							((bezt->f1 & 1) && (G.f & G_HIDDENHANDLES)==0)
+							((bezt->f2 & SELECT) && (G.f & G_HIDDENHANDLES)) ||
+							((bezt->f1 & SELECT) && (G.f & G_HIDDENHANDLES)==0)
 					  ) {
 						VECCOPY(td->iloc, bezt->vec[0]);
 						td->loc= bezt->vec[0];
 						VECCOPY(td->center, bezt->vec[1]);
-						if(bezt->f1 & 1 || G.f & G_HIDDENHANDLES) td->flag= TD_SELECTED;
-						else td->flag= 0;
+						if (G.f & G_HIDDENHANDLES) {
+							if(bezt->f2 & SELECT) td->flag= TD_SELECTED;
+							else td->flag= 0;
+						} else {
+							if(bezt->f1 & SELECT) td->flag= TD_SELECTED;
+							else td->flag= 0;
+						}
 						td->ext = NULL;
 						td->tdi = NULL;
 						td->val = NULL;
@@ -1222,11 +1250,11 @@ static void createTransCurveVerts(TransInfo *t)
 					}
 					
 					/* This is the Curve Point, the other two are handles */
-					if(propmode || (bezt->f2 & 1)) {
+					if(propmode || (bezt->f2 & SELECT)) {
 						VECCOPY(td->iloc, bezt->vec[1]);
 						td->loc= bezt->vec[1];
 						VECCOPY(td->center, td->loc);
-						if(bezt->f2 & 1) td->flag= TD_SELECTED;
+						if(bezt->f2 & SELECT) td->flag= TD_SELECTED;
 						else td->flag= 0;
 						td->ext = NULL;
 						td->tdi = NULL;
@@ -1249,14 +1277,19 @@ static void createTransCurveVerts(TransInfo *t)
 						tail++;
 					}
 					if(		propmode ||
-							((bezt->f1 & 1) && (G.f & G_HIDDENHANDLES)) ||
-							((bezt->f3 & 1) && (G.f & G_HIDDENHANDLES)==0)
+							((bezt->f1 & SELECT) && (G.f & G_HIDDENHANDLES)) ||
+							((bezt->f3 & SELECT) && (G.f & G_HIDDENHANDLES)==0)
 					  ) {
 						VECCOPY(td->iloc, bezt->vec[2]);
 						td->loc= bezt->vec[2];
 						VECCOPY(td->center, bezt->vec[1]);
-						if(bezt->f3 & 1 || (G.f & G_HIDDENHANDLES)) td->flag= TD_SELECTED;
-						else td->flag= 0;
+						if (G.f & G_HIDDENHANDLES) {
+							if(bezt->f2 & SELECT) td->flag= TD_SELECTED;
+							else td->flag= 0;
+						} else {
+							if(bezt->f3 & SELECT) td->flag= TD_SELECTED;
+							else td->flag= 0;
+						}
 						td->ext = NULL;
 						td->tdi = NULL;
 						td->val = NULL;
@@ -1282,11 +1315,11 @@ static void createTransCurveVerts(TransInfo *t)
 			head = tail = td;
 			for(a= nu->pntsu*nu->pntsv, bp= nu->bp; a>0; a--, bp++) {
 				if(bp->hide==0) {
-					if(propmode || (bp->f1 & 1)) {
+					if(propmode || (bp->f1 & SELECT)) {
 						VECCOPY(td->iloc, bp->vec);
 						td->loc= bp->vec;
 						VECCOPY(td->center, td->loc);
-						if(bp->f1 & 1) td->flag= TD_SELECTED;
+						if(bp->f1 & SELECT) td->flag= TD_SELECTED;
 						else td->flag= 0;
 						td->ext = NULL;
 						td->tdi = NULL;
@@ -1333,7 +1366,7 @@ static void createTransLatticeVerts(TransInfo *t)
 	a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
 	while(a--) {
 		if(bp->hide==0) {
-			if(bp->f1 & 1) countsel++;
+			if(bp->f1 & SELECT) countsel++;
 			if(propmode) count++;
 		}
 		bp++;
@@ -1353,12 +1386,12 @@ static void createTransLatticeVerts(TransInfo *t)
 	bp= editLatt->def;
 	a= editLatt->pntsu*editLatt->pntsv*editLatt->pntsw;
 	while(a--) {
-		if(propmode || (bp->f1 & 1)) {
+		if(propmode || (bp->f1 & SELECT)) {
 			if(bp->hide==0) {
 				VECCOPY(td->iloc, bp->vec);
 				td->loc= bp->vec;
 				VECCOPY(td->center, td->loc);
-				if(bp->f1 & 1) td->flag= TD_SELECTED;
+				if(bp->f1 & SELECT) td->flag= TD_SELECTED;
 				else td->flag= 0;
 				Mat3CpyMat3(td->smtx, smtx);
 				Mat3CpyMat3(td->mtx, mtx);
@@ -2252,10 +2285,10 @@ static int count_ipo_keys(Ipo *ipo, char side, float cfra)
 	/* only include points that occur on the right side of cfra */
 	for (icu= ipo->curve.first; icu; icu= icu->next) {
 		for (i=0, bezt=icu->bezt; i < icu->totvert; i++, bezt++) {
-			if (bezt->f2) {
+			if (bezt->f2 & SELECT) {
 				/* fully select the other two keys */
-				bezt->f1 |= 1;
-				bezt->f3 |= 1;
+				bezt->f1 |= SELECT;
+				bezt->f3 |= SELECT;
 				
 				/* increment by 3, as there are 3 points (3 * x-coordinates) that need transform */
 				if (FrameOnMouseSide(side, bezt->vec[1][0], cfra))
@@ -2712,6 +2745,8 @@ static void ObjectToTransData(TransInfo *t, TransData *td, Object *ob)
 	Mat3CpyMat4(td->axismtx, ob->obmat);
 	Mat3Ortho(td->axismtx);
 
+	td->con= ob->constraints.first;
+	
 	/* hack: tempolarily disable tracking and/or constraints when getting 
 	 *		object matrix, if tracking is on, or if constraints don't need
 	 * 		inverse correction to stop it from screwing up space conversion
@@ -3065,8 +3100,8 @@ void autokeyframe_pose_cb_func(Object *ob, int tmode, short targetless_ik)
 		
 		/* do the bone paths */
 		if (arm->pathflag & ARM_PATH_ACFRA) {
-			pose_clear_paths(ob);
-			pose_calculate_path(ob);
+			//pose_clear_paths(ob);
+			pose_recalculate_paths(ob);
 		}		
 		
 	}
@@ -3307,7 +3342,7 @@ static void createTransObject(TransInfo *t)
 			td->flag= TD_SELECTED;
 			td->protectflag= ob->protectflag;
 			td->ext = tx;
-
+			
 			/* store ipo keys? */
 			if(ob->ipo && ob->ipo->showkey && (ob->ipoflag & OB_DRAWKEY)) {
 				
@@ -3484,7 +3519,7 @@ void createTransData(TransInfo *t)
 			createTransPose(t, base->object);
 		}
 	}
-	else if (G.f & G_PARTICLEEDIT) {
+	else if (G.f & G_PARTICLEEDIT && PE_can_edit(PE_get_current(ob))) {
 		createTransParticleVerts(t);
 
 		if(t->data && t->flag & T_PROP_EDIT) {

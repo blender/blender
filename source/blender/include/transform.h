@@ -45,6 +45,7 @@ struct Object;
 struct View3D;
 struct ScrArea;
 struct bPose;
+struct bConstraint;
 
 
 typedef struct NumInput {
@@ -142,6 +143,7 @@ typedef struct TransData {
     float  smtx[3][3];   /* Transformation matrix from global space to data space                          */
 	float  axismtx[3][3];/* Axis orientation matrix of the data                                            */
 	struct Object *ob;
+	struct bConstraint *con;	/* for objects/bones, the first constraint in its constraint stack */
 	TransDataExtension *ext;	/* for objects, poses. 1 single malloc per TransInfo! */
 	TransDataIpokey *tdi;		/* for objects, ipo keys. per transdata a malloc */
 	void *tdmir;		 /* mirrored element pointer, in editmode mesh to EditVert */

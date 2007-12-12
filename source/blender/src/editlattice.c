@@ -240,7 +240,7 @@ static void findnearestLattvert__doClosest(void *userData, BPoint *bp, int x, in
 	struct { BPoint *bp; short dist, select, mval[2]; } *data = userData;
 	float temp = abs(data->mval[0]-x) + abs(data->mval[1]-y);
 	
-	if ((bp->f1&1)==data->select) temp += 5;
+	if ((bp->f1 & SELECT)==data->select) temp += 5;
 	if (temp<data->dist) {
 		data->dist = temp;
 
@@ -274,17 +274,13 @@ void mouse_lattice(void)
 		if((G.qual & LR_SHIFTKEY)==0) {
 		
 			setflagsLatt(0);
-			bp->f1 |= 1;
+			bp->f1 |= SELECT;
 
 			allqueue(REDRAWVIEW3D, 0);
 		}
 		else {
-			
-			if(bp->f1 & 1) bp->f1 &= ~1;
-			else bp->f1 |= 1;
-
+			bp->f1 ^= SELECT; /* swap */
 			allqueue(REDRAWVIEW3D, 0);
-
 		}
 
 		countall();

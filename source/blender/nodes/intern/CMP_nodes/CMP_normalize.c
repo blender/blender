@@ -85,11 +85,8 @@ static void node_composit_exec_normalize(void *data, bNode *node, bNodeStack **i
 				min = *val;
 			}
 		}
-		min = MIN2(0.1, min);
-		max = MAX2(0.9, max);
-		
 		mult = 1.0f/(max-min);
-		
+
 		printf("min %f max %f\n", min, max);
 
 		composit3_pixel_processor(node, stackbuf, in[0]->data, in[0]->vec, NULL, &min, NULL, &mult, do_normalize, CB_VAL, CB_VAL, CB_VAL);

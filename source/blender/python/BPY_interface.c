@@ -1071,10 +1071,13 @@ static int bpy_pydriver_create_dict(void)
 
 	mod = PyImport_ImportModule("math");
 	if (mod) {
+		PyDict_Merge(d, PyModule_GetDict(mod), 0); /* 0 - dont overwrite existing values */
+		
+		/* Only keep for backwards compat! - just import all math into root, they are standard */
 		PyDict_SetItemString(d, "math", mod);
 		PyDict_SetItemString(d, "m", mod);
 		Py_DECREF(mod);
-	}
+	} 
 
 	mod = PyImport_ImportModule("Blender.Noise");
 	if (mod) {
@@ -1106,7 +1109,8 @@ static int bpy_pydriver_create_dict(void)
 			Py_DECREF(fcn);
 		}
 	}
-
+	
+	/* TODO - change these */
 	/* me(meshname) == Blender.Mesh.Get(meshname) */
 	mod = PyImport_ImportModule("Blender.Mesh");
 	if (mod) {
@@ -1311,7 +1315,7 @@ void BPY_pyconstraint_eval(bPythonConstraint *con, bConstraintOb *cob, ListBase 
 	tarmats= PyList_New(con->tarnum); 
 	for (ct=targets->first, index=0; ct; ct=ct->next, index++) {
 		tarmat = newMatrixObject((float *)ct->matrix, 4, 4, Py_NEW);
-		PyList_SetItem(tarmats, index, tarmat);
+		PyList_SET_ITEM(tarmats, index, tarmat);
 	}
 	
 	
@@ -1712,7 +1716,7 @@ struct Object **BPY_pydriver_get_objects(IpoDriver *driver)
 float BPY_pydriver_eval(IpoDriver *driver)
 {
 	char *expr = NULL;
-	PyObject *retval, *floatval, *bpy_ob = NULL;
+	PyObject *retval, *bpy_ob = NULL;
 	float result = 0.0f; /* default return */
 	int setitem_retval;
 
@@ -1750,14 +1754,10 @@ float BPY_pydriver_eval(IpoDriver *driver)
 		return pydriver_error(driver);
 	}
 
-	floatval = PyNumber_Float(retval);
-	Py_DECREF(retval);
-
-	if (floatval == NULL) 
+	result = ( float )PyFloat_AsDouble( retval );
+	
+	if (result == -1 && PyErr_Occurred()) 
 		return pydriver_error(driver);
-
-	result = (float)PyFloat_AsDouble(floatval);
-	Py_DECREF(floatval);
 
 	/* remove 'self', since this dict is also used by py buttons */
 	if (setitem_retval == 0) PyDict_DelItemString(bpy_pydriver_Dict, "self");
@@ -1965,13 +1965,11 @@ void BPY_do_pyscript( ID * id, short event )
 		disable_where_scriptlink( (short)during_slink );
 
 		/* set globals in Blender module to identify scriptlink */
-		EXPP_dict_set_item_str( g_blenderdict, "bylink", EXPP_incr_ret_True() );
-		
+		PyDict_SetItemString(	g_blenderdict, "bylink", Py_True);
 		EXPP_dict_set_item_str( g_blenderdict, "link", value );
 		EXPP_dict_set_item_str( g_blenderdict, "event",
 				      PyString_FromString( event_to_name
 							   ( event ) ) );
-
 		if (event == SCRIPT_POSTRENDER) event = SCRIPT_RENDER;
 
 		for( index = 0; index < scriptlink->totscript; index++ ) {
@@ -2007,10 +2005,9 @@ void BPY_do_pyscript( ID * id, short event )
 		/* cleanup bylink flag and clear link so PyObject
 		 * can be released 
 		 */
-		EXPP_dict_set_item_str( g_blenderdict, "bylink", EXPP_incr_ret_False() );
+		PyDict_SetItemString(g_blenderdict, "bylink", Py_False);
 		PyDict_SetItemString( g_blenderdict, "link", Py_None );
-		EXPP_dict_set_item_str( g_blenderdict, "event",
-				      PyString_FromString( "" ) );
+		EXPP_dict_set_item_str( g_blenderdict, "event", PyString_FromString( "" ) );
 	}
 }
 
@@ -2191,12 +2188,11 @@ int BPY_do_spacehandlers( ScrArea *sa, unsigned short event,
 		}
 		
 		/* set globals in Blender module to identify space handler scriptlink */
-		EXPP_dict_set_item_str(g_blenderdict, "bylink", EXPP_incr_ret_True());
+		PyDict_SetItemString(g_blenderdict, "bylink", Py_True);
 		/* unlike normal scriptlinks, here Blender.link is int (space event type) */
 		EXPP_dict_set_item_str(g_blenderdict, "link", PyInt_FromLong(space_event));
 		/* note: DRAW space_events set event to 0 */
 		EXPP_dict_set_item_str(g_blenderdict, "event", PyInt_FromLong(event));
-
 		/* now run all assigned space handlers for this space and space_event */
 		for( index = 0; index < scriptlink->totscript; index++ ) {
 
@@ -2251,7 +2247,7 @@ int BPY_do_spacehandlers( ScrArea *sa, unsigned short event,
 
 		}
 
-		EXPP_dict_set_item_str(g_blenderdict, "bylink", EXPP_incr_ret_False());
+		PyDict_SetItemString(g_blenderdict, "bylink", Py_False);
 		PyDict_SetItemString(g_blenderdict, "link", Py_None );
 		EXPP_dict_set_item_str(g_blenderdict, "event", PyString_FromString(""));
 	}

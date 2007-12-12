@@ -56,6 +56,7 @@
 
 #include "BKE_global.h"
 #include "BKE_object.h"
+#include "BKE_mesh.h"
 #include "BKE_modifier.h"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
@@ -133,7 +134,7 @@ void PE_free_particle_edit(ParticleSystem *psys)
 /************************************************/
 /*			Edit Mode Helpers					*/
 /************************************************/
-static int PE_can_edit(ParticleSystem *psys)
+int PE_can_edit(ParticleSystem *psys)
 {
 	return (psys && psys->edit && (G.f & G_PARTICLEEDIT));
 }
@@ -155,9 +156,12 @@ void PE_change_act(void *ob_v, void *act_v)
 	if(act>=0){
 		if((psys=BLI_findlink(&ob->particlesystem,act))) {
 			psys->flag |= PSYS_CURRENT;
-			if(G.f & G_PARTICLEEDIT && !psys->edit)
-				PE_create_particle_edit(ob, psys);
-			PE_recalc_world_cos(ob, psys);
+
+			if(psys->flag & PSYS_ENABLED) {
+				if(G.f & G_PARTICLEEDIT && !psys->edit)
+					PE_create_particle_edit(ob, psys);
+				PE_recalc_world_cos(ob, psys);
+			}
 		}
 	}
 }
@@ -182,7 +186,7 @@ ParticleSystem *PE_get_current(Object *ob)
 		psys->flag |= PSYS_CURRENT;
 	}
 
-	if(psys && ob == OBACT && (G.f & G_PARTICLEEDIT))
+	if(psys && (psys->flag & PSYS_ENABLED) && ob == OBACT && (G.f & G_PARTICLEEDIT))
 		if(psys->part->type == PART_HAIR && psys->flag & PSYS_EDITED)
 			if(psys->edit == NULL)
 				PE_create_particle_edit(ob, psys);
@@ -546,7 +550,7 @@ static void PE_update_mirror_cache(Object *ob, ParticleSystem *psys)
 
 	/* insert particles into kd tree */
 	LOOP_PARTICLES(i,pa) {
-		psys_mat_hair_to_object(ob, psmd->dm, psys->part->from, pa, mat);
+		psys_mat_hair_to_orco(ob, psmd->dm, psys->part->from, pa, mat);
 		VECCOPY(co, pa->hair[0].co);
 		Mat4MulVecfl(mat, co);
 		BLI_kdtree_insert(tree, i, co, NULL);
@@ -557,9 +561,9 @@ static void PE_update_mirror_cache(Object *ob, ParticleSystem *psys)
 	/* lookup particles and set in mirror cache */
 	if(!edit->mirror_cache)
 		edit->mirror_cache= MEM_callocN(sizeof(int)*totpart, "PE mirror cache");
-
+	
 	LOOP_PARTICLES(i,pa) {
-		psys_mat_hair_to_object(ob, psmd->dm, psys->part->from, pa, mat);
+		psys_mat_hair_to_orco(ob, psmd->dm, psys->part->from, pa, mat);
 		VECCOPY(co, pa->hair[0].co);
 		Mat4MulVecfl(mat, co);
 		co[0]= -co[0];
@@ -596,11 +600,11 @@ static void PE_mirror_particle(Object *ob, DerivedMesh *dm, ParticleSystem *psys
 	edit= psys->edit;
 	i= pa - psys->particles;
 
+	if(!edit->mirror_cache)
+		PE_update_mirror_cache(ob, psys);
+
 	/* find mirrored particle if needed */
 	if(!mpa) {
-		if(!edit->mirror_cache)
-			PE_update_mirror_cache(ob, psys);
-
 		mi= edit->mirror_cache[i];
 		if(mi == -1)
 			return;
@@ -628,8 +632,8 @@ static void PE_mirror_particle(Object *ob, DerivedMesh *dm, ParticleSystem *psys
 	}
 
 	/* mirror positions and tags */
-	psys_mat_hair_to_object(ob, dm, psys->part->from, pa, mat);
-	psys_mat_hair_to_object(ob, dm, psys->part->from, mpa, mmat);
+	psys_mat_hair_to_orco(ob, dm, psys->part->from, pa, mat);
+	psys_mat_hair_to_orco(ob, dm, psys->part->from, mpa, mmat);
 	Mat4Invert(immat, mmat);
 
 	hkey=pa->hair;
@@ -1098,9 +1102,11 @@ void PE_set_particle_edit(void)
 
 	if((G.f & G_PARTICLEEDIT)==0){
 		if(psys && psys->part->type == PART_HAIR && psys->flag & PSYS_EDITED) {
-			if(psys->edit==0)
-				PE_create_particle_edit(ob, psys);
-			PE_recalc_world_cos(ob, psys);
+			if(psys->flag & PSYS_ENABLED) {
+				if(psys->edit==0)
+					PE_create_particle_edit(ob, psys);
+				PE_recalc_world_cos(ob, psys);
+			}
 		}
 
 		G.f |= G_PARTICLEEDIT;
@@ -2272,7 +2278,7 @@ static void brush_add(Object *ob, ParticleSystem *psys, short *mval, short numbe
 			tree=BLI_kdtree_new(psys->totpart);
 			
 			for(i=0, pa=psys->particles; i<totpart; i++, pa++) {
-				psys_particle_on_dm(ob,psmd->dm,psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,cur_co,0,0,0);
+				psys_particle_on_dm(ob,psmd->dm,psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,cur_co,0,0,0,0,0);
 				BLI_kdtree_insert(tree, i, cur_co, NULL);
 			}
 
@@ -2311,7 +2317,7 @@ static void brush_add(Object *ob, ParticleSystem *psys, short *mval, short numbe
 				int w, maxw;
 				float maxd, mind, dd, totw=0.0, weight[3];
 
-				psys_particle_on_dm(ob,psmd->dm,psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co1,0,0,0);
+				psys_particle_on_dm(ob,psmd->dm,psys->part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co1,0,0,0,0,0);
 				maxw = BLI_kdtree_find_n_nearest(tree,3,co1,NULL,ptn);
 
 				maxd = ptn[maxw-1].dist;
@@ -2582,6 +2588,7 @@ int PE_brush_particles(void)
 				if(pset->brushtype == PE_BRUSH_ADD && (pset->flag & PE_X_MIRROR))
 					PE_mirror_x(1);
 				PE_recalc_world_cos(ob,psys);
+				psys_free_path_cache(psys);
 				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			}
 			else
@@ -2765,6 +2772,21 @@ void PE_mirror_x(int tagged)
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 		allqueue(REDRAWVIEW3D, 1);
 		BIF_undo_push("Mirror particles");
+	}
+}
+
+void PE_selectbrush_menu(void)
+{
+	ParticleEditSettings *pset= PE_settings();
+	int val;
+	
+	pupmenu_set_active(pset->brushtype);
+	
+	val= pupmenu("Select Brush%t|None %x0|Comb %x1|Smooth %x7|Weight %x6|Add %x5|Length %x3|Puff %x4|Cut %x2");
+
+	if(val>=0) {
+		pset->brushtype= val-1;
+		allqueue(REDRAWVIEW3D, 1);
 	}
 }
 

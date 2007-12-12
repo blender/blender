@@ -462,7 +462,6 @@ static void draw_constraint_spaceselect (uiBlock *block, bConstraint *con, short
 		bwidth = 125;
 		tarx = 120;
 		ownx = 0;
-		
 	}
 	else if (target == -1) {
 		bwidth = 125;
@@ -531,7 +530,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 	uiBlockSetEmboss(block, UI_EMBOSSN);
 	
 	/* rounded header */
-	rb_col= (con->flag & CONSTRAINT_ACTIVE)?40:20;
+	rb_col= (con->flag & CONSTRAINT_ACTIVE)?50:20;
 	uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-1, width+40, 22, NULL, 5.0, 0.0, 
 			 (con->flag & CONSTRAINT_EXPAND)?3:15 , rb_col-20, ""); 
 	
@@ -1088,8 +1087,8 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 					}
 				uiBlockEndAlign(block);
 				
-				uiDefButBitI(block, TOG, 0, B_CONSTRAINT_TEST, "Sticky", *xco, *yco-24, 44, 18, &data->flag, 0, 24, 0, 0, "Immobilize object while constrained");
-				uiDefButBitI(block, TOG, 2, B_CONSTRAINT_TEST, "Use Rot", *xco+44, *yco-24, 64, 18, &data->flag, 0, 24, 0, 0, "Use target object rotation");
+				uiDefButBitI(block, TOG, MINMAX_STICKY, B_CONSTRAINT_TEST, "Sticky", *xco, *yco-24, 44, 18, &data->flag, 0, 24, 0, 0, "Immobilize object while constrained");
+				uiDefButBitI(block, TOG, MINMAX_USEROT, B_CONSTRAINT_TEST, "Use Rot", *xco+44, *yco-24, 64, 18, &data->flag, 0, 24, 0, 0, "Use target object rotation");
 				
 				uiDefBut(block, LABEL, B_CONSTRAINT_TEST, "Max/Min:", *xco-8, *yco-64, 54, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 				
@@ -1253,7 +1252,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				int togButWidth = 50;
 				int textButWidth = ((width/2)-togButWidth);
 				
-				height = 106; 
+				height = 136; 
 				uiDefBut(block, ROUNDBOX, B_DIFF, "", *xco-10, *yco-height, width+40,height-1, NULL, 5.0, 0.0, 12, rb_col, ""); 
 				
 				/* Draw Pairs of LimitToggle+LimitValue */
@@ -1287,8 +1286,11 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 					uiDefButF(block, NUM, B_CONSTRAINT_TEST, "", *xco+(width-textButWidth-5), *yco-72, (textButWidth-5), 18, &(data->zmax), -1000, 1000, 0.1,0.5,"Highest z value to allow"); 
 				uiBlockEndAlign(block);
 				
+				/* special option(s) */
+				uiDefButBitS(block, TOG, LIMIT_TRANSFORM, B_CONSTRAINT_TEST, "For Transform", *xco+(width/4), *yco-100, (width/2), 18, &data->flag2, 0, 24, 0, 0, "Transforms are affected by this constraint as well"); 
+				
 				/* constraint space settings */
-				draw_constraint_spaceselect(block, con, *xco, *yco-100, is_armature_owner(ob), -1);
+				draw_constraint_spaceselect(block, con, *xco, *yco-130, is_armature_owner(ob), -1);
 			}
 			break;
 		case CONSTRAINT_TYPE_ROTLIMIT:
@@ -2419,15 +2421,17 @@ static void object_panel_anim(Object *ob)
 	uiDefButBitS(block, TOG, OB_DUPLIVERTS, B_DUPLI_VERTS, "DupliVerts",		119,130,95,20, &ob->transflag, 0, 0, 0, 0, "Duplicate child objects on all vertices");
 	uiDefButBitS(block, TOG, OB_DUPLIFACES, B_DUPLI_FACES, "DupliFaces",		214,130,102,20, &ob->transflag, 0, 0, 0, 0, "Duplicate child objects on all faces");
 	uiDefButBitS(block, TOG, OB_DUPLIGROUP, B_DUPLI_GROUP, "DupliGroup",		24,110,150,20, &ob->transflag, 0, 0, 0, 0, "Enable group instancing");
-	if(ob->transflag & OB_DUPLIFRAMES)
+	if(ob->transflag & OB_DUPLIFRAMES) {
 		uiDefButBitS(block, TOG, OB_DUPLINOSPEED, REDRAWVIEW3D, "No Speed",		174,110,142,20, &ob->transflag, 0, 0, 0, 0, "Set dupliframes to still, regardless of frame");
-	else if(ob->transflag & OB_DUPLIVERTS)
+	} else if(ob->transflag & OB_DUPLIVERTS) {
 		uiDefButBitS(block, TOG, OB_DUPLIROT, REDRAWVIEW3D, "Rot",				174,110,142,20, &ob->transflag, 0, 0, 0, 0, "Rotate dupli according to vertex normal");
-	else if(ob->transflag & OB_DUPLIFACES)
-		uiDefButBitS(block, TOG, OB_DUPLIFACES_SCALE, REDRAWVIEW3D, "Scale",			174,110,142,20, &ob->transflag, 0, 0, 0, 0, "Scale dupli based on face size");
-	else
+	} else if(ob->transflag & OB_DUPLIFACES) {
+		uiDefButBitS(block, TOG, OB_DUPLIFACES_SCALE, REDRAWVIEW3D, "Scale",			174,110,80,20, &ob->transflag, 0, 0, 0, 0, "Scale dupli based on face size");
+		uiDefButF(block, NUM, REDRAWVIEW3D, "",		254,110,62,20, &ob->dupfacesca, 0.001, 10000.0, 0, 0, "Scale the DupliFace objects");
+	} else {
 		uiDefIDPoinBut(block, test_grouppoin_but, ID_GR, B_GROUP_RELINK, "GR:",	174,110,142,20, &ob->dup_group, "Instance an existing group");
-
+	}
+	
 	uiBlockBeginAlign(block);
 	/* DupSta and DupEnd are both shorts, so the maxframe is greater then their range
 	just limit the buttons to the max short */
@@ -2850,6 +2854,23 @@ void do_effects_panels(unsigned short event)
 			allqueue(REDRAWVIEW3D, 0);
 			allqueue(REDRAWBUTSOBJECT, 0);
 			allqueue(REDRAWOOPS, 0);
+		}
+		break;
+	case B_PART_ENABLE:
+		if(psys) {
+			ParticleSystemModifierData *psmd= psys_get_modifier(ob, psys);
+			if(psys->flag & PSYS_ENABLED) {
+				psmd->modifier.mode |= eModifierMode_Realtime;
+			}
+			else {
+				psmd->modifier.mode &= ~eModifierMode_Realtime;
+				PE_free_particle_edit(psys);
+			}
+
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWBUTSOBJECT, 0);
+			allqueue(REDRAWBUTSEDIT, 0);
 		}
 		break;
 	case B_PART_RECALC:
@@ -3651,8 +3672,7 @@ static void object_panel_particle_children(Object *ob)
 	uiNewPanelTabbed("Extras", "Particle");
 	if(uiNewPanel(curarea, block, "Children", "Particle", 1300, 0, 318, 204)==0) return;
 
-	uiDefButS(block, MENU, B_PART_ALLOC_CHILD, "Children from:%t|Faces%x2|Particles%x1|None%x0", butx,buty,butw/2,buth, &part->childtype, 14.0, 0.0, 0, 0, "Create child particles");
-	uiDefButBitI(block, TOG, PART_CHILD_RENDER, B_PART_RECALC_CHILD, "Only Render",	 butx+butw/2,buty,butw/2,buth, &part->flag, 0, 0, 0, 0, "Create child particles only when rendering");
+	uiDefButS(block, MENU, B_PART_ALLOC_CHILD, "Children from:%t|Faces%x2|Particles%x1|None%x0", butx,buty,butw,buth, &part->childtype, 14.0, 0.0, 0, 0, "Create child particles");
 
 	if(part->childtype==0) return;
 
@@ -3663,17 +3683,21 @@ static void object_panel_particle_children(Object *ob)
 	}
 
 	uiBlockBeginAlign(block);
+
+	buty -= buth/2;
 	
+	uiDefButI(block, NUM, B_PART_ALLOC_CHILD, "Amount:", butx,(buty-=buth),butw,buth, &part->child_nbr, 0.0, MAX_PART_CHILDREN, 0, 0, "Amount of children/parent");
+	uiDefButI(block, NUM, B_DIFF, "Render Amount:", butx,(buty-=buth),butw,buth, &part->ren_child_nbr, 0.0, MAX_PART_CHILDREN, 0, 0, "Amount of children/parent for rendering");
 	if(part->from!=PART_FROM_PARTICLE && part->childtype==PART_CHILD_FACES) {
-		uiDefButI(block, NUM, B_PART_ALLOC_CHILD, "Amount:", butx,(buty-=2*buth),butw,buth, &part->child_nbr, 0.0, MAX_PART_CHILDREN, 0, 0, "Amount of children/parent");
 		uiDefButF(block, NUMSLI, B_PART_DISTR_CHILD, "VParents:",		butx,(buty-=buth),butw,buth, &part->parents, 0.0, 1.0, 1, 3, "Relative amount of virtual parents");
 		}
 	else {
-		uiDefButI(block, NUM, B_PART_ALLOC_CHILD, "Amount:", butx,(buty-=2*buth),butw,buth, &part->child_nbr, 0.0, MAX_PART_CHILDREN, 0, 0, "Amount of children/parent");
 		uiDefButF(block, NUM, B_PART_RECALC_CHILD, "Rad:",		butx,(buty-=buth),butw,buth, &part->childrad, 0.0, 10.0, 1, 3, "Radius of children around parent");
 		uiDefButF(block, NUMSLI, B_PART_RECALC_CHILD, "Round:",		butx,(buty-=buth),butw,buth, &part->childflat, 0.0, 1.0, 1, 3, "Roundness of children around parent");
 	}
 	uiBlockEndAlign(block);
+
+	buty -= buth/2;
 
 	/* clump */
 	uiBlockBeginAlign(block);
@@ -3681,8 +3705,10 @@ static void object_panel_particle_children(Object *ob)
 	uiDefButF(block, NUMSLI, B_PART_RECALC_CHILD, "Shape:",		butx,(buty-=buth),butw,buth, &part->clumppow, -0.999, 0.999, 1, 3, "Shape of clumpimg");
 	uiBlockEndAlign(block);
 
+	buty -= buth/2;
+
 	uiBlockBeginAlign(block);
-	uiDefButF(block, NUM, B_PART_REDRAW, "Size:",		butx,(buty-=2*buth),butw/2,buth, &part->childsize, 0.01, 100, 10, 1, "A multiplier for the child particle size");
+	uiDefButF(block, NUM, B_PART_REDRAW, "Size:",		butx,(buty-=buth),butw/2,buth, &part->childsize, 0.01, 100, 10, 1, "A multiplier for the child particle size");
 	uiDefButF(block, NUM, B_PART_REDRAW, "Rand:",		butx+butw/2,buty,butw/2,buth, &part->childrandsize, 0.0, 1.0, 10, 1, "Random variation to the size of the child particles");
 	if(part->childtype==PART_CHILD_FACES) {
 		uiDefButF(block, NUM, B_PART_REDRAW, "Spread:",butx,(buty-=buth),butw/2,buth, &part->childspread, -1.0, 1.0, 10, 1, "Spread children from the faces");
@@ -3693,10 +3719,11 @@ static void object_panel_particle_children(Object *ob)
 	butx=160;
 	buty=180;
 
-
 	uiDefButBitS(block, TOG, 1, B_PART_REDRAW, "Kink/Branch",	 butx,(buty-=buth),butw,buth, &kink_ui, 0, 0, 0, 0, "Show kink and branch options");
 
 	if(kink_ui) {
+		buty -= buth/2;
+
 		/* kink */
 		uiBlockBeginAlign(block);
 		if(part->kink) {
@@ -3725,15 +3752,19 @@ static void object_panel_particle_children(Object *ob)
 	}
 	else {
 	/* rough */
+		buty -= buth/2;
+
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUMSLI, B_PART_RECALC_CHILD, "Rough1:",	butx,(buty-=2*buth),butw,buth, &part->rough1, 0.0, 10.0, 1, 3, "Amount of location dependant rough");
+		uiDefButF(block, NUMSLI, B_PART_RECALC_CHILD, "Rough1:",	butx,(buty-=buth),butw,buth, &part->rough1, 0.0, 10.0, 1, 3, "Amount of location dependant rough");
 		uiDefButF(block, NUM, B_PART_RECALC_CHILD, "Size1:",	butx,(buty-=buth),butw,buth, &part->rough1_size, 0.01, 10.0, 1, 3, "Size of location dependant rough");
 		uiBlockEndAlign(block);
+		buty -= buth/2;
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUMSLI, B_PART_RECALC_CHILD, "Rough2:",	butx,(buty-=buth),butw,buth, &part->rough2, 0.0, 10.0, 1, 3, "Amount of random rough");
 		uiDefButF(block, NUM, B_PART_RECALC_CHILD, "Size2:",	butx,(buty-=buth),butw,buth, &part->rough2_size, 0.01, 10.0, 1, 3, "Size of random rough");
 		uiDefButF(block, NUMSLI, B_PART_RECALC_CHILD, "Thresh:",	butx,(buty-=buth),butw,buth, &part->rough2_thres, 0.00, 1.0, 1, 3, "Amount of particles left untouched by random rough");
 		uiBlockEndAlign(block);
+		buty -= buth/2;
 		uiBlockBeginAlign(block);
 		uiDefButF(block, NUMSLI, B_PART_RECALC_CHILD, "RoughE:",	butx,(buty-=buth),butw,buth, &part->rough_end, 0.0, 10.0, 1, 3, "Amount of end point rough");
 		uiDefButF(block, NUMSLI, B_PART_RECALC_CHILD, "Shape:",	butx,(buty-=buth),butw,buth, &part->rough_end_shape, 0.0, 10.0, 1, 3, "Shape of end point rough");
@@ -3820,7 +3851,7 @@ static void object_panel_particle_extra(Object *ob)
 		
 		uiDefButS(block, MENU, B_PART_REDRAW, "Attribute%t|TanRot%x10|TanVel%x9|Size%x8|RoughE%x7|Rough2%x6|Rough1%x5|Kink%x4|Clump%x3|Length%x2|Velocity%x1|Density%x0", butx,(buty-=buth),butw-40,buth, &vgnum, 14.0, 0.0, 0, 0, "Attribute effected by vertex group");
 		but=uiDefButBitS(block, TOG, (1<<vgnum), B_PART_REDRAW, "Neg",	butx+butw-40,buty,40,buth, &psys->vg_neg, 0, 0, 0, 0, "Negate the effect of the vertex group");
-		uiButSetFunc(but, particle_set_vg, (void *)psys, (void *)(&vgnum));
+		uiButSetFunc(but, particle_set_vg, (void *)ob, (void *)(&vgnum));
 		
 		butx+=butw;
 
@@ -3909,7 +3940,7 @@ static void object_panel_particle_visual(Object *ob)
 	uiDefBut(block, LABEL, 0, "Render:",	butx,(buty-=buth),butw,buth, NULL, 0.0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
 	uiDefButS(block, NUM, B_PART_DISTR, "Material:",					butx,(buty-=buth),butw-30,buth, &part->omat, 1.0, 16.0, 0, 0, "Specify material used for the particles");
-	uiDefButBitS(block, TOG, PART_DRAW_MAT_COL, B_PART_REDRAW, "Col",	butx+butw-30,buty,30,buth, &part->draw, 0, 0, 0, 0, "Draw particles using material's diffuse color");
+	uiDefButBitS(block, TOG, PART_DRAW_MAT_COL, B_PART_RECALC, "Col",	butx+butw-30,buty,30,buth, &part->draw, 0, 0, 0, 0, "Draw particles using material's diffuse color");
 	uiDefButBitS(block, TOG, PART_DRAW_EMITTER, B_PART_REDRAW, "Emitter",	butx,(buty-=buth),butw/2,buth, &part->draw, 0, 0, 0, 0, "Render emitter Object also");
 	uiDefButBitS(block, TOG, PART_DRAW_PARENT, B_PART_REDRAW, "Parents",				butx+butw/2,buty,butw/2,buth, &part->draw, 0, 0, 0, 0, "Render parent particles");
 	uiDefButBitI(block, TOG, PART_UNBORN, B_PART_REDRAW, "Unborn",			butx,(buty-=buth),butw/2,buth, &part->flag, 0, 0, 0, 0, "Show particles before they are emitted");
@@ -3965,10 +3996,16 @@ static void object_panel_particle_visual(Object *ob)
 				uiDefButBitI(block, TOG, PART_HAIR_BSPLINE, B_PART_RECALC, "B-Spline",	 butx,(buty-=buth),butw,buth, &part->flag, 0, 0, 0, 0, "Interpolate hair using B-Splines");
 
 				uiBlockBeginAlign(block);
-				uiDefButBitS(block, TOG, PART_DRAW_REN_ADAPT, B_PART_REDRAW, "Adaptive render",	 butx,buty-=buth,butw,buth, &part->draw, 0, 0, 0, 0, "Draw steps of the particle path");
-				if(part->draw & PART_DRAW_REN_ADAPT) {
+				uiDefButBitS(block, TOG, PART_DRAW_REN_STRAND, B_PART_REDRAW, "Strand render",	 butx,buty-=buth,butw,buth, &part->draw, 0, 0, 0, 0, "Use the strand primitive for rendering");
+				if(part->draw & PART_DRAW_REN_STRAND) {
 					uiDefButS(block, NUM, B_PART_REDRAW, "Angle:",	butx,(buty-=buth),butw,buth, &part->adapt_angle, 0.0, 45.0, 0, 0, "How many degrees path has to curve to make another render segment");
-					uiDefButS(block, NUM, B_PART_REDRAW, "Pixel:",	butx,(buty-=buth),butw,buth, &part->adapt_pix, 0.0, 50.0, 0, 0, "How many pixels path has to cover to make another render segment");
+				}
+				else {
+					uiDefButBitS(block, TOG, PART_DRAW_REN_ADAPT, B_PART_REDRAW, "Adaptive render",	 butx,buty-=buth,butw,buth, &part->draw, 0, 0, 0, 0, "Draw steps of the particle path");
+					if(part->draw & PART_DRAW_REN_ADAPT) {
+						uiDefButS(block, NUM, B_PART_REDRAW, "Angle:",	butx,(buty-=buth),butw/2,buth, &part->adapt_angle, 0.0, 45.0, 0, 0, "How many degrees path has to curve to make another render segment");
+						uiDefButS(block, NUM, B_PART_REDRAW, "Pixel:",	butx+butw/2,buty,(butw+1)/2,buth, &part->adapt_pix, 0.0, 50.0, 0, 0, "How many pixels path has to cover to make another render segment");
+					}
 				}
 			}
 			else {
@@ -4137,9 +4174,9 @@ static void object_panel_particle_physics(Object *ob)
 
 			butw=103;
 			uiBlockBeginAlign(block);
-			uiDefButF(block, NUM, B_PART_RECALC, "AccX:",		butx,(buty-=buth),butw,buth, part->acc, -200.0, 200.0, 100, 0, "Specify a constant acceleration along the X-axis");
-			uiDefButF(block, NUM, B_PART_RECALC, "AccY:",		butx+butw,buty,butw,buth, part->acc+1,-200.0, 200.0, 100, 0, "Specify a constant acceleration along the Y-axis");
-			uiDefButF(block, NUM, B_PART_RECALC, "AccZ:",		butx+2*butw,buty,butw+1,buth, part->acc+2, -200.0, 200.0, 100, 0, "Specify a constant acceleration along the Z-axis");
+			uiDefButF(block, NUM, B_PART_RECALC, "AccX:",		butx,(buty-=buth),butw,buth, part->acc, -200.0, 200.0, 10, 0, "Specify a constant acceleration along the X-axis");
+			uiDefButF(block, NUM, B_PART_RECALC, "AccY:",		butx+butw,buty,butw,buth, part->acc+1,-200.0, 200.0, 10, 0, "Specify a constant acceleration along the Y-axis");
+			uiDefButF(block, NUM, B_PART_RECALC, "AccZ:",		butx+2*butw,buty,butw+1,buth, part->acc+2, -200.0, 200.0, 10, 0, "Specify a constant acceleration along the Z-axis");
 
 			uiDefButF(block, NUM, B_PART_RECALC, "Drag:",		butx,(buty-=buth),butw,buth, &part->dragfac, 0.0, 1.0, 1, 0, "Specify the amount of air-drag");
 			uiDefButF(block, NUM, B_PART_RECALC, "Brown:",		butx+butw,buty,butw,buth, &part->brownfac, 0.0, 200.0, 1, 0, "Specify the amount of brownian motion");
@@ -4230,7 +4267,7 @@ static void object_panel_particle_system(Object *ob)
 	butx=0;
 	buty-=5;
 	
-	uiDefButBitI(block, TOG, PSYS_ENABLED, B_PART_REDRAW, "Enabled",	 0,(buty-=buth),100,buth, &psys->flag, 0, 0, 0, 0, "Sets particle system to be calculated and shown");
+	uiDefButBitI(block, TOG, PSYS_ENABLED, B_PART_ENABLE, "Enabled",	 0,(buty-=buth),100,buth, &psys->flag, 0, 0, 0, 0, "Sets particle system to be calculated and shown");
 
 	if(part->type == PART_HAIR){
 		if(psys->flag & PSYS_EDITED)

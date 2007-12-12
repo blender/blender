@@ -430,6 +430,8 @@ class BlenderEnvironment(SConsEnvironment):
         if  lenv['OURPLATFORM']=='sunos5':
             lenv.Append(LINKFLAGS = lenv['PLATFORM_LINKFLAGS'])
             lenv.Append(LINKFLAGS = lenv['BF_PYTHON_LINKFLAGS'])
+            if lenv['CXX'].endswith('CC'):
+                 lenv.Replace(LINK = '$CXX')
         if  lenv['OURPLATFORM']=='darwin':
             lenv.Append(LINKFLAGS = lenv['PLATFORM_LINKFLAGS'])
             lenv.Append(LINKFLAGS = lenv['BF_PYTHON_LINKFLAGS'])

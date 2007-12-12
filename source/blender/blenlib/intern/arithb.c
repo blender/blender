@@ -1211,7 +1211,7 @@ void QuatToMat4( float *q, float m[][4])
 	m[3][3]= 1.0f;
 }
 
-void Mat3ToQuat( float wmat[][3], float *q)		/* from Sig.Proc.85 pag 253 */
+void Mat3ToQuat(float wmat[][3], float *q)
 {
 	double tr, s;
 	float mat[3][3];
@@ -1225,34 +1225,38 @@ void Mat3ToQuat( float wmat[][3], float *q)		/* from Sig.Proc.85 pag 253 */
 	if(tr>FLT_EPSILON) {
 		s= sqrt( tr);
 		q[0]= (float)s;
-		s*= 4.0;
-		q[1]= (float)((mat[1][2]-mat[2][1])/s);
-		q[2]= (float)((mat[2][0]-mat[0][2])/s);
-		q[3]= (float)((mat[0][1]-mat[1][0])/s);
+		s= 1.0/(4.0*s);
+		q[1]= (float)((mat[1][2]-mat[2][1])*s);
+		q[2]= (float)((mat[2][0]-mat[0][2])*s);
+		q[3]= (float)((mat[0][1]-mat[1][0])*s);
 	}
 	else {
-		q[0]= 0.0f;
-		s= -0.5*(mat[1][1]+mat[2][2]);
-		
-		if(s>FLT_EPSILON) {
-			s= sqrt(s);
-			q[1]= (float)s;
-			q[2]= (float)(mat[0][1]/(2*s));
-			q[3]= (float)(mat[0][2]/(2*s));
+		if(mat[0][0] > mat[1][1] && mat[0][0] > mat[2][2]) {
+			s= 2.0*sqrtf(1.0 + mat[0][0] - mat[1][1] - mat[2][2]);
+			q[1]= (float)(0.25*s);
+
+			s= 1.0/s;
+			q[0]= (float)((mat[2][1] - mat[1][2])*s);
+			q[2]= (float)((mat[1][0] + mat[0][1])*s);
+			q[3]= (float)((mat[2][0] + mat[0][2])*s);
+		}
+		else if(mat[1][1] > mat[2][2]) {
+			s= 2.0*sqrtf(1.0 + mat[1][1] - mat[0][0] - mat[2][2]);
+			q[2]= (float)(0.25*s);
+
+			s= 1.0/s;
+			q[0]= (float)((mat[2][0] - mat[0][2])*s);
+			q[1]= (float)((mat[1][0] + mat[0][1])*s);
+			q[3]= (float)((mat[2][1] + mat[1][2])*s);
 		}
 		else {
-			q[1]= 0.0f;
-			s= 0.5*(1.0-mat[2][2]);
-			
-			if(s>FLT_EPSILON) {
-				s= sqrt(s);
-				q[2]= (float)s;
-				q[3]= (float)(mat[1][2]/(2*s));
-			}
-			else {
-				q[2]= 0.0f;
-				q[3]= 1.0f;
-			}
+			s= 2.0*sqrtf(1.0 + mat[2][2] - mat[0][0] - mat[1][1]);
+			q[3]= (float)(0.25*s);
+
+			s= 1.0/s;
+			q[0]= (float)((mat[1][0] - mat[0][1])*s);
+			q[1]= (float)((mat[2][0] + mat[0][2])*s);
+			q[2]= (float)((mat[2][1] + mat[1][2])*s);
 		}
 	}
 	NormalQuat(q);

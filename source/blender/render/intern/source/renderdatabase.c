@@ -79,6 +79,7 @@
 #include "render_types.h"
 #include "renderdatabase.h"
 #include "texture.h"
+#include "strand.h"
 #include "zbuf.h"
 
 /* ------------------------------------------------------------------------- */
@@ -100,6 +101,8 @@
 #define RE_WINSPEED_ELEMS	4
 #define RE_MTFACE_ELEMS		1
 #define RE_MCOL_ELEMS		4
+#define RE_UV_ELEMS			2
+#define RE_SURFNOR_ELEMS	3
 
 float *RE_vertren_get_sticky(Render *re, VertRen *ver, int verify)
 {
@@ -368,6 +371,21 @@ MCol *RE_vlakren_get_mcol(Render *re, VlakRen *vlr, int n, char **name, int veri
 	return node->mcol[index];
 }
 
+float *RE_vlakren_get_surfnor(Render *re, VlakRen *vlak, int verify)
+{
+	float *surfnor;
+	int nr= vlak->index>>8;
+	
+	surfnor= re->vlaknodes[nr].surfnor;
+	if(surfnor==NULL) {
+		if(verify) 
+			surfnor= re->vlaknodes[nr].surfnor= MEM_callocN(256*RE_SURFNOR_ELEMS*sizeof(float), "surfnor table");
+		else
+			return NULL;
+	}
+	return surfnor + (vlak->index & 255)*RE_SURFNOR_ELEMS;
+}
+
 VlakRen *RE_vlakren_copy(Render *re, VlakRen *vlr)
 {
 	VlakRen *vlr1 = RE_findOrAddVlak(re, re->totvlak++);
@@ -375,6 +393,7 @@ VlakRen *RE_vlakren_copy(Render *re, VlakRen *vlr)
 	MCol *mcol, *mcol1;
 	VlakTableNode *node = &re->vlaknodes[vlr->index>>8];
 	VlakTableNode *node1 = &re->vlaknodes[vlr1->index>>8];
+	float *surfnor, *surfnor1;
 	int i, index = vlr1->index;
 	char *name;
 
@@ -389,6 +408,12 @@ VlakRen *RE_vlakren_copy(Render *re, VlakRen *vlr)
 	for (i=0; (mcol=RE_vlakren_get_mcol(re, vlr, i, &name, 0)) != NULL; i++) {
 		mcol1= RE_vlakren_get_mcol(re, vlr1, i, &name, 1);
 		memcpy(mcol1, mcol, sizeof(MCol)*RE_MCOL_ELEMS);
+	}
+
+	surfnor= RE_vlakren_get_surfnor(re, vlr, 0);
+	if(surfnor) {
+		surfnor1= RE_vlakren_get_surfnor(re, vlr1, 1);
+		VECCOPY(surfnor1, surfnor);
 	}
 
 	if (node->names && node1->names)
@@ -480,7 +505,183 @@ VlakRen *RE_findOrAddVlak(Render *re, int nr)
 
 /* ------------------------------------------------------------------------ */
 
-void RE_addRenderObject(Render *re, Object *ob, Object *par, int index, int sve, int eve, int sfa, int efa)
+float *RE_strandren_get_winspeed(Render *re, StrandRen *strand, int verify)
+{
+	float *winspeed;
+	int nr= strand->index>>8;
+	
+	winspeed= re->strandnodes[nr].winspeed;
+	if(winspeed==NULL) {
+		if(verify) 
+			winspeed= re->strandnodes[nr].winspeed= MEM_callocN(256*RE_WINSPEED_ELEMS*sizeof(float), "winspeed table");
+		else
+			return NULL;
+	}
+	return winspeed + (strand->index & 255)*RE_WINSPEED_ELEMS;
+}
+
+float *RE_strandren_get_surfnor(Render *re, StrandRen *strand, int verify)
+{
+	float *surfnor;
+	int nr= strand->index>>8;
+	
+	surfnor= re->strandnodes[nr].surfnor;
+	if(surfnor==NULL) {
+		if(verify) 
+			surfnor= re->strandnodes[nr].surfnor= MEM_callocN(256*RE_SURFNOR_ELEMS*sizeof(float), "surfnor table");
+		else
+			return NULL;
+	}
+	return surfnor + (strand->index & 255)*RE_SURFNOR_ELEMS;
+}
+
+float *RE_strandren_get_uv(Render *re, StrandRen *strand, int n, char **name, int verify)
+{
+	StrandTableNode *node;
+	int nr= strand->index>>8, strandindex= (strand->index&255);
+	int index= (n<<8) + strandindex;
+
+	node= &re->strandnodes[nr];
+
+	if(verify) {
+		if(n>=node->totuv) {
+			float **uv= node->uv;
+			int size= (n+1)*256;
+
+			node->uv= MEM_callocN(size*sizeof(float*), "Strand uv");
+
+			if(uv) {
+				size= node->totuv*256;
+				memcpy(node->uv, uv, size*sizeof(float*));
+				MEM_freeN(uv);
+			}
+
+			node->totuv= n+1;
+
+			if (!node->names) {
+				size= sizeof(*node->names)*256;
+				node->names= MEM_callocN(size, "Strand names");
+			}
+		}
+
+		if(node->uv[index]==NULL) {
+			node->uv[index]= BLI_memarena_alloc(re->memArena,
+				sizeof(float)*RE_UV_ELEMS);
+
+			node->names[strandindex]= re->customdata_names.last;
+		}
+	}
+	else {
+		if(n>=node->totuv || node->uv[index]==NULL)
+			return NULL;
+
+		if(name) *name= node->names[strandindex]->mtface[n];
+	}
+
+	return node->uv[index];
+}
+
+MCol *RE_strandren_get_mcol(Render *re, StrandRen *strand, int n, char **name, int verify)
+{
+	StrandTableNode *node;
+	int nr= strand->index>>8, strandindex= (strand->index&255);
+	int index= (n<<8) + strandindex;
+
+	node= &re->strandnodes[nr];
+
+	if(verify) {
+		if(n>=node->totmcol) {
+			MCol **mcol= node->mcol;
+			int size= (n+1)*256;
+
+			node->mcol= MEM_callocN(size*sizeof(MCol*), "Strand mcol");
+
+			if(mcol) {
+				size= node->totmcol*256;
+				memcpy(node->mcol, mcol, size*sizeof(MCol*));
+				MEM_freeN(mcol);
+			}
+
+			node->totmcol= n+1;
+
+			if (!node->names) {
+				size= sizeof(*node->names)*256;
+				node->names= MEM_callocN(size, "Strand names");
+			}
+		}
+
+		if(node->mcol[index]==NULL) {
+			node->mcol[index]= BLI_memarena_alloc(re->memArena,
+				sizeof(MCol)*RE_MCOL_ELEMS);
+
+			node->names[strandindex]= re->customdata_names.last;
+		}
+	}
+	else {
+		if(n>=node->totmcol || node->mcol[index]==NULL)
+			return NULL;
+
+		if(name) *name= node->names[strandindex]->mcol[n];
+	}
+
+	return node->mcol[index];
+}
+
+StrandRen *RE_findOrAddStrand(Render *re, int nr)
+{
+	StrandTableNode *temp;
+	StrandRen *v;
+	int a;
+
+	if(nr<0) {
+		printf("error in findOrAddStrand: %d\n",nr);
+		return re->strandnodes[0].strand;
+	}
+	a= nr>>8;
+	
+	if (a>=re->strandnodeslen-1){  /* Need to allocate more columns..., and keep last element NULL for free loop */
+		temp= re->strandnodes;
+		
+		re->strandnodes= MEM_mallocN(sizeof(StrandTableNode)*(re->strandnodeslen+TABLEINITSIZE) , "strandnodes");
+		if(temp) memcpy(re->strandnodes, temp, re->strandnodeslen*sizeof(StrandTableNode));
+		memset(re->strandnodes+re->strandnodeslen, 0, TABLEINITSIZE*sizeof(StrandTableNode));
+
+		re->strandnodeslen+=TABLEINITSIZE;  /*Does this really need to be power of 2?*/
+		if(temp) MEM_freeN(temp);	
+	}
+
+	v= re->strandnodes[a].strand;
+	
+	if(v==NULL) {
+		int i;
+
+		v= (StrandRen *)MEM_callocN(256*sizeof(StrandRen),"findOrAddStrand");
+		re->strandnodes[a].strand= v;
+
+		for(i= (nr & 0xFFFFFF00), a=0; a<256; a++, i++)
+			v[a].index= i;
+	}
+	v+= (nr & 255);
+	return v;
+}
+
+StrandBuffer *RE_addStrandBuffer(Render *re, Object *ob, int totvert)
+{
+	StrandBuffer *strandbuf;
+
+	strandbuf= MEM_callocN(sizeof(StrandBuffer), "StrandBuffer");
+	strandbuf->vert= MEM_callocN(sizeof(StrandVert)*totvert, "StrandVert");
+	strandbuf->totvert= totvert;
+	strandbuf->ob= ob;
+
+	BLI_addtail(&re->strandbufs, strandbuf);
+
+	return strandbuf;
+}
+
+/* ------------------------------------------------------------------------ */
+
+void RE_addRenderObject(Render *re, Object *ob, Object *par, int index, int sve, int eve, int sfa, int efa, int sst, int est)
 {
 	ObjectRen *obr= MEM_mallocN(sizeof(ObjectRen), "object render struct");
 	
@@ -492,6 +693,8 @@ void RE_addRenderObject(Render *re, Object *ob, Object *par, int index, int sve,
 	obr->endvert= eve;
 	obr->startface= sfa;
 	obr->endface= efa;
+	obr->startstrand= sst;
+	obr->endstrand= est;
 }
 
 void free_renderdata_vertnodes(VertTableNode *vertnodes)
@@ -533,6 +736,8 @@ void free_renderdata_vlaknodes(VlakTableNode *vlaknodes)
 			MEM_freeN(vlaknodes[a].mtface);
 		if(vlaknodes[a].mcol)
 			MEM_freeN(vlaknodes[a].mcol);
+		if(vlaknodes[a].surfnor)
+			MEM_freeN(vlaknodes[a].surfnor);
 		if(vlaknodes[a].names)
 			MEM_freeN(vlaknodes[a].names);
 	}
@@ -540,10 +745,35 @@ void free_renderdata_vlaknodes(VlakTableNode *vlaknodes)
 	MEM_freeN(vlaknodes);
 }
 
+void free_renderdata_strandnodes(StrandTableNode *strandnodes)
+{
+	int a;
+	
+	if(strandnodes==NULL) return;
+	
+	for(a=0; strandnodes[a].strand; a++) {
+		MEM_freeN(strandnodes[a].strand);
+		
+		if(strandnodes[a].uv)
+			MEM_freeN(strandnodes[a].uv);
+		if(strandnodes[a].mcol)
+			MEM_freeN(strandnodes[a].mcol);
+		if(strandnodes[a].winspeed)
+			MEM_freeN(strandnodes[a].winspeed);
+		if(strandnodes[a].surfnor)
+			MEM_freeN(strandnodes[a].surfnor);
+		if(strandnodes[a].names)
+			MEM_freeN(strandnodes[a].names);
+	}
+	
+	MEM_freeN(strandnodes);
+}
+
 void free_renderdata_tables(Render *re)
 {
-	int a=0;
+	StrandBuffer *strandbuf;
 	CustomDataNames *cdn;
+	int a=0;
 	
 	if(re->bloha) {
 		for(a=0; re->bloha[a]; a++)
@@ -566,12 +796,27 @@ void free_renderdata_tables(Render *re)
 		re->vlaknodeslen= 0;
 	}
 
+	if(re->strandnodes) {
+		free_renderdata_strandnodes(re->strandnodes);
+		re->strandnodes= NULL;
+		re->strandnodeslen= 0;
+	}
+
+	if(re->strandbuckets) {
+		free_buckets(re->strandbuckets);
+		re->strandbuckets= NULL;
+	}
+
 	for(cdn=re->customdata_names.first; cdn; cdn=cdn->next) {
 		if(cdn->mtface)
 			MEM_freeN(cdn->mtface);
 		if(cdn->mcol)
 			MEM_freeN(cdn->mcol);
 	}
+
+	for(strandbuf=re->strandbufs.first; strandbuf; strandbuf=strandbuf->next)
+		if(strandbuf->vert) MEM_freeN(strandbuf->vert);
+	BLI_freelistN(&re->strandbufs);
 
 	BLI_freelistN(&re->customdata_names);
 	BLI_freelistN(&re->objecttable);
@@ -906,14 +1151,14 @@ static int panotestclip(Render *re, int do_pano, float *v)
   - shadow buffering (shadbuf.c)
 */
 
-void project_renderdata(Render *re, void (*projectfunc)(float *, float mat[][4], float *),  int do_pano, float xoffs)
+void project_renderdata(Render *re, void (*projectfunc)(float *, float mat[][4], float *),  int do_pano, float xoffs, int do_buckets)
 {
 	VlakRen *vlr = NULL;
 	VertRen *ver = NULL;
 	HaloRen *har = NULL;
 	float zn, vec[3], hoco[4];
 	int a;
-	
+
 	if(do_pano) {
 		float panophi= xoffs;
 		
@@ -1029,6 +1274,7 @@ void project_renderdata(Render *re, void (*projectfunc)(float *, float mat[][4],
 			vlr->flag &= ~R_VISIBLE;
 	}
 
+	project_strands(re, projectfunc, do_pano, do_buckets);
 }
 
 /* ------------------------------------------------------------------------- */

@@ -294,7 +294,7 @@ typedef struct bRotLimitConstraint {
 	float		ymin, ymax;
 	float		zmin, zmax;
 	short 		flag;
-	short		pad1;
+	short		flag2;
 } bRotLimitConstraint;
 
 /* Limit Scaling Constraint */
@@ -303,7 +303,7 @@ typedef struct bSizeLimitConstraint {
 	float		ymin, ymax;
 	float 		zmin, zmax;
 	short 		flag;
-	short		pad1;
+	short		flag2;
 } bSizeLimitConstraint;
 
 /* ------------------------------------------ */
@@ -471,9 +471,11 @@ typedef enum B_CONSTRAINTCHANNEL_FLAG {
 #define LIMIT_YROT 0x02
 #define LIMIT_ZROT 0x04
 
-/* not used anymore - for older Limit Location constraints only */
+	/* not used anymore - for older Limit Location constraints only */
 #define LIMIT_NOPARENT 0x01
-
+	/* for all Limit constraints - allow to be used during transform? */
+#define LIMIT_TRANSFORM 0x02
+	
 /* python constraint -> flag */
 #define PYCON_USETARGETS	0x01
 #define PYCON_SCRIPTERROR	0x02

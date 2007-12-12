@@ -13,6 +13,11 @@
 #include <algorithm>
 #include <stdio.h>
 
+#if !defined(linux) && (defined (__sparc) || defined (__sparc__))
+#include <ieeefp.h>
+#endif
+
+
 // just use default rounding for platforms where its not available
 #ifndef round
 #define round(x) (x)

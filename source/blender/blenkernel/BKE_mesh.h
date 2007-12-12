@@ -62,8 +62,8 @@ void make_local_tface(struct Mesh *me);
 void make_local_mesh(struct Mesh *me);
 void boundbox_mesh(struct Mesh *me, float *loc, float *size);
 void tex_space_mesh(struct Mesh *me);
-float *mesh_create_orco_render(struct Object *ob);
-float *mesh_create_orco(struct Object *ob);
+float *get_mesh_orco_verts(struct Object *ob);
+void transform_mesh_orco_verts(struct Mesh *me, float (*orco)[3], int totvert, int invert);
 void test_index_face(struct MFace *mface, struct CustomData *mfdata, int mfindex, int nr);
 struct Mesh *get_mesh(struct Object *ob);
 void set_mesh(struct Object *ob, struct Mesh *me);
@@ -75,7 +75,7 @@ int update_realtime_texture(struct MTFace *tface, double time);
 void mesh_delete_material_index(struct Mesh *me, int index);
 void mesh_set_smooth_flag(struct Object *meshOb, int enableSmooth);
 
-struct BoundBox *mesh_get_bb(struct Mesh *me);
+struct BoundBox *mesh_get_bb(struct Object *ob);
 void mesh_get_texspace(struct Mesh *me, float *loc_r, float *rot_r, float *size_r);
 
 /* if old, it converts mface->edcode to edge drawflags */

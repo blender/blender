@@ -331,7 +331,7 @@ static void do_nla_stripmenu(void *arg, int event)
 	case 7: /* Move Down */
 		shift_nlastrips_down();
 		break;
-	case 8:	/* size */
+	case 8:	/* reset scale */
 		reset_action_strips(1);
 		break;
 	case 9:	/* reset start/end of action */
@@ -339,6 +339,9 @@ static void do_nla_stripmenu(void *arg, int event)
 		break;
 	case 10: /* add new action as new action strip */
 		add_empty_nlablock();
+		break;
+	case 11: /* apply scale */
+		reset_action_strips(3);
 		break;
 	}
 }
@@ -353,10 +356,11 @@ static uiBlock *nla_stripmenu(void *arg_unused)
 
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Strip Properties...|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 0, "");
 	uiDefIconTextBlockBut(block, nla_strip_transformmenu, NULL, ICON_RIGHTARROW_THIN, "Transform", 0, yco-=20, 120, 20, "");
-	uiDefIconTextBlockBut(block, nla_strip_snapmenu, NULL, ICON_RIGHTARROW_THIN, "Snap To Frame", 0, yco-=20, 120, 20, "");
+	uiDefIconTextBlockBut(block, nla_strip_snapmenu, NULL, ICON_RIGHTARROW_THIN, "Snap", 0, yco-=20, 120, 20, "");
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reset Strip Size|Alt S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reset Strip Scale|Alt S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 8, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Reset Action Start/End|Alt S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 9, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Apply Strip Scaling|Alt S", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 11, "");
 	
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	

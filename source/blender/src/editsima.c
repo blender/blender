@@ -2216,7 +2216,7 @@ void reload_image_sima(void)
 
 void new_image_sima(void)
 {
-	static int width= 256, height= 256;
+	static int width= 1024, height= 1024;
 	static short uvtestgrid= 0;
 	static float color[] = {0, 0, 0, 1};
 	char name[22];
@@ -2225,8 +2225,8 @@ void new_image_sima(void)
 	strcpy(name, "Untitled");
 
 	add_numbut(0, TEX, "Name:", 0, 21, name, NULL);
-	add_numbut(1, NUM|INT, "Width:", 1, 5000, &width, NULL);
-	add_numbut(2, NUM|INT, "Height:", 1, 5000, &height, NULL);
+	add_numbut(1, NUM|INT, "Width:", 1, 16384, &width, NULL);
+	add_numbut(2, NUM|INT, "Height:", 1, 16384, &height, NULL);
 	add_numbut(3, COL, "", 0, 0, &color, NULL);
 	add_numbut(4, NUM|FLO, "Alpha:", 0.0, 1.0, &color[3], NULL);
 	add_numbut(5, TOG|SHO, "UV Test Grid", 0, 0, &uvtestgrid, NULL);

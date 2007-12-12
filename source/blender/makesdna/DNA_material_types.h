@@ -84,11 +84,11 @@ typedef struct Material {
 	int mode, mode_l;		/* mode_l is the or-ed result of all layer modes */
 	short flarec, starc, linec, ringc;
 	float hasize, flaresize, subsize, flareboost;
-	float strand_sta, strand_end, strand_ease;
+	float strand_sta, strand_end, strand_ease, strand_surfnor;
 	char strand_uvname[32];
 	
 	float sbias;			/* shadow bias */
-	float shad_alpha, padf;	/* in use for irregular shadowbuffer */
+	float shad_alpha;		/* in use for irregular shadowbuffer */
 	
 	/* for buttons and render*/
 	char rgbsel, texact, pr_type, use_nodes;
@@ -121,6 +121,7 @@ typedef struct Material {
 	float fhdist, xyfrict;
 	short dynamode, pad2;
 
+	/* subsurface scattering */
 	float sss_radius[3], sss_col[3];
 	float sss_error, sss_scale, sss_ior;
 	float sss_colfac, sss_texfac;
@@ -191,6 +192,7 @@ typedef struct Material {
 #define MA_GROUP_NOLAY	0x10000000
 #define MA_FACETEXTURE_ALPHA	0x20000000
 #define MA_STR_B_UNITS	0x40000000
+#define MA_STR_SURFDIFF 0x80000000
 
 #define	MA_MODE_MASK	0x4fffffff	/* all valid mode bits */
 
@@ -296,9 +298,10 @@ typedef struct Material {
 /* physics */
 #define MAP_PA_PVEL		64
 /* path cache */
-#define MAP_PA_CACHE	384
+#define MAP_PA_CACHE	912
 #define MAP_PA_CLUMP	128
 #define MAP_PA_KINK		256
+#define MAP_PA_ROUGH	512
 
 /* pr_type */
 #define MA_FLAT			0

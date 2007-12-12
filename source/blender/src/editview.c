@@ -533,18 +533,18 @@ static void do_lasso_select_curve__doSelect(void *userData, Nurb *nu, BPoint *bp
 
 	if (lasso_inside(data->mcords, data->moves, x, y)) {
 		if (bp) {
-			bp->f1 = data->select?(bp->f1|1):(bp->f1&~1);
+			bp->f1 = data->select?(bp->f1|SELECT):(bp->f1&~SELECT);
 		} else {
 			if (G.f & G_HIDDENHANDLES) {
 				/* can only be beztindex==0 here since handles are hidden */
-				bezt->f1 = bezt->f2 = bezt->f3 = data->select?(bezt->f1|1):(bezt->f1&~1);
+				bezt->f1 = bezt->f2 = bezt->f3 = data->select?(bezt->f2|SELECT):(bezt->f2&~SELECT);
 			} else {
 				if (beztindex==0) {
-					bezt->f1 = data->select?(bezt->f1|1):(bezt->f1&~1);
+					bezt->f1 = data->select?(bezt->f1|SELECT):(bezt->f1&~SELECT);
 				} else if (beztindex==1) {
-					bezt->f2 = data->select?(bezt->f2|1):(bezt->f2&~1);
+					bezt->f2 = data->select?(bezt->f2|SELECT):(bezt->f2&~SELECT);
 				} else {
-					bezt->f3 = data->select?(bezt->f3|1):(bezt->f3&~1);
+					bezt->f3 = data->select?(bezt->f3|SELECT):(bezt->f3&~SELECT);
 				}
 			}
 		}
@@ -566,7 +566,7 @@ static void do_lasso_select_lattice__doSelect(void *userData, BPoint *bp, int x,
 	struct { short (*mcords)[2]; short moves; short select; } *data = userData;
 
 	if (lasso_inside(data->mcords, data->moves, x, y)) {
-		bp->f1 = data->select?(bp->f1|1):(bp->f1&~1);
+		bp->f1 = data->select?(bp->f1|SELECT):(bp->f1&~SELECT);
 	}
 }
 static void do_lasso_select_lattice(short mcords[][2], short moves, short select)
@@ -1599,18 +1599,18 @@ static void do_nurbs_box_select__doSelect(void *userData, Nurb *nu, BPoint *bp, 
 
 	if (BLI_in_rcti(data->rect, x, y)) {
 		if (bp) {
-			bp->f1 = data->select?(bp->f1|1):(bp->f1&~1);
+			bp->f1 = data->select?(bp->f1|SELECT):(bp->f1&~SELECT);
 		} else {
 			if (G.f & G_HIDDENHANDLES) {
 				/* can only be beztindex==0 here since handles are hidden */
-				bezt->f1 = bezt->f2 = bezt->f3 = data->select?(bezt->f1|1):(bezt->f1&~1);
+				bezt->f1 = bezt->f2 = bezt->f3 = data->select?(bezt->f2|SELECT):(bezt->f2&~SELECT);
 			} else {
 				if (beztindex==0) {
-					bezt->f1 = data->select?(bezt->f1|1):(bezt->f1&~1);
+					bezt->f1 = data->select?(bezt->f1|SELECT):(bezt->f1&~SELECT);
 				} else if (beztindex==1) {
-					bezt->f2 = data->select?(bezt->f2|1):(bezt->f2&~1);
+					bezt->f2 = data->select?(bezt->f2|SELECT):(bezt->f2&~SELECT);
 				} else {
-					bezt->f3 = data->select?(bezt->f3|1):(bezt->f3&~1);
+					bezt->f3 = data->select?(bezt->f3|SELECT):(bezt->f3&~SELECT);
 				}
 			}
 		}
@@ -1631,7 +1631,7 @@ static void do_lattice_box_select__doSelect(void *userData, BPoint *bp, int x, i
 	struct { rcti *rect; int select; } *data = userData;
 
 	if (BLI_in_rcti(data->rect, x, y)) {
-		bp->f1 = data->select?(bp->f1|1):(bp->f1&~1);
+		bp->f1 = data->select?(bp->f1|SELECT):(bp->f1&~SELECT);
 	}
 }
 static void do_lattice_box_select(rcti *rect, int select)
@@ -2051,14 +2051,14 @@ static void nurbscurve_selectionCB__doSelect(void *userData, Nurb *nu, BPoint *b
 
 	if (r<=data->radius) {
 		if (bp) {
-			bp->f1 = data->select?(bp->f1|1):(bp->f1&~1);
+			bp->f1 = data->select?(bp->f1|SELECT):(bp->f1&~SELECT);
 		} else {
 			if (beztindex==0) {
-				bezt->f1 = data->select?(bezt->f1|1):(bezt->f1&~1);
+				bezt->f1 = data->select?(bezt->f1|SELECT):(bezt->f1&~SELECT);
 			} else if (beztindex==1) {
-				bezt->f2 = data->select?(bezt->f2|1):(bezt->f2&~1);
+				bezt->f2 = data->select?(bezt->f2|SELECT):(bezt->f2&~SELECT);
 			} else {
-				bezt->f3 = data->select?(bezt->f3|1):(bezt->f3&~1);
+				bezt->f3 = data->select?(bezt->f3|SELECT):(bezt->f3&~SELECT);
 			}
 		}
 	}
@@ -2083,7 +2083,7 @@ static void latticecurve_selectionCB__doSelect(void *userData, BPoint *bp, int x
 	float r = sqrt(mx*mx + my*my);
 
 	if (r<=data->radius) {
-		bp->f1 = data->select?(bp->f1|1):(bp->f1&~1);
+		bp->f1 = data->select?(bp->f1|SELECT):(bp->f1&~SELECT);
 	}
 }
 static void lattice_selectionCB(int selecting, Object *editobj, short *mval, float rad)
@@ -2144,9 +2144,12 @@ void set_render_border(void)
 	
 		allqueue(REDRAWVIEWCAM, 1);
 		
-		/* drawing a border surrounding the entire camera view switches off border rendering */
-		if (G.scene->r.border.xmin <= 0.0 && G.scene->r.border.xmax >= 1.0 &&
-			G.scene->r.border.ymin <= 0.0 && G.scene->r.border.ymax >= 1.0)
+		/* drawing a border surrounding the entire camera view switches off border rendering
+		 * or the border covers no pixels */
+		if ((G.scene->r.border.xmin <= 0.0 && G.scene->r.border.xmax >= 1.0 &&
+			G.scene->r.border.ymin <= 0.0 && G.scene->r.border.ymax >= 1.0) ||
+		   (G.scene->r.border.xmin == G.scene->r.border.xmax ||
+			G.scene->r.border.ymin == G.scene->r.border.ymax ))
 		{
 			G.scene->r.mode &= ~R_BORDER;
 		} else {

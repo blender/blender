@@ -1589,11 +1589,11 @@ static void execute_posetree(Object *ob, PoseTree *tree)
 
 		/* set DoF flag */
 		flag= 0;
-		if((pchan->ikflag & BONE_IK_NO_XDOF) == 0)
+		if(!(pchan->ikflag & BONE_IK_NO_XDOF) && !(pchan->ikflag & BONE_IK_NO_XDOF_TEMP))
 			flag |= IK_XDOF;
-		if((pchan->ikflag & BONE_IK_NO_YDOF) == 0)
+		if(!(pchan->ikflag & BONE_IK_NO_YDOF) && !(pchan->ikflag & BONE_IK_NO_YDOF_TEMP))
 			flag |= IK_YDOF;
-		if((pchan->ikflag & BONE_IK_NO_ZDOF) == 0)
+		if(!(pchan->ikflag & BONE_IK_NO_ZDOF) && !(pchan->ikflag & BONE_IK_NO_ZDOF_TEMP))
 			flag |= IK_ZDOF;
 
 		if(tree->stretch && (pchan->ikstretch > 0.0)) {

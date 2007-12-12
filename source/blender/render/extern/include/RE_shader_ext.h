@@ -120,7 +120,7 @@ typedef struct ShadeInput
 	/* end direct copy from material */
 	
 	/* individual copies: */
-	int har;
+	int har; /* hardness */
 	float layerfac;
 	
 	/* texture coordinates */
@@ -154,6 +154,8 @@ typedef struct ShadeInput
 	/* stored copy of original face normal (facenor) 
 	 * before flipping. Used in Front/back output on geometry node */
 	float orignor[3];
+	/* for strand shading, normal at the surface */
+	float surfnor[3], surfdist;
 
 	/* from initialize, part or renderlayer */
 	short do_preview;		/* for nodes, in previewrender */

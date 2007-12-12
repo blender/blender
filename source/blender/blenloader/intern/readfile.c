@@ -481,7 +481,27 @@ static void cleanup_path(const char *relabase, char *name)
 	strcat(name, filename);
 }
 
-static Main *blo_find_main(ListBase *mainlist, const char *name, const char *relabase)
+static void read_file_version(FileData *fd, Main *main)
+{
+	BHead *bhead;
+	
+	for (bhead= blo_firstbhead(fd); bhead; bhead= blo_nextbhead(fd, bhead)) {
+		if (bhead->code==GLOB) {
+			FileGlobal *fg= read_struct(fd, bhead, "Global");
+			if(fg) {
+				main->subversionfile= fg->subversion;
+				main->minversionfile= fg->minversion;
+				main->minsubversionfile= fg->minsubversion;
+				MEM_freeN(fg);
+			}
+			else if (bhead->code==ENDB)
+				break;
+		}
+	}
+}
+
+
+static Main *blo_find_main(FileData *fd, ListBase *mainlist, const char *name, const char *relabase)
 {
 	Main *m;
 	Library *lib;
@@ -509,6 +529,8 @@ static Main *blo_find_main(ListBase *mainlist, const char *name, const char *rel
 	BLI_strncpy(lib->filename, name1, sizeof(lib->filename));
 	
 	m->curlib= lib;
+	
+	read_file_version(fd, m);
 	
 	if(G.f & G_DEBUG) printf("blo_find_main: added new lib %s\n", name);
 	return m;
@@ -729,26 +751,6 @@ BHead *blo_nextbhead(FileData *fd, BHead *thisblock)
 
 	return(bhead);
 }
-
-#if 0
-static void get_blender_subversion(FileData *fd)
-{
-	BHead *bhead;
-	
-	for (bhead= blo_firstbhead(fd); bhead; bhead= blo_nextbhead(fd, bhead)) {
-		if (bhead->code==GLOB) {
-			FileGlobal *fg= read_struct(fd, bhead, "Global");
-			fd->filesubversion= fg->subversion;
-			fd->fileminversion= fg->minversion;
-			fd->fileminsubversion= fg->minsubversion;
-			MEM_freeN(fg);
-			return;
-		} 
-		else if (bhead->code==ENDB)
-			break;
-	}
-}
-#endif
 
 static void decode_blender_header(FileData *fd)
 {
@@ -1622,7 +1624,7 @@ static void lib_link_constraints(FileData *fd, ID *id, ListBase *conlist)
 			con->type= CONSTRAINT_TYPE_NULL;
 		}
 		/* own ipo, all constraints have it */
-		con->ipo= newlibadr(fd, id->lib, con->ipo);
+		con->ipo= newlibadr_us(fd, id->lib, con->ipo);
 		
 		switch (con->type) {
 		case CONSTRAINT_TYPE_PYTHON:
@@ -3000,7 +3002,6 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 
 			psmd->dm=0;
 			psmd->psys=newdataadr(fd, psmd->psys);
-			psmd->flag |= eParticleSystemFlag_Loaded;
 			psmd->flag &= ~eParticleSystemFlag_psys_updated;
 		} else if (md->type==eModifierType_Explode) {
 			ExplodeModifierData *psmd = (ExplodeModifierData*) md;
@@ -6673,7 +6674,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				else
 					wrld->ao_samp_method = WO_AOSAMP_HAMMERSLEY;
 				
-				wrld->ao_adapt_thresh = 0.005;
+				wrld->ao_adapt_thresh = 0.005f;
 			}
 			
 			for(la=main->lamp.first; la; la= la->id.next) {
@@ -6687,11 +6688,13 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}
 	}
 	if(main->versionfile <= 245) {
+		Scene *sce;
 		bScreen *sc;
 		Object *ob;
 		Image *ima;
 		Lamp *la;
 		Material *ma;
+		ParticleSettings *part;
 		
 		/* unless the file was created 2.44.3 but not 2.45, update the constraints */
 		if ( !(main->versionfile==244 && main->subversionfile==3) &&
@@ -6854,7 +6857,31 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ma->fadeto_mir = MA_RAYMIR_FADETOSKY;
 			}
 		}
-		
+
+		for(part=main->particle.first; part; part=part->id.next)
+			if(part->ren_child_nbr==0)
+				part->ren_child_nbr= part->child_nbr;
+		if (main->versionfile < 245 || main->subversionfile < 12)
+		{
+			/* initialize skeleton generation toolsettings */
+			for(sce=main->scene.first; sce; sce = sce->id.next)
+			{
+				sce->toolsettings->skgen_resolution = 50;
+				sce->toolsettings->skgen_threshold_internal 	= 0.01f;
+				sce->toolsettings->skgen_threshold_external 	= 0.01f;
+				sce->toolsettings->skgen_angle_limit	 		= 45.0f;
+				sce->toolsettings->skgen_length_ratio			= 1.3f;
+				sce->toolsettings->skgen_length_limit			= 1.5f;
+				sce->toolsettings->skgen_correlation_limit		= 0.98f;
+				sce->toolsettings->skgen_symmetry_limit			= 0.1f;
+				sce->toolsettings->skgen_postpro = SKGEN_SMOOTH;
+				sce->toolsettings->skgen_postpro_passes = 1;
+				sce->toolsettings->skgen_options = SKGEN_FILTER_INTERNAL|SKGEN_FILTER_EXTERNAL|SKGEN_SUB_CORRELATION;
+				sce->toolsettings->skgen_subdivisions[0] = SKGEN_SUB_CORRELATION;
+				sce->toolsettings->skgen_subdivisions[1] = SKGEN_SUB_LENGTH;
+				sce->toolsettings->skgen_subdivisions[2] = SKGEN_SUB_ANGLE;
+			}
+		}
 	}
 
 	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 2)) {
@@ -7096,7 +7123,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 
 				/* convert settings from old particle system */
 				/* general settings */
-				part->totpart = paf->totpart;
+				part->totpart = MIN2(paf->totpart, 100000);
 				part->sta = paf->sta;
 				part->end = paf->end;
 				part->lifetime = paf->lifetime;
@@ -7170,7 +7197,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}
 		}
 
-
 		for(sce= main->scene.first; sce; sce=sce->id.next) {
 			ParticleEditSettings *pset= &sce->toolsettings->particle;
 			int a;
@@ -7202,6 +7228,40 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					if(ma->mtex[a] && ma->mtex[a]->tex)
 						ma->mtex[a]->normapspace = MTEX_NSPACE_TANGENT;
 	}
+	
+	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 10)) {
+		Object *ob;
+		
+		/* dupliface scale */
+		for(ob= main->object.first; ob; ob= ob->id.next)
+			ob->dupfacesca = 1.0f;
+	}
+	
+	if ((main->versionfile < 245) || (main->versionfile == 245 && main->subversionfile < 11)) {
+		Object *ob;
+		bActionStrip *strip;
+		
+		/* nla-strips - scale */		
+		for (ob= main->object.first; ob; ob= ob->id.next) {
+			for (strip= ob->nlastrips.first; strip; strip= strip->next) {
+				float length, actlength, repeat;
+				
+				if (strip->flag & ACTSTRIP_USESTRIDE)
+					repeat= 1.0f;
+				else
+					repeat= strip->repeat;
+				
+				length = strip->end-strip->start;
+				if (length == 0.0f) length= 1.0f;
+				actlength = strip->actend-strip->actstart;
+				
+				strip->scale = length / (repeat * actlength);
+				if (strip->scale == 0.0f) strip->scale= 1.0f;
+			}	
+		}
+	}
+
+	
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
 
@@ -7393,7 +7453,7 @@ static void expand_doit(FileData *fd, Main *mainvar, void *old)
 
 			if(bheadlib) {
 				Library *lib= read_struct(fd, bheadlib, "Library");
-				Main *ptr= blo_find_main(&fd->mainlist, lib->name, fd->filename);
+				Main *ptr= blo_find_main(fd, &fd->mainlist, lib->name, fd->filename);
 
 				id= is_yet_read(fd, ptr, bhead);
 
@@ -7595,6 +7655,10 @@ static void expand_constraints(FileData *fd, Main *mainvar, ListBase *lb)
 	bConstraint *curcon;
 
 	for (curcon=lb->first; curcon; curcon=curcon->next) {
+		
+		if (curcon->ipo)
+			expand_doit(fd, mainvar, curcon->ipo);
+		
 		switch (curcon->type) {
 		case CONSTRAINT_TYPE_NULL:
 			break;
@@ -8159,7 +8223,7 @@ static Library* library_append( Scene *scene, char* file, char *dir, int idcode,
 	blo_split_main(&fd->mainlist, G.main);
 
 	/* which one do we need? */
-	mainl = blo_find_main(&fd->mainlist, dir, G.sce);
+	mainl = blo_find_main(fd, &fd->mainlist, dir, G.sce);
 	
 	mainl->versionfile= fd->fileversion;	/* needed for do_version */
 	
@@ -8368,6 +8432,9 @@ static void read_libraries(FileData *basefd, ListBase *mainlist)
 						
 						mainptr->curlib->filedata= fd;
 						mainptr->versionfile= fd->fileversion;
+						
+						/* subversion */
+						read_file_version(fd, mainptr);
 					}
 					else mainptr->curlib->filedata= NULL;
 

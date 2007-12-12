@@ -171,8 +171,9 @@ void RE_FreeRenderResult(RenderResult *res)
 		RenderLayer *rl= res->layers.first;
 		
 		if(rl->rectf) MEM_freeN(rl->rectf);
-		/* acolrect is optionally allocated in shade_tile, only free here since it can be used for drawing */
+		/* acolrect and scolrect are optionally allocated in shade_tile, only free here since it can be used for drawing */
 		if(rl->acolrect) MEM_freeN(rl->acolrect);
+		if(rl->scolrect) MEM_freeN(rl->scolrect);
 		
 		while(rl->passes.first) {
 			RenderPass *rpass= rl->passes.first;
@@ -1250,6 +1251,7 @@ static void render_tile_processor(Render *re, int firsttile)
 	}
 	
 	freeparts(re);
+	R.strandbuckets= NULL;
 }
 
 /* calculus for how much 1 pixel rendered should rotate the 3d geometry */
@@ -1307,7 +1309,7 @@ static RenderPart *find_next_pano_slice(Render *re, int *minx, rctf *viewplane)
 		Mat4CpyMat4(R.winmat, re->winmat);
 		
 		/* rotate database according to part coordinates */
-		project_renderdata(re, projectverto, 1, -R.panodxp*phi);
+		project_renderdata(re, projectverto, 1, -R.panodxp*phi, 1);
 		R.panosi= sin(R.panodxp*phi);
 		R.panoco= cos(R.panodxp*phi);
 	}
@@ -1483,7 +1485,7 @@ static void threaded_tile_processor(Render *re)
 	BLI_end_threads(&threads);
 	freeparts(re);
 	re->viewplane= viewplane; /* restore viewplane, modified by pano render */
-
+	R.strandbuckets= NULL;
 }
 
 /* currently only called by preview renders and envmap */

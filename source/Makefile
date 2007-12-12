@@ -61,7 +61,6 @@ endif
 
 ############# set pyplayerlib ##################
 
-PYPLAYERLIB ?= $(PYLIB)
 
 ############# libraries ##################
 # COMLIB COMmon LIBraries for all targets
@@ -177,51 +176,22 @@ ifeq ($(WITH_DDS), true)
 endif
 
 ifeq ($(WITH_FREETYPE2), true)
+    COMLIB += $(OCGDIR)/blender/ftfont/$(DEBUG_DIR)libftfont.a
     ifeq ($(OS), windows)
       ifeq ($(FREE_WINDOWS), true)
+        COMLIB += $(NAN_FTGL)/lib/libftgl.a
         COMLIB += $(NAN_FREETYPE)/lib/libfreetype.a
       else
+        COMLIB += $(NAN_FTGL)/lib/ftgl_static_ST.lib
         COMLIB += $(NAN_FREETYPE)/lib/freetype2ST.lib
       endif
     else
+      COMLIB += $(NAN_FTGL)/lib/libftgl.a
       ifeq ($(OS), irix)
         COMLIB += $(NAN_FREETYPE)/lib32/libfreetype.a
-       else
-        COMLIB += $(NAN_FREETYPE)/lib/libfreetype.a
+        else
+            COMLIB += $(NAN_FREETYPE)/lib/libfreetype.a
       endif
-    endif
-endif
-
-ifeq ($(INTERNATIONAL), true)
-    COMLIB += $(OCGDIR)/blender/ftfont/$(DEBUG_DIR)libftfont.a
-    ifeq ($(OS), windows)
-        ifeq ($(FREE_WINDOWS), true)
-          COMLIB += $(NAN_GETTEXT)/lib/freegettext.a
-          COMLIB += $(NAN_FTGL)/lib/libftgl.a
-          #COMLIB += $(NAN_ICONV)/lib/freeiconv.a
-        else
-          COMLIB += $(NAN_GETTEXT)/lib/gnu_gettext.lib
-          COMLIB += $(NAN_FTGL)/lib/ftgl_static_ST.lib
-          COMLIB += $(NAN_FREETYPE)/lib/freetype2ST.lib
-          COMLIB += $(NAN_ICONV)/lib/iconv.lib
-        endif
-    else
-        COMLIB += $(NAN_FTGL)/lib/libftgl.a
-        ifeq ($(OS), irix)
-          COMLIB += $(NAN_FREETYPE)/lib32/libfreetype.a
-          COMLIB += $(NAN_FREETYPE)/lib32/libintl.a
-        else
-          COMLIB += $(NAN_FREETYPE)/lib/libfreetype.a
-        endif
-    endif
-    ifeq ($(OS), darwin)
-        COMLIB += $(NAN_GETTEXT)/lib/libintl.a
-        ifeq ($(CPU), i386)
-	    COMLIB += $(NAN_GETTEXT)/lib/libiconv.a
-        endif
-    endif
-    ifeq ($(OS), solaris)
-        COMLIB += $(NAN_GETTEXT)/lib/libintl.a
     endif
 endif
 
@@ -354,14 +324,7 @@ ifeq ($(WITH_BF_WEBPLUGIN), true)
     endif
 endif
 
-ifdef PY_FRAMEWORK
-        PYLIB = -framework Python
-else
-    PYLIB = $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
-endif
-
 ifeq ($(OS),solaris)
-    PYLIB += $(NAN_ZLIB)/lib/libz.a
     PULIB += $(NAN_ZLIB)/lib/libz.a
     SPLIB += $(NAN_ZLIB)/lib/libz.a
 endif
@@ -436,14 +399,6 @@ else
 endif
 
 ifeq ($(OS),windows)
-    ifeq ($(FREE_WINDOWS),true)
-        PYLIB = $(NAN_PYTHON)/lib/freepy.a
-    else
-        PYLIB = $(NAN_PYTHON)/lib/python23.lib
-    endif
-
-    PYPLAYERLIB = $(NAN_PYTHON)/static/*.obj
-    PYPLAYERLIB = $(PYLIB)
 
     # Might need to change this to $(NAN_MOZILLA_LIB)/nspr4.lib
     NSPLUGLIB += $(NAN_NSPR)/lib/nspr4.lib
@@ -550,7 +505,7 @@ ifdef NAN_BUILDINFO
 	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_REV='"$(BUILD_REV)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"static"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
 endif
 	mkdir -p $(DIR)/$(DEBUG_DIR)bin
-	$(CCC) $(LDFLAGS) -o $(DIR)/$(DEBUG_DIR)bin/blenderstatic $(BUILDINFO_O) $(OBJS) $(GRPLIB) $(COMLIB) $(PULIB) $(PYLIB) $(LLIBS) $(SADD) $(LOPTS)
+	$(CCC) $(LDFLAGS) -o $(DIR)/$(DEBUG_DIR)bin/blenderstatic $(BUILDINFO_O) $(OBJS) $(GRPLIB) $(COMLIB) $(PULIB) $(LLIBS) $(SADD) $(LOPTS)
 ifdef NAN_BUILDINFO
 	/bin/rm $(BUILDINFO_O)
 endif
@@ -564,7 +519,7 @@ ifdef NAN_BUILDINFO
 	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_REV='"$(BUILD_REV)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
 endif
 	mkdir -p $(DIR)/$(DEBUG_DIR)bin
-	$(CCC) $(LDFLAGS) -o $(DIR)/$(DEBUG_DIR)bin/blender$(EXT) $(BUILDINFO_O) $(OBJS) $(GRPLIB) $(COMLIB) $(PULIB) $(PYLIB) $(LLIBS) $(DADD) $(LOPTS)
+	$(CCC) $(LDFLAGS) -o $(DIR)/$(DEBUG_DIR)bin/blender$(EXT) $(BUILDINFO_O) $(OBJS) $(GRPLIB) $(COMLIB) $(PULIB) $(LLIBS) $(DADD) $(LOPTS)
 ifdef NAN_BUILDINFO
 	/bin/rm $(BUILDINFO_O)
 endif
@@ -578,7 +533,7 @@ ifdef NAN_BUILDINFO
 	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_REV='"$(BUILD_REV)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
 endif
 	mkdir -p $(DIR)/$(DEBUG_DIR)bin
-	$(CCC) $(LDFLAGS) -o $(DIR)/$(DEBUG_DIR)bin/blenderplayer$(EXT) $(BUILDINFO_O) $(OBJS) $(SPLIB1) $(COMLIB) $(SPLIB) $(PYPLAYERLIB) $(LLIBS) $(DADD) $(LOPTS)
+	$(CCC) $(LDFLAGS) -o $(DIR)/$(DEBUG_DIR)bin/blenderplayer$(EXT) $(BUILDINFO_O) $(OBJS) $(SPLIB1) $(COMLIB) $(SPLIB) $(LLIBS) $(DADD) $(LOPTS)
 ifdef NAN_BUILDINFO
 	/bin/rm $(BUILDINFO_O)
 endif
@@ -592,7 +547,7 @@ ifdef NAN_BUILDINFO
 	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_REV='"$(BUILD_REV)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
 endif
 	mkdir -p $(DIR)/$(DEBUG_DIR)bin
-	$(CCC) $(LDFLAGS) -o $(DIR)/$(DEBUG_DIR)bin/blenderdynplayer$(EXT) $(BUILDINFO_O) $(OBJS) $(SPLIB1) $(COMLIB) $(SPLIB) $(PYLIB) $(LLIBS) $(DADD) $(LOPTS)
+	$(CCC) $(LDFLAGS) -o $(DIR)/$(DEBUG_DIR)bin/blenderdynplayer$(EXT) $(BUILDINFO_O) $(OBJS) $(SPLIB1) $(COMLIB) $(SPLIB) $(LLIBS) $(DADD) $(LOPTS)
 ifdef NAN_BUILDINFO
 	/bin/rm $(BUILDINFO_O)
 endif
@@ -621,8 +576,8 @@ $(DIR)/$(DEBUG_DIR)npB3DPlg$(SOEXT): $(NSPLUGLIB) $(PLUGAPPLIB) $(COMLIB) $(SPLI
 ifdef NAN_BUILDINFO
 	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_REV='"$(BUILD_REV)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
 endif
-#	$(CCC) $(DYNLDFLAGS) -o $@ $(NSPLUGLIB) $(PLUGAPPLIB) $(COMLIB) $(SPLIB) $(PYLIB) $(PLUGREMLIB) $(LLIBS) $(DADD) $(LOPTS) 
-	$(CCC) $(DYNLDFLAGS) -o $@ $(NSPLUGLIB) $(PLUGAPPLIB) $(COMLIB) $(SPLIB) $(PYLIB) $(PLUGREMLIB) $(LLIBS) $(DADD) $(LOPTS) /def:$(DEFFILE)
+#	$(CCC) $(DYNLDFLAGS) -o $@ $(NSPLUGLIB) $(PLUGAPPLIB) $(COMLIB) $(SPLIB) $(PLUGREMLIB) $(LLIBS) $(DADD) $(LOPTS) 
+	$(CCC) $(DYNLDFLAGS) -o $@ $(NSPLUGLIB) $(PLUGAPPLIB) $(COMLIB) $(SPLIB) $(PLUGREMLIB) $(LLIBS) $(DADD) $(LOPTS) /def:$(DEFFILE)
 ifdef NAN_BUILDINFO
 	/bin/rm $(BUILDINFO_O)
 endif
@@ -633,7 +588,7 @@ ifdef NAN_BUILDINFO
 	$(CCC) $(REL_CFLAGS) -DBUILD_DATE='"$(BUILD_DATE)"' -DBUILD_TIME='"$(BUILD_TIME)"' -DBUILD_REV='"$(BUILD_REV)"' -DBUILD_PLATFORM='"$(CONFIG_GUESS)"' -DBUILD_TYPE='"dynamic"' $(BUILDINFO_C) -c -o $(BUILDINFO_O) -DNAN_BUILDINFO
 endif
 	mkdir -p $(DIR)/$(DEBUG_DIR)bin
-	$(CCC) $(DYNLDFLAGS) -o $@ $(NSPLUGLIB) $(PLUGAPPLIB) $(COMLIB) $(SPLIB) $(PYLIB) $(PLUGREMLIB) $(LLIBS) $(DADD) $(LOPTS)
+	$(CCC) $(DYNLDFLAGS) -o $@ $(NSPLUGLIB) $(PLUGAPPLIB) $(COMLIB) $(SPLIB) $(PLUGREMLIB) $(LLIBS) $(DADD) $(LOPTS)
 ifdef NAN_BUILDINFO
 	/bin/rm $(BUILDINFO_O)
 endif

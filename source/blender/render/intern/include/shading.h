@@ -29,6 +29,9 @@ struct RenderPart;
 struct RenderLayer;
 struct PixStr;
 struct LampRen;
+struct VlakRen;
+struct StrandSegment;
+struct StrandPoint;
 
 /* shadeinput.c */
 
@@ -56,6 +59,8 @@ void shade_input_set_viewco(struct ShadeInput *shi, float x, float y, float z);
 void shade_input_set_uv(struct ShadeInput *shi);
 void shade_input_set_normals(struct ShadeInput *shi);
 void shade_input_set_shade_texco(struct ShadeInput *shi);
+void shade_input_set_strand(struct ShadeInput *shi, struct StrandRen *strand, struct StrandPoint *spoint);
+void shade_input_set_strand_texco(struct ShadeInput *shi, struct StrandRen *strand, struct StrandVert *svert, struct StrandPoint *spoint);
 void shade_input_do_shade(struct ShadeInput *shi, struct ShadeResult *shr);
 
 void shade_input_initialize(struct ShadeInput *shi, struct RenderPart *pa, struct RenderLayer *rl, int sample);

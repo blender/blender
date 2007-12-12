@@ -836,7 +836,7 @@ void winqreadtimespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 
 	if(val) {
 		
-		if( uiDoBlocks(&sa->uiblocks, event)!=UI_NOTHING ) event= 0;
+		if( uiDoBlocks(&sa->uiblocks, event, 1)!=UI_NOTHING ) event= 0;
 
 		/* swap mouse buttons based on user preference */
 		if (U.flag & USER_LMOUSESELECT) {

@@ -61,11 +61,12 @@ void paste_posebuf (int flip);
 void pose_adds_vgroups(struct Object *meshobj, int heatweights);
 
 void pose_calculate_path(struct Object *ob);
+void pose_recalculate_paths(struct Object *ob);
 void pose_clear_paths(struct Object *ob);
 
 void pose_flip_names(void);
 void pose_activate_flipped_bone(void);
 void pose_movetolayer(void);
-
+void pose_relax(void);
 #endif
 

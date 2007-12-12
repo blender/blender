@@ -116,6 +116,14 @@ void rng_shuffleArray(RNG *rng, void *data, int elemSize, int numElems)
 	free(temp);
 }
 
+void rng_skip(RNG *rng, int n)
+{
+	int i;
+
+	for(i=0; i<n; i++)
+		rng_getInt(rng);
+}
+
 /***/
 
 static RNG theBLI_rng = {0};

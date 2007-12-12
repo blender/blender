@@ -49,6 +49,7 @@ Example::
 @var Types: Constant Modifier dict used for  L{ModSeq.append} to a
   modifier sequence and comparing with L{Modifier.type}:
     - ARMATURE - type value for Armature modifiers
+    - ARRAY - type value for Array modifiers
     - BOOLEAN - type value for Boolean modifiers
     - BUILD - type value for Build modifiers
     - CURVE - type value for Curve modifiers

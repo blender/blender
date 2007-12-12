@@ -821,9 +821,9 @@ static PyObject *Curve_appendNurb( BPy_Curve * self, PyObject * value )
 			new_nurb->type = CU_BEZIER;
 			new_nurb->bezt->h1 = HD_ALIGN;
 			new_nurb->bezt->h2 = HD_ALIGN;
-			new_nurb->bezt->f1 = 1;
-			new_nurb->bezt->f2 = 1;
-			new_nurb->bezt->f3 = 1;
+			new_nurb->bezt->f1 = SELECT;
+			new_nurb->bezt->f2 = SELECT;
+			new_nurb->bezt->f3 = SELECT;
 			new_nurb->bezt->hide = 0;
 			/* calchandlesNurb( new_nurb ); */
 		} else {	/* set up bp */

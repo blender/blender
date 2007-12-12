@@ -1427,7 +1427,7 @@ void snode_autoconnect(SpaceNode *snode, bNode *node_to, int flag)
 	bNode *node, *nodefrom[8];
 	int totsock= 0, socktype=0;
 
-	if(node_to->inputs.first==NULL)
+	if(node_to==NULL || node_to->inputs.first==NULL)
 		return;
 	
 	/* no inputs for node allowed (code it) */
@@ -2073,7 +2073,7 @@ static int node_uiDoBlocks(ScrArea *sa, short event)
 				((struct Link *)block)->next= NULL;
 				
 				lb->first= lb->last= block;
-				retval= uiDoBlocks(lb, event);
+				retval= uiDoBlocks(lb, event, 1);
 				
 				((struct Link *)block)->prev= prev;
 				((struct Link *)block)->next= next;

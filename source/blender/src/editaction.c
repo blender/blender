@@ -136,7 +136,7 @@ bActionChannel *get_hilighted_action_channel (bAction *action)
 		return NULL;
 
 	for (achan= action->chanbase.first; achan; achan= achan->next) {
-		if(VISIBLE_ACHAN(achan)) {
+		if (VISIBLE_ACHAN(achan)) {
 			if (SEL_ACHAN(achan) && (achan->flag & ACHAN_HILIGHTED))
 				return achan;
 		}
@@ -777,6 +777,45 @@ void duplicate_action_keys (void)
 	
 	/* now, go into transform-grab mode, to move keys */
 	transform_action_keys('g', 0);
+}
+
+/* this function is responsible for snapping the current frame to selected data  */
+void snap_cfra_action() 
+{
+	ListBase act_data = {NULL, NULL};
+	bActListElem *ale;
+	int filter;
+	void *data;
+	short datatype;
+		
+	/* get data */
+	data= get_action_context(&datatype);
+	if (data == NULL) return;
+	
+	/* filter data */
+	filter= (ACTFILTER_VISIBLE | ACTFILTER_IPOKEYS);
+	actdata_filter(&act_data, filter, data, datatype);
+	
+	/* snap current frame to selected data */
+	snap_cfra_ipo_keys(NULL, -1);
+	
+	for (ale= act_data.first; ale; ale= ale->next) {
+		if (NLA_ACTION_SCALED && datatype==ACTCONT_ACTION) {
+			actstrip_map_ipo_keys(OBACT, ale->key_data, 0, 1); 
+			snap_cfra_ipo_keys(ale->key_data, 0);
+			actstrip_map_ipo_keys(OBACT, ale->key_data, 1, 1);
+		}
+		else 
+			snap_cfra_ipo_keys(ale->key_data, 0);
+	}
+	BLI_freelistN(&act_data);
+	
+	snap_cfra_ipo_keys(NULL, 1);
+	
+	BIF_undo_push("Snap Current Frame to Keys");
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWIPO, 0);
+	allqueue(REDRAWNLA, 0);
 }
 
 /* this function is responsible for snapping keyframes to frame-times */
@@ -1968,6 +2007,59 @@ void markers_selectkeys_between (void)
 	BLI_freelistN(&act_data);
 }
 
+void selectkeys_leftright (short leftright, short select_mode)
+{
+	ListBase act_data = {NULL, NULL};
+	bActListElem *ale;
+	int filter;
+	void *data;
+	short datatype;
+	float min, max;
+	
+	if (select_mode==SELECT_REPLACE) {
+		select_mode=SELECT_ADD;
+		deselect_action_keys(0, 0);
+	}
+	
+	/* determine what type of data we are operating on */
+	data = get_action_context(&datatype);
+	if (data == NULL) return;
+	
+	if (leftright==1) {
+		min = -MAXFRAMEF;
+		max = (float)CFRA+0.1f;
+	} 
+	else {
+		min = (float)CFRA-0.1f;
+		max = MAXFRAMEF;
+	}
+	
+	/* filter data */
+	filter= (ACTFILTER_VISIBLE | ACTFILTER_IPOKEYS);
+	actdata_filter(&act_data, filter, data, datatype);
+		
+	/* select keys to the right */
+	for (ale= act_data.first; ale; ale= ale->next) {
+		if(NLA_ACTION_SCALED && datatype==ACTCONT_ACTION) {
+			actstrip_map_ipo_keys(OBACT, ale->key_data, 0, 1);
+			borderselect_ipo_key(ale->key_data, min, max, SELECT_ADD);
+			actstrip_map_ipo_keys(OBACT, ale->key_data, 1, 1);
+		}
+		else {
+			borderselect_ipo_key(ale->key_data, min, max, SELECT_ADD);
+		}
+	}
+	
+	/* Cleanup */
+	BLI_freelistN(&act_data);
+	
+	allqueue(REDRAWNLA, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWIPO, 0);
+
+}
+
+
 /* ----------------------------------------- */
 
 /* This function makes a list of the selected keyframes
@@ -2037,7 +2129,7 @@ void column_select_action_keys(int mode)
 	actdata_filter(&act_data, filter, data, datatype);
 	
 	for (ale= act_data.first; ale; ale= ale->next) {
-		for(ce= elems.first; ce; ce= ce->next) {
+		for (ce= elems.first; ce; ce= ce->next) {
 			for (icu= ale->key_data; icu; icu= icu->next) {
 				BezTriple *bezt;
 				int verts = 0;
@@ -2576,7 +2668,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	data= get_action_context(&datatype);
 	
 	if (val) {
-		if ( uiDoBlocks(&curarea->uiblocks, event)!=UI_NOTHING ) event= 0;
+		if ( uiDoBlocks(&curarea->uiblocks, event, 1)!=UI_NOTHING ) event= 0;
 		
 		/* swap mouse buttons based on user preference */
 		if (U.flag & USER_LMOUSESELECT) {
@@ -2599,7 +2691,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case HOMEKEY:
 			do_action_buttons(B_ACTHOME);	// header
 			break;
-
+		
 		case AKEY:
 			if (mval[0]<NAMEWIDTH) {
 				deselect_action_channels (1);
@@ -2625,7 +2717,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 			}
 			break;
-
+		
 		case BKEY:
 			if (G.qual & LR_CTRLKEY) {
 				borderselect_markers();
@@ -2635,14 +2727,14 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					borderselect_action();
 			}
 			break;
-
+		
 		case CKEY:
 			/* scroll the window so the current
 			 * frame is in the center.
 			 */
 			center_currframe();
 			break;
-
+		
 		case DKEY:
 			if (mval[0]>ACTWIDTH) {
 				if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY))
@@ -2740,7 +2832,12 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			
 		case SKEY: 
 			if (mval[0]>=ACTWIDTH) {
-				if (G.qual & LR_SHIFTKEY) {
+				if (G.qual == (LR_SHIFTKEY|LR_CTRLKEY)) {
+					if (data) {
+						snap_cfra_action();
+					}
+				}
+				else if (G.qual & LR_SHIFTKEY) {
 					if (data) {
 						if (G.saction->flag & SACTION_DRAWTIME)
 							val = pupmenu("Snap Keys To%t|Nearest Second%x4|Current Time%x2|Nearest Marker %x3");
@@ -2830,18 +2927,18 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		 * based on user preference USER_LMOUSESELECT
 		 */
 		case LEFTMOUSE:
-			if(view2dmove(LEFTMOUSE)) // only checks for sliders
+			if (view2dmove(LEFTMOUSE)) /* only checks for sliders */
 				break;
 			else if ((G.v2d->mask.xmin==0) || (mval[0]>ACTWIDTH)) {
+				/* moving time-marker / current frame */
 				do {
 					getmouseco_areawin(mval);
-					
 					areamouseco_to_ipoco(G.v2d, mval, &dx, &dy);
 					
 					cfra= (int)dx;
-					if(cfra< 1) cfra= 1;
+					if (cfra < 1) cfra= 1;
 					
-					if( cfra!=CFRA ) {
+					if (cfra != CFRA) {
 						CFRA= cfra;
 						update_for_newframe();
 						force_draw_all(0);					
@@ -2883,6 +2980,12 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				/* Clicking in the main area of the action window
 				 * selects keys and markers
 				 */
+				else if (G.qual & LR_ALTKEY) {
+					areamouseco_to_ipoco(G.v2d, mval, &dx, &dy);
+					
+					/* sends a 1 for left and 0 for right */
+					selectkeys_leftright((dx < (float)CFRA), select_mode);
+				}
 				else
 					mouse_action(select_mode);
 			}

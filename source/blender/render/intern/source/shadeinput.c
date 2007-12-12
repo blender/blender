@@ -48,6 +48,7 @@
 #include "rendercore.h"
 #include "shadbuf.h"
 #include "shading.h"
+#include "strand.h"
 #include "texture.h"
 
 /* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
@@ -300,6 +301,252 @@ void shade_input_copy_triangle(ShadeInput *shi, ShadeInput *from)
 	memcpy(shi, from, sizeof(struct ShadeInputCopy));
 }
 
+/* copy data from strand to shadeinput */
+void shade_input_set_strand(ShadeInput *shi, StrandRen *strand, StrandPoint *spoint)
+{
+	/* note, shi->mat is set in node shaders */
+	shi->mat= shi->mat_override? shi->mat_override: strand->buffer->ma;
+	
+	shi->osatex= (shi->mat->texco & TEXCO_OSA);
+	shi->mode= shi->mat->mode_l;		/* or-ed result for all nodes */
+
+	shi->puno= 0; /* always faces camera automatically */
+
+	/* shade_input_set_viewco equivalent */
+	VECCOPY(shi->co, spoint->co);
+	VECCOPY(shi->view, shi->co);
+	Normalize(shi->view);
+
+	shi->xs= (int)spoint->x;
+	shi->ys= (int)spoint->y;
+
+	if(shi->osatex || (R.r.mode & R_SHADOW)) {
+		VECCOPY(shi->dxco, spoint->dtco);
+		VECCOPY(shi->dyco, spoint->dsco);
+	}
+
+	/* dxview, dyview, not supported */
+
+	/* facenormal, simply viewco flipped */
+	VECCOPY(shi->facenor, spoint->nor);
+	VECCOPY(shi->orignor, shi->facenor);
+
+	/* shade_input_set_normals equivalent */
+	if(shi->mat->mode & MA_TANGENT_STR)
+		VECCOPY(shi->vn, spoint->tan)
+	else
+		VECCOPY(shi->vn, spoint->nor)
+
+	VECCOPY(shi->vno, shi->vn);
+}
+
+void shade_input_set_strand_texco(ShadeInput *shi, StrandRen *strand, StrandVert *svert, StrandPoint *spoint)
+{
+	StrandBuffer *strandbuf= strand->buffer;
+	StrandVert *sv;
+	int mode= shi->mode;		/* or-ed result for all nodes */
+	short texco= shi->mat->texco;
+
+	if((shi->mat->texco & TEXCO_REFL)) {
+		/* shi->dxview, shi->dyview, not supported */
+	}
+
+	if(shi->osatex && (texco & (TEXCO_NORM|TEXCO_REFL))) {
+		/* not supported */
+	}
+
+	if(mode & (MA_TANGENT_V|MA_NORMAP_TANG)) {
+		VECCOPY(shi->tang, spoint->tan);
+	}
+
+	if(mode & MA_STR_SURFDIFF) {
+		float *surfnor= RE_strandren_get_surfnor(&R, strand, 0);
+
+		if(surfnor)
+			VECCOPY(shi->surfnor, surfnor)
+		else
+			VECCOPY(shi->surfnor, shi->vn)
+
+		if(shi->mat->strand_surfnor > 0.0f) {
+			shi->surfdist= 0.0f;
+			for(sv=strand->vert; sv!=svert; sv++)
+				shi->surfdist+=VecLenf(sv->co, (sv+1)->co);
+			shi->surfdist += 0.5f*(spoint->strandco+1.0f)*VecLenf(sv->co, (sv+1)->co);
+		}
+	}
+
+	if(R.r.mode & R_SPEED) {
+		float *speed;
+		
+		speed= RE_strandren_get_winspeed(&R, strand, 0);
+		if(speed)
+			QUATCOPY(shi->winspeed, speed)
+		else
+			shi->winspeed[0]= shi->winspeed[1]= shi->winspeed[2]= shi->winspeed[3]= 0.0f;
+	}
+
+	/* shade_input_set_shade_texco equivalent */
+	if(texco & NEED_UV) {
+		if(texco & TEXCO_ORCO) {
+			VECCOPY(shi->lo, strand->orco);
+			/* no shi->osatex, orco derivatives are zero */
+		}
+
+		if(texco & TEXCO_GLOB) {
+			VECCOPY(shi->gl, shi->co);
+			MTC_Mat4MulVecfl(R.viewinv, shi->gl);
+			
+			if(shi->osatex) {
+				VECCOPY(shi->dxgl, shi->dxco);
+				MTC_Mat3MulVecfl(R.imat, shi->dxco);
+				VECCOPY(shi->dygl, shi->dyco);
+				MTC_Mat3MulVecfl(R.imat, shi->dyco);
+			}
+		}
+
+		if(texco & TEXCO_STRAND) {
+			shi->strand= spoint->strandco;
+
+			if(shi->osatex) {
+				shi->dxstrand= spoint->dtstrandco;
+				shi->dystrand= 0.0f;
+			}
+		}
+
+		if((texco & TEXCO_UV) || (mode & (MA_VERTEXCOL|MA_VERTEXCOLP|MA_FACETEXTURE)))  {
+			MCol *mcol;
+			float *uv;
+			char *name;
+			int i;
+
+			shi->totuv= 0;
+			shi->totcol= 0;
+
+			if(mode & (MA_VERTEXCOL|MA_VERTEXCOLP)) {
+				for (i=0; (mcol=RE_strandren_get_mcol(&R, strand, i, &name, 0)); i++) {
+					ShadeInputCol *scol= &shi->col[i];
+					char *cp= (char*)mcol;
+					
+					shi->totcol++;
+					scol->name= name;
+
+					scol->col[0]= cp[0]/255.0f;
+					scol->col[1]= cp[1]/255.0f;
+					scol->col[2]= cp[2]/255.0f;
+				}
+
+				if(shi->totcol) {
+					shi->vcol[0]= shi->col[0].col[0];
+					shi->vcol[1]= shi->col[0].col[1];
+					shi->vcol[2]= shi->col[0].col[2];
+				}
+				else {
+					shi->vcol[0]= 0.0f;
+					shi->vcol[1]= 0.0f;
+					shi->vcol[2]= 0.0f;
+				}
+			}
+
+			for (i=0; (uv=RE_strandren_get_uv(&R, strand, i, &name, 0)); i++) {
+				ShadeInputUV *suv= &shi->uv[i];
+
+				shi->totuv++;
+				suv->name= name;
+
+				if(strandbuf->overrideuv == i) {
+					suv->uv[0]= -1.0f;
+					suv->uv[1]= spoint->strandco;
+					suv->uv[2]= 0.0f;
+				}
+				else {
+					suv->uv[0]= -1.0f + 2.0f*uv[0];
+					suv->uv[1]= -1.0f + 2.0f*uv[1];
+					suv->uv[2]= 0.0f;	/* texture.c assumes there are 3 coords */
+				}
+
+				if(shi->osatex) {
+					suv->dxuv[0]= 0.0f;
+					suv->dxuv[1]= 0.0f;
+					suv->dyuv[0]= 0.0f;
+					suv->dyuv[1]= 0.0f;
+				}
+
+				if((mode & MA_FACETEXTURE) && i==0) {
+					if((mode & (MA_VERTEXCOL|MA_VERTEXCOLP))==0) {
+						shi->vcol[0]= 1.0f;
+						shi->vcol[1]= 1.0f;
+						shi->vcol[2]= 1.0f;
+					}
+				}
+			}
+
+			if(shi->totuv == 0) {
+				ShadeInputUV *suv= &shi->uv[0];
+
+				suv->uv[0]= 0.0f;
+				suv->uv[1]= spoint->strandco;
+				suv->uv[2]= 0.0f;	/* texture.c assumes there are 3 coords */
+				
+				if(mode & MA_FACETEXTURE) {
+					/* no tface? set at 1.0f */
+					shi->vcol[0]= 1.0f;
+					shi->vcol[1]= 1.0f;
+					shi->vcol[2]= 1.0f;
+				}
+			}
+
+		}
+
+		if(texco & TEXCO_NORM) {
+			shi->orn[0]= -shi->vn[0];
+			shi->orn[1]= -shi->vn[1];
+			shi->orn[2]= -shi->vn[2];
+		}
+
+		if(mode & MA_RADIO) {
+			/* not supported */
+		}
+
+		if(texco & TEXCO_REFL) {
+			/* mirror reflection color textures (and envmap) */
+			calc_R_ref(shi);    /* wrong location for normal maps! XXXXXXXXXXXXXX */
+		}
+
+		if(texco & TEXCO_STRESS) {
+			/* not supported */
+		}
+
+		if(texco & TEXCO_TANGENT) {
+			if((mode & MA_TANGENT_V)==0) {
+				/* just prevent surprises */
+				shi->tang[0]= shi->tang[1]= shi->tang[2]= 0.0f;
+			}
+		}
+	}
+
+	shi->rad[0]= shi->rad[1]= shi->rad[2]= 0.0f;
+
+	/* this only avalailable for scanline renders */
+	if(shi->depth==0) {
+		if(texco & TEXCO_WINDOW) {
+			shi->winco[0]= -1.0f + 2.0f*spoint->x/(float)R.winx;
+			shi->winco[1]= -1.0f + 2.0f*spoint->y/(float)R.winy;
+			shi->winco[2]= 0.0f;
+
+			/* not supported */
+			if(shi->osatex) {
+				shi->dxwin[0]= 0.0f;
+				shi->dywin[1]= 0.0f;
+				shi->dxwin[0]= 0.0f;
+				shi->dywin[1]= 0.0f;
+			}
+		}
+
+		if(texco & TEXCO_STICKY) {
+			/* not supported */
+		}
+	}
+}
 
 /* scanline pixel coordinates */
 /* requires set_triangle */
@@ -570,6 +817,17 @@ void shade_input_set_shade_texco(ShadeInput *shi)
 			}
 			else shi->tang[0]= shi->tang[1]= shi->tang[2]= 0.0f;
 		}
+	}
+
+	if(mode & MA_STR_SURFDIFF) {
+		float *surfnor= RE_vlakren_get_surfnor(&R, shi->vlr, 0);
+
+		if(surfnor)
+			VECCOPY(shi->surfnor, surfnor)
+		else
+			VECCOPY(shi->surfnor, shi->vn)
+
+		shi->surfdist= 0.0f;
 	}
 	
 	if(R.r.mode & R_SPEED) {

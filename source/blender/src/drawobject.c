@@ -1132,7 +1132,7 @@ static void lattice_draw_verts(Lattice *lt, DispList *dl, short sel)
 				int uxt = (u==0 || u==lt->pntsu-1);
 				if(!(lt->flag & LT_OUTSIDE) || uxt || vxt || wxt) {
 					if(bp->hide==0) {
-						if((bp->f1 & 1)==sel) {
+						if((bp->f1 & SELECT)==sel) {
 							bglVertex3fv(dl?co:bp->vec);
 						}
 					}
@@ -1698,9 +1698,7 @@ static void draw_em_fancy_verts(EditMesh *em, DerivedMesh *cageDM, EditVert *eve
 				draw_dm_verts(cageDM, sel, eve_act);
 			}
 			
-			if(	(G.scene->selectmode & SCE_SELECT_FACE) &&
-				(G.vd->drawtype<=OB_SOLID)
-			) {
+			if( CHECK_OB_DRAWFACEDOT(G.scene, G.vd, G.obedit->dt) ) {
 				glPointSize(fsize);
 				glColor4ubv((GLubyte *)fcol);
 				draw_dm_face_centers(cageDM, sel);
@@ -2432,8 +2430,7 @@ static int draw_mesh_object(Base *base, int dt, int flag)
 	}
 	else {
 		/* don't create boundbox here with mesh_get_bb(), the derived system will make it, puts deformed bb's OK */
-		
-		if(me->totface<=4 || boundbox_clip(ob->obmat, me->bb)) {
+		if(me->totface<=4 || boundbox_clip(ob->obmat, (ob->bb)? ob->bb: me->bb)) {
 			if(dt==OB_SOLID) has_alpha= init_gl_materials(ob, (base->flag & OB_FROMDUPLI)==0);
 			draw_mesh_fancy(base, dt, flag);
 			
@@ -3030,7 +3027,7 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys)
 
 	psys->flag|=PSYS_DRAWING;
 
-	if(part->flag&PART_CHILD_RENDER || !psys->childcache)
+	if(!psys->childcache)
 		totchild=0;
 	else
 		totchild=psys->totchild*part->disp/100;
@@ -3200,16 +3197,18 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys)
 				}
 			}
 			else{
-				pa_time=psys_get_child_time(psys,a-totpart,cfra);
+				ChildParticle *cpa= &psys->child[a-totpart];
+
+				pa_time=psys_get_child_time(psys,cpa,cfra);
 
 				if((part->flag&PART_ABS_TIME)==0 && part->ipo){
 					calc_ipo(part->ipo, 100*pa_time);
 					execute_ipo((ID *)part, part->ipo);
 				}
 
-				pa_size=psys_get_child_size(psys,a-totpart,cfra,0);
+				pa_size=psys_get_child_size(psys,cpa,cfra,0);
 
-				r_tilt=2.0f*psys->child[a-totpart].rand[2];
+				r_tilt=2.0f*cpa->rand[2];
 				if(path_nbr){
 					cache=psys->childcache[a-totpart];
 					k_max=(int)(cache->steps);
@@ -3729,7 +3728,7 @@ static void tekenhandlesN(Nurb *nu, short sel)
 		a= nu->pntsu;
 		while(a--) {
 			if(bezt->hide==0) {
-				if( (bezt->f2 & 1)==sel) {
+				if( (bezt->f2 & SELECT)==sel) {
 					fp= bezt->vec[0];
 					
 					cpack(col[bezt->h1]);
@@ -3740,14 +3739,14 @@ static void tekenhandlesN(Nurb *nu, short sel)
 					glVertex3fv(fp+3); 
 					glVertex3fv(fp+6); 
 				}
-				else if( (bezt->f1 & 1)==sel) {
+				else if( (bezt->f1 & SELECT)==sel) {
 					fp= bezt->vec[0];
 					
 					cpack(col[bezt->h1]);
 					glVertex3fv(fp); 
 					glVertex3fv(fp+3); 
 				}
-				else if( (bezt->f3 & 1)==sel) {
+				else if( (bezt->f3 & SELECT)==sel) {
 					fp= bezt->vec[1];
 					
 					cpack(col[bezt->h2]);
@@ -3785,11 +3784,11 @@ static void tekenvertsN(Nurb *nu, short sel)
 		while(a--) {
 			if(bezt->hide==0) {
 				if (G.f & G_HIDDENHANDLES) {
-					if((bezt->f2 & 1)==sel) bglVertex3fv(bezt->vec[1]);
+					if((bezt->f2 & SELECT)==sel) bglVertex3fv(bezt->vec[1]);
 				} else {
-					if((bezt->f1 & 1)==sel) bglVertex3fv(bezt->vec[0]);
-					if((bezt->f2 & 1)==sel) bglVertex3fv(bezt->vec[1]);
-					if((bezt->f3 & 1)==sel) bglVertex3fv(bezt->vec[2]);
+					if((bezt->f1 & SELECT)==sel) bglVertex3fv(bezt->vec[0]);
+					if((bezt->f2 & SELECT)==sel) bglVertex3fv(bezt->vec[1]);
+					if((bezt->f3 & SELECT)==sel) bglVertex3fv(bezt->vec[2]);
 				}
 			}
 			bezt++;
@@ -3800,7 +3799,7 @@ static void tekenvertsN(Nurb *nu, short sel)
 		a= nu->pntsu*nu->pntsv;
 		while(a--) {
 			if(bp->hide==0) {
-				if((bp->f1 & 1)==sel) bglVertex3fv(bp->vec);
+				if((bp->f1 & SELECT)==sel) bglVertex3fv(bp->vec);
 			}
 			bp++;
 		}
@@ -3843,7 +3842,7 @@ static void draw_editnurb(Object *ob, Nurb *nurb, int sel)
 					for(a=nu->pntsu-1; a>0; a--, bp++) {
 						if(bp->hide==0 && bp1->hide==0) {
 							if(sel) {
-								if( (bp->f1 & 1) && ( bp1->f1 & 1) ) {
+								if( (bp->f1 & SELECT) && ( bp1->f1 & SELECT ) ) {
 									cpack(nurbcol[5]);
 		
 									glBegin(GL_LINE_STRIP);
@@ -3853,7 +3852,7 @@ static void draw_editnurb(Object *ob, Nurb *nurb, int sel)
 								}
 							}
 							else {
-								if( (bp->f1 & 1) && ( bp1->f1 & 1) );
+								if( (bp->f1 & SELECT) && ( bp1->f1 & SELECT) );
 								else {
 									cpack(nurbcol[1]);
 		
@@ -3876,7 +3875,7 @@ static void draw_editnurb(Object *ob, Nurb *nurb, int sel)
 						for(a=nu->pntsv-1; a>0; a--, bp+=ofs) {
 							if(bp->hide==0 && bp1->hide==0) {
 								if(sel) {
-									if( (bp->f1 & 1) && ( bp1->f1 & 1) ) {
+									if( (bp->f1 & SELECT) && ( bp1->f1 & SELECT) ) {
 										cpack(nurbcol[7]);
 			
 										glBegin(GL_LINE_STRIP);
@@ -3886,7 +3885,7 @@ static void draw_editnurb(Object *ob, Nurb *nurb, int sel)
 									}
 								}
 								else {
-									if( (bp->f1 & 1) && ( bp1->f1 & 1) );
+									if( (bp->f1 & SELECT) && ( bp1->f1 & SELECT) );
 									else {
 										cpack(nurbcol[3]);
 			
@@ -3940,8 +3939,9 @@ static void drawnurb(Base *base, Nurb *nurb, int dt)
 	
 	if(G.vd->zbuf) glEnable(GL_DEPTH_TEST);
 
-	/* direction vectors for 3d curve paths */
-	if(cu->flag & CU_3D) {
+	/*	direction vectors for 3d curve paths
+		when at its lowest, dont render normals */
+	if(cu->flag & CU_3D && G.scene->editbutsize > 0.0015) {
 		BIF_ThemeColor(TH_WIRE);
 		for (bl=cu->bev.first,nu=nurb; nu && bl; bl=bl->next,nu=nu->next) {
 			BevPoint *bevp= (BevPoint *)(bl+1);		
@@ -3949,7 +3949,7 @@ static void drawnurb(Base *base, Nurb *nurb, int dt)
 			int skip= nu->resolu/16;
 			float fac;
 			
-			while (nr-->0) {
+			while (nr-->0) { /* accounts for empty bevel lists */
 				float ox,oy,oz; // Offset perpendicular to the curve
 				float dx,dy,dz; // Delta along the curve
 
@@ -4481,7 +4481,7 @@ static void draw_bounding_volume(Object *ob)
 	BoundBox *bb=0;
 	
 	if(ob->type==OB_MESH) {
-		bb= mesh_get_bb(ob->data);
+		bb= mesh_get_bb(ob);
 	}
 	else if ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT) {
 		bb= ( (Curve *)ob->data )->bb;
@@ -4707,10 +4707,13 @@ void draw_object(Base *base, int flag)
 
 	/* xray delay? */
 	if((flag & DRAW_PICKING)==0 && (base->flag & OB_FROMDUPLI)==0) {
-		/* xray and transp are set when it is drawing the 2nd/3rd pass */
-		if(!G.vd->xray && !G.vd->transp && (ob->dtx & OB_DRAWXRAY)) {
-			add_view3d_after(G.vd, base, V3D_XRAY);
-			return;
+		/* don't do xray in particle mode, need the z-buffer */
+		if(!(G.f & G_PARTICLEEDIT)) {
+			/* xray and transp are set when it is drawing the 2nd/3rd pass */
+			if(!G.vd->xray && !G.vd->transp && (ob->dtx & OB_DRAWXRAY)) {
+				add_view3d_after(G.vd, base, V3D_XRAY);
+				return;
+			}
 		}
 	}
 
@@ -5327,9 +5330,7 @@ static int bbs_mesh_solid_EM(DerivedMesh *dm, int facecol)
 	if (facecol) {
 		dm->drawMappedFaces(dm, bbs_mesh_solid__setSolidDrawOptions, (void*)(long) 1, 0);
 
-		if(	(G.scene->selectmode & SCE_SELECT_FACE) &&
-			(G.vd->drawtype<=OB_SOLID)
-		) {
+		if( CHECK_OB_DRAWFACEDOT(G.scene, G.vd, G.obedit->dt) ) {
 			glPointSize(BIF_GetThemeValuef(TH_FACEDOT_SIZE));
 		
 			bglBegin(GL_POINTS);

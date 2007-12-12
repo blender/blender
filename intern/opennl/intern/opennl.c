@@ -240,7 +240,7 @@ static void __nlSparseMatrixConstruct(
 	M->storage = storage;
 	if(storage & __NL_ROWS) {
 		M->row = __NL_NEW_ARRAY(__NLRowColumn, m);
-		for(i=0; i<n; i++) {
+		for(i=0; i<m; i++) {
 			__nlRowColumnConstruct(&(M->row[i]));
 		}
 	} else {

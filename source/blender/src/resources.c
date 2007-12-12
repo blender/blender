@@ -274,6 +274,8 @@ char *BIF_ThemeGetColorPtr(bTheme *btheme, int spacetype, int colorid)
 				cp= ts->strip; break;
 			case TH_STRIP_SELECT:
 				cp= ts->strip_select; break;
+			case TH_CFRAME:
+				cp= ts->cframe; break;
 				
 			case TH_SYNTAX_B:
 				cp= ts->syntaxb; break;
@@ -399,6 +401,7 @@ void BIF_InitTheme(void)
 	SETCOL(btheme->tv3d.normal, 0x22, 0xDD, 0xDD, 255);
 	SETCOL(btheme->tv3d.face_dot, 255, 138, 48, 255);
 	btheme->tv3d.facedot_size= 4;
+	SETCOL(btheme->tv3d.cframe, 0x60, 0xc0, 0x40, 255);
 	
 	SETCOL(btheme->tv3d.bone_solid, 200, 200, 200, 255);
 	SETCOL(btheme->tv3d.bone_pose, 80, 200, 255, 80);		// alpha 80 is not meant editable, used for wire+action draw
@@ -605,6 +608,7 @@ char *BIF_ThemeColorsPup(int spacetype)
 			str += sprintf(str, "Normal %%x%d|", TH_NORMAL);
 			str += sprintf(str, "Bone Solid %%x%d|", TH_BONE_SOLID);
 			str += sprintf(str, "Bone Pose %%x%d", TH_BONE_POSE);
+			str += sprintf(str, "Current Frame %%x%d", TH_CFRAME);
 			break;
 		case SPACE_IPO:
 			str += sprintf(str, "Panel %%x%d|", TH_PANEL);
@@ -615,6 +619,7 @@ char *BIF_ThemeColorsPup(int spacetype)
 			str += sprintf(str, "Vertex %%x%d|", TH_VERTEX);
 			str += sprintf(str, "Vertex Selected %%x%d|", TH_VERTEX_SELECT);
 			str += sprintf(str, "Vertex Size %%x%d|", TH_VERTEX_SIZE);
+			str += sprintf(str, "Current Frame %%x%d", TH_CFRAME);
 			break;
 		case SPACE_FILE:
 			str += sprintf(str, "Selected file %%x%d", TH_HILITE);
@@ -628,6 +633,7 @@ char *BIF_ThemeColorsPup(int spacetype)
 			str += sprintf(str, "Bars selected %%x%d|", TH_HILITE);
 			str += sprintf(str, "Strips %%x%d|", TH_STRIP);
 			str += sprintf(str, "Strips selected %%x%d|", TH_STRIP_SELECT);
+			str += sprintf(str, "Current Frame %%x%d", TH_CFRAME);
 			break;
 		case SPACE_ACTION:
 			//str += sprintf(str, "Panel %%x%d|", TH_PANEL);
@@ -639,6 +645,7 @@ char *BIF_ThemeColorsPup(int spacetype)
 			str += sprintf(str, "Channels Selected %%x%d|", TH_HILITE);
 			str += sprintf(str, "Long Key %%x%d|", TH_STRIP);
 			str += sprintf(str, "Long Key selected %%x%d|", TH_STRIP_SELECT);
+			str += sprintf(str, "Current Frame %%x%d", TH_CFRAME);
 			break;
 		case SPACE_IMAGE:
 			str += sprintf(str, "%%l|");
@@ -660,10 +667,12 @@ char *BIF_ThemeColorsPup(int spacetype)
 			str += sprintf(str, "Plugin Strip %%x%d|", TH_SEQ_PLUGIN);
 			str += sprintf(str, "Transition Strip %%x%d|", TH_SEQ_TRANSITION);
 			str += sprintf(str, "Meta Strip %%x%d|", TH_SEQ_META);
+			str += sprintf(str, "Current Frame %%x%d", TH_CFRAME);
 			break;
 		case SPACE_SOUND:
 			str += sprintf(str, "Grid %%x%d|", TH_GRID);
 			str += sprintf(str, "Window Slider %%x%d|", TH_SHADE1);
+			str += sprintf(str, "Current Frame %%x%d", TH_CFRAME);
 			break;
 		case SPACE_BUTS:
 			str += sprintf(str, "Panel %%x%d|", TH_PANEL);
@@ -689,6 +698,7 @@ char *BIF_ThemeColorsPup(int spacetype)
 			break;
 		case SPACE_TIME:
 			str += sprintf(str, "Grid %%x%d|", TH_GRID);
+			str += sprintf(str, "Current Frame %%x%d", TH_CFRAME);
 			break;
 		case SPACE_NODE:
 			str += sprintf(str, "Wires %%x%d|", TH_WIRE);

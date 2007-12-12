@@ -521,14 +521,14 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 							while(a--) {
 								if(bezt->hide==0) {
 									if(event==B_MATSEL) {
-										bezt->f1 |= 1;
-										bezt->f2 |= 1;
-										bezt->f3 |= 1;
+										bezt->f1 |= SELECT;
+										bezt->f2 |= SELECT;
+										bezt->f3 |= SELECT;
 									}
 									else {
-										bezt->f1 &= ~1;
-										bezt->f2 &= ~1;
-										bezt->f3 &= ~1;
+										bezt->f1 &= ~SELECT;
+										bezt->f2 &= ~SELECT;
+										bezt->f3 &= ~SELECT;
 									}
 								}
 								bezt++;
@@ -539,8 +539,8 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 							bp= nu->bp;
 							while(a--) {
 								if(bp->hide==0) {
-									if(event==B_MATSEL) bp->f1 |= 1;
-									else bp->f1 &= ~1;
+									if(event==B_MATSEL) bp->f1 |= SELECT;
+									else bp->f1 &= ~SELECT;
 								}
 								bp++;
 							}
@@ -1645,10 +1645,13 @@ static void modifiers_psysEnable(void *ob_v, void *md_v)
 {
 	ParticleSystemModifierData *psmd = (ParticleSystemModifierData*) md_v;
 
-	if(psmd->modifier.mode & eModifierMode_Realtime)
+	if(psmd->modifier.mode & eModifierMode_Realtime) {
 		psmd->psys->flag |= PSYS_ENABLED;
-	else
+	}
+	else {
 		psmd->psys->flag &= ~PSYS_ENABLED;
+		PE_free_particle_edit(psmd->psys);
+	}
 }
 
 static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco, int *yco, int index, int cageIndex, int lastCageIndex)
@@ -4001,10 +4004,14 @@ static void editing_panel_armature_visuals(Object *ob, bArmature *arm)
 	uiDefBut(block, LABEL, 0, "Ghost Options", 10,180,150,20, 0, 0, 0, 0, 0, "");
 
 	uiBlockBeginAlign(block);
-	uiDefButS(block, MENU, REDRAWVIEW3D, "Ghosts %t|Around Current Frame %x0|In Range %x1", 
-												10, 160, 150, 20, &arm->ghosttype, 0, 0, 0, 0, "Choose range of Ghosts to draw for current Action");	
-	
-	uiDefButS(block, NUM, REDRAWVIEW3D, "GStep: ", 10,140,150,20, &arm->ghostsize, 1.0f, 20.0f, 0, 0, "How many frames between Ghost instances");
+		uiDefButS(block, MENU, REDRAWVIEW3D, "Ghosts %t|Around Current Frame %x0|In Range %x1|On Keyframes %x2", 
+													10, 160, 150, 20, &arm->ghosttype, 0, 0, 0, 0, "Choose range of Ghosts to draw for current Action");	
+		
+		if (arm->ghosttype != ARM_GHOST_KEYS)
+			uiDefButS(block, NUM, REDRAWVIEW3D, "GStep: ", 10,140,120,20, &arm->ghostsize, 1.0f, 20.0f, 0, 0, "How many frames between Ghost instances");
+		else
+			uiDefBut(block, LABEL, REDRAWVIEW3D, "GStep: N/A", 10,140,120,20, NULL, 0.0f, 0.0f, 0, 0, "How many frames between Ghost instances");
+		uiDefButBitI(block, TOG, ARM_GHOST_ONLYSEL, REDRAWVIEW3D, "Sel", 130, 140, 30, 20, &arm->flag, 0, 0, 0, 0, "Only show Ghosts for selected bones");
 	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
@@ -4012,7 +4019,7 @@ static void editing_panel_armature_visuals(Object *ob, bArmature *arm)
 		/* range is around current frame */
 		uiDefButS(block, NUM, REDRAWVIEW3D, "Ghost: ", 10,110,150,20, &arm->ghostep, 0.0f, 30.0f, 0, 0, "Draw Ghosts around current frame, for current Action");
 	}
-	else if (arm->ghosttype == ARM_GHOST_RANGE) {
+	else if (ELEM(arm->ghosttype, ARM_GHOST_RANGE, ARM_GHOST_KEYS)) {
 		/* range is defined by start+end frame below */
 		uiDefButI(block, NUM,REDRAWVIEW3D,"GSta:",10,110,150,20, &arm->ghostsf,1.0,MAXFRAMEF, 0, 0, "The start frame for Ghost display range");
 		uiDefButI(block, NUM,REDRAWVIEW3D,"GEnd:",10,90,150,20, &arm->ghostef,arm->ghostsf,MAXFRAMEF, 0, 0, "The end frame for Ghost display range");	
@@ -4020,30 +4027,38 @@ static void editing_panel_armature_visuals(Object *ob, bArmature *arm)
 	uiBlockEndAlign(block);
 	
 	/* Bone Path Drawing Options */
-	uiDefBut(block, LABEL, 0, "Bone Paths", 165,180,150,20, 0, 0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "Bone Paths Drawing:", 165,180,170,20, 0, 0, 0, 0, 0, "");
 	
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, ARM_PATH_FNUMS, REDRAWVIEW3D, "Frame Nums", 170, 160, 80, 20, &arm->pathflag, 0, 0, 0, 0, "Show frame numbers on path");
-	uiDefButS(block, NUM, REDRAWVIEW3D, "PStep:",250,160,80,20, &arm->pathsize,1,100, 10, 50, "Frames between highlighted points on bone path");
-	uiDefButBitS(block, TOG, ARM_PATH_KFRAS, REDRAWVIEW3D, "Show Keys", 170, 140, 160, 20, &arm->pathflag, 0, 0, 0, 0, "Show key frames on path");
+		uiDefButS(block, NUM, REDRAWVIEW3D, "PStep:",170,160,80,20, &arm->pathsize,1,100, 10, 50, "Frames between highlighted points on bone path");
+		uiDefButBitS(block, TOG, ARM_PATH_FNUMS, REDRAWVIEW3D, "Frame Nums", 250, 160, 80, 20, &arm->pathflag, 0, 0, 0, 0, "Show frame numbers on path");
+		
+		uiDefButBitS(block, TOG, ARM_PATH_KFRAS, REDRAWVIEW3D, "Show Keys", 170, 140, 80, 20, &arm->pathflag, 0, 0, 0, 0, "Show key frames on path");
+		uiDefButBitS(block, TOG, ARM_PATH_KFNOS, REDRAWVIEW3D, "Keyframe Nums", 250, 140, 80, 20, &arm->pathflag, 0, 0, 0, 0, "Show frame numbers of key frames on path");
 	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
-	uiDefButBitS(block, TOG, ARM_PATH_ACFRA, REDRAWVIEW3D, "Around Current Frame", 170, 105, 160, 20, &arm->pathflag, 0, 0, 0, 0, "Calculate Bone Path around the current frame");
-	if (arm->pathflag & ARM_PATH_ACFRA) {
-		uiDefButI(block, NUM,REDRAWVIEW3D,"PPre:",170,85,80,20, &arm->pathbc, 1.0, MAXFRAMEF/2, 0, 0, "The number of frames before current frame for Bone Path display range");
-		uiDefButI(block, NUM,REDRAWVIEW3D,"PPost:",250,85,80,20, &arm->pathac, 1.0, MAXFRAMEF/2, 0, 0, "The number of frames after current frame for Bone Path display range");	
-	}
-	else {
-		uiDefButI(block, NUM,REDRAWVIEW3D,"PSta:",170,85,80,20, &arm->pathsf, 1.0, MAXFRAMEF, 0, 0, "The start frame for Bone Path display range");
-		uiDefButI(block, NUM,REDRAWVIEW3D,"PEnd:",250,85,80,20, &arm->pathef, arm->pathsf, MAXFRAMEF, 0, 0, "The end frame for Bone Path display range");	
-	}
-	uiDefButBitS(block, TOG, ARM_PATH_HEADS, REDRAWVIEW3D, "Bone-Head Path", 170, 65, 160, 20, &arm->pathflag, 0, 0, 0, 0, "Calculate the Path travelled by the Bone's Head instead of Tail");
+		uiDefButBitS(block, TOG, ARM_PATH_ACFRA, REDRAWVIEW3D, "Around Current Frame", 170, 110, 160, 20, &arm->pathflag, 0, 0, 0, 0, "Only show Bone Path around the current frame");
+		
+		/* only show extra ranges when needed */
+		if (arm->pathflag & ARM_PATH_ACFRA) {
+			uiDefButI(block, NUM, REDRAWVIEW3D,"PPre:",170,90,80,20, &arm->pathbc, 1.0, MAXFRAMEF/2, 0, 0, "The number of frames before current frame for Bone Path display range");
+			uiDefButI(block, NUM, REDRAWVIEW3D,"PPost:",250,90,80,20, &arm->pathac, 1.0, MAXFRAMEF/2, 0, 0, "The number of frames after current frame for Bone Path display range");	
+		}
+	uiBlockEndAlign(block);
+	
+	/* Bone Path Calculation Options */
+	uiDefBut(block, LABEL, 0, "Bone Paths Calc.", 10,50,170,20, 0, 0, 0, 0, 0, "");
+	
+	uiBlockBeginAlign(block);
+		uiDefBut(block, BUT, B_ARM_CALCPATHS, "Calculate Paths", 10,30,155,20, 0, 0, 0, 0, 0, "(Re)calculates the paths of the selected bones");
+		uiDefBut(block, BUT, B_ARM_CLEARPATHS, "Clear Paths", 10,10,155,20, 0, 0, 0, 0, 0, "Clears bone paths of the selected bones");
 	uiBlockEndAlign(block);
 	
 	uiBlockBeginAlign(block);
-	uiDefBut(block, BUT, B_ARM_CALCPATHS, "Calculate Paths", 170,30,160,20, 0, 0, 0, 0, 0, "(Re)calculates the paths of the selected bones");
-	uiDefBut(block, BUT, B_ARM_CLEARPATHS, "Clear All Paths", 170,10,160,20, 0, 0, 0, 0, 0, "Clears all bone paths");
+		uiDefButBitS(block, TOG, ARM_PATH_HEADS, REDRAWVIEW3D, "Bone-Head Path", 170, 30, 160, 20, &arm->pathflag, 0, 0, 0, 0, "Calculate the Path travelled by the Bone's Head instead of Tail");
+		uiDefButI(block, NUM,REDRAWVIEW3D,"PSta:",170,10,80,20, &arm->pathsf, 1.0, MAXFRAMEF, 0, 0, "The start frame for Bone Path display range");
+		uiDefButI(block, NUM,REDRAWVIEW3D,"PEnd:",250,10,80,20, &arm->pathef, arm->pathsf, MAXFRAMEF, 0, 0, "The end frame for Bone Path display range");
 	uiBlockEndAlign(block);
 }
 
@@ -4624,6 +4639,9 @@ void do_meshbuts(unsigned short event)
 	case B_JOINTRIA:
 		join_triangles();
 		break;
+	case B_GEN_SKELETON:
+		generateSkeleton();
+		break;
 	}
 
 	/* WATCH IT: previous events only in editmode! */
@@ -4674,6 +4692,7 @@ static void editing_panel_mesh_tools(Object *ob, Mesh *me)
 	uiDefButS(block, NUM, B_DIFF, "Turns:",			210,55,115,19, &G.scene->toolsettings->turn,1.0,360.0, 0, 0, "Specifies the number of revolutions the screw turns");
 	uiDefButBitS(block, TOG, B_KEEPORIG, B_DIFF, "Keep Original",10,35,200,19, &G.scene->toolsettings->editbutflag, 0, 0, 0, 0, "Keeps a copy of the original vertices and faces after executing tools");
 	uiDefButBitS(block, TOG, B_CLOCKWISE, B_DIFF, "Clockwise",	210,35,115,19, &G.scene->toolsettings->editbutflag, 0, 0, 0, 0, "Specifies the direction for 'Screw' and 'Spin'");
+	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
 	uiDefBut(block, BUT,B_EXTREP, "Extrude Dup",	10,10,150,19, 0, 0, 0, 0, 0, "Creates copies of the selected vertices in a straight line away from the current viewport");
@@ -4697,7 +4716,81 @@ static void verify_vertexgroup_name_func(void *datav, void *data2_unused)
 	unique_vertexgroup_name((bDeformGroup*)datav, OBACT);
 }
 
+static void skgen_reorder(void *option, void *arg2)
+{
+	char tmp;
+	switch ((int)option)
+	{
+		case 0:
+			tmp = G.scene->toolsettings->skgen_subdivisions[0];
+			G.scene->toolsettings->skgen_subdivisions[0] = G.scene->toolsettings->skgen_subdivisions[1];
+			G.scene->toolsettings->skgen_subdivisions[1] = tmp;
+			break;
+		case 1:
+			tmp = G.scene->toolsettings->skgen_subdivisions[2];
+			G.scene->toolsettings->skgen_subdivisions[2] = G.scene->toolsettings->skgen_subdivisions[1];
+			G.scene->toolsettings->skgen_subdivisions[1] = tmp;
+			break;
+		case 2:
+			tmp = G.scene->toolsettings->skgen_subdivisions[0];
+			G.scene->toolsettings->skgen_subdivisions[0] = G.scene->toolsettings->skgen_subdivisions[2];
+			G.scene->toolsettings->skgen_subdivisions[2] = G.scene->toolsettings->skgen_subdivisions[1];
+			G.scene->toolsettings->skgen_subdivisions[1] = tmp;
+			break;
+	}
+}
 
+static void editing_panel_mesh_skgen(Object *ob, Mesh *me)
+{
+	uiBlock *block;
+	uiBut *but;
+	int i;
+
+	block= uiNewBlock(&curarea->uiblocks, "editing_panel_mesh_skgen", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Skeleton Generator", "Editing", 960, 0, 318, 204)==0) return;
+	
+	uiDefBut(block, BUT, B_GEN_SKELETON, "Generate Skeleton",			1025,170,250,19, 0, 0, 0, 0, 0, "Generate Skeleton from Mesh");
+
+	uiBlockBeginAlign(block);
+	uiDefButS(block, NUM, B_DIFF, "Resolution:",							1025,150,250,19, &G.scene->toolsettings->skgen_resolution,10.0,1000.0, 0, 0,		"Specifies the resolution of the graph's embedding");
+	uiDefButBitS(block, TOG, SKGEN_FILTER_INTERNAL, B_DIFF, "Filter In",	1025,130, 83,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Filter internal small arcs from graph");
+	uiDefButF(block, NUM, B_DIFF, 							"T:",			1111,130,164,19, &G.scene->toolsettings->skgen_threshold_internal,0.0, 1.0, 10, 0,	"Specify the threshold ratio for filtering internal arcs");
+	uiDefButBitS(block, TOG, SKGEN_FILTER_EXTERNAL, B_DIFF, "Filter Ex",	1025,110, 83,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Filter external small arcs from graph");
+	uiDefButF(block, NUM, B_DIFF, 							"T:",			1111,110,164,19, &G.scene->toolsettings->skgen_threshold_external,0.0, 1.0, 10, 0,	"Specify the threshold ratio for filtering external arcs");
+
+	for(i = 0; i < SKGEN_SUB_TOTAL; i++)
+	{
+		int y = 90 - 20 * i;
+		
+		but = uiDefIconBut(block, BUT, B_MODIFIER_RECALC, VICON_MOVE_DOWN, 		1025, y, 16, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Change the order the subdivisions algorithm are applied");
+		uiButSetFunc(but, skgen_reorder, (void *)i, NULL);
+		
+		switch(G.scene->toolsettings->skgen_subdivisions[i])
+		{
+			case SKGEN_SUB_LENGTH:
+				uiDefButBitS(block, TOG, SKGEN_CUT_LENGTH, B_DIFF, 		"Length",		1041, y, 67,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,				"Subdivide arcs in bones of equal length");
+				uiDefButF(block, NUM, B_DIFF, 							"T:",			1111, y, 82,19, &G.scene->toolsettings->skgen_length_ratio,1.0, 4.0, 10, 0,		"Specify the ratio limit between straight arc and embeddings to trigger equal subdivisions");
+				uiDefButF(block, NUM, B_DIFF, 							"L:",			1193, y, 82,19, &G.scene->toolsettings->skgen_length_limit,0.1,50.0, 10, 0,		"Maximum length of the bones when subdividing");
+				break;
+			case SKGEN_SUB_ANGLE:
+				uiDefButBitS(block, TOG, SKGEN_CUT_ANGLE, B_DIFF, 		"Angle",		1041, y, 67,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Subdivide arcs based on angle");
+				uiDefButF(block, NUM, B_DIFF, 							"T:",			1111, y,164,19, &G.scene->toolsettings->skgen_angle_limit,0.0, 90.0, 10, 0,			"Specify the threshold angle in degrees for subdivision");
+				break;
+			case SKGEN_SUB_CORRELATION:
+				uiDefButBitS(block, TOG, SKGEN_CUT_CORRELATION, B_DIFF, "Correlation",	1041, y, 67,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Subdivide arcs based on correlation");
+				uiDefButF(block, NUM, B_DIFF, 							"T:",			1111, y,164,19, &G.scene->toolsettings->skgen_correlation_limit,0.0, 1.0, 0.01, 0,	"Specify the threshold correlation for subdivision");
+				break;
+		}
+	}
+
+	uiDefButBitS(block, TOG, SKGEN_SYMMETRY, B_DIFF, 		"Symmetry",		1025, 30,125,19, &G.scene->toolsettings->skgen_options, 0, 0, 0, 0,					"Restore symmetries based on topology");
+	uiDefButF(block, NUM, B_DIFF, 							"T:",			1150, 30,125,19, &G.scene->toolsettings->skgen_symmetry_limit,0.0, 1.0, 10, 0,	"Specify the threshold distance for considering potential symmetric arcs");
+	uiDefButC(block, NUM, B_DIFF, 							"P:",			1025, 10, 62,19, &G.scene->toolsettings->skgen_postpro_passes, 0, 10, 10, 0,		"Specify the number of processing passes on the embeddings");
+	uiDefButC(block, ROW, B_DIFF,							"Smooth",		1087, 10, 63,19, &G.scene->toolsettings->skgen_postpro, 5.0, (float)SKGEN_SMOOTH, 0, 0, "Smooth embeddings");
+	uiDefButC(block, ROW, B_DIFF,							"Average",		1150, 10, 62,19, &G.scene->toolsettings->skgen_postpro, 5.0, (float)SKGEN_AVERAGE, 0, 0, "Average embeddings");
+	uiDefButC(block, ROW, B_DIFF,							"Sharpen",		1212, 10, 63,19, &G.scene->toolsettings->skgen_postpro, 5.0, (float)SKGEN_SHARPEN, 0, 0, "Sharpen embeddings");
+	uiBlockEndAlign(block);
+}
 
 static void editing_panel_mesh_tools1(Object *ob, Mesh *me)
 {
@@ -4749,7 +4842,7 @@ char *get_vertexgroup_menustr(Object *ob)
 {
 	bDeformGroup *dg;
 	int defCount, min, index;
-	char (*qsort_ptr)[sizeof(dg->name)+5] = NULL; // +5 for "%x99|"
+	char (*qsort_ptr)[sizeof(dg->name)+6] = NULL; // +6 for "%x999|" max 999 groups selectable
 	char *s, *menustr;
 	int printed;
 	
@@ -4767,7 +4860,7 @@ char *get_vertexgroup_menustr(Object *ob)
 								 "qsort_ptr");
 		for (index = 1, dg = ob->defbase.first; dg; index++, dg=dg->next) {
 			printed = snprintf (qsort_ptr[index - 1], sizeof (dg->name), dg->name);
-			snprintf (qsort_ptr[index - 1]+printed, 5+1, "%%x%d|", index); // +1 to move the \0
+			snprintf (qsort_ptr[index - 1]+printed, 6+1, "%%x%d|", index); // +1 to move the \0   see above 999 max here too
 		}
 		
 		qsort (qsort_ptr, defCount, sizeof (qsort_ptr[0]),
@@ -5954,6 +6047,8 @@ void editing_panels()
 		if(G.obedit) {
 			editing_panel_mesh_tools(ob, ob->data);
 			editing_panel_mesh_tools1(ob, ob->data);
+			uiNewPanelTabbed("Mesh Tools 1", "Editing");
+			editing_panel_mesh_skgen(ob, ob->data);
 			editing_panel_mesh_uvautocalculation();
 			if (EM_texFaceCheck())
 				editing_panel_mesh_texface();

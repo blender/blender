@@ -248,8 +248,6 @@ Global
 		Debug = Debug
 		Release = Release
 	EndGlobalSection
-	GlobalSection(ProjectDependencies) = postSolution
-	EndGlobalSection
 	GlobalSection(ProjectConfiguration) = postSolution
 		{F78B7FC9-DE32-465E-9F26-BB0B6B7A2EAF}.3D Plugin Debug.ActiveCfg = Blender Debug|Win32
 		{F78B7FC9-DE32-465E-9F26-BB0B6B7A2EAF}.3D Plugin Release.ActiveCfg = Blender Release|Win32

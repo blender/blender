@@ -244,6 +244,14 @@ int imagewrap(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, TexResult *texre
 	
 	if(tex->flag & TEX_NEGALPHA) texres->ta= 1.0f-texres->ta;
 
+	/* de-premul, this is being premulled in shade_input_do_shade() */
+	if(texres->ta!=1.0f && texres->ta!=0.0f) {
+		fx= 1.0f/texres->ta;
+		texres->tr*= fx;
+		texres->tg*= fx;
+		texres->tb*= fx;
+	}
+	
 	return retval;
 }
 

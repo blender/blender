@@ -841,7 +841,7 @@ void retopo_do_all()
 					bp= nu->bp;
 					for(i=0; i<nu->pntsv; ++i) {
 						for(j=0; j<nu->pntsu; ++j, ++bp) {
-							if(bp->f1 & 1)
+							if(bp->f1 & SELECT)
 								retopo_do_vert(G.vd,bp->vec);
 						}
 					}

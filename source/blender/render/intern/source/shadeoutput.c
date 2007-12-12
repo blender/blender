@@ -421,17 +421,21 @@ static double saacos_d(double fac)
 }
 
 /* Stoke's form factor. Need doubles here for extreme small area sizes */
-static float area_lamp_energy(float *co, float *vn, LampRen *lar)
+static float area_lamp_energy(float (*area)[3], float *co, float *vn)
 {
 	double fac;
 	double vec[4][3];	/* vectors of rendered co to vertices lamp */
 	double cross[4][3];	/* cross products of this */
 	double rad[4];		/* angles between vecs */
 
-	VECSUB(vec[0], co, lar->area[0]);
-	VECSUB(vec[1], co, lar->area[1]);
-	VECSUB(vec[2], co, lar->area[2]);
-	VECSUB(vec[3], co, lar->area[3]);
+	/* extra test for dot */
+	if ( INPR(co, vn) <= 0.0f)
+		return 0.0f;
+	
+	VECSUB(vec[0], co, area[0]);
+	VECSUB(vec[1], co, area[1]);
+	VECSUB(vec[2], co, area[2]);
+	VECSUB(vec[3], co, area[3]);
 	
 	Normalize_d(vec[0]);
 	Normalize_d(vec[1]);
@@ -467,7 +471,35 @@ static float area_lamp_energy(float *co, float *vn, LampRen *lar)
 	fac+= rad[3]*(vn[0]*cross[3][0]+ vn[1]*cross[3][1]+ vn[2]*cross[3][2]);
 
 	if(fac<=0.0) return 0.0;
-	return pow(fac*lar->areasize, lar->k);	// corrected for buttons size and lar->dist^2
+	return fac;
+}
+
+static float area_lamp_energy_multisample(LampRen *lar, float *co, float *vn)
+{
+	/* corner vectors are moved around according lamp jitter */
+	float *jitlamp= lar->jitter, vec[3];
+	float area[4][3], intens= 0.0f;
+	int a= lar->ray_totsamp;
+	
+	
+	while(a--) {
+		vec[0]= jitlamp[0];
+		vec[1]= jitlamp[1];
+		vec[2]= 0.0f;
+		Mat3MulVecfl(lar->mat, vec);
+		
+		VECADD(area[0], lar->area[0], vec);
+		VECADD(area[1], lar->area[1], vec);
+		VECADD(area[2], lar->area[2], vec);
+		VECADD(area[3], lar->area[3], vec);
+		
+		intens+= area_lamp_energy(area, co, vn);
+		
+		jitlamp+= 2;
+	}
+	intens /= (float)lar->ray_totsamp;
+	
+	return pow(intens*lar->areasize, lar->k);	// corrected for buttons size and lar->dist^2
 }
 
 static float spec(float inp, int hard)	
@@ -1057,10 +1089,10 @@ float lamp_get_visibility(LampRen *lar, float *co, float *lv, float *dist)
 		/* area type has no quad or sphere option */
 		if(lar->type==LA_AREA) {
 			/* area is single sided */
-			if(INPR(lv, lar->vec) > 0.0f)
-				visifac= 1.0f;
-			else
-				visifac= 0.0f;
+			//if(INPR(lv, lar->vec) > 0.0f)
+			//	visifac= 1.0f;
+			//else
+			//	visifac= 0.0f;
 		}
 		else {
 			switch(lar->falloff_type)
@@ -1180,13 +1212,35 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 	lacol[2]= lar->b;
 	
 	if(lar->mode & LA_TEXTURE)  do_lamp_tex(lar, lv, shi, lacol);
-	
-	/* tangent case; calculate fake face normal, aligned with lampvector */	
-	/* note, vnor==vn is used as tangent trigger for buffer shadow */
+
+		/* tangent case; calculate fake face normal, aligned with lampvector */	
+		/* note, vnor==vn is used as tangent trigger for buffer shadow */
 	if(vlr->flag & R_TANGENT) {
-		float cross[3];
-		Crossf(cross, lv, vn);
-		Crossf(vnor, cross, vn);
+		float cross[3], nstrand[3], blend;
+
+		if(ma->mode & MA_STR_SURFDIFF) {
+			Crossf(cross, shi->surfnor, vn);
+			Crossf(nstrand, vn, cross);
+
+			blend= INPR(nstrand, shi->surfnor);
+			CLAMP(blend, 0.0f, 1.0f);
+
+			VecLerpf(vnor, nstrand, shi->surfnor, blend);
+			Normalize(vnor);
+		}
+		else {
+			Crossf(cross, lv, vn);
+			Crossf(vnor, cross, vn);
+		}
+
+		if(ma->strand_surfnor > 0.0f) {
+			if(ma->strand_surfnor > shi->surfdist) {
+				blend= (ma->strand_surfnor - shi->surfdist)/ma->strand_surfnor;
+				VecLerpf(vnor, vnor, shi->surfnor, blend);
+				Normalize(vnor);
+			}
+		}
+
 		vnor[0]= -vnor[0];vnor[1]= -vnor[1];vnor[2]= -vnor[2];
 		vn= vnor;
 	}
@@ -1206,7 +1260,7 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 	/* this complex construction screams for a nicer implementation! (ton) */
 	if(R.r.mode & R_SHADOW) {
 		if(ma->mode & MA_SHADOW) {
-			if(lar->type==LA_HEMI);
+			if(lar->type==LA_HEMI || lar->type==LA_AREA);
 			else if((ma->mode & MA_RAYBIAS) && (lar->mode & LA_SHAD_RAY) && (vlr->flag & R_SMOOTH)) {
 				float thresh= vlr->ob->smoothresh;
 				if(inp>thresh)
@@ -1233,7 +1287,7 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 	else {
 		
 		if(lar->type==LA_AREA)
-			inp= area_lamp_energy(shi->co, vn, lar);
+			inp= area_lamp_energy_multisample(lar, shi->co, vn);
 		
 		/* diffuse shaders (oren nayer gets inp from area light) */
 		if(ma->diff_shader==MA_DIFF_ORENNAYAR) is= OrenNayar_Diff(inp, vn, lv, view, ma->roughness);

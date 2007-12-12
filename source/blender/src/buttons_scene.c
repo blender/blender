@@ -1967,11 +1967,12 @@ static void render_panel_layers(void)
 	uiBlockBeginAlign(block);
 	uiDefButBitI(block, TOG, SCE_LAY_ALL_Z, B_NOP,"AllZ",	10, 85, 40, 20, &srl->layflag, 0, 0, 0, 0, "Fill in Z values for all not-rendered faces, for masking");	
 	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, SCE_LAY_SOLID, B_NOP,"Solid",	50, 85, 60, 20, &srl->layflag, 0, 0, 0, 0, "Render Solid faces in this Layer");	
-	uiDefButBitI(block, TOG, SCE_LAY_HALO, B_NOP,"Halo",	110, 85, 55, 20, &srl->layflag, 0, 0, 0, 0, "Render Halos in this Layer (on top of Solid)");	
-	uiDefButBitI(block, TOG, SCE_LAY_ZTRA, B_NOP,"Ztra",	165, 85, 55, 20, &srl->layflag, 0, 0, 0, 0, "Render Z-Transparent faces in this Layer (On top of Solid and Halos)");	
-	uiDefButBitI(block, TOG, SCE_LAY_SKY, B_NOP,"Sky",		220, 85, 40, 20, &srl->layflag, 0, 0, 0, 0, "Render Sky or backbuffer in this Layer");	
-	uiDefButBitI(block, TOG, SCE_LAY_EDGE, B_NOP,"Edge",	260, 85, 50, 20, &srl->layflag, 0, 0, 0, 0, "Render Edge-enhance in this Layer (only works for Solid faces)");	
+	uiDefButBitI(block, TOG, SCE_LAY_SOLID, B_NOP,"Solid",	50,  85, 45, 20, &srl->layflag, 0, 0, 0, 0, "Render Solid faces in this Layer");	
+	uiDefButBitI(block, TOG, SCE_LAY_HALO, B_NOP,"Halo",	95,  85, 40, 20, &srl->layflag, 0, 0, 0, 0, "Render Halos in this Layer (on top of Solid)");	
+	uiDefButBitI(block, TOG, SCE_LAY_ZTRA, B_NOP,"Ztra",	135, 85, 40, 20, &srl->layflag, 0, 0, 0, 0, "Render Z-Transparent faces in this Layer (On top of Solid and Halos)");	
+	uiDefButBitI(block, TOG, SCE_LAY_SKY, B_NOP,"Sky",		175, 85, 40, 20, &srl->layflag, 0, 0, 0, 0, "Render Sky or backbuffer in this Layer");	
+	uiDefButBitI(block, TOG, SCE_LAY_EDGE, B_NOP,"Edge",	215, 85, 45, 20, &srl->layflag, 0, 0, 0, 0, "Render Edge-enhance in this Layer (only works for Solid faces)");	
+	uiDefButBitI(block, TOG, SCE_LAY_STRAND, B_NOP,"Strand",260, 85, 50, 20, &srl->layflag, 0, 0, 0, 0, "Render Strands in this Layer");	
 	
 	uiDefIDPoinBut(block, test_grouppoin_but, ID_GR, B_SET_PASS, "Light:",	10, 65, 150, 20, &(srl->light_override), "Name of Group to use as Lamps instead");
 	uiDefIDPoinBut(block, test_matpoin_but, ID_MA, B_SET_PASS, "Mat:",	160, 65, 150, 20, &(srl->mat_override), "Name of Material to use as Materials instead");

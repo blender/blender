@@ -51,10 +51,11 @@
 #include "DNA_material_types.h"
 
 #include "BLI_blenlib.h"
+#include "BLI_storage_types.h"
 #ifdef WIN32
 #include "BLI_winstuff.h"
 #endif
-#include "BLI_storage_types.h"
+
 
 #include "BKE_global.h"
 #include "BKE_library.h"

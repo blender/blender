@@ -121,7 +121,9 @@
 #define ISPOIN3(a, b, c, d)		( (a->b) && (a->c) && (a->d) )
 #define ISPOIN4(a, b, c, d, e)	( (a->b) && (a->c) && (a->d) && (a->e) )
 
-#define BEZSELECTED(bezt)   (((bezt)->f1 & 1) || ((bezt)->f2 & 1) || ((bezt)->f3 & 1))
+#define BEZSELECTED(bezt)   (((bezt)->f1 & SELECT) || ((bezt)->f2 & SELECT) || ((bezt)->f3 & SELECT))
+/* for curve objects in editmode that can have hidden handles - may use for IPO's later */
+#define BEZSELECTED_HIDDENHANDLES(bezt)   ((G.f & G_HIDDENHANDLES) ? (bezt)->f2 & SELECT : BEZSELECTED(bezt))
 
 /* psfont */
 #define FNT_PDRAW 1

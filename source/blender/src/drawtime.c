@@ -93,7 +93,7 @@ static void draw_cfra_time(SpaceTime *stime)
 	vec[0]*= G.scene->r.framelen;
 
 	vec[1]= G.v2d->cur.ymin;
-	glColor3ub(0x60, 0xc0, 0x40);	// no theme, should be global color once...
+	BIF_ThemeColor(TH_CFRAME);	// no theme, should be global color once...
 	glLineWidth(3.0);
 
 	glBegin(GL_LINES);

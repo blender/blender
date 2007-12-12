@@ -433,21 +433,17 @@ static bActionStrip *get_active_strip(Object *ob)
 /* non clipped mapping of strip */
 static float get_actionstrip_frame(bActionStrip *strip, float cframe, int invert)
 {
-	float length, actlength, repeat;
+	float length, actlength, repeat, scale;
 	
-	if (strip->flag & ACTSTRIP_USESTRIDE)
-		repeat= 1.0f;
-	else
-		repeat= strip->repeat;
+	repeat = (strip->flag & ACTSTRIP_USESTRIDE) ? (1.0f) : (strip->repeat);
+	scale = abs(strip->scale); /* scale must be positive (for now) */
 	
-	length = strip->end-strip->start;
-	if(length==0.0f)
-		length= 1.0f;
 	actlength = strip->actend-strip->actstart;
+	if (actlength == 0.0f) actlength = 1.0f;
+	length = repeat * scale * actlength;
 	
-	
-	
-	if(invert)
+	/* invert = convert action-strip time to global time */
+	if (invert)
 		return length*(cframe - strip->actstart)/(repeat*actlength) + strip->start;
 	else
 		return repeat*actlength*(cframe - strip->start)/length + strip->actstart;

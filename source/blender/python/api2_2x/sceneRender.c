@@ -2566,7 +2566,7 @@ static PyGetSetDef BPy_RenderData_getseters[] = {
 	 (getter)RenderData_getIValueAttr, (setter)RenderData_setIValueAttrClamp,
 	 "Frames per second",
 	 (void *)EXPP_RENDER_ATTR_FPS},
-	{"fps_base",
+	{"fpsBase",
 	 (getter)RenderData_getFloatAttr, (setter)RenderData_setFloatAttrClamp,
 	 "Frames per second base",
 	 (void *)EXPP_RENDER_ATTR_FPS_BASE},

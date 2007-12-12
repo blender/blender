@@ -730,7 +730,7 @@ void BPY_spacescript_do_pywin_event( SpaceScript * sc, unsigned short event,
 
 	if (val) {
 
-		if (uiDoBlocks( &curarea->uiblocks, event ) != UI_NOTHING) event = 0;
+		if (uiDoBlocks( &curarea->uiblocks, event, 1 ) != UI_NOTHING) event = 0;
 
 		if (event == UI_BUT_EVENT) {
 			/* check that event is in free range for script button events;
@@ -1117,7 +1117,7 @@ static PyObject *Method_UIBlock( PyObject * self, PyObject * args )
 		/* Done clearing events */
 		
 		uiBoundsBlock(uiblock, 5);
-		uiDoBlocks(&listb, 0);
+		uiDoBlocks(&listb, 0, 1);
 	}
 	uiFreeBlocks(&listb);
 	uiblock = NULL;

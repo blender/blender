@@ -141,8 +141,13 @@ endif
 			NAN_OPENEXR_LIBS?=$(addprefix ${NAN_OPENEXR}/lib/lib,$(addsuffix .a,$(shell pkg-config --libs OpenEXR | sed -s "s/-l//g" )))
 			endif
         else
-          export NAN_OPENEXR ?= /usr/local
-	  export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a
+          ifeq ($(OS), solaris)
+              export NAN_OPENEXR ?= /usr/local
+              export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a $(NAN_OPENEXR)/lib/libIlmThread.a -lrt
+          else
+            export NAN_OPENEXR ?= /usr/local
+	    export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a
+          endif
         endif
       endif
 		 	ifeq ($(WITH_OPENEXR), true)
@@ -165,6 +170,7 @@ endif
     export NAN_PYTHON ?= $(LCGDIR)/python
     export NAN_PYTHON_VERSION ?= 2.3
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
+    export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
     export NAN_OPENAL ?= $(LCGDIR)/openal
     export NAN_FMOD ?= $(LCGDIR)/fmod
     export NAN_JPEG ?= $(LCGDIR)/jpeg
@@ -211,10 +217,12 @@ endif
        export NAN_PYTHON ?= /System/Library/Frameworks/Python.framework/Versions/2.3
        export NAN_PYTHON_VERSION ?= 2.3
        export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
+       export NAN_PYTHON_LIB ?= -framework Python 
     else 
        export NAN_PYTHON ?= /sw
        export NAN_PYTHON_VERSION ?= 2.3
        export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
+       export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
     endif
 
     export NAN_OPENAL ?= $(LCGDIR)/openal
@@ -229,6 +237,10 @@ endif
     export NAN_NSPR ?= $(LCGDIR)/nspr
     export NAN_FREETYPE ?= $(LCGDIR)/freetype
     export NAN_GETTEXT ?= $(LCGDIR)/gettext
+    export NAN_GETTEXT_LIB ?= $(NAN_GETTEXT)/lib/libintl.a
+    ifeq (($CPU), i386)
+        export NAN_GETTEXT_LIB += $(NAN_GETTEXT)/lib/libintl.a
+    endif
     export NAN_SDL ?= $(LCGDIR)/sdl
     export NAN_SDLCFLAGS ?= -I$(NAN_SDL)/include
     export NAN_SDLLIBS ?= $(NAN_SDL)/lib/libSDL.a -framework Cocoa -framework IOKit
@@ -270,6 +282,7 @@ endif
     export NAN_PYTHON ?= /usr/local
     export NAN_PYTHON_VERSION ?= 2.3
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
+    export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
     export NAN_OPENAL ?= /usr/local
     export NAN_FMOD ?= $(LCGDIR)/fmod
     export NAN_JPEG ?= /usr/local
@@ -314,6 +327,7 @@ endif
     export NAN_PYTHON ?= $(LCGDIR)/python
     export NAN_PYTHON_VERSION ?= 2.3
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
+    export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
     export NAN_OPENAL ?= $(LCGDIR)/openal
     export NAN_FMOD ?= $(LCGDIR)/fmod
     export NAN_JPEG ?= $(LCGDIR)/jpeg
@@ -326,6 +340,7 @@ endif
     export NAN_NSPR ?= $(LCGDIR)/nspr
     export NAN_FREETYPE ?= /usr/freeware
     export NAN_GETTEXT ?= /usr/freeware
+    export NAN_GETTEXT_LIB ?= $(NAN_GETTEXT)/lib32/libintl.a
     export NAN_SDL ?= $(LCGDIR)/sdl
     export NAN_SDLLIBS ?= -L$(NAN_SDL)/lib -lSDL
     export NAN_SDLCFLAGS ?= -I$(NAN_SDL)/include/SDL
@@ -358,6 +373,7 @@ endif
     export NAN_PYTHON ?= /usr
     export NAN_PYTHON_VERSION ?= 2.5
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
+    export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
     export NAN_OPENAL ?= /usr
     export NAN_FMOD ?= $(LCGDIR)/fmod
     export NAN_JPEG ?= /usr
@@ -413,6 +429,7 @@ endif
     export NAN_PYTHON ?= $(LCGDIR)/python
     export NAN_PYTHON_VERSION ?= 2.3
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
+    export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
     export NAN_OPENAL ?= $(LCGDIR)/openal
     export NAN_FMOD ?= $(LCGDIR)/fmod
     export NAN_JPEG ?= $(LCGDIR)/jpeg
@@ -455,21 +472,23 @@ endif
     export NAN_PYTHON ?= /usr/local
     export NAN_PYTHON_VERSION ?= 2.3
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
-    export NAN_OPENAL ?= /usr/local
+    export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
+    export NAN_OPENAL ?= $(LCGDIR)/openal 
     export NAN_FMOD ?= $(LCGDIR)/fmod
-    export NAN_JPEG ?= /usr/local
-    export NAN_PNG ?= /usr/local
+    export NAN_JPEG ?= $(LCGDIR)/jpeg
+    export NAN_PNG ?= $(LCGDIR)/png
     export NAN_TIFF ?= /usr
     export NAN_ODE ?= $(LCGDIR)/ode
     export NAN_TERRAPLAY ?=
     export NAN_MESA ?= /usr/src/Mesa-3.1
-    export NAN_ZLIB ?= /usr
+    export NAN_ZLIB ?= $(LCGDIR)/zlib
     export NAN_NSPR ?= $(LCGDIR)/nspr
     export NAN_FREETYPE ?= $(LCGDIR)/freetype
     export NAN_GETTEXT ?= $(LCGDIR)/gettext
-    export NAN_SDL ?= $(shell sdl-config --prefix)
-    export NAN_SDLLIBS ?= $(shell sdl-config --libs)
-    export NAN_SDLCFLAGS ?= $(shell sdl-config --cflags)
+    export NAN_GETTEXT_LIB ?= $(NAN_GETTEXT)/lib/libintl.a $(NAN_GETTEXT)/lib/libiconv.a
+    export NAN_SDL ?= $(LCGDIR)/sdl
+    export NAN_SDLCFLAGS ?= -I$(NAN_SDL)/include/SDL
+    export NAN_SDLLIBS ?= $(NAN_SDL)/lib/libSDL.a
 
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
@@ -498,20 +517,18 @@ endif
     export NAN_PYTHON_VERSION ?= 2.5
     ifeq ($(FREE_WINDOWS), true)
       export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
+      export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/freepy.a
       export NAN_FREETYPE ?= $(LCGDIR)/gcc/freetype
       export NAN_ODE ?= $(LCGDIR)/gcc/ode
-      ifeq ($(NAN_SDL),)
-	  export NAN_SDL ?= $(LCGDIR)/gcc/sdl
-	  export NAN_SDLCFLAGS ?= -I$(NAN_SDL)/include
-      endif
+      export NAN_SDL ?= $(LCGDIR)/gcc/sdl
+      export NAN_SDLCFLAGS ?= -I$(NAN_SDL)/include
     else
       export NAN_PYTHON_BINARY ?= python
+      export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python23.lib
       export NAN_FREETYPE ?= $(LCGDIR)/freetype
       export NAN_ODE ?= $(LCGDIR)/ode
-      ifeq ($(NAN_SDL),)
-	  export NAN_SDL ?= $(LCGDIR)/sdl
-	  export NAN_SDLCFLAGS ?= -I$(NAN_SDL)/include
-      endif
+      export NAN_SDL ?= $(LCGDIR)/sdl
+      export NAN_SDLCFLAGS ?= -I$(NAN_SDL)/include
     endif
     export NAN_OPENAL ?= $(LCGDIR)/openal
     export NAN_FMOD ?= $(LCGDIR)/fmod
@@ -523,6 +540,11 @@ endif
     export NAN_ZLIB ?= $(LCGDIR)/zlib
     export NAN_NSPR ?= $(LCGDIR)/nspr
     export NAN_GETTEXT ?= $(LCGDIR)/gettext
+    ifeq ($(FREE_WINDOWS), true)
+       export NAN_GETTEXT_LIB ?= $(NAN_GETTEXT)/lib/freegettext.a $(NAN_ICONV)/lib/freeiconv.a
+    else
+       export NAN_GETTEXT_LIB ?= $(NAN_GETTEXT)/lib/gnu_gettext.lib $(NAN_ICONV)/lib/iconv.lib
+    endif
 
     # Uncomment the following line to use Mozilla inplace of netscape
     # CPPFLAGS +=-DMOZ_NOT_NET
@@ -550,6 +572,8 @@ endif
     export NAN_PYTHON ?= $(LCGDIR)/python
     export NAN_PYTHON_VERSION ?= 2.3
     export NAN_PYTHON_BINARY ?= python
+    export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
+
     export NAN_OPENAL ?= $(LCGDIR)/openal
     export NAN_FMOD ?= $(LCGDIR)/fmod
     export NAN_JPEG ?= $(LCGDIR)/jpeg
@@ -601,3 +625,8 @@ ifeq ($(NAN_NO_KETSJI), true)
    export NAN_JUST_BLENDERDYNAMIC=true
    export NAN_NO_OPENAL=true
 endif
+
+# INTERNATIONAL implies WITH_FREETYPE2
+ifeq ($(INTERNATIONAL), true)
+   export WITH_FREETYPE2=true
+endif 

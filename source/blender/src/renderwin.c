@@ -894,11 +894,11 @@ void make_renderinfo_string(RenderStats *rs, char *str)
 	else if(G.scene->r.scemode & R_SINGLE_LAYER)
 		spos+= sprintf(spos, "Single Layer | ");
 	
-	if(rs->tothalo)
-		spos+= sprintf(spos, "Fra:%d  Ve:%d Fa:%d Ha:%d La:%d Mem:%.2fM (%.2fM) ", (G.scene->r.cfra), rs->totvert, rs->totface, rs->tothalo, rs->totlamp, megs_used_memory, mmap_used_memory);
-	else 
-		spos+= sprintf(spos, "Fra:%d  Ve:%d Fa:%d La:%d Mem:%.2fM (%.2fM) ", (G.scene->r.cfra), rs->totvert, rs->totface, rs->totlamp, megs_used_memory, mmap_used_memory);
-	
+	spos+= sprintf(spos, "Fra:%d  Ve:%d Fa:%d ", (G.scene->r.cfra), rs->totvert, rs->totface);
+	if(rs->tothalo) spos+= sprintf(spos, "Ha:%d ", rs->tothalo);
+	if(rs->totstrand) spos+= sprintf(spos, "St:%d ", rs->totstrand);
+	spos+= sprintf(spos, "La:%d Mem:%.2fM (%.2fM) ", rs->totlamp, megs_used_memory, mmap_used_memory);
+
 	if(rs->curfield)
 		spos+= sprintf(spos, "Field %d ", rs->curfield);
 	if(rs->curblur)
@@ -1241,6 +1241,21 @@ void BIF_do_render(int anim)
 	if (G.f & G_DOSCRIPTLINKS) BPY_do_all_scripts(SCRIPT_POSTRENDER);
 }
 
+void do_ogl_view3d_render(Render *re, View3D *v3d, int winx, int winy)
+{
+	float winmat[4][4];
+
+	update_for_newframe_muted();	/* here, since camera can be animated */
+
+	if(v3d->persp==2 && v3d->camera) {
+		/* in camera view, use actual render winmat */
+		RE_GetCameraWindow(re, v3d->camera, CFRA, winmat);
+		drawview3d_render(v3d, winx, winy, winmat);
+	}
+	else
+		drawview3d_render(v3d, winx, winy, NULL);
+}
+
 /* set up display, render the current area view in an image */
 /* the RE_Render is only used to make sure we got the picture in the result */
 void BIF_do_ogl_render(View3D *v3d, int anim)
@@ -1256,7 +1271,7 @@ void BIF_do_ogl_render(View3D *v3d, int anim)
 	winy= (G.scene->r.size*G.scene->r.ysch)/100;
 	
 	RE_InitState(re, &G.scene->r, winx, winy, NULL);
-	
+
 	/* for now, result is defaulting to floats still... */
 	rr= RE_GetResult(re);
 	if(rr->rect32==NULL)
@@ -1282,8 +1297,10 @@ void BIF_do_ogl_render(View3D *v3d, int anim)
 			/* user event can close window */
 			if(render_win==NULL)
 				break;
-			drawview3d_render(v3d, winx, winy);
+
+			do_ogl_view3d_render(re, v3d, winx, winy);
 			glReadPixels(0, 0, winx, winy, GL_RGBA, GL_UNSIGNED_BYTE, rr->rect32);
+			BKE_stamp_buf((unsigned char *)rr->rect32, rr->rectf, rr->rectx, rr->recty);
 			window_swap_buffers(render_win->win);
 			
 			if(BKE_imtype_is_movie(G.scene->r.imtype)) {
@@ -1297,7 +1314,7 @@ void BIF_do_ogl_render(View3D *v3d, int anim)
 				
 				BKE_makepicstring(name, G.scene->r.pic, G.scene->r.cfra, G.scene->r.imtype);
 
-				ibuf->rect= (unsigned int *)rr->rect32;    
+				ibuf->rect= (unsigned int *)rr->rect32;
 				ok= BKE_write_ibuf(ibuf, name, G.scene->r.imtype, G.scene->r.subimtype, G.scene->r.quality);
 				
 				if(ok==0) {
@@ -1321,8 +1338,9 @@ void BIF_do_ogl_render(View3D *v3d, int anim)
 		CFRA= cfrao;
 	}
 	else {
-		drawview3d_render(v3d, winx, winy);
+		do_ogl_view3d_render(re, v3d, winx, winy);
 		glReadPixels(0, 0, winx, winy, GL_RGBA, GL_UNSIGNED_BYTE, rr->rect32);
+		BKE_stamp_buf((unsigned char *)rr->rect32, rr->rectf, rr->rectx, rr->recty);
 		window_swap_buffers(render_win->win);
 	}
 	

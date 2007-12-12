@@ -454,11 +454,15 @@ void tex_space_mesh(Mesh *me)
 	}
 }
 
-BoundBox *mesh_get_bb(Mesh *me)
+BoundBox *mesh_get_bb(Object *ob)
 {
-	if (!me->bb) {
+	Mesh *me= ob->data;
+
+	if(ob->bb)
+		return ob->bb;
+
+	if (!me->bb)
 		tex_space_mesh(me);
-	}
 
 	return me->bb;
 }
@@ -474,17 +478,13 @@ void mesh_get_texspace(Mesh *me, float *loc_r, float *rot_r, float *size_r)
 	if (size_r) VECCOPY(size_r, me->size);
 }
 
-static float *make_orco_mesh_internal(Object *ob, int render)
+float *get_mesh_orco_verts(Object *ob)
 {
 	Mesh *me = ob->data;
-	float (*orcoData)[3];
 	int a, totvert;
-	float loc[3], size[3];
-	DerivedMesh *dm;
 	float (*vcos)[3] = NULL;
 
-		/* Get appropriate vertex coordinates */
-
+	/* Get appropriate vertex coordinates */
 	if(me->key && me->texcomesh==0 && me->key->refkey) {
 		vcos= mesh_getRefKeyCos(me, &totvert);
 	}
@@ -512,40 +512,32 @@ static float *make_orco_mesh_internal(Object *ob, int render)
 		}
 	}
 
-		/* Apply orco-changing modifiers */
+	return (float*)vcos;
+}
 
-	if (render) {
-		dm = mesh_create_derived_no_deform_render(ob, vcos, CD_MASK_BAREMESH);
-	} else {
-		dm = mesh_create_derived_no_deform(ob, vcos, CD_MASK_BAREMESH);
-	}
-	totvert = dm->getNumVerts(dm);
-
-	orcoData = MEM_mallocN(sizeof(*orcoData)*totvert, "orcoData");
-	dm->getVertCos(dm, orcoData);
-	dm->release(dm);
-	MEM_freeN(vcos);
+void transform_mesh_orco_verts(Mesh *me, float (*orco)[3], int totvert, int invert)
+{
+	float loc[3], size[3];
+	int a;
 
 	mesh_get_texspace(me->texcomesh?me->texcomesh:me, loc, NULL, size);
 
-	for(a=0; a<totvert; a++) {
-		float *co = orcoData[a];
-		co[0] = (co[0]-loc[0])/size[0];
-		co[1] = (co[1]-loc[1])/size[1];
-		co[2] = (co[2]-loc[2])/size[2];
+	if(invert) {
+		for(a=0; a<totvert; a++) {
+			float *co = orco[a];
+			co[0] = co[0]*size[0] + loc[0];
+			co[1] = co[1]*size[1] + loc[1];
+			co[2] = co[2]*size[2] + loc[2];
+		}
 	}
-
-	return (float*) orcoData;
-}
-
-float *mesh_create_orco_render(Object *ob) 
-{
-	return make_orco_mesh_internal(ob, 1);
-}
-
-float *mesh_create_orco(Object *ob)
-{
-	return make_orco_mesh_internal(ob, 0);
+	else {
+		for(a=0; a<totvert; a++) {
+			float *co = orco[a];
+			co[0] = (co[0]-loc[0])/size[0];
+			co[1] = (co[1]-loc[1])/size[1];
+			co[2] = (co[2]-loc[2])/size[2];
+		}
+	}
 }
 
 /* rotates the vertices of a face in case v[2] or v[3] (vertex index) is = 0.

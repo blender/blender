@@ -36,7 +36,7 @@ SOURCEDIR = blender/po
 
 include nan_definitions.mk
 
-ifeq ($(INTERNTIONAL),true)
+ifeq ($(INTERNATIONAL),true)
 	LINGUAS = ar bg ca cs de es fr hr it ja nl pl pt_BR ro ru sr sr@Latn sv uk zh_CN
 else
 	LINGUAS = 

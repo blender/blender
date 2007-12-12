@@ -234,11 +234,7 @@ static void approximate_Rd_rgb(ScatterSettings **ss, float rr, float *rd)
 	float indexf, t, idxf;
 	int index;
 
-	if(rr > (RD_TABLE_RANGE_2*RD_TABLE_RANGE_2)) {
-		rd[0]= Rd_rsquare(ss[0], rr);
-		rd[1]= Rd_rsquare(ss[1], rr);
-		rd[2]= Rd_rsquare(ss[2], rr);
-	}
+	if(rr > (RD_TABLE_RANGE_2*RD_TABLE_RANGE_2));
 	else if(rr > RD_TABLE_RANGE) {
 		rr= sqrt(rr);
 		indexf= rr*(RD_TABLE_SIZE/RD_TABLE_RANGE_2);
@@ -246,9 +242,12 @@ static void approximate_Rd_rgb(ScatterSettings **ss, float rr, float *rd)
 		idxf= (float)index;
 		t= indexf - idxf;
 
-		rd[0]= (ss[0]->tableRd2[index]*(1-t) + ss[0]->tableRd2[index+1]*t);
-		rd[1]= (ss[1]->tableRd2[index]*(1-t) + ss[1]->tableRd2[index+1]*t);
-		rd[2]= (ss[2]->tableRd2[index]*(1-t) + ss[2]->tableRd2[index+1]*t);
+		if(index >= 0 && index < RD_TABLE_SIZE) {
+			rd[0]= (ss[0]->tableRd2[index]*(1-t) + ss[0]->tableRd2[index+1]*t);
+			rd[1]= (ss[1]->tableRd2[index]*(1-t) + ss[1]->tableRd2[index+1]*t);
+			rd[2]= (ss[2]->tableRd2[index]*(1-t) + ss[2]->tableRd2[index+1]*t);
+			return;
+		}
 	}
 	else {
 		indexf= rr*(RD_TABLE_SIZE/RD_TABLE_RANGE);
@@ -256,10 +255,18 @@ static void approximate_Rd_rgb(ScatterSettings **ss, float rr, float *rd)
 		idxf= (float)index;
 		t= indexf - idxf;
 
-		rd[0]= (ss[0]->tableRd[index]*(1-t) + ss[0]->tableRd[index+1]*t);
-		rd[1]= (ss[1]->tableRd[index]*(1-t) + ss[1]->tableRd[index+1]*t);
-		rd[2]= (ss[2]->tableRd[index]*(1-t) + ss[2]->tableRd[index+1]*t);
+		if(index >= 0 && index < RD_TABLE_SIZE) {
+			rd[0]= (ss[0]->tableRd[index]*(1-t) + ss[0]->tableRd[index+1]*t);
+			rd[1]= (ss[1]->tableRd[index]*(1-t) + ss[1]->tableRd[index+1]*t);
+			rd[2]= (ss[2]->tableRd[index]*(1-t) + ss[2]->tableRd[index+1]*t);
+			return;
+		}
 	}
+
+	/* fallback to slow Rd computation */
+	rd[0]= Rd_rsquare(ss[0], rr);
+	rd[1]= Rd_rsquare(ss[1], rr);
+	rd[2]= Rd_rsquare(ss[2], rr);
 }
 
 static void build_Rd_table(ScatterSettings *ss)

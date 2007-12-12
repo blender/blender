@@ -425,7 +425,8 @@ typedef struct ParticleSystemModifierData {
 	ModifierData modifier;
 	struct ParticleSystem *psys;
 	struct DerivedMesh *dm;
-	short flag, rt[3];
+	int totdmvert, totdmedge, totdmface;
+	short flag, rt;
 } ParticleSystemModifierData;
 
 typedef enum {

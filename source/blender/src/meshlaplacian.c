@@ -974,7 +974,7 @@ void rigid_deform_end(int cancel)
 
 #define MESHDEFORM_LEN_THRESHOLD 1e-6
 
-#define MESHDEFORM_MIN_INFLUENCE 0.005
+#define MESHDEFORM_MIN_INFLUENCE 0.0005
 
 static int MESHDEFORM_OFFSET[7][3] =
 		{{0,0,0}, {1,0,0}, {-1,0,0}, {0,1,0}, {0,-1,0}, {0,0,1}, {0,0,-1}};

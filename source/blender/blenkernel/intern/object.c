@@ -913,6 +913,7 @@ Object *add_only_object(int type, char *name)
 	ob->ipowin= ID_OB;	/* the ipowin shown */
 	ob->dupon= 1; ob->dupoff= 0;
 	ob->dupsta= 1; ob->dupend= 100;
+	ob->dupfacesca = 1.0;
 
 	/* Game engine defaults*/
 	ob->mass= ob->inertia= 1.0f;
@@ -1005,12 +1006,26 @@ SoftBody *copy_softbody(SoftBody *sb)
 ParticleSystem *copy_particlesystem(ParticleSystem *psys)
 {
 	ParticleSystem *psysn;
+	ParticleData *pa;
+	int a;
 
 	psysn= MEM_dupallocN(psys);
 	psysn->particles= MEM_dupallocN(psys->particles);
-
 	psysn->child= MEM_dupallocN(psys->child);
 
+	for(a=0, pa=psysn->particles; a<psysn->totpart; a++, pa++) {
+		if(pa->hair)
+			pa->hair= MEM_dupallocN(pa->hair);
+		if(pa->keys)
+			pa->keys= MEM_dupallocN(pa->keys);
+	}
+
+	if(psys->soft)
+		psysn->soft= copy_softbody(psys->soft);
+	
+	psysn->pathcache= NULL;
+	psysn->childcache= NULL;
+	psysn->edit= NULL;
 	psysn->effectors.first= psysn->effectors.last= 0;
 
 	id_us_plus((ID *)psysn->part);
@@ -1022,7 +1037,7 @@ static void copy_object_pose(Object *obn, Object *ob)
 {
 	bPoseChannel *chan;
 	
-	copy_pose(&obn->pose, ob->pose, 1);
+	copy_pose(&obn->pose, ob->pose, 1);	/* 1 = copy constraints */
 
 	for (chan = obn->pose->chanbase.first; chan; chan=chan->next){
 		bConstraint *con;
@@ -1033,6 +1048,14 @@ static void copy_object_pose(Object *obn, Object *ob)
 			bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
 			ListBase targets = {NULL, NULL};
 			bConstraintTarget *ct;
+			
+			if(con->ipo) {
+				IpoCurve *icu;
+				for(icu= con->ipo->curve.first; icu; icu= icu->next) {
+					if(icu->driver && icu->driver->ob==ob)
+						icu->driver->ob= obn;
+				}
+			}
 			
 			if (cti && cti->get_constraint_targets) {
 				cti->get_constraint_targets(con, &targets);
@@ -1286,6 +1309,7 @@ void object_make_proxy(Object *ob, Object *target, Object *gob)
 	ob->ipo= target->ipo;		/* libdata */
 	
 	/* skip constraints, constraintchannels, nla? */
+	
 	
 	ob->type= target->type;
 	ob->data= target->data;
@@ -2001,7 +2025,7 @@ BoundBox *object_get_boundbox(Object *ob)
 	BoundBox *bb= NULL;
 	
 	if(ob->type==OB_MESH) {
-		bb = mesh_get_bb(ob->data);
+		bb = mesh_get_bb(ob);
 	}
 	else if ELEM3(ob->type, OB_CURVE, OB_SURF, OB_FONT) {
 		bb= ( (Curve *)ob->data )->bb;
@@ -2063,7 +2087,7 @@ void minmax_object(Object *ob, float *min, float *max)
 		me= get_mesh(ob);
 		
 		if(me) {
-			bb = *mesh_get_bb(me);
+			bb = *mesh_get_bb(ob);
 			
 			for(a=0; a<8; a++) {
 				Mat4MulVecfl(ob->obmat, bb.vec[a]);

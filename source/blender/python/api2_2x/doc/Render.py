@@ -293,11 +293,11 @@ class RenderData:
   @type oversampling: boolean
   @ivar fps: Frames per second.
   Values are clamped to the range [1,120].
-  @ivar fps_base: Frames per second base: used to generate fractional frames
+  @ivar fpsBase: Frames per second base: used to generate fractional frames
   per second values.  For example, setting fps to 30 and fps_base to 1.001
   will approximate the NTSC frame rate of 29.97 fps.
   Values are clamped to the range [1,120].
-  @type fps_base: float
+  @type fpsBase: float
   @ivar timeCode: Get the current frame in HH:MM:SS:FF format.  Read-only.
   @type timeCode: string
   @ivar environmentMap: Environment map rendering enabled. 

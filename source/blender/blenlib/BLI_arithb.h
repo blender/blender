@@ -54,6 +54,12 @@ extern "C" {
 #define M_SQRT1_2	0.70710678118654752440
 #endif
 
+#ifdef WIN32
+	#ifndef FREE_WINDOWS
+		#define isnan(n) _isnan(n)
+	#endif
+#endif
+
 #define MAT4_UNITY {{ 1.0, 0.0, 0.0, 0.0},\
 					{ 0.0, 1.0, 0.0, 0.0},\
 					{ 0.0, 0.0, 1.0, 0.0},\

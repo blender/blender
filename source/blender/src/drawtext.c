@@ -725,25 +725,37 @@ static void draw_cursor(SpaceText *st) {
 
 static void calc_text_rcts(SpaceText *st)
 {
-	short barheight, barstart;
+	short barheight, barstart, blank_lines;
 	int lbarstart, lbarh, ltexth;
+	int pix_available, pix_top_margin, pix_bottom_margin;
 
 	lbarstart= st->top;
 	lbarh= 	st->viewlines;
-	ltexth= txt_get_span(st->text->lines.first, st->text->lines.last)+1;
-
-	barheight= (lbarh*(curarea->winy-4))/ltexth;
-	if (barheight<20) barheight=20;
+	pix_top_margin = 8;
+	pix_bottom_margin = 4;
+	pix_available = curarea->winy - pix_top_margin - pix_bottom_margin;
+	ltexth= txt_get_span(st->text->lines.first, st->text->lines.last);
+	blank_lines = st->viewlines / 2;
 	
-	barstart= (lbarstart*(curarea->winy-4))/ltexth + 8;
+	if(ltexth + blank_lines < lbarstart + st->viewlines)
+		blank_lines = lbarstart + st->viewlines - ltexth;
+	
+	ltexth += blank_lines;
+
+	barstart = (lbarstart*pix_available)/ltexth;
+	barheight = (lbarh*pix_available)/ltexth;
+	if (barheight<20){
+		barstart = ((pix_available + barheight - 20 )*lbarstart)/ltexth;
+		barheight=20;
+	}
 
 	st->txtbar.xmin= 5;
 	st->txtbar.xmax= 17;
-	st->txtbar.ymax= curarea->winy - barstart;
+	st->txtbar.ymax= curarea->winy - pix_top_margin - barstart;
 	st->txtbar.ymin= st->txtbar.ymax - barheight;
 
-	CLAMP(st->txtbar.ymin, 2, curarea->winy-2);
-	CLAMP(st->txtbar.ymax, 2, curarea->winy-2);
+	CLAMP(st->txtbar.ymin, pix_bottom_margin, curarea->winy - pix_top_margin);
+	CLAMP(st->txtbar.ymax, pix_bottom_margin, curarea->winy - pix_top_margin);
 
 	st->pix_per_line= (float) ltexth/curarea->winy;
 	if (st->pix_per_line<.1) st->pix_per_line=.1f;
@@ -752,18 +764,18 @@ static void calc_text_rcts(SpaceText *st)
 				txt_get_span(st->text->lines.first, st->text->sell));
 	lbarh= abs(txt_get_span(st->text->lines.first, st->text->curl)-txt_get_span(st->text->lines.first, st->text->sell));
 	
-	barheight= (lbarh*(curarea->winy-4))/ltexth;
+	barheight= (lbarh*pix_available)/ltexth;
 	if (barheight<2) barheight=2; 
 	
-	barstart= (lbarstart*(curarea->winy-4))/ltexth + 8;
+	barstart= (lbarstart*pix_available)/ltexth;
 	
 	st->txtscroll.xmin= 5;
 	st->txtscroll.xmax= 17;
 	st->txtscroll.ymax= curarea->winy-barstart;
 	st->txtscroll.ymin= st->txtscroll.ymax - barheight;
 
-	CLAMP(st->txtscroll.ymin, 2, curarea->winy-2);
-	CLAMP(st->txtscroll.ymax, 2, curarea->winy-2);
+	CLAMP(st->txtscroll.ymin, pix_bottom_margin, curarea->winy - pix_top_margin);
+	CLAMP(st->txtscroll.ymax, pix_bottom_margin, curarea->winy - pix_top_margin);
 }
 
 static void draw_textscroll(SpaceText *st)

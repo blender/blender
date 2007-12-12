@@ -85,6 +85,10 @@ typedef enum {
 	 * be placed after any non-deformative modifier.
 	 */
 	eModifierTypeFlag_RequiresOriginalData = (1<<5),
+
+	/* For modifiers that support pointcache, so we can check to see if it has files we need to deal with
+	*/
+	eModifierTypeFlag_UsesPointCache = (1<<6),
 } ModifierTypeFlag;
 
 typedef void (*ObjectWalkFunc)(void *userData, struct Object *ob, struct Object **obpoin);
