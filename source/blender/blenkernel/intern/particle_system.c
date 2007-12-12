@@ -4377,6 +4377,10 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 
 		psys->recalc &= ~PSYS_TYPE;
 		alloc = 1;
+
+		/* this is a bad level call, but currently type change
+		 * can happen after redraw, so force redraw from here */
+		allqueue(REDRAWBUTSOBJECT, 0);
 	}
 	else
 		oldtotpart = psys->totpart;
@@ -4428,7 +4432,7 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 	/* set particles to be not calculated */
 	disp= (float)get_current_display_percentage(psys)/50.0f-1.0f;
 
-	if(disp<1.0f) for(p=0, pa=psys->particles; p<totpart; p++,pa++){
+	for(p=0, pa=psys->particles; p<totpart; p++,pa++){
 		if(pa->r_rot[0] > disp)
 			pa->flag |= PARS_NO_DISP;
 		else

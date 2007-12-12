@@ -2290,7 +2290,7 @@ void psys_mat_hair_to_orco(Object *ob, DerivedMesh *dm, short from, ParticleData
 	psys_particle_on_dm(ob, dm, from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, vec, 0, 0, 0, orco, 0);
 
 	/* see psys_face_mat for why this function is called */
-	transform_mesh_orco_verts(ob->data, orco, 1, 1);
+	transform_mesh_orco_verts(ob->data, &orco, 1, 1);
 	VECCOPY(hairmat[3],orco);
 }
 

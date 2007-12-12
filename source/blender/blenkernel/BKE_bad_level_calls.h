@@ -91,8 +91,9 @@ extern struct ListBase editNurb;
 void mainqenter (unsigned short event, short val);
 void waitcursor(int);
 void allqueue(unsigned short event, short val);
-#define REDRAWVIEW3D	0x4010
-#define REDRAWBUTSEDIT	0x4019
+#define REDRAWVIEW3D		0x4010
+#define REDRAWBUTSOBJECT	0x4018
+#define REDRAWBUTSEDIT		0x4019
 struct Material;
 extern struct Material defmaterial;
 
