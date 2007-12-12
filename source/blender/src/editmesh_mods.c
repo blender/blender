@@ -82,6 +82,7 @@ editmesh_mods.c, UI level access, no geometry changes
 #include "BIF_interface.h"
 #include "BIF_meshtools.h"
 #include "BIF_mywindow.h"
+#include "BIF_previewrender.h"
 #include "BIF_resources.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
@@ -2125,6 +2126,12 @@ void mouse_mesh(void)
 		if (EM_texFaceCheck()) {
 			allqueue(REDRAWIMAGE, 0);
 			allqueue(REDRAWBUTSEDIT, 0); /* for the texture face panel */
+		}
+		if (efa && efa->mat_nr != G.obedit->actcol-1) {
+			G.obedit->actcol= efa->mat_nr+1;
+			allqueue(REDRAWBUTSEDIT, 0);
+			allqueue(REDRAWBUTSSHADING, 0);
+			BIF_preview_changed(ID_MA);
 		}
 	}
 

@@ -4271,7 +4271,7 @@ void psys_to_softbody(Object *ob, ParticleSystem *psys, int force_recalc)
 
 	if((psys->softflag&OB_SB_ENABLE)==0) return;
 
-	if((ob->recalc&OB_RECALC_TIME)==0)
+	if(ob->recalc && (ob->recalc&OB_RECALC_TIME)==0)
 		psys->softflag|=OB_SB_REDO;
 
 	/* let's replace the object's own softbody with the particle softbody */

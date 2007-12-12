@@ -410,7 +410,6 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 							return;
 						}
 					}
-					efa= efa->next;
 				}
 			}
 			else if ELEM(G.obedit->type, OB_CURVE, OB_SURF) {
@@ -484,7 +483,7 @@ void do_common_editbuts(unsigned short event) // old name, is a mix of object an
 		if(ma) {
 			ob->actcol= find_material_index(ob, ma);
 			if(ob->actcol==0) {
-				assign_material(ob, ma, ob->totcol);
+				assign_material(ob, ma, ob->totcol+1);
 				ob->actcol= ob->totcol;
 			}
 		}
@@ -2474,15 +2473,17 @@ static void editing_panel_shapes(Object *ob)
 	uiBlockBeginAlign(block);
 	if(ob->shapeflag & OB_SHAPE_LOCK) icon= ICON_PIN_HLT; else icon= ICON_PIN_DEHLT;
 	uiDefIconButBitS(block, TOG, OB_SHAPE_LOCK, B_LOCKKEY, icon, 10,150,25,20, &ob->shapeflag, 0, 0, 0, 0, "Always show the current Shape for this Object");
+	if(kb->flag & KEYBLOCK_MUTE) icon= ICON_MUTE_IPO_ON; else icon = ICON_MUTE_IPO_OFF;
+	uiDefIconButBitS(block, TOG, KEYBLOCK_MUTE, B_MODIFIER_RECALC, icon, 35,150,20,20, &kb->flag, 0, 0, 0, 0, "Mute the current Shape");
 	uiSetButLock(G.obedit==ob, "Unable to perform in EditMode");
-	uiDefIconBut(block, BUT, B_PREVKEY, ICON_TRIA_LEFT,		35,150,20,20, NULL, 0, 0, 0, 0, "Previous Shape Key");
+	uiDefIconBut(block, BUT, B_PREVKEY, ICON_TRIA_LEFT,		55,150,20,20, NULL, 0, 0, 0, 0, "Previous Shape Key");
 	strp= make_key_menu(key, 1);
-	uiDefButS(block, MENU, B_SETKEY, strp,					55,150,20,20, &ob->shapenr, 0, 0, 0, 0, "Browse existing choices");
+	uiDefButS(block, MENU, B_SETKEY, strp,					75,150,20,20, &ob->shapenr, 0, 0, 0, 0, "Browse existing choices");
 	MEM_freeN(strp);
 	
-	uiDefIconBut(block, BUT, B_NEXTKEY, ICON_TRIA_RIGHT,	75,150,20,20, NULL, 0, 0, 0, 0, "Next Shape Key");
+	uiDefIconBut(block, BUT, B_NEXTKEY, ICON_TRIA_RIGHT,	95,150,20,20, NULL, 0, 0, 0, 0, "Next Shape Key");
 	uiClearButLock();
-	uiDefBut(block, TEX, B_NAMEKEY, "",						95, 150, 190, 20, kb->name, 0.0, 31.0, 0, 0, "Current Shape Key name");
+	uiDefBut(block, TEX, B_NAMEKEY, "",						115, 150, 170, 20, kb->name, 0.0, 31.0, 0, 0, "Current Shape Key name");
 	uiDefIconBut(block, BUT, B_DELKEY, ICON_X,				285,150,25,20, 0, 0, 0, 0, 0, "Deletes current Shape Key");
 	uiBlockEndAlign(block);
 

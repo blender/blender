@@ -115,7 +115,6 @@ double tval()
 static CM_SOLVER_DEF solvers [] =
 {
 	{ "Implicit", CM_IMPLICIT, implicit_init, implicit_solver, implicit_free },
-	// { "Verlet", CM_VERLET, verlet_init, verlet_solver, verlet_free },
 };
 
 /* ********** cloth engine ******* */
@@ -477,8 +476,9 @@ static int cloth_read_cache(Object *ob, ClothModifierData *clmd, float framenr)
 		fclose(fp);
 	}
 	
-	implicit_set_positions(clmd);
-			
+	if(clmd->sim_parms->solver_type == 0)
+		implicit_set_positions(clmd);
+		
 	return ret;
 }
 
@@ -600,6 +600,7 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 				tstart();
 				
 				/* Call the solver. */
+				
 				if (solvers [clmd->sim_parms->solver_type].solver)
 					solvers [clmd->sim_parms->solver_type].solver (ob, framenr, clmd, effectors);
 				
@@ -624,6 +625,10 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 		{
 			if(cloth_read_cache(ob, clmd, framenr))
 				cloth_to_object (ob, result, clmd);
+		}
+		else
+		{
+			cloth_clear_cache(ob, clmd, 0);
 		}
 	}
 	

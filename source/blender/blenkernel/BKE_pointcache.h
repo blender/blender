@@ -44,5 +44,6 @@
 int	BKE_ptcache_id_filename(struct ID *id, char *filename, int cfra, int stack_index, short do_path, short do_ext);
 FILE *	BKE_ptcache_id_fopen(struct ID *id, char mode, int cfra, int stack_index);
 void	BKE_ptcache_id_clear(struct ID *id, char mode, int cfra, int stack_index);
+int		BKE_ptcache_id_exist(struct ID *id, int cfra, int stack_index);
 
 #endif

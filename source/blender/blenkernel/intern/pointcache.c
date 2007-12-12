@@ -183,3 +183,11 @@ void BKE_ptcache_id_clear(struct ID *id, char mode, int cfra, int stack_index)
 	return;
 }
 
+int BKE_ptcache_id_exist(struct ID *id, int cfra, int stack_index)
+{
+	char filename[(FILE_MAXDIR+FILE_MAXFILE)*2];
+	
+	BKE_ptcache_id_filename(id, filename, cfra, stack_index, 1, 1);
+
+	return BLI_exists(filename);
+}
