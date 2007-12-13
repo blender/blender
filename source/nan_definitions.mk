@@ -142,7 +142,9 @@ endif
 			endif
         else
           ifeq ($(OS), solaris)
-              export NAN_OPENEXR ?= /usr/local
+              # this only exists at the moment for i386-64 CPU Types at the moment
+              export NAN_OPENEXR ?= $(LCGDIR)/openexr
+
               export NAN_OPENEXR_LIBS ?= $(NAN_OPENEXR)/lib/libIlmImf.a $(NAN_OPENEXR)/lib/libHalf.a $(NAN_OPENEXR)/lib/libIex.a $(NAN_OPENEXR)/lib/libIlmThread.a -lrt
           else
             export NAN_OPENEXR ?= /usr/local
@@ -469,8 +471,8 @@ endif
 
     export ID = $(shell /usr/ucb/whoami)
     export HOST = $(shell hostname)
-    export NAN_PYTHON ?= /usr/local
-    export NAN_PYTHON_VERSION ?= 2.3
+    export NAN_PYTHON ?= $(LCGDIR)/python
+    export NAN_PYTHON_VERSION ?= 2.5
     export NAN_PYTHON_BINARY ?= $(NAN_PYTHON)/bin/python$(NAN_PYTHON_VERSION)
     export NAN_PYTHON_LIB ?= $(NAN_PYTHON)/lib/python$(NAN_PYTHON_VERSION)/config/libpython$(NAN_PYTHON_VERSION).a
     export NAN_OPENAL ?= $(LCGDIR)/openal 

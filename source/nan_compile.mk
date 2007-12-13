@@ -184,7 +184,8 @@ ifeq ($(OS),solaris)
     REL_CFLAGS	+= -O1
     REL_CCFLAGS += -O1
     NAN_DEPEND = true
-  ifeq ($(CPU),sparc)
+  #ifeq ($(CPU),sparc)
+   ifeq ($(CPU),$(findstring $(CPU), "sparc"))
     OPENGL_HEADERS = /usr/openwin/share/include
     CPPFLAGS += -DSUN_OGL_NO_VERTEX_MACROS
     JAVA_HEADERS = /usr/java/include
