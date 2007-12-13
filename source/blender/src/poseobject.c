@@ -1154,7 +1154,7 @@ void pose_relax()
 	int do_loc = 0;
 	int do_quat = 0;
 	int flag = 0;*/
-	int do_w, do_x, do_y, do_z;
+	int do_x, do_y, do_z;
 	
 	if (!ob) return;
 	

@@ -287,7 +287,7 @@ static PyObject *M_Geometry_ClosestPointOnLine( PyObject * self, PyObject * args
 	VectorObject *pt, *line_1, *line_2;
 	float pt_in[3], pt_out[3], l1[3], l2[3];
 	float lambda;
-	PyObject *ret, *val1, *val2;
+	PyObject *ret;
 	
 	if( !PyArg_ParseTuple ( args, "O!O!O!",
 	&vector_Type, &pt,

@@ -368,7 +368,7 @@ void BLI_setInterruptCallBack(int (*f)(void));
 char *BLI_strcasestr(const char *s, const char *find);
 int BLI_strcasecmp(const char *s1, const char *s2);
 int BLI_strncasecmp(const char *s1, const char *s2, int n);
-void BLI_timestr(double time, char *str);
+void BLI_timestr(double _time, char *str); /* time var is global */
 
 /** 
   * Trick to address 32 GB with an int (only for malloced pointers)

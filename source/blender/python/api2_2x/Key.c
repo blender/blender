@@ -41,6 +41,7 @@
 #include <BKE_main.h>
 #include <BKE_curve.h>
 #include <BKE_library.h>
+#include <BKE_utildefines.h>
 #include "BIF_space.h"
 
 #include "Ipocurve.h"
@@ -59,9 +60,6 @@
 #define KEY_TYPE_MESH    0
 #define KEY_TYPE_CURVE   1
 #define KEY_TYPE_LATTICE 2
-
-/* macro from blenkernel/intern/key.c:98 */
-#define GS(a)	(*((short *)(a)))
 
 static int Key_compare( BPy_Key * a, BPy_Key * b );
 static PyObject *Key_repr( BPy_Key * self );

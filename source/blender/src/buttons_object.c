@@ -3438,7 +3438,7 @@ static void sb_clear_cache(void *ob_v, void *actsoft_v)
 static void object_softbodies(Object *ob)
 {
 	SoftBody *sb=ob->soft;
-	ParticleSystem *psys;
+	ParticleSystem *psys=NULL;
 	uiBlock *block;
 	uiBut *but;
 	static int val;
@@ -3471,7 +3471,7 @@ static void object_softbodies(Object *ob)
 		MEM_freeN(menustr);
 	}
 
-	if(psys_cur){
+	if(psys_cur && psys){
 		if(*softflag & OB_SB_ENABLE)
 			val=1;
 		else

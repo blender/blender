@@ -1621,13 +1621,13 @@ void BLI_string_to_utf8(char *original, char *utf_8, char *code)
 }
 #endif // WITH_ICONV
 
-void BLI_timestr(double time, char *str)
+void BLI_timestr(double _time, char *str)
 {
 	/* format 00:00:00.00 (hr:min:sec) string has to be 12 long */
-	int  hr= ((int) time) / (60*60);
-	int min= ( ((int) time) / 60 ) % 60;
-	int sec= ((int) (time)) % 60;
-	int hun= ((int) (time * 100.0)) % 100;
+	int  hr= ( (int)  _time) / (60*60);
+	int min= (((int)  _time) / 60 ) % 60;
+	int sec= ( (int) (_time)) % 60;
+	int hun= ( (int) (_time   * 100.0)) % 100;
 	
 	if (hr) {
 		sprintf(str, "%.2d:%.2d:%.2d.%.2d",hr,min,sec,hun);

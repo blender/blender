@@ -536,7 +536,7 @@ static int Sequence_setImages( BPy_Sequence * self, PyObject *value )
 	Strip *strip;
 	StripElem *se;
 	int i;
-	PyObject *list, *item;
+	PyObject *list;
 	char *basepath, *name;
 	
 	if (self->seq->type != SEQ_IMAGE) {
