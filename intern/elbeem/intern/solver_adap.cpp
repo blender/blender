@@ -15,6 +15,10 @@
 #include <ieeefp.h>
 #endif
 
+// GCC 3.4.3 on solaris 10 dosnt have finite, win32 also just does this
+#ifndef finite
+# define finite(x) (x>=0.0)
+#endif
 
 /*****************************************************************************/
 //! coarse step functions
