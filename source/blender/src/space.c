@@ -1897,7 +1897,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						addsegment_nurb();
 					}
 					else if(G.obedit->type == OB_ARMATURE) {
-						//fill_bones_armature();
+						fill_bones_armature();
 					}
 				}
 				else if(G.qual==LR_CTRLKEY)
@@ -2161,12 +2161,12 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						pose_movetolayer();
 					}
 					else if (G.qual==LR_ALTKEY) {
-						if(G.obedit->type==OB_MESH) {
+						if (G.obedit->type == OB_MESH) {
 							mergemenu();
 							DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);
 						}
-						else if (G.obedit == OB_ARMATURE) {
-							//merge_armature();
+						else if (G.obedit->type == OB_ARMATURE) {
+							merge_armature();
 						}
 					}
 					else if ((G.qual==0) || (G.qual==LR_CTRLKEY)) {
