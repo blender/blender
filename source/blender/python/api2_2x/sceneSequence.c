@@ -564,6 +564,8 @@ static int Sequence_setImages( BPy_Sequence * self, PyObject *value )
 		name = PyString_AsString(PyList_GetItem(list, i));
 		if (name) {
 			strncpy(se->name, name, sizeof(se->name));
+		} else {
+			PyErr_Clear();
 		}
 	}
 	
