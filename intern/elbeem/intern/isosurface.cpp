@@ -13,19 +13,13 @@
 #include <algorithm>
 #include <stdio.h>
 
-#if !defined(linux) && (defined (__sparc) || defined (__sparc__))
+#if (defined (__sun__) || defined (__sun)) || (!defined(linux) && (defined (__sparc) || defined (__sparc__)))
 #include <ieeefp.h>
 #endif
-
 
 // just use default rounding for platforms where its not available
 #ifndef round
 #define round(x) (x)
-#endif
-
-// GCC 3.4.3 on solaris 10 dosnt have finite, win32 also just does this
-#ifndef finite
-# define finite(x) (x>=0.0)
 #endif
 
 /******************************************************************************
