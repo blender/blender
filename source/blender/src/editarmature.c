@@ -1930,24 +1930,69 @@ static void chains_find_tips (ListBase *list)
 	}
 }
 
+
+static void fill_add_joint (EditBone *ebo, short eb_tail, ListBase *points)
+{
+	EditBonePoint *ebp;
+	float vec[3];
+	short found= 0;
+	
+	if (eb_tail) {
+		VECCOPY(vec, ebo->tail);
+	}
+	else {
+		VECCOPY(vec, ebo->head);
+	}
+	
+	for (ebp= points->first; ebp; ebp= ebp->next) {
+		if (VecEqual(ebp->vec, vec)) {			
+			if (eb_tail) {
+				if ((ebp->head_owner) && (ebp->head_owner->parent == ebo)) {
+					/* so this bone's tail owner is this bone*/
+					ebp->tail_owner= ebo;
+					found= 1;
+					break;
+				}
+			}
+			else {
+				if ((ebp->tail_owner) && (ebp->tail_owner->parent == ebo)) {
+					/* so this bone's head owner is this bone */
+					ebp->head_owner= ebo;
+					found = 1;
+					break;
+				}
+			}
+		}
+	}
+	
+	/* allocate a new point if no existing point was related */
+	if (found == 0) {
+		ebp= MEM_callocN(sizeof(EditBonePoint), "EditBonePoint");
+		
+		if (eb_tail) {
+			VECCOPY(ebp->vec, ebo->tail);
+			ebp->tail_owner= ebo;
+		}
+		else {
+			VECCOPY(ebp->vec, ebo->head);
+			ebp->head_owner= ebo;
+		}
+		
+		BLI_addtail(points, ebp);
+	}
+}
+
 /* bone adding between selected joints */
 void fill_bones_armature(void)
 {
-	bArmature *arm= G.obedit->data;
+	EditBone *ebo, *newbone=NULL;
 	
 	ListBase chains = {NULL, NULL};
 	LinkData *chain;
 	
 	ListBase points = {NULL, NULL};
-	EditBonePoint *ebp;
 	int count;
 	
-	EditBone *ebo, *newbone=NULL;
-	
-	
-	// temp... warning about this not being coded (will be fixed)
-	error("This tool hasn't been coded!");
-	return;
 	
 	/* get chains */
 	chains_find_tips(&chains);
@@ -1956,17 +2001,15 @@ void fill_bones_armature(void)
 	/* traverse chains to find selected joints */
 	for (chain= chains.first; chain; chain= chain->next) {
 		for (ebo= chain->data; ebo; ebo= ebo->parent) {
-			if (ebo->flag & (BONE_SELECTED|BONE_ACTIVE)) {
-				
-			}
-			else if (ebo->flag & BONE_ROOTSEL) {
-			
-			}
-			else if (ebo->flag & BONE_TIPSEL) {
-			
-			}
+			if (ebo->flag & BONE_ROOTSEL)
+				fill_add_joint(ebo, 0, &points);
+			if (ebo->flag & BONE_TIPSEL) 
+				fill_add_joint(ebo, 1, &points);
 		}
 	}
+	
+	/* free chains - not needed anymore */
+	BLI_freelistN(&chains);
 	
 	/* the number of joints determines how we fill:
 	 *	1) between joint and cursor (joint=head, cursor=tail)
@@ -1976,6 +2019,7 @@ void fill_bones_armature(void)
 	count= BLI_countlist(&points);
 	
 	if (count == 1) {
+		EditBonePoint *ebp;
 		float curs[3];
 		
 		/* Get Points - selected joint */
@@ -1991,19 +2035,78 @@ void fill_bones_armature(void)
 		newbone= add_points_bone(ebp->vec, curs);
 	}
 	else if (count == 2) {
+		EditBonePoint *ebp, *ebp2;
+		float head[3], tail[3];
 		
+		/* check that the points don't belong to the same bone */
+		ebp= (EditBonePoint *)points.first;
+		ebp2= ebp->next;
+		
+		if ((ebp->head_owner==ebp2->tail_owner) && (ebp->head_owner!=NULL)) {
+			error("Same bone selected...");
+			BLI_freelistN(&points);
+			return;
+		}
+		if ((ebp->tail_owner==ebp2->head_owner) && (ebp->tail_owner!=NULL)) {
+			error("Same bone selected...");
+			BLI_freelistN(&points);
+			return;
+		}
+		
+		/* find which one should be the 'head' */
+		if ((ebp->head_owner && ebp2->head_owner) || (ebp->tail_owner && ebp2->tail_owner)) {
+			/* rule: whichever one is closer to 3d-cursor */
+			float curs[3];
+			float vecA[3], vecB[3];
+			float distA, distB;
+			
+			/* get cursor location */
+			VECCOPY (curs, give_cursor());	
+			
+			Mat4Invert(G.obedit->imat, G.obedit->obmat);
+			Mat4MulVecfl(G.obedit->imat, curs);
+			
+			/* get distances */
+			VecSubf(vecA, ebp->vec, curs);
+			VecSubf(vecB, ebp2->vec, curs);
+			distA= VecLength(vecA);
+			distB= VecLength(vecB);
+			
+			/* compare distances - closer one therefore acts as direction for bone to go */
+			if (distA < distB) {
+				VECCOPY(head, ebp2->vec);
+				VECCOPY(tail, ebp->vec);
+			}
+			else {
+				VECCOPY(head, ebp->vec);
+				VECCOPY(tail, ebp2->vec);
+			}
+		}
+		else if (ebp->head_owner) {
+			VECCOPY(head, ebp->vec);
+			VECCOPY(tail, ebp2->vec);
+		}
+		else if (ebp2->head_owner) {
+			VECCOPY(head, ebp2->vec);
+			VECCOPY(tail, ebp->vec);
+		}
+		
+		/* add new bone */
+		newbone= add_points_bone(head, tail);
 	}
 	else {
-		error("Too many points selected"); // FIXME..
+		// FIXME.. figure out a method for multiple bones
+		error("Too many points selected"); 
+		return;
 	}
 	
-	/* free chains */
-	BLI_freelistN(&chains);
+	/* free points */
+	BLI_freelistN(&points);
 	
 	/* undo + updates */
 	allqueue(REDRAWVIEW3D, 0);
 	allqueue(REDRAWBUTSEDIT, 0);
-	BIF_undo_push("Merge Bones");
+	BIF_undo_push("Fill Bones");
 }
 
 /* this function merges between two bones, removes them and those in-between, 
