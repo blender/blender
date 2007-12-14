@@ -191,7 +191,7 @@ ifeq ($(OS),solaris)
     JAVA_HEADERS = /usr/java/include
     JAVA_SYSTEM_HEADERS = /usr/java/include/solaris
   else
-    OPENGL_HEADERS = /usr/X11/include
+    OPENGL_HEADERS = $(LCGDIR)/mesa/include
   endif
     AR = ar
     ARFLAGS = ruv
