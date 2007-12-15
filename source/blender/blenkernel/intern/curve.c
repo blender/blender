@@ -1543,7 +1543,7 @@ void makeBevelList(Object *ob)
 						bevp->z= prevbezt->vec[1][2];
 						bevp->alfa= prevbezt->alfa;
 						bevp->f1= SELECT;
-						bevp->f2= SELECT;
+						bevp->f2= 0;
 						bevp++;
 						bl->nr++;
 						bl->flag= 1;
