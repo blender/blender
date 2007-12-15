@@ -279,6 +279,7 @@ extern Object workob;
 #define OB_DUPLIFACES		512
 #define OB_DUPLIFACES_SCALE	1024
 #define OB_DUPLIPARTS		2048
+#define OB_RENDER_DUPLI		4096
 
 /* (short) ipoflag */
 #define OB_DRAWKEY			1

@@ -87,6 +87,7 @@ static float maxenergy;
 static VlakRen *findshoot_rr(Render *re)
 {
 	RadFace *rf;
+	ObjectRen *obr;
 	VlakRen *vlr=NULL, *shoot;
 	float energy;
 	int a;
@@ -94,19 +95,21 @@ static VlakRen *findshoot_rr(Render *re)
 	shoot= NULL;
 	maxenergy= 0.0;
 	
-	for(a=0; a<re->totvlak; a++) {
-		if((a & 255)==0) vlr= re->vlaknodes[a>>8].vlak; else vlr++;
-		if(vlr->radface) {
-			rf= vlr->radface;
-			rf->flag &= ~RAD_SHOOT;
-			
-			energy= rf->unshot[0]*rf->area;
-			energy+= rf->unshot[1]*rf->area;
-			energy+= rf->unshot[2]*rf->area;
+	for(obr=re->objecttable.first; obr; obr=obr->next) {
+		for(a=0; a<obr->totvlak; a++) {
+			if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak; else vlr++;
+			if(vlr->radface) {
+				rf= vlr->radface;
+				rf->flag &= ~RAD_SHOOT;
+				
+				energy= rf->unshot[0]*rf->area;
+				energy+= rf->unshot[1]*rf->area;
+				energy+= rf->unshot[2]*rf->area;
 
-			if(energy>maxenergy) {
-				shoot= vlr;
-				maxenergy= energy;
+				if(energy>maxenergy) {
+					shoot= vlr;
+					maxenergy= energy;
+				}
 			}
 		}
 	}
@@ -122,22 +125,22 @@ static VlakRen *findshoot_rr(Render *re)
 
 static void backface_test_rr(Render *re, VlakRen *shoot)
 {
+	ObjectRen *obr;
 	VlakRen *vlr=NULL;
 	RadFace *rf;
 	float tvec[3];
 	int a;
 	
 	/* backface testing */
-	for(a=0; a<re->totvlak; a++) {
-		if((a & 255)==0) vlr= re->vlaknodes[a>>8].vlak; else vlr++;
-		if(vlr->radface) {
-			if(vlr!=shoot) {
+	for(obr=re->objecttable.first; obr; obr=obr->next) {
+		for(a=0; a<obr->totvlak; a++) {
+			if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak; else vlr++;
+			if(vlr->radface && vlr!=shoot) {
 				rf= vlr->radface;
 				VecSubf(tvec, shoot->radface->cent, rf->cent);
 				
-				if( tvec[0]*rf->norm[0]+ tvec[1]*rf->norm[1]+ tvec[2]*rf->norm[2] < 0.0) {		
+				if(tvec[0]*rf->norm[0]+ tvec[1]*rf->norm[1]+ tvec[2]*rf->norm[2] < 0.0)
 					rf->flag |= RAD_BACKFACE;
-				}
 			}
 		}
 	}
@@ -145,17 +148,20 @@ static void backface_test_rr(Render *re, VlakRen *shoot)
 
 static void clear_backface_test_rr(Render *re)
 {
+	ObjectRen *obr;
 	VlakRen *vlr=NULL;
 	RadFace *rf;
 	int a;
 	
 	/* backface flag clear */
-	for(a=0; a<re->totvlak; a++) {
-		if((a & 255)==0) vlr= re->vlaknodes[a>>8].vlak; else vlr++;
-		
-		if(vlr->radface) {
-			rf= vlr->radface;
-			rf->flag &= ~RAD_BACKFACE;
+	for(obr=re->objecttable.first; obr; obr=obr->next) {
+		for(a=0; a<obr->totvlak; a++) {
+			if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak; else vlr++;
+			
+			if(vlr->radface) {
+				rf= vlr->radface;
+				rf->flag &= ~RAD_BACKFACE;
+			}
 		}
 	}
 }
@@ -165,6 +171,7 @@ extern RadView hemitop, hemiside; // radfactors.c
 /* hemi-zbuffering, delivers formfactors array */
 static void makeformfactors_rr(Render *re, VlakRen *shoot)
 {
+	ObjectRen *obr;
 	VlakRen *vlr=NULL;
 	RadFace *rf;
 	float len, vec[3], up[3], side[3], tar[5][3], *fp;
@@ -207,16 +214,18 @@ static void makeformfactors_rr(Render *re, VlakRen *shoot)
 	/* convert factors to real radiosity */
 	fp= RG.formfactors;
 
-	for(a=0; a<re->totvlak; a++) {
-		if((a & 255)==0) vlr= re->vlaknodes[a>>8].vlak; else vlr++;
-		
-		if(vlr->radface) {
-			rf= vlr->radface;
-			if(*fp!=0.0 && rf->area!=0.0) {
-				*fp *= shoot->radface->area/rf->area;
-				if(*fp>1.0) *fp= 1.0001;
+	for(obr=re->objecttable.first; obr; obr=obr->next) {
+		for(a=0; a<obr->totvlak; a++) {
+			if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak; else vlr++;
+			
+			if(vlr->radface) {
+				rf= vlr->radface;
+				if(*fp!=0.0 && rf->area!=0.0) {
+					*fp *= shoot->radface->area/rf->area;
+					if(*fp>1.0) *fp= 1.0001;
+				}
+				fp++;
 			}
-			fp++;
 		}
 	}
 }
@@ -224,6 +233,7 @@ static void makeformfactors_rr(Render *re, VlakRen *shoot)
 /* based at RG.formfactors array, distribute shoot energy over other faces */
 static void applyformfactors_rr(Render *re, VlakRen *shoot)
 {
+	ObjectRen *obr;
 	VlakRen *vlr=NULL;
 	RadFace *rf;
 	float *fp, *ref, unr, ung, unb, r, g, b;
@@ -235,30 +245,32 @@ static void applyformfactors_rr(Render *re, VlakRen *shoot)
 
 	fp= RG.formfactors;
 	
-	for(a=0; a<re->totvlak; a++) {
-		if((a & 255)==0) vlr= re->vlaknodes[a>>8].vlak; else vlr++;
-		
-		if(vlr->radface) {
-			rf= vlr->radface;
-			if(*fp!= 0.0) {
-				
-				ref= &(vlr->mat->r);
-				
-				r= (*fp)*unr*ref[0];
-				g= (*fp)*ung*ref[1];
-				b= (*fp)*unb*ref[2];
-				
-				// if(rf->flag & RAD_BACKFACE) {
-				
-				rf->totrad[0]+= r;
-				rf->totrad[1]+= g;
-				rf->totrad[2]+= b;
-				
-				rf->unshot[0]+= r;
-				rf->unshot[1]+= g;
-				rf->unshot[2]+= b;
+	for(obr=re->objecttable.first; obr; obr=obr->next) {
+		for(a=0; a<obr->totvlak; a++) {
+			if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak; else vlr++;
+			
+			if(vlr->radface) {
+				rf= vlr->radface;
+				if(*fp!= 0.0) {
+					
+					ref= &(vlr->mat->r);
+					
+					r= (*fp)*unr*ref[0];
+					g= (*fp)*ung*ref[1];
+					b= (*fp)*unb*ref[2];
+					
+					// if(rf->flag & RAD_BACKFACE) {
+					
+					rf->totrad[0]+= r;
+					rf->totrad[1]+= g;
+					rf->totrad[2]+= b;
+					
+					rf->unshot[0]+= r;
+					rf->unshot[1]+= g;
+					rf->unshot[2]+= b;
+				}
+				fp++;
 			}
-			fp++;
 		}
 	}
 	/* shoot energy has been shot */
@@ -313,6 +325,7 @@ static RadFace *radfaces=NULL;
 
 static void initradfaces(Render *re)	
 {
+	ObjectRen *obr;
 	VlakRen *vlr= NULL;
 	RadFace *rf;
 	int a, b;
@@ -326,58 +339,62 @@ static void initradfaces(Render *re)
 	RG.max[0]= RG.max[1]= RG.max[2]= -1.0e20;
 	
 	/* count first for fast malloc */
-	for(a=0; a<re->totvlak; a++) {
-		if((a & 255)==0) vlr= re->vlaknodes[a>>8].vlak; else vlr++;
-		
-		if(vlr->mat->mode & MA_RADIO) {
-			if(vlr->mat->emit > 0.0) {
-				RG.totpatch++;
+	for(obr=re->objecttable.first; obr; obr=obr->next) {
+		for(a=0; a<obr->totvlak; a++) {
+			if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak; else vlr++;
+			
+			if(vlr->mat->mode & MA_RADIO) {
+				if(vlr->mat->emit > 0.0) {
+					RG.totpatch++;
+				}
+				RG.totelem++;
 			}
-			RG.totelem++;
 		}
 	}
-	
+		
 printf(" Rad elems: %d emittors %d\n", RG.totelem, RG.totpatch);	
 	if(RG.totelem==0 || RG.totpatch==0) return;
 
 	/* make/init radfaces */
 	rf=radfaces= MEM_callocN(RG.totelem*sizeof(RadFace), "radfaces");
-	for(a=0; a<re->totvlak; a++) {
-		if((a & 255)==0) vlr= re->vlaknodes[a>>8].vlak; else vlr++;
-		
-		if(vlr->mat->mode & MA_RADIO) {
+	for(obr=re->objecttable.first; obr; obr=obr->next) {
+		for(a=0; a<obr->totvlak; a++) {
+			if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak; else vlr++;
 			
-			/* during render, vlr->n gets flipped/corrected, we cannot have that */
-			if(vlr->v4) CalcNormFloat4(vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->v4->co, rf->norm);
-			else CalcNormFloat(vlr->v1->co, vlr->v2->co, vlr->v3->co, rf->norm);
-			
-			rf->totrad[0]= vlr->mat->emit*vlr->mat->r;
-			rf->totrad[1]= vlr->mat->emit*vlr->mat->g;
-			rf->totrad[2]= vlr->mat->emit*vlr->mat->b;
-			VECCOPY(rf->unshot, rf->totrad);
-			
-			if(vlr->v4) {
-				rf->area= AreaQ3Dfl(vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->v4->co);
-				CalcCent4f(rf->cent, vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->v4->co);
-			}
-			else {
-				rf->area= AreaT3Dfl(vlr->v1->co, vlr->v2->co, vlr->v3->co);
-				CalcCent3f(rf->cent, vlr->v1->co, vlr->v2->co, vlr->v3->co);
-			}
-			
-			RG.totenergy+= rf->unshot[0]*rf->area;
-			RG.totenergy+= rf->unshot[1]*rf->area;
-			RG.totenergy+= rf->unshot[2]*rf->area;
-			
-			for(b=0; b<3; b++) {
-				RG.min[b]= MIN2(RG.min[b], rf->cent[b]);
-				RG.max[b]= MAX2(RG.max[b], rf->cent[b]);
-			}
+			if(vlr->mat->mode & MA_RADIO) {
+				
+				/* during render, vlr->n gets flipped/corrected, we cannot have that */
+				if(vlr->v4) CalcNormFloat4(vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->v4->co, rf->norm);
+				else CalcNormFloat(vlr->v1->co, vlr->v2->co, vlr->v3->co, rf->norm);
+				
+				rf->totrad[0]= vlr->mat->emit*vlr->mat->r;
+				rf->totrad[1]= vlr->mat->emit*vlr->mat->g;
+				rf->totrad[2]= vlr->mat->emit*vlr->mat->b;
+				VECCOPY(rf->unshot, rf->totrad);
+				
+				if(vlr->v4) {
+					rf->area= AreaQ3Dfl(vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->v4->co);
+					CalcCent4f(rf->cent, vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->v4->co);
+				}
+				else {
+					rf->area= AreaT3Dfl(vlr->v1->co, vlr->v2->co, vlr->v3->co);
+					CalcCent3f(rf->cent, vlr->v1->co, vlr->v2->co, vlr->v3->co);
+				}
+				
+				RG.totenergy+= rf->unshot[0]*rf->area;
+				RG.totenergy+= rf->unshot[1]*rf->area;
+				RG.totenergy+= rf->unshot[2]*rf->area;
+				
+				for(b=0; b<3; b++) {
+					RG.min[b]= MIN2(RG.min[b], rf->cent[b]);
+					RG.max[b]= MAX2(RG.max[b], rf->cent[b]);
+				}
 
-// uncommented; this isnt satisfying, but i leave it in the code for now (ton)			
-//			if(vlr->mat->translucency!=0.0) rf->flag |= RAD_TWOSIDED;
-			
-			vlr->radface= rf++;
+	// uncommented; this isnt satisfying, but i leave it in the code for now (ton)			
+	//			if(vlr->mat->translucency!=0.0) rf->flag |= RAD_TWOSIDED;
+				
+				vlr->radface= rf++;
+			}
 		}
 	}
 	RG.size[0]= (RG.max[0]- RG.min[0]);
@@ -408,6 +425,7 @@ static void vecaddfac(float *vec, float *v1, float *v2, float fac)
 
 static void make_vertex_rad_values(Render *re)
 {
+	ObjectRen *obr;
 	VertRen *v1=NULL;
 	VlakRen *vlr=NULL;
 	RadFace *rf;
@@ -418,54 +436,55 @@ static void make_vertex_rad_values(Render *re)
 	RG.radfactor= RG.radfac*pow(64*64, RG.igamma)/128.0; /* compatible with radio-tool */
 
 	/* accumulate vertexcolors */
-	for(a=0; a<re->totvlak; a++) {
-		if((a & 255)==0) vlr= re->vlaknodes[a>>8].vlak; else vlr++;
-		
-		if(vlr->radface) {
-			rf= vlr->radface;
+	for(obr=re->objecttable.first; obr; obr=obr->next) {
+		for(a=0; a<obr->totvlak; a++) {
+			if((a & 255)==0) vlr= obr->vlaknodes[a>>8].vlak; else vlr++;
 			
-			/* apply correction */
-			rf->totrad[0]= RG.radfactor*pow( rf->totrad[0], RG.igamma);
-			rf->totrad[1]= RG.radfactor*pow( rf->totrad[1], RG.igamma);
-			rf->totrad[2]= RG.radfactor*pow( rf->totrad[2], RG.igamma);
-			
-			/* correct rf->rad values for color */
-			if(vlr->mat->r > 0.0) rf->totrad[0]/= vlr->mat->r;
-			if(vlr->mat->g > 0.0) rf->totrad[1]/= vlr->mat->g;
-			if(vlr->mat->b > 0.0) rf->totrad[2]/= vlr->mat->b;
-			
-			col= RE_vertren_get_rad(re, vlr->v1, 1);
-			vecaddfac(col, col, rf->totrad, rf->area); 
-			col[3]+= rf->area;
-			
-			col= RE_vertren_get_rad(re, vlr->v2, 1);
-			vecaddfac(col, col, rf->totrad, rf->area); 
-			col[3]+= rf->area;
-			
-			col= RE_vertren_get_rad(re, vlr->v3, 1);
-			vecaddfac(col, col, rf->totrad, rf->area); 
-			col[3]+= rf->area;
-
-			if(vlr->v4) {
-				col= RE_vertren_get_rad(re, vlr->v4, 1);
+			if(vlr->radface) {
+				rf= vlr->radface;
+				
+				/* apply correction */
+				rf->totrad[0]= RG.radfactor*pow( rf->totrad[0], RG.igamma);
+				rf->totrad[1]= RG.radfactor*pow( rf->totrad[1], RG.igamma);
+				rf->totrad[2]= RG.radfactor*pow( rf->totrad[2], RG.igamma);
+				
+				/* correct rf->rad values for color */
+				if(vlr->mat->r > 0.0) rf->totrad[0]/= vlr->mat->r;
+				if(vlr->mat->g > 0.0) rf->totrad[1]/= vlr->mat->g;
+				if(vlr->mat->b > 0.0) rf->totrad[2]/= vlr->mat->b;
+				
+				col= RE_vertren_get_rad(obr, vlr->v1, 1);
 				vecaddfac(col, col, rf->totrad, rf->area); 
 				col[3]+= rf->area;
+				
+				col= RE_vertren_get_rad(obr, vlr->v2, 1);
+				vecaddfac(col, col, rf->totrad, rf->area); 
+				col[3]+= rf->area;
+				
+				col= RE_vertren_get_rad(obr, vlr->v3, 1);
+				vecaddfac(col, col, rf->totrad, rf->area); 
+				col[3]+= rf->area;
+
+				if(vlr->v4) {
+					col= RE_vertren_get_rad(obr, vlr->v4, 1);
+					vecaddfac(col, col, rf->totrad, rf->area); 
+					col[3]+= rf->area;
+				}
+			}
+		}
+	
+		/* make vertex colors */
+		for(a=0; a<obr->totvert; a++) {
+			if((a & 255)==0) v1= RE_findOrAddVert(obr, a); else v1++;
+			
+			col= RE_vertren_get_rad(obr, v1, 0);
+			if(col && col[3]>0.0) {
+				col[0]/= col[3];
+				col[1]/= col[3];
+				col[2]/= col[3];
 			}
 		}
 	}
-	
-	/* make vertex colors */
-	for(a=0; a<re->totvert; a++) {
-		if((a & 255)==0) v1= RE_findOrAddVert(re, a); else v1++;
-		
-		col= RE_vertren_get_rad(re, v1, 0);
-		if(col && col[3]>0.0) {
-			col[0]/= col[3];
-			col[1]/= col[3];
-			col[2]/= col[3];
-		}
-	}
-
 }
 
 /* main call, extern */

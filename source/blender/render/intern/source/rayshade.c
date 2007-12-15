@@ -88,6 +88,13 @@ static int vlr_check_intersect(Isect *is, RayFace *face)
 		return (is->lay & vlr->lay);
 }
 
+static float *vlr_get_transform(void *userdata, int i)
+{
+	ObjectInstanceRen *obi= RAY_OBJECT_GET((Render*)userdata, i);
+
+	return (obi->flag & R_TRANSFORMED)? (float*)obi->mat: NULL;
+}
+
 void freeraytree(Render *re)
 {
 	if(re->raytree) {
@@ -98,25 +105,46 @@ void freeraytree(Render *re)
 
 void makeraytree(Render *re)
 {
+	ObjectInstanceRen *obi;
+	ObjectRen *obr;
 	VlakRen *vlr= NULL;
-	float min[3], max[3];
+	float min[3], max[3], co1[3], co2[3], co3[3], co4[3];
 	double lasttime= PIL_check_seconds_timer();
 	int v, totface = 0;
 
 	INIT_MINMAX(min, max);
 
 	/* first min max raytree space */
-	for(v=0;v<re->totvlak;v++) {
-		if((v & 255)==0) vlr= re->vlaknodes[v>>8].vlak;
-		else vlr++;
-		if(vlr->mat->mode & MA_TRACEBLE) {	
-			if((vlr->mat->mode & MA_WIRE)==0) {	
-				if(!re->excludeob || vlr->ob != re->excludeob) {
-					DO_MINMAX(vlr->v1->co, min, max);
-					DO_MINMAX(vlr->v2->co, min, max);
-					DO_MINMAX(vlr->v3->co, min, max);
+	for(obi=re->instancetable.first; obi; obi=obi->next) {
+		obr= obi->obr;
+
+		if(re->excludeob && obr->ob == re->excludeob)
+			continue;
+
+		for(v=0;v<obr->totvlak;v++) {
+			if((v & 255)==0) vlr= obr->vlaknodes[v>>8].vlak;
+			else vlr++;
+			if(vlr->mat->mode & MA_TRACEBLE) {	
+				if((vlr->mat->mode & MA_WIRE)==0) {	
+					VECCOPY(co1, vlr->v1->co);
+					VECCOPY(co2, vlr->v2->co);
+					VECCOPY(co3, vlr->v3->co);
+
+					if(obi->flag & R_TRANSFORMED) {
+						Mat4MulVecfl(obi->mat, co1);
+						Mat4MulVecfl(obi->mat, co2);
+						Mat4MulVecfl(obi->mat, co3);
+					}
+
+					DO_MINMAX(co1, min, max);
+					DO_MINMAX(co2, min, max);
+					DO_MINMAX(co3, min, max);
+
 					if(vlr->v4) {
-						DO_MINMAX(vlr->v4->co, min, max);
+						VECCOPY(co4, vlr->v4->co);
+						if(obi->flag & R_TRANSFORMED)
+							Mat4MulVecfl(obi->mat, co4);
+						DO_MINMAX(co4, min, max);
 					}
 
 					totface++;
@@ -125,35 +153,42 @@ void makeraytree(Render *re)
 		}
 	}
 
-	re->raytree= RE_ray_tree_create(re->r.ocres, totface, min, max, vlr_face_coords, vlr_check_intersect);
+	re->raytree= RE_ray_tree_create(re->r.ocres, totface, min, max,
+		vlr_face_coords, vlr_check_intersect, vlr_get_transform, re);
 
 	if(min[0] > max[0]) { /* empty raytree */
 		RE_ray_tree_done(re->raytree);
 		return;	
 	}
 
-	for(v=0; v<re->totvlak; v++) {
-		if((v & 255)==0) {
-			double time= PIL_check_seconds_timer();
+	for(obi=re->instancetable.first; obi; obi=obi->next) {
+		obr= obi->obr;
 
-			vlr= re->vlaknodes[v>>8].vlak;
-			if(re->test_break())
-				break;
-			if(time-lasttime>1.0f) {
-				char str[32];
-				sprintf(str, "Filling Octree: %d", v);
-				re->i.infostr= str;
-				re->stats_draw(&re->i);
-				re->i.infostr= NULL;
-				lasttime= time;
+		if(re->excludeob && obr->ob == re->excludeob)
+			continue;
+
+		for(v=0; v<obr->totvlak; v++) {
+			if((v & 255)==0) {
+				double time= PIL_check_seconds_timer();
+
+				vlr= obr->vlaknodes[v>>8].vlak;
+				if(re->test_break())
+					break;
+				if(time-lasttime>1.0f) {
+					char str[32];
+					sprintf(str, "Filling Octree: %d", v);
+					re->i.infostr= str;
+					re->stats_draw(&re->i);
+					re->i.infostr= NULL;
+					lasttime= time;
+				}
 			}
+			else vlr++;
+			
+			if(vlr->mat->mode & MA_TRACEBLE)
+				if((vlr->mat->mode & MA_WIRE)==0)
+					RE_ray_tree_add_face(re->raytree, RAY_OBJECT_SET(re, obi), vlr);
 		}
-		else vlr++;
-		
-		if(vlr->mat->mode & MA_TRACEBLE)
-			if((vlr->mat->mode & MA_WIRE)==0)
-				if(!re->excludeob || vlr->ob != re->excludeob)
-					RE_ray_tree_add_face(re->raytree, (RayFace*)vlr);
 	}
 
 	RE_ray_tree_done(re->raytree);
@@ -165,7 +200,8 @@ void makeraytree(Render *re)
 static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 {
 	VlakRen *vlr= (VlakRen*)is->face;
-	int osatex= 0, norflip;
+	ObjectInstanceRen *obi= RAY_OBJECT_GET(&R, is->ob);
+	int osatex= 0;
 	
 	/* set up view vector */
 	VECCOPY(shi->view, is->vec);
@@ -177,6 +213,8 @@ static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 	
 	Normalize(shi->view);
 
+	shi->obi= obi;
+	shi->obr= obi->obr;
 	shi->vlr= vlr;
 	shi->mat= vlr->mat;
 	memcpy(&shi->r, &shi->mat->r, 23*sizeof(float));	// note, keep this synced with render_types.h
@@ -194,35 +232,26 @@ static void shade_ray(Isect *is, ShadeInput *shi, ShadeResult *shr)
 		shi->dyno[0]= shi->dyno[1]= shi->dyno[2]= 0.0f;
 	}
 
-	/* face normal, check for flip, need to set puno here */
-	norflip= (vlr->n[0]*shi->view[0]+vlr->n[1]*shi->view[1]+vlr->n[2]*shi->view[2]) < 0.0f;
-	
-	if(norflip)
-		shi->puno= vlr->puno ^ 15;// only flip lower 4 bits
-	else
-		shi->puno= vlr->puno;
-	
 	if(vlr->v4) {
 		if(is->isect==2) 
-			shade_input_set_triangle_i(shi, vlr, 2, 1, 3);
+			shade_input_set_triangle_i(shi, obi, vlr, 2, 1, 3);
 		else
-			shade_input_set_triangle_i(shi, vlr, 0, 1, 3);
+			shade_input_set_triangle_i(shi, obi, vlr, 0, 1, 3);
 	}
 	else {
-		shade_input_set_triangle_i(shi, vlr, 0, 1, 2);
+		shade_input_set_triangle_i(shi, obi, vlr, 0, 1, 2);
 	}
-	
-	/* shade_input_set_triangle_i() sets facenor, now we flip */
-	if(norflip) {
-		shi->facenor[0]= -vlr->n[0];
-		shi->facenor[1]= -vlr->n[1];
-		shi->facenor[2]= -vlr->n[2];
-	}	
-	
+
 	shi->u= is->u;
 	shi->v= is->v;
 	shi->dx_u= shi->dx_v= shi->dy_u= shi->dy_v=  0.0f;
+
 	shade_input_set_normals(shi);
+
+	/* point normals to viewing direction */
+	if(INPR(shi->facenor, shi->view) < 0.0f)
+		shade_input_flip_normals(shi);
+
 	shade_input_set_shade_texco(shi);
 	
 	if(is->mode==RE_RAY_SHADOW_TRA) 
@@ -371,7 +400,7 @@ static void ray_fadeout(Isect *is, ShadeInput *shi, float *col, float *blendcol,
 }
 
 /* the main recursive tracer itself */
-static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, float *start, float *vec, float *col, VlakRen *vlr, int traflag)
+static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, float *start, float *vec, float *col, ObjectInstanceRen *obi, VlakRen *vlr, int traflag)
 {
 	ShadeInput shi;
 	ShadeResult shr;
@@ -392,6 +421,7 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, flo
 	}
 	isec.mode= RE_RAY_MIRROR;
 	isec.faceorig= (RayFace*)vlr;
+	isec.oborig= RAY_OBJECT_SET(&R, obi);
 
 	if(RE_ray_tree_intersect(R.raytree, &isec)) {
 		float d= 1.0f;
@@ -441,10 +471,10 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, flo
 							reflection(refract, shi.vn, shi.view, shi.vn);
 					}
 					traflag |= RAY_TRA;
-					traceray(origshi, origshr, depth-1, shi.co, refract, tracol, shi.vlr, traflag ^ RAY_TRAFLIP);
+					traceray(origshi, origshr, depth-1, shi.co, refract, tracol, shi.obi, shi.vlr, traflag ^ RAY_TRAFLIP);
 				}
 				else
-					traceray(origshi, origshr, depth-1, shi.co, shi.view, tracol, shi.vlr, 0);
+					traceray(origshi, origshr, depth-1, shi.co, shi.view, tracol, shi.obi, shi.vlr, 0);
 				
 				f= shr.alpha; f1= 1.0f-f;
 				nf= d * shi.mat->filter;
@@ -474,7 +504,7 @@ static void traceray(ShadeInput *origshi, ShadeResult *origshr, short depth, flo
 				float mircol[4];
 				
 				reflection(ref, shi.vn, shi.view, NULL);			
-				traceray(origshi, origshr, depth-1, shi.co, ref, mircol, shi.vlr, 0);
+				traceray(origshi, origshr, depth-1, shi.co, ref, mircol, shi.obi, shi.vlr, 0);
 			
 				f1= 1.0f-f;
 
@@ -951,7 +981,7 @@ static void trace_refract(float *col, ShadeInput *shi, ShadeResult *shr)
 			VECCOPY(v_refract_new, v_refract);
 		}
 	
-		traceray(shi, shr, shi->mat->ray_depth_tra, shi->co, v_refract_new, sampcol, shi->vlr, RAY_TRA|RAY_TRAFLIP);
+		traceray(shi, shr, shi->mat->ray_depth_tra, shi->co, v_refract_new, sampcol, shi->obi, shi->vlr, RAY_TRA|RAY_TRAFLIP);
 	
 		col[0] += sampcol[0];
 		col[1] += sampcol[1];
@@ -1047,7 +1077,7 @@ static void trace_reflect(float *col, ShadeInput *shi, ShadeResult *shr, float f
 		else
 			reflection(v_reflect, v_nor_new, shi->view, NULL);
 		
-		traceray(shi, shr, shi->mat->ray_depth, shi->co, v_reflect, sampcol, shi->vlr, 0);
+		traceray(shi, shr, shi->mat->ray_depth, shi->co, v_reflect, sampcol, shi->obi, shi->vlr, 0);
 
 		
 		col[0] += sampcol[0];
@@ -1223,6 +1253,7 @@ static void ray_trace_shadow_tra(Isect *is, int depth, int traflag)
 			
 			/* adapt isect struct */
 			VECCOPY(is->start, shi.co);
+			is->oborig= RAY_OBJECT_SET(&R, shi.obi);
 			is->faceorig= (RayFace*)shi.vlr;
 
 			ray_trace_shadow_tra(is, depth-1, traflag | RAY_TRA);
@@ -1250,6 +1281,7 @@ int ray_trace_shadow_rad(ShadeInput *ship, ShadeResult *shr)
 	accum[0]= accum[1]= accum[2]= 0.0f;
 	isec.mode= RE_RAY_MIRROR;
 	isec.faceorig= (RayFace*)ship->vlr;
+	isec.oborig= RAY_OBJECT_SET(&R, ship->obi);
 	
 	for(a=0; a<8*8; a++) {
 		
@@ -1448,7 +1480,9 @@ void ray_ao_qmc(ShadeInput *shi, float *shadfac)
 	int aocolor;
 	
 	isec.faceorig= (RayFace*)shi->vlr;
+	isec.oborig= RAY_OBJECT_SET(&R, shi->obi);
 	isec.face_last= NULL;
+	isec.ob_last= 0;
 	isec.mode= (R.wrld.aomode & WO_AODIST)?RE_RAY_SHADOW_TRA:RE_RAY_SHADOW;
 	isec.lay= -1;
 	VECCOPY(isec.start, shi->co);
@@ -1574,7 +1608,9 @@ void ray_ao_spheresamp(ShadeInput *shi, float *shadfac)
 	int j= -1, tot, actual=0, skyadded=0, aocolor;
 	
 	isec.faceorig= (RayFace*)shi->vlr;
+	isec.oborig= RAY_OBJECT_SET(&R, shi->obi);
 	isec.face_last= NULL;
+	isec.ob_last= 0;
 	isec.mode= (R.wrld.aomode & WO_AODIST)?RE_RAY_SHADOW_TRA:RE_RAY_SHADOW;
 	isec.lay= -1;
 
@@ -1737,6 +1773,7 @@ static void ray_shadow_qmc(ShadeInput *shi, LampRen *lar, float *lampco, float *
 	
 	while (samples < max_samples) {
 		isec->faceorig= (RayFace*)shi->vlr;
+		isec->oborig= RAY_OBJECT_SET(&R, shi->obi);
 		
 		/* manually jitter the start shading co-ord per sample
 		 * based on the pre-generated OSA texture sampling offsets, 
@@ -1873,6 +1910,7 @@ static void ray_shadow_jitter(ShadeInput *shi, LampRen *lar, float *lampco, floa
 		}
 		
 		isec->faceorig= (RayFace*)shi->vlr;
+		isec->oborig= RAY_OBJECT_SET(&R, shi->obi);
 		
 		vec[0]= jitlamp[0];
 		vec[1]= jitlamp[1];
@@ -1929,10 +1967,14 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 	if(lar->mode & LA_LAYER) isec.lay= lar->lay; else isec.lay= -1;
 
 	/* only when not mir tracing, first hit optimm */
-	if(shi->depth==0) 
+	if(shi->depth==0) {
 		isec.face_last= (RayFace*)lar->vlr_last[shi->thread];
-	else 
+		isec.ob_last= RAY_OBJECT_SET(&R, lar->obi_last[shi->thread]);
+	}
+	else {
 		isec.face_last= NULL;
+		isec.ob_last= 0;
+	}
 	
 	if(lar->type==LA_SUN || lar->type==LA_HEMI) {
 		maxsize= RE_ray_tree_max_size(R.raytree);
@@ -1952,6 +1994,7 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 		if(lar->ray_totsamp<2) {
 			
 			isec.faceorig= (RayFace*)shi->vlr;
+			isec.oborig= RAY_OBJECT_SET(&R, shi->obi);
 			shadfac[3]= 1.0f; // 1.0=full light
 			
 			/* set up isec vec */
@@ -1974,8 +2017,10 @@ void ray_shadow(ShadeInput *shi, LampRen *lar, float *shadfac)
 	}
 		
 	/* for first hit optim, set last interesected shadow face */
-	if(shi->depth==0) 
+	if(shi->depth==0) {
 		lar->vlr_last[shi->thread]= (VlakRen*)isec.face_last;
+		lar->obi_last[shi->thread]= RAY_OBJECT_GET(&R, isec.ob_last);
+	}
 
 }
 
@@ -2001,6 +2046,7 @@ void ray_translucent(ShadeInput *shi, LampRen *lar, float *distfac, float *co)
 	}
 	
 	isec.faceorig= (RayFace*)shi->vlr;
+	isec.oborig= RAY_OBJECT_SET(&R, shi->obi);
 	
 	/* set up isec vec */
 	VECCOPY(isec.start, shi->co);

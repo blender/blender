@@ -62,7 +62,7 @@ class yafrayRender_t
 
 		// mtds
 		bool exportScene(Render* re);
-		void addDupliMtx(Object* obj);
+		void addDupliMtx(Object* obj, float mat[][4]);
 		bool objectKnownData(Object* obj);
 
 	protected:

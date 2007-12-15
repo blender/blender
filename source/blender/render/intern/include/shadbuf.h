@@ -37,6 +37,8 @@
 
 #include "render_types.h"
 
+struct ObjectRen;
+
 /**
  * Calculates shadowbuffers for a vector of shadow-giving lamps
  * @param lar The vector of lamps
@@ -80,6 +82,7 @@ float ISB_getshadow(ShadeInput *shi, ShadBuf *shb);
 typedef struct ISBSample {
 	float zco[3];			/* coordinate in lampview projection */
 	short *shadfac;			/* initialized zero = full lighted */
+	int obi;				/* object for face lookup */
 	int facenr;				/* index in faces list */	
 } ISBSample;
 
@@ -87,6 +90,7 @@ typedef struct ISBSample {
 typedef struct ISBSampleA {
 	float zco[3];				/* coordinate in lampview projection */
 	short *shadfac;				/* NULL = full lighted */
+	int obi;					/* object for face lookup */
 	int facenr;					/* index in faces list */	
 	struct ISBSampleA *next;	/* in end, we want the first items to align with ISBSample */
 } ISBSampleA;
@@ -94,6 +98,7 @@ typedef struct ISBSampleA {
 /* used for transparent storage only */
 typedef struct ISBShadfacA {
 	struct ISBShadfacA *next;
+	int obi;
 	int facenr;
 	float shadfac;
 } ISBShadfacA;

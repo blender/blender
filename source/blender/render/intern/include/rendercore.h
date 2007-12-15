@@ -49,13 +49,14 @@ struct ShadeResult;
 struct World;
 struct RenderPart;
 struct RenderLayer;
+struct ObjectRen;
 
 /* ------------------------------------------------------------------------- */
 
 typedef struct PixStr
 {
 	struct PixStr *next;
-	int facenr, z;
+	int obi, facenr, z;
 	unsigned short mask;
 	short shadfac;
 } PixStr;

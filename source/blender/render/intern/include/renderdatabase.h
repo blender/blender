@@ -41,6 +41,7 @@ struct MTFace;
 struct CustomData;
 struct StrandBuffer;
 struct StrandRen;
+struct ObjectInstanceRen;
 
 #define RE_QUAD_MASK	0x7FFFFFF
 #define RE_QUAD_OFFS	0x8000000
@@ -58,71 +59,65 @@ typedef struct VertTableNode {
 
 typedef struct VlakTableNode {
 	struct VlakRen *vlak;
-	struct MTFace **mtface;
-	struct MCol **mcol;
+	struct MTFace *mtface;
+	struct MCol *mcol;
 	int totmtface, totmcol;
 	float *surfnor;
-	struct CustomDataNames **names;
 } VlakTableNode;
 
 typedef struct StrandTableNode {
 	struct StrandRen *strand;
 	float *winspeed;
 	float *surfnor;
-	struct MCol **mcol;
-	float **uv;
+	struct MCol *mcol;
+	float *uv;
 	int totuv, totmcol;
-	struct CustomDataNames **names;
 } StrandTableNode;
-
-typedef struct CustomDataNames{
-	struct CustomDataNames *next, *prev;
-
-	char (*mtface)[32];
-	char (*mcol)[32];
-} CustomDataNames;
 
 /* renderdatabase.c */
 void free_renderdata_tables(struct Render *re);
 void free_renderdata_vertnodes(struct VertTableNode *vertnodes);
 void free_renderdata_vlaknodes(struct VlakTableNode *vlaknodes);
 
-void set_normalflags(Render *re);
+void set_normalflags(struct Render *re, struct ObjectRen *obr);
 void project_renderdata(struct Render *re, void (*projectfunc)(float *, float mat[][4], float *),  int do_pano, float xoffs, int do_buckets);
 
 /* functions are not exported... so wrong names */
 
-struct VlakRen *RE_findOrAddVlak(struct Render *re, int nr);
-struct VertRen *RE_findOrAddVert(struct Render *re, int nr);
-struct StrandRen *RE_findOrAddStrand(struct Render *re, int nr);
-struct HaloRen *RE_findOrAddHalo(struct Render *re, int nr);
-struct HaloRen *RE_inithalo(struct Render *re, struct Material *ma, float *vec, float *vec1, float *orco, float hasize, 
-					 float vectsize, int seed);
-struct HaloRen *RE_inithalo_particle(struct Render *re, struct DerivedMesh *dm, struct Material *ma,   float *vec,   float *vec1, 
-				  float *orco, float *uvco, float hasize, float vectsize, int seed);
-void RE_addRenderObject(struct Render *re, struct Object *ob, struct Object *par, int index, int sve, int eve, int sfa, int efa, int sst, int est);
-struct StrandBuffer *RE_addStrandBuffer(struct Render *re, struct Object *ob, int totvert);
+struct VlakRen *RE_findOrAddVlak(struct ObjectRen *obr, int nr);
+struct VertRen *RE_findOrAddVert(struct ObjectRen *obr, int nr);
+struct StrandRen *RE_findOrAddStrand(struct ObjectRen *obr, int nr);
+struct HaloRen *RE_findOrAddHalo(struct ObjectRen *obr, int nr);
+struct HaloRen *RE_inithalo(struct Render *re, struct ObjectRen *obr, struct Material *ma, float *vec, float *vec1, float *orco, float hasize,  float vectsize, int seed);
+struct HaloRen *RE_inithalo_particle(struct Render *re, struct ObjectRen *obr, struct DerivedMesh *dm, struct Material *ma,   float *vec,   float *vec1, float *orco, float *uvco, float hasize, float vectsize, int seed);
+struct StrandBuffer *RE_addStrandBuffer(struct ObjectRen *obr, int totvert);
 
-float *RE_vertren_get_sticky(struct Render *re, struct VertRen *ver, int verify);
-float *RE_vertren_get_stress(struct Render *re, struct VertRen *ver, int verify);
-float *RE_vertren_get_rad(struct Render *re, struct VertRen *ver, int verify);
-float *RE_vertren_get_strand(struct Render *re, struct VertRen *ver, int verify);
-float *RE_vertren_get_tangent(struct Render *re, struct VertRen *ver, int verify);
-float *RE_vertren_get_winspeed(struct Render *re, struct VertRen *ver, int verify);
+struct ObjectRen *RE_addRenderObject(struct Render *re, struct Object *ob, struct Object *par, int index, int psysindex);
+void RE_addRenderInstance(struct Render *re, struct ObjectRen *obr, struct Object *ob, struct Object *par, int index, int psysindex, float mat[][4]);
+void RE_makeRenderInstances(struct Render *re);
+void RE_instanceTransformNormal(struct ObjectInstanceRen *obi, float *nor, float *tnor);
 
-struct MTFace *RE_vlakren_get_tface(struct Render *re, VlakRen *ren, int n, char **name, int verify);
-struct MCol *RE_vlakren_get_mcol(struct Render *re, VlakRen *ren, int n, char **name, int verify);
-float *RE_vlakren_get_surfnor(struct Render *re, VlakRen *ren, int verify);
+float *RE_vertren_get_sticky(struct ObjectRen *obr, struct VertRen *ver, int verify);
+float *RE_vertren_get_stress(struct ObjectRen *obr, struct VertRen *ver, int verify);
+float *RE_vertren_get_rad(struct ObjectRen *obr, struct VertRen *ver, int verify);
+float *RE_vertren_get_strand(struct ObjectRen *obr, struct VertRen *ver, int verify);
+float *RE_vertren_get_tangent(struct ObjectRen *obr, struct VertRen *ver, int verify);
+float *RE_vertren_get_winspeed(struct ObjectInstanceRen *obi, struct VertRen *ver, int verify);
 
-float *RE_strandren_get_winspeed(struct Render *re, struct StrandRen *strand, int verify);
-float *RE_strandren_get_surfnor(struct Render *re, struct StrandRen *strand, int verify);
-float *RE_strandren_get_uv(struct Render *re, struct StrandRen *strand, int n, char **name, int verify);
-struct MCol *RE_strandren_get_mcol(struct Render *re, struct StrandRen *strand, int n, char **name, int verify);
+struct MTFace *RE_vlakren_get_tface(struct ObjectRen *obr, VlakRen *ren, int n, char **name, int verify);
+struct MCol *RE_vlakren_get_mcol(struct ObjectRen *obr, VlakRen *ren, int n, char **name, int verify);
+float *RE_vlakren_get_surfnor(struct ObjectRen *obr, VlakRen *ren, int verify);
+int RE_vlakren_get_normal(struct Render *re, struct ObjectInstanceRen *obi, struct VlakRen *vlr, float *nor);
 
-struct VertRen *RE_vertren_copy(struct Render *re, struct VertRen *ver);
-struct VlakRen *RE_vlakren_copy(struct Render *re, struct VlakRen *vlr);
+float *RE_strandren_get_surfnor(struct ObjectRen *obr, struct StrandRen *strand, int verify);
+float *RE_strandren_get_uv(struct ObjectRen *obr, struct StrandRen *strand, int n, char **name, int verify);
+struct MCol *RE_strandren_get_mcol(struct ObjectRen *obr, struct StrandRen *strand, int n, char **name, int verify);
+float *RE_strandren_get_winspeed(struct ObjectInstanceRen *obi, struct StrandRen *strand, int verify);
 
-void RE_vlakren_set_customdata_names(struct Render *re, struct CustomData *data);
+struct VertRen *RE_vertren_copy(struct ObjectRen *obr, struct VertRen *ver);
+struct VlakRen *RE_vlakren_copy(struct ObjectRen *obr, struct VlakRen *vlr);
+
+void RE_set_customdata_names(struct ObjectRen *obr, struct CustomData *data);
 
 /* haloren->type: flags */
 #define HA_ONLYSKY		1

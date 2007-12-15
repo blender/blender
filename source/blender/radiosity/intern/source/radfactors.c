@@ -912,8 +912,8 @@ void inithemiwindows()
 	memset(vw, 0, sizeof(RadView));
 	vw->rectx= RG.hemires;
 	vw->recty= RG.hemires;
-	vw->rectz= MEM_mallocN(4*vw->rectx*vw->recty, "initwindows");
-	vw->rect= MEM_mallocN(4*vw->rectx*vw->recty, "initwindows");
+	vw->rectz= MEM_mallocN(sizeof(int)*vw->rectx*vw->recty, "initwindows");
+	vw->rect= MEM_mallocN(sizeof(int)*vw->rectx*vw->recty, "initwindows");
 	vw->mynear= RG.maxsize/2000.0;
 	vw->myfar= 2.0*RG.maxsize;
 	vw->wx1= -vw->mynear;

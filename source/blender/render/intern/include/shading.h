@@ -32,6 +32,7 @@ struct LampRen;
 struct VlakRen;
 struct StrandSegment;
 struct StrandPoint;
+struct ObjectInstanceRen obi;
 
 /* shadeinput.c */
 
@@ -52,12 +53,13 @@ typedef struct ShadeSample {
 	/* also the node shader callback */
 void shade_material_loop(struct ShadeInput *shi, struct ShadeResult *shr);
 
-void shade_input_set_triangle_i(struct ShadeInput *shi, struct VlakRen *vlr, short i1, short i2, short i3);
-void shade_input_set_triangle(struct ShadeInput *shi, volatile int facenr, int normal_flip);
+void shade_input_set_triangle_i(struct ShadeInput *shi, struct ObjectInstanceRen *obi, struct VlakRen *vlr, short i1, short i2, short i3);
+void shade_input_set_triangle(struct ShadeInput *shi, volatile int obi, volatile int facenr, int normal_flip);
 void shade_input_copy_triangle(struct ShadeInput *shi, struct ShadeInput *from);
 void shade_input_set_viewco(struct ShadeInput *shi, float x, float y, float z);
 void shade_input_set_uv(struct ShadeInput *shi);
 void shade_input_set_normals(struct ShadeInput *shi);
+void shade_input_flip_normals(struct ShadeInput *shi);
 void shade_input_set_shade_texco(struct ShadeInput *shi);
 void shade_input_set_strand(struct ShadeInput *shi, struct StrandRen *strand, struct StrandPoint *spoint);
 void shade_input_set_strand_texco(struct ShadeInput *shi, struct StrandRen *strand, struct StrandVert *svert, struct StrandPoint *spoint);

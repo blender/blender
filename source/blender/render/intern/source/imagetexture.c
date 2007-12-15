@@ -984,6 +984,5 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, float *dxt, f
 		texres->tb*= fx;
 	}
 
-	
 	return retval;
 }

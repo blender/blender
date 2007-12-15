@@ -35,6 +35,7 @@ struct RenderLayer;
 struct LampRen;
 struct VlakRen;
 struct ListBase;
+struct ZSpan;
 
 void fillrect(int *rect, int x, int y, int val);
 
@@ -46,19 +47,20 @@ void projectvert(float *v1, float winmat[][4], float *adr);
 void projectverto(float *v1, float winmat[][4], float *adr);
 int testclip(float *v); 
 
-void set_part_zbuf_clipflag(struct RenderPart *pa);
-void zbuffer_shadow(struct Render *re, struct LampRen *lar, int *rectz, int size, float jitx, float jity);
-void zbuffer_solid(struct RenderPart *pa, unsigned int layer, short layflag);
+void zbuffer_shadow(struct Render *re, float winmat[][4], struct LampRen *lar, int *rectz, int size, float jitx, float jity);
+void zbuffer_solid(struct RenderPart *pa, unsigned int layer, short layflag, void (*fillfunc)(struct RenderPart*, struct ZSpan*, int, void*), void *data);
+
 unsigned short *zbuffer_transp_shade(struct RenderPart *pa, struct RenderLayer *rl, float *pass);
 unsigned short *zbuffer_strands_shade(struct Render *re, struct RenderPart *pa, struct RenderLayer *rl, float *pass);
 void convert_zbuf_to_distbuf(struct RenderPart *pa, struct RenderLayer *rl);
-void zbuffer_sss(RenderPart *pa, unsigned int lay, void *handle, void (*func)(void *, int, int, int, int));
+void zbuffer_sss(RenderPart *pa, unsigned int lay, void *handle, void (*func)(void*, int, int, int, int, int));
 
 typedef struct APixstr {
-    unsigned short mask[4]; /* jitter mask */
-    int z[4];			/* distance    */
-    int p[4];			/* index       */
-	short shadfac[4];	/* optimize storage for irregular shadow */
+    unsigned short mask[4];		/* jitter mask */
+    int z[4];					/* distance    */
+    int p[4];					/* index       */
+	int obi[4];					/* object instance */
+	short shadfac[4];			/* optimize storage for irregular shadow */
     struct APixstr *next;
 } APixstr;
 
@@ -81,6 +83,7 @@ typedef struct ZSpan {
 	int *rectz, *arectz;					/* zbuffers, arectz is for transparant */
 	int *rectz1;							/* seconday z buffer for shadowbuffer (2nd closest z) */
 	int *rectp;								/* polygon index buffer */
+	int *recto;								/* object buffer */
 	APixstr *apixbuf, *curpstr;				/* apixbuf for transparent */
 	struct ListBase *apsmbase;
 	
@@ -89,24 +92,28 @@ typedef struct ZSpan {
 	int mask, apsmcounter;					/* in use by apixbuf */
 
 	void *sss_handle;						/* used by sss */
-	void (*sss_func)(void *, int, int, int, int);
+	void (*sss_func)(void *, int, int, int, int, int);
 	
-	void (*zbuffunc)(struct ZSpan *, int, float *, float *, float *, float *);
-	void (*zbuflinefunc)(struct ZSpan *, int, float *, float *);
+	void (*zbuffunc)(struct ZSpan *, int, int, float *, float *, float *, float *);
+	void (*zbuflinefunc)(struct ZSpan *, int, int, float *, float *);
 	
 } ZSpan;
 
 /* exported to shadbuf.c */
-void zbufclip4(struct ZSpan *zspan, int zvlnr, float *f1, float *f2, float *f3, float *f4, int c1, int c2, int c3, int c4);
+void zbufclip4(struct ZSpan *zspan, int obi, int zvlnr, float *f1, float *f2, float *f3, float *f4, int c1, int c2, int c3, int c4);
 void zbuf_free_span(struct ZSpan *zspan);
 
 /* to rendercore.c */
 void zspan_scanconvert(struct ZSpan *zpan, void *handle, float *v1, float *v2, float *v3, void (*func)(void *, int, int, float, float) );
 
 /* exported to edge render... */
-void zbufclip(struct ZSpan *zspan, int zvlnr, float *f1, float *f2, float *f3, int c1, int c2, int c3);
+void zbufclip(struct ZSpan *zspan, int obi, int zvlnr, float *f1, float *f2, float *f3, int c1, int c2, int c3);
 void zbuf_alloc_span(struct ZSpan *zspan, int rectx, int recty);
-void zbufclipwire(struct ZSpan *zspan, int zvlnr, struct VlakRen *vlr); 
+void zbufclipwire(struct ZSpan *zspan, int obi, int zvlnr, int ec, float *ho1, float *ho2, float *ho3, float *ho4, int c1, int c2, int c3, int c4);
+
+/* exported to shadeinput.c */
+void zbuf_make_winmat(Render *re, float duplimat[][4], float winmat[][4]);
+void zbuf_render_project(float winmat[][4], float *co, float *ho);
 
 #endif
 

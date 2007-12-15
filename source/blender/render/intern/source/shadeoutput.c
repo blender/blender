@@ -1262,7 +1262,7 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 		if(ma->mode & MA_SHADOW) {
 			if(lar->type==LA_HEMI || lar->type==LA_AREA);
 			else if((ma->mode & MA_RAYBIAS) && (lar->mode & LA_SHAD_RAY) && (vlr->flag & R_SMOOTH)) {
-				float thresh= vlr->ob->smoothresh;
+				float thresh= shi->obr->ob->smoothresh;
 				if(inp>thresh)
 					phongcorr= (inp-thresh)/(inp*(1.0f-thresh));
 				else
