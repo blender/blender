@@ -725,54 +725,97 @@ static void draw_cursor(SpaceText *st) {
 
 static void calc_text_rcts(SpaceText *st)
 {
-	short barheight, barstart, blank_lines;
-	int lbarstart, lbarh, ltexth;
-	int pix_available, pix_top_margin, pix_bottom_margin;
+	int lhlstart, lhlend, ltexth;
+	short barheight, barstart, hlstart, hlend, blank_lines;
+	short pix_available, pix_top_margin, pix_bottom_margin, pix_bardiff;
 
-	lbarstart= st->top;
-	lbarh= 	st->viewlines;
 	pix_top_margin = 8;
 	pix_bottom_margin = 4;
 	pix_available = curarea->winy - pix_top_margin - pix_bottom_margin;
 	ltexth= txt_get_span(st->text->lines.first, st->text->lines.last);
 	blank_lines = st->viewlines / 2;
 	
-	if(ltexth + blank_lines < lbarstart + st->viewlines)
-		blank_lines = lbarstart + st->viewlines - ltexth;
+	/* when resizing a vieport with the bar at the bottom to a greater height more blank lines will be added */
+	if (ltexth + blank_lines < st->top + st->viewlines) {
+		blank_lines = st->top + st->viewlines - ltexth;
+	}
 	
 	ltexth += blank_lines;
 
-	barstart = (lbarstart*pix_available)/ltexth;
-	barheight = (lbarh*pix_available)/ltexth;
-	if (barheight<20){
-		barstart = ((pix_available + barheight - 20 )*lbarstart)/ltexth;
-		barheight=20;
+	barheight = (st->viewlines*pix_available) / ltexth;
+	pix_bardiff = 0;
+	if (barheight < 20) {
+		pix_bardiff = 20 - barheight; /* take into account the now non-linear sizing of the bar */	
+		barheight = 20;
 	}
+	barstart = ((pix_available - pix_bardiff) * st->top) / ltexth;
 
-	st->txtbar.xmin= 5;
-	st->txtbar.xmax= 17;
-	st->txtbar.ymax= curarea->winy - pix_top_margin - barstart;
-	st->txtbar.ymin= st->txtbar.ymax - barheight;
+	st->txtbar.xmin = 5;
+	st->txtbar.xmax = 17;
+	st->txtbar.ymax = curarea->winy - pix_top_margin - barstart;
+	st->txtbar.ymin = st->txtbar.ymax - barheight;
 
 	CLAMP(st->txtbar.ymin, pix_bottom_margin, curarea->winy - pix_top_margin);
 	CLAMP(st->txtbar.ymax, pix_bottom_margin, curarea->winy - pix_top_margin);
 
-	st->pix_per_line= (float) ltexth/curarea->winy;
+	st->pix_per_line= (float) ltexth/pix_available;
 	if (st->pix_per_line<.1) st->pix_per_line=.1f;
 
-	lbarstart= MIN2(txt_get_span(st->text->lines.first, st->text->curl), 
+	lhlstart = MIN2(txt_get_span(st->text->lines.first, st->text->curl), 
 				txt_get_span(st->text->lines.first, st->text->sell));
-	lbarh= abs(txt_get_span(st->text->lines.first, st->text->curl)-txt_get_span(st->text->lines.first, st->text->sell));
-	
-	barheight= (lbarh*pix_available)/ltexth;
-	if (barheight<2) barheight=2; 
-	
-	barstart= (lbarstart*pix_available)/ltexth;
+	lhlend = MAX2(txt_get_span(st->text->lines.first, st->text->curl), 
+				txt_get_span(st->text->lines.first, st->text->sell));
+
+	hlstart = (lhlstart * pix_available) / ltexth;
+	hlend = (lhlend * pix_available) / ltexth;
+
+	/* the scrollbar is non-linear sized */
+	if (pix_bardiff > 0) {
+		/* the start of the highlight is in the current viewport */
+		if (lhlstart >= st->top && lhlstart <= st->top + st->viewlines) { 
+			/* speed the progresion of the start of the highlight through the scrollbar */
+			hlstart = ( ( (pix_available - pix_bardiff) * lhlstart) / ltexth) + (pix_bardiff * (lhlstart - st->top) / st->viewlines); 	
+		}
+		else if (lhlstart > st->top + st->viewlines && hlstart < barstart + barheight && hlstart > barstart) {
+			/* push hl start down */
+			hlstart = barstart + barheight;
+		}
+		else if (lhlend > st->top  && lhlstart < st->top && hlstart > barstart) {
+			/*fill out start */
+			hlstart = barstart;
+		}
+
+		if (hlend <= hlstart) { 
+			hlend = hlstart + 2;
+		}
+
+		/* the end of the highlight is in the current viewport */
+		if (lhlend >= st->top && lhlend <= st->top + st->viewlines) { 
+			/* speed the progresion of the end of the highlight through the scrollbar */
+			hlend = (((pix_available - pix_bardiff )*lhlend)/ltexth) + (pix_bardiff * (lhlend - st->top)/st->viewlines); 	
+		}
+		else if (lhlend < st->top && hlend >= barstart - 2 && hlend < barstart + barheight) {
+			/* push hl end up */
+			hlend = barstart;
+		}					
+		else if (lhlend > st->top + st->viewlines && lhlstart < st->top + st->viewlines && hlend < barstart + barheight) {
+			/* fill out end */
+			hlend = barstart + barheight;
+		}
+
+		if (hlend <= hlstart) { 
+			hlstart = hlend - 2;
+		}	
+	}	
+
+	if (hlend - hlstart < 2) { 
+		hlend = hlstart + 2;
+	}
 	
 	st->txtscroll.xmin= 5;
 	st->txtscroll.xmax= 17;
-	st->txtscroll.ymax= curarea->winy-barstart;
-	st->txtscroll.ymin= st->txtscroll.ymax - barheight;
+	st->txtscroll.ymax= curarea->winy - pix_top_margin - hlstart;
+	st->txtscroll.ymin= curarea->winy - pix_top_margin - hlend;
 
 	CLAMP(st->txtscroll.ymin, pix_bottom_margin, curarea->winy - pix_top_margin);
 	CLAMP(st->txtscroll.ymax, pix_bottom_margin, curarea->winy - pix_top_margin);
