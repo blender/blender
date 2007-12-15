@@ -126,7 +126,8 @@ typedef struct bKinematicConstraint {
 	Object		*tar;
 	short		iterations;		/* Maximum number of iterations to try */
 	short		flag;			/* Like CONSTRAINT_IK_TIP */
-	int			rootbone;	/* index to rootbone, if zero go all the way to mother bone */
+	short		rootbone;		/* index to rootbone, if zero go all the way to mother bone */
+	short		max_rootbone;	/* for auto-ik, maximum length of chain */
 	char		subtarget[32];	/* String to specify sub-object target */
 
 	Object		*poletar;			/* Pole vector target */

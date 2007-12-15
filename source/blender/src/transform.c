@@ -815,7 +815,10 @@ static void transformEvent(unsigned short event, short val) {
 			break;
 		case PAGEUPKEY:
 		case WHEELDOWNMOUSE:
-			if(Trans.flag & T_PROP_EDIT) {
+			if (Trans.flag & T_AUTOIK) {
+				transform_autoik_update(&Trans, 1);
+			}
+			else if(Trans.flag & T_PROP_EDIT) {
 				Trans.propsize*= 1.1f;
 				calculatePropRatio(&Trans);
 			}
@@ -831,7 +834,10 @@ static void transformEvent(unsigned short event, short val) {
 			break;
 		case PAGEDOWNKEY:
 		case WHEELUPMOUSE:
-			if(Trans.flag & T_PROP_EDIT) {
+			if (Trans.flag & T_AUTOIK) {
+				transform_autoik_update(&Trans, -1);
+			}
+			else if (Trans.flag & T_PROP_EDIT) {
 				Trans.propsize*= 0.90909090f;
 				calculatePropRatio(&Trans);
 			}
@@ -4092,5 +4098,6 @@ void BIF_TransformSetUndo(char *str)
 {
 	Trans.undostr= str;
 }
+
 
 

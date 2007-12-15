@@ -363,7 +363,8 @@ typedef struct ToolSettings {
 	short uvcalc_mapalign;
 	short uvcalc_flag;
 
-	short pad2;
+	/* Auto-IK */
+	short autoik_chainlen;
 
 	/* Image Paint (8 byte aligned please!) */
 	struct ImagePaintSettings imapaint;
