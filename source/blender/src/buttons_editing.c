@@ -4941,7 +4941,7 @@ static void editing_panel_links(Object *ob)
 				xco, 154, 130,20, 0, 0, 0, 0, 0, "");
 		
 		uiBlockBeginAlign(block);
-		uiDefButC(block, MENU, REDRAWVIEW3D, "Empty Drawtype%t|Arrows%x1|Single Arrow%x4|Plain Axes%x2|Circle%x3|Cube%x5",
+		uiDefButC(block, MENU, REDRAWVIEW3D, "Empty Drawtype%t|Arrows%x1|Single Arrow%x4|Plain Axes%x2|Circle%x3|Cube%x5|Sphere%x6|Cone%x7",
 				xco, 128, 140, 20, &ob->empty_drawtype, 0, 0, 0, 0, "The Empty 3D View display style");
 		uiDefButF(block, NUM, REDRAWVIEW3D, "Size:",
 				xco, 108, 140, 21, &ob->empty_drawsize, 0.01, 10.0, 1, 0, "The size to display the Empty");

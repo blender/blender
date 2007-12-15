@@ -342,6 +342,8 @@ extern Object workob;
 #define OB_CIRCLE		3
 #define OB_SINGLE_ARROW	4
 #define OB_CUBE			5
+#define OB_EMPTY_SPHERE	6
+#define OB_EMPTY_CONE	7
 
 /* boundtype */
 #define OB_BOUND_BOX		0
@@ -452,4 +454,5 @@ extern Object workob;
 #endif
 
 #endif
+
 
