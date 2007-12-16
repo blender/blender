@@ -719,7 +719,6 @@ static void pchan_autoik_adjust (bPoseChannel *pchan, short chainlen)
 					data->rootbone= data->max_rootbone;
 				else
 					data->rootbone= chainlen;
-				printf("chainlen = %d, max = %d, new = %d\n", chainlen, data->max_rootbone, data->rootbone);
 			}
 		}
 	}

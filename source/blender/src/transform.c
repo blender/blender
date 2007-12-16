@@ -2515,6 +2515,7 @@ void initTranslation(TransInfo *t)
 static void headerTranslation(TransInfo *t, float vec[3], char *str) {
 	char tvec[60];
 	char distvec[20];
+	char autoik[20];
 	float dvec[3];
 	float dist;
 	
@@ -2535,24 +2536,35 @@ static void headerTranslation(TransInfo *t, float vec[3], char *str) {
 		sprintf(distvec, "%.4e", dist);
 	else
 		sprintf(distvec, "%.4f", dist);
+		
+	if(t->flag & T_AUTOIK) {
+		short chainlen= G.scene->toolsettings->autoik_chainlen;
+		
+		if(chainlen)
+			sprintf(autoik, "AutoIK-Len: %d", chainlen);
+		else
+			strcpy(autoik, "");
+	}
+	else
+		strcpy(autoik, "");
 
 	if (t->con.mode & CON_APPLY) {
 		switch(t->num.idx_max) {
 		case 0:
-			sprintf(str, "D: %s (%s)%s %s", &tvec[0], distvec, t->con.text, t->proptext);
+			sprintf(str, "D: %s (%s)%s %s  %s", &tvec[0], distvec, t->con.text, t->proptext, &autoik[0]);
 			break;
 		case 1:
-			sprintf(str, "D: %s   D: %s (%s)%s %s", &tvec[0], &tvec[20], distvec, t->con.text, t->proptext);
+			sprintf(str, "D: %s   D: %s (%s)%s %s  %s", &tvec[0], &tvec[20], distvec, t->con.text, t->proptext, &autoik[0]);
 			break;
 		case 2:
-			sprintf(str, "D: %s   D: %s  D: %s (%s)%s %s", &tvec[0], &tvec[20], &tvec[40], distvec, t->con.text, t->proptext);
+			sprintf(str, "D: %s   D: %s  D: %s (%s)%s %s  %s", &tvec[0], &tvec[20], &tvec[40], distvec, t->con.text, t->proptext, &autoik[0]);
 		}
 	}
 	else {
 		if(t->flag & T_2D_EDIT)
 			sprintf(str, "Dx: %s   Dy: %s (%s)%s %s", &tvec[0], &tvec[20], distvec, t->con.text, t->proptext);
 		else
-			sprintf(str, "Dx: %s   Dy: %s  Dz: %s (%s)%s %s", &tvec[0], &tvec[20], &tvec[40], distvec, t->con.text, t->proptext);
+			sprintf(str, "Dx: %s   Dy: %s  Dz: %s (%s)%s %s  %s", &tvec[0], &tvec[20], &tvec[40], distvec, t->con.text, t->proptext, &autoik[0]);
 	}
 }
 
@@ -2598,7 +2610,7 @@ static void applyTranslation(TransInfo *t, float vec[3]) {
 int Translation(TransInfo *t, short mval[2]) 
 {
 	float tvec[3];
-	char str[200];
+	char str[250];
 	
 	if(t->flag & T_SHIFT_MOD) {
 		float dvec[3];
