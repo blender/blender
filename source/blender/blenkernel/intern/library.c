@@ -116,6 +116,9 @@
 
 #include "BPI_script.h"
 
+/* for maintaining the python id hash when removeing data */
+#include "BPY_extern.h"
+
 #define MAX_IDPUP		60	/* was 24 */
 
 /* ************* general ************************ */
@@ -431,6 +434,9 @@ static void free_library(Library *lib)
 void free_libblock(ListBase *lb, void *idv)
 {
 	ID *id= idv;
+	
+	/* invalidate the data if its in the python pool */
+	BPY_idhash_invalidate(id);
 	
 	switch( GS(id->name) ) {	/* GetShort from util.h */
 		case ID_SCE:
