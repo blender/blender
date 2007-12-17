@@ -225,6 +225,7 @@ void sculptmode_init(Scene *sce)
 	sd->flags= SCULPT_DRAW_BRUSH;
 	sd->tablet_size=3;
 	sd->tablet_strength=10;
+	sd->rake=0;
 }
 
 void sculptmode_free_session(Scene *);
@@ -1645,13 +1646,14 @@ void sculpt(void)
 	SculptData *sd= sculpt_data();
 	SculptSession *ss= sculpt_session();
 	Object *ob= OBACT;
-	short mouse[2], mvalo[2], firsttime=1, mousebut;
+	/* lastSigMouse is for the rake, to store the last place the mouse movement was significant */
+	short mouse[2], mvalo[2], lastSigMouse[2],firsttime=1, mousebut;
 	short modifier_calculations= 0;
 	EditData e;
 	RectNode *rn= NULL;
 	short spacing= 32000;
 	int scissor_box[4];
-
+	float offsetRot;
 	if(!(G.f & G_SCULPTMODE) || G.obedit || !ob || ob->id.lib || !get_mesh(ob) || (get_mesh(ob)->totface == 0))
 		return;
 	if(!(ob->lay & G.vd->lay))
@@ -1700,7 +1702,8 @@ void sculpt(void)
 	getmouseco_areawin(mouse);
 	mvalo[0]= mouse[0];
 	mvalo[1]= mouse[1];
-
+	lastSigMouse[0]=mouse[0];
+	lastSigMouse[1]=mouse[1];
 	mousebut = L_MOUSE;
 
 	/* If modifier_calculations is true, then extra time must be spent
@@ -1729,9 +1732,19 @@ void sculpt(void)
 
 	/* Get original scissor box */
 	glGetIntegerv(GL_SCISSOR_BOX, scissor_box);
-
+	
+	/* For raking, get the original angle*/
+	offsetRot=tex_angle();
+	
 	while (get_mbut() & mousebut) {
 		getmouseco_areawin(mouse);
+		/* If rake, and the mouse has moved over 10 pixels (euclidean) (prevents jitter) then get the new angle */
+		if (sd->rake && (pow(lastSigMouse[0]-mouse[0],2)+pow(lastSigMouse[1]-mouse[1],2))>100){
+			/*Nasty looking, but just orig + new angle really*/
+			set_tex_angle(offsetRot+180.+to_deg(atan2((float)(mouse[1]-lastSigMouse[1]),(float)(mouse[0]-lastSigMouse[0]))));
+			lastSigMouse[0]=mouse[0];
+			lastSigMouse[1]=mouse[1];
+		}
 		
 		if(firsttime || mouse[0]!=mvalo[0] || mouse[1]!=mvalo[1] || sculptmode_brush()->airbrush) {
 			firsttime= 0;
@@ -1828,6 +1841,9 @@ void sculpt(void)
 		else BIF_wait_for_statechange();
 	}
 
+	/* Set the rotation of the brush back to what it was before any rake */
+	set_tex_angle(offsetRot);
+	
 	if(sd->flags & SCULPT_INPUT_SMOOTH) {
 		sculpt_stroke_apply_all(&e);
 		calc_damaged_verts(&ss->damaged_verts,e.grabdata);

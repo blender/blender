@@ -5205,9 +5205,16 @@ void sculptmode_draw_interface_textures(uiBlock *block, unsigned short cx, unsig
 			if(sd->texrept != SCULPTREPT_3D) {
 				uiBlockBeginAlign(block);
 				uiDefButF(block,NUM,0, "Angle", cx,cy,115,19, &mtex->warpfac, 0,360,100,0, "Rotate texture counterclockwise");
+				/*Moved inside, so that following buttons aren't made bigger for no reason*/
+				cy-= 20;
 			}
-			cy-= 20;
-
+			
+			/* Added Rake button. Needs to be turned off if 3D is on / disappear*/
+			if(sd->texrept != SCULPTREPT_3D){
+				uiDefButC(block,TOG,B_NOP, "Rake", cx,cy,115,19, &sd->rake, 0,0,0,0,"Rotate the brush in the direction of motion");
+				cy-=20;
+			}
+				
 			if(sd->texrept != SCULPTREPT_DRAG) {
 				uiBlockBeginAlign(block);
 				but= uiDefIconButC(block, TOG, REDRAWBUTSEDIT, sd->texsep ? ICON_UNLOCKED : ICON_LOCKED, cx,cy,20,19, &sd->texsep,0,0,0,0, "Locks the texture sizes together");			

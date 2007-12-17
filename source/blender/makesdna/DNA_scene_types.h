@@ -444,6 +444,10 @@ typedef struct SculptData
 	/* Symmetry is separate from the other BrushData because the same
 	   settings are always used for all brush types */
 	char symm;
+	
+	/* Added to store if the 'Rake' setting has been set */
+	char rake;
+	char pad[7];
 } SculptData;
 
 typedef struct Scene {
