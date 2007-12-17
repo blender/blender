@@ -1112,9 +1112,9 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 		}
 	}
 	else {
-		float step, pos;
+		double step, pos;
 		
-		step= (totpart <= 1)? 0.5f: 1.0f/(totpart-1);
+		step= (totpart <= 1)? 0.5: 1.0/(totpart-1);
 		pos= 0.0f;
 		i= 0;
 
