@@ -2099,7 +2099,7 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 		}
 	}
 
-	for(md=first; md; md=md->next)
+	for(md=firstmd; md; md=md->next)
 		modifier_freeTemporaryData(md);
 
 	/* Yay, we are done. If we have a DerivedMesh and deformed vertices

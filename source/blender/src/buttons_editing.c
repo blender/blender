@@ -1639,7 +1639,7 @@ void modifiers_explodeFacepa(void *arg1, void *arg2)
 	emd->flag |= eExplodeFlag_CalcFaces;
 }
 
-static void modifiers_psysEnable(void *ob_v, void *md_v)
+void modifiers_psysEnable(void *ob_v, void *md_v)
 {
 	ParticleSystemModifierData *psmd = (ParticleSystemModifierData*) md_v;
 
