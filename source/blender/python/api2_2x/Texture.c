@@ -1,5 +1,5 @@
 /*  
- *  $Id$
+ *  $Id: Texture.c 12535 2007-11-09 10:29:19Z campbellbarton $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

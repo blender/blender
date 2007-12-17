@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: BGL.h 5407 2005-10-02 17:09:11Z zuster $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

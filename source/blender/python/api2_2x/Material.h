@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: Material.h 10649 2007-05-04 03:23:40Z campbellbarton $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: Node.h 10449 2007-04-03 11:24:11Z jesterking $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

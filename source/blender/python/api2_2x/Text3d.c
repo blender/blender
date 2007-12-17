@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: Text3d.c 11099 2007-06-28 13:46:42Z campbellbarton $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

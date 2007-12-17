@@ -66,8 +66,6 @@ struct Object;
 struct bPythonConstraint;
 struct bConstraintOb;
 struct bConstraintTarget;
-
-
 void BPY_do_pyscript (struct ID *id, short int event);
 void BPY_clear_script (struct Script *script);
 void BPY_free_compiled_text (struct Text *text);
@@ -80,11 +78,7 @@ int BPY_button_eval(char *expr, double *value);
 /* pyconstraints */
 void BPY_pyconstraint_eval(struct bPythonConstraint *con, struct bConstraintOb *cob, struct ListBase *targets);
 void BPY_pyconstraint_targets(struct bPythonConstraint *con, struct bConstraintTarget *ct);
-/* py id-hash */
-void BPY_idhash_add(void * value);
-void *BPY_idhash_get(struct ID *id);
-void BPY_idhash_remove(struct ID *id);
-void BPY_idhash_invalidate(struct ID *id);
+
 
 /* writefile.c */
 struct Oops;

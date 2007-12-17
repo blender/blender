@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: Registry.c 4803 2005-07-18 03:50:37Z ascotan $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

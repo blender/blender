@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: bpy_config.c 11123 2007-06-29 08:59:26Z campbellbarton $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

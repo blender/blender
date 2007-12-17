@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: meshPrimitive.h 7512 2006-05-25 16:45:24Z khughes $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

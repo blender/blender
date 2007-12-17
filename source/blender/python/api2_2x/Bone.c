@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: Bone.c 12399 2007-10-26 08:19:40Z campbellbarton $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

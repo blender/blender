@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: Armature.c 12813 2007-12-07 09:51:02Z campbellbarton $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

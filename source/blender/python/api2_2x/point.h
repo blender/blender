@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: point.h 7266 2006-04-16 15:28:50Z stiv $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

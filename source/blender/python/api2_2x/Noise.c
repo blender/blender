@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: Noise.c 12056 2007-09-17 06:11:06Z aligorith $
  *
  * Blender.Noise BPython module implementation.
  * This submodule has functions to generate noise of various types.

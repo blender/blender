@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: Lattice.c 11130 2007-06-30 00:18:10Z campbellbarton $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

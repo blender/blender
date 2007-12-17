@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: gen_library.h 11877 2007-08-29 03:09:22Z campbellbarton $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

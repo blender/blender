@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: windowTheme.h 8774 2006-11-07 11:24:11Z jesterking $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

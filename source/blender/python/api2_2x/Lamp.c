@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: Lamp.c 12810 2007-12-06 20:15:03Z khughes $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

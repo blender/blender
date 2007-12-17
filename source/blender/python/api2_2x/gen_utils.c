@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: gen_utils.c 11932 2007-09-03 17:28:50Z stiv $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

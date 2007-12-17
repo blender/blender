@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: Constraint.c 12705 2007-11-28 12:42:36Z ton $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

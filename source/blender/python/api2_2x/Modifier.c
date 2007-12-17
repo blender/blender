@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: Modifier.c 12840 2007-12-11 01:58:22Z khughes $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

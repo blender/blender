@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: BGL.c 12267 2007-10-17 09:51:13Z campbellbarton $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

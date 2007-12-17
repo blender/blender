@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: SurfNurb.c 11400 2007-07-28 09:26:53Z campbellbarton $
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or

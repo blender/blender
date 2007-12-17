@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: Library.h 10323 2007-03-21 14:25:31Z stiv $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: BezTriple.c 11241 2007-07-12 11:51:21Z campbellbarton $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

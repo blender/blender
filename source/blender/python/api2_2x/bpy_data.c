@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: bpy_data.c 12056 2007-09-17 06:11:06Z aligorith $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

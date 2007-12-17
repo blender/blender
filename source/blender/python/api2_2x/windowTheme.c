@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: windowTheme.c 12139 2007-09-25 03:31:12Z campbellbarton $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

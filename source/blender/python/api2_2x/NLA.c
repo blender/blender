@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: NLA.c 11907 2007-08-31 18:21:12Z campbellbarton $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

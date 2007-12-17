@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: Ipocurve.h 10943 2007-06-16 12:24:41Z campbellbarton $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

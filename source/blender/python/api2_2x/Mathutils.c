@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: Mathutils.c 11502 2007-08-06 14:27:08Z khughes $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

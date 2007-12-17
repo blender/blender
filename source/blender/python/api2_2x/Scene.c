@@ -1,6 +1,6 @@
 /* 
  *
- * $Id$
+ * $Id: Scene.c 12513 2007-11-07 18:52:23Z joeedh $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

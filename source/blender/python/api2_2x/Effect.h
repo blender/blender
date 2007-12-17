@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: Effect.h 5817 2005-11-17 19:19:05Z khughes $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

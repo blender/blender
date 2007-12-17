@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: Object.c 12801 2007-12-05 21:50:23Z blendix $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

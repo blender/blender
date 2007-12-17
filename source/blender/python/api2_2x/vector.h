@@ -1,4 +1,4 @@
-/* $Id$
+/* $Id: vector.h 10313 2007-03-20 12:07:02Z campbellbarton $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

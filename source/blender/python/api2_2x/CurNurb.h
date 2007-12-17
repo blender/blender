@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: CurNurb.h 10269 2007-03-15 01:09:14Z campbellbarton $
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or

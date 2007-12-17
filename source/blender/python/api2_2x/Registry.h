@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: Registry.h 3209 2004-10-07 19:25:40Z stiv $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

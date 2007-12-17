@@ -1,5 +1,5 @@
 /**
- * $Id$
+ * $Id: Library.c 10943 2007-06-16 12:24:41Z campbellbarton $
  *
  * Blender.Library BPython module implementation.
  * This submodule has functions to append data from .blend files.

@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: Text.h 10136 2007-02-25 01:07:28Z campbellbarton $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

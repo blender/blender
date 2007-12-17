@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: bpy.h 10546 2007-04-18 14:40:01Z campbellbarton $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: rgbTuple.c 11713 2007-08-19 19:06:42Z campbellbarton $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

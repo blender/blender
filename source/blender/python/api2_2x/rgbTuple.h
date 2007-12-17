@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: rgbTuple.h 5317 2005-09-21 19:48:40Z stiv $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

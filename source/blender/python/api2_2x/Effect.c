@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: Effect.c 11485 2007-08-05 09:21:29Z aligorith $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

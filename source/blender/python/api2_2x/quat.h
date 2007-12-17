@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: quat.h 8367 2006-08-22 09:13:44Z campbellbarton $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

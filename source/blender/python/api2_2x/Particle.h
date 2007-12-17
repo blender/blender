@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: Particle.h 5702 2005-11-04 20:34:38Z khughes $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

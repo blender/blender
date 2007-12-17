@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: bpy.c 10550 2007-04-18 22:53:20Z campbellbarton $
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or

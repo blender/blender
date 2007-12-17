@@ -1,5 +1,5 @@
 /*
- * $Id$
+ * $Id: Particle.c 10279 2007-03-16 11:38:02Z campbellbarton $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

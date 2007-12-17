@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: Group.h 11864 2007-08-28 10:07:08Z sirdude $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: constant.h 7089 2006-03-18 15:23:02Z campbellbarton $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

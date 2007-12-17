@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: Metaball.c 11136 2007-07-01 05:41:23Z campbellbarton $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

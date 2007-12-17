@@ -37,7 +37,6 @@
 #include "BKE_bad_level_calls.h"
 #include "BLI_blenlib.h"
 #include "BPI_script.h"
-#include "DNA_ID.h"
 #include "DNA_texture_types.h"
 #include "DNA_material_types.h"
 #include "DNA_node_types.h"
@@ -137,14 +136,6 @@ void BPY_pyconstraint_eval(struct bPythonConstraint *con, struct bConstraintOb *
 void BPY_pyconstraint_target(struct bPythonConstraint *con, struct bConstraintTarget *ct)
 {
 }
-/* Py ID Hash*/
-void BPY_idhash_add(void *value){}
-void *BPY_idhash_get(ID *id){}
-void BPY_idhash_remove(ID *id)
-{
-	return 0;
-}
-void BPY_idhash_invalidate(ID *id){}
 
 
 /* writefile.c */

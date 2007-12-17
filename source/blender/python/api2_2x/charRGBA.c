@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: charRGBA.c 10782 2007-05-26 04:39:31Z campbellbarton $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *

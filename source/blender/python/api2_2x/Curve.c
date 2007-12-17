@@ -1,5 +1,5 @@
 /* 
- * $Id$
+ * $Id: Curve.c 12752 2007-12-01 23:25:00Z campbellbarton $
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
