@@ -269,6 +269,11 @@ void sculptmode_free_all(Scene *sce)
 
 	sculptmode_free_session(sce);
 
+	if(projverts) {
+		MEM_freeN(projverts);
+		projverts = NULL;
+	}
+
 	for(a=0; a<MAX_MTEX; a++) {
 		MTex *mtex= sd->mtex[a];
 		if(mtex) {
@@ -1563,8 +1568,9 @@ void sculptmode_update_all_projverts(float *vertcosnos)
 	Mesh *me= get_mesh(OBACT);
 	unsigned i;
 
-	if(projverts) MEM_freeN(projverts);
-	projverts= MEM_mallocN(sizeof(ProjVert)*me->totvert,"ProjVerts");
+	if(!projverts)
+		projverts = MEM_mallocN(sizeof(ProjVert)*me->totvert,"ProjVerts");
+
 	for(i=0; i<me->totvert; ++i) {
 		project(vertcosnos ? &vertcosnos[i * 6] : me->mvert[i].co, projverts[i].co);
 		projverts[i].inside= 0;
@@ -1708,9 +1714,12 @@ void sculpt(void)
 	ss->vertexcosnos = NULL;
 
 	/* Check that vertex users are up-to-date */
-	if(ob != active_ob || ss->vertex_users_size != get_mesh(ob)->totvert) {
+	if(ob != active_ob || !ss->vertex_users || ss->vertex_users_size != get_mesh(ob)->totvert) {
 		sculptmode_free_vertexusers(ss);
 		calc_vertex_users();
+		if(projverts)
+			MEM_freeN(projverts);
+		projverts = NULL;
 		active_ob= ob;
 	}
 		
@@ -1721,9 +1730,6 @@ void sculpt(void)
 	
 	getmouseco_areawin(mvalo);
 
-	/* Make sure sculptdata has been init'd properly */
-	if(!ss->vertex_users) calc_vertex_users();
-	
 	/* Init texture
 	   FIXME: Shouldn't be doing this every time! */
 	if(sd->texrept!=SCULPTREPT_3D)
@@ -1859,8 +1865,6 @@ void sculpt(void)
 		BLI_freelistN(&ss->damaged_rects);
 	}
 
-	if(projverts) MEM_freeN(projverts);
-	projverts= NULL;
 	if(e.layer_disps) MEM_freeN(e.layer_disps);
 	if(e.layer_store) MEM_freeN(e.layer_store);
 	/* Free GrabData */
