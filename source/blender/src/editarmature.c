@@ -261,7 +261,7 @@ void editbones_to_armature (ListBase *list, Object *ob)
 				if (fBone->parent==eBone)
 					fBone->parent= eBone->parent;
 			}
-			printf("Warning; removed zero sized bone: %s\n", eBone->name);
+			printf("Warning: removed zero sized bone: %s\n", eBone->name);
 			BLI_freelinkN (list, eBone);
 		}
 	}
