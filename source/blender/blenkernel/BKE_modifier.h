@@ -292,6 +292,7 @@ struct Object *modifiers_isDeformedByArmature(struct Object *ob);
 struct Object *modifiers_isDeformedByLattice(struct Object *ob);
 int           modifiers_usesArmature(struct Object *ob, struct bArmature *arm);
 int           modifiers_isDeformed(struct Object *ob);
+void          modifier_freeTemporaryData(struct ModifierData *md);
 
 int           modifiers_indexInObject(struct Object *ob, struct ModifierData *md);
 

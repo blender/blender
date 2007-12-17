@@ -1877,7 +1877,7 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
                                 int needMapping, CustomDataMask dataMask)
 {
 	Mesh *me = ob->data;
-	ModifierData *md = modifiers_getVirtualModifierList(ob);
+	ModifierData *firstmd, *md;
 	LinkNode *datamasks, *curr;
 	CustomDataMask mask;
 	float (*deformedVerts)[3] = NULL;
@@ -1885,6 +1885,8 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 	int numVerts = me->totvert;
 	int fluidsimMeshUsed = 0;
 	int required_mode;
+
+	md = firstmd = modifiers_getVirtualModifierList(ob);
 
 	modifiers_clearErrors(ob);
 
@@ -2096,6 +2098,9 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 			} 
 		}
 	}
+
+	for(md=first; md; md=md->next)
+		modifier_freeTemporaryData(md);
 
 	/* Yay, we are done. If we have a DerivedMesh and deformed vertices
 	 * need to apply these back onto the DerivedMesh. If we have no
