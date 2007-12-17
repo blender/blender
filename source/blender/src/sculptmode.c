@@ -176,6 +176,7 @@ SculptData *sculpt_data(void)
 
 void sculpt_init_session(void);
 void init_editdata(EditData *e, short *, short *);
+void sculpt_undo_push(const short);
 
 SculptSession *sculpt_session(void)
 {
@@ -883,7 +884,7 @@ float tex_strength(EditData *e, float *point, const float len,const unsigned vin
 /* Mark area around the brush as damaged. projverts are marked if they are
    inside the area and the damaged rectangle in 2D screen coordinates is 
    added to damaged_rects. */
-void sculptmode_add_damaged_rect(EditData *e)
+void sculpt_add_damaged_rect(EditData *e)
 {
 	short p[2];
 	const float radius= brush_size();
@@ -911,6 +912,36 @@ void sculptmode_add_damaged_rect(EditData *e)
 	}
 }
 
+/* Clears the depth buffer in each modified area. */
+void sculpt_clear_damaged_areas(SculptSession *ss)
+{
+	RectNode *rn= NULL;
+
+	for(rn = ss->damaged_rects.first; rn; rn = rn->next) {
+		rcti clp = rn->r;
+		rcti *win = &curarea->winrct;
+		
+		clp.xmin += win->xmin;
+		clp.xmax += win->xmin;
+		clp.ymin += win->ymin;
+		clp.ymax += win->ymin;
+		
+		if(clp.xmin < win->xmax && clp.xmax > win->xmin &&
+		   clp.ymin < win->ymax && clp.ymax > win->ymin) {
+			if(clp.xmin < win->xmin) clp.xmin = win->xmin;
+			if(clp.ymin < win->ymin) clp.ymin = win->ymin;
+			if(clp.xmax > win->xmax) clp.xmax = win->xmax;
+			if(clp.ymax > win->ymax) clp.ymax = win->ymax;
+
+			glScissor(clp.xmin + 1, clp.ymin + 1,
+				  clp.xmax - clp.xmin - 2,
+				  clp.ymax - clp.ymin - 2);
+		}
+		
+		glClear(GL_DEPTH_BUFFER_BIT);
+	}
+}
+
 void do_brush_action(EditData e)
 {
 	int i;
@@ -923,7 +954,7 @@ void do_brush_action(EditData e)
 	KeyBlock *keyblock= ob_get_keyblock(OBACT);
 	SculptSession *ss = sculpt_session();
 
-	sculptmode_add_damaged_rect(&e);
+	sculpt_add_damaged_rect(&e);
 
 	/* Build a list of all vertices that are potentially within the brush's
 	   area of influence. Only do this once for the grab brush. */
@@ -1650,7 +1681,6 @@ void sculpt(void)
 	short mouse[2], mvalo[2], lastSigMouse[2],firsttime=1, mousebut;
 	short modifier_calculations= 0;
 	EditData e;
-	RectNode *rn= NULL;
 	short spacing= 32000;
 	int scissor_box[4];
 	float offsetRot;
@@ -1784,28 +1814,7 @@ void sculpt(void)
 				/* Draw the stored image to the screen */
 				glAccum(GL_RETURN, 1);
 
-				/* Clear each of the area(s) modified by the brush */
-				for(rn=ss->damaged_rects.first; rn; rn= rn->next) {
-					rcti clp= rn->r;
-					rcti *win= &curarea->winrct;
-					
-					clp.xmin+= win->xmin;
-					clp.xmax+= win->xmin;
-					clp.ymin+= win->ymin;
-					clp.ymax+= win->ymin;
-					
-					if(clp.xmin<win->xmax && clp.xmax>win->xmin &&
-					   clp.ymin<win->ymax && clp.ymax>win->ymin) {
-						if(clp.xmin<win->xmin) clp.xmin= win->xmin;
-						if(clp.ymin<win->ymin) clp.ymin= win->ymin;
-						if(clp.xmax>win->xmax) clp.xmax= win->xmax;
-						if(clp.ymax>win->ymax) clp.ymax= win->ymax;
-						glScissor(clp.xmin+1, clp.ymin+1,
-							  clp.xmax-clp.xmin-2,clp.ymax-clp.ymin-2);
-					}
-					
-					glClear(GL_DEPTH_BUFFER_BIT);
-				}
+				sculpt_clear_damaged_areas(ss);
 				
 				/* Draw all the polygons that are inside the modified area(s) */
 				glScissor(scissor_box[0], scissor_box[1], scissor_box[2], scissor_box[3]);
@@ -1863,7 +1872,16 @@ void sculpt(void)
 	}
 	sculpt_stroke_free();
 
-	switch(G.scene->sculptdata.brush_type) {
+	sculpt_undo_push(G.scene->sculptdata.brush_type);
+
+	if(G.vd->depths) G.vd->depths->damaged= 1;
+	
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+void sculpt_undo_push(const short brush_type)
+{
+	switch(brush_type) {
 	case DRAW_BRUSH:
 		BIF_undo_push("Draw Brush"); break;
 	case SMOOTH_BRUSH:
@@ -1881,10 +1899,6 @@ void sculpt(void)
 	default:
 		BIF_undo_push("Sculpting"); break;
 	}
-
-	if(G.vd->depths) G.vd->depths->damaged= 1;
-	
-	allqueue(REDRAWVIEW3D, 0);
 }
 
 void set_sculptmode(void)
