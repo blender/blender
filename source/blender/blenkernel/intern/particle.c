@@ -691,12 +691,13 @@ int psys_particle_dm_face_lookup(Object *ob, DerivedMesh *dm, int index, float *
 #define PARTICLE_ERROR(_nor, _vec) _vec[0]=_vec[1]=_vec[2]=0.0; if(_nor){ _nor[0]=_nor[1]=0.0; _nor[2]=1.0; }
 void psys_particle_on_dm(Object *ob, DerivedMesh *dm, int from, int index, int index_dmcache, float *fw, float foffset, float *vec, float *nor, float *utan, float *vtan, float *orco, float *ornor)
 {
-	float (*orcodata)[3] = dm->getVertDataArray(dm, CD_ORCO);
+	float (*orcodata)[3];
 
 	if(index < 0){ /* 'no dm' error has happened! */
 		PARTICLE_ERROR(nor, vec);
 		return;
 	}
+	orcodata= dm->getVertDataArray(dm, CD_ORCO);
 
 	if (dm->deformedOnly || index_dmcache == DMCACHE_ISCHILD) {
 		/* this works for meshes with deform verts only - constructive modifiers wont work properly*/
