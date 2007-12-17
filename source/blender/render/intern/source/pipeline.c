@@ -1251,7 +1251,6 @@ static void render_tile_processor(Render *re, int firsttile)
 	}
 	
 	freeparts(re);
-	R.strandbuckets= NULL;
 }
 
 /* calculus for how much 1 pixel rendered should rotate the 3d geometry */
@@ -1485,7 +1484,6 @@ static void threaded_tile_processor(Render *re)
 	BLI_end_threads(&threads);
 	freeparts(re);
 	re->viewplane= viewplane; /* restore viewplane, modified by pano render */
-	R.strandbuckets= NULL;
 }
 
 /* currently only called by preview renders and envmap */

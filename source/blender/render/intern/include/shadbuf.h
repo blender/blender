@@ -46,6 +46,8 @@ struct ObjectRen;
 void makeshadowbuf(struct Render *re, LampRen *lar);
 void freeshadowbuf(struct LampRen *lar);
 
+void threaded_makeshadowbufs(struct Render *re);
+
 /**
  * Determines the shadow factor for a face and lamp. There is some
  * communication with global variables here.

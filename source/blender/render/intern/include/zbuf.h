@@ -91,6 +91,8 @@ typedef struct ZSpan {
 	float shad_alpha;						/* copy from material, used by irregular shadbuf */
 	int mask, apsmcounter;					/* in use by apixbuf */
 
+	float clipcrop;							/* for shadow, was in R global before */
+
 	void *sss_handle;						/* used by sss */
 	void (*sss_func)(void *, int, int, int, int, int);
 	
@@ -108,7 +110,7 @@ void zspan_scanconvert(struct ZSpan *zpan, void *handle, float *v1, float *v2, f
 
 /* exported to edge render... */
 void zbufclip(struct ZSpan *zspan, int obi, int zvlnr, float *f1, float *f2, float *f3, int c1, int c2, int c3);
-void zbuf_alloc_span(struct ZSpan *zspan, int rectx, int recty);
+void zbuf_alloc_span(struct ZSpan *zspan, int rectx, int recty, float clipcrop);
 void zbufclipwire(struct ZSpan *zspan, int obi, int zvlnr, int ec, float *ho1, float *ho2, float *ho3, float *ho4, int c1, int c2, int c3, int c4);
 
 /* exported to shadeinput.c */

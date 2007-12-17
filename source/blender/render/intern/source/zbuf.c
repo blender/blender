@@ -84,7 +84,7 @@ extern struct Render R;
 /* ****************** Spans ******************************* */
 
 /* each zbuffer has coordinates transformed to local rect coordinates, so we can simply clip */
-void zbuf_alloc_span(ZSpan *zspan, int rectx, int recty)
+void zbuf_alloc_span(ZSpan *zspan, int rectx, int recty, float clipcrop)
 {
 	memset(zspan, 0, sizeof(ZSpan));
 	
@@ -93,6 +93,8 @@ void zbuf_alloc_span(ZSpan *zspan, int rectx, int recty)
 	
 	zspan->span1= MEM_mallocN(recty*sizeof(float), "zspan");
 	zspan->span2= MEM_mallocN(recty*sizeof(float), "zspan");
+
+	zspan->clipcrop= clipcrop;
 }
 
 void zbuf_free_span(ZSpan *zspan)
@@ -1550,7 +1552,7 @@ void zspan_scanconvert(ZSpan *zspan, void *handle, float *v1, float *v2, float *
  * @param a index for coordinate (x, y, or z)
  */
 
-static void clippyra(float *labda, float *v1, float *v2, int *b2, int *b3, int a)
+static void clippyra(float *labda, float *v1, float *v2, int *b2, int *b3, int a, float clipcrop)
 {
 	float da,dw,u1=0.0,u2=1.0;
 	float v13;
@@ -1566,9 +1568,8 @@ static void clippyra(float *labda, float *v1, float *v2, int *b2, int *b3, int a
 		v13= v1[3];
 	}
 	else {
-		/* XXXXX EVIL! this is a R global, whilst this function can be called for shadow, before R was set */
-		dw= R.clipcrop*(v2[3]-v1[3]);
-		v13= R.clipcrop*v1[3];
+		dw= clipcrop*(v2[3]-v1[3]);
+		v13= clipcrop*v1[3];
 	}	
 	/* according the original article by Liang&Barsky, for clipping of
 	 * homogenous coordinates with viewplane, the value of "0" is used instead of "-w" .
@@ -1826,9 +1827,9 @@ void zbufclip(ZSpan *zspan, int obi, int zvlnr, float *f1, float *f2, float *f3,
 							else if (b==1) arg= 0;
 							else arg= 1;
 							
-							clippyra(labda[0], vlzp[v][0],vlzp[v][1], &b2,&b3, arg);
-							clippyra(labda[1], vlzp[v][1],vlzp[v][2], &b2,&b3, arg);
-							clippyra(labda[2], vlzp[v][2],vlzp[v][0], &b2,&b3, arg);
+							clippyra(labda[0], vlzp[v][0],vlzp[v][1], &b2,&b3, arg, zspan->clipcrop);
+							clippyra(labda[1], vlzp[v][1],vlzp[v][2], &b2,&b3, arg, zspan->clipcrop);
+							clippyra(labda[2], vlzp[v][2],vlzp[v][0], &b2,&b3, arg, zspan->clipcrop);
 
 							if(b2==0 && b3==1) {
 								/* completely 'in', but we copy because of last for() loop in this section */;
@@ -1944,7 +1945,7 @@ void zbuffer_solid(RenderPart *pa, unsigned int lay, short layflag, void(*fillfu
 		zspan= &zspans[zsample];
 
 		zbuffer_part_bounds(&R, pa, bounds);
-		zbuf_alloc_span(zspan, pa->rectx, pa->recty);
+		zbuf_alloc_span(zspan, pa->rectx, pa->recty, R.clipcrop);
 		
 		/* needed for transform from hoco to zbuffer co */
 		zspan->zmulx= ((float)R.winx)/2.0;
@@ -2142,10 +2143,8 @@ void RE_zbufferall_radio(struct RadView *vw, RNode **rg_elem, int rg_totelem, Re
 	/* needed for projectvert */
 	MTC_Mat4MulMat4(winmat, vw->viewmat, vw->winmat);
 
-	/* for clipping... bad stuff actually */
-	R.clipcrop= 1.0f;
-	
-	zbuf_alloc_span(&zspan, vw->rectx, vw->recty);
+	/* 1.0f for clipping in clippyra()... bad stuff actually */
+	zbuf_alloc_span(&zspan, vw->rectx, vw->recty, 1.0f);
 	zspan.zmulx=  ((float)vw->rectx)/2.0;
 	zspan.zmuly=  ((float)vw->recty)/2.0;
 	zspan.zofsx= -0.5f;
@@ -2249,7 +2248,8 @@ void zbuffer_shadow(Render *re, float winmat[][4], LampRen *lar, int *rectz, int
 
 	if(lar->mode & LA_LAYER) lay= lar->lay;
 
-	zbuf_alloc_span(&zspan, size, size);
+	/* 1.0f for clipping in clippyra()... bad stuff actually */
+	zbuf_alloc_span(&zspan, size, size, 1.0f);
 	zspan.zmulx=  ((float)size)/2.0;
 	zspan.zmuly=  ((float)size)/2.0;
 	zspan.zofsx= jitx;
@@ -2315,6 +2315,9 @@ void zbuffer_shadow(Render *re, float winmat[][4], LampRen *lar, int *rectz, int
 						zbufclip(&zspan, 0, 0, ho1, ho2, ho3, c1, c2, c3);
 				}
 			}
+
+			if((a & 255)==255 && re->test_break()) 
+				break;
 		}
 
 		/* strands */
@@ -2345,16 +2348,22 @@ void zbuffer_shadow(Render *re, float winmat[][4], LampRen *lar, int *rectz, int
 					sseg.v[2]= svert+1;
 					sseg.v[3]= (b < strand->totvert-2)? svert+2: svert+1;
 
-					c1= zbuf_shadow_project(cache, strand->vert-sseg.v[0], obwinmat, sseg.v[0]->co, ho1);
-					c2= zbuf_shadow_project(cache, strand->vert-sseg.v[1], obwinmat, sseg.v[1]->co, ho2);
-					c3= zbuf_shadow_project(cache, strand->vert-sseg.v[2], obwinmat, sseg.v[2]->co, ho3);
-					c4= zbuf_shadow_project(cache, strand->vert-sseg.v[3], obwinmat, sseg.v[3]->co, ho4);
+					c1= zbuf_shadow_project(cache, sseg.v[0]-strand->vert, obwinmat, sseg.v[0]->co, ho1);
+					c2= zbuf_shadow_project(cache, sseg.v[1]-strand->vert, obwinmat, sseg.v[1]->co, ho2);
+					c3= zbuf_shadow_project(cache, sseg.v[2]-strand->vert, obwinmat, sseg.v[2]->co, ho3);
+					c4= zbuf_shadow_project(cache, sseg.v[3]-strand->vert, obwinmat, sseg.v[3]->co, ho4);
 
 					if(!(c1 & c2 & c3 & c4))
 						render_strand_segment(NULL, winmat, NULL, &zspan, &sseg);
 				}
 			}
+
+			if((a & 255)==255 && re->test_break()) 
+				break;
 		}
+
+		if(re->test_break()) 
+			break;
 	}
 	
 	/* merge buffers */
@@ -2455,7 +2464,7 @@ void zbuffer_sss(RenderPart *pa, unsigned int lay, void *handle, void (*func)(vo
 	short nofill=0, env=0, wire=0;
 	
 	zbuffer_part_bounds(&R, pa, bounds);
-	zbuf_alloc_span(&zspan, pa->rectx, pa->recty);
+	zbuf_alloc_span(&zspan, pa->rectx, pa->recty, R.clipcrop);
 
 	zspan.sss_handle= handle;
 	zspan.sss_func= func;
@@ -2766,7 +2775,7 @@ void RE_zbuf_accumulate_vecblur(NodeBlurData *nbd, int xsize, int ysize, float *
 	static int firsttime= 1;
 	char *rectmove, *dm;
 	
-	zbuf_alloc_span(&zspan, xsize, ysize);
+	zbuf_alloc_span(&zspan, xsize, ysize, 1.0f);
 	zspan.zmulx=  ((float)xsize)/2.0;
 	zspan.zmuly=  ((float)ysize)/2.0;
 	zspan.zofsx= 0.0f;
@@ -3096,7 +3105,7 @@ static int zbuffer_abuf(RenderPart *pa, APixstr *APixbuf, ListBase *apsmbase, un
 	for(zsample=0; zsample<samples; zsample++) {
 		zspan= &zspans[zsample];
 
-		zbuf_alloc_span(zspan, pa->rectx, pa->recty);
+		zbuf_alloc_span(zspan, pa->rectx, pa->recty, R.clipcrop);
 		
 		/* needed for transform from hoco to zbuffer co */
 		zspan->zmulx=  ((float)R.winx)/2.0;

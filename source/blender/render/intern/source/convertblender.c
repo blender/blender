@@ -4209,7 +4209,6 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 	database_init_objects(re, lay, 0, 0, 0, 0);
 
 	if(!re->test_break()) {
-		LampRen *lar;
 		int tothalo;
 
 		set_material_lightgroups(re);
@@ -4237,13 +4236,7 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 		re->stats_draw(&re->i);
 
 		/* SHADOW BUFFER */
-		for(lar=re->lampren.first; lar; lar= lar->next) {
-			if(re->test_break()) break;
-			if(lar->shb) {
-				/* if type is irregular, this only sets the perspective matrix and autoclips */
-				makeshadowbuf(re, lar);
-			}
-		}
+		threaded_makeshadowbufs(re);
 		
 		/* yafray: 'direct' radiosity, environment maps and raytree init not needed for yafray render */
 		/* although radio mode could be useful at some point, later */
@@ -4767,22 +4760,10 @@ void RE_Database_Baking(Render *re, Scene *scene, int type, Object *actob)
 
 	set_material_lightgroups(re);
 	
-	if(type!=RE_BAKE_LIGHT) {
-		if(re->r.mode & R_SHADOW) {
-			LampRen *lar;
-			
-			/* SHADOW BUFFER */
-			for(lar=re->lampren.first; lar; lar= lar->next) {
-				
-				if(re->test_break()) break;
-				if(lar->shb) {
-					/* if type is irregular, this only sets the perspective matrix and autoclips */
-					/* but, that's not supported for bake... */
-					makeshadowbuf(re, lar);
-				}
-			}
-		}
-	}
+	/* SHADOW BUFFER */
+	if(type!=RE_BAKE_LIGHT)
+		if(re->r.mode & R_SHADOW)
+			threaded_makeshadowbufs(re);
 
 	/* raytree */
 	if(!re->test_break())

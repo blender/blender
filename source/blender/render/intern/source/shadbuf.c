@@ -42,6 +42,8 @@
 #include "BLI_memarena.h"
 #include "BLI_rand.h"
 
+#include "PIL_time.h"
+
 #include "renderpipeline.h"
 #include "render_types.h"
 #include "renderdatabase.h"
@@ -379,9 +381,6 @@ void makeshadowbuf(Render *re, LampRen *lar)
 	float wsize, *jitbuf, twozero[2]= {0.0f, 0.0f}, angle, temp;
 	int *rectz, samples;
 	
-	/* XXXX EVIL! this global is used in clippyra(), zbuf.c */
-	R.clipcrop= 1.0f;
-	
 	if(lar->bufflag & (LA_SHADBUF_AUTO_START|LA_SHADBUF_AUTO_END))
 		shadowbuf_autoclip(re, lar);
 	
@@ -402,8 +401,10 @@ void makeshadowbuf(Render *re, LampRen *lar)
 
 	if(ELEM(lar->buftype, LA_SHADBUF_REGULAR, LA_SHADBUF_HALFWAY)) {
 		/* jitter, weights - not threadsafe! */
+		BLI_lock_thread(LOCK_CUSTOM1);
 		shb->jit= give_jitter_tab(shb->samp);
 		make_jitter_weight_tab(shb, lar->filtertype);
+		BLI_unlock_thread(LOCK_CUSTOM1);
 		
 		shb->totbuf= lar->buffers;
 		if(shb->totbuf==4) jitbuf= give_jitter_tab(2);
@@ -417,11 +418,111 @@ void makeshadowbuf(Render *re, LampRen *lar)
 			zbuffer_shadow(re, shb->persmat, lar, rectz, shb->size, jitbuf[2*samples], jitbuf[2*samples+1]);
 			/* create Z tiles (for compression): this system is 24 bits!!! */
 			compress_shadowbuf(shb, rectz, lar->mode & LA_SQUARE);
+
+			if(re->test_break())
+				break;
 		}
 		
 		MEM_freeN(rectz);
 
 		/* printf("lampbuf %d\n", sizeoflampbuf(shb)); */
+	}
+}
+
+static void *do_shadow_thread(void *re_v)
+{
+	Render *re= (Render*)re_v;
+	LampRen *lar;
+
+	do {
+		BLI_lock_thread(LOCK_CUSTOM1);
+		for(lar=re->lampren.first; lar; lar=lar->next) {
+			if(lar->shb && !lar->thread_assigned) {
+				lar->thread_assigned= 1;
+				break;
+			}
+		}
+		BLI_unlock_thread(LOCK_CUSTOM1);
+
+		/* if type is irregular, this only sets the perspective matrix and autoclips */
+		if(lar) {
+			makeshadowbuf(re, lar);
+			BLI_lock_thread(LOCK_CUSTOM1);
+			lar->thread_ready= 1;
+			BLI_unlock_thread(LOCK_CUSTOM1);
+		}
+	} while(lar && !re->test_break());
+
+	return NULL;
+}
+
+static volatile int g_break= 0;
+static int thread_break(void)
+{
+	return g_break;
+}
+
+void threaded_makeshadowbufs(Render *re)
+{
+	ListBase threads;
+	LampRen *lar;
+	int a, totthread= 0;
+	int (*test_break)(void);
+
+	/* count number of threads to use */
+	if(G.rendering) {
+		for(lar=re->lampren.first; lar; lar= lar->next)
+			if(lar->shb)
+				totthread++;
+		
+		totthread= MIN2(totthread, re->r.threads);
+	}
+	else
+		totthread= 1; /* preview render */
+
+	if(totthread <= 1) {
+		for(lar=re->lampren.first; lar; lar= lar->next) {
+			if(re->test_break()) break;
+			if(lar->shb) {
+				/* if type is irregular, this only sets the perspective matrix and autoclips */
+				makeshadowbuf(re, lar);
+			}
+		}
+	}
+	else {
+		/* swap test break function */
+		test_break= re->test_break;
+		re->test_break= thread_break;
+
+		for(lar=re->lampren.first; lar; lar= lar->next) {
+			lar->thread_assigned= 0;
+			lar->thread_ready= 0;
+		}
+
+		BLI_init_threads(&threads, do_shadow_thread, totthread);
+		
+		for(a=0; a<totthread; a++)
+			BLI_insert_thread(&threads, re);
+
+		/* keep rendering as long as there are shadow buffers not ready */
+		do {
+			if((g_break=test_break()))
+				break;
+
+			PIL_sleep_ms(50);
+
+			BLI_lock_thread(LOCK_CUSTOM1);
+			for(lar=re->lampren.first; lar; lar= lar->next)
+				if(lar->shb && !lar->thread_ready)
+					break;
+			BLI_unlock_thread(LOCK_CUSTOM1);
+		} while(lar);
+	
+		BLI_end_threads(&threads);
+
+		/* unset threadsafety */
+		re->test_break= test_break;
+		g_break= 0;
 	}
 }
 
@@ -1413,7 +1514,7 @@ static void isb_bsp_fillfaces(Render *re, LampRen *lar, ISBBranch *root)
 	if(lar->mode & LA_LAYER) lay= lar->lay;
 	
 	/* (ab)use zspan, since we use zbuffer clipping code */
-	zbuf_alloc_span(&zspan, size, size);
+	zbuf_alloc_span(&zspan, size, size, re->clipcrop);
 	
 	zspan.zmulx=  ((float)size)/2.0f;
 	zspan.zmuly=  ((float)size)/2.0f;

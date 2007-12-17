@@ -2090,7 +2090,7 @@ static void shade_tface(BakeShade *bs)
 		bs->ibuf= BKE_image_get_ibuf(ima, NULL);
 		/* note, these calls only free/fill contents of zspan struct, not zspan itself */
 		zbuf_free_span(bs->zspan);
-		zbuf_alloc_span(bs->zspan, bs->ibuf->x, bs->ibuf->y);
+		zbuf_alloc_span(bs->zspan, bs->ibuf->x, bs->ibuf->y, R.clipcrop);
 	}				
 	
 	bs->rectx= bs->ibuf->x;

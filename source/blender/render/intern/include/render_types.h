@@ -446,6 +446,10 @@ typedef struct LampRen {
 	ObjectInstanceRen *obi_last[BLENDER_MAX_THREADS];
 	
 	struct MTex *mtex[MAX_MTEX];
+
+	/* threading */
+	int thread_assigned;
+	int thread_ready;
 } LampRen;
 
 /* **************** defines ********************* */

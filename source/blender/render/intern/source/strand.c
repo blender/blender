@@ -965,7 +965,7 @@ unsigned short *zbuffer_strands_shade(Render *re, RenderPart *pa, RenderLayer *r
 	spart.ssamp2.tot= 1;
 	spart.ssamp.tot= 1;
 
-	zbuf_alloc_span(&zspan, pa->rectx, pa->recty);
+	zbuf_alloc_span(&zspan, pa->rectx, pa->recty, re->clipcrop);
 
 	/* needed for transform from hoco to zbuffer co */
 	zspan.zmulx= ((float)re->winx)/2.0;
