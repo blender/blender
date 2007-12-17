@@ -494,6 +494,7 @@ void psys_thread_distribute_particle(ParticleThread *thread, ParticleData *pa, C
 			int w, maxw;
 
 			psys_particle_on_dm(ctx->ob,ctx->dm,from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co1,0,0,0,orco1,0);
+			transform_mesh_orco_verts((Mesh*)ob->data, &orco1, 1, 1);
 			maxw = BLI_kdtree_find_n_nearest(ctx->tree,3,orco1,NULL,ptn);
 
 			for(w=0; w<maxw; w++){
@@ -633,6 +634,7 @@ void psys_thread_distribute_particle(ParticleThread *thread, ParticleData *pa, C
 			do_seams= (part->flag&PART_CHILD_SEAMS && ctx->seams);
 
 			psys_particle_on_dm(ob,dm,cfrom,cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,co1,nor1,0,0,orco1,ornor1);
+			transform_mesh_orco_verts((Mesh*)ob->data, &orco1, 1, 1);
 			maxw = BLI_kdtree_find_n_nearest(ctx->tree,(do_seams)?10:4,orco1,ornor1,ptn);
 
 			maxd=ptn[maxw-1].dist;
@@ -820,6 +822,7 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 
 			for(p=0,pa=psys->particles; p<totpart; p++,pa++){
 				psys_particle_on_dm(ob,dm,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,nor,0,0,orco,ornor);
+				transform_mesh_orco_verts((Mesh*)ob->data, &orco, 1, 1);
 				BLI_kdtree_insert(tree, p, orco, ornor);
 			}
 
@@ -923,8 +926,10 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 			tree=BLI_kdtree_new(totvert);
 
 			for(p=0; p<totvert; p++){
-				if(orcodata)
+				if(orcodata) {
 					VECCOPY(co,orcodata[p])
+					transform_mesh_orco_verts((Mesh*)ob->data, &co, 1, 1);
+				}
 				else
 					VECCOPY(co,mv[p].co)
 				BLI_kdtree_insert(tree,p,co,NULL);
@@ -990,7 +995,8 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 
 	/* 2.1 */
 	if((part->flag&PART_EDISTR || children) && ELEM(from,PART_FROM_PARTICLE,PART_FROM_VERT)==0){
-		float totarea=0.0, *co1, *co2, *co3, *co4;
+		MVert *v1, *v2, *v3, *v4;
+		float totarea=0.0, co1[3], co2[3], co3[3], co4[3];
 		float (*orcodata)[3];
 		
 		orcodata= dm->getVertDataArray(dm, CD_ORCO);
@@ -999,21 +1005,31 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 			MFace *mf=dm->getFaceData(dm,i,CD_MFACE);
 
 			if(orcodata) {
-				co1= orcodata[mf->v1];
-				co2= orcodata[mf->v2];
-				co3= orcodata[mf->v3];
+				VECCOPY(co1, orcodata[mf->v1]);
+				VECCOPY(co2, orcodata[mf->v2]);
+				VECCOPY(co3, orcodata[mf->v3]);
+				transform_mesh_orco_verts((Mesh*)ob->data, &co1, 1, 1);
+				transform_mesh_orco_verts((Mesh*)ob->data, &co2, 1, 1);
+				transform_mesh_orco_verts((Mesh*)ob->data, &co3, 1, 1);
 			}
 			else {
-				co1= ((MVert*)dm->getVertData(dm,mf->v1,CD_MVERT))->co;
-				co2= ((MVert*)dm->getVertData(dm,mf->v2,CD_MVERT))->co;
-				co3= ((MVert*)dm->getVertData(dm,mf->v3,CD_MVERT))->co;
+				v1= (MVert*)dm->getVertData(dm,mf->v1,CD_MVERT);
+				v2= (MVert*)dm->getVertData(dm,mf->v2,CD_MVERT);
+				v3= (MVert*)dm->getVertData(dm,mf->v3,CD_MVERT);
+				VECCOPY(co1, v1->co);
+				VECCOPY(co2, v2->co);
+				VECCOPY(co3, v3->co);
 			}
 
 			if (mf->v4){
-				if(orcodata)
-					co4= orcodata[mf->v4];
-				else
-					co4= ((MVert*)dm->getVertData(dm,mf->v4,CD_MVERT))->co;
+				if(orcodata) {
+					VECCOPY(co4, orcodata[mf->v4]);
+					transform_mesh_orco_verts((Mesh*)ob->data, &co4, 1, 1);
+				}
+				else {
+					v4= (MVert*)dm->getVertData(dm,mf->v4,CD_MVERT);
+					VECCOPY(co4, v4->co);
+				}
 				cur= AreaQ3Dfl(co1, co2, co3, co4);
 			}
 			else
