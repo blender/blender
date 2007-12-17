@@ -4581,6 +4581,6 @@ void particle_system_update(Object *ob, ParticleSystem *psys){
 
 	system_step(ob,psys,psmd,cfra);
 
-	Mat4CpyMat4(psys->imat, ob->imat);	/* used for duplicators */
+	Mat4Invert(psys->imat, ob->obmat);	/* used for duplicators */
 }
 
