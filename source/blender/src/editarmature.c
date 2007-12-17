@@ -1944,6 +1944,7 @@ static void fill_add_joint (EditBone *ebo, short eb_tail, ListBase *points)
 		VECCOPY(vec, ebo->head);
 	}
 	
+	// FIXME: this algorithm sucks... it misses things it shouldn't
 	for (ebp= points->first; ebp; ebp= ebp->next) {
 		if (VecEqual(ebp->vec, vec)) {			
 			if (eb_tail) {
@@ -1955,7 +1956,7 @@ static void fill_add_joint (EditBone *ebo, short eb_tail, ListBase *points)
 				}
 			}
 			else {
-				if ((ebp->tail_owner) && (ebp->tail_owner->parent == ebo)) {
+				if ((ebp->tail_owner) && (ebo->parent == ebp->tail_owner)) {
 					/* so this bone's head owner is this bone */
 					ebp->head_owner= ebo;
 					found = 1;
@@ -1985,31 +1986,20 @@ static void fill_add_joint (EditBone *ebo, short eb_tail, ListBase *points)
 /* bone adding between selected joints */
 void fill_bones_armature(void)
 {
+	bArmature *arm= G.obedit->data;
 	EditBone *ebo, *newbone=NULL;
-	
-	ListBase chains = {NULL, NULL};
-	LinkData *chain;
-	
 	ListBase points = {NULL, NULL};
 	int count;
 	
-	
-	/* get chains */
-	chains_find_tips(&chains);
-	if (chains.first == NULL) return;
-	
-	/* traverse chains to find selected joints */
-	for (chain= chains.first; chain; chain= chain->next) {
-		for (ebo= chain->data; ebo; ebo= ebo->parent) {
-			if (ebo->flag & BONE_ROOTSEL)
+	/* loop over all bones, and only consider if visible */
+	for (ebo= G.edbo.first; ebo; ebo= ebo->next) {
+		if ((arm->layer & ebo->layer) && !(ebo->flag & BONE_HIDDEN_A)) {
+			if (!(ebo->flag & BONE_CONNECTED) && (ebo->flag & BONE_ROOTSEL))
 				fill_add_joint(ebo, 0, &points);
 			if (ebo->flag & BONE_TIPSEL) 
 				fill_add_joint(ebo, 1, &points);
 		}
 	}
-	
-	/* free chains - not needed anymore */
-	BLI_freelistN(&chains);
 	
 	/* the number of joints determines how we fill:
 	 *	1) between joint and cursor (joint=head, cursor=tail)
@@ -2018,7 +2008,11 @@ void fill_bones_armature(void)
 	 */
 	count= BLI_countlist(&points);
 	
-	if (count == 1) {
+	if (count == 0) {
+		error("No joints selected");
+		return;
+	}
+	else if (count == 1) {
 		EditBonePoint *ebp;
 		float curs[3];
 		
@@ -2097,6 +2091,8 @@ void fill_bones_armature(void)
 	else {
 		// FIXME.. figure out a method for multiple bones
 		error("Too many points selected"); 
+		printf("Points selected: %d \n", count);
+		BLI_freelistN(&points);
 		return;
 	}
 	
