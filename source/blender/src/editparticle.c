@@ -2121,7 +2121,7 @@ static void brush_add(Object *ob, ParticleSystem *psys, short *mval, short numbe
 	int i, k, n = 0, totpart = psys->totpart;
 	short dmx = 0, dmy = 0;
 	short mx = mval[0] - curarea->winx / 2, my = mval[1] - curarea->winy / 2;
-	float co1[3], co2[3], vec[4], min_d, imat[4][4], dx, dy;
+	float co1[3], co2[3], vec[4], min_d, imat[4][4];
 	float framestep, timestep = psys_get_timestep(psys->part);
 	short size = pset->brush[PE_BRUSH_ADD].size;
 	short size2 = size*size;
@@ -2151,20 +2151,22 @@ static void brush_add(Object *ob, ParticleSystem *psys, short *mval, short numbe
 		/* create intersection coordinates in view Z direction at mouse coordinates */
 		/* Thanks to who ever wrote the "Mouse Location 3D Space" tutorial in "Blender 3D: Blending Into Python/Cookbook". */
 		if(G.vd->persp){
-			dx = G.vd->persmat[3][3] * (2.0f*(mx+dmx)/curarea->winx) - G.vd->persmat[3][0];
-			dy = G.vd->persmat[3][3] * (2.0f*(my+dmy)/curarea->winy) - G.vd->persmat[3][1];
+			vec[0]= (2.0f*(mx+dmx)/curarea->winx);
+			vec[1]= (2.0f*(my+dmy)/curarea->winy);
+			vec[2]= -1.0f;
+			vec[3]= 1.0f;
 
-			co2[0]=G.vd->persinv[0][0]*dx + G.vd->persinv[1][0]*dy;
-			co2[1]=G.vd->persinv[0][1]*dx + G.vd->persinv[1][1]*dy;
-			co2[2]=G.vd->persinv[0][2]*dx + G.vd->persinv[1][2]*dy;
+			Mat4MulVec4fl(G.vd->persinv, vec);
+			VecMulf(vec, 1.0f/vec[3]);
 
-			VECCOPY(co1,G.vd->viewinv[3]);
+			VECCOPY(co1, G.vd->viewinv[3]);
+			VECSUB(vec, vec, co1);
+			Normalize(vec);
 
-			VECSUB(vec,co2,co1)
-
-			VECADDFAC(co2,co1,vec,1000.0f);
+			VECADDFAC(co1, G.vd->viewinv[3], vec, G.vd->near);
+			VECADDFAC(co2, G.vd->viewinv[3], vec, G.vd->far);
 		}
-		else{
+		else {
 			vec[0] = 2.0f*(mx+dmx)/curarea->winx;
 			vec[1] = 2.0f*(my+dmy)/curarea->winy;
 			vec[2] = 0.0f;
