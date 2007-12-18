@@ -2201,7 +2201,7 @@ void object_handle_update(Object *ob)
 				
 				psys= ob->particlesystem.first;
 				while(psys) {
-					if(psys->flag & PSYS_ENABLED) {
+					if(psys_check_enabled(ob, psys)) {
 						particle_system_update(ob, psys);
 						psys= psys->next;
 					}

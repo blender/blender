@@ -1508,9 +1508,9 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	part=psys->part;
 	pars=psys->particles;
 
-	if(part==NULL || pars==NULL || (psys->flag & PSYS_ENABLED)==0)
+	if(part==NULL || pars==NULL || !psys_check_enabled(ob, psys))
 		return 0;
-
+	
 	if(part->draw_as==PART_DRAW_OB || part->draw_as==PART_DRAW_GR || part->draw_as==PART_DRAW_NOT)
 		return 1;
 
@@ -3854,7 +3854,6 @@ static void init_render_object_data(Render *re, ObjectRen *obr, int only_verts)
 			psys= psys->next;
 
 		render_new_particle_system(re, obr, psys);
-		psys_free_render_memory(ob, psys);
 	}
 	else {
 		if ELEM(ob->type, OB_FONT, OB_CURVE)
@@ -3885,8 +3884,10 @@ static void add_render_object(Render *re, Object *ob, Object *par, int index, in
 	/* so here we only check if the emitter should be rendered */
 	if(ob->particlesystem.first) {
 		show_emitter= 0;
-		for(psys=ob->particlesystem.first; psys; psys=psys->next)
+		for(psys=ob->particlesystem.first; psys; psys=psys->next) {
 			show_emitter += psys->part->draw & PART_DRAW_EMITTER;
+			psys_particles_to_render_backup(ob, psys);
+		}
 
 		/* if no psys has "show emitter" selected don't render emitter */
 		if(show_emitter == 0)
@@ -3909,6 +3910,7 @@ static void add_render_object(Render *re, Object *ob, Object *par, int index, in
 		for(psys=ob->particlesystem.first; psys; psys=psys->next, psysindex++) {
 			obr= RE_addRenderObject(re, ob, par, index, psysindex);
 			init_render_object_data(re, obr, only_verts);
+			psys_render_backup_to_particles(ob, psys);
 
 			/* only add instance for objects that have not been used for dupli */
 			if(!(ob->transflag & OB_RENDER_DUPLI))

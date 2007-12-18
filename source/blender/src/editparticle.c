@@ -157,7 +157,7 @@ void PE_change_act(void *ob_v, void *act_v)
 		if((psys=BLI_findlink(&ob->particlesystem,act))) {
 			psys->flag |= PSYS_CURRENT;
 
-			if(psys->flag & PSYS_ENABLED) {
+			if(psys_check_enabled(ob, psys)) {
 				if(G.f & G_PARTICLEEDIT && !psys->edit)
 					PE_create_particle_edit(ob, psys);
 				PE_recalc_world_cos(ob, psys);
@@ -186,7 +186,7 @@ ParticleSystem *PE_get_current(Object *ob)
 		psys->flag |= PSYS_CURRENT;
 	}
 
-	if(psys && (psys->flag & PSYS_ENABLED) && ob == OBACT && (G.f & G_PARTICLEEDIT))
+	if(psys && psys_check_enabled(ob, psys) && ob == OBACT && (G.f & G_PARTICLEEDIT))
 		if(psys->part->type == PART_HAIR && psys->flag & PSYS_EDITED)
 			if(psys->edit == NULL)
 				PE_create_particle_edit(ob, psys);
@@ -1102,7 +1102,7 @@ void PE_set_particle_edit(void)
 
 	if((G.f & G_PARTICLEEDIT)==0){
 		if(psys && psys->part->type == PART_HAIR && psys->flag & PSYS_EDITED) {
-			if(psys->flag & PSYS_ENABLED) {
+			if(psys_check_enabled(ob, psys)) {
 				if(psys->edit==0)
 					PE_create_particle_edit(ob, psys);
 				PE_recalc_world_cos(ob, psys);

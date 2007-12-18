@@ -2841,7 +2841,6 @@ static void object_has_subdivision_particles(Object *ob, int *havesubdiv, int *h
 
 static void object_flip_subdivison_particles(Object *ob, int *set, int level, int mode, int particles, int depth)
 {
-	void modifiers_psysEnable(void *ob_v, void *md_v);
 	ModifierData *md;
 
 	if(ob->type==OB_MESH) {
@@ -2857,8 +2856,6 @@ static void object_flip_subdivison_particles(Object *ob, int *set, int level, in
 						psmd->modifier.mode &= ~(mode);
 					else
 						psmd->modifier.mode |= (mode);
-
-					modifiers_psysEnable(ob, md);
 				}
 			}
 		}

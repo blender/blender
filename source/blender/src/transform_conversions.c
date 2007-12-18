@@ -1565,6 +1565,7 @@ static void createTransParticleVerts(TransInfo *t)
 			if(k==0 && pset->flag & PE_LOCK_FIRST)
 				td->protectflag |= OB_LOCK_LOC;
 
+			td->ob = ob;
 			td->ext = tx;
 			td->tdi = NULL;
 			if(t->mode == TFM_BAKE_TIME) {

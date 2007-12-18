@@ -3005,7 +3005,7 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys)
 	part=psys->part;
 	pars=psys->particles;
 
-	if(part==0 || (psys->flag & PSYS_ENABLED)==0)
+	if(part==0 || !psys_check_enabled(ob, psys))
 		return;
 
 	if(pars==0) return;

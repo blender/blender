@@ -7087,6 +7087,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				oldnewmap_insert(fd->libmap, psys->part, psys->part, 0);
 
 				part->id.us--;
+				part->id.flag |= (ob->id.flag & LIB_NEEDLINK);
 				
 				psys->totpart=0;
 				psys->flag=PSYS_ENABLED|PSYS_CURRENT;

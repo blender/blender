@@ -2855,15 +2855,6 @@ void do_effects_panels(unsigned short event)
 		break;
 	case B_PART_ENABLE:
 		if(psys) {
-			ParticleSystemModifierData *psmd= psys_get_modifier(ob, psys);
-			if(psys->flag & PSYS_ENABLED) {
-				psmd->modifier.mode |= eModifierMode_Realtime;
-			}
-			else {
-				psmd->modifier.mode &= ~eModifierMode_Realtime;
-				PE_free_particle_edit(psys);
-			}
-
 			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 			allqueue(REDRAWVIEW3D, 0);
 			allqueue(REDRAWBUTSOBJECT, 0);

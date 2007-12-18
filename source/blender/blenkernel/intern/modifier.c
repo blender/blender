@@ -5097,7 +5097,7 @@ static void particleSystemModifier_deformVerts(
 	else
 		return;
 	
-	if((psys->flag&PSYS_ENABLED)==0)
+	if(!psys_check_enabled(ob, psys))
 		return;
 
 	if(dm==0){

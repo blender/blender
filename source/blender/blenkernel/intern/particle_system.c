@@ -92,7 +92,7 @@ static int get_current_display_percentage(ParticleSystem *psys)
 {
 	ParticleSettings *part=psys->part;
 
-	if(G.rendering || (part->child_nbr && part->childtype)) 
+	if(psys->renderdata || (part->child_nbr && part->childtype)) 
 		return 100;
 
 	if(part->phystype==PART_PHYS_KEYED){
@@ -136,7 +136,7 @@ static void alloc_particles(ParticleSystem *psys, int new_totpart)
 	}
 	psys->particles=newpars;
 
-	child_nbr= (G.rendering)? psys->part->ren_child_nbr: psys->part->child_nbr;
+	child_nbr= (psys->renderdata)? psys->part->ren_child_nbr: psys->part->child_nbr;
 	if(child_nbr && psys->part->childtype){
 		if(psys->child)
 			MEM_freeN(psys->child);
@@ -155,7 +155,7 @@ static void alloc_particles(ParticleSystem *psys, int new_totpart)
 }
 
 /* only run this if from == PART_FROM_FACE */
-static void psys_calc_dmfaces(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
+void psys_calc_dmfaces(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
 {
 	/* use for building derived mesh face-origin info,
 	node - the allocated links - total derived mesh face count 
@@ -472,7 +472,7 @@ void psys_thread_distribute_particle(ParticleThread *thread, ParticleData *pa, C
 	ParticleThreadContext *ctx= thread->ctx;
 	Object *ob= ctx->ob;
 	DerivedMesh *dm= ctx->dm;
-	ParticleData *tpars=0, *tpa;
+	ParticleData *tpa;
 	ParticleSettings *part= ctx->psys->part;
 	float *v1, *v2, *v3, *v4, nor[3], orco1[3], co1[3], co2[3], nor1[3], ornor1[3];
 	float cur_d, min_d;
@@ -587,7 +587,7 @@ void psys_thread_distribute_particle(ParticleThread *thread, ParticleData *pa, C
 		//pa->verts[1]=0;
 		//pa->verts[2]=0;
 
-		tpa=tpars+ctx->index[p];
+		tpa=ctx->tpars+ctx->index[p];
 		pa->num=ctx->index[p];
 		pa->fuv[0]=tpa->fuv[0];
 		pa->fuv[1]=tpa->fuv[1];
@@ -780,7 +780,7 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 	Object *ob= ctx->ob;
 	ParticleSystem *psys= ctx->psys;
 	Object *tob;
-	ParticleData *pa=0, *tpars;
+	ParticleData *pa=0, *tpars= 0;
 	ParticleSettings *part;
 	ParticleSystem *tpsys;
 	ParticleSeam *seams= 0;
@@ -877,7 +877,7 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 		}
 		else{
 			/* no need to figure out distribution */
-			int child_nbr= (G.rendering)? part->ren_child_nbr: part->child_nbr;
+			int child_nbr= (psys->renderdata)? part->ren_child_nbr: part->child_nbr;
 
 			for(i=0; i<child_nbr; i++){
 				for(p=0; p<psys->totpart; p++,cpa++){
@@ -1173,6 +1173,7 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 	ctx->cfrom= cfrom;
 	ctx->distr= distr;
 	ctx->dm= dm;
+	ctx->tpars= tpars;
 
 	seed= 31415926 + ctx->psys->seed;
 
@@ -1450,9 +1451,6 @@ static void initialize_all_particles(Object *ob, ParticleSystem *psys, ParticleS
 		initialize_particle(pa,p,ob,psys,psmd);
 	
 	/* store the derived mesh face index for each particle */
-	//if(psys->part->from==PART_FROM_FACE)
-	//	psys_calc_dmfaces(ob, psmd->dm, psys);
-	
 	icu=find_ipocurve(psys->part->ipo,PART_EMIT_FREQ);
 	if(icu){
 		float time=psys->part->sta, end=psys->part->end;
@@ -1730,9 +1728,6 @@ static void reset_all_particles(Object *ob, ParticleSystem *psys, ParticleSystem
 	float *vg_vel=psys_cache_vgroup(psmd->dm,psys,PSYS_VG_VEL);
 	float *vg_tan=psys_cache_vgroup(psmd->dm,psys,PSYS_VG_TAN);
 	float *vg_rot=psys_cache_vgroup(psmd->dm,psys,PSYS_VG_ROT);
-	
-	//if (psys->part->from == PART_FROM_FACE)
-	//	psys_calc_dmfaces(ob, psmd->dm, psys);
 	
 	for(p=from, pa=psys->particles+from; p<totpart; p++, pa++)
 		reset_particle(pa, psys, psmd, ob, dtime, cfra, vg_vel, vg_tan, vg_rot);
@@ -4183,7 +4178,7 @@ static void psys_update_path_cache(Object *ob, ParticleSystemModifierData *psmd,
 	ParticleSettings *part=psys->part;
 	ParticleEditSettings *pset=&G.scene->toolsettings->particle;
 	int distr=0,alloc=0;
-	int child_nbr= (G.rendering)? part->ren_child_nbr: part->child_nbr;
+	int child_nbr= (psys->renderdata)? part->ren_child_nbr: part->child_nbr;
 
 	if((psys->part->childtype && psys->totchild != psys->totpart*child_nbr) || psys->recalc&PSYS_ALLOC)
 		alloc=1;
@@ -4221,11 +4216,10 @@ static void hair_step(Object *ob, ParticleSystemModifierData *psmd, ParticleSyst
 {
 	ParticleSettings *part = psys->part;
 
-	if(psys->recalc & PSYS_DISTR) {
+	if(psys->recalc & PSYS_DISTR)
 		/* need this for changing subsurf levels */
 		psys_calc_dmfaces(ob, psmd->dm, psys);
-	}
-	
+
 	if(psys->effectors.first)
 		psys_end_effectors(psys);
 
@@ -4406,7 +4400,7 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 	else
 		totpart = psys->part->totpart;
 
-	child_nbr= (G.rendering)? part->ren_child_nbr: part->child_nbr;
+	child_nbr= (psys->renderdata)? part->ren_child_nbr: part->child_nbr;
 	if(oldtotpart != totpart || psys->recalc&PSYS_ALLOC || (psys->part->childtype && psys->totchild != psys->totpart*child_nbr))
 		alloc = 1;
 
@@ -4456,12 +4450,9 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 	}
 
 	/* ok now we're all set so let's go */
-	if(psys->totpart) {
-		//if(psys->part->from==PART_FROM_FACE) {
-		//	psys_calc_dmfaces(ob, psmd->dm, psys);
-		//}
+	if(psys->totpart)
 		dynamics_step(ob,psys,psmd,cfra,vg_vel,vg_tan,vg_rot,vg_size);
-	}
+
 	psys->recalc = 0;
 	psys->cfra=cfra;
 
@@ -4533,20 +4524,23 @@ void particle_system_update(Object *ob, ParticleSystem *psys){
 
 	ParticleSystemModifierData *psmd=0;
 	float cfra;
-	
-	if((psys->flag & PSYS_ENABLED)==0) return;
 
-	psmd=psys_get_modifier(ob,psys);
+	if(!psys_check_enabled(ob, psys))
+		return;
 
 	cfra=bsystem_time(ob,(float)CFRA,0.0);
+	psmd= psys_get_modifier(ob, psys);
 
 	/* system was already updated from modifier stack */
-	if(psmd->flag&eParticleSystemFlag_psys_updated){
+	if(psmd->flag&eParticleSystemFlag_psys_updated) {
 		psmd->flag &= ~eParticleSystemFlag_psys_updated;
 		/* make sure it really was updated to cfra */
 		if(psys->cfra==cfra)
 			return;
 	}
+
+	if(!psmd->dm)
+		return;
 
 	/* baked path softbody */
 	if(psys->part->type==PART_HAIR && psys->soft)

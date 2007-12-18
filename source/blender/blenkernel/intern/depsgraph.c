@@ -1900,7 +1900,7 @@ static void dag_object_time_update_flags(Object *ob)
 			ParticleSystem *psys= ob->particlesystem.first;
 
 			for(; psys; psys=psys->next) {
-				if(psys->flag & PSYS_ENABLED) {
+				if(psys_check_enabled(ob, psys)) {
 					ob->recalc |= OB_RECALC_DATA;
 					break;
 				}

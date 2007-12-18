@@ -648,6 +648,8 @@ static int strand_test_clip(float winmat[][4], ZSpan *zspan, float *bounds, floa
 	else if(hoco[1] > bounds[3]*hoco[3]) clipflag |= 4;
 	else if(hoco[1]< bounds[2]*hoco[3]) clipflag |= 8;
 
+	clipflag |= testclip(hoco);
+
 	return clipflag;
 }
 

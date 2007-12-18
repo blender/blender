@@ -169,6 +169,8 @@ typedef struct ParticleThreadContext {
 
 	int from, cfrom, distr;
 
+	struct ParticleData *tpars;
+
 	/* path caching */
 	int editupdate, between, steps;
 	int totchild, totparent;
@@ -203,14 +205,17 @@ void psys_disable_all(struct Object *ob);
 void psys_enable_all(struct Object *ob);
 int psys_ob_has_hair(struct Object *ob);
 int psys_in_edit_mode(struct ParticleSystem *psys);
+int psys_check_enabled(struct Object *ob, struct ParticleSystem *psys);
 
 void psys_free_settings(struct ParticleSettings *part);
 void free_child_path_cache(struct ParticleSystem *psys);
 void psys_free_path_cache(struct ParticleSystem *psys);
-void psys_free_render_memory(struct Object *ob, struct ParticleSystem *psys);
 void free_hair(struct ParticleSystem *psys);
 void free_keyed_keys(struct ParticleSystem *psys);
 void psys_free(struct Object * ob, struct ParticleSystem * psys);
+
+void psys_particles_to_render_backup(struct Object *ob, struct ParticleSystem *psys);
+void psys_render_backup_to_particles(struct Object *ob, struct ParticleSystem *psys);
 
 void clear_particles_from_cache(struct Object *ob, struct ParticleSystem *psys, int cfra);
 //void psys_remove_from_particle_list(struct Object *ob, short nbr, struct ParticleSystem *psys);
@@ -280,6 +285,7 @@ void psys_particle_on_dm(struct Object *ob, struct DerivedMesh *dm, int from, in
 void initialize_particle(struct ParticleData *pa, int p, struct Object *ob, struct ParticleSystem *psys, struct ParticleSystemModifierData *psmd);
 void reset_particle(struct ParticleData *pa, struct ParticleSystem *psys, struct ParticleSystemModifierData *psmd, struct Object *ob, float dtime, float cfra, float *vg_vel, float *vg_tan, float *vg_rot);
 
+void psys_calc_dmfaces(struct Object *ob, struct DerivedMesh *dm, struct ParticleSystem *psys);
 int psys_particle_dm_face_lookup(struct Object *ob, struct DerivedMesh *dm, int index, float *fw, struct LinkNode *node);
 
 /* ParticleEffectorCache->type */
