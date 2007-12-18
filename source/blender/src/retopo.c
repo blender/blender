@@ -452,11 +452,8 @@ void retopo_force_update()
 		if(vd) {
 			if(vd->depths) vd->depths->damaged= 1;
 			retopo_queue_updates(vd);
-			if(retopo_mesh_paint_check() && vd->retopo_view_data) {
-				/* Force redraw */
-				drawview3dspace(vd->area, vd);
-				retopo_paint_view_update(vd);
-			}
+			if(retopo_mesh_paint_check() && vd->retopo_view_data)
+				allqueue(REDRAWVIEW3D, 0);
 		}
 	}
 }

@@ -3065,6 +3065,8 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 				fdrawXORcirc((float)car[0], (float)car[1], sculptmode_brush()->size);
 		}
 	}
+
+	retopo_paint_view_update(v3d);
 	retopo_draw_paint_lines();
 
 	if(!G.obedit && OBACT && G.f&G_PARTICLEEDIT && area_is_active_area(v3d->area)){

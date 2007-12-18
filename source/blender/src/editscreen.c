@@ -2443,9 +2443,6 @@ void area_fullscreen(void)	/* with curarea */
 		wich_cursor(newa);
 	}
 	
-	if(curarea->full)
-		retopo_force_update();
-
 	/* there's also events in queue for this, but we call fullscreen for render output
 	now, and that doesn't go back to queue. Bad code, but doesn't hurt... (ton) */
 	for(sa= G.curscreen->areabase.first; sa; sa= sa->next) {
@@ -2455,8 +2452,7 @@ void area_fullscreen(void)	/* with curarea */
 	/* bad code #2: setscreen() ends with first area active. fullscreen render assumes this too */
 	curarea= sc->areabase.first;
 	
-	if(!curarea->full)
-		retopo_force_update();
+	retopo_force_update();
 }
 
 static void area_autoplayscreen(void)
