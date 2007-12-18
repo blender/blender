@@ -259,6 +259,7 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_KEYINSERTNEED		(1 << 19)
 #define USER_ZOOM_TO_MOUSEPOS	(1 << 20)
 #define USER_SHOW_FPS	(1 << 21)
+#define USER_UNDOSAVE  	(1 << 22) // flag to signal a write_undo() call after a save (save on exit needed then)  
 
 /* transopts */
 

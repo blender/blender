@@ -831,6 +831,8 @@ int blenderqread(unsigned short event, short val)
 				if (untitled(dir)) {
 					activate_fileselect(FILE_BLENDER, "Save File", dir, BIF_write_file);
 				} else {
+					/* do NOT ask everytime for overwriting... */
+					G.save_over = 1;
 					BIF_write_file(dir);
 					free_filesel_spec(dir);
 				}
@@ -931,6 +933,8 @@ int blenderqread(unsigned short event, short val)
 				if (untitled(dir)) {
 					activate_fileselect(FILE_BLENDER, "Save File", dir, BIF_write_file);
 				} else {
+					/* do NOT ask everytime for overwriting... */
+					G.save_over = 1;
 					BIF_write_file(dir);
 					free_filesel_spec(dir);
 				}

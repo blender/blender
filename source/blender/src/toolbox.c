@@ -169,6 +169,28 @@ void asciitoraw(int ch, unsigned short *event, unsigned short *qual)
 
 /* this va_ stuff allows printf() style codes in these menus */
 
+static int vconfirm_choice(char *title, char *itemfmt, va_list ap)
+{
+	char *s, buf[512];
+
+	s= buf;
+	if (title) s+= sprintf(s, "%s%%t|", title);
+	vsprintf(s, itemfmt, ap);
+	
+	return (pupmenu(buf));
+}
+int confirm_choice(char *title, char *itemfmt, ...)
+{
+	va_list ap;
+	int ret;
+	
+	va_start(ap, itemfmt);
+	ret= vconfirm_choice(title, itemfmt, ap);
+	va_end(ap);
+	
+	return ret;
+}
+
 static int vconfirm(char *title, char *itemfmt, va_list ap)
 {
 	char *s, buf[512];

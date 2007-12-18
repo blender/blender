@@ -78,7 +78,6 @@
 #include "BIF_usiblender.h"
 #include "BIF_writeimage.h"
 #include "BIF_drawscene.h"
-
 #ifdef WITH_VERSE
 #include "BIF_verse.h"
 #endif
@@ -830,6 +829,8 @@ static void do_info_filemenu(void *arg, int event)
 		if (untitled(dir)) {
 			activate_fileselect(FILE_BLENDER, "Save As", dir, BIF_write_file);
 		} else {
+			/* do NOT ask everytime for overwriting... */
+			G.save_over = 1;
 			BIF_write_file(dir);
 			free_filesel_spec(dir);
 		}

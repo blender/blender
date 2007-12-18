@@ -110,6 +110,7 @@
 #include "BIF_resources.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
+#include "BIF_toets.h"
 #include "BIF_toolbox.h"
 #include "BIF_cursors.h"
 
@@ -793,7 +794,7 @@ void BIF_write_file(char *target)
 		strcpy(di, target);
 	}
 
-	if (BLI_exists(di)) {
+	if (BLI_exists(di) && !G.save_over) {
 		if(!saveover(di))
 			return; 
 	}
@@ -824,9 +825,13 @@ void BIF_write_file(char *target)
 		G.save_over = 1;
 
 		writeBlog();
+		
 	} else {
 		error("%s", err);
 	}
+	
+	/* CLEARS signal: "file needs save" on exit */
+	U.uiflag &= ~USER_UNDOSAVE;
 
 	waitcursor(0);
 }
@@ -927,6 +932,41 @@ void BIF_init(void)
 	BLI_strncpy(G.lib, G.sce, FILE_MAX);
 }
 
+int exit_save_question(void)
+{
+	char dir[FILE_MAXDIR];
+	int ret = 0;
+	
+	/* just go on if no undo there */
+	/* better check necessary --> some flag */
+	if(!(U.uiflag & USER_UNDOSAVE))
+		return 1;
+	
+	/* do sweet question here */
+	ret = confirm_choice("Warning: Unsaved changes", "Do you want to save your changes before exit?");
+	
+	if(ret==1)
+	{
+		/* copyied from header_info.c */
+		strcpy(dir, G.sce);
+		if (untitled(dir)) {
+			activate_fileselect(FILE_BLENDER, "Save As", dir, BIF_write_file);
+		} else {
+			/* do NOT ask everytime for overwriting... */
+			G.save_over = 1;
+			BIF_write_file(dir);
+			free_filesel_spec(dir);
+		}
+		return 1;
+	}
+	else
+	{
+		/* cancel, ok, continue button available */
+	}
+	
+	return 1;
+}
+
 /***/
 
 extern ListBase editNurb;
@@ -934,7 +974,15 @@ extern ListBase editelems;
 
 void exit_usiblender(void)
 {
-	struct TmpFont *tf;
+	struct TmpFont *tf;	
+	
+	/* ask for save before exit */
+	if(!exit_save_question())
+	{
+		/* user pressed 'cancel' */
+		return;
+	}
+	
 	tf= G.ttfdata.first;
 	while(tf)
 	{

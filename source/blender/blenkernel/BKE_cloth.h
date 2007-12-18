@@ -60,6 +60,18 @@ struct ClothModifierData;
 
 #define CLOTH_MAX_THREAD 2
 
+typedef struct fc
+{
+	float *d, *d0;			// density
+	float *T, *T0;			// temperature
+	float *u, *u0;			// velocity in x direction
+	float *v, *v0;			// velocity in y direction
+	float *w, *w0;			// velocity in z direction
+} fc;
+fc *f_init(void);
+void f_free(fc *m_fc);
+void step(fc *m_fc, float dt);
+
 
 typedef struct ClothVertex {
 	int	flags;		/* General flags per vertex.		*/
@@ -69,6 +81,7 @@ typedef struct ClothVertex {
 	unsigned int impulse_count; /* same as above */
 	float collball;
 	char octantflag;
+	float weight;
 } ClothVertex;
 
 typedef struct ClothSpring {
@@ -104,6 +117,7 @@ typedef struct Cloth {
 	float 			(*v)[4]; /* the current velocity of all vertices */
 	float			(*current_v)[3];
 	float			(*xconst)[3];
+	struct fc		*m_fc;
 } Cloth;
 
 /* goal defines */

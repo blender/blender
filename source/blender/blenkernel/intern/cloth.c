@@ -78,6 +78,22 @@
 #include "BIF_space.h"
 #include "mydevice.h"
 
+#ifdef WIN32
+#include <windows.h>
+#endif // WIN32
+#ifdef __APPLE__
+#define GL_GLEXT_LEGACY 1
+#include <OpenGL/gl.h>
+#include <OpenGL/glu.h>
+#else
+#include <GL/gl.h>
+#if defined(__sun__) && !defined(__sparc__)
+#include <mesa/glu.h>
+#else
+#include <GL/glu.h>
+#endif
+#endif
+
 #ifdef _WIN32
 void tstart ( void )
 {}
@@ -482,6 +498,309 @@ static int cloth_read_cache(Object *ob, ClothModifierData *clmd, float framenr)
 	return ret;
 }
 
+#define AMBIENT 50
+#define DECAY 0.04f
+#define ALMOST_EQUAL(a, b) ((fabs(a-b)<0.00001f)?1:0)
+
+	// cube vertices
+GLfloat cv[][3] = {
+	{1.0f, 1.0f, 1.0f}, {-1.0f, 1.0f, 1.0f}, {-1.0f, -1.0f, 1.0f}, {1.0f, -1.0f, 1.0f},
+ {1.0f, 1.0f, -1.0f}, {-1.0f, 1.0f, -1.0f}, {-1.0f, -1.0f, -1.0f}, {1.0f, -1.0f, -1.0f}
+};
+
+	// edges have the form edges[n][0][xyz] + t*edges[n][1][xyz]
+float edges[12][2][3] = {
+	{{1.0f, 1.0f, -1.0f}, {0.0f, 0.0f, 1.0f}},
+ {{-1.0f, 1.0f, -1.0f}, {0.0f, 0.0f, 1.0f}},
+ {{-1.0f, -1.0f, -1.0f}, {0.0f, 0.0f, 1.0f}},
+ {{1.0f, -1.0f, -1.0f}, {0.0f, 0.0f, 1.0f}},
+
+ {{1.0f, -1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}},
+ {{-1.0f, -1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}},
+ {{-1.0f, -1.0f, -1.0f}, {0.0f, 1.0f, 0.0f}},
+ {{1.0f, -1.0f, -1.0f}, {0.0f, 1.0f, 0.0f}},
+
+ {{-1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}},
+ {{-1.0f, -1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}},
+ {{-1.0f, -1.0f, -1.0f}, {1.0f, 0.0f, 0.0f}},
+ {{-1.0f, 1.0f, -1.0f}, {1.0f, 0.0f, 0.0f}}
+};
+
+void light_ray(unsigned char* _texture_data, int _ray_templ[4096][3], int x, int y, int z, int n, float decay)
+{
+	int xx = x, yy = y, zz = z, i = 0;
+	int offset;
+
+	int l = 255;
+	float d;
+
+	do {
+		offset = ((((zz*n) + yy)*n + xx) << 2);
+		if (_texture_data[offset + 2] > 0)
+			_texture_data[offset + 2] = (unsigned char) ((_texture_data[offset + 2] + l)*0.5f);
+		else
+			_texture_data[offset + 2] = (unsigned char) l;
+		d = _texture_data[offset+1];
+		if (l > AMBIENT) {
+			l -= d*decay;
+			if (l < AMBIENT)
+				l = AMBIENT;
+		}
+
+		i++;
+		xx = x + _ray_templ[i][0];
+		yy = y + _ray_templ[i][1];
+		zz = z + _ray_templ[i][2];
+		
+	} while ((xx>=0)&&(xx<n)&&(yy>=0)&&(yy<n)&&(zz>=0)&&(zz<n));
+}
+
+void cast_light(unsigned char* _texture_data, int _ray_templ[4096][3], float *_light_dir, int n /*edgelen*/)
+{
+	int i,j;
+	int sx = (_light_dir[0]>0) ? 0 : n-1;
+	int sy = (_light_dir[1]>0) ? 0 : n-1;
+	int sz = (_light_dir[2]>0) ? 0 : n-1;
+
+	float decay = 1.0f/(n*DECAY);
+
+	for (i=0; i<n; i++)
+		for (j=0; j<n; j++) {
+		if (!ALMOST_EQUAL(_light_dir[0], 0))
+			light_ray(_texture_data, _ray_templ, sx,i,j,n,decay);
+		if (!ALMOST_EQUAL(_light_dir[1], 0))
+			light_ray(_texture_data, _ray_templ, i,sy,j,n,decay);
+		if (!ALMOST_EQUAL(_light_dir[2], 0))
+			light_ray(_texture_data, _ray_templ, i,j,sz,n,decay);
+		}
+}
+
+void gen_ray_templ(int _ray_templ[4096][3], float *_light_dir, int edgelen)
+{
+	float fx = 0.0f, fy = 0.0f, fz = 0.0f;
+	int x = 0, y = 0, z = 0;
+	float lx = _light_dir[0] + 0.000001f, ly = _light_dir[1] + 0.000001f, lz = _light_dir[2] + 0.000001f;
+	int xinc = (lx > 0) ? 1 : -1;
+	int yinc = (ly > 0) ? 1 : -1;
+	int zinc = (lz > 0) ? 1 : -1;
+	float tx, ty, tz;
+	int i = 1;
+	int len = 0;
+	int maxlen = 3*edgelen*edgelen;
+	_ray_templ[0][0] = _ray_templ[0][2] = _ray_templ[0][2] = 0;
+	
+	while (len <= maxlen)
+	{
+		// fx + t*lx = (x+1)   ->   t = (x+1-fx)/lx
+		tx = (x+xinc-fx)/lx;
+		ty = (y+yinc-fy)/ly;
+		tz = (z+zinc-fz)/lz;
+
+		if ((tx<=ty)&&(tx<=tz)) {
+			_ray_templ[i][0] = _ray_templ[i-1][0] + xinc;
+			x =+ xinc;
+			fx = x;
+
+			if (ALMOST_EQUAL(ty,tx)) {
+				_ray_templ[i][1] = _ray_templ[i-1][1] + yinc;
+				y += yinc;
+				fy = y;
+			} else {
+				_ray_templ[i][1] = _ray_templ[i-1][1];
+				fy += tx*ly;
+			}
+
+			if (ALMOST_EQUAL(tz,tx)) {
+				_ray_templ[i][2] = _ray_templ[i-1][2] + zinc;
+				z += zinc;
+				fz = z;
+			} else {
+				_ray_templ[i][2] = _ray_templ[i-1][2];
+				fz += tx*lz;
+			}
+		} else if ((ty<tx)&&(ty<=tz)) {
+			_ray_templ[i][0] = _ray_templ[i-1][0];
+			fx += ty*lx;
+
+			_ray_templ[i][1] = _ray_templ[i-1][1] + yinc;
+			y += yinc;
+			fy = y;
+
+			if (ALMOST_EQUAL(tz,ty)) {
+				_ray_templ[i][2] = _ray_templ[i-1][2] + zinc;
+				z += zinc;
+				fz = z;
+			} else {
+				_ray_templ[i][2] = _ray_templ[i-1][2];
+				fz += ty*lz;
+			}
+		} else {
+			// assert((tz<tx)&&(tz<ty));
+			if((tz<tx)&&(tz<ty))
+				break;
+			
+			_ray_templ[i][0] = _ray_templ[i-1][0];
+			fx += tz*lx;
+			_ray_templ[i][1] = _ray_templ[i-1][1];
+			fy += tz*ly;
+			_ray_templ[i][2] = _ray_templ[i-1][2] + zinc;
+			z += zinc;
+			fz = z;
+		}
+
+		len = _ray_templ[i][0]*_ray_templ[i][0]
+				+ _ray_templ[i][1]*_ray_templ[i][1]
+				+ _ray_templ[i][2]*_ray_templ[i][2];
+		i++;
+	}
+}
+/*
+int intersect_edges(float ret[12][3], float a, float b, float c, float d)
+{
+	int i;
+	float t;
+	Vec3 p;
+	int num = 0;
+
+	for (i=0; i<12; i++) {
+		t = -(a*edges[i][0][0] + b*edges[i][0][1] + c*edges[i][0][2] + d)
+			/ (a*edges[i][1][0] + b*edges[i][1][1] + c*edges[i][1][2]);
+		if ((t>0)&&(t<2)) {
+			ret[num][0] = edges[i][0][0] + edges[i][1][0]*t;
+			ret[num][1] = edges[i][0][1] + edges[i][1][1]*t;
+			ret[num][2] = edges[i][0][2] + edges[i][1][2]*t;
+			num++;
+		}
+	}
+
+	return num;
+}
+
+void draw_slices(float m[][4])
+{
+	int i;
+
+	Vec3 viewdir(m[0][2], m[1][2], m[2][2]);
+	viewdir.Normalize();
+		// find cube vertex that is closest to the viewer
+	for (i=0; i<8; i++) {
+		float x = cv[i][0] + viewdir[0];
+		float y = cv[i][1] + viewdir[1];
+		float z = cv[i][2] + viewdir[2];
+		if ((x>=-1.0f)&&(x<=1.0f)
+				   &&(y>=-1.0f)&&(y<=1.0f)
+				   &&(z>=-1.0f)&&(z<=1.0f))
+		{
+			break;
+		}
+	}
+	if(i != 8) return;
+
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+	glDisable(GL_DEPTH_TEST);
+		// our slices are defined by the plane equation a*x + b*y +c*z + d = 0
+		// (a,b,c), the plane normal, are given by viewdir
+		// d is the parameter along the view direction. the first d is given by
+		// inserting previously found vertex into the plane equation
+	float d0 = -(viewdir[0]*cv[i][0] + viewdir[1]*cv[i][1] + viewdir[2]*cv[i][2]);
+	float dd = 2*d0/64.0f;
+	int n = 0;
+	for (float d = -d0; d < d0; d += dd) {
+					// intersect_edges returns the intersection points of all cube edges with
+			// the given plane that lie within the cube
+		float pt[12][3];
+		int num = intersect_edges(pt, viewdir[0], viewdir[1], viewdir[2], d);
+
+		if (num > 2) {
+			// sort points to get a convex polygon
+			// std::sort(pt.begin()+1, pt.end(), Convexcomp(pt[0], viewdir));
+			int shuffled = 1;
+			
+			while(shuffled)
+			{
+				int j;
+				shuffled = 0;
+				
+				for(j = 0; j < num-1; j++)
+				{
+					// Vec3 va = a-p0, vb = b-p0;
+					// return dot(up, cross(va, vb)) >= 0;
+					float va[3], vb[3], vc[3];
+					
+					VECSUB(va, pt[j], pt[0]);
+					VECSUB(vb, pt[j+1], pt[0]);
+					Crossf(vc, va, vb);
+					
+					if(INPR(viewdir, vc)>= 0)
+					{
+						float temp[3];
+						
+						VECCOPY(temp, pt[j]);
+						VECCOPY(pt[j], pt[j+1]);
+						VECCOPY(pt[j+1], temp);
+						
+						shuffled = 1;
+					}
+				}
+			}
+
+			glEnable(GL_TEXTURE_3D);
+			glEnable(GL_FRAGMENT_PROGRAM_ARB);
+			glBindProgramARB(GL_FRAGMENT_PROGRAM_ARB, _prog[0]);
+			glActiveTextureARB(GL_TEXTURE0_ARB);
+			glBindTexture(GL_TEXTURE_3D, _txt[0]);
+			glBegin(GL_POLYGON);
+			for (i=0; i<num; i++){
+				glColor3f(1.0, 1.0, 1.0);
+				glTexCoord3d((pt[i][0]+1.0)/2.0, (-pt[i][1]+1)/2.0, (pt[i][2]+1.0)/2.0);
+				glVertex3f(pt[i][0], pt[i][1], pt[i][2]);
+			}
+			glEnd();
+		}
+		n++;
+	}
+}
+
+
+void draw(void)
+{
+	int i;
+
+	glClearColor(0, 0, 0, 0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	gluLookAt(0, 0, -_dist,  0, 0, 0,  0, 1, 0);
+
+	float m[4][4];
+	build_rotmatrix(m, _quat);
+
+	glMultMatrixf(&m[0][0]);
+
+	if (_draw_cube)
+		draw_cube();
+	draw_slices(m, _draw_slice_outline);
+
+	if (_dispstring != NULL) {
+		glMatrixMode(GL_PROJECTION);
+		glLoadMatrixd(_ortho_m);
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+
+		glDisable(GL_TEXTURE_3D);
+		glDisable(GL_FRAGMENT_PROGRAM_ARB);
+		glColor4f(1.0, 1.0, 1.0, 1.0);
+		glRasterPos2i(-_sx/2 + 10, _sy/2 - 15);
+
+		print_string(_dispstring);
+
+		glMatrixMode(GL_PROJECTION);
+		glLoadMatrixd(_persp_m);
+		glMatrixMode(GL_MODELVIEW);
+	}
+}*/
+
 /************************************************
  * clothModifier_do - main simulation function
 ************************************************/
@@ -499,7 +818,10 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 	unsigned int framenr = (float)G.scene->r.cfra;
 	float current_time = bsystem_time(ob, (float)G.scene->r.cfra, 0.0);
 	ListBase *effectors = NULL;
-	float deltaTime = current_time - clmd->sim_parms->sim_time;	
+	float deltaTime = current_time - clmd->sim_parms->sim_time;
+	unsigned char* _texture_data=NULL;	
+	float _light_dir[3];
+	int _ray_templ[4096][3];
 
 	clmd->sim_parms->dt = 1.0f / (clmd->sim_parms->stepsPerFrame * G.scene->r.frs_sec);
 
@@ -577,7 +899,14 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 
 			cloth = clmd->clothObject;
 		}
-
+		/*
+		deltaTime = 0;
+		while( deltaTime < 1.0)
+		{
+			step(cloth->m_fc, 0.1);
+			deltaTime+=0.1;
+		}
+		*/
 		clmd->clothObject->old_solver_type = clmd->sim_parms->solver_type;
 
 		// Insure we have a clmd->clothObject, in case allocation failed.
@@ -632,6 +961,34 @@ DerivedMesh *clothModifier_do(ClothModifierData *clmd,Object *ob, DerivedMesh *d
 		}
 	}
 	
+	cloth = clmd->clothObject;
+	/*
+	if(cloth)
+	{
+		if (_texture_data == NULL)
+			_texture_data = (unsigned char*) malloc((30+2)*(30+2)*(30+2)*4);
+	
+		for (i=0; i<(30+2)*(30+2)*(30+2); i++) {
+			_texture_data[(i<<2)] = (unsigned char) (cloth->m_fc->T[i] * 255.0f);
+			_texture_data[(i<<2)+1] = (unsigned char) (cloth->m_fc->d[i] * 255.0f);
+			_texture_data[(i<<2)+2] = 0;
+			_texture_data[(i<<2)+3] = 255;
+		}
+		
+		// from ligth constructor
+		_light_dir[0] = -1.0f;
+		_light_dir[1] = 0.5f;
+		_light_dir[2] = 0.0f;
+		
+		gen_ray_templ(_ray_templ, _light_dir, 30 + 2);
+	
+		cast_light(_texture_data, _ray_templ, _light_dir, 30+2);
+	
+		glActiveTextureARB(GL_TEXTURE0_ARB);
+		glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, 30+2, 30+2, 30+2, 0, GL_RGBA, GL_UNSIGNED_BYTE, _texture_data);
+		free(_texture_data);
+	}
+	*/
 	return result;
 }
 
@@ -653,6 +1010,8 @@ void cloth_free_modifier (ClothModifierData *clmd)
 
 	if (cloth) 
 	{	
+		f_free(cloth->m_fc);
+		
 		// If our solver provides a free function, call it
 		if (cloth->old_solver_type < 255 && solvers [cloth->old_solver_type].free) 
 		{	
@@ -834,6 +1193,7 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 	unsigned int numverts = dm->getNumVerts(dm);
 	MVert *mvert = CDDM_get_verts(dm);
 	float tnull[3] = {0,0,0};
+	Cloth *cloth = NULL;
 	
 	/* If we have a clothObject, free it. */
 	if (clmd->clothObject != NULL)
@@ -851,6 +1211,10 @@ static int cloth_from_object(Object *ob, ClothModifierData *clmd, DerivedMesh *d
 		modifier_setError (&(clmd->modifier), "Out of memory on allocating clmd->clothObject.");
 		return 0;
 	}
+	
+	cloth = clmd->clothObject;
+	
+	cloth->m_fc = f_init();
 
 	switch (ob->type)
 	{
@@ -1227,4 +1591,334 @@ int cloth_build_springs ( ClothModifierData *clmd, DerivedMesh *dm )
 /***************************************************************************************
 * SPRING NETWORK BUILDING IMPLEMENTATION END
 ***************************************************************************************/
+
+#define F_ITER 20
+#define m_diffusion 0.00001f
+#define m_viscosity 0.000f
+#define m_buoyancy  1.5f
+#define m_cooling   1.0f
+#define m_vc_eps    4.0f
+
+#define GRID_SIZE 30
+#define SIZE ((GRID_SIZE+2)*(GRID_SIZE+2)*(GRID_SIZE+2))
+#define _I(x,y,z) (((z)<<10)+((y)<<5)+x)
+
+#define SWAPFPTR(x,y) {float *t=x;x=y;y=t;}
+
+float buffers[10][SIZE];
+float sd[SIZE], su[SIZE], sv[SIZE], sw[SIZE], sT[SIZE];
+
+
+// nothing to do in this mode
+// add code for 2nd mode
+void set_bnd(int b, float* x, int N)
+{
+}
+
+void lin_solve(int b, float *x, float *x0, float a, float c, int N)
+{
+	float cRecip = 1.0 / c;
+	int i, j, k, l;
+	for (l=0; l<F_ITER; l++) 
+	{
+		for (k=1; k<=N; k++)
+		{
+			for (j=1; j<=N; j++)
+			{
+				for (i=1; i<=N; i++)
+				{
+					x[_I(i,j,k)] = (x0[_I(i,j,k)] + a*(
+					x[_I(i-1,j,k)]+x[_I(i+1,j,k)]+
+					x[_I(i,j-1,k)]+x[_I(i,j+1,k)]+
+					x[_I(i,j,k-1)]+x[_I(i,j,k+1)]))*cRecip;
+				}
+			}
+		}
+		set_bnd(b, x, N);
+	}
+}
+
+void add_source(float* src, float *dst, float dt, int N)
+{
+	int i, size=(N+2)*(N+2)*(N+2);
+
+	for (i=0; i<size; i++)
+		dst[i] += src[i]*dt;
+}
+
+void add_buoyancy(float *v, float* T, float dt, float buoyancy, int N)
+{
+	int i, size=(N+2)*(N+2)*(N+2);
+
+	for (i=0; i<size; i++)
+		v[i] += -T[i]*buoyancy*dt;
+}
+
+void diffuse(int b, float* x0, float* x, float diff, float dt, int N)
+{
+	float a=dt*diff*N*N*N;
+	lin_solve(b, x, x0, a, 1 + 6 * a, N);
+}
+
+
+void advect(int b, float* x0, float* x, float* uu, float* vv, float* ww, float dt, int N)
+{
+	int i, j, k, i0, j0, k0, i1, j1, k1;
+	float sx0, sx1, sy0, sy1, sz0, sz1, v0, v1;
+	float xx, yy, zz, dt0;
+	dt0 = dt*N;
+	for (k=1; k<=N; k++)
+	{
+		for (j=1; j<=N; j++)
+		{
+			for (i=1; i<=N; i++)
+			{
+				xx = i-dt0*uu[_I(i,j,k)];
+				yy = j-dt0*vv[_I(i,j,k)];
+				zz = k-dt0*ww[_I(i,j,k)];
+				if (xx<0.5) xx=0.5f; if (xx>N+0.5) xx=N+0.5f; i0=(int)xx; i1=i0+1;
+				if (yy<0.5) yy=0.5f; if (yy>N+0.5) yy=N+0.5f; j0=(int)yy; j1=j0+1;
+				if (zz<0.5) zz=0.5f; if (zz>N+0.5) zz=N+0.5f; k0=(int)zz; k1=k0+1;
+				sx1 = xx-i0; sx0 = 1-sx1;
+				sy1 = yy-j0; sy0 = 1-sy1;
+				sz1 = zz-k0; sz0 = 1-sz1;
+				v0 = sx0*(sy0*x0[_I(i0,j0,k0)]+sy1*x0[_I(i0,j1,k0)])+sx1*(sy0*x0[_I(i1,j0,k0)]+sy1*x0[_I(i1,j1,k0)]);
+				v1 = sx0*(sy0*x0[_I(i0,j0,k1)]+sy1*x0[_I(i0,j1,k1)])+sx1*(sy0*x0[_I(i1,j0,k1)]+sy1*x0[_I(i1,j1,k1)]);
+				x[_I(i,j,k)] = sz0*v0 + sz1*v1;
+			}
+		}
+	}
+	set_bnd(b,x, N);
+}
+
+void advect_cool(int b, float* x0, float* x, float* y0, float* y, float* uu, float* vv, float* ww, float dt, float cooling, int N)
+{
+	int i, j, k, i0, j0, k0, i1, j1, k1;
+	float sx0, sx1, sy0, sy1, sz0, sz1, v0, v1;
+	float xx, yy, zz, dt0, c0;
+	dt0 = dt*N;
+	c0 = 1.0f - cooling*dt;
+	for (k=1; k<=N; k++)
+	{
+		for (j=1; j<=N; j++)
+		{
+			for (i=1; i<=N; i++)
+			{
+				xx = i-dt0*uu[_I(i,j,k)];
+				yy = j-dt0*vv[_I(i,j,k)];
+				zz = k-dt0*ww[_I(i,j,k)];
+				if (xx<0.5) xx=0.5f; if (xx>N+0.5) xx=N+0.5f; i0=(int)xx; i1=i0+1;
+				if (yy<0.5) yy=0.5f; if (yy>N+0.5) yy=N+0.5f; j0=(int)yy; j1=j0+1;
+				if (zz<0.5) zz=0.5f; if (zz>N+0.5) zz=N+0.5f; k0=(int)zz; k1=k0+1;
+				sx1 = xx-i0; sx0 = 1-sx1;
+				sy1 = yy-j0; sy0 = 1-sy1;
+				sz1 = zz-k0; sz0 = 1-sz1;
+				v0 = sx0*(sy0*x0[_I(i0,j0,k0)]+sy1*x0[_I(i0,j1,k0)])+sx1*(sy0*x0[_I(i1,j0,k0)]+sy1*x0[_I(i1,j1,k0)]);
+				v1 = sx0*(sy0*x0[_I(i0,j0,k1)]+sy1*x0[_I(i0,j1,k1)])+sx1*(sy0*x0[_I(i1,j0,k1)]+sy1*x0[_I(i1,j1,k1)]);
+				x[_I(i,j,k)] = sz0*v0 + sz1*v1;
+				v0 = sx0*(sy0*y0[_I(i0,j0,k0)]+sy1*y0[_I(i0,j1,k0)])+sx1*(sy0*y0[_I(i1,j0,k0)]+sy1*y0[_I(i1,j1,k0)]);
+				v1 = sx0*(sy0*y0[_I(i0,j0,k1)]+sy1*y0[_I(i0,j1,k1)])+sx1*(sy0*y0[_I(i1,j0,k1)]+sy1*y0[_I(i1,j1,k1)]);
+				y[_I(i,j,k)] = (sz0*v0 + sz1*v1)*c0;
+			}
+		}
+	}
+	set_bnd(b,x, N);
+	set_bnd(b,y, N);
+}
+
+void fproject(float* u, float* u0, float* v, float* v0, float* w, float* w0, int N)
+{
+	float* p = u0;	float* div = v0;	// temporary buffers, use old velocity buffers
+	int i, j, k;
+	float h;
+	h = 1.0f/N;
+	for (k=1; k<=N; k++) {
+		for (j=1; j<=N; j++) {
+			for (i=1; i<=N; i++) {
+				div[_I(i,j,k)] = -h*(
+				u[_I(i+1,j,k)]-u[_I(i-1,j,k)]+
+				v[_I(i,j+1,k)]-v[_I(i,j-1,k)]+
+				w[_I(i,j,k+1)]-w[_I(i,j,k-1)])*0.5;
+				p[_I(i,j,k)] = 0;
+			}
+		}
+	}
+	set_bnd(0, div, N); 
+	set_bnd(0, p, N);
+	lin_solve(0, p, div, 1, 6, N);
+	
+	for (k=1; k<=N; k++) {
+		for (j=1; j<=N; j++) {
+			for (i=1; i<=N; i++) {
+				u[_I(i,j,k)] -= (p[_I(i+1,j,k)]-p[_I(i-1,j,k)])*0.5*N;
+				v[_I(i,j,k)] -= (p[_I(i,j+1,k)]-p[_I(i,j-1,k)])*0.5*N;
+				w[_I(i,j,k)] -= (p[_I(i,j,k+1)]-p[_I(i,j,k-1)])*0.5*N;
+			}
+		}
+	}
+	set_bnd(1, u, N); 
+	set_bnd(2, v, N);
+	set_bnd(3, w, N);
+}
+
+void vorticity_confinement(float *T0, float* u, float* u0, float* v, float* v0, float* w, float* w0, float dt, float vc_eps, int N)
+{
+	int i,j,k,ijk;
+	float *curlx = u0, *curly = v0, *curlz=w0, *curl=T0;		// temp buffers
+	float dt0 = dt * vc_eps;
+	float x,y,z;
+
+
+	for (k=1; k<N; k++) {
+		for (j=1; j<N; j++) {
+			for (i=1; i<N; i++) {
+				ijk = _I(i,j,k);
+					// curlx = dw/dy - dv/dz
+				x = curlx[ijk] = (w[_I(i,j+1,k)] - w[_I(i,j-1,k)]) * 0.5f -
+						(v[_I(i,j,k+1)] - v[_I(i,j,k-1)]) * 0.5f;
+
+					// curly = du/dz - dw/dx
+				y = curly[ijk] = (u[_I(i,j,k+1)] - u[_I(i,j,k-1)]) * 0.5f -
+						(w[_I(i+1,j,k)] - w[_I(i-1,j,k)]) * 0.5f;
+
+					// curlz = dv/dx - du/dy
+				z = curlz[ijk] = (v[_I(i+1,j,k)] - v[_I(i-1,j,k)]) * 0.5f -
+						(u[_I(i,j+1,k)] - u[_I(i,j-1,k)]) * 0.5f;
+
+					// curl = |curl|
+				curl[ijk] = sqrtf(x*x+y*y+z*z);
+			}
+		}
+	}
+
+	for (k=1; k<N; k++) {
+		for (j=1; j<N; j++) {
+			for (i=1; i<N; i++) {
+				float Nx = (curl[_I(i+1,j,k)] - curl[_I(i-1,j,k)]) * 0.5f;
+				float Ny = (curl[_I(i,j+1,k)] - curl[_I(i,j-1,k)]) * 0.5f;
+				float Nz = (curl[_I(i,j,k+1)] - curl[_I(i,j,k-1)]) * 0.5f;
+				float len1 = 1.0f/(sqrtf(Nx*Nx+Ny*Ny+Nz*Nz)+0.0000001f);
+				ijk = _I(i,j,k);
+				Nx *= len1;
+				Ny *= len1;
+				Nz *= len1;
+				u[ijk] += (Ny*curlz[ijk] - Nz*curly[ijk]) * dt0;
+				v[ijk] += (Nz*curlx[ijk] - Nx*curlz[ijk]) * dt0;
+				w[ijk] += (Nx*curly[ijk] - Ny*curlx[ijk]) * dt0;
+			}
+		}
+	}
+}
+
+
+
+#define DIFFUSE
+#define ADVECT
+
+void vel_step(float *su, float *sv, float *sw, float* u, float* u0, float* v, float* v0, float* w, float* w0, float *T, float *T0, float dt, int N)
+{
+	add_source(su, u, dt, N);
+	add_source(sv, v, dt, N);
+	add_source(sw, w, dt, N);
+	
+	// external force
+	add_buoyancy(v, T, dt, m_buoyancy, N); // better is using gravity normal vector instead of v
+	
+	vorticity_confinement(T0, u, u0, v, v0, w, w0, dt, m_vc_eps, N);
+
+#ifdef DIFFUSE
+	SWAPFPTR(u0, u); SWAPFPTR(v0, v); SWAPFPTR(w0, w);
+	diffuse(1, u0, u, m_viscosity, dt, N);
+	diffuse(2, v0, v, m_viscosity, dt, N);
+	diffuse(3, w0, w, m_viscosity, dt, N);
+	fproject(u, u0, v, v0, w, w0, N);
+#endif
+#ifdef ADVECT
+	SWAPFPTR(u0, u); SWAPFPTR(v0, v); SWAPFPTR(w0, w);
+	advect(1, u0, u, u0, v0, w0, dt, N);
+	advect(2, v0, v, u0, v0, w0, dt, N);
+	advect(3, w0, w, u0, v0, w0, dt, N);
+	fproject(u, u0, v, v0, w, w0, N);
+#endif
+}
+
+void dens_step(float *sd, float *d, float *d0, float *u, float *v, float *w, float dt, int N)
+{
+	add_source(sd, d, dt, N);
+#ifdef DIFFUSE
+	SWAPFPTR(d0, d);
+	diffuse(0, d0, d, m_diffusion, dt, N);
+#endif
+#ifdef ADVECT
+	SWAPFPTR(d0, d);
+	advect(0, d0, d, u, v, w, dt, N);
+#endif
+}
+
+void dens_temp_step(float *sd, float *sT, float *T, float *T0, float *d, float *d0, float *u, float *v, float *w, float dt, int N)
+{
+	add_source(sd, d, dt, N);
+	add_source(sT, T, dt, N);
+	SWAPFPTR(d0, d);
+	diffuse(0, d0, d, m_diffusion, dt, N);
+	SWAPFPTR(d0, d);
+	SWAPFPTR(T0, T);
+	advect_cool(0, d0, d, T0, T, u, v, w, dt, m_cooling, N);
+}
+
+void step(fc *m_fc, float dt)
+{
+	vel_step(su, sv, sw, m_fc->u, m_fc->u0, m_fc->v, m_fc->v0, m_fc->w, m_fc->w0, m_fc->T, m_fc->T0, dt, GRID_SIZE);
+	dens_temp_step(sd, sT, m_fc->T, m_fc->T0, m_fc->d, m_fc->d0, m_fc->u, m_fc->v, m_fc->w, dt, GRID_SIZE);
+}
+
+
+
+void clear_buffer(float* x)
+{
+	int i;
+	for (i=0; i<SIZE; i++) {
+		x[i] = 0.0f;
+	}
+}
+
+void clear_sources(float *sd, float *su, float *sv)
+{
+	int i;
+	for (i=0; i<SIZE; i++) {
+		sd[i] = su[i] = sv[i] = 0.0f;
+	}
+}
+
+fc *f_init(void)
+{
+	int i;
+	int size;
+	
+	fc *m_fc = MEM_callocN(sizeof(fc),
+				      "f_c");
+	for (i=0; i<10; i++)
+		clear_buffer(buffers[i]);
+
+	i=0;
+	m_fc->d=buffers[i++]; m_fc->d0=buffers[i++];
+	m_fc->T=buffers[i++]; m_fc->T0=buffers[i++];
+	m_fc->u=buffers[i++]; m_fc->u0=buffers[i++];
+	m_fc->v=buffers[i++]; m_fc->v0=buffers[i++];
+	m_fc->w=buffers[i++]; m_fc->w0=buffers[i++];
+
+	clear_sources(sd, su, sv);
+
+	size=(GRID_SIZE+2)*(GRID_SIZE+2)*(GRID_SIZE+2);
+	for (i=0; i<size; i++)
+		m_fc->v[i] = -0.5f;
+	
+	return m_fc;
+}
+
+void f_free(fc *m_fc)
+{
+	if(m_fc)
+		MEM_freeN(m_fc);
+}
 

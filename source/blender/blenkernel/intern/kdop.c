@@ -915,6 +915,7 @@ int bvh_traverse(CollisionTree *tree1, CollisionTree *tree2, LinkNode **collisio
 						// of list are horrible slow!
 						BLI_linklist_prepend(&collision_list[0], collpair);
 					}
+					
 					return 1;
 				}
 				else

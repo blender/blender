@@ -5187,6 +5187,8 @@ static void collisionModifier_deformVerts(
 				
 				// recalc static bounding boxes
 				bvh_update_from_mvert(collmd->tree, collmd->current_x, numverts, NULL, 0);
+				
+				printf("bvh_update_from_mvert\n");
 			}
 			
 			collmd->time = current_time;

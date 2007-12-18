@@ -85,6 +85,7 @@
 #include "BKE_bad_level_calls.h" // for freeAllRad editNurb free_editMesh free_editText free_editArmature
 #include "BKE_utildefines.h" // O_BINARY FALSE
 #include "BIF_mainqueue.h" // mainqenter for onload script
+#include "BIF_toolbox.h"
 #include "mydevice.h"
 #include "nla.h"
 #include "blendef.h"
@@ -617,6 +618,10 @@ void BKE_write_undo(char *name)
 		success= BLO_write_file_mem(prevfile, &curundo->memfile, G.fileflags, &err);
 		
 	}
+	
+	/* signals "file needs save" on exit */
+	if(curundo!=NULL && curundo->prev!=NULL)
+		U.uiflag |= USER_UNDOSAVE;
 }
 
 /* 1= an undo, -1 is a redo. we have to make sure 'curundo' remains at current situation */
@@ -694,7 +699,7 @@ char *BKE_undo_menu_string(void)
 	return menu;
 }
 
-	/* saves quit.blend */
+/* saves quit.blend */
 void BKE_undo_save_quit(void)
 {
 	UndoElem *uel;

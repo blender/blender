@@ -1630,12 +1630,13 @@ int collisions_collision_response_static ( ClothModifierData *clmd, CollisionMod
 	float magrelVel = 0.0;
 	float epsilon = clmd->coll_parms->epsilon;
 	
-	return 0;
 
 	cloth1 = clmd->clothObject;
 	
 	if(!collpair)
+	{
 		return 0;
+	}
 	
 	// TODO: check distance & calc normal
 			// calc distance + normal 	
@@ -1650,8 +1651,11 @@ int collisions_collision_response_static ( ClothModifierData *clmd, CollisionMod
 			
 	if (collpair->distance > (epsilon + ALMOST_ZERO))
 	{
+		printf("collpair->distance > (epsilon + ALMOST_ZERO)\n");
 		return 0;
 	}
+	
+	printf("IN1\n");
 
 	// compute barycentric coordinates for both collision points
 	collisions_compute_barycentric (collpair->pa,
@@ -1683,6 +1687,8 @@ int collisions_collision_response_static ( ClothModifierData *clmd, CollisionMod
 	// If v_n_mag < 0 the edges are approaching each other.
 	if ( magrelVel < -ALMOST_ZERO )
 	{
+		printf("magrelVel < -ALMOST_ZERO\n");
+				
 		// Calculate Impulse magnitude to stop all motion in normal direction.
 		// const double I_mag = v_n_mag / (1/m1 + 1/m2);
 		float magnitude_i = magrelVel / 2.0f; // TODO implement masses
@@ -2162,6 +2168,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float prevstep,
 	int collisions = 0, count = 0;
 	float (*current_x)[3];
 	Implicit_Data *id = NULL;
+	int ret = 0;
 	
 	if (!(((Cloth *)clmd->clothObject)->tree))
 	{
@@ -2206,7 +2213,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float prevstep,
 			if ( collision_list )
 			{
 				LinkNode *search = collision_list;
-	
+				
 				while ( search )
 				{
 					collisions_collision_response_static(clmd, collmd, (CollisionPair *)search->link);
@@ -2234,6 +2241,24 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float prevstep,
 		}
 	}
 	
+	// vertex weight = 2
+	
+	for(i = 0; i < cloth->numverts; i++)
+		if ((cloth->verts[i].impulse_count > 0) && !(cloth->verts[i].flags & CVERT_FLAG_PINNED))
+		{
+			printf("applying impulse\n");
+			
+			VECADDS(cloth->current_v[i], cloth->current_v[i], cloth->verts[i].impulse, 1.0 / (cloth->verts[i].impulse_count * 2.0));
+			
+			// reset
+			cloth->verts[i].impulse_count = 0;
+			cloth->verts[i].impulse[0] = 0.0;
+			cloth->verts[i].impulse[1] = 0.0;
+			cloth->verts[i].impulse[2] = 0.0;
+			
+			ret = 1;
+		}
+	
 	//////////////////////////////////////////////
 	// update velocities + positions
 	//////////////////////////////////////////////
@@ -2243,78 +2268,7 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float prevstep,
 	}
 	//////////////////////////////////////////////
 	
-	/*
-	// fill collision list 
-	collisions += bvh_traverse(self_bvh->root, self_bvh->root, &collision_list);
 	
-	// call static collision response
-	
-	// free collision list
-	if(collision_list)
-	{
-	LinkNode *search = collision_list;
-		
-	while(search)
-	{
-	float distance = 0;
-	float mindistance = cloth->selftree->epsilon;
-	CollisionPair *collpair = (CollisionPair *)search->link;
-			
-			// get distance of faces
-	distance = plNearestPoints(
-	cloth->current_x[collpair->point_indexA[0]], cloth->current_x[collpair->point_indexA[1]], cloth->current_x[collpair->point_indexA[2]], cloth->current_x[collpair->point_indexB[0]], cloth->current_x[collpair->point_indexB[1]], cloth->current_x[collpair->point_indexB[2]], collpair->pa,collpair->pb,collpair->vector);
-					
-	if(distance < mindistance)
-	{
-	///////////////////////////////////////////
-				// TODO: take velocity of the collision points into account!
-	///////////////////////////////////////////
-				
-	float correction = mindistance - distance;
-	float temp[3];
-				
-	VECCOPY(temp, collpair->vector);
-	Normalize(temp);
-	VecMulf(temp, -correction*0.5);
-				
-	if(!((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) && (cloth->verts [collpair->point_indexA[0]].goal >= SOFTGOALSNAP)))
-	VECSUB(cloth->current_x[collpair->point_indexA[0]], cloth->current_x[collpair->point_indexA[0]], temp);	
-				
-	if(!((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) && (cloth->verts [collpair->point_indexA[1]].goal >= SOFTGOALSNAP)))
-	VECSUB(cloth->current_x[collpair->point_indexA[1]], cloth->current_x[collpair->point_indexA[1]], temp);
-				
-	if(!((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) && (cloth->verts [collpair->point_indexA[2]].goal >= SOFTGOALSNAP)))
-	VECSUB(cloth->current_x[collpair->point_indexA[2]], cloth->current_x[collpair->point_indexA[2]], temp);
-				
-				
-	if(!((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) && (cloth->verts [collpair->point_indexB[0]].goal >= SOFTGOALSNAP)))
-	VECSUB(cloth->current_x[collpair->point_indexB[0]], cloth->current_x[collpair->point_indexB[0]], temp);	
-				
-	if(!((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) && (cloth->verts [collpair->point_indexB[1]].goal >= SOFTGOALSNAP)))
-	VECSUB(cloth->current_x[collpair->point_indexB[1]], cloth->current_x[collpair->point_indexB[1]], temp);
-				
-	if(!((clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) && (cloth->verts [collpair->point_indexB[2]].goal >= SOFTGOALSNAP)))
-	VECSUB(cloth->current_x[collpair->point_indexB[2]], cloth->current_x[collpair->point_indexB[2]], temp);
-					
-	collisions = 1;
-				
-}
-			
-}
-		
-	search = collision_list;
-	while(search)
-	{
-	CollisionPair *coll_pair = search->link;
-			
-	MEM_freeN(coll_pair);
-	search = search->next;
-}
-	BLI_linklist_free(collision_list,NULL);
-
-	collision_list = NULL;
-}
-	*/
 	// Test on *simple* selfcollisions
 	collisions = 1;
 	count = 0;
@@ -2409,5 +2363,5 @@ int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float prevstep,
 	*/
 	//////////////////////////////////////////////
 
-	return 0;
+	return ret;
 }
