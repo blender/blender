@@ -857,8 +857,10 @@ float tex_strength(EditData *e, float *point, const float len,const unsigned vin
 				px= len * cos(angle) + 2000;
 				py= len * sin(angle) + 2000;
 			}
-			px %= sx-1;
-			py %= sy-1;
+			if(sx != 1)
+				px %= sx-1;
+			if(sy != 1)
+				py %= sy-1;
 			p= get_texcache_pixel(ss, tcw*px/sx, tch*py/sy);
 		} else {
 			float fx= (pv.co[0] - e->mouse[0] + half) * (tcw*1.0f/bsize) - tcw/2;
