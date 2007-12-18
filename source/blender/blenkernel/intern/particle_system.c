@@ -92,7 +92,7 @@ static int get_current_display_percentage(ParticleSystem *psys)
 {
 	ParticleSettings *part=psys->part;
 
-	if(G.rendering || (part->child_nbr && part->childtype)) 
+	if(psys->renderdata || (part->child_nbr && part->childtype)) 
 		return 100;
 
 	if(part->phystype==PART_PHYS_KEYED){
@@ -136,7 +136,7 @@ static void alloc_particles(ParticleSystem *psys, int new_totpart)
 	}
 	psys->particles=newpars;
 
-	child_nbr= (G.rendering)? psys->part->ren_child_nbr: psys->part->child_nbr;
+	child_nbr= (psys->renderdata)? psys->part->ren_child_nbr: psys->part->child_nbr;
 	if(child_nbr && psys->part->childtype){
 		if(psys->child)
 			MEM_freeN(psys->child);
@@ -155,7 +155,7 @@ static void alloc_particles(ParticleSystem *psys, int new_totpart)
 }
 
 /* only run this if from == PART_FROM_FACE */
-static void psys_calc_dmfaces(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
+void psys_calc_dmfaces(Object *ob, DerivedMesh *dm, ParticleSystem *psys)
 {
 	/* use for building derived mesh face-origin info,
 	node - the allocated links - total derived mesh face count 
@@ -472,7 +472,7 @@ void psys_thread_distribute_particle(ParticleThread *thread, ParticleData *pa, C
 	ParticleThreadContext *ctx= thread->ctx;
 	Object *ob= ctx->ob;
 	DerivedMesh *dm= ctx->dm;
-	ParticleData *tpars=0, *tpa;
+	ParticleData *tpa;
 	ParticleSettings *part= ctx->psys->part;
 	float *v1, *v2, *v3, *v4, nor[3], orco1[3], co1[3], co2[3], nor1[3], ornor1[3];
 	float cur_d, min_d;
@@ -494,6 +494,7 @@ void psys_thread_distribute_particle(ParticleThread *thread, ParticleData *pa, C
 			int w, maxw;
 
 			psys_particle_on_dm(ctx->ob,ctx->dm,from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co1,0,0,0,orco1,0);
+			transform_mesh_orco_verts((Mesh*)ob->data, &orco1, 1, 1);
 			maxw = BLI_kdtree_find_n_nearest(ctx->tree,3,orco1,NULL,ptn);
 
 			for(w=0; w<maxw; w++){
@@ -586,7 +587,7 @@ void psys_thread_distribute_particle(ParticleThread *thread, ParticleData *pa, C
 		//pa->verts[1]=0;
 		//pa->verts[2]=0;
 
-		tpa=tpars+ctx->index[p];
+		tpa=ctx->tpars+ctx->index[p];
 		pa->num=ctx->index[p];
 		pa->fuv[0]=tpa->fuv[0];
 		pa->fuv[1]=tpa->fuv[1];
@@ -633,6 +634,7 @@ void psys_thread_distribute_particle(ParticleThread *thread, ParticleData *pa, C
 			do_seams= (part->flag&PART_CHILD_SEAMS && ctx->seams);
 
 			psys_particle_on_dm(ob,dm,cfrom,cpa->num,DMCACHE_ISCHILD,cpa->fuv,cpa->foffset,co1,nor1,0,0,orco1,ornor1);
+			transform_mesh_orco_verts((Mesh*)ob->data, &orco1, 1, 1);
 			maxw = BLI_kdtree_find_n_nearest(ctx->tree,(do_seams)?10:4,orco1,ornor1,ptn);
 
 			maxd=ptn[maxw-1].dist;
@@ -778,7 +780,7 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 	Object *ob= ctx->ob;
 	ParticleSystem *psys= ctx->psys;
 	Object *tob;
-	ParticleData *pa=0, *tpars;
+	ParticleData *pa=0, *tpars= 0;
 	ParticleSettings *part;
 	ParticleSystem *tpsys;
 	ParticleSeam *seams= 0;
@@ -820,6 +822,7 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 
 			for(p=0,pa=psys->particles; p<totpart; p++,pa++){
 				psys_particle_on_dm(ob,dm,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,nor,0,0,orco,ornor);
+				transform_mesh_orco_verts((Mesh*)ob->data, &orco, 1, 1);
 				BLI_kdtree_insert(tree, p, orco, ornor);
 			}
 
@@ -874,7 +877,7 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 		}
 		else{
 			/* no need to figure out distribution */
-			int child_nbr= (G.rendering)? part->ren_child_nbr: part->child_nbr;
+			int child_nbr= (psys->renderdata)? part->ren_child_nbr: part->child_nbr;
 
 			for(i=0; i<child_nbr; i++){
 				for(p=0; p<psys->totpart; p++,cpa++){
@@ -923,8 +926,10 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 			tree=BLI_kdtree_new(totvert);
 
 			for(p=0; p<totvert; p++){
-				if(orcodata)
+				if(orcodata) {
 					VECCOPY(co,orcodata[p])
+					transform_mesh_orco_verts((Mesh*)ob->data, &co, 1, 1);
+				}
 				else
 					VECCOPY(co,mv[p].co)
 				BLI_kdtree_insert(tree,p,co,NULL);
@@ -990,7 +995,8 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 
 	/* 2.1 */
 	if((part->flag&PART_EDISTR || children) && ELEM(from,PART_FROM_PARTICLE,PART_FROM_VERT)==0){
-		float totarea=0.0, *co1, *co2, *co3, *co4;
+		MVert *v1, *v2, *v3, *v4;
+		float totarea=0.0, co1[3], co2[3], co3[3], co4[3];
 		float (*orcodata)[3];
 		
 		orcodata= dm->getVertDataArray(dm, CD_ORCO);
@@ -999,21 +1005,31 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 			MFace *mf=dm->getFaceData(dm,i,CD_MFACE);
 
 			if(orcodata) {
-				co1= orcodata[mf->v1];
-				co2= orcodata[mf->v2];
-				co3= orcodata[mf->v3];
+				VECCOPY(co1, orcodata[mf->v1]);
+				VECCOPY(co2, orcodata[mf->v2]);
+				VECCOPY(co3, orcodata[mf->v3]);
+				transform_mesh_orco_verts((Mesh*)ob->data, &co1, 1, 1);
+				transform_mesh_orco_verts((Mesh*)ob->data, &co2, 1, 1);
+				transform_mesh_orco_verts((Mesh*)ob->data, &co3, 1, 1);
 			}
 			else {
-				co1= ((MVert*)dm->getVertData(dm,mf->v1,CD_MVERT))->co;
-				co2= ((MVert*)dm->getVertData(dm,mf->v2,CD_MVERT))->co;
-				co3= ((MVert*)dm->getVertData(dm,mf->v3,CD_MVERT))->co;
+				v1= (MVert*)dm->getVertData(dm,mf->v1,CD_MVERT);
+				v2= (MVert*)dm->getVertData(dm,mf->v2,CD_MVERT);
+				v3= (MVert*)dm->getVertData(dm,mf->v3,CD_MVERT);
+				VECCOPY(co1, v1->co);
+				VECCOPY(co2, v2->co);
+				VECCOPY(co3, v3->co);
 			}
 
 			if (mf->v4){
-				if(orcodata)
-					co4= orcodata[mf->v4];
-				else
-					co4= ((MVert*)dm->getVertData(dm,mf->v4,CD_MVERT))->co;
+				if(orcodata) {
+					VECCOPY(co4, orcodata[mf->v4]);
+					transform_mesh_orco_verts((Mesh*)ob->data, &co4, 1, 1);
+				}
+				else {
+					v4= (MVert*)dm->getVertData(dm,mf->v4,CD_MVERT);
+					VECCOPY(co4, v4->co);
+				}
 				cur= AreaQ3Dfl(co1, co2, co3, co4);
 			}
 			else
@@ -1096,9 +1112,9 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 		}
 	}
 	else {
-		float step, pos;
+		double step, pos;
 		
-		step= (totpart <= 1)? 0.5f: 1.0f/(totpart-1);
+		step= (totpart <= 1)? 0.5: 1.0/(totpart-1);
 		pos= 0.0f;
 		i= 0;
 
@@ -1157,6 +1173,7 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 	ctx->cfrom= cfrom;
 	ctx->distr= distr;
 	ctx->dm= dm;
+	ctx->tpars= tpars;
 
 	seed= 31415926 + ctx->psys->seed;
 
@@ -1434,9 +1451,6 @@ static void initialize_all_particles(Object *ob, ParticleSystem *psys, ParticleS
 		initialize_particle(pa,p,ob,psys,psmd);
 	
 	/* store the derived mesh face index for each particle */
-	//if(psys->part->from==PART_FROM_FACE)
-	//	psys_calc_dmfaces(ob, psmd->dm, psys);
-	
 	icu=find_ipocurve(psys->part->ipo,PART_EMIT_FREQ);
 	if(icu){
 		float time=psys->part->sta, end=psys->part->end;
@@ -1714,9 +1728,6 @@ static void reset_all_particles(Object *ob, ParticleSystem *psys, ParticleSystem
 	float *vg_vel=psys_cache_vgroup(psmd->dm,psys,PSYS_VG_VEL);
 	float *vg_tan=psys_cache_vgroup(psmd->dm,psys,PSYS_VG_TAN);
 	float *vg_rot=psys_cache_vgroup(psmd->dm,psys,PSYS_VG_ROT);
-	
-	//if (psys->part->from == PART_FROM_FACE)
-	//	psys_calc_dmfaces(ob, psmd->dm, psys);
 	
 	for(p=from, pa=psys->particles+from; p<totpart; p++, pa++)
 		reset_particle(pa, psys, psmd, ob, dtime, cfra, vg_vel, vg_tan, vg_rot);
@@ -4167,7 +4178,7 @@ static void psys_update_path_cache(Object *ob, ParticleSystemModifierData *psmd,
 	ParticleSettings *part=psys->part;
 	ParticleEditSettings *pset=&G.scene->toolsettings->particle;
 	int distr=0,alloc=0;
-	int child_nbr= (G.rendering)? part->ren_child_nbr: part->child_nbr;
+	int child_nbr= (psys->renderdata)? part->ren_child_nbr: part->child_nbr;
 
 	if((psys->part->childtype && psys->totchild != psys->totpart*child_nbr) || psys->recalc&PSYS_ALLOC)
 		alloc=1;
@@ -4205,11 +4216,10 @@ static void hair_step(Object *ob, ParticleSystemModifierData *psmd, ParticleSyst
 {
 	ParticleSettings *part = psys->part;
 
-	if(psys->recalc & PSYS_DISTR) {
+	if(psys->recalc & PSYS_DISTR)
 		/* need this for changing subsurf levels */
 		psys_calc_dmfaces(ob, psmd->dm, psys);
-	}
-	
+
 	if(psys->effectors.first)
 		psys_end_effectors(psys);
 
@@ -4377,6 +4387,10 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 
 		psys->recalc &= ~PSYS_TYPE;
 		alloc = 1;
+
+		/* this is a bad level call, but currently type change
+		 * can happen after redraw, so force redraw from here */
+		allqueue(REDRAWBUTSOBJECT, 0);
 	}
 	else
 		oldtotpart = psys->totpart;
@@ -4386,7 +4400,7 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 	else
 		totpart = psys->part->totpart;
 
-	child_nbr= (G.rendering)? part->ren_child_nbr: part->child_nbr;
+	child_nbr= (psys->renderdata)? part->ren_child_nbr: part->child_nbr;
 	if(oldtotpart != totpart || psys->recalc&PSYS_ALLOC || (psys->part->childtype && psys->totchild != psys->totpart*child_nbr))
 		alloc = 1;
 
@@ -4428,7 +4442,7 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 	/* set particles to be not calculated */
 	disp= (float)get_current_display_percentage(psys)/50.0f-1.0f;
 
-	if(disp<1.0f) for(p=0, pa=psys->particles; p<totpart; p++,pa++){
+	for(p=0, pa=psys->particles; p<totpart; p++,pa++){
 		if(pa->r_rot[0] > disp)
 			pa->flag |= PARS_NO_DISP;
 		else
@@ -4436,12 +4450,9 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 	}
 
 	/* ok now we're all set so let's go */
-	if(psys->totpart) {
-		//if(psys->part->from==PART_FROM_FACE) {
-		//	psys_calc_dmfaces(ob, psmd->dm, psys);
-		//}
+	if(psys->totpart)
 		dynamics_step(ob,psys,psmd,cfra,vg_vel,vg_tan,vg_rot,vg_size);
-	}
+
 	psys->recalc = 0;
 	psys->cfra=cfra;
 
@@ -4513,20 +4524,23 @@ void particle_system_update(Object *ob, ParticleSystem *psys){
 
 	ParticleSystemModifierData *psmd=0;
 	float cfra;
-	
-	if((psys->flag & PSYS_ENABLED)==0) return;
 
-	psmd=psys_get_modifier(ob,psys);
+	if(!psys_check_enabled(ob, psys))
+		return;
 
 	cfra=bsystem_time(ob,(float)CFRA,0.0);
+	psmd= psys_get_modifier(ob, psys);
 
 	/* system was already updated from modifier stack */
-	if(psmd->flag&eParticleSystemFlag_psys_updated){
+	if(psmd->flag&eParticleSystemFlag_psys_updated) {
 		psmd->flag &= ~eParticleSystemFlag_psys_updated;
 		/* make sure it really was updated to cfra */
 		if(psys->cfra==cfra)
 			return;
 	}
+
+	if(!psmd->dm)
+		return;
 
 	/* baked path softbody */
 	if(psys->part->type==PART_HAIR && psys->soft)
@@ -4561,6 +4575,6 @@ void particle_system_update(Object *ob, ParticleSystem *psys){
 
 	system_step(ob,psys,psmd,cfra);
 
-	Mat4CpyMat4(psys->imat, ob->imat);	/* used for duplicators */
+	Mat4Invert(psys->imat, ob->obmat);	/* used for duplicators */
 }
 

@@ -143,6 +143,8 @@ static void draw_bounding_volume(Object *ob);
 
 static void drawcube_size(float size);
 static void drawcircle_size(float size);
+static void draw_empty_sphere(float size);
+static void draw_empty_cone(float size);
 
 /* ************* Setting OpenGL Material ************ */
 
@@ -412,6 +414,14 @@ void drawaxes(float size, int flag, char drawtype)
 		drawcircle_size(size);
 		break;
 	
+	case OB_EMPTY_SPHERE:
+		 draw_empty_sphere(size);
+	     break;
+
+	case OB_EMPTY_CONE:
+		 draw_empty_cone(size);
+	     break;
+
 	case OB_ARROWS:
 	default:
 		for (axis=0; axis<3; axis++) {
@@ -2995,7 +3005,7 @@ static void draw_new_particle_system(Base *base, ParticleSystem *psys)
 	part=psys->part;
 	pars=psys->particles;
 
-	if(part==0 || (psys->flag & PSYS_ENABLED)==0)
+	if(part==0 || !psys_check_enabled(ob, psys))
 		return;
 
 	if(pars==0) return;
@@ -3982,6 +3992,45 @@ static void drawnurb(Base *base, Nurb *nurb, int dt)
 	}
 	
 	if(G.vd->zbuf) glEnable(GL_DEPTH_TEST); 
+}
+
+/* draw a sphere for use as an empty drawtype */
+static void draw_empty_sphere (float size)
+{
+	float cent=0;
+	GLUquadricObj *qobj = gluNewQuadric(); 
+	gluQuadricDrawStyle(qobj, GLU_SILHOUETTE); 
+		
+	glPushMatrix();
+	glTranslatef(cent, cent, cent);
+	glScalef(size, size, size);
+	gluSphere(qobj, 1.0, 8, 5);
+		
+	glPopMatrix();
+	
+	gluDeleteQuadric(qobj); 
+}
+
+/* draw a cone for use as an empty drawtype */
+static void draw_empty_cone (float size)
+{
+	float cent=0;
+    float radius;
+	GLUquadricObj *qobj = gluNewQuadric(); 
+	gluQuadricDrawStyle(qobj, GLU_SILHOUETTE); 
+	
+	
+	glPushMatrix();
+	
+	radius = size;
+	glTranslatef(cent,cent, cent);
+	glScalef(radius, 2.0*size, radius);
+	glRotatef(-90., 1.0, 0.0, 0.0);
+	gluCylinder(qobj, 1.0, 0.0, 1.0, 8, 1);
+
+	glPopMatrix();
+	
+	gluDeleteQuadric(qobj); 
 }
 
 /* draw points on curve speed handles */
@@ -5504,4 +5553,3 @@ void draw_object_instance(Object *ob, int dt, int outline)
 			break;
 	}
 }
-

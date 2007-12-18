@@ -41,6 +41,19 @@ typedef void RayTree;
 /* abstraction of face type */
 typedef void RayFace;
 
+/* object numbers above this are transformed */
+#define RE_RAY_TRANSFORM_OFFS 0x8000000
+
+/* convert from pointer to index in array and back, with offset if the
+ * instance is transformed */
+#define RAY_OBJECT_SET(re, obi) \
+	((obi == NULL)? 0: \
+	((obi - (re)->objectinstance) + ((obi->flag & R_TRANSFORMED)? RE_RAY_TRANSFORM_OFFS: 0)))
+
+#define RAY_OBJECT_GET(re, i) \
+	((re)->objectinstance + ((i >= RE_RAY_TRANSFORM_OFFS)? i-RE_RAY_TRANSFORM_OFFS: i))
+
+
 /* struct for intersection data */
 typedef struct Isect {
 	float start[3];			/* start+vec = end, in ray_tree_intersect */
@@ -50,8 +63,11 @@ typedef struct Isect {
 	float labda, u, v;		/* distance to hitpoint, uv weights */
 
 	RayFace *face;			/* face is where to intersect with */
+	int ob;
 	RayFace *faceorig;		/* start face */
+	int oborig;
 	RayFace *face_last;		/* for shadow optimize, last intersected face */
+	int ob_last;
 
 	short isect;			/* which half of quad */
 	short mode;				/* RE_RAYSHADOW, RE_RAYMIRROR, RE_RAYSHADOW_TRA */
@@ -62,6 +78,7 @@ typedef struct Isect {
 
 	/* octree only */
 	RayFace *facecontr;
+	int obcontr;
 	float ddalabda;
 	short faceisect;		/* flag if facecontr was done or not */
 
@@ -73,18 +90,21 @@ typedef struct Isect {
 typedef void (*RayCoordsFunc)(RayFace *face,
 	float **v1, float **v2, float **v3, float **v4);
 typedef int (*RayCheckFunc)(Isect *is, RayFace *face);
+typedef float *(*RayObjectTransformFunc)(void *userdata, int ob);
 
 /* tree building and freeing */
 RayTree *RE_ray_tree_create(int ocres, int totface, float *min, float *max,
-	RayCoordsFunc coordfunc, RayCheckFunc checkfunc);
-void RE_ray_tree_add_face(RayTree *tree, RayFace *face);
+	RayCoordsFunc coordfunc, RayCheckFunc checkfunc,
+	RayObjectTransformFunc transformfunc, void *userdata);
+void RE_ray_tree_add_face(RayTree *tree, int ob, RayFace *face);
 void RE_ray_tree_done(RayTree *tree);
 void RE_ray_tree_free(RayTree *tree);
 
 /* intersection with full tree and single face */
 int RE_ray_tree_intersect(RayTree *tree, Isect *is);
 int RE_ray_tree_intersect_check(RayTree *tree, Isect *is, RayCheckFunc check);
-int RE_ray_face_intersection(Isect *is, RayCoordsFunc coordsfunc);
+int RE_ray_face_intersection(Isect *is, RayObjectTransformFunc transformfunc,
+	RayCoordsFunc coordsfunc);
 
 /* retrieve the diameter of the tree structure, for setting intersection
    end distance */

@@ -696,6 +696,61 @@ static void set_pose_transflags(TransInfo *t, Object *ob)
 		t->mode= TFM_ROTATION;
 }
 
+
+/* -------- Auto-IK ---------- */
+
+/* adjust pose-channel's auto-ik chainlen */
+static void pchan_autoik_adjust (bPoseChannel *pchan, short chainlen)
+{
+	bConstraint *con;
+	
+	/* don't bother to search if no valid constraints */
+	if ((pchan->constflag & (PCHAN_HAS_IK|PCHAN_HAS_TARGET))==0)
+		return;
+	
+	/* check if pchan has ik-constraint */
+	for (con= pchan->constraints.first; con; con= con->next) {
+		if (con->type == CONSTRAINT_TYPE_KINEMATIC) {
+			bKinematicConstraint *data= con->data;
+			
+			/* only accept if a temporary one (for auto-ik) */
+			if (data->flag & CONSTRAINT_IK_TEMP) {
+				/* chainlen is new chainlen, but is limited by maximum chainlen */
+				if ((chainlen==0) || (chainlen > data->max_rootbone))
+					data->rootbone= data->max_rootbone;
+				else
+					data->rootbone= chainlen;
+			}
+		}
+	}
+}
+
+/* change the chain-length of auto-ik */
+void transform_autoik_update (TransInfo *t, short mode)
+{
+	short *chainlen= &G.scene->toolsettings->autoik_chainlen;
+	bPoseChannel *pchan;
+	
+	/* mode determines what change to apply to chainlen */
+	if (mode == 1) {
+		/* mode=1 is from WHEELMOUSEDOWN... increases len */
+		(*chainlen)++;
+	}
+	else if (mode == -1) {
+		/* mode==-1 is from WHEELMOUSEUP... decreases len */
+		if (*chainlen > 0) (*chainlen)--;
+	}
+	
+	/* sanity checks (don't assume t->poseobj is set, or that it is an armature) */
+	if (ELEM(NULL, t->poseobj, t->poseobj->pose))
+		return;
+	
+	/* apply to all pose-channels */
+	for (pchan=t->poseobj->pose->chanbase.first; pchan; pchan=pchan->next) {
+		pchan_autoik_adjust(pchan, *chainlen);
+	}	
+}
+
 /* frees temporal IKs */
 static void pose_grab_with_ik_clear(Object *ob)
 {
@@ -723,19 +778,19 @@ static void pose_grab_with_ik_clear(Object *ob)
 	}
 }
 
-/* adds the IK to pchan */
-static void pose_grab_with_ik_add(bPoseChannel *pchan)
+/* adds the IK to pchan - returns if added */
+static short pose_grab_with_ik_add(bPoseChannel *pchan)
 {
 	bKinematicConstraint *data;
 	bConstraint *con;
 	
-	if (pchan == NULL) { // Sanity check
-		return;
-	}
+	/* Sanity check */
+	if (pchan == NULL) 
+		return 0;
 	
 	/* rule: not if there's already an IK on this channel */
 	for (con= pchan->constraints.first; con; con= con->next)
-		if(con->type==CONSTRAINT_TYPE_KINEMATIC)
+		if (con->type==CONSTRAINT_TYPE_KINEMATIC)
 			break;
 	
 	if (con) {
@@ -743,7 +798,7 @@ static void pose_grab_with_ik_add(bPoseChannel *pchan)
 		data= has_targetless_ik(pchan);
 		if (data)
 			data->flag |= CONSTRAINT_IK_AUTO;
-		return;
+		return 0;
 	}
 	
 	con = add_new_constraint(CONSTRAINT_TYPE_KINEMATIC);
@@ -765,71 +820,77 @@ static void pose_grab_with_ik_add(bPoseChannel *pchan)
 		data->rootbone++;
 		pchan= pchan->parent;
 	}
+	
+	/* make a copy of maximum chain-length */
+	data->max_rootbone= data->rootbone;
+	
+	return 1;
 }
 
 /* bone is a canditate to get IK, but we don't do it if it has children connected */
-static void pose_grab_with_ik_children(bPose *pose, Bone *bone)
+static short pose_grab_with_ik_children(bPose *pose, Bone *bone)
 {
 	Bone *bonec;
-	int wentdeeper= 0;
+	short wentdeeper=0, added=0;
 
 	/* go deeper if children & children are connected */
-	for(bonec= bone->childbase.first; bonec; bonec= bonec->next) {
-		if(bonec->flag & BONE_CONNECTED) {
+	for (bonec= bone->childbase.first; bonec; bonec= bonec->next) {
+		if (bonec->flag & BONE_CONNECTED) {
 			wentdeeper= 1;
-			pose_grab_with_ik_children(pose, bonec);
+			added+= pose_grab_with_ik_children(pose, bonec);
 		}
 	}
-	if(wentdeeper==0) {
+	if (wentdeeper==0) {
 		bPoseChannel *pchan= get_pose_channel(pose, bone->name);
-		if(pchan)
-			pose_grab_with_ik_add(pchan);
+		if (pchan)
+			added+= pose_grab_with_ik_add(pchan);
 	}
+	
+	return added;
 }
 
 /* main call which adds temporal IK chains */
-static void pose_grab_with_ik(Object *ob)
+static short pose_grab_with_ik(Object *ob)
 {
 	bArmature *arm;
 	bPoseChannel *pchan, *pchansel= NULL;
 	Bone *bonec;
 	
-	if(ob==NULL || ob->pose==NULL || (ob->flag & OB_POSEMODE)==0)
-		return;
+	if (ob==NULL || ob->pose==NULL || (ob->flag & OB_POSEMODE)==0)
+		return 0;
 		
 	arm = ob->data;
 	
 	/* rule: only one Bone */
-	for(pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
-		if(pchan->bone->layer & arm->layer) {
-			if(pchan->bone->flag & BONE_SELECTED) {
-				if(pchansel)
+	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
+		if (pchan->bone->layer & arm->layer) {
+			if (pchan->bone->flag & BONE_SELECTED) {
+				if (pchansel)
 					break;
 				pchansel= pchan;
 			}
 		}
 	}
-	if(pchan || pchansel==NULL) return;
+	if (pchan || pchansel==NULL) return 0;
 
 	/* rule: no IK for solitary (unconnected) bone */
-	for(bonec=pchansel->bone->childbase.first; bonec; bonec=bonec->next) {
-		if(bonec->flag & BONE_CONNECTED) {
+	for (bonec=pchansel->bone->childbase.first; bonec; bonec=bonec->next) {
+		if (bonec->flag & BONE_CONNECTED) {
 			break;
 		}
 	}
-	if ((pchansel->bone->flag & BONE_CONNECTED)==0 && (bonec == NULL)) return;
+	if ((pchansel->bone->flag & BONE_CONNECTED)==0 && (bonec == NULL)) return 0;
 	
 	/* rule: if selected Bone is not a root bone, it gets a temporal IK */
-	if(pchansel->parent) {
+	if (pchansel->parent) {
 		/* only adds if there's no IK yet */
-		pose_grab_with_ik_add(pchansel);
+		return pose_grab_with_ik_add(pchansel);
 	}
 	else {
 		/* rule: go over the children and add IK to the tips */
-		pose_grab_with_ik_children(ob->pose, pchansel->bone);
+		return pose_grab_with_ik_children(ob->pose, pchansel->bone);
 	}
 }	
-
 
 
 /* only called with pose mode active object now */
@@ -839,6 +900,7 @@ static void createTransPose(TransInfo *t, Object *ob)
 	bPoseChannel *pchan;
 	TransData *td;
 	TransDataExtension *tdx;
+	short ik_on= 0;
 	int i;
 	
 	t->total= 0;
@@ -856,8 +918,10 @@ static void createTransPose(TransInfo *t, Object *ob)
 	if (!(ob->lay & G.vd->lay)) return;
 
 	/* do we need to add temporal IK chains? */
-	if((arm->flag & ARM_AUTO_IK) && t->mode==TFM_TRANSLATION)
-		pose_grab_with_ik(ob);
+	if ((arm->flag & ARM_AUTO_IK) && t->mode==TFM_TRANSLATION) {
+		ik_on= pose_grab_with_ik(ob);
+		if (ik_on) t->flag |= T_AUTOIK;
+	}
 	
 	/* set flags and count total (warning, can change transform to rotate) */
 	set_pose_transflags(t, ob);
@@ -891,6 +955,8 @@ static void createTransPose(TransInfo *t, Object *ob)
 	
 	if(td != (t->data+t->total)) printf("Bone selection count error\n");
 	
+	/* initialise initial auto=ik chainlen's? */
+	if (ik_on) transform_autoik_update(t, 0);
 }
 
 /* ********************* armature ************** */
@@ -1500,6 +1566,7 @@ static void createTransParticleVerts(TransInfo *t)
 			if(k==0 && pset->flag & PE_LOCK_FIRST)
 				td->protectflag |= OB_LOCK_LOC;
 
+			td->ob = ob;
 			td->ext = tx;
 			td->tdi = NULL;
 			if(t->mode == TFM_BAKE_TIME) {
@@ -3542,5 +3609,6 @@ void createTransData(TransInfo *t)
 	/* temporal...? */
 	G.scene->recalc |= SCE_PRV_CHANGED;	/* test for 3d preview */
 }
+
 
 

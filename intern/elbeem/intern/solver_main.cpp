@@ -13,7 +13,7 @@
 #include "loop_tools.h"
 #include <stdlib.h>
 
-#if !defined(linux) && (defined (__sparc) || defined (__sparc__))
+#if (defined (__sun__) || defined (__sun)) || (!defined(linux) && (defined (__sparc) || defined (__sparc__)))
 #include <ieeefp.h>
 #endif
 

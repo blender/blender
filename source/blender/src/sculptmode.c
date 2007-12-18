@@ -176,6 +176,7 @@ SculptData *sculpt_data(void)
 
 void sculpt_init_session(void);
 void init_editdata(EditData *e, short *, short *);
+void sculpt_undo_push(const short);
 
 SculptSession *sculpt_session(void)
 {
@@ -225,6 +226,7 @@ void sculptmode_init(Scene *sce)
 	sd->flags= SCULPT_DRAW_BRUSH;
 	sd->tablet_size=3;
 	sd->tablet_strength=10;
+	sd->rake=0;
 }
 
 void sculptmode_free_session(Scene *);
@@ -266,6 +268,11 @@ void sculptmode_free_all(Scene *sce)
 	int a;
 
 	sculptmode_free_session(sce);
+
+	if(projverts) {
+		MEM_freeN(projverts);
+		projverts = NULL;
+	}
 
 	for(a=0; a<MAX_MTEX; a++) {
 		MTex *mtex= sd->mtex[a];
@@ -882,7 +889,7 @@ float tex_strength(EditData *e, float *point, const float len,const unsigned vin
 /* Mark area around the brush as damaged. projverts are marked if they are
    inside the area and the damaged rectangle in 2D screen coordinates is 
    added to damaged_rects. */
-void sculptmode_add_damaged_rect(EditData *e)
+void sculpt_add_damaged_rect(EditData *e)
 {
 	short p[2];
 	const float radius= brush_size();
@@ -910,6 +917,36 @@ void sculptmode_add_damaged_rect(EditData *e)
 	}
 }
 
+/* Clears the depth buffer in each modified area. */
+void sculpt_clear_damaged_areas(SculptSession *ss)
+{
+	RectNode *rn= NULL;
+
+	for(rn = ss->damaged_rects.first; rn; rn = rn->next) {
+		rcti clp = rn->r;
+		rcti *win = &curarea->winrct;
+		
+		clp.xmin += win->xmin;
+		clp.xmax += win->xmin;
+		clp.ymin += win->ymin;
+		clp.ymax += win->ymin;
+		
+		if(clp.xmin < win->xmax && clp.xmax > win->xmin &&
+		   clp.ymin < win->ymax && clp.ymax > win->ymin) {
+			if(clp.xmin < win->xmin) clp.xmin = win->xmin;
+			if(clp.ymin < win->ymin) clp.ymin = win->ymin;
+			if(clp.xmax > win->xmax) clp.xmax = win->xmax;
+			if(clp.ymax > win->ymax) clp.ymax = win->ymax;
+
+			glScissor(clp.xmin + 1, clp.ymin + 1,
+				  clp.xmax - clp.xmin - 2,
+				  clp.ymax - clp.ymin - 2);
+		}
+		
+		glClear(GL_DEPTH_BUFFER_BIT);
+	}
+}
+
 void do_brush_action(EditData e)
 {
 	int i;
@@ -922,7 +959,7 @@ void do_brush_action(EditData e)
 	KeyBlock *keyblock= ob_get_keyblock(OBACT);
 	SculptSession *ss = sculpt_session();
 
-	sculptmode_add_damaged_rect(&e);
+	sculpt_add_damaged_rect(&e);
 
 	/* Build a list of all vertices that are potentially within the brush's
 	   area of influence. Only do this once for the grab brush. */
@@ -1531,8 +1568,9 @@ void sculptmode_update_all_projverts(float *vertcosnos)
 	Mesh *me= get_mesh(OBACT);
 	unsigned i;
 
-	if(projverts) MEM_freeN(projverts);
-	projverts= MEM_mallocN(sizeof(ProjVert)*me->totvert,"ProjVerts");
+	if(!projverts)
+		projverts = MEM_mallocN(sizeof(ProjVert)*me->totvert,"ProjVerts");
+
 	for(i=0; i<me->totvert; ++i) {
 		project(vertcosnos ? &vertcosnos[i * 6] : me->mvert[i].co, projverts[i].co);
 		projverts[i].inside= 0;
@@ -1645,13 +1683,13 @@ void sculpt(void)
 	SculptData *sd= sculpt_data();
 	SculptSession *ss= sculpt_session();
 	Object *ob= OBACT;
-	short mouse[2], mvalo[2], firsttime=1, mousebut;
+	/* lastSigMouse is for the rake, to store the last place the mouse movement was significant */
+	short mouse[2], mvalo[2], lastSigMouse[2],firsttime=1, mousebut;
 	short modifier_calculations= 0;
 	EditData e;
-	RectNode *rn= NULL;
 	short spacing= 32000;
 	int scissor_box[4];
-
+	float offsetRot;
 	if(!(G.f & G_SCULPTMODE) || G.obedit || !ob || ob->id.lib || !get_mesh(ob) || (get_mesh(ob)->totface == 0))
 		return;
 	if(!(ob->lay & G.vd->lay))
@@ -1676,9 +1714,12 @@ void sculpt(void)
 	ss->vertexcosnos = NULL;
 
 	/* Check that vertex users are up-to-date */
-	if(ob != active_ob || ss->vertex_users_size != get_mesh(ob)->totvert) {
+	if(ob != active_ob || !ss->vertex_users || ss->vertex_users_size != get_mesh(ob)->totvert) {
 		sculptmode_free_vertexusers(ss);
 		calc_vertex_users();
+		if(projverts)
+			MEM_freeN(projverts);
+		projverts = NULL;
 		active_ob= ob;
 	}
 		
@@ -1689,9 +1730,6 @@ void sculpt(void)
 	
 	getmouseco_areawin(mvalo);
 
-	/* Make sure sculptdata has been init'd properly */
-	if(!ss->vertex_users) calc_vertex_users();
-	
 	/* Init texture
 	   FIXME: Shouldn't be doing this every time! */
 	if(sd->texrept!=SCULPTREPT_3D)
@@ -1700,7 +1738,8 @@ void sculpt(void)
 	getmouseco_areawin(mouse);
 	mvalo[0]= mouse[0];
 	mvalo[1]= mouse[1];
-
+	lastSigMouse[0]=mouse[0];
+	lastSigMouse[1]=mouse[1];
 	mousebut = L_MOUSE;
 
 	/* If modifier_calculations is true, then extra time must be spent
@@ -1729,9 +1768,19 @@ void sculpt(void)
 
 	/* Get original scissor box */
 	glGetIntegerv(GL_SCISSOR_BOX, scissor_box);
-
+	
+	/* For raking, get the original angle*/
+	offsetRot=tex_angle();
+	
 	while (get_mbut() & mousebut) {
 		getmouseco_areawin(mouse);
+		/* If rake, and the mouse has moved over 10 pixels (euclidean) (prevents jitter) then get the new angle */
+		if (sd->rake && (pow(lastSigMouse[0]-mouse[0],2)+pow(lastSigMouse[1]-mouse[1],2))>100){
+			/*Nasty looking, but just orig + new angle really*/
+			set_tex_angle(offsetRot+180.+to_deg(atan2((float)(mouse[1]-lastSigMouse[1]),(float)(mouse[0]-lastSigMouse[0]))));
+			lastSigMouse[0]=mouse[0];
+			lastSigMouse[1]=mouse[1];
+		}
 		
 		if(firsttime || mouse[0]!=mvalo[0] || mouse[1]!=mvalo[1] || sculptmode_brush()->airbrush) {
 			firsttime= 0;
@@ -1771,28 +1820,7 @@ void sculpt(void)
 				/* Draw the stored image to the screen */
 				glAccum(GL_RETURN, 1);
 
-				/* Clear each of the area(s) modified by the brush */
-				for(rn=ss->damaged_rects.first; rn; rn= rn->next) {
-					rcti clp= rn->r;
-					rcti *win= &curarea->winrct;
-					
-					clp.xmin+= win->xmin;
-					clp.xmax+= win->xmin;
-					clp.ymin+= win->ymin;
-					clp.ymax+= win->ymin;
-					
-					if(clp.xmin<win->xmax && clp.xmax>win->xmin &&
-					   clp.ymin<win->ymax && clp.ymax>win->ymin) {
-						if(clp.xmin<win->xmin) clp.xmin= win->xmin;
-						if(clp.ymin<win->ymin) clp.ymin= win->ymin;
-						if(clp.xmax>win->xmax) clp.xmax= win->xmax;
-						if(clp.ymax>win->ymax) clp.ymax= win->ymax;
-						glScissor(clp.xmin+1, clp.ymin+1,
-							  clp.xmax-clp.xmin-2,clp.ymax-clp.ymin-2);
-					}
-					
-					glClear(GL_DEPTH_BUFFER_BIT);
-				}
+				sculpt_clear_damaged_areas(ss);
 				
 				/* Draw all the polygons that are inside the modified area(s) */
 				glScissor(scissor_box[0], scissor_box[1], scissor_box[2], scissor_box[3]);
@@ -1828,14 +1856,15 @@ void sculpt(void)
 		else BIF_wait_for_statechange();
 	}
 
+	/* Set the rotation of the brush back to what it was before any rake */
+	set_tex_angle(offsetRot);
+	
 	if(sd->flags & SCULPT_INPUT_SMOOTH) {
 		sculpt_stroke_apply_all(&e);
 		calc_damaged_verts(&ss->damaged_verts,e.grabdata);
 		BLI_freelistN(&ss->damaged_rects);
 	}
 
-	if(projverts) MEM_freeN(projverts);
-	projverts= NULL;
 	if(e.layer_disps) MEM_freeN(e.layer_disps);
 	if(e.layer_store) MEM_freeN(e.layer_store);
 	/* Free GrabData */
@@ -1847,7 +1876,16 @@ void sculpt(void)
 	}
 	sculpt_stroke_free();
 
-	switch(G.scene->sculptdata.brush_type) {
+	sculpt_undo_push(G.scene->sculptdata.brush_type);
+
+	if(G.vd->depths) G.vd->depths->damaged= 1;
+	
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+void sculpt_undo_push(const short brush_type)
+{
+	switch(brush_type) {
 	case DRAW_BRUSH:
 		BIF_undo_push("Draw Brush"); break;
 	case SMOOTH_BRUSH:
@@ -1865,10 +1903,6 @@ void sculpt(void)
 	default:
 		BIF_undo_push("Sculpting"); break;
 	}
-
-	if(G.vd->depths) G.vd->depths->damaged= 1;
-	
-	allqueue(REDRAWVIEW3D, 0);
 }
 
 void set_sculptmode(void)

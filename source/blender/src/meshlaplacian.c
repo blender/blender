@@ -426,14 +426,14 @@ static void heat_ray_tree_create(LaplacianSystem *sys)
 		DO_MINMAX(sys->heat.verts[a], min, max);
 
 	tree= RE_ray_tree_create(64, me->totface, min, max,
-		heat_ray_coords_func, heat_ray_check_func);
+		heat_ray_coords_func, heat_ray_check_func, NULL, NULL);
 	
 	sys->heat.vface= MEM_callocN(sizeof(MFace*)*me->totvert, "HeatVFaces");
 
 	HeatSys= sys;
 
 	for(a=0, mface=me->mface; a<me->totface; a++, mface++) {
-		RE_ray_tree_add_face(tree, mface);
+		RE_ray_tree_add_face(tree, 0, mface);
 
 		sys->heat.vface[mface->v1]= mface;
 		sys->heat.vface[mface->v2]= mface;

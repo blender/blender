@@ -261,7 +261,7 @@ void editbones_to_armature (ListBase *list, Object *ob)
 				if (fBone->parent==eBone)
 					fBone->parent= eBone->parent;
 			}
-			printf("Warning; removed zero sized bone: %s\n", eBone->name);
+			printf("Warning: removed zero sized bone: %s\n", eBone->name);
 			BLI_freelinkN (list, eBone);
 		}
 	}
@@ -1488,7 +1488,7 @@ static EditBone *add_editbone(char *name)
 	
 	EditBone *bone= MEM_callocN(sizeof(EditBone), "eBone");
 	
-	BLI_strncpy (bone->name, name, 32);
+	BLI_strncpy(bone->name, name, 32);
 	unique_editbone_name(&G.edbo, bone->name);
 	
 	BLI_addtail(&G.edbo, bone);
@@ -1661,6 +1661,19 @@ void addvert_armature(void)
 	allqueue(REDRAWVIEW3D, 0);
 	
 	while(get_mbut()&R_MOUSE);
+}
+
+/* adds an EditBone between the nominated locations (should be in the right space) */
+static EditBone *add_points_bone (float head[], float tail[]) 
+{
+	EditBone *ebo;
+	
+	ebo= add_editbone("Bone");
+	
+	VECCOPY(ebo->head, head);
+	VECCOPY(ebo->tail, tail);
+	
+	return ebo;
 }
 
 
@@ -1858,6 +1871,375 @@ void adduplicate_armature(void)
 
 
 /* *************** END Adding stuff in editmode *************** */
+/* ************** Add/Remove stuff in editmode **************** */
+
+/* temporary data-structure for merge/fill bones */
+typedef struct EditBonePoint {
+	struct EditBonePoint *next, *prev;
+	
+	EditBone *head_owner;		/* EditBone which uses this point as a 'head' point */
+	EditBone *tail_owner;		/* EditBone which uses this point as a 'tail' point */
+	
+	float vec[3];				/* the actual location of the point in local/EditMode space */
+} EditBonePoint;
+
+/* find chain-tips (i.e. bones without children) */
+static void chains_find_tips (ListBase *list)
+{
+	EditBone *curBone, *ebo;
+	LinkData *ld;
+	
+	/* note: this is potentially very slow ... there's got to be a better way */
+	for (curBone= G.edbo.first; curBone; curBone= curBone->next) {
+		short stop= 0;
+		
+		/* is this bone contained within any existing chain? (skip if so) */
+		for (ld= list->first; ld; ld= ld->next) {
+			for (ebo= ld->data; ebo; ebo= ebo->parent) {
+				if (ebo == curBone) {
+					stop= 1;
+					break;
+				}
+			}
+			
+			if (stop) break;
+		}
+		/* skip current bone if it is part of an existing chain */
+		if (stop) continue;
+		
+		/* is any existing chain part of the chain formed by this bone? */
+		stop= 0;
+		for (ebo= curBone->parent; ebo; ebo= ebo->parent) {
+			for (ld= list->first; ld; ld= ld->next) {
+				if (ld->data == ebo) {
+					ld->data= curBone;
+					stop= 1;
+					break;
+				}
+			}
+			
+			if (stop) break;
+		}
+		/* current bone has already been added to a chain? */
+		if (stop) continue;
+		
+		/* add current bone to a new chain */
+		ld= MEM_callocN(sizeof(LinkData), "BoneChain");
+		ld->data= curBone;
+		BLI_addtail(list, ld);
+	}
+}
+
+
+static void fill_add_joint (EditBone *ebo, short eb_tail, ListBase *points)
+{
+	EditBonePoint *ebp;
+	float vec[3];
+	short found= 0;
+	
+	if (eb_tail) {
+		VECCOPY(vec, ebo->tail);
+	}
+	else {
+		VECCOPY(vec, ebo->head);
+	}
+	
+	// FIXME: this algorithm sucks... it misses things it shouldn't
+	for (ebp= points->first; ebp; ebp= ebp->next) {
+		if (VecEqual(ebp->vec, vec)) {			
+			if (eb_tail) {
+				if ((ebp->head_owner) && (ebp->head_owner->parent == ebo)) {
+					/* so this bone's tail owner is this bone*/
+					ebp->tail_owner= ebo;
+					found= 1;
+					break;
+				}
+			}
+			else {
+				if ((ebp->tail_owner) && (ebo->parent == ebp->tail_owner)) {
+					/* so this bone's head owner is this bone */
+					ebp->head_owner= ebo;
+					found = 1;
+					break;
+				}
+			}
+		}
+	}
+	
+	/* allocate a new point if no existing point was related */
+	if (found == 0) {
+		ebp= MEM_callocN(sizeof(EditBonePoint), "EditBonePoint");
+		
+		if (eb_tail) {
+			VECCOPY(ebp->vec, ebo->tail);
+			ebp->tail_owner= ebo;
+		}
+		else {
+			VECCOPY(ebp->vec, ebo->head);
+			ebp->head_owner= ebo;
+		}
+		
+		BLI_addtail(points, ebp);
+	}
+}
+
+/* bone adding between selected joints */
+void fill_bones_armature(void)
+{
+	bArmature *arm= G.obedit->data;
+	EditBone *ebo, *newbone=NULL;
+	ListBase points = {NULL, NULL};
+	int count;
+	
+	/* loop over all bones, and only consider if visible */
+	for (ebo= G.edbo.first; ebo; ebo= ebo->next) {
+		if ((arm->layer & ebo->layer) && !(ebo->flag & BONE_HIDDEN_A)) {
+			if (!(ebo->flag & BONE_CONNECTED) && (ebo->flag & BONE_ROOTSEL))
+				fill_add_joint(ebo, 0, &points);
+			if (ebo->flag & BONE_TIPSEL) 
+				fill_add_joint(ebo, 1, &points);
+		}
+	}
+	
+	/* the number of joints determines how we fill:
+	 *	1) between joint and cursor (joint=head, cursor=tail)
+	 *	2) between the two joints (order is dependent on active-bone/hierachy)
+	 * 	3+) error (a smarter method involving finding chains needs to be worked out
+	 */
+	count= BLI_countlist(&points);
+	
+	if (count == 0) {
+		error("No joints selected");
+		return;
+	}
+	else if (count == 1) {
+		EditBonePoint *ebp;
+		float curs[3];
+		
+		/* Get Points - selected joint */
+		ebp= (EditBonePoint *)points.first;
+		
+		/* Get points - cursor (tail) */
+		VECCOPY (curs, give_cursor());	
+		
+		Mat4Invert(G.obedit->imat, G.obedit->obmat);
+		Mat4MulVecfl(G.obedit->imat, curs);
+		
+		/* Create a bone */
+		newbone= add_points_bone(ebp->vec, curs);
+	}
+	else if (count == 2) {
+		EditBonePoint *ebp, *ebp2;
+		float head[3], tail[3];
+		
+		/* check that the points don't belong to the same bone */
+		ebp= (EditBonePoint *)points.first;
+		ebp2= ebp->next;
+		
+		if ((ebp->head_owner==ebp2->tail_owner) && (ebp->head_owner!=NULL)) {
+			error("Same bone selected...");
+			BLI_freelistN(&points);
+			return;
+		}
+		if ((ebp->tail_owner==ebp2->head_owner) && (ebp->tail_owner!=NULL)) {
+			error("Same bone selected...");
+			BLI_freelistN(&points);
+			return;
+		}
+		
+		/* find which one should be the 'head' */
+		if ((ebp->head_owner && ebp2->head_owner) || (ebp->tail_owner && ebp2->tail_owner)) {
+			/* rule: whichever one is closer to 3d-cursor */
+			float curs[3];
+			float vecA[3], vecB[3];
+			float distA, distB;
+			
+			/* get cursor location */
+			VECCOPY (curs, give_cursor());	
+			
+			Mat4Invert(G.obedit->imat, G.obedit->obmat);
+			Mat4MulVecfl(G.obedit->imat, curs);
+			
+			/* get distances */
+			VecSubf(vecA, ebp->vec, curs);
+			VecSubf(vecB, ebp2->vec, curs);
+			distA= VecLength(vecA);
+			distB= VecLength(vecB);
+			
+			/* compare distances - closer one therefore acts as direction for bone to go */
+			if (distA < distB) {
+				VECCOPY(head, ebp2->vec);
+				VECCOPY(tail, ebp->vec);
+			}
+			else {
+				VECCOPY(head, ebp->vec);
+				VECCOPY(tail, ebp2->vec);
+			}
+		}
+		else if (ebp->head_owner) {
+			VECCOPY(head, ebp->vec);
+			VECCOPY(tail, ebp2->vec);
+		}
+		else if (ebp2->head_owner) {
+			VECCOPY(head, ebp2->vec);
+			VECCOPY(tail, ebp->vec);
+		}
+		
+		/* add new bone */
+		newbone= add_points_bone(head, tail);
+	}
+	else {
+		// FIXME.. figure out a method for multiple bones
+		error("Too many points selected"); 
+		printf("Points selected: %d \n", count);
+		BLI_freelistN(&points);
+		return;
+	}
+	
+	/* free points */
+	BLI_freelistN(&points);
+	
+	/* undo + updates */
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
+	BIF_undo_push("Fill Bones");
+}
+
+/* this function merges between two bones, removes them and those in-between, 
+ * and adjusts the parent relationships for those in-between
+ */
+static void bones_merge(EditBone *start, EditBone *end, ListBase *chains)
+{
+	EditBone *ebo, *ebone, *newbone;
+	LinkData *chain;
+	float head[3], tail[3];
+	
+	/* check if same bone */
+	if (start == end) {
+		printf("Error: same bone! \n");
+		printf("\tstart = %s, end = %s \n", start->name, end->name);
+	}
+	
+	/* step 1: add a new bone
+	 *	- head = head/tail of start (default head)
+	 *	- tail = head/tail of end (default tail)
+	 *	- parent = parent of start
+	 */
+	if ((start->flag & BONE_TIPSEL) && !(start->flag & (BONE_SELECTED|BONE_ACTIVE))) {
+		VECCOPY(head, start->tail);
+	}
+	else {
+		VECCOPY(head, start->head);
+	}
+	if ((end->flag & BONE_ROOTSEL) && !(end->flag & (BONE_SELECTED|BONE_ACTIVE))) {
+		VECCOPY(tail, end->head);
+	}
+	else {
+		VECCOPY(tail, end->tail);
+	}
+	newbone= add_points_bone(head, tail);
+	newbone->parent = start->parent; 
+	
+	/* step 2: parent children of in-between bones to newbone */
+	for (chain= chains->first; chain; chain= chain->next) {
+		/* ick: we need to check if parent of each bone in chain is */
+		for (ebo= chain->data; ebo; ebo= ebo->parent) {
+			short found= 0;
+			
+			/* try to find which bone from the list to be removed, is the parent */
+			for (ebone= end; ebone; ebone= ebone->parent) {
+				if (ebo->parent == ebone) {
+					found= 1;
+					break;
+				}
+			}
+			
+			/* adjust this bone's parent to newbone then */
+			if (found) {
+				ebo->parent= newbone;
+				break;
+			}
+		}
+	}
+	
+	/* step 3: delete all bones between and including start and end */
+	for (ebo= end; ebo; ebo= ebone) {
+		ebone= (ebo == start) ? (NULL) : (ebo->parent);
+		BLI_freelinkN(&G.edbo, ebo);
+	}
+}
+
+/* bone merging - has a menu! */
+void merge_armature(void)
+{
+	bArmature *arm= G.obedit->data;
+	short val= 0;
+	
+	/* process a menu to determine how to merge */
+	// TODO: there's room for more modes of merging stuff...
+	val= pupmenu("Merge Selected Bones%t|Within Chains%x1");
+	if (val <= 0) return;
+	
+	if (val == 1) {
+		/* go down chains, merging bones */
+		ListBase chains = {NULL, NULL};
+		LinkData *chain, *nchain;
+		EditBone *ebo;
+		
+		/* get chains (ends on chains) */
+		chains_find_tips(&chains);
+		if (chains.first == NULL) return;
+		
+		/* each 'chain' is the last bone in the chain (with no children) */
+		for (chain= chains.first; chain; chain= nchain) {
+			EditBone *bstart= NULL, *bend= NULL;
+			
+			/* temporarily remove chain from list of chains */
+			nchain= chain->next;
+			BLI_remlink(&chains, chain);
+			
+			/* only consider bones that are visible and selected */
+			for (ebo= chain->data; ebo; ebo= ebo->parent) {
+				/* check if visible + selected */
+				if ( (arm->layer & ebo->layer) && !(ebo->flag & BONE_HIDDEN_A) &&
+					 ((ebo->flag & BONE_CONNECTED) || (ebo->parent==NULL)) &&
+					 (ebo->flag & (BONE_SELECTED|BONE_ACTIVE)) )
+				{
+					/* set either end or start (end gets priority, unless it is already set) */
+					if (bend == NULL) 
+						bend= ebo;
+					else 
+						bstart= ebo;
+				}
+				else {
+					/* chain is broken... merge any continous segments then clear */
+					if (bstart && bend)
+						bones_merge(bstart, bend, &chains);
+					
+					bstart = NULL;
+					bend = NULL;
+				}
+			}
+			
+			/* merge from bstart to bend if something not merged */
+			if (bstart && bend)
+				bones_merge(bstart, bend, &chains);
+			
+			/* put back link */
+			BLI_insertlinkbefore(&chains, nchain, chain);
+		}		
+		
+		BLI_freelistN(&chains);
+	}
+	
+	/* undo + updates */
+	countall();
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
+	BIF_undo_push("Merge Bones");
+}
+
+/* ************** END Add/Remove stuff in editmode ************ */
 /* *************** Tools in editmode *********** */
 
 

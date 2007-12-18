@@ -291,20 +291,20 @@ void BMF_BitmapFont::DrawStringBuf(char *str, int posx, int posy, float *col, un
 	if (fbuf) {
 		float *pixel, *max;
 		unsigned char c;
-		int x, y;
+		int xi, yi;
 		
 		max = fbuf + (4 * (w * h));
 		
 		while ((c = (unsigned char) *str++)) {
 			BMF_CharData & cd = m_fontData->chars[c];
 			if (cd.data_offset != -1) { 
-				for (y = 0; y < cd.height; y++) {
-					unsigned char* chrRow = &m_fontData->bitmap_data[cd.data_offset + ((cd.width+7)/8)*y];
-					for (x = cd.xorig; x < cd.width; x++) {
-						pixel = fbuf + 4 * (((posy + y - cd.yorig) * w) + (posx + x));
+				for (yi = 0; yi < cd.height; yi++) {
+					unsigned char* chrRow = &m_fontData->bitmap_data[cd.data_offset + ((cd.width+7)/8)*yi];
+					for (xi = cd.xorig; xi < cd.width; xi++) {
+						pixel = fbuf + 4 * (((posy + yi - cd.yorig) * w) + (posx + xi));
 						if ((pixel < max) && (pixel > fbuf)) {
-							int byteIdx = x/8;
-							int bitIdx = 7 - (x%8);
+							int byteIdx = xi/8;
+							int bitIdx = 7 - (xi%8);
 							
 							if (chrRow[byteIdx]&(1<<bitIdx)) {
 								pixel[0] = col[0];

@@ -5358,7 +5358,7 @@ static void particleSystemModifier_deformVerts(
 	else
 		return;
 	
-	if((psys->flag&PSYS_ENABLED)==0)
+	if(!psys_check_enabled(ob, psys))
 		return;
 
 	if(dm==0){
@@ -7512,4 +7512,15 @@ int modifiers_usesPointCache(Object *ob)
 	}
 	return 0;
 }
+
+void modifier_freeTemporaryData(ModifierData *md)
+{
+	if(md->type == eModifierType_Armature) {
+		ArmatureModifierData *amd= (ArmatureModifierData*)md;
+
+		if(amd->prevCos)
+			MEM_freeN(amd->prevCos);
+	}
+}
+
 

@@ -77,6 +77,7 @@
 #include "BKE_bad_level_calls.h"
 #include "BKE_modifier.h"
 #include "BKE_mesh.h"
+#include "BKE_cdderivedmesh.h"
 
 #include "blendef.h"
 #include "RE_render_ext.h"
@@ -248,6 +249,23 @@ int psys_in_edit_mode(ParticleSystem *psys)
 {
 	return ((G.f & G_PARTICLEEDIT) && psys==psys_get_current(OBACT) && psys->edit);
 }
+int psys_check_enabled(Object *ob, ParticleSystem *psys)
+{
+	ParticleSystemModifierData *psmd;
+
+	if(!(psys->flag & PSYS_ENABLED))
+		return 0;
+
+	psmd= psys_get_modifier(ob, psys);
+	if(G.rendering) {
+		if(!psys->renderdata || !(psmd->modifier.mode & eModifierMode_Render))
+			return 0;
+	}
+	else if(!(psmd->modifier.mode & eModifierMode_Realtime))
+		return 0;
+	
+	return 1;
+}
 
 /************************************************/
 /*			Freeing stuff						*/
@@ -301,27 +319,6 @@ void psys_free_path_cache(ParticleSystem *psys)
 	}
 	free_child_path_cache(psys);
 }
-void psys_free_render_memory(Object *ob, ParticleSystem *psys)
-{
-	ParticleSystemModifierData *psmd;
-
-	/* this is a bad function, but saves a lot of memory rendering.
-	 * particles should really be generated on the fly with render
-	 * settings! */
-	psys_free_path_cache(psys);
-
-	if(psys->child){
-		MEM_freeN(psys->child);
-		psys->child=0;
-		psys->totchild=0;
-	}
-	
-	psmd= psys_get_modifier(ob, psys);
-	psmd->flag &= ~eParticleSystemFlag_psys_updated;
-
-	psys->recalc |= PSYS_ALLOC|PSYS_DISTR;
-	//DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-}
 /* free everything */
 void psys_free(Object *ob, ParticleSystem * psys)
 {
@@ -364,6 +361,92 @@ void psys_free(Object *ob, ParticleSystem * psys)
 
 		MEM_freeN(psys);
 	}
+}
+
+/* these two functions move away particle data and bring it back after
+ * rendering, to make different render settings possible without
+ * removing the previous data. this should be solved properly once */
+
+typedef struct ParticleRenderDataup {
+	ChildParticle *child;
+	ParticleCacheKey **pathcache;
+	ParticleCacheKey **childcache;
+	int totchild, totcached, totchildcache;
+	DerivedMesh *dm;
+	int totdmvert, totdmedge, totdmface;
+} ParticleRenderDataup;
+
+void psys_particles_to_render_backup(Object *ob, ParticleSystem *psys)
+{
+	ParticleRenderDataup *data;
+	ParticleSystemModifierData *psmd= psys_get_modifier(ob, psys);
+
+	if(!G.rendering)
+		return;
+
+	data= MEM_callocN(sizeof(ParticleRenderDataup), "ParticleRenderDataup");
+
+	data->child= psys->child;
+	data->totchild= psys->totchild;
+	data->pathcache= psys->pathcache;
+	data->totcached= psys->totcached;
+	data->childcache= psys->childcache;
+	data->totchildcache= psys->totchildcache;
+
+	if(psmd->dm)
+		data->dm= CDDM_copy(psmd->dm);
+	data->totdmvert= psmd->totdmvert;
+	data->totdmedge= psmd->totdmedge;
+	data->totdmface= psmd->totdmface;
+
+	psys->child= NULL;
+	psys->pathcache= NULL;
+	psys->childcache= NULL;
+	psys->totchild= psys->totcached= psys->totchildcache= 0;
+
+	psys->renderdata= data;
+}
+
+void psys_render_backup_to_particles(Object *ob, ParticleSystem *psys)
+{
+	ParticleRenderDataup *data;
+	ParticleSystemModifierData *psmd= psys_get_modifier(ob, psys);
+
+	data= psys->renderdata;
+	if(!data)
+		return;
+
+	if(psmd->dm) {
+		psmd->dm->needsFree= 1;
+		psmd->dm->release(psmd->dm);
+	}
+
+	psys_free_path_cache(psys);
+
+	if(psys->child){
+		MEM_freeN(psys->child);
+		psys->child= 0;
+		psys->totchild= 0;
+	}
+	
+	psys->child= data->child;
+	psys->totchild= data->totchild;
+	psys->pathcache= data->pathcache;
+	psys->totcached= data->totcached;
+	psys->childcache= data->childcache;
+	psys->totchildcache= data->totchildcache;
+
+	psmd->dm= data->dm;
+	psmd->totdmvert= data->totdmvert;
+	psmd->totdmedge= data->totdmedge;
+	psmd->totdmface= data->totdmface;
+	psmd->flag &= ~eParticleSystemFlag_psys_updated;
+
+	if(psys->part->from==PART_FROM_FACE && psmd->dm)
+		psys_calc_dmfaces(ob, psmd->dm, psys);
+
+	MEM_freeN(data);
+	psys->renderdata= NULL;
 }
 
 /************************************************/
@@ -691,12 +774,13 @@ int psys_particle_dm_face_lookup(Object *ob, DerivedMesh *dm, int index, float *
 #define PARTICLE_ERROR(_nor, _vec) _vec[0]=_vec[1]=_vec[2]=0.0; if(_nor){ _nor[0]=_nor[1]=0.0; _nor[2]=1.0; }
 void psys_particle_on_dm(Object *ob, DerivedMesh *dm, int from, int index, int index_dmcache, float *fw, float foffset, float *vec, float *nor, float *utan, float *vtan, float *orco, float *ornor)
 {
-	float (*orcodata)[3] = dm->getVertDataArray(dm, CD_ORCO);
+	float (*orcodata)[3];
 
 	if(index < 0){ /* 'no dm' error has happened! */
 		PARTICLE_ERROR(nor, vec);
 		return;
 	}
+	orcodata= dm->getVertDataArray(dm, CD_ORCO);
 
 	if (dm->deformedOnly || index_dmcache == DMCACHE_ISCHILD) {
 		/* this works for meshes with deform verts only - constructive modifiers wont work properly*/
@@ -1406,7 +1490,7 @@ int psys_threads_init_path(ParticleThread *threads, float cfra, int editupdate)
 
 	/*---start figuring out what is actually wanted---*/
 	if(psys_in_edit_mode(psys))
-		if(G.rendering==0 && (psys->edit==NULL || pset->flag & PE_SHOW_CHILD)==0)
+		if(psys->renderdata==0 && (psys->edit==NULL || pset->flag & PE_SHOW_CHILD)==0)
 			totchild=0;
 
 	if(totchild && part->from!=PART_FROM_PARTICLE && part->childtype==PART_CHILD_FACES){
@@ -1415,7 +1499,7 @@ int psys_threads_init_path(ParticleThread *threads, float cfra, int editupdate)
 		between=1;
 	}
 
-	if(G.rendering)
+	if(psys->renderdata)
 		steps=(int)pow(2.0,(double)part->ren_step);
 	else{
 		totchild=(int)((float)totchild*(float)part->disp/100.0f);
@@ -1870,7 +1954,7 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 	if((psys->flag & PSYS_HAIR_DONE)==0 && (psys->flag & PSYS_KEYED)==0)
 		return;
 
-	if(G.rendering)
+	if(psys->renderdata)
 		steps = (int)pow(2.0, (double)psys->part->ren_step);
 	else if(psys_in_edit_mode(psys)){
 		edit=psys->edit;
@@ -2290,7 +2374,7 @@ void psys_mat_hair_to_orco(Object *ob, DerivedMesh *dm, short from, ParticleData
 	psys_particle_on_dm(ob, dm, from, pa->num, pa->num_dmcache, pa->fuv, pa->foffset, vec, 0, 0, 0, orco, 0);
 
 	/* see psys_face_mat for why this function is called */
-	transform_mesh_orco_verts(ob->data, orco, 1, 1);
+	transform_mesh_orco_verts(ob->data, &orco, 1, 1);
 	VECCOPY(hairmat[3],orco);
 }
 

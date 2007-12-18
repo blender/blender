@@ -292,14 +292,6 @@ static DupliObject *new_dupli_object(ListBase *lb, Object *ob, float mat[][4], i
 	dob->index= index;
 	ob->lay= lay;
 	
-	/* allowing duplicators for particle systems... a bit silly still */
-	{
-		PartEff *paf= give_parteff(ob);
-		if(paf) {
-			Mat4Invert(ob->imat, ob->obmat);
-			Mat4CpyMat4(paf->imat, ob->imat);
-		}
-	}
 	return dob;
 }
 
@@ -809,7 +801,7 @@ ListBase *object_duplilist(Scene *sce, Object *ob)
 			
 			group_duplilist(duplilist, ob, 0); /* now recursive */
 
-			/* make copy already, because in group dupli's deform displists can be makde, requiring parent matrices */
+			/* make copy already, because in group dupli's deform displists can be made, requiring parent matrices */
 			for(dob= duplilist->first; dob; dob= dob->next)
 				Mat4CpyMat4(dob->ob->obmat, dob->mat);
 		}

@@ -8,8 +8,6 @@ extern "C" {
 	void YAF_switchPlugin();
 	void YAF_switchFile();
 	int YAF_exportScene(Render* re);
-	void YAF_addDupliMtx(Object* obj);
-	int YAF_objectKnownData(Object* obj);
 #ifdef __cplusplus
 }
 #endif

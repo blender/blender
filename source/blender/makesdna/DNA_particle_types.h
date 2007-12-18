@@ -198,6 +198,9 @@ typedef struct ParticleSystem{
 
 	/* if you change these remember to update array lengths to PSYS_TOT_VG! */
 	short vgroup[11], vg_neg, rt3[2];
+
+	/* temporary storage during render */
+	void *renderdata;
 }ParticleSystem;
 
 /* general particle maximums */

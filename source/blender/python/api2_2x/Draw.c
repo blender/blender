@@ -362,47 +362,34 @@ static char Method_Exit_doc[] = "() - Exit the windowing interface";
 */
 PyObject *M_Button_List = NULL;
 
-/*
-* here we engage in some macro trickery to define the PyMethodDef table
-*/
-
-#define _MethodDef(func, prefix) \
-	{#func, prefix##_##func, METH_VARARGS, prefix##_##func##_doc}
-
-/* So that _MethodDef(delete, Scene) expands to:
- * {"delete", Scene_delete, METH_VARARGS, Scene_delete_doc} */
-
-#undef MethodDef
-#define MethodDef(func) _MethodDef(func, Method)
-
 static struct PyMethodDef Draw_methods[] = {
-	MethodDef( Create ),
-	MethodDef( UIBlock ),
-	MethodDef( Button ),
-	MethodDef( Toggle ),
-	MethodDef( Menu ),
-	MethodDef( Slider ),
-	MethodDef( Scrollbar ),
-	MethodDef( ColorPicker ),
-	MethodDef( Normal ),
-	MethodDef( Number ),
-	MethodDef( String ),
-	MethodDef( GetStringWidth ),
-	MethodDef( Text ),
-	MethodDef( Label ),
-	MethodDef( PupMenu ),
-	MethodDef( PupIntInput ),
-	MethodDef( PupFloatInput ),
-	MethodDef( PupStrInput ),
-	MethodDef( PupBlock ),
-	MethodDef( Image ),
+	{"Create", (PyCFunction)Method_Create, METH_VARARGS, Method_Create_doc},
+	{"UIBlock", (PyCFunction)Method_UIBlock, METH_VARARGS, Method_UIBlock_doc},
+	{"Button", (PyCFunction)Method_Button, METH_VARARGS, Method_Button_doc},
+	{"Toggle", (PyCFunction)Method_Toggle, METH_VARARGS, Method_Toggle_doc},
+	{"Menu", (PyCFunction)Method_Menu, METH_VARARGS, Method_Menu_doc},
+	{"Slider", (PyCFunction)Method_Slider, METH_VARARGS, Method_Slider_doc},
+	{"Scrollbar", (PyCFunction)Method_Scrollbar, METH_VARARGS, Method_Scrollbar_doc},
+	{"ColorPicker", (PyCFunction)Method_ColorPicker, METH_VARARGS, Method_ColorPicker_doc},
+	{"Normal", (PyCFunction)Method_Normal, METH_VARARGS, Method_Normal_doc},
+	{"Number", (PyCFunction)Method_Number, METH_VARARGS, Method_Number_doc},
+	{"String", (PyCFunction)Method_String, METH_VARARGS, Method_String_doc},
+	{"GetStringWidth", (PyCFunction)Method_GetStringWidth, METH_VARARGS, Method_GetStringWidth_doc},
+	{"Text", (PyCFunction)Method_Text, METH_VARARGS, Method_Text_doc},
+	{"Label", (PyCFunction)Method_Label, METH_VARARGS, Method_Label_doc},
+	{"PupMenu", (PyCFunction)Method_PupMenu, METH_VARARGS, Method_PupMenu_doc},
+	{"PupIntInput", (PyCFunction)Method_PupIntInput, METH_VARARGS, Method_PupIntInput_doc},
+	{"PupFloatInput", (PyCFunction)Method_PupFloatInput, METH_VARARGS, Method_PupFloatInput_doc},
+	{"PupStrInput", (PyCFunction)Method_PupStrInput, METH_VARARGS, Method_PupStrInput_doc},
+	{"PupBlock", (PyCFunction)Method_PupBlock, METH_VARARGS, Method_PupBlock_doc},
+	{"Image", (PyCFunction)Method_Image, METH_VARARGS, Method_Image_doc},
 	{"Exit", (PyCFunction)Method_Exit, METH_NOARGS, Method_Exit_doc},
-	MethodDef( Redraw ),
+	{"Redraw", (PyCFunction)Method_Redraw, METH_VARARGS, Method_Redraw_doc},
 	{"Draw", (PyCFunction)Method_Draw, METH_NOARGS, Method_Draw_doc},
-	MethodDef( Register ),
+	{"Register", (PyCFunction)Method_Register, METH_VARARGS, Method_Register_doc},
 	{"PushButton", (PyCFunction)Method_Button, METH_VARARGS, Method_Button_doc},
-	MethodDef( BeginAlign ),
-	MethodDef( EndAlign),
+	{"BeginAlign", (PyCFunction)Method_BeginAlign, METH_VARARGS, Method_BeginAlign_doc},
+	{"EndAlign", (PyCFunction)Method_EndAlign, METH_VARARGS, Method_EndAlign_doc},
 	{NULL, NULL, 0, NULL}
 };
 

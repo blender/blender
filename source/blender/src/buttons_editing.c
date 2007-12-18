@@ -1641,19 +1641,6 @@ void modifiers_explodeFacepa(void *arg1, void *arg2)
 	emd->flag |= eExplodeFlag_CalcFaces;
 }
 
-static void modifiers_psysEnable(void *ob_v, void *md_v)
-{
-	ParticleSystemModifierData *psmd = (ParticleSystemModifierData*) md_v;
-
-	if(psmd->modifier.mode & eModifierMode_Realtime) {
-		psmd->psys->flag |= PSYS_ENABLED;
-	}
-	else {
-		psmd->psys->flag &= ~PSYS_ENABLED;
-		PE_free_particle_edit(psmd->psys);
-	}
-}
-
 static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco, int *yco, int index, int cageIndex, int lastCageIndex)
 {
 	ModifierTypeInfo *mti = modifierType_getInfo(md->type);
@@ -1693,8 +1680,6 @@ static void draw_modifier(uiBlock *block, Object *ob, ModifierData *md, int *xco
 		if ((md->type!=eModifierType_Softbody && md->type!=eModifierType_Collision) || !(ob->pd && ob->pd->deflect)) {
 			uiDefIconButBitI(block, TOG, eModifierMode_Render, B_MODIFIER_RECALC, ICON_SCENE, x+10+buttonWidth-60, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during rendering");
 			but= uiDefIconButBitI(block, TOG, eModifierMode_Realtime, B_MODIFIER_RECALC, VICON_VIEW3D, x+10+buttonWidth-40, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during interactive display");
-			if (md->type==eModifierType_ParticleSystem)
-				uiButSetFunc(but, modifiers_psysEnable, ob, md);
 			if (mti->flags&eModifierTypeFlag_SupportsEditmode) {
 				uiDefIconButBitI(block, TOG, eModifierMode_Editmode, B_MODIFIER_RECALC, VICON_EDIT, x+10+buttonWidth-20, y-1, 19, 19,&md->mode, 0, 0, 1, 0, "Enable modifier during Editmode (only if enabled for display)");
 			}
@@ -4956,7 +4941,7 @@ static void editing_panel_links(Object *ob)
 				xco, 154, 130,20, 0, 0, 0, 0, 0, "");
 		
 		uiBlockBeginAlign(block);
-		uiDefButC(block, MENU, REDRAWVIEW3D, "Empty Drawtype%t|Arrows%x1|Single Arrow%x4|Plain Axes%x2|Circle%x3|Cube%x5",
+		uiDefButC(block, MENU, REDRAWVIEW3D, "Empty Drawtype%t|Arrows%x1|Single Arrow%x4|Plain Axes%x2|Circle%x3|Cube%x5|Sphere%x6|Cone%x7",
 				xco, 128, 140, 20, &ob->empty_drawtype, 0, 0, 0, 0, "The Empty 3D View display style");
 		uiDefButF(block, NUM, REDRAWVIEW3D, "Size:",
 				xco, 108, 140, 21, &ob->empty_drawsize, 0.01, 10.0, 1, 0, "The size to display the Empty");
@@ -5220,9 +5205,16 @@ void sculptmode_draw_interface_textures(uiBlock *block, unsigned short cx, unsig
 			if(sd->texrept != SCULPTREPT_3D) {
 				uiBlockBeginAlign(block);
 				uiDefButF(block,NUM,0, "Angle", cx,cy,115,19, &mtex->warpfac, 0,360,100,0, "Rotate texture counterclockwise");
+				/*Moved inside, so that following buttons aren't made bigger for no reason*/
+				cy-= 20;
 			}
-			cy-= 20;
-
+			
+			/* Added Rake button. Needs to be turned off if 3D is on / disappear*/
+			if(sd->texrept != SCULPTREPT_3D){
+				uiDefButC(block,TOG,B_NOP, "Rake", cx,cy,115,19, &sd->rake, 0,0,0,0,"Rotate the brush in the direction of motion");
+				cy-=20;
+			}
+				
 			if(sd->texrept != SCULPTREPT_DRAG) {
 				uiBlockBeginAlign(block);
 				but= uiDefIconButC(block, TOG, REDRAWBUTSEDIT, sd->texsep ? ICON_UNLOCKED : ICON_LOCKED, cx,cy,20,19, &sd->texsep,0,0,0,0, "Locks the texture sizes together");			

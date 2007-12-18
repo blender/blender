@@ -11,10 +11,9 @@
 #include "solver_relax.h"
 #include "particletracer.h"
 
-#if !defined(linux) && (defined (__sparc) || defined (__sparc__))
+#if (defined (__sun__) || defined (__sun)) || (!defined(linux) && (defined (__sparc) || defined (__sparc__)))
 #include <ieeefp.h>
 #endif
-
 
 /*****************************************************************************/
 //! coarse step functions

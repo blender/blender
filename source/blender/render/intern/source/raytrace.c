@@ -61,6 +61,7 @@ typedef struct OcVal
 typedef struct Node
 {
 	struct RayFace *v[8];
+	int ob[8];
 	struct OcVal ov[8];
 	struct Node *next;
 } Node;
@@ -76,6 +77,8 @@ typedef struct Octree {
 	char *ocface; /* during building only */
 	RayCoordsFunc coordsfunc;
 	RayCheckFunc checkfunc;
+	RayObjectTransformFunc transformfunc;
+	void *userdata;
 } Octree;
 
 /* ******** globals ***************** */
@@ -230,7 +233,7 @@ static int face_in_node(RayFace *face, short x, short y, short z, float rtf[][3]
 	return 0;
 }
 
-static void ocwrite(Octree *oc, RayFace *face, int quad, short x, short y, short z, float rtf[][3])
+static void ocwrite(Octree *oc, int ob, RayFace *face, int quad, short x, short y, short z, float rtf[][3])
 {
 	Branch *br;
 	Node *no;
@@ -281,6 +284,7 @@ static void ocwrite(Octree *oc, RayFace *face, int quad, short x, short y, short
 	}
 	
 	no->v[a]= face;
+	no->ob[a]= ob;
 	
 	if(quad)
 		calc_ocval_face(rtf[0], rtf[1], rtf[2], rtf[3], x>>2, y>>1, z, &no->ov[a]);
@@ -435,7 +439,7 @@ void RE_ray_tree_free(RayTree *tree)
 	MEM_freeN(oc);
 }
 
-RayTree *RE_ray_tree_create(int ocres, int totface, float *min, float *max, RayCoordsFunc coordsfunc, RayCheckFunc checkfunc)
+RayTree *RE_ray_tree_create(int ocres, int totface, float *min, float *max, RayCoordsFunc coordsfunc, RayCheckFunc checkfunc, RayObjectTransformFunc transformfunc, void *userdata)
 {
 	Octree *oc;
 	float t00, t01, t02;
@@ -447,6 +451,8 @@ RayTree *RE_ray_tree_create(int ocres, int totface, float *min, float *max, RayC
 
 	oc->coordsfunc= coordsfunc;
 	oc->checkfunc= checkfunc;
+	oc->transformfunc= transformfunc;
+	oc->userdata= userdata;
 
 	/* only for debug info */
 	raycount=0;
@@ -486,10 +492,11 @@ RayTree *RE_ray_tree_create(int ocres, int totface, float *min, float *max, RayC
 	return (RayTree*)oc;
 }
 
-void RE_ray_tree_add_face(RayTree *tree, RayFace *face)
+void RE_ray_tree_add_face(RayTree *tree, int ob, RayFace *face)
 {
 	Octree *oc = (Octree*)tree;
 	float *v1, *v2, *v3, *v4, ocfac[3], rtf[4][3];
+	float co1[3], co2[3], co3[3], co4[3];
 	short rts[4][3], ocmin[6], *ocmax;
 	char *ocface= oc->ocface;	// front, top, size view of face, to fill in
 	int a, b, c, oc1, oc2, oc3, oc4, x, y, z, ocres2;
@@ -503,16 +510,34 @@ void RE_ray_tree_add_face(RayTree *tree, RayFace *face)
 	ocmax= ocmin+3;
 
 	oc->coordsfunc(face, &v1, &v2, &v3, &v4);
+
+	VECCOPY(co1, v1);
+	VECCOPY(co2, v2);
+	VECCOPY(co3, v3);
+	if(v4)
+		VECCOPY(co4, v4);
+
+	if(ob >= RE_RAY_TRANSFORM_OFFS) {
+		float (*mat)[4]= (float(*)[4])oc->transformfunc(oc->userdata, ob);
+
+		if(mat) {
+			Mat4MulVecfl(mat, co1);
+			Mat4MulVecfl(mat, co2);
+			Mat4MulVecfl(mat, co3);
+			if(v4)
+				Mat4MulVecfl(mat, co4);
+		}
+	}
 	
 	for(c=0;c<3;c++) {
-		rtf[0][c]= (v1[c]-oc->min[c])*ocfac[c] ;
+		rtf[0][c]= (co1[c]-oc->min[c])*ocfac[c] ;
 		rts[0][c]= (short)rtf[0][c];
-		rtf[1][c]= (v2[c]-oc->min[c])*ocfac[c] ;
+		rtf[1][c]= (co2[c]-oc->min[c])*ocfac[c] ;
 		rts[1][c]= (short)rtf[1][c];
-		rtf[2][c]= (v3[c]-oc->min[c])*ocfac[c] ;
+		rtf[2][c]= (co3[c]-oc->min[c])*ocfac[c] ;
 		rts[2][c]= (short)rtf[2][c];
 		if(v4) {
-			rtf[3][c]= (v4[c]-oc->min[c])*ocfac[c] ;
+			rtf[3][c]= (co4[c]-oc->min[c])*ocfac[c] ;
 			rts[3][c]= (short)rtf[3][c];
 		}
 	}
@@ -535,7 +560,7 @@ void RE_ray_tree_add_face(RayTree *tree, RayFace *face)
 	}
 	
 	if(ocmin[0]==ocmax[0] && ocmin[1]==ocmax[1] && ocmin[2]==ocmax[2]) {
-		ocwrite(oc, face, (v4 != NULL), ocmin[0], ocmin[1], ocmin[2], rtf);
+		ocwrite(oc, ob, face, (v4 != NULL), ocmin[0], ocmin[1], ocmin[2], rtf);
 	}
 	else {
 		
@@ -574,7 +599,7 @@ void RE_ray_tree_add_face(RayTree *tree, RayFace *face)
 					for(z=ocmin[2];z<=ocmax[2];z++) {
 						if(ocface[b+z] && ocface[a+z]) {
 							if(face_in_node(NULL, x, y, z, rtf))
-								ocwrite(oc, face, (v4 != NULL), x,y,z, rtf);
+								ocwrite(oc, ob, face, (v4 != NULL), x,y,z, rtf);
 						}
 					}
 				}
@@ -611,9 +636,9 @@ void RE_ray_tree_done(RayTree *tree)
 /* ************ raytracer **************** */
 
 /* only for self-intersecting test with current render face (where ray left) */
-static int intersection2(RayFace *face, RayCoordsFunc coordsfunc, float r0, float r1, float r2, float rx1, float ry1, float rz1)
+static int intersection2(RayFace *face, int ob, RayObjectTransformFunc transformfunc, RayCoordsFunc coordsfunc, void *userdata, float r0, float r1, float r2, float rx1, float ry1, float rz1)
 {
-	float *v1, *v2, *v3, *v4;
+	float *v1, *v2, *v3, *v4, co1[3], co2[3], co3[3], co4[3];
 	float x0,x1,x2,t00,t01,t02,t10,t11,t12,t20,t21,t22;
 	float m0, m1, m2, divdet, det, det1;
 	float u1, v, u2;
@@ -623,17 +648,35 @@ static int intersection2(RayFace *face, RayCoordsFunc coordsfunc, float r0, floa
 	/* happens for baking with non existing face */
 	if(v1==NULL)
 		return 1;
-	
-	if (v4) {
+
+	if(v4) {
 		SWAP(float*, v3, v4);
 	}
+
+	VECCOPY(co1, v1);
+	VECCOPY(co2, v2);
+	VECCOPY(co3, v3);
+	if(v4)
+		VECCOPY(co4, v4);
+
+	if(ob >= RE_RAY_TRANSFORM_OFFS) {
+		float (*mat)[4]= (float(*)[4])transformfunc(userdata, ob);
+
+		if(mat) {
+			Mat4MulVecfl(mat, co1);
+			Mat4MulVecfl(mat, co2);
+			Mat4MulVecfl(mat, co3);
+			if(v4)
+				Mat4MulVecfl(mat, co4);
+		}
+	}
 	
-	t00= v3[0]-v1[0];
-	t01= v3[1]-v1[1];
-	t02= v3[2]-v1[2];
-	t10= v3[0]-v2[0];
-	t11= v3[1]-v2[1];
-	t12= v3[2]-v2[2];
+	t00= co3[0]-co1[0];
+	t01= co3[1]-co1[1];
+	t02= co3[2]-co1[2];
+	t10= co3[0]-co2[0];
+	t11= co3[1]-co2[1];
+	t12= co3[2]-co2[2];
 	
 	x0= t11*r2-t12*r1;
 	x1= t12*r0-t10*r2;
@@ -641,9 +684,9 @@ static int intersection2(RayFace *face, RayCoordsFunc coordsfunc, float r0, floa
 
 	divdet= t00*x0+t01*x1+t02*x2;
 
-	m0= rx1-v3[0];
-	m1= ry1-v3[1];
-	m2= rz1-v3[2];
+	m0= rx1-co3[0];
+	m1= ry1-co3[1];
+	m2= rz1-co3[2];
 	det1= m0*x0+m1*x1+m2*x2;
 	
 	if(divdet!=0.0f) {
@@ -663,9 +706,9 @@ static int intersection2(RayFace *face, RayCoordsFunc coordsfunc, float r0, floa
 
 	if(v4) {
 
-		t20= v3[0]-v4[0];
-		t21= v3[1]-v4[1];
-		t22= v3[2]-v4[2];
+		t20= co3[0]-co4[0];
+		t21= co3[1]-co4[1];
+		t22= co3[2]-co4[2];
 
 		divdet= t20*x0+t21*x1+t22*x2;
 		if(divdet!=0.0f) {
@@ -752,10 +795,11 @@ static int intersection_strand(Isect *is)
 #endif
 
 /* ray - triangle or quad intersection */
-int RE_ray_face_intersection(Isect *is, RayCoordsFunc coordsfunc)
+int RE_ray_face_intersection(Isect *is, RayObjectTransformFunc transformfunc, RayCoordsFunc coordsfunc)
 {
 	RayFace *face= is->face;
-	float *v1,*v2,*v3,*v4;
+	int ob= is->ob;
+	float *v1,*v2,*v3,*v4,co1[3],co2[3],co3[3],co4[3];
 	float x0,x1,x2,t00,t01,t02,t10,t11,t12,t20,t21,t22,r0,r1,r2;
 	float m0, m1, m2, divdet, det1;
 	short ok=0;
@@ -767,16 +811,34 @@ int RE_ray_face_intersection(Isect *is, RayCoordsFunc coordsfunc)
 	
 	coordsfunc(face, &v1, &v2, &v3, &v4);
 
-	if (v4) {
+	if(v4) {
 		SWAP(float*, v3, v4);
 	}
 
-	t00= v3[0]-v1[0];
-	t01= v3[1]-v1[1];
-	t02= v3[2]-v1[2];
-	t10= v3[0]-v2[0];
-	t11= v3[1]-v2[1];
-	t12= v3[2]-v2[2];
+	VECCOPY(co1, v1);
+	VECCOPY(co2, v2);
+	VECCOPY(co3, v3);
+	if(v4)
+		VECCOPY(co4, v4);
+
+	if(ob) {
+		float (*mat)[4]= (float(*)[4])transformfunc(is->userdata, ob);
+
+		if(mat) {
+			Mat4MulVecfl(mat, co1);
+			Mat4MulVecfl(mat, co2);
+			Mat4MulVecfl(mat, co3);
+			if(v4)
+				Mat4MulVecfl(mat, co4);
+		}
+	}
+
+	t00= co3[0]-co1[0];
+	t01= co3[1]-co1[1];
+	t02= co3[2]-co1[2];
+	t10= co3[0]-co2[0];
+	t11= co3[1]-co2[1];
+	t12= co3[2]-co2[2];
 	
 	r0= is->vec[0];
 	r1= is->vec[1];
@@ -788,9 +850,9 @@ int RE_ray_face_intersection(Isect *is, RayCoordsFunc coordsfunc)
 
 	divdet= t00*x0+t01*x1+t02*x2;
 
-	m0= is->start[0]-v3[0];
-	m1= is->start[1]-v3[1];
-	m2= is->start[2]-v3[2];
+	m0= is->start[0]-co3[0];
+	m1= is->start[1]-co3[1];
+	m2= is->start[2]-co3[2];
 	det1= m0*x0+m1*x1+m2*x2;
 	
 	if(divdet!=0.0f) {
@@ -821,9 +883,9 @@ int RE_ray_face_intersection(Isect *is, RayCoordsFunc coordsfunc)
 
 	if(ok==0 && v4) {
 
-		t20= v3[0]-v4[0];
-		t21= v3[1]-v4[1];
-		t22= v3[2]-v4[2];
+		t20= co3[0]-co4[0];
+		t21= co3[1]-co4[1];
+		t22= co3[2]-co4[2];
 
 		divdet= t20*x0+t21*x1+t22*x2;
 		if(divdet!=0.0f) {
@@ -874,11 +936,13 @@ int RE_ray_face_intersection(Isect *is, RayCoordsFunc coordsfunc)
 
 			coordsfunc(face, &origv1, &origv2, &origv3, &origv4);
 			
-			if(v1==origv1 || v2==origv1 || v3==origv1 || v4==origv1) de++;
-			if(v1==origv2 || v2==origv2 || v3==origv2 || v4==origv2) de++;
-			if(v1==origv3 || v2==origv3 || v3==origv3 || v4==origv3) de++;
-			if(origv4) {
-				if(v1==origv4 || v2==origv4 || v3==origv4 || v4==origv4) de++;
+			if(ob == is->oborig) {
+				if(v1==origv1 || v2==origv1 || v3==origv1 || v4==origv1) de++;
+				if(v1==origv2 || v2==origv2 || v3==origv2 || v4==origv2) de++;
+				if(v1==origv3 || v2==origv3 || v3==origv3 || v4==origv3) de++;
+				if(origv4) {
+					if(v1==origv4 || v2==origv4 || v3==origv4 || v4==origv4) de++;
+				}
 			}
 			if(de) {
 				/* so there's a shared edge or vertex, let's intersect ray with face
@@ -886,8 +950,9 @@ int RE_ray_face_intersection(Isect *is, RayCoordsFunc coordsfunc)
 				the intersection is invalid, 0 */
 				
 				if(is->facecontr==NULL) {
+					is->obcontr= is->oborig;
 					is->facecontr= face;
-					is->faceisect= intersection2(face, coordsfunc, -r0, -r1, -r2, is->start[0], is->start[1], is->start[2]);
+					is->faceisect= intersection2(face, is->oborig, transformfunc, coordsfunc, is->userdata, -r0, -r1, -r2, is->start[0], is->start[1], is->start[2]);
 				}
 
 				if(is->faceisect) return 1;
@@ -905,6 +970,7 @@ int RE_ray_face_intersection(Isect *is, RayCoordsFunc coordsfunc)
 static int testnode(Octree *oc, Isect *is, Node *no, OcVal ocval, RayCheckFunc checkfunc)
 {
 	RayFace *face;
+	int ob;
 	short nr=0;
 	OcVal *ov;
 
@@ -912,18 +978,21 @@ static int testnode(Octree *oc, Isect *is, Node *no, OcVal ocval, RayCheckFunc c
 	if(is->mode==RE_RAY_SHADOW) {
 		
 		face= no->v[0];
+		ob= no->ob[0];
 		while(face) {
 		
-			if(is->faceorig != face) {
+			if(!(is->faceorig == face && is->oborig == ob)) {
 
 				if(checkfunc(is, face)) {
 					
 					ov= no->ov+nr;
 					if( (ov->ocx & ocval.ocx) && (ov->ocy & ocval.ocy) && (ov->ocz & ocval.ocz) ) { 
 						//accepted++;
+						is->ob= ob;
 						is->face= face;
 	
-						if(RE_ray_face_intersection(is, oc->coordsfunc)) {
+						if(RE_ray_face_intersection(is, oc->transformfunc, oc->coordsfunc)) {
+							is->ob_last= ob;
 							is->face_last= face;
 							return 1;
 						}
@@ -939,6 +1008,7 @@ static int testnode(Octree *oc, Isect *is, Node *no, OcVal ocval, RayCheckFunc c
 				nr=0;
 			}
 			face= no->v[nr];
+			ob= no->ob[nr];
 		}
 	}
 	else {			/* else mirror or glass or shadowtra, return closest face  */
@@ -949,16 +1019,18 @@ static int testnode(Octree *oc, Isect *is, Node *no, OcVal ocval, RayCheckFunc c
 		isect= *is;		/* copy for sorting */
 		
 		face= no->v[0];
+		ob= no->ob[0];
 		while(face) {
 
-			if(is->faceorig != face) {
+			if(!(is->faceorig == face && is->oborig == ob)) {
 				if(checkfunc(is, face)) {
 					ov= no->ov+nr;
 					if( (ov->ocx & ocval.ocx) && (ov->ocy & ocval.ocy) && (ov->ocz & ocval.ocz) ) { 
 						//accepted++;
 
+						isect.ob= ob;
 						isect.face= face;
-						if(RE_ray_face_intersection(&isect, oc->coordsfunc)) {
+						if(RE_ray_face_intersection(&isect, oc->transformfunc, oc->coordsfunc)) {
 							if(isect.labda<is->labda) *is= isect;
 							found= 1;
 						}
@@ -974,6 +1046,7 @@ static int testnode(Octree *oc, Isect *is, Node *no, OcVal ocval, RayCheckFunc c
 				nr=0;
 			}
 			face= no->v[nr];
+			ob= no->ob[nr];
 		}
 		
 		return found;
@@ -1123,17 +1196,20 @@ int RE_ray_tree_intersect_check(RayTree *tree, Isect *is, RayCheckFunc checkfunc
 	
 	/* do this before intersect calls */
 	is->facecontr= NULL;				/* to check shared edge */
+	is->obcontr= 0;
 	is->faceisect= is->isect= 0;		/* shared edge, quad half flag */
+	is->userdata= oc->userdata;
 
 	/* only for shadow! */
 	if(is->mode==RE_RAY_SHADOW) {
 	
 		/* check with last intersected shadow face */
-		if(is->face_last!=NULL && is->face_last!=is->faceorig) {
+		if(is->face_last!=NULL && !(is->face_last==is->faceorig && is->ob_last==is->oborig)) {
 			if(checkfunc(is, is->face_last)) {
+				is->ob= is->ob_last;
 				is->face= is->face_last;
 				VECSUB(is->vec, is->end, is->start);
-				if(RE_ray_face_intersection(is, oc->coordsfunc)) return 1;
+				if(RE_ray_face_intersection(is, oc->transformfunc, oc->coordsfunc)) return 1;
 			}
 		}
 	}
@@ -1349,6 +1425,7 @@ int RE_ray_tree_intersect_check(RayTree *tree, Isect *is, RayCheckFunc checkfunc
 	}
 	
 	/* reached end, no intersections found */
+	is->ob_last= 0;
 	is->face_last= NULL;
 	return 0;
 }	

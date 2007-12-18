@@ -173,8 +173,8 @@ float BIF_GetStringWidth(BMF_Font* font, char *str, int translate)
 }
 
 void BIF_GetBoundingBox(struct BMF_Font* font, char* str, int translate, rctf *bbox){
-	float dummy;
 #ifdef INTERNATIONAL
+	float dummy;
 	if(G.ui_international == TRUE)
 		if(translate && (U.transopts & USER_TR_BUTTONS))
 			FTF_GetBoundingBox(str, &bbox->xmin, &bbox->ymin, &dummy, &bbox->xmax, &bbox->ymax, &dummy, FTF_USE_GETTEXT | FTF_INPUT_UTF8);

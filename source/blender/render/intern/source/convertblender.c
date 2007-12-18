@@ -119,22 +119,14 @@
  * Same is true for lamp coords & vec.
  * Duplicated data objects & dupliframe/duplivert objects are only stored once,
  * only the matrix is stored for all others, in yafray these objects are instances of the original.
- * The main changes are in RE_rotateBlenderScene().
+ * The main changes are in RE_Database_FromScene().
  */
 
 #endif /* disable yafray */
 
-/* ------------------------------------------------------------------------- */
-/* Local functions                                                           */
-/* ------------------------------------------------------------------------- */
-static short test_for_displace(Render *re, Object *ob);
-static void do_displacement(Render *re, Object *ob, int startface, int numface, int startvert, int numvert );
-static int vlakren_customdata_layer_num(int n, int active);
-
 /* 10 times larger than normal epsilon, test it on default nurbs sphere with ray_transp (for quad detection) */
 /* or for checking vertex normal flips */
 #define FLT_EPSILON10 1.19209290e-06F
-
 
 /* ------------------------------------------------------------------------- */
 
@@ -143,14 +135,14 @@ this code may move down to the converter.  */
 /* ------------------------------------------------------------------------- */
 /* this is a bad beast, since it is misused by the 3d view drawing as well. */
 
-static HaloRen *initstar(Render *re, float *vec, float hasize)
+static HaloRen *initstar(Render *re, ObjectRen *obr, float *vec, float hasize)
 {
 	HaloRen *har;
 	float hoco[4];
 	
 	projectverto(vec, re->winmat, hoco);
 	
-	har= RE_findOrAddHalo(re, re->tothalo++);
+	har= RE_findOrAddHalo(obr, obr->tothalo++);
 	
 	/* projectvert is done in function zbufvlaggen again, because of parts */
 	VECCOPY(har->co, vec);
@@ -171,6 +163,7 @@ void RE_make_stars(Render *re, void (*initfunc)(void),
 				   void (*vertexfunc)(float*),  void (*termfunc)(void))
 {
 	extern unsigned char hash[512];
+	ObjectRen *obr= NULL;
 	World *wrld= NULL;
 	HaloRen *har;
 	Scene *scene;
@@ -234,11 +227,14 @@ void RE_make_stars(Render *re, void (*initfunc)(void),
 	if (initfunc) {
 		initfunc();	
 	}
+
+	if(re) /* add render object for stars */
+		obr= RE_addRenderObject(re, NULL, NULL, 0, 0);
 	
 	for (x = sx, fx = sx * stargrid; x <= ex; x++, fx += stargrid) {
 		for (y = sy, fy = sy * stargrid; y <= ey ; y++, fy += stargrid) {
 			for (z = sz, fz = sz * stargrid; z <= ez; z++, fz += stargrid) {
-				
+
 				BLI_srand((hash[z & 0xff] << 24) + (hash[y & 0xff] << 16) + (hash[x & 0xff] << 8));
 				vec[0] = fx + (hlfrand * BLI_drand()) - dblrand;
 				vec[1] = fy + (hlfrand * BLI_drand()) - dblrand;
@@ -281,7 +277,7 @@ void RE_make_stars(Render *re, void (*initfunc)(void),
 					if (alpha != 0.0) {
 						fac = force * BLI_drand();
 						
-						har = initstar(re, vec, fac);
+						har = initstar(re, obr, vec, fac);
 						
 						if (har) {
 							har->alfa = sqrt(sqrt(alpha));
@@ -305,6 +301,9 @@ void RE_make_stars(Render *re, void (*initfunc)(void),
 		}
 	}
 	if (termfunc) termfunc();
+
+	if(obr)
+		re->tothalo += obr->tothalo;
 }
 
 
@@ -328,35 +327,35 @@ u	|     |  F1 |  F2 |
 
 /* ------------------------------------------------------------------------- */
 
-static void split_v_renderfaces(Render *re, int startvlak, int startvert, int usize, int vsize, int uIndex, int cyclu, int cyclv)
+static void split_v_renderfaces(ObjectRen *obr, int startvlak, int startvert, int usize, int vsize, int uIndex, int cyclu, int cyclv)
 {
 	int vLen = vsize-1+(!!cyclv);
 	int v;
 
 	for (v=0; v<vLen; v++) {
-		VlakRen *vlr = RE_findOrAddVlak(re, startvlak + vLen*uIndex + v);
-		VertRen *vert = RE_vertren_copy(re, vlr->v2);
+		VlakRen *vlr = RE_findOrAddVlak(obr, startvlak + vLen*uIndex + v);
+		VertRen *vert = RE_vertren_copy(obr, vlr->v2);
 
 		if (cyclv) {
 			vlr->v2 = vert;
 
 			if (v==vLen-1) {
-				VlakRen *vlr = RE_findOrAddVlak(re, startvlak + vLen*uIndex + 0);
+				VlakRen *vlr = RE_findOrAddVlak(obr, startvlak + vLen*uIndex + 0);
 				vlr->v1 = vert;
 			} else {
-				VlakRen *vlr = RE_findOrAddVlak(re, startvlak + vLen*uIndex + v+1);
+				VlakRen *vlr = RE_findOrAddVlak(obr, startvlak + vLen*uIndex + v+1);
 				vlr->v1 = vert;
 			}
 		} else {
 			vlr->v2 = vert;
 
 			if (v<vLen-1) {
-				VlakRen *vlr = RE_findOrAddVlak(re, startvlak + vLen*uIndex + v+1);
+				VlakRen *vlr = RE_findOrAddVlak(obr, startvlak + vLen*uIndex + v+1);
 				vlr->v1 = vert;
 			}
 
 			if (v==0) {
-				vlr->v1 = RE_vertren_copy(re, vlr->v1);
+				vlr->v1 = RE_vertren_copy(obr, vlr->v1);
 			} 
 		}
 	}
@@ -374,6 +373,8 @@ static int check_vnormal(float *n, float *veno)
 }
 
 /* ------------------------------------------------------------------------- */
+/* Stress, tangents and normals                                              */
+/* ------------------------------------------------------------------------- */
 
 static void calc_edge_stress_add(float *accum, VertRen *v1, VertRen *v2)
 {
@@ -389,20 +390,20 @@ static void calc_edge_stress_add(float *accum, VertRen *v1, VertRen *v2)
 	acc[1]+= 1.0f;
 }
 
-static void calc_edge_stress(Render *re, Mesh *me, int startvert, int startvlak)
+static void calc_edge_stress(Render *re, ObjectRen *obr, Mesh *me)
 {
 	float loc[3], size[3], *accum, *acc, *accumoffs, *stress;
 	int a;
 	
-	if(startvert==re->totvert) return;
+	if(obr->totvert==0) return;
 	
 	mesh_get_texspace(me, loc, NULL, size);
 	
-	accum= MEM_callocN(2*sizeof(float)*(re->totvert-startvert), "temp accum for stress");
+	accum= MEM_callocN(2*sizeof(float)*obr->totvert, "temp accum for stress");
 	
 	/* de-normalize orco */
-	for(a=startvert; a<re->totvert; a++) {
-		VertRen *ver= RE_findOrAddVert(re, a);
+	for(a=0; a<obr->totvert; a++) {
+		VertRen *ver= RE_findOrAddVert(obr, a);
 		if(ver->orco) {
 			ver->orco[0]= ver->orco[0]*size[0] +loc[0];
 			ver->orco[1]= ver->orco[1]*size[1] +loc[1];
@@ -411,9 +412,9 @@ static void calc_edge_stress(Render *re, Mesh *me, int startvert, int startvlak)
 	}
 	
 	/* add stress values */
-	accumoffs= accum - 2*startvert;	/* so we can use vertex index */
-	for(a=startvlak; a<re->totvlak; a++) {
-		VlakRen *vlr= RE_findOrAddVlak(re, a);
+	accumoffs= accum;	/* so we can use vertex index */
+	for(a=0; a<obr->totvlak; a++) {
+		VlakRen *vlr= RE_findOrAddVlak(obr, a);
 
 		if(vlr->v1->orco && vlr->v4) {
 			calc_edge_stress_add(accumoffs, vlr->v1, vlr->v2);
@@ -427,14 +428,14 @@ static void calc_edge_stress(Render *re, Mesh *me, int startvert, int startvlak)
 		}
 	}
 	
-	for(a=startvert; a<re->totvert; a++) {
-		VertRen *ver= RE_findOrAddVert(re, a);
+	for(a=0; a<obr->totvert; a++) {
+		VertRen *ver= RE_findOrAddVert(obr, a);
 		if(ver->orco) {
 			/* find stress value */
 			acc= accumoffs + 2*ver->index;
 			if(acc[1]!=0.0f)
 				acc[0]/= acc[1];
-			stress= RE_vertren_get_stress(re, ver, 1);
+			stress= RE_vertren_get_stress(obr, ver, 1);
 			*stress= *acc;
 			
 			/* restore orcos */
@@ -474,9 +475,9 @@ void tangent_from_uv(float *uv1, float *uv2, float *uv3, float *co1, float *co2,
 }
 
 /* gets tangent from tface or orco */
-static void calc_tangent_vector(Render *re, VlakRen *vlr)
+static void calc_tangent_vector(ObjectRen *obr, VlakRen *vlr)
 {
-	MTFace *tface= RE_vlakren_get_tface(re, vlr, 0, NULL, 0);
+	MTFace *tface= RE_vlakren_get_tface(obr, vlr, obr->actmtface, NULL, 0);
 	VertRen *v1=vlr->v1, *v2=vlr->v2, *v3=vlr->v3, *v4=vlr->v4;
 	float tang[3], *tav;
 	float *uv1, *uv2, *uv3, *uv4;
@@ -500,40 +501,40 @@ static void calc_tangent_vector(Render *re, VlakRen *vlr)
 
 	tangent_from_uv(uv1, uv2, uv3, v1->co, v2->co, v3->co, vlr->n, tang);
 	
-	tav= RE_vertren_get_tangent(re, v1, 1);
+	tav= RE_vertren_get_tangent(obr, v1, 1);
 	VECADD(tav, tav, tang);
-	tav= RE_vertren_get_tangent(re, v2, 1);
+	tav= RE_vertren_get_tangent(obr, v2, 1);
 	VECADD(tav, tav, tang);
-	tav= RE_vertren_get_tangent(re, v3, 1);
+	tav= RE_vertren_get_tangent(obr, v3, 1);
 	VECADD(tav, tav, tang);
 	
 	if(v4) {
 		tangent_from_uv(uv1, uv3, uv4, v1->co, v3->co, v4->co, vlr->n, tang);
 		
-		tav= RE_vertren_get_tangent(re, v1, 1);
+		tav= RE_vertren_get_tangent(obr, v1, 1);
 		VECADD(tav, tav, tang);
-		tav= RE_vertren_get_tangent(re, v3, 1);
+		tav= RE_vertren_get_tangent(obr, v3, 1);
 		VECADD(tav, tav, tang);
-		tav= RE_vertren_get_tangent(re, v4, 1);
+		tav= RE_vertren_get_tangent(obr, v4, 1);
 		VECADD(tav, tav, tang);
 	}
 }
 
 
-static void calc_vertexnormals(Render *re, int startvert, int startvlak, int do_tangent)
+static void calc_vertexnormals(Render *re, ObjectRen *obr, int do_tangent)
 {
 	int a;
 
 		/* clear all vertex normals */
-	for(a=startvert; a<re->totvert; a++) {
-		VertRen *ver= RE_findOrAddVert(re, a);
+	for(a=0; a<obr->totvert; a++) {
+		VertRen *ver= RE_findOrAddVert(obr, a);
 		ver->n[0]=ver->n[1]=ver->n[2]= 0.0f;
 	}
 
 		/* calculate cos of angles and point-masses, use as weight factor to
 		   add face normal to vertex */
-	for(a=startvlak; a<re->totvlak; a++) {
-		VlakRen *vlr= RE_findOrAddVlak(re, a);
+	for(a=0; a<obr->totvlak; a++) {
+		VlakRen *vlr= RE_findOrAddVlak(obr, a);
 		if(vlr->flag & ME_SMOOTH) {
 			VertRen *v1= vlr->v1;
 			VertRen *v2= vlr->v2;
@@ -599,13 +600,13 @@ static void calc_vertexnormals(Render *re, int startvert, int startvlak, int do_
 		if(do_tangent) {
 			/* tangents still need to be calculated for flat faces too */
 			/* weighting removed, they are not vertexnormals */
-			calc_tangent_vector(re, vlr);
+			calc_tangent_vector(obr, vlr);
 		}
 	}
 
 		/* do solid faces */
-	for(a=startvlak; a<re->totvlak; a++) {
-		VlakRen *vlr= RE_findOrAddVlak(re, a);
+	for(a=0; a<obr->totvlak; a++) {
+		VlakRen *vlr= RE_findOrAddVlak(obr, a);
 		if((vlr->flag & ME_SMOOTH)==0) {
 			float *f1= vlr->v1->n;
 			if(f1[0]==0.0 && f1[1]==0.0 && f1[2]==0.0) VECCOPY(f1, vlr->n);
@@ -621,11 +622,11 @@ static void calc_vertexnormals(Render *re, int startvert, int startvlak, int do_
 	}
 	
 		/* normalize vertex normals */
-	for(a=startvert; a<re->totvert; a++) {
-		VertRen *ver= RE_findOrAddVert(re, a);
+	for(a=0; a<obr->totvert; a++) {
+		VertRen *ver= RE_findOrAddVert(obr, a);
 		Normalize(ver->n);
 		if(do_tangent) {
-			float *tav= RE_vertren_get_tangent(re, ver, 0);
+			float *tav= RE_vertren_get_tangent(obr, ver, 0);
 			if (tav) {
 				/* orthonorm. */
 				float tdn = tav[0]*ver->n[0] + tav[1]*ver->n[1] + tav[2]*ver->n[2];
@@ -636,40 +637,20 @@ static void calc_vertexnormals(Render *re, int startvert, int startvlak, int do_
 			}
 		}
 	}
-
-		/* vertex normal (puno) switch flags for during render */
-	for(a=startvlak; a<re->totvlak; a++) {
-		VlakRen *vlr= RE_findOrAddVlak(re, a);
-
-		if((vlr->flag & R_NOPUNOFLIP)==0) {
-			float *v1= vlr->v1->n;
-			float *v2= vlr->v2->n;
-			float *v3= vlr->v3->n;
-			float *v4= vlr->v4?vlr->v4->n:NULL;
-			float *nor= vlr->n;
-			vlr->puno &= ~15;
-			if ((nor[0]*v1[0] + nor[1]*v1[1] + nor[2]*v1[2]) < -FLT_EPSILON10) vlr->puno= 1;
-			if ((nor[0]*v2[0] + nor[1]*v2[1] + nor[2]*v2[2]) < -FLT_EPSILON10) vlr->puno+= 2;
-			if ((nor[0]*v3[0] + nor[1]*v3[1] + nor[2]*v3[2]) < -FLT_EPSILON10) vlr->puno+= 4;
-			if(v4) {
-				if((nor[0]*v4[0] + nor[1]*v4[1] + nor[2]*v4[2]) < -FLT_EPSILON10 ) vlr->puno+= 8;
-			}
-		}
-	}
 }
 
 // NT same as calc_vertexnormals, but dont modify the existing vertex normals
 // only recalculate other render data. If this is at some point used for other things than fluidsim,
 // this could be made on option for the normal calc_vertexnormals
-static void calc_fluidsimnormals(Render *re, int startvert, int startvlak, int do_tangent)
+static void calc_fluidsimnormals(Render *re, ObjectRen *obr, int do_tangent)
 {
 	int a;
 
 	/* dont clear vertex normals here */
-	// OFF for(a=startvert; a<re->totvert; a++) { VertRen *ver= RE_findOrAddVert(re, a); ver->n[0]=ver->n[1]=ver->n[2]= 0.0; }
+	// OFF for(a=0; a<obr->totvert; a++) { VertRen *ver= RE_findOrAddVert(obr, a); ver->n[0]=ver->n[1]=ver->n[2]= 0.0; }
 	/* calculate cos of angles and point-masses, use as weight factor to add face normal to vertex */
-	for(a=startvlak; a<re->totvlak; a++) {
-		VlakRen *vlr= RE_findOrAddVlak(re, a);
+	for(a=0; a<obr->totvlak; a++) {
+		VlakRen *vlr= RE_findOrAddVlak(obr, a);
 		if(vlr->flag & ME_SMOOTH) {
 			VertRen *v1= vlr->v1;
 			VertRen *v2= vlr->v2;
@@ -709,18 +690,18 @@ static void calc_fluidsimnormals(Render *re, int startvert, int startvlak, int d
 			}
 
 			//if(do_tangent)
-			//	calc_tangent_vector(re, vlr, fac1, fac2, fac3, fac4);
+			//	calc_tangent_vector(obr, vlr, fac1, fac2, fac3, fac4);
 		}
 		if(do_tangent) {
 			/* tangents still need to be calculated for flat faces too */
 			/* weighting removed, they are not vertexnormals */
-			calc_tangent_vector(re, vlr);
+			calc_tangent_vector(obr, vlr);
 		}
 	}
 
 	/* do solid faces */
-	for(a=startvlak; a<re->totvlak; a++) {
-		VlakRen *vlr= RE_findOrAddVlak(re, a);
+	for(a=0; a<obr->totvlak; a++) {
+		VlakRen *vlr= RE_findOrAddVlak(obr, a);
 		if((vlr->flag & ME_SMOOTH)==0) {
 			float *f1= vlr->v1->n;
 			if(f1[0]==0.0 && f1[1]==0.0 && f1[2]==0.0) VECCOPY(f1, vlr->n);
@@ -736,30 +717,12 @@ static void calc_fluidsimnormals(Render *re, int startvert, int startvlak, int d
 	}
 	
 	/* normalize vertex normals */
-	for(a=startvert; a<re->totvert; a++) {
-		VertRen *ver= RE_findOrAddVert(re, a);
+	for(a=0; a<obr->totvert; a++) {
+		VertRen *ver= RE_findOrAddVert(obr, a);
 		Normalize(ver->n);
 		if(do_tangent) {
-			float *tav= RE_vertren_get_tangent(re, ver, 0);
+			float *tav= RE_vertren_get_tangent(obr, ver, 0);
 			if(tav) Normalize(tav);
-		}
-	}
-
-	/* vertex normal (puno) switch flags for during render */
-	for(a=startvlak; a<re->totvlak; a++) {
-		VlakRen *vlr= RE_findOrAddVlak(re, a);
-		if((vlr->flag & R_NOPUNOFLIP)==0) {
-			VertRen *v1= vlr->v1;
-			VertRen *v2= vlr->v2;
-			VertRen *v3= vlr->v3;
-			VertRen *v4= vlr->v4;
-			vlr->puno &= ~15;
-			if ((vlr->n[0]*v1->n[0]+vlr->n[1]*v1->n[1]+vlr->n[2]*v1->n[2])<0.0) vlr->puno= 1;
-			if ((vlr->n[0]*v2->n[0]+vlr->n[1]*v2->n[1]+vlr->n[2]*v2->n[2])<0.0) vlr->puno+= 2;
-			if ((vlr->n[0]*v3->n[0]+vlr->n[1]*v3->n[1]+vlr->n[2]*v3->n[2])<0.0) vlr->puno+= 4;
-			if(v4) {
-				if((vlr->n[0]*v4->n[0]+vlr->n[1]*v4->n[1]+vlr->n[2]*v4->n[2])<0.0) vlr->puno+= 8;
-			}
 		}
 	}
 }
@@ -860,18 +823,17 @@ static VertRen *as_findvertex(VlakRen *vlr, VertRen *ver, ASvert *asv, float thr
 
 /* note; autosmooth happens in object space still, after applying autosmooth we rotate */
 /* note2; actually, when original mesh and displist are equal sized, face normals are from original mesh */
-static void autosmooth(Render *re, float mat[][4], int startvert, int startvlak, int degr)
+static void autosmooth(Render *re, ObjectRen *obr, float mat[][4], int degr)
 {
-	ASvert *asv, *asverts, *asvertoffs;
+	ASvert *asv, *asverts;
 	ASface *asf;
 	VertRen *ver, *v1;
 	VlakRen *vlr;
 	float thresh;
 	int a, b, totvert;
 	
-	if(startvert==re->totvert) return;
-	asverts= MEM_callocN(sizeof(ASvert)*(re->totvert-startvert), "all smooth verts");
-	asvertoffs= asverts-startvert;	 /* se we can use indices */
+	if(obr->totvert==0) return;
+	asverts= MEM_callocN(sizeof(ASvert)*obr->totvert, "all smooth verts");
 	
 	thresh= cos( M_PI*(0.5f+(float)degr)/180.0 );
 	
@@ -879,24 +841,24 @@ static void autosmooth(Render *re, float mat[][4], int startvert, int startvlak,
 	
 	
 	/* step one: construct listbase of all vertices and pointers to faces */
-	for(a=startvlak; a<re->totvlak; a++) {
-		vlr= RE_findOrAddVlak(re, a);
+	for(a=0; a<obr->totvlak; a++) {
+		vlr= RE_findOrAddVlak(obr, a);
 		/* skip wire faces */
 		if(vlr->v2 != vlr->v3) {
-			as_addvert(asvertoffs+vlr->v1->index, vlr->v1, vlr);
-			as_addvert(asvertoffs+vlr->v2->index, vlr->v2, vlr);
-			as_addvert(asvertoffs+vlr->v3->index, vlr->v3, vlr);
+			as_addvert(asverts+vlr->v1->index, vlr->v1, vlr);
+			as_addvert(asverts+vlr->v2->index, vlr->v2, vlr);
+			as_addvert(asverts+vlr->v3->index, vlr->v3, vlr);
 			if(vlr->v4) 
-				as_addvert(asvertoffs+vlr->v4->index, vlr->v4, vlr);
+				as_addvert(asverts+vlr->v4->index, vlr->v4, vlr);
 		}
 	}
 	
+	totvert= obr->totvert;
 	/* we now test all vertices, when faces have a normal too much different: they get a new vertex */
-	totvert= re->totvert;
-	for(a=startvert, asv=asverts; a<totvert; a++, asv++) {
+	for(a=0, asv=asverts; a<totvert; a++, asv++) {
 		if(asv && asv->totface>1) {
-			ver= RE_findOrAddVert(re, a);
-			
+			ver= RE_findOrAddVert(obr, a);
+
 			asf= asv->faces.first;
 			while(asf) {
 				for(b=0; b<4; b++) {
@@ -909,7 +871,7 @@ static void autosmooth(Render *re, float mat[][4], int startvert, int startvlak,
 						v1= as_findvertex(vlr, ver, asv, thresh);
 						if(v1==NULL) {
 							/* make a new vertex */
-							v1= RE_vertren_copy(re, ver);
+							v1= RE_vertren_copy(obr, ver);
 						}
 						asf->nver[b]= v1;
 						if(vlr->v1==ver) vlr->v1= v1;
@@ -924,18 +886,18 @@ static void autosmooth(Render *re, float mat[][4], int startvert, int startvlak,
 	}
 	
 	/* free */
-	for(a=0; a<totvert-startvert; a++) {
+	for(a=0; a<totvert; a++) {
 		BLI_freelistN(&asverts[a].faces);
 	}
 	MEM_freeN(asverts);
 	
 	/* rotate vertices and calculate normal of faces */
-	for(a=startvert; a<re->totvert; a++) {
-		ver= RE_findOrAddVert(re, a);
+	for(a=0; a<obr->totvert; a++) {
+		ver= RE_findOrAddVert(obr, a);
 		MTC_Mat4MulVecfl(mat, ver->co);
 	}
-	for(a=startvlak; a<re->totvlak; a++) {
-		vlr= RE_findOrAddVlak(re, a);
+	for(a=0; a<obr->totvlak; a++) {
+		vlr= RE_findOrAddVlak(obr, a);
 		
 		/* skip wire faces */
 		if(vlr->v2 != vlr->v3) {
@@ -948,13 +910,8 @@ static void autosmooth(Render *re, float mat[][4], int startvert, int startvlak,
 }
 
 /* ------------------------------------------------------------------------- */
-/* End of autosmoothing:                                                     */
+/* Orco hash and Materials                                                   */
 /* ------------------------------------------------------------------------- */
-
-/* ------------------------------------------------------------------------- */
-/* Orco hash																 */
-/* ------------------------------------------------------------------------- */
-
 
 static float *get_object_orco(Render *re, Object *ob)
 {
@@ -995,59 +952,6 @@ static void free_mesh_orco_hash(Render *re)
 	}
 }
 
-/* ******************** END ORCO HASH ***************** */
-
-
-static void make_render_halos(Render *re, Object *ob, Mesh *me, int totvert, MVert *mvert, Material *ma, float *orco)
-{
-	HaloRen *har;
-	float xn, yn, zn, nor[3], view[3];
-	float vec[3], hasize, mat[4][4], imat[3][3];
-	int a, ok, seed= ma->seed1;
-
-	MTC_Mat4MulMat4(mat, ob->obmat, re->viewmat);
-	MTC_Mat3CpyMat4(imat, ob->imat);
-
-	re->flag |= R_HALO;
-
-	for(a=0; a<totvert; a++, mvert++) {
-		ok= 1;
-
-		if(ok) {
-			hasize= ma->hasize;
-
-			VECCOPY(vec, mvert->co);
-			MTC_Mat4MulVecfl(mat, vec);
-
-			if(ma->mode & MA_HALOPUNO) {
-				xn= mvert->no[0];
-				yn= mvert->no[1];
-				zn= mvert->no[2];
-
-				/* transpose ! */
-				nor[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
-				nor[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
-				nor[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
-				Normalize(nor);
-
-				VECCOPY(view, vec);
-				Normalize(view);
-
-				zn= nor[0]*view[0]+nor[1]*view[1]+nor[2]*view[2];
-				if(zn>=0.0) hasize= 0.0;
-				else hasize*= zn*zn*zn*zn;
-			}
-
-			if(orco) har= RE_inithalo(re, ma, vec, NULL, orco, hasize, 0.0, seed);
-			else har= RE_inithalo(re, ma, vec, NULL, mvert->co, hasize, 0.0, seed);
-			if(har) har->lay= ob->lay;
-		}
-		if(orco) orco+= 3;
-		seed++;
-	}
-}
-
-/* ------------------------------------------------------------------------- */
 static Material *give_render_material(Render *re, Object *ob, int nr)
 {
 	extern Material defmaterial;	/* material.c */
@@ -1068,158 +972,12 @@ static Material *give_render_material(Render *re, Object *ob, int nr)
 	return ma;
 }
 
-
-
-static void render_particle_system(Render *re, Object *ob, Object *par, PartEff *paf)
-{
-	Particle *pa=0;
-	HaloRen *har=0;
-	Material *ma=0;
-	float xn, yn, zn, imat[3][3], tmat[4][4], mat[4][4], hasize, stime, ptime, ctime, vec[3], vec1[3], view[3], nor[3];
-	float haloScale = 1.0;	//NT scale halos 
-	float iniAlpha = 0.0; // restore material alpha 
-	int a, mat_nr=1, seed;
-	int useFluidsimParticles = 0; // FSPARTICLE
-
-	ma= give_render_material(re, ob, paf->omat);
-	
-	if( (ob->fluidsimSettings) && (ob->fluidsimSettings->type == OB_FLUIDSIM_PARTICLE)) {
-		useFluidsimParticles = 1;
-		iniAlpha = ma->alpha;
-	}
-	
-	pa= paf->keys;
-	if(pa==NULL || paf->disp!=100 || useFluidsimParticles) {
-		build_particle_system(ob);
-		pa= paf->keys;
-		if(pa==NULL) return;
-	}
-
-	MTC_Mat4MulMat4(mat, ob->obmat, re->viewmat);
-	MTC_Mat4Invert(ob->imat, mat);	/* this is correct, for imat texture */
-
-	/* enable duplicators to work */
-	if(par) {
-		Mat4MulMat4(tmat, paf->imat, ob->obmat);
-		MTC_Mat4MulMat4(mat, tmat, re->viewmat);
-		
-		MTC_Mat4Invert(tmat, mat);
-		MTC_Mat3CpyMat4(imat, tmat);
-	}
-	else {
-		MTC_Mat4CpyMat4(mat, re->viewmat);
-		
-		MTC_Mat4Invert(tmat, re->viewmat);
-		MTC_Mat3CpyMat4(imat, tmat);
-		
-	}	
-
-	re->flag |= R_HALO;
-
-	if(ob->ipoflag & OB_OFFS_PARTICLE) ptime= ob->sf;
-	else ptime= 0.0;
-	ctime= bsystem_time(ob, (float)re->scene->r.cfra, ptime);
-	seed= ma->seed1;
-	
-	for(a=0; a<paf->totpart; a++, pa+=paf->totkey, seed++) {
-
-		/* offset time for calculating normal */
-		stime= ctime;
-		ptime= ctime+1.0f;
-		if(ctime < pa->time) {
-			if(paf->flag & PAF_UNBORN)
-				ptime= pa->time+1.0f;
-			else
-				continue;
-		}
-		if(ctime > pa->time+pa->lifetime) {
-			if(paf->flag & PAF_DIED)
-				stime= pa->time+pa->lifetime-1.0f;
-			else
-				continue;
-		}
-		
-		/* watch it: also calculate the normal of a particle */
-		if(paf->stype==PAF_VECT || ma->mode & MA_HALO_SHADE) {
-			where_is_particle(paf, pa, stime, vec);
-			MTC_Mat4MulVecfl(mat, vec);
-			where_is_particle(paf, pa, ptime, vec1);
-			MTC_Mat4MulVecfl(mat, vec1);
-		}
-		else {
-			where_is_particle(paf, pa, ctime, vec);
-			MTC_Mat4MulVecfl(mat, vec);
-		}
-
-		if(pa->mat_nr != mat_nr) {
-			mat_nr= pa->mat_nr;
-			ma= give_render_material(re, ob, mat_nr);
-		}
-
-		if(ma->ipo) {
-			/* correction for lifetime */
-			ptime= 100.0*(ctime-pa->time)/pa->lifetime;
-			calc_ipo(ma->ipo, ptime);
-			execute_ipo((ID *)ma, ma->ipo);
-		}
-
-		//NT scale halos FSPARTICLE
-		if(useFluidsimParticles) {
-			// rescale to 1.0-10.0, then div by 5 afterwards, gives values in range 0.2-2.0
-			double fspsize = ((double)pa->rt / 1000.0f) / 5.0 ; 
-			haloScale = 1.0/(float)pow(fspsize, (double)ob->fluidsimSettings->particleInfSize);
-			ma->alpha = iniAlpha / (float)pow( fspsize, (double)ob->fluidsimSettings->particleInfAlpha);
-			if(ma->alpha>1.) ma->alpha = 1.;
-		}
-
-		hasize= ma->hasize * haloScale;
-
-		if(ma->mode & MA_HALOPUNO) {
-			xn= pa->no[0];
-			yn= pa->no[1];
-			zn= pa->no[2];
-
-			/* transpose ! */
-			nor[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
-			nor[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
-			nor[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
-			Normalize(nor);
-
-			VECCOPY(view, vec);
-			Normalize(view);
-
-			zn= nor[0]*view[0]+nor[1]*view[1]+nor[2]*view[2];
-			if(zn>=0.0) hasize= 0.0;
-			else hasize*= zn*zn*zn*zn;
-		}
-
-		if(paf->stype==PAF_VECT) har= RE_inithalo(re, ma, vec, vec1, pa->co, hasize, paf->vectsize, seed);
-		else {
-			har= RE_inithalo(re, ma, vec, NULL, pa->co, hasize, 0.0, seed);
-			if(har && ma->mode & MA_HALO_SHADE) {
-				VecSubf(har->no, vec, vec1);
-				Normalize(har->no);
-			}
-		}
-		if(har) har->lay= ob->lay;
-	}
-
-	/* restore material */
-	for(a=1; a<=ob->totcol; a++) {
-		ma= give_render_material(re, ob, a);
-		if(ma) do_mat_ipo(ma);
-	}
-	
-	if(paf->disp!=100) {
-		MEM_freeN(paf->keys);
-		paf->keys= NULL;
-	}
-
-	if(useFluidsimParticles) { ma->alpha = iniAlpha; }// FSPARTICLE restore...
-}
+/* ------------------------------------------------------------------------- */
+/* Particles                                                                 */
+/* ------------------------------------------------------------------------- */
 
 /* future thread problem... */
-static void static_particle_strand(Render *re, Object *ob, Material *ma, float *orco, float *surfnor,
+static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, float *orco, float *surfnor,
 								   float *uvco, int totuv, float *vec, float *vec1, float ctime,
 								   int first, int line, int adapt, float adapt_angle, float adapt_pix, int override_uv)
 {
@@ -1280,13 +1038,13 @@ static void static_particle_strand(Render *re, Object *ob, Material *ma, float *
 	
 	/* single face line */
 	if(line) {
-		vlr= RE_findOrAddVlak(re, re->totvlak++);
+		vlr= RE_findOrAddVlak(obr, obr->totvlak++);
 		vlr->flag= flag;
-		vlr->ob= ob;
-		vlr->v1= RE_findOrAddVert(re, re->totvert++);
-		vlr->v2= RE_findOrAddVert(re, re->totvert++);
-		vlr->v3= RE_findOrAddVert(re, re->totvert++);
-		vlr->v4= RE_findOrAddVert(re, re->totvert++);
+		vlr->obr= obr;
+		vlr->v1= RE_findOrAddVert(obr, obr->totvert++);
+		vlr->v2= RE_findOrAddVert(obr, obr->totvert++);
+		vlr->v3= RE_findOrAddVert(obr, obr->totvert++);
+		vlr->v4= RE_findOrAddVert(obr, obr->totvert++);
 		
 		VECCOPY(vlr->v1->co, vec);
 		VecAddf(vlr->v1->co, vlr->v1->co, cross);
@@ -1316,17 +1074,17 @@ static void static_particle_strand(Render *re, Object *ob, Material *ma, float *
 		
 		vlr->mat= ma;
 		vlr->ec= ME_V2V3;
-		vlr->lay= ob->lay;
+		vlr->lay= obr->ob->lay;
 
 		if(surfnor) {
-			float *snor= RE_vlakren_get_surfnor(re, vlr, 1);
+			float *snor= RE_vlakren_get_surfnor(obr, vlr, 1);
 			VECCOPY(snor, surfnor);
 		}
 
 		if(uvco){
 			for(i=0; i<totuv; i++){
 				MTFace *mtf;
-				mtf=RE_vlakren_get_tface(re,vlr,i,NULL,1);
+				mtf=RE_vlakren_get_tface(obr,vlr,i,NULL,1);
 				mtf->uv[0][0]=mtf->uv[1][0]=
 				mtf->uv[2][0]=mtf->uv[3][0]=(uvco+2*i)[0];
 				mtf->uv[0][1]=mtf->uv[1][1]=
@@ -1334,7 +1092,7 @@ static void static_particle_strand(Render *re, Object *ob, Material *ma, float *
 			}
 			if(override_uv>=0){
 				MTFace *mtf;
-				mtf=RE_vlakren_get_tface(re,vlr,override_uv,NULL,0);
+				mtf=RE_vlakren_get_tface(obr,vlr,override_uv,NULL,0);
 				
 				mtf->uv[0][0]=mtf->uv[3][0]=0.0f;
 				mtf->uv[1][0]=mtf->uv[2][0]=1.0f;
@@ -1352,8 +1110,8 @@ static void static_particle_strand(Render *re, Object *ob, Material *ma, float *
 			second=1;
 		}
 
-		v1= RE_findOrAddVert(re, re->totvert++);
-		v2= RE_findOrAddVert(re, re->totvert++);
+		v1= RE_findOrAddVert(obr, obr->totvert++);
+		v2= RE_findOrAddVert(obr, obr->totvert++);
 		
 		VECCOPY(v1->co, vec);
 		VecAddf(v1->co, v1->co, cross);
@@ -1370,13 +1128,13 @@ static void static_particle_strand(Render *re, Object *ob, Material *ma, float *
 	/* more vertices & faces to strand */
 	else {
 		if(adapt==0 || second){
-			vlr= RE_findOrAddVlak(re, re->totvlak++);
+			vlr= RE_findOrAddVlak(obr, obr->totvlak++);
 			vlr->flag= flag;
-			vlr->ob= ob;
+			vlr->obr= obr;
 			vlr->v1= v1;
 			vlr->v2= v2;
-			vlr->v3= RE_findOrAddVert(re, re->totvert++);
-			vlr->v4= RE_findOrAddVert(re, re->totvert++);
+			vlr->v3= RE_findOrAddVert(obr, obr->totvert++);
+			vlr->v4= RE_findOrAddVert(obr, obr->totvert++);
 			
 			v1= vlr->v4; // cycle
 			v2= vlr->v3; // cycle
@@ -1400,13 +1158,13 @@ static void static_particle_strand(Render *re, Object *ob, Material *ma, float *
 			dy= re->winy*dvec[1]*re->winmat[1][1]/w;
 			w= sqrt(dx*dx + dy*dy);
 			if(Inpf(anor,nor)<adapt_angle && w>adapt_pix){
-				vlr= RE_findOrAddVlak(re, re->totvlak++);
+				vlr= RE_findOrAddVlak(obr, obr->totvlak++);
 				vlr->flag= flag;
-				vlr->ob= ob;
+				vlr->obr= obr;
 				vlr->v1= v1;
 				vlr->v2= v2;
-				vlr->v3= RE_findOrAddVert(re, re->totvert++);
-				vlr->v4= RE_findOrAddVert(re, re->totvert++);
+				vlr->v3= RE_findOrAddVert(obr, obr->totvert++);
+				vlr->v4= RE_findOrAddVert(obr, obr->totvert++);
 				
 				v1= vlr->v4; // cycle
 				v2= vlr->v3; // cycle
@@ -1415,7 +1173,7 @@ static void static_particle_strand(Render *re, Object *ob, Material *ma, float *
 				VECCOPY(avec,vec);
 			}
 			else{
-				vlr= RE_findOrAddVlak(re, re->totvlak-1);
+				vlr= RE_findOrAddVlak(obr, obr->totvlak-1);
 			}
 		}
 	
@@ -1435,17 +1193,17 @@ static void static_particle_strand(Render *re, Object *ob, Material *ma, float *
 		
 		vlr->mat= ma;
 		vlr->ec= ME_V2V3;
-		vlr->lay= ob->lay;
+		vlr->lay= obr->ob->lay;
 
 		if(surfnor) {
-			float *snor= RE_vlakren_get_surfnor(re, vlr, 1);
+			float *snor= RE_vlakren_get_surfnor(obr, vlr, 1);
 			VECCOPY(snor, surfnor);
 		}
 
 		if(uvco){
 			for(i=0; i<totuv; i++){
 				MTFace *mtf;
-				mtf=RE_vlakren_get_tface(re,vlr,i,NULL,1);
+				mtf=RE_vlakren_get_tface(obr,vlr,i,NULL,1);
 				mtf->uv[0][0]=mtf->uv[1][0]=
 				mtf->uv[2][0]=mtf->uv[3][0]=(uvco+2*i)[0];
 				mtf->uv[0][1]=mtf->uv[1][1]=
@@ -1453,7 +1211,7 @@ static void static_particle_strand(Render *re, Object *ob, Material *ma, float *
 			}
 			if(override_uv>=0){
 				MTFace *mtf;
-				mtf=RE_vlakren_get_tface(re,vlr,override_uv,NULL,0);
+				mtf=RE_vlakren_get_tface(obr,vlr,override_uv,NULL,0);
 				
 				mtf->uv[0][0]=mtf->uv[3][0]=0.0f;
 				mtf->uv[1][0]=mtf->uv[2][0]=1.0f;
@@ -1465,16 +1223,16 @@ static void static_particle_strand(Render *re, Object *ob, Material *ma, float *
 	}
 }
 
-static void static_particle_wire(Render *re, Object *ob, Material *ma, float *vec, float *vec1, int first, int line)
+static void static_particle_wire(ObjectRen *obr, Material *ma, float *vec, float *vec1, int first, int line)
 {
 	VlakRen *vlr;
 	static VertRen *v1;
 
 	if(line) {
-		vlr= RE_findOrAddVlak(re, re->totvlak++);
-		vlr->ob= ob;
-		vlr->v1= RE_findOrAddVert(re, re->totvert++);
-		vlr->v2= RE_findOrAddVert(re, re->totvert++);
+		vlr= RE_findOrAddVlak(obr, obr->totvlak++);
+		vlr->obr= obr;
+		vlr->v1= RE_findOrAddVert(obr, obr->totvert++);
+		vlr->v2= RE_findOrAddVert(obr, obr->totvert++);
 		vlr->v3= vlr->v2;
 		vlr->v4= NULL;
 		
@@ -1488,18 +1246,18 @@ static void static_particle_wire(Render *re, Object *ob, Material *ma, float *ve
 		
 		vlr->mat= ma;
 		vlr->ec= ME_V1V2;
-		vlr->lay= ob->lay;
+		vlr->lay= obr->ob->lay;
 
 	}
 	else if(first) {
-		v1= RE_findOrAddVert(re, re->totvert++);
+		v1= RE_findOrAddVert(obr, obr->totvert++);
 		VECCOPY(v1->co, vec);
 	}
 	else {
-		vlr= RE_findOrAddVlak(re, re->totvlak++);
-		vlr->ob= ob;
+		vlr= RE_findOrAddVlak(obr, obr->totvlak++);
+		vlr->obr= obr;
 		vlr->v1= v1;
-		vlr->v2= RE_findOrAddVert(re, re->totvert++);
+		vlr->v2= RE_findOrAddVert(obr, obr->totvert++);
 		vlr->v3= vlr->v2;
 		vlr->v4= NULL;
 		
@@ -1512,11 +1270,11 @@ static void static_particle_wire(Render *re, Object *ob, Material *ma, float *ve
 		
 		vlr->mat= ma;
 		vlr->ec= ME_V1V2;
-		vlr->lay= ob->lay;
+		vlr->lay= obr->ob->lay;
 	}
 
 }
-static void particle_billboard(Render *re, Object *ob, Material *ma, Object *bb_ob, float *vec, float *vel, float size, float tilt, short align,
+static void particle_billboard(Render *re, ObjectRen *obr, Material *ma, Object *bb_ob, float *vec, float *vel, float size, float tilt, short align,
 							   int lock, int p, int totpart, short uv_split, short anim, short split_offset, float random, float pa_time, float offset[2], int uv[3])
 {
 	VlakRen *vlr;
@@ -1528,12 +1286,12 @@ static void particle_billboard(Render *re, Object *ob, Material *ma, Object *bb_
 	if(align<PART_BB_VIEW)
 		onevec[align]=1.0f;
 
-	vlr= RE_findOrAddVlak(re, re->totvlak++);
-	vlr->ob= ob;
-	vlr->v1= RE_findOrAddVert(re, re->totvert++);
-	vlr->v2= RE_findOrAddVert(re, re->totvert++);
-	vlr->v3= RE_findOrAddVert(re, re->totvert++);
-	vlr->v4= RE_findOrAddVert(re, re->totvert++);
+	vlr= RE_findOrAddVlak(obr, obr->totvlak++);
+	vlr->obr= obr;
+	vlr->v1= RE_findOrAddVert(obr, obr->totvert++);
+	vlr->v2= RE_findOrAddVert(obr, obr->totvert++);
+	vlr->v3= RE_findOrAddVert(obr, obr->totvert++);
+	vlr->v4= RE_findOrAddVert(obr, obr->totvert++);
 
 	if(lock && align==PART_BB_VIEW){
 		VECCOPY(xvec,bb_ob->obmat[0]);
@@ -1612,7 +1370,7 @@ static void particle_billboard(Render *re, Object *ob, Material *ma, Object *bb_
 	
 	vlr->mat= ma;
 	vlr->ec= ME_V2V3;
-	vlr->lay= ob->lay;
+	vlr->lay= obr->ob->lay;
 
 	if(uv_split>1){
 		uvdx=uvdy=1.0f/(float)uv_split;
@@ -1665,7 +1423,7 @@ static void particle_billboard(Render *re, Object *ob, Material *ma, Object *bb_
 
 	/* normal UVs */
 	if(uv[0]>=0){
-		mtf=RE_vlakren_get_tface(re,vlr,uv[0],NULL,1);
+		mtf=RE_vlakren_get_tface(obr,vlr,uv[0],NULL,1);
 		mtf->uv[0][0]=1.0f;
 		mtf->uv[0][1]=1.0f;
 		mtf->uv[1][0]=0.0f;
@@ -1678,14 +1436,14 @@ static void particle_billboard(Render *re, Object *ob, Material *ma, Object *bb_
 
 	/* time-index UVs */
 	if(uv[1]>=0){
-		mtf=RE_vlakren_get_tface(re,vlr,uv[1],NULL,1);
+		mtf=RE_vlakren_get_tface(obr,vlr,uv[1],NULL,1);
 		mtf->uv[0][0]=mtf->uv[1][0]=mtf->uv[2][0]=mtf->uv[3][0]=pa_time;
 		mtf->uv[0][1]=mtf->uv[1][1]=mtf->uv[2][1]=mtf->uv[3][1]=(float)p/(float)totpart;
 	}
 
 	/* split UVs */
 	if(uv_split>1 && uv[2]>=0){
-		mtf=RE_vlakren_get_tface(re,vlr,uv[2],NULL,1);
+		mtf=RE_vlakren_get_tface(obr,vlr,uv[2],NULL,1);
 		mtf->uv[0][0]=uvx+uvdx;
 		mtf->uv[0][1]=uvy+uvdy;
 		mtf->uv[1][0]=uvx;
@@ -1696,28 +1454,29 @@ static void particle_billboard(Render *re, Object *ob, Material *ma, Object *bb_
 		mtf->uv[3][1]=uvy;
 	}
 }
-static void render_new_particle(Render *re, Object *ob, DerivedMesh *dm, Material *ma, int path, int first, int line,
+static void render_new_particle(Render *re, ObjectRen *obr, DerivedMesh *dm, Material *ma, int path, int first, int line,
 								float time, float *loc, float *loc1, float *orco, float *surfnor, int totuv, float *uvco,
 								float size, int seed, int override_uv, int adapt, float adapt_angle, float adapt_pix)
 {
 	HaloRen *har=0;
 	if(path){
 		if(ma->mode&MA_WIRE)
-			static_particle_wire(re, ob, ma, loc, loc1, first, line);
+			static_particle_wire(obr, ma, loc, loc1, first, line);
 		else if(ma->mode & MA_HALO){
-			har= RE_inithalo_particle(re, dm, ma, loc, loc1, orco, uvco, size, 1.0, seed);
-			if(har) har->lay= ob->lay;
+			har= RE_inithalo_particle(re, obr, dm, ma, loc, loc1, orco, uvco, size, 1.0, seed);
+			if(har) har->lay= obr->ob->lay;
 		}
 		else
-			static_particle_strand(re, ob, ma, orco, surfnor, uvco, totuv, loc, loc1, time, first, line, adapt, adapt_angle, adapt_pix, override_uv);
+			static_particle_strand(re, obr, ma, orco, surfnor, uvco, totuv, loc, loc1, time, first, line, adapt, adapt_angle, adapt_pix, override_uv);
 	}
 	else{
-		har= RE_inithalo_particle(re, dm, ma, loc, NULL, orco, uvco, size, 0.0, seed);
-		if(har) har->lay= ob->lay;
+		har= RE_inithalo_particle(re, obr, dm, ma, loc, NULL, orco, uvco, size, 0.0, seed);
+		if(har) har->lay= obr->ob->lay;
 	}
 }
-static int render_new_particle_system(Render *re, Object *ob, ParticleSystem *psys)
+static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem *psys)
 {
+	Object *ob= obr->ob;
 	Object *tob=0, *bb_ob=re->scene->camera;
 	Material *ma=0;
 	CustomDataLayer *layer;
@@ -1737,7 +1496,7 @@ static int render_new_particle_system(Render *re, Object *ob, ParticleSystem *ps
 	float *orco=0,*surfnor=0,*uvco=0, strandlen=0.0f, curlen=0.0f;
 	float hasize, pa_size, pa_time, r_tilt, cfra=bsystem_time(ob,(float)CFRA,0.0);
 	float loc_tex[3], size_tex[3], adapt_angle=0.0, adapt_pix=0.0, random;
-	int i, a, k, max_k=0, totpart, totvlako, totverto, totuv=0, override_uv=-1;
+	int i, a, k, max_k=0, totpart, totuv=0, override_uv=-1;
 	int path_possible=0, keys_possible=0, baked_keys=0, totchild=psys->totchild;
 	int seed, path_nbr=0, path=0, orco1=0, adapt=0, uv[3]={0,0,0};
 	char **uv_name=0;
@@ -1749,9 +1508,9 @@ static int render_new_particle_system(Render *re, Object *ob, ParticleSystem *ps
 	part=psys->part;
 	pars=psys->particles;
 
-	if(part==NULL || pars==NULL || (psys->flag & PSYS_ENABLED)==0)
+	if(part==NULL || pars==NULL || !psys_check_enabled(ob, psys))
 		return 0;
-
+	
 	if(part->draw_as==PART_DRAW_OB || part->draw_as==PART_DRAW_GR || part->draw_as==PART_DRAW_NOT)
 		return 1;
 
@@ -1785,7 +1544,7 @@ static int render_new_particle_system(Render *re, Object *ob, ParticleSystem *ps
 		execute_ipo((ID *)ma, ma->ipo);
 	}
 
-	RE_vlakren_set_customdata_names(re, &psmd->dm->faceData);
+	RE_set_customdata_names(obr, &psmd->dm->faceData);
 	totuv=CustomData_number_of_layers(&psmd->dm->faceData,CD_MTFACE);
 
 	if(ma->texco & TEXCO_UV && totuv) {
@@ -1845,9 +1604,6 @@ static int render_new_particle_system(Render *re, Object *ob, ParticleSystem *ps
 	Mat3CpyMat4(nmat, ob->imat);
 	Mat3Transp(nmat);
 
-	totvlako= re->totvlak;
-	totverto= re->totvert;
-
 	totpart=psys->totpart;
 
 	mesh_get_texspace(ob->data, loc_tex, NULL, size_tex);
@@ -1877,7 +1633,7 @@ static int render_new_particle_system(Render *re, Object *ob, ParticleSystem *ps
 			}
 
 			if(re->r.renderer==R_INTERN && part->draw&PART_DRAW_REN_STRAND) {
-				strandbuf= RE_addStrandBuffer(re, ob, (totpart+totchild)*(path_nbr+1));
+				strandbuf= RE_addStrandBuffer(obr, (totpart+totchild)*(path_nbr+1));
 				strandbuf->ma= ma;
 				strandbuf->lay= ob->lay;
 				Mat4CpyMat4(strandbuf->winmat, re->winmat);
@@ -1944,15 +1700,12 @@ static int render_new_particle_system(Render *re, Object *ob, ParticleSystem *ps
 			if(uvco && ELEM(part->from,PART_FROM_FACE,PART_FROM_VOLUME)){
 				layer=psmd->dm->faceData.layers + CustomData_get_layer_index(&psmd->dm->faceData,CD_MFACE);
 				for(i=0; i<totuv; i++){
-					int n;
 					MFace *mface=psmd->dm->getFaceData(psmd->dm,pa->num,CD_MFACE);
 
 					mtface=(MTFace*)CustomData_get_layer_n(&psmd->dm->faceData,CD_MTFACE,i);
 					mtface+=pa->num;
 					
-					n= vlakren_customdata_layer_num(i, layer->active);
-
-					psys_interpolate_uvs(mtface,mface->v4,pa->fuv,uvco+2*n);
+					psys_interpolate_uvs(mtface,mface->v4,pa->fuv,uvco+2*i);
 				}
 			}
 
@@ -2000,15 +1753,12 @@ static int render_new_particle_system(Render *re, Object *ob, ParticleSystem *ps
 				if(part->from!=PART_FROM_PARTICLE && part->childtype==PART_CHILD_FACES){
 					for(i=0; i<totuv; i++){
 						if(part->childtype==PART_CHILD_FACES){
-							int n;
 							MFace *mface=psmd->dm->getFaceData(psmd->dm,cpa->num,CD_MFACE);
 
 							mtface=(MTFace*)CustomData_get_layer_n(&psmd->dm->faceData,CD_MTFACE,i);
 							mtface+=cpa->num;
 							
-							n= vlakren_customdata_layer_num(i, layer->active);
-
-							psys_interpolate_uvs(mtface,mface->v4,cpa->fuv,uvco+2*n);
+							psys_interpolate_uvs(mtface,mface->v4,cpa->fuv,uvco+2*i);
 						}
 						else{
 							uvco[2*i]=uvco[2*i+1]=0.0f;
@@ -2018,15 +1768,12 @@ static int render_new_particle_system(Render *re, Object *ob, ParticleSystem *ps
 				else if(ELEM(part->from,PART_FROM_FACE,PART_FROM_VOLUME)){
 					for(i=0; i<totuv; i++){
 						ParticleData *parent = psys->particles+cpa->parent;
-						int n;
 						MFace *mface=psmd->dm->getFaceData(psmd->dm,parent->num,CD_MFACE);
 
 						mtface=(MTFace*)CustomData_get_layer_n(&psmd->dm->faceData,CD_MTFACE,i);
 						mtface+=parent->num;
 						
-						n= vlakren_customdata_layer_num(i, layer->active);
-
-						psys_interpolate_uvs(mtface,mface->v4,parent->fuv,uvco+2*n);
+						psys_interpolate_uvs(mtface,mface->v4,parent->fuv,uvco+2*i);
 					}
 				}
 			}
@@ -2053,20 +1800,20 @@ static int render_new_particle_system(Render *re, Object *ob, ParticleSystem *ps
 
 		/* strand render setup */
 		if(strandbuf) {
-			strand= RE_findOrAddStrand(re, re->totstrand++);
+			strand= RE_findOrAddStrand(obr, obr->totstrand++);
 			strand->buffer= strandbuf;
 			strand->vert= svert;
 			VECCOPY(strand->orco, orco);
 
 			if(surfnor) {
-				float *snor= RE_strandren_get_surfnor(re, strand, 1);
+				float *snor= RE_strandren_get_surfnor(obr, strand, 1);
 				VECCOPY(snor, surfnor);
 			}
 
 			if(uvco){
 				for(i=0; i<totuv; i++){
 					if(i != override_uv) {
-						float *uv= RE_strandren_get_uv(re, strand, i, NULL, 1);
+						float *uv= RE_strandren_get_uv(obr, strand, i, NULL, 1);
 
 						uv[0]= uvco[2*i];
 						uv[1]= uvco[2*i+1];
@@ -2121,13 +1868,13 @@ static int render_new_particle_system(Render *re, Object *ob, ParticleSystem *ps
 				VECADDFAC(loc0,loc,vel,-part->draw_line[0]);
 				VECADDFAC(loc1,loc,vel,part->draw_line[1]);
 
-				render_new_particle(re,ob,psmd->dm,ma,1,0,1,0.0f,loc0,loc1,
+				render_new_particle(re,obr,psmd->dm,ma,1,0,1,0.0f,loc0,loc1,
 									orco,surfnor,totuv,uvco,hasize,seed,override_uv,0,0,0);
 			}
 			else if(part->draw_as==PART_DRAW_BB) {
 				VECCOPY(vel,state.vel);
 				//MTC_Mat4Mul3Vecfl(re->viewmat,vel);
-				particle_billboard(re,ob,ma,bb_ob,loc,vel,pa_size,part->bb_tilt*(1.0f-part->bb_rand_tilt*r_tilt),
+				particle_billboard(re,obr,ma,bb_ob,loc,vel,pa_size,part->bb_tilt*(1.0f-part->bb_rand_tilt*r_tilt),
 									part->bb_align,part->draw&PART_DRAW_BB_LOCK,
 									a,totpart+totchild,part->bb_uv_split,part->bb_anim,part->bb_split_offset,random,pa_time,part->bb_offset,uv);
 			}
@@ -2141,13 +1888,13 @@ static int render_new_particle_system(Render *re, Object *ob, ParticleSystem *ps
 				if(k==1){
 					VECSUB(loc0,loc1,loc);
 					VECADD(loc0,loc1,loc0);
-					render_new_particle(re,ob,psmd->dm,ma,path,1,0,0.0f,loc1,loc0,
+					render_new_particle(re,obr,psmd->dm,ma,path,1,0,0.0f,loc1,loc0,
 										orco,surfnor,totuv,uvco,hasize,seed,override_uv,
 										adapt,adapt_angle,adapt_pix);
 				}
 
 				if(path_nbr==0 || k)
-					render_new_particle(re,ob,psmd->dm,ma,path,0,0,time,loc,loc1,
+					render_new_particle(re,obr,psmd->dm,ma,path,0,0,time,loc,loc1,
 										orco,surfnor,totuv,uvco,hasize,seed,override_uv,
 										adapt,adapt_angle,adapt_pix);
 
@@ -2187,249 +1934,278 @@ static int render_new_particle_system(Render *re, Object *ob, ParticleSystem *ps
 	}
 
 	if(path && (ma->mode_l & MA_TANGENT_STR)==0)
-		calc_vertexnormals(re, totverto, totvlako, 0);
+		calc_vertexnormals(re, obr, 0);
 
 	return 1;
 }
 
-static void render_static_particle_system(Render *re, Object *ob, PartEff *paf)
+/* ------------------------------------------------------------------------- */
+/* Halo's   																 */
+/* ------------------------------------------------------------------------- */
+
+static void make_render_halos(Render *re, ObjectRen *obr, Mesh *me, int totvert, MVert *mvert, Material *ma, float *orco)
 {
-	Particle *pa=0;
-	HaloRen *har=0;
-	Material *ma=0;
-	VertRen *v1= NULL;
-	VlakRen *vlr;
-	float xn, yn, zn, imat[3][3], mat[4][4], hasize;
-	float mtime, ptime, ctime, vec[3], vec1[3], view[3], nor[3];
-	float *orco= NULL, loc_tex[3], size_tex[3];
-	int a, mat_nr=1, seed, totvlako, totverto, first;
-
-	pa= paf->keys;
-	if(pa==NULL || (paf->flag & PAF_ANIMATED) || paf->disp!=100) {
-		build_particle_system(ob);
-		pa= paf->keys;
-		if(pa==NULL) return;
-	}
-
-	totvlako= re->totvlak;
-	totverto= re->totvert;
-	
-	ma= give_render_material(re, ob, paf->omat);
-	if(ma->mode & MA_HALO)
-		re->flag |= R_HALO;
+	Object *ob= obr->ob;
+	HaloRen *har;
+	float xn, yn, zn, nor[3], view[3];
+	float vec[3], hasize, mat[4][4], imat[3][3];
+	int a, ok, seed= ma->seed1;
 
 	MTC_Mat4MulMat4(mat, ob->obmat, re->viewmat);
-	MTC_Mat4Invert(ob->imat, mat);	/* need to be that way, for imat texture */
-
 	MTC_Mat3CpyMat4(imat, ob->imat);
-	
-	/* orcos */
-	if(!(ma->mode & (MA_HALO|MA_WIRE))) {
-		orco= MEM_mallocN(3*sizeof(float)*paf->totpart, "static particle orcos");
-		set_object_orco(re, paf, orco);
-	}
-	
-	mesh_get_texspace(ob->data, loc_tex, NULL, size_tex);
-	
-	if(ob->ipoflag & OB_OFFS_PARTICLE) ptime= ob->sf;
-	else ptime= 0.0;
-	ctime= bsystem_time(ob, (float)re->scene->r.cfra, ptime);
-	seed= ma->seed1;
 
-	for(a=0; a<paf->totpart; a++, pa+=paf->totkey) {
-		
-		where_is_particle(paf, pa, pa->time, vec1);
-		if(orco) {
-			orco[0] = (vec1[0]-loc_tex[0])/size_tex[0];
-			orco[1] = (vec1[1]-loc_tex[1])/size_tex[1];
-			orco[2] = (vec1[2]-loc_tex[2])/size_tex[2];
+	re->flag |= R_HALO;
+
+	for(a=0; a<totvert; a++, mvert++) {
+		ok= 1;
+
+		if(ok) {
+			hasize= ma->hasize;
+
+			VECCOPY(vec, mvert->co);
+			MTC_Mat4MulVecfl(mat, vec);
+
+			if(ma->mode & MA_HALOPUNO) {
+				xn= mvert->no[0];
+				yn= mvert->no[1];
+				zn= mvert->no[2];
+
+				/* transpose ! */
+				nor[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
+				nor[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
+				nor[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
+				Normalize(nor);
+
+				VECCOPY(view, vec);
+				Normalize(view);
+
+				zn= nor[0]*view[0]+nor[1]*view[1]+nor[2]*view[2];
+				if(zn>=0.0) hasize= 0.0;
+				else hasize*= zn*zn*zn*zn;
+			}
+
+			if(orco) har= RE_inithalo(re, obr, ma, vec, NULL, orco, hasize, 0.0, seed);
+			else har= RE_inithalo(re, obr, ma, vec, NULL, mvert->co, hasize, 0.0, seed);
+			if(har) har->lay= ob->lay;
 		}
-		MTC_Mat4MulVecfl(mat, vec1);
-		mtime= pa->time+pa->lifetime+paf->staticstep-1;
-		
-		first= 1;
-		for(ctime= pa->time; ctime<mtime; ctime+=paf->staticstep) {
-			
-			/* make sure hair grows until the end.. */
-			if(ctime>pa->time+pa->lifetime) ctime= pa->time+pa->lifetime;
-			
-			/* watch it: also calc the normal of a particle */
-			if(paf->stype==PAF_VECT || ma->mode & MA_HALO_SHADE) {
-				where_is_particle(paf, pa, ctime+1.0, vec);
-				MTC_Mat4MulVecfl(mat, vec);
-			}
-			else {
-				where_is_particle(paf, pa, ctime, vec);
-				MTC_Mat4MulVecfl(mat, vec);
-			}
-
-			if(pa->mat_nr != mat_nr) {
-				mat_nr= pa->mat_nr;
-				ma= give_render_material(re, ob, mat_nr);
-			}
-			
-			/* wires */
-			if(ma->mode & MA_WIRE) {
-				if(ctime == pa->time) {
-					v1= RE_findOrAddVert(re, re->totvert++);
-					VECCOPY(v1->co, vec);
-				}
-				else {
-					vlr= RE_findOrAddVlak(re, re->totvlak++);
-					vlr->ob= ob;
-					vlr->v1= v1;
-					vlr->v2= RE_findOrAddVert(re, re->totvert++);
-					vlr->v3= vlr->v2;
-					vlr->v4= NULL;
-					
-					v1= vlr->v2; // cycle
-					VECCOPY(v1->co, vec);
-					
-					VecSubf(vlr->n, vec, vec1);
-					Normalize(vlr->n);
-					VECCOPY(v1->n, vlr->n);
-					
-					vlr->mat= ma;
-					vlr->ec= ME_V1V2;
-					vlr->lay= ob->lay;
-				}
-			}
-			else {
-				if(ma->ipo) {
-					/* correction for lifetime */
-					ptime= 100.0*(ctime-pa->time)/pa->lifetime;
-					calc_ipo(ma->ipo, ptime);
-					execute_ipo((ID *)ma, ma->ipo);
-				}
-				
-				if(ma->mode & MA_HALO) {
-					hasize= ma->hasize;
-
-					if(ma->mode & MA_HALOPUNO) {
-						xn= pa->no[0];
-						yn= pa->no[1];
-						zn= pa->no[2];
-
-						/* transpose ! */
-						nor[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
-						nor[1]= imat[1][0]*xn+imat[1][1]*yn+imat[1][2]*zn;
-						nor[2]= imat[2][0]*xn+imat[2][1]*yn+imat[2][2]*zn;
-						Normalize(nor);
-
-						VECCOPY(view, vec);
-						Normalize(view);
-
-						zn= nor[0]*view[0]+nor[1]*view[1]+nor[2]*view[2];
-						if(zn>=0.0) hasize= 0.0;
-						else hasize*= zn*zn*zn*zn;
-					}
-
-					if(paf->stype==PAF_VECT) har= RE_inithalo(re, ma, vec, vec1, pa->co, hasize, paf->vectsize, seed);
-					else {
-						har= RE_inithalo(re, ma, vec, NULL, pa->co, hasize, 0.0, seed);
-						if(har && (ma->mode & MA_HALO_SHADE)) {
-							VecSubf(har->no, vec, vec1);
-							Normalize(har->no);
-							har->lay= ob->lay;
-						}
-					}
-					if(har) har->lay= ob->lay;
-				}
-				else {	/* generate pixel sized hair strand */
-					float strandco= 1.0f;
-					
-					/* last strand, texco to end */
-					if(ctime + paf->staticstep < mtime)
-						strandco= (ctime-pa->time)/(mtime-pa->time);
-					
-					static_particle_strand(re, ob, ma, orco, 0, 0, 0, vec, vec1, strandco, first, 0,0,0,0,-1);
-				}
-			}
-			
-			VECCOPY(vec1, vec);
-			first= 0;
-		}
-		
+		if(orco) orco+= 3;
 		seed++;
-		if(orco) orco+=3;
 	}
-
-	if(paf->disp!=100) {
-		MEM_freeN(paf->keys);
-		paf->keys= NULL;
-	}
-
-	if((ma->mode & MA_TANGENT_STR)==0)
-		calc_vertexnormals(re, totverto, totvlako, 0);
 }
-
-
-/* ------------------------------------------------------------------------- */
 
 static int verghalo(const void *a1, const void *a2)
 {
-	const struct halosort *x1=a1, *x2=a2;
+	const HaloRen *har1= a1, *har2= a2;
 	
-	if( x1->z < x2->z ) return 1;
-	else if( x1->z > x2->z) return -1;
+	if(har1->zs < har2->zs) return 1;
+	else if(har1->zs > har2->zs) return -1;
 	return 0;
 }
 
-/* ------------------------------------------------------------------------- */
-static void sort_halos(Render *re)
+static void sort_halos(Render *re, int totsort)
 {
-	struct halosort *hablock, *haso;
-	HaloRen *har = NULL, **bloha;
+	ObjectRen *obr;
+	HaloRen *har= NULL, **haso;
 	int a;
 
 	if(re->tothalo==0) return;
 
-	/* make datablock with halo pointers, sort */
-	haso= hablock= MEM_mallocN(sizeof(struct halosort)*re->tothalo, "hablock");
+	re->sortedhalos= MEM_callocN(sizeof(HaloRen*)*re->tothalo, "sorthalos");
+	haso= re->sortedhalos;
 
-	for(a=0; a<re->tothalo; a++) {
-		if((a & 255)==0) har= re->bloha[a>>8];
-		else har++;
-		haso->har= har;
-		haso->z= har->zs;
-		haso++;
+	for(obr=re->objecttable.first; obr; obr=obr->next) {
+		for(a=0; a<obr->tothalo; a++) {
+			if((a & 255)==0) har= obr->bloha[a>>8];
+			else har++;
+
+			*(haso++)= har;
+		}
 	}
 
-	qsort(hablock, re->tothalo, sizeof(struct halosort), verghalo);
-
-	/* re-assamble re->bloha */
-
-	bloha= re->bloha;
-	re->bloha= (HaloRen **)MEM_callocN(sizeof(void *)*(re->blohalen),"Bloha");
-
-	haso= hablock;
-	for(a=0; a<re->tothalo; a++) {
-		har= RE_findOrAddHalo(re, a);
-		*har= *(haso->har);
-
-		haso++;
-	}
-
-	/* free */
-	a= 0;
-	while(bloha[a]) {
-		MEM_freeN(bloha[a]);
-		a++;
-	}
-	MEM_freeN(bloha);
-	MEM_freeN(hablock);
-
+	qsort(re->sortedhalos, totsort, sizeof(HaloRen*), verghalo);
 }
 
 /* ------------------------------------------------------------------------- */
-static void init_render_mball(Render *re, Object *ob)
+/* Displacement Mapping														 */
+/* ------------------------------------------------------------------------- */
+
+static short test_for_displace(Render *re, Object *ob)
 {
+	/* return 1 when this object uses displacement textures. */
+	Material *ma;
+	int i;
+	
+	for (i=1; i<=ob->totcol; i++) {
+		ma=give_render_material(re, ob, i);
+		/* ma->mapto is ORed total of all mapto channels */
+		if(ma && (ma->mapto & MAP_DISPLACE)) return 1;
+	}
+	return 0;
+}
+
+static void displace_render_vert(Render *re, ObjectRen *obr, ShadeInput *shi, VertRen *vr, int vindex, float *scale)
+{
+	MTFace *tface;
+	short texco= shi->mat->texco;
+	float sample=0;
+	char *name;
+	int i;
+
+	/* shi->co is current render coord, just make sure at least some vector is here */
+	VECCOPY(shi->co, vr->co);
+	/* vertex normal is used for textures type 'col' and 'var' */
+	VECCOPY(shi->vn, vr->n);
+
+	if (texco & TEXCO_UV) {
+		shi->totuv= 0;
+		shi->actuv= obr->actmtface;
+
+		for (i=0; (tface=RE_vlakren_get_tface(obr, shi->vlr, i, &name, 0)); i++) {
+			ShadeInputUV *suv= &shi->uv[i];
+
+			/* shi.uv needs scale correction from tface uv */
+			suv->uv[0]= 2*tface->uv[vindex][0]-1.0f;
+			suv->uv[1]= 2*tface->uv[vindex][1]-1.0f;
+			suv->uv[2]= 0.0f;
+			suv->name= name;
+			shi->totuv++;
+		}
+	}
+
+	/* set all rendercoords, 'texco' is an ORed value for all textures needed */
+	if ((texco & TEXCO_ORCO) && (vr->orco)) {
+		VECCOPY(shi->lo, vr->orco);
+	}
+	if (texco & TEXCO_STICKY) {
+		float *sticky= RE_vertren_get_sticky(obr, vr, 0);
+		if(sticky) {
+			shi->sticky[0]= sticky[0];
+			shi->sticky[1]= sticky[1];
+			shi->sticky[2]= 0.0f;
+		}
+	}
+	if (texco & TEXCO_GLOB) {
+		VECCOPY(shi->gl, shi->co);
+		MTC_Mat4MulVecfl(re->viewinv, shi->gl);
+	}
+	if (texco & TEXCO_NORM) {
+		VECCOPY(shi->orn, shi->vn);
+	}
+	if(texco & TEXCO_REFL) {
+		/* not (yet?) */
+	}
+	
+	shi->displace[0]= shi->displace[1]= shi->displace[2]= 0.0;
+	
+	do_material_tex(shi);
+	
+	//printf("no=%f, %f, %f\nbefore co=%f, %f, %f\n", vr->n[0], vr->n[1], vr->n[2], 
+	//vr->co[0], vr->co[1], vr->co[2]);
+	
+	/* 0.5 could become button once?  */
+	vr->co[0] +=  shi->displace[0] * scale[0] ; 
+	vr->co[1] +=  shi->displace[1] * scale[1] ; 
+	vr->co[2] +=  shi->displace[2] * scale[2] ; 
+	
+	//printf("after co=%f, %f, %f\n", vr->co[0], vr->co[1], vr->co[2]); 
+	
+	/* we just don't do this vertex again, bad luck for other face using same vertex with
+		different material... */
+	vr->flag |= 1;
+	
+	/* Pass sample back so displace_face can decide which way to split the quad */
+	sample  = shi->displace[0]*shi->displace[0];
+	sample += shi->displace[1]*shi->displace[1];
+	sample += shi->displace[2]*shi->displace[2];
+	
+	vr->accum=sample; 
+	/* Should be sqrt(sample), but I'm only looking for "bigger".  Save the cycles. */
+	return;
+}
+
+static void displace_render_face(Render *re, VlakRen *vlr, float *scale)
+{
+	ShadeInput shi;
+
+	/* set up shadeinput struct for multitex() */
+	shi.osatex= 0;		/* signal not to use dx[] and dy[] texture AA vectors */
+	shi.vlr= vlr;		/* current render face */
+	shi.mat= vlr->mat;		/* current input material */
+	
+	/* Displace the verts, flag is set when done */
+	if (!vlr->v1->flag)
+		displace_render_vert(re, vlr->obr, &shi, vlr->v1,0,  scale);
+	
+	if (!vlr->v2->flag)
+		displace_render_vert(re, vlr->obr, &shi, vlr->v2, 1, scale);
+
+	if (!vlr->v3->flag)
+		displace_render_vert(re, vlr->obr, &shi, vlr->v3, 2, scale);
+
+	if (vlr->v4) {
+		if (!vlr->v4->flag)
+			displace_render_vert(re, vlr->obr, &shi, vlr->v4, 3, scale);
+
+		/*	closest in displace value.  This will help smooth edges.   */ 
+		if ( fabs(vlr->v1->accum - vlr->v3->accum) > fabs(vlr->v2->accum - vlr->v4->accum)) 
+			vlr->flag |= R_DIVIDE_24;
+		else vlr->flag &= ~R_DIVIDE_24;
+	}
+	
+	/* Recalculate the face normal  - if flipped before, flip now */
+	if(vlr->v4) {
+		CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
+	}	
+	else {
+		CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
+	}
+}
+
+static void do_displacement(Render *re, ObjectRen *obr)
+{
+	VertRen *vr;
+	VlakRen *vlr;
+//	float min[3]={1e30, 1e30, 1e30}, max[3]={-1e30, -1e30, -1e30};
+	float scale[3]={1.0f, 1.0f, 1.0f}, temp[3];//, xn
+	int i; //, texflag=0;
+	Object *obt;
+		
+	/* Object Size with parenting */
+	obt=obr->ob;
+	while(obt){
+		VecAddf(temp, obt->size, obt->dsize);
+		scale[0]*=temp[0]; scale[1]*=temp[1]; scale[2]*=temp[2];
+		obt=obt->parent;
+	}
+	
+	/* Clear all flags */
+	for(i=0; i<obr->totvert; i++){ 
+		vr= RE_findOrAddVert(obr, i);
+		vr->flag= 0;
+	}
+
+	for(i=0; i<obr->totvlak; i++){
+		vlr=RE_findOrAddVlak(obr, i);
+		displace_render_face(re, vlr, scale);
+	}
+	
+	/* Recalc vertex normals */
+	calc_vertexnormals(re, obr, 0);
+}
+
+/* ------------------------------------------------------------------------- */
+/* Metaball   																 */
+/* ------------------------------------------------------------------------- */
+
+static void init_render_mball(Render *re, ObjectRen *obr)
+{
+	Object *ob= obr->ob;
 	DispList *dl;
 	VertRen *ver;
 	VlakRen *vlr, *vlr1;
 	Material *ma;
 	float *data, *nors, mat[4][4], imat[3][3], xn, yn, zn;
-	int a, need_orco, startvert, *index;
+	int a, need_orco, *index;
 
 	if (ob!=find_basis_mball(ob))
 		return;
@@ -2449,19 +2225,19 @@ static void init_render_mball(Render *re, Object *ob)
 	dl= ob->disp.first;
 	if(dl==0) return;
 
-	startvert= re->totvert;
 	data= dl->verts;
 	nors= dl->nors;
 
 	for(a=0; a<dl->nr; a++, data+=3, nors+=3) {
 
-		ver= RE_findOrAddVert(re, re->totvert++);
+		ver= RE_findOrAddVert(obr, obr->totvert++);
 		VECCOPY(ver->co, data);
 		MTC_Mat4MulVecfl(mat, ver->co);
 
-		xn= nors[0];
-		yn= nors[1];
-		zn= nors[2];
+		/* render normals are inverted */
+		xn= -nors[0];
+		yn= -nors[1];
+		zn= -nors[2];
 
 		/* transpose ! */
 		ver->n[0]= imat[0][0]*xn+imat[0][1]*yn+imat[0][2]*zn;
@@ -2476,11 +2252,11 @@ static void init_render_mball(Render *re, Object *ob)
 	index= dl->index;
 	for(a=0; a<dl->parts; a++, index+=4) {
 
-		vlr= RE_findOrAddVlak(re, re->totvlak++);
-		vlr->ob= ob;
-		vlr->v1= RE_findOrAddVert(re, startvert+index[0]);
-		vlr->v2= RE_findOrAddVert(re, startvert+index[1]);
-		vlr->v3= RE_findOrAddVert(re, startvert+index[2]);
+		vlr= RE_findOrAddVlak(obr, obr->totvlak++);
+		vlr->obr= obr;
+		vlr->v1= RE_findOrAddVert(obr, index[0]);
+		vlr->v2= RE_findOrAddVert(obr, index[1]);
+		vlr->v3= RE_findOrAddVert(obr, index[2]);
 		vlr->v4= 0;
 
 		if(ob->transflag & OB_NEG_SCALE) 
@@ -2495,10 +2271,10 @@ static void init_render_mball(Render *re, Object *ob)
 
 		/* mball -too bad- always has triangles, because quads can be non-planar */
 		if(index[3] && index[3]!=index[2]) {
-			vlr1= RE_findOrAddVlak(re, re->totvlak++);
+			vlr1= RE_findOrAddVlak(obr, obr->totvlak++);
 			*vlr1= *vlr;
 			vlr1->v2= vlr1->v3;
-			vlr1->v3= RE_findOrAddVert(re, startvert+index[3]);
+			vlr1->v3= RE_findOrAddVert(obr, index[3]);
 			if(ob->transflag & OB_NEG_SCALE) 
 				CalcNormFloat(vlr1->v1->co, vlr1->v2->co, vlr1->v3->co, vlr1->n);
 			else
@@ -2518,16 +2294,449 @@ static void init_render_mball(Render *re, Object *ob)
 	/* this enforces remake for real, orco displist is small (in scale) */
 	ob->recalc |= OB_RECALC_DATA;
 }
-/* ------------------------------------------------------------------------- */
-/* convert */
 
-static int vlakren_customdata_layer_num(int n, int active)
+/* ------------------------------------------------------------------------- */
+/* Surfaces and Curves														 */
+/* ------------------------------------------------------------------------- */
+
+/* returns amount of vertices added for orco */
+static int dl_surf_to_renderdata(ObjectRen *obr, DispList *dl, Material **matar, float *orco, float mat[4][4])
 {
-	/* make the active layer the first */
-	if (n == active) return 0;
-	else if (n < active) return n+1;
-	else return n;
+	Object *ob= obr->ob;
+	VertRen *v1, *v2, *v3, *v4, *ver;
+	VlakRen *vlr, *vlr1, *vlr2, *vlr3;
+	Curve *cu= ob->data;
+	float *data, n1[3], flen;
+	int u, v, orcoret= 0;
+	int p1, p2, p3, p4, a;
+	int sizeu, nsizeu, sizev, nsizev;
+	int startvert, startvlak;
+	
+	startvert= obr->totvert;
+	nsizeu = sizeu = dl->parts; nsizev = sizev = dl->nr; 
+	
+	data= dl->verts;
+	for (u = 0; u < sizeu; u++) {
+		v1 = RE_findOrAddVert(obr, obr->totvert++); /* save this for possible V wrapping */
+		VECCOPY(v1->co, data); data += 3;
+		if(orco) {
+			v1->orco= orco; orco+= 3; orcoret++;
+		}	
+		MTC_Mat4MulVecfl(mat, v1->co);
+		
+		for (v = 1; v < sizev; v++) {
+			ver= RE_findOrAddVert(obr, obr->totvert++);
+			VECCOPY(ver->co, data); data += 3;
+			if(orco) {
+				ver->orco= orco; orco+= 3; orcoret++;
+			}	
+			MTC_Mat4MulVecfl(mat, ver->co);
+		}
+		/* if V-cyclic, add extra vertices at end of the row */
+		if (dl->flag & DL_CYCL_U) {
+			ver= RE_findOrAddVert(obr, obr->totvert++);
+			VECCOPY(ver->co, v1->co);
+			if(orco) {
+				ver->orco= orco; orco+=3; orcoret++; //orcobase + 3*(u*sizev + 0);
+			}
+		}	
+	}	
+	
+	/* Done before next loop to get corner vert */
+	if (dl->flag & DL_CYCL_U) nsizev++;
+	if (dl->flag & DL_CYCL_V) nsizeu++;
+	
+	/* if U cyclic, add extra row at end of column */
+	if (dl->flag & DL_CYCL_V) {
+		for (v = 0; v < nsizev; v++) {
+			v1= RE_findOrAddVert(obr, startvert + v);
+			ver= RE_findOrAddVert(obr, obr->totvert++);
+			VECCOPY(ver->co, v1->co);
+			if(orco) {
+				ver->orco= orco; orco+=3; orcoret++; //ver->orco= orcobase + 3*(0*sizev + v);
+			}
+		}
+	}
+	
+	sizeu = nsizeu;
+	sizev = nsizev;
+	
+	startvlak= obr->totvlak;
+	
+	for(u = 0; u < sizeu - 1; u++) {
+		p1 = startvert + u * sizev; /* walk through face list */
+		p2 = p1 + 1;
+		p3 = p2 + sizev;
+		p4 = p3 - 1;
+		
+		for(v = 0; v < sizev - 1; v++) {
+			v1= RE_findOrAddVert(obr, p1);
+			v2= RE_findOrAddVert(obr, p2);
+			v3= RE_findOrAddVert(obr, p3);
+			v4= RE_findOrAddVert(obr, p4);
+			
+			vlr= RE_findOrAddVlak(obr, obr->totvlak++);
+			vlr->obr= obr;
+			vlr->v1= v1; vlr->v2= v2; vlr->v3= v3; vlr->v4= v4;
+			
+			flen= CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, n1);
+			VECCOPY(vlr->n, n1);
+			
+			vlr->lay= ob->lay;
+			vlr->mat= matar[ dl->col];
+			vlr->ec= ME_V1V2+ME_V2V3;
+			vlr->flag= dl->rt;
+			if( (cu->flag & CU_NOPUNOFLIP) ) {
+				vlr->flag |= R_NOPUNOFLIP;
+			}
+			
+			VecAddf(v1->n, v1->n, n1);
+			VecAddf(v2->n, v2->n, n1);
+			VecAddf(v3->n, v3->n, n1);
+			VecAddf(v4->n, v4->n, n1);
+			
+			p1++; p2++; p3++; p4++;
+		}
+	}	
+	/* fix normals for U resp. V cyclic faces */
+	sizeu--; sizev--;  /* dec size for face array */
+	if (dl->flag & DL_CYCL_V) {
+		
+		for (v = 0; v < sizev; v++)
+		{
+			/* optimize! :*/
+			vlr= RE_findOrAddVlak(obr, UVTOINDEX(sizeu - 1, v));
+			vlr1= RE_findOrAddVlak(obr, UVTOINDEX(0, v));
+			VecAddf(vlr1->v1->n, vlr1->v1->n, vlr->n);
+			VecAddf(vlr1->v2->n, vlr1->v2->n, vlr->n);
+			VecAddf(vlr->v3->n, vlr->v3->n, vlr1->n);
+			VecAddf(vlr->v4->n, vlr->v4->n, vlr1->n);
+		}
+	}
+	if (dl->flag & DL_CYCL_U) {
+		
+		for (u = 0; u < sizeu; u++)
+		{
+			/* optimize! :*/
+			vlr= RE_findOrAddVlak(obr, UVTOINDEX(u, 0));
+			vlr1= RE_findOrAddVlak(obr, UVTOINDEX(u, sizev-1));
+			VecAddf(vlr1->v2->n, vlr1->v2->n, vlr->n);
+			VecAddf(vlr1->v3->n, vlr1->v3->n, vlr->n);
+			VecAddf(vlr->v1->n, vlr->v1->n, vlr1->n);
+			VecAddf(vlr->v4->n, vlr->v4->n, vlr1->n);
+		}
+	}
+	/* last vertex is an extra case: 
+		
+		^	()----()----()----()
+		|	|     |     ||     |
+		u	|     |(0,n)||(0,0)|
+		|     |     ||     |
+		()====()====[]====()
+		|     |     ||     |
+		|     |(m,n)||(m,0)|
+		|     |     ||     |
+		()----()----()----()
+		v ->
+		
+		vertex [] is no longer shared, therefore distribute
+		normals of the surrounding faces to all of the duplicates of []
+		*/
+	
+	if ((dl->flag & DL_CYCL_V) && (dl->flag & DL_CYCL_U))
+	{
+		vlr= RE_findOrAddVlak(obr, UVTOINDEX(sizeu - 1, sizev - 1)); /* (m,n) */
+		vlr1= RE_findOrAddVlak(obr, UVTOINDEX(0,0));  /* (0,0) */
+		VecAddf(n1, vlr->n, vlr1->n);
+		vlr2= RE_findOrAddVlak(obr, UVTOINDEX(0, sizev-1)); /* (0,n) */
+		VecAddf(n1, n1, vlr2->n);
+		vlr3= RE_findOrAddVlak(obr, UVTOINDEX(sizeu-1, 0)); /* (m,0) */
+		VecAddf(n1, n1, vlr3->n);
+		VECCOPY(vlr->v3->n, n1);
+		VECCOPY(vlr1->v1->n, n1);
+		VECCOPY(vlr2->v2->n, n1);
+		VECCOPY(vlr3->v4->n, n1);
+	}
+	for(a = startvert; a < obr->totvert; a++) {
+		ver= RE_findOrAddVert(obr, a);
+		Normalize(ver->n);
+	}
+	
+	
+	return orcoret;
 }
+
+static void init_render_surf(Render *re, ObjectRen *obr)
+{
+	Object *ob= obr->ob;
+	Nurb *nu=0;
+	Curve *cu;
+	ListBase displist;
+	DispList *dl;
+	Material *matar[32];
+	float *orco=NULL, *orcobase=NULL, mat[4][4];
+	int a, need_orco=0;
+
+	cu= ob->data;
+	nu= cu->nurb.first;
+	if(nu==0) return;
+
+	MTC_Mat4MulMat4(mat, ob->obmat, re->viewmat);
+	MTC_Mat4Invert(ob->imat, mat);
+
+	/* material array */
+	memset(matar, 0, 4*32);
+	matar[0]= give_render_material(re, ob, 0);
+	for(a=0; a<ob->totcol; a++) {
+		matar[a]= give_render_material(re, ob, a+1);
+		if(matar[a] && matar[a]->texco & TEXCO_ORCO) {
+			need_orco= 1;
+		}
+	}
+
+	if(ob->parent && (ob->parent->type==OB_LATTICE)) need_orco= 1;
+
+	if(need_orco) orcobase= orco= get_object_orco(re, ob);
+
+	displist.first= displist.last= 0;
+	makeDispListSurf(ob, &displist, 1);
+
+	dl= displist.first;
+	/* walk along displaylist and create rendervertices/-faces */
+	while(dl) {
+			/* watch out: u ^= y, v ^= x !! */
+		if(dl->type==DL_SURF) {
+			orco+= 3*dl_surf_to_renderdata(obr, dl, matar, orco, mat);
+		}
+
+		dl= dl->next;
+	}
+	freedisplist(&displist);
+}
+
+static void init_render_curve(Render *re, ObjectRen *obr, int only_verts)
+{
+	Object *ob= obr->ob;
+	Curve *cu;
+	VertRen *ver;
+	VlakRen *vlr;
+	DispList *dl;
+	ListBase olddl={NULL, NULL};
+	Material *matar[32];
+	float len, *data, *fp, *orco=NULL, *orcobase= NULL;
+	float n[3], mat[4][4];
+	int nr, startvert, startvlak, a, b;
+	int frontside, need_orco=0;
+
+	cu= ob->data;
+	if(cu->nurb.first==NULL) return;
+
+	/* no modifier call here, is in makedisp */
+
+	if(cu->resolu_ren) 
+		SWAP(ListBase, olddl, cu->disp);
+	
+	/* test displist */
+	if(cu->disp.first==NULL) 
+		makeDispListCurveTypes(ob, 0);
+	dl= cu->disp.first;
+	if(cu->disp.first==NULL) return;
+	
+	MTC_Mat4MulMat4(mat, ob->obmat, re->viewmat);
+	MTC_Mat4Invert(ob->imat, mat);
+
+	/* material array */
+	memset(matar, 0, 4*32);
+	matar[0]= give_render_material(re, ob, 0);
+	for(a=0; a<ob->totcol; a++) {
+		matar[a]= give_render_material(re, ob, a+1);
+		if(matar[a]->texco & TEXCO_ORCO) {
+			need_orco= 1;
+		}
+	}
+
+	if(need_orco) orcobase=orco= get_object_orco(re, ob);
+
+	dl= cu->disp.first;
+	while(dl) {
+		if(dl->type==DL_INDEX3) {
+			int *index;
+
+			startvert= obr->totvert;
+			data= dl->verts;
+
+			n[0]= ob->imat[0][2];
+			n[1]= ob->imat[1][2];
+			n[2]= ob->imat[2][2];
+			Normalize(n);
+
+			for(a=0; a<dl->nr; a++, data+=3) {
+				ver= RE_findOrAddVert(obr, obr->totvert++);
+				VECCOPY(ver->co, data);
+
+				/* flip normal if face is backfacing, also used in face loop below */
+				if(ver->co[2] < 0.0) {
+					VECCOPY(ver->n, n);
+					ver->flag = 1;
+				}
+				else {
+					ver->n[0]= -n[0]; ver->n[1]= -n[1]; ver->n[2]= -n[2];
+					ver->flag = 0;
+				}
+
+				MTC_Mat4MulVecfl(mat, ver->co);
+				
+				if (orco) {
+					ver->orco = orco;
+					orco += 3;
+				}
+			}
+			
+			if(only_verts==0) {
+				startvlak= obr->totvlak;
+				index= dl->index;
+				for(a=0; a<dl->parts; a++, index+=3) {
+
+					vlr= RE_findOrAddVlak(obr, obr->totvlak++);
+					vlr->obr = obr;
+					vlr->v1= RE_findOrAddVert(obr, startvert+index[0]);
+					vlr->v2= RE_findOrAddVert(obr, startvert+index[1]);
+					vlr->v3= RE_findOrAddVert(obr, startvert+index[2]);
+					vlr->v4= NULL;
+					
+					if(vlr->v1->flag) {
+						VECCOPY(vlr->n, n);
+					}
+					else {
+						vlr->n[0]= -n[0]; vlr->n[1]= -n[1]; vlr->n[2]= -n[2];
+					}
+					
+					vlr->mat= matar[ dl->col ];
+					vlr->flag= 0;
+					if( (cu->flag & CU_NOPUNOFLIP) ) {
+						vlr->flag |= R_NOPUNOFLIP;
+					}
+					vlr->ec= 0;
+					vlr->lay= ob->lay;
+				}
+			}
+		}
+		else if (dl->type==DL_SURF) {
+			
+			/* cyclic U means an extruded full circular curve, we skip bevel splitting then */
+			if (dl->flag & DL_CYCL_U) {
+				orco+= 3*dl_surf_to_renderdata(obr, dl, matar, orco, mat);
+			}
+			else {
+				int p1,p2,p3,p4;
+
+				fp= dl->verts;
+				startvert= obr->totvert;
+				nr= dl->nr*dl->parts;
+
+				while(nr--) {
+					ver= RE_findOrAddVert(obr, obr->totvert++);
+						
+					VECCOPY(ver->co, fp);
+					MTC_Mat4MulVecfl(mat, ver->co);
+					fp+= 3;
+
+					if (orco) {
+						ver->orco = orco;
+						orco += 3;
+					}
+				}
+
+				if(dl->bevelSplitFlag || only_verts==0) {
+					startvlak= obr->totvlak;
+
+					for(a=0; a<dl->parts; a++) {
+
+						frontside= (a >= dl->nr/2);
+
+						DL_SURFINDEX(dl->flag & DL_CYCL_U, dl->flag & DL_CYCL_V, dl->nr, dl->parts);
+						p1+= startvert;
+						p2+= startvert;
+						p3+= startvert;
+						p4+= startvert;
+
+						for(; b<dl->nr; b++) {
+							vlr= RE_findOrAddVlak(obr, obr->totvlak++);
+							vlr->obr= obr;
+							vlr->v1= RE_findOrAddVert(obr, p2);
+							vlr->v2= RE_findOrAddVert(obr, p1);
+							vlr->v3= RE_findOrAddVert(obr, p3);
+							vlr->v4= RE_findOrAddVert(obr, p4);
+							vlr->ec= ME_V2V3+ME_V3V4;
+							if(a==0) vlr->ec+= ME_V1V2;
+
+							vlr->flag= dl->rt;
+							vlr->lay= ob->lay;
+
+							/* this is not really scientific: the vertices
+								* 2, 3 en 4 seem to give better vertexnormals than 1 2 3:
+								* front and backside treated different!!
+								*/
+
+							if(frontside)
+								CalcNormFloat(vlr->v2->co, vlr->v3->co, vlr->v4->co, vlr->n);
+							else 
+								CalcNormFloat(vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->n);
+
+							vlr->mat= matar[ dl->col ];
+
+							p4= p3;
+							p3++;
+							p2= p1;
+							p1++;
+						}
+					}
+
+					if (dl->bevelSplitFlag) {
+						for(a=0; a<dl->parts-1+!!(dl->flag&DL_CYCL_V); a++)
+							if(dl->bevelSplitFlag[a>>5]&(1<<(a&0x1F)))
+								split_v_renderfaces(obr, startvlak, startvert, dl->parts, dl->nr, a, dl->flag&DL_CYCL_V, dl->flag&DL_CYCL_U);
+					}
+
+					/* vertex normals */
+					for(a= startvlak; a<obr->totvlak; a++) {
+						vlr= RE_findOrAddVlak(obr, a);
+
+						VecAddf(vlr->v1->n, vlr->v1->n, vlr->n);
+						VecAddf(vlr->v3->n, vlr->v3->n, vlr->n);
+						VecAddf(vlr->v2->n, vlr->v2->n, vlr->n);
+						VecAddf(vlr->v4->n, vlr->v4->n, vlr->n);
+					}
+					for(a=startvert; a<obr->totvert; a++) {
+						ver= RE_findOrAddVert(obr, a);
+						len= Normalize(ver->n);
+						if(len==0.0) ver->flag= 1;	/* flag abuse, its only used in zbuf now  */
+						else ver->flag= 0;
+					}
+					for(a= startvlak; a<obr->totvlak; a++) {
+						vlr= RE_findOrAddVlak(obr, a);
+						if(vlr->v1->flag) VECCOPY(vlr->v1->n, vlr->n);
+						if(vlr->v2->flag) VECCOPY(vlr->v2->n, vlr->n);
+						if(vlr->v3->flag) VECCOPY(vlr->v3->n, vlr->n);
+						if(vlr->v4->flag) VECCOPY(vlr->v4->n, vlr->n);
+					}
+				}
+			}
+		}
+
+		dl= dl->next;
+	}
+	
+	/* not very elegant... but we want original displist in UI */
+	if(cu->resolu_ren) {
+		freedisplist(&cu->disp);
+		SWAP(ListBase, olddl, cu->disp);
+	}
+}
+
+/* ------------------------------------------------------------------------- */
+/* Mesh     																 */
+/* ------------------------------------------------------------------------- */
 
 struct edgesort {
 	int v1, v2;
@@ -2606,13 +2815,13 @@ static struct edgesort *make_mesh_edge_lookup(DerivedMesh *dm, int *totedgesort)
 	return edsort;
 }
 
-static void use_mesh_edge_lookup(Render *re, DerivedMesh *dm, MEdge *medge, VlakRen *vlr, struct edgesort *edgetable, int totedge)
+static void use_mesh_edge_lookup(ObjectRen *obr, DerivedMesh *dm, MEdge *medge, VlakRen *vlr, struct edgesort *edgetable, int totedge)
 {
 	struct edgesort ed, *edp;
 	CustomDataLayer *layer;
 	MTFace *mtface, *mtf;
 	MCol *mcol, *mc;
-	int index, mtfn, mcn, n;
+	int index, mtfn, mcn;
 	char *name;
 	
 	if(medge->v1 < medge->v2) {
@@ -2636,8 +2845,7 @@ static void use_mesh_edge_lookup(Render *re, DerivedMesh *dm, MEdge *medge, Vlak
 
 			if(layer->type == CD_MTFACE && mtfn < MAX_MTFACE) {
 				mtface= &((MTFace*)layer->data)[edp->f];
-				n= vlakren_customdata_layer_num(mtfn++, layer->active_rnd);
-				mtf= RE_vlakren_get_tface(re, vlr, n, &name, 1);
+				mtf= RE_vlakren_get_tface(obr, vlr, mtfn++, &name, 1);
 
 				*mtf= *mtface;
 
@@ -2648,8 +2856,7 @@ static void use_mesh_edge_lookup(Render *re, DerivedMesh *dm, MEdge *medge, Vlak
 			}
 			else if(layer->type == CD_MCOL && mcn < MAX_MCOL) {
 				mcol= &((MCol*)layer->data)[edp->f*4];
-				n= vlakren_customdata_layer_num(mcn++, layer->active_rnd);
-				mc= RE_vlakren_get_mcol(re, vlr, n, &name, 1);
+				mc= RE_vlakren_get_mcol(obr, vlr, mcn++, &name, 1);
 
 				mc[0]= mcol[edp->i1];
 				mc[1]= mc[2]= mc[3]= mcol[edp->i2];
@@ -2658,8 +2865,9 @@ static void use_mesh_edge_lookup(Render *re, DerivedMesh *dm, MEdge *medge, Vlak
 	}
 }
 
-static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts)
+static void init_render_mesh(Render *re, ObjectRen *obr, int only_verts)
 {
+	Object *ob= obr->ob;
 	Mesh *me;
 	MVert *mvert = NULL;
 	MFace *mface;
@@ -2667,36 +2875,23 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 	VertRen *ver;
 	Material *ma;
 	MSticky *ms = NULL;
-	PartEff *paf;
 	DerivedMesh *dm;
 	CustomDataMask mask;
 	float xn, yn, zn,  imat[3][3], mat[4][4];  //nor[3],
 	float *orco=0;
-	int a, a1, ok, need_orco=0, need_stress=0, need_tangent=0, totvlako, totverto, vertofs;
+	int a, a1, ok, need_orco=0, need_stress=0, need_tangent=0, vertofs;
 	int end, do_autosmooth=0, totvert = 0;
 	int useFluidmeshNormals= 0; // NT fluidsim, use smoothed normals?
 	int use_original_normals= 0;
 
 	me= ob->data;
 
-	paf = give_parteff(ob);
-	if(paf) {
-		/* warning; build_particle_system does modifier calls itself */
-		if(paf->flag & PAF_STATIC) render_static_particle_system(re, ob, paf);
-		else render_particle_system(re, ob, par, paf);
-		if((paf->flag & PAF_SHOWE)==0) return;
-	}
-
 	MTC_Mat4MulMat4(mat, ob->obmat, re->viewmat);
 	MTC_Mat4Invert(ob->imat, mat);
 	MTC_Mat3CpyMat4(imat, ob->imat);
 
-	if(me->totvert==0) {
+	if(me->totvert==0)
 		return;
-	}
-	
-	totvlako= re->totvlak;
-	totverto= re->totvert;
 	
 	need_orco= 0;
 	for(a=1; a<=ob->totcol; a++) {
@@ -2767,16 +2962,16 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 	ma= give_render_material(re, ob, 1);
 
 	if(ma->mode & MA_HALO) {
-		make_render_halos(re, ob, me, totvert, mvert, ma, orco);
+		make_render_halos(re, obr, me, totvert, mvert, ma, orco);
 	}
 	else {
 
 		for(a=0; a<totvert; a++, mvert++) {
-			ver= RE_findOrAddVert(re, re->totvert++);
+			ver= RE_findOrAddVert(obr, obr->totvert++);
 			VECCOPY(ver->co, mvert->co);
 			if(do_autosmooth==0)	/* autosmooth on original unrotated data to prevent differences between frames */
 				MTC_Mat4MulVecfl(mat, ver->co);
-
+  
 			if(useFluidmeshNormals) {
 				/* normals are inverted in render */
 				xn = -mvert->no[0]/ 32767.0;
@@ -2793,7 +2988,7 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 				orco+=3;
 			}
 			if(ms) {
-				float *sticky= RE_vertren_get_sticky(re, ver, 1);
+				float *sticky= RE_vertren_get_sticky(obr, ver, 1);
 				sticky[0]= ms->co[0];
 				sticky[1]= ms->co[1];
 				ms++;
@@ -2802,12 +2997,12 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 		
 		if(!only_verts) {
 			/* store customdata names, because DerivedMesh is freed */
-			RE_vlakren_set_customdata_names(re, &dm->faceData);
+			RE_set_customdata_names(obr, &dm->faceData);
 			
 			/* still to do for keys: the correct local texture coordinate */
 
 			/* faces in order of color blocks */
-			vertofs= re->totvert - totvert;
+			vertofs= obr->totvert - totvert;
 			for(a1=0; (a1<ob->totcol || (a1==0 && ob->totcol==0)); a1++) {
 
 				ma= give_render_material(re, ob, a1+1);
@@ -2845,13 +3040,13 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 							v3= mface->v3;
 							v4= mface->v4;
 							flag= mface->flag & ME_SMOOTH;
-							
-							vlr= RE_findOrAddVlak(re, re->totvlak++);
-							vlr->ob= ob;
-							vlr->v1= RE_findOrAddVert(re, vertofs+v1);
-							vlr->v2= RE_findOrAddVert(re, vertofs+v2);
-							vlr->v3= RE_findOrAddVert(re, vertofs+v3);
-							if(v4) vlr->v4= RE_findOrAddVert(re, vertofs+v4);
+
+							vlr= RE_findOrAddVlak(obr, obr->totvlak++);
+							vlr->obr= obr;
+							vlr->v1= RE_findOrAddVert(obr, vertofs+v1);
+							vlr->v2= RE_findOrAddVert(obr, vertofs+v2);
+							vlr->v3= RE_findOrAddVert(obr, vertofs+v3);
+							if(v4) vlr->v4= RE_findOrAddVert(obr, vertofs+v4);
 							else vlr->v4= 0;
 
 							/* render normals are inverted in render */
@@ -2879,12 +3074,12 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 							vlr->ec= 0; /* mesh edges rendered separately */
 							vlr->lay= ob->lay;
 
-							if(len==0) re->totvlak--;
+							if(len==0) obr->totvlak--;
 							else {
 								CustomDataLayer *layer;
 								MTFace *mtface, *mtf;
 								MCol *mcol, *mc;
-								int index, mtfn= 0, mcn= 0, n;
+								int index, mtfn= 0, mcn= 0;
 								char *name;
 
 								for(index=0; index<dm->faceData.totlayer; index++) {
@@ -2892,14 +3087,12 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 									name= layer->name;
 									
 									if(layer->type == CD_MTFACE && mtfn < MAX_MTFACE) {
-										n= vlakren_customdata_layer_num(mtfn++, layer->active_rnd);
-										mtf= RE_vlakren_get_tface(re, vlr, n, &name, 1);
+										mtf= RE_vlakren_get_tface(obr, vlr, mtfn++, &name, 1);
 										mtface= (MTFace*)layer->data;
 										*mtf= mtface[a];
 									}
 									else if(layer->type == CD_MCOL && mcn < MAX_MCOL) {
-										n= vlakren_customdata_layer_num(mcn++, layer->active_rnd);
-										mc= RE_vlakren_get_mcol(re, vlr, n, &name, 1);
+										mc= RE_vlakren_get_mcol(obr, vlr, mcn++, &name, 1);
 										mcol= (MCol*)layer->data;
 										memcpy(mc, &mcol[a*4], sizeof(MCol)*4);
 									}
@@ -2929,16 +3122,15 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 						MVert *v0 = &mvert[medge->v1];
 						MVert *v1 = &mvert[medge->v2];
 
-						vlr= RE_findOrAddVlak(re, re->totvlak++);
-						vlr->ob= ob;
-						vlr->v1= RE_findOrAddVert(re, vertofs+medge->v1);
-						vlr->v2= RE_findOrAddVert(re, vertofs+medge->v2);
+						vlr= RE_findOrAddVlak(obr, obr->totvlak++);
+						vlr->obr= obr;
+						vlr->v1= RE_findOrAddVert(obr, vertofs+medge->v1);
+						vlr->v2= RE_findOrAddVert(obr, vertofs+medge->v2);
 						vlr->v3= vlr->v2;
 						vlr->v4= NULL;
 						
-						if(edgetable) {
-							use_mesh_edge_lookup(re, dm, medge, vlr, edgetable, totedge);
-						}
+						if(edgetable)
+							use_mesh_edge_lookup(obr, dm, medge, vlr, edgetable, totedge);
 						
 						xn= -(v0->no[0]+v1->no[0]);
 						yn= -(v0->no[1]+v1->no[1]);
@@ -2963,28 +3155,30 @@ static void init_render_mesh(Render *re, Object *ob, Object *par, int only_verts
 	
 	if(!only_verts) {
 		if (test_for_displace(re, ob ) ) {
-			calc_vertexnormals(re, totverto, totvlako, 0);
-			do_displacement(re, ob, totvlako, re->totvlak-totvlako, totverto, re->totvert-totverto);
+			calc_vertexnormals(re, obr, 0);
+			do_displacement(re, obr);
 		}
 
 		if(do_autosmooth) {
-			autosmooth(re, mat, totverto, totvlako, me->smoothresh);
+			autosmooth(re, obr, mat, me->smoothresh);
 		}
 
 		if(useFluidmeshNormals) {
 			// do not recalculate, only init render data
-			calc_fluidsimnormals(re, totverto, totvlako, need_tangent);
+			calc_fluidsimnormals(re, obr, need_tangent);
 		} else {
-			calc_vertexnormals(re, totverto, totvlako, need_tangent);
+			calc_vertexnormals(re, obr, need_tangent);
 		}
 
 		if(need_stress)
-			calc_edge_stress(re, me, totverto, totvlako);
+			calc_edge_stress(re, obr, me);
 	}
 
 	dm->release(dm);
 }
 
+/* ------------------------------------------------------------------------- */
+/* Lamps and Shadowbuffers													 */
 /* ------------------------------------------------------------------------- */
 
 static void initshadowbuf(Render *re, LampRen *lar, float mat[][4])
@@ -3038,7 +3232,6 @@ static void initshadowbuf(Render *re, LampRen *lar, float mat[][4])
 		shb->bias= 0.1f*shb->bias;
 	
 }
-
 
 static void area_lamp_vectors(LampRen *lar)
 {
@@ -3317,442 +3510,118 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 	return go;
 }
 
+/* layflag: allows material group to ignore layerflag */
+static void add_lightgroup(Render *re, Group *group, int exclusive)
+{
+	GroupObject *go, *gol;
+	
+	group->id.flag &= ~LIB_DOIT;
+
+	/* it's a bit too many loops in loops... but will survive */
+	/* note that 'exclusive' will remove it from the global list */
+	for(go= group->gobject.first; go; go= go->next) {
+		go->lampren= NULL;
+		
+		if(go->ob->lay & re->scene->lay) {
+			if(go->ob && go->ob->type==OB_LAMP) {
+				for(gol= re->lights.first; gol; gol= gol->next) {
+					if(gol->ob==go->ob) {
+						go->lampren= gol->lampren;
+						break;
+					}
+				}
+				if(go->lampren==NULL) 
+					gol= add_render_lamp(re, go->ob);
+				if(gol && exclusive) {
+					BLI_remlink(&re->lights, gol);
+					MEM_freeN(gol);
+				}
+			}
+		}
+	}
+}
+
+static void set_material_lightgroups(Render *re)
+{
+	Group *group;
+	Material *ma;
+	
+	/* not for preview render */
+	if(re->scene->r.scemode & R_PREVIEWBUTS)
+		return;
+	
+	for(group= G.main->group.first; group; group=group->id.next)
+		group->id.flag |= LIB_DOIT;
+	
+	/* it's a bit too many loops in loops... but will survive */
+	/* hola! materials not in use...? */
+	for(ma= G.main->mat.first; ma; ma=ma->id.next) {
+		if(ma->group && (ma->group->id.flag & LIB_DOIT))
+			add_lightgroup(re, ma->group, ma->mode & MA_GROUP_NOLAY);
+	}
+}
+
+static void set_renderlayer_lightgroups(Render *re, Scene *sce)
+{
+	SceneRenderLayer *srl;
+	
+	for(srl= sce->r.layers.first; srl; srl= srl->next) {
+		if(srl->light_override)
+			add_lightgroup(re, srl->light_override, 0);
+	}
+}
+
+/* ------------------------------------------------------------------------- */
+/* World																	 */
 /* ------------------------------------------------------------------------- */
 
-/* returns amount of vertices added for orco */
-static int dl_surf_to_renderdata(Render *re, Object *ob, DispList *dl, Material **matar, float *orco, float mat[4][4])
+void init_render_world(Render *re)
 {
-	VertRen *v1, *v2, *v3, *v4, *ver;
-	VlakRen *vlr, *vlr1, *vlr2, *vlr3;
-	Curve *cu= ob->data;
-	float *data, n1[3], flen;
-	int u, v, orcoret= 0;
-	int p1, p2, p3, p4, a;
-	int sizeu, nsizeu, sizev, nsizev;
-	int startvert, startvlak;
+	int a;
+	char *cp;
 	
-	startvert= re->totvert;
-	nsizeu = sizeu = dl->parts; nsizev = sizev = dl->nr; 
-	
-	data= dl->verts;
-	for (u = 0; u < sizeu; u++) {
-		v1 = RE_findOrAddVert(re, re->totvert++); /* save this for possible V wrapping */
-		VECCOPY(v1->co, data); data += 3;
-		if(orco) {
-			v1->orco= orco; orco+= 3; orcoret++;
-		}	
-		MTC_Mat4MulVecfl(mat, v1->co);
+	if(re->scene && re->scene->world) {
+		re->wrld= *(re->scene->world);
 		
-		for (v = 1; v < sizev; v++) {
-			ver= RE_findOrAddVert(re, re->totvert++);
-			VECCOPY(ver->co, data); data += 3;
-			if(orco) {
-				ver->orco= orco; orco+= 3; orcoret++;
-			}	
-			MTC_Mat4MulVecfl(mat, ver->co);
-		}
-		/* if V-cyclic, add extra vertices at end of the row */
-		if (dl->flag & DL_CYCL_U) {
-			ver= RE_findOrAddVert(re, re->totvert++);
-			VECCOPY(ver->co, v1->co);
-			if(orco) {
-				ver->orco= orco; orco+=3; orcoret++; //orcobase + 3*(u*sizev + 0);
-			}
-		}	
-	}	
-	
-	/* Done before next loop to get corner vert */
-	if (dl->flag & DL_CYCL_U) nsizev++;
-	if (dl->flag & DL_CYCL_V) nsizeu++;
-	
-	/* if U cyclic, add extra row at end of column */
-	if (dl->flag & DL_CYCL_V) {
-		for (v = 0; v < nsizev; v++) {
-			v1= RE_findOrAddVert(re, startvert + v);
-			ver= RE_findOrAddVert(re, re->totvert++);
-			VECCOPY(ver->co, v1->co);
-			if(orco) {
-				ver->orco= orco; orco+=3; orcoret++; //ver->orco= orcobase + 3*(0*sizev + v);
-			}
-		}
+		cp= (char *)&re->wrld.fastcol;
+		
+		cp[0]= 255.0*re->wrld.horr;
+		cp[1]= 255.0*re->wrld.horg;
+		cp[2]= 255.0*re->wrld.horb;
+		cp[3]= 1;
+		
+		VECCOPY(re->grvec, re->viewmat[2]);
+		Normalize(re->grvec);
+		Mat3CpyMat4(re->imat, re->viewinv);
+		
+		for(a=0; a<MAX_MTEX; a++) 
+			if(re->wrld.mtex[a] && re->wrld.mtex[a]->tex) re->wrld.skytype |= WO_SKYTEX;
+		
+		/* AO samples should be OSA minimum */
+		if(re->osa)
+			while(re->wrld.aosamp*re->wrld.aosamp < re->osa) 
+				re->wrld.aosamp++;
+		if(!(re->r.mode & R_RAYTRACE))
+			re->wrld.mode &= ~WO_AMB_OCC;
+	}
+	else {
+		memset(&re->wrld, 0, sizeof(World));
+		re->wrld.exp= 0.0;
+		re->wrld.range= 1.0;
 	}
 	
-	sizeu = nsizeu;
-	sizev = nsizev;
-	
-	startvlak= re->totvlak;
-	
-	for(u = 0; u < sizeu - 1; u++) {
-		p1 = startvert + u * sizev; /* walk through face list */
-		p2 = p1 + 1;
-		p3 = p2 + sizev;
-		p4 = p3 - 1;
-		
-		for(v = 0; v < sizev - 1; v++) {
-			v1= RE_findOrAddVert(re, p1);
-			v2= RE_findOrAddVert(re, p2);
-			v3= RE_findOrAddVert(re, p3);
-			v4= RE_findOrAddVert(re, p4);
-			
-			vlr= RE_findOrAddVlak(re, re->totvlak++);
-			vlr->ob= ob;
-			vlr->v1= v1; vlr->v2= v2; vlr->v3= v3; vlr->v4= v4;
-			
-			flen= CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, n1);
-			VECCOPY(vlr->n, n1);
-			
-			vlr->lay= ob->lay;
-			vlr->mat= matar[ dl->col];
-			vlr->ec= ME_V1V2+ME_V2V3;
-			vlr->flag= dl->rt;
-			if( (cu->flag & CU_NOPUNOFLIP) ) {
-				vlr->flag |= R_NOPUNOFLIP;
-			}
-			
-			VecAddf(v1->n, v1->n, n1);
-			VecAddf(v2->n, v2->n, n1);
-			VecAddf(v3->n, v3->n, n1);
-			VecAddf(v4->n, v4->n, n1);
-			
-			p1++; p2++; p3++; p4++;
-		}
-	}	
-	/* fix normals for U resp. V cyclic faces */
-	sizeu--; sizev--;  /* dec size for face array */
-	if (dl->flag & DL_CYCL_V) {
-		
-		for (v = 0; v < sizev; v++)
-		{
-			/* optimize! :*/
-			vlr= RE_findOrAddVlak(re, UVTOINDEX(sizeu - 1, v));
-			vlr1= RE_findOrAddVlak(re, UVTOINDEX(0, v));
-			VecAddf(vlr1->v1->n, vlr1->v1->n, vlr->n);
-			VecAddf(vlr1->v2->n, vlr1->v2->n, vlr->n);
-			VecAddf(vlr->v3->n, vlr->v3->n, vlr1->n);
-			VecAddf(vlr->v4->n, vlr->v4->n, vlr1->n);
-		}
-	}
-	if (dl->flag & DL_CYCL_U) {
-		
-		for (u = 0; u < sizeu; u++)
-		{
-			/* optimize! :*/
-			vlr= RE_findOrAddVlak(re, UVTOINDEX(u, 0));
-			vlr1= RE_findOrAddVlak(re, UVTOINDEX(u, sizev-1));
-			VecAddf(vlr1->v2->n, vlr1->v2->n, vlr->n);
-			VecAddf(vlr1->v3->n, vlr1->v3->n, vlr->n);
-			VecAddf(vlr->v1->n, vlr->v1->n, vlr1->n);
-			VecAddf(vlr->v4->n, vlr->v4->n, vlr1->n);
-		}
-	}
-	/* last vertex is an extra case: 
-		
-		^	()----()----()----()
-		|	|     |     ||     |
-		u	|     |(0,n)||(0,0)|
-		|     |     ||     |
-		()====()====[]====()
-		|     |     ||     |
-		|     |(m,n)||(m,0)|
-		|     |     ||     |
-		()----()----()----()
-		v ->
-		
-		vertex [] is no longer shared, therefore distribute
-		normals of the surrounding faces to all of the duplicates of []
-		*/
-	
-	if ((dl->flag & DL_CYCL_V) && (dl->flag & DL_CYCL_U))
-	{
-		vlr= RE_findOrAddVlak(re, UVTOINDEX(sizeu - 1, sizev - 1)); /* (m,n) */
-		vlr1= RE_findOrAddVlak(re, UVTOINDEX(0,0));  /* (0,0) */
-		VecAddf(n1, vlr->n, vlr1->n);
-		vlr2= RE_findOrAddVlak(re, UVTOINDEX(0, sizev-1)); /* (0,n) */
-		VecAddf(n1, n1, vlr2->n);
-		vlr3= RE_findOrAddVlak(re, UVTOINDEX(sizeu-1, 0)); /* (m,0) */
-		VecAddf(n1, n1, vlr3->n);
-		VECCOPY(vlr->v3->n, n1);
-		VECCOPY(vlr1->v1->n, n1);
-		VECCOPY(vlr2->v2->n, n1);
-		VECCOPY(vlr3->v4->n, n1);
-	}
-	for(a = startvert; a < re->totvert; a++) {
-		ver= RE_findOrAddVert(re, a);
-		Normalize(ver->n);
-	}
-	
-	
-	return orcoret;
+	re->wrld.linfac= 1.0 + pow((2.0*re->wrld.exp + 0.5), -10);
+	re->wrld.logfac= log( (re->wrld.linfac-1.0)/re->wrld.linfac )/re->wrld.range;
 }
 
-static void init_render_surf(Render *re, Object *ob)
-{
-	Nurb *nu=0;
-	Curve *cu;
-	ListBase displist;
-	DispList *dl;
-	Material *matar[32];
-	float *orco=NULL, *orcobase=NULL, mat[4][4];
-	int a, need_orco=0;
 
-	cu= ob->data;
-	nu= cu->nurb.first;
-	if(nu==0) return;
 
-	MTC_Mat4MulMat4(mat, ob->obmat, re->viewmat);
-	MTC_Mat4Invert(ob->imat, mat);
-
-	/* material array */
-	memset(matar, 0, 4*32);
-	matar[0]= give_render_material(re, ob, 0);
-	for(a=0; a<ob->totcol; a++) {
-		matar[a]= give_render_material(re, ob, a+1);
-		if(matar[a] && matar[a]->texco & TEXCO_ORCO) {
-			need_orco= 1;
-		}
-	}
-
-	if(ob->parent && (ob->parent->type==OB_LATTICE)) need_orco= 1;
-
-	if(need_orco) orcobase= orco= get_object_orco(re, ob);
-
-	displist.first= displist.last= 0;
-	makeDispListSurf(ob, &displist, 1);
-
-	dl= displist.first;
-	/* walk along displaylist and create rendervertices/-faces */
-	while(dl) {
-			/* watch out: u ^= y, v ^= x !! */
-		if(dl->type==DL_SURF) {
-			orco+= 3*dl_surf_to_renderdata(re, ob, dl, matar, orco, mat);
-		}
-
-		dl= dl->next;
-	}
-	freedisplist(&displist);
-}
-
-static void init_render_curve(Render *re, Object *ob, int only_verts)
-{
-	Curve *cu;
-	VertRen *ver;
-	VlakRen *vlr;
-	DispList *dl;
-	ListBase olddl={NULL, NULL};
-	Material *matar[32];
-	float len, *data, *fp, *orco=NULL, *orcobase= NULL;
-	float n[3], mat[4][4];
-	int nr, startvert, startvlak, a, b;
-	int frontside, need_orco=0;
-
-	cu= ob->data;
-	if(cu->nurb.first==NULL) return;
-
-	/* no modifier call here, is in makedisp */
-
-	if(cu->resolu_ren) 
-		SWAP(ListBase, olddl, cu->disp);
-	
-	/* test displist */
-	if(cu->disp.first==NULL) 
-		makeDispListCurveTypes(ob, 0);
-	dl= cu->disp.first;
-	if(cu->disp.first==NULL) return;
-	
-	MTC_Mat4MulMat4(mat, ob->obmat, re->viewmat);
-	MTC_Mat4Invert(ob->imat, mat);
-
-	/* material array */
-	memset(matar, 0, 4*32);
-	matar[0]= give_render_material(re, ob, 0);
-	for(a=0; a<ob->totcol; a++) {
-		matar[a]= give_render_material(re, ob, a+1);
-		if(matar[a]->texco & TEXCO_ORCO) {
-			need_orco= 1;
-		}
-	}
-
-	if(need_orco) orcobase=orco= get_object_orco(re, ob);
-
-	dl= cu->disp.first;
-	while(dl) {
-		if(dl->type==DL_INDEX3) {
-			int *index;
-
-			startvert= re->totvert;
-			data= dl->verts;
-
-			n[0]= ob->imat[0][2];
-			n[1]= ob->imat[1][2];
-			n[2]= ob->imat[2][2];
-			Normalize(n);
-
-			for(a=0; a<dl->nr; a++, data+=3) {
-				ver= RE_findOrAddVert(re, re->totvert++);
-				VECCOPY(ver->co, data);
-
-				/* flip normal if face is backfacing, also used in face loop below */
-				if(ver->co[2] < 0.0) {
-					VECCOPY(ver->n, n);
-					ver->flag = 1;
-				}
-				else {
-					ver->n[0]= -n[0]; ver->n[1]= -n[1]; ver->n[2]= -n[2];
-					ver->flag = 0;
-				}
-
-				MTC_Mat4MulVecfl(mat, ver->co);
-				
-				if (orco) {
-					ver->orco = orco;
-					orco += 3;
-				}
-			}
-			
-			if(only_verts==0) {
-				startvlak= re->totvlak;
-				index= dl->index;
-				for(a=0; a<dl->parts; a++, index+=3) {
-
-					vlr= RE_findOrAddVlak(re, re->totvlak++);
-					vlr->ob = ob;
-					vlr->v1= RE_findOrAddVert(re, startvert+index[0]);
-					vlr->v2= RE_findOrAddVert(re, startvert+index[1]);
-					vlr->v3= RE_findOrAddVert(re, startvert+index[2]);
-					vlr->v4= NULL;
-					
-					if(vlr->v1->flag) {
-						VECCOPY(vlr->n, n);
-					}
-					else {
-						vlr->n[0]= -n[0]; vlr->n[1]= -n[1]; vlr->n[2]= -n[2];
-					}
-					
-					vlr->mat= matar[ dl->col ];
-					vlr->flag= 0;
-					if( (cu->flag & CU_NOPUNOFLIP) ) {
-						vlr->flag |= R_NOPUNOFLIP;
-					}
-					vlr->ec= 0;
-					vlr->lay= ob->lay;
-				}
-			}
-		}
-		else if (dl->type==DL_SURF) {
-			
-			/* cyclic U means an extruded full circular curve, we skip bevel splitting then */
-			if (dl->flag & DL_CYCL_U) {
-				orco+= 3*dl_surf_to_renderdata(re, ob, dl, matar, orco, mat);
-			}
-			else {
-				int p1,p2,p3,p4;
-
-				fp= dl->verts;
-				startvert= re->totvert;
-				nr= dl->nr*dl->parts;
-
-				while(nr--) {
-					ver= RE_findOrAddVert(re, re->totvert++);
-						
-					VECCOPY(ver->co, fp);
-					MTC_Mat4MulVecfl(mat, ver->co);
-					fp+= 3;
-
-					if (orco) {
-						ver->orco = orco;
-						orco += 3;
-					}
-				}
-
-				if(dl->bevelSplitFlag || only_verts==0) {
-					startvlak= re->totvlak;
-
-					for(a=0; a<dl->parts; a++) {
-
-						frontside= (a >= dl->nr/2);
-
-						DL_SURFINDEX(dl->flag & DL_CYCL_U, dl->flag & DL_CYCL_V, dl->nr, dl->parts);
-						p1+= startvert;
-						p2+= startvert;
-						p3+= startvert;
-						p4+= startvert;
-
-						for(; b<dl->nr; b++) {
-							vlr= RE_findOrAddVlak(re, re->totvlak++);
-							vlr->ob= ob;
-							vlr->v1= RE_findOrAddVert(re, p2);
-							vlr->v2= RE_findOrAddVert(re, p1);
-							vlr->v3= RE_findOrAddVert(re, p3);
-							vlr->v4= RE_findOrAddVert(re, p4);
-							vlr->ec= ME_V2V3+ME_V3V4;
-							if(a==0) vlr->ec+= ME_V1V2;
-
-							vlr->flag= dl->rt;
-							vlr->lay= ob->lay;
-
-							/* this is not really scientific: the vertices
-								* 2, 3 en 4 seem to give better vertexnormals than 1 2 3:
-								* front and backside treated different!!
-								*/
-
-							if(frontside)
-								CalcNormFloat(vlr->v2->co, vlr->v3->co, vlr->v4->co, vlr->n);
-							else 
-								CalcNormFloat(vlr->v1->co, vlr->v2->co, vlr->v3->co, vlr->n);
-
-							vlr->mat= matar[ dl->col ];
-
-							p4= p3;
-							p3++;
-							p2= p1;
-							p1++;
-						}
-					}
-
-					if (dl->bevelSplitFlag) {
-						for(a=0; a<dl->parts-1+!!(dl->flag&DL_CYCL_V); a++)
-							if(dl->bevelSplitFlag[a>>5]&(1<<(a&0x1F)))
-								split_v_renderfaces(re, startvlak, startvert, dl->parts, dl->nr, a, dl->flag&DL_CYCL_V, dl->flag&DL_CYCL_U);
-					}
-
-					/* vertex normals */
-					for(a= startvlak; a<re->totvlak; a++) {
-						vlr= RE_findOrAddVlak(re, a);
-
-						VecAddf(vlr->v1->n, vlr->v1->n, vlr->n);
-						VecAddf(vlr->v3->n, vlr->v3->n, vlr->n);
-						VecAddf(vlr->v2->n, vlr->v2->n, vlr->n);
-						VecAddf(vlr->v4->n, vlr->v4->n, vlr->n);
-					}
-					for(a=startvert; a<re->totvert; a++) {
-						ver= RE_findOrAddVert(re, a);
-						len= Normalize(ver->n);
-						if(len==0.0) ver->flag= 1;	/* flag abuse, its only used in zbuf now  */
-						else ver->flag= 0;
-					}
-					for(a= startvlak; a<re->totvlak; a++) {
-						vlr= RE_findOrAddVlak(re, a);
-						if(vlr->v1->flag) VECCOPY(vlr->v1->n, vlr->n);
-						if(vlr->v2->flag) VECCOPY(vlr->v2->n, vlr->n);
-						if(vlr->v3->flag) VECCOPY(vlr->v3->n, vlr->n);
-						if(vlr->v4->flag) VECCOPY(vlr->v4->n, vlr->n);
-					}
-				}
-			}
-		}
-
-		dl= dl->next;
-	}
-	
-	/* not very elegant... but we want original displist in UI */
-	if(cu->resolu_ren) {
-		freedisplist(&cu->disp);
-		SWAP(ListBase, olddl, cu->disp);
-	}
-}
+/* ------------------------------------------------------------------------- */
+/* Object Finalization														 */
+/* ------------------------------------------------------------------------- */
 
 /* prevent phong interpolation for giving ray shadow errors (terminator problem) */
-static void set_phong_threshold(Render *re, Object *ob, int startface, int numface, int startvert, int numvert )
+static void set_phong_threshold(ObjectRen *obr)
 {
 //	VertRen *ver;
 	VlakRen *vlr;
@@ -3763,8 +3632,8 @@ static void set_phong_threshold(Render *re, Object *ob, int startface, int numfa
 	   are taken into account. This threshold is meant to work on smooth geometry, not
 	   for extreme cases (ton) */
 	
-	for(i=startface; i<startface+numface; i++) {
-		vlr= RE_findOrAddVlak(re, i);
+	for(i=0; i<obr->totvlak; i++) {
+		vlr= RE_findOrAddVlak(obr, i);
 		if(vlr->flag & R_SMOOTH) {
 			dot= INPR(vlr->n, vlr->v1->n);
 			dot= ABS(dot);
@@ -3795,7 +3664,258 @@ static void set_phong_threshold(Render *re, Object *ob, int startface, int numfa
 	
 	if(tot) {
 		thresh/= (float)tot;
-		ob->smoothresh= cos(0.5*M_PI-saacos(thresh));
+		obr->ob->smoothresh= cos(0.5*M_PI-saacos(thresh));
+	}
+}
+
+/* per face check if all samples should be taken.
+   if raytrace, do always for raytraced material, or when material full_osa set */
+static void set_fullsample_flag(Render *re, ObjectRen *obr)
+{
+	VlakRen *vlr;
+	int a, trace;
+
+	if(re->osa==0)
+		return;
+	
+	trace= re->r.mode & R_RAYTRACE;
+	
+	for(a=obr->totvlak-1; a>=0; a--) {
+		vlr= RE_findOrAddVlak(obr, a);
+		
+		if(vlr->mat->mode & MA_FULL_OSA) vlr->flag |= R_FULL_OSA;
+		else if(trace) {
+			if(vlr->mat->mode & MA_SHLESS);
+			else if(vlr->mat->mode & (MA_RAYTRANSP|MA_RAYMIRROR))
+				/* for blurry reflect/refract, better to take more samples 
+				 * inside the raytrace than as OSA samples */
+				if ((vlr->mat->gloss_mir == 1.0) && (vlr->mat->gloss_tra == 1.0)) 
+					vlr->flag |= R_FULL_OSA;
+		}
+	}
+}
+
+static void check_non_flat_quads(ObjectRen *obr)
+{
+	VlakRen *vlr, *vlr1;
+	VertRen *v1, *v2, *v3, *v4;
+	float nor[3], xn, flen;
+	int a;
+
+	for(a=obr->totvlak-1; a>=0; a--) {
+		vlr= RE_findOrAddVlak(obr, a);
+		
+		/* test if rendering as a quad or triangle, skip wire */
+		if(vlr->v4 && (vlr->flag & R_STRAND)==0 && (vlr->mat->mode & MA_WIRE)==0) {
+			
+			/* check if quad is actually triangle */
+			v1= vlr->v1;
+			v2= vlr->v2;
+			v3= vlr->v3;
+			v4= vlr->v4;
+			VECSUB(nor, v1->co, v2->co);
+			if( ABS(nor[0])<FLT_EPSILON10 &&  ABS(nor[1])<FLT_EPSILON10 && ABS(nor[2])<FLT_EPSILON10 ) {
+				vlr->v1= v2;
+				vlr->v2= v3;
+				vlr->v3= v4;
+				vlr->v4= NULL;
+			}
+			else {
+				VECSUB(nor, v2->co, v3->co);
+				if( ABS(nor[0])<FLT_EPSILON10 &&  ABS(nor[1])<FLT_EPSILON10 && ABS(nor[2])<FLT_EPSILON10 ) {
+					vlr->v2= v3;
+					vlr->v3= v4;
+					vlr->v4= NULL;
+				}
+				else {
+					VECSUB(nor, v3->co, v4->co);
+					if( ABS(nor[0])<FLT_EPSILON10 &&  ABS(nor[1])<FLT_EPSILON10 && ABS(nor[2])<FLT_EPSILON10 ) {
+						vlr->v4= NULL;
+					}
+					else {
+						VECSUB(nor, v4->co, v1->co);
+						if( ABS(nor[0])<FLT_EPSILON10 &&  ABS(nor[1])<FLT_EPSILON10 && ABS(nor[2])<FLT_EPSILON10 ) {
+							vlr->v4= NULL;
+						}
+					}
+				}
+			}
+			
+			if(vlr->v4) {
+				
+				/* Face is divided along edge with the least gradient 		*/
+				/* Flagged with R_DIVIDE_24 if divide is from vert 2 to 4 	*/
+				/* 		4---3		4---3 */
+				/*		|\ 1|	or  |1 /| */
+				/*		|0\ |		|/ 0| */
+				/*		1---2		1---2 	0 = orig face, 1 = new face */
+				
+				/* render normals are inverted in render! we calculate normal of single tria here */
+				flen= CalcNormFloat(vlr->v4->co, vlr->v3->co, vlr->v1->co, nor);
+				if(flen==0.0) CalcNormFloat(vlr->v4->co, vlr->v2->co, vlr->v1->co, nor);
+				
+				xn= nor[0]*vlr->n[0] + nor[1]*vlr->n[1] + nor[2]*vlr->n[2];
+
+				if(ABS(xn) < 0.999995 ) {	// checked on noisy fractal grid
+					float d1, d2;
+
+					vlr1= RE_vlakren_copy(obr, vlr);
+					vlr1->flag |= R_FACE_SPLIT;
+					
+					/* split direction based on vnorms */
+					CalcNormFloat(vlr->v1->co, vlr->v2->co, vlr->v3->co, nor);
+					d1= nor[0]*vlr->v1->n[0] + nor[1]*vlr->v1->n[1] + nor[2]*vlr->v1->n[2];
+
+					CalcNormFloat(vlr->v2->co, vlr->v3->co, vlr->v4->co, nor);
+					d2= nor[0]*vlr->v2->n[0] + nor[1]*vlr->v2->n[1] + nor[2]*vlr->v2->n[2];
+					
+					if( fabs(d1) < fabs(d2) ) vlr->flag |= R_DIVIDE_24;
+					else vlr->flag &= ~R_DIVIDE_24;
+					
+					/* new vertex pointers */
+					if (vlr->flag & R_DIVIDE_24) {
+						vlr1->v1= vlr->v2;
+						vlr1->v2= vlr->v3;
+						vlr1->v3= vlr->v4;
+
+						vlr->v3 = vlr->v4;
+						
+						vlr1->flag |= R_DIVIDE_24;
+					}
+					else {
+						vlr1->v1= vlr->v1;
+						vlr1->v2= vlr->v3;
+						vlr1->v3= vlr->v4;
+						
+						vlr1->flag &= ~R_DIVIDE_24;
+					}
+					vlr->v4 = vlr1->v4 = NULL;
+					
+					/* new normals */
+					CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
+					CalcNormFloat(vlr1->v3->co, vlr1->v2->co, vlr1->v1->co, vlr1->n);
+				}
+				/* clear the flag when not divided */
+				else vlr->flag &= ~R_DIVIDE_24;
+			}
+		}
+	}
+}
+
+static void finalize_render_object(Render *re, ObjectRen *obr, int only_verts)
+{
+	Object *ob= obr->ob;
+
+	if(obr->totvert || obr->totvlak || obr->tothalo || obr->totstrand) {
+		/* the exception below is because displace code now is in init_render_mesh call, 
+		I will look at means to have autosmooth enabled for all object types 
+		and have it as general postprocess, like displace */
+		if(ob->type!=OB_MESH && test_for_displace(re, ob)) 
+			do_displacement(re, obr);
+	
+		if(!only_verts) {
+			/* phong normal interpolation can cause error in tracing
+			 * (terminator problem) */
+			ob->smoothresh= 0.0;
+			if((re->r.mode & R_RAYTRACE) && (re->r.mode & R_SHADOW)) 
+				set_phong_threshold(obr);
+
+			check_non_flat_quads(obr);
+			set_fullsample_flag(re, obr);
+		}
+	}
+}
+
+/* ------------------------------------------------------------------------- */
+/* Database																	 */
+/* ------------------------------------------------------------------------- */
+
+static int render_object_type(int type) 
+{
+	return ELEM5(type, OB_FONT, OB_CURVE, OB_SURF, OB_MESH, OB_MBALL);
+}
+
+static void init_render_object_data(Render *re, ObjectRen *obr, int only_verts)
+{
+	Object *ob= obr->ob;
+	ParticleSystem *psys;
+	int i;
+
+	if(obr->psysindex) {
+		if((!obr->prev || obr->prev->ob != ob) && ob->type==OB_MESH) {
+			/* the emitter mesh wasn't rendered so the modifier stack wasn't
+			 * evaluated with render settings */
+			DerivedMesh *dm;
+			dm = mesh_create_derived_render(ob,	CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
+			dm->release(dm);
+		}
+
+		for(psys=ob->particlesystem.first, i=0; i<obr->psysindex-1; i++)
+			psys= psys->next;
+
+		render_new_particle_system(re, obr, psys);
+	}
+	else {
+		if ELEM(ob->type, OB_FONT, OB_CURVE)
+			init_render_curve(re, obr, only_verts);
+		else if(ob->type==OB_SURF)
+			init_render_surf(re, obr);
+		else if(ob->type==OB_MESH)
+			init_render_mesh(re, obr, only_verts);
+		else if(ob->type==OB_MBALL)
+			init_render_mball(re, obr);
+	}
+
+	finalize_render_object(re, obr, only_verts);
+	
+	re->totvert += obr->totvert;
+	re->totvlak += obr->totvlak;
+	re->tothalo += obr->tothalo;
+	re->totstrand += obr->totstrand;
+}
+
+static void add_render_object(Render *re, Object *ob, Object *par, int index, int only_verts)
+{
+	ObjectRen *obr;
+	ParticleSystem *psys;
+	int show_emitter, allow_render= 1, psysindex;
+
+	/* the emitter has to be processed first (render levels of modifiers) */
+	/* so here we only check if the emitter should be rendered */
+	if(ob->particlesystem.first) {
+		show_emitter= 0;
+		for(psys=ob->particlesystem.first; psys; psys=psys->next) {
+			show_emitter += psys->part->draw & PART_DRAW_EMITTER;
+			psys_particles_to_render_backup(ob, psys);
+		}
+
+		/* if no psys has "show emitter" selected don't render emitter */
+		if(show_emitter == 0)
+			allow_render= 0;
+	}
+
+	/* one render object for the data itself */
+	if(allow_render) {
+		obr= RE_addRenderObject(re, ob, par, index, 0);
+		init_render_object_data(re, obr, only_verts);
+
+		/* only add instance for objects that have not been used for dupli */
+		if(!(ob->transflag & OB_RENDER_DUPLI))
+			RE_addRenderInstance(re, obr, ob, par, index, 0, NULL);
+	}
+
+	/* and one render object per particle system */
+	if(ob->particlesystem.first) {
+		psysindex= 1;
+		for(psys=ob->particlesystem.first; psys; psys=psys->next, psysindex++) {
+			obr= RE_addRenderObject(re, ob, par, index, psysindex);
+			init_render_object_data(re, obr, only_verts);
+			psys_render_backup_to_particles(ob, psys);
+
+			/* only add instance for objects that have not been used for dupli */
+			if(!(ob->transflag & OB_RENDER_DUPLI))
+				RE_addRenderInstance(re, obr, ob, par, index, psysindex, NULL);
+		}
 	}
 }
 
@@ -3806,75 +3926,14 @@ static void init_render_object(Render *re, Object *ob, Object *par, int index, i
 	static double lasttime= 0.0;
 	double time;
 	float mat[4][4];
-	int startface, startvert, startstrand, allow_render=1;
-	
-	startface=re->totvlak;
-	startvert=re->totvert;
-	startstrand=re->totstrand;
 
-	ob->flag |= OB_DONE;
-
-	/* the emitter has to be processed first (render levels of modifiers) */
-	/* so here we only check if the emitter should be rendered */
-	if(ob->particlesystem.first) {
-		ParticleSystem *psys = ob->particlesystem.first;
-		int showe = 0;
-		for(; psys; psys=psys->next)
-			showe += psys->part->draw & PART_DRAW_EMITTER;
-
-		/* if no psys has "show emitter" selected don't render emitter */
-		if(showe==0) allow_render = 0;
-	}
-
-	if(allow_render) {
-		if(ob->type==OB_LAMP)
-			add_render_lamp(re, ob);
-		else if ELEM(ob->type, OB_FONT, OB_CURVE)
-			init_render_curve(re, ob, only_verts);
-		else if(ob->type==OB_SURF)
-			init_render_surf(re, ob);
-		else if(ob->type==OB_MESH)
-			init_render_mesh(re, ob, par, only_verts);
-		else if(ob->type==OB_MBALL)
-			init_render_mball(re, ob);
-		else {
-			MTC_Mat4MulMat4(mat, ob->obmat, re->viewmat);
-			MTC_Mat4Invert(ob->imat, mat);
-		}
-	}
-
-	if(ob->particlesystem.first) {
-		ParticleSystem *psys = ob->particlesystem.first;
-		DerivedMesh *dm = 0;
-
-		/* the emitter mesh wasn't rendered so the modifier stack wasn't evaluated with render settings */
-		if(allow_render==0 && ob->type==OB_MESH)
-			dm = mesh_create_derived_render(ob,	CD_MASK_BAREMESH | CD_MASK_MTFACE | CD_MASK_MCOL);
-
-		for(; psys; psys=psys->next) {
-			render_new_particle_system(re, ob, psys);
-			psys_free_render_memory(ob, psys);
-		}
-
-		if(dm)
-			dm->release(dm);
-	}
-	
-	/* generic post process here */
-	if(startvert!=re->totvert || startstrand!=re->totstrand)
-		RE_addRenderObject(re, ob, par, index, startvert, re->totvert, startface, re->totvlak, startstrand, re->totstrand);
-		
-	if(startvert!=re->totvert) {
-		/* the exception below is because displace code now is in init_render_mesh call, 
-		I will look at means to have autosmooth enabled for all object types 
-		and have it as general postprocess, like displace */
-		if (ob->type!=OB_MESH && test_for_displace(re, ob ) ) 
-			do_displacement(re, ob, startface, re->totvlak-startface, startvert, re->totvert-startvert);
-	
-		/* phong normal interpolation can cause error in tracing (terminator prob) */
-		ob->smoothresh= 0.0;
-		if( (re->r.mode & R_RAYTRACE) && (re->r.mode & R_SHADOW) ) 
-			set_phong_threshold(re, ob, startface, re->totvlak-startface, startvert, re->totvert-startvert);
+	if(ob->type==OB_LAMP)
+		add_render_lamp(re, ob);
+	else if(render_object_type(ob->type))
+		add_render_object(re, ob, par, index, only_verts);
+	else {
+		MTC_Mat4MulMat4(mat, ob->obmat, re->viewmat);
+		MTC_Mat4Invert(ob->imat, mat);
 	}
 	
 	time= PIL_check_seconds_timer();
@@ -3888,6 +3947,8 @@ static void init_render_object(Render *re, Object *ob, Object *par, int index, i
 		re->i.totlamp= re->totlamp;
 		re->stats_draw(&re->i);
 	}
+
+	ob->flag |= OB_DONE;
 }
 
 void RE_Database_Free(Render *re)
@@ -3961,246 +4022,144 @@ void RE_Database_Free(Render *re)
 	}
 }
 
-/* per face check if all samples should be taken.
-   if raytrace, do always for raytraced material, or when material full_osa set */
-static void set_fullsample_flag(Render *re)
+static int allow_render_object(Object *ob, int nolamps, int onlyselected, Object *actob)
 {
-	VlakRen *vlr;
-	int a, trace;
+	/* override not showing object when duplis are used with particles */
+	if(ob->transflag & OB_DUPLIPARTS){
+		int allow= 0;
 
-	if(re->osa==0)
-		return;
-	
-	trace= re->r.mode & R_RAYTRACE;
-	
-	for(a=re->totvlak-1; a>=0; a--) {
-		vlr= RE_findOrAddVlak(re, a);
-		
-		if(vlr->mat->mode & MA_FULL_OSA) vlr->flag |= R_FULL_OSA;
-		else if(trace) {
-			if(vlr->mat->mode & MA_SHLESS);
-			else if(vlr->mat->mode & (MA_RAYTRANSP|MA_RAYMIRROR))
-				/* for blurry reflect/refract, better to take more samples 
-				 * inside the raytrace than as OSA samples */
-				if ((vlr->mat->gloss_mir == 1.0) && (vlr->mat->gloss_tra == 1.0)) 
-					vlr->flag |= R_FULL_OSA;
+		if(ob->particlesystem.first) {
+			ParticleSystem *psys;
+			ParticleSettings *part;
+
+			for(psys=ob->particlesystem.first; psys; psys=psys->next){
+				part=psys->part;
+
+				if((part->draw_as==PART_DRAW_OB && part->dup_ob) || (part->draw_as==PART_DRAW_GR && part->dup_group))
+					if(part->draw & PART_DRAW_EMITTER)
+						allow= 1;
+			}
 		}
+
+		if(!allow)
+			return 0;
 	}
+	else if(ob->transflag & OB_DUPLI)
+		return 0;
+	
+	if(nolamps && (ob->type==OB_LAMP))
+		return 0;
+	
+	if(onlyselected && (ob!=actob && !(ob->flag & SELECT)))
+		return 0;
+	
+	return 1;
 }
 
-static void check_non_flat_quads(Render *re)
+static int allow_render_dupli_instance(Render *re, Object *ob, Object *obd)
 {
-	VlakRen *vlr, *vlr1;
-	VertRen *v1, *v2, *v3, *v4;
-	float nor[3], xn, flen;
-	int a;
+	return (render_object_type(obd->type) &&
+	        (!(ob->transflag & OB_DUPLIGROUP)) &&
+	        !(re->r.mode & R_RADIO));
+}
 
-	for(a=re->totvlak-1; a>=0; a--) {
-		vlr= RE_findOrAddVlak(re, a);
+static void database_init_objects(Render *re, unsigned int lay, int nolamps, int onlyselected, Object *actob, int only_verts)
+{
+	Base *base;
+	Object *ob;
+	Scene *sce;
+	float mat[4][4];
+
+	for(SETLOOPER(re->scene, base)) {
+		ob= base->object;
+		/* imat objects has to be done here, since displace can have texture using Object map-input */
+		MTC_Mat4MulMat4(mat, ob->obmat, re->viewmat);
+		MTC_Mat4Invert(ob->imat, mat);
+		/* each object should only be rendered once */
+		ob->flag &= ~OB_DONE;
+		ob->transflag &= ~OB_RENDER_DUPLI;
+	}
+
+	for(SETLOOPER(re->scene, base)) {
+		ob= base->object;
 		
-		/* test if rendering as a quad or triangle, skip wire */
-		if(vlr->v4 && (vlr->flag & R_STRAND)==0 && (vlr->mat->mode & MA_WIRE)==0) {
-			
-			/* check if quad is actually triangle */
-			v1= vlr->v1;
-			v2= vlr->v2;
-			v3= vlr->v3;
-			v4= vlr->v4;
-			VECSUB(nor, v1->co, v2->co);
-			if( ABS(nor[0])<FLT_EPSILON10 &&  ABS(nor[1])<FLT_EPSILON10 && ABS(nor[2])<FLT_EPSILON10 ) {
-				vlr->v1= v2;
-				vlr->v2= v3;
-				vlr->v3= v4;
-				vlr->v4= NULL;
-			}
-			else {
-				VECSUB(nor, v2->co, v3->co);
-				if( ABS(nor[0])<FLT_EPSILON10 &&  ABS(nor[1])<FLT_EPSILON10 && ABS(nor[2])<FLT_EPSILON10 ) {
-					vlr->v2= v3;
-					vlr->v3= v4;
-					vlr->v4= NULL;
-				}
-				else {
-					VECSUB(nor, v3->co, v4->co);
-					if( ABS(nor[0])<FLT_EPSILON10 &&  ABS(nor[1])<FLT_EPSILON10 && ABS(nor[2])<FLT_EPSILON10 ) {
-						vlr->v4= NULL;
-					}
-					else {
-						VECSUB(nor, v4->co, v1->co);
-						if( ABS(nor[0])<FLT_EPSILON10 &&  ABS(nor[1])<FLT_EPSILON10 && ABS(nor[2])<FLT_EPSILON10 ) {
-							vlr->v4= NULL;
-						}
-					}
-				}
-			}
-			
-			if(vlr->v4) {
-				
-				/* Face is divided along edge with the least gradient 		*/
-				/* Flagged with R_DIVIDE_24 if divide is from vert 2 to 4 	*/
-				/* 		4---3		4---3 */
-				/*		|\ 1|	or  |1 /| */
-				/*		|0\ |		|/ 0| */
-				/*		1---2		1---2 	0 = orig face, 1 = new face */
-				
-				/* render normals are inverted in render! we calculate normal of single tria here */
-				flen= CalcNormFloat(vlr->v4->co, vlr->v3->co, vlr->v1->co, nor);
-				if(flen==0.0) CalcNormFloat(vlr->v4->co, vlr->v2->co, vlr->v1->co, nor);
-				
-				xn= nor[0]*vlr->n[0] + nor[1]*vlr->n[1] + nor[2]*vlr->n[2];
+		/* if the object has been restricted from rendering in the outliner, ignore it */
+		if(ob->restrictflag & OB_RESTRICT_RENDER) continue;
 
-				if(ABS(xn) < 0.999995 ) {	// checked on noisy fractal grid
-					float d1, d2;
+		/* OB_DONE means the object itself got duplicated, so was already converted */
+		if(ob->flag & OB_DONE) {
+			if(ob->transflag & OB_RENDER_DUPLI)
+				if(allow_render_object(ob, nolamps, onlyselected, actob))
+					init_render_object(re, ob, NULL, 0, only_verts);
+		}
+		else if((base->lay & lay) || (ob->type==OB_LAMP && (base->lay & re->scene->lay)) ) {
+			if((ob->transflag & OB_DUPLI) && (ob->type!=OB_MBALL)) {
+				DupliObject *dob;
+				ListBase *lb;
 
-					vlr1= RE_vlakren_copy(re, vlr);
-					vlr1->flag |= R_FACE_SPLIT;
+				lb= object_duplilist(sce, ob);
+				for(dob= lb->first; dob; dob= dob->next) {
+					Object *obd= dob->ob;
 					
-					/* split direction based on vnorms */
-					CalcNormFloat(vlr->v1->co, vlr->v2->co, vlr->v3->co, nor);
-					d1= nor[0]*vlr->v1->n[0] + nor[1]*vlr->v1->n[1] + nor[2]*vlr->v1->n[2];
+					Mat4CpyMat4(obd->obmat, dob->mat);
 
-					CalcNormFloat(vlr->v2->co, vlr->v3->co, vlr->v4->co, nor);
-					d2= nor[0]*vlr->v2->n[0] + nor[1]*vlr->v2->n[1] + nor[2]*vlr->v2->n[2];
-					
-					if( fabs(d1) < fabs(d2) ) vlr->flag |= R_DIVIDE_24;
-					else vlr->flag &= ~R_DIVIDE_24;
-					
-					/* new vertex pointers */
-					if (vlr->flag & R_DIVIDE_24) {
-						vlr1->v1= vlr->v2;
-						vlr1->v2= vlr->v3;
-						vlr1->v3= vlr->v4;
+					/* group duplis need to set ob matrices correct, for deform. so no_draw is part handled */
+					if(dob->no_draw)
+						continue;
 
-						vlr->v3 = vlr->v4;
+					if(obd->restrictflag & OB_RESTRICT_RENDER)
+						continue;
+					
+					if(obd->type==OB_MBALL)
+						continue;
+
+					if(!allow_render_object(obd, nolamps, onlyselected, actob))
+						continue;
+
+					if(allow_render_dupli_instance(re, ob, obd)) {
+						ParticleSystem *psys;
+						int psysindex;
+						float imat[4][4], mat[4][4];
+
+						/* compute difference between object matrix and
+						 * object matrix with dupli transform, in viewspace */
+						Mat4Invert(imat, dob->omat);
+						MTC_Mat4MulSerie(mat, re->viewmat, dob->mat, imat, re->viewinv, 0, 0, 0, 0);
+
+						RE_addRenderInstance(re, NULL, obd, ob, dob->index, 0, mat);
+
+						psysindex= 1;
+						for(psys=obd->particlesystem.first; psys; psys=psys->next)
+							RE_addRenderInstance(re, NULL, obd, ob, dob->index, psysindex++, mat);
 						
-						vlr1->flag |= R_DIVIDE_24;
+						obd->flag |= OB_DONE;
+						obd->transflag |= OB_RENDER_DUPLI;
 					}
-					else {
-						vlr1->v1= vlr->v1;
-						vlr1->v2= vlr->v3;
-						vlr1->v3= vlr->v4;
-						
-						vlr1->flag &= ~R_DIVIDE_24;
-					}
-					vlr->v4 = vlr1->v4 = NULL;
+					else
+						init_render_object(re, obd, ob, dob->index, only_verts);
 					
-					/* new normals */
-					CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
-					CalcNormFloat(vlr1->v3->co, vlr1->v2->co, vlr1->v1->co, vlr1->n);
+					if(re->test_break()) break;
 				}
-				/* clear the flag when not divided */
-				else vlr->flag &= ~R_DIVIDE_24;
+				free_object_duplilist(lb);
+
+				if(allow_render_object(ob, nolamps, onlyselected, actob))
+					init_render_object(re, ob, NULL, 0, only_verts);
 			}
+			else if(allow_render_object(ob, nolamps, onlyselected, actob))
+				init_render_object(re, ob, NULL, 0, only_verts);
 		}
-	}
-}
 
-/* layflag: allows material group to ignore layerflag */
-static void add_lightgroup(Render *re, Group *group, int exclusive)
-{
-	GroupObject *go, *gol;
-	
-	group->id.flag &= ~LIB_DOIT;
+		if(re->test_break()) break;
+	}
 
-	/* it's a bit too many loops in loops... but will survive */
-	/* note that 'exclusive' will remove it from the global list */
-	for(go= group->gobject.first; go; go= go->next) {
-		go->lampren= NULL;
-		
-		if(go->ob->lay & re->scene->lay) {
-			if(go->ob && go->ob->type==OB_LAMP) {
-				for(gol= re->lights.first; gol; gol= gol->next) {
-					if(gol->ob==go->ob) {
-						go->lampren= gol->lampren;
-						break;
-					}
-				}
-				if(go->lampren==NULL) 
-					gol= add_render_lamp(re, go->ob);
-				if(gol && exclusive) {
-					BLI_remlink(&re->lights, gol);
-					MEM_freeN(gol);
-				}
-			}
-		}
-	}
-}
-
-static void set_material_lightgroups(Render *re)
-{
-	Group *group;
-	Material *ma;
-	
-	/* not for preview render */
-	if(re->scene->r.scemode & R_PREVIEWBUTS)
-		return;
-	
-	for(group= G.main->group.first; group; group=group->id.next)
-		group->id.flag |= LIB_DOIT;
-	
-	/* it's a bit too many loops in loops... but will survive */
-	/* hola! materials not in use...? */
-	for(ma= G.main->mat.first; ma; ma=ma->id.next) {
-		if(ma->group && (ma->group->id.flag & LIB_DOIT))
-			add_lightgroup(re, ma->group, ma->mode & MA_GROUP_NOLAY);
-	}
-}
-
-static void set_renderlayer_lightgroups(Render *re, Scene *sce)
-{
-	SceneRenderLayer *srl;
-	
-	for(srl= sce->r.layers.first; srl; srl= srl->next) {
-		if(srl->light_override)
-			add_lightgroup(re, srl->light_override, 0);
-	}
-}
-
-void init_render_world(Render *re)
-{
-	int a;
-	char *cp;
-	
-	if(re->scene && re->scene->world) {
-		re->wrld= *(re->scene->world);
-		
-		cp= (char *)&re->wrld.fastcol;
-		
-		cp[0]= 255.0*re->wrld.horr;
-		cp[1]= 255.0*re->wrld.horg;
-		cp[2]= 255.0*re->wrld.horb;
-		cp[3]= 1;
-		
-		VECCOPY(re->grvec, re->viewmat[2]);
-		Normalize(re->grvec);
-		Mat3CpyMat4(re->imat, re->viewinv);
-		
-		for(a=0; a<MAX_MTEX; a++) 
-			if(re->wrld.mtex[a] && re->wrld.mtex[a]->tex) re->wrld.skytype |= WO_SKYTEX;
-		
-		/* AO samples should be OSA minimum */
-		if(re->osa)
-			while(re->wrld.aosamp*re->wrld.aosamp < re->osa) 
-				re->wrld.aosamp++;
-		if(!(re->r.mode & R_RAYTRACE))
-			re->wrld.mode &= ~WO_AMB_OCC;
-	}
-	else {
-		memset(&re->wrld, 0, sizeof(World));
-		re->wrld.exp= 0.0;
-		re->wrld.range= 1.0;
-	}
-	
-	re->wrld.linfac= 1.0 + pow((2.0*re->wrld.exp + 0.5), -10);
-	re->wrld.logfac= log( (re->wrld.linfac-1.0)/re->wrld.linfac )/re->wrld.range;
+	if(!re->test_break())
+		RE_makeRenderInstances(re);
 }
 
 /* used to be 'rotate scene' */
 void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 {
 	extern int slurph_opt;	/* key.c */
-	Base *base;
-	Object *ob;
 	Scene *sce;
 	float mat[4][4];
 	unsigned int lay;
@@ -4248,166 +4207,12 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 	init_render_materials(re->r.mode, &re->wrld.ambr);
 	set_node_shader_lamp_loop(shade_material_loop);
 
-	for(SETLOOPER(re->scene, base)) {
-		ob= base->object;
-		/* imat objects has to be done here, since displace can have texture using Object map-input */
-		MTC_Mat4MulMat4(mat, ob->obmat, re->viewmat);
-		MTC_Mat4Invert(ob->imat, mat);
-		/* each object should only be rendered once */
-		ob->flag &= ~OB_DONE;
-	}
-
 	/* MAKE RENDER DATA */
-	
-	for(SETLOOPER(re->scene, base)) {
-		ob= base->object;
-		
-		/* if the object has been restricted from rendering in the outliner, ignore it */
-		if (ob->restrictflag & OB_RESTRICT_RENDER) continue;
-		
-		/* OB_DONE means the object itself got duplicated, so was already converted */
-		if (ob->flag & OB_DONE) {
-#ifndef DISABLE_YAFRAY
-			/* yafray: for some reason this part was removed, but yafray really needs it...
-			   Dupliverts objects are treated as instances of an original 'sourceobject',
-			   which needs to be included in the renderlist here.
-			   exception: lamps, lattices, armatures & camera's */
-			if ((re->r.renderer==R_YAFRAY) && ((ob->type!=OB_LATTICE) && (ob->type!=OB_ARMATURE) &&
-			    (ob->type!=OB_LAMP) && (ob->type!=OB_CAMERA)))
-			{
-				printf("Duplivert object %s, adding to renderlist\n", ob->id.name);
-				ob->flag &= ~OB_DONE;
-				init_render_object(re, ob, NULL, 0, 0);
-				ob->flag |= OB_DONE;
-			}
-#endif /* disable yafray */
-		}
-		else if( (base->lay & lay) || (ob->type==OB_LAMP && (base->lay & re->scene->lay)) ) {
-			int pdup=0;
-			if(ob->transflag & OB_DUPLI) {
-				
-				/* exception: mballs! */
-#ifndef DISABLE_YAFRAY
-				/* yafray: except for mballs, include at least one copy of a dupliframe object in the renderlist. */
-				if (re->r.renderer==R_YAFRAY) {
-					if ((ob->type!=OB_MBALL) && ((ob->transflag & OB_DUPLIFRAMES)!=0)) {
-						printf("Dupliframe Object %s, adding to renderlist\n", ob->id.name);
-						init_render_object(re, ob, NULL, 0, 0);
-					}
-				}
-#endif /* disable yafray */
-				/* before make duplis, update particle for current frame */
-				if(ob->transflag & OB_DUPLIVERTS) {
-					PartEff *paf= give_parteff(ob);
-					if(paf) {
-						if(paf->flag & PAF_ANIMATED) build_particle_system(ob);
-					}
-				}
-				if(ob->transflag & OB_DUPLIPARTS){
-					if(ob->particlesystem.first){
-						ParticleSystem *psys = ob->particlesystem.first;
-						ParticleSettings *part;
+	database_init_objects(re, lay, 0, 0, 0, 0);
 
-						for(; psys; psys=psys->next){
-							part=psys->part;
-
-							if((part->draw_as==PART_DRAW_OB && part->dup_ob) || (part->draw_as==PART_DRAW_GR && part->dup_group))
-								if(part->draw & PART_DRAW_EMITTER)
-									pdup++;
-						}
-					}
-				}
-				
-				if(ob->type==OB_MBALL) {
-					init_render_object(re, ob, NULL, 0, 0);
-				}
-				else {
-					DupliObject *dob;
-					ListBase *lb= object_duplilist(sce, ob);
-					
-					for(dob= lb->first; dob; dob= dob->next) {
-						Object *obd= dob->ob;
-						
-						if (obd->restrictflag & OB_RESTRICT_RENDER) continue;
-
-						Mat4CpyMat4(obd->obmat, dob->mat);
-						
-						/* group duplis need to set ob matrices correct, for deform. so no_draw is part handled */
-						if(dob->no_draw)
-							continue;
-						
-						if(obd->type!=OB_MBALL) {
-#ifndef DISABLE_YAFRAY
-							/* yafray: special case handling of duplivert/dupligroup objects.
-							   Only one copy included in renderlist(see above), all others treated as instance of that.
-							   So only need to store name and matrix. Exception are lamps. lattices, armatures and camera's */
-							if (re->r.renderer==R_YAFRAY) {
-								/* dupligroup obs are included directly */
-								if (obd->flag & OB_FROMGROUP) {
-									printf("Dupligroup object %s, adding to renderlist\n", obd->id.name);
-									init_render_object(re, obd, ob, dob->index, 0);
-								}
-								else if ((obd->type!=OB_LATTICE) && (obd->type!=OB_ARMATURE) &&
-								         (obd->type!=OB_LAMP) && (obd->type!=OB_CAMERA))
-								{
-									printf("Adding dupli matrix for object %s\n", obd->id.name);
-									YAF_addDupliMtx(obd);
-								}
-								else init_render_object(re, obd, ob, dob->index, 0);
-							}
-							else init_render_object(re, obd, ob, dob->index, 0);
-#else
-							init_render_object(re, obd, ob, dob->index, 0);
-#endif /* disable yafray */
-						}
-						
-						if(re->test_break()) break;
-					}
-					free_object_duplilist(lb);
-				}
-			}
-			else {
-#ifndef DISABLE_YAFRAY
-				/* yafray: linked data objects treated similarly to dupliverts,
-				   If object not known yet (not in renderlist), include in the renderlist,
-				   otherwise treat as instance of it, so only name and matrix are stored 
-				   Exception: objects which have materials linked to object instead of mesh */
-				if ((re->r.renderer==R_YAFRAY) && (ob->colbits==0))
-				{
-					/* Special case, parent object dupli's: ignore if object itself is lamp or parent is lattice or empty */
-					if (ob->parent) {
-						if ((ob->type!=OB_LAMP) && (ob->parent->type!=OB_EMPTY) &&
-						    (ob->parent->type!=OB_LATTICE) && YAF_objectKnownData(ob))
-							printf("From parent: Added dupli matrix for linked data object %s\n", ob->id.name);
-						else
-							init_render_object(re, ob, NULL, 0, 0);
-					}
-					else if ((ob->type!=OB_EMPTY) && (ob->type!=OB_LAMP) &&
-					         (ob->type!=OB_ARMATURE) && YAF_objectKnownData(ob))
-						printf("Added dupli matrix for linked data object %s\n", ob->id.name);
-					else
-						init_render_object(re, ob, NULL, 0, 0);
-				}
-				else init_render_object(re, ob, NULL, 0, 0);
-#else
-				init_render_object(re, ob, NULL, 0, 0);
-#endif /* disable yafray */
-			}
-
-			/* override not showing object when duplis are used with particles */
-			if(pdup)
-				init_render_object(re, ob, NULL, 0, 0);
-		}
-
-		if(re->test_break()) break;
-	}
-
-	
 	if(!re->test_break()) {
-		LampRen *lar;
-		
-		sort_halos(re);
-		
+		int tothalo;
+
 		set_material_lightgroups(re);
 		for(sce= re->scene; sce; sce= sce->set)
 			set_renderlayer_lightgroups(re, sce);
@@ -4422,25 +4227,18 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 		re->i.totlamp= re->totlamp;
 		re->stats_draw(&re->i);
 		
-		set_fullsample_flag(re);
-		check_non_flat_quads(re);
-		set_normalflags(re);
-		
+		/* don't sort stars */
+		tothalo= re->tothalo;
 		if(!re->test_break())
-			if(re->wrld.mode & WO_STARS) 
+			if(re->wrld.mode & WO_STARS)
 				RE_make_stars(re, NULL, NULL, NULL);
+		sort_halos(re, tothalo);
 		
 		re->i.infostr= "Creating Shadowbuffers";
 		re->stats_draw(&re->i);
 
 		/* SHADOW BUFFER */
-		for(lar=re->lampren.first; lar; lar= lar->next) {
-			if(re->test_break()) break;
-			if(lar->shb) {
-				/* if type is irregular, this only sets the perspective matrix and autoclips */
-				makeshadowbuf(re, lar);
-			}
-		}
+		threaded_makeshadowbufs(re);
 		
 		/* yafray: 'direct' radiosity, environment maps and raytree init not needed for yafray render */
 		/* although radio mode could be useful at some point, later */
@@ -4478,12 +4276,24 @@ void RE_Database_FromScene(Render *re, Scene *scene, int use_camera_view)
 	re->stats_draw(&re->i);
 }
 
+/* exported call to recalculate hoco for vertices, when winmat changed */
+void RE_DataBase_ApplyWindow(Render *re)
+{
+	project_renderdata(re, projectverto, 0, 0, 0);
+}
+
+void RE_DataBase_GetView(Render *re, float mat[][4])
+{
+	Mat4CpyMat4(mat, re->viewmat);
+}
+
+/* ------------------------------------------------------------------------- */
+/* Speed Vectors															 */
+/* ------------------------------------------------------------------------- */
+
 static void database_fromscene_vectors(Render *re, Scene *scene, int timeoffset)
 {
 	extern int slurph_opt;	/* key.c */
-	Base *base;
-	Object *ob;
-	Scene *sce;
 	float mat[4][4];
 	unsigned int lay;
 	
@@ -4513,62 +4323,8 @@ static void database_fromscene_vectors(Render *re, Scene *scene, int timeoffset)
 		RE_SetView(re, mat);
 	}
 	
-	for(SETLOOPER(re->scene, base)) {
-		ob= base->object;
-		/* imat objects has to be done here, since displace can have texture using Object map-input */
-		MTC_Mat4MulMat4(mat, ob->obmat, re->viewmat);
-		MTC_Mat4Invert(ob->imat, mat);
-		/* each object should only be rendered once */
-		ob->flag &= ~OB_DONE;
-	}
-	
 	/* MAKE RENDER DATA */
-	
-	for(SETLOOPER(re->scene, base)) {
-		ob= base->object;
-		
-		if (ob->restrictflag & OB_RESTRICT_RENDER) continue;
-
-		/* OB_DONE means the object itself got duplicated, so was already converted */
-		if(ob->flag & OB_DONE);
-		else if( (base->lay & lay) || (ob->type==OB_LAMP && (base->lay & re->scene->lay)) ) {
-			if(ob->transflag & OB_DUPLI) {
-				
-				/* before make duplis, update particle for current frame */
-				if(ob->transflag & OB_DUPLIVERTS) {
-					PartEff *paf= give_parteff(ob);
-					if(paf) {
-						if(paf->flag & PAF_ANIMATED) build_particle_system(ob);
-					}
-				}
-				
-				if(ob->type==OB_MBALL) {
-					init_render_object(re, ob, NULL, 0, 1);
-				}
-				else {
-					DupliObject *dob;
-					ListBase *lb= object_duplilist(sce, ob);
-					
-					for(dob= lb->first; dob; dob= dob->next) {
-						Object *obd= dob->ob;
-						
-						if (obd->restrictflag & OB_RESTRICT_RENDER) continue;
-						
-						Mat4CpyMat4(obd->obmat, dob->mat);
-						
-						if(obd->type!=OB_MBALL) {
-							init_render_object(re, obd, ob, dob->index, 1);
-						}
-					}
-					free_object_duplilist(lb);
-				}
-			}
-			else {
-				init_render_object(re, ob, NULL, 0, 1);
-			}
-		}
-		if(re->test_break()) break;
-	}
+	database_init_objects(re, lay, 0, 0, 0, 1);
 	
 	if(!re->test_break())
 		project_renderdata(re, projectverto, re->r.mode & R_PANORAMA, 0, 1);
@@ -4663,58 +4419,54 @@ static void calculate_speedvector(float *vectors, int step, float winsq, float w
 	}
 }
 
-static void calculate_speedvectors(Render *re, ObjectRen *obren, float *vectors, int step)
+static void calculate_speedvectors(Render *re, ObjectInstanceRen *obi, float *vectors, int step)
 {
+	ObjectRen *obr= obi->obr;
 	VertRen *ver= NULL;
 	StrandRen *strand= NULL;
-	float *speed, ho[4];
+	float *speed, ho[4], winmat[4][4];
 	float winsq= re->winx*re->winy, winroot= sqrt(winsq);
-	int a, startvert, endvert, startstrand, endstrand;
+	int a;
 
-	startvert= obren->startvert;
-	endvert= obren->endvert;
-	startstrand= obren->startstrand;
-	endstrand= obren->endstrand;
-	
-	if(re->vertnodes) {
-		/* set first vertex OK */
-		a= startvert-1;
-		ver= re->vertnodes[a>>8].vert + (a & 255);
-		
-		for(a=startvert; a<endvert; a++, vectors+=2) {
-			if((a & 255)==0) ver= re->vertnodes[a>>8].vert;
+	if(obi->flag & R_TRANSFORMED)
+		Mat4MulMat4(winmat, obi->mat, re->winmat);
+	else
+		Mat4CpyMat4(winmat, re->winmat);
+
+	if(obr->vertnodes) {
+		for(a=0; a<obr->totvert; a++, vectors+=2) {
+			if((a & 255)==0) ver= obr->vertnodes[a>>8].vert;
 			else ver++;
 
-			speed= RE_vertren_get_winspeed(re, ver, 1);
-			calculate_speedvector(vectors, step, winsq, winroot, ver->co, ver->ho, speed);
+			speed= RE_vertren_get_winspeed(obi, ver, 1);
+			projectvert(ver->co, winmat, ho);
+			calculate_speedvector(vectors, step, winsq, winroot, ver->co, ho, speed);
 		}
 	}
 
-	if(re->strandnodes) {
-		/* set first strand OK */
-		a= startstrand-1;
-		strand= re->strandnodes[a>>8].strand + (a & 255);
-		
-		for(a=startstrand; a<endstrand; a++, vectors+=2) {
-			if((a & 255)==0) strand= re->strandnodes[a>>8].strand;
+	if(obr->strandnodes) {
+		for(a=0; a<obr->totstrand; a++, vectors+=2) {
+			if((a & 255)==0) strand= obr->strandnodes[a>>8].strand;
 			else strand++;
 
-			speed= RE_strandren_get_winspeed(re, strand, 1);
-			projectverto(strand->vert->co, re->winmat, ho);
+			speed= RE_strandren_get_winspeed(obi, strand, 1);
+			projectvert(strand->vert->co, winmat, ho);
 			calculate_speedvector(vectors, step, winsq, winroot, strand->vert->co, ho, speed);
 		}
 	}
 }
 
-static int load_fluidsimspeedvectors(Render *re, float *vectors, int startvert, int endvert, int step, Object *fsob)
+static int load_fluidsimspeedvectors(Render *re, ObjectInstanceRen *obi, float *vectors, int step)
 {
+	ObjectRen *obr= obi->obr;
+	Object *fsob= obr->ob;
 	VertRen *ver= NULL;
 	float *speed, div, zco[2];
 	float zmulx= re->winx/2, zmuly= re->winy/2, len;
 	float winsq= re->winx*re->winy, winroot= sqrt(winsq);
 	int a, j;
-	float hoco[4], fsvec[4], camco[4];
-	float mat[4][4];
+	float hoco[4], ho[4], fsvec[4], camco[4];
+	float mat[4][4], winmat[4][4];
 	float imat[4][4];
 	MVert *vverts;
 
@@ -4725,28 +4477,30 @@ static int load_fluidsimspeedvectors(Render *re, float *vectors, int startvert, 
 	MTC_Mat4Invert(imat, mat);
 
 	/* set first vertex OK */
-	a= startvert-1;
-	ver= re->vertnodes[a>>8].vert + (a & 255);
-
 	if( (!fsob->fluidsimSettings) || (!fsob->fluidsimSettings->meshSurfNormals) ) return 0;
 	vverts = fsob->fluidsimSettings->meshSurfNormals;
 	//fprintf(stderr, "GZ_VEL obj '%s', calc load_fluidsimspeedvectors\n",fsob->id.name); // NT DEBUG
 
-	if( endvert-startvert != fsob->fluidsimSettings->meshSurface->totvert ) {
-		//fprintf(stderr, "load_fluidsimspeedvectors - modified fluidsim mesh, not using speed vectors (%d,%d)...\n", endvert-startvert , fsob->fluidsimSettings->meshSurface->totvert); // DEBUG
+	if( obr->totvert != fsob->fluidsimSettings->meshSurface->totvert ) {
+		//fprintf(stderr, "load_fluidsimspeedvectors - modified fluidsim mesh, not using speed vectors (%d,%d)...\n", obr->totvert, fsob->fluidsimSettings->meshSurface->totvert); // DEBUG
 		return 0;
 	}
+
+	if(obi->flag & R_TRANSFORMED)
+		Mat4MulMat4(winmat, obi->mat, re->winmat);
+	else
+		Mat4CpyMat4(winmat, re->winmat);
 	
-	for(a=startvert; a<endvert; a++, vectors+=2) {
+	for(a=0; a<obr->totvert; a++, vectors+=2) {
 		if((a & 255)==0)
-			ver= re->vertnodes[a>>8].vert;
+			ver= obr->vertnodes[a>>8].vert;
 		else
 			ver++;
 
 		// get fluid velocity
 		fsvec[3] = 0.; 
 		//fsvec[0] = fsvec[1] = fsvec[2] = fsvec[3] = 0.; fsvec[2] = 2.; // NT fixed test
-		for(j=0;j<3;j++) fsvec[j] = vverts[a-startvert].co[j];
+		for(j=0;j<3;j++) fsvec[j] = vverts[a].co[j];
 
 		// transform (=rotate) to cam space
 		camco[0]= imat[0][0]*fsvec[0] + imat[0][1]*fsvec[1] + imat[0][2]*fsvec[2];
@@ -4754,12 +4508,13 @@ static int load_fluidsimspeedvectors(Render *re, float *vectors, int startvert, 
 		camco[2]= imat[2][0]*fsvec[0] + imat[2][1]*fsvec[1] + imat[2][2]*fsvec[2];
 
 		// get homogenous coordinates
-		projectverto(camco, re->winmat, hoco);
+		projectvert(camco, winmat, hoco);
+		projectvert(ver->co, winmat, ho);
 		
 		/* now map hocos to screenspace, uses very primitive clip still */
 		// use ho[3] of original vertex, xy component of vel. direction
-		if(ver->ho[3]<0.1f) div= 10.0f;
-		else div= 1.0f/ver->ho[3];
+		if(ho[3]<0.1f) div= 10.0f;
+		else div= 1.0f/ho[3];
 		zco[0]= zmulx*hoco[0]*div;
 		zco[1]= zmuly*hoco[1]*div;
 		
@@ -4770,7 +4525,7 @@ static int load_fluidsimspeedvectors(Render *re, float *vectors, int startvert, 
 			zco[0]*= len; zco[1]*= len;
 		}
 		
-		speed= RE_vertren_get_winspeed(re, ver, 1);
+		speed= RE_vertren_get_winspeed(obi, ver, 1);
 		// set both to the same value
 		speed[0]= speed[2]= zco[0];
 		speed[1]= speed[3]= zco[1];
@@ -4784,47 +4539,44 @@ static int load_fluidsimspeedvectors(Render *re, float *vectors, int startvert, 
 /* result should be that we can free entire database */
 static void copy_dbase_object_vectors(Render *re, ListBase *lb)
 {
-	ObjectRen *obren, *obrenlb;
-	VertRen *ver;
-	StrandRen *strand;
-	float *vec, ho[4];
+	ObjectInstanceRen *obi, *obilb;
+	ObjectRen *obr;
+	VertRen *ver= NULL;
+	StrandRen *strand= NULL;
+	float *vec, ho[4], winmat[4][4];
 	int a, totvector;
 
-	for(obren= re->objecttable.first; obren; obren= obren->next) {
-		obrenlb= MEM_dupallocN(obren);
-		BLI_addtail(lb, obrenlb);
+	for(obi= re->instancetable.first; obi; obi= obi->next) {
+		obr= obi->obr;
 
-		totvector= obren->endvert - obren->startvert;
-		totvector+= obren->endstrand - obren->startstrand;
+		obilb= MEM_mallocN(sizeof(ObjectInstanceRen), "ObInstanceVector");
+		memcpy(obilb, obi, sizeof(ObjectInstanceRen));
+		BLI_addtail(lb, obilb);
+
+		obilb->totvector= totvector= obr->totvert + obr->totstrand;
 
 		if(totvector > 0) {
-			vec= obrenlb->vectors= MEM_mallocN(2*sizeof(float)*totvector, "vector array");
+			vec= obilb->vectors= MEM_mallocN(2*sizeof(float)*totvector, "vector array");
 
-			if(obren->endvert > obren->startvert) {
-				/* first vertex */
-				a= obren->startvert-1;
-				ver= re->vertnodes[a>>8].vert + (a & 255);
+			if(obi->flag & R_TRANSFORMED)
+				Mat4MulMat4(winmat, obi->mat, re->winmat);
+			else
+				Mat4CpyMat4(winmat, re->winmat);
 
-				for(a=obren->startvert; a<obren->endvert; a++, vec+=2) {
-					if((a & 255)==0) ver= re->vertnodes[a>>8].vert;
-					else ver++;
-					
-					speedvector_project(NULL, vec, ver->co, ver->ho);
-				}
+			for(a=0; a<obr->totvert; a++, vec+=2) {
+				if((a & 255)==0) ver= obr->vertnodes[a>>8].vert;
+				else ver++;
+				
+				projectvert(ver->co, winmat, ho);
+				speedvector_project(NULL, vec, ver->co, ho);
 			}
 
-			if(obren->endstrand > obren->startstrand) {
-				/* first strand */
-				a= obren->startstrand-1;
-				strand= re->strandnodes[a>>8].strand + (a & 255);
-
-				for(a=obren->startstrand; a<obren->endstrand; a++, vec+=2) {
-					if((a & 255)==0) strand= re->strandnodes[a>>8].strand;
-					else strand++;
-					
-					projectverto(strand->vert->co, re->winmat, ho);
-					speedvector_project(NULL, vec, strand->vert->co, ho);
-				}
+			for(a=0; a<obr->totstrand; a++, vec+=2) {
+				if((a & 255)==0) strand= obr->strandnodes[a>>8].strand;
+				else strand++;
+				
+				projectvert(strand->vert->co, winmat, ho);
+				speedvector_project(NULL, vec, strand->vert->co, ho);
 			}
 		}
 	}
@@ -4832,17 +4584,17 @@ static void copy_dbase_object_vectors(Render *re, ListBase *lb)
 
 static void free_dbase_object_vectors(ListBase *lb)
 {
-	ObjectRen *obren;
+	ObjectInstanceRen *obi;
 	
-	for(obren= lb->first; obren; obren= obren->next)
-		if(obren->vectors)
-			MEM_freeN(obren->vectors);
+	for(obi= lb->first; obi; obi= obi->next)
+		if(obi->vectors)
+			MEM_freeN(obi->vectors);
 	BLI_freelistN(lb);
 }
 
 void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 {
-	ObjectRen *obren, *oldobren;
+	ObjectInstanceRen *obi, *oldobi;
 	ListBase *table;
 	ListBase oldtable= {NULL, NULL}, newtable= {NULL, NULL};
 	int step;
@@ -4884,40 +4636,41 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 			else
 				table= &oldtable;
 			
-			oldobren= table->first;
-			for(obren= re->objecttable.first; obren && oldobren; obren= obren->next, oldobren= oldobren->next) {
+			oldobi= table->first;
+			for(obi= re->instancetable.first; obi && oldobi; obi= obi->next, oldobi= oldobi->next) {
 				int ok= 1;
 
+				obi->totvector= obi->obr->totvert + obi->obr->totstrand;
+
 				/* find matching object in old table */
-				if(oldobren->ob!=obren->ob || oldobren->par!=obren->par || oldobren->index!=obren->index) {
+				if(oldobi->ob!=obi->ob || oldobi->par!=obi->par || oldobi->index!=obi->index || oldobi->psysindex!=obi->psysindex) {
 					ok= 0;
-					for(oldobren= table->first; oldobren; oldobren= oldobren->next)
-						if(oldobren->ob==obren->ob && oldobren->par==obren->par && oldobren->index==obren->index)
+					for(oldobi= table->first; oldobi; oldobi= oldobi->next)
+						if(oldobi->ob==obi->ob && oldobi->par==obi->par && oldobi->index==obi->index && oldobi->psysindex==obi->psysindex)
 							break;
-					if(oldobren==NULL)
-						oldobren= table->first;
+					if(oldobi==NULL)
+						oldobi= table->first;
 					else
 						ok= 1;
 				}
 				if(ok==0) {
-					 printf("speed table: missing object %s\n", obren->ob->id.name+2);
+					 printf("speed table: missing object %s\n", obi->ob->id.name+2);
 					continue;
 				}
 
 				// NT check for fluidsim special treatment
-				if((obren->ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) && (obren->ob->fluidsimSettings->type & OB_FLUIDSIM_DOMAIN)) {
+				if((obi->ob->fluidsimFlag & OB_FLUIDSIM_ENABLE) && (obi->ob->fluidsimSettings->type & OB_FLUIDSIM_DOMAIN)) {
 					// use preloaded per vertex simulation data , only does calculation for step=1
 					// NOTE/FIXME - velocities and meshes loaded unnecessarily often during the database_fromscene_vectors calls...
-					load_fluidsimspeedvectors(re, oldobren->vectors, obren->startvert, obren->endvert, step, obren->ob);
+					load_fluidsimspeedvectors(re, obi, oldobi->vectors, step);
 				} else {
 					/* check if both have same amounts of vertices */
-					if(obren->endvert-obren->startvert != oldobren->endvert-oldobren->startvert ||
-					   obren->endstrand-obren->startstrand != oldobren->endstrand-oldobren->startstrand) {
-						printf("Warning: object %s has different amount of vertices on other frame\n", obren->ob->id.name+2);
+					if(obi->totvector!=oldobi->totvector) {
+						printf("Warning: object %s has different amount of vertices on other frame\n", obi->ob->id.name+2);
 						continue;
 					}
 					
-					calculate_speedvectors(re, obren, oldobren->vectors, step);
+					calculate_speedvectors(re, obi, oldobi->vectors, step);
 				} // not fluidsim
 			}
 		}
@@ -4931,11 +4684,9 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 }
 
 
-/* exported call to recalculate hoco for vertices, when winmat changed */
-void RE_DataBase_ApplyWindow(Render *re)
-{
-	project_renderdata(re, projectverto, 0, 0, 0);
-}
+/* ------------------------------------------------------------------------- */
+/* Baking																	 */
+/* ------------------------------------------------------------------------- */
 
 /* setup for shaded view or bake, so only lamps and materials are initialized */
 /* type:
@@ -4947,11 +4698,9 @@ void RE_DataBase_ApplyWindow(Render *re)
 */
 void RE_Database_Baking(Render *re, Scene *scene, int type, Object *actob)
 {
-	Base *base;
-	Object *ob;
-	Scene *sce;
 	float mat[4][4];
 	unsigned int lay;
+	int onlyselected, nolamps;
 	
 	re->scene= scene;
 
@@ -5000,88 +4749,23 @@ void RE_Database_Baking(Render *re, Scene *scene, int type, Object *actob)
 			init_ao_sphere(&re->wrld);
 	}
 	
-	
 	/* still bad... doing all */
 	init_render_textures(re);
 	init_render_materials(re->r.mode, &re->wrld.ambr);
 	set_node_shader_lamp_loop(shade_material_loop);
-	
-	for(SETLOOPER(re->scene, base)) {
-		ob= base->object;
-		/* imat objects has to be done here, since displace can have texture using Object map-input */
-		MTC_Mat4MulMat4(mat, ob->obmat, re->viewmat);
-		MTC_Mat4Invert(ob->imat, mat);
-		/* each object should only be rendered once */
-		ob->flag &= ~OB_DONE;
-	}
 
 	/* MAKE RENDER DATA */
-	for(SETLOOPER(re->scene, base)) {
-		ob= base->object;
-		
-		/* if the object has been restricted from rendering in the outliner, ignore it */
-		if (ob->restrictflag & OB_RESTRICT_RENDER) continue;
-		
-		/* OB_DONE means the object itself got duplicated, so was already converted */
-		if(ob->flag & OB_DONE);
-		else if( (base->lay & lay) || ((base->lay & re->scene->lay)) ) {
-			
-			/* check for dupli lamps or non selected groups */
-			if(ob->transflag & OB_DUPLI) {
-				DupliObject *dob;
-				ListBase *lb= object_duplilist(sce, ob);
-				
-				for(dob= lb->first; dob; dob= dob->next) {
-					Object *obd= dob->ob;
-					
-					if(obd->type==OB_LAMP) {
-						if( ELEM(type, RE_BAKE_LIGHT, RE_BAKE_ALL) ) {
-							Mat4CpyMat4(obd->obmat, dob->mat);
-							init_render_object(re, obd, ob, dob->index, 0);
-						}
-					}
-					else if( ELEM(type, RE_BAKE_AO, RE_BAKE_ALL) ) {
-						if((base->flag & SELECT)==0) {
-							Mat4CpyMat4(obd->obmat, dob->mat);
-							init_render_object(re, obd, ob, dob->index, 0);
-						}
-					}
-				}
-				free_object_duplilist(lb);
-			}
-			else {
-				if(ob->type==OB_LAMP) {
-					if( ELEM(type, RE_BAKE_LIGHT, RE_BAKE_ALL) )
-						init_render_object(re, ob, NULL, 0, 0);
-				}
-				else if(type!=RE_BAKE_LIGHT) {
-					if( !ELEM(type, RE_BAKE_NORMALS, RE_BAKE_TEXTURE) || (ob->flag & SELECT) || (ob == actob) )
-						init_render_object(re, ob, NULL, 0, 0);
-				}
-			}
-		}
-	}
+	nolamps= !ELEM(type, RE_BAKE_LIGHT, RE_BAKE_ALL);
+	onlyselected= ELEM(type, RE_BAKE_NORMALS, RE_BAKE_TEXTURE);
+
+	database_init_objects(re, lay, nolamps, onlyselected, actob, 0);
+
 	set_material_lightgroups(re);
 	
-	check_non_flat_quads(re);
-	/* don't call set_normalflags(), no flipping */
-	
-	if(type!=RE_BAKE_LIGHT) {
-		if(re->r.mode & R_SHADOW) {
-			LampRen *lar;
-			
-			/* SHADOW BUFFER */
-			for(lar=re->lampren.first; lar; lar= lar->next) {
-				
-				if(re->test_break()) break;
-				if(lar->shb) {
-					/* if type is irregular, this only sets the perspective matrix and autoclips */
-					/* but, that's not supported for bake... */
-					makeshadowbuf(re, lar);
-				}
-			}
-		}
-	}
+	/* SHADOW BUFFER */
+	if(type!=RE_BAKE_LIGHT)
+		if(re->r.mode & R_SHADOW)
+			threaded_makeshadowbufs(re);
 
 	/* raytree */
 	if(!re->test_break())
@@ -5089,17 +4773,9 @@ void RE_Database_Baking(Render *re, Scene *scene, int type, Object *actob)
 			makeraytree(re);
 }
 
-void RE_DataBase_GetView(Render *re, float mat[][4])
-{
-	Mat4CpyMat4(mat, re->viewmat);
-}
-
-
-
-
-/* **************************************************************** */
-/*                sticky texture coords                             */
-/* **************************************************************** */
+/* ------------------------------------------------------------------------- */
+/* Sticky texture coords													 */
+/* ------------------------------------------------------------------------- */
 
 void RE_make_sticky(void)
 {
@@ -5163,174 +4839,5 @@ void RE_make_sticky(void)
 			}
 		}
 	}
-}
-
-
-
-/* **************************************************************** */
-/*                Displacement mapping                              */
-/* **************************************************************** */
-static short test_for_displace(Render *re, Object *ob)
-{
-	/* return 1 when this object uses displacement textures. */
-	Material *ma;
-	int i;
-	
-	for (i=1; i<=ob->totcol; i++) {
-		ma=give_render_material(re, ob, i);
-		/* ma->mapto is ORed total of all mapto channels */
-		if(ma && (ma->mapto & MAP_DISPLACE)) return 1;
-	}
-	return 0;
-}
-
-static void displace_render_vert(Render *re, ShadeInput *shi, VertRen *vr, int vindex, float *scale)
-{
-	MTFace *tface;
-	short texco= shi->mat->texco;
-	float sample=0;
-	char *name;
-	int i;
-
-	/* shi->co is current render coord, just make sure at least some vector is here */
-	VECCOPY(shi->co, vr->co);
-	/* vertex normal is used for textures type 'col' and 'var' */
-	VECCOPY(shi->vn, vr->n);
-
-	if (texco & TEXCO_UV) {
-		shi->totuv= 0;
-
-		for (i=0; (tface=RE_vlakren_get_tface(re, shi->vlr, i, &name, 0)); i++) {
-			ShadeInputUV *suv= &shi->uv[i];
-
-			/* shi.uv needs scale correction from tface uv */
-			suv->uv[0]= 2*tface->uv[vindex][0]-1.0f;
-			suv->uv[1]= 2*tface->uv[vindex][1]-1.0f;
-			suv->uv[2]= 0.0f;
-			suv->name= name;
-			shi->totuv++;
-		}
-	}
-
-	/* set all rendercoords, 'texco' is an ORed value for all textures needed */
-	if ((texco & TEXCO_ORCO) && (vr->orco)) {
-		VECCOPY(shi->lo, vr->orco);
-	}
-	if (texco & TEXCO_STICKY) {
-		float *sticky= RE_vertren_get_sticky(re, vr, 0);
-		if(sticky) {
-			shi->sticky[0]= sticky[0];
-			shi->sticky[1]= sticky[1];
-			shi->sticky[2]= 0.0f;
-		}
-	}
-	if (texco & TEXCO_GLOB) {
-		VECCOPY(shi->gl, shi->co);
-		MTC_Mat4MulVecfl(re->viewinv, shi->gl);
-	}
-	if (texco & TEXCO_NORM) {
-		VECCOPY(shi->orn, shi->vn);
-	}
-	if(texco & TEXCO_REFL) {
-		/* not (yet?) */
-	}
-	
-	shi->displace[0]= shi->displace[1]= shi->displace[2]= 0.0;
-	
-	do_material_tex(shi);
-	
-	//printf("no=%f, %f, %f\nbefore co=%f, %f, %f\n", vr->n[0], vr->n[1], vr->n[2], 
-	//vr->co[0], vr->co[1], vr->co[2]);
-	
-	/* 0.5 could become button once?  */
-	vr->co[0] +=  shi->displace[0] * scale[0] ; 
-	vr->co[1] +=  shi->displace[1] * scale[1] ; 
-	vr->co[2] +=  shi->displace[2] * scale[2] ; 
-	
-	//printf("after co=%f, %f, %f\n", vr->co[0], vr->co[1], vr->co[2]); 
-	
-	/* we just don't do this vertex again, bad luck for other face using same vertex with
-		different material... */
-	vr->flag |= 1;
-	
-	/* Pass sample back so displace_face can decide which way to split the quad */
-	sample  = shi->displace[0]*shi->displace[0];
-	sample += shi->displace[1]*shi->displace[1];
-	sample += shi->displace[2]*shi->displace[2];
-	
-	vr->accum=sample; 
-	/* Should be sqrt(sample), but I'm only looking for "bigger".  Save the cycles. */
-	return;
-}
-
-static void displace_render_face(Render *re, VlakRen *vlr, float *scale)
-{
-	ShadeInput shi;
-
-	/* set up shadeinput struct for multitex() */
-	shi.osatex= 0;		/* signal not to use dx[] and dy[] texture AA vectors */
-	shi.vlr= vlr;		/* current render face */
-	shi.mat= vlr->mat;		/* current input material */
-	
-	/* Displace the verts, flag is set when done */
-	if (!vlr->v1->flag)
-		displace_render_vert(re, &shi, vlr->v1,0,  scale);
-	
-	if (!vlr->v2->flag)
-		displace_render_vert(re, &shi, vlr->v2, 1, scale);
-
-	if (!vlr->v3->flag)
-		displace_render_vert(re, &shi, vlr->v3, 2, scale);
-
-	if (vlr->v4) {
-		if (!vlr->v4->flag)
-			displace_render_vert(re, &shi, vlr->v4, 3, scale);
-
-		/*	closest in displace value.  This will help smooth edges.   */ 
-		if ( fabs(vlr->v1->accum - vlr->v3->accum) > fabs(vlr->v2->accum - vlr->v4->accum)) 
-			vlr->flag |= R_DIVIDE_24;
-		else vlr->flag &= ~R_DIVIDE_24;	// E: typo?, was missing '='
-	}
-	
-	/* Recalculate the face normal  - if flipped before, flip now */
-	if(vlr->v4) {
-		CalcNormFloat4(vlr->v4->co, vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
-	}	
-	else {
-		CalcNormFloat(vlr->v3->co, vlr->v2->co, vlr->v1->co, vlr->n);
-	}
-}
-
-
-static void do_displacement(Render *re, Object *ob, int startface, int numface, int startvert, int numvert )
-{
-	VertRen *vr;
-	VlakRen *vlr;
-//	float min[3]={1e30, 1e30, 1e30}, max[3]={-1e30, -1e30, -1e30};
-	float scale[3]={1.0f, 1.0f, 1.0f}, temp[3];//, xn
-	int i; //, texflag=0;
-	Object *obt;
-		
-	/* Object Size with parenting */
-	obt=ob;
-	while(obt){
-		VecAddf(temp, obt->size, obt->dsize);
-		scale[0]*=temp[0]; scale[1]*=temp[1]; scale[2]*=temp[2];
-		obt=obt->parent;
-	}
-	
-	/* Clear all flags */
-	for(i=startvert; i<startvert+numvert; i++){ 
-		vr= RE_findOrAddVert(re, i);
-		vr->flag= 0;
-	}
-
-	for(i=startface; i<startface+numface; i++){
-		vlr=RE_findOrAddVlak(re, i);
-		displace_render_face(re, vlr, scale);
-	}
-	
-	/* Recalc vertex normals */
-	calc_vertexnormals(re, startvert, startface, 0);
 }
 

@@ -51,7 +51,7 @@ static void node_shader_exec_geom(void *data, bNode *node, bNodeStack **in, bNod
 	if(data) {
 		ShadeInput *shi= ((ShaderCallData *)data)->shi;
 		NodeGeometry *ngeo= (NodeGeometry*)node->storage;
-		ShadeInputUV *suv= &shi->uv[0];
+		ShadeInputUV *suv= &shi->uv[shi->actuv];
 		static float defaultvcol[4] = {1.0f, 1.0f, 1.0f, 1.0f};
 		static float front= 0.0;
 		int i;

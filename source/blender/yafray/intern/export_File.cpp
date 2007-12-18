@@ -1230,7 +1230,8 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 	string matname(face0mat->id.name);
 	// use name in imgtex_shader list if 'TexFace' enabled for this material
 	if (face0mat->mode & MA_FACETEXTURE) {
-		MTFace* tface = RE_vlakren_get_tface(re, face0, 0, NULL, 0);
+		ObjectRen *obr = face0->obr;
+		MTFace* tface = RE_vlakren_get_tface(obr, face0, obr->actmtface, NULL, 0);
 		if (tface) {
 			Image* fimg = (Image*)tface->tpage;
 			if (fimg) matname = imgtex_shader[string(face0mat->id.name) + string(fimg->id.name)];
@@ -1407,12 +1408,13 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 				fci2!=VLR_list.end();++fci2)
 	{
 		VlakRen* vlr = *fci2;
+		ObjectRen *obr = vlr->obr;
 		Material* fmat = vlr->mat;
 		bool EXPORT_VCOL = ((fmat->mode & (MA_VERTEXCOL|MA_VERTEXCOLP))!=0);
 		string fmatname(fmat->id.name);
 		// use name in imgtex_shader list if 'TexFace' enabled for this face material
 		if (fmat->mode & MA_FACETEXTURE) {
-			MTFace* tface = RE_vlakren_get_tface(re, vlr, 0, NULL, 0);
+			MTFace* tface = RE_vlakren_get_tface(obr, vlr, obr->actmtface, NULL, 0);
 			if (tface) {
 				Image* fimg = (Image*)tface->tpage;
 				if (fimg) fmatname = imgtex_shader[fmatname + string(fimg->id.name)];
@@ -1437,14 +1439,14 @@ void yafrayFileRender_t::writeObject(Object* obj, const vector<VlakRen*> &VLR_li
 		}
 		else if (vlr->flag & R_FACE_SPLIT) { ui2++;  ui3++; }
 
-		MTFace* uvc = RE_vlakren_get_tface(re, vlr, 0, NULL, 0); // possible uvcoords (v upside down)
+		MTFace* uvc = RE_vlakren_get_tface(obr, vlr, obr->actmtface, NULL, 0); // possible uvcoords (v upside down)
 		if (uvc) {
 			ostr << " u_a=\"" << uvc->uv[ui1][0] << "\" v_a=\"" << 1-uvc->uv[ui1][1] << "\""
 			     << " u_b=\"" << uvc->uv[ui2][0] << "\" v_b=\"" << 1-uvc->uv[ui2][1] << "\""
 			     << " u_c=\"" << uvc->uv[ui3][0] << "\" v_c=\"" << 1-uvc->uv[ui3][1] << "\"";
 		}
 
-		MCol *mcol= RE_vlakren_get_mcol(re, vlr, 0, NULL, 0);
+		MCol *mcol= RE_vlakren_get_mcol(obr, vlr, obr->actmcol, NULL, 0);
 
 		// since Blender seems to need vcols when uvs are used, for yafray only export when the material actually uses vcols
 		if ((EXPORT_VCOL) && mcol) {

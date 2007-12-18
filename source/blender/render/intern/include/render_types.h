@@ -49,6 +49,7 @@ struct VertTableNode;
 struct VlakTableNode;
 struct GHash;
 struct RenderBuckets;
+struct ObjectInstanceRen;
 
 #define TABLEINITSIZE 1024
 #define LAMPINITSIZE 256
@@ -81,13 +82,15 @@ typedef struct RenderPart
 	/* result of part rendering */
 	RenderResult *result;
 	
+	int *recto;						/* object table for objects */
 	int *rectp;						/* polygon index table */
 	int *rectz;						/* zbuffer */
 	long *rectdaps;					/* delta acum buffer for pixel structs */
+	int *rectbacko;					/* object table for backside sss */
 	int *rectbackp;					/* polygon index table for backside sss */
 	int *rectbackz;					/* zbuffer for backside sss */
 	long *rectall;					/* buffer for all faces for sss */
-	
+
 	rcti disprect;					/* part coordinates within total picture */
 	int rectx, recty;				/* the size */
 	short crop, ready;				/* crop is amount of pixels we crop, for filter */
@@ -161,20 +164,18 @@ struct Render
 	
 	/* render database */
 	int totvlak, totvert, tothalo, totstrand, totlamp;
+	struct HaloRen **sortedhalos;
+
 	ListBase lights;	/* GroupObject pointers */
 	ListBase lampren;	/* storage, for free */
 	
-	int vertnodeslen;
-	struct VertTableNode *vertnodes;
-	int vlaknodeslen;
-	struct VlakTableNode *vlaknodes;
-	int strandnodeslen;
-	struct StrandTableNode *strandnodes;
-	int blohalen;
-	struct HaloRen **bloha;
 	ListBase objecttable;
-	ListBase strandbufs;
 	struct RenderBuckets *strandbuckets;
+
+	struct ObjectInstanceRen *objectinstance;
+	ListBase instancetable;
+	struct GHash *objecthash;
+	int totinstance;
 
 	struct Image *backbuf, *bakebuf;
 	
@@ -235,13 +236,39 @@ typedef struct ShadBuf {
 } ShadBuf;
 
 /* ------------------------------------------------------------------------- */
-/* lookup of objects in database */
+
 typedef struct ObjectRen {
 	struct ObjectRen *next, *prev;
 	struct Object *ob, *par;
-	int index, startvert, endvert, startface, endface, startstrand, endstrand;
-	float *vectors;
+	struct Scene *sce;
+	int index, psysindex;
+
+	int totvert, totvlak, totstrand, tothalo;
+	int vertnodeslen, vlaknodeslen, strandnodeslen, blohalen;
+	struct VertTableNode *vertnodes;
+	struct VlakTableNode *vlaknodes;
+	struct StrandTableNode *strandnodes;
+	struct HaloRen **bloha;
+	ListBase strandbufs;
+
+	char (*mtface)[32];
+	char (*mcol)[32];
+	int  actmtface, actmcol;
 } ObjectRen;
+
+typedef struct ObjectInstanceRen {
+	struct ObjectInstanceRen *next, *prev;
+
+	ObjectRen *obr;
+	Object *ob, *par;
+	int index, psysindex;
+
+	float mat[4][4], imat[3][3];
+	short flag;
+
+	float *vectors;
+	int totvector;
+} ObjectInstanceRen;
 
 /* ------------------------------------------------------------------------- */
 
@@ -249,9 +276,8 @@ typedef struct VertRen
 {
 	float co[3];
 	float n[3];
-	float ho[4];
 	float *orco;
-	short clip;	
+	short clip;
 	unsigned short flag;		/* in use for clipping zbuffer parts, temp setting stuff in convertblender.c */
 	float accum;		/* accum for radio weighting, and for strand texco static particles */
 	int index;			/* index allows extending vertren with any property */
@@ -279,10 +305,10 @@ typedef struct VlakRen {
 	unsigned int lay;
 	float n[3];
 	struct Material *mat;
-	char noflag, puno;
+	char puno;
 	char flag, ec;
 	RadFace *radface;
-	Object *ob;
+	ObjectRen *obr;
 	int index;
 } VlakRen;
 
@@ -312,7 +338,7 @@ typedef struct StrandBuffer {
 	struct StrandVert *vert;
 	int totvert;
 
-	struct Object *ob;
+	struct ObjectRen *obr;
 	struct Material *ma;
 	unsigned int lay;
 	int overrideuv;
@@ -393,7 +419,7 @@ typedef struct LampRen {
 	short xold[BLENDER_MAX_THREADS], yold[BLENDER_MAX_THREADS];	/* last jitter table for area lights */
 	float area_size, area_sizey, area_sizez;
 	float adapt_thresh;
-		
+
 	struct ShadBuf *shb;
 	float *jitter;
 	QMCSampler *qsa;
@@ -417,8 +443,13 @@ typedef struct LampRen {
 	
 	/* ray optim */
 	VlakRen *vlr_last[BLENDER_MAX_THREADS];
+	ObjectInstanceRen *obi_last[BLENDER_MAX_THREADS];
 	
 	struct MTex *mtex[MAX_MTEX];
+
+	/* threading */
+	int thread_assigned;
+	int thread_ready;
 } LampRen;
 
 /* **************** defines ********************* */
@@ -435,7 +466,7 @@ typedef struct LampRen {
 
 /* vlakren->flag (vlak = face in dutch) char!!! */
 #define R_SMOOTH		1
-#define R_VISIBLE		2
+#define R_HIDDEN		2
 /* strand flag, means special handling */
 #define R_STRAND		4
 #define R_NOPUNOFLIP	8
@@ -446,16 +477,14 @@ typedef struct LampRen {
 /* vertex normals are tangent or view-corrected vector, for hair strands */
 #define R_TANGENT		128		
 
-/* vlakren->noflag (char) */
-#define R_SNPROJ_X		1
-#define R_SNPROJ_Y		2
-#define R_SNPROJ_Z		4
-#define R_FLIPPED_NO	8
-
 /* strandbuffer->flag */
 #define R_STRAND_BSPLINE	1
 #define R_STRAND_B_UNITS	2
 
+/* objectinstance->flag */
+#define R_DUPLI_TRANSFORMED	1
+#define R_ENV_TRANSFORMED	2
+#define R_TRANSFORMED		(1|2)
 
 #endif /* RENDER_TYPES_H */
 

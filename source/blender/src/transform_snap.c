@@ -471,12 +471,13 @@ void TargetSnapMedian(TransInfo *t)
 	if ((t->tsnap.status & TARGET_INIT) == 0)
 	{
 		TransData *td = NULL;
+		int i;
 
 		t->tsnap.snapTarget[0] = 0;
 		t->tsnap.snapTarget[1] = 0;
 		t->tsnap.snapTarget[2] = 0;
 		
-		for (td = t->data; td != NULL && td->flag & TD_SELECTED ; td++)
+		for(td = t->data, i = 0 ; i < t->total && td->flag & TD_SELECTED ; i++, td++)
 		{
 			VecAddf(t->tsnap.snapTarget, t->tsnap.snapTarget, td->iloc);
 		}
@@ -514,7 +515,8 @@ void TargetSnapClosest(TransInfo *t)
 		// More than one selected item
 		else
 			{
-			for (td = t->data; td != NULL && td->flag & TD_SELECTED ; td++)
+			int i;
+			for(td = t->data, i = 0 ; i < t->total && td->flag & TD_SELECTED ; i++, td++)
 			{
 				float loc[3];
 				float dist;

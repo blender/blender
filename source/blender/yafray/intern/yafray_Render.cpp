@@ -73,7 +73,20 @@ bool yafrayRender_t::exportScene(Render* re)
 // as well as associating them again with the original Object.
 bool yafrayRender_t::getAllMatTexObs()
 {
+	ObjectInstanceRen *obi;
+	ObjectRen *obr;
 	VlakRen* vlr;
+	float mat[4][4];
+
+	// convert blender object instances to dupli matrices
+	for(obi=(ObjectInstanceRen*)re->instancetable.first; obi; obi=obi->next) {
+		if(obi->flag & R_DUPLI_TRANSFORMED) {
+			// compute object matrix with dupli transform, need to transform
+			// obi->mat out of view space for it
+			MTC_Mat4MulSerie(mat, re->viewinv, obi->mat, re->viewmat, obi->obr->ob->obmat, 0, 0, 0, 0);
+			addDupliMtx(obi->obr->ob, mat);
+		}
+	}
 
 	// Blender does not include object which have total 0 alpha materials,
 	// however, the objects might have been included in the dupliMtx list,
@@ -84,69 +97,72 @@ bool yafrayRender_t::getAllMatTexObs()
 	// but on the other hand that could also hide the real problem of course...
 	map<string, Object*> renderobs;
 
-	for (int i=0; i < re->totvlak; i++) {
+	for(obr=(ObjectRen*)re->objecttable.first; obr; obr=obr->next) {
+		for (int i=0; i < obr->totvlak; i++) {
 
-		if ((i & 255)==0) vlr=re->vlaknodes[i>>8].vlak; else vlr++;
+			if ((i & 255)==0) vlr=obr->vlaknodes[i>>8].vlak; else vlr++;
 
-		// ---- The materials & textures
-		// in this case, probably every face has a material assigned, which can be the default material,
-		// so checking that this is !0 is probably not necessary, but just in case...
-		Material* matr = vlr->mat;
-		if (matr) {
-			// The default assigned material seems to be nameless, no MA id, an empty string.
-			// Since this name is needed in yafray, make it 'blender_default'
-			if (strlen(matr->id.name)==0)
-				used_materials["blender_default"] = matr;
-			else
-				used_materials[matr->id.name] = matr;
-			// textures, all active channels
-			for (int m=0;m<MAX_MTEX;m++) {
-				if (matr->septex & (1<<m)) continue;	// only active channels
-				MTex* mx = matr->mtex[m];
-				// if no mtex, ignore
-				if (mx==NULL) continue;
-				// if no tex, ignore
-				Tex* tx = mx->tex;
-				if (tx==NULL) continue;
-				short txtp = tx->type;
-				// if texture type not available in yafray, ignore
-				if ((txtp==0) ||
-						(txtp==TEX_MAGIC) ||
-						(txtp==TEX_PLUGIN) ||
-						(txtp==TEX_ENVMAP)) continue;
-				// if texture is stucci, only export if 'nor' enabled
-				if ((txtp==TEX_STUCCI) && !((mx->mapto & MAP_NORM) || (mx->maptoneg & MAP_NORM))) continue;
-				// In the case of an image texture, check that there is an actual image, otherwise ignore.
-				// Stupid error was here (...if (txtp & TEX_IMAGE)...),
-				// which happened to work sofar, but not anymore with the extended texture support..
-				if ((txtp==TEX_IMAGE) && (!tx->ima)) continue;
-				used_textures[tx->id.name] = mx;
-			}
-		}
-
-		// Make list of faces per object, ignore <3 vert faces, duplicate vertex sorting done later.
-		// ignore null object pointers.
-		// Also make list of facetexture images (material 'TexFace').
-		if (vlr->ob) {
-			int nv = 0;	// number of vertices
-			MTFace *tface;
-
-			if (vlr->v4) nv=4; else if (vlr->v3) nv=3;
-			if (nv) {
-				renderobs[vlr->ob->id.name] = vlr->ob;
-				all_objects[vlr->ob].push_back(vlr);
-
-				tface= RE_vlakren_get_tface(re, vlr, 0, NULL, 0);
-				if (tface && tface->tpage) {
-					Material* fmat = vlr->mat;
-
-					// only save if TexFace enabled
-					if(fmat && (fmat->mode & MA_FACETEXTURE))
-						imagetex[tface->tpage].insert(fmat);
+			// ---- The materials & textures
+			// in this case, probably every face has a material assigned, which can be the default material,
+			// so checking that this is !0 is probably not necessary, but just in case...
+			Material* matr = vlr->mat;
+			if (matr) {
+				// The default assigned material seems to be nameless, no MA id, an empty string.
+				// Since this name is needed in yafray, make it 'blender_default'
+				if (strlen(matr->id.name)==0)
+					used_materials["blender_default"] = matr;
+				else
+					used_materials[matr->id.name] = matr;
+				// textures, all active channels
+				for (int m=0;m<MAX_MTEX;m++) {
+					if (matr->septex & (1<<m)) continue;	// only active channels
+					MTex* mx = matr->mtex[m];
+					// if no mtex, ignore
+					if (mx==NULL) continue;
+					// if no tex, ignore
+					Tex* tx = mx->tex;
+					if (tx==NULL) continue;
+					short txtp = tx->type;
+					// if texture type not available in yafray, ignore
+					if ((txtp==0) ||
+							(txtp==TEX_MAGIC) ||
+							(txtp==TEX_PLUGIN) ||
+							(txtp==TEX_ENVMAP)) continue;
+					// if texture is stucci, only export if 'nor' enabled
+					if ((txtp==TEX_STUCCI) && !((mx->mapto & MAP_NORM) || (mx->maptoneg & MAP_NORM))) continue;
+					// In the case of an image texture, check that there is an actual image, otherwise ignore.
+					// Stupid error was here (...if (txtp & TEX_IMAGE)...),
+					// which happened to work sofar, but not anymore with the extended texture support..
+					if ((txtp==TEX_IMAGE) && (!tx->ima)) continue;
+					used_textures[tx->id.name] = mx;
 				}
 			}
-		}
 
+			// Make list of faces per object, ignore <3 vert faces, duplicate vertex sorting done later.
+			// ignore null object pointers.
+			// Also make list of facetexture images (material 'TexFace').
+			if (vlr->obr->ob) {
+				int nv = 0;	// number of vertices
+				MTFace *tface;
+
+				if (vlr->v4) nv=4; else if (vlr->v3) nv=3;
+				if (nv) {
+					ObjectRen *obr= vlr->obr;
+					renderobs[obr->ob->id.name] = obr->ob;
+					all_objects[obr->ob].push_back(vlr);
+
+					tface= RE_vlakren_get_tface(obr, vlr, obr->actmtface, NULL, 0);
+					if (tface && tface->tpage) {
+						Material* fmat = vlr->mat;
+
+						// only save if TexFace enabled
+						if(fmat && (fmat->mode & MA_FACETEXTURE))
+							imagetex[tface->tpage].insert(fmat);
+					}
+				}
+			}
+
+		}
 	}
 
 	// now remove any objects from dupliMtx_list which are not in the renderlist
@@ -187,15 +203,15 @@ bool yafrayRender_t::getAllMatTexObs()
 	return true;
 }
 
-
-
-void yafrayRender_t::addDupliMtx(Object* obj)
+void yafrayRender_t::addDupliMtx(Object* obj, float mat[][4])
 {
 	for (int i=0;i<4;i++)
 		for (int j=0;j<4;j++)
-			dupliMtx_list[obj->id.name].push_back(obj->obmat[i][j]);
+			dupliMtx_list[obj->id.name].push_back(mat[i][j]);
 }
 
+
+#if 0
 
 bool yafrayRender_t::objectKnownData(Object* obj)
 {
@@ -217,3 +233,5 @@ bool yafrayRender_t::objectKnownData(Object* obj)
 	objectData[obj->data] = obj;
 	return false;
 }
+#endif
+

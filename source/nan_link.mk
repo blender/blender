@@ -117,10 +117,10 @@ ifeq ($(OS),openbsd)
 endif
 
 ifeq ($(OS),solaris)
-    ifeq ($(CPU), i386)
-        LLIBS = -L/usr/X11/lib
-    endif 
-    LLIBS += -lGLU -lGL -lXmu -lXext -lXi -lX11 -lc -lm -ldl -lsocket -lnsl
+    ifeq (x86_64, $(findstring x86_64, $(CPU)))
+        LLIBS = -lrt
+    endif
+    LLIBS += -L$(NAN_MESA)/lib -lGLU -lGL -lXmu -lXext -lXi -lX11 -lc -lm -ldl -lsocket -lnsl 
     DYNLDFLAGS = -shared $(LDFLAGS)
 endif
 

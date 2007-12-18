@@ -279,6 +279,7 @@ extern Object workob;
 #define OB_DUPLIFACES		512
 #define OB_DUPLIFACES_SCALE	1024
 #define OB_DUPLIPARTS		2048
+#define OB_RENDER_DUPLI		4096
 
 /* (short) ipoflag */
 #define OB_DRAWKEY			1
@@ -342,6 +343,8 @@ extern Object workob;
 #define OB_CIRCLE		3
 #define OB_SINGLE_ARROW	4
 #define OB_CUBE			5
+#define OB_EMPTY_SPHERE	6
+#define OB_EMPTY_CONE	7
 
 /* boundtype */
 #define OB_BOUND_BOX		0
@@ -452,4 +455,5 @@ extern Object workob;
 #endif
 
 #endif
+
 

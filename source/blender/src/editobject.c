@@ -2823,54 +2823,87 @@ void convertmenu(void)
 	DAG_scene_sort(G.scene);
 }
 
-	/* Change subdivision properties of mesh object ob, if
-	 * level==-1 then toggle subsurf, else set to level.
-     * *set allows to toggle multiple selections
-	 */
-static void object_flip_subdivison(Object *ob, int *set, int level, int mode, int ingroup)
+/* Change subdivision or particle properties of mesh object ob, if level==-1
+ * then toggle subsurf, else set to level set allows to toggle multiple
+ * selections */
+
+static void object_has_subdivision_particles(Object *ob, int *havesubdiv, int *havepart, int depth)
+{
+	if(ob->type==OB_MESH) {
+		if(modifiers_findByType(ob, eModifierType_Subsurf))
+			*havesubdiv= 1;
+		if(modifiers_findByType(ob, eModifierType_ParticleSystem))
+			*havepart= 1;
+	}
+
+	if(ob->dup_group && depth <= 4) {
+		GroupObject *go;
+
+		for(go= ob->dup_group->gobject.first; go; go= go->next)
+			object_has_subdivision_particles(go->ob, havesubdiv, havepart, depth+1);
+	}
+}
+
+static void object_flip_subdivison_particles(Object *ob, int *set, int level, int mode, int particles, int depth)
 {
 	ModifierData *md;
 
 	if(ob->type==OB_MESH) {
-		md = modifiers_findByType(ob, eModifierType_Subsurf);
-		
-		if (md) {
-			SubsurfModifierData *smd = (SubsurfModifierData*) md;
+		if(particles) {
+			for(md=ob->modifiers.first; md; md=md->next) {
+				if(md->type == eModifierType_ParticleSystem) {
+					ParticleSystemModifierData *psmd = (ParticleSystemModifierData*)md;
 
-			if (level == -1) {
-				if(*set == -1) 
-					*set= smd->modifier.mode&(mode);
-											  
-				if (*set) {
-					smd->modifier.mode &= ~(mode);
-				} else {
-					smd->modifier.mode |= (mode);
+					if(*set == -1)
+						*set= psmd->modifier.mode&(mode);
+
+					if (*set)
+						psmd->modifier.mode &= ~(mode);
+					else
+						psmd->modifier.mode |= (mode);
 				}
-			} else {
-				smd->levels = level;
 			}
-		} 
-		else if(!ingroup && *set != 0) {
-			SubsurfModifierData *smd = (SubsurfModifierData*) modifier_new(eModifierType_Subsurf);
+		}
+		else {
+			md = modifiers_findByType(ob, eModifierType_Subsurf);
 
-			BLI_addtail(&ob->modifiers, smd);
+			if (md) {
+				SubsurfModifierData *smd = (SubsurfModifierData*) md;
 
-			if (level!=-1) {
-				smd->levels = level;
+				if (level == -1) {
+					if(*set == -1) 
+						*set= smd->modifier.mode&(mode);
+
+					if (*set)
+						smd->modifier.mode &= ~(mode);
+					else
+						smd->modifier.mode |= (mode);
+				} else {
+					smd->levels = level;
+				}
+			} 
+			else if(depth == 0 && *set != 0) {
+				SubsurfModifierData *smd = (SubsurfModifierData*) modifier_new(eModifierType_Subsurf);
+
+				BLI_addtail(&ob->modifiers, smd);
+
+				if (level!=-1) {
+					smd->levels = level;
+				}
+				
+				if(*set == -1)
+					*set= 1;
 			}
-			
-			if(*set == -1)
-				*set= 1;
 		}
 
-		ob->recalc |= OB_RECALC_DATA;
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
 	}
 
-	if(ob->dup_group) {
+	if(ob->dup_group && depth<=4) {
 		GroupObject *go;
 
 		for(go= ob->dup_group->gobject.first; go; go= go->next)
-			object_flip_subdivison(go->ob, set, level, mode, 1);
+			object_flip_subdivison_particles(go->ob, set, level, mode, particles, depth+1);
 	}
 }
 
@@ -2882,16 +2915,34 @@ void flip_subdivison(int level)
 {
 	Base *base;
 	int set= -1;
-	int mode;
+	int mode, pupmode, particles= 0, havesubdiv= 0, havepart= 0;
 	
 	if(G.qual & LR_ALTKEY)
 		mode= eModifierMode_Realtime;
 	else
 		mode= eModifierMode_Render|eModifierMode_Realtime;
 	
+	if(level == -1) {
+		for(base= G.scene->base.first; base; base= base->next)
+			if(((level==-1) && (TESTBASE(base))) || (TESTBASELIB(base)))
+				object_has_subdivision_particles(base->object, &havesubdiv, &havepart, 0);
+	}
+	else
+		havesubdiv= 1;
+	
+	if(havesubdiv && havepart) {
+		pupmode= pupmenu("Switch%t|Subsurf %x1|Particle Systems %x2");
+		if(pupmode <= 0)
+			return;
+		else if(pupmode == 2)
+			particles= 1;
+	}
+	else if(havepart)
+		particles= 1;
+	
 	for(base= G.scene->base.first; base; base= base->next)
 		if(((level==-1) && (TESTBASE(base))) || (TESTBASELIB(base)))
-			object_flip_subdivison(base->object, &set, level, mode, 0);
+			object_flip_subdivison_particles(base->object, &set, level, mode, particles, 0);
 	
 	countall();
 	allqueue(REDRAWVIEW3D, 0);
@@ -2900,7 +2951,10 @@ void flip_subdivison(int level)
 	allqueue(REDRAWBUTSOBJECT, 0);
 	DAG_scene_flush_update(G.scene, screen_view3d_layers());
 	
-	BIF_undo_push("Switch subsurf on/off");
+	if(particles)
+		BIF_undo_push("Switch particles on/off");
+	else
+		BIF_undo_push("Switch subsurf on/off");
 }
  
 static void copymenu_properties(Object *ob)

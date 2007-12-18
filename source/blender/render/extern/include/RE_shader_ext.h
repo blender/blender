@@ -64,8 +64,11 @@ struct ShadeInputCopy {
 	
 	struct Material *mat;
 	struct VlakRen *vlr;
+	struct ObjectInstanceRen *obi;
+	struct ObjectRen *obr;
 	int facenr;
 	float facenor[3];				/* copy from face */
+	short flippednor;				/* is facenor flipped? */
 	struct VertRen *v1, *v2, *v3;	/* vertices can be in any order for quads... */
 	short i1, i2, i3;				/* original vertex indices */
 	short puno;
@@ -93,8 +96,11 @@ typedef struct ShadeInput
 	
 	struct Material *mat;
 	struct VlakRen *vlr;
+	struct ObjectInstanceRen *obi;
+	struct ObjectRen *obr;
 	int facenr;
 	float facenor[3];				/* copy from face */
+	short flippednor;				/* is facenor flipped? */
 	struct VertRen *v1, *v2, *v3;	/* vertices can be in any order for quads... */
 	short i1, i2, i3;				/* original vertex indices */
 	short puno;
@@ -130,7 +136,7 @@ typedef struct ShadeInput
 
 	ShadeInputUV uv[8];   /* 8 = MAX_MTFACE */
 	ShadeInputCol col[8]; /* 8 = MAX_MCOL */
-	int totuv, totcol;
+	int totuv, totcol, actuv, actcol;
 	
 	/* dx/dy OSA coordinates */
 	float dxco[3], dyco[3];

@@ -230,7 +230,7 @@ typedef struct TransInfo {
 		// for manipulator exceptions, like scaling using center point, drawing help lines
 #define T_USES_MANIPULATOR	(1 << 7)
 
-/* restrictions flags */
+	/* restrictions flags */
 #define T_ALL_RESTRICTIONS	((1 << 8)|(1 << 9)|(1 << 10))
 #define T_NO_CONSTRAINT		(1 << 8)
 #define T_NULL_ONE			(1 << 9)
@@ -239,14 +239,17 @@ typedef struct TransInfo {
 #define T_PROP_EDIT			(1 << 11)
 #define T_PROP_CONNECTED	(1 << 12)
 
-/* if MMB is pressed or not */
+	/* if MMB is pressed or not */
 #define	T_MMB_PRESSED		(1 << 13)
 
 #define T_V3D_ALIGN			(1 << 14)
-#define T_2D_EDIT			(1 << 15) /* for 2d views like uv or ipo */
+	/* for 2d views like uv or ipo */
+#define T_2D_EDIT			(1 << 15) 
 #define T_CLIP_UV			(1 << 16)
 
 #define T_FREE_CUSTOMDATA	(1 << 17)
+	/* auto-ik is on */
+#define T_AUTOIK			(1 << 18)
 
 /* ******************************************************************************** */
 
@@ -375,6 +378,8 @@ void sort_trans_data_dist(TransInfo *t);
 void add_tdi_poin(float *poin, float *old, float delta);
 void special_aftertrans_update(TransInfo *t);
 
+void transform_autoik_update(TransInfo *t, short mode);
+
 /* auto-keying stuff used by special_aftertrans_update */
 void autokeyframe_ob_cb_func(struct Object *ob, int tmode);
 void autokeyframe_pose_cb_func(struct Object *ob, int tmode, short targetless_ik);
@@ -457,4 +462,5 @@ void applyNumInput(NumInput *n, float *vec);
 char handleNumInput(NumInput *n, unsigned short event);
 
 #endif
+
 

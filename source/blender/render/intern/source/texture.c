@@ -755,16 +755,16 @@ static int plugintex(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex
 }
 
 
-static int cubemap_glob(VlakRen *vlr, float x, float y, float z, float *adr1, float *adr2)
+static int cubemap_glob(float *n, float x, float y, float z, float *adr1, float *adr2)
 {
 	float x1, y1, z1, nor[3];
 	int ret;
 	
-	if(vlr==NULL) {
+	if(n==NULL) {
 		nor[0]= x; nor[1]= y; nor[2]= z;	// use local render coord
 	}
 	else {
-		VECCOPY(nor, vlr->n);
+		VECCOPY(nor, n);
 	}
 	MTC_Mat4Mul3Vecfl(R.viewinv, nor);
 
@@ -793,7 +793,7 @@ static int cubemap_glob(VlakRen *vlr, float x, float y, float z, float *adr1, fl
 /* ------------------------------------------------------------------------- */
 
 /* mtex argument only for projection switches */
-static int cubemap(MTex *mtex, VlakRen *vlr, float x, float y, float z, float *adr1, float *adr2)
+static int cubemap(MTex *mtex, VlakRen *vlr, float *n, float x, float y, float z, float *adr1, float *adr2)
 {
 	int proj[4]={0, ME_PROJXY, ME_PROJXZ, ME_PROJYZ}, ret= 0;
 	
@@ -811,7 +811,7 @@ static int cubemap(MTex *mtex, VlakRen *vlr, float x, float y, float z, float *a
 				else if( fabs(nor[0])<fabs(nor[1]) && fabs(nor[2])<fabs(nor[1]) ) vlr->puno |= ME_PROJXZ;
 				else vlr->puno |= ME_PROJYZ;
 			}
-			else return cubemap_glob(vlr, x, y, z, adr1, adr2);
+			else return cubemap_glob(n, x, y, z, adr1, adr2);
 		}
 		
 		if(mtex) {
@@ -843,7 +843,7 @@ static int cubemap(MTex *mtex, VlakRen *vlr, float x, float y, float z, float *a
 		}		
 	} 
 	else {
-		return cubemap_glob(vlr, x, y, z, adr1, adr2);
+		return cubemap_glob(n, x, y, z, adr1, adr2);
 	}
 	
 	return ret;
@@ -851,14 +851,14 @@ static int cubemap(MTex *mtex, VlakRen *vlr, float x, float y, float z, float *a
 
 /* ------------------------------------------------------------------------- */
 
-static int cubemap_ob(Object *ob, VlakRen *vlr, float x, float y, float z, float *adr1, float *adr2)
+static int cubemap_ob(Object *ob, float *n, float x, float y, float z, float *adr1, float *adr2)
 {
 	float x1, y1, z1, nor[3];
 	int ret;
 	
-	if(vlr==NULL) return 0;
+	if(n==NULL) return 0;
 	
-	VECCOPY(nor, vlr->n);
+	VECCOPY(nor, n);
 	if(ob) MTC_Mat4Mul3Vecfl(ob->imat, nor);
 	
 	x1= fabs(nor[0]);
@@ -885,7 +885,7 @@ static int cubemap_ob(Object *ob, VlakRen *vlr, float x, float y, float z, float
 
 /* ------------------------------------------------------------------------- */
 
-static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *dxt, float *dyt)
+static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *n, float *dxt, float *dyt)
 {
 	Tex *tex;
 	Object *ob= NULL;
@@ -907,9 +907,9 @@ static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *dxt, float 
 		else if(wrap==MTEX_TUBE) tubemap(t[0], t[1], t[2], &fx, &fy);
 		else if(wrap==MTEX_SPHERE) spheremap(t[0], t[1], t[2], &fx, &fy);
 		else {
-			if(texco==TEXCO_OBJECT) cubemap_ob(ob, vlr, t[0], t[1], t[2], &fx, &fy);
-			else if(texco==TEXCO_GLOB) cubemap_glob(vlr, t[0], t[1], t[2], &fx, &fy);
-			else cubemap(mtex, vlr, t[0], t[1], t[2], &fx, &fy);
+			if(texco==TEXCO_OBJECT) cubemap_ob(ob, n, t[0], t[1], t[2], &fx, &fy);
+			else if(texco==TEXCO_GLOB) cubemap_glob(n, t[0], t[1], t[2], &fx, &fy);
+			else cubemap(mtex, vlr, n, t[0], t[1], t[2], &fx, &fy);
 		}
 		
 		/* repeat */
@@ -998,9 +998,9 @@ static void do_2d_mapping(MTex *mtex, float *t, VlakRen *vlr, float *dxt, float 
 		}
 		else {
 
-			if(texco==TEXCO_OBJECT) proj = cubemap_ob(ob, vlr, t[0], t[1], t[2], &fx, &fy);
-			else if (texco==TEXCO_GLOB) proj = cubemap_glob(vlr, t[0], t[1], t[2], &fx, &fy);
-			else proj = cubemap(mtex, vlr, t[0], t[1], t[2], &fx, &fy);
+			if(texco==TEXCO_OBJECT) proj = cubemap_ob(ob, n, t[0], t[1], t[2], &fx, &fy);
+			else if (texco==TEXCO_GLOB) proj = cubemap_glob(n, t[0], t[1], t[2], &fx, &fy);
+			else proj = cubemap(mtex, vlr, n, t[0], t[1], t[2], &fx, &fy);
 
 			if(proj==1) {
 				SWAP(float, dxt[1], dxt[2]);
@@ -1230,7 +1230,7 @@ int multitex_ext(Tex *tex, float *texvec, float *dxt, float *dyt, int osatex, Te
 			dyt_l[0]= dyt_l[1]= dyt_l[2]= 0.0f;
 		}
 		
-		do_2d_mapping(&mtex, texvec_l, NULL, dxt_l, dyt_l);
+		do_2d_mapping(&mtex, texvec_l, NULL, NULL, dxt_l, dyt_l);
 
 		return multitex(tex, texvec_l, dxt_l, dyt_l, osatex, texres);
 	}
@@ -1466,7 +1466,7 @@ void do_material_tex(ShadeInput *shi)
 				co= shi->gl; dx= shi->dxco; dy= shi->dyco;
 			}
 			else if(mtex->texco==TEXCO_UV) {
-				ShadeInputUV *suv= &shi->uv[0];
+				ShadeInputUV *suv= &shi->uv[shi->actuv];
 				int i;
 
 				if(mtex->uvname[0] != 0) {
@@ -1549,7 +1549,7 @@ void do_material_tex(ShadeInput *shi)
 					else dxt[2]= dyt[2]= 0.0;
 				}
 				
-				do_2d_mapping(mtex, texvec, shi->vlr, dxt, dyt);
+				do_2d_mapping(mtex, texvec, shi->vlr, shi->facenor, dxt, dyt);
 
 				/* translate and scale */
 				texvec[0]= mtex->size[0]*(texvec[0]-0.5) +mtex->ofs[0]+0.5;
@@ -1669,10 +1669,10 @@ void do_material_tex(ShadeInput *shi)
 				if(mtex->texflag & MTEX_VIEWSPACE) {
 					// rotate to global coords
 					if(mtex->texco==TEXCO_ORCO || mtex->texco==TEXCO_UV) {
-						if(shi->vlr && shi->vlr->ob) {
+						if(shi->vlr && shi->obr->ob) {
 							float len= Normalize(texres.nor);
 							// can be optimized... (ton)
-							Mat4Mul3Vecfl(shi->vlr->ob->obmat, texres.nor);
+							Mat4Mul3Vecfl(shi->obr->ob->obmat, texres.nor);
 							Mat4Mul3Vecfl(R.viewmat, texres.nor);
 							Normalize(texres.nor);
 							VecMulf(texres.nor, len);
@@ -1762,8 +1762,8 @@ void do_material_tex(ShadeInput *shi)
 								Mat4Mul3Vecfl(R.viewmat, nor);
 							}
 							else if(mtex->normapspace == MTEX_NSPACE_OBJECT) {
-								if(shi->vlr && shi->vlr->ob)
-									Mat4Mul3Vecfl(shi->vlr->ob->obmat, nor);
+								if(shi->vlr && shi->vlr->obr->ob)
+									Mat4Mul3Vecfl(shi->vlr->obr->ob->obmat, nor);
 								Mat4Mul3Vecfl(R.viewmat, nor);
 							}
 
@@ -1985,7 +1985,7 @@ void do_halo_tex(HaloRen *har, float xn, float yn, float *colf)
 
 	}
 
-	if(mtex->tex->type==TEX_IMAGE) do_2d_mapping(mtex, texvec, NULL, dxt, dyt);
+	if(mtex->tex->type==TEX_IMAGE) do_2d_mapping(mtex, texvec, NULL, NULL, dxt, dyt);
 	
 	rgb= multitex(mtex->tex, texvec, dxt, dyt, osatex, &texres);
 
@@ -2156,7 +2156,7 @@ void do_sky_tex(float *rco, float *lo, float *dxyview, float *hor, float *zen, f
 			else texvec[2]= mtex->size[2]*(mtex->ofs[2]);
 			
 			/* texture */
-			if(mtex->tex->type==TEX_IMAGE) do_2d_mapping(mtex, texvec, NULL, dxt, dyt);
+			if(mtex->tex->type==TEX_IMAGE) do_2d_mapping(mtex, texvec, NULL, NULL, dxt, dyt);
 		
 			rgb= multitex(mtex->tex, texvec, dxt, dyt, R.osa, &texres);
 			
@@ -2336,7 +2336,7 @@ void do_lamp_tex(LampRen *la, float *lavec, ShadeInput *shi, float *colf)
 			
 			/* texture */
 			if(tex->type==TEX_IMAGE) {
-				do_2d_mapping(mtex, texvec, NULL, dxt, dyt);
+				do_2d_mapping(mtex, texvec, NULL, NULL, dxt, dyt);
 			}
 			
 			rgb= multitex(tex, texvec, dxt, dyt, shi->osatex, &texres);
@@ -2421,7 +2421,7 @@ int externtex(MTex *mtex, float *vec, float *tin, float *tr, float *tg, float *t
 	
 	/* texture */
 	if(tex->type==TEX_IMAGE) {
-		do_2d_mapping(mtex, texvec, NULL, dxt, dyt);
+		do_2d_mapping(mtex, texvec, NULL, NULL, dxt, dyt);
 	}
 	
 	rgb= multitex(tex, texvec, dxt, dyt, 0, &texr);
@@ -2454,6 +2454,7 @@ void render_realtime_texture(ShadeInput *shi, Image *ima)
 	static int firsttime= 1;
 	Tex *tex;
 	float texvec[3], dx[2], dy[2];
+	ShadeInputUV *suv= &shi->uv[shi->actuv];
 
 	if(firsttime) {
 		firsttime= 0;
@@ -2465,14 +2466,14 @@ void render_realtime_texture(ShadeInput *shi, Image *ima)
 	
 	if(shi->ys & 1) tex= &tex1; else tex= &tex2;	// threadsafe
 	
-	texvec[0]= 0.5+0.5*shi->uv[0].uv[0];
-	texvec[1]= 0.5+0.5*shi->uv[0].uv[1];
+	texvec[0]= 0.5+0.5*suv->uv[0];
+	texvec[1]= 0.5+0.5*suv->uv[1];
 	texvec[2] = 0;  // initalize it because imagewrap looks at it.
 	if(shi->osatex) {
-		dx[0]= 0.5*shi->uv[0].dxuv[0];
-		dx[1]= 0.5*shi->uv[0].dxuv[1];
-		dy[0]= 0.5*shi->uv[0].dyuv[0];
-		dy[1]= 0.5*shi->uv[0].dyuv[1];
+		dx[0]= 0.5*suv->dxuv[0];
+		dx[1]= 0.5*suv->dxuv[1];
+		dy[0]= 0.5*suv->dyuv[0];
+		dy[1]= 0.5*suv->dyuv[1];
 	}
 	
 	texr.nor= NULL;
