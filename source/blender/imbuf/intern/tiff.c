@@ -43,7 +43,6 @@
  * used to compress images.
  */
 
-#include <assert.h>
 #include <string.h>
 
 #include "imbuf.h"
@@ -108,7 +107,6 @@ int imb_tiff_DummyMapProc(thandle_t fd, tdata_t* pbase, toff_t* psize)
  *
  * @return: Number of bytes actually read.
  * 	 0 = EOF.
- * 	-1 = Error (never returned).
  */
 tsize_t imb_tiff_ReadProc(thandle_t handle, tdata_t data, tsize_t n)
 {
@@ -118,8 +116,10 @@ tsize_t imb_tiff_ReadProc(thandle_t handle, tdata_t data, tsize_t n)
 
 	/* get the pointer to the in-memory file */
 	mfile = IMB_TIFF_GET_MEMFILE(handle);
-	assert(mfile != NULL);
-	assert(mfile->mem != NULL);
+	if (!mfile || !mfile->mem) {
+		fprintf(stderr, "imb_tiff_ReadProc: !mfile || !mfile->mem!\n");
+		return 0;
+	}
 
 	/* find the actual number of bytes to read (copy) */
 	nCopy = n;
@@ -136,7 +136,6 @@ tsize_t imb_tiff_ReadProc(thandle_t handle, tdata_t data, tsize_t n)
 		return (0);
 
 	/* all set -> do the read (copy) */
-	assert(sizeof(unsigned char) == 1);
 	srcAddr = (void*)(&(mfile->mem[mfile->offset]));
 	memcpy((void*)data, srcAddr, nCopy);
 	mfile->offset += nCopy;		/* advance file ptr by copied bytes */
@@ -180,8 +179,10 @@ toff_t imb_tiff_SeekProc(thandle_t handle, toff_t ofs, int whence)
 
 	/* get the pointer to the in-memory file */
 	mfile = IMB_TIFF_GET_MEMFILE(handle);
-	assert(mfile != NULL);
-	assert(mfile->mem != NULL);
+	if (!mfile || !mfile->mem) {
+		fprintf(stderr, "imb_tiff_SeekProc: !mfile || !mfile->mem!\n");
+		return (-1);
+	}
 
 	/* find the location we plan to seek to */
 	switch (whence) {
@@ -193,7 +194,9 @@ toff_t imb_tiff_SeekProc(thandle_t handle, toff_t ofs, int whence)
 			break;
 		default:
 			/* no other types are supported - return an error */
-			printf("Unsupported TIFF SEEK type.\n");
+			fprintf(stderr, 
+				"imb_tiff_SeekProc: "
+				"Unsupported TIFF SEEK type.\n");
 			return (-1);
 	}
 
@@ -222,8 +225,10 @@ int imb_tiff_CloseProc(thandle_t handle)
 
 	/* get the pointer to the in-memory file */
 	mfile = IMB_TIFF_GET_MEMFILE(handle);
-	assert(mfile != NULL);
-	assert(mfile->mem != NULL);	/* the file has not been closed yet */
+	if (!mfile || !mfile->mem) {
+		fprintf(stderr,"imb_tiff_CloseProc: !mfile || !mfile->mem!\n");
+		return (0);
+	}
 	
 	/* virtually close the file */
 	mfile->mem    = NULL;
@@ -246,8 +251,10 @@ toff_t imb_tiff_SizeProc(thandle_t handle)
 
 	/* get the pointer to the in-memory file */
 	mfile = IMB_TIFF_GET_MEMFILE(handle);
-	assert(mfile != NULL);
-	assert(mfile->mem != NULL);
+	if (!mfile || !mfile->mem) {
+		fprintf(stderr,"imb_tiff_SizeProc: !mfile || !mfile->mem!\n");
+		return (0);
+	}
 
 	/* return the size */
 	return (toff_t)(mfile->size);
@@ -317,7 +324,10 @@ struct ImBuf *imb_loadtiff(unsigned char *mem, int size, int flags)
 	memFile.size = size;
 
 	/* check whether or not we have a TIFF file */
-	assert(size >= IMB_TIFF_NCB);
+        if (size < IMB_TIFF_NCB) {
+		fprintf(stderr, "imb_loadtiff: size < IMB_TIFF_NCB\n");
+		return NULL;
+	}
 	if (imb_is_a_tiff(mem) == 0)
 		return NULL;
 
@@ -340,7 +350,8 @@ struct ImBuf *imb_loadtiff(unsigned char *mem, int size, int flags)
 	if (ibuf) {
 		ibuf->ftype = TIF;
 	} else {
-		printf("imb_loadtiff: could not allocate memory for TIFF " \
+		fprintf(stderr, 
+			"imb_loadtiff: could not allocate memory for TIFF " \
 			"image.\n");
 		libtiff_TIFFClose(image);
 		return NULL;
@@ -362,7 +373,8 @@ struct ImBuf *imb_loadtiff(unsigned char *mem, int size, int flags)
 		success = libtiff_TIFFReadRGBAImage(
 				image, width, height, raster, 0);
 		if (!success) {
-			printf("imb_loadtiff: This TIFF format is not " \
+			fprintf(stderr,
+				"imb_loadtiff: This TIFF format is not " 
 				"currently supported by Blender.\n");
 			libtiff__TIFFfree(raster);
 			libtiff_TIFFClose(image);
@@ -378,7 +390,8 @@ struct ImBuf *imb_loadtiff(unsigned char *mem, int size, int flags)
 			/* this may not be entirely necessary, but is put here
 			 * in case sizeof(unsigned int) is not a 32-bit
 			 * quantity */
-			printf("imb_loadtiff: using (slower) component-wise " \
+			fprintf(stderr,
+				"imb_loadtiff: using (slower) component-wise "
 				"buffer copy.\n");
 			to = (unsigned char*)ibuf->rect;
 			for (pixel_i=0; pixel_i < width*height; pixel_i++)
@@ -437,7 +450,8 @@ short imb_savetiff(struct ImBuf *ibuf, char *name, int flags)
 	 * to gray, RGB, RGBA respectively. */
 	samplesperpixel = (uint16)((ibuf->depth + 7) >> 3);
 	if ((samplesperpixel > 4) || (samplesperpixel == 2)) {
-		printf("imb_savetiff: unsupported number of bytes per " \
+		fprintf(stderr,
+			"imb_savetiff: unsupported number of bytes per " 
 			"pixel: %d\n", samplesperpixel);
 		return (0);
 	}
@@ -445,7 +459,8 @@ short imb_savetiff(struct ImBuf *ibuf, char *name, int flags)
 	/* open TIFF file for writing */
 	if (flags & IB_mem) {
 		/* bork at the creation of a TIFF in memory */
-		printf("imb_savetiff: creation of in-memory TIFF files is " \
+		fprintf(stderr,
+			"imb_savetiff: creation of in-memory TIFF files is " 
 			"not yet supported.\n");
 		return (0);
 	} else {
@@ -453,7 +468,8 @@ short imb_savetiff(struct ImBuf *ibuf, char *name, int flags)
 		image = libtiff_TIFFOpen(name, "w");
 	}
 	if (image == NULL) {
-		printf("imb_savetiff: could not open TIFF for writing.\n");
+		fprintf(stderr,
+			"imb_savetiff: could not open TIFF for writing.\n");
 		return (0);
 	}
 
@@ -462,7 +478,8 @@ short imb_savetiff(struct ImBuf *ibuf, char *name, int flags)
 	pixels = (unsigned char*)libtiff__TIFFmalloc(npixels *
 		samplesperpixel * sizeof(unsigned char));
 	if (pixels == NULL) {
-		printf("imb_savetiff: could not allocate pixels array.\n");
+		fprintf(stderr,
+			"imb_savetiff: could not allocate pixels array.\n");
 		libtiff_TIFFClose(image);
 		return (0);
 	}
@@ -533,7 +550,8 @@ short imb_savetiff(struct ImBuf *ibuf, char *name, int flags)
 	libtiff_TIFFSetField(image, TIFFTAG_RESOLUTIONUNIT,  RESUNIT_INCH);
 	if (libtiff_TIFFWriteEncodedStrip(image, 0, pixels, 
 			ibuf->x*ibuf->y*samplesperpixel) == -1) {
-		printf("imb_savetiff: Could not write encoded TIFF.\n");
+		fprintf(stderr,
+			"imb_savetiff: Could not write encoded TIFF.\n");
 		libtiff_TIFFClose(image);
 		libtiff__TIFFfree(pixels);
 		return (1);
