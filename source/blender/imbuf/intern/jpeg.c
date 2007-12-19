@@ -41,6 +41,7 @@
 #include "imbuf_patch.h"
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
+#include "IMB_imginfo.h"
 #include "IMB_jpeg.h"
 #include "jpeglib.h" 
 
@@ -244,11 +245,14 @@ static ImBuf * ibJpegImageFromCinfo(struct jpeg_decompress_struct * cinfo, int f
 	int x, y, depth, r, g, b, k;
 	struct ImBuf * ibuf = 0;
 	uchar * rect;
+	jpeg_saved_marker_ptr marker;
+	char *str, *key, *value;
 
 	/* install own app1 handler */
 	ibuf_ftype = 0;
 	jpeg_set_marker_processor(cinfo, 0xe1, handle_app1);
 	cinfo->dct_method = JDCT_FLOAT;
+	jpeg_save_markers(cinfo, JPEG_COM, 0xffff);
 
 	if (jpeg_read_header(cinfo, FALSE) == JPEG_HEADER_OK) {
 		x = cinfo->image_width;
@@ -335,6 +339,64 @@ static ImBuf * ibJpegImageFromCinfo(struct jpeg_decompress_struct * cinfo, int f
 						}
 				}
 			}
+
+			marker= cinfo->marker_list;
+			while(marker) {
+				if(marker->marker != JPEG_COM)
+					goto next_stamp_marker;
+
+				/*
+				 * Because JPEG format don't support the
+				 * pair "key/value" like PNG, we store the
+				 * stampinfo in a single "encode" string:
+				 *	"Blender:key:value"
+				 *
+				 * That is why we need split it to the
+				 * common key/value here.
+				 */
+				if(strncmp((char *) marker->data, "Blender", 7)) {
+					/*
+					 * Maybe the file have text that
+					 * we don't know "what it's", in that
+					 * case we keep the text (with a
+					 * key "None").
+					 * This is only for don't "lose"
+					 * the information when we write
+					 * it back to disk.
+					 */
+					IMB_imginfo_add_field(ibuf, "None", (char *) marker->data);
+					ibuf->flags |= IB_imginfo;
+					goto next_stamp_marker;
+				}
+
+				str = BLI_strdup ((char *) marker->data);
+				key = strchr (str, ':');
+				/*
+				 * A little paranoid, but the file maybe
+				 * is broken... and a "extra" check is better
+				 * that a segfaul ;)
+				 */
+				if (!key) {
+					MEM_freeN(str);
+					goto next_stamp_marker;
+				}
+
+				key++;
+				value = strchr (key, ':');
+				if (!value) {
+					MEM_freeN(str);
+					goto next_stamp_marker;
+				}
+
+				*value = '\0'; /* need finish the key string */
+				value++;
+				IMB_imginfo_add_field(ibuf, key, value);
+				ibuf->flags |= IB_imginfo;
+				MEM_freeN(str);
+next_stamp_marker:
+				marker= marker->next;
+			}
+
 			jpeg_finish_decompress(cinfo);
 		}
 		
@@ -391,7 +453,8 @@ static void write_jpeg(struct jpeg_compress_struct * cinfo, struct ImBuf * ibuf)
 	uchar * rect;
 	int x, y;
 	char neogeo[128];
-
+	ImgInfo *iptr;
+	char *text;
 
 	jpeg_start_compress(cinfo, TRUE);
 
@@ -400,6 +463,33 @@ static void write_jpeg(struct jpeg_compress_struct * cinfo, struct ImBuf * ibuf)
 	
 	memcpy(neogeo + 6, &ibuf_ftype, 4);
 	jpeg_write_marker(cinfo, 0xe1, (JOCTET*) neogeo, 10);
+
+	if(ibuf->img_info) {
+		/* key + max value + "Blender" */
+		text= MEM_mallocN(530, "stamp info read");
+		iptr= ibuf->img_info;
+		while(iptr) {
+			if (!strcmp (iptr->key, "None")) {
+				jpeg_write_marker(cinfo, JPEG_COM, (JOCTET *) iptr->value, strlen (iptr->value) + 1);
+				goto next_stamp_info;
+			}
+
+			/*
+			 * The JPEG format don't support a pair "key/value"
+			 * like PNG, so we "encode" the stamp in a
+			 * single string:
+			 *	"Blender:key:value"
+			 *
+			 * The first "Blender" is a simple identify to help
+			 * in the read process.
+			 */
+			sprintf (text, "Blender:%s:%s", iptr->key, iptr->value);
+			jpeg_write_marker(cinfo, JPEG_COM, (JOCTET *) text, strlen (text)+1);
+next_stamp_info:
+			iptr = iptr->next;
+		}
+		MEM_freeN(text);
+	}
 
 	row_pointer[0] =
 		mallocstruct(JSAMPLE,
