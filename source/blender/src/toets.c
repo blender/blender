@@ -752,12 +752,12 @@ int blenderqread(unsigned short event, short val)
 
 	case AKEY:
 		if(textediting==0 && textspace==0) {
-			if(G.qual==(LR_SHIFTKEY|LR_ALTKEY)){
-				play_anim(1);
+			if ((G.qual==LR_ALTKEY) && (curarea && curarea->spacetype==SPACE_VIEW3D)) {
+				play_anim(0);
 				return 0;
 			}
-			else if(G.qual==LR_ALTKEY) {
-				play_anim(0);
+			else if ((G.qual==LR_ALTKEY) || (G.qual==(LR_ALTKEY|LR_SHIFTKEY))){
+				play_anim(1);
 				return 0;
 			}
 		}
