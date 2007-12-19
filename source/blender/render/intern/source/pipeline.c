@@ -1046,7 +1046,8 @@ void RE_InitState(Render *re, RenderData *rd, int winx, int winy, rcti *disprect
 		re->recty= winy;
 	}
 	
-	if(re->rectx < 2 || re->recty < 2) {
+	if(re->rectx < 2 || re->recty < 2 || (BKE_imtype_is_movie(rd->imtype) &&
+(re->rectx < 16 || re->recty < 16) )) {
 		re->error("Image too small");
 		re->ok= 0;
 	}
@@ -2197,6 +2198,8 @@ static int render_initialize_from_scene(Render *re, Scene *scene)
 		push_render_result(re);
 	
 	RE_InitState(re, &scene->r, winx, winy, &disprect);
+	if(!re->ok)  /* if an error was printed, abort */
+		return 0;
 	
 	/* initstate makes new result, have to send changed tags around */
 	ntreeCompositTagRender(re->scene);
