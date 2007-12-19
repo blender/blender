@@ -2610,7 +2610,9 @@ static void imagewindow_init_display_cb(RenderResult *rr)
 		
 		drawimagespace(image_area, sima);
 		if(image_area->headertype) scrarea_do_headdraw(image_area);
-		screen_swapbuffers();
+
+		/* no screen_swapbuffers, prevent any other window to draw */
+		myswapbuffers();
 		
 		allqueue(REDRAWIMAGE, 0);	/* redraw in end */
 	}
