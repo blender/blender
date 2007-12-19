@@ -1158,8 +1158,8 @@ void free_actcopybuf ()
 	bActionChannel *achan, *anext;
 	bConstraintChannel *conchan, *cnext;
 	
-	for (achan= actcopybuf.first; achan; achan= next) {
-		next= achan->next;
+	for (achan= actcopybuf.first; achan; achan= anext) {
+		anext= achan->next;
 		
 		if (achan->ipo) {
 			free_ipo(achan->ipo);
@@ -1174,7 +1174,7 @@ void free_actcopybuf ()
 				MEM_freeN(conchan->ipo);
 			}
 			
-			BLI_freelistN(&achan->constraintChannels, conchan);
+			BLI_freelinkN(&achan->constraintChannels, conchan);
 		}
 		
 		BLI_freelinkN(&actcopybuf, achan);

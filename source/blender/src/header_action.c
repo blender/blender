@@ -93,6 +93,7 @@ enum {
 	ACTMENU_VIEW_NEXTMARKER,
 	ACTMENU_VIEW_PREVMARKER,
 	ACTMENU_VIEW_TIME,
+	ACTMENU_VIEW_NOHIDE
 };
 
 enum {
@@ -299,6 +300,9 @@ static void do_action_viewmenu(void *arg, int event)
 		case ACTMENU_VIEW_TIME: /* switch between frames and seconds display */
 			G.saction->flag ^= SACTION_DRAWTIME;
 			break;
+		case ACTMENU_VIEW_NOHIDE: /* Show hidden channels */
+			G.saction->flag ^= SACTION_NOHIDE;
+			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -339,6 +343,11 @@ static uiBlock *action_viewmenu(void *arg_unused)
 					 "Show Sliders|", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
 					 ACTMENU_VIEW_SLIDERS, "");
+					 
+	uiDefIconTextBut(block, BUTM, 1, (G.saction->flag & SACTION_NOHIDE)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
+					 "Show Hidden Channels|", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
+					 ACTMENU_VIEW_NOHIDE, "");
 					 
 	uiDefIconTextBut(block, BUTM, 1, (G.v2d->flag & V2D_VIEWLOCK)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
 					 "Lock Time to Other Windows|", 0, yco-=20, 

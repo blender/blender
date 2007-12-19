@@ -154,7 +154,9 @@ typedef enum SACTION_FLAG {
 		/* show sliders (if relevant) */
 	SACTION_SLIDERS	= (1<<1),	
 		/* draw time in seconds instead of time in frames */
-	SACTION_DRAWTIME = (1<<2)
+	SACTION_DRAWTIME = (1<<2),
+		/* don't filter action channels according to visibility */
+	SACTION_NOHIDE = (1<<3)
 } SACTION_FLAG;	
 
 /* SpaceAction AutoSnap Settings (also used by SpaceNLA) */

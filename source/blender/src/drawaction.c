@@ -617,12 +617,12 @@ void check_action_context(SpaceAction *saction)
 {
 	bActionChannel *achan;
 	
-	if(saction->action==NULL) return;
+	if (saction->action==NULL) return;
 	
 	for (achan=saction->action->chanbase.first; achan; achan=achan->next)
 		achan->flag &= ~ACHAN_HIDDEN;
 	
-	if (G.saction->pin==0 && OBACT) {
+	if ((saction->pin==0) && ((saction->flag & SACTION_NOHIDE)==0) && (OBACT)) {
 		Object *ob= OBACT;
 		bPoseChannel *pchan;
 		bArmature *arm= ob->data;
