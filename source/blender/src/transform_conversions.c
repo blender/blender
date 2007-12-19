@@ -626,7 +626,7 @@ static void bone_children_clear_transflag(ListBase *lb)
 	Bone *bone= lb->first;
 	
 	for(;bone;bone= bone->next) {
-		if(bone->flag & BONE_HINGE)
+		if((bone->flag & BONE_HINGE) && (bone->flag & BONE_CONNECTED))
 			bone->flag |= BONE_HINGE_CHILD_TRANSFORM;
 		else
 			bone->flag &= ~BONE_TRANSFORM;
