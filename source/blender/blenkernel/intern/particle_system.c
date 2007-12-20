@@ -899,7 +899,8 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 			/* no need to figure out distribution */
 			int child_nbr= (psys->renderdata)? part->ren_child_nbr: part->child_nbr;
 
-			alloc_child_particles(psys, 1.0f);
+			totpart= get_alloc_child_particles_tot(psys);
+			alloc_child_particles(psys, totpart);
 			cpa=psys->child;
 			for(i=0; i<child_nbr; i++){
 				for(p=0; p<psys->totpart; p++,cpa++){
