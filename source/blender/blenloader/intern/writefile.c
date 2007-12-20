@@ -1422,6 +1422,8 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 
 		for(a=0; a<MAX_MTEX; ++a)
 			writestruct(wd, DATA, "MTex", 1, sce->sculptdata.mtex[a]);
+		if(sce->sculptdata.cumap)
+			write_curvemapping(wd, sce->sculptdata.cumap);
 
 		ed= sce->ed;
 		if(ed) {

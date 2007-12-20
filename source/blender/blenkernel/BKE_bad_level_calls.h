@@ -217,6 +217,8 @@ void multires_update_levels(struct Mesh *me, const int render);
 void multires_calc_level_maps(struct MultiresLevel *lvl);
 struct Multires *multires_copy(struct Multires *orig);
 /* sculptmode.c */
+struct SculptData;
+void sculpt_reset_curve(struct SculptData *sd);
 void sculptmode_free_all(struct Scene *sce);
 void sculptmode_init(struct Scene *sce);
 

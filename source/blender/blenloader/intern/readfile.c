@@ -3323,6 +3323,12 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	/* SculptData textures */
 	for(a=0; a<MAX_MTEX; ++a)
 		sce->sculptdata.mtex[a]= newdataadr(fd,sce->sculptdata.mtex[a]);
+	/* Sculpt intensity curve */
+	sce->sculptdata.cumap= newdataadr(fd, sce->sculptdata.cumap);
+	if(sce->sculptdata.cumap)
+		direct_link_curvemapping(fd, sce->sculptdata.cumap);
+	else
+		sculpt_reset_curve(&sce->sculptdata);
 
 	if(sce->ed) {
 		ListBase *old_seqbasep= &((Editing *)sce->ed)->seqbase;

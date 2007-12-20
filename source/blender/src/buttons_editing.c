@@ -5046,10 +5046,18 @@ void editing_panel_sculpting_tools()
 	sculptmode_draw_interface_tools(block,0,200);
 }
 
+void editing_panel_sculpting_brush()
+{
+	uiBlock *block= uiNewBlock(&curarea->uiblocks, "editing_panel_sculpting_brush", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Brush", "Editing", 300, 0, 318, 204)==0) return;
+
+	sculptmode_draw_interface_brush(block,0,200);
+}
+
 void editing_panel_sculpting_textures()
 {
-	uiBlock *block= uiNewBlock(&curarea->uiblocks, "editing_panel_sculpting_textures", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Brush", "Editing", 300, 0, 318, 204)==0) return;
+	uiBlock *block= uiNewBlock(&curarea->uiblocks, "editing_panel_sculpting_texture", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Texture", "Editing", 300, 0, 318, 204)==0) return;
 
 	sculptmode_draw_interface_textures(block,0,200);
 }
@@ -5057,11 +5065,10 @@ void editing_panel_sculpting_textures()
 void sculptmode_draw_interface_tools(uiBlock *block, unsigned short cx, unsigned short cy)
 {
 	SculptData *sd;
-	uiBut *but;
 
 	if(!G.scene) return;
 	sd= &G.scene->sculptdata;
-	
+
 	uiBlockBeginAlign(block);
 
 	uiDefBut(block,LABEL,B_NOP,"Brush",cx,cy,90,19,NULL,0,0,0,0,"");
@@ -5090,7 +5097,7 @@ void sculptmode_draw_interface_tools(uiBlock *block, unsigned short cx, unsigned
 	if(sd->brush_type!=GRAB_BRUSH)
 		uiDefButC(block,TOG,B_NOP,"Airbrush",cx+178,cy,89,19,&sculptmode_brush()->airbrush,0,0,0,0,"Brush makes changes without waiting for the mouse to move");
 	cy-= 20;
-	but= uiDefButS(block,NUMSLI,B_NOP,"Size: ",cx,cy,268,19,&sculptmode_brush()->size,1.0,200.0,0,0,"Set brush radius in pixels");
+	uiDefButS(block,NUMSLI,B_NOP,"Size: ",cx,cy,268,19,&sculptmode_brush()->size,1.0,200.0,0,0,"Set brush radius in pixels");
 	cy-= 20;
 	if(sd->brush_type!=GRAB_BRUSH)
 		uiDefButC(block,NUMSLI,B_NOP,"Strength: ",cx,cy,268,19,&sculptmode_brush()->strength,1.0,100.0,0,0,"Set brush strength");
@@ -5109,6 +5116,46 @@ void sculptmode_draw_interface_tools(uiBlock *block, unsigned short cx, unsigned
 	cx+= 210;
 }
 
+static void sculptmode_curves_reset(void *sd_v, void *j)
+{
+	SculptData *sd = sd_v;
+	sculpt_reset_curve(sd);
+	curvemapping_changed(sd->cumap, 0);
+}
+
+void sculptmode_draw_interface_brush(uiBlock *block, unsigned short cx, unsigned short cy)
+{
+	SculptData *sd= sculpt_data();
+	int orig_y = cy;
+	rctf rect;
+	uiBut *but;
+
+	uiBlockBeginAlign(block);
+	cy-= 20;
+	uiDefButC(block,TOG,REDRAWBUTSEDIT, "Curve", cx,cy,80,19, &sd->texfade, 0,0,0,0,"Use curve control for radial brush intensity");
+	cy-= 20;
+	but= uiDefBut(block, BUT, REDRAWBUTSEDIT, "Reset",cx,cy,80,19, NULL, 0,0,0,0, "Default curve preset");
+	uiButSetFunc(but, sculptmode_curves_reset, sd, NULL);
+	cy-= 25;
+	uiBlockEndAlign(block);	
+
+	uiBlockBeginAlign(block);
+	uiDefButS(block,NUM,B_NOP, "Space", cx,cy,80,19, &sd->spacing, 0,500,20,0,"Non-zero inserts N pixels between dots");
+	cy-= 20;
+	if(sd->brush_type == DRAW_BRUSH)
+		uiDefButC(block,NUM,B_NOP, "View", cx,cy,80,19, &sculptmode_brush()->view, 0,10,20,0,"Pulls brush direction towards view");
+	uiBlockEndAlign(block);
+
+	/* Draw curve */
+	cx += 90;
+	cy = orig_y;
+	rect.xmin= cx; rect.xmax= cx + 178;
+	rect.ymin= cy - 160; rect.ymax= cy + 20;
+	uiBlockBeginAlign(block);
+	curvemap_buttons(block, sd->cumap, (char)0, B_NOP, 0, &rect);
+	uiBlockEndAlign(block);
+}
+
 void sculptmode_draw_interface_textures(uiBlock *block, unsigned short cx, unsigned short cy)
 {
 	SculptData *sd= sculpt_data();
@@ -5119,24 +5166,7 @@ void sculptmode_draw_interface_textures(uiBlock *block, unsigned short cx, unsig
 	uiBut *but;
 
 	uiBlockBeginAlign(block);
-	uiDefBut(block,LABEL,B_NOP,"Common",cx,cy,80,20,0,0,0,0,0,"");
 	cy-= 20;
-	
-	uiBlockBeginAlign(block);
-	uiDefButC(block,TOG,B_NOP, "Fade", cx,cy,80,19, &sd->texfade, 0,0,0,0,"Smooth the edges of the texture");
-	cy-= 20;
-	uiDefButS(block,NUM,B_NOP, "Space", cx,cy,80,19, &sd->spacing, 0,500,20,0,"Non-zero inserts N pixels between dots");
-	cy-= 20;
-	if(sd->brush_type == DRAW_BRUSH)
-		uiDefButC(block,NUM,B_NOP, "View", cx,cy,80,19, &sculptmode_brush()->view, 0,10,20,0,"Pulls brush direction towards view");
-	uiBlockEndAlign(block);
-	
-	cy= orig_y;
-	cx+= 85;
-	uiBlockBeginAlign(block);
-	uiDefBut(block,LABEL,B_NOP,"Texture",cx,cy,80,20,0,0,0,0,0,"");
-	cy-= 20;
-
 	/* TEX CHANNELS */
 	uiBlockBeginAlign(block);
 	uiBlockSetCol(block, TH_BUT_NEUTRAL);
@@ -6033,6 +6063,8 @@ void editing_panels()
 		else if(G.f & G_SCULPTMODE) {
 			uiNewPanelTabbed("Multires", "Editing");
 			editing_panel_sculpting_tools();
+			uiNewPanelTabbed("Multires", "Editing");
+			editing_panel_sculpting_brush();
 			uiNewPanelTabbed("Multires", "Editing");
 			editing_panel_sculpting_textures();
 		} else {

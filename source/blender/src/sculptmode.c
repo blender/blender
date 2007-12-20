@@ -53,6 +53,7 @@
 #include "DNA_texture_types.h"
 #include "DNA_view3d_types.h"
 #include "DNA_userdef_types.h"
+#include "DNA_color_types.h"
 
 #include "BKE_customdata.h"
 #include "BKE_DerivedMesh.h"
@@ -66,6 +67,7 @@
 #include "BKE_modifier.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
+#include "BKE_colortools.h"
 
 #include "BIF_editkey.h"
 #include "BIF_editview.h"
@@ -190,6 +192,35 @@ SculptSession *sculpt_session(void)
  * Allocate/initialize/free data
  */
 
+// Default curve approximates 0.5 * (cos(pi * x) + 1), with 0 <= x <= 1;
+void sculpt_reset_curve(SculptData *sd)
+{
+	CurveMap *cm = NULL;
+
+	if(!sd->cumap)
+		sd->cumap = curvemapping_add(1, 0, 0, 1, 1);
+
+	cm = sd->cumap->cm;
+
+	if(cm->curve)
+		MEM_freeN(cm->curve);
+	cm->curve= MEM_callocN(6*sizeof(CurveMapPoint), "curve points");
+	cm->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
+	cm->totpoint= 6;
+	cm->curve[0].x= 0;
+	cm->curve[0].y= 1;
+	cm->curve[1].x= 0.1;
+	cm->curve[1].y= 0.97553;
+	cm->curve[2].x= 0.3;
+	cm->curve[2].y= 0.79389;
+	cm->curve[3].x= 0.9;
+	cm->curve[3].y= 0.02447;
+	cm->curve[4].x= 0.7;
+	cm->curve[4].y= 0.20611;
+	cm->curve[5].x= 1;
+	cm->curve[5].y= 0;
+}
+
 /* Initialize 'permanent' sculpt data that is saved with file kept after
    switching out of sculptmode. */
 void sculptmode_init(Scene *sce)
@@ -202,6 +233,9 @@ void sculptmode_init(Scene *sce)
 	}
 
 	sd= &sce->sculptdata;
+
+	if(sd->cumap)
+		curvemapping_free(sd->cumap);
 
 	memset(sd, 0, sizeof(SculptData));
 
@@ -227,6 +261,7 @@ void sculptmode_init(Scene *sce)
 	sd->tablet_size=3;
 	sd->tablet_strength=10;
 	sd->rake=0;
+	sculpt_reset_curve(sd);
 }
 
 void sculptmode_free_session(Scene *);
@@ -281,6 +316,9 @@ void sculptmode_free_all(Scene *sce)
 			MEM_freeN(mtex);
 		}
 	}
+
+	curvemapping_free(sd->cumap);
+	sd->cumap = NULL;
 }
 
 /* vertex_users is an array of Lists that store all the faces that use a
@@ -735,12 +773,11 @@ void do_flatten_brush(const EditData *e, const ListBase *active_verts)
 	}
 }
 
-/* Creates a smooth curve for the brush shape. This is the cos(x) curve from
-   [0,PI] scaled to [0,len]. The range is scaled to [0,1]. */
-float simple_strength(float p, const float len)
+/* Uses the brush curve control to find a strength value between 0 and 1 */
+float curve_strength(float p, const float len)
 {
 	if(p > len) p= len;
-	return 0.5f * (cos(M_PI*p/len) + 1);
+	return curvemapping_evaluateF(G.scene->sculptdata.cumap, 0, p/len);
 }
 
 /* Uses symm to selectively flip any axis of a coordinate. */
@@ -883,7 +920,7 @@ float tex_strength(EditData *e, float *point, const float len,const unsigned vin
 	}
 
 	if(sd->texfade)
-		avg*= simple_strength(len,e->size); /* Smooth curve */
+		avg*= curve_strength(len,e->size); /* Smooth curve */
 
 	return avg;
 }
@@ -1323,7 +1360,7 @@ void sculptmode_propset_calctex()
 				for(j=0; j<tsz; ++j) {
 					float magn= sqrt(pow(i-tsz/2,2)+pow(j-tsz/2,2));
 					if(sd->texfade)
-						pd->texdata[i*tsz+j]= simple_strength(magn,tsz/2);
+						pd->texdata[i*tsz+j]= curve_strength(magn,tsz/2);
 					else
 						pd->texdata[i*tsz+j]= magn < tsz/2 ? 1 : 0;
 				}

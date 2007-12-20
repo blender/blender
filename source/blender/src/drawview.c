@@ -2252,7 +2252,7 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 	uiSetPanelHandler(VIEW3D_HANDLER_OBJECT);  // for close and esc
 
 	if((G.f & G_SCULPTMODE) && !G.obedit) {
-		if(!uiNewPanel(curarea, block, "Transform Properties", "View3d", 10, 230, 425, 234))
+		if(!uiNewPanel(curarea, block, "Transform Properties", "View3d", 10, 230, 318, 234))
 			return;
 	} else if(G.f & G_PARTICLEEDIT && !G.obedit){
 		if(!uiNewPanel(curarea, block, "Transform Properties", "View3d", 10, 230, 318, 234))

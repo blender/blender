@@ -99,12 +99,14 @@ SculptSession *sculpt_session(void);
 struct SculptData *sculpt_data(void);
 
 /* Memory */
+void sculpt_reset_curve(struct SculptData *sd);
 void sculptmode_init(struct Scene *);
 void sculptmode_free_all(struct Scene *);
 void sculptmode_correct_state(void);
 
 /* Interface */
 void sculptmode_draw_interface_tools(struct uiBlock *block,unsigned short cx, unsigned short cy);
+void sculptmode_draw_interface_brush(struct uiBlock *block,unsigned short cx, unsigned short cy);
 void sculptmode_draw_interface_textures(struct uiBlock *block,unsigned short cx, unsigned short cy);
 void sculptmode_rem_tex(void*,void*);
 void sculptmode_propset_init(PropsetMode mode);
