@@ -170,6 +170,9 @@ else:
 opts = btools.read_opts(optfiles, B.arguments)
 opts.Update(env)
 
+if not env['BF_FANCY']:
+    B.bc.disable()
+
 # disable elbeem (fluidsim) compilation?
 if env['BF_NO_ELBEEM'] == 1:
     env['CPPFLAGS'].append('-DDISABLE_ELBEEM')

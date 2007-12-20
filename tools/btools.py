@@ -55,7 +55,8 @@ def validate_arguments(args, bc):
             'BF_VERSE_INCLUDE',
             'VERSE_BUILD_BINARY', 'VERSE_BUILD_DIR', 'VERSE_REGEN_PROTO',
             'BF_TWEAK_MODE', 'BF_SPLIT_SRC',
-            'WITHOUT_BF_INSTALL'
+            'WITHOUT_BF_INSTALL',
+            'BF_FANCY',
             ]
 
     arg_list = ['BF_DEBUG', 'BF_QUIET', 'BF_CROSS', 'BF_UPDATE',
@@ -298,8 +299,9 @@ def read_opts(cfg, args):
         (BoolOption('BF_BUILDINFO', 'Buildtime in splash if true', 'true')),
 
         (BoolOption('BF_TWEAK_MODE', 'Enable tweak mode if true', 'false')),
-		(BoolOption('BF_SPLIT_SRC', 'Split src lib into several chunks if true', 'false')),
+        (BoolOption('BF_SPLIT_SRC', 'Split src lib into several chunks if true', 'false')),
         (BoolOption('WITHOUT_BF_INSTALL', 'dont install if true', 'false')),
+        (BoolOption('BF_FANCY', 'Enable fancy output if true', 'true')),
 
     ) # end of opts.AddOptions()
 
