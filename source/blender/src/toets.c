@@ -948,6 +948,11 @@ int blenderqread(unsigned short event, short val)
 			if(G.qual==LR_CTRLKEY) {
 				if(okee("Erase all")) {
 					if( BIF_read_homefile(0)==0) error("No file ~/.B.blend");
+					
+					/* Reset lights
+					 * This isn't done when reading userdef, do it now
+					 *  */
+					default_gl_light(); 
 				}
 				return 0;
 			}
