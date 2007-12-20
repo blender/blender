@@ -82,6 +82,7 @@ void PE_delete_particle(void);
 void PE_remove_doubles(void);
 void PE_mirror_x(int tagged);
 void PE_selectbrush_menu(void);
+void PE_remove_doubles(void);
 
 /* undo */
 void PE_undo_push(char *str);

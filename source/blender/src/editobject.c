@@ -2296,9 +2296,9 @@ void special_editmenu(void)
 				return;
 
 			if(G.scene->selectmode & SCE_SELECT_POINT)
-				nr= pupmenu("Specials%t|Rekey%x1|Subdivide%x2|Select First%x3|Select Last%x4");
+				nr= pupmenu("Specials%t|Rekey%x1|Subdivide%x2|Select First%x3|Select Last%x4|Remove Doubles%x5");
 			else
-				nr= pupmenu("Specials%t|Rekey%x1");
+				nr= pupmenu("Specials%t|Rekey%x1|Remove Doubles%x5");
 			
 			switch(nr) {
 			case 1:
@@ -2314,6 +2314,9 @@ void special_editmenu(void)
 				break;
 			case 4:
 				PE_select_tip();
+				break;
+			case 5:
+				PE_remove_doubles();
 				break;
 			}
 			

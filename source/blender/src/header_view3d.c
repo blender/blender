@@ -4691,6 +4691,9 @@ void do_view3d_particlemenu(void *arg, int event)
 	case 6:
 		pset->flag ^= PE_X_MIRROR;
 		break;
+	case 7:
+		PE_remove_doubles();
+		break;
 	}
 
 	allqueue(REDRAWVIEW3D, 0);
@@ -4713,6 +4716,7 @@ uiBlock *view3d_particlemenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Mirror|Ctrl M", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Remove Doubles|W, 5", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete...|X", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 	if(G.scene->selectmode & SCE_SELECT_POINT)
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Subdivide|W, 2", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
