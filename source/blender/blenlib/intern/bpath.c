@@ -53,19 +53,20 @@
 /* path/file handeling stuff */
 #ifndef WIN32
   #include <dirent.h>
+  #include <unistd.h>
 #else
   #include "BLI_winstuff.h"
+  #include <io.h>
 #endif
 
 #include <sys/stat.h>
 #include <sys/types.h>
 
-#include <math.h>
 #include <fcntl.h>
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <unistd.h>
+
 
 #define FILE_MAX			240
 
