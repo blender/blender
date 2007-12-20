@@ -955,7 +955,7 @@ static Sequence *sfile_to_sequence(SpaceFile *sfile, int cfra, int machine, int 
 	Strip *strip;
 	StripElem *se;
 	int totsel, a;
-	char name[160], rel[160];
+	char name[160];
 
 	/* are there selected files? */
 	totsel= 0;
@@ -987,8 +987,7 @@ static Sequence *sfile_to_sequence(SpaceFile *sfile, int cfra, int machine, int 
 	
 	if(sfile->flag & FILE_STRINGCODE) {
 		strcpy(name, sfile->dir);
-		strcpy(rel, G.sce);
-		BLI_makestringcode(rel, name);
+		BLI_makestringcode(G.sce, name);
 	} else {
 		strcpy(name, sfile->dir);
 	}
@@ -1028,7 +1027,7 @@ static int sfile_to_mv_sequence_load(SpaceFile *sfile, int cfra,
 	Strip *strip;
 	StripElem *se;
 	int totframe;
-	char name[160], rel[160];
+	char name[160];
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 
 	totframe= 0;
@@ -1060,8 +1059,7 @@ static int sfile_to_mv_sequence_load(SpaceFile *sfile, int cfra,
 	
 	if(sfile->flag & FILE_STRINGCODE) {
 		strcpy(name, sfile->dir);
-		strcpy(rel, G.sce);
-		BLI_makestringcode(rel, name);
+		BLI_makestringcode(G.sce, name);
 	} else {
 		strcpy(name, sfile->dir);
 	}
@@ -1123,7 +1121,7 @@ static Sequence *sfile_to_ramsnd_sequence(SpaceFile *sfile,
 	Strip *strip;
 	StripElem *se;
 	double totframe;
-	char name[160], rel[160];
+	char name[160];
 	char str[256];
 
 	totframe= 0.0;
@@ -1157,8 +1155,7 @@ static Sequence *sfile_to_ramsnd_sequence(SpaceFile *sfile,
 	
 	if(sfile->flag & FILE_STRINGCODE) {
 		strcpy(name, sfile->dir);
-		strcpy(rel, G.sce);
-		BLI_makestringcode(rel, name);
+		BLI_makestringcode(G.sce, name);
 	} else {
 		strcpy(name, sfile->dir);
 	}
@@ -1187,7 +1184,7 @@ static int sfile_to_hdsnd_sequence_load(SpaceFile *sfile, int cfra,
 	Strip *strip;
 	StripElem *se;
 	int totframe;
-	char name[160], rel[160];
+	char name[160];
 	char str[FILE_MAXDIR+FILE_MAXFILE];
 
 	totframe= 0;
@@ -1218,8 +1215,7 @@ static int sfile_to_hdsnd_sequence_load(SpaceFile *sfile, int cfra,
 	
 	if(sfile->flag & FILE_STRINGCODE) {
 		strcpy(name, sfile->dir);
-		strcpy(rel, G.sce);
-		BLI_makestringcode(rel, name);
+		BLI_makestringcode(G.sce, name);
 	} else {
 		strcpy(name, sfile->dir);
 	}
