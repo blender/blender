@@ -345,7 +345,7 @@ void makeFilesRelative(int *tot, int *changed, int *failed, int *linked) {
 		filepath = BLI_bpathIterator_getPath(&bpi);
 		libpath = BLI_bpathIterator_getLib(&bpi);
 		
-		if(strncmp(filepath, "//", 2)==0) {
+		if(strncmp(filepath, "//", 2)) {
 			if (libpath) { /* cant make relative if we are kibrary - TODO, LOG THIS */
 				(*linked)++;
 			} else { /* local data, use the blend files path */
@@ -356,10 +356,10 @@ void makeFilesRelative(int *tot, int *changed, int *failed, int *linked) {
 				} else {
 					/* safe to to check the length */
 					if(strncmp(filepath_relative, "//", 2)==0) {
-						(*failed)++;
-					} else {
 						strcpy(filepath, filepath_relative);
 						(*changed)++;
+					} else {
+						(*failed)++;
 					}
 				}
 			}

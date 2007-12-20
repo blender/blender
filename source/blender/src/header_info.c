@@ -953,12 +953,14 @@ static void do_info_externalfiles(void *arg, int event)
 		}
 		break;
 	case 10: /* make all paths relative */
-		{
+		if (G.relbase_valid) {
 			int tot,changed,failed,linked;
 			char str[512];
 			makeFilesRelative(&tot, &changed, &failed, &linked);
 			sprintf(str, "Make Relative%%t|Total files %i|Changed %i|Failed %i|Linked %i", tot, changed, failed, linked);
 			pupmenu(str);
+		} else {
+			pupmenu("Can't set relative paths with an unsaved blend file");
 		}
 		break;
 	case 11: /* check images exist */
