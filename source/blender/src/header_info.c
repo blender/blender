@@ -101,6 +101,7 @@
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
+#include "BLI_bpath.h"
 #include "BLO_writefile.h"
 
 #include "BSE_editipo.h"
@@ -852,19 +853,6 @@ static void do_info_filemenu(void *arg, int event)
 	case 25:
 		BIF_screendump(1);
 		break;
-	case 10: /* pack data */
-		check_packAll();
-		break;
-	case 11: /* unpack to current dir */
-		unpackAll(PF_WRITE_LOCAL);
-		G.fileflags &= ~G_AUTOPACK;
-		break;
-	case 12: /* unpack data */
-		if (buttons_do_unpack() != RET_CANCEL) {
-			/* Clear autopack bit only if user selected one of the unpack options */
-			G.fileflags &= ~G_AUTOPACK;
-		}
-		break;
 	case 13:
 		exit_usiblender();
 		break;
@@ -902,6 +890,7 @@ static void do_info_filemenu(void *arg, int event)
 		U.flag ^= (USER_FILECOMPRESS);
 		break;
 	}
+	
 	allqueue(REDRAWINFO, 0);
 }
 
@@ -938,6 +927,81 @@ static uiBlock *info_openrecentmenu(void *arg_unused)
 					menuwidth, 19, NULL, 0.0, 0.0, 1, i+1, "");
 		}
 	}
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	return block;
+}
+
+static void do_info_externalfiles(void *arg, int event)
+{
+	switch (event) {
+		
+	case 1: /* pack data */
+		check_packAll();
+		break;
+#if 0
+	case 2: /* unpack to current dir */
+		unpackAll(PF_WRITE_LOCAL);
+		G.fileflags &= ~G_AUTOPACK;
+		break;
+#endif
+	case 3: /* unpack data */
+		if (buttons_do_unpack() != RET_CANCEL) {
+			/* Clear autopack bit only if user selected one of the unpack options */
+			G.fileflags &= ~G_AUTOPACK;
+		}
+		break;
+	case 10: /* make all paths relative */
+		{
+			int tot,changed,failed,linked;
+			char str[512];
+			makeFilesRelative(&tot, &changed, &failed, &linked);
+			sprintf(str, "Make Relative%%t|Total files %i|Changed %i|Failed %i|Linked %i", tot, changed, failed, linked);
+			pupmenu(str);
+		}
+		break;
+	case 11: /* check images exist */
+		{
+			/* Its really text but only care about the name */
+			ID *btxt = (ID *)checkMissingFiles();
+			
+			if (btxt) {
+				char str[128];
+				sprintf(str, "Missing files listed in Text \"%s\"", btxt->name+2);
+				error(str);
+			} else {
+				okee("No external files missing");
+			}
+		}
+		break;
+	case 12: /* search for referenced files that are not available  */
+		activate_fileselect(FILE_SPECIAL, "Find Missing Files", "", findMissingFiles);
+		break;
+	}
+	
+	allqueue(REDRAWINFO, 0);
+}
+
+static uiBlock *info_externalfiles(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+
+	block= uiNewBlock(&curarea->uiblocks, "info_externalfiles", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_info_externalfiles, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Pack into Blend",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 1, "");
+#if 0
+	uiDefBut(block, BUTM, 1, "Unpack Data to current dir",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 2, "Removes all packed files from the project and saves them to the current directory");
+#endif
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Unpack into Files...",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 3, "");
+
+	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make all Paths Relative",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 10, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Report Missing Files",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 11, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Find Missing Files",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 12, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
@@ -997,13 +1061,11 @@ static uiBlock *info_filemenu(void *arg_unused)
 	uiDefIconTextBlockBut(block, info_file_exportmenu, NULL, ICON_RIGHTARROW_THIN, "Export", 0, yco-=20, menuwidth, 19, "");
 	
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Pack Data",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 10, "");
-//	uiDefBut(block, BUTM, 1, "Unpack Data to current dir",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 11, "Removes all packed files from the project and saves them to the current directory");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Unpack Data...",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 12, "");
-
+	
+	uiDefIconTextBlockBut(block, info_externalfiles, NULL, ICON_RIGHTARROW_THIN, "External Data",0, yco-=20, 120, 19, "");
+	
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-
+	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Quit Blender|Ctrl Q",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
 
 	uiBlockSetDirection(block, UI_DOWN);

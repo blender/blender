@@ -1,5 +1,4 @@
 /**
- * 
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -30,37 +29,31 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-/* Box Packer */
+/* Based on ghash, difference is ghash is not a fixed size,
+ * so for BPath we dont need to malloc  */
 
-/* verts, internal use only */
-typedef struct boxVert {
-	float x;
-	float y;
-	short free;
-	
-	struct boxPack *trb; /* top right box */
-	struct boxPack *blb; /* bottom left box */
-	struct boxPack *brb; /* bottom right box */
-	struct boxPack *tlb; /* top left box */
-	
-	/* Store last intersecting boxes here
-	 * speedup intersection testing */
-	struct boxPack *isect_cache[4];
-	
-	int index;
-} boxVert;
+struct BPathIterator {
+	char*	path;
+	char*	lib;
+	char*	name;
+	void*	data;
+	int		len;
+	int		type;
+};
 
-typedef struct boxPack {
-	float x;
-	float y;
-	float w;
-	float h;
-	int index;
-	
-	/* Verts this box uses
-	 * (BL,TR,TL,BR) / 0,1,2,3 */
-	boxVert *v[4];
-} boxPack;
+void			BLI_bpathIterator_init		(struct BPathIterator *bpi);
+char*			BLI_bpathIterator_getPath	(struct BPathIterator *bpi);
+char*			BLI_bpathIterator_getLib	(struct BPathIterator *bpi);
+char*			BLI_bpathIterator_getName	(struct BPathIterator *bpi);
+int				BLI_bpathIterator_getType	(struct BPathIterator *bpi);
+int				BLI_bpathIterator_getPathMaxLen(struct BPathIterator *bpi);
+void			BLI_bpathIterator_step		(struct BPathIterator *bpi);
+int				BLI_bpathIterator_isDone	(struct BPathIterator *bpi);
+void			BLI_bpathIterator_copyPathExpanded( struct BPathIterator *bpi, char *path_expanded);
 
-void boxPack2D(boxPack *boxarray, int len, float *tot_width, float *tot_height); 
+/* high level funcs */
 
+/* creates a text file with missing files if there are any */
+struct Text * checkMissingFiles(void);
+void makeFilesRelative(int *tot, int *changed, int *failed, int *linked);
+void findMissingFiles(char *str);
