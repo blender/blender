@@ -6826,7 +6826,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}		
 		
 		for(ma=main->mat.first; ma; ma= ma->id.next) {
-			if (ma->samp_gloss_mir == 0) {
+			if(ma->samp_gloss_mir == 0) {
 				ma->gloss_mir = ma->gloss_tra= 1.0;
 				ma->aniso_gloss_mir = 1.0;
 				ma->samp_gloss_mir = ma->samp_gloss_tra= 18;
@@ -6834,11 +6834,23 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ma->dist_mir = 0.0;
 				ma->fadeto_mir = MA_RAYMIR_FADETOSKY;
 			}
+
+			if(ma->strand_min == 0.0f)
+				ma->strand_min= 1.0f;
 		}
 
-		for(part=main->particle.first; part; part=part->id.next)
+		for(part=main->particle.first; part; part=part->id.next) {
 			if(part->ren_child_nbr==0)
 				part->ren_child_nbr= part->child_nbr;
+
+			if(part->simplify_refsize==0) {
+				part->simplify_refsize= 1920;
+				part->simplify_rate= 1.0f;
+				part->simplify_transition= 0.1f;
+				part->simplify_viewport= 0.8f;
+			}
+		}
+
 		if (main->versionfile < 245 || main->subversionfile < 12)
 		{
 			/* initialize skeleton generation toolsettings */

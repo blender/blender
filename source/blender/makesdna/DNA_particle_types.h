@@ -121,6 +121,11 @@ typedef struct ParticleSettings {
 	short bb_align, bb_uv_split, bb_anim, bb_split_offset;
 	float bb_tilt, bb_rand_tilt, bb_offset[2];
 
+	/* simplification */
+	short simplify_flag, simplify_refsize;
+	float simplify_rate, simplify_transition;
+	float simplify_viewport;
+
 	/* general values */
 	float sta, end, lifetime, randlife;
 	float timetweak, jitfac, keyed_time;
@@ -306,6 +311,10 @@ typedef struct ParticleSystem{
 #define PART_DRAW_MAT_COL		(1<<13)
 #define PART_DRAW_WHOLE_GR		(1<<14)
 #define PART_DRAW_REN_STRAND	(1<<15)
+
+/* part->simplify_flag */
+#define PART_SIMPLIFY_ENABLE	1
+#define PART_SIMPLIFY_VIEWPORT	2
 
 /* part->bb_align */
 #define PART_BB_X		0

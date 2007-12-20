@@ -85,6 +85,7 @@ typedef struct Material {
 	short flarec, starc, linec, ringc;
 	float hasize, flaresize, subsize, flareboost;
 	float strand_sta, strand_end, strand_ease, strand_surfnor;
+	float strand_min, strand_pad;
 	char strand_uvname[32];
 	
 	float sbias;			/* shadow bias */

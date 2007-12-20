@@ -295,7 +295,6 @@ void free_keyed_keys(ParticleSystem *psys)
 }
 void free_child_path_cache(ParticleSystem *psys)
 {
-
 	if(psys->childcache){
 		if(psys->childcache[0])
 			MEM_freeN(psys->childcache[0]);
@@ -363,28 +362,98 @@ void psys_free(Object *ob, ParticleSystem * psys)
 	}
 }
 
-/* these two functions move away particle data and bring it back after
+/* these functions move away particle data and bring it back after
  * rendering, to make different render settings possible without
  * removing the previous data. this should be solved properly once */
 
-typedef struct ParticleRenderDataup {
+typedef struct ParticleRenderElem {
+	int curchild, totchild;
+	float lambda, t, scalemin, scalemax;
+} ParticleRenderElem;
+
+typedef struct ParticleRenderData {
 	ChildParticle *child;
 	ParticleCacheKey **pathcache;
 	ParticleCacheKey **childcache;
 	int totchild, totcached, totchildcache;
 	DerivedMesh *dm;
 	int totdmvert, totdmedge, totdmface;
-} ParticleRenderDataup;
 
-void psys_particles_to_render_backup(Object *ob, ParticleSystem *psys)
+	float mat[4][4];
+	float viewmat[4][4], winmat[4][4];
+	int winx, winy;
+
+	int dosimplify;
+	ParticleRenderElem *elems;
+	int *origindex;
+} ParticleRenderData;
+
+static float psys_render_viewport_falloff(double rate, float dist, float width)
 {
-	ParticleRenderDataup *data;
+	return pow(rate, dist/width);
+}
+
+static float psys_render_projected_area(ParticleSystem *psys, float *center, float area, double vprate, float *viewport)
+{
+	ParticleRenderData *data= psys->renderdata;
+	float co[3], view[3], ortho1[3], ortho2[2], w, dx, dy, radius;
+	
+	/* transform to view space */
+	VECCOPY(co, center);
+	co[3]= 1.0f;
+	Mat4MulVec4fl(data->viewmat, co);
+	
+	/* compute two vectors orthogonal to view vector */
+	VECCOPY(view, co);
+	Normalize(view);
+	VecOrthoBasisf(view, ortho1, ortho2);
+
+	/* compute on screen minification */
+	w= co[2]*data->winmat[2][3] + data->winmat[3][3];
+	dx= data->winx*ortho2[0]*data->winmat[0][0];
+	dy= data->winy*ortho2[1]*data->winmat[1][1];
+	w= sqrt(dx*dx + dy*dy)/w;
+
+	/* w squared because we are working with area */
+	area= area*w*w;
+
+	/* viewport of the screen test */
+
+	/* project point on screen */
+	Mat4MulVec4fl(data->winmat, co);
+	if(co[3] != 0.0f) {
+		co[0]= 0.5f*data->winx*(1.0f + co[0]/co[3]);
+		co[1]= 0.5f*data->winy*(1.0f + co[1]/co[3]);
+	}
+
+	/* screen space radius */
+	radius= sqrt(area/M_PI);
+
+	/* make smaller using fallof once over screen edge */
+	*viewport= 1.0f;
+
+	if(co[0]+radius < 0.0f)
+		*viewport *= psys_render_viewport_falloff(vprate, -(co[0]+radius), data->winx);
+	else if(co[0]-radius > data->winx)
+		*viewport *= psys_render_viewport_falloff(vprate, (co[0]-radius) - data->winx, data->winx);
+
+	if(co[1]+radius < 0.0f)
+		*viewport *= psys_render_viewport_falloff(vprate, -(co[1]+radius), data->winy);
+	else if(co[1]-radius > data->winy)
+		*viewport *= psys_render_viewport_falloff(vprate, (co[1]-radius) - data->winy, data->winy);
+	
+	return area;
+}
+
+void psys_render_set(Object *ob, ParticleSystem *psys, float viewmat[][4], float winmat[][4], int winx, int winy)
+{
+	ParticleRenderData*data;
 	ParticleSystemModifierData *psmd= psys_get_modifier(ob, psys);
 
 	if(!G.rendering)
 		return;
 
-	data= MEM_callocN(sizeof(ParticleRenderDataup), "ParticleRenderDataup");
+	data= MEM_callocN(sizeof(ParticleRenderData), "ParticleRenderData");
 
 	data->child= psys->child;
 	data->totchild= psys->totchild;
@@ -404,17 +473,26 @@ void psys_particles_to_render_backup(Object *ob, ParticleSystem *psys)
 	psys->childcache= NULL;
 	psys->totchild= psys->totcached= psys->totchildcache= 0;
 
+	Mat4CpyMat4(data->winmat, winmat);
+	Mat4MulMat4(data->viewmat, ob->obmat, viewmat);
+	Mat4MulMat4(data->mat, data->viewmat, winmat);
+	data->winx= winx;
+	data->winy= winy;
+
 	psys->renderdata= data;
 }
 
-void psys_render_backup_to_particles(Object *ob, ParticleSystem *psys)
+void psys_render_restore(Object *ob, ParticleSystem *psys)
 {
-	ParticleRenderDataup *data;
+	ParticleRenderData*data;
 	ParticleSystemModifierData *psmd= psys_get_modifier(ob, psys);
 
 	data= psys->renderdata;
 	if(!data)
 		return;
+	
+	if(data->elems)
+		MEM_freeN(data->elems);
 
 	if(psmd->dm) {
 		psmd->dm->needsFree= 1;
@@ -428,7 +506,7 @@ void psys_render_backup_to_particles(Object *ob, ParticleSystem *psys)
 		psys->child= 0;
 		psys->totchild= 0;
 	}
-	
+
 	psys->child= data->child;
 	psys->totchild= data->totchild;
 	psys->pathcache= data->pathcache;
@@ -447,6 +525,211 @@ void psys_render_backup_to_particles(Object *ob, ParticleSystem *psys)
 
 	MEM_freeN(data);
 	psys->renderdata= NULL;
+}
+
+int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
+{
+	DerivedMesh *dm= ctx->dm;
+	Mesh *me= (Mesh*)(ctx->ob->data);
+	MFace *mf, *mface;
+	MVert *mvert;
+	ParticleRenderData *data;
+	ParticleRenderElem *elems, *elem;
+	ParticleSettings *part= ctx->psys->part;
+	float *facearea, (*facecenter)[3], size[3], fac, powrate;
+	float co1[3], co2[3], co3[3], co4[3], lambda, arearatio, t, area, viewport;
+	double vprate;
+	int *origindex, *facetotvert;
+	int a, b, totorigface, totface, newtot, skipped;
+
+	if(part->draw_as!=PART_DRAW_PATH || !(part->draw & PART_DRAW_REN_STRAND))
+		return tot;
+	if(!ctx->psys->renderdata || !(part->simplify_flag & PART_SIMPLIFY_ENABLE))
+		return tot;
+
+	mvert= dm->getVertArray(dm);
+	mface= dm->getFaceArray(dm);
+	origindex= dm->getFaceDataArray(dm, CD_ORIGINDEX);
+	totface= dm->getNumFaces(dm);
+	totorigface= me->totface;
+
+	if(totface == 0 || totorigface == 0 || origindex == NULL)
+		return tot;
+
+	facearea= MEM_callocN(sizeof(float)*totorigface, "SimplifyFaceArea");
+	facecenter= MEM_callocN(sizeof(float[3])*totorigface, "SimplifyFaceCenter");
+	facetotvert= MEM_callocN(sizeof(int)*totorigface, "SimplifyFaceArea");
+	elems= MEM_callocN(sizeof(ParticleRenderElem)*totorigface, "SimplifyFaceElem");
+
+	data= ctx->psys->renderdata;
+	data->dosimplify= 1;
+	data->elems= elems;
+	data->origindex= origindex;
+
+	/* compute number of children per original face */
+	for(a=0; a<tot; a++) {
+		b= origindex[ctx->index[a]];
+		if(b != -1)
+			elems[b].totchild++;
+	}
+
+	/* compute areas and centers of original faces */
+	for(mf=mface, a=0; a<totface; a++, mf++) {
+		b= origindex[a];
+
+		if(b != -1) {
+			VECCOPY(co1, mvert[mf->v1].co);
+			VECCOPY(co2, mvert[mf->v2].co);
+			VECCOPY(co3, mvert[mf->v3].co);
+
+			VECADD(facecenter[b], facecenter[b], co1);
+			VECADD(facecenter[b], facecenter[b], co2);
+			VECADD(facecenter[b], facecenter[b], co3);
+
+			if(mf->v4) {
+				VECCOPY(co4, mvert[mf->v4].co);
+				VECADD(facecenter[b], facecenter[b], co4);
+				facearea[b] += AreaQ3Dfl(co1, co2, co3, co4);
+				facetotvert[b] += 4;
+			}
+			else {
+				facearea[b] += AreaT3Dfl(co1, co2, co3);
+				facetotvert[b] += 3;
+			}
+		}
+	}
+
+	for(a=0; a<totorigface; a++)
+		if(facetotvert[a] > 0)
+			VecMulf(facecenter[a], 1.0f/facetotvert[a]);
+
+	/* for conversion from BU area / pixel area to reference screen size */
+	mesh_get_texspace(me, 0, 0, size);
+	fac= ((size[0] + size[1] + size[2])/3.0f)/part->simplify_refsize;
+	fac= fac*fac;
+
+	powrate= log(0.5f)/log(part->simplify_rate*0.5f);
+	if(part->simplify_flag & PART_SIMPLIFY_VIEWPORT)
+		vprate= pow(1.0 - part->simplify_viewport, 5.0);
+	else
+		vprate= 1.0;
+
+	/* set simplification parameters per original face */
+	for(a=0, elem=elems; a<totorigface; a++, elem++) {
+		area = psys_render_projected_area(ctx->psys, facecenter[a], facearea[a], vprate, &viewport);
+		arearatio= fac*area/facearea[a];
+
+		if(arearatio < 1.0f || viewport < 1.0f) {
+			/* lambda is percentage of elements to keep */
+			lambda= (arearatio < 1.0f)? pow(arearatio, powrate): 1.0f;
+			lambda *= viewport;
+
+			/* compute transition region */
+			t= part->simplify_transition;
+			elem->t= (lambda-t < 0.0f)? lambda: (lambda+t > 1.0f)? 1.0f-lambda: t;
+
+			/* scale at end and beginning of the transition region */
+			elem->scalemax= (lambda+t < 1.0f)? 1.0f/lambda: 1.0f/(1.0f - elem->t*elem->t/t);
+			elem->scalemin= (lambda+t < 1.0f)? 0.0f: elem->scalemax*(1.0f-elem->t/t);
+
+			/* extend lambda to include transition */
+			lambda= lambda + elem->t;
+			if(lambda > 1.0f)
+				lambda= 1.0f;
+		}
+		else {
+			lambda= arearatio;
+
+			elem->scalemax= 1.0f; //sqrt(lambda);
+			elem->scalemin= 1.0f; //sqrt(lambda);
+		}
+
+		elem->lambda= lambda;
+		elem->scalemin= sqrt(elem->scalemin);
+		elem->scalemax= sqrt(elem->scalemax);
+		elem->curchild= 0;
+	}
+
+	MEM_freeN(facearea);
+	MEM_freeN(facecenter);
+	MEM_freeN(facetotvert);
+
+	/* move indices and set random number skipping */
+	ctx->skip= MEM_callocN(sizeof(int)*tot, "SimplificationSkip");
+
+	skipped= 0;
+	for(a=0, newtot=0; a<tot; a++) {
+		b= origindex[ctx->index[a]];
+		if(b != -1) {
+			if(elems[b].curchild++ < ceil(elems[b].lambda*elems[b].totchild)) {
+				ctx->index[newtot]= ctx->index[a];
+				ctx->skip[newtot]= skipped;
+				skipped= 0;
+				newtot++;
+			}
+			else skipped++;
+		}
+		else skipped++;
+	}
+
+	for(a=0, elem=elems; a<totorigface; a++, elem++)
+		elem->curchild= 0;
+
+	return newtot;
+}
+
+int psys_render_simplify_params(ParticleSystem *psys, ChildParticle *cpa, float *params)
+{
+	ParticleRenderData *data;
+	ParticleRenderElem *elem;
+	float x, w, scale, alpha, lambda, t, scalemin, scalemax;
+	int b;
+
+	if(!(psys->renderdata && (psys->part->simplify_flag & PART_SIMPLIFY_ENABLE)))
+		return 0;
+	
+	data= psys->renderdata;
+	if(!data->dosimplify)
+		return 0;
+	
+	b= data->origindex[cpa->num];
+	if(b == -1)
+		return 0;
+
+	elem= &data->elems[b];
+
+	lambda= elem->lambda;
+	t= elem->t;
+	scalemin= elem->scalemin;
+	scalemax= elem->scalemax;
+
+	if(lambda >= 1.0f) {
+		scale= scalemin;
+		alpha= 1.0f;
+	}
+	else {
+		x= (elem->curchild+0.5f)/elem->totchild;
+		if(x < lambda-t) {
+			scale= scalemax;
+			alpha= 1.0f;
+		}
+		else if(x >= lambda+t) {
+			scale= scalemin;
+			alpha= 0.0f;
+		}
+		else {
+			w= (lambda+t - x)/(2.0f*t);
+			scale= scalemin + (scalemax - scalemin)*w;
+			alpha= w;
+		}
+	}
+
+	params[0]= scale;
+	params[1]= alpha;
+
+	elem->curchild++;
+
+	return 1;
 }
 
 /************************************************/
@@ -2550,6 +2833,11 @@ static void default_particle_settings(ParticleSettings *part)
 	}
 
 	part->ipo = NULL;
+
+	part->simplify_refsize= 1920;
+	part->simplify_rate= 1.0f;
+	part->simplify_transition= 0.1f;
+	part->simplify_viewport= 0.8;
 }
 
 

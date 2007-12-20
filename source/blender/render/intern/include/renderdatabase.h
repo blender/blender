@@ -69,6 +69,7 @@ typedef struct StrandTableNode {
 	struct StrandRen *strand;
 	float *winspeed;
 	float *surfnor;
+	float *simplify;
 	struct MCol *mcol;
 	float *uv;
 	int totuv, totmcol;
@@ -112,6 +113,7 @@ int RE_vlakren_get_normal(struct Render *re, struct ObjectInstanceRen *obi, stru
 float *RE_strandren_get_surfnor(struct ObjectRen *obr, struct StrandRen *strand, int verify);
 float *RE_strandren_get_uv(struct ObjectRen *obr, struct StrandRen *strand, int n, char **name, int verify);
 struct MCol *RE_strandren_get_mcol(struct ObjectRen *obr, struct StrandRen *strand, int n, char **name, int verify);
+float *RE_strandren_get_simplify(struct ObjectRen *obr, struct StrandRen *strand, int verify);
 float *RE_strandren_get_winspeed(struct ObjectInstanceRen *obi, struct StrandRen *strand, int verify);
 
 struct VertRen *RE_vertren_copy(struct ObjectRen *obr, struct VertRen *ver);

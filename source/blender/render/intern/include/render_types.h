@@ -343,7 +343,7 @@ typedef struct StrandBuffer {
 	unsigned int lay;
 	int overrideuv;
 	int flag, maxdepth;
-	float adaptcos;
+	float adaptcos, minwidth;
 
 	float winmat[4][4];
 	int winx, winy;

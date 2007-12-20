@@ -68,6 +68,9 @@ typedef struct StrandPoint {
 	/* screen space */
 	float hoco[4];
 	float x, y;
+
+	/* simplification */
+	float alpha;
 } StrandPoint;
 
 typedef struct StrandSegment {

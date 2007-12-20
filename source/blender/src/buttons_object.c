@@ -3610,8 +3610,8 @@ static void object_panel_particle_children(Object *ob)
 	if(part==NULL) return;
 		
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_particle_child", UI_EMBOSS, UI_HELV, curarea->win);
-	uiNewPanelTabbed("Extras", "Particle");
 	if(uiNewPanel(curarea, block, "Children", "Particle", 1300, 0, 318, 204)==0) return;
+	uiNewPanelTabbed("Extras", "Particle");
 
 	uiDefButS(block, MENU, B_PART_ALLOC_CHILD, "Children from:%t|Faces%x2|Particles%x1|None%x0", butx,buty,butw,buth, &part->childtype, 14.0, 0.0, 0, 0, "Create child particles");
 
@@ -3954,6 +3954,47 @@ static void object_panel_particle_visual(Object *ob)
 				uiDefBut(block, LABEL, 0, "particles needed!",	butx,(buty-=2*buth),butw,buth, NULL, 0.0, 0, 0, 0, "");
 			}
 			break;
+	}
+	uiBlockEndAlign(block);
+}
+static void object_panel_particle_simplification(Object *ob)
+{
+	uiBlock *block;
+	ParticleSystem *psys=psys_get_current(ob);
+	ParticleSettings *part;
+	short butx=0, buty=160, butw=150, buth=20;
+
+	if (psys==NULL) return;
+	part=psys->part;
+	if(part==NULL) return;
+
+	if(part->draw_as!=PART_DRAW_PATH || !(part->draw & PART_DRAW_REN_STRAND))
+		return;
+	if(part->childtype!=PART_CHILD_FACES)
+		return;
+	
+	block= uiNewBlock(&curarea->uiblocks, "object_panel_particle_simplification", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Visualization", "Particle");
+	if(uiNewPanel(curarea, block, "Simplification", "Particle", 640, 0, 318, 204)==0) return;
+
+	uiBlockBeginAlign(block);
+	uiDefButBitS(block, TOG, PART_SIMPLIFY_ENABLE, B_PART_REDRAW, "Child Simplification", butx,buty-=buth,butw,buth, &part->simplify_flag, 0, 0, 0, 0, "Remove child strands as the object becomes smaller on the screen");
+	uiBlockEndAlign(block);
+	if(part->simplify_flag & PART_SIMPLIFY_ENABLE) {
+		buty -= 10;
+
+		uiBlockBeginAlign(block);
+		uiDefButS(block, NUM, B_NOP, "Reference Size:", butx,(buty-=buth),butw,buth, &part->simplify_refsize, 1.0, 32768.0, 0, 0, "Reference size size in pixels, after which simplification begins");
+		uiDefButF(block, NUM, B_NOP, "Rate:", butx,(buty-=buth),butw,buth, &part->simplify_rate, 0.0, 1.0, 0, 0, "Speed of simplification");
+		uiDefButF(block, NUM, B_NOP, "Transition:", butx,(buty-=buth),butw,buth, &part->simplify_transition, 0.0, 1.0, 0, 0, "Transition period for fading out strands");
+		uiBlockEndAlign(block);
+
+		buty -= 10;
+
+		uiBlockBeginAlign(block);
+		uiDefButBitS(block, TOG, PART_SIMPLIFY_VIEWPORT, B_PART_REDRAW, "Viewport", butx,buty-=buth,butw,buth, &part->simplify_flag, 0, 0, 0, 0, "Remove child strands as the object goes outside the viewport");
+		uiDefButF(block, NUM, B_NOP, "Rate:", butx,(buty-=buth),butw,buth, &part->simplify_viewport, 0.0, 0.999, 0, 0, "Speed of simplification");
+		uiBlockEndAlign(block);
 	}
 	uiBlockEndAlign(block);
 }
@@ -4700,6 +4741,7 @@ void particle_panels()
 		if(psys){
 			object_panel_particle_physics(ob);
 			object_panel_particle_visual(ob);
+			object_panel_particle_simplification(ob);
 			object_panel_particle_extra(ob);
 			object_panel_particle_children(ob);
 		}

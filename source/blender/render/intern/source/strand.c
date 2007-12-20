@@ -321,7 +321,8 @@ void strand_eval_point(StrandSegment *sseg, StrandPoint *spoint)
 {
 	Material *ma;
 	StrandBuffer *strandbuf;
-	float p[4][3], data[4], cross[3], w, dx, dy, t;
+	float *simplify;
+	float p[4][3], data[4], cross[3], crosslen, w, dx, dy, t;
 	int type;
 
 	strandbuf= sseg->buffer;
@@ -378,25 +379,34 @@ void strand_eval_point(StrandSegment *sseg, StrandPoint *spoint)
 	Normalize(spoint->nor);
 
 	spoint->width= strand_eval_width(ma, spoint->strandco);
+	
+	/* simplification */
+	simplify= RE_strandren_get_simplify(strandbuf->obr, sseg->strand, 0);
+	spoint->alpha= (simplify)? simplify[1]: 1.0f;
 
 	/* outer points */
 	Crossf(cross, spoint->co, spoint->tan);
 
-	if(strandbuf->flag & R_STRAND_B_UNITS)
-		Normalize(cross);
-
 	w= spoint->co[2]*strandbuf->winmat[2][3] + strandbuf->winmat[3][3];
-	dx= strandbuf->winx*cross[0]*strandbuf->winmat[0][0]/w;
-	dy= strandbuf->winy*cross[1]*strandbuf->winmat[1][1]/w;
-	w= sqrt(dx*dx + dy*dy);
+	dx= strandbuf->winx*cross[0]*strandbuf->winmat[0][0];
+	dy= strandbuf->winy*cross[1]*strandbuf->winmat[1][1];
+	w= sqrt(dx*dx + dy*dy)/w;
 
 	if(w > 0.0f) {
 		if(strandbuf->flag & R_STRAND_B_UNITS) {
-			w= 1.0f/w;
+			crosslen= VecLength(cross);
+			w= 2.0f*crosslen*strandbuf->minwidth/w;
 
-			if(spoint->width < w)
+			if(spoint->width < w) {
+				spoint->alpha= spoint->width/w;
 				spoint->width= w;
-			VecMulf(cross, spoint->width*0.5f);
+			}
+
+			if(simplify)
+				/* squared because we only change width, not length */
+				spoint->width *= simplify[0]*simplify[0];
+
+			VecMulf(cross, spoint->width*0.5f/crosslen);
 		}
 		else
 			VecMulf(cross, spoint->width/w);
@@ -528,7 +538,7 @@ static void strand_project_point(float winmat[][4], float winx, float winy, Stra
 }
 
 #include "BLI_rand.h"
-void strand_shade_point(Render *re, ShadeSample *ssamp, StrandSegment *sseg, StrandPoint *spoint);
+static void strand_shade_point(Render *re, ShadeSample *ssamp, StrandSegment *sseg, StrandPoint *spoint);
 
 static void strand_shade_get(StrandPart *spart, int lookup, ShadeSample *ssamp, StrandPoint *spoint, StrandVert *svert, StrandSegment *sseg)
 {
@@ -653,7 +663,7 @@ static int strand_test_clip(float winmat[][4], ZSpan *zspan, float *bounds, floa
 	return clipflag;
 }
 
-void strand_shade_point(Render *re, ShadeSample *ssamp, StrandSegment *sseg, StrandPoint *spoint)
+static void strand_shade_point(Render *re, ShadeSample *ssamp, StrandSegment *sseg, StrandPoint *spoint)
 {
 	ShadeInput *shi= ssamp->shi;
 	ShadeResult *shr= ssamp->shr;
@@ -684,6 +694,21 @@ void strand_shade_point(Render *re, ShadeSample *ssamp, StrandSegment *sseg, Str
 	/* shade */
 	shade_samples_do_AO(ssamp);
 	shade_input_do_shade(shi, shr);
+
+	/* apply simplification */
+	if(spoint->alpha < 1.0f) {
+		shr->combined[0] *= spoint->alpha;
+		shr->combined[1] *= spoint->alpha;
+		shr->combined[2] *= spoint->alpha;
+		shr->combined[3] *= spoint->alpha;
+
+		shr->col[0] *= spoint->alpha;
+		shr->col[1] *= spoint->alpha;
+		shr->col[2] *= spoint->alpha;
+		shr->col[3] *= spoint->alpha;
+
+		shr->alpha *= spoint->alpha;
+	}
 
 	/* include lamphalos for strand, since halo layer was added already */
 	if(re->flag & R_LAMPHALO)

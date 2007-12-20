@@ -983,7 +983,7 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, flo
 {
 	static VertRen *v1= NULL, *v2= NULL;
 	VlakRen *vlr;
-	float nor[3], cross[3], w, dx, dy, width;
+	float nor[3], cross[3], crosslen, w, dx, dy, width;
 	static float anor[3], avec[3];
 	int flag, i;
 	static int second=0;
@@ -992,14 +992,11 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, flo
 	Normalize(nor);		// nor needed as tangent 
 	Crossf(cross, vec, nor);
 
-	if(ma->mode&MA_STR_B_UNITS)
-		Normalize(cross);
-
 	/* turn cross in pixelsize */
 	w= vec[2]*re->winmat[2][3] + re->winmat[3][3];
-	dx= re->winx*cross[0]*re->winmat[0][0]/w;
-	dy= re->winy*cross[1]*re->winmat[1][1]/w;
-	w= sqrt(dx*dx + dy*dy);
+	dx= re->winx*cross[0]*re->winmat[0][0];
+	dy= re->winy*cross[1]*re->winmat[1][1];
+	w= sqrt(dx*dx + dy*dy)/w;
 	
 	if(w!=0.0f) {
 		float fac;
@@ -1013,12 +1010,16 @@ static void static_particle_strand(Render *re, ObjectRen *obr, Material *ma, flo
 
 		width= ((1.0f-fac)*ma->strand_sta + (fac)*ma->strand_end);
 
-		/* use actual Blender units for strand width and fall back to min 1px */
+		/* use actual Blender units for strand width and fall back to minimum width */
 		if(ma->mode & MA_STR_B_UNITS){
-			if(width < 1.0f/w)
-				width= 1.0f/w;
+            crosslen= VecLength(cross);
+            w= 2.0f*crosslen*ma->strand_min/w;
+
+			if(width < w)
+				width= w;
+
 			/*cross is the radius of the strand so we want it to be half of full width */
-			VecMulf(cross,0.5);
+			VecMulf(cross,0.5/crosslen);
 		}
 		else
 			width/=w;
@@ -1496,7 +1497,8 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	float *orco=0,*surfnor=0,*uvco=0, strandlen=0.0f, curlen=0.0f;
 	float hasize, pa_size, pa_time, r_tilt, cfra=bsystem_time(ob,(float)CFRA,0.0);
 	float loc_tex[3], size_tex[3], adapt_angle=0.0, adapt_pix=0.0, random;
-	int i, a, k, max_k=0, totpart, totuv=0, override_uv=-1;
+	float simplify[2];
+	int i, a, k, max_k=0, totpart, totuv=0, override_uv=-1, dosimplify = 0;
 	int path_possible=0, keys_possible=0, baked_keys=0, totchild=psys->totchild;
 	int seed, path_nbr=0, path=0, orco1=0, adapt=0, uv[3]={0,0,0};
 	char **uv_name=0;
@@ -1639,9 +1641,10 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 				Mat4CpyMat4(strandbuf->winmat, re->winmat);
 				strandbuf->winx= re->winx;
 				strandbuf->winy= re->winy;
-				strandbuf->maxdepth= 2; /* TODO */
+				strandbuf->maxdepth= 2;
 				strandbuf->adaptcos= cos((float)part->adapt_angle*(float)(M_PI/180.0));
 				strandbuf->overrideuv= override_uv;
+				strandbuf->minwidth= ma->strand_min;
 
 				if(part->flag & PART_HAIR_BSPLINE)
 					strandbuf->flag |= R_STRAND_BSPLINE;
@@ -1720,7 +1723,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 
 			if(totchild && (part->draw&PART_DRAW_PARENT)==0) continue;
 		}
-		else{
+		else {
 			ChildParticle *cpa= psys->child+a-totpart;
 			
 			pa_time=psys_get_child_time(psys, cpa, cfra);
@@ -1778,6 +1781,8 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 				}
 			}
 
+			dosimplify= psys_render_simplify_params(psys, cpa, simplify);
+
 			if(path_nbr) {
 				cache = psys->childcache[a-totpart];
 				max_k = (int)cache->steps;
@@ -1804,6 +1809,12 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			strand->buffer= strandbuf;
 			strand->vert= svert;
 			VECCOPY(strand->orco, orco);
+
+			if(dosimplify) {
+				float *ssimplify= RE_strandren_get_simplify(obr, strand, 1);
+				ssimplify[0]= simplify[0];
+				ssimplify[1]= simplify[1];
+			}
 
 			if(surfnor) {
 				float *snor= RE_strandren_get_surfnor(obr, strand, 1);
@@ -3886,7 +3897,7 @@ static void add_render_object(Render *re, Object *ob, Object *par, int index, in
 		show_emitter= 0;
 		for(psys=ob->particlesystem.first; psys; psys=psys->next) {
 			show_emitter += psys->part->draw & PART_DRAW_EMITTER;
-			psys_particles_to_render_backup(ob, psys);
+			psys_render_set(ob, psys, re->viewmat, re->winmat, re->winx, re->winy);
 		}
 
 		/* if no psys has "show emitter" selected don't render emitter */
@@ -3910,7 +3921,7 @@ static void add_render_object(Render *re, Object *ob, Object *par, int index, in
 		for(psys=ob->particlesystem.first; psys; psys=psys->next, psysindex++) {
 			obr= RE_addRenderObject(re, ob, par, index, psysindex);
 			init_render_object_data(re, obr, only_verts);
-			psys_render_backup_to_particles(ob, psys);
+			psys_render_restore(ob, psys);
 
 			/* only add instance for objects that have not been used for dupli */
 			if(!(ob->transflag & OB_RENDER_DUPLI))
@@ -4666,7 +4677,7 @@ void RE_Database_FromScene_Vectors(Render *re, Scene *sce)
 				} else {
 					/* check if both have same amounts of vertices */
 					if(obi->totvector!=oldobi->totvector) {
-						printf("Warning: object %s has different amount of vertices on other frame\n", obi->ob->id.name+2);
+						printf("Warning: object %s has different amount of vertices or strands on other frame\n", obi->ob->id.name+2);
 						continue;
 					}
 					

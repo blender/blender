@@ -112,8 +112,8 @@ typedef struct ParticleSeam{
 typedef struct ParticleCacheKey{
 	float co[3];
 	float vel[3];
-	float rot[4];
 	float col[3];
+	float rot[4];
 	int steps;
 } ParticleCacheKey;
 
@@ -165,7 +165,7 @@ typedef struct ParticleThreadContext {
 
 	float *jit, *jitoff, *weight;
 	float maxweight;
-	int *index, jitlevel;
+	int *index, *skip, jitlevel;
 
 	int from, cfrom, distr;
 
@@ -214,8 +214,10 @@ void free_hair(struct ParticleSystem *psys);
 void free_keyed_keys(struct ParticleSystem *psys);
 void psys_free(struct Object * ob, struct ParticleSystem * psys);
 
-void psys_particles_to_render_backup(struct Object *ob, struct ParticleSystem *psys);
-void psys_render_backup_to_particles(struct Object *ob, struct ParticleSystem *psys);
+void psys_render_set(struct Object *ob, struct ParticleSystem *psys, float viewmat[][4], float winmat[][4], int winx, int winy);
+void psys_render_restore(struct Object *ob, struct ParticleSystem *psys);
+int psys_render_simplify_distribution(struct ParticleThreadContext *ctx, int tot);
+int psys_render_simplify_params(struct ParticleSystem *psys, struct ChildParticle *cpa, float *params);
 
 void clear_particles_from_cache(struct Object *ob, struct ParticleSystem *psys, int cfra);
 //void psys_remove_from_particle_list(struct Object *ob, short nbr, struct ParticleSystem *psys);
