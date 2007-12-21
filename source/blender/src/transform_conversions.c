@@ -3368,19 +3368,21 @@ static void createTransObject(TransInfo *t)
 
 	/* count */	
 	for(base= FIRSTBASE; base; base= base->next) {
-		if TESTBASELIB(base) {
+		if TESTBASE(base) {
 			ob= base->object;
 			
 			/* store ipo keys? */
-			if(ob->ipo && ob->ipo->showkey && (ob->ipoflag & OB_DRAWKEY)) {
+			if (ob->id.lib == 0 && ob->ipo && ob->ipo->showkey && (ob->ipoflag & OB_DRAWKEY)) {
 				elems.first= elems.last= NULL;
 				make_ipokey_transform(ob, &elems, 1); /* '1' only selected keys */
 				
 				pushdata(&elems, sizeof(ListBase));
 				
-				for(ik= elems.first; ik; ik= ik->next) t->total++;
+				for(ik= elems.first; ik; ik= ik->next)
+					t->total++;
 
-				if(elems.first==NULL) t->total++;
+				if(elems.first==NULL)
+					t->total++;
 			}
 			else {
 				t->total++;
@@ -3398,15 +3400,20 @@ static void createTransObject(TransInfo *t)
 	tx = t->ext = MEM_callocN(t->total*sizeof(TransDataExtension), "TransObExtension");
 
 	for(base= FIRSTBASE; base; base= base->next) {
-		if TESTBASELIB(base) {
+		if TESTBASE(base) {
 			ob= base->object;
 			
-			td->flag= TD_SELECTED;
+			td->flag = TD_SELECTED;
 			td->protectflag= ob->protectflag;
 			td->ext = tx;
 			
+			/* select linked objects, but skip them later */
+			if (ob->id.lib != 0) {
+				td->flag |= TD_SKIP;
+			}
+
 			/* store ipo keys? */
-			if(ob->ipo && ob->ipo->showkey && (ob->ipoflag & OB_DRAWKEY)) {
+			if(ob->id.lib == 0 && ob->ipo && ob->ipo->showkey && (ob->ipoflag & OB_DRAWKEY)) {
 				
 				popfirst(&elems);	// bring back pushed listbase
 				
