@@ -182,10 +182,10 @@ ifeq ($(OS),solaris)
 #    CFLAGS	+= "-fast -xdepend -xarch=v8plus -xO3 -xlibmil -KPIC -DPIC -xchar=unsigned"
 #    CCFLAGS	+= "-fast -xdepend -xarch=v8plus -xO3 -xlibmil -xlibmopt -features=tmplife -norunpath -KPIC -DPIC -xchar=unsigned"
 
-    ifeq ($(findstring 64,$(CPU)), 64)
-        CFLAGS	+= -m64
-        CCFLAGS	+= -m64
-    endif
+#    ifeq ($(findstring 64,$(CPU)), 64)
+#        CFLAGS	+= -m64
+#        CCFLAGS	+= -m64
+#    endif
 
     REL_CFLAGS	+= -O2
     REL_CCFLAGS	+= -O2
