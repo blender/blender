@@ -1124,7 +1124,7 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 	for(i=0;i<tot; i++)
 		sum[i+1]= sum[i]+weight[i]*totweight;
 	
-	if(part->flag&PART_TRAND){
+	if((part->flag&PART_TRAND) || (part->simplify_flag&PART_SIMPLIFY_ENABLE)) {
 		float pos;
 
 		for(p=0; p<totpart; p++) {

@@ -257,8 +257,8 @@ int psys_check_enabled(Object *ob, ParticleSystem *psys)
 		return 0;
 
 	psmd= psys_get_modifier(ob, psys);
-	if(G.rendering) {
-		if(!psys->renderdata || !(psmd->modifier.mode & eModifierMode_Render))
+	if(psys->renderdata) {
+		if(!(psmd->modifier.mode & eModifierMode_Render))
 			return 0;
 	}
 	else if(!(psmd->modifier.mode & eModifierMode_Realtime))
