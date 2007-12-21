@@ -67,6 +67,12 @@ typedef struct fc
 	float *u, *u0;			// velocity in x direction
 	float *v, *v0;			// velocity in y direction
 	float *w, *w0;			// velocity in z direction
+	unsigned char* _texture_data;	
+	float _light_dir[3];
+	int _ray_templ[4096][3];
+	FILE* _fp;
+	int _cur_frame;
+	int _nframes;
 } fc;
 fc *f_init(void);
 void f_free(fc *m_fc);

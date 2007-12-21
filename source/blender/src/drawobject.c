@@ -78,6 +78,7 @@
 #include "BLI_rand.h"
 
 #include "BKE_utildefines.h"
+#include "BKE_cloth.h"
 #include "BKE_curve.h"
 #include "BKE_constraint.h" // for the get_constraint_target function
 #include "BKE_DerivedMesh.h"
@@ -2173,6 +2174,345 @@ static void draw_em_fancy(Object *ob, EditMesh *em, DerivedMesh *cageDM, Derived
 }
 
 /* Mesh drawing routines */
+
+
+
+#define AMBIENT 50
+#define DECAY 0.04f
+#define ALMOST_EQUAL(a, b) ((fabs(a-b)<0.00001f)?1:0)
+
+	// cube vertices
+GLfloat cv[][3] = {
+	{1.0f, 1.0f, 1.0f}, {-1.0f, 1.0f, 1.0f}, {-1.0f, -1.0f, 1.0f}, {1.0f, -1.0f, 1.0f},
+ {1.0f, 1.0f, -1.0f}, {-1.0f, 1.0f, -1.0f}, {-1.0f, -1.0f, -1.0f}, {1.0f, -1.0f, -1.0f}
+};
+
+	// edges have the form edges[n][0][xyz] + t*edges[n][1][xyz]
+float edges[12][2][3] = {
+	{{1.0f, 1.0f, -1.0f}, {0.0f, 0.0f, 1.0f}},
+ {{-1.0f, 1.0f, -1.0f}, {0.0f, 0.0f, 1.0f}},
+ {{-1.0f, -1.0f, -1.0f}, {0.0f, 0.0f, 1.0f}},
+ {{1.0f, -1.0f, -1.0f}, {0.0f, 0.0f, 1.0f}},
+
+ {{1.0f, -1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}},
+ {{-1.0f, -1.0f, 1.0f}, {0.0f, 1.0f, 0.0f}},
+ {{-1.0f, -1.0f, -1.0f}, {0.0f, 1.0f, 0.0f}},
+ {{1.0f, -1.0f, -1.0f}, {0.0f, 1.0f, 0.0f}},
+
+ {{-1.0f, 1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}},
+ {{-1.0f, -1.0f, 1.0f}, {1.0f, 0.0f, 0.0f}},
+ {{-1.0f, -1.0f, -1.0f}, {1.0f, 0.0f, 0.0f}},
+ {{-1.0f, 1.0f, -1.0f}, {1.0f, 0.0f, 0.0f}}
+};
+
+void light_ray(unsigned char* _texture_data, int _ray_templ[4096][3], int x, int y, int z, int n, float decay)
+{
+	int xx = x, yy = y, zz = z, i = 0;
+	int offset;
+
+	int l = 255;
+	float d;
+
+	do {
+		offset = ((((zz*n) + yy)*n + xx) << 2);
+		if (_texture_data[offset + 2] > 0)
+			_texture_data[offset + 2] = (unsigned char) ((_texture_data[offset + 2] + l)*0.5f);
+		else
+			_texture_data[offset + 2] = (unsigned char) l;
+		d = _texture_data[offset+1];
+		if (l > AMBIENT) {
+			l -= d*decay;
+			if (l < AMBIENT)
+				l = AMBIENT;
+		}
+
+		i++;
+		xx = x + _ray_templ[i][0];
+		yy = y + _ray_templ[i][1];
+		zz = z + _ray_templ[i][2];
+		
+	} while ((xx>=0)&&(xx<n)&&(yy>=0)&&(yy<n)&&(zz>=0)&&(zz<n));
+}
+
+void cast_light(unsigned char* _texture_data, int _ray_templ[4096][3], float *_light_dir, int n /*edgelen*/)
+{
+	int i,j;
+	int sx = (_light_dir[0]>0) ? 0 : n-1;
+	int sy = (_light_dir[1]>0) ? 0 : n-1;
+	int sz = (_light_dir[2]>0) ? 0 : n-1;
+
+	float decay = 1.0f/(n*DECAY);
+
+	for (i=0; i<n; i++)
+		for (j=0; j<n; j++) {
+		if (!ALMOST_EQUAL(_light_dir[0], 0))
+			light_ray(_texture_data, _ray_templ, sx,i,j,n,decay);
+		if (!ALMOST_EQUAL(_light_dir[1], 0))
+			light_ray(_texture_data, _ray_templ, i,sy,j,n,decay);
+		if (!ALMOST_EQUAL(_light_dir[2], 0))
+			light_ray(_texture_data, _ray_templ, i,j,sz,n,decay);
+		}
+}
+
+void gen_ray_templ(int _ray_templ[4096][3], float *_light_dir, int edgelen)
+{
+	float fx = 0.0f, fy = 0.0f, fz = 0.0f;
+	int x = 0, y = 0, z = 0;
+	float lx = _light_dir[0] + 0.000001f, ly = _light_dir[1] + 0.000001f, lz = _light_dir[2] + 0.000001f;
+	int xinc = (lx > 0) ? 1 : -1;
+	int yinc = (ly > 0) ? 1 : -1;
+	int zinc = (lz > 0) ? 1 : -1;
+	float tx, ty, tz;
+	int i = 1;
+	int len = 0;
+	int maxlen = 3*edgelen*edgelen;
+	_ray_templ[0][0] = _ray_templ[0][2] = _ray_templ[0][2] = 0;
+	
+	while (len <= maxlen)
+	{
+		// fx + t*lx = (x+1)   ->   t = (x+1-fx)/lx
+		tx = (x+xinc-fx)/lx;
+		ty = (y+yinc-fy)/ly;
+		tz = (z+zinc-fz)/lz;
+
+		if ((tx<=ty)&&(tx<=tz)) {
+			_ray_templ[i][0] = _ray_templ[i-1][0] + xinc;
+			x =+ xinc;
+			fx = x;
+
+			if (ALMOST_EQUAL(ty,tx)) {
+				_ray_templ[i][1] = _ray_templ[i-1][1] + yinc;
+				y += yinc;
+				fy = y;
+			} else {
+				_ray_templ[i][1] = _ray_templ[i-1][1];
+				fy += tx*ly;
+			}
+
+			if (ALMOST_EQUAL(tz,tx)) {
+				_ray_templ[i][2] = _ray_templ[i-1][2] + zinc;
+				z += zinc;
+				fz = z;
+			} else {
+				_ray_templ[i][2] = _ray_templ[i-1][2];
+				fz += tx*lz;
+			}
+		} else if ((ty<tx)&&(ty<=tz)) {
+			_ray_templ[i][0] = _ray_templ[i-1][0];
+			fx += ty*lx;
+
+			_ray_templ[i][1] = _ray_templ[i-1][1] + yinc;
+			y += yinc;
+			fy = y;
+
+			if (ALMOST_EQUAL(tz,ty)) {
+				_ray_templ[i][2] = _ray_templ[i-1][2] + zinc;
+				z += zinc;
+				fz = z;
+			} else {
+				_ray_templ[i][2] = _ray_templ[i-1][2];
+				fz += ty*lz;
+			}
+		} else {
+			// assert((tz<tx)&&(tz<ty));
+			if((tz<tx)&&(tz<ty))
+				break;
+			
+			_ray_templ[i][0] = _ray_templ[i-1][0];
+			fx += tz*lx;
+			_ray_templ[i][1] = _ray_templ[i-1][1];
+			fy += tz*ly;
+			_ray_templ[i][2] = _ray_templ[i-1][2] + zinc;
+			z += zinc;
+			fz = z;
+		}
+
+		len = _ray_templ[i][0]*_ray_templ[i][0]
+				+ _ray_templ[i][1]*_ray_templ[i][1]
+				+ _ray_templ[i][2]*_ray_templ[i][2];
+		i++;
+	}
+}
+
+int intersect_edges(float ret[12][3], float a, float b, float c, float d)
+{
+	int i;
+	float t;
+	int num = 0;
+
+	for (i=0; i<12; i++) {
+		t = -(a*edges[i][0][0] + b*edges[i][0][1] + c*edges[i][0][2] + d)
+			/ (a*edges[i][1][0] + b*edges[i][1][1] + c*edges[i][1][2]);
+		if ((t>0)&&(t<2)) {
+			ret[num][0] = edges[i][0][0] + edges[i][1][0]*t;
+			ret[num][1] = edges[i][0][1] + edges[i][1][1]*t;
+			ret[num][2] = edges[i][0][2] + edges[i][1][2]*t;
+			num++;
+		}
+	}
+
+	return num;
+}
+
+void draw_slices ( float m[][4] )
+{
+	int i;
+
+	float viewdir[3];
+	float d0;
+	float dd;
+	int n;
+	float d;
+	
+	viewdir[0] = m[0][2];
+	viewdir[1] = m[1][2];
+	viewdir[2] = m[2][2];
+	Normalize(viewdir);
+	
+	// find cube vertex that is closest to the viewer
+	for ( i=0; i<8; i++ )
+	{
+		float x = cv[i][0] + viewdir[0];
+		float y = cv[i][1] + viewdir[1];
+		float z = cv[i][2] + viewdir[2];
+		if ( ( x>=-1.0f ) && ( x<=1.0f )
+		        && ( y>=-1.0f ) && ( y<=1.0f )
+		        && ( z>=-1.0f ) && ( z<=1.0f ) )
+		{
+			break;
+		}
+	}
+	if ( i != 8 ) return;
+
+	glBlendFunc ( GL_SRC_ALPHA, GL_ONE );
+	glDisable ( GL_DEPTH_TEST );
+	// our slices are defined by the plane equation a*x + b*y +c*z + d = 0
+	// (a,b,c), the plane normal, are given by viewdir
+	// d is the parameter along the view direction. the first d is given by
+	// inserting previously found vertex into the plane equation
+	d0 = - ( viewdir[0]*cv[i][0] + viewdir[1]*cv[i][1] + viewdir[2]*cv[i][2] );
+	dd = 2*d0/64.0f;
+	n = 0;
+	
+	for ( d = -d0; d < d0; d += dd )
+	{
+		// intersect_edges returns the intersection points of all cube edges with
+		// the given plane that lie within the cube
+		float pt[12][3];
+		int num = intersect_edges ( pt, viewdir[0], viewdir[1], viewdir[2], d );
+
+		if ( num > 2 )
+		{
+			// sort points to get a convex polygon
+			// std::sort(pt.begin()+1, pt.end(), Convexcomp(pt[0], viewdir));
+			int shuffled = 1;
+
+			while ( shuffled )
+			{
+				int j;
+				shuffled = 0;
+
+				for ( j = 0; j < num-1; j++ )
+				{
+					// Vec3 va = a-p0, vb = b-p0;
+					// return dot(up, cross(va, vb)) >= 0;
+					float va[3], vb[3], vc[3];
+
+					VECSUB ( va, pt[j], pt[0] );
+					VECSUB ( vb, pt[j+1], pt[0] );
+					Crossf ( vc, va, vb );
+
+					if ( INPR ( viewdir, vc ) >= 0 )
+					{
+						float temp[3];
+
+						VECCOPY ( temp, pt[j] );
+						VECCOPY ( pt[j], pt[j+1] );
+						VECCOPY ( pt[j+1], temp );
+
+						shuffled = 1;
+					}
+				}
+			}
+/*
+			glEnable ( GL_TEXTURE_3D );
+			glEnable ( GL_FRAGMENT_PROGRAM_ARB );
+			glBindProgramARB ( GL_FRAGMENT_PROGRAM_ARB, _prog[0] );
+			glActiveTextureARB ( GL_TEXTURE0_ARB );
+			glBindTexture ( GL_TEXTURE_3D, _txt[0] );
+			glBegin ( GL_POLYGON );
+			for ( i=0; i<num; i++ )
+			{
+				glColor3f ( 1.0, 1.0, 1.0 );
+				glTexCoord3d ( ( pt[i][0]+1.0 ) /2.0, ( -pt[i][1]+1 ) /2.0, ( pt[i][2]+1.0 ) /2.0 );
+				glVertex3f ( pt[i][0], pt[i][1], pt[i][2] );
+			}
+			glEnd();
+			*/
+		}
+		n++;
+	}
+}
+
+
+void draw_fl(ClothModifierData *clmd)
+{
+	int i;
+	float m[4][4];
+	Cloth *cloth = clmd->clothObject;
+	fc *m_fc = NULL;
+	
+	if(!cloth)
+		return;
+	
+	m_fc = cloth->m_fc;
+
+	glClearColor(0, 0, 0, 0);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	// gluLookAt(0, 0, -_dist,  0, 0, 0,  0, 1, 0);
+
+	// build_rotmatrix(m, _quat);
+
+	glMultMatrixf(&m[0][0]);
+	
+	// ----------------------------------------
+	// from ligth constructor
+	m_fc->_light_dir[0] = -1.0f;
+	m_fc->_light_dir[1] = 0.5f;
+	m_fc->_light_dir[2] = 0.0f;
+		
+	gen_ray_templ(m_fc->_ray_templ, m_fc->_light_dir, 30 + 2);
+	
+	cast_light(m_fc->_texture_data, m_fc->_ray_templ, m_fc->_light_dir, 30+2);
+	
+	glActiveTextureARB(GL_TEXTURE0_ARB);
+	glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, 30+2, 30+2, 30+2, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_fc->_texture_data);
+	// ----------------------------------------
+	
+	draw_slices(m);
+/*
+	if (_dispstring != NULL) {
+		glMatrixMode(GL_PROJECTION);
+		glLoadMatrixd(_ortho_m);
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+
+		glDisable(GL_TEXTURE_3D);
+		glDisable(GL_FRAGMENT_PROGRAM_ARB);
+		glColor4f(1.0, 1.0, 1.0, 1.0);
+		glRasterPos2i(-_sx/2 + 10, _sy/2 - 15);
+
+		print_string(_dispstring);
+
+		glMatrixMode(GL_PROJECTION);
+		glLoadMatrixd(_persp_m);
+		glMatrixMode(GL_MODELVIEW);
+	}
+*/
+}
 
 static void draw_mesh_object_outline(Object *ob, DerivedMesh *dm)
 {

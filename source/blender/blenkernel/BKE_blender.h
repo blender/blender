@@ -70,7 +70,6 @@ extern void BKE_reset_undo(void);
 extern char *BKE_undo_menu_string(void);
 extern void BKE_undo_number(int nr);
 extern void BKE_undo_save_quit(void);
-extern int BKE_undo_there(void);
 
 #ifdef __cplusplus
 }
