@@ -93,11 +93,11 @@
 #define SEQ_STRIP_OFSTOP		0.8
 
 int no_rightbox=0, no_leftbox= 0;
-static void draw_seq_handle(Sequence *seq, SpaceSeq *sseq, short direction);
+static void draw_seq_handle(Sequence *seq, SpaceSeq *sseq, float pixelx, short direction);
 static void draw_seq_extensions(Sequence *seq, SpaceSeq *sseq);
 static void draw_seq_text(Sequence *seq, float x1, float x2, float y1, float y2);
 static void draw_shadedstrip(Sequence *seq, char *col, float x1, float y1, float x2, float y2);
-static void draw_seq_strip(struct Sequence *seq, struct ScrArea *sa, struct SpaceSeq *sseq);
+static void draw_seq_strip(struct Sequence *seq, struct ScrArea *sa, struct SpaceSeq *sseq, int outline_tint, float pixelx);
 
 static char *give_seqname(Sequence *seq)
 {
@@ -370,11 +370,10 @@ static void drawseqwave(Sequence *seq, float x1, float y1, float x2, float y2, i
 }
 
 /* draw a handle, for each end of a sequence strip */
-static void draw_seq_handle(Sequence *seq, SpaceSeq *sseq, short direction)
+static void draw_seq_handle(Sequence *seq, SpaceSeq *sseq, float pixelx, short direction)
 {
 	float v1[2], v2[2], v3[2], rx1=0, rx2=0; //for triangles and rect
 	float x1, x2, y1, y2;
-	float pixelx;
 	float handsize;
 	float minhandle, maxhandle;
 	char str[120];
@@ -388,7 +387,6 @@ static void draw_seq_handle(Sequence *seq, SpaceSeq *sseq, short direction)
 	y2= seq->machine+SEQ_STRIP_OFSTOP;
 	
 	v2d = &sseq->v2d;
-	pixelx = (v2d->cur.xmax - v2d->cur.xmin)/(v2d->mask.xmax - v2d->mask.xmin);
 	
 	/* clamp handles to defined size in pixel space */
 	handsize = seq->handsize;
@@ -684,13 +682,12 @@ Draw a sequence strip, bounds check alredy made
 ScrArea is currently only used to get the windows width in pixels
 so wave file sample drawing precission is zoom adjusted
 */
-static void draw_seq_strip(Sequence *seq, ScrArea *sa, SpaceSeq *sseq)
+static void draw_seq_strip(Sequence *seq, ScrArea *sa, SpaceSeq *sseq, int outline_tint, float pixelx)
 {
 	float x1, x2, y1, y2;
 	char col[3], is_single_image;
-	Sequence *last_seq = get_last_seq();
 
-	/* we need to know if this is a single image or not for drawing */
+	/* we need to know if this is a single image/color or not for drawing */
 	is_single_image = (char)check_single_seq(seq);
 	
 	/* body */
@@ -718,8 +715,8 @@ static void draw_seq_strip(Sequence *seq, ScrArea *sa, SpaceSeq *sseq)
 	if (!is_single_image)
 		draw_seq_extensions(seq, sseq);
 	
-	draw_seq_handle(seq, sseq, SEQ_LEFTHANDLE);
-	draw_seq_handle(seq, sseq, SEQ_RIGHTHANDLE);
+	draw_seq_handle(seq, sseq, pixelx, SEQ_LEFTHANDLE);
+	draw_seq_handle(seq, sseq, pixelx, SEQ_RIGHTHANDLE);
 	
 	/* draw the strip outline */
 	x1= seq->startdisp;
@@ -731,10 +728,9 @@ static void draw_seq_strip(Sequence *seq, ScrArea *sa, SpaceSeq *sseq)
 			col[0]= 255; col[1]= col[2]= 40;
 		} else BIF_GetColorPtrBlendShade3ubv(col, col, col, 0.0, 120);
 	}
-	else if (seq == last_seq) BIF_GetColorPtrBlendShade3ubv(col, col, col, 0.0, 120);
-	else if (seq->flag & SELECT) BIF_GetColorPtrBlendShade3ubv(col, col, col, 0.0, -150);
-	else BIF_GetColorPtrBlendShade3ubv(col, col, col, 0.0, -60);
 
+	BIF_GetColorPtrBlendShade3ubv(col, col, col, 0.0, outline_tint);
+	
 	glColor3ubv((GLubyte *)col);
 	gl_round_box_shade(GL_LINE_LOOP, x1, y1, x2, y2, 0.0, 0.1, 0.0);
 
@@ -753,7 +749,7 @@ static void draw_seq_strip(Sequence *seq, ScrArea *sa, SpaceSeq *sseq)
 	else if(x2>G.v2d->cur.xmax) x2= G.v2d->cur.xmax;
 
 	/* nice text here would require changing the view matrix for texture text */
-	if(x1 != x2) {
+	if( (x2-x1) / pixelx > 32) {
 		draw_seq_text(seq, x1, x2, y1, y2);
 	}
 }
@@ -1386,6 +1382,7 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 	boundbox_seq();
 	calc_ipogrid();
 	
+	/* Alternating horizontal stripes */
 	i= MAX2(1, ((int)G.v2d->cur.ymin)-1);
 
 	glBegin(GL_QUADS);
@@ -1422,36 +1419,35 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 
 	/* sequences: first deselect */
 	if(ed) {
-		seq= ed->seqbasep->first;
-		while(seq) { /* bound box test, dont draw outside the view */
-			if (seq->flag & SELECT ||
-					MIN2(seq->startdisp, seq->start) > v2d->cur.xmax ||
-					MAX2(seq->enddisp, seq->start+seq->len) < v2d->cur.xmin ||
-					seq->machine+1.0 < v2d->cur.ymin ||
-					seq->machine > v2d->cur.ymax)
-			{
-				/* dont draw */
-			} else {
-				draw_seq_strip(seq, sa, sseq);
+		Sequence *last_seq = get_last_seq();
+		int sel = 0, j;
+		int outline_tint;
+		float pixelx = (v2d->cur.xmax - v2d->cur.xmin)/(v2d->mask.xmax - v2d->mask.xmin);
+		/* loop through twice, first unselected, then selected */
+		for (j=0; j<2; j++) {
+			seq= ed->seqbasep->first;
+			if (j==0)	outline_tint = -150;
+			else		outline_tint = -60;
+			
+			while(seq) { /* bound box test, dont draw outside the view */
+				if (  ((seq->flag & SELECT) == sel) ||
+						seq == last_seq ||
+						MIN2(seq->startdisp, seq->start) > v2d->cur.xmax ||
+						MAX2(seq->enddisp, seq->start+seq->len) < v2d->cur.xmin ||
+						seq->machine+1.0 < v2d->cur.ymin ||
+						seq->machine > v2d->cur.ymax)
+				{
+					/* dont draw */
+				} else {
+					draw_seq_strip(seq, sa, sseq, outline_tint, pixelx);
+				}
+				seq= seq->next;
 			}
-			seq= seq->next;
+			sel= SELECT; /* draw selected next time round */
 		}
-	}
-	ed= G.scene->ed;
-	if(ed) {
-		seq= ed->seqbasep->first;
-		while(seq) { /* bound box test, dont draw outside the view */
-			if (!(seq->flag & SELECT) ||
-					MIN2(seq->startdisp, seq->start) > v2d->cur.xmax ||
-					MAX2(seq->enddisp, seq->start+seq->len) < v2d->cur.xmin ||
-					seq->machine+1.0 < v2d->cur.ymin ||
-					seq->machine > v2d->cur.ymax)
-			{
-				/* dont draw */
-			} else {
-				draw_seq_strip(seq, sa, sseq);
-			}
-			seq= seq->next;
+		/* draw the last selected last, removes some overlapping error */
+		if (last_seq) {
+			draw_seq_strip(last_seq, sa, sseq, 120, pixelx);
 		}
 	}
 
