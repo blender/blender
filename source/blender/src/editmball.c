@@ -49,6 +49,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_view3d_types.h"
+#include "DNA_userdef_types.h"
 
 #include "BKE_utildefines.h"
 #include "BKE_depsgraph.h"
@@ -132,6 +133,7 @@ void add_primitiveMball(int dummy_argument)
 {
 	MetaElem *ml;
 	float *curs, mat[3][3], cent[3], imat[3][3], cmat[3][3];
+	short newob= 0;
 
 	if(G.scene->id.lib) return;
 
@@ -150,6 +152,7 @@ void add_primitiveMball(int dummy_argument)
 		
 		make_editMball();
 		setcursor_space(SPACE_VIEW3D, CURSOR_EDIT);
+		newob= 1;
 	}
 	
 	/* deselect */
@@ -222,7 +225,15 @@ void add_primitiveMball(int dummy_argument)
 	
 	DAG_object_flush_update(G.scene, G.obedit, OB_RECALC_DATA);  // added ball can influence others
 
-	countall();	
+	countall();
+	
+	/* if a new object was created, it stores it in Mball, for reload original data and undo */
+	if ( !(newob) || (U.flag & USER_ADD_EDITMODE)) {
+		if(newob) load_editMball();
+	} else {
+		exit_editmode(2);
+	}
+		
 	allqueue(REDRAWALL, 0);
 	BIF_undo_push("Add MetaElem");
 }
