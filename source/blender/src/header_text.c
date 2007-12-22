@@ -79,13 +79,12 @@
 
 void do_text_buttons(unsigned short event)
 {
-	SpaceText *st= curarea->spacedata.first;
+	SpaceText *st= curarea->spacedata.first; /* bad but cant pass as an arg here */
 	ID *id, *idtest;
 	int nr= 1;
 	Text *text;
-		
-	if (!st) return;
-	if (st->spacetype != SPACE_TEXT) return;
+	
+	if (st==NULL || st->spacetype != SPACE_TEXT) return;
 	
 	switch (event) {
 	case B_TEXTBROWSE:
@@ -132,7 +131,7 @@ void do_text_buttons(unsigned short event)
 				st->top= 0;
 				
 				pop_space_text(st);
-				if (st->showsyntax) get_format_string();
+				if (st->showsyntax) get_format_string(st);
 				allqueue(REDRAWTEXT, 0);
 				allqueue(REDRAWHEADERS, 0);
 			}
@@ -230,13 +229,13 @@ void do_text_buttons(unsigned short event)
 
 		break;
 	case B_TAB_NUMBERS:
-		if (st->showsyntax) get_format_string();
+		if (st->showsyntax) get_format_string(st);
 		allqueue(REDRAWTEXT, 0);
 		allqueue(REDRAWHEADERS, 0);
 		break;
 	case B_SYNTAX:
 		if (st->showsyntax) {
-			get_format_string();
+			get_format_string(st);
 		}
 		allqueue(REDRAWTEXT, 0);
 		allqueue(REDRAWHEADERS, 0);
@@ -278,10 +277,14 @@ static uiBlock *text_template_scriptsmenu (void *args_unused)
 /* action executed after clicking in File menu */
 static void do_text_filemenu(void *arg, int event)
 {
-	SpaceText *st= curarea->spacedata.first;
-	Text *text= st->text;
+	SpaceText *st= curarea->spacedata.first; /* bad but cant pass as an arg here */
+	Text *text;
 	ScrArea *sa;
-
+	
+	if (st==NULL || st->spacetype != SPACE_TEXT) return;
+	
+	text= st->text;
+	
 	switch(event) {
 	case 1:
 		st->text= add_empty_text( "Text" );
@@ -300,7 +303,7 @@ static void do_text_filemenu(void *arg, int event)
 				if (!reopen_text(text)) {
 					error("Could not reopen file");
 				}
-			if (st->showsyntax) get_format_string();
+			if (st->showsyntax) get_format_string(st);
 			}
 		break;
 	case 5:
@@ -361,9 +364,13 @@ static void do_text_filemenu(void *arg, int event)
 /* action executed after clicking in Edit menu */
 static void do_text_editmenu(void *arg, int event)
 {
-	SpaceText *st= curarea->spacedata.first;
-	Text *text= st->text;
+	SpaceText *st= curarea->spacedata.first; /* bad but cant pass as an arg here */
+	Text *text;
 	ScrArea *sa;
+	
+	if (st==NULL || st->spacetype != SPACE_TEXT) return;
+	
+	text= st->text;
 	
 	switch(event) {
 	case 1:
@@ -381,7 +388,7 @@ static void do_text_editmenu(void *arg, int event)
 		break;
 	case 5:
 		txt_paste(text);
-		if (st->showsyntax) get_format_string();
+		if (st->showsyntax) get_format_string(st);
 		break;
 	case 6:
 		txt_print_cutbuffer();
@@ -410,9 +417,13 @@ static void do_text_editmenu(void *arg, int event)
 /* action executed after clicking in View menu */
 static void do_text_editmenu_viewmenu(void *arg, int event)
 {
-	SpaceText *st= curarea->spacedata.first;
-	Text *text= st->text;
+	SpaceText *st= curarea->spacedata.first; /* bad but cant pass as an arg here */
+	Text *text;
 	ScrArea *sa;
+	
+	if (st==NULL || st->spacetype != SPACE_TEXT) return;
+	
+	text = st->text;
 	
 	switch(event) {
 		case 1:
@@ -438,9 +449,13 @@ static void do_text_editmenu_viewmenu(void *arg, int event)
 /* action executed after clicking in Select menu */
 static void do_text_editmenu_selectmenu(void *arg, int event)
 {
-	SpaceText *st= curarea->spacedata.first;
-	Text *text= st->text;
+	SpaceText *st= curarea->spacedata.first; /* bad but cant pass as an arg here */
+	Text *text;
 	ScrArea *sa;
+	
+	if (st==NULL || st->spacetype != SPACE_TEXT) return;
+	
+	text = st->text;
 	
 	switch(event) {
 	case 1:
@@ -464,9 +479,13 @@ static void do_text_editmenu_selectmenu(void *arg, int event)
 /* action executed after clicking in Format menu */
 static void do_text_formatmenu(void *arg, int event)
 {
-	SpaceText *st= curarea->spacedata.first;
-	Text *text= st->text;
+	SpaceText *st= curarea->spacedata.first; /* bad but cant pass as an arg here */
+	Text *text;
 	ScrArea *sa;
+	
+	if (st==NULL || st->spacetype != SPACE_TEXT) return;
+	
+	text = st->text;
 	
 	switch(event) {
 	case 3:
@@ -490,7 +509,7 @@ static void do_text_formatmenu(void *arg, int event)
 		if ( txt_has_sel(text)) {
 			txt_order_cursors(text);
 			comment(text);
-			if (st->showsyntax) get_format_string();
+			if (st->showsyntax) get_format_string(st);
 			break;
 		}
 		break;
@@ -498,7 +517,7 @@ static void do_text_formatmenu(void *arg, int event)
 		if ( txt_has_sel(text)) {
 			txt_order_cursors(text);
 			uncomment(text);
-			if (st->showsyntax) get_format_string();
+			if (st->showsyntax) get_format_string(st);
 			break;
 		}
 		break;
@@ -552,7 +571,9 @@ static uiBlock *text_editmenu_selectmenu(void *arg_unused)
 
 void do_text_formatmenu_convert(void *arg, int event)
 {
-	SpaceText *st= curarea->spacedata.first;
+	SpaceText *st= curarea->spacedata.first; /* bad but cant pass as an arg here */
+	
+	if (st==NULL || st->spacetype != SPACE_TEXT) return;
 	
 	switch(event) {
 	case 1: convert_tabs(st, 0); break;
@@ -611,8 +632,11 @@ static uiBlock *text_formatmenu(void *arg_unused)
 /* action executed after clicking in Object to 3d Sub Menu */
 void do_text_editmenu_to3dmenu(void *arg, int event)
 {
-	SpaceText *st= curarea->spacedata.first;
-	Text *text= st->text;
+	SpaceText *st= curarea->spacedata.first; /* bad but cant pass as an arg here */
+	Text *text;
+	if (st==NULL || st->spacetype != SPACE_TEXT) return;
+	
+	text = st->text;
 	
 	switch(event) {
 	case 1: txt_export_to_object(text); break;
@@ -680,7 +704,7 @@ static uiBlock *text_editmenu(void *arg_unused)
 /* File menu */
 static uiBlock *text_filemenu(void *arg_unused)
 {
-	SpaceText *st= curarea->spacedata.first;
+	SpaceText *st= curarea->spacedata.first; /* bad but cant pass as an arg here */
 	Text *text= st->text;
 	uiBlock *block;
 	short yco= 0, menuwidth=120;
@@ -728,11 +752,13 @@ void text_buttons(void)
 {
 	uiBlock *block;
 	SpaceText *st= curarea->spacedata.first;
-	Text *text= st->text;
+	Text *text;
 	short xco, xmax;
 	char naam[256];
 	
-	if (!st || st->spacetype != SPACE_TEXT) return;
+	if (st==NULL || st->spacetype != SPACE_TEXT) return;
+	
+	text = st->text;
 
 	sprintf(naam, "header %d", curarea->headwin);
 	block= uiNewBlock(&curarea->uiblocks, naam, UI_EMBOSS, UI_HELV, curarea->headwin);
