@@ -507,9 +507,9 @@ static void run_playanim(char *file)
 	calc_renderwin_rectangle((G.scene->r.xsch*G.scene->r.size)/100, 
 							 (G.scene->r.ysch*G.scene->r.size)/100, G.winpos, pos, size);
 #ifdef WIN32
-	sprintf(str, "%s -a -p %d %d \"%s\"", bprogname, pos[0], pos[1], file);
+	sprintf(str, "%s -a -p %d %d -f %d %g \"%s\"", bprogname, pos[0], pos[1], G.scene->r.frs_sec, G.scene->r.frs_sec_base, file);
 #else
-	sprintf(str, "\"%s\" -a -p %d %d \"%s\"", bprogname, pos[0], pos[1], file);
+	sprintf(str, "\"%s\" -a -p %d %d -f %d %g \"%s\"", bprogname, pos[0], pos[1], G.scene->r.frs_sec, G.scene->r.frs_sec_base, file);
 #endif
 	system(str);
 }

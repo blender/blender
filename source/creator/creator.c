@@ -194,6 +194,7 @@ static void print_help(void)
 	printf ("  -a <file(s)>\tPlayback <file(s)>\n");
 	printf ("    -p <sx> <sy>\tOpen with lower left corner at <sx>, <sy>\n");
 	printf ("    -m\t\tRead from disk (Don't buffer)\n");
+	printf ("    -f <fps> <fps-base>\t\tSpecify FPS to start with\n");
 				
 	printf ("\nWindow options:\n");
 	printf ("  -w\t\tForce opening with borders (default)\n");

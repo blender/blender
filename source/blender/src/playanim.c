@@ -362,6 +362,22 @@ void playanim(int argc, char **argv)
 						printf("too few arguments for -p (need 2): skipping\n");
 					}
 					break;
+			        case 'f':
+					if (argc>3) {
+						double fps = atof(argv[2]);
+						double fps_base= atof(argv[3]);
+						if (fps == 0) {
+							fps = 1;
+							printf("invalid fps,"
+							       "forcing 1\n");
+						}
+						swaptime = fps_base / fps;
+						argc-= 2; 
+						argv+= 2;
+					} else {
+						printf("too few arguments for -f (need 2): skipping\n");
+					}
+					break;
 				default:
 					printf("unknown option '%c': skipping\n", argv[1][1]);
 					break;
