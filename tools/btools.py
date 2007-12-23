@@ -46,7 +46,6 @@ def validate_arguments(args, bc):
             'WITH_BF_QUICKTIME', 'BF_QUICKTIME', 'BF_QUICKTIME_INC', 'BF_QUICKTIME_LIB', 'BF_QUICKTIME_LIBPATH',
             'WITH_BF_STATICOPENGL', 'BF_OPENGL', 'BF_OPENGL_INC', 'BF_OPENGL_LIB', 'BF_OPENGL_LIBPATH', 'BF_OPENGL_LIB_STATIC', 'BF_OPENGL_LINKFLAGS',
             'WITH_BF_FTGL', 'BF_FTGL', 'BF_FTGL_INC', 'BF_FTGL_LIB',
-            'WITH_BF_BPYAPI_V24X',
             'WITH_BF_PLAYER',
             'CFLAGS', 'CCFLAGS', 'CPPFLAGS', 
             'REL_CFLAGS', 'REL_CCFLAGS',
@@ -174,7 +173,6 @@ def read_opts(cfg, args):
         ('BF_FFMPEG_INC', 'FFMPEG includes', ''),
         ('BF_FFMPEG_LIBPATH', 'FFMPEG library path', ''),
         
-        (BoolOption('WITH_BF_BPYAPI_V24X', 'Compile Blender 2.4x python api if true', 'true')),
 
         (BoolOption('WITH_BF_JPEG', 'Use JPEG if true', 'true')),
         ('BF_JPEG', 'JPEG base path', ''),
