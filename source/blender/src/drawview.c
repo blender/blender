@@ -3274,8 +3274,7 @@ int update_time(void)
 	static double ltime;
 	double time;
 
-	if ((U.mixbufsize)
-	    && (audiostream_pos() != CFRA)
+	if ((audiostream_pos() != CFRA)
 	    && (G.scene->audio.flag & AUDIO_SYNC)) {
 		return 0;
 	}
@@ -3507,7 +3506,6 @@ void inner_play_anim_loop(int init, int mode)
 		cached = cached_dynamics(PSFRA,PEFRA);
 	} else {
 		if (cached
-			&& U.mixbufsize 
 		    && (G.scene->audio.flag & AUDIO_SYNC)) {
 			CFRA = audiostream_pos();
 		} else {

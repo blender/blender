@@ -1086,7 +1086,7 @@ int has_screenhandler(bScreen *sc, short eventcode)
 
 static void animated_screen(bScreen *sc, short val)
 {
-	if (U.mixbufsize && (val & TIME_WITH_SEQ_AUDIO)) {
+	if ((val & TIME_WITH_SEQ_AUDIO)) {
 		if(CFRA>=PEFRA) {
 			CFRA= PSFRA;
 			audiostream_stop();

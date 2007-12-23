@@ -96,6 +96,7 @@ static int audio_scrub=0;
 static int audio_playing=0;
 static int audio_initialised=0;
 static int audio_startframe=0;
+static double audio_starttime = 0.0;
 /////
 //
 /* local protos ------------------- */
@@ -494,7 +495,7 @@ void audiostream_play(Uint32 startframe, Uint32 duration, int mixdown)
 		sound_init_audio();
 	}
 
-   	if (!audio_initialised && !(duration + mixdown)) {
+   	if (U.mixbufsize && !audio_initialised && !(duration + mixdown)) {
    		desired.freq=G.scene->audio.mixrate;
 		desired.format=AUDIO_S16SYS;
    		desired.channels=2;
@@ -508,7 +509,8 @@ void audiostream_play(Uint32 startframe, Uint32 duration, int mixdown)
 	audio_startframe = startframe;
 	audio_pos = ( ((int)( FRA2TIME(startframe)
 			      *(G.scene->audio.mixrate)*4 )) & (~3) );
-	
+	audio_starttime = PIL_check_seconds_timer();
+
 	audio_scrub = duration;
 	if (!mixdown) {
 		SDL_PauseAudio(0);
@@ -535,10 +537,15 @@ void audiostream_stop(void)
 int audiostream_pos(void) 
 {
 	int pos;
-	
-	pos = (int) (((double)(audio_pos-U.mixbufsize)
-		      / ( G.scene->audio.mixrate*4 ))
-		     * FPS );
+
+	if (U.mixbufsize) {
+		pos = (int) (((double)(audio_pos-U.mixbufsize)
+			      / ( G.scene->audio.mixrate*4 ))
+			     * FPS );
+	} else { /* fallback to seconds_timer when no audio available */
+		pos = (int) ((PIL_check_seconds_timer() - audio_starttime) 
+			     * FPS);
+	}
 
 	if (pos < audio_startframe) pos = audio_startframe;
 	return ( pos );
