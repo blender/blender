@@ -720,6 +720,7 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 				uint8_t* dst2[4]= {
 					dst[0] + (anim->y - 1)*dstStride[0],
 					0, 0, 0 };
+				int i;
 
 				sws_scale(anim->img_convert_ctx,
 					  anim->pFrame->data,
@@ -728,6 +729,11 @@ static ImBuf * ffmpeg_fetchibuf(struct anim * anim, int position) {
 					  anim->pCodecCtx->height,
 					  dst2,
 					  dstStride2);
+				
+				/* workaround: sws_scale sets alpha = 0... */
+				for (i = 0; i < ibuf->x * ibuf->y; i++) {
+					ibuf->rect[i] |= 0xff000000;
+				}
 
 				av_free_packet(&packet);
 				break;
