@@ -489,21 +489,12 @@ float *get_mesh_orco_verts(Object *ob)
 		vcos= mesh_getRefKeyCos(me, &totvert);
 	}
 	else {
-		MultiresLevel *lvl = NULL;
-		MVert *mvert = NULL;
-		
-		if(me->mr) {
-			lvl = multires_level_n(me->mr, me->mr->pinlvl);
-			vcos = MEM_callocN(sizeof(*vcos)*lvl->totvert, "orco mr mesh");
-			mvert = me->mr->verts;
-			totvert = lvl->totvert;
-		}
-		else {
-			Mesh *tme = me->texcomesh?me->texcomesh:me;
-			vcos = MEM_callocN(sizeof(*vcos)*me->totvert, "orco mesh");
-			mvert = tme->mvert;
-			totvert = MIN2(tme->totvert, me->totvert);
-		}
+		MVert *mvert = NULL;		
+		Mesh *tme = me->texcomesh?me->texcomesh:me;
+
+		vcos = MEM_callocN(sizeof(*vcos)*me->totvert, "orco mesh");
+		mvert = tme->mvert;
+		totvert = MIN2(tme->totvert, me->totvert);
 
 		for(a=0; a<totvert; a++, mvert++) {
 			vcos[a][0]= mvert->co[0];
