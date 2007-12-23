@@ -304,7 +304,7 @@ static void audio_fill_ram_sound(Sequence *seq, void * mixdown,
 	    (seq->startdisp <= CFRA) && ((seq->enddisp) > CFRA))
 	{
 		if(seq->ipo && seq->ipo->curve.first) {
-			do_seq_ipo(seq);
+			do_seq_ipo(seq, CFRA);
 			facf = seq->facf0;
 		} else {
 			facf = 1.0;
@@ -333,7 +333,7 @@ static void audio_fill_hd_sound(Sequence *seq,
 	    (seq->startdisp <= CFRA) && ((seq->enddisp) > CFRA))
 	{
 		if(seq->ipo && seq->ipo->curve.first) {
-			do_seq_ipo(seq);
+			do_seq_ipo(seq, CFRA);
 			facf = seq->facf0; 
 		} else {
 			facf = 1.0;

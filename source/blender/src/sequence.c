@@ -446,7 +446,7 @@ static void do_effect(int cfra, Sequence *seq, TStripElem *se)
 	}
 
 	if(seq->ipo && seq->ipo->curve.first) {
-		do_seq_ipo(seq);
+		do_seq_ipo(seq, cfra);
 		fac= seq->facf0;
 		facf= seq->facf1;
 	} else {
@@ -962,7 +962,7 @@ static void do_effect_seq_recursively(Sequence * seq, TStripElem *se, int cfra)
 	se->se3 = 0;
 
 	if(seq->ipo && seq->ipo->curve.first) {
-		do_seq_ipo(seq);
+		do_seq_ipo(seq, cfra);
 		fac= seq->facf0;
 		facf= seq->facf1;
 	} else {
