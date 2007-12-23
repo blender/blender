@@ -2893,7 +2893,8 @@ void transform_seq(int mode, int context)
 	TimeMarker *marker;
 	
 	/* looping on sequences, WHILE_SEQ macro allocates memory each time */
-	int totseq_index, seq_index; Sequence **seqar;
+	int totseq_index, seq_index; 
+	Sequence **seqar = 0;
 	
 	if(mode!='g' && mode!='e') return;	/* from gesture */
 
@@ -2904,8 +2905,10 @@ void transform_seq(int mode, int context)
 	/* Build the sequence array once, be sure to free it */
 	build_seqar( ed->seqbasep,  &seqar, &totseq_index );
 	
-	for(seq_index=0, seq=seqar[0]; seq_index < totseq_index; seq=seqar[++seq_index]) {
-		if(seq->flag & SELECT) totstrip++;
+	if (seqar) {
+		for(seq_index=0, seq=seqar[0]; seq_index < totseq_index; seq=seqar[++seq_index]) {
+			if(seq->flag & SELECT) totstrip++;
+		}
 	}
 	
 	if (sseq->flag & SEQ_MARKER_TRANS) {
