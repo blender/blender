@@ -60,7 +60,6 @@
 #include "BKE_action.h"
 #include "BKE_anim.h"		/* needed for where_on_path */
 #include "BKE_armature.h"
-#include "BKE_bad_level_calls.h"
 #include "BKE_blender.h"
 #include "BKE_constraint.h"
 #include "BKE_deform.h"
@@ -94,7 +93,10 @@
 #include <string.h>
 #endif // DISABLE_ELBEEM
 
+#include "BIF_screen.h"
+
 /* temporal struct, used for reading return of mesh_get_mapped_verts_nors() */
+
 typedef struct VeNoCo {
 	float co[3], no[3];
 } VeNoCo;

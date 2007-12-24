@@ -47,21 +47,22 @@
 
 #include "MEM_guardedalloc.h"
 
+#include "DNA_curve_types.h"
 #include "DNA_listBase.h"
 #include "DNA_sdna_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_object_types.h"
-#include "DNA_curve_types.h"
+#include "DNA_mesh_types.h"
 #include "DNA_scene_types.h"
+#include "DNA_screen_types.h"
+#include "DNA_sound_types.h"
+#include "DNA_sequence_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
-
-#include "DNA_mesh_types.h"
-#include "DNA_screen_types.h"
 
 #include "BKE_blender.h"
 #include "BKE_curve.h"
@@ -89,8 +90,10 @@
 #include "nla.h"
 #include "blendef.h"
 
+
 Global G;
 UserDef U;
+ListBase WMlist= {NULL, NULL};
 
 char versionstr[48]= "";
 
@@ -313,7 +316,10 @@ static void clean_paths(Main *main)
 	}
 }
 
-static void setup_app_data(BlendFileData *bfd, char *filename) 
+/* context matching */
+/* handle no-ui case */
+
+static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename) 
 {
 	Object *ob;
 	bScreen *curscreen= NULL;
@@ -327,6 +333,8 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 	
 	clean_paths(bfd->main);
 	
+	/* XXX here the complex windowmanager matching */
+	
 	/* no load screens? */
 	if(mode) {
 		/* comes from readfile.c */
@@ -335,7 +343,7 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 		SWAP(ListBase, G.main->screen, bfd->main->screen);
 		
 		/* we re-use current screen */
-		curscreen= G.curscreen;
+		curscreen= C->screen;
 		/* but use new Scene pointer */
 		curscene= bfd->curscene;
 		if(curscene==NULL) curscene= bfd->main->scene.first;
@@ -346,11 +354,13 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 		lib_link_screen_restore(bfd->main, curscene);
 	}
 	
-	clear_global();	/* free Main database */
+	/* free G.main Main database */
+	clear_global();	
 	
 	if(mode!='u') G.save_over = 1;
 	
 	G.main= bfd->main;
+	
 	if (bfd->user) {
 		
 		/* only here free userdef themes... */
@@ -358,7 +368,6 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 
 		U= *bfd->user;
 		MEM_freeN(bfd->user);
-		
 	}
 	
 	/* samples is a global list... */
@@ -366,20 +375,20 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 	
 	/* case G_FILE_NO_UI or no screens in file */
 	if(mode) {
-		G.curscreen= curscreen;
-		G.scene= curscene;
+		C->screen= curscreen;
+		C->scene= curscene;
 	}
 	else {
 		G.winpos= bfd->winpos;
 		G.displaymode= bfd->displaymode;
 		G.fileflags= bfd->fileflags;
-		G.curscreen= bfd->curscreen;
-		G.scene= G.curscreen->scene;
+		C->screen= bfd->curscreen;
+		C->scene= C->screen->scene;
 	}
 	/* this can happen when active scene was lib-linked, and doesnt exist anymore */
-	if(G.scene==NULL) {
-		G.scene= G.main->scene.first;
-		G.curscreen->scene= G.scene;
+	if(C->scene==NULL) {
+		C->scene= G.main->scene.first;
+		C->screen->scene= C->scene;
 	}
 
 	/* special cases, override loaded flags: */
@@ -390,11 +399,11 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 	G.f= bfd->globalf;
 
 	if (!G.background) {
-		setscreen(G.curscreen);
+		//setscreen(G.curscreen);
 	}
 	
 	/* baseflags, groups, make depsgraph, etc */
-	set_scene_bg(G.scene);
+	set_scene_bg(C->scene);
 
 	/* last stage of do_versions actually, that sets recalc flags for recalc poses */
 	for(ob= G.main->object.first; ob; ob= ob->id.next) {
@@ -403,7 +412,7 @@ static void setup_app_data(BlendFileData *bfd, char *filename)
 	}
 	
 	/* now tag update flags, to ensure deformers get calculated on redraw */
-	DAG_scene_update_flags(G.scene, G.scene->lay);
+	DAG_scene_update_flags(C->scene, C->scene->lay);
 	
 	if (G.f & G_DOSCRIPTLINKS) {
 		/* there's an onload scriptlink to execute in screenmain */
@@ -437,7 +446,7 @@ static void handle_subversion_warning(Main *main)
    2: OK, and with new user settings
 */
 
-int BKE_read_file(char *dir, void *type_r) 
+int BKE_read_file(bContext *C, char *dir, void *unused) 
 {
 	BlendReadError bre;
 	BlendFileData *bfd;
@@ -449,10 +458,8 @@ int BKE_read_file(char *dir, void *type_r)
 	bfd= BLO_read_from_file(dir, &bre);
 	if (bfd) {
 		if(bfd->user) retval= 2;
-		if (type_r)
-			*((BlenFileType*)type_r)= bfd->type;
 		
-		setup_app_data(bfd, dir);
+		setup_app_data(C, bfd, dir);
 		
 		handle_subversion_warning(G.main);
 	} 
@@ -466,7 +473,7 @@ int BKE_read_file(char *dir, void *type_r)
 	return (bfd?retval:0);
 }
 
-int BKE_read_file_from_memory(char* filebuf, int filelength, void *type_r)
+int BKE_read_file_from_memory(bContext *C, char* filebuf, int filelength, void *unused)
 {
 	BlendReadError bre;
 	BlendFileData *bfd;
@@ -475,11 +482,8 @@ int BKE_read_file_from_memory(char* filebuf, int filelength, void *type_r)
 		waitcursor(1);
 		
 	bfd= BLO_read_from_memory(filebuf, filelength, &bre);
-	if (bfd) {
-		if (type_r)
-			*((BlenFileType*)type_r)= bfd->type;
-		
-		setup_app_data(bfd, "<memory>");
+	if (bfd) {		
+		setup_app_data(C, bfd, "<memory>");
 	} else {
 		error("Loading failed: %s", BLO_bre_as_string(bre));
 	}
@@ -491,7 +495,7 @@ int BKE_read_file_from_memory(char* filebuf, int filelength, void *type_r)
 }
 
 /* memfile is the undo buffer */
-int BKE_read_file_from_memfile(MemFile *memfile)
+int BKE_read_file_from_memfile(bContext *C, MemFile *memfile)
 {
 	BlendReadError bre;
 	BlendFileData *bfd;
@@ -501,7 +505,7 @@ int BKE_read_file_from_memfile(MemFile *memfile)
 		
 	bfd= BLO_read_from_memfile(G.sce, memfile, &bre);
 	if (bfd) {
-		setup_app_data(bfd, "<memory>");
+		setup_app_data(C, bfd, "<memory>");
 	} else {
 		error("Loading failed: %s", BLO_bre_as_string(bre));
 	}
@@ -529,7 +533,7 @@ static ListBase undobase={NULL, NULL};
 static UndoElem *curundo= NULL;
 
 
-static int read_undosave(UndoElem *uel)
+static int read_undosave(bContext *C, UndoElem *uel)
 {
 	char scestr[FILE_MAXDIR+FILE_MAXFILE];
 	int success=0, fileflags;
@@ -539,9 +543,9 @@ static int read_undosave(UndoElem *uel)
 	G.fileflags |= G_FILE_NO_UI;
 
 	if(UNDO_DISK) 
-		success= BKE_read_file(uel->str, NULL);
+		success= BKE_read_file(C, uel->str, NULL);
 	else
-		success= BKE_read_file_from_memfile(&uel->memfile);
+		success= BKE_read_file_from_memfile(C, &uel->memfile);
 	
 	/* restore */
 	strcpy(G.sce, scestr);
@@ -551,7 +555,7 @@ static int read_undosave(UndoElem *uel)
 }
 
 /* name can be a dynamic string */
-void BKE_write_undo(char *name)
+void BKE_write_undo(bContext *C, char *name)
 {
 	int nr, success;
 	UndoElem *uel;
@@ -604,7 +608,7 @@ void BKE_write_undo(char *name)
 		sprintf(numstr, "%d.blend", counter);
 		BLI_make_file_string("/", tstr, U.tempdir, numstr);
 	
-		success= BLO_write_file(tstr, G.fileflags, &err);
+		success= BLO_write_file(C, tstr, G.fileflags, &err);
 		
 		strcpy(curundo->str, tstr);
 	}
@@ -614,17 +618,17 @@ void BKE_write_undo(char *name)
 		
 		if(curundo->prev) prevfile= &(curundo->prev->memfile);
 		
-		success= BLO_write_file_mem(prevfile, &curundo->memfile, G.fileflags, &err);
+		success= BLO_write_file_mem(C, prevfile, &curundo->memfile, G.fileflags, &err);
 		
 	}
 }
 
 /* 1= an undo, -1 is a redo. we have to make sure 'curundo' remains at current situation */
-void BKE_undo_step(int step)
+void BKE_undo_step(bContext *C, int step)
 {
 	
 	if(step==0) {
-		read_undosave(curundo);
+		read_undosave(C, curundo);
 	}
 	else if(step==1) {
 		/* curundo should never be NULL, after restart or load file it should call undo_save */
@@ -632,7 +636,7 @@ void BKE_undo_step(int step)
 		else {
 			if(G.f & G_DEBUG) printf("undo %s\n", curundo->name);
 			curundo= curundo->prev;
-			read_undosave(curundo);
+			read_undosave(C, curundo);
 		}
 	}
 	else {
@@ -641,7 +645,7 @@ void BKE_undo_step(int step)
 		
 		if(curundo==NULL || curundo->next==NULL) error("No redo available");
 		else {
-			read_undosave(curundo->next);
+			read_undosave(C, curundo->next);
 			curundo= curundo->next;
 			if(G.f & G_DEBUG) printf("redo %s\n", curundo->name);
 		}
@@ -663,7 +667,7 @@ void BKE_reset_undo(void)
 }
 
 /* based on index nr it does a restore */
-void BKE_undo_number(int nr)
+void BKE_undo_number(bContext *C, int nr)
 {
 	UndoElem *uel;
 	int a=1;
@@ -672,7 +676,7 @@ void BKE_undo_number(int nr)
 		if(a==nr) break;
 	}
 	curundo= uel;
-	BKE_undo_step(0);
+	BKE_undo_step(C, 0);
 }
 
 char *BKE_undo_menu_string(void)

@@ -101,6 +101,10 @@
 
 #include "RE_shader_ext.h"
 
+#include "BIF_meshlaplacian.h"
+#include "BIF_space.h"
+#include "mydevice.h"
+
 /***/
 
 static int noneModifier_isDisabled(ModifierData *md)

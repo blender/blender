@@ -285,6 +285,7 @@ int is_basis_mball(Object *ob)
  */
 Object *find_basis_mball(Object *basis)
 {
+	extern ListBase editelems; /* editmball.c */
 	Base *base;
 	Object *ob,*bob= basis;
 	MetaElem *ml=NULL;
@@ -1423,6 +1424,7 @@ void polygonize(PROCESS *mbproc, MetaBall *mb)
 
 float init_meta(Object *ob)	/* return totsize */
 {
+	extern ListBase editelems; /* editmball.c */
 	Base *base;
 	Object *bob;
 	MetaBall *mb;

@@ -37,57 +37,26 @@
 #ifndef BKE_BAD_LEVEL_CALLS_H
 #define BKE_BAD_LEVEL_CALLS_H
 
-/* blender.c */
-void freeAllRad(void);
-void free_editText(void);
-void free_vertexpaint(void);
+extern ListBase editNurb;
 
-/* readfile.c */
-struct SpaceButs;
-void set_rects_butspace(struct SpaceButs *buts);
-struct SpaceImaSel;
-void check_imasel_copy(struct SpaceImaSel *simasel);
-struct ScrArea;
-struct bScreen;
-void unlink_screen(struct bScreen *sc);
-void setscreen(struct bScreen *sc);
-void force_draw_all(int);
-  /* otherwise the WHILE_SEQ doesn't work */
-struct Sequence;
-struct ListBase;
-void build_seqar(struct ListBase *seqbase, struct Sequence  ***seqar, int *totseq);
+#include "radio.h"
+#include "BIF_editmesh.h"
+#include "BIF_editmesh.h"
+#include "BIF_editfont.h"
+#include "BIF_editarmature.h"
+#include "BIF_toolbox.h"
+#include "BIF_interface.h"
+#include "BIF_screen.h"
 
-/* BPython API */
-struct ID;
-struct Script;
-struct Text;
-struct IpoDriver; /* DNA_curve_types.h */
-struct Object;
-struct bPythonConstraint;
-struct bConstraintOb;
-struct bConstraintTarget;
-void BPY_do_pyscript (struct ID *id, short int event);
-void BPY_clear_script (struct Script *script);
-void BPY_free_compiled_text (struct Text *text);
-/* pydrivers */
-struct Object **BPY_pydriver_get_objects(struct IpoDriver *driver);
-float BPY_pydriver_eval(struct IpoDriver *driver);
-void BPY_pydriver_update(void);
-/* button python evaluation */
-int BPY_button_eval(char *expr, double *value);
-/* pyconstraints */
-void BPY_pyconstraint_eval(struct bPythonConstraint *con, struct bConstraintOb *cob, struct ListBase *targets);
-void BPY_pyconstraint_targets(struct bPythonConstraint *con, struct bConstraintTarget *ct);
+#include "BDR_editcurve.h"
+#include "BDR_vpaint.h"
+
+#include "BSE_sequence.h"
 
 
-/* writefile.c */
-struct Oops;
-void free_oops(struct Oops *oops);
-void error(char *str, ...);
 
-/* anim.c */
-extern struct ListBase editNurb;
-
+<<<<<<< .mine
+=======
 void mainqenter (unsigned short event, short val);
 void waitcursor(int);
 void allqueue(unsigned short event, short val);
@@ -241,5 +210,6 @@ void PE_free_particle_edit(struct ParticleSystem *psys);
 void PE_get_colors(char sel[4], char nosel[4]);
 void PE_recalc_world_cos(struct Object *ob, struct ParticleSystem *psys);
 
+>>>>>>> .r12991
 #endif
 

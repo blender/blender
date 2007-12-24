@@ -73,6 +73,8 @@
  
 struct SelBox *selboxes= NULL;
 
+static ListBase ttfdata= {NULL, NULL};
+
 /* UTF-8 <-> wchar transformations */
 void
 chtoutf8(unsigned long c, char *o)
@@ -253,6 +255,37 @@ static PackedFile *get_builtin_packedfile(void)
 	}
 }
 
+void free_ttfont(void)
+{
+	struct TmpFont *tf;
+	
+	tf= ttfdata.first;
+	while(tf) {
+		freePackedFile(tf->pf);
+		tf->pf= NULL;
+		tf->vfont= NULL;
+		tf= tf->next;
+	}
+	BLI_freelistN(&ttfdata);
+}
+
+struct TmpFont *vfont_find_tmpfont(VFont *vfont)
+{
+	struct TmpFont *tmpfnt = NULL;
+	
+	if(vfont==NULL) return NULL;
+	
+	// Try finding the font from font list
+	tmpfnt = ttfdata.first;
+	while(tmpfnt)
+	{
+		if(tmpfnt->vfont == vfont)
+			break;
+		tmpfnt = tmpfnt->next;
+	}
+	return tmpfnt;
+}
+
 static VFontData *vfont_get_data(VFont *vfont)
 {
 	struct TmpFont *tmpfnt = NULL;
@@ -261,14 +294,7 @@ static VFontData *vfont_get_data(VFont *vfont)
 	if(vfont==NULL) return NULL;
 	
 	// Try finding the font from font list
-	tmpfnt = G.ttfdata.first;
-	
-	while(tmpfnt)
-	{
-		if(tmpfnt->vfont == vfont)
-			break;
-		tmpfnt = tmpfnt->next;
-	}
+	tmpfnt = vfont_find_tmpfont(vfont);
 	
 	// And then set the data	
 	if (!vfont->data) {
@@ -292,7 +318,7 @@ static VFontData *vfont_get_data(VFont *vfont)
 					tmpfnt= (struct TmpFont *) MEM_callocN(sizeof(struct TmpFont), "temp_font");
 					tmpfnt->pf= tpf;
 					tmpfnt->vfont= vfont;
-					BLI_addtail(&G.ttfdata, tmpfnt);
+					BLI_addtail(&ttfdata, tmpfnt);
 				}
 			} else {
 				pf= newPackedFile(vfont->name);
@@ -305,7 +331,7 @@ static VFontData *vfont_get_data(VFont *vfont)
 					tmpfnt= (struct TmpFont *) MEM_callocN(sizeof(struct TmpFont), "temp_font");
 					tmpfnt->pf= tpf;
 					tmpfnt->vfont= vfont;
-					BLI_addtail(&G.ttfdata, tmpfnt);
+					BLI_addtail(&ttfdata, tmpfnt);
 				}
 			}
 			if(!pf) {
@@ -385,7 +411,7 @@ VFont *load_vfont(char *name)
 				tmpfnt= (struct TmpFont *) MEM_callocN(sizeof(struct TmpFont), "temp_font");
 				tmpfnt->pf= tpf;
 				tmpfnt->vfont= vfont;
-				BLI_addtail(&G.ttfdata, tmpfnt);
+				BLI_addtail(&ttfdata, tmpfnt);
 			}			
 		}
 		

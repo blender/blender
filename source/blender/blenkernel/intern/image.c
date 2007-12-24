@@ -54,6 +54,7 @@
 #include "DNA_scene_types.h"
 #include "DNA_camera_types.h"
 #include "DNA_texture_types.h"
+#include "DNA_sequence_types.h"
 #include "DNA_userdef_types.h"
 
 #include "BLI_arithb.h"
@@ -77,14 +78,12 @@
 
 #include "RE_pipeline.h"
 
-/* bad level; call to free_realtime_image */
-#include "BKE_bad_level_calls.h"	
-
 /* for stamp drawing to an image */
 #include "BMF_Api.h"
 
 #include "blendef.h"
 #include "BSE_time.h"
+#include "BDR_drawmesh.h"
 
 /* max int, to indicate we don't store sequences in ibuf */
 #define IMA_NO_INDEX	0x7FEFEFEF
@@ -812,8 +811,8 @@ static void stampdata(StampData *stamp_data, int do_prefix)
 	}
 	
 	if (G.scene->r.stamp & R_STAMP_NOTE) {
-		if (do_prefix)		sprintf(stamp_data->note, "Note %s", G.scene->r.stamp_udata);
-		else				sprintf(stamp_data->note, "%s", G.scene->r.stamp_udata);
+		/* Never do prefix for Note */
+		sprintf(stamp_data->note, "%s", G.scene->r.stamp_udata);
 	} else {
 		stamp_data->note[0] = '\0';
 	}

@@ -40,6 +40,7 @@ struct VFont;
 struct Object;
 struct Curve;
 struct objfnt;
+struct TmpFont;
 
 struct chartrans {
 	float xof, yof;
@@ -57,7 +58,9 @@ extern struct SelBox *selboxes;
 void BKE_font_register_builtin(void *mem, int size);
 
 void free_vfont(struct VFont *sc); 
+void free_ttfont(void);
 struct VFont *load_vfont(char *name);
+struct TmpFont *vfont_find_tmpfont(struct VFont *vfont);
 
 struct chartrans *text_to_curve(struct Object *ob, int mode);
 int style_to_sel(int style, int toggle);

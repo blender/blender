@@ -40,7 +40,6 @@
 #include <string.h>
 #include "MEM_guardedalloc.h"
 
-#include "nla.h"	/* For __NLA: Important, do not remove */
 #include "DNA_text_types.h"
 #include "DNA_controller_types.h"
 #include "DNA_sensor_types.h"
@@ -54,6 +53,8 @@
 #include "BKE_main.h"
 #include "BKE_blender.h"
 #include "BKE_sca.h"
+
+#include "mydevice.h"
 
 void free_text_controllers(Text *txt)
 {

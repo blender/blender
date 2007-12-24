@@ -40,6 +40,8 @@ struct ListBase;
 struct ID;
 struct Main;
 struct Library;
+struct wmWindowManager;
+struct bContext;
 
 void *alloc_libblock(struct ListBase *lb, short type, const char *name);
 void *copy_libblock(void *rt);
@@ -72,6 +74,8 @@ void IPOnames_to_pupstring(char **str, char *title, char *extraops, struct ListB
 
 void flag_listbase_ids(ListBase *lb, short flag, short value);
 void flag_all_listbases_ids(short flag, short value);
+
+void set_free_windowmanager_cb(void (*func)(struct bContext *, struct wmWindowManager *) );
 
 #endif
 

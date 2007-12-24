@@ -699,7 +699,7 @@ void make_local_texture(Tex *tex)
 
 void autotexname(Tex *tex)
 {
-/*	extern char texstr[20][12];	 *//* buttons.c, already in bad lev calls*/
+	extern char texstr[20][12];	 /* buttons.c */
 	Image *ima;
 	char di[FILE_MAXDIR], fi[FILE_MAXFILE];
 	

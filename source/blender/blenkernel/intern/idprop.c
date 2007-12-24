@@ -28,6 +28,10 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
  
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 #include "DNA_listBase.h"
 #include "DNA_ID.h"
 
@@ -39,10 +43,6 @@
 #include "BLI_blenlib.h"
 
 #include "MEM_guardedalloc.h"
-
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 
 #define BSTR_EQ(a, b)	(*(a) == *(b) && !strcmp(a, b))
 

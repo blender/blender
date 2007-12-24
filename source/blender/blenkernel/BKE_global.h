@@ -58,10 +58,45 @@ struct SpaceNla;
 struct Main;
 struct Scene;
 struct bScreen;
+struct ScrArea;
+struct ARegion;
 struct Object;
 struct bSoundListener;
 struct BMF_Font;
 struct EditMesh;
+
+/* former global stuff. context is derived, not storage! */
+typedef struct bContext {
+	
+	/* windowmanager tree context */
+	struct wmWindowManager *wm;
+	struct wmWindow *window;
+	struct bScreen *screen;
+	struct ScrArea *curarea;
+	struct ARegion *region;
+	
+	/* fast spacedata lookups */
+	struct View3D *vd;
+	struct View2D *v2d;
+	struct SpaceIpo *sipo;
+	struct SpaceButs *buts;
+	struct SpaceImage *sima;
+	struct SpaceOops *soops;
+	struct SpaceSound *ssound;
+	struct SpaceAction *saction;
+	struct SpaceNla *snla;
+	
+	/* data context */
+	struct Scene *scene;
+	struct Object *obact;
+	struct Object *obedit;
+	
+	/* edit data context */
+	struct EditMesh *editMesh;
+	struct	ListBase edbo;			/* Armature Editmode bones */
+	
+} bContext;
+
 
 typedef struct Global {
 
@@ -120,7 +155,7 @@ typedef struct Global {
 	/* Reevan's __NLA variables */
 	struct	ListBase edbo;			/* Armature Editmode bones */
  
-	/* Rob's variables */
+	/* Rob's variables (keep here for WM recode) */
 	int have_quicktime;
 	int ui_international;
 	int charstart;

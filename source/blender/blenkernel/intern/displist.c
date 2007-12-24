@@ -531,6 +531,7 @@ static void mesh_create_shadedColors(Render *re, Object *ob, int onlyForMesh, un
 	}		
 
 	for (i=0; i<totface; i++) {
+		extern Material defmaterial;	/* material.c */
 		MFace *mf= &mface[i];
 		Material *ma= give_current_material(ob, mf->mat_nr+1);
 		int j, vidx[4], nverts= mf->v4?4:3;
@@ -642,6 +643,8 @@ void shadeDispList(Base *base)
 			dl= cu->disp.first;
 			
 			while(dl) {
+				extern Material defmaterial;	/* material.c */
+				
 				dlob= MEM_callocN(sizeof(DispList), "displistshade");
 				BLI_addtail(&ob->disp, dlob);
 				dlob->type= DL_VERTCOL;
@@ -712,6 +715,7 @@ void shadeDispList(Base *base)
 				
 				if(dl->type==DL_INDEX4) {
 					if(dl->nors) {
+						extern Material defmaterial;	/* material.c */
 						
 						if(dl->col1) MEM_freeN(dl->col1);
 						col1= dl->col1= MEM_mallocN(sizeof(int)*dl->nr, "col1");

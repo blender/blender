@@ -42,16 +42,22 @@ extern "C" {
 
 struct ListBase;
 struct MemFile;
+struct bContext;
 
+<<<<<<< .mine
+#define BLENDER_VERSION			250
+#define BLENDER_SUBVERSION		0
+=======
 #define BLENDER_VERSION			245
 #define BLENDER_SUBVERSION		12
+>>>>>>> .r12991
 
-#define BLENDER_MINVERSION		240
+#define BLENDER_MINVERSION		250
 #define BLENDER_MINSUBVERSION	0
 
-int	BKE_read_file(char *dir, void *type_r);
-int BKE_read_file_from_memory(char* filebuf, int filelength, void *type_r);
-int BKE_read_file_from_memfile(struct MemFile *memfile);
+int	BKE_read_file(struct bContext *C, char *dir, void *type_r);
+int BKE_read_file_from_memory(struct bContext *C, char* filebuf, int filelength, void *type_r);
+int BKE_read_file_from_memfile(struct bContext *C, struct MemFile *memfile);
 
 void duplicatelist(struct ListBase *list1, struct ListBase *list2);
 void free_blender(void);
@@ -64,11 +70,11 @@ void free_pushpop(void);
 void pushpop_test(void);
 
 /* global undo */
-extern void BKE_write_undo(char *name);
-extern void BKE_undo_step(int step);
+extern void BKE_write_undo(struct bContext *C, char *name);
+extern void BKE_undo_step(struct bContext *C, int step);
 extern void BKE_reset_undo(void);
 extern char *BKE_undo_menu_string(void);
-extern void BKE_undo_number(int nr);
+extern void BKE_undo_number(struct bContext *C, int nr);
 extern void BKE_undo_save_quit(void);
 
 #ifdef __cplusplus

@@ -80,6 +80,7 @@
 #include "BKE_cdderivedmesh.h"
 
 #include "blendef.h"
+#include "BIF_editparticle.h"
 #include "RE_render_ext.h"
 
 static void key_from_object(Object *ob, ParticleKey *key);

@@ -79,7 +79,7 @@
 #include "DNA_effect_types.h"
 #include "DNA_brush_types.h"
 #include "DNA_particle_types.h"
-#include "BKE_particle.h"
+#include "DNA_windowmanager_types.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_dynstr.h"
@@ -113,6 +113,7 @@
 #include "BKE_effect.h"
 #include "BKE_brush.h"
 #include "BKE_idprop.h"
+#include "BKE_particle.h"
 
 #include "BPI_script.h"
 
@@ -198,6 +199,8 @@ ListBase *wich_libbase(Main *mainlib, short type)
 			return &(mainlib->brush);
 		case ID_PA:
 			return &(mainlib->particle);
+		case ID_WM:
+			return &(mainlib->wm);
 	}
 	return 0;
 }
@@ -265,10 +268,11 @@ int set_listbasepointers(Main *main, ListBase **lb)
 	lb[24]= &(main->object);
 	lb[25]= &(main->scene);
 	lb[26]= &(main->library);
+	lb[27]= &(main->wm);
 	
-	lb[27]= NULL;
+	lb[28]= NULL;
 
-	return 27;
+	return 28;
 }
 
 /* *********** ALLOC AND FREE *****************
@@ -367,6 +371,9 @@ static ID *alloc_libblock_notest(short type)
 		case ID_PA:
 			id = MEM_callocN(sizeof(ParticleSettings), "ParticleSettings");
   			break;
+		case ID_WM:
+			id = MEM_callocN(sizeof(wmWindowManager), "Window manager");
+  			break;
 	}
 	return id;
 }
@@ -425,6 +432,13 @@ void *copy_libblock(void *rt)
 static void free_library(Library *lib)
 {
     /* no freeing needed for libraries yet */
+}
+
+static void (*free_windowmanager_cb)(bContext *, wmWindowManager *)= NULL;
+
+void set_free_windowmanager_cb(void (*func)(bContext *C, wmWindowManager *) )
+{
+	free_windowmanager_cb= func;
 }
 
 /* used in headerbuttons.c image.c mesh.c screen.c sound.c and library.c */
@@ -513,6 +527,10 @@ void free_libblock(ListBase *lb, void *idv)
 			break;
 		case ID_PA:
 			psys_free_settings((ParticleSettings *)id);
+			break;
+		case ID_WM:
+			if(free_windowmanager_cb)
+				free_windowmanager_cb(NULL, (wmWindowManager *)id);
 			break;
 	}
 
