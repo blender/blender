@@ -59,21 +59,7 @@
 #include "BKE_scene.h"
 #include "BKE_node.h"
 
-#include "BIF_gl.h"
-#include "BIF_graphics.h"
-#include "BIF_mainqueue.h"
-#include "BIF_graphics.h"
-#include "BIF_editsound.h"
-#include "BIF_usiblender.h"
 #include "BIF_drawscene.h"      /* set_scene() */
-#include "BIF_screen.h"         /* waitcursor and more */
-#include "BIF_usiblender.h"
-#include "BIF_toolbox.h"
-
-#include "BLO_writefile.h"
-#include "BLO_readfile.h"
-
-#include "BDR_drawmesh.h"
 
 #include "IMB_imbuf.h"	// for quicktime_init
 
@@ -85,6 +71,8 @@
 #include "mydevice.h"
 #include "nla.h"
 #include "datatoc.h"
+
+#include "WM_api.h"
 
 /* for passing information between creator and gameengine */
 #include "SYS_System.h"
@@ -108,16 +96,6 @@ extern char * build_type;
 /*	Local Function prototypes */
 static void print_help();
 static void print_version();
-
-
-/* defined in ghostwinlay and winlay, we can't include carbon here, conflict with DNA */
-#ifdef __APPLE__
-extern int checkAppleVideoCard(void);
-extern void getMacAvailableBounds(short *top, short *left, short *bottom, short *right);
-extern void	winlay_get_screensize(int *width_r, int *height_r);
-extern void	winlay_process_events(int wait_for_event);
-#endif
-
 
 /* for the callbacks: */
 
@@ -224,13 +202,12 @@ static void print_help(void)
 
 
 double PIL_check_seconds_timer(void);
-extern void winlay_get_screensize(int *width_r, int *height_r);
 
 int main(int argc, char **argv)
 {
-	int a, i, stax, stay, sizx, sizy;
 	SYS_SystemHandle syshandle;
-	Scene *sce;
+	bContext *C= MEM_callocN(sizeof(bContext), "creator.c context");
+	int a, i, stax, stay, sizx, sizy;
 
 #if defined(WIN32) || defined (__linux__)
 	int audio = 1;
@@ -242,29 +219,13 @@ int main(int argc, char **argv)
 #ifdef __APPLE__
 		/* patch to ignore argument finder gives us (pid?) */
 	if (argc==2 && strncmp(argv[1], "-psn_", 5)==0) {
+		extern void	wm_window_process_events(int wait_for_event);
 		extern int GHOST_HACK_getFirstFile(char buf[]);
 		static char firstfilebuf[512];
-		int scr_x,scr_y;
 
 		argc= 1;
 
-        /* first let us check if we are hardware accelerated and with VRAM > 16 Mo */
-        
-        if (checkAppleVideoCard()) {
-			short top, left, bottom, right;
-			
-			winlay_get_screensize(&scr_x, &scr_y); 
-			getMacAvailableBounds(&top, &left, &bottom, &right);
-			setprefsize(left +10,scr_y - bottom +10,right-left -20,bottom - 64, 0);
-
-        } else {
-				winlay_get_screensize(&scr_x, &scr_y);
-
-		/* 40 + 684 + (headers) 22 + 22 = 768, the powerbook screen height */
-		setprefsize(120, 40, 850, 684, 0);
-        }
-    
-		winlay_process_events(0);
+		wm_window_process_events(0);
 		if (GHOST_HACK_getFirstFile(firstfilebuf)) {
 			argc= 2;
 			argv[1]= firstfilebuf;
@@ -334,7 +295,7 @@ int main(int argc, char **argv)
 		else if(argv[a][0] == '-') {
 			switch(argv[a][1]) {
 			case 'a':
-				playanim(argc-1, argv+1);
+// XXX				playanim(argc-1, argv+1);
 				exit(0);
 				break;
 			case 'b':
@@ -405,7 +366,7 @@ int main(int argc, char **argv)
 					a++;
 					sizy= atoi(argv[a]);
 
-					setprefsize(stax, stay, sizx, sizy, 0);
+					WM_setprefsize(stax, stay, sizx, sizy);
 					break;
 				case 'd':
 					G.f |= G_DEBUG;		/* std output printf's */ 
@@ -421,18 +382,11 @@ int main(int argc, char **argv)
 					break;
             
 				case 'w':
-					/* XXX, fixme zr, with borders */
-					/* there probably is a better way to do
-					 * this, right now do as if blender was
-					 * called with "-p 0 0 xres yres" -- sgefant
-					 */ 
-					winlay_get_screensize(&sizx, &sizy);
-					setprefsize(0, 0, sizx, sizy, 1);
+					/* with borders */
 					G.windowstate = G_WINDOWSTATE_BORDER;
 					break;
 				case 'W':
-					/* XXX, fixme zr, borderless on win32 */
-					/* now on all platforms as of 20070411 - DJC */
+					/* borderless, win + linux */
 					G.windowstate = G_WINDOWSTATE_FULLSCREEN;
 					break;
 				case 'R':
@@ -466,7 +420,7 @@ int main(int argc, char **argv)
 		 * added note (ton): i removed it altogether
 		 */
 
-		BIF_init();
+		WM_init(C);
 
 	}
 	else {
@@ -480,10 +434,10 @@ int main(int argc, char **argv)
 	}
 
 	/**
-	 * NOTE: the U.pythondir string is NULL until BIF_init() is executed,
+	 * NOTE: the U.pythondir string is NULL until WM_init() is executed,
 	 * so we provide the BPY_ function below to append the user defined
 	 * pythondir to Python's sys.path at this point.  Simply putting
-	 * BIF_init() before BPY_start_python() crashes Blender at startup.
+	 * WM_init() before BPY_start_python() crashes Blender at startup.
 	 * Update: now this function also inits the bpymenus, which also depend
 	 * on U.pythondir.
 	 */
@@ -554,12 +508,12 @@ int main(int argc, char **argv)
 							/* doMipMap */
 							if (!strcmp(argv[a],"nomipmap"))
 							{
-								set_mipmap(0); //doMipMap = 0;
+// XXX								set_mipmap(0); //doMipMap = 0;
 							}
 							/* linearMipMap */
 							if (!strcmp(argv[a],"linearmipmap"))
 							{
-								set_linear_mipmap(1); //linearMipMap = 1;
+// XXX								set_linear_mipmap(1); //linearMipMap = 1;
 							}
 
 
@@ -689,40 +643,35 @@ int main(int argc, char **argv)
 		}
 		else {			
 			if (G.background) {
-				BKE_read_file(argv[a], NULL);
-				sound_initialize_sounds();
+				BKE_read_file(C, argv[a], NULL);
+// XXX			sound_initialize_sounds();
 
-				/* happens for the UI on file reading too */
-				BKE_reset_undo();
-				BKE_write_undo("original");	/* save current state */
+				/* happens for the UI on file reading too (huh? (ton))*/
+// XXX			BKE_reset_undo();
+//				BKE_write_undo("original");	/* save current state */
 			} else {
 				/* we are not running in background mode here, but start blender in UI mode with 
 				   a file - this should do everything a 'load file' does */
-				BIF_read_file(argv[a]);
+				WM_read_file(C, argv[a]);
 			}			
 		}
 	}
-
+	
 	if(G.background) {
 		/* actually incorrect, but works for now (ton) */
-		exit_usiblender();
+		WM_exit(C);
 	}
 
-	setscreen(G.curscreen);
 
-	if(G.main->scene.first==0) {
-		sce= add_scene("1");
-		set_scene(sce);
-	}
-
-	screenmain();
+	WM_main(C);
 
 	return 0;
 } /* end of int main(argc,argv)	*/
 
 static void error_cb(char *err)
 {
-	error("%s", err);
+	
+	printf("%s\n", err);	/* XXX do this in WM too */
 }
 
 static void mem_error_cb(char *errorStr)
@@ -740,6 +689,6 @@ void setCallbacks(void)
 	/* BLI_blenlib: */
 
 	BLI_setErrorCallBack(error_cb); /* */
-	BLI_setInterruptCallBack(blender_test_break);
+// XXX	BLI_setInterruptCallBack(blender_test_break);
 
 }
