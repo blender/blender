@@ -4418,7 +4418,7 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 
 		/* this is a bad level call, but currently type change
 		 * can happen after redraw, so force redraw from here */
-		allqueue(REDRAWBUTSOBJECT, 0);
+//		allqueue(REDRAWBUTSOBJECT, 0);
 	}
 	else
 		oldtotpart = psys->totpart;

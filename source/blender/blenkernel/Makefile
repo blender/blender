@@ -32,6 +32,6 @@
 # Bounces make to subdirectories.
 
 SOURCEDIR = source/blender/blenkernel
-DIRS = intern bad_level_call_stubs
+DIRS = intern
 
 include nan_subdirs.mk
