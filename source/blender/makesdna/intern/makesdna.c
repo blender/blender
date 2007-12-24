@@ -130,6 +130,7 @@ char *includefiles[] = {
 	"DNA_particle_types.h",
 	// if you add files here, please add them at the end
 	// of makesdna.c (this file) as well
+	"DNA_windowmanager_types.h",
 
 	// empty string to indicate end of includefiles
 	""
@@ -517,7 +518,7 @@ int convert_include(char *filename)
 	overslaan= 0;
 	while(count<filelen) {
 		
-		/* code for skipping a struct: two hashes. (preprocess added a space) */
+		/* code for skipping a struct: two hashes on 2 lines. (preprocess added a space) */
 		if(md[0]=='#' && md[1]==' ' && md[2]=='#') {
 			overslaan= 1;
 		}
@@ -1148,4 +1149,6 @@ int main(int argc, char ** argv)
 #include "DNA_brush_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_particle_types.h"
+#include "DNA_windowmanager_types.h"
+
 /* end of list */

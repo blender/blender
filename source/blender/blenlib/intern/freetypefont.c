@@ -55,6 +55,7 @@
 #include "BIF_toolbox.h"
 
 #include "BKE_global.h"
+#include "BKE_font.h"
 #include "BKE_utildefines.h"
 
 #include "DNA_vfont_types.h"
@@ -283,13 +284,7 @@ int objchr_to_ftvfontdata(VFont *vfont, FT_ULong charcode)
 	struct TmpFont *tf;
 	
 	// Find the correct FreeType font
-	tf= G.ttfdata.first;
-	while(tf)
-	{
-		if(tf->vfont == vfont)
-			break;
-		tf= tf->next;		
-	}
+	tf= vfont_find_tmpfont(vfont);
 	
 	// What, no font found. Something strange here
 	if(!tf) return FALSE;

@@ -52,7 +52,7 @@ CPPFLAGS += -I../../../yafray
 CPPFLAGS += -I../../../../kernel/gen_messaging
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 # not very neat: the rest of blender..
-CPPFLAGS += -I../../../include 
+CPPFLAGS += -I../../../editors/include 
 CPPFLAGS += $(NAN_SDLCFLAGS)
 
 ifeq ($(WITH_QUICKTIME), true)

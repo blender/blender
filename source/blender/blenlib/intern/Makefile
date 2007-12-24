@@ -36,7 +36,7 @@ DIR = $(OCGDIR)/blender/$(LIBNAME)
 
 include nan_compile.mk
 
-# CPPFLAGS += $(LEVEL_2_CPP_WARNINGS)
+CFLAGS += $(LEVEL_1_C_WARNINGS)
 
 # path to SDNA types
 CPPFLAGS += -I../../makesdna
@@ -49,7 +49,7 @@ CPPFLAGS += -I$(NAN_FREETYPE)/include
 CPPFLAGS += -I$(NAN_FREETYPE)/include/freetype2
 # path to blenkernel
 CPPFLAGS += -I$(SRCHOME)/blender/blenkernel
-CPPFLAGS += -I../../include/
+CPPFLAGS += -I../../editors/include/
 # path to zlib
 CPPFLAGS += -I$(NAN_ZLIB)/include
 

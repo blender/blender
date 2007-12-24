@@ -29,9 +29,19 @@
 #
 # ***** END GPL/BL DUAL LICENSE BLOCK *****
 #
-# Bounces make to subdirectories.
+#
 
-SOURCEDIR = source/blender/nodes
-DIRS = intern intern/CMP_nodes intern/SHD_nodes
+LIBNAME = nodes
+DIR = $(OCGDIR)/blender/$(LIBNAME)
 
-include nan_subdirs.mk
+include nan_compile.mk
+
+CFLAGS += $(LEVEL_1_C_WARNINGS)
+
+CPPFLAGS += -I../../blenkernel
+CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
+CPPFLAGS += -I../../makesdna
+CPPFLAGS += -I../../blenlib
+CPPFLAGS += -I../../editors/include
+CPPFLAGS += -I../../imbuf
+CPPFLAGS += -I../../render/extern/include

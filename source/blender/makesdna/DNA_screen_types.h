@@ -3,15 +3,12 @@
  *
  * $Id$ 
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version. 
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -25,11 +22,10 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
+ * 
+ * Contributor(s): Blender Foundation
  *
- * Contributor(s): none yet.
- *
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
  */
 #ifndef DNA_SCREEN_TYPES_H
 #define DNA_SCREEN_TYPES_H
@@ -44,14 +40,17 @@ struct Scene;
 
 typedef struct bScreen {
 	ID id;
+	
 	ListBase vertbase, edgebase, areabase;
 	struct Scene *scene;
 	short startx, endx, starty, endy;	/* framebuffer coords */
 	short sizex, sizey;
 	short scenenr, screennr;			/* only for pupmenu */
-	short full, pad;
+	short full, winid;					/* win id from WM, starts with 1 */
 	short mainwin, winakt;
 	short handler[8];					/* similar to space handler now */
+	
+	ListBase handlers;
 } bScreen;
 
 typedef struct ScrVert {
@@ -82,6 +81,7 @@ typedef unsigned short dna_ushort_fix;
 
 typedef struct Panel {		/* the part from uiBlock that needs saved in file */
 	struct Panel *next, *prev;
+
 	char panelname[64], tabname[64];	/* defined as UI_MAX_NAME_STR */
 	char drawname[64];					/* panelname is identifier for restoring location */
 	short ofsx, ofsy, sizex, sizey;
@@ -95,6 +95,7 @@ typedef struct Panel {		/* the part from uiBlock that needs saved in file */
 
 typedef struct ScrArea {
 	struct ScrArea *next, *prev;
+	
 	ScrVert *v1, *v2, *v3, *v4;
 	bScreen *full;			/* if area==full, this is the parent */
 	float winmat[4][4];
@@ -115,7 +116,18 @@ typedef struct ScrArea {
 	ListBase spacedata;
 	ListBase uiblocks;
 	ListBase panels;
+	ListBase regionbase;
+	ListBase handlers;
 } ScrArea;
+
+typedef struct ARegion {
+	struct ARegion *next, *prev;
+	
+	rcti winrct;
+	
+	ListBase handlers;
+	
+} ARegion;
 
 #define MAXWIN		128
 

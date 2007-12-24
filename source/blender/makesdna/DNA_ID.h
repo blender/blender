@@ -77,17 +77,19 @@ typedef struct IDProperty {
 #define IDP_FLOAT	2
 #define IDP_ARRAY	5
 #define IDP_GROUP	6
-/*the ID link property type hasn't been implemented yet, this will require
-  some cleanup of blenkernel, most likely.*/
+/* the ID link property type hasn't been implemented yet, this will require
+   some cleanup of blenkernel, most likely.*/
 #define IDP_ID		7
 
-/*add any future new id property types here.*/
+/* add any future new id property types here.*/
 
 /* watch it: Sequence has identical beginning. */
 /**
  * ID is the first thing included in all serializable types. It
  * provides a common handle to place all data in double-linked lists.
  * */
+
+#define MAX_ID_NAME	24
 
 /* There's a nasty circular dependency here.... void* to the rescue! I
  * really wonder why this is needed. */
@@ -184,6 +186,7 @@ typedef struct PreviewImage {
 #define ID_NT		MAKE_ID2('N', 'T')
 #define ID_BR		MAKE_ID2('B', 'R')
 #define ID_PA		MAKE_ID2('P', 'A')
+#define ID_WM		MAKE_ID2('W', 'M')
 
 	/* NOTE! Fake IDs, needed for g.sipo->blocktype or outliner */
 #define ID_SEQ		MAKE_ID2('S', 'Q')

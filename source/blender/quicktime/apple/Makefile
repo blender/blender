@@ -54,7 +54,7 @@ CPPFLAGS += -I..
 
 # stuff needed by quicktime_[import|export].c
 CPPFLAGS += -I../../blenloader -I../../imbuf/intern -I../../imbuf 
-CPPFLAGS += -I../../blenlib -I../../makesdna -I../../include -I../../avi 
+CPPFLAGS += -I../../blenlib -I../../makesdna -I../../editors/include -I../../avi 
 CPPFLAGS += -I../../blenkernel -I../../render/extern/include
 
 

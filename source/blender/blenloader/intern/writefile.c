@@ -4,15 +4,12 @@
  *
  * $Id$
  *
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
  * as published by the Free Software Foundation; either version 2
- * of the License, or (at your option) any later version. The Blender
- * Foundation also sells licenses for use in proprietary software under
- * the Blender License.  See http://www.blender.org/BL/ for information
- * about this.
+ * of the License, or (at your option) any later version. 
  *
  * This program is distributed in the hope that it will be useful,
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -26,9 +23,8 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Blender Foundation
  *
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
@@ -74,10 +70,6 @@ Any case: direct data is ALWAYS after the lib block
 - write USER if filename is ~/.B.blend
 */
 
-/* for version 2.2+
-Important to know is that 'streaming' has been added to files, for Blender Publisher
-*/
-
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -99,8 +91,6 @@ Important to know is that 'streaming' has been added to files, for Blender Publi
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-
-#include "nla.h" //  __NLA is defined
 
 #include "DNA_armature_types.h"
 #include "DNA_action_types.h"
@@ -147,13 +137,13 @@ Important to know is that 'streaming' has been added to files, for Blender Publi
 #include "DNA_vfont_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_world_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h" // MEM_freeN
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
 
 #include "BKE_action.h"
-#include "BKE_bad_level_calls.h" // build_seqar (from WHILE_SEQ) free_oops error
 #include "BKE_blender.h"
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
@@ -475,14 +465,14 @@ static void write_scriptlink(WriteData *wd, ScriptLink *slink)
 	writedata(wd, DATA, sizeof(short)*slink->totscript, slink->flag);
 }
 
-static void write_renderinfo(WriteData *wd)		/* for renderdeamon */
+static void write_renderinfo(bContext *C, WriteData *wd)		/* for renderdeamon */
 {
 	Scene *sce;
 	int data[8];
 
 	sce= G.main->scene.first;
 	while(sce) {
-		if(sce->id.lib==0  && ( sce==G.scene || (sce->r.scemode & R_BG_RENDER)) ) {
+		if(sce->id.lib==0  && ( sce==C->scene || (sce->r.scemode & R_BG_RENDER)) ) {
 			data[0]= sce->r.sfra;
 			data[1]= sce->r.efra;
 
@@ -1511,6 +1501,19 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 	mywrite(wd, MYWRITE_FLUSH, 0);
 }
 
+static void write_windowmanagers(WriteData *wd, ListBase *lb)
+{
+	wmWindowManager *wm;
+	wmWindow *win;
+	
+	for(wm= lb->first; wm; wm= wm->id.next) {
+		writestruct(wd, ID_WM, "wmWindowManager", 1, wm);
+		
+		for(win= wm->windows.first; win; win= win->next)
+			writestruct(wd, DATA, "wmWindow", 1, win);
+	}
+}
+
 static void write_screens(WriteData *wd, ListBase *scrbase)
 {
 	bScreen *sc;
@@ -1878,13 +1881,17 @@ static void write_brushes(WriteData *wd, ListBase *idbase)
 	}
 }
 
-static void write_global(WriteData *wd)
+/* context is usually defined by WM, two cases where no WM is available:
+/* - for forward compatibility, curscreen has to be saved */
+/* - for undofile, curscene needs to be saved */
+/* XXX still remap G */
+static void write_global(bContext *C, WriteData *wd)
 {
 	FileGlobal fg;
 	char subvstr[8];
 	
-	fg.curscreen= G.curscreen;
-	fg.curscene= G.scene;
+	fg.curscreen= C->screen;
+	fg.curscene= C->scene;
 	fg.displaymode= G.displaymode;
 	fg.winpos= G.winpos;
 	fg.fileflags= (G.fileflags & ~G_FILE_NO_UI);	// prevent to save this, is not good convention, and feature with concerns...
@@ -1901,7 +1908,8 @@ static void write_global(WriteData *wd)
 }
 
 /* if MemFile * there's filesave to memory */
-static int write_file_handle(int handle, MemFile *compare, MemFile *current, int write_user_block, int write_flags)
+static int write_file_handle(bContext *C, int handle, MemFile *compare, MemFile *current, 
+							 int write_user_block, int write_flags)
 {
 	BHead bhead;
 	ListBase mainlist;
@@ -1915,11 +1923,14 @@ static int write_file_handle(int handle, MemFile *compare, MemFile *current, int
 	sprintf(buf, "BLENDER%c%c%.3d", (sizeof(void*)==8)?'-':'_', (G.order==B_ENDIAN)?'V':'v', G.version);
 	mywrite(wd, buf, 12);
 
-	write_renderinfo(wd);
-	write_global(wd);
+	write_renderinfo(C, wd);
+	write_global(C, wd);
 
-	if(current==NULL)
-		write_screens  (wd, &G.main->screen);	/* no UI save in undo */
+	/* no UI save in undo */
+	if(current==NULL) {
+		write_windowmanagers(wd, &G.main->wm);
+		write_screens  (wd, &G.main->screen);
+	}
 	write_scenes   (wd, &G.main->scene);
 	write_curves   (wd, &G.main->curve);
 	write_mballs   (wd, &G.main->mball);
@@ -1949,7 +1960,7 @@ static int write_file_handle(int handle, MemFile *compare, MemFile *current, int
 	if (write_user_block) {
 		write_userdef(wd);
 	}
-
+							
 	/* dna as last, because (to be implemented) test for which structs are written */
 	writedata(wd, DNA1, wd->sdna->datalen, wd->sdna->data);
 
@@ -1965,7 +1976,7 @@ static int write_file_handle(int handle, MemFile *compare, MemFile *current, int
 }
 
 /* return: success (1) */
-int BLO_write_file(char *dir, int write_flags, char **error_r)
+int BLO_write_file(bContext *C, char *dir, int write_flags, char **error_r)
 {
 	char userfilename[FILE_MAXDIR+FILE_MAXFILE];
 	char tempname[FILE_MAXDIR+FILE_MAXFILE];
@@ -1983,7 +1994,7 @@ int BLO_write_file(char *dir, int write_flags, char **error_r)
 
 	write_user_block= BLI_streq(dir, userfilename);
 
-	err= write_file_handle(file, NULL,NULL, write_user_block, write_flags);
+	err= write_file_handle(C, file, NULL,NULL, write_user_block, write_flags);
 	close(file);
 
 	if(!err) {
@@ -2020,11 +2031,11 @@ int BLO_write_file(char *dir, int write_flags, char **error_r)
 }
 
 /* return: success (1) */
-int BLO_write_file_mem(MemFile *compare, MemFile *current, int write_flags, char **error_r)
+int BLO_write_file_mem(bContext *C, MemFile *compare, MemFile *current, int write_flags, char **error_r)
 {
 	int err;
 
-	err= write_file_handle(0, compare, current, 0, write_flags);
+	err= write_file_handle(C, 0, compare, current, 0, write_flags);
 	
 	if(err==0) return 1;
 	return 0;
@@ -2122,7 +2133,8 @@ cleanup:
 		return 1;
 }
 
-void BLO_write_runtime(char *file, char *exename) {
+void BLO_write_runtime(bContext *C, char *file, char *exename) 
+{
 	char gamename[FILE_MAXDIR+FILE_MAXFILE];
 	int outfd = -1;
 	char *cause= NULL;
@@ -2140,7 +2152,7 @@ void BLO_write_runtime(char *file, char *exename) {
 	outfd= open(gamename, O_BINARY|O_WRONLY|O_CREAT|O_TRUNC, 0777);
 	if (outfd != -1) {
 
-		write_file_handle(outfd, NULL,NULL, 0, G.fileflags);
+		write_file_handle(C, outfd, NULL,NULL, 0, G.fileflags);
 
 		if (write(outfd, " ", 1) != 1) {
 			cause= "Unable to write to output file";
@@ -2160,7 +2172,8 @@ cleanup:
 
 #else /* !__APPLE__ */
 
-static int handle_append_runtime(int handle, char *exename, char **cause_r) {
+static int handle_append_runtime(int handle, char *exename, char **cause_r) 
+{
 	char *cause= NULL, *runtime= get_runtime_path(exename);
 	unsigned char buf[1024];
 	int count, progfd= -1;
@@ -2196,7 +2209,8 @@ cleanup:
 		return 1;
 }
 
-static int handle_write_msb_int(int handle, int i) {
+static int handle_write_msb_int(int handle, int i) 
+{
 	unsigned char buf[4];
 	buf[0]= (i>>24)&0xFF;
 	buf[1]= (i>>16)&0xFF;
@@ -2206,7 +2220,8 @@ static int handle_write_msb_int(int handle, int i) {
 	return (write(handle, buf, 4)==4);
 }
 
-void BLO_write_runtime(char *file, char *exename) {
+void BLO_write_runtime(bContext *C, char *file, char *exename) 
+{
 	int outfd= open(file, O_BINARY|O_WRONLY|O_CREAT|O_TRUNC, 0777);
 	char *cause= NULL;
 	int datastart;
@@ -2220,7 +2235,7 @@ void BLO_write_runtime(char *file, char *exename) {
 
 	datastart= lseek(outfd, 0, SEEK_CUR);
 
-	write_file_handle(outfd, NULL,NULL, 0, G.fileflags);
+	write_file_handle(C, outfd, NULL,NULL, 0, G.fileflags);
 
 	if (!handle_write_msb_int(outfd, datastart) || (write(outfd, "BRUNTIME", 8)!=8)) {
 		cause= "Unable to write to output file";

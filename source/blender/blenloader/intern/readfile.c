@@ -20,9 +20,8 @@
  * The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
  * All rights reserved.
  *
- * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Blender Foundation
  *
  * ***** END GPL LICENSE BLOCK *****
  *
@@ -101,6 +100,7 @@
 #include "DNA_userdef_types.h"
 #include "DNA_vfont_types.h"
 #include "DNA_world_types.h"
+#include "DNA_windowmanager_types.h"
 
 #include "MEM_guardedalloc.h"
 #include "BLI_blenlib.h"
@@ -108,8 +108,6 @@
 #include "BLI_storage_types.h" // for relname flags
 
 #include "BDR_sculptmode.h"
-
-#include "BKE_bad_level_calls.h" // for reopen_text build_seqar (from WHILE_SEQ) set_rects_butspace check_imasel_copy
 
 #include "BKE_action.h"
 #include "BKE_armature.h"
@@ -3492,6 +3490,42 @@ static void lib_link_screen_sequence_ipos(Main *main)
 	}
 }
 
+/* ************ READ WM ***************** */
+
+static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
+{
+	wmWindow *win;
+	
+	wm->id.us= 1;
+	link_list(fd, &(wm->windows));
+	
+	for(win= wm->windows.first; win; win= win->next) {
+		win->ghostwin= NULL;
+		win->eventstate= NULL;
+		
+		win->queue.first= win->queue.last= NULL;
+		win->handlers.first= win->handlers.last= NULL;
+	}
+	
+	wm->operators.first= wm->operators.last= NULL;
+	wm->windowkeymap.first= wm->windowkeymap.last= NULL;
+	wm->screenkeymap.first= wm->screenkeymap.last= NULL;
+	
+	wm->initialized= 0;
+}
+
+static void lib_link_windowmanager(FileData *fd, Main *main)
+{
+	wmWindowManager *wm;
+	
+	for(wm= main->wm.first; wm; wm= wm->id.next) {
+		wmWindow *win;
+		for(win= wm->windows.first; win; win= win->next) {
+			win->screen= newlibadr(fd, NULL, win->screen);
+		}
+	}
+}
+
 /* ************ READ SCREEN ***************** */
 
 /* note: file read without screens option G_FILE_NO_UI; 
@@ -3811,7 +3845,9 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 	link_list(fd, &(sc->edgebase));
 	link_list(fd, &(sc->areabase));
 	sc->winakt= 0;
-
+	
+	sc->handlers.first= sc->handlers.last= NULL;
+	
 	/* hacky patch... but people have been saving files with the verse-blender,
 	   causing the handler to keep running for ever, with no means to disable it */
 	for(a=0; a<SCREEN_MAXHANDLER; a+=2) {
@@ -3848,6 +3884,9 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 		link_list(fd, &(sa->spacedata));
 		link_list(fd, &(sa->panels));
 
+		sa->handlers.first= sa->handlers.last= NULL;
+		sa->regionbase.first= sa->regionbase.last= NULL;
+		
 		/* accident can happen when read/save new file with older version */
 		if(sa->spacedata.first==NULL && sa->spacetype>SPACE_NLA)
 			sa->spacetype= SPACE_EMPTY;
@@ -4129,6 +4168,9 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 
 	/* init pointers direct data */
 	switch( GS(id->name) ) {
+		case ID_WM:
+			direct_link_windowmanager(fd, (wmWindowManager *)id);
+			break;
 		case ID_SCR:
 			direct_link_screen(fd, (bScreen *)id);
 			break;
@@ -4218,16 +4260,36 @@ static BHead *read_libblock(FileData *fd, Main *main, BHead *bhead, int flag, ID
 	return (bhead);
 }
 
-static void link_global(FileData *fd, BlendFileData *bfd, FileGlobal *fg)
+/* note, this has to be kept for reading older files... */
+/* also version info is written here */
+static BHead *read_global(BlendFileData *bfd, FileData *fd, BHead *bhead)
 {
-	// this is nonsense... make it struct once (ton)
+	FileGlobal *fg= read_struct(fd, bhead, "Global");
+	
+	/* copy to bfd handle */
+	bfd->main->subversionfile= fg->subversion;
+	bfd->main->minversionfile= fg->minversion;
+	bfd->main->minsubversionfile= fg->minsubversion;
+	
 	bfd->winpos= fg->winpos;
 	bfd->fileflags= fg->fileflags;
 	bfd->displaymode= fg->displaymode;
 	bfd->globalf= fg->globalf;
 	
-	bfd->curscreen= newlibadr(fd, 0, fg->curscreen);
-	bfd->curscene= newlibadr(fd, 0, fg->curscene);
+	bfd->curscreen= fg->curscreen;
+	bfd->curscene= fg->curscene;
+	
+	MEM_freeN(fg);
+	
+	return blo_nextbhead(fd, bhead);
+}
+
+/* note, this has to be kept for reading older files... */
+static void link_global(FileData *fd, BlendFileData *bfd)
+{
+	
+	bfd->curscreen= newlibadr(fd, 0, bfd->curscreen);
+	bfd->curscene= newlibadr(fd, 0, bfd->curscene);
 	// this happens in files older than 2.35
 	if(bfd->curscene==NULL) {
 		if(bfd->curscreen) bfd->curscene= bfd->curscreen->scene;
@@ -7269,6 +7331,7 @@ static void lib_link_all(FileData *fd, Main *main)
 {
 	oldnewmap_sort(fd);
 	
+	lib_link_windowmanager(fd, main);
 	lib_link_screen(fd, main);
 	lib_link_scene(fd, main);
 	lib_link_object(fd, main);
@@ -7298,6 +7361,7 @@ static void lib_link_all(FileData *fd, Main *main)
 
 	lib_link_library(fd, main);		/* only init users */
 }
+
 
 static BHead *read_userdef(BlendFileData *bfd, FileData *fd, BHead *bhead)
 {
@@ -7332,19 +7396,14 @@ BlendFileData *blo_read_file_internal(FileData *fd, BlendReadError *error_r)
 	
 	while(bhead) {
 		switch(bhead->code) {
-		case GLOB:
 		case DATA:
 		case DNA1:
 		case TEST:
 		case REND:
-			if (bhead->code==GLOB) {
-				fg= read_struct(fd, bhead, "Global");
-				/* set right away */
-				bfd->main->subversionfile= fg->subversion;
-				bfd->main->minversionfile= fg->minversion;
-				bfd->main->minsubversionfile= fg->minsubversion;
-			}
 			bhead = blo_nextbhead(fd, bhead);
+			break;
+		case GLOB:
+			bhead= read_global(bfd, fd, bhead);
 			break;
 		case USER:
 			bhead= read_userdef(bfd, fd, bhead);
@@ -7380,11 +7439,7 @@ BlendFileData *blo_read_file_internal(FileData *fd, BlendReadError *error_r)
 	lib_link_all(fd, bfd->main);
 	lib_verify_nodetree(bfd->main);
 	
-	if(fg)
-		link_global(fd, bfd, fg);	/* as last */
-
-	/* removed here: check for existance of curscreen/scene, moved to kernel setup_app */
-	MEM_freeN(fg);
+	link_global(fd, bfd);	/* as last */
 	
 	return bfd;
 }
@@ -8165,10 +8220,9 @@ static void append_named_part(FileData *fd, Main *mainvar, Scene *scene, char *n
 					if(id==NULL) ob= mainvar->object.last;
 					else ob= (Object *)id;
 					
-					/* this is bad code... G.vd nor G.scene should be used on this level... */
+					/* XXX use context to find view3d->lay */
 					if((flag & FILE_ACTIVELAY)) {
-						if(G.vd) ob->lay= G.vd->layact;
-						else ob->lay = G.scene->lay;
+						scene->lay;
 					}
 					base->lay= ob->lay;
 					base->object= ob;
@@ -8210,7 +8264,7 @@ static void append_id_part(FileData *fd, Main *mainvar, ID *id, ID **id_r)
 
 /* common routine to append/link something from a library */
 
-static Library* library_append( Scene *scene, char* file, char *dir, int idcode,
+static Library* library_append(Scene *scene, char* file, char *dir, int idcode,
 		int totsel, FileData *fd, struct direntry* filelist, int totfile, short flag)
 {
 	Main *mainl;
@@ -8279,27 +8333,29 @@ static Library* library_append( Scene *scene, char* file, char *dir, int idcode,
 
 /* this is a version of BLO_library_append needed by the BPython API, so
  * scripts can load data from .blend files -- see Blender.Library module.*/
-/* append to G.scene */
+/* append to scene */
 /* this should probably be moved into the Python code anyway */
 
 void BLO_script_library_append(BlendHandle *bh, char *dir, char *name, 
 		int idcode, short flag, Scene *scene )
 {
 	/* try to append the requested object */
-	library_append( scene, name, dir, idcode, 0, (FileData *)bh, NULL, 0, flag );
+	library_append(scene, name, dir, idcode, 0, (FileData *)bh, NULL, 0, flag );
 
 	/* do we need to do this? */
-	DAG_scene_sort(G.scene);
+	DAG_scene_sort(scene);
 }
 
-/* append to G.scene */
+/* append to scene */
 /* dir is a full path */	
-void BLO_library_append(SpaceFile *sfile, char *dir, int idcode)
+void BLO_library_append(SpaceFile *sfile, char *dir, int idcode, Scene *scene)
 {
-	BLO_library_append_(&sfile->libfiledata, sfile->filelist, sfile->totfile, dir, sfile->file, sfile->flag, idcode);
+	BLO_library_append_(&sfile->libfiledata, sfile->filelist, sfile->totfile, 
+						dir, sfile->file, sfile->flag, idcode, scene);
 }
 
-void BLO_library_append_(BlendHandle** libfiledata, struct direntry* filelist, int totfile, char *dir, char* file, short flag, int idcode)
+void BLO_library_append_(BlendHandle** libfiledata, struct direntry* filelist, int totfile, 
+						 char *dir, char* file, short flag, int idcode, Scene *scene)
 {
 	FileData *fd= (FileData*) (*libfiledata);
 	Library *curlib;
@@ -8332,9 +8388,9 @@ void BLO_library_append_(BlendHandle** libfiledata, struct direntry* filelist, i
 	}
 	/* now we have or selected, or an indicated file */
 	
-	if(flag & FILE_AUTOSELECT) scene_deselect_all(G.scene);
+	if(flag & FILE_AUTOSELECT) scene_deselect_all(scene);
 
-	curlib = library_append( G.scene, file, dir, idcode, totsel, fd, filelist, totfile,flag );
+	curlib = library_append(scene, file, dir, idcode, totsel, fd, filelist, totfile,flag );
 
 	/* patch to prevent switch_endian happens twice */
 	if(fd->flags & FD_FLAGS_SWITCH_ENDIAN) {
@@ -8349,7 +8405,7 @@ void BLO_library_append_(BlendHandle** libfiledata, struct direntry* filelist, i
 			
 			INIT_MINMAX(min, max);
 			
-			centerbase= (G.scene->base.first);
+			centerbase= (scene->base.first);
 			while(centerbase) {
 				if(centerbase->object->id.lib==curlib && centerbase->object->parent==NULL) {
 					VECCOPY(vec, centerbase->object->loc);
@@ -8362,10 +8418,10 @@ void BLO_library_append_(BlendHandle** libfiledata, struct direntry* filelist, i
 				centerloc[0]= (min[0]+max[0])/2;
 				centerloc[1]= (min[1]+max[1])/2;
 				centerloc[2]= (min[2]+max[2])/2;
-				curs = G.scene->cursor;
+				curs = scene->cursor;
 				VECSUB(centerloc,curs,centerloc);
 			
-				centerbase= (G.scene->base.first);
+				centerbase= (scene->base.first);
 				while(centerbase) {
 					if(centerbase->object->id.lib==curlib && centerbase->object->parent==NULL) {
 						ob= centerbase->object;

@@ -27,6 +27,8 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#include <stdio.h>
+
 #include "BKE_global.h"
 #include "BKE_utildefines.h"
 #include "BLI_blenlib.h"

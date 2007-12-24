@@ -42,12 +42,11 @@ CFLAGS += $(LEVEL_1_C_WARNINGS)
 CPPFLAGS += -I../../makesdna
 CPPFLAGS += -I../../blenkernel
 CPPFLAGS += -I../../blenlib
-CPPFLAGS += -I../../include
+CPPFLAGS += -I../../editors/include
 CPPFLAGS += -I$(NAN_FTGL)/include
 CPPFLAGS += -I$(NAN_FTGL)/include/FTGL
 CPPFLAGS += -I$(NAN_GETTEXT)/include
 CPPFLAGS += -I$(NAN_FREETYPE)/include
-CPPFLAGS += -I$(OPENGL_HEADERS)
 ifeq ($(OS), windows)
   CPPFLAGS += -I$(NAN_ICONV)/include
   ifeq ($(FREE_WINDOWS), true)

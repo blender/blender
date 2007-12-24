@@ -36,6 +36,8 @@
 #include <io.h>
 #endif
 
+#include <stdio.h>
+
 #include "BKE_global.h"
 #include "BLI_blenlib.h"
 
