@@ -1,5 +1,5 @@
 /* 
- * $Id: Object.c 12801 2007-12-05 21:50:23Z blendix $
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -134,6 +134,7 @@ struct rctf;
 #define IPOKEY_PI_SURFACEDAMP   8
 #define IPOKEY_PI_RANDOMDAMP    9
 #define IPOKEY_PI_PERM          10
+#define IPOKEY_LAYER			19
 
 #define PFIELD_FORCE	1
 #define PFIELD_VORTEX	2
@@ -2343,7 +2344,7 @@ static int Object_setMatrix( BPy_Object * self, MatrixObject * mat )
 
 /*
  * Object_insertIpoKey()
- *  inserts Object IPO key for LOC, ROT, SIZE, LOCROT, or LOCROTSIZE
+ *  inserts Object IPO key for LOC, ROT, SIZE, LOCROT, LOCROTSIZE, or LAYER
  *  Note it also inserts actions! 
  */
 
@@ -2374,6 +2375,9 @@ static PyObject *Object_insertIpoKey( BPy_Object * self, PyObject * args )
 		insertkey((ID *)ob, ID_OB, actname, NULL,OB_SIZE_X, 0);
 		insertkey((ID *)ob, ID_OB, actname, NULL,OB_SIZE_Y, 0);
 		insertkey((ID *)ob, ID_OB, actname, NULL,OB_SIZE_Z, 0);      
+	}
+	if (key == IPOKEY_LAYER ){
+		insertkey((ID *)ob, ID_OB, actname, NULL,OB_LAY, 0);
 	}
 
 	if (key == IPOKEY_PI_STRENGTH ){
@@ -5323,6 +5327,7 @@ static PyObject *M_Object_IpoKeyTypesDict( void )
 		PyConstant_Insert( d, "SIZE", PyInt_FromLong( IPOKEY_SIZE ) );
 		PyConstant_Insert( d, "LOCROT", PyInt_FromLong( IPOKEY_LOCROT ) );
 		PyConstant_Insert( d, "LOCROTSIZE", PyInt_FromLong( IPOKEY_LOCROTSIZE ) );
+		PyConstant_Insert( d, "LAYER", PyInt_FromLong( IPOKEY_LAYER ) );
 		
 		PyConstant_Insert( d, "PI_STRENGTH", PyInt_FromLong( IPOKEY_PI_STRENGTH ) );
 		PyConstant_Insert( d, "PI_FALLOFF", PyInt_FromLong( IPOKEY_PI_FALLOFF ) );
@@ -5360,7 +5365,8 @@ PyObject *Object_Init( void )
 	PyModule_AddIntConstant( module, "SIZE", IPOKEY_SIZE );
 	PyModule_AddIntConstant( module, "LOCROT", IPOKEY_LOCROT );
 	PyModule_AddIntConstant( module, "LOCROTSIZE", IPOKEY_LOCROTSIZE );
-
+	PyModule_AddIntConstant( module, "LAYER", IPOKEY_LAYER );
+	
 	PyModule_AddIntConstant( module, "PI_STRENGTH", IPOKEY_PI_STRENGTH );
 	PyModule_AddIntConstant( module, "PI_FALLOFF", IPOKEY_PI_FALLOFF );
 	PyModule_AddIntConstant( module, "PI_SURFACEDAMP", IPOKEY_PI_SURFACEDAMP );
