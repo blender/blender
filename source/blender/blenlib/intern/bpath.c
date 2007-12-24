@@ -347,15 +347,15 @@ void makeFilesRelative(int *tot, int *changed, int *failed, int *linked) {
 		libpath = BLI_bpathIterator_getLib(&bpi);
 		
 		if(strncmp(filepath, "//", 2)) {
-			if (libpath) { /* cant make relative if we are kibrary - TODO, LOG THIS */
+			if (libpath) { /* cant make relative if we are library - TODO, LOG THIS */
 				(*linked)++;
 			} else { /* local data, use the blend files path */
 				BLI_strncpy(filepath_relative, filepath, sizeof(filepath_relative));
 				BLI_makestringcode(G.sce, filepath_relative);
-				if (BLI_bpathIterator_getPathMaxLen(&bpi) < strlen(filepath_relative)) {
+				/* be safe and check the length */
+				if (BLI_bpathIterator_getPathMaxLen(&bpi) <= strlen(filepath_relative)) {
 					(*failed)++;
 				} else {
-					/* safe to to check the length */
 					if(strncmp(filepath_relative, "//", 2)==0) {
 						strcpy(filepath, filepath_relative);
 						(*changed)++;
@@ -365,11 +365,51 @@ void makeFilesRelative(int *tot, int *changed, int *failed, int *linked) {
 				}
 			}
 		}
-		
 		BLI_bpathIterator_step(&bpi);
 		(*tot)++;
 	}
 }
+
+/* dont log any errors at the moment, should probably do this -
+ * Verry similar to makeFilesRelative - keep in sync! */
+void makeFilesAbsolute(int *tot, int *changed, int *failed, int *linked) {
+	struct BPathIterator bpi;
+	char *filepath, *libpath;
+	
+	/* be sure there is low chance of the path being too short */
+	char filepath_absolute[(FILE_MAXDIR * 2) + FILE_MAXFILE];
+	
+	*tot = *changed = *failed = *linked = 0;
+	
+	BLI_bpathIterator_init(&bpi);
+	while (!BLI_bpathIterator_isDone(&bpi)) {
+		filepath = BLI_bpathIterator_getPath(&bpi);
+		libpath = BLI_bpathIterator_getLib(&bpi);
+		
+		if(strncmp(filepath, "//", 2)==0) {
+			if (libpath) { /* cant make absolute if we are library - TODO, LOG THIS */
+				(*linked)++;
+			} else { /* get the expanded path and check it is relative or too long */
+				BLI_bpathIterator_copyPathExpanded( &bpi, filepath_absolute );
+				
+				/* safe be safe, check the length */
+				if (BLI_bpathIterator_getPathMaxLen(&bpi) <= strlen(filepath_absolute)) {
+					(*failed)++;
+				} else {
+					if(strncmp(filepath_absolute, "//", 2)) {
+						strcpy(filepath, filepath_absolute);
+						(*changed)++;
+					} else {
+						(*failed)++;
+					}
+				}
+			}
+		}
+		BLI_bpathIterator_step(&bpi);
+		(*tot)++;
+	}
+}
+
 
 /* find this file recursively, use the biggest file so thumbnails dont get used by mistake
  - dir: subdir to search
@@ -386,8 +426,6 @@ static int findFileRecursive(char *filename_new, const char *dirname, const char
 	struct stat status;
 	char path[FILE_MAX];
 	int size;
-	
-	printf("DIR %s\n", dirname);
 	
 	dir = opendir(dirname);
 	

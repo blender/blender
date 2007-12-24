@@ -812,8 +812,8 @@ static void stampdata(StampData *stamp_data, int do_prefix)
 	}
 	
 	if (G.scene->r.stamp & R_STAMP_NOTE) {
-		if (do_prefix)		sprintf(stamp_data->note, "Note %s", G.scene->r.stamp_udata);
-		else				sprintf(stamp_data->note, "%s", G.scene->r.stamp_udata);
+		/* Never do prefix for Note */
+		sprintf(stamp_data->note, "%s", G.scene->r.stamp_udata);
 	} else {
 		stamp_data->note[0] = '\0';
 	}

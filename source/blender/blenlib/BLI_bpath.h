@@ -56,4 +56,5 @@ void			BLI_bpathIterator_copyPathExpanded( struct BPathIterator *bpi, char *path
 /* creates a text file with missing files if there are any */
 struct Text * checkMissingFiles(void);
 void makeFilesRelative(int *tot, int *changed, int *failed, int *linked);
+void makeFilesAbsolute(int *tot, int *changed, int *failed, int *linked);
 void findMissingFiles(char *str);

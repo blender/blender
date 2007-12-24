@@ -963,7 +963,16 @@ static void do_info_externalfiles(void *arg, int event)
 			pupmenu("Can't set relative paths with an unsaved blend file");
 		}
 		break;
-	case 11: /* check images exist */
+	case 11: /* make all paths relative */
+		{
+			int tot,changed,failed,linked;
+			char str[512];
+			makeFilesAbsolute(&tot, &changed, &failed, &linked);
+			sprintf(str, "Make Absolute%%t|Total files %i|Changed %i|Failed %i|Linked %i", tot, changed, failed, linked);
+			pupmenu(str);
+		}
+		break;
+	case 12: /* check images exist */
 		{
 			/* Its really text but only care about the name */
 			ID *btxt = (ID *)checkMissingFiles();
@@ -977,7 +986,7 @@ static void do_info_externalfiles(void *arg, int event)
 			}
 		}
 		break;
-	case 12: /* search for referenced files that are not available  */
+	case 13: /* search for referenced files that are not available  */
 		activate_fileselect(FILE_SPECIAL, "Find Missing Files", "", findMissingFiles);
 		break;
 	}
@@ -1002,8 +1011,9 @@ static uiBlock *info_externalfiles(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make all Paths Relative",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 10, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Report Missing Files",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 11, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Find Missing Files",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 12, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make all Paths Absolute",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 11, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Report Missing Files",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 12, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Find Missing Files",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 13, "");
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 60);
