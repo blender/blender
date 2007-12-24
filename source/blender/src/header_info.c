@@ -484,18 +484,19 @@ void do_info_buttons(unsigned short event)
 		else if(G.scene->id.next) sce= G.scene->id.next;
 		else return;
 		if(okee("Delete current scene")) {
+			/* Note, anything besides free_libblock needs to be added in
+			 * Python Scene.c for Blender.Scene.Unlink() */
+			
 			
 			/* exit modes... could become single call once */
 			exit_editmode(EM_FREEDATA|EM_WAITCURSOR);
 			exit_paint_modes();
 			
 			/* check all sets */
-			sce1= G.main->scene.first;
-			while(sce1) {
+			for (sce1= G.main->scene.first; sce1; sce1= sce1->id.next) {
 				if(sce1->set == G.scene) sce1->set= 0;
-				sce1= sce1->id.next;
 			}
-
+			
 			/* check all sequences */
 			clear_scene_in_allseqs(G.scene);
 
@@ -503,10 +504,9 @@ void do_info_buttons(unsigned short event)
 			clear_scene_in_nodes(G.scene);
 			
 			/* al screens */
-			sc= G.main->screen.first;
-			while(sc) {
+			
+			for (sc= G.main->screen.first; sc; sc= sc->id.next ) {
 				if(sc->scene == G.scene) sc->scene= sce;
-				sc= sc->id.next;
 			}
 			free_libblock(&G.main->scene, G.scene);
 			set_scene(sce);
