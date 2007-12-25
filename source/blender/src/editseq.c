@@ -2269,8 +2269,8 @@ static void recurs_dupli_seq(ListBase *old, ListBase *new)
 			seqn = dupli_seq(seq);
 			if (seqn) { /*should never fail */
 				seq->flag &= SEQ_DESEL;
-				seqn->flag &= ~(SEQ_LEFTSEL+SEQ_RIGHTSEL);
-				
+				seqn->flag &= ~(SEQ_LEFTSEL+SEQ_RIGHTSEL+SEQ_LOCK);
+
 				BLI_addtail(new, seqn);
 				if(seq->type==SEQ_META)
 					recurs_dupli_seq(&seq->seqbase,&seqn->seqbase);
@@ -2619,7 +2619,7 @@ void make_meta(void)
 		}
 		seq= seq->next;
 	}
-	if(tot < 2) return;
+	if(tot < 1) return;
 
 	if(okee("Make Meta Strip")==0) return;
 
@@ -2763,7 +2763,7 @@ void exit_meta(void)
 
 	set_last_seq(ms->parseq);
 
-	ms->parseq->flag= SELECT;
+	ms->parseq->flag |= SELECT;
 	recurs_sel_seq(ms->parseq);
 
 	MEM_freeN(ms);
@@ -2859,6 +2859,21 @@ static void transform_grab_xlimits(Sequence *seq, int leftflag, int rightflag)
 	}
 }
 
+static int can_transform_seq_test_func(Sequence * seq)
+{
+	if((seq->flag & SELECT) && !(seq->flag & SEQ_LOCK)) {
+		return BUILD_SEQAR_COUNT_CURRENT | BUILD_SEQAR_COUNT_CHILDREN;
+	}
+	if ((seq->flag & SEQ_LOCK) && !(seq->type & SEQ_EFFECT)) {
+		if (seq->type != SEQ_META) {
+			return BUILD_SEQAR_COUNT_NOTHING;
+		} else {
+			return BUILD_SEQAR_COUNT_CURRENT;
+		}
+	}
+	return BUILD_SEQAR_COUNT_CURRENT | BUILD_SEQAR_COUNT_CHILDREN;
+}
+
 void transform_seq(int mode, int context)
 {
 	SpaceSeq *sseq= curarea->spacedata.first;
@@ -2903,7 +2918,8 @@ void transform_seq(int mode, int context)
 	if(ed==0) return;
 
 	/* Build the sequence array once, be sure to free it */
-	build_seqar( ed->seqbasep,  &seqar, &totseq_index );
+	build_seqar_cb( ed->seqbasep,  &seqar, &totseq_index, 
+			can_transform_seq_test_func );
 	
 	if (seqar) {
 		for(seq_index=0, seq=seqar[0]; seq_index < totseq_index; seq=seqar[++seq_index]) {
@@ -2922,7 +2938,7 @@ void transform_seq(int mode, int context)
 		if(seqar) MEM_freeN(seqar);
 		return;
 	}
-	
+
 	G.moving= 1;
 	
 	last_seq = get_last_seq();
@@ -3116,7 +3132,7 @@ void transform_seq(int mode, int context)
 			if (mode=='g' && !snapskip) {
 				/* Grab */
 				for(seq_index=0, seq=seqar[0]; seq_index < totseq_index; seq=seqar[++seq_index]) {
-					if(seq->flag & SELECT) {
+					if(seq->flag & SELECT && !(seq->flag & SEQ_LOCK)) {
 						int myofs;
 						// SEQ_DEBUG_INFO(seq);
 						
@@ -3168,7 +3184,7 @@ void transform_seq(int mode, int context)
 				
 				/* Extend, Similar to grab but operate on one side of the cursor */
 				for(seq_index=0, seq=seqar[0]; seq_index < totseq_index; seq=seqar[++seq_index]) {
-					if(seq->flag & SELECT) {
+					if(seq->flag & SELECT && !(seq->flag & SEQ_LOCK)) {
 						/* only move the contents of the metastrip otherwise the transformation is applied twice */
 						if (sequence_is_free_transformable(seq) && seq->type != SEQ_META) {
 							
@@ -3280,7 +3296,7 @@ void transform_seq(int mode, int context)
 
 			/* test for effect and overlap */
 			for(seq_index=0, seq=seqar[0]; seq_index < totseq_index; seq=seqar[++seq_index]) {
-				if(seq->flag & SELECT) {
+				if(seq->flag & SELECT && !(seq->flag & SEQ_LOCK)) {
 					seq->flag &= ~SEQ_OVERLAP;
 					if( test_overlap_seq(seq) ) {
 						seq->flag |= SEQ_OVERLAP;
@@ -3329,7 +3345,7 @@ void transform_seq(int mode, int context)
 
 		ts= transmain;
 		for(seq_index=0, seq=seqar[0]; seq_index < totseq_index; seq=seqar[++seq_index]) {
-			if(seq->flag & SELECT) {
+			if(seq->flag & SELECT && !(seq->flag & SEQ_LOCK)) {
 				seq->start= ts->start;
 				seq->machine= ts->machine;
 				seq->startstill= ts->startstill;

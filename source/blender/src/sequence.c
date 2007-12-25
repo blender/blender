@@ -211,6 +211,66 @@ void build_seqar(ListBase *seqbase, Sequence  ***seqar, int *totseq)
 	*seqar= tseqar;
 }
 
+static void do_seq_count_cb(ListBase *seqbase, int *totseq,
+			    int (*test_func)(Sequence * seq))
+{
+	Sequence *seq;
+
+	seq= seqbase->first;
+	while(seq) {
+		int test = test_func(seq);
+		if (test & BUILD_SEQAR_COUNT_CURRENT) {
+			(*totseq)++;
+		}
+		if(seq->seqbase.first && (test & BUILD_SEQAR_COUNT_CHILDREN)) {
+			do_seq_count_cb(&seq->seqbase, totseq, test_func);
+		}
+		seq= seq->next;
+	}
+}
+
+static void do_build_seqar_cb(ListBase *seqbase, Sequence ***seqar, int depth,
+			      int (*test_func)(Sequence * seq))
+{
+	Sequence *seq;
+
+	seq= seqbase->first;
+	while(seq) {
+		int test = test_func(seq);
+		seq->depth= depth;
+
+		if(seq->seqbase.first && (test & BUILD_SEQAR_COUNT_CHILDREN)) {
+			do_build_seqar_cb(&seq->seqbase, seqar, depth+1, 
+					  test_func);
+		}
+		if (test & BUILD_SEQAR_COUNT_CURRENT) {
+			**seqar= seq;
+			(*seqar)++;
+		}
+		seq= seq->next;
+	}
+}
+
+void build_seqar_cb(ListBase *seqbase, Sequence  ***seqar, int *totseq,
+		    int (*test_func)(Sequence * seq))
+{
+	Sequence **tseqar;
+
+	*totseq= 0;
+	do_seq_count_cb(seqbase, totseq, test_func);
+
+	if(*totseq==0) {
+		*seqar= 0;
+		return;
+	}
+	*seqar= MEM_mallocN(sizeof(void *)* *totseq, "seqar");
+	tseqar= *seqar;
+
+	do_build_seqar_cb(seqbase, seqar, 0, test_func);
+	*seqar= tseqar;
+}
+
+
 void free_editing(Editing *ed)
 {
 	MetaStack *ms;
