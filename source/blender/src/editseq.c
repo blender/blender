@@ -2907,7 +2907,8 @@ void transform_seq(int mode, int context)
 	
 	if (seqar) {
 		for(seq_index=0, seq=seqar[0]; seq_index < totseq_index; seq=seqar[++seq_index]) {
-			if(seq->flag & SELECT) totstrip++;
+			if((seq->flag & SELECT) && !(seq->flag & SEQ_LOCK)) 
+				totstrip++;
 		}
 	}
 	
@@ -2929,7 +2930,7 @@ void transform_seq(int mode, int context)
 	ts=transmain= MEM_callocN(totstrip*sizeof(TransSeq), "transseq");
 
 	for(seq_index=0, seq=seqar[0]; seq_index < totseq_index; seq=seqar[++seq_index]) {
-		if(seq->flag & SELECT) {
+		if((seq->flag & SELECT) && !(seq->flag & SEQ_LOCK)) {
 			ts->start= seq->start;
 			ts->machine= seq->machine;
 			ts->startstill= seq->startstill;
@@ -3612,7 +3613,8 @@ void seq_snap(short event)
 
 	/* also check metas */
 	WHILE_SEQ(ed->seqbasep) {
-		if (seq->flag & SELECT && sequence_is_free_transformable(seq)) {
+		if (seq->flag & SELECT && !(seq->flag & SEQ_LOCK) &&
+		    sequence_is_free_transformable(seq)) {
 			if((seq->flag & (SEQ_LEFTSEL+SEQ_RIGHTSEL))==0) {
 				seq->start= CFRA-seq->startofs+seq->startstill;
 			} else { 
@@ -3630,7 +3632,7 @@ void seq_snap(short event)
 
 	/* test for effects and overlap */
 	WHILE_SEQ(ed->seqbasep) {
-		if(seq->flag & SELECT) {
+		if(seq->flag & SELECT && !(seq->flag & SEQ_LOCK)) {
 			seq->flag &= ~SEQ_OVERLAP;
 			if( test_overlap_seq(seq) ) {
 				shuffle_seq(seq);

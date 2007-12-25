@@ -97,6 +97,11 @@ void free_tstripdata(int len, TStripElem *se)
 
 }
 
+void seq_proxy_free(StripProxy * proxy)
+{
+	MEM_freeN(proxy);
+}
+
 void free_strip(Strip *strip)
 {
 	strip->us--;
@@ -108,6 +113,15 @@ void free_strip(Strip *strip)
 
 	if(strip->stripdata) {
 		MEM_freeN(strip->stripdata);
+	}
+	if (strip->crop) {
+		MEM_freeN(strip->crop);
+	}
+	if (strip->transform) {
+		MEM_freeN(strip->transform);
+	}
+	if (strip->proxy) {
+		seq_proxy_free(strip->proxy);
 	}
 
 	free_tstripdata(strip->len, strip->tstripdata);
@@ -672,7 +686,9 @@ Sequence *get_shown_sequence(ListBase * seqbasep, int cfra, int chanshown)
 		for(b=1; b<MAXSEQ; b++) {
 			if(seq_arr[b]) {
 				seq= seq_arr[b];
-				if(seq->type & SEQ_EFFECT) {
+				if(seq->flag & SEQ_MUTE) {
+					/* skip */
+				} else if(seq->type & SEQ_EFFECT) {
 					if(seqeff==0) seqeff= seq;
 					else if(seqeff->machine < seq->machine)
 						seqeff= seq;
@@ -726,11 +742,133 @@ void set_meta_stripdata(Sequence *seqm)
 	}
 }
 
+/*
+  input preprocessing for SEQ_IMAGE, SEQ_MOVIE and SEQ_SCENE
+
+  Do all the things you can't really do afterwards using sequence effects
+  (read: before rescaling to render resolution has been done)
+
+  Order is important!
+
+  - Deinterlace
+  - Crop and transform in image source coordinate space
+  - Flip X + Flip Y (could be done afterwards, backward compatibility)
+  - Promote image to float data (affects pipeline operations afterwards)
+  - Premultiply
+
+*/
+
+static void input_preprocess(Sequence * seq, TStripElem* se, int cfra)
+{
+	seq->strip->orx= se->ibuf->x;
+	seq->strip->ory= se->ibuf->y;
+
+	if(seq->flag & SEQ_FILTERY) {
+		IMB_filtery(se->ibuf);
+	}
+
+	if(seq->flag & SEQ_USE_CROP || seq->flag & SEQ_USE_TRANSFORM) {
+		StripCrop c;
+		StripTransform t;
+
+		memset(&c, 0, sizeof(StripCrop));
+		memset(&t, 0, sizeof(StripTransform));
+
+		if(seq->flag & SEQ_USE_CROP && seq->strip->crop) {
+			c = *seq->strip->crop;
+		}
+		if(seq->flag & SEQ_USE_TRANSFORM && seq->strip->transform) {
+			t = *seq->strip->transform;
+		}
+
+		if (c.top + c.bottom >= se->ibuf->y ||
+		    c.left + c.right >= se->ibuf->x ||
+		    t.xofs >= se->ibuf->x ||
+		    t.yofs >= se->ibuf->y) {
+			make_black_ibuf(se->ibuf);
+		} else {
+			ImBuf * i;
+			int sx = se->ibuf->x - c.left - c.right;
+			int sy = se->ibuf->y - c.top - c.bottom;
+			int dx = sx;
+			int dy = sy;
+
+			if (seq->flag & SEQ_USE_TRANSFORM) {
+				dx = seqrectx;
+				dy = seqrecty;
+			}
+
+			if (se->ibuf->rect_float) {
+				i = IMB_allocImBuf(dx, dy,32, IB_rectfloat, 0);
+			} else {
+				i = IMB_allocImBuf(dx, dy,32, IB_rect, 0);
+			}
+
+			IMB_rectcpy(i, se->ibuf, 
+				    t.xofs, t.yofs, 
+				    c.left, c.bottom, 
+				    sx, sy);
+
+			IMB_freeImBuf(se->ibuf);
+
+			se->ibuf = i;
+		}
+	} 
+
+	if(seq->flag & SEQ_FLIPX) {
+		IMB_flipx(se->ibuf);
+	}
+	if(seq->flag & SEQ_FLIPY) {
+		IMB_flipy(se->ibuf);
+	}
+
+	if(seq->flag & SEQ_MAKE_FLOAT) {
+		if (!se->ibuf->rect_float) {
+			IMB_float_from_rect(se->ibuf);
+		}
+	}
+
+	if(seq->mul == 0.0) {
+		seq->mul = 1.0;
+	}
+	if(seq->mul != 1.0) {
+		multibuf(se->ibuf, seq->mul);
+	}
+
+	if(seq->flag & SEQ_MAKE_PREMUL) {
+		if(se->ibuf->depth == 32 && se->ibuf->zbuf == 0) {
+			converttopremul(se->ibuf);
+		}
+	}
+
+
+	if(se->ibuf->x != seqrectx || se->ibuf->y != seqrecty ) {
+		if(G.scene->r.mode & R_OSA) {
+			IMB_scaleImBuf(se->ibuf, 
+				       (short)seqrectx, (short)seqrecty);
+		} else {
+			IMB_scalefastImBuf(se->ibuf, 
+					   (short)seqrectx, (short)seqrecty);
+		}
+	}
+}
+
 static TStripElem* do_build_seq_recursively(Sequence * seq, int cfra);
 
 static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra)
 {
 	char name[FILE_MAXDIR+FILE_MAXFILE];
+
+	if (seq->type != SEQ_META && se->ibuf) {
+		/* test if image too small 
+		   or discarded from cache: reload */
+		if(se->ibuf->x != seqrectx || se->ibuf->y != seqrecty 
+		   || !(se->ibuf->rect || se->ibuf->rect_float)) {
+			IMB_freeImBuf(se->ibuf);
+			se->ibuf= 0;
+			se->ok= STRIPELEM_OK;
+		}
+	}
 
 	if(seq->type == SEQ_META) {
 		if(seq->seqbase.first) {
@@ -751,15 +889,6 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra)
 			se->ibuf= se->se1->ibuf;
 		}
 	} else if(seq->type & SEQ_EFFECT) {
-			
-		/* test if image is too small or discarded from cache: reload */
-		if(se->ibuf) {
-			if(se->ibuf->x < seqrectx || se->ibuf->y < seqrecty || !(se->ibuf->rect || se->ibuf->rect_float)) {
-				IMB_freeImBuf(se->ibuf);
-				se->ibuf= 0;
-			}
-		}
-			
 		/* should the effect be recalculated? */
 		
 		if(se->ibuf == 0) {
@@ -772,58 +901,22 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra)
 			
 			do_effect(cfra, seq, se);
 		}
-		
-		/* test size */
-		if(se->ibuf) {
-			if(se->ibuf->x != seqrectx || se->ibuf->y != seqrecty ) {
-				if(G.scene->r.mode & R_OSA) {
-					IMB_scaleImBuf(se->ibuf, (short)seqrectx, (short)seqrecty);
-				} else {
-					IMB_scalefastImBuf(se->ibuf, (short)seqrectx, (short)seqrecty);
-				}
-			}
-		}
+
 	} else if(seq->type < SEQ_EFFECT) {
-		if(se->ibuf) {
-			/* test if image too small 
-			   or discarded from cache: reload */
-			if(se->ibuf->x < seqrectx || se->ibuf->y < seqrecty || !(se->ibuf->rect || se->ibuf->rect_float)) {
-				IMB_freeImBuf(se->ibuf);
-				se->ibuf= 0;
-				se->ok= STRIPELEM_OK;
-			}
-		}
 		
 		if(seq->type==SEQ_IMAGE) {
 			if(se->ok == STRIPELEM_OK && se->ibuf==0) {
 				StripElem * s_elem = give_stripelem(seq, cfra);
 
-				/* if playanim or render: 
-				   no waitcursor */
-				if((G.f & G_PLAYANIM)==0) 
-					waitcursor(1);
-				
 				strncpy(name, seq->strip->dir, FILE_MAXDIR-1);
 				strncat(name, s_elem->name, FILE_MAXFILE);
 				BLI_convertstringcode(name, G.sce, G.scene->r.cfra);
 				se->ibuf= IMB_loadiffname(name, IB_rect);
 				
-				if((G.f & G_PLAYANIM)==0) 
-					waitcursor(0);
-				
 				if(se->ibuf == 0) {
 					se->ok = STRIPELEM_FAILED;
 				} else {
-					if(seq->flag & SEQ_MAKE_PREMUL) {
-						if(se->ibuf->depth==32 && se->ibuf->zbuf==0) converttopremul(se->ibuf);
-					}
-					seq->strip->orx= se->ibuf->x;
-					seq->strip->ory= se->ibuf->y;
-					if(seq->flag & SEQ_FILTERY) IMB_filtery(se->ibuf);
-					if(seq->flag & SEQ_FLIPX) IMB_flipx(se->ibuf);
-					if(seq->flag & SEQ_FLIPY) IMB_flipy(se->ibuf);
-					if(seq->mul==0.0) seq->mul= 1.0;
-					if(seq->mul != 1.0) multibuf(se->ibuf, seq->mul);
+					input_preprocess(seq, se, cfra);
 				}
 			}
 		}
@@ -844,14 +937,7 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra)
 				if(se->ibuf == 0) {
 					se->ok = STRIPELEM_FAILED;
 				} else {
-					if(seq->flag & SEQ_MAKE_PREMUL) {
-						if(se->ibuf->depth==32) converttopremul(se->ibuf);
-					}
-					seq->strip->orx= se->ibuf->x;
-					seq->strip->ory= se->ibuf->y;
-					if(seq->flag & SEQ_FILTERY) IMB_filtery(se->ibuf);
-					if(seq->mul==0.0) seq->mul= 1.0;
-					if(seq->mul != 1.0) multibuf(se->ibuf, seq->mul);
+					input_preprocess(seq, se, cfra);
 				}
 			}
 		} else if(seq->type==SEQ_SCENE && se->ibuf==NULL && seq->scene) {	// scene can be NULL after deletions
@@ -915,34 +1001,9 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra)
 			if((G.f & G_PLAYANIM)==0) /* bad, is set on do_render_seq */
 				waitcursor(0);
 			CFRA = oldcfra;
-		}
-		
-		/* size test */
-		if(se->ibuf) {
-			if(se->ibuf->x != seqrectx || se->ibuf->y != seqrecty ) {
-				
-				if (0) { // G.scene->r.mode & R_FIELDS) {
-					
-					if (seqrecty > 288) 
-						IMB_scalefieldImBuf(se->ibuf, (short)seqrectx, (short)seqrecty);
-					else {
-						IMB_de_interlace(se->ibuf);
-						
-						if(G.scene->r.mode & R_OSA)
-							IMB_scaleImBuf(se->ibuf, (short)seqrectx, (short)seqrecty);
-						else
-							IMB_scalefastImBuf(se->ibuf, (short)seqrectx, (short)seqrecty);
-					}
-				}
-				else {
-					if(G.scene->r.mode & R_OSA)
-						IMB_scaleImBuf(se->ibuf,(short)seqrectx, (short)seqrecty);
-					else
-						IMB_scalefastImBuf(se->ibuf, (short)seqrectx, (short)seqrecty);
-				}
-			}
-			
-		}
+
+			input_preprocess(seq, se, cfra);
+		}	
 	}
 	if (se->ibuf && seq->type != SEQ_META) {
 		IMB_cache_limiter_insert(se->ibuf);

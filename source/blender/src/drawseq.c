@@ -1056,6 +1056,7 @@ void seq_viewmove(SpaceSeq *sseq)
 #define SEQ_BUT_RELOAD	2
 #define SEQ_BUT_EFFECT	3
 #define SEQ_BUT_RELOAD_ALL 4
+#define SEQ_BUT_TRANSFORM  5
 
 void do_seqbuttons(short val)
 {
@@ -1075,6 +1076,9 @@ void do_seqbuttons(short val)
 		free_imbuf_seq();	// frees all
 
 		break;
+	case SEQ_BUT_TRANSFORM:
+		calc_sequence(last_seq);
+		break;
 	}
 
 	if (val == SEQ_BUT_RELOAD_ALL) {
@@ -1084,26 +1088,292 @@ void do_seqbuttons(short val)
 	}
 }
 
-static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
+#define SEQ_PANEL_EDITING 1
+#define SEQ_PANEL_INPUT   2
+#define SEQ_PANEL_FILTER  4
+#define SEQ_PANEL_EFFECT  8
+#define SEQ_PANEL_PROXY   16
+
+static char* seq_panal_blend_modes()
+{
+	static char string[2048];
+	char formatstring[2048];
+
+       strcpy(formatstring, "Blend mode: %%t|%s %%x%d|%s %%x%d");
+       sprintf(string, formatstring,
+               "REPLACE", SEQ_BLEND_REPLACE,
+               "TODO: ALPHA OVER", SEQ_BLEND_ALPHA_OVER);
+       return string;
+
+}
+
+static void seq_panel_editing(short cntrl)	
+{
+	Sequence *last_seq = get_last_seq();
+	char * seq_names[] = { "Image", "Meta", "Scene", "Movie",
+			       "Snd RAM", "Snd HD",
+			       "", "Effect" };
+	uiBlock *block;
+	block = uiNewBlock(&curarea->uiblocks, "seq_panel_editing", 
+			   UI_EMBOSS, UI_HELV, curarea->win);
+
+	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
+	uiSetPanelHandler(SEQ_HANDLER_PROPERTIES);  // for close and esc
+	if(uiNewPanel(curarea, block, "Edit", "Seq", 
+		      10, 230, 318, 204) == 0) return;
+
+	uiDefBut(block, LABEL, 
+		 0, (last_seq->type >= SEQ_EFFECT) ? 
+		 "Effect" : seq_names[last_seq->type], 
+		 10,140,60,19, 0, 
+		 0, 0, 0, 0, "");
+
+	uiDefBut(block, TEX, 
+		 B_NOP, "Name: ", 
+		 70,140,180,19, last_seq->name+2, 
+		 0.0, 21.0, 100, 0, "");
+
+	uiDefButI(block, MENU, SEQ_BUT_RELOAD, seq_panal_blend_modes(), 
+		  10, 120, 120, 19, &last_seq->blend_mode, 
+		  0,0,0,0, "Strip Blend Mode");
+
+	if (last_seq->blend_mode > 0) {
+		uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Blend:",
+			  130, 120, 120, 19, &last_seq->blend_opacity, 
+			  0.0, 100.0, 100.0, 0, 
+			  "Blend opacity");
+	}
+
+	uiDefButBitI(block, TOG, SEQ_MUTE,
+		     SEQ_BUT_RELOAD_ALL, "Mute",
+		     10,100,60,19, &last_seq->flag,
+		     0.0, 1.0, 0, 0,
+		     "Mute the current strip.");
+
+	uiDefButBitI(block, TOG, SEQ_LOCK,
+		     B_NOP, "Lock",
+		     70,100,60,19, &last_seq->flag,
+		     0.0, 1.0, 0, 0,
+		     "Lock strip, so that it can't be transformed.");
+	
+	uiDefButBitI(block, TOG, SEQ_IPO_FRAME_LOCKED,
+		     SEQ_BUT_RELOAD_ALL, "IPO Frame locked",
+		     130,100,120,19, &last_seq->flag,
+		     0.0, 1.0, 0, 0,
+		     "Lock the IPO coordinates to the "
+		     "global frame counter.");
+	
+	if (!(last_seq->flag & SEQ_LOCK)) {
+		uiDefButI(block, NUM, 
+			  SEQ_BUT_TRANSFORM, "Start", 
+			  10, 80, 120, 20, &last_seq->start, 
+			  0.0, MAXFRAMEF, 0.0, 0.0, "Start of strip");
+		uiDefButI(block, NUM, 
+			  SEQ_BUT_TRANSFORM, "Chan", 
+			  130, 80, 120, 20, &last_seq->machine, 
+			  0.0, MAXSEQ, 0.0, 0.0, "Channel used (Y position)");
+
+		if (last_seq->type == SEQ_IMAGE) {
+			uiDefButI(block, NUM, 
+				  SEQ_BUT_TRANSFORM, "Start-Still", 
+				  10, 60, 120, 20, &last_seq->startstill, 
+				  0.0, MAXFRAMEF, 0.0, 0.0, "Start still");
+			uiDefButI(block, NUM, 
+				  SEQ_BUT_TRANSFORM, "End-Still", 
+				  130, 60, 120, 19, &last_seq->endstill, 
+				  0.0, MAXFRAMEF, 0.0, 0.0, "End still");
+		} else {
+			uiDefButI(block, NUM, 
+				  SEQ_BUT_TRANSFORM, "Start-Ofs", 
+				  10, 60, 120, 20, &last_seq->startofs, 
+				  0.0, last_seq->len, 0.0, 0.0, "Start offset");
+			uiDefButI(block, NUM, 
+				  SEQ_BUT_TRANSFORM, "End-Ofs", 
+				  130, 60, 120, 19, &last_seq->endofs, 
+				  0.0, last_seq->len, 0.0, 0.0, "End offset");
+		}
+	}
+}
+
+static void seq_panel_input(short cntrl)
 {
 	Sequence *last_seq = get_last_seq();
 	uiBlock *block;
+	block = uiNewBlock(&curarea->uiblocks, "seq_panel_input", 
+			   UI_EMBOSS, UI_HELV, curarea->win);
 
-	block= uiNewBlock(&curarea->uiblocks, "seq_panel_properties", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Edit", "Seq");
 	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
 	uiSetPanelHandler(SEQ_HANDLER_PROPERTIES);  // for close and esc
-	if(uiNewPanel(curarea, block, "Strip Properties", "Seq", 10, 230, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Input", "Seq", 
+		      10, 230, 318, 204) == 0) return;
 
-	if(last_seq==NULL) return;
+	
+	uiDefButBitI(block, TOG, SEQ_USE_CROP,
+		     SEQ_BUT_RELOAD, "Use Crop",
+		     10,100,240,19, &last_seq->flag,
+		     0.0, 1.0, 0, 0,
+		     "Crop image before processing.");
 
-	if(last_seq->type==SEQ_PLUGIN) {
+	if (last_seq->flag & SEQ_USE_CROP) {
+		if (!last_seq->strip->crop) {
+			last_seq->strip->crop = 
+				MEM_callocN(sizeof(struct StripCrop), 
+					    "StripCrop");
+		}
+		uiDefButI(block, NUM, 
+			  SEQ_BUT_RELOAD, "Top", 
+			  10, 80, 120, 20, &last_seq->strip->crop->top, 
+			  0.0, 4096, 0.0, 0.0, "Top of source image");
+		uiDefButI(block, NUM, 
+			  SEQ_BUT_RELOAD, "Bottom", 
+			  130, 80, 120, 20, &last_seq->strip->crop->bottom, 
+			  0.0, 4096, 0.0, 0.0, "Bottom of source image");
+
+		uiDefButI(block, NUM, 
+			  SEQ_BUT_RELOAD, "Left", 
+			  10, 60, 120, 20, &last_seq->strip->crop->left, 
+			  0.0, 4096, 0.0, 0.0, "Left");
+		uiDefButI(block, NUM, 
+			  SEQ_BUT_RELOAD, "Right", 
+			  130, 60, 120, 19, &last_seq->strip->crop->right, 
+			  0.0, 4096, 0.0, 0.0, "Right");
+	}
+
+	uiDefButBitI(block, TOG, SEQ_USE_TRANSFORM,
+		     SEQ_BUT_RELOAD, "Use Translate",
+		     10,40,240,19, &last_seq->flag,
+		     0.0, 1.0, 0, 0,
+		     "Translate image before processing.");
+
+	if (last_seq->flag & SEQ_USE_TRANSFORM) {
+		if (!last_seq->strip->transform) {
+			last_seq->strip->transform = 
+				MEM_callocN(sizeof(struct StripTransform), 
+					    "StripTransform");
+		}
+		uiDefButI(block, NUM, 
+			  SEQ_BUT_RELOAD, "X-Ofs", 
+			  10, 20, 120, 20, &last_seq->strip->transform->xofs, 
+			  0.0, 4096, 0.0, 0.0, "X Offset");
+		uiDefButI(block, NUM, 
+			  SEQ_BUT_RELOAD, "Y-Ofs", 
+			  130, 20, 120, 20, &last_seq->strip->transform->yofs, 
+			  0.0, 4096, 0.0, 0.0, "Y Offset");
+	}
+
+	
+	uiDefButI(block, NUM, SEQ_BUT_RELOAD, "Preseek:",
+		  10,0,150,19, &last_seq->anim_preseek, 
+		  0.0, 50.0, 100,0,"On MPEG-seeking preseek this many frames");
+
+}
+
+static void seq_panel_filter_video(short cntrl)
+{
+	Sequence *last_seq = get_last_seq();
+	uiBlock *block;
+	block = uiNewBlock(&curarea->uiblocks, "seq_panel_filter", 
+			   UI_EMBOSS, UI_HELV, curarea->win);
+
+	uiNewPanelTabbed("Edit", "Seq");
+	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
+	uiSetPanelHandler(SEQ_HANDLER_PROPERTIES);  // for close and esc
+	if(uiNewPanel(curarea, block, "Filter", "Seq", 
+		      10, 230, 318, 204) == 0) return;
+
+
+	uiBlockBeginAlign(block);
+
+
+	uiDefButBitI(block, TOG, SEQ_MAKE_PREMUL, 
+		     SEQ_BUT_RELOAD, "Convert to Premul", 
+		     10,110,150,19, &last_seq->flag, 
+		     0.0, 21.0, 100, 0, 
+		     "Converts RGB values to become premultiplied with Alpha");
+
+	uiDefButBitI(block, TOG, SEQ_FILTERY, 
+		     SEQ_BUT_RELOAD, "FilterY",	
+		     10,90,75,19, &last_seq->flag, 
+		     0.0, 21.0, 100, 0, 
+		     "For video movies to remove fields");
+
+	uiDefButBitI(block, TOG, SEQ_MAKE_FLOAT, 
+		     SEQ_BUT_RELOAD, "Make Float",	
+		     85,90,75,19, &last_seq->flag, 
+		     0.0, 21.0, 100, 0, 
+		     "Convert input to float data");
+		
+	uiDefButBitI(block, TOG, SEQ_FLIPX, 
+		     SEQ_BUT_RELOAD, "FlipX",	
+		     10,70,75,19, &last_seq->flag, 
+		     0.0, 21.0, 100, 0, 
+		     "Flip on the X axis");
+	uiDefButBitI(block, TOG, SEQ_FLIPY, 
+		     SEQ_BUT_RELOAD, "FlipY",	
+		     85,70,75,19, &last_seq->flag, 
+		     0.0, 21.0, 100, 0, 
+		     "Flip on the Y axis");
+		
+	uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Mul:",
+		  10,50,150,19, &last_seq->mul, 
+		  0.001, 5.0, 100, 0, 
+		  "Multiply colors");
+
+	uiDefButBitI(block, TOG, SEQ_REVERSE_FRAMES,
+		     SEQ_BUT_RELOAD, "Reverse Frames", 
+		     10,30,150,19, &last_seq->flag, 
+		     0.0, 21.0, 100, 0, 
+		     "Reverse frame order");
+
+	uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Strobe:",
+		  10,10,150,19, &last_seq->strobe, 
+		  1.0, 30.0, 100, 0, 
+		  "Only display every nth frame");
+
+	uiBlockEndAlign(block);
+
+}
+
+
+static void seq_panel_filter_audio(short cntrl)
+{
+	Sequence *last_seq = get_last_seq();
+	uiBlock *block;
+	block = uiNewBlock(&curarea->uiblocks, "seq_panel_filter", 
+			   UI_EMBOSS, UI_HELV, curarea->win);
+
+	uiNewPanelTabbed("Edit", "Seq");
+	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
+	uiSetPanelHandler(SEQ_HANDLER_PROPERTIES);  // for close and esc
+	if(uiNewPanel(curarea, block, "Filter", "Seq", 
+		      10, 230, 318, 204) == 0) return;
+
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Gain (dB):", 10,50,150,19, &last_seq->level, -96.0, 6.0, 100, 0, "");
+	uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Pan:", 	10,30,150,19, &last_seq->pan, -1.0, 1.0, 100, 0, "");
+	uiBlockEndAlign(block);
+}
+
+static void seq_panel_effect(short cntrl)
+{
+	Sequence *last_seq = get_last_seq();
+	uiBlock *block;
+	block = uiNewBlock(&curarea->uiblocks, "seq_panel_effect", 
+			   UI_EMBOSS, UI_HELV, curarea->win);
+
+	uiNewPanelTabbed("Edit", "Seq");
+	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
+	uiSetPanelHandler(SEQ_HANDLER_PROPERTIES);  // for close and esc
+	if(uiNewPanel(curarea, block, "Effect", "Seq", 
+		      10, 230, 318, 204) == 0) return;
+
+	if(last_seq->type == SEQ_PLUGIN) {
 		PluginSeq *pis;
 		VarStruct *varstr;
 		int a, xco, yco;
 
 		get_sequence_effect(last_seq);/* make sure, plugin is loaded */
-
-		uiDefBut(block, LABEL, 0, "Type: Plugin", 10,50,70,20, 0, 0, 0, 0, 0, "");
 
 		pis= last_seq->plugin;
 		if(pis->vars==0) return;
@@ -1117,184 +1387,192 @@ static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
 
 			}
 		}
-		uiDefButBitS(block, TOG, SEQ_IPO_FRAME_LOCKED,
-			     SEQ_BUT_RELOAD_ALL, "IPO Frame locked",
-			     10,-40,150,19, &last_seq->flag,
-			     0.0, 1.0, 0, 0,
-			     "Lock the IPO coordinates to the "
-			     "global frame counter.");
+		return;
+	} 
 
+	uiBlockBeginAlign(block);
+
+	if(last_seq->type==SEQ_WIPE){
+		WipeVars *wipe = (WipeVars *)last_seq->effectdata;
+		char formatstring[256];
+			
+		strncpy(formatstring, "Transition Type %t|Single Wipe%x0|Double Wipe %x1|Iris Wipe %x4|Clock Wipe %x5", 255);
+		uiDefButS(block, MENU,SEQ_BUT_EFFECT, formatstring,	10,65,220,22, &wipe->wipetype, 0, 0, 0, 0, "What type of wipe should be performed");
+		uiDefButF(block, NUM,SEQ_BUT_EFFECT,"Blur:",	10,40,220,22, &wipe->edgeWidth,0.0,1.0, 1, 2, "The percent width of the blur edge");
+		switch(wipe->wipetype){ /*Skip Types that do not require angle*/
+		case DO_IRIS_WIPE:
+		case DO_CLOCK_WIPE:
+			break;
+			
+		default:
+			uiDefButF(block, NUM,SEQ_BUT_EFFECT,"Angle:",	10,15,220,22, &wipe->angle,-90.0,90.0, 1, 2, "The Angle of the Edge");
+		}
+		uiDefButS(block, TOG,SEQ_BUT_EFFECT,"Wipe In",  10,-10,220,22, &wipe->forward,0,0, 0, 0, "Controls Primary Direction of Wipe");				
+	} else if(last_seq->type==SEQ_GLOW){
+		GlowVars *glow = (GlowVars *)last_seq->effectdata;
+
+		uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Threshold:", 	10,70,150,19, &glow->fMini, 0.0, 1.0, 0, 0, "Trigger Intensity");
+		uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Clamp:",			10,50,150,19, &glow->fClamp, 0.0, 1.0, 0, 0, "Brightness limit of intensity");
+		uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Boost factor:", 	10,30,150,19, &glow->fBoost, 0.0, 10.0, 0, 0, "Brightness multiplier");
+		uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Blur distance:", 	10,10,150,19, &glow->dDist, 0.5, 20.0, 0, 0, "Radius of glow effect");
+		uiDefButI(block, NUM, B_NOP, "Quality:", 10,-5,150,19, &glow->dQuality, 1.0, 5.0, 0, 0, "Accuracy of the blur effect");
+		uiDefButI(block, TOG, B_NOP, "Only boost", 10,-25,150,19, &glow->bNoComp, 0.0, 0.0, 0, 0, "Show the glow buffer only");
 	}
-	else if(last_seq->type==SEQ_IMAGE) {
+	else if(last_seq->type==SEQ_TRANSFORM){
+		TransformVars *transform = (TransformVars *)last_seq->effectdata;
 
-		uiDefBut(block, LABEL, 0, "Type: Image", 10,160,150,20, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, TEX, B_NOP, "Name: ", 10,140,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
+		uiDefButF(block, NUM, SEQ_BUT_EFFECT, "xScale Start:", 	10,70,150,19, &transform->ScalexIni, 0.0, 10.0, 0, 0, "X Scale Start");
+		uiDefButF(block, NUM, SEQ_BUT_EFFECT, "xScale End:", 	160,70,150,19, &transform->ScalexFin, 0.0, 10.0, 0, 0, "X Scale End");
+		uiDefButF(block, NUM, SEQ_BUT_EFFECT, "yScale Start:",	10,50,150,19, &transform->ScaleyIni, 0.0, 10.0, 0, 0, "Y Scale Start");
+		uiDefButF(block, NUM, SEQ_BUT_EFFECT, "yScale End:", 	160,50,150,19, &transform->ScaleyFin, 0.0, 10.0, 0, 0, "Y Scale End");
 		
-		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, SEQ_MAKE_PREMUL, SEQ_BUT_RELOAD, "Convert to Premul", 10,110,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "Converts RGB values to become premultiplied with Alpha");
-		uiDefButBitS(block, TOG, SEQ_FILTERY, SEQ_BUT_RELOAD, "FilterY",	10,90,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "For video movies to remove fields");
+		uiDefButI(block, ROW, SEQ_BUT_EFFECT, "Percent", 10, 30, 150, 19, &transform->percent, 0.0, 1.0, 0.0, 0.0, "Percent Translate");
+		uiDefButI(block, ROW, SEQ_BUT_EFFECT, "Pixels", 160, 30, 150, 19, &transform->percent, 0.0, 0.0, 0.0, 0.0, "Pixels Translate");
+		if(transform->percent==1){
+			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "x Start:", 	10,10,150,19, &transform->xIni, -500.0, 500.0, 0, 0, "X Position Start");
+			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "x End:", 	160,10,150,19, &transform->xFin, -500.0, 500.0, 0, 0, "X Position End");
+			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "y Start:", 	10,-10,150,19, &transform->yIni, -500.0, 500.0, 0, 0, "Y Position Start");
+			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "y End:", 	160,-10,150,19, &transform->yFin, -500.0, 500.0, 0, 0, "Y Position End");
+		} else {
+			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "x Start:", 	10,10,150,19, &transform->xIni, -10000.0, 10000.0, 0, 0, "X Position Start");
+			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "x End:", 	160,10,150,19, &transform->xFin, -10000.0, 10000.0, 0, 0, "X Position End");
+			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "y Start:", 	10,-10,150,19, &transform->yIni, -10000.0, 10000.0, 0, 0, "Y Position Start");
+			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "y End:", 	160,-10,150,19, &transform->yFin, -10000.0, 10000.0, 0, 0, "Y Position End");
+			
+		}
 		
-		uiDefButBitS(block, TOG, SEQ_FLIPX, SEQ_BUT_RELOAD, "FlipX",	10,70,75,19, &last_seq->flag, 0.0, 21.0, 100, 0, "Flip on the X axis");
-		uiDefButBitS(block, TOG, SEQ_FLIPY, SEQ_BUT_RELOAD, "FlipY",	85,70,75,19, &last_seq->flag, 0.0, 21.0, 100, 0, "Flip on the Y axis");
 		
-		uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Mul:",			10,50,150,19, &last_seq->mul, 0.001, 5.0, 100, 0, "Multiply colors");
-		uiDefButS(block, TOG|BIT|7, SEQ_BUT_RELOAD, "Reverse Frames", 10,30,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "Reverse frame order");
-		uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Strobe:",			10,10,150,19, &last_seq->strobe, 1.0, 30.0, 100, 0, "Only display every nth frame");
-		uiBlockEndAlign(block);
-	}
-	else if(last_seq->type==SEQ_META) {
-
-		uiDefBut(block, LABEL, 0, "Type: Meta", 10,140,150,20, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, TEX, B_NOP, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
-
-	}
-	else if(last_seq->type==SEQ_SCENE) {
-
-		uiDefBut(block, LABEL, 0, "Type: Scene", 10,140,150,20, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, TEX, B_NOP, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
-		uiDefButS(block, TOG|BIT|7, SEQ_BUT_RELOAD, "Reverse Frames", 10,90,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "Reverse frame order");
-	}
-	else if(last_seq->type==SEQ_MOVIE) {
-
-		if(last_seq->mul==0.0) last_seq->mul= 1.0;
-
-		uiDefBut(block, LABEL, 0, "Type: Movie", 10,140,150,20, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, TEX, B_NOP, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
 		
-		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, SEQ_MAKE_PREMUL, SEQ_BUT_RELOAD, "Make Premul Alpha ", 10,90,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "Converts RGB values to become premultiplied with Alpha");
-		uiDefButBitS(block, TOG, SEQ_FILTERY, SEQ_BUT_RELOAD, "FilterY ",	10,70,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "For video movies to remove fields");
-		uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Mul:",			10,50,150,19, &last_seq->mul, 0.001, 5.0, 100, 0, "Multiply colors");
+		uiDefButF(block, NUM, SEQ_BUT_EFFECT, "rot Start:",10,-30,150,19, &transform->rotIni, 0.0, 360.0, 0, 0, "Rotation Start");
+		uiDefButF(block, NUM, SEQ_BUT_EFFECT, "rot End:",160,-30,150,19, &transform->rotFin, 0.0, 360.0, 0, 0, "Rotation End");
 		
-		uiDefButS(block, TOG|BIT|7, SEQ_BUT_RELOAD, "Reverse Frames", 10,30,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "Reverse frame order");
-		uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Strobe:",			10,10,150,19, &last_seq->strobe, 1.0, 30.0, 100, 0, "Only display every nth frame");
-		uiDefButI(block, NUM, SEQ_BUT_RELOAD, "Preseek:",			10,-10,150,19, &last_seq->anim_preseek, 0.0, 50.0, 100, 0, "On MPEG-seeking preseek this many frames");
-		uiBlockEndAlign(block);
-	}
-	else if(last_seq->type==SEQ_RAM_SOUND || 
-		last_seq->type==SEQ_HD_SOUND) {
-
-		uiDefBut(block, LABEL, 0, "Type: Audio", 10,140,150,20, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, TEX, 0, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
+		uiDefButI(block, ROW, SEQ_BUT_EFFECT, "No Interpolat", 10, -50, 100, 19, &transform->interpolation, 0.0, 0.0, 0.0, 0.0, "No interpolation");
+		uiDefButI(block, ROW, SEQ_BUT_EFFECT, "Bilinear", 101, -50, 100, 19, &transform->interpolation, 0.0, 1.0, 0.0, 0.0, "Bilinear interpolation");
+		uiDefButI(block, ROW, SEQ_BUT_EFFECT, "Bicubic", 202, -50, 100, 19, &transform->interpolation, 0.0, 2.0, 0.0, 0.0, "Bicubic interpolation");
+	} else if(last_seq->type==SEQ_COLOR) {
+		SolidColorVars *colvars = (SolidColorVars *)last_seq->effectdata;
+		uiDefButF(block, COL, SEQ_BUT_RELOAD, "",10,90,150,19, colvars->col, 0, 0, 0, 0, "");
+	} else if(last_seq->type==SEQ_SPEED){
+		SpeedControlVars *sp = 
+			(SpeedControlVars *)last_seq->effectdata;
 		
-		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, SEQ_IPO_FRAME_LOCKED,
-			     SEQ_BUT_RELOAD_ALL, "IPO Frame locked",
-			     10,90,150,19, &last_seq->flag, 
+		uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Global Speed:", 	10,70,150,19, &sp->globalSpeed, 0.0, 100.0, 0, 0, "Global Speed");
+		
+		uiDefButBitI(block, TOG, SEQ_SPEED_INTEGRATE,
+			     SEQ_BUT_RELOAD, 
+			     "IPO is velocity",
+			     10,50,150,19, &sp->flags, 
 			     0.0, 1.0, 0, 0, 
-			     "Lock the IPO coordinates to the "
-			     "global frame counter.");
+			     "Interpret the IPO value as a "
+			     "velocity instead of a frame number");
 
-		uiDefButBitS(block, TOG, SEQ_MUTE, B_NOP, "Mute", 10,70,120,19, &last_seq->flag, 0.0, 21.0, 100, 0, "");
-		uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Gain (dB):", 10,50,150,19, &last_seq->level, -96.0, 6.0, 100, 0, "");
-		uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Pan:", 	10,30,150,19, &last_seq->pan, -1.0, 1.0, 100, 0, "");
-		uiBlockEndAlign(block);
-	}
-	else if(last_seq->type>=SEQ_EFFECT) {
-		uiDefBut(block, LABEL, 0, "Type: Effect", 10,140,150,20, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, TEX, B_NOP, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
-		
-		uiDefButBitS(block, TOG, SEQ_IPO_FRAME_LOCKED,
-			     SEQ_BUT_RELOAD_ALL, "IPO Frame locked",
-			     10,90,150,19, &last_seq->flag, 
+		uiDefButBitI(block, TOG, SEQ_SPEED_BLEND,
+			     SEQ_BUT_RELOAD, 
+			     "Enable frame blending",
+			     10,30,150,19, &sp->flags, 
 			     0.0, 1.0, 0, 0, 
-			     "Lock the IPO coordinates to the "
-			     "global frame counter.");
+			     "Blend two frames into the "
+			     "target for a smoother result");
 		
-		uiBlockBeginAlign(block);
-		if(last_seq->type==SEQ_WIPE){
-			WipeVars *wipe = (WipeVars *)last_seq->effectdata;
-			char formatstring[256];
-			
-			strncpy(formatstring, "Transition Type %t|Single Wipe%x0|Double Wipe %x1|Iris Wipe %x4|Clock Wipe %x5", 255);
-			uiDefButS(block, MENU,SEQ_BUT_EFFECT, formatstring,	10,65,220,22, &wipe->wipetype, 0, 0, 0, 0, "What type of wipe should be performed");
-			uiDefButF(block, NUM,SEQ_BUT_EFFECT,"Blur:",	10,40,220,22, &wipe->edgeWidth,0.0,1.0, 1, 2, "The percent width of the blur edge");
-			switch(wipe->wipetype){ /*Skip Types that do not require angle*/
-				case DO_IRIS_WIPE:
-				case DO_CLOCK_WIPE:
-				break;
-				
-				default:
-					uiDefButF(block, NUM,SEQ_BUT_EFFECT,"Angle:",	10,15,220,22, &wipe->angle,-90.0,90.0, 1, 2, "The Angle of the Edge");
-			}
-			uiDefButS(block, TOG,SEQ_BUT_EFFECT,"Wipe In",  10,-10,220,22, &wipe->forward,0,0, 0, 0, "Controls Primary Direction of Wipe");				
+		uiDefButBitI(block, TOG, SEQ_SPEED_COMPRESS_IPO_Y,
+			     SEQ_BUT_RELOAD, 
+			     "IPO value runs from [0..1]",
+			     10,10,150,19, &sp->flags, 
+			     0.0, 1.0, 0, 0, 
+			     "Scale IPO value to get the "
+			     "target frame number.");
+	}
+
+	uiBlockEndAlign(block);
+}
+
+static void seq_panel_proxy(short cntrl)
+{
+	Sequence *last_seq = get_last_seq();
+	uiBlock *block;
+	block = uiNewBlock(&curarea->uiblocks, "seq_panel_proxy", 
+			   UI_EMBOSS, UI_HELV, curarea->win);
+
+	uiNewPanelTabbed("Edit", "Seq");
+	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
+	uiSetPanelHandler(SEQ_HANDLER_PROPERTIES);  // for close and esc
+	if(uiNewPanel(curarea, block, "Proxy", "Seq", 
+		      10, 230, 318, 204) == 0) return;
+
+	uiBlockBeginAlign(block);
+
+	uiDefButBitI(block, TOG, SEQ_USE_PROXY, 
+		     SEQ_BUT_RELOAD, "Use Proxy", 
+		     10,140,150,19, &last_seq->flag, 
+		     0.0, 21.0, 100, 0, 
+		     "Use a preview proxy for this strip");
+	
+	if (last_seq->flag & SEQ_USE_PROXY) {
+
+
+	}
+
+	uiBlockEndAlign(block);
+}
+
+
+static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
+{
+	Sequence *last_seq = get_last_seq();
+	int panels = 0;
+	int type;
+
+	if(last_seq == NULL) {
+		uiBlock *block;
+		block = uiNewBlock(&curarea->uiblocks, "seq_panel_editing", 
+				   UI_EMBOSS, UI_HELV, curarea->win);
+
+		uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
+		uiSetPanelHandler(SEQ_HANDLER_PROPERTIES); 
+		uiNewPanel(curarea, block, "Edit", "Seq", 
+			   10, 230, 318, 204);
+		return;
+	}
+	
+	type = last_seq->type;
+
+	panels = SEQ_PANEL_EDITING;
+
+	if (type == SEQ_MOVIE || type == SEQ_IMAGE || type == SEQ_SCENE
+	    || type == SEQ_HD_SOUND) {
+		panels |= SEQ_PANEL_INPUT | SEQ_PANEL_FILTER | SEQ_PANEL_PROXY;
+	}
+
+	if (type == SEQ_RAM_SOUND) {
+		panels |= SEQ_PANEL_FILTER;
+	}
+
+	if (type == SEQ_PLUGIN || type >= SEQ_EFFECT) {
+		panels |= SEQ_PANEL_EFFECT | SEQ_PANEL_PROXY;
+	}
+
+	if (panels & SEQ_PANEL_EDITING) {
+		seq_panel_editing(cntrl);
+	}
+
+	if (panels & SEQ_PANEL_INPUT) {
+		seq_panel_input(cntrl);
+	}
+
+	if (panels & SEQ_PANEL_FILTER) {
+		if (type == SEQ_RAM_SOUND || type == SEQ_HD_SOUND) {
+			seq_panel_filter_audio(cntrl);
+		} else {
+			seq_panel_filter_video(cntrl);
 		}
-		else if(last_seq->type==SEQ_GLOW){
-			GlowVars *glow = (GlowVars *)last_seq->effectdata;
+	}
 
-			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Threshold:", 	10,70,150,19, &glow->fMini, 0.0, 1.0, 0, 0, "Trigger Intensity");
-			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Clamp:",			10,50,150,19, &glow->fClamp, 0.0, 1.0, 0, 0, "Brightness limit of intensity");
-			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Boost factor:", 	10,30,150,19, &glow->fBoost, 0.0, 10.0, 0, 0, "Brightness multiplier");
-			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Blur distance:", 	10,10,150,19, &glow->dDist, 0.5, 20.0, 0, 0, "Radius of glow effect");
-			uiDefButI(block, NUM, B_NOP, "Quality:", 10,-5,150,19, &glow->dQuality, 1.0, 5.0, 0, 0, "Accuracy of the blur effect");
-			uiDefButI(block, TOG, B_NOP, "Only boost", 10,-25,150,19, &glow->bNoComp, 0.0, 0.0, 0, 0, "Show the glow buffer only");
-		}
-		else if(last_seq->type==SEQ_TRANSFORM){
-			TransformVars *transform = (TransformVars *)last_seq->effectdata;
+	if (panels & SEQ_PANEL_EFFECT) {
+		seq_panel_effect(cntrl);
+	}
 
-			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "xScale Start:", 	10,70,150,19, &transform->ScalexIni, 0.0, 10.0, 0, 0, "X Scale Start");
-			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "xScale End:", 	160,70,150,19, &transform->ScalexFin, 0.0, 10.0, 0, 0, "X Scale End");
-			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "yScale Start:",	10,50,150,19, &transform->ScaleyIni, 0.0, 10.0, 0, 0, "Y Scale Start");
-			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "yScale End:", 	160,50,150,19, &transform->ScaleyFin, 0.0, 10.0, 0, 0, "Y Scale End");
-			
-			uiDefButI(block, ROW, SEQ_BUT_EFFECT, "Percent", 10, 30, 150, 19, &transform->percent, 0.0, 1.0, 0.0, 0.0, "Percent Translate");
-			uiDefButI(block, ROW, SEQ_BUT_EFFECT, "Pixels", 160, 30, 150, 19, &transform->percent, 0.0, 0.0, 0.0, 0.0, "Pixels Translate");
-			if(transform->percent==1){
-				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "x Start:", 	10,10,150,19, &transform->xIni, -500.0, 500.0, 0, 0, "X Position Start");
-				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "x End:", 	160,10,150,19, &transform->xFin, -500.0, 500.0, 0, 0, "X Position End");
-				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "y Start:", 	10,-10,150,19, &transform->yIni, -500.0, 500.0, 0, 0, "Y Position Start");
-				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "y End:", 	160,-10,150,19, &transform->yFin, -500.0, 500.0, 0, 0, "Y Position End");
-			}else{
-				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "x Start:", 	10,10,150,19, &transform->xIni, -10000.0, 10000.0, 0, 0, "X Position Start");
-				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "x End:", 	160,10,150,19, &transform->xFin, -10000.0, 10000.0, 0, 0, "X Position End");
-				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "y Start:", 	10,-10,150,19, &transform->yIni, -10000.0, 10000.0, 0, 0, "Y Position Start");
-				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "y End:", 	160,-10,150,19, &transform->yFin, -10000.0, 10000.0, 0, 0, "Y Position End");
-
-			}
-			
-
-			
-			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "rot Start:",10,-30,150,19, &transform->rotIni, 0.0, 360.0, 0, 0, "Rotation Start");
-			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "rot End:",160,-30,150,19, &transform->rotFin, 0.0, 360.0, 0, 0, "Rotation End");
-
-			uiDefButI(block, ROW, SEQ_BUT_EFFECT, "No Interpolat", 10, -50, 100, 19, &transform->interpolation, 0.0, 0.0, 0.0, 0.0, "No interpolation");
-			uiDefButI(block, ROW, SEQ_BUT_EFFECT, "Bilinear", 101, -50, 100, 19, &transform->interpolation, 0.0, 1.0, 0.0, 0.0, "Bilinear interpolation");
-			uiDefButI(block, ROW, SEQ_BUT_EFFECT, "Bicubic", 202, -50, 100, 19, &transform->interpolation, 0.0, 2.0, 0.0, 0.0, "Bicubic interpolation");
-		} else if(last_seq->type==SEQ_COLOR) {
-			SolidColorVars *colvars = (SolidColorVars *)last_seq->effectdata;
-			uiDefButF(block, COL, SEQ_BUT_RELOAD, "",10,90,150,19, colvars->col, 0, 0, 0, 0, "");
-		} else if(last_seq->type==SEQ_SPEED){
-			SpeedControlVars *sp = 
-				(SpeedControlVars *)last_seq->effectdata;
-
-			uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Global Speed:", 	10,70,150,19, &sp->globalSpeed, 0.0, 100.0, 0, 0, "Global Speed");
-
-			uiDefButBitI(block, TOG, SEQ_SPEED_INTEGRATE,
-				     SEQ_BUT_RELOAD, 
-				     "IPO is velocity",
-				     10,50,150,19, &sp->flags, 
-				     0.0, 1.0, 0, 0, 
-				     "Interpret the IPO value as a "
-				     "velocity instead of a frame number");
-
-			uiDefButBitI(block, TOG, SEQ_SPEED_BLEND,
-				     SEQ_BUT_RELOAD, 
-				     "Enable frame blending",
-				     10,30,150,19, &sp->flags, 
-				     0.0, 1.0, 0, 0, 
-				     "Blend two frames into the "
-				     "target for a smoother result");
-
-			uiDefButBitI(block, TOG, SEQ_SPEED_COMPRESS_IPO_Y,
-				     SEQ_BUT_RELOAD, 
-				     "IPO value runs from [0..1]",
-				     10,10,150,19, &sp->flags, 
-				     0.0, 1.0, 0, 0, 
-				     "Scale IPO value to get the "
-				     "target frame number.");
-		}
-
-		uiBlockEndAlign(block);
+	if (panels & SEQ_PANEL_PROXY) {
+		seq_panel_proxy(cntrl);
 	}
 }
 

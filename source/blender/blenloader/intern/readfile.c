@@ -3366,6 +3366,24 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 				} else {
 					seq->strip->stripdata = 0;
 				}
+				if (seq->flag & SEQ_USE_CROP) {
+					seq->strip->crop = newdataadr(
+						fd, seq->strip->crop);
+				} else {
+					seq->strip->crop = 0;
+				}
+				if (seq->flag & SEQ_USE_TRANSFORM) {
+					seq->strip->transform = newdataadr(
+						fd, seq->strip->transform);
+				} else {
+					seq->strip->transform = 0;
+				}
+				if (seq->flag & SEQ_USE_PROXY) {
+					seq->strip->proxy = newdataadr(
+						fd, seq->strip->proxy);
+				} else {
+					seq->strip->proxy = 0;
+				}
 			}
 		}
 		END_SEQ

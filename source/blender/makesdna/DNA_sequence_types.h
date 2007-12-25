@@ -56,12 +56,34 @@ typedef struct TStripElem {
 	int nr;
 } TStripElem;
 
+typedef struct StripCrop {
+	int top;
+	int bottom;
+	int left;
+	int right;
+} StripCrop;
+
+typedef struct StripTransform {
+	int xofs;
+	int yofs;
+} StripTransform;
+
+typedef struct StripProxy {
+	char dir[160];
+	int format;
+	int width;
+	int height;
+} StripProxy;
+
 typedef struct Strip {
 	struct Strip *next, *prev;
 	int rt, len, us, done;
 	StripElem *stripdata;
 	char dir[160];
 	int orx, ory;
+	StripCrop *crop;
+	StripTransform *transform;
+	StripProxy *proxy;
 	TStripElem *tstripdata;
 } Strip;
 
@@ -96,7 +118,8 @@ typedef struct Sequence {
 	void *lib; /* needed (to be like ipo), else it will raise libdata warnings, this should never be used */
 	char name[24]; /* name, not set by default and dosnt need to be unique as with ID's */
 
-	short flag, type;	/*flags bitmap (see below) and the type of sequence*/
+	int flag, type;	/*flags bitmap (see below) and the type of sequence*/
+	int pad;
 	int len; /* the length of the contense of this strip - before handles are applied */
 	int start, startofs, endofs;
 	int startstill, endstill;
@@ -129,7 +152,9 @@ typedef struct Sequence {
 	void *effectdata;	/* Struct pointer for effect settings */
 
 	int anim_preseek;
-	int pad;
+	int blend_mode;
+	float blend_opacity;
+	int pad2;
 } Sequence;
 
 typedef struct MetaStack {
@@ -210,6 +235,12 @@ typedef struct SpeedControlVars {
 #define SEQ_FLAG_DELETE			1024
 #define SEQ_FLIPX				2048
 #define SEQ_FLIPY				4096
+#define SEQ_MAKE_FLOAT				8192
+#define SEQ_LOCK				16384
+#define SEQ_USE_PROXY                           32768
+#define SEQ_USE_TRANSFORM                       65536
+#define SEQ_USE_CROP                           131072
+
 
 /* seq->type WATCH IT: SEQ_EFFECT BIT is used to determine if this is an effect strip!!! */
 #define SEQ_IMAGE		0
@@ -239,6 +270,10 @@ typedef struct SpeedControlVars {
 #define STRIPELEM_FAILED       0
 #define STRIPELEM_OK           1
 #define STRIPELEM_META         2
+
+#define SEQ_BLEND_REPLACE      0
+#define SEQ_BLEND_ALPHA_OVER   1
+
 
 #endif
 

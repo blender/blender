@@ -1463,7 +1463,15 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 
 					strip= seq->strip;
 					writestruct(wd, DATA, "Strip", 1, strip);
-
+					if(seq->flag & SEQ_USE_CROP && strip->crop) {
+						writestruct(wd, DATA, "StripCrop", 1, strip->crop);
+					}
+					if(seq->flag & SEQ_USE_TRANSFORM && strip->transform) {
+						writestruct(wd, DATA, "StripTransform", 1, strip->transform);
+					}
+					if(seq->flag & SEQ_USE_PROXY && strip->proxy) {
+						writestruct(wd, DATA, "StripProxy", 1, strip->proxy);
+					}
 					if(seq->type==SEQ_IMAGE)
 						writestruct(wd, DATA, "StripElem", strip->len, strip->stripdata);
 					else if(seq->type==SEQ_MOVIE || seq->type==SEQ_RAM_SOUND || seq->type == SEQ_HD_SOUND)
