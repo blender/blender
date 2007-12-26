@@ -856,11 +856,10 @@ static void multires_update_faces(Mesh *me, EditMesh *em)
 	if(cr_mat_damaged) MEM_freeN(cr_mat_damaged);
 }
 
-void multires_update_colors(Mesh *me)
+static void multires_update_colors(Mesh *me, EditMesh *em)
 {
 	MultiresLevel *lvl= BLI_findlink(&me->mr->levels,me->mr->current-1);
 	MultiresCol *pr_deltas= NULL, *cr_deltas= NULL;
-	EditMesh *em= G.obedit ? G.editMesh : NULL;
 	CustomData *src= em ? &em->fdata : &me->fdata;
 	EditFace *efa= NULL;
 	unsigned i,j,curf= 0;
@@ -961,7 +960,7 @@ void multires_update_levels(Mesh *me, const int render)
 	multires_update_first_level(me, em);
 	multires_update_vertices(me, em);
 	multires_update_faces(me, em);
-	multires_update_colors(me);
+	multires_update_colors(me, em);
 }
 
 static void check_colors(Mesh *me)
