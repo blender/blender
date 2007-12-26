@@ -994,19 +994,6 @@ static unsigned int find_mid_edge(ListBase *vert_edge_map,
 	return -1;
 }
 
-static void medge_flag_to_eed(const short flag, const char crease, EditEdge *eed)
-{
-	if(!eed) return;
-	
-	if(flag & ME_SEAM) eed->seam= 1;
-	if(flag & ME_SHARP) eed->sharp = 1;
-	if(flag & SELECT) eed->f |= SELECT;
-	if(flag & ME_FGON) eed->h= EM_FGON;
-	if(flag & ME_HIDE) eed->h |= 1;
-	
-	eed->crease= ((float)crease)/255.0;
-}
-
 static float clamp_component(const float c)
 {
 	if(c<0) return 0;
@@ -1014,7 +1001,7 @@ static float clamp_component(const float c)
 	else return c;
 }
 
-static void multires_to_mcol(MultiresColFace *f, MCol mcol[4])
+void multires_to_mcol(MultiresColFace *f, MCol mcol[4])
 {
 	unsigned char j;
 	for(j=0; j<4; ++j) {
@@ -1031,88 +1018,51 @@ void multires_level_to_mesh(Object *ob, Mesh *me, const int render)
 	MultiresLevel *lvl= BLI_findlink(&me->mr->levels,me->mr->current-1);
 	int i;
 	EditMesh *em= (!render && G.obedit) ? G.editMesh : NULL;
-	EditVert **eves= NULL;
-	EditEdge *eed= NULL;
 	
-	if(em) {
-		/* Remove editmesh elements */
-		free_editMesh(em);
-		
-		eves= MEM_callocN(sizeof(EditVert*)*lvl->totvert, "editvert pointers");
-	} else {
-		CustomData_free_layer_active(&me->vdata, CD_MVERT, me->totvert);
-		CustomData_free_layer_active(&me->edata, CD_MEDGE, me->totedge);
-		CustomData_free_layer_active(&me->fdata, CD_MFACE, me->totface);
-		CustomData_free_layer_active(&me->vdata, CD_MDEFORMVERT, me->totvert);
-		CustomData_free_layers(&me->fdata, CD_MTFACE, me->totface);
-		CustomData_free_layers(&me->fdata, CD_MCOL, me->totface);
-		
-		me->totvert= lvl->totvert;
-		me->totface= lvl->totface;
-		me->totedge= lvl->totedge;
+	if(em)
+		return;
 
-		CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, me->totvert);
-		CustomData_add_layer(&me->edata, CD_MEDGE, CD_CALLOC, NULL, me->totedge);
-		CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, me->totface);
-		mesh_update_customdata_pointers(me);
-	}
+	CustomData_free_layer_active(&me->vdata, CD_MVERT, me->totvert);
+	CustomData_free_layer_active(&me->edata, CD_MEDGE, me->totedge);
+	CustomData_free_layer_active(&me->fdata, CD_MFACE, me->totface);
+	CustomData_free_layer_active(&me->vdata, CD_MDEFORMVERT, me->totvert);
+	CustomData_free_layers(&me->fdata, CD_MTFACE, me->totface);
+	CustomData_free_layers(&me->fdata, CD_MCOL, me->totface);
+		
+	me->totvert= lvl->totvert;
+	me->totface= lvl->totface;
+	me->totedge= lvl->totedge;
+
+	CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, me->totvert);
+	CustomData_add_layer(&me->edata, CD_MEDGE, CD_CALLOC, NULL, me->totedge);
+	CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, me->totface);
+	mesh_update_customdata_pointers(me);
 
 	/* Vertices/Edges/Faces */
 	
 	for(i=0; i<lvl->totvert; ++i) {
-		if(em) {
-			eves[i]= addvertlist(me->mr->verts[i].co, NULL);
-			if(me->mr->verts[i].flag & 1) eves[i]->f |= SELECT;
-			if(me->mr->verts[i].flag & ME_HIDE) eves[i]->h= 1;
-			eves[i]->data= NULL;
-		}
-		else
-			me->mvert[i]= me->mr->verts[i];
+		me->mvert[i]= me->mr->verts[i];
 	}
 	for(i=0; i<lvl->totedge; ++i) {
-		if(em) {
-			addedgelist(eves[lvl->edges[i].v[0]], eves[lvl->edges[i].v[1]], NULL);
-		} else {
-			me->medge[i].v1= lvl->edges[i].v[0];
-			me->medge[i].v2= lvl->edges[i].v[1];
-			me->medge[i].flag &= ~ME_HIDE;
-		}
+		me->medge[i].v1= lvl->edges[i].v[0];
+		me->medge[i].v2= lvl->edges[i].v[1];
+		me->medge[i].flag &= ~ME_HIDE;
 	}
 	for(i=0; i<lvl->totface; ++i) {
-		if(em) {
-			EditVert *eve4= lvl->faces[i].v[3] ? eves[lvl->faces[i].v[3]] : NULL;
-			EditFace *efa= addfacelist(eves[lvl->faces[i].v[0]], eves[lvl->faces[i].v[1]],
-			               eves[lvl->faces[i].v[2]], eve4, NULL, NULL);
-			efa->flag= lvl->faces[i].flag & ~ME_HIDE;
-			efa->mat_nr= lvl->faces[i].mat_nr;
-			if(lvl->faces[i].flag & ME_FACE_SEL)
-				efa->f |= SELECT;
-			if(lvl->faces[i].flag & ME_HIDE) efa->h= 1;
-			efa->data= NULL;
-		}
-		else {
-			me->mface[i].v1= lvl->faces[i].v[0];
-			me->mface[i].v2= lvl->faces[i].v[1];
-			me->mface[i].v3= lvl->faces[i].v[2];
-			me->mface[i].v4= lvl->faces[i].v[3];
-			me->mface[i].flag= lvl->faces[i].flag;
-			me->mface[i].flag &= ~ME_HIDE;
-			me->mface[i].mat_nr= lvl->faces[i].mat_nr;
-		}
+		me->mface[i].v1= lvl->faces[i].v[0];
+		me->mface[i].v2= lvl->faces[i].v[1];
+		me->mface[i].v3= lvl->faces[i].v[2];
+		me->mface[i].v4= lvl->faces[i].v[3];
+		me->mface[i].flag= lvl->faces[i].flag;
+		me->mface[i].flag &= ~ME_HIDE;
+		me->mface[i].mat_nr= lvl->faces[i].mat_nr;
 	}
 	
 	/* Edge flags */
-	if(em) eed= em->edges.first;
 	if(lvl==me->mr->levels.first) {
 		for(i=0; i<lvl->totedge; ++i) {
-			if(em) {
-				medge_flag_to_eed(me->mr->edge_flags[i], me->mr->edge_creases[i], eed);
-				eed= eed->next;
-			}
-			else {
-				me->medge[i].flag= me->mr->edge_flags[i];
-				me->medge[i].crease= me->mr->edge_creases[i];
-			}
+			me->medge[i].flag= me->mr->edge_flags[i];
+			me->medge[i].crease= me->mr->edge_creases[i];
 		}
 	} else {
 		MultiresLevel *lvl1= me->mr->levels.first;
@@ -1120,67 +1070,32 @@ void multires_level_to_mesh(Object *ob, Mesh *me, const int render)
 		for(i=0; i<last; ++i) {
 			const int ndx= i / pow(2, me->mr->current-1);
 			
-			if(em) {
-				medge_flag_to_eed(me->mr->edge_flags[ndx], me->mr->edge_creases[ndx], eed);
-				eed= eed->next;
-			}
-			else {
-				me->medge[i].flag= me->mr->edge_flags[ndx];
-				me->medge[i].crease= me->mr->edge_creases[ndx];
-			}
+			me->medge[i].flag= me->mr->edge_flags[ndx];
+			me->medge[i].crease= me->mr->edge_creases[ndx];
 		}
 	}
-
-	if(em) {
-		eed= em->edges.first;
-		for(i=0, eed= em->edges.first; i<lvl->totedge; ++i, eed= eed->next) {
-			eed->h= me->mr->verts[lvl->edges[i].v[0]].flag & ME_HIDE ||
-				me->mr->verts[lvl->edges[i].v[1]].flag & ME_HIDE;
-		}
-	}
-	
-	EM_select_flush();
 
 	multires_customdata_to_mesh(me, em, lvl, &me->mr->vdata, em ? &em->vdata : &me->vdata, CD_MDEFORMVERT);
 	multires_customdata_to_mesh(me, em, lvl, &me->mr->fdata, em ? &em->fdata : &me->fdata, CD_MTFACE);
 
 	/* Colors */
 	if(me->mr->use_col) {
-		MCol c[4];
-		EditFace *efa= NULL;
-		CustomData *src= em ? &em->fdata : &me->fdata;
-		if(em) {
-			if(me->mr->use_col) EM_add_data_layer(src, CD_MCOL);
-			efa= em->faces.first;
-		}
-		else {
-			if(me->mr->use_col) me->mcol= CustomData_add_layer(src, CD_MCOL, CD_CALLOC, NULL, me->totface);
-		}
+		CustomData *src= &me->fdata;
+		
+		if(me->mr->use_col) me->mcol= CustomData_add_layer(src, CD_MCOL, CD_CALLOC, NULL, me->totface);
 		
 		for(i=0; i<lvl->totface; ++i) {
-			if(em) {
-				if(me->mr->use_col) {
-					multires_to_mcol(&lvl->colfaces[i], c);
-					CustomData_em_set(src, efa->data, CD_MCOL, c);
-				}
-				efa= efa->next;
-			}
-			else if(me->mr->use_col) multires_to_mcol(&lvl->colfaces[i], &me->mcol[i*4]);
+			if(me->mr->use_col)
+				multires_to_mcol(&lvl->colfaces[i], &me->mcol[i*4]);
 		}
 			
 	}
 	
 	mesh_update_customdata_pointers(me);
 	
-	if(em) {
-		MEM_freeN(eves);
-		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-		recalc_editnormals();
-	} else {
-		multires_edge_level_update(ob,me);
-		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-		mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
-	}
+	multires_edge_level_update(ob,me);
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+	mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
 }
 
 void multires_add_level(Object *ob, Mesh *me, const char subdiv_type)

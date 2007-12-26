@@ -108,17 +108,109 @@ void multires_check_state()
 		sculptmode_correct_state();
 }
 
-void Vec3fAvg3(float *out, float *v1, float *v2, float *v3)
+static void medge_flag_to_eed(const short flag, const char crease, EditEdge *eed)
 {
-	out[0]= (v1[0]+v2[0]+v3[0])/3;
-	out[1]= (v1[1]+v2[1]+v3[1])/3;
-	out[2]= (v1[2]+v2[2]+v3[2])/3;
+	if(!eed) return;
+	
+	if(flag & ME_SEAM) eed->seam= 1;
+	if(flag & ME_SHARP) eed->sharp = 1;
+	if(flag & SELECT) eed->f |= SELECT;
+	if(flag & ME_FGON) eed->h= EM_FGON;
+	if(flag & ME_HIDE) eed->h |= 1;
+	
+	eed->crease= ((float)crease)/255.0;
 }
-void Vec3fAvg4(float *out, float *v1, float *v2, float *v3, float *v4)
+
+void multires_level_to_editmesh(Object *ob, Mesh *me, const int render)
 {
-	out[0]= (v1[0]+v2[0]+v3[0]+v4[0])/4;
-	out[1]= (v1[1]+v2[1]+v3[1]+v4[1])/4;
-	out[2]= (v1[2]+v2[2]+v3[2]+v4[2])/4;
+	MultiresLevel *lvl= BLI_findlink(&me->mr->levels,me->mr->current-1);
+	int i;
+	EditMesh *em= (!render && G.obedit) ? G.editMesh : NULL;
+	EditVert **eves= NULL;
+	EditEdge *eed= NULL;
+
+	if(em) {
+		/* Remove editmesh elements */
+		free_editMesh(em);
+		
+		eves= MEM_callocN(sizeof(EditVert*)*lvl->totvert, "editvert pointers");
+
+		/* Vertices/Edges/Faces */
+		for(i=0; i<lvl->totvert; ++i) {
+			eves[i]= addvertlist(me->mr->verts[i].co, NULL);
+			if(me->mr->verts[i].flag & 1) eves[i]->f |= SELECT;
+			if(me->mr->verts[i].flag & ME_HIDE) eves[i]->h= 1;
+			eves[i]->data= NULL;
+		}
+		for(i=0; i<lvl->totedge; ++i) {
+			addedgelist(eves[lvl->edges[i].v[0]], eves[lvl->edges[i].v[1]], NULL);
+		}
+		for(i=0; i<lvl->totface; ++i) {
+			EditVert *eve4= lvl->faces[i].v[3] ? eves[lvl->faces[i].v[3]] : NULL;
+			EditFace *efa= addfacelist(eves[lvl->faces[i].v[0]], eves[lvl->faces[i].v[1]],
+						   eves[lvl->faces[i].v[2]], eve4, NULL, NULL);
+			efa->flag= lvl->faces[i].flag & ~ME_HIDE;
+			efa->mat_nr= lvl->faces[i].mat_nr;
+			if(lvl->faces[i].flag & ME_FACE_SEL)
+				efa->f |= SELECT;
+			if(lvl->faces[i].flag & ME_HIDE) efa->h= 1;
+			efa->data= NULL;
+		}
+	
+		/* Edge flags */
+		eed= em->edges.first;
+		if(lvl==me->mr->levels.first) {
+			for(i=0; i<lvl->totedge; ++i) {
+				medge_flag_to_eed(me->mr->edge_flags[i], me->mr->edge_creases[i], eed);
+				eed= eed->next;
+			}
+		} else {
+			MultiresLevel *lvl1= me->mr->levels.first;
+			const int last= lvl1->totedge * pow(2, me->mr->current-1);
+			for(i=0; i<last; ++i) {
+				const int ndx= i / pow(2, me->mr->current-1);
+			
+				medge_flag_to_eed(me->mr->edge_flags[ndx], me->mr->edge_creases[ndx], eed);
+				eed= eed->next;
+			}
+		}
+
+		eed= em->edges.first;
+		for(i=0, eed= em->edges.first; i<lvl->totedge; ++i, eed= eed->next) {
+			eed->h= me->mr->verts[lvl->edges[i].v[0]].flag & ME_HIDE ||
+				me->mr->verts[lvl->edges[i].v[1]].flag & ME_HIDE;
+		}
+	
+		EM_select_flush();
+
+		multires_customdata_to_mesh(me, em, lvl, &me->mr->vdata, em ? &em->vdata : &me->vdata, CD_MDEFORMVERT);
+		multires_customdata_to_mesh(me, em, lvl, &me->mr->fdata, em ? &em->fdata : &me->fdata, CD_MTFACE);
+
+		/* Colors */
+		if(me->mr->use_col) {
+			MCol c[4];
+			EditFace *efa= NULL;
+			CustomData *src= &em->fdata;
+
+			if(me->mr->use_col) EM_add_data_layer(src, CD_MCOL);
+			efa= em->faces.first;
+		
+			for(i=0; i<lvl->totface; ++i) {
+				if(me->mr->use_col) {
+					multires_to_mcol(&lvl->colfaces[i], c);
+					CustomData_em_set(src, efa->data, CD_MCOL, c);
+				}
+				efa= efa->next;
+			}
+			
+		}
+	
+		mesh_update_customdata_pointers(me);
+	
+		MEM_freeN(eves);
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+		recalc_editnormals();
+	}
 }
 
 void multires_make(void *ob, void *me_v)
@@ -284,6 +376,7 @@ void multires_subdivide(void *ob_v, void *me_v)
 
 	waitcursor(1);
 	multires_add_level(ob_v, me, G.scene->toolsettings->multires_subdiv_type);
+	multires_level_to_editmesh(ob_v, me, 0);
 	multires_finish_mesh_update(ob_v);
 
 	allqueue(REDRAWBUTSEDIT, 0);
@@ -298,6 +391,7 @@ void multires_set_level_cb(void *ob, void *me)
 	multires_check_state();
 
 	multires_set_level(ob, me, 0);
+	multires_level_to_editmesh(ob, me, 0);
 	multires_finish_mesh_update(ob);
 	
 	if(G.obedit || G.f & G_SCULPTMODE)

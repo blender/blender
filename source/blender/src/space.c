@@ -1495,13 +1495,13 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case PAGEUPKEY:
 				if(me && me->mr) {
 					me->mr->newlvl= ((Mesh*)ob->data)->mr->current+1;
-					multires_set_level(ob, ob->data, 0);
+					multires_set_level_cb(ob, ob->data);
 				}
 				break;
 			case PAGEDOWNKEY:
 				if(me && me->mr) {
 					me->mr->newlvl= ((Mesh*)ob->data)->mr->current-1;
-					multires_set_level(ob, ob->data, 0);
+					multires_set_level_cb(ob, ob->data);
 				}
 				break;
 			/* Partial Visibility */
