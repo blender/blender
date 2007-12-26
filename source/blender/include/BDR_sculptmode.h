@@ -32,6 +32,7 @@
 
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
+#include "BKE_sculpt.h"
 #include "transform.h"
 
 struct uiBlock;
@@ -46,26 +47,6 @@ struct Scene;
 struct ScrArea;
 struct SculptData;
 struct SculptStroke;
-
-typedef enum PropsetMode {
-	PropsetNone = 0,
-	PropsetSize,
-	PropsetStrength,
-	PropsetTexRot
-} PropsetMode;
-
-typedef struct PropsetData {
-	PropsetMode mode;
-	unsigned int tex;
-	short origloc[2];
-	float *texdata;
-	
-	short origsize;
-	char origstrength;
-	float origtexrot;
-	
-	NumInput num;
-} PropsetData;
 
 struct SculptSession *sculpt_session(void);
 struct SculptData *sculpt_data(void);

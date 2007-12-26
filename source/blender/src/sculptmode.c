@@ -1313,6 +1313,7 @@ void sculptmode_propset_end(SculptSession *ss, int cancel)
 				set_tex_angle(pd->origtexrot);
 		}
 		glDeleteTextures(1, &pd->tex);
+		MEM_freeN(pd->num);
 		MEM_freeN(pd->texdata);
 		MEM_freeN(pd);
 		ss->propset= NULL;
@@ -1353,7 +1354,9 @@ void sculptmode_propset_init(PropsetMode mode)
 		
 		sculptmode_propset_calctex();
 		
-		pd->num.idx_max= 0;
+		if(!pd->num)
+			pd->num = MEM_callocN(sizeof(NumInput), "propset numinput");
+		pd->num->idx_max= 0;
 	}
 
 	pd->mode= mode;
@@ -1391,11 +1394,11 @@ void sculptmode_propset(unsigned short event)
 	BrushData *brush= sculptmode_brush();
 	char valset= 0;
 	
-	handleNumInput(&pd->num, event);
+	handleNumInput(pd->num, event);
 	
-	if(hasNumInput(&pd->num)) {
+	if(hasNumInput(pd->num)) {
 		float val;
-		applyNumInput(&pd->num, &val);
+		applyNumInput(pd->num, &val);
 		if(pd->mode==PropsetSize)
 			brush->size= val;
 		else if(pd->mode==PropsetStrength)
@@ -1409,7 +1412,7 @@ void sculptmode_propset(unsigned short event)
 	switch(event) {
 	case MOUSEX:
 	case MOUSEY:
-		if(!hasNumInput(&pd->num)) {
+		if(!hasNumInput(pd->num)) {
 			char ctrl= G.qual & LR_CTRLKEY;
 			getmouseco_areawin(mouse);
 			tmp[0]= pd->origloc[0]-mouse[0];

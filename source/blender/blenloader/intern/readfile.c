@@ -136,6 +136,7 @@
 #include "BKE_sca.h" // for init_actuator
 #include "BKE_scene.h"
 #include "BKE_softbody.h"	// sbNew()
+#include "BKE_sculpt.h"
 #include "BKE_texture.h" // for open_plugin_tex
 #include "BKE_utildefines.h" // SWITCH_INT DATA ENDB DNA1 O_BINARY GLOB USER TEST REND
 #include "BKE_idprop.h"

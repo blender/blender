@@ -27,6 +27,34 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
+#ifndef BKE_SCULPT_H
+#define BKE_SCULPT_H
+
+struct NumInput;
+struct Scene;
+struct SculptData;
+struct SculptSession;
+
+typedef enum PropsetMode {
+	PropsetNone = 0,
+	PropsetSize,
+	PropsetStrength,
+	PropsetTexRot
+} PropsetMode;
+
+typedef struct PropsetData {
+	PropsetMode mode;
+	unsigned int tex;
+	short origloc[2];
+	float *texdata;
+	
+	short origsize;
+	char origstrength;
+	float origtexrot;
+	
+	struct NumInput *num;
+} PropsetData;
+
 typedef struct SculptSession {
 	struct ProjVert *projverts;
 
@@ -62,3 +90,4 @@ void sculptsession_free(struct Scene *sce);
 void sculpt_vertexusers_free(struct SculptSession *ss);
 void sculpt_reset_curve(struct SculptData *sd);
 
+#endif
