@@ -170,6 +170,7 @@ void do_buts_buttons(short event)
 				}
 			}
 			matcopybuf.nodetree= ntreeCopyTree(ma->nodetree, 0);
+			matcopybuf.preview= NULL;
 			matcopied= 1;
 		}
 		break;
