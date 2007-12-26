@@ -303,6 +303,7 @@ void convertVecToDisplayNum(float *vec, float *num);
 void convertDisplayNumToVec(float *num, float *vec);
 
 void initWarp(TransInfo *t);
+int handleEventWarp(TransInfo *t, unsigned short event, short val);
 int Warp(TransInfo *t, short mval[2]);
 
 void initShear(TransInfo *t);

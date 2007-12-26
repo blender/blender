@@ -1399,6 +1399,7 @@ void initWarp(TransInfo *t)
 	
 	t->mode = TFM_WARP;
 	t->transform = Warp;
+	t->handleEvent = handleEventWarp;
 	
 	t->idx_max = 0;
 	t->num.idx_max = 0;
@@ -1435,6 +1436,24 @@ void initWarp(TransInfo *t)
 	t->val= (max[0]-min[0])/2.0f; /* t->val is X dimension projected boundbox */
 }
 
+int handleEventWarp(TransInfo *t, unsigned short event, short val)
+{
+	int status = 0;
+	
+	if (event == MIDDLEMOUSE && val)
+	{
+		// Use customData pointer to signal warp direction
+		if	(t->customData == 0)
+			t->customData = (void*)1;
+		else
+			t->customData = 0;
+			
+		status = 1;
+	}
+	
+	return status;
+}
+
 int Warp(TransInfo *t, short mval[2])
 {
 	TransData *td = t->data;
@@ -1465,6 +1484,11 @@ int Warp(TransInfo *t, short mval[2])
 
 	/* amount of degrees for warp */
 	circumfac= 360.0f * InputHorizontalRatio(t, mval);
+	
+	if (t->customData) /* non-null value indicates reversed input */
+	{
+		circumfac *= -1;
+	}
 
 	snapGrid(t, &circumfac);
 	applyNumInput(&t->num, &circumfac);
