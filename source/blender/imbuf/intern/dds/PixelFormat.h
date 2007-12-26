@@ -55,127 +55,56 @@
 // FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 // OTHER DEALINGS IN THE SOFTWARE.
 
-#ifndef _DDS_DIRECTDRAWSURFACE_H
-#define _DDS_DIRECTDRAWSURFACE_H
+#ifndef _DDS_PIXELFORMAT_H
+#define _DDS_PIXELFORMAT_H
 
 #include <Common.h>
-#include <Stream.h>
-#include <ColorBlock.h>
-#include <Image.h>
 
-struct DDSPixelFormat
-{
-	uint size;
-	uint flags;
-	uint fourcc;
-	uint bitcount;
-	uint rmask;
-	uint gmask;
-	uint bmask;
-	uint amask;
-};
+	namespace PixelFormat
+	{
 
-struct DDSCaps
-{
-	uint caps1;
-	uint caps2;
-	uint caps3;
-	uint caps4;
-};
+		// Convert component @a c having @a inbits to the returned value having @a outbits.
+		inline uint convert(uint c, uint inbits, uint outbits)
+		{
+			if (inbits == 0)
+			{
+				return 0;
+			}
+			else if (inbits >= outbits)
+			{
+				// truncate
+				return c >> (inbits - outbits);
+			}
+			else
+			{
+				// bitexpand
+				return (c << (outbits - inbits)) | convert(c, inbits, outbits - inbits);
+			}
+		}
 
-/// DDS file header for DX10.
-struct DDSHeader10
-{
-    uint dxgiFormat;
-    uint resourceDimension;
-    uint miscFlag;
-    uint arraySize;
-    uint reserved;
-};
+		// Get pixel component shift and size given its mask.
+		inline void maskShiftAndSize(uint mask, uint * shift, uint * size)
+		{
+			if (!mask)
+			{
+				*shift = 0;
+				*size = 0;
+				return;
+			}
 
-/// DDS file header.
-struct DDSHeader
-{
-	uint fourcc;
-	uint size;
-	uint flags;
-	uint height;
-	uint width;
-	uint pitch;
-	uint depth;
-	uint mipmapcount;
-	uint reserved[11];
-	DDSPixelFormat pf;
-	DDSCaps caps;
-	uint notused;
-	DDSHeader10 header10;
+			*shift = 0;
+			while((mask & 1) == 0) {
+				++(*shift);
+				mask >>= 1;
+			}
+			
+			*size = 0;
+			while((mask & 1) == 1) {
+				++(*size);
+				mask >>= 1;
+			}
+		}
 
+	} // PixelFormat namespace
 
-	// Helper methods.
-	DDSHeader();
-	
-	void setWidth(uint w);
-	void setHeight(uint h);
-	void setDepth(uint d);
-	void setMipmapCount(uint count);
-	void setTexture2D();
-	void setTexture3D();
-	void setTextureCube();
-	void setLinearSize(uint size);
-	void setPitch(uint pitch);
-	void setFourCC(uint8 c0, uint8 c1, uint8 c2, uint8 c3);
-	void setPixelFormat(uint bitcount, uint rmask, uint gmask, uint bmask, uint amask);
-	void setDX10Format(uint format);
-	void setNormalFlag(bool b);
-	
-	bool hasDX10Header() const;
-};
-
-/// DirectDraw Surface. (DDS)
-class DirectDrawSurface
-{
-public:
-	DirectDrawSurface(unsigned char *mem, uint size);
-	~DirectDrawSurface();
-	
-	bool isValid() const;
-	bool isSupported() const;
-	
-	uint mipmapCount() const;
-	uint width() const;
-	uint height() const;
-	uint depth() const;
-	bool isTexture2D() const;
-	bool isTexture3D() const;
-	bool isTextureCube() const;
-	bool hasAlpha() const; /* false for DXT1, true for all other DXTs */
-	
-	void mipmap(Image * img, uint f, uint m);
-	//	void mipmap(FloatImage * img, uint f, uint m);
-	
-	void printInfo() const;
-
-private:
-	
-	uint blockSize() const;
-	uint faceSize() const;
-	uint mipmapSize(uint m) const;
-	
-	uint offset(uint f, uint m);
-	
-	void readLinearImage(Image * img);
-	void readBlockImage(Image * img);
-	void readBlock(ColorBlock * rgba);
-	
-	
-private:
-	Stream stream; // memory where DDS file resides
-	DDSHeader header;
-};
-
-void mem_read(Stream & mem, DDSPixelFormat & pf);
-void mem_read(Stream & mem, DDSCaps & caps);
-void mem_read(Stream & mem, DDSHeader & header);
-void mem_read(Stream & mem, DDSHeader10 & header);
-
-#endif // _DDS_DIRECTDRAWSURFACE_H
+#endif // _DDS_IMAGE_PIXELFORMAT_H

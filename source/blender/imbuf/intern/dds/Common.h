@@ -37,8 +37,20 @@
 #ifndef clamp
 #define clamp(x,a,b) min(max((x), (a)), (b))
 #endif
-#ifndef swap
-#define swap(a,b,tmp) tmp=a; a=b; b=tmp;
-#endif
+
+template<typename T>
+inline void
+swap(T & a, T & b)
+{
+  T tmp = a;
+  a = b;
+  b = tmp;
+}
+
+typedef unsigned char      uint8;
+typedef unsigned short     uint16;
+typedef unsigned int       uint;
+typedef unsigned int       uint32;
+typedef unsigned long long uint64;
 
 #endif
