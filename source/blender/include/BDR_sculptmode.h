@@ -32,8 +32,6 @@
 
 #include "DNA_listBase.h"
 #include "DNA_vec_types.h"
-/* For bglMats */
-#include "BIF_glutil.h"
 #include "transform.h"
 
 struct uiBlock;
@@ -55,6 +53,7 @@ typedef enum PropsetMode {
 	PropsetStrength,
 	PropsetTexRot
 } PropsetMode;
+
 typedef struct PropsetData {
 	PropsetMode mode;
 	unsigned int tex;
@@ -68,40 +67,10 @@ typedef struct PropsetData {
 	NumInput num;
 } PropsetData;
 
-typedef struct SculptSession {
-	bglMats mats;
-	
-	/* An array of lists; array is sized as
-	   large as the number of verts in the mesh,
-	   the list for each vert contains the index
-	   for all the faces that use that vertex */
-	struct ListBase *vertex_users;
-	struct IndexNode *vertex_users_mem;
-	int vertex_users_size;
-
-	/* Used temporarily per-stroke */
-	float *vertexcosnos;
-	ListBase damaged_rects;
-	ListBase damaged_verts;
-	
-	/* Used to cache the render of the active texture */
-	unsigned int texcache_w, texcache_h, *texcache;
-	
-	PropsetData *propset;
-	
-	/* For rotating around a pivot point */
-	vec3f pivot;
-
-	struct SculptStroke *stroke;
-} SculptSession;
-
-SculptSession *sculpt_session(void);
+struct SculptSession *sculpt_session(void);
 struct SculptData *sculpt_data(void);
 
 /* Memory */
-void sculpt_reset_curve(struct SculptData *sd);
-void sculptmode_init(struct Scene *);
-void sculptmode_free_all(struct Scene *);
 void sculptmode_correct_state(void);
 
 /* Interface */
@@ -135,10 +104,6 @@ void sculpt_stroke_draw();
 
 
 /* Partial Mesh Visibility */
-struct PartialVisibility *sculptmode_copy_pmv(struct PartialVisibility *);
-void sculptmode_pmv_free(struct PartialVisibility *);
-void sculptmode_revert_pmv(struct Mesh *me);
-void sculptmode_pmv_off(struct Mesh *me);
 void sculptmode_pmv(int mode);
 
 #endif

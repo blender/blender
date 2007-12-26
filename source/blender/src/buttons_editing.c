@@ -1356,7 +1356,7 @@ static void modifiers_applyModifier(void *obv, void *mdv)
 			return;
 		}
 	
-		sculptmode_pmv_off(me);
+		mesh_pmv_off(ob, me);
 	
 		dm = mesh_create_derived_for_modifier(ob, md);
 		if (!dm) {

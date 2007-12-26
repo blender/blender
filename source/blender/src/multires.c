@@ -233,7 +233,7 @@ void multires_make(void *ob, void *me_v)
 	
 	multires_check_state();
 
-	multires_create(me);
+	multires_create(ob, me);
 
 	allqueue(REDRAWBUTSEDIT, 0);
 	BIF_undo_push("Make multires");

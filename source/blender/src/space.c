@@ -89,6 +89,7 @@
 #include "BKE_multires.h"
 #include "BKE_node.h"
 #include "BKE_scene.h"
+#include "BKE_sculpt.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 #include "BKE_image.h" /* for IMA_TYPE_COMPOSITE and IMA_TYPE_R_RESULT */
@@ -1509,7 +1510,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case HKEY:
 				if(G.qual==LR_ALTKEY) {
 					waitcursor(1);
-					sculptmode_pmv_off(get_mesh(ob));
+					mesh_pmv_off(ob, get_mesh(ob));
 					BIF_undo_push("Partial mesh hide");
 					allqueue(REDRAWVIEW3D,0);
 					waitcursor(0);

@@ -35,8 +35,6 @@
 #include "DNA_object_types.h"
 #include "DNA_vec_types.h"
 
-#include "BDR_sculptmode.h"
-
 #include "BIF_editmesh.h"
 
 #include "BLI_arithb.h"
@@ -348,7 +346,7 @@ void multires_load_cols(Mesh *me)
 	}
 }
 
-void multires_create(Mesh *me)
+void multires_create(Object *ob, Mesh *me)
 {
 	MultiresLevel *lvl;
 	EditMesh *em= G.obedit ? G.editMesh : NULL;
@@ -359,7 +357,7 @@ void multires_create(Mesh *me)
 	
 	lvl= MEM_callocN(sizeof(MultiresLevel), "multires level");
 
-	if(me->pv) sculptmode_pmv_off(me);
+	if(me->pv) mesh_pmv_off(ob, me);
 
 	me->mr= MEM_callocN(sizeof(Multires), "multires data");
 	
@@ -1105,7 +1103,7 @@ void multires_add_level(Object *ob, Mesh *me, const char subdiv_type)
 	MVert *oldverts= NULL;
 	
 	lvl= MEM_callocN(sizeof(MultiresLevel), "multireslevel");
-	if(me->pv) sculptmode_pmv_off(me);
+	if(me->pv) mesh_pmv_off(ob, me);
 
 	check_colors(me);
 	multires_update_levels(me, 0);
@@ -1271,7 +1269,7 @@ void multires_add_level(Object *ob, Mesh *me, const char subdiv_type)
 
 void multires_set_level(Object *ob, Mesh *me, const int render)
 {
-	if(me->pv) sculptmode_pmv_off(me);
+	if(me->pv) mesh_pmv_off(ob, me);
 
 	check_colors(me);
 	multires_update_levels(me, render);

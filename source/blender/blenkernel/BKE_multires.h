@@ -47,7 +47,7 @@ void multires_edge_level_update(struct Object *ob, struct Mesh *me);
 
 void multires_free(struct Multires *mr);
 struct Multires *multires_copy(struct Multires *orig);
-void multires_create(struct Mesh *me);
+void multires_create(struct Object *ob, struct Mesh *me);
 
 /* CustomData */
 void multires_delete_layer(struct Mesh *me, struct CustomData *cd, const int type, int n);

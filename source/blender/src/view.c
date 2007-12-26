@@ -66,6 +66,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 #include "BKE_object.h"
+#include "BKE_sculpt.h"
 #include "BKE_utildefines.h"
 
 #include "BIF_editparticle.h"

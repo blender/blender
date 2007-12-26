@@ -1621,7 +1621,7 @@ void enter_editmode(int wc)
 	if(ob->type==OB_MESH) {
 		me= get_mesh(ob);
 		if( me==0 ) return;
-		if(me->pv) sculptmode_pmv_off(me);
+		if(me->pv) mesh_pmv_off(ob, me);
 		ok= 1;
 		G.obedit= ob;
 		make_editMesh();

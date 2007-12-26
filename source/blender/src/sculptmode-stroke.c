@@ -31,11 +31,16 @@
  */
 
 #include "MEM_guardedalloc.h"
+
 #include "DNA_listBase.h"
 #include "DNA_scene_types.h"
+
+#include "BKE_sculpt.h"
 #include "BLI_blenlib.h"
 #include "BIF_gl.h"
+
 #include "BDR_sculptmode.h"
+
 #include <math.h>
 
 /* Temporary storage of input stroke control points */

@@ -310,10 +310,6 @@ void post_geometry_free_constraint(struct VNode *vnode) {}
 void post_layer_create(struct VLayer *vlayer) {}
 void post_layer_destroy(struct VLayer *vlayer) {}
 void post_server_add(void) {}
- /* sculpt stubs */
-void sculpt_reset_curve(struct SculptData *sd) {}
-void sculptmode_init(struct Scene *sce) {}
-void sculptmode_free_all(struct Scene *sce) {}
 
 /* zbuf.c stub */
 void antialias_tagbuf(int xsize, int ysize, char *rectmove) {}
