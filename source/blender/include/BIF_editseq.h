@@ -128,8 +128,6 @@ start and end are from the start and fixed length of the sequence.
 		(seq)->endstill = 0; \
 }
 */
-/* drawseq.c */
-void do_seqbuttons(short);
 
 #endif
 

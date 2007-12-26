@@ -899,6 +899,7 @@ void mouse_select_seq(void)
 
 			recurs_sel_seq(seq);
 		}
+		allqueue(REDRAWBUTSSCENE, 0);
 		force_draw(0);
 
 		if(get_last_seq()) allqueue(REDRAWIPO, 0);

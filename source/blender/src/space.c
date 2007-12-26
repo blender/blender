@@ -4543,9 +4543,6 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		}
 		
 		switch(event) {
-		case UI_BUT_EVENT:
-			do_seqbuttons(val);			
-			break;
 		case LEFTMOUSE:
 			if(sseq->mainb || view2dmove(event)==0) {
 				
@@ -6222,6 +6219,14 @@ void allqueue(unsigned short event, short val)
 					scrarea_queue_headredraw(sa);
 				}
 				break;
+			case REDRAWSEQ:
+				if(sa->spacetype==SPACE_SEQ) {
+					addqueue(sa->win, CHANGED, 1);
+					scrarea_queue_winredraw(sa);
+					scrarea_queue_headredraw(sa);
+				}
+				/* fall through, since N-keys moved to 
+				   Buttons */
 			case REDRAWBUTSSCENE:
 				if(sa->spacetype==SPACE_BUTS) {
 					buts= sa->spacedata.first;
@@ -6292,13 +6297,6 @@ void allqueue(unsigned short event, short val)
 				}
 				else if(sa->spacetype==SPACE_OOPS) {
 					scrarea_queue_winredraw(sa);
-				}
-				break;
-			case REDRAWSEQ:
-				if(sa->spacetype==SPACE_SEQ) {
-					addqueue(sa->win, CHANGED, 1);
-					scrarea_queue_winredraw(sa);
-					scrarea_queue_headredraw(sa);
 				}
 				break;
 			case REDRAWOOPS:
