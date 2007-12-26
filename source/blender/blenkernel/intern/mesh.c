@@ -63,6 +63,7 @@
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
+#include "BKE_multires.h"
 #include "BKE_subsurf.h"
 #include "BKE_displist.h"
 #include "BKE_library.h"
@@ -82,8 +83,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_arithb.h"
-
-#include "multires.h"
 
 int update_realtime_texture(MTFace *tface, double time)
 {

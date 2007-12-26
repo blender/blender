@@ -147,8 +147,6 @@
 #include "BLO_undofile.h"
 #include "BLO_readblenfile.h" // streaming read pipe, for BLO_readblenfile BLO_readblenfilememory
 
-#include "multires.h"
-
 #include "readfile.h"
 
 #include "genfile.h"

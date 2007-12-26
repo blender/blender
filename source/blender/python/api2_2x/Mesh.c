@@ -1,5 +1,5 @@
 /* 
- * $Id: Mesh.c 12892 2007-12-15 17:41:13Z joeedh $
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -60,6 +60,7 @@
 #include "BKE_mesh.h"
 #include "BKE_material.h"
 #include "BKE_main.h"
+#include "BKE_multires.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_DerivedMesh.h"

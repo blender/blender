@@ -86,6 +86,7 @@
 #include "BKE_ipo.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_multires.h"
 #include "BKE_node.h"
 #include "BKE_scene.h"
 #include "BKE_texture.h"

@@ -72,6 +72,7 @@
 #include "BKE_main.h"
 #include "BKE_material.h"
 #include "BKE_mesh.h"
+#include "BKE_multires.h"
 #include "BKE_object.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"

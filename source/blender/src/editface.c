@@ -63,6 +63,7 @@
 #include "BKE_displist.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
+#include "BKE_multires.h"
 #include "BKE_object.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
@@ -93,7 +94,6 @@
 #include "mydevice.h"
 #include "blendef.h"
 #include "butspace.h"
-#include "multires.h"
 
 #include "BSE_trans_types.h"
 

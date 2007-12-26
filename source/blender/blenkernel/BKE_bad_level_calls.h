@@ -207,15 +207,6 @@ void post_layer_create(struct VLayer *vlayer);
 void post_layer_destroy(struct VLayer *vlayer);
 void post_server_add(void);
 
-/* multires.c */
-struct Multires;
-struct MultiresLevel;
-struct MultiresLevel *multires_level_n(struct Multires *mr, int n);
-void multires_free(struct Multires *mr);
-void multires_set_level(struct Object *ob, struct Mesh *me, const int render);
-void multires_update_levels(struct Mesh *me, const int render);
-void multires_calc_level_maps(struct MultiresLevel *lvl);
-struct Multires *multires_copy(struct Multires *orig);
 /* sculptmode.c */
 struct SculptData;
 void sculpt_reset_curve(struct SculptData *sd);

@@ -43,13 +43,13 @@
 #include "BKE_customdata.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
+#include "BKE_multires.h"
 
 #include "BLI_editVert.h"
 
 #include "MEM_guardedalloc.h"
 
 #include "blendef.h"
-#include "multires.h"
 
 #include <string.h>
 
@@ -392,7 +392,6 @@ void multires_delete_layer(Mesh *me, CustomData *cd, const int type, int n)
 	}
 }
 
-MultiresLevel *current_level(Multires *mr);
 void multires_add_layer(Mesh *me, CustomData *cd, const int type, const int n)
 {
 	if(me && me->mr && cd) {

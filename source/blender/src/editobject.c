@@ -117,6 +117,7 @@
 #include "BKE_material.h"
 #include "BKE_mball.h"
 #include "BKE_mesh.h"
+#include "BKE_multires.h"
 #include "BKE_nla.h"
 #include "BKE_object.h"
 #include "BKE_particle.h"
@@ -178,7 +179,6 @@
 
 #include "blendef.h"
 #include "butspace.h"
-#include "multires.h"
 #include "BIF_transform.h"
 
 #include "BIF_poseobject.h"

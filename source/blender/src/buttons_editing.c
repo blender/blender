@@ -89,6 +89,7 @@
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
+#include "BKE_multires.h"
 #include "BKE_packedFile.h"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
@@ -5865,7 +5866,7 @@ void editing_panel_mesh_multires()
 
 		uiBlockBeginAlign(block);
 		but= uiDefBut(block,BUT,B_NOP,"Add Level", cx,cy,134,19,0,0,0,0,0,"Add a new level of subdivision at the end of the chain");
-		uiButSetFunc(but,multires_add_level,ob,me);
+		uiButSetFunc(but, multires_subdivide, ob, me);
 		uiDefButC(block, MENU, B_NOP, subsurfmenu, cx + 134, cy, 134, 19, &G.scene->toolsettings->multires_subdiv_type, 0, 0, 0, 0, "Selects type of subdivision algorithm.");
 		cy-= 20;
 
@@ -5881,7 +5882,7 @@ void editing_panel_mesh_multires()
 			cy-= 20;
 
 			but= uiDefButC(block,NUM,B_NOP,"Edges: ",cx,cy,268,19,(char *)&me->mr->edgelvl,1.0,me->mr->level_count,0,0,"Set level of edges to display");
-			uiButSetFunc(but,multires_edge_level_update,ob,me);
+			uiButSetFunc(but,multires_edge_level_update_cb,ob,me);
 			cy-= 20;
 			uiBlockEndAlign(block);
 			
