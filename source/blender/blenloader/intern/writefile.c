@@ -556,7 +556,7 @@ static void write_particlesystems(WriteData *wd, ListBase *particles)
 				ParticleData *pa = psys->particles;
 
 				for(a=0; a<psys->totpart; a++, pa++)
-					writedata(wd, DATA, MEM_allocN_len(pa->hair),pa->hair);
+					writestruct(wd, DATA, "HairKey", pa->totkey, pa->hair);
 			}
 		}
 		if(psys->child) writestruct(wd, DATA, "ChildParticle", psys->totchild ,psys->child);
