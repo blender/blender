@@ -119,7 +119,6 @@ typedef struct Sequence {
 	char name[24]; /* name, not set by default and dosnt need to be unique as with ID's */
 
 	int flag, type;	/*flags bitmap (see below) and the type of sequence*/
-	int pad;
 	int len; /* the length of the contense of this strip - before handles are applied */
 	int start, startofs, endofs;
 	int startstill, endstill;
@@ -128,6 +127,7 @@ typedef struct Sequence {
 	float mul, handsize;
 					/* is sfra needed anymore? - it looks like its only used in one place */
 	int sfra;		/* starting frame according to the timeline of the scene. */
+	int anim_preseek;
 
 	Strip *strip;
 
@@ -151,10 +151,11 @@ typedef struct Sequence {
 
 	void *effectdata;	/* Struct pointer for effect settings */
 
-	int anim_preseek;
+	int anim_startofs;    /* only use part of animation file */
+	int anim_endofs;      /* is subtle different to startofs / endofs */
+
 	int blend_mode;
 	float blend_opacity;
-	int pad2;
 } Sequence;
 
 typedef struct MetaStack {

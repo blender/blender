@@ -500,6 +500,10 @@ static void seq_panel_editing()
 			       "Snd RAM", "Snd HD",
 			       "", "Effect" };
 	uiBlock *block;
+	static char strdata[1024];
+	char * str = strdata;
+	char * p;
+	int yco;
 
 	block = uiNewBlock(&curarea->uiblocks, "seq_panel_editing", 
 			   UI_EMBOSS, UI_HELV, curarea->win);
@@ -578,6 +582,90 @@ static void seq_panel_editing()
 				  0.0, last_seq->len, 0.0, 0.0, "End offset");
 		}
 	}
+
+
+	if(last_seq->type & SEQ_EFFECT)
+		sprintf(str, "Len: %d\nFrom %d - %d\n", last_seq->len, last_seq->startdisp, last_seq->enddisp-1);
+	else
+		sprintf(str, "Len: %d(%d)\n", last_seq->enddisp-last_seq->startdisp, last_seq->len);
+
+	str += strlen(str);
+
+	if(last_seq->type==SEQ_IMAGE) {
+		if (last_seq->len > 1) {
+			/* CURRENT */
+			StripElem * se= give_stripelem(last_seq, CFRA);
+			StripElem * last;
+
+			/* FIRST AND LAST */
+	
+			if(last_seq->strip) {
+				se= last_seq->strip->stripdata;
+				last= se+last_seq->len-1;
+				if(last_seq->startofs) se+= last_seq->startofs;
+				if(last_seq->endofs) last-= last_seq->endofs;
+	
+				sprintf(str, "First: %s at %d\nLast: %s at %d\n", se->name, last_seq->startdisp, last->name, last_seq->enddisp-1);
+			}
+		} else { /* single image */
+			if (last_seq->strip) {
+				sprintf(str, "Len: %d\n", last_seq->enddisp-last_seq->startdisp);
+			}
+		}
+
+		str += strlen(str);
+
+		/* orig size */
+		if(last_seq->strip) {
+			sprintf(str, "OrigSize: %d x %d\n", last_seq->strip->orx, last_seq->strip->ory);
+		}
+	}
+	else if(last_seq->type==SEQ_MOVIE) {
+		int sta= last_seq->startofs;
+		int end= last_seq->len-1-last_seq->endofs;
+
+		sprintf(str, "First: %d at %d\nLast: %d at %d\nCur: %d\n",
+			sta, last_seq->startdisp, end, last_seq->enddisp-1,  
+			(G.scene->r.cfra)-last_seq->startdisp);
+	}
+	else if(last_seq->type==SEQ_SCENE) {
+		TStripElem * se= give_tstripelem(last_seq,  (G.scene->r.cfra));
+		if(se && last_seq->scene) {
+			sprintf(str, "First: %d\nLast: %d\nCur: %d\n", last_seq->sfra+se->nr, last_seq->sfra, last_seq->sfra+last_seq->len-1); 
+		}
+	}
+	else if(last_seq->type==SEQ_RAM_SOUND
+		|| last_seq->type == SEQ_HD_SOUND) {
+
+		int sta= last_seq->startofs;
+		int end= last_seq->len-1-last_seq->endofs;
+
+		sprintf(str, "First: %d at %d\nLast: %d at %d\nCur: %d\n",
+			sta, last_seq->startdisp, end, last_seq->enddisp-1,  
+			(G.scene->r.cfra)-last_seq->startdisp);
+	}
+	else if(last_seq->type == SEQ_SPEED) {
+		SpeedControlVars * vars = 
+			(SpeedControlVars*) last_seq->effectdata;
+
+		if (vars) {
+			sprintf(str, "Last mapped frame: %d at %d\n", 
+				vars->lastValidFrame, 
+				vars->lastValidFrame 
+				+ last_seq->startdisp);
+		}
+	}
+
+	str = strdata;
+	yco = 40;
+
+	while ((p = strchr(str, '\n'))) {
+		*p = 0;
+		uiDefBut(block, LABEL, 0, str, 10,yco,240,19, 0, 
+			 0, 0, 0, 0, "");
+		str = p+1;
+		yco -= 20;
+	}
 }
 
 static void seq_panel_input()
@@ -590,7 +678,30 @@ static void seq_panel_input()
 	if(uiNewPanel(curarea, block, "Input", "Sequencer", 
 		      10, 230, 318, 204) == 0) return;
 
-	
+	uiDefBut(block, TEX, 
+		 B_SEQ_BUT_RELOAD_FILE, "Dir: ", 
+		 10,140,240,19, last_seq->strip->dir, 
+		 0.0, 160.0, 100, 0, "");
+
+	if (last_seq->type == SEQ_IMAGE) {
+		StripElem * se = give_stripelem(last_seq, CFRA);
+
+		if (se) {
+			uiDefBut(block, TEX, 
+				 B_SEQ_BUT_RELOAD_FILE, "File: ", 
+				 10, 120, 240,19, se->name, 
+				 0.0, 80.0, 100, 0, "");
+		}
+
+	} else if (last_seq->type == SEQ_MOVIE || 
+		   last_seq->type == SEQ_HD_SOUND ||
+		   last_seq->type == SEQ_RAM_SOUND) {
+		uiDefBut(block, TEX, 
+			 B_SEQ_BUT_RELOAD_FILE, "File: ", 
+			 10,120,240,19, last_seq->strip->stripdata->name, 
+			 0.0, 80.0, 100, 0, "");
+	}
+
 	uiDefButBitI(block, TOG, SEQ_USE_CROP,
 		     B_SEQ_BUT_RELOAD, "Use Crop",
 		     10,100,240,19, &last_seq->flag,
@@ -645,8 +756,18 @@ static void seq_panel_input()
 	}
 
 	
-	uiDefButI(block, NUM, B_SEQ_BUT_RELOAD, "Preseek:",
-		  10,0,150,19, &last_seq->anim_preseek, 
+	uiDefButI(block, NUM, 
+		  B_SEQ_BUT_RELOAD_FILE, "A-Start", 
+		  10, 0, 120, 20, &last_seq->anim_startofs, 
+		  0.0, MAXFRAMEF, 0.0, 0.0, "Animation start offset in file");
+	uiDefButI(block, NUM, 
+		  B_SEQ_BUT_RELOAD_FILE, "A-End", 
+		  130, 0, 120, 20, &last_seq->anim_endofs, 
+		  0.0, MAXFRAMEF, 0.0, 0.0, "Animation end offset in file");
+
+
+	uiDefButI(block, NUM, B_SEQ_BUT_RELOAD, "MPEG-Preseek:",
+		  10, -20, 240,19, &last_seq->anim_preseek, 
 		  0.0, 50.0, 100,0,"On MPEG-seeking preseek this many frames");
 
 }
@@ -948,7 +1069,9 @@ void do_sequencer_panels(unsigned short event)
 	case B_SEQ_BUT_EFFECT:
 		update_changed_seq_and_deps(last_seq, 0, 1);
 		break;
-
+	case B_SEQ_BUT_RELOAD_FILE:
+		reload_sequence_new_file(last_seq);
+		break;
 	case B_SEQ_BUT_RELOAD:
 	case B_SEQ_BUT_RELOAD_ALL:
 		update_seq_ipo_rect(last_seq);

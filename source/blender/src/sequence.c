@@ -132,7 +132,10 @@ void free_strip(Strip *strip)
 void new_tstripdata(Sequence *seq)
 {
 	if(seq->strip) {
-		free_tstripdata(seq->strip->len, seq->strip->tstripdata);
+		if (seq->strip->tstripdata) {
+			free_tstripdata(seq->strip->len, 
+					seq->strip->tstripdata);
+		}
 		seq->strip->tstripdata= 0;
 		seq->strip->len= seq->len;
 	}
@@ -370,6 +373,58 @@ void calc_sequence(Sequence *seq)
 		}
 		calc_sequence_disp(seq);
 	}
+}
+
+void reload_sequence_new_file(Sequence * seq)
+{
+	char str[FILE_MAXDIR+FILE_MAXFILE];
+
+	if (!(seq->type == SEQ_MOVIE || seq->type == SEQ_IMAGE ||
+	      seq->type == SEQ_HD_SOUND)) {
+		return;
+	}
+
+	new_tstripdata(seq);
+
+	if (seq->type == SEQ_IMAGE) {
+		return;
+	}
+
+	strncpy(str, seq->strip->dir, FILE_MAXDIR-1);
+	strncat(str, seq->strip->stripdata->name, FILE_MAXFILE-1);
+
+	if (seq->type == SEQ_MOVIE) {
+		if(seq->anim) IMB_free_anim(seq->anim);
+		seq->anim = openanim(str, IB_rect);
+
+		if (!seq->anim) {
+			return;
+		}
+	
+		seq->len = IMB_anim_get_duration(seq->anim);
+		
+		seq->anim_preseek = IMB_anim_get_preseek(seq->anim);
+
+		seq->len -= seq->anim_startofs;
+		seq->len -= seq->anim_endofs;
+		if (seq->len < 0) {
+			seq->len = 0;
+		}
+		seq->strip->len = seq->len;
+	} else if (seq->type == SEQ_HD_SOUND) {
+		if(seq->hdaudio) sound_close_hdaudio(seq->hdaudio);
+		seq->hdaudio = sound_open_hdaudio(str);
+
+		if (!seq->hdaudio) {
+			return;
+		}
+
+		seq->strip->len = seq->len 
+			= sound_hdaudio_get_duration(seq->hdaudio, FPS);
+	}
+
+
+	calc_sequence(seq);
 }
 
 void sort_seq()
@@ -685,7 +740,7 @@ StripElem *give_stripelem(Sequence *seq, int cfra)
 	if (nr == -1) return 0;
 	if (se == 0) return 0;
 
-	se += nr; 
+	se += nr + seq->anim_startofs; 
 	
 	return se;
 }
@@ -991,7 +1046,7 @@ static void do_build_seq_ibuf(Sequence * seq, TStripElem *se, int cfra)
 				}
 				if(seq->anim) {
 					IMB_anim_set_preseek(seq->anim, seq->anim_preseek);
-					se->ibuf = IMB_anim_absolute(seq->anim, se->nr);
+					se->ibuf = IMB_anim_absolute(seq->anim, se->nr + seq->anim_startofs);
 				}
 				
 				if(se->ibuf == 0) {

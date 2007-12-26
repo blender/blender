@@ -355,6 +355,7 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_SEQ_BUT_EFFECT	1693
 #define B_SEQ_BUT_RELOAD_ALL    1694
 #define B_SEQ_BUT_TRANSFORM     1695
+#define B_SEQ_BUT_RELOAD_FILE   1696
 
 /* *********************** */
 #define B_ARMATUREBUTS		1800
