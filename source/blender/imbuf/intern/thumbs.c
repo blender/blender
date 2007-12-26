@@ -27,8 +27,9 @@
  * ***** END GPL LICENSE BLOCK *****
  */
 
-#include "BKE_global.h"
-#include "BKE_utildefines.h"
+/* also defined in BKE_utildefines, repeated here to avoid dependency */
+#define FILE_MAX			240
+
 #include "BLI_blenlib.h"
 #include "MEM_guardedalloc.h"
 
@@ -76,18 +77,17 @@ static int get_thumb_dir( char* dir , ThumbSize size)
 #endif
 	switch(size) {
 		case THB_NORMAL:
-			strcat(dir, "/.thumbnails/normal");
+			strcat(dir, "/.thumbnails/normal/");
 			break;
 		case THB_LARGE:
-			strcat(dir, "/.thumbnails/large");
+			strcat(dir, "/.thumbnails/large/");
 			break;
 		case THB_FAIL:
-			strcat(dir, "/.thumbnails/fail/blender");
+			strcat(dir, "/.thumbnails/fail/blender/");
 			break;
 		default:
 			return 0; /* unknown size */
 	}
-	BLI_cleanup_dir(G.sce, dir);
 	return 1;
 }
 

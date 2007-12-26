@@ -423,6 +423,12 @@
 				RelativePath="..\..\..\source\blender\blenkernel\intern\modifier.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\multires-firstlevel.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\intern\multires.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenkernel\intern\nla.c">
 			</File>
 			<File
@@ -614,6 +620,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_modifier.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenkernel\BKE_multires.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenkernel\BKE_nla.h">
