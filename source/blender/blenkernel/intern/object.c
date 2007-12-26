@@ -230,6 +230,7 @@ void free_object(Object *ob)
 		BLI_freelistN(&ob->defbase);
 	if(ob->pose) {
 		free_pose_channels(ob->pose);
+		if (ob->pose->poselib) ob->pose->poselib->id.us--;
 		MEM_freeN(ob->pose);
 	}
 	free_effects(&ob->effect);

@@ -1785,6 +1785,9 @@ static void lib_link_pose(FileData *fd, Object *ob, bPose *pose)
 		}
 	}
 	
+	// ob->id.lib??? 
+	pose->poselib = newlibadr_us(fd, ob->id.lib, pose->poselib);
+	
 	if(rebuild) {
 		ob->recalc= OB_RECALC;
 		pose->flag |= POSE_RECALC;
@@ -1814,12 +1817,12 @@ static void lib_link_action(FileData *fd, Main *main)
 	while(act) {
 		if(act->id.flag & LIB_NEEDLINK) {
 			act->id.flag -= LIB_NEEDLINK;
-
+			
 			for (chan=act->chanbase.first; chan; chan=chan->next) {
 				chan->ipo= newlibadr_us(fd, act->id.lib, chan->ipo);
 				lib_link_constraint_channels(fd, &act->id, &chan->constraintChannels);
 			}
-
+			
 		}
 		act= act->id.next;
 	}
@@ -1847,7 +1850,10 @@ static void direct_link_action(FileData *fd, bAction *act)
 
 	for (achan = act->chanbase.first; achan; achan=achan->next)
 		link_list(fd, &achan->constraintChannels);
-
+		
+	act->poselib= newdataadr(fd, act->poselib);
+	if (act->poselib)
+		link_list(fd, &act->poselib->poses);
 }
 
 static void direct_link_armature(FileData *fd, bArmature *arm)
@@ -2942,7 +2948,6 @@ static void direct_link_pose(FileData *fd, bPose *pose) {
 		pchan->iktree.first= pchan->iktree.last= NULL;
 		pchan->path= NULL;
 	}
-
 }
 
 static void direct_link_modifiers(FileData *fd, ListBase *lb)
@@ -7799,6 +7804,8 @@ static void expand_pose(FileData *fd, Main *mainvar, bPose *pose)
 		expand_constraints(fd, mainvar, &chan->constraints);
 		expand_doit(fd, mainvar, chan->custom);
 	}
+	
+	expand_doit(fd, mainvar, pose->poselib);
 }
 
 static void expand_armature(FileData *fd, Main *mainvar, bArmature *arm)

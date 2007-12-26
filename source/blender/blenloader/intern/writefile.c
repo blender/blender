@@ -1743,10 +1743,20 @@ static void write_actions(WriteData *wd, ListBase *idbase)
 		if (act->id.us>0 || wd->current) {
 			writestruct(wd, ID_AC, "bAction", 1, act);
 			if (act->id.properties) IDP_WriteProperty(act->id.properties, wd);
-
+			
 			for (chan=act->chanbase.first; chan; chan=chan->next) {
 				writestruct(wd, DATA, "bActionChannel", 1, chan);
 				write_constraint_channels(wd, &chan->constraintChannels);
+			}
+			
+			if (act->poselib) {
+				bPoseLib *pl= act->poselib;
+				bPoseLibRef *plr;
+				
+				writestruct(wd, DATA, "bPoseLib", 1, pl);
+				
+				for (plr= pl->poses.first; plr; plr= plr->next)
+					writestruct(wd, DATA, "bPoseLibRef", 1, plr);
 			}
 		}
 	}

@@ -125,6 +125,7 @@
 #include "BIF_meshtools.h"
 #include "BIF_mywindow.h"
 #include "BIF_oops.h"
+#include "BIF_poselib.h"
 #include "BIF_poseobject.h"
 #include "BIF_outliner.h"
 #include "BIF_resources.h"
@@ -2132,7 +2133,16 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						selectconnected_nurb();
 				}
 				else if(ob && (ob->flag & OB_POSEMODE)) {
-					selectconnected_posearmature();
+					if (G.qual == LR_CTRLKEY) 
+						poselib_preview_poses(ob);
+					else if (G.qual == LR_SHIFTKEY) 
+						poselib_add_current_pose(ob, 0);
+					else if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY))
+						poselib_rename_pose(ob);
+					else if (G.qual == LR_ALTKEY)
+						poselib_remove_pose(ob, NULL);
+					else
+						selectconnected_posearmature();
 				}
 				else {
 					if(FACESEL_PAINT_TEST) {

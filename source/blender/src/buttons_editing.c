@@ -114,6 +114,7 @@
 #include "BIF_interface.h"
 #include "BIF_meshtools.h"
 #include "BIF_mywindow.h"
+#include "BIF_poselib.h"
 #include "BIF_poseobject.h"
 #include "BIF_renderwin.h"
 #include "BIF_resources.h"
@@ -3729,6 +3730,32 @@ void do_armbuts(unsigned short event)
 		if (ob && ob->pose)
 			pose_clear_paths(ob);
 		break;
+		
+	case B_POSELIB_NEW:
+		if (ob && ob->pose)
+			poselib_init_new(ob);
+		allqueue(REDRAWBUTSEDIT, 0);
+		break;
+	case B_POSELIB_ADDPOSE:
+		if (ob && ob->pose)
+			poselib_add_current_pose(ob, 1);
+		allqueue(REDRAWBUTSEDIT, 0);
+		break;
+	case B_POSELIB_REPLACEP:
+		if (ob && ob->pose)
+			poselib_add_current_pose(ob, 2);
+		allqueue(REDRAWBUTSEDIT, 0);
+		break;
+	case B_POSELIB_REMOVEP:
+		if (ob && ob->pose) {
+			bAction *act= ob->pose->poselib;
+			bPoseLib *pl= act->poselib;
+			bPoseLibRef *plr= BLI_findlink(&pl->poses, pl->active_nr-1);
+			
+			poselib_remove_pose(ob, plr);
+		}
+		allqueue(REDRAWBUTSEDIT, 0);
+		break;
 	}
 }
 
@@ -4934,6 +4961,59 @@ static void editing_panel_links(Object *ob)
 		uiDefButF(block, NUM, REDRAWVIEW3D, "Size:",
 				xco, 108, 140, 21, &ob->empty_drawsize, 0.01, 10.0, 1, 0, "The size to display the Empty");
 		uiBlockEndAlign(block);
+		return;
+	}
+	
+	/* poselib for armatures */
+	if (ob->type==OB_ARMATURE) {
+		if ((ob->pose) && (ob->flag & OB_POSEMODE) && (G.obedit != ob)) {
+			bPose *pose= ob->pose;
+			bAction *act= pose->poselib;
+			
+			xco= 143;
+			
+			uiDefBut(block, LABEL,0,"PoseLib:", xco, 154, 130,20, 0, 0, 0, 0, 0, "");
+			
+			/* PoseLib Action */
+			if (act) {
+				if (act->poselib==NULL) {
+					uiBlockSetCol(block, TH_REDALERT);
+					uiDefIDPoinBut(block, test_actionpoin_but, ID_AC, REDRAWBUTSEDIT, "AC:",	xco, 130, 140, 20, &pose->poselib, "Action to use as PoseLib - (Warning: this Action doesn't have a PoseLib)"); 
+					uiBlockSetCol(block, TH_AUTO);	
+				}
+				else {
+					uiDefIDPoinBut(block, test_actionpoin_but, ID_AC, REDRAWBUTSEDIT, "AC:",	xco, 130, 140, 20, &pose->poselib, "Action to use as PoseLib"); 
+				}
+			}
+			uiDefBut(block, BUT, B_POSELIB_NEW, "New PoseLib",	xco,110,140,20, 0, 0, 0, 0, 0, "Creates a new PoseLib");
+			
+			
+			/* poselib pose editing controls */
+			if ((act) && (act->poselib)) {
+				bPoseLib *pl= act->poselib;
+				bPoseLibRef *plr= BLI_findlink(&pl->poses, pl->active_nr-1);
+				int plr_count= BLI_countlist(&pl->poses);
+				char *menustr= poselib_build_poses_menu(pl, "PoseLib Poses");
+				
+				uiBlockBeginAlign(block);
+					/* currently 'active' pose */
+					uiDefButI(block, MENU, REDRAWBUTSEDIT, menustr, xco, 85,18,20, &pl->active_nr, 1, plr_count, 0, 0, "Browses Poses in PoseLib");
+					MEM_freeN(menustr);
+					
+					if (pl->active_nr) {
+						but= uiDefBut(block, TEX, REDRAWBUTSEDIT,"",		161,85,140-18-20,20, plr->name, 0, 31, 0, 0, "Displays current PoseLib Pose name. Click to change.");
+						//uiButSetFunc(but, verify_vertexgroup_name_func, defGroup, NULL);
+						//uiButSetCompleteFunc(but, autocomplete_vgroup, (void *)ob);
+						
+						but = uiDefIconBut(block, BUT, B_POSELIB_REMOVEP, VICON_X, 263, 85, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Remove this PoseLib Pose from PoseLib");
+					}
+					
+					/* add new poses */
+					uiDefBut(block, BUT, B_POSELIB_ADDPOSE, "Add Pose",	xco,65,70,20, 0, 0, 0, 0, 0, "Add current pose to PoseLib");
+					uiDefBut(block, BUT, B_POSELIB_REPLACEP, "Replace Pose",	xco+70,65,70,20, 0, 0, 0, 0, 0, "Replace existing PoseLib Pose with current pose");
+				uiBlockEndAlign(block);	
+			}
+		}	
 		return;
 	}
 	

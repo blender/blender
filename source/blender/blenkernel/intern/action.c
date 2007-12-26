@@ -163,6 +163,15 @@ void make_local_action(bAction *act)
 	}
 }
 
+static void free_act_poselib (bAction *act)
+{
+	if (act->poselib) {
+		bPoseLib *pl= act->poselib;
+		
+		BLI_freelistN(&pl->poses);
+		MEM_freeN(pl);
+	}
+}
 
 void free_action (bAction *act)
 {
@@ -177,6 +186,9 @@ void free_action (bAction *act)
 	
 	if (act->chanbase.first)
 		BLI_freelistN(&act->chanbase);
+		
+	/* Free PoseLib */
+	free_act_poselib(act);
 }
 
 bAction *copy_action (bAction *src)
