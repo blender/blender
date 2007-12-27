@@ -1085,6 +1085,63 @@ static int node_composit_buts_blur(uiBlock *block, bNodeTree *ntree, bNode *node
 	return 57;
 }
 
+static int node_composit_buts_dblur(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		NodeDBlurData *ndbd = node->storage;
+		short dy = butr->ymin + 171;
+		short dx = butr->xmax - butr->xmin;
+		short halfdx= (short)dx/2;
+
+		uiBlockBeginAlign(block);
+		uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Iterations:",
+				butr->xmin, dy, dx, 19,
+				&ndbd->iter, 1, 32, 10, 0, "Amount of iterations");
+		uiDefButC(block, TOG, B_NODE_EXEC+node->nr, "Wrap",
+				butr->xmin, dy-= 19, dx, 19, 
+				&ndbd->wrap, 0, 0, 0, 0, "Wrap blur");
+		uiBlockEndAlign(block);
+
+		dy-= 9;
+
+		uiDefBut(block, LABEL, B_NOP, "Center", butr->xmin, dy-= 19, dx, 19, NULL, 0.0f, 0.0f, 0, 0, "");
+
+		uiBlockBeginAlign(block);
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "X:",
+				butr->xmin, dy-= 19, halfdx, 19,
+				&ndbd->center_x, 0.0f, 1.0f, 10, 0, "X center in percents");
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "Y:",
+				butr->xmin+halfdx, dy, halfdx, 19,
+				&ndbd->center_y, 0.0f, 1.0f, 10, 0, "Y center in percents");
+		uiBlockEndAlign(block);
+
+		dy-= 9;
+
+		uiBlockBeginAlign(block);
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "Distance:",
+				butr->xmin, dy-= 19, dx, 19,
+				&ndbd->distance, -1.0f, 1.0f, 10, 0, "Amount of which the image moves");
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "Angle:",
+				butr->xmin, dy-= 19, dx, 19,
+				&ndbd->angle, 0.0f, 360.0f, 1000, 0, "Angle in which the image will be moved");
+		uiBlockEndAlign(block);
+
+		dy-= 9;
+
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "Spin:",
+				butr->xmin, dy-= 19, dx, 19,
+				&ndbd->spin, -360.0f, 360.0f, 1000, 0, "Angle that is used to spin the image");
+
+		dy-= 9;
+
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "Zoom:",
+				butr->xmin, dy-= 19, dx, 19,
+				&ndbd->zoom, 0.0f, 100.0f, 100, 0, "Amount of which the image is zoomed");
+
+	}
+	return 190;
+}
+
 /* qdn: defocus node */
 static int node_composit_buts_defocus(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
@@ -1334,7 +1391,6 @@ static int node_composit_buts_crop(uiBlock *block, bNodeTree *ntree, bNode *node
 {
 	if(block) {
 		NodeTwoXYs *ntxy= node->storage;
-		uiBut *bt;
 		char elementheight = 19;
 		short dx= (butr->xmax-butr->xmin)/2;
 		short dy= butr->ymax - elementheight;
@@ -1350,22 +1406,22 @@ static int node_composit_buts_crop(uiBlock *block, bNodeTree *ntree, bNode *node
 		dy-=elementheight;
 
 		/* x1 */
-		bt=uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "X1:",
+		uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "X1:",
 					 butr->xmin, dy, dx, elementheight,
 					 &ntxy->x1, xymin, xymax, 0, 0, "");
 		/* y1 */
-		bt=uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Y1:",
+		uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Y1:",
 					 butr->xmin+dx, dy, dx, elementheight,
 					 &ntxy->y1, xymin, xymax, 0, 0, "");
 
 		dy-=elementheight;
 
 		/* x2 */
-		bt=uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "X2:",
+		uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "X2:",
 					 butr->xmin, dy, dx, elementheight,
 					 &ntxy->x2, xymin, xymax, 0, 0, "");
 		/* y2 */
-		bt=uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Y2:",
+		uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Y2:",
 					 butr->xmin+dx, dy, dx, elementheight,
 					 &ntxy->y2, xymin, xymax, 0, 0, "");
 
@@ -1807,6 +1863,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
  			break;
 		case CMP_NODE_BLUR:
 			ntype->butfunc= node_composit_buts_blur;
+			break;
+		case CMP_NODE_DBLUR:
+			ntype->butfunc= node_composit_buts_dblur;
 			break;
 		/* qdn: defocus node */
 		case CMP_NODE_DEFOCUS:

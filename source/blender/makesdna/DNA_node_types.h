@@ -203,6 +203,12 @@ typedef struct NodeBlurData {
 	int pad2;
 } NodeBlurData;
 
+typedef struct NodeDBlurData {
+	float center_x, center_y, distance, angle, spin, zoom;
+	short iter;
+	char wrap, pad;
+} NodeDBlurData;
+
 typedef struct NodeHueSat {
 	float hue, sat, val;
 } NodeHueSat;
