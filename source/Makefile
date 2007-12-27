@@ -77,7 +77,7 @@ endif
 # Note: the order is important here
 
 GRPLIB = $(OCGDIR)/creator/$(DEBUG_DIR)libcreator.a
-GRPLIB += $(OCGDIR)/blender/src/$(DEBUG_DIR)libsrcpublisher.a
+#GRPLIB += $(OCGDIR)/blender/src/$(DEBUG_DIR)libsrcpublisher.a
 GRPLIB += $(NAN_BSP)/lib/$(DEBUG_DIR)libbsp.a
 GRPLIB += $(NAN_BOOLOP)/lib/$(DEBUG_DIR)libboolop.a
 GRPLIB += $(NAN_SOUNDSYSTEM)/lib/$(DEBUG_DIR)libSoundSystem.a
@@ -87,7 +87,7 @@ GRPLIB += $(OCGDIR)/blender/render/$(DEBUG_DIR)librender.a
 GRPLIB += $(OCGDIR)/blender/radiosity/$(DEBUG_DIR)libradiosity.a
 GRPLIB += $(NAN_OPENNL)/lib/$(DEBUG_DIR)libopennl.a
 GRPLIB += $(NAN_SUPERLU)/lib/$(DEBUG_DIR)libsuperlu.a	
-GRPLIB += $(OCGDIR)/blender/python/$(DEBUG_DIR)libpython.a
+#GRPLIB += $(OCGDIR)/blender/python/$(DEBUG_DIR)libpython.a
 
 # nlin: the reason that some libraries appear more than once below is
 # to handle circular dependencies in linking among libraries... some
@@ -226,7 +226,7 @@ PULIB = $(NAN_IKSOLVER)/lib/libiksolver.a
 PULIB += $(NAN_MOTO)/lib/libmoto.a
 PULIB += $(NAN_ELBEEM)/lib/$(DEBUG_DIR)libelbeem.a
 PULIB += $(OCGDIR)/blender/readblenfile/$(DEBUG_DIR)libreadblenfile.a
-PULIB += $(OCGDIR)/blender/src/$(DEBUG_DIR)libsrcpublisher.a
+#PULIB += $(OCGDIR)/blender/src/$(DEBUG_DIR)libsrcpublisher.a
 
 ifeq ($(NAN_NO_KETSJI),true)
     PULIB += $(NAN_MOTO)/lib/libmoto.a

@@ -51,6 +51,7 @@ CPPFLAGS += -I../blender/renderconverter
 CPPFLAGS += -I../blender/blenkernel
 CPPFLAGS += -I../blender/python
 CPPFLAGS += -I../blender/blenloader
+CPPFLAGS += -I../blender/windowmanager
 CPPFLAGS += -I../kernel/gen_system
 CPPFLAGS += -I../kernel/gen_messaging
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
