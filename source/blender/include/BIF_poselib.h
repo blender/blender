@@ -43,12 +43,14 @@ void poselib_unique_pose_name(struct bPoseLib *pl, char name[]);
 int poselib_get_free_index(struct bPoseLib *pl);
 
 struct bPoseLib *poselib_init_new(struct Object *ob);
+struct bPoseLib *poselib_validate(struct Object *ob);
+
 void poselib_validate_act(struct bAction *act);
 
 void poselib_remove_pose(struct Object *ob, struct bPoseLibRef *plr);
 void poselib_rename_pose(struct Object *ob);
 void poselib_add_current_pose(struct Object *ob, int mode);
 
-void poselib_preview_poses(struct Object *ob);
+void poselib_preview_poses(struct Object *ob, short apply_active);
 
 #endif

@@ -4055,7 +4055,7 @@ static void do_view3d_pose_armature_poselibmenu(void *arg, int event)
 	
 	switch(event) {
 		case 1:
-			poselib_preview_poses(ob);
+			poselib_preview_poses(ob, 0);
 			break;
 		case 2:
 			poselib_add_current_pose(ob, 0);

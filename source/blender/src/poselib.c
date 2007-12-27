@@ -210,7 +210,7 @@ int poselib_get_free_index (bPoseLib *pl)
 
 /* ************************************************************* */
 
-/* Initialise a new poselib */
+/* Initialise a new poselib (whether it is needed or not) */
 bPoseLib *poselib_init_new (Object *ob)
 {
 	bPose *pose= (ob) ? ob->pose : NULL;
@@ -220,9 +220,10 @@ bPoseLib *poselib_init_new (Object *ob)
 	if (ELEM(NULL, ob, pose))
 		return NULL;
 	
-	/* init pose's poselib action */
-	if (pose->poselib == NULL)
-		pose->poselib= add_empty_action("PoseLib");
+	/* init pose's poselib action (unlink old one if there) */
+	if (pose->poselib)
+		pose->poselib->id.us--;
+	pose->poselib= add_empty_action("PoseLib");
 	act= pose->poselib;
 	
 	/* init actions's poselib data */
@@ -231,6 +232,22 @@ bPoseLib *poselib_init_new (Object *ob)
 	pl= act->poselib;
 	
 	return pl;
+}
+
+/* Initialise a new poselib (checks if that needs to happen) */
+bPoseLib *poselib_validate (Object *ob)
+{
+	bPose *pose= (ob) ? ob->pose : NULL;
+	bAction *act= (pose) ? pose->poselib : NULL;
+	bPoseLib *pl= (act) ? act->poselib : NULL;
+	
+	if (ELEM(NULL, ob, pose))
+		return NULL;
+		
+	if (ELEM(NULL, act, pl))
+		return poselib_init_new(ob);
+	else
+		return pl;
 }
 
 
@@ -384,7 +401,7 @@ void poselib_add_current_pose (Object *ob, int val)
 			return;
 			
 		/* get/initialise poselib */
-		pl= poselib_init_new(ob);
+		pl= poselib_validate(ob);
 		act= pose->poselib;	
 		
 		/* validate name and get frame */
@@ -469,7 +486,9 @@ void poselib_remove_pose (Object *ob, bPoseLibRef *plr)
 		if (plr == NULL) return;
 	}
 	else {
-		// TODO: we should really check if pose occurs in this poselib 
+		/* only continue if pose belongs to poselib */
+		if (BLI_findindex(&pl->poses, plr) == -1) 
+			return;
 	}
 	
 	/* remove relevant keyframes */
@@ -554,11 +573,13 @@ void poselib_rename_pose (Object *ob)
 typedef struct tPoseLib_Backup {
 	struct tPoseLib_Backup *next, *prev;
 	
+	bPoseChannel *pchan;
+	
 	float oldloc[3];
 	float oldsize[3];
 	float oldquat[4];
 	
-	float *loc, *size, *quat;
+	int oldflag;
 } tPoseLib_Backup;
 
 /* Makes a copy of the current pose for restoration purposes - doesn't do constraints currently */
@@ -583,9 +604,7 @@ static void poselib_backup_posecopy (ListBase *backups, bPose *pose)
 			VECCOPY(plb->oldsize, pchan->size);
 			QUATCOPY(plb->oldquat, pchan->quat);
 			
-			plb->loc= pchan->loc;
-			plb->size= pchan->size;
-			plb->quat= pchan->quat;
+			plb->pchan= pchan;
 			
 			BLI_addtail(backups, plb);
 		}
@@ -598,9 +617,11 @@ static void poselib_backup_restore (ListBase *backups)
 	tPoseLib_Backup *plb;
 	
 	for (plb= backups->first; plb; plb= plb->next) {
-		VECCOPY(plb->loc, plb->oldloc);
-		VECCOPY(plb->size, plb->oldsize);
-		VECCOPY(plb->quat, plb->oldquat);
+		VECCOPY(plb->pchan->loc, plb->oldloc);
+		VECCOPY(plb->pchan->size, plb->oldsize);
+		VECCOPY(plb->pchan->quat, plb->oldquat);
+		
+		plb->pchan->flag = plb->oldflag;
 	}
 }
 
@@ -718,7 +739,8 @@ static void poselib_keytag_pose (Object *ob)
 enum {
 	PL_PREVIEW_RUNNING = 0,
 	PL_PREVIEW_CONFIRM,
-	PL_PREVIEW_CANCEL
+	PL_PREVIEW_CANCEL,
+	PL_PREVIEW_RUNONCE 
 };
 
 /* defines for poselib_preview_poses --> redraw values */
@@ -728,8 +750,10 @@ enum {
 	PL_PREVIEW_REDRAWHEADER,
 };
 
-/* This tool allows users to preview the pose from the pose-lib using the mouse-scrollwheel/pageupdown */
-void poselib_preview_poses (Object *ob)
+/* This tool allows users to preview the pose from the pose-lib using the mouse-scrollwheel/pageupdown
+ * It is also used to apply the active poselib pose only
+ */
+void poselib_preview_poses (Object *ob, short apply_active)
 {
 	ListBase backups = {NULL, NULL};
 	
@@ -737,9 +761,11 @@ void poselib_preview_poses (Object *ob)
 	bArmature *arm= (ob) ? (ob->data) : NULL;
 	bAction *act= (pose) ? (pose->poselib) : NULL; 
 	bPoseLib *pl= (act) ? (act->poselib) : NULL;
-	bPoseLibRef *plr= (pl->active_nr) ? BLI_findlink(&pl->poses, pl->active_nr-1) : pl->poses.first;
+	bPoseLibRef *plr= (pl == NULL) ? NULL : (pl->active_nr) ? BLI_findlink(&pl->poses, pl->active_nr-1) : pl->poses.first;
+	Base *base;
 	
-	short ret_val=PL_PREVIEW_RUNNING, val=0, redraw=1, firsttime=1;
+	short ret_val= (apply_active) ? PL_PREVIEW_RUNONCE : PL_PREVIEW_RUNNING;
+	short val=0, redraw=1, firsttime=1;
 	unsigned short event;
 	char headerstr[200];
 	
@@ -767,7 +793,7 @@ void poselib_preview_poses (Object *ob)
 
 	
 	/* start preview loop */
-	while (ret_val == PL_PREVIEW_RUNNING) {
+	while (ELEM(ret_val, PL_PREVIEW_RUNNING, PL_PREVIEW_RUNONCE)) {
 		/* preview a pose */
 		if (redraw) {
 			/* only recalc pose (and its dependencies) if pose has changed */
@@ -785,8 +811,6 @@ void poselib_preview_poses (Object *ob)
 				 *	- note: code copied from transform_generics.c -> recalcData()
 				 */
 				if ((arm->flag & ARM_DELAYDEFORM)==0) {
-					Base *base;
-					
 					DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);  /* sets recalc flags */
 					
 					/* bah, softbody exception... recalcdata doesnt reset */
@@ -801,17 +825,26 @@ void poselib_preview_poses (Object *ob)
 					where_is_pose(ob);
 			}
 			
-			/* do header print */
-			sprintf(headerstr, "PoseLib Previewing Pose: \"%s\"  | Use ScrollWheel or PageUp/Down to change", plr->name);
-			headerprint(headerstr);
+			/* do header print - if interactively previewing */
+			if (ret_val == PL_PREVIEW_RUNNING) {
+				sprintf(headerstr, "PoseLib Previewing Pose: \"%s\"  | Use ScrollWheel or PageUp/Down to change", plr->name);
+				headerprint(headerstr);
+			}
 			
 			/* force drawing of view + clear redraw flag */
 			force_draw(0);
 			redraw= PL_PREVIEW_NOREDRAW;
 		}
 		
+		/* stop now if only running once */
+		if (ret_val == PL_PREVIEW_RUNONCE) {
+			ret_val = PL_PREVIEW_CONFIRM;
+			break;
+		}
+		
 		/* essential for idling subloop */
-		if (qtest() == 0) PIL_sleep_ms(2);
+		if (qtest() == 0) 
+			PIL_sleep_ms(2);
 		
 		/* emptying queue and reading events */
 		while ( qtest() ) {
@@ -832,7 +865,7 @@ void poselib_preview_poses (Object *ob)
 					case SPACEKEY:
 						ret_val= PL_PREVIEW_CONFIRM;
 						break;
-						
+					
 					/* change to previous pose - go back to end of list if no previous (cyclic) */
 					case PAGEUPKEY:
 					case WHEELUPMOUSE:
@@ -867,39 +900,63 @@ void poselib_preview_poses (Object *ob)
 		}
 	}
 	
-	/* clear pose if cancelled */
-	if (ret_val == PL_PREVIEW_CANCEL) {
-		poselib_backup_restore(&backups);
-		where_is_pose(ob);
-	}
-	BLI_freelistN(&backups);
-	
-	/* auto-keying if not cancelled */
-	if (ret_val == PL_PREVIEW_CONFIRM)
-		poselib_keytag_pose(ob);
-	
 	/* this signal does one recalc on pose, then unlocks, so ESC or edit will work */
 	pose->flag |= POSE_DO_UNLOCK;
 	
-	/* Update event for pose and deformation children */
-	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+	/* clear pose if cancelled */
+	if (ret_val == PL_PREVIEW_CANCEL) {
+		poselib_backup_restore(&backups);
+		
+		/* old optimize trick... this enforces to bypass the depgraph 
+		 *	- note: code copied from transform_generics.c -> recalcData()
+		 */
+		if ((arm->flag & ARM_DELAYDEFORM)==0) {
+			DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);  /* sets recalc flags */
+			
+			/* bah, softbody exception... recalcdata doesnt reset */
+			for (base= FIRSTBASE; base; base= base->next) {
+				if (base->object->recalc & OB_RECALC_DATA)
+					if (modifiers_isSoftbodyEnabled(base->object)) {
+						base->object->softflag |= OB_SB_REDO;
+				}
+			}
+		}
+		else
+			where_is_pose(ob);
+		
+		allqueue(REDRAWVIEW3D, 0);
+	}
+	else if (ret_val == PL_PREVIEW_CONFIRM) {
+		/* tag poses as appropriate */
+		poselib_keytag_pose(ob);
+		
+		/* change active pose setting */
+		pl->active_nr= BLI_findindex(&pl->poses, plr) + 1;
+		
+		/* Update event for pose and deformation children */
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+		
+		/* updates */
+		if (G.flags & G_RECORDKEYS) {
+			remake_action_ipos(ob->action);
+			
+			allqueue(REDRAWIPO, 0);
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWBUTSEDIT, 0);
+			allqueue(REDRAWACTION, 0);		
+			allqueue(REDRAWNLA, 0);
+		}
+		else {
+			/* need to trick depgraph, action is not allowed to execute on pose */
+			where_is_pose(ob);
+			ob->recalc= 0;
+			
+			allqueue(REDRAWVIEW3D, 0);
+			allqueue(REDRAWBUTSEDIT, 0);
+		}
+	}
+	/* free memory used for backups */
+	BLI_freelistN(&backups);
 	
-	/* updates */
-	if (G.flags & G_RECORDKEYS) {
-		remake_action_ipos(ob->action);
-		
-		allqueue(REDRAWIPO, 0);
-		allqueue(REDRAWVIEW3D, 0);
-		allqueue(REDRAWACTION, 0);		
-		allqueue(REDRAWNLA, 0);
-	}
-	else {
-		/* need to trick depgraph, action is not allowed to execute on pose */
-		where_is_pose(ob);
-		ob->recalc= 0;
-		
-		allqueue(REDRAWVIEW3D, 0);
-	}
-
 	BIF_undo_push("PoseLib Apply Pose");
 }

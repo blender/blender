@@ -2135,7 +2135,7 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				else if(ob && (ob->flag & OB_POSEMODE)) {
 					if (G.qual == LR_CTRLKEY) 
-						poselib_preview_poses(ob);
+						poselib_preview_poses(ob, 0);
 					else if (G.qual == LR_SHIFTKEY) 
 						poselib_add_current_pose(ob, 0);
 					else if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY))

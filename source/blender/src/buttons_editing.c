@@ -3765,6 +3765,11 @@ void do_armbuts(unsigned short event)
 		}
 		allqueue(REDRAWBUTSEDIT, 0);
 		break;
+	case B_POSELIB_APPLYP:
+		if (ob && ob->pose)
+			poselib_preview_poses(ob, 1);
+		allqueue(REDRAWBUTSEDIT, 0);
+		break;
 	}
 }
 
@@ -5007,7 +5012,7 @@ static void editing_panel_links(Object *ob)
 				
 				uiBlockBeginAlign(block);
 					/* currently 'active' pose */
-					uiDefButI(block, MENU, REDRAWBUTSEDIT, menustr, xco, 85,18,20, &pl->active_nr, 1, plr_count, 0, 0, "Browses Poses in PoseLib");
+					uiDefButI(block, MENU, B_POSELIB_APPLYP, menustr, xco, 85,18,20, &pl->active_nr, 1, plr_count, 0, 0, "Browses Poses in PoseLib. Applies chosen pose.");
 					MEM_freeN(menustr);
 					
 					if (pl->active_nr) {
