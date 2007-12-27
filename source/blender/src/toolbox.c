@@ -1648,6 +1648,8 @@ static TBitem tb_node_node[]= {
 	{	0, "Duplicate|Shift D", TB_SHIFT|'d', 		NULL},
 	{	0, "Delete|X", 'x', 		NULL},
 	{	0, "SEPR", 		0, NULL},
+	{	0, "Toggle Link|F", 'f', NULL},
+	{	0, "SEPR", 		0, NULL},
 	{	0, "Make Group|Ctrl G", TB_CTRL|'g', 		NULL},
 	{	0, "Ungroup|Alt G", TB_ALT|'g', 		NULL},
 	{	0, "Edit Group|Tab", TB_TAB, NULL},

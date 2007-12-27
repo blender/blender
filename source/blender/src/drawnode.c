@@ -1988,7 +1988,8 @@ static void draw_nodespace_back(ScrArea *sa, SpaceNode *snode)
 }
 
 /* nice AA filled circle */
-static void socket_circle_draw(float x, float y, float size, int type, int select)
+/* this might have some more generic use */
+static void circle_draw(float x, float y, float size, int type, int col[3])
 {
 	/* 16 values of sin function */
 	static float si[16] = {
@@ -2006,28 +2007,7 @@ static void socket_circle_draw(float x, float y, float size, int type, int selec
 	};
 	int a;
 	
-	if(select==0) {
-		if(type==-1)
-			glColor3ub(0, 0, 0);
-		else if(type==SOCK_VALUE)
-			glColor3ub(160, 160, 160);
-		else if(type==SOCK_VECTOR)
-			glColor3ub(100, 100, 200);
-		else if(type==SOCK_RGBA)
-			glColor3ub(200, 200, 40);
-		else 
-			glColor3ub(100, 200, 100);
-	}
-	else {
-		if(type==SOCK_VALUE)
-			glColor3ub(200, 200, 200);
-		else if(type==SOCK_VECTOR)
-			glColor3ub(140, 140, 240);
-		else if(type==SOCK_RGBA)
-			glColor3ub(240, 240, 100);
-		else 
-			glColor3ub(140, 240, 140);
-	}
+	glColor3ub(col[0], col[1], col[2]);
 	
 	glBegin(GL_POLYGON);
 	for(a=0; a<16; a++)
@@ -2043,6 +2023,41 @@ static void socket_circle_draw(float x, float y, float size, int type, int selec
 	glEnd();
 	glDisable( GL_LINE_SMOOTH );
 	glDisable(GL_BLEND);
+}
+
+static void socket_circle_draw(bNodeSocket *sock, float size)
+{
+	int col[3];
+	
+	/* choose color based on sock flags */
+	if(sock->flag & SELECT) {
+		if(sock->flag & SOCK_SEL) {
+			col[0]= 240; col[1]= 200; col[2]= 40;}
+		else if(sock->type==SOCK_VALUE) {
+			col[0]= 200; col[1]= 200; col[2]= 200;}
+		else if(sock->type==SOCK_VECTOR) {
+			col[0]= 140; col[1]= 140; col[2]= 240;}
+		else if(sock->type==SOCK_RGBA) {
+			col[0]= 240; col[1]= 240; col[2]= 100;}
+		else {
+			col[0]= 140; col[1]= 240; col[2]= 140;}
+	}
+	else if(sock->flag & SOCK_SEL) {
+		col[0]= 200; col[1]= 160; col[2]= 0;}
+	else {
+		if(sock->type==-1) {
+			col[0]= 0; col[1]= 0; col[2]= 0;}
+		else if(sock->type==SOCK_VALUE) {
+			col[0]= 160; col[1]= 160; col[2]= 160;}
+		else if(sock->type==SOCK_VECTOR) {
+			col[0]= 100; col[1]= 100; col[2]= 200;}
+		else if(sock->type==SOCK_RGBA) {
+			col[0]= 200; col[1]= 200; col[2]= 40;}
+		else { 
+			col[0]= 100; col[1]= 200; col[2]= 100;}
+	}
+	
+	circle_draw(sock->locx, sock->locy, size, sock->type, col);
 }
 
 /* not a callback */
@@ -2459,7 +2474,7 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 	/* socket inputs, buttons */
 	for(sock= node->inputs.first; sock; sock= sock->next) {
 		if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
-			socket_circle_draw(sock->locx, sock->locy, NODE_SOCKSIZE, sock->type, sock->flag & SELECT);
+			socket_circle_draw(sock, NODE_SOCKSIZE);
 			
 			if(block && sock->link==NULL) {
 				float *butpoin= sock->ns.vec;
@@ -2501,7 +2516,7 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 	/* socket outputs */
 	for(sock= node->outputs.first; sock; sock= sock->next) {
 		if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
-			socket_circle_draw(sock->locx, sock->locy, NODE_SOCKSIZE, sock->type, sock->flag & SELECT);
+			socket_circle_draw(sock, NODE_SOCKSIZE);
 			
 			BIF_ThemeColor(TH_TEXT);
 			ofs= 0;
@@ -2589,12 +2604,12 @@ void node_draw_hidden(SpaceNode *snode, bNode *node)
 	/* sockets */
 	for(sock= node->inputs.first; sock; sock= sock->next) {
 		if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL)))
-			socket_circle_draw(sock->locx, sock->locy, NODE_SOCKSIZE, sock->type, sock->flag & SELECT);
+			socket_circle_draw(sock, NODE_SOCKSIZE);
 	}
 	
 	for(sock= node->outputs.first; sock; sock= sock->next) {
 		if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL)))
-			socket_circle_draw(sock->locx, sock->locy, NODE_SOCKSIZE, sock->type, sock->flag & SELECT);
+			socket_circle_draw(sock, NODE_SOCKSIZE);
 	}
 }
 
@@ -2805,10 +2820,10 @@ static void node_draw_group(ScrArea *sa, SpaceNode *snode, bNode *gnode)
 	/* group sockets */
 	for(sock= gnode->inputs.first; sock; sock= sock->next)
 		if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL)))
-			socket_circle_draw(sock->locx, sock->locy, NODE_SOCKSIZE, sock->type, sock->flag & SELECT);
+			socket_circle_draw(sock, NODE_SOCKSIZE);
 	for(sock= gnode->outputs.first; sock; sock= sock->next)
 		if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL)))
-			socket_circle_draw(sock->locx, sock->locy, NODE_SOCKSIZE, sock->type, sock->flag & SELECT);
+			socket_circle_draw(sock, NODE_SOCKSIZE);
 
 	/* and finally the whole tree */
 	node_draw_nodetree(sa, snode, ngroup);

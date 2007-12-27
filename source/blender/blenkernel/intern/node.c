@@ -483,6 +483,20 @@ bNode *nodeMakeGroupFromSelected(bNodeTree *ntree)
 			BLI_addtail(&ngroup->nodes, node);
 			node->locx-= 0.5f*(min[0]+max[0]);
 			node->locy-= 0.5f*(min[1]+max[1]);
+
+			/* set selin and selout of the nodetree */
+			for(sock= node->inputs.first; sock; sock= sock->next) {
+				if(sock->flag & SOCK_SEL) {
+					ngroup->selin= sock;
+					break;
+				}
+			}
+			for(sock= node->outputs.first; sock; sock= sock->next) {
+				if(sock->flag & SOCK_SEL) {
+					ngroup->selout= sock;
+					break;
+				}
+			}
 		}
 	}
 
@@ -653,7 +667,8 @@ void nodeGroupSocketUseFlags(bNodeTree *ngroup)
 	}
 }
 
-static void find_node_with_socket(bNodeTree *ntree, bNodeSocket *sock, bNode **nodep, int *sockindex)
+/* finds a node based on given socket */
+int nodeFindNode(bNodeTree *ntree, bNodeSocket *sock, bNode **nodep, int *sockindex)
 {
 	bNode *node;
 	bNodeSocket *tsock;
@@ -671,13 +686,15 @@ static void find_node_with_socket(bNodeTree *ntree, bNodeSocket *sock, bNode **n
 		if(tsock)
 			break;
 	}
+
 	if(node) {
 		*nodep= node;
-		*sockindex= index;
+		if(sockindex) *sockindex= index;
+		return 1;
 	}
-	else {
-		*nodep= NULL;
-	}
+	
+	*nodep= NULL;
+	return 0;
 }
 
 /* returns 1 if its OK */
@@ -717,7 +734,7 @@ int nodeGroupUnGroup(bNodeTree *ntree, bNode *gnode)
 	for(link= ntree->links.first; link; link= link->next) {
 		if(link->tonode==gnode) {
 			/* link->tosock->tosock is on the node we look for */
-			find_node_with_socket(ngroup, link->tosock->tosock, &nextn, &index);
+			nodeFindNode(ngroup, link->tosock->tosock, &nextn, &index);
 			if(nextn==NULL) printf("wrong stuff!\n");
 			else if(nextn->new_node==NULL) printf("wrong stuff too!\n");
 			else {
@@ -727,7 +744,7 @@ int nodeGroupUnGroup(bNodeTree *ntree, bNode *gnode)
 		}
 		else if(link->fromnode==gnode) {
 			/* link->fromsock->tosock is on the node we look for */
-			find_node_with_socket(ngroup, link->fromsock->tosock, &nextn, &index);
+			nodeFindNode(ngroup, link->fromsock->tosock, &nextn, &index);
 			if(nextn==NULL) printf("1 wrong stuff!\n");
 			else if(nextn->new_node==NULL) printf("1 wrong stuff too!\n");
 			else {
@@ -898,6 +915,28 @@ bNodeTree *ntreeCopyTree(bNodeTree *ntree, int internal_select)
 				nnode->flag |= NODE_SELECT;
 			}
 			node->flag &= ~NODE_ACTIVE;
+
+			/* deselect original sockets */
+			for(sock= node->inputs.first; sock; sock= sock->next) {
+				if(sock->flag & SOCK_SEL) sock->flag&= ~SOCK_SEL;
+			}
+			for(sock= node->outputs.first; sock; sock= sock->next) {
+				if(sock->flag & SOCK_SEL) sock->flag&= ~SOCK_SEL;
+			}
+			
+			/* set tree selin and selout to new sockets */
+			for(sock= nnode->inputs.first; sock; sock= sock->next) {
+				if(sock->flag & SOCK_SEL) {
+					ntree->selin= sock;
+					break;
+				}
+			}
+			for(sock= nnode->outputs.first; sock; sock= sock->next) {
+				if(sock->flag & SOCK_SEL) {
+					ntree->selout= sock;
+					break;
+				}
+			}
 		}
 		if(node==last) break;
 	}
@@ -941,7 +980,7 @@ bNodeTree *ntreeCopyTree(bNodeTree *ntree, int internal_select)
 /* ************** Free stuff ********** */
 
 /* goes over entire tree */
-static void node_unlink_node(bNodeTree *ntree, bNode *node)
+void nodeUnlinkNode(bNodeTree *ntree, bNode *node)
 {
 	bNodeLink *link, *next;
 	bNodeSocket *sock;
@@ -985,7 +1024,7 @@ static void composit_free_node_cache(bNode *node)
 
 void nodeFreeNode(bNodeTree *ntree, bNode *node)
 {
-	node_unlink_node(ntree, node);
+	nodeUnlinkNode(ntree, node);
 	BLI_remlink(&ntree->nodes, node);
 
 	/* since it is called while free database, node->id is undefined */
