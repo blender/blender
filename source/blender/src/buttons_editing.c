@@ -3757,6 +3757,14 @@ void do_armbuts(unsigned short event)
 		}
 		allqueue(REDRAWBUTSEDIT, 0);
 		break;
+	case B_POSELIB_VALIDATE:
+		if (ob && ob->pose) {
+			bAction *act= ob->pose->poselib;
+			
+			poselib_validate_act(act);
+		}
+		allqueue(REDRAWBUTSEDIT, 0);
+		break;
 	}
 }
 
@@ -4987,8 +4995,8 @@ static void editing_panel_links(Object *ob)
 					uiDefIDPoinBut(block, test_actionpoin_but, ID_AC, REDRAWBUTSEDIT, "AC:",	xco, 130, 140, 20, &pose->poselib, "Action to use as PoseLib"); 
 				}
 			}
-			uiDefBut(block, BUT, B_POSELIB_NEW, "New PoseLib",	xco,110,140,20, 0, 0, 0, 0, 0, "Creates a new PoseLib");
-			
+			uiDefBut(block, BUT, B_POSELIB_NEW, 		"New PoseLib",	xco,110,70,20, 0, 0, 0, 0, 0, "Creates a new PoseLib");
+			uiDefBut(block, BUT, B_POSELIB_VALIDATE, 	"Validate PoseLib",	xco+70,110,70,20, 0, 0, 0, 0, 0, "Validates active PoseLib");
 			
 			/* poselib pose editing controls */
 			if ((act) && (act->poselib)) {

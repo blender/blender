@@ -515,6 +515,7 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_POSELIB_ADDPOSE		2311
 #define B_POSELIB_REPLACEP		2312
 #define B_POSELIB_REMOVEP		2313
+#define B_POSELIB_VALIDATE		2314
 
 /* *********************** */
 #define B_CAMBUTS		2500

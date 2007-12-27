@@ -105,7 +105,7 @@ typedef struct bPoseLibRef {
 	struct bPoseLibRef *next, *prev;
 	int frame;					/* frame in the action to look for this pose */
 	char name[32];				/* name of the pose */
-	int pad;
+	int flag;					/* temporary settings for this pose */
 } bPoseLibRef;
 
 /* PoseLib data for Action 

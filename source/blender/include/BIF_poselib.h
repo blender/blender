@@ -34,6 +34,7 @@
 #define BIF_POSELIB_H
 
 struct Object;
+struct bAction;
 struct bPoseLib;
 struct bPoseLibRef;
 
@@ -42,6 +43,7 @@ void poselib_unique_pose_name(struct bPoseLib *pl, char name[]);
 int poselib_get_free_index(struct bPoseLib *pl);
 
 struct bPoseLib *poselib_init_new(struct Object *ob);
+void poselib_validate_act(struct bAction *act);
 
 void poselib_remove_pose(struct Object *ob, struct bPoseLibRef *plr);
 void poselib_rename_pose(struct Object *ob);

@@ -120,6 +120,7 @@ extern		 void force_draw_plus(int type, int header);
 extern       void freespacelist(struct ScrArea *sa);
 extern       void handle_view3d_around(void);
 extern       void handle_view3d_lock(void);
+extern		 void handle_view_middlemouse(void);
 extern       void init_v2d_oops(struct ScrArea *, struct SpaceOops *);
 extern       void initipo(struct ScrArea *sa);
 extern       void newspace(struct ScrArea *sa, int type);

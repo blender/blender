@@ -1,4 +1,30 @@
-
+/**
+ * $Id$
+ *
+ * ***** BEGIN GPL LICENSE BLOCK *****
+ *
+ * This program is free software; you can redistribute it and/or
+ * modify it under the terms of the GNU General Public License
+ * as published by the Free Software Foundation; either version 2
+ * of the License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program; if not, write to the Free Software Foundation,
+ * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
+ *
+ * The Original Code is Copyright (C) 2007, Blender Foundation
+ * This is a new part of Blender
+ *
+ * Contributor(s): Joshua Leung
+ *
+ * ***** END GPL LICENSE BLOCK *****
+ */
+ 
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -36,11 +62,14 @@
 //#include "BIF_keyframing.h"
 #include "BSE_editipo.h"
 
+#include "BDR_drawaction.h"
+
 #include "BIF_poselib.h"
 #include "BIF_interface.h"
 #include "BIF_editaction.h"
 #include "BIF_space.h"
 #include "BIF_screen.h"
+#include "BIF_toets.h"
 #include "BIF_toolbox.h"
 
 #include "blendef.h"
@@ -204,6 +233,75 @@ bPoseLib *poselib_init_new (Object *ob)
 	return pl;
 }
 
+
+/* This tool automagically generates/validates poselib data so that it corresponds to the data 
+ * in the action. This is for use in making existing actions usable as poselibs.
+ */
+void poselib_validate_act (bAction *act)
+{
+	ListBase keys = {NULL, NULL};
+	ActKeyColumn *ak;
+	bPoseLib *pl;
+	bPoseLibRef *plr, *plrn;
+	
+	/* validate action and poselib */
+	if (act == NULL)  {
+		error("No Action to validate");
+		return;
+	}
+	
+	if (act->poselib == NULL)
+		act->poselib= MEM_callocN(sizeof(bPoseLib), "bPoseLib");
+	pl= act->poselib;
+	
+	/* determine which frames have keys */
+	action_to_keylist(act, &keys, NULL);
+	
+	/* for each key, make sure there is a correspnding pose */
+	for (ak= keys.first; ak; ak= ak->next) {
+		/* check if any pose matches this */
+		for (plr= pl->poses.first; plr; plr= plr->next) {
+			if (IS_EQ(plr->frame, ak->cfra)) {
+				plr->flag = 1;
+				break;
+			}
+		}
+		
+		/* add new if none found */
+		if (plr == NULL) {
+			char name[32];
+			
+			/* add pose to poselib */
+			plr= MEM_callocN(sizeof(bPoseLibRef), "bPoseLibRef");
+			
+			strcpy(name, "Pose");
+			poselib_unique_pose_name(pl, name);
+			BLI_strncpy(plr->name, name, sizeof(plr->name));
+			
+			plr->frame= (int)ak->cfra;
+			plr->flag= 1;
+			
+			BLI_addtail(&pl->poses, plr);
+		}
+	}
+	
+	/* remove all untagged poses (unused), and remove all tags */
+	for (plr= pl->poses.first; plr; plr= plrn) {
+		plrn= plr->next;
+		
+		if (plr->flag == 0)
+			BLI_freelinkN(&pl->poses, plr);
+		else
+			plr->flag = 0;
+	}
+	
+	/* free temp memory */
+	BLI_freelistN(&keys);
+	
+	BIF_undo_push("PoseLib Validate Action");
+}
+
+/* ************************************************************* */
 
 /* This function adds an ipo-curve of the right type where it's needed */
 static IpoCurve *poselib_verify_icu (Ipo *ipo, int adrcode)
@@ -528,7 +626,7 @@ static void poselib_apply_pose (Object *ob, bPoseLibRef *plr, char headerstr[])
 		
 		/* apply this achan? */
 		if (achan->ipo) {
-			/* find a keyframe at this frame */
+			/* find a keyframe at this frame - users may not have defined the pose on every channel, so this is necessary */
 			for (icu= achan->ipo->curve.first; icu; icu= icu->next) {
 				BezTriple *bezt;
 				int i;
@@ -616,11 +714,18 @@ static void poselib_keytag_pose (Object *ob)
 
 /* ---------------------------- */
 
-/* defines for psoelib_preview_poses --> ret_val values */
+/* defines for poselib_preview_poses --> ret_val values */
 enum {
 	PL_PREVIEW_RUNNING = 0,
 	PL_PREVIEW_CONFIRM,
 	PL_PREVIEW_CANCEL
+};
+
+/* defines for poselib_preview_poses --> redraw values */
+enum {
+	PL_PREVIEW_NOREDRAW = 0,
+	PL_PREVIEW_REDRAWALL,
+	PL_PREVIEW_REDRAWHEADER,
 };
 
 /* This tool allows users to preview the pose from the pose-lib using the mouse-scrollwheel/pageupdown */
@@ -665,45 +770,48 @@ void poselib_preview_poses (Object *ob)
 	while (ret_val == PL_PREVIEW_RUNNING) {
 		/* preview a pose */
 		if (redraw) {
-			/* don't clear pose if firsttime */
-			if (firsttime == 0)
-				poselib_backup_restore(&backups);
-			else
-				firsttime = 0;
+			/* only recalc pose (and its dependencies) if pose has changed */
+			if (redraw == PL_PREVIEW_REDRAWALL) {
+				/* don't clear pose if firsttime */
+				if (firsttime == 0)
+					poselib_backup_restore(&backups);
+				else
+					firsttime = 0;
+					
+				/* pose should be the right one to draw */
+				poselib_apply_pose(ob, plr, headerstr);
 				
-			/* pose should be the right one to draw */
-			poselib_apply_pose(ob, plr, headerstr);
-			
-			/* old optimize trick... this enforces to bypass the depgraph 
-			 *	- note: code copied from transform_generics.c -> recalcData()
-			 */
-			if ((arm->flag & ARM_DELAYDEFORM)==0) {
-				Base *base;
-				
-				DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);  /* sets recalc flags */
-				
-				/* bah, softbody exception... recalcdata doesnt reset */
-				for (base= FIRSTBASE; base; base= base->next) {
-					if (base->object->recalc & OB_RECALC_DATA)
-						if (modifiers_isSoftbodyEnabled(base->object)) {
-							base->object->softflag |= OB_SB_REDO;
+				/* old optimize trick... this enforces to bypass the depgraph 
+				 *	- note: code copied from transform_generics.c -> recalcData()
+				 */
+				if ((arm->flag & ARM_DELAYDEFORM)==0) {
+					Base *base;
+					
+					DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);  /* sets recalc flags */
+					
+					/* bah, softbody exception... recalcdata doesnt reset */
+					for (base= FIRSTBASE; base; base= base->next) {
+						if (base->object->recalc & OB_RECALC_DATA)
+							if (modifiers_isSoftbodyEnabled(base->object)) {
+								base->object->softflag |= OB_SB_REDO;
+						}
 					}
 				}
+				else
+					where_is_pose(ob);
 			}
-			else
-				where_is_pose(ob);
 			
 			/* do header print */
 			sprintf(headerstr, "PoseLib Previewing Pose: \"%s\"  | Use ScrollWheel or PageUp/Down to change", plr->name);
 			headerprint(headerstr);
 			
-			/* redraw... */
+			/* force drawing of view + clear redraw flag */
 			force_draw(0);
-			redraw= 0;
+			redraw= PL_PREVIEW_NOREDRAW;
 		}
 		
 		/* essential for idling subloop */
-		if( qtest()==0) PIL_sleep_ms(2);
+		if (qtest() == 0) PIL_sleep_ms(2);
 		
 		/* emptying queue and reading events */
 		while ( qtest() ) {
@@ -711,22 +819,49 @@ void poselib_preview_poses (Object *ob)
 			
 			/* event processing */
 			if (val) {
-				/* exit */
-				if (ELEM(event, ESCKEY, RIGHTMOUSE))
-					ret_val= PL_PREVIEW_CANCEL;
-				else if (ELEM3(event, LEFTMOUSE, RETKEY, SPACEKEY))
-					ret_val= PL_PREVIEW_CONFIRM;
-				
-				/* change pose */
-				else if (ELEM(event, PAGEUPKEY, WHEELUPMOUSE)) {
-					/* find previous pose - go back to end of list if no previous (cyclic) */
-					plr= (plr->prev) ? plr->prev : pl->poses.last;
-					redraw= 1;
-				}
-				else if (ELEM(event, PAGEDOWNKEY, WHEELDOWNMOUSE)) {
-					/* find next pose - go back to start of list if no next (cyclic) */
-					plr= (plr->next) ? plr->next : pl->poses.first;
-					redraw= 1;
+				switch (event) {
+					/* exit - cancel */
+					case ESCKEY:
+					case RIGHTMOUSE:
+						ret_val= PL_PREVIEW_CANCEL;
+						break;
+						
+					/* exit - confirm */
+					case LEFTMOUSE:
+					case RETKEY:
+					case SPACEKEY:
+						ret_val= PL_PREVIEW_CONFIRM;
+						break;
+						
+					/* change to previous pose - go back to end of list if no previous (cyclic) */
+					case PAGEUPKEY:
+					case WHEELUPMOUSE:
+						plr= (plr->prev) ? plr->prev : pl->poses.last;
+						redraw= PL_PREVIEW_REDRAWALL;
+						break;
+						
+					/* change to next pose - go back to start of list if no next (cyclic) */
+					case PAGEDOWNKEY:
+					case WHEELDOWNMOUSE:
+						plr= (plr->next) ? plr->next : pl->poses.first;
+						redraw= PL_PREVIEW_REDRAWALL;
+						break;
+						
+					/* view manipulation */
+					case MIDDLEMOUSE:
+						// there's a little bug here that causes the normal header to get drawn while view is manipulated 
+						handle_view_middlemouse();
+						redraw= PL_PREVIEW_REDRAWHEADER;
+						break;
+						
+					case PAD0: case PAD1: case PAD2: case PAD3: case PAD4:
+					case PAD5: case PAD6: case PAD7: case PAD8: case PAD9:
+					case PADPLUSKEY:
+					case PADMINUS:
+					case PADENTER:
+						persptoetsen(event);
+						redraw= PL_PREVIEW_REDRAWHEADER;
+						break;
 				}
 			}
 		}
