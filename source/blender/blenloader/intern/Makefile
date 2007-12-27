@@ -70,7 +70,7 @@ CPPFLAGS += -I../../render/extern/include/
 CPPFLAGS += -I../../python
 
 # we still refer to /include a bit...
-CPPFLAGS += -I../../include
+CPPFLAGS += -I../../editors/include
 
 # path to our own external headerfiles
 CPPFLAGS += -I..

@@ -55,7 +55,7 @@ CPPFLAGS += -I../../avi
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 
 # we still refer to /include a bit...
-CPPFLAGS += -I../../include
+CPPFLAGS += -I../../editors/include
 
 # to include the render stuff:
 CPPFLAGS += -I../../render/extern/include
