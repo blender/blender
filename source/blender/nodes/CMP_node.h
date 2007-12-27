@@ -67,6 +67,7 @@ extern bNodeType cmp_node_normalize;
 extern bNodeType cmp_node_filter;
 extern bNodeType cmp_node_blur;
 extern bNodeType cmp_node_dblur;
+extern bNodeType cmp_node_bilateralblur;
 extern bNodeType cmp_node_vecblur;
 extern bNodeType cmp_node_dilateerode;
 extern bNodeType cmp_node_defocus;

@@ -2375,6 +2375,7 @@ static void registerCompositNodes(ListBase *ntypelist)
 	nodeRegisterType(ntypelist, &cmp_node_filter);
 	nodeRegisterType(ntypelist, &cmp_node_blur);
 	nodeRegisterType(ntypelist, &cmp_node_dblur);
+	nodeRegisterType(ntypelist, &cmp_node_bilateralblur);
 	nodeRegisterType(ntypelist, &cmp_node_vecblur);
 	nodeRegisterType(ntypelist, &cmp_node_dilateerode);
 	nodeRegisterType(ntypelist, &cmp_node_defocus);

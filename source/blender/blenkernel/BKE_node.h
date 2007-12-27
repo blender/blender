@@ -307,6 +307,7 @@ void			set_node_shader_lamp_loop(void (*lamp_loop_func)(struct ShadeInput *, str
 #define CMP_NODE_NORMALIZE      252
 #define CMP_NODE_CROP		253
 #define CMP_NODE_DBLUR		254
+#define CMP_NODE_BILATERALBLUR  255
 
 #define CMP_NODE_GLARE		301
 #define CMP_NODE_TONEMAP	302

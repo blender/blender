@@ -209,6 +209,11 @@ typedef struct NodeDBlurData {
 	char wrap, pad;
 } NodeDBlurData;
 
+typedef struct NodeBilateralBlurData {
+	float sigma_color, sigma_space;
+	short iter, pad;
+} NodeBilateralBlurData;
+
 typedef struct NodeHueSat {
 	float hue, sat, val;
 } NodeHueSat;

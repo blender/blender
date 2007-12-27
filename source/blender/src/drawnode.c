@@ -1142,6 +1142,30 @@ static int node_composit_buts_dblur(uiBlock *block, bNodeTree *ntree, bNode *nod
 	return 190;
 }
 
+static int node_composit_buts_bilateralblur(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		NodeBilateralBlurData *nbbd= node->storage;
+		short dy= butr->ymin+38;
+		short dx= (butr->xmax-butr->xmin);
+		
+		uiBlockBeginAlign(block);
+		uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Iterations:",
+				 butr->xmin, dy, dx, 19, 
+				 &nbbd->iter, 1, 128, 0, 0, "Amount of iterations");
+		dy-=19;
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "Color Sigma:",
+				  butr->xmin, dy, dx, 19, 
+				  &nbbd->sigma_color,0.01, 3, 10, 0, "Sigma value used to modify color");
+		dy-=19;
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "Space Sigma:",
+				  butr->xmin, dy, dx, 19, 
+				  &nbbd->sigma_space ,0.01, 30, 10, 0, "Sigma value used to modify space");
+		
+	}
+	return 57;
+}
+
 /* qdn: defocus node */
 static int node_composit_buts_defocus(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
@@ -1866,6 +1890,9 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 			break;
 		case CMP_NODE_DBLUR:
 			ntype->butfunc= node_composit_buts_dblur;
+			break;
+		case CMP_NODE_BILATERALBLUR:
+			ntype->butfunc= node_composit_buts_bilateralblur;
 			break;
 		/* qdn: defocus node */
 		case CMP_NODE_DEFOCUS:
