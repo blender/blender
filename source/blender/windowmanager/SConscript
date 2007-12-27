@@ -1,0 +1,15 @@
+#!/usr/bin/python
+Import ('env')
+
+sources = env.Glob('intern/*.c')
+
+#incs = '#/intern/guardedalloc ../blenlib ../makesdna ../blenkernel'
+#incs += ' ../imbuf ../editors/include ../render/extern/include ../render/intern/include'
+
+incs = '. ../editors/include ../python ../makesdna ../blenlib ../blenkernel'
+incs += ' ../nodes ../imbuf ../blenloader ../render/extern/include'
+incs += ' ../ftfont ../radiosity/extern/include ../../kernel/gen_system'
+
+incs += ' #/intern/guardedalloc #/intern/memutil #/intern/ghost #/intern/bmfont'
+incs += ' #/intern/elbeem'
+env.BlenderLib ( 'bf_windowmanager', sources, Split(incs), [], libtype=['core','intern'], priority=[5, 25] )

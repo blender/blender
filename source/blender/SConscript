@@ -13,7 +13,8 @@ SConscript(['avi/SConscript',
             'radiosity/SConscript',
             'readblenfile/SConscript',
             'render/SConscript',
-            'nodes/SConscript'])
+            'nodes/SConscript',
+            'windowmanager/SConscript'])
 
 if env['WITH_BF_YAFRAY'] == 1:
     SConscript(['yafray/SConscript'])

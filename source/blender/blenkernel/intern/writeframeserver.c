@@ -47,7 +47,7 @@
 #include "BLI_blenlib.h"
 #include "DNA_userdef_types.h"
 
-#include "BKE_bad_level_calls.h"
+/*#include "BKE_bad_level_calls.h"*/
 #include "BKE_global.h"
 
 #include "IMB_imbuf_types.h"

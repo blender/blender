@@ -4,8 +4,8 @@ Import ('env')
 sources = 'creator.c'
 
 incs = '#/intern/guardedalloc ../blender/blenlib ../blender/blenkernel'
-incs += ' ../blender/include ../blender/blenloader ../blender/imbuf'
-incs += ' ../blender/renderconverter ../blender/render/extern/include'
+incs += ' ../blender/editors/include ../blender/blenloader ../blender/imbuf'
+incs += ' ../blender/renderconverter ../blender/render/extern/include ../blender/windowmanager'
 incs += ' ../blender/python ../blender/makesdna ../kernel/gen_messaging'
 incs += ' ../kernel/gen_system'
 incs += ' ' + env['BF_OPENGL_INC']

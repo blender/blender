@@ -4,7 +4,7 @@ Import ('env')
 sources = env.Glob('intern/*.c')
 
 incs = '. #/intern/guardedalloc ../blenlib ../blenkernel'
-incs += ' ../makesdna ../readblenfile ../include'
+incs += ' ../makesdna ../readblenfile ../editors/include'
 incs += ' ../python ../../kernel/gen_messaging'
 incs += ' ../render/extern/include'
 

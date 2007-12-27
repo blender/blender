@@ -6,7 +6,7 @@ sources += env.Glob('intern/CMP_nodes/*.c')
 sources += env.Glob('intern/SHD_nodes/*.c')
 
 incs = '. ./intern '
-incs += '#/intern/guardedalloc ../include ../blenlib ../makesdna'
+incs += '#/intern/guardedalloc ../editors/include ../blenlib ../makesdna'
 incs += ' ../python ../render/extern/include '
 incs += ' ../imbuf ../avi '
 incs += ' ../blenloader ../quicktime'

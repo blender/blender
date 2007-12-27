@@ -3,7 +3,7 @@ Import ('env')
 
 sources = env.Glob('intern/source/*.c')
 
-incs = 'extern/include ../blenlib ../blenkernel ../makesdna ../include'
+incs = 'extern/include ../blenlib ../blenkernel ../makesdna ../editors/include'
 incs += ' #/intern/guardedalloc ../render/extern/include'
 incs += ' ../render/intern/include'
 
