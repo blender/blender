@@ -10,11 +10,9 @@ SConscript(['avi/SConscript',
             'imbuf/SConscript',
             'imbuf/intern/cineon/SConscript',
             'makesdna/SConscript',
-            'python/SConscript',
             'radiosity/SConscript',
             'readblenfile/SConscript',
             'render/SConscript',
-            'src/SConscript',
             'nodes/SConscript'])
 
 if env['WITH_BF_YAFRAY'] == 1:
