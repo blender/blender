@@ -349,7 +349,7 @@ void multires_del_higher(void *ob, void *me)
 	BIF_undo_push("Multires delete higher");
 }
 
-static void multires_finish_mesh_update(Object *ob)
+void multires_finish_mesh_update(Object *ob)
 {
 	/* friendly check for background render */
 	if(G.background==0) {

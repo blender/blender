@@ -48,6 +48,7 @@ void multires_draw_interface(struct uiBlock *block, unsigned short cx, unsigned 
 void multires_make(void *ob, void *me);
 void multires_delete(void *ob, void *me);
 void multires_level_to_editmesh(struct Object *ob, struct Mesh *me, const int render);
+void multires_finish_mesh_update(struct Object *ob);
 void multires_subdivide(void *ob, void *me);
 void multires_del_lower(void *ob, void *me);
 void multires_del_higher(void *ob, void *me);

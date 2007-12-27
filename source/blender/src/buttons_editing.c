@@ -739,6 +739,7 @@ static void delete_customdata_layer(void *data1, void *data2)
 	if(me && me->mr) {
 		multires_delete_layer(me, &me->mr->fdata, type, layer - &data->layers[index]);
 		multires_level_to_editmesh(OBACT, me, 0);
+		multires_finish_mesh_update(OBACT);
 	}
 	else if(G.obedit) {
 		EM_free_data_layer(data, type);
@@ -4497,6 +4498,7 @@ void do_meshbuts(unsigned short event)
 			if(me && me->mr) {
 				multires_add_layer(me, &me->mr->fdata, CD_MTFACE, layernum);
 				multires_level_to_editmesh(ob, me, 0);
+				multires_finish_mesh_update(ob);
 			}
 			else if(G.obedit) {
 				EM_add_data_layer(&em->fdata, CD_MTFACE);
