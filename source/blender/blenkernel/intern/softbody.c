@@ -2307,9 +2307,8 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow)
 						}
 
 						if (( (sb->totpoint-a) == bs->v1) ){ 
-							actspringlen= VecLenf( (bproot+bs->v2)->pos, bp->pos);
 							VecSubf(sd,(bproot+bs->v2)->pos, bp->pos);
-							Normalize(sd);
+							actspringlen=Normalize(sd);
 							
 							/* friction stuff V1 */
 							VecSubf(velgoal,bp->vec,(bproot+bs->v2)->vec);
@@ -2330,9 +2329,8 @@ static void softbody_calc_forces(Object *ob, float forcetime, float timenow)
 						}
 						
 						if (( (sb->totpoint-a) == bs->v2) ){ 
-							actspringlen= VecLenf( (bproot+bs->v1)->pos, bp->pos);
 							VecSubf(sd,bp->pos,(bproot+bs->v1)->pos);
-							Normalize(sd);
+							actspringlen=Normalize(sd);
 							
 							/* friction stuff V2 */
 							VecSubf(velgoal,bp->vec,(bproot+bs->v1)->vec);
