@@ -3978,7 +3978,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		
 		uiDefButBitI(block, TOGN, USER_DISABLE_MIPMAP, B_MIPMAPCHANGED, "Mipmaps",
 			(xpos+edgsp+(5*mpref)+(5*midsp)),y5,mpref,buth,
-			&(U.gameflags), 0, 0, 0, 0, "Toggles between mipmap textures on (beautiful) and off (fast)");
+			&(U.gameflags), 0, 0, 0, 0, "Scale textures for the 3d View (Looks nicer but uses more memory and slows image reloading)");
 		
 		/* main choices pup: note, it uses collums, and the seperators (%l) then have to fill both halves equally for the menu to work */
 		uiDefButS(block, MENU, B_GLRESLIMITCHANGED, "GL Texture Clamp Off%x0|%l|GL Texture Clamp 8192%x8192|GL Texture Clamp 4096%x4096|GL Texture Clamp 2048%x2048|GL Texture Clamp 1024%x1024|GL Texture Clamp 512%x512|GL Texture Clamp 256%x256|GL Texture Clamp 128%x128",
