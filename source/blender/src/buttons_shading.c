@@ -1244,9 +1244,10 @@ static void texture_panel_image_map(Tex *tex, MTex *mtex)
 	uiDefButBitS(block, TOG, TEX_USEALPHA, B_TEXPRV, "UseAlpha",	10, 160, 100, 20, &tex->imaflag, 0, 0, 0, 0, "Click to use Image's alpha channel");
 	uiDefButBitS(block, TOG, TEX_CALCALPHA, B_TEXPRV, "CalcAlpha",	110, 160, 100, 20, &tex->imaflag, 0, 0, 0, 0, "Click to calculate an alpha channel based on Image RGB values");
 	uiDefButBitS(block, TOG, TEX_NEGALPHA, B_TEXPRV, "NegAlpha",	210, 160, 100, 20, &tex->flag, 0, 0, 0, 0, "Click to invert the alpha values");
-	uiBlockEndAlign(block);
 
-	uiDefButF(block, NUM, B_TEXPRV, "Filter :",						10,120,150,20, &tex->filtersize, 0.1, 25.0, 10, 3, "Sets the filter size used by mipmap and interpol");
+	uiBlockBeginAlign(block);
+	uiDefButBitS(block, TOG, TEX_FILTER_MIN, B_TEXPRV, "Min",	10, 120, 30, 20, &tex->imaflag, 0, 0, 0, 0, "Use Filtersize as a minimal filter value in pixels");
+	uiDefButF(block, NUM, B_TEXPRV, "Filter: ",					40,120,120,20, &tex->filtersize, 0.1, 25.0, 10, 3, "Multiplies the filter size used by mipmap and interpol");
 	
 	uiBlockBeginAlign(block);
 	uiDefButBitS(block, TOG, TEX_NORMALMAP, B_NOP, "Normal Map",	160,120,(mtex)? 75: 150,20, &tex->imaflag,

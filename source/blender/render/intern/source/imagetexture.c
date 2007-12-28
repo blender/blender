@@ -702,6 +702,15 @@ int imagewraposa(Tex *tex, Image *ima, ImBuf *ibuf, float *texvec, float *dxt, f
 	minx= tex->filtersize*(maxx-minx)/2.0f;
 	miny= tex->filtersize*(maxy-miny)/2.0f;
 	
+	if(tex->imaflag & TEX_FILTER_MIN) {
+		/* make sure the filtersize is minimal in pixels (normal, ref map can have miniature pixel dx/dy) */
+	 	float addval= (0.5f * tex->filtersize) / (float) MIN2(ibuf->x, ibuf->y);
+ 		
+		if(addval > minx)
+			minx= addval;
+		if(addval > miny)
+			miny= addval;
+	}
 	if(tex->filtersize!=1.0f) {
 		dxt[0]*= tex->filtersize;
 		dxt[1]*= tex->filtersize;
