@@ -2322,23 +2322,26 @@ static void object_panel_object(Object *ob)
 	Group *group;
 	int a, xco, yco=0;
 	short dx= 33, dy= 30;
-
+	int is_libdata = object_is_libdata(ob);
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_object", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Object and Links", "Object", 0, 0, 318, 204)==0) return;
 	
-	uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+	
 	
 	/* object name */
 	uiBlockSetCol(block, TH_BUT_SETTING2);
+	uiSetButLock(is_libdata, ERROR_LIBDATA_MESSAGE);
 	xco= std_libbuttons(block, 10, 180, 0, NULL, 0, ID_OB, 0, &ob->id, NULL, &(G.buts->menunr), B_OBALONE, B_OBLOCAL, 0, 0, B_KEEPDATA);
 	uiBlockSetCol(block, TH_AUTO);
 	
 	/* parent */
+	uiSetButLock(is_libdata, ERROR_LIBDATA_MESSAGE);
 	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_OBJECTPANELPARENT, "Par:", xco+5, 180, 305-xco, 20, &ob->parent, "Parent Object"); 
 	
-	/* TODO, check for ob->id.lib */
+	uiSetButLock(is_libdata, ERROR_LIBDATA_MESSAGE);
 	but = uiDefButS(block, NUM, B_NOP, "PassIndex:",		xco+5, 150, 305-xco, 20, &ob->index, 0.0, 1000.0, 0, 0, "Index # for the IndexOB render pass.");
-
+	
+	uiSetButLock(1, NULL);
 	uiDefBlockBut(block, add_groupmenu, NULL, "Add to Group", 10,150,150,20, "Add Object to a new Group");
 
 	/* all groups */
