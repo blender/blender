@@ -3821,9 +3821,9 @@ static void object_panel_particle_extra(Object *ob)
 
 	uiDefButI(block, NUM, B_PART_DISTR, "Seed:",				butx,(buty-=buth),butw,buth, &psys->seed, 0.0, 255.0, 1, 0, "Set an offset in the random table");
 
-	event=(part->flag&PART_SIZEMASS)?B_PART_RECALC:B_PART_REDRAW;
-	uiDefButF(block, NUM, event, "Size:",	butx,(buty-=2*buth),butw,buth, &part->size, 0.01, 100, 10, 1, "The size of the particles");
-	uiDefButF(block, NUM, event, "Rand:",	butx,(buty-=buth),butw,buth, &part->randsize, 0.0, 2.0, 10, 1, "Give the particle size a random variation");
+	/* size changes must create a recalc event always so that sizes are updated properly */
+	uiDefButF(block, NUM, B_PART_RECALC, "Size:",	butx,(buty-=2*buth),butw,buth, &part->size, 0.01, 100, 10, 1, "The size of the particles");
+	uiDefButF(block, NUM, B_PART_RECALC, "Rand:",	butx,(buty-=buth),butw,buth, &part->randsize, 0.0, 2.0, 10, 1, "Give the particle size a random variation");
 
 	uiDefButBitI(block, TOG, PART_SIZEMASS, B_PART_RECALC, "Mass from size",	 butx,(buty-=buth),butw,buth, &part->flag, 0, 0, 0, 0, "Multiply mass with particle size");
 	uiDefButF(block, NUM, B_PART_RECALC, "Mass:",	butx,(buty-=buth),butw,buth, &part->mass, 0.01, 100, 10, 1, "Specify the mass of the particles");
@@ -4122,7 +4122,7 @@ static void object_panel_particle_physics(Object *ob)
 		uiDefButF(block, NUM, B_PART_RECALC, "Random:",		butx,(buty-=buth*4/5),butw,buth*4/5, &part->randfac, 0.0, 200.0, 1, 3, "Give the starting speed a random variation");
 		if(part->type==PART_REACTOR) {
 			uiDefButF(block, NUM, B_PART_RECALC, "Particle:",		butx,(buty-=buth*4/5),butw,buth*4/5, &part->partfac, -10.0, 10.0, 1, 3, "Let the target particle give the particle a starting speed");
-			uiDefButF(block, NUM, B_PART_RECALC, "Reactor:",		butx,(buty-=buth*4/5),butw,buth*4/5, &part->reactfac, -10.0, 10.0, 1, 3, "Let the vector from target particle give the particle a starting speed");
+			uiDefButF(block, NUM, B_PART_RECALC, "Reactor:",		butx,(buty-=buth*4/5),butw,buth*4/5, &part->reactfac, -10.0, 10.0, 1, 3, "Let the vector away from the target particles location give the particle a starting speed");
 		}
 		else {
 			uiDefButF(block, NUM, B_PART_RECALC, "Tan:",		butx,(buty-=buth*4/5),butw,buth*4/5, &part->tanfac, -200.0, 200.0, 1, 3, "Let the surface tangent give the particle a starting speed");

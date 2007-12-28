@@ -4381,10 +4381,10 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 			return;
 		}
 	}
-	else {	
-		if(psys->recalc)
+	else if(part->phystype != PART_PHYS_NO) {	/* cache shouldn't be used for none physics */
+		if(psys->recalc && (psys->flag & PSYS_PROTECT_CACHE) == 0)
 			clear_particles_from_cache(ob,psys,(int)cfra);
-		else if(get_particles_from_cache(ob, psys, (int)cfra)){
+		else if(get_particles_from_cache(ob, psys, (int)cfra)) {
 			cached_step(ob,psmd,psys,cfra,vg_size);
 			psys->cfra=cfra;
 			psys->recalc = 0;
