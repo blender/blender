@@ -79,7 +79,7 @@ typedef struct Material {
 	float aniso_gloss_mir;
 	float dist_mir;
 	short fadeto_mir;
-	short pad1;
+	short shade_flag;		/* like Cubic interpolation */
 		
 	int mode, mode_l;		/* mode_l is the or-ed result of all layer modes */
 	short flarec, starc, linec, ringc;
@@ -200,6 +200,9 @@ typedef struct Material {
 /* ray mirror fadeout */
 #define MA_RAYMIR_FADETOSKY	0
 #define MA_RAYMIR_FADETOMAT	1
+
+/* shade_flag */
+#define MA_CUBIC			1
 
 /* diff_shader */
 #define MA_DIFF_LAMBERT		0
