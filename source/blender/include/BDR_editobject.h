@@ -79,7 +79,8 @@ void link_to_scene(unsigned short nr);
 void make_links_menu(void);
 void make_links(short event);
 void make_duplilist_real(void);
-void apply_object(void);
+void apply_objects_locrot(void);
+void apply_objects_visual_tx(void);
 
 /* old transform */
 void apply_keyb_grid(float *val, float fac1, float fac2, float fac3, int invert);

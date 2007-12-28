@@ -3696,7 +3696,7 @@ void make_links(short event)
 	BIF_undo_push("Create links");
 }
 
-void apply_object()
+void apply_objects_locrot( void )
 {
 	Base *base, *basact;
 	Object *ob;
@@ -3707,34 +3707,49 @@ void apply_object()
 	BezTriple *bezt;
 	MVert *mvert;
 	float mat[3][3];
-	int a;
-
-	if(G.scene->id.lib) return;
-	if(G.obedit) return;
-	basact= BASACT;
+	int a, change = 0;
 	
-	if(G.qual & LR_SHIFTKEY) {
-		ob= OBACT;
-		if(ob==0) return;
-		
-		if(ob->transflag & OB_DUPLI) {
-			make_duplilist_real();
-		}
-		else {
-			if(okee("Apply deformation")) {
-				object_apply_deform(ob);
-				BIF_undo_push("Apply deformation");
+	/* first check if we can execute */
+	for (base= FIRSTBASE; base; base= base->next) {
+		if TESTBASELIB(base) {
+			ob= base->object;
+			if(ob->type==OB_MESH) {
+				if(me->id.us>1) {
+					error("Can't apply to a multi user mesh, doing nothing.");
+					return 0;
+				}
+				if(me->key) {
+					error("Can't apply to a mesh with vertex keys, doing nothing.");
+					return 0;
+				}
+			}
+			else if (ob->type==OB_ARMATURE){
+				bArmature *arm;
+				arm= ob->data;
+				if(arm->id.us>1) {
+					error("Can't apply to a multi user armature, doing nothing.");
+					return 0;
+				}
+			}
+			else if ELEM(ob->type, OB_CURVE, OB_SURF) {
+				cu= ob->data;
+				
+				if(cu->id.us>1) {
+					error("Can't apply to a multi user curve, doing nothing.");
+					return 0;
+				}
+				if(cu->key) {
+					error("Can't apply to a curve with vertex keys, doing nothing.");
+					return 0;
+				}
 			}
 		}
-		allqueue(REDRAWVIEW3D, 0);
-
-		return;
 	}
-
-	if(okee("Apply scale and rotation")==0) return;
-
+	
+	/* now execute */
+	basact= BASACT;
 	base= FIRSTBASE;
-	while(base) {
+	for (base= FIRSTBASE; base; base= base->next) {
 		if TESTBASELIB(base) {
 			ob= base->object;
 	
@@ -3742,14 +3757,7 @@ void apply_object()
 				object_to_mat3(ob, mat);
 				me= ob->data;
 				
-				if(me->id.us>1) {
-					error("Can't apply to a multi user mesh");
-					return;
-				}
-				if(me->key) {
-					error("Can't apply to a mesh with vertex keys");
-					return;
-				}
+				/* see checks above */
 				
 				mvert= me->mvert;
 				for(a=0; a<me->totvert; a++, mvert++) {
@@ -3766,19 +3774,18 @@ void apply_object()
 				enter_editmode(EM_WAITCURSOR);
 				BIF_undo_push("Applied object");	/* editmode undo itself */
 				exit_editmode(EM_FREEDATA|EM_WAITCURSOR); /* freedata, but no undo */
-				BASACT= basact;				
+				BASACT= basact;
 				
+				change = 1;
 			}
 			else if (ob->type==OB_ARMATURE){
 				bArmature *arm;
 
 				object_to_mat3(ob, mat);
 				arm= ob->data;
-				if(arm->id.us>1) {
-					error("Can't apply to a multi user armature");
-					return;
-				}
-
+				
+				/* see checks above */
+				
 				apply_rot_armature (ob, mat);
 				/* Reset the object's transforms */
 				ob->size[0]= ob->size[1]= ob->size[2]= 1.0;
@@ -3786,6 +3793,8 @@ void apply_object()
 				QuatOne(ob->quat);
 				
 				where_is_object(ob);
+				
+				change = 1;
 			}
 			else if ELEM(ob->type, OB_CURVE, OB_SURF) {
 				float scale;
@@ -3793,14 +3802,7 @@ void apply_object()
 				scale = Mat3ToScalef(mat);
 				cu= ob->data;
 				
-				if(cu->id.us>1) {
-					error("Can't apply to a multi user curve");
-					return;
-				}
-				if(cu->key) {
-					error("Can't apply to a curve with vertex keys");
-					return;
-				}
+				/* see checks above */
 				
 				nu= cu->nurb.first;
 				while(nu) {
@@ -3838,13 +3840,75 @@ void apply_object()
 				BIF_undo_push("Applied object");	/* editmode undo itself */
 				exit_editmode(EM_FREEDATA|EM_WAITCURSOR); /* freedata, but no undo */
 				BASACT= basact;
+				
+				change = 1;
 			}
 		}
-		base= base->next;
 	}
+	if (change) {
+		allqueue(REDRAWVIEW3D, 0);
+		BIF_undo_push("Apply Objects Scale & Rotation");
+	}
+}
+
+void apply_objects_visual_tx( void )
+{
+	Base *base;
+	Object *ob;
+	int change = 0;
 	
-	allqueue(REDRAWVIEW3D, 0);
-	BIF_undo_push("Apply object");
+	for (base= FIRSTBASE; base; base= base->next) {
+		if TESTBASELIB(base) {
+			ob= base->object;
+			where_is_object(ob);
+			VECCOPY(ob->loc, ob->obmat[3]);
+			Mat4ToSize(ob->obmat, ob->size);
+			Mat4ToEul(ob->obmat, ob->rot);
+			
+			where_is_object(ob);
+			
+			change = 1;
+		}
+	}
+	if (change) {
+		allqueue(REDRAWVIEW3D, 0);
+		BIF_undo_push("Apply Objects Visual Transform");
+	}
+}
+
+void apply_object( void )
+{
+	Object *ob;
+	int evt;
+	if(G.scene->id.lib) return;
+	if(G.obedit) return;
+	
+	if(G.qual & LR_SHIFTKEY) {
+		ob= OBACT;
+		if(ob==0) return;
+		
+		if(ob->transflag & OB_DUPLI) {
+			make_duplilist_real();
+		}
+		else {
+			if(okee("Apply deformation")) {
+				object_apply_deform(ob);
+				BIF_undo_push("Apply deformation");
+			}
+		}
+		allqueue(REDRAWVIEW3D, 0);
+		
+	} else {
+		
+		evt = pupmenu("Apply Object%t|Scale and Rotation to ObData|Visual Transform to Objects Loc/Scale/Rot");
+		if (evt==-1) return;
+		
+		if (evt==1) {
+			apply_objects_locrot();
+		} else if (evt==2) {
+			apply_objects_visual_tx();
+		}
+	}
 }
 
 

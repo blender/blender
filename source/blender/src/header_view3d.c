@@ -1907,7 +1907,10 @@ static void do_view3d_edit_object_transformmenu(void *arg, int event)
 		make_duplilist_real();
 		break;
 	case 6: /* apply scale/rotation or deformation */
-		apply_object();
+		apply_objects_locrot();
+		break;	
+	case 7: /* apply visual matrix to objects loc/size/rot */
+		apply_objects_visual_tx();
 		break;	
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -1921,7 +1924,8 @@ static uiBlock *view3d_edit_object_transformmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "view3d_edit_object_transformmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_view3d_edit_object_transformmenu, NULL);
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Apply Scale/Rotation|Ctrl A",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Apply Scale/Rotationr to ObData|Ctrl A, 1",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Apply Visual Transform|Ctrl A, 2",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Apply Deformation|Ctrl Shift A",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make Duplicates Real|Ctrl Shift A",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 	
