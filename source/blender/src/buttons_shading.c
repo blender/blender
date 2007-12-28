@@ -1247,7 +1247,7 @@ static void texture_panel_image_map(Tex *tex, MTex *mtex)
 
 	uiBlockBeginAlign(block);
 	uiDefButBitS(block, TOG, TEX_FILTER_MIN, B_TEXPRV, "Min",	10, 120, 30, 20, &tex->imaflag, 0, 0, 0, 0, "Use Filtersize as a minimal filter value in pixels");
-	uiDefButF(block, NUM, B_TEXPRV, "Filter: ",					40,120,120,20, &tex->filtersize, 0.1, 25.0, 10, 3, "Multiplies the filter size used by mipmap and interpol");
+	uiDefButF(block, NUM, B_TEXPRV, "Filter: ",					40,120,120,20, &tex->filtersize, 0.1, 50.0, 10, 3, "Multiplies the filter size used by mipmap and interpol");
 	
 	uiBlockBeginAlign(block);
 	uiDefButBitS(block, TOG, TEX_NORMALMAP, B_NOP, "Normal Map",	160,120,(mtex)? 75: 150,20, &tex->imaflag,
@@ -1369,7 +1369,8 @@ static void texture_panel_envmap(Tex *tex)
 			uiDefButS(block, NUM, B_ENV_FREE, 	"CubeRes", 		160,90,150,20, &env->cuberes, 50, 4096.0, 0, 0, "Sets the pixel resolution of the rendered environment map");
 		
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUM, B_TEXPRV, "Filter :",				10,65,150,20, &tex->filtersize, 0.1, 25.0, 0, 3, "Adjusts sharpness or blurriness of the reflection"),
+		uiDefButBitS(block, TOG, TEX_FILTER_MIN, B_TEXPRV, "Min",	10, 65, 30, 20, &tex->imaflag, 0, 0, 0, 0, "Use Filtersize as a minimal filter value in pixels");
+		uiDefButF(block, NUM, B_TEXPRV, "Filter :",					40,65,120,20, &tex->filtersize, 0.1, 25.0, 0, 3, "Adjusts sharpness or blurriness of the reflection"),
 			uiDefButS(block, NUM, B_ENV_FREE, "Depth:",				160,65,150,20, &env->depth, 0, 5.0, 0, 0, "Sets the number of times a map will be rendered recursively mirror effects"),
 			uiDefButF(block, NUM, REDRAWVIEW3D, 	"ClipSta", 		10,40,150,20, &env->clipsta, 0.01, 50.0, 100, 0, "Sets start value for clipping: objects nearer than this are not visible to map");
 		uiDefButF(block, NUM, B_NOP, 	"ClipEnd", 					160,40,150,20, &env->clipend, 0.1, 20000.0, 1000, 0, "Sets end value for clipping beyond which objects are not visible to map");

@@ -98,7 +98,7 @@ void init_render_texture(Render *re, Tex *tex)
 	}
 	else if(tex->type==TEX_ENVMAP) {
 		/* just in case */
-		tex->imaflag= TEX_INTERPOL | TEX_MIPMAP;
+		tex->imaflag |= TEX_INTERPOL | TEX_MIPMAP;
 		tex->extend= TEX_CLIP;
 		
 		if(tex->env) {
