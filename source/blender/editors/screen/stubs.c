@@ -100,5 +100,9 @@ void fluidsimSettingsFree() {}
 
 void BIF_filelist_freelib() {}
 
+/* audio */
+
+void audiostream_play() {}
+void audiostream_fill() {}
 
 
