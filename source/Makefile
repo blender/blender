@@ -76,7 +76,8 @@ endif
 # PLUGAPPLIB libs that form the application to be plugged in
 # Note: the order is important here
 
-GRPLIB = $(OCGDIR)/creator/$(DEBUG_DIR)libcreator.a
+GRPLIB = $(OCGDIR)/blender/makesdna/$(DEBUG_DIR)DNA.o
+GRPLIB += $(OCGDIR)/creator/$(DEBUG_DIR)libcreator.a
 GRPLIB += $(OCGDIR)/blender/windowmanager/$(DEBUG_DIR)libwindowmanager.a
 GRPLIB += $(NAN_BSP)/lib/$(DEBUG_DIR)libbsp.a
 GRPLIB += $(NAN_BOOLOP)/lib/$(DEBUG_DIR)libboolop.a
@@ -227,7 +228,8 @@ PULIB += $(NAN_MOTO)/lib/libmoto.a
 PULIB += $(NAN_ELBEEM)/lib/$(DEBUG_DIR)libelbeem.a
 PULIB += $(OCGDIR)/blender/readblenfile/$(DEBUG_DIR)libreadblenfile.a
 PULIB += $(OCGDIR)/blender/windowmanager/$(DEBUG_DIR)libwindowmanager.a
-PULIB += $(OCGDIR)/blender/editors_datafiles/libeditors_datafiles.a
+PULIB += $(OCGDIR)/blender/ed_datafiles/libed_datafiles.a
+PULIB += $(OCGDIR)/blender/ed_screen/libed_screen.a
 
 ifeq ($(NAN_NO_KETSJI),true)
     PULIB += $(NAN_MOTO)/lib/libmoto.a

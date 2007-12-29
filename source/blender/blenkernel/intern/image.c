@@ -81,8 +81,6 @@
 /* for stamp drawing to an image */
 #include "BMF_Api.h"
 
-#include "blendef.h"
-#include "BSE_time.h"
 #include "BDR_drawmesh.h"
 
 /* max int, to indicate we don't store sequences in ibuf */
@@ -833,7 +831,7 @@ static void stampdata(StampData *stamp_data, int do_prefix)
 	}
 	
 	if (G.scene->r.stamp & R_STAMP_MARKER) {
-		TimeMarker *marker = get_frame_marker(CFRA);
+		TimeMarker *marker = NULL; // XXX get_frame_marker(G.scene->r.cfra);
 	
 		if (marker) strcpy(text, marker->name);
 		else 		strcpy(text, "<none>");
@@ -895,7 +893,7 @@ static void stampdata(StampData *stamp_data, int do_prefix)
 	}
 	
 	if (G.scene->r.stamp & R_STAMP_SEQSTRIP) {
-		Sequence *seq = get_forground_frame_seq(CFRA);
+		Sequence *seq = get_forground_frame_seq(G.scene->r.cfra);
 	
 		if (seq) strcpy(text, seq->name+2);
 		else 		strcpy(text, "<none>");

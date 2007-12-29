@@ -1587,7 +1587,7 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 						Oops *oopsn= oops->next;
 						if(oops->id==0) {
 							BLI_remlink(&so->oops, oops);
-							free_oops(oops);
+// XXX							free_oops(oops);
 						}
 						oops= oopsn;
 					}

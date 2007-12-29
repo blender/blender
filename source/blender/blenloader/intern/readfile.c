@@ -3579,7 +3579,7 @@ static void lib_link_screen(FileData *fd, Main *main)
 						SpaceButs *sbuts= (SpaceButs *)sl;
 						sbuts->lockpoin= NULL;
 						sbuts->ri= NULL;
-						if(main->versionfile<132) set_rects_butspace(sbuts);
+// XXX						if(main->versionfile<132) set_rects_butspace(sbuts);
 					}
 					else if(sl->spacetype==SPACE_FILE) {
 						SpaceFile *sfile= (SpaceFile *)sl;
