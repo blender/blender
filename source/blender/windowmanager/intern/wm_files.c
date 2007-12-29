@@ -537,7 +537,8 @@ static void outliner_242_patch(void)
 {
 	ScrArea *sa;
 	
-// XXX	if(G.curscreen==NULL) return;
+// XXX	
+	if(G.curscreen==NULL) return;
 	for(sa= G.curscreen->areabase.first; sa; sa= sa->next) {
 		SpaceLink *sl= sa->spacedata.first;
 		for(; sl; sl= sl->next) {
