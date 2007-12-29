@@ -34,8 +34,10 @@ void error() {}
 void set_timecursor() {}
 void waitcursor() {}
 void pupmenu() {}
-void load_vfont() {}
 void mainqenter() {}
+void saveover() {}
+
+char texstr[20][12];
 
 /* global vars */
 void *editNurb;
@@ -90,4 +92,7 @@ void BIF_filelist_freelib() {}
 void audiostream_play() {}
 void audiostream_fill() {}
 
-
+struct RenderData;	
+void start_avi_codec(struct RenderData *rd,int rectx, int recty ){}
+void append_avi_codec(int frame,int *pixels,int rectx, int recty){};
+void end_avi_codec(void){};
