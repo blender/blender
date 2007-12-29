@@ -42,7 +42,10 @@ CPPFLAGS += -I../../blenkernel
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 CPPFLAGS += -I../../makesdna
 CPPFLAGS += -I../../blenlib
-CPPFLAGS += -I../../include
+CPPFLAGS += -I../../editors/include
 CPPFLAGS += -I../../imbuf
 CPPFLAGS += -I../../render/extern/include
 CPPFLAGS += -I$(OPENGL_HEADERS)
+
+DIRS = SHD_nodes CMP_nodes
+include nan_subdirs.mk

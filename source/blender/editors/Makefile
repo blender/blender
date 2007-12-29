@@ -28,7 +28,7 @@
 #
 # Bounces make to subdirectories.
 
-SOURCEDIR = source/blender/nodes
-DIRS = intern
+SOURCEDIR = source/blender/editors
+DIRS = area datafiles screen
 
 include nan_subdirs.mk

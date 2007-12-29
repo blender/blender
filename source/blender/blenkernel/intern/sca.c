@@ -317,7 +317,7 @@ bController *new_controller(int type)
 	init_controller(cont);
 	
 	strcpy(cont->name, "cont");
-	make_unique_prop_names(cont->name);
+// XXX	make_unique_prop_names(cont->name);
 	
 	return cont;
 }
@@ -479,7 +479,7 @@ bActuator *new_actuator(int type)
 	init_actuator(act);
 	
 	strcpy(act->name, "act");
-	make_unique_prop_names(act->name);
+// XXX	make_unique_prop_names(act->name);
 	
 	return act;
 }

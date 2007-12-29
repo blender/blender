@@ -77,7 +77,7 @@ endif
 # Note: the order is important here
 
 GRPLIB = $(OCGDIR)/creator/$(DEBUG_DIR)libcreator.a
-#GRPLIB += $(OCGDIR)/blender/src/$(DEBUG_DIR)libsrcpublisher.a
+GRPLIB += $(OCGDIR)/blender/windowmanager/$(DEBUG_DIR)libwindowmanager.a
 GRPLIB += $(NAN_BSP)/lib/$(DEBUG_DIR)libbsp.a
 GRPLIB += $(NAN_BOOLOP)/lib/$(DEBUG_DIR)libboolop.a
 GRPLIB += $(NAN_SOUNDSYSTEM)/lib/$(DEBUG_DIR)libSoundSystem.a
@@ -226,7 +226,8 @@ PULIB = $(NAN_IKSOLVER)/lib/libiksolver.a
 PULIB += $(NAN_MOTO)/lib/libmoto.a
 PULIB += $(NAN_ELBEEM)/lib/$(DEBUG_DIR)libelbeem.a
 PULIB += $(OCGDIR)/blender/readblenfile/$(DEBUG_DIR)libreadblenfile.a
-#PULIB += $(OCGDIR)/blender/src/$(DEBUG_DIR)libsrcpublisher.a
+PULIB += $(OCGDIR)/blender/windowmanager/$(DEBUG_DIR)libwindowmanager.a
+PULIB += $(OCGDIR)/blender/editors_datafiles/libeditors_datafiles.a
 
 ifeq ($(NAN_NO_KETSJI),true)
     PULIB += $(NAN_MOTO)/lib/libmoto.a
