@@ -114,7 +114,7 @@ struct ImBuf *BKE_image_get_ibuf(struct Image *ima, struct ImageUser *iuser);
 struct Image *BKE_add_image_file(const char *name);
 
 /* adds image, adds ibuf, generates color or pattern */
-struct Image *BKE_add_image_size(int width, int height, char *name, short uvtestgrid, float color[4]);
+struct Image *BKE_add_image_size(int width, int height, char *name, int floatbuf, short uvtestgrid, float color[4]);
 
 /* for reload, refresh, pack */
 void BKE_image_signal(struct Image *ima, struct ImageUser *iuser, int signal);

@@ -1895,11 +1895,12 @@ static void render_panel_bake(void)
 	uiDefButS(block, ROW,B_REDR,"Ambient Occlusion",210,150,120,20,&G.scene->r.bake_mode, 1.0, RE_BAKE_AO, 0, 0, "");
 	uiDefButS(block, ROW,B_REDR,"Normals",		210,130,120,20,&G.scene->r.bake_mode, 1.0, RE_BAKE_NORMALS, 0, 0, "");
 	uiDefButS(block, ROW,B_REDR,"Textures",		210,110,120,20,&G.scene->r.bake_mode, 1.0, RE_BAKE_TEXTURE, 0, 0, "");
+	uiDefButS(block, ROW,B_REDR,"Displacement",		210,90,120,20,&G.scene->r.bake_mode, 1.0, RE_BAKE_DISPLACEMENT, 0, 0, "");
 	uiBlockEndAlign(block);
 	
-	uiDefButBitS(block, TOG, R_BAKE_CLEAR, B_DIFF, "Clear",		210,80,120,20,&G.scene->r.bake_flag, 0.0, 0, 0, 0, "Clear Images before baking");
+	uiDefButBitS(block, TOG, R_BAKE_CLEAR, B_DIFF, "Clear",		210,60,120,20,&G.scene->r.bake_flag, 0.0, 0, 0, 0, "Clear Images before baking");
 	
-	uiDefButS(block, NUM, B_DIFF,"Margin:",				210,50,120,20,&G.scene->r.bake_filter, 0.0, 32.0, 0, 0, "Amount of pixels to extend the baked result with, as post process filter");
+	uiDefButS(block, NUM, B_DIFF,"Margin:",				210,30,120,20,&G.scene->r.bake_filter, 0.0, 32.0, 0, 0, "Amount of pixels to extend the baked result with, as post process filter");
 }
 
 static void render_panel_render(void)

@@ -1724,8 +1724,13 @@ static uiBlock *info_timelinemenu(void *arg_unused)
 
 void do_info_render_bakemenu(void *arg, int event)
 {
-
-	objects_bake_render(event);
+	switch (event) {
+	case R_BAKE_TO_ACTIVE:
+		G.scene->r.bake_flag ^= event;
+		break;
+	default:
+		objects_bake_render(event);
+	}	
 	
 	allqueue(REDRAWINFO, 0);
 }
@@ -1733,15 +1738,24 @@ void do_info_render_bakemenu(void *arg, int event)
 static uiBlock *info_render_bakemenu(void *arg_unused)
 {
 	uiBlock *block;
-	short yco= 0;
+	short yco= 0, menuwidth=160;
 	
 	block= uiNewBlock(&curarea->uiblocks, "render_bakemenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_info_render_bakemenu, NULL);
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Full Render|Ctrl Alt B, 1",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Ambient Occlusion|Ctrl Alt B, 2",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 2, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Normals|Ctrl Alt B, 3",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 3, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Texture Only|Ctrl Alt B, 4",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 4, "");
+	if(G.scene->r.bake_flag & R_BAKE_TO_ACTIVE) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Selected to Active",		 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, R_BAKE_TO_ACTIVE, "");
+	} else {
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Selected to Active",		 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, R_BAKE_TO_ACTIVE, "");
+	}
+	
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Full Render|Ctrl Alt B, 1",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Ambient Occlusion|Ctrl Alt B, 2",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Normals|Ctrl Alt B, 3",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Texture Only|Ctrl Alt B, 4",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Displacement|Ctrl Alt B, 5",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");	
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 50);

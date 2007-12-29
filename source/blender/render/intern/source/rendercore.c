@@ -1870,6 +1870,26 @@ static void bake_shade(void *handle, Object *ob, ShadeInput *shi, int quad, int 
 	}
 }
 
+static void bake_displacement(void *handle, ShadeInput *shi, Isect *isec, int dir, int x, int y)
+{
+	BakeShade *bs= handle;
+	float disp;
+	
+	disp = 0.5 + (isec->labda*VecLength(isec->vec) * -dir);
+	
+	if(bs->rect_float) {
+		float *col= bs->rect_float + 4*(bs->rectx*y + x);
+		col[0] = col[1] = col[2] = disp;
+		col[3]= 1.0f;
+	} else {	
+		char *col= (char *)(bs->rect + bs->rectx*y + x);
+		col[0]= FTOCHAR(disp);
+		col[1]= FTOCHAR(disp);
+		col[2]= FTOCHAR(disp);
+		col[3]= 255;
+	}
+}
+
 static int bake_check_intersect(Isect *is, RayFace *face)
 {
 	VlakRen *vlr = (VlakRen*)face;
@@ -1956,7 +1976,7 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 	if(bs->actob) {
 		Isect isec, minisec;
 		float co[3], minco[3];
-		int hit, sign;
+		int hit, sign, dir;
 		
 		/* intersect with ray going forward and backward*/
 		hit= 0;
@@ -1978,8 +1998,14 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 					minisec= isec;
 					VECCOPY(minco, co);
 					hit= 1;
+					dir = sign;
 				}
 			}
+		}
+
+		if (hit && bs->type==RE_BAKE_DISPLACEMENT) {;
+			bake_displacement(handle, shi, &minisec, dir, x, y);
+			return;
 		}
 
 		/* if hit, we shade from the new point, otherwise from point one starting face */
@@ -1993,6 +2019,8 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 			v= -minisec.v;
 			bake_set_shade_input(obi, vlr, shi, quad, 1, x, y, u, v);
 		}
+		
+		
 	}
 
 	if(bs->type==RE_BAKE_NORMALS && R.r.bake_normal_space==R_BAKE_SPACE_TANGENT)
@@ -2184,13 +2212,15 @@ int RE_bake_shade_all_selected(Render *re, int type, Object *actob)
 				break;
 	}
 	
-	/* filter images */
+	/* filter and refresh images */
 	for(ima= G.main->image.first; ima; ima= ima->id.next) {
 		if((ima->id.flag & LIB_DOIT)==0) {
 			ImBuf *ibuf= BKE_image_get_ibuf(ima, NULL);
 			for(a=0; a<re->r.bake_filter; a++)
 				IMB_filter_extend(ibuf);
 			ibuf->userflags |= IB_BITMAPDIRTY;
+			
+			if (ibuf->rect_float) IMB_rect_from_float(ibuf);
 		}
 	}
 	

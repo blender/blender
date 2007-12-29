@@ -242,7 +242,7 @@ void IMB_filter(struct ImBuf *ibuf)
 
 #define EXTEND_PIXEL(a, w)	if((a)[3]) {r+= w*(a)[0]; g+= w*(a)[1]; b+= w*(a)[2]; tot+=w;}
 
-/* if alpha is zero, it checks surrounding pixels and averages color. sets new alphas to 255 */
+/* if alpha is zero, it checks surrounding pixels and averages color. sets new alphas to 1.0 */
 void IMB_filter_extend(struct ImBuf *ibuf)
 {
 	register char *row1, *row2, *row3;
@@ -251,7 +251,57 @@ void IMB_filter_extend(struct ImBuf *ibuf)
 	
 	rowlen= ibuf->x;
 	
-	if(ibuf->rect) {
+	
+	if (ibuf->rect_float) {
+		float *temprect;
+		float *row1f, *row2f, *row3f;
+		float *fp;
+		int pixlen = 4;
+		temprect= MEM_dupallocN(ibuf->rect_float);
+		
+		for(y=1; y<=ibuf->y; y++) {
+			/* setup rows */
+			row1f= (float *)(temprect + (y-2)*rowlen*4);
+			row2f= row1f + 4*rowlen;
+			row3f= row2f + 4*rowlen;
+			if(y==1)
+				row1f= row2f;
+			else if(y==ibuf->y)
+				row3f= row2f;
+			
+			fp= (float *)(ibuf->rect_float + (y-1)*rowlen*4);
+			
+			for(x=0; x<rowlen; x++) {
+				if(fp[3]==0.0f) {
+					int tot= 0;
+					float r=0.0f, g=0.0f, b=0.0f;
+					
+					EXTEND_PIXEL(row1f, 1);
+					EXTEND_PIXEL(row2f, 2);
+					EXTEND_PIXEL(row3f, 1);
+					EXTEND_PIXEL(row1f+4, 2);
+					EXTEND_PIXEL(row3f+4, 2);
+					if(x!=rowlen-1) {
+						EXTEND_PIXEL(row1f+8, 1);
+						EXTEND_PIXEL(row2f+8, 2);
+						EXTEND_PIXEL(row3f+8, 1);
+					}					
+					if(tot) {
+						fp[0]= r/tot;
+						fp[1]= g/tot;
+						fp[2]= b/tot;
+						fp[3]= 1.0;
+					}
+				}
+				fp+=4; 
+				
+				if(x!=0) {
+					row1f+=4; row2f+=4; row3f+=4;
+				}
+			}
+		}
+	}
+	else if(ibuf->rect) {
 		int *temprect;
 		
 		/* make a copy, to prevent flooding */

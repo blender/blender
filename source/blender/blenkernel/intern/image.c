@@ -378,19 +378,26 @@ Image *BKE_add_image_file(const char *name)
 	return ima;
 }
 
-static ImBuf *add_ibuf_size(int width, int height, char *name, short uvtestgrid, float color[4])
+static ImBuf *add_ibuf_size(int width, int height, char *name, int floatbuf, short uvtestgrid, float color[4])
 {
 	ImBuf *ibuf;
 	float h=0.0, hoffs=0.0, hue=0.0, s=0.9, v=0.9, r, g, b;
 	unsigned char *rect;
+	float *rect_float;
 	int x, y;
 	int checkerwidth=21, dark=1;
 	
-	ibuf= IMB_allocImBuf(width, height, 24, IB_rect, 0);
+	if (floatbuf) {
+		ibuf= IMB_allocImBuf(width, height, 24, IB_rectfloat, 0);
+		rect_float= (float*)ibuf->rect_float;
+	}
+	else {
+		ibuf= IMB_allocImBuf(width, height, 24, IB_rect, 0);
+		rect= (unsigned char*)ibuf->rect;
+	}
+	
 	strcpy(ibuf->name, "Untitled");
 	ibuf->userflags |= IB_BITMAPDIRTY;
-	
-	rect= (unsigned char*)ibuf->rect;
 	
 	if (uvtestgrid) {
 		/* these two passes could be combined into one, but it's more readable and 
@@ -400,26 +407,40 @@ static ImBuf *add_ibuf_size(int width, int height, char *name, short uvtestgrid,
 		for(y=0; y<ibuf->y; y++) {
 			dark = pow(-1, floor(y / checkerwidth));
 			
-			for(x=0; x<ibuf->x; x++, rect+=4) {
+			for(x=0; x<ibuf->x; x++) {
 				if (x % checkerwidth == 0) dark *= -1;
 				
-				if (dark > 0) {
-					rect[0] = rect[1] = rect[2] = 64;
-					rect[3] = 255;
-				} else {
-					rect[0] = rect[1] = rect[2] = 150;
-					rect[3] = 255;
+				if (floatbuf) {
+					if (dark > 0) {
+						rect_float[0] = rect_float[1] = rect_float[2] = 0.25;
+						rect_float[3] = 1.0;
+					} else {
+						rect_float[0] = rect_float[1] = rect_float[2] = 0.58;
+						rect_float[3] = 1.0;
+					}
+					rect_float+=4;
+				}
+				else {
+					if (dark > 0) {
+						rect[0] = rect[1] = rect[2] = 64;
+						rect[3] = 255;
+					} else {
+						rect[0] = rect[1] = rect[2] = 150;
+						rect[3] = 255;
+					}
+					rect += 4;
 				}
 			}
 		}
 		
 		/* 2nd pass, colored + */
-		rect= (unsigned char*)ibuf->rect;
+		if (floatbuf) rect_float= (float*)ibuf->rect_float;
+		else rect= (unsigned char*)ibuf->rect;
 		
 		for(y=0; y<ibuf->y; y++) {
 			hoffs = 0.125 * floor(y / checkerwidth);
 			
-			for(x=0; x<ibuf->x; x++, rect+=4) {
+			for(x=0; x<ibuf->x; x++) {
 				h = 0.125 * floor(x / checkerwidth);
 				
 				if ((fabs((x % checkerwidth) - (checkerwidth / 2)) < 4) &&
@@ -431,10 +452,20 @@ static ImBuf *add_ibuf_size(int width, int height, char *name, short uvtestgrid,
 						hue = fmod(fabs(h-hoffs), 1.0);
 						hsv_to_rgb(hue, s, v, &r, &g, &b);
 						
-						rect[0]= (char)(r * 255.0);
-						rect[1]= (char)(g * 255.0);
-						rect[2]= (char)(b * 255.0);
-						rect[3]= 255;
+						if (floatbuf) {
+							rect_float[0]= r;
+							rect_float[1]= g;
+							rect_float[2]= b;
+							rect_float[3]= 1.0;
+							rect_float+=4;
+						}
+						else {
+							rect[0]= (char)(r * 255.0);
+							rect[1]= (char)(g * 255.0);
+							rect[2]= (char)(b * 255.0);
+							rect[3]= 255;
+							rect+=4;
+						}
 					}
 				}
 				
@@ -442,11 +473,21 @@ static ImBuf *add_ibuf_size(int width, int height, char *name, short uvtestgrid,
 		}
 	} else {	/* blank image */
 		for(y=0; y<ibuf->y; y++) {
-			for(x=0; x<ibuf->x; x++, rect+=4) {
-				rect[0]= (char)(color[0] * 255.0);
-				rect[1]= (char)(color[1] * 255.0);
-				rect[2]= (char)(color[2] * 255.0);
-				rect[3]= (char)(color[3] * 255.0);
+			for(x=0; x<ibuf->x; x++) {
+				if (floatbuf) {
+					rect_float[0]= color[0];
+					rect_float[1]= color[1];
+					rect_float[2]= color[2];
+					rect_float[3]= color[3];
+					rect_float+=4;
+				}
+				else {
+					rect[0]= (char)(color[0] * 255.0);
+					rect[1]= (char)(color[1] * 255.0);
+					rect[2]= (char)(color[2] * 255.0);
+					rect[3]= (char)(color[3] * 255.0);
+					rect+=4;
+				}
 			}
 		}
 	}
@@ -454,7 +495,7 @@ static ImBuf *add_ibuf_size(int width, int height, char *name, short uvtestgrid,
 }
 
 /* adds new image block, creates ImBuf and initializes color */
-Image *BKE_add_image_size(int width, int height, char *name, short uvtestgrid, float color[4])
+Image *BKE_add_image_size(int width, int height, char *name, int floatbuf, short uvtestgrid, float color[4])
 {
 	Image *ima;
 	
@@ -469,7 +510,7 @@ Image *BKE_add_image_size(int width, int height, char *name, short uvtestgrid, f
 		ima->gen_y= height;
 		ima->gen_type= uvtestgrid;
 		
-		ibuf= add_ibuf_size(width, height, name, uvtestgrid, color);
+		ibuf= add_ibuf_size(width, height, name, floatbuf, uvtestgrid, color);
 		image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
 		
 		ima->ok= IMA_OK_LOADED;
@@ -1678,6 +1719,7 @@ ImBuf *BKE_image_get_ibuf(Image *ima, ImageUser *iuser)
 {
 	ImBuf *ibuf= NULL;
 	float color[] = {0, 0, 0, 1};
+	int floatbuf;
 
 	/* quick reject tests */
 	if(ima==NULL) 
@@ -1755,7 +1797,7 @@ ImBuf *BKE_image_get_ibuf(Image *ima, ImageUser *iuser)
 				/* UV testgrid or black or solid etc */
 				if(ima->gen_x==0) ima->gen_x= 256;
 				if(ima->gen_y==0) ima->gen_y= 256;
-				ibuf= add_ibuf_size(ima->gen_x, ima->gen_y, ima->name, ima->gen_type, color);
+				ibuf= add_ibuf_size(ima->gen_x, ima->gen_y, ima->name, floatbuf, ima->gen_type, color);
 				image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
 				ima->ok= IMA_OK_LOADED;
 			}

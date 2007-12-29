@@ -1,5 +1,5 @@
 /* 
- * $Id: bpy_data.c 12056 2007-09-17 06:11:06Z aligorith $
+ * $Id$
  *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
@@ -538,7 +538,7 @@ PyObject *LibBlockSeq_new(BPy_LibBlockSeq *self, PyObject * args, PyObject *kwd)
 		break;
 	case ID_IM: 
 	{
-		id = (ID *)BKE_add_image_size(img_width, img_height, name?name:"Image", 0, color);
+		id = (ID *)BKE_add_image_size(img_width, img_height, name?name:"Image", 0, 0, color);
 		if( !id )
 			return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
 				"couldn't create PyObject Image_Type" ) );
