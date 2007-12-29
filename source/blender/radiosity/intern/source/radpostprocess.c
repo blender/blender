@@ -53,7 +53,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 #include "BLI_ghash.h"
-#include "BIF_toolbox.h"  // notice()
 
 #include "DNA_material_types.h"
 #include "DNA_mesh_types.h"
@@ -68,11 +67,6 @@
 #include "BKE_mesh.h"
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
-
-#include "BIF_screen.h"		/* waitcursor */
-#include "BIF_editview.h"	/* deselectall */
-
-#include "BDR_editobject.h"	/* delete_obj */
 
 #include "radio.h"
 
@@ -627,7 +621,7 @@ void removeEqualNodes(short limit)
 	thresh= 1.0/(256.0*RG.radfactor);
 	thresh= 3.0*pow(thresh, RG.gamma);
 	
-	waitcursor(1);
+// XXX	waitcursor(1);
 		
 	while(foundone) {
 		foundone= 0;
@@ -682,7 +676,7 @@ void removeEqualNodes(short limit)
 			makeGlobalElemArray();
 		}
 	}
-	waitcursor(0);
+// XXX	waitcursor(0);
 }
 
 unsigned int rad_find_or_add_mvert(Mesh *me, MFace *mf, RNode *orignode, float *w, float *radco, GHash *hash)
@@ -720,8 +714,8 @@ void rad_addmesh(void)
 	if(RG.totface==0)
 		return;
 	
-	if(RG.totmat==MAXMAT)
-		notice("warning: cannot assign more than 16 materials to 1 mesh");
+//	if(RG.totmat==MAXMAT)
+// XXX		notice("warning: cannot assign more than 16 materials to 1 mesh");
 
 	/* create the mesh */
 	ob= add_object(OB_MESH);
@@ -812,7 +806,7 @@ void rad_replacemesh(void)
 {
 	RPatch *rp;
 	
-	deselectall();
+// XXX	deselectall();
 	
 	rp= RG.patchbase.first;
 	while(rp) {
@@ -825,7 +819,7 @@ void rad_replacemesh(void)
 	}
 	
 	copy_objectflags();
-	delete_obj(1);
+// XXX	delete_obj(1);
 	
 	rad_addmesh();
 }

@@ -50,8 +50,6 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 
-#include "BIF_screen.h"
-
 #include "radio.h"
 #include "RE_render_ext.h"       /* for `RE_zbufferall_radio and RE_zbufferall_radio */
 

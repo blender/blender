@@ -496,7 +496,7 @@ static void cb_o_method_call(void *user_data, VNodeID node_id, uint8 group_id, u
 				if(text) {
 					txt_insert_buf(text, showstr);
 					txt_move_eof(text, 0);
-					allqueue(REDRAWCHAT, 0);
+// XXX					allqueue(REDRAWCHAT, 0);
 				} else {
 					printf("%s> %s: %s\n",arg[0].vstring, arg[1].vstring, arg[2].vstring);
 				}

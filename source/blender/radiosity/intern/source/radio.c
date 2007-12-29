@@ -91,11 +91,7 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 
-#include "BIF_screen.h" /* curarea */
-#include "BIF_space.h" /* allqueue */
-
 #include "radio.h"
-#include "mydevice.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -191,10 +187,10 @@ void rad_status_str(char *str)
 void rad_printstatus()
 {
 	/* actions always are started from a buttonswindow */
-	if(curarea) {
-		scrarea_do_windraw(curarea);
-		screen_swapbuffers();
-	}
+// XX	if(curarea) {
+//		scrarea_do_windraw(curarea);
+//		screen_swapbuffers();
+//	}
 }
 
 void rad_setlimits()
@@ -357,7 +353,7 @@ void rad_subdivshootpatch()
 	removeEqualNodes(RG.nodelim);
 	closehemiwindows();
 	
-	allqueue(REDRAWVIEW3D, 1);
+// XXX	allqueue(REDRAWVIEW3D, 1);
 }
 
 void rad_subdivshootelem(void)
@@ -376,7 +372,7 @@ void rad_subdivshootelem(void)
 	removeEqualNodes(RG.nodelim);
 	closehemiwindows();
 	
-	allqueue(REDRAWVIEW3D, 1);
+// XXX	allqueue(REDRAWVIEW3D, 1);
 }
 
 void rad_limit_subdivide()

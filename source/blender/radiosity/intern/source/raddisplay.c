@@ -57,11 +57,6 @@
 #include "BKE_main.h"
 
 #include "BIF_gl.h"
-#include "BIF_screen.h"
-#include "BIF_space.h"
-#include "BIF_mywindow.h"
-
-#include "BSE_view.h"
 
 #include "radio.h"
 
@@ -208,7 +203,7 @@ void drawpatch_ext(RPatch *patch, unsigned int col)
 
 	cpack(col);
 
-	oldsa= curarea;
+	oldsa= NULL; // XXX curarea;
 
 	sa= G.curscreen->areabase.first;
 	while(sa) {
@@ -216,8 +211,8 @@ void drawpatch_ext(RPatch *patch, unsigned int col)
 			v3d= sa->spacedata.first;
 			
 		 	/* use mywinget() here: otherwise it draws in header */
-		 	if(sa->win != mywinget()) areawinset(sa->win);
-			persp(PERSP_VIEW);
+// XXX		 	if(sa->win != mywinget()) areawinset(sa->win);
+// XXX			persp(PERSP_VIEW);
 			if(v3d->zbuf) glDisable(GL_DEPTH_TEST);
 			drawnodeWire(patch->first);
 			if(v3d->zbuf) glEnable(GL_DEPTH_TEST);	// pretty useless?
@@ -225,7 +220,7 @@ void drawpatch_ext(RPatch *patch, unsigned int col)
 		sa= sa->next;
 	}
 
-	if(oldsa && oldsa!=curarea) areawinset(oldsa->win);
+// XXX	if(oldsa && oldsa!=curarea) areawinset(oldsa->win);
 
 	glFlush();
 	glDrawBuffer(GL_BACK);
@@ -416,21 +411,11 @@ void RAD_drawall(int depth_is_on)
 			}
 		}
 		else {
-			if(!(get_qual()&LR_SHIFTKEY)) {
-
-				for(a=0; a<RG.totface; a++) {
-					RAD_NEXTFACE(a);
-					
-					drawfaceWire(face);
-				}
-			}
-			else {
-				cpack(0);
-				rp= RG.patchbase.first;
-				while(rp) {
-					drawsingnodeWire(rp->first);
-					rp= rp->next;
-				}
+			cpack(0);
+			rp= RG.patchbase.first;
+			while(rp) {
+				drawsingnodeWire(rp->first);
+				rp= rp->next;
 			}
 		}
 	}
@@ -472,19 +457,19 @@ void rad_forcedraw()
 {
  	ScrArea *sa, *oldsa;
 	
-	oldsa= curarea;
+	oldsa= NULL; // XXX curarea;
 
 	sa= G.curscreen->areabase.first;
 	while(sa) {
 		if (sa->spacetype==SPACE_VIEW3D) {
 		 	/* use mywinget() here: othwerwise it draws in header */
-		 	if(sa->win != mywinget()) areawinset(sa->win);
-		 	scrarea_do_windraw(sa);
+// XXX	 	if(sa->win != mywinget()) areawinset(sa->win);
+// XXX		 	scrarea_do_windraw(sa);
 		}
 		sa= sa->next;
 	}
-	screen_swapbuffers();
+// XXX	screen_swapbuffers();
 	
-	if(oldsa && oldsa!=curarea) areawinset(oldsa->win);
+// XXX	if(oldsa && oldsa!=curarea) areawinset(oldsa->win);
 }
 

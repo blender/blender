@@ -49,8 +49,6 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 
-#include "BIF_toolbox.h"
-
 #include "radio.h"
 
 #ifdef HAVE_CONFIG_H
@@ -221,7 +219,7 @@ void free_fastAll()
 void start_fastmalloc(char *str)
 {
 	if(fastmallocstr) {
-		error("Fastmalloc in use: %s", fastmallocstr);
+// XXX		error("Fastmalloc in use: %s", fastmallocstr);
 		return;
 	}
 	fastmallocstr= str;

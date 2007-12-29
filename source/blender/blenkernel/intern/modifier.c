@@ -102,8 +102,6 @@
 #include "RE_shader_ext.h"
 
 #include "BIF_meshlaplacian.h"
-#include "BIF_space.h"
-#include "mydevice.h"
 
 /***/
 
@@ -6901,7 +6899,7 @@ void modifiers_clearErrors(Object *ob)
 		}
 	}
 
-	if (qRedraw) allqueue(REDRAWBUTSEDIT, 0);
+// XXX	if (qRedraw) allqueue(REDRAWBUTSEDIT, 0);
 }
 
 void modifiers_foreachObjectLink(Object *ob, ObjectWalkFunc walk,
@@ -6967,7 +6965,7 @@ void modifier_setError(ModifierData *md, char *format, ...)
 
 	md->error = BLI_strdup(buffer);
 
-	allqueue(REDRAWBUTSEDIT, 0);
+// XXX	allqueue(REDRAWBUTSEDIT, 0);
 }
 
 /* used for buttons, to find out if the 'draw deformed in editmode' option is

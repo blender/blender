@@ -60,7 +60,6 @@
 #include "BLI_threads.h"
 
 #include "BKE_anim.h"
-#include "BKE_bad_level_calls.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_displist.h"
 
@@ -78,9 +77,6 @@
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
 
-#include "BSE_headerbuttons.h"
-
-#include "blendef.h"
 
 #include "RE_shader_ext.h"
 
@@ -826,7 +822,7 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 		return 0;
 
 	if (!finaldm->deformedOnly && !CustomData_has_layer( &finaldm->faceData, CD_ORIGINDEX ) ) {
-		error("Can't paint with the current modifier stack, disable destructive modifiers");
+// XXX		error("Can't paint with the current modifier stack, disable destructive modifiers");
 		return 0;
 	}
 
@@ -1393,9 +1389,9 @@ void initialize_particle(ParticleData *pa, int p, Object *ob, ParticleSystem *ps
 	pa->lifetime= part->lifetime*ptex.life;
 
 	if(part->type==PART_HAIR)
-		pa->time=0.0f;
+		pa->time= 0.0f;
 	else if(part->type==PART_REACTOR && (part->flag&PART_REACT_STA_END)==0)
-		pa->time=MAXFRAMEF;
+		pa->time= 300000.0f;	/* max frame */
 	else{
 		//icu=find_ipocurve(psys->part->ipo,PART_EMIT_TIME);
 		//if(icu){
@@ -4418,7 +4414,7 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 
 		/* this is a bad level call, but currently type change
 		 * can happen after redraw, so force redraw from here */
-//		allqueue(REDRAWBUTSOBJECT, 0);
+// XXX		allqueue(REDRAWBUTSOBJECT, 0);
 	}
 	else
 		oldtotpart = psys->totpart;
@@ -4432,7 +4428,8 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 	if(oldtotpart != totpart || psys->recalc&PSYS_ALLOC || (psys->part->childtype && psys->totchild != psys->totpart*child_nbr))
 		alloc = 1;
 
-	if(alloc || psys->recalc&PSYS_DISTR || (psys->vgroup[PSYS_VG_DENSITY] && (G.f & G_WEIGHTPAINT) && ob==OBACT))
+	/* bad context? XXX */
+	if(alloc || psys->recalc&PSYS_DISTR || (psys->vgroup[PSYS_VG_DENSITY] && (G.f & G_WEIGHTPAINT) && ob==(G.scene->basact?G.scene->basact->object:NULL)))
 		distr = 1;
 
 	if(distr || psys->recalc&PSYS_INIT)
@@ -4556,7 +4553,7 @@ void particle_system_update(Object *ob, ParticleSystem *psys){
 	if(!psys_check_enabled(ob, psys))
 		return;
 
-	cfra=bsystem_time(ob,(float)CFRA,0.0);
+	cfra=bsystem_time(ob,(float)G.scene->r.cfra,0.0);
 	psmd= psys_get_modifier(ob, psys);
 
 	/* system was already updated from modifier stack */

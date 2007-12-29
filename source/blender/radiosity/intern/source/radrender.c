@@ -66,8 +66,6 @@
 #include "BKE_global.h"
 #include "BKE_main.h"
 
-#include "BIF_screen.h"
-
 #include "radio.h"
 
 /* the radiosity module uses internal includes from render! */
@@ -75,9 +73,6 @@
 #include "render_types.h" 
 #include "renderdatabase.h" 
 
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 /* only needed now for a print, if its useful move to RG */
 static float maxenergy;	

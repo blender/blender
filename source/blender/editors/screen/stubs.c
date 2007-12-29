@@ -31,18 +31,9 @@
 /* various UI stuff */
 void blender_test_break() {}
 void error() {}
-void notice() {}
 void set_timecursor() {}
-void screen_swapbuffers() {}
-void waitcursor() {}
-void get_qual() {}
-void mainqenter() {}
-void saveover() {}
-void texstr() {}
-void pupmenu() {}
 
 /* global vars */
-void *curarea;
 void *editNurb;
 void *editelems;
 
@@ -63,22 +54,13 @@ void BPY_pyconstraint_eval() {}
 void BPY_pyconstraint_target() {}
 
 /* areas */
-void allqueue() {}
-void scrarea_do_windraw() {}
-void areawinset() {}
-void mywinget() {}
 void copy_view3d_lock() {}
-void persp() {}
 
 /* seq */
 void do_render_seq() {}
 void free_editing() {}
 void get_forground_frame_seq() {}
 void build_seqar() {}
-
-/* tools */
-void delete_obj() {}
-void deselectall() {}
 
 /* sculpt */
 void sculptmode_free_all() {}
@@ -101,7 +83,6 @@ void fluidsimSettingsFree() {}
 void BIF_filelist_freelib() {}
 
 /* audio */
-
 void audiostream_play() {}
 void audiostream_fill() {}
 

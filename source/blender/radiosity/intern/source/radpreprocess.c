@@ -65,15 +65,7 @@
 #include "BKE_object.h" /* during_script() */
 #include "BKE_utildefines.h"
 
-#include "BIF_toolbox.h"
-
-#include "BDR_editface.h"
-
 #include "radio.h"
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
 
 void setparelem(RNode *rn, RPatch *par);
 
