@@ -47,6 +47,7 @@
 #include "MEM_guardedalloc.h"
 
 #include "DNA_armature_types.h"	
+#include "DNA_color_types.h"
 #include "DNA_constraint_types.h"
 #include "DNA_curve_types.h"
 #include "DNA_group_types.h"
@@ -63,6 +64,7 @@
 #include "BKE_anim.h"
 #include "BKE_armature.h"		
 #include "BKE_bad_level_calls.h"
+#include "BKE_colortools.h"
 #include "BKE_constraint.h"
 #include "BKE_depsgraph.h"
 #include "BKE_global.h"
@@ -75,11 +77,11 @@
 #include "BKE_node.h"
 #include "BKE_object.h"
 #include "BKE_scene.h"
+#include "BKE_sculpt.h"
 #include "BKE_world.h"
 #include "BKE_utildefines.h"
 
 #include "BIF_previewrender.h"
-#include "BDR_sculptmode.h"
 
 #include "BPY_extern.h"
 #include "BLI_arithb.h"
@@ -168,7 +170,7 @@ void free_scene(Scene *sce)
 		MEM_freeN(sce->nodetree);
 	}
 
-	sculptmode_free_all(sce);
+	sculptdata_free(sce);
 }
 
 Scene *add_scene(char *name)
@@ -259,7 +261,7 @@ Scene *add_scene(char *name)
 	BLI_init_rctf(&sce->r.safety, 0.1f, 0.9f, 0.1f, 0.9f);
 	sce->r.osa= 8;
 
-	sculptmode_init(sce);
+	sculptdata_init(sce);
 	
 	/* note; in header_info.c the scene copy happens..., if you add more to renderdata it has to be checked there */
 	scene_add_render_layer(sce);
@@ -578,3 +580,127 @@ void scene_add_render_layer(Scene *sce)
 	srl->passflag= SCE_PASS_COMBINED|SCE_PASS_Z;
 }
 
+/* Initialize 'permanent' sculpt data that is saved with file kept after
+   switching out of sculptmode. */
+void sculptdata_init(Scene *sce)
+{
+	SculptData *sd;
+
+	if(!sce)
+		return;
+
+	sd= &sce->sculptdata;
+
+	if(sd->cumap)
+		curvemapping_free(sd->cumap);
+
+	memset(sd, 0, sizeof(SculptData));
+
+	sd->drawbrush.size = sd->smoothbrush.size = sd->pinchbrush.size =
+		sd->inflatebrush.size = sd->grabbrush.size =
+		sd->layerbrush.size = sd->flattenbrush.size = 50;
+	sd->drawbrush.strength = sd->smoothbrush.strength =
+		sd->pinchbrush.strength = sd->inflatebrush.strength =
+		sd->grabbrush.strength = sd->layerbrush.strength =
+		sd->flattenbrush.strength = 25;
+	sd->drawbrush.dir = sd->pinchbrush.dir = sd->inflatebrush.dir = sd->layerbrush.dir= 1;
+	sd->drawbrush.airbrush = sd->smoothbrush.airbrush =
+		sd->pinchbrush.airbrush = sd->inflatebrush.airbrush =
+		sd->layerbrush.airbrush = sd->flattenbrush.airbrush = 0;
+	sd->drawbrush.view= 0;
+	sd->brush_type= DRAW_BRUSH;
+	sd->texact= -1;
+	sd->texfade= 1;
+	sd->averaging= 1;
+	sd->texsep= 0;
+	sd->texrept= SCULPTREPT_DRAG;
+	sd->flags= SCULPT_DRAW_BRUSH;
+	sd->tablet_size=3;
+	sd->tablet_strength=10;
+	sd->rake=0;
+	sculpt_reset_curve(sd);
+}
+
+void sculptdata_free(Scene *sce)
+{
+	SculptData *sd= &sce->sculptdata;
+	int a;
+
+	sculptsession_free(sce);
+
+	for(a=0; a<MAX_MTEX; a++) {
+		MTex *mtex= sd->mtex[a];
+		if(mtex) {
+			if(mtex->tex) mtex->tex->id.us--;
+			MEM_freeN(mtex);
+		}
+	}
+
+	curvemapping_free(sd->cumap);
+	sd->cumap = NULL;
+}
+
+void sculpt_vertexusers_free(SculptSession *ss)
+{
+	if(ss && ss->vertex_users){
+		MEM_freeN(ss->vertex_users);
+		MEM_freeN(ss->vertex_users_mem);
+		ss->vertex_users= NULL;
+		ss->vertex_users_mem= NULL;
+		ss->vertex_users_size= 0;
+	}
+}
+
+void sculptsession_free(Scene *sce)
+{
+	SculptSession *ss= sce->sculptdata.session;
+	if(ss) {
+		if(ss->projverts)
+			MEM_freeN(ss->projverts);
+		if(ss->mats)
+			MEM_freeN(ss->mats);
+
+		if(ss->propset) {
+			if(ss->propset->texdata)
+				MEM_freeN(ss->propset->texdata);
+			if(ss->propset->num)
+				MEM_freeN(ss->propset->num);
+			MEM_freeN(ss->propset);
+		}
+
+		sculpt_vertexusers_free(ss);
+		if(ss->texcache)
+			MEM_freeN(ss->texcache);
+		MEM_freeN(ss);
+		sce->sculptdata.session= NULL;
+	}
+}
+
+/*  Default curve approximates 0.5 * (cos(pi * x) + 1), with 0 <= x <= 1 */
+void sculpt_reset_curve(SculptData *sd)
+{
+	CurveMap *cm = NULL;
+
+	if(!sd->cumap)
+		sd->cumap = curvemapping_add(1, 0, 0, 1, 1);
+
+	cm = sd->cumap->cm;
+
+	if(cm->curve)
+		MEM_freeN(cm->curve);
+	cm->curve= MEM_callocN(6*sizeof(CurveMapPoint), "curve points");
+	cm->flag &= ~CUMA_EXTEND_EXTRAPOLATE;
+	cm->totpoint= 6;
+	cm->curve[0].x= 0;
+	cm->curve[0].y= 1;
+	cm->curve[1].x= 0.1;
+	cm->curve[1].y= 0.97553;
+	cm->curve[2].x= 0.3;
+	cm->curve[2].y= 0.79389;
+	cm->curve[3].x= 0.9;
+	cm->curve[3].y= 0.02447;
+	cm->curve[4].x= 0.7;
+	cm->curve[4].y= 0.20611;
+	cm->curve[5].x= 1;
+	cm->curve[5].y= 0;
+}

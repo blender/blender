@@ -111,6 +111,11 @@ UvVertMap *make_uv_vert_map(struct MFace *mface, struct MTFace *tface, unsigned 
 UvMapVert *get_uv_map_vert(UvVertMap *vmap, unsigned int v);
 void free_uv_vert_map(UvVertMap *vmap);
 
+/* Partial Mesh Visibility */
+struct PartialVisibility *mesh_pmv_copy(struct PartialVisibility *);
+void mesh_pmv_free(struct PartialVisibility *);
+void mesh_pmv_revert(struct Object *ob, struct Mesh *me);
+void mesh_pmv_off(struct Object *ob, struct Mesh *me);
 
 /* functions for making menu's from customdata layers */
 int mesh_layers_menu_charlen(struct CustomData *data, int type); /* use this to work out how many chars to allocate */

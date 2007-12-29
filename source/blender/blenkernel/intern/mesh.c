@@ -55,14 +55,13 @@
 #include "DNA_meshdata_types.h"
 #include "DNA_ipo_types.h"
 
-#include "BDR_sculptmode.h"
-
 #include "BKE_customdata.h"
 #include "BKE_depsgraph.h"
 #include "BKE_main.h"
 #include "BKE_DerivedMesh.h"
 #include "BKE_global.h"
 #include "BKE_mesh.h"
+#include "BKE_multires.h"
 #include "BKE_subsurf.h"
 #include "BKE_displist.h"
 #include "BKE_library.h"
@@ -82,8 +81,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
 #include "BLI_arithb.h"
-
-#include "multires.h"
 
 int update_realtime_texture(MTFace *tface, double time)
 {
@@ -1231,3 +1228,70 @@ void free_uv_vert_map(UvVertMap *vmap)
 	}
 }
 
+/* Partial Mesh Visibility */
+PartialVisibility *mesh_pmv_copy(PartialVisibility *pmv)
+{
+	PartialVisibility *n= MEM_dupallocN(pmv);
+	n->vert_map= MEM_dupallocN(pmv->vert_map);
+	n->edge_map= MEM_dupallocN(pmv->edge_map);
+	n->old_edges= MEM_dupallocN(pmv->old_edges);
+	n->old_faces= MEM_dupallocN(pmv->old_faces);
+	return n;
+}
+
+void mesh_pmv_free(PartialVisibility *pv)
+{
+	MEM_freeN(pv->vert_map);
+	MEM_freeN(pv->edge_map);
+	MEM_freeN(pv->old_faces);
+	MEM_freeN(pv->old_edges);
+	MEM_freeN(pv);
+}
+
+void mesh_pmv_revert(Object *ob, Mesh *me)
+{
+	if(me->pv) {
+		unsigned i;
+		MVert *nve, *old_verts;
+		
+		/* Reorder vertices */
+		nve= me->mvert;
+		old_verts = MEM_mallocN(sizeof(MVert)*me->pv->totvert,"PMV revert verts");
+		for(i=0; i<me->pv->totvert; ++i)
+			old_verts[i]= nve[me->pv->vert_map[i]];
+
+		/* Restore verts, edges and faces */
+		CustomData_free_layer_active(&me->vdata, CD_MVERT, me->totvert);
+		CustomData_free_layer_active(&me->edata, CD_MEDGE, me->totedge);
+		CustomData_free_layer_active(&me->fdata, CD_MFACE, me->totface);
+
+		CustomData_add_layer(&me->vdata, CD_MVERT, CD_ASSIGN, old_verts, me->pv->totvert);
+		CustomData_add_layer(&me->edata, CD_MEDGE, CD_ASSIGN, me->pv->old_edges, me->pv->totedge);
+		CustomData_add_layer(&me->fdata, CD_MFACE, CD_ASSIGN, me->pv->old_faces, me->pv->totface);
+		mesh_update_customdata_pointers(me);
+
+		me->totvert= me->pv->totvert;
+		me->totedge= me->pv->totedge;
+		me->totface= me->pv->totface;
+
+		me->pv->old_edges= NULL;
+		me->pv->old_faces= NULL;
+
+		/* Free maps */
+		MEM_freeN(me->pv->edge_map);
+		me->pv->edge_map= NULL;
+		MEM_freeN(me->pv->vert_map);
+		me->pv->vert_map= NULL;
+
+		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+	}
+}
+
+void mesh_pmv_off(Object *ob, Mesh *me)
+{
+	if(ob && me->pv) {
+		mesh_pmv_revert(ob, me);
+		MEM_freeN(me->pv);
+		me->pv= NULL;
+	}
+}

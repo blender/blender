@@ -41,14 +41,10 @@ void saveover() {}
 void texstr() {}
 void pupmenu() {}
 
+/* global vars */
 void *curarea;
 void *editNurb;
 void *editelems;
-
-/* blenkernel errors */
-void PE_recalc_world_cos() {}
-void PE_free_particle_edit() {}
-void PE_get_colors() {}
 
 /* python, will come back */
 void BPY_post_start_python() {}
@@ -87,20 +83,21 @@ void deselectall() {}
 /* sculpt */
 void sculptmode_free_all() {}
 void sculptmode_init() {}
-void multires_level_n() {}
-void multires_set_level() {}
-void multires_update_levels() {}
-void multires_copy() {}
-void multires_free() {}
-void sculpt_reset_curve() {}
 
+/* mesh */
 void free_realtime_image() {}
+void NewBooleanDerivedMesh() {}
+void harmonic_coordinates_bind() {}
 
+/* particle */
+void PE_recalc_world_cos() {}
+void PE_free_particle_edit() {}
+void PE_get_colors() {}
+
+/* fluid */
 void fluidsimSettingsCopy() {}
 void fluidsimSettingsFree() {}
 
-void NewBooleanDerivedMesh() {}
-void harmonic_coordinates_bind() {}
 void BIF_filelist_freelib() {}
 
 
