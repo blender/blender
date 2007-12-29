@@ -32,6 +32,10 @@
 void blender_test_break() {}
 void error() {}
 void set_timecursor() {}
+void waitcursor() {}
+void pupmenu() {}
+void load_vfont() {}
+void mainqenter() {}
 
 /* global vars */
 void *editNurb;
