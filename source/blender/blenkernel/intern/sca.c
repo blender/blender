@@ -193,7 +193,7 @@ bSensor *new_sensor(int type)
 	init_sensor(sens);
 	
 	strcpy(sens->name, "sensor");
-	make_unique_prop_names(sens->name);
+// XXX	make_unique_prop_names(sens->name);
 	
 	return sens;
 }

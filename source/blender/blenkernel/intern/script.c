@@ -38,9 +38,8 @@
 #include "BPI_script.h"
 
 #include "MEM_guardedalloc.h"
-#include "BKE_bad_level_calls.h" /* for BPY_clear_script */
 
-/*
+
 #include "BLI_blenlib.h"
 #include "BKE_utildefines.h"
 #include "BKE_library.h"
@@ -48,11 +47,6 @@
 #include "BKE_main.h"
 
 #include "BPY_extern.h" // Blender Python library
-
-#ifdef HAVE_CONFIG_H
-#include <config.h>
-#endif
-*/
 
 /* XXX this function and so also the file should not be needed anymore,
  * since we have to force clearing all Python related data before freeing

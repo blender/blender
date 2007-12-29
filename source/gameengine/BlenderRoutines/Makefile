@@ -48,7 +48,7 @@ CPPFLAGS += -I$(NAN_FUZZICS)/include
 CPPFLAGS += -I$(NAN_SOUNDSYSTEM)/include
 # because of kernel dependency on makesdna
 CPPFLAGS += -I../../blender/makesdna
-CPPFLAGS += -I../../blender/include
+CPPFLAGS += -I../../blender/editors/include
 # because of kernel dependency on imbuf
 CPPFLAGS += -I../../blender/imbuf
 CPPFLAGS += -I../../blender/blenlib

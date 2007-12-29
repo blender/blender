@@ -83,7 +83,6 @@
 #include "BLO_readfile.h" 
 #include "BLO_writefile.h" 
 
-#include "BKE_bad_level_calls.h" // for freeAllRad editNurb free_editMesh free_editText free_editArmature
 #include "BKE_utildefines.h" // O_BINARY FALSE
 #include "BIF_mainqueue.h" // mainqenter for onload script
 #include "mydevice.h"
@@ -238,21 +237,19 @@ void initglobals(void)
 
 static void clear_global(void) 
 {
-	extern short winqueue_break;	/* screen.c */
+//	extern short winqueue_break;	/* screen.c */
 
-	freeAllRad();
+// XXX	freeAllRad();
 	fastshade_free_render();	/* lamps hang otherwise */
 	free_main(G.main);			/* free all lib data */
-
-	/* force all queues to be left */
-	winqueue_break= 1;
 	
 	if (G.obedit) {
-		freeNurblist(&editNurb);
-		free_editMesh(G.editMesh);
-		free_editText();
-		free_editArmature();
+//		freeNurblist(&editNurb);
+//		free_editMesh(G.editMesh);
+//		free_editText();
+//		free_editArmature();
 	}
+//	free_vertexpaint();
 
 	G.curscreen= NULL;
 	G.scene= NULL;
@@ -266,8 +263,6 @@ static void clear_global(void)
 	G.soops= NULL;
 	G.sima= NULL;
 	G.sipo= NULL;
-	
-	free_vertexpaint();
 	
 	G.f &= ~(G_WEIGHTPAINT + G_VERTEXPAINT + G_FACESELECT + G_PARTICLEEDIT);
 }
@@ -452,9 +447,6 @@ int BKE_read_file(bContext *C, char *dir, void *unused)
 	BlendFileData *bfd;
 	int retval= 1;
 	
-	if (!G.background)
-		waitcursor(1);
-		
 	bfd= BLO_read_from_file(dir, &bre);
 	if (bfd) {
 		if(bfd->user) retval= 2;
@@ -466,10 +458,7 @@ int BKE_read_file(bContext *C, char *dir, void *unused)
 	else {
 		error("Loading %s failed: %s", dir, BLO_bre_as_string(bre));
 	}
-	
-	if (!G.background)
-		waitcursor(0);
-	
+		
 	return (bfd?retval:0);
 }
 
@@ -477,20 +466,14 @@ int BKE_read_file_from_memory(bContext *C, char* filebuf, int filelength, void *
 {
 	BlendReadError bre;
 	BlendFileData *bfd;
-	
-	if (!G.background)
-		waitcursor(1);
-		
+			
 	bfd= BLO_read_from_memory(filebuf, filelength, &bre);
 	if (bfd) {		
 		setup_app_data(C, bfd, "<memory>");
 	} else {
 		error("Loading failed: %s", BLO_bre_as_string(bre));
 	}
-	
-	if (!G.background)
-		waitcursor(0);
-	
+		
 	return (bfd?1:0);
 }
 
@@ -500,19 +483,13 @@ int BKE_read_file_from_memfile(bContext *C, MemFile *memfile)
 	BlendReadError bre;
 	BlendFileData *bfd;
 	
-	if (!G.background)
-		waitcursor(1);
-		
 	bfd= BLO_read_from_memfile(G.sce, memfile, &bre);
 	if (bfd) {
 		setup_app_data(C, bfd, "<memory>");
 	} else {
 		error("Loading failed: %s", BLO_bre_as_string(bre));
 	}
-	
-	if (!G.background)
-		waitcursor(0);
-	
+		
 	return (bfd?1:0);
 }
 

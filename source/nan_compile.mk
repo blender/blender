@@ -87,8 +87,8 @@ ifeq ($(OS),darwin)
         CFLAGS	+= -pipe -fPIC -ffast-math -march=pentium-m -funsigned-char -fno-strict-aliasing
         CCFLAGS	+= -pipe -fPIC  -funsigned-char -fno-strict-aliasing
 	endif
-    REL_CFLAGS	+= -O2
-    REL_CCFLAGS	+= -O2
+#    REL_CFLAGS	+= -O2
+#    REL_CCFLAGS	+= -O2
     CPPFLAGS	+= -D_THREAD_SAFE
     NAN_DEPEND	= true
     OPENGL_HEADERS = /System/Library/Frameworks/OpenGL.framework

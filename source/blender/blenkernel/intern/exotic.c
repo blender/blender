@@ -2255,7 +2255,7 @@ static void displist_to_objects(ListBase *lbase)
 	/* irst this: is still active */
 	if(ivsurf) {
 		where_is_object(ivsurf);
-		docenter_new();
+// XXX		docenter_new();
 	}
 
 	dl= lbase->first;

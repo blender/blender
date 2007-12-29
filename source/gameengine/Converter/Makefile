@@ -50,7 +50,7 @@ CPPFLAGS += -I../../blender
 # these two needed because of blenkernel
 CPPFLAGS += -I../../blender/imbuf
 CPPFLAGS += -I../../blender/makesdna
-CPPFLAGS += -I../../blender/include
+CPPFLAGS += -I../../blender/editors/include
 CPPFLAGS += -I../../blender/blenlib
 CPPFLAGS += -I../../blender/blenkernel
 CPPFLAGS += -I../../blender/render/extern/include
