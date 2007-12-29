@@ -1,0 +1,7 @@
+#!/usr/bin/python
+Import ('env')
+
+
+SConscript(['area/SConscript',
+            'datafiles/SConscript',
+            'screen/SConscript'])
