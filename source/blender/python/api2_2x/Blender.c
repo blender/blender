@@ -1,5 +1,6 @@
 /* 
  * $Id$
+ *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -36,6 +37,7 @@ struct ID; /*keep me up here */
 /* for open, close in Blender_Load */
 #include <fcntl.h>
 #include "BDR_editobject.h"	/* exit_editmode() */
+#include "BDR_drawmesh.h"	/* set_mipmap() */
 #include "BIF_usiblender.h"
 #include "BLI_blenlib.h"
 #include "BLO_writefile.h"
