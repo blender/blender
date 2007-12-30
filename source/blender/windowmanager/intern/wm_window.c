@@ -178,11 +178,8 @@ static void wm_window_open(wmWindowManager *wm, char *title, wmWindow *win)
 	wm_get_screensize(&scr_w, &scr_h);
 	posy= (scr_h - win->posy - win->sizey);
 	
-	if (win->windowstate == G_WINDOWSTATE_FULLSCREEN)
-		inital_state = GHOST_kWindowStateFullScreen;
-	else if (win->windowstate == G_WINDOWSTATE_BORDER)
-		inital_state = GHOST_kWindowStateMaximized;
-	else
+//		inital_state = GHOST_kWindowStateFullScreen;
+//		inital_state = GHOST_kWindowStateMaximized;
 		inital_state = GHOST_kWindowStateNormal;
 
 #ifdef __APPLE__
@@ -245,7 +242,7 @@ void wm_window_add_ghostwindows(wmWindowManager *wm)
 				win->posy= prefstay;
 				win->sizex= prefsizx;
 				win->sizey= prefsizy;
-				win->windowstate= G.windowstate;
+				win->windowstate= 0;
 			}
 			wm_window_open(wm, "Blender", win);
 		}
