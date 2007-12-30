@@ -144,6 +144,7 @@ typedef enum {
 	GHOST_kEventWindowDeactivate,
 	GHOST_kEventWindowUpdate,
 	GHOST_kEventWindowSize,
+	GHOST_kEventWindowMove,
 
 	GHOST_kNumEventTypes
 } GHOST_TEventType;

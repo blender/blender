@@ -936,10 +936,16 @@ bool GHOST_SystemCarbon::handleMouseDown(EventRef event)
 			 * events. By setting m_ignoreWindowSizedMessages these are suppressed.
 			 * @see GHOST_SystemCarbon::handleWindowEvent(EventRef event)
 			 */
+			/* even worse: scale window also generates a load of events, and nothing 
+			   is handled (read: client's event proc called) until you release mouse (ton) */
+			
 			GHOST_ASSERT(validWindow(ghostWindow), "GHOST_SystemCarbon::handleMouseDown: invalid window");
 			m_ignoreWindowSizedMessages = true;
 			::DragWindow(window, mousePos, &GetQDGlobalsScreenBits(&screenBits)->bounds);
 			m_ignoreWindowSizedMessages = false;
+			
+			pushEvent( new GHOST_Event(getMilliSeconds(), GHOST_kEventWindowMove, ghostWindow) );
+
 			break;
 		
 		case inContent:

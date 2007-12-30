@@ -255,7 +255,9 @@ void GHOST_WindowCarbon::getClientBounds(GHOST_Rect& bounds) const
 {
 	Rect rect;
 	GHOST_ASSERT(getValid(), "GHOST_WindowCarbon::getClientBounds(): window invalid")
-	::GetPortBounds(m_grafPtr, &rect);
+//	::GetPortBounds(m_grafPtr, &rect);
+	::GetWindowBounds(m_windowRef, kWindowContentRgn, &rect);
+
 	bounds.m_b = rect.bottom;
 	bounds.m_l = rect.left;
 	bounds.m_r = rect.right;

@@ -369,12 +369,12 @@ int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 //				window_handle(win, REDRAW, 1);
 				break;
 			}
-			case GHOST_kEventWindowSize: {
+			case GHOST_kEventWindowSize:
+			case GHOST_kEventWindowMove: {
 				GHOST_RectangleHandle client_rect;
 				int l, t, r, b, scr_w, scr_h;
 				
-				/* was GetClientBounds, doesnt work (at least osx) */
-				client_rect= GHOST_GetWindowBounds(win->ghostwin);
+				client_rect= GHOST_GetClientBounds(win->ghostwin);
 				GHOST_GetRectangle(client_rect, &l, &t, &r, &b);
 				
 				GHOST_DisposeRectangle(client_rect);
@@ -384,9 +384,9 @@ int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 				win->sizey= b-t;
 				win->posx= l;
 				win->posy= scr_h - t - win->sizey;
-#ifdef __APPLE__
-				win->posy-= 24;	/* gutter... see ghost, bad stuff */
-#endif
+
+				if(type!=GHOST_kEventWindowSize)
+					printf("win move event pos %d %d size %d %d\n", win->posx, win->posy, win->sizex, win->sizey);
 				
 //				window_handle(win, RESHAPE, 1);
 				break;
