@@ -225,7 +225,7 @@ bool GHOST_SystemWin32::processEvents(bool waitForEvent)
 GHOST_TSuccess GHOST_SystemWin32::getCursorPosition(GHOST_TInt32& x, GHOST_TInt32& y) const
 {
 	POINT point;
-	bool success = ::GetCursorPos(&point) == TRUE;
+	::GetCursorPos(&point);
 	x = point.x;
 	y = point.y;
 	return GHOST_kSuccess;

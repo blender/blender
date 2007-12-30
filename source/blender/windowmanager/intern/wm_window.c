@@ -370,7 +370,7 @@ int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 			case GHOST_kEventWindowMove: {
 				GHOST_RectangleHandle client_rect;
 				int l, t, r, b, scr_w, scr_h;
-                int wl, wt, wr, wb;
+				GHOST_TWindowState state;
 				
 				client_rect= GHOST_GetClientBounds(win->ghostwin);
 				GHOST_GetRectangle(client_rect, &l, &t, &r, &b);
@@ -385,6 +385,17 @@ int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 
 				if(type!=GHOST_kEventWindowSize)
 					printf("win move event pos %d %d size %d %d\n", win->posx, win->posy, win->sizex, win->sizey);
+
+				state = GHOST_GetWindowState(win->ghostwin);
+
+				/*if(state==GHOST_kWindowStateNormal)
+					printf("window state: normal\n");
+				else if(state==GHOST_kWindowStateMinimized)
+					printf("window state: minimized\n");
+				else if(state==GHOST_kWindowStateMaximized)
+					printf("window state: maximized\n");
+				else if(state==GHOST_kWindowStateFullScreen)
+					printf("window state: fullscreen\n");*/
 				
 //				window_handle(win, RESHAPE, 1);
 				break;

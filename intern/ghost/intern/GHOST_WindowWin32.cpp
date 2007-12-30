@@ -145,7 +145,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 	}
 	if (m_hWnd) {
 		// Store a pointer to this class in the window structure
-		LONG result = ::SetWindowLongPtr(m_hWnd, GWL_USERDATA, (LONG)this);
+		::SetWindowLongPtr(m_hWnd, GWL_USERDATA, (LONG_PTR)this);
 
 		// Store the device context
 		m_hDC = ::GetDC(m_hWnd);
@@ -373,7 +373,11 @@ GHOST_TWindowState GHOST_WindowWin32::getState() const
 		state = GHOST_kWindowStateMinimized;
 	}
 	else if (::IsZoomed(m_hWnd)) {
-		state = GHOST_kWindowStateMaximized;
+		LONG_PTR result = ::GetWindowLongPtr(m_hWnd, GWL_STYLE);
+		if((result & (WS_POPUP | WS_MAXIMIZE)) != (WS_POPUP | WS_MAXIMIZE))
+			state = GHOST_kWindowStateMaximized;
+		else
+			state = GHOST_kWindowStateFullScreen;
 	}
 	else {
 		state = GHOST_kWindowStateNormal;
@@ -622,7 +626,7 @@ void GHOST_WindowWin32::loadCursor(bool visible, GHOST_TStandardCursor cursor) c
 		}
 		
 		if (success) {
-			HCURSOR hCursor = ::SetCursor(::LoadCursor(0, id));
+			::SetCursor(::LoadCursor(0, id));
 		}
 	}
 }
@@ -862,7 +866,7 @@ static int WeightPixelFormat(PIXELFORMATDESCRIPTOR& pfd) {
 static int EnumPixelFormats(HDC hdc) {
 	int iPixelFormat;
 	int i, n, w, weight = 0;
-	PIXELFORMATDESCRIPTOR pfd, pfd_fallback;
+	PIXELFORMATDESCRIPTOR pfd;
 	
 	/* we need a device context to do anything */
 	if(!hdc) return 0;
