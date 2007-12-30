@@ -1465,7 +1465,7 @@ void mouse_select_ipo(void)
 	if(G.sipo->editipo==0) return;
 	
 	get_status_editipo();
-	marker=find_nearest_marker(1);
+	marker=find_nearest_marker(SCE_MARKERS, 1);
 	
 	/* map ipo-points for editing if scaled ipo */
 	if (NLA_IPO_SCALED) {

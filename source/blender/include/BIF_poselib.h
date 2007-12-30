@@ -35,19 +35,18 @@
 
 struct Object;
 struct bAction;
-struct bPoseLib;
-struct bPoseLibRef;
+struct TimeMarker;
 
-char *poselib_build_poses_menu(struct bPoseLib *pl, char title[]);
-void poselib_unique_pose_name(struct bPoseLib *pl, char name[]);
-int poselib_get_free_index(struct bPoseLib *pl);
+char *poselib_build_poses_menu(struct bAction *act, char title[]);
+int poselib_get_free_index(struct bAction *act);
+struct TimeMarker *poselib_get_active_pose(struct bAction *act);
 
-struct bPoseLib *poselib_init_new(struct Object *ob);
-struct bPoseLib *poselib_validate(struct Object *ob);
+struct bAction *poselib_init_new(struct Object *ob);
+struct bAction *poselib_validate(struct Object *ob);
 
 void poselib_validate_act(struct bAction *act);
 
-void poselib_remove_pose(struct Object *ob, struct bPoseLibRef *plr);
+void poselib_remove_pose(struct Object *ob, struct TimeMarker *marker);
 void poselib_rename_pose(struct Object *ob);
 void poselib_add_current_pose(struct Object *ob, int mode);
 

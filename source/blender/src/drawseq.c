@@ -1064,7 +1064,7 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 	}
 
 	/* Draw markers */
-	draw_markers_timespace(1);
+	draw_markers_timespace(SCE_MARKERS, DRAW_MARKERS_LINES);
 	
 	/* restore viewport */
 	mywinset(sa->win);

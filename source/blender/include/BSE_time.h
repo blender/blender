@@ -35,8 +35,14 @@
 
 struct ListBase;
 struct View2D;
+struct TimeMarker;
 
-/* ******** Markers - General Api ********* */
+/* ****** Marker Macros - General API ****** */
+
+/* macro for getting the scene's set of markers */
+#define SCE_MARKERS (&(G.scene->markers))
+
+/* ******** Markers - General API ********* */
 void add_marker(int frame);
 void duplicate_marker(void);
 void remove_marker(void);
@@ -45,17 +51,25 @@ void transform_markers(int mode, int smode);
 
 void borderselect_markers(void);
 void deselect_markers(short test, short sel);
-struct TimeMarker *find_nearest_marker(int clip_y);
+struct TimeMarker *find_nearest_marker(struct ListBase *markers, int clip_y);
 
 void nextprev_marker(short dir);
 void get_minmax_markers(short sel, float *first, float *last);
 int find_nearest_marker_time(float dx);
+struct TimeMarker *get_frame_marker(int frame);
 
 void add_marker_to_cfra_elem(struct ListBase *lb, struct TimeMarker *marker, short only_sel);
 void make_marker_cfra_list(struct ListBase *lb, short only_sel);
 
-void draw_markers_timespace(int lines);
-TimeMarker *get_frame_marker(int frame);
+/* ********* Markers - Drawing API ********* */
+
+/* flags for drawing markers */
+enum {
+	DRAW_MARKERS_LINES	= (1<<0),
+	DRAW_MARKERS_LOCAL	= (1<<1)
+};
+
+void draw_markers_timespace(struct ListBase *markers, int flag);
 
 /* ******** Animation - Preview Range ************* */
 void anim_previewrange_set(void);

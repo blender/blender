@@ -1738,6 +1738,7 @@ static void write_actions(WriteData *wd, ListBase *idbase)
 {
 	bAction			*act;
 	bActionChannel	*chan;
+	TimeMarker *marker;
 	
 	for(act=idbase->first; act; act= act->id.next) {
 		if (act->id.us>0 || wd->current) {
@@ -1749,14 +1750,8 @@ static void write_actions(WriteData *wd, ListBase *idbase)
 				write_constraint_channels(wd, &chan->constraintChannels);
 			}
 			
-			if (act->poselib) {
-				bPoseLib *pl= act->poselib;
-				bPoseLibRef *plr;
-				
-				writestruct(wd, DATA, "bPoseLib", 1, pl);
-				
-				for (plr= pl->poses.first; plr; plr= plr->next)
-					writestruct(wd, DATA, "bPoseLibRef", 1, plr);
+			for (marker=act->markers.first; marker; marker=marker->next) {
+				writestruct(wd, DATA, "TimeMarker", 1, marker);
 			}
 		}
 	}

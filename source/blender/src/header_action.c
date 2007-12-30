@@ -174,7 +174,10 @@ enum {
 	ACTMENU_MARKERS_DUPLICATE,
 	ACTMENU_MARKERS_DELETE,
 	ACTMENU_MARKERS_NAME,
-	ACTMENU_MARKERS_MOVE
+	ACTMENU_MARKERS_MOVE,
+	ACTMENU_MARKERS_LOCALADD,
+	ACTMENU_MARKERS_LOCALRENAME,
+	ACTMENU_MARKERS_LOCALDELETE
 };
 
 void do_action_buttons(unsigned short event)
@@ -1103,6 +1106,16 @@ static void do_action_markermenu(void *arg, int event)
 		case ACTMENU_MARKERS_MOVE:
 			transform_markers('g', 0);
 			break;
+			
+		case ACTMENU_MARKERS_LOCALADD:
+			action_add_localmarker(G.saction->action, CFRA);
+			break;
+		case ACTMENU_MARKERS_LOCALDELETE:
+			action_remove_localmarkers(G.saction->action);
+			break;
+		case ACTMENU_MARKERS_LOCALRENAME:
+			action_rename_localmarker(G.saction->action);
+			break;
 	}
 	
 	allqueue(REDRAWMARKER, 0);
@@ -1130,7 +1143,15 @@ static uiBlock *action_markermenu(void *arg_unused)
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_NAME, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move Marker|Ctrl G", 0, yco-=20,
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_MOVE, "");
+					 
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add Local Marker|Shift L", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_LOCALADD, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Rename Local Marker|Ctrl Shift L", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_LOCALRENAME, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Local Marker|Alt L", 0, yco-=20,
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_LOCALDELETE, "");
 	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);

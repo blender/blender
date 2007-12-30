@@ -99,26 +99,6 @@ typedef struct bPose {
 	float cyclic_offset[3];		/* result of match and cycles, applied in where_is_pose() */
 } bPose;
 
-
-/* "Pose" reference for PoseLib */
-typedef struct bPoseLibRef {
-	struct bPoseLibRef *next, *prev;
-	int frame;					/* frame in the action to look for this pose */
-	char name[32];				/* name of the pose */
-	int flag;					/* temporary settings for this pose */
-} bPoseLibRef;
-
-/* PoseLib data for Action 
- *	PoseLib data is stored in actions so that poselibs can easily be assigned/removed from
- *	a pose. Currently the only data that is stored for a poselib is a set of references to which
- *	frame a named pose occurs in the action.
- */
-typedef struct bPoseLib {
-	ListBase 	poses;			/* List of poses for an action (arranged in chronological order) */
-	int 	flag;				/* Settings (not used yet) */
-	int 	active_nr;			/* Index of the poselib's active pose (for UI) */
-} bPoseLib;
-
 /* Action Channels belong to Actions. They are linked with an IPO block, and can also own 
  * Constraint Channels in certain situations. 
  */
@@ -137,8 +117,12 @@ typedef struct bActionChannel {
  */
 typedef struct bAction {
 	ID				id;
+	
 	ListBase		chanbase;	/* Action Channels in this Action */
-	bPoseLib		*poselib;	/* PoseLib data of this Action (only if the action is used as poselib) */
+	ListBase 		markers;	/* TimeMarkers local to this Action for labelling 'poses' */
+	
+	int active_marker;			/* Index of active-marker (first marker = 1) */
+	int pad;
 } bAction;
 
 /* Action Editor Space. This is defined here instead of in DNA_space_types.h */

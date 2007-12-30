@@ -2247,7 +2247,7 @@ void drawipospace(ScrArea *sa, void *spacedata)
 		draw_anim_preview_timespace();
 		
 		/* draw markers */
-		draw_markers_timespace(0);
+		draw_markers_timespace(SCE_MARKERS, 0);
 		
 		/* restore viewport */
 		mywinset(sa->win);

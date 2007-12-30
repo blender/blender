@@ -1802,9 +1802,6 @@ static void lib_link_pose(FileData *fd, Object *ob, bPose *pose)
 		}
 	}
 	
-	// ob->id.lib??? 
-	pose->poselib = newlibadr_us(fd, ob->id.lib, pose->poselib);
-	
 	if(rebuild) {
 		ob->recalc= OB_RECALC;
 		pose->flag |= POSE_RECALC;
@@ -1864,13 +1861,10 @@ static void direct_link_action(FileData *fd, bAction *act)
 	bActionChannel *achan;
 
 	link_list(fd, &act->chanbase);
+	link_list(fd, &act->markers);
 
 	for (achan = act->chanbase.first; achan; achan=achan->next)
 		link_list(fd, &achan->constraintChannels);
-		
-	act->poselib= newdataadr(fd, act->poselib);
-	if (act->poselib)
-		link_list(fd, &act->poselib->poses);
 }
 
 static void direct_link_armature(FileData *fd, bArmature *arm)
@@ -2790,6 +2784,7 @@ static void lib_link_object(FileData *fd, Main *main)
 			ob->track= newlibadr(fd, ob->id.lib, ob->track);
 			ob->ipo= newlibadr_us(fd, ob->id.lib, ob->ipo);
 			ob->action = newlibadr_us(fd, ob->id.lib, ob->action);
+			ob->poselib= newlibadr_us(fd, ob->id.lib, ob->poselib);
 			ob->dup_group= newlibadr_us(fd, ob->id.lib, ob->dup_group);
 			
 			ob->proxy= newlibadr_us(fd, ob->id.lib, ob->proxy);
@@ -7821,8 +7816,6 @@ static void expand_pose(FileData *fd, Main *mainvar, bPose *pose)
 		expand_constraints(fd, mainvar, &chan->constraints);
 		expand_doit(fd, mainvar, chan->custom);
 	}
-	
-	expand_doit(fd, mainvar, pose->poselib);
 }
 
 static void expand_armature(FileData *fd, Main *mainvar, bArmature *arm)
@@ -7900,6 +7893,7 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 	expand_doit(fd, mainvar, ob->data);
 	expand_doit(fd, mainvar, ob->ipo);
 	expand_doit(fd, mainvar, ob->action);
+	expand_doit(fd, mainvar, ob->poselib);
 
 	for (md=ob->modifiers.first; md; md=md->next) {
 		expand_modifier(fd, mainvar, md);

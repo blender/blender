@@ -473,7 +473,7 @@ void get_minmax_markers(short sel, float *first, float *last)
 	*last= max;
 }
 
-TimeMarker *find_nearest_marker(int clip_y)
+TimeMarker *find_nearest_marker(ListBase *markers, int clip_y)
 {
 	TimeMarker *marker;
 	float xmin, xmax;
@@ -483,7 +483,7 @@ TimeMarker *find_nearest_marker(int clip_y)
 	getmouseco_areawin (mval);
 	
 	/* first clip selection in Y */
-	if((clip_y) && (mval[1] > 30))
+	if ((clip_y) && (mval[1] > 30))
 		return NULL;
 	
 	mval[0]-=7;
@@ -494,7 +494,7 @@ TimeMarker *find_nearest_marker(int clip_y)
 	xmin= rectf.xmin;
 	xmax= rectf.xmax;
 	
-	for(marker= G.scene->markers.first; marker; marker= marker->next) {
+	for (marker= markers->first; marker; marker= marker->next) {
 		if ((marker->frame > xmin) && (marker->frame <= xmax)) {
 			return marker;
 		}
@@ -877,9 +877,9 @@ void winqreadtimespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case RIGHTMOUSE: /* select/deselect marker */
 			getmouseco_areawin(mval);
 			areamouseco_to_ipoco(G.v2d, mval, &dx, &dy);
-
+			
 			cfra= find_nearest_marker_time(dx);
-
+			
 			if (G.qual && LR_SHIFTKEY)
 				select_timeline_marker_frame(cfra, 1);
 			else

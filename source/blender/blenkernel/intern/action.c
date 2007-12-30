@@ -163,15 +163,6 @@ void make_local_action(bAction *act)
 	}
 }
 
-static void free_act_poselib (bAction *act)
-{
-	if (act->poselib) {
-		bPoseLib *pl= act->poselib;
-		
-		BLI_freelistN(&pl->poses);
-		MEM_freeN(pl);
-	}
-}
 
 void free_action (bAction *act)
 {
@@ -187,8 +178,9 @@ void free_action (bAction *act)
 	if (act->chanbase.first)
 		BLI_freelistN(&act->chanbase);
 		
-	/* Free PoseLib */
-	free_act_poselib(act);
+	/* Free pose-references */
+	if (act->markers.first)
+		BLI_freelistN(&act->markers);
 }
 
 bAction *copy_action (bAction *src)
@@ -200,6 +192,7 @@ bAction *copy_action (bAction *src)
 	
 	dst= copy_libblock(src);
 	duplicatelist(&(dst->chanbase), &(src->chanbase));
+	duplicatelist(&(dst->markers), &(src->markers));
 	
 	for (dchan=dst->chanbase.first, schan=src->chanbase.first; dchan; dchan=dchan->next, schan=schan->next){
 		dchan->ipo = copy_ipo(dchan->ipo);

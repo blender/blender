@@ -63,6 +63,7 @@
 #include "BSE_editipo.h"
 
 #include "BDR_drawaction.h"
+#include "BSE_time.h"
 
 #include "BIF_poselib.h"
 #include "BIF_interface.h"
@@ -71,6 +72,7 @@
 #include "BIF_screen.h"
 #include "BIF_toets.h"
 #include "BIF_toolbox.h"
+
 
 #include "blendef.h"
 
@@ -86,22 +88,21 @@
  * 	It acts as a kind of "glorified clipboard for poses", allowing for naming of poses.
  *
  * Features:
- *	- PoseLibs are simply normal Actions, but with a poselib
+ *	- PoseLibs are simply normal Actions
  *	- Each "pose" is simply a set of keyframes that occur on a particular frame
- *		-> a bPoseLibRef struct is used to identify and label poses in the Action
- *		-> all bPoseLibRefs are stored in the order they were added
- *		-> keys for poses should occur on each positively numbered frame (starting from frame 1)
+ *		-> a set of TimeMarkers that belong to each Action, help 'label' where a 'pose' can be
+ *		   found in the Action
  *	- The Scrollwheel or PageUp/Down buttons when used in a special mode or after pressing/holding
  *	  [a modifier] key, cycles through the poses available for the active pose's poselib, allowing the
  *	  animator to preview what action best suits that pose
  */
 /* ************************************************************* */
 
-/* gets list of poses in poselib as a string */
-char *poselib_build_poses_menu (bPoseLib *pl, char title[])
+/* gets list of poses in poselib as a string usable for pupmenu() */
+char *poselib_build_poses_menu (bAction *act, char title[])
 {
 	DynStr *pupds= BLI_dynstr_new();
-	bPoseLibRef *plr;
+	TimeMarker *marker;
 	char *str;
 	char buf[64];
 	int i;
@@ -110,14 +111,14 @@ char *poselib_build_poses_menu (bPoseLib *pl, char title[])
 	sprintf(buf, "%s%%t|", title);
 	BLI_dynstr_append(pupds, buf);
 	
-	/* loop through keyingsets, adding them */
-	for (plr=pl->poses.first, i=1; plr; plr=plr->next, i++) {
-		BLI_dynstr_append(pupds, plr->name);
+	/* loop through markers, adding them */
+	for (marker=act->markers.first, i=1; marker; marker=marker->next, i++) {
+		BLI_dynstr_append(pupds, marker->name);
 		
 		sprintf(buf, "%%x%d", i);
 		BLI_dynstr_append(pupds, buf);
 		
-		if (plr->next)
+		if (marker->next)
 			BLI_dynstr_append(pupds, "|");
 	}
 	
@@ -128,75 +129,28 @@ char *poselib_build_poses_menu (bPoseLib *pl, char title[])
 	return str;
 }
 
-/* finds an unique name for pose to be added to poselib */
-void poselib_unique_pose_name (bPoseLib *pl, char name[])
-{
-	bPoseLibRef *plr;
-	char tempname[32];
-	int	number = 1, exists = 0;
-	char *dot;
-	
-	/* See if we are given an empty string */
-	if (name[0] == '\0') {
-		/* give it default name first */
-		strcpy(name, "Pose");
-	}
-	
-	/* See if we even need to do this */	
-	for (plr= pl->poses.first; plr; plr= plr->next) {
-		if (!strcmp(name, plr->name)) {
-			exists = 1;
-			break;
-		}
-	}
-	
-	if (exists == 0)
-		return;
-
-	/*	Strip off the suffix */
-	dot = strchr(name, '.');
-	if (dot)
-		*dot=0;
-	
-	for (number = 1; number <= 999; number++) {
-		sprintf(tempname, "%s.%03d", name, number);
-		
-		exists = 0;
-		for (plr= pl->poses.first; plr; plr= plr->next) {
-			if (strcmp(name, tempname)==0) {
-				exists = 1;
-				break;
-			}
-		}
-		if (exists == 0) {
-			BLI_strncpy(name, tempname, 32);
-			return;
-		}
-	}
-}
-
 /* gets the first available frame in poselib to store a pose on 
  *	- frames start from 1, and a pose should occur on every frame... 0 is error!
  */
-int poselib_get_free_index (bPoseLib *pl)
+int poselib_get_free_index (bAction *act)
 {
-	bPoseLibRef *plr;
+	TimeMarker *marker;
 	int low=0, high=0;
 	
 	/* sanity checks */
-	if (ELEM(NULL, pl, pl->poses.first)) return 1;
+	if (ELEM(NULL, act, act->markers.first)) return 1;
 	
 	/* loop over poses finding various values (poses are not stored in chronological order) */
-	for (plr= pl->poses.first; plr; plr= plr->next) {
+	for (marker= act->markers.first; marker; marker= marker->next) {
 		/* only increase low if value is 1 greater than low, to find "gaps" where
 		 * poses were removed from the poselib
 		 */
-		if (plr->frame == (low + 1)) 
+		if (marker->frame == (low + 1)) 
 			low++;
 		
 		/* value replaces high if it is the highest value encountered yet */
-		if (plr->frame > high) 
-			high= plr->frame;
+		if (marker->frame > high) 
+			high= marker->frame;
 	}
 	
 	/* - if low is not equal to high, then low+1 is a gap 
@@ -208,46 +162,41 @@ int poselib_get_free_index (bPoseLib *pl)
 		return (high + 1);
 }
 
+/* returns the active pose for a poselib */
+TimeMarker *poselib_get_active_pose (bAction *act)
+{	
+	if ((act) && (act->active_marker))
+		return BLI_findlink(&act->markers, act->active_marker-1);
+	else
+		return NULL;
+}
+
 /* ************************************************************* */
 
 /* Initialise a new poselib (whether it is needed or not) */
-bPoseLib *poselib_init_new (Object *ob)
+bAction *poselib_init_new (Object *ob)
 {
-	bPose *pose= (ob) ? ob->pose : NULL;
-	bAction *act;
-	bPoseLib *pl;
-	
-	if (ELEM(NULL, ob, pose))
+	/* sanity checks - only for armatures */
+	if (ELEM(NULL, ob, ob->pose))
 		return NULL;
 	
-	/* init pose's poselib action (unlink old one if there) */
-	if (pose->poselib)
-		pose->poselib->id.us--;
-	pose->poselib= add_empty_action("PoseLib");
-	act= pose->poselib;
+	/* init object's poselib action (unlink old one if there) */
+	if (ob->poselib)
+		ob->poselib->id.us--;
+	ob->poselib= add_empty_action("PoseLib");
 	
-	/* init actions's poselib data */
-	if (act->poselib == NULL)
-		act->poselib= MEM_callocN(sizeof(bPoseLib), "bPoseLib");
-	pl= act->poselib;
-	
-	return pl;
+	return ob->poselib;
 }
 
 /* Initialise a new poselib (checks if that needs to happen) */
-bPoseLib *poselib_validate (Object *ob)
+bAction *poselib_validate (Object *ob)
 {
-	bPose *pose= (ob) ? ob->pose : NULL;
-	bAction *act= (pose) ? pose->poselib : NULL;
-	bPoseLib *pl= (act) ? act->poselib : NULL;
-	
-	if (ELEM(NULL, ob, pose))
+	if (ELEM(NULL, ob, ob->pose))
 		return NULL;
-		
-	if (ELEM(NULL, act, pl))
+	else if (ob->poselib == NULL)
 		return poselib_init_new(ob);
 	else
-		return pl;
+		return ob->poselib;
 }
 
 
@@ -258,8 +207,7 @@ void poselib_validate_act (bAction *act)
 {
 	ListBase keys = {NULL, NULL};
 	ActKeyColumn *ak;
-	bPoseLib *pl;
-	bPoseLibRef *plr, *plrn;
+	TimeMarker *marker, *markern;
 	
 	/* validate action and poselib */
 	if (act == NULL)  {
@@ -267,49 +215,44 @@ void poselib_validate_act (bAction *act)
 		return;
 	}
 	
-	if (act->poselib == NULL)
-		act->poselib= MEM_callocN(sizeof(bPoseLib), "bPoseLib");
-	pl= act->poselib;
-	
 	/* determine which frames have keys */
 	action_to_keylist(act, &keys, NULL);
 	
 	/* for each key, make sure there is a correspnding pose */
 	for (ak= keys.first; ak; ak= ak->next) {
 		/* check if any pose matches this */
-		for (plr= pl->poses.first; plr; plr= plr->next) {
-			if (IS_EQ(plr->frame, ak->cfra)) {
-				plr->flag = 1;
+		for (marker= act->markers.first; marker; marker= marker->next) {
+			if (IS_EQ(marker->frame, ak->cfra)) {
+				marker->flag = -1;
 				break;
 			}
 		}
 		
 		/* add new if none found */
-		if (plr == NULL) {
-			char name[32];
+		if (marker == NULL) {
+			char name[64];
 			
 			/* add pose to poselib */
-			plr= MEM_callocN(sizeof(bPoseLibRef), "bPoseLibRef");
+			marker= MEM_callocN(sizeof(TimeMarker), "ActionMarker");
 			
 			strcpy(name, "Pose");
-			poselib_unique_pose_name(pl, name);
-			BLI_strncpy(plr->name, name, sizeof(plr->name));
+			BLI_strncpy(marker->name, name, sizeof(marker->name));
 			
-			plr->frame= (int)ak->cfra;
-			plr->flag= 1;
+			marker->frame= (int)ak->cfra;
+			marker->flag= -1;
 			
-			BLI_addtail(&pl->poses, plr);
+			BLI_addtail(&act->markers, marker);
 		}
 	}
 	
 	/* remove all untagged poses (unused), and remove all tags */
-	for (plr= pl->poses.first; plr; plr= plrn) {
-		plrn= plr->next;
+	for (marker= act->markers.first; marker; marker= markern) {
+		markern= marker->next;
 		
-		if (plr->flag == 0)
-			BLI_freelinkN(&pl->poses, plr);
+		if (marker->flag != -1)
+			BLI_freelinkN(&act->markers, marker);
 		else
-			plr->flag = 0;
+			marker->flag = 0;
 	}
 	
 	/* free temp memory */
@@ -353,13 +296,12 @@ void poselib_add_current_pose (Object *ob, int val)
 	bArmature *arm= (ob) ? ob->data : NULL;
 	bPose *pose= (ob) ? ob->pose : NULL;
 	bPoseChannel *pchan;
-	bPoseLib *pl;
-	bPoseLibRef *plr;
+	TimeMarker *marker;
 	bAction *act;
 	bActionChannel *achan;
 	IpoCurve *icu;
 	int frame;
-	char name[32];
+	char name[64];
 	
 	/* sanity check */
 	if (ELEM3(NULL, ob, arm, pose)) 
@@ -367,7 +309,7 @@ void poselib_add_current_pose (Object *ob, int val)
 	
 	/* mode - add new or replace existing */
 	if (val == 0) {
-		if (pose->poselib && pose->poselib->poselib->poses.first) {
+		if ((ob->poselib) && (ob->poselib->markers.first)) {
 			val= pupmenu("PoseLib Add Current Pose%t|Add New%x1|Replace Existing%x2");
 			if (val <= 0) return;
 		}
@@ -375,24 +317,23 @@ void poselib_add_current_pose (Object *ob, int val)
 			val= 1;
 	}
 	
-	if ((pose->poselib) && (val == 2)) {
+	if ((ob->poselib) && (val == 2)) {
 		char *menustr;
 		
 		/* get poselib */
-		act= pose->poselib;
-		pl= act->poselib;
+		act= ob->poselib;
 		
 		/* get the pose to replace */
-		menustr= poselib_build_poses_menu(pl, "Replace PoseLib Pose");
+		menustr= poselib_build_poses_menu(act, "Replace PoseLib Pose");
 		val= pupmenu(menustr);
 		if (menustr) MEM_freeN(menustr);
 		
 		if (val <= 0) return;
-		plr= BLI_findlink(&pl->poses, val-1);
-		if (plr == NULL) return;
+		marker= BLI_findlink(&act->markers, val-1);
+		if (marker == NULL) return;
 		
 		/* get the frame from the poselib */
-		frame= plr->frame;
+		frame= marker->frame;
 	}
 	else {
 		/* get name of pose */
@@ -401,18 +342,26 @@ void poselib_add_current_pose (Object *ob, int val)
 			return;
 			
 		/* get/initialise poselib */
-		pl= poselib_validate(ob);
-		act= pose->poselib;	
+		act= poselib_validate(ob);
 		
 		/* validate name and get frame */
-		poselib_unique_pose_name(pl, name);
-		frame= poselib_get_free_index(pl);
+		frame= poselib_get_free_index(act);
 		
-		/* add pose to poselib */
-		plr= MEM_callocN(sizeof(bPoseLibRef), "bPoseLibRef");
-		BLI_strncpy(plr->name, name, sizeof(plr->name));
-		plr->frame= frame;
-		BLI_addtail(&pl->poses, plr);
+		/* add pose to poselib - replaces any existing pose there */
+		for (marker= act->markers.first; marker; marker= marker->next) {
+			if (marker->frame == frame) {
+				BLI_strncpy(marker->name, name, sizeof(marker->name));
+				break;
+			}
+		}
+		if (marker == NULL) {
+			marker= MEM_callocN(sizeof(TimeMarker), "ActionMarker");
+			
+			BLI_strncpy(marker->name, name, sizeof(marker->name));
+			marker->frame= frame;
+			
+			BLI_addtail(&act->markers, marker);
+		}
 	}	
 	
 	/* loop through selected posechannels, keying their pose to the action */
@@ -448,7 +397,7 @@ void poselib_add_current_pose (Object *ob, int val)
 	}
 	
 	/* store new 'active' pose number */
-	pl->active_nr= BLI_countlist(&pl->poses);
+	act->active_marker= BLI_countlist(&act->markers);
 	
 	BIF_undo_push("PoseLib Add Pose");
 	allqueue(REDRAWBUTSEDIT, 0);
@@ -456,12 +405,11 @@ void poselib_add_current_pose (Object *ob, int val)
 
 
 /* This tool removes the pose that the user selected from the poselib (or the provided pose) */
-void poselib_remove_pose (Object *ob, bPoseLibRef *plr)
+void poselib_remove_pose (Object *ob, TimeMarker *marker)
 {
 	bPose *pose= (ob) ? ob->pose : NULL;
-	bAction *act= (pose) ? pose->poselib : NULL;
+	bAction *act= (ob) ? ob->poselib : NULL;
 	bActionChannel *achan;
-	bPoseLib *pl= (act) ? act->poselib : NULL;
 	char *menustr;
 	int val;
 	
@@ -470,24 +418,24 @@ void poselib_remove_pose (Object *ob, bPoseLibRef *plr)
 		error("PoseLib is only for Armatures in PoseMode");
 		return;
 	}
-	if (ELEM(NULL, act, pl)) {
-		error("Pose doesn't have a valid PoseLib");
+	if (act == NULL) {
+		error("Object doesn't have PoseLib data");
 		return;
 	}
 	
 	/* get index (and pointer) of pose to remove */
-	if (plr == NULL) {
-		menustr= poselib_build_poses_menu(pl, "Remove PoseLib Pose");
+	if (marker == NULL) {
+		menustr= poselib_build_poses_menu(act, "Remove PoseLib Pose");
 		val= pupmenu(menustr);
 		if (menustr) MEM_freeN(menustr);
 		
 		if (val <= 0) return;
-		plr= BLI_findlink(&pl->poses, val-1);
-		if (plr == NULL) return;
+		marker= BLI_findlink(&act->markers, val-1);
+		if (marker == NULL) return;
 	}
 	else {
 		/* only continue if pose belongs to poselib */
-		if (BLI_findindex(&pl->poses, plr) == -1) 
+		if (BLI_findindex(&act->markers, marker) == -1) 
 			return;
 	}
 	
@@ -501,7 +449,7 @@ void poselib_remove_pose (Object *ob, bPoseLibRef *plr)
 		for (icu= ipo->curve.first; icu; icu= icu->next) {
 			for (i=0, bezt=icu->bezt; i < icu->totvert; i++, bezt++) {
 				/* check if remove... */
-				if (IS_EQ(bezt->vec[1][0], plr->frame)) {
+				if (IS_EQ(bezt->vec[1][0], marker->frame)) {
 					delete_icu_key(icu, i);
 					break;
 				}
@@ -510,14 +458,15 @@ void poselib_remove_pose (Object *ob, bPoseLibRef *plr)
 	}
 	
 	/* remove poselib from list */
-	BLI_freelinkN(&pl->poses, plr);
+	BLI_freelinkN(&act->markers, marker);
 	
 	/* fix active pose number */
-	pl->active_nr= 0;
+	act->active_marker= 0;
 	
 	/* undo + redraw */
 	BIF_undo_push("PoseLib Remove Pose");
 	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWACTION, 0);
 }
 
 
@@ -525,10 +474,9 @@ void poselib_remove_pose (Object *ob, bPoseLibRef *plr)
 void poselib_rename_pose (Object *ob)
 {
 	bPose *pose= (ob) ? ob->pose : NULL;
-	bAction *act= (pose) ? pose->poselib : NULL;
-	bPoseLib *pl= (act) ? act->poselib : NULL;
-	bPoseLibRef *plr;
-	char *menustr, name[32];
+	bAction *act= (ob) ? ob->poselib : NULL;
+	TimeMarker *marker;
+	char *menustr, name[64];
 	int val;
 	
 	/* check if valid poselib */
@@ -536,34 +484,32 @@ void poselib_rename_pose (Object *ob)
 		error("PoseLib is only for Armatures in PoseMode");
 		return;
 	}
-	if (ELEM(NULL, act, pl)) {
-		error("Pose doesn't have a valid PoseLib");
+	if (act == NULL) {
+		error("Object doesn't have a valid PoseLib");
 		return;
 	}
 	
 	/* get index of pose to remove */
-	menustr= poselib_build_poses_menu(pl, "Rename PoseLib Pose");
+	menustr= poselib_build_poses_menu(act, "Rename PoseLib Pose");
 	val= pupmenu(menustr);
 	if (menustr) MEM_freeN(menustr);
 	
 	if (val <= 0) return;
-	plr= BLI_findlink(&pl->poses, val-1);
-	if (plr == NULL) return;
+	marker= BLI_findlink(&act->markers, val-1);
+	if (marker == NULL) return;
 	
 	/* get name of pose */
-	sprintf(name, plr->name);
+	sprintf(name, marker->name);
 	if (sbutton(name, 0, sizeof(name)-1, "Name: ") == 0)
 		return;
-		
-	/* validate name */
-	poselib_unique_pose_name(pl, name); // hmm what happens with the old pose's name...
 	
 	/* copy name */
-	BLI_strncpy(plr->name, name, sizeof(plr->name));
+	BLI_strncpy(marker->name, name, sizeof(marker->name));
 	
 	/* undo and update */
 	BIF_undo_push("PoseLib Rename Pose");
 	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWACTION, 0);
 }
 
 
@@ -574,23 +520,17 @@ typedef struct tPoseLib_Backup {
 	struct tPoseLib_Backup *next, *prev;
 	
 	bPoseChannel *pchan;
-	
-	float oldloc[3];
-	float oldsize[3];
-	float oldquat[4];
-	
-	int oldflag;
+	bPoseChannel olddata;
 } tPoseLib_Backup;
 
 /* Makes a copy of the current pose for restoration purposes - doesn't do constraints currently */
-static void poselib_backup_posecopy (ListBase *backups, bPose *pose)
+static void poselib_backup_posecopy (ListBase *backups, bPose *pose, bAction *act)
 {
-	bAction *poselib= pose->poselib;
 	bActionChannel *achan;
 	bPoseChannel *pchan;
 	
 	/* for each posechannel that has an actionchannel in */
-	for (achan= poselib->chanbase.first; achan; achan= achan->next) {
+	for (achan= act->chanbase.first; achan; achan= achan->next) {
 		/* try to find posechannel */
 		pchan= get_pose_channel(pose, achan->name);
 		
@@ -600,11 +540,8 @@ static void poselib_backup_posecopy (ListBase *backups, bPose *pose)
 			
 			plb= MEM_callocN(sizeof(tPoseLib_Backup), "tPoseLib_Backup");
 			
-			VECCOPY(plb->oldloc, pchan->loc);
-			VECCOPY(plb->oldsize, pchan->size);
-			QUATCOPY(plb->oldquat, pchan->quat);
-			
 			plb->pchan= pchan;
+			memcpy(&plb->olddata, plb->pchan, sizeof(bPoseChannel));
 			
 			BLI_addtail(backups, plb);
 		}
@@ -617,13 +554,10 @@ static void poselib_backup_restore (ListBase *backups)
 	tPoseLib_Backup *plb;
 	
 	for (plb= backups->first; plb; plb= plb->next) {
-		VECCOPY(plb->pchan->loc, plb->oldloc);
-		VECCOPY(plb->pchan->size, plb->oldsize);
-		VECCOPY(plb->pchan->quat, plb->oldquat);
-		
-		plb->pchan->flag = plb->oldflag;
+		memcpy(plb->pchan, &plb->olddata, sizeof(bPoseChannel));
 	}
 }
+
 
 /* ---------------------------- */
 
@@ -632,14 +566,14 @@ static void poselib_backup_restore (ListBase *backups)
  *	- gets the string to print in the header
  * 	- this code is based on the code for extract_pose_from_action in blenkernel/action.c
  */
-static void poselib_apply_pose (Object *ob, bPoseLibRef *plr, char headerstr[])
+static void poselib_apply_pose (Object *ob, TimeMarker *marker, char headerstr[])
 {
 	bPose *pose= ob->pose;
 	bPoseChannel *pchan;
-	bAction *act= pose->poselib;
+	bAction *act= ob->poselib;
 	bActionChannel *achan;
 	IpoCurve *icu;
-	int frame= plr->frame;
+	int frame= marker->frame;
 	
 	/* start applying - only those channels which have a key at this point in time! */
 	for (achan= act->chanbase.first; achan; achan= achan->next) {
@@ -662,11 +596,13 @@ static void poselib_apply_pose (Object *ob, bPoseLibRef *plr, char headerstr[])
 				if (found) break;
 			}
 			
-			/* apply pose */
+			/* apply pose - only if posechannel selected? */
 			if (found) {
 				pchan= get_pose_channel(pose, achan->name);
 				
-				if (pchan) {
+				if ( (pchan) && (pchan->bone) && 
+					 (pchan->bone->flag & (BONE_SELECTED|BONE_ACTIVE)) ) 
+				{
 					/* Evaluates and sets the internal ipo values	*/
 					calc_ipo(achan->ipo, frame);
 					/* This call also sets the pchan flags */
@@ -686,9 +622,8 @@ static void poselib_apply_pose (Object *ob, bPoseLibRef *plr, char headerstr[])
 /* Auto-keys/tags bones affected by the pose used from the poselib */
 static void poselib_keytag_pose (Object *ob)
 {
-	bPose *pose= ob->pose;
 	bPoseChannel *pchan;
-	bAction *act= pose->poselib;
+	bAction *act= ob->poselib;
 	bActionChannel *achan;
 	
 	/* start tagging/keying */
@@ -735,6 +670,35 @@ static void poselib_keytag_pose (Object *ob)
 
 /* ---------------------------- */
 
+/* This helper function is called during poselib_preview_poses to find the 
+ * pose to preview next (after a change event)
+ */
+static TimeMarker *poselib_preview_get_next (bAction *act, TimeMarker *current, int step)
+{
+	if (step) {
+		TimeMarker *marker, *next;
+		
+		/* Loop through the markers in a cyclic fashion, incrementing/decrementing step as appropriate 
+		 * until step == 0. At this point, marker should be the correct marker.
+		 */
+		if (step > 0) {
+			for (marker=current; marker && step; marker=next, step--)
+				next= (marker->next) ? marker->next : act->markers.first;
+		}
+		else {
+			for (marker=current; marker && step; marker=next, step++)
+				next= (marker->prev) ? marker->prev : act->markers.last;
+		}
+		
+		/* don't go anywhere if for some reason an error occurred */
+		return (marker) ? marker : current;
+	}
+	else
+		return current;
+}
+
+/* ---------------------------- */
+
 /* defines for poselib_preview_poses --> ret_val values */
 enum {
 	PL_PREVIEW_RUNNING = 0,
@@ -759,9 +723,8 @@ void poselib_preview_poses (Object *ob, short apply_active)
 	
 	bPose *pose= (ob) ? (ob->pose) : NULL;
 	bArmature *arm= (ob) ? (ob->data) : NULL;
-	bAction *act= (pose) ? (pose->poselib) : NULL; 
-	bPoseLib *pl= (act) ? (act->poselib) : NULL;
-	bPoseLibRef *plr= (pl == NULL) ? NULL : (pl->active_nr) ? BLI_findlink(&pl->poses, pl->active_nr-1) : pl->poses.first;
+	bAction *act= (ob) ? (ob->poselib) : NULL; 
+	TimeMarker *marker= poselib_get_active_pose(act);
 	Base *base;
 	
 	short ret_val= (apply_active) ? PL_PREVIEW_RUNONCE : PL_PREVIEW_RUNNING;
@@ -770,21 +733,21 @@ void poselib_preview_poses (Object *ob, short apply_active)
 	char headerstr[200];
 	
 	/* check if valid poselib */
-	if (ELEM(NULL, ob, pose)) {
+	if (ELEM3(NULL, ob, pose, arm)) {
 		error("PoseLib is only for Armatures in PoseMode");
 		return;
 	}
-	if (ELEM(NULL, act, pl)) {
-		error("Pose doesn't have a valid PoseLib");
+	if (act == NULL) {
+		error("Object doesn't have a valid PoseLib");
 		return;
 	}
-	if (plr == NULL) {
-		error("PoseLib has no poses to preview");
+	if (marker == NULL) {
+		error("PoseLib has no poses to preview/apply");
 		return;
 	}
 	
 	/* make backup of current pose for restoring pose */
-	poselib_backup_posecopy(&backups, pose);
+	poselib_backup_posecopy(&backups, pose, act);
 	
 	/* set depsgraph flags */
 		/* make sure the lock is set OK, unlock can be accidentally saved? */
@@ -805,7 +768,7 @@ void poselib_preview_poses (Object *ob, short apply_active)
 					firsttime = 0;
 					
 				/* pose should be the right one to draw */
-				poselib_apply_pose(ob, plr, headerstr);
+				poselib_apply_pose(ob, marker, headerstr);
 				
 				/* old optimize trick... this enforces to bypass the depgraph 
 				 *	- note: code copied from transform_generics.c -> recalcData()
@@ -827,7 +790,7 @@ void poselib_preview_poses (Object *ob, short apply_active)
 			
 			/* do header print - if interactively previewing */
 			if (ret_val == PL_PREVIEW_RUNNING) {
-				sprintf(headerstr, "PoseLib Previewing Pose: \"%s\"  | Use ScrollWheel or PageUp/Down to change", plr->name);
+				sprintf(headerstr, "PoseLib Previewing Pose: \"%s\"  | Use ScrollWheel or PageUp/Down to change", marker->name);
 				headerprint(headerstr);
 			}
 			
@@ -866,17 +829,31 @@ void poselib_preview_poses (Object *ob, short apply_active)
 						ret_val= PL_PREVIEW_CONFIRM;
 						break;
 					
-					/* change to previous pose - go back to end of list if no previous (cyclic) */
+					/* change to previous pose (cyclic) */
 					case PAGEUPKEY:
 					case WHEELUPMOUSE:
-						plr= (plr->prev) ? plr->prev : pl->poses.last;
+					case RIGHTARROWKEY:
+						marker= poselib_preview_get_next(act, marker, -1);
 						redraw= PL_PREVIEW_REDRAWALL;
 						break;
 						
-					/* change to next pose - go back to start of list if no next (cyclic) */
+					/* change to next pose (cyclic) */
 					case PAGEDOWNKEY:
 					case WHEELDOWNMOUSE:
-						plr= (plr->next) ? plr->next : pl->poses.first;
+					case LEFTARROWKEY:
+						marker= poselib_preview_get_next(act, marker, 1);
+						redraw= PL_PREVIEW_REDRAWALL;
+						break;
+					
+					/* jump 5 poses (cyclic, back) */
+					case DOWNARROWKEY:
+						marker= poselib_preview_get_next(act, marker, -5);
+						redraw= PL_PREVIEW_REDRAWALL;
+						break;
+					
+					/* jump 5 poses (cyclic, forward) */
+					case UPARROWKEY:
+						marker= poselib_preview_get_next(act, marker, 5);
 						redraw= PL_PREVIEW_REDRAWALL;
 						break;
 						
@@ -931,7 +908,7 @@ void poselib_preview_poses (Object *ob, short apply_active)
 		poselib_keytag_pose(ob);
 		
 		/* change active pose setting */
-		pl->active_nr= BLI_findindex(&pl->poses, plr) + 1;
+		act->active_marker= BLI_findindex(&act->markers, marker) + 1;
 		
 		/* Update event for pose and deformation children */
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);

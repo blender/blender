@@ -883,7 +883,7 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 	glClearColor(col[0], col[1], col[2], 0.0); 
 	glClear(GL_COLOR_BUFFER_BIT);
 	
-	if(curarea->winx>SCROLLB+10 && curarea->winy>SCROLLH+10) {
+	if (curarea->winx>SCROLLB+10 && curarea->winy>SCROLLH+10) {
 		if(G.v2d->scroll) {	
 			ofsx= curarea->winrct.xmin;	
 			ofsy= curarea->winrct.ymin;
@@ -927,8 +927,10 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 	/* Draw current frame */
 	draw_cfra_action();
 	
-	/* Draw markers */
-	draw_markers_timespace(0);
+	/* Draw markers (local behind scene ones, as local obscure scene markers) */
+	if (act) 
+		draw_markers_timespace(&act->markers, DRAW_MARKERS_LOCAL);
+	draw_markers_timespace(SCE_MARKERS, 0);
 	
 	/* Draw 'curtains' for preview */
 	draw_anim_preview_timespace();

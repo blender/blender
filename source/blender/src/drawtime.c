@@ -64,6 +64,7 @@
 #include "BIF_language.h"
 
 #include "BSE_drawipo.h"
+#include "BSE_time.h"
 #include "BSE_view.h"
 
 #include "blendef.h"
@@ -84,7 +85,7 @@
 /* ---- prototypes ------ */
 void drawtimespace(ScrArea *, void *);
 
-
+/* draws a current frame indicator for the TimeLine */
 static void draw_cfra_time(SpaceTime *stime)
 {
 	float vec[2];
@@ -144,9 +145,13 @@ static void draw_cfra_time(SpaceTime *stime)
 	
 }
 
-static void draw_marker(TimeMarker *marker, int lines)
+/* ---------- */
+
+/* function to draw markers */
+static void draw_marker(TimeMarker *marker, int flag)
 {
 	float xpos, ypixels, xscale, yscale;
+	int icon_id= 0;
 
 	xpos = marker->frame;
 	/* no time correction for framelen! space is drawn with old values */
@@ -161,7 +166,7 @@ static void draw_marker(TimeMarker *marker, int lines)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);			
 	
 	/* verticle line */
-	if (lines) {
+	if (flag & DRAW_MARKERS_LINES) {
 		setlinestyle(3);
 		if(marker->flag & SELECT)
 			glColor4ub(255,255,255, 96);
@@ -176,14 +181,20 @@ static void draw_marker(TimeMarker *marker, int lines)
 	}
 	
 	/* 5 px to offset icon to align properly, space / pixels corrects for zoom */
-	if(marker->flag & SELECT)
-		BIF_icon_draw(xpos*xscale-5.0, 12.0, ICON_MARKER_HLT);
-	else
-		BIF_icon_draw(xpos*xscale-5.0, 12.0, ICON_MARKER);
+	if (flag & DRAW_MARKERS_LOCAL) {
+		icon_id= (marker->flag & ACTIVE) ? ICON_PMARKER_ACT : 
+				 (marker->flag & SELECT) ? ICON_PMARKER_SEL : 
+				 ICON_PMARKER;
+	}
+	else {
+		icon_id= (marker->flag & SELECT) ? ICON_MARKER_HLT : 
+				 ICON_MARKER;
+	}
+	BIF_icon_draw(xpos*xscale-5.0, 12.0, icon_id);
 	
 	glBlendFunc(GL_ONE, GL_ZERO);
 	glDisable(GL_BLEND);
-			
+		
 	/* and the marker name too, shifted slightly to the top-right */
 	if(marker->name && marker->name[0]) {
 		if(marker->flag & SELECT) {
@@ -202,24 +213,27 @@ static void draw_marker(TimeMarker *marker, int lines)
 	glScalef(xscale, yscale, 1.0);
 }
 
-static void draw_markers_time(int lines)
+/* Draw Scene-Markers for the TimeLine */
+static void draw_markers_time(int flag)
 {
 	TimeMarker *marker;
 
 	/* unselected markers are drawn at the first time */
-	for(marker= G.scene->markers.first; marker; marker= marker->next) {
-		if(!(marker->flag & SELECT)) draw_marker(marker, lines);
+	for (marker= G.scene->markers.first; marker; marker= marker->next) {
+		if (!(marker->flag & SELECT)) draw_marker(marker, flag);
 	}
 
 	/* selected markers are drawn later ... selected markers have to cover unselected
 	 * markers laying at the same position as selected markers
-	 * (jiri: it is hack, it could be solved better) */
-	for(marker= G.scene->markers.first; marker; marker= marker->next) {
-		if(marker->flag & SELECT) draw_marker(marker, lines);
+	 * (jiri: it is hack, it could be solved better) 
+	 */
+	for (marker= G.scene->markers.first; marker; marker= marker->next) {
+		if (marker->flag & SELECT) draw_marker(marker, flag);
 	}
 }
 
-void draw_markers_timespace(int lines)
+/* Draw specified set of markers for Animation Editors */
+void draw_markers_timespace(ListBase *markers, int flag)
 {
 	TimeMarker *marker;
 	float yspace, ypixels;
@@ -233,20 +247,20 @@ void draw_markers_timespace(int lines)
 	glTranslatef(0.0f, -11.0*yspace/ypixels, 0.0f);
 		
 	/* unselected markers are drawn at the first time */
-	for(marker= G.scene->markers.first; marker; marker= marker->next) {
-		if(!(marker->flag & SELECT)) draw_marker(marker, lines);
+	for (marker= markers->first; marker; marker= marker->next) {
+		if (!(marker->flag & SELECT)) draw_marker(marker, flag);
 	}
 	
 	/* selected markers are drawn later ... selected markers have to cover unselected
 		* markers laying at the same position as selected markers */
-	for(marker= G.scene->markers.first; marker; marker= marker->next) {
-		if(marker->flag & SELECT) draw_marker(marker, lines);
+	for (marker= markers->first; marker; marker= marker->next) {
+		if (marker->flag & SELECT) draw_marker(marker, flag);
 	}
 
 	glTranslatef(0.0f, -G.v2d->cur.ymin, 0.0f);
 	glTranslatef(0.0f, 11.0*yspace/ypixels, 0.0f);
-
 }
+
 
 void draw_anim_preview_timespace()
 {

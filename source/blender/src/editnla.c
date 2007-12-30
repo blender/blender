@@ -1257,7 +1257,7 @@ static void mouse_nla(int selectmode)
 	
 	/* Try object ipo or ob-constraint ipo selection */
 	base= get_nearest_nlachannel_ob_key(&selx, &sel);
-	marker=find_nearest_marker(1);
+	marker=find_nearest_marker(SCE_MARKERS, 1);
 	if (base) {
 		isdone= 1;
 		

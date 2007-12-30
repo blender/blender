@@ -173,7 +173,7 @@ void winqreadsoundspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				getmouseco_areawin(mval);
 				areamouseco_to_ipoco(G.v2d, mval, &dx, &dy);
 
-				marker = find_nearest_marker(0);
+				marker = find_nearest_marker(SCE_MARKERS, 0);
 				if (marker) {
 					if ((G.qual & LR_SHIFTKEY)==0)
 						deselect_markers(0, 0);
