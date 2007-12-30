@@ -750,6 +750,8 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 * message without calling DefWindowProc.
 					 */
 					event = processWindowEvent(GHOST_kEventWindowSize, window);
+                    ::ValidateRect(hwnd, NULL);
+                    break;
 				case WM_CAPTURECHANGED:
 					window->lostMouseCapture();
 					break;
@@ -772,6 +774,9 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 * to perform any move or size change processing during the WM_WINDOWPOSCHANGED 
 					 * message without calling DefWindowProc. 
 					 */
+					event = processWindowEvent(GHOST_kEventWindowMove, window);
+                    ::ValidateRect(hwnd, NULL);
+                    break;
 				case WM_ERASEBKGND:
 					/* An application sends the WM_ERASEBKGND message when the window background must be 
 					 * erased (for example, when a window is resized). The message is sent to prepare an 

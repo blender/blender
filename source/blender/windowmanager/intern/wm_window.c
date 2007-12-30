@@ -184,7 +184,7 @@ static void wm_window_open(wmWindowManager *wm, char *title, wmWindow *win)
 		inital_state = GHOST_kWindowStateMaximized;
 	else
 		inital_state = GHOST_kWindowStateNormal;
-	
+
 #ifdef __APPLE__
 	{
 		extern int macPrefState; /* creator.c */
@@ -371,19 +371,23 @@ int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 			}
 			case GHOST_kEventWindowSize:
 			case GHOST_kEventWindowMove: {
-				GHOST_RectangleHandle client_rect;
+				GHOST_RectangleHandle client_rect, window_rect;
 				int l, t, r, b, scr_w, scr_h;
+                int wl, wt, wr, wb;
 				
+                window_rect = GHOST_GetWindowBounds(win->ghostwin);
 				client_rect= GHOST_GetClientBounds(win->ghostwin);
 				GHOST_GetRectangle(client_rect, &l, &t, &r, &b);
+                GHOST_GetRectangle(window_rect, &wl, &wt, &wr, &wb);
 				
 				GHOST_DisposeRectangle(client_rect);
+                GHOST_DisposeRectangle(window_rect);
 				
 				wm_get_screensize(&scr_w, &scr_h);
 				win->sizex= r-l;
 				win->sizey= b-t;
-				win->posx= l;
-				win->posy= scr_h - t - win->sizey;
+				win->posx= wl;
+				win->posy= scr_h - wt - win->sizey;
 
 				if(type!=GHOST_kEventWindowSize)
 					printf("win move event pos %d %d size %d %d\n", win->posx, win->posy, win->sizex, win->sizey);

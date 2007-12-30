@@ -293,6 +293,7 @@ void GHOST_WindowWin32::getClientBounds(GHOST_Rect& bounds) const
 {
 	RECT rect;
 	::GetClientRect(m_hWnd, &rect);
+	//::GetWindowRect(m_hWnd, &rect);
 	bounds.m_b = rect.bottom;
 	bounds.m_l = rect.left;
 	bounds.m_r = rect.right;
