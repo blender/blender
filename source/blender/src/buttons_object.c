@@ -3752,7 +3752,6 @@ static void object_panel_particle_extra(Object *ob)
 	ParticleSettings *part;
 	short butx=0, buty=160, butw=150, buth=20;
 	static short vgnum=0;
-	int event;
 
 	if (psys==NULL) return;
 	part=psys->part;

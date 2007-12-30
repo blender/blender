@@ -3700,6 +3700,7 @@ void apply_objects_locrot( void )
 {
 	Base *base, *basact;
 	Object *ob;
+	bArmature *arm;
 	Mesh *me;
 	Curve *cu;
 	Nurb *nu;
@@ -3714,21 +3715,23 @@ void apply_objects_locrot( void )
 		if TESTBASELIB(base) {
 			ob= base->object;
 			if(ob->type==OB_MESH) {
+				me= ob->data;
+				
 				if(me->id.us>1) {
 					error("Can't apply to a multi user mesh, doing nothing.");
-					return 0;
+					return;
 				}
 				if(me->key) {
 					error("Can't apply to a mesh with vertex keys, doing nothing.");
-					return 0;
+					return;
 				}
 			}
-			else if (ob->type==OB_ARMATURE){
-				bArmature *arm;
+			else if (ob->type==OB_ARMATURE) {
 				arm= ob->data;
+				
 				if(arm->id.us>1) {
 					error("Can't apply to a multi user armature, doing nothing.");
-					return 0;
+					return;
 				}
 			}
 			else if ELEM(ob->type, OB_CURVE, OB_SURF) {
@@ -3736,11 +3739,11 @@ void apply_objects_locrot( void )
 				
 				if(cu->id.us>1) {
 					error("Can't apply to a multi user curve, doing nothing.");
-					return 0;
+					return;
 				}
 				if(cu->key) {
 					error("Can't apply to a curve with vertex keys, doing nothing.");
-					return 0;
+					return;
 				}
 			}
 		}
@@ -3752,7 +3755,7 @@ void apply_objects_locrot( void )
 	for (base= FIRSTBASE; base; base= base->next) {
 		if TESTBASELIB(base) {
 			ob= base->object;
-	
+			
 			if(ob->type==OB_MESH) {
 				object_to_mat3(ob, mat);
 				me= ob->data;
@@ -3778,15 +3781,13 @@ void apply_objects_locrot( void )
 				
 				change = 1;
 			}
-			else if (ob->type==OB_ARMATURE){
-				bArmature *arm;
-
+			else if (ob->type==OB_ARMATURE) {
 				object_to_mat3(ob, mat);
 				arm= ob->data;
 				
 				/* see checks above */
+				apply_rot_armature(ob, mat);
 				
-				apply_rot_armature (ob, mat);
 				/* Reset the object's transforms */
 				ob->size[0]= ob->size[1]= ob->size[2]= 1.0;
 				ob->rot[0]= ob->rot[1]= ob->rot[2]= 0.0;

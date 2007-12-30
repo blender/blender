@@ -1976,15 +1976,15 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 	if(bs->actob) {
 		Isect isec, minisec;
 		float co[3], minco[3];
-		int hit, sign, dir;
+		int hit, sign, dir=1;
 		
 		/* intersect with ray going forward and backward*/
 		hit= 0;
 		memset(&minisec, 0, sizeof(minisec));
 		minco[0]= minco[1]= minco[2]= 0.0f;
-
+		
 		VECCOPY(bs->dir, shi->vn);
-
+		
 		for(sign=-1; sign<=1; sign+=2) {
 			memset(&isec, 0, sizeof(isec));
 			VECCOPY(isec.start, shi->co);
@@ -1992,7 +1992,7 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 			isec.faceorig= (RayFace*)vlr;
 			isec.oborig= RAY_OBJECT_SET(&R, obi);
 			isec.userdata= bs;
-
+			
 			if(bake_intersect_tree(R.raytree, &isec, shi->vn, sign, co)) {
 				if(!hit || VecLenf(shi->co, co) < VecLenf(shi->co, minco)) {
 					minisec= isec;
@@ -2014,13 +2014,11 @@ static void do_bake_shade(void *handle, int x, int y, float u, float v)
 			obi= RAY_OBJECT_GET(&R, minisec.ob);
 			quad= (minisec.isect == 2);
 			VECCOPY(shi->co, minco);
-
+			
 			u= -minisec.u;
 			v= -minisec.v;
 			bake_set_shade_input(obi, vlr, shi, quad, 1, x, y, u, v);
 		}
-		
-		
 	}
 
 	if(bs->type==RE_BAKE_NORMALS && R.r.bake_normal_space==R_BAKE_SPACE_TANGENT)
