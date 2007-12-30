@@ -145,7 +145,7 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 	}
 	if (m_hWnd) {
 		// Store a pointer to this class in the window structure
-		LONG result = ::SetWindowLong(m_hWnd, GWL_USERDATA, (LONG)this);
+		LONG result = ::SetWindowLongPtr(m_hWnd, GWL_USERDATA, (LONG)this);
 
 		// Store the device context
 		m_hDC = ::GetDC(m_hWnd);
@@ -292,12 +292,20 @@ void GHOST_WindowWin32::getWindowBounds(GHOST_Rect& bounds) const
 void GHOST_WindowWin32::getClientBounds(GHOST_Rect& bounds) const
 {
 	RECT rect;
-	::GetClientRect(m_hWnd, &rect);
-	//::GetWindowRect(m_hWnd, &rect);
-	bounds.m_b = rect.bottom;
-	bounds.m_l = rect.left;
-	bounds.m_r = rect.right;
-	bounds.m_t = rect.top;
+	::GetWindowRect(m_hWnd, &rect);
+
+	LONG_PTR result = ::GetWindowLongPtr(m_hWnd, GWL_STYLE);
+	if((result & (WS_POPUP | WS_MAXIMIZE)) != (WS_POPUP | WS_MAXIMIZE)) {
+		bounds.m_b = rect.bottom-GetSystemMetrics(SM_CYCAPTION)-GetSystemMetrics(SM_CYSIZEFRAME)*2;
+		bounds.m_l = rect.left;
+		bounds.m_r = rect.right-GetSystemMetrics(SM_CYSIZEFRAME)*2;
+		bounds.m_t = rect.top;
+	} else {
+		bounds.m_b = rect.bottom;
+		bounds.m_l = rect.left;
+		bounds.m_r = rect.right;
+		bounds.m_t = rect.top;
+	}
 }
 
 
@@ -406,11 +414,11 @@ GHOST_TSuccess GHOST_WindowWin32::setState(GHOST_TWindowState state)
 				//Solves redraw problems when switching from fullscreen to normal.
 				
 		wp.showCmd = SW_SHOWMAXIMIZED; 
-		SetWindowLong(m_hWnd, GWL_STYLE, WS_OVERLAPPEDWINDOW);
+		SetWindowLongPtr(m_hWnd, GWL_STYLE, WS_OVERLAPPEDWINDOW);
 		break;
 	case GHOST_kWindowStateFullScreen:
 		wp.showCmd = SW_SHOWMAXIMIZED;
-		SetWindowLong(m_hWnd, GWL_STYLE, WS_POPUP | WS_MAXIMIZE);
+		SetWindowLongPtr(m_hWnd, GWL_STYLE, WS_POPUP | WS_MAXIMIZE);
 		break;
 	case GHOST_kWindowStateNormal: 
 	default: 
