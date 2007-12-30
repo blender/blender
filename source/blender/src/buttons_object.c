@@ -4235,7 +4235,9 @@ static void object_panel_particle_system(Object *ob)
 	/* browse buttons */
 	uiBlockSetCol(block, TH_BUT_SETTING2);
 	butx= std_libbuttons(block, butx, buty, 0, NULL, B_PARTBROWSE, ID_PA, 0, id, idfrom, &(G.buts->menunr), B_PARTALONE, 0, B_PARTDELETE, 0, 0);
-
+	
+	uiBlockSetCol(block, TH_AUTO);
+	
 	partact=psys_get_current_num(ob)+1;
 	totpart=BLI_countlist(&ob->particlesystem);
 	sprintf(str, "%d Part", totpart);
@@ -4339,7 +4341,7 @@ static void object_panel_particle_system(Object *ob)
 	}
 	uiBlockEndAlign(block);
 	
-	buty=50;
+	buty=30;
 
 	if(part->type==PART_REACTOR) {
 		ParticleSystem *tpsys=0;
