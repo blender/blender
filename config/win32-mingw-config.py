@@ -153,7 +153,7 @@ CC_WARN = [ '-Wall' ]
 
 LLIBS = ['-lshell32', '-lshfolder', '-ldxguid', '-lgdi32', '-lmsvcrt', '-lwinmm', '-lmingw32', '-lm', '-lws2_32', '-lz', '-lstdc++']
 
-BF_DEBUG = 'false'
+BF_DEBUG = 'true'
 BF_DEBUG_FLAGS= '-g'
 
 BF_BUILDDIR = '..\\build\\win32-mingw'

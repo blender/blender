@@ -163,7 +163,7 @@ LLIBS = 'util c m dl pthread stdc++'
 BF_PROFILE_FLAGS = ['-pg','-g']
 BF_PROFILE = 'false'
 
-BF_DEBUG = 'false'
+BF_DEBUG = 'true'
 BF_DEBUG_FLAGS = '-g'
 
 BF_BUILDDIR = '../build/linux2'
