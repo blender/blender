@@ -565,15 +565,15 @@ screenToClient(
 	GHOST_TInt32& outX,
 	GHOST_TInt32& outY
 ) const {
-	// not sure about this one!
+	// Now, this is correct!
 
 	int ax,ay;
 	Window temp;
 
 	XTranslateCoordinates(
 			m_display,
-			RootWindow(m_display, m_visual->screen),
 			m_window,
+			RootWindow(m_display, m_visual->screen),
 			inX,
 			inY,
 			&ax,
