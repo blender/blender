@@ -878,39 +878,51 @@ static void font_duplilist(ListBase *lb, Object *par, int level)
 /* ***************************** */
 static void object_duplilist_recursive(ID *id, Object *ob, ListBase *duplilist, float (*par_space_mat)[][4], int level)
 {	
-	if(ob->transflag & OB_DUPLI) {
-		if(ob->transflag & OB_DUPLIPARTS) {
-			ParticleSystem *psys = ob->particlesystem.first;
-			for(; psys; psys=psys->next)
-				new_particle_duplilist(duplilist, id, ob, psys, level+1);
+	if((ob->transflag & OB_DUPLI)==0)
+		return;
+	
+	/* Should the dupli's be greated for this object? - Respect restrict flags */
+	if (G.rendering) {
+		if (ob->restrictflag & OB_RESTRICT_RENDER) {
+			return;
 		}
-		else if(ob->transflag & OB_DUPLIVERTS) {
-			if(ob->type==OB_MESH) {
-				vertex_duplilist(duplilist, id, ob, par_space_mat, level+1);
-			}
-			else if(ob->type==OB_FONT) {
-				if (GS(id->name)==ID_SCE) { /* TODO - support dupligroups */
-					font_duplilist(duplilist, ob, level+1);
-				}
-			}
+	} else {
+		if (ob->restrictflag & OB_RESTRICT_VIEW) {
+			return;
 		}
-		else if(ob->transflag & OB_DUPLIFACES) {
-			if(ob->type==OB_MESH)
-				face_duplilist(duplilist, id, ob, par_space_mat, level+1);
-		}
-		else if(ob->transflag & OB_DUPLIFRAMES) {
-			if (GS(id->name)==ID_SCE) { /* TODO - support dupligroups */
-				frames_duplilist(duplilist, ob, level+1);
-			}
-		} else if(ob->transflag & OB_DUPLIGROUP) {
-			DupliObject *dob;
-			
-			group_duplilist(duplilist, ob, level+1); /* now recursive */
+	}
 
-			if (level==0) {
-				for(dob= duplilist->first; dob; dob= dob->next)
-					Mat4CpyMat4(dob->ob->obmat, dob->mat);
+	if(ob->transflag & OB_DUPLIPARTS) {
+		ParticleSystem *psys = ob->particlesystem.first;
+		for(; psys; psys=psys->next)
+			new_particle_duplilist(duplilist, id, ob, psys, level+1);
+	}
+	else if(ob->transflag & OB_DUPLIVERTS) {
+		if(ob->type==OB_MESH) {
+			vertex_duplilist(duplilist, id, ob, par_space_mat, level+1);
+		}
+		else if(ob->type==OB_FONT) {
+			if (GS(id->name)==ID_SCE) { /* TODO - support dupligroups */
+				font_duplilist(duplilist, ob, level+1);
 			}
+		}
+	}
+	else if(ob->transflag & OB_DUPLIFACES) {
+		if(ob->type==OB_MESH)
+			face_duplilist(duplilist, id, ob, par_space_mat, level+1);
+	}
+	else if(ob->transflag & OB_DUPLIFRAMES) {
+		if (GS(id->name)==ID_SCE) { /* TODO - support dupligroups */
+			frames_duplilist(duplilist, ob, level+1);
+		}
+	} else if(ob->transflag & OB_DUPLIGROUP) {
+		DupliObject *dob;
+		
+		group_duplilist(duplilist, ob, level+1); /* now recursive */
+
+		if (level==0) {
+			for(dob= duplilist->first; dob; dob= dob->next)
+				Mat4CpyMat4(dob->ob->obmat, dob->mat);
 		}
 	}
 }
