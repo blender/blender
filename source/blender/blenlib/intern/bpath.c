@@ -303,7 +303,7 @@ static void bpathToText(Text *btxt, struct BPathIterator *bpi)
 }
 
 /* high level function */
-Text *checkMissingFiles(void) {
+void checkMissingFiles( char *txtname ) {
 	Text *btxt = NULL;
 	struct BPathIterator bpi;
 	
@@ -320,24 +320,28 @@ Text *checkMissingFiles(void) {
 		BLI_bpathIterator_copyPathExpanded( &bpi, filepath_expanded );
 		
 		if (!BLI_exists(filepath_expanded)) {
-			if (!btxt)
-				btxt = add_empty_text( "missing_files.txt" );
-			
+			if (!btxt) {
+				btxt = add_empty_text( "missing_files.log" );
+				if (txtname) {
+					BLI_strncpy(txtname, btxt->id.name+2, 24);
+				}
+			}
 			bpathToText(btxt, &bpi);
 			files_missing = 1;
 		}
 		BLI_bpathIterator_step(&bpi);
 	}
-	return btxt;
 }
 
 /* dont log any errors at the moment, should probably do this */
-void makeFilesRelative(int *tot, int *changed, int *failed, int *linked) {
+void makeFilesRelative(char *txtname, int *tot, int *changed, int *failed, int *linked) {
 	struct BPathIterator bpi;
 	char *filepath, *libpath;
 	
 	/* be sure there is low chance of the path being too short */
 	char filepath_relative[(FILE_MAXDIR * 2) + FILE_MAXFILE];
+	
+	Text *btxt = NULL;
 	
 	*tot = *changed = *failed = *linked = 0;
 	
@@ -351,15 +355,32 @@ void makeFilesRelative(int *tot, int *changed, int *failed, int *linked) {
 				(*linked)++;
 			} else { /* local data, use the blend files path */
 				BLI_strncpy(filepath_relative, filepath, sizeof(filepath_relative));
+				/* Important BLI_cleanup_dir runs before the path is made relative
+				 * because it wont work for paths that start with "//../" */ 
+				BLI_cleanup_file(G.sce, filepath_relative); /* fix any /foo/../foo/ */
 				BLI_makestringcode(G.sce, filepath_relative);
 				/* be safe and check the length */
 				if (BLI_bpathIterator_getPathMaxLen(&bpi) <= strlen(filepath_relative)) {
+					if (!btxt) {
+						btxt = add_empty_text( "missing_no_rel.log" );
+						if (txtname) {
+							BLI_strncpy(txtname, btxt->id.name+2, 24);
+						}
+					}
+					bpathToText(btxt, &bpi);
 					(*failed)++;
 				} else {
 					if(strncmp(filepath_relative, "//", 2)==0) {
 						strcpy(filepath, filepath_relative);
 						(*changed)++;
 					} else {
+						if (!btxt) {
+							btxt = add_empty_text( "missing_no_rel.log" );
+							if (txtname) {
+								BLI_strncpy(txtname, btxt->id.name+2, 24);
+							}
+						}
+						bpathToText(btxt, &bpi);
 						(*failed)++;
 					}
 				}
@@ -372,12 +393,14 @@ void makeFilesRelative(int *tot, int *changed, int *failed, int *linked) {
 
 /* dont log any errors at the moment, should probably do this -
  * Verry similar to makeFilesRelative - keep in sync! */
-void makeFilesAbsolute(int *tot, int *changed, int *failed, int *linked) {
+void makeFilesAbsolute(char *txtname, int *tot, int *changed, int *failed, int *linked) {
 	struct BPathIterator bpi;
 	char *filepath, *libpath;
 	
 	/* be sure there is low chance of the path being too short */
 	char filepath_absolute[(FILE_MAXDIR * 2) + FILE_MAXFILE];
+	
+	Text *btxt = NULL;
 	
 	*tot = *changed = *failed = *linked = 0;
 	
@@ -391,15 +414,29 @@ void makeFilesAbsolute(int *tot, int *changed, int *failed, int *linked) {
 				(*linked)++;
 			} else { /* get the expanded path and check it is relative or too long */
 				BLI_bpathIterator_copyPathExpanded( &bpi, filepath_absolute );
-				
-				/* safe be safe, check the length */
+				BLI_cleanup_file(G.sce, filepath_absolute); /* fix any /foo/../foo/ */
+				/* to be safe, check the length */
 				if (BLI_bpathIterator_getPathMaxLen(&bpi) <= strlen(filepath_absolute)) {
+					if (!btxt) {
+						btxt = add_empty_text( "missing_no_abs.log" );
+						if (txtname) {
+							BLI_strncpy(txtname, btxt->id.name+2, 24);
+						}
+					}
+					bpathToText(btxt, &bpi);
 					(*failed)++;
 				} else {
 					if(strncmp(filepath_absolute, "//", 2)) {
 						strcpy(filepath, filepath_absolute);
 						(*changed)++;
 					} else {
+						if (!btxt) {
+							btxt = add_empty_text( "missing_no_abs.log" );
+							if (txtname) {
+								BLI_strncpy(txtname, btxt->id.name+2, 24);
+							}
+						}
+						bpathToText(btxt, &bpi);
 						(*failed)++;
 					}
 				}

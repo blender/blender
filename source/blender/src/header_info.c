@@ -956,8 +956,11 @@ static void do_info_externalfiles(void *arg, int event)
 		if (G.relbase_valid) {
 			int tot,changed,failed,linked;
 			char str[512];
-			makeFilesRelative(&tot, &changed, &failed, &linked);
-			sprintf(str, "Make Relative%%t|Total files %i|Changed %i|Failed %i|Linked %i", tot, changed, failed, linked);
+			char txtname[24]; /* text block name */
+			txtname[0] = '\0';
+			makeFilesRelative(txtname, &tot, &changed, &failed, &linked);
+			if (failed) sprintf(str, "Make Relative%%t|Total files %i|Changed %i|Failed %i, See Text \"%s\"|Linked %i", tot, changed, failed, txtname, linked);
+			else		sprintf(str, "Make Relative%%t|Total files %i|Changed %i|Failed %i|Linked %i", tot, changed, failed, linked);
 			pupmenu(str);
 		} else {
 			pupmenu("Can't set relative paths with an unsaved blend file");
@@ -967,22 +970,30 @@ static void do_info_externalfiles(void *arg, int event)
 		{
 			int tot,changed,failed,linked;
 			char str[512];
-			makeFilesAbsolute(&tot, &changed, &failed, &linked);
+			char txtname[24]; /* text block name */
+			txtname[0] = '\0';
+			makeFilesAbsolute(txtname, &tot, &changed, &failed, &linked);
 			sprintf(str, "Make Absolute%%t|Total files %i|Changed %i|Failed %i|Linked %i", tot, changed, failed, linked);
+			if (failed) sprintf(str, "Make Absolute%%t|Total files %i|Changed %i|Failed %i, See Text \"%s\"|Linked %i", tot, changed, failed, txtname, linked);
+			else		sprintf(str, "Make Absolute%%t|Total files %i|Changed %i|Failed %i|Linked %i", tot, changed, failed, linked);
+			
 			pupmenu(str);
 		}
 		break;
 	case 12: /* check images exist */
 		{
-			/* Its really text but only care about the name */
-			ID *btxt = (ID *)checkMissingFiles();
+			char txtname[24]; /* text block name */
+			txtname[0] = '\0';
 			
-			if (btxt) {
-				char str[128];
-				sprintf(str, "Missing files listed in Text \"%s\"", btxt->name+2);
-				error(str);
-			} else {
+			/* run the missing file check */
+			checkMissingFiles( txtname );
+			
+			if (txtname == '\0') {
 				okee("No external files missing");
+			} else {
+				char str[128];
+				sprintf(str, "Missing files listed in Text \"%s\"", txtname );
+				error(str);
 			}
 		}
 		break;

@@ -135,7 +135,8 @@ void BLI_dlist_reinit(struct DynamicList *dlist);
 	 * converts it to a regular full path.
 	 * Also removes garbage from directory paths, like /../ or double slashes etc 
 	 */
-void BLI_cleanup_dir(const char *relabase, char *dir);
+void BLI_cleanup_file(const char *relabase, char *dir);
+void BLI_cleanup_dir(const char *relabase, char *dir); /* same as above but adds a trailing slash */
 
 	/**
 	 * Blender's path code replacement function.
