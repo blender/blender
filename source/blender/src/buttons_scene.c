@@ -1912,7 +1912,7 @@ static void render_panel_render(void)
 	if(uiNewPanel(curarea, block, "Render", "Render", 320, 0, 318, 204)==0) return;
 
 	uiBlockBeginAlign(block);
-	uiDefBut(block, BUT,B_DORENDER,"RENDER",	369, 164, 191,37, 0, 0, 0, 0, 0, "Start the rendering");
+	uiDefBut(block, BUT,B_DORENDER,"RENDER",	369, 164, 191,37, 0, 0, 0, 0, 0, "Render the current frame (F12)");
 #ifndef DISABLE_YAFRAY
 	/* yafray: on request, render engine menu is back again, and moved to Render panel */
 	uiDefButS(block, MENU, B_SWITCHRENDER, "Rendering Engine %t|Blender Internal %x0|YafRay %x1", 
@@ -1924,10 +1924,10 @@ static void render_panel_render(void)
 
 	uiBlockBeginAlign(block);
 	uiDefButBitI(block, TOG, R_OSA, B_DIFF, "OSA",	369,109,122,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables Oversampling (Anti-aliasing)");
-	uiDefButS(block, ROW,B_DIFF,"5",			369,88,29,20,&G.scene->r.osa,2.0,5.0, 0, 0, "Sets oversample level to 5");
-	uiDefButS(block, ROW,B_DIFF,"8",			400,88,29,20,&G.scene->r.osa,2.0,8.0, 0, 0, "Sets oversample level to 8 (Recommended)");
-	uiDefButS(block, ROW,B_DIFF,"11",			431,88,29,20,&G.scene->r.osa,2.0,11.0, 0, 0, "Sets oversample level to 11");
-	uiDefButS(block, ROW,B_DIFF,"16",			462,88,29,20,&G.scene->r.osa,2.0,16.0, 0, 0, "Sets oversample level to 16");
+	uiDefButS(block, ROW,B_DIFF,"5",			369,88,29,20,&G.scene->r.osa,2.0,5.0, 0, 0, "Render 5 samples per pixel for smooth edges (Fast)");
+	uiDefButS(block, ROW,B_DIFF,"8",			400,88,29,20,&G.scene->r.osa,2.0,8.0, 0, 0, "Render 8 samples per pixel for smooth edges (Recommended)");
+	uiDefButS(block, ROW,B_DIFF,"11",			431,88,29,20,&G.scene->r.osa,2.0,11.0, 0, 0, "Render 11 samples per pixel for smooth edges (High Quality)");
+	uiDefButS(block, ROW,B_DIFF,"16",			462,88,29,20,&G.scene->r.osa,2.0,16.0, 0, 0, "Render 16 samples per pixel for smooth edges (Highest Quality)");
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
@@ -1973,7 +1973,7 @@ static void render_panel_render(void)
 	uiDefButS(block, MENU, B_DIFF,str,		565,34,60,20, &G.scene->r.filtertype, 0, 0, 0, 0, "Set sampling filter for antialiasing");
 	uiDefButF(block, NUM,B_DIFF,"",			627,34,60,20,&G.scene->r.gauss,0.5, 1.5, 10, 2, "Sets the filter size");
 	
-	uiDefButBitI(block, TOG, R_BORDER, REDRAWVIEWCAM, "Border",	565,13,122,20, &G.scene->r.mode, 0, 0, 0, 0, "Render a small cut-out of the image");
+	uiDefButBitI(block, TOG, R_BORDER, REDRAWVIEWCAM, "Border",	565,13,122,20, &G.scene->r.mode, 0, 0, 0, 0, "Render a small cut-out of the image (Shift+B to set in the camera view)");
 	uiBlockEndAlign(block);
 
 }
@@ -1987,7 +1987,7 @@ static void render_panel_anim(void)
 	if(uiNewPanel(curarea, block, "Anim", "Render", 640, 0, 318, 204)==0) return;
 
 
-	uiDefBut(block, BUT,B_DOANIM,"ANIM",		692,142,192,47, 0, 0, 0, 0, 0, "Start rendering a sequence");
+	uiDefBut(block, BUT,B_DOANIM,"ANIM",		692,142,192,47, 0, 0, 0, 0, 0, "Render the animation to disk (from first to last frame)");
 
 	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiBlockBeginAlign(block);
@@ -1996,12 +1996,12 @@ static void render_panel_anim(void)
 	uiBlockEndAlign(block);
 
 	uiBlockSetCol(block, TH_AUTO);
-	uiDefBut(block, BUT,B_PLAYANIM, "PLAY",692,40,94,33, 0, 0, 0, 0, 0, "Play animation of rendered images/avi (searches Pics: field)");
+	uiDefBut(block, BUT,B_PLAYANIM, "PLAY",692,40,94,33, 0, 0, 0, 0, 0, "Play rendered images/avi animation (Ctrl+F11), (Play Hotkeys: A-Noskip, P-PingPong)");
 	uiDefButS(block, NUM, B_RTCHANGED, "rt:",789,40,95,33, &G.rt, -1000.0, 1000.0, 0, 0, "General testing/debug button");
 
 	uiBlockBeginAlign(block);
-	uiDefButI(block, NUM,REDRAWSEQ,"Sta:",692,10,94,24, &G.scene->r.sfra,1.0,MAXFRAMEF, 0, 0, "The start frame of the animation");
-	uiDefButI(block, NUM,REDRAWSEQ,"End:",789,10,95,24, &G.scene->r.efra,SFRA,MAXFRAMEF, 0, 0, "The end  frame of the animation");
+	uiDefButI(block, NUM,REDRAWSEQ,"Sta:",692,10,94,24, &G.scene->r.sfra,1.0,MAXFRAMEF, 0, 0, "The start frame of the animation (inclusive)");
+	uiDefButI(block, NUM,REDRAWSEQ,"End:",789,10,95,24, &G.scene->r.efra,SFRA,MAXFRAMEF, 0, 0, "The end  frame of the animation  (inclusive)");
 	uiBlockEndAlign(block);
 }
 

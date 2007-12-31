@@ -988,7 +988,7 @@ static void do_info_externalfiles(void *arg, int event)
 			/* run the missing file check */
 			checkMissingFiles( txtname );
 			
-			if (txtname == '\0') {
+			if (txtname[0] == '\0') {
 				okee("No external files missing");
 			} else {
 				char str[128];

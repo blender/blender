@@ -469,27 +469,27 @@ void time_buttons(ScrArea *sa)
 		uiDefButI(block, NUM, REDRAWALL,"Start:",	
 			xco,0, 4.5*XIC, YIC,
 			&G.scene->r.psfra,MINFRAMEF, MAXFRAMEF, 0, 0,
-			"The start frame of the animation preview");
+			"The start frame of the animation preview (inclusive)");
 
 		xco += 4.5*XIC;
 
 		uiDefButI(block, NUM, REDRAWALL,"End:",	
 			xco,0,4.5*XIC,YIC,
 			&G.scene->r.pefra,PSFRA,MAXFRAMEF, 0, 0,
-			"The end frame of the animation preview");
+			"The end frame of the animation preview (inclusive)");
 	}
 	else {
 		uiDefButI(block, NUM, REDRAWALL,"Start:",	
  		xco,0, 4.5*XIC, YIC,
  		&G.scene->r.sfra,MINFRAMEF, MAXFRAMEF, 0, 0,
- 		"The start frame of the animation");
+ 		"The start frame of the animation (inclusive)");
 
 		xco += 4.5*XIC;
 
 		uiDefButI(block, NUM, REDRAWALL,"End:",	
 			xco,0,4.5*XIC,YIC,
 			&G.scene->r.efra,SFRA,MAXFRAMEF, 0, 0,
-			"The end frame of the animation");
+			"The end frame of the animation (inclusive)");
 	}
 	uiBlockEndAlign(block);
 
@@ -498,7 +498,7 @@ void time_buttons(ScrArea *sa)
 	uiDefButI(block, NUM, B_NEWFRAME, "",
 		xco,0,3.5*XIC,YIC,
 		&(G.scene->r.cfra), MINFRAMEF, MAXFRAMEF, 0, 0,
-		"Displays Current Frame of animation. Click to change.");
+		"Displays Current Frame of animation");
 	
 	xco += 3.5*XIC+16;
 	
