@@ -15,7 +15,7 @@ incs  = ['.',
 		 '../imbuf/intern',
 		 '../blenloader',
 		 '../render/extern/include',
-		 '../include']
+		 '../editors/include']
 
 incs.append(env['BF_QUICKTIME_INC'])
 
