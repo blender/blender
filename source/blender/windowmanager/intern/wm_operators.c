@@ -100,6 +100,16 @@ static void WM_OT_save_homefile(wmOperatorType *ot)
 	ot->flag= OPTYPE_REGISTER;
 }
 
+static void WM_OT_window_fullscreen_toggle(wmOperatorType *ot)
+{
+    ot->name= "Toggle Fullscreen";
+    ot->idname= "WM_OT_window_fullscreen_toggle";
+
+    ot->interactive= NULL;
+    ot->exec= wm_window_fullscreen_toggle_op;
+    ot->poll= WM_operator_winactive;
+}
+
 
 
 #define ADD_OPTYPE(opfunc)	ot= MEM_callocN(sizeof(wmOperatorType), "operatortype"); \
@@ -120,6 +130,7 @@ void wm_operatortype_init(void)
 	
 	ADD_OPTYPE(WM_OT_window_duplicate);
 	ADD_OPTYPE(WM_OT_save_homefile);
+    ADD_OPTYPE(WM_OT_window_fullscreen_toggle);
 }
 
 

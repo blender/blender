@@ -159,6 +159,19 @@ int wm_window_duplicate_op(bContext *C, wmOperator *op)
 	return 1;
 }
 
+/* fullscreen operator callback */
+int wm_window_fullscreen_toggle_op(bContext *C, wmOperator *op)
+{
+	GHOST_TWindowState state = GHOST_GetWindowState(C->window->ghostwin);
+	if(state!=GHOST_kWindowStateFullScreen)
+		GHOST_SetWindowState(C->window->ghostwin, GHOST_kWindowStateFullScreen);
+	else
+		GHOST_SetWindowState(C->window->ghostwin, GHOST_kWindowStateNormal);
+
+	return 1;
+	
+}
+
 /* this is event from ghost */
 static void wm_window_close(bContext *C, wmWindow *win)
 {
@@ -388,14 +401,14 @@ int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 
 				state = GHOST_GetWindowState(win->ghostwin);
 
-				/*if(state==GHOST_kWindowStateNormal)
+				if(state==GHOST_kWindowStateNormal)
 					printf("window state: normal\n");
 				else if(state==GHOST_kWindowStateMinimized)
 					printf("window state: minimized\n");
 				else if(state==GHOST_kWindowStateMaximized)
 					printf("window state: maximized\n");
 				else if(state==GHOST_kWindowStateFullScreen)
-					printf("window state: fullscreen\n");*/
+					printf("window state: fullscreen\n");
 				
 //				window_handle(win, RESHAPE, 1);
 				break;
