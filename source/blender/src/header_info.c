@@ -998,6 +998,11 @@ static void do_info_externalfiles(void *arg, int event)
 		}
 		break;
 	case 13: /* search for referenced files that are not available  */
+		if(curarea->spacetype==SPACE_INFO) {
+			ScrArea *sa;
+			sa= closest_bigger_area();
+			areawinset(sa->win);
+		}
 		activate_fileselect(FILE_SPECIAL, "Find Missing Files", "", findMissingFiles);
 		break;
 	}
@@ -1061,9 +1066,9 @@ static uiBlock *info_filemenu(void *arg_unused)
 
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save Image...|F3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Dump Subwindow|Ctrl F3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 24, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Dump Screen|Ctrl Shift F3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 25, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save Rendered Image...|F3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Screenshot Subwindow|Ctrl F3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 24, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Screenshot All|Ctrl Shift F3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 25, "");
 #if GAMEBLENDER == 1
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save Runtime...",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 22, "");
 #ifdef _WIN32

@@ -1582,7 +1582,7 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 	if(ob->type==OB_MESH) {		
 		eve= em->verts.first;
 		while(eve) {
-			if(eve->f & 1) {
+			if(eve->f & SELECT) {
 				evedef= eve;
 				tot++;
 				VecAddf(median, median, eve->co);
@@ -1705,16 +1705,15 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 		Mat4MulVecfl(ob->obmat, median);
 	
 	if(block) {	// buttons
+		int but_y;
+		if((ob->parent) && (ob->partype == PARBONE))	but_y = 135;
+		else											but_y = 150;
+		
 		uiBlockBeginAlign(block);
-		if((ob->parent) && (ob->partype == PARBONE)) {
-			uiDefButBitS(block, TOG, V3D_GLOBAL_STATS, REDRAWVIEW3D, "Global",		160, 135, 70, 19, &G.vd->flag, 0, 0, 0, 0, "Displays global values");
-			uiDefButBitS(block, TOGN, V3D_GLOBAL_STATS, REDRAWVIEW3D, "Local",		230, 135, 70, 19, &G.vd->flag, 0, 0, 0, 0, "Displays local values");
-		}
-		else {
-			uiDefButBitS(block, TOG, V3D_GLOBAL_STATS, REDRAWVIEW3D, "Global",		160, 150, 70, 19, &G.vd->flag, 0, 0, 0, 0, "Displays global values");
-			uiDefButBitS(block, TOGN, V3D_GLOBAL_STATS, REDRAWVIEW3D, "Local",		230, 150, 70, 19, &G.vd->flag, 0, 0, 0, 0, "Displays local values");
-		}
-
+		uiDefButBitS(block, TOG, V3D_GLOBAL_STATS, REDRAWVIEW3D, "Global",		160, but_y, 70, 19, &G.vd->flag, 0, 0, 0, 0, "Displays global values");
+		uiDefButBitS(block, TOGN, V3D_GLOBAL_STATS, REDRAWVIEW3D, "Local",		230, but_y, 70, 19, &G.vd->flag, 0, 0, 0, 0, "Displays local values");
+		uiBlockEndAlign(block);
+		
 		memcpy(tfp->ve_median, median, sizeof(tfp->ve_median));
 		
 		uiBlockBeginAlign(block);
@@ -1779,7 +1778,7 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 			
 			eve= em->verts.first;
 			while(eve) {
-				if(eve->f & 1) {
+				if(eve->f & SELECT) {
 					VecAddf(eve->co, eve->co, median);
 				}
 				eve= eve->next;
