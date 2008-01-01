@@ -133,13 +133,13 @@ typedef struct ParticleSettings {
 
 	/* initial velocity factors */
 	float normfac, obfac, randfac, partfac, tanfac, tanphase, reactfac;
-	float rotfac, avefac, phasefac;
+	float avefac, phasefac, randrotfac, randphasefac;
 	/* physical properties */
 	float mass, size, randsize, reactshape;
 	/* global physical properties */
 	float acc[3], dragfac, brownfac, dampfac;
 	/* length */
-	float length, abslength, randlength, pad;
+	float length, abslength, randlength;
 	/* children */
 	int child_nbr, ren_child_nbr;
 	float parents, childsize, childrandsize;
@@ -355,7 +355,12 @@ typedef struct ParticleSystem{
 /* part->rotmode */
 #define PART_ROT_NOR		1
 #define PART_ROT_VEL		2
-#define PART_ROT_RAND		3
+#define PART_ROT_GLOB_X		3
+#define PART_ROT_GLOB_Y		4
+#define PART_ROT_GLOB_Z		5
+#define PART_ROT_OB_X		6
+#define PART_ROT_OB_Y		7
+#define PART_ROT_OB_Z		8
 
 /* part->avemode */
 #define PART_AVE_SPIN		1

@@ -1533,10 +1533,9 @@ void reset_particle(ParticleData *pa, ParticleSystem *psys, ParticleSystemModifi
 	ParticleTexture ptex;
 	ParticleKey state;
 	IpoCurve *icu=0;
-	float fac, nor[3]={0,0,0},loc[3],tloc[3],vel[3]={0.0,0.0,0.0},rot[4],*q2=0;
+	float fac, rotfac, phasefac, nor[3]={0,0,0},loc[3],tloc[3],vel[3]={0.0,0.0,0.0},rot[4],*q2=0;
 	float r_vel[3],r_ave[3],r_rot[4],p_vel[3]={0.0,0.0,0.0};
-	float x_vec[3]={1.0,0.0,0.0}, utan[3]={0.0,1.0,0.0}, vtan[3]={0.0,0.0,1.0};
-
+	float x_vec[3]={1.0,0.0,0.0}, utan[3]={0.0,1.0,0.0}, vtan[3]={0.0,0.0,1.0}, rot_vec[3]={0.0,0.0,0.0};
 	float q_one[4]={1.0,0.0,0.0,0.0}, q_phase[4];
 	part=psys->part;
 
@@ -1637,7 +1636,7 @@ void reset_particle(ParticleData *pa, ParticleSystem *psys, ParticleSystemModifi
 		}
 		
 		/* -rotation							*/
-		if(part->rotmode==PART_ROT_RAND){
+		if(part->randrotfac != 0.0f){
 			QUATCOPY(r_rot,pa->r_rot);
 			Mat4ToQuat(ob->obmat,rot);
 			QuatMul(r_rot,r_rot,rot);
@@ -1688,34 +1687,49 @@ void reset_particle(ParticleData *pa, ParticleSystem *psys, ParticleSystemModifi
 	pa->state.rot[1]=pa->state.rot[2]=pa->state.rot[3]=0.0;
 
 	if(part->rotmode){
+		/* create vector into which rotation is aligned */
 		switch(part->rotmode){
 			case PART_ROT_NOR:
-				VecMulf(nor,-1.0);
-				q2= vectoquat(nor, OB_POSX, OB_POSZ);
-				VecMulf(nor,-1.0);
+				VecCopyf(rot_vec, nor);
 				break;
 			case PART_ROT_VEL:
-				VecMulf(vel,-1.0);
-				q2= vectoquat(vel, OB_POSX, OB_POSZ);
-				VecMulf(vel,-1.0);
+				VecCopyf(rot_vec, vel);
 				break;
-			case PART_ROT_RAND:
-				q2= r_rot;
+			case PART_ROT_GLOB_X:
+			case PART_ROT_GLOB_Y:
+			case PART_ROT_GLOB_Z:
+				rot_vec[part->rotmode - PART_ROT_GLOB_X] = 1.0f;
+				break;
+			case PART_ROT_OB_X:
+			case PART_ROT_OB_Y:
+			case PART_ROT_OB_Z:
+				VecCopyf(rot_vec, ob->obmat[part->rotmode - PART_ROT_OB_X]);
 				break;
 		}
-		/* how much to rotate from rest position */
-		QuatInterpol(rot,q_one,q2,part->rotfac);
+		
+		/* create rotation quat */
+		VecMulf(rot_vec,-1.0);
+		q2= vectoquat(rot_vec, OB_POSX, OB_POSZ);
 
-		/* phase */
-		VecRotToQuat(x_vec,part->phasefac*(float)M_PI,q_phase);
+		/* randomize rotation quat */
+		if(part->randrotfac!=0.0f)
+			QuatInterpol(rot, q2, r_rot, part->randrotfac);
+		else
+			QuatCopy(rot,q2);
 
-		/* combine amount & phase */
-		QuatMul(pa->state.rot,rot,q_phase);
+		/* rotation phase */
+		phasefac = part->phasefac;
+		if(part->randphasefac != 0.0f) /* abuse r_ave[0] as a random number */
+			phasefac += part->randphasefac * pa->r_ave[0];
+		VecRotToQuat(x_vec, phasefac*(float)M_PI, q_phase);
+
+		/* combine base rotation & phase */
+		QuatMul(pa->state.rot, rot, q_phase);
 	}
 
 	/* -angular velocity					*/
 
-	pa->state.ave[0]=pa->state.ave[1]=pa->state.ave[2]=0.0;
+	pa->state.ave[0] = pa->state.ave[1] = pa->state.ave[2] = 0.0;
 
 	if(part->avemode){
 		switch(part->avemode){
@@ -1736,15 +1750,15 @@ void reset_particle(ParticleData *pa, ParticleSystem *psys, ParticleSystemModifi
 		}
 	}
 
-	pa->dietime=pa->time+pa->lifetime;
+	pa->dietime = pa->time + pa->lifetime;
 
 	if(pa->time >= cfra)
-		pa->alive=PARS_UNBORN;
+		pa->alive = PARS_UNBORN;
 
-	pa->state.time=cfra;
+	pa->state.time = cfra;
 
-	pa->stick_ob=0;
-	pa->flag&=~PARS_STICKY;
+	pa->stick_ob = 0;
+	pa->flag &= ~PARS_STICKY;
 }
 static void reset_all_particles(Object *ob, ParticleSystem *psys, ParticleSystemModifierData *psmd, float dtime, float cfra, int from)
 {

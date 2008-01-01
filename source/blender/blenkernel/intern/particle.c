@@ -2795,7 +2795,6 @@ static void default_particle_settings(ParticleSettings *part)
 	part->disp=100;
 	part->from= PART_FROM_FACE;
 	part->length= 1.0;
-	part->rotfac= 1.0;
 	part->nbetween= 4;
 	part->boidneighbours= 5;
 

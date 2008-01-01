@@ -4139,15 +4139,17 @@ static void object_panel_particle_physics(Object *ob)
 		uiDefBut(block, LABEL, 0, "Rotation:",	butx, (buty-=buth),butw,buth, NULL, 0.0, 0, 0, 0, "");
 		uiBlockBeginAlign(block);
 		uiDefButBitI(block, TOG, PART_ROT_DYN, B_PART_RECALC, "Dynamic",	 butx,(buty-=buth*4/5),butw/2,buth*4/5, &part->flag, 0, 0, 0, 0, "Sets rotation to dynamic/constant");
-		uiDefButS(block, MENU, B_PART_RECALC, "Rotation %t|Random %x3|Velocity %x2|Normal %x1|None %x0", butx+butw/2,buty,butw/2,buth*4/5, &part->rotmode, 14.0, 0.0, 0, 0, "Select particle rotation mode");
+		uiDefButS(block, MENU, B_PART_RECALC, "Rotation%t|Object Z%x8|Object Y%x7|Object X%x6|Global Z%x5|Global Y%x4|Global X%x3|Velocity%x2|Normal%x1|None%x0", butx+butw/2,buty,butw/2,buth*4/5, &part->rotmode, 14.0, 0.0, 0, 0, "Particles initial rotation");
 		uiBlockSetCol(block, TH_BUT_SETTING2);
-		uiDefButF(block, NUM, B_PART_RECALC, "Amount:",		butx,(buty-=buth*4/5),butw,buth*4/5, &part->rotfac, -1.0, 1.0, 1, 3, "Rotation amount");
-		uiDefButF(block, NUM, B_PART_RECALC, "Phase:",			butx,(buty-=buth*4/5),butw,buth*4/5, &part->phasefac, -1.0, 1.0, 1, 3, "Initial rotation phase");
+		uiDefButF(block, NUM, B_PART_RECALC, "Random:",		butx,(buty-=buth*4/5),butw,buth*4/5, &part->randrotfac, 0.0, 1.0, 1, 3, "Randomize rotation");
+		uiDefButF(block, NUM, B_PART_RECALC, "Phase:",			butx,(buty-=buth*4/5),butw/2,buth*4/5, &part->phasefac, -1.0, 1.0, 1, 3, "Initial rotation phase");
+		uiDefButF(block, NUM, B_PART_RECALC, "Rand:",			butx+butw/2,buty,butw/2,buth*4/5, &part->randphasefac, 0.0, 1.0, 1, 3, "Randomize rotation phase");
 		uiBlockSetCol(block, TH_AUTO);
 
 		uiDefButS(block, MENU, B_PART_RECALC, "Angular v %t|Velocity%x3|Random%x2|Spin%x1|None%x0", butx,(buty-=buth*4/5),butw,buth*4/5, &part->avemode, 14.0, 0.0, 0, 0, "Select particle angular velocity mode");
 		uiBlockSetCol(block, TH_BUT_SETTING2);
-		uiDefButF(block, NUM, B_PART_RECALC, "Angular v:",		butx,(buty-=buth*4/5),butw,buth*4/5, &part->avefac, -200.0, 200.0, 1, 3, "Angular velocity amount");
+		if(ELEM(part->avemode,PART_AVE_RAND,PART_AVE_SPIN))
+			uiDefButF(block, NUM, B_PART_RECALC, "Angular v:",		butx,(buty-=buth*4/5),butw,buth*4/5, &part->avefac, -200.0, 200.0, 1, 3, "Angular velocity amount");
    		uiBlockSetCol(block, TH_AUTO);
 		uiBlockEndAlign(block);
 		
