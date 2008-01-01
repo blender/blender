@@ -72,7 +72,7 @@
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
-#include "BIF_editseq.h"
+//XXX #include "BIF_editseq.h"
 
 #include "PIL_time.h"
 
@@ -80,8 +80,6 @@
 
 /* for stamp drawing to an image */
 #include "BMF_Api.h"
-
-#include "BDR_drawmesh.h"
 
 /* max int, to indicate we don't store sequences in ibuf */
 #define IMA_NO_INDEX	0x7FEFEFEF
@@ -217,7 +215,7 @@ static void image_free_buffers(Image *ima)
 		ima->rr= NULL;
 	}	
 	
-	free_realtime_image(ima);
+	//XXX free_realtime_image(ima);
 	
 	ima->ok= IMA_OK;
 }
@@ -553,7 +551,7 @@ void free_old_images()
 			   This gives textures a "second chance" to be used before dying.
 			*/
 			if(ima->bindcode || ima->repbind) {
-				free_realtime_image(ima);
+				//XXX free_realtime_image(ima);
 				ima->lastused = ctime;
 			}
 			/* Otherwise, just kill the buffers */
@@ -893,7 +891,7 @@ static void stampdata(StampData *stamp_data, int do_prefix)
 	}
 	
 	if (G.scene->r.stamp & R_STAMP_SEQSTRIP) {
-		Sequence *seq = get_forground_frame_seq(G.scene->r.cfra);
+		Sequence *seq; //XXX = get_forground_frame_seq(G.scene->r.cfra);
 	
 		if (seq) strcpy(text, seq->name+2);
 		else 		strcpy(text, "<none>");

@@ -34,7 +34,6 @@
 #include <math.h>
 
 #include "DNA_screen_types.h"
-#include "BKE_bad_level_calls.h"
 #include "BLI_blenlib.h"
 
 #include "BKE_screen.h"
@@ -46,7 +45,7 @@
 /* don't free screen itself */
 void free_screen(bScreen *sc)
 {
-	unlink_screen(sc); /* bad level call */
+	//XXX unlink_screen(sc); /* bad level call */
 
 	BLI_freelistN(&sc->vertbase);
 	BLI_freelistN(&sc->edgebase);

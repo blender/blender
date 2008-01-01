@@ -63,7 +63,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
-#include "BKE_bad_level_calls.h"
 #include "BKE_utildefines.h"
 
 #include "BKE_action.h"
@@ -2140,7 +2139,7 @@ void do_ob_ipo(Object *ob)
 	if(ob->id.name[2]=='S' && ob->id.name[3]=='C' && ob->id.name[4]=='E') {
 		if(strcmp(G.scene->id.name+2, ob->id.name+6)==0) {
 			G.scene->lay= ob->lay;
-			copy_view3d_lock(0);
+			//XXX copy_view3d_lock(0);
 			/* no redraw here! creates too many calls */
 		}
 	}

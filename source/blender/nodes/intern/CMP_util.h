@@ -67,14 +67,6 @@
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
-#include "BIF_interface.h"
-#include "BIF_interface_icons.h"
-#include "BIF_language.h"
-#include "BIF_mywindow.h"
-#include "BIF_previewrender.h"
-#include "BIF_resources.h"
-#include "BIF_screen.h"
-#include "BIF_space.h"
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
@@ -84,16 +76,11 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
-#include "BSE_drawipo.h"
-#include "BSE_node.h"
-#include "BSE_view.h"
-
 #include "RE_pipeline.h"
 #include "RE_shader_ext.h"
 #include "RE_render_ext.h"
 
 #include "butspace.h"
-#include "blendef.h"
 #include "mydevice.h"
 
 /* *************************** operations support *************************** */

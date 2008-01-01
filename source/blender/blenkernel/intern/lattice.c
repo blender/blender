@@ -73,13 +73,11 @@
 #include "BKE_screen.h"
 #include "BKE_utildefines.h"
 
-#include "BIF_editdeform.h"
+//XXX #include "BIF_editdeform.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
-
-#include "blendef.h"
 
 Lattice *editLatt=0;
 static Lattice *deformLatt=0;

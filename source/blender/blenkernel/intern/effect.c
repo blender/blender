@@ -93,7 +93,7 @@
 #include <string.h>
 #endif // DISABLE_ELBEEM
 
-#include "BIF_screen.h"
+//XXX #include "BIF_screen.h"
 
 /* temporal struct, used for reading return of mesh_get_mapped_verts_nors() */
 
@@ -1918,7 +1918,7 @@ void build_particle_system(Object *ob)
 		if(waitcursor_set==0 && (a % 256)==255) {
 			double seconds= PIL_check_seconds_timer();
 			if(seconds - startseconds > 0.5) {
-				waitcursor(1);
+				//XXX waitcursor(1);
 				waitcursor_set= 1;
 			}
 		}

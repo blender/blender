@@ -72,7 +72,6 @@
 /* -- */
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
-#include "BKE_bad_level_calls.h"
 
 #ifdef WITH_VERSE
 #include "BKE_verse.h"

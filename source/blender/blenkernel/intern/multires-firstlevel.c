@@ -38,7 +38,7 @@
 #include "DNA_object_types.h"
 #include "DNA_scene_types.h"
 
-#include "BIF_editmesh.h"
+//XXX #include "BIF_editmesh.h"
 
 #include "BKE_customdata.h"
 #include "BKE_global.h"
@@ -48,8 +48,6 @@
 #include "BLI_editVert.h"
 
 #include "MEM_guardedalloc.h"
-
-#include "blendef.h"
 
 #include <string.h>
 
@@ -388,7 +386,7 @@ void multires_delete_layer(Mesh *me, CustomData *cd, const int type, int n)
 		CustomData_set_layer_active(cd, type, n);
 		CustomData_free_layer_active(cd, type, lvl1->totface);
 		
-		multires_level_to_mesh(OBACT, me, 0);
+		multires_level_to_mesh((G.scene->basact)->object, me, 0);
 	}
 }
 
@@ -404,6 +402,6 @@ void multires_add_layer(Mesh *me, CustomData *cd, const int type, const int n)
 			CustomData_add_layer(cd, type, CD_DEFAULT, NULL, current_level(me->mr)->totface);
 
 		CustomData_set_layer_active(cd, type, n);
-		multires_level_to_mesh(OBACT, me, 0);
+		multires_level_to_mesh((G.scene->basact)->object, me, 0);
 	}
 }

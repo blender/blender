@@ -316,7 +316,7 @@ void rad_collect_meshes()
 	}
 	
 	if(G.obedit) {
-		if (!during_script()) error("Unable to perform function in EditMode");
+		if (!during_script()); //XXX  error("Unable to perform function in EditMode");
 		return;
 	}
 
@@ -341,7 +341,7 @@ void rad_collect_meshes()
 		base= base->next;
 	}
 	if(RG.totvert==0) {
-		if (!during_script()) error("No vertices");
+		if (!during_script()); //XXX error("No vertices");
 		return;
 	}
 	vnc= RG.verts= MEM_callocN(RG.totvert*sizeof(VeNoCo), "radioverts");

@@ -50,7 +50,6 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"		
 
-#include "BKE_bad_level_calls.h"
 #include "BKE_blender.h"
 #include "BKE_displist.h"
 #include "BKE_global.h"
@@ -842,7 +841,7 @@ void delete_material_index()
 	int a, actcol;
 	
 	if(G.obedit) {
-		error("Unable to perform function in EditMode");
+		//XXX error("Unable to perform function in EditMode");
 		return;
 	}
 	ob= ((G.scene->basact)? (G.scene->basact->object) : 0) ;

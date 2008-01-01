@@ -99,7 +99,6 @@
 #include "DNA_view3d_types.h"
 #include "DNA_userdef_types.h"
 
-#include "BKE_bad_level_calls.h"
 #include "BKE_utildefines.h"
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
@@ -121,8 +120,6 @@
 #include "BKE_customdata.h"
 
 #include "BPY_extern.h"
-
-#include "blendef.h"
 
 #include "zlib.h"
 
@@ -178,7 +175,6 @@ static int is_stl(char *str)
     MEM_freeN(facedata);                                \
     fclose(fpSTL);                                      \
     sprintf(error_msg, "Problems reading face %d!", i); \
-    error(error_msg);                                   \
     return;                                             \
   }                                                     \
   else {                                                \
@@ -245,7 +241,7 @@ static void read_stl_mesh_binary(char *str)
 
 	fpSTL= fopen(str, "rb");
 	if(fpSTL==NULL) {
-		error("Can't read file");
+		//XXX error("Can't read file");
 		return;
 	}
 
@@ -306,7 +302,7 @@ static void read_stl_mesh_binary(char *str)
 			mesh_add_normals_flags(me);
 			make_edges(me, 0);
 		}
-		waitcursor(1);
+		//XXX waitcursor(1);
 	}
 	fclose(fpSTL);
 
@@ -318,7 +314,6 @@ static void read_stl_mesh_binary(char *str)
 	fclose(fpSTL); \
 	sprintf(error_msg, "Can't allocate storage for %d faces!", \
 			numtenthousand * 10000); \
-	error(error_msg); \
 	return; \
 }
 
@@ -327,7 +322,6 @@ static void read_stl_mesh_binary(char *str)
 	fclose(fpSTL); \
 	free(vertdata); \
 	sprintf(error_msg, "Line %d: %s", linenum, message); \
-	error(message); \
 	return; \
 }
 
@@ -363,7 +357,7 @@ static void read_stl_mesh_ascii(char *str)
 
 	fpSTL= fopen(str, "r");
 	if(fpSTL==NULL) {
-		error("Can't read file");
+		//XXX error("Can't read file");
 		return;
 	}
 	
@@ -373,7 +367,7 @@ static void read_stl_mesh_ascii(char *str)
 	 */
 	numtenthousand = 1;
 	vertdata = malloc(numtenthousand*3*30000*sizeof(float));	// uses realloc!
-	if (!vertdata) STLALLOCERROR;
+	if (!vertdata); STLALLOCERROR;
 
 	linenum = 1;
 	/* Get rid of the first line */
@@ -396,7 +390,7 @@ static void read_stl_mesh_ascii(char *str)
 			++numtenthousand;
 			vertdata = realloc(vertdata, 
 							   numtenthousand*3*30000*sizeof(float));
-			if (!vertdata) STLALLOCERROR;
+			if (!vertdata); STLALLOCERROR;
 		}
 		
 		/* Don't read normal, but check line for proper syntax anyway
@@ -474,7 +468,7 @@ static void read_stl_mesh_ascii(char *str)
 	mesh_add_normals_flags(me);
 	make_edges(me, 0);
 
-	waitcursor(1);
+	//XXX waitcursor(1);
 }
 
 #undef STLALLOCERROR
@@ -498,7 +492,7 @@ static void read_videoscape_mesh(char *str)
 	
 	fp= fopen(str, "rb");
 	if(fp==NULL) {
-		error("Can't read file");
+		//XXX error("Can't read file");
 		return;
 	}
 	
@@ -507,12 +501,12 @@ static void read_videoscape_mesh(char *str)
 	fscanf(fp, "%d\n", &verts);
 	if(verts<=0) {
 		fclose(fp);
-		error("Read error");
+		//XXX error("Read error");
 		return;
 	}
 	
 	if(verts>MESH_MAX_VERTS) {
-		error("too many vertices");
+		//XXX error("too many vertices");
 		fclose(fp);
 		return;
 	}
@@ -686,7 +680,7 @@ static void read_videoscape_mesh(char *str)
 	mesh_add_normals_flags(me);
 	make_edges(me, 0);
 
-	waitcursor(1);
+	//XXX waitcursor(1);
 }
 
 static void read_radiogour(char *str)
@@ -704,7 +698,7 @@ static void read_radiogour(char *str)
 	
 	fp= fopen(str, "rb");
 	if(fp==NULL) {
-		error("Can't read file");
+		//XXX error("Can't read file");
 		return;
 	}
 	
@@ -713,12 +707,12 @@ static void read_radiogour(char *str)
 	fscanf(fp, "%d\n", &verts);
 	if(verts<=0) {
 		fclose(fp);
-		error("Read error");
+		//XXX error("Read error");
 		return;
 	}
 	
 	if(verts>MESH_MAX_VERTS) {
-		error("too many vertices");
+		//XXX error("too many vertices");
 		fclose(fp);
 		return;
 	}
@@ -754,7 +748,7 @@ static void read_radiogour(char *str)
 	
 	if(totedge+tottria+totquad>MESH_MAX_VERTS) {
 		printf(" var1: %d, var2: %d, var3: %d \n", totedge, tottria, totquad);
-		error("too many faces");
+		//XXX error("too many faces");
 		MEM_freeN(vertdata);
 		MEM_freeN(colvertdata);
 		fclose(fp);
@@ -869,7 +863,7 @@ static void read_radiogour(char *str)
 	mesh_add_normals_flags(me);
 	make_edges(me, 0);
 
-	waitcursor(1);
+	//XXX waitcursor(1);
 }
 
 
@@ -884,7 +878,7 @@ static void read_videoscape_lamp(char *str)
 	
 	fp= fopen(str, "rb");
 	if(fp==NULL) {
-		error("Can't read file");
+		//XXX error("Can't read file");
 		return;
 	}
 
@@ -929,7 +923,7 @@ static void read_videoscape_nurbs(char *str)
 
 	fp= fopen(str, "rb");
 	if(fp==NULL) {
-		error("Can't read file");
+		//XXX error("Can't read file");
 		return;
 	}
 
@@ -1243,7 +1237,7 @@ static void read_inventor(char *str, struct ListBase *listb)
 	
 	file= open(str, O_BINARY|O_RDONLY);
 	if(file== -1) {
-		error("Can't read file\n");
+		//XXX error("Can't read file\n");
 		return;
 	}
 
@@ -2018,7 +2012,7 @@ static void displist_to_mesh(DispList *dlfirst)
 	}
 	
 	if(totcol>16) {
-		error("Found more than 16 different colors");
+		//XXX error("Found more than 16 different colors");
 		totcol= 16;
 	}
 
@@ -2291,7 +2285,7 @@ static void displist_to_objects(ListBase *lbase)
 
 	if(totvert==0) {
 		
-		if(ivsurf==0) error("Found no data");
+		if(ivsurf==0) ; //XXX error("Found no data");
 		if(lbase->first) BLI_freelistN(lbase);
 		
 		return;
@@ -2377,7 +2371,7 @@ int BKE_read_exotic(char *name)
 		gzfile = gzopen(name,"rb");
 
 		if (NULL == gzfile ) {
-			error("Can't open file: %s", name);
+			//XXX error("Can't open file: %s", name);
 			retval= -1;
 		} else {
 			gzread(gzfile, str, 31);
@@ -2385,11 +2379,11 @@ int BKE_read_exotic(char *name)
 
 			if ((*s0 != FORM) && (strncmp(str, "BLEN", 4) != 0) && !BLI_testextensie(name,".blend.gz")) {
 
-				waitcursor(1);
+				//XXX waitcursor(1);
 				
 				if(*s0==GOUR) {
 					if(G.obedit) {
-						error("Unable to perform function in EditMode");
+						//XXX error("Unable to perform function in EditMode");
 					} else {
 						read_radiogour(name);
 						retval = 1;
@@ -2397,7 +2391,7 @@ int BKE_read_exotic(char *name)
 				}
 				else if ELEM4(*s0, DDG1, DDG2, DDG3, DDG4) {
 					if(G.obedit) {
-						error("Unable to perform function in EditMode");
+						//XXX error("Unable to perform function in EditMode");
 					} else {
 						read_videoscape(name);
 						retval = 1;
@@ -2409,7 +2403,7 @@ int BKE_read_exotic(char *name)
 						displist_to_objects(&lbase);				
 						retval = 1;
 					} else {
-						error("Can only read Inventor 1.0 ascii");
+						//XXX error("Can only read Inventor 1.0 ascii");
 					}
 				}
 				else if((strncmp(str, "#VRML V1.0 asc", 14)==0)) {
@@ -2433,11 +2427,11 @@ int BKE_read_exotic(char *name)
 					if (BPY_call_importloader(name)) {
 						retval = 1;
 					} else {	
-						error("Unknown file type or error, check console");
+						//XXX error("Unknown file type or error, check console");
 					}	
 				
 				}
-				waitcursor(0);
+				//XXX waitcursor(0);
 			}
 		}
 	}
@@ -2521,19 +2515,19 @@ void write_stl(char *str)
 
 	if (!during_script()) {
 		if (BLI_exists(str))
-			if(saveover(str)==0)
-				return;
+			; //XXX if(saveover(str)==0)
+			//XXX	return;
 	}
 
 	fpSTL= fopen(str, "wb");
 	
 	if(fpSTL==NULL) {
-		if (!during_script()) error("Can't write file");
+		if (!during_script()) ; //XXX error("Can't write file");
 		return;
 	}
 	strcpy(temp_dir, str);
 	
-	waitcursor(1);
+	//XXX waitcursor(1);
 	
 	/* The header part of the STL */
 	/* First 80 characters are a title or whatever you want.
@@ -2570,7 +2564,7 @@ void write_stl(char *str)
 
 	fclose(fpSTL);
 	
-	waitcursor(0);
+	//XXX waitcursor(0);
 }
 
 static void write_videoscape_mesh(Object *ob, char *str)
@@ -2695,7 +2689,8 @@ void write_videoscape(char *str)
 
 	file= open(str,O_BINARY|O_RDONLY);
 	close(file);
-	if(file>-1) if(!during_script() && saveover(str)==0) return;
+	//XXX saveover()
+	// if(file>-1) if(!during_script() && saveover(str)==0) return;
 
 	strcpy(temp_dir, str);
 
@@ -3010,18 +3005,17 @@ void write_vrml(char *str)
 	if(BLI_testextensie(str,".blend")) str[ strlen(str)-6]= 0;
 	if(BLI_testextensie(str,".ble")) str[ strlen(str)-4]= 0;
 	if(BLI_testextensie(str,".wrl")==0) strcat(str, ".wrl");
-
-	if(!during_script() && saveover(str)==0) return;
+	//XXX saveover()       if(!during_script() && saveover(str)==0) return;
 	
 	fp= fopen(str, "w");
 	
 	if(fp==NULL && !during_script()) {
-		error("Can't write file");
+		//XXX error("Can't write file");
 		return;
 	}
 	strcpy(temp_dir, str);
 
-	waitcursor(1);
+	//XXX waitcursor(1);
 	
 	/* FIRST: write all the datablocks */
 	
@@ -3089,7 +3083,7 @@ void write_vrml(char *str)
 	
 	fclose(fp);
 	
-	waitcursor(0);
+	//XXX waitcursor(0);
 }
 
 
@@ -3324,19 +3318,19 @@ void write_dxf(char *str)
 
 	if (!during_script()) {
 		if (BLI_exists(str))
-			if(saveover(str)==0)
-				return;
+			; //XXX if(saveover(str)==0)
+			//	return;
 	}
 
 	fp= fopen(str, "w");
 	
 	if(fp==NULL && !during_script()) {
-		error("Can't write file");
+		//XXX error("Can't write file");
 		return;
 	}
 	strcpy(temp_dir, str);
 	
-	waitcursor(1);
+	//XXX waitcursor(1);
 	
 	/* The header part of the DXF */
 	
@@ -3389,7 +3383,7 @@ void write_dxf(char *str)
 	write_group(0, "EOF");
 	fclose(fp);
 	
-	waitcursor(0);
+	//XXX waitcursor(0);
 }
 
 
@@ -3516,13 +3510,14 @@ static int read_groupf(char *str)
 	return ret;
 }
 
-#define id_test(id) if(id<0) {char errmsg[128];fclose(dxf_fp); if(id==-1) sprintf(errmsg, "Error inputting dxf, near line %d", dxf_line); else if(id==-2) sprintf(errmsg, "Error reading dxf, near line %d", dxf_line);error(errmsg); return;}
+//XXX error() is now printf until we have a callback error
+#define id_test(id) if(id<0) {char errmsg[128];fclose(dxf_fp); if(id==-1) sprintf(errmsg, "Error inputting dxf, near line %d", dxf_line); else if(id==-2) sprintf(errmsg, "Error reading dxf, near line %d", dxf_line);printf(errmsg); return;}
 
 #define read_group(id,str) {id= read_groupf(str); id_test(id);}
 
 #define group_is(idtst,str) (id==idtst&&strcmp(val,str)==0)
 #define group_isnt(idtst,str) (id!=idtst||strcmp(val,str)!=0)
-#define id_check(idtst,str) if(group_isnt(idtst,str)) { fclose(dxf_fp); error("Error parsing dxf, near line %d", dxf_line); return;}
+#define id_check(idtst,str) if(group_isnt(idtst,str)) { fclose(dxf_fp); printf("Error parsing dxf, near line %d", dxf_line); return;}
 
 static int id;
 static char val[256];
@@ -4335,7 +4330,7 @@ static void dxf_read_polyline(int noob) {
 	
 			} else if (vflags & 128) {
 				if(vids[2]==0) {
-					error("(PL) Error parsing dxf, not enough vertices near line %d", dxf_line);
+					//XXX error("(PL) Error parsing dxf, not enough vertices near line %d", dxf_line);
 			
 					error_exit=1;
 					fclose(dxf_fp);
@@ -4367,7 +4362,7 @@ static void dxf_read_polyline(int noob) {
 				mface->mat_nr= 0;
 	
 			} else {
-				error("Error parsing dxf, unknown polyline information near %d", dxf_line);
+				//XXX error("Error parsing dxf, unknown polyline information near %d", dxf_line);
 			
 				error_exit=1;
 				fclose(dxf_fp);
@@ -4447,14 +4442,14 @@ static void dxf_read_lwpolyline(int noob) {
 		if (id == 10) {
 			vert[0]= (float) atof(val);
 		} else {
-			error("Error parsing dxf, expected (10, <x>) at line %d", dxf_line);	
+			//XXX error("Error parsing dxf, expected (10, <x>) at line %d", dxf_line);	
 		}
 
 		read_group(id,val);
 		if (id == 20) {
 			vert[1]= (float) atof(val);
 		} else {
-			error("Error parsing dxf, expected (20, <y>) at line %d", dxf_line);	
+			//XXX error("Error parsing dxf, expected (20, <y>) at line %d", dxf_line);	
 		}
 		
 		mvert = &me->mvert[v];
@@ -4590,7 +4585,7 @@ static void dxf_read_3dface(int noob)
 		dxf_close_3dface();
 	
 	if(nverts<3) {
-		error("(3DF) Error parsing dxf, not enough vertices near line %d", dxf_line);
+		//XXX error("(3DF) Error parsing dxf, not enough vertices near line %d", dxf_line);
 		
 		error_exit=1;
 		fclose(dxf_fp);
@@ -4703,7 +4698,7 @@ static void dxf_read(char *filename)
 						} else if (id==3) {
 							/* Now the object def should follow */
 							if(strlen(entname)==0) {
-								error("Error parsing dxf, no mesh name near %d", dxf_line);
+								//XXX error("Error parsing dxf, no mesh name near %d", dxf_line);
 								fclose(dxf_fp);
 								return;
 							}
@@ -4813,7 +4808,7 @@ static void dxf_read(char *filename)
 					}
 			
 					if(strlen(obname)==0) {
-						error("Error parsing dxf, no object name near %d", dxf_line);
+						//XXX error("Error parsing dxf, no object name near %d", dxf_line);
 						fclose(dxf_fp);
 						return;
 					}

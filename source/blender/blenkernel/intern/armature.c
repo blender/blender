@@ -65,7 +65,7 @@
 #include "BKE_object.h"
 #include "BKE_utildefines.h"
 
-#include "BIF_editdeform.h"
+//XXX #include "BIF_editdeform.h"
 
 #include "IK_solver.h"
 

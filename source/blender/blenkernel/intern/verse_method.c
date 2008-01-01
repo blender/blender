@@ -41,7 +41,6 @@
 
 #include "BIF_verse.h"
 
-#include "BKE_bad_level_calls.h"
 #include "BKE_library.h"
 #include "BKE_text.h"
 #include "BKE_verse.h"

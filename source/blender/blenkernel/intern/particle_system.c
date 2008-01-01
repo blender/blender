@@ -4252,7 +4252,7 @@ static void hair_step(Object *ob, ParticleSystemModifierData *psmd, ParticleSyst
 		precalc_effectors(ob,psys,psmd);
 		
 	if(psys_in_edit_mode(psys))
-		PE_recalc_world_cos(ob, psys);
+		; //XXX PE_recalc_world_cos(ob, psys);
 
 	psys_update_path_cache(ob,psmd,psys,cfra);
 }

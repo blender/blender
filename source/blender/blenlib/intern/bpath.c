@@ -42,7 +42,6 @@
 #include "BKE_main.h" /* so we can access G.main->*.first */
 #include "BKE_image.h" /* so we can check the image's type */
 
-#include "blendef.h"
 #include "BKE_utildefines.h"
 
 /* for writing to a textblock */

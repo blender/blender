@@ -547,7 +547,7 @@ void progressiverad()
 			applyformfactors(shoot);
 	
 			it++;
-			set_timecursor(it);
+			//XXX set_timecursor(it);
 			if( (it & 3)==1 ) {
 				make_node_display();
 				rad_forcedraw();
@@ -557,7 +557,7 @@ void progressiverad()
 		
 		clear_backface_test();
 		
-		if(blender_test_break()) break;
+		//XXX if(blender_test_break()) break;
 		if(RG.maxiter && RG.maxiter<=it) break;
 
 		shoot=findshootpatch();
@@ -673,7 +673,7 @@ void subdivideshootElements(int it)
 			shoot= findshootpatch();
 			if(shoot==0) break;
 			
-			set_timecursor(a);
+			//XXX set_timecursor(a);
 			drawpatch_ext(shoot, 0x88FF00);
 			
 			setnodeflags(shoot->first, RAD_SHOOT, 1);
@@ -723,7 +723,7 @@ void subdivideshootElements(int it)
 			}
 			else a--;
 			
-			if(blender_test_break()) break;
+			//XXX if(blender_test_break()) break;
 		}
 		
 		/* test for extreme small color change within a patch with subdivflag */
@@ -794,7 +794,7 @@ void subdivideshootElements(int it)
 		}
 		makeGlobalElemArray();
 
-		if(contin==0 || blender_test_break()) break;
+		//XXX if(contin==0 || blender_test_break()) break;
 	}
 	
 	make_node_display();
@@ -819,7 +819,7 @@ void subdivideshootPatches(int it)
 			shoot= findshootpatch();
 			if(shoot==0) break;
 			
-			set_timecursor(a);
+			//XXX set_timecursor(a);
 			drawpatch_ext(shoot, 0x88FF00);
 			
 			setnodeflags(shoot->first, RAD_SHOOT, 1);
@@ -869,7 +869,7 @@ void subdivideshootPatches(int it)
 				
 				setnodeflags(shoot->first, RAD_SHOOT, 0);
 				
-				if(blender_test_break()) break;
+				//XXX if(blender_test_break()) break;
 			}
 			else a--;
 			
@@ -896,7 +896,7 @@ void subdivideshootPatches(int it)
 		converttopatches();
 		makeGlobalElemArray();
 
-		if(contin==0 || blender_test_break()) break;
+		//XXX if(contin==0 || blender_test_break()) break;
 	}
 	make_node_display();
 }

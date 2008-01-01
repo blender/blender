@@ -81,7 +81,6 @@
 #include "BLI_editVert.h"
 
 #include "BKE_utildefines.h"
-#include "BKE_bad_level_calls.h"
 
 #include "BKE_main.h"
 #include "BKE_global.h"
@@ -1583,7 +1582,7 @@ static void give_parvert(Object *par, int nr, float *vec)
 		
 		cu= par->data;
 		nu= cu->nurb.first;
-		if(par==G.obedit) nu= editNurb.first;
+		//XXX if(par==G.obedit) nu= editNurb.first;
 		
 		count= 0;
 		while(nu) {

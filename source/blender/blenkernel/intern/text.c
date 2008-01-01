@@ -41,7 +41,6 @@
 #include "DNA_scene_types.h"
 #include "DNA_text_types.h"
 
-#include "BKE_bad_level_calls.h"
 #include "BKE_utildefines.h"
 #include "BKE_text.h"
 #include "BKE_library.h"
@@ -1422,7 +1421,7 @@ void txt_print_undo(Text *text)
 
 static void txt_undo_add_op(Text *text, int op)
 {
-	MAX_UNDO_TEST(2);
+	//XXX MAX_UNDO_TEST(2);
 	
 	text->undo_pos++;
 	text->undo_buf[text->undo_pos]= op;
@@ -1435,7 +1434,7 @@ static void txt_undo_add_block(Text *text, int op, char *buf)
 	
 	length= strlen(buf);
 	
-	MAX_UNDO_TEST(length+11);
+	//XXX MAX_UNDO_TEST(length+11);
 
 	text->undo_pos++;
 	text->undo_buf[text->undo_pos]= op;
@@ -1469,7 +1468,7 @@ static void txt_undo_add_block(Text *text, int op, char *buf)
 
 void txt_undo_add_toop(Text *text, int op, unsigned int froml, unsigned short fromc, unsigned int tol, unsigned short toc)
 {
-	MAX_UNDO_TEST(15);
+	//XXX MAX_UNDO_TEST(15);
 
 	if (froml==tol && fromc==toc) return;
 
@@ -1512,7 +1511,7 @@ void txt_undo_add_toop(Text *text, int op, unsigned int froml, unsigned short fr
 
 static void txt_undo_add_charop(Text *text, int op, char c)
 {
-	MAX_UNDO_TEST(4);
+	//XXX MAX_UNDO_TEST(4);
 
 	text->undo_pos++;
 	text->undo_buf[text->undo_pos]= op;
@@ -1734,7 +1733,7 @@ void txt_do_undo(Text *text)
 			text->undo_pos--;
 			break;
 		default:
-			error("Undo buffer error - resetting");
+			//XXX error("Undo buffer error - resetting");
 			text->undo_pos= -1;
 			
 			break;
@@ -1934,7 +1933,7 @@ void txt_do_redo(Text *text)
 			}
 			break;
 		default:
-			error("Undo buffer error - resetting");
+			//XXX error("Undo buffer error - resetting");
 			text->undo_pos= -1;
 
 			break;

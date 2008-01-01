@@ -47,14 +47,12 @@
 #include "BLI_blenlib.h"
 #include "DNA_userdef_types.h"
 
-/*#include "BKE_bad_level_calls.h"*/
 #include "BKE_global.h"
 
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
 #include "DNA_scene_types.h"
-#include "blendef.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>
@@ -110,14 +108,14 @@ void start_frameserver(RenderData *rd, int rectx, int recty)
 
 	if (!startup_socket_system()) {
 		G.afbreek = 1;
-		error("Can't startup socket system");
+		//XXX error("Can't startup socket system");
 		return;
 	}
 
 	if ((sock = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
 		shutdown_socket_system();
 		G.afbreek = 1; /* Abort render */
-		error("Can't open socket");
+		//XXX error("Can't open socket");
 		return;
         }
 
@@ -131,14 +129,14 @@ void start_frameserver(RenderData *rd, int rectx, int recty)
 	if (bind(sock, (struct sockaddr *)&addr, sizeof(addr)) < 0) {
 		shutdown_socket_system();
 		G.afbreek = 1; /* Abort render */
-		error("Can't bind to socket");
+		//XXX error("Can't bind to socket");
 		return;
         }
 
         if (listen(sock, SOMAXCONN) < 0) {
 		shutdown_socket_system();
 		G.afbreek = 1; /* Abort render */
-		error("Can't establish listen backlog");
+		//XXX error("Can't establish listen backlog");
 		return;
         }
 	connsock = -1;

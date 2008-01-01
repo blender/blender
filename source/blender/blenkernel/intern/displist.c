@@ -63,7 +63,6 @@
 #include "BLI_editVert.h"
 #include "BLI_edgehash.h"
 
-#include "BKE_bad_level_calls.h"
 #include "BKE_utildefines.h"
 #include "BKE_global.h"
 #include "BKE_displist.h"
@@ -1313,7 +1312,7 @@ void makeDispListSurf(Object *ob, ListBase *dispbase, int forRender)
 	float (*deformedVerts)[3];
 		
 	if(!forRender && ob==G.obedit) {
-		nubase= &editNurb;
+		//XXX nubase= &editNurb;
 	}
 	else {
 		nubase= &cu->nurb;
@@ -1396,7 +1395,7 @@ void makeDispListCurveTypes(Object *ob, int forOrco)
 		float (*originalVerts)[3];
 		float (*deformedVerts)[3];
 		int obedit= (G.obedit && G.obedit->data==ob->data && G.obedit->type==OB_CURVE);
-		ListBase *nubase = obedit?&editNurb:&cu->nurb;
+		ListBase *nubase; //XXX ListBase *nubase = obedit?&editNurb:&cu->nurb;
 		int numVerts;
 
 		BLI_freelistN(&(cu->bev));

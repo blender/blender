@@ -73,7 +73,6 @@
 
 #include "BKE_main.h"
 #include "BKE_anim.h"
-#include "BKE_bad_level_calls.h"
 #include "BKE_curve.h"
 #include "BKE_customdata.h"
 #include "BKE_global.h"
@@ -101,7 +100,7 @@
 
 #include "RE_shader_ext.h"
 
-#include "BIF_meshlaplacian.h"
+//XXX #include "BIF_meshlaplacian.h"
 
 /***/
 

@@ -61,7 +61,6 @@
 
 #include "BKE_plugin_types.h"
 
-#include "BKE_bad_level_calls.h"
 #include "BKE_utildefines.h"
 
 #include "BKE_global.h"
@@ -175,8 +174,8 @@ PluginTex *add_plugin_tex(char *str)
 	open_plugin_tex(pit);
 	
 	if(pit->doit==0) {
-		if(pit->handle==0) error("no plugin: %s", str);
-		else error("in plugin: %s", str);
+		if(pit->handle==0); //XXX error("no plugin: %s", str);
+		else ; //XXX error("in plugin: %s", str);
 		MEM_freeN(pit);
 		return NULL;
 	}

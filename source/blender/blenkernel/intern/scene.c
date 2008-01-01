@@ -63,7 +63,6 @@
 #include "BKE_action.h"			
 #include "BKE_anim.h"
 #include "BKE_armature.h"		
-#include "BKE_bad_level_calls.h"
 #include "BKE_colortools.h"
 #include "BKE_constraint.h"
 #include "BKE_depsgraph.h"
@@ -81,7 +80,7 @@
 #include "BKE_world.h"
 #include "BKE_utildefines.h"
 
-#include "BIF_previewrender.h"
+//XXX #include "BIF_previewrender.h"
 
 #include "BPY_extern.h"
 #include "BLI_arithb.h"
@@ -136,7 +135,7 @@ void free_scene(Scene *sce)
 	/* do not free objects! */
 
 	BLI_freelistN(&sce->base);
-	free_editing(sce->ed);
+	//XXX free_editing(sce->ed);
 	if(sce->radio) MEM_freeN(sce->radio);
 	sce->radio= 0;
 	
@@ -349,7 +348,7 @@ void set_scene_name(char *name)
 		}
 	}
 	
-	error("Can't find scene: %s", name);
+	//XXX error("Can't find scene: %s", name);
 }
 
 /* used by metaballs

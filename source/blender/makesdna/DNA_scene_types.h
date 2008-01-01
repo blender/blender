@@ -640,6 +640,34 @@ typedef struct Scene {
 #define R_BAKE_SPACE_TANGENT 3
 
 /* **************** SCENE ********************* */
+
+/* for general use */
+#define MAXFRAME	300000
+#define MAXFRAMEF	300000.0f
+
+#define MINFRAME	1
+#define MINFRAMEF	1.0
+
+#define TESTBASE(base)	( ((base)->flag & SELECT) && ((base)->lay & G.vd->lay) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0) )
+#define TESTBASELIB(base)	( ((base)->flag & SELECT) && ((base)->lay & G.vd->lay) && ((base)->object->id.lib==0) && (((base)->object->restrictflag & OB_RESTRICT_VIEW)==0))
+#define BASE_SELECTABLE(base)	 ((base->lay & G.vd->lay) && (base->object->restrictflag & (OB_RESTRICT_SELECT|OB_RESTRICT_VIEW))==0)
+#define FIRSTBASE		G.scene->base.first
+#define LASTBASE		G.scene->base.last
+#define BASACT			(G.scene->basact)
+#define OBACT			(BASACT? BASACT->object: 0)
+#define ID_NEW(a)		if( (a) && (a)->id.newid ) (a)= (void *)(a)->id.newid
+#define ID_NEW_US(a)	if( (a)->id.newid) {(a)= (void *)(a)->id.newid; (a)->id.us++;}
+#define ID_NEW_US2(a)	if( ((ID *)a)->newid) {(a)= ((ID *)a)->newid; ((ID *)a)->us++;}
+#define	CFRA			(G.scene->r.cfra)
+#define	F_CFRA			((float)(G.scene->r.cfra))
+#define	SFRA			(G.scene->r.sfra)
+#define	EFRA			(G.scene->r.efra)
+#define PSFRA			((G.scene->r.psfra != 0)? (G.scene->r.psfra): (G.scene->r.sfra))
+#define PEFRA			((G.scene->r.psfra != 0)? (G.scene->r.pefra): (G.scene->r.efra))
+#define FRA2TIME(a)           ((((double) G.scene->r.frs_sec_base) * (a)) / G.scene->r.frs_sec)
+#define TIME2FRA(a)           ((((double) G.scene->r.frs_sec) * (a)) / G.scene->r.frs_sec_base)
+#define FPS                     (((double) G.scene->r.frs_sec) / G.scene->r.frs_sec_base)
+
 #define RAD_PHASE_PATCHES	1
 #define RAD_PHASE_FACES		2
 

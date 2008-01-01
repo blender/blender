@@ -53,7 +53,6 @@
 #include "BLI_arithb.h"
 
 #include "BKE_utildefines.h"
-#include "BKE_bad_level_calls.h"
 
 #include "BKE_global.h"
 #include "BKE_main.h"

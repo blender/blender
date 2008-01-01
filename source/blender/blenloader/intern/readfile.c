@@ -107,8 +107,6 @@
 #include "BLI_arithb.h"
 #include "BLI_storage_types.h" // for relname flags
 
-#include "BDR_sculptmode.h"
-
 #include "BKE_action.h"
 #include "BKE_armature.h"
 #include "BKE_colortools.h"
@@ -138,9 +136,9 @@
 #include "BKE_utildefines.h" // SWITCH_INT DATA ENDB DNA1 O_BINARY GLOB USER TEST REND
 #include "BKE_idprop.h"
 
-#include "BIF_butspace.h" // badlevel, for do_versions, patching event codes
-#include "BIF_filelist.h" // badlevel too, where to move this? - elubie
-#include "BIF_previewrender.h" // bedlelvel, for struct RenderInfo
+//XXX #include "BIF_butspace.h" // badlevel, for do_versions, patching event codes
+//XXX #include "BIF_filelist.h" // badlevel too, where to move this? - elubie
+//XXX #include "BIF_previewrender.h" // bedlelvel, for struct RenderInfo
 #include "BLO_readfile.h"
 #include "BLO_undofile.h"
 #include "BLO_readblenfile.h" // streaming read pipe, for BLO_readblenfile BLO_readblenfilememory
@@ -152,7 +150,6 @@
 #include "genfile.h"
 
 #include "mydevice.h"
-#include "blendef.h"
 
 #include <errno.h>
 
@@ -2921,7 +2918,7 @@ static void lib_link_object(FileData *fd, Main *main)
 		ob= ob->id.next;
 	}
 
-	if(warn) error("WARNING IN CONSOLE");
+	if(warn); //XXX error("WARNING IN CONSOLE");
 }
 
 
@@ -3252,7 +3249,7 @@ static void lib_link_scene(FileData *fd, Main *main)
 
 			ed= sce->ed;
 			if(ed) {
-				WHILE_SEQ(&ed->seqbase) {
+				WHILE_SEQ(&ed->seqbase) { //XXX todo replace WHILE_SEQ
 					if(seq->ipo) seq->ipo= newlibadr_us(fd, sce->id.lib, seq->ipo);
 					if(seq->scene) seq->scene= newlibadr(fd, sce->id.lib, seq->scene);
 					if(seq->sound) {
@@ -3326,7 +3323,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	if(sce->sculptdata.cumap)
 		direct_link_curvemapping(fd, sce->sculptdata.cumap);
 	else
-		sculpt_reset_curve(&sce->sculptdata);
+		; //XXX sculpt_reset_curve(&sce->sculptdata);
 
 	if(sce->ed) {
 		ListBase *old_seqbasep= &((Editing *)sce->ed)->seqbase;
@@ -3336,7 +3333,7 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 		/* recursive link sequences, lb will be correctly initialized */
 		link_recurs_seq(fd, &ed->seqbase);
 
-		WHILE_SEQ(&ed->seqbase) {
+		WHILE_SEQ(&ed->seqbase) { //XXX todo replace WHILE_SEQ
 			seq->seq1= newdataadr(fd, seq->seq1);
 			seq->seq2= newdataadr(fd, seq->seq2);
 			seq->seq3= newdataadr(fd, seq->seq3);
@@ -3450,7 +3447,7 @@ static Sequence * find_sequence_from_ipo_helper(Main * main, Ipo * ipo)
 
 			ed= sce->ed;
 
-			WHILE_SEQ(&ed->seqbase) {
+			WHILE_SEQ(&ed->seqbase) { //XXX todo replace WHILE_SEQ
 				if (seq->ipo == ipo) {
 					found = 1;
 					break;
@@ -3760,7 +3757,7 @@ void lib_link_screen_restore(Main *newmain, Scene *curscene)
 				else if(sl->spacetype==SPACE_BUTS) {
 					SpaceButs *sbuts= (SpaceButs *)sl;
 					sbuts->lockpoin= NULL;
-					if (sbuts->ri) sbuts->ri->curtile = 0;
+					//XXX if (sbuts->ri) sbuts->ri->curtile = 0;
 				}
 				else if(sl->spacetype==SPACE_FILE) {
 					SpaceFile *sfile= (SpaceFile *)sl;
@@ -3771,7 +3768,7 @@ void lib_link_screen_restore(Main *newmain, Scene *curscene)
 				else if(sl->spacetype==SPACE_IMASEL) {
                     SpaceImaSel *simasel= (SpaceImaSel *)sl;
 					if (simasel->files) {
-						BIF_filelist_freelib(simasel->files);
+						//XXX BIF_filelist_freelib(simasel->files);
 					}
 				}
 				else if(sl->spacetype==SPACE_ACTION) {
@@ -3978,7 +3975,7 @@ static void direct_link_library(FileData *fd, Library *lib, Main *main)
 				BLI_remlink(&main->library, lib);
 				MEM_freeN(lib);
 				
-				error("Library had multiple instances, save and reload!");
+				//XXX error("Library had multiple instances, save and reload!");
 				return;
 			}
 		}
@@ -4894,7 +4891,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				while(sl) {
 					if(sl->spacetype==SPACE_BUTS) {
 						SpaceButs *sbuts= (SpaceButs*) sl;
-						sbuts->scaflag= BUTS_SENS_LINK|BUTS_SENS_ACT|BUTS_CONT_ACT|BUTS_ACT_ACT|BUTS_ACT_LINK;
+						//XXX sbuts->scaflag= BUTS_SENS_LINK|BUTS_SENS_ACT|BUTS_CONT_ACT|BUTS_ACT_ACT|BUTS_ACT_LINK;
 					}
 					sl= sl->next;
 				}
@@ -5542,52 +5539,52 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 					if (sl->spacetype==SPACE_BUTS) {
 						SpaceButs *sbuts= (SpaceButs *) sl;
 
-						sbuts->v2d.maxzoom= 1.2f;
-						sbuts->align= 1;	/* horizontal default */
-							
-						if(sbuts->mainb==BUTS_LAMP) {
-							sbuts->mainb= CONTEXT_SHADING;
-							sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_LAMP;
-						}
-						else if(sbuts->mainb==BUTS_MAT) {
-							sbuts->mainb= CONTEXT_SHADING;
-							sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_MAT;
-						}
-						else if(sbuts->mainb==BUTS_TEX) {
-							sbuts->mainb= CONTEXT_SHADING;
-							sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_TEX;
-						}
-						else if(sbuts->mainb==BUTS_ANIM) {
-							sbuts->mainb= CONTEXT_OBJECT;
-						}
-						else if(sbuts->mainb==BUTS_WORLD) {
-							sbuts->mainb= CONTEXT_SCENE;
-							sbuts->tab[CONTEXT_SCENE]= TAB_SCENE_WORLD;
-						}
-						else if(sbuts->mainb==BUTS_RENDER) {
-							sbuts->mainb= CONTEXT_SCENE;
-							sbuts->tab[CONTEXT_SCENE]= TAB_SCENE_RENDER;
-						}
-						else if(sbuts->mainb==BUTS_GAME) {
-							sbuts->mainb= CONTEXT_LOGIC;
-						}
-						else if(sbuts->mainb==BUTS_FPAINT) {
-							sbuts->mainb= CONTEXT_EDITING;
-						}
-						else if(sbuts->mainb==BUTS_RADIO) {
-							sbuts->mainb= CONTEXT_SHADING;
-							sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_RAD;
-						}
-						else if(sbuts->mainb==BUTS_CONSTRAINT) {
-							sbuts->mainb= CONTEXT_OBJECT;
-						}
-						else if(sbuts->mainb==BUTS_SCRIPT) {
-							sbuts->mainb= CONTEXT_OBJECT;
-						}
-						else if(sbuts->mainb==BUTS_EDIT) {
-							sbuts->mainb= CONTEXT_EDITING;
-						}
-						else sbuts->mainb= CONTEXT_SCENE;
+//XXX						sbuts->v2d.maxzoom= 1.2f;
+//XXX						sbuts->align= 1;	/* horizontal default */
+//XXX						
+//XXX						if(sbuts->mainb==BUTS_LAMP) {
+//XXX							sbuts->mainb= CONTEXT_SHADING;
+//XXX							sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_LAMP;
+//XXX						}
+//XXX						else if(sbuts->mainb==BUTS_MAT) {
+//XXX							sbuts->mainb= CONTEXT_SHADING;
+//XXX							sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_MAT;
+//XXX						}
+//XXX						else if(sbuts->mainb==BUTS_TEX) {
+//XXX							sbuts->mainb= CONTEXT_SHADING;
+//XXX							sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_TEX;
+//XXX						}
+//XXX						else if(sbuts->mainb==BUTS_ANIM) {
+//XXX							sbuts->mainb= CONTEXT_OBJECT;
+//XXX						}
+//XXX						else if(sbuts->mainb==BUTS_WORLD) {
+//XXX							sbuts->mainb= CONTEXT_SCENE;
+//XXX							sbuts->tab[CONTEXT_SCENE]= TAB_SCENE_WORLD;
+//XXX						}
+//XXX						else if(sbuts->mainb==BUTS_RENDER) {
+//XXX							sbuts->mainb= CONTEXT_SCENE;
+//XXX							sbuts->tab[CONTEXT_SCENE]= TAB_SCENE_RENDER;
+//XXX						}
+//XXX						else if(sbuts->mainb==BUTS_GAME) {
+//XXX							sbuts->mainb= CONTEXT_LOGIC;
+//XXX						}
+//XXX						else if(sbuts->mainb==BUTS_FPAINT) {
+//XXX							sbuts->mainb= CONTEXT_EDITING;
+//XXX						}
+//XXX						else if(sbuts->mainb==BUTS_RADIO) {
+//XXX							sbuts->mainb= CONTEXT_SHADING;
+//XXX							sbuts->tab[CONTEXT_SHADING]= TAB_SHADING_RAD;
+//XXX						}
+//XXX						else if(sbuts->mainb==BUTS_CONSTRAINT) {
+//XXX							sbuts->mainb= CONTEXT_OBJECT;
+//XXX						}
+//XXX						else if(sbuts->mainb==BUTS_SCRIPT) {
+//XXX							sbuts->mainb= CONTEXT_OBJECT;
+//XXX						}
+//XXX						else if(sbuts->mainb==BUTS_EDIT) {
+//XXX							sbuts->mainb= CONTEXT_EDITING;
+//XXX						}
+//XXX						else sbuts->mainb= CONTEXT_SCENE;
 					}
 				}
 			}
@@ -5857,7 +5854,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		while(sce) {
 			ed= sce->ed;
 			if(ed) {
-				WHILE_SEQ(&ed->seqbase) {
+				WHILE_SEQ(&ed->seqbase) { //XXX todo replace WHILE_SEQ
 					if(seq->type==SEQ_IMAGE || seq->type==SEQ_MOVIE) seq->flag |= SEQ_MAKE_PREMUL;
 				}
 				END_SEQ
@@ -8377,12 +8374,12 @@ void BLO_library_append_(BlendHandle** libfiledata, struct direntry* filelist, i
 				if( strcmp(filelist[a].relname, file)==0) break;
 			}
 			if(a==totfile) {
-				error("Wrong indicated name");
+				//XXX error("Wrong indicated name");
 				return;
 			}
 		}
 		else {
-			error("Nothing indicated");
+			//XXX error("Nothing indicated");
 			return;
 		}
 	}

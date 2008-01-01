@@ -74,13 +74,10 @@
 #include "BKE_key.h"
 #include "BKE_library.h"
 #include "BKE_depsgraph.h"
-#include "BKE_bad_level_calls.h"
 #include "BKE_modifier.h"
 #include "BKE_mesh.h"
 #include "BKE_cdderivedmesh.h"
 
-#include "blendef.h"
-#include "BIF_editparticle.h"
 #include "RE_render_ext.h"
 
 static void key_from_object(Object *ob, ParticleKey *key);
@@ -248,7 +245,7 @@ int psys_ob_has_hair(Object *ob)
 }
 int psys_in_edit_mode(ParticleSystem *psys)
 {
-	return ((G.f & G_PARTICLEEDIT) && psys==psys_get_current(OBACT) && psys->edit);
+	return ((G.f & G_PARTICLEEDIT) && psys==psys_get_current((G.scene->basact)->object) && psys->edit);
 }
 int psys_check_enabled(Object *ob, ParticleSystem *psys)
 {
@@ -332,7 +329,7 @@ void psys_free(Object *ob, ParticleSystem * psys)
 
 		free_keyed_keys(psys);
 
-		PE_free_particle_edit(psys);
+		//XXX PE_free_particle_edit(psys);
 
 		if(psys->particles){
 			MEM_freeN(psys->particles);
@@ -2245,7 +2242,7 @@ void psys_cache_paths(Object *ob, ParticleSystem *psys, float cfra, int editupda
 		
 		//timed = edit->draw_timed;
 
-		PE_get_colors(sel,nosel);
+		//XXX PE_get_colors(sel,nosel);
 		if(pset->brushtype == PE_BRUSH_WEIGHT){
 			sel_col[0] = sel_col[1] = sel_col[2] = 1.0f;
 			nosel_col[0] = nosel_col[1] = nosel_col[2] = 0.0f;

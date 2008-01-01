@@ -48,7 +48,6 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_action.h"
-#include "BKE_bad_level_calls.h"
 #include "BKE_blender.h"
 #include "BKE_curve.h"
 #include "BKE_global.h"
@@ -62,8 +61,6 @@
 #include "BKE_utildefines.h"
 
 #include "BLI_blenlib.h"
-
-#include "blendef.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

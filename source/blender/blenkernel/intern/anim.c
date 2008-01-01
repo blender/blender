@@ -68,8 +68,6 @@
 #include "BKE_particle.h"
 #include "BKE_utildefines.h"
 
-#include "BKE_bad_level_calls.h"
-
 #ifdef HAVE_CONFIG_H
 #include <config.h>
 #endif
@@ -98,8 +96,8 @@ void calc_curvepath(Object *ob)
 	
 	if(ob==NULL || ob->type != OB_CURVE) return;
 	cu= ob->data;
-	if(ob==G.obedit) nu= editNurb.first;
-	else nu= cu->nurb.first;
+	//XXX if(ob==G.obedit) nu= editNurb.first;
+	//XXX else nu= cu->nurb.first;
 	
 	if(cu->path) free_path(cu->path);
 	cu->path= NULL;

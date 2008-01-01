@@ -42,7 +42,6 @@
 
 #include "BLI_blenlib.h"
 #include "BKE_utildefines.h"
-#include "blendef.h"
 
 /* needed for directory lookup */
 #ifndef WIN32

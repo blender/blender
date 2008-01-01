@@ -50,7 +50,6 @@
 #include "MEM_guardedalloc.h"
 #include "BLI_blenlib.h"
 
-#include "BKE_bad_level_calls.h"
 #include "BKE_global.h"
 
 #include "IMB_imbuf_types.h"
@@ -59,7 +58,6 @@
 #include "BSE_seqaudio.h"
 
 #include "DNA_scene_types.h"
-#include "blendef.h"
 
 #ifdef HAVE_CONFIG_H
 #include <config.h>

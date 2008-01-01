@@ -43,7 +43,6 @@
 #include "DNA_modifier_types.h"
 #include "DNA_object_types.h"
 
-#include "BKE_bad_level_calls.h"
 #include "BKE_cdderivedmesh.h"
 #include "BKE_customdata.h"
 #include "BKE_utildefines.h"
@@ -877,8 +876,8 @@ static void ss_sync_from_derivedmesh(CCGSubSurf *ss, DerivedMesh *dm,
 			static int hasGivenError = 0;
 
 			if(!hasGivenError) {
-				error("Unrecoverable error in SubSurf calculation,"
-				      " mesh is inconsistent.");
+				//XXX error("Unrecoverable error in SubSurf calculation,"
+				//      " mesh is inconsistent.");
 
 				hasGivenError = 1;
 			}

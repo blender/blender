@@ -52,7 +52,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"  
 
-#include "BIF_toolbox.h"
+//XXX #include "BIF_toolbox.h"
 
 #include "BKE_global.h"
 #include "BKE_font.h"
@@ -430,7 +430,7 @@ static int check_freetypefont(PackedFile * pf)
 							&face );
 	if(err) {
 		success = 0;
-	    error("This is not a valid font");
+	    //XXX error("This is not a valid font");
 	}
 	else {
 /*
@@ -459,7 +459,7 @@ static int check_freetypefont(PackedFile * pf)
 			if (glyph->format == ft_glyph_format_outline ) {
 				success = 1;
 			} else {
-				error("Selected Font has no outline data");
+				//XXX error("Selected Font has no outline data");
 				success = 0;
 			}
 		}

@@ -47,9 +47,7 @@
 #include "DNA_object_types.h"
 #include "DNA_listBase.h"
 
-
 #include "BLI_blenlib.h"
-#include "BKE_bad_level_calls.h"
 #include "BKE_property.h"
 
 void free_property(bProperty *prop)

@@ -84,8 +84,8 @@ variables on the UI for now
 #include "BKE_pointcache.h"
 #include "BKE_modifier.h"
 
-#include  "BIF_editdeform.h"
-#include  "BIF_graphics.h"
+//XXX #include  "BIF_editdeform.h"
+//XXX #include  "BIF_graphics.h"
 #include  "PIL_time.h"
 
 /* callbacks for errors and interrupts and some goo */

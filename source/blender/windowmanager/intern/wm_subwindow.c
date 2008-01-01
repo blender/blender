@@ -231,7 +231,7 @@ void wm_subwindow_position(wmWindow *win, int swinid, rcti *winrct)
 /* ---------------- WM versions of OpenGL calls, using glBlah() syntax ------------------------ */
 /* ----------------- exported in WM_api.h ------------------------------------------------------ */
 
-static int glaGetOneInteger(int a)
+int glaGetOneInteger(int a)
 {
 	return 0; // XXX
 }

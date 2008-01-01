@@ -35,8 +35,6 @@
 #include "DNA_object_types.h"
 #include "DNA_vec_types.h"
 
-#include "BIF_editmesh.h"
-
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 #include "BLI_editVert.h"
@@ -46,7 +44,6 @@
 #include "BKE_global.h"
 #include "BKE_multires.h"
 
-#include "blendef.h"
 #include "editmesh.h"
 
 #include <math.h>
@@ -188,7 +185,7 @@ void eed_to_medge_flag(EditEdge *eed, short *flag, char *crease)
 	if(eed->f2==0) *flag |= ME_LOOSEEDGE;
 	if(eed->sharp) *flag |= ME_SHARP;
 	if(eed->seam) *flag |= ME_SEAM;
-	if(eed->h & EM_FGON) *flag |= ME_FGON;
+	//XXX if(eed->h & EM_FGON) *flag |= ME_FGON;
 	if(eed->h & 1) *flag |= ME_HIDE;
 	
 	*crease= (char)(255.0*eed->crease);
@@ -218,7 +215,7 @@ static void multires_get_face(MultiresFace *f, EditFace *efa, MFace *m)
 		tmp.v3= efa->v3->tmp.l;
 		tmp.v4= 0;
 		if(efa->v4) tmp.v4= efa->v4->tmp.l;
-		test_index_face(&tmp, NULL, 0, efa->v4?4:3);
+		//XXX test_index_face(&tmp, NULL, 0, efa->v4?4:3);
 		for(j=0; j<4; ++j) f->v[j]= (&tmp.v1)[j];
 
 		/* Flags */
@@ -357,7 +354,7 @@ void multires_create(Object *ob, Mesh *me)
 	
 	lvl= MEM_callocN(sizeof(MultiresLevel), "multires level");
 
-	if(me->pv) mesh_pmv_off(ob, me);
+	//XXX if(me->pv) mesh_pmv_off(ob, me);
 
 	me->mr= MEM_callocN(sizeof(Multires), "multires data");
 	
@@ -1033,7 +1030,7 @@ void multires_level_to_mesh(Object *ob, Mesh *me, const int render)
 	CustomData_add_layer(&me->vdata, CD_MVERT, CD_CALLOC, NULL, me->totvert);
 	CustomData_add_layer(&me->edata, CD_MEDGE, CD_CALLOC, NULL, me->totedge);
 	CustomData_add_layer(&me->fdata, CD_MFACE, CD_CALLOC, NULL, me->totface);
-	mesh_update_customdata_pointers(me);
+	//XXX mesh_update_customdata_pointers(me);
 
 	/* Vertices/Edges/Faces */
 	
@@ -1088,11 +1085,11 @@ void multires_level_to_mesh(Object *ob, Mesh *me, const int render)
 			
 	}
 	
-	mesh_update_customdata_pointers(me);
+	//XXX mesh_update_customdata_pointers(me);
 	
 	multires_edge_level_update(ob,me);
 	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
-	mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
+	//XXX mesh_calc_normals(me->mvert, me->totvert, me->mface, me->totface, NULL);
 }
 
 void multires_add_level(Object *ob, Mesh *me, const char subdiv_type)
@@ -1103,7 +1100,7 @@ void multires_add_level(Object *ob, Mesh *me, const char subdiv_type)
 	MVert *oldverts= NULL;
 	
 	lvl= MEM_callocN(sizeof(MultiresLevel), "multireslevel");
-	if(me->pv) mesh_pmv_off(ob, me);
+	//XXX if(me->pv) mesh_pmv_off(ob, me);
 
 	check_colors(me);
 	multires_update_levels(me, 0);
@@ -1269,7 +1266,7 @@ void multires_add_level(Object *ob, Mesh *me, const char subdiv_type)
 
 void multires_set_level(Object *ob, Mesh *me, const int render)
 {
-	if(me->pv) mesh_pmv_off(ob, me);
+	//XXX if(me->pv) mesh_pmv_off(ob, me);
 
 	check_colors(me);
 	multires_update_levels(me, render);

@@ -62,8 +62,6 @@
 #include "RE_pipeline.h"
 #include "radio.h"
 
-#include "BSE_sequence.h"  /* <----------------- bad!!! */
-
 #ifndef DISABLE_YAFRAY
 /* yafray: include for yafray export/render */
 #include "YafRay_Api.h"
@@ -2026,7 +2024,7 @@ static void do_render_all_options(Render *re)
 	if(re->r.scemode & R_DOSEQ) {
 		/* note: do_render_seq() frees rect32 when sequencer returns float images */
 		if(!re->test_break()) 
-			do_render_seq(re->result, re->r.cfra);
+			; //XXX do_render_seq(re->result, re->r.cfra);
 		
 		re->stats_draw(&re->i);
 		re->display_draw(re->result, NULL);

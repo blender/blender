@@ -78,7 +78,6 @@
 #include "BKE_scene.h"
 
 #include "MEM_guardedalloc.h"
-#include "blendef.h"
 
 #include "BPY_extern.h"
 

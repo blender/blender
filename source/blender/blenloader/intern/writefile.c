@@ -1417,13 +1417,14 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 			writestruct(wd, DATA, "Editing", 1, ed);
 
 			/* reset write flags too */
-			WHILE_SEQ(&ed->seqbase) {
+			
+			WHILE_SEQ(&ed->seqbase) { //XXX todo replace WHILE_SEQ
 				if(seq->strip) seq->strip->done= 0;
 				writestruct(wd, DATA, "Sequence", 1, seq);
 			}
 			END_SEQ
 
-			WHILE_SEQ(&ed->seqbase) {
+			WHILE_SEQ(&ed->seqbase) { //XXX todo replace WHILE_SEQ
 				if(seq->strip && seq->strip->done==0) {
 					/* write strip with 'done' at 0 because readfile */
 
@@ -2238,7 +2239,7 @@ cleanup:
 		close(outfd);
 
 	if (cause)
-		error("Unable to make runtime: %s", cause);
+		; //XXX error("Unable to make runtime: %s", cause);
 }
 
 #endif /* !__APPLE__ */

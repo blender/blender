@@ -56,7 +56,6 @@
 #include "DNA_scene_types.h"
 
 #include "BKE_utildefines.h"
-#include "BKE_bad_level_calls.h"
 
 #include "BKE_packedFile.h"
 
@@ -385,8 +384,6 @@ VFont *load_vfont(char *name)
 
 	if (pf) {
 		VFontData *vfd;
-		
-		waitcursor(1);
 
 #ifdef WITH_FREETYPE2
 		vfd= BLI_vfontdata_from_freetypefont(pf);
@@ -420,7 +417,7 @@ VFont *load_vfont(char *name)
 			freePackedFile(pf);
 		}
 	
-		waitcursor(0);
+		//XXX waitcursor(0);
 	}
 	
 	return vfont;

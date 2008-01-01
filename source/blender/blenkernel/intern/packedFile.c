@@ -64,7 +64,6 @@
 #include "BKE_image.h"
 #include "BKE_font.h"
 #include "BKE_packedFile.h"
-#include "BKE_bad_level_calls.h" /* <- waitcursor */
 
 int seekPackedFile(PackedFile * pf, int offset, int whence)
 {
@@ -183,7 +182,7 @@ PackedFile * newPackedFile(char * filename)
 	char name[FILE_MAXDIR+FILE_MAXFILE];
 	void * data;
 	
-	waitcursor(1);
+	//XXX waitcursor(1);
 	
 	// convert relative filenames to absolute filenames
 	
@@ -213,7 +212,7 @@ PackedFile * newPackedFile(char * filename)
 		close(file);
 	}
 
-	waitcursor(0);
+	//XXX waitcursor(0);
 		
 	return (pf);
 }
@@ -286,7 +285,7 @@ int writePackedFile(char * filename, PackedFile *pf, int guimode)
 	char tempname[FILE_MAXDIR + FILE_MAXFILE];
 /*  	void * data; */
 	
-	if (guimode) waitcursor(1);
+	if (guimode); //XXX  waitcursor(1);
 	
 	strcpy(name, filename);
 	BLI_convertstringcode(name, G.sce, G.scene->r.cfra);
@@ -309,28 +308,28 @@ int writePackedFile(char * filename, PackedFile *pf, int guimode)
 	file = open(name, O_BINARY + O_WRONLY + O_CREAT + O_TRUNC, 0666);
 	if (file >= 0) {
 		if (write(file, pf->data, pf->size) != pf->size) {
-			if(guimode) error("Error writing file: %s", name);
+			if(guimode) ; //XXX error("Error writing file: %s", name);
 			ret_value = RET_ERROR;
 		}
 		close(file);
 	} else {
-		if(guimode) error("Error creating file: %s", name);
+		if(guimode); //XXX error("Error creating file: %s", name);
 		ret_value = RET_ERROR;
 	}
 	
 	if (remove_tmp) {
 		if (ret_value == RET_ERROR) {
 			if (BLI_rename(tempname, name) == RET_ERROR) {
-				if(guimode) error("Error restoring tempfile. Check files: '%s' '%s'", tempname, name);
+				if(guimode); //XXX error("Error restoring tempfile. Check files: '%s' '%s'", tempname, name);
 			}
 		} else {
 			if (BLI_delete(tempname, 0, 0) == RET_ERROR) {
-				if(guimode) error("Error deleting '%s' (ignored)");
+				if(guimode); //XXX error("Error deleting '%s' (ignored)");
 			}
 		}
 	}
 	
-	if(guimode) waitcursor(0);
+	if(guimode); //XXX waitcursor(0);
 
 	return (ret_value);
 }
@@ -453,7 +452,7 @@ char *unpackFile(char * abs_name, char * local_name, PackedFile * pf, int how)
 					break;
 			}
 			
-			how = pupmenu(menu);
+			//XXX how = pupmenu(menu);
 		}
 		
 		switch (how) {

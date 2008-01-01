@@ -41,6 +41,7 @@ struct AviCodecData;
 struct QuicktimeCodecData;
 
 /* sequence related defines */
+
 #define WHILE_SEQ(base)	{											\
 	int totseq_, seq_; Sequence **seqar;	\
 		build_seqar( base,  &seqar, &totseq_);	\

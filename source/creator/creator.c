@@ -46,8 +46,6 @@
 #include "DNA_scene_types.h"
 
 #include "BLI_blenlib.h"
-#include "blendef.h" /* for MAXFRAME */
-
 
 #include "BKE_utildefines.h"
 #include "BKE_blender.h"
@@ -58,8 +56,6 @@
 #include "BKE_packedFile.h"
 #include "BKE_scene.h"
 #include "BKE_node.h"
-
-#include "BIF_drawscene.h"      /* set_scene() */
 
 #include "IMB_imbuf.h"	// for quicktime_init
 
