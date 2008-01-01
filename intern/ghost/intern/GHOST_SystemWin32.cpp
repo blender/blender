@@ -41,8 +41,6 @@
 #include <config.h>
 #endif
 
-#pragma warning (disable:4786) // get rid of stupid stl-visual compiler debug warning
-
 #include "GHOST_SystemWin32.h"
 
 /*

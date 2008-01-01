@@ -51,11 +51,6 @@
 #include "GHOST_IEventConsumer.h"
 #include "intern/GHOST_CallbackEventConsumer.h"
 
-#ifdef WIN32
-#pragma warning (disable:4786) // get rid of stupid stl-visual compiler debug warning
-#endif //WIN32
-
-
 GHOST_SystemHandle GHOST_CreateSystem(void)
 {
 	GHOST_ISystem::createSystem();

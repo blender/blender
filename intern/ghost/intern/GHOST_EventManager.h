@@ -36,10 +36,6 @@
 #ifndef _GHOST_EVENT_MANAGER_H_
 #define _GHOST_EVENT_MANAGER_H_
 
-#ifdef WIN32
-#pragma warning (disable:4786) // suppress stl-MSVC debug info warning
-#endif // WIN32
-
 #include <deque>
 #include <vector>
 

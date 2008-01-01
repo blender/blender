@@ -36,10 +36,6 @@
 #ifndef _GHOST_TIMER_MANAGER_H_
 #define _GHOST_TIMER_MANAGER_H_
 
-#ifdef WIN32
-#pragma warning (disable:4786) // suppress stl-MSVC debug info warning
-#endif // WIN32
-
 #include <vector>
 
 #include "GHOST_Types.h"

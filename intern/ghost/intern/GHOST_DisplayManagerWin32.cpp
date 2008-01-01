@@ -129,7 +129,7 @@ GHOST_TSuccess GHOST_DisplayManagerWin32::setCurrentDisplaySetting(GHOST_TUns8 d
 	GHOST_ASSERT((display==kMainDisplay), "GHOST_DisplayManagerWin32::setCurrentDisplaySetting(): only main display is supported");
 
 	GHOST_DisplaySetting match;
-	GHOST_TSuccess success = findMatch(display, setting, match);
+	findMatch(display, setting, match);
 	DEVMODE dm;
 	int i = 0;
 	while (::EnumDisplaySettings(NULL, i++, &dm)) {

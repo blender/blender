@@ -51,36 +51,36 @@ bool GHOST_EventPrinter::processEvent(GHOST_IEvent* event)
 
 	if (event->getType() == GHOST_kEventWindowUpdate) return false;
 
-	//std::cout << "GHOST_EventPrinter::processEvent, time: " << (GHOST_TInt32)event->getTime() << ", type: ";
+	std::cout << "GHOST_EventPrinter::processEvent, time: " << (GHOST_TInt32)event->getTime() << ", type: ";
 	switch (event->getType()) {
 	case GHOST_kEventUnknown:
-		//std::cout << "GHOST_kEventUnknown"; handled = false;	
+		std::cout << "GHOST_kEventUnknown"; handled = false;	
 		break;
 
 	case GHOST_kEventButtonUp:
 		{
 		GHOST_TEventButtonData* buttonData = (GHOST_TEventButtonData*)((GHOST_IEvent*)event)->getData();
-		//std::cout << "GHOST_kEventCursorButtonUp, button: " << buttonData->button;
+		std::cout << "GHOST_kEventCursorButtonUp, button: " << buttonData->button;
 		}
 		break;
 	case GHOST_kEventButtonDown:
 		{
 		GHOST_TEventButtonData* buttonData = (GHOST_TEventButtonData*)((GHOST_IEvent*)event)->getData();
-		//std::cout << "GHOST_kEventButtonDown, button: " << buttonData->button;
+		std::cout << "GHOST_kEventButtonDown, button: " << buttonData->button;
 		}
 		break;
 
 	case GHOST_kEventWheel:
 		{
 		GHOST_TEventWheelData* wheelData = (GHOST_TEventWheelData*)((GHOST_IEvent*)event)->getData();
-		//std::cout << "GHOST_kEventWheel, z: " << wheelData->z;
+		std::cout << "GHOST_kEventWheel, z: " << wheelData->z;
 		}
 		break;
 
 	case GHOST_kEventCursorMove:
 		{
 		GHOST_TEventCursorData* cursorData = (GHOST_TEventCursorData*)((GHOST_IEvent*)event)->getData();
-		//std::cout << "GHOST_kEventCursorMove, (x,y): (" << cursorData->x << "," << cursorData->y << ")";
+		std::cout << "GHOST_kEventCursorMove, (x,y): (" << cursorData->x << "," << cursorData->y << ")";
 		}
 		break;
 
@@ -89,7 +89,7 @@ bool GHOST_EventPrinter::processEvent(GHOST_IEvent* event)
 		GHOST_TEventKeyData* keyData = (GHOST_TEventKeyData*)((GHOST_IEvent*)event)->getData();
 		STR_String str;
 		getKeyString(keyData->key, str);
-		//std::cout << "GHOST_kEventKeyUp, key: " << str.Ptr();
+		std::cout << "GHOST_kEventKeyUp, key: " << str.Ptr();
 		}
 		break;
 	case GHOST_kEventKeyDown:
@@ -97,34 +97,34 @@ bool GHOST_EventPrinter::processEvent(GHOST_IEvent* event)
 		GHOST_TEventKeyData* keyData = (GHOST_TEventKeyData*)((GHOST_IEvent*)event)->getData();
 		STR_String str;
 		getKeyString(keyData->key, str);
-		//std::cout << "GHOST_kEventKeyDown, key: " << str.Ptr();
+		std::cout << "GHOST_kEventKeyDown, key: " << str.Ptr();
 		}
 		break;
 
 	case GHOST_kEventQuit:
-		//std::cout << "GHOST_kEventQuit"; 
+		std::cout << "GHOST_kEventQuit"; 
 		break;
 	case GHOST_kEventWindowClose:
-		//std::cout << "GHOST_kEventWindowClose"; 
+		std::cout << "GHOST_kEventWindowClose"; 
 		break;
 	case GHOST_kEventWindowActivate:
-		//std::cout << "GHOST_kEventWindowActivate"; 
+		std::cout << "GHOST_kEventWindowActivate"; 
 		break;
 	case GHOST_kEventWindowDeactivate:
-		//std::cout << "GHOST_kEventWindowDeactivate"; 
+		std::cout << "GHOST_kEventWindowDeactivate"; 
 		break;
 	case GHOST_kEventWindowUpdate:
-		//std::cout << "GHOST_kEventWindowUpdate"; 
+		std::cout << "GHOST_kEventWindowUpdate"; 
 		break;
 	case GHOST_kEventWindowSize:
-		//std::cout << "GHOST_kEventWindowSize"; 
+		std::cout << "GHOST_kEventWindowSize"; 
 		break;
 
 	default:
-		//std::cout << "not found"; handled = false; 
+		std::cout << "not found"; handled = false; 
 		break;
 	}
-	//std::cout << "\n";
+	std::cout << "\n";
 	return handled;
 }
 
