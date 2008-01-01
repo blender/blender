@@ -749,7 +749,15 @@ int blenderqread(unsigned short event, short val)
 
 	case BACKSPACEKEY:
 		break;
-
+	case SPACEKEY:
+		if (curarea && curarea->spacetype==SPACE_SEQ) {
+			SpaceSeq *sseq= curarea->spacedata.first;
+			if (G.qual==0 && sseq->mainb) {
+				play_anim(1);
+				return 0;
+			}
+		}
+		break;
 	case AKEY:
 		if(textediting==0 && textspace==0) {
 			if ((G.qual==LR_ALTKEY) && (curarea && curarea->spacetype==SPACE_VIEW3D)) {

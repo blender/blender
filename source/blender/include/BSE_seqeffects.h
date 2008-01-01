@@ -89,6 +89,7 @@ struct SeqEffectHandle {
 };
 
 struct SeqEffectHandle get_sequence_effect(struct Sequence * seq);
+struct SeqEffectHandle get_sequence_blend(struct Sequence * seq);
 int get_sequence_effect_num_inputs(int seq_type);
 void sequence_effect_speed_rebuild_map(struct Sequence * seq, int force);
 

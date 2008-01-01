@@ -98,32 +98,50 @@
 /* used by sequencer and image premul option - IMA_DO_PREMUL */
 void converttopremul(struct ImBuf *ibuf)
 {
-	int x, y, val;
-	char *cp;
+	int x, y;
 	
 	if(ibuf==0) return;
-	if(ibuf->depth==24) {	/* put alpha at 255 */
-		
-		cp= (char *)(ibuf->rect);
-		for(y=0; y<ibuf->y; y++) {
-			for(x=0; x<ibuf->x; x++, cp+=4) {
-				cp[3]= 255;
+	if (ibuf->rect) {
+		int val;
+		char *cp;
+		if(ibuf->depth==24) {	/* put alpha at 255 */
+			cp= (char *)(ibuf->rect);
+			for(y=0; y<ibuf->y; y++) {
+				for(x=0; x<ibuf->x; x++, cp+=4) {
+					cp[3]= 255;
+				}
+			}
+		} else {
+			cp= (char *)(ibuf->rect);
+			for(y=0; y<ibuf->y; y++) {
+				for(x=0; x<ibuf->x; x++, cp+=4) {
+					val= cp[3];
+					cp[0]= (cp[0]*val)>>8;
+					cp[1]= (cp[1]*val)>>8;
+					cp[2]= (cp[2]*val)>>8;
+				}
 			}
 		}
-		return;
 	}
-
-	cp= (char *)(ibuf->rect);
-	for(y=0; y<ibuf->y; y++) {
-		for(x=0; x<ibuf->x; x++, cp+=4) {
-			if(cp[3]==0) {
-				cp[0]= cp[1]= cp[2]= 0;
+	if (ibuf->rect_float) {
+		float val;
+		float *cp;
+		if(ibuf->depth==24) {	/* put alpha at 1.0 */
+			cp= ibuf->rect_float;;
+			for(y=0; y<ibuf->y; y++) {
+				for(x=0; x<ibuf->x; x++, cp+=4) {
+					cp[3]= 1.0;
+				}
 			}
-			else if(cp[3]!=255) {
-				val= cp[3];
-				cp[0]= (cp[0]*val)>>8;
-				cp[1]= (cp[1]*val)>>8;
-				cp[2]= (cp[2]*val)>>8;
+		} else {
+			cp= ibuf->rect_float;
+			for(y=0; y<ibuf->y; y++) {
+				for(x=0; x<ibuf->x; x++, cp+=4) {
+					val= cp[3];
+					cp[0]= cp[0]*val;
+					cp[1]= cp[1]*val;
+					cp[2]= cp[2]*val;
+				}
 			}
 		}
 	}

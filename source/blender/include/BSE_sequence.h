@@ -64,6 +64,9 @@ void reload_sequence_new_file(struct Sequence * seq);
 void sort_seq(void);
 void clear_scene_in_allseqs(struct Scene *sce);
 
+char *give_seqname_by_type(int type);
+char *give_seqname(struct Sequence *seq);
+
 int evaluate_seq_frame(int cfra);
 struct StripElem *give_stripelem(struct Sequence *seq, int cfra);
 struct TStripElem *give_tstripelem(struct Sequence *seq, int cfra);

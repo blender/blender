@@ -483,22 +483,40 @@ static void sound_panel_sound(bSound *sound)
 static char* seq_panel_blend_modes()
 {
 	static char string[2048];
-	char formatstring[2048];
 
-       strcpy(formatstring, "Blend mode: %%t|%s %%x%d|%s %%x%d");
-       sprintf(string, formatstring,
-               "REPLACE", SEQ_BLEND_REPLACE,
-               "TODO: ALPHA OVER", SEQ_BLEND_ALPHA_OVER);
-       return string;
+	Sequence *last_seq = get_last_seq();
 
+	sprintf(string, "Blend mode: %%t|%s %%x%d",
+		"Replace", SEQ_BLEND_REPLACE);
+
+	/*
+	  Blending can only work without effect strips. 
+	  Otherwise, one would have
+	  to decide, what the effect strips IPO should do:
+	  - drive the effect _or_
+	  - drive the blend mode ?
+
+	  Also: effectdata is used by these implicit effects,
+	  so that would collide also.
+	*/
+
+	if (!(last_seq->type & SEQ_EFFECT)) {
+		int i;
+
+		for (i = SEQ_EFFECT; i <= SEQ_EFFECT_MAX; i++) {
+			if (get_sequence_effect_num_inputs(i) == 2) {
+				sprintf(string + strlen(string), 
+					"|%s %%x%d", 
+					give_seqname_by_type(i), i);
+			}
+		}
+	}
+	return string;
 }
 
 static void seq_panel_editing()
 {
 	Sequence *last_seq = get_last_seq();
-	char * seq_names[] = { "Image", "Meta", "Scene", "Movie",
-			       "Snd RAM", "Snd HD",
-			       "", "Effect" };
 	uiBlock *block;
 	static char strdata[1024];
 	char * str = strdata;
@@ -512,8 +530,7 @@ static void seq_panel_editing()
 		      10, 230, 318, 204) == 0) return;
 
 	uiDefBut(block, LABEL, 
-		 0, (last_seq->type >= SEQ_EFFECT) ? 
-		 "Effect" : seq_names[last_seq->type], 
+		 0, give_seqname(last_seq), 
 		 10,140,60,19, 0, 
 		 0, 0, 0, 0, "");
 
@@ -575,11 +592,13 @@ static void seq_panel_editing()
 			uiDefButI(block, NUM, 
 				  B_SEQ_BUT_TRANSFORM, "Start-Ofs", 
 				  10, 60, 120, 20, &last_seq->startofs, 
-				  0.0, last_seq->len, 0.0, 0.0, "Start offset");
+				  0.0, last_seq->len - last_seq->endofs, 
+				  0.0, 0.0, "Start offset");
 			uiDefButI(block, NUM, 
 				  B_SEQ_BUT_TRANSFORM, "End-Ofs", 
 				  130, 60, 120, 19, &last_seq->endofs, 
-				  0.0, last_seq->len, 0.0, 0.0, "End offset");
+				  0.0, last_seq->len - last_seq->startofs, 
+				  0.0, 0.0, "End offset");
 		}
 	}
 
@@ -672,16 +691,20 @@ static void seq_panel_input()
 {
 	Sequence *last_seq = get_last_seq();
 	uiBlock *block;
+
 	block = uiNewBlock(&curarea->uiblocks, "seq_panel_input", 
 			   UI_EMBOSS, UI_HELV, curarea->win);
 
 	if(uiNewPanel(curarea, block, "Input", "Sequencer", 
 		      10, 230, 318, 204) == 0) return;
 
-	uiDefBut(block, TEX, 
-		 B_SEQ_BUT_RELOAD_FILE, "Dir: ", 
-		 10,140,240,19, last_seq->strip->dir, 
-		 0.0, 160.0, 100, 0, "");
+	if (last_seq->type == SEQ_MOVIE 
+	    || last_seq->type == SEQ_IMAGE) {
+		uiDefBut(block, TEX, 
+			 B_SEQ_BUT_RELOAD_FILE, "Dir: ", 
+			 10,140,240,19, last_seq->strip->dir, 
+			 0.0, 160.0, 100, 0, "");
+	}
 
 	if (last_seq->type == SEQ_IMAGE) {
 		StripElem * se = give_stripelem(last_seq, CFRA);
@@ -702,73 +725,89 @@ static void seq_panel_input()
 			 0.0, 80.0, 100, 0, "");
 	}
 
-	uiDefButBitI(block, TOG, SEQ_USE_CROP,
-		     B_SEQ_BUT_RELOAD, "Use Crop",
-		     10,100,240,19, &last_seq->flag,
-		     0.0, 1.0, 0, 0,
-		     "Crop image before processing.");
+	if (last_seq->type == SEQ_MOVIE 
+	    || last_seq->type == SEQ_IMAGE 
+	    || last_seq->type == SEQ_SCENE) {
+		uiDefButBitI(block, TOG, SEQ_USE_CROP,
+			     B_SEQ_BUT_RELOAD, "Use Crop",
+			     10,100,240,19, &last_seq->flag,
+			     0.0, 1.0, 0, 0,
+			     "Crop image before processing.");
 
-	if (last_seq->flag & SEQ_USE_CROP) {
-		if (!last_seq->strip->crop) {
-			last_seq->strip->crop = 
-				MEM_callocN(sizeof(struct StripCrop), 
-					    "StripCrop");
+		if (last_seq->flag & SEQ_USE_CROP) {
+			if (!last_seq->strip->crop) {
+				last_seq->strip->crop = 
+					MEM_callocN(sizeof(struct StripCrop), 
+						    "StripCrop");
+			}
+			uiDefButI(block, NUM, 
+				  B_SEQ_BUT_RELOAD, "Top", 
+				  10, 80, 120, 20, 
+				  &last_seq->strip->crop->top, 
+				  0.0, 4096, 0.0, 0.0, "Top of source image");
+			uiDefButI(block, NUM, 
+				  B_SEQ_BUT_RELOAD, "Bottom", 
+				  130, 80, 120, 20, 
+				  &last_seq->strip->crop->bottom, 
+				  0.0, 4096, 0.0, 0.0,
+				  "Bottom of source image");
+			
+			uiDefButI(block, NUM, 
+				  B_SEQ_BUT_RELOAD, "Left", 
+				  10, 60, 120, 20,
+				  &last_seq->strip->crop->left, 
+				  0.0, 4096, 0.0, 0.0, "Left");
+			uiDefButI(block, NUM, 
+				  B_SEQ_BUT_RELOAD, "Right", 
+				  130, 60, 120, 19, 
+				  &last_seq->strip->crop->right, 
+				  0.0, 4096, 0.0, 0.0, "Right");
 		}
-		uiDefButI(block, NUM, 
-			  B_SEQ_BUT_RELOAD, "Top", 
-			  10, 80, 120, 20, &last_seq->strip->crop->top, 
-			  0.0, 4096, 0.0, 0.0, "Top of source image");
-		uiDefButI(block, NUM, 
-			  B_SEQ_BUT_RELOAD, "Bottom", 
-			  130, 80, 120, 20, &last_seq->strip->crop->bottom, 
-			  0.0, 4096, 0.0, 0.0, "Bottom of source image");
-
-		uiDefButI(block, NUM, 
-			  B_SEQ_BUT_RELOAD, "Left", 
-			  10, 60, 120, 20, &last_seq->strip->crop->left, 
-			  0.0, 4096, 0.0, 0.0, "Left");
-		uiDefButI(block, NUM, 
-			  B_SEQ_BUT_RELOAD, "Right", 
-			  130, 60, 120, 19, &last_seq->strip->crop->right, 
-			  0.0, 4096, 0.0, 0.0, "Right");
+		
+		uiDefButBitI(block, TOG, SEQ_USE_TRANSFORM,
+			     B_SEQ_BUT_RELOAD, "Use Translate",
+			     10,40,240,19, &last_seq->flag,
+			     0.0, 1.0, 0, 0,
+			     "Translate image before processing.");
+		
+		if (last_seq->flag & SEQ_USE_TRANSFORM) {
+			if (!last_seq->strip->transform) {
+				last_seq->strip->transform = 
+					MEM_callocN(
+						sizeof(struct StripTransform), 
+						"StripTransform");
+			}
+			uiDefButI(block, NUM, 
+				  B_SEQ_BUT_RELOAD, "X-Ofs", 
+				  10, 20, 120, 20, 
+				  &last_seq->strip->transform->xofs, 
+				  0.0, 4096, 0.0, 0.0, "X Offset");
+			uiDefButI(block, NUM, 
+				  B_SEQ_BUT_RELOAD, "Y-Ofs", 
+				  130, 20, 120, 20, 
+				  &last_seq->strip->transform->yofs, 
+				  0.0, 4096, 0.0, 0.0, "Y Offset");
+		}
 	}
 
-	uiDefButBitI(block, TOG, SEQ_USE_TRANSFORM,
-		     B_SEQ_BUT_RELOAD, "Use Translate",
-		     10,40,240,19, &last_seq->flag,
-		     0.0, 1.0, 0, 0,
-		     "Translate image before processing.");
-
-	if (last_seq->flag & SEQ_USE_TRANSFORM) {
-		if (!last_seq->strip->transform) {
-			last_seq->strip->transform = 
-				MEM_callocN(sizeof(struct StripTransform), 
-					    "StripTransform");
-		}
-		uiDefButI(block, NUM, 
-			  B_SEQ_BUT_RELOAD, "X-Ofs", 
-			  10, 20, 120, 20, &last_seq->strip->transform->xofs, 
-			  0.0, 4096, 0.0, 0.0, "X Offset");
-		uiDefButI(block, NUM, 
-			  B_SEQ_BUT_RELOAD, "Y-Ofs", 
-			  130, 20, 120, 20, &last_seq->strip->transform->yofs, 
-			  0.0, 4096, 0.0, 0.0, "Y Offset");
-	}
-
-	
 	uiDefButI(block, NUM, 
 		  B_SEQ_BUT_RELOAD_FILE, "A-Start", 
 		  10, 0, 120, 20, &last_seq->anim_startofs, 
-		  0.0, MAXFRAMEF, 0.0, 0.0, "Animation start offset in file");
+		  0.0, last_seq->len + last_seq->anim_startofs, 0.0, 0.0, 
+		  "Animation start offset in file");
 	uiDefButI(block, NUM, 
 		  B_SEQ_BUT_RELOAD_FILE, "A-End", 
 		  130, 0, 120, 20, &last_seq->anim_endofs, 
-		  0.0, MAXFRAMEF, 0.0, 0.0, "Animation end offset in file");
+		  0.0, last_seq->len + last_seq->anim_endofs, 0.0, 0.0, 
+		  "Animation end offset in file");
 
 
-	uiDefButI(block, NUM, B_SEQ_BUT_RELOAD, "MPEG-Preseek:",
-		  10, -20, 240,19, &last_seq->anim_preseek, 
-		  0.0, 50.0, 100,0,"On MPEG-seeking preseek this many frames");
+	if (last_seq->type == SEQ_MOVIE) {
+		uiDefButI(block, NUM, B_SEQ_BUT_RELOAD, "MPEG-Preseek:",
+			  10, -20, 240,19, &last_seq->anim_preseek, 
+			  0.0, 50.0, 100,0,
+			  "On MPEG-seeking preseek this many frames");
+	}
 
 }
 

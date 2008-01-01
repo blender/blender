@@ -3560,14 +3560,13 @@ int play_anim(int mode)
 	 /* forces all buffers to be OK for current frame (otherwise other windows get redrawn with CFRA+1) */
 	curarea->win_swap= WIN_BACK_OK;
 	screen_swapbuffers();
-	
+
 	while(TRUE) {
 		
 		if  (U.uiflag & USER_SHOW_FPS)
 			lredrawtime = PIL_check_seconds_timer();
 		
 		while(qtest()) {
-			
 			/* we test events first because of MKEY event */
 			
 			event= extern_qread(&val);
@@ -3588,7 +3587,7 @@ int play_anim(int mode)
 				if(val) add_marker(CFRA-1);
 			}
 		}
-		if(ELEM3(event, ESCKEY, SPACEKEY, RIGHTMOUSE)) break;
+		if(val && ELEM3(event, ESCKEY, SPACEKEY, RIGHTMOUSE)) break;
 		
 		inner_play_anim_loop(0, 0);
 		 

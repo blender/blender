@@ -4667,11 +4667,7 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case SPACEKEY:
 			if (G.qual==0) {
-				if (sseq->mainb) {
-					play_anim(1);
-				} else {
-					add_sequence(-1);
-				}
+				add_sequence(-1);
 			}
 			break;
 		case BKEY:
@@ -4729,6 +4725,11 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				select_linked_seq( 0 );
 			} else if((G.qual==LR_CTRLKEY)) { /* Cut at current frame */
 				select_linked_seq( 2 );
+			} else if ((G.qual==LR_SHIFTKEY)) {
+				if (last_seq) {
+					last_seq->flag ^= SEQ_LOCK;
+					doredraw = 1;
+				}
 			}
 			break;
 		case YKEY:
@@ -4740,17 +4741,14 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if(G.qual==LR_ALTKEY) {
 				un_meta();	
 				break; /*dont redraw timeline etc */
-			} else if((G.qual==0)){
-				if ((last_seq) && 
-				    (last_seq->type == SEQ_RAM_SOUND
-				     || last_seq->type == SEQ_HD_SOUND)) 
-				{
+			} else if(G.qual == 0){
+				make_meta();
+				break; /*dont redraw timeline etc */
+			} else if (G.qual==LR_SHIFTKEY) {
+				if (last_seq) {
 					last_seq->flag ^= SEQ_MUTE;
 					doredraw = 1;
-				} else {
-					make_meta();
 				}
-				break; /*dont redraw timeline etc */
 			} else if ((G.qual==(LR_CTRLKEY|LR_ALTKEY) )) {
 				add_marker(CFRA);
 			} else if ((G.qual==LR_CTRLKEY)) {

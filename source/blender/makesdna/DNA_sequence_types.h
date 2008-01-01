@@ -50,6 +50,7 @@ typedef struct StripElem {
 
 typedef struct TStripElem {
 	struct ImBuf *ibuf;
+	struct ImBuf *ibuf_comp;
 	struct TStripElem *se1, *se2, *se3;
 	short ok;
 	short pad;
@@ -267,14 +268,17 @@ typedef struct SpeedControlVars {
 #define SEQ_TRANSFORM		27
 #define SEQ_COLOR               28
 #define SEQ_SPEED               29
+#define SEQ_EFFECT_MAX          29
 
 #define STRIPELEM_FAILED       0
 #define STRIPELEM_OK           1
 #define STRIPELEM_META         2
 
 #define SEQ_BLEND_REPLACE      0
-#define SEQ_BLEND_ALPHA_OVER   1
-
+/* all other BLEND_MODEs are simple SEQ_EFFECT ids and therefore identical
+   to the table above. (Only those effects that handle _exactly_ two inputs,
+   otherwise, you can't really blend, right :) !)
+*/
 
 #endif
 

@@ -946,6 +946,7 @@ Sequence *alloc_sequence(ListBase *lb, int cfra, int machine)
 	seq->start= cfra;
 	seq->machine= machine;
 	seq->mul= 1.0;
+	seq->blend_opacity = 100.0;
 	
 	return seq;
 }

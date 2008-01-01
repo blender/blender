@@ -99,36 +99,6 @@ static void draw_seq_text(Sequence *seq, float x1, float x2, float y1, float y2)
 static void draw_shadedstrip(Sequence *seq, char *col, float x1, float y1, float x2, float y2);
 static void draw_seq_strip(struct Sequence *seq, struct ScrArea *sa, struct SpaceSeq *sseq, int outline_tint, float pixelx);
 
-static char *give_seqname(Sequence *seq)
-{
-	if(seq->type==SEQ_META) return "Meta";
-	else if(seq->type==SEQ_IMAGE) return "Image";
-	else if(seq->type==SEQ_SCENE) return "Scene";
-	else if(seq->type==SEQ_MOVIE) return "Movie";
-	else if(seq->type==SEQ_RAM_SOUND) return "Audio (RAM)";
-	else if(seq->type==SEQ_HD_SOUND) return "Audio (HD)";
-	else if(seq->type<SEQ_EFFECT) return seq->strip->dir;
-	else if(seq->type==SEQ_CROSS) return "Cross";
-	else if(seq->type==SEQ_GAMCROSS) return "Gamma Cross";
-	else if(seq->type==SEQ_ADD) return "Add";
-	else if(seq->type==SEQ_SUB) return "Sub";
-	else if(seq->type==SEQ_MUL) return "Mul";
-	else if(seq->type==SEQ_ALPHAOVER) return "Alpha Over";
-	else if(seq->type==SEQ_ALPHAUNDER) return "Alpha Under";
-	else if(seq->type==SEQ_OVERDROP) return "Over Drop";
-	else if(seq->type==SEQ_WIPE) return "Wipe";
-	else if(seq->type==SEQ_GLOW) return "Glow";
-	else if(seq->type==SEQ_TRANSFORM) return "Transform";
-	else if(seq->type==SEQ_COLOR) return "Color";
-	else if(seq->type==SEQ_SPEED) return "Speed";
-	else if(seq->type==SEQ_PLUGIN) {
-		if(!(seq->flag & SEQ_EFFECT_NOT_LOADED) &&
-		   seq->plugin && seq->plugin->doit) return seq->plugin->pname;
-		return "Plugin";
-	}
-	else return "Effect";
-
-}
 static void draw_cfra_seq(void)
 {
 	glColor3ub(0x30, 0x90, 0x50);
