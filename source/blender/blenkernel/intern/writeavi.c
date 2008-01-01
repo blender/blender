@@ -53,10 +53,6 @@
 #include "quicktime_export.h"
 #endif
 
-#if defined(_WIN32) && !defined(FREE_WINDOWS)
-#include "BIF_writeavicodec.h"
-#endif
-
 #ifdef WITH_FFMPEG
 #include "BKE_writeffmpeg.h"
 #endif
@@ -81,9 +77,9 @@ bMovieHandle *BKE_get_movie_handle(int imtype)
 #endif
 #if defined(_WIN32) && !defined(FREE_WINDOWS)
 	if (imtype == R_AVICODEC) {		
-		mh.start_movie= start_avi_codec;
-		mh.append_movie= append_avi_codec;
-		mh.end_movie= end_avi_codec;
+		//XXX mh.start_movie= start_avi_codec;
+		//XXX mh.append_movie= append_avi_codec;
+		//XXX mh.end_movie= end_avi_codec;
 	}
 #endif
 #ifdef WITH_QUICKTIME
