@@ -333,6 +333,7 @@ void *MEM_mapallocN(unsigned int len, const char *str)
 }
 
 
+/* Prints in python syntax for easy */
 void MEM_printmemlist()
 {
 	MemHead *membl;
@@ -341,13 +342,33 @@ void MEM_printmemlist()
 
 	membl = membase->first;
 	if (membl) membl = MEMNEXT(membl);
+	
+	print_error("# membase_debug.py\n");
+	print_error("membase = [\\\n");
 	while(membl) {
-		print_error("%s len: %d %p\n",membl->name,membl->len, membl+1);
+		fprintf(stderr, "{'len':%i, 'name':'''%s''', 'pointer':'%p'},\\\n", membl->len, membl->name, membl+1);
 		if(membl->next)
 			membl= MEMNEXT(membl->next);
 		else break;
 	}
-
+	fprintf(stderr, "]\n\n");
+	fprintf(stderr,
+"mb_userinfo = {}\n"
+"totmem = 0\n"
+"for mb_item in membase:\n"
+"\tmb_item_user_size = mb_userinfo.setdefault(mb_item['name'], [0,0])\n"
+"\tmb_item_user_size[0] += 1 # Add a user\n"
+"\tmb_item_user_size[1] += mb_item['len'] # Increment the size\n"
+"\ttotmem += mb_item['len']\n"
+"print '(membase) items:', len(membase), '| unique-names:', len(mb_userinfo), '| total-mem:', totmem\n"
+"mb_userinfo_sort = mb_userinfo.items()\n"
+"for sort_name, sort_func in (('size', lambda a: -a[1][1]), ('users', lambda a: -a[1][0]), ('name', lambda a: a[0])):\n"
+"\tprint '\\nSorting by:', sort_name\n"
+"\tmb_userinfo_sort.sort(key = sort_func)\n"
+"\tfor item in mb_userinfo_sort:\n"
+"\t\tprint 'name:%%s, users:%%i, len:%%i' %% (item[0], item[1][0], item[1][1])\n"
+	);
+	
 	mem_unlock_thread();
 }
 
