@@ -414,9 +414,7 @@ GHOST_TSuccess GHOST_WindowWin32::setState(GHOST_TWindowState state)
 		wp.showCmd = SW_SHOWMINIMIZED; 
 		break;
 	case GHOST_kWindowStateMaximized: 
-		ShowWindow(m_hWnd, SW_HIDE); //fe. HACK!
-				//Solves redraw problems when switching from fullscreen to normal.
-				
+		ShowWindow(m_hWnd, SW_HIDE);
 		wp.showCmd = SW_SHOWMAXIMIZED; 
 		SetWindowLongPtr(m_hWnd, GWL_STYLE, WS_OVERLAPPEDWINDOW);
 		break;
@@ -426,6 +424,7 @@ GHOST_TSuccess GHOST_WindowWin32::setState(GHOST_TWindowState state)
 		break;
 	case GHOST_kWindowStateNormal: 
 	default: 
+		ShowWindow(m_hWnd, SW_HIDE);
 		wp.showCmd = SW_SHOWNORMAL; 
 		SetWindowLongPtr(m_hWnd, GWL_STYLE, WS_OVERLAPPEDWINDOW);
 		break;
