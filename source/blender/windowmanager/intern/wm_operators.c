@@ -39,8 +39,6 @@
 #include "BKE_library.h"
 #include "BKE_main.h"
 
-#include "BIF_toolbox.h"
-
 #include "WM_api.h"
 #include "WM_types.h"
 #include "wm_window.h"

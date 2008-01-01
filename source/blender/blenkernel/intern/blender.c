@@ -84,10 +84,6 @@
 #include "BLO_writefile.h" 
 
 #include "BKE_utildefines.h" // O_BINARY FALSE
-#include "BIF_mainqueue.h" // mainqenter for onload script
-#include "mydevice.h"
-#include "nla.h"
-#include "blendef.h"
 
 
 Global G;
@@ -411,7 +407,7 @@ static void setup_app_data(bContext *C, BlendFileData *bfd, char *filename)
 	
 	if (G.f & G_DOSCRIPTLINKS) {
 		/* there's an onload scriptlink to execute in screenmain */
-		mainqenter(ONLOAD_SCRIPT, 1);
+// XXX		mainqenter(ONLOAD_SCRIPT, 1);
 	}
 	if (G.sce != filename) /* these are the same at times, should never copy to the same location */
 		strcpy(G.sce, filename);
@@ -430,7 +426,7 @@ static void handle_subversion_warning(Main *main)
 		char str[128];
 		
 		sprintf(str, "File written by newer Blender binary: %d.%d , expect loss of data!", main->minversionfile, main->minsubversionfile);
-		error(str);
+// XXX		error(str);
 	}
 		
 }
@@ -456,7 +452,7 @@ int BKE_read_file(bContext *C, char *dir, void *unused)
 		handle_subversion_warning(G.main);
 	} 
 	else {
-		error("Loading %s failed: %s", dir, BLO_bre_as_string(bre));
+// XXX		error("Loading %s failed: %s", dir, BLO_bre_as_string(bre));
 	}
 		
 	return (bfd?retval:0);
@@ -471,7 +467,7 @@ int BKE_read_file_from_memory(bContext *C, char* filebuf, int filelength, void *
 	if (bfd) {		
 		setup_app_data(C, bfd, "<memory>");
 	} else {
-		error("Loading failed: %s", BLO_bre_as_string(bre));
+// XXX		error("Loading failed: %s", BLO_bre_as_string(bre));
 	}
 		
 	return (bfd?1:0);
@@ -487,7 +483,7 @@ int BKE_read_file_from_memfile(bContext *C, MemFile *memfile)
 	if (bfd) {
 		setup_app_data(C, bfd, "<memory>");
 	} else {
-		error("Loading failed: %s", BLO_bre_as_string(bre));
+// XXX		error("Loading failed: %s", BLO_bre_as_string(bre));
 	}
 		
 	return (bfd?1:0);
@@ -609,7 +605,7 @@ void BKE_undo_step(bContext *C, int step)
 	}
 	else if(step==1) {
 		/* curundo should never be NULL, after restart or load file it should call undo_save */
-		if(curundo==NULL || curundo->prev==NULL) error("No undo available");
+		if(curundo==NULL || curundo->prev==NULL) ; // XXX error("No undo available");
 		else {
 			if(G.f & G_DEBUG) printf("undo %s\n", curundo->name);
 			curundo= curundo->prev;
@@ -620,7 +616,7 @@ void BKE_undo_step(bContext *C, int step)
 		
 		/* curundo has to remain current situation! */
 		
-		if(curundo==NULL || curundo->next==NULL) error("No redo available");
+		if(curundo==NULL || curundo->next==NULL) ; // XXX error("No redo available");
 		else {
 			read_undosave(C, curundo->next);
 			curundo= curundo->next;

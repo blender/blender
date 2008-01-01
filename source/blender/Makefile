@@ -33,10 +33,10 @@
 
 include nan_definitions.mk
 
-DIRS = windowmanager blenloader readblenfile
+DIRS = windowmanager editors blenloader readblenfile
 DIRS += avi imbuf render radiosity blenlib blenkernel blenpluginapi
-DIRS += makesdna yafray
 DIRS += nodes
+DIRS += makesdna yafray
 
 ifeq ($(INTERNATIONAL), true)
 	DIRS += ftfont

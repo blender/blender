@@ -1,6 +1,4 @@
 /**
- * blenlib/DNA_screen_types.h (mar-2001 nzc)
- *
  * $Id$ 
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -37,6 +35,7 @@
 #include "DNA_scriptlink_types.h"
 
 struct Scene;
+struct wmSubWindow;
 
 typedef struct bScreen {
 	ID id;
@@ -46,11 +45,14 @@ typedef struct bScreen {
 	short startx, endx, starty, endy;	/* framebuffer coords */
 	short sizex, sizey;
 	short scenenr, screennr;			/* only for pupmenu */
-	short full, winid;					/* win id from WM, starts with 1 */
-	short mainwin, winakt;
+	short full, winid;					/* winid from WM, starts with 1 */
+	int pad;
 	short handler[8];					/* similar to space handler now */
 	
-	ListBase handlers;
+	struct wmSubWindow *mainwin;		/* screensize subwindow, for screenedges */
+	struct wmSubWindow *subwinactive;	/* active subwindow */
+	
+	ListBase handlers;					/* wmEventHandler */
 } bScreen;
 
 typedef struct ScrVert {
@@ -101,7 +103,7 @@ typedef struct ScrArea {
 	float winmat[4][4];
 	rcti totrct, headrct, winrct;
 
-	short headwin, win;
+	int pad;
 	short headertype;		/* 0=no header, 1= down, 2= up */
 	char spacetype, butspacetype;	/* SPACE_...  */
 	short winx, winy;		/* size */
@@ -116,14 +118,15 @@ typedef struct ScrArea {
 	ListBase spacedata;
 	ListBase uiblocks;
 	ListBase panels;
-	ListBase regionbase;
-	ListBase handlers;
+	ListBase regionbase;	/* ARegion */
+	ListBase handlers;		/* wmEventHandler */
 } ScrArea;
 
 typedef struct ARegion {
 	struct ARegion *next, *prev;
 	
 	rcti winrct;
+	struct wmSubWindow *subwin;
 	
 	ListBase handlers;
 	

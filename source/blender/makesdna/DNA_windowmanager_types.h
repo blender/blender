@@ -46,6 +46,7 @@ struct bContext;
 struct wmLocal;
 struct bScreen;
 struct uiBlock;
+struct wmSubWindow;
 
 /* windowmanager is saved, tag WMAN */
 typedef struct wmWindowManager {
@@ -83,12 +84,16 @@ typedef struct wmWindow {
 	short windowstate;	/* borderless, full */
 	short monitor;		/* multiscreen... no idea how to store yet */
 	short active;		/* set to 1 if an active window, for quick rejects */
-	short cursor;		/* mouse cursor */
+	short cursor;		/* current mouse cursor type */
 	
 	struct wmEvent *eventstate;	/* storage for event system */
 	
-	ListBase queue;		/* events */
-	ListBase handlers;
+	struct wmSubWindow *curswin;	/* internal for wm_subwindow.c only */
+	
+	ListBase queue;			/* all events (ghost level events were handled) */
+	ListBase handlers;		/* window handlers, overriding all queues */
+	ListBase subwindows;	/* opengl stuff for sub windows, see notes in wm_subwindow.c */
+	
 } wmWindow;
 
 #

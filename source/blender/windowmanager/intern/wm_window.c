@@ -48,6 +48,7 @@
 #include "WM_api.h"
 #include "wm.h"
 #include "wm_window.h"
+#include "wm_subwindow.h"
 #include "wm_event_system.h"
 
 /* the global to talk to ghost */
@@ -103,10 +104,10 @@ void wm_window_free(bContext *C, wmWindow *win)
 	
 	if(win->eventstate) MEM_freeN(win->eventstate);
 	
-	BLI_freelistN(&win->queue);
 	wm_event_free_handlers(&win->handlers);
-	
 	wm_event_free_all(win);
+	wm_subwindows_free(win);
+	
 	wm_ghostwindow_destroy(win);
 	
 	MEM_freeN(win);
@@ -238,9 +239,11 @@ void wm_window_add_ghostwindows(wmWindowManager *wm)
 		wm_get_screensize(&prefsizx, &prefsizy);
 		
 #ifdef __APPLE__
-		extern void wm_set_apple_prefsize(int, int);	/* wm_apple.c */
+		{
+			extern void wm_set_apple_prefsize(int, int);	/* wm_apple.c */
 		
-		wm_set_apple_prefsize(prefsizx, prefsizy);
+			wm_set_apple_prefsize(prefsizx, prefsizy);
+		}
 #else
 		prefstax= 0;
 		prefstay= 0;

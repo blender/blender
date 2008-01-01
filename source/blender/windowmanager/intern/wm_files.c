@@ -46,18 +46,12 @@
 #include "MEM_guardedalloc.h"
 #include "MEM_CacheLimiterC-Api.h"
 
-#include "BIF_language.h"
-#ifdef INTERNATIONAL
-#include "FTF_Api.h"
-#endif
-
 #include "BLI_blenlib.h"
 #include "BLI_linklist.h"
 
 #include "DNA_object_types.h"
 #include "DNA_space_types.h"
 #include "DNA_userdef_types.h"
-#include "DNA_sound_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_screen_types.h"
 #include "DNA_windowmanager_types.h"
@@ -77,24 +71,6 @@
 #include "BKE_verse.h"
 #endif
 
-#include "BIF_fsmenu.h"
-#include "BIF_interface.h"
-#include "BIF_usiblender.h" /* XXX */
-
-#include "BIF_editsound.h"
-#include "BIF_editmode_undo.h"
-#include "BIF_filelist.h"
-#include "BIF_resources.h"
-#include "BIF_screen.h"
-#include "BIF_space.h"
-#include "BIF_toolbox.h"
-
-#ifdef WITH_VERSE
-#include "BIF_verse.h"
-#endif
-
-#include "BDR_editobject.h"
-
 #include "BLO_readfile.h"
 #include "BLO_writefile.h"
 
@@ -103,6 +79,7 @@
 #include "datatoc.h"
 
 #include "WM_api.h"
+#include "WM_types.h"
 #include "wm.h"
 
 /***/

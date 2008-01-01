@@ -66,5 +66,13 @@ typedef struct wmTabletData {
 } wmTabletData;
 
 
+/* *************** migrated stuff, clean later? ******************************** */
+
+typedef struct RecentFile {
+	struct RecentFile *next, *prev;
+	char *filename;
+} RecentFile;
+
+
 #endif /* WM_TYPES_H */
 

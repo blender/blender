@@ -1,7 +1,4 @@
-/* writefile.c
- *
- * .blend file writing
- *
+/*
  * $Id$
  *
  * ***** BEGIN GPL LICENSE BLOCK *****
@@ -1523,35 +1520,31 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 
 	sc= scrbase->first;
 	while(sc) {
+		
 		/* write LibData */
 		writestruct(wd, ID_SCR, "Screen", 1, sc);
-		if (sc->id.properties) IDP_WriteProperty(sc->id.properties, wd);
+		if (sc->id.properties) 
+			IDP_WriteProperty(sc->id.properties, wd);
 
 		/* direct data */
-		sv= sc->vertbase.first;
-		while(sv) {
+		for(sv= sc->vertbase.first; sv; sv= sv->next)
 			writestruct(wd, DATA, "ScrVert", 1, sv);
-			sv= sv->next;
-		}
 
-		se= sc->edgebase.first;
-		while(se) {
+		for(se= sc->edgebase.first; se; se= se->next) 
 			writestruct(wd, DATA, "ScrEdge", 1, se);
-			se= se->next;
-		}
 
-		sa= sc->areabase.first;
-		while(sa) {
+		for(sa= sc->areabase.first; sa; sa= sa->next) {
 			SpaceLink *sl;
 			Panel *pa;
+			ARegion *ar;
 
 			writestruct(wd, DATA, "ScrArea", 1, sa);
 
-			pa= sa->panels.first;
-			while(pa) {
+			for(pa= sa->panels.first; pa; pa= pa->next)
 				writestruct(wd, DATA, "Panel", 1, pa);
-				pa= pa->next;
-			}
+			
+			for(ar= sa->regionbase.first; ar; ar= ar->next)
+				writestruct(wd, DATA, "ARegion", 1, ar);
 
 			/* space handler scriptlinks */
 			write_scriptlink(wd, &sa->scriptlink);
@@ -1642,8 +1635,6 @@ static void write_screens(WriteData *wd, ListBase *scrbase)
 				}
 				sl= sl->next;
 			}
-
-			sa= sa->next;
 		}
 
 		sc= sc->id.next;

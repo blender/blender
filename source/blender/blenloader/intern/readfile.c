@@ -3502,9 +3502,11 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 	for(win= wm->windows.first; win; win= win->next) {
 		win->ghostwin= NULL;
 		win->eventstate= NULL;
+		win->curswin= NULL;
 		
 		win->queue.first= win->queue.last= NULL;
 		win->handlers.first= win->handlers.last= NULL;
+		win->subwindows.first= win->subwindows.last= NULL;
 	}
 	
 	wm->operators.first= wm->operators.last= NULL;
@@ -3844,8 +3846,8 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 	link_list(fd, &(sc->vertbase));
 	link_list(fd, &(sc->edgebase));
 	link_list(fd, &(sc->areabase));
-	sc->winakt= 0;
 	
+	sc->mainwin= sc->subwinactive= NULL;
 	sc->handlers.first= sc->handlers.last= NULL;
 	
 	/* hacky patch... but people have been saving files with the verse-blender,
@@ -3858,8 +3860,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 	}
 	
 	/* edges */
-	se= sc->edgebase.first;
-	while(se) {
+	for(se= sc->edgebase.first; se; se= se->next) {
 		se->v1= newdataadr(fd, se->v1);
 		se->v2= newdataadr(fd, se->v2);
 		if( (long)se->v1 > (long)se->v2) {
@@ -3872,20 +3873,20 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 			printf("error reading screen... file corrupt\n");
 			se->v1= se->v2;
 		}
-		se= se->next;
 	}
 
 	/* areas */
-	sa= sc->areabase.first;
-	while(sa) {
+	for(sa= sc->areabase.first; sa; sa= sa->next) {
 		Panel *pa;
 		SpaceLink *sl;
+		ARegion *ar;
 
 		link_list(fd, &(sa->spacedata));
 		link_list(fd, &(sa->panels));
+		link_list(fd, &(sa->regionbase));
 
 		sa->handlers.first= sa->handlers.last= NULL;
-		sa->regionbase.first= sa->regionbase.last= NULL;
+		sa->uiblocks.first= sa->uiblocks.last= NULL;
 		
 		/* accident can happen when read/save new file with older version */
 		if(sa->spacedata.first==NULL && sa->spacetype>SPACE_NLA)
@@ -3943,20 +3944,19 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 				snode->flag |= SNODE_DO_PREVIEW;
 			}
 		}
+		
+		for(ar= sa->regionbase.first; ar; ar= ar->next) {
+			ar->handlers.first= ar->handlers.last= NULL;
+			ar->subwin= NULL;
+		}
 
 		sa->v1= newdataadr(fd, sa->v1);
 		sa->v2= newdataadr(fd, sa->v2);
 		sa->v3= newdataadr(fd, sa->v3);
 		sa->v4= newdataadr(fd, sa->v4);
 
-		sa->win= sa->headwin= 0;
-
-		sa->uiblocks.first= sa->uiblocks.last= NULL;
-
 		/* space handler scriptlinks */
 		direct_link_scriptlink(fd, &sa->scriptlink);
-
-		sa= sa->next;
 	}
 }
 

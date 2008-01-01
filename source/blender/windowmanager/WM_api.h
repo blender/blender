@@ -72,6 +72,18 @@ int			WM_operator_winactive	(struct bContext *C);
 wmOperatorType *WM_operatortype_find(const char *idname);
 void		WM_operator_register(wmWindowManager *wm, wmOperator *ot);
 
+			/* OpenGL wrappers, mimicing opengl syntax */
+void		wmLoadMatrix		(wmWindow *win, float mat[][4]);
+void		wmGetMatrix			(wmWindow *win, float mat[][4]);
+void		wmMultMatrix		(wmWindow *win, float mat[][4]);
+void		wmGetSingleMatrix	(wmWindow *win, float mat[][4]);
+void		wmScale				(wmWindow *win, float x, float y, float z);
+void		wmLoadIdentity		(wmWindow *win);	/* note: old name clear_view_mat */
+
+void		wmFrustum			(wmWindow *win, float x1, float x2, float y1, float y2, float n, float f);
+void		wmOrtho				(wmWindow *win, float x1, float x2, float y1, float y2, float n, float f);
+void		wmOrtho2			(wmWindow *win, float x1, float x2, float y1, float y2);
+
 
 #endif /* WM_API_H */
 

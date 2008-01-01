@@ -54,43 +54,11 @@
 #include "BKE_packedFile.h"
 
 #include "BMF_Api.h"
-#include "BIF_language.h"
 #ifdef INTERNATIONAL
 #include "FTF_Api.h"
 #endif
 
 #include "BLI_blenlib.h"
-
-#include "BIF_cursors.h"
-#include "BIF_drawtext.h"
-#include "BIF_editaction.h"
-#include "BIF_editarmature.h"
-#include "BIF_editlattice.h"
-#include "BIF_editfont.h"
-#include "BIF_editmesh.h"
-#include "BIF_editmode_undo.h"
-#include "BIF_editsound.h"
-#include "BIF_filelist.h"
-#include "BIF_fsmenu.h"
-#include "BIF_interface.h"
-#include "BIF_gl.h"
-#include "BIF_poseobject.h"
-#include "BIF_previewrender.h"
-#include "BIF_resources.h"
-#include "BIF_usiblender.h" /* XXX */
-
-#include "BSE_drawview.h"
-#include "BSE_edit.h"
-#include "BSE_editipo.h"
-#include "BSE_filesel.h"
-#include "BSE_headerbuttons.h"
-#include "BSE_node.h"
-
-#include "BDR_drawobject.h"
-#include "BDR_editobject.h"
-#include "BDR_editcurve.h"
-#include "BDR_imagepaint.h"
-#include "BDR_vpaint.h"
 
 #include "RE_pipeline.h"		/* RE_ free stuff */
 
@@ -101,6 +69,7 @@
 #include "SYS_System.h"
 
 #include "WM_api.h"
+#include "WM_types.h"
 #include "wm.h"
 #include "wm_files.h"
 #include "wm_window.h"
