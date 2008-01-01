@@ -230,6 +230,7 @@ PULIB += $(OCGDIR)/blender/readblenfile/$(DEBUG_DIR)libreadblenfile.a
 PULIB += $(OCGDIR)/blender/windowmanager/$(DEBUG_DIR)libwindowmanager.a
 PULIB += $(OCGDIR)/blender/ed_datafiles/libed_datafiles.a
 PULIB += $(OCGDIR)/blender/ed_screen/libed_screen.a
+PULIB += $(OCGDIR)/blender/ed_area/libed_area.a
 
 ifeq ($(NAN_NO_KETSJI),true)
     PULIB += $(NAN_MOTO)/lib/libmoto.a

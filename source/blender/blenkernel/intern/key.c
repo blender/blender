@@ -154,7 +154,7 @@ Key *copy_key(Key *key)
 	
 	keyn->ipo= copy_ipo(key->ipo);
 
-	duplicatelist(&keyn->block, &key->block);
+	BLI_duplicatelist(&keyn->block, &key->block);
 	
 	kb= key->block.first;
 	kbn= keyn->block.first;

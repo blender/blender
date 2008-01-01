@@ -806,11 +806,11 @@ bNode *nodeCopyNode(struct bNodeTree *ntree, struct bNode *node)
 	*nnode= *node;
 	BLI_addtail(&ntree->nodes, nnode);
 	
-	duplicatelist(&nnode->inputs, &node->inputs);
+	BLI_duplicatelist(&nnode->inputs, &node->inputs);
 	for(sock= nnode->inputs.first; sock; sock= sock->next)
 		sock->own_index= 0;
 	
-	duplicatelist(&nnode->outputs, &node->outputs);
+	BLI_duplicatelist(&nnode->outputs, &node->outputs);
 	for(sock= nnode->outputs.first; sock; sock= sock->next) {
 		sock->own_index= 0;
 		sock->stack_index= 0;

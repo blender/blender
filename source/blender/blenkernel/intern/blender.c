@@ -177,22 +177,6 @@ void free_blender(void)
 	free_nodesystem();	
 }
 
-void duplicatelist(ListBase *list1, ListBase *list2)  /* copy from 2 to 1 */
-{
-	struct Link *link1, *link2;
-	
-	list1->first= list1->last= 0;
-	
-	link2= list2->first;
-	while(link2) {
-
-		link1= MEM_dupallocN(link2);
-		BLI_addtail(list1, link1);
-		
-		link2= link2->next;
-	}	
-}
-
 static EditMesh theEditMesh;
 
 void initglobals(void)

@@ -28,6 +28,7 @@
 */
 
 #include <stdio.h>
+#include <string.h>
 
 #include "GHOST_C-api.h"
 
@@ -100,31 +101,79 @@ void WM_set_cursor(bContext *C, int curs)
 	}
 
 	GHOST_SetCursorVisibility(win->ghostwin, 1);
-		
+	
+	LastCursor=CurrentCursor;
+	CurrentCursor=curs;
+	
+	/* previous cursor? */
+	if (curs==LASTCURSOR) curs=LastCursor;
+	
 	/* detect if we use system cursor or Blender cursor */
 	if(curs>=BC_GHOST_CURSORS) {
 		GHOST_SetCursorShape(win->ghostwin, convert_cursor(curs));
-		return;
-	}
-
-	if ((curs<LASTCURSOR)||(curs>=BC_NUMCURSORS)) return;
-
-
-	LastCursor=CurrentCursor;
-	CurrentCursor=curs;
-
-	if (curs==LASTCURSOR) curs=LastCursor;
-
-	if (curs==SYSCURSOR) {  /* System default Cursor */
-		GHOST_SetCursorShape(win->ghostwin, convert_cursor(CURSOR_STD));
-	}
-	else if ( (U.curssize==0) || (BlenderCursor[curs]->big_bm == NULL) ) {
-		window_set_custom_cursor_ex(win, BlenderCursor[curs], 0);
 	}
 	else {
-		window_set_custom_cursor_ex(win, BlenderCursor[curs], 1);
+		if ((curs<LASTCURSOR)||(curs>=BC_NUMCURSORS)) return;	
+
+		if (curs==SYSCURSOR) {  /* System default Cursor */
+			GHOST_SetCursorShape(win->ghostwin, convert_cursor(CURSOR_STD));
+		}
+		else if ( (U.curssize==0) || (BlenderCursor[curs]->big_bm == NULL) ) {
+			window_set_custom_cursor_ex(win, BlenderCursor[curs], 0);
+		}
+		else {
+			window_set_custom_cursor_ex(win, BlenderCursor[curs], 1);
+		}
 	}
 }
+
+void WM_waitcursor(bContext *C, int val)
+{
+	if(C->window) {
+		if(val) {
+			WM_set_cursor(C, CURSOR_WAIT);
+		} else {
+			WM_set_cursor(C, LASTCURSOR);
+		}
+	}
+}
+
+void WM_timecursor(bContext *C, int nr)
+{
+	/* 10 8x8 digits */
+	static char number_bitmaps[10][8]= {
+	{0,  56,  68,  68,  68,  68,  68,  56}, 
+	{0,  24,  16,  16,  16,  16,  16,  56}, 
+	{0,  60,  66,  32,  16,   8,   4, 126}, 
+	{0, 124,  32,  16,  56,  64,  66,  60}, 
+	{0,  32,  48,  40,  36, 126,  32,  32}, 
+	{0, 124,   4,  60,  64,  64,  68,  56}, 
+	{0,  56,   4,   4,  60,  68,  68,  56}, 
+	{0, 124,  64,  32,  16,   8,   8,   8}, 
+	{0,  60,  66,  66,  60,  66,  66,  60}, 
+	{0,  56,  68,  68, 120,  64,  68,  56} 
+	};
+	unsigned char mask[16][2];
+	unsigned char bitmap[16][2];
+	int i, idx;
+	
+	memset(&bitmap, 0x00, sizeof(bitmap));
+	memset(&mask, 0xFF, sizeof(mask));
+	
+	/* print number bottom right justified */
+	for (idx= 3; nr && idx>=0; idx--) {
+		char *digit= number_bitmaps[nr%10];
+		int x = idx%2;
+		int y = idx/2;
+		
+		for (i=0; i<8; i++)
+			bitmap[i + y*8][x]= digit[i];
+		nr/= 10;
+	}
+	
+	window_set_custom_cursor(C->window, mask, bitmap, 7, 7);
+}
+
 
 /* ****************************************************************** 
 Custom Cursor Description:

@@ -40,7 +40,6 @@
 #include "BKE_scene.h"
 
 #include "BLI_blenlib.h"
-#include "BIF_toolbox.h"	/* error() */
 
 #include "BLO_sys_types.h"
 
@@ -501,7 +500,7 @@ void start_qt(struct RenderData *rd, int rectx, int recty) {
 
 		if(err != noErr) {
 			G.afbreek = 1;
-			error("Unable to create Quicktime movie: %s", name);
+// XXX			error("Unable to create Quicktime movie: %s", name);
 		} else {
 			printf("Created QuickTime movie: %s\n", name);
 

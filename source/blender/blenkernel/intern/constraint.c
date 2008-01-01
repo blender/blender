@@ -111,7 +111,7 @@ void copy_constraint_channels (ListBase *dst, ListBase *src)
 	bConstraintChannel *dchan, *schan;
 	
 	dst->first = dst->last = NULL;
-	duplicatelist(dst, src);
+	BLI_duplicatelist(dst, src);
 	
 	for (dchan=dst->first, schan=src->first; dchan; dchan=dchan->next, schan=schan->next) {
 		dchan->ipo = copy_ipo(schan->ipo);
@@ -126,7 +126,7 @@ void clone_constraint_channels (ListBase *dst, ListBase *src)
 	bConstraintChannel *dchan, *schan;
 	
 	dst->first = dst->last = NULL;
-	duplicatelist(dst, src);
+	BLI_duplicatelist(dst, src);
 	
 	for (dchan=dst->first, schan=src->first; dchan; dchan=dchan->next, schan=schan->next) {
 		id_us_plus((ID *)dchan->ipo);
@@ -1854,7 +1854,7 @@ static void pycon_copy (bConstraint *con, bConstraint *srccon)
 	bPythonConstraint *opycon = (bPythonConstraint *)srccon->data;
 	
 	pycon->prop = IDP_CopyProperty(opycon->prop);
-	duplicatelist(&pycon->targets, &opycon->targets);
+	BLI_duplicatelist(&pycon->targets, &opycon->targets);
 }
 
 static void pycon_new_data (void *cdata)
@@ -3230,7 +3230,7 @@ void copy_constraints (ListBase *dst, ListBase *src)
 	bConstraint *con, *srccon;
 	
 	dst->first= dst->last= NULL;
-	duplicatelist(dst, src);
+	BLI_duplicatelist(dst, src);
 	
 	for (con=dst->first, srccon=src->first; con; srccon=srccon->next, con=con->next) {
 		bConstraintTypeInfo *cti= constraint_get_typeinfo(con);

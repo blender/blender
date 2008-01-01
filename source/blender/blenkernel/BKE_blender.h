@@ -54,7 +54,6 @@ int	BKE_read_file(struct bContext *C, char *dir, void *type_r);
 int BKE_read_file_from_memory(struct bContext *C, char* filebuf, int filelength, void *type_r);
 int BKE_read_file_from_memfile(struct bContext *C, struct MemFile *memfile);
 
-void duplicatelist(struct ListBase *list1, struct ListBase *list2);
 void free_blender(void);
 void initglobals(void);
 

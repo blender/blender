@@ -178,7 +178,7 @@ static void	copy_bonechildren (Bone* newBone, Bone* oldBone)
 	Bone	*curBone, *newChildBone;
 	
 	/*	Copy this bone's list*/
-	duplicatelist (&newBone->childbase, &oldBone->childbase);
+	BLI_duplicatelist (&newBone->childbase, &oldBone->childbase);
 	
 	/*	For each child in the list, update it's children*/
 	newChildBone=newBone->childbase.first;
@@ -195,7 +195,7 @@ bArmature *copy_armature(bArmature *arm)
 	Bone		*oldBone, *newBone;
 	
 	newArm= copy_libblock (arm);
-	duplicatelist(&newArm->bonebase, &arm->bonebase);
+	BLI_duplicatelist(&newArm->bonebase, &arm->bonebase);
 	
 	/*	Duplicate the childrens' lists*/
 	newBone=newArm->bonebase.first;

@@ -378,12 +378,10 @@ int main(int argc, char **argv)
 					break;
             
 				case 'w':
-					/* with borders */
-					G.windowstate = G_WINDOWSTATE_BORDER;
+					/* with borders XXX OLD CRUFT!*/
 					break;
 				case 'W':
-					/* borderless, win + linux */
-					G.windowstate = G_WINDOWSTATE_FULLSCREEN;
+					/* borderless, win + linux XXX OLD CRUFT */
 					break;
 				case 'R':
 					/* Registering filetypes only makes sense on windows...      */

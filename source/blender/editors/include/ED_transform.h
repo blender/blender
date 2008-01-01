@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * The Original Code is Copyright (C) 2007 Blender Foundation.
+ * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
  *
  * 
@@ -25,33 +25,9 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-
-#include "WM_api.h"
-
-#include "MEM_guardedalloc.h"
-
-#include "ED_area.h"
-#include "ED_screen.h"
+#ifndef ED_TRANSFORM_H
+#define ED_TRANSFORM_H
 
 
-static void del_area(ScrArea *sa)
-{
-	
-	freespacelist(sa);
-	
-//	uiFreeBlocks(&sa->uiblocks);
-//	uiFreePanels(&sa->panels);
-	
-//	BPY_free_scriptlink(&sa->scriptlink);
-	
-}
+#endif /* ED_TRANSFORM_H */
 
-
-/* bad level to blenkernel, solve */
-void unlink_screen(bScreen *sc) 
-{
-	ScrArea *sa;
-	
-	for (sa= sc->areabase.first; sa; sa= sa->next)	
-		del_area(sa);
-}

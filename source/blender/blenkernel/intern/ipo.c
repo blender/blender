@@ -283,7 +283,7 @@ Ipo *copy_ipo(Ipo *ipo)
 	
 	ipon= copy_libblock(ipo);
 	
-	duplicatelist(&(ipon->curve), &(ipo->curve));
+	BLI_duplicatelist(&(ipon->curve), &(ipo->curve));
 
 	for(icu= ipo->curve.first; icu; icu= icu->next) {
 		icu->bezt= MEM_dupallocN(icu->bezt);

@@ -187,7 +187,7 @@ bAction *copy_action (bAction *src)
 	if (!src) return NULL;
 	
 	dst= copy_libblock(src);
-	duplicatelist(&(dst->chanbase), &(src->chanbase));
+	BLI_duplicatelist(&(dst->chanbase), &(src->chanbase));
 	
 	for (dchan=dst->chanbase.first, schan=src->chanbase.first; dchan; dchan=dchan->next, schan=schan->next){
 		dchan->ipo = copy_ipo(dchan->ipo);
@@ -268,7 +268,7 @@ void copy_pose(bPose **dst, bPose *src, int copycon)
 	
 	outPose= MEM_callocN(sizeof(bPose), "pose");
 	
-	duplicatelist (&outPose->chanbase, &src->chanbase);
+	BLI_duplicatelist (&outPose->chanbase, &src->chanbase);
 	
 	if (copycon) {
 		for (pchan=outPose->chanbase.first; pchan; pchan=pchan->next) {

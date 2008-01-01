@@ -76,7 +76,7 @@ void copy_actionstrip (bActionStrip **dst, bActionStrip **src){
 		dstrip->ipo->id.us++;
 	
 	if (dstrip->modifiers.first) {
-		duplicatelist (&dstrip->modifiers, &sstrip->modifiers);
+		BLI_duplicatelist (&dstrip->modifiers, &sstrip->modifiers);
 	}
 	
 }
@@ -87,7 +87,7 @@ void copy_nlastrips (ListBase *dst, ListBase *src)
 
 	dst->first=dst->last=NULL;
 
-	duplicatelist (dst, src);
+	BLI_duplicatelist (dst, src);
 
 	/* Update specific data */
 	if (!dst->first)
@@ -100,7 +100,7 @@ void copy_nlastrips (ListBase *dst, ListBase *src)
 			strip->ipo->id.us++;
 		if (strip->modifiers.first) {
 			ListBase listb;
-			duplicatelist (&listb, &strip->modifiers);
+			BLI_duplicatelist (&listb, &strip->modifiers);
 			strip->modifiers= listb;
 		}
 	}

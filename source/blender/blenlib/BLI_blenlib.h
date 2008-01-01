@@ -117,6 +117,9 @@ void BLI_sortlist(struct ListBase *listbase, int (*cmp)(void *, void *));
 void BLI_freelist(struct ListBase *listbase);
 int BLI_countlist(struct ListBase *listbase);
 void BLI_freelinkN(ListBase *listbase, void *vlink);
+void BLI_duplicatelist(ListBase *list1, ListBase *list2);  /* copy from 2 to 1 */
+
+
 void BLI_splitdirstring(char *di,char *fi);
 
 struct DynamicList *BLI_dlist_from_listbase(struct ListBase *lb);

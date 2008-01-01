@@ -122,7 +122,7 @@ MetaBall *copy_mball(MetaBall *mb)
 	
 	mbn= copy_libblock(mb);
 
-	duplicatelist(&mbn->elems, &mb->elems);
+	BLI_duplicatelist(&mbn->elems, &mb->elems);
 	
 	mbn->mat= MEM_dupallocN(mb->mat);
 	for(a=0; a<mbn->totcol; a++) {

@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * The Original Code is Copyright (C) 2007 Blender Foundation.
+ * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
  *
  * 
@@ -25,33 +25,19 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-
-#include "WM_api.h"
-
-#include "MEM_guardedalloc.h"
-
-#include "ED_area.h"
-#include "ED_screen.h"
+#ifndef ED_AREA_H
+#define ED_AREA_H
 
 
-static void del_area(ScrArea *sa)
-{
-	
-	freespacelist(sa);
-	
-//	uiFreeBlocks(&sa->uiblocks);
-//	uiFreePanels(&sa->panels);
-	
-//	BPY_free_scriptlink(&sa->scriptlink);
-	
-}
+#include "DNA_screen_types.h"
+#include "DNA_space_types.h"
+#include "DNA_view2d_types.h"
+#include "DNA_view3d_types.h"
+
+void freespacelist(ScrArea *sa);
+void duplicatespacelist(ScrArea *newarea, struct ListBase *lb1, struct ListBase *lb2);
 
 
-/* bad level to blenkernel, solve */
-void unlink_screen(bScreen *sc) 
-{
-	ScrArea *sa;
-	
-	for (sa= sc->areabase.first; sa; sa= sa->next)	
-		del_area(sa);
-}
+
+#endif /* ED_AREA_H */
+

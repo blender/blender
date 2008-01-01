@@ -38,10 +38,12 @@ CFLAGS += $(LEVEL_1_C_WARNINGS)
 CPPFLAGS += -I$(OPENGL_HEADERS)
 
 # not very neat....
-CPPFLAGS += -I../../../blenkernel
-CPPFLAGS += -I../../../blenlib
-CPPFLAGS += -I../../../makesdna
-CPPFLAGS += -I../../../imbuf
+CPPFLAGS += -I../../windowmanager
+CPPFLAGS += -I../../blenloader
+CPPFLAGS += -I../../blenkernel
+CPPFLAGS += -I../../blenlib
+CPPFLAGS += -I../../makesdna
+CPPFLAGS += -I../../imbuf
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 
 # own include 

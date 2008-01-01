@@ -53,6 +53,8 @@ void		WM_write_autosave	(struct bContext *C);
 			/* mouse cursors */
 void		WM_init_cursor_data	(void);
 void		WM_set_cursor		(struct bContext *C, int curs);
+void		WM_waitcursor		(struct bContext *C, int val);
+void		WM_timecursor		(struct bContext *C, int nr);
 
 			/* keymap and handlers */
 void		WM_keymap_set_item	(ListBase *lb, char *idname, short type, 
