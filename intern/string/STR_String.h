@@ -141,7 +141,7 @@ public:
 	inline operator const char *() const								{ return pData; }
 	inline char *Ptr()													{ return pData; }
 	inline const char *ReadPtr() const									{ return pData; }
-	inline float	ToFloat() const										{ float x=atof(pData); return x; }
+	inline float	ToFloat() const										{ float x=(float)(atof(pData)); return x; }
 	inline int		ToInt() const										{ return atoi(pData); }
 
 	// Operators

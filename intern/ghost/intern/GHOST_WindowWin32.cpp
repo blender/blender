@@ -737,15 +737,15 @@ void GHOST_WindowWin32::processWin32TabletEvent(WPARAM wParam, LPARAM lParam)
 						*/
 						
 						/* convert raw fixed point data to radians */
-						altRad = (fabs((float)ort.orAltitude)/(float)m_maxAltitude) * M_PI/2.0;
-						azmRad = ((float)ort.orAzimuth/(float)m_maxAzimuth) * M_PI*2.0;
+						altRad = (float)((fabs((float)ort.orAltitude)/(float)m_maxAltitude) * M_PI/2.0);
+						azmRad = (float)(((float)ort.orAzimuth/(float)m_maxAzimuth) * M_PI*2.0);
 
 						/* find length of the stylus' projected vector on the XY plane */
 						vecLen = cos(altRad);
 
 						/* from there calculate X and Y components based on azimuth */
 						m_tabletData->Xtilt = sin(azmRad) * vecLen;
-						m_tabletData->Ytilt = sin(M_PI/2.0 - azmRad) * vecLen;
+						m_tabletData->Ytilt = (float)(sin(M_PI/2.0 - azmRad) * vecLen);
 
 					} else {
 						m_tabletData->Xtilt = 0.0f;
