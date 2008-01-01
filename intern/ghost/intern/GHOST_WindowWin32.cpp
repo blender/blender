@@ -106,9 +106,9 @@ GHOST_WindowWin32::GHOST_WindowWin32(
 	m_hasMouseCaptured(false),
 	m_nPressedButtons(0),
 	m_customCursor(0),
+	m_wintab(NULL),
 	m_tabletData(NULL),
 	m_tablet(0),
-	m_wintab(NULL),
 	m_maxPressure(0)
 {
 	if (state != GHOST_kWindowStateFullScreen) {
