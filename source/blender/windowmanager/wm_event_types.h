@@ -40,6 +40,9 @@
 /* custom data type */
 #define EVT_TABLET	1
 
+#define MOUSEX		0x004	
+#define MOUSEY		0x005	
+
 /* MOUSE : 0x00x */
 #define LEFTMOUSE		0x001	
 #define MIDDLEMOUSE		0x002	

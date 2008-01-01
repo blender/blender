@@ -2107,6 +2107,6 @@ void build_particle_system(Object *ob)
 
 	disable_speed_curve(0);
 	
-	if(waitcursor_set) waitcursor(0);
+	//XXX if(waitcursor_set) waitcursor(0);
 }
 

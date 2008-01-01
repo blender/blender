@@ -46,7 +46,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-	#include "datatoc.h"
+//XXX 	#include "datatoc.h"
 #ifdef __cplusplus
 }
 #endif
@@ -71,7 +71,7 @@ FTF_EXPORT int FTF_GetNewFont (const unsigned char *str, int datasize, int fonts
 	newfont= new FTF_TTFont(); 
 
 	if (!(newfont->SetFont((unsigned char*)str, datasize, fontsize))) {
-		newfont->SetFont((unsigned char*)datatoc_bfont_ttf, datatoc_bfont_ttf_size, fontsize);
+		//XXX newfont->SetFont((unsigned char*)datatoc_bfont_ttf, datatoc_bfont_ttf_size, fontsize);
 		return 0;
 	}
 	return 1;

@@ -39,7 +39,7 @@
 #include "RAS_OpenGLRasterizer/ARB_multitexture.h"
 
 extern "C" {
-#include "BDR_drawmesh.h"
+//XXX #include "BDR_drawmesh.h"
 }
 
 #include "STR_HashedString.h"
@@ -180,7 +180,7 @@ void KX_BlenderMaterial::OnExit()
 	}
 
 	if( mMaterial->tface ) 
-		set_tpage(mMaterial->tface);
+		; //XXX set_tpage(mMaterial->tface);
 }
 
 

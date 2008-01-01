@@ -44,7 +44,7 @@
 #include "BKE_global.h"
 #include "BKE_multires.h"
 
-#include "editmesh.h"
+//XXX #include "editmesh.h"
 
 #include <math.h>
 

@@ -51,7 +51,7 @@
     #include <io.h> // for open close read
 #endif
 
-#include "nla.h"
+//XXX #include "nla.h"
 
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
@@ -143,13 +143,13 @@
 #include "BLO_undofile.h"
 #include "BLO_readblenfile.h" // streaming read pipe, for BLO_readblenfile BLO_readblenfilememory
 
-#include "multires.h"
+//XXX #include "multires.h"
 
 #include "readfile.h"
 
 #include "genfile.h"
 
-#include "mydevice.h"
+//XXX #include "wm_event_types.h"
 
 #include <errno.h>
 
@@ -4319,18 +4319,18 @@ static void vcol_to_fcol(Mesh *me)
 static int map_223_keybd_code_to_224_keybd_code(int code)
 {
 	switch (code) {
-	case 312:	return F12KEY;
-	case 159:	return PADSLASHKEY;
-	case 161:	return PAD0;
-	case 154:	return PAD1;
-	case 150:	return PAD2;
-	case 155:	return PAD3;
-	case 151:	return PAD4;
-	case 156:	return PAD5;
-	case 152:	return PAD6;
-	case 157:	return PAD7;
-	case 153:	return PAD8;
-	case 158:	return PAD9;
+//XXX	case 312:	return F12KEY;
+//XXX		case 159:	return PADSLASHKEY;
+//XXX		case 161:	return PAD0;
+//XXX		case 154:	return PAD1;
+//XXX		case 150:	return PAD2;
+//XXX		case 155:	return PAD3;
+//XXX		case 151:	return PAD4;
+//XXX		case 156:	return PAD5;
+//XXX		case 152:	return PAD6;
+//XXX		case 157:	return PAD7;
+//XXX		case 153:	return PAD8;
+//XXX		case 158:	return PAD9;
 	default: return code;
 	}
 }

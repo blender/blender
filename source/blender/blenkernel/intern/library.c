@@ -114,7 +114,7 @@
 #include "BKE_idprop.h"
 #include "BKE_particle.h"
 
-#include "BPI_script.h"
+//XXX #include "BPI_script.h"
 
 #define MAX_IDPUP		60	/* was 24 */
 
@@ -347,7 +347,7 @@ static ID *alloc_libblock_notest(short type)
 			id= MEM_callocN(sizeof(Text), "text");
 			break;
 		case ID_SCRIPT:
-			id= MEM_callocN(sizeof(Script), "script");
+			//XXX id= MEM_callocN(sizeof(Script), "script");
 			break;
 		case ID_SO:
 			id= MEM_callocN(sizeof(bSound), "sound");
@@ -504,7 +504,7 @@ void free_libblock(ListBase *lb, void *idv)
 			free_text((Text *)id);
 			break;
 		case ID_SCRIPT:
-			free_script((Script *)id);
+			//XXX free_script((Script *)id);
 			break;
 		case ID_SO:
 			sound_free_sound((bSound *)id);

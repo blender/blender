@@ -86,8 +86,8 @@ extern "C"
 #include "DNA_curve_types.h"
 #include "BLI_blenlib.h"
 #include "MEM_guardedalloc.h"
-#include "BSE_editipo.h"
-#include "BSE_editipo_types.h"
+//XXX #include "BSE_editipo.h"
+//XXX #include "BSE_editipo_types.h"
 #include "DNA_ipo_types.h"
 #include "BKE_global.h"
 #include "DNA_space_types.h"
@@ -536,6 +536,7 @@ void KX_BlenderSceneConverter::localDel_ipoCurve ( IpoCurve * icu ,struct SpaceI
 		return;
 
 	int i;
+#if 0 //XXX
 	EditIpo *ei= (EditIpo *)sipo->editipo;
 	if (!ei) return;
 
@@ -546,6 +547,7 @@ void KX_BlenderSceneConverter::localDel_ipoCurve ( IpoCurve * icu ,struct SpaceI
 			return;
 		}
 	}
+#endif
 }
 
 //quick hack
@@ -796,7 +798,7 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 						if (icu1)
 						{
 							float curVal = position.x();
-							insert_vert_icu(icu1, frameNumber, curVal, 0);
+							//XXX insert_vert_icu(icu1, frameNumber, curVal, 0);
 #ifdef TEST_HANDLES_GAME2IPO
 							testhandles_ipocurve(icu1);
 #endif
@@ -805,7 +807,7 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 						if (icu1)
 						{
 							float curVal = position.y();
-							insert_vert_icu(icu1, frameNumber, curVal, 0);
+							//XXX insert_vert_icu(icu1, frameNumber, curVal, 0);
 #ifdef TEST_HANDLES_GAME2IPO
 
 							testhandles_ipocurve(icu1);
@@ -815,7 +817,7 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 						if (icu1)
 						{
 							float curVal = position.z();
-							insert_vert_icu(icu1, frameNumber, curVal, 0);
+							//XXX insert_vert_icu(icu1, frameNumber, curVal, 0);
 #ifdef TEST_HANDLES_GAME2IPO
 							testhandles_ipocurve(icu1);
 #endif
@@ -824,7 +826,7 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 						if (icu1)
 						{
 							float curVal = eulerAngles[0];
-							insert_vert_icu(icu1, frameNumber, curVal, 0);
+							//XXX insert_vert_icu(icu1, frameNumber, curVal, 0);
 #ifdef TEST_HANDLES_GAME2IPO
 
 							testhandles_ipocurve(icu1);
@@ -834,7 +836,7 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 						if (icu1)
 						{
 							float curVal = eulerAngles[1];
-							insert_vert_icu(icu1, frameNumber, curVal, 0);
+							//XXX insert_vert_icu(icu1, frameNumber, curVal, 0);
 #ifdef TEST_HANDLES_GAME2IPO
 
 							testhandles_ipocurve(icu1);
@@ -844,7 +846,7 @@ void	KX_BlenderSceneConverter::WritePhysicsObjectToAnimationIpo(int frameNumber)
 						if (icu1)
 						{
 							float curVal = eulerAngles[2];
-							insert_vert_icu(icu1, frameNumber, curVal, 0);
+							//XXX insert_vert_icu(icu1, frameNumber, curVal, 0);
 #ifdef TEST_HANDLES_GAME2IPO
 							
 							testhandles_ipocurve(icu1);

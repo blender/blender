@@ -29,7 +29,7 @@
  * ***** END GPL/BL DUAL LICENSE BLOCK *****
  */
 
-#include "BIF_scrarea.h"
+//XXX #include "BIF_scrarea.h"
 #include "KX_BlenderCanvas.h"
 
 #ifdef HAVE_CONFIG_H
@@ -96,12 +96,12 @@ void KX_BlenderCanvas::ClearBuffer(int type)
 
 int KX_BlenderCanvas::GetWidth(
 ) const {
-	return scrarea_get_win_width(m_area);
+	return 0; //XXX scrarea_get_win_width(m_area);
 }
 
 int KX_BlenderCanvas::GetHeight(
 ) const {
-	return scrarea_get_win_height(m_area);
+	return 0; //XXX scrarea_get_win_height(m_area);
 }
 
 	void
@@ -112,8 +112,8 @@ SetViewPort(
 ){
 	int vp_width = (x2 - x1) + 1;
 	int vp_height = (y2 - y1) + 1;
-	int minx = scrarea_get_win_x(m_area);
-	int miny = scrarea_get_win_y(m_area);
+	int minx = 0;//XXX scrarea_get_win_x(m_area);
+	int miny = 0;//XXX scrarea_get_win_y(m_area);
 
 	glViewport(minx + x1, miny + y1, vp_width, vp_height);
 	glScissor(minx + x1, miny + y1, vp_width, vp_height);
@@ -150,9 +150,9 @@ void KX_BlenderCanvas::SetMouseState(RAS_MouseState mousestate)
 //	(0,0) is top left, (width,height) is bottom right
 void KX_BlenderCanvas::SetMousePosition(int x,int y)
 {
-	int winX = scrarea_get_win_x(m_area);
-	int winY = scrarea_get_win_y(m_area);
-	int winH = scrarea_get_win_height(m_area);
+	int winX = 0;//XXX scrarea_get_win_x(m_area);
+	int winY = 0;//XXX scrarea_get_win_y(m_area);
+	int winH = 0;//XXX scrarea_get_win_height(m_area);
 	
 	BL_warp_pointer(winX + x, winY + (winH-y-1));
 }

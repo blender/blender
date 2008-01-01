@@ -87,7 +87,7 @@
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
 
-#include "multires.h"
+//XXX #include "multires.h"
 
 // headers for fluidsim bobj meshes
 #include <stdlib.h>
@@ -2580,18 +2580,18 @@ float *multires_render_pin(Object *ob, Mesh *me, int *orig_lvl)
 		int i;
 		
 		/* Make sure all mesh edits are properly stored in the multires data*/
-		multires_update_levels(me, 1);
+		//XXX multires_update_levels(me, 1);
 	
 		/* Copy the highest level of multires verts */
 		*orig_lvl= me->mr->current;
-		lvl= multires_level_n(me->mr, BLI_countlist(&me->mr->levels));
+		//XXX lvl= multires_level_n(me->mr, BLI_countlist(&me->mr->levels));
 		vert_copy= MEM_callocN(sizeof(float)*3*lvl->totvert, "multires vert_copy");
 		for(i=0; i<lvl->totvert; ++i)
 			VecCopyf(&vert_copy[i*3], me->mr->verts[i].co);
 	
 		/* Goto the pin level for multires */
 		me->mr->newlvl= me->mr->pinlvl;
-		multires_set_level(ob, me, 1);
+		//XXX multires_set_level(ob, me, 1);
 	}
 	
 	return vert_copy;
@@ -2604,7 +2604,7 @@ void multires_render_final(Object *ob, Mesh *me, DerivedMesh **dm, float *vert_c
 	if(me->mr) {
 		if((*dm)->getNumVerts(*dm) == me->totvert &&
 		   (*dm)->getNumFaces(*dm) == me->totface) {
-			MultiresLevel *lvl= multires_level_n(me->mr, BLI_countlist(&me->mr->levels));
+			//XXX MultiresLevel *lvl= multires_level_n(me->mr, BLI_countlist(&me->mr->levels));
 			DerivedMesh *old= NULL;
 			int i;
 
@@ -2612,7 +2612,7 @@ void multires_render_final(Object *ob, Mesh *me, DerivedMesh **dm, float *vert_c
 			(*dm)->release(*dm);
 
 			me->mr->newlvl= me->mr->renderlvl;
-			multires_set_level(ob, me, 1);
+			//XXX multires_set_level(ob, me, 1);
 			(*dm)= getMeshDerivedMesh(me, ob, NULL);
 
 			/* Some of the data in dm is referenced externally, so make a copy */
@@ -2625,16 +2625,16 @@ void multires_render_final(Object *ob, Mesh *me, DerivedMesh **dm, float *vert_c
 
 			/* Restore the original verts */
 			me->mr->newlvl= BLI_countlist(&me->mr->levels);
-			multires_set_level(ob, me, 1);
-			for(i=0; i<lvl->totvert; ++i)
-				VecCopyf(me->mvert[i].co, &vert_copy[i*3]);
+			//XXX multires_set_level(ob, me, 1);
+			//XXX for(i=0; i<lvl->totvert; ++i)
+			//XXX 	VecCopyf(me->mvert[i].co, &vert_copy[i*3]);
 		}
 		
 		if(vert_copy)
 			MEM_freeN(vert_copy);
 			
 		me->mr->newlvl= orig_lvl;
-		multires_set_level(ob, me, 1);
+		//XXX multires_set_level(ob, me, 1);
 	}
 }
 

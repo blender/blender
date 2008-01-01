@@ -93,7 +93,7 @@
 #include "BKE_utildefines.h"
 #include "depsgraph_private.h"
 
-#include "LOD_DependKludge.h"
+//XXX #include "LOD_DependKludge.h"
 #include "LOD_decimation.h"
 
 #include "CCGSubSurf.h"
@@ -3318,6 +3318,8 @@ static void decimateModifier_copyData(ModifierData *md, ModifierData *target)
 	tdmd->percent = dmd->percent;
 }
 
+//XXX
+#if 0 
 static DerivedMesh *decimateModifier_applyModifier(
                  ModifierData *md, Object *ob, DerivedMesh *derivedData,
                  int useRenderParams, int isFinalCalc)
@@ -3436,6 +3438,7 @@ static DerivedMesh *decimateModifier_applyModifier(
 exit:
 	return result;
 }
+#endif
 
 /* Smooth */
 
@@ -6385,7 +6388,7 @@ static void meshdeformModifier_do(
 
 	/* bind weights if needed */
 	if(!mmd->bindcos)
-		harmonic_coordinates_bind(mmd, vertexCos, numVerts, cagemat);
+		//XXX harmonic_coordinates_bind(mmd, vertexCos, numVerts, cagemat);
 
 	/* verify we have compatible weights */
 	totvert= numVerts;
@@ -6677,7 +6680,7 @@ ModifierTypeInfo *modifierType_getInfo(ModifierType type)
 		mti->flags = eModifierTypeFlag_AcceptsMesh;
 		mti->initData = decimateModifier_initData;
 		mti->copyData = decimateModifier_copyData;
-		mti->applyModifier = decimateModifier_applyModifier;
+		//XXX mti->applyModifier = decimateModifier_applyModifier;
 
 		mti = INIT_TYPE(Smooth);
 		mti->type = eModifierTypeType_OnlyDeform;

@@ -82,10 +82,10 @@
 
 #include "BIF_gl.h"
 extern "C" {
-#include "BDR_drawmesh.h"
-#include "BIF_mywindow.h"
-#include "BIF_toolbox.h"
-#include "BIF_graphics.h" /* For CURSOR_NONE CURSOR_WAIT CURSOR_STD */
+//XXX #include "BDR_drawmesh.h"
+//XXX #include "BIF_mywindow.h"
+//XXX #include "BIF_toolbox.h"
+//XXX #include "BIF_graphics.h" /* For CURSOR_NONE CURSOR_WAIT CURSOR_STD */
 
 }
 
@@ -107,12 +107,12 @@ void spack(unsigned int ucol)
 
 void BL_warp_pointer(int x,int y)
 {
-	warp_pointer(x,y);
+	//XXX warp_pointer(x,y);
 }
 
 void BL_SwapBuffers()
 {
-	myswapbuffers();
+	//XXX myswapbuffers();
 }
 
 void BL_RenderText(int mode,const char* textstr,int textlen,struct MTFace* tface,
@@ -287,19 +287,19 @@ void BL_print_gamedebug_line_padded(char* text, int xco, int yco, int width, int
 
 void BL_HideMouse()
 {
-	set_cursor(CURSOR_NONE);
+	//XXX set_cursor(CURSOR_NONE);
 }
 
 
 void BL_WaitMouse()
 {
-	set_cursor(CURSOR_WAIT);
+	//XXX set_cursor(CURSOR_WAIT);
 }
 
 
 void BL_NormalMouse()
 {
-	set_cursor(CURSOR_STD);
+	//XXX set_cursor(CURSOR_STD);
 }
 #define MAX_FILE_LENGTH 512
 
@@ -312,9 +312,9 @@ void BL_MakeScreenShot(struct ScrArea *area, const char* filename)
 	// filename read - only
 	
 	  /* XXX will need to change at some point */
-	BIF_screendump(0);
+	//XXX BIF_screendump(0);
 
 	// write+read filename
-	write_screendump((char*) copyfilename);
+	//XXX write_screendump((char*) copyfilename);
 }
 

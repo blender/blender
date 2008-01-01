@@ -66,7 +66,7 @@
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
 
-#include "nla.h"
+//XXX #include "nla.h"
 
 /* *********************** NOTE ON POSE AND ACTION **********************
 

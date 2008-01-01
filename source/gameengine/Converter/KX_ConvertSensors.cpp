@@ -39,6 +39,7 @@
 #pragma warning (disable : 4786)
 #endif //WIN32
 
+#include "wm_event_types.h"
 #include "KX_BlenderSceneConverter.h"
 #include "KX_ConvertSensors.h"
 

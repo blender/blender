@@ -74,8 +74,8 @@
 #include "DNA_view3d_types.h"
 #include "DNA_screen_types.h"
 #include "BKE_global.h"
-#include "BIF_screen.h"
-#include "BIF_scrarea.h"
+//XXX #include "BIF_screen.h"
+//XXX #include "BIF_scrarea.h"
 
 #include "BKE_main.h"	
 #include "BLI_blenlib.h"
@@ -86,7 +86,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "BSE_headerbuttons.h"
+//XXX #include "BSE_headerbuttons.h"
 void update_for_newframe();
 #ifdef __cplusplus
 }
@@ -375,10 +375,10 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 					}
 					
 					// test for the ESC key
-					while (qtest())
+					while (0) //XXX while (qtest())
 					{
 						short val; 
-						unsigned short event = extern_qread(&val);
+						unsigned short event = 0; //XXX extern_qread(&val);
 						
 						if (keyboarddevice->ConvertBlenderEvent(event,val))
 							exitrequested = KX_EXIT_REQUEST_BLENDER_ESC;
@@ -387,9 +387,9 @@ extern "C" void StartKetsjiShell(struct ScrArea *area,
 							* should this really be?
 						*/
 						if (event==MOUSEX) {
-							val = val - scrarea_get_win_x(area);
+							val = 0;//XXX val - scrarea_get_win_x(area);
 						} else if (event==MOUSEY) {
-							val = scrarea_get_win_height(area) - (val - scrarea_get_win_y(area)) - 1;
+							val = 0;//XXX scrarea_get_win_height(area) - (val - scrarea_get_win_y(area)) - 1;
 						}
 						
 						mousedevice->ConvertBlenderEvent(event,val);

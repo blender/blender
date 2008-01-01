@@ -39,7 +39,7 @@
 #include "BKE_image.h"
 
 extern "C" {
-#include "BDR_drawmesh.h"
+//XXX #include "BDR_drawmesh.h"
 }
 
 #include "DNA_material_types.h"
@@ -142,19 +142,19 @@ void KX_PolygonMaterial::DefaultActivate(RAS_IRasterizer* rasty, TCachingInfo& c
 	{
 		if (!cachingInfo)
 		{
-			set_tpage(NULL);
+			//XXX set_tpage(NULL);
 		}
 		cachingInfo = GetCachingInfo();
 
 		if ((m_drawingmode & 4)&& (rasty->GetDrawingMode() == RAS_IRasterizer::KX_TEXTURED))
 		{
 			update_realtime_texture((struct MTFace*) m_tface, rasty->GetTime());
-			set_tpage(m_tface);
+			//XXX set_tpage(m_tface);
 			rasty->EnableTextures(true);
 		}
 		else
 		{
-			set_tpage(NULL);
+			//XXX set_tpage(NULL);
 			rasty->EnableTextures(false);
 		}
 		
@@ -400,7 +400,7 @@ KX_PYMETHODDEF_DOC(KX_PolygonMaterial, setTexture, "setTexture(tface)")
 	if (PyArg_ParseTuple(args, "O!", &PyCObject_Type, &pytface))
 	{
 		MTFace *tface = (MTFace*) PyCObject_AsVoidPtr(pytface);
-		set_tpage(tface);
+		//XXX set_tpage(tface);
 		Py_Return;
 	}
 	

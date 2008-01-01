@@ -53,7 +53,7 @@
 #include "BKE_blender.h"
 #include "BKE_sca.h"
 
-#include "mydevice.h"
+//#include "wm_event_types.h"
 
 void free_text_controllers(Text *txt)
 {
@@ -155,7 +155,7 @@ void init_sensor(bSensor *sens)
 		break;
 	case SENS_MOUSE:
 		ms=sens->data= MEM_callocN(sizeof(bMouseSensor), "mousesens");
-		ms->type= LEFTMOUSE;
+		//XXX ms->type= LEFTMOUSE;
 		break;
 	case SENS_COLLISION:
 		sens->data= MEM_callocN(sizeof(bCollisionSensor), "colsens");

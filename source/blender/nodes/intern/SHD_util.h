@@ -74,8 +74,8 @@
 #include "RE_pipeline.h"
 #include "RE_shader_ext.h"
 
-#include "butspace.h"
-#include "mydevice.h"
+//XXX #include "butspace.h"
+//XXX #include "wm_event_types.h"
 
 
 /* ********* exec data struct, remains internal *********** */

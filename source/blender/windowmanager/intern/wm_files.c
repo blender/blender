@@ -76,7 +76,7 @@
 
 // XXX #include "BPY_extern.h"
 
-#include "datatoc.h"
+//XXX #include "datatoc.h"
 
 #include "WM_api.h"
 #include "WM_types.h"
@@ -557,7 +557,7 @@ int WM_read_homefile(bContext *C, int from_memory)
 	if (!from_memory && BLI_exists(tstr)) {
 		success = BKE_read_file(C, tstr, NULL);
 	} else {
-		success = BKE_read_file_from_memory(C, datatoc_B_blend, datatoc_B_blend_size, NULL);
+		//XXX success = BKE_read_file_from_memory(C, datatoc_B_blend, datatoc_B_blend_size, NULL);
 		/* outliner patch for 2.42 .b.blend */
 		outliner_242_patch();
 	}

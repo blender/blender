@@ -80,8 +80,8 @@
 #include "RE_shader_ext.h"
 #include "RE_render_ext.h"
 
-#include "butspace.h"
-#include "mydevice.h"
+//XXX #include "butspace.h"
+//XXX #include "wm_event_types.h"
 
 /* *************************** operations support *************************** */
 

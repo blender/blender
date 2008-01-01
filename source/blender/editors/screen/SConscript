@@ -3,7 +3,7 @@ Import ('env')
 
 sources = env.Glob('*.c')
 
-incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
+incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf ../../windowmanager'
 incs += ' #/intern/guardedalloc'
 
 env.BlenderLib ( 'bf_editor_screen', sources, Split(incs), [], libtype=['core','intern'], priority=[5, 25] )

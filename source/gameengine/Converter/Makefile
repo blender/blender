@@ -48,6 +48,7 @@ CPPFLAGS += -I$(NAN_BULLET2)/include
 
 CPPFLAGS += -I../../blender
 # these two needed because of blenkernel
+CPPFLAGS += -I../../blender/windowmanager
 CPPFLAGS += -I../../blender/imbuf
 CPPFLAGS += -I../../blender/makesdna
 CPPFLAGS += -I../../blender/editors/include

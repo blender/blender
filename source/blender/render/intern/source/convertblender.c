@@ -98,7 +98,7 @@
 #include "IMB_imbuf_types.h"
 
 #include "envmap.h"
-#include "multires.h"
+//XXX #include "multires.h"
 #include "render_types.h"
 #include "rendercore.h"
 #include "renderdatabase.h"

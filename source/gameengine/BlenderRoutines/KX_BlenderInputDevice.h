@@ -43,8 +43,14 @@
 #undef HKEY
 #endif
 
-#include "mydevice.h"
+#include "wm_event_types.h"
 #include "SCA_IInputDevice.h"
+
+/* timers */
+#define TIMER0		0x006	
+#define TIMER1		0x007	
+#define TIMER2		0x008	
+#define TIMER3		0x009	
 
 /**
  Base Class for Blender specific inputdevices. Blender specific inputdevices are used when the gameengine is running in embedded mode instead of standalone mode.

@@ -477,7 +477,7 @@ VFontData *BLI_vfontdata_from_freetypefont(PackedFile *pf)
 	//init Freetype	
 	err = FT_Init_FreeType( &library);
 	if(err) {
-		error("Failed to load the Freetype font library");
+		//XXX error("Failed to load the Freetype font library");
 		return 0;
 	}
 
@@ -502,7 +502,7 @@ int BLI_vfontchar_from_freetypefont(VFont *vfont, unsigned long character)
 	// Init Freetype
 	err = FT_Init_FreeType(&library);
 	if(err) {
-		error("Failed to load the Freetype font library");
+		//XXX error("Failed to load the Freetype font library");
 		return 0;
 	}
 

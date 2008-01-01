@@ -173,7 +173,7 @@ extern "C" {
 #ifdef __cplusplus
 extern "C" {
 #endif
-#include "BSE_headerbuttons.h"
+//XXX #include "BSE_headerbuttons.h"
 void update_for_newframe();
 //void scene_update_for_newframe(struct Scene *sce, unsigned int lay);
 //#include "BKE_ipo.h"
@@ -1692,7 +1692,7 @@ static struct Scene *GetSceneForName(struct Main *maggie, const STR_String& scen
 }
 
 #include "DNA_constraint_types.h"
-#include "BIF_editconstraint.h"
+//XXX #include "BIF_editconstraint.h"
 
 bPoseChannel *get_active_posechannel2 (Object *ob)
 {

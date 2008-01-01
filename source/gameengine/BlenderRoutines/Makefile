@@ -50,6 +50,7 @@ CPPFLAGS += -I$(NAN_SOUNDSYSTEM)/include
 CPPFLAGS += -I../../blender/makesdna
 CPPFLAGS += -I../../blender/editors/include
 # because of kernel dependency on imbuf
+CPPFLAGS += -I../../blender/windowmanager
 CPPFLAGS += -I../../blender/imbuf
 CPPFLAGS += -I../../blender/blenlib
 CPPFLAGS += -I../../blender/blenkernel

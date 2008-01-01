@@ -17,6 +17,7 @@ incs += ' #source/gameengine/Physics/common #source/gameengine/Physics/Bullet #s
 incs += ' #source/gameengine/Physics/Dummy #source/gameengine/Physics/Sumo'
 incs += ' #source/gameengine/Physics/Sumo/Fuzzics/include #source/gameengine/Network/LoopBackNetwork'
 incs += ' #source/blender/misc #source/blender/blenloader'
+incs += ' #source/blender/windowmanager'
 
 incs += ' ' + env['BF_PYTHON_INC']
 incs += ' ' + env['BF_SOLID_INC']

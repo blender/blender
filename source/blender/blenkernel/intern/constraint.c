@@ -35,7 +35,7 @@
 #include <math.h>
 
 #include "MEM_guardedalloc.h"
-#include "nla.h"
+//XXX #include "nla.h"
 
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"

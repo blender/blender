@@ -35,7 +35,7 @@
  */
 
 #include "BKE_script.h"
-#include "BPI_script.h"
+//XXX #include "BPI_script.h"
 
 #include "MEM_guardedalloc.h"
 
@@ -51,6 +51,9 @@
 /* XXX this function and so also the file should not be needed anymore,
  * since we have to force clearing all Python related data before freeing
  * Blender's library. Still testing, will decide later (Willian). */
+
+//XXX 
+#if 0
 void free_script (Script *script)
 {
 	if (!script) return;
@@ -63,3 +66,4 @@ void free_script (Script *script)
 
 	return;
 }
+#endif
