@@ -1465,8 +1465,10 @@ static TStripElem* do_build_seq_array_recursively(
 	
 	if(count == 1) {
 		se = do_build_seq_recursively(seq_arr[0], cfra);
-		se->ibuf_comp = se->ibuf;
-		IMB_refImBuf(se->ibuf_comp);
+		if (se->ibuf) {
+			se->ibuf_comp = se->ibuf;
+			IMB_refImBuf(se->ibuf_comp);
+		}
 		return se;
 	}
 
@@ -1485,8 +1487,14 @@ static TStripElem* do_build_seq_array_recursively(
 		}
 		if (seq->blend_mode == SEQ_BLEND_REPLACE) {
 			do_build_seq_recursively(seq, cfra);
-			se->ibuf_comp = se->ibuf;
-			IMB_refImBuf(se->ibuf);
+			if (se->ibuf) {
+				se->ibuf_comp = se->ibuf;
+				IMB_refImBuf(se->ibuf);
+			} else {
+				se->ibuf_comp = IMB_allocImBuf(
+					(short)seqrectx, (short)seqrecty, 
+					32, IB_rect, 0);
+			}
 			break;
 		}
 
@@ -1509,8 +1517,14 @@ static TStripElem* do_build_seq_array_recursively(
 		case -1:
 		case 2:
 			do_build_seq_recursively(seq, cfra);
-			se->ibuf_comp = se->ibuf;
-			IMB_refImBuf(se->ibuf_comp);
+			if (se->ibuf) {
+				se->ibuf_comp = se->ibuf;
+				IMB_refImBuf(se->ibuf_comp);
+			} else {
+				se->ibuf_comp = IMB_allocImBuf(
+					(short)seqrectx, (short)seqrecty, 
+					32, IB_rect, 0);
+			}
 			break;
 		case 1:
 			if (i == 0) {
@@ -1524,6 +1538,11 @@ static TStripElem* do_build_seq_array_recursively(
 			break;
 		case 0:
 			do_build_seq_recursively(seq, cfra);
+			if (!se->ibuf) {
+				se->ibuf = IMB_allocImBuf(
+					(short)seqrectx, (short)seqrecty, 
+					32, IB_rect, 0);
+			}
 			break;
 		}
 		
