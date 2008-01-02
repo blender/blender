@@ -1333,7 +1333,7 @@ void psys_threads_free(ParticleThread *threads)
 	if(ctx->vg_rough1)
 		MEM_freeN(ctx->vg_rough1);
 	if(ctx->vg_rough2)
-		MEM_freeN(ctx->vg_roughe);
+		MEM_freeN(ctx->vg_rough2);
 	if(ctx->vg_roughe)
 		MEM_freeN(ctx->vg_roughe);
 
