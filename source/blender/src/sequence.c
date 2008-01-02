@@ -1604,7 +1604,8 @@ static TStripElem* do_build_seq_array_recursively(
 			   those two effects */
 
 			if (seq->blend_mode == SEQ_ALPHAOVER ||
-			    seq->blend_mode == SEQ_ALPHAUNDER) {
+			    seq->blend_mode == SEQ_ALPHAUNDER ||
+			    seq->blend_mode == SEQ_OVERDROP) {
 				swap_input = TRUE;
 			}
 
