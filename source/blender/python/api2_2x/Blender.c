@@ -40,6 +40,7 @@ struct ID; /*keep me up here */
 #include "BDR_drawmesh.h"	/* set_mipmap() */
 #include "BIF_usiblender.h"
 #include "BLI_blenlib.h"
+#include "BLI_bpath.h"
 #include "BLO_writefile.h"
 #include "BKE_blender.h"
 #include "BKE_exotic.h"
@@ -112,7 +113,7 @@ static PyObject *Blender_UpdateMenus( PyObject * self);
 static PyObject *Blender_PackAll( PyObject * self);
 static PyObject *Blender_UnpackAll( PyObject * self, PyObject * value);
 static PyObject *Blender_CountPackedFiles( PyObject * self );
-
+static PyObject *Blender_GetPaths( PyObject * self, PyObject *args, PyObject *keywds );
 extern PyObject *Text3d_Init( void ); /* missing in some include */
 
 /*****************************************************************************/
@@ -196,6 +197,9 @@ All files will be unpacked using specified mode.\n\n\
 static char Blender_CountPackedFiles_doc[] =
 "() - Returns the number of packed files.";
 
+static char Blender_GetPaths_doc[] =
+"() - Returns a list of paths used in this blend file.";
+
 /*****************************************************************************/
 /* Python method structure definition.		 */
 /*****************************************************************************/
@@ -209,6 +213,7 @@ static struct PyMethodDef Blender_methods[] = {
 	{"Run", Blender_Run, METH_O, Blender_Run_doc},
 	{"ShowHelp", Blender_ShowHelp, METH_O, Blender_ShowHelp_doc},
 	{"CountPackedFiles", ( PyCFunction ) Blender_CountPackedFiles, METH_NOARGS, Blender_CountPackedFiles_doc},
+	{"GetPaths", ( PyCFunction ) Blender_GetPaths, METH_VARARGS|METH_KEYWORDS, Blender_GetPaths_doc},
 	{"PackAll", ( PyCFunction ) Blender_PackAll, METH_NOARGS, Blender_PackAll_doc},
 	{"UnpackAll", Blender_UnpackAll, METH_O, Blender_UnpackAll_doc},
 	{"UpdateMenus", ( PyCFunction ) Blender_UpdateMenus, METH_NOARGS,
@@ -903,6 +908,47 @@ static PyObject *Blender_CountPackedFiles( PyObject * self )
 	int nfiles = countPackedFiles();
 	return PyInt_FromLong( nfiles );
 }
+
+/*****************************************************************************/
+/* Function:		Blender_GetPaths		 */
+/* Python equivalent:	Blender.GetPaths			 */
+/*****************************************************************************/
+static PyObject *Blender_GetPaths( PyObject * self, PyObject *args, PyObject *keywds )
+{
+	struct BPathIterator bpi;
+	PyObject *list = PyList_New(0), *st;
+	/* be sure there is low chance of the path being too short */
+	char filepath_expanded[FILE_MAXDIR*2]; 
+	
+	int absolute = 0;
+	static char *kwlist[] = {"absolute", NULL};
+
+	if (!PyArg_ParseTupleAndKeywords(args, keywds, "|i", kwlist, &absolute ) )
+		return EXPP_ReturnPyObjError( PyExc_AttributeError,
+				"expected nothing or one bool (0 or 1) as argument" );
+	
+	BLI_bpathIterator_init(&bpi);
+	
+	while (!BLI_bpathIterator_isDone(&bpi)) {
+		
+		/* build the list */
+		if (absolute) {
+			BLI_bpathIterator_copyPathExpanded( &bpi, filepath_expanded );
+			st = PyString_FromString(filepath_expanded);
+		} else {
+			st = PyString_FromString(BLI_bpathIterator_getPath(&bpi));
+		}
+		
+		PyList_Append(list, st);
+		Py_DECREF(st);
+		
+		BLI_bpathIterator_step(&bpi);
+	}
+	
+	return list;
+}
+
+
 static PyObject *Blender_UnpackModesDict( void )
 {
 	PyObject *UnpackModes = PyConstant_New(  );
