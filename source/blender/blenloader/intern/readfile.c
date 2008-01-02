@@ -7867,6 +7867,12 @@ static void expand_modifier(FileData *fd, Main *mainvar, ModifierData *md)
 			
 		expand_doit(fd, mainvar, mmd->mirror_ob);
 	}
+	else if (md->type==eModifierType_Displace) {
+		DisplaceModifierData *dmd = (DisplaceModifierData*) md;
+		
+		expand_doit(fd, mainvar, dmd->map_object);
+		expand_doit(fd, mainvar, dmd->texture);
+	}
 }
 
 static void expand_scriptlink(FileData *fd, Main *mainvar, ScriptLink *slink)
