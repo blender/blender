@@ -167,15 +167,13 @@ void free_txt_data(void) {
 	if (temp_char_accum) MEM_freeN(temp_char_accum);	
 }
 
-static int render_string (char *in) {
-	SpaceText *st= curarea->spacedata.first;
+static int render_string (SpaceText *st, char *in) {
 	int r = 0, i = 0;
 	
 	while(*in) {
 		if (*in=='\t') {
 			if (temp_char_pos && *(in-1)=='\t') i= st->tabnumber;
 			else if (st->tabnumber > 0) i= st->tabnumber - (temp_char_pos%st->tabnumber);
-
 			while(i--) temp_char_write(' ', r);
 		} else temp_char_write(*in, r);
 
@@ -188,9 +186,8 @@ static int render_string (char *in) {
 	return r;
 }
 
-void get_format_string(void) 
+void get_format_string(SpaceText *st) 
 {
-	SpaceText *st = curarea->spacedata.first;
 	Text *text = st->text;
 	TextLine *tmp;
 	char *in_line;
@@ -538,7 +535,7 @@ static int text_draw(SpaceText *st, char *str, int cshift, int maxwidth, int dra
 	char *in;
 	int *acc;
 
-	w= render_string(str);
+	w= render_string(st, str);
 	if(w<cshift ) return 0; /* String is shorter than shift */
 	
 	in= temp_char_buf+cshift;
@@ -630,7 +627,7 @@ static void set_cursor_to_pos (SpaceText *st, int x, int y, int sel)
 	if (x<0) x= 0;
 	x = (x/spacetext_get_fontwidth(st)) + st->left;
 	
-	w= render_string((*linep)->line);
+	w= render_string(st, (*linep)->line);
 	if(x<w) *charp= temp_char_accum[x];
 	else *charp= (*linep)->len;
 	
@@ -996,6 +993,8 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 	float col[3];
 	int linecount = 0;
 
+	if (st==NULL || st->spacetype != SPACE_TEXT) return;
+	
 	BIF_GetThemeColor3fv(TH_BACK, col);
 	glClearColor(col[0], col[1], col[2], 0.0);
 	glClear(GL_COLOR_BUFFER_BIT);
@@ -1030,7 +1029,7 @@ void drawtextspace(ScrArea *sa, void *spacedata)
 	
 	if(st->showsyntax) {
 		if (tmp && !tmp->format) {
-			get_format_string();
+			get_format_string(st);
 		}
 	}
 	
@@ -1080,13 +1079,12 @@ void pop_space_text (SpaceText *st)
 	if (st->left <0) st->left= 0;
 }
 
-void add_text_fs(char *file) 
+void add_text_fs(char *file) /* bad but cant pass an as arg here */
 {
 	SpaceText *st= curarea->spacedata.first;
 	Text *text;
 
-	if (!st) return;
-	if (st->spacetype != SPACE_TEXT) return;
+	if (st==NULL || st->spacetype != SPACE_TEXT) return;
 
 	text= add_text(file);
 
@@ -1094,7 +1092,7 @@ void add_text_fs(char *file)
 
 	st->top= 0;
 
-	if (st->showsyntax) get_format_string();
+	if (st->showsyntax) get_format_string(st);
 	allqueue(REDRAWTEXT, 0);
 	allqueue(REDRAWHEADERS, 0);	
 }
@@ -1466,9 +1464,11 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 	short val= evt->val;
 	char ascii= evt->ascii;
 	SpaceText *st= curarea->spacedata.first;
-	Text *text= st->text;
+	Text *text;
 	int do_draw=0, p;
-
+	
+	if (st==NULL || st->spacetype != SPACE_TEXT) return;
+	
 	/* smartass code to prevent the CTRL/ALT events below from not working! */
 	if(G.qual & (LR_ALTKEY|LR_CTRLKEY))
 		if(!ispunct(ascii)) 
@@ -1580,7 +1580,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		}
 	} else if (ascii) {
 		if (txt_add_char(text, ascii)) {
-			if (st->showsyntax) get_format_string();
+			if (st->showsyntax) get_format_string(st);
 			pop_space_text(st);
 			do_draw= 1;
 		}
@@ -1612,11 +1612,11 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				txt_order_cursors(text);
 				uncomment(text);
 				do_draw = 1;
-				if (st->showsyntax) get_format_string();
+				if (st->showsyntax) get_format_string(st);
 				break;
 			} else if (G.qual == LR_CTRLKEY) {
 				txt_delete_char(text);
-				if (st->showsyntax) get_format_string();
+				if (st->showsyntax) get_format_string(st);
 				do_draw= 1;
 				pop_space_text(st);
 			}
@@ -1634,7 +1634,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					break;
 				case 2:
 					txt_paste(text);
-					if (st->showsyntax) get_format_string();
+					if (st->showsyntax) get_format_string(st);
 					do_draw= 1;
 					break;
 				case 3:
@@ -1722,7 +1722,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				if (okee("Reopen text")) {
 					if (!reopen_text(text))
 						error("Could not reopen file");
-				if (st->showsyntax) get_format_string();
+				if (st->showsyntax) get_format_string(st);
 				}
 				do_draw= 1;	
 			}
@@ -1766,7 +1766,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			if (G.qual == LR_ALTKEY) {
 				txt_do_undo(text);
-				if (st->showsyntax) get_format_string();
+				if (st->showsyntax) get_format_string(st);
 				do_draw= 1;
 			}
 			break; /* BREAK U */
@@ -1800,7 +1800,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					txt_paste_clipboard(text);
 				else
 					txt_paste(text);
-				if (st->showsyntax) get_format_string();
+				if (st->showsyntax) get_format_string(st);
 				do_draw= 1;	
 				pop_space_text(st);
 			}
@@ -1808,7 +1808,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case XKEY:
 			if (G.qual == LR_ALTKEY || G.qual == LR_CTRLKEY) {
 				txt_cut_sel(text);
-				if (st->showsyntax) get_format_string();
+				if (st->showsyntax) get_format_string(st);
 				do_draw= 1;	
 				pop_space_text(st);
 			}
@@ -1820,7 +1820,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				} else {
 					txt_do_undo(text);
 				}
-				if (st->showsyntax) get_format_string();
+				if (st->showsyntax) get_format_string(st);
 				do_draw= 1;
 			}
 			break;
@@ -1839,7 +1839,7 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					txt_add_char(text, '\t');
 				}
 			}
-			if (st->showsyntax) get_format_string();
+			if (st->showsyntax) get_format_string(st);
 			pop_space_text(st);
 			do_draw= 1;
 			st->currtab_set = setcurr_tab(text);
@@ -1858,20 +1858,20 @@ void winqreadtextspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 					}
 				}
 			}
-			if (st->showsyntax) get_format_string();
+			if (st->showsyntax) get_format_string(st);
 			do_draw= 1;
 			pop_space_text(st);
 			break;
 		case BACKSPACEKEY:
 			txt_backspace_char(text);
 			set_tabs(text);
-			if (st->showsyntax) get_format_string();
+			if (st->showsyntax) get_format_string(st);
 			do_draw= 1;
 			pop_space_text(st);
 			break;
 		case DELKEY:
 			txt_delete_char(text);
-			if (st->showsyntax) get_format_string();
+			if (st->showsyntax) get_format_string(st);
 			do_draw= 1;
 			pop_space_text(st);
 			st->currtab_set = setcurr_tab(text);
@@ -2138,18 +2138,18 @@ void convert_tabs (struct SpaceText *st, int tab)
 	//first convert to all space, this make it alot easier to convert to tabs because there is no mixtures of ' ' && '\t'
 	while(tmp) {
 		check_line = tmp->line;
-		new_line = MEM_mallocN(render_string(check_line)+1, "Converted_Line");
-		format = MEM_mallocN(render_string(check_line)+1, "Converted_Syntax_format");
+		new_line = MEM_mallocN(render_string(st, check_line)+1, "Converted_Line");
+		format = MEM_mallocN(render_string(st, check_line)+1, "Converted_Syntax_format");
 		j = 0;
 		for (a=0; a < strlen(check_line); a++) { //foreach char in line
 			if(check_line[a] == '\t') { //checking for tabs
 				//get the number of spaces this tabs is showing
 				//i dont like doing it this way but will look into it later
 				new_line[j] = '\0';
-				number = render_string(new_line);
+				number = render_string(st, new_line);
 				new_line[j] = '\t';
 				new_line[j+1] = '\0';
-				number = render_string(new_line)-number;
+				number = render_string(st, new_line)-number;
 				for(extra = 0; extra < number; extra++) {
 					new_line[j] = ' ';
 					j++;

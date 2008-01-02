@@ -100,6 +100,7 @@ struct Ipo;
 struct BWinEvent;
 struct Key;
 struct ListBase;
+struct TimeMarker;
 
 /* Key operations */
 void transform_action_keys(int mode, int dummy);
@@ -122,7 +123,7 @@ void free_actcopybuf(void);
 void copy_actdata(void);
 void paste_actdata(void);
 
-/* channel/strip operations */
+/* Channel/strip operations */
 void up_sel_action(void);
 void down_sel_action(void);
 void top_sel_action(void);
@@ -140,6 +141,12 @@ void deselect_actionchannels(struct bAction *act, short test);
 int select_channel(struct bAction *act, struct bActionChannel *achan, int selectmode);
 void select_actionchannel_by_name(struct bAction *act, char *name, int select);
 void selectkeys_leftright (short leftright, short select_mode);
+
+/* Action Markers */
+void action_set_activemarker(struct bAction *act, struct TimeMarker *active, short deselect);
+void action_add_localmarker(struct bAction *act, int frame);
+void action_rename_localmarker(struct bAction *act);
+void action_remove_localmarkers(struct bAction *act);
 
 /* ShapeKey stuff */
 struct Key *get_action_mesh_key(void);

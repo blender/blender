@@ -1294,12 +1294,15 @@ static void tb_do_transform_clearapply(void *arg, int event)
 			clear_object('s');
 			break;
 		case 3: /* apply scale/rotation */
-			apply_object();
+			apply_objects_locrot();
 			break;
-		case 4: /* apply deformation */
+		case 4: /* apply scale/rotation */
+			apply_objects_visual_tx();
+			break;
+		case 5: /* apply deformation */
 			object_apply_deform(ob);
 			break;
-		case 5: /* make duplicates real */
+		case 6: /* make duplicates real */
 			if (ob->transflag & OB_DUPLI) make_duplilist_real();
 			else error("The active object does not have dupliverts");
 			break;
@@ -1311,9 +1314,10 @@ static TBitem tb_transform_clearapply[]= {
 {	0, "Clear Rotation|Alt R", 		1, NULL},
 {	0, "Clear Scale|Alt S", 		2, NULL},
 {	0, "SEPR", 					0, NULL},
-{	0, "Apply Scale/Rotation|Ctrl A", 3, NULL},
-{	0, "Apply Deformation|Shift Ctrl A", 4, NULL},
-{	0, "Make Duplicates Real|Shift Ctrl A", 5, NULL},
+{	0, "Apply Scale/Rotation to ObData|Ctrl A, 1", 3, NULL},
+{	0, "Apply Visual Transform|Ctrl A, 2", 4, NULL},
+{	0, "Apply Deformation|Shift Ctrl A", 5, NULL},
+{	0, "Make Duplicates Real|Shift Ctrl A", 6, NULL},
 {  -1, "", 			0, tb_do_transform_clearapply}};
 
 static TBitem tb_transform_snap[]= {
@@ -1669,6 +1673,8 @@ static TBitem *node_add_sublevel(ListBase *storage, bNodeTree *ntree, int nodecl
 static TBitem tb_node_node[]= {
 	{	0, "Duplicate|Shift D", TB_SHIFT|'d', 		NULL},
 	{	0, "Delete|X", 'x', 		NULL},
+	{	0, "SEPR", 		0, NULL},
+	{	0, "Toggle Link|F", 'f', NULL},
 	{	0, "SEPR", 		0, NULL},
 	{	0, "Make Group|Ctrl G", TB_CTRL|'g', 		NULL},
 	{	0, "Ungroup|Alt G", TB_ALT|'g', 		NULL},

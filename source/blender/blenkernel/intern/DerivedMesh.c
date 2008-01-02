@@ -74,6 +74,7 @@
 #include "BKE_material.h"
 #include "BKE_modifier.h"
 #include "BKE_mesh.h"
+#include "BKE_multires.h"
 #include "BKE_object.h"
 #include "BKE_subsurf.h"
 #include "BKE_texture.h"
@@ -86,8 +87,6 @@
 
 #include "BIF_gl.h"
 #include "BIF_glutil.h"
-
-#include "multires.h"
 
 // headers for fluidsim bobj meshes
 #include <stdlib.h>
@@ -2598,7 +2597,8 @@ float *multires_render_pin(Object *ob, Mesh *me, int *orig_lvl)
 }
 
 /* Propagate the changes to render level - fails if mesh topology changed */
-void multires_render_final(Object *ob, Mesh *me, DerivedMesh **dm, float *vert_copy, const int orig_lvl)
+void multires_render_final(Object *ob, Mesh *me, DerivedMesh **dm, float *vert_copy,
+			   const int orig_lvl, CustomDataMask dataMask)
 {
 	if(me->mr) {
 		if((*dm)->getNumVerts(*dm) == me->totvert &&
@@ -2618,6 +2618,9 @@ void multires_render_final(Object *ob, Mesh *me, DerivedMesh **dm, float *vert_c
 			old= *dm;
 			(*dm)= CDDM_copy(old);
 			old->release(old);
+
+			if(dataMask & CD_MASK_ORCO)
+				add_orco_dm(ob, *dm, NULL);
 
 			/* Restore the original verts */
 			me->mr->newlvl= BLI_countlist(&me->mr->levels);
@@ -2646,7 +2649,7 @@ DerivedMesh *mesh_create_derived_render(Object *ob, CustomDataMask dataMask)
 	
 	vert_copy= multires_render_pin(ob, me, &orig_lvl);
 	mesh_calc_modifiers(ob, NULL, NULL, &final, 1, 1, 0, dataMask);
-	multires_render_final(ob, me, &final, vert_copy, orig_lvl);
+	multires_render_final(ob, me, &final, vert_copy, orig_lvl, dataMask);
 
 	return final;
 }
@@ -2681,7 +2684,7 @@ DerivedMesh *mesh_create_derived_no_deform_render(Object *ob,
 
 	vert_copy= multires_render_pin(ob, me, &orig_lvl);
 	mesh_calc_modifiers(ob, vertCos, NULL, &final, 1, 0, 0, dataMask);
-	multires_render_final(ob, me, &final, vert_copy, orig_lvl);
+	multires_render_final(ob, me, &final, vert_copy, orig_lvl, dataMask);
 
 	return final;
 }

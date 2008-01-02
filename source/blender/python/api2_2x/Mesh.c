@@ -60,6 +60,7 @@
 #include "BKE_mesh.h"
 #include "BKE_material.h"
 #include "BKE_main.h"
+#include "BKE_multires.h"
 #include "BKE_global.h"
 #include "BKE_library.h"
 #include "BKE_DerivedMesh.h"
@@ -7160,7 +7161,7 @@ static int Mesh_setMultires( BPy_Mesh * self, PyObject *value, void *type )
 	switch ((int)type) {
 	case MESH_MULTIRES_LEVEL:
 		self->mesh->mr->newlvl = i;
-		multires_set_level(self->object, self->mesh, 0);
+		multires_set_level_cb(self->object, self->mesh);
 		break;
 	case MESH_MULTIRES_EDGE:
 		self->mesh->mr->edgelvl = i;

@@ -34,11 +34,13 @@
 #ifndef BKE_SCENE_H
 #define BKE_SCENE_H
 
+struct bglMats;
 struct Scene;
 struct Object;
 struct Base;
 struct AviCodecData;
 struct QuicktimeCodecData;
+struct SculptData;
 
 /* sequence related defines */
 #define WHILE_SEQ(base)	{											\

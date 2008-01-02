@@ -50,11 +50,22 @@ void free_strip(struct Strip *strip);
 void new_tstripdata(struct Sequence *seq);
 void free_sequence(struct Sequence *seq);
 void build_seqar(struct ListBase *seqbase, struct Sequence  ***seqar, int *totseq);
+
+#define BUILD_SEQAR_COUNT_NOTHING  0
+#define BUILD_SEQAR_COUNT_CURRENT  1
+#define BUILD_SEQAR_COUNT_CHILDREN 2
+
+void build_seqar_cb(struct ListBase *seqbase, struct Sequence  ***seqar, 
+		    int *totseq, int (*test_func)(struct Sequence * seq));
 void free_editing(struct Editing *ed);
 void calc_sequence(struct Sequence *seq);
 void calc_sequence_disp(struct Sequence *seq);
+void reload_sequence_new_file(struct Sequence * seq);
 void sort_seq(void);
 void clear_scene_in_allseqs(struct Scene *sce);
+
+char *give_seqname_by_type(int type);
+char *give_seqname(struct Sequence *seq);
 
 int evaluate_seq_frame(int cfra);
 struct StripElem *give_stripelem(struct Sequence *seq, int cfra);

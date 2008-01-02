@@ -58,92 +58,110 @@
 #ifndef _DDS_DIRECTDRAWSURFACE_H
 #define _DDS_DIRECTDRAWSURFACE_H
 
+#include <Common.h>
 #include <Stream.h>
 #include <ColorBlock.h>
 #include <Image.h>
 
-struct DDSPixelFormat {
-	unsigned int size;
-	unsigned int flags;
-	unsigned int fourcc;
-	unsigned int bitcount;
-	unsigned int rmask;
-	unsigned int gmask;
-	unsigned int bmask;
-	unsigned int amask;
+struct DDSPixelFormat
+{
+	uint size;
+	uint flags;
+	uint fourcc;
+	uint bitcount;
+	uint rmask;
+	uint gmask;
+	uint bmask;
+	uint amask;
 };
 
-struct DDSCaps {
-	unsigned int caps1;
-	unsigned int caps2;
-	unsigned int caps3;
-	unsigned int caps4;
+struct DDSCaps
+{
+	uint caps1;
+	uint caps2;
+	uint caps3;
+	uint caps4;
+};
+
+/// DDS file header for DX10.
+struct DDSHeader10
+{
+    uint dxgiFormat;
+    uint resourceDimension;
+    uint miscFlag;
+    uint arraySize;
+    uint reserved;
 };
 
 /// DDS file header.
-struct DDSHeader {
-	unsigned int fourcc;
-	unsigned int size;
-	unsigned int flags;
-	unsigned int height;
-	unsigned int width;
-	unsigned int pitch;
-	unsigned int depth;
-	unsigned int mipmapcount;
-	unsigned int reserved[11];
+struct DDSHeader
+{
+	uint fourcc;
+	uint size;
+	uint flags;
+	uint height;
+	uint width;
+	uint pitch;
+	uint depth;
+	uint mipmapcount;
+	uint reserved[11];
 	DDSPixelFormat pf;
 	DDSCaps caps;
-	unsigned int notused;
-	
+	uint notused;
+	DDSHeader10 header10;
+
+
 	// Helper methods.
 	DDSHeader();
 	
-	void setWidth(unsigned int w);
-	void setHeight(unsigned int h);
-	void setDepth(unsigned int d);
-	void setMipmapCount(unsigned int count);
+	void setWidth(uint w);
+	void setHeight(uint h);
+	void setDepth(uint d);
+	void setMipmapCount(uint count);
 	void setTexture2D();
 	void setTexture3D();
 	void setTextureCube();
-	void setLinearSize(unsigned int size);
-	void setPitch(unsigned int pitch);
-	void setFourCC(unsigned char c0, unsigned char c1, unsigned char c2, unsigned char c3);
-	void setPixelFormat(unsigned int bitcount, unsigned int rmask, unsigned int gmask, unsigned int bmask, unsigned int amask);
+	void setLinearSize(uint size);
+	void setPitch(uint pitch);
+	void setFourCC(uint8 c0, uint8 c1, uint8 c2, uint8 c3);
+	void setPixelFormat(uint bitcount, uint rmask, uint gmask, uint bmask, uint amask);
+	void setDX10Format(uint format);
 	void setNormalFlag(bool b);
 	
-	/* void swapBytes(); */
+	bool hasDX10Header() const;
 };
 
 /// DirectDraw Surface. (DDS)
 class DirectDrawSurface
 {
 public:
-	DirectDrawSurface(unsigned char *mem, unsigned int size);
+	DirectDrawSurface(unsigned char *mem, uint size);
 	~DirectDrawSurface();
 	
 	bool isValid() const;
 	bool isSupported() const;
 	
-	unsigned int mipmapCount() const;
-	unsigned int width() const;
-	unsigned int height() const;
-	unsigned int depth() const;
+	uint mipmapCount() const;
+	uint width() const;
+	uint height() const;
+	uint depth() const;
 	bool isTexture2D() const;
 	bool isTexture3D() const;
 	bool isTextureCube() const;
-	bool hasAlpha() const; /* false for DXT1, true for all others */
+	bool hasAlpha() const; /* false for DXT1, true for all other DXTs */
 	
-	void mipmap(Image * img, unsigned int f, unsigned int m);
+	void mipmap(Image * img, uint f, uint m);
+	//	void mipmap(FloatImage * img, uint f, uint m);
 	
 	void printInfo() const;
 
 private:
 	
-	unsigned int blockSize() const;
-	unsigned int faceSize() const;
-	unsigned int mipmapSize(unsigned int m) const;
+	uint blockSize() const;
+	uint faceSize() const;
+	uint mipmapSize(uint m) const;
 	
-	unsigned int offset(unsigned int f, unsigned int m);
+	uint offset(uint f, uint m);
 	
 	void readLinearImage(Image * img);
 	void readBlockImage(Image * img);
@@ -158,5 +176,6 @@ private:
 void mem_read(Stream & mem, DDSPixelFormat & pf);
 void mem_read(Stream & mem, DDSCaps & caps);
 void mem_read(Stream & mem, DDSHeader & header);
+void mem_read(Stream & mem, DDSHeader10 & header);
 
 #endif // _DDS_DIRECTDRAWSURFACE_H

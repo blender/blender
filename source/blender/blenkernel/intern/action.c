@@ -177,6 +177,10 @@ void free_action (bAction *act)
 	
 	if (act->chanbase.first)
 		BLI_freelistN(&act->chanbase);
+		
+	/* Free pose-references */
+	if (act->markers.first)
+		BLI_freelistN(&act->markers);
 }
 
 bAction *copy_action (bAction *src)
@@ -188,6 +192,7 @@ bAction *copy_action (bAction *src)
 	
 	dst= copy_libblock(src);
 	duplicatelist(&(dst->chanbase), &(src->chanbase));
+	duplicatelist(&(dst->markers), &(src->markers));
 	
 	for (dchan=dst->chanbase.first, schan=src->chanbase.first; dchan; dchan=dchan->next, schan=schan->next){
 		dchan->ipo = copy_ipo(dchan->ipo);

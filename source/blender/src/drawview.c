@@ -108,6 +108,7 @@
 #include "BKE_particle.h"
 #include "BKE_pointcache.h"
 #include "BKE_scene.h"
+#include "BKE_sculpt.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 
@@ -1581,7 +1582,7 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 	if(ob->type==OB_MESH) {		
 		eve= em->verts.first;
 		while(eve) {
-			if(eve->f & 1) {
+			if(eve->f & SELECT) {
 				evedef= eve;
 				tot++;
 				VecAddf(median, median, eve->co);
@@ -1704,16 +1705,15 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 		Mat4MulVecfl(ob->obmat, median);
 	
 	if(block) {	// buttons
+		int but_y;
+		if((ob->parent) && (ob->partype == PARBONE))	but_y = 135;
+		else											but_y = 150;
+		
 		uiBlockBeginAlign(block);
-		if((ob->parent) && (ob->partype == PARBONE)) {
-			uiDefButBitS(block, TOG, V3D_GLOBAL_STATS, REDRAWVIEW3D, "Global",		160, 135, 70, 19, &G.vd->flag, 0, 0, 0, 0, "Displays global values");
-			uiDefButBitS(block, TOGN, V3D_GLOBAL_STATS, REDRAWVIEW3D, "Local",		230, 135, 70, 19, &G.vd->flag, 0, 0, 0, 0, "Displays local values");
-		}
-		else {
-			uiDefButBitS(block, TOG, V3D_GLOBAL_STATS, REDRAWVIEW3D, "Global",		160, 150, 70, 19, &G.vd->flag, 0, 0, 0, 0, "Displays global values");
-			uiDefButBitS(block, TOGN, V3D_GLOBAL_STATS, REDRAWVIEW3D, "Local",		230, 150, 70, 19, &G.vd->flag, 0, 0, 0, 0, "Displays local values");
-		}
-
+		uiDefButBitS(block, TOG, V3D_GLOBAL_STATS, REDRAWVIEW3D, "Global",		160, but_y, 70, 19, &G.vd->flag, 0, 0, 0, 0, "Displays global values");
+		uiDefButBitS(block, TOGN, V3D_GLOBAL_STATS, REDRAWVIEW3D, "Local",		230, but_y, 70, 19, &G.vd->flag, 0, 0, 0, 0, "Displays local values");
+		uiBlockEndAlign(block);
+		
 		memcpy(tfp->ve_median, median, sizeof(tfp->ve_median));
 		
 		uiBlockBeginAlign(block);
@@ -1778,7 +1778,7 @@ static void v3d_editvertex_buts(uiBlock *block, Object *ob, float lim)
 			
 			eve= em->verts.first;
 			while(eve) {
-				if(eve->f & 1) {
+				if(eve->f & SELECT) {
 					VecAddf(eve->co, eve->co, median);
 				}
 				eve= eve->next;
@@ -2252,7 +2252,7 @@ static void view3d_panel_object(short cntrl)	// VIEW3D_HANDLER_OBJECT
 	uiSetPanelHandler(VIEW3D_HANDLER_OBJECT);  // for close and esc
 
 	if((G.f & G_SCULPTMODE) && !G.obedit) {
-		if(!uiNewPanel(curarea, block, "Transform Properties", "View3d", 10, 230, 425, 234))
+		if(!uiNewPanel(curarea, block, "Transform Properties", "View3d", 10, 230, 318, 234))
 			return;
 	} else if(G.f & G_PARTICLEEDIT && !G.obedit){
 		if(!uiNewPanel(curarea, block, "Transform Properties", "View3d", 10, 230, 318, 234))
@@ -3065,6 +3065,8 @@ void drawview3dspace(ScrArea *sa, void *spacedata)
 				fdrawXORcirc((float)car[0], (float)car[1], sculptmode_brush()->size);
 		}
 	}
+
+	retopo_paint_view_update(v3d);
 	retopo_draw_paint_lines();
 
 	if(!G.obedit && OBACT && G.f&G_PARTICLEEDIT && area_is_active_area(v3d->area)){
@@ -3272,8 +3274,7 @@ int update_time(void)
 	static double ltime;
 	double time;
 
-	if ((U.mixbufsize)
-	    && (audiostream_pos() != CFRA)
+	if ((audiostream_pos() != CFRA)
 	    && (G.scene->audio.flag & AUDIO_SYNC)) {
 		return 0;
 	}
@@ -3505,7 +3506,6 @@ void inner_play_anim_loop(int init, int mode)
 		cached = cached_dynamics(PSFRA,PEFRA);
 	} else {
 		if (cached
-			&& U.mixbufsize 
 		    && (G.scene->audio.flag & AUDIO_SYNC)) {
 			CFRA = audiostream_pos();
 		} else {
@@ -3560,14 +3560,13 @@ int play_anim(int mode)
 	 /* forces all buffers to be OK for current frame (otherwise other windows get redrawn with CFRA+1) */
 	curarea->win_swap= WIN_BACK_OK;
 	screen_swapbuffers();
-	
+
 	while(TRUE) {
 		
 		if  (U.uiflag & USER_SHOW_FPS)
 			lredrawtime = PIL_check_seconds_timer();
 		
 		while(qtest()) {
-			
 			/* we test events first because of MKEY event */
 			
 			event= extern_qread(&val);
@@ -3588,7 +3587,7 @@ int play_anim(int mode)
 				if(val) add_marker(CFRA-1);
 			}
 		}
-		if(ELEM3(event, ESCKEY, SPACEKEY, RIGHTMOUSE)) break;
+		if(val && ELEM3(event, ESCKEY, SPACEKEY, RIGHTMOUSE)) break;
 		
 		inner_play_anim_loop(0, 0);
 		 

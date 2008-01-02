@@ -64,6 +64,8 @@ extern void do_render_panels(unsigned short event);
 extern void anim_panels(void);
 extern void sound_panels(void);
 extern void do_soundbuts(unsigned short event);
+extern void sequencer_panels(void);
+extern void do_sequencer_panels(unsigned short event);
 
 /* object */
 extern void object_panels(void);
@@ -305,7 +307,8 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_AO_FALLOFF	1506
 
 /* *********************** */
-#define B_RENDERBUTS	1700
+#define B_RENDERBUTS	1690
+#define B_SEQUENCERBUTS 1699
 
 #define B_FS_PIC		1601
 #define B_FS_BACKBUF	1602
@@ -353,6 +356,13 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_SET_ZBLUR			1644
 #define B_ADD_RENDERLAYER	1645
 #define B_SET_PASS			1646
+
+#define B_SEQ_BUT_PLUGIN	1691
+#define B_SEQ_BUT_RELOAD	1692
+#define B_SEQ_BUT_EFFECT	1693
+#define B_SEQ_BUT_RELOAD_ALL    1694
+#define B_SEQ_BUT_TRANSFORM     1695
+#define B_SEQ_BUT_RELOAD_FILE   1696
 
 /* *********************** */
 #define B_ARMATUREBUTS		1800
@@ -507,6 +517,17 @@ void curvemap_buttons(struct uiBlock *block, struct CurveMapping *cumap, char la
 #define B_ARM_STRIDE		2302
 #define B_ARM_CALCPATHS		2303
 #define B_ARM_CLEARPATHS	2304
+
+#define B_POSELIB_VALIDATE		2310
+#define B_POSELIB_ADDPOSE		2311
+#define B_POSELIB_REPLACEP		2312
+#define B_POSELIB_REMOVEP		2313
+#define B_POSELIB_APPLYP		2314
+
+	/* these shouldn't be here... */
+#define B_POSELIB_BROWSE		2320
+#define B_POSELIB_ALONE			2321
+#define B_POSELIB_DELETE		2322
 
 /* *********************** */
 #define B_CAMBUTS		2500

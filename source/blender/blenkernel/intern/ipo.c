@@ -2161,7 +2161,7 @@ void do_ob_ipodrivers(Object *ob, Ipo *ipo, float ctime)
 	}
 }
 
-void do_seq_ipo(Sequence *seq)
+void do_seq_ipo(Sequence *seq, int cfra)
 {
 	float ctime, div;
 	
@@ -2169,11 +2169,10 @@ void do_seq_ipo(Sequence *seq)
 	
 	if(seq->ipo) {
 		if((seq->flag & SEQ_IPO_FRAME_LOCKED) != 0) {
-			ctime = frame_to_float(G.scene->r.cfra);
+			ctime = frame_to_float(cfra);
 			div = 1.0;
 		} else {
-			ctime= frame_to_float(G.scene->r.cfra 
-					      - seq->startdisp);
+			ctime= frame_to_float(cfra - seq->startdisp);
 			div= (seq->enddisp - seq->startdisp)/100.0f;
 			if(div==0.0) return;
 		}
@@ -2291,7 +2290,7 @@ void do_all_data_ipos()
 			     || seq->type == SEQ_HD_SOUND) && (seq->ipo) && 
 				(seq->startdisp<=G.scene->r.cfra+2) && 
 			    (seq->enddisp>G.scene->r.cfra)) 
-					do_seq_ipo(seq);
+					do_seq_ipo(seq, G.scene->r.cfra);
 			seq= seq->next;
 		}
 	}

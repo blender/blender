@@ -572,6 +572,9 @@ void do_butspace(unsigned short event)
 	else if(event<=B_RENDERBUTS) {
 		do_render_panels(event);	// buttons_scene.c
 	}
+	else if(event<=B_SEQUENCERBUTS) {
+		do_sequencer_panels(event);
+	}
 	else if(event<=B_COMMONEDITBUTS) {
 		do_common_editbuts(event);
 	}
@@ -725,6 +728,8 @@ void drawbutspace(ScrArea *sa, void *spacedata)
 
 		if(tab== TAB_SCENE_RENDER) 
 			render_panels();
+		else if(tab == TAB_SCENE_SEQUENCER)
+			sequencer_panels();
 		else if(tab == TAB_SCENE_ANIM) 
 			anim_panels();
 		else if(tab == TAB_SCENE_SOUND) 

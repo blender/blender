@@ -1244,9 +1244,10 @@ static void texture_panel_image_map(Tex *tex, MTex *mtex)
 	uiDefButBitS(block, TOG, TEX_USEALPHA, B_TEXPRV, "UseAlpha",	10, 160, 100, 20, &tex->imaflag, 0, 0, 0, 0, "Click to use Image's alpha channel");
 	uiDefButBitS(block, TOG, TEX_CALCALPHA, B_TEXPRV, "CalcAlpha",	110, 160, 100, 20, &tex->imaflag, 0, 0, 0, 0, "Click to calculate an alpha channel based on Image RGB values");
 	uiDefButBitS(block, TOG, TEX_NEGALPHA, B_TEXPRV, "NegAlpha",	210, 160, 100, 20, &tex->flag, 0, 0, 0, 0, "Click to invert the alpha values");
-	uiBlockEndAlign(block);
 
-	uiDefButF(block, NUM, B_TEXPRV, "Filter :",						10,120,150,20, &tex->filtersize, 0.1, 25.0, 10, 3, "Sets the filter size used by mipmap and interpol");
+	uiBlockBeginAlign(block);
+	uiDefButBitS(block, TOG, TEX_FILTER_MIN, B_TEXPRV, "Min",	10, 120, 30, 20, &tex->imaflag, 0, 0, 0, 0, "Use Filtersize as a minimal filter value in pixels");
+	uiDefButF(block, NUM, B_TEXPRV, "Filter: ",					40,120,120,20, &tex->filtersize, 0.1, 50.0, 10, 3, "Multiplies the filter size used by mipmap and interpol");
 	
 	uiBlockBeginAlign(block);
 	uiDefButBitS(block, TOG, TEX_NORMALMAP, B_NOP, "Normal Map",	160,120,(mtex)? 75: 150,20, &tex->imaflag,
@@ -1368,7 +1369,8 @@ static void texture_panel_envmap(Tex *tex)
 			uiDefButS(block, NUM, B_ENV_FREE, 	"CubeRes", 		160,90,150,20, &env->cuberes, 50, 4096.0, 0, 0, "Sets the pixel resolution of the rendered environment map");
 		
 		uiBlockBeginAlign(block);
-		uiDefButF(block, NUM, B_TEXPRV, "Filter :",				10,65,150,20, &tex->filtersize, 0.1, 25.0, 0, 3, "Adjusts sharpness or blurriness of the reflection"),
+		uiDefButBitS(block, TOG, TEX_FILTER_MIN, B_TEXPRV, "Min",	10, 65, 30, 20, &tex->imaflag, 0, 0, 0, 0, "Use Filtersize as a minimal filter value in pixels");
+		uiDefButF(block, NUM, B_TEXPRV, "Filter :",					40,65,120,20, &tex->filtersize, 0.1, 25.0, 0, 3, "Adjusts sharpness or blurriness of the reflection"),
 			uiDefButS(block, NUM, B_ENV_FREE, "Depth:",				160,65,150,20, &env->depth, 0, 5.0, 0, 0, "Sets the number of times a map will be rendered recursively mirror effects"),
 			uiDefButF(block, NUM, REDRAWVIEW3D, 	"ClipSta", 		10,40,150,20, &env->clipsta, 0.01, 50.0, 100, 0, "Sets start value for clipping: objects nearer than this are not visible to map");
 		uiDefButF(block, NUM, B_NOP, 	"ClipEnd", 					160,40,150,20, &env->clipend, 0.1, 20000.0, 1000, 0, "Sets end value for clipping beyond which objects are not visible to map");
@@ -3791,7 +3793,8 @@ static void material_panel_shading(Material *ma)
 		uiDefButBitI(block, TOG, MA_SHADOW, B_MATPRV,	"Shadow",			245,140,65,19, &(ma->mode), 0, 0, 0, 0, "Makes material receive shadows");
 		uiDefButBitI(block, TOG, MA_SHADOW_TRA, B_MATPRV, "TraShadow",		245,120,65,19, &(ma->mode), 0, 0, 0, 0, "Receives transparent shadows based at material color and alpha");
 		uiDefButBitI(block, TOG, MA_ONLYSHADOW, B_MATPRV,	"OnlyShad",		245,100,65,20, &(ma->mode), 0, 0, 0, 0, "Renders shadows on material as Alpha value");
-		uiDefButBitI(block, TOG, MA_RAYBIAS, B_MATPRV, "Bias",				245,80,65,19, &(ma->mode), 0, 0, 0, 0, "Prevents ray traced shadow errors with phong interpolated normals (terminator problem)");
+		uiDefButBitS(block, TOG, MA_CUBIC, B_MATPRV, "Cubic",				245,80,65,19, &(ma->shade_flag), 0, 0, 0, 0, "Use Cubic interpolation of diffuse values, for smoother transitions)");
+		uiDefButBitI(block, TOG, MA_RAYBIAS, B_MATPRV, "Bias",				245,60,65,19, &(ma->mode), 0, 0, 0, 0, "Prevents ray traced shadow errors with phong interpolated normals (terminator problem)");
 
 		uiBlockBeginAlign(block);
 		uiDefIDPoinBut(block, test_grouppoin_but, ID_GR, B_MATPRV, "GR:",	9, 55, 150, 19, &ma->group, "Limit Lighting to Lamps in this Group"); 
@@ -3852,31 +3855,37 @@ static uiBlock *strand_menu(void *mat_v)
 {
 	Material *ma= mat_v;
 	uiBlock *block;
+	int buth=20, butw=230, butx=10, buty=160;
 
 	block= uiNewBlock(&curarea->uiblocks, "strand menu", UI_EMBOSS, UI_HELV, curarea->win);
-	
+	 
+  	if(ma->mode & MA_STR_B_UNITS)
+		buty += buth;
+
 	/* use this for a fake extra empy space around the buttons */
-	uiDefBut(block, LABEL, 0, "", 0, 0, 250, 170, NULL,  0, 0, 0, 0, "");
+	uiDefBut(block, LABEL, 0, "", 0, 0, butw+20, buty+10, NULL,  0, 0, 0, 0, "");
+  					/* event return 0, to prevent menu to close */
   	
   	uiBlockBeginAlign(block);
-  					/* event return 0, to prevent menu to close */
- 
-	uiDefButBitI(block, TOG, MA_TANGENT_STR, 0,	"Use Tangent Shading",	10,140,230,20, &(ma->mode), 0, 0, 0, 0, "Uses direction of strands as normal for tangent-shading");
-	uiDefButBitI(block, TOG, MA_STR_SURFDIFF, 0, "Surface Diffuse",	10,120,115,20, &(ma->mode), 0, 0, 0, 0, "Make diffuse shading more similar to shading the surface");
-	uiDefButF(block, NUM, 0, "Dist", 125,120,115,20, &ma->strand_surfnor, 0.0f, 10.0f, 2, 0, "Distance in Blender units over which to blend in the surface normal");
+	uiDefButBitI(block, TOG, MA_TANGENT_STR, 0,	"Use Tangent Shading",	butx,buty-=buth,butw,buth, &(ma->mode), 0, 0, 0, 0, "Uses direction of strands as normal for tangent-shading");
+	uiDefButBitI(block, TOG, MA_STR_SURFDIFF, 0, "Surface Diffuse",	butx,buty-=buth,butw/2,buth, &(ma->mode), 0, 0, 0, 0, "Make diffuse shading more similar to shading the surface");
+	uiDefButF(block, NUM, 0, "Dist", butx+butw/2,buty,butw/2,buth, &ma->strand_surfnor, 0.0f, 10.0f, 2, 0, "Distance in Blender units over which to blend in the surface normal");
+
+	buty -= 5;
  
 	uiBlockBeginAlign(block);
-	uiDefButBitI(block, TOG, MA_STR_B_UNITS, 0,	"Use Blender Units", 10,95,230,20, &(ma->mode), 0, 0, 0, 0, "Use actual Blender units for widths instead of pixels");
+	uiDefButBitI(block, TOG, MA_STR_B_UNITS, 0,	"Use Blender Units", butx,buty-=buth,butw,buth, &(ma->mode), 0, 0, 0, 0, "Use actual Blender units for widths instead of pixels");
   	if(ma->mode & MA_STR_B_UNITS){
-		uiDefButF(block, NUMSLI, 0, "Start ",	10, 75, 230,20,   &ma->strand_sta, 0.0001, 2.0, 2, 0, "Start size of strands in Blender units");
-		uiDefButF(block, NUMSLI, 0, "End ",		10, 55, 230,20,  &ma->strand_end, 0.0001, 1.0, 2, 0, "End size of strands in Blender units");
+		uiDefButF(block, NUMSLI, 0, "Start ",	butx,buty-=buth, butw,buth,   &ma->strand_sta, 0.0001, 2.0, 2, 0, "Start size of strands in Blender units");
+		uiDefButF(block, NUMSLI, 0, "End ",		butx,buty-=buth, butw,buth,  &ma->strand_end, 0.0001, 1.0, 2, 0, "End size of strands in Blender units");
+		uiDefButF(block, NUMSLI, 0, "Minimum ",		butx,buty-=buth, butw,buth,  &ma->strand_min, 0.001, 10.0, 0, 0, "Minimum size of strands in pixels");
   	}
   	else{
-		uiDefButF(block, NUMSLI, 0, "Start ",	10, 75, 230,20,   &ma->strand_sta, 0.25, 20.0, 2, 0, "Start size of strands in pixels");
-		uiDefButF(block, NUMSLI, 0, "End ",		10, 55, 230,20,  &ma->strand_end, 0.25, 10.0, 2, 0, "End size of strands in pixels");
+		uiDefButF(block, NUMSLI, 0, "Start ",	butx,buty-=buth, butw,buth,   &ma->strand_sta, 0.25, 20.0, 2, 0, "Start size of strands in pixels");
+		uiDefButF(block, NUMSLI, 0, "End ",		butx,buty-=buth, butw,buth,  &ma->strand_end, 0.25, 10.0, 2, 0, "End size of strands in pixels");
   	}
-	uiDefButF(block, NUMSLI, 0, "Shape ",	10, 35, 230,20,  &ma->strand_ease, -0.9, 0.9, 2, 0, "Shape of strands, positive value makes it rounder, negative makes it spiky");
-	uiDefBut(block, TEX, B_MATPRV, "UV:", 10,10,230,20, ma->strand_uvname, 0, 31, 0, 0, "Set name of UV layer to override");
+	uiDefButF(block, NUMSLI, 0, "Shape ",	butx,buty-=buth, butw,buth,  &ma->strand_ease, -0.9, 0.9, 2, 0, "Shape of strands, positive value makes it rounder, negative makes it spiky");
+	uiDefBut(block, TEX, B_MATPRV, "UV:", butx,buty-=buth,butw,buth, ma->strand_uvname, 0, 31, 0, 0, "Set name of UV layer to override");
 
 	uiBlockSetDirection(block, UI_TOP);
 	BIF_preview_changed(ID_MA);

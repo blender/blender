@@ -191,8 +191,9 @@ static void clipMirrorModifier(TransInfo *t, Object *ob)
 							break;
 						if (td->loc==NULL)
 							break;
-			if (td->flag & TD_SKIP)
-				continue;
+							
+						if (td->flag & TD_SKIP)
+							continue;
 			
 						VecCopyf(loc,  td->loc);
 						VecCopyf(iloc, td->iloc);

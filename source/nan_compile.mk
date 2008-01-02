@@ -181,18 +181,25 @@ ifeq ($(OS),solaris)
     CCFLAGS	+= -pipe -fPIC -funsigned-char -fno-strict-aliasing
 #    CFLAGS	+= "-fast -xdepend -xarch=v8plus -xO3 -xlibmil -KPIC -DPIC -xchar=unsigned"
 #    CCFLAGS	+= "-fast -xdepend -xarch=v8plus -xO3 -xlibmil -xlibmopt -features=tmplife -norunpath -KPIC -DPIC -xchar=unsigned"
-    REL_CFLAGS	+= -O1
-    REL_CCFLAGS += -O1
+
+#    ifeq ($(findstring 64,$(CPU)), 64)
+#        CFLAGS	+= -m64
+#        CCFLAGS	+= -m64
+#    endif
+
+    REL_CFLAGS	+= -O2
+    REL_CCFLAGS	+= -O2
+
     NAN_DEPEND = true
-  #ifeq ($(CPU),sparc)
-   ifeq ($(CPU),$(findstring $(CPU), "sparc"))
-    OPENGL_HEADERS = /usr/openwin/share/include
-    CPPFLAGS += -DSUN_OGL_NO_VERTEX_MACROS
-    JAVA_HEADERS = /usr/java/include
-    JAVA_SYSTEM_HEADERS = /usr/java/include/solaris
-  else
-    OPENGL_HEADERS = $(LCGDIR)/mesa/include
-  endif
+#    ifeq ($(CPU),sparc)
+    ifeq ($(findstring sparc,$(CPU)), sparc)
+        OPENGL_HEADERS = /usr/openwin/share/include
+        CPPFLAGS += -DSUN_OGL_NO_VERTEX_MACROS
+        JAVA_HEADERS = /usr/java/include
+        JAVA_SYSTEM_HEADERS = /usr/java/include/solaris
+    else
+        OPENGL_HEADERS = $(LCGDIR)/mesa/include
+    endif
     AR = ar
     ARFLAGS = ruv
     ARFLAGSQUIET = ru

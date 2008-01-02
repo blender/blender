@@ -93,42 +93,12 @@
 #define SEQ_STRIP_OFSTOP		0.8
 
 int no_rightbox=0, no_leftbox= 0;
-static void draw_seq_handle(Sequence *seq, SpaceSeq *sseq, short direction);
+static void draw_seq_handle(Sequence *seq, SpaceSeq *sseq, float pixelx, short direction);
 static void draw_seq_extensions(Sequence *seq, SpaceSeq *sseq);
 static void draw_seq_text(Sequence *seq, float x1, float x2, float y1, float y2);
 static void draw_shadedstrip(Sequence *seq, char *col, float x1, float y1, float x2, float y2);
-static void draw_seq_strip(struct Sequence *seq, struct ScrArea *sa, struct SpaceSeq *sseq);
+static void draw_seq_strip(struct Sequence *seq, struct ScrArea *sa, struct SpaceSeq *sseq, int outline_tint, float pixelx);
 
-static char *give_seqname(Sequence *seq)
-{
-	if(seq->type==SEQ_META) return "Meta";
-	else if(seq->type==SEQ_IMAGE) return "Image";
-	else if(seq->type==SEQ_SCENE) return "Scene";
-	else if(seq->type==SEQ_MOVIE) return "Movie";
-	else if(seq->type==SEQ_RAM_SOUND) return "Audio (RAM)";
-	else if(seq->type==SEQ_HD_SOUND) return "Audio (HD)";
-	else if(seq->type<SEQ_EFFECT) return seq->strip->dir;
-	else if(seq->type==SEQ_CROSS) return "Cross";
-	else if(seq->type==SEQ_GAMCROSS) return "Gamma Cross";
-	else if(seq->type==SEQ_ADD) return "Add";
-	else if(seq->type==SEQ_SUB) return "Sub";
-	else if(seq->type==SEQ_MUL) return "Mul";
-	else if(seq->type==SEQ_ALPHAOVER) return "Alpha Over";
-	else if(seq->type==SEQ_ALPHAUNDER) return "Alpha Under";
-	else if(seq->type==SEQ_OVERDROP) return "Over Drop";
-	else if(seq->type==SEQ_WIPE) return "Wipe";
-	else if(seq->type==SEQ_GLOW) return "Glow";
-	else if(seq->type==SEQ_TRANSFORM) return "Transform";
-	else if(seq->type==SEQ_COLOR) return "Color";
-	else if(seq->type==SEQ_SPEED) return "Speed";
-	else if(seq->type==SEQ_PLUGIN) {
-		if(!(seq->flag & SEQ_EFFECT_NOT_LOADED) &&
-		   seq->plugin && seq->plugin->doit) return seq->plugin->pname;
-		return "Plugin";
-	}
-	else return "Effect";
-
-}
 static void draw_cfra_seq(void)
 {
 	glColor3ub(0x30, 0x90, 0x50);
@@ -370,11 +340,10 @@ static void drawseqwave(Sequence *seq, float x1, float y1, float x2, float y2, i
 }
 
 /* draw a handle, for each end of a sequence strip */
-static void draw_seq_handle(Sequence *seq, SpaceSeq *sseq, short direction)
+static void draw_seq_handle(Sequence *seq, SpaceSeq *sseq, float pixelx, short direction)
 {
 	float v1[2], v2[2], v3[2], rx1=0, rx2=0; //for triangles and rect
 	float x1, x2, y1, y2;
-	float pixelx;
 	float handsize;
 	float minhandle, maxhandle;
 	char str[120];
@@ -388,7 +357,6 @@ static void draw_seq_handle(Sequence *seq, SpaceSeq *sseq, short direction)
 	y2= seq->machine+SEQ_STRIP_OFSTOP;
 	
 	v2d = &sseq->v2d;
-	pixelx = (v2d->cur.xmax - v2d->cur.xmin)/(v2d->mask.xmax - v2d->mask.xmin);
 	
 	/* clamp handles to defined size in pixel space */
 	handsize = seq->handsize;
@@ -684,13 +652,12 @@ Draw a sequence strip, bounds check alredy made
 ScrArea is currently only used to get the windows width in pixels
 so wave file sample drawing precission is zoom adjusted
 */
-static void draw_seq_strip(Sequence *seq, ScrArea *sa, SpaceSeq *sseq)
+static void draw_seq_strip(Sequence *seq, ScrArea *sa, SpaceSeq *sseq, int outline_tint, float pixelx)
 {
 	float x1, x2, y1, y2;
 	char col[3], is_single_image;
-	Sequence *last_seq = get_last_seq();
 
-	/* we need to know if this is a single image or not for drawing */
+	/* we need to know if this is a single image/color or not for drawing */
 	is_single_image = (char)check_single_seq(seq);
 	
 	/* body */
@@ -718,8 +685,8 @@ static void draw_seq_strip(Sequence *seq, ScrArea *sa, SpaceSeq *sseq)
 	if (!is_single_image)
 		draw_seq_extensions(seq, sseq);
 	
-	draw_seq_handle(seq, sseq, SEQ_LEFTHANDLE);
-	draw_seq_handle(seq, sseq, SEQ_RIGHTHANDLE);
+	draw_seq_handle(seq, sseq, pixelx, SEQ_LEFTHANDLE);
+	draw_seq_handle(seq, sseq, pixelx, SEQ_RIGHTHANDLE);
 	
 	/* draw the strip outline */
 	x1= seq->startdisp;
@@ -731,10 +698,9 @@ static void draw_seq_strip(Sequence *seq, ScrArea *sa, SpaceSeq *sseq)
 			col[0]= 255; col[1]= col[2]= 40;
 		} else BIF_GetColorPtrBlendShade3ubv(col, col, col, 0.0, 120);
 	}
-	else if (seq == last_seq) BIF_GetColorPtrBlendShade3ubv(col, col, col, 0.0, 120);
-	else if (seq->flag & SELECT) BIF_GetColorPtrBlendShade3ubv(col, col, col, 0.0, -150);
-	else BIF_GetColorPtrBlendShade3ubv(col, col, col, 0.0, -60);
 
+	BIF_GetColorPtrBlendShade3ubv(col, col, col, 0.0, outline_tint);
+	
 	glColor3ubv((GLubyte *)col);
 	gl_round_box_shade(GL_LINE_LOOP, x1, y1, x2, y2, 0.0, 0.1, 0.0);
 
@@ -753,7 +719,7 @@ static void draw_seq_strip(Sequence *seq, ScrArea *sa, SpaceSeq *sseq)
 	else if(x2>G.v2d->cur.xmax) x2= G.v2d->cur.xmax;
 
 	/* nice text here would require changing the view matrix for texture text */
-	if(x1 != x2) {
+	if( (x2-x1) / pixelx > 32) {
 		draw_seq_text(seq, x1, x2, y1, y2);
 	}
 }
@@ -865,143 +831,6 @@ static void draw_image_seq(ScrArea *sa)
 	sa->win_swap= WIN_BACK_OK;
 }
 
-static void draw_extra_seqinfo(void)
-{
-	Sequence *last_seq = get_last_seq();
-	StripElem *se, *last;
-	float xco, xfac, yco, yfac;
-	int sta, end;
-	char str[256];
-
-	if(last_seq==0) return;
-
-	/* xfac: size of 1 pixel */
-	xfac= G.v2d->cur.xmax - G.v2d->cur.xmin;
-	xfac/= (float)(G.v2d->mask.xmax-G.v2d->mask.xmin);
-	xco= G.v2d->cur.xmin+10*xfac;
-
-	yfac= G.v2d->cur.ymax - G.v2d->cur.ymin;
-	yfac/= (float)(G.v2d->mask.ymax-G.v2d->mask.ymin);
-	yco= G.v2d->cur.ymin+40*yfac;
-	
-	BIF_ThemeColor(TH_TEXT_HI);
-
-	/* NAME */
-	glRasterPos3f(xco,  yco, 0.0);
-	strncpy(str, give_seqname(last_seq), 255);
-	BMF_DrawString(G.font, str);
-	xco += xfac*BMF_GetStringWidth(G.font, str) +10.0*xfac;
-
-	if(last_seq->type==SEQ_SCENE && last_seq->scene) {
-		glRasterPos3f(xco,  yco, 0.0);
-		BMF_DrawString(G.font, last_seq->scene->id.name+2);
-		xco += xfac*BMF_GetStringWidth(G.font, last_seq->scene->id.name+2) +30.0*xfac;
-	}
-
-	/* LEN, dont bother with single images */
-	if (check_single_seq(last_seq)==0) {
-		if(last_seq->type & SEQ_EFFECT)
-			sprintf(str, "len: %d   From %d - %d", last_seq->len, last_seq->startdisp, last_seq->enddisp-1);
-		else
-			sprintf(str, "len: %d (%d)", last_seq->enddisp-last_seq->startdisp, last_seq->len);
-		
-		glRasterPos3f(xco,  yco, 0.0);
-	
-		BMF_DrawString(G.font, str);
-		xco += xfac*BMF_GetStringWidth(G.font, str) +10.0*xfac;
-	}
-
-
-	if(last_seq->type==SEQ_IMAGE) {
-		if (last_seq->len > 1) {
-			/* CURRENT */
-			se= give_stripelem(last_seq,  (G.scene->r.cfra));
-			if(se) {
-				sprintf(str, "Cur: %s%s", last_seq->strip->dir, se->name);
-				glRasterPos3f(xco,  yco, 0.0);
-				BMF_DrawString(G.font, str);
-				xco += xfac*BMF_GetStringWidth(G.font, str) +10.0*xfac;
-			}
-	
-			/* FIRST AND LAST */
-	
-			if(last_seq->strip) {
-				se= last_seq->strip->stripdata;
-				last= se+last_seq->len-1;
-				if(last_seq->startofs) se+= last_seq->startofs;
-				if(last_seq->endofs) last-= last_seq->endofs;
-	
-				sprintf(str, "First: %s at %d   Last: %s at %d", se->name, last_seq->startdisp, last->name, last_seq->enddisp-1);
-				glRasterPos3f(xco,  yco, 0.0);
-				BMF_DrawString(G.font, str);
-				xco += xfac*BMF_GetStringWidth(G.font, str) +30.0*xfac;
-			}
-		} else { /* single image */
-			if (last_seq->strip) {
-				sprintf(str, "Single: %s%s   len: %d", last_seq->strip->dir, last_seq->strip->stripdata->name, last_seq->enddisp-last_seq->startdisp);
-				glRasterPos3f(xco,  yco, 0.0);
-				BMF_DrawString(G.font, str);
-				xco += xfac*BMF_GetStringWidth(G.font, str) +30.0*xfac;
-			}
-		}
-		/* orig size */
-		if(last_seq->strip) {
-			sprintf(str, "OrigSize: %d x %d", last_seq->strip->orx, last_seq->strip->ory);
-			glRasterPos3f(xco,  yco, 0.0);
-			BMF_DrawString(G.font, str);
-			xco += xfac*BMF_GetStringWidth(G.font, str) +30.0*xfac;
-		}
-	}
-	else if(last_seq->type==SEQ_MOVIE) {
-
-		sta= last_seq->startofs;
-		end= last_seq->len-1-last_seq->endofs;
-
-		sprintf(str, "%s   %s%s  First: %d at %d   Last: %d at %d   Cur: %d",
-				last_seq->name+2, last_seq->strip->dir, last_seq->strip->stripdata->name,
-				sta, last_seq->startdisp, end, last_seq->enddisp-1,  (G.scene->r.cfra)-last_seq->startdisp);
-
-		glRasterPos3f(xco,  yco, 0.0);
-		BMF_DrawString(G.font, str);
-	}
-	else if(last_seq->type==SEQ_SCENE) {
-		TStripElem * se= give_tstripelem(last_seq,  (G.scene->r.cfra));
-		if(se && last_seq->scene) {
-			sprintf(str, "Cur: %d  First: %d  Last: %d", last_seq->sfra+se->nr, last_seq->sfra, last_seq->sfra+last_seq->len-1); 
-			glRasterPos3f(xco,  yco, 0.0);
-			BMF_DrawString(G.font, str);
-		}
-	}
-	else if(last_seq->type==SEQ_RAM_SOUND
-		|| last_seq->type == SEQ_HD_SOUND) {
-
-		sta= last_seq->startofs;
-		end= last_seq->len-1-last_seq->endofs;
-
-		sprintf(str, "%s   %s%s  First: %d at %d   Last: %d at %d   Cur: %d   Gain: %.2f dB   Pan: %.2f",
-				last_seq->name+2, last_seq->strip->dir, last_seq->strip->stripdata->name,
-				sta, last_seq->startdisp, end, last_seq->enddisp-1,  (G.scene->r.cfra)-last_seq->startdisp,
-				last_seq->level, last_seq->pan);
-
-		glRasterPos3f(xco,  yco, 0.0);
-		BMF_DrawString(G.font, str);
-	}
-	else if(last_seq->type == SEQ_SPEED) {
-		SpeedControlVars * vars = 
-			(SpeedControlVars*) last_seq->effectdata;
-
-		if (vars) {
-			sprintf(str, "Last mapped frame: %d at %d", 
-				vars->lastValidFrame, 
-				vars->lastValidFrame 
-				+ last_seq->startdisp);
-
-			glRasterPos3f(xco,  yco, 0.0);
-			BMF_DrawString(G.font, str);
-		}
-	}
-}
-
 void seq_reset_imageofs(SpaceSeq *sseq)
 {
 	sseq->xof = sseq->yof = sseq->zoom = 0;
@@ -1056,251 +885,7 @@ void seq_viewmove(SpaceSeq *sseq)
 	window_set_cursor(win, oldcursor);
 }
 
-#define SEQ_BUT_PLUGIN	1
-#define SEQ_BUT_RELOAD	2
-#define SEQ_BUT_EFFECT	3
-#define SEQ_BUT_RELOAD_ALL 4
 
-void do_seqbuttons(short val)
-{
-	Sequence *last_seq = get_last_seq();
-
-	switch(val) {
-	case SEQ_BUT_PLUGIN:
-	case SEQ_BUT_EFFECT:
-		update_changed_seq_and_deps(last_seq, 0, 1);
-		break;
-
-	case SEQ_BUT_RELOAD:
-	case SEQ_BUT_RELOAD_ALL:
-		update_seq_ipo_rect(last_seq);
-		update_seq_icu_rects(last_seq);
-
-		free_imbuf_seq();	// frees all
-
-		break;
-	}
-
-	if (val == SEQ_BUT_RELOAD_ALL) {
-		allqueue(REDRAWALL, 0);
-	} else {
-		allqueue(REDRAWSEQ, 0);
-	}
-}
-
-static void seq_panel_properties(short cntrl)	// SEQ_HANDLER_PROPERTIES
-{
-	Sequence *last_seq = get_last_seq();
-	uiBlock *block;
-
-	block= uiNewBlock(&curarea->uiblocks, "seq_panel_properties", UI_EMBOSS, UI_HELV, curarea->win);
-	uiPanelControl(UI_PNL_SOLID | UI_PNL_CLOSE | cntrl);
-	uiSetPanelHandler(SEQ_HANDLER_PROPERTIES);  // for close and esc
-	if(uiNewPanel(curarea, block, "Strip Properties", "Seq", 10, 230, 318, 204)==0) return;
-
-	if(last_seq==NULL) return;
-
-	if(last_seq->type==SEQ_PLUGIN) {
-		PluginSeq *pis;
-		VarStruct *varstr;
-		int a, xco, yco;
-
-		get_sequence_effect(last_seq);/* make sure, plugin is loaded */
-
-		uiDefBut(block, LABEL, 0, "Type: Plugin", 10,50,70,20, 0, 0, 0, 0, 0, "");
-
-		pis= last_seq->plugin;
-		if(pis->vars==0) return;
-
-		varstr= pis->varstr;
-		if(varstr) {
-			for(a=0; a<pis->vars; a++, varstr++) {
-				xco= 150*(a/6)+10;
-				yco= 125 - 20*(a % 6)+1;
-				uiDefBut(block, varstr->type, SEQ_BUT_PLUGIN, varstr->name, xco,yco,150,19, &(pis->data[a]), varstr->min, varstr->max, 100, 0, varstr->tip);
-
-			}
-		}
-		uiDefButBitS(block, TOG, SEQ_IPO_FRAME_LOCKED,
-			     SEQ_BUT_RELOAD_ALL, "IPO Frame locked",
-			     10,-40,150,19, &last_seq->flag,
-			     0.0, 1.0, 0, 0,
-			     "Lock the IPO coordinates to the "
-			     "global frame counter.");
-
-	}
-	else if(last_seq->type==SEQ_IMAGE) {
-
-		uiDefBut(block, LABEL, 0, "Type: Image", 10,160,150,20, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, TEX, B_NOP, "Name: ", 10,140,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
-		
-		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, SEQ_MAKE_PREMUL, SEQ_BUT_RELOAD, "Convert to Premul", 10,110,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "Converts RGB values to become premultiplied with Alpha");
-		uiDefButBitS(block, TOG, SEQ_FILTERY, SEQ_BUT_RELOAD, "FilterY",	10,90,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "For video movies to remove fields");
-		
-		uiDefButBitS(block, TOG, SEQ_FLIPX, SEQ_BUT_RELOAD, "FlipX",	10,70,75,19, &last_seq->flag, 0.0, 21.0, 100, 0, "Flip on the X axis");
-		uiDefButBitS(block, TOG, SEQ_FLIPY, SEQ_BUT_RELOAD, "FlipY",	85,70,75,19, &last_seq->flag, 0.0, 21.0, 100, 0, "Flip on the Y axis");
-		
-		uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Mul:",			10,50,150,19, &last_seq->mul, 0.001, 5.0, 100, 0, "Multiply colors");
-		uiDefButS(block, TOG|BIT|7, SEQ_BUT_RELOAD, "Reverse Frames", 10,30,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "Reverse frame order");
-		uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Strobe:",			10,10,150,19, &last_seq->strobe, 1.0, 30.0, 100, 0, "Only display every nth frame");
-		uiBlockEndAlign(block);
-	}
-	else if(last_seq->type==SEQ_META) {
-
-		uiDefBut(block, LABEL, 0, "Type: Meta", 10,140,150,20, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, TEX, B_NOP, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
-
-	}
-	else if(last_seq->type==SEQ_SCENE) {
-
-		uiDefBut(block, LABEL, 0, "Type: Scene", 10,140,150,20, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, TEX, B_NOP, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
-		uiDefButS(block, TOG|BIT|7, SEQ_BUT_RELOAD, "Reverse Frames", 10,90,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "Reverse frame order");
-	}
-	else if(last_seq->type==SEQ_MOVIE) {
-
-		if(last_seq->mul==0.0) last_seq->mul= 1.0;
-
-		uiDefBut(block, LABEL, 0, "Type: Movie", 10,140,150,20, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, TEX, B_NOP, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
-		
-		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, SEQ_MAKE_PREMUL, SEQ_BUT_RELOAD, "Make Premul Alpha ", 10,90,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "Converts RGB values to become premultiplied with Alpha");
-		uiDefButBitS(block, TOG, SEQ_FILTERY, SEQ_BUT_RELOAD, "FilterY ",	10,70,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "For video movies to remove fields");
-		uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Mul:",			10,50,150,19, &last_seq->mul, 0.001, 5.0, 100, 0, "Multiply colors");
-		
-		uiDefButS(block, TOG|BIT|7, SEQ_BUT_RELOAD, "Reverse Frames", 10,30,150,19, &last_seq->flag, 0.0, 21.0, 100, 0, "Reverse frame order");
-		uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Strobe:",			10,10,150,19, &last_seq->strobe, 1.0, 30.0, 100, 0, "Only display every nth frame");
-		uiDefButI(block, NUM, SEQ_BUT_RELOAD, "Preseek:",			10,-10,150,19, &last_seq->anim_preseek, 0.0, 50.0, 100, 0, "On MPEG-seeking preseek this many frames");
-		uiBlockEndAlign(block);
-	}
-	else if(last_seq->type==SEQ_RAM_SOUND || 
-		last_seq->type==SEQ_HD_SOUND) {
-
-		uiDefBut(block, LABEL, 0, "Type: Audio", 10,140,150,20, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, TEX, 0, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
-		
-		uiBlockBeginAlign(block);
-		uiDefButBitS(block, TOG, SEQ_IPO_FRAME_LOCKED,
-			     SEQ_BUT_RELOAD_ALL, "IPO Frame locked",
-			     10,90,150,19, &last_seq->flag, 
-			     0.0, 1.0, 0, 0, 
-			     "Lock the IPO coordinates to the "
-			     "global frame counter.");
-
-		uiDefButBitS(block, TOG, SEQ_MUTE, B_NOP, "Mute", 10,70,120,19, &last_seq->flag, 0.0, 21.0, 100, 0, "");
-		uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Gain (dB):", 10,50,150,19, &last_seq->level, -96.0, 6.0, 100, 0, "");
-		uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Pan:", 	10,30,150,19, &last_seq->pan, -1.0, 1.0, 100, 0, "");
-		uiBlockEndAlign(block);
-	}
-	else if(last_seq->type>=SEQ_EFFECT) {
-		uiDefBut(block, LABEL, 0, "Type: Effect", 10,140,150,20, 0, 0, 0, 0, 0, "");
-		uiDefBut(block, TEX, B_NOP, "Name: ", 10,120,150,19, last_seq->name+2, 0.0, 21.0, 100, 0, "");
-		
-		uiDefButBitS(block, TOG, SEQ_IPO_FRAME_LOCKED,
-			     SEQ_BUT_RELOAD_ALL, "IPO Frame locked",
-			     10,90,150,19, &last_seq->flag, 
-			     0.0, 1.0, 0, 0, 
-			     "Lock the IPO coordinates to the "
-			     "global frame counter.");
-		
-		uiBlockBeginAlign(block);
-		if(last_seq->type==SEQ_WIPE){
-			WipeVars *wipe = (WipeVars *)last_seq->effectdata;
-			char formatstring[256];
-			
-			strncpy(formatstring, "Transition Type %t|Single Wipe%x0|Double Wipe %x1|Iris Wipe %x4|Clock Wipe %x5", 255);
-			uiDefButS(block, MENU,SEQ_BUT_EFFECT, formatstring,	10,65,220,22, &wipe->wipetype, 0, 0, 0, 0, "What type of wipe should be performed");
-			uiDefButF(block, NUM,SEQ_BUT_EFFECT,"Blur:",	10,40,220,22, &wipe->edgeWidth,0.0,1.0, 1, 2, "The percent width of the blur edge");
-			switch(wipe->wipetype){ /*Skip Types that do not require angle*/
-				case DO_IRIS_WIPE:
-				case DO_CLOCK_WIPE:
-				break;
-				
-				default:
-					uiDefButF(block, NUM,SEQ_BUT_EFFECT,"Angle:",	10,15,220,22, &wipe->angle,-90.0,90.0, 1, 2, "The Angle of the Edge");
-			}
-			uiDefButS(block, TOG,SEQ_BUT_EFFECT,"Wipe In",  10,-10,220,22, &wipe->forward,0,0, 0, 0, "Controls Primary Direction of Wipe");				
-		}
-		else if(last_seq->type==SEQ_GLOW){
-			GlowVars *glow = (GlowVars *)last_seq->effectdata;
-
-			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Threshold:", 	10,70,150,19, &glow->fMini, 0.0, 1.0, 0, 0, "Trigger Intensity");
-			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Clamp:",			10,50,150,19, &glow->fClamp, 0.0, 1.0, 0, 0, "Brightness limit of intensity");
-			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Boost factor:", 	10,30,150,19, &glow->fBoost, 0.0, 10.0, 0, 0, "Brightness multiplier");
-			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "Blur distance:", 	10,10,150,19, &glow->dDist, 0.5, 20.0, 0, 0, "Radius of glow effect");
-			uiDefButI(block, NUM, B_NOP, "Quality:", 10,-5,150,19, &glow->dQuality, 1.0, 5.0, 0, 0, "Accuracy of the blur effect");
-			uiDefButI(block, TOG, B_NOP, "Only boost", 10,-25,150,19, &glow->bNoComp, 0.0, 0.0, 0, 0, "Show the glow buffer only");
-		}
-		else if(last_seq->type==SEQ_TRANSFORM){
-			TransformVars *transform = (TransformVars *)last_seq->effectdata;
-
-			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "xScale Start:", 	10,70,150,19, &transform->ScalexIni, 0.0, 10.0, 0, 0, "X Scale Start");
-			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "xScale End:", 	160,70,150,19, &transform->ScalexFin, 0.0, 10.0, 0, 0, "X Scale End");
-			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "yScale Start:",	10,50,150,19, &transform->ScaleyIni, 0.0, 10.0, 0, 0, "Y Scale Start");
-			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "yScale End:", 	160,50,150,19, &transform->ScaleyFin, 0.0, 10.0, 0, 0, "Y Scale End");
-			
-			uiDefButI(block, ROW, SEQ_BUT_EFFECT, "Percent", 10, 30, 150, 19, &transform->percent, 0.0, 1.0, 0.0, 0.0, "Percent Translate");
-			uiDefButI(block, ROW, SEQ_BUT_EFFECT, "Pixels", 160, 30, 150, 19, &transform->percent, 0.0, 0.0, 0.0, 0.0, "Pixels Translate");
-			if(transform->percent==1){
-				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "x Start:", 	10,10,150,19, &transform->xIni, -500.0, 500.0, 0, 0, "X Position Start");
-				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "x End:", 	160,10,150,19, &transform->xFin, -500.0, 500.0, 0, 0, "X Position End");
-				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "y Start:", 	10,-10,150,19, &transform->yIni, -500.0, 500.0, 0, 0, "Y Position Start");
-				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "y End:", 	160,-10,150,19, &transform->yFin, -500.0, 500.0, 0, 0, "Y Position End");
-			}else{
-				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "x Start:", 	10,10,150,19, &transform->xIni, -10000.0, 10000.0, 0, 0, "X Position Start");
-				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "x End:", 	160,10,150,19, &transform->xFin, -10000.0, 10000.0, 0, 0, "X Position End");
-				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "y Start:", 	10,-10,150,19, &transform->yIni, -10000.0, 10000.0, 0, 0, "Y Position Start");
-				uiDefButF(block, NUM, SEQ_BUT_EFFECT, "y End:", 	160,-10,150,19, &transform->yFin, -10000.0, 10000.0, 0, 0, "Y Position End");
-
-			}
-			
-
-			
-			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "rot Start:",10,-30,150,19, &transform->rotIni, 0.0, 360.0, 0, 0, "Rotation Start");
-			uiDefButF(block, NUM, SEQ_BUT_EFFECT, "rot End:",160,-30,150,19, &transform->rotFin, 0.0, 360.0, 0, 0, "Rotation End");
-
-			uiDefButI(block, ROW, SEQ_BUT_EFFECT, "No Interpolat", 10, -50, 100, 19, &transform->interpolation, 0.0, 0.0, 0.0, 0.0, "No interpolation");
-			uiDefButI(block, ROW, SEQ_BUT_EFFECT, "Bilinear", 101, -50, 100, 19, &transform->interpolation, 0.0, 1.0, 0.0, 0.0, "Bilinear interpolation");
-			uiDefButI(block, ROW, SEQ_BUT_EFFECT, "Bicubic", 202, -50, 100, 19, &transform->interpolation, 0.0, 2.0, 0.0, 0.0, "Bicubic interpolation");
-		} else if(last_seq->type==SEQ_COLOR) {
-			SolidColorVars *colvars = (SolidColorVars *)last_seq->effectdata;
-			uiDefButF(block, COL, SEQ_BUT_RELOAD, "",10,90,150,19, colvars->col, 0, 0, 0, 0, "");
-		} else if(last_seq->type==SEQ_SPEED){
-			SpeedControlVars *sp = 
-				(SpeedControlVars *)last_seq->effectdata;
-
-			uiDefButF(block, NUM, SEQ_BUT_RELOAD, "Global Speed:", 	10,70,150,19, &sp->globalSpeed, 0.0, 100.0, 0, 0, "Global Speed");
-
-			uiDefButBitI(block, TOG, SEQ_SPEED_INTEGRATE,
-				     SEQ_BUT_RELOAD, 
-				     "IPO is velocity",
-				     10,50,150,19, &sp->flags, 
-				     0.0, 1.0, 0, 0, 
-				     "Interpret the IPO value as a "
-				     "velocity instead of a frame number");
-
-			uiDefButBitI(block, TOG, SEQ_SPEED_BLEND,
-				     SEQ_BUT_RELOAD, 
-				     "Enable frame blending",
-				     10,30,150,19, &sp->flags, 
-				     0.0, 1.0, 0, 0, 
-				     "Blend two frames into the "
-				     "target for a smoother result");
-
-			uiDefButBitI(block, TOG, SEQ_SPEED_COMPRESS_IPO_Y,
-				     SEQ_BUT_RELOAD, 
-				     "IPO value runs from [0..1]",
-				     10,10,150,19, &sp->flags, 
-				     0.0, 1.0, 0, 0, 
-				     "Scale IPO value to get the "
-				     "target frame number.");
-		}
-
-		uiBlockEndAlign(block);
-	}
-}
 
 static void seq_blockhandlers(ScrArea *sa)
 {
@@ -1311,13 +896,6 @@ static void seq_blockhandlers(ScrArea *sa)
 	uiFreeBlocksWin(&sa->uiblocks, sa->win);
 
 	for(a=0; a<SPACE_MAXHANDLER; a+=2) {
-		switch(sseq->blockhandler[a]) {
-
-		case SEQ_HANDLER_PROPERTIES:
-			seq_panel_properties(sseq->blockhandler[a+1]);
-			break;
-
-		}
 		/* clear action value for event */
 		sseq->blockhandler[a+1]= 0;
 	}
@@ -1386,6 +964,7 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 	boundbox_seq();
 	calc_ipogrid();
 	
+	/* Alternating horizontal stripes */
 	i= MAX2(1, ((int)G.v2d->cur.ymin)-1);
 
 	glBegin(GL_QUADS);
@@ -1422,43 +1001,40 @@ void drawseqspace(ScrArea *sa, void *spacedata)
 
 	/* sequences: first deselect */
 	if(ed) {
-		seq= ed->seqbasep->first;
-		while(seq) { /* bound box test, dont draw outside the view */
-			if (seq->flag & SELECT ||
-					MIN2(seq->startdisp, seq->start) > v2d->cur.xmax ||
-					MAX2(seq->enddisp, seq->start+seq->len) < v2d->cur.xmin ||
-					seq->machine+1.0 < v2d->cur.ymin ||
-					seq->machine > v2d->cur.ymax)
-			{
-				/* dont draw */
-			} else {
-				draw_seq_strip(seq, sa, sseq);
+		Sequence *last_seq = get_last_seq();
+		int sel = 0, j;
+		int outline_tint;
+		float pixelx = (v2d->cur.xmax - v2d->cur.xmin)/(v2d->mask.xmax - v2d->mask.xmin);
+		/* loop through twice, first unselected, then selected */
+		for (j=0; j<2; j++) {
+			seq= ed->seqbasep->first;
+			if (j==0)	outline_tint = -150;
+			else		outline_tint = -60;
+			
+			while(seq) { /* bound box test, dont draw outside the view */
+				if (  ((seq->flag & SELECT) == sel) ||
+						seq == last_seq ||
+						MIN2(seq->startdisp, seq->start) > v2d->cur.xmax ||
+						MAX2(seq->enddisp, seq->start+seq->len) < v2d->cur.xmin ||
+						seq->machine+1.0 < v2d->cur.ymin ||
+						seq->machine > v2d->cur.ymax)
+				{
+					/* dont draw */
+				} else {
+					draw_seq_strip(seq, sa, sseq, outline_tint, pixelx);
+				}
+				seq= seq->next;
 			}
-			seq= seq->next;
+			sel= SELECT; /* draw selected next time round */
+		}
+		/* draw the last selected last, removes some overlapping error */
+		if (last_seq) {
+			draw_seq_strip(last_seq, sa, sseq, 120, pixelx);
 		}
 	}
-	ed= G.scene->ed;
-	if(ed) {
-		seq= ed->seqbasep->first;
-		while(seq) { /* bound box test, dont draw outside the view */
-			if (!(seq->flag & SELECT) ||
-					MIN2(seq->startdisp, seq->start) > v2d->cur.xmax ||
-					MAX2(seq->enddisp, seq->start+seq->len) < v2d->cur.xmin ||
-					seq->machine+1.0 < v2d->cur.ymin ||
-					seq->machine > v2d->cur.ymax)
-			{
-				/* dont draw */
-			} else {
-				draw_seq_strip(seq, sa, sseq);
-			}
-			seq= seq->next;
-		}
-	}
-
-	draw_extra_seqinfo();
 
 	/* Draw markers */
-	draw_markers_timespace(1);
+	draw_markers_timespace(SCE_MARKERS, DRAW_MARKERS_LINES);
 	
 	/* restore viewport */
 	mywinset(sa->win);

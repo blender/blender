@@ -104,6 +104,7 @@
 #define RE_MCOL_ELEMS		4
 #define RE_UV_ELEMS			2
 #define RE_SURFNOR_ELEMS	3
+#define RE_SIMPLIFY_ELEMS	2
 
 float *RE_vertren_get_sticky(ObjectRen *obr, VertRen *ver, int verify)
 {
@@ -590,6 +591,21 @@ MCol *RE_strandren_get_mcol(ObjectRen *obr, StrandRen *strand, int n, char **nam
 	return node->mcol + index*RE_MCOL_ELEMS;
 }
 
+float *RE_strandren_get_simplify(struct ObjectRen *obr, struct StrandRen *strand, int verify)
+{
+	float *simplify;
+	int nr= strand->index>>8;
+	
+	simplify= obr->strandnodes[nr].simplify;
+	if(simplify==NULL) {
+		if(verify) 
+			simplify= obr->strandnodes[nr].simplify= MEM_callocN(256*RE_SIMPLIFY_ELEMS*sizeof(float), "simplify table");
+		else
+			return NULL;
+	}
+	return simplify + (strand->index & 255)*RE_SIMPLIFY_ELEMS;
+}
+
 /* winspeed is exception, it is stored per instance */
 float *RE_strandren_get_winspeed(ObjectInstanceRen *obi, StrandRen *strand, int verify)
 {
@@ -743,6 +759,8 @@ void free_renderdata_strandnodes(StrandTableNode *strandnodes)
 			MEM_freeN(strandnodes[a].winspeed);
 		if(strandnodes[a].surfnor)
 			MEM_freeN(strandnodes[a].surfnor);
+		if(strandnodes[a].simplify)
+			MEM_freeN(strandnodes[a].simplify);
 	}
 	
 	MEM_freeN(strandnodes);

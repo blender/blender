@@ -830,6 +830,23 @@ static void snode_bg_viewmove(SpaceNode *snode)
 	window_set_cursor(win, oldcursor);
 }
 
+static void reset_sel_socket(SpaceNode *snode, int in_out)
+{
+	bNode *node;
+	bNodeSocket *sock;
+	
+	for(node= snode->edittree->nodes.first; node; node= node->next) {
+		if(in_out & SOCK_IN) {
+			for(sock= node->inputs.first; sock; sock= sock->next)
+				if(sock->flag & SOCK_SEL) sock->flag&= ~SOCK_SEL;
+		}
+		if(in_out & SOCK_OUT) {
+			for(sock= node->outputs.first; sock; sock= sock->next)
+				if(sock->flag & SOCK_SEL) sock->flag&= ~SOCK_SEL;
+		}
+	}
+}
+
 /* checks mouse position, and returns found node/socket */
 /* type is SOCK_IN and/or SOCK_OUT */
 static int find_indicated_socket(SpaceNode *snode, bNode **nodep, bNodeSocket **sockp, int in_out)
@@ -1568,6 +1585,33 @@ static void node_insert_convertor(SpaceNode *snode, bNodeLink *link)
 
 #endif
 
+static void node_remove_extra_links(SpaceNode *snode, bNodeSocket *tsock, bNodeLink *link)
+{
+	bNodeLink *tlink;
+	bNodeSocket *sock;
+	
+	if(tsock && nodeCountSocketLinks(snode->edittree, link->tosock) > tsock->limit) {
+		
+		for(tlink= snode->edittree->links.first; tlink; tlink= tlink->next) {
+			if(link!=tlink && tlink->tosock==link->tosock)
+				break;
+		}
+		if(tlink) {
+			/* is there a free input socket with same type? */
+			for(sock= tlink->tonode->inputs.first; sock; sock= sock->next) {
+				if(sock->type==tlink->fromsock->type)
+					if(nodeCountSocketLinks(snode->edittree, sock) < sock->limit)
+						break;
+			}
+			if(sock)
+				tlink->tosock= sock;
+			else {
+				nodeRemLink(snode->edittree, tlink);
+			}
+		}
+	}
+}
+
 /* loop that adds a nodelink, called by function below  */
 /* in_out = starting socket */
 static int node_add_link_drag(SpaceNode *snode, bNode *node, bNodeSocket *sock, int in_out)
@@ -1638,35 +1682,12 @@ static int node_add_link_drag(SpaceNode *snode, bNode *node, bNodeSocket *sock, 
 		nodeRemLink(snode->edittree, link);
 	}
 	else {
-		bNodeLink *tlink;
-
 		/* send changed events for original tonode and new */
 		if(link->tonode) 
 			NodeTagChanged(snode->edittree, link->tonode);
 		
 		/* we might need to remove a link */
-		if(in_out==SOCK_OUT) {
-			if(tsock && nodeCountSocketLinks(snode->edittree, link->tosock) > tsock->limit) {
-				
-				for(tlink= snode->edittree->links.first; tlink; tlink= tlink->next) {
-					if(link!=tlink && tlink->tosock==link->tosock)
-						break;
-				}
-				if(tlink) {
-					/* is there a free input socket with same type? */
-					for(tsock= tlink->tonode->inputs.first; tsock; tsock= tsock->next) {
-						if(tsock->type==tlink->fromsock->type)
-							if(nodeCountSocketLinks(snode->edittree, tsock) < tsock->limit)
-								break;
-					}
-					if(tsock)
-						tlink->tosock= tsock;
-					else {
-						nodeRemLink(snode->edittree, tlink);
-					}
-				}					
-			}
-		}
+		if(in_out==SOCK_OUT) node_remove_extra_links(snode, tsock, link);
 	}
 	
 	ntreeSolveOrder(snode->edittree);
@@ -1733,10 +1754,18 @@ static int node_add_link(SpaceNode *snode)
 void node_delete(SpaceNode *snode)
 {
 	bNode *node, *next;
+	bNodeSocket *sock;
 	
 	for(node= snode->edittree->nodes.first; node; node= next) {
 		next= node->next;
 		if(node->flag & SELECT) {
+			/* set selin and selout NULL if the sockets belong to a node to be deleted */
+			for(sock= node->inputs.first; sock; sock= sock->next)
+				if(snode->edittree->selin == sock) snode->edittree->selin= NULL;
+
+			for(sock= node->outputs.first; sock; sock= sock->next)
+				if(snode->edittree->selout == sock) snode->edittree->selout= NULL;
+
 			/* check id user here, nodeFreeNode is called for free dbase too */
 			if(node->id)
 				node->id->us--;
@@ -1824,6 +1853,36 @@ void node_select_linked(SpaceNode *snode, int out)
 	
 	BIF_undo_push("Select Linked nodes");
 	allqueue(REDRAWNODE, 1);
+}
+
+void node_toggle_link(SpaceNode *snode)
+{
+	bNode *fromnode, *tonode;
+	bNodeLink *remlink, *link;
+	bNodeSocket *outsock= snode->edittree->selout;
+	bNodeSocket *insock= snode->edittree->selin;
+
+	if(!insock || !outsock) return;
+
+	remlink= nodeFindLink(snode->edittree, outsock, insock);
+	
+	if(remlink) nodeRemLink(snode->edittree, remlink);
+	else {
+		if(nodeFindNode(snode->edittree, outsock, &fromnode, NULL) &&
+		   nodeFindNode(snode->edittree, insock, &tonode, NULL)) {
+			link= nodeAddLink(snode->edittree, fromnode, outsock, tonode, insock);
+			NodeTagChanged(snode->edittree, tonode);
+			node_remove_extra_links(snode, insock, link);
+		}
+		else return;
+	}
+
+	ntreeSolveOrder(snode->edittree);
+	snode_verify_groups(snode);
+	snode_handle_recalc(snode);
+
+	allqueue(REDRAWNODE, 0);
+	BIF_undo_push("Toggle Link");
 }
 
 static void node_border_link_delete(SpaceNode *snode)
@@ -2091,6 +2150,8 @@ static int node_uiDoBlocks(ScrArea *sa, short event)
 void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 {
 	SpaceNode *snode= spacedata;
+	bNode *actnode;
+	bNodeSocket *actsock;
 	unsigned short event= evt->event;
 	short val= evt->val, doredraw=0, fromlib= 0;
 	
@@ -2118,7 +2179,29 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 			
 		case RIGHTMOUSE: 
-			if(!node_mouse_select(snode, event)) 
+			if(find_indicated_socket(snode, &actnode, &actsock, SOCK_IN)) {
+				if(actsock->flag & SOCK_SEL) {
+					snode->edittree->selin= NULL;
+					actsock->flag&= ~SOCK_SEL;
+				}
+				else {
+					snode->edittree->selin= actsock;
+					reset_sel_socket(snode, SOCK_IN);
+					actsock->flag|= SOCK_SEL;
+				}
+			}
+			else if(find_indicated_socket(snode, &actnode, &actsock, SOCK_OUT)) {
+				if(actsock->flag & SOCK_SEL) {
+					snode->edittree->selout= NULL;
+					actsock->flag&= ~SOCK_SEL;
+				}
+				else {
+					snode->edittree->selout= actsock;
+					reset_sel_socket(snode, SOCK_OUT);
+					actsock->flag|= SOCK_SEL;
+				}
+			}
+			else if(!node_mouse_select(snode, event)) 
 				toolbox_n();
 
 			break;
@@ -2193,6 +2276,9 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case EKEY:
 			snode_handle_recalc(snode);
+			break;
+		case FKEY:
+			node_toggle_link(snode);
 			break;
 		case GKEY:
 			if(fromlib) fromlib= -1;

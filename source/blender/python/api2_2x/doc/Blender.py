@@ -69,6 +69,7 @@ def Set (request, data):
       - 'renderdir': default render output dir
       - 'soundsdir': sound dir
       - 'tempdir': temp file storage dir
+	  - 'mipmap' : Use mipmapping in the 3d view (Use a boolean value True/False).
   @type data: int or string
   @param data: The new value.
   """
@@ -106,6 +107,7 @@ def Get (request):
       - 'soundsdir': the path to the user defined dir for sound files. (*)
       - 'tempdir': the path to the user defined dir for storage of Blender
             temporary files. (*)
+	  - 'mipmap' : Use mipmapping in the 3d view. (*)
       - 'version' : the Blender version number.
   @note: (*) these can be set in Blender at the User Preferences window -> File
       Paths tab.

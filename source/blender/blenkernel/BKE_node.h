@@ -143,12 +143,15 @@ void			nodeVerifyType(struct bNodeTree *ntree, struct bNode *node);
 
 void			nodeAddToPreview(struct bNode *, float *, int, int);
 
+void			nodeUnlinkNode(struct bNodeTree *ntree, struct bNode *node);
 struct bNode	*nodeAddNodeType(struct bNodeTree *ntree, int type, struct bNodeTree *ngroup);
 void			nodeFreeNode(struct bNodeTree *ntree, struct bNode *node);
 struct bNode	*nodeCopyNode(struct bNodeTree *ntree, struct bNode *node);
 
 struct bNodeLink *nodeAddLink(struct bNodeTree *ntree, struct bNode *fromnode, struct bNodeSocket *fromsock, struct bNode *tonode, struct bNodeSocket *tosock);
 void			nodeRemLink(struct bNodeTree *ntree, struct bNodeLink *link);
+
+int			nodeFindNode(struct bNodeTree *ntree, struct bNodeSocket *sock, struct bNode **nodep, int *sockindex);
 
 struct bNodeLink *nodeFindLink(struct bNodeTree *ntree, struct bNodeSocket *from, struct bNodeSocket *to);
 int				nodeCountSocketLinks(struct bNodeTree *ntree, struct bNodeSocket *sock);
@@ -303,6 +306,8 @@ void			set_node_shader_lamp_loop(void (*lamp_loop_func)(struct ShadeInput *, str
 #define CMP_NODE_INVERT		251
 #define CMP_NODE_NORMALIZE      252
 #define CMP_NODE_CROP		253
+#define CMP_NODE_DBLUR		254
+#define CMP_NODE_BILATERALBLUR  255
 
 #define CMP_NODE_GLARE		301
 #define CMP_NODE_TONEMAP	302

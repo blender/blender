@@ -84,6 +84,7 @@ typedef struct Object {
 	struct Path *path;
 	struct BoundBox *bb;
 	struct bAction *action;	
+	struct bAction *poselib;
 	struct bPose *pose;	
 	void *data;
 	

@@ -93,6 +93,7 @@ enum {
 	ACTMENU_VIEW_NEXTMARKER,
 	ACTMENU_VIEW_PREVMARKER,
 	ACTMENU_VIEW_TIME,
+	ACTMENU_VIEW_NOHIDE
 };
 
 enum {
@@ -173,7 +174,10 @@ enum {
 	ACTMENU_MARKERS_DUPLICATE,
 	ACTMENU_MARKERS_DELETE,
 	ACTMENU_MARKERS_NAME,
-	ACTMENU_MARKERS_MOVE
+	ACTMENU_MARKERS_MOVE,
+	ACTMENU_MARKERS_LOCALADD,
+	ACTMENU_MARKERS_LOCALRENAME,
+	ACTMENU_MARKERS_LOCALDELETE
 };
 
 void do_action_buttons(unsigned short event)
@@ -299,6 +303,9 @@ static void do_action_viewmenu(void *arg, int event)
 		case ACTMENU_VIEW_TIME: /* switch between frames and seconds display */
 			G.saction->flag ^= SACTION_DRAWTIME;
 			break;
+		case ACTMENU_VIEW_NOHIDE: /* Show hidden channels */
+			G.saction->flag ^= SACTION_NOHIDE;
+			break;
 	}
 	allqueue(REDRAWVIEW3D, 0);
 }
@@ -339,6 +346,11 @@ static uiBlock *action_viewmenu(void *arg_unused)
 					 "Show Sliders|", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
 					 ACTMENU_VIEW_SLIDERS, "");
+					 
+	uiDefIconTextBut(block, BUTM, 1, (G.saction->flag & SACTION_NOHIDE)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
+					 "Show Hidden Channels|", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, 
+					 ACTMENU_VIEW_NOHIDE, "");
 					 
 	uiDefIconTextBut(block, BUTM, 1, (G.v2d->flag & V2D_VIEWLOCK)?ICON_CHECKBOX_HLT:ICON_CHECKBOX_DEHLT, 
 					 "Lock Time to Other Windows|", 0, yco-=20, 
@@ -1094,6 +1106,16 @@ static void do_action_markermenu(void *arg, int event)
 		case ACTMENU_MARKERS_MOVE:
 			transform_markers('g', 0);
 			break;
+			
+		case ACTMENU_MARKERS_LOCALADD:
+			action_add_localmarker(G.saction->action, CFRA);
+			break;
+		case ACTMENU_MARKERS_LOCALDELETE:
+			action_remove_localmarkers(G.saction->action);
+			break;
+		case ACTMENU_MARKERS_LOCALRENAME:
+			action_rename_localmarker(G.saction->action);
+			break;
 	}
 	
 	allqueue(REDRAWMARKER, 0);
@@ -1121,7 +1143,15 @@ static uiBlock *action_markermenu(void *arg_unused)
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_NAME, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move Marker|Ctrl G", 0, yco-=20,
 					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_MOVE, "");
+					 
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add Local Marker|Shift L", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_LOCALADD, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Rename Local Marker|Ctrl Shift L", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_LOCALRENAME, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete Local Marker|Alt L", 0, yco-=20,
+					 menuwidth, 19, NULL, 0.0, 0.0, 1, ACTMENU_MARKERS_LOCALDELETE, "");
 	
 	if(curarea->headertype==HEADERTOP) {
 		uiBlockSetDirection(block, UI_DOWN);
@@ -1232,23 +1262,7 @@ void action_buttons(void)
 
 	uiClearButLock();
 
-	/* draw AUTOSNAP */
 	xco += 8;
-	
-	if (G.saction->flag & SACTION_DRAWTIME) {
-		uiDefButS(block, MENU, B_REDR,
-				"Auto-Snap Keyframes %t|Off %x0|Second Step %x1|Nearest Second %x2|Nearest Marker %x3", 
-				xco,0,70,YIC, &(G.saction->autosnap), 0, 1, 0, 0, 
-				"Auto-snapping mode for keyframes when transforming");
-	}
-	else {
-		uiDefButS(block, MENU, B_REDR, 
-				"Auto-Snap Keyframes %t|Off %x0|Frame Step %x1|Nearest Frame %x2|Nearest Marker %x3", 
-				xco,0,70,YIC, &(G.saction->autosnap), 0, 1, 0, 0, 
-				"Auto-snapping mode for keyframes when transforming");
-	}
-	
-	xco += (70 + 8);
 	
 	/* COPY PASTE */
 	uiBlockBeginAlign(block);
@@ -1262,6 +1276,22 @@ void action_buttons(void)
 	}
 	uiBlockEndAlign(block);
 	xco += (XIC + 8);
+	
+	/* draw AUTOSNAP */
+	if (G.saction->flag & SACTION_DRAWTIME) {
+		uiDefButS(block, MENU, B_REDR,
+				"Auto-Snap Keyframes %t|No Snap %x0|Second Step Snap %x1|Nearest Second Snap %x2|Nearest Marker Snap%x3", 
+				xco,0,70,YIC, &(G.saction->autosnap), 0, 1, 0, 0, 
+				"Auto-snapping mode for keyframes when transforming");
+	}
+	else {
+		uiDefButS(block, MENU, B_REDR, 
+				"Auto-Snap Keyframes %t|No Snap %x0|Frame Step Snap %x1|Nearest Frame Snap %x2|Nearest Marker Snap %x3", 
+				xco,0,70,YIC, &(G.saction->autosnap), 0, 1, 0, 0, 
+				"Auto-snapping mode for keyframes when transforming");
+	}
+	
+	xco += (70 + 8);
 	
 	/* draw LOCK */
 	uiDefIconButS(block, ICONTOG, 1, ICON_UNLOCKED,	xco, 0, XIC, YIC, 

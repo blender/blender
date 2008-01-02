@@ -41,6 +41,7 @@
 #include "DNA_space_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_sound_types.h"
+#include "DNA_sequence_types.h"
 #include "DNA_userdef_types.h"
 #include "DNA_packedFile_types.h"
 
@@ -71,6 +72,7 @@
 #include "BIF_screen.h"
 #include "BIF_space.h"
 #include "BIF_toolbox.h"
+#include "BIF_editseq.h"
 
 #include "BIF_butspace.h"
 
@@ -84,6 +86,7 @@
 #include "BKE_writeavi.h"
 #include "BKE_writeffmpeg.h"
 #include "BKE_image.h"
+#include "BKE_plugin_types.h"
 
 #include "BLI_threads.h"
 
@@ -91,8 +94,11 @@
 #include "BIF_writeimage.h"
 #include "BIF_writeavicodec.h"
 
-#include "BSE_seqaudio.h"
 #include "BSE_headerbuttons.h"
+#include "BSE_sequence.h"
+#include "BSE_seqeffects.h"
+#include "BSE_seqscopes.h"
+#include "BSE_seqaudio.h"
 
 #include "RE_pipeline.h"
 
@@ -466,6 +472,665 @@ static void sound_panel_sound(bSound *sound)
 	}
 }
 
+/* ************************* Sequencer *********************** */
+
+#define SEQ_PANEL_EDITING 1
+#define SEQ_PANEL_INPUT   2
+#define SEQ_PANEL_FILTER  4
+#define SEQ_PANEL_EFFECT  8
+#define SEQ_PANEL_PROXY   16
+
+static char* seq_panel_blend_modes()
+{
+	static char string[2048];
+
+	Sequence *last_seq = get_last_seq();
+
+	sprintf(string, "Blend mode: %%t|%s %%x%d",
+		"Replace", SEQ_BLEND_REPLACE);
+
+	/*
+	  Blending can only work without effect strips. 
+	  Otherwise, one would have
+	  to decide, what the effect strips IPO should do:
+	  - drive the effect _or_
+	  - drive the blend mode ?
+
+	  Also: effectdata is used by these implicit effects,
+	  so that would collide also.
+	*/
+
+	if (!(last_seq->type & SEQ_EFFECT)) {
+		int i;
+
+		for (i = SEQ_EFFECT; i <= SEQ_EFFECT_MAX; i++) {
+			if (get_sequence_effect_num_inputs(i) == 2) {
+				sprintf(string + strlen(string), 
+					"|%s %%x%d", 
+					give_seqname_by_type(i), i);
+			}
+		}
+	}
+	return string;
+}
+
+static void seq_panel_editing()
+{
+	Sequence *last_seq = get_last_seq();
+	uiBlock *block;
+	static char strdata[1024];
+	char * str = strdata;
+	char * p;
+	int yco;
+
+	block = uiNewBlock(&curarea->uiblocks, "seq_panel_editing", 
+			   UI_EMBOSS, UI_HELV, curarea->win);
+
+	if(uiNewPanel(curarea, block, "Edit", "Sequencer", 
+		      10, 230, 318, 204) == 0) return;
+
+	uiDefBut(block, LABEL, 
+		 0, give_seqname(last_seq), 
+		 10,140,60,19, 0, 
+		 0, 0, 0, 0, "");
+
+	uiDefBut(block, TEX, 
+		 B_NOP, "Name: ", 
+		 70,140,180,19, last_seq->name+2, 
+		 0.0, 21.0, 100, 0, "");
+
+	uiDefButI(block, MENU, B_SEQ_BUT_RELOAD, seq_panel_blend_modes(), 
+		  10, 120, 120, 19, &last_seq->blend_mode, 
+		  0,0,0,0, "Strip Blend Mode");
+
+	if (last_seq->blend_mode > 0) {
+		uiDefButF(block, NUM, B_SEQ_BUT_RELOAD, "Blend:",
+			  130, 120, 120, 19, &last_seq->blend_opacity, 
+			  0.0, 100.0, 100.0, 0, 
+			  "Blend opacity");
+	}
+
+	uiDefButBitI(block, TOG, SEQ_MUTE,
+		     B_SEQ_BUT_RELOAD_ALL, "Mute",
+		     10,100,60,19, &last_seq->flag,
+		     0.0, 1.0, 0, 0,
+		     "Mute the current strip.");
+
+	uiDefButBitI(block, TOG, SEQ_LOCK,
+		     B_NOP, "Lock",
+		     70,100,60,19, &last_seq->flag,
+		     0.0, 1.0, 0, 0,
+		     "Lock strip, so that it can't be transformed.");
+	
+	uiDefButBitI(block, TOG, SEQ_IPO_FRAME_LOCKED,
+		     B_SEQ_BUT_RELOAD_ALL, "IPO Frame locked",
+		     130,100,120,19, &last_seq->flag,
+		     0.0, 1.0, 0, 0,
+		     "Lock the IPO coordinates to the "
+		     "global frame counter.");
+	
+	if (!(last_seq->flag & SEQ_LOCK)) {
+		uiDefButI(block, NUM, 
+			  B_SEQ_BUT_TRANSFORM, "Start", 
+			  10, 80, 120, 20, &last_seq->start, 
+			  0.0, MAXFRAMEF, 0.0, 0.0, "Start of strip");
+		uiDefButI(block, NUM, 
+			  B_SEQ_BUT_TRANSFORM, "Chan", 
+			  130, 80, 120, 20, &last_seq->machine, 
+			  0.0, MAXSEQ, 0.0, 0.0, "Channel used (Y position)");
+
+		if (last_seq->type == SEQ_IMAGE) {
+			uiDefButI(block, NUM, 
+				  B_SEQ_BUT_TRANSFORM, "Start-Still", 
+				  10, 60, 120, 20, &last_seq->startstill, 
+				  0.0, MAXFRAMEF, 0.0, 0.0, "Start still");
+			uiDefButI(block, NUM, 
+				  B_SEQ_BUT_TRANSFORM, "End-Still", 
+				  130, 60, 120, 19, &last_seq->endstill, 
+				  0.0, MAXFRAMEF, 0.0, 0.0, "End still");
+		} else {
+			uiDefButI(block, NUM, 
+				  B_SEQ_BUT_TRANSFORM, "Start-Ofs", 
+				  10, 60, 120, 20, &last_seq->startofs, 
+				  0.0, last_seq->len - last_seq->endofs, 
+				  0.0, 0.0, "Start offset");
+			uiDefButI(block, NUM, 
+				  B_SEQ_BUT_TRANSFORM, "End-Ofs", 
+				  130, 60, 120, 19, &last_seq->endofs, 
+				  0.0, last_seq->len - last_seq->startofs, 
+				  0.0, 0.0, "End offset");
+		}
+	}
+
+
+	if(last_seq->type & SEQ_EFFECT)
+		sprintf(str, "Len: %d\nFrom %d - %d\n", last_seq->len, last_seq->startdisp, last_seq->enddisp-1);
+	else
+		sprintf(str, "Len: %d(%d)\n", last_seq->enddisp-last_seq->startdisp, last_seq->len);
+
+	str += strlen(str);
+
+	if(last_seq->type==SEQ_IMAGE) {
+		if (last_seq->len > 1) {
+			/* CURRENT */
+			StripElem * se= give_stripelem(last_seq, CFRA);
+			StripElem * last;
+
+			/* FIRST AND LAST */
+	
+			if(last_seq->strip) {
+				se= last_seq->strip->stripdata;
+				last= se+last_seq->len-1;
+				if(last_seq->startofs) se+= last_seq->startofs;
+				if(last_seq->endofs) last-= last_seq->endofs;
+	
+				sprintf(str, "First: %s at %d\nLast: %s at %d\n", se->name, last_seq->startdisp, last->name, last_seq->enddisp-1);
+			}
+		} else { /* single image */
+			if (last_seq->strip) {
+				sprintf(str, "Len: %d\n", last_seq->enddisp-last_seq->startdisp);
+			}
+		}
+
+		str += strlen(str);
+
+		/* orig size */
+		if(last_seq->strip) {
+			sprintf(str, "OrigSize: %d x %d\n", last_seq->strip->orx, last_seq->strip->ory);
+		}
+	}
+	else if(last_seq->type==SEQ_MOVIE) {
+		int sta= last_seq->startofs;
+		int end= last_seq->len-1-last_seq->endofs;
+
+		sprintf(str, "First: %d at %d\nLast: %d at %d\nCur: %d\n",
+			sta, last_seq->startdisp, end, last_seq->enddisp-1,  
+			(G.scene->r.cfra)-last_seq->startdisp);
+	}
+	else if(last_seq->type==SEQ_SCENE) {
+		TStripElem * se= give_tstripelem(last_seq,  (G.scene->r.cfra));
+		if(se && last_seq->scene) {
+			sprintf(str, "First: %d\nLast: %d\nCur: %d\n", last_seq->sfra+se->nr, last_seq->sfra, last_seq->sfra+last_seq->len-1); 
+		}
+	}
+	else if(last_seq->type==SEQ_RAM_SOUND
+		|| last_seq->type == SEQ_HD_SOUND) {
+
+		int sta= last_seq->startofs;
+		int end= last_seq->len-1-last_seq->endofs;
+
+		sprintf(str, "First: %d at %d\nLast: %d at %d\nCur: %d\n",
+			sta, last_seq->startdisp, end, last_seq->enddisp-1,  
+			(G.scene->r.cfra)-last_seq->startdisp);
+	}
+	else if(last_seq->type == SEQ_SPEED) {
+		SpeedControlVars * vars = 
+			(SpeedControlVars*) last_seq->effectdata;
+
+		if (vars) {
+			sprintf(str, "Last mapped frame: %d at %d\n", 
+				vars->lastValidFrame, 
+				vars->lastValidFrame 
+				+ last_seq->startdisp);
+		}
+	}
+
+	str = strdata;
+	yco = 40;
+
+	while ((p = strchr(str, '\n'))) {
+		*p = 0;
+		uiDefBut(block, LABEL, 0, str, 10,yco,240,19, 0, 
+			 0, 0, 0, 0, "");
+		str = p+1;
+		yco -= 20;
+	}
+}
+
+static void seq_panel_input()
+{
+	Sequence *last_seq = get_last_seq();
+	uiBlock *block;
+
+	block = uiNewBlock(&curarea->uiblocks, "seq_panel_input", 
+			   UI_EMBOSS, UI_HELV, curarea->win);
+
+	if(uiNewPanel(curarea, block, "Input", "Sequencer", 
+		      10, 230, 318, 204) == 0) return;
+
+	if (last_seq->type == SEQ_MOVIE 
+	    || last_seq->type == SEQ_IMAGE) {
+		uiDefBut(block, TEX, 
+			 B_SEQ_BUT_RELOAD_FILE, "Dir: ", 
+			 10,140,240,19, last_seq->strip->dir, 
+			 0.0, 160.0, 100, 0, "");
+	}
+
+	if (last_seq->type == SEQ_IMAGE) {
+		StripElem * se = give_stripelem(last_seq, CFRA);
+
+		if (se) {
+			uiDefBut(block, TEX, 
+				 B_SEQ_BUT_RELOAD_FILE, "File: ", 
+				 10, 120, 240,19, se->name, 
+				 0.0, 80.0, 100, 0, "");
+		}
+
+	} else if (last_seq->type == SEQ_MOVIE || 
+		   last_seq->type == SEQ_HD_SOUND ||
+		   last_seq->type == SEQ_RAM_SOUND) {
+		uiDefBut(block, TEX, 
+			 B_SEQ_BUT_RELOAD_FILE, "File: ", 
+			 10,120,240,19, last_seq->strip->stripdata->name, 
+			 0.0, 80.0, 100, 0, "");
+	}
+
+	if (last_seq->type == SEQ_MOVIE 
+	    || last_seq->type == SEQ_IMAGE 
+	    || last_seq->type == SEQ_SCENE) {
+		uiDefButBitI(block, TOG, SEQ_USE_CROP,
+			     B_SEQ_BUT_RELOAD, "Use Crop",
+			     10,100,240,19, &last_seq->flag,
+			     0.0, 1.0, 0, 0,
+			     "Crop image before processing.");
+
+		if (last_seq->flag & SEQ_USE_CROP) {
+			if (!last_seq->strip->crop) {
+				last_seq->strip->crop = 
+					MEM_callocN(sizeof(struct StripCrop), 
+						    "StripCrop");
+			}
+			uiDefButI(block, NUM, 
+				  B_SEQ_BUT_RELOAD, "Top", 
+				  10, 80, 120, 20, 
+				  &last_seq->strip->crop->top, 
+				  0.0, 4096, 0.0, 0.0, "Top of source image");
+			uiDefButI(block, NUM, 
+				  B_SEQ_BUT_RELOAD, "Bottom", 
+				  130, 80, 120, 20, 
+				  &last_seq->strip->crop->bottom, 
+				  0.0, 4096, 0.0, 0.0,
+				  "Bottom of source image");
+			
+			uiDefButI(block, NUM, 
+				  B_SEQ_BUT_RELOAD, "Left", 
+				  10, 60, 120, 20,
+				  &last_seq->strip->crop->left, 
+				  0.0, 4096, 0.0, 0.0, "Left");
+			uiDefButI(block, NUM, 
+				  B_SEQ_BUT_RELOAD, "Right", 
+				  130, 60, 120, 19, 
+				  &last_seq->strip->crop->right, 
+				  0.0, 4096, 0.0, 0.0, "Right");
+		}
+		
+		uiDefButBitI(block, TOG, SEQ_USE_TRANSFORM,
+			     B_SEQ_BUT_RELOAD, "Use Translate",
+			     10,40,240,19, &last_seq->flag,
+			     0.0, 1.0, 0, 0,
+			     "Translate image before processing.");
+		
+		if (last_seq->flag & SEQ_USE_TRANSFORM) {
+			if (!last_seq->strip->transform) {
+				last_seq->strip->transform = 
+					MEM_callocN(
+						sizeof(struct StripTransform), 
+						"StripTransform");
+			}
+			uiDefButI(block, NUM, 
+				  B_SEQ_BUT_RELOAD, "X-Ofs", 
+				  10, 20, 120, 20, 
+				  &last_seq->strip->transform->xofs, 
+				  0.0, 4096, 0.0, 0.0, "X Offset");
+			uiDefButI(block, NUM, 
+				  B_SEQ_BUT_RELOAD, "Y-Ofs", 
+				  130, 20, 120, 20, 
+				  &last_seq->strip->transform->yofs, 
+				  0.0, 4096, 0.0, 0.0, "Y Offset");
+		}
+	}
+
+	uiDefButI(block, NUM, 
+		  B_SEQ_BUT_RELOAD_FILE, "A-Start", 
+		  10, 0, 120, 20, &last_seq->anim_startofs, 
+		  0.0, last_seq->len + last_seq->anim_startofs, 0.0, 0.0, 
+		  "Animation start offset in file");
+	uiDefButI(block, NUM, 
+		  B_SEQ_BUT_RELOAD_FILE, "A-End", 
+		  130, 0, 120, 20, &last_seq->anim_endofs, 
+		  0.0, last_seq->len + last_seq->anim_endofs, 0.0, 0.0, 
+		  "Animation end offset in file");
+
+
+	if (last_seq->type == SEQ_MOVIE) {
+		uiDefButI(block, NUM, B_SEQ_BUT_RELOAD, "MPEG-Preseek:",
+			  10, -20, 240,19, &last_seq->anim_preseek, 
+			  0.0, 50.0, 100,0,
+			  "On MPEG-seeking preseek this many frames");
+	}
+
+}
+
+static void seq_panel_filter_video()
+{
+	Sequence *last_seq = get_last_seq();
+	uiBlock *block;
+	block = uiNewBlock(&curarea->uiblocks, "seq_panel_filter", 
+			   UI_EMBOSS, UI_HELV, curarea->win);
+
+	if(uiNewPanel(curarea, block, "Filter", "Sequencer", 
+		      10, 230, 318, 204) == 0) return;
+
+
+	uiBlockBeginAlign(block);
+
+
+	uiDefButBitI(block, TOG, SEQ_MAKE_PREMUL, 
+		     B_SEQ_BUT_RELOAD, "Convert to Premul", 
+		     10,110,150,19, &last_seq->flag, 
+		     0.0, 21.0, 100, 0, 
+		     "Converts RGB values to become premultiplied with Alpha");
+
+	uiDefButBitI(block, TOG, SEQ_FILTERY, 
+		     B_SEQ_BUT_RELOAD, "FilterY",	
+		     10,90,75,19, &last_seq->flag, 
+		     0.0, 21.0, 100, 0, 
+		     "For video movies to remove fields");
+
+	uiDefButBitI(block, TOG, SEQ_MAKE_FLOAT, 
+		     B_SEQ_BUT_RELOAD, "Make Float",	
+		     85,90,75,19, &last_seq->flag, 
+		     0.0, 21.0, 100, 0, 
+		     "Convert input to float data");
+		
+	uiDefButBitI(block, TOG, SEQ_FLIPX, 
+		     B_SEQ_BUT_RELOAD, "FlipX",	
+		     10,70,75,19, &last_seq->flag, 
+		     0.0, 21.0, 100, 0, 
+		     "Flip on the X axis");
+	uiDefButBitI(block, TOG, SEQ_FLIPY, 
+		     B_SEQ_BUT_RELOAD, "FlipY",	
+		     85,70,75,19, &last_seq->flag, 
+		     0.0, 21.0, 100, 0, 
+		     "Flip on the Y axis");
+		
+	uiDefButF(block, NUM, B_SEQ_BUT_RELOAD, "Mul:",
+		  10,50,150,19, &last_seq->mul, 
+		  0.001, 5.0, 100, 0, 
+		  "Multiply colors");
+
+	uiDefButBitI(block, TOG, SEQ_REVERSE_FRAMES,
+		     B_SEQ_BUT_RELOAD, "Reverse Frames", 
+		     10,30,150,19, &last_seq->flag, 
+		     0.0, 21.0, 100, 0, 
+		     "Reverse frame order");
+
+	uiDefButF(block, NUM, B_SEQ_BUT_RELOAD, "Strobe:",
+		  10,10,150,19, &last_seq->strobe, 
+		  1.0, 30.0, 100, 0, 
+		  "Only display every nth frame");
+
+	uiBlockEndAlign(block);
+
+}
+
+
+static void seq_panel_filter_audio()
+{
+	Sequence *last_seq = get_last_seq();
+	uiBlock *block;
+	block = uiNewBlock(&curarea->uiblocks, "seq_panel_filter", 
+			   UI_EMBOSS, UI_HELV, curarea->win);
+
+	if(uiNewPanel(curarea, block, "Filter", "Sequencer", 
+		      10, 230, 318, 204) == 0) return;
+
+	uiBlockBeginAlign(block);
+	uiDefButF(block, NUM, B_SEQ_BUT_RELOAD, "Gain (dB):", 10,50,150,19, &last_seq->level, -96.0, 6.0, 100, 0, "");
+	uiDefButF(block, NUM, B_SEQ_BUT_RELOAD, "Pan:", 	10,30,150,19, &last_seq->pan, -1.0, 1.0, 100, 0, "");
+	uiBlockEndAlign(block);
+}
+
+static void seq_panel_effect()
+{
+	Sequence *last_seq = get_last_seq();
+	uiBlock *block;
+	block = uiNewBlock(&curarea->uiblocks, "seq_panel_effect", 
+			   UI_EMBOSS, UI_HELV, curarea->win);
+
+	if(uiNewPanel(curarea, block, "Effect", "Sequencer", 
+		      10, 230, 318, 204) == 0) return;
+
+	if(last_seq->type == SEQ_PLUGIN) {
+		PluginSeq *pis;
+		VarStruct *varstr;
+		int a, xco, yco;
+
+		get_sequence_effect(last_seq);/* make sure, plugin is loaded */
+
+		pis= last_seq->plugin;
+		if(pis->vars==0) return;
+
+		varstr= pis->varstr;
+		if(varstr) {
+			for(a=0; a<pis->vars; a++, varstr++) {
+				xco= 150*(a/6)+10;
+				yco= 125 - 20*(a % 6)+1;
+				uiDefBut(block, varstr->type, B_SEQ_BUT_PLUGIN, varstr->name, xco,yco,150,19, &(pis->data[a]), varstr->min, varstr->max, 100, 0, varstr->tip);
+
+			}
+		}
+		return;
+	} 
+
+	uiBlockBeginAlign(block);
+
+	if(last_seq->type==SEQ_WIPE){
+		WipeVars *wipe = (WipeVars *)last_seq->effectdata;
+		char formatstring[256];
+			
+		strncpy(formatstring, "Transition Type %t|Single Wipe%x0|Double Wipe %x1|Iris Wipe %x4|Clock Wipe %x5", 255);
+		uiDefButS(block, MENU,B_SEQ_BUT_EFFECT, formatstring,	10,65,220,22, &wipe->wipetype, 0, 0, 0, 0, "What type of wipe should be performed");
+		uiDefButF(block, NUM,B_SEQ_BUT_EFFECT,"Blur:",	10,40,220,22, &wipe->edgeWidth,0.0,1.0, 1, 2, "The percent width of the blur edge");
+		switch(wipe->wipetype){ /*Skip Types that do not require angle*/
+		case DO_IRIS_WIPE:
+		case DO_CLOCK_WIPE:
+			break;
+			
+		default:
+			uiDefButF(block, NUM,B_SEQ_BUT_EFFECT,"Angle:",	10,15,220,22, &wipe->angle,-90.0,90.0, 1, 2, "The Angle of the Edge");
+		}
+		uiDefButS(block, TOG,B_SEQ_BUT_EFFECT,"Wipe In",  10,-10,220,22, &wipe->forward,0,0, 0, 0, "Controls Primary Direction of Wipe");				
+	} else if(last_seq->type==SEQ_GLOW){
+		GlowVars *glow = (GlowVars *)last_seq->effectdata;
+
+		uiDefButF(block, NUM, B_SEQ_BUT_EFFECT, "Threshold:", 	10,70,150,19, &glow->fMini, 0.0, 1.0, 0, 0, "Trigger Intensity");
+		uiDefButF(block, NUM, B_SEQ_BUT_EFFECT, "Clamp:",			10,50,150,19, &glow->fClamp, 0.0, 1.0, 0, 0, "Brightness limit of intensity");
+		uiDefButF(block, NUM, B_SEQ_BUT_EFFECT, "Boost factor:", 	10,30,150,19, &glow->fBoost, 0.0, 10.0, 0, 0, "Brightness multiplier");
+		uiDefButF(block, NUM, B_SEQ_BUT_EFFECT, "Blur distance:", 	10,10,150,19, &glow->dDist, 0.5, 20.0, 0, 0, "Radius of glow effect");
+		uiDefButI(block, NUM, B_NOP, "Quality:", 10,-5,150,19, &glow->dQuality, 1.0, 5.0, 0, 0, "Accuracy of the blur effect");
+		uiDefButI(block, TOG, B_NOP, "Only boost", 10,-25,150,19, &glow->bNoComp, 0.0, 0.0, 0, 0, "Show the glow buffer only");
+	}
+	else if(last_seq->type==SEQ_TRANSFORM){
+		TransformVars *transform = (TransformVars *)last_seq->effectdata;
+
+		uiDefButF(block, NUM, B_SEQ_BUT_EFFECT, "xScale Start:", 	10,70,150,19, &transform->ScalexIni, 0.0, 10.0, 0, 0, "X Scale Start");
+		uiDefButF(block, NUM, B_SEQ_BUT_EFFECT, "xScale End:", 	160,70,150,19, &transform->ScalexFin, 0.0, 10.0, 0, 0, "X Scale End");
+		uiDefButF(block, NUM, B_SEQ_BUT_EFFECT, "yScale Start:",	10,50,150,19, &transform->ScaleyIni, 0.0, 10.0, 0, 0, "Y Scale Start");
+		uiDefButF(block, NUM, B_SEQ_BUT_EFFECT, "yScale End:", 	160,50,150,19, &transform->ScaleyFin, 0.0, 10.0, 0, 0, "Y Scale End");
+		
+		uiDefButI(block, ROW, B_SEQ_BUT_EFFECT, "Percent", 10, 30, 150, 19, &transform->percent, 0.0, 1.0, 0.0, 0.0, "Percent Translate");
+		uiDefButI(block, ROW, B_SEQ_BUT_EFFECT, "Pixels", 160, 30, 150, 19, &transform->percent, 0.0, 0.0, 0.0, 0.0, "Pixels Translate");
+		if(transform->percent==1){
+			uiDefButF(block, NUM, B_SEQ_BUT_EFFECT, "x Start:", 	10,10,150,19, &transform->xIni, -500.0, 500.0, 0, 0, "X Position Start");
+			uiDefButF(block, NUM, B_SEQ_BUT_EFFECT, "x End:", 	160,10,150,19, &transform->xFin, -500.0, 500.0, 0, 0, "X Position End");
+			uiDefButF(block, NUM, B_SEQ_BUT_EFFECT, "y Start:", 	10,-10,150,19, &transform->yIni, -500.0, 500.0, 0, 0, "Y Position Start");
+			uiDefButF(block, NUM, B_SEQ_BUT_EFFECT, "y End:", 	160,-10,150,19, &transform->yFin, -500.0, 500.0, 0, 0, "Y Position End");
+		} else {
+			uiDefButF(block, NUM, B_SEQ_BUT_EFFECT, "x Start:", 	10,10,150,19, &transform->xIni, -10000.0, 10000.0, 0, 0, "X Position Start");
+			uiDefButF(block, NUM, B_SEQ_BUT_EFFECT, "x End:", 	160,10,150,19, &transform->xFin, -10000.0, 10000.0, 0, 0, "X Position End");
+			uiDefButF(block, NUM, B_SEQ_BUT_EFFECT, "y Start:", 	10,-10,150,19, &transform->yIni, -10000.0, 10000.0, 0, 0, "Y Position Start");
+			uiDefButF(block, NUM, B_SEQ_BUT_EFFECT, "y End:", 	160,-10,150,19, &transform->yFin, -10000.0, 10000.0, 0, 0, "Y Position End");
+			
+		}
+		
+		
+		
+		uiDefButF(block, NUM, B_SEQ_BUT_EFFECT, "rot Start:",10,-30,150,19, &transform->rotIni, 0.0, 360.0, 0, 0, "Rotation Start");
+		uiDefButF(block, NUM, B_SEQ_BUT_EFFECT, "rot End:",160,-30,150,19, &transform->rotFin, 0.0, 360.0, 0, 0, "Rotation End");
+		
+		uiDefButI(block, ROW, B_SEQ_BUT_EFFECT, "No Interpolat", 10, -50, 100, 19, &transform->interpolation, 0.0, 0.0, 0.0, 0.0, "No interpolation");
+		uiDefButI(block, ROW, B_SEQ_BUT_EFFECT, "Bilinear", 101, -50, 100, 19, &transform->interpolation, 0.0, 1.0, 0.0, 0.0, "Bilinear interpolation");
+		uiDefButI(block, ROW, B_SEQ_BUT_EFFECT, "Bicubic", 202, -50, 100, 19, &transform->interpolation, 0.0, 2.0, 0.0, 0.0, "Bicubic interpolation");
+	} else if(last_seq->type==SEQ_COLOR) {
+		SolidColorVars *colvars = (SolidColorVars *)last_seq->effectdata;
+		uiDefButF(block, COL, B_SEQ_BUT_RELOAD, "",10,90,150,19, colvars->col, 0, 0, 0, 0, "");
+	} else if(last_seq->type==SEQ_SPEED){
+		SpeedControlVars *sp = 
+			(SpeedControlVars *)last_seq->effectdata;
+		
+		uiDefButF(block, NUM, B_SEQ_BUT_RELOAD, "Global Speed:", 	10,70,150,19, &sp->globalSpeed, 0.0, 100.0, 0, 0, "Global Speed");
+		
+		uiDefButBitI(block, TOG, SEQ_SPEED_INTEGRATE,
+			     B_SEQ_BUT_RELOAD, 
+			     "IPO is velocity",
+			     10,50,150,19, &sp->flags, 
+			     0.0, 1.0, 0, 0, 
+			     "Interpret the IPO value as a "
+			     "velocity instead of a frame number");
+
+		uiDefButBitI(block, TOG, SEQ_SPEED_BLEND,
+			     B_SEQ_BUT_RELOAD, 
+			     "Enable frame blending",
+			     10,30,150,19, &sp->flags, 
+			     0.0, 1.0, 0, 0, 
+			     "Blend two frames into the "
+			     "target for a smoother result");
+		
+		uiDefButBitI(block, TOG, SEQ_SPEED_COMPRESS_IPO_Y,
+			     B_SEQ_BUT_RELOAD, 
+			     "IPO value runs from [0..1]",
+			     10,10,150,19, &sp->flags, 
+			     0.0, 1.0, 0, 0, 
+			     "Scale IPO value to get the "
+			     "target frame number.");
+	}
+
+	uiBlockEndAlign(block);
+}
+
+static void seq_panel_proxy()
+{
+	Sequence *last_seq = get_last_seq();
+	uiBlock *block;
+	block = uiNewBlock(&curarea->uiblocks, "seq_panel_proxy", 
+			   UI_EMBOSS, UI_HELV, curarea->win);
+
+	if(uiNewPanel(curarea, block, "Proxy", "Sequencer", 
+		      10, 230, 318, 204) == 0) return;
+
+	uiBlockBeginAlign(block);
+
+	uiDefButBitI(block, TOG, SEQ_USE_PROXY, 
+		     B_SEQ_BUT_RELOAD, "Use Proxy", 
+		     10,140,150,19, &last_seq->flag, 
+		     0.0, 21.0, 100, 0, 
+		     "Use a preview proxy for this strip");
+	
+	if (last_seq->flag & SEQ_USE_PROXY) {
+
+
+	}
+
+	uiBlockEndAlign(block);
+}
+
+
+void sequencer_panels()
+{
+	Sequence *last_seq = get_last_seq();
+	int panels = 0;
+	int type;
+
+	if(last_seq == NULL) {
+		return;
+	}
+	
+	type = last_seq->type;
+
+	panels = SEQ_PANEL_EDITING;
+
+	if (type == SEQ_MOVIE || type == SEQ_IMAGE || type == SEQ_SCENE
+	    || type == SEQ_HD_SOUND) {
+		panels |= SEQ_PANEL_INPUT | SEQ_PANEL_FILTER | SEQ_PANEL_PROXY;
+	}
+
+	if (type == SEQ_RAM_SOUND) {
+		panels |= SEQ_PANEL_FILTER;
+	}
+
+	if (type == SEQ_PLUGIN || type >= SEQ_EFFECT) {
+		panels |= SEQ_PANEL_EFFECT | SEQ_PANEL_PROXY;
+	}
+
+	if (panels & SEQ_PANEL_EDITING) {
+		seq_panel_editing();
+	}
+
+	if (panels & SEQ_PANEL_INPUT) {
+		seq_panel_input();
+	}
+
+	if (panels & SEQ_PANEL_FILTER) {
+		if (type == SEQ_RAM_SOUND || type == SEQ_HD_SOUND) {
+			seq_panel_filter_audio();
+		} else {
+			seq_panel_filter_video();
+		}
+	}
+
+	if (panels & SEQ_PANEL_EFFECT) {
+		seq_panel_effect();
+	}
+
+	if (panels & SEQ_PANEL_PROXY) {
+		seq_panel_proxy();
+	}
+}
+
+
+void do_sequencer_panels(unsigned short event)
+{
+	Sequence *last_seq = get_last_seq();
+
+	switch(event) {
+	case B_SEQ_BUT_PLUGIN:
+	case B_SEQ_BUT_EFFECT:
+		update_changed_seq_and_deps(last_seq, 0, 1);
+		break;
+	case B_SEQ_BUT_RELOAD_FILE:
+		reload_sequence_new_file(last_seq);
+		break;
+	case B_SEQ_BUT_RELOAD:
+	case B_SEQ_BUT_RELOAD_ALL:
+		update_seq_ipo_rect(last_seq);
+		update_seq_icu_rects(last_seq);
+
+		free_imbuf_seq();	// frees all
+
+		break;
+	case B_SEQ_BUT_TRANSFORM:
+		calc_sequence(last_seq);
+		break;
+	}
+
+	if (event == B_SEQ_BUT_RELOAD_ALL) {
+		allqueue(REDRAWALL, 0);
+	} else {
+		allqueue(REDRAWSEQ, 0);
+	}
+}
+
 
 /* ************************* SCENE *********************** */
 
@@ -507,9 +1172,9 @@ static void run_playanim(char *file)
 	calc_renderwin_rectangle((G.scene->r.xsch*G.scene->r.size)/100, 
 							 (G.scene->r.ysch*G.scene->r.size)/100, G.winpos, pos, size);
 #ifdef WIN32
-	sprintf(str, "%s -a -p %d %d \"%s\"", bprogname, pos[0], pos[1], file);
+	sprintf(str, "%s -a -p %d %d -f %d %g \"%s\"", bprogname, pos[0], pos[1], G.scene->r.frs_sec, G.scene->r.frs_sec_base, file);
 #else
-	sprintf(str, "\"%s\" -a -p %d %d \"%s\"", bprogname, pos[0], pos[1], file);
+	sprintf(str, "\"%s\" -a -p %d %d -f %d %g \"%s\"", bprogname, pos[0], pos[1], G.scene->r.frs_sec, G.scene->r.frs_sec_base, file);
 #endif
 	system(str);
 }
@@ -1199,7 +1864,7 @@ static void render_panel_output(void)
 
 	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiDefButBitS(block, TOG, R_BACKBUF, B_NOP,"Backbuf",	10, 94, 80, 20, &G.scene->r.bufflag, 0, 0, 0, 0, "Enable/Disable use of Backbuf image");	
-	uiDefButS(block, NUM, B_NOP, "Threads:",				10, 68, 100, 20, &G.scene->r.threads, 1, BLENDER_MAX_THREADS, 0, 0, "Amount of threads for render");	
+	uiDefButS(block, NUM, B_NOP, "Threads:",				10, 68, 100, 20, &G.scene->r.threads, 1, BLENDER_MAX_THREADS, 0, 0, "Amount of threads for render (takes advantage of multi-core and multi-processor computers)");
 	uiBlockSetCol(block, TH_AUTO);
 		
 	uiBlockBeginAlign(block);
@@ -1213,7 +1878,7 @@ static void render_panel_output(void)
 	uiDefButS(block, MENU, B_REDR, "Render Display %t|Render Window %x1|Image Editor %x0|Full Screen %x2",	
 					72, 10, 120, 19, &G.displaymode, 0.0, (float)R_DISPLAYWIN, 0, 0, "Sets render output display");
 
-	uiDefButBitS(block, TOG, R_EXTENSION, B_NOP, "Extensions", 205, 10, 105, 19, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Adds extensions to the output when rendering animations");
+	uiDefButBitS(block, TOG, R_EXTENSION, B_NOP, "Extensions", 205, 10, 105, 19, &G.scene->r.scemode, 0.0, 0.0, 0, 0, "Adds filetype extensions to the filename when rendering animations");
 
 	/* Dither control */
 	uiDefButF(block, NUM,B_DIFF, "Dither:",         205,31,105,19, &G.scene->r.dither_intensity, 0.0, 2.0, 0, 0, "The amount of dithering noise present in the output image (0.0 = no dithering)");
@@ -1269,11 +1934,12 @@ static void render_panel_bake(void)
 	uiDefButS(block, ROW,B_REDR,"Ambient Occlusion",210,150,120,20,&G.scene->r.bake_mode, 1.0, RE_BAKE_AO, 0, 0, "");
 	uiDefButS(block, ROW,B_REDR,"Normals",		210,130,120,20,&G.scene->r.bake_mode, 1.0, RE_BAKE_NORMALS, 0, 0, "");
 	uiDefButS(block, ROW,B_REDR,"Textures",		210,110,120,20,&G.scene->r.bake_mode, 1.0, RE_BAKE_TEXTURE, 0, 0, "");
+	uiDefButS(block, ROW,B_REDR,"Displacement",		210,90,120,20,&G.scene->r.bake_mode, 1.0, RE_BAKE_DISPLACEMENT, 0, 0, "");
 	uiBlockEndAlign(block);
 	
-	uiDefButBitS(block, TOG, R_BAKE_CLEAR, B_DIFF, "Clear",		210,80,120,20,&G.scene->r.bake_flag, 0.0, 0, 0, 0, "Clear Images before baking");
+	uiDefButBitS(block, TOG, R_BAKE_CLEAR, B_DIFF, "Clear",		210,60,120,20,&G.scene->r.bake_flag, 0.0, 0, 0, 0, "Clear Images before baking");
 	
-	uiDefButS(block, NUM, B_DIFF,"Margin:",				210,50,120,20,&G.scene->r.bake_filter, 0.0, 32.0, 0, 0, "Amount of pixels to extend the baked result with, as post process filter");
+	uiDefButS(block, NUM, B_DIFF,"Margin:",				210,30,120,20,&G.scene->r.bake_filter, 0.0, 32.0, 0, 0, "Amount of pixels to extend the baked result with, as post process filter");
 }
 
 static void render_panel_render(void)
@@ -1285,7 +1951,7 @@ static void render_panel_render(void)
 	if(uiNewPanel(curarea, block, "Render", "Render", 320, 0, 318, 204)==0) return;
 
 	uiBlockBeginAlign(block);
-	uiDefBut(block, BUT,B_DORENDER,"RENDER",	369, 164, 191,37, 0, 0, 0, 0, 0, "Start the rendering");
+	uiDefBut(block, BUT,B_DORENDER,"RENDER",	369, 164, 191,37, 0, 0, 0, 0, 0, "Render the current frame (F12)");
 #ifndef DISABLE_YAFRAY
 	/* yafray: on request, render engine menu is back again, and moved to Render panel */
 	uiDefButS(block, MENU, B_SWITCHRENDER, "Rendering Engine %t|Blender Internal %x0|YafRay %x1", 
@@ -1297,10 +1963,10 @@ static void render_panel_render(void)
 
 	uiBlockBeginAlign(block);
 	uiDefButBitI(block, TOG, R_OSA, B_DIFF, "OSA",	369,109,122,20,&G.scene->r.mode, 0, 0, 0, 0, "Enables Oversampling (Anti-aliasing)");
-	uiDefButS(block, ROW,B_DIFF,"5",			369,88,29,20,&G.scene->r.osa,2.0,5.0, 0, 0, "Sets oversample level to 5");
-	uiDefButS(block, ROW,B_DIFF,"8",			400,88,29,20,&G.scene->r.osa,2.0,8.0, 0, 0, "Sets oversample level to 8 (Recommended)");
-	uiDefButS(block, ROW,B_DIFF,"11",			431,88,29,20,&G.scene->r.osa,2.0,11.0, 0, 0, "Sets oversample level to 11");
-	uiDefButS(block, ROW,B_DIFF,"16",			462,88,29,20,&G.scene->r.osa,2.0,16.0, 0, 0, "Sets oversample level to 16");
+	uiDefButS(block, ROW,B_DIFF,"5",			369,88,29,20,&G.scene->r.osa,2.0,5.0, 0, 0, "Render 5 samples per pixel for smooth edges (Fast)");
+	uiDefButS(block, ROW,B_DIFF,"8",			400,88,29,20,&G.scene->r.osa,2.0,8.0, 0, 0, "Render 8 samples per pixel for smooth edges (Recommended)");
+	uiDefButS(block, ROW,B_DIFF,"11",			431,88,29,20,&G.scene->r.osa,2.0,11.0, 0, 0, "Render 11 samples per pixel for smooth edges (High Quality)");
+	uiDefButS(block, ROW,B_DIFF,"16",			462,88,29,20,&G.scene->r.osa,2.0,16.0, 0, 0, "Render 16 samples per pixel for smooth edges (Highest Quality)");
 	uiBlockEndAlign(block);
 
 	uiBlockBeginAlign(block);
@@ -1346,7 +2012,7 @@ static void render_panel_render(void)
 	uiDefButS(block, MENU, B_DIFF,str,		565,34,60,20, &G.scene->r.filtertype, 0, 0, 0, 0, "Set sampling filter for antialiasing");
 	uiDefButF(block, NUM,B_DIFF,"",			627,34,60,20,&G.scene->r.gauss,0.5, 1.5, 10, 2, "Sets the filter size");
 	
-	uiDefButBitI(block, TOG, R_BORDER, REDRAWVIEWCAM, "Border",	565,13,122,20, &G.scene->r.mode, 0, 0, 0, 0, "Render a small cut-out of the image");
+	uiDefButBitI(block, TOG, R_BORDER, REDRAWVIEWCAM, "Border",	565,13,122,20, &G.scene->r.mode, 0, 0, 0, 0, "Render a small cut-out of the image (Shift+B to set in the camera view)");
 	uiBlockEndAlign(block);
 
 }
@@ -1360,7 +2026,7 @@ static void render_panel_anim(void)
 	if(uiNewPanel(curarea, block, "Anim", "Render", 640, 0, 318, 204)==0) return;
 
 
-	uiDefBut(block, BUT,B_DOANIM,"ANIM",		692,142,192,47, 0, 0, 0, 0, 0, "Start rendering a sequence");
+	uiDefBut(block, BUT,B_DOANIM,"ANIM",		692,142,192,47, 0, 0, 0, 0, 0, "Render the animation to disk (start to end frame)");
 
 	uiBlockSetCol(block, TH_BUT_SETTING1);
 	uiBlockBeginAlign(block);
@@ -1369,12 +2035,12 @@ static void render_panel_anim(void)
 	uiBlockEndAlign(block);
 
 	uiBlockSetCol(block, TH_AUTO);
-	uiDefBut(block, BUT,B_PLAYANIM, "PLAY",692,40,94,33, 0, 0, 0, 0, 0, "Play animation of rendered images/avi (searches Pics: field)");
+	uiDefBut(block, BUT,B_PLAYANIM, "PLAY",692,40,94,33, 0, 0, 0, 0, 0, "Play rendered images/avi animation (Ctrl+F11), (Play Hotkeys: A-Noskip, P-PingPong)");
 	uiDefButS(block, NUM, B_RTCHANGED, "rt:",789,40,95,33, &G.rt, -1000.0, 1000.0, 0, 0, "General testing/debug button");
 
 	uiBlockBeginAlign(block);
-	uiDefButI(block, NUM,REDRAWSEQ,"Sta:",692,10,94,24, &G.scene->r.sfra,1.0,MAXFRAMEF, 0, 0, "The start frame of the animation");
-	uiDefButI(block, NUM,REDRAWSEQ,"End:",789,10,95,24, &G.scene->r.efra,SFRA,MAXFRAMEF, 0, 0, "The end  frame of the animation");
+	uiDefButI(block, NUM,REDRAWSEQ,"Sta:",692,10,94,24, &G.scene->r.sfra,1.0,MAXFRAMEF, 0, 0, "The start frame of the animation (inclusive)");
+	uiDefButI(block, NUM,REDRAWSEQ,"End:",789,10,95,24, &G.scene->r.efra,SFRA,MAXFRAMEF, 0, 0, "The end  frame of the animation  (inclusive)");
 	uiBlockEndAlign(block);
 }
 

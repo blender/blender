@@ -206,11 +206,12 @@ float RE_filter_value(int type, float x);
 void RE_zbuf_accumulate_vecblur(struct NodeBlurData *nbd, int xsize, int ysize, float *newrect, float *imgrect, float *vecbufrect, float *zbufrect);
 
 /* shaded view or baking options */
-#define RE_BAKE_LIGHT	0
-#define RE_BAKE_ALL		1
-#define RE_BAKE_AO		2
-#define RE_BAKE_NORMALS	3
-#define RE_BAKE_TEXTURE	4
+#define RE_BAKE_LIGHT			0
+#define RE_BAKE_ALL				1
+#define RE_BAKE_AO				2
+#define RE_BAKE_NORMALS			3
+#define RE_BAKE_TEXTURE			4
+#define RE_BAKE_DISPLACEMENT	5
 void RE_Database_Baking(struct Render *re, struct Scene *scene, int type, struct Object *actob);
 
 void RE_DataBase_GetView(struct Render *re, float mat[][4]);

@@ -241,9 +241,13 @@ int set_tpage(MTFace *tface)
 				glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 				
 				/* added after 2.45 to clip alpha */
-				glEnable ( GL_ALPHA_TEST );
-				glAlphaFunc ( GL_GREATER, U.glalphaclip );
 				
+				/*if U.glalphaclip == 1.0, some cards go bonkers... turn off alpha test in this case*/
+				if(U.glalphaclip == 1.0) glDisable(GL_ALPHA_TEST);
+				else{
+					glEnable ( GL_ALPHA_TEST );
+					glAlphaFunc ( GL_GREATER, U.glalphaclip );
+				}
 				
 			/* 	glBlendEquationEXT(GL_FUNC_ADD_EXT); */
 			}

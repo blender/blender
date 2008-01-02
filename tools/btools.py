@@ -1,3 +1,4 @@
+
 import os
 import os.path
 import SCons.Options
@@ -46,7 +47,6 @@ def validate_arguments(args, bc):
             'WITH_BF_QUICKTIME', 'BF_QUICKTIME', 'BF_QUICKTIME_INC', 'BF_QUICKTIME_LIB', 'BF_QUICKTIME_LIBPATH',
             'WITH_BF_STATICOPENGL', 'BF_OPENGL', 'BF_OPENGL_INC', 'BF_OPENGL_LIB', 'BF_OPENGL_LIBPATH', 'BF_OPENGL_LIB_STATIC', 'BF_OPENGL_LINKFLAGS',
             'WITH_BF_FTGL', 'BF_FTGL', 'BF_FTGL_INC', 'BF_FTGL_LIB',
-            'WITH_BF_BPYAPI_V24X',
             'WITH_BF_PLAYER',
             'CFLAGS', 'CCFLAGS', 'CPPFLAGS', 
             'REL_CFLAGS', 'REL_CCFLAGS',
@@ -56,8 +56,10 @@ def validate_arguments(args, bc):
             'VERSE_BUILD_BINARY', 'VERSE_BUILD_DIR', 'VERSE_REGEN_PROTO',
             'BF_TWEAK_MODE', 'BF_SPLIT_SRC',
             'WITHOUT_BF_INSTALL',
-            'WITH_BF_OPENMP'
-	    ]
+            'WITH_BF_OPENMP',
+            'WITHOUT_BF_INSTALL',
+            'BF_FANCY',
+            ]
 
     arg_list = ['BF_DEBUG', 'BF_QUIET', 'BF_CROSS', 'BF_UPDATE',
             'BF_INSTALLDIR', 'BF_TOOLSET', 'BF_BINNAME',
@@ -174,7 +176,6 @@ def read_opts(cfg, args):
         ('BF_FFMPEG_INC', 'FFMPEG includes', ''),
         ('BF_FFMPEG_LIBPATH', 'FFMPEG library path', ''),
         
-        (BoolOption('WITH_BF_BPYAPI_V24X', 'Compile Blender 2.4x python api if true', 'true')),
 
         (BoolOption('WITH_BF_JPEG', 'Use JPEG if true', 'true')),
         ('BF_JPEG', 'JPEG base path', ''),
@@ -301,8 +302,9 @@ def read_opts(cfg, args):
         (BoolOption('BF_BUILDINFO', 'Buildtime in splash if true', 'true')),
 
         (BoolOption('BF_TWEAK_MODE', 'Enable tweak mode if true', 'false')),
-		(BoolOption('BF_SPLIT_SRC', 'Split src lib into several chunks if true', 'false')),
+        (BoolOption('BF_SPLIT_SRC', 'Split src lib into several chunks if true', 'false')),
         (BoolOption('WITHOUT_BF_INSTALL', 'dont install if true', 'false')),
+        (BoolOption('BF_FANCY', 'Enable fancy output if true', 'true')),
 
     ) # end of opts.AddOptions()
 

@@ -86,9 +86,10 @@ extern void validate_editbonebutton_cb(void *bonev, void *namev);
 #define TAB_OBJECT_PARTICLE	2
 
 #define TAB_SCENE_RENDER	0
-#define TAB_SCENE_WORLD		1
+#define TAB_SCENE_WORLD     	1
 #define TAB_SCENE_ANIM		2
 #define TAB_SCENE_SOUND		3
+#define TAB_SCENE_SEQUENCER	4
 
 
 /* buts->scaflag */		

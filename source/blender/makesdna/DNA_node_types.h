@@ -92,7 +92,8 @@ typedef struct bNodeSocket {
 #define SOCK_IN_USE				4
 		/* unavailable is for dynamic sockets */
 #define SOCK_UNAVAIL			8
-
+		/* flag for selection status */
+#define SOCK_SEL			16
 #
 #
 typedef struct bNodePreview {
@@ -167,6 +168,10 @@ typedef struct bNodeTree {
 	ListBase alltypes;				/* type definitions */
 	struct bNodeType *owntype;		/* for groups or dynamic trees, no read/write */
 
+	/* selected input/output socket */
+	bNodeSocket *selin;
+	bNodeSocket *selout;
+
 	/* callbacks */
 	void (*timecursor)(int nr);
 	void (*stats_draw)(char *str);
@@ -197,6 +202,17 @@ typedef struct NodeBlurData {
 	char bokeh, gamma;
 	int pad2;
 } NodeBlurData;
+
+typedef struct NodeDBlurData {
+	float center_x, center_y, distance, angle, spin, zoom;
+	short iter;
+	char wrap, pad;
+} NodeDBlurData;
+
+typedef struct NodeBilateralBlurData {
+	float sigma_color, sigma_space;
+	short iter, pad;
+} NodeBilateralBlurData;
 
 typedef struct NodeHueSat {
 	float hue, sat, val;

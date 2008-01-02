@@ -1421,7 +1421,9 @@ static void filesel_execute(SpaceFile *sfile)
 		}
 
 		do_library_append(sfile);
-		BIF_undo_push("Append from file");
+		
+		BIF_undo_push( ((sfile->flag & FILE_LINK)==0) ? "Append from file" : "Link from file");
+		
 		allqueue(REDRAWALL, 1);
 	}
 	else if(filesel_has_func(sfile)) {

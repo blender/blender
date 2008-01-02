@@ -3014,7 +3014,27 @@ static struct SeqEffectHandle get_sequence_effect_impl(int seq_type)
 
 struct SeqEffectHandle get_sequence_effect(Sequence * seq)
 {
-	struct SeqEffectHandle rval = get_sequence_effect_impl(seq->type);
+	struct SeqEffectHandle rval;
+
+	if (seq->type & SEQ_EFFECT) {
+		rval = get_sequence_effect_impl(seq->type);
+	}
+
+	if ((seq->flag & SEQ_EFFECT_NOT_LOADED) != 0) {
+		rval.load(seq);
+		seq->flag &= ~SEQ_EFFECT_NOT_LOADED;
+	}
+
+	return rval;
+}
+
+struct SeqEffectHandle get_sequence_blend(Sequence * seq)
+{
+	struct SeqEffectHandle rval;
+
+	if (seq->blend_mode != 0) {
+		rval = get_sequence_effect_impl(seq->blend_mode);
+	}
 
 	if ((seq->flag & SEQ_EFFECT_NOT_LOADED) != 0) {
 		rval.load(seq);
@@ -3028,5 +3048,9 @@ int get_sequence_effect_num_inputs(int seq_type)
 {
 	struct SeqEffectHandle rval = get_sequence_effect_impl(seq_type);
 
-	return rval.num_inputs();
+	int cnt = rval.num_inputs();
+	if (rval.execute) {
+		return cnt;
+	}
+	return 0;
 }

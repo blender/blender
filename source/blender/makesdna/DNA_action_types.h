@@ -90,7 +90,10 @@ typedef struct bPoseChannel {
  */
 typedef struct bPose {
 	ListBase chanbase; 			/* list of pose channels */
+	struct bAction *poselib;	/* poselib-action for this pose */
+	
 	short flag, proxy_layer;	/* proxy layer: copy from armature, gets synced */
+	
 	float ctime;				/* local action time of this pose */
 	float stride_offset[3];		/* applied to object */
 	float cyclic_offset[3];		/* result of match and cycles, applied in where_is_pose() */
@@ -114,7 +117,12 @@ typedef struct bActionChannel {
  */
 typedef struct bAction {
 	ID				id;
+	
 	ListBase		chanbase;	/* Action Channels in this Action */
+	ListBase 		markers;	/* TimeMarkers local to this Action for labelling 'poses' */
+	
+	int active_marker;			/* Index of active-marker (first marker = 1) */
+	int pad;
 } bAction;
 
 /* Action Editor Space. This is defined here instead of in DNA_space_types.h */
@@ -154,7 +162,9 @@ typedef enum SACTION_FLAG {
 		/* show sliders (if relevant) */
 	SACTION_SLIDERS	= (1<<1),	
 		/* draw time in seconds instead of time in frames */
-	SACTION_DRAWTIME = (1<<2)
+	SACTION_DRAWTIME = (1<<2),
+		/* don't filter action channels according to visibility */
+	SACTION_NOHIDE = (1<<3)
 } SACTION_FLAG;	
 
 /* SpaceAction AutoSnap Settings (also used by SpaceNLA) */

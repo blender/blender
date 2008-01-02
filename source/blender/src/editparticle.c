@@ -83,6 +83,7 @@
 #include "BIF_resources.h"
 #include "BIF_screen.h"
 #include "BIF_space.h"
+#include "BIF_toolbox.h"
 
 #include "BSE_view.h"
 
@@ -1901,6 +1902,83 @@ void PE_subdivide(void)
 	
 	BIF_undo_push("Subdivide hair(s)");
 }
+void PE_remove_doubles(void)
+{
+	Object *ob=OBACT;
+	ParticleSystem *psys=PE_get_current(ob);
+	ParticleEditSettings *pset=PE_settings();
+	ParticleData *pa;
+	ParticleEdit *edit;
+	ParticleSystemModifierData *psmd;
+	KDTree *tree;
+	KDTreeNearest nearest[10];
+	float mat[4][4], co[3];
+	int i, n, totn, removed, totpart, flag, totremoved;
+
+	if(!PE_can_edit(psys)) return;
+
+	edit= psys->edit;
+	psmd= psys_get_modifier(ob, psys);
+	totremoved= 0;
+
+	do {
+		removed= 0;
+
+		totpart= psys->totpart;
+		tree=BLI_kdtree_new(totpart);
+			
+		/* insert particles into kd tree */
+		LOOP_PARTICLES(i,pa) {
+			if(particle_is_selected(psys, pa)) {
+				psys_mat_hair_to_object(ob, psmd->dm, psys->part->from, pa, mat);
+				VECCOPY(co, pa->hair[0].co);
+				Mat4MulVecfl(mat, co);
+				BLI_kdtree_insert(tree, i, co, NULL);
+			}
+		}
+
+		BLI_kdtree_balance(tree);
+
+		/* tag particles to be removed */
+		LOOP_PARTICLES(i,pa) {
+			if(particle_is_selected(psys, pa)) {
+				psys_mat_hair_to_object(ob, psmd->dm, psys->part->from, pa, mat);
+				VECCOPY(co, pa->hair[0].co);
+				Mat4MulVecfl(mat, co);
+
+				totn= BLI_kdtree_find_n_nearest(tree,10,co,NULL,nearest);
+
+				for(n=0; n<totn; n++) {
+					/* this needs a custom threshold still */
+					if(nearest[n].index > i && nearest[n].dist < 0.0002f) {
+						if(!(pa->flag & PARS_TAG)) {
+							pa->flag |= PARS_TAG;
+							removed++;
+						}
+					}
+				}
+			}
+		}
+
+		BLI_kdtree_free(tree);
+
+		/* remove tagged particles - don't do mirror here! */
+		flag= pset->flag;
+		pset->flag &= ~PE_X_MIRROR;
+		remove_tagged_elements(ob, psys);
+		pset->flag= flag;
+		totremoved += removed;
+	} while(removed);
+
+	if(totremoved)
+		notice("Removed: %d", totremoved);
+
+	PE_recalc_world_cos(ob, psys);
+	DAG_object_flush_update(G.scene, ob, OB_RECALC_DATA);
+	allqueue(REDRAWVIEW3D, 1);
+	BIF_undo_push("Remove double particles");
+}
+
 /************************************************/
 /*			Edit Brushes						*/
 /************************************************/

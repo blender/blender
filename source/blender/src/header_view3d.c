@@ -111,6 +111,7 @@
 #include "BIF_interface.h"
 #include "BIF_mainqueue.h"
 #include "BIF_meshtools.h"
+#include "BIF_poselib.h"
 #include "BIF_poseobject.h"
 #include "BIF_renderwin.h"
 #include "BIF_resources.h"
@@ -1906,7 +1907,10 @@ static void do_view3d_edit_object_transformmenu(void *arg, int event)
 		make_duplilist_real();
 		break;
 	case 6: /* apply scale/rotation or deformation */
-		apply_object();
+		apply_objects_locrot();
+		break;	
+	case 7: /* apply visual matrix to objects loc/size/rot */
+		apply_objects_visual_tx();
 		break;	
 	}
 	allqueue(REDRAWVIEW3D, 0);
@@ -1920,7 +1924,8 @@ static uiBlock *view3d_edit_object_transformmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "view3d_edit_object_transformmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_view3d_edit_object_transformmenu, NULL);
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Apply Scale/Rotation|Ctrl A",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Apply Scale/Rotationr to ObData|Ctrl A, 1",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Apply Visual Transform|Ctrl A, 2",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Apply Deformation|Ctrl Shift A",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make Duplicates Real|Ctrl Shift A",		0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 	
@@ -4048,6 +4053,49 @@ static uiBlock *view3d_pose_armature_motionpathsmenu(void *arg_unused)
 	return block;
 }
 
+static void do_view3d_pose_armature_poselibmenu(void *arg, int event)
+{
+	Object *ob= OBACT;
+	
+	switch(event) {
+		case 1:
+			poselib_preview_poses(ob, 0);
+			break;
+		case 2:
+			poselib_add_current_pose(ob, 0);
+			break;
+		case 3:
+			poselib_rename_pose(ob);
+			break;
+		case 4:
+			poselib_remove_pose(ob, NULL);
+			break;
+	}
+	
+	allqueue(REDRAWVIEW3D, 0);
+}
+
+static uiBlock *view3d_pose_armature_poselibmenu(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+
+	block= uiNewBlock(&curarea->uiblocks, "view3d_pose_armature_poselibmenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_view3d_pose_armature_poselibmenu, NULL);
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Apply Pose|Ctrl L",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Add/Replace Pose|Shift L",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Rename Pose|Ctrl Shift L",	0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Remove Pose|Alt L",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+	
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	return block;
+}
+
 static void do_view3d_pose_armaturemenu(void *arg, int event)
 {
 	Object *ob;
@@ -4126,6 +4174,7 @@ static uiBlock *view3d_pose_armaturemenu(void *arg_unused)
 	
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
+	uiDefIconTextBlockBut(block, view3d_pose_armature_poselibmenu, NULL, ICON_RIGHTARROW_THIN, "PoseLib", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_pose_armature_motionpathsmenu, NULL, ICON_RIGHTARROW_THIN, "Motion Paths", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_pose_armature_ikmenu, NULL, ICON_RIGHTARROW_THIN, "Inverse Kinematics", 0, yco-=20, 120, 19, "");
 	uiDefIconTextBlockBut(block, view3d_pose_armature_constraintsmenu, NULL, ICON_RIGHTARROW_THIN, "Constraints", 0, yco-=20, 120, 19, "");
@@ -4691,6 +4740,9 @@ void do_view3d_particlemenu(void *arg, int event)
 	case 6:
 		pset->flag ^= PE_X_MIRROR;
 		break;
+	case 7:
+		PE_remove_doubles();
+		break;
 	}
 
 	allqueue(REDRAWVIEW3D, 0);
@@ -4713,6 +4765,7 @@ uiBlock *view3d_particlemenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Mirror|Ctrl M", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Remove Doubles|W, 5", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete...|X", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
 	if(G.scene->selectmode & SCE_SELECT_POINT)
 		uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Subdivide|W, 2", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");

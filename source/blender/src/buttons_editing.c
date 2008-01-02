@@ -89,6 +89,7 @@
 #include "BKE_main.h"
 #include "BKE_mesh.h"
 #include "BKE_modifier.h"
+#include "BKE_multires.h"
 #include "BKE_packedFile.h"
 #include "BKE_particle.h"
 #include "BKE_scene.h"
@@ -102,6 +103,7 @@
 #include "BSE_filesel.h"
 
 #include "BIF_gl.h"
+#include "BIF_editaction.h"
 #include "BIF_editarmature.h"
 #include "BIF_editconstraint.h"
 #include "BIF_editdeform.h"
@@ -113,6 +115,7 @@
 #include "BIF_interface.h"
 #include "BIF_meshtools.h"
 #include "BIF_mywindow.h"
+#include "BIF_poselib.h"
 #include "BIF_poseobject.h"
 #include "BIF_renderwin.h"
 #include "BIF_resources.h"
@@ -736,6 +739,8 @@ static void delete_customdata_layer(void *data1, void *data2)
 	   from the data stored in multires */
 	if(me && me->mr) {
 		multires_delete_layer(me, &me->mr->fdata, type, layer - &data->layers[index]);
+		multires_level_to_editmesh(OBACT, me, 0);
+		multires_finish_mesh_update(OBACT);
 	}
 	else if(G.obedit) {
 		EM_free_data_layer(data, type);
@@ -1355,7 +1360,7 @@ static void modifiers_applyModifier(void *obv, void *mdv)
 			return;
 		}
 	
-		sculptmode_pmv_off(me);
+		mesh_pmv_off(ob, me);
 	
 		dm = mesh_create_derived_for_modifier(ob, md);
 		if (!dm) {
@@ -3705,6 +3710,7 @@ static void editing_panel_lattice_type(Object *ob, Lattice *lt)
 void do_armbuts(unsigned short event)
 {
 	Object *ob= OBACT;
+	bAction *act;
 	
 	switch(event) {
 	case B_ARM_RECALCDATA:
@@ -3741,6 +3747,125 @@ void do_armbuts(unsigned short event)
 	case B_ARM_CLEARPATHS:
 		if (ob && ob->pose)
 			pose_clear_paths(ob);
+		break;
+	
+	case B_POSELIB_ADDPOSE:
+		if (ob && ob->pose)
+			poselib_add_current_pose(ob, 1);
+		allqueue(REDRAWBUTSEDIT, 0);
+		allqueue(REDRAWACTION, 0);
+		break;
+	case B_POSELIB_REPLACEP:
+		if (ob && ob->pose)
+			poselib_add_current_pose(ob, 2);
+		allqueue(REDRAWBUTSEDIT, 0);
+		allqueue(REDRAWACTION, 0);
+		break;
+	case B_POSELIB_REMOVEP:
+		if (ob && ob->pose) {
+			bAction *act= ob->poselib;
+			TimeMarker *marker= poselib_get_active_pose(act);
+			
+			poselib_remove_pose(ob, marker);
+		}
+		allqueue(REDRAWBUTSEDIT, 0);
+		allqueue(REDRAWACTION, 0);
+		break;
+	case B_POSELIB_VALIDATE:
+		if (ob && ob->pose)
+			poselib_validate_act(ob->poselib);
+		allqueue(REDRAWBUTSEDIT, 0);
+		allqueue(REDRAWACTION, 0);
+		break;
+	case B_POSELIB_APPLYP:
+		if (ob && ob->pose)
+			poselib_preview_poses(ob, 1);
+		allqueue(REDRAWBUTSEDIT, 0);
+		break;
+		
+	/* note: copied from headerbuttons.c */
+	case B_POSELIB_ALONE: //B_ACTALONE
+		if (ob && ob->id.lib==0) {
+			act= ob->poselib;
+			
+			if (act->id.us > 1) {
+				if (okee("Single user")) {
+					ob->poselib= copy_action(act);
+					act->id.us--;
+					allqueue(REDRAWBUTSEDIT, 0);
+					allqueue(REDRAWACTION, 0);
+				}
+			}
+		}
+		break;
+	case B_POSELIB_DELETE: //B_ACTIONDELETE
+		act= ob->poselib;
+		
+		if (act)
+			act->id.us--;
+		ob->poselib=NULL;
+		
+		BIF_undo_push("Unlink PoseLib");
+		
+		allqueue(REDRAWBUTSEDIT, 0);
+		allqueue(REDRAWACTION, 0);
+		break;
+	case B_POSELIB_BROWSE: //B_ACTIONBROWSE:
+		{
+			ID *id, *idtest;
+			int nr= 1;
+			
+			if (ob == NULL)
+				break;
+			act= ob->poselib;
+			id= (ID *)act;
+			
+			if (G.buts->menunr == -2) {
+				activate_databrowse((ID *)ob->poselib, ID_AC,  0, B_POSELIB_BROWSE, &G.buts->menunr, do_armbuts);
+				return;
+			}
+			if (G.buts->menunr < 0) break;
+			
+			/*	See if we have selected a valid action */
+			for (idtest= G.main->action.first; idtest; idtest= idtest->next) {
+				if (nr == G.buts->menunr) {
+					break;
+				}
+				nr++;
+			}
+			
+			/* Store current action */
+			if (!idtest) {
+				/* 'Add New' option: 
+				 * 	- make a copy of an exisiting action
+				 *	- or make a new empty action if no existing action
+				 */
+				if (act) {
+					idtest= (ID *)copy_action(act);
+				} 
+				else { 
+					/* a plain action */
+					idtest=(ID *)add_empty_action("PoseLib");
+				}
+				idtest->us--;
+			}
+			
+			if ((idtest != id) && (ob)) {
+				act= (bAction *)idtest;
+				
+				ob->poselib= act;
+				id_us_plus(idtest);
+				
+				if (id) id->us--;
+				
+				/* Update everything */
+				BIF_undo_push("Browse PoseLibs");
+				
+				allqueue(REDRAWBUTSEDIT, 0);
+				allqueue(REDRAWACTION, 0);
+				allqueue(REDRAWHEADERS, 0); 
+			}
+		}
 		break;
 	}
 }
@@ -4482,6 +4607,8 @@ void do_meshbuts(unsigned short event)
 
 			if(me && me->mr) {
 				multires_add_layer(me, &me->mr->fdata, CD_MTFACE, layernum);
+				multires_level_to_editmesh(ob, me, 0);
+				multires_finish_mesh_update(ob);
 			}
 			else if(G.obedit) {
 				EM_add_data_layer(&em->fdata, CD_MTFACE);
@@ -4949,6 +5076,47 @@ static void editing_panel_links(Object *ob)
 		return;
 	}
 	
+	/* poselib for armatures */
+	if (ob->type==OB_ARMATURE) {
+		if ((ob->pose) && (ob->flag & OB_POSEMODE) && (G.obedit != ob)) {
+			bAction *act= ob->poselib;
+			
+			xco= 143;
+			
+			uiDefBut(block, LABEL,0, "Action (PoseLib):", xco, 154, 130,20, 0, 0, 0, 0, 0, "");
+			
+			/* PoseLib Action */
+			uiBlockSetCol(block, TH_BUT_SETTING2);
+			std_libbuttons(block, 143, 130, 0, NULL, B_POSELIB_BROWSE, ID_AC, 0, (ID *)act, (ID *)ob, &(G.buts->menunr), B_POSELIB_ALONE, 0, B_POSELIB_DELETE, 0, 0);
+			uiBlockSetCol(block, TH_AUTO);
+			
+			uiDefBut(block, BUT, B_POSELIB_VALIDATE,  "Auto-Sync PoseLib",	xco,110,160,20, 0, 0, 0, 0, 0, "Syncs the current PoseLib with the poses available");
+			
+			/* poselib pose editing controls */
+			if ((act) && (act->markers.first)) {
+				TimeMarker *marker= poselib_get_active_pose(act);
+				int count= BLI_countlist(&act->markers);
+				char *menustr= poselib_build_poses_menu(act, "PoseLib Poses");
+				
+				uiBlockBeginAlign(block);
+					/* currently 'active' pose */
+					uiDefButI(block, MENU, B_POSELIB_APPLYP, menustr, xco, 85,18,20, &act->active_marker, 1, count, 0, 0, "Browses Poses in PoseLib. Applies chosen pose.");
+					MEM_freeN(menustr);
+					
+					if (act->active_marker) {
+						uiDefBut(block, TEX, REDRAWBUTSEDIT,"",		xco+18,85,160-18-20,20, marker->name, 0, 63, 0, 0, "Displays current PoseLib Pose name. Click to change.");
+						uiDefIconBut(block, BUT, B_POSELIB_REMOVEP, VICON_X, xco+160-20, 85, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Remove this PoseLib Pose from PoseLib");
+					}
+					
+					/* add new poses */
+					uiDefBut(block, BUT, B_POSELIB_ADDPOSE, "Add Pose",	xco,65,80,20, 0, 0, 0, 0, 0, "Add current pose to PoseLib");
+					uiDefBut(block, BUT, B_POSELIB_REPLACEP, "Replace Pose",	xco+80,65,80,20, 0, 0, 0, 0, 0, "Replace existing PoseLib Pose with current pose");
+				uiBlockEndAlign(block);	
+			}
+		}	
+		return;
+	}
+	
 	/* vertex group... partially editmode... */
 	if(ob->type==OB_MESH || ob->type==OB_LATTICE) {
 		bDeformGroup *defGroup;
@@ -5061,10 +5229,18 @@ void editing_panel_sculpting_tools()
 	sculptmode_draw_interface_tools(block,0,200);
 }
 
+void editing_panel_sculpting_brush()
+{
+	uiBlock *block= uiNewBlock(&curarea->uiblocks, "editing_panel_sculpting_brush", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Brush", "Editing", 300, 0, 318, 204)==0) return;
+
+	sculptmode_draw_interface_brush(block,0,200);
+}
+
 void editing_panel_sculpting_textures()
 {
-	uiBlock *block= uiNewBlock(&curarea->uiblocks, "editing_panel_sculpting_textures", UI_EMBOSS, UI_HELV, curarea->win);
-	if(uiNewPanel(curarea, block, "Brush", "Editing", 300, 0, 318, 204)==0) return;
+	uiBlock *block= uiNewBlock(&curarea->uiblocks, "editing_panel_sculpting_texture", UI_EMBOSS, UI_HELV, curarea->win);
+	if(uiNewPanel(curarea, block, "Texture", "Editing", 300, 0, 318, 204)==0) return;
 
 	sculptmode_draw_interface_textures(block,0,200);
 }
@@ -5072,11 +5248,10 @@ void editing_panel_sculpting_textures()
 void sculptmode_draw_interface_tools(uiBlock *block, unsigned short cx, unsigned short cy)
 {
 	SculptData *sd;
-	uiBut *but;
 
 	if(!G.scene) return;
 	sd= &G.scene->sculptdata;
-	
+
 	uiBlockBeginAlign(block);
 
 	uiDefBut(block,LABEL,B_NOP,"Brush",cx,cy,90,19,NULL,0,0,0,0,"");
@@ -5105,7 +5280,7 @@ void sculptmode_draw_interface_tools(uiBlock *block, unsigned short cx, unsigned
 	if(sd->brush_type!=GRAB_BRUSH)
 		uiDefButC(block,TOG,B_NOP,"Airbrush",cx+178,cy,89,19,&sculptmode_brush()->airbrush,0,0,0,0,"Brush makes changes without waiting for the mouse to move");
 	cy-= 20;
-	but= uiDefButS(block,NUMSLI,B_NOP,"Size: ",cx,cy,268,19,&sculptmode_brush()->size,1.0,200.0,0,0,"Set brush radius in pixels");
+	uiDefButS(block,NUMSLI,B_NOP,"Size: ",cx,cy,268,19,&sculptmode_brush()->size,1.0,200.0,0,0,"Set brush radius in pixels");
 	cy-= 20;
 	if(sd->brush_type!=GRAB_BRUSH)
 		uiDefButC(block,NUMSLI,B_NOP,"Strength: ",cx,cy,268,19,&sculptmode_brush()->strength,1.0,100.0,0,0,"Set brush strength");
@@ -5124,6 +5299,46 @@ void sculptmode_draw_interface_tools(uiBlock *block, unsigned short cx, unsigned
 	cx+= 210;
 }
 
+static void sculptmode_curves_reset(void *sd_v, void *j)
+{
+	SculptData *sd = sd_v;
+	sculpt_reset_curve(sd);
+	curvemapping_changed(sd->cumap, 0);
+}
+
+void sculptmode_draw_interface_brush(uiBlock *block, unsigned short cx, unsigned short cy)
+{
+	SculptData *sd= sculpt_data();
+	int orig_y = cy;
+	rctf rect;
+	uiBut *but;
+
+	uiBlockBeginAlign(block);
+	cy-= 20;
+	uiDefButC(block,TOG,REDRAWBUTSEDIT, "Curve", cx,cy,80,19, &sd->texfade, 0,0,0,0,"Use curve control for radial brush intensity");
+	cy-= 20;
+	but= uiDefBut(block, BUT, REDRAWBUTSEDIT, "Reset",cx,cy,80,19, NULL, 0,0,0,0, "Default curve preset");
+	uiButSetFunc(but, sculptmode_curves_reset, sd, NULL);
+	cy-= 25;
+	uiBlockEndAlign(block);	
+
+	uiBlockBeginAlign(block);
+	uiDefButS(block,NUM,B_NOP, "Space", cx,cy,80,19, &sd->spacing, 0,500,20,0,"Non-zero inserts N pixels between dots");
+	cy-= 20;
+	if(sd->brush_type == DRAW_BRUSH)
+		uiDefButC(block,NUM,B_NOP, "View", cx,cy,80,19, &sculptmode_brush()->view, 0,10,20,0,"Pulls brush direction towards view");
+	uiBlockEndAlign(block);
+
+	/* Draw curve */
+	cx += 90;
+	cy = orig_y;
+	rect.xmin= cx; rect.xmax= cx + 178;
+	rect.ymin= cy - 160; rect.ymax= cy + 20;
+	uiBlockBeginAlign(block);
+	curvemap_buttons(block, sd->cumap, (char)0, B_NOP, 0, &rect);
+	uiBlockEndAlign(block);
+}
+
 void sculptmode_draw_interface_textures(uiBlock *block, unsigned short cx, unsigned short cy)
 {
 	SculptData *sd= sculpt_data();
@@ -5134,24 +5349,7 @@ void sculptmode_draw_interface_textures(uiBlock *block, unsigned short cx, unsig
 	uiBut *but;
 
 	uiBlockBeginAlign(block);
-	uiDefBut(block,LABEL,B_NOP,"Common",cx,cy,80,20,0,0,0,0,0,"");
 	cy-= 20;
-	
-	uiBlockBeginAlign(block);
-	uiDefButC(block,TOG,B_NOP, "Fade", cx,cy,80,19, &sd->texfade, 0,0,0,0,"Smooth the edges of the texture");
-	cy-= 20;
-	uiDefButS(block,NUM,B_NOP, "Space", cx,cy,80,19, &sd->spacing, 0,500,20,0,"Non-zero inserts N pixels between dots");
-	cy-= 20;
-	if(sd->brush_type == DRAW_BRUSH)
-		uiDefButC(block,NUM,B_NOP, "View", cx,cy,80,19, &sculptmode_brush()->view, 0,10,20,0,"Pulls brush direction towards view");
-	uiBlockEndAlign(block);
-	
-	cy= orig_y;
-	cx+= 85;
-	uiBlockBeginAlign(block);
-	uiDefBut(block,LABEL,B_NOP,"Texture",cx,cy,80,20,0,0,0,0,0,"");
-	cy-= 20;
-
 	/* TEX CHANNELS */
 	uiBlockBeginAlign(block);
 	uiBlockSetCol(block, TH_BUT_NEUTRAL);
@@ -5850,7 +6048,7 @@ void editing_panel_mesh_multires()
 
 		uiBlockBeginAlign(block);
 		but= uiDefBut(block,BUT,B_NOP,"Add Level", cx,cy,134,19,0,0,0,0,0,"Add a new level of subdivision at the end of the chain");
-		uiButSetFunc(but,multires_add_level,ob,me);
+		uiButSetFunc(but, multires_subdivide, ob, me);
 		uiDefButC(block, MENU, B_NOP, subsurfmenu, cx + 134, cy, 134, 19, &G.scene->toolsettings->multires_subdiv_type, 0, 0, 0, 0, "Selects type of subdivision algorithm.");
 		cy-= 20;
 
@@ -5866,7 +6064,7 @@ void editing_panel_mesh_multires()
 			cy-= 20;
 
 			but= uiDefButC(block,NUM,B_NOP,"Edges: ",cx,cy,268,19,(char *)&me->mr->edgelvl,1.0,me->mr->level_count,0,0,"Set level of edges to display");
-			uiButSetFunc(but,multires_edge_level_update,ob,me);
+			uiButSetFunc(but,multires_edge_level_update_cb,ob,me);
 			cy-= 20;
 			uiBlockEndAlign(block);
 			
@@ -6048,6 +6246,8 @@ void editing_panels()
 		else if(G.f & G_SCULPTMODE) {
 			uiNewPanelTabbed("Multires", "Editing");
 			editing_panel_sculpting_tools();
+			uiNewPanelTabbed("Multires", "Editing");
+			editing_panel_sculpting_brush();
 			uiNewPanelTabbed("Multires", "Editing");
 			editing_panel_sculpting_textures();
 		} else {

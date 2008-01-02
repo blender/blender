@@ -86,8 +86,10 @@
 #include "BKE_ipo.h"
 #include "BKE_main.h"
 #include "BKE_mesh.h"
+#include "BKE_multires.h"
 #include "BKE_node.h"
 #include "BKE_scene.h"
+#include "BKE_sculpt.h"
 #include "BKE_texture.h"
 #include "BKE_utildefines.h"
 #include "BKE_image.h" /* for IMA_TYPE_COMPOSITE and IMA_TYPE_R_RESULT */
@@ -124,6 +126,7 @@
 #include "BIF_meshtools.h"
 #include "BIF_mywindow.h"
 #include "BIF_oops.h"
+#include "BIF_poselib.h"
 #include "BIF_poseobject.h"
 #include "BIF_outliner.h"
 #include "BIF_resources.h"
@@ -1494,20 +1497,20 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			case PAGEUPKEY:
 				if(me && me->mr) {
 					me->mr->newlvl= ((Mesh*)ob->data)->mr->current+1;
-					multires_set_level(ob, ob->data, 0);
+					multires_set_level_cb(ob, ob->data);
 				}
 				break;
 			case PAGEDOWNKEY:
 				if(me && me->mr) {
 					me->mr->newlvl= ((Mesh*)ob->data)->mr->current-1;
-					multires_set_level(ob, ob->data, 0);
+					multires_set_level_cb(ob, ob->data);
 				}
 				break;
 			/* Partial Visibility */
 			case HKEY:
 				if(G.qual==LR_ALTKEY) {
 					waitcursor(1);
-					sculptmode_pmv_off(get_mesh(ob));
+					mesh_pmv_off(ob, get_mesh(ob));
 					BIF_undo_push("Partial mesh hide");
 					allqueue(REDRAWVIEW3D,0);
 					waitcursor(0);
@@ -2131,7 +2134,16 @@ static void winqreadview3dspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 						selectconnected_nurb();
 				}
 				else if(ob && (ob->flag & OB_POSEMODE)) {
-					selectconnected_posearmature();
+					if (G.qual == LR_CTRLKEY) 
+						poselib_preview_poses(ob, 0);
+					else if (G.qual == LR_SHIFTKEY) 
+						poselib_add_current_pose(ob, 0);
+					else if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY))
+						poselib_rename_pose(ob);
+					else if (G.qual == LR_ALTKEY)
+						poselib_remove_pose(ob, NULL);
+					else
+						selectconnected_posearmature();
 				}
 				else {
 					if(FACESEL_PAINT_TEST) {
@@ -3966,7 +3978,7 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		
 		uiDefButBitI(block, TOGN, USER_DISABLE_MIPMAP, B_MIPMAPCHANGED, "Mipmaps",
 			(xpos+edgsp+(5*mpref)+(5*midsp)),y5,mpref,buth,
-			&(U.gameflags), 0, 0, 0, 0, "Toggles between mipmap textures on (beautiful) and off (fast)");
+			&(U.gameflags), 0, 0, 0, 0, "Scale textures for the 3d View (Looks nicer but uses more memory and slows image reloading)");
 		
 		/* main choices pup: note, it uses collums, and the seperators (%l) then have to fill both halves equally for the menu to work */
 		uiDefButS(block, MENU, B_GLRESLIMITCHANGED, "GL Texture Clamp Off%x0|%l|GL Texture Clamp 8192%x8192|GL Texture Clamp 4096%x4096|GL Texture Clamp 2048%x2048|GL Texture Clamp 1024%x1024|GL Texture Clamp 512%x512|GL Texture Clamp 256%x256|GL Texture Clamp 128%x128",
@@ -4532,9 +4544,6 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		}
 		
 		switch(event) {
-		case UI_BUT_EVENT:
-			do_seqbuttons(val);			
-			break;
 		case LEFTMOUSE:
 			if(sseq->mainb || view2dmove(event)==0) {
 				
@@ -4658,11 +4667,7 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 		case SPACEKEY:
 			if (G.qual==0) {
-				if (sseq->mainb) {
-					play_anim(1);
-				} else {
-					add_sequence(-1);
-				}
+				add_sequence(-1);
 			}
 			break;
 		case BKEY:
@@ -4720,6 +4725,11 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				select_linked_seq( 0 );
 			} else if((G.qual==LR_CTRLKEY)) { /* Cut at current frame */
 				select_linked_seq( 2 );
+			} else if ((G.qual==LR_SHIFTKEY)) {
+				if (last_seq) {
+					last_seq->flag ^= SEQ_LOCK;
+					doredraw = 1;
+				}
 			}
 			break;
 		case YKEY:
@@ -4731,17 +4741,14 @@ static void winqreadseqspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			if(G.qual==LR_ALTKEY) {
 				un_meta();	
 				break; /*dont redraw timeline etc */
-			} else if((G.qual==0)){
-				if ((last_seq) && 
-				    (last_seq->type == SEQ_RAM_SOUND
-				     || last_seq->type == SEQ_HD_SOUND)) 
-				{
+			} else if(G.qual == 0){
+				make_meta();
+				break; /*dont redraw timeline etc */
+			} else if (G.qual==LR_SHIFTKEY) {
+				if (last_seq) {
 					last_seq->flag ^= SEQ_MUTE;
 					doredraw = 1;
-				} else {
-					make_meta();
 				}
-				break; /*dont redraw timeline etc */
 			} else if ((G.qual==(LR_CTRLKEY|LR_ALTKEY) )) {
 				add_marker(CFRA);
 			} else if ((G.qual==LR_CTRLKEY)) {
@@ -6211,6 +6218,14 @@ void allqueue(unsigned short event, short val)
 					scrarea_queue_headredraw(sa);
 				}
 				break;
+			case REDRAWSEQ:
+				if(sa->spacetype==SPACE_SEQ) {
+					addqueue(sa->win, CHANGED, 1);
+					scrarea_queue_winredraw(sa);
+					scrarea_queue_headredraw(sa);
+				}
+				/* fall through, since N-keys moved to 
+				   Buttons */
 			case REDRAWBUTSSCENE:
 				if(sa->spacetype==SPACE_BUTS) {
 					buts= sa->spacedata.first;
@@ -6281,13 +6296,6 @@ void allqueue(unsigned short event, short val)
 				}
 				else if(sa->spacetype==SPACE_OOPS) {
 					scrarea_queue_winredraw(sa);
-				}
-				break;
-			case REDRAWSEQ:
-				if(sa->spacetype==SPACE_SEQ) {
-					addqueue(sa->win, CHANGED, 1);
-					scrarea_queue_winredraw(sa);
-					scrarea_queue_headredraw(sa);
 				}
 				break;
 			case REDRAWOOPS:

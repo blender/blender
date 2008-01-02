@@ -1467,7 +1467,7 @@ void makeBevelList(Object *ob)
 	BevPoint *bevp, *bevp2, *bevp1 = NULL, *bevp0;
 	float  *data, *data_a, *v1, *v2, min, inp, x1, x2, y1, y2, vec[3];
 	struct bevelsort *sortdata, *sd, *sd1;
-	int a, b, len, nr, poly, resolu;
+	int a, b, nr, poly, resolu, len=0;
 
 	/* this function needs an object, because of tflag and upflag */
 	cu= ob->data;

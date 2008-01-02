@@ -393,8 +393,7 @@ static void do_seq_editmenu(void *arg, int event)
 	case 3: /* Separate Meta Strip */
 		un_meta();
 		break;
-	case 4: /* Properties... */
-		add_blockhandler(curarea, SEQ_HANDLER_PROPERTIES, UI_PNL_UNSTOW);
+	case 4: /* former Properties... */
 		break;
 	case 5: /* Duplicate */
 		add_duplicate_seq();
@@ -450,8 +449,6 @@ static uiBlock *seq_editmenu(void *arg_unused)
 	block= uiNewBlock(&curarea->uiblocks, "seq_editmenu", UI_EMBOSSP, UI_HELV, curarea->headwin);
 	uiBlockSetButmFunc(block, do_seq_editmenu, NULL);
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_MENU_PANEL, "Strip Properties...|N", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 4, "");
-
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Move|G", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 11, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Grab/Extend from frame|E", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 0, 7, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Snap to Current Frame|Shift S, 1", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");

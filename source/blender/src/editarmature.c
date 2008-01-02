@@ -4704,14 +4704,14 @@ void generateSkeleton(void)
 		error("No selected vertex\n");
 		return;
 	}
-	
-	weightToHarmonic(em);
 		
 	renormalizeWeight(em, 1.0f);
-
-//#ifdef DEBUG_REEB
+	
+	weightToHarmonic(em);
+	
+#ifdef DEBUG_REEB
 	weightToVCol(em);
-//#endif
+#endif
 	
 	rg = generateReebGraph(em, G.scene->toolsettings->skgen_resolution);
 

@@ -542,6 +542,9 @@ def get_float_func(filepath):
 				return lambda f: float(f.replace(',', '.'))
 			elif '.' in line:
 				return float
+	
+	# incase all vert values were ints 
+	return float
 
 def load_obj(filepath, CLAMP_SIZE= 0.0, CREATE_FGONS= True, CREATE_SMOOTH_GROUPS= True, CREATE_EDGES= True, SPLIT_OBJECTS= True, SPLIT_GROUPS= True, SPLIT_MATERIALS= True, IMAGE_SEARCH=True):
 	'''

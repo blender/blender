@@ -100,6 +100,7 @@
 
 #include "BLI_arithb.h"
 #include "BLI_blenlib.h"
+#include "BLI_bpath.h"
 #include "BLO_writefile.h"
 
 #include "BSE_editipo.h"
@@ -482,18 +483,19 @@ void do_info_buttons(unsigned short event)
 		else if(G.scene->id.next) sce= G.scene->id.next;
 		else return;
 		if(okee("Delete current scene")) {
+			/* Note, anything besides free_libblock needs to be added in
+			 * Python Scene.c for Blender.Scene.Unlink() */
+			
 			
 			/* exit modes... could become single call once */
 			exit_editmode(EM_FREEDATA|EM_WAITCURSOR);
 			exit_paint_modes();
 			
 			/* check all sets */
-			sce1= G.main->scene.first;
-			while(sce1) {
+			for (sce1= G.main->scene.first; sce1; sce1= sce1->id.next) {
 				if(sce1->set == G.scene) sce1->set= 0;
-				sce1= sce1->id.next;
 			}
-
+			
 			/* check all sequences */
 			clear_scene_in_allseqs(G.scene);
 
@@ -501,10 +503,9 @@ void do_info_buttons(unsigned short event)
 			clear_scene_in_nodes(G.scene);
 			
 			/* al screens */
-			sc= G.main->screen.first;
-			while(sc) {
+			
+			for (sc= G.main->screen.first; sc; sc= sc->id.next ) {
 				if(sc->scene == G.scene) sc->scene= sce;
-				sc= sc->id.next;
 			}
 			free_libblock(&G.main->scene, G.scene);
 			set_scene(sce);
@@ -853,19 +854,6 @@ static void do_info_filemenu(void *arg, int event)
 	case 25:
 		BIF_screendump(1);
 		break;
-	case 10: /* pack data */
-		check_packAll();
-		break;
-	case 11: /* unpack to current dir */
-		unpackAll(PF_WRITE_LOCAL);
-		G.fileflags &= ~G_AUTOPACK;
-		break;
-	case 12: /* unpack data */
-		if (buttons_do_unpack() != RET_CANCEL) {
-			/* Clear autopack bit only if user selected one of the unpack options */
-			G.fileflags &= ~G_AUTOPACK;
-		}
-		break;
 	case 13:
 		exit_usiblender();
 		break;
@@ -903,6 +891,7 @@ static void do_info_filemenu(void *arg, int event)
 		U.flag ^= (USER_FILECOMPRESS);
 		break;
 	}
+	
 	allqueue(REDRAWINFO, 0);
 }
 
@@ -945,6 +934,109 @@ static uiBlock *info_openrecentmenu(void *arg_unused)
 	return block;
 }
 
+static void do_info_externalfiles(void *arg, int event)
+{
+	switch (event) {
+		
+	case 1: /* pack data */
+		check_packAll();
+		break;
+#if 0
+	case 2: /* unpack to current dir */
+		unpackAll(PF_WRITE_LOCAL);
+		G.fileflags &= ~G_AUTOPACK;
+		break;
+#endif
+	case 3: /* unpack data */
+		if (buttons_do_unpack() != RET_CANCEL) {
+			/* Clear autopack bit only if user selected one of the unpack options */
+			G.fileflags &= ~G_AUTOPACK;
+		}
+		break;
+	case 10: /* make all paths relative */
+		if (G.relbase_valid) {
+			int tot,changed,failed,linked;
+			char str[512];
+			char txtname[24]; /* text block name */
+			txtname[0] = '\0';
+			makeFilesRelative(txtname, &tot, &changed, &failed, &linked);
+			if (failed) sprintf(str, "Make Relative%%t|Total files %i|Changed %i|Failed %i, See Text \"%s\"|Linked %i", tot, changed, failed, txtname, linked);
+			else		sprintf(str, "Make Relative%%t|Total files %i|Changed %i|Failed %i|Linked %i", tot, changed, failed, linked);
+			pupmenu(str);
+		} else {
+			pupmenu("Can't set relative paths with an unsaved blend file");
+		}
+		break;
+	case 11: /* make all paths relative */
+		{
+			int tot,changed,failed,linked;
+			char str[512];
+			char txtname[24]; /* text block name */
+			txtname[0] = '\0';
+			makeFilesAbsolute(txtname, &tot, &changed, &failed, &linked);
+			sprintf(str, "Make Absolute%%t|Total files %i|Changed %i|Failed %i|Linked %i", tot, changed, failed, linked);
+			if (failed) sprintf(str, "Make Absolute%%t|Total files %i|Changed %i|Failed %i, See Text \"%s\"|Linked %i", tot, changed, failed, txtname, linked);
+			else		sprintf(str, "Make Absolute%%t|Total files %i|Changed %i|Failed %i|Linked %i", tot, changed, failed, linked);
+			
+			pupmenu(str);
+		}
+		break;
+	case 12: /* check images exist */
+		{
+			char txtname[24]; /* text block name */
+			txtname[0] = '\0';
+			
+			/* run the missing file check */
+			checkMissingFiles( txtname );
+			
+			if (txtname[0] == '\0') {
+				okee("No external files missing");
+			} else {
+				char str[128];
+				sprintf(str, "Missing files listed in Text \"%s\"", txtname );
+				error(str);
+			}
+		}
+		break;
+	case 13: /* search for referenced files that are not available  */
+		if(curarea->spacetype==SPACE_INFO) {
+			ScrArea *sa;
+			sa= closest_bigger_area();
+			areawinset(sa->win);
+		}
+		activate_fileselect(FILE_SPECIAL, "Find Missing Files", "", findMissingFiles);
+		break;
+	}
+	
+	allqueue(REDRAWINFO, 0);
+}
+
+static uiBlock *info_externalfiles(void *arg_unused)
+{
+	uiBlock *block;
+	short yco = 20, menuwidth = 120;
+
+	block= uiNewBlock(&curarea->uiblocks, "info_externalfiles", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetButmFunc(block, do_info_externalfiles, NULL);
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Pack into Blend",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 1, "");
+#if 0
+	uiDefBut(block, BUTM, 1, "Unpack Data to current dir",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 2, "Removes all packed files from the project and saves them to the current directory");
+#endif
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Unpack into Files...",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 3, "");
+
+	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make all Paths Relative",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 10, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make all Paths Absolute",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 11, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Report Missing Files",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 12, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Find Missing Files",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 13, "");
+
+	uiBlockSetDirection(block, UI_RIGHT);
+	uiTextBoundsBlock(block, 60);
+	return block;
+}
+
 static uiBlock *info_filemenu(void *arg_unused)
 {
 	uiBlock *block;
@@ -975,9 +1067,9 @@ static uiBlock *info_filemenu(void *arg_unused)
 
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save Image...|F3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Dump Subwindow|Ctrl F3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 24, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Dump Screen|Ctrl Shift F3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 25, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save Rendered Image...|F3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 6, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Screenshot Subwindow|Ctrl F3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 24, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Screenshot All|Ctrl Shift F3",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 25, "");
 #if GAMEBLENDER == 1
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Save Runtime...",			0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 22, "");
 #ifdef _WIN32
@@ -998,13 +1090,11 @@ static uiBlock *info_filemenu(void *arg_unused)
 	uiDefIconTextBlockBut(block, info_file_exportmenu, NULL, ICON_RIGHTARROW_THIN, "Export", 0, yco-=20, menuwidth, 19, "");
 	
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Pack Data",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 10, "");
-//	uiDefBut(block, BUTM, 1, "Unpack Data to current dir",		0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 11, "Removes all packed files from the project and saves them to the current directory");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Unpack Data...",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 12, "");
-
+	
+	uiDefIconTextBlockBut(block, info_externalfiles, NULL, ICON_RIGHTARROW_THIN, "External Data",0, yco-=20, 120, 19, "");
+	
 	uiDefBut(block, SEPR, 0, "",					0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
-
+	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Quit Blender|Ctrl Q",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 13, "");
 
 	uiBlockSetDirection(block, UI_DOWN);
@@ -1651,8 +1741,13 @@ static uiBlock *info_timelinemenu(void *arg_unused)
 
 void do_info_render_bakemenu(void *arg, int event)
 {
-
-	objects_bake_render(event);
+	switch (event) {
+	case R_BAKE_TO_ACTIVE:
+		G.scene->r.bake_flag ^= event;
+		break;
+	default:
+		objects_bake_render(event);
+	}	
 	
 	allqueue(REDRAWINFO, 0);
 }
@@ -1660,15 +1755,24 @@ void do_info_render_bakemenu(void *arg, int event)
 static uiBlock *info_render_bakemenu(void *arg_unused)
 {
 	uiBlock *block;
-	short yco= 0;
+	short yco= 0, menuwidth=160;
 	
 	block= uiNewBlock(&curarea->uiblocks, "render_bakemenu", UI_EMBOSSP, UI_HELV, G.curscreen->mainwin);
 	uiBlockSetButmFunc(block, do_info_render_bakemenu, NULL);
 	
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Full Render|Ctrl Alt B, 1",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 1, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Ambient Occlusion|Ctrl Alt B, 2",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 2, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Normals|Ctrl Alt B, 3",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 3, "");
-	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Texture Only|Ctrl Alt B, 4",				0, yco-=20, 160, 19, NULL, 0.0, 0.0, 1, 4, "");
+	if(G.scene->r.bake_flag & R_BAKE_TO_ACTIVE) {
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_HLT, "Selected to Active",		 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, R_BAKE_TO_ACTIVE, "");
+	} else {
+		uiDefIconTextBut(block, BUTM, 1, ICON_CHECKBOX_DEHLT, "Selected to Active",		 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, R_BAKE_TO_ACTIVE, "");
+	}
+	
+	uiDefBut(block, SEPR, 0, "",				0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+	
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Full Render|Ctrl Alt B, 1",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 1, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Ambient Occlusion|Ctrl Alt B, 2",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Normals|Ctrl Alt B, 3",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Texture Only|Ctrl Alt B, 4",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Displacement|Ctrl Alt B, 5",				0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 5, "");	
 
 	uiBlockSetDirection(block, UI_RIGHT);
 	uiTextBoundsBlock(block, 50);

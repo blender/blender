@@ -225,6 +225,7 @@ void free_object(Object *ob)
 	ob->path= 0;
 	if(ob->ipo) ob->ipo->id.us--;
 	if(ob->action) ob->action->id.us--;
+	if(ob->poselib) ob->poselib->id.us--;
 	if(ob->dup_group) ob->dup_group->id.us--;
 	if(ob->defbase.first)
 		BLI_freelistN(&ob->defbase);

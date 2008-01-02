@@ -1099,7 +1099,7 @@ static void get_ipo_context(short blocktype, ID **from, Ipo **ipo, char *actname
 	else if(blocktype==ID_SEQ) {
 		Sequence *last_seq = get_last_seq();
 		
-		if(last_seq && ((last_seq->type & SEQ_EFFECT)||(last_seq->type == SEQ_HD_SOUND)||(last_seq->type == SEQ_RAM_SOUND))) {
+		if(last_seq) {
 			*from= (ID *)last_seq;
 			*ipo= last_seq->ipo;
 		}
@@ -1465,7 +1465,7 @@ void mouse_select_ipo(void)
 	if(G.sipo->editipo==0) return;
 	
 	get_status_editipo();
-	marker=find_nearest_marker(1);
+	marker=find_nearest_marker(SCE_MARKERS, 1);
 	
 	/* map ipo-points for editing if scaled ipo */
 	if (NLA_IPO_SCALED) {
@@ -1908,15 +1908,11 @@ Ipo *verify_ipo(ID *from, short blocktype, char *actname, char *constname, char 
 			{
 				Sequence *seq= (Sequence *)from;	/* note, sequence is mimicing Id */
 
-				if((seq->type & SEQ_EFFECT)||
-				   (seq->type == SEQ_RAM_SOUND)||
-				   (seq->type == SEQ_HD_SOUND)) {
-					if(seq->ipo==NULL) {
-						seq->ipo= add_ipo("SeqIpo", ID_SEQ);
-					}
-					update_seq_ipo_rect(seq);
-					return seq->ipo;
+				if(seq->ipo==NULL) {
+					seq->ipo= add_ipo("SeqIpo", ID_SEQ);
 				}
+				update_seq_ipo_rect(seq);
+				return seq->ipo;
 			}
 			break;
 		case ID_CU:

@@ -440,9 +440,6 @@
 				RelativePath="..\..\..\source\blender\src\meshtools.c">
 			</File>
 			<File
-				RelativePath="..\..\..\source\blender\src\multires-firstlevel.c">
-			</File>
-			<File
 				RelativePath="..\..\..\source\blender\src\multires.c">
 			</File>
 			<File
@@ -462,6 +459,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenpluginapi\intern\pluginapi.c">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\src\poselib.c">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\src\poseobject.c">

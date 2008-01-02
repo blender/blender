@@ -558,7 +558,7 @@ static void write_particlesystems(WriteData *wd, ListBase *particles)
 				ParticleData *pa = psys->particles;
 
 				for(a=0; a<psys->totpart; a++, pa++)
-					writedata(wd, DATA, MEM_allocN_len(pa->hair),pa->hair);
+					writestruct(wd, DATA, "HairKey", pa->totkey, pa->hair);
 			}
 		}
 		if(psys->child) writestruct(wd, DATA, "ChildParticle", psys->totchild ,psys->child);
@@ -1429,6 +1429,8 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 
 		for(a=0; a<MAX_MTEX; ++a)
 			writestruct(wd, DATA, "MTex", 1, sce->sculptdata.mtex[a]);
+		if(sce->sculptdata.cumap)
+			write_curvemapping(wd, sce->sculptdata.cumap);
 
 		ed= sce->ed;
 		if(ed) {
@@ -1468,7 +1470,15 @@ static void write_scenes(WriteData *wd, ListBase *scebase)
 
 					strip= seq->strip;
 					writestruct(wd, DATA, "Strip", 1, strip);
-
+					if(seq->flag & SEQ_USE_CROP && strip->crop) {
+						writestruct(wd, DATA, "StripCrop", 1, strip->crop);
+					}
+					if(seq->flag & SEQ_USE_TRANSFORM && strip->transform) {
+						writestruct(wd, DATA, "StripTransform", 1, strip->transform);
+					}
+					if(seq->flag & SEQ_USE_PROXY && strip->proxy) {
+						writestruct(wd, DATA, "StripProxy", 1, strip->proxy);
+					}
 					if(seq->type==SEQ_IMAGE)
 						writestruct(wd, DATA, "StripElem", strip->len, strip->stripdata);
 					else if(seq->type==SEQ_MOVIE || seq->type==SEQ_RAM_SOUND || seq->type == SEQ_HD_SOUND)
@@ -1735,15 +1745,20 @@ static void write_actions(WriteData *wd, ListBase *idbase)
 {
 	bAction			*act;
 	bActionChannel	*chan;
+	TimeMarker *marker;
 	
 	for(act=idbase->first; act; act= act->id.next) {
 		if (act->id.us>0 || wd->current) {
 			writestruct(wd, ID_AC, "bAction", 1, act);
 			if (act->id.properties) IDP_WriteProperty(act->id.properties, wd);
-
+			
 			for (chan=act->chanbase.first; chan; chan=chan->next) {
 				writestruct(wd, DATA, "bActionChannel", 1, chan);
 				write_constraint_channels(wd, &chan->constraintChannels);
+			}
+			
+			for (marker=act->markers.first; marker; marker=marker->next) {
+				writestruct(wd, DATA, "TimeMarker", 1, marker);
 			}
 		}
 	}

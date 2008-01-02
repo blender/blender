@@ -2218,6 +2218,7 @@ void new_image_sima(void)
 {
 	static int width= 1024, height= 1024;
 	static short uvtestgrid= 0;
+	static int floatbuf=0;
 	static float color[] = {0, 0, 0, 1};
 	char name[22];
 	Image *ima;
@@ -2230,10 +2231,11 @@ void new_image_sima(void)
 	add_numbut(3, COL, "", 0, 0, &color, NULL);
 	add_numbut(4, NUM|FLO, "Alpha:", 0.0, 1.0, &color[3], NULL);
 	add_numbut(5, TOG|SHO, "UV Test Grid", 0, 0, &uvtestgrid, NULL);
-	if (!do_clever_numbuts("New Image", 6, REDRAW))
+	add_numbut(6, TOG|INT, "32 bit Float", 0, 0, &floatbuf, NULL);
+	if (!do_clever_numbuts("New Image", 7, REDRAW))
  		return;
 
-	ima = BKE_add_image_size(width, height, name, uvtestgrid, color);
+	ima = BKE_add_image_size(width, height, name, floatbuf, uvtestgrid, color);
 	image_changed(G.sima, ima);
 	BKE_image_signal(G.sima->image, &G.sima->iuser, IMA_SIGNAL_USER_NEW_IMAGE);
 	BIF_undo_push("Add image");

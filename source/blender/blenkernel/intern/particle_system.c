@@ -105,13 +105,13 @@ static int get_current_display_percentage(ParticleSystem *psys)
 		return psys->part->disp;
 }
 
-static void alloc_particles(ParticleSystem *psys, int new_totpart)
+static void alloc_particles(Object *ob, ParticleSystem *psys, int new_totpart)
 {
 	ParticleData *newpars = 0, *pa;
-	int i, child_nbr, totpart, totsaved = 0;
+	int i, totpart, totsaved = 0;
 
-	if(new_totpart<0){
-		if(psys->part->distr==PART_DISTR_GRID){
+	if(new_totpart<0) {
+		if(psys->part->distr==PART_DISTR_GRID) {
 			totpart= psys->part->grid_res;
 			totpart*=totpart*totpart;
 		}
@@ -123,7 +123,7 @@ static void alloc_particles(ParticleSystem *psys, int new_totpart)
 
 	if(totpart)
 		newpars= MEM_callocN(totpart*sizeof(ParticleData), "particles");
-	if(psys->particles){
+	if(psys->particles) {
 		totsaved=MIN2(psys->totpart,totpart);
 		/*save old pars*/
 		if(totsaved)
@@ -136,22 +136,39 @@ static void alloc_particles(ParticleSystem *psys, int new_totpart)
 	}
 	psys->particles=newpars;
 
-	child_nbr= (psys->renderdata)? psys->part->ren_child_nbr: psys->part->child_nbr;
-	if(child_nbr && psys->part->childtype){
-		if(psys->child)
-			MEM_freeN(psys->child);
-		psys->child = NULL;
-		if(totpart)
-			psys->child= MEM_callocN(totpart*child_nbr*sizeof(ChildParticle), "child_particles");
-		psys->totchild=totpart*child_nbr;
-	}
-	else if(psys->child){
+	if(psys->child) {
 		MEM_freeN(psys->child);
 		psys->child=0;
 		psys->totchild=0;
 	}
 
 	psys->totpart=totpart;
+}
+
+static int get_alloc_child_particles_tot(ParticleSystem *psys)
+{
+	int child_nbr;
+
+	if(!psys->part->childtype)
+		return 0;
+
+	child_nbr= (psys->renderdata)? psys->part->ren_child_nbr: psys->part->child_nbr;
+	return psys->totpart*child_nbr;
+}
+
+static void alloc_child_particles(ParticleSystem *psys, int tot)
+{
+	if(psys->child){
+		MEM_freeN(psys->child);
+		psys->child=0;
+		psys->totchild=0;
+	}
+
+	if(psys->part->childtype) {
+		psys->totchild= tot;
+		if(psys->totchild)
+			psys->child= MEM_callocN(psys->totchild*sizeof(ChildParticle), "child_particles");
+	}
 }
 
 /* only run this if from == PART_FROM_FACE */
@@ -607,7 +624,7 @@ void psys_thread_distribute_particle(ParticleThread *thread, ParticleData *pa, C
 		}
 
 		mf= dm->getFaceData(dm, ctx->index[p], CD_MFACE);
-		
+
 		//switch(distr){
 		//	case PART_DISTR_JIT:
 		//		i=index[p];
@@ -741,12 +758,16 @@ void *exec_distribution(void *data)
 
 	if(thread->ctx->from == PART_FROM_CHILD) {
 		totpart= psys->totchild;
-		cpa= psys->child + thread->num;
+		cpa= psys->child;
 
-		rng_skip(thread->rng, 5*thread->num);
-		for(p=thread->num; p<totpart; p+=thread->tot, cpa+=thread->tot) {
-			psys_thread_distribute_particle(thread, NULL, cpa, p);
-			rng_skip(thread->rng, 5*(thread->tot-1));
+		for(p=0; p<totpart; p++, cpa++) {
+			if(thread->ctx->skip) /* simplification skip */
+				rng_skip(thread->rng, 5*thread->ctx->skip[p]);
+
+			if((p+thread->num) % thread->tot == 0)
+				psys_thread_distribute_particle(thread, NULL, cpa, p);
+			else /* thread skip */
+				rng_skip(thread->rng, 5);
 		}
 	}
 	else {
@@ -757,7 +778,7 @@ void *exec_distribution(void *data)
 	}
 
 	return 0;
-}	
+}
 
 /* creates a distribution of coordinates on a DerivedMesh	*/
 /*															*/
@@ -813,7 +834,6 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 	
 	if(from==PART_FROM_CHILD){
 		distr=PART_DISTR_RAND;
-		cpa=psys->child;
 		if(part->from!=PART_FROM_PARTICLE && part->childtype==PART_CHILD_FACES){
 			dm= finaldm;
 			children=1;
@@ -828,7 +848,7 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 
 			BLI_kdtree_balance(tree);
 
-			totpart=psys->totchild;
+			totpart=get_alloc_child_particles_tot(psys);
 			cfrom=from=PART_FROM_FACE;
 
 			if(part->flag&PART_CHILD_SEAMS){
@@ -879,6 +899,9 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 			/* no need to figure out distribution */
 			int child_nbr= (psys->renderdata)? part->ren_child_nbr: part->child_nbr;
 
+			totpart= get_alloc_child_particles_tot(psys);
+			alloc_child_particles(psys, totpart);
+			cpa=psys->child;
 			for(i=0; i<child_nbr; i++){
 				for(p=0; p<psys->totpart; p++,cpa++){
 					float length=2.0;
@@ -1100,8 +1123,8 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 	sum[0]= 0.0f;
 	for(i=0;i<tot; i++)
 		sum[i+1]= sum[i]+weight[i]*totweight;
-
-	if(part->flag&PART_TRAND){
+	
+	if((part->flag&PART_TRAND) || (part->simplify_flag&PART_SIMPLIFY_ENABLE)) {
 		float pos;
 
 		for(p=0; p<totpart; p++) {
@@ -1156,9 +1179,6 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 	}
 
 	/* 5. */
-	if(children)
-		from=PART_FROM_CHILD;
-
 	ctx->tree= tree;
 	ctx->seams= seams;
 	ctx->totseam= totseam;
@@ -1169,17 +1189,21 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 	ctx->jitoff= jitoff;
 	ctx->weight= weight;
 	ctx->maxweight= maxweight;
-	ctx->from= from;
+	ctx->from= (children)? PART_FROM_CHILD: from;
 	ctx->cfrom= cfrom;
 	ctx->distr= distr;
 	ctx->dm= dm;
 	ctx->tpars= tpars;
 
-	seed= 31415926 + ctx->psys->seed;
+	if(children) {
+		totpart= psys_render_simplify_distribution(ctx, totpart);
+		alloc_child_particles(psys, totpart);
+	}
 
-	if(from!=PART_FROM_CHILD || psys->totchild < 10000)
+	if(!children || psys->totchild < 10000)
 		totthread= 1;
 	
+	seed= 31415926 + ctx->psys->seed;
 	for(i=0; i<totthread; i++) {
 		threads[i].rng= rng_new(seed);
 		threads[i].tot= totthread;
@@ -1323,6 +1347,7 @@ void psys_threads_free(ParticleThread *threads)
 	if(ctx->jitoff) MEM_freeN(ctx->jitoff);
 	if(ctx->weight) MEM_freeN(ctx->weight);
 	if(ctx->index) MEM_freeN(ctx->index);
+	if(ctx->skip) MEM_freeN(ctx->skip);
 	if(ctx->seams) MEM_freeN(ctx->seams);
 	//if(ctx->vertpart) MEM_freeN(ctx->vertpart);
 	BLI_kdtree_free(ctx->tree);
@@ -1508,10 +1533,9 @@ void reset_particle(ParticleData *pa, ParticleSystem *psys, ParticleSystemModifi
 	ParticleTexture ptex;
 	ParticleKey state;
 	IpoCurve *icu=0;
-	float fac, nor[3]={0,0,0},loc[3],tloc[3],vel[3]={0.0,0.0,0.0},rot[4],*q2=0;
+	float fac, rotfac, phasefac, nor[3]={0,0,0},loc[3],tloc[3],vel[3]={0.0,0.0,0.0},rot[4],*q2=0;
 	float r_vel[3],r_ave[3],r_rot[4],p_vel[3]={0.0,0.0,0.0};
-	float x_vec[3]={1.0,0.0,0.0}, utan[3]={0.0,1.0,0.0}, vtan[3]={0.0,0.0,1.0};
-
+	float x_vec[3]={1.0,0.0,0.0}, utan[3]={0.0,1.0,0.0}, vtan[3]={0.0,0.0,1.0}, rot_vec[3]={0.0,0.0,0.0};
 	float q_one[4]={1.0,0.0,0.0,0.0}, q_phase[4];
 	part=psys->part;
 
@@ -1612,7 +1636,7 @@ void reset_particle(ParticleData *pa, ParticleSystem *psys, ParticleSystemModifi
 		}
 		
 		/* -rotation							*/
-		if(part->rotmode==PART_ROT_RAND){
+		if(part->randrotfac != 0.0f){
 			QUATCOPY(r_rot,pa->r_rot);
 			Mat4ToQuat(ob->obmat,rot);
 			QuatMul(r_rot,r_rot,rot);
@@ -1663,34 +1687,49 @@ void reset_particle(ParticleData *pa, ParticleSystem *psys, ParticleSystemModifi
 	pa->state.rot[1]=pa->state.rot[2]=pa->state.rot[3]=0.0;
 
 	if(part->rotmode){
+		/* create vector into which rotation is aligned */
 		switch(part->rotmode){
 			case PART_ROT_NOR:
-				VecMulf(nor,-1.0);
-				q2= vectoquat(nor, OB_POSX, OB_POSZ);
-				VecMulf(nor,-1.0);
+				VecCopyf(rot_vec, nor);
 				break;
 			case PART_ROT_VEL:
-				VecMulf(vel,-1.0);
-				q2= vectoquat(vel, OB_POSX, OB_POSZ);
-				VecMulf(vel,-1.0);
+				VecCopyf(rot_vec, vel);
 				break;
-			case PART_ROT_RAND:
-				q2= r_rot;
+			case PART_ROT_GLOB_X:
+			case PART_ROT_GLOB_Y:
+			case PART_ROT_GLOB_Z:
+				rot_vec[part->rotmode - PART_ROT_GLOB_X] = 1.0f;
+				break;
+			case PART_ROT_OB_X:
+			case PART_ROT_OB_Y:
+			case PART_ROT_OB_Z:
+				VecCopyf(rot_vec, ob->obmat[part->rotmode - PART_ROT_OB_X]);
 				break;
 		}
-		/* how much to rotate from rest position */
-		QuatInterpol(rot,q_one,q2,part->rotfac);
+		
+		/* create rotation quat */
+		VecMulf(rot_vec,-1.0);
+		q2= vectoquat(rot_vec, OB_POSX, OB_POSZ);
 
-		/* phase */
-		VecRotToQuat(x_vec,part->phasefac*(float)M_PI,q_phase);
+		/* randomize rotation quat */
+		if(part->randrotfac!=0.0f)
+			QuatInterpol(rot, q2, r_rot, part->randrotfac);
+		else
+			QuatCopy(rot,q2);
 
-		/* combine amount & phase */
-		QuatMul(pa->state.rot,rot,q_phase);
+		/* rotation phase */
+		phasefac = part->phasefac;
+		if(part->randphasefac != 0.0f) /* abuse r_ave[0] as a random number */
+			phasefac += part->randphasefac * pa->r_ave[0];
+		VecRotToQuat(x_vec, phasefac*(float)M_PI, q_phase);
+
+		/* combine base rotation & phase */
+		QuatMul(pa->state.rot, rot, q_phase);
 	}
 
 	/* -angular velocity					*/
 
-	pa->state.ave[0]=pa->state.ave[1]=pa->state.ave[2]=0.0;
+	pa->state.ave[0] = pa->state.ave[1] = pa->state.ave[2] = 0.0;
 
 	if(part->avemode){
 		switch(part->avemode){
@@ -1711,15 +1750,15 @@ void reset_particle(ParticleData *pa, ParticleSystem *psys, ParticleSystemModifi
 		}
 	}
 
-	pa->dietime=pa->time+pa->lifetime;
+	pa->dietime = pa->time + pa->lifetime;
 
 	if(pa->time >= cfra)
-		pa->alive=PARS_UNBORN;
+		pa->alive = PARS_UNBORN;
 
-	pa->state.time=cfra;
+	pa->state.time = cfra;
 
-	pa->stick_ob=0;
-	pa->flag&=~PARS_STICKY;
+	pa->stick_ob = 0;
+	pa->flag &= ~PARS_STICKY;
 }
 static void reset_all_particles(Object *ob, ParticleSystem *psys, ParticleSystemModifierData *psmd, float dtime, float cfra, int from)
 {
@@ -4188,13 +4227,16 @@ static void psys_update_path_cache(Object *ob, ParticleSystemModifierData *psmd,
 
 	if(distr){
 		if(alloc)
-			alloc_particles(psys,psys->totpart);
+			alloc_particles(ob,psys,psys->totpart);
 
-		if(psys->totchild && part->childtype){
-			distribute_particles(ob,psys,PART_FROM_CHILD);
+		if(get_alloc_child_particles_tot(psys)) {
+			/* don't generate children while computing the hair keys */
+			if(!(psys->part->type == PART_HAIR) || (psys->flag & PSYS_HAIR_DONE)) {
+				distribute_particles(ob,psys,PART_FROM_CHILD);
 
-			if(part->from!=PART_FROM_PARTICLE && part->childtype==PART_CHILD_FACES && part->parents!=0.0)
-				psys_find_parents(ob,psmd,psys);
+				if(part->from!=PART_FROM_PARTICLE && part->childtype==PART_CHILD_FACES && part->parents!=0.0)
+					psys_find_parents(ob,psmd,psys);
+			}
 		}
 	}
 
@@ -4353,10 +4395,10 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 			return;
 		}
 	}
-	else {	
-		if(psys->recalc)
+	else if(part->phystype != PART_PHYS_NO) {	/* cache shouldn't be used for none physics */
+		if(psys->recalc && (psys->flag & PSYS_PROTECT_CACHE) == 0)
 			clear_particles_from_cache(ob,psys,(int)cfra);
-		else if(get_particles_from_cache(ob, psys, (int)cfra)){
+		else if(get_particles_from_cache(ob, psys, (int)cfra)) {
 			cached_step(ob,psmd,psys,cfra,vg_size);
 			psys->cfra=cfra;
 			psys->recalc = 0;
@@ -4413,11 +4455,11 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 	if(init) {
 		if(distr) {
 			if(alloc)
-				alloc_particles(psys, totpart);
+				alloc_particles(ob, psys, totpart);
 
 			distribute_particles(ob, psys, part->from);
 
-			if(psys->totchild && part->childtype)
+			if(get_alloc_child_particles_tot(psys))
 				distribute_particles(ob, psys, PART_FROM_CHILD);
 		}
 		initialize_all_particles(ob, psys, psmd);

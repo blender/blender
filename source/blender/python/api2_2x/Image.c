@@ -243,7 +243,7 @@ static PyObject *M_Image_New( PyObject * self, PyObject * args)
 	if (width > 5000 || height > 5000 || width < 1 || height < 1)
 		return ( EXPP_ReturnPyObjError( PyExc_TypeError,
 					"Image width and height must be between 1 and 5000" ) );
-	image = BKE_add_image_size(width, height, name, 0, color);
+	image = BKE_add_image_size(width, height, name, 0, 0, color);
 	if( !image )
 		return ( EXPP_ReturnPyObjError( PyExc_MemoryError,
 						"couldn't create PyObject Image_Type" ) );

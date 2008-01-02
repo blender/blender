@@ -1086,7 +1086,7 @@ int has_screenhandler(bScreen *sc, short eventcode)
 
 static void animated_screen(bScreen *sc, short val)
 {
-	if (U.mixbufsize && (val & TIME_WITH_SEQ_AUDIO)) {
+	if ((val & TIME_WITH_SEQ_AUDIO)) {
 		if(CFRA>=PEFRA) {
 			CFRA= PSFRA;
 			audiostream_stop();
@@ -1397,9 +1397,14 @@ void screenmain(void)
 			towin= 0;
 		}
 		else if (event==QKEY) {
-			if((G.obedit && G.obedit->type==OB_FONT && g_activearea->spacetype==SPACE_VIEW3D)||g_activearea->spacetype==SPACE_TEXT||g_activearea->spacetype==SPACE_SCRIPT);
+			/* Temp place to print mem debugging info ctrl+alt+shift + qkey */
+			if ( G.qual == (LR_SHIFTKEY | LR_ALTKEY | LR_CTRLKEY) ) {
+				MEM_printmemlist();
+			}
+			
+			else if((G.obedit && G.obedit->type==OB_FONT && g_activearea->spacetype==SPACE_VIEW3D)||g_activearea->spacetype==SPACE_TEXT||g_activearea->spacetype==SPACE_SCRIPT);
 			else {
-				if(val && (G.qual & LR_CTRLKEY)) {
+				if(val && (G.qual == LR_CTRLKEY)) {
 					if(okee("Quit Blender")) exit_usiblender();
 				}
 				towin= 0;
@@ -2443,9 +2448,6 @@ void area_fullscreen(void)	/* with curarea */
 		wich_cursor(newa);
 	}
 	
-	if(curarea->full)
-		retopo_force_update();
-
 	/* there's also events in queue for this, but we call fullscreen for render output
 	now, and that doesn't go back to queue. Bad code, but doesn't hurt... (ton) */
 	for(sa= G.curscreen->areabase.first; sa; sa= sa->next) {
@@ -2455,8 +2457,7 @@ void area_fullscreen(void)	/* with curarea */
 	/* bad code #2: setscreen() ends with first area active. fullscreen render assumes this too */
 	curarea= sc->areabase.first;
 	
-	if(!curarea->full)
-		retopo_force_update();
+	retopo_force_update();
 }
 
 static void area_autoplayscreen(void)

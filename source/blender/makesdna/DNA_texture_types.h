@@ -248,6 +248,7 @@ typedef struct TexMapping {
 #define TEX_CALCALPHA	32
 #define TEX_NORMALMAP	2048
 #define TEX_GAUSS_MIP	4096
+#define TEX_FILTER_MIN	8192
 
 /* imaflag unused, only for version check */
 #define TEX_FIELDS_		8

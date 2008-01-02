@@ -32,6 +32,7 @@
 #include "Texture.h" /*This must come first*/
 
 #include "BKE_global.h"
+#include "BKE_image.h"
 #include "BKE_main.h"
 #include "BKE_idprop.h"
 #include "BKE_library.h"
@@ -1572,6 +1573,7 @@ static int Texture_setImage( BPy_Texture * self, PyObject * value )
 	}
 
 	self->texture->ima = blimg;
+	BKE_image_signal(blimg, &self->texture->iuser, IMA_SIGNAL_RELOAD );
 	id_us_plus( &blimg->id );
 
 	return 0;

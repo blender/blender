@@ -617,12 +617,12 @@ void check_action_context(SpaceAction *saction)
 {
 	bActionChannel *achan;
 	
-	if(saction->action==NULL) return;
+	if (saction->action==NULL) return;
 	
 	for (achan=saction->action->chanbase.first; achan; achan=achan->next)
 		achan->flag &= ~ACHAN_HIDDEN;
 	
-	if (G.saction->pin==0 && OBACT) {
+	if ((saction->pin==0) && ((saction->flag & SACTION_NOHIDE)==0) && (OBACT)) {
 		Object *ob= OBACT;
 		bPoseChannel *pchan;
 		bArmature *arm= ob->data;
@@ -883,7 +883,7 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 	glClearColor(col[0], col[1], col[2], 0.0); 
 	glClear(GL_COLOR_BUFFER_BIT);
 	
-	if(curarea->winx>SCROLLB+10 && curarea->winy>SCROLLH+10) {
+	if (curarea->winx>SCROLLB+10 && curarea->winy>SCROLLH+10) {
 		if(G.v2d->scroll) {	
 			ofsx= curarea->winrct.xmin;	
 			ofsy= curarea->winrct.ymin;
@@ -927,8 +927,10 @@ void drawactionspace(ScrArea *sa, void *spacedata)
 	/* Draw current frame */
 	draw_cfra_action();
 	
-	/* Draw markers */
-	draw_markers_timespace(0);
+	/* Draw markers (local behind scene ones, as local obscure scene markers) */
+	if (act) 
+		draw_markers_timespace(&act->markers, DRAW_MARKERS_LOCAL);
+	draw_markers_timespace(SCE_MARKERS, 0);
 	
 	/* Draw 'curtains' for preview */
 	draw_anim_preview_timespace();
@@ -1045,11 +1047,14 @@ static void add_bezt_to_keyblockslist(ListBase *blocks, IpoCurve *icu, int index
 		}
 	}
 	
-	/* check if block needed - same value? */
-	if ((!prev) || (!beztn))
-		return;
-	if (beztn->vec[1][1] != prev->vec[1][1])
-		return;
+	/* check if block needed - same value(s)?
+	 *	-> firstly, handles must have same central value as each other
+	 *	-> secondly, handles which control that section of the curve must be constant
+	 */
+	if ((!prev) || (!beztn)) return;
+	if (IS_EQ(beztn->vec[1][1], prev->vec[1][1])==0) return;
+	if (IS_EQ(beztn->vec[1][1], beztn->vec[0][1])==0) return;
+	if (IS_EQ(prev->vec[1][1], prev->vec[2][1])==0) return;
 	
 	/* try to find a keyblock that starts on the previous beztriple */
 	for (ab= blocks->first; ab; ab= ab->next) {

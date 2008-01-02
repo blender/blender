@@ -51,12 +51,15 @@ struct View3D;
 #include "BLI_blenlib.h" /* only for SceneObSeq_new */
 #include "BSE_drawview.h"	/* for play_anim */
 #include "BSE_headerbuttons.h"	/* for copy_scene */
+#include "BSE_sequence.h"	/* to clear_scene_in_allseqs */
+#include "BSE_node.h"	/* to clear_scene_in_nodes */
 #include "BIF_drawscene.h"	/* for set_scene */
 #include "BIF_space.h"		/* for copy_view3d_lock() */
 #include "BIF_screen.h"		/* curarea */
 #include "BDR_editobject.h"		/* free_and_unlink_base() */
 #include "mydevice.h"		/* for #define REDRAW */
 #include "DNA_view3d_types.h"
+
 /* python types */
 #include "Object.h"
 #include "Camera.h"
@@ -718,8 +721,9 @@ static PyObject *M_Scene_Unlink( PyObject * self, PyObject * args )
 {
 	PyObject *pyobj;
 	BPy_Scene *pyscn;
-	Scene *scene;
-
+	Scene *scene, *sce;
+	bScreen *sc;
+	
 	if( !PyArg_ParseTuple( args, "O!", &Scene_Type, &pyobj ) )
 		return EXPP_ReturnPyObjError( PyExc_TypeError,
 					      "expected Scene PyType object" );
@@ -733,6 +737,23 @@ static PyObject *M_Scene_Unlink( PyObject * self, PyObject * args )
 		return EXPP_ReturnPyObjError( PyExc_SystemError,
 					      "current Scene cannot be removed!" );
 
+	/* Copied from header_info.c */
+	
+	/* check all sets */
+	for (sce= G.main->scene.first; sce; sce= sce->id.next) {
+		if(sce->set == scene) sce->set= 0;
+	}
+	
+	/* check all sequences */
+	clear_scene_in_allseqs(scene);
+
+	/* check render layer nodes in other scenes */
+	clear_scene_in_nodes(scene);
+	
+	for (sc= G.main->screen.first; sc; sc= sc->id.next ) {
+		if(sc->scene == scene) sc->scene= G.scene;
+	}
+	
 	free_libblock( &G.main->scene, scene );
 	
 	pyscn->scene= NULL;

@@ -325,6 +325,7 @@ int std_libbuttons(uiBlock *block, short xco, short yco,
 		}
 		
 		if( GS(id->name)==ID_IP) len= 110;
+		else if((yco) && (GS(id->name)==ID_AC)) len= 100; // comes from button panel (poselib)
 		else if(yco) len= 140;	// comes from button panel
 		else len= 120;
 		
@@ -932,20 +933,21 @@ void do_global_buttons(unsigned short event)
 		allqueue(REDRAWACTION, 0);
 		allqueue(REDRAWNLA, 0);
 		allqueue(REDRAWIPO, 0);
+		allqueue(REDRAWBUTSEDIT, 0);
 		break;
 	case B_ACTIONBROWSE:
 		if (!ob)
 			break;
 		act=ob->action;
 		id= (ID *)act;
-
+		
 		if (G.saction->actnr== -2){
 				activate_databrowse((ID *)G.saction->action, ID_AC,  0, B_ACTIONBROWSE, &G.saction->actnr, do_global_buttons);
 			return;
 		}
-
+		
 		if(G.saction->actnr < 0) break;
-
+		
 		/*	See if we have selected a valid action */
 		for (idtest= G.main->action.first; idtest; idtest= idtest->next) {
 				if(nr==G.saction->actnr) {
@@ -956,7 +958,16 @@ void do_global_buttons(unsigned short event)
 		}
 
 		if(G.saction->pin) {
-			G.saction->action= (bAction *)idtest;
+			if (idtest == NULL) {
+				/* assign new/copy of pinned action only - messy as it doesn't assign to any obj's */
+				if (G.saction->action)
+					G.saction->action= (bAction *)copy_action(G.saction->action);
+				else
+					G.saction->action= (bAction *)add_empty_action("PinnedAction");
+			}
+			else {
+				G.saction->action= (bAction *)idtest;
+			}
 			allqueue(REDRAWACTION, 0);
 		}
 		else {
@@ -1021,6 +1032,7 @@ void do_global_buttons(unsigned short event)
 				allqueue(REDRAWNLA, 0);
 				allqueue(REDRAWACTION, 0);
 				allqueue(REDRAWHEADERS, 0); 
+				allqueue(REDRAWBUTSEDIT, 0);
 			}
 		}
 		
@@ -1694,7 +1706,8 @@ void do_global_buttons2(short event)
 			if(act->id.lib) {
 				if(okee("Make local")) {
 					make_local_action(act);
-					allqueue(REDRAWACTION,0);
+					allqueue(REDRAWACTION, 0);
+					allqueue(REDRAWBUTSEDIT, 0);
 				}
 			}
 		}
@@ -1702,12 +1715,13 @@ void do_global_buttons2(short event)
 	case B_ACTALONE:
 		if(ob && ob->id.lib==0) {
 			act= ob->action;
-		
+			
 			if(act->id.us>1) {
 				if(okee("Single user")) {
 					ob->action=copy_action(act);
 					act->id.us--;
 					allqueue(REDRAWACTION, 0);
+					allqueue(REDRAWBUTSEDIT, 0);
 				}
 			}
 		}

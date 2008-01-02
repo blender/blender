@@ -1297,7 +1297,10 @@ static void shade_one_light(LampRen *lar, ShadeInput *shi, ShadeResult *shr, int
 		else is= inp;	// Lambert
 	}
 	
-	/* i is diffuse */
+	/* 'is' is diffuse */
+	if((ma->shade_flag & MA_CUBIC) && is>0.0f)
+		is= 3.0*is*is - 2.0*is*is*is;	// nicer termination of shades
+
 	i= is*phongcorr;
 	
 	if(i>0.0f) {

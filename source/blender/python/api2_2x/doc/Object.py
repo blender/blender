@@ -105,6 +105,7 @@ Example::
 		- SIZE
 		- LOCROT
 		- LOCROTSIZE
+		- LAYER
 		- PI_STRENGTH
 		- PI_FALLOFF
 		- PI_SURFACEDAMP

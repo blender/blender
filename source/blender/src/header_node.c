@@ -513,6 +513,9 @@ static void do_node_nodemenu(void *arg, int event)
 		case 10: /* execute */
 			addqueue(curarea->win, UI_BUT_EVENT, B_NODE_TREE_EXEC);
 			break;
+		case 11: /* toggle link */
+			node_toggle_link(snode);
+			break;
 	}
 	
 	if(fromlib==-1) error_libdata();
@@ -536,6 +539,10 @@ static uiBlock *node_nodemenu(void *arg_unused)
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Duplicate|Shift D", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 2, "");
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Delete|X", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 3, "");
 	
+	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
+
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Toggle Link|F", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 11, "");
+
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Make Group|Ctrl G", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 4, "");

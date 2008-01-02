@@ -138,6 +138,7 @@
 #include "BKE_sca.h" // for init_actuator
 #include "BKE_scene.h"
 #include "BKE_softbody.h"	// sbNew()
+#include "BKE_sculpt.h"
 #include "BKE_texture.h" // for open_plugin_tex
 #include "BKE_utildefines.h" // SWITCH_INT DATA ENDB DNA1 O_BINARY GLOB USER TEST REND
 #include "BKE_idprop.h"
@@ -148,8 +149,6 @@
 #include "BLO_readfile.h"
 #include "BLO_undofile.h"
 #include "BLO_readblenfile.h" // streaming read pipe, for BLO_readblenfile BLO_readblenfilememory
-
-#include "multires.h"
 
 #include "readfile.h"
 
@@ -1527,6 +1526,22 @@ static void direct_link_nodetree(FileData *fd, bNodeTree *ntree)
 		link->tosock= newdataadr(fd, link->tosock);
 	}
 	
+	/* set selin and selout */
+	for(node= ntree->nodes.first; node; node= node->next) {
+		for(sock= node->inputs.first; sock; sock= sock->next) {
+			if(sock->flag & SOCK_SEL) {
+				ntree->selin= sock;
+				break;
+			}
+		}
+		for(sock= node->outputs.first; sock; sock= sock->next) {
+			if(sock->flag & SOCK_SEL) {
+				ntree->selout= sock;
+				break;
+			}
+		}
+	}
+	
 	/* type verification is in lib-link */
 }
 
@@ -1818,12 +1833,12 @@ static void lib_link_action(FileData *fd, Main *main)
 	while(act) {
 		if(act->id.flag & LIB_NEEDLINK) {
 			act->id.flag -= LIB_NEEDLINK;
-
+			
 			for (chan=act->chanbase.first; chan; chan=chan->next) {
 				chan->ipo= newlibadr_us(fd, act->id.lib, chan->ipo);
 				lib_link_constraint_channels(fd, &act->id, &chan->constraintChannels);
 			}
-
+			
 		}
 		act= act->id.next;
 	}
@@ -1848,10 +1863,10 @@ static void direct_link_action(FileData *fd, bAction *act)
 	bActionChannel *achan;
 
 	link_list(fd, &act->chanbase);
+	link_list(fd, &act->markers);
 
 	for (achan = act->chanbase.first; achan; achan=achan->next)
 		link_list(fd, &achan->constraintChannels);
-
 }
 
 static void direct_link_armature(FileData *fd, bArmature *arm)
@@ -2771,6 +2786,7 @@ static void lib_link_object(FileData *fd, Main *main)
 			ob->track= newlibadr(fd, ob->id.lib, ob->track);
 			ob->ipo= newlibadr_us(fd, ob->id.lib, ob->ipo);
 			ob->action = newlibadr_us(fd, ob->id.lib, ob->action);
+			ob->poselib= newlibadr_us(fd, ob->id.lib, ob->poselib);
 			ob->dup_group= newlibadr_us(fd, ob->id.lib, ob->dup_group);
 			
 			ob->proxy= newlibadr_us(fd, ob->id.lib, ob->proxy);
@@ -2946,7 +2962,6 @@ static void direct_link_pose(FileData *fd, bPose *pose) {
 		pchan->iktree.first= pchan->iktree.last= NULL;
 		pchan->path= NULL;
 	}
-
 }
 
 static void direct_link_modifiers(FileData *fd, ListBase *lb)
@@ -3345,6 +3360,12 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 	/* SculptData textures */
 	for(a=0; a<MAX_MTEX; ++a)
 		sce->sculptdata.mtex[a]= newdataadr(fd,sce->sculptdata.mtex[a]);
+	/* Sculpt intensity curve */
+	sce->sculptdata.cumap= newdataadr(fd, sce->sculptdata.cumap);
+	if(sce->sculptdata.cumap)
+		direct_link_curvemapping(fd, sce->sculptdata.cumap);
+	else
+		sculpt_reset_curve(&sce->sculptdata);
 
 	if(sce->ed) {
 		ListBase *old_seqbasep= &((Editing *)sce->ed)->seqbase;
@@ -3381,6 +3402,24 @@ static void direct_link_scene(FileData *fd, Scene *sce)
 						fd, seq->strip->stripdata);
 				} else {
 					seq->strip->stripdata = 0;
+				}
+				if (seq->flag & SEQ_USE_CROP) {
+					seq->strip->crop = newdataadr(
+						fd, seq->strip->crop);
+				} else {
+					seq->strip->crop = 0;
+				}
+				if (seq->flag & SEQ_USE_TRANSFORM) {
+					seq->strip->transform = newdataadr(
+						fd, seq->strip->transform);
+				} else {
+					seq->strip->transform = 0;
+				}
+				if (seq->flag & SEQ_USE_PROXY) {
+					seq->strip->proxy = newdataadr(
+						fd, seq->strip->proxy);
+				} else {
+					seq->strip->proxy = 0;
 				}
 			}
 		}
@@ -6848,7 +6887,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		}		
 		
 		for(ma=main->mat.first; ma; ma= ma->id.next) {
-			if (ma->samp_gloss_mir == 0) {
+			if(ma->samp_gloss_mir == 0) {
 				ma->gloss_mir = ma->gloss_tra= 1.0;
 				ma->aniso_gloss_mir = 1.0;
 				ma->samp_gloss_mir = ma->samp_gloss_tra= 18;
@@ -6856,11 +6895,23 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				ma->dist_mir = 0.0;
 				ma->fadeto_mir = MA_RAYMIR_FADETOSKY;
 			}
+
+			if(ma->strand_min == 0.0f)
+				ma->strand_min= 1.0f;
 		}
 
-		for(part=main->particle.first; part; part=part->id.next)
+		for(part=main->particle.first; part; part=part->id.next) {
 			if(part->ren_child_nbr==0)
 				part->ren_child_nbr= part->child_nbr;
+
+			if(part->simplify_refsize==0) {
+				part->simplify_refsize= 1920;
+				part->simplify_rate= 1.0f;
+				part->simplify_transition= 0.1f;
+				part->simplify_viewport= 0.8f;
+			}
+		}
+
 		if (main->versionfile < 245 || main->subversionfile < 12)
 		{
 			/* initialize skeleton generation toolsettings */
@@ -7864,6 +7915,7 @@ static void expand_object(FileData *fd, Main *mainvar, Object *ob)
 	expand_doit(fd, mainvar, ob->data);
 	expand_doit(fd, mainvar, ob->ipo);
 	expand_doit(fd, mainvar, ob->action);
+	expand_doit(fd, mainvar, ob->poselib);
 
 	for (md=ob->modifiers.first; md; md=md->next) {
 		expand_modifier(fd, mainvar, md);

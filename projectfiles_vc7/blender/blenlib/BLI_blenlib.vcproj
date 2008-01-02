@@ -359,6 +359,9 @@
 				RelativePath="..\..\..\source\blender\blenlib\intern\boxpack2d.c">
 			</File>
 			<File
+				RelativePath="..\..\..\source\blender\blenlib\intern\bpath.c">
+			</File>
+			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\dynlib.c">
 			</File>
 			<File
@@ -427,6 +430,9 @@
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\BLI_boxpack2d.h">
+			</File>
+			<File
+				RelativePath="..\..\..\source\blender\blenlib\BLI_bpath.h">
 			</File>
 			<File
 				RelativePath="..\..\..\source\blender\blenlib\intern\BLI_callbacks.h">

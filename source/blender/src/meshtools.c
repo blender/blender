@@ -1009,7 +1009,7 @@ void objects_bake_render_menu(void)
 {
 	short event;
 
-	event= pupmenu("Bake Selected Meshes %t|Full Render %x1|Ambient Occlusion %x2|Normals %x3|Texture Only %x4");
+	event= pupmenu("Bake Selected Meshes %t|Full Render %x1|Ambient Occlusion %x2|Normals %x3|Texture Only %x4|Displacement %x5");
 	
 	objects_bake_render(event);
 }
@@ -1043,7 +1043,8 @@ void objects_bake_render(short event)
 		if(event==1) event= RE_BAKE_ALL;
 		else if(event==2) event= RE_BAKE_AO;
 		else if(event==3) event= RE_BAKE_NORMALS;
-		else event= RE_BAKE_TEXTURE;
+		else if(event==4) event= RE_BAKE_TEXTURE;
+		else event= RE_BAKE_DISPLACEMENT;
 
 		if(event==RE_BAKE_AO) {
 			if(G.scene->world==NULL) {

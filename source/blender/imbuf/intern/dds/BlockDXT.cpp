@@ -64,7 +64,7 @@
 	BlockDXT1
 ----------------------------------------------------------------------------*/
 
-unsigned int BlockDXT1::evaluatePalette(Color32 color_array[4]) const
+uint BlockDXT1::evaluatePalette(Color32 color_array[4]) const
 {
 	// Does bit expansion before interpolation.
 	color_array[0].b = (col0.b << 3) | (col0.b >> 2);
@@ -179,9 +179,9 @@ void BlockDXT1::decodeBlock(ColorBlock * block) const
 	evaluatePalette(color_array);
 	
 	// Write color block.
-	for( unsigned int j = 0; j < 4; j++ ) {
-		for( unsigned int i = 0; i < 4; i++ ) {
-			unsigned int idx = (row[j] >> (2 * i)) & 3;
+	for( uint j = 0; j < 4; j++ ) {
+		for( uint i = 0; i < 4; i++ ) {
+			uint idx = (row[j] >> (2 * i)) & 3;
 			block->color(i, j) = color_array[idx];
 		}
 	}	
@@ -190,7 +190,7 @@ void BlockDXT1::decodeBlock(ColorBlock * block) const
 void BlockDXT1::setIndices(int * idx)
 {
 	indices = 0;
-	for(unsigned int i = 0; i < 16; i++) {
+	for(uint i = 0; i < 16; i++) {
 		indices |= (idx[i] & 3) << (2 * i);
 	}
 }
@@ -199,16 +199,14 @@ void BlockDXT1::setIndices(int * idx)
 /// Flip DXT1 block vertically.
 inline void BlockDXT1::flip4()
 {
-	unsigned char tmp;
-	swap(row[0], row[3], tmp);
-	swap(row[1], row[2], tmp);
+	swap(row[0], row[3]);
+	swap(row[1], row[2]);
 }
 
 /// Flip half DXT1 block vertically.
 inline void BlockDXT1::flip2()
 {
-	unsigned char tmp;
-	swap(row[0], row[1], tmp);
+	swap(row[0], row[1]);
 }
 
 
@@ -248,16 +246,14 @@ void AlphaBlockDXT3::decodeBlock(ColorBlock * block) const
 /// Flip DXT3 alpha block vertically.
 void AlphaBlockDXT3::flip4()
 {
-	unsigned short tmp;
-	swap(row[0], row[3], tmp);
-	swap(row[1], row[2], tmp);
+	swap(row[0], row[3]);
+	swap(row[1], row[2]);
 }
 
 /// Flip half DXT3 alpha block vertically.
 void AlphaBlockDXT3::flip2()
 {
-	unsigned short tmp;
-	swap(row[0], row[1], tmp);
+	swap(row[0], row[1]);
 }
 
 /// Flip DXT3 block vertically.
@@ -279,7 +275,7 @@ void BlockDXT3::flip2()
 	BlockDXT5
 ----------------------------------------------------------------------------*/
 
-void AlphaBlockDXT5::evaluatePalette(unsigned char alpha[8]) const
+void AlphaBlockDXT5::evaluatePalette(uint8 alpha[8]) const
 {
 	if (alpha0 > alpha1) {
 		evaluatePalette8(alpha);
@@ -289,35 +285,35 @@ void AlphaBlockDXT5::evaluatePalette(unsigned char alpha[8]) const
 	}
 }
 
-void AlphaBlockDXT5::evaluatePalette8(unsigned char alpha[8]) const
+void AlphaBlockDXT5::evaluatePalette8(uint8 alpha[8]) const
 {
 	// 8-alpha block:  derive the other six alphas.
 	// Bit code 000 = alpha0, 001 = alpha1, others are interpolated.
 	alpha[0] = alpha0;
 	alpha[1] = alpha1;
-	alpha[2] = (6 * alpha0 + 1 * alpha1) / 7;	// bit code 010
-	alpha[3] = (5 * alpha0 + 2 * alpha1) / 7;	// bit code 011
-	alpha[4] = (4 * alpha0 + 3 * alpha1) / 7;	// bit code 100
-	alpha[5] = (3 * alpha0 + 4 * alpha1) / 7;	// bit code 101
-	alpha[6] = (2 * alpha0 + 5 * alpha1) / 7;	// bit code 110
-	alpha[7] = (1 * alpha0 + 6 * alpha1) / 7;	// bit code 111
+	alpha[2] = (6 * alpha[0] + 1 * alpha[1]) / 7;	// bit code 010
+	alpha[3] = (5 * alpha[0] + 2 * alpha[1]) / 7;	// bit code 011
+	alpha[4] = (4 * alpha[0] + 3 * alpha[1]) / 7;	// bit code 100
+	alpha[5] = (3 * alpha[0] + 4 * alpha[1]) / 7;	// bit code 101
+	alpha[6] = (2 * alpha[0] + 5 * alpha[1]) / 7;	// bit code 110
+	alpha[7] = (1 * alpha[0] + 6 * alpha[1]) / 7;	// bit code 111
 }
 
-void AlphaBlockDXT5::evaluatePalette6(unsigned char alpha[8]) const
+void AlphaBlockDXT5::evaluatePalette6(uint8 alpha[8]) const
 {
 	// 6-alpha block.
 	// Bit code 000 = alpha0, 001 = alpha1, others are interpolated.
 	alpha[0] = alpha0;
 	alpha[1] = alpha1;
-	alpha[2] = (4 * alpha0 + 1 * alpha1) / 5;	// Bit code 010
-	alpha[3] = (3 * alpha0 + 2 * alpha1) / 5;	// Bit code 011
-	alpha[4] = (2 * alpha0 + 3 * alpha1) / 5;	// Bit code 100
-	alpha[5] = (1 * alpha0 + 4 * alpha1) / 5;	// Bit code 101
+	alpha[2] = (4 * alpha[0] + 1 * alpha[1]) / 5;	// Bit code 010
+	alpha[3] = (3 * alpha[0] + 2 * alpha[1]) / 5;	// Bit code 011
+	alpha[4] = (2 * alpha[0] + 3 * alpha[1]) / 5;	// Bit code 100
+	alpha[5] = (1 * alpha[0] + 4 * alpha[1]) / 5;	// Bit code 101
 	alpha[6] = 0x00;							// Bit code 110
 	alpha[7] = 0xFF;							// Bit code 111
 }
 
-void AlphaBlockDXT5::indices(unsigned char index_array[16]) const
+void AlphaBlockDXT5::indices(uint8 index_array[16]) const
 {
 	index_array[0x0] = bits0;
 	index_array[0x1] = bits1;
@@ -337,52 +333,52 @@ void AlphaBlockDXT5::indices(unsigned char index_array[16]) const
 	index_array[0xF] = bitsF;
 }
 
-unsigned int AlphaBlockDXT5::index(unsigned int index) const
+uint AlphaBlockDXT5::index(uint index) const
 {
 	int offset = (3 * index + 16);
-	return (this->u >> offset) & 0x7;
+	return uint((this->u >> offset) & 0x7);
 }
 
-void AlphaBlockDXT5::setIndex(unsigned int index, unsigned int value)
+void AlphaBlockDXT5::setIndex(uint index, uint value)
 {
 	int offset = (3 * index + 16);
-	unsigned long long mask = ((unsigned long long)(0x7)) << offset;
-	this->u = (this->u & ~mask) | (((unsigned long long)(value)) << offset);
+	uint64 mask = uint64(0x7) << offset;
+	this->u = (this->u & ~mask) | (uint64(value) << offset);
 }
 
 void AlphaBlockDXT5::decodeBlock(ColorBlock * block) const
 {
-	unsigned char alpha_array[8];
+	uint8 alpha_array[8];
 	evaluatePalette(alpha_array);
 	
-	unsigned char index_array[16];
+	uint8 index_array[16];
 	indices(index_array);
 	
-	for(unsigned int i = 0; i < 16; i++) {
+	for(uint i = 0; i < 16; i++) {
 		block->color(i).a = alpha_array[index_array[i]];
 	}
 }
 
 void AlphaBlockDXT5::flip4()
 {
-	unsigned long long * b = (unsigned long long *)this;
+	uint64 * b = (uint64 *)this;
 	
 	// @@ The masks might have to be byte swapped.
-	unsigned long long tmp = (*b & (unsigned long long)(0x000000000000FFFFLL));
-	tmp |= (*b & (unsigned long long)(0x000000000FFF0000LL)) << 36;
-	tmp |= (*b & (unsigned long long)(0x000000FFF0000000LL)) << 12;
-	tmp |= (*b & (unsigned long long)(0x000FFF0000000000LL)) >> 12;
-	tmp |= (*b & (unsigned long long)(0xFFF0000000000000LL)) >> 36;
+	uint64 tmp = (*b & (uint64)(0x000000000000FFFFLL));
+	tmp |= (*b & (uint64)(0x000000000FFF0000LL)) << 36;
+	tmp |= (*b & (uint64)(0x000000FFF0000000LL)) << 12;
+	tmp |= (*b & (uint64)(0x000FFF0000000000LL)) >> 12;
+	tmp |= (*b & (uint64)(0xFFF0000000000000LL)) >> 36;
 	
 	*b = tmp;
 }
 
 void AlphaBlockDXT5::flip2()
 {
-	unsigned int * b = (unsigned int *)this;
+	uint * b = (uint *)this;
 	
 	// @@ The masks might have to be byte swapped.
-	unsigned int tmp = (*b & 0xFF000000);
+	uint tmp = (*b & 0xFF000000);
 	tmp |=  (*b & 0x00000FFF) << 12;
 	tmp |= (*b & 0x00FFF000) >> 12;
 	
@@ -396,6 +392,7 @@ void BlockDXT5::decodeBlock(ColorBlock * block) const
 	
 	// Decode alpha.
 	alpha.decodeBlock(block);
+
 }
 
 /// Flip DXT5 block vertically.
@@ -416,13 +413,13 @@ void BlockDXT5::flip2()
 /// Decode ATI1 block.
 void BlockATI1::decodeBlock(ColorBlock * block) const
 {
-	unsigned char alpha_array[8];
+	uint8 alpha_array[8];
 	alpha.evaluatePalette(alpha_array);
 	
-	unsigned char index_array[16];
+	uint8 index_array[16];
 	alpha.indices(index_array);
 	
-	for(unsigned int i = 0; i < 16; i++) {
+	for(uint i = 0; i < 16; i++) {
 		Color32 & c = block->color(i);
 		c.b = c.g = c.r = alpha_array[index_array[i]];
 		c.a = 255;
@@ -445,13 +442,13 @@ void BlockATI1::flip2()
 /// Decode ATI2 block.
 void BlockATI2::decodeBlock(ColorBlock * block) const
 {
-	unsigned char alpha_array[8];
-	unsigned char index_array[16];
+	uint8 alpha_array[8];
+	uint8 index_array[16];
 	
 	x.evaluatePalette(alpha_array);
 	x.indices(index_array);
 	
-	for(unsigned int i = 0; i < 16; i++) {
+	for(uint i = 0; i < 16; i++) {
 		Color32 & c = block->color(i);
 		c.r = alpha_array[index_array[i]];
 	}
@@ -459,7 +456,7 @@ void BlockATI2::decodeBlock(ColorBlock * block) const
 	y.evaluatePalette(alpha_array);
 	y.indices(index_array);
 	
-	for(unsigned int i = 0; i < 16; i++) {
+	for(uint i = 0; i < 16; i++) {
 		Color32 & c = block->color(i);
 		c.g = alpha_array[index_array[i]];
 		c.b = 0;
@@ -479,6 +476,68 @@ void BlockATI2::flip2()
 {
 	x.flip2();
 	y.flip2();
+}
+
+
+void BlockCTX1::evaluatePalette(Color32 color_array[4]) const
+{
+	// Does bit expansion before interpolation.
+	color_array[0].b = 0x00;
+	color_array[0].g = col0[1];
+	color_array[0].r = col0[0];
+	color_array[0].a = 0xFF;
+	
+	color_array[1].r = 0x00;
+	color_array[1].g = col0[1];
+	color_array[1].b = col1[0];
+	color_array[1].a = 0xFF;
+	
+	color_array[2].r = 0x00;
+	color_array[2].g = (2 * color_array[0].g + color_array[1].g) / 3;
+	color_array[2].b = (2 * color_array[0].b + color_array[1].b) / 3;
+	color_array[2].a = 0xFF;
+		
+	color_array[3].r = 0x00;
+	color_array[3].g = (2 * color_array[1].g + color_array[0].g) / 3;
+	color_array[3].b = (2 * color_array[1].b + color_array[0].b) / 3;
+	color_array[3].a = 0xFF;
+}
+
+void BlockCTX1::decodeBlock(ColorBlock * block) const
+{
+	// Decode color block.
+	Color32 color_array[4];
+	evaluatePalette(color_array);
+	
+	// Write color block.
+	for( uint j = 0; j < 4; j++ ) {
+		for( uint i = 0; i < 4; i++ ) {
+			uint idx = (row[j] >> (2 * i)) & 3;
+			block->color(i, j) = color_array[idx];
+		}
+	}	
+}
+
+void BlockCTX1::setIndices(int * idx)
+{
+	indices = 0;
+	for(uint i = 0; i < 16; i++) {
+		indices |= (idx[i] & 3) << (2 * i);
+	}
+}
+
+
+/// Flip CTX1 block vertically.
+inline void BlockCTX1::flip4()
+{
+	swap(row[0], row[3]);
+	swap(row[1], row[2]);
+}
+
+/// Flip half CTX1 block vertically.
+inline void BlockCTX1::flip2()
+{
+	swap(row[0], row[1]);
 }
 
 void mem_read(Stream & mem, BlockDXT1 & block)
@@ -519,5 +578,14 @@ void mem_read(Stream & mem, BlockATI2 & block)
 {
 	mem_read(mem, block.x);
 	mem_read(mem, block.y);
+}
+
+void mem_read(Stream & mem, BlockCTX1 & block)
+{
+	mem_read(mem, block.col0[0]);
+	mem_read(mem, block.col0[1]);
+	mem_read(mem, block.col1[0]);
+	mem_read(mem, block.col1[1]);
+	mem_read(mem, block.indices);
 }
 

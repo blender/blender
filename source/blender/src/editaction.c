@@ -1144,10 +1144,9 @@ void clean_action (void)
 
 /* **************************************************** */
 /* COPY/PASTE FOR ACTIONS */
-/* - The copy/paste buffer currently stores a set of IPO curves, with no
- *   repeating curve-types (i.e.  no curves with the same adrcode). 
- * - Only selected keyframes from the source curves are placed here. 
- * - Only 'compatible' pastes are done.
+/* - The copy/paste buffer currently stores a set of Action Channels, with temporary
+ *	IPO-blocks, and also temporary IpoCurves which only contain the selected keyframes.
+ * - Only pastes between compatable data is possible (i.e. same achan->name, ipo-curve type, etc.)
  */
 
 /* globals for copy/paste data (like for other copy/paste buffers) */
@@ -1156,16 +1155,34 @@ ListBase actcopybuf = {NULL, NULL};
 /* This function frees any MEM_calloc'ed copy/paste buffer data */
 void free_actcopybuf ()
 {
-	IpoCurve *icu;
+	bActionChannel *achan, *anext;
+	bConstraintChannel *conchan, *cnext;
 	
-	while( (icu= actcopybuf.first) ) {
-		BLI_remlink(&actcopybuf, icu);
-		free_ipo_curve(icu);
+	for (achan= actcopybuf.first; achan; achan= anext) {
+		anext= achan->next;
+		
+		if (achan->ipo) {
+			free_ipo(achan->ipo);
+			MEM_freeN(achan->ipo);
+		}
+		
+		for (conchan=achan->constraintChannels.first; conchan; conchan=cnext) {
+			cnext= conchan->next;
+			
+			if (conchan->ipo) {
+				free_ipo(conchan->ipo);
+				MEM_freeN(conchan->ipo);
+			}
+			
+			BLI_freelinkN(&achan->constraintChannels, conchan);
+		}
+		
+		BLI_freelinkN(&actcopybuf, achan);
 	}
 }
 
 /* This function adds data to the copy/paste buffer, freeing existing data first
- * Only the active action channel gets its selected keyframes copied.
+ * Only the selected action channels gets their selected keyframes copied.
  */
 void copy_actdata ()
 {
@@ -1183,40 +1200,61 @@ void copy_actdata ()
 	if (data == NULL) return;
 	
 	/* filter data */
-	filter= (ACTFILTER_VISIBLE | ACTFILTER_SEL | ACTFILTER_ONLYICU);
+	filter= (ACTFILTER_VISIBLE | ACTFILTER_SEL | ACTFILTER_IPOKEYS);
 	actdata_filter(&act_data, filter, data, datatype);
 	
-	/* each of these entries should be an ipo curve */
+	/* assume that each of these is an ipo-block */
 	for (ale= act_data.first; ale; ale= ale->next) {
-		IpoCurve *icu= ale->key_data;
-		IpoCurve *icn;
+		bActionChannel *achan;
+		Ipo *ipo= ale->key_data;
+		Ipo *ipn;
+		IpoCurve *icu, *icn;
 		BezTriple *bezt;
-		short nin_buffer= 1;
 		int i;
 		
-		/* check if a curve like this exists already in buffer */
-		for (icn= actcopybuf.first; icn; icn= icn->next) {
-			if ((icn->blocktype==icu->blocktype) && (icn->adrcode==icu->adrcode)) {
-				nin_buffer= 0;
-				break;
-			}
+		/* coerce an action-channel out of owner */
+		if (ale->ownertype == ACTTYPE_ACHAN) {
+			bActionChannel *achanO= ale->owner;
+			achan= MEM_callocN(sizeof(bActionChannel), "ActCopyPasteAchan");
+			strcpy(achan->name, achanO->name);
 		}
-		/* allocate memory for a new curve if a valid one wasn't found */
-		if (nin_buffer) {
-			icn= MEM_callocN(sizeof(IpoCurve), "actcopybuf");
-			
-			*icn= *icu;
-			icn->totvert= 0;
-			icn->bezt = NULL;
-			icn->driver = NULL;
-			
-			BLI_addtail(&actcopybuf, icn);
+		else if (ale->ownertype == ACTTYPE_SHAPEKEY) {
+			achan= MEM_callocN(sizeof(bActionChannel), "ActCopyPasteAchan");
+			strcpy(achan->name, "#ACP_ShapeKey");
 		}
+		else
+			continue;
+		BLI_addtail(&actcopybuf, achan);
 		
-		/* find selected BezTriples to add to the buffer */
-		for (i=0, bezt=icu->bezt; i < icu->totvert; i++, bezt++) {
-			if (BEZSELECTED(bezt))
-				insert_bezt_icu(icn, bezt);
+		/* add constraint channel if needed, then add new ipo-block */
+		if (ale->type == ACTTYPE_CONCHAN) {
+			bConstraintChannel *conchanO= ale->data;
+			bConstraintChannel *conchan;
+			
+			conchan= MEM_callocN(sizeof(bConstraintChannel), "ActCopyPasteConchan");
+			strcpy(conchan->name, conchanO->name);
+			BLI_addtail(&achan->constraintChannels, conchan);
+			
+			conchan->ipo= ipn= MEM_callocN(sizeof(Ipo), "ActCopyPasteIpo");
+		}
+		else {
+			achan->ipo= ipn= MEM_callocN(sizeof(Ipo), "ActCopyPasteIpo");
+		}
+		ipn->blocktype = ipo->blocktype;
+		
+		/* now loop through curves, and only copy selected keyframes */
+		for (icu= ipo->curve.first; icu; icu= icu->next) {
+			/* allocate a new curve */
+			icn= MEM_callocN(sizeof(IpoCurve), "ActCopyPasteIcu");
+			icn->blocktype = icu->blocktype;
+			icn->adrcode = icu->adrcode;
+			BLI_addtail(&ipn->curve, icn);
+			
+			/* find selected BezTriples to add to the buffer */
+			for (i=0, bezt=icu->bezt; i < icu->totvert; i++, bezt++) {
+				if (BEZSELECTED(bezt))
+					insert_bezt_icu(icn, bezt);
+			}
 		}
 	}
 	
@@ -1247,48 +1285,88 @@ void paste_actdata ()
 	if (data == NULL) return;
 	
 	/* filter data */
-	filter= (ACTFILTER_VISIBLE | ACTFILTER_SEL | ACTFILTER_FOREDIT | ACTFILTER_ONLYICU);
+	filter= (ACTFILTER_VISIBLE | ACTFILTER_SEL | ACTFILTER_FOREDIT | ACTFILTER_IPOKEYS);
 	actdata_filter(&act_data, filter, data, datatype);
 	
 	/* from selected channels */
 	for (ale= act_data.first; ale; ale= ale->next) {
-		IpoCurve *icu= ale->key_data;
-		IpoCurve *ico;
+		Ipo *ipo_src=NULL, *ipo_dst=ale->key_data;
+		bActionChannel *achan;
+		IpoCurve *ico, *icu;
 		BezTriple *bezt;
 		int i;
 		float offset= 0.0f;
 		short offsetInit= 1;
 		
-		/* find matching ipo-curve */
-		for (ico= actcopybuf.first; ico; ico= ico->next) {
-			if ((ico->blocktype==icu->blocktype) && (ico->adrcode==icu->adrcode)) {
-				/* just start pasting, with the the first keyframe on the current frame, and so on */
-				for (i=0, bezt=ico->bezt; i < ico->totvert; i++, bezt++) {
-					/* initialise offset (if not already done) */
-					if (offsetInit) {
-						offset= CFRA - bezt->vec[1][0];
-						offsetInit= 0;
+		/* find matching ipo-block */
+		for (achan= actcopybuf.first; achan; achan= achan->next) {
+			/* try to match data */
+			if (ale->ownertype == ACTTYPE_ACHAN) {
+				bActionChannel *achant= ale->owner;
+				
+				/* check if we have a corresponding action channel */
+				if (strcmp(achan->name, achant->name)==0) {
+					/* check if this is a constraint channel */
+					if (ale->type == ACTTYPE_CONCHAN) {
+						bConstraintChannel *conchant= ale->data;
+						bConstraintChannel *conchan;
+						
+						for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
+							if (strcmp(conchan->name, conchant->name)==0) {
+								ipo_src= conchan->ipo;
+								break;
+							}
+						}
+						if (ipo_src) break;
+					}
+					else {
+						ipo_src= achan->ipo;
+						break;
+					}
+				}
+			}
+			else if (ale->ownertype == ACTTYPE_SHAPEKEY) {
+				/* check if this action channel is "#ACP_ShapeKey" */
+				if (strcmp(achan->name, "#ACP_ShapeKey")==0) {
+					ipo_src= achan->ipo;
+					break;
+				}
+			}	
+		}
+		
+		/* loop over curves, pasting keyframes */
+		for (icu= ipo_dst->curve.first; icu; icu= icu->next) {
+			for (ico= ipo_src->curve.first; ico; ico= ico->next) {
+				/* only paste if compatable blocktype + adrcode */
+				if ((ico->blocktype==icu->blocktype) && (ico->adrcode==icu->adrcode)) {
+					/* just start pasting, with the the first keyframe on the current frame, and so on */
+					for (i=0, bezt=ico->bezt; i < ico->totvert; i++, bezt++) {
+						/* initialise offset (if not already done) */
+						if (offsetInit) {
+							offset= CFRA - bezt->vec[1][0];
+							offsetInit= 0;
+						}
+						
+						/* temporarily apply offset to src beztriple while copying */
+						bezt->vec[0][0] += offset;
+						bezt->vec[1][0] += offset;
+						bezt->vec[2][0] += offset;
+						
+						/* insert the keyframe */
+						insert_bezt_icu(icu, bezt);
+						
+						/* un-apply offset from src beztriple after copying */
+						bezt->vec[0][0] -= offset;
+						bezt->vec[1][0] -= offset;
+						bezt->vec[2][0] -= offset;
 					}
 					
-					/* temporarily apply offset to src beztriple while copying */
-					bezt->vec[0][0] += offset;
-					bezt->vec[1][0] += offset;
-					bezt->vec[2][0] += offset;
+					/* recalculate channel's handles? */
+					calchandles_ipocurve(icu);
 					
-					/* insert the keyframe */
-					insert_bezt_icu(icu, bezt);
-					
-					/* un-apply offset from src beztriple after copying */
-					bezt->vec[0][0] -= offset;
-					bezt->vec[1][0] -= offset;
-					bezt->vec[2][0] -= offset;
+					/* done for this channel */
+					break;
 				}
-				
-				/* recalculate channel's handles? */
-				calchandles_ipocurve(icu);
-				
-				/* done for this channel */
-				break;
 			}
 		}
 	}
@@ -2149,9 +2227,11 @@ void column_select_action_keys(int mode)
 }
 
 /* some quick defines for borderselect modes */
-#define ACTEDIT_BORDERSEL_ALL 0
-#define ACTEDIT_BORDERSEL_FRA 1
-#define ACTEDIT_BORDERSEL_CHA 2
+enum {
+	ACTEDIT_BORDERSEL_ALL = 0,
+	ACTEDIT_BORDERSEL_FRA,
+	ACTEDIT_BORDERSEL_CHA
+};
 
 /* borderselect: for keyframes only */
 void borderselect_action (void)
@@ -2273,7 +2353,7 @@ static void mouse_action (int selectmode)
 	bActionChannel *achan= NULL;
 	bConstraintChannel *conchan= NULL;
 	IpoCurve *icu= NULL;
-	TimeMarker *marker;
+	TimeMarker *marker, *pmarker;
 	
 	void *act_channel;
 	short sel, act_type;
@@ -2285,9 +2365,63 @@ static void mouse_action (int selectmode)
 	if (datatype == ACTCONT_ACTION) act= (bAction *)data;
 
 	act_channel= get_nearest_action_key(&selx, &sel, &act_type, &achan);
-	marker=find_nearest_marker(1);
+	marker= find_nearest_marker(SCE_MARKERS, 1);
+	pmarker= (act) ? find_nearest_marker(&act->markers, 1) : NULL;
+	
+	if (marker) {
+		/* what about scene's markers? */		
+		if (selectmode == SELECT_REPLACE) {			
+			deselect_markers(0, 0);
+			marker->flag |= SELECT;
+		}
+		else if (selectmode == SELECT_INVERT) {
+			if (marker->flag & SELECT)
+				marker->flag &= ~SELECT;
+			else
+				marker->flag |= SELECT;
+		}
+		else if (selectmode == SELECT_ADD) 
+			marker->flag |= SELECT;
+		else if (selectmode == SELECT_SUBTRACT)
+			marker->flag &= ~SELECT;
 		
-	if (act_channel) {
+		std_rmouse_transform(transform_markers);
+		
+		allqueue(REDRAWMARKER, 0);
+	}	
+	else if (pmarker) {
+		/* action's markers are drawn behind scene markers */		
+		if (selectmode == SELECT_REPLACE) {
+			action_set_activemarker(act, pmarker, 1);
+			pmarker->flag |= SELECT;
+		}
+		else if (selectmode == SELECT_INVERT) {
+			if (pmarker->flag & SELECT) {
+				pmarker->flag &= ~SELECT;
+				action_set_activemarker(act, NULL, 0);
+			}
+			else {
+				pmarker->flag |= SELECT;
+				action_set_activemarker(act, pmarker, 0);
+			}
+		}
+		else if (selectmode == SELECT_ADD)  {
+			pmarker->flag |= SELECT;
+			action_set_activemarker(act, pmarker, 0);
+		}
+		else if (selectmode == SELECT_SUBTRACT) {
+			pmarker->flag &= ~SELECT;
+			action_set_activemarker(act, NULL, 0);
+		}
+		
+		// TODO: local-markers cannot be moved atm...
+		//std_rmouse_transform(transform_markers);
+		
+		allqueue(REDRAWACTION, 0);
+		allqueue(REDRAWBUTSEDIT, 0);
+	}
+	else if (act_channel) {
+		/* must have been a channel */
 		switch (act_type) {
 			case ACTTYPE_ICU:
 				icu= (IpoCurve *)act_channel;
@@ -2331,27 +2465,6 @@ static void mouse_action (int selectmode)
 		allqueue(REDRAWNLA, 0);
 		allqueue(REDRAWOOPS, 0);
 		allqueue(REDRAWBUTSALL, 0);
-	}
-	else if (marker) {
-		/* not channel, so maybe marker */		
-		if (selectmode == SELECT_REPLACE) {			
-			deselect_markers(0, 0);
-			marker->flag |= SELECT;
-		}
-		else if (selectmode == SELECT_INVERT) {
-			if (marker->flag & SELECT)
-				marker->flag &= ~SELECT;
-			else
-				marker->flag |= SELECT;
-		}
-		else if (selectmode == SELECT_ADD) 
-			marker->flag |= SELECT;
-		else if (selectmode == SELECT_SUBTRACT)
-			marker->flag &= ~SELECT;
-		
-		std_rmouse_transform(transform_markers);
-		
-		allqueue(REDRAWMARKER, 0);
 	}
 }
 
@@ -2621,7 +2734,7 @@ void bottom_sel_action ()
 		if (VISIBLE_ACHAN(achan)) {
 			if (SEL_ACHAN(achan) && !(achan->flag & ACHAN_MOVED)) {
 				/* take it out off the chain keep data */
-				BLI_remlink (&act->chanbase, achan);
+				BLI_remlink(&act->chanbase, achan);
 				/* add at end */
 				BLI_addtail(&act->chanbase, achan);
 				achan->flag |= ACHAN_MOVED;
@@ -2640,6 +2753,141 @@ void bottom_sel_action ()
 	allqueue(REDRAWACTION, 0);
 	allqueue(REDRAWIPO, 0);
 	allqueue(REDRAWNLA, 0);
+}
+
+/* **************************************************** */
+/* ACTION MARKERS (PoseLib features) */
+/* NOTE: yes, these duplicate code from edittime.c a bit, but these do a bit more...
+ * These could get merged with those someday if need be...  (Aligorith, 20071230)
+ */
+
+/* Makes the given marker the active one
+ *	- deselect indicates whether unactive ones should be deselected too
+ */
+void action_set_activemarker (bAction *act, TimeMarker *active, short deselect)
+{
+	TimeMarker *marker;
+	int index= 0;
+	
+	/* sanity checks */
+	if (act == NULL)
+		return;
+	act->active_marker= 0;
+	
+	/* set appropriate flags for all markers */
+	for (marker=act->markers.first; marker; marker=marker->next, index++) {
+		/* only active may be active */
+		if (marker == active) {
+			act->active_marker= index + 1;
+			marker->flag |= (SELECT|ACTIVE);
+		}
+		else {
+			if (deselect)
+				marker->flag &= ~(SELECT|ACTIVE);
+			else
+				marker->flag &= ~ACTIVE;
+		}
+	}	
+}
+
+/* Adds a local marker to the active action */
+void action_add_localmarker (bAction *act, int frame)
+{
+	TimeMarker *marker;
+	char name[64];
+	
+	/* sanity checks */
+	if (act == NULL) 
+		return;
+	
+	/* get name of marker */
+	sprintf(name, "Pose");
+	if (sbutton(name, 0, sizeof(name)-1, "Name: ") == 0)
+		return;
+	
+	/* add marker to action - replaces any existing marker there */
+	for (marker= act->markers.first; marker; marker= marker->next) {
+		if (marker->frame == frame) {
+			BLI_strncpy(marker->name, name, sizeof(marker->name));
+			break;
+		}
+	}
+	if (marker == NULL) {
+		marker= MEM_callocN(sizeof(TimeMarker), "ActionMarker");
+		
+		BLI_strncpy(marker->name, name, sizeof(marker->name));
+		marker->frame= frame;
+		
+		BLI_addtail(&act->markers, marker);
+	}
+	
+	/* sets the newly added marker as the active one */
+	action_set_activemarker(act, marker, 1);
+	
+	BIF_undo_push("Action Add Marker");
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWBUTSEDIT, 0);
+}
+
+/* Renames the active local marker to the active action */
+void action_rename_localmarker (bAction *act)
+{
+	TimeMarker *marker;
+	char name[64];
+	int val;
+	
+	/* sanity checks */
+	if (act == NULL) 
+		return;
+	
+	/* get active marker to rename */
+	if (act->active_marker == 0)
+		return;
+	else
+		val= act->active_marker;
+	
+	if (val <= 0) return;
+	marker= BLI_findlink(&act->markers, val-1);
+	if (marker == NULL) return;
+	
+	/* get name of marker */
+	sprintf(name, marker->name);
+	if (sbutton(name, 0, sizeof(name)-1, "Name: ") == 0)
+		return;
+	
+	/* copy name */
+	BLI_strncpy(marker->name, name, sizeof(marker->name));
+	
+	/* undo and update */
+	BIF_undo_push("Action Rename Marker");
+	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWACTION, 0);
+}
+
+/* Deletes all selected markers, and adjusts things as appropriate */
+void action_remove_localmarkers (bAction *act)
+{
+	TimeMarker *marker, *next;
+	
+	/* sanity checks */
+	if (act == NULL)
+		return;
+		
+	/* remove selected markers */
+	for (marker= act->markers.first; marker; marker= next) {
+		next= marker->next;
+		
+		if (marker->flag & SELECT)
+			BLI_freelinkN(&act->markers, marker);
+	}
+	
+	/* clear active just in case */
+	act->active_marker= 0;
+	
+	/* undo and update */
+	BIF_undo_push("Action Remove Marker(s)");
+	allqueue(REDRAWBUTSEDIT, 0);
+	allqueue(REDRAWACTION, 0);
 }
 
 /* **************************************************** */
@@ -2780,6 +3028,18 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			}
 			
 			allqueue(REDRAWMARKER, 0);
+			break;
+			
+		case LKEY:
+			/* poselib manipulation - only for actions */
+			if (datatype == ACTCONT_ACTION) {
+				if (G.qual == LR_SHIFTKEY) 
+					action_add_localmarker(data, CFRA);
+				else if (G.qual == (LR_CTRLKEY|LR_SHIFTKEY))
+					action_rename_localmarker(data);
+				else if (G.qual == LR_ALTKEY)
+					action_remove_localmarkers(data);
+			}
 			break;
 			
 		case MKEY:

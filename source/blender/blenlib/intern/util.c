@@ -777,6 +777,16 @@ int BLI_strcaseeq(char *a, char *b) {
 
 void BLI_cleanup_dir(const char *relabase, char *dir)
 {
+	BLI_cleanup_file(relabase, dir);
+#ifdef WIN32
+	strcat(dir, "\\");
+#else
+	strcat(dir, "/");
+#endif
+}
+
+void BLI_cleanup_file(const char *relabase, char *dir)
+{
 	short a;
 	char *start, *eind;
 	
@@ -814,9 +824,7 @@ void BLI_cleanup_dir(const char *relabase, char *dir)
 			dir[a] = 0;
 		}
 	}
-
-	strcat(dir, "\\");
-#else	
+#else
 	if(dir[0]=='.') {	/* happens, for example in FILE_MAIN */
 	   dir[0]= '/';
 	   dir[1]= 0;
@@ -850,8 +858,6 @@ void BLI_cleanup_dir(const char *relabase, char *dir)
 			if (a<=0) break;
 		}
 	}
-
-	strcat(dir, "/");
 #endif
 }
 

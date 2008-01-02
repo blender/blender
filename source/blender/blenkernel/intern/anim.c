@@ -74,6 +74,10 @@
 #include <config.h>
 #endif
 
+#define MAX_DUPLI_RECUR 4
+
+static void object_duplilist_recursive(ID *id, Object *ob, ListBase *duplilist, float (*par_space_mat)[][4], int level);
+
 void free_path(Path *path)
 {
 	if(path->data) MEM_freeN(path->data);
@@ -306,7 +310,7 @@ static void group_duplilist(ListBase *lb, Object *ob, int level)
 	group= ob->dup_group;
 	
 	/* simple preventing of too deep nested groups */
-	if(level>4) return;
+	if(level>MAX_DUPLI_RECUR) return;
 	
 	/* handles animated groups, and */
 	/* we need to check update for objects that are not in scene... */
@@ -315,24 +319,28 @@ static void group_duplilist(ListBase *lb, Object *ob, int level)
 	for(go= group->gobject.first; go; go= go->next) {
 		/* note, if you check on layer here, render goes wrong... it still deforms verts and uses parent imat */
 		if(go->ob!=ob) {
+			
 			Mat4MulMat4(mat, go->ob->obmat, ob->obmat);
 			dob= new_dupli_object(lb, go->ob, mat, ob->lay, 0);
 			dob->no_draw= (dob->origlay & group->layer)==0;
 			
-			if(go->ob->dup_group && (go->ob->transflag & OB_DUPLIGROUP)) {
+			if(go->ob->transflag & OB_DUPLI) {
 				Mat4CpyMat4(dob->ob->obmat, dob->mat);
-				group_duplilist(lb, go->ob, level+1);
+				object_duplilist_recursive((ID *)group, go->ob, lb, &ob->obmat, level+1);
 				Mat4CpyMat4(dob->ob->obmat, dob->omat);
 			}
 		}
 	}
 }
 
-static void frames_duplilist(ListBase *lb, Object *ob)
+static void frames_duplilist(ListBase *lb, Object *ob, int level)
 {
 	extern int enable_cu_speed;	/* object.c */
 	Object copyob;
 	int cfrao, ok;
+	
+	/* simple preventing of too deep nested groups */
+	if(level>MAX_DUPLI_RECUR) return;
 	
 	cfrao= G.scene->r.cfra;
 	if(ob->parent==NULL && ob->track==NULL && ob->ipo==NULL && ob->constraints.first==NULL) return;
@@ -362,8 +370,11 @@ static void frames_duplilist(ListBase *lb, Object *ob)
 }
 
 struct vertexDupliData {
+	ID *id; /* scene or group, for recursive loops */
+	int level;
 	ListBase *lb;
 	float pmat[4][4];
+	float obmat[4][4]; /* Only used for dupliverts inside dupligroups, where the ob->obmat is modified */
 	Object *ob, *par;
 };
 
@@ -375,9 +386,9 @@ static void vertex_dupli__mapFunc(void *userData, int index, float *co, float *n
 	VECCOPY(vec, co);
 	Mat4MulVecfl(vdd->pmat, vec);
 	VecSubf(vec, vec, vdd->pmat[3]);
-	VecAddf(vec, vec, vdd->ob->obmat[3]);
+	VecAddf(vec, vec, vdd->obmat[3]);
 	
-	Mat4CpyMat4(obmat, vdd->ob->obmat);
+	Mat4CpyMat4(obmat, vdd->obmat);
 	VECCOPY(obmat[3], vec);
 	
 	if(vdd->par->transflag & OB_DUPLIROT) {
@@ -395,19 +406,32 @@ static void vertex_dupli__mapFunc(void *userData, int index, float *co, float *n
 		Mat4MulMat43(obmat, tmat, mat);
 	}
 	new_dupli_object(vdd->lb, vdd->ob, obmat, vdd->par->lay, index);
+	
+	if(vdd->ob->transflag & OB_DUPLI) {
+		float tmpmat[4][4];
+		Mat4CpyMat4(tmpmat, vdd->ob->obmat);
+		Mat4CpyMat4(vdd->ob->obmat, obmat); /* pretend we are really this mat */
+		object_duplilist_recursive((ID *)vdd->id, vdd->ob, vdd->lb, &obmat, vdd->level+1);
+		Mat4CpyMat4(vdd->ob->obmat, tmpmat);
+	}
 }
 
-static void vertex_duplilist(ListBase *lb, Scene *sce, Object *par)
+static void vertex_duplilist(ListBase *lb, ID *id, Object *par, float (*par_space_mat)[][4], int level)
 {
-	Object *ob;
-	Base *base;
+	Object *ob, *ob_iter;
+	Base *base = NULL;
 	float vec[3], no[3], pmat[4][4];
-	int lay, totvert, a;
+	int lay, totvert, a, oblay;
 	DerivedMesh *dm;
+	struct vertexDupliData vdd;
+	Scene *sce = NULL;
+	Group *group = NULL;
+	GroupObject * go = NULL;
 	
 	Mat4CpyMat4(pmat, par->obmat);
 	
-	lay= G.scene->lay;
+	/* simple preventing of too deep nested groups */
+	if(level>MAX_DUPLI_RECUR) return;
 	
 	if(par==G.obedit)
 		dm= editmesh_get_derived_cage(CD_MASK_BAREMESH);
@@ -416,16 +440,45 @@ static void vertex_duplilist(ListBase *lb, Scene *sce, Object *par)
 	
 	totvert = dm->getNumVerts(dm);
 
-	base= sce->base.first;
-	while(base) {
-
-		if(base->object->type>0 && (lay & base->lay) && G.obedit!=base->object) {
-			ob= base->object->parent;
+	/* having to loop on scene OR group objects is NOT FUN */
+	if (GS(id->name) == ID_SCE) {
+		sce = (Scene *)id;
+		lay= sce->lay;
+		base= sce->base.first;
+	} else {
+		group = (Group *)id;
+		lay= group->layer;
+		go = group->gobject.first;
+	}
+	
+	/* Start looping on Scene OR Group objects */
+	while (base || go) { 
+		if (sce) {
+			ob_iter= base->object;
+			oblay = base->lay;
+		} else {
+			ob_iter= go->ob;
+			oblay = ob_iter->lay;
+		}
+		
+		if (lay & oblay && G.obedit!=ob_iter) {
+			ob=ob_iter->parent;
 			while(ob) {
 				if(ob==par) {
-					struct vertexDupliData vdd;
+					ob = ob_iter;
+	/* End Scene/Group object loop, below is generic */
 					
-					ob= base->object;
+					
+					/* par_space_mat - only used for groups so we can modify the space dupli's are in
+					   when par_space_mat is NULL ob->obmat can be used instead of ob__obmat
+					*/
+					if (par_space_mat) {
+						Mat4MulMat4(vdd.obmat, ob->obmat, *par_space_mat);
+					} else {
+						Mat4CpyMat4(vdd.obmat, ob->obmat);
+					}
+					vdd.id= id;
+					vdd.level= level;
 					vdd.lb= lb;
 					vdd.ob= ob;
 					vdd.par= par;
@@ -451,25 +504,32 @@ static void vertex_duplilist(ListBase *lb, Scene *sce, Object *par)
 				ob= ob->parent;
 			}
 		}
-		base= base->next;
+		if (sce)	base= base->next;	/* scene loop */
+		else		go= go->next;		/* group loop */
 	}
 
 	dm->release(dm);
 }
 
-static void face_duplilist(ListBase *lb, Scene *sce, Object *par)
+static void face_duplilist(ListBase *lb, ID *id, Object *par, float (*par_space_mat)[][4], int level)
 {
-	Object *ob;
-	Base *base;
+	Object *ob, *ob_iter;
+	Base *base = NULL;
 	DerivedMesh *dm;
 	MFace *mface;
 	MVert *mvert;
 	float pmat[4][4], imat[3][3];
-	int lay, totface, a;
+	int lay, oblay, totface, a;
+	Scene *sce = NULL;
+	Group *group = NULL;
+	GroupObject *go = NULL;
+	
+	float ob__obmat[4][4]; /* needed for groups where the object matrix needs to be modified */
+	
+	/* simple preventing of too deep nested groups */
+	if(level>MAX_DUPLI_RECUR) return;
 	
 	Mat4CpyMat4(pmat, par->obmat);
-	
-	lay= G.scene->lay;
 	
 	if(par==G.obedit) {
 		int totvert;
@@ -491,16 +551,45 @@ static void face_duplilist(ListBase *lb, Scene *sce, Object *par)
 	}
 	
 	
-	for(base= sce->base.first; base; base= base->next) {
+	/* having to loop on scene OR group objects is NOT FUN */
+	if (GS(id->name) == ID_SCE) {
+		sce = (Scene *)id;
+		lay= sce->lay;
+		base= sce->base.first;
+	} else {
+		group = (Group *)id;
+		lay= group->layer;
+		go = group->gobject.first;
+	}
+	
+	/* Start looping on Scene OR Group objects */
+	while (base || go) { 
+		if (sce) {
+			ob_iter= base->object;
+			oblay = base->lay;
+		} else {
+			ob_iter= go->ob;
+			oblay = ob_iter->lay;
+		}
 		
-		if(base->object->type>0 && (lay & base->lay) && G.obedit!=base->object) {
-			ob= base->object->parent;
+		if (lay & oblay && G.obedit!=ob_iter) {
+			ob=ob_iter->parent;
 			while(ob) {
 				if(ob==par) {
+					ob = ob_iter;
+	/* End Scene/Group object loop, below is generic */
 					
-					ob= base->object;
+					/* par_space_mat - only used for groups so we can modify the space dupli's are in
+					   when par_space_mat is NULL ob->obmat can be used instead of ob__obmat
+					*/
+					if (par_space_mat) {
+						Mat4MulMat4(ob__obmat, ob->obmat, *par_space_mat);
+					} else {
+						Mat4CpyMat4(ob__obmat, ob->obmat);
+					}
+					
 					Mat3CpyMat4(imat, ob->parentinv);
-					
+						
 					/* mballs have a different dupli handling */
 					if(ob->type!=OB_MBALL) ob->flag |= OB_DONE;	/* doesnt render */
 
@@ -519,9 +608,10 @@ static void face_duplilist(ListBase *lb, Scene *sce, Object *par)
 						Mat4MulVecfl(pmat, cent);
 						
 						VecSubf(cent, cent, pmat[3]);
-						VecAddf(cent, cent, ob->obmat[3]);
+						VecAddf(cent, cent, ob__obmat[3]);
 						
-						Mat4CpyMat4(obmat, ob->obmat);
+						Mat4CpyMat4(obmat, ob__obmat);
+						
 						VECCOPY(obmat[3], cent);
 						
 						/* rotation */
@@ -542,7 +632,14 @@ static void face_duplilist(ListBase *lb, Scene *sce, Object *par)
 						Mat4MulMat43(obmat, tmat, mat);
 						
 						new_dupli_object(lb, ob, obmat, lay, a);
-
+						
+						if(ob->transflag & OB_DUPLI) {
+							float tmpmat[4][4];
+							Mat4CpyMat4(tmpmat, ob->obmat);
+							Mat4CpyMat4(ob->obmat, obmat); /* pretend we are really this mat */
+							object_duplilist_recursive((ID *)id, ob, lb, &ob->obmat, level+1);
+							Mat4CpyMat4(ob->obmat, tmpmat);
+						}
 					}
 					
 					break;
@@ -550,6 +647,8 @@ static void face_duplilist(ListBase *lb, Scene *sce, Object *par)
 				ob= ob->parent;
 			}
 		}
+		if (sce)	base= base->next;	/* scene loop */
+		else		go= go->next;		/* group loop */
 	}
 	
 	if(par==G.obedit) {
@@ -560,7 +659,7 @@ static void face_duplilist(ListBase *lb, Scene *sce, Object *par)
 	dm->release(dm);
 }
 
-static void new_particle_duplilist(ListBase *lb, Scene *sce, Object *par, ParticleSystem *psys)
+static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, ParticleSystem *psys, int level)
 {
 	GroupObject *go;
 	Object *ob, **oblist=0;
@@ -574,6 +673,11 @@ static void new_particle_duplilist(ListBase *lb, Scene *sce, Object *par, Partic
 	int totpart, totchild, totgroup=0, pa_num;
 
 	if(psys==0) return;
+	
+	/* simple preventing of too deep nested groups */
+	if(level>MAX_DUPLI_RECUR) return;
+	
+	if (GS(id->name)!=ID_SCE) return; /* No support for groups YET! TODO */
 	
 	part=psys->part;
 
@@ -722,13 +826,16 @@ static Object *find_family_object(Object **obar, char *family, char ch)
 }
 
 
-static void font_duplilist(ListBase *lb, Object *par)
+static void font_duplilist(ListBase *lb, Object *par, int level)
 {
 	Object *ob, *obar[256];
 	Curve *cu;
 	struct chartrans *ct, *chartransdata;
 	float vec[3], obmat[4][4], pmat[4][4], fsize, xof, yof;
 	int slen, a;
+	
+	/* simple preventing of too deep nested groups */
+	if(level>MAX_DUPLI_RECUR) return;
 	
 	Mat4CpyMat4(pmat, par->obmat);
 	
@@ -769,45 +876,63 @@ static void font_duplilist(ListBase *lb, Object *par)
 }
 
 /* ***************************** */
+static void object_duplilist_recursive(ID *id, Object *ob, ListBase *duplilist, float (*par_space_mat)[][4], int level)
+{	
+	if((ob->transflag & OB_DUPLI)==0)
+		return;
+	
+	/* Should the dupli's be greated for this object? - Respect restrict flags */
+	if (G.rendering) {
+		if (ob->restrictflag & OB_RESTRICT_RENDER) {
+			return;
+		}
+	} else {
+		if (ob->restrictflag & OB_RESTRICT_VIEW) {
+			return;
+		}
+	}
+
+	if(ob->transflag & OB_DUPLIPARTS) {
+		ParticleSystem *psys = ob->particlesystem.first;
+		for(; psys; psys=psys->next)
+			new_particle_duplilist(duplilist, id, ob, psys, level+1);
+	}
+	else if(ob->transflag & OB_DUPLIVERTS) {
+		if(ob->type==OB_MESH) {
+			vertex_duplilist(duplilist, id, ob, par_space_mat, level+1);
+		}
+		else if(ob->type==OB_FONT) {
+			if (GS(id->name)==ID_SCE) { /* TODO - support dupligroups */
+				font_duplilist(duplilist, ob, level+1);
+			}
+		}
+	}
+	else if(ob->transflag & OB_DUPLIFACES) {
+		if(ob->type==OB_MESH)
+			face_duplilist(duplilist, id, ob, par_space_mat, level+1);
+	}
+	else if(ob->transflag & OB_DUPLIFRAMES) {
+		if (GS(id->name)==ID_SCE) { /* TODO - support dupligroups */
+			frames_duplilist(duplilist, ob, level+1);
+		}
+	} else if(ob->transflag & OB_DUPLIGROUP) {
+		DupliObject *dob;
+		
+		group_duplilist(duplilist, ob, level+1); /* now recursive */
+
+		if (level==0) {
+			for(dob= duplilist->first; dob; dob= dob->next)
+				Mat4CpyMat4(dob->ob->obmat, dob->mat);
+		}
+	}
+}
 
 /* note; group dupli's already set transform matrix. see note in group_duplilist() */
 ListBase *object_duplilist(Scene *sce, Object *ob)
 {
 	ListBase *duplilist= MEM_mallocN(sizeof(ListBase), "duplilist");
 	duplilist->first= duplilist->last= NULL;
-
-	if(ob->transflag & OB_DUPLI) {
-		if(ob->transflag & OB_DUPLIPARTS) {
-			ParticleSystem *psys = ob->particlesystem.first;
-			for(; psys; psys=psys->next)
-				new_particle_duplilist(duplilist, sce, ob, psys);
-		}
-		else if(ob->transflag & OB_DUPLIVERTS) {
-			if(ob->type==OB_MESH) {
-				vertex_duplilist(duplilist, sce, ob);
-			}
-			else if(ob->type==OB_FONT) {
-				font_duplilist(duplilist, ob);
-			}
-		}
-		else if(ob->transflag & OB_DUPLIFACES) {
-			if(ob->type==OB_MESH)
-				face_duplilist(duplilist, sce, ob);
-		}
-		else if(ob->transflag & OB_DUPLIFRAMES) 
-			frames_duplilist(duplilist, ob);
-		else if(ob->transflag & OB_DUPLIGROUP) {
-			DupliObject *dob;
-			
-			group_duplilist(duplilist, ob, 0); /* now recursive */
-
-			/* make copy already, because in group dupli's deform displists can be made, requiring parent matrices */
-			for(dob= duplilist->first; dob; dob= dob->next)
-				Mat4CpyMat4(dob->ob->obmat, dob->mat);
-		}
-		
-	}
-	
+	object_duplilist_recursive((ID *)sce, ob, duplilist, NULL, 0);
 	return duplilist;
 }
 

@@ -1917,9 +1917,11 @@ static int do_outliner_mouse_event(SpaceOops *soops, TreeElement *te, short even
 				if (G.qual & LR_CTRLKEY) {
 					if(ELEM8(tselem->type, TSE_NLA, TSE_DEFGROUP_BASE, TSE_CONSTRAINT_BASE, TSE_MODIFIER_BASE, TSE_SCRIPT_BASE, TSE_POSE_BASE, TSE_R_LAYER_BASE, TSE_R_PASS)) 
 						error("Cannot edit builtin name");
-					else if(tselem->id->lib)
+					else if(tselem->id->lib) {
 						error_libdata();
-					else {
+					} else if(te->idcode == ID_LI && te->parent) {
+						error("Cannot edit the path of an indirectly linked library");
+					} else {
 						tselem->flag |= TSE_TEXTBUT;
 					}
 				} else {

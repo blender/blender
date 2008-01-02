@@ -2325,23 +2325,26 @@ static void object_panel_object(Object *ob)
 	Group *group;
 	int a, xco, yco=0;
 	short dx= 33, dy= 30;
-
+	int is_libdata = object_is_libdata(ob);
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_object", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Object and Links", "Object", 0, 0, 318, 204)==0) return;
 	
-	uiSetButLock(object_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
+	
 	
 	/* object name */
 	uiBlockSetCol(block, TH_BUT_SETTING2);
+	uiSetButLock(is_libdata, ERROR_LIBDATA_MESSAGE);
 	xco= std_libbuttons(block, 10, 180, 0, NULL, 0, ID_OB, 0, &ob->id, NULL, &(G.buts->menunr), B_OBALONE, B_OBLOCAL, 0, 0, B_KEEPDATA);
 	uiBlockSetCol(block, TH_AUTO);
 	
 	/* parent */
+	uiSetButLock(is_libdata, ERROR_LIBDATA_MESSAGE);
 	uiDefIDPoinBut(block, test_obpoin_but, ID_OB, B_OBJECTPANELPARENT, "Par:", xco+5, 180, 305-xco, 20, &ob->parent, "Parent Object"); 
 	
-	/* TODO, check for ob->id.lib */
+	uiSetButLock(is_libdata, ERROR_LIBDATA_MESSAGE);
 	but = uiDefButS(block, NUM, B_NOP, "PassIndex:",		xco+5, 150, 305-xco, 20, &ob->index, 0.0, 1000.0, 0, 0, "Index # for the IndexOB render pass.");
-
+	
+	uiSetButLock(1, NULL);
 	uiDefBlockBut(block, add_groupmenu, NULL, "Add to Group", 10,150,150,20, "Add Object to a new Group");
 
 	/* all groups */
@@ -3660,8 +3663,8 @@ static void object_panel_particle_children(Object *ob)
 	if(part==NULL) return;
 		
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_particle_child", UI_EMBOSS, UI_HELV, curarea->win);
-	uiNewPanelTabbed("Extras", "Particle");
 	if(uiNewPanel(curarea, block, "Children", "Particle", 1300, 0, 318, 204)==0) return;
+	uiNewPanelTabbed("Extras", "Particle");
 
 	uiDefButS(block, MENU, B_PART_ALLOC_CHILD, "Children from:%t|Faces%x2|Particles%x1|None%x0", butx,buty,butw,buth, &part->childtype, 14.0, 0.0, 0, 0, "Create child particles");
 
@@ -3799,7 +3802,6 @@ static void object_panel_particle_extra(Object *ob)
 	ParticleSettings *part;
 	short butx=0, buty=160, butw=150, buth=20;
 	static short vgnum=0;
-	int event;
 
 	if (psys==NULL) return;
 	part=psys->part;
@@ -3868,9 +3870,9 @@ static void object_panel_particle_extra(Object *ob)
 
 	uiDefButI(block, NUM, B_PART_DISTR, "Seed:",				butx,(buty-=buth),butw,buth, &psys->seed, 0.0, 255.0, 1, 0, "Set an offset in the random table");
 
-	event=(part->flag&PART_SIZEMASS)?B_PART_RECALC:B_PART_REDRAW;
-	uiDefButF(block, NUM, event, "Size:",	butx,(buty-=2*buth),butw,buth, &part->size, 0.01, 100, 10, 1, "The size of the particles");
-	uiDefButF(block, NUM, event, "Rand:",	butx,(buty-=buth),butw,buth, &part->randsize, 0.0, 2.0, 10, 1, "Give the particle size a random variation");
+	/* size changes must create a recalc event always so that sizes are updated properly */
+	uiDefButF(block, NUM, B_PART_RECALC, "Size:",	butx,(buty-=2*buth),butw,buth, &part->size, 0.01, 100, 10, 1, "The size of the particles");
+	uiDefButF(block, NUM, B_PART_RECALC, "Rand:",	butx,(buty-=buth),butw,buth, &part->randsize, 0.0, 2.0, 10, 1, "Give the particle size a random variation");
 
 	uiDefButBitI(block, TOG, PART_SIZEMASS, B_PART_RECALC, "Mass from size",	 butx,(buty-=buth),butw,buth, &part->flag, 0, 0, 0, 0, "Multiply mass with particle size");
 	uiDefButF(block, NUM, B_PART_RECALC, "Mass:",	butx,(buty-=buth),butw,buth, &part->mass, 0.01, 100, 10, 1, "Specify the mass of the particles");
@@ -4007,6 +4009,47 @@ static void object_panel_particle_visual(Object *ob)
 	}
 	uiBlockEndAlign(block);
 }
+static void object_panel_particle_simplification(Object *ob)
+{
+	uiBlock *block;
+	ParticleSystem *psys=psys_get_current(ob);
+	ParticleSettings *part;
+	short butx=0, buty=160, butw=150, buth=20;
+
+	if (psys==NULL) return;
+	part=psys->part;
+	if(part==NULL) return;
+
+	if(part->draw_as!=PART_DRAW_PATH || !(part->draw & PART_DRAW_REN_STRAND))
+		return;
+	if(part->childtype!=PART_CHILD_FACES)
+		return;
+	
+	block= uiNewBlock(&curarea->uiblocks, "object_panel_particle_simplification", UI_EMBOSS, UI_HELV, curarea->win);
+	uiNewPanelTabbed("Visualization", "Particle");
+	if(uiNewPanel(curarea, block, "Simplification", "Particle", 640, 0, 318, 204)==0) return;
+
+	uiBlockBeginAlign(block);
+	uiDefButBitS(block, TOG, PART_SIMPLIFY_ENABLE, B_PART_REDRAW, "Child Simplification", butx,buty-=buth,butw,buth, &part->simplify_flag, 0, 0, 0, 0, "Remove child strands as the object becomes smaller on the screen");
+	uiBlockEndAlign(block);
+	if(part->simplify_flag & PART_SIMPLIFY_ENABLE) {
+		buty -= 10;
+
+		uiBlockBeginAlign(block);
+		uiDefButS(block, NUM, B_NOP, "Reference Size:", butx,(buty-=buth),butw,buth, &part->simplify_refsize, 1.0, 32768.0, 0, 0, "Reference size size in pixels, after which simplification begins");
+		uiDefButF(block, NUM, B_NOP, "Rate:", butx,(buty-=buth),butw,buth, &part->simplify_rate, 0.0, 1.0, 0, 0, "Speed of simplification");
+		uiDefButF(block, NUM, B_NOP, "Transition:", butx,(buty-=buth),butw,buth, &part->simplify_transition, 0.0, 1.0, 0, 0, "Transition period for fading out strands");
+		uiBlockEndAlign(block);
+
+		buty -= 10;
+
+		uiBlockBeginAlign(block);
+		uiDefButBitS(block, TOG, PART_SIMPLIFY_VIEWPORT, B_PART_REDRAW, "Viewport", butx,buty-=buth,butw,buth, &part->simplify_flag, 0, 0, 0, 0, "Remove child strands as the object goes outside the viewport");
+		uiDefButF(block, NUM, B_NOP, "Rate:", butx,(buty-=buth),butw,buth, &part->simplify_viewport, 0.0, 0.999, 0, 0, "Speed of simplification");
+		uiBlockEndAlign(block);
+	}
+	uiBlockEndAlign(block);
+}
 static void boidrule_moveDown(void *part_v, void *rule_v)
 {
 	ParticleSettings *part = part_v;
@@ -4128,7 +4171,7 @@ static void object_panel_particle_physics(Object *ob)
 		uiDefButF(block, NUM, B_PART_RECALC, "Random:",		butx,(buty-=buth*4/5),butw,buth*4/5, &part->randfac, 0.0, 200.0, 1, 3, "Give the starting speed a random variation");
 		if(part->type==PART_REACTOR) {
 			uiDefButF(block, NUM, B_PART_RECALC, "Particle:",		butx,(buty-=buth*4/5),butw,buth*4/5, &part->partfac, -10.0, 10.0, 1, 3, "Let the target particle give the particle a starting speed");
-			uiDefButF(block, NUM, B_PART_RECALC, "Reactor:",		butx,(buty-=buth*4/5),butw,buth*4/5, &part->reactfac, -10.0, 10.0, 1, 3, "Let the vector from target particle give the particle a starting speed");
+			uiDefButF(block, NUM, B_PART_RECALC, "Reactor:",		butx,(buty-=buth*4/5),butw,buth*4/5, &part->reactfac, -10.0, 10.0, 1, 3, "Let the vector away from the target particles location give the particle a starting speed");
 		}
 		else {
 			uiDefButF(block, NUM, B_PART_RECALC, "Tan:",		butx,(buty-=buth*4/5),butw,buth*4/5, &part->tanfac, -200.0, 200.0, 1, 3, "Let the surface tangent give the particle a starting speed");
@@ -4146,15 +4189,17 @@ static void object_panel_particle_physics(Object *ob)
 		uiDefBut(block, LABEL, 0, "Rotation:",	butx, (buty-=buth),butw,buth, NULL, 0.0, 0, 0, 0, "");
 		uiBlockBeginAlign(block);
 		uiDefButBitI(block, TOG, PART_ROT_DYN, B_PART_RECALC, "Dynamic",	 butx,(buty-=buth*4/5),butw/2,buth*4/5, &part->flag, 0, 0, 0, 0, "Sets rotation to dynamic/constant");
-		uiDefButS(block, MENU, B_PART_RECALC, "Rotation %t|Random %x3|Velocity %x2|Normal %x1|None %x0", butx+butw/2,buty,butw/2,buth*4/5, &part->rotmode, 14.0, 0.0, 0, 0, "Select particle rotation mode");
+		uiDefButS(block, MENU, B_PART_RECALC, "Rotation%t|Object Z%x8|Object Y%x7|Object X%x6|Global Z%x5|Global Y%x4|Global X%x3|Velocity%x2|Normal%x1|None%x0", butx+butw/2,buty,butw/2,buth*4/5, &part->rotmode, 14.0, 0.0, 0, 0, "Particles initial rotation");
 		uiBlockSetCol(block, TH_BUT_SETTING2);
-		uiDefButF(block, NUM, B_PART_RECALC, "Amount:",		butx,(buty-=buth*4/5),butw,buth*4/5, &part->rotfac, -1.0, 1.0, 1, 3, "Rotation amount");
-		uiDefButF(block, NUM, B_PART_RECALC, "Phase:",			butx,(buty-=buth*4/5),butw,buth*4/5, &part->phasefac, -1.0, 1.0, 1, 3, "Initial rotation phase");
+		uiDefButF(block, NUM, B_PART_RECALC, "Random:",		butx,(buty-=buth*4/5),butw,buth*4/5, &part->randrotfac, 0.0, 1.0, 1, 3, "Randomize rotation");
+		uiDefButF(block, NUM, B_PART_RECALC, "Phase:",			butx,(buty-=buth*4/5),butw/2,buth*4/5, &part->phasefac, -1.0, 1.0, 1, 3, "Initial rotation phase");
+		uiDefButF(block, NUM, B_PART_RECALC, "Rand:",			butx+butw/2,buty,butw/2,buth*4/5, &part->randphasefac, 0.0, 1.0, 1, 3, "Randomize rotation phase");
 		uiBlockSetCol(block, TH_AUTO);
 
 		uiDefButS(block, MENU, B_PART_RECALC, "Angular v %t|Velocity%x3|Random%x2|Spin%x1|None%x0", butx,(buty-=buth*4/5),butw,buth*4/5, &part->avemode, 14.0, 0.0, 0, 0, "Select particle angular velocity mode");
 		uiBlockSetCol(block, TH_BUT_SETTING2);
-		uiDefButF(block, NUM, B_PART_RECALC, "Angular v:",		butx,(buty-=buth*4/5),butw,buth*4/5, &part->avefac, -200.0, 200.0, 1, 3, "Angular velocity amount");
+		if(ELEM(part->avemode,PART_AVE_RAND,PART_AVE_SPIN))
+			uiDefButF(block, NUM, B_PART_RECALC, "Angular v:",		butx,(buty-=buth*4/5),butw,buth*4/5, &part->avefac, -200.0, 200.0, 1, 3, "Angular velocity amount");
    		uiBlockSetCol(block, TH_AUTO);
 		uiBlockEndAlign(block);
 		
@@ -4241,7 +4286,9 @@ static void object_panel_particle_system(Object *ob)
 	/* browse buttons */
 	uiBlockSetCol(block, TH_BUT_SETTING2);
 	butx= std_libbuttons(block, butx, buty, 0, NULL, B_PARTBROWSE, ID_PA, 0, id, idfrom, &(G.buts->menunr), B_PARTALONE, 0, B_PARTDELETE, 0, 0);
-
+	
+	uiBlockSetCol(block, TH_AUTO);
+	
 	partact=psys_get_current_num(ob)+1;
 	totpart=BLI_countlist(&ob->particlesystem);
 	sprintf(str, "%d Part", totpart);
@@ -4345,7 +4392,7 @@ static void object_panel_particle_system(Object *ob)
 	}
 	uiBlockEndAlign(block);
 	
-	buty=50;
+	buty=30;
 
 	if(part->type==PART_REACTOR) {
 		ParticleSystem *tpsys=0;
@@ -4980,6 +5027,7 @@ void particle_panels()
 		if(psys){
 			object_panel_particle_physics(ob);
 			object_panel_particle_visual(ob);
+			object_panel_particle_simplification(ob);
 			object_panel_particle_extra(ob);
 			object_panel_particle_children(ob);
 		}

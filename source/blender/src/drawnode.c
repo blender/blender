@@ -1085,6 +1085,87 @@ static int node_composit_buts_blur(uiBlock *block, bNodeTree *ntree, bNode *node
 	return 57;
 }
 
+static int node_composit_buts_dblur(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		NodeDBlurData *ndbd = node->storage;
+		short dy = butr->ymin + 171;
+		short dx = butr->xmax - butr->xmin;
+		short halfdx= (short)dx/2;
+
+		uiBlockBeginAlign(block);
+		uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Iterations:",
+				butr->xmin, dy, dx, 19,
+				&ndbd->iter, 1, 32, 10, 0, "Amount of iterations");
+		uiDefButC(block, TOG, B_NODE_EXEC+node->nr, "Wrap",
+				butr->xmin, dy-= 19, dx, 19, 
+				&ndbd->wrap, 0, 0, 0, 0, "Wrap blur");
+		uiBlockEndAlign(block);
+
+		dy-= 9;
+
+		uiDefBut(block, LABEL, B_NOP, "Center", butr->xmin, dy-= 19, dx, 19, NULL, 0.0f, 0.0f, 0, 0, "");
+
+		uiBlockBeginAlign(block);
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "X:",
+				butr->xmin, dy-= 19, halfdx, 19,
+				&ndbd->center_x, 0.0f, 1.0f, 10, 0, "X center in percents");
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "Y:",
+				butr->xmin+halfdx, dy, halfdx, 19,
+				&ndbd->center_y, 0.0f, 1.0f, 10, 0, "Y center in percents");
+		uiBlockEndAlign(block);
+
+		dy-= 9;
+
+		uiBlockBeginAlign(block);
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "Distance:",
+				butr->xmin, dy-= 19, dx, 19,
+				&ndbd->distance, -1.0f, 1.0f, 10, 0, "Amount of which the image moves");
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "Angle:",
+				butr->xmin, dy-= 19, dx, 19,
+				&ndbd->angle, 0.0f, 360.0f, 1000, 0, "Angle in which the image will be moved");
+		uiBlockEndAlign(block);
+
+		dy-= 9;
+
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "Spin:",
+				butr->xmin, dy-= 19, dx, 19,
+				&ndbd->spin, -360.0f, 360.0f, 1000, 0, "Angle that is used to spin the image");
+
+		dy-= 9;
+
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "Zoom:",
+				butr->xmin, dy-= 19, dx, 19,
+				&ndbd->zoom, 0.0f, 100.0f, 100, 0, "Amount of which the image is zoomed");
+
+	}
+	return 190;
+}
+
+static int node_composit_buts_bilateralblur(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
+{
+	if(block) {
+		NodeBilateralBlurData *nbbd= node->storage;
+		short dy= butr->ymin+38;
+		short dx= (butr->xmax-butr->xmin);
+		
+		uiBlockBeginAlign(block);
+		uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Iterations:",
+				 butr->xmin, dy, dx, 19, 
+				 &nbbd->iter, 1, 128, 0, 0, "Amount of iterations");
+		dy-=19;
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "Color Sigma:",
+				  butr->xmin, dy, dx, 19, 
+				  &nbbd->sigma_color,0.01, 3, 10, 0, "Sigma value used to modify color");
+		dy-=19;
+		uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "Space Sigma:",
+				  butr->xmin, dy, dx, 19, 
+				  &nbbd->sigma_space ,0.01, 30, 10, 0, "Sigma value used to modify space");
+		
+	}
+	return 57;
+}
+
 /* qdn: defocus node */
 static int node_composit_buts_defocus(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
@@ -1334,7 +1415,6 @@ static int node_composit_buts_crop(uiBlock *block, bNodeTree *ntree, bNode *node
 {
 	if(block) {
 		NodeTwoXYs *ntxy= node->storage;
-		uiBut *bt;
 		char elementheight = 19;
 		short dx= (butr->xmax-butr->xmin)/2;
 		short dy= butr->ymax - elementheight;
@@ -1350,22 +1430,22 @@ static int node_composit_buts_crop(uiBlock *block, bNodeTree *ntree, bNode *node
 		dy-=elementheight;
 
 		/* x1 */
-		bt=uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "X1:",
+		uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "X1:",
 					 butr->xmin, dy, dx, elementheight,
 					 &ntxy->x1, xymin, xymax, 0, 0, "");
 		/* y1 */
-		bt=uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Y1:",
+		uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Y1:",
 					 butr->xmin+dx, dy, dx, elementheight,
 					 &ntxy->y1, xymin, xymax, 0, 0, "");
 
 		dy-=elementheight;
 
 		/* x2 */
-		bt=uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "X2:",
+		uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "X2:",
 					 butr->xmin, dy, dx, elementheight,
 					 &ntxy->x2, xymin, xymax, 0, 0, "");
 		/* y2 */
-		bt=uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Y2:",
+		uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Y2:",
 					 butr->xmin+dx, dy, dx, elementheight,
 					 &ntxy->y2, xymin, xymax, 0, 0, "");
 
@@ -1808,6 +1888,12 @@ static void node_composit_set_butfunc(bNodeType *ntype)
 		case CMP_NODE_BLUR:
 			ntype->butfunc= node_composit_buts_blur;
 			break;
+		case CMP_NODE_DBLUR:
+			ntype->butfunc= node_composit_buts_dblur;
+			break;
+		case CMP_NODE_BILATERALBLUR:
+			ntype->butfunc= node_composit_buts_bilateralblur;
+			break;
 		/* qdn: defocus node */
 		case CMP_NODE_DEFOCUS:
 			ntype->butfunc = node_composit_buts_defocus;
@@ -1988,7 +2074,8 @@ static void draw_nodespace_back(ScrArea *sa, SpaceNode *snode)
 }
 
 /* nice AA filled circle */
-static void socket_circle_draw(float x, float y, float size, int type, int select)
+/* this might have some more generic use */
+static void circle_draw(float x, float y, float size, int type, int col[3])
 {
 	/* 16 values of sin function */
 	static float si[16] = {
@@ -2006,28 +2093,7 @@ static void socket_circle_draw(float x, float y, float size, int type, int selec
 	};
 	int a;
 	
-	if(select==0) {
-		if(type==-1)
-			glColor3ub(0, 0, 0);
-		else if(type==SOCK_VALUE)
-			glColor3ub(160, 160, 160);
-		else if(type==SOCK_VECTOR)
-			glColor3ub(100, 100, 200);
-		else if(type==SOCK_RGBA)
-			glColor3ub(200, 200, 40);
-		else 
-			glColor3ub(100, 200, 100);
-	}
-	else {
-		if(type==SOCK_VALUE)
-			glColor3ub(200, 200, 200);
-		else if(type==SOCK_VECTOR)
-			glColor3ub(140, 140, 240);
-		else if(type==SOCK_RGBA)
-			glColor3ub(240, 240, 100);
-		else 
-			glColor3ub(140, 240, 140);
-	}
+	glColor3ub(col[0], col[1], col[2]);
 	
 	glBegin(GL_POLYGON);
 	for(a=0; a<16; a++)
@@ -2043,6 +2109,41 @@ static void socket_circle_draw(float x, float y, float size, int type, int selec
 	glEnd();
 	glDisable( GL_LINE_SMOOTH );
 	glDisable(GL_BLEND);
+}
+
+static void socket_circle_draw(bNodeSocket *sock, float size)
+{
+	int col[3];
+	
+	/* choose color based on sock flags */
+	if(sock->flag & SELECT) {
+		if(sock->flag & SOCK_SEL) {
+			col[0]= 240; col[1]= 200; col[2]= 40;}
+		else if(sock->type==SOCK_VALUE) {
+			col[0]= 200; col[1]= 200; col[2]= 200;}
+		else if(sock->type==SOCK_VECTOR) {
+			col[0]= 140; col[1]= 140; col[2]= 240;}
+		else if(sock->type==SOCK_RGBA) {
+			col[0]= 240; col[1]= 240; col[2]= 100;}
+		else {
+			col[0]= 140; col[1]= 240; col[2]= 140;}
+	}
+	else if(sock->flag & SOCK_SEL) {
+		col[0]= 200; col[1]= 160; col[2]= 0;}
+	else {
+		if(sock->type==-1) {
+			col[0]= 0; col[1]= 0; col[2]= 0;}
+		else if(sock->type==SOCK_VALUE) {
+			col[0]= 160; col[1]= 160; col[2]= 160;}
+		else if(sock->type==SOCK_VECTOR) {
+			col[0]= 100; col[1]= 100; col[2]= 200;}
+		else if(sock->type==SOCK_RGBA) {
+			col[0]= 200; col[1]= 200; col[2]= 40;}
+		else { 
+			col[0]= 100; col[1]= 200; col[2]= 100;}
+	}
+	
+	circle_draw(sock->locx, sock->locy, size, sock->type, col);
 }
 
 /* not a callback */
@@ -2459,7 +2560,7 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 	/* socket inputs, buttons */
 	for(sock= node->inputs.first; sock; sock= sock->next) {
 		if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
-			socket_circle_draw(sock->locx, sock->locy, NODE_SOCKSIZE, sock->type, sock->flag & SELECT);
+			socket_circle_draw(sock, NODE_SOCKSIZE);
 			
 			if(block && sock->link==NULL) {
 				float *butpoin= sock->ns.vec;
@@ -2501,7 +2602,7 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 	/* socket outputs */
 	for(sock= node->outputs.first; sock; sock= sock->next) {
 		if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL))) {
-			socket_circle_draw(sock->locx, sock->locy, NODE_SOCKSIZE, sock->type, sock->flag & SELECT);
+			socket_circle_draw(sock, NODE_SOCKSIZE);
 			
 			BIF_ThemeColor(TH_TEXT);
 			ofs= 0;
@@ -2589,12 +2690,12 @@ void node_draw_hidden(SpaceNode *snode, bNode *node)
 	/* sockets */
 	for(sock= node->inputs.first; sock; sock= sock->next) {
 		if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL)))
-			socket_circle_draw(sock->locx, sock->locy, NODE_SOCKSIZE, sock->type, sock->flag & SELECT);
+			socket_circle_draw(sock, NODE_SOCKSIZE);
 	}
 	
 	for(sock= node->outputs.first; sock; sock= sock->next) {
 		if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL)))
-			socket_circle_draw(sock->locx, sock->locy, NODE_SOCKSIZE, sock->type, sock->flag & SELECT);
+			socket_circle_draw(sock, NODE_SOCKSIZE);
 	}
 }
 
@@ -2805,10 +2906,10 @@ static void node_draw_group(ScrArea *sa, SpaceNode *snode, bNode *gnode)
 	/* group sockets */
 	for(sock= gnode->inputs.first; sock; sock= sock->next)
 		if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL)))
-			socket_circle_draw(sock->locx, sock->locy, NODE_SOCKSIZE, sock->type, sock->flag & SELECT);
+			socket_circle_draw(sock, NODE_SOCKSIZE);
 	for(sock= gnode->outputs.first; sock; sock= sock->next)
 		if(!(sock->flag & (SOCK_HIDDEN|SOCK_UNAVAIL)))
-			socket_circle_draw(sock->locx, sock->locy, NODE_SOCKSIZE, sock->type, sock->flag & SELECT);
+			socket_circle_draw(sock, NODE_SOCKSIZE);
 
 	/* and finally the whole tree */
 	node_draw_nodetree(sa, snode, ngroup);

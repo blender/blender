@@ -1,5 +1,6 @@
 /* 
  * $Id$
+ *
  * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
  *
  * This program is free software; you can redistribute it and/or
@@ -36,6 +37,7 @@ struct ID; /*keep me up here */
 /* for open, close in Blender_Load */
 #include <fcntl.h>
 #include "BDR_editobject.h"	/* exit_editmode() */
+#include "BDR_drawmesh.h"	/* set_mipmap() */
 #include "BIF_usiblender.h"
 #include "BLI_blenlib.h"
 #include "BLO_writefile.h"
@@ -285,11 +287,23 @@ static PyObject *Blender_Set( PyObject * self, PyObject * args )
 			return EXPP_ReturnPyObjError( PyExc_ValueError,
 					"expected an integer" );
 		
-		if (value)		
-		 U.flag |= USER_FILECOMPRESS;
+		if (value)
+			U.flag |= USER_FILECOMPRESS;
 		else
-		 U.flag &= ~USER_FILECOMPRESS;
+			U.flag &= ~USER_FILECOMPRESS;
+	} else if (StringEqual( name , "mipmap" ) ) {
+		int value = PyObject_IsTrue( arg );
 		
+		if (value==-1)
+			return EXPP_ReturnPyObjError( PyExc_ValueError,
+					"expected an integer" );
+		
+		if (value)
+			U.gameflags &= ~USER_DISABLE_MIPMAP;
+		else
+			U.gameflags |= USER_DISABLE_MIPMAP;
+		
+		set_mipmap(!(U.gameflags & USER_DISABLE_MIPMAP));
 	}else
 		return ( EXPP_ReturnPyObjError( PyExc_AttributeError,
 						"value given is not a blender setting" ) );
@@ -521,14 +535,15 @@ static PyObject *Blender_Get( PyObject * self, PyObject * value )
 		
 	else if(StringEqual( str, "compressfile" ))
 		ret = PyInt_FromLong( (U.flag & USER_FILECOMPRESS) >> 15  );
-		
+	else if(StringEqual( str, "mipmap" ))
+		ret = PyInt_FromLong( (U.gameflags & USER_DISABLE_MIPMAP) == 0  );
 	else
 		return EXPP_ReturnPyObjError( PyExc_AttributeError, "unknown attribute" );
 
 	if (ret) return ret;
 	else
 		return EXPP_ReturnPyObjError (PyExc_MemoryError,
-			"could not create pystring!");
+			"could not create the PyObject!");
 }
 
 /*****************************************************************************/

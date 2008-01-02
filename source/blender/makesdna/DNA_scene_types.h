@@ -424,6 +424,9 @@ typedef struct SculptData
 	/* Pointers to all of sculptmodes's textures */
 	struct MTex *mtex[10];
 
+	/* Editable brush shape */
+	struct CurveMapping *cumap;
+
 	/* Settings for each brush */
 	BrushData drawbrush, smoothbrush, pinchbrush, inflatebrush, grabbrush, layerbrush, flattenbrush;
 	short brush_type;

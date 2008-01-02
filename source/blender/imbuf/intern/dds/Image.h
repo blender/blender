@@ -37,6 +37,7 @@
 #ifndef _DDS_IMAGE_H
 #define _DDS_IMAGE_H
 
+#include <Common.h>
 #include <Color.h>
 
 /// 32 bit RGBA image.
@@ -53,28 +54,28 @@ public:
 	Image();
 	~Image();
 	
-	void allocate(unsigned int w, unsigned int h);
+	void allocate(uint w, uint h);
 	/*
 	bool load(const char * name);
 	
-	void wrap(void * data, unsigned int w, unsigned int h);
+	void wrap(void * data, uint w, uint h);
 	void unwrap();
 	*/
 	
-	unsigned int width() const;
-	unsigned int height() const;
+	uint width() const;
+	uint height() const;
 	
-	const Color32 * scanline(unsigned int h) const;
-	Color32 * scanline(unsigned int h);
+	const Color32 * scanline(uint h) const;
+	Color32 * scanline(uint h);
 	
 	const Color32 * pixels() const;
 	Color32 * pixels();
 	
-	const Color32 & pixel(unsigned int idx) const;
-	Color32 & pixel(unsigned int idx);
+	const Color32 & pixel(uint idx) const;
+	Color32 & pixel(uint idx);
 	
-	const Color32 & pixel(unsigned int x, unsigned int y) const;
-	Color32 & pixel(unsigned int x, unsigned int y);
+	const Color32 & pixel(uint x, uint y) const;
+	Color32 & pixel(uint x, uint y);
 	
 	Format format() const;
 	void setFormat(Format f);
@@ -83,19 +84,19 @@ private:
 	void free();
 	
 private:
-	unsigned int m_width;
-	unsigned int m_height;
+	uint m_width;
+	uint m_height;
 	Format m_format;
 	Color32 * m_data;
 };
 
 
-inline const Color32 & Image::pixel(unsigned int x, unsigned int y) const
+inline const Color32 & Image::pixel(uint x, uint y) const
 {
 	return pixel(y * width() + x);
 }
 
-inline Color32 & Image::pixel(unsigned int x, unsigned int y)
+inline Color32 & Image::pixel(uint x, uint y)
 {
 	return pixel(y * width() + x);
 }
