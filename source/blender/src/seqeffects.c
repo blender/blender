@@ -786,9 +786,9 @@ static void do_cross_effect(Sequence * seq,int cfra,
    ********************************************************************** */
 
 /* copied code from initrender.c */
-static unsigned short *gamtab = 0;
-static unsigned short *igamtab1 = 0;
-static int gamma_tabs_refcount = 0;
+static unsigned short gamtab[65536];
+static unsigned short igamtab1[256];
+static int gamma_tabs_init = FALSE;
 
 #define RE_GAMMA_TABLE_SIZE 400
 
@@ -882,9 +882,6 @@ static void gamtabs(float gamma)
 	float val, igamma= 1.0f/gamma;
 	int a;
 	
-	gamtab= MEM_mallocN(65536*sizeof(short), "initGaus2");
-	igamtab1= MEM_mallocN(256*sizeof(short), "initGaus2");
-
 	/* gamtab: in short, out short */
 	for(a=0; a<65536; a++) {
 		val= a;
@@ -907,36 +904,25 @@ static void gamtabs(float gamma)
 
 }
 
-static void alloc_or_ref_gammatabs()
+static void build_gammatabs()
 {
-	if (gamma_tabs_refcount == 0) {
+	if (gamma_tabs_init == FALSE) {
 		gamtabs(2.0f);
 		makeGammaTables(2.0f);
+		gamma_tabs_init = TRUE;
 	}
-	gamma_tabs_refcount++;
 }
 
 static void init_gammacross(Sequence * seq)
 {
-	alloc_or_ref_gammatabs();
 }
 
 static void load_gammacross(Sequence * seq)
 {
-	alloc_or_ref_gammatabs();
 }
 
 static void free_gammacross(Sequence * seq)
 {
-	if (--gamma_tabs_refcount == 0) {
-		MEM_freeN(gamtab);
-		MEM_freeN(igamtab1);
-		gamtab = 0;
-		igamtab1 = 0;
-	}
-	if (gamma_tabs_refcount < 0) {
-		fprintf(stderr, "seqeffects: free_gammacross double free!\n");
-	}
 }
 
 static void do_gammacross_effect_byte(float facf0, float facf1, 
@@ -1043,6 +1029,8 @@ static void do_gammacross_effect(Sequence * seq,int cfra,
 				 struct ImBuf *ibuf1, struct ImBuf *ibuf2, 
 				 struct ImBuf *ibuf3, struct ImBuf *out)
 {
+	build_gammatabs();
+
 	if (out->rect_float) {
 		do_gammacross_effect_float(
 			facf0, facf1, x, y,
