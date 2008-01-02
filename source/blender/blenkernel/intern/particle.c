@@ -367,7 +367,7 @@ void psys_free(Object *ob, ParticleSystem * psys)
  * removing the previous data. this should be solved properly once */
 
 typedef struct ParticleRenderElem {
-	int curchild, totchild;
+	int curchild, totchild, reduce;
 	float lambda, t, scalemin, scalemax;
 } ParticleRenderElem;
 
@@ -627,6 +627,7 @@ int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 			/* compute transition region */
 			t= part->simplify_transition;
 			elem->t= (lambda-t < 0.0f)? lambda: (lambda+t > 1.0f)? 1.0f-lambda: t;
+			elem->reduce= 1;
 
 			/* scale at end and beginning of the transition region */
 			elem->scalemax= (lambda+t < 1.0f)? 1.0f/lambda: 1.0f/(1.0f - elem->t*elem->t/t);
@@ -642,6 +643,7 @@ int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 
 			elem->scalemax= 1.0f; //sqrt(lambda);
 			elem->scalemin= 1.0f; //sqrt(lambda);
+			elem->reduce= 0;
 		}
 
 		elem->lambda= lambda;
@@ -703,7 +705,7 @@ int psys_render_simplify_params(ParticleSystem *psys, ChildParticle *cpa, float 
 	scalemin= elem->scalemin;
 	scalemax= elem->scalemax;
 
-	if(lambda >= 1.0f) {
+	if(!elem->reduce) {
 		scale= scalemin;
 		alpha= 1.0f;
 	}
