@@ -1687,8 +1687,7 @@ int collisions_collision_response_static ( ClothModifierData *clmd, CollisionMod
 	// If v_n_mag < 0 the edges are approaching each other.
 	if ( magrelVel < -ALMOST_ZERO )
 	{
-		printf("magrelVel < -ALMOST_ZERO\n");
-				
+		
 		// Calculate Impulse magnitude to stop all motion in normal direction.
 		// const double I_mag = v_n_mag / (1/m1 + 1/m2);
 		float magnitude_i = magrelVel / 2.0f; // TODO implement masses
@@ -1697,6 +1696,8 @@ int collisions_collision_response_static ( ClothModifierData *clmd, CollisionMod
 		float vrel_t[3];
 		double impulse;
 		float overlap = ( epsilon + ALMOST_ZERO-collpair->distance );
+		
+		printf("magrelVel < -ALMOST_ZERO\n");
 
 		// calculateFrictionImpulse(tangential, relativeVelocity, collpair->normal, magrelVel, clmd->coll_parms.friction*0.01, magrelVel);
 
@@ -1736,6 +1737,7 @@ int collisions_collision_response_static ( ClothModifierData *clmd, CollisionMod
 		VECADDMUL ( collmd->verts[collpair->point_indexB[2]].impulse, collpair->normal, u3 * impulse );
 		collmd->verts[collpair->point_indexB[2]].impulse_count++;
 		*/
+		
 		
 		result = 1;
 

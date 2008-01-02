@@ -2483,7 +2483,7 @@ void draw_fl(ClothModifierData *clmd)
 	m_fc->_light_dir[0] = -1.0f;
 	m_fc->_light_dir[1] = 0.5f;
 	m_fc->_light_dir[2] = 0.0f;
-		
+	
 	gen_ray_templ(m_fc->_ray_templ, m_fc->_light_dir, 30 + 2);
 	
 	cast_light(m_fc->_texture_data, m_fc->_ray_templ, m_fc->_light_dir, 30+2);
@@ -2512,6 +2512,52 @@ void draw_fl(ClothModifierData *clmd)
 		glMatrixMode(GL_MODELVIEW);
 	}
 */
+}
+
+void fc_load_frame(ClothModifierData *clmd)
+{
+	float* tmp = (float*) MEM_callocN(30*30*30*sizeof(float), "fc_tmp");
+	float tmin=9999999, tmax=-99999999;
+	Cloth *cloth = clmd->clothObject;
+	fc *m_fc = NULL;
+	int i = 0;
+	
+	if(!cloth)
+		return;
+	
+	m_fc = cloth->m_fc;
+
+	if (++m_fc->_cur_frame == m_fc->_nframes) {
+		fseek(m_fc->_fp, 12, SEEK_SET);
+		m_fc->_cur_frame = 0;
+	}
+
+	fread(tmp, sizeof(float), 30*30*30, m_fc->_fp);
+
+	for (i=0; i<30*30*30; i++)
+	{
+		m_fc->_texture_data[(i<<2)+1] = (unsigned char) (tmp[i]*255.0f);
+	}
+
+	fread(tmp, sizeof(float), 30*30*30, m_fc->_fp);
+
+	for (i=0; i<30*30*30; i++)
+	{
+		m_fc->_texture_data[(i<<2)] = (unsigned char) (tmp[i]*255.0f);
+		if (tmp[i]<tmin)
+			tmin = tmp[i];
+		if (tmp[i]>tmax)
+			tmax = tmp[i];
+		m_fc->_texture_data[(i<<2)+2] = 0;
+		m_fc->_texture_data[(i<<2)+3] = 255;
+	}
+
+	MEM_freeN(tmp);
+
+	// cast_light(_N); DG NOT NEEDED
+
+	glActiveTextureARB(GL_TEXTURE0_ARB);
+	glTexImage3D(GL_TEXTURE_3D, 0, GL_RGBA, 30, 30, 30, 0, GL_RGBA, GL_UNSIGNED_BYTE, m_fc->_texture_data);
 }
 
 static void draw_mesh_object_outline(Object *ob, DerivedMesh *dm)
