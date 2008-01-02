@@ -144,7 +144,15 @@ void BL_ConvertSensors(struct Object* blenderobject,
 	gReverseKeyTranslateTable[EKEY				] = SCA_IInputDevice::KX_EKEY;                  
 	gReverseKeyTranslateTable[FKEY				] = SCA_IInputDevice::KX_FKEY;                  
 	gReverseKeyTranslateTable[GKEY				] = SCA_IInputDevice::KX_GKEY;                  
+//XXX clean up
+#ifdef WIN32
+#define HKEY	'h'
+#endif
 	gReverseKeyTranslateTable[HKEY				] = SCA_IInputDevice::KX_HKEY;                  
+//XXX clean up
+#ifdef WIN32
+#undef HKEY
+#endif
 	gReverseKeyTranslateTable[IKEY				] = SCA_IInputDevice::KX_IKEY;                  
 	gReverseKeyTranslateTable[JKEY				] = SCA_IInputDevice::KX_JKEY;                  
 	gReverseKeyTranslateTable[KKEY				] = SCA_IInputDevice::KX_KKEY;                  

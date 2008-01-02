@@ -55,8 +55,6 @@
 #include "IMB_imbuf_types.h"
 #include "IMB_imbuf.h"
 
-#include "BSE_seqaudio.h"
-
 #include "DNA_scene_types.h"
 
 #ifdef HAVE_CONFIG_H
@@ -123,9 +121,9 @@ static int write_audio_frame(void)
 
 	c = get_codec_from_stream(audio_stream);
 
-	audiostream_fill(audio_input_buffer, 
-			 audio_input_frame_size 
-			 * sizeof(short) * c->channels);
+	//XXX audiostream_fill(audio_input_buffer, 
+	//		 audio_input_frame_size 
+	//		 * sizeof(short) * c->channels);
 
 	av_init_packet(&pkt);
 
@@ -144,7 +142,7 @@ static int write_audio_frame(void)
 	pkt.stream_index = audio_stream->index;
 	pkt.flags |= PKT_FLAG_KEY;
 	if (av_interleaved_write_frame(outfile, &pkt) != 0) {
-		error("Error writing audio packet");
+		//XXX error("Error writing audio packet");
 		return -1;
 	}
 	return 0;
@@ -250,7 +248,7 @@ static void write_video_frame(AVFrame* frame)
 	} else ret = 0;
 	if (ret != 0) {
 		G.afbreek = 1;
-		error("Error writing frame");
+		//XXX error("Error writing frame");
 	}
 }
 
@@ -268,7 +266,7 @@ static AVFrame* generate_video_frame(uint8_t* pixels)
 		rgb_frame = alloc_picture(PIX_FMT_RGBA32, width, height);
 		if (!rgb_frame) {
 			G.afbreek=1;
-			error("Couldn't allocate temporary frame");
+			//XXX error("Couldn't allocate temporary frame");
 			return NULL;
 		}
 	} else {
@@ -420,7 +418,8 @@ static AVStream* alloc_video_stream(int codec_id, AVFormatContext* of,
 	c->sample_aspect_ratio.den = G.scene->r.yasp;
 	
 	if (avcodec_open(c, codec) < 0) {
-		error("Couldn't initialize codec");
+		//
+		//XXX error("Couldn't initialize codec");
 		return NULL;
 	}
 
@@ -459,11 +458,11 @@ static AVStream* alloc_audio_stream(int codec_id, AVFormatContext* of)
 	c->channels = 2;
 	codec = avcodec_find_encoder(c->codec_id);
 	if (!codec) {
-		error("Couldn't find a valid audio codec");
+		//XXX error("Couldn't find a valid audio codec");
 		return NULL;
 	}
 	if (avcodec_open(c, codec) < 0) {
-		error("Couldn't initialize audio codec");
+		//XXX error("Couldn't initialize audio codec");
 		return NULL;
 	}
 
@@ -541,20 +540,20 @@ void start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty)
 	exts = get_file_extensions(ffmpeg_type);
 	if (!exts) {
 		G.afbreek = 1; /* Abort render */
-		error("No valid formats found");
+		//XXX error("No valid formats found");
 		return;
 	}
 	fmt = guess_format(NULL, exts[0], NULL);
 	if (!fmt) {
 		G.afbreek = 1; /* Abort render */
-		error("No valid formats found");
+		//XXX error("No valid formats found");
 		return;
 	}
 
 	of = av_alloc_format_context();
 	if (!of) {
 		G.afbreek = 1;
-		error("Error opening output file");
+		//XXX error("Error opening output file");
 		return;
 	}
 	
@@ -599,20 +598,20 @@ void start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty)
 	if (fmt->video_codec == CODEC_ID_DVVIDEO) {
 		if (rectx != 720) {
 			G.afbreek = 1;
-			error("Render width has to be 720 pixels for DV!");
+			//XXX error("Render width has to be 720 pixels for DV!");
 			return;
 		}
 		if (G.scene->r.frs_sec != 25 && recty != 480) {
 			G.afbreek = 1;
-			error("Render height has to be 480 pixels "
-			      "for DV-NTSC!");
+			//XXX error("Render height has to be 480 pixels "
+			//      "for DV-NTSC!");
 			return;
 			
 		}
 		if (G.scene->r.frs_sec == 25 && recty != 576) {
 			G.afbreek = 1;
-			error("Render height has to be 576 pixels "
-			      "for DV-PAL!");
+			//XXX error("Render height has to be 576 pixels "
+			//      "for DV-PAL!");
 			return;
 		}
 	}
@@ -621,8 +620,8 @@ void start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty)
 		if (ffmpeg_multiplex_audio 
 		    && G.scene->audio.mixrate != 48000) {
 			G.afbreek = 1;
-			error("FFMPEG only supports 48khz / stereo "
-			      "audio for DV!");
+			//XXX error("FFMPEG only supports 48khz / stereo "
+			//      "audio for DV!");
 			return;
 		}
 	}
@@ -630,7 +629,7 @@ void start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty)
 	video_stream = alloc_video_stream(fmt->video_codec, of, rectx, recty);
 	if (!video_stream) {
 		G.afbreek = 1;
-		error("Error initializing video stream");
+		//XXX error("Error initializing video stream");
 		return;
 	}
 	
@@ -638,20 +637,21 @@ void start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty)
 		audio_stream = alloc_audio_stream(fmt->audio_codec, of);
 		if (!audio_stream) {
 			G.afbreek = 1;
-			error("Error initializing audio stream");
+			//XXX error("Error initializing audio stream");
 			return;
 		}
-		audiostream_play(SFRA, 0, 1);
+		//XXX audiostream_play(SFRA, 0, 1);
 	}
 	if (av_set_parameters(of, NULL) < 0) {
 		G.afbreek = 1;
-		error("Error setting output parameters");
+		//XXX error("Error setting output parameters");
 		return;
 	}
 	if (!(fmt->flags & AVFMT_NOFILE)) {
 		if (url_fopen(&of->pb, name, URL_WRONLY) < 0) {
 			G.afbreek = 1;
-			error("Could not open file for writing");
+			//
+			//XXX error("Could not open file for writing");
 			return;
 		}
 	}
@@ -667,8 +667,15 @@ void start_ffmpeg_impl(struct RenderData *rd, int rectx, int recty)
 
 /* Get the output filename-- similar to the other output formats */
 void makeffmpegstring(char* string) {
-	
+
+	// XXX quick define, solve!
+#define FILE_MAXDIR 256
+#define FILE_MAXFILE 126
+		
 	char txt[FILE_MAXDIR+FILE_MAXFILE];
+	// XXX
+#undef FILE_MAXDIR
+#undef FILE_MAXFILE
 	char autosplit[20];
 
 	const char ** exts = get_file_extensions(G.scene->r.ffcodecdata.type);

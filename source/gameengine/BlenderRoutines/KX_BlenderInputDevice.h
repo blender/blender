@@ -38,11 +38,6 @@
 
 #include <map>
 
-/* need to be here for conversion purposes */
-#ifdef FREE_WINDOWS
-#undef HKEY
-#endif
-
 #include "wm_event_types.h"
 #include "SCA_IInputDevice.h"
 
@@ -102,7 +97,15 @@ public:
 			m_reverseKeyTranslateTable[EKEY                             ] = KX_EKEY                    ;                  
 			m_reverseKeyTranslateTable[FKEY                             ] = KX_FKEY                    ;                  
 			m_reverseKeyTranslateTable[GKEY                             ] = KX_GKEY                    ;                  
+//XXX clean up
+#ifdef WIN32
+#define HKEY	'h'
+#endif
 			m_reverseKeyTranslateTable[HKEY                             ] = KX_HKEY                    ;                  
+//XXX clean up
+#ifdef WIN32
+#undef HKEY
+#endif
 			m_reverseKeyTranslateTable[IKEY                             ] = KX_IKEY                    ;                  
 			m_reverseKeyTranslateTable[JKEY                             ] = KX_JKEY                    ;                  
 			m_reverseKeyTranslateTable[KKEY                             ] = KX_KKEY                    ;                  
