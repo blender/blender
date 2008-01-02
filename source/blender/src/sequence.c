@@ -1543,6 +1543,10 @@ static TStripElem* do_build_seq_array_recursively(
 					(short)seqrectx, (short)seqrecty, 
 					32, IB_rect, 0);
 			}
+			if (i == 0) {
+				se->ibuf_comp = se->ibuf;
+				IMB_refImBuf(se->ibuf_comp);
+			}
 			break;
 		}
 		
