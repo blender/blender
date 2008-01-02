@@ -64,6 +64,7 @@ typedef struct StrandPoint {
 	float co1[3], co2[3];
 	float hoco1[4], hoco2[4];
 	float zco1[3], zco2[3];
+	int clip1, clip2;
 
 	/* screen space */
 	float hoco[4];
