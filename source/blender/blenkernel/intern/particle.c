@@ -396,7 +396,7 @@ static float psys_render_viewport_falloff(double rate, float dist, float width)
 static float psys_render_projected_area(ParticleSystem *psys, float *center, float area, double vprate, float *viewport)
 {
 	ParticleRenderData *data= psys->renderdata;
-	float co[3], view[3], ortho1[3], ortho2[2], w, dx, dy, radius;
+	float co[4], view[3], ortho1[3], ortho2[3], w, dx, dy, radius;
 	
 	/* transform to view space */
 	VECCOPY(co, center);
