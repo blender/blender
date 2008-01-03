@@ -33,7 +33,7 @@ SET(INC
   ../python ../render/extern/include ../../../intern/decimation/extern
   ../imbuf ../avi ../../../intern/elbeem/extern
   ../../../intern/iksolver/extern ../blenloader ../quicktime
-  ../blenkernel
+  ../blenkernel ../editors/include
   ${SDL_INC}
   ${ZLIB_INC}
 )

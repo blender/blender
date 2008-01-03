@@ -49,6 +49,7 @@ SET(INC
   ../../../source/gameengine/Ketsji/KXNetwork
   ../../../source/blender/blenlib
   ../../../source/blender/blenkernel
+  ../../../source/blender/windowmanager
   ../../../source/blender
   ../../../source/blender/include
   ../../../source/blender/makesdna

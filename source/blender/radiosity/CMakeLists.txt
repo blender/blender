@@ -32,7 +32,7 @@ FILE(GLOB SRC intern/source/*.c)
 SET(INC 
   extern/include ../blenlib ../blenkernel ../makesdna ../include
   ../../../intern/guardedalloc ../render/extern/include
-  ../render/intern/include
+  ../render/intern/include ../editors/include
 )
 
 BLENDERLIB_NOLIST(blender_radiosity "${SRC}" "${INC}")

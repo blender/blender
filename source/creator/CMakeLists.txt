@@ -40,6 +40,7 @@ INCLUDE_DIRECTORIES(../../intern/guardedalloc
   ../blender/render/extern/include
   ../blender/python
   ../blender/makesdna
+  ../blender/windowmanager
   ../kernel/gen_messaging
   ../kernel/gen_system
 )
@@ -189,12 +190,13 @@ ADD_DEPENDENCIES(blender makesdna)
 
 FILE(READ ${CMAKE_BINARY_DIR}/cmake_blender_libs.txt BLENDER_LINK_LIBS)
 
-SET(BLENDER_LINK_LIBS bf_nodes ${BLENDER_LINK_LIBS} src blender_python blender_render blender_radiosity blender_IK bf_elbeem)
+SET(BLENDER_LINK_LIBS bf_nodes ${BLENDER_LINK_LIBS} bf_windowmanager bf_editors blender_render blender_radiosity blender_IK bf_elbeem)
 
 IF(UNIX)
   # Sort libraries
   SET(BLENDER_SORTED_LIBS
-    src 
+    bf_windowmanager
+	bf_editors
     bf_decimation 
     blender_BSP 
     bf_soundsystem 
@@ -226,7 +228,8 @@ IF(UNIX)
     bf_moto 
     bf_bmfont 
     verse 
-    src 
+    bf_windowmanager
+	bf_editors
     bf_ftfont 
     extern_ftgl 
     bf_blroutines 

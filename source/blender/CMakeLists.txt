@@ -27,7 +27,7 @@
 #
 # ***** END GPL/BL DUAL LICENSE BLOCK *****
 
-SUBDIRS(avi nodes blenkernel blenlib blenloader blenpluginapi imbuf imbuf/intern/cineon makesdna python radiosity readblenfile render src yafray)
+SUBDIRS(windowmanager editors avi nodes blenkernel blenlib blenloader blenpluginapi imbuf imbuf/intern/cineon makesdna python radiosity readblenfile render yafray)
 
 IF(WITH_INTERNATIONAL)
   SUBDIRS(ftfont)

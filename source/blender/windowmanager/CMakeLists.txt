@@ -1,4 +1,4 @@
-# $Id$
+# $Id: CMakeLists.txt 12931 2007-12-17 18:20:48Z theeth $
 # ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
@@ -29,21 +29,26 @@
 
 FILE(GLOB SRC intern/*.c)
 
-SET(INC 
-  . ../../../intern/guardedalloc ../include ../blenlib ../makesdna
-  ../python ../render/extern/include ../../../intern/decimation/extern
-  ../imbuf ../avi ../../../intern/elbeem/extern
-  ../../../intern/iksolver/extern ../blenloader ../quicktime
-  ../../../intern/bmfont
-  ../nodes ../editors/include
+SET(INC .
+  ../editors/include
+  ../../../intern/guardedalloc ../../../intern/memutil
+  ../blenlib ../makesdna ../blenkernel
+  ../include ../../../intern/bmfont ../imbuf ../render/extern/include
+  ../../../intern/bsp/extern ../radiosity/extern/include
+  ../../../intern/decimation/extern ../blenloader ../python
+  ../../kernel/gen_system ../../../intern/SoundSystem ../readstreamglue
+  ../quicktime ../../../intern/elbeem/extern
+  ../../../intern/ghost ../../../intern/opennl/extern
+  ../nodes
+  ${PYTHON_INC}
   ${SDL_INC}
-  ${ZLIB_INC}
 )
 
-IF(WITH_VERSE)
-  ADD_DEFINITIONS(-DWITH_VERSE)
-  SET(INC ${INC} ${VERSE_INC})
-ENDIF(WITH_VERSE)
+IF(WITH_INTERNATIONAL)
+  SET(INC ${INC} ../ftfont)
+  ADD_DEFINITIONS(-DINTERNATIONAL)
+  ADD_DEFINITIONS(-DFTGL_STATIC_LIBRARY)
+ENDIF(WITH_INTERNATIONAL)
 
 IF(WITH_OPENEXR)
   ADD_DEFINITIONS(-DWITH_OPENEXR)
@@ -59,19 +64,23 @@ IF(WITH_FFMPEG)
   ADD_DEFINITIONS(-DWITH_FFMPEG)
 ENDIF(WITH_FFMPEG)
 
-IF(WITH_PLAYER)
-  SUBDIRS(bad_level_call_stubs)
-ENDIF(WITH_PLAYER)
-
-ADD_DEFINITIONS(-DWITH_CCGSUBSURF)
-
-BLENDERLIB(bf_blenkernel "${SRC}" "${INC}")
+IF(WIN32)
+  SET(INC ${INC} ${PTHREADS_INC})
+ENDIF(WIN32)
 
 IF(WITH_VERSE)
-  ADD_DEPENDENCIES(bf_blenkernel mkprot verse)
+  SET(INC ${INC} ${VERSE_INC})
+  ADD_DEFINITIONS(-DWITH_VERSE)
 ENDIF(WITH_VERSE)
 
-IF(WITH_INTERNATIONAL)
-   ADD_DEFINITIONS(-DWITH_FREETYPE2)
-ENDIF(WITH_INTERNATIONAL)
+# TODO buildinfo
+IF(BF_BUILDINFO)
+  ADD_DEFINITIONS(-DNAN_BUILDINFO)
+ENDIF(BF_BUILDINFO)
+
+BLENDERLIB_NOLIST(bf_windowmanager "${SRC}" "${INC}")
+
+IF(WITH_VERSE)
+  ADD_DEPENDENCIES(bf_windowmanager mkprot verse)
+ENDIF(WITH_VERSE)
 

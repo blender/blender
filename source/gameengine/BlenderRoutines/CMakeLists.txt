@@ -15,6 +15,8 @@ SET(INC
   ../../../source/gameengine/Ketsji 
   ../../../source/blender/blenlib
   ../../../source/blender/blenkernel 
+  ../../../source/blender/editors/include
+  ../../../source/blender/windowmanager
   ../../../source/blender 
   ../../../source/blender/include
   ../../../source/blender/makesdna 
