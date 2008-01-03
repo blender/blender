@@ -1695,10 +1695,10 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			/* get orco */
 			if(tpsys && (part->from==PART_FROM_PARTICLE || part->phystype==PART_PHYS_NO)){
 				tpa=tpsys->particles+pa->num;
-				psys_particle_on_emitter(ob, psmd,tpart->from,tpa->num, -1,tpa->fuv,tpa->foffset,co,nor,0,0,orco,0);
+				psys_particle_on_emitter(ob, psmd,tpart->from,tpa->num,pa->num_dmcache,tpa->fuv,tpa->foffset,co,nor,0,0,orco,0);
 			}
 			else
-				psys_particle_on_emitter(ob, psmd,part->from,pa->num,-1,pa->fuv,pa->foffset,co,nor,0,0,orco,0);
+				psys_particle_on_emitter(ob, psmd,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,nor,0,0,orco,0);
 
 			if(uvco && ELEM(part->from,PART_FROM_FACE,PART_FROM_VOLUME)){
 				layer=psmd->dm->faceData.layers + CustomData_get_layer_index(&psmd->dm->faceData,CD_MFACE);

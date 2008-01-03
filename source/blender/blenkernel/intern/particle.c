@@ -536,7 +536,7 @@ int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 	ParticleRenderData *data;
 	ParticleRenderElem *elems, *elem;
 	ParticleSettings *part= ctx->psys->part;
-	float *facearea, (*facecenter)[3], size[3], fac, powrate;
+	float *facearea, (*facecenter)[3], size[3], fac, powrate, scaleclamp;
 	float co1[3], co2[3], co3[3], co4[3], lambda, arearatio, t, area, viewport;
 	double vprate;
 	int *origindex, *facetotvert;
@@ -562,6 +562,9 @@ int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 	elems= MEM_callocN(sizeof(ParticleRenderElem)*totorigface, "SimplifyFaceElem");
 
 	data= ctx->psys->renderdata;
+	if(data->elems)
+		MEM_freeN(data->elems);
+
 	data->dosimplify= 1;
 	data->elems= elems;
 	data->origindex= origindex;
@@ -619,10 +622,12 @@ int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 		area = psys_render_projected_area(ctx->psys, facecenter[a], facearea[a], vprate, &viewport);
 		arearatio= fac*area/facearea[a];
 
-		if(arearatio < 1.0f || viewport < 1.0f) {
+		if((arearatio < 1.0f || viewport < 1.0f) && elem->totchild) {
 			/* lambda is percentage of elements to keep */
 			lambda= (arearatio < 1.0f)? pow(arearatio, powrate): 1.0f;
 			lambda *= viewport;
+
+			lambda= MAX2(lambda, 1.0f/elem->totchild);
 
 			/* compute transition region */
 			t= part->simplify_transition;
@@ -632,6 +637,14 @@ int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 			/* scale at end and beginning of the transition region */
 			elem->scalemax= (lambda+t < 1.0f)? 1.0f/lambda: 1.0f/(1.0f - elem->t*elem->t/t);
 			elem->scalemin= (lambda+t < 1.0f)? 0.0f: elem->scalemax*(1.0f-elem->t/t);
+
+			elem->scalemin= sqrt(elem->scalemin);
+			elem->scalemax= sqrt(elem->scalemax);
+
+			/* clamp scaling */
+			scaleclamp= MIN2(elem->totchild, 10.0f);
+			elem->scalemin= MIN2(scaleclamp, elem->scalemin);
+			elem->scalemax= MIN2(scaleclamp, elem->scalemax);
 
 			/* extend lambda to include transition */
 			lambda= lambda + elem->t;
