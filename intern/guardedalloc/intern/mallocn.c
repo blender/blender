@@ -334,7 +334,7 @@ void *MEM_mapallocN(unsigned int len, const char *str)
 
 
 /* Prints in python syntax for easy */
-void MEM_printmemlist()
+static void MEM_printmemlist_internal( int pydict )
 {
 	MemHead *membl;
 
@@ -343,16 +343,23 @@ void MEM_printmemlist()
 	membl = membase->first;
 	if (membl) membl = MEMNEXT(membl);
 	
-	print_error("# membase_debug.py\n");
-	print_error("membase = [\\\n");
+	if (pydict) {
+		print_error("# membase_debug.py\n");
+		print_error("membase = [\\\n");
+	}
 	while(membl) {
-		fprintf(stderr, "{'len':%i, 'name':'''%s''', 'pointer':'%p'},\\\n", membl->len, membl->name, membl+1);
+		if (pydict) {
+			fprintf(stderr, "{'len':%i, 'name':'''%s''', 'pointer':'%p'},\\\n", membl->len, membl->name, membl+1);
+		} else {
+			print_error("%s len: %d %p\n",membl->name,membl->len, membl+1);
+		}
 		if(membl->next)
 			membl= MEMNEXT(membl->next);
 		else break;
 	}
-	fprintf(stderr, "]\n\n");
-	fprintf(stderr,
+	if (pydict) {
+		fprintf(stderr, "]\n\n");
+		fprintf(stderr,
 "mb_userinfo = {}\n"
 "totmem = 0\n"
 "for mb_item in membase:\n"
@@ -367,9 +374,17 @@ void MEM_printmemlist()
 "\tmb_userinfo_sort.sort(key = sort_func)\n"
 "\tfor item in mb_userinfo_sort:\n"
 "\t\tprint 'name:%%s, users:%%i, len:%%i' %% (item[0], item[1][0], item[1][1])\n"
-	);
+		);
+	}
 	
 	mem_unlock_thread();
+}
+
+void MEM_printmemlist( void ) {
+	MEM_printmemlist_internal(0);
+}
+void MEM_printmemlist_pydict( void ) {
+	MEM_printmemlist_internal(1);
 }
 
 short MEM_freeN(void *vmemh)		/* anders compileertie niet meer */
