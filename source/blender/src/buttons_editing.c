@@ -5068,7 +5068,7 @@ static void editing_panel_links(Object *ob)
 			
 			xco= 143;
 			
-			uiDefBut(block, LABEL,0, "Action (PoseLib):", xco, 154, 130,20, 0, 0, 0, 0, 0, "");
+			uiDefBut(block, LABEL,0, "Pose Library (Action):", xco, 154, 200, 20, 0, 0, 0, 0, 0, "");
 			
 			/* PoseLib Action */
 			uiBlockSetCol(block, TH_BUT_SETTING2);
@@ -5085,12 +5085,12 @@ static void editing_panel_links(Object *ob)
 				
 				uiBlockBeginAlign(block);
 					/* currently 'active' pose */
-					uiDefButI(block, MENU, B_POSELIB_APPLYP, menustr, xco, 85,18,20, &act->active_marker, 1, count, 0, 0, "Browses Poses in PoseLib. Applies chosen pose.");
+					uiDefButI(block, MENU, B_POSELIB_APPLYP, menustr, xco, 85,18,20, &act->active_marker, 1, count, 0, 0, "Browses Poses in Pose Library. Applies chosen pose.");
 					MEM_freeN(menustr);
 					
 					if (act->active_marker) {
-						uiDefBut(block, TEX, REDRAWBUTSEDIT,"",		xco+18,85,160-18-20,20, marker->name, 0, 63, 0, 0, "Displays current PoseLib Pose name. Click to change.");
-						uiDefIconBut(block, BUT, B_POSELIB_REMOVEP, VICON_X, xco+160-20, 85, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Remove this PoseLib Pose from PoseLib");
+						uiDefBut(block, TEX, REDRAWBUTSEDIT,"",		xco+18,85,160-18-20,20, marker->name, 0, 63, 0, 0, "Displays current Pose Library Pose name. Click to change.");
+						uiDefIconBut(block, BUT, B_POSELIB_REMOVEP, VICON_X, xco+160-20, 85, 20, 20, NULL, 0.0, 0.0, 0.0, 0.0, "Remove this Pose Library Pose from Pose Library.");
 					}
 					
 					/* add new poses */

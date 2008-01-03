@@ -2943,10 +2943,10 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		case AKEY:
 			if (mval[0]<NAMEWIDTH) {
 				deselect_action_channels (1);
-				allqueue (REDRAWVIEW3D, 0);
-				allqueue (REDRAWACTION, 0);
+				allqueue(REDRAWVIEW3D, 0);
+				allqueue(REDRAWACTION, 0);
 				allqueue(REDRAWNLA, 0);
-				allqueue (REDRAWIPO, 0);
+				allqueue(REDRAWIPO, 0);
 			}
 			else if (mval[0]>ACTWIDTH) {
 				if (G.qual == LR_CTRLKEY) {
@@ -2959,9 +2959,9 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 				}
 				else {
 					deselect_action_keys (1, 1);
-					allqueue (REDRAWACTION, 0);
+					allqueue(REDRAWACTION, 0);
 					allqueue(REDRAWNLA, 0);
-					allqueue (REDRAWIPO, 0);
+					allqueue(REDRAWIPO, 0);
 				}
 			}
 			break;
@@ -3067,7 +3067,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 			
 		case NKEY:
-			if(G.qual==0) {
+			if (G.qual==0) {
 				numbuts_action();
 				
 				/* no panel (yet). current numbuts are not easy to put in panel... */
@@ -3272,8 +3272,7 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 		}
 	}
 
-	if(doredraw) addqueue(curarea->win, REDRAW, 1);
-	
+	if (doredraw) addqueue(curarea->win, REDRAW, 1);
 }
 
 /* **************************************************** */
