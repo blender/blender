@@ -196,6 +196,19 @@ public:
 		return m_display;
 	}	
 
+	/**
+	 * Atom used for ICCCM, WM-spec and Motif.
+	 * We only need get this atom at the start, it's relative
+	 * to the display not the window and are public for every
+	 * window that need it.
+	 */
+	Atom m_wm_state;
+	Atom m_wm_change_state;
+	Atom m_net_state;
+	Atom m_net_max_horz;
+	Atom m_net_max_vert;
+	Atom m_net_fullscreen;
+	Atom m_motif;
 	
 private :
 

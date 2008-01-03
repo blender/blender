@@ -113,9 +113,26 @@ GHOST_SystemX11(
 	  = XSGIFastInternAtom(m_display,
 			       "WM_DELETE_WINDOW", 
 			       SGI_XA_WM_DELETE_WINDOW, False);
+	/* Some one with SGI can tell me about this ? */
+	m_wm_state= None;
+	m_wm_change_state= None;
+	m_net_state= None;
+	m_net_max_horz= None;
+	m_net_max_vert= None;
+	m_net_fullscreen= None;
+	m_motif = None;
 #else
-	m_delete_window_atom 
-	  = XInternAtom(m_display, "WM_DELETE_WINDOW", True);
+	m_delete_window_atom= XInternAtom(m_display, "WM_DELETE_WINDOW", False);
+	m_wm_state= XInternAtom(m_display, "WM_STATE", False);
+	m_wm_change_state= XInternAtom(m_display, "WM_CHANGE_STATE", False);
+	m_net_state= XInternAtom(m_display, "_NET_WM_STATE", False);
+	m_net_max_horz= XInternAtom(m_display,
+					"_NET_WM_STATE_MAXIMIZED_HORZ", False);
+	m_net_max_vert= XInternAtom(m_display,
+					"_NET_WM_STATE_MAXIMIZED_VERT", False);
+	m_net_fullscreen= XInternAtom(m_display,
+					"_NET_WM_STATE_FULLSCREEN", False);
+	m_motif= XInternAtom(m_display, "_MOTIF_WM_HINTS", False);
 #endif
 
 	// compute the initial time
@@ -499,6 +516,24 @@ GHOST_SystemX11::processEvent(XEvent *xe)
 			// XCrossingEvents pointer leave enter window.
 			break;
 		case MapNotify:
+			/*
+			 * From ICCCM:
+			 * [ Clients can select for StructureNotify on their
+			 *   top-level windows to track transition between
+			 *   Normal and Iconic states. Receipt of a MapNotify
+			 *   event will indicate a transition to the Normal
+			 *   state, and receipt of an UnmapNotify event will
+			 *   indicate a transition to the Iconic state. ]
+			 */
+			if (window->m_post_init == True) {
+				/*
+				 * Now we are sure that the window is
+				 * mapped, so only need change the state.
+				 */
+				window->setState (window->m_post_state);
+				window->m_post_init = False;
+			}
+			break;
 		case UnmapNotify:
 			break;
 		case MappingNotify:
