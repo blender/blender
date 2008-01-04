@@ -4067,10 +4067,10 @@ static int allow_render_object(Object *ob, int nolamps, int onlyselected, Object
 	return 1;
 }
 
-static int allow_render_dupli_instance(Render *re, Object *ob, Object *obd)
+static int allow_render_dupli_instance(Render *re, DupliObject *dob, Object *obd)
 {
 	return (render_object_type(obd->type) &&
-	        (!(ob->transflag & OB_DUPLIGROUP)) &&
+	        (!(dob->type == OB_DUPLIGROUP)) &&
 	        !(re->r.mode & R_RADIO));
 }
 
@@ -4127,7 +4127,7 @@ static void database_init_objects(Render *re, unsigned int lay, int nolamps, int
 					if(!allow_render_object(obd, nolamps, onlyselected, actob))
 						continue;
 
-					if(allow_render_dupli_instance(re, ob, obd)) {
+					if(allow_render_dupli_instance(re, dob, obd)) {
 						ParticleSystem *psys;
 						int psysindex;
 						float imat[4][4], mat[4][4];
