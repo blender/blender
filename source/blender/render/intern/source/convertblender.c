@@ -4079,7 +4079,7 @@ static void database_init_objects(Render *re, unsigned int lay, int nolamps, int
 	Base *base;
 	Object *ob;
 	Scene *sce;
-	float mat[4][4];
+	float mat[4][4], obmat[4][4];
 
 	for(SETLOOPER(re->scene, base)) {
 		ob= base->object;
@@ -4112,6 +4112,7 @@ static void database_init_objects(Render *re, unsigned int lay, int nolamps, int
 				for(dob= lb->first; dob; dob= dob->next) {
 					Object *obd= dob->ob;
 					
+					Mat4CpyMat4(obmat, obd->obmat);
 					Mat4CpyMat4(obd->obmat, dob->mat);
 
 					/* group duplis need to set ob matrices correct, for deform. so no_draw is part handled */
@@ -4134,7 +4135,7 @@ static void database_init_objects(Render *re, unsigned int lay, int nolamps, int
 
 						/* compute difference between object matrix and
 						 * object matrix with dupli transform, in viewspace */
-						Mat4Invert(imat, dob->omat);
+						Mat4Invert(imat, obmat);
 						MTC_Mat4MulSerie(mat, re->viewmat, dob->mat, imat, re->viewinv, 0, 0, 0, 0);
 
 						RE_addRenderInstance(re, NULL, obd, ob, dob->index, 0, mat);
@@ -4145,6 +4146,8 @@ static void database_init_objects(Render *re, unsigned int lay, int nolamps, int
 						
 						obd->flag |= OB_DONE;
 						obd->transflag |= OB_RENDER_DUPLI;
+
+						Mat4CpyMat4(obd->obmat, obmat);
 					}
 					else
 						init_render_object(re, obd, ob, dob->index, only_verts);

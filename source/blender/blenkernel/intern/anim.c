@@ -882,7 +882,7 @@ static void object_duplilist_recursive(ID *id, Object *ob, ListBase *duplilist, 
 	if((ob->transflag & OB_DUPLI)==0)
 		return;
 	
-	/* Should the dupli's be greated for this object? - Respect restrict flags */
+	/* Should the dupli's be generated for this object? - Respect restrict flags */
 	if (G.rendering) {
 		if (ob->restrictflag & OB_RESTRICT_RENDER) {
 			return;
@@ -923,7 +923,8 @@ static void object_duplilist_recursive(ID *id, Object *ob, ListBase *duplilist, 
 
 		if (level==0) {
 			for(dob= duplilist->first; dob; dob= dob->next)
-				Mat4CpyMat4(dob->ob->obmat, dob->mat);
+				if(dob->type == OB_DUPLIGROUP)
+					Mat4CpyMat4(dob->ob->obmat, dob->mat);
 		}
 	}
 }

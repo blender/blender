@@ -2172,6 +2172,7 @@ void psys_cache_child_paths(Object *ob, ParticleSystem *psys, float cfra, int ed
 	ParticleCacheKey **cache, *tcache;
 	ListBase threads;
 	int i, totchild, totparent, totthread;
+	unsigned long totchildstep;
 
 	pthreads= psys_threads_create(ob, psys, G.scene->r.threads);
 
@@ -2192,7 +2193,8 @@ void psys_cache_child_paths(Object *ob, ParticleSystem *psys, float cfra, int ed
 		free_child_path_cache(psys);
 
 		cache = psys->childcache = MEM_callocN(totchild*sizeof(void *), "Child path cache array");
-		tcache = MEM_callocN(totchild * (ctx->steps + 1) * sizeof(ParticleCacheKey), "Child path cache");
+		totchildstep= totchild*(ctx->steps + 1);
+		tcache = MEM_callocN(totchildstep*sizeof(ParticleCacheKey), "Child path cache");
 		for(i=0; i<totchild; i++)
 			cache[i] = tcache + i * (ctx->steps + 1);
 
