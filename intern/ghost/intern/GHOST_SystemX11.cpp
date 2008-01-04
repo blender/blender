@@ -109,20 +109,15 @@ GHOST_SystemX11(
 	if (!m_display) return;
 	
 #ifdef __sgi
-	m_delete_window_atom 
-	  = XSGIFastInternAtom(m_display,
-			       "WM_DELETE_WINDOW", 
-			       SGI_XA_WM_DELETE_WINDOW, False);
-	/* Some one with SGI can tell me about this ? */
-	m_wm_state= None;
-	m_wm_change_state= None;
-	m_net_state= None;
-	m_net_max_horz= None;
-	m_net_max_vert= None;
-	m_net_fullscreen= None;
-	m_motif = None;
+	m_delete_window_atom = XSGIFastInternAtom(m_display, 
+						"WM_DELETE_WINDOW",
+						SGI_XA_WM_DELETE_WINDOW,
+						False);
 #else
-	m_delete_window_atom= XInternAtom(m_display, "WM_DELETE_WINDOW", False);
+	m_delete_window_atom = XInternAtom(m_display,
+					"WM_DELETE_WINDOW", False);
+#endif
+
 	m_wm_state= XInternAtom(m_display, "WM_STATE", False);
 	m_wm_change_state= XInternAtom(m_display, "WM_CHANGE_STATE", False);
 	m_net_state= XInternAtom(m_display, "_NET_WM_STATE", False);
@@ -133,7 +128,6 @@ GHOST_SystemX11(
 	m_net_fullscreen= XInternAtom(m_display,
 					"_NET_WM_STATE_FULLSCREEN", False);
 	m_motif= XInternAtom(m_display, "_MOTIF_WM_HINTS", False);
-#endif
 
 	// compute the initial time
 	timeval tv;
