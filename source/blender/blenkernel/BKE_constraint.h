@@ -117,6 +117,9 @@ void copy_constraints(struct ListBase *dst, struct ListBase *src);
 void relink_constraints(struct ListBase *list);
 void free_constraint_data(struct bConstraint *con);
 
+/* Constraints + Proxies function prototypes */
+void extract_proxylocal_constraints(struct ListBase *dst, struct ListBase *src);
+short proxylocked_constraints_owner(struct Object *ob, struct bPoseChannel *pchan);
 
 /* Constraint Channel function prototypes */
 struct bConstraintChannel *get_constraint_channel(struct ListBase *list, const char *name);
@@ -125,6 +128,7 @@ void do_constraint_channels(struct ListBase *conbase, struct ListBase *chanbase,
 void copy_constraint_channels(struct ListBase *dst, struct ListBase *src);
 void clone_constraint_channels(struct ListBase *dst, struct ListBase *src);
 void free_constraint_channels(struct ListBase *chanbase);
+
 
 /* Constraint Evaluation function prototypes */
 struct bConstraintOb *constraints_make_evalob(struct Object *ob, void *subdata, short datatype);

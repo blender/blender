@@ -190,15 +190,18 @@ static void constraint_active_func(void *ob_v, void *con_v)
 
 static void add_constraint_to_active(Object *ob, bConstraint *con)
 {
-	ListBase *list;
+	ListBase *list= get_active_constraints(ob);
+	bPoseChannel *pchan= get_active_posechannel(ob);
 	
-	list = get_active_constraints(ob);
 	if (list) {
 		unique_constraint_name(con, list);
 		BLI_addtail(list, con);
 		
+		if (proxylocked_constraints_owner(ob, pchan))
+			con->flag |= CONSTRAINT_PROXY_LOCAL;
+		
 		con->flag |= CONSTRAINT_ACTIVE;
-		for(con= con->prev; con; con= con->prev)
+		for (con= con->prev; con; con= con->prev)
 			con->flag &= ~CONSTRAINT_ACTIVE;
 	}
 }
@@ -209,8 +212,7 @@ static void get_constraint_ipo_context(void *ob_v, char *actname)
 {
 	Object *ob= ob_v;
 	
-	/* todo; check object if it has ob-level action ipo */
-	
+	/* todo: check object if it has ob-level action ipo */
 	if (ob->flag & OB_POSEMODE) {
 		bPoseChannel *pchan;
 		
@@ -503,12 +505,15 @@ static void draw_constraint_spaceselect (uiBlock *block, bConstraint *con, short
 static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, short *xco, short *yco)
 {
 	Object *ob= OBACT;
+	bPoseChannel *pchan= get_active_posechannel(ob);
 	bConstraintTypeInfo *cti;
 	uiBut *but;
 	char typestr[32];
 	short height, width = 265;
+	short proxy_protected;
 	int rb_col;
 
+	/* get constraint typeinfo */
 	cti= constraint_get_typeinfo(con);
 	if (cti == NULL) {
 		/* exception for 'Null' constraint - it doesn't have constraint typeinfo! */
@@ -519,6 +524,13 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 	}
 	else
 		strcpy(typestr, cti->name);
+		
+	/* determine whether constraint is proxy protected or not */
+	if (proxylocked_constraints_owner(ob, pchan)) {
+		proxy_protected= (con->flag & CONSTRAINT_PROXY_LOCAL) ? 0 : 1;
+	}
+	else
+		proxy_protected= 0;
 		
 	/* unless button has own callback, it adds this callback to button */
 	uiBlockSetFunc(block, constraint_active_func, ob, con);
@@ -534,17 +546,8 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 	/* open/close */
 	uiDefIconButBitS(block, ICONTOG, CONSTRAINT_EXPAND, B_CONSTRAINT_TEST, ICON_DISCLOSURE_TRI_RIGHT, *xco-10, *yco, 20, 20, &con->flag, 0.0, 0.0, 0.0, 0.0, "Collapse/Expand Constraint");
 	
-	/* up/down */
-	uiBlockBeginAlign(block);
-	uiBlockSetEmboss(block, UI_EMBOSS);
-	but = uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, VICON_MOVE_UP, *xco+width-50, *yco, 16, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Move constraint up in constraint stack");
-	uiButSetFunc(but, constraint_moveUp, ob, con);
-	
-	but = uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, VICON_MOVE_DOWN, *xco+width-50+18, *yco, 16, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Move constraint down in constraint stack");
-	uiButSetFunc(but, constraint_moveDown, ob, con);
-	uiBlockEndAlign(block);
-	
-	if (con->flag & CONSTRAINT_EXPAND) {
+	/* name */	
+	if ((con->flag & CONSTRAINT_EXPAND) && (proxy_protected==0)) {
 		if (con->flag & CONSTRAINT_DISABLE)
 			uiBlockSetCol(block, TH_REDALERT);
 		
@@ -568,14 +571,60 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 
 	uiBlockSetCol(block, TH_AUTO);	
 	
-	uiBlockSetEmboss(block, UI_EMBOSSN);
+	/* proxy-protected constraints cannot be edited, so hide up/down + close buttons */
+	if (proxy_protected) {
+		uiBlockSetEmboss(block, UI_EMBOSSN);
+		
+		/* draw a ghost icon (for proxy) and also a lock beside it, to show that constraint is "proxy locked" */
+		uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, ICON_GHOST, *xco+244, *yco, 19, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Proxy Protected");
+		uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, ICON_LOCKED, *xco+262, *yco, 19, 19, NULL, 0.0, 0.0, 0.0, 0.0, "Proxy Protected");
+		
+		uiBlockSetEmboss(block, UI_EMBOSS);
+	}
+	else {
+		short prev_proxylock;
+		
+		/* Up/Down buttons: 
+		 *	Proxy-constraints are not allowed to occur after local (non-proxy) constraints
+		 *	as that poses problems when restoring them, so disable the "up" button where
+		 *	it may cause this situation.
+		 */
+		if (proxylocked_constraints_owner(ob, pchan)) {
+			if (con->prev) {
+				prev_proxylock= (con->prev->flag & CONSTRAINT_PROXY_LOCAL) ? 0 : 1;
+			}
+			else
+				prev_proxylock= 0;
+		}
+		else
+			prev_proxylock= 0;
+		 
+		uiBlockBeginAlign(block);
+			uiBlockSetEmboss(block, UI_EMBOSS);
+			
+			if (prev_proxylock == 0) {
+				but = uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, VICON_MOVE_UP, *xco+width-50, *yco, 16, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Move constraint up in constraint stack");
+				uiButSetFunc(but, constraint_moveUp, ob, con);
+			}
+			
+			but = uiDefIconBut(block, BUT, B_CONSTRAINT_TEST, VICON_MOVE_DOWN, *xco+width-50+18, *yco, 16, 18, NULL, 0.0, 0.0, 0.0, 0.0, "Move constraint down in constraint stack");
+			uiButSetFunc(but, constraint_moveDown, ob, con);
+		uiBlockEndAlign(block);
+		
+		
+		/* Close 'button' - emboss calls here disable drawing of 'button' behind X */
+		uiBlockSetEmboss(block, UI_EMBOSSN);
+		
+			but = uiDefIconBut(block, BUT, B_CONSTRAINT_CHANGETARGET, ICON_X, *xco+262, *yco, 19, 19, list, 0.0, 0.0, 0.0, 0.0, "Delete constraint");
+			uiButSetFunc(but, del_constraint_func, ob, con);
+		
+		uiBlockSetEmboss(block, UI_EMBOSS);
+	}
 	
-	but = uiDefIconBut(block, BUT, B_CONSTRAINT_CHANGETARGET, ICON_X, *xco+262, *yco, 19, 19, list, 0.0, 0.0, 0.0, 0.0, "Delete constraint");
-	uiButSetFunc(but, del_constraint_func, ob, con);
-
-	uiBlockSetEmboss(block, UI_EMBOSS);
-
-
+	/* Set but-locks for protected settings (magic numbers are used here!) */
+	if (proxy_protected)
+		uiSetButLock(1, "Cannot edit Proxy-Protected Constraint");
+	
 	/* Draw constraint data */
 	if ((con->flag & CONSTRAINT_EXPAND) == 0) {
 		(*yco) -= 21;
@@ -1649,6 +1698,9 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 	else {
 		(*yco)-=3;
 	}
+	
+	/* clear any locks set up for proxies/lib-linking */
+	uiClearButLock();
 }
 
 static uiBlock *add_constraintmenu(void *arg_unused)

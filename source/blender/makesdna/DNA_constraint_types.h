@@ -352,7 +352,9 @@ typedef enum B_CONSTRAINT_FLAG {
 		/* to indicate that the owner's space should only be changed into ownspace, but not out of it */
 	CONSTRAINT_SPACEONCE = 	(1<<6),
 		/* influence ipo is on constraint itself, not in action channel */
-	CONSTRAINT_OWN_IPO	= (1<<7)
+	CONSTRAINT_OWN_IPO	= (1<<7),
+		/* indicates that constraint was added locally (i.e.  didn't come from the proxy-lib) */
+	CONSTRAINT_PROXY_LOCAL = (1<<8)
 } B_CONSTRAINT_FLAG;
 
 /* bConstraint->ownspace/tarspace */

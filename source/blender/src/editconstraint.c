@@ -247,6 +247,9 @@ void add_constraint_to_object(bConstraint *con, Object *ob)
 		unique_constraint_name(con, list);
 		BLI_addtail(list, con);
 		
+		if (proxylocked_constraints_owner(ob, NULL))
+			con->flag |= CONSTRAINT_PROXY_LOCAL;
+		
 		con->flag |= CONSTRAINT_ACTIVE;
 		for (con= con->prev; con; con= con->prev)
 			con->flag &= ~CONSTRAINT_ACTIVE;
@@ -258,7 +261,6 @@ void add_constraint_to_object(bConstraint *con, Object *ob)
  */
 static void test_constraints (Object *owner, const char substring[])
 {
-	
 	bConstraint *curcon;
 	ListBase *conlist= NULL;
 	int type;
@@ -266,8 +268,6 @@ static void test_constraints (Object *owner, const char substring[])
 	if (owner==NULL) return;
 	
 	/* Check parents */
-	/* Get the constraint list for this object */
-	
 	if (strlen (substring)) {
 		switch (owner->type) {
 			case OB_ARMATURE:
@@ -281,7 +281,7 @@ static void test_constraints (Object *owner, const char substring[])
 	else
 		type = CONSTRAINT_OBTYPE_OBJECT;
 	
-	
+	/* Get the constraint list for this object */
 	switch (type) {
 		case CONSTRAINT_OBTYPE_OBJECT:
 			conlist = &owner->constraints;
@@ -656,12 +656,6 @@ void add_constraint(int only_IK)
 		/* find active channel */
 		pchanact= get_active_posechannel(ob);
 		if(pchanact==NULL) return;
-	
-		/* check protection */
-		if(ob->proxy && (pchanact->bone->layer & arm->layer_protected)) {
-			error("Bone is Proxy protected");
-			return;
-		}
 		
 		/* find selected bone */
 		for(pchansel= ob->pose->chanbase.first; pchansel; pchansel= pchansel->next) {
@@ -745,8 +739,11 @@ void add_constraint(int only_IK)
 		con = add_new_constraint(CONSTRAINT_TYPE_KINEMATIC);
 		BLI_addtail(&pchanact->constraints, con);
 		unique_constraint_name(con, &pchanact->constraints);
-		pchanact->constflag |= PCHAN_HAS_IK;	// for draw, but also for detecting while pose solving
-		if(nr==11) pchanact->constflag |= PCHAN_HAS_TARGET;
+		pchanact->constflag |= PCHAN_HAS_IK;	/* for draw, but also for detecting while pose solving */
+		if (nr==11) 
+			pchanact->constflag |= PCHAN_HAS_TARGET;
+		if (proxylocked_constraints_owner(ob, pchanact))
+			con->flag |= CONSTRAINT_PROXY_LOCAL;
 	}
 	else {
 		
@@ -812,10 +809,14 @@ void add_constraint(int only_IK)
 			BLI_addtail(&pchanact->constraints, con);
 			unique_constraint_name(con, &pchanact->constraints);
 			pchanact->constflag |= PCHAN_HAS_CONST;	/* for draw */
+			if (proxylocked_constraints_owner(ob, pchanact))
+				con->flag |= CONSTRAINT_PROXY_LOCAL;
 		}
 		else {
 			BLI_addtail(&ob->constraints, con);
 			unique_constraint_name(con, &ob->constraints);
+			if (proxylocked_constraints_owner(ob, NULL))
+				con->flag |= CONSTRAINT_PROXY_LOCAL;
 		}
 	}
 	
@@ -867,9 +868,9 @@ void add_constraint(int only_IK)
 	else
 		DAG_object_flush_update(G.scene, ob, OB_RECALC_OB);	// and all its relations
 
-	allqueue (REDRAWVIEW3D, 0);
-	allqueue (REDRAWBUTSOBJECT, 0);
-	allqueue (REDRAWOOPS, 0);
+	allqueue(REDRAWVIEW3D, 0);
+	allqueue(REDRAWBUTSOBJECT, 0);
+	allqueue(REDRAWOOPS, 0);
 	
 	if (only_IK)
 		BIF_undo_push("Add IK Constraint");
