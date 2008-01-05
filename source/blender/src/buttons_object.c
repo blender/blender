@@ -663,7 +663,7 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 						
 						/* target label */
 						sprintf(tarstr, "Target %02d:", tarnum);
-						uiDefBut(block, LABEL, B_CONSTRAINT_TEST, tarstr, *xco+45, *yco-(48+yoffset), 60, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
+						uiDefBut(block, LABEL, B_CONSTRAINT_TEST, tarstr, *xco+45, *yco-(48+yoffset), 80, 18, NULL, 0.0, 0.0, 0.0, 0.0, ""); 
 						
 						/* target space-selector - per target */
 						if (is_armature_target(ct->tar)) {
@@ -821,10 +821,10 @@ static void draw_constraint (uiBlock *block, ListBase *list, bConstraint *con, s
 				/* Inverse options */
 				uiBlockBeginAlign(block);
 					but=uiDefBut(block, BUT, B_CONSTRAINT_TEST, "Set Offset", *xco, *yco-151, (width/2),18, NULL, 0, 24, 0, 0, "Calculate current Parent-Inverse Matrix (i.e. restore offset from parent)");
-					uiButSetFunc(but, childof_const_setinv, data, NULL);
+					uiButSetFunc(but, childof_const_setinv, con, NULL);
 					
 					but=uiDefBut(block, BUT, B_CONSTRAINT_TEST, "Clear Offset", *xco+((width/2)+10), *yco-151, (width/2),18, NULL, 0, 24, 0, 0, "Clear Parent-Inverse Matrix (i.e. clear offset from parent)");
-					uiButSetFunc(but, childof_const_clearinv, data, NULL);
+					uiButSetFunc(but, childof_const_clearinv, con, NULL);
 				uiBlockEndAlign(block);
 			}
 			break;

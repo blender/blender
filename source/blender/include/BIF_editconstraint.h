@@ -41,23 +41,18 @@ struct bConstraintChannel;
 struct Text;
 
 /* generic constraint editing functions */
-
-struct bConstraint *add_new_constraint(short type);
-
-void add_constraint_to_object(struct bConstraint *con, struct Object *ob);
-
 struct ListBase *get_active_constraints(struct Object *ob);
 struct bConstraint *get_active_constraint(struct Object *ob);
 struct ListBase *get_active_constraint_channels (struct Object *ob, int forcevalid);
 struct bConstraintChannel *get_active_constraint_channel(struct Object *ob);
 
-void object_test_constraints(struct Object *owner);
-
-void add_constraint(int only_IK);
+void add_constraint_to_object(struct bConstraint *con, struct Object *ob);
+struct bConstraint *add_new_constraint(short type);
+void add_constraint(short only_IK);
 void ob_clear_constraints(void);
-
 void rename_constraint(struct Object *ob, struct bConstraint *con, char *newname);
 
+void object_test_constraints(struct Object *owner);
 
 /* a few special functions for PyConstraints */
 char *buildmenu_pyconstraints(struct Text *con_text, int *pyconindex);
