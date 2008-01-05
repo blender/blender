@@ -3526,7 +3526,7 @@ int play_anim(int mode)
 	ScrArea *sa, *oldsa;
 	int cfraont;
 	unsigned short event=0;
-	short val;
+	short val = 0; /* its possible qtest() wont run and val must be initialized */
 
 	/* patch for very very old scenes */
 	if(SFRA==0) SFRA= 1;

@@ -229,6 +229,7 @@ static void check_persistant(SpaceOops *soops, TreeElement *te, ID *id, short ty
 	if(type) tselem->nr= nr; // we're picky! :)
 	else tselem->nr= 0;
 	tselem->id= id;
+	tselem->used = 0;
 	tselem->flag= TSE_CLOSED;
 	te->store_index= ts->usedelem;
 	

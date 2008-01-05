@@ -2003,7 +2003,7 @@ BoundBox *unit_boundbox()
 	BoundBox *bb;
 	float min[3] = {-1,-1,-1}, max[3] = {-1,-1,-1};
 
-	bb= MEM_mallocN(sizeof(BoundBox), "bb");
+	bb= MEM_callocN(sizeof(BoundBox), "bb");
 	boundbox_set_from_min_max(bb, min, max);
 	
 	return bb;

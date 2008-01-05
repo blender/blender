@@ -2730,7 +2730,7 @@ void view3d_edit_clipping(View3D *v3d)
 		if(val==0) return;
 		
 		v3d->flag |= V3D_CLIPPING;
-		v3d->clipbb= MEM_mallocN(sizeof(BoundBox), "clipbb");
+		v3d->clipbb= MEM_callocN(sizeof(BoundBox), "clipbb");
 		
 		/* convert border to 3d coordinates */
 		
