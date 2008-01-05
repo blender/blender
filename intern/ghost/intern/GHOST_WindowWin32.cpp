@@ -420,6 +420,8 @@ GHOST_TSuccess GHOST_WindowWin32::setState(GHOST_TWindowState state)
 		break;
 	case GHOST_kWindowStateFullScreen:
 		wp.showCmd = SW_SHOWMAXIMIZED;
+		wp.ptMaxPosition.x = 0;
+		wp.ptMaxPosition.y = 0;
 		SetWindowLongPtr(m_hWnd, GWL_STYLE, WS_POPUP | WS_MAXIMIZE);
 		break;
 	case GHOST_kWindowStateNormal: 

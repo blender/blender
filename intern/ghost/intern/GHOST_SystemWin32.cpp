@@ -752,7 +752,19 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 				case WM_CAPTURECHANGED:
 					window->lostMouseCapture();
 					break;
-
+				case WM_MOVING:
+					/* The WM_MOVING message is sent to a window that the user is moving. By processing 
+					 * this message, an application can monitor the size and position of the drag rectangle
+					 * and, if needed, change its size or position.
+					 */
+				case WM_MOVE:
+					/* The WM_SIZE and WM_MOVE messages are not sent if an application handles the 
+					 * WM_WINDOWPOSCHANGED message without calling DefWindowProc. It is more efficient
+					 * to perform any move or size change processing during the WM_WINDOWPOSCHANGED 
+					 * message without calling DefWindowProc. 
+					 */
+					event = processWindowEvent(GHOST_kEventWindowMove, window);
+					break;
 				////////////////////////////////////////////////////////////////////////
 				// Window events, ignored
 				////////////////////////////////////////////////////////////////////////
@@ -765,14 +777,6 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 * to perform any move or size change processing during the WM_WINDOWPOSCHANGED 
 					 * message without calling DefWindowProc.
 					 */
-				case WM_MOVE:
-					/* The WM_SIZE and WM_MOVE messages are not sent if an application handles the 
-					 * WM_WINDOWPOSCHANGED message without calling DefWindowProc. It is more efficient
-					 * to perform any move or size change processing during the WM_WINDOWPOSCHANGED 
-					 * message without calling DefWindowProc. 
-					 */
-					event = processWindowEvent(GHOST_kEventWindowMove, window);
-					break;
 				case WM_ERASEBKGND:
 					/* An application sends the WM_ERASEBKGND message when the window background must be 
 					 * erased (for example, when a window is resized). The message is sent to prepare an 
@@ -807,11 +811,6 @@ LRESULT WINAPI GHOST_SystemWin32::s_wndProc(HWND hwnd, UINT msg, WPARAM wParam, 
 					 */
 				case WM_SETFOCUS:
 					/* The WM_SETFOCUS message is sent to a window after it has gained the keyboard focus. */
-				case WM_MOVING:
-					/* The WM_MOVING message is sent to a window that the user is moving. By processing 
-					 * this message, an application can monitor the size and position of the drag rectangle
-					 * and, if needed, change its size or position.
-					 */
 				case WM_ENTERSIZEMOVE:
 					/* The WM_ENTERSIZEMOVE message is sent one time to a window after it enters the moving 
 					 * or sizing modal loop. The window enters the moving or sizing modal loop when the user 
