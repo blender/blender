@@ -3502,16 +3502,22 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 			
 			/* this is the way used all over to check for shadow */
 			if(lar->shb || (lar->mode & LA_SHAD_RAY)) {
+				LampShadowSample *ls;
 				LampShadowSubSample *lss;
-				int a, b, tot= re->r.threads*re->r.osa;
+				int a, b;
 				
 				lar->shadsamp= MEM_mallocN(re->r.threads*sizeof(LampShadowSample), "lamp shadow sample");
-				lss= lar->shadsamp[0].s;
+				ls= lar->shadsamp;
+
 				/* shadfacs actually mean light, let's put them to 1 to prevent unitialized accidents */
-				for(a=0; a<tot; a++, lss++) {
-					for(b=0; b<4; b++) {
+				for(a=0; a<re->r.threads; a++, ls++) {
+					lss= ls->s;
+					for(b=0; b<re->r.osa; b++, lss++) {
 						lss->samplenr= -1;	/* used to detect whether we store or read */
-						lss->shadfac[b]= 1.0f;
+						lss->shadfac[0]= 1.0f;
+						lss->shadfac[1]= 1.0f;
+						lss->shadfac[2]= 1.0f;
+						lss->shadfac[3]= 1.0f;
 					}
 				}
 			}
