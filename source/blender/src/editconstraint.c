@@ -927,48 +927,30 @@ void childof_const_setinv (void *conv, void *unused)
 	
 	/* calculate/set inverse matrix */
 	if (pchan) {
-		bConstraintOb *cob;
-		float ctime= bsystem_time(ob, (float)G.scene->r.cfra, 0.0);	/* not accurate... */
-		float pmat[4][4], chmat[4][4], cimat[4][4];
-		float vec0[3]={0,0,0}, vec1[3]={1,1,1};
+		float pmat[4][4], cinf;
+		float imat[4][4], tmat[4][4];
 		
-		/* make copies of pchan's original matrices (to be restored later) */
+		/* make copy of pchan's original pose-mat (for use later) */
 		Mat4CpyMat4(pmat, pchan->pose_mat);
-		Mat4CpyMat4(chmat, pchan->chan_mat);
-		Mat4CpyMat4(cimat, pchan->constinv);
 		
+		/* disable constraint for pose to be solved without it */
+		cinf= con->enforce;
+		con->enforce= 0.0f;
 		
-		/* clear pchan's transform (for constraint solving) */
-		LocEulSizeToMat4(pchan->chan_mat, vec0, vec0, vec1);
-		Mat4MulMat4(pchan->pose_mat, pmat, cimat);
-		Mat4One(pchan->constinv);
-		Mat4One(data->invmat);
+		/* solve pose without constraint */
+		where_is_pose(ob);
 		
-		
-		/* do constraint solving on pose-matrix containing no transforms
-		 *	 N.B. code is copied from armature.c (where_is_pose_bone) 
+		/* determine effect of constraint by removing the newly calculated 
+		 * pchan->pose_mat from the original pchan->pose_mat, thus determining 
+		 * the effect of the constraint
 		 */
-		cob= constraints_make_evalob(ob, pchan, CONSTRAINT_OBTYPE_BONE);
-		solve_constraints(&pchan->constraints, cob, ctime);
-		constraints_clear_evalob(cob);
+		Mat4Invert(imat, pchan->pose_mat);
+		Mat4MulMat4(tmat, imat, pmat);
+		Mat4Invert(data->invmat, tmat);
 		
-		
-		/* parent-inverse matrix for this constraint is given by taking the 
-		 * local-space (i.e. without any standard parents + restpose) pose_matrix
-		 * (that was calulated with no transforms applied), and inverting it.
-		 */
-		Mat4CpyMat4(pchan->constinv, pchan->pose_mat);
-		
-		constraint_mat_convertspace(ob, pchan, pchan->constinv, 
-				CONSTRAINT_SPACE_POSE, CONSTRAINT_SPACE_LOCAL);
-				
-		Mat4Invert(data->invmat, pchan->constinv);
-		
-		
-		/* restore original matrices of pchan */
-		Mat4CpyMat4(pchan->pose_mat, pmat);
-		Mat4CpyMat4(pchan->chan_mat, chmat);
-		Mat4CpyMat4(pchan->constinv, cimat);
+		/* recalculate pose with new inv-mat */
+		con->enforce= cinf;
+		where_is_pose(ob);
 	}
 	else if (ob) {
 		/* use what_does_parent to find inverse - just like for normal parenting.
