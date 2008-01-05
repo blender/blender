@@ -1519,12 +1519,12 @@ static void vDM_drawVerts(DerivedMesh *dm)
 
 	vvert = vdm->vertex_layer->dl.lb.first;
 
-	bglBegin(GL_POINTS);
+	//XXX bglBegin(GL_POINTS);
 	while(vvert) {
-		bglVertex3fv(vdm->vertexCos ? vvert->cos : vvert->co);
+		//XXX bglVertex3fv(vdm->vertexCos ? vvert->cos : vvert->co);
 		vvert = vvert->next;
 	}
-	bglEnd();
+	//XXX bglEnd();
 }
 
 /* draw all edges of VerseFaces ... it isn't optimal, because verse

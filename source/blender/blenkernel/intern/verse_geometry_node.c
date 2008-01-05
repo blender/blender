@@ -40,7 +40,7 @@
 #include "BKE_verse.h"
 #include "BKE_utildefines.h"
 
-#include "BIF_verse.h"
+//XXX #include "BIF_verse.h"
 
 #include "verse.h"
 
@@ -920,8 +920,8 @@ VLayer *create_verse_layer(
 	vlayer->flag = 0;
 
 	/* set up methods */
-	vlayer->post_layer_create = post_layer_create;
-	vlayer->post_layer_destroy = post_layer_destroy;
+	//XXX vlayer->post_layer_create = post_layer_create;
+	//XXX vlayer->post_layer_destroy = post_layer_destroy;
 
 	return vlayer;
 }
@@ -945,16 +945,16 @@ VGeomData *create_geometry_data(void)
 	geom->hash = MEM_callocN(VEDHASHSIZE*sizeof(HashVerseEdge), "verse hashedge tab");
 
 	/* set up methods */
-	geom->post_vertex_create = post_vertex_create;
-	geom->post_vertex_set_xyz = post_vertex_set_xyz;
-	geom->post_vertex_delete = post_vertex_delete;
-	geom->post_vertex_free_constraint = post_vertex_free_constraint;
-	geom->post_polygon_create = post_polygon_create;
-	geom->post_polygon_set_corner = post_polygon_set_corner;
-	geom->post_polygon_delete = post_polygon_delete;
-	geom->post_polygon_free_constraint = post_polygon_free_constraint;
-	geom->post_geometry_free_constraint = post_geometry_free_constraint;
-	geom->post_polygon_set_uint8 = post_polygon_set_uint8;
+	//XXX geom->post_vertex_create = post_vertex_create;
+	//XXX geom->post_vertex_set_xyz = post_vertex_set_xyz;
+	//XXX geom->post_vertex_delete = post_vertex_delete;
+	//XXX geom->post_vertex_free_constraint = post_vertex_free_constraint;
+	//XXX geom->post_polygon_create = post_polygon_create;
+	//XXX geom->post_polygon_set_corner = post_polygon_set_corner;
+	//XXX geom->post_polygon_delete = post_polygon_delete;
+	//XXX geom->post_polygon_free_constraint = post_polygon_free_constraint;
+	//XXX geom->post_geometry_free_constraint = post_geometry_free_constraint;
+	//XXX geom->post_polygon_set_uint8 = post_polygon_set_uint8;
 
 	return geom;
 }

@@ -158,7 +158,7 @@ Any case: direct data is ALWAYS after the lib block
 #include "BKE_idprop.h"
 #ifdef WITH_VERSE
 #include "BKE_verse.h"
-#include "BIF_verse.h"
+//XXX #include "BIF_verse.h"
 #endif
 
 #include "GEN_messaging.h"
@@ -1122,7 +1122,7 @@ static void write_meshs(WriteData *wd, ListBase *idbase)
 			struct VNode *vnode = (VNode*)mesh->vnode;
 			if(vnode) {
 				/* mesh has to be created from verse geometry node*/
-				create_meshdata_from_geom_node(mesh, vnode);
+				//XXX create_meshdata_from_geom_node(mesh, vnode);
 				/* pointer at verse node can't be stored in file */
 				mesh->vnode = NULL;
 			}

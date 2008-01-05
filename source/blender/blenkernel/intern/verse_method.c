@@ -39,7 +39,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
-#include "BIF_verse.h"
+//XXX #include "BIF_verse.h"
 
 #include "BKE_library.h"
 #include "BKE_text.h"

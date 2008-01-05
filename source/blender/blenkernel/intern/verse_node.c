@@ -37,7 +37,7 @@
 #include "BLI_dynamiclist.h"
 #include "BLI_blenlib.h"
 
-#include "BIF_verse.h"
+//XXX #include "BIF_verse.h"
 
 #include "BKE_verse.h"
 
@@ -209,8 +209,8 @@ static VTagGroup *create_verse_taggroup(VNode *vnode, uint16 group_id, const cha
 	BLI_dlist_init(&(taggroup->tags));
 	taggroup->queue.first = taggroup->queue.last = NULL;
 
-	taggroup->post_tag_change = post_tag_change;
-	taggroup->post_taggroup_create = post_taggroup_create;
+	//XXX taggroup->post_tag_change = post_tag_change;
+	//XXX taggroup->post_taggroup_create = post_taggroup_create;
 
 	return taggroup;
 }
@@ -344,9 +344,9 @@ VNode* create_verse_node(VerseSession *session, VNodeID node_id, uint8 type, VNo
 	vnode->chat_flag = CHAT_NOTLOGGED;
 #endif
 
-	vnode->post_node_create = post_node_create;
-	vnode->post_node_destroy = post_node_destroy;
-	vnode->post_node_name_set = post_node_name_set;
+	//XXX vnode->post_node_create = post_node_create;
+	//XXX vnode->post_node_destroy = post_node_destroy;
+	//XXX vnode->post_node_name_set = post_node_name_set;
 
 	return vnode;
 }

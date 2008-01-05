@@ -39,8 +39,8 @@
 #include "BLI_dynamiclist.h"
 #include "BLI_blenlib.h"
 
-#include "BIF_screen.h"
-#include "BIF_verse.h"
+//XXX #include "BIF_screen.h"
+//XXX #include "BIF_verse.h"
 
 #include "BKE_global.h"	
 #include "BKE_verse.h"
@@ -107,7 +107,7 @@ static void add_verse_server(VMSServer *server)
 	printf("Adding new verse server: %s at %s\n", newserver->name, newserver->ip);
 
 	BLI_addtail(&server_list, newserver);
-	post_server_add();
+	//XXX post_server_add();
 }
 
 /*
@@ -366,11 +366,11 @@ VerseSession *create_verse_session(
 	session->queue.first = session->queue.last = NULL;
 
 	/* set up all client dependent functions */
-	session->post_connect_accept = post_connect_accept;
-	session->post_connect_terminated = post_connect_terminated;
-	session->post_connect_update = post_connect_update;
+	//XXX session->post_connect_accept = post_connect_accept;
+	//XXX session->post_connect_terminated = post_connect_terminated;
+	//XXX session->post_connect_update = post_connect_update;
 
-	post_server_add();
+	//XXX post_server_add();
 
 	return session;
 }
@@ -442,7 +442,7 @@ void b_verse_ms_get(void)
 	if(cb_ping_registered==0) {
 		/* handle ping messages (for master server) */
 		verse_callback_set(verse_send_ping, cb_ping, NULL);
-		add_screenhandler(G.curscreen, SCREEN_HANDLER_VERSE, 1);
+		//XXX add_screenhandler(G.curscreen, SCREEN_HANDLER_VERSE, 1);
 		cb_ping_registered++;
 	}
 	free_all_servers();
@@ -471,8 +471,9 @@ void b_verse_connect(char *address)
 		BLI_addtail(&session_list, session);
 
 		/* add verse handler if this is first session */
-		if(session_list.first == session_list.last)
-			add_screenhandler(G.curscreen, SCREEN_HANDLER_VERSE, 1);
+		if(session_list.first == session_list.last) {
+			//XXX add_screenhandler(G.curscreen, SCREEN_HANDLER_VERSE, 1);
+		}
 
 	}
 }

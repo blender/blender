@@ -39,7 +39,7 @@
 #include "BLI_blenlib.h"
 #include "BLI_arithb.h"
 
-#include "BIF_verse.h"
+//XXX #include "BIF_verse.h"
 
 #include "BKE_verse.h"
 #include "BKE_utildefines.h"
@@ -247,8 +247,8 @@ VLink *create_verse_link(
 
 	vlink->flag = 0;
 
-	vlink->post_link_set = post_link_set;
-	vlink->post_link_destroy = post_link_destroy;
+	//XXX vlink->post_link_set = post_link_set;
+	//XXX vlink->post_link_destroy = post_link_destroy;
 
 	return vlink;
 }
@@ -321,10 +321,10 @@ VObjectData *create_object_data(void)
 
 	/* set up pointers at post callback functions */
 /*	obj->post_transform = post_transform;*/
-	obj->post_transform_pos = post_transform_pos;
-	obj->post_transform_rot = post_transform_rot;
-	obj->post_transform_scale = post_transform_scale;
-	obj->post_object_free_constraint = post_object_free_constraint;
+	//XXX obj->post_transform_pos = post_transform_pos;
+	//XXX obj->post_transform_rot = post_transform_rot;
+	//XXX obj->post_transform_scale = post_transform_scale;
+	//XXX obj->post_object_free_constraint = post_object_free_constraint;
 
 	return obj;
 }

@@ -36,7 +36,7 @@
 #include "BLI_dynamiclist.h"
 #include "BLI_blenlib.h"
 
-#include "BIF_verse.h"
+//XXX #include "BIF_verse.h"
 
 #include "BKE_verse.h"
 
@@ -222,10 +222,10 @@ VBitmapData *create_bitmap_data()
 
 	vbitmap->image = NULL;
 
-	vbitmap->post_bitmap_dimension_set = post_bitmap_dimension_set;
-	vbitmap->post_bitmap_layer_create = post_bitmap_layer_create;
-	vbitmap->post_bitmap_layer_destroy = post_bitmap_layer_destroy;
-	vbitmap->post_bitmap_tile_set = post_bitmap_tile_set;
+	//XXX vbitmap->post_bitmap_dimension_set = post_bitmap_dimension_set;
+	//XXX vbitmap->post_bitmap_layer_create = post_bitmap_layer_create;
+	//XXX vbitmap->post_bitmap_layer_destroy = post_bitmap_layer_destroy;
+	//XXX vbitmap->post_bitmap_tile_set = post_bitmap_tile_set;
 
 	return vbitmap;
 }
