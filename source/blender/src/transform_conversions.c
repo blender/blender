@@ -787,10 +787,11 @@ static short pose_grab_with_ik_add(bPoseChannel *pchan)
 	if (pchan == NULL) 
 		return 0;
 	
-	/* rule: not if there's already an IK on this channel */
-	for (con= pchan->constraints.first; con; con= con->next)
+	/* Rule: not if there's already an IK on this channel */
+	for (con= pchan->constraints.first; con; con= con->next) {
 		if (con->type==CONSTRAINT_TYPE_KINEMATIC)
 			break;
+	}
 	
 	if (con) {
 		/* but, if this is a targetless IK, we make it auto anyway (for the children loop) */
@@ -826,7 +827,7 @@ static short pose_grab_with_ik_add(bPoseChannel *pchan)
 	return 1;
 }
 
-/* bone is a canditate to get IK, but we don't do it if it has children connected */
+/* bone is a candidate to get IK, but we don't do it if it has children connected */
 static short pose_grab_with_ik_children(bPose *pose, Bone *bone)
 {
 	Bone *bonec;
@@ -852,43 +853,47 @@ static short pose_grab_with_ik_children(bPose *pose, Bone *bone)
 static short pose_grab_with_ik(Object *ob)
 {
 	bArmature *arm;
-	bPoseChannel *pchan, *pchansel= NULL;
+	bPoseChannel *pchan, *parent;
 	Bone *bonec;
+	short tot_ik= 0;
 	
-	if (ob==NULL || ob->pose==NULL || (ob->flag & OB_POSEMODE)==0)
+	if ((ob==NULL) || (ob->pose==NULL) || (ob->flag & OB_POSEMODE)==0)
 		return 0;
 		
 	arm = ob->data;
 	
-	/* rule: only one Bone */
+	/* Rule: allow multiple Bones (but they must be selected, and only one ik-solver per chain should get added) */
 	for (pchan= ob->pose->chanbase.first; pchan; pchan= pchan->next) {
 		if (pchan->bone->layer & arm->layer) {
 			if (pchan->bone->flag & BONE_SELECTED) {
-				if (pchansel)
-					break;
-				pchansel= pchan;
+				/* Rule: no IK for solitatry (unconnected) bones */
+				for (bonec=pchan->bone->childbase.first; bonec; bonec=bonec->next) {
+					if (bonec->flag & BONE_CONNECTED) {
+						break;
+					}
+				}
+				if ((pchan->bone->flag & BONE_CONNECTED)==0 && (bonec == NULL))
+					continue;
+				
+				/* rule: if selected Bone is not a root bone, it gets a temporal IK */
+				if (pchan->parent) {
+					/* only adds if there's no IK yet (and no parent bone was selected) */
+					for (parent= pchan->parent; parent; parent= parent->parent) {
+						if (parent->bone->flag & BONE_SELECTED)
+							break;
+					}
+					if (parent == NULL)
+						tot_ik += pose_grab_with_ik_add(pchan);
+				}
+				else {
+					/* rule: go over the children and add IK to the tips */
+					tot_ik += pose_grab_with_ik_children(ob->pose, pchan->bone);
+				}
 			}
 		}
 	}
-	if (pchan || pchansel==NULL) return 0;
-
-	/* rule: no IK for solitary (unconnected) bone */
-	for (bonec=pchansel->bone->childbase.first; bonec; bonec=bonec->next) {
-		if (bonec->flag & BONE_CONNECTED) {
-			break;
-		}
-	}
-	if ((pchansel->bone->flag & BONE_CONNECTED)==0 && (bonec == NULL)) return 0;
 	
-	/* rule: if selected Bone is not a root bone, it gets a temporal IK */
-	if (pchansel->parent) {
-		/* only adds if there's no IK yet */
-		return pose_grab_with_ik_add(pchansel);
-	}
-	else {
-		/* rule: go over the children and add IK to the tips */
-		return pose_grab_with_ik_children(ob->pose, pchansel->bone);
-	}
+	return (tot_ik) ? 1 : 0;
 }	
 
 
