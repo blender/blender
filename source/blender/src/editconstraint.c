@@ -749,6 +749,9 @@ static void test_constraints (Object *owner, const char substring[])
 						}
 					}
 				}
+				
+				/* targets have already been checked for this */
+				continue;
 			}
 			else if (curcon->type == CONSTRAINT_TYPE_ACTION) {
 				bActionConstraint *data = curcon->data;
