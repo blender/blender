@@ -3580,8 +3580,8 @@ static void draw_particle_edit(Object *ob, ParticleSystem *psys)
 		if(psys->childcache==0)
 			psys_cache_child_paths(ob, psys, CFRA, 0);
 	}
-	else if(psys->childcache)
-			free_child_path_cache(psys);
+	else if(!(pset->flag & PE_SHOW_CHILD) && psys->childcache)
+		free_child_path_cache(psys);
 
 	if((G.vd->flag & V3D_ZBUF_SELECT)==0)
 		glDisable(GL_DEPTH_TEST);
@@ -3625,13 +3625,14 @@ static void draw_particle_edit(Object *ob, ParticleSystem *psys)
 	}
 
 	glEnable(GL_LIGHTING);
+	if(psys->part->draw_as == PART_DRAW_PATH) {
+		for(i=0, path=psys->childcache; i<totchild; i++,path++){
+			glVertexPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), (*path)->co);
+			glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), (*path)->vel);
+			glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), (*path)->col);
 
-	for(i=0, path=psys->childcache; i<totchild; i++,path++){
-		glVertexPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), (*path)->co);
-		glNormalPointer(GL_FLOAT, sizeof(ParticleCacheKey), (*path)->vel);
-		glColorPointer(3, GL_FLOAT, sizeof(ParticleCacheKey), (*path)->col);
-
-		glDrawArrays(GL_LINE_STRIP, 0, (int)(*path)->steps + 1);
+			glDrawArrays(GL_LINE_STRIP, 0, (int)(*path)->steps + 1);
+		}
 	}
 
 	glDisable(GL_COLOR_MATERIAL);

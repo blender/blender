@@ -2392,6 +2392,7 @@ static void brush_add(Object *ob, ParticleSystem *psys, short *mval, short numbe
 				ekey->time = &hkey->time;
 			}
 			
+			pa->size= 1.0f;
 			initialize_particle(pa,i,ob,psys,psmd);
 			reset_particle(pa,psys,psmd,ob,0.0,1.0,0,0,0);
 			pa->flag |= PARS_EDIT_RECALC;
