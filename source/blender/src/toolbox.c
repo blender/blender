@@ -1659,6 +1659,7 @@ static TBitem tb_node_node[]= {
 	{	0, "Edit Group|Tab", TB_TAB, NULL},
 	{	0, "SEPR", 		0, NULL},
 	{	0, "Hide/Unhide|H", 'h', NULL},
+	{	0, "Rename|Ctrl R", TB_CTRL|'r', 		NULL},
 	{	0, "SEPR", 		0, NULL},
 	{	0, "Read Saved Render Results|R", 'r', NULL},
 	{	0, "Show Cyclic Dependencies|C", 'c', NULL},

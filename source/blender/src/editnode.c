@@ -22,7 +22,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): David Millan Escriva, Juho Vepsäläinen
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -1083,7 +1083,33 @@ static void scale_node(SpaceNode *snode, bNode *node)
 	allqueue(REDRAWNODE, 1);
 }
 
+/* ******************** rename ******************* */
 
+void node_rename(SpaceNode *snode)
+{
+	bNode *node, *rename_node;
+	short found_node= 0;
+	
+	/* don't rename if more than one node is selected */
+	/* a nice alternative for this would be to rename last selected node */
+	for(node= snode->edittree->nodes.first; node; node= node->next) {
+		if(node->flag & SELECT) {
+			if(found_node) {
+				error("Can rename only one selected node at time");
+				return;
+			}
+			rename_node= node;
+			found_node= 1;
+		}
+	}
+
+	if(found_node) {
+		node_rename_but((char *)rename_node->username);
+		BIF_undo_push("Rename Node");
+	
+		allqueue(REDRAWNODE, 1);
+	}
+}
 
 /* ********************** select ******************** */
 
@@ -2305,8 +2331,12 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			node_select_linked(snode, G.qual==LR_SHIFTKEY);
 			break;
 		case RKEY:
-			if(okee("Read saved Render Layers"))
-				node_read_renderlayers(snode);
+			if(G.qual==LR_CTRLKEY) {
+				node_rename(snode);
+			} else{
+				if(okee("Read saved Render Layers"))
+					node_read_renderlayers(snode);
+			}
 			break;
 		case DELKEY:
 		case XKEY:

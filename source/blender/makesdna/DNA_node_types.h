@@ -107,6 +107,7 @@ typedef struct bNode {
 	struct bNode *next, *prev, *new_node;
 	
 	char name[32];
+	char username[32];	/* custom name defined by user */
 	short type, flag;
 	short done, level;		/* both for dependency and sorting */
 	short lasty, menunr;	/* lasty: check preview render status, menunr: browse ID blocks */

@@ -23,7 +23,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): David Millan Escriva, Juho Vepsäläinen
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -516,6 +516,9 @@ static void do_node_nodemenu(void *arg, int event)
 		case 11: /* make link */
 			node_make_link(snode);
 			break;
+		case 12: /* rename */
+			node_rename(snode);
+			break;
 	}
 	
 	if(fromlib==-1) error_libdata();
@@ -552,6 +555,7 @@ static uiBlock *node_nodemenu(void *arg_unused)
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
 	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Hide/Unhide|H", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 7, "");
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, "Rename|Ctrl R", 0, yco-=20, menuwidth, 19, NULL, 0.0, 0.0, 1, 12, "");
 	
 	uiDefBut(block, SEPR, 0, "",        0, yco-=6, menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");
 	
