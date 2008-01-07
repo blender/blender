@@ -65,8 +65,9 @@ OPTION(WITH_ELBEEM		"Enable Elbeem (Fluid Simulation)"			ON)
 OPTION(WITH_QUICKTIME		"Enable Quicktime Support"				OFF)
 OPTION(WITH_OPENEXR		"Enable OpenEXR Support (http://www.openexr.com)"	OFF)
 OPTION(WITH_FFMPEG		"Enable FFMPeg Support (http://ffmpeg.mplayerhq.hu/)"	OFF)
-OPTION(WITH_OPENAL		"Enable OpenAL Support (http://www.openal.org)"	ON)
-OPTION(YESIAMSTUPID		"Enable execution on 64-bit platforms"					OFF)
+OPTION(WITH_OPENAL		"Enable OpenAL Support (http://www.openal.org)"		ON)
+OPTION(YESIAMSTUPID		"Enable execution on 64-bit platforms"			OFF)
+OPTION(WITH_OPENMP		"Enable OpenMP (has to be supported by the compiler)"	OFF)
 
 IF(NOT WITH_GAMEENGINE AND WITH_PLAYER)
   MESSAGE("WARNING: WITH_PLAYER needs WITH_GAMEENGINE")
@@ -184,6 +185,13 @@ IF(UNIX)
 
   SET(LLIBS "-lXi -lutil -lc -lm -lpthread -lstdc++")
 
+  IF(WITH_OPENMP)
+    SET(LLIBS "${LLIBS} -lgomp ")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp ")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp ")
+  ENDIF(WITH_OPENMP)
+
+
   SET(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing -DXP_UNIX -Wno-char-subscripts")
 
   SET(PLATFORM_LINKFLAGS "-pthread")
@@ -270,6 +278,11 @@ IF(WIN32)
   SET(CMAKE_C_FLAGS_MINSIZEREL "/D_CRT_NONSTDC_NO_DEPRECATE /D_CRT_SECURE_NO_DEPRECATE /D_SCL_SECURE_NO_DEPRECATE /wd4800 /wd4244 /wd4305 /O1 /Ob1 /DNDEBUG /EHsc /MT /W3 /nologo /J" CACHE STRING "MSVC MT flags " FORCE)
   SET(CMAKE_C_FLAGS_RELWITHDEBINFO "/D_CRT_NONSTDC_NO_DEPRECATE /D_CRT_SECURE_NO_DEPRECATE /D_SCL_SECURE_NO_DEPRECATE /wd4800 /wd4244 /wd4305 /O2 /Ob1 /DNDEBUG /EHsc /MT /W3 /nologo /Zi /J" CACHE STRING "MSVC MT flags " FORCE)
 
+  IF(WITH_OPENMP)
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} /openmp ")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} /openmp ")
+  ENDIF(WITH_OPENMP)
+
   SET(SDL ${LIBDIR}/sdl)
   SET(SDL_INC ${SDL}/include)
   SET(SDL_LIB SDL)
@@ -346,6 +359,12 @@ IF(APPLE)
 
   SET(PLATFORM_CFLAGS "-pipe -fPIC -funsigned-char -fno-strict-aliasing")
   SET(PLATFORM_LINKFLAGS "-fexceptions -framework CoreServices -framework Foundation -framework IOKit -framework AppKit -framework Carbon -framework AGL -framework AudioUnit -framework AudioToolbox -framework CoreAudio -framework QuickTime")
+
+  IF(WITH_OPENMP)
+    SET(LLIBS "${LLIBS} -lgomp ")
+    SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fopenmp ")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fopenmp ")
+  ENDIF(WITH_OPENMP)
 
   SET(SDL ${LIBDIR}/sdl)
   SET(SDL_INC ${SDL}/include)

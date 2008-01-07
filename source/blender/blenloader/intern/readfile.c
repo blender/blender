@@ -2986,12 +2986,14 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 		   ClothModifierData	*clmd = (ClothModifierData*) md;
 
 		   clmd->clothObject = NULL;
-		   
+		   /*
 		   clmd->sim_parms= newdataadr(fd, clmd->sim_parms);
 		   clmd->coll_parms= newdataadr(fd, clmd->coll_parms);
+		   */
 		   
 		} 
 		else if (md->type==eModifierType_Collision) {
+			/*
 			CollisionModifierData *collmd = (CollisionModifierData*) md;
 			
 			collmd->x = NULL;
@@ -3001,6 +3003,7 @@ static void direct_link_modifiers(FileData *fd, ListBase *lb)
 			collmd->time = -1;
 			collmd->numverts = 0;
 			collmd->tree = NULL;
+			*/
 		}
 		else if (md->type==eModifierType_Hook) {
 			HookModifierData *hmd = (HookModifierData*) md;

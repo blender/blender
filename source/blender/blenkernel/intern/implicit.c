@@ -46,11 +46,9 @@
 #include "DNA_lattice_types.h"
 #include "DNA_scene_types.h"
 #include "DNA_modifier_types.h"
-#include "BLI_arithb.h"
 #include "BLI_blenlib.h"
-#include "BLI_edgehash.h"
+#include "BLI_arithb.h"
 #include "BLI_threads.h"
-#include "BKE_collisions.h"
 #include "BKE_curve.h"
 #include "BKE_displist.h"
 #include "BKE_effect.h"
@@ -63,7 +61,6 @@
 #include "BKE_global.h"
 #include  "BIF_editdeform.h"
 
-#include "Bullet-C-Api.h"
 
 #ifdef _WIN32
 #include <windows.h>
@@ -85,14 +82,18 @@ void itend(void)
 double itval()
 {
 	return ((double)_itend.QuadPart -
-			(double)_itstart.QuadPart)/((double)ifreq.QuadPart);
+		(double)_itstart.QuadPart)/((double)ifreq.QuadPart);
 }
 #else
 #include <sys/time.h>
+// intrinsics need better compile flag checking
+// #include <xmmintrin.h>
+// #include <pmmintrin.h>
+// #include <pthread.h>
 
-			 static struct timeval _itstart, _itend;
-	 static struct timezone itz;
-	 void itstart(void)
+static struct timeval _itstart, _itend;
+static struct timezone itz;
+void itstart(void)
 {
 	gettimeofday(&_itstart, &itz);
 }
@@ -108,7 +109,14 @@ double itval()
 	return t2-t1;
 }
 #endif
-
+/*
+#define C99
+#ifdef C99
+#defineDO_INLINE inline 
+#else 
+#defineDO_INLINE static 
+#endif
+*/
 struct Cloth;
 
 //////////////////////////////////////////
@@ -172,7 +180,7 @@ void print_fvector(float m3[3])
 // long float vector float (*)[3]
 ///////////////////////////
 /* print long vector on console: for debug output */
-DO_INLINE void print_lfvector(lfVector *fLongVector, unsigned int verts)
+DO_INLINE void print_lfvector(float (*fLongVector)[3], unsigned int verts)
 {
 	unsigned int i = 0;
 	for(i = 0; i < verts; i++)
@@ -188,7 +196,7 @@ DO_INLINE lfVector *create_lfvector(unsigned int verts)
 	// return (lfVector *)cloth_aligned_malloc(&MEMORY_BASE, verts * sizeof(lfVector));
 }
 /* delete long vector */
-DO_INLINE void del_lfvector(lfVector *fLongVector)
+DO_INLINE void del_lfvector(float (*fLongVector)[3])
 {
 	if (fLongVector != NULL)
 	{
@@ -202,7 +210,7 @@ DO_INLINE void cp_lfvector(float (*to)[3], float (*from)[3], unsigned int verts)
 	memcpy(to, from, verts * sizeof(lfVector));
 }
 /* init long vector with float[3] */
-DO_INLINE void init_lfvector(lfVector *fLongVector, float vector[3], unsigned int verts)
+DO_INLINE void init_lfvector(float (*fLongVector)[3], float vector[3], unsigned int verts)
 {
 	unsigned int i = 0;
 	for(i = 0; i < verts; i++)
@@ -216,7 +224,7 @@ DO_INLINE void zero_lfvector(float (*to)[3], unsigned int verts)
 	memset(to, 0.0f, verts * sizeof(lfVector));
 }
 /* multiply long vector with scalar*/
-DO_INLINE void mul_lfvectorS(float (*to)[3], lfVector *fLongVector, float scalar, unsigned int verts)
+DO_INLINE void mul_lfvectorS(float (*to)[3], float (*fLongVector)[3], float scalar, unsigned int verts)
 {
 	unsigned int i = 0;
 
@@ -227,7 +235,7 @@ DO_INLINE void mul_lfvectorS(float (*to)[3], lfVector *fLongVector, float scalar
 }
 /* multiply long vector with scalar*/
 /* A -= B * float */
-DO_INLINE void submul_lfvectorS(float (*to)[3], lfVector *fLongVector, float scalar, unsigned int verts)
+DO_INLINE void submul_lfvectorS(float (*to)[3], float (*fLongVector)[3], float scalar, unsigned int verts)
 {
 	unsigned int i = 0;
 	for(i = 0; i < verts; i++)
@@ -236,12 +244,12 @@ DO_INLINE void submul_lfvectorS(float (*to)[3], lfVector *fLongVector, float sca
 	}
 }
 /* dot product for big vector */
-DO_INLINE float dot_lfvector(lfVector *fLongVectorA, lfVector *fLongVectorB, unsigned int verts)
+DO_INLINE float dot_lfvector(float (*fLongVectorA)[3], float (*fLongVectorB)[3], unsigned int verts)
 {
 	unsigned int i = 0;
 	float temp = 0.0;
 // schedule(guided, 2)
-#pragma omp parallel for reduction(+: temp) private(i)
+#pragma omp parallel for reduction(+: temp)
 	for(i = 0; i < verts; i++)
 	{
 		temp += INPR(fLongVectorA[i], fLongVectorB[i]);
@@ -249,7 +257,7 @@ DO_INLINE float dot_lfvector(lfVector *fLongVectorA, lfVector *fLongVectorB, uns
 	return temp;
 }
 /* A = B + C  --> for big vector */
-DO_INLINE void add_lfvector_lfvector(float (*to)[3], lfVector *fLongVectorA, lfVector *fLongVectorB, unsigned int verts)
+DO_INLINE void add_lfvector_lfvector(float (*to)[3], float (*fLongVectorA)[3], float (*fLongVectorB)[3], unsigned int verts)
 {
 	unsigned int i = 0;
 
@@ -260,7 +268,7 @@ DO_INLINE void add_lfvector_lfvector(float (*to)[3], lfVector *fLongVectorA, lfV
 
 }
 /* A = B + C * float --> for big vector */
-DO_INLINE void add_lfvector_lfvectorS(float (*to)[3], lfVector *fLongVectorA, lfVector *fLongVectorB, float bS, unsigned int verts)
+DO_INLINE void add_lfvector_lfvectorS(float (*to)[3], float (*fLongVectorA)[3], float (*fLongVectorB)[3], float bS, unsigned int verts)
 {
 	unsigned int i = 0;
 
@@ -271,7 +279,7 @@ DO_INLINE void add_lfvector_lfvectorS(float (*to)[3], lfVector *fLongVectorA, lf
 	}
 }
 /* A = B * float + C * float --> for big vector */
-DO_INLINE void add_lfvectorS_lfvectorS(float (*to)[3], lfVector *fLongVectorA, float aS, lfVector *fLongVectorB, float bS, unsigned int verts)
+DO_INLINE void add_lfvectorS_lfvectorS(float (*to)[3], float (*fLongVectorA)[3], float aS, float (*fLongVectorB)[3], float bS, unsigned int verts)
 {
 	unsigned int i = 0;
 
@@ -281,7 +289,7 @@ DO_INLINE void add_lfvectorS_lfvectorS(float (*to)[3], lfVector *fLongVectorA, f
 	}
 }
 /* A = B - C * float --> for big vector */
-DO_INLINE void sub_lfvector_lfvectorS(float (*to)[3], lfVector *fLongVectorA, lfVector *fLongVectorB, float bS, unsigned int verts)
+DO_INLINE void sub_lfvector_lfvectorS(float (*to)[3], float (*fLongVectorA)[3], float (*fLongVectorB)[3], float bS, unsigned int verts)
 {
 	unsigned int i = 0;
 	for(i = 0; i < verts; i++)
@@ -291,7 +299,7 @@ DO_INLINE void sub_lfvector_lfvectorS(float (*to)[3], lfVector *fLongVectorA, lf
 
 }
 /* A = B - C --> for big vector */
-DO_INLINE void sub_lfvector_lfvector(float (*to)[3], lfVector *fLongVectorA, lfVector *fLongVectorB, unsigned int verts)
+DO_INLINE void sub_lfvector_lfvector(float (*to)[3], float (*fLongVectorA)[3], float (*fLongVectorB)[3], unsigned int verts)
 {
 	unsigned int i = 0;
 
@@ -323,7 +331,7 @@ DO_INLINE void cp_fmatrix(float to[3][3], float from[3][3])
 DO_INLINE float det_fmatrix(float m[3][3])
 {
 	return  m[0][0]*m[1][1]*m[2][2] + m[1][0]*m[2][1]*m[0][2] + m[0][1]*m[1][2]*m[2][0] 
-			-m[0][0]*m[1][2]*m[2][1] - m[0][1]*m[1][0]*m[2][2] - m[2][0]*m[1][1]*m[0][2];
+	-m[0][0]*m[1][2]*m[2][1] - m[0][1]*m[1][0]*m[2][2] - m[2][0]*m[1][1]*m[0][2];
 }
 DO_INLINE void inverse_fmatrix(float to[3][3], float from[3][3])
 {
@@ -561,37 +569,34 @@ DO_INLINE void mul_bfmatrix_S(fmatrix3x3 *matrix, float scalar)
 
 /* SPARSE SYMMETRIC multiply big matrix with long vector*/
 /* STATUS: verified */
-DO_INLINE void mul_bfmatrix_lfvector( float (*to)[3], fmatrix3x3 *from, lfVector *fLongVector)
+DO_INLINE void mul_bfmatrix_lfvector( float (*to)[3], fmatrix3x3 *from, float (*fLongVector)[3])
 {
 	unsigned int i = 0;
-	lfVector *temp = create_lfvector(from[0].vcount);
-	
 	zero_lfvector(to, from[0].vcount);
-
-#pragma omp parallel sections private(i)
+	/* process diagonal elements */	
+	for(i = 0; i < from[0].vcount; i++)
 	{
-#pragma omp section
-		{
-			for(i = from[0].vcount; i < from[0].vcount+from[0].scount; i++)
-			{
-				muladd_fmatrix_fvector(to[from[i].c], from[i].m, fLongVector[from[i].r]);
-			}
-		}	
-#pragma omp section
-		{
-			for(i = 0; i < from[0].vcount+from[0].scount; i++)
-			{
-				muladd_fmatrix_fvector(temp[from[i].r], from[i].m, fLongVector[from[i].c]);
-			}
-		}
+		muladd_fmatrix_fvector(to[from[i].r], from[i].m, fLongVector[from[i].c]);	
 	}
-	add_lfvector_lfvector(to, to, temp, from[0].vcount);
-	
-	del_lfvector(temp);
-	
-	
-}
 
+	/* process off-diagonal entries (every off-diagonal entry needs to be symmetric) */
+	// TODO: pragma below is wrong, correct it!
+	// #pragma omp parallel for shared(to,from, fLongVector) private(i) 
+	for(i = from[0].vcount; i < from[0].vcount+from[0].scount; i++)
+	{
+		// muladd_fmatrix_fvector(to[from[i].c], from[i].m, fLongVector[from[i].r]);
+		
+		to[from[i].c][0] += INPR(from[i].m[0],fLongVector[from[i].r]);
+		to[from[i].c][1] += INPR(from[i].m[1],fLongVector[from[i].r]);
+		to[from[i].c][2] += INPR(from[i].m[2],fLongVector[from[i].r]);	
+		
+		// muladd_fmatrix_fvector(to[from[i].r], from[i].m, fLongVector[from[i].c]);
+		
+		to[from[i].r][0] += INPR(from[i].m[0],fLongVector[from[i].c]);
+		to[from[i].r][1] += INPR(from[i].m[1],fLongVector[from[i].c]);
+		to[from[i].r][2] += INPR(from[i].m[2],fLongVector[from[i].c]);	
+	}
+}
 
 /* SPARSE SYMMETRIC multiply big matrix with long vector (for diagonal preconditioner) */
 /* STATUS: verified */
@@ -699,7 +704,7 @@ static float I[3][3] = {{1,0,0},{0,1,0},{0,0,1}};
 static float ZERO[3][3] = {{0,0,0}, {0,0,0}, {0,0,0}};
 typedef struct Implicit_Data 
 {
-	lfVector *X, *V, *Xnew, *Vnew, *F, *B, *dV, *z;
+	lfVector *X, *V, *Xnew, *Vnew, *olddV, *F, *B, *dV, *z;
 	fmatrix3x3 *A, *dFdV, *dFdX, *S, *P, *Pinv, *bigI; 
 } Implicit_Data;
 
@@ -735,6 +740,8 @@ int implicit_init (Object *ob, ClothModifierData *clmd)
 	id->Xnew = create_lfvector(cloth->numverts);
 	id->V = create_lfvector(cloth->numverts);
 	id->Vnew = create_lfvector(cloth->numverts);
+	id->olddV = create_lfvector(cloth->numverts);
+	zero_lfvector(id->olddV, cloth->numverts);
 	id->F = create_lfvector(cloth->numverts);
 	id->B = create_lfvector(cloth->numverts);
 	id->dV = create_lfvector(cloth->numverts);
@@ -767,7 +774,7 @@ int implicit_init (Object *ob, ClothModifierData *clmd)
 
 		// dFdV_start[i].c = big_I[i].c = big_zero[i].c = 
 		id->A[i+cloth->numverts].c = id->dFdV[i+cloth->numverts].c = id->dFdX[i+cloth->numverts].c = 
-				id->P[i+cloth->numverts].c = id->Pinv[i+cloth->numverts].c = id->bigI[i+cloth->numverts].c = spring->kl;
+			id->P[i+cloth->numverts].c = id->Pinv[i+cloth->numverts].c = id->bigI[i+cloth->numverts].c = spring->kl;
 
 		spring->matrix_index = i + cloth->numverts;
 		
@@ -776,7 +783,7 @@ int implicit_init (Object *ob, ClothModifierData *clmd)
 
 	for(i = 0; i < cloth->numverts; i++)
 	{		
-		VECCOPY(id->X[i], cloth->x[i]);
+		VECCOPY(id->X[i], verts[i].x);
 	}
 
 	return 1;
@@ -805,6 +812,7 @@ int	implicit_free (ClothModifierData *clmd)
 			del_lfvector(id->Xnew);
 			del_lfvector(id->V);
 			del_lfvector(id->Vnew);
+			del_lfvector(id->olddV);
 			del_lfvector(id->F);
 			del_lfvector(id->B);
 			del_lfvector(id->dV);
@@ -815,31 +823,6 @@ int	implicit_free (ClothModifierData *clmd)
 	}
 
 	return 1;
-}
-
-void cloth_bending_mode(ClothModifierData *clmd, int enabled)
-{
-	Cloth *cloth = clmd->clothObject;
-	Implicit_Data *id;
-	
-	if(cloth)
-	{
-		id = cloth->implicit;
-		
-		if(id)
-		{
-			if(enabled)
-			{
-				cloth->numsprings = cloth->numspringssave;
-			}
-			else
-			{
-				cloth->numsprings = cloth->numothersprings;
-			}
-			
-			id->A[0].scount = id->dFdV[0].scount = id->dFdX[0].scount = id->P[0].scount = id->Pinv[0].scount = id->bigI[0].scount = cloth->numsprings;
-		}	
-	}
 }
 
 DO_INLINE float fb(float length, float L)
@@ -892,7 +875,7 @@ DO_INLINE void filter(lfVector *V, fmatrix3x3 *S)
 	}
 }
 
-int cg_filtered(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix3x3 *S)
+int  cg_filtered(lfVector *ldV, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix3x3 *S)
 {
 	// Solves for unknown X in equation AX=B
 	unsigned int conjgrad_loopcount=0, conjgrad_looplimit=100;
@@ -905,14 +888,14 @@ int cg_filtered(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix
 	tmp = create_lfvector(numverts);
 	r = create_lfvector(numverts);
 
-	// zero_lfvector(dv, CLOTHPARTICLES);
-	filter(dv, S);
+	// zero_lfvector(ldV, CLOTHPARTICLES);
+	filter(ldV, S);
 
-	add_lfvector_lfvector(dv, dv, z, numverts);
+	add_lfvector_lfvector(ldV, ldV, z, numverts);
 
 	// r = B - Mul(tmp,A,X);    // just use B if X known to be zero
 	cp_lfvector(r, lB, numverts);
-	mul_bfmatrix_lfvector(tmp, lA, dv);
+	mul_bfmatrix_lfvector(tmp, lA, ldV);
 	sub_lfvector_lfvector(r, r, tmp, numverts);
 
 	filter(r,S);
@@ -932,7 +915,7 @@ int cg_filtered(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix
 		a = s/dot_lfvector(d, q, numverts);
 
 		// X = X + d*a;
-		add_lfvector_lfvectorS(dv, dv, d, a, numverts);
+		add_lfvector_lfvectorS(ldV, ldV, d, a, numverts);
 
 		// r = r - q*a;
 		sub_lfvector_lfvectorS(r, r, q, a, numverts);
@@ -947,16 +930,12 @@ int cg_filtered(lfVector *dv, fmatrix3x3 *lA, lfVector *lB, lfVector *z, fmatrix
 
 		conjgrad_loopcount++;
 	}
-	// itend();
-	// printf("cg_filtered time: %f\n", (float)itval());
-	
 	conjgrad_lasterror = s;
 
 	del_lfvector(q);
 	del_lfvector(d);
 	del_lfvector(tmp);
 	del_lfvector(r);
-	
 	// printf("W/O conjgrad_loopcount: %d\n", conjgrad_loopcount);
 
 	return conjgrad_loopcount<conjgrad_looplimit;  // true means we reached desired accuracy in given time - ie stable
@@ -1101,13 +1080,15 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 	float vel[3];
 	float k = 0.0f;
 	float L = s->restlen;
-	float cb = clmd->sim_parms->structural;
+	float cb = clmd->sim_parms.structural;
 
 	float nullf[3] = {0,0,0};
 	float stretch_force[3] = {0,0,0};
 	float bending_force[3] = {0,0,0};
 	float damping_force[3] = {0,0,0};
 	float nulldfdx[3][3]={ {0,0,0}, {0,0,0}, {0,0,0}};
+	Cloth *cloth = clmd->clothObject;
+	ClothVertex *verts = cloth->verts;
 	
 	VECCOPY(s->f, nullf);
 	cp_fmatrix(s->dfdx, nulldfdx);
@@ -1125,13 +1106,13 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 		/*
 		if(length>L)
 		{
-		if((clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED) 
-		&& ((((length-L)*100.0f/L) > clmd->sim_parms->maxspringlen))) // cut spring!
-		{
-		s->flags |= CSPRING_FLAG_DEACTIVATE;
-		return;
-	}
-	} 
+			if((clmd->sim_parms.flags & CSIMSETT_FLAG_TEARING_ENABLED) 
+			&& ((((length-L)*100.0f/L) > clmd->sim_parms.maxspringlen))) // cut spring!
+			{
+				s->flags |= CSPRING_FLAG_DEACTIVATE;
+				return;
+			}
+		} 
 		*/
 		mul_fvector_S(dir, extent, 1.0f/length);
 	}
@@ -1141,19 +1122,6 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 	}
 	
 	
-	/*
-	if(s->type == CLOTH_SPRING_TYPE_COLLISION)
-	{
-		if(length < L)
-		{
-			mul_fvector_S(stretch_force, dir, (100.0*(length-L))); 
-	
-			VECADD(s->f, s->f, stretch_force);
-		}
-		return;
-	}
-	*/
-	
 	// calculate force of structural + shear springs
 	if(s->type != CLOTH_SPRING_TYPE_BENDING)
 	{
@@ -1161,72 +1129,56 @@ DO_INLINE void cloth_calc_spring_force(ClothModifierData *clmd, ClothSpring *s, 
 		{
 			s->flags |= CLOTH_SPRING_FLAG_NEEDED;
 
-			k = clmd->sim_parms->structural;	
+			k = clmd->sim_parms.structural;	
 
 			mul_fvector_S(stretch_force, dir, (k*(length-L))); 
 
 			VECADD(s->f, s->f, stretch_force);
 
 			// Ascher & Boxman, p.21: Damping only during elonglation
-			mul_fvector_S(damping_force, extent, clmd->sim_parms->Cdis * 0.01 * ((INPR(vel,extent)/length))); 
+			mul_fvector_S(damping_force, extent, clmd->sim_parms.Cdis * ((INPR(vel,extent)/length))); 
 			VECADD(s->f, s->f, damping_force);
 
 			dfdx_spring_type1(s->dfdx, dir,length,L,k);
 
-			dfdv_damp(s->dfdv, dir,clmd->sim_parms->Cdis);
+			dfdv_damp(s->dfdv, dir,clmd->sim_parms.Cdis);
 		}
 	}
 	else // calculate force of bending springs
 	{
 		if(length < L)
 		{
-			// clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_BIG_FORCE;
-			
 			s->flags |= CLOTH_SPRING_FLAG_NEEDED;
 			
-			k = clmd->sim_parms->bending;	
+			k = clmd->sim_parms.bending;	
 
 			mul_fvector_S(bending_force, dir, fbstar(length, L, k, cb));
 			VECADD(s->f, s->f, bending_force);
-			
-			// if(INPR(bending_force,bending_force) > 0.13*0.13)
-			{
-				clmd->sim_parms->flags |= CLOTH_SIMSETTINGS_FLAG_BIG_FORCE;
-			}
-			
-			
+
 			dfdx_spring_type2(s->dfdx, dir,length,L,k, cb);
-			/*
-			if(s->ij == 300 || s->kl == 300)
-				printf("id->F[0]: %f, id->F[1]: %f, id->F[2]: %f\n", s->f[0], s->f[1], s->f[2]);
-			*/
 		}
 	}
 }
 
-DO_INLINE int cloth_apply_spring_force(ClothModifierData *clmd, ClothSpring *s, lfVector *lF, lfVector *X, lfVector *V, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX)
+DO_INLINE void cloth_apply_spring_force(ClothModifierData *clmd, ClothSpring *s, lfVector *lF, lfVector *X, lfVector *V, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX)
 {
 	if(s->flags & CLOTH_SPRING_FLAG_NEEDED)
 	{
-		VECADD(lF[s->ij], lF[s->ij], s->f);
-		VECSUB(lF[s->kl], lF[s->kl], s->f);	
-			
 		if(s->type != CLOTH_SPRING_TYPE_BENDING)
 		{
 			sub_fmatrix_fmatrix(dFdV[s->ij].m, dFdV[s->ij].m, s->dfdv);
 			sub_fmatrix_fmatrix(dFdV[s->kl].m, dFdV[s->kl].m, s->dfdv);
-			add_fmatrix_fmatrix(dFdV[s->matrix_index].m, dFdV[s->matrix_index].m, s->dfdv);
+			add_fmatrix_fmatrix(dFdV[s->matrix_index].m, dFdV[s->matrix_index].m, s->dfdv);	
 		}
-		else if(!(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_BIG_FORCE))
-			return 0;
-		
+
+		VECADD(lF[s->ij], lF[s->ij], s->f);
+		VECSUB(lF[s->kl], lF[s->kl], s->f);
+
 		sub_fmatrix_fmatrix(dFdX[s->ij].m, dFdX[s->ij].m, s->dfdx);
 		sub_fmatrix_fmatrix(dFdX[s->kl].m, dFdX[s->kl].m, s->dfdx);
 
 		add_fmatrix_fmatrix(dFdX[s->matrix_index].m, dFdX[s->matrix_index].m, s->dfdx);
-	}
-	
-	return 1;
+	}	
 }
 
 DO_INLINE void calculateTriangleNormal(float to[3], lfVector *X, MFace mface)
@@ -1275,7 +1227,7 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 	/* Collect forces and derivatives:  F,dFdX,dFdV */
 	Cloth 		*cloth 		= clmd->clothObject;
 	unsigned int 	i 		= 0;
-	float 		spring_air 	= clmd->sim_parms->Cvi * 0.01f; /* viscosity of air scaled in percent */
+	float 		spring_air 	= clmd->sim_parms.Cvi * 0.01f; /* viscosity of air scaled in percent */
 	float 		gravity[3];
 	float 		tm2[3][3] 	= {{-spring_air,0,0}, {0,-spring_air,0},{0,0,-spring_air}};
 	ClothVertex *verts = cloth->verts;
@@ -1286,7 +1238,8 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 	float kd, ks;
 	LinkNode *search = cloth->springs;
 
-	VECCOPY(gravity, clmd->sim_parms->gravity);
+
+	VECCOPY(gravity, clmd->sim_parms.gravity);
 	mul_fvector_S(gravity, gravity, 0.001f); /* scale gravity force */
 
 	/* set dFdX jacobi matrix to zero */
@@ -1299,24 +1252,24 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 	submul_lfvectorS(lF, lV, spring_air, numverts);
 
 	/* do goal stuff */
-	if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) 
+	if(clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_GOAL) 
 	{	
 		for(i = 0; i < numverts; i++)
 		{			
 			if(verts [i].goal < SOFTGOALSNAP)
 			{			
 				// current_position = xold + t * (newposition - xold)
-				VECSUB(tvect, cloth->xconst[i], cloth->xold[i]);
+				VECSUB(tvect, verts[i].xconst, verts[i].xold);
 				mul_fvector_S(tvect, tvect, time);
-				VECADD(tvect, tvect, cloth->xold[i]);
+				VECADD(tvect, tvect, verts[i].xold);
 
 				VECSUB(auxvect, tvect, lX[i]);
-				ks  = 1.0f/(1.0f- verts [i].goal*clmd->sim_parms->goalspring)-1.0f ;
+				ks  = 1.0f/(1.0f- verts [i].goal*clmd->sim_parms.goalspring)-1.0f ;
 				VECADDS(lF[i], lF[i], auxvect, -ks);
 
 				// calulate damping forces generated by goals				
-				VECSUB(velgoal, cloth->xold[i], cloth->xconst[i]);
-				kd =  clmd->sim_parms->goalfrict * 0.01f; // friction force scale taken from SB
+				VECSUB(velgoal,verts[i].xold, verts[i].xconst);
+				kd =  clmd->sim_parms.goalfrict * 0.01f; // friction force scale taken from SB
 				VECSUBADDSS(lF[i], velgoal, kd, lV[i], kd);
 				
 			}
@@ -1329,7 +1282,7 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 		float speed[3] = {0.0f, 0.0f,0.0f};
 		float force[3]= {0.0f, 0.0f, 0.0f};
 		
-// #pragma omp parallel for private (i) shared(lF)
+		#pragma omp parallel for private (i) shared(lF)
 		for(i = 0; i < cloth->numverts; i++)
 		{
 			float vertexnormal[3]={0,0,0};
@@ -1353,25 +1306,10 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 	while(search)
 	{
 		// only handle active springs
-		// if(((clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED) && !(springs[i].flags & CSPRING_FLAG_DEACTIVATE))|| !(clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED)){}
+		// if(((clmd->sim_parms.flags & CSIMSETT_FLAG_TEARING_ENABLED) && !(springs[i].flags & CSPRING_FLAG_DEACTIVATE))|| !(clmd->sim_parms.flags & CSIMSETT_FLAG_TEARING_ENABLED)){}
 		cloth_calc_spring_force(clmd, search->link, lF, lX, lV, dFdV, dFdX);
 
 		search = search->next;
-	}
-	
-	if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_BIG_FORCE)
-	{	
-		if(cloth->numspringssave != cloth->numsprings)
-		{
-			cloth_bending_mode(clmd, 1);
-		}
-	}
-	else
-	{
-		if(cloth->numspringssave == cloth->numsprings)
-		{
-			cloth_bending_mode(clmd, 0);
-		}
 	}
 	
 	// apply spring forces
@@ -1379,16 +1317,13 @@ void cloth_calc_force(ClothModifierData *clmd, lfVector *lF, lfVector *lX, lfVec
 	while(search)
 	{
 		// only handle active springs
-		// if(((clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED) && !(springs[i].flags & CSPRING_FLAG_DEACTIVATE))|| !(clmd->sim_parms->flags & CSIMSETT_FLAG_TEARING_ENABLED))	
-		if(!cloth_apply_spring_force(clmd, search->link, lF, lX, lV, dFdV, dFdX))
-			break;
+		// if(((clmd->sim_parms.flags & CSIMSETT_FLAG_TEARING_ENABLED) && !(springs[i].flags & CSPRING_FLAG_DEACTIVATE))|| !(clmd->sim_parms.flags & CSIMSETT_FLAG_TEARING_ENABLED))	
+		cloth_apply_spring_force(clmd, search->link, lF, lX, lV, dFdV, dFdX);
 		search = search->next;
 	}
-	
-	clmd->sim_parms->flags &= ~CLOTH_SIMSETTINGS_FLAG_BIG_FORCE;
 }
 
-void simulate_implicit_euler(lfVector *Vnew, lfVector *lX, lfVector *lV, lfVector *lF, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, float dt, fmatrix3x3 *A, lfVector *B, lfVector *dV, fmatrix3x3 *S, lfVector *z, fmatrix3x3 *P, fmatrix3x3 *Pinv)
+void simulate_implicit_euler(lfVector *Vnew, lfVector *lX, lfVector *lV, lfVector *lF, fmatrix3x3 *dFdV, fmatrix3x3 *dFdX, float dt, fmatrix3x3 *A, lfVector *B, lfVector *dV, fmatrix3x3 *S, lfVector *z, lfVector *olddV, fmatrix3x3 *P, fmatrix3x3 *Pinv)
 {
 	unsigned int numverts = dFdV[0].vcount;
 
@@ -1396,46 +1331,48 @@ void simulate_implicit_euler(lfVector *Vnew, lfVector *lX, lfVector *lV, lfVecto
 	initdiag_bfmatrix(A, I);
 	zero_lfvector(dV, numverts);
 
-	subadd_bfmatrixS_bfmatrixS(A, dFdV, dt, dFdX, (dt*dt));
+	subadd_bfmatrixS_bfmatrixS(A, dFdV, dt, dFdX, (dt*dt));   
+
 	mul_bfmatrix_lfvector(dFdXmV, dFdX, lV);
+
 	add_lfvectorS_lfvectorS(B, lF, dt, dFdXmV, (dt*dt), numverts);
 	
-	// TODO: unstable with quality=5 + stiffness=7000 + no zero_lfvector()
+	itstart();
+	
 	cg_filtered(dV, A, B, z, S); /* conjugate gradient algorithm to solve Ax=b */
+	// cg_filtered_pre(dV, A, B, z, olddV, P, Pinv, dt);
 	
-	// TODO: unstable with quality=5 + stiffness=7000
-	// cg_filtered_pre(dV, A, B, z, S, P, Pinv);
+	itend();
+	// printf("cg_filtered calc time: %f\n", (float)itval());
 	
+	cp_lfvector(olddV, dV, numverts);
+
 	// advance velocities
 	add_lfvector_lfvector(Vnew, lV, dV, numverts);
 	
+
 	del_lfvector(dFdXmV);
 }
 
 int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors)
-{
-	unsigned int i=0;
+{ 	 	
+	unsigned int i=0, j;
 	float step=0.0f, tf=1.0f;
 	Cloth *cloth = clmd->clothObject;
 	ClothVertex *verts = cloth->verts;
 	unsigned int numverts = cloth->numverts;
-	float dt = 1.0f / clmd->sim_parms->stepsPerFrame;
+	float dt = 1.0f / clmd->sim_parms.stepsPerFrame;
 	Implicit_Data *id = cloth->implicit;
 	int result = 0;
-	float force = 0, lastforce = 0;
-	// lfVector *dx;
 	
-	if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) /* do goal stuff */
+	if(clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_GOAL) /* do goal stuff */
 	{
 		for(i = 0; i < numverts; i++)
 		{			
 			// update velocities with constrained velocities from pinned verts
 			if(verts [i].goal >= SOFTGOALSNAP)
 			{			
-				float temp[3];
-				VECSUB(temp, cloth->xconst[i], cloth->xold[i]);
-				VECSUB(id->z[i], temp, id->V[i]);
-				
+				VECSUB(id->V[i], verts[i].xconst, verts[i].xold);
 				// VecMulf(id->V[i], 1.0 / dt);
 			}
 		}	
@@ -1445,43 +1382,13 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 	{ 		
 		effectors= pdInitEffectors(ob,NULL);
 		
-		// clear constraint matrix from collisions
-		if(clmd->coll_parms->flags & CLOTH_COLLISIONSETTINGS_FLAG_ENABLED)
-		{
-			for(i = 0; i < id->S[0].vcount; i++)
-			{
-				if(!(verts [id->S[i].r].goal >= SOFTGOALSNAP))
-				{
-					id->S[0].vcount = i-1;
-					break;
-				}
-			}
-		}
-		
 		// calculate 
-		cloth_calc_force(clmd, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step );
+		cloth_calc_force(clmd, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step );	
+		simulate_implicit_euler(id->Vnew, id->X, id->V, id->F, id->dFdV, id->dFdX, dt, id->A, id->B, id->dV, id->S, id->z, id->olddV, id->P, id->Pinv);
 		
-		// check for sleeping
-		// if(!(clmd->coll_parms->flags & CLOTH_SIMSETTINGS_FLAG_SLEEP))
-		{
-			simulate_implicit_euler(id->Vnew, id->X, id->V, id->F, id->dFdV, id->dFdX, dt, id->A, id->B, id->dV, id->S, id->z, id->P, id->Pinv);
+		add_lfvector_lfvectorS(id->Xnew, id->X, id->Vnew, dt, numverts);
 		
-			add_lfvector_lfvectorS(id->Xnew, id->X, id->Vnew, dt, numverts);
-		}
-		/*
-		dx = create_lfvector(numverts);
-		sub_lfvector_lfvector(dx, id->Xnew, id->X, numverts);
-		force = dot_lfvector(dx, dx, numverts);
-		del_lfvector(dx);
-		
-		if((force < 0.00001) && (lastforce >= force))
-		clmd->coll_parms->flags |= CLOTH_SIMSETTINGS_FLAG_SLEEP;
-		else if((lastforce*2 < force))
-		clmd->coll_parms->flags &= ~CLOTH_SIMSETTINGS_FLAG_SLEEP;
-		*/
-		lastforce = force;
-		
-		if(clmd->coll_parms->flags & CLOTH_COLLISIONSETTINGS_FLAG_ENABLED)
+		if(clmd->coll_parms.flags & CLOTH_COLLISIONSETTINGS_FLAG_ENABLED)
 		{
 			// collisions 
 			// itstart();
@@ -1489,42 +1396,46 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 			// update verts to current positions
 			for(i = 0; i < numverts; i++)
 			{		
-				if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL) /* do goal stuff */
+				if(clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_GOAL) /* do goal stuff */
 				{			
 					if(verts [i].goal >= SOFTGOALSNAP)
 					{			
 						float tvect[3] = {.0,.0,.0};
 						// VECSUB(tvect, id->Xnew[i], verts[i].xold);
 						mul_fvector_S(tvect, id->V[i], step+dt);
-						VECADD(tvect, tvect, cloth->xold[i]);
+						VECADD(tvect, tvect, verts[i].xold);
 						VECCOPY(id->Xnew[i], tvect);
 					}
 						
 				}
 				
-				VECCOPY(cloth->current_x[i], id->Xnew[i]);
-				VECSUB(cloth->current_v[i], cloth->current_x[i], cloth->current_xold[i]);
-				VECCOPY(cloth->v[i], cloth->current_v[i]);
-			}
-			
-			// call collision function
-			result = cloth_bvh_objcollision(clmd, step + dt, step, dt);
-			
-			// copy corrected positions back to simulation
-			if(result)
-			{
-				memcpy(cloth->current_xold, cloth->current_x, sizeof(lfVector) * numverts);
-				memcpy(id->Xnew, cloth->current_x, sizeof(lfVector) * numverts);
+				VECCOPY(verts[i].tx, id->Xnew[i]);
 				
-				for(i = 0; i < numverts; i++)
-				{	
-					VECCOPY(id->Vnew[i], cloth->current_v[i]);
+				VECSUB(verts[i].tv, verts[i].tx, verts[i].txold);
+				VECCOPY(verts[i].v, verts[i].tv);
+			}
+	
+			// call collision function
+			result = cloth_bvh_objcollision(clmd, step + dt, dt);
+	
+			// copy corrected positions back to simulation
+			for(i = 0; i < numverts; i++)
+			{		
+				if(result)
+				{
+					// VECADD(verts[i].tx, verts[i].txold, verts[i].tv);
+					
+					VECCOPY(verts[i].txold, verts[i].tx);
+					
+					VECCOPY(id->Xnew[i], verts[i].tx);
+					
+					VECCOPY(id->Vnew[i], verts[i].tv);
 					VecMulf(id->Vnew[i], 1.0f / dt);
 				}
-			}
-			else
-			{
-				memcpy(cloth->current_xold, id->Xnew, sizeof(lfVector) * numverts);
+				else
+				{
+					VECCOPY(verts[i].txold, id->Xnew[i]);
+				}
 			}
 			
 			// X = Xnew;
@@ -1538,9 +1449,8 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 				
 				// calculate 
 				cloth_calc_force(clmd, id->F, id->X, id->V, id->dFdV, id->dFdX, effectors, step);	
-				simulate_implicit_euler(id->Vnew, id->X, id->V, id->F, id->dFdV, id->dFdX, dt / 2.0f, id->A, id->B, id->dV, id->S, id->z, id->P, id->Pinv);
+				simulate_implicit_euler(id->Vnew, id->X, id->V, id->F, id->dFdV, id->dFdX, dt / 2.0f, id->A, id->B, id->dV, id->S, id->z, id->olddV, id->P, id->Pinv);
 			}
-			
 		}
 		else
 		{
@@ -1553,817 +1463,49 @@ int implicit_solver (Object *ob, float frame, ClothModifierData *clmd, ListBase 
 		
 		// V = Vnew;
 		cp_lfvector(id->V, id->Vnew, numverts);
-		
+
 		step += dt;
 
 		if(effectors) pdEndEffectors(effectors);
 	}
-	
-	if(clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL)
-	{
-		for(i = 0; i < numverts; i++)
+
+	for(i = 0; i < numverts; i++)
+	{				
+		if(clmd->sim_parms.flags & CLOTH_SIMSETTINGS_FLAG_GOAL)
 		{
 			if(verts [i].goal < SOFTGOALSNAP)
 			{
-				VECCOPY(cloth->current_xold[i], id->X[i]);
-				VECCOPY(cloth->x[i], id->X[i]);
+				VECCOPY(verts[i].txold, id->X[i]);
+				VECCOPY(verts[i].x, id->X[i]);
+				VECCOPY(verts[i].v, id->V[i]);
 			}
 			else
 			{
-				VECCOPY(cloth->current_xold[i], cloth->xconst[i]);
-				VECCOPY(cloth->x[i], cloth->xconst[i]);
+				VECCOPY(verts[i].txold, verts[i].xconst);
+				VECCOPY(verts[i].x, verts[i].xconst);
+				VECCOPY(verts[i].v, id->V[i]);
 			}
 		}
+		else
+		{
+			VECCOPY(verts[i].txold, id->X[i]);
+			VECCOPY(verts[i].x, id->X[i]);
+			VECCOPY(verts[i].v, id->V[i]);
+		}
 	}
-	else
-	{
-		memcpy(cloth->current_xold, id->X, sizeof(lfVector) * numverts);
-		memcpy(cloth->x, id->X, sizeof(lfVector) * numverts);
-	}
-	
-	memcpy(cloth->v, id->V, sizeof(lfVector) * numverts);
-	
 	return 1;
 }
 
 void implicit_set_positions (ClothModifierData *clmd)
 { 	 	
 	Cloth *cloth = clmd->clothObject;
-	unsigned int numverts = cloth->numverts;
+	ClothVertex *verts = cloth->verts;
+	unsigned int numverts = cloth->numverts, i;
 	Implicit_Data *id = cloth->implicit;
 	
-	memcpy(id->X, cloth->x, sizeof(lfVector) * numverts);	
-	memcpy(id->V, cloth->v, sizeof(lfVector) * numverts);	
-}
-
-unsigned int implicit_getcreate_S_index(ClothModifierData *clmd, unsigned int index)
-{
-	Cloth *cloth = clmd->clothObject;
-	Implicit_Data *id = cloth->implicit;
-	unsigned int i = 0, pinned = 0;
-	
-	pinned = id->S[0].vcount;
-	
-	for(i = 0; i < pinned; i++)
-	{
-		if(id->S[i].r == index)
-		{
-			return index;
-		}
-	}
-	
-	// create new PINNED entry in constraint matrix
-	id->S[0].vcount++;
-	id->S[pinned].c = id->S[pinned].r = index;
-	return pinned;
-}
-
-int collisions_collision_response_static ( ClothModifierData *clmd, CollisionModifierData *collmd, CollisionPair *collpair )
-{
-
-	unsigned int i = 0;
-	int result = 0;
-	LinkNode *search = NULL;
-	Cloth *cloth1 = NULL;
-	float w1, w2, w3, u1, u2, u3;
-	float v1[3], v2[3], relativeVelocity[3];
-	float magrelVel = 0.0;
-	float epsilon = clmd->coll_parms->epsilon;
-	
-
-	cloth1 = clmd->clothObject;
-	
-	if(!collpair)
-	{
-		return 0;
-	}
-	
-	// TODO: check distance & calc normal
-			// calc distance + normal 	
-	collpair->distance = plNearestPoints(
-		cloth1->current_xold[collpair->point_indexA[0]],
-		cloth1->current_xold[collpair->point_indexA[1]],
-		cloth1->current_xold[collpair->point_indexA[2]], 
-		collmd->current_x[collpair->point_indexB[0]].co,
-		collmd->current_x[collpair->point_indexB[1]].co,
-		collmd->current_x[collpair->point_indexB[2]].co, 
-		collpair->pa,collpair->pb,collpair->vector);
-			
-	if (collpair->distance > (epsilon + ALMOST_ZERO))
-	{
-		printf("collpair->distance > (epsilon + ALMOST_ZERO)\n");
-		return 0;
-	}
-	
-	printf("IN1\n");
-
-	// compute barycentric coordinates for both collision points
-	collisions_compute_barycentric (collpair->pa,
-					cloth1->current_xold[collpair->point_indexA[0]],
-					cloth1->current_xold[collpair->point_indexA[1]],
-					cloth1->current_xold[collpair->point_indexA[2]],
-					&w1, &w2, &w3 );
-
-	collisions_compute_barycentric (collpair->pb,
-					collmd->current_x[collpair->point_indexB[0]].co,
-					collmd->current_x[collpair->point_indexB[1]].co,
-					collmd->current_x[collpair->point_indexB[2]].co,
-					&u1, &u2, &u3 );
-
-	// Calculate relative "velocity".
-	interpolateOnTriangle ( v1, cloth1->current_v[collpair->point_indexA[0]], cloth1->current_v[collpair->point_indexA[1]], cloth1->current_v[collpair->point_indexA[2]], w1, w2, w3 );
-
-	interpolateOnTriangle ( v2, collmd->current_v[collpair->point_indexB[0]].co, collmd->current_v[collpair->point_indexB[1]].co, collmd->current_v[collpair->point_indexB[2]].co, u1, u2, u3 );
-
-	VECSUB ( relativeVelocity, v1, v2 );
-
-	// Calculate the normal component of the relative velocity (actually only the magnitude - the direction is stored in 'normal').
-	magrelVel = INPR ( relativeVelocity, collpair->normal );
-
-	// printf("magrelVel: %f\n", magrelVel);
-
-	// Calculate masses of points.
-
-	// If v_n_mag < 0 the edges are approaching each other.
-	if ( magrelVel < -ALMOST_ZERO )
-	{
-		
-		// Calculate Impulse magnitude to stop all motion in normal direction.
-		// const double I_mag = v_n_mag / (1/m1 + 1/m2);
-		float magnitude_i = magrelVel / 2.0f; // TODO implement masses
-		float tangential[3], magtangent, magnormal, collvel[3];
-		float vrel_t_pre[3];
-		float vrel_t[3];
-		double impulse;
-		float overlap = ( epsilon + ALMOST_ZERO-collpair->distance );
-		
-		printf("magrelVel < -ALMOST_ZERO\n");
-
-		// calculateFrictionImpulse(tangential, relativeVelocity, collpair->normal, magrelVel, clmd->coll_parms.friction*0.01, magrelVel);
-
-		// magtangent = INPR(tangential, tangential);
-
-		// Apply friction impulse.
-		if ( magtangent < -ALMOST_ZERO )
-		{
-
-			// printf("friction applied: %f\n", magtangent);
-			// TODO check original code
-		}
-
-
-		impulse = -2.0f * magrelVel / ( 1.0 + w1*w1 + w2*w2 + w3*w3 );
-
-		// printf("impulse: %f\n", impulse);
-
-		// face A
-		VECADDMUL ( cloth1->verts[collpair->point_indexA[0]].impulse, collpair->normal, w1 * impulse );
-		cloth1->verts[collpair->point_indexA[0]].impulse_count++;
-
-		VECADDMUL ( cloth1->verts[collpair->point_indexA[1]].impulse, collpair->normal, w2 * impulse );
-		cloth1->verts[collpair->point_indexA[1]].impulse_count++;
-
-		VECADDMUL ( cloth1->verts[collpair->point_indexA[2]].impulse, collpair->normal, w3 * impulse );
-		cloth1->verts[collpair->point_indexA[2]].impulse_count++;
-
-		// face B
-		/*
-		VECADDMUL ( collmd->verts[collpair->point_indexB[0]].impulse, collpair->normal, u1 * impulse );
-		collmd->verts[collpair->point_indexB[0]].impulse_count++;
-
-		VECADDMUL ( collmd->verts[collpair->point_indexB[1]].impulse, collpair->normal, u2 * impulse );
-		collmd->verts[collpair->point_indexB[1]].impulse_count++;
-
-		VECADDMUL ( collmd->verts[collpair->point_indexB[2]].impulse, collpair->normal, u3 * impulse );
-		collmd->verts[collpair->point_indexB[2]].impulse_count++;
-		*/
-		
-		
-		result = 1;
-
-		// printf("magnitude_i: %f\n", magnitude_i); // negative before collision in my case
-
-		// Apply the impulse and increase impulse counters.
-
-	}
-	
-	return result;
-}
-
-
-int collisions_collision_response_moving_tris(ClothModifierData *clmd, ClothModifierData *coll_clmd)
-{
-	return 0;
-}
-
-
-int collisions_collision_response_moving_edges(ClothModifierData *clmd, ClothModifierData *coll_clmd)
-{
-	return 0;
-}
-
-void cloth_collision_static(ClothModifierData *clmd, LinkNode *collision_list)
-{
-	/*
-	CollPair *collpair = NULL;
-	Cloth *cloth1=NULL, *cloth2=NULL;
-	MFace *face1=NULL, *face2=NULL;
-	ClothVertex *verts1=NULL, *verts2=NULL;
-	double distance = 0;
-	float epsilon = clmd->coll_parms->epsilon;
-	unsigned int i = 0;
-
-	for(i = 0; i < 4; i++)
-	{
-	collpair = (CollPair *)MEM_callocN(sizeof(CollPair), "cloth coll pair");	
-		
-	cloth1 = clmd->clothObject;
-	cloth2 = coll_clmd->clothObject;
-		
-	verts1 = cloth1->verts;
-	verts2 = cloth2->verts;
-	
-	face1 = &(cloth1->mfaces[tree1->tri_index]);
-	face2 = &(cloth2->mfaces[tree2->tri_index]);
-		
-		// check all possible pairs of triangles
-	if(i == 0)
-	{
-	collpair->ap1 = face1->v1;
-	collpair->ap2 = face1->v2;
-	collpair->ap3 = face1->v3;
-			
-	collpair->bp1 = face2->v1;
-	collpair->bp2 = face2->v2;
-	collpair->bp3 = face2->v3;
-			
-}
-		
-	if(i == 1)
-	{
-	if(face1->v4)
-	{
-	collpair->ap1 = face1->v3;
-	collpair->ap2 = face1->v4;
-	collpair->ap3 = face1->v1;
-				
-	collpair->bp1 = face2->v1;
-	collpair->bp2 = face2->v2;
-	collpair->bp3 = face2->v3;
-}
-	else
-	i++;
-}
-		
-	if(i == 2)
-	{
-	if(face2->v4)
-	{
-	collpair->ap1 = face1->v1;
-	collpair->ap2 = face1->v2;
-	collpair->ap3 = face1->v3;
-				
-	collpair->bp1 = face2->v3;
-	collpair->bp2 = face2->v4;
-	collpair->bp3 = face2->v1;
-}
-	else
-	i+=2;
-}
-		
-	if(i == 3)
-	{
-	if((face1->v4)&&(face2->v4))
-	{
-	collpair->ap1 = face1->v3;
-	collpair->ap2 = face1->v4;
-	collpair->ap3 = face1->v1;
-				
-	collpair->bp1 = face2->v3;
-	collpair->bp2 = face2->v4;
-	collpair->bp3 = face2->v1;
-}
-	else
-	i++;
-}
-	
-		
-	if(i < 4)
-	{
-			// calc distance + normal 	
-	distance = plNearestPoints(
-	verts1[collpair->ap1].txold, verts1[collpair->ap2].txold, verts1[collpair->ap3].txold, verts2[collpair->bp1].txold, verts2[collpair->bp2].txold, verts2[collpair->bp3].txold, collpair->pa,collpair->pb,collpair->vector);
-			
-	if (distance <= (epsilon + ALMOST_ZERO))
-	{
-				// printf("dist: %f\n", (float)distance);
-				
-				// collpair->face1 = tree1->tri_index;
-				// collpair->face2 = tree2->tri_index;
-				
-				// VECCOPY(collpair->normal, collpair->vector);
-				// Normalize(collpair->normal);
-				
-				// collpair->distance = distance;
-				
-}
-	else
-	{
-	MEM_freeN(collpair);
-}
-}
-	else
-	{
-	MEM_freeN(collpair);
-}
-}
-	*/
-}
-
-int collisions_are_edges_adjacent(ClothModifierData *clmd, ClothModifierData *coll_clmd, EdgeCollPair *edgecollpair)
-{
-	Cloth *cloth1, *cloth2;
-	ClothVertex *verts1, *verts2;
-	float temp[3];
-	 /*
-	cloth1 = clmd->clothObject;
-	cloth2 = coll_clmd->clothObject;
-	
-	verts1 = cloth1->verts;
-	verts2 = cloth2->verts;
-	
-	VECSUB(temp, verts1[edgecollpair->p11].xold, verts2[edgecollpair->p21].xold);
-	if(ABS(INPR(temp, temp)) < ALMOST_ZERO)
-	return 1;
-	
-	VECSUB(temp, verts1[edgecollpair->p11].xold, verts2[edgecollpair->p22].xold);
-	if(ABS(INPR(temp, temp)) < ALMOST_ZERO)
-	return 1;
-	
-	VECSUB(temp, verts1[edgecollpair->p12].xold, verts2[edgecollpair->p21].xold);
-	if(ABS(INPR(temp, temp)) < ALMOST_ZERO)
-	return 1;
-	
-	VECSUB(temp, verts1[edgecollpair->p12].xold, verts2[edgecollpair->p22].xold);
-	if(ABS(INPR(temp, temp)) < ALMOST_ZERO)
-	return 1;
-	 */
-	return 0;
-}
-
-
-void collisions_collision_moving_edges(ClothModifierData *clmd, ClothModifierData *coll_clmd, CollisionTree *tree1, CollisionTree *tree2)
-{
-	/*
-	EdgeCollPair edgecollpair;
-	Cloth *cloth1=NULL, *cloth2=NULL;
-	MFace *face1=NULL, *face2=NULL;
-	ClothVertex *verts1=NULL, *verts2=NULL;
-	double distance = 0;
-	float epsilon = clmd->coll_parms->epsilon;
-	unsigned int i = 0, j = 0, k = 0;
-	int numsolutions = 0;
-	float a[3], b[3], c[3], d[3], e[3], f[3], solution[3];
-	
-	cloth1 = clmd->clothObject;
-	cloth2 = coll_clmd->clothObject;
-	
-	verts1 = cloth1->verts;
-	verts2 = cloth2->verts;
-
-	face1 = &(cloth1->mfaces[tree1->tri_index]);
-	face2 = &(cloth2->mfaces[tree2->tri_index]);
-	
-	for( i = 0; i < 5; i++)
-	{
-	if(i == 0) 
-	{
-	edgecollpair.p11 = face1->v1;
-	edgecollpair.p12 = face1->v2;
-}
-	else if(i == 1) 
-	{
-	edgecollpair.p11 = face1->v2;
-	edgecollpair.p12 = face1->v3;
-}
-	else if(i == 2) 
-	{
-	if(face1->v4) 
-	{
-	edgecollpair.p11 = face1->v3;
-	edgecollpair.p12 = face1->v4;
-}
-	else 
-	{
-	edgecollpair.p11 = face1->v3;
-	edgecollpair.p12 = face1->v1;
-	i+=5; // get out of here after this edge pair is handled
-}
-}
-	else if(i == 3) 
-	{
-	if(face1->v4) 
-	{
-	edgecollpair.p11 = face1->v4;
-	edgecollpair.p12 = face1->v1;
-}	
-	else
-	continue;
-}
-	else
-	{
-	edgecollpair.p11 = face1->v3;
-	edgecollpair.p12 = face1->v1;
-}
-
-		
-	for( j = 0; j < 5; j++)
-	{
-	if(j == 0)
-	{
-	edgecollpair.p21 = face2->v1;
-	edgecollpair.p22 = face2->v2;
-}
-	else if(j == 1)
-	{
-	edgecollpair.p21 = face2->v2;
-	edgecollpair.p22 = face2->v3;
-}
-	else if(j == 2)
-	{
-	if(face2->v4) 
-	{
-	edgecollpair.p21 = face2->v3;
-	edgecollpair.p22 = face2->v4;
-}
-	else 
-	{
-	edgecollpair.p21 = face2->v3;
-	edgecollpair.p22 = face2->v1;
-}
-}
-	else if(j == 3)
-	{
-	if(face2->v4) 
-	{
-	edgecollpair.p21 = face2->v4;
-	edgecollpair.p22 = face2->v1;
-}
-	else
-	continue;
-}
-	else
-	{
-	edgecollpair.p21 = face2->v3;
-	edgecollpair.p22 = face2->v1;
-}
-			
-			
-	if(!collisions_are_edges_adjacent(clmd, coll_clmd, &edgecollpair))
-	{
-	VECSUB(a, verts1[edgecollpair.p12].xold, verts1[edgecollpair.p11].xold);
-	VECSUB(b, verts1[edgecollpair.p12].v, verts1[edgecollpair.p11].v);
-	VECSUB(c, verts1[edgecollpair.p21].xold, verts1[edgecollpair.p11].xold);
-	VECSUB(d, verts1[edgecollpair.p21].v, verts1[edgecollpair.p11].v);
-	VECSUB(e, verts2[edgecollpair.p22].xold, verts1[edgecollpair.p11].xold);
-	VECSUB(f, verts2[edgecollpair.p22].v, verts1[edgecollpair.p11].v);
-				
-	numsolutions = collisions_get_collision_time(a, b, c, d, e, f, solution);
-				
-	for (k = 0; k < numsolutions; k++) 
-	{								
-	if ((solution[k] >= 0.0) && (solution[k] <= 1.0)) 
-	{
-	float out_collisionTime = solution[k];
-						
-						// TODO: check for collisions 
-						
-						// TODO: put into (edge) collision list
-						
-	printf("Moving edge found!\n");
-}
-}
-}
-}
-}	
-	*/	
-}
-
-void collisions_collision_moving_tris(ClothModifierData *clmd, ClothModifierData *coll_clmd, CollisionTree *tree1, CollisionTree *tree2)
-{
-	/*
-	CollPair collpair;
-	Cloth *cloth1=NULL, *cloth2=NULL;
-	MFace *face1=NULL, *face2=NULL;
-	ClothVertex *verts1=NULL, *verts2=NULL;
-	double distance = 0;
-	float epsilon = clmd->coll_parms->epsilon;
-	unsigned int i = 0, j = 0, k = 0;
-	int numsolutions = 0;
-	float a[3], b[3], c[3], d[3], e[3], f[3], solution[3];
-
-	for(i = 0; i < 2; i++)
-	{		
-	cloth1 = clmd->clothObject;
-	cloth2 = coll_clmd->clothObject;
-		
-	verts1 = cloth1->verts;
-	verts2 = cloth2->verts;
-	
-	face1 = &(cloth1->mfaces[tree1->tri_index]);
-	face2 = &(cloth2->mfaces[tree2->tri_index]);
-		
-		// check all possible pairs of triangles
-	if(i == 0)
-	{
-	collpair.ap1 = face1->v1;
-	collpair.ap2 = face1->v2;
-	collpair.ap3 = face1->v3;
-			
-	collpair.pointsb[0] = face2->v1;
-	collpair.pointsb[1] = face2->v2;
-	collpair.pointsb[2] = face2->v3;
-	collpair.pointsb[3] = face2->v4;
-}
-		
-	if(i == 1)
-	{
-	if(face1->v4)
-	{
-	collpair.ap1 = face1->v3;
-	collpair.ap2 = face1->v4;
-	collpair.ap3 = face1->v1;
-				
-	collpair.pointsb[0] = face2->v1;
-	collpair.pointsb[1] = face2->v2;
-	collpair.pointsb[2] = face2->v3;
-	collpair.pointsb[3] = face2->v4;
-}
-	else
-	i++;
-}
-		
-		// calc SIPcode (?)
-		
-	if(i < 2)
-	{
-	VECSUB(a, verts1[collpair.ap2].xold, verts1[collpair.ap1].xold);
-	VECSUB(b, verts1[collpair.ap2].v, verts1[collpair.ap1].v);
-	VECSUB(c, verts1[collpair.ap3].xold, verts1[collpair.ap1].xold);
-	VECSUB(d, verts1[collpair.ap3].v, verts1[collpair.ap1].v);
-				
-	for(j = 0; j < 4; j++)
-	{					
-	if((j==3) && !(face2->v4))
-	break;
-				
-	VECSUB(e, verts2[collpair.pointsb[j]].xold, verts1[collpair.ap1].xold);
-	VECSUB(f, verts2[collpair.pointsb[j]].v, verts1[collpair.ap1].v);
-				
-	numsolutions = collisions_get_collision_time(a, b, c, d, e, f, solution);
-				
-	for (k = 0; k < numsolutions; k++) 
-	{								
-	if ((solution[k] >= 0.0) && (solution[k] <= 1.0)) 
-	{
-	float out_collisionTime = solution[k];
-						
-						// TODO: check for collisions 
-						
-						// TODO: put into (point-face) collision list
-						
-	printf("Moving found!\n");
-						
-}
-}
-				
-				// TODO: check borders for collisions
-}
-			
-}
-}
-	*/
-}
-
-void collisions_collision_moving(ClothModifierData *clmd, ClothModifierData *coll_clmd, CollisionTree *tree1, CollisionTree *tree2)
-{
-	/*
-	// TODO: check for adjacent
-	collisions_collision_moving_edges(clmd, coll_clmd, tree1, tree2);
-	
-	collisions_collision_moving_tris(clmd, coll_clmd, tree1, tree2);
-	collisions_collision_moving_tris(coll_clmd, clmd, tree2, tree1);
-	*/
-}
-
-// cloth - object collisions
-int cloth_bvh_objcollision(ClothModifierData * clmd, float step, float prevstep, float dt)
-{
-	
-	Base *base = NULL;
-	CollisionModifierData *collmd = NULL;
-	Cloth *cloth = NULL;
-	Object *ob2 = NULL;
-	BVH *bvh1 = NULL, *bvh2 = NULL, *self_bvh;
-	LinkNode *collision_list = NULL; 
-	unsigned int i = 0, j = 0, index;
-	int collisions = 0, count = 0;
-	float (*current_x)[3];
-	Implicit_Data *id = NULL;
-	int ret = 0;
-	
-	if (!(((Cloth *)clmd->clothObject)->tree))
-	{
-		printf("No BVH found\n");
-		return 0;
-	}
-	
-	cloth = clmd->clothObject;
-	bvh1 = cloth->tree;
-	self_bvh = cloth->selftree;
-	id = cloth->implicit;
-	
-	////////////////////////////////////////////////////////////
-	// static collisions
-	////////////////////////////////////////////////////////////
-	
-	// update cloth bvh
-	bvh_update_from_float3 ( bvh1, cloth->current_xold, cloth->numverts, cloth->current_x, 0 ); // 0 means STATIC, 1 means MOVING (see later in this function)
-	
-	// check all collision objects
-	for ( base = G.scene->base.first; base; base = base->next )
-	{
-		ob2 = base->object;
-		collmd = ( CollisionModifierData * ) modifiers_findByType ( ob2, eModifierType_Collision );
-	
-		if ( !collmd )
-			continue;
-	
-		// check if there is a bounding volume hierarchy
-		if ( collmd->tree )
-		{
-			bvh2 = collmd->tree;
-	
-			// update position + bvh of collision object
-			collision_move_object ( collmd, step, prevstep );
-			bvh_update_from_mvert ( collmd->tree, collmd->current_x, collmd->numverts, NULL, 0 );
-	
-			// fill collision list
-			collisions += bvh_traverse ( bvh1->root, bvh2->root, &collision_list );
-			
-			// call static collision response
-			if ( collision_list )
-			{
-				LinkNode *search = collision_list;
-				
-				while ( search )
-				{
-					collisions_collision_response_static(clmd, collmd, (CollisionPair *)search->link);
-					
-					search = search->next;
-				}
-			}
-			
-			// free collision list
-			if ( collision_list )
-			{
-				LinkNode *search = collision_list;
-	
-				while ( search )
-				{
-					CollisionPair *coll_pair = search->link;
-	
-					MEM_freeN ( coll_pair );
-					search = search->next;
-				}
-				BLI_linklist_free ( collision_list,NULL );
-	
-				collision_list = NULL;
-			}
-		}
-	}
-	
-	// vertex weight = 2
-	
-	for(i = 0; i < cloth->numverts; i++)
-		if ((cloth->verts[i].impulse_count > 0) && !(cloth->verts[i].flags & CVERT_FLAG_PINNED))
-		{
-			printf("applying impulse\n");
-			
-			VECADDS(cloth->current_v[i], cloth->current_v[i], cloth->verts[i].impulse, 1.0 / (cloth->verts[i].impulse_count * 2.0));
-			
-			// reset
-			cloth->verts[i].impulse_count = 0;
-			cloth->verts[i].impulse[0] = 0.0;
-			cloth->verts[i].impulse[1] = 0.0;
-			cloth->verts[i].impulse[2] = 0.0;
-			
-			ret = 1;
-		}
-	
-	//////////////////////////////////////////////
-	// update velocities + positions
-	//////////////////////////////////////////////
-	for(i = 0; i < cloth->numverts; i++)
-	{
-		VECADD(cloth->current_x[i], cloth->current_xold[i], cloth->current_v[i]);
-	}
-	//////////////////////////////////////////////
-	
-	
-	// Test on *simple* selfcollisions
-	collisions = 1;
-	count = 0;
-	current_x = cloth->current_x; // needed for openMP
-	/*
-	// #pragma omp parallel for private(i,j, collisions) shared(current_x)
-	// for ( count = 0; count < 6; count++ )
-	{
-		collisions = 0;
-	
-		for ( i = 0; i < cloth->numverts; i++ )
-		{
-			float mindistance1 = cloth->verts[i].collball;
-			
-			for ( j = i + 1; j < cloth->numverts; j++ )
-			{
-				float temp[3];
-				float length = 0;
-				
-				float mindistance2 = cloth->verts[j].collball;
-	
-				if ( clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL )
-				{
-					if ( ( cloth->verts [i].goal >= SOFTGOALSNAP )
-					        && ( cloth->verts [j].goal >= SOFTGOALSNAP ) )
-					{
-						continue;
-					}
-				}
-	
-				// check for adjacent points
-				if ( BLI_edgehash_haskey ( cloth->edgehash, i, j ) )
-				{
-					continue;
-				}
-	
-				VECSUB ( temp, current_x[i], current_x[j] );
-	
-				length = Normalize ( temp );
-	
-				if ( length < ((mindistance1 + mindistance2)) )
-				{
-					float correction = ((mindistance1 + mindistance2)) - length;
-					
-					if ( ( clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL ) && ( cloth->verts [i].goal >= SOFTGOALSNAP ) )
-					{
-						VecMulf ( temp, -correction );
-						VECADD ( current_x[j], current_x[j], temp );
-					}
-					else if ( ( clmd->sim_parms->flags & CLOTH_SIMSETTINGS_FLAG_GOAL ) && ( cloth->verts [j].goal >= SOFTGOALSNAP ) )
-					{
-						VecMulf ( temp, correction );
-						VECADD ( current_x[i], current_x[i], temp );
-					}
-					else
-					{
-						unsigned int pinned = id->S[0].vcount;
-						
-						printf("correction: %f\n", correction);
-						
-						VecMulf ( temp, -correction*0.5 );
-						VECADD ( current_x[j], current_x[j], temp );
-						VECSUB ( cloth->current_v[j], cloth->current_x[j], cloth->current_xold[j] );
-						
-						index = implicit_getcreate_S_index(clmd, j);
-						id->S[index].pinned = 1;
-						
-						VECSUB ( current_x[i], current_x[i], temp );
-						VECSUB ( cloth->current_v[i], cloth->current_x[i], cloth->current_xold[i] );
-						
-						index = implicit_getcreate_S_index(clmd, i);
-						id->S[index].pinned = 1;
-						
-						cloth_add_spring (clmd, i, j, mindistance1 + mindistance2, CLOTH_SPRING_TYPE_COLLISION);
-					}
-	
-					collisions = 1;
-				}
-			}
-		}
-	}
-	*/
-	
-	//////////////////////////////////////////////
-	// SELFCOLLISIONS: update velocities
-	//////////////////////////////////////////////
-	/*
-	for ( i = 0; i < cloth->numverts; i++ )
-	{
-		VECSUB ( cloth->current_v[i], cloth->current_x[i], cloth->current_xold[i] );
-	}
-	*/
-	//////////////////////////////////////////////
-
-	return ret;
+	for(i = 0; i < numverts; i++)
+	{				
+		VECCOPY(id->X[i], verts[i].x);
+		VECCOPY(id->V[i], verts[i].v);
+	}	
 }

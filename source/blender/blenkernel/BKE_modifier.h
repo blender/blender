@@ -287,7 +287,7 @@ int           modifiers_getCageIndex(struct Object *ob,
                                      int *lastPossibleCageIndex_r);
 
 int           modifiers_isSoftbodyEnabled(struct Object *ob);
-struct ClothModifierData *modifiers_isClothEnabled(Object *ob);
+ModifierData * modifiers_isClothEnabled(Object *ob);
 int           modifiers_isParticleEnabled(struct Object *ob);
 
 struct Object *modifiers_isDeformedByArmature(struct Object *ob);

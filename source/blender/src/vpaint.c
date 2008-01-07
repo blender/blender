@@ -51,6 +51,7 @@
 #include "DNA_action_types.h"
 #include "DNA_armature_types.h"
 #include "DNA_brush_types.h"
+#include "DNA_cloth_types.h"
 #include "DNA_mesh_types.h"
 #include "DNA_meshdata_types.h"
 #include "DNA_modifier_types.h"
@@ -747,7 +748,7 @@ static int sample_backbuf_area(VPaint *vp, int *indexar, int totface, int x, int
 	struct ImBuf *ibuf;
 	int x1, y1, x2, y2, a, tot=0, index;
 	
-	if(totface>=MAXINDEX) return 0;
+	if(totface+4>=MAXINDEX) return 0;
 	
 	if(size>64.0) size= 64.0;
 	
@@ -777,7 +778,7 @@ static int sample_backbuf_area(VPaint *vp, int *indexar, int totface, int x, int
 	size= (y2-y1)*(x2-x1);
 	if(size<=0) return 0;
 
-	memset(indexar, 0, sizeof(int)*totface+2);	/* plus 2! first element is total */
+	memset(indexar, 0, sizeof(int)*totface+4);	/* plus 2! first element is total, +2 was giving valgrind errors, +4 seems ok */
 	
 	while(size--) {
 			
@@ -1350,7 +1351,7 @@ void weight_paint(void)
 	
 	// same goes for cloth
 	if(modifiers_isClothEnabled(ob)) {
-		cloth_free_modifier(modifiers_isClothEnabled(ob));
+		cloth_free_modifier((ClothModifierData *)modifiers_isClothEnabled(ob));
 	}	
 	
 	BIF_undo_push("Weight Paint");

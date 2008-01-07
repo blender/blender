@@ -34,14 +34,14 @@
 #ifndef BKE_CLOTH_H
 #define BKE_CLOTH_H
 
-#include "BKE_customdata.h"
 #include "BLI_linklist.h"
+#include "BKE_customdata.h"
 #include "BKE_DerivedMesh.h"
-#include "BKE_object.h"
-
 #include "DNA_cloth_types.h"
 #include "DNA_customdata_types.h"
 #include "DNA_meshdata_types.h"
+#include "DNA_modifier_types.h"
+#include "DNA_object_types.h"
 
 struct Object;
 struct Cloth;
@@ -49,8 +49,8 @@ struct MFace;
 struct DerivedMesh;
 struct ClothModifierData;
 
-// this is needed for inlining behaviour
 
+// this is needed for inlining behaviour
 #ifndef _WIN32
 #define LINUX
 #define DO_INLINE inline
@@ -60,71 +60,6 @@ struct ClothModifierData;
 
 #define CLOTH_MAX_THREAD 2
 
-typedef struct fc
-{
-	float *d, *d0;			// density
-	float *T, *T0;			// temperature
-	float *u, *u0;			// velocity in x direction
-	float *v, *v0;			// velocity in y direction
-	float *w, *w0;			// velocity in z direction
-	unsigned char* _texture_data;	
-	float _light_dir[3];
-	int _ray_templ[4096][3];
-	FILE* _fp;
-	int _cur_frame;
-	int _nframes;
-} fc;
-fc *f_init(void);
-void f_free(fc *m_fc);
-void step(fc *m_fc, float dt);
-
-
-typedef struct ClothVertex {
-	int	flags;		/* General flags per vertex.		*/
-	float 	mass;		/* mass / weight of the vertex		*/
-	float 	goal;		/* goal, from SB			*/
-	float	impulse[3];	/* used in collision.c */
-	unsigned int impulse_count; /* same as above */
-	float collball;
-	char octantflag;
-	float weight;
-} ClothVertex;
-
-typedef struct ClothSpring {
-	unsigned int	ij;		/* Pij from the paper, one end of the spring.	*/
-	unsigned int	kl;		/* Pkl from the paper, one end of the spring.	*/
-	float	restlen;	/* The original length of the spring.	*/
-	unsigned int	matrix_index; 	/* needed for implicit solver (fast lookup) */
-	int	type;		/* types defined in BKE_cloth.h ("springType") */
-	int	flags; 		/* defined in BKE_cloth.h, e.g. deactivated due to tearing */
-	float dfdx[3][3];
-	float dfdv[3][3];
-	float f[3];
-} ClothSpring;
-
-typedef struct Cloth {
-	struct ClothVertex	*verts;			/* The vertices that represent this cloth. */
-	struct LinkNode		*springs;		/* The springs connecting the mesh. */
-	struct BVH		*tree;		/* collision tree for this cloth object */
-	struct BVH		*selftree;		/* self collision tree for this cloth object */
-	struct MFace 		*mfaces;
-	struct Implicit_Data	*implicit; 	/* our implicit solver connects to this pointer */
-	struct EdgeHash 	*edgehash; /* used for fast checking adjacent points */
-	unsigned int		numverts;		/* The number of verts == m * n. */
-	unsigned int		numsprings;		/* The count of springs. */
-	unsigned int		numfaces;
-	unsigned int 		numothersprings;
-	unsigned int		numspringssave;
-	unsigned int 		old_solver_type;
-	float	 		(*x)[3]; /* The current position of all vertices.*/
-	float 			(*xold)[3]; /* The previous position of all vertices.*/
-	float 			(*current_x)[3]; /* The TEMPORARY current position of all vertices.*/
-	float			(*current_xold)[3]; /* The TEMPORARY previous position of all vertices.*/
-	float 			(*v)[4]; /* the current velocity of all vertices */
-	float			(*current_v)[3];
-	float			(*xconst)[3];
-	struct fc		*m_fc;
-} Cloth;
 
 /* goal defines */
 #define SOFTGOALSNAP  0.999f
@@ -155,9 +90,7 @@ typedef enum
     CLOTH_SIMSETTINGS_FLAG_COLLOBJ = ( 1 << 2 ), 	// object is only collision object, no cloth simulation is done
     CLOTH_SIMSETTINGS_FLAG_GOAL = ( 1 << 3 ), 		// we have goals enabled
     CLOTH_SIMSETTINGS_FLAG_TEARING = ( 1 << 4 ), // true if tearing is enabled
-    CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT = ( 1 << 5 ),
-    CLOTH_SIMSETTINGS_FLAG_BIG_FORCE = ( 1 << 6 ), // true if we have big spring force for bending
-    CLOTH_SIMSETTINGS_FLAG_SLEEP = ( 1 << 7 ), // true if we let the cloth go to sleep
+    CLOTH_SIMSETTINGS_FLAG_CCACHE_PROTECT = ( 1 << 5 ), // true if tearing is enabled
 } CLOTH_SIMSETTINGS_FLAGS;
 
 /* SPRING FLAGS */
@@ -172,7 +105,6 @@ typedef enum
     CLOTH_SPRING_TYPE_STRUCTURAL = 0,
     CLOTH_SPRING_TYPE_SHEAR,
     CLOTH_SPRING_TYPE_BENDING,
-    CLOTH_SPRING_TYPE_COLLISION,
 } CLOTH_SPRING_TYPES;
 
 /* SPRING FLAGS */
@@ -188,32 +120,91 @@ typedef enum
 
 
 // needed for buttons_object.c
-void cloth_clear_cache(struct Object *ob, struct ClothModifierData *clmd, float framenr);
-void cloth_free_modifier ( struct ClothModifierData *clmd );
+void cloth_clear_cache(Object *ob, ClothModifierData *clmd, float framenr);
 
 // needed for cloth.c
-void implicit_set_positions ( struct ClothModifierData *clmd );
+void implicit_set_positions ( ClothModifierData *clmd );
 
 // from cloth.c, needed for modifier.c
-DerivedMesh *clothModifier_do(struct ClothModifierData *clmd, struct Object *ob, struct DerivedMesh *dm, int useRenderParams, int isFinalCalc);
+void clothModifier_do ( ClothModifierData *clmd, Object *ob, DerivedMesh *dm, float ( *vertexCos ) [3], int numverts );
 
-// needed in implicit.c
-int cloth_bvh_objcollision(struct ClothModifierData *clmd, float step, float prevstep, float dt);
+// used in collision.c
+typedef struct Tree
+{
+	struct Tree *nodes[4]; // 4 children --> quad-tree
+	struct Tree *parent;
+	struct Tree *nextLeaf;
+	struct Tree *prevLeaf;
+	float	bv[26]; // Bounding volume of all nodes / we have 7 axes on a 14-DOP
+	unsigned int tri_index; // this saves the index of the face
+	int	count_nodes; // how many nodes are used
+	int	traversed;  // how many nodes already traversed until this level?
+	int	isleaf;
+}
+Tree;
+
+typedef struct Tree TreeNode;
+
+typedef struct BVH
+{
+	unsigned int 	numfaces;
+	unsigned int 	numverts;
+	ClothVertex 	*verts; // just a pointer to the original datastructure
+	MFace 		*mfaces; // just a pointer to the original datastructure
+	struct LinkNode *tree;
+	TreeNode 	*root; // TODO: saving the root --> is this really needed? YES!
+	TreeNode 	*leaf_tree; /* Tail of the leaf linked list.	*/
+	TreeNode 	*leaf_root;	/* Head of the leaf linked list.	*/
+	float 		epsilon; /* epslion is used for inflation of the k-dop	   */
+	int 		flags; /* bvhFlags */
+}
+BVH;
+
+typedef void ( *CM_COLLISION_RESPONSE ) ( ClothModifierData *clmd, ClothModifierData *coll_clmd, Tree * tree1, Tree * tree2 );
+
+
+/////////////////////////////////////////////////
+// collision.c
+////////////////////////////////////////////////
+
+// needed for implicit.c
+void bvh_collision_response ( ClothModifierData *clmd, ClothModifierData *coll_clmd, Tree * tree1, Tree * tree2 );
+int cloth_bvh_objcollision ( ClothModifierData * clmd, float step, float dt );
 
 ////////////////////////////////////////////////
 
 
 /////////////////////////////////////////////////
+// kdop.c
+////////////////////////////////////////////////
+
+// needed for cloth.c
+void bvh_free ( BVH * bvh );
+BVH *bvh_build ( ClothModifierData *clmd, float epsilon );
+LinkNode *BLI_linklist_append_fast ( LinkNode **listp, void *ptr );
+
+// needed for collision.c
+int bvh_traverse ( ClothModifierData * clmd, ClothModifierData * coll_clmd, Tree * tree1, Tree * tree2, float step, CM_COLLISION_RESPONSE collision_response );
+void bvh_update ( ClothModifierData * clmd, BVH * bvh, int moving );
+
+////////////////////////////////////////////////
+
+
+
+/////////////////////////////////////////////////
 // cloth.c
 ////////////////////////////////////////////////
-void cloth_free_modifier ( struct ClothModifierData *clmd );
-void cloth_init ( struct ClothModifierData *clmd );
+void cloth_free_modifier ( ClothModifierData *clmd );
+void cloth_init ( ClothModifierData *clmd );
+void cloth_deform_verts ( struct Object *ob, float framenr, float ( *vertexCos ) [3], int numVerts, void *derivedData, ClothModifierData *clmd );
+void cloth_update_normals ( ClothVertex *verts, int nVerts, MFace *face, int totface );
+
 ////////////////////////////////////////////////
 
 
 /* Typedefs for function pointers we need for solvers and collision detection. */
-typedef void ( *CM_COLLISION_SELF ) ( struct ClothModifierData *clmd, int step );
-// typedef void ( *CM_COLLISION_OBJ ) ( ClothModifierData *clmd, int step, CM_COLLISION_RESPONSE collision_response );
+typedef void ( *CM_COLLISION_SELF ) ( ClothModifierData *clmd, int step );
+typedef void ( *CM_COLLISION_OBJ ) ( ClothModifierData *clmd, int step, CM_COLLISION_RESPONSE collision_response );
 
 
 /* This enum provides the IDs for our solvers. */
@@ -229,26 +220,29 @@ typedef struct
 {
 	char		*name;
 	CM_SOLVER_ID	id;
-	int	( *init ) ( struct Object *ob, struct ClothModifierData *clmd );
-	int	( *solver ) ( struct Object *ob, float framenr, struct ClothModifierData *clmd, struct ListBase *effectors );
-	int	( *free ) ( struct ClothModifierData *clmd );
+	int	( *init ) ( Object *ob, ClothModifierData *clmd );
+	int	( *solver ) ( Object *ob, float framenr, ClothModifierData *clmd, ListBase *effectors );
+	int	( *free ) ( ClothModifierData *clmd );
 }
 CM_SOLVER_DEF;
 
 
 /* new C implicit simulator */
-int implicit_init ( struct Object *ob, struct ClothModifierData *clmd );
-int implicit_free ( struct ClothModifierData *clmd );
-int implicit_solver ( struct Object *ob, float frame, struct ClothModifierData *clmd, struct ListBase *effectors );
+int implicit_init ( Object *ob, ClothModifierData *clmd );
+int implicit_free ( ClothModifierData *clmd );
+int implicit_solver ( Object *ob, float frame, ClothModifierData *clmd, ListBase *effectors );
 
-/* explicit verlet simulator */
-int verlet_init ( struct Object *ob, struct ClothModifierData *clmd );
-int verlet_free ( struct ClothModifierData *clmd );
-int verlet_solver ( struct Object *ob, float frame, struct ClothModifierData *clmd, struct ListBase *effectors );
-
+/* used for caching in implicit.c */
+typedef struct Frame
+{
+	ClothVertex *verts;
+	ClothSpring *springs;
+	unsigned int numverts, numsprings;
+	float time; /* we need float since we want to support sub-frames */
+}
+Frame;
 
 /* used for collisions in collision.c */
-/*
 typedef struct CollPair
 {
 	unsigned int face1; // cloth face
@@ -263,7 +257,6 @@ typedef struct CollPair
 	unsigned int pointsb[4];
 }
 CollPair;
-*/
 
 /* used for collisions in collision.c */
 typedef struct EdgeCollPair
@@ -288,9 +281,6 @@ typedef struct FaceCollPair
 	float pa[3], pb[3]; // collision point p1 on face1, p2 on face2
 }
 FaceCollPair;
-
-// function definitions from implicit.c
-DO_INLINE void mul_fvector_S(float to[3], float from[3], float scalar);
 
 #endif
 
