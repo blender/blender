@@ -22,7 +22,13 @@
  *
  * Contributor(s): Blender Foundation 2002-2008
  *
+<<<<<<< .mine
+ * Contributor(s): none yet.
+ *
  * ***** END GPL LICENSE BLOCK *****
+=======
+ * ***** END GPL LICENSE BLOCK *****
+>>>>>>> .r13159
  */
 
 #ifndef BIF_GLUTIL_H

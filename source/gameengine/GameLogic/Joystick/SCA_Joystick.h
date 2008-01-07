@@ -1,6 +1,6 @@
 /**
 
- * ***** BEGIN GPL/BL DUAL LICENSE BLOCK *****
+ * ***** BEGIN GPL LICENSE BLOCK *****
 
  *
 
@@ -10,13 +10,10 @@
 
  * as published by the Free Software Foundation; either version 2
 
- * of the License, or (at your option) any later version. The Blender
+ * of the License, or (at your option) any later version.
 
- * Foundation also sells licenses for use in proprietary software under
 
- * the Blender License.  See http://www.blender.org/BL/ for information
 
- * about this.
 
  *
 
@@ -52,7 +49,7 @@
 
  *
 
- * ***** END GPL/BL DUAL LICENSE BLOCK *****
+ * ***** END GPL LICENSE BLOCK *****
 
  */
 
