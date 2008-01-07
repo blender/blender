@@ -1855,34 +1855,31 @@ void node_select_linked(SpaceNode *snode, int out)
 	allqueue(REDRAWNODE, 1);
 }
 
-void node_toggle_link(SpaceNode *snode)
+/* makes a link between selected output and input sockets */
+void node_make_link(SpaceNode *snode)
 {
 	bNode *fromnode, *tonode;
-	bNodeLink *remlink, *link;
+	bNodeLink *link;
 	bNodeSocket *outsock= snode->edittree->selout;
 	bNodeSocket *insock= snode->edittree->selin;
 
 	if(!insock || !outsock) return;
+	if(nodeFindLink(snode->edittree, outsock, insock)) return;
 
-	remlink= nodeFindLink(snode->edittree, outsock, insock);
-	
-	if(remlink) nodeRemLink(snode->edittree, remlink);
-	else {
-		if(nodeFindNode(snode->edittree, outsock, &fromnode, NULL) &&
-		   nodeFindNode(snode->edittree, insock, &tonode, NULL)) {
-			link= nodeAddLink(snode->edittree, fromnode, outsock, tonode, insock);
-			NodeTagChanged(snode->edittree, tonode);
-			node_remove_extra_links(snode, insock, link);
-		}
-		else return;
+	if(nodeFindNode(snode->edittree, outsock, &fromnode, NULL) &&
+		nodeFindNode(snode->edittree, insock, &tonode, NULL)) {
+		link= nodeAddLink(snode->edittree, fromnode, outsock, tonode, insock);
+		NodeTagChanged(snode->edittree, tonode);
+		node_remove_extra_links(snode, insock, link);
 	}
+	else return;
 
 	ntreeSolveOrder(snode->edittree);
 	snode_verify_groups(snode);
 	snode_handle_recalc(snode);
 
 	allqueue(REDRAWNODE, 0);
-	BIF_undo_push("Toggle Link");
+	BIF_undo_push("Make Link Between Sockets");
 }
 
 static void node_border_link_delete(SpaceNode *snode)
@@ -2278,7 +2275,7 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			snode_handle_recalc(snode);
 			break;
 		case FKEY:
-			node_toggle_link(snode);
+			node_make_link(snode);
 			break;
 		case GKEY:
 			if(fromlib) fromlib= -1;
