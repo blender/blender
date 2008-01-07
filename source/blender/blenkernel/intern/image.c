@@ -400,8 +400,8 @@ static ImBuf *add_ibuf_size(int width, int height, char *name, int floatbuf, sho
 {
 	ImBuf *ibuf;
 	float h=0.0, hoffs=0.0, hue=0.0, s=0.9, v=0.9, r, g, b;
-	unsigned char *rect;
-	float *rect_float;
+	unsigned char *rect= NULL;
+	float *rect_float= NULL;
 	int x, y;
 	int checkerwidth=21, dark=1;
 	
@@ -475,18 +475,20 @@ static ImBuf *add_ibuf_size(int width, int height, char *name, int floatbuf, sho
 							rect_float[1]= g;
 							rect_float[2]= b;
 							rect_float[3]= 1.0;
-							rect_float+=4;
 						}
 						else {
 							rect[0]= (char)(r * 255.0);
 							rect[1]= (char)(g * 255.0);
 							rect[2]= (char)(b * 255.0);
 							rect[3]= 255;
-							rect+=4;
 						}
 					}
 				}
-				
+
+				if (floatbuf)
+					rect_float+=4;
+				else
+					rect+=4;
 			}
 		}
 	} else {	/* blank image */
@@ -1737,7 +1739,6 @@ ImBuf *BKE_image_get_ibuf(Image *ima, ImageUser *iuser)
 {
 	ImBuf *ibuf= NULL;
 	float color[] = {0, 0, 0, 1};
-	int floatbuf;
 
 	/* quick reject tests */
 	if(ima==NULL) 
@@ -1815,7 +1816,7 @@ ImBuf *BKE_image_get_ibuf(Image *ima, ImageUser *iuser)
 				/* UV testgrid or black or solid etc */
 				if(ima->gen_x==0) ima->gen_x= 256;
 				if(ima->gen_y==0) ima->gen_y= 256;
-				ibuf= add_ibuf_size(ima->gen_x, ima->gen_y, ima->name, floatbuf, ima->gen_type, color);
+				ibuf= add_ibuf_size(ima->gen_x, ima->gen_y, ima->name, 0, ima->gen_type, color);
 				image_assign_ibuf(ima, ibuf, IMA_NO_INDEX, 0);
 				ima->ok= IMA_OK_LOADED;
 			}

@@ -284,7 +284,7 @@ int where_on_path(Object *ob, float ctime, float *vec, float *dir)	/* returns OK
 
 /* ****************** DUPLICATOR ************** */
 
-static DupliObject *new_dupli_object(ListBase *lb, Object *ob, float mat[][4], int lay, int index)
+static DupliObject *new_dupli_object(ListBase *lb, Object *ob, float mat[][4], int lay, int index, int type)
 {
 	DupliObject *dob= MEM_callocN(sizeof(DupliObject), "dupliobject");
 	
@@ -294,6 +294,7 @@ static DupliObject *new_dupli_object(ListBase *lb, Object *ob, float mat[][4], i
 	Mat4CpyMat4(dob->omat, ob->obmat);
 	dob->origlay= ob->lay;
 	dob->index= index;
+	dob->type= type;
 	ob->lay= lay;
 	
 	return dob;
@@ -321,7 +322,7 @@ static void group_duplilist(ListBase *lb, Object *ob, int level)
 		if(go->ob!=ob) {
 			
 			Mat4MulMat4(mat, go->ob->obmat, ob->obmat);
-			dob= new_dupli_object(lb, go->ob, mat, ob->lay, 0);
+			dob= new_dupli_object(lb, go->ob, mat, ob->lay, 0, OB_DUPLIGROUP);
 			dob->no_draw= (dob->origlay & group->layer)==0;
 			
 			if(go->ob->transflag & OB_DUPLI) {
@@ -360,7 +361,7 @@ static void frames_duplilist(ListBase *lb, Object *ob, int level)
 		if(ok) {
 			do_ob_ipo(ob);
 			where_is_object_time(ob, (float)G.scene->r.cfra);
-			new_dupli_object(lb, ob, ob->obmat, ob->lay, G.scene->r.cfra);
+			new_dupli_object(lb, ob, ob->obmat, ob->lay, G.scene->r.cfra, OB_DUPLIFRAMES);
 		}
 	}
 
@@ -405,7 +406,7 @@ static void vertex_dupli__mapFunc(void *userData, int index, float *co, float *n
 		Mat4CpyMat4(tmat, obmat);
 		Mat4MulMat43(obmat, tmat, mat);
 	}
-	new_dupli_object(vdd->lb, vdd->ob, obmat, vdd->par->lay, index);
+	new_dupli_object(vdd->lb, vdd->ob, obmat, vdd->par->lay, index, OB_DUPLIVERTS);
 	
 	if(vdd->ob->transflag & OB_DUPLI) {
 		float tmpmat[4][4];
@@ -631,7 +632,7 @@ static void face_duplilist(ListBase *lb, ID *id, Object *par, float (*par_space_
 						Mat4CpyMat4(tmat, obmat);
 						Mat4MulMat43(obmat, tmat, mat);
 						
-						new_dupli_object(lb, ob, obmat, lay, a);
+						new_dupli_object(lb, ob, obmat, lay, a, OB_DUPLIFACES);
 						
 						if(ob->transflag & OB_DUPLI) {
 							float tmpmat[4][4];
@@ -772,7 +773,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, ParticleSy
 
 						VECADD(tmat[3], go->ob->obmat[3], state.co);
 
-						new_dupli_object(lb, go->ob, tmat, par->lay, counter);
+						new_dupli_object(lb, go->ob, tmat, par->lay, counter, OB_DUPLIPARTS);
 					}
 				}
 				else {
@@ -789,7 +790,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, ParticleSy
 
 					VECCOPY(tmat[3], state.co);
 
-					new_dupli_object(lb, ob, tmat, par->lay, counter);
+					new_dupli_object(lb, ob, tmat, par->lay, counter, OB_DUPLIPARTS);
 				}
 			}
 		}
@@ -867,7 +868,7 @@ static void font_duplilist(ListBase *lb, Object *par, int level)
 			Mat4CpyMat4(obmat, par->obmat);
 			VECCOPY(obmat[3], vec);
 			
-			new_dupli_object(lb, ob, obmat, par->lay, a);
+			new_dupli_object(lb, ob, obmat, par->lay, a, OB_DUPLIVERTS);
 		}
 		
 	}
@@ -881,7 +882,7 @@ static void object_duplilist_recursive(ID *id, Object *ob, ListBase *duplilist, 
 	if((ob->transflag & OB_DUPLI)==0)
 		return;
 	
-	/* Should the dupli's be greated for this object? - Respect restrict flags */
+	/* Should the dupli's be generated for this object? - Respect restrict flags */
 	if (G.rendering) {
 		if (ob->restrictflag & OB_RESTRICT_RENDER) {
 			return;
@@ -922,7 +923,8 @@ static void object_duplilist_recursive(ID *id, Object *ob, ListBase *duplilist, 
 
 		if (level==0) {
 			for(dob= duplilist->first; dob; dob= dob->next)
-				Mat4CpyMat4(dob->ob->obmat, dob->mat);
+				if(dob->type == OB_DUPLIGROUP)
+					Mat4CpyMat4(dob->ob->obmat, dob->mat);
 		}
 	}
 }

@@ -367,7 +367,7 @@ void psys_free(Object *ob, ParticleSystem * psys)
  * removing the previous data. this should be solved properly once */
 
 typedef struct ParticleRenderElem {
-	int curchild, totchild;
+	int curchild, totchild, reduce;
 	float lambda, t, scalemin, scalemax;
 } ParticleRenderElem;
 
@@ -396,7 +396,7 @@ static float psys_render_viewport_falloff(double rate, float dist, float width)
 static float psys_render_projected_area(ParticleSystem *psys, float *center, float area, double vprate, float *viewport)
 {
 	ParticleRenderData *data= psys->renderdata;
-	float co[3], view[3], ortho1[3], ortho2[2], w, dx, dy, radius;
+	float co[4], view[3], ortho1[3], ortho2[3], w, dx, dy, radius;
 	
 	/* transform to view space */
 	VECCOPY(co, center);
@@ -536,7 +536,7 @@ int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 	ParticleRenderData *data;
 	ParticleRenderElem *elems, *elem;
 	ParticleSettings *part= ctx->psys->part;
-	float *facearea, (*facecenter)[3], size[3], fac, powrate;
+	float *facearea, (*facecenter)[3], size[3], fac, powrate, scaleclamp;
 	float co1[3], co2[3], co3[3], co4[3], lambda, arearatio, t, area, viewport;
 	double vprate;
 	int *origindex, *facetotvert;
@@ -562,6 +562,9 @@ int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 	elems= MEM_callocN(sizeof(ParticleRenderElem)*totorigface, "SimplifyFaceElem");
 
 	data= ctx->psys->renderdata;
+	if(data->elems)
+		MEM_freeN(data->elems);
+
 	data->dosimplify= 1;
 	data->elems= elems;
 	data->origindex= origindex;
@@ -619,18 +622,29 @@ int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 		area = psys_render_projected_area(ctx->psys, facecenter[a], facearea[a], vprate, &viewport);
 		arearatio= fac*area/facearea[a];
 
-		if(arearatio < 1.0f || viewport < 1.0f) {
+		if((arearatio < 1.0f || viewport < 1.0f) && elem->totchild) {
 			/* lambda is percentage of elements to keep */
 			lambda= (arearatio < 1.0f)? pow(arearatio, powrate): 1.0f;
 			lambda *= viewport;
 
+			lambda= MAX2(lambda, 1.0f/elem->totchild);
+
 			/* compute transition region */
 			t= part->simplify_transition;
 			elem->t= (lambda-t < 0.0f)? lambda: (lambda+t > 1.0f)? 1.0f-lambda: t;
+			elem->reduce= 1;
 
 			/* scale at end and beginning of the transition region */
 			elem->scalemax= (lambda+t < 1.0f)? 1.0f/lambda: 1.0f/(1.0f - elem->t*elem->t/t);
 			elem->scalemin= (lambda+t < 1.0f)? 0.0f: elem->scalemax*(1.0f-elem->t/t);
+
+			elem->scalemin= sqrt(elem->scalemin);
+			elem->scalemax= sqrt(elem->scalemax);
+
+			/* clamp scaling */
+			scaleclamp= MIN2(elem->totchild, 10.0f);
+			elem->scalemin= MIN2(scaleclamp, elem->scalemin);
+			elem->scalemax= MIN2(scaleclamp, elem->scalemax);
 
 			/* extend lambda to include transition */
 			lambda= lambda + elem->t;
@@ -642,6 +656,7 @@ int psys_render_simplify_distribution(ParticleThreadContext *ctx, int tot)
 
 			elem->scalemax= 1.0f; //sqrt(lambda);
 			elem->scalemin= 1.0f; //sqrt(lambda);
+			elem->reduce= 0;
 		}
 
 		elem->lambda= lambda;
@@ -703,7 +718,7 @@ int psys_render_simplify_params(ParticleSystem *psys, ChildParticle *cpa, float 
 	scalemin= elem->scalemin;
 	scalemax= elem->scalemax;
 
-	if(lambda >= 1.0f) {
+	if(!elem->reduce) {
 		scale= scalemin;
 		alpha= 1.0f;
 	}
@@ -2157,6 +2172,7 @@ void psys_cache_child_paths(Object *ob, ParticleSystem *psys, float cfra, int ed
 	ParticleCacheKey **cache, *tcache;
 	ListBase threads;
 	int i, totchild, totparent, totthread;
+	unsigned long totchildstep;
 
 	pthreads= psys_threads_create(ob, psys, G.scene->r.threads);
 
@@ -2177,7 +2193,8 @@ void psys_cache_child_paths(Object *ob, ParticleSystem *psys, float cfra, int ed
 		free_child_path_cache(psys);
 
 		cache = psys->childcache = MEM_callocN(totchild*sizeof(void *), "Child path cache array");
-		tcache = MEM_callocN(totchild * (ctx->steps + 1) * sizeof(ParticleCacheKey), "Child path cache");
+		totchildstep= totchild*(ctx->steps + 1);
+		tcache = MEM_callocN(totchildstep*sizeof(ParticleCacheKey), "Child path cache");
 		for(i=0; i<totchild; i++)
 			cache[i] = tcache + i * (ctx->steps + 1);
 

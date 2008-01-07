@@ -3246,6 +3246,46 @@ void copy_constraints (ListBase *dst, ListBase *src)
 	}
 }
 
+/* -------- Constraints and Proxies ------- */
+
+/* Rescue all constraints tagged as being CONSTRAINT_PROXY_LOCAL (i.e. added to bone that's proxy-synced in this file) */
+void extract_proxylocal_constraints (ListBase *dst, ListBase *src)
+{
+	bConstraint *con, *next;
+	
+	/* for each tagged constraint, remove from src and move to dst */
+	for (con= src->first; con; con= next) {
+		next= con->next;
+		
+		/* check if tagged */
+		if (con->flag & CONSTRAINT_PROXY_LOCAL) {
+			BLI_remlink(src, con);
+			BLI_addtail(dst, con);
+		}
+	}
+}
+
+/* Returns if the owner of the constraint is proxy-protected */
+short proxylocked_constraints_owner (Object *ob, bPoseChannel *pchan)
+{
+	/* Currently, constraints can only be on object or bone level */
+	if (ob && ob->proxy) {
+		if (ob->pose && pchan) {
+			bArmature *arm= ob->data;
+			
+			/* On bone-level, check if bone is on proxy-protected layer */
+			if ((pchan->bone) && (pchan->bone->layer & arm->layer_protected))
+				return 1;
+		}
+		else {
+			/* FIXME: constraints on object-level are not handled well yet */
+			return 1;
+		}	
+	}
+	
+	return 0;
+}
+
 /* -------- Target-Matrix Stuff ------- */
 
 /* This function is a relic from the prior implementations of the constraints system, when all

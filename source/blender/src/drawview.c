@@ -2657,10 +2657,6 @@ static void draw_dupli_objects_color(View3D *v3d, Base *base, int color)
 	
 	if (base->object->restrictflag & OB_RESTRICT_VIEW) return;
 	
-	/* test if we can do a displist */
-	if(base->object->transflag & OB_DUPLIGROUP)
-		use_displist= 0;
-	
 	tbase.flag= OB_FROMDUPLI|base->flag;
 	lb= object_duplilist(G.scene, base->object);
 
@@ -2689,7 +2685,7 @@ static void draw_dupli_objects_color(View3D *v3d, Base *base, int color)
 			if(use_displist == -1) {
 				
 				/* lamp drawing messes with matrices, could be handled smarter... but this works */
-				if(dob->ob->type==OB_LAMP)
+				if(dob->ob->type==OB_LAMP || dob->type==OB_DUPLIGROUP)
 					use_displist= 0;
 				else {
 					/* disable boundbox check for list creation */
@@ -3530,7 +3526,7 @@ int play_anim(int mode)
 	ScrArea *sa, *oldsa;
 	int cfraont;
 	unsigned short event=0;
-	short val;
+	short val = 0; /* its possible qtest() wont run and val must be initialized */
 
 	/* patch for very very old scenes */
 	if(SFRA==0) SFRA= 1;

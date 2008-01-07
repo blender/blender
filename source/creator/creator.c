@@ -171,9 +171,15 @@ static void print_help(void)
 {
 	printf ("Blender %d.%02d (sub %d) Build\n", G.version/100, G.version%100, BLENDER_SUBVERSION);
 	printf ("Usage: blender [options ...] [file]\n");
-	
+	printf ("Note: Arguments are executed in the order they are given. eg.\n");
+	printf ("    blender -b test.blend -f 1 -o /tmp\n");
+	printf ("  ...may not render to /tmp because '-f 1' renders before the output path is set\n");
+	printf ("    blender -b -o /tmp test.blend -f 1\n");
+	printf ("  ...may not render to /tmp because loading the blend file overwrites the output path that was set\n");
+	printf ("    \"blender -b test.blend -o /tmp -f 1\" works as expected.\n");
 	printf ("\nRender options:\n");
 	printf ("  -b <file>\tRender <file> in background\n");
+	printf ("    -a render frames from start to end (inclusive), only works when used after -b\n");
 	printf ("    -S <name>\tSet scene <name>\n");
 	printf ("    -f <frame>\tRender frame <frame> and save it\n");				
 	printf ("    -s <frame>\tSet start to frame <frame> (use with -a)\n");
@@ -182,16 +188,25 @@ static void print_help(void)
 	printf ("      Use // at the start of the path to\n");
 	printf ("        render relative to the blend file.\n");
 	printf ("      The frame number will be added at the end of the filename.\n");
-	printf ("      eg: blender -b foobar.blend -o //render_ -F PNG -x 1\n");
-	printf ("    -F <format>\tSet the render format, Valid options are..\n");
-	printf ("    \tTGA IRIS HAMX FTYPE JPEG MOVIE IRIZ RAWTGA\n");
+	printf ("      eg: blender -b foobar.blend -o //render_ -F PNG -x 1 -a\n");
+	printf ("\nFormat options:\n");
+	printf ("    -F <format>\tSet the render format, Valid options are...\n");
+	printf ("    \tTGA IRIS HAMX JPEG MOVIE IRIZ RAWTGA\n");
 	printf ("    \tAVIRAW AVIJPEG PNG BMP FRAMESERVER\n");
 	printf ("    (formats that can be compiled into blender, not available on all systems)\n");
-	printf ("    \tHDR TIFF EXR MPEG AVICODEC QUICKTIME CINEON DPX\n");
+	printf ("    \tHDR TIFF EXR MPEG AVICODEC QUICKTIME CINEON DPX DDS\n");
 	printf ("    -x <bool>\tSet option to add the file extension to the end of the file.\n");
 	printf ("    -t <threads>\tUse amount of <threads> for rendering\n");
-	printf ("\nAnimation options:\n");
-	printf ("  -a <file(s)>\tPlayback <file(s)>\n");
+	/*Add these later - Campbell*/
+	/*
+	printf ("    -colorchannel <type>\tColors to save, valid types are: BW RGB RGBA \n");
+	printf ("    -compression <type>\t Use with EXR format, valid types are..\n");
+	printf ("    \tZIP Pxr24 PIZ RLE\n");
+	printf ("    -zbuf <bool>\tUse with EXR format, set the zbuf save option\n");
+	printf ("    -halffloat <bool>\tUse with EXR format, set the half float option\n");
+	printf ("    -preview <bool>\tUse with EXR format, save a jpeg for viewing as well as the EXR\n");*/
+	printf ("\nAnimation playback options:\n");
+	printf ("  -a <file(s)>\tPlayback <file(s)>, only operates this way when -b is not used.\n");
 	printf ("    -p <sx> <sy>\tOpen with lower left corner at <sx>, <sy>\n");
 	printf ("    -m\t\tRead from disk (Don't buffer)\n");
 	printf ("    -f <fps> <fps-base>\t\tSpecify FPS to start with\n");
@@ -333,7 +348,7 @@ int main(int argc, char **argv)
 		/* Handle -* switches */
 		else if(argv[a][0] == '-') {
 			switch(argv[a][1]) {
-			case 'a':
+			case 'a': /* -b was not given, play an animation */
 				playanim(argc-1, argv+1);
 				exit(0);
 				break;
@@ -636,7 +651,9 @@ int main(int argc, char **argv)
 						if      (!strcmp(argv[a],"TGA")) G.scene->r.imtype = R_TARGA;
 						else if (!strcmp(argv[a],"IRIS")) G.scene->r.imtype = R_IRIS;
 						else if (!strcmp(argv[a],"HAMX")) G.scene->r.imtype = R_HAMX;
-						else if (!strcmp(argv[a],"FTYPE")) G.scene->r.imtype = R_FTYPE;
+#ifdef WITH_DDS
+						else if (!strcmp(argv[a],"DDS")) G.scene->r.imtype = R_DDS;
+#endif
 						else if (!strcmp(argv[a],"JPEG")) G.scene->r.imtype = R_JPEG90;
 						else if (!strcmp(argv[a],"MOVIE")) G.scene->r.imtype = R_MOVIE;
 						else if (!strcmp(argv[a],"IRIZ")) G.scene->r.imtype = R_IRIZ;
@@ -649,12 +666,14 @@ int main(int argc, char **argv)
 						else if (!strcmp(argv[a],"BMP")) G.scene->r.imtype = R_BMP;
 						else if (!strcmp(argv[a],"HDR")) G.scene->r.imtype = R_RADHDR;
 						else if (!strcmp(argv[a],"TIFF")) G.scene->r.imtype = R_IRIS;
+#ifdef WITH_OPENEXR
 						else if (!strcmp(argv[a],"EXR")) G.scene->r.imtype = R_OPENEXR;
+#endif
 						else if (!strcmp(argv[a],"MPEG")) G.scene->r.imtype = R_FFMPEG;
 						else if (!strcmp(argv[a],"FRAMESERVER")) G.scene->r.imtype = R_FRAMESERVER;
 						else if (!strcmp(argv[a],"CINEON")) G.scene->r.imtype = R_CINEON;
 						else if (!strcmp(argv[a],"DPX")) G.scene->r.imtype = R_DPX;
-						else printf("\nError: Format from '-F ' not known.\n");
+						else printf("\nError: Format from '-F' not known or not compiled in this release.\n");
 					}
 				} else {
 					printf("\nError: no blend loaded. cannot use '-x'.\n");

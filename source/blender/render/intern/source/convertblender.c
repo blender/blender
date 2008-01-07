@@ -1695,10 +1695,10 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 			/* get orco */
 			if(tpsys && (part->from==PART_FROM_PARTICLE || part->phystype==PART_PHYS_NO)){
 				tpa=tpsys->particles+pa->num;
-				psys_particle_on_emitter(ob, psmd,tpart->from,tpa->num, -1,tpa->fuv,tpa->foffset,co,nor,0,0,orco,0);
+				psys_particle_on_emitter(ob, psmd,tpart->from,tpa->num,pa->num_dmcache,tpa->fuv,tpa->foffset,co,nor,0,0,orco,0);
 			}
 			else
-				psys_particle_on_emitter(ob, psmd,part->from,pa->num,-1,pa->fuv,pa->foffset,co,nor,0,0,orco,0);
+				psys_particle_on_emitter(ob, psmd,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,co,nor,0,0,orco,0);
 
 			if(uvco && ELEM(part->from,PART_FROM_FACE,PART_FROM_VOLUME)){
 				layer=psmd->dm->faceData.layers + CustomData_get_layer_index(&psmd->dm->faceData,CD_MFACE);
@@ -3502,16 +3502,22 @@ static GroupObject *add_render_lamp(Render *re, Object *ob)
 			
 			/* this is the way used all over to check for shadow */
 			if(lar->shb || (lar->mode & LA_SHAD_RAY)) {
+				LampShadowSample *ls;
 				LampShadowSubSample *lss;
-				int a, b, tot= re->r.threads*re->r.osa;
+				int a, b;
 				
 				lar->shadsamp= MEM_mallocN(re->r.threads*sizeof(LampShadowSample), "lamp shadow sample");
-				lss= lar->shadsamp[0].s;
+				ls= lar->shadsamp;
+
 				/* shadfacs actually mean light, let's put them to 1 to prevent unitialized accidents */
-				for(a=0; a<tot; a++, lss++) {
-					for(b=0; b<4; b++) {
+				for(a=0; a<re->r.threads; a++, ls++) {
+					lss= ls->s;
+					for(b=0; b<re->r.osa; b++, lss++) {
 						lss->samplenr= -1;	/* used to detect whether we store or read */
-						lss->shadfac[b]= 1.0f;
+						lss->shadfac[0]= 1.0f;
+						lss->shadfac[1]= 1.0f;
+						lss->shadfac[2]= 1.0f;
+						lss->shadfac[3]= 1.0f;
 					}
 				}
 			}
@@ -4067,10 +4073,10 @@ static int allow_render_object(Object *ob, int nolamps, int onlyselected, Object
 	return 1;
 }
 
-static int allow_render_dupli_instance(Render *re, Object *ob, Object *obd)
+static int allow_render_dupli_instance(Render *re, DupliObject *dob, Object *obd)
 {
 	return (render_object_type(obd->type) &&
-	        (!(ob->transflag & OB_DUPLIGROUP)) &&
+	        (!(dob->type == OB_DUPLIGROUP)) &&
 	        !(re->r.mode & R_RADIO));
 }
 
@@ -4079,7 +4085,7 @@ static void database_init_objects(Render *re, unsigned int lay, int nolamps, int
 	Base *base;
 	Object *ob;
 	Scene *sce;
-	float mat[4][4];
+	float mat[4][4], obmat[4][4];
 
 	for(SETLOOPER(re->scene, base)) {
 		ob= base->object;
@@ -4112,6 +4118,7 @@ static void database_init_objects(Render *re, unsigned int lay, int nolamps, int
 				for(dob= lb->first; dob; dob= dob->next) {
 					Object *obd= dob->ob;
 					
+					Mat4CpyMat4(obmat, obd->obmat);
 					Mat4CpyMat4(obd->obmat, dob->mat);
 
 					/* group duplis need to set ob matrices correct, for deform. so no_draw is part handled */
@@ -4127,14 +4134,14 @@ static void database_init_objects(Render *re, unsigned int lay, int nolamps, int
 					if(!allow_render_object(obd, nolamps, onlyselected, actob))
 						continue;
 
-					if(allow_render_dupli_instance(re, ob, obd)) {
+					if(allow_render_dupli_instance(re, dob, obd)) {
 						ParticleSystem *psys;
 						int psysindex;
 						float imat[4][4], mat[4][4];
 
 						/* compute difference between object matrix and
 						 * object matrix with dupli transform, in viewspace */
-						Mat4Invert(imat, dob->omat);
+						Mat4Invert(imat, obmat);
 						MTC_Mat4MulSerie(mat, re->viewmat, dob->mat, imat, re->viewinv, 0, 0, 0, 0);
 
 						RE_addRenderInstance(re, NULL, obd, ob, dob->index, 0, mat);
@@ -4145,6 +4152,8 @@ static void database_init_objects(Render *re, unsigned int lay, int nolamps, int
 						
 						obd->flag |= OB_DONE;
 						obd->transflag |= OB_RENDER_DUPLI;
+
+						Mat4CpyMat4(obd->obmat, obmat);
 					}
 					else
 						init_render_object(re, obd, ob, dob->index, only_verts);

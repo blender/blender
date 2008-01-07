@@ -482,7 +482,7 @@ endif
     export NAN_TIFF ?= /usr
     export NAN_ODE ?= $(LCGDIR)/ode
     export NAN_TERRAPLAY ?=
-    export NAN_MESA ?= $(LCGDIR)/mesa
+    export NAN_MESA ?= /usr/X11
     export NAN_ZLIB ?= $(LCGDIR)/zlib
     export NAN_NSPR ?= $(LCGDIR)/nspr
     export NAN_FREETYPE ?= $(LCGDIR)/freetype

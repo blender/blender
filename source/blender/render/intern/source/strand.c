@@ -388,9 +388,9 @@ void strand_eval_point(StrandSegment *sseg, StrandPoint *spoint)
 	Crossf(cross, spoint->co, spoint->tan);
 
 	w= spoint->co[2]*strandbuf->winmat[2][3] + strandbuf->winmat[3][3];
-	dx= strandbuf->winx*cross[0]*strandbuf->winmat[0][0];
-	dy= strandbuf->winy*cross[1]*strandbuf->winmat[1][1];
-	w= sqrt(dx*dx + dy*dy)/w;
+	dx= strandbuf->winx*cross[0]*strandbuf->winmat[0][0]/w;
+	dy= strandbuf->winy*cross[1]*strandbuf->winmat[1][1]/w;
+	w= sqrt(dx*dx + dy*dy);
 
 	if(w > 0.0f) {
 		if(strandbuf->flag & R_STRAND_B_UNITS) {
@@ -777,7 +777,7 @@ static void strand_render(Render *re, float winmat[][4], StrandPart *spart, ZSpa
 		projectvert(p2->co, winmat, hoco2);
 
 		/* render both strand and single pixel wire to counter aliasing */
-		zbufclip4(zspan, 0, 0, p1->hoco2, p1->hoco1, p2->hoco1, p2->hoco2, 0, 0, 0, 0);
+		zbufclip4(zspan, 0, 0, p1->hoco2, p1->hoco1, p2->hoco1, p2->hoco2, p1->clip2, p1->clip1, p2->clip1, p2->clip2);
 		zbufsinglewire(zspan, 0, 0, hoco1, hoco2);
 	}
 }
@@ -817,6 +817,8 @@ static int strand_segment_recursive(Render *re, float winmat[][4], StrandPart *s
 	else {
 		projectvert(p.co1, winmat, p.hoco1);
 		projectvert(p.co2, winmat, p.hoco2);
+		p.clip1= testclip(p.hoco1);
+		p.clip2= testclip(p.hoco2);
 	}
 
 	if(!strand_segment_recursive(re, winmat, spart, zspan, sseg, p1, &p, depth+1))
@@ -852,6 +854,10 @@ void render_strand_segment(Render *re, float winmat[][4], StrandPart *spart, ZSp
 		projectvert(p1->co2, winmat, p1->hoco2);
 		projectvert(p2->co1, winmat, p2->hoco1);
 		projectvert(p2->co2, winmat, p2->hoco2);
+		p1->clip1= testclip(p1->hoco1);
+		p1->clip2= testclip(p1->hoco2);
+		p2->clip1= testclip(p2->hoco1);
+		p2->clip2= testclip(p2->hoco2);
 	}
 
 	if(!strand_segment_recursive(re, winmat, spart, zspan, sseg, p1, p2, 0))

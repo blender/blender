@@ -119,8 +119,12 @@ endif
 ifeq ($(OS),solaris)
     ifeq (x86_64, $(findstring x86_64, $(CPU)))
         LLIBS = -lrt
+        LLIBS += -L$(NAN_MESA)/lib/amd64
+    else
+        LLIBS += -L$(NAN_MESA)/lib
     endif
-    LLIBS += -L$(NAN_MESA)/lib -lGLU -lGL -lXmu -lXext -lXi -lX11 -lc -lm -ldl -lsocket -lnsl 
+    
+    LLIBS += -lGLU -lGL -lXmu -lXext -lXi -lX11 -lc -lm -ldl -lsocket -lnsl 
     DYNLDFLAGS = -shared $(LDFLAGS)
 endif
 

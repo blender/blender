@@ -517,47 +517,19 @@ void nla_buttons(void)
 	
 	if (G.snla->flag & SNLA_DRAWTIME) {
 		uiDefButS(block, MENU, B_REDR,
-				"Auto-Snap Strips/Keyframes %t|Off %x0|Second Step %x1|Nearest Second %x2|Nearest Marker %x3", 
+				"Auto-Snap Strips/Keyframes %t|No Snap %x0|Second Step %x1|Nearest Second %x2|Nearest Marker %x3", 
 				xco,0,70,YIC, &(G.snla->autosnap), 0, 1, 0, 0, 
 				"Auto-snapping mode for strips and keyframes when transforming");
 	}
 	else {
 		uiDefButS(block, MENU, B_REDR, 
-				"Auto-Snap Strips/Keyframes %t|Off %x0|Frame Step %x1|Nearest Frame %x2|Nearest Marker %x3", 
+				"Auto-Snap Strips/Keyframes %t|No Snap %x0|Frame Step %x1|Nearest Frame %x2|Nearest Marker %x3", 
 				xco,0,70,YIC, &(G.snla->autosnap), 0, 1, 0, 0, 
 				"Auto-snapping mode for strips and keyframes when transforming");
 	}
 	
 	xco += (70 + 8);
 	
-	/* FULL WINDOW */
-	
-	
-//	xco = 8;
-	
-//	uiDefIconTextButC(block, ICONTEXTROW,B_NEWSPACE, ICON_VIEW3D, windowtype_pup(), xco,0,XIC+10,YIC, &(curarea->butspacetype), 1.0, SPACEICONMAX, 0, 0, "Displays Current Window Type. Click for menu of available types.");
-
-//	xco+= XIC+22;
-	
-	/* FULL WINDOW */
-//	if(curarea->full) uiDefIconBut(block, BUT,B_FULL, ICON_SPLITSCREEN,	xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Returns to multiple views window (CTRL+Up arrow)");
-//	else uiDefIconBut(block, BUT,B_FULL, ICON_FULLSCREEN,	xco,0,XIC,YIC, 0, 0, 0, 0, 0, "Makes current window full screen (CTRL+Down arrow)");
-	
-	/* HOME */
-//	uiDefIconBut(block, BUT, B_NLAHOME, ICON_HOME,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zooms window to home view showing all items (HOMEKEY)");	
-//	xco+= XIC;
-	
-	/* IMAGE */
-//	uiDefIconButS(block, TOG, B_REDR, ICON_IMAGE_COL,	xco+=XIC,0,XIC,YIC, &sseq->mainb, 0, 0, 0, 0, "Toggles image display");
-
-	/* ZOOM en BORDER */
-//	xco+= XIC;
-//	uiDefIconButI(block, TOG, B_VIEW2DZOOM, ICON_VIEWZOOM,	xco+=XIC,0,XIC,YIC, &viewmovetemp, 0, 0, 0, 0, "Zoom view (CTRL+MiddleMouse)");
-//	uiDefIconBut(block, BUT, B_NLABORDER, ICON_BORDERMOVE,	xco+=XIC,0,XIC,YIC, 0, 0, 0, 0, 0, "Zoom view to area");
-
-	/* draw LOCK */
-//	xco+= XIC/2;
-
 	xco += 8;
 
 	uiDefIconButS(block, ICONTOG, 1, ICON_UNLOCKED,	xco,0,XIC,YIC, &(snla->lock), 0, 0, 0, 0, "Toggles forced redraw of other windows to reflect changes in real time");

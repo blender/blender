@@ -822,14 +822,11 @@ void free_renderdata_tables(Render *re)
 		re->totinstance= 0;
 		re->instancetable.first= re->instancetable.last= NULL;
 	}
-	else {
-		BLI_freelistN(&re->instancetable);
 
-		if(re->objecthash) {
-			BLI_ghash_free(re->objecthash, NULL, NULL);
-			re->objecthash= NULL;
-		}
-	}
+	if(re->objecthash) {
+		BLI_ghash_free(re->objecthash, NULL, NULL);
+		re->objecthash= NULL;
+ 	}
 
 	if(re->sortedhalos) {
 		MEM_freeN(re->sortedhalos);
@@ -843,6 +840,7 @@ void free_renderdata_tables(Render *re)
 
 	BLI_freelistN(&re->customdata_names);
 	BLI_freelistN(&re->objecttable);
+	BLI_freelistN(&re->instancetable);
 }
 
 /* ------------------------------------------------------------------------ */

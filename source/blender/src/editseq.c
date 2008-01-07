@@ -2255,6 +2255,18 @@ static Sequence *dupli_seq(Sequence *seq) {
 				"handled in duplicate!\nExpect a crash"
 						" now...\n");
 	}
+
+	if (seq->strip->crop) {
+		seqn->strip->crop = MEM_dupallocN(seq->strip->crop);
+	}
+
+	if (seq->strip->transform) {
+		seqn->strip->transform = MEM_dupallocN(seq->strip->transform);
+	}
+
+	if (seq->strip->proxy) {
+		seqn->strip->proxy = MEM_dupallocN(seq->strip->proxy);
+	}
 	
 	return seqn;
 }

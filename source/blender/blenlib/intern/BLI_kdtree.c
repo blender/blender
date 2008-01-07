@@ -166,11 +166,18 @@ int	BLI_kdtree_find_nearest(KDTree *tree, float *co, float *nor, KDTreeNearest *
 	min_node= root;
 	min_dist= squared_distance(root->co,co,root->nor,nor);
 
-	if(root->left)
-		stack[cur++]=root->left;
-
-	if(root->right)
-		stack[cur++]=root->right;
+	if(co[root->d] < root->co[root->d]) {
+		if(root->right)
+			stack[cur++]=root->right;
+		if(root->left)
+			stack[cur++]=root->left;
+	}
+	else {
+		if(root->left)
+			stack[cur++]=root->left;
+		if(root->right)
+			stack[cur++]=root->right;
+	}
 	
 	while(cur--){
 		node=stack[cur];
@@ -266,11 +273,18 @@ int	BLI_kdtree_find_n_nearest(KDTree *tree, int n, float *co, float *nor, KDTree
 	cur_dist= squared_distance(root->co,co,root->nor,nor);
 	add_nearest(nearest,&found,n,root->index,cur_dist,root->co);
 	
-	if(root->left)
-		stack[cur++]=root->left;
-
-	if(root->right)
-		stack[cur++]=root->right;
+	if(co[root->d] < root->co[root->d]) {
+		if(root->right)
+			stack[cur++]=root->right;
+		if(root->left)
+			stack[cur++]=root->left;
+	}
+	else {
+		if(root->left)
+			stack[cur++]=root->left;
+		if(root->right)
+			stack[cur++]=root->right;
+	}
 
 	while(cur--){
 		node=stack[cur];

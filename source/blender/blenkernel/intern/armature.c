@@ -1317,6 +1317,7 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 	pchan= pose->chanbase.first;
 	for(; pchan; pchan= pchan->next) {
 		if(pchan->bone->layer & layer_protected) {
+			ListBase proxylocal_constraints = {NULL, NULL};
 			pchanp= get_pose_channel(frompose, pchan->name);
 			
 			/* copy posechannel to temp, but restore important pointers */
@@ -1327,9 +1328,16 @@ static void pose_proxy_synchronize(Object *ob, Object *from, int layer_protected
 			pchanw.child= pchan->child;
 			pchanw.path= NULL;
 			
-			/* constraints, set target ob pointer to own object */
+			/* constraints - proxy constraints are flushed... local ones are added after 
+			 *	1. extract constraints not from proxy (CONSTRAINT_PROXY_LOCAL) from pchan's constraints
+			 *	2. copy proxy-pchan's constraints on-to new
+			 *	3. add extracted local constraints back on top 
+			 */
+			extract_proxylocal_constraints(&proxylocal_constraints, &pchan->constraints);
 			copy_constraints(&pchanw.constraints, &pchanp->constraints);
+			addlisttolist(&pchanw.constraints, &proxylocal_constraints);
 			
+			/* constraints - set target ob pointer to own object */
 			for (con= pchanw.constraints.first; con; con= con->next) {
 				bConstraintTypeInfo *cti= constraint_get_typeinfo(con);
 				ListBase targets = {NULL, NULL};

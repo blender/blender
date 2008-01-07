@@ -1498,7 +1498,7 @@ static TStripElem* do_build_seq_array_recursively(
 			break;
 		}
 
-		sh = get_sequence_blend(seq_arr[i]);
+		sh = get_sequence_blend(seq);
 
 		seq->facf0 = seq->facf1 = 1.0;
 
@@ -1543,9 +1543,13 @@ static TStripElem* do_build_seq_array_recursively(
 					(short)seqrectx, (short)seqrecty, 
 					32, IB_rect, 0);
 			}
+			if (i == 0) {
+				se->ibuf_comp = se->ibuf;
+				IMB_refImBuf(se->ibuf_comp);
+			}
 			break;
 		}
-		
+	
 		if (se->ibuf_comp) {
 			break;
 		}
@@ -1564,6 +1568,7 @@ static TStripElem* do_build_seq_array_recursively(
 		case 0: {
 			int x= se2->ibuf->x;
 			int y= se2->ibuf->y;
+			int swap_input = FALSE;
 
 			if (se1->ibuf_comp->rect_float ||
 			    se2->ibuf->rect_float) {
@@ -1588,16 +1593,33 @@ static TStripElem* do_build_seq_array_recursively(
 
 			if (!se1->ibuf_comp->rect && 
 			    !se2->ibuf_comp->rect_float) {
-				IMB_rect_from_float(se1->ibuf);
+				IMB_rect_from_float(se1->ibuf_comp);
 			}
 			if (!se2->ibuf->rect && 
 			    !se2->ibuf_comp->rect_float) {
 				IMB_rect_from_float(se2->ibuf);
 			}
 
-			sh.execute(seq, cfra, seq->facf0, seq->facf1, x, y, 
-				   se1->ibuf_comp, se2->ibuf, 0,
-				   se2->ibuf_comp);
+			/* bad hack, to fix crazy input ordering of 
+			   those two effects */
+
+			if (seq->blend_mode == SEQ_ALPHAOVER ||
+			    seq->blend_mode == SEQ_ALPHAUNDER ||
+			    seq->blend_mode == SEQ_OVERDROP) {
+				swap_input = TRUE;
+			}
+
+			if (swap_input) {
+				sh.execute(seq, cfra, 
+					   seq->facf0, seq->facf1, x, y, 
+					   se2->ibuf, se1->ibuf_comp, 0,
+					   se2->ibuf_comp);
+			} else {
+				sh.execute(seq, cfra, 
+					   seq->facf0, seq->facf1, x, y, 
+					   se1->ibuf_comp, se2->ibuf, 0,
+					   se2->ibuf_comp);
+			}
 			
 			IMB_cache_limiter_insert(se2->ibuf_comp);
 			IMB_cache_limiter_ref(se2->ibuf_comp);

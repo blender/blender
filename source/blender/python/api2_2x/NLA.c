@@ -805,7 +805,8 @@ static int ActionStrip_setBlendMode( BPy_ActionStrip * self, PyObject * value )
  */
 
 #define ACTIONSTRIP_MASK (ACTSTRIP_SELECT | ACTSTRIP_USESTRIDE \
-		| ACTSTRIP_HOLDLASTFRAME | ACTSTRIP_ACTIVE | ACTSTRIP_LOCK_ACTION)
+		| ACTSTRIP_HOLDLASTFRAME | ACTSTRIP_ACTIVE | ACTSTRIP_LOCK_ACTION \
+		| ACTSTRIP_MUTE)
 
 static PyObject *ActionStrip_getFlag( BPy_ActionStrip * self )
 {
@@ -1181,6 +1182,8 @@ static PyObject *M_ActionStrip_FlagsDict( void )
 				PyInt_FromLong( ACTSTRIP_ACTIVE ) );
 		PyConstant_Insert( d, "LOCK_ACTION",
 				PyInt_FromLong( ACTSTRIP_LOCK_ACTION ) );
+		PyConstant_Insert( d, "MUTE",
+				PyInt_FromLong( ACTSTRIP_MUTE ) );
 	}
 	return S;
 }

@@ -2310,7 +2310,7 @@ int Rotation(TransInfo *t, short mval[2])
 	dphi = saacos((float)deler);
 	if( (dx1*dy2-dx2*dy1)>0.0 ) dphi= -dphi;
 
-	if(G.qual & LR_SHIFTKEY) t->fac += dphi/30.0f;
+	if(t->flag & T_SHIFT_MOD) t->fac += dphi/30.0f;
 	else t->fac += dphi;
 
 	/*
@@ -2453,10 +2453,7 @@ int Trackball(TransInfo *t, short mval[2])
 	/* factore has to become setting or so */
 	phi[0]= 0.01f*(float)( t->imval[1] - mval[1] );
 	phi[1]= 0.01f*(float)( mval[0] - t->imval[0] );
-	
-	//if(G.qual & LR_SHIFTKEY) t->fac += dphi/30.0f;
-	//else t->fac += dphi;
-	
+		
 	snapGrid(t, phi);
 	
 	if (hasNumInput(&t->num)) {
@@ -2473,8 +2470,13 @@ int Trackball(TransInfo *t, short mval[2])
 	}
 	else {
 		sprintf(str, "Trackball: %.2f %.2f %s", 180.0*phi[0]/M_PI, 180.0*phi[1]/M_PI, t->proptext);
-	}
 	
+		if(t->flag & T_SHIFT_MOD) {
+			if(phi[0] != 0.0) phi[0]/= 5.0f;
+			if(phi[1] != 0.0) phi[1]/= 5.0f;
+		}
+	}
+
 	VecRotToMat3(axis1, phi[0], smat);
 	VecRotToMat3(axis2, phi[1], totmat);
 	

@@ -1333,7 +1333,7 @@ void psys_threads_free(ParticleThread *threads)
 	if(ctx->vg_rough1)
 		MEM_freeN(ctx->vg_rough1);
 	if(ctx->vg_rough2)
-		MEM_freeN(ctx->vg_roughe);
+		MEM_freeN(ctx->vg_rough2);
 	if(ctx->vg_roughe)
 		MEM_freeN(ctx->vg_roughe);
 
@@ -4247,7 +4247,8 @@ static void psys_update_path_cache(Object *ob, ParticleSystemModifierData *psmd,
 		/* for render, child particle paths are computed on the fly */
 		if(part->childtype) {
 			if(((psys->totchild!=0)) || (psys_in_edit_mode(psys) && (pset->flag&PE_SHOW_CHILD)))
-				psys_cache_child_paths(ob, psys, cfra, 0);
+				if(!(psys->part->type == PART_HAIR) || (psys->flag & PSYS_HAIR_DONE))
+					psys_cache_child_paths(ob, psys, cfra, 0);
 		}
 	}
 	else if(psys->pathcache)
@@ -4459,8 +4460,9 @@ static void system_step(Object *ob, ParticleSystem *psys, ParticleSystemModifier
 
 			distribute_particles(ob, psys, part->from);
 
-			if(get_alloc_child_particles_tot(psys))
-				distribute_particles(ob, psys, PART_FROM_CHILD);
+			if(!(psys->part->type == PART_HAIR) || (psys->flag & PSYS_HAIR_DONE))
+				if(get_alloc_child_particles_tot(psys))
+					distribute_particles(ob, psys, PART_FROM_CHILD);
 		}
 		initialize_all_particles(ob, psys, psmd);
 

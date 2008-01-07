@@ -244,6 +244,10 @@ static int key_inside_circle(short mco[2], float rad, float co[3], float *distan
 	short vertco[2];
 
 	project_short(co,vertco);
+	
+	if (vertco[0]==IS_CLIPPED)
+		return 0;
+	
 	dx=(float)(mco[0]-vertco[0]);
 	dy=(float)(mco[1]-vertco[1]);
 	dist=(float)sqrt((double)(dx*dx + dy*dy));
@@ -261,6 +265,9 @@ static int key_inside_rect(rcti *rect, float co[3])
 
 	project_short(co,vertco);
 
+	if (vertco[0]==IS_CLIPPED)
+		return 0;
+	
 	if(vertco[0] > rect->xmin && vertco[0] < rect->xmax &&
 			vertco[1] > rect->ymin && vertco[1] < rect->ymax)
 		return 1;
@@ -278,7 +285,10 @@ static int test_key_depth(float *co, bglMats *mats){
 			(GLint *)mats->viewport, &ux, &uy, &uz );
 
 	project_short(co,wco);
-
+	
+	if (wco[0]==IS_CLIPPED)
+		return 0;
+	
 	x=wco[0];
 	y=wco[1];
 
@@ -1453,7 +1463,7 @@ void PE_do_lasso_select(short mcords[][2], short moves, short select)
 				VECCOPY(co, key->co);
 				Mat4MulVecfl(mat, co);
 				project_short(co,vertco);
-				if(lasso_inside(mcords,moves,vertco[0],vertco[1])){
+				if((vertco[0] != IS_CLIPPED) && lasso_inside(mcords,moves,vertco[0],vertco[1])){
 					if(select && !(key->flag & PEK_SELECT)) {
 						key->flag|=PEK_SELECT;
 						pa->flag |= PARS_EDIT_RECALC;
@@ -1471,7 +1481,7 @@ void PE_do_lasso_select(short mcords[][2], short moves, short select)
 			VECCOPY(co, key->co);
 			Mat4MulVecfl(mat, co);
 			project_short(co,vertco);
-			if(lasso_inside(mcords,moves,vertco[0],vertco[1])){
+			if((vertco[0] != IS_CLIPPED) && lasso_inside(mcords,moves,vertco[0],vertco[1])){
 				if(select && !(key->flag & PEK_SELECT)) {
 					key->flag|=PEK_SELECT;
 					pa->flag |= PARS_EDIT_RECALC;
@@ -2018,7 +2028,7 @@ static void brush_cut(ParticleSystem *psys, int index, void *userData)
 
 	cut=0;
 
-	project_short(key->co, vertco);
+	project_short_noclip(key->co, vertco);
 	x0 = (float)vertco[0];
 	x1 = (float)vertco[1];
 
@@ -2036,7 +2046,7 @@ static void brush_cut(ParticleSystem *psys, int index, void *userData)
 	else {
 		/* calculate path time closest to root that was inside the circle */
 		for(k=1, key++; k<=keys; k++, key++){
-			project_short(key->co, vertco);
+			project_short_noclip(key->co, vertco);
 
 			v0 = (float)vertco[0] - x0;
 			v1 = (float)vertco[1] - x1;
