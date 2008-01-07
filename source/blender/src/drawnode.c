@@ -22,7 +22,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): David Millan Escriva, Juho Vepsäläinen
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -1047,12 +1047,41 @@ static int node_composit_buts_renderlayers(uiBlock *block, bNodeTree *ntree, bNo
 	return 19;
 }
 
+static void node_blur_relative_cb(void *node, void *poin2)
+{
+	bNode *nodev= node;
+	NodeBlurData *nbd= nodev->storage;
+	if(nbd->image_in_width != 0){
+		if(nbd->relative){ /* convert absolute values to relative */
+			nbd->percentx= (float)(nbd->sizex)/nbd->image_in_width;
+			nbd->percenty= (float)(nbd->sizey)/nbd->image_in_height;
+		}else{ /* convert relative values to absolute */
+			nbd->sizex= (int)(nbd->percentx*nbd->image_in_width);
+			nbd->sizey= (int)(nbd->percenty*nbd->image_in_height);
+		}
+	}
+	allqueue(REDRAWNODE, 0);
+}
+static void node_blur_update_sizex_cb(void *node, void *poin2)
+{
+	bNode *nodev= node;
+	NodeBlurData *nbd= nodev->storage;
+
+	nbd->sizex= (int)(nbd->percentx*nbd->image_in_width);
+}
+static void node_blur_update_sizey_cb(void *node, void *poin2)
+{
+	bNode *nodev= node;
+	NodeBlurData *nbd= nodev->storage;
+
+	nbd->sizey= (int)(nbd->percenty*nbd->image_in_height);
+}
 static int node_composit_buts_blur(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
 		NodeBlurData *nbd= node->storage;
 		uiBut *bt;
-		short dy= butr->ymin+38;
+		short dy= butr->ymin+58;
 		short dx= (butr->xmax-butr->xmin)/2;
 		char str[256];
 		
@@ -1074,12 +1103,30 @@ static int node_composit_buts_blur(uiBlock *block, bNodeTree *ntree, bNode *node
 			uiBlockBeginAlign(block);
 		}
 		dy-=19;
-		bt=uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "X:",
-					 butr->xmin, dy, dx, 19, 
-					 &nbd->sizex, 0, 256, 0, 0, "");
-		bt=uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Y:",
-					 butr->xmin+dx, dy, dx, 19, 
-					 &nbd->sizey, 0, 256, 0, 0, "");
+		bt= uiDefButS(block, TOG, B_NOP, "Relative",
+				  butr->xmin, dy, dx*2, 19,
+				  &nbd->relative, 0, 0, 0, 0, "Use relative (percent) values to define blur radius");
+		uiButSetFunc(bt, node_blur_relative_cb, node, NULL);
+
+		dy-=19;
+		if(nbd->relative) {
+			bt= uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "X:",
+						 butr->xmin, dy, dx, 19, 
+						 &nbd->percentx, 0.0f, 1.0f, 0, 0, "");
+			uiButSetFunc(bt, node_blur_update_sizex_cb, node, NULL);
+			bt= uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "Y:",
+						 butr->xmin+dx, dy, dx, 19, 
+						 &nbd->percenty, 0.0f, 1.0f, 0, 0, "");
+			uiButSetFunc(bt, node_blur_update_sizey_cb, node, NULL);
+		}
+		else {
+			uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "X:",
+						 butr->xmin, dy, dx, 19, 
+						 &nbd->sizex, 0, 256, 0, 0, "");
+			uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Y:",
+						 butr->xmin+dx, dy, dx, 19, 
+						 &nbd->sizey, 0, 256, 0, 0, "");
+		}
 		uiBlockEndAlign(block);
 	}
 	return 57;
