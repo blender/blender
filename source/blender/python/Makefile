@@ -1,12 +1,12 @@
 #
-# $Id$
+# $Id: Makefile
 #
 # ***** BEGIN GPL LICENSE BLOCK *****
 #
 # This program is free software; you can redistribute it and/or
 # modify it under the terms of the GNU General Public License
 # as published by the Free Software Foundation; either version 2
-# of the License, or (at your option) any later version.
+# of the License, or (at your option) any later version. 
 #
 # This program is distributed in the hope that it will be useful,
 # but WITHOUT ANY WARRANTY; without even the implied warranty of
@@ -17,7 +17,7 @@
 # along with this program; if not, write to the Free Software Foundation,
 # Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
 #
-# The Original Code is Copyright (C) 2001-2002 by NaN Holding BV.
+# The Original Code is Copyright (C) Blender Foundation.
 # All rights reserved.
 #
 # The Original Code is: all of this file.
@@ -26,26 +26,9 @@
 #
 # ***** END GPL LICENSE BLOCK *****
 #
-#
+# Bounces make to subdirectories.
 
-include nan_definitions.mk
-
-DIRS = windowmanager editors blenloader readblenfile
-DIRS += avi imbuf render radiosity blenlib blenkernel blenpluginapi
-DIRS += nodes
-DIRS += makesdna yafray
-DIRS += python
-
-ifeq ($(INTERNATIONAL), true)
-	DIRS += ftfont
-endif
-
-ifeq ($(WITH_QUICKTIME), true)
-	DIRS += quicktime
-endif
-
-DIR = $(OCGDIR)/blender
-SOURCEDIR = source/blender
-TESTDIRS = deflate streamglue
+SOURCEDIR = source/blender/python
+DIRS = intern
 
 include nan_subdirs.mk
