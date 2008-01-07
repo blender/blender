@@ -1496,7 +1496,7 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	float loc[3],loc1[3],loc0[3],vel[3],mat[4][4],nmat[3][3],co[3],nor[3],time;
 	float *orco=0,*surfnor=0,*uvco=0, strandlen=0.0f, curlen=0.0f;
 	float hasize, pa_size, pa_time, r_tilt, cfra=bsystem_time(ob,(float)CFRA,0.0);
-	float loc_tex[3], size_tex[3], adapt_angle=0.0, adapt_pix=0.0, random;
+	float adapt_angle=0.0, adapt_pix=0.0, random;
 	float simplify[2];
 	int i, a, k, max_k=0, totpart, totuv=0, override_uv=-1, dosimplify = 0;
 	int path_possible=0, keys_possible=0, baked_keys=0, totchild=psys->totchild;
@@ -1607,8 +1607,6 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 	Mat3Transp(nmat);
 
 	totpart=psys->totpart;
-
-	mesh_get_texspace(ob->data, loc_tex, NULL, size_tex);
 
 	if(psys->pathcache){
 		path_possible=1;
@@ -1787,12 +1785,6 @@ static int render_new_particle_system(Render *re, ObjectRen *obr, ParticleSystem
 				cache = psys->childcache[a-totpart];
 				max_k = (int)cache->steps;
 			}
-		}
-
-		if(orco) {
-			orco[0] = (orco[0]-loc_tex[0])/size_tex[0];
-			orco[1] = (orco[1]-loc_tex[1])/size_tex[1];
-			orco[2] = (orco[2]-loc_tex[2])/size_tex[2];
 		}
 
 		/* surface normal shading setup */
