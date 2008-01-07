@@ -70,7 +70,6 @@ typedef struct View3D {
 	struct SpaceLink *next, *prev;
 	int spacetype;
 	float blockscale;
-	struct ScrArea *area;
 	
 	short blockhandler[8];
 

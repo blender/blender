@@ -33,31 +33,6 @@
 #define WM_HANDLER_BREAK	1
 
 
-/* each event should have full modifier state */
-/* event comes from eventmanager and from keymap */
-typedef struct wmEvent {
-	struct wmEvent *next, *prev;
-	
-	short type;		/* event code itself (short, is also in keymap) */
-	short val;		/* press, release, scrollvalue */
-	short x, y;		/* mouse pointer position */
-	short unicode;	/* future, ghost? */
-	char ascii;		/* from ghost */
-	char pad1;		
-	
-	/* modifier states */
-	short shift, ctrl, alt, oskey;	/* oskey is apple or windowskey, value denotes order of pressed */
-	short keymodifier;				/* rawkey modifier */
-	
-	/* keymap item, set by handler (weak?) */
-	const char *keymap_idname;
-	
-	/* custom data */
-	short custom;	/* custom data type, stylus, 6dof, see wm_event_types.h */
-	void *customdata;	/* ascii, unicode, mouse coords, angles, vectors, dragdrop info */
-	
-} wmEvent;
-
 /* wmKeyMap is in DNA_windowmanager.h, it's savable */
 
 typedef struct wmEventHandler {
@@ -73,9 +48,12 @@ typedef struct wmEventHandler {
 	
 } wmEventHandler;
 
+
 /* handler flag */
 		/* after this handler all others are ignored */
 #define WM_HANDLER_BLOCKING		1
+
+
 
 /* custom types for handlers, for signalling, freeing */
 enum {
@@ -84,14 +62,17 @@ enum {
 };
 
 
-void	wm_event_free_all	(wmWindow *win);
-wmEvent *wm_event_next		(wmWindow *win);
-void wm_event_free_handlers (ListBase *lb);
+void		wm_event_free_all		(wmWindow *win);
+wmEvent		*wm_event_next			(wmWindow *win);
+void		wm_event_free_handlers	(ListBase *lb);
 
 /* goes over entire hierarchy:  events -> window -> screen -> area -> region */
-void wm_event_do_handlers(bContext *C);
+void		wm_event_do_handlers	(bContext *C);
 
-void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata);
+void		wm_event_add_ghostevent(wmWindow *win, int type, void *customdata);
+
+void		wm_event_do_notifiers	(bContext *C);
+void		wm_draw_update			(bContext *C);
 
 #endif /* WM_EVENT_SYSTEM_H */
 

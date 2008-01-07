@@ -46,10 +46,13 @@
 #include "BIF_gl.h"
 
 #include "WM_api.h"
+#include "WM_types.h"
 #include "wm.h"
 #include "wm_window.h"
 #include "wm_subwindow.h"
 #include "wm_event_system.h"
+
+#include "ED_screen.h"
 
 /* the global to talk to ghost */
 GHOST_SystemHandle g_system= NULL;
@@ -140,12 +143,16 @@ wmWindow *wm_window_new(bContext *C, bScreen *screen)
 /* part of wm_window.c api */
 wmWindow *wm_window_copy(bContext *C, wmWindow *winorig)
 {
-	wmWindow *win= wm_window_new(C, winorig->screen); /* XXX need copy */
+	wmWindow *win= wm_window_new(C, winorig->screen);
 	
 	win->posx= winorig->posx+10;
 	win->posy= winorig->posy;
 	win->sizex= winorig->sizex;
 	win->sizey= winorig->sizey;
+	
+	win->screen= ED_screen_duplicate(win, win->screen);
+	win->screen->do_refresh= 1;
+	win->screen->do_draw= 1;
 	
 	return win;
 }
@@ -182,7 +189,7 @@ static void wm_window_close(bContext *C, wmWindow *win)
 	if(C->wm->windows.first==NULL)
 		WM_exit(C);
 }
-
+	
 static void wm_window_open(wmWindowManager *wm, char *title, wmWindow *win)
 {
 	GHOST_WindowHandle ghostwin;
@@ -217,16 +224,18 @@ static void wm_window_open(wmWindowManager *wm, char *title, wmWindow *win)
 		if(win->eventstate==NULL)
 			win->eventstate= MEM_callocN(sizeof(wmEvent), "window event state");
 		
-		/* add keymap handler (1 for all keys in map!) */
+		/* add keymap handlers (1 for all keys in map!) */
 		WM_event_add_keymap_handler(&wm->windowkeymap, &win->handlers);
+		WM_event_add_keymap_handler(&wm->screenkeymap, &win->handlers);
 		
 		/* until screens get drawn, make it nice grey */
 		glClearColor(.55, .55, .55, 0.0);
 		glClear(GL_COLOR_BUFFER_BIT);
 		wm_window_swap_buffers(win);
+
+		/* standard state vars for window */
+		glEnable(GL_SCISSOR_TEST);
 	}
-	
-	
 }
 
 /* for wmWindows without ghostwin, open these and clear */
@@ -300,13 +309,13 @@ void wm_window_make_drawable(bContext *C, wmWindow *win)
 		C->wm->windrawable= win;
 		C->window= win;
 		C->screen= win->screen;
-		
+		printf("set drawable %d\n", win->winid);
 		GHOST_ActivateWindowDrawingContext(win->ghostwin);
 	}
 }
 
 /* called by ghost, here we handle events for windows themselves or send to event system */
-int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private) 
+static int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private) 
 {
 	bContext *C= private;
 	GHOST_TEventType type= GHOST_GetEventType(evt);
@@ -346,7 +355,7 @@ int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 				win->active= 1;
 //				window_handle(win, INPUTCHANGE, win->active);
 				
-				/* bad ghost support for modifier keys... */
+				/* bad ghost support for modifier keys... so on activate we set the modifiers again */
 				kdata.ascii= 0;
 				if (win->eventstate->shift && !query_qual('s')) {
 					kdata.key= GHOST_kKeyLeftShift;
@@ -372,6 +381,7 @@ int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 				win->eventstate->x= cx;
 				win->eventstate->y= (win->sizey-1) - cy;
 				
+				wm_window_make_drawable(C, win);
 				break;
 			}
 			case GHOST_kEventWindowClose: {
@@ -379,14 +389,17 @@ int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 				break;
 			}
 			case GHOST_kEventWindowUpdate: {
-//				window_handle(win, REDRAW, 1);
+				printf("ghost redraw\n");
+				
+				wm_window_make_drawable(C, win);
+				WM_event_add_notifier(C->wm, win, 0, WM_NOTE_REDRAW, 0);
+
 				break;
 			}
 			case GHOST_kEventWindowSize:
 			case GHOST_kEventWindowMove: {
 				GHOST_RectangleHandle client_rect;
 				int l, t, r, b, scr_w, scr_h;
-				GHOST_TWindowState state;
 				
 				client_rect= GHOST_GetClientBounds(win->ghostwin);
 				GHOST_GetRectangle(client_rect, &l, &t, &r, &b);
@@ -399,24 +412,34 @@ int ghost_event_proc(GHOST_EventHandle evt, GHOST_TUserDataPtr private)
 				win->posx= l;
 				win->posy= scr_h - t - win->sizey;
 
-				if(type!=GHOST_kEventWindowSize)
-					printf("win move event pos %d %d size %d %d\n", win->posx, win->posy, win->sizex, win->sizey);
+				/* debug prints */
+				if(0) {
+					GHOST_TWindowState state;
+					state = GHOST_GetWindowState(win->ghostwin);
 
-				state = GHOST_GetWindowState(win->ghostwin);
-
-				if(state==GHOST_kWindowStateNormal)
-					printf("window state: normal\n");
-				else if(state==GHOST_kWindowStateMinimized)
-					printf("window state: minimized\n");
-				else if(state==GHOST_kWindowStateMaximized)
-					printf("window state: maximized\n");
-				else if(state==GHOST_kWindowStateFullScreen)
-					printf("window state: fullscreen\n");
+					if(state==GHOST_kWindowStateNormal)
+						printf("window state: normal\n");
+					else if(state==GHOST_kWindowStateMinimized)
+						printf("window state: minimized\n");
+					else if(state==GHOST_kWindowStateMaximized)
+						printf("window state: maximized\n");
+					else if(state==GHOST_kWindowStateFullScreen)
+						printf("window state: fullscreen\n");
+					
+					if(type!=GHOST_kEventWindowSize)
+						printf("win move event pos %d %d size %d %d\n", win->posx, win->posy, win->sizex, win->sizey);
+					
+				}
 				
-//				window_handle(win, RESHAPE, 1);
+				wm_window_make_drawable(C, win);
+				WM_event_add_notifier(C->wm, win, 0, WM_NOTE_REFRESH, 0);
+				WM_event_add_notifier(C->wm, win, 0, WM_NOTE_REDRAW, 0);
+				
 				break;
 			}
 			default:
+				if(type==GHOST_kEventKeyDown)
+					WM_event_add_notifier(C->wm, win, 0, WM_NOTE_REDRAW, 0);
 				wm_event_add_ghostevent(win, type, data);
 				break;
 		}

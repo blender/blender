@@ -60,9 +60,12 @@ typedef struct wmWindowManager {
 	
 	ListBase operators;		/* operator registry */
 	
+	ListBase queue;			/* refresh/redraw wmNotifier structs */
+	
 	/* custom keymaps */
 	ListBase windowkeymap;
 	ListBase screenkeymap;
+	
 	
 } wmWindowManager;
 
@@ -91,7 +94,8 @@ typedef struct wmWindow {
 	struct wmSubWindow *curswin;	/* internal for wm_subwindow.c only */
 	
 	ListBase queue;			/* all events (ghost level events were handled) */
-	ListBase handlers;		/* window handlers, overriding all queues */
+	ListBase handlers;		/* window+screen handlers, overriding all queues */
+	
 	ListBase subwindows;	/* opengl stuff for sub windows, see notes in wm_subwindow.c */
 	
 } wmWindow;

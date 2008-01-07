@@ -28,7 +28,7 @@
 #
 # Makes module object directory and bounces make to subdirectories.
 
-LIBNAME = ed_screen
+LIBNAME = ed_interface
 DIR = $(OCGDIR)/blender/$(LIBNAME)
 
 include nan_compile.mk

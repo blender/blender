@@ -3844,8 +3844,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 	link_list(fd, &(sc->edgebase));
 	link_list(fd, &(sc->areabase));
 	
-	sc->mainwin= sc->subwinactive= NULL;
-	sc->handlers.first= sc->handlers.last= NULL;
+	sc->mainwin= sc->subwinactive= 0;	/* indices */
 	
 	/* hacky patch... but people have been saving files with the verse-blender,
 	   causing the handler to keep running for ever, with no means to disable it */
@@ -3884,6 +3883,7 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 
 		sa->handlers.first= sa->handlers.last= NULL;
 		sa->uiblocks.first= sa->uiblocks.last= NULL;
+		sa->type= NULL;	/* spacetype callbacks */
 		
 		/* accident can happen when read/save new file with older version */
 		if(sa->spacedata.first==NULL && sa->spacetype>SPACE_NLA)
@@ -3944,7 +3944,8 @@ static void direct_link_screen(FileData *fd, bScreen *sc)
 		
 		for(ar= sa->regionbase.first; ar; ar= ar->next) {
 			ar->handlers.first= ar->handlers.last= NULL;
-			ar->subwin= NULL;
+			ar->swinid= 0;
+			ar->type= NULL;
 		}
 
 		sa->v1= newdataadr(fd, sa->v1);
@@ -4561,6 +4562,33 @@ static void do_version_ntree_242_2(bNodeTree *ntree)
 				}
 			}
 		}
+	}
+}
+
+static void do_versions_windowmanager_2_50(bScreen *screen)
+{
+	struct ScrArea *sa;
+	struct ARegion *ar;
+	
+	/* add regions */
+	for(sa= screen->areabase.first; sa; sa= sa->next) {
+		/* we keep headertype variable to convert old files only */
+		if(sa->headertype) {
+			ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
+			BLI_addtail(&sa->regionbase, ar);
+			ar->winrct= sa->headrct;
+			ar->regiontype= RGN_TYPE_HEADER;
+			ar->minsize= HEADERY;	// DNA_screen_types.h
+			if(sa->headertype==1)
+				ar->alignment= RGN_ALIGN_BOTTOM;
+			else
+				ar->alignment= RGN_ALIGN_TOP;
+		}
+		
+		ar= MEM_callocN(sizeof(ARegion), "area region from do_versions");
+		BLI_addtail(&sa->regionbase, ar);
+		ar->winrct= sa->winrct;
+		ar->regiontype= RGN_TYPE_WINDOW;
 	}
 }
 
@@ -7316,8 +7344,15 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 			}	
 		}
 	}
-
-	
+		
+		
+	if (main->versionfile < 250) {
+		bScreen *screen;
+		
+		for(screen= main->screen.first; screen; screen= screen->id.next)
+			do_versions_windowmanager_2_50(screen);
+	}
+		
 	/* WATCH IT!!!: pointers from libdata have not been converted yet here! */
 	/* WATCH IT 2!: Userdef struct init has to be in src/usiblender.c! */
 

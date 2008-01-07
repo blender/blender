@@ -30,10 +30,41 @@
 
 /* exported types for WM */
 
+#include "wm_cursors.h"
+#include "wm_event_types.h"
+
 /* ************** wmOperatorType ************************ */
 
 /* flag */
 #define OPTYPE_REGISTER		1
+
+/* ************** wmEvent ************************ */
+
+/* each event should have full modifier state */
+/* event comes from eventmanager and from keymap */
+typedef struct wmEvent {
+	struct wmEvent *next, *prev;
+	
+	short type;		/* event code itself (short, is also in keymap) */
+	short val;		/* press, release, scrollvalue */
+	short x, y;		/* mouse pointer position */
+	short unicode;	/* future, ghost? */
+	char ascii;		/* from ghost */
+	char pad1;		
+	
+	/* modifier states */
+	short shift, ctrl, alt, oskey;	/* oskey is apple or windowskey, value denotes order of pressed */
+	short keymodifier;				/* rawkey modifier */
+	
+	/* keymap item, set by handler (weak?) */
+	const char *keymap_idname;
+	
+	/* custom data */
+	short custom;	/* custom data type, stylus, 6dof, see wm_event_types.h */
+	void *customdata;	/* ascii, unicode, mouse coords, angles, vectors, dragdrop info */
+	
+} wmEvent;
+
 
 /* ************** wmKeyMap ************************ */
 
@@ -52,6 +83,27 @@
 #define KM_PRESS	2
 #define KM_RELEASE	1
 
+
+/* ************** notifiers ****************** */
+
+typedef struct wmNotifier {
+	struct wmNotifier *prev, *next;
+	
+	struct wmWindow *window;
+	
+	int swinid;
+	int type;
+	int value;
+	
+} wmNotifier;
+
+
+enum {
+	WM_NOTE_REDRAW,
+	WM_NOTE_REFRESH,
+	
+	WM_NOTE_LAST
+};
 
 /* ************** custom wmEvent data ************** */
 

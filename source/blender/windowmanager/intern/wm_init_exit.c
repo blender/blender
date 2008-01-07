@@ -74,6 +74,8 @@
 #include "wm_files.h"
 #include "wm_window.h"
 
+#include "ED_screen.h"
+
 static void initbuttons(void)
 {
 //	uiDefFont(UI_HELVB, 
@@ -116,6 +118,8 @@ void WM_init(bContext *C)
 	
 	set_free_windowmanager_cb(wm_close_and_free);	/* library.c */
 
+	ED_spacetypes_init();	/* editors/area/spacetype.c */
+		
 	/* get the default database, plus a wm */
 	WM_read_homefile(C, 0);
 	

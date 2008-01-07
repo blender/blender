@@ -135,7 +135,7 @@ void wm_subwindow_set(wmWindow *win, int swinid)
 	
 	win->curswin= swin;
 	wm_subwindow_getsize(win, &width, &height);
-	
+
 	glViewport(swin->winrct.xmin, swin->winrct.ymin, width, height);
 	glScissor(swin->winrct.xmin, swin->winrct.ymin, width, height);
 	
@@ -161,20 +161,22 @@ int wm_subwindow_open(wmWindow *win, rcti *winrct)
 			freewinid= swin->swinid+1;
 
 	win->curswin= swin= MEM_callocN(sizeof(wmSubWindow), "swinopen");
-
+	BLI_addtail(&win->subwindows, swin);
+	
+	printf("swin %d added\n", freewinid);
 	swin->swinid= freewinid;
 	swin->winrct= *winrct;
 
 	Mat4One(swin->viewmat);
 	Mat4One(swin->winmat);
 	
+	/* and we appy it all right away */
+	wm_subwindow_set(win, swin->swinid);
+	
 	/* extra service */
 	wm_subwindow_getsize(win, &width, &height);
 	wmOrtho2(win, -0.375, (float)width-0.375, -0.375, (float)height-0.375);
 	wmLoadIdentity(win);
-	
-	/* and we appy it all right away */
-	wm_subwindow_set(win, swin->swinid);
 
 	return swin->swinid;
 }
@@ -203,6 +205,8 @@ void wm_subwindow_position(wmWindow *win, int swinid, rcti *winrct)
 	wmSubWindow *swin= swin_from_swinid(win, swinid);
 	
 	if(swin) {
+		int width, height;
+		
 		swin->winrct= *winrct;
 		
 		/* CRITICAL, this clamping ensures that
@@ -222,6 +226,11 @@ void wm_subwindow_position(wmWindow *win, int swinid, rcti *winrct)
 			swin->winrct.xmax= win->sizex-1;
 		if (swin->winrct.ymax >= win->sizey)
 			swin->winrct.ymax= win->sizey-1;
+		
+		/* extra service */
+		wm_subwindow_set(win, swinid);
+		wm_subwindow_getsize(win, &width, &height);
+		wmOrtho2(win, -0.375, (float)width-0.375, -0.375, (float)height-0.375);
 	}
 	else {
 		printf("wm_subwindow_position: Internal error, bad winid: %d\n", swinid);
@@ -231,10 +240,6 @@ void wm_subwindow_position(wmWindow *win, int swinid, rcti *winrct)
 /* ---------------- WM versions of OpenGL calls, using glBlah() syntax ------------------------ */
 /* ----------------- exported in WM_api.h ------------------------------------------------------ */
 
-int glaGetOneInteger(int a)
-{
-	return 0; // XXX
-}
 
 void wmLoadMatrix(wmWindow *win, float mat[][4])
 {
@@ -473,8 +478,8 @@ void myswapbuffers(void)	/* XXX */
 	
 	sa= G.curscreen->areabase.first;
 	while(sa) {
-		if(sa->win_swap==WIN_BACK_OK) sa->win_swap= WIN_FRONT_OK;
-		if(sa->head_swap==WIN_BACK_OK) sa->head_swap= WIN_FRONT_OK;
+//		if(sa->win_swap==WIN_BACK_OK) sa->win_swap= WIN_FRONT_OK;
+//		if(sa->head_swap==WIN_BACK_OK) sa->head_swap= WIN_FRONT_OK;
 		
 		sa= sa->next;
 	}

@@ -37,15 +37,15 @@ CFLAGS += $(LEVEL_1_C_WARNINGS)
 
 CPPFLAGS += -I$(OPENGL_HEADERS)
 
-CPPFLAGS += -I$(NAN_BMFONT)/include
-CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
-
+# not very neat....
 CPPFLAGS += -I../../windowmanager
-CPPFLAGS += -I../../blenkernel
 CPPFLAGS += -I../../blenloader
+CPPFLAGS += -I../../blenkernel
 CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../makesdna
 CPPFLAGS += -I../../imbuf
+CPPFLAGS += -I../../python
+CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 
 # own include 
 

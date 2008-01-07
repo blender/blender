@@ -17,7 +17,7 @@
  * along with this program; if not, write to the Free Software Foundation,
  * Inc., 59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.
  *
- * The Original Code is Copyright (C) 2007 Blender Foundation.
+ * The Original Code is Copyright (C) 2008 Blender Foundation.
  * All rights reserved.
  *
  * 
@@ -25,22 +25,19 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef WM_H
-#define WM_H
+#ifndef ED_SCREEN_INTERN_H
+#define ED_SCREEN_INTERN_H
 
-extern void wm_close_and_free(bContext *C, wmWindowManager *);
-extern void wm_close_and_free_all(bContext *C, ListBase *);
+/* internal exports only */
+struct wmOperator;
+struct wmEvent;
 
-extern void wm_add_default(bContext *C);
-extern void wm_check(bContext *C);
-			
-			/* register to windowmanager for redo or macro */
-void		wm_operator_register(wmWindowManager *wm, wmOperator *ot);
+/* area.c */
+void area_copy_data(ScrArea *sa1, ScrArea *sa2, int swap_space);
 
-/* wm_operator.c, for init/exit */
-void wm_operatortype_free(void);
-void wm_operatortype_init(void);
+/* screen_edit.c */
+int screen_cursor_test(bContext *C, struct wmOperator *op, struct wmEvent *event);
 
 
-#endif /* WM_H */
+#endif /* ED_SCREEN_INTERN_H */
 

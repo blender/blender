@@ -43,6 +43,9 @@
 #include "BKE_blender.h"
 #include "BKE_global.h"
 
+#include "ED_screen.h"
+#include "ED_area.h"
+
 #include "WM_api.h"
 #include "WM_types.h"
 #include "wm.h"
@@ -81,6 +84,122 @@ void wm_event_free_all(wmWindow *win)
 	while((event= win->queue.first)) {
 		BLI_remlink(&win->queue, event);
 		wm_event_free(event);
+	}
+}
+
+/* ********************* notifiers, listeners *************** */
+
+/* win and swinid are optional context limitors */
+void WM_event_add_notifier(wmWindowManager *wm, wmWindow *window, int swinid, int type, int value)
+{
+	wmNotifier *note= MEM_callocN(sizeof(wmNotifier), "notifier");
+	
+	BLI_addtail(&wm->queue, note);
+	
+	note->window= window;
+	note->swinid= swinid;
+	note->type= type;
+	note->value= value;
+}
+
+static wmNotifier *wm_notifier_next(wmWindowManager *wm)
+{
+	wmNotifier *note= wm->queue.first;
+	
+	if(note) BLI_remlink(&wm->queue, note);
+	return note;
+}
+
+/* called in mainloop */
+void wm_event_do_notifiers(bContext *C)
+{
+	wmNotifier *note;
+	
+	while( (note=wm_notifier_next(C->wm)) ) {
+		wmWindow *win;
+		
+		for(win= C->wm->windows.first; win; win= win->next) {
+			ScrArea *sa;
+			
+			if(note->window && note->window!=win)
+				continue;
+			if(win->screen==NULL)
+				continue;
+			printf("notifier win %d screen %s\n", win->winid, win->screen->id.name+2);
+			ED_screen_do_listen(win->screen, note);
+			
+			for(sa= win->screen->areabase.first; sa; sa= sa->next) {
+				ARegion *ar= sa->regionbase.first;
+				
+				for(; ar; ar= ar->next) {
+					if(note->swinid && note->swinid!=ar->swinid)
+						continue;
+					ED_region_do_listen(ar, note);
+				}
+			}
+		}
+		MEM_freeN(note);
+	}	
+}
+
+/* quick test to prevent changing window drawable */
+static int wm_draw_update_test_window(wmWindow *win)
+{
+	ScrArea *sa;
+	
+	if(win->screen->do_refresh)
+		return 1;
+	if(win->screen->do_draw)
+		return 1;
+	
+	for(sa= win->screen->areabase.first; sa; sa= sa->next) {
+		ARegion *ar= sa->regionbase.first;
+		
+		for(; ar; ar= ar->next) {
+			/* cached notifiers */
+			if(ar->do_refresh)
+				return 1;
+			if(ar->swinid && ar->do_draw)
+				return 1;
+		}
+	}
+	return 0;
+}
+
+void wm_draw_update(bContext *C)
+{
+	wmWindow *win;
+	
+	for(win= C->wm->windows.first; win; win= win->next) {
+		if(wm_draw_update_test_window(win)) {
+			ScrArea *sa;
+			
+			/* sets context window+screen */
+			wm_window_make_drawable(C, win);
+			
+			/* notifiers for screen redraw */
+			if(win->screen->do_refresh)
+				ED_screen_refresh(C->wm, win);
+			if(win->screen->do_draw)
+				ED_screen_draw(win);
+			
+			for(sa= win->screen->areabase.first; sa; sa= sa->next) {
+				ARegion *ar= sa->regionbase.first;
+				int hasdrawn= 0;
+				
+				for(; ar; ar= ar->next) {
+					hasdrawn |= ar->do_draw;
+					
+					/* cached notifiers */
+					if(ar->do_refresh)
+						ED_region_do_refresh(C, ar);
+					
+					if(ar->swinid && ar->do_draw)
+						ED_region_do_draw(C, ar);
+				}
+			}
+			wm_window_swap_buffers(win);
+		}
 	}
 }
 
@@ -144,7 +263,7 @@ static int wm_handler_operator_call(bContext *C, wmEventHandler *handler, wmEven
 					retval= op.type->exec(C, &op);
 				
 				if( ot->flag & OPTYPE_REGISTER)
-					WM_operator_register(C->wm, &op);
+					wm_operator_register(C->wm, &op);
 			}
 		}
 	}
@@ -190,10 +309,7 @@ static int wm_event_inside_i(wmEvent *event, rcti *rect)
 {
 	return BLI_in_rcti(rect, event->x, event->y);
 }
-//static int wm_event_inside_f(wmEvent *event, rctf *rect)
-//{
-//	return BLI_in_rctf(rect, (float)event->x, (float)event->y);
-//}
+
 
 /* called in main loop */
 /* goes over entire hierarchy:  events -> window -> screen -> area -> region */
@@ -204,21 +320,20 @@ void wm_event_do_handlers(bContext *C)
 	for(win= C->wm->windows.first; win; win= win->next) {
 		wmEvent *event;
 		
-		/* MVC demands to not draw in event handlers... for now we leave it */
-		/* it also updates context (win, screen) */
-		wm_window_make_drawable(C, win);
+		if( win->screen==NULL )
+			wm_event_free_all(win);
 		
-		if( C->screen==NULL )
-			wm_event_free_all(C->window);
-		
-		while( (event=wm_event_next(C->window)) ) {
-			int action= wm_handlers_do(C, event, &C->window->handlers);
+		while( (event=wm_event_next(win)) ) {
+			int action;
 			
-			if(action==WM_HANDLER_CONTINUE)
-				action= wm_handlers_do(C, event, &C->screen->handlers);
+			/* MVC demands to not draw in event handlers... for now we leave it */
+			/* it also updates context (win, screen) */
+			wm_window_make_drawable(C, win);
+			
+			action= wm_handlers_do(C, event, &win->handlers);
 			
 			if(action==WM_HANDLER_CONTINUE) {
-				ScrArea *sa= C->screen->areabase.first;
+				ScrArea *sa= win->screen->areabase.first;
 				
 				for(; sa; sa= sa->next) {
 					if(wm_event_inside_i(event, &sa->winrct)) {
@@ -395,7 +510,7 @@ void wm_event_add_ghostevent(wmWindow *win, int type, void *customdata)
 			if(win->active) {
 				GHOST_TEventCursorData *cd= customdata;
 				int cx, cy;
-				
+
 				GHOST_ScreenToClient(win->ghostwin, cd->x, cd->y, &cx, &cy);
 				
 				event.type= MOUSEMOVE;

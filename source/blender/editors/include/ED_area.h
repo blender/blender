@@ -28,15 +28,14 @@
 #ifndef ED_AREA_H
 #define ED_AREA_H
 
+/* the pluginnable API for export to editors */
 
-#include "DNA_screen_types.h"
-#include "DNA_space_types.h"
-#include "DNA_view2d_types.h"
-#include "DNA_view3d_types.h"
 
-void freespacelist(ScrArea *sa);
-void duplicatespacelist(ScrArea *newarea, struct ListBase *lb1, struct ListBase *lb2);
+/* calls for registering default spaces */
+void ED_spacetype_view3d(void);
 
+/* calls for registoering operator types */
+void ED_operatortypes_screen(void);
 
 
 #endif /* ED_AREA_H */

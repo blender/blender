@@ -63,7 +63,10 @@ void		WM_keymap_verify_item(ListBase *lb, char *idname, short type,
 								 short val, int modifier, short keymodifier);
 struct wmEventHandler *WM_event_add_keymap_handler(ListBase *keymap, ListBase *handlers);
 struct wmEventHandler *WM_event_add_modal_keymap_handler(ListBase *keymap, ListBase *handlers, wmOperator *op);
-			
+
+void		WM_event_add_notifier(wmWindowManager *wm, wmWindow *window, int swinid, int type, int value);
+
+
 			/* operator api, default callbacks */
 			/* confirm menu + exec */
 int			WM_operator_confirm		(struct bContext *C, struct wmOperator *op, struct wmEvent *event);
@@ -72,7 +75,7 @@ int			WM_operator_winactive	(struct bContext *C);
 
 			/* operator api */
 wmOperatorType *WM_operatortype_find(const char *idname);
-void		WM_operator_register(wmWindowManager *wm, wmOperator *ot);
+void		WM_operatortypelist_append(ListBase *lb);
 
 			/* OpenGL wrappers, mimicing opengl syntax */
 void		wmLoadMatrix		(wmWindow *win, float mat[][4]);

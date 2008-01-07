@@ -59,20 +59,18 @@ struct FileList;
 	 * are derived (implicitly) from. Would be
 	 * good to make this explicit.
 	 */
-typedef struct SpaceLink SpaceLink;
-struct SpaceLink {
-	SpaceLink *next, *prev;
+
+typedef struct SpaceLink {
+	struct SpaceLink *next, *prev;
 	int spacetype;
 	float blockscale;
-	struct ScrArea *area;
 	short blockhandler[8];
-};
+} SpaceLink;
 
 typedef struct SpaceInfo {
 	SpaceLink *next, *prev;
 	int spacetype;
 	float blockscale;
-	struct ScrArea *area;
 
 	short blockhandler[8];
 } SpaceInfo;
@@ -81,7 +79,6 @@ typedef struct SpaceIpo {
 	SpaceLink *next, *prev;
 	int spacetype;
 	float blockscale;
-	struct ScrArea *area;
 
 	short blockhandler[8];
 	
@@ -109,7 +106,6 @@ typedef struct SpaceButs {
 	SpaceLink *next, *prev;
 	int spacetype;
 	float blockscale;
-	struct ScrArea *area;
 	struct RenderInfo *ri;
 
 	short blockhandler[8];
@@ -141,7 +137,6 @@ typedef struct SpaceSeq {
 	SpaceLink *next, *prev;
 	int spacetype;
 	float blockscale;
-	struct ScrArea *area;
 
 	short blockhandler[8];
 
@@ -159,7 +154,6 @@ typedef struct SpaceFile {
 	SpaceLink *next, *prev;
 	int spacetype;
 	float blockscale;
-	struct ScrArea *area;
 	
 	short blockhandler[8];
 
@@ -194,7 +188,6 @@ typedef struct SpaceOops {
 	SpaceLink *next, *prev;
 	int spacetype;
 	float blockscale;
-	struct ScrArea *area;
 
 	short blockhandler[8];
 
@@ -221,7 +214,6 @@ typedef struct SpaceImage {
 	SpaceLink *next, *prev;
 	int spacetype;
 	float blockscale;
-	struct ScrArea *area;
 
 	short blockhandler[8];
 
@@ -254,7 +246,6 @@ typedef struct SpaceNla {
 	struct SpaceLink *next, *prev;
 	int spacetype;
 	float blockscale;
-	struct ScrArea *area;
 
 	short blockhandler[8];
 
@@ -269,7 +260,6 @@ typedef struct SpaceText {
 	SpaceLink *next, *prev;
 	int spacetype;
 	float blockscale;
-	struct ScrArea *area;
 
 	short blockhandler[8];
 
@@ -298,7 +288,6 @@ typedef struct SpaceScript {
 	SpaceLink *next, *prev;
 	int spacetype;
 	float blockscale;
-	struct ScrArea *area;
 	struct Script *script;
 
 	short flags, menunr;
@@ -311,7 +300,6 @@ typedef struct SpaceTime {
 	SpaceLink *next, *prev;
 	int spacetype;
 	float blockscale;
-	struct ScrArea *area;
 	
 	View2D v2d;
 	
@@ -323,7 +311,6 @@ typedef struct SpaceNode {
 	SpaceLink *next, *prev;
 	int spacetype;
 	float blockscale;
-	struct ScrArea *area;
 	
 	View2D v2d;
 	
@@ -347,7 +334,6 @@ typedef struct SpaceImaSel {
 	SpaceLink *next, *prev;
 	int spacetype;
 	float blockscale;
-	struct ScrArea *area;
 	
 	short blockhandler[8];
 

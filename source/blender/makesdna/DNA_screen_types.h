@@ -35,24 +35,30 @@
 #include "DNA_scriptlink_types.h"
 
 struct Scene;
-struct wmSubWindow;
+struct SpaceType;
+struct SpaceLink;
+struct ARegionType;
+struct bContext;
+struct wmNotifier;
+struct wmWindowManager;
+		
 
 typedef struct bScreen {
 	ID id;
 	
 	ListBase vertbase, edgebase, areabase;
 	struct Scene *scene;
-	short startx, endx, starty, endy;	/* framebuffer coords */
-	short sizex, sizey;
+	
 	short scenenr, screennr;			/* only for pupmenu */
+	
 	short full, winid;					/* winid from WM, starts with 1 */
-	int pad;
-	short handler[8];					/* similar to space handler now */
+	short do_draw;						/* notifier for drawing edges */
+	short do_refresh;					/* notifier for scale screen, changed screen, etc */
 	
-	struct wmSubWindow *mainwin;		/* screensize subwindow, for screenedges */
-	struct wmSubWindow *subwinactive;	/* active subwindow */
+	short mainwin;						/* screensize subwindow, for screenedges and global menus */
+	short subwinactive;					/* active subwindow */
 	
-	ListBase handlers;					/* wmEventHandler */
+	short handler[8];					/* similar to space handler */
 } bScreen;
 
 typedef struct ScrVert {
@@ -100,21 +106,21 @@ typedef struct ScrArea {
 	
 	ScrVert *v1, *v2, *v3, *v4;
 	bScreen *full;			/* if area==full, this is the parent */
-	float winmat[4][4];
-	rcti totrct, headrct, winrct;
 
-	int pad;
-	short headertype;		/* 0=no header, 1= down, 2= up */
-	char spacetype, butspacetype;	/* SPACE_...  */
-	short winx, winy;		/* size */
-	char head_swap, head_equal;
-	char win_swap, win_equal;
+	rcti totrct;			/* rect bound by v1 v2 v3 v4 */
+	rcti headrct, winrct;	/* OLD! gets converted to region */
+
+	char spacetype, butspacetype;	/* SPACE_..., butspacetype is button arg  */
+	short winx, winy;				/* size */
 	
-	short headbutlen, headbutofs;
+	short headertype;				/* OLD! 0=no header, 1= down, 2= up */
+	short headbutlen, headbutofs;	/* OLD! */
 	short cursor, flag;
 
 	ScriptLink scriptlink;
-
+	
+	struct SpaceType *type;		/* callbacks for this space type */
+	
 	ListBase spacedata;
 	ListBase uiblocks;
 	ListBase panels;
@@ -126,13 +132,24 @@ typedef struct ARegion {
 	struct ARegion *next, *prev;
 	
 	rcti winrct;
-	struct wmSubWindow *subwin;
+	short swinid;
+	short regiontype;			/* window, header, etc. identifier for drawing */
+	short alignment;			/* how it should split */
+	short size;					/* current split size in pixels */
+	short minsize;				/* set by spacedata's region init */
+	short flag;					/* hide, ... */
+	
+	float fsize;				/* current split size in float */
+	
+	int pad;
+	short do_draw, do_refresh;	/* cached notifier events */
+	
+	struct ARegionType *type;	/* callbacks for this region type */
 	
 	ListBase handlers;
 	
 } ARegion;
 
-#define MAXWIN		128
 
 /* area->flag */
 #define HEADER_NO_PULLDOWN	1
@@ -181,6 +198,24 @@ typedef struct ARegion {
 #define SCREEN_HANDLER_ANIM		1
 #define SCREEN_HANDLER_PYTHON   2
 #define SCREEN_HANDLER_VERSE	3
+
+/* regiontype, first two are the default set */
+#define RGN_TYPE_WINDOW		0
+#define RGN_TYPE_HEADER		1
+
+/* region alignment */
+#define RGN_ALIGN_NONE		0
+#define RGN_ALIGN_TOP		1
+#define RGN_ALIGN_BOTTOM	2
+#define RGN_ALIGN_LEFT		3
+#define RGN_ALIGN_RIGHT		4
+#define RGN_ALIGN_HSPLIT	5
+#define RGN_ALIGN_VSPLIT	6
+
+/* region flag */
+#define RGN_FLAG_HIDDEN		1
+#define RGN_FLAG_TOO_SMALL	2
+
 
 #endif
 

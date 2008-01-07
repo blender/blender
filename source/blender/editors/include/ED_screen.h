@@ -29,6 +29,33 @@
 #define ED_SCREEN_H
 
 #include "DNA_screen_types.h"
+#include "DNA_space_types.h"
+#include "DNA_view2d_types.h"
+#include "DNA_view3d_types.h"
+
+struct wmWindowManager;
+struct wmWindow;
+struct wmNotifier;
+
+/* regions */
+void	ED_region_do_listen(ARegion *ar, struct wmNotifier *note);
+void	ED_region_do_draw(struct bContext *C, ARegion *ar);
+void	ED_region_do_refresh(struct bContext *C, ARegion *ar);
+
+/* spaces */
+void	ED_spacetypes_init(void);
+
+/* areas */
+void	ED_area_initialize(struct wmWindowManager *wm, struct wmWindow *win, struct ScrArea *sa);
+
+/* screens */
+void	ED_screens_initialize(struct wmWindowManager *wm);
+void	ED_screen_draw(struct wmWindow *win);
+void	ED_screen_refresh(struct wmWindowManager *wm, struct wmWindow *win);
+void	ED_screen_do_listen(bScreen *screen, struct wmNotifier *note);
+bScreen *ED_screen_duplicate(struct wmWindow *win, bScreen *sc);
+
+void	ed_screen_keymap(struct wmWindowManager *wm);
 
 #endif /* ED_SCREEN_H */
 

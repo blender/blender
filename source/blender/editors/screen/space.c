@@ -25,22 +25,26 @@
  *
  * ***** END GPL LICENSE BLOCK *****
  */
-#ifndef WM_H
-#define WM_H
 
-extern void wm_close_and_free(bContext *C, wmWindowManager *);
-extern void wm_close_and_free_all(bContext *C, ListBase *);
+#include <string.h>
+#include <stdio.h>
 
-extern void wm_add_default(bContext *C);
-extern void wm_check(bContext *C);
-			
-			/* register to windowmanager for redo or macro */
-void		wm_operator_register(wmWindowManager *wm, wmOperator *ot);
+#include "MEM_guardedalloc.h"
 
-/* wm_operator.c, for init/exit */
-void wm_operatortype_free(void);
-void wm_operatortype_init(void);
+#include "IMB_imbuf_types.h"
+#include "IMB_imbuf.h"
 
+#include "BLI_blenlib.h"
+#include "BLI_arithb.h"
 
-#endif /* WM_H */
+#include "BKE_global.h"
+#include "BKE_colortools.h"
+
+#include "BLO_readfile.h"
+
+#include "WM_api.h"
+
+#include "ED_area.h"
+#include "ED_screen.h"
+
 

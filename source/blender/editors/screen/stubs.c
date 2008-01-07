@@ -36,6 +36,8 @@ void waitcursor() {}
 void pupmenu() {}
 void mainqenter() {}
 void saveover() {}
+void BIF_icons_free() {}
+void BIF_icons_init() {}
 
 char texstr[20][12];
 

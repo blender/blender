@@ -28,7 +28,7 @@
 #
 # Makes module object directory and bounces make to subdirectories.
 
-LIBNAME = ed_area
+LIBNAME = ed_view3d
 DIR = $(OCGDIR)/blender/$(LIBNAME)
 
 include nan_compile.mk
@@ -44,6 +44,7 @@ CPPFLAGS += -I../../blenkernel
 CPPFLAGS += -I../../blenlib
 CPPFLAGS += -I../../makesdna
 CPPFLAGS += -I../../imbuf
+CPPFLAGS += -I../../python
 CPPFLAGS += -I$(NAN_GUARDEDALLOC)/include
 
 # own include 

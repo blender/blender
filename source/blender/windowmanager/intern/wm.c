@@ -43,12 +43,14 @@
 #include "wm_event_system.h"
 #include "wm_event_types.h"
 
+#include "ED_screen.h"
+
 /* ****************************************************** */
 #define MAX_OP_REGISTERED	32
 
 /* all operations get registered in the windowmanager here */
 /* called on event handling by event_system.c */
-void WM_operator_register(wmWindowManager *wm, wmOperator *op)
+void wm_operator_register(wmWindowManager *wm, wmOperator *op)
 {
 	wmOperator *opc= MEM_mallocN(sizeof(wmOperator), "operator registry");
 	int tot;
@@ -90,10 +92,17 @@ void wm_check(bContext *C)
 	/* case: no open windows at all, for old file reads */
 	wm_window_add_ghostwindows(C->wm);
 	
-	if(C->window==NULL) C->window= C->wm->windrawable;
+	if(C->window==NULL) {
+		wm_window_make_drawable(C, C->wm->windrawable); 
+	}
 	
+	/* case: fileread */
 	if(C->wm->initialized==0) {
+		
 		wm_window_keymap(C->wm);
+		ed_screen_keymap(C->wm);
+		
+		ED_screens_initialize(C->wm);
 		C->wm->initialized= 1;
 	}
 }
@@ -108,7 +117,7 @@ void wm_add_default(bContext *C)
 	
 	win= wm_window_new(C, C->screen);
 	wm->windrawable= win;
-	C->window= win;
+	wm_window_make_drawable(C, win); 
 }
 
 
@@ -123,8 +132,11 @@ void wm_close_and_free(bContext *C, wmWindowManager *wm)
 	}
 	
 	BLI_freelistN(&wm->operators);
+	
 	BLI_freelistN(&wm->windowkeymap);
 	BLI_freelistN(&wm->screenkeymap);
+	
+	BLI_freelistN(&wm->queue);
 	
 	if(C && C->wm==wm) C->wm= NULL;
 }
@@ -151,15 +163,12 @@ void WM_main(bContext *C)
 		/* per window, all events to the window, screen, area and region handlers */
 		wm_event_do_handlers(C);
 		
+		/* events have left notes about changes, we handle and cache it */
+		wm_event_do_notifiers(C);
+		
+		/* execute cached changes draw */
+		wm_draw_update(C);
 	}
 }
 
-/*	While (local_event) {
-Update controller stack if active changed ()
-Match event to an action()
-Process_event()
-Do_notifications()
-Do_draw_updates()
-}
-*/		
 

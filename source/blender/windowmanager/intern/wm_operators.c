@@ -59,6 +59,12 @@ wmOperatorType *WM_operatortype_find(const char *idname)
 	return NULL;
 }
 
+/* all ops in 1 list (for time being... needs evaluation later) */
+void WM_operatortypelist_append(ListBase *lb)
+{
+	addlisttolist(&global_ops, lb);
+}
+
 /* ************ default ops, exported *********** */
 
 int WM_operator_confirm(bContext *C, wmOperator *op, wmEvent *event)
@@ -109,7 +115,6 @@ static void WM_OT_window_fullscreen_toggle(wmOperatorType *ot)
 }
 
 
-
 #define ADD_OPTYPE(opfunc)	ot= MEM_callocN(sizeof(wmOperatorType), "operatortype"); \
 							opfunc(ot);  \
 							BLI_addtail(&global_ops, ot)
@@ -130,5 +135,8 @@ void wm_operatortype_init(void)
 	ADD_OPTYPE(WM_OT_save_homefile);
     ADD_OPTYPE(WM_OT_window_fullscreen_toggle);
 }
+
+
+
 
 
