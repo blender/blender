@@ -660,12 +660,12 @@ static void face_duplilist(ListBase *lb, ID *id, Object *par, float par_space_ma
 	dm->release(dm);
 }
 
-static void particle_dupli_path_rotation(Object *ob, ParticleSettings *part, ParticleSystemModifierData *psmd, ParticleData *pa, ChildParticle *cpa, ParticleCacheKey *cache, float mat[][4])
+static void particle_dupli_path_rotation(Object *ob, ParticleSettings *part, ParticleSystemModifierData *psmd, ParticleData *pa, ChildParticle *cpa, ParticleCacheKey *cache, float mat[][4], float *scale)
 {
-	float loc[3], nor[3], vec[3], side[3];
+	float loc[3], nor[3], vec[3], side[3], len;
 
-	VecSubf(vec, (cache+1)->co, cache->co);
-	Normalize(vec);
+	VecSubf(vec, (cache+cache->steps-1)->co, cache->co);
+	len= Normalize(vec);
 
 	if(pa)
 		psys_particle_on_emitter(ob,psmd,part->from,pa->num,pa->num_dmcache,pa->fuv,pa->foffset,loc,nor,0,0,0,0);
@@ -682,6 +682,8 @@ static void particle_dupli_path_rotation(Object *ob, ParticleSettings *part, Par
 	VECCOPY(mat[0], vec);
 	VECCOPY(mat[1], side);
 	VECCOPY(mat[2], nor);
+
+	*scale= len;
 }
 
 static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_space_mat[][4], ParticleSystem *psys, int level)
@@ -693,7 +695,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 	ParticleKey state;
 	ParticleCacheKey *cache;
 	ParticleSystemModifierData *psmd;
-	float ctime, pa_time;
+	float ctime, pa_time, scale = 1.0f;
 	float tmat[4][4], mat[4][4], obrotmat[4][4], pamat[4][4], size=0.0;
 	float obmat[4][4], (*obmatlist)[4][4]=0;
 	float xvec[3] = {-1.0, 0.0, 0.0}, *q;
@@ -793,12 +795,12 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 				if(hair) {
 					if(a < totpart) {
 						cache = psys->pathcache[a];
-						particle_dupli_path_rotation(par, part, psmd, pa, 0, cache, pamat);
+						particle_dupli_path_rotation(par, part, psmd, pa, 0, cache, pamat, &scale);
 					}
 					else {
 						ChildParticle *cpa= psys->child+(a-totpart);
 						cache = psys->childcache[a-totpart];
-						particle_dupli_path_rotation(par, part, psmd, 0, cpa, cache, pamat);
+						particle_dupli_path_rotation(par, part, psmd, 0, cpa, cache, pamat, &scale);
 					}
 
 					VECCOPY(pamat[3], cache->co);
@@ -825,7 +827,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 					for(go= part->dup_group->gobject.first, b=0; go; go= go->next, b++) {
 
 						Mat4MulMat4(tmat, obmatlist[b], pamat);
-						Mat4MulFloat3((float *)tmat, size);
+						Mat4MulFloat3((float *)tmat, size*scale);
 						if(par_space_mat)
 							Mat4MulMat4(mat, tmat, par_space_mat);
 						else
@@ -849,7 +851,7 @@ static void new_particle_duplilist(ListBase *lb, ID *id, Object *par, float par_
 						Mat4CpyMat4(mat, pamat);
 
 					Mat4MulMat4(tmat, obmat, mat);
-					Mat4MulFloat3((float *)tmat, size);
+					Mat4MulFloat3((float *)tmat, size*scale);
 					if(par_space_mat)
 						Mat4MulMat4(mat, tmat, par_space_mat);
 					else
