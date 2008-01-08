@@ -14,5 +14,5 @@ incs = ['.',
 incs += Split(env['BF_OPENEXR_INC'])
 
 defs = []
-                 
-env.BlenderLib ('bf_openexr', source_files, incs, defs, libtype=['core','player'], priority = [90, 200])
+
+env.BlenderLib ('bf_openexr', source_files, incs, defs, libtype=['core','player'], priority = [125, 85])

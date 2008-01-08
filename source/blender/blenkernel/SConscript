@@ -26,22 +26,22 @@ if env['WITH_BF_VERSE']:
 	defs += ' WITH_VERSE'
 	
 if env['WITH_BF_OPENEXR'] == 1:
-    defs += ' WITH_OPENEXR'
+	defs += ' WITH_OPENEXR'
 
 if env['WITH_BF_DDS'] == 1:
-    defs += ' WITH_DDS'
+	defs += ' WITH_DDS'
 
 if env['WITH_BF_FFMPEG'] == 1:
-    defs += ' WITH_FFMPEG'
-    incs += ' ' + env['BF_FFMPEG_INC']
+	defs += ' WITH_FFMPEG'
+	incs += ' ' + env['BF_FFMPEG_INC']
 
 if env['WITH_BF_QUICKTIME'] == 1:
-    defs += ' WITH_QUICKTIME'
-    incs += ' ' + env['BF_QUICKTIME_INC']
+	defs += ' WITH_QUICKTIME'
+	incs += ' ' + env['BF_QUICKTIME_INC']
 
 defs += ' WITH_CCGSUBSURF'
 
 if env['WITH_BF_PLAYER']:
-    SConscript(['bad_level_call_stubs/SConscript'])
+	SConscript(['bad_level_call_stubs/SConscript'])
 
-env.BlenderLib ( libname = 'bf_blenkernel', sources = sources, includes = Split(incs), defines = Split(defs), libtype=['core','player'], priority = [65, 20] )
+env.BlenderLib ( libname = 'bf_blenkernel', sources = sources, includes = Split(incs), defines = Split(defs), libtype=['core','player'], priority = [75, 10] )

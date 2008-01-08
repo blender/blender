@@ -5,4 +5,4 @@ sources = env.Glob('intern/*.cpp')
 
 incs = 'include'
 
-env.BlenderLib ('bf_moto', sources, Split(incs), [], libtype=['intern','game','game2','player'], priority = [15, 55, 100, 135] )
+env.BlenderLib ('bf_moto', sources, Split(incs), [], libtype=['intern','game','game2','player'], priority = [15, 55, 60, 130] )

@@ -23,4 +23,4 @@ incs += ' ' + env['BF_PYTHON_INC']
 incs += ' ' + env['BF_SOLID_INC']
 incs += ' ' + env['BF_BULLET_INC']
 
-env.BlenderLib ( 'bf_converter', sources, Split(incs), [], libtype=['game','player'], priority=[5,70] )
+env.BlenderLib ( 'bf_converter', sources, Split(incs), [], libtype=['game','player'], priority=[5,50] )

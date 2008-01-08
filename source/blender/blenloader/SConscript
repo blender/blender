@@ -15,4 +15,4 @@ if env['WITH_BF_VERSE']:
 	defs += ' WITH_VERSE'
 	incs += ' ' + env['BF_VERSE_INCLUDE']
 
-env.BlenderLib ( 'bf_blenloader', sources, Split(incs), Split(defs), libtype=['core','player'], priority = [70, 30] )
+env.BlenderLib ( 'bf_blenloader', sources, Split(incs), Split(defs), libtype=['core','player'], priority = [85, 25] )

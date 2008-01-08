@@ -8,6 +8,6 @@ incs = '. #source/kernel/gen_system #intern/string #intern/moto/include'
 if env['OURPLATFORM']=='win32-vc':
 	cflags = []
 	cflags.append('/Ox')
-	env.BlenderLib ( 'bf_rasterizer', sources, Split(incs), [], libtype=['game','player'], priority=[35,115], compileflags = cflags )
+	env.BlenderLib ( 'bf_rasterizer', sources, Split(incs), [], libtype=['game','player'], priority=[35,110], compileflags = cflags )
 else:
-	env.BlenderLib ( 'bf_rasterizer', sources, Split(incs), [], libtype=['game','player'], priority=[35,115] )
+	env.BlenderLib ( 'bf_rasterizer', sources, Split(incs), [], libtype=['game','player'], priority=[35,110] )

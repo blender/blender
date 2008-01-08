@@ -6,30 +6,30 @@ Import('env')
 defs = ''
 cflags = []
 if sys.platform=='linux2' or sys.platform=='linux-i386':
-   cflags += ['-O2','-ansi']
+	cflags += ['-O2','-ansi']
 elif env['OURPLATFORM']=='win32-vc':
-   cflags += ['/O2']
+	cflags += ['/O2']
 elif env['OURPLATFORM']=='win32-mingw':
-   cflags += ['-O2']
+	cflags += ['-O2']
 elif sys.platform=='sunos5':
-   cflags += ['-O2', '-ansi']
+	cflags += ['-O2', '-ansi']
 elif sys.platform=='darwin':
-   cflags += ['-O2', '-pipe', '-fPIC', '-funsigned-char', '-ffast-math']
+	cflags += ['-O2', '-pipe', '-fPIC', '-funsigned-char', '-ffast-math']
 
 sources = ['src/geom.c',
-    'src/geom2.c',
-    'src/global.c',
-    'src/io.c',
-    'src/mem.c',
-    'src/merge.c',
-    'src/poly.c',
-    'src/poly2.c',
-    'src/qhull.c',
-    'src/qset.c',
-    'src/stat.c',
-    'src/user.c']
+	'src/geom2.c',
+	'src/global.c',
+	'src/io.c',
+	'src/mem.c',
+	'src/merge.c',
+	'src/poly.c',
+	'src/poly2.c',
+	'src/qhull.c',
+	'src/qset.c',
+	'src/stat.c',
+	'src/user.c']
 
 
 incs = 'include src'
 
-env.BlenderLib ( 'extern_qhull', sources, Split(incs), Split(defs), libtype=['game2','player'], priority=[50, 85], compileflags = cflags)
+env.BlenderLib ( 'extern_qhull', sources, Split(incs), Split(defs), libtype=['game2','player'], priority=[55, 70], compileflags = cflags)

@@ -9,7 +9,7 @@ incs += ' ' + env['BF_BULLET_INC']
 
 cflags = []
 if env['OURPLATFORM']=='win32-vc':
-    cflags.append('/GR')
-    cflags.append('/O2')
+	cflags.append('/GR')
+	cflags.append('/O2')
 
-env.BlenderLib ( 'bf_bullet', Split(sources), Split(incs), [], libtype=['game','player'], priority=[15,90] )
+env.BlenderLib ( 'bf_bullet', Split(sources), Split(incs), [], libtype=['game','player'], priority=[15,80] )

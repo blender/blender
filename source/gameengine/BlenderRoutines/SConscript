@@ -26,4 +26,4 @@ cxxflags = []
 if env['OURPLATFORM']=='win32-vc':
 	cxxflags.append ('/GR')
 
-env.BlenderLib ( 'bf_bloutines', sources, Split(incs), [], libtype=['game', 'game2', 'player'], priority=[0, 0, 55] , compileflags=cxxflags)
+env.BlenderLib ( 'bf_bloutines', sources, Split(incs), [], libtype=['game', 'game2', 'player'], priority=[0, 0, 45] , compileflags=cxxflags)

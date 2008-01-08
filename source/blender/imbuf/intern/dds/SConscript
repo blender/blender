@@ -16,4 +16,4 @@ incs = ['.',
 
 defs = ['WITH_DDS']
 
-env.BlenderLib ('bf_dds', source_files, incs, defs, libtype=['core','player'], priority = [90, 200])
+env.BlenderLib ('bf_dds', source_files, incs, defs, libtype=['core','player'], priority = [110, 105])

@@ -3,47 +3,47 @@ import sys
 Import ('env')
 
 source_files = ['GPG_Application.cpp',
-                'GPG_Canvas.cpp',
-                'GPG_ghost.cpp',
-                'GPG_KeyboardDevice.cpp',
-                'GPG_System.cpp']
+				'GPG_Canvas.cpp',
+				'GPG_ghost.cpp',
+				'GPG_KeyboardDevice.cpp',
+				'GPG_System.cpp']
 
 incs = ['.',
-        '#intern/string',
-        '#intern/ghost',
-        '#intern/guardedalloc',
-        '#intern/bmfont',
-        '#intern/moto/include',
-        '#intern/SoundSystem',
-        '#source/gameengine/Rasterizer/RAS_OpenGLRasterizer',
-        '#source/kernel/gen_system',
-        '#source/kernel/gen_messaging',
-        '#source/gameengine/Converter',
-        '#source/blender/imbuf',
-        '#source/gameengine/Ketsji',
-        '#source/blender/blenlib',
-        '#source/blender/blenkernel',
-        '#source/blender/readblenfile',
-        '#source/blender',
-        '#source/blender/editors/include',
-        '#source/blender/makesdna',
-        '#source/gameengine/Rasterizer',
-        '#source/gameengine/GameLogic',
-        '#source/gameengine/Expressions',
-        '#source/gameengine/Network',
-        '#source/gameengine/SceneGraph',
-        '#source/gameengine/Physics/common',
-        '#source/gameengine/Physics/Sumo',
-        '#source/gameengine/Physics/Sumo/Fuzzics/include',
-        '#source/gameengine/Network/LoopBackNetwork',
-        '#source/gameengine/GamePlayer/common',
-        '#source/blender/misc',
-        '#source/blender/blenloader']
+		'#intern/string',
+		'#intern/ghost',
+		'#intern/guardedalloc',
+		'#intern/bmfont',
+		'#intern/moto/include',
+		'#intern/SoundSystem',
+		'#source/gameengine/Rasterizer/RAS_OpenGLRasterizer',
+		'#source/kernel/gen_system',
+		'#source/kernel/gen_messaging',
+		'#source/gameengine/Converter',
+		'#source/blender/imbuf',
+		'#source/gameengine/Ketsji',
+		'#source/blender/blenlib',
+		'#source/blender/blenkernel',
+		'#source/blender/readblenfile',
+		'#source/blender',
+		'#source/blender/editors/include',
+		'#source/blender/makesdna',
+		'#source/gameengine/Rasterizer',
+		'#source/gameengine/GameLogic',
+		'#source/gameengine/Expressions',
+		'#source/gameengine/Network',
+		'#source/gameengine/SceneGraph',
+		'#source/gameengine/Physics/common',
+		'#source/gameengine/Physics/Sumo',
+		'#source/gameengine/Physics/Sumo/Fuzzics/include',
+		'#source/gameengine/Network/LoopBackNetwork',
+		'#source/gameengine/GamePlayer/common',
+		'#source/blender/misc',
+		'#source/blender/blenloader']
 
 incs += Split(env['BF_PYTHON_INC'])
 incs += Split(env['BF_SOLID_INC'])
 cflags = []
 if env['OURPLATFORM']=='win32-vc':
-    cflags = ['/GR']
+	cflags = ['/GR']
 
-env.BlenderLib (libname='gp_ghost', sources=source_files, includes = incs, defines = [], libtype='player',priority=0, compileflags=cflags)
+env.BlenderLib (libname='gp_ghost', sources=source_files, includes = incs, defines = [], libtype='player',priority=5, compileflags=cflags)

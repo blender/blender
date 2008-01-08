@@ -5,4 +5,4 @@ sources = env.Glob('*.cpp') #'NG_NetworkMessage.cpp NG_NetworkObject.cpp NG_Netw
 
 incs = '. #source/kernel/gen_system #intern/string #intern/moto/include'
 
-env.BlenderLib ( 'bf_ngnetwork', sources, Split(incs), [], libtype=['game2', 'player'], priority=[15, 160] )
+env.BlenderLib ( 'bf_ngnetwork', sources, Split(incs), [], libtype=['game2', 'player'], priority=[15, 150] )

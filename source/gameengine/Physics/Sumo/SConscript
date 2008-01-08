@@ -3,13 +3,13 @@ Import ('env')
 
 sumoenv = env.Copy()
 sources = ['SumoPHYCallbackBridge.cpp',
-                'SumoPhysicsController.cpp',
-                'SumoPhysicsEnvironment.cpp',
-                'Fuzzics/src/SM_FhObject.cpp',
-                'Fuzzics/src/SM_Object.cpp',
-                'Fuzzics/src/SM_Scene.cpp',
-                'Fuzzics/src/SM_MotionState.cpp'
-               ]
+				'SumoPhysicsController.cpp',
+				'SumoPhysicsEnvironment.cpp',
+				'Fuzzics/src/SM_FhObject.cpp',
+				'Fuzzics/src/SM_Object.cpp',
+				'Fuzzics/src/SM_Scene.cpp',
+				'Fuzzics/src/SM_MotionState.cpp'
+			   ]
 
 incs =['.',
 	'../common',
@@ -23,4 +23,4 @@ if env['OURPLATFORM']=='win32-vc':
 	cflags.append('/GR')
 	cflags.append('/O1')
 
-env.BlenderLib ( 'bf_sumo', sources, incs, [], libtype=['game2','player'], priority=[30, 70] , compileflags=cflags)
+env.BlenderLib ( 'bf_sumo', sources, incs, [], libtype=['game2','player'], priority=[40, 55] , compileflags=cflags)

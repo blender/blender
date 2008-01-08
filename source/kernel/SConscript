@@ -7,4 +7,4 @@ sources += ' gen_system/SYS_System.cpp'
 
 incs = 'gen_messaging gen_system #/intern/string #/intern/moto/include'
 
-env.BlenderLib ( 'bf_kernel', Split(sources), Split(incs), [], libtype = ['common','game2', 'player'], priority = [15, 10, 150] )
+env.BlenderLib ( 'bf_kernel', Split(sources), Split(incs), [], libtype = ['common','game2', 'player'], priority = [15, 10, 140] )

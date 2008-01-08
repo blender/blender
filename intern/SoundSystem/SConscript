@@ -7,10 +7,10 @@ sources = env.Glob('dummy/*.cpp') + env.Glob('intern/*.cpp')
 incs = '. intern ../moto/include ../string dummy openal sdl'
 defs = ''
 if env['WITH_BF_OPENAL']:
-    sources += env.Glob('openal/*.cpp') + env.Glob('sdl/*.cpp')
-    incs += ' ' + env['BF_OPENAL_INC']
-    incs += ' ' + env['BF_SDL_INC']
+	sources += env.Glob('openal/*.cpp') + env.Glob('sdl/*.cpp')
+	incs += ' ' + env['BF_OPENAL_INC']
+	incs += ' ' + env['BF_SDL_INC']
 else:
-    defs = 'NO_SOUND'
+	defs = 'NO_SOUND'
 
-env.BlenderLib ('bf_soundsystem', sources, Split(incs), Split(defs), libtype=['core','player'], priority = [20,140] )
+env.BlenderLib ('bf_soundsystem', sources, Split(incs), Split(defs), libtype=['core','player'], priority = [30,135] )

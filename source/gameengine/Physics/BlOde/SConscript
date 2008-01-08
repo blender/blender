@@ -5,11 +5,11 @@ Import ('library_env')
 phy_ode_env = library_env.Copy ()
 
 source_files = ['OdePhysicsController.cpp',
-                'OdePhysicsEnvironment.cpp']
+				'OdePhysicsEnvironment.cpp']
 
 phy_ode_env.Append (CPPPATH=['.',
-                             '../common',
-                            ])
+							 '../common',
+							])
 phy_ode_env.Append (CPPPATH=user_options_dict['ODE_INCLUDE'])
 
 phy_ode_env.Library (target='#'+user_options_dict['BUILD_DIR']+'/lib/PHY_Ode', source=source_files)

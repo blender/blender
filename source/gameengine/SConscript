@@ -2,26 +2,26 @@
 Import ('env')
 
 SConscript(['BlenderRoutines/SConscript',
-            'Converter/SConscript',
-            'Expressions/SConscript',
-            'GameLogic/SConscript',
-            'Ketsji/SConscript',
-            'Ketsji/KXNetwork/SConscript',
-            'Network/SConscript',
-            'Network/LoopBackNetwork/SConscript',
-            'Physics/common/SConscript',
-            'Physics/Dummy/SConscript',
-            'Rasterizer/SConscript',
-            'Rasterizer/RAS_OpenGLRasterizer/SConscript',
-            'SceneGraph/SConscript',
-            'Physics/Bullet/SConscript',
-            'Physics/Sumo/SConscript'
-            ])
+			'Converter/SConscript',
+			'Expressions/SConscript',
+			'GameLogic/SConscript',
+			'Ketsji/SConscript',
+			'Ketsji/KXNetwork/SConscript',
+			'Network/SConscript',
+			'Network/LoopBackNetwork/SConscript',
+			'Physics/common/SConscript',
+			'Physics/Dummy/SConscript',
+			'Rasterizer/SConscript',
+			'Rasterizer/RAS_OpenGLRasterizer/SConscript',
+			'SceneGraph/SConscript',
+			'Physics/Bullet/SConscript',
+			'Physics/Sumo/SConscript'
+			])
 
 if env['WITH_BF_PLAYER']:
-    SConscript(['GamePlayer/SConscript'])
+	SConscript(['GamePlayer/SConscript'])
 
 #if user_options_dict['USE_PHYSICS'] == 'solid':
-#    SConscript(['Physics/Sumo/SConscript'])
+#	SConscript(['Physics/Sumo/SConscript'])
 #elif user_options_dict['USE_PHYSICS'] == 'ode':
-#    SConscript(['Physics/BlOde/SConscript'])
+#	SConscript(['Physics/BlOde/SConscript'])

@@ -14,28 +14,28 @@ dna = env.Copy()
 makesdna_tool.Append(CCFLAGS = '-DBASE_HEADER="\\"source/blender/makesdna/\\"" ')
 
 makesdna_tool.Append (CPPPATH = ['#/intern/guardedalloc',
-                                 '../../makesdna'])
+								 '../../makesdna'])
 
 if env['OURPLATFORM'] == 'linuxcross':
-    makesdna_tool.Replace(CC='gcc')
-    makesdna_tool.Replace(AR='ar')
-    makesdna_tool.Replace(LINK='gcc')
+	makesdna_tool.Replace(CC='gcc')
+	makesdna_tool.Replace(AR='ar')
+	makesdna_tool.Replace(LINK='gcc')
 
 if sys.platform != 'cygwin':
-    makesdna_tool.Append (CCFLAGS = cflags)
+	makesdna_tool.Append (CCFLAGS = cflags)
 makesdna_tool.Append (CPPDEFINES = defines)
 makesdna_tool.Append (LIBPATH = '#'+root_build_dir+'/lib')
 
 if env['OURPLATFORM'] == 'linux2' and root_build_dir[0]==os.sep:
-    makesdna = makesdna_tool.Program (target = root_build_dir+'/makesdna', source = source_files, LIBS=['bf_guardedalloc'])
+	makesdna = makesdna_tool.Program (target = root_build_dir+'/makesdna', source = source_files, LIBS=['bf_guardedalloc'])
 else:
-    makesdna = makesdna_tool.Program (target = '#'+root_build_dir+'/makesdna', source = source_files, LIBS=['bf_guardedalloc'])
+	makesdna = makesdna_tool.Program (target = '#'+root_build_dir+'/makesdna', source = source_files, LIBS=['bf_guardedalloc'])
 
 dna_dict = dna.Dictionary()
 dna.Depends ('dna.c', makesdna)
 if env['OURPLATFORM'] != 'linuxcross':
-    dna.Command ('dna.c', '', root_build_dir+os.sep+"makesdna $TARGET")
+	dna.Command ('dna.c', '', root_build_dir+os.sep+"makesdna $TARGET")
 else:
-    dna.Command ('dna.c', '', root_build_dir+os.sep+"makesdna.exe $TARGET")
+	dna.Command ('dna.c', '', root_build_dir+os.sep+"makesdna.exe $TARGET")
 obj = 'intern/dna.c'
 Return ('obj')

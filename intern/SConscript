@@ -2,17 +2,17 @@
 Import ('env')
 
 SConscript(['SoundSystem/SConscript',
-            'string/SConscript',
-            'ghost/SConscript',
-            'guardedalloc/SConscript',
-            'bmfont/SConscript',
-            'moto/SConscript',
-            'container/SConscript',
-            'memutil/SConscript/',
-            'decimation/SConscript',
-            'iksolver/SConscript',
-            'boolop/SConscript',
-            'opennl/SConscript'])
+			'string/SConscript',
+			'ghost/SConscript',
+			'guardedalloc/SConscript',
+			'bmfont/SConscript',
+			'moto/SConscript',
+			'container/SConscript',
+			'memutil/SConscript/',
+			'decimation/SConscript',
+			'iksolver/SConscript',
+			'boolop/SConscript',
+			'opennl/SConscript'])
 
 # NEW_CSG was intended for intern/csg, but
 # getting it to compile is difficult
@@ -21,9 +21,9 @@ SConscript(['SoundSystem/SConscript',
 NEW_CSG='false'
 
 if env['BF_NO_ELBEEM'] == 0:
-    SConscript(['elbeem/SConscript'])
+	SConscript(['elbeem/SConscript'])
 
 if NEW_CSG=='false':
-    SConscript(['bsp/SConscript'])
+	SConscript(['bsp/SConscript'])
 else:
-    SConscript(['csg/SConscript'])
+	SConscript(['csg/SConscript'])

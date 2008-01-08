@@ -9,4 +9,4 @@ incs += ' #/source/gameengine/Expressions #/intern/moto/include'
 incs += ' ' + env['BF_PYTHON_INC']
 incs += ' ' + env['BF_SDL_INC']
 
-env.BlenderLib ( 'bf_logic', sources, Split(incs), [], libtype=['game','player'], priority=[30, 110] )
+env.BlenderLib ( 'bf_logic', sources, Split(incs), [], libtype=['game','player'], priority=[30, 100] )

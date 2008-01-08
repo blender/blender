@@ -6,4 +6,4 @@ sources = env.Glob('*.cpp') #'SG_BBox.cpp SG_Controller.cpp SG_IObject.cpp SG_No
 
 incs = '. #intern/moto/include'
 
-env.BlenderLib ( 'bf_scenegraph', sources, Split(incs), [], libtype=['game','player'], priority=[50,130] )
+env.BlenderLib ( 'bf_scenegraph', sources, Split(incs), [], libtype=['game','player'], priority=[50,125] )

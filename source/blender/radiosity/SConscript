@@ -9,4 +9,4 @@ incs += ' ../render/intern/include'
 
 incs += ' ' + env['BF_OPENGL_INC']
 
-env.BlenderLib ( 'blender_radiosity', sources, Split(incs), [], libtype='core', priority=50 )
+env.BlenderLib ( 'bf_radiosity', sources, Split(incs), [], libtype='core', priority=60 )

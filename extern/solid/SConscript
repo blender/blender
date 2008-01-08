@@ -7,28 +7,28 @@ defs = 'USE_DOUBLES QHULL _LIB'
 cflags = []
 
 if env['OURPLATFORM']=='win32-vc':
-    defs += ' WIN32 NDEBUG _WINDOWS _LIB'
-    cflags += ['/MT', '/W3', '/GX', '/Og', '/Ot', '/Ob1', '/Op', '/G6']
+	defs += ' WIN32 NDEBUG _WINDOWS _LIB'
+	cflags += ['/MT', '/W3', '/GX', '/Og', '/Ot', '/Ob1', '/Op', '/G6']
 elif env['OURPLATFORM']=='win32-mingw':
-    defs += ' NDEBUG'
-    cflags += ['-O2']
+	defs += ' NDEBUG'
+	cflags += ['-O2']
 elif sys.platform=='linux2' or sys.platform=='linux-i386' or sys.platform=='freebsd4' or sys.platform=='freebsd5' or sys.platform=='openbsd3' or sys.platform=='sunos5':
-    defs += ' NDEBUG'
-    cflags += ['-O2']
+	defs += ' NDEBUG'
+	cflags += ['-O2']
 elif sys.platform=='darwin' :
-    defs += ' NDEBUG'
-    cflags += ['-O2','-pipe', '-fPIC', '-funsigned-char', '-ffast-math']
+	defs += ' NDEBUG'
+	cflags += ['-O2','-pipe', '-fPIC', '-funsigned-char', '-ffast-math']
 
 else:
-    print "################################################"
-    print 
-    print "Check if solid builds on your platform correctly"
-    print "Add your platform specific defines"
-    print "and cflags / cxxflags to the"
-    print "extern/solid/SConscript file"
+	print "################################################"
+	print 
+	print "Check if solid builds on your platform correctly"
+	print "Add your platform specific defines"
+	print "and cflags / cxxflags to the"
+	print "extern/solid/SConscript file"
 
 sources = env.Glob('src/*.cpp') + env.Glob('src/convex/*.cpp') + env.Glob('src/complex/*.cpp') + env.Glob('src/broad/*.cpp')
 
 incs = 'include src src/broad src/complex src/convex ../qhull/include'
 
-env.BlenderLib ( libname='extern_solid', sources=sources, includes=Split(incs), defines=Split(defs), libtype=['game2','player'], priority=[45, 75] , compileflags = cflags)
+env.BlenderLib ( libname='extern_solid', sources=sources, includes=Split(incs), defines=Split(defs), libtype=['game2','player'], priority=[50, 65] , compileflags = cflags)

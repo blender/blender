@@ -6,4 +6,4 @@ sources = env.Glob('*.cpp') #'RAS_GLExtensionManager.cpp RAS_ListRasterizer.cpp 
 incs = '. #source/kernel/gen_system #intern/string #intern/moto/include #source/gameengine/Rasterizer'
 incs += ' ' + env['BF_OPENGL_INC']
 
-env.BlenderLib ( 'bf_oglrasterizer', Split(sources), Split(incs), [], libtype=['game','player'], priority=[40, 120] )
+env.BlenderLib ( 'bf_oglrasterizer', Split(sources), Split(incs), [], libtype=['game','player'], priority=[40, 115] )

@@ -11,22 +11,22 @@ sources = env.Glob('intern/*.cpp')
 pf = ['GHOST_DisplayManager', 'GHOST_System', 'GHOST_Window']
 
 if window_system in ('linux2', 'openbsd3', 'sunos5', 'freebsd6'):
-    for f in pf:
-        sources.remove('intern' + os.sep + f + 'Win32.cpp')
-        sources.remove('intern' + os.sep + f + 'Carbon.cpp')
+	for f in pf:
+		sources.remove('intern' + os.sep + f + 'Win32.cpp')
+		sources.remove('intern' + os.sep + f + 'Carbon.cpp')
 elif window_system in ('win32-vc', 'win32-mingw', 'cygwin', 'linuxcross'):
-    for f in pf:
-        sources.remove('intern' + os.sep + f + 'X11.cpp')
-        sources.remove('intern' + os.sep + f + 'Carbon.cpp')
+	for f in pf:
+		sources.remove('intern' + os.sep + f + 'X11.cpp')
+		sources.remove('intern' + os.sep + f + 'Carbon.cpp')
 elif window_system == 'darwin':
-    for f in pf:
-        sources.remove('intern' + os.sep + f + 'Win32.cpp')
-        sources.remove('intern' + os.sep + f + 'X11.cpp')
+	for f in pf:
+		sources.remove('intern' + os.sep + f + 'Win32.cpp')
+		sources.remove('intern' + os.sep + f + 'X11.cpp')
 else:
-    print "Unknown window system specified."
-    Exit()
+	print "Unknown window system specified."
+	Exit()
 
 incs = '. ../string ' + env['BF_OPENGL_INC']
 if window_system in ('win32-vc', 'win32-mingw', 'cygwin', 'linuxcross'):
-    incs = env['BF_WINTAB_INC'] + ' ' + incs
-env.BlenderLib ('bf_ghost', sources, Split(incs), defines=['_USE_MATH_DEFINES'], libtype=['core','player'], priority = [25,15] ) 
+	incs = env['BF_WINTAB_INC'] + ' ' + incs
+env.BlenderLib ('bf_ghost', sources, Split(incs), defines=['_USE_MATH_DEFINES'], libtype=['core','player'], priority = [40,5] ) 

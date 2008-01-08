@@ -12,7 +12,7 @@ incs += ' ' + env['BF_OPENGL_INC']
 
 defs = []
 if env['WITH_BF_QUICKTIME']==1:
-    incs += ' ' + env['BF_QUICKTIME_INC']
-    defs.append('WITH_QUICKTIME')
+	incs += ' ' + env['BF_QUICKTIME_INC']
+	defs.append('WITH_QUICKTIME')
 
-env.BlenderLib ( libname = 'blender_creator', sources = Split(sources), includes = Split(incs), defines = defs, libtype='core', priority = 1 )
+env.BlenderLib ( libname = 'bf_creator', sources = Split(sources), includes = Split(incs), defines = defs, libtype='core', priority = 0 )

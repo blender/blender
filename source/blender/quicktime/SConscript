@@ -2,7 +2,7 @@
 Import ('env')
 
 source_files = ['apple/quicktime_import.c',
-                'apple/quicktime_export.c']
+				'apple/quicktime_export.c']
 
 incs  = ['.',
 		 '../quicktime',
@@ -20,10 +20,10 @@ incs  = ['.',
 incs.append(env['BF_QUICKTIME_INC'])
 
 if env['OURPLATFORM'] in ['win32-vc', 'darwin']:
-    types = ['core', 'player']
-    priorities = [95, 200]
+	types = ['core', 'player']
+	priorities = [115, 200]
 else:
-    types = ['core']
-    priorities = [95]
+	types = ['core']
+	priorities = [115]
 
 env.BlenderLib ('bf_quicktime', sources=source_files, includes=incs, defines=['WITH_QUICKTIME'], libtype=types, priority=priorities)

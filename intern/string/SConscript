@@ -4,4 +4,4 @@ Import ('env')
 sources = env.Glob('intern/*.cpp')
 incs = '.'
 
-env.BlenderLib ('bf_string', sources, Split(incs), [], libtype=['core', 'player'], priority = [30,10] )
+env.BlenderLib ('bf_string', sources, Split(incs), [], libtype=['core', 'player'], priority = [50,0] )

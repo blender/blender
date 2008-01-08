@@ -21,26 +21,26 @@ incs += ' ' + env['BF_SDL_INC']
 defs = ''
 
 if env['WITH_BF_INTERNATIONAL']:
-    defs += 'WITH_FREETYPE2'
+	defs += 'WITH_FREETYPE2'
 
 if env['WITH_BF_VERSE']:
-    defs += ' WITH_VERSE'
-    incs += ' ' + env['BF_VERSE_INCLUDE']
+	defs += ' WITH_VERSE'
+	incs += ' ' + env['BF_VERSE_INCLUDE']
 
 if env['WITH_BF_VERSE']:
-    defs += ' WITH_VERSE'
+	defs += ' WITH_VERSE'
 
 if env['WITH_BF_OPENEXR'] == 1:
-    defs += ' WITH_OPENEXR'
+	defs += ' WITH_OPENEXR'
 
 if env['WITH_BF_FFMPEG'] == 1:
-    defs += ' WITH_FFMPEG'
-    incs += ' ' + env['BF_FFMPEG_INC']
+	defs += ' WITH_FFMPEG'
+	incs += ' ' + env['BF_FFMPEG_INC']
 
 if env['WITH_BF_QUICKTIME'] == 1:
-    defs += ' WITH_QUICKTIME'
-    incs += ' ' + env['BF_QUICKTIME_INC']
+	defs += ' WITH_QUICKTIME'
+	incs += ' ' + env['BF_QUICKTIME_INC']
 
 defs += ' WITH_CCGSUBSURF'
 
-env.BlenderLib ( libname = 'nodes', sources = sources, includes = Split(incs), defines = Split(defs), libtype=['core','player'], priority = [65, 20] )
+env.BlenderLib ( libname = 'bf_nodes', sources = sources, includes = Split(incs), defines = Split(defs), libtype=['core','player'], priority = [80, 15] )

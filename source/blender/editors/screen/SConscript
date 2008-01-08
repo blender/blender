@@ -7,4 +7,4 @@ incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
 incs += ' ../../blenloader ../../windowmanager ../../python'
 incs += ' #/intern/guardedalloc'
 
-env.BlenderLib ( 'bf_screen', sources, Split(incs), [], libtype=['core','intern'], priority=[5, 25] )
+env.BlenderLib ( 'bf_editors_screen', sources, Split(incs), [], libtype=['core','intern'], priority=[35, 40] )

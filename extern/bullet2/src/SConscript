@@ -8,90 +8,90 @@ defs = 'USE_DOUBLES QHULL _LIB'
 cflags = []
 
 if env['OURPLATFORM']=='win32-vc':
-    defs += ' WIN32 NDEBUG _WINDOWS _LIB'
-    #cflags += ['/MT', '/W3', '/GX', '/O2', '/Op']
-    cflags += ['/MT', '/W3', '/GX', '/Og', '/Ot', '/Ob1', '/Op', '/G6']
+	defs += ' WIN32 NDEBUG _WINDOWS _LIB'
+	#cflags += ['/MT', '/W3', '/GX', '/O2', '/Op']
+	cflags += ['/MT', '/W3', '/GX', '/Og', '/Ot', '/Ob1', '/Op', '/G6']
 elif env['OURPLATFORM']=='win32-mingw':
-    defs += ' NDEBUG'
-    cflags += ['-O2']
+	defs += ' NDEBUG'
+	cflags += ['-O2']
 elif sys.platform=='linux2' or sys.platform=='linux-i386' or sys.platform=='freebsd4' or sys.platform=='freebsd5':
-    defs += ' NDEBUG'
-    cflags += ['-O2']
+	defs += ' NDEBUG'
+	cflags += ['-O2']
 elif sys.platform=='darwin':
-    defs += ' NDEBUG'
-    cflags += ['-O2','-pipe', '-fPIC', '-funsigned-char', '-ffast-math']
+	defs += ' NDEBUG'
+	cflags += ['-O2','-pipe', '-fPIC', '-funsigned-char', '-ffast-math']
 
 linearmath_src = env.Glob("LinearMath/*.cpp")
 bulletdyn_src = ["BulletDynamics/ConstraintSolver/btContactConstraint.cpp",
-                 "BulletDynamics/ConstraintSolver/btGeneric6DofConstraint.cpp",
-                 "BulletDynamics/ConstraintSolver/btHingeConstraint.cpp",
-                 "BulletDynamics/ConstraintSolver/btPoint2PointConstraint.cpp",
-                 "BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.cpp",
-                 "BulletDynamics/ConstraintSolver/btSolve2LinearConstraint.cpp",
-                 "BulletDynamics/ConstraintSolver/btTypedConstraint.cpp",
-                 "BulletDynamics/ConstraintSolver/btConeTwistConstraint.cpp",
-                 "BulletDynamics/Dynamics/btDiscreteDynamicsWorld.cpp",
-                 "BulletDynamics/Dynamics/btSimpleDynamicsWorld.cpp",
-                 "BulletDynamics/Dynamics/btRigidBody.cpp",
-                 "BulletDynamics/Vehicle/btRaycastVehicle.cpp",
-                 "BulletDynamics/Vehicle/btWheelInfo.cpp"]
+				 "BulletDynamics/ConstraintSolver/btGeneric6DofConstraint.cpp",
+				 "BulletDynamics/ConstraintSolver/btHingeConstraint.cpp",
+				 "BulletDynamics/ConstraintSolver/btPoint2PointConstraint.cpp",
+				 "BulletDynamics/ConstraintSolver/btSequentialImpulseConstraintSolver.cpp",
+				 "BulletDynamics/ConstraintSolver/btSolve2LinearConstraint.cpp",
+				 "BulletDynamics/ConstraintSolver/btTypedConstraint.cpp",
+				 "BulletDynamics/ConstraintSolver/btConeTwistConstraint.cpp",
+				 "BulletDynamics/Dynamics/btDiscreteDynamicsWorld.cpp",
+				 "BulletDynamics/Dynamics/btSimpleDynamicsWorld.cpp",
+				 "BulletDynamics/Dynamics/btRigidBody.cpp",
+				 "BulletDynamics/Vehicle/btRaycastVehicle.cpp",
+				 "BulletDynamics/Vehicle/btWheelInfo.cpp"]
 collision_src = ["BulletCollision/BroadphaseCollision/btAxisSweep3.cpp",
-                 "BulletCollision/BroadphaseCollision/btBroadphaseProxy.cpp",
-                 "BulletCollision/BroadphaseCollision/btCollisionAlgorithm.cpp",
-                 "BulletCollision/BroadphaseCollision/btDispatcher.cpp",
-                 "BulletCollision/BroadphaseCollision/btOverlappingPairCache.cpp",
-                 "BulletCollision/BroadphaseCollision/btSimpleBroadphase.cpp",
-                 "BulletCollision/CollisionDispatch/btCollisionDispatcher.cpp",
-                 "BulletCollision/CollisionDispatch/btCollisionObject.cpp",
-                 "BulletCollision/CollisionDispatch/btCollisionWorld.cpp",
-                 "BulletCollision/CollisionDispatch/btCompoundCollisionAlgorithm.cpp",
-                 "BulletCollision/CollisionDispatch/btConvexConcaveCollisionAlgorithm.cpp",
-                 "BulletCollision/CollisionDispatch/btSphereSphereCollisionAlgorithm.cpp",
-                 "BulletCollision/CollisionDispatch/btSphereBoxCollisionAlgorithm.cpp",
-                 "BulletCollision/CollisionDispatch/btConvexConvexAlgorithm.cpp",
-                 "BulletCollision/CollisionDispatch/btEmptyCollisionAlgorithm.cpp",
-                 "BulletCollision/CollisionDispatch/btManifoldResult.cpp",
-                 "BulletCollision/CollisionDispatch/btSimulationIslandManager.cpp",
-                 "BulletCollision/CollisionDispatch/btUnionFind.cpp",
-                 "BulletCollision/CollisionShapes/btBoxShape.cpp",
-                 "BulletCollision/CollisionShapes/btBvhTriangleMeshShape.cpp",
-                 "BulletCollision/CollisionShapes/btCollisionShape.cpp",
-                 "BulletCollision/CollisionShapes/btCompoundShape.cpp",
-                 "BulletCollision/CollisionShapes/btConcaveShape.cpp",
-                 "BulletCollision/CollisionShapes/btConeShape.cpp",
-                 "BulletCollision/CollisionShapes/btConvexHullShape.cpp",
-                 "BulletCollision/CollisionShapes/btConvexShape.cpp",
-                 "BulletCollision/CollisionShapes/btConvexTriangleMeshShape.cpp",
-                 "BulletCollision/CollisionShapes/btCylinderShape.cpp",
-                 "BulletCollision/CollisionShapes/btEmptyShape.cpp",
-                 "BulletCollision/CollisionShapes/btMinkowskiSumShape.cpp",
-                 "BulletCollision/CollisionShapes/btMultiSphereShape.cpp",
-                 "BulletCollision/CollisionShapes/btOptimizedBvh.cpp",
-                 "BulletCollision/CollisionShapes/btPolyhedralConvexShape.cpp",
-                 "BulletCollision/CollisionShapes/btTetrahedronShape.cpp",
-                 "BulletCollision/CollisionShapes/btSphereShape.cpp",
-                 "BulletCollision/CollisionShapes/btStaticPlaneShape.cpp",
-                 "BulletCollision/CollisionShapes/btStridingMeshInterface.cpp",
-                 "BulletCollision/CollisionShapes/btTriangleCallback.cpp",
-                 "BulletCollision/CollisionShapes/btTriangleBuffer.cpp",
-                 "BulletCollision/CollisionShapes/btTriangleIndexVertexArray.cpp",
-                 "BulletCollision/CollisionShapes/btTriangleMesh.cpp",
-                 "BulletCollision/CollisionShapes/btTriangleMeshShape.cpp",
-                 "BulletCollision/CollisionShapes/btHeightfieldTerrainShape.cpp",
-                 "BulletCollision/NarrowPhaseCollision/btContinuousConvexCollision.cpp",
-                 "BulletCollision/NarrowPhaseCollision/btGjkEpa.cpp",
-                 "BulletCollision/NarrowPhaseCollision/btGjkEpaPenetrationDepthSolver.cpp",
-                 "BulletCollision/NarrowPhaseCollision/btConvexCast.cpp",
-                 "BulletCollision/NarrowPhaseCollision/btGjkConvexCast.cpp",
-                 "BulletCollision/NarrowPhaseCollision/btGjkPairDetector.cpp",
-                 "BulletCollision/NarrowPhaseCollision/btMinkowskiPenetrationDepthSolver.cpp",
-                 "BulletCollision/NarrowPhaseCollision/btPersistentManifold.cpp",
-                 "BulletCollision/NarrowPhaseCollision/btRaycastCallback.cpp",
-                 "BulletCollision/NarrowPhaseCollision/btSubSimplexConvexCast.cpp",
-                 "BulletCollision/NarrowPhaseCollision/btVoronoiSimplexSolver.cpp"]
+				 "BulletCollision/BroadphaseCollision/btBroadphaseProxy.cpp",
+				 "BulletCollision/BroadphaseCollision/btCollisionAlgorithm.cpp",
+				 "BulletCollision/BroadphaseCollision/btDispatcher.cpp",
+				 "BulletCollision/BroadphaseCollision/btOverlappingPairCache.cpp",
+				 "BulletCollision/BroadphaseCollision/btSimpleBroadphase.cpp",
+				 "BulletCollision/CollisionDispatch/btCollisionDispatcher.cpp",
+				 "BulletCollision/CollisionDispatch/btCollisionObject.cpp",
+				 "BulletCollision/CollisionDispatch/btCollisionWorld.cpp",
+				 "BulletCollision/CollisionDispatch/btCompoundCollisionAlgorithm.cpp",
+				 "BulletCollision/CollisionDispatch/btConvexConcaveCollisionAlgorithm.cpp",
+				 "BulletCollision/CollisionDispatch/btSphereSphereCollisionAlgorithm.cpp",
+				 "BulletCollision/CollisionDispatch/btSphereBoxCollisionAlgorithm.cpp",
+				 "BulletCollision/CollisionDispatch/btConvexConvexAlgorithm.cpp",
+				 "BulletCollision/CollisionDispatch/btEmptyCollisionAlgorithm.cpp",
+				 "BulletCollision/CollisionDispatch/btManifoldResult.cpp",
+				 "BulletCollision/CollisionDispatch/btSimulationIslandManager.cpp",
+				 "BulletCollision/CollisionDispatch/btUnionFind.cpp",
+				 "BulletCollision/CollisionShapes/btBoxShape.cpp",
+				 "BulletCollision/CollisionShapes/btBvhTriangleMeshShape.cpp",
+				 "BulletCollision/CollisionShapes/btCollisionShape.cpp",
+				 "BulletCollision/CollisionShapes/btCompoundShape.cpp",
+				 "BulletCollision/CollisionShapes/btConcaveShape.cpp",
+				 "BulletCollision/CollisionShapes/btConeShape.cpp",
+				 "BulletCollision/CollisionShapes/btConvexHullShape.cpp",
+				 "BulletCollision/CollisionShapes/btConvexShape.cpp",
+				 "BulletCollision/CollisionShapes/btConvexTriangleMeshShape.cpp",
+				 "BulletCollision/CollisionShapes/btCylinderShape.cpp",
+				 "BulletCollision/CollisionShapes/btEmptyShape.cpp",
+				 "BulletCollision/CollisionShapes/btMinkowskiSumShape.cpp",
+				 "BulletCollision/CollisionShapes/btMultiSphereShape.cpp",
+				 "BulletCollision/CollisionShapes/btOptimizedBvh.cpp",
+				 "BulletCollision/CollisionShapes/btPolyhedralConvexShape.cpp",
+				 "BulletCollision/CollisionShapes/btTetrahedronShape.cpp",
+				 "BulletCollision/CollisionShapes/btSphereShape.cpp",
+				 "BulletCollision/CollisionShapes/btStaticPlaneShape.cpp",
+				 "BulletCollision/CollisionShapes/btStridingMeshInterface.cpp",
+				 "BulletCollision/CollisionShapes/btTriangleCallback.cpp",
+				 "BulletCollision/CollisionShapes/btTriangleBuffer.cpp",
+				 "BulletCollision/CollisionShapes/btTriangleIndexVertexArray.cpp",
+				 "BulletCollision/CollisionShapes/btTriangleMesh.cpp",
+				 "BulletCollision/CollisionShapes/btTriangleMeshShape.cpp",
+				 "BulletCollision/CollisionShapes/btHeightfieldTerrainShape.cpp",
+				 "BulletCollision/NarrowPhaseCollision/btContinuousConvexCollision.cpp",
+				 "BulletCollision/NarrowPhaseCollision/btGjkEpa.cpp",
+				 "BulletCollision/NarrowPhaseCollision/btGjkEpaPenetrationDepthSolver.cpp",
+				 "BulletCollision/NarrowPhaseCollision/btConvexCast.cpp",
+				 "BulletCollision/NarrowPhaseCollision/btGjkConvexCast.cpp",
+				 "BulletCollision/NarrowPhaseCollision/btGjkPairDetector.cpp",
+				 "BulletCollision/NarrowPhaseCollision/btMinkowskiPenetrationDepthSolver.cpp",
+				 "BulletCollision/NarrowPhaseCollision/btPersistentManifold.cpp",
+				 "BulletCollision/NarrowPhaseCollision/btRaycastCallback.cpp",
+				 "BulletCollision/NarrowPhaseCollision/btSubSimplexConvexCast.cpp",
+				 "BulletCollision/NarrowPhaseCollision/btVoronoiSimplexSolver.cpp"]
 
 incs = '. BulletCollision BulletDynamics LinearMath'
 
-env.BlenderLib ( libname = 'extern_bullet2linmath', sources=linearmath_src, includes=Split(incs), defines=Split(defs), libtype=['game2', 'player'], priority=[20, 170], compileflags=cflags )
-env.BlenderLib ( libname = 'extern_bullet2dynamics', sources=bulletdyn_src, includes=Split(incs), defines=Split(defs), libtype=['game2', 'player'], priority=[19, 169], compileflags=cflags )
-env.BlenderLib ( libname = 'extern_bullet2collision', sources=collision_src, includes=Split(incs), defines=Split(defs), libtype=['game2', 'player'], priority=[20, 170], compileflags=cflags )
+env.BlenderLib ( libname = 'extern_bullet2linmath', sources=linearmath_src, includes=Split(incs), defines=Split(defs), libtype=['game2', 'player'], priority=[25, 165], compileflags=cflags )
+env.BlenderLib ( libname = 'extern_bullet2dynamics', sources=bulletdyn_src, includes=Split(incs), defines=Split(defs), libtype=['game2', 'player'], priority=[20, 160], compileflags=cflags )
+env.BlenderLib ( libname = 'extern_bullet2collision', sources=collision_src, includes=Split(incs), defines=Split(defs), libtype=['game2', 'player'], priority=[30, 170], compileflags=cflags )

@@ -8,7 +8,7 @@ incs = '. intern ../blenkernel ../blenlib ../makesdna ../editors/include'
 incs += ' ' + env['BF_FTGL_INC']
 incs += ' ' + env['BF_FREETYPE_INC']
 incs += ' ' + env['BF_GETTEXT_INC']
-                 
+
 defs = 'FTGL_STATIC_LIBRARY'
 if sys.platform == 'win32':
 	defs += ' _WIN32 USE_GETTEXT_DLL'

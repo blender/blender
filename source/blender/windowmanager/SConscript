@@ -12,4 +12,4 @@ incs += ' ../ftfont ../radiosity/extern/include ../../kernel/gen_system'
 
 incs += ' #/intern/guardedalloc #/intern/memutil #/intern/ghost #/intern/bmfont'
 incs += ' #/intern/elbeem'
-env.BlenderLib ( 'bf_windowmanager', sources, Split(incs), [], libtype=['core','intern'], priority=[5, 25] )
+env.BlenderLib ( 'bf_windowmanager', sources, Split(incs), [], libtype=['core','intern'], priority=[45, 45] )

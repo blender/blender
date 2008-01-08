@@ -5,4 +5,4 @@ sources = 'PHY_IMotionState.cpp PHY_IPhysicsController.cpp PHY_IPhysicsEnvironme
 
 incs = '. ../Dummy #intern/moto/include'
 
-env.BlenderLib ( 'bf_common', Split(sources), Split(incs), [], libtype=['game', 'game2','player'], priority=[20, 35, 95] )
+env.BlenderLib ( 'bf_common', Split(sources), Split(incs), [], libtype=['game', 'game2','player'], priority=[20, 45, 90] )
