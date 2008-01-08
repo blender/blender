@@ -145,7 +145,7 @@ BF_OPENGL_LIB_STATIC = [ '${BF_OPENGL}/lib/libGL.a', '${BF_OPENGL}/lib/libGLU.a'
 CC = 'cl.exe'
 CXX = 'cl.exe'
 
-CCFLAGS = ['/nologo', '/Og', '/Ot', '/Ob1', '/Op', '/G6','/EHsc', '/J', '/W3', '/Gd', '/MT']
+CCFLAGS = ['/nologo', '/Ot', '/Ob1', '/EHsc', '/J', '/W3', '/Gd', '/MT']
 
 BF_DEBUG_FLAGS = ['/Zi', '/FR${TARGET}.sbr']
 

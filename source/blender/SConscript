@@ -3,31 +3,32 @@ Import ('env')
 import sys
 
 SConscript(['avi/SConscript',
-            'blenkernel/SConscript',
-            'blenlib/SConscript',
-            'blenloader/SConscript',
-            'blenpluginapi/SConscript',
-            'editors/SConscript',
-            'imbuf/SConscript',
-            'imbuf/intern/cineon/SConscript',
-            'makesdna/SConscript',
-            'radiosity/SConscript',
-            'readblenfile/SConscript',
-            'render/SConscript',
-            'nodes/SConscript',
-            'windowmanager/SConscript'])
+			'blenkernel/SConscript',
+			'blenlib/SConscript',
+			'blenloader/SConscript',
+			'blenpluginapi/SConscript',
+			'editors/SConscript',
+			'imbuf/SConscript',
+			'imbuf/intern/cineon/SConscript',
+			'makesdna/SConscript',
+			'python/SConscript',
+			'radiosity/SConscript',
+			'readblenfile/SConscript',
+			'render/SConscript',
+			'nodes/SConscript',
+			'windowmanager/SConscript'])
 
 if env['WITH_BF_YAFRAY'] == 1:
-    SConscript(['yafray/SConscript'])
+	SConscript(['yafray/SConscript'])
 
 if env['WITH_BF_INTERNATIONAL'] == 1:
-    SConscript (['ftfont/SConscript'])
+	SConscript (['ftfont/SConscript'])
 
 if env['WITH_BF_DDS'] == 1:
-    SConscript (['imbuf/intern/dds/SConscript'])
+	SConscript (['imbuf/intern/dds/SConscript'])
 
 if env['WITH_BF_OPENEXR'] == 1:
-    SConscript (['imbuf/intern/openexr/SConscript'])
+	SConscript (['imbuf/intern/openexr/SConscript'])
 
 if env['WITH_BF_QUICKTIME'] == 1:
-    SConscript (['quicktime/SConscript'])
+	SConscript (['quicktime/SConscript'])

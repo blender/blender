@@ -2,6 +2,10 @@
 Import ('env')
 
 
-SConscript(['area/SConscript',
-            'datafiles/SConscript',
-            'screen/SConscript'])
+SConscript(['datafiles/SConscript',
+			'interface/SConscript',
+			'mesh/SConscript',
+			'object/SConscript',
+			'space_view3d/SConscript',
+			'transform/SConscript',
+			'screen/SConscript'])
