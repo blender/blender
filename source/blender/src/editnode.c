@@ -1089,21 +1089,17 @@ void node_rename(SpaceNode *snode)
 {
 	bNode *node, *rename_node;
 	short found_node= 0;
-	
-	/* don't rename if more than one node is selected */
-	/* a nice alternative for this would be to rename last selected node */
+
+	/* check if a node is selected */
 	for(node= snode->edittree->nodes.first; node; node= node->next) {
 		if(node->flag & SELECT) {
-			if(found_node) {
-				error("Can rename only one selected node at time");
-				return;
-			}
-			rename_node= node;
 			found_node= 1;
+			break;
 		}
 	}
 
 	if(found_node) {
+		rename_node= nodeGetActive(snode->edittree);
 		node_rename_but((char *)rename_node->username);
 		BIF_undo_push("Rename Node");
 	

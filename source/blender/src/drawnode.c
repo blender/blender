@@ -2525,7 +2525,7 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 	rctf *rct= &node->totr;
 	float slen, iconofs;
 	int ofs, color_id= node_get_colorid(node);
-	char showname[64];
+	char showname[128];
 	
 	uiSetRoundBox(15-4);
 	ui_dropshadow(rct, BASIS_RAD, snode->aspect, node->flag & SELECT);
@@ -2737,7 +2737,7 @@ static void node_draw_hidden(SpaceNode *snode, bNode *node)
 	float dx, centy= 0.5f*(rct->ymax+rct->ymin);
 	float hiddenrad= 0.5f*(rct->ymax-rct->ymin);
 	int color_id= node_get_colorid(node);
-	char showname[64];
+	char showname[128];
 	
 	/* shadow */
 	uiSetRoundBox(15);
@@ -2983,6 +2983,7 @@ static void node_draw_group(ScrArea *sa, SpaceNode *snode, bNode *gnode)
 	bNodeTree *ngroup= (bNodeTree *)gnode->id;
 	bNodeSocket *sock;
 	rctf rect= gnode->totr;
+	char showname[128];
 	
 	/* backdrop header */
 	glEnable(GL_BLEND);
@@ -3006,7 +3007,17 @@ static void node_draw_group(ScrArea *sa, SpaceNode *snode, bNode *gnode)
 	/* backdrop title */
 	BIF_ThemeColor(TH_TEXT_HI);
 	ui_rasterpos_safe(rect.xmin+8.0f, rect.ymax+5.0f, snode->aspect);
-	BIF_DrawString(snode->curfont, ngroup->id.name+2, 0);
+
+	if(gnode->username[0]) {
+		strcpy(showname,"(");
+		strcat(showname, gnode->username);
+		strcat(showname,") ");
+		strcat(showname, ngroup->id.name+2);
+	}
+	else
+		strcpy(showname, ngroup->id.name+2);
+
+	BIF_DrawString(snode->curfont, showname, 0);
 	
 	/* links from groupsockets to the internal nodes */
 	node_draw_group_links(snode, gnode);
