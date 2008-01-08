@@ -1206,8 +1206,8 @@ void sample_action_keys (void)
 					}
 					
 					/* as we added keyframes, we need to compensate so that bezt is at the right place */
-					bezt = icu->bezt + i + range;
-					i += range;
+					bezt = icu->bezt + i + range - 1;
+					i += (range - 1);
 					
 					/* bezt was selected, so it now marks the start of a whole new chain to search */
 					start= bezt;
