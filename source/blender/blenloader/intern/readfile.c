@@ -6722,14 +6722,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 									curcon->ownspace = CONSTRAINT_SPACE_LOCAL;
 							}
 								break;
-							case CONSTRAINT_TYPE_STRETCHTO:
-							{
-								bStretchToConstraint *data= (bStretchToConstraint *)curcon->data;
-								
-								/* force recalc of rest-length */
-								data->orglength = 0;
-							}
-								break;
 						}	
 					}
 				}
@@ -6760,14 +6752,6 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 										if (data->local)
 											curcon->tarspace = CONSTRAINT_SPACE_LOCAL;
 									}							
-										break;
-									case CONSTRAINT_TYPE_STRETCHTO:
-									{
-										bStretchToConstraint *data= (bStretchToConstraint *)curcon->data;
-										
-										/* force recalc of rest-length */
-										data->orglength = 0;
-									}
 										break;
 								}
 							}
