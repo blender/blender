@@ -6636,29 +6636,9 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		World *wrld;
 		
 		if(main->versionfile != 244 || main->subversionfile < 2) {
-			Mesh *me;
-			
 			for(sce= main->scene.first; sce; sce= sce->id.next)
 				sce->r.mode |= R_SSS;
 
-			/* Copy over old per-level multires vertex data
-			   into a single vertex array in struct Multires */
-			
-			for(me = main->mesh.first; me; me=me->id.next) {
-				if(me->mr) {
-					MultiresLevel *lvl = me->mr->levels.last;
-					if(lvl) {
-						me->mr->verts = lvl->verts;
-						lvl->verts = NULL;
-						/* Don't need the other vert arrays */
-						for(lvl = lvl->prev; lvl; lvl = lvl->prev) {
-							MEM_freeN(lvl->verts);
-							lvl->verts = NULL;
-						}
-					}
-				}
-			}
-	
 			/* correct older action editors - incorrect scrolling */
 			for(sc= main->screen.first; sc; sc= sc->id.next) {
 				ScrArea *sa;
@@ -6712,6 +6692,7 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 		Lamp *la;
 		Material *ma;
 		ParticleSettings *part;
+		Mesh *me;
 		
 		/* unless the file was created 2.44.3 but not 2.45, update the constraints */
 		if ( !(main->versionfile==244 && main->subversionfile==3) &&
@@ -6848,6 +6829,23 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 						}
 					}
 					sa = sa->next;
+				}
+			}
+		}
+
+		/* Copy over old per-level multires vertex data
+		   into a single vertex array in struct Multires */
+		for(me = main->mesh.first; me; me=me->id.next) {
+			if(me->mr && !me->mr->verts) {
+				MultiresLevel *lvl = me->mr->levels.last;
+				if(lvl) {
+					me->mr->verts = lvl->verts;
+					lvl->verts = NULL;
+					/* Don't need the other vert arrays */
+					for(lvl = lvl->prev; lvl; lvl = lvl->prev) {
+						MEM_freeN(lvl->verts);
+						lvl->verts = NULL;
+					}
 				}
 			}
 		}
