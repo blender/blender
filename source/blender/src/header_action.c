@@ -117,7 +117,8 @@ enum {
 enum {
 	ACTMENU_KEY_DUPLICATE = 0,
 	ACTMENU_KEY_DELETE,
-	ACTMENU_KEY_CLEAN
+	ACTMENU_KEY_CLEAN,
+	ACTMENU_KEY_SAMPLEKEYS
 };
 
 enum {
@@ -1006,10 +1007,13 @@ static void do_action_keymenu(void *arg, int event)
 			duplicate_action_keys();
  			break;
 		case ACTMENU_KEY_DELETE:
-			delete_action_keys ();
+			delete_action_keys();
 			break;
 		case ACTMENU_KEY_CLEAN:
 			clean_action();
+			break;
+		case ACTMENU_KEY_SAMPLEKEYS:
+			sample_action_keys();
 			break;
 	}
 }
@@ -1052,6 +1056,11 @@ static uiBlock *action_keymenu(void *arg_unused)
 					 "Clean Action|O", 0, yco-=20, 
 					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
 					 ACTMENU_KEY_CLEAN, "");
+					 
+	uiDefIconTextBut(block, BUTM, 1, ICON_BLANK1, 
+					 "Sample Keys|Alt O", 0, yco-=20, 
+					 menuwidth, 19, NULL, 0.0, 0.0, 0, 
+					 ACTMENU_KEY_SAMPLEKEYS, "");
 
 	uiDefBut(block, SEPR, 0, "", 0, yco-=6, 
 			 menuwidth, 6, NULL, 0.0, 0.0, 0, 0, "");

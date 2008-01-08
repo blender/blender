@@ -112,6 +112,7 @@ void insertkey_action(void);
 void delete_action_keys(void);
 void delete_action_channels(void);
 void clean_action(void);
+void sample_action_keys(void);
 
 /* Column/Channel Key select */
 void column_select_action_keys(int mode);
