@@ -6,4 +6,4 @@ sources = env.Glob('*.c')
 incs = '../include ../../blenlib ../../blenkernel ../../makesdna ../../imbuf'
 incs += ' #/intern/guardedalloc'
 
-env.BlenderLib ( 'bf_editors_space_view3d', sources, Split(incs), [], libtype=['core','intern'], priority=[25, 35] )
+env.BlenderLib ( 'bf_editors_space_view3d', sources, Split(incs), [], libtype=['core','intern'], priority=[35, 40] )
