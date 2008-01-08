@@ -341,9 +341,9 @@ static void init_userdef_themes(void)
 		strcpy(U.versemaster, "master.uni-verse.org");
 	}
 	if(strlen(U.verseuser)<1) {
-		char *name = verse_client_name();
-		strcpy(U.verseuser, name);
-		MEM_freeN(name);
+// XXX		char *name = verse_client_name();
+// XXX		strcpy(U.verseuser, name);
+// XXX		MEM_freeN(name);
 	}
 #endif
 
@@ -450,13 +450,13 @@ static void verse_unsub(void)
 		while(vnode) {
 			switch(vnode->type) {
 				case V_NT_OBJECT:
-					unsubscribe_from_obj_node(vnode);
+//XXX					unsubscribe_from_obj_node(vnode);
 					break;
 				case V_NT_GEOMETRY:
-					unsubscribe_from_geom_node(vnode);
+//XXX					unsubscribe_from_geom_node(vnode);
 					break;
 				case V_NT_BITMAP:
-					unsubscribe_from_bitmap_node(vnode);
+//XXX					unsubscribe_from_bitmap_node(vnode);
 					break;
 			}
 			vnode = vnode->next;
@@ -496,7 +496,7 @@ void WM_read_file(bContext *C, char *name)
 
 //		winqueue_break= 1;	/* leave queues everywhere */
 
-		if(retval==2) init_userdef_themes();	// in case a userdef is read from regular .blend
+// XXX		if(retval==2) init_userdef_themes();	// in case a userdef is read from regular .blend
 		
 		if (retval!=0) G.relbase_valid = 1;
 
