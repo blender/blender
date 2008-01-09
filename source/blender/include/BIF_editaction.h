@@ -118,6 +118,7 @@ void sample_action_keys(void);
 void column_select_action_keys(int mode);
 void selectall_action_keys(short mval[], short mode, short selectmode);
 void markers_selectkeys_between(void);
+void nextprev_action_keyframe(short dir);
 
 /* Action Data Copying */
 void free_actcopybuf(void);
@@ -129,6 +130,9 @@ void up_sel_action(void);
 void down_sel_action(void);
 void top_sel_action(void);
 void bottom_sel_action(void);
+
+void expand_all_action(void);
+void openclose_level_action(short mode);
 
 /* IPO/Handle Types  */
 void sethandles_action_keys(int code);
