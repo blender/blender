@@ -742,9 +742,13 @@ class InterNode(Node):
 			self.mesh.faces.addPropertyLayer("FLT_SFLEVEL", Blender.Mesh.PropertyTypes["INT"])
 			
 			for i, f in enumerate(self.mesh.faces):
-				f.transp |= Blender.Mesh.FaceTranspModes["ALPHA"] #fix this!
-				f.mode |= Blender.Mesh.FaceModes["LIGHT"]
 				props = new_faces_props[i]
+				if props[6]['template billboard'] > 0:
+					f.transp |= Blender.Mesh.FaceTranspModes["ALPHA"]
+					if props[6]['template billboard'] == 2:
+						f.mode |=  Blender.Mesh.FaceModes["BILLBOARD"]
+					f.mode |= Blender.Mesh.FaceModes["LIGHT"]
+				
 				#f.mat = props[0]
 				f.image = props[1]
 				f.uv = props[2]

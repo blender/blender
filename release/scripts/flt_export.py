@@ -504,6 +504,7 @@ class FaceDesc:
 		self.renderstyle = 0
 		self.twoside = 0
 		self.name = None #uses next FLT name if not set... fix resolution of conflicts!
+		self.billboard = 0
 		
 		#Multi-Tex info. Dosn't include first UV Layer!
 		self.uvlayer = list() #list of list of tuples for UV coordinates.
@@ -716,6 +717,9 @@ class FLTNode(Node):
 				if "FLT_ID" in self.exportmesh.faces.properties:
 					face_desc.name = face.getProperty("FLT_ID") #need better solution than this.
 				
+				if uvok and face.mode & Blender.Mesh.FaceModes["BILLBOARD"]:
+					face_desc.billboard = 1
+					
 				self.face_lst.append(face_desc)
 		if uvok:		
 			self.exportmesh.activeUVLayer = oldlayer
@@ -904,6 +908,9 @@ class FLTNode(Node):
 							alpha = 1
 					except:
 						pass
+						
+			if face_desc.billboard:
+				alpha = 2
 				
 			if face_desc.subface:
 				if face_desc.subface == 'Push':
