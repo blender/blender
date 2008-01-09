@@ -22,7 +22,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): David Millan Escriva, Juho Vepsäläinen
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -1047,12 +1047,41 @@ static int node_composit_buts_renderlayers(uiBlock *block, bNodeTree *ntree, bNo
 	return 19;
 }
 
+static void node_blur_relative_cb(void *node, void *poin2)
+{
+	bNode *nodev= node;
+	NodeBlurData *nbd= nodev->storage;
+	if(nbd->image_in_width != 0){
+		if(nbd->relative){ /* convert absolute values to relative */
+			nbd->percentx= (float)(nbd->sizex)/nbd->image_in_width;
+			nbd->percenty= (float)(nbd->sizey)/nbd->image_in_height;
+		}else{ /* convert relative values to absolute */
+			nbd->sizex= (int)(nbd->percentx*nbd->image_in_width);
+			nbd->sizey= (int)(nbd->percenty*nbd->image_in_height);
+		}
+	}
+	allqueue(REDRAWNODE, 0);
+}
+static void node_blur_update_sizex_cb(void *node, void *poin2)
+{
+	bNode *nodev= node;
+	NodeBlurData *nbd= nodev->storage;
+
+	nbd->sizex= (int)(nbd->percentx*nbd->image_in_width);
+}
+static void node_blur_update_sizey_cb(void *node, void *poin2)
+{
+	bNode *nodev= node;
+	NodeBlurData *nbd= nodev->storage;
+
+	nbd->sizey= (int)(nbd->percenty*nbd->image_in_height);
+}
 static int node_composit_buts_blur(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
 {
 	if(block) {
 		NodeBlurData *nbd= node->storage;
 		uiBut *bt;
-		short dy= butr->ymin+38;
+		short dy= butr->ymin+58;
 		short dx= (butr->xmax-butr->xmin)/2;
 		char str[256];
 		
@@ -1074,15 +1103,33 @@ static int node_composit_buts_blur(uiBlock *block, bNodeTree *ntree, bNode *node
 			uiBlockBeginAlign(block);
 		}
 		dy-=19;
-		bt=uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "X:",
-					 butr->xmin, dy, dx, 19, 
-					 &nbd->sizex, 0, 256, 0, 0, "");
-		bt=uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Y:",
-					 butr->xmin+dx, dy, dx, 19, 
-					 &nbd->sizey, 0, 256, 0, 0, "");
+		bt= uiDefButS(block, TOG, B_NOP, "Relative",
+				  butr->xmin, dy, dx*2, 19,
+				  &nbd->relative, 0, 0, 0, 0, "Use relative (percent) values to define blur radius");
+		uiButSetFunc(bt, node_blur_relative_cb, node, NULL);
+
+		dy-=19;
+		if(nbd->relative) {
+			bt= uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "X:",
+						 butr->xmin, dy, dx, 19, 
+						 &nbd->percentx, 0.0f, 1.0f, 0, 0, "");
+			uiButSetFunc(bt, node_blur_update_sizex_cb, node, NULL);
+			bt= uiDefButF(block, NUM, B_NODE_EXEC+node->nr, "Y:",
+						 butr->xmin+dx, dy, dx, 19, 
+						 &nbd->percenty, 0.0f, 1.0f, 0, 0, "");
+			uiButSetFunc(bt, node_blur_update_sizey_cb, node, NULL);
+		}
+		else {
+			uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "X:",
+						 butr->xmin, dy, dx, 19, 
+						 &nbd->sizex, 0, 256, 0, 0, "");
+			uiDefButS(block, NUM, B_NODE_EXEC+node->nr, "Y:",
+						 butr->xmin+dx, dy, dx, 19, 
+						 &nbd->sizey, 0, 256, 0, 0, "");
+		}
 		uiBlockEndAlign(block);
 	}
-	return 57;
+	return 77;
 }
 
 static int node_composit_buts_dblur(uiBlock *block, bNodeTree *ntree, bNode *node, rctf *butr)
@@ -1996,6 +2043,45 @@ void init_node_butfuncs(void)
 
 /* ************** Generic drawing ************** */
 
+void node_rename_but(char *s)
+{
+	uiBlock *block;
+	ListBase listb={0, 0};
+	int dy, x1, y1, sizex=80, sizey=30;
+	short pivot[2], mval[2], ret=0;
+	
+	getmouseco_sc(mval);
+
+	pivot[0]= CLAMPIS(mval[0], (sizex+10), G.curscreen->sizex-30);
+	pivot[1]= CLAMPIS(mval[1], (sizey/2)+10, G.curscreen->sizey-(sizey/2)-10);
+	
+	if (pivot[0]!=mval[0] || pivot[1]!=mval[1])
+		warp_pointer(pivot[0], pivot[1]);
+
+	mywinset(G.curscreen->mainwin);
+	
+	x1= pivot[0]-sizex+10;
+	y1= pivot[1]-sizey/2;
+	dy= sizey/2;
+	
+	block= uiNewBlock(&listb, "button", UI_EMBOSS, UI_HELV, G.curscreen->mainwin);
+	uiBlockSetFlag(block, UI_BLOCK_LOOP|UI_BLOCK_REDRAW|UI_BLOCK_NUMSELECT|UI_BLOCK_ENTER_OK);
+	
+	/* buttons have 0 as return event, to prevent menu to close on hotkeys */
+	uiBlockBeginAlign(block);
+	
+	uiDefBut(block, TEX, B_NOP, "Name: ", (short)(x1),(short)(y1+dy), 150, 19, s, 0.0, 19.0, 0, 0, "Node user name");
+	
+	uiBlockEndAlign(block);
+
+	uiDefBut(block, BUT, 32767, "OK", (short)(x1+150), (short)(y1+dy), 29, 19, NULL, 0, 0, 0, 0, "");
+
+	uiBoundsBlock(block, 2);
+
+	ret= uiDoBlocks(&listb, 0, 0);
+}
+
+
 static void draw_nodespace_grid(SpaceNode *snode)
 {
 	float start, step= 25.0f;
@@ -2439,6 +2525,7 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 	rctf *rct= &node->totr;
 	float slen, iconofs;
 	int ofs, color_id= node_get_colorid(node);
+	char showname[128];
 	
 	uiSetRoundBox(15-4);
 	ui_dropshadow(rct, BASIS_RAD, snode->aspect, node->flag & SELECT);
@@ -2517,8 +2604,18 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 		BIF_ThemeColor(TH_TEXT);
 	
 	ui_rasterpos_safe(rct->xmin+19.0f, rct->ymax-NODE_DY+5.0f, snode->aspect);
-	snode_drawstring(snode, node->name, (int)(iconofs - rct->xmin-18.0f));
-					 
+	
+	if(node->username[0]) {
+		strcpy(showname,"(");
+		strcat(showname, node->username);
+		strcat(showname,") ");
+		strcat(showname, node->name);
+	}
+	else
+		strcpy(showname, node->name);
+
+	snode_drawstring(snode, showname, (int)(iconofs - rct->xmin-18.0f));
+
 	/* body */
 	BIF_ThemeColor4(TH_NODE);
 	glEnable(GL_BLEND);
@@ -2633,13 +2730,14 @@ static void node_draw_basis(ScrArea *sa, SpaceNode *snode, bNode *node)
 
 }
 
-void node_draw_hidden(SpaceNode *snode, bNode *node)
+static void node_draw_hidden(SpaceNode *snode, bNode *node)
 {
 	bNodeSocket *sock;
 	rctf *rct= &node->totr;
 	float dx, centy= 0.5f*(rct->ymax+rct->ymin);
 	float hiddenrad= 0.5f*(rct->ymax-rct->ymin);
 	int color_id= node_get_colorid(node);
+	char showname[128];
 	
 	/* shadow */
 	uiSetRoundBox(15);
@@ -2673,7 +2771,17 @@ void node_draw_hidden(SpaceNode *snode, bNode *node)
 	
 	if(node->miniwidth>0.0f) {
 		ui_rasterpos_safe(rct->xmin+21.0f, centy-4.0f, snode->aspect);
-		snode_drawstring(snode, node->name, (int)(rct->xmax - rct->xmin-18.0f -12.0f));
+
+		if(node->username[0]) {
+			strcpy(showname,"(");
+			strcat(showname, node->username);
+			strcat(showname,") ");
+			strcat(showname, node->name);
+		}
+		else
+			strcpy(showname, node->name);
+
+		snode_drawstring(snode, showname, (int)(rct->xmax - rct->xmin-18.0f -12.0f));
 	}	
 
 	/* scale widget thing */
@@ -2875,6 +2983,7 @@ static void node_draw_group(ScrArea *sa, SpaceNode *snode, bNode *gnode)
 	bNodeTree *ngroup= (bNodeTree *)gnode->id;
 	bNodeSocket *sock;
 	rctf rect= gnode->totr;
+	char showname[128];
 	
 	/* backdrop header */
 	glEnable(GL_BLEND);
@@ -2898,7 +3007,17 @@ static void node_draw_group(ScrArea *sa, SpaceNode *snode, bNode *gnode)
 	/* backdrop title */
 	BIF_ThemeColor(TH_TEXT_HI);
 	ui_rasterpos_safe(rect.xmin+8.0f, rect.ymax+5.0f, snode->aspect);
-	BIF_DrawString(snode->curfont, ngroup->id.name+2, 0);
+
+	if(gnode->username[0]) {
+		strcpy(showname,"(");
+		strcat(showname, gnode->username);
+		strcat(showname,") ");
+		strcat(showname, ngroup->id.name+2);
+	}
+	else
+		strcpy(showname, ngroup->id.name+2);
+
+	BIF_DrawString(snode->curfont, showname, 0);
 	
 	/* links from groupsockets to the internal nodes */
 	node_draw_group_links(snode, gnode);

@@ -1533,10 +1533,10 @@ void reset_particle(ParticleData *pa, ParticleSystem *psys, ParticleSystemModifi
 	ParticleTexture ptex;
 	ParticleKey state;
 	IpoCurve *icu=0;
-	float fac, rotfac, phasefac, nor[3]={0,0,0},loc[3],tloc[3],vel[3]={0.0,0.0,0.0},rot[4],*q2=0;
+	float fac, phasefac, nor[3]={0,0,0},loc[3],tloc[3],vel[3]={0.0,0.0,0.0},rot[4],*q2=0;
 	float r_vel[3],r_ave[3],r_rot[4],p_vel[3]={0.0,0.0,0.0};
 	float x_vec[3]={1.0,0.0,0.0}, utan[3]={0.0,1.0,0.0}, vtan[3]={0.0,0.0,1.0}, rot_vec[3]={0.0,0.0,0.0};
-	float q_one[4]={1.0,0.0,0.0,0.0}, q_phase[4];
+	float q_phase[4];
 	part=psys->part;
 
 	ptex.ivel=1.0;
@@ -4241,7 +4241,7 @@ static void psys_update_path_cache(Object *ob, ParticleSystemModifierData *psmd,
 	}
 
 	if((part->type==PART_HAIR || psys->flag&PSYS_KEYED) && (psys_in_edit_mode(psys)
-		|| part->draw_as==PART_DRAW_PATH || part->draw&PART_DRAW_KEYS)){
+		|| (part->type==PART_HAIR || part->draw_as==PART_DRAW_PATH) || part->draw&PART_DRAW_KEYS)){
 		psys_cache_paths(ob, psys, cfra, 0);
 
 		/* for render, child particle paths are computed on the fly */

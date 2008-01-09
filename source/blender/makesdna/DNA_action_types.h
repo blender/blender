@@ -90,7 +90,6 @@ typedef struct bPoseChannel {
  */
 typedef struct bPose {
 	ListBase chanbase; 			/* list of pose channels */
-	struct bAction *poselib;	/* poselib-action for this pose */
 	
 	short flag, proxy_layer;	/* proxy layer: copy from armature, gets synced */
 	
@@ -104,6 +103,7 @@ typedef struct bPose {
  */
 typedef struct bActionChannel {
 	struct bActionChannel	*next, *prev;
+	
 	struct Ipo				*ipo;					/* IPO block this action channel references */
 	ListBase				constraintChannels;		/* Constraint Channels (when Action Channel represents an Object or Bone) */
 	

@@ -160,9 +160,9 @@ void remake_action_ipos (bAction *act)
 				testhandles_ipocurve(icu);
 			}
 		}
-		for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next){
+		for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
 			if (conchan->ipo) {
-				for (icu = conchan->ipo->curve.first; icu; icu=icu->next){
+				for (icu = conchan->ipo->curve.first; icu; icu=icu->next) {
 					sort_time_ipocurve(icu);
 					testhandles_ipocurve(icu);
 				}
@@ -962,7 +962,7 @@ void insertkey_action(void)
 		ListBase act_data = {NULL, NULL};
 		bActListElem *ale;
 		int filter;
-	
+		
 		/* ask user what to keyframe */
 		mode = pupmenu("Insert Key%t|All Channels%x1|Only Selected Channels%x2");
 		if (mode <= 0) return;
@@ -1047,7 +1047,7 @@ void delete_action_keys (void)
 	allqueue(REDRAWNLA, 0);
 }
 
-/* delete selected keyframes */
+/* delete selected action-channels (only achans and conchans are considered) */
 void delete_action_channels (void)
 {
 	ListBase act_data = {NULL, NULL};
@@ -1136,6 +1136,99 @@ void clean_action (void)
 	BLI_freelistN(&act_data);
 	
 	BIF_undo_push("Clean Action");
+	allqueue(REMAKEIPO, 0);
+	allqueue(REDRAWIPO, 0);
+	allqueue(REDRAWACTION, 0);
+	allqueue(REDRAWNLA, 0);
+}
+
+
+/* little cache for values... */
+typedef struct tempFrameValCache {
+	float frame, val;
+} tempFrameValCache;
+
+/* Evaluates the curves between each selected keyframe on each frame, and keys the value  */
+void sample_action_keys (void)
+{	
+	ListBase act_data = {NULL, NULL};
+	bActListElem *ale;
+	int filter;
+	void *data;
+	short datatype;
+	
+	/* sanity checks */
+	data= get_action_context(&datatype);
+	if (data == NULL) return;
+	
+	/* filter data */
+	filter= (ACTFILTER_VISIBLE | ACTFILTER_FOREDIT | ACTFILTER_ONLYICU);
+	actdata_filter(&act_data, filter, data, datatype);
+	
+	/* loop through filtered data and add keys between selected keyframes on every frame  */
+	for (ale= act_data.first; ale; ale= ale->next) {
+		IpoCurve *icu= (IpoCurve *)ale->key_data;
+		BezTriple *bezt, *start=NULL, *end=NULL;
+		tempFrameValCache *value_cache, *fp;
+		int sfra, range;
+		int i, n;
+		
+		/* find selected keyframes... once pair has been found, add keyframes  */
+		for (i=0, bezt=icu->bezt; i < icu->totvert; i++, bezt++) {
+			/* check if selected, and which end this is */
+			if (BEZSELECTED(bezt)) {
+				if (start) {
+					/* set end */
+					end= bezt;
+					
+					/* cache values then add keyframes using these values, as adding
+					 * keyframes while sampling will affect the outcome...
+					 */
+					range= (int)( ceil(end->vec[1][0] - start->vec[1][0]) );
+					sfra= (int)( floor(start->vec[1][0]) );
+					
+					if (range) {
+						value_cache= MEM_callocN(sizeof(tempFrameValCache)*range, "IcuFrameValCache");
+						
+						/* 	sample values 	*/
+						for (n=0, fp=value_cache; n<range && fp; n++, fp++) {
+							fp->frame= (float)(sfra + n);
+							fp->val= eval_icu(icu, fp->frame);
+						}
+						
+						/* 	add keyframes with these 	*/
+						for (n=0, fp=value_cache; n<range && fp; n++, fp++) {
+							insert_vert_icu(icu, fp->frame, fp->val, 1);
+						}
+						
+						/* free temp cache */
+						MEM_freeN(value_cache);
+					}
+					
+					/* as we added keyframes, we need to compensate so that bezt is at the right place */
+					bezt = icu->bezt + i + range - 1;
+					i += (range - 1);
+					
+					/* bezt was selected, so it now marks the start of a whole new chain to search */
+					start= bezt;
+					end= NULL;
+				}
+				else {
+					/* just set start keyframe */
+					start= bezt;
+					end= NULL;
+				}
+			}
+		}
+		
+		/* recalculate channel's handles? */
+		calchandles_ipocurve(icu);
+	}
+	
+	/* admin and redraws */
+	BLI_freelistN(&act_data);
+	
+	BIF_undo_push("Sample Action Keys");
 	allqueue(REMAKEIPO, 0);
 	allqueue(REDRAWIPO, 0);
 	allqueue(REDRAWACTION, 0);
@@ -3087,7 +3180,10 @@ void winqreadactionspace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			break;
 			
 		case OKEY:
-			clean_action();
+			if (G.qual & LR_ALTKEY)
+				sample_action_keys();
+			else
+				clean_action();
 			break;
 			
 		case PKEY:

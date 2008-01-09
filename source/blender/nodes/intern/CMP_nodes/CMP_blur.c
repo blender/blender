@@ -22,7 +22,8 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): Campbell Barton, Alfredo de Greef, David Millan Escriva,
+ * Juho Vepsäläinen
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -556,16 +557,20 @@ static void blur_with_reference(bNode *node, CompBuf *new, CompBuf *img, CompBuf
 static void node_composit_exec_blur(void *data, bNode *node, bNodeStack **in, bNodeStack **out)
 {
 	CompBuf *new, *img= in[0]->data;
+	NodeBlurData *nbd= node->storage;
 	
-	if(img==NULL || out[0]->hasoutput==0)
-		return;
+	if(img==NULL) return;
+	
+	/* store image in size that is needed for absolute/relative conversions on ui level */
+	nbd->image_in_width= img->x;
+	nbd->image_in_height= img->y;
+	
+	if(out[0]->hasoutput==0) return;
 	
 	if (((NodeBlurData *)node->storage)->filtertype == R_FILTER_FAST_GAUSS) {
 		CompBuf *new, *img = in[0]->data;
 		/*from eeshlo's original patch, removed to fit in with the existing blur node */
 		/*const float sx = in[1]->vec[0], sy = in[2]->vec[0];*/
-	
-		NodeBlurData *nbd= node->storage;
 		const float sx = ((float)nbd->sizex)/2.0f, sy = ((float)nbd->sizey)/2.0f;
 		int c;
 

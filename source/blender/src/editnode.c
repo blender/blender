@@ -22,7 +22,7 @@
  *
  * The Original Code is: all of this file.
  *
- * Contributor(s): none yet.
+ * Contributor(s): David Millan Escriva, Juho Vepsäläinen
  *
  * ***** END GPL LICENSE BLOCK *****
  */
@@ -1083,7 +1083,29 @@ static void scale_node(SpaceNode *snode, bNode *node)
 	allqueue(REDRAWNODE, 1);
 }
 
+/* ******************** rename ******************* */
 
+void node_rename(SpaceNode *snode)
+{
+	bNode *node, *rename_node;
+	short found_node= 0;
+
+	/* check if a node is selected */
+	for(node= snode->edittree->nodes.first; node; node= node->next) {
+		if(node->flag & SELECT) {
+			found_node= 1;
+			break;
+		}
+	}
+
+	if(found_node) {
+		rename_node= nodeGetActive(snode->edittree);
+		node_rename_but((char *)rename_node->username);
+		BIF_undo_push("Rename Node");
+	
+		allqueue(REDRAWNODE, 1);
+	}
+}
 
 /* ********************** select ******************** */
 
@@ -1855,34 +1877,31 @@ void node_select_linked(SpaceNode *snode, int out)
 	allqueue(REDRAWNODE, 1);
 }
 
-void node_toggle_link(SpaceNode *snode)
+/* makes a link between selected output and input sockets */
+void node_make_link(SpaceNode *snode)
 {
 	bNode *fromnode, *tonode;
-	bNodeLink *remlink, *link;
+	bNodeLink *link;
 	bNodeSocket *outsock= snode->edittree->selout;
 	bNodeSocket *insock= snode->edittree->selin;
 
 	if(!insock || !outsock) return;
+	if(nodeFindLink(snode->edittree, outsock, insock)) return;
 
-	remlink= nodeFindLink(snode->edittree, outsock, insock);
-	
-	if(remlink) nodeRemLink(snode->edittree, remlink);
-	else {
-		if(nodeFindNode(snode->edittree, outsock, &fromnode, NULL) &&
-		   nodeFindNode(snode->edittree, insock, &tonode, NULL)) {
-			link= nodeAddLink(snode->edittree, fromnode, outsock, tonode, insock);
-			NodeTagChanged(snode->edittree, tonode);
-			node_remove_extra_links(snode, insock, link);
-		}
-		else return;
+	if(nodeFindNode(snode->edittree, outsock, &fromnode, NULL) &&
+		nodeFindNode(snode->edittree, insock, &tonode, NULL)) {
+		link= nodeAddLink(snode->edittree, fromnode, outsock, tonode, insock);
+		NodeTagChanged(snode->edittree, tonode);
+		node_remove_extra_links(snode, insock, link);
 	}
+	else return;
 
 	ntreeSolveOrder(snode->edittree);
 	snode_verify_groups(snode);
 	snode_handle_recalc(snode);
 
 	allqueue(REDRAWNODE, 0);
-	BIF_undo_push("Toggle Link");
+	BIF_undo_push("Make Link Between Sockets");
 }
 
 static void node_border_link_delete(SpaceNode *snode)
@@ -2278,7 +2297,7 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			snode_handle_recalc(snode);
 			break;
 		case FKEY:
-			node_toggle_link(snode);
+			node_make_link(snode);
 			break;
 		case GKEY:
 			if(fromlib) fromlib= -1;
@@ -2308,8 +2327,12 @@ void winqreadnodespace(ScrArea *sa, void *spacedata, BWinEvent *evt)
 			node_select_linked(snode, G.qual==LR_SHIFTKEY);
 			break;
 		case RKEY:
-			if(okee("Read saved Render Layers"))
-				node_read_renderlayers(snode);
+			if(G.qual==LR_CTRLKEY) {
+				node_rename(snode);
+			} else{
+				if(okee("Read saved Render Layers"))
+					node_read_renderlayers(snode);
+			}
 			break;
 		case DELKEY:
 		case XKEY:

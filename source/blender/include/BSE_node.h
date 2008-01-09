@@ -54,6 +54,8 @@ struct Material *editnode_get_active_material(struct Material *ma);
 struct bNode *editnode_get_active_idnode(struct bNodeTree *ntree, short id_code);
 struct bNode *editnode_get_active(struct bNodeTree *ntree);
 
+void node_rename(struct SpaceNode *snode);
+
 void snode_tag_dirty(struct SpaceNode *snode);
 
 void snode_set_context(struct SpaceNode *snode);
@@ -72,7 +74,7 @@ void snode_make_group_editable(struct SpaceNode *snode, struct bNode *gnode);
 void node_hide(struct SpaceNode *snode);
 void node_read_renderlayers(struct SpaceNode *snode);
 void clear_scene_in_nodes(struct Scene *sce);
-void node_toggle_link(struct SpaceNode *snode);
+void node_make_link(struct SpaceNode *snode);
 
 void node_transform_ext(int mode, int unused);
 void node_shader_default(struct Material *ma);
@@ -96,6 +98,8 @@ void imagepaint_composite_tags(struct bNodeTree *ntree, struct Image *image, str
 struct SpaceNode;
 struct bNodeLink;
 void node_draw_link(struct SpaceNode *snode, struct bNodeLink *link);
+
+void node_rename_but(char *s);
 
 void init_node_butfuncs(void);
 

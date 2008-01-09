@@ -107,6 +107,7 @@ typedef struct bNode {
 	struct bNode *next, *prev, *new_node;
 	
 	char name[32];
+	char username[32];	/* custom name defined by user */
 	short type, flag;
 	short done, level;		/* both for dependency and sorting */
 	short lasty, menunr;	/* lasty: check preview render status, menunr: browse ID blocks */
@@ -196,11 +197,13 @@ typedef struct NodeImageAnim {
 } NodeImageAnim;
 
 typedef struct NodeBlurData {
-	short sizex, sizey, samples, maxspeed, minspeed, pad1;
-	float fac;
+	short sizex, sizey;
+	short samples, maxspeed, minspeed, relative;
+	float fac, percentx, percenty;
 	short filtertype;
 	char bokeh, gamma;
-	int pad2;
+	int pad;
+	int image_in_width, image_in_height; /* needed for absolute/relative conversions */
 } NodeBlurData;
 
 typedef struct NodeDBlurData {

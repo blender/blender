@@ -5653,22 +5653,24 @@ void delete_ipo_keys(Ipo *ipo)
 	IpoCurve *icu, *next;
 	int i;
 	
-	if (!ipo)
+	if (ipo == NULL)
 		return;
 	
-	for (icu=ipo->curve.first; icu; icu=next){
+	for (icu= ipo->curve.first; icu; icu= next) {
 		next = icu->next;
-		for (i=0; i<icu->totvert; i++){
-			if (icu->bezt[i].f2 & 1){
-				//	Delete the item
-				memcpy (&icu->bezt[i], &icu->bezt[i+1], sizeof (BezTriple)*(icu->totvert-i-1));
+		
+		/* Delete selected BezTriples */
+		for (i=0; i<icu->totvert; i++) {
+			if (icu->bezt[i].f2 & SELECT) {
+				memcpy(&icu->bezt[i], &icu->bezt[i+1], sizeof(BezTriple)*(icu->totvert-i-1));
 				icu->totvert--;
 				i--;
 			}
 		}
-		if (!icu->totvert){
-			/* Delete the curve */
-			BLI_remlink( &(ipo->curve), icu);
+		
+		/* Only delete if there isn't an ipo-driver still hanging around on an empty curve */
+		if (icu->totvert==0 && icu->driver==NULL) {
+			BLI_remlink(&ipo->curve, icu);
 			free_ipo_curve(icu);
 		}
 	}
