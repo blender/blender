@@ -160,9 +160,9 @@ void remake_action_ipos (bAction *act)
 				testhandles_ipocurve(icu);
 			}
 		}
-		for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next){
+		for (conchan=achan->constraintChannels.first; conchan; conchan=conchan->next) {
 			if (conchan->ipo) {
-				for (icu = conchan->ipo->curve.first; icu; icu=icu->next){
+				for (icu = conchan->ipo->curve.first; icu; icu=icu->next) {
 					sort_time_ipocurve(icu);
 					testhandles_ipocurve(icu);
 				}
@@ -1047,7 +1047,7 @@ void delete_action_keys (void)
 	allqueue(REDRAWNLA, 0);
 }
 
-/* delete selected keyframes */
+/* delete selected action-channels (only achans and conchans are considered) */
 void delete_action_channels (void)
 {
 	ListBase act_data = {NULL, NULL};
