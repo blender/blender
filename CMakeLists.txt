@@ -54,7 +54,7 @@ SET(LIBRARY_OUTPUT_PATH  ${CMAKE_BINARY_DIR}/lib)
 #-----------------------------------------------------------------------------
 # Set default config options
 OPTION(WITH_PLAYER		"Build Player"						OFF)
-OPTION(WITH_GAMEENGINE		"Enable Game Engine"					ON)
+OPTION(WITH_GAMEENGINE		"Enable Game Engine"					OFF)
 OPTION(WITH_BULLET		"Enable Bullet (Physics Engine)"			ON)
 OPTION(WITH_INTERNATIONAL	"Enable I18N   (International fonts and text)"		ON)
 OPTION(WITH_VERSE		"Enable Verse  (http://verse.blender.org)"		OFF)
