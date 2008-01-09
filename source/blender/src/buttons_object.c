@@ -3359,6 +3359,12 @@ static void object_softbodies__enable_psys(void *ob_v, void *psys_v)
 	allqueue(REDRAWBUTSEDIT, 0);
 }
 
+
+#ifdef _work_on_sb_solver
+static char sbsolvers[] = "Solver %t|RKP almost SOFT not usable but for some german teachers %x1|STU ip semi implicit euler%x3|SI1  (half step)adaptive semi implict euler %x2|SI2  (use dv)adaptive semi implict euler %x4|SOFT  step size controlled midpoint(1rst choice for real softbodies)%x0";
+#else
+static char sbsolvers[] = "STU PID semi implicit euler%x3|SOFT  step size controlled midpoint(1rst choice for real softbodies)%x0";
+#endif
 static void object_softbodies_II(Object *ob)
 {
 	SoftBody *sb=ob->soft;
@@ -3376,7 +3382,7 @@ static void object_softbodies_II(Object *ob)
 	}
 	block= uiNewBlock(&curarea->uiblocks, "object_softbodies_II", UI_EMBOSS, UI_HELV, curarea->win);
 	uiNewPanelTabbed("Soft Body", "Physics");
-	if(uiNewPanel(curarea, block, "Soft Body Collision", "Physics", 651, 0, 318, 204)==0) return;
+	if(uiNewPanel(curarea, block, "Soft Body Col&Solv", "Physics", 651, 0, 318, 204)==0) return;
 
 	uiSetButLock(object_data_is_libdata(ob), ERROR_LIBDATA_MESSAGE);
 
@@ -3448,10 +3454,13 @@ static void object_softbodies_II(Object *ob)
 
 			uiBlockEndAlign(block);
 			/*SOLVER SETTINGS*/
-			uiDefButF(block, NUM, B_DIFF, "Error Lim:",	10,100,130,20, &sb->rklimit , 0.001, 10.0, 10, 0, "The Runge-Kutta ODE solver error limit, low value gives more precision, high values speed");
-			uiDefButBitS(block, TOG, SBSO_OLDERR, B_DIFF,"O", 140,100,20,20, &sb->solverflags,  0,  0, 0, 0, "Old Error Calculation");
-			uiDefButS(block, NUM, B_DIFF, "Fuzzy:", 160,100,130,20, &sb->fuzzyness,  1.00,  100.0, 10, 0, "Fuzzyness while on collision, high values make collsion handling faster but less stable");
-			uiDefButBitS(block, TOG, SBSO_MONITOR, B_DIFF,"M", 290,100,20,20, &sb->solverflags,  0,  0, 0, 0, "Turn on SB diagnose console prints");
+			uiBlockBeginAlign(block);
+			uiDefButS(block, MENU, B_DIFF, sbsolvers,10,100,50,20, &sb->solver_ID, 14.0, 0.0, 0, 0, "Select Solver");
+			uiDefButF(block, NUM, B_DIFF, "Error Lim:",	60,100,130,20, &sb->rklimit , 0.001, 10.0, 10, 0, "The Runge-Kutta ODE solver error limit, low value gives more precision, high values speed");
+			uiDefButBitS(block, TOG, SBSO_OLDERR, B_DIFF,"O", 190,100,20,20, &sb->solverflags,  0,  0, 0, 0, "Old Error Calculation");
+			uiDefButS(block, NUM, B_DIFF, "Fuzzy:", 210,100,90,20, &sb->fuzzyness,  1.00,  100.0, 10, 0, "Fuzzyness while on collision, high values make collsion handling faster but less stable");
+			uiDefButBitS(block, TOG, SBSO_MONITOR, B_DIFF,"M", 300,100,20,20, &sb->solverflags,  0,  0, 0, 0, "Turn on SB diagnose console prints");
+			uiBlockEndAlign(block);
 			uiDefButS(block, NUM, B_DIFF, "MinS:", 10,80,100,20, &sb->minloops,  0.00,  30000.0, 10, 0, "Minimal # solver steps/frame ");
 			uiDefButS(block, NUM, B_DIFF, "MaxS:", 110,80,100,20, &sb->maxloops,  0.00,  30000.0, 10, 0, "Maximal # solver steps/frame ");
 			uiDefButS(block, NUM, B_DIFF, "Choke:", 210,80,100,20, &sb->choke, 0.00,  100.0, 10, 0, "'Viscosity' inside collision target ");
@@ -3532,6 +3541,7 @@ static void object_softbodies(Object *ob)
 			but = uiDefButI(block, TOG, REDRAWBUTSOBJECT, "Soft Body",	110,200,70,20, &val, 0, 0, 0, 0, "Sets object to become soft body");
 		else
 			but = uiDefButI(block, TOG, REDRAWBUTSOBJECT, "Soft Body",	10,200,130,20, &val, 0, 0, 0, 0, "Sets object to become soft body");
+
 
 		uiButSetFunc(but, object_softbodies__enable, ob, NULL);
 	}
@@ -3635,11 +3645,15 @@ static void object_softbodies(Object *ob)
 				uiDefButBitS(block, TOG, OB_SB_QUADS, B_SOFTBODY_CHANGE, "Stiff Quads",		110,50,90,20, softflag, 0, 0, 0, 0, "Adds diagonal springs on 4-gons");
 				uiDefButBitS(block, TOG, OB_SB_EDGECOLL, B_DIFF, "CEdge",		220,50,45,20, softflag, 0, 0, 0, 0, "Edge collide too"); 
 				uiDefButBitS(block, TOG, OB_SB_FACECOLL, B_DIFF, "CFace",		265,50,45,20, softflag, 0, 0, 0, 0, "Faces collide too SLOOOOOW warning "); 
-				uiDefButF(block, NUM, B_DIFF, "E Stiff:",	10,30,150,20, &sb->inspring, 0.0,  0.999, 10, 0, "Edge spring stiffness");
-				uiDefButF(block, NUM, B_DIFF, "E Damp:",	160,30,150,20, &sb->infrict, 0.0,  50.0, 10, 0, "Edge spring friction");
-				uiDefButS(block, NUM, B_DIFF, "Aero:",     10,10,150,20, &sb->aeroedge,  0.00,  30000.0, 10, 0, "Make edges 'sail'");
+				uiDefButF(block, NUM, B_DIFF, "E Pull:",	10,30,100,20, &sb->inspring, 0.0,  0.999, 10, 0, "Edge spring stiffness");
+				uiDefButF(block, NUM, B_DIFF, "E Push:",	110,30,100,20, &sb->inpush, 0.0,  0.999, 10, 0, "Edge spring stiffness");
+				uiDefButF(block, NUM, B_DIFF, "E Damp:",	210,30,100,20, &sb->infrict, 0.0,  50.0, 10, 0, "Edge spring friction");
+				uiDefButS(block, NUM, B_DIFF, "Aero:",     10,10,100,20, &sb->aeroedge,  0.00,  30000.0, 10, 0, "Make edges 'sail'");
 				if(ob->type==OB_MESH) {
-					uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Rigidity:", 160,10,150,20, &sb->secondspring, 0.0,  10.0, 10, 0, "Strenght of Springs over 2 Edges");
+					uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Bend:", 110,10,100,20, &sb->secondspring, 0.0,  10.0, 10, 0, "Strenght of Springs over 2 Edges");
+					if (*softflag & OB_SB_QUADS){ 
+					uiDefButF(block, NUM, B_SOFTBODY_CHANGE, "Shear:", 210,10,100,20, &sb->shearstiff, 0.0,  1.0, 10, 0, "Strenght of Springs over 2 Edges");
+					}
 				}
 				else sb->secondspring = 0;
 				uiDefBut(block, LABEL, 0, "",10,10,1,0, NULL, 0.0, 0, 0, 0, ""); /* tell UI we go to 10,10*/

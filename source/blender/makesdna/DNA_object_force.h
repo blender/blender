@@ -129,10 +129,13 @@ typedef struct SoftBody {
 		minloops,
 		maxloops,
 		choke,
-		pad3,pad4,pad5
+		solver_ID,
+		pad4,pad5
 		;   
 
 	struct SBScratch *scratch;	/* scratch pad/cache on live time not saved in file */
+	float shearstiff;
+	float inpush;
 
 } SoftBody;
 
