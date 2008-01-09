@@ -49,8 +49,6 @@ void *editelems;
 void BPY_post_start_python() {}
 void BPY_run_python_script() {}
 void BPY_start_python() {}
-void BPY_copy_scriptlink() {}
-void BPY_free_scriptlink() {}
 void BPY_do_all_scripts() {}
 void BPY_call_importloader() {}
 void BPY_do_pyscript() {}
