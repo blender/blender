@@ -347,11 +347,12 @@ typedef struct TexMapping {
 #define PROJ_Z			3
 
 /* texflag */
-#define MTEX_RGBTOINT	1
-#define MTEX_STENCIL	2
-#define MTEX_NEGATIVE	4
-#define MTEX_ALPHAMIX	8
-#define MTEX_VIEWSPACE	16
+#define MTEX_RGBTOINT		1
+#define MTEX_STENCIL		2
+#define MTEX_NEGATIVE		4
+#define MTEX_ALPHAMIX		8
+#define MTEX_VIEWSPACE		16
+#define MTEX_DUPLI_MAPTO	32
 
 /* blendtype */
 #define MTEX_BLEND		0

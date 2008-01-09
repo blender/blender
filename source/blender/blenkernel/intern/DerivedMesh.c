@@ -2135,8 +2135,12 @@ static void mesh_calc_modifiers(Object *ob, float (*inputVertexCos)[3],
 	}
 
 	/* add an orco layer if needed */
-	if(dataMask & CD_MASK_ORCO)
+	if(dataMask & CD_MASK_ORCO) {
 		add_orco_dm(ob, finaldm, orcodm);
+
+		if(deform_r && *deform_r)
+			add_orco_dm(ob, *deform_r, NULL);
+	}
 
 	*final_r = finaldm;
 

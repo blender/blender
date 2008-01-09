@@ -46,6 +46,7 @@ typedef struct DupliObject {
 	unsigned int origlay;
 	int index, no_draw, type;
 	float mat[4][4], omat[4][4];
+	float orco[3], uv[2];
 } DupliObject;
 
 void free_path(struct Path *path);

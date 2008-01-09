@@ -1427,7 +1427,14 @@ void do_material_tex(ShadeInput *shi)
 
 			/* which coords */
 			if(mtex->texco==TEXCO_ORCO) {
-				co= shi->lo; dx= shi->dxlo; dy= shi->dylo;
+				if(mtex->texflag & MTEX_DUPLI_MAPTO) {
+					co= shi->duplilo; dx= dxt; dy= dyt;
+					dxt[0]= dxt[1]= dxt[2]= 0.0f;
+					dyt[0]= dyt[1]= dyt[2]= 0.0f;
+				}
+				else {
+					co= shi->lo; dx= shi->dxlo; dy= shi->dylo;
+				}
 			}
 			else if(mtex->texco==TEXCO_STICKY) {
 				co= shi->sticky; dx= shi->dxsticky; dy= shi->dysticky;
@@ -1466,21 +1473,28 @@ void do_material_tex(ShadeInput *shi)
 				co= shi->gl; dx= shi->dxco; dy= shi->dyco;
 			}
 			else if(mtex->texco==TEXCO_UV) {
-				ShadeInputUV *suv= &shi->uv[shi->actuv];
-				int i;
+				if(mtex->texflag & MTEX_DUPLI_MAPTO) {
+					co= shi->dupliuv; dx= dxt; dy= dyt;
+					dxt[0]= dxt[1]= dxt[2]= 0.0f;
+					dyt[0]= dyt[1]= dyt[2]= 0.0f;
+				}
+				else {
+					ShadeInputUV *suv= &shi->uv[shi->actuv];
+					int i;
 
-				if(mtex->uvname[0] != 0) {
-					for(i = 0; i < shi->totuv; i++) {
-						if(strcmp(shi->uv[i].name, mtex->uvname)==0) {
-							suv= &shi->uv[i];
-							break;
+					if(mtex->uvname[0] != 0) {
+						for(i = 0; i < shi->totuv; i++) {
+							if(strcmp(shi->uv[i].name, mtex->uvname)==0) {
+								suv= &shi->uv[i];
+								break;
+							}
 						}
 					}
-				}
 
-				co= suv->uv;
-				dx= suv->dxuv;
-				dy= suv->dyuv; 
+					co= suv->uv;
+					dx= suv->dxuv;
+					dy= suv->dyuv; 
+				}
 			}
 			else if(mtex->texco==TEXCO_WINDOW) {
 				co= shi->winco; dx= shi->dxwin; dy= shi->dywin;

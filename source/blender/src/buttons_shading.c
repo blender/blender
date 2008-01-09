@@ -3299,7 +3299,7 @@ static void material_panel_map_input(Object *ob, Material *ma)
 	uiBlockBeginAlign(block);
 	uiDefButS(block, ROW, B_MATPRV, "Glob",			630,180,45,18, &(mtex->texco), 4.0, (float)TEXCO_GLOB, 0, 0, "Uses global coordinates for the texture coordinates");
 	uiDefButS(block, ROW, B_MATPRV, "Object",		675,180,75,18, &(mtex->texco), 4.0, (float)TEXCO_OBJECT, 0, 0, "Uses linked object's coordinates for texture coordinates");
-	if(mtex->texco == TEXCO_UV) {
+	if(mtex->texco == TEXCO_UV && !(mtex->texflag & MTEX_DUPLI_MAPTO)) {
 		if(!verify_valid_uv_name(mtex->uvname))
             uiBlockSetCol(block, TH_REDALERT);
 		but=uiDefBut(block, TEX, B_MATPRV, "UV:", 750,180,158,18, mtex->uvname, 0, 31, 0, 0, "Set name of UV layer to use, default is active UV layer");
@@ -3321,6 +3321,10 @@ static void material_panel_map_input(Object *ob, Material *ma)
 	
 	uiDefButS(block, ROW, B_MATPRV, "Stress",		630,140,70,18, &(mtex->texco), 4.0, (float)TEXCO_STRESS, 0, 0, "Uses the difference of edge lengths compared to original coordinates of the mesh");
 	uiDefButS(block, ROW, B_MATPRV, "Tangent",		700,140,70,18, &(mtex->texco), 4.0, (float)TEXCO_TANGENT, 0, 0, "Uses the optional tangent vector as texture coordinates");
+	uiBlockEndAlign(block);
+
+	if(ELEM(mtex->texco, TEXCO_UV, TEXCO_ORCO))
+		uiDefButBitS(block, TOG, MTEX_DUPLI_MAPTO, B_MATPRV, "From Dupli",	820,140,88,18, &(mtex->texflag), 0, 0, 0, 0, "If object is duplicated by vertices, faces or particles, inherit texture coordinate from parent object");
 
 	/* COORDS */
 	uiBlockBeginAlign(block);
@@ -3855,7 +3859,7 @@ static uiBlock *strand_menu(void *mat_v)
 {
 	Material *ma= mat_v;
 	uiBlock *block;
-	int buth=20, butw=230, butx=10, buty=160;
+	int buth=20, butw=230, butx=10, buty=180;
 
 	block= uiNewBlock(&curarea->uiblocks, "strand menu", UI_EMBOSS, UI_HELV, curarea->win);
 	 
@@ -3885,6 +3889,7 @@ static uiBlock *strand_menu(void *mat_v)
 		uiDefButF(block, NUMSLI, 0, "End ",		butx,buty-=buth, butw,buth,  &ma->strand_end, 0.25, 10.0, 2, 0, "End size of strands in pixels");
   	}
 	uiDefButF(block, NUMSLI, 0, "Shape ",	butx,buty-=buth, butw,buth,  &ma->strand_ease, -0.9, 0.9, 2, 0, "Shape of strands, positive value makes it rounder, negative makes it spiky");
+	uiDefButF(block, NUMSLI, 0, "Width Fade ",	butx,buty-=buth, butw,buth,  &ma->strand_widthfade, 0.0, 2.0, 2, 0, "Transparency along the width of the strand");
 	uiDefBut(block, TEX, B_MATPRV, "UV:", butx,buty-=buth,butw,buth, ma->strand_uvname, 0, 31, 0, 0, "Set name of UV layer to override");
 
 	uiBlockSetDirection(block, UI_TOP);

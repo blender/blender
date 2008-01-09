@@ -94,7 +94,7 @@ struct HaloRen *RE_inithalo_particle(struct Render *re, struct ObjectRen *obr, s
 struct StrandBuffer *RE_addStrandBuffer(struct ObjectRen *obr, int totvert);
 
 struct ObjectRen *RE_addRenderObject(struct Render *re, struct Object *ob, struct Object *par, int index, int psysindex);
-void RE_addRenderInstance(struct Render *re, struct ObjectRen *obr, struct Object *ob, struct Object *par, int index, int psysindex, float mat[][4]);
+struct ObjectInstanceRen *RE_addRenderInstance(struct Render *re, struct ObjectRen *obr, struct Object *ob, struct Object *par, int index, int psysindex, float mat[][4]);
 void RE_makeRenderInstances(struct Render *re);
 void RE_instanceTransformNormal(struct ObjectInstanceRen *obi, float *nor, float *tnor);
 

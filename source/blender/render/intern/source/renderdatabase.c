@@ -1261,7 +1261,7 @@ void project_renderdata(Render *re, void (*projectfunc)(float *, float mat[][4],
 
 /* ------------------------------------------------------------------------- */
 
-void RE_addRenderInstance(Render *re, ObjectRen *obr, Object *ob, Object *par, int index, int psysindex, float mat[][4])
+ObjectInstanceRen *RE_addRenderInstance(Render *re, ObjectRen *obr, Object *ob, Object *par, int index, int psysindex, float mat[][4])
 {
 	ObjectInstanceRen *obi;
 	float mat3[3][3];
@@ -1281,6 +1281,8 @@ void RE_addRenderInstance(Render *re, ObjectRen *obr, Object *ob, Object *par, i
 	}
 
 	BLI_addtail(&re->instancetable, obi);
+
+	return obi;
 }
 
 void RE_makeRenderInstances(Render *re)
