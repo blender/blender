@@ -180,7 +180,7 @@ typedef struct Global {
 #define G_DRAW_FACEAREA (1 << 23)
 #define G_DRAW_EDGEANG  (1 << 24)
 
-#define G_RECORDKEYS	(1 << 25)
+/* #define G_RECORDKEYS	(1 << 25)   also removed */
 /*#ifdef WITH_VERSE*/
 #define G_VERSE_CONNECTED  (1 << 26)
 #define G_DRAW_VERSE_DEBUG (1 << 27)
@@ -189,7 +189,7 @@ typedef struct Global {
 #define G_SCULPTMODE    (1 << 29)
 #define G_PARTICLEEDIT	(1 << 30)
 
-#define G_AUTOMATKEYS	(1 << 30)
+/* #define G_AUTOMATKEYS	(1 << 30)   also removed */
 #define G_HIDDENHANDLES (1 << 31) /* used for curves only */
 
 /* macro for testing face select mode

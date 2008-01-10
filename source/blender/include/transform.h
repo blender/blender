@@ -382,6 +382,7 @@ void special_aftertrans_update(TransInfo *t);
 void transform_autoik_update(TransInfo *t, short mode);
 
 /* auto-keying stuff used by special_aftertrans_update */
+short autokeyframe_cfra_can_key(struct Object *ob);
 void autokeyframe_ob_cb_func(struct Object *ob, int tmode);
 void autokeyframe_pose_cb_func(struct Object *ob, int tmode, short targetless_ik);
 

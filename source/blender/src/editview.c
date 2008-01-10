@@ -2636,7 +2636,7 @@ void fly(void)
 				G.vd->persp= 2;
 				
 				/* record the motion */
-				if (G.flags & G_RECORDKEYS && (!playing_anim || cfra != G.scene->r.cfra)) {
+				if (IS_AUTOKEY_MODE(NORMAL) && (!playing_anim || cfra != G.scene->r.cfra)) {
 					cfra = G.scene->r.cfra;
 					
 					if (xlock || zlock || moffset[0] || moffset[1]) {
@@ -2683,7 +2683,7 @@ void fly(void)
 		
 		DAG_object_flush_update(G.scene, G.vd->camera, OB_RECALC_OB);
 		
-		if (G.flags & G_RECORDKEYS) {
+		if (IS_AUTOKEY_MODE(NORMAL)) {
 			allqueue(REDRAWIPO, 0);
 			allspace(REMAKEIPO, 0);
 			allqueue(REDRAWNLA, 0);

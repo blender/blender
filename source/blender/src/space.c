@@ -3667,34 +3667,28 @@ void drawinfospace(ScrArea *sa, void *spacedata)
 		uiBlockEndAlign(block);
 
 
-		uiDefBut(block, LABEL,0,"Auto keyframe",
+		uiDefBut(block, LABEL,0,"Auto Keyframe",
 			(xpos+(2*edgsp)+(2*mpref)+midsp),y5label,mpref,buth,
 			0, 0, 0, 0, 0, "");
-
-		uiDefButBitI(block, TOG, G_RECORDKEYS, REDRAWTIME, "Action and Object", 
-					(xpos+edgsp+(2*mpref)+(2*midsp)),y4,mpref, buth,
-					 &(G.flags), 0, 0, 0, 0, "Automatic keyframe insertion in Object and Action Ipo curves");
+		uiDefButS(block, MENU, REDRAWTIME, 
+				"Auto-Keying Mode %t|No Auto-Keying %x0|Add/Replace Keys%x1|Replace Keys %x2", 
+				(xpos+edgsp+(2*mpref)+(2*midsp)),y4,mpref, buth, 
+				&(U.autokey_mode), 0, 1, 0, 0, 
+				"Automatic keyframe insertion for Objects and Bones");
 	
 		uiBlockBeginAlign(block);
-		uiDefButBitI(block, TOG, USER_KEYINSERTAVAI, REDRAWTIME, "Available", 
+		uiDefButBitS(block, TOG, AUTOKEY_FLAG_INSERTAVAIL, REDRAWTIME, "Available", 
 			(xpos+edgsp+(2*mpref)+(2*midsp)),y3,mpref, buth,
-			&(U.uiflag), 0, 0, 0, 0, "Automatic keyframe insertion in available curves");
+			&(U.autokey_flag), 0, 0, 0, 0, "Automatic keyframe insertion in available curves");
 			
-		uiDefButBitI(block, TOG, USER_KEYINSERTNEED, REDRAWTIME, "Needed", 
+		uiDefButBitS(block, TOG, AUTOKEY_FLAG_INSERTNEEDED, REDRAWTIME, "Needed", 
 			(xpos+edgsp+(2*mpref)+(2*midsp)),y2,mpref, buth,
-			&(U.uiflag), 0, 0, 0, 0, "Automatic keyframe insertion only when keyframe needed");
+			&(U.autokey_flag), 0, 0, 0, 0, "Automatic keyframe insertion only when keyframe needed");
 			
-		uiDefButBitI(block, TOG, G_AUTOMATKEYS, REDRAWTIME, "Use Visual Keying", 
+		uiDefButBitS(block, TOG, AUTOKEY_FLAG_AUTOMATKEY, REDRAWTIME, "Use Visual Keying", 
 			(xpos+edgsp+(2*mpref)+(2*midsp)),y1,mpref, buth,
-			 &(G.flags), 0, 0, 0, 0, "Use Visual keying automatically for constrained objects");
+			 &(U.autokey_flag), 0, 0, 0, 0, "Use Visual keying automatically for constrained objects");
 		uiBlockEndAlign(block);
-			
-/*		uiDefButBitS(block, TOG, USER_KEYINSERTACT, 0, "Action",
-			(xpos+edgsp+(2*mpref)+(2*midsp)),y2,(spref+edgsp),buth,
-			&(U.uiflag), 0, 0, 0, 0, "Automatic keyframe insertion in Action Ipo curve");
-		uiDefButBitS(block, TOG, USER_KEYINSERTOBJ, 0, "Object",
-			(xpos+edgsp+(2*mpref)+(3*midsp)+spref-edgsp),y2,(spref+edgsp),buth,
-			&(U.uiflag), 0, 0, 0, 0, "Automatic keyframe insertion in Object Ipo curve"); */
 
 
 		uiDefBut(block, LABEL,0,"Duplicate with object:",

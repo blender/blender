@@ -2533,7 +2533,7 @@ void insertkey(ID *id, int blocktype, char *actname, char *constname, int adrcod
 	int vartype;
 	int matset=0;
 	
-	if ((G.flags&G_AUTOMATKEYS)&&(match_adr_constraint(id, blocktype, actname, adrcode))) {
+	if ((IS_AUTOKEY_FLAG(AUTOMATKEY))&&(match_adr_constraint(id, blocktype, actname, adrcode))) {
 		matset=insertmatrixkey(id, blocktype, actname, constname, adrcode);
 	} 
 	if (matset==0) {

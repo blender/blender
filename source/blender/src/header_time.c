@@ -524,10 +524,13 @@ void time_buttons(ScrArea *sa)
 			xco, 0, XIC, YIC, 0, 0, 0, 0, 0, "Skip to End frame (Shift UpArrow)");
 	xco+= XIC+8;
 	
-	uiDefIconButBitI(block, TOG, G_RECORDKEYS, REDRAWINFO, ICON_REC,
-			xco, 0, XIC, YIC, &(G.flags), 0, 0, 0, 0, "Automatically insert keyframes in Object and Action Ipo curves");
+	// FIXME: give this icons (and maybe make it XIC wide again) - it used to use the "ICON_REC" (red dot)
+	uiDefButS(block, MENU, REDRAWINFO, 
+				"Auto-Keying Mode %t|No Auto-Keying %x0|Add/Replace Keys%x1|Replace Keys %x2", 
+				xco, 0, 4*XIC, YIC, &(U.autokey_mode), 0, 1, 0, 0, 
+				"Automatic keyframe insertion for Objects and Bones");
 	
-	xco+= XIC+16;
+	xco+= (4*XIC)+16;
 
 	uiDefIconButBitI(block, TOG, TIME_WITH_SEQ_AUDIO, B_DIFF, ICON_SPEAKER,
 					 xco, 0, XIC, YIC, &(stime->redraws), 0, 0, 0, 0, "Play back and sync with audio from Sequence Editor");

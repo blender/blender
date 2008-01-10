@@ -197,7 +197,10 @@ typedef struct UserDef {
 	short glreslimit;
 	char versemaster[160];
 	char verseuser[160];
-	float glalphaclip, pad;
+	float glalphaclip;
+	
+	short autokey_mode;		/* autokeying mode */
+	short autokey_flag;		/* flags for autokeying */
 	
 	struct ColorBand coba_weight;	/* from texture.h */
 } UserDef;
@@ -229,16 +232,14 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_ADD_VIEWALIGNED	(1 << 19)
 #define USER_ADD_VIEWALIGNED	(1 << 19)
 
-
 /* viewzom */
 #define USER_ZOOM_CONT			0
 #define USER_ZOOM_SCALE			1
 #define USER_ZOOM_DOLLY			2
 
 /* uiflag */
-
-#define	USER_KEYINSERTACT		(1 << 0)
-#define	USER_KEYINSERTOBJ		(1 << 1)
+// old flag for #define	USER_KEYINSERTACT		(1 << 0)
+// old flag for #define	USER_KEYINSERTOBJ		(1 << 1)
 #define USER_WHEELZOOMDIR		(1 << 2)
 #define USER_FILTERFILEEXTS		(1 << 3)
 #define USER_DRAWVIEWINFO		(1 << 4)
@@ -252,16 +253,33 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_LOCKAROUND     	(1 << 12)
 #define USER_GLOBALUNDO     	(1 << 13)
 #define USER_ORBIT_SELECTION	(1 << 14)
-#define USER_KEYINSERTAVAI		(1 << 15)
+// old flag for #define USER_KEYINSERTAVAI		(1 << 15)
 #define USER_HIDE_DOT			(1 << 16)
 #define USER_SHOW_ROTVIEWICON	(1 << 17)
 #define USER_SHOW_VIEWPORTNAME	(1 << 18)
-#define USER_KEYINSERTNEED		(1 << 19)
+// old flag for #define USER_KEYINSERTNEED		(1 << 19)
 #define USER_ZOOM_TO_MOUSEPOS	(1 << 20)
-#define USER_SHOW_FPS	(1 << 21)
+#define USER_SHOW_FPS			(1 << 21)
+
+/* Auto-Keying mode */
+enum {
+	AUTOKEY_MODE_OFF = 0,
+	AUTOKEY_MODE_NORMAL,
+	AUTOKEY_MODE_EDITKEYS
+} eAutoKeyframe_Mode;
+
+/* Auto-Keying flag */
+enum {
+	AUTOKEY_FLAG_INSERTAVAIL 	= (1<<0),
+	AUTOKEY_FLAG_INSERTNEEDED	= (1<<1),
+	AUTOKEY_FLAG_AUTOMATKEY		= (1<<2)
+} eAutoKeyframe_Flag;
+
+/* Auto-Keying macros */
+#define IS_AUTOKEY_MODE(mode) 	(U.autokey_mode == AUTOKEY_MODE_##mode)
+#define IS_AUTOKEY_FLAG(flag)	(U.autokey_flag == AUTOKEY_FLAG_##flag)
 
 /* transopts */
-
 #define	USER_TR_TOOLTIPS		(1 << 0)
 #define	USER_TR_BUTTONS			(1 << 1)
 #define USER_TR_MENUS			(1 << 2)
@@ -272,7 +290,6 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define CONVERT_TO_UTF8			(1 << 7)
 
 /* dupflag */
-
 #define USER_DUP_MESH			(1 << 0)
 #define USER_DUP_CURVE			(1 << 1)
 #define USER_DUP_SURF			(1 << 2)
@@ -286,13 +303,11 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define	USER_DUP_ACT			(1 << 10)
 
 /* gameflags */
-
 #define USER_VERTEX_ARRAYS		1
 #define USER_DISABLE_SOUND		2
 #define USER_DISABLE_MIPMAP		4
 
 /* vrml flag */
-
 #define USER_VRML_LAYERS		1
 #define USER_VRML_AUTOSCALE		2
 #define USER_VRML_TWOSIDED		4
