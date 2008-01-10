@@ -7270,6 +7270,10 @@ static void do_versions(FileData *fd, Library *lib, Main *main)
 				strip->scale = length / (repeat * actlength);
 				if (strip->scale == 0.0f) strip->scale= 1.0f;
 			}	
+			if(ob->soft){
+				ob->soft->inpush =  ob->soft->inspring;
+				ob->soft->shearstiff = 1.0f; 
+			}
 		}
 	}
 

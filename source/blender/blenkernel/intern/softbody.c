@@ -3622,7 +3622,7 @@ SoftBody *sbNew(void)
 	
 	sb->inspring= 0.5f;
 	sb->infrict= 0.5f; 
-	/*todo backward file compat should copy infrict to inpush while reading old files*/
+	/*todo backward file compat should copy inspring to inpush while reading old files*/
 	sb->inpush = 0.5f; 
 	
 	sb->interval= 10;
