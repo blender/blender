@@ -3510,6 +3510,8 @@ static void direct_link_windowmanager(FileData *fd, wmWindowManager *wm)
 	wm->windowkeymap.first= wm->windowkeymap.last= NULL;
 	wm->screenkeymap.first= wm->screenkeymap.last= NULL;
 	
+	wm->queue.first= wm->queue.last= NULL;
+	
 	wm->windrawable= NULL;
 	wm->initialized= 0;
 }
