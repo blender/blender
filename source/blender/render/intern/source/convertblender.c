@@ -4090,6 +4090,39 @@ static int allow_render_dupli_instance(Render *re, DupliObject *dob, Object *obd
 	        !(re->r.mode & R_RADIO));
 }
 
+static void dupli_render_particle_set(Render *re, Object *ob, int level, int enable)
+{
+	/* ugly function, but we need to set particle systems to their render
+	 * settings before calling object_duplilist, to get render level duplis */
+	Group *group;
+	GroupObject *go;
+	ParticleSystem *psys;
+
+	if(level >= MAX_DUPLI_RECUR)
+		return;
+	
+	if(ob->transflag & OB_DUPLIPARTS) {
+		DerivedMesh *dm;
+
+		for(psys=ob->particlesystem.first; psys; psys=psys->next)
+			if(enable)
+				psys_render_set(ob, psys, re->viewmat, re->winmat, re->winx, re->winy);
+			else
+				psys_render_restore(ob, psys);
+
+		if(enable) {
+			dm = mesh_create_derived_render(ob,	CD_MASK_BAREMESH|CD_MASK_MTFACE|CD_MASK_MCOL);
+			dm->release(dm);
+		}
+	}
+
+	if(ob->dup_group==NULL) return;
+	group= ob->dup_group;
+
+	for(go= group->gobject.first; go; go= go->next)
+		dupli_render_particle_set(re, go->ob, level+1, enable);
+}
+
 static void database_init_objects(Render *re, unsigned int lay, int nolamps, int onlyselected, Object *actob, int only_verts)
 {
 	Base *base;
@@ -4125,7 +4158,10 @@ static void database_init_objects(Render *re, unsigned int lay, int nolamps, int
 				DupliObject *dob;
 				ListBase *lb;
 
+				dupli_render_particle_set(re, ob, 0, 1);
 				lb= object_duplilist(sce, ob);
+				dupli_render_particle_set(re, ob, 0, 0);
+
 				for(dob= lb->first; dob; dob= dob->next) {
 					Object *obd= dob->ob;
 					

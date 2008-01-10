@@ -4280,7 +4280,7 @@ static void object_panel_particle_system(Object *ob)
 	short butx=0, buty=160, butw=150, buth=20;
 	char str[30];
 	static short partact;
-	short totpart;
+	short totpart, lock;
 
 	block= uiNewBlock(&curarea->uiblocks, "object_panel_particle_system", UI_EMBOSS, UI_HELV, curarea->win);
 	if(uiNewPanel(curarea, block, "Particle System", "Particle", 0, 0, 318, 204)==0) return;
@@ -4340,9 +4340,9 @@ static void object_panel_particle_system(Object *ob)
 		uiBlockEndAlign(block);
 	}
 
-	if(psys->flag & PSYS_EDITED || psys->flag & PSYS_PROTECT_CACHE) {
+	lock= (psys->flag & PSYS_EDITED || psys->flag & PSYS_PROTECT_CACHE);
+	if(lock)
 		uiSetButLock(1, "Hair is edited or cache is protected!");
-	}
 
 	uiDefButS(block, MENU, B_PARTTYPE, "Type%t|Hair%x2|Reactor%x1|Emitter%x0", 210,buty,100,buth, &part->type, 14.0, 0.0, 0, 0, "Type of particle system");
 
@@ -4388,15 +4388,20 @@ static void object_panel_particle_system(Object *ob)
 
 	uiDefBut(block, LABEL, 0, "Emit From:",							butx,buty,butw,buth, NULL, 0.0, 0, 0, 0, "");
 	uiBlockBeginAlign(block);
+
+	if(lock) uiClearButLock();
 	uiDefButBitI(block, TOG, PART_TRAND, B_PART_DISTR, "Random",	butx,(buty-=buth),butw/2,buth, &part->flag, 0, 0, 0, 0, "Emit in random order of elements");
-	
+	if(lock) uiSetButLock(1, "Hair is edited or cache is protected!");
+
 	if(part->type==PART_REACTOR)
 		uiDefButS(block, MENU, B_PART_DISTR, "Particle %x3|Volume %x2|Faces %x1|Verts %x0", butx+butw/2,buty,butw/2,buth, &part->from, 14.0, 0.0, 0, 0, "Where to emit particles from");
 	else
 		uiDefButS(block, MENU, B_PART_DISTR, "Volume %x2|Faces %x1|Verts%x0", butx+butw/2,buty,butw/2,buth, &part->from, 14.0, 0.0, 0, 0, "Where to emit particles from");
 
 	if(ELEM(part->from,PART_FROM_FACE,PART_FROM_VOLUME)) {
+		if(lock) uiClearButLock();
 		uiDefButBitI(block, TOG, PART_EDISTR, B_PART_DISTR, "Even",butx,(buty-=buth),butw/2,buth, &part->flag, 0, 0, 0, 0, "Use even distribution from faces based on face areas or edge lengths");
+		if(lock) uiSetButLock(1, "Hair is edited or cache is protected!");
 		uiDefButS(block, MENU, B_PART_DISTR, "Distribution %t|Grid%x2|Random%x1|Jittered%x0", butx+butw/2,buty,butw/2,buth, &part->distr, 14.0, 0.0, 0, 0, "How to distribute particles on selected element");
 		if(part->distr==PART_DISTR_JIT) {
 			uiDefButF(block, NUM, B_PART_DISTR, "Amount:",		butx,(buty-=buth),butw,buth, &part->jitfac, 0, 2.0, 1, 1, "Amount of jitter applied to the sampling");

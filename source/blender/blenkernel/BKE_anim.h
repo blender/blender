@@ -34,6 +34,8 @@
 #ifndef BKE_ANIM_H
 #define BKE_ANIM_H
 
+#define MAX_DUPLI_RECUR 4
+
 struct Path;
 struct Object;
 struct PartEff;

@@ -75,8 +75,6 @@
 #include <config.h>
 #endif
 
-#define MAX_DUPLI_RECUR 4
-
 static void object_duplilist_recursive(ID *id, Object *ob, ListBase *duplilist, float par_space_mat[][4], int level);
 
 void free_path(Path *path)
