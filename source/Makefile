@@ -85,7 +85,6 @@ GRPLIB += $(OCGDIR)/blender/render/$(DEBUG_DIR)librender.a
 GRPLIB += $(OCGDIR)/blender/radiosity/$(DEBUG_DIR)libradiosity.a
 GRPLIB += $(NAN_OPENNL)/lib/$(DEBUG_DIR)libopennl.a
 GRPLIB += $(NAN_SUPERLU)/lib/$(DEBUG_DIR)libsuperlu.a	
-GRPLIB += $(OCGDIR)/blender/python/$(DEBUG_DIR)libpython.a
 
 # nlin: the reason that some libraries appear more than once below is
 # to handle circular dependencies in linking among libraries... some
@@ -229,6 +228,8 @@ PULIB += $(OCGDIR)/blender/ed_screen/libed_screen.a
 PULIB += $(OCGDIR)/blender/ed_interface/libed_interface.a
 PULIB += $(OCGDIR)/blender/ed_view3d/libed_view3d.a
 PULIB += $(OCGDIR)/blender/windowmanager/libwindowmanager.a
+PULIB += $(OCGDIR)/blender/python/$(DEBUG_DIR)libpython.a
+
 
 ifeq ($(NAN_NO_KETSJI),true)
     PULIB += $(NAN_MOTO)/lib/libmoto.a

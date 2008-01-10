@@ -159,7 +159,7 @@ typedef struct wmOperator {
 	vec3i	veci;
 	float fac, deltaf;
 	int value, delta;
-
+	
 	/* custom storage, dna pointer */
 	void *customdata; 
 	/* or IDproperty list */
