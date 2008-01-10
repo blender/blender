@@ -142,6 +142,11 @@ static char *mapto_blendtype_pup(void)
 	str += sprintf(str, formatstr, "Darken", MTEX_DARK);
 	str += sprintf(str, formatstr, "Lighten", MTEX_LIGHT);
 
+	str += sprintf(str, formatstr, "Hue", MTEX_BLEND_HUE);
+	str += sprintf(str, formatstr, "Saturation", MTEX_BLEND_SAT);
+	str += sprintf(str, formatstr, "Value", MTEX_BLEND_VAL);
+	str += sprintf(str, formatstr, "Color", MTEX_BLEND_COLOR);
+	
 	return string;
 }
 

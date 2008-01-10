@@ -53,6 +53,7 @@
 
 #include "BKE_global.h"
 #include "BKE_main.h"
+#include "BKE_material.h"
 
 #include "BKE_library.h"
 #include "BKE_image.h"
@@ -1255,7 +1256,7 @@ void texture_rgb_blend(float *in, float *tex, float *out, float fact, float facg
 		in[1]= (fact*tex[1] + facm*out[1]);
 		in[2]= (fact*tex[2] + facm*out[2]);
 		break;
-
+		
 	case MTEX_MUL:
 		fact*= facg;
 		facm= 1.0-facg;
@@ -1343,9 +1344,28 @@ void texture_rgb_blend(float *in, float *tex, float *out, float fact, float facg
 		col= fact*tex[2];
 		if(col > out[2]) in[2]= col; else in[2]= out[2];
 		break;
+		
+	case MTEX_BLEND_HUE:
+		fact*= facg;
+		VECCOPY(in, out);
+		ramp_blend(MA_RAMP_HUE, in, in+1, in+2, fact, tex);
+		break;
+	case MTEX_BLEND_SAT:
+		fact*= facg;
+		VECCOPY(in, out);
+		ramp_blend(MA_RAMP_SAT, in, in+1, in+2, fact, tex);
+		break;
+	case MTEX_BLEND_VAL:
+		fact*= facg;
+		VECCOPY(in, out);
+		ramp_blend(MA_RAMP_VAL, in, in+1, in+2, fact, tex);
+		break;
+	case MTEX_BLEND_COLOR:
+		fact*= facg;
+		VECCOPY(in, out);
+		ramp_blend(MA_RAMP_COLOR, in, in+1, in+2, fact, tex);
+		break;
 	}
-
-
 }
 
 float texture_value_blend(float tex, float out, float fact, float facg, int blendtype, int flip)

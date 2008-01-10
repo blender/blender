@@ -365,6 +365,10 @@ typedef struct TexMapping {
 #define MTEX_LIGHT		7
 #define MTEX_SCREEN		8
 #define MTEX_OVERLAY	9
+#define MTEX_BLEND_HUE		10
+#define MTEX_BLEND_SAT		11
+#define MTEX_BLEND_VAL		12
+#define MTEX_BLEND_COLOR	13
 
 /* **************** EnvMap ********************* */
 
