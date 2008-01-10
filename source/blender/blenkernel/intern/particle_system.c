@@ -1138,7 +1138,7 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 		double step, pos;
 		
 		step= (totpart <= 1)? 0.5: 1.0/(totpart-1);
-		pos= 0.0f;
+		pos= 1e-16f; /* tiny offset to avoid zero weight face */
 		i= 0;
 
 		for(p=0; p<totpart; p++, pos+=step) {
@@ -1146,6 +1146,8 @@ int psys_threads_init_distribution(ParticleThread *threads, DerivedMesh *finaldm
 				i++;
 
 			index[p]= MIN2(tot-1, i);
+
+			/* avoid zero weight face */
 			if(p == totpart-1 && weight[index[p]] == 0.0f)
 				index[p]= index[p-1];
 
