@@ -262,18 +262,14 @@ extern UserDef U; /* from usiblender.c !!!! */
 #define USER_SHOW_FPS			(1 << 21)
 
 /* Auto-Keying mode */
-enum {
-	AUTOKEY_MODE_OFF = 0,
-	AUTOKEY_MODE_NORMAL,
-	AUTOKEY_MODE_EDITKEYS
-} eAutoKeyframe_Mode;
+#define		AUTOKEY_MODE_OFF		0
+#define		AUTOKEY_MODE_NORMAL		1
+#define		AUTOKEY_MODE_EDITKEYS	2
 
 /* Auto-Keying flag */
-enum {
-	AUTOKEY_FLAG_INSERTAVAIL 	= (1<<0),
-	AUTOKEY_FLAG_INSERTNEEDED	= (1<<1),
-	AUTOKEY_FLAG_AUTOMATKEY		= (1<<2)
-} eAutoKeyframe_Flag;
+#define		AUTOKEY_FLAG_INSERTAVAIL	(1<<0)
+#define		AUTOKEY_FLAG_INSERTNEEDED	(1<<1)
+#define		AUTOKEY_FLAG_AUTOMATKEY		(1<<2)
 
 /* Auto-Keying macros */
 #define IS_AUTOKEY_MODE(mode) 	(U.autokey_mode == AUTOKEY_MODE_##mode)
