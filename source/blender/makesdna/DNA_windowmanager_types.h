@@ -155,8 +155,8 @@ typedef struct wmOperator {
 	
 	/* default storage (lazy?) */
 	void *argv1, *argv2;
-	vec3f	vecf;
-	vec3i	veci;
+	vec4f	vecf;
+	vec4i	veci;
 	float fac, deltaf;
 	int value, delta;
 	
